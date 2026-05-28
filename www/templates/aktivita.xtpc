@@ -1,0 +1,287 @@
+<?php
+  class AktivitaTpl {
+    public $context = array();
+    public $dependencies = array("");
+    protected $buffer = array();
+    protected $current = "";        // currently buffered block
+    
+    function aktivita() {
+      if($this->current == "aktivita") {
+        if(@$this->buffer["aktivita"]) {
+          $out = $this->buffer["aktivita"] . ob_get_clean();
+          $this->buffer["aktivita"] = "";
+        } else {
+          $out = ob_get_clean();
+        }
+        $this->current = "";
+        return $out;
+      } else {
+        $out = @$this->buffer["aktivita"];
+        $this->buffer["aktivita"] = "";
+        return $out;
+      }
+    }
+
+    function parse_aktivita() {
+      if($this->current != "aktivita") {
+        if($this->current) @$this->buffer[$this->current] .= ob_get_clean();
+        ob_start();
+        $this->current = "aktivita";
+      }
+      ?><div class="aktivita">
+
+  <h1><?=@$this->context["nazev"]?></h1>
+  
+  <table class="hlavicka"><tr>
+    <td>
+      <div class="obalkaObrazku">
+        <div class="overlay"><div class="text"><?=@$this->context["nazev"]?></div></div>
+        <img src="<?=@$this->context["urlObrazku"]?>" alt="obrázek k aktivitě <?=@$this->context["nazev"]?>">
+      </div>
+    </td>
+    <td>
+      <table class="informace">
+        <?=$this->aktivita_org()?>
+        <tr>
+          <td colspan="2" style="font-weight: normal; width: auto">
+            <div style="width:89px;font-weight:bold;float:left">Čas konání:</div>
+            <div style="float:left">
+            <?=$this->aktivita_instance()?>
+            </div>
+            <div style="clear:both"></div>
+          </td>
+        </tr>
+        <?=$this->aktivita_cena()?>
+        <?=$this->aktivita_mojeCena()?>
+        <?=$this->aktivita_fixniCena()?>
+        <?=$this->aktivita_dalsiAktivityOrga()?>
+      </table>
+    </td>
+  </tr></table>
+
+  <?=$this->aktivita_vyberTeamu()?>
+  
+  <div>
+  <?=@$this->context["popis"]?>
+  </div>
+  
+  <!-- (ne)todo předchozí a další akce (v originále šlo o v menu abecedně předchozí a další, nikoli časově) -->
+
+</div><?php
+    }
+  
+    function aktivita_org() {
+      if($this->current == "aktivita_org") {
+        if(@$this->buffer["aktivita_org"]) {
+          $out = $this->buffer["aktivita_org"] . ob_get_clean();
+          $this->buffer["aktivita_org"] = "";
+        } else {
+          $out = ob_get_clean();
+        }
+        $this->current = "";
+        return $out;
+      } else {
+        $out = @$this->buffer["aktivita_org"];
+        $this->buffer["aktivita_org"] = "";
+        return $out;
+      }
+    }
+
+    function parse_aktivita_org() {
+      if($this->current != "aktivita_org") {
+        if($this->current) @$this->buffer[$this->current] .= ob_get_clean();
+        ob_start();
+        $this->current = "aktivita_org";
+      }
+      ?><tr>
+          <td colspan="2" style="font-weight: normal; width: auto">
+            <div style="width:89px;font-weight:bold;float:left"><?=@$this->context["titul_orga"]?>:</div>
+            <div style="float:left"><?=@$this->context["organizator"]?></div>
+            <div style="clear:both"></div>
+          </td>
+          <!-- <td><?=@$this->context["titul_orga"]?>:</td><td><?=@$this->context["organizator"]?></td> -->
+        </tr><?php
+    }
+  
+    function aktivita_instance() {
+      if($this->current == "aktivita_instance") {
+        if(@$this->buffer["aktivita_instance"]) {
+          $out = $this->buffer["aktivita_instance"] . ob_get_clean();
+          $this->buffer["aktivita_instance"] = "";
+        } else {
+          $out = ob_get_clean();
+        }
+        $this->current = "";
+        return $out;
+      } else {
+        $out = @$this->buffer["aktivita_instance"];
+        $this->buffer["aktivita_instance"] = "";
+        return $out;
+      }
+    }
+
+    function parse_aktivita_instance() {
+      if($this->current != "aktivita_instance") {
+        if($this->current) @$this->buffer[$this->current] .= ob_get_clean();
+        ob_start();
+        $this->current = "aktivita_instance";
+      }
+      ?><span class="<?=@$this->context["tridy"]?>"><?=@$this->context["cas"]?> <?=@$this->context["obsazenost"]?> <?=@$this->context["org"]?> <?=@$this->context["prihlasovatko"]?></span><br><?php
+    }
+  
+    function aktivita_cena() {
+      if($this->current == "aktivita_cena") {
+        if(@$this->buffer["aktivita_cena"]) {
+          $out = $this->buffer["aktivita_cena"] . ob_get_clean();
+          $this->buffer["aktivita_cena"] = "";
+        } else {
+          $out = ob_get_clean();
+        }
+        $this->current = "";
+        return $out;
+      } else {
+        $out = @$this->buffer["aktivita_cena"];
+        $this->buffer["aktivita_cena"] = "";
+        return $out;
+      }
+    }
+
+    function parse_aktivita_cena() {
+      if($this->current != "aktivita_cena") {
+        if($this->current) @$this->buffer[$this->current] .= ob_get_clean();
+        ob_start();
+        $this->current = "aktivita_cena";
+      }
+      ?><tr>
+          <td>
+            <span class="hinted">Cena:
+              <span class="hint">Cena je uvedena ve formátu pracující / student při včasné platbě. Je možné získat i výrazné další <b>slevy</b> podle přehledu <a href="ceny-slevy-placeni">cen a slev</a>. Při platbě po <?=@$this->context["rozhodneDatum"]?> bez slev je cena <?=@$this->context["zakladniCena"]?>.</span>
+            </span>
+          </td>
+          <td><?=@$this->context["cena"]?></td>
+        </tr><?php
+    }
+  
+    function aktivita_mojeCena() {
+      if($this->current == "aktivita_mojeCena") {
+        if(@$this->buffer["aktivita_mojeCena"]) {
+          $out = $this->buffer["aktivita_mojeCena"] . ob_get_clean();
+          $this->buffer["aktivita_mojeCena"] = "";
+        } else {
+          $out = ob_get_clean();
+        }
+        $this->current = "";
+        return $out;
+      } else {
+        $out = @$this->buffer["aktivita_mojeCena"];
+        $this->buffer["aktivita_mojeCena"] = "";
+        return $out;
+      }
+    }
+
+    function parse_aktivita_mojeCena() {
+      if($this->current != "aktivita_mojeCena") {
+        if($this->current) @$this->buffer[$this->current] .= ob_get_clean();
+        ob_start();
+        $this->current = "aktivita_mojeCena";
+      }
+      ?><tr>
+          <td>
+            <span class="hinted">Moje cena:
+              <span class="hint">Zobrazená cena platí pro tebe při použití všech slev, které máš nastavené v <a href="prihlaska">přihlášce</a>. Standardní cena je <b><?=@$this->context["stdCena"]?></b> (pro pracujícího / studenta) a řídí se podle <a href="ceny-slevy-placeni">cen a slev</a>.</span>
+            </span>
+          </td>
+          <td><?=@$this->context["cena"]?></td>
+        </tr><?php
+    }
+  
+    function aktivita_fixniCena() {
+      if($this->current == "aktivita_fixniCena") {
+        if(@$this->buffer["aktivita_fixniCena"]) {
+          $out = $this->buffer["aktivita_fixniCena"] . ob_get_clean();
+          $this->buffer["aktivita_fixniCena"] = "";
+        } else {
+          $out = ob_get_clean();
+        }
+        $this->current = "";
+        return $out;
+      } else {
+        $out = @$this->buffer["aktivita_fixniCena"];
+        $this->buffer["aktivita_fixniCena"] = "";
+        return $out;
+      }
+    }
+
+    function parse_aktivita_fixniCena() {
+      if($this->current != "aktivita_fixniCena") {
+        if($this->current) @$this->buffer[$this->current] .= ob_get_clean();
+        ob_start();
+        $this->current = "aktivita_fixniCena";
+      }
+      ?><tr>
+          <td>
+            <span class="hinted">Pevná cena:
+              <span class="hint">Zobrazená cena platí pro všechny stejně a nelze na ni uplatnit slevy.</span>
+            </span>
+          </td>
+          <td><?=@$this->context["cena"]?></td>
+        </tr><?php
+    }
+  
+    function aktivita_dalsiAktivityOrga() {
+      if($this->current == "aktivita_dalsiAktivityOrga") {
+        if(@$this->buffer["aktivita_dalsiAktivityOrga"]) {
+          $out = $this->buffer["aktivita_dalsiAktivityOrga"] . ob_get_clean();
+          $this->buffer["aktivita_dalsiAktivityOrga"] = "";
+        } else {
+          $out = ob_get_clean();
+        }
+        $this->current = "";
+        return $out;
+      } else {
+        $out = @$this->buffer["aktivita_dalsiAktivityOrga"];
+        $this->buffer["aktivita_dalsiAktivityOrga"] = "";
+        return $out;
+      }
+    }
+
+    function parse_aktivita_dalsiAktivityOrga() {
+      if($this->current != "aktivita_dalsiAktivityOrga") {
+        if($this->current) @$this->buffer[$this->current] .= ob_get_clean();
+        ob_start();
+        $this->current = "aktivita_dalsiAktivityOrga";
+      }
+      ?><tr><td>Další akce organizátora:</td><td><?=@$this->context["dalsiAktivityOrga"]?></td></tr><?php
+    }
+  
+    function aktivita_vyberTeamu() {
+      if($this->current == "aktivita_vyberTeamu") {
+        if(@$this->buffer["aktivita_vyberTeamu"]) {
+          $out = $this->buffer["aktivita_vyberTeamu"] . ob_get_clean();
+          $this->buffer["aktivita_vyberTeamu"] = "";
+        } else {
+          $out = ob_get_clean();
+        }
+        $this->current = "";
+        return $out;
+      } else {
+        $out = @$this->buffer["aktivita_vyberTeamu"];
+        $this->buffer["aktivita_vyberTeamu"] = "";
+        return $out;
+      }
+    }
+
+    function parse_aktivita_vyberTeamu() {
+      if($this->current != "aktivita_vyberTeamu") {
+        if($this->current) @$this->buffer[$this->current] .= ob_get_clean();
+        ob_start();
+        $this->current = "aktivita_vyberTeamu";
+      }
+      ?><div>
+    <strong>Výběr teamu:</strong> Aktivita je teamová a jako první přihlášený máš právo sestavit si team (družinu). Vyplň ID spoluhráčů, s kterými chceš hrát (můžeš použít i přezdívku nebo jméno, zobrazí se napovídací políčko). Po potvrzení budou automaticky přihlášeni a informováni mailem. Volná políčka se otevřou pro přihlášení komukoli, odebraná se trvale znepřístupní. Na vyplnění máš čas do následujícího rána, jinak tě aktivita sama odhlásí.<br>
+    <?=@$this->context["vyber"]?>
+  </div><?php
+    }
+  
+  }
+  

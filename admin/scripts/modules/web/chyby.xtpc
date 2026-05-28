@@ -1,0 +1,61 @@
+<?php
+  class ChybyTpl {
+    public $context = array();
+    public $dependencies = array("");
+    protected $buffer = array();
+    protected $current = "";        // currently buffered block
+    
+    function chyby() {
+      if($this->current == "chyby") {
+        if(@$this->buffer["chyby"]) {
+          $out = $this->buffer["chyby"] . ob_get_clean();
+          $this->buffer["chyby"] = "";
+        } else {
+          $out = ob_get_clean();
+        }
+        $this->current = "";
+        return $out;
+      } else {
+        $out = @$this->buffer["chyby"];
+        $this->buffer["chyby"] = "";
+        return $out;
+      }
+    }
+
+    function parse_chyby() {
+      if($this->current != "chyby") {
+        if($this->current) @$this->buffer[$this->current] .= ob_get_clean();
+        ob_start();
+        $this->current = "chyby";
+      }
+      ?><style> .chyba { margin: 16px 0; min-height: 60px; clear: both; } .chyba .vyskytu { width:60px; height:60px; border-radius:30px; line-height:60px; text-align:center; font-weight:normal; color:#fff; font-size:22px; float: left; } .chyba.z1 .vyskytu { background-color: #48d; } .chyba.z2 .vyskytu { /* background-color: #fa0; */ background-color: #48d; } .chyba.z3 .vyskytu { background-color: #f40; } .chyba.z4 .vyskytu { background-color: #f40; } .chyba .text { margin-left: 70px; } .chyba h2 { font-size: 14px; margin: 0; } .chyba form { float: right; margin-top: 18px; } .chyba:hover { background-color: #eee } .chyba .bubliny span { float: left; } .chyba .bubliny div { float: left; margin-left: 10px; margin-top: 4px; color: #fff; padding: 1px 5px; background-color: #ddd; border-radius: 5px; } .chyba a { text-decoration: none; color: #04f; } </style>  <?=$this->chyby_chyba()?><?php
+    }
+  
+    function chyby_chyba() {
+      if($this->current == "chyby_chyba") {
+        if(@$this->buffer["chyby_chyba"]) {
+          $out = $this->buffer["chyby_chyba"] . ob_get_clean();
+          $this->buffer["chyby_chyba"] = "";
+        } else {
+          $out = ob_get_clean();
+        }
+        $this->current = "";
+        return $out;
+      } else {
+        $out = @$this->buffer["chyby_chyba"];
+        $this->buffer["chyby_chyba"] = "";
+        return $out;
+      }
+    }
+
+    function parse_chyby_chyba() {
+      if($this->current != "chyby_chyba") {
+        if($this->current) @$this->buffer[$this->current] .= ob_get_clean();
+        ob_start();
+        $this->current = "chyby_chyba";
+      }
+      ?><div class="chyba z<?=@$this->context["zavaznost"]?>"> <div class="vyskytu"><?=@$this->context["vyskytu"]?></div> <form method="post"> <input type="hidden" name="vyresit" value="<?=@$this->context["zprava"]?>"> <input type="submit" value="Vyřešit"> </form> <div class="text"> <h2><?=@$this->context["zprava"]?></h2> <a href="<?=@$this->context["url"]?>" target="_blank"><?=@$this->context["url"]?></a><?=@$this->context["zdroj"]?><br> <div class="bubliny"> <span><?=@$this->context["soubor"]?>: <?=@$this->context["radek"]?></span> <div><?=@$this->context["jazyk"]?></div> <div><?=@$this->context["uzivatelu"]?></div> <div><?=@$this->context["posledni"]?></div> </div> </div> </div><?php
+    }
+  
+  }
+  

@@ -1,0 +1,38 @@
+<?php
+  class NeexistujiciTpl {
+    public $context = array();
+    public $dependencies = array("");
+    protected $buffer = array();
+    protected $current = "";        // currently buffered block
+    
+    function neexistujici() {
+      if($this->current == "neexistujici") {
+        if(@$this->buffer["neexistujici"]) {
+          $out = $this->buffer["neexistujici"] . ob_get_clean();
+          $this->buffer["neexistujici"] = "";
+        } else {
+          $out = ob_get_clean();
+        }
+        $this->current = "";
+        return $out;
+      } else {
+        $out = @$this->buffer["neexistujici"];
+        $this->buffer["neexistujici"] = "";
+        return $out;
+      }
+    }
+
+    function parse_neexistujici() {
+      if($this->current != "neexistujici") {
+        if($this->current) @$this->buffer[$this->current] .= ob_get_clean();
+        ob_start();
+        $this->current = "neexistujici";
+      }
+      ?><img src="files/styly/obecne/warning-big.png" alt="pozor" style="float:left;margin-right:16px">
+<h1 style="margin-top:6px">Požadovaná stránka neexistuje</h1>
+<p>Stránka <a href="<?=@$this->context["url"]?>"><?=@$this->context["url"]?></a>, kterou jste se pokoušeli zo&shy;bra&shy;zit, nee&shy;xi&shy;stu&shy;je. Dů&shy;vo&shy;dem mů&shy;že být překlep v adrese nebo zastaralý odkaz ve vyhledávači. Po&shy;kud vás sem do&shy;ve&shy;dl od&shy;kaz přímo na stránkách <a href="http://gamecon.cz">gamecon.cz</a>, kontaktujte prosím administrátora na <a href="mailto:admin@gamecon.cz">admin@gamecon.cz</a>. Děkujeme.</p>
+<p>Pokračovat můžete výberem z menu nebo přechodem na <a href="">úvodní stránku</a>.</p><?php
+    }
+  
+  }
+  

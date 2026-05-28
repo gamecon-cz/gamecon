@@ -1,0 +1,468 @@
+<?php
+  class MainTpl {
+    public $context = array();
+    public $dependencies = array("templates/uzivatel.xtpl","templates/menu.xtpl","templates/operator.xtpl","templates/mobmenu.xtpl","templates/zakazano.xtpl","templates/404.xtpl","templates/prihlaseni.xtpl","templates/paticka.xtpl");
+    protected $buffer = array();
+    protected $current = "";        // currently buffered block
+    
+    function all() {
+      if($this->current == "all") {
+        if(@$this->buffer["all"]) {
+          $out = $this->buffer["all"] . ob_get_clean();
+          $this->buffer["all"] = "";
+        } else {
+          $out = ob_get_clean();
+        }
+        $this->current = "";
+        return $out;
+      } else {
+        $out = @$this->buffer["all"];
+        $this->buffer["all"] = "";
+        return $out;
+      }
+    }
+
+    function parse_all() {
+      if($this->current != "all") {
+        if($this->current) @$this->buffer[$this->current] .= ob_get_clean();
+        ob_start();
+        $this->current = "all";
+      }
+      ?><!DOCTYPE html>
+<html>
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <meta name="viewport" content="width=device-width" />
+  <base href="<?=@$this->context["base"]?>">
+  <title><?=@$this->context["pageTitle"]?></title>
+  <link rel="shortcut icon" href="files/favicon.ico" />
+  <link rel="stylesheet" href="files/design/styl.css" />
+  <link rel="stylesheet" href="files/design/styl-uzky.css" media="(max-width: 550px)">
+  <link rel="stylesheet" href="files/design/ui-lightness/jquery-ui-1.10.3.custom.min.css" />
+  <script src="files/jquery-2.1.0.min.js"></script>
+  <?=@$this->context["jsVyjimkovac"]?>
+  <script src="files/jquery-ui-1.10.3.custom.min.js"></script>
+  <script src="files/jquery.hotkeys.js"></script>
+  <script src="files/jquery.serializeobject.js"></script>
+  <script src="files/aplikace.js"></script>
+  <script src="files/omnibox.js"></script>
+</head>
+<body>
+  <div class="obal">
+    <div class="sloupL">
+      <?=$this->all_uzivatel()?>
+
+      <div class="menu">
+  <?=$this->all_menuPolozka()?>
+</div>
+
+      <?=$this->all_operator()?>
+
+      <div class="mobmenu">
+<img src="files/design/android-dots.png">
+</div>
+<script>
+$('.mobmenu').click(function(){
+  $(this).parent().toggleClass('mobrozbal');
+});
+</script>
+
+    </div>
+    <div class="sloupR">
+      <div class="mobstin"></div>
+      <div class="main">
+        <?=$this->all_submenu()?>
+        <?=$this->all_zakazano()?>
+        <?=$this->all_nenalezeno()?>
+        <?=$this->all_prihlaseni()?>
+        <?=@$this->context["chyba"]?>
+        <?=@$this->context["obsahRetezec"]?>
+      </div>
+      <?=$this->all_paticka()?>
+
+    </div>
+  </div>
+</body>
+</html>
+<?php
+    }
+  
+    function all_uzivatel() {
+      if($this->current == "all_uzivatel") {
+        if(@$this->buffer["all_uzivatel"]) {
+          $out = $this->buffer["all_uzivatel"] . ob_get_clean();
+          $this->buffer["all_uzivatel"] = "";
+        } else {
+          $out = ob_get_clean();
+        }
+        $this->current = "";
+        return $out;
+      } else {
+        $out = @$this->buffer["all_uzivatel"];
+        $this->buffer["all_uzivatel"] = "";
+        return $out;
+      }
+    }
+
+    function parse_all_uzivatel() {
+      if($this->current != "all_uzivatel") {
+        if($this->current) @$this->buffer[$this->current] .= ob_get_clean();
+        ob_start();
+        $this->current = "all_uzivatel";
+      }
+      ?>
+<div class="uzivatel">
+  <?=$this->all_uzivatel_omnibox()?>
+  <?=$this->all_uzivatel_vybrany()?>
+</div>
+<?php
+    }
+  
+    function all_uzivatel_omnibox() {
+      if($this->current == "all_uzivatel_omnibox") {
+        if(@$this->buffer["all_uzivatel_omnibox"]) {
+          $out = $this->buffer["all_uzivatel_omnibox"] . ob_get_clean();
+          $this->buffer["all_uzivatel_omnibox"] = "";
+        } else {
+          $out = ob_get_clean();
+        }
+        $this->current = "";
+        return $out;
+      } else {
+        $out = @$this->buffer["all_uzivatel_omnibox"];
+        $this->buffer["all_uzivatel_omnibox"] = "";
+        return $out;
+      }
+    }
+
+    function parse_all_uzivatel_omnibox() {
+      if($this->current != "all_uzivatel_omnibox") {
+        if($this->current) @$this->buffer[$this->current] .= ob_get_clean();
+        ob_start();
+        $this->current = "all_uzivatel_omnibox";
+      }
+      ?>
+  <form method="post">
+    <input type="hidden" name="vybratUzivateleProPraci" value="1">
+    <input id="omnibox" class="omnibox autosubmit" type="text" name="id">
+  </form>
+  <div class="tip">↑ vyberte uživatele: napište pár písmen přezdívky, jména, příjmení nebo ID (alt+U)</div>
+  <?php
+    }
+  
+    function all_uzivatel_vybrany() {
+      if($this->current == "all_uzivatel_vybrany") {
+        if(@$this->buffer["all_uzivatel_vybrany"]) {
+          $out = $this->buffer["all_uzivatel_vybrany"] . ob_get_clean();
+          $this->buffer["all_uzivatel_vybrany"] = "";
+        } else {
+          $out = ob_get_clean();
+        }
+        $this->current = "";
+        return $out;
+      } else {
+        $out = @$this->buffer["all_uzivatel_vybrany"];
+        $this->buffer["all_uzivatel_vybrany"] = "";
+        return $out;
+      }
+    }
+
+    function parse_all_uzivatel_vybrany() {
+      if($this->current != "all_uzivatel_vybrany") {
+        if($this->current) @$this->buffer[$this->current] .= ob_get_clean();
+        ob_start();
+        $this->current = "all_uzivatel_vybrany";
+      }
+      ?>
+  <div class="detail">
+    <img class="avatar" src="<?=@$this->context["avatar"]?>">
+    <div class="nick" style="overflow-x:hidden"><h3><?=@$this->context["nick"]?></h3></div>
+    <?=@$this->context["jmeno"]?><br>
+    <div class="status"><?=@$this->context["status"]?></div>
+  </div>
+  <form method="post" id="zrusit" style="clear:both">
+    <input type="hidden" name="zrusitUzivateleProPraci" value="1">
+    <input type="submit" value="z̲rušit">
+    <!-- todo záporný zůstatek -->
+  </form>
+  <?php
+    }
+  
+    function all_menuPolozka() {
+      if($this->current == "all_menuPolozka") {
+        if(@$this->buffer["all_menuPolozka"]) {
+          $out = $this->buffer["all_menuPolozka"] . ob_get_clean();
+          $this->buffer["all_menuPolozka"] = "";
+        } else {
+          $out = ob_get_clean();
+        }
+        $this->current = "";
+        return $out;
+      } else {
+        $out = @$this->buffer["all_menuPolozka"];
+        $this->buffer["all_menuPolozka"] = "";
+        return $out;
+      }
+    }
+
+    function parse_all_menuPolozka() {
+      if($this->current != "all_menuPolozka") {
+        if($this->current) @$this->buffer[$this->current] .= ob_get_clean();
+        ob_start();
+        $this->current = "all_menuPolozka";
+      }
+      ?>
+  <div <?=@$this->context["aktivni"]?>>
+    <img class="horni roh" src="files/design/roh-horni.png">
+    <img class="dolni roh" src="files/design/roh-dolni.png">
+    <a href="<?=@$this->context["url"]?>"><img src="files/design/<?=@$this->context["url"]?>.png" /><?=@$this->context["nazev"]?></a>
+  </div>
+  <?php
+    }
+  
+    function all_operator() {
+      if($this->current == "all_operator") {
+        if(@$this->buffer["all_operator"]) {
+          $out = $this->buffer["all_operator"] . ob_get_clean();
+          $this->buffer["all_operator"] = "";
+        } else {
+          $out = ob_get_clean();
+        }
+        $this->current = "";
+        return $out;
+      } else {
+        $out = @$this->buffer["all_operator"];
+        $this->buffer["all_operator"] = "";
+        return $out;
+      }
+    }
+
+    function parse_all_operator() {
+      if($this->current != "all_operator") {
+        if($this->current) @$this->buffer[$this->current] .= ob_get_clean();
+        ob_start();
+        $this->current = "all_operator";
+      }
+      ?>
+<div class="operator">
+  <b>Přihlášen<?=@$this->context["a"]?> jako</b><br>
+  <?=@$this->context["operator"]?>
+  <form method="post">
+    <input type="submit" name="odhlasNAdm" value="Odhlásit" />
+  </form>
+</div>
+<?php
+    }
+  
+    function all_submenu() {
+      if($this->current == "all_submenu") {
+        if(@$this->buffer["all_submenu"]) {
+          $out = $this->buffer["all_submenu"] . ob_get_clean();
+          $this->buffer["all_submenu"] = "";
+        } else {
+          $out = ob_get_clean();
+        }
+        $this->current = "";
+        return $out;
+      } else {
+        $out = @$this->buffer["all_submenu"];
+        $this->buffer["all_submenu"] = "";
+        return $out;
+      }
+    }
+
+    function parse_all_submenu() {
+      if($this->current != "all_submenu") {
+        if($this->current) @$this->buffer[$this->current] .= ob_get_clean();
+        ob_start();
+        $this->current = "all_submenu";
+      }
+      ?>
+        <ul>
+          <?=$this->all_submenu_polozka()?>
+        </ul>
+        <?php
+    }
+  
+    function all_submenu_polozka() {
+      if($this->current == "all_submenu_polozka") {
+        if(@$this->buffer["all_submenu_polozka"]) {
+          $out = $this->buffer["all_submenu_polozka"] . ob_get_clean();
+          $this->buffer["all_submenu_polozka"] = "";
+        } else {
+          $out = ob_get_clean();
+        }
+        $this->current = "";
+        return $out;
+      } else {
+        $out = @$this->buffer["all_submenu_polozka"];
+        $this->buffer["all_submenu_polozka"] = "";
+        return $out;
+      }
+    }
+
+    function parse_all_submenu_polozka() {
+      if($this->current != "all_submenu_polozka") {
+        if($this->current) @$this->buffer[$this->current] .= ob_get_clean();
+        ob_start();
+        $this->current = "all_submenu_polozka";
+      }
+      ?><li><a href="<?=@$this->context["url"]?>"><?=@$this->context["nazev"]?></a></li><?php
+    }
+  
+    function all_zakazano() {
+      if($this->current == "all_zakazano") {
+        if(@$this->buffer["all_zakazano"]) {
+          $out = $this->buffer["all_zakazano"] . ob_get_clean();
+          $this->buffer["all_zakazano"] = "";
+        } else {
+          $out = ob_get_clean();
+        }
+        $this->current = "";
+        return $out;
+      } else {
+        $out = @$this->buffer["all_zakazano"];
+        $this->buffer["all_zakazano"] = "";
+        return $out;
+      }
+    }
+
+    function parse_all_zakazano() {
+      if($this->current != "all_zakazano") {
+        if($this->current) @$this->buffer[$this->current] .= ob_get_clean();
+        ob_start();
+        $this->current = "all_zakazano";
+      }
+      ?>Pro přístup k této stránce nemáš oprávnění.<?php
+    }
+  
+    function all_nenalezeno() {
+      if($this->current == "all_nenalezeno") {
+        if(@$this->buffer["all_nenalezeno"]) {
+          $out = $this->buffer["all_nenalezeno"] . ob_get_clean();
+          $this->buffer["all_nenalezeno"] = "";
+        } else {
+          $out = ob_get_clean();
+        }
+        $this->current = "";
+        return $out;
+      } else {
+        $out = @$this->buffer["all_nenalezeno"];
+        $this->buffer["all_nenalezeno"] = "";
+        return $out;
+      }
+    }
+
+    function parse_all_nenalezeno() {
+      if($this->current != "all_nenalezeno") {
+        if($this->current) @$this->buffer[$this->current] .= ob_get_clean();
+        ob_start();
+        $this->current = "all_nenalezeno";
+      }
+      ?>Stránka neexistuje<?php
+    }
+  
+    function all_prihlaseni() {
+      if($this->current == "all_prihlaseni") {
+        if(@$this->buffer["all_prihlaseni"]) {
+          $out = $this->buffer["all_prihlaseni"] . ob_get_clean();
+          $this->buffer["all_prihlaseni"] = "";
+        } else {
+          $out = ob_get_clean();
+        }
+        $this->current = "";
+        return $out;
+      } else {
+        $out = @$this->buffer["all_prihlaseni"];
+        $this->buffer["all_prihlaseni"] = "";
+        return $out;
+      }
+    }
+
+    function parse_all_prihlaseni() {
+      if($this->current != "all_prihlaseni") {
+        if($this->current) @$this->buffer[$this->current] .= ob_get_clean();
+        ob_start();
+        $this->current = "all_prihlaseni";
+      }
+      ?>Přihlášení<br><br>
+<form method="post">
+<table>
+<tr>
+  <td>Jméno:</td>
+  <td><input type="text" name="loginNAdm"></td>
+</tr>
+<tr>
+  <td>Heslo:</td>
+  <td><input type="password" name="hesloNAdm"></td>
+</tr>
+<tr>
+  <td colspan="2"><input type="submit" value="Přihlásit" style="width: 100%"></td>
+</tr>
+</table>
+</form>
+<?php
+    }
+  
+    function all_paticka() {
+      if($this->current == "all_paticka") {
+        if(@$this->buffer["all_paticka"]) {
+          $out = $this->buffer["all_paticka"] . ob_get_clean();
+          $this->buffer["all_paticka"] = "";
+        } else {
+          $out = ob_get_clean();
+        }
+        $this->current = "";
+        return $out;
+      } else {
+        $out = @$this->buffer["all_paticka"];
+        $this->buffer["all_paticka"] = "";
+        return $out;
+      }
+    }
+
+    function parse_all_paticka() {
+      if($this->current != "all_paticka") {
+        if($this->current) @$this->buffer[$this->current] .= ob_get_clean();
+        ob_start();
+        $this->current = "all_paticka";
+      }
+      ?>
+<div class="paticka">
+  <div class="obsah" id="bugreport">
+    <form method="post">
+      <table>
+        <tr>
+          <td>Co nefunguje:</td>
+          <td><input type="text" name="nazev" placeholder="(např. 'špatně se počítá sleva PJům')" style="width:400px"></td>
+        </tr>
+        <tr>
+          <td>Popis chyby:</td>
+          <td><textarea rows="4" name="popis" placeholder="(detailnější popis jak se chyba projevuje a jak by to mělo fungovat správně, např. 'pjům se počítá sleva za blok poloviční než má a nepočítá se jim jídlo zdarma')" style="width:400px"></textarea></td>
+        </tr>
+        <tr>
+          <td colspan="2">
+            <input type="submit" name="bugreport" value="Odeslat">
+          </td>
+        </tr>
+      </table>
+    </form>
+  </div>
+  <div class="nabidka">
+    <a href="#" onclick="$('#bugreport').slideToggle(); return false">Nahlásit chybu</a> –
+    <a href="program-obecny" target="_blank">Program GameConu</a> –
+    <a href="last-minute-tabule" target="_blank">Volná místa</a>
+    <!--
+    <a href="https://docs.google.com/document/d/1v3a4WR6EbtkZXKOjIewQGGazh5GF8qcc3Cv7XOqcAH4/edit#" target="_blank">Google Drive</a> –
+    <a href="https://teambox.com" target="_blank">Teambox</a>
+    -->
+    <div class="protip">
+      Protip: <?=@$this->context["protip"]?>
+    </div>
+  </div>
+</div>
+<?php
+    }
+  
+  }
+  

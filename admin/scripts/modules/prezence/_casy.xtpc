@@ -1,0 +1,128 @@
+<?php
+  class _casyTpl {
+    public $context = array();
+    public $dependencies = array("");
+    protected $buffer = array();
+    protected $current = "";        // currently buffered block
+    
+    function casy() {
+      if($this->current == "casy") {
+        if(@$this->buffer["casy"]) {
+          $out = $this->buffer["casy"] . ob_get_clean();
+          $this->buffer["casy"] = "";
+        } else {
+          $out = ob_get_clean();
+        }
+        $this->current = "";
+        return $out;
+      } else {
+        $out = @$this->buffer["casy"];
+        $this->buffer["casy"] = "";
+        return $out;
+      }
+    }
+
+    function parse_casy() {
+      if($this->current != "casy") {
+        if($this->current) @$this->buffer[$this->current] .= ob_get_clean();
+        ob_start();
+        $this->current = "casy";
+      }
+      ?>
+<div style="position: relative">
+<div style="position: absolute; right: 0px; bottom: 5px; text-align: right">
+  Stránka načtena <?=@$this->context["datum"]?> v <?=@$this->context["casAktualni"]?><br />
+  <?=$this->casy_casMan()?>
+  <?=$this->casy_casAuto()?>
+  Zobrazují se aktivity začínající od
+  <form method="get" style="display: inline" id="cas">
+    <select name="cas" onchange="$('#cas').submit()" style="margin-right:0">
+      <option value="">(zvolte čas)</option>
+      <?=$this->casy_cas()?>
+    </select>
+  </form>
+</div>
+</div>
+<?php
+    }
+  
+    function casy_casMan() {
+      if($this->current == "casy_casMan") {
+        if(@$this->buffer["casy_casMan"]) {
+          $out = $this->buffer["casy_casMan"] . ob_get_clean();
+          $this->buffer["casy_casMan"] = "";
+        } else {
+          $out = ob_get_clean();
+        }
+        $this->current = "";
+        return $out;
+      } else {
+        $out = @$this->buffer["casy_casMan"];
+        $this->buffer["casy_casMan"] = "";
+        return $out;
+      }
+    }
+
+    function parse_casy_casMan() {
+      if($this->current != "casy_casMan") {
+        if($this->current) @$this->buffer[$this->current] .= ob_get_clean();
+        ob_start();
+        $this->current = "casy_casMan";
+      }
+      ?>Čas vybrán manuálně (<a href="prezence">vybrat automaticky</a>)<br /><?php
+    }
+  
+    function casy_casAuto() {
+      if($this->current == "casy_casAuto") {
+        if(@$this->buffer["casy_casAuto"]) {
+          $out = $this->buffer["casy_casAuto"] . ob_get_clean();
+          $this->buffer["casy_casAuto"] = "";
+        } else {
+          $out = ob_get_clean();
+        }
+        $this->current = "";
+        return $out;
+      } else {
+        $out = @$this->buffer["casy_casAuto"];
+        $this->buffer["casy_casAuto"] = "";
+        return $out;
+      }
+    }
+
+    function parse_casy_casAuto() {
+      if($this->current != "casy_casAuto") {
+        if($this->current) @$this->buffer[$this->current] .= ob_get_clean();
+        ob_start();
+        $this->current = "casy_casAuto";
+      }
+      ?>Čas vybrán automaticky<br /><?php
+    }
+  
+    function casy_cas() {
+      if($this->current == "casy_cas") {
+        if(@$this->buffer["casy_cas"]) {
+          $out = $this->buffer["casy_cas"] . ob_get_clean();
+          $this->buffer["casy_cas"] = "";
+        } else {
+          $out = ob_get_clean();
+        }
+        $this->current = "";
+        return $out;
+      } else {
+        $out = @$this->buffer["casy_cas"];
+        $this->buffer["casy_cas"] = "";
+        return $out;
+      }
+    }
+
+    function parse_casy_cas() {
+      if($this->current != "casy_cas") {
+        if($this->current) @$this->buffer[$this->current] .= ob_get_clean();
+        ob_start();
+        $this->current = "casy_cas";
+      }
+      ?><option <?=@$this->context["sel"]?> value="<?=@$this->context["val"]?>"><?=@$this->context["cas"]?></option><?php
+    }
+  
+  }
+  

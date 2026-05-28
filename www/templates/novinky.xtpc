@@ -1,0 +1,62 @@
+<?php
+  class NovinkyTpl {
+    public $context = array();
+    public $dependencies = array("");
+    protected $buffer = array();
+    protected $current = "";        // currently buffered block
+    
+    function novinky() {
+      if($this->current == "novinky") {
+        if(@$this->buffer["novinky"]) {
+          $out = $this->buffer["novinky"] . ob_get_clean();
+          $this->buffer["novinky"] = "";
+        } else {
+          $out = ob_get_clean();
+        }
+        $this->current = "";
+        return $out;
+      } else {
+        $out = @$this->buffer["novinky"];
+        $this->buffer["novinky"] = "";
+        return $out;
+      }
+    }
+
+    function parse_novinky() {
+      if($this->current != "novinky") {
+        if($this->current) @$this->buffer[$this->current] .= ob_get_clean();
+        ob_start();
+        $this->current = "novinky";
+      }
+      ?><h1>Novinky</h1>
+  <?=$this->novinky_novinka()?><?php
+    }
+  
+    function novinky_novinka() {
+      if($this->current == "novinky_novinka") {
+        if(@$this->buffer["novinky_novinka"]) {
+          $out = $this->buffer["novinky_novinka"] . ob_get_clean();
+          $this->buffer["novinky_novinka"] = "";
+        } else {
+          $out = ob_get_clean();
+        }
+        $this->current = "";
+        return $out;
+      } else {
+        $out = @$this->buffer["novinky_novinka"];
+        $this->buffer["novinky_novinka"] = "";
+        return $out;
+      }
+    }
+
+    function parse_novinky_novinka() {
+      if($this->current != "novinky_novinka") {
+        if($this->current) @$this->buffer[$this->current] .= ob_get_clean();
+        ob_start();
+        $this->current = "novinky_novinka";
+      }
+      ?><?=@$this->context["obsah"]?><?php
+    }
+  
+  }
+  

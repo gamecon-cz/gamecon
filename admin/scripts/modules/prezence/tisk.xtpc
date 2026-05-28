@@ -1,0 +1,260 @@
+<?php
+  class TiskTpl {
+    public $context = array();
+    public $dependencies = array("");
+    protected $buffer = array();
+    protected $current = "";        // currently buffered block
+    
+    function tisk() {
+      if($this->current == "tisk") {
+        if(@$this->buffer["tisk"]) {
+          $out = $this->buffer["tisk"] . ob_get_clean();
+          $this->buffer["tisk"] = "";
+        } else {
+          $out = ob_get_clean();
+        }
+        $this->current = "";
+        return $out;
+      } else {
+        $out = @$this->buffer["tisk"];
+        $this->buffer["tisk"] = "";
+        return $out;
+      }
+    }
+
+    function parse_tisk() {
+      if($this->current != "tisk") {
+        if($this->current) @$this->buffer[$this->current] .= ob_get_clean();
+        ob_start();
+        $this->current = "tisk";
+      }
+      ?>
+
+<div><?=@$this->context["casy"]?></div>
+
+<h2>Tisk prezenčních listů</h2>
+
+<?=$this->tisk_aktivity()?>
+
+<?=$this->tisk_zadneAktivity()?>
+
+<?=$this->tisk_nevybrano()?>
+
+<?php
+    }
+  
+    function tisk_aktivity() {
+      if($this->current == "tisk_aktivity") {
+        if(@$this->buffer["tisk_aktivity"]) {
+          $out = $this->buffer["tisk_aktivity"] . ob_get_clean();
+          $this->buffer["tisk_aktivity"] = "";
+        } else {
+          $out = ob_get_clean();
+        }
+        $this->current = "";
+        return $out;
+      } else {
+        $out = @$this->buffer["tisk_aktivity"];
+        $this->buffer["tisk_aktivity"] = "";
+        return $out;
+      }
+    }
+
+    function parse_tisk_aktivity() {
+      if($this->current != "tisk_aktivity") {
+        if($this->current) @$this->buffer[$this->current] .= ob_get_clean();
+        ob_start();
+        $this->current = "tisk_aktivity";
+      }
+      ?>
+
+<p>Před uzavřením prosím zkontroluj, že u aktivity není uvedený žádný problém. Pokud někteří účastníci neprošli infopultem, zkus jim zavolat a přivolat je k infopultu nebo odhlásit z aktivity, pokud se nedovoláš nebo zjistíš, že na GC nedojdou. Tlačítko pro tisk najdeš dole.</p>
+
+<p>Následující aktivity budou uzavřeny pro online přihlašování a vytištěny: 
+  <table>
+    <tr>
+      <th>Název</th>
+      <th>Čas</th>
+      <th colspan="2">Problémy</th>
+    </tr>
+    <?=$this->tisk_aktivity_aktivita()?>
+  </table>
+</p>
+<p><input type="button" onclick="window.open('prezence-tisk?ids=<?=@$this->context["ids"]?>')" value="Uzavřít pro přihlašování a vytisknout"></p>
+<?php
+    }
+  
+    function tisk_aktivity_aktivita() {
+      if($this->current == "tisk_aktivity_aktivita") {
+        if(@$this->buffer["tisk_aktivity_aktivita"]) {
+          $out = $this->buffer["tisk_aktivity_aktivita"] . ob_get_clean();
+          $this->buffer["tisk_aktivity_aktivita"] = "";
+        } else {
+          $out = ob_get_clean();
+        }
+        $this->current = "";
+        return $out;
+      } else {
+        $out = @$this->buffer["tisk_aktivity_aktivita"];
+        $this->buffer["tisk_aktivity_aktivita"] = "";
+        return $out;
+      }
+    }
+
+    function parse_tisk_aktivity_aktivita() {
+      if($this->current != "tisk_aktivity_aktivita") {
+        if($this->current) @$this->buffer[$this->current] .= ob_get_clean();
+        ob_start();
+        $this->current = "tisk_aktivity_aktivita";
+      }
+      ?>
+    <tr>
+      <td><?=@$this->context["a"]->nazev()?></td>
+      <td><?=@$this->context["a"]->denCas()?></td>
+      <td>
+        <?=$this->tisk_aktivity_aktivita_ok()?>
+        <?=$this->tisk_aktivity_aktivita_problem()?>
+      </td>
+      <td>
+        <?=$this->tisk_aktivity_aktivita_nepritomen()?>
+      </td>
+    </tr>
+    <?php
+    }
+  
+    function tisk_aktivity_aktivita_ok() {
+      if($this->current == "tisk_aktivity_aktivita_ok") {
+        if(@$this->buffer["tisk_aktivity_aktivita_ok"]) {
+          $out = $this->buffer["tisk_aktivity_aktivita_ok"] . ob_get_clean();
+          $this->buffer["tisk_aktivity_aktivita_ok"] = "";
+        } else {
+          $out = ob_get_clean();
+        }
+        $this->current = "";
+        return $out;
+      } else {
+        $out = @$this->buffer["tisk_aktivity_aktivita_ok"];
+        $this->buffer["tisk_aktivity_aktivita_ok"] = "";
+        return $out;
+      }
+    }
+
+    function parse_tisk_aktivity_aktivita_ok() {
+      if($this->current != "tisk_aktivity_aktivita_ok") {
+        if($this->current) @$this->buffer[$this->current] .= ob_get_clean();
+        ob_start();
+        $this->current = "tisk_aktivity_aktivita_ok";
+      }
+      ?><img src="files/design/ok-s.png" style="margin-bottom:-1px"><?php
+    }
+  
+    function tisk_aktivity_aktivita_problem() {
+      if($this->current == "tisk_aktivity_aktivita_problem") {
+        if(@$this->buffer["tisk_aktivity_aktivita_problem"]) {
+          $out = $this->buffer["tisk_aktivity_aktivita_problem"] . ob_get_clean();
+          $this->buffer["tisk_aktivity_aktivita_problem"] = "";
+        } else {
+          $out = ob_get_clean();
+        }
+        $this->current = "";
+        return $out;
+      } else {
+        $out = @$this->buffer["tisk_aktivity_aktivita_problem"];
+        $this->buffer["tisk_aktivity_aktivita_problem"] = "";
+        return $out;
+      }
+    }
+
+    function parse_tisk_aktivity_aktivita_problem() {
+      if($this->current != "tisk_aktivity_aktivita_problem") {
+        if($this->current) @$this->buffer[$this->current] .= ob_get_clean();
+        ob_start();
+        $this->current = "tisk_aktivity_aktivita_problem";
+      }
+      ?><img src="files/design/error-s.png" style="margin-bottom:-1px"><?php
+    }
+  
+    function tisk_aktivity_aktivita_nepritomen() {
+      if($this->current == "tisk_aktivity_aktivita_nepritomen") {
+        if(@$this->buffer["tisk_aktivity_aktivita_nepritomen"]) {
+          $out = $this->buffer["tisk_aktivity_aktivita_nepritomen"] . ob_get_clean();
+          $this->buffer["tisk_aktivity_aktivita_nepritomen"] = "";
+        } else {
+          $out = ob_get_clean();
+        }
+        $this->current = "";
+        return $out;
+      } else {
+        $out = @$this->buffer["tisk_aktivity_aktivita_nepritomen"];
+        $this->buffer["tisk_aktivity_aktivita_nepritomen"] = "";
+        return $out;
+      }
+    }
+
+    function parse_tisk_aktivity_aktivita_nepritomen() {
+      if($this->current != "tisk_aktivity_aktivita_nepritomen") {
+        if($this->current) @$this->buffer[$this->current] .= ob_get_clean();
+        ob_start();
+        $this->current = "tisk_aktivity_aktivita_nepritomen";
+      }
+      ?>Není na GC: <?=@$this->context["u"]->jmenoNick()?> (<?=@$this->context["u"]->telefon()?>)<br><?php
+    }
+  
+    function tisk_zadneAktivity() {
+      if($this->current == "tisk_zadneAktivity") {
+        if(@$this->buffer["tisk_zadneAktivity"]) {
+          $out = $this->buffer["tisk_zadneAktivity"] . ob_get_clean();
+          $this->buffer["tisk_zadneAktivity"] = "";
+        } else {
+          $out = ob_get_clean();
+        }
+        $this->current = "";
+        return $out;
+      } else {
+        $out = @$this->buffer["tisk_zadneAktivity"];
+        $this->buffer["tisk_zadneAktivity"] = "";
+        return $out;
+      }
+    }
+
+    function parse_tisk_zadneAktivity() {
+      if($this->current != "tisk_zadneAktivity") {
+        if($this->current) @$this->buffer[$this->current] .= ob_get_clean();
+        ob_start();
+        $this->current = "tisk_zadneAktivity";
+      }
+      ?>
+(žádné aktivity k vytištění)
+<?php
+    }
+  
+    function tisk_nevybrano() {
+      if($this->current == "tisk_nevybrano") {
+        if(@$this->buffer["tisk_nevybrano"]) {
+          $out = $this->buffer["tisk_nevybrano"] . ob_get_clean();
+          $this->buffer["tisk_nevybrano"] = "";
+        } else {
+          $out = ob_get_clean();
+        }
+        $this->current = "";
+        return $out;
+      } else {
+        $out = @$this->buffer["tisk_nevybrano"];
+        $this->buffer["tisk_nevybrano"] = "";
+        return $out;
+      }
+    }
+
+    function parse_tisk_nevybrano() {
+      if($this->current != "tisk_nevybrano") {
+        if($this->current) @$this->buffer[$this->current] .= ob_get_clean();
+        ob_start();
+        $this->current = "tisk_nevybrano";
+      }
+      ?>
+<p>Není vybrán blok, který se má zobrazit. Vyberte vpravo nahoře.</p>
+<?php
+    }
+  
+  }
+  

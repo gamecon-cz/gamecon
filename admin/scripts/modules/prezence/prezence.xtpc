@@ -1,0 +1,391 @@
+<?php
+  class PrezenceTpl {
+    public $context = array();
+    public $dependencies = array("");
+    protected $buffer = array();
+    protected $current = "";        // currently buffered block
+    
+    function prezence() {
+      if($this->current == "prezence") {
+        if(@$this->buffer["prezence"]) {
+          $out = $this->buffer["prezence"] . ob_get_clean();
+          $this->buffer["prezence"] = "";
+        } else {
+          $out = ob_get_clean();
+        }
+        $this->current = "";
+        return $out;
+      } else {
+        $out = @$this->buffer["prezence"];
+        $this->buffer["prezence"] = "";
+        return $out;
+      }
+    }
+
+    function parse_prezence() {
+      if($this->current != "prezence") {
+        if($this->current) @$this->buffer[$this->current] .= ob_get_clean();
+        ob_start();
+        $this->current = "prezence";
+      }
+      ?>
+
+<script src="files/prezence.js"></script>
+
+<div class="prezence">
+
+<div><?=@$this->context["casy"]?></div>
+
+<?=$this->prezence_aktivita()?>
+
+<?=$this->prezence_zadnaAktivita()?>
+
+<?=$this->prezence_nevybrano()?>
+
+</div>
+
+<?php
+    }
+  
+    function prezence_aktivita() {
+      if($this->current == "prezence_aktivita") {
+        if(@$this->buffer["prezence_aktivita"]) {
+          $out = $this->buffer["prezence_aktivita"] . ob_get_clean();
+          $this->buffer["prezence_aktivita"] = "";
+        } else {
+          $out = ob_get_clean();
+        }
+        $this->current = "";
+        return $out;
+      } else {
+        $out = @$this->buffer["prezence_aktivita"];
+        $this->buffer["prezence_aktivita"] = "";
+        return $out;
+      }
+    }
+
+    function parse_prezence_aktivita() {
+      if($this->current != "prezence_aktivita") {
+        if($this->current) @$this->buffer[$this->current] .= ob_get_clean();
+        ob_start();
+        $this->current = "prezence_aktivita";
+      }
+      ?>
+<div class="blokAktivita" data-id="<?=@$this->context["a"]->id()?>">
+
+  <?=$this->prezence_aktivita_form()?>
+
+  <?=$this->prezence_aktivita_vyplnena()?>
+
+  <?=$this->prezence_aktivita_nezamknuta()?>
+
+</div>
+<?php
+    }
+  
+    function prezence_aktivita_form() {
+      if($this->current == "prezence_aktivita_form") {
+        if(@$this->buffer["prezence_aktivita_form"]) {
+          $out = $this->buffer["prezence_aktivita_form"] . ob_get_clean();
+          $this->buffer["prezence_aktivita_form"] = "";
+        } else {
+          $out = ob_get_clean();
+        }
+        $this->current = "";
+        return $out;
+      } else {
+        $out = @$this->buffer["prezence_aktivita_form"];
+        $this->buffer["prezence_aktivita_form"] = "";
+        return $out;
+      }
+    }
+
+    function parse_prezence_aktivita_form() {
+      if($this->current != "prezence_aktivita_form") {
+        if($this->current) @$this->buffer[$this->current] .= ob_get_clean();
+        ob_start();
+        $this->current = "prezence_aktivita_form";
+      }
+      ?>
+  <form class="formAktivita">
+    <h2><?=@$this->context["a"]->nazev()?> – <?=@$this->context["a"]->orgJmena()?> – <?=@$this->context["a"]->lokace()?></h2>
+    <!-- <input type="hidden" name="kapacita_celkova" value="{}" /> --><!-- TODO kapacita -->
+    <input type="hidden" name="prezenceAktivity" value="<?=@$this->context["a"]->id()?>" />
+    <table class="ucastnici zvyraznovana">
+      <tr>
+        <th><span class="hinted">?<span class="hint">
+          Jestli je uživatel přítomen v tomto okamžiku na GC (prošel infopultem)</span></span></th>
+        <th>ID</th>
+        <th>Jméno</th>
+        <th>Telefon</th>
+        <th></th>
+      </tr>
+      <?=$this->prezence_aktivita_form_ucastnik()?>
+      <?=$this->prezence_aktivita_form_submit()?>
+    </table>
+  </form>
+  <?php
+    }
+  
+    function prezence_aktivita_form_ucastnik() {
+      if($this->current == "prezence_aktivita_form_ucastnik") {
+        if(@$this->buffer["prezence_aktivita_form_ucastnik"]) {
+          $out = $this->buffer["prezence_aktivita_form_ucastnik"] . ob_get_clean();
+          $this->buffer["prezence_aktivita_form_ucastnik"] = "";
+        } else {
+          $out = ob_get_clean();
+        }
+        $this->current = "";
+        return $out;
+      } else {
+        $out = @$this->buffer["prezence_aktivita_form_ucastnik"];
+        $this->buffer["prezence_aktivita_form_ucastnik"] = "";
+        return $out;
+      }
+    }
+
+    function parse_prezence_aktivita_form_ucastnik() {
+      if($this->current != "prezence_aktivita_form_ucastnik") {
+        if($this->current) @$this->buffer[$this->current] .= ob_get_clean();
+        ob_start();
+        $this->current = "prezence_aktivita_form_ucastnik";
+      }
+      ?>
+      <tr>
+        <td>
+          <?=$this->prezence_aktivita_form_ucastnik_pritomen()?>
+          <?=$this->prezence_aktivita_form_ucastnik_nepritomen()?>
+        </td>
+        <td><?=@$this->context["u"]->id()?></td>
+        <td><?=@$this->context["u"]->jmenoNick()?></td>
+        <td><?=@$this->context["u"]->telefon()?></td>
+        <td><?=$this->prezence_aktivita_form_ucastnik_checkbox()?></td>
+      </tr>
+      <?php
+    }
+  
+    function prezence_aktivita_form_ucastnik_pritomen() {
+      if($this->current == "prezence_aktivita_form_ucastnik_pritomen") {
+        if(@$this->buffer["prezence_aktivita_form_ucastnik_pritomen"]) {
+          $out = $this->buffer["prezence_aktivita_form_ucastnik_pritomen"] . ob_get_clean();
+          $this->buffer["prezence_aktivita_form_ucastnik_pritomen"] = "";
+        } else {
+          $out = ob_get_clean();
+        }
+        $this->current = "";
+        return $out;
+      } else {
+        $out = @$this->buffer["prezence_aktivita_form_ucastnik_pritomen"];
+        $this->buffer["prezence_aktivita_form_ucastnik_pritomen"] = "";
+        return $out;
+      }
+    }
+
+    function parse_prezence_aktivita_form_ucastnik_pritomen() {
+      if($this->current != "prezence_aktivita_form_ucastnik_pritomen") {
+        if($this->current) @$this->buffer[$this->current] .= ob_get_clean();
+        ob_start();
+        $this->current = "prezence_aktivita_form_ucastnik_pritomen";
+      }
+      ?><img src="files/design/ok-s.png" style="margin-bottom:-1px"><?php
+    }
+  
+    function prezence_aktivita_form_ucastnik_nepritomen() {
+      if($this->current == "prezence_aktivita_form_ucastnik_nepritomen") {
+        if(@$this->buffer["prezence_aktivita_form_ucastnik_nepritomen"]) {
+          $out = $this->buffer["prezence_aktivita_form_ucastnik_nepritomen"] . ob_get_clean();
+          $this->buffer["prezence_aktivita_form_ucastnik_nepritomen"] = "";
+        } else {
+          $out = ob_get_clean();
+        }
+        $this->current = "";
+        return $out;
+      } else {
+        $out = @$this->buffer["prezence_aktivita_form_ucastnik_nepritomen"];
+        $this->buffer["prezence_aktivita_form_ucastnik_nepritomen"] = "";
+        return $out;
+      }
+    }
+
+    function parse_prezence_aktivita_form_ucastnik_nepritomen() {
+      if($this->current != "prezence_aktivita_form_ucastnik_nepritomen") {
+        if($this->current) @$this->buffer[$this->current] .= ob_get_clean();
+        ob_start();
+        $this->current = "prezence_aktivita_form_ucastnik_nepritomen";
+      }
+      ?><img src="files/design/error-s.png" style="margin-bottom:-1px"><?php
+    }
+  
+    function prezence_aktivita_form_ucastnik_checkbox() {
+      if($this->current == "prezence_aktivita_form_ucastnik_checkbox") {
+        if(@$this->buffer["prezence_aktivita_form_ucastnik_checkbox"]) {
+          $out = $this->buffer["prezence_aktivita_form_ucastnik_checkbox"] . ob_get_clean();
+          $this->buffer["prezence_aktivita_form_ucastnik_checkbox"] = "";
+        } else {
+          $out = ob_get_clean();
+        }
+        $this->current = "";
+        return $out;
+      } else {
+        $out = @$this->buffer["prezence_aktivita_form_ucastnik_checkbox"];
+        $this->buffer["prezence_aktivita_form_ucastnik_checkbox"] = "";
+        return $out;
+      }
+    }
+
+    function parse_prezence_aktivita_form_ucastnik_checkbox() {
+      if($this->current != "prezence_aktivita_form_ucastnik_checkbox") {
+        if($this->current) @$this->buffer[$this->current] .= ob_get_clean();
+        ob_start();
+        $this->current = "prezence_aktivita_form_ucastnik_checkbox";
+      }
+      ?><input type="checkbox" name="dorazil[<?=@$this->context["u"]->id()?>]"><?php
+    }
+  
+    function prezence_aktivita_form_submit() {
+      if($this->current == "prezence_aktivita_form_submit") {
+        if(@$this->buffer["prezence_aktivita_form_submit"]) {
+          $out = $this->buffer["prezence_aktivita_form_submit"] . ob_get_clean();
+          $this->buffer["prezence_aktivita_form_submit"] = "";
+        } else {
+          $out = ob_get_clean();
+        }
+        $this->current = "";
+        return $out;
+      } else {
+        $out = @$this->buffer["prezence_aktivita_form_submit"];
+        $this->buffer["prezence_aktivita_form_submit"] = "";
+        return $out;
+      }
+    }
+
+    function parse_prezence_aktivita_form_submit() {
+      if($this->current != "prezence_aktivita_form_submit") {
+        if($this->current) @$this->buffer[$this->current] .= ob_get_clean();
+        ob_start();
+        $this->current = "prezence_aktivita_form_submit";
+      }
+      ?>
+      <tr>
+        <td colspan="5"><input type="text" class="omnibox"></td>
+      </tr>
+      <tr  style="background-color: transparent ">
+        <td colspan="5"><input type="submit" value="uložit"></td>
+      </tr>
+      <?php
+    }
+  
+    function prezence_aktivita_vyplnena() {
+      if($this->current == "prezence_aktivita_vyplnena") {
+        if(@$this->buffer["prezence_aktivita_vyplnena"]) {
+          $out = $this->buffer["prezence_aktivita_vyplnena"] . ob_get_clean();
+          $this->buffer["prezence_aktivita_vyplnena"] = "";
+        } else {
+          $out = ob_get_clean();
+        }
+        $this->current = "";
+        return $out;
+      } else {
+        $out = @$this->buffer["prezence_aktivita_vyplnena"];
+        $this->buffer["prezence_aktivita_vyplnena"] = "";
+        return $out;
+      }
+    }
+
+    function parse_prezence_aktivita_vyplnena() {
+      if($this->current != "prezence_aktivita_vyplnena") {
+        if($this->current) @$this->buffer[$this->current] .= ob_get_clean();
+        ob_start();
+        $this->current = "prezence_aktivita_vyplnena";
+      }
+      ?>
+  <div class="success">Uloženo OK s účastí <?=@$this->context["a"]->obsazenostHtml()?></div>
+  <?php
+    }
+  
+    function prezence_aktivita_nezamknuta() {
+      if($this->current == "prezence_aktivita_nezamknuta") {
+        if(@$this->buffer["prezence_aktivita_nezamknuta"]) {
+          $out = $this->buffer["prezence_aktivita_nezamknuta"] . ob_get_clean();
+          $this->buffer["prezence_aktivita_nezamknuta"] = "";
+        } else {
+          $out = ob_get_clean();
+        }
+        $this->current = "";
+        return $out;
+      } else {
+        $out = @$this->buffer["prezence_aktivita_nezamknuta"];
+        $this->buffer["prezence_aktivita_nezamknuta"] = "";
+        return $out;
+      }
+    }
+
+    function parse_prezence_aktivita_nezamknuta() {
+      if($this->current != "prezence_aktivita_nezamknuta") {
+        if($this->current) @$this->buffer[$this->current] .= ob_get_clean();
+        ob_start();
+        $this->current = "prezence_aktivita_nezamknuta";
+      }
+      ?>
+  <div class="error">Pozor, aktivita není zamknutá pro online registraci a nemá vytištěnou prezenci!</div>
+  <?php
+    }
+  
+    function prezence_zadnaAktivita() {
+      if($this->current == "prezence_zadnaAktivita") {
+        if(@$this->buffer["prezence_zadnaAktivita"]) {
+          $out = $this->buffer["prezence_zadnaAktivita"] . ob_get_clean();
+          $this->buffer["prezence_zadnaAktivita"] = "";
+        } else {
+          $out = ob_get_clean();
+        }
+        $this->current = "";
+        return $out;
+      } else {
+        $out = @$this->buffer["prezence_zadnaAktivita"];
+        $this->buffer["prezence_zadnaAktivita"] = "";
+        return $out;
+      }
+    }
+
+    function parse_prezence_zadnaAktivita() {
+      if($this->current != "prezence_zadnaAktivita") {
+        if($this->current) @$this->buffer[$this->current] .= ob_get_clean();
+        ob_start();
+        $this->current = "prezence_zadnaAktivita";
+      }
+      ?>
+<p>Žádné aktivity (které se mají evidovat) nezačínají v zadaný čas.</p>
+<?php
+    }
+  
+    function prezence_nevybrano() {
+      if($this->current == "prezence_nevybrano") {
+        if(@$this->buffer["prezence_nevybrano"]) {
+          $out = $this->buffer["prezence_nevybrano"] . ob_get_clean();
+          $this->buffer["prezence_nevybrano"] = "";
+        } else {
+          $out = ob_get_clean();
+        }
+        $this->current = "";
+        return $out;
+      } else {
+        $out = @$this->buffer["prezence_nevybrano"];
+        $this->buffer["prezence_nevybrano"] = "";
+        return $out;
+      }
+    }
+
+    function parse_prezence_nevybrano() {
+      if($this->current != "prezence_nevybrano") {
+        if($this->current) @$this->buffer[$this->current] .= ob_get_clean();
+        ob_start();
+        $this->current = "prezence_nevybrano";
+      }
+      ?>
+<p>Není vybrán blok, který se má zobrazit. Vyberte vpravo nahoře.</p>
+<?php
+    }
+  
+  }
+  

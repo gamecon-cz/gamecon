@@ -1,0 +1,222 @@
+<?php
+  class ShopjidloTpl {
+    public $context = array();
+    public $dependencies = array("");
+    protected $buffer = array();
+    protected $current = "";        // currently buffered block
+    
+    function jidlo() {
+      if($this->current == "jidlo") {
+        if(@$this->buffer["jidlo"]) {
+          $out = $this->buffer["jidlo"] . ob_get_clean();
+          $this->buffer["jidlo"] = "";
+        } else {
+          $out = ob_get_clean();
+        }
+        $this->current = "";
+        return $out;
+      } else {
+        $out = @$this->buffer["jidlo"];
+        $this->buffer["jidlo"] = "";
+        return $out;
+      }
+    }
+
+    function parse_jidlo() {
+      if($this->current != "jidlo") {
+        if($this->current) @$this->buffer[$this->current] .= ob_get_clean();
+        ob_start();
+        $this->current = "jidlo";
+      }
+      ?>
+<?=$this->jidlo_pozastaveno()?>
+<table>
+  <tr>
+    <td style="width:60px"></td>
+    <td style="width:40px"></td>
+    <?=$this->jidlo_den()?>
+  </tr>
+  <?=$this->jidlo_druh()?>
+</table>
+<input type="hidden" name="<?=@$this->context["pnJidloZmen"]?>" value="1">
+<?php
+    }
+  
+    function jidlo_pozastaveno() {
+      if($this->current == "jidlo_pozastaveno") {
+        if(@$this->buffer["jidlo_pozastaveno"]) {
+          $out = $this->buffer["jidlo_pozastaveno"] . ob_get_clean();
+          $this->buffer["jidlo_pozastaveno"] = "";
+        } else {
+          $out = ob_get_clean();
+        }
+        $this->current = "";
+        return $out;
+      } else {
+        $out = @$this->buffer["jidlo_pozastaveno"];
+        $this->buffer["jidlo_pozastaveno"] = "";
+        return $out;
+      }
+    }
+
+    function parse_jidlo_pozastaveno() {
+      if($this->current != "jidlo_pozastaveno") {
+        if($this->current) @$this->buffer[$this->current] .= ob_get_clean();
+        ob_start();
+        $this->current = "jidlo_pozastaveno";
+      }
+      ?>
+Objednávání jídla online bylo zastaveno, změny jsou možné na místě.
+<?php
+    }
+  
+    function jidlo_den() {
+      if($this->current == "jidlo_den") {
+        if(@$this->buffer["jidlo_den"]) {
+          $out = $this->buffer["jidlo_den"] . ob_get_clean();
+          $this->buffer["jidlo_den"] = "";
+        } else {
+          $out = ob_get_clean();
+        }
+        $this->current = "";
+        return $out;
+      } else {
+        $out = @$this->buffer["jidlo_den"];
+        $this->buffer["jidlo_den"] = "";
+        return $out;
+      }
+    }
+
+    function parse_jidlo_den() {
+      if($this->current != "jidlo_den") {
+        if($this->current) @$this->buffer[$this->current] .= ob_get_clean();
+        ob_start();
+        $this->current = "jidlo_den";
+      }
+      ?>
+    <td style="width:50px"><?=@$this->context["den"]?></td>
+    <?php
+    }
+  
+    function jidlo_druh() {
+      if($this->current == "jidlo_druh") {
+        if(@$this->buffer["jidlo_druh"]) {
+          $out = $this->buffer["jidlo_druh"] . ob_get_clean();
+          $this->buffer["jidlo_druh"] = "";
+        } else {
+          $out = ob_get_clean();
+        }
+        $this->current = "";
+        return $out;
+      } else {
+        $out = @$this->buffer["jidlo_druh"];
+        $this->buffer["jidlo_druh"] = "";
+        return $out;
+      }
+    }
+
+    function parse_jidlo_druh() {
+      if($this->current != "jidlo_druh") {
+        if($this->current) @$this->buffer[$this->current] .= ob_get_clean();
+        ob_start();
+        $this->current = "jidlo_druh";
+      }
+      ?>
+  <tr style="line-height:10px">
+    <td><?=@$this->context["druh"]?></td>
+    <td><?=@$this->context["cena"]?></td>
+    <?=$this->jidlo_druh_den()?>
+  <tr>
+  <?php
+    }
+  
+    function jidlo_druh_den() {
+      if($this->current == "jidlo_druh_den") {
+        if(@$this->buffer["jidlo_druh_den"]) {
+          $out = $this->buffer["jidlo_druh_den"] . ob_get_clean();
+          $this->buffer["jidlo_druh_den"] = "";
+        } else {
+          $out = ob_get_clean();
+        }
+        $this->current = "";
+        return $out;
+      } else {
+        $out = @$this->buffer["jidlo_druh_den"];
+        $this->buffer["jidlo_druh_den"] = "";
+        return $out;
+      }
+    }
+
+    function parse_jidlo_druh_den() {
+      if($this->current != "jidlo_druh_den") {
+        if($this->current) @$this->buffer[$this->current] .= ob_get_clean();
+        ob_start();
+        $this->current = "jidlo_druh_den";
+      }
+      ?>
+    <td>
+      <?=$this->jidlo_druh_den_checkbox()?>
+      <?=$this->jidlo_druh_den_locked()?>
+    </td>
+    <?php
+    }
+  
+    function jidlo_druh_den_checkbox() {
+      if($this->current == "jidlo_druh_den_checkbox") {
+        if(@$this->buffer["jidlo_druh_den_checkbox"]) {
+          $out = $this->buffer["jidlo_druh_den_checkbox"] . ob_get_clean();
+          $this->buffer["jidlo_druh_den_checkbox"] = "";
+        } else {
+          $out = ob_get_clean();
+        }
+        $this->current = "";
+        return $out;
+      } else {
+        $out = @$this->buffer["jidlo_druh_den_checkbox"];
+        $this->buffer["jidlo_druh_den_checkbox"] = "";
+        return $out;
+      }
+    }
+
+    function parse_jidlo_druh_den_checkbox() {
+      if($this->current != "jidlo_druh_den_checkbox") {
+        if($this->current) @$this->buffer[$this->current] .= ob_get_clean();
+        ob_start();
+        $this->current = "jidlo_druh_den_checkbox";
+      }
+      ?>
+      <input type="checkbox" name="<?=@$this->context["pnName"]?>" <?=@$this->context["selected"]?>>
+      <?php
+    }
+  
+    function jidlo_druh_den_locked() {
+      if($this->current == "jidlo_druh_den_locked") {
+        if(@$this->buffer["jidlo_druh_den_locked"]) {
+          $out = $this->buffer["jidlo_druh_den_locked"] . ob_get_clean();
+          $this->buffer["jidlo_druh_den_locked"] = "";
+        } else {
+          $out = ob_get_clean();
+        }
+        $this->current = "";
+        return $out;
+      } else {
+        $out = @$this->buffer["jidlo_druh_den_locked"];
+        $this->buffer["jidlo_druh_den_locked"] = "";
+        return $out;
+      }
+    }
+
+    function parse_jidlo_druh_den_locked() {
+      if($this->current != "jidlo_druh_den_locked") {
+        if($this->current) @$this->buffer[$this->current] .= ob_get_clean();
+        ob_start();
+        $this->current = "jidlo_druh_den_locked";
+      }
+      ?>
+      <input type="hidden" name="<?=@$this->context["pnName"]?>" value="<?=@$this->context["selected"]?>">
+      <input type="checkbox" <?=@$this->context["selected"]?> disabled>
+      <?php
+    }
+  
+  }
+  

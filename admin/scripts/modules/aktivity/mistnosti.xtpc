@@ -1,0 +1,186 @@
+<?php
+  class MistnostiTpl {
+    public $context = array();
+    public $dependencies = array("");
+    protected $buffer = array();
+    protected $current = "";        // currently buffered block
+    
+    function mistnosti() {
+      if($this->current == "mistnosti") {
+        if(@$this->buffer["mistnosti"]) {
+          $out = $this->buffer["mistnosti"] . ob_get_clean();
+          $this->buffer["mistnosti"] = "";
+        } else {
+          $out = ob_get_clean();
+        }
+        $this->current = "";
+        return $out;
+      } else {
+        $out = @$this->buffer["mistnosti"];
+        $this->buffer["mistnosti"] = "";
+        return $out;
+      }
+    }
+
+    function parse_mistnosti() {
+      if($this->current != "mistnosti") {
+        if($this->current) @$this->buffer[$this->current] .= ob_get_clean();
+        ob_start();
+        $this->current = "mistnosti";
+      }
+      ?><style>
+.skryteRadky tr:nth-child(4n) { background-color: #f0f0f0; }  
+.skryteRadky tr:nth-child(4n+1) { background-color: #f0f0f0; }
+.skryteRadky tr:nth-child(4n+2) { background-color: #ffffff; }
+.skryteRadky tr:nth-child(4n+3) { background-color: #ffffff; }
+.skryteRadky input[type="text"] { padding: 0; margin: -2px; font: inherit; }
+td.redukovany { padding-left: 0; } /* sloupce s inputem tak, aby inputy přimykaly k sobě */
+#mistnostiTabulka th { min-width: 140px; }
+#mistnostiTabulka th[colspan] { min-width: 0; }
+</style>
+
+<table class="skryteRadky zvyraznovana" id="mistnostiTabulka">
+  <tr>
+    <th colspan="2">Pořadí</th>
+    <th>Název</th>
+    <th>Interní název</th>
+    <th>Dveře</th>
+    <th>Poznámka</th>
+    <th colspan="1">Úpr.</th>
+  </tr>
+  <?=$this->mistnosti_mistnost()?>
+</table>
+
+<br />
+<br />
+<form method="post">
+  <input type="submit" name="novaMistnost" value="vytvořit další místnost" />
+</form><?php
+    }
+  
+    function mistnosti_mistnost() {
+      if($this->current == "mistnosti_mistnost") {
+        if(@$this->buffer["mistnosti_mistnost"]) {
+          $out = $this->buffer["mistnosti_mistnost"] . ob_get_clean();
+          $this->buffer["mistnosti_mistnost"] = "";
+        } else {
+          $out = ob_get_clean();
+        }
+        $this->current = "";
+        return $out;
+      } else {
+        $out = @$this->buffer["mistnosti_mistnost"];
+        $this->buffer["mistnosti_mistnost"] = "";
+        return $out;
+      }
+    }
+
+    function parse_mistnosti_mistnost() {
+      if($this->current != "mistnosti_mistnost") {
+        if($this->current) @$this->buffer[$this->current] .= ob_get_clean();
+        ob_start();
+        $this->current = "mistnosti_mistnost";
+      }
+      ?><tr id="lokace<?=@$this->context["id_lokace"]?>">
+    <td>
+      <?=$this->mistnosti_mistnost_nahoru()?>
+    </td>
+    <td class="redukovany">
+      <?=$this->mistnosti_mistnost_dolu()?>
+    </td>
+    <td><?=@$this->context["nazev"]?></td>
+    <td><?=@$this->context["nazev_interni"]?></td>
+    <td><?=@$this->context["dvere"]?></td>
+    <td><?=@$this->context["poznamka"]?></td>
+    <td>
+      <form method="post">
+        <input type="submit" value="uprav" onclick="
+          $('#edit<?=@$this->context["id_lokace"]?>').show();
+          $('#lokace<?=@$this->context["id_lokace"]?>').hide();
+          return false;
+        " />
+      </form>
+    </td>
+  </tr>
+  <tr style="display:none" id="edit<?=@$this->context["id_lokace"]?>">
+    <td colspan="2"></td>
+    <form method="post">
+    <td><input type="text" name="fields[nazev]" value="<?=@$this->context["nazev"]?>" /></td>
+    <td><input type="text" name="fields[nazev_interni]" value="<?=@$this->context["nazev_interni"]?>" /></td>
+    <td><input type="text" name="fields[dvere]" value="<?=@$this->context["dvere"]?>" /></td>
+    <td><input type="text" name="fields[poznamka]" value="<?=@$this->context["poznamka"]?>" /></td>
+    <td colspan="1">
+      <input type="hidden" name="fields[id_lokace]" value="<?=@$this->context["id_lokace"]?>" />
+      <input type="submit" name="upravit" value="ulož" class="tlacitko" onclick="" />
+      <input type="submit" value="zruš" class="tlacitko" onclick="
+        $('#edit<?=@$this->context["id_lokace"]?>').hide();
+        $('#lokace<?=@$this->context["id_lokace"]?>').show();
+        return false;
+      " />
+    </td>
+    </form>
+  </tr><?php
+    }
+  
+    function mistnosti_mistnost_nahoru() {
+      if($this->current == "mistnosti_mistnost_nahoru") {
+        if(@$this->buffer["mistnosti_mistnost_nahoru"]) {
+          $out = $this->buffer["mistnosti_mistnost_nahoru"] . ob_get_clean();
+          $this->buffer["mistnosti_mistnost_nahoru"] = "";
+        } else {
+          $out = ob_get_clean();
+        }
+        $this->current = "";
+        return $out;
+      } else {
+        $out = @$this->buffer["mistnosti_mistnost_nahoru"];
+        $this->buffer["mistnosti_mistnost_nahoru"] = "";
+        return $out;
+      }
+    }
+
+    function parse_mistnosti_mistnost_nahoru() {
+      if($this->current != "mistnosti_mistnost_nahoru") {
+        if($this->current) @$this->buffer[$this->current] .= ob_get_clean();
+        ob_start();
+        $this->current = "mistnosti_mistnost_nahoru";
+      }
+      ?><form method="post">
+        <input type="hidden" name="nahoru" value="<?=@$this->context["id_lokace"]?>" />
+        <input type="hidden" name="poradi" value="<?=@$this->context["poradi"]?>" />
+        <input type="submit" value="▲" />
+      </form><?php
+    }
+  
+    function mistnosti_mistnost_dolu() {
+      if($this->current == "mistnosti_mistnost_dolu") {
+        if(@$this->buffer["mistnosti_mistnost_dolu"]) {
+          $out = $this->buffer["mistnosti_mistnost_dolu"] . ob_get_clean();
+          $this->buffer["mistnosti_mistnost_dolu"] = "";
+        } else {
+          $out = ob_get_clean();
+        }
+        $this->current = "";
+        return $out;
+      } else {
+        $out = @$this->buffer["mistnosti_mistnost_dolu"];
+        $this->buffer["mistnosti_mistnost_dolu"] = "";
+        return $out;
+      }
+    }
+
+    function parse_mistnosti_mistnost_dolu() {
+      if($this->current != "mistnosti_mistnost_dolu") {
+        if($this->current) @$this->buffer[$this->current] .= ob_get_clean();
+        ob_start();
+        $this->current = "mistnosti_mistnost_dolu";
+      }
+      ?><form method="post">
+        <input type="hidden" name="dolu" value="<?=@$this->context["id_lokace"]?>" />
+        <input type="hidden" name="poradi" value="<?=@$this->context["poradi"]?>" />
+        <input type="submit" value="▼" />
+      </form><?php
+    }
+  
+  }
+  

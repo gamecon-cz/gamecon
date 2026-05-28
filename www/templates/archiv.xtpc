@@ -1,0 +1,128 @@
+<?php
+  class ArchivTpl {
+    public $context = array();
+    public $dependencies = array("../../templates/obalka-obrazku.xtpl");
+    protected $buffer = array();
+    protected $current = "";        // currently buffered block
+    
+    function archiv() {
+      if($this->current == "archiv") {
+        if(@$this->buffer["archiv"]) {
+          $out = $this->buffer["archiv"] . ob_get_clean();
+          $this->buffer["archiv"] = "";
+        } else {
+          $out = ob_get_clean();
+        }
+        $this->current = "";
+        return $out;
+      } else {
+        $out = @$this->buffer["archiv"];
+        $this->buffer["archiv"] = "";
+        return $out;
+      }
+    }
+
+    function parse_archiv() {
+      if($this->current != "archiv") {
+        if($this->current) @$this->buffer[$this->current] .= ob_get_clean();
+        ob_start();
+        $this->current = "archiv";
+      }
+      ?><h1><?=@$this->context["nadpis"]?></h1> <!-- Archiv RPG na GameConu 2009 -->
+
+<?=$this->archiv_polozka()?><?php
+    }
+  
+    function archiv_polozka() {
+      if($this->current == "archiv_polozka") {
+        if(@$this->buffer["archiv_polozka"]) {
+          $out = $this->buffer["archiv_polozka"] . ob_get_clean();
+          $this->buffer["archiv_polozka"] = "";
+        } else {
+          $out = ob_get_clean();
+        }
+        $this->current = "";
+        return $out;
+      } else {
+        $out = @$this->buffer["archiv_polozka"];
+        $this->buffer["archiv_polozka"] = "";
+        return $out;
+      }
+    }
+
+    function parse_archiv_polozka() {
+      if($this->current != "archiv_polozka") {
+        if($this->current) @$this->buffer[$this->current] .= ob_get_clean();
+        ob_start();
+        $this->current = "archiv_polozka";
+      }
+      ?><h2><?=@$this->context["nazev_akce"]?></h2>
+
+<table class="hlavicka">
+  <tr>
+    <?=$this->archiv_polozka_obrazek()?>
+    <?=$this->archiv_polozka_organizator()?>
+  </tr>
+</table>
+
+<p><?=@$this->context["popis"]?></p><?php
+    }
+  
+    function archiv_polozka_obrazek() {
+      if($this->current == "archiv_polozka_obrazek") {
+        if(@$this->buffer["archiv_polozka_obrazek"]) {
+          $out = $this->buffer["archiv_polozka_obrazek"] . ob_get_clean();
+          $this->buffer["archiv_polozka_obrazek"] = "";
+        } else {
+          $out = ob_get_clean();
+        }
+        $this->current = "";
+        return $out;
+      } else {
+        $out = @$this->buffer["archiv_polozka_obrazek"];
+        $this->buffer["archiv_polozka_obrazek"] = "";
+        return $out;
+      }
+    }
+
+    function parse_archiv_polozka_obrazek() {
+      if($this->current != "archiv_polozka_obrazek") {
+        if($this->current) @$this->buffer[$this->current] .= ob_get_clean();
+        ob_start();
+        $this->current = "archiv_polozka_obrazek";
+      }
+      ?><td><div class="obalkaObrazku">
+  <div class="overlay"><div class="text"><?=@$this->context["nazev_akce"]?></div></div>
+  <img src="<?=@$this->context["urlObrazku"]?>" alt="obrázek k aktivitě <?=@$this->context["nazev_akce"]?>">
+</div>
+</td><?php
+    }
+  
+    function archiv_polozka_organizator() {
+      if($this->current == "archiv_polozka_organizator") {
+        if(@$this->buffer["archiv_polozka_organizator"]) {
+          $out = $this->buffer["archiv_polozka_organizator"] . ob_get_clean();
+          $this->buffer["archiv_polozka_organizator"] = "";
+        } else {
+          $out = ob_get_clean();
+        }
+        $this->current = "";
+        return $out;
+      } else {
+        $out = @$this->buffer["archiv_polozka_organizator"];
+        $this->buffer["archiv_polozka_organizator"] = "";
+        return $out;
+      }
+    }
+
+    function parse_archiv_polozka_organizator() {
+      if($this->current != "archiv_polozka_organizator") {
+        if($this->current) @$this->buffer[$this->current] .= ob_get_clean();
+        ob_start();
+        $this->current = "archiv_polozka_organizator";
+      }
+      ?><td><strong><?=@$this->context["titul"]?></strong><br><?=@$this->context["jmeno"]?></td><?php
+    }
+  
+  }
+  

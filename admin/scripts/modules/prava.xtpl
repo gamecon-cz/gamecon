@@ -1,0 +1,83 @@
+<!-- begin:prava -->
+
+Trvalé židle:
+<table class="zvyraznovana">
+  <tr><th>&emsp;</th><th>Jméno židle</th><th>Popis židle</th><th></th><th></th></tr>
+  <!-- begin:zidle -->
+  <tr>
+    <td>{sedi}</td>
+    <td>{jmeno_zidle}</td>
+    <td>{popis_zidle}</td>
+    <td>
+      <!-- begin:posad --><a href="prava?posad={id_zidle}">posaď</a><!-- end:posad -->
+      <!-- begin:sesad --><a href="prava?sesad={id_zidle}">sesaď</a><!-- end:sesad -->
+    </td>
+    <td><a href="prava/{id_zidle}">detail</a></td>
+  </tr>
+  <!-- end:zidle -->
+</table><br><br>
+
+Dočasné židle (pro aktuální rok):
+<table class="zvyraznovana">
+  <tr><th>&emsp;</th><th>Jméno židle</th><th>Popis židle</th><th></th></tr>
+  <!-- begin:zidleDocasna -->
+  <tr>
+    <td>{sedi}</td>
+    <td>{jmeno_zidle}</td><td>{popis_zidle}</td><td>
+    <a href="prava/{id_zidle}">detail</a>
+  </td></tr>
+  <!-- end:zidleDocasna -->
+</table><br><br>
+
+<!-- end:prava -->
+
+
+
+<!-- begin:zidle -->
+
+Práva židle <strong>{jmeno_zidle}</strong> ({popis_zidle}):
+<table class="zvyraznovana">
+  <tr><th>Název práva</th><th>Popis práva</th><th></th></tr>
+  <!-- begin:pravo -->
+  <tr>
+    <td>{jmeno_prava}</td>
+    <td>{popis_prava}</td>
+    <td><a href="prava/{id_zidle}?odeberPravo={id_prava}">vzít židli právo</a></td>
+  </tr>
+  <!-- end:pravo -->
+</table>
+<form>
+  <select name="dejPravo">
+    <!-- begin:pravoVyber -->
+    <option value="{id_prava}">{jmeno_prava}</option>
+    <!-- end:pravoVyber -->
+  </select>
+  <input type="submit" value="přidat židli právo">
+</form><br><br>
+
+Seznam uživatelů na této židli:
+<table class="zvyraznovana">
+  <tr><th>ID</th><th>Přezdívka</th><th>Jméno a příjmení</th><th></th></tr>
+  <!-- begin:uzivatel -->
+  <tr>
+    <td>{id}</td>
+    <td>{nick}</td>
+    <td>{jmeno}</td>
+    <td><a href="prava/{id_zidle}?sesadUzivatele={id}">sesadit uživatele</a></td>
+  </tr>
+  <!-- end:uzivatel -->
+</table><br>
+<!-- begin:posad -->
+<form>
+  <input type="hidden" name="posad" value="{id_zidle}">
+  <input type="submit" value="Posadit aktuálního uživatele na židli">
+</form>
+<!-- end:posad -->
+<!-- begin:sesad -->
+<form>
+  <input type="hidden" name="sesad" value="{id_zidle}">
+  <input type="submit" value="Sesadit aktuálního uživatele z židle">
+</form>
+<!-- end:sesad -->
+
+<!-- end:zidle -->

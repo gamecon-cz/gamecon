@@ -1,0 +1,70 @@
+<?php
+  class SloupekTpl {
+    public $context = array();
+    public $dependencies = array("");
+    protected $buffer = array();
+    protected $current = "";        // currently buffered block
+    
+    function sloupek() {
+      if($this->current == "sloupek") {
+        if(@$this->buffer["sloupek"]) {
+          $out = $this->buffer["sloupek"] . ob_get_clean();
+          $this->buffer["sloupek"] = "";
+        } else {
+          $out = ob_get_clean();
+        }
+        $this->current = "";
+        return $out;
+      } else {
+        $out = @$this->buffer["sloupek"];
+        $this->buffer["sloupek"] = "";
+        return $out;
+      }
+    }
+
+    function parse_sloupek() {
+      if($this->current != "sloupek") {
+        if($this->current) @$this->buffer[$this->current] .= ob_get_clean();
+        ob_start();
+        $this->current = "sloupek";
+      }
+      ?><?=$this->sloupek_bunka()?><?php
+    }
+  
+    function sloupek_bunka() {
+      if($this->current == "sloupek_bunka") {
+        if(@$this->buffer["sloupek_bunka"]) {
+          $out = $this->buffer["sloupek_bunka"] . ob_get_clean();
+          $this->buffer["sloupek_bunka"] = "";
+        } else {
+          $out = ob_get_clean();
+        }
+        $this->current = "";
+        return $out;
+      } else {
+        $out = @$this->buffer["sloupek_bunka"];
+        $this->buffer["sloupek_bunka"] = "";
+        return $out;
+      }
+    }
+
+    function parse_sloupek_bunka() {
+      if($this->current != "sloupek_bunka") {
+        if($this->current) @$this->buffer[$this->current] .= ob_get_clean();
+        ob_start();
+        $this->current = "sloupek_bunka";
+      }
+      ?><div class="nadpis"><?=@$this->context["nadpis"]?></div>
+    <div class="obsah">
+        <a href="<?=@$this->context["url"]?>" title="<?=@$this->context["nazev"]?>">
+          <div class="obalkaObrazku">
+            <div class="overlay"><div class="text"><?=@$this->context["nazev"]?></div></div>
+            <img src="<?=@$this->context["urlObrazku"]?>" alt="obrázek k aktivitě <?=@$this->context["nazev"]?>">
+          </div>
+        
+        </a>
+    </div><?php
+    }
+  
+  }
+  

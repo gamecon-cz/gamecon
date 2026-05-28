@@ -1,0 +1,32 @@
+<!-- begin:jidlo -->
+<!-- begin:pozastaveno -->
+Objednávání jídla online bylo zastaveno, změny jsou možné na místě.
+<!-- end:pozastaveno -->
+<table>
+  <tr>
+    <td style="width:60px"></td>
+    <td style="width:40px"></td>
+    <!-- begin:den -->
+    <td style="width:50px">{den}</td>
+    <!-- end:den -->
+  </tr>
+  <!-- begin:druh -->
+  <tr style="line-height:10px">
+    <td>{druh}</td>
+    <td>{cena}</td>
+    <!-- begin:den -->
+    <td>
+      <!-- begin:checkbox -->
+      <input type="checkbox" name="{pnName}" {selected}>
+      <!-- end:checkbox -->
+      <!-- begin:locked -->
+      <input type="hidden" name="{pnName}" value="{selected}">
+      <input type="checkbox" {selected} disabled>
+      <!-- end:locked -->
+    </td>
+    <!-- end:den -->
+  <tr>
+  <!-- end:druh -->
+</table>
+<input type="hidden" name="{pnJidloZmen}" value="1">
+<!-- end:jidlo -->

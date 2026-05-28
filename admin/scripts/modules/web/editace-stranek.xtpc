@@ -1,0 +1,257 @@
+<?php
+  class EditacestranekTpl {
+    public $context = array();
+    public $dependencies = array("");
+    protected $buffer = array();
+    protected $current = "";        // currently buffered block
+    
+    function editaceStranek() {
+      if($this->current == "editaceStranek") {
+        if(@$this->buffer["editaceStranek"]) {
+          $out = $this->buffer["editaceStranek"] . ob_get_clean();
+          $this->buffer["editaceStranek"] = "";
+        } else {
+          $out = ob_get_clean();
+        }
+        $this->current = "";
+        return $out;
+      } else {
+        $out = @$this->buffer["editaceStranek"];
+        $this->buffer["editaceStranek"] = "";
+        return $out;
+      }
+    }
+
+    function parse_editaceStranek() {
+      if($this->current != "editaceStranek") {
+        if($this->current) @$this->buffer[$this->current] .= ob_get_clean();
+        ob_start();
+        $this->current = "editaceStranek";
+      }
+      ?><?=$this->editaceStranek_vypis()?>
+
+<?=$this->editaceStranek_stranka()?>
+
+<?=$this->editaceStranek_help()?>
+
+<?=$this->editaceStranek_error()?><?php
+    }
+  
+    function editaceStranek_vypis() {
+      if($this->current == "editaceStranek_vypis") {
+        if(@$this->buffer["editaceStranek_vypis"]) {
+          $out = $this->buffer["editaceStranek_vypis"] . ob_get_clean();
+          $this->buffer["editaceStranek_vypis"] = "";
+        } else {
+          $out = ob_get_clean();
+        }
+        $this->current = "";
+        return $out;
+      } else {
+        $out = @$this->buffer["editaceStranek_vypis"];
+        $this->buffer["editaceStranek_vypis"] = "";
+        return $out;
+      }
+    }
+
+    function parse_editaceStranek_vypis() {
+      if($this->current != "editaceStranek_vypis") {
+        if($this->current) @$this->buffer[$this->current] .= ob_get_clean();
+        ob_start();
+        $this->current = "editaceStranek_vypis";
+      }
+      ?><style>
+    .oddelovac td { font-weight: bold; padding-top: 16px; border-width: 0; }
+  </style>
+  <table class="vypis">
+    <tr>
+      <th>Název stránky v menu</th>
+      <th>URL</th>
+      <th>Akce</th>
+    </tr>
+    <?=$this->editaceStranek_vypis_radek()?>
+  </table><?php
+    }
+  
+    function editaceStranek_vypis_radek() {
+      if($this->current == "editaceStranek_vypis_radek") {
+        if(@$this->buffer["editaceStranek_vypis_radek"]) {
+          $out = $this->buffer["editaceStranek_vypis_radek"] . ob_get_clean();
+          $this->buffer["editaceStranek_vypis_radek"] = "";
+        } else {
+          $out = ob_get_clean();
+        }
+        $this->current = "";
+        return $out;
+      } else {
+        $out = @$this->buffer["editaceStranek_vypis_radek"];
+        $this->buffer["editaceStranek_vypis_radek"] = "";
+        return $out;
+      }
+    }
+
+    function parse_editaceStranek_vypis_radek() {
+      if($this->current != "editaceStranek_vypis_radek") {
+        if($this->current) @$this->buffer[$this->current] .= ob_get_clean();
+        ob_start();
+        $this->current = "editaceStranek_vypis_radek";
+      }
+      ?><?=$this->editaceStranek_vypis_radek_oddelovac()?>
+    <tr class="<?=@$this->context["odd"]?>">
+      <td><?=@$this->context["nazev"]?></td>
+      <td><?=@$this->context["url_stranky"]?></td>
+      <td><a href="web/editace-stranek/<?=@$this->context["id_stranky"]?>">upravit obsah</a></td>
+    </tr><?php
+    }
+  
+    function editaceStranek_vypis_radek_oddelovac() {
+      if($this->current == "editaceStranek_vypis_radek_oddelovac") {
+        if(@$this->buffer["editaceStranek_vypis_radek_oddelovac"]) {
+          $out = $this->buffer["editaceStranek_vypis_radek_oddelovac"] . ob_get_clean();
+          $this->buffer["editaceStranek_vypis_radek_oddelovac"] = "";
+        } else {
+          $out = ob_get_clean();
+        }
+        $this->current = "";
+        return $out;
+      } else {
+        $out = @$this->buffer["editaceStranek_vypis_radek_oddelovac"];
+        $this->buffer["editaceStranek_vypis_radek_oddelovac"] = "";
+        return $out;
+      }
+    }
+
+    function parse_editaceStranek_vypis_radek_oddelovac() {
+      if($this->current != "editaceStranek_vypis_radek_oddelovac") {
+        if($this->current) @$this->buffer[$this->current] .= ob_get_clean();
+        ob_start();
+        $this->current = "editaceStranek_vypis_radek_oddelovac";
+      }
+      ?><tr class="oddelovac"><td colspan=3>Skryté položky</td></tr><?php
+    }
+  
+    function editaceStranek_stranka() {
+      if($this->current == "editaceStranek_stranka") {
+        if(@$this->buffer["editaceStranek_stranka"]) {
+          $out = $this->buffer["editaceStranek_stranka"] . ob_get_clean();
+          $this->buffer["editaceStranek_stranka"] = "";
+        } else {
+          $out = ob_get_clean();
+        }
+        $this->current = "";
+        return $out;
+      } else {
+        $out = @$this->buffer["editaceStranek_stranka"];
+        $this->buffer["editaceStranek_stranka"] = "";
+        return $out;
+      }
+    }
+
+    function parse_editaceStranek_stranka() {
+      if($this->current != "editaceStranek_stranka") {
+        if($this->current) @$this->buffer[$this->current] .= ob_get_clean();
+        ob_start();
+        $this->current = "editaceStranek_stranka";
+      }
+      ?><style>
+    #editacniTabulka td { vertical-align: top; }
+    #obsahStranky, #nahled { width: 450px; font-size: 12px; font-family: Tahoma; }
+    #obsahStranky { width: 440px; }
+    #nahled {}
+    #nahled em { font-weight: bold; font-style: normal; }
+    #nahled h1:first-child { margin-top: 0; }
+    #nahled h2 { border-bottom: dotted 1px #777; }
+    #nahled img { margin: 0 !important; }
+  </style>
+  <div id="stavUlozeni" class="success">Všechny změny uloženy</div>
+  <form method="post" style="position: relative">
+    <input style="position:absolute;top:-45px;right:2px;visibility:hidden" id="horniSubmit" type="submit" value="Uložit změny" />
+    <table id="editacniTabulka"><tr><td>
+      <textarea name="obsahStranky" id="obsahStranky"><?=@$this->context["obsah"]?></textarea>
+    </td><td>
+      <div id="nahled"></div>
+    </td></tr></table>
+    <input type="hidden" name="akce" value="editaceStranek" />
+    <input type="hidden" name="zobrazit" value="<?=@$this->context["id_stranky"]?>" />
+    <input type="submit" value="Uložit změny" />
+  </form>
+  <script src="files/showdown.js"></script>
+  <script src="files/jquery.autosize.js"></script>
+  <script>
+    function ukazObsah(){
+      var md=new Showdown.converter();
+      var html=md.makeHtml($('#obsahStranky').val());
+      html=html.replace(/src=\"\/files/g,'src="<?=@$this->context["URL_WEBU"]?>/files');
+      $('#nahled').html(html);
+    }
+    var ulozeno=true;
+    ukazObsah();
+    $('#obsahStranky').autosize();
+    $('#obsahStranky').keyup(function(){
+      ukazObsah();
+      if(ulozeno) {
+        $('#stavUlozeni').removeClass();
+        $('#stavUlozeni').addClass('error');
+        $('#stavUlozeni').html('Neuložené změny!');
+        $('#horniSubmit').css('visibility','visible');
+      }
+    });
+  </script><?php
+    }
+  
+    function editaceStranek_help() {
+      if($this->current == "editaceStranek_help") {
+        if(@$this->buffer["editaceStranek_help"]) {
+          $out = $this->buffer["editaceStranek_help"] . ob_get_clean();
+          $this->buffer["editaceStranek_help"] = "";
+        } else {
+          $out = ob_get_clean();
+        }
+        $this->current = "";
+        return $out;
+      } else {
+        $out = @$this->buffer["editaceStranek_help"];
+        $this->buffer["editaceStranek_help"] = "";
+        return $out;
+      }
+    }
+
+    function parse_editaceStranek_help() {
+      if($this->current != "editaceStranek_help") {
+        if($this->current) @$this->buffer[$this->current] .= ob_get_clean();
+        ob_start();
+        $this->current = "editaceStranek_help";
+      }
+      ?><br /><br />
+<p>Pokud jste se dostali až sem a sháníte nějakou nápovědu k formátování stránek (html), napište mi na godric@korh.cz.<br />
+&mdash; Godric</p><?php
+    }
+  
+    function editaceStranek_error() {
+      if($this->current == "editaceStranek_error") {
+        if(@$this->buffer["editaceStranek_error"]) {
+          $out = $this->buffer["editaceStranek_error"] . ob_get_clean();
+          $this->buffer["editaceStranek_error"] = "";
+        } else {
+          $out = ob_get_clean();
+        }
+        $this->current = "";
+        return $out;
+      } else {
+        $out = @$this->buffer["editaceStranek_error"];
+        $this->buffer["editaceStranek_error"] = "";
+        return $out;
+      }
+    }
+
+    function parse_editaceStranek_error() {
+      if($this->current != "editaceStranek_error") {
+        if($this->current) @$this->buffer[$this->current] .= ob_get_clean();
+        ob_start();
+        $this->current = "editaceStranek_error";
+      }
+      ?><div class="error">Požadovaná stránka neexistuje.</div><?php
+    }
+  
+  }
+  

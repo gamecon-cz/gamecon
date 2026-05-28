@@ -1,0 +1,247 @@
+<?php
+  class PrihlasenidrdTpl {
+    public $context = array();
+    public $dependencies = array("");
+    protected $buffer = array();
+    protected $current = "";        // currently buffered block
+    
+    function drd() {
+      if($this->current == "drd") {
+        if(@$this->buffer["drd"]) {
+          $out = $this->buffer["drd"] . ob_get_clean();
+          $this->buffer["drd"] = "";
+        } else {
+          $out = ob_get_clean();
+        }
+        $this->current = "";
+        return $out;
+      } else {
+        $out = @$this->buffer["drd"];
+        $this->buffer["drd"] = "";
+        return $out;
+      }
+    }
+
+    function parse_drd() {
+      if($this->current != "drd") {
+        if($this->current) @$this->buffer[$this->current] .= ob_get_clean();
+        ob_start();
+        $this->current = "drd";
+      }
+      ?>
+
+<?=$this->drd_druzina()?>
+
+<?php
+    }
+  
+    function drd_druzina() {
+      if($this->current == "drd_druzina") {
+        if(@$this->buffer["drd_druzina"]) {
+          $out = $this->buffer["drd_druzina"] . ob_get_clean();
+          $this->buffer["drd_druzina"] = "";
+        } else {
+          $out = ob_get_clean();
+        }
+        $this->current = "";
+        return $out;
+      } else {
+        $out = @$this->buffer["drd_druzina"];
+        $this->buffer["drd_druzina"] = "";
+        return $out;
+      }
+    }
+
+    function parse_drd_druzina() {
+      if($this->current != "drd_druzina") {
+        if($this->current) @$this->buffer[$this->current] .= ob_get_clean();
+        ob_start();
+        $this->current = "drd_druzina";
+      }
+      ?>
+  <b><?=@$this->context["a"]->orgJmena()?>
+  <?=$this->drd_druzina_zakladni()?>
+  <?=$this->drd_druzina_semifinale()?>
+  <?=$this->drd_druzina_finale()?>
+  </b><br>
+  <?=@$this->context["a"]->denCas()?><br>
+  <?=$this->drd_druzina_clen()?>
+
+  <?=$this->drd_druzina_nezamceno()?>
+  <?=$this->drd_druzina_vyber()?>
+  <br>
+
+  <br>
+<?php
+    }
+  
+    function drd_druzina_zakladni() {
+      if($this->current == "drd_druzina_zakladni") {
+        if(@$this->buffer["drd_druzina_zakladni"]) {
+          $out = $this->buffer["drd_druzina_zakladni"] . ob_get_clean();
+          $this->buffer["drd_druzina_zakladni"] = "";
+        } else {
+          $out = ob_get_clean();
+        }
+        $this->current = "";
+        return $out;
+      } else {
+        $out = @$this->buffer["drd_druzina_zakladni"];
+        $this->buffer["drd_druzina_zakladni"] = "";
+        return $out;
+      }
+    }
+
+    function parse_drd_druzina_zakladni() {
+      if($this->current != "drd_druzina_zakladni") {
+        if($this->current) @$this->buffer[$this->current] .= ob_get_clean();
+        ob_start();
+        $this->current = "drd_druzina_zakladni";
+      }
+      ?><span style="color: #f00"> – skončili v základním</span><?php
+    }
+  
+    function drd_druzina_semifinale() {
+      if($this->current == "drd_druzina_semifinale") {
+        if(@$this->buffer["drd_druzina_semifinale"]) {
+          $out = $this->buffer["drd_druzina_semifinale"] . ob_get_clean();
+          $this->buffer["drd_druzina_semifinale"] = "";
+        } else {
+          $out = ob_get_clean();
+        }
+        $this->current = "";
+        return $out;
+      } else {
+        $out = @$this->buffer["drd_druzina_semifinale"];
+        $this->buffer["drd_druzina_semifinale"] = "";
+        return $out;
+      }
+    }
+
+    function parse_drd_druzina_semifinale() {
+      if($this->current != "drd_druzina_semifinale") {
+        if($this->current) @$this->buffer[$this->current] .= ob_get_clean();
+        ob_start();
+        $this->current = "drd_druzina_semifinale";
+      }
+      ?><span style="color: #f60"> – skončili v semifinále</span><?php
+    }
+  
+    function drd_druzina_finale() {
+      if($this->current == "drd_druzina_finale") {
+        if(@$this->buffer["drd_druzina_finale"]) {
+          $out = $this->buffer["drd_druzina_finale"] . ob_get_clean();
+          $this->buffer["drd_druzina_finale"] = "";
+        } else {
+          $out = ob_get_clean();
+        }
+        $this->current = "";
+        return $out;
+      } else {
+        $out = @$this->buffer["drd_druzina_finale"];
+        $this->buffer["drd_druzina_finale"] = "";
+        return $out;
+      }
+    }
+
+    function parse_drd_druzina_finale() {
+      if($this->current != "drd_druzina_finale") {
+        if($this->current) @$this->buffer[$this->current] .= ob_get_clean();
+        ob_start();
+        $this->current = "drd_druzina_finale";
+      }
+      ?><span style="color: #0a0"> – postoupili do finále</span><?php
+    }
+  
+    function drd_druzina_clen() {
+      if($this->current == "drd_druzina_clen") {
+        if(@$this->buffer["drd_druzina_clen"]) {
+          $out = $this->buffer["drd_druzina_clen"] . ob_get_clean();
+          $this->buffer["drd_druzina_clen"] = "";
+        } else {
+          $out = ob_get_clean();
+        }
+        $this->current = "";
+        return $out;
+      } else {
+        $out = @$this->buffer["drd_druzina_clen"];
+        $this->buffer["drd_druzina_clen"] = "";
+        return $out;
+      }
+    }
+
+    function parse_drd_druzina_clen() {
+      if($this->current != "drd_druzina_clen") {
+        if($this->current) @$this->buffer[$this->current] .= ob_get_clean();
+        ob_start();
+        $this->current = "drd_druzina_clen";
+      }
+      ?>
+  <?=@$this->context["u"]->jmenoNick()?><br>
+  <?php
+    }
+  
+    function drd_druzina_nezamceno() {
+      if($this->current == "drd_druzina_nezamceno") {
+        if(@$this->buffer["drd_druzina_nezamceno"]) {
+          $out = $this->buffer["drd_druzina_nezamceno"] . ob_get_clean();
+          $this->buffer["drd_druzina_nezamceno"] = "";
+        } else {
+          $out = ob_get_clean();
+        }
+        $this->current = "";
+        return $out;
+      } else {
+        $out = @$this->buffer["drd_druzina_nezamceno"];
+        $this->buffer["drd_druzina_nezamceno"] = "";
+        return $out;
+      }
+    }
+
+    function parse_drd_druzina_nezamceno() {
+      if($this->current != "drd_druzina_nezamceno") {
+        if($this->current) @$this->buffer[$this->current] .= ob_get_clean();
+        ob_start();
+        $this->current = "drd_druzina_nezamceno";
+      }
+      ?>
+  <div class="error">základní aktivita není zamčená, není možné uložit ne/postup</div>
+  <?php
+    }
+  
+    function drd_druzina_vyber() {
+      if($this->current == "drd_druzina_vyber") {
+        if(@$this->buffer["drd_druzina_vyber"]) {
+          $out = $this->buffer["drd_druzina_vyber"] . ob_get_clean();
+          $this->buffer["drd_druzina_vyber"] = "";
+        } else {
+          $out = ob_get_clean();
+        }
+        $this->current = "";
+        return $out;
+      } else {
+        $out = @$this->buffer["drd_druzina_vyber"];
+        $this->buffer["drd_druzina_vyber"] = "";
+        return $out;
+      }
+    }
+
+    function parse_drd_druzina_vyber() {
+      if($this->current != "drd_druzina_vyber") {
+        if($this->current) @$this->buffer[$this->current] .= ob_get_clean();
+        ob_start();
+        $this->current = "drd_druzina_vyber";
+      }
+      ?>
+  <form method="post">
+    <input type="hidden" name="zakladni" value="<?=@$this->context["a"]->id()?>">
+    <input type="hidden" name="semifinale" value="<?=@$this->context["sfid"]?>">
+    <input type="hidden" name="finale" value="<?=@$this->context["fid"]?>">
+    <input type="submit" name="vypadliSemifinale" value="Skončili v základním kole">
+    <input type="submit" name="vypadliFinale" value="Skončili v semifinále">
+  </form>
+  <?php
+    }
+  
+  }
+  

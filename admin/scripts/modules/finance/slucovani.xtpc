@@ -1,0 +1,251 @@
+<?php
+  class SlucovaniTpl {
+    public $context = array();
+    public $dependencies = array("");
+    protected $buffer = array();
+    protected $current = "";        // currently buffered block
+    
+    function slucovani() {
+      if($this->current == "slucovani") {
+        if(@$this->buffer["slucovani"]) {
+          $out = $this->buffer["slucovani"] . ob_get_clean();
+          $this->buffer["slucovani"] = "";
+        } else {
+          $out = ob_get_clean();
+        }
+        $this->current = "";
+        return $out;
+      } else {
+        $out = @$this->buffer["slucovani"];
+        $this->buffer["slucovani"] = "";
+        return $out;
+      }
+    }
+
+    function parse_slucovani() {
+      if($this->current != "slucovani") {
+        if($this->current) @$this->buffer[$this->current] .= ob_get_clean();
+        ob_start();
+        $this->current = "slucovani";
+      }
+      ?>
+
+<p>
+Výsledné ID by se vždy mělo zvolit nižší. Přihláška na GC se uživateli zachová, i když bude mít přihlášku původně s vyšším ID. Pokud je uživatel vybrán pro práci, je potřeba ho zrušit a vybrat znova. Případné dluhy / zůstatky se sečtou. Pokud se vyskytne chyba, hlásit.
+</p>
+
+<p>
+Vhodné vycházet z <a href="reporty/duplicity">reportu</a> s potenciálně duplicitními uživateli.
+</p>
+
+<form method="post">
+
+  <table>
+    <tr>
+      <th></th>
+      <th>První</th>
+      <th>Druhý</th>
+    </tr>
+    <tr>
+      <td>ID</td>
+      <td><input type="text" name="u1" value="<?=@$this->context["uaid"]?>"></td>
+      <td><input type="text" name="u2" value="<?=@$this->context["ubid"]?>"></td>
+    </tr>
+    <?=$this->slucovani_detaily()?>
+  </table>
+
+  <br>
+  <input type="submit" name="pripravit" value="Načíst údaje">
+
+</form>
+
+
+
+
+<?php
+    }
+  
+    function slucovani_detaily() {
+      if($this->current == "slucovani_detaily") {
+        if(@$this->buffer["slucovani_detaily"]) {
+          $out = $this->buffer["slucovani_detaily"] . ob_get_clean();
+          $this->buffer["slucovani_detaily"] = "";
+        } else {
+          $out = ob_get_clean();
+        }
+        $this->current = "";
+        return $out;
+      } else {
+        $out = @$this->buffer["slucovani_detaily"];
+        $this->buffer["slucovani_detaily"] = "";
+        return $out;
+      }
+    }
+
+    function parse_slucovani_detaily() {
+      if($this->current != "slucovani_detaily") {
+        if($this->current) @$this->buffer[$this->current] .= ob_get_clean();
+        ob_start();
+        $this->current = "slucovani_detaily";
+      }
+      ?>
+    <tr>
+      <td>Přihlášen</td>
+      <?=$this->slucovani_detaily_aPrihlasen()?>
+      <?=$this->slucovani_detaily_aNeprihlasen()?>
+      <?=$this->slucovani_detaily_bPrihlasen()?>
+      <?=$this->slucovani_detaily_bNeprihlasen()?>
+    </tr>
+    <tr>
+      <td>Login</td>
+      <td><input type="radio" name="login" value="<?=@$this->context["uaid"]?>" checked><?=@$this->context["ua"]->jmenoNick()?></td>
+      <td><input type="radio" name="login" value="<?=@$this->context["ubid"]?>"><?=@$this->context["ub"]->jmenoNick()?></td>
+    </tr>
+    <tr>
+      <td>Heslo</td>
+      <td><input type="radio" name="heslo" value="<?=@$this->context["uaid"]?>" checked>od id <?=@$this->context["ua"]->id()?></td>
+      <td><input type="radio" name="heslo" value="<?=@$this->context["ubid"]?>">od id <?=@$this->context["ub"]->id()?></td>
+    </tr>
+    <tr>
+      <td>Mail</td>
+      <td><input type="radio" name="mail" value="<?=@$this->context["uaid"]?>" checked><?=@$this->context["ua"]->mail()?> <?=@$this->context["amrtvy"]?></td>
+      <td><input type="radio" name="mail" value="<?=@$this->context["ubid"]?>"><?=@$this->context["ub"]->mail()?> <?=@$this->context["bmrtvy"]?></td>
+    </tr>
+    <tr>
+      <td>Nové ID</td>
+      <td><input type="radio" name="id" value="<?=@$this->context["uaid"]?>" checked><?=@$this->context["ua"]->id()?></td>
+      <td><input type="radio" name="id" value="<?=@$this->context["ubid"]?>"><?=@$this->context["ub"]->id()?></td>
+    </tr>
+    <tr>
+      <td>Zůstatek</td>
+      <td><?=@$this->context["ua"]->zustatek()?></td>
+      <td><?=@$this->context["ub"]->zustatek()?></td>
+    </tr>
+    <!-- TODO později
+    <tr>
+      <td>Upo mailem</td>
+      <td colspan="2"><input type="checkbox" name="upo"></td>
+    </tr>
+    -->
+    <tr>
+      <td colspan="3" style="text-align: center">
+        <input type="submit" name="sloucit" value="Sloučit uživatele" onclick="return confirm('Opravdu sloučit?')">
+      </td>
+    </tr>
+    <?php
+    }
+  
+    function slucovani_detaily_aPrihlasen() {
+      if($this->current == "slucovani_detaily_aPrihlasen") {
+        if(@$this->buffer["slucovani_detaily_aPrihlasen"]) {
+          $out = $this->buffer["slucovani_detaily_aPrihlasen"] . ob_get_clean();
+          $this->buffer["slucovani_detaily_aPrihlasen"] = "";
+        } else {
+          $out = ob_get_clean();
+        }
+        $this->current = "";
+        return $out;
+      } else {
+        $out = @$this->buffer["slucovani_detaily_aPrihlasen"];
+        $this->buffer["slucovani_detaily_aPrihlasen"] = "";
+        return $out;
+      }
+    }
+
+    function parse_slucovani_detaily_aPrihlasen() {
+      if($this->current != "slucovani_detaily_aPrihlasen") {
+        if($this->current) @$this->buffer[$this->current] .= ob_get_clean();
+        ob_start();
+        $this->current = "slucovani_detaily_aPrihlasen";
+      }
+      ?>
+      <td style="background-color: #8d8">ano</td>
+      <?php
+    }
+  
+    function slucovani_detaily_aNeprihlasen() {
+      if($this->current == "slucovani_detaily_aNeprihlasen") {
+        if(@$this->buffer["slucovani_detaily_aNeprihlasen"]) {
+          $out = $this->buffer["slucovani_detaily_aNeprihlasen"] . ob_get_clean();
+          $this->buffer["slucovani_detaily_aNeprihlasen"] = "";
+        } else {
+          $out = ob_get_clean();
+        }
+        $this->current = "";
+        return $out;
+      } else {
+        $out = @$this->buffer["slucovani_detaily_aNeprihlasen"];
+        $this->buffer["slucovani_detaily_aNeprihlasen"] = "";
+        return $out;
+      }
+    }
+
+    function parse_slucovani_detaily_aNeprihlasen() {
+      if($this->current != "slucovani_detaily_aNeprihlasen") {
+        if($this->current) @$this->buffer[$this->current] .= ob_get_clean();
+        ob_start();
+        $this->current = "slucovani_detaily_aNeprihlasen";
+      }
+      ?>
+      <td style="background-color: #faa">ne</td>
+      <?php
+    }
+  
+    function slucovani_detaily_bPrihlasen() {
+      if($this->current == "slucovani_detaily_bPrihlasen") {
+        if(@$this->buffer["slucovani_detaily_bPrihlasen"]) {
+          $out = $this->buffer["slucovani_detaily_bPrihlasen"] . ob_get_clean();
+          $this->buffer["slucovani_detaily_bPrihlasen"] = "";
+        } else {
+          $out = ob_get_clean();
+        }
+        $this->current = "";
+        return $out;
+      } else {
+        $out = @$this->buffer["slucovani_detaily_bPrihlasen"];
+        $this->buffer["slucovani_detaily_bPrihlasen"] = "";
+        return $out;
+      }
+    }
+
+    function parse_slucovani_detaily_bPrihlasen() {
+      if($this->current != "slucovani_detaily_bPrihlasen") {
+        if($this->current) @$this->buffer[$this->current] .= ob_get_clean();
+        ob_start();
+        $this->current = "slucovani_detaily_bPrihlasen";
+      }
+      ?>
+      <td style="background-color: #8d8">ano</td>
+      <?php
+    }
+  
+    function slucovani_detaily_bNeprihlasen() {
+      if($this->current == "slucovani_detaily_bNeprihlasen") {
+        if(@$this->buffer["slucovani_detaily_bNeprihlasen"]) {
+          $out = $this->buffer["slucovani_detaily_bNeprihlasen"] . ob_get_clean();
+          $this->buffer["slucovani_detaily_bNeprihlasen"] = "";
+        } else {
+          $out = ob_get_clean();
+        }
+        $this->current = "";
+        return $out;
+      } else {
+        $out = @$this->buffer["slucovani_detaily_bNeprihlasen"];
+        $this->buffer["slucovani_detaily_bNeprihlasen"] = "";
+        return $out;
+      }
+    }
+
+    function parse_slucovani_detaily_bNeprihlasen() {
+      if($this->current != "slucovani_detaily_bNeprihlasen") {
+        if($this->current) @$this->buffer[$this->current] .= ob_get_clean();
+        ob_start();
+        $this->current = "slucovani_detaily_bNeprihlasen";
+      }
+      ?>
+      <td style="background-color: #faa">ne</td>
+      <?php
+    }
+  
+  }
+  

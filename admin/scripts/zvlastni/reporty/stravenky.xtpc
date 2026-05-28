@@ -1,0 +1,111 @@
+<?php
+  class StravenkyTpl {
+    public $context = array();
+    public $dependencies = array("");
+    protected $buffer = array();
+    protected $current = "";        // currently buffered block
+    
+    function stravenky() {
+      if($this->current == "stravenky") {
+        if(@$this->buffer["stravenky"]) {
+          $out = $this->buffer["stravenky"] . ob_get_clean();
+          $this->buffer["stravenky"] = "";
+        } else {
+          $out = ob_get_clean();
+        }
+        $this->current = "";
+        return $out;
+      } else {
+        $out = @$this->buffer["stravenky"];
+        $this->buffer["stravenky"] = "";
+        return $out;
+      }
+    }
+
+    function parse_stravenky() {
+      if($this->current != "stravenky") {
+        if($this->current) @$this->buffer[$this->current] .= ob_get_clean();
+        ob_start();
+        $this->current = "stravenky";
+      }
+      ?>
+<style>
+
+.radek { border: solid 0.3mm; page-break-inside: avoid; display: inline-block; font-family: sans-serif; border-left: none; }
+.radek > div { float: left; width: 16mm; height: 16mm; padding: 2mm; border-left: solid 0.3mm; overflow: hidden; position: relative; }
+.radek > hr { margin: 0; border: 0; clear: both; height: 0; }
+.jidlo > img { width: 100%; position: absolute; top: 0; left: 0; opacity: 0.5; }
+
+</style>
+
+<?=$this->stravenky_uzivatel()?>
+
+
+<?php
+    }
+  
+    function stravenky_uzivatel() {
+      if($this->current == "stravenky_uzivatel") {
+        if(@$this->buffer["stravenky_uzivatel"]) {
+          $out = $this->buffer["stravenky_uzivatel"] . ob_get_clean();
+          $this->buffer["stravenky_uzivatel"] = "";
+        } else {
+          $out = ob_get_clean();
+        }
+        $this->current = "";
+        return $out;
+      } else {
+        $out = @$this->buffer["stravenky_uzivatel"];
+        $this->buffer["stravenky_uzivatel"] = "";
+        return $out;
+      }
+    }
+
+    function parse_stravenky_uzivatel() {
+      if($this->current != "stravenky_uzivatel") {
+        if($this->current) @$this->buffer[$this->current] .= ob_get_clean();
+        ob_start();
+        $this->current = "stravenky_uzivatel";
+      }
+      ?>
+<div class="radek">
+  <div><?=@$this->context["login_uzivatele"]?> (<?=@$this->context["id_uzivatele"]?>)</div>
+  <?=$this->stravenky_uzivatel_jidlo()?>
+  <hr>
+</div><br>
+<?php
+    }
+  
+    function stravenky_uzivatel_jidlo() {
+      if($this->current == "stravenky_uzivatel_jidlo") {
+        if(@$this->buffer["stravenky_uzivatel_jidlo"]) {
+          $out = $this->buffer["stravenky_uzivatel_jidlo"] . ob_get_clean();
+          $this->buffer["stravenky_uzivatel_jidlo"] = "";
+        } else {
+          $out = ob_get_clean();
+        }
+        $this->current = "";
+        return $out;
+      } else {
+        $out = @$this->buffer["stravenky_uzivatel_jidlo"];
+        $this->buffer["stravenky_uzivatel_jidlo"] = "";
+        return $out;
+      }
+    }
+
+    function parse_stravenky_uzivatel_jidlo() {
+      if($this->current != "stravenky_uzivatel_jidlo") {
+        if($this->current) @$this->buffer[$this->current] .= ob_get_clean();
+        ob_start();
+        $this->current = "stravenky_uzivatel_jidlo";
+      }
+      ?>
+  <div class="jidlo">
+    <img src="../files/design/logo.png">
+    <div style="position:absolute"><?=@$this->context["nazev"]?></div>
+  </div>
+  <?php
+    }
+  
+  }
+  

@@ -1,0 +1,215 @@
+<?php
+  class MujprehledTpl {
+    public $context = array();
+    public $dependencies = array("");
+    protected $buffer = array();
+    protected $current = "";        // currently buffered block
+    
+    function prehled() {
+      if($this->current == "prehled") {
+        if(@$this->buffer["prehled"]) {
+          $out = $this->buffer["prehled"] . ob_get_clean();
+          $this->buffer["prehled"] = "";
+        } else {
+          $out = ob_get_clean();
+        }
+        $this->current = "";
+        return $out;
+      } else {
+        $out = @$this->buffer["prehled"];
+        $this->buffer["prehled"] = "";
+        return $out;
+      }
+    }
+
+    function parse_prehled() {
+      if($this->current != "prehled") {
+        if($this->current) @$this->buffer[$this->current] .= ob_get_clean();
+        ob_start();
+        $this->current = "prehled";
+      }
+      ?><script>
+function tgl(id)
+{
+  el=document.getElementById(id).style;
+  el.display=(el.display == 'block')?'none':'block';
+  return false;
+}
+</script>
+
+<h2>Moje aktivity</h2>
+
+<?=$this->prehled_aktivita()?>
+<?=$this->prehled_zadnaAktivita()?>
+
+<h2>Manuál vypravěče</h2>
+
+<ol>
+  <li><b>Dostav se na vrátnici Domova mládeže</b><br>příp. na Infopult (platí pro Wargaming, Epic, Deskovky) 15 minut před začátkem aktivity, kde na tebe bude čekat organizátor(spojka). Nezapomeň propisku. :-)</li>
+  <li><b>Vyzvedni prezenčku</b><br>neboli seznam přihlášených hráčů, kterou pro tebe má spojka. Na prezenčce najdeš číslo místnosti, blok a patro, kde se aktivita koná.</li>
+  <li><b>Čekej pod nápisem</b><br>nebo-li na příslušném shromaždišti na hráče se svou sekcí (více viz <a href="http://gamecon.cz/files/obsah/materialy/2014/mapa-gc.jpg" target="_blank">mapka</a>). Odšrktej hráče na prezenčce.</li>
+  <li><b>Vyzvedni náhradníky</b><br>Pokud nějaký hráč nedorazil, je vhodné se s ním telefonicky spojit. Pokud nějací hráči chybí, pět minut před začátkem vyzvedni náhradníky. Připiš náhradníky na prezenčku&nbsp;–&nbsp;jménem, příjmením a nickem.</li>
+  <li><b>Dej prezenčku spojce</b><br>a to ideálně v čas oficiálního začátku aktivity. Výměnou ti předá klíče od herní místnosti.</li>
+  <li><b>Po skončení zkontroluj místnost</b><br>zamkni a odevzdej klíče na vrátnici / Infopultu (platí pro Wargaming, Epic, Deskovky). Dodržuj prosím plánovanou délku aktivity.</li>
+</ol>
+
+<img src="files/design/warning.png" style="position:absolute;margin:0 0 0 -4px">
+<p style="margin-left:21px">Všechny případné změny aktivity (místa, času, zpoždění...) a potíže prosím <b>vždy oznam na Infopult!</b></p><?php
+    }
+  
+    function prehled_aktivita() {
+      if($this->current == "prehled_aktivita") {
+        if(@$this->buffer["prehled_aktivita"]) {
+          $out = $this->buffer["prehled_aktivita"] . ob_get_clean();
+          $this->buffer["prehled_aktivita"] = "";
+        } else {
+          $out = ob_get_clean();
+        }
+        $this->current = "";
+        return $out;
+      } else {
+        $out = @$this->buffer["prehled_aktivita"];
+        $this->buffer["prehled_aktivita"] = "";
+        return $out;
+      }
+    }
+
+    function parse_prehled_aktivita() {
+      if($this->current != "prehled_aktivita") {
+        if($this->current) @$this->buffer[$this->current] .= ob_get_clean();
+        ob_start();
+        $this->current = "prehled_aktivita";
+      }
+      ?><h3><?=@$this->context["nazevAktivity"]?> <?=@$this->context["obsazenost"]?></h3>
+<?=@$this->context["cas"]?> -
+<a href="mailto:?subject=Gamecon: <?=@$this->context["nazevAktivity"]?>&amp;bcc=<?=@$this->context["maily"]?>">e-mail všem</a> -
+<a href="#" onclick="return tgl('maily<?=@$this->context["id"]?>')">zobrazit maily</a> -
+<a href="./tisk/aktivita-ucast.php?id=<?=@$this->context["id"]?>" onclick="window.open(this.href);return false">tisk</a>
+<?=$this->prehled_aktivita_editor()?>
+<div id="maily<?=@$this->context["id"]?>" style="display:none"><br /><?=@$this->context["maily"]?><br /><br /></div>
+<?=$this->prehled_aktivita_ucast()?><?php
+    }
+  
+    function prehled_aktivita_editor() {
+      if($this->current == "prehled_aktivita_editor") {
+        if(@$this->buffer["prehled_aktivita_editor"]) {
+          $out = $this->buffer["prehled_aktivita_editor"] . ob_get_clean();
+          $this->buffer["prehled_aktivita_editor"] = "";
+        } else {
+          $out = ob_get_clean();
+        }
+        $this->current = "";
+        return $out;
+      } else {
+        $out = @$this->buffer["prehled_aktivita_editor"];
+        $this->buffer["prehled_aktivita_editor"] = "";
+        return $out;
+      }
+    }
+
+    function parse_prehled_aktivita_editor() {
+      if($this->current != "prehled_aktivita_editor") {
+        if($this->current) @$this->buffer[$this->current] .= ob_get_clean();
+        ob_start();
+        $this->current = "prehled_aktivita_editor";
+      }
+      ?>- <a href="#" onclick="return tgl('editor<?=@$this->context["id"]?>')">upravit popisek</a> 
+<form method="post" enctype="multipart/form-data" style="display:none" id="editor<?=@$this->context["id"]?>">
+<br>
+<?=@$this->context["editor"]?>
+</form><?php
+    }
+  
+    function prehled_aktivita_ucast() {
+      if($this->current == "prehled_aktivita_ucast") {
+        if(@$this->buffer["prehled_aktivita_ucast"]) {
+          $out = $this->buffer["prehled_aktivita_ucast"] . ob_get_clean();
+          $this->buffer["prehled_aktivita_ucast"] = "";
+        } else {
+          $out = ob_get_clean();
+        }
+        $this->current = "";
+        return $out;
+      } else {
+        $out = @$this->buffer["prehled_aktivita_ucast"];
+        $this->buffer["prehled_aktivita_ucast"] = "";
+        return $out;
+      }
+    }
+
+    function parse_prehled_aktivita_ucast() {
+      if($this->current != "prehled_aktivita_ucast") {
+        if($this->current) @$this->buffer[$this->current] .= ob_get_clean();
+        ob_start();
+        $this->current = "prehled_aktivita_ucast";
+      }
+      ?><table class="vypis">
+  <tr>
+    <th style="min-width: 175px">Jméno</th>
+    <th style="min-width: 200px">E-mail</th>
+    <th style="min-width: 125px">Telefon</th>
+    <th style="min-width: 50px">Přihlášen</th>
+  </tr>
+  <?=$this->prehled_aktivita_ucast_ucastnik()?>
+</table><?php
+    }
+  
+    function prehled_aktivita_ucast_ucastnik() {
+      if($this->current == "prehled_aktivita_ucast_ucastnik") {
+        if(@$this->buffer["prehled_aktivita_ucast_ucastnik"]) {
+          $out = $this->buffer["prehled_aktivita_ucast_ucastnik"] . ob_get_clean();
+          $this->buffer["prehled_aktivita_ucast_ucastnik"] = "";
+        } else {
+          $out = ob_get_clean();
+        }
+        $this->current = "";
+        return $out;
+      } else {
+        $out = @$this->buffer["prehled_aktivita_ucast_ucastnik"];
+        $this->buffer["prehled_aktivita_ucast_ucastnik"] = "";
+        return $out;
+      }
+    }
+
+    function parse_prehled_aktivita_ucast_ucastnik() {
+      if($this->current != "prehled_aktivita_ucast_ucastnik") {
+        if($this->current) @$this->buffer[$this->current] .= ob_get_clean();
+        ob_start();
+        $this->current = "prehled_aktivita_ucast_ucastnik";
+      }
+      ?><tr>
+    <td><?=@$this->context["jmeno"]?></td>
+    <td><?=@$this->context["mail"]?></td>
+    <td><?=@$this->context["telefon"]?></td>
+    <td style="text-align:right"><?=@$this->context["casPrihlaseni"]?></td>
+  </tr><?php
+    }
+  
+    function prehled_zadnaAktivita() {
+      if($this->current == "prehled_zadnaAktivita") {
+        if(@$this->buffer["prehled_zadnaAktivita"]) {
+          $out = $this->buffer["prehled_zadnaAktivita"] . ob_get_clean();
+          $this->buffer["prehled_zadnaAktivita"] = "";
+        } else {
+          $out = ob_get_clean();
+        }
+        $this->current = "";
+        return $out;
+      } else {
+        $out = @$this->buffer["prehled_zadnaAktivita"];
+        $this->buffer["prehled_zadnaAktivita"] = "";
+        return $out;
+      }
+    }
+
+    function parse_prehled_zadnaAktivita() {
+      if($this->current != "prehled_zadnaAktivita") {
+        if($this->current) @$this->buffer[$this->current] .= ob_get_clean();
+        ob_start();
+        $this->current = "prehled_zadnaAktivita";
+      }
+      ?><p><em>(nevedeš žádné aktivity)</em></p><?php
+    }
+  
+  }
+  

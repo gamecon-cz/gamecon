@@ -1,0 +1,480 @@
+<?php
+  class EditorTpl {
+    public $context = array();
+    public $dependencies = array("");
+    protected $buffer = array();
+    protected $current = "";        // currently buffered block
+    
+    function upravy() {
+      if($this->current == "upravy") {
+        if(@$this->buffer["upravy"]) {
+          $out = $this->buffer["upravy"] . ob_get_clean();
+          $this->buffer["upravy"] = "";
+        } else {
+          $out = ob_get_clean();
+        }
+        $this->current = "";
+        return $out;
+      } else {
+        $out = @$this->buffer["upravy"];
+        $this->buffer["upravy"] = "";
+        return $out;
+      }
+    }
+
+    function parse_upravy() {
+      if($this->current != "upravy") {
+        if($this->current) @$this->buffer[$this->current] .= ob_get_clean();
+        ob_start();
+        $this->current = "upravy";
+      }
+      ?><script type="text/javascript">
+function overeni()
+{
+  err=0;
+  msg='';
+  if(!$('[name="<?=@$this->context["fields"]?>[url_akce]"]').val())
+  { err=1; msg+="\n• Je třeba vyplnit url."; }
+  if($('[name="<?=@$this->context["fields"]?>[url_akce]"]').val().search(/^[a-z0-9\-]*$/)==-1)
+  { err=1; msg+="\n• URL smí obsahovat jenom malá písmena bez diakritiky, číslice a pomlčky."; }
+  
+  if(err)
+  {
+    alert('Nepodařilo se uložit, protože:'+msg); 
+    return false;
+  }
+  else
+    return true;
+}
+$(function(){
+  $('[name="<?=@$this->context["fields"]?>Odesilatko"]').click(function(){
+    if(!overeni()) return false;
+    odesilatko=$(this);
+    odesilatko.attr('disabled','disabled');
+    $.post(document.URL,$(this).closest('form').serialize()+'&<?=@$this->context["ajaxKlic"]?>=true',function(data){
+      if(data.chyby.length>0)
+      {
+        alert(data.chyby.join("\n&bull;"));
+        odesilatko.removeAttr('disabled');
+      }
+      else
+      {
+        odesilatko.closest('form').submit();
+      }
+    }, "json");
+    return false;
+  });
+});
+</script>
+
+<input type="hidden" name="<?=@$this->context["fields"]?>[id_akce]" value="<?=@$this->context["id_akce"]?>">
+<input type="hidden" name="<?=@$this->context["fields"]?>[patri_pod]" value="<?=@$this->context["patri_pod"]?>">
+<input type="hidden" name="<?=@$this->context["fields"]?>staraUrl" value="<?=@$this->context["url_akce"]?>">
+
+<?=$this->upravy_tabulka()?>
+
+<table style="float:left">
+  <tr>
+    <th><span class="hinted">Obrázek<div class="hint">Obrázky nahrávejte bez popisků a úprav v formátu JPG. Velikost je 169px &times; 126px</div></span>
+      <br />(169&times;126)</th>
+    <td class="obrazekNahled"><img src="<?=@$this->context["urlObrazku"]?>" /></td>
+    <td class="orez">
+      Ořez<br>
+      <input type="radio" name="<?=@$this->context["obrKlicOrez"]?>" value="fill" checked><img src="files/design/fill.png"><br>
+      <input type="radio" name="<?=@$this->context["obrKlicOrez"]?>" value="fit"><img src="files/design/fit.png"><br>
+      <input type="radio" name="<?=@$this->context["obrKlicOrez"]?>" value="stretch"><img src="files/design/stretch.png"><br>
+    </td>
+  </tr>
+  <tr>
+    <th>Nahrát soubor</th>
+    <td><input type="file" name="<?=@$this->context["obrKlic"]?>"></td>
+  </tr>
+  <tr>
+    <th>Nahrát z URL</th>
+    <td><input class="full" type="text" name="<?=@$this->context["obrKlicUrl"]?>"></td>
+  </tr>
+</table>
+
+<div style="clear:both"></div><input type="submit" name="<?=@$this->context["fields"]?>Odesilatko" value="Uložit">
+
+<br style="clear:both">
+
+<div id="napoveda<?=@$this->context["fields"]?><?=@$this->context["id_akce"]?>" style="display:none;margin-left:50px">
+  <table>
+    <tr>
+      <td><em>kurzíva</em></td>
+      <td>_kurzíva_</td>
+    </tr><tr>
+      <td><strong>tučně</strong></td>
+      <td>__tučně__</td>
+    </tr><tr>
+      <td><a href="http://google.com">http://google.com</a></td>
+      <td>http://google.com se převede na odkaz</td>
+    </tr><tr>
+      <td><a href="http://google.com">Google</a></td>
+      <td>[Google](http://google.com) udělá odkaz s popiskem</td>
+    </tr><tr>
+      <td>odstavce</td>
+      <td>1. odstavec<br><br>další odstavec pokračuje po vynechaném řádku</td>
+    </tr><tr>
+      <td>seznam</td>
+      <td>- první položka<br>- druhá položka<br>- třetí položka (před a za seznamem je taky vynechaný řádek)</td>
+    </tr><tr>
+      <td>nový řádek</td>
+      <td>(přidat na konci stávajícího řádku mezeru)</td>
+    </tr>
+      <td>vodorovná čára</td>
+      <td>---</td>
+    </tr>    
+      <td><strong>Nadpis</strong></td>
+      <td>##Nadpis (více křížků=menší nadpis)</td>
+    </tr>
+  </table>
+</div>
+
+<table style="margin-top:6px">
+  <tr>
+    <th>
+      Popis<br>
+      <a href="#" style="font-size:80%" onclick="$('#napoveda<?=@$this->context["fields"]?><?=@$this->context["id_akce"]?>').slideToggle();return false">(help)</a>
+    </th>
+    <td>
+      <textarea style="width:440px;font-size:12px" name="<?=@$this->context["fields"]?>[popis]" id="popisek<?=@$this->context["fields"]?><?=@$this->context["id_akce"]?>"><?=@$this->context["popis"]?></textarea>
+    </td>
+    <td>
+      <style>
+        #nahled em { font-weight: bold; font-style: normal; }
+      </style>
+      <div style="font-size:12px" id="nahled<?=@$this->context["fields"]?><?=@$this->context["id_akce"]?>"></div>
+      <script src="files/showdown.js"></script>
+      <script src="files/jquery.autosize.js"></script>
+      <script>
+        function ukazObsah(){
+          var md=new Showdown.converter();
+          var html=md.makeHtml($('#popisek<?=@$this->context["fields"]?><?=@$this->context["id_akce"]?>').val());
+          html=html.replace(/src=\"\/files/g,'src="http://gamecon.dev/files');
+          $('#nahled<?=@$this->context["fields"]?><?=@$this->context["id_akce"]?>').html(html);
+        }
+        ukazObsah();
+        $('#popisek<?=@$this->context["fields"]?><?=@$this->context["id_akce"]?>').autosize();
+        $('#popisek<?=@$this->context["fields"]?><?=@$this->context["id_akce"]?>').keyup(function(){
+          ukazObsah();
+        });
+      </script>
+    </td>
+  </tr>
+</table>
+  
+
+¹ Položky specifické pro instanci, pokud má aktivita víc instancí<?php
+    }
+  
+    function upravy_tabulka() {
+      if($this->current == "upravy_tabulka") {
+        if(@$this->buffer["upravy_tabulka"]) {
+          $out = $this->buffer["upravy_tabulka"] . ob_get_clean();
+          $this->buffer["upravy_tabulka"] = "";
+        } else {
+          $out = ob_get_clean();
+        }
+        $this->current = "";
+        return $out;
+      } else {
+        $out = @$this->buffer["upravy_tabulka"];
+        $this->buffer["upravy_tabulka"] = "";
+        return $out;
+      }
+    }
+
+    function parse_upravy_tabulka() {
+      if($this->current != "upravy_tabulka") {
+        if($this->current) @$this->buffer[$this->current] .= ob_get_clean();
+        ob_start();
+        $this->current = "upravy_tabulka";
+      }
+      ?><table style="float:left;margin-right:20px">
+  <tr>
+    <th>Název</th>
+    <td><input class="full" type="text" name="<?=@$this->context["fields"]?>[nazev_akce]" value="<?=@$this->context["nazev_akce"]?>"></td>
+  </tr>
+  <tr>
+    <th><span class="hinted">URL<div class="hint">Ideální je použít jen malá písmena a pomlčky např. draci-doupe-ii</div></span></th>
+    <td>
+      <input class="full" type="text" name="<?=@$this->context["fields"]?>[url_akce]" value="<?=@$this->context["url_akce"]?>" >
+    </td>
+  </tr>
+  <tr>
+    <th>Místnost¹</th>
+    <td>
+      <select name="<?=@$this->context["fields"]?>[lokace]">
+        <?=$this->upravy_tabulka_lokace()?>
+      </select>
+    </td>
+  </tr>
+  <tr>
+    <th>Den¹</th>
+    <td>
+      <select name="<?=@$this->context["fields"]?>[den]">
+        <?=$this->upravy_tabulka_den()?>
+      </select>
+    </td>
+  </tr>
+  <tr>
+    <th>Čas¹</th>
+    <td>
+      <select name="<?=@$this->context["fields"]?>[zacatek]">
+        <?=$this->upravy_tabulka_zacatek()?>
+      </select>–<select name="<?=@$this->context["fields"]?>[konec]">
+        <?=$this->upravy_tabulka_konec()?>
+      </select>
+    </td>
+  </tr>
+  <tr>
+    <th>
+      <span class="hinted">Organizátor<div class="hint">
+      Více organizátorů se zvolí postupným vybíráním a ukládáním – vždy se objeví nové volné políčko.<br> Zrušit více organizátorů se dá vybráním "nikdo" u více políček.</div></span>¹
+    </th>
+    <td>
+      <?=$this->upravy_tabulka_orgBox()?>
+    </td>
+  </tr>
+  <tr>
+    <th><span class="hinted">Kapacita<div class="hint">Univerzálně použitelná místa / místa vyhrazená pro holky / místa vyhrazená pro kluky<br /><br />Kapacita 0/0/0 znamená bez omezení</div></span></th>
+    <td>
+      <div id="kapacitaStd">
+        <input type="text" style="width:25px" name="<?=@$this->context["fields"]?>[kapacita]" value="<?=@$this->context["kapacita"]?>"> /
+        <input type="text" style="width:25px" name="<?=@$this->context["fields"]?>[kapacita_f]" value="<?=@$this->context["kapacita_f"]?>"> /
+        <input type="text" style="width:25px" name="<?=@$this->context["fields"]?>[kapacita_m]" value="<?=@$this->context["kapacita_m"]?>">
+      </div>
+      <div id="teamVelikost">
+        <input type="text" style="width:25px" name="<?=@$this->context["fields"]?>[team_min]" value="<?=@$this->context["team_min"]?>">–<input
+               type="text" style="width:25px" name="<?=@$this->context["fields"]?>[team_max]" value="<?=@$this->context["team_max"]?>">
+        <span class="hinted">(velikost teamu)<div class="hint"> Kolik je minimální až maximální velikost teamu (družiny). Místa jsou jen univerzální.</div></span>
+      </div>
+    </td>
+  </tr>
+  <tr>
+    <th>Cena</th>
+    <td>
+      <input type="text" style="width:25px" name="<?=@$this->context["fields"]?>[cena]" value="<?=@$this->context["cena"]?>">
+      <input style="float:right" type="checkbox" name="<?=@$this->context["fields"]?>[bez_slevy]" value="1">
+      <script>if('<?=@$this->context["bez_slevy"]?>' == true) $('[name="<?=@$this->context["fields"]?>[bez_slevy]"]').attr('checked',true);</script>
+      <div class="hinted" style="float:right;margin-top:2px">bez slev<div class="hint">Jestli má být cena pevná a nesmí se na ni aplikovat slevy</div></div>
+    </td>
+  </tr>
+  <tr>
+    <th>Typ</th>
+    <td>
+      <select name="<?=@$this->context["fields"]?>[typ]">
+        <?=$this->upravy_tabulka_typ()?>
+      </select>
+      &emsp;
+      <input style="float:right" type="checkbox" name="<?=@$this->context["fields"]?>[teamova]" value="1">
+      <div class="hinted" style="float:right;margin-top:2px">teamová<div class="hint">Jestli je aktivita teamová, tj. první přihlášený si sestavuje team</div></div>
+      <script>
+        var box = $('[name="<?=@$this->context["fields"]?>[teamova]"]');
+        if('<?=@$this->context["teamova"]?>'==true) {
+          box.attr('checked',true);
+        }
+        box.change(function(){
+          $('#teamVelikost').toggle(this.checked);
+          $('#kapacitaStd').toggle(!this.checked);
+        });
+        box.change();
+      </script>
+    </td>
+  </tr>
+  <!-- <tr>
+    <td colspan="2" style="background-color:#fff;">
+      
+    </td>
+  </tr> -->
+</table><?php
+    }
+  
+    function upravy_tabulka_lokace() {
+      if($this->current == "upravy_tabulka_lokace") {
+        if(@$this->buffer["upravy_tabulka_lokace"]) {
+          $out = $this->buffer["upravy_tabulka_lokace"] . ob_get_clean();
+          $this->buffer["upravy_tabulka_lokace"] = "";
+        } else {
+          $out = ob_get_clean();
+        }
+        $this->current = "";
+        return $out;
+      } else {
+        $out = @$this->buffer["upravy_tabulka_lokace"];
+        $this->buffer["upravy_tabulka_lokace"] = "";
+        return $out;
+      }
+    }
+
+    function parse_upravy_tabulka_lokace() {
+      if($this->current != "upravy_tabulka_lokace") {
+        if($this->current) @$this->buffer[$this->current] .= ob_get_clean();
+        ob_start();
+        $this->current = "upravy_tabulka_lokace";
+      }
+      ?><option <?=@$this->context["sel"]?> value="<?=@$this->context["id_lokace"]?>"><?=@$this->context["nazev_interni"]?></option><?php
+    }
+  
+    function upravy_tabulka_den() {
+      if($this->current == "upravy_tabulka_den") {
+        if(@$this->buffer["upravy_tabulka_den"]) {
+          $out = $this->buffer["upravy_tabulka_den"] . ob_get_clean();
+          $this->buffer["upravy_tabulka_den"] = "";
+        } else {
+          $out = ob_get_clean();
+        }
+        $this->current = "";
+        return $out;
+      } else {
+        $out = @$this->buffer["upravy_tabulka_den"];
+        $this->buffer["upravy_tabulka_den"] = "";
+        return $out;
+      }
+    }
+
+    function parse_upravy_tabulka_den() {
+      if($this->current != "upravy_tabulka_den") {
+        if($this->current) @$this->buffer[$this->current] .= ob_get_clean();
+        ob_start();
+        $this->current = "upravy_tabulka_den";
+      }
+      ?><option <?=@$this->context["sel"]?> value="<?=@$this->context["den"]?>"><?=@$this->context["denSlovy"]?></option><?php
+    }
+  
+    function upravy_tabulka_zacatek() {
+      if($this->current == "upravy_tabulka_zacatek") {
+        if(@$this->buffer["upravy_tabulka_zacatek"]) {
+          $out = $this->buffer["upravy_tabulka_zacatek"] . ob_get_clean();
+          $this->buffer["upravy_tabulka_zacatek"] = "";
+        } else {
+          $out = ob_get_clean();
+        }
+        $this->current = "";
+        return $out;
+      } else {
+        $out = @$this->buffer["upravy_tabulka_zacatek"];
+        $this->buffer["upravy_tabulka_zacatek"] = "";
+        return $out;
+      }
+    }
+
+    function parse_upravy_tabulka_zacatek() {
+      if($this->current != "upravy_tabulka_zacatek") {
+        if($this->current) @$this->buffer[$this->current] .= ob_get_clean();
+        ob_start();
+        $this->current = "upravy_tabulka_zacatek";
+      }
+      ?><option <?=@$this->context["sel"]?> value="<?=@$this->context["zacatek"]?>"><?=@$this->context["zacatekSlovy"]?></option><?php
+    }
+  
+    function upravy_tabulka_konec() {
+      if($this->current == "upravy_tabulka_konec") {
+        if(@$this->buffer["upravy_tabulka_konec"]) {
+          $out = $this->buffer["upravy_tabulka_konec"] . ob_get_clean();
+          $this->buffer["upravy_tabulka_konec"] = "";
+        } else {
+          $out = ob_get_clean();
+        }
+        $this->current = "";
+        return $out;
+      } else {
+        $out = @$this->buffer["upravy_tabulka_konec"];
+        $this->buffer["upravy_tabulka_konec"] = "";
+        return $out;
+      }
+    }
+
+    function parse_upravy_tabulka_konec() {
+      if($this->current != "upravy_tabulka_konec") {
+        if($this->current) @$this->buffer[$this->current] .= ob_get_clean();
+        ob_start();
+        $this->current = "upravy_tabulka_konec";
+      }
+      ?><option <?=@$this->context["sel"]?> value="<?=@$this->context["konec"]?>"><?=@$this->context["konecSlovy"]?></option><?php
+    }
+  
+    function upravy_tabulka_orgBox() {
+      if($this->current == "upravy_tabulka_orgBox") {
+        if(@$this->buffer["upravy_tabulka_orgBox"]) {
+          $out = $this->buffer["upravy_tabulka_orgBox"] . ob_get_clean();
+          $this->buffer["upravy_tabulka_orgBox"] = "";
+        } else {
+          $out = ob_get_clean();
+        }
+        $this->current = "";
+        return $out;
+      } else {
+        $out = @$this->buffer["upravy_tabulka_orgBox"];
+        $this->buffer["upravy_tabulka_orgBox"] = "";
+        return $out;
+      }
+    }
+
+    function parse_upravy_tabulka_orgBox() {
+      if($this->current != "upravy_tabulka_orgBox") {
+        if($this->current) @$this->buffer[$this->current] .= ob_get_clean();
+        ob_start();
+        $this->current = "upravy_tabulka_orgBox";
+      }
+      ?><select name="<?=@$this->context["fields"]?>[organizatori][<?=@$this->context["i"]?>]">
+        <?=$this->upravy_tabulka_orgBox_organizator()?>
+      </select><br><?php
+    }
+  
+    function upravy_tabulka_orgBox_organizator() {
+      if($this->current == "upravy_tabulka_orgBox_organizator") {
+        if(@$this->buffer["upravy_tabulka_orgBox_organizator"]) {
+          $out = $this->buffer["upravy_tabulka_orgBox_organizator"] . ob_get_clean();
+          $this->buffer["upravy_tabulka_orgBox_organizator"] = "";
+        } else {
+          $out = ob_get_clean();
+        }
+        $this->current = "";
+        return $out;
+      } else {
+        $out = @$this->buffer["upravy_tabulka_orgBox_organizator"];
+        $this->buffer["upravy_tabulka_orgBox_organizator"] = "";
+        return $out;
+      }
+    }
+
+    function parse_upravy_tabulka_orgBox_organizator() {
+      if($this->current != "upravy_tabulka_orgBox_organizator") {
+        if($this->current) @$this->buffer[$this->current] .= ob_get_clean();
+        ob_start();
+        $this->current = "upravy_tabulka_orgBox_organizator";
+      }
+      ?><option <?=@$this->context["sel"]?> value="<?=@$this->context["organizator"]?>"><?=@$this->context["organizatorJmeno"]?></option><?php
+    }
+  
+    function upravy_tabulka_typ() {
+      if($this->current == "upravy_tabulka_typ") {
+        if(@$this->buffer["upravy_tabulka_typ"]) {
+          $out = $this->buffer["upravy_tabulka_typ"] . ob_get_clean();
+          $this->buffer["upravy_tabulka_typ"] = "";
+        } else {
+          $out = ob_get_clean();
+        }
+        $this->current = "";
+        return $out;
+      } else {
+        $out = @$this->buffer["upravy_tabulka_typ"];
+        $this->buffer["upravy_tabulka_typ"] = "";
+        return $out;
+      }
+    }
+
+    function parse_upravy_tabulka_typ() {
+      if($this->current != "upravy_tabulka_typ") {
+        if($this->current) @$this->buffer[$this->current] .= ob_get_clean();
+        ob_start();
+        $this->current = "upravy_tabulka_typ";
+      }
+      ?><option <?=@$this->context["sel"]?> value="<?=@$this->context["id_typu"]?>"><?=@$this->context["typ_1p"]?></option><?php
+    }
+  
+  }
+  

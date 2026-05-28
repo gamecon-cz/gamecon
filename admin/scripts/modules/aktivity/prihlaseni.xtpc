@@ -1,0 +1,186 @@
+<?php
+  class PrihlaseniTpl {
+    public $context = array();
+    public $dependencies = array("");
+    protected $buffer = array();
+    protected $current = "";        // currently buffered block
+    
+    function prihlaseni() {
+      if($this->current == "prihlaseni") {
+        if(@$this->buffer["prihlaseni"]) {
+          $out = $this->buffer["prihlaseni"] . ob_get_clean();
+          $this->buffer["prihlaseni"] = "";
+        } else {
+          $out = ob_get_clean();
+        }
+        $this->current = "";
+        return $out;
+      } else {
+        $out = @$this->buffer["prihlaseni"];
+        $this->buffer["prihlaseni"] = "";
+        return $out;
+      }
+    }
+
+    function parse_prihlaseni() {
+      if($this->current != "prihlaseni") {
+        if($this->current) @$this->buffer[$this->current] .= ob_get_clean();
+        ob_start();
+        $this->current = "prihlaseni";
+      }
+      ?>
+
+(
+<?=$this->prihlaseni_vyber()?>
+)
+
+
+<script>
+function tgl(id)
+{
+  el=document.getElementById(id).style;
+  el.display=(el.display == 'block')?'none':'block';
+  return false;
+}
+</script>
+
+<?=$this->prihlaseni_aktivita()?>
+
+
+<?php
+    }
+  
+    function prihlaseni_vyber() {
+      if($this->current == "prihlaseni_vyber") {
+        if(@$this->buffer["prihlaseni_vyber"]) {
+          $out = $this->buffer["prihlaseni_vyber"] . ob_get_clean();
+          $this->buffer["prihlaseni_vyber"] = "";
+        } else {
+          $out = ob_get_clean();
+        }
+        $this->current = "";
+        return $out;
+      } else {
+        $out = @$this->buffer["prihlaseni_vyber"];
+        $this->buffer["prihlaseni_vyber"] = "";
+        return $out;
+      }
+    }
+
+    function parse_prihlaseni_vyber() {
+      if($this->current != "prihlaseni_vyber") {
+        if($this->current) @$this->buffer[$this->current] .= ob_get_clean();
+        ob_start();
+        $this->current = "prihlaseni_vyber";
+      }
+      ?>
+  <a href="aktivity/prihlaseni?typ=<?=@$this->context["id_typu"]?>"><?=@$this->context["typ_1pmn"]?></a> |
+<?php
+    }
+  
+    function prihlaseni_aktivita() {
+      if($this->current == "prihlaseni_aktivita") {
+        if(@$this->buffer["prihlaseni_aktivita"]) {
+          $out = $this->buffer["prihlaseni_aktivita"] . ob_get_clean();
+          $this->buffer["prihlaseni_aktivita"] = "";
+        } else {
+          $out = ob_get_clean();
+        }
+        $this->current = "";
+        return $out;
+      } else {
+        $out = @$this->buffer["prihlaseni_aktivita"];
+        $this->buffer["prihlaseni_aktivita"] = "";
+        return $out;
+      }
+    }
+
+    function parse_prihlaseni_aktivita() {
+      if($this->current != "prihlaseni_aktivita") {
+        if($this->current) @$this->buffer[$this->current] .= ob_get_clean();
+        ob_start();
+        $this->current = "prihlaseni_aktivita";
+      }
+      ?>
+<h2><?=@$this->context["nazevAktivity"]?> (<?=@$this->context["obsazenost"]?>)</h2>
+<?=@$this->context["cas"]?> - <?=@$this->context["orgove"]?> - <?=@$this->context["mistnost"]?> -
+<a href="mailto:?subject=Gamecon: <?=@$this->context["nazevAktivity"]?>&amp;bcc=<?=@$this->context["maily"]?>">e-mail všem</a> -
+<a href="#" onclick="return tgl('maily<?=@$this->context["id"]?>')">zobrazit maily</a> -
+<a href="./tisk/aktivita-ucast.php?id=<?=@$this->context["id"]?>" onclick="window.open(this.href);return false">tisk</a> 
+<div id="maily<?=@$this->context["id"]?>" style="display:none"><br /><?=@$this->context["maily"]?><br /><br /></div>
+<?=$this->prihlaseni_aktivita_lide()?>
+
+<?php
+    }
+  
+    function prihlaseni_aktivita_lide() {
+      if($this->current == "prihlaseni_aktivita_lide") {
+        if(@$this->buffer["prihlaseni_aktivita_lide"]) {
+          $out = $this->buffer["prihlaseni_aktivita_lide"] . ob_get_clean();
+          $this->buffer["prihlaseni_aktivita_lide"] = "";
+        } else {
+          $out = ob_get_clean();
+        }
+        $this->current = "";
+        return $out;
+      } else {
+        $out = @$this->buffer["prihlaseni_aktivita_lide"];
+        $this->buffer["prihlaseni_aktivita_lide"] = "";
+        return $out;
+      }
+    }
+
+    function parse_prihlaseni_aktivita_lide() {
+      if($this->current != "prihlaseni_aktivita_lide") {
+        if($this->current) @$this->buffer[$this->current] .= ob_get_clean();
+        ob_start();
+        $this->current = "prihlaseni_aktivita_lide";
+      }
+      ?>
+<table class="vypis">
+  <tr>
+    <th style="min-width: 125px">Login</th>
+    <th style="min-width: 175px">Jméno</th>
+    <th style="min-width: 200px">E-mail</th>
+    <th style="min-width: 125px">Telefon</th>
+  </tr>
+  <?=$this->prihlaseni_aktivita_lide_clovek()?>
+</table>
+<?php
+    }
+  
+    function prihlaseni_aktivita_lide_clovek() {
+      if($this->current == "prihlaseni_aktivita_lide_clovek") {
+        if(@$this->buffer["prihlaseni_aktivita_lide_clovek"]) {
+          $out = $this->buffer["prihlaseni_aktivita_lide_clovek"] . ob_get_clean();
+          $this->buffer["prihlaseni_aktivita_lide_clovek"] = "";
+        } else {
+          $out = ob_get_clean();
+        }
+        $this->current = "";
+        return $out;
+      } else {
+        $out = @$this->buffer["prihlaseni_aktivita_lide_clovek"];
+        $this->buffer["prihlaseni_aktivita_lide_clovek"] = "";
+        return $out;
+      }
+    }
+
+    function parse_prihlaseni_aktivita_lide_clovek() {
+      if($this->current != "prihlaseni_aktivita_lide_clovek") {
+        if($this->current) @$this->buffer[$this->current] .= ob_get_clean();
+        ob_start();
+        $this->current = "prihlaseni_aktivita_lide_clovek";
+      }
+      ?>
+  <tr class="<?=@$this->context["odd"]?>">
+    <td><?=@$this->context["nick"]?></td>
+    <td><?=@$this->context["jmeno"]?> <?=@$this->context["prijmeni"]?></td>
+    <td><?=@$this->context["mail"]?></td>
+    <td><?=@$this->context["telefon"]?></td>
+  </tr>
+  <?php
+    }
+  
+  }
+  

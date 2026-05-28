@@ -1,0 +1,295 @@
+<?php
+  class PravaTpl {
+    public $context = array();
+    public $dependencies = array("");
+    protected $buffer = array();
+    protected $current = "";        // currently buffered block
+    
+    function prava() {
+      if($this->current == "prava") {
+        if(@$this->buffer["prava"]) {
+          $out = $this->buffer["prava"] . ob_get_clean();
+          $this->buffer["prava"] = "";
+        } else {
+          $out = ob_get_clean();
+        }
+        $this->current = "";
+        return $out;
+      } else {
+        $out = @$this->buffer["prava"];
+        $this->buffer["prava"] = "";
+        return $out;
+      }
+    }
+
+    function parse_prava() {
+      if($this->current != "prava") {
+        if($this->current) @$this->buffer[$this->current] .= ob_get_clean();
+        ob_start();
+        $this->current = "prava";
+      }
+      ?>Trvalé židle: <table class="zvyraznovana"> <tr><th>&emsp;</th><th>Jméno židle</th><th>Popis židle</th><th></th><th></th></tr> <?=$this->prava_zidle()?> </table><br><br>  Dočasné židle (pro aktuální rok): <table class="zvyraznovana"> <tr><th>&emsp;</th><th>Jméno židle</th><th>Popis židle</th><th></th></tr> <?=$this->prava_zidleDocasna()?> </table><br><br><?php
+    }
+  
+    function prava_zidle() {
+      if($this->current == "prava_zidle") {
+        if(@$this->buffer["prava_zidle"]) {
+          $out = $this->buffer["prava_zidle"] . ob_get_clean();
+          $this->buffer["prava_zidle"] = "";
+        } else {
+          $out = ob_get_clean();
+        }
+        $this->current = "";
+        return $out;
+      } else {
+        $out = @$this->buffer["prava_zidle"];
+        $this->buffer["prava_zidle"] = "";
+        return $out;
+      }
+    }
+
+    function parse_prava_zidle() {
+      if($this->current != "prava_zidle") {
+        if($this->current) @$this->buffer[$this->current] .= ob_get_clean();
+        ob_start();
+        $this->current = "prava_zidle";
+      }
+      ?><tr> <td><?=@$this->context["sedi"]?></td> <td><?=@$this->context["jmeno_zidle"]?></td> <td><?=@$this->context["popis_zidle"]?></td> <td> <?=$this->prava_zidle_posad()?> <?=$this->prava_zidle_sesad()?> </td> <td><a href="prava/<?=@$this->context["id_zidle"]?>">detail</a></td> </tr><?php
+    }
+  
+    function prava_zidle_posad() {
+      if($this->current == "prava_zidle_posad") {
+        if(@$this->buffer["prava_zidle_posad"]) {
+          $out = $this->buffer["prava_zidle_posad"] . ob_get_clean();
+          $this->buffer["prava_zidle_posad"] = "";
+        } else {
+          $out = ob_get_clean();
+        }
+        $this->current = "";
+        return $out;
+      } else {
+        $out = @$this->buffer["prava_zidle_posad"];
+        $this->buffer["prava_zidle_posad"] = "";
+        return $out;
+      }
+    }
+
+    function parse_prava_zidle_posad() {
+      if($this->current != "prava_zidle_posad") {
+        if($this->current) @$this->buffer[$this->current] .= ob_get_clean();
+        ob_start();
+        $this->current = "prava_zidle_posad";
+      }
+      ?><a href="prava?posad=<?=@$this->context["id_zidle"]?>">posaď</a><?php
+    }
+  
+    function prava_zidle_sesad() {
+      if($this->current == "prava_zidle_sesad") {
+        if(@$this->buffer["prava_zidle_sesad"]) {
+          $out = $this->buffer["prava_zidle_sesad"] . ob_get_clean();
+          $this->buffer["prava_zidle_sesad"] = "";
+        } else {
+          $out = ob_get_clean();
+        }
+        $this->current = "";
+        return $out;
+      } else {
+        $out = @$this->buffer["prava_zidle_sesad"];
+        $this->buffer["prava_zidle_sesad"] = "";
+        return $out;
+      }
+    }
+
+    function parse_prava_zidle_sesad() {
+      if($this->current != "prava_zidle_sesad") {
+        if($this->current) @$this->buffer[$this->current] .= ob_get_clean();
+        ob_start();
+        $this->current = "prava_zidle_sesad";
+      }
+      ?><a href="prava?sesad=<?=@$this->context["id_zidle"]?>">sesaď</a><?php
+    }
+  
+    function prava_zidleDocasna() {
+      if($this->current == "prava_zidleDocasna") {
+        if(@$this->buffer["prava_zidleDocasna"]) {
+          $out = $this->buffer["prava_zidleDocasna"] . ob_get_clean();
+          $this->buffer["prava_zidleDocasna"] = "";
+        } else {
+          $out = ob_get_clean();
+        }
+        $this->current = "";
+        return $out;
+      } else {
+        $out = @$this->buffer["prava_zidleDocasna"];
+        $this->buffer["prava_zidleDocasna"] = "";
+        return $out;
+      }
+    }
+
+    function parse_prava_zidleDocasna() {
+      if($this->current != "prava_zidleDocasna") {
+        if($this->current) @$this->buffer[$this->current] .= ob_get_clean();
+        ob_start();
+        $this->current = "prava_zidleDocasna";
+      }
+      ?><tr> <td><?=@$this->context["sedi"]?></td> <td><?=@$this->context["jmeno_zidle"]?></td><td><?=@$this->context["popis_zidle"]?></td><td> <a href="prava/<?=@$this->context["id_zidle"]?>">detail</a> </td></tr><?php
+    }
+  
+    function zidle() {
+      if($this->current == "zidle") {
+        if(@$this->buffer["zidle"]) {
+          $out = $this->buffer["zidle"] . ob_get_clean();
+          $this->buffer["zidle"] = "";
+        } else {
+          $out = ob_get_clean();
+        }
+        $this->current = "";
+        return $out;
+      } else {
+        $out = @$this->buffer["zidle"];
+        $this->buffer["zidle"] = "";
+        return $out;
+      }
+    }
+
+    function parse_zidle() {
+      if($this->current != "zidle") {
+        if($this->current) @$this->buffer[$this->current] .= ob_get_clean();
+        ob_start();
+        $this->current = "zidle";
+      }
+      ?>Práva židle <strong><?=@$this->context["jmeno_zidle"]?></strong> (<?=@$this->context["popis_zidle"]?>): <table class="zvyraznovana"> <tr><th>Název práva</th><th>Popis práva</th><th></th></tr> <?=$this->zidle_pravo()?> </table> <form> <select name="dejPravo"> <?=$this->zidle_pravoVyber()?> </select> <input type="submit" value="přidat židli právo"> </form><br><br>  Seznam uživatelů na této židli: <table class="zvyraznovana"> <tr><th>ID</th><th>Přezdívka</th><th>Jméno a příjmení</th><th></th></tr> <?=$this->zidle_uzivatel()?> </table><br> <?=$this->zidle_posad()?> <?=$this->zidle_sesad()?><?php
+    }
+  
+    function zidle_pravo() {
+      if($this->current == "zidle_pravo") {
+        if(@$this->buffer["zidle_pravo"]) {
+          $out = $this->buffer["zidle_pravo"] . ob_get_clean();
+          $this->buffer["zidle_pravo"] = "";
+        } else {
+          $out = ob_get_clean();
+        }
+        $this->current = "";
+        return $out;
+      } else {
+        $out = @$this->buffer["zidle_pravo"];
+        $this->buffer["zidle_pravo"] = "";
+        return $out;
+      }
+    }
+
+    function parse_zidle_pravo() {
+      if($this->current != "zidle_pravo") {
+        if($this->current) @$this->buffer[$this->current] .= ob_get_clean();
+        ob_start();
+        $this->current = "zidle_pravo";
+      }
+      ?><tr> <td><?=@$this->context["jmeno_prava"]?></td> <td><?=@$this->context["popis_prava"]?></td> <td><a href="prava/<?=@$this->context["id_zidle"]?>?odeberPravo=<?=@$this->context["id_prava"]?>">vzít židli právo</a></td> </tr><?php
+    }
+  
+    function zidle_pravoVyber() {
+      if($this->current == "zidle_pravoVyber") {
+        if(@$this->buffer["zidle_pravoVyber"]) {
+          $out = $this->buffer["zidle_pravoVyber"] . ob_get_clean();
+          $this->buffer["zidle_pravoVyber"] = "";
+        } else {
+          $out = ob_get_clean();
+        }
+        $this->current = "";
+        return $out;
+      } else {
+        $out = @$this->buffer["zidle_pravoVyber"];
+        $this->buffer["zidle_pravoVyber"] = "";
+        return $out;
+      }
+    }
+
+    function parse_zidle_pravoVyber() {
+      if($this->current != "zidle_pravoVyber") {
+        if($this->current) @$this->buffer[$this->current] .= ob_get_clean();
+        ob_start();
+        $this->current = "zidle_pravoVyber";
+      }
+      ?><option value="<?=@$this->context["id_prava"]?>"><?=@$this->context["jmeno_prava"]?></option><?php
+    }
+  
+    function zidle_uzivatel() {
+      if($this->current == "zidle_uzivatel") {
+        if(@$this->buffer["zidle_uzivatel"]) {
+          $out = $this->buffer["zidle_uzivatel"] . ob_get_clean();
+          $this->buffer["zidle_uzivatel"] = "";
+        } else {
+          $out = ob_get_clean();
+        }
+        $this->current = "";
+        return $out;
+      } else {
+        $out = @$this->buffer["zidle_uzivatel"];
+        $this->buffer["zidle_uzivatel"] = "";
+        return $out;
+      }
+    }
+
+    function parse_zidle_uzivatel() {
+      if($this->current != "zidle_uzivatel") {
+        if($this->current) @$this->buffer[$this->current] .= ob_get_clean();
+        ob_start();
+        $this->current = "zidle_uzivatel";
+      }
+      ?><tr> <td><?=@$this->context["id"]?></td> <td><?=@$this->context["nick"]?></td> <td><?=@$this->context["jmeno"]?></td> <td><a href="prava/<?=@$this->context["id_zidle"]?>?sesadUzivatele=<?=@$this->context["id"]?>">sesadit uživatele</a></td> </tr><?php
+    }
+  
+    function zidle_posad() {
+      if($this->current == "zidle_posad") {
+        if(@$this->buffer["zidle_posad"]) {
+          $out = $this->buffer["zidle_posad"] . ob_get_clean();
+          $this->buffer["zidle_posad"] = "";
+        } else {
+          $out = ob_get_clean();
+        }
+        $this->current = "";
+        return $out;
+      } else {
+        $out = @$this->buffer["zidle_posad"];
+        $this->buffer["zidle_posad"] = "";
+        return $out;
+      }
+    }
+
+    function parse_zidle_posad() {
+      if($this->current != "zidle_posad") {
+        if($this->current) @$this->buffer[$this->current] .= ob_get_clean();
+        ob_start();
+        $this->current = "zidle_posad";
+      }
+      ?><form> <input type="hidden" name="posad" value="<?=@$this->context["id_zidle"]?>"> <input type="submit" value="Posadit aktuálního uživatele na židli"> </form><?php
+    }
+  
+    function zidle_sesad() {
+      if($this->current == "zidle_sesad") {
+        if(@$this->buffer["zidle_sesad"]) {
+          $out = $this->buffer["zidle_sesad"] . ob_get_clean();
+          $this->buffer["zidle_sesad"] = "";
+        } else {
+          $out = ob_get_clean();
+        }
+        $this->current = "";
+        return $out;
+      } else {
+        $out = @$this->buffer["zidle_sesad"];
+        $this->buffer["zidle_sesad"] = "";
+        return $out;
+      }
+    }
+
+    function parse_zidle_sesad() {
+      if($this->current != "zidle_sesad") {
+        if($this->current) @$this->buffer[$this->current] .= ob_get_clean();
+        ob_start();
+        $this->current = "zidle_sesad";
+      }
+      ?><form> <input type="hidden" name="sesad" value="<?=@$this->context["id_zidle"]?>"> <input type="submit" value="Sesadit aktuálního uživatele z židle"> </form><?php
+    }
+  
+  }
+  

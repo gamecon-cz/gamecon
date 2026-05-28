@@ -1,0 +1,286 @@
+<?php
+  class AktivityTpl {
+    public $context = array();
+    public $dependencies = array("");
+    protected $buffer = array();
+    protected $current = "";        // currently buffered block
+    
+    function aktivity() {
+      if($this->current == "aktivity") {
+        if(@$this->buffer["aktivity"]) {
+          $out = $this->buffer["aktivity"] . ob_get_clean();
+          $this->buffer["aktivity"] = "";
+        } else {
+          $out = ob_get_clean();
+        }
+        $this->current = "";
+        return $out;
+      } else {
+        $out = @$this->buffer["aktivity"];
+        $this->buffer["aktivity"] = "";
+        return $out;
+      }
+    }
+
+    function parse_aktivity() {
+      if($this->current != "aktivity") {
+        if($this->current) @$this->buffer[$this->current] .= ob_get_clean();
+        ob_start();
+        $this->current = "aktivity";
+      }
+      ?><div style="position:absolute;right:106px;top:120px">
+  <form method="post">
+    Zobrazit jen:
+    <select name="filtr" onchange="this.form.submit()">
+      <option value="vsechno">(všechno)</option>
+      <?=$this->aktivity_filtrMoznost()?>
+    <select>
+  </form>
+</div>
+
+<?=$this->aktivity_aktivovatVse()?>
+
+<?=@$this->context["statistika"]?><br /><br />
+
+<style> th > a { text-decoration:none; color:#88c; } </style>
+<table class="zvyraznovana aktivity" style="width: 100%">
+  <tr>
+    <th><span class="hinted">Název<div class="hint">
+      Trojúhelníčky slouží k řazení.</div></span>
+      <a href="aktivity?sort=nazev_akce">▲</a> </th>
+    <th style="width:120px">Čas <a href="aktivity?sort=zacatek">▲</a> </th>
+    <th style="width:190px">Organizátor <a href="aktivity?sort=organizatori">▲</a>  </th>
+    <th style="width:90px">Místnost <a href="aktivity?sort=lokace">▲</a>  </th>
+    <th>Typ <a href="aktivity?sort=typ">▲</a> </th>
+    <th><span class="hinted">Ins<div class="hint">
+      Řetěz znamená, že aktivita je členem nějaké rodiny instancí a ve výpisu webu se zobrazuje pouze jednou a s více nabídkami termínu pro přihlášení.
+    </div></span></th>
+    <th style="width: 180px"><span class="hinted">Akce<div class="hint">
+      <strong>smaž:</strong> nevratné smazání aktivity<br />
+      <strong>uprav:</strong> podrobná editace aktivity na vlastní stránce<br />
+      <strong>inst:</strong> vytvořit novou instanci aktivity (čas příp. místo lze následně měnit v editaci)<br />
+      <strong>pub:</strong> publikovat (ukázat) akci na webu<br />
+      <strong>aktiv:</strong> aktivovat (otevřít k přihlašování) akci v programu (projevuje se jen pokud jede registrace)
+    </div></span></th>
+  </tr>
+  <?=$this->aktivity_aktivita()?>
+</table><?php
+    }
+  
+    function aktivity_filtrMoznost() {
+      if($this->current == "aktivity_filtrMoznost") {
+        if(@$this->buffer["aktivity_filtrMoznost"]) {
+          $out = $this->buffer["aktivity_filtrMoznost"] . ob_get_clean();
+          $this->buffer["aktivity_filtrMoznost"] = "";
+        } else {
+          $out = ob_get_clean();
+        }
+        $this->current = "";
+        return $out;
+      } else {
+        $out = @$this->buffer["aktivity_filtrMoznost"];
+        $this->buffer["aktivity_filtrMoznost"] = "";
+        return $out;
+      }
+    }
+
+    function parse_aktivity_filtrMoznost() {
+      if($this->current != "aktivity_filtrMoznost") {
+        if($this->current) @$this->buffer[$this->current] .= ob_get_clean();
+        ob_start();
+        $this->current = "aktivity_filtrMoznost";
+      }
+      ?><option value="<?=@$this->context["val"]?>" <?=@$this->context["sel"]?>><?=@$this->context["nazev"]?></option><?php
+    }
+  
+    function aktivity_aktivovatVse() {
+      if($this->current == "aktivity_aktivovatVse") {
+        if(@$this->buffer["aktivity_aktivovatVse"]) {
+          $out = $this->buffer["aktivity_aktivovatVse"] . ob_get_clean();
+          $this->buffer["aktivity_aktivovatVse"] = "";
+        } else {
+          $out = ob_get_clean();
+        }
+        $this->current = "";
+        return $out;
+      } else {
+        $out = @$this->buffer["aktivity_aktivovatVse"];
+        $this->buffer["aktivity_aktivovatVse"] = "";
+        return $out;
+      }
+    }
+
+    function parse_aktivity_aktivovatVse() {
+      if($this->current != "aktivity_aktivovatVse") {
+        if($this->current) @$this->buffer[$this->current] .= ob_get_clean();
+        ob_start();
+        $this->current = "aktivity_aktivovatVse";
+      }
+      ?><form method="post" style="position:absolute;right:20px;top:80px">
+  <input type="submit" name="aktivovatVse" value="aktivovat hromadně" 
+    onclick="return window.confirm('Toto aktivuje všechny publikované aktivity ve všech kategoriích. Určitě?');" />
+</form><?php
+    }
+  
+    function aktivity_aktivita() {
+      if($this->current == "aktivity_aktivita") {
+        if(@$this->buffer["aktivity_aktivita"]) {
+          $out = $this->buffer["aktivity_aktivita"] . ob_get_clean();
+          $this->buffer["aktivity_aktivita"] = "";
+        } else {
+          $out = ob_get_clean();
+        }
+        $this->current = "";
+        return $out;
+      } else {
+        $out = @$this->buffer["aktivity_aktivita"];
+        $this->buffer["aktivity_aktivita"] = "";
+        return $out;
+      }
+    }
+
+    function parse_aktivity_aktivita() {
+      if($this->current != "aktivity_aktivita") {
+        if($this->current) @$this->buffer[$this->current] .= ob_get_clean();
+        ob_start();
+        $this->current = "aktivity_aktivita";
+      }
+      ?><tr>
+    <td><?=@$this->context["nazev"]?></td>
+    <td><?=@$this->context["cas"]?></td>
+    <td><?=@$this->context["organizatori"]?></td>
+    <td><?=@$this->context["mistnost"]?></td>
+    <td><?=@$this->context["typ"]?></td>
+    <td><?=$this->aktivity_aktivita_instSymbol()?></td>
+    <td>
+      <?=$this->aktivity_aktivita_tlacitka()?>
+    </td>
+  </tr><?php
+    }
+  
+    function aktivity_aktivita_instSymbol() {
+      if($this->current == "aktivity_aktivita_instSymbol") {
+        if(@$this->buffer["aktivity_aktivita_instSymbol"]) {
+          $out = $this->buffer["aktivity_aktivita_instSymbol"] . ob_get_clean();
+          $this->buffer["aktivity_aktivita_instSymbol"] = "";
+        } else {
+          $out = ob_get_clean();
+        }
+        $this->current = "";
+        return $out;
+      } else {
+        $out = @$this->buffer["aktivity_aktivita_instSymbol"];
+        $this->buffer["aktivity_aktivita_instSymbol"] = "";
+        return $out;
+      }
+    }
+
+    function parse_aktivity_aktivita_instSymbol() {
+      if($this->current != "aktivity_aktivita_instSymbol") {
+        if($this->current) @$this->buffer[$this->current] .= ob_get_clean();
+        ob_start();
+        $this->current = "aktivity_aktivita_instSymbol";
+      }
+      ?><img src="files/var/chain-icon.png" /><?php
+    }
+  
+    function aktivity_aktivita_tlacitka() {
+      if($this->current == "aktivity_aktivita_tlacitka") {
+        if(@$this->buffer["aktivity_aktivita_tlacitka"]) {
+          $out = $this->buffer["aktivity_aktivita_tlacitka"] . ob_get_clean();
+          $this->buffer["aktivity_aktivita_tlacitka"] = "";
+        } else {
+          $out = ob_get_clean();
+        }
+        $this->current = "";
+        return $out;
+      } else {
+        $out = @$this->buffer["aktivity_aktivita_tlacitka"];
+        $this->buffer["aktivity_aktivita_tlacitka"] = "";
+        return $out;
+      }
+    }
+
+    function parse_aktivity_aktivita_tlacitka() {
+      if($this->current != "aktivity_aktivita_tlacitka") {
+        if($this->current) @$this->buffer[$this->current] .= ob_get_clean();
+        ob_start();
+        $this->current = "aktivity_aktivita_tlacitka";
+      }
+      ?><form method="post">
+        <input type="hidden" name="aktivitaId" value="<?=@$this->context["id_akce"]?>" />
+        <input type="submit" name="smazat" value="smaž" 
+          onclick="return window.confirm('Fakt trvale smazat <?=@$this->context["nazev_akce"]?> (včetně odhlášení všech účastníků)?');" />
+      </form>
+      <form method="get" action="aktivity/upravy">
+        <input type="hidden" name="aktivitaId" value="<?=@$this->context["id_akce"]?>" />
+        <input type="submit" value="uprav" />
+      </form>
+      <form method="post">
+        <input type="hidden" name="aktivitaId" value="<?=@$this->context["id_akce"]?>" />
+        <input type="submit" name="instance" value="inst" />
+      </form>
+      <?=$this->aktivity_aktivita_tlacitka_publikovat()?>
+      <?=$this->aktivity_aktivita_tlacitka_aktivovat()?><?php
+    }
+  
+    function aktivity_aktivita_tlacitka_publikovat() {
+      if($this->current == "aktivity_aktivita_tlacitka_publikovat") {
+        if(@$this->buffer["aktivity_aktivita_tlacitka_publikovat"]) {
+          $out = $this->buffer["aktivity_aktivita_tlacitka_publikovat"] . ob_get_clean();
+          $this->buffer["aktivity_aktivita_tlacitka_publikovat"] = "";
+        } else {
+          $out = ob_get_clean();
+        }
+        $this->current = "";
+        return $out;
+      } else {
+        $out = @$this->buffer["aktivity_aktivita_tlacitka_publikovat"];
+        $this->buffer["aktivity_aktivita_tlacitka_publikovat"] = "";
+        return $out;
+      }
+    }
+
+    function parse_aktivity_aktivita_tlacitka_publikovat() {
+      if($this->current != "aktivity_aktivita_tlacitka_publikovat") {
+        if($this->current) @$this->buffer[$this->current] .= ob_get_clean();
+        ob_start();
+        $this->current = "aktivity_aktivita_tlacitka_publikovat";
+      }
+      ?><form method="post">
+        <input type="hidden" name="aktivitaId" value="<?=@$this->context["id_akce"]?>" />
+         <input type="submit" name="publikovat" value="pub" />
+      </form><?php
+    }
+  
+    function aktivity_aktivita_tlacitka_aktivovat() {
+      if($this->current == "aktivity_aktivita_tlacitka_aktivovat") {
+        if(@$this->buffer["aktivity_aktivita_tlacitka_aktivovat"]) {
+          $out = $this->buffer["aktivity_aktivita_tlacitka_aktivovat"] . ob_get_clean();
+          $this->buffer["aktivity_aktivita_tlacitka_aktivovat"] = "";
+        } else {
+          $out = ob_get_clean();
+        }
+        $this->current = "";
+        return $out;
+      } else {
+        $out = @$this->buffer["aktivity_aktivita_tlacitka_aktivovat"];
+        $this->buffer["aktivity_aktivita_tlacitka_aktivovat"] = "";
+        return $out;
+      }
+    }
+
+    function parse_aktivity_aktivita_tlacitka_aktivovat() {
+      if($this->current != "aktivity_aktivita_tlacitka_aktivovat") {
+        if($this->current) @$this->buffer[$this->current] .= ob_get_clean();
+        ob_start();
+        $this->current = "aktivity_aktivita_tlacitka_aktivovat";
+      }
+      ?><form method="post" style="margin-left:36px">
+        <input type="hidden" name="aktivitaId" value="<?=@$this->context["id_akce"]?>" />
+         <input type="submit" name="aktivovat" value="aktiv" />
+      </form><?php
+    }
+  
+  }
+  

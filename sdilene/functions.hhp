@@ -1,0 +1,205 @@
+<?php
+
+/**
+ * Vrátí míru diverzifikace aktivit v poli udávajícím počty aktivit od jedno-
+ * tlivých typů. Délka pole ovlivňuje výsledek (je potřeba aby obsahovalo i 0)
+ */  
+function aktivityDiverzifikace($poleTypu)
+{
+  $typu=count($poleTypu);
+  $pocet=array_sum($poleTypu);
+  $pocty=$poleTypu;
+  rsort($pocty,SORT_NUMERIC);
+  $max=($pocet-$pocty[0])/($pocet*($typu-1));
+  $nPocty=array();
+  for($i=1;$i<$typu;$i++)
+  { //první počet přeskočit
+    if($pocty[$i]/$pocet>$max)
+      $nPocty[]=$max;
+    else
+      $nPocty[]=$pocty[$i]/$pocet;
+  }
+  return array_sum($nPocty)*$typu/($typu-1); //výsledná míra diverzifikace 0.0 - 1.0
+}
+
+
+/** Vrací datum ve stylu "pátek 14:00-18:00" na základě řádku db */
+function datum2($dbRadek)
+{
+  if($dbRadek['zacatek'])
+    return (new DateTimeCz($dbRadek['zacatek']))->format('l G:i').'–'.(new DateTimeCz($dbRadek['konec']))->format('G:i');
+  else
+    return '';
+}
+
+
+/** Vrací datum ve stylu 1. července 
+ *  akceptuje vše, co žere strtotime */
+function datum3($datum)
+{
+  $mesic=array('ledna', 'února', 'března', 'dubna', 'května', 'června',
+    'července', 'srpna', 'září', 'října', 'listopadu', 'prosince');
+  return date('j. ',strtotime($datum)).
+    $mesic[date('n',strtotime($datum))-1];
+}
+
+
+/**
+ * Převede text na odpovídající html pomocí markdownu
+ * @see Originální implementace markdownu je rychlejší jak Parsedown
+ * @todo target odkazů řešit globálně webem
+ * @todo odstranit require_once a vyřešit nějak globálně použití ext. knihoven
+ */
+function markdown($text) {
+  require_once(__DIR__.'/markdown.hhp');
+  $text = PlugMarkdown($text);
+  // Následující tuzingy jsou u aktivit zcela jedno (~1ms), u blogu už se
+  // projeví (třeba 80ms místo 30ms).
+  $text = preg_replace_callback('@(p|h\d|strong|em)>[^<]+<@', function($m){
+    $m[0] = str_replace('...', '…', $m[0]);
+    $m[0] = str_replace(' - ', ' – ', $m[0]);
+    return preg_replace('@"([^"]+)"@', '„$1“', $m[0]);
+  }, $text);
+  $text = preg_replace(
+    '@([^=">])(http://[a-zA-Z0-9/\?\.=\-_]+)@',
+    '$1<a href="$2" target="_blank">$2</a>',
+    $text
+  );
+  return $text;
+}
+
+
+/** Zjistí, jestli uživatel má volno v určitém časovém intervalu. (např. preve-
+ *  nce kolizí aktivit nebo kolizí u orgů.
+ *  @param array $poleCas pole s časovými údají odpovídajícími evidenci aktivit
+ *  v databázi (den, zacatek jako od, konec jako do)
+ *  @param int vyjimka ID akce, která se má vyjmout z hledání (typicky při editu
+ *  akce testujeme kolizi ale nezajímá nás kolize "se sebou samou"  
+ *  @return vrací true nebo false
+ *  @todo tato operace by měla být řešena v rámci nějaké třídy speciální
+ *  výjimkou, která ponese i seznam kolidujících aktivit v sobě.
+ */
+function maVolno($uid,$poleCas,$vyjimka=null)
+{
+  $GLOBALS['maVolnoKolizePole'] = array();      //pole kolizních aktivit
+  if($uid===0 || $uid==='0') return true;       //"žádný" organizátor má vždy volno
+  if(!$poleCas['zacatek']) return true;         //aktivita s neurčeným časem neblokuje
+  if(ma_pravo($uid, P_KRYTI_AKCI)) return true; //aktivity se můžou krýt
+  // nalezení aktivit a určení překrytí
+  $a=dbQueryS('SELECT * FROM
+      (SELECT a.* FROM akce_prihlaseni p
+      JOIN akce_seznam a USING(id_akce)
+      WHERE p.id_uzivatele=$0
+      AND a.rok='.ROK.'
+      UNION
+      SELECT a.* FROM akce_seznam a
+      JOIN akce_organizatori ao USING(id_akce)
+      WHERE ao.id_uzivatele=$0
+      AND a.rok='.ROK.') as a
+    WHERE NOT (zacatek>=$2 OR konec<=$1) -- zacne az pak nebo skonci pred'."\n".
+    ($vyjimka?'AND id_akce!=$3':''),
+    array($uid, $poleCas['zacatek'], $poleCas['konec'], $vyjimka));
+  if(mysql_num_rows($a))
+  {
+    while($r=mysql_fetch_assoc($a))
+      $GLOBALS['maVolnoKolizePole'][]=$r;
+    return false;
+  }
+  else
+  {
+    $GLOBALS['maVolnoKolizePole'][]=array();
+    return true;
+  }
+}
+
+
+/** Vrací pole kolizních aktivit posledního "maVolno" volání */
+function maVolnoKolize()
+{ 
+  return isset($GLOBALS['maVolnoKolizePole'])?
+    $GLOBALS['maVolnoKolizePole']:array();
+}
+
+
+/** Multibyte (utf-8) první písmeno velké */
+function mb_ucfirst($string, $encoding=null)
+{
+  if(!$encoding) $encoding = mb_internal_encoding();
+  $firstChar = mb_substr($string, 0, 1, $encoding);
+  $then = mb_substr($string, 1, mb_strlen($string), $encoding);
+  return mb_strtoupper($firstChar, $encoding) . $then;
+}
+
+
+/** Tisk informace profileru. */
+function profilInfo()
+{
+  if(VETEV == OSTRA)
+    return false; //v ostré verzi se neprofiluje
+  $iconRoot = URL_ADMIN.'/files/design/';
+  $delka = microtime(true) - $GLOBALS['SKRIPT_ZACATEK'];
+  // počet sekund, kdy už je skript pomalý (čas zčervená)
+  $barva = $delka > 0.2 ? 'color:#f80;' : '';
+  // výstup
+  echo '
+    <div class="profilInfo" style="
+      background-color: rgba(0,0,0,0.5);
+      color: #fff;
+      top: 0;
+      left: 50%;
+      position: absolute;
+      padding: 2px 7px;
+      cursor: default;
+      z-index: 9999;
+    ">
+    <style>
+      .profilInfo:hover { opacity: 0.3; }
+      .profilInfo img { margin-bottom: -2px }
+      @media (max-width: 480px) { .profilInfo { display: none; } }
+    </style> 
+    <img src="'.$iconRoot.'clock-icon.png" alt="délka skriptu včetně DB">
+    <span style="'.$barva.'">'.round($delka*1000).'&thinsp;ms</span>
+    &ensp; 
+    <img src="'.$iconRoot.'database-icon.png" alt="délka odbavení DB/počet dotazů">
+    '.round(dbExecTime()*1000).'&thinsp;ms ('.dbNumQ().' dotazů)
+    </div>';
+}
+
+
+/**
+ * Říká, zdali uživatel má určité právo identifikované číslem
+ * @deprecated
+ */
+function ma_pravo($uzivatel,$cislo_prava)
+{  
+
+  //Ptáme se na práva aktuálně přihlášeného uživatele? Pokud ano, obejdeme DB
+  $u=Uzivatel::zSession();
+  if($u && $uzivatel==$u->id()) {
+    return $u->maPravo($cislo_prava);
+  }
+  
+  //Ptáme se obecně - načtení z DB
+  if(isset($uzivatel) && $uzivatel)
+  {
+    $sql = "
+      select
+        uzivatele_zidle.id_zidle,
+        uzivatele_zidle.id_uzivatele,
+        prava_zidle.id_zidle,
+        prava_zidle.id_prava
+      from
+        r_uzivatele_zidle uzivatele_zidle,
+        r_prava_zidle prava_zidle
+      where
+        uzivatele_zidle.id_uzivatele = $uzivatel and
+        uzivatele_zidle.id_zidle = prava_zidle.id_zidle and
+        prava_zidle.id_prava = $cislo_prava";
+        
+      if(mysql_num_rows(dbQuery($sql))>0)
+        return true;
+      else
+        return false;
+  }
+  return false;
+}

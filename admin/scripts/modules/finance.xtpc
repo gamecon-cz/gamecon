@@ -1,0 +1,191 @@
+<?php
+  class FinanceTpl {
+    public $context = array();
+    public $dependencies = array("");
+    protected $buffer = array();
+    protected $current = "";        // currently buffered block
+    
+    function finance() {
+      if($this->current == "finance") {
+        if(@$this->buffer["finance"]) {
+          $out = $this->buffer["finance"] . ob_get_clean();
+          $this->buffer["finance"] = "";
+        } else {
+          $out = ob_get_clean();
+        }
+        $this->current = "";
+        return $out;
+      } else {
+        $out = @$this->buffer["finance"];
+        $this->buffer["finance"] = "";
+        return $out;
+      }
+    }
+
+    function parse_finance() {
+      if($this->current != "finance") {
+        if($this->current) @$this->buffer[$this->current] .= ob_get_clean();
+        ob_start();
+        $this->current = "finance";
+      }
+      ?><h1>Finance</h1>
+
+<p>
+<?=$this->finance_slevaAno()?>
+<?=$this->finance_slevaNe()?>
+</p>
+
+<form>
+Vypsat uživatele, kteří mají stav účtu vyšší rovno jak 
+<input type="text" name="minimum" value="<?=@$this->context["minimum"]?>">
+<input type="submit" value="Vypsat"> (chvíli trvá)
+</form>
+
+<?=$this->finance_uzivatele()?>
+<?=$this->finance_nikdo()?>
+
+<form method="post">
+Odebrat <strong>všem</strong> uživatelům židli platby včas <input type="submit" name="odebrat" value="Odebrat">
+</form><?php
+    }
+  
+    function finance_slevaAno() {
+      if($this->current == "finance_slevaAno") {
+        if(@$this->buffer["finance_slevaAno"]) {
+          $out = $this->buffer["finance_slevaAno"] . ob_get_clean();
+          $this->buffer["finance_slevaAno"] = "";
+        } else {
+          $out = ob_get_clean();
+        }
+        $this->current = "";
+        return $out;
+      } else {
+        $out = @$this->buffer["finance_slevaAno"];
+        $this->buffer["finance_slevaAno"] = "";
+        return $out;
+      }
+    }
+
+    function parse_finance_slevaAno() {
+      if($this->current != "finance_slevaAno") {
+        if($this->current) @$this->buffer[$this->current] .= ob_get_clean();
+        ob_start();
+        $this->current = "finance_slevaAno";
+      }
+      ?>Sleva za včasnou platbu je pro všechny <strong>aktivní</strong> a má smysl jim včasnou platbu uznat.<?php
+    }
+  
+    function finance_slevaNe() {
+      if($this->current == "finance_slevaNe") {
+        if(@$this->buffer["finance_slevaNe"]) {
+          $out = $this->buffer["finance_slevaNe"] . ob_get_clean();
+          $this->buffer["finance_slevaNe"] = "";
+        } else {
+          $out = ob_get_clean();
+        }
+        $this->current = "";
+        return $out;
+      } else {
+        $out = @$this->buffer["finance_slevaNe"];
+        $this->buffer["finance_slevaNe"] = "";
+        return $out;
+      }
+    }
+
+    function parse_finance_slevaNe() {
+      if($this->current != "finance_slevaNe") {
+        if($this->current) @$this->buffer[$this->current] .= ob_get_clean();
+        ob_start();
+        $this->current = "finance_slevaNe";
+      }
+      ?>Sleva za včasnou platbu <strong>už skončila</strong> a hromadně uznávat podle stavu účtu nemá smysl (musela by se znova aktivovat pro smysluplné výsledky).<?php
+    }
+  
+    function finance_uzivatele() {
+      if($this->current == "finance_uzivatele") {
+        if(@$this->buffer["finance_uzivatele"]) {
+          $out = $this->buffer["finance_uzivatele"] . ob_get_clean();
+          $this->buffer["finance_uzivatele"] = "";
+        } else {
+          $out = ob_get_clean();
+        }
+        $this->current = "";
+        return $out;
+      } else {
+        $out = @$this->buffer["finance_uzivatele"];
+        $this->buffer["finance_uzivatele"] = "";
+        return $out;
+      }
+    }
+
+    function parse_finance_uzivatele() {
+      if($this->current != "finance_uzivatele") {
+        if($this->current) @$this->buffer[$this->current] .= ob_get_clean();
+        ob_start();
+        $this->current = "finance_uzivatele";
+      }
+      ?><em>pozn.: vypravěči mají právo „zaplatil včas“ vždy</em>
+<table>
+  <tr><th>Login</th><th>Stav účtu</th><th>aktiv</th><th>ubyt</th><th>předm</th><th>včas</th></tr>
+  <?=$this->finance_uzivatele_uzivatel()?>
+</table>
+<form method="post">
+Přiznat těmto lidem včasnou platbu nyní <input type="submit" value="Přiznat">
+<input type="hidden" name="priznat" value="<?=@$this->context["ids"]?>">
+</form><?php
+    }
+  
+    function finance_uzivatele_uzivatel() {
+      if($this->current == "finance_uzivatele_uzivatel") {
+        if(@$this->buffer["finance_uzivatele_uzivatel"]) {
+          $out = $this->buffer["finance_uzivatele_uzivatel"] . ob_get_clean();
+          $this->buffer["finance_uzivatele_uzivatel"] = "";
+        } else {
+          $out = ob_get_clean();
+        }
+        $this->current = "";
+        return $out;
+      } else {
+        $out = @$this->buffer["finance_uzivatele_uzivatel"];
+        $this->buffer["finance_uzivatele_uzivatel"] = "";
+        return $out;
+      }
+    }
+
+    function parse_finance_uzivatele_uzivatel() {
+      if($this->current != "finance_uzivatele_uzivatel") {
+        if($this->current) @$this->buffer[$this->current] .= ob_get_clean();
+        ob_start();
+        $this->current = "finance_uzivatele_uzivatel";
+      }
+      ?><tr><td><?=@$this->context["login"]?></td><td><?=@$this->context["stav"]?></td><td><?=@$this->context["aktivity"]?></td><td><?=@$this->context["ubytovani"]?></td><td><?=@$this->context["predmety"]?></td><td><?=@$this->context["vcas"]?></td></tr><?php
+    }
+  
+    function finance_nikdo() {
+      if($this->current == "finance_nikdo") {
+        if(@$this->buffer["finance_nikdo"]) {
+          $out = $this->buffer["finance_nikdo"] . ob_get_clean();
+          $this->buffer["finance_nikdo"] = "";
+        } else {
+          $out = ob_get_clean();
+        }
+        $this->current = "";
+        return $out;
+      } else {
+        $out = @$this->buffer["finance_nikdo"];
+        $this->buffer["finance_nikdo"] = "";
+        return $out;
+      }
+    }
+
+    function parse_finance_nikdo() {
+      if($this->current != "finance_nikdo") {
+        if($this->current) @$this->buffer[$this->current] .= ob_get_clean();
+        ob_start();
+        $this->current = "finance_nikdo";
+      }
+      ?>(žádní uživatelé)<br><?php
+    }
+  
+  }
+  
