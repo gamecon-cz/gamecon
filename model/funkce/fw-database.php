@@ -505,7 +505,13 @@ function dbRecordExists(
 ): bool {
     $sqlValuesArray = [];
     foreach ($values as $column => $value) {
-        $sqlValuesArray[] = dbQi($column) . '=' . dbQv($value);
+        if ($value === null)
+        {
+            $sqlValuesArray[] = dbQi($column) . " IS NULL";
+        } else
+        {
+            $sqlValuesArray[] = dbQi($column) . '=' . dbQv($value);
+        }
     }
     $sqlValues = implode(' AND ', $sqlValuesArray);
 
