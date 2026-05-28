@@ -1,0 +1,8 @@
+RewriteEngine on
+
+# Archive 2012 (oldest www/+sdilene/+specificke/ framework): Docker DocumentRoot
+# is the project root; the real web root is www/. Rewrite into it; www/.htaccess
+# then routes to index.php.
+RewriteRule .* www/$0 [L]
+
+RewriteRule .* - [F,L]

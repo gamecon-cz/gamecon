@@ -1,0 +1,50 @@
+<!-- begin:editaceStranek -->
+
+
+<!-- begin:vypis -->
+  <style>
+    .oddelovac td { font-weight: bold; padding-top: 16px; border-width: 0; }
+  </style>
+  <table class="vypis">
+    <tr>
+      <th>Název stránky v menu</th>
+      <th>URL</th>
+      <th>Akce</th>
+    </tr>
+    <!-- begin:radek -->
+    <!-- begin:oddelovac --><tr class="oddelovac"><td colspan=3>Skryté položky</td></tr><!-- end:oddelovac -->
+    <tr class="{odd}">
+      <td>{nazev}</td>
+      <td>{url_stranky}</td>
+      <td>
+        <a href="javascript: document.getElementById('edit{id_stranky}').submit()">upravit obsah</a> 
+        <form id="edit{id_stranky}" method="post">
+          <input type="hidden" name="akce" value="editaceStranek" />
+          <input type="hidden" name="zobrazit" value="{id_stranky}" />
+        </form>
+      </td>
+    </tr>
+    <!-- end:radek -->
+  </table>
+<!-- end:vypis -->
+
+<!-- begin:stranka -->
+  <style>
+    #obsahStranky { width: 100%; height: 450px; }
+  </style>
+  <form method="post">
+    <textarea name="obsahStranky" id="obsahStranky">{obsah}</textarea>
+    <input type="hidden" name="akce" value="editaceStranek" />
+    <input type="hidden" name="zobrazit" value="{id_stranky}" />
+    <input type="submit" value="Uložit změny" />
+  </form>
+<!-- end:stranka -->
+
+<!-- begin:help -->
+<br /><br />
+<p>Pokud jste se dostali až sem a sháníte nějakou nápovědu k formátování stránek (html), napište mi na godric@korh.cz.<br />
+&mdash; Godric</p>
+<!-- end:help -->
+
+
+<!-- end:editaceStranek -->

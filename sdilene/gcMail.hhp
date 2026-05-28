@@ -1,0 +1,63 @@
+<?php
+
+/**
+ * Třída pro sestavování mailu
+ */ 
+
+class GcMail
+{
+
+  protected $predmet, $adresat, $odesilatel, $text;
+  
+  public function __construct($zprava)
+  {
+    $this->text=$zprava;
+  }
+  
+  public function adresat($a=null)
+  { return $a?$this->adresat=$a:$this->adresat; }
+  
+  public function odesilatel($a=null)
+  {
+    //todo (potřeba implementovat v GcMail::odeslat()) 
+  }
+  
+  /**
+   * Odešle sestavenou zprávu
+   * Starý kód, možno fixnout   
+   */      
+  public function odeslat()
+  {
+    $to=$this->adresat;
+    $message_2=iconv("utf-8","iso-8859-2",$this->text);
+    $subject=GcMail::headerEnc(
+      iconv("utf-8","iso-8859-2",$this->predmet),"iso-8859-2");
+    $headers="Reply-to: mailman@gamecon.cz\nContent-Type:text/html;".
+      " charset=iso-8859-2\nFrom:=?iso-8859-2?B?".
+      base64_encode("GC MailMan")."?=<mailman@gamecon.cz>\n";
+    if(mail($to, $subject, $message_2, $headers))
+    {
+      return true;
+    }
+    else 
+    {
+      return false;
+    }
+  }
+  
+  public function predmet($a=null)
+  { return $a?$this->predmet=$a:$this->predmet; }
+  
+  ////////// protected věci //////////
+  
+  /**
+   * Magic
+   */     
+  static protected function headerEnc($text, $encoding="utf-8")
+  {
+    return "=?$encoding?Q?".imap_8bit($text)."?=";
+  }
+        
+}
+
+?>

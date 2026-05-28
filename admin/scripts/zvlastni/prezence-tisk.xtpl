@@ -1,0 +1,54 @@
+<!-- begin:aktivity -->
+
+<style>
+body { margin: 5mm; }
+table { border-collapse: collapse; }
+td, th { border: solid 0.3mm #000000; padding: 1mm 1mm; }
+.hlavicka { text-align: left; }
+.hlavicka .info { font-weight: normal; }
+.hlavicka .nazev { font-size: 150%; max-width: 110mm; }
+/* .konecStranky { page-break-after: always; } */ /* resi se jinak viz posledni radky */
+/* .fakeMargin { height: 5mm; } */ /* z nejakych duvodu odskakuje spodni margin tabulky na dalsi stranku, cili se to musi resit takto */
+body > div:nth-child(6n+1) { position: absolute; margin-left: 140mm; }
+body > div:nth-child(6n+5) { height: 50mm; border-bottom: dashed 1px #888; margin-bottom: 5mm; width: 280mm; }
+body > div:nth-child(6n+0) { page-break-after: always; }
+</style>
+<style media="print">
+body { margin: 0; }
+body > div:nth-child(6n+5) { display: none; height: 0; border: none; margin: 0; }
+</style>
+
+<!-- begin:aktivita -->
+<div class="aktivitaBlok">
+  <table>
+    <tr>
+      <th colspan="10" class="hlavicka">
+        <div class="nazev">{nazev_akce}</div>
+        <span class="info">{org}, {cas}, {mistnost}</span>
+      </th>
+    </tr>
+    <tr>
+      <th style="width:25mm">Login</th>
+      <th style="width:45mm">Jméno</th>
+      <th style="width:28mm">Telefon</th>
+      <th>✔/✘</th>
+    </tr>
+    <!-- begin:ucastnik -->
+    <tr>
+      <td>{login_uzivatele}</td>
+      <td>{jmeno_uzivatele} {prijmeni_uzivatele}</td>
+      <td>{telefon_uzivatele}</td>
+      <td></td>
+    </tr>
+    <!-- end:ucastnik -->
+    <tr><td>&nbsp;</td><td></td><td></td><td></td></tr><!-- volné řádky pro náhradníky -->
+    <tr><td>&nbsp;</td><td></td><td></td><td></td></tr>
+    <tr><td>&nbsp;</td><td></td><td></td><td></td></tr>
+    <tr><td>&nbsp;</td><td></td><td></td><td></td></tr>
+  </table>
+</div>
+<div class="fakeMargin"></div>
+<div class="konecStranky"></div>
+<!-- end:aktivita -->
+
+<!-- end:aktivity -->

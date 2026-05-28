@@ -1,0 +1,260 @@
+<?php
+
+/**
+ * Třída popisující systém financí daného uživatele. 
+ */
+
+class Finance
+{
+  var $u;
+  var $gac; //gamecoruny
+  var $bon; //bonus
+  var $poslaneGac;
+  var $poslanyBon;
+  var $cenaZazemi;
+  var $cenaUbytovani;
+  var $cenaAktivityGac;
+  var $cenaAktivityBon;
+  var $zazemi=array(); //pole s informacemi z ubytování a artefaktů dle db
+  var $aktivity=array(); //pole s informacemi o aktivitách dle db @todo rozhodnout, jestli si je evidovat
+  
+  /**
+   * Konstruktor
+   * @param array $nastaveni volitelná nastavení:
+   *  detail (bool) - detailní informace o aktivitách?
+   */           
+  function __construct(Uzivatel $u,$nastaveni=null)
+  {
+    $this->u=$u;
+    $this->nastaveni=$nastaveni;
+    //načtení info  
+    if($u->gcPrihlasen())
+    {
+      $uid=$u->id();
+      $org=ma_pravo($uid,ID_PRAVO_ORG_SEKCE);
+      //inicializace proměnných, načtení hodnot dál
+      $gamecoruny=0;
+      $bonus=0;
+      $soucinitel=0.0; //kolikanásobek bonusu se generuje z v čas připsané částky
+      $sleva=0.0; //poměrná část ceny, která se odečítá z bonusu
+      //pole, jeho indexy jsou možné hodnoty pole "ubytovani" v tabulce "prihlaska_ostatni"
+      $ubytovaniCeny=array(0=>0, 1=>CENA_POKOJ, 2=>CENA_SPACAK, 3=>CENA_POKOJ_2);
+      
+      //zjištění informací o uživateli a jeho objednaných suvenýrech a ubytování
+      $radek=dbOneLine('SELECT u.zustatek, count(ub.id_ubytovani) as pocetNoci,
+          o.placka, o.kostka, o.tricko, o.student, o.ubytovani
+        FROM uzivatele_hodnoty u
+        JOIN prihlaska_uzivatele p USING(id_uzivatele)
+        JOIN prihlaska_ostatni o USING(id_uzivatele,rok)
+        LEFT JOIN prihlaska_ubytovani ub USING(id_uzivatele,rok)
+        WHERE u.id_uzivatele='.$uid.'
+        AND p.rok='.ROK_AKTUALNI.'
+        GROUP BY u.id_uzivatele');
+      //výpočet ceny suvenýrů
+      if($radek['tricko'])
+      {
+        if($u->maPravo(P_TRIKO_ZDARMA))
+          null; //nic
+        else if($u->maPravo(P_TRIKO_ZAPUL))
+          $gamecoruny-=CENA_TRIKO/2;
+        else
+          $gamecoruny-=CENA_TRIKO;
+      }
+      $gamecoruny-=$radek['placka']&&!$u->maPravo(P_PLACKA_ZDARMA) ? CENA_PLACKA : 0;
+      $gamecoruny-=$radek['kostka']&&!$u->maPravo(P_KOSTKA_ZDARMA) ? CENA_KOSTKA : 0;
+      $gamecoruny-=$this->cenaUbytovani=$radek['pocetNoci']*@$ubytovaniCeny[$radek['ubytovani']];
+      $this->cenaZazemi=-$gamecoruny;
+      $gamecoruny+=$radek['zustatek']; //zůstatek z minulých GC
+      $soucinitel=$radek['student']?SOUCINITEL_STUDENT:SOUCINITEL_PRACUJICI;
+      $sleva=$radek['student']?SLEVA_STUDENT:SLEVA_PRACUJICI;
+      $this->zazemi=$radek;
+      $this->zazemi['org']=$org;
+      
+      //výpočet ceny za aktivity
+      if(!$this->nast('detail'))
+      { //pouze součtový přehled (řeší DB)
+        $dotaz='SELECT count(1) as pocet, sum(a.cena*(st.platba_procent/100)) as soucet
+          FROM (
+            SELECT * FROM akce_prihlaseni WHERE id_uzivatele='.$uid.'
+            UNION
+            SELECT * FROM akce_prihlaseni_spec WHERE id_uzivatele='.$uid.') p
+          JOIN akce_seznam a USING(id_akce)
+          JOIN akce_prihlaseni_stavy st USING(id_stavu_prihlaseni)
+          WHERE rok='.ROK;
+        if($org) //deskovky(1) a bonusy(7) pro orgy zdarma
+          $dotaz.=' AND a.typ!=7 AND a.typ!=1';
+        $radek=dbOneLine($dotaz);
+        $aktivityZaklad=$radek?$radek['soucet']:0;
+        $bonus-=$this->cenaAktivityBon=$aktivityZaklad*$sleva;
+        $gamecoruny-=$this->cenaAktivityGac=$aktivityZaklad*(1.0-$sleva);
+        $this->aktivity=$radek; //FIXME zobrazí se plná cena, ne -bonus/-cena!
+      }
+      else
+      { //detailní info o všech aktivitách
+        //1 as prihlasen - hack pro generování objektů aktivit
+        $dotaz='SELECT a.*, p.prihlasen, st.platba_procent, st.id_stavu_prihlaseni
+          FROM (
+            SELECT *, 1 as prihlasen FROM akce_prihlaseni WHERE id_uzivatele='.$uid.'
+            UNION
+            SELECT *, 0 as prihlasen FROM akce_prihlaseni_spec WHERE id_uzivatele='.$uid.') p
+          JOIN akce_seznam a USING(id_akce)
+          JOIN akce_prihlaseni_stavy st USING(id_stavu_prihlaseni)
+          WHERE rok='.ROK.'
+          ORDER BY a.cena DESC, a.den, a.zacatek';
+        $a=dbQuery($dotaz);
+        $aktivityZaklad=0;
+        while($r=mysql_fetch_assoc($a))
+        {
+          $this->aktivity[]=new UzivatelskaAktivita($r,$this->u);
+          if(!$org || ($r['typ']!=1 && $r['typ']!=7)) //deskovky(1) a bonusy(7) pro orgy zdarma
+            $aktivityZaklad+=$r['cena']*($r['platba_procent']/100);
+        }
+        $bonus-=$this->cenaAktivityBon=$aktivityZaklad*$sleva;
+        $gamecoruny-=$this->cenaAktivityGac=$aktivityZaklad*(1.0-$sleva);
+      }
+      
+      //výpočet zůstatku
+      $this->poslaneGac=$this->poslanyBon=0;
+      $odpoved=dbQuery('SELECT castka, sleva FROM finance_platby 
+        WHERE id_uzivatele='.$uid.' AND rok='.ROK_AKTUALNI);
+      while($radek=mysql_fetch_assoc($odpoved))
+      {
+        $this->poslaneGac+=$radek['castka'];
+        $gamecoruny+=$radek['castka'];
+        if($radek['sleva'])
+        {
+          $this->poslanyBon+=$radek['castka']*$soucinitel;
+          $bonus+=$radek['castka']*$soucinitel;
+        }
+      }
+      
+      $this->gac=round($gamecoruny);
+      $this->bon=round($bonus);
+      if(!BONUS_ZAPORNY && $bonus<0) //pokud je zakázán záporný bonus, odečteme z gamecorun
+      {
+        $this->gac+=$this->bon;
+        $this->bon=0;
+      }
+    }
+    else
+    {
+      $this->gac=0;
+      $this->bon=0;
+    }
+  }
+  
+  /** Vrátí zůstatek bonusu */
+  public function bonus()
+  { return $this->bon; }
+  
+  public function cenaAktivityGac()
+  { return $this->cenaAktivityGac; }
+  
+  public function cenaUbytovani()
+  { return $this->cenaUbytovani; }
+  
+  public function cenaPredmety()
+  { return $this->cenaZazemi-$this->cenaUbytovani; }
+  
+  /** Vrátí lidsky čitelný tvar ve stylu gcoruny/bonus */
+  public function hr()
+  {
+    if($this->u->gcPrihlasen())
+      return $this->gac.'/'.$this->bon;
+    else
+      return '?/?';
+  }
+  
+  /** Vrátí zůstatek gamecorun */
+  public function gamecoruny()
+  { return $this->gac; }
+  
+  /** Vrátí html formátovaný přehled financí */
+  public function prehledHtml()
+  {
+    $a=$this->u->koncA();
+    $out='';
+    if($this->u->gcPrihlasen())
+    {
+      $out.="<h3>Tvé platby</h3>
+      <p>Na svůj GameCon účet sis poslal$a <strong>$this->poslaneGac Kč</strong> a získal$a jsi Bonus ve výši <strong>$this->poslanyBon</strong>.</p>        
+      <h3>Ubytování, doplňky</h3>
+      <p>Položky, které jsi vyplnil$a při registraci (na tyto položky nelze využít Bonus).</p>
+      <p>
+        <strong>Ubytování:</strong> ".@
+        (
+          $this->zazemi['pocetNoci']?
+          (
+            'objednáno ('
+            .($this->zazemi['ubytovani']==1?'trojlůžkový pokoj':'')
+            .($this->zazemi['ubytovani']==2?'třída':'')
+            .($this->zazemi['ubytovani']==3?'dvoulůžkový pokoj':'')
+            .', '.$this->zazemi['pocetNoci'].' noci)'
+          )
+          :
+            'neobjednáno'
+        ).
+          "<br />
+        <strong>Tričko:</strong> ".($this->zazemi['tricko']?'':'ne')."objednáno<br />
+        <strong>Placka:</strong> ".($this->zazemi['placka']?'':'ne')."objednána<br />
+        <strong>Kostka:</strong> ".($this->zazemi['kostka']?'':'ne')."objednána
+      </p>
+      <p>Zázemí celkem <strong>$this->cenaZazemi&thinsp;Kč</strong>.".($this->nast('detail')&&REGISTRACE_AKTIVNI?
+        ' <a href="javascript: document.getElementById(\'upravit_prihlasku\').submit()">změnit přihlášku</a>
+        <form id="upravit_prihlasku" method="post" action="/prihlaska">
+          <input type="hidden" name="akce" value="upravit_prihlasku" />
+          <input type="hidden" name="zpetNaFinance" value="1" />
+        </form>'
+        :
+        ''
+      )."</p><h3>Přihlášené aktivity</h3>";
+      if($this->nast('detail'))
+      {
+        $out.='<table style="border-collapse:collapse">';
+        foreach($this->aktivity as $a)
+        {
+           $out.='<tr><td>'.$a->nazev().' </td><td>&nbsp;&nbsp;'.$this->cena($a).' </td><td>&nbsp;&nbsp;'.$a->prihlasovatko().'</td></tr>';
+        }
+        $out.='</table>';
+        $out.="<p style=\"margin-top:10px\">Aktivity celkem za <strong>$this->cenaAktivityGac&thinsp;Kč</strong> a <strong>$this->cenaAktivityBon</strong> z bonusu.</p>";
+      }
+      else
+      {
+        $out.="<p>Celkem sis přihlásil$a ".$this->aktivity['pocet']." aktivit za ".$this->aktivity['soucet']." GameCorun. Na tyto položky se automaticky používá Bonus za včasnou platbu (pokud nějaký máš).</p>";
+      }
+      $out.="<h3>Konečný stav</h3>
+      <p>Stav tvého GameCon účtu po sečtení všech položek a zaokrouhlení je <strong>$this->gac&thinsp;Kč</strong> a bonus ve výši <strong>$this->bon</strong>.</p>";
+    }
+    else
+      $out="<h3>Tvé platby</h3><p>Nejsi přihlášen$a na GameCon ".ROK."</p>";
+    return $out;
+  }
+  
+  
+  ////////////////////
+  // Protected věci //
+  ////////////////////
+  
+  /** Vrací parametr detailního nastavení */
+  private function nast($klic)
+  {
+    if(isset($this->nastaveni[$klic]))
+      return $this->nastaveni[$klic];
+    else
+      return null;
+  }
+  
+  /** Vrací cenu jako gcor/bonus */
+  private function cena(Aktivita $a)
+  {
+    $sleva=$this->zazemi['student']?SLEVA_STUDENT:SLEVA_PRACUJICI;
+    if($this->zazemi['org'] && ($a->typ()==1 || $a->typ()==7))
+      return '0/0 (org zdarma)';
+    return $a->cenaZaklad()*(1.0-$sleva)*$a->nasobekPlatby().'/'.
+      $a->cenaZaklad()*$sleva*$a->nasobekPlatby();
+  }
+            
+}
+
+
+?>

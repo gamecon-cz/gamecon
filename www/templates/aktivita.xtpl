@@ -1,0 +1,29 @@
+<!-- begin:aktivita -->
+<div class="aktivita">
+
+  <h1>{nazev_akce}</h1>
+  
+  <table class="informace"><tr>
+    <td>
+      <div class="obalkaObrazku">
+        <div class="overlay"><div class="text">{nazev_akce}</div></div>
+        <img src="{urlObrazku}" alt="obrázek k aktivitě {nazev_akce}" />
+      </div>
+    </td>
+    <td>
+      <!-- begin:org --><h2>{titul_orga}</h2> {organizator}<!-- end:org -->
+      <h2>Čas konání</h2>
+      <!-- begin:instance --> {cas} {obsazenost} {prihlasovatko} <br /> <!-- end:instance -->
+      <!-- begin:dalsiAktivityOrga -->
+      <h2>Další akce organizátora</h2>
+      {dalsiAktivityOrga}
+      <!-- end:dalsiAktivityOrga -->
+    </td>
+  </tr></table>
+  
+  <p>{popis}</p>
+  
+  <!-- (ne)todo předchozí a další akce (v originále šlo o v menu abecedně předchozí a další, nikoli časově) -->
+
+</div>
+<!-- end:aktivita -->

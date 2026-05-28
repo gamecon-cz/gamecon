@@ -1,0 +1,6 @@
+Přihlášení<br /><br />
+<form method="post">
+Jméno: <input type="text" name="loginNAdm" />
+Heslo: <input type="password" name="hesloNAdm" />
+<input type="submit" value="Přihlásit" />
+</form>

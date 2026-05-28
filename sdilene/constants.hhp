@@ -1,0 +1,185 @@
+<?php
+
+/** 
+ * Sada globálních proměnných pro různé účely - používá se na různých místech.
+ * Pokud možno nemazat - v případě úprav lépe doplnit načítání z databáze
+ * nebo cokoli. Přidat, pokud je někde zahardkodované něco, nepřidávat nesmysly
+ * co se dají zjistit jednoduše z DB nebo podobně...
+ * 
+ * V hranatých závorkách jsou uvedeny předešlé hodnoty, tj. ty které se proměn-
+ * nou nahrazují typicky. 
+ */   
+
+//$GLOBALS['SKRIPT_ZACATEK']; //rezervovaná proměnná s microtimem pro měření zpoždění skriptu
+define('ROK_AKTUALNI',$GLOBALS['ROK_AKTUALNI']=2012);        //aktuální rok - viz funkce var_getvalue_sn() a databáze _vars
+define('ROK',ROK_AKTUALNI);
+define('ARCHIV_OD',2009); //rok, od kterého se vedou (nabízejí) archivy (aktivit atp.)
+define('REGISTRACE_AKTIVNI',$GLOBALS['REGISTRACE_AKTIVNI']=false); //jestli se dá registrovat na GameCon a aktivity
+define('PROGRAM_VIDITELNY',true); //jestli jsou aktivní "poutací" linky na program
+define('GAMECON_BEZI',false); //jestli gamecon aktivně běží (zakázání online registrací ubytování aj.)
+define('REG_AKTIVIT',false);  //jestli se smí registrovat aktivity (todo)
+define('REG_DRD',false);      //jestli se smí registrovat na mistrovství v DrD
+define('POCITADLO_VIDITELNE',false);
+define('POCITADLO_KONEC_ODPOCTU', '2012-07-22 19:00:00');
+$pre=-(ROK-2000)*100;
+define('ID_PRAVO_PRIHLASEN',$GLOBALS['ID_PRAVO_PRIHLASEN']= $pre-1); //počítáno systémově
+define('ID_PRAVO_PRITOMEN',$GLOBALS['ID_PRAVO_PRITOMEN']=   $pre-2);
+define('ID_ZIDLE_PRIHLASEN',$GLOBALS['ID_ZIDLE_PRIHLASEN']= $pre-1);
+define('ID_ZIDLE_PRITOMEN',$GLOBALS['ID_ZIDLE_PRITOMEN']=   $pre-2);
+unset($pre);
+
+//fake práva a židle pro aktivity
+define('ID_PRAVO_DRD',$GLOBALS['ID_PRAVO_DRD']=-1); //fake práva, viz fce ma_pravo()
+define('ID_PRAVO_TROJBOJ',$GLOBALS['ID_PRAVO_TROJBOJ']=-2);
+define('ID_ZIDLE_DRD',$GLOBALS['ID_ZIDLE_DRD']=-1); //fake židle, viz deprecated posad_na_zidli()
+define('ID_ZIDLE_TROJBOJ',$GLOBALS['ID_ZIDLE_TROJBOJ']=-2);
+
+define('ID_PRAVO_TAB_PROGRAM_REPORTY',$GLOBALS['ID_PRAVO_TAB_PROGRAM_REPORTY']=200);  //právo vidět reporty v tabulce programu
+define('ID_PRAVO_ORG_SEKCE',$GLOBALS['ID_PRAVO_ORG_SEKCE']=2);     //viditelnost org sekce ve fóru a org sekcí na různých stránkách
+define('ID_PRAVO_TESTER',$GLOBALS['ID_PRAVO_TESTER']=999);      //právo pro testery (zobrazení testovacích věcí)
+define('ID_PRAVO_ORG_AKCI',$GLOBALS['ID_PRAVO_ORG_AKCI']=4);      //právo pořádat akce z něhož vyplývá viditelnost v nabídce vypravěčů v tvorbě aktivit
+define('Z_ORG_AKCI',6);         //židle vypravěč (org akcí)
+define('Z_ORG_SKUPINA',9);      //židle organizátorská skupina (Albi, Černobor, …)
+define('P_ORG_AKCI',ID_PRAVO_ORG_AKCI); //právo organizovat akce
+define('P_KRYTI_AKCI',5);       //jestli může uživatel být na víc akcích naráz (org skupiny typicky)
+define('P_SPOULUPRACOVNIK',6);  //zobrazení v reportu spolupracovníci
+define('P_TRIKO_ZDARMA',1000);  //(organizátorské) tričko zdarma
+define('P_TRIKO_ZAPUL',1001);   //(vypravěčské) tričko za polovic
+define('P_PLACKA_ZDARMA',1002);
+define('P_KOSTKA_ZDARMA',1003);
+define('P_PLNY_SERVIS',7);
+define('ID_AKTIVITA_DRD',$GLOBALS['ID_AKTIVITA_DRD']=516);      // ID aktivity "Mistrovství v DrD - registrace"
+define('ID_AKTIVITA_DRD_BLOK1',$GLOBALS['ID_AKTIVITA_DRD_BLOK1']=449);      // ID aktivity první blok DrD základního kola
+define('ID_AKTIVITA_DRD_BLOK2',$GLOBALS['ID_AKTIVITA_DRD_BLOK2']=450);      // 
+define('ID_AKTIVITA_DRD_BLOK3',$GLOBALS['ID_AKTIVITA_DRD_BLOK3']=454);      //
+define('A_DRD_SEMIFINALE1',451); //ID aktivity mistrovství v drd semifinále dopoledne 
+define('A_DRD_SEMIFINALE2',455); //ID aktivity mistrovství v drd semifinále odpoledne
+define('A_DRD_FINALE',452); //ID aktivity mistrovství v drd semifinále odpoledne
+//define('ID_AKTIVITA_TROJBOJ_REG',$GLOBALS['ID_AKTIVITA_TROJBOJ_REG']=328);    // [285] ID aktivity "Trojboj - alternativa pátek"
+//define('ID_AKTIVITA_TROJBOJ_PATEK',$GLOBALS['ID_AKTIVITA_TROJBOJ_PATEK']=329);  // [286] ID aktivity "Trojboj - alternativa pátek"
+//define('ID_AKTIVITA_TROJBOJ_SOBOTA',$GLOBALS['ID_AKTIVITA_TROJBOJ_SOBOTA']=330); // [287] ID aktivity "Trojboj - alternativa sobota"
+define('DRD_LIMIT_BLOKU',$GLOBALS['DRD_LIMIT_BLOKU']=9);    //maximální obsazenost jednoho bloku DrD
+define('DRD_VYBER_PJ',true);                                //je aktivní (možný) výběr PJ u DrD
+define('DRD_POSUN',132);               //posun (bias) čísel družiny zobrazovaných na netu oproti skutečnému ID
+define('SLEVA_DO_DATE',ROK.'-07-01');                       //poslední den, kdy je možné čerpat slevu z platby
+  define('SLEVA_AKTIVNI',time()-strtotime(SLEVA_DO_DATE)<24*60*60);  //jestli se počítá sleva za včasnou platbu
+  define('BONUS_ZAPORNY',$GLOBALS['BONUS_ZAPORNY']=SLEVA_AKTIVNI);   //jestli smí být bonus při odečítání věcí záporný
+define('SOUCINITEL_STUDENT',$GLOBALS['SOUCINITEL_STUDENT']=1.00);    //násobek gamecorun, který získají studenti do bonusu při včasné platbě
+define('SOUCINITEL_PRACUJICI',$GLOBALS['SOUCINITEL_PRACUJICI']=0.3); //násobek, který získají nestudenti
+define('SLEVA_STUDENT',$GLOBALS['SLEVA_STUDENT']=0.50);       //poměr bonusu, který se odečítá z aktivit studentům
+define('SLEVA_PRACUJICI',$GLOBALS['SLEVA_PRACUJICI']=0.25);     //poměr bonusu, který se odečítá z aktivit nestudentům
+define('OBJEDNAVKA_UZAVRENA_TRIKO',true); //zabrání na-/od-klikání trika v přihlášce
+define('OBJEDNAVKA_PLACKA',false);
+define('OBJEDNAVKA_KOSTKA',false);
+define('ODHLASENI_POKUTA_KONTROLA_DATE',ROK.'-07-18'); //den, od kterého (00:00) začíná systém kontrolovat, jestli jsou aktivity odhlašovány včas (mělo by být víc než 24h před první aktivitou)
+  define('ODHLASENI_POKUTA_KONTROLA',time()-strtotime(ODHLASENI_POKUTA_KONTROLA_DATE)>0);  //jestli se má kontrolovat pozdní odhlášní z aktivit
+define('ODHLASENI_POKUTA1_H',24);      //kolik hodin před aktivitou se začne uplatňovat pokuta 1
+//ceny věcí
+define('CENA_TRIKO',$GLOBALS['CENA_TRIKO']=180);
+define('CENA_PLACKA',$GLOBALS['CENA_PLACKA']=15);
+define('CENA_KOSTKA',$GLOBALS['CENA_KOSTKA']=15);
+define('CENA_POKOJ',$GLOBALS['CENA_POKOJ']=180);
+define('CENA_POKOJ_2',190); //dvoulůžkáč
+define('CENA_SPACAK',$GLOBALS['CENA_SPACAK']=70);
+define('KURZ_EURO',$GLOBALS['KURZ_EURO']=24.00);          // kurz kč:euro
+define('UCET_CZ',$GLOBALS['UCET_CZ']='2800035147/2010');// číslo účtu pro platby v CZK - v statických stránkách není
+define('UCET_SK',$GLOBALS['UCET_SK']='2800035147/8330');// číslo účtu pro platby v EUR - v statických stránkách není
+define('DEN_PRVNI_DATE',ROK.'-07-19');                      //první den v programu ve formátu YYYY-MM-DD
+define('PROGRAM_ZACATEK',$GLOBALS['PROGRAM_ZACATEK']=8);        //první hodina programu
+define('PROGRAM_KONEC',$GLOBALS['PROGRAM_KONEC']=24);         //konec programu (tuto hodinu už se nehraje)
+define('PROGRAM_DEN_PRVNI',$GLOBALS['PROGRAM_DEN_PRVNI']=1);      //index prvniho dne programu
+define('PROGRAM_DEN_POSLEDNI',$GLOBALS['PROGRAM_DEN_POSLEDNI']=4);   //index posledního dne programu
+$GLOBALS['PROGRAM_DNY']=array('čtvrtek','pátek','sobota','neděle'); //názvy dnů
+$GLOBALS['PROGRAM_DATA']=array('19.7.','20.7.','21.7.','22.7.'); //data dnů
+$GLOBALS['KAPACITA_SPACAKY']=array(2009=>'?', 2010=>100, 2011=>100, 2012=>150);
+$GLOBALS['KAPACITA_POSTELE']=array(2009=>'?', 2010=>230, 2011=>230, 2012=>208);
+$GLOBALS['KAPACITA_U1']=array(2009=>'?', 2010=>'?', 2011=>'?', 2012=>132); //ubytování 1 - 3L pokoj
+$GLOBALS['KAPACITA_U2']=$GLOBALS['KAPACITA_SPACAKY'];                      //ubytování 2 - spacák
+$GLOBALS['KAPACITA_U3']=array(2009=>'?', 2010=>'?', 2011=>'?', 2012=>64);  //ubytování 3 - 2L pokoj
+
+//hlášky
+$GLOBALS['HLASKY']=array(
+  'prihlaseniVypnuto'=>'Přihlašování na GameCon není spuštěno.',
+  'drdVypnuto'=>'Přihlašování na mistrovství v DrD není spuštěno.',
+  'kolizeAktivit'=>'V daném čase už máte přihlášenu jinou aktivitu.',
+  'aktualizacePrihlasky'=>'Přihláška aktualizována.',
+  'avatarSmazan'=>'Obrázek uživatele byl odstraněn.',
+  'avatarChybaMazani'=>'Obrázek se nepodařilo smazat.',
+  'avatarSpatnyFormat'=>'Obrázek není v požadovaném formátu .jpg.',
+  'avatarNahran'=>'Obrázek uživatele úspěšně uložen.',
+  'jenPrihlaseni'=>'Na zobrazení této stránky musíte být přihlášeni.',
+  'jenPrihlaseniGC'=>'Na přístup k této stránce musíte být přihlášeni na letošní GameCon.',
+  'chybaPrihlaseni'=>'Špatné uživatelské jméno nebo heslo.',
+  );
+$GLOBALS['HLASKY_SUBST']=array(
+  'zapomenuteHeslo'=>
+'Ahoj,
+
+nechal{a} sis vygenerovat nové heslo na Gamecon.cz. Tvoje přihlašovací jméno je %1, tvoje nové heslo je %2. Heslo si prosím po přihlášení změň.
+
+S pozdravem Tým organizátorů GameConu',
+  'odhlaseniZGc'=>'Odhlásil{a} ses z GameConu '.ROK_AKTUALNI,
+  'prihlaseniNaGc'=>'Přihlásil{a} ses na GameCon '.ROK_AKTUALNI,
+  'kapacitaMaxUpo'=>'Z ubytovací kapacity typu %1 je naplněno %2 míst z maxima %3 míst.',
+  
+  );
+
+/** 
+ * Vrací hlášku s daným názvem. Libovolný počet argumentů. Pokud je druhým
+ * argumentem uživatel, podporuje symbol {a} jako proměnlivou koncovku a. Další
+ * argumenty jsou dostupné jako %1, %2 atd... Čísluje se od jedné.
+ * 
+ * Pokud není uživatel uveden, bere se druhý argument jako %1, třetí jako %2
+ * atd...
+ *  
+ * @todo fixnout málo zadaných argumentů
+ * @return string hláška s případnými substitucemi  
+ */     
+function hlaska($nazev,$u=null)
+{
+  global $HLASKY,$HLASKY_SUBST;
+  
+  if(func_num_args()==1)
+    return $HLASKY[$nazev];
+  elseif($u instanceof Uzivatel)
+  {
+    $koncA=$u->pohlavi()=='f'?'a':'';
+    return strtr($HLASKY_SUBST[$nazev],array(
+      "\n"=>'<br />',
+      '{a}'=>$koncA,
+      '%1' =>func_num_args()>2?func_get_arg(2):'',
+      '%2' =>func_num_args()>3?func_get_arg(3):'',
+      '%3' =>func_num_args()>4?func_get_arg(4):'',
+      '%4' =>func_num_args()>5?func_get_arg(5):''
+    ));
+  }
+  elseif(func_num_args()>1)
+  {
+    return strtr($HLASKY_SUBST[$nazev],array(
+      "\n"=>'<br />',
+      '%1' =>func_num_args()>1?func_get_arg(1):'',
+      '%2' =>func_num_args()>2?func_get_arg(2):'',
+      '%3' =>func_num_args()>3?func_get_arg(3):'',
+      '%4' =>func_num_args()>4?func_get_arg(4):''
+    ));
+  }
+  else
+  {
+    //missing mandatory argument
+  }  
+}
+
+
+function hlaskaMail($nazev,$u=null)
+{
+  $out=hlaska($nazev,
+    func_num_args()>1?func_get_arg(1):'',
+    func_num_args()>2?func_get_arg(2):'',
+    func_num_args()>3?func_get_arg(3):'',
+    func_num_args()>4?func_get_arg(4):'',
+    func_num_args()>5?func_get_arg(5):'');
+  return '<html><body>'.$out.'</body></html>';
+}
+
+
+?>

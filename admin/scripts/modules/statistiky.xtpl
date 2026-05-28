@@ -1,0 +1,37 @@
+<!-- begin:statistiky -->
+
+<h1>Statistiky</h1>
+
+<style>
+  tr td { text-align: right; }
+  tr td:first-child { text-align: left; }
+</style>
+
+<h2>Účastníci</h2>
+<table class="cista">
+  <tr>
+    <td>{tabulkaUcOrg}</td>
+    <td>{tabulkaMZ}</td>
+  </tr>
+</table>
+<p>*Slouží spíš jako placebo, protože to nejde historicky zaznamenávat, počítá se z lidí, kteří jsou <em>teď</em> vedeni jako organizátoři.</p>
+<p>Pro porovnání: 14.7.2011 v 22:30 (čtvrtek večer týden před GC) bylo registrováno celkem 223 lidí.</p>
+
+<h2>Předměty</h2>
+<table class="cista">
+  <tr>
+    <td>
+      Objednané při registraci:<br />
+      {tabulkaPredmety}
+    </td>
+    <td>
+      <div style="text-align:left">Prodané na místě:</div>
+      {tabulkaPredmety2}
+    </td>
+  </tr>
+</table>
+
+<h2>Ubytování</h2>
+{tabulkaUbytovani}
+
+<!-- end:statistiky -->

@@ -1,0 +1,62 @@
+<div class="sponzor" style="width: 50px;">
+  <a href=" http://www.altar.cz/" onclick="window.open(this.href); return false" title="Altar"><img src="/files/obsah/sponzori/altar.gif"></a>
+</div>
+
+<div class="sponzor">
+  <a href=" http://www.fantasyobchod.cz/" onclick="window.open(this.href); return false" title="Fantasy obchod"><img src="/files/obsah/sponzori/fantasy_obchod.gif"></a>
+</div>
+
+<div class="sponzor">
+  <a href=" http://www.mindok.cz/" 
+    onclick="window.open(this.href); return false" title="Mindok">
+    <img src="/files/obsah/sponzori/mindok.png" /></a>
+  <a href="http://www.czechboardgames.com/" 
+    onclick="window.open(this.href); return false" title="Czech Board Games">
+    <img src="/files/obsah/sponzori/cbg.png" style="margin-top:5px"></a>
+</div>
+
+<div class="sponzor">
+  <a href="http://mephit.cz/" onclick="window.open(this.href); return false" title="Mephit">
+    <img src="/files/obsah/sponzori/mephit.png" />
+  </a>
+</div>
+
+<div class="sponzor">
+  <a href=" http://www.albi.cz/" 
+    onclick="window.open(this.href); return false" title="Albi">
+    <img src="/files/obsah/sponzori/albi.png" style="margin-top:-8px"></a>
+  <a href="http://www.czechgames.com/"
+    onclick="window.open(this.href); return false" title="Czech Games Edition">
+    <img src="/files/obsah/sponzori/cge.jpg" /></a>
+</div>
+
+<div class="sponzor">
+  <a href="http://www.rexhry.cz/" onclick="window.open(this.href); return false"
+    style="margin-right:-40px;margin-top:3px"
+    title="Rex hry"><img src="/files/obsah/sponzori/rex-hry.jpg"></a>
+</div>
+
+<!-- <a href=" http://www.capsa.cz/" onclick="window.open(this.href); return false" title="Capsa"><img src="/files/obsah/sponzori/capsa.png"></a> -->
+
+<!-- <div class="sponzor">
+  <a href="http://www.toptopic.cz/" onclick="window.open(this.href); return false" title="Top Topic"><img src="/files/obsah/sponzori/top-topic.gif"></a>
+</div> -->
+
+<!--<div class="sponzor"  style="height: 40px; margin-top: 3px;">
+    <a href=" http://www.blackfire.cz/" onclick="window.open(this.href); return false" title="Blackfire"><img src="/files/obsah/sponzori/blackfire.gif"></a>
+  </div>-->
+
+<!--<div class="sponzor"> 
+  <div class="sponzor">
+		<a href=" http://www.svet-deskovych-her.cz/" onclick="window.open(this.href); return false" title="Svět deskových her"><img src="/files/obsah/sponzori/svet_deskovych_her.gif"></a>
+	</div>
+</div>-->
+
+<!--<div class="sponzor">
+  <a href=" http://www.hbo.cz/" onclick="window.open(this.href); return false" title="HBO"><img src="/files/obsah/sponzori/hbo.png"></a>  
+</div>-->
+
+<!-- <div class="sponzor">
+  <a href=" http://www.zazitky.cz/" onclick="window.open(this.href); return false" title="Zážitky jako dokonalé dárky"><img src="/files/obsah/sponzori/zazitky.gif"></a>
+  <a href=" http://www.zazitky.cz/zazitkove-hry/" onclick="window.open(this.href); return false" title="Zážitkové hry">Zážitkové hry</a>
+</div> -->
