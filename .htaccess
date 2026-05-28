@@ -1,0 +1,9 @@
+RewriteEngine on
+
+# Archive 2017: base image DocumentRoot is the project root → rewrite into web/.
+# The 2017-era site had NO top-level .htaccess (Wedos vhost pointed straight at
+# web/). Add the web/ rewrite so the Docker docroot (project root) reaches the
+# real web root.
+RewriteRule .* web/$0 [L]
+
+RewriteRule .* - [F,L]

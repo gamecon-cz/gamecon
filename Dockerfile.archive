@@ -1,0 +1,166 @@
+# Year-archive image for NNNN.gamecon.cz.
+#
+# Built once per archived year by .github/workflows/deploy-year-archive.yml
+# from the corresponding archive/NNNN branch. Tagged
+# ghcr.io/gamecon-cz/gamecon:archive-<year>-<sha7> and pulled by the
+# host's deploy-year-archive.sh script.
+#
+# Differs from Dockerfile.preview in two important ways:
+#   1. NO composer install / yarn build at build time. Archived branches
+#      are expected to have committed vendor/ and ui/ build artifacts
+#      already (see .htdeployment artifacts in the 2024 on-disk
+#      snapshot). Skipping these saves ~3 min of build time per year
+#      and avoids depending on whichever Composer/Node version happened
+#      to be installed in the archived branch's base image.
+#   2. NO migration / cache-refresh hooks at deploy time. Archives are
+#      read-only-ish — the DB is a frozen point in time, code is frozen
+#      at the branch tip. Nothing to migrate.
+#
+# Apache vhost is the base image's default (DocumentRoot
+# /var/www/html/gamecon, AllowOverride All via the upstream
+# docker-php.conf), same as preview. The top-level .htaccess routes
+# requests into web/, cache/private/.htaccess denies direct access,
+# admin/ and cache/public/ are reachable as subdirectories. All
+# verified in the recon log in the ansible repo
+# (docs/year-archive-phase0-recon.md).
+
+# Base image is parameterized so older archive years can build on a
+# period-correct PHP. Modern years (2022+) use the default
+# gameconcz/gamecon:8.2, which already ships Apache + all needed PHP
+# extensions + the gamecon DocumentRoot. Pre-2022 years whose code predates
+# PHP 8.1/8.2 deprecations (e.g. 2021, written for PHP 7.3) override it via
+# --build-arg BASE_IMAGE=php:7.3-apache (the official, publicly-pullable
+# image — no custom registry, so the archive deploy gains no new external
+# dependency). The setup block below is idempotent and base-agnostic: on the
+# gameconcz base the extensions/modules are already present (no-op); on a
+# bare php:X-apache base it installs exactly what the app needs. The workflow
+# (deploy-year-archive.yml) picks BASE_IMAGE per year via an explicit map.
+ARG BASE_IMAGE=gameconcz/gamecon:8.2
+FROM ${BASE_IMAGE}
+
+USER root
+
+# Which PHP extensions the archived year's code actually needs. Defaults to the
+# modern (7.3/8.2-era) set; very old years that need fewer (and can't apt-install
+# the lib-deps because their base OS is EOL) override it via
+# --build-arg PHP_EXTS. 2018 (PHP 5.6) needs only mysqli, which builds against
+# the bundled mysqlnd with NO apt packages — so passing PHP_EXTS="mysqli" skips
+# the whole apt step and sidesteps Debian Stretch's archived repos.
+ARG PHP_EXTS="mysqli pdo_mysql intl exif bcmath gd"
+
+# Base-agnostic environment setup. Bare official php:X-apache images lack the
+# PHP extensions, Apache modules, and gamecon DocumentRoot that the gameconcz
+# base bakes in; install/enable them here. All steps are safe no-ops when the
+# base already provides them (docker-php-ext-install is skipped per-ext if the
+# .so exists; a2enmod/sed are idempotent).
+RUN set -eux; \
+    need_ext=""; \
+    for ext in $PHP_EXTS; do \
+        php -m | grep -qi "^${ext}$" || need_ext="$need_ext $ext"; \
+    done; \
+    if [ -n "$need_ext" ]; then \
+        # Only the lib-backed extensions need apt; mysqli/pdo_mysql/exif/bcmath
+        # build against bundled sources. Run apt ONLY when one of those is in
+        # the to-install set, so years that need just mysqli (e.g. 2018 on the
+        # EOL Stretch base, whose apt repos are gone) never touch apt.
+        case " $need_ext " in \
+            *" gd "*|*" intl "*|*" zip "*) \
+                apt-get update; \
+                apt-get install -y --no-install-recommends \
+                    libicu-dev libxml2-dev libzip-dev zlib1g-dev \
+                    libfreetype6-dev libjpeg62-turbo-dev libpng-dev; \
+                docker-php-ext-configure gd --with-freetype --with-jpeg \
+                    || docker-php-ext-configure gd --with-freetype-dir=/usr/include/ --with-jpeg-dir=/usr/include/ \
+                    || true; \
+                rm -rf /var/lib/apt/lists/*; \
+                ;; \
+        esac; \
+        docker-php-ext-install $need_ext; \
+    fi; \
+    a2enmod rewrite expires headers; \
+    sed -ri 's!/var/www/html!/var/www/html/gamecon!g' \
+        /etc/apache2/sites-available/*.conf \
+        /etc/apache2/apache2.conf \
+        /etc/apache2/conf-available/docker-php.conf 2>/dev/null || true
+
+# Bake the entire archived branch's working tree in. The chown matches
+# the runtime user; matches Dockerfile.preview's approach.
+COPY --chown=www-data:www-data . /var/www/html/gamecon
+
+WORKDIR /var/www/html/gamecon
+
+# Strip dev / runtime junk that snuck in via COPY .. cache/private gets
+# rebuilt on demand, no point baking historical entries into the image.
+# .git is ~tens of MB and never read at runtime. .htdeployment is the
+# deployment ledger; archived branches won't be re-deployed via that
+# mechanism so its presence is just dead weight (~120 KB but pointless).
+RUN rm -rf \
+    /var/www/html/gamecon/.git \
+    /var/www/html/gamecon/.github \
+    /var/www/html/gamecon/.docker \
+    /var/www/html/gamecon/.htdeployment \
+    /var/www/html/gamecon/node_modules \
+    /var/www/html/gamecon/ui/node_modules \
+    /var/www/html/gamecon/tests \
+    /var/www/html/gamecon/phpunit*.* \
+    /var/www/html/gamecon/phpstan*.* \
+    /var/www/html/gamecon/cache/private
+
+# Make cache/ and logy/ writable by Apache. cache/public stays (assets
+# committed at archive time); only cache/private was stripped above
+# and we recreate it empty here so the app can write to it at runtime.
+RUN mkdir -p \
+    /var/www/html/gamecon/cache/private \
+    /var/www/html/gamecon/cache/public \
+    /var/www/html/gamecon/logy \
+    && chown -R www-data:www-data \
+        /var/www/html/gamecon/cache \
+        /var/www/html/gamecon/logy
+
+# Apache snippet honoring X-Forwarded-Proto from the upstream proxy chain
+# (HAProxy → Caddy → this container). Reused as-is from the preview
+# tier: same proxy chain, same need. Without it, $_SERVER['HTTPS'] is
+# unset in PHP and generated URLs (<base href>, redirects, cookies)
+# come out as http://.
+COPY preview/apache-https.conf /etc/apache2/conf-available/preview-https.conf
+RUN a2enconf preview-https
+
+# Cap Apache's prefork worker count to fit the 256 MiB container memory
+# limit (the deploy script's cgroup cap). Without this, the base image's
+# stock MaxRequestWorkers 150 lets a few concurrent heavy pages (/admin,
+# /prihlaseni — ~140 MiB/child) overrun the cgroup → kernel OOM-kills an
+# apache2 child → upstream Caddy sees a dropped connection → 502. The
+# config (and the full reasoning) lives in preview/archive-mpm.conf.
+COPY preview/archive-mpm.conf /etc/apache2/conf-available/archive-mpm.conf
+RUN a2enconf archive-mpm
+
+# Pick up the archive-specific verejne-nastaveni file (created on each
+# archive/NNNN branch). The base image ships ENV=local; archive
+# overrides to "archive" so zavadec-nastaveni.php takes the archive
+# path and reads DB creds from getenv() (set by the deploy script's
+# `docker run -e`).
+ENV ENV=archive
+
+# Basic-auth credentials + gate-token signing secrets for the Caddy gate
+# in front of preview / archive environments. The admin's dev rozcestník
+# renders the gate login as copyable text and signs a ?gate= token onto
+# the links (one-click access via the gate-validator). Baked in here so
+# the archive UI behaves identically to ostra. Access-control secrets
+# shared across all archives (not user data); GHCR repo is private and
+# image layers are not publicly readable.
+ARG PREVIEW_BASIC_AUTH_USER=""
+ARG PREVIEW_BASIC_AUTH_PASSWORD=""
+ARG ARCHIVE_BASIC_AUTH_USER=""
+ARG ARCHIVE_BASIC_AUTH_PASSWORD=""
+ARG PREVIEW_GATE_SECRET=""
+ARG ARCHIVE_GATE_SECRET=""
+ENV PREVIEW_BASIC_AUTH_USER=$PREVIEW_BASIC_AUTH_USER \
+    PREVIEW_BASIC_AUTH_PASSWORD=$PREVIEW_BASIC_AUTH_PASSWORD \
+    ARCHIVE_BASIC_AUTH_USER=$ARCHIVE_BASIC_AUTH_USER \
+    ARCHIVE_BASIC_AUTH_PASSWORD=$ARCHIVE_BASIC_AUTH_PASSWORD \
+    PREVIEW_GATE_SECRET=$PREVIEW_GATE_SECRET \
+    ARCHIVE_GATE_SECRET=$ARCHIVE_GATE_SECRET
+
+EXPOSE 80
+
+CMD ["apache2-foreground"]

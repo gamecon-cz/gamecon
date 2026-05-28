@@ -1,0 +1,22 @@
+language: php
+php:
+    - 5.4
+
+script:
+    - vendor/bin/tester tests -s
+    - php temp/code-checker/src/code-checker.php --short-arrays
+
+after_failure:
+    # Print *.actual content
+    - for i in $(find tests -name \*.actual); do echo "--- $i"; cat $i; echo; echo; done
+
+before_script:
+    # Install Nette Tester & Code Checker
+    - travis_retry composer install --no-interaction --prefer-dist
+    - travis_retry composer create-project nette/code-checker temp/code-checker ~2.5 --no-interaction
+
+sudo: false
+
+cache:
+    directories:
+        - $HOME/.composer/cache
