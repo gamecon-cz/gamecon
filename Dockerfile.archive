@@ -131,6 +131,16 @@ RUN mkdir -p \
             /var/www/html/gamecon/spec/cache-priv/fio \
             /var/www/html/gamecon/spec/cache-priv/logs; \
         chown -R www-data:www-data /var/www/html/gamecon/spec/cache /var/www/html/gamecon/spec/cache-priv; \
+        # The app writes compiled css/js to spec/cache/{css,js} (the CACHE
+        # constant) but emits asset URLs under URL_CACHE = /cache/public/...
+        # (path-based; on the original site URL_CACHE was a cache.YYYY
+        # sub-subdomain whose docroot WAS spec/cache). Symlink the served
+        # path app/web/cache/public -> ../../spec/cache so /cache/public/css/X
+        # resolves to the real compiled file (Apache serves the symlinked
+        # file directly, before app/web/.htaccess routes to index.php).
+        # Without this the archive renders unstyled (css/js 404).
+        mkdir -p /var/www/html/gamecon/app/web/cache; \
+        ln -sfn ../../../spec/cache /var/www/html/gamecon/app/web/cache/public; \
     fi
 
 # Apache snippet honoring X-Forwarded-Proto from the upstream proxy chain
