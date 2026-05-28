@@ -79,6 +79,7 @@ jobs:
                     # gameconcz/gamecon:8.2 image baked into Dockerfile.archive.
                     # Add a row when a year's PHP era is confirmed during recon.
                     case "$year" in
+                        2017) base_image="php:5.6-apache" ;;
                         2018) base_image="php:5.6-apache" ;;
                         2019) base_image="php:7.3-apache" ;;
                         2020) base_image="php:7.3-apache" ;;
@@ -92,6 +93,7 @@ jobs:
                     # Dockerfile's apt step is skipped. 2018 (PHP 5.6) needs only
                     # mysqli, which builds with no apt packages.
                     case "$year" in
+                        2017) php_exts="mysqli" ;;
                         2018) php_exts="mysqli" ;;
                         *)    php_exts="mysqli pdo_mysql intl exif bcmath gd" ;;
                     esac
