@@ -63,8 +63,17 @@ function dbConnect() {
     $dbExecTime = 0.0;  //délka výpočtu dotazů
     // připojení
     $start = microtime(true);
-    $spojeni = mysqli_connect('p:' . $dbhost, $dbuser, $dbpass); // persistent connection
-    if(!$spojeni) die(mysqli_error($spojeni));
+    // Archive resilience: pass $dbname as the 4th arg and suppress the reuse
+    // warning with @. mysqli reuses a 'p:' persistent connection across
+    // requests; if MariaDB has since closed it (idle wait_timeout / docker0
+    // NAT drop), reusing the dead handle emits "MySQL server has gone away" —
+    // which this year's Vyjimkovac escalates to a fatal 500. The @ swallows
+    // that warning and mysqli transparently re-establishes the connection
+    // (re-selecting $dbname), so the first post-idle request succeeds instead
+    // of fataling. Mirrors the 2019+ fw-database form. (Original 2016 line:
+    // mysqli_connect('p:'.$dbhost, $dbuser, $dbpass) + a separate select_db.)
+    $spojeni = @mysqli_connect('p:' . $dbhost, $dbuser, $dbpass, $dbname); // persistent connection
+    if(!$spojeni) die(mysqli_connect_error());
     mysqli_select_db($spojeni, $dbname);
     mysqli_set_charset($spojeni, 'utf8');
     $end = microtime(true);
