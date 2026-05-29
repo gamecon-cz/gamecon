@@ -70,6 +70,16 @@ RUN mkdir -p \
 COPY preview/apache-https.conf /etc/apache2/conf-available/preview-https.conf
 RUN a2enconf preview-https
 
+# Cap Apache's prefork worker count to fit the 256 MiB container memory
+# limit (the deploy script's cgroup cap). Without this, the base image's
+# stock MaxRequestWorkers 150 lets a few concurrent heavy pages (/admin,
+# /prihlaseni — ~140 MiB/child) overrun the cgroup → kernel OOM-kills an
+# apache2 child → upstream Caddy sees a dropped connection → 502.
+# MaxConnectionsPerChild also recycles workers periodically so per-process
+# memory growth stays bounded. Full reasoning in preview/archive-mpm.conf.
+COPY preview/archive-mpm.conf /etc/apache2/conf-available/archive-mpm.conf
+RUN a2enconf archive-mpm
+
 # Pick up the archive-specific verejne-nastaveni file (created on each
 # archive/NNNN branch). The base image ships ENV=local; archive
 # overrides to "archive" so zavadec-nastaveni.php takes the archive
