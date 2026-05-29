@@ -1,0 +1,1391 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="cs" lang="cs">
+
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <link rel="stylesheet" type="text/css" href="/system_styly/styl1.css" media="all" /> 
+    <link rel = "shortcut icon" href = "/favicon.ico" />
+    
+    <!--  lightbox začátek //-->
+    <script type="text/javascript" src="/lightbox/js/prototype.js"></script>
+    <script type="text/javascript" src="/lightbox/js/scriptaculous.js?load=effects,builder"></script>
+    <script type="text/javascript" src="/lightbox/js/lightbox.js"></script>
+    <link rel="stylesheet" href="/lightbox/css/lightbox.css" type="text/css" media="screen" />
+    <!--  lightbox konec //-->
+    <!--  java otevirani a ankety začátek //-->
+    <script type="text/javascript" src="/java.js"></script>
+    <!--  java otevirani a ankety konec //-->
+    
+    <title>
+      GameCon - PJové    </title>
+    <meta name="keywords" content="KW" />
+    <meta name="description" content="DS" />
+    
+        
+  </head>
+  <body>
+    <div class = "ohraniceni">
+      <div class = "search">
+        <div class = "bok-top2">
+  <form action = "/vyhledavani" method = "post">
+    <input type = "text" value = "GameCon" name = "fraze" class = "edt_login" style = "width: 140px;" onclick="this.value=''"; />
+    <input type="image" src="/system_styly/pics_system_styl1/tlacitka/hledat_maly.gif" value="Submit" alt="přihlásit" style = "width: 50px; height: 18px;" />
+  </form>
+</div>
+
+<div style = "text-align: center;">
+  <!-- <a href = "/gamecon/prihlaska"><img src = "/system_styly/pics_system_styl2/top/prihlaseni-na-gamecon2-2011.gif" alt = "Přihlášení na GameCon" style = "border: 1px solid #fff; margin-top: 8px;" /></a> -->
+  <a href = "/program-tabulka" onclick = "window.open(this.href,'_blank'); return false"><img src = "/system_styly/pics_system_styl2/top/program-gc-2011.gif" alt = "Program GC 2011" style = "border: 1px solid #fff; margin-top: 8px;" /></a>
+</div>
+      </div>
+      <div class = "logo">
+        <a href = "/gamecon/o-gameconu" style = "width: 100%; height: 100%; display: block;"><span style = "visibility: hidden;">Gamecon - O GameConu</span></a>
+      
+      </div>
+      <div class = "login">
+        <div class = "bok-top2">
+    <form action = "/novinky/novinky" method = "post">
+      <input type = "hidden" name = "prihlaseni" value = "1" />
+    <input name = "login" type = "text" class = "edt_login" style = "width: 70px;" />
+    <input name = "heslo" type = "password" class = "edt_login" style = "width: 75px;" onclick="this.value=''"; />
+    <input type="image" src="/system_styly/pics_system_styl1/tlacitka/prihlasit_maly.gif" value="Submit" alt="přihlásit" style = "width: 50px; height: 18px;" />
+  </form>
+  <form action = "" method = "post" id = "registrace">
+  <input type = "hidden" name = "registrace" value = "1"/>
+  </form>
+  <form action = "" method = "post" id="zapomenute_heslo">
+  <input type = "hidden" name = "zapomenute_heslo" value = "1" />
+  </form>
+  <a href="javascript: document.getElementById('registrace').submit()">registrovat</a> - 
+  <a href="javascript: document.getElementById('zapomenute_heslo').submit()">zapomenuté heslo</a>
+</div>
+      </div>
+      <div class = "menuhorizont">
+        <ul>
+  <li><a href = "/gamecon/o-gameconu">GameCon</a></li>
+  <li><a href = "/rpg/o-rpg-na-gc">RPG</a></li>
+  <li><a href = "/larp/o-larpech-na-gc">Larp</a></li>
+  <li><a href = "/deskove-hry/o-deskovych-hrach-na-gc">Deskové hry</a></li>
+  <li><a href = "/prednasky/o-prednaskach-na-gc">Přednášky</a></li>
+  <li><a href = "/mistrovstvi-v-drd/o-mistrovstvi-v-drd">Mistrovství v DrD</a></li>
+  <!--<li><a href = "/dilny/o-dilnach-na-gc">Dílny</a></li>-->
+  <li><a href = "/forum">Fórum</a></li>
+  <li><a href = "/galerie-materialy/fotogalerie-gamecon10">Fotogalerie</a></li>
+  <li><a href = "/organizatori/organizacni-tym">Organizátoři</a></li>
+  <li><a href = "/kontakt">Kontakt</a></li>
+</ul>
+      </div>
+      <div class = "menu">
+        <div class = "menu_zacatek"></div><ul>
+<li style = "display: list-item;"><a href = "/novinky/novinky"><span>Novinky</span></a></li>
+<li style = "display: none;"><a href = "/novinky/novinky"><span>Novinky</span></a></li>
+<li style = "display: none;"><a href = "/novinky/archiv-novinek"><span>Archiv novinek</span></a></li>
+<li style = "display: list-item;"><a href = "/anketa-2011"><span>Anketa 2011</span></a></li>
+<li style = "display: list-item;"><a href = "/fotosoutez-2011"><span>Fotosoutěž 2011</span></a></li>
+<li style = "display: list-item;"><a href = "/gamecon/o-gameconu"><span>GameCon</span></a></li>
+<li style = "display: none;"><a href = "/gamecon/o-gameconu"><span>O GameConu</span></a></li>
+<li style = "display: none;"><a href = "/gamecon/gamecon-v-nekolika-snadnych-krocich"><span>GameCon v několika snadných krocích</span></a></li>
+<li style = "display: none;"><a href = "/gamecon/prihlaska"><span>Přihláška</span></a></li>
+<li style = "display: none;"><a href = "/gamecon/prehled-registrace"><span>Přehled registrace</span></a></li>
+<li style = "display: none;"><a href = "/gamecon/cenik"><span>Ceník</span></a></li>
+<li style = "display: none;"><a href = "/gamecon/ubytovani"><span>Ubytování</span></a></li>
+<li style = "display: none;"><a href = "/gamecon/cajovna"><span>Čajovna</span></a></li>
+<li style = "display: none;"><a href = "/gamecon/kde-se-gamecon-kona"><span>Kde se GameCon koná a cesta na něj</span></a></li>
+<li style = "display: none;"><a href = "/gamecon/restaurace-a-obchody"><span>Restaurace a obchody</span></a></li>
+<li style = "display: none;"><a href = "/gamecon/prihlasovani-na-aktivity"><span>Návod - přihlašování na GameConu</span></a></li>
+<li style = "display: none;"><a href = "/gamecon/placeni"><span>Návod - placení a slevy</span></a></li>
+<li style = "display: none;"><a href = "/gamecon/napsali-o-nas"><span>Napsali o nás</span></a></li>
+<li style = "display: list-item;"><a href = "/gamecon-trojboj/o-gamecon-trojboji"><span>GameCon Trojboj</span></a></li>
+<li style = "display: none;"><a href = "/gamecon-trojboj/o-gamecon-trojboji"><span>O GameCon Trojboji</span></a></li>
+<li style = "display: none;"><a href = "/gamecon-trojboj/prihlaska-na-gc-trojboj"><span>Přihláška na GC Trojboj</span></a></li>
+<li style = "display: none;"><a href = "/gamecon-trojboj/navod---prihlaseni-na-gamecon-trojboj"><span>Návod - přihlášení na GameCon Trojboj</span></a></li>
+<li style = "display: none;"><a href = "/gamecon-trojboj/akcni-hra"><span>Akční hra</span></a></li>
+<li style = "display: none;"><a href = "/gamecon-trojboj/olympijske-rosady"><span>Olympijské rošády</span></a></li>
+<li style = "display: none;"><a href = "/gamecon-trojboj/bobri-banda"><span>Bobří banda</span></a></li>
+<li style = "display: none;"><a href = "/gamecon-trojboj/archiv-trojboj-2010"><span>Archiv Trojboj 2010</span></a></li>
+<li style = "display: list-item;"><a href = "/rpg/o-rpg-na-gc"><span>RPG</span></a></li>
+<li style = "display: none;"><a href = "/rpg/o-rpg-na-gc"><span>O RPG na GC</span></a></li>
+<li style = "display: none;"><a href = "/rpg/co-jsou-to-rpg-hry"><span>Co jsou to RPG hry?</span></a></li>
+<li style = "display: none;"><a href = "/rpg/dlouha-hlidka"><span>Dlouhá hlídka</span></a></li>
+<li style = "display: none;"><a href = "/rpg/dnd-4e"><span>DnD 4E</span></a></li>
+<li style = "display: none;"><a href = "/rpg/dnd-4e-"><span>DnD 4E +</span></a></li>
+<li style = "display: none;"><a href = "/rpg/dogs-in-the-vineyard"><span>Dogs in the Vineyard</span></a></li>
+<li style = "display: none;"><a href = "/rpg/drd-ii---nezbedna-manzelka"><span>DrD II - Nezbedná manželka</span></a></li>
+<li style = "display: none;"><a href = "/rpg/drdii---navrat-do-bileho-hradu"><span>DrDII - Návrat do Bílého hradu</span></a></li>
+<li style = "display: none;"><a href = "/rpg/drdii---perlik-vzpoury"><span>DrDII - Perlík vzpoury</span></a></li>
+<li style = "display: none;"><a href = "/rpg/fate---bouchacky-pro-hitmana"><span>Fate - Bouchačky pro Hitmana</span></a></li>
+<li style = "display: none;"><a href = "/rpg/inspectres"><span>InSpectres</span></a></li>
+<li style = "display: none;"><a href = "/rpg/lady-blackbird"><span>Lady Blackbird</span></a></li>
+<li style = "display: none;"><a href = "/rpg/mage-the-awakecension-"><span>Mage: the Awakecension </span></a></li>
+<li style = "display: none;"><a href = "/rpg/mouse-guard-"><span>Mouse Guard </span></a></li>
+<li style = "display: none;"><a href = "/rpg/my-life-with-master"><span>My Life with Master</span></a></li>
+<li style = "display: none;"><a href = "/rpg/pendragon"><span>Pendragon</span></a></li>
+<li style = "display: none;"><a href = "/rpg/prime-time-adventures"><span>Prime Time Adventures</span></a></li>
+<li style = "display: none;"><a href = "/rpg/pribehy-imperia"><span>Příběhy Impéria</span></a></li>
+<li style = "display: none;"><a href = "/rpg/ruda-planeta"><span>Rudá planeta</span></a></li>
+<li style = "display: none;"><a href = "/rpg/sanatorium-podvrzenych"><span>Sanatorium podvržených</span></a></li>
+<li style = "display: none;"><a href = "/rpg/sen-na-dozivoti"><span>Sen! Na doživotí...</span></a></li>
+<li style = "display: none;"><a href = "/rpg/star-wars-ve-storyteller-systemu"><span>Star Wars ve Storyteller systému</span></a></li>
+<li style = "display: none;"><a href = "/rpg/steamferno-krvavy-pisek"><span>Steamferno: Krvavý písek</span></a></li>
+<li style = "display: none;"><a href = "/rpg/steamferno-zelene-peklo"><span>Steamferno: Zelené peklo</span></a></li>
+<li style = "display: none;"><a href = "/rpg/strepicka"><span>Strepicka</span></a></li>
+<li style = "display: none;"><a href = "/rpg/sustot-kridel-a-stranek"><span>Šustot křídel a stránek</span></a></li>
+<li style = "display: none;"><a href = "/rpg/volna-hra"><span>Volná hra</span></a></li>
+<li style = "display: none;"><a href = "/rpg/wargames"><span>Wargames</span></a></li>
+<li style = "display: none;"><a href = "/rpg/wernion"><span>Wernion</span></a></li>
+<li style = "display: none;"><a href = "/archiv/rpg-2010"><span>Archiv RPG 2010</span></a></li>
+<li style = "display: none;"><a href = "/rpg/seznam-rpg-na-gc2009"><span>Archiv RPG 2009</span></a></li>
+<li style = "display: none;"><a href = "/rpg/archiv-rpg-2008"><span>Archiv RPG 2008</span></a></li>
+<li style = "display: list-item;"><a href = "/larp/o-larpech-na-gc"><span>Larp</span></a></li>
+<li style = "display: none;"><a href = "/larp/o-larpech-na-gc"><span>O larpech na GC</span></a></li>
+<li style = "display: none;"><a href = "/larp/game-over"><span>Game Over</span></a></li>
+<li style = "display: none;"><a href = "/larp/odznak"><span>Odznak</span></a></li>
+<li style = "display: none;"><a href = "/larp/sofiina-volba"><span>Sofiina volba</span></a></li>
+<li style = "display: none;"><a href = "/larp/skola"><span>Škola</span></a></li>
+<li style = "display: none;"><a href = "/larp/sotcin"><span>Šotčín</span></a></li>
+<li style = "display: none;"><a href = "/larp/zavet"><span>Závěť</span></a></li>
+<li style = "display: none;"><a href = "/archiv/larpy-2010"><span>Archiv larp 2010</span></a></li>
+<li style = "display: none;"><a href = "/larp/prehled-larpu-na-gc2009"><span>Archiv larp 2009</span></a></li>
+<li style = "display: none;"><a href = "/larp/archiv-larp-2008"><span>Archiv larp 2008</span></a></li>
+<li style = "display: list-item;"><a href = "/bonusy/gamecon-bonusy"><span>Bonusové hry</span></a></li>
+<li style = "display: none;"><a href = "/bonusy/gamecon-bonusy"><span>GameCon Bonusové hry</span></a></li>
+<li style = "display: none;"><a href = "/bonusove-hry/hon-na-rudy-rijen"><span>Hon na Rudý říjen</span></a></li>
+<li style = "display: none;"><a href = "/bonusove-hry/mixer"><span>Mixér</span></a></li>
+<li style = "display: none;"><a href = "/bonusove-hry/spina"><span>Špína</span></a></li>
+<li style = "display: list-item;"><a href = "/wargaming/o-wargamingu-na-gc"><span>Wargaming</span></a></li>
+<li style = "display: none;"><a href = "/wargaming/o-wargamingu-na-gc"><span>O wargamingu na GC</span></a></li>
+<li style = "display: none;"><a href = "/wargaming/-malovani-miniatur---workshop"><span> Malování miniatur - workshop</span></a></li>
+<li style = "display: none;"><a href = "/archiv/wargaming-2010"><span>Archiv Wargaming 2010</span></a></li>
+<li style = "display: none;"><a href = "/wargaming/wargaming---pan-prstenu"><span>Wargaming - Pán Prstenů</span></a></li>
+<li style = "display: none;"><a href = "/wargaming/archiv-wargaming-na-gc-2009"><span>Archiv Wargaming 2009</span></a></li>
+<li style = "display: list-item;"><a href = "/deskove-hry/o-deskovych-hrach-na-gc"><span>Deskové hry</span></a></li>
+<li style = "display: none;"><a href = "/deskove-hry/o-deskovych-hrach-na-gc"><span>O deskových hrách na GC</span></a></li>
+<li style = "display: none;"><a href = "/deskove-hry/epicke-hrani"><span>Epické hraní</span></a></li>
+<li style = "display: none;"><a href = "/deskove-hry/magic-the-gathering"><span>Magic: The Gathering</span></a></li>
+<li style = "display: none;"><a href = "/deskove-hry/predstaveni-hry-o-truny-lcg"><span>Představení Hry o Trůny LCG</span></a></li>
+<li style = "display: none;"><a href = "/deskove-hry/deskoherna"><span>Deskoherna</span></a></li>
+<li style = "display: none;"><a href = "/deskove-hry/ceny-pro-viteze-turnaju"><span>Ceny pro vítěze turnajů</span></a></li>
+<li style = "display: none;"><a href = "/deskove-hry/arkham-horror"><span>Arkham Horror</span></a></li>
+<li style = "display: none;"><a href = "/deskove-hry/armada-game"><span>Armada Game</span></a></li>
+<li style = "display: none;"><a href = "/deskove-hry/bang-"><span>Bang! </span></a></li>
+<li style = "display: none;"><a href = "/deskove-hry/battlestar-galactica"><span>Battlestar Galactica</span></a></li>
+<li style = "display: none;"><a href = "/deskove-hry/carcassonne"><span>Carcassonne</span></a></li>
+<li style = "display: none;"><a href = "/deskove-hry/colossal-arena"><span>Colossal Arena</span></a></li>
+<li style = "display: none;"><a href = "/deskove-hry/dobble"><span>Dobble</span></a></li>
+<li style = "display: none;"><a href = "/deskove-hry/dominion"><span>Dominion</span></a></li>
+<li style = "display: none;"><a href = "/deskove-hry/duch"><span>Duch!</span></a></li>
+<li style = "display: none;"><a href = "/deskove-hry/duna"><span>Duna</span></a></li>
+<li style = "display: none;"><a href = "/deskove-hry/galaxy-trucker"><span>Galaxy Trucker</span></a></li>
+<li style = "display: none;"><a href = "/deskove-hry/hra-o-truny"><span>Hra o trůny</span></a></li>
+<li style = "display: none;"><a href = "/deskove-hry/hra-o-truny-lcg"><span>Hra o Trůny LCG</span></a></li>
+<li style = "display: none;"><a href = "/deskove-hry/kaleidoskop"><span>Kaleidoskop</span></a></li>
+<li style = "display: none;"><a href = "/deskove-hry/mini-hry"><span>Mini-hry</span></a></li>
+<li style = "display: none;"><a href = "/deskove-hry/mtg-allcommon-highlander"><span>MtG: allcommon highlander</span></a></li>
+<li style = "display: none;"><a href = "/deskove-hry/mtg-highlander"><span>MtG: Highlander</span></a></li>
+<li style = "display: none;"><a href = "/deskove-hry/novinky-cge"><span>Novinky CGE</span></a></li>
+<li style = "display: none;"><a href = "/deskove-hry/osadnici-z-katanu"><span>Osadníci z Katanu</span></a></li>
+<li style = "display: none;"><a href = "/deskove-hry/proroctvi"><span>Proroctví</span></a></li>
+<li style = "display: none;"><a href = "/deskove-hry/republic-of-rome"><span>Republic of Rome</span></a></li>
+<li style = "display: none;"><a href = "/deskove-hry/starcraft"><span>Starcraft</span></a></li>
+<li style = "display: none;"><a href = "/deskove-hry/texas-holdem"><span>Texas Hold'em</span></a></li>
+<li style = "display: none;"><a href = "/deskove-hry/times-up"><span>Time´s Up!</span></a></li>
+<li style = "display: none;"><a href = "/deskove-hry/ubongo"><span>Ubongo</span></a></li>
+<li style = "display: none;"><a href = "/deskove-hry/valka-o-prsten"><span>Válka o Prsten</span></a></li>
+<li style = "display: none;"><a href = "/deskove-hry/vladci-podzemi"><span>Vládci podzemí</span></a></li>
+<li style = "display: none;"><a href = "/archiv/deskovky-2010"><span>Archiv deskových her 2010</span></a></li>
+<li style = "display: none;"><a href = "/deskove-hry/prehled-deskovych-her-na-gc2009"><span>Archiv deskových her 2009</span></a></li>
+<li style = "display: list-item;"><a href = "/prednasky/o-prednaskach-na-gc"><span>Přednášky</span></a></li>
+<li style = "display: none;"><a href = "/prednasky/o-prednaskach-na-gc"><span>O přednáškách na GC</span></a></li>
+<li style = "display: none;"><a href = "/prednasky/altar-planuje"><span>Altar plánuje</span></a></li>
+<li style = "display: none;"><a href = "/prednasky/amaterska-tvorba-a-vydavani-deskovek-v-cr"><span>Amatérská tvorba a vydávání deskovek v ČR</span></a></li>
+<li style = "display: none;"><a href = "/prednasky/armada-game---prednaska"><span>Armada Game - přednáška</span></a></li>
+<li style = "display: none;"><a href = "/prednasky/asterion---ozveny-budoucnosti"><span>Asterion - Ozvěny budoucnosti</span></a></li>
+<li style = "display: none;"><a href = "/prednasky/beseda-k-pribehum-odvahy-a-dobrodruzstvi"><span>Beseda k Příběhům Odvahy a Dobrodružství</span></a></li>
+<li style = "display: none;"><a href = "/prednasky/dobry-souboj-v-drd"><span>Dobrý souboj v DrD?</span></a></li>
+<li style = "display: none;"><a href = "/prednasky/hruza-a-des-v-rpg"><span>Hrůza a děs v RPG</span></a></li>
+<li style = "display: none;"><a href = "/prednasky/jak-mocne-vyhrat-drd"><span>Jak mocně vyhrát DrD</span></a></li>
+<li style = "display: none;"><a href = "/prednasky/jsem-hrac-a-nestydim-se-za-to"><span>Jsem hráč a nestydím se za to!</span></a></li>
+<li style = "display: none;"><a href = "/prednasky/krest-drdii-a-nasledna-beseda"><span>Křest DrDII a následná beseda</span></a></li>
+<li style = "display: none;"><a href = "/prednasky/o-designovani-psani-publikovani-rpg"><span>O designování, psaní, publikování RPG</span></a></li>
+<li style = "display: none;"><a href = "/prednasky/o-gc-po-gc-a-o-dalsich-gc"><span>O GC po GC a o dalších GC</span></a></li>
+<li style = "display: none;"><a href = "/prednasky/postapo-larpy"><span>PostApo larpy</span></a></li>
+<li style = "display: none;"><a href = "/prednasky/prasky-na-psani"><span>Prášky na psaní</span></a></li>
+<li style = "display: none;"><a href = "/prednasky/priprava-hry-a-hracska-invence"><span>Příprava hry a hráčská invence</span></a></li>
+<li style = "display: none;"><a href = "/prednasky/situace-a-budoucnost-rpg-v-cr-a-sr"><span>Situace a budoucnost RPG v ČR a SR</span></a></li>
+<li style = "display: none;"><a href = "/prednasky/stavba-pribehudetektivky-a-konspirace"><span>Stavba příběhu+detektivky a konspirace</span></a></li>
+<li style = "display: none;"><a href = "/prednasky/steamferno"><span>Steamferno</span></a></li>
+<li style = "display: none;"><a href = "/prednasky/vydavani-her-a-herni-novinky"><span>Vydávání her a herní novinky</span></a></li>
+<li style = "display: none;"><a href = "/prednasky/vyhlaseni-vysledku-pribehu-odvahy-a-dobrodruzstvi"><span>Vyhlášení výsledků Příběhů Odvahy a Dobrodružství</span></a></li>
+<li style = "display: none;"><a href = "/prednasky/vyhra-pje-aneb-jak-zabranit-vyhoreni"><span>Výhra PJe, aneb jak zabránit vyhoření</span></a></li>
+<li style = "display: none;"><a href = "/archiv/prednasky-2010"><span>Archiv přednášek 2010</span></a></li>
+<li style = "display: none;"><a href = "/prednasky/seznam-prednasek-na-gc2009"><span>Archiv přednášek 2009</span></a></li>
+<li style = "display: none;"><a href = "/prednasky/archiv-prednasek-2008"><span>Archiv přednášek 2008</span></a></li>
+<li style = "display: list-item;"><a href = "/mistrovstvi-v-drd/o-mistrovstvi-v-drd"><span>Mistrovství v DrD</span></a></li>
+<li style = "display: none;"><a href = "/mistrovstvi-v-drd/o-mistrovstvi-v-drd"><span>O Mistrovství v DrD</span></a></li>
+<li style = "display: none;"><a href = "/mistrovstvi-v-drd/prihlaska-na-drd"><span>Přihláška na DrD</span></a></li>
+<li style = "display: none;"><a href = "/mistrovstvi-v-drd/navod---prihlaseni-na-drd"><span>Návod - přihlášení na DrD</span></a></li>
+<li style = "display: none;"><a href = "/mistrovstvi-v-drd/uvod-do-mistrovstvi-v-drd"><span>Úvod do mistrovství v DrD</span></a></li>
+<li style = "display: none;"><a href = "/mistrovstvi-v-drd/organizace-turnaje"><span>Organizace turnaje</span></a></li>
+<li style = "display: none;"><a href = "/mistrovstvi-v-drd/pravidla-pro-tvorbu-postav"><span>Pravidla pro tvorbu postav</span></a></li>
+<li style = "display: none;"><a href = "/mistrovstvi-v-drd/sluncesvit-cisarske-noviny"><span>Sluncesvit - císařské noviny</span></a></li>
+<li style = "display: none;"><a href = "/mistrovstvi-v-drd/informace-o-dobrodruzstvi"><span>Informace o dobrodružství</span></a></li>
+<li style = "display: none;"><a href = "/mistrovstvi-v-drd/novy-herni-prvek"><span>Nový herní prvek</span></a></li>
+<li style = "display: none;"><a href = "/mistrovstvi-v-drd/starsi-dobrodruzstvi"><span>Starší dobrodružství</span></a></li>
+<li style = "display: none;"><a href = "/mistrovstvi-v-drd/panove-jeskyne"><span>Pánové Jeskyně</span></a></li>
+<li style = "display: none;"><a href = "/mistrovstvi-v-drd/sin-slavy"><span>Síň slávy</span></a></li>
+<li style = "display: list-item;"><a href = "/dilny/o-dilnach-na-gc"><span>Dílny</span></a></li>
+<li style = "display: none;"><a href = "/dilny/o-dilnach-na-gc"><span>O dílnách na GC</span></a></li>
+<li style = "display: none;"><a href = "/dilny/vypravecska-dilna"><span>Vypravěčská dílna</span></a></li>
+<li style = "display: none;"><a href = "/dilny/archiv-dilny-2008"><span>Archiv dílny 2008</span></a></li>
+<li style = "display: list-item;"><a href = "/forum"><span>Fórum</span></a></li>
+<li style = "display: list-item;"><a href = "/galerie-materialy/materialy-2011"><span>Galerie, materiály</span></a></li>
+<li style = "display: none;"><a href = "/galerie-materialy/materialy-2011"><span>Materiály 2011</span></a></li>
+<li style = "display: none;"><a href = "/galerie-materialy/materialy-2010"><span>Materiály 2010</span></a></li>
+<li style = "display: none;"><a href = "/galerie-materialy/materialy-2009"><span>Materiály 2009</span></a></li>
+<li style = "display: none;"><a href = "/galerie-materialy/fotosoutez-2010"><span>Fotosoutěž 2010</span></a></li>
+<li style = "display: none;"><a href = "/galerie-materialy/fotosoutez-2009"><span>Fotosoutěž 2009</span></a></li>
+<li style = "display: none;"><a href = "/galerie-materialy/fotogalerie-gamecon10"><span>Fotogalerie GameCon10</span></a></li>
+<li style = "display: none;"><a href = "/galerie-materialy/fotogalerie-gamecon09"><span>Fotogalerie GameCon09</span></a></li>
+<li style = "display: none;"><a href = "/galerie-materialy/fotogalerie-gamecon08"><span>Fotogalerie GameCon08</span></a></li>
+<li style = "display: none;"><a href = "/galerie-materialy/dalsi-partneri-zajimave-odkazy"><span>Další partneři, zajímavé odkazy</span></a></li>
+<li style = "display: list-item;"><a href = "/organizatori/organizacni-tym"><span>Organizátoři</span></a></li>
+<div class = "menu_zacatek"></div><ul>
+<li style = "display: list-item;"><a href = "/organizatori/organizacni-tym"><span>Organizační tým</span></a></li>
+<li style = "display: list-item;" class = "aktivni"><a href = "/organizatori/pjove"><span>PJové</span></a></li>
+<li style = "display: list-item;"><a href = "/organizatori/vypraveci"><span>Vypravěči</span></a></li>
+<li style = "display: list-item;"><a href = "/organizatori/organizatori-larpu"><span>Organizátoři larpů</span></a></li>
+<li style = "display: list-item;"><a href = "/organizatori/prednasejici"><span>Přednášející</span></a></li>
+<li style = "display: list-item;"><a href = "/organizatori/organizatori-wargamingu"><span>Organizátoři wargamingu</span></a></li>
+<li style = "display: list-item;"><a href = "/organizatori/ostatni-organizatori"><span>Ostatní organizátoři</span></a></li>
+<li style = "display: list-item;"><a href = "/organizatori/jak-se-stat-organizatorem"><span>Jak se stát organizátorem</span></a></li>
+</ul><div class = "menu_konec"></div>
+<li style = "display: list-item;"><a href = "/kontakt"><span>Kontakt</span></a></li>
+</ul><div class = "menu_konec"></div>
+      </div>
+      <div class = "horizonttop">
+        <a href = "http://www.gamecon.cz/">GameCon</a>  &raquo; <a href = "/organizatori/organizacni-tym">Organizátoři</a> &raquo; <a href = "/organizatori/pjove">PJové</a>      </div>
+      <div class = "main">
+        <div class = "main-top"></div>
+  <div class = "main-middle">
+    <div class = "main-middle-in">
+<h2 style = "float: left; width: 100%;" id = "pjove">PJové</h2>
+<div class = "organizatori">
+  <div class = "jmeno">Almi - Jiří Kučera</div>
+  <div class = "foto">
+    <img src = "/system_styly/organizatori/almi.jpg" />
+  </div>
+  <strong>Funkce na GC</strong><br />pán jeskyně, vypravěč<br />
+  <strong><a href = "almi o sobě" onclick = "ukaz(67); return false;">O sobě píše</a></strong> - <strong><a href = "almi - herní profil" onclick = "ukaz(967); return false;">Herní profil</a></strong><br />
+  <span  id = "objekt67" style = "display: none;">
+  <p>Na Gameconu od devadesátých let, co jsem jako malý kluk s vykulenýma očima zjistil, že i PJ je člověk z masa a kostí. Za rok mne pak přijali mezi sebe a od té doby se snažím ukázat hráčům totéž. Miluju dobrý příběh, atmosféru při níž mrazí i zábavu a snažím se o to ve všech hrách co vedu. DrD hraju od jeho vzniku, mám rád deskovky, fantasy i sci-fi, historii a cestování po hradech a zámcích, stejně jako objevování zapomenutých míst tam, kde by je nikdo nehledal. Poslední rok se pohybuji kolem projektu na d20.cz, intenzivně vedu hry ve 4. edici DnD a tak mne lze na GC potkat i v této sekci.</p>
+  <p>Pokud mne potkáte, nebojte se mne zeptat na cokoliv, od pravidel po organizaci. Odpovím vždy, v lepším případě to dává i smysl a je-li nejhůř, vím, kde informaci získat.</p></span>
+  <span id = "objekt967" style = "display: none;">
+  <div class = "pjove">
+    <div class = "staty">
+      <div class = "text">Akce:</div>
+      <div class = "radek">
+        <img src = /system_styly/pics_system_styl1/li-cervena2.gif />
+        <img src = /system_styly/pics_system_styl1/li-cervena2.gif />
+        <img src = /system_styly/pics_system_styl1/li-cervena2.gif />        
+      </div>
+      <div class = "text">Roleplaying:</div>
+      <div class = "radek">
+        <img src = /system_styly/pics_system_styl1/li-cervena2.gif />
+        <img src = /system_styly/pics_system_styl1/li-cervena2.gif />        
+      </div>
+      <div class = "text">Pravidla:</div>
+      <div class = "radek">
+        <img src = /system_styly/pics_system_styl1/li-cervena2.gif />
+        <img src = /system_styly/pics_system_styl1/li-cervena2.gif />
+        <img src = /system_styly/pics_system_styl1/li-cervena2.gif />
+      </div>
+      <div class = "text">Atmosféra:</div>
+      <div class = "radek">
+        <img src = /system_styly/pics_system_styl1/li-cervena2.gif />
+        <img src = /system_styly/pics_system_styl1/li-cervena2.gif />
+        <img src = /system_styly/pics_system_styl1/li-cervena2.gif />
+        <img src = /system_styly/pics_system_styl1/li-cervena2.gif />
+      </div>
+      <div class = "text">Vtip:</div>
+      <div class = "radek">
+        <img src = /system_styly/pics_system_styl1/li-cervena2.gif />
+        <img src = /system_styly/pics_system_styl1/li-cervena2.gif />
+        <img src = /system_styly/pics_system_styl1/li-cervena2.gif />
+      </div>
+    </div>
+    <div class = "popis">
+      <p>Není nic horšího u stolu, než nuda. Už nevíte, co byste vymysleli a točíte se v kruhu? Buďte si jistí, že v tu chvílí udělá PJ nějaký "bang!" :-) Hraní charakterů je fajn věc, ale na GC to berte s mírou - nezapomeňte na týmovou mysl i hraní.</p>
+      <p>Pravidla jsou důležitá, ale neměla by kazit příběh. Ale když nějaké poruší PJ, stejné by měl smět i hráč. Společný prožitek hry, když člověka mrazí nebo když přímo před sebou vidí to, co PJ či jiný hráč popisuje, je to nejlepší, co lze při hře zažít. Když to nebaví hráče, nebaví to ani mne. Ovšem vím, že všem se člověk nezavděčí a občas to ani není dobře.</p>
+    </div>
+  </div>
+  </span>  
+</div>
+
+<!--<div class = "organizatori">
+  <div class = "jmeno">Bedny - Josef Bednář</div>
+  <div class = "foto">
+    <img src = "/system_styly/organizatori/bedny.jpg" />
+  </div>
+  <strong>Funkce na GC</strong><br />pán jeskyně<br />
+  <strong><a href = "bedny o sobě" onclick = "ukaz(13); return false;">O sobě píše</a></strong> - <strong><a href = "bedny - herní profil" onclick = "ukaz(913); return false;">Herní profil</a></strong><br />
+  <span  id = "objekt13" style = "display: none;">
+  <p>K hraní DrD jsem se dostal zhruba ve 14 letech a od té doby se mu aktivně věnuju. Moje představa o ideální postavě se rok co rok měnila. Už dlouho to není Munchkin, co na jednu ránu zabíjí ani žádná „šílená“ postavička, která se naprosto odlišuje od okolního světa. Poslední dobou hrajeme DnD 3.5, pravidla jsou sice jiná, ale myšlenka zůstává. Hraní se pro mě stalo téměř denodenní záležitostí, ale nikdy mě to neomrzelo. K dělání PJ na GC jsem se dostal jako slepej k houslím, takže nečekejte zázraky :-)</p></span>
+  <span id = "objekt913" style = "display: none;">
+  <div class = "pjove">
+    <div class = "staty">
+      <div class = "text">Akce:</div>
+      <div class = "radek">
+        <img src = /system_styly/pics_system_styl1/li-cervena2.gif />
+        <img src = /system_styly/pics_system_styl1/li-cervena2.gif />        
+      </div>
+      <div class = "text">Roleplaying:</div>
+      <div class = "radek">
+        <img src = /system_styly/pics_system_styl1/li-cervena2.gif />
+        <img src = /system_styly/pics_system_styl1/li-cervena2.gif />
+        <img src = /system_styly/pics_system_styl1/li-cervena2.gif />
+        <img src = /system_styly/pics_system_styl1/li-cervena2.gif />        
+      </div>
+      <div class = "text">Pravidla:</div>
+      <div class = "radek">
+        <img src = /system_styly/pics_system_styl1/li-cervena2.gif />
+        <img src = /system_styly/pics_system_styl1/li-cervena2.gif />
+      </div>
+      <div class = "text">Atmosféra:</div>
+      <div class = "radek">
+        <img src = /system_styly/pics_system_styl1/li-cervena2.gif />
+        <img src = /system_styly/pics_system_styl1/li-cervena2.gif />
+        <img src = /system_styly/pics_system_styl1/li-cervena2.gif />
+        <img src = /system_styly/pics_system_styl1/li-cervena2.gif />
+      </div>
+      <div class = "text">Vtip:</div>
+      <div class = "radek">
+        <img src = /system_styly/pics_system_styl1/li-cervena2.gif />
+        <img src = /system_styly/pics_system_styl1/li-cervena2.gif />
+        <img src = /system_styly/pics_system_styl1/li-cervena2.gif />
+      </div>
+    </div>
+    <div class = "popis">
+      <p>Jde mi hlavně o RP a soudržnost družiny, protože pro mě je důležité aby hráli všichni a aby se taky všichni bavili. Není účel zabít postavu, ale pokud si o to sama říká neuváženým jednáním, nemám problém její život ukončit. Rád se u hry bavím, ale je důležité znát míru. Když se nepodaří hodit správně na dovednost, ale pěkně mi ji popíšete, je možné, že se to povede. Stejně tak se vám to povede, když dobře hodíte :-) Počítejte s tím, že pokud budete hrát, budu chtít slyšet od každého, co dělá a to přímo od něj.</p>
+    </div>
+  </div>
+  </span>  
+</div>-->
+
+<div class = "organizatori">
+  <div class = "jmeno">Beltar – Jindřich Schovanec</div>
+  <div class = "foto">
+    <img src = "/system_styly/organizatori/beltar.jpg" />
+  </div>
+  <strong>Funkce na GC</strong><br />pán jeskyně<br />
+  <strong><a href = "Beltar o sobě" onclick = "ukaz(2000); return false;">O sobě píše</a></strong> - <strong><a href = "Beltar - herní profil" onclick = "ukaz(2001); return false;">Herní profil</a></strong><br />
+  <span  id = "objekt2000" style = "display: none;">
+  <p>„Mám spoustu nádherných vzpomínek na události, které se vlastně nikdy nestaly.“ – tato památná slova
+prohlásil kdysi jeden z mých spoluhráčů a podle mě zcela definují to, proč hrajeme RPG.</p>
+ </span>
+  <span id = "objekt2001" style = "display: none;">
+  <div class = "pjove">
+    <div class = "staty">
+      <div class = "text">Akce:</div>
+      <div class = "radek">
+        <img src = /system_styly/pics_system_styl1/li-cervena2.gif />
+        <img src = /system_styly/pics_system_styl1/li-cervena2.gif />
+        <img src = /system_styly/pics_system_styl1/li-cervena2.gif />
+      </div>
+      <div class = "text">Roleplaying:</div>
+      <div class = "radek">
+        <img src = /system_styly/pics_system_styl1/li-cervena2.gif />
+        <img src = /system_styly/pics_system_styl1/li-cervena2.gif />
+      </div>
+      <div class = "text">Pravidla:</div>
+      <div class = "radek">
+        <img src = /system_styly/pics_system_styl1/li-cervena2.gif />
+        <img src = /system_styly/pics_system_styl1/li-cervena2.gif />
+        <img src = /system_styly/pics_system_styl1/li-cervena2.gif />
+      </div>
+      <div class = "text">Atmosféra:</div>
+      <div class = "radek">
+        <img src = /system_styly/pics_system_styl1/li-cervena2.gif />
+        <img src = /system_styly/pics_system_styl1/li-cervena2.gif />
+        <img src = /system_styly/pics_system_styl1/li-cervena2.gif />
+      </div>
+      <div class = "text">Vtip:</div>
+      <div class = "radek">
+        <img src = /system_styly/pics_system_styl1/li-cervena2.gif />
+        <img src = /system_styly/pics_system_styl1/li-cervena2.gif />
+        <img src = /system_styly/pics_system_styl1/li-cervena2.gif />
+        <img src = /system_styly/pics_system_styl1/li-cervena2.gif />
+      </div>
+    </div>
+    <div class = "popis">
+      <p>Pravidla jsou důležitá, aby hra byla spravedlivá. Při jejich absenci by noví hráči neměli ponětí, co všechno můžou dělat, a někteří z těch zkušených by se snažili hrát si na bohy. A koneckonců, Gamecon je turnaj a ten musí být fér.</p>
+    </div>
+  </div>
+  </span>
+</div>
+
+<div class = "organizatori">
+  <div class = "jmeno">Deshi – Stanislav Štrmeň</div>
+  <div class = "foto">
+    <img src = "/system_styly/organizatori/deshi.jpg" />
+  </div>
+  <strong>Funkce na GC</strong><br />pán jeskyně<br />
+  <!--<strong><a href = "Deshi o sobě" onclick = "ukaz(2002); return false;">O sobě píše</a></strong> - --><strong><a href = "Deshi - herní profil" onclick = "ukaz(2003); return false;">Herní profil</a></strong><br />
+  <!--<span  id = "objekt2002" style = "display: none;">
+  <p></p>
+
+ </span>-->
+  <span id = "objekt2003" style = "display: none;">
+  <div class = "pjove">
+    <div class = "staty">
+      <div class = "text">Akce:</div>
+      <div class = "radek">
+        <img src = /system_styly/pics_system_styl1/li-cervena2.gif />
+        <img src = /system_styly/pics_system_styl1/li-cervena2.gif />
+        <img src = /system_styly/pics_system_styl1/li-cervena2.gif />
+        <img src = /system_styly/pics_system_styl1/li-cervena2.gif />
+      </div>
+      <div class = "text">Roleplaying:</div>
+      <div class = "radek">
+        <img src = /system_styly/pics_system_styl1/li-cervena2.gif />
+        <img src = /system_styly/pics_system_styl1/li-cervena2.gif />
+        <img src = /system_styly/pics_system_styl1/li-cervena2.gif />
+        <img src = /system_styly/pics_system_styl1/li-cervena2.gif />
+      </div>
+      <div class = "text">Pravidla:</div>
+      <div class = "radek">
+        <img src = /system_styly/pics_system_styl1/li-cervena2.gif />
+        <img src = /system_styly/pics_system_styl1/li-cervena2.gif />
+        <img src = /system_styly/pics_system_styl1/li-cervena2.gif />
+      </div>
+      <div class = "text">Atmosféra:</div>
+      <div class = "radek">
+        <img src = /system_styly/pics_system_styl1/li-cervena2.gif />
+        <img src = /system_styly/pics_system_styl1/li-cervena2.gif />
+      </div>
+      <div class = "text">Vtip:</div>
+      <div class = "radek">
+        <img src = /system_styly/pics_system_styl1/li-cervena2.gif />
+        <img src = /system_styly/pics_system_styl1/li-cervena2.gif />
+      </div>
+    </div>
+    <div class = "popis">
+      <p>Jsem zlej. Pravidla znám nazpaměť i pozpátku. Mám dvě zlatý Deshiho pravidla. Když hráč usne, postava umře. Když umře jedna postava, umře celá družinka. Tak takhle jsem před dvaceti lety začínal. Od té doby si družiníci vypěstovali paranoiu. Naučili se jako družinka spolupracovat. Zvykli si, že mé hry jsou ve světě, který funguje na reálných základech. Přišli na to, že nejsou bohové. Zjistili, že tu nejsem od toho, abych je ničil, že to zvládnou bez problémů sami. Ale hlavně to vydrželi. A tak i díky nim jsem mohl třikrát na GC usednout na dračí trůn a říct si, že to zkusím z druhé strany.</p>
+    </div>
+  </div>
+  </span>
+</div>
+
+<!--<div class = "organizatori">
+  <div class = "jmeno">Diskor - Karel Veverka</div>
+  <div class = "foto">
+    <img src = "/system_styly/organizatori/default.jpg" />
+  </div>
+  <strong>Funkce na GC</strong><br />pán jeskyně<br />
+  <strong><a href = "Diskor o sobě" onclick = "ukaz(111); return false;">O sobě píše</a></strong> - <strong><a href = "Diskor - herní profil" onclick = "ukaz(1011); return false;">Herní profil</a></strong><br />
+  <span  id = "objekt111" style = "display: none;">
+  <p>DrD hraji od svých 13 let (je mi 19 let), aktivně dělám PJ na LipConu, což
+je akce herního Klubu Fenris, který pořádá i kroužek Dračího Doupěte, kde
+jsem PJ se stálou družinkou, už dva roky. <br />
+Moje první účast na GameConu byla v roce 2004 jako hráč. Roli PJ si
+vyzkouším poprvé a považuji si za čest mít tuto možnost.</p> 
+
+<p>Krátce o mě samotném. Pokouším se studovat Střední pedagogickou školu v
+Přerově, jsem dobrovolníkem v Nízkoprahovém klubu Metro a pracuji v novém
+Call centru v Olomouci jako začínající agent.</p>
+
+<p>Pokud mě budete chtít uplatit miluji Kešu oříšky a nesnáším česnekové
+brambůrky.</p>
+
+ </span>
+  <span id = "objekt1011" style = "display: none;">
+  <div class = "pjove">
+    <div class = "staty">
+      <div class = "text">Akce:</div>
+      <div class = "radek">
+        <img src = /system_styly/pics_system_styl1/li-cervena2.gif />
+        <img src = /system_styly/pics_system_styl1/li-cervena2.gif />
+      </div>
+      <div class = "text">Roleplaying:</div>
+      <div class = "radek">
+        <img src = /system_styly/pics_system_styl1/li-cervena2.gif />
+        <img src = /system_styly/pics_system_styl1/li-cervena2.gif />
+        <img src = /system_styly/pics_system_styl1/li-cervena2.gif />
+        <img src = /system_styly/pics_system_styl1/li-cervena2.gif />
+      </div>
+      <div class = "text">Pravidla:</div>
+      <div class = "radek">
+        <img src = /system_styly/pics_system_styl1/li-cervena2.gif />
+        <img src = /system_styly/pics_system_styl1/li-cervena2.gif />
+      </div>
+      <div class = "text">Atmosféra:</div>
+      <div class = "radek">
+        <img src = /system_styly/pics_system_styl1/li-cervena2.gif />
+        <img src = /system_styly/pics_system_styl1/li-cervena2.gif />
+        <img src = /system_styly/pics_system_styl1/li-cervena2.gif />
+        <img src = /system_styly/pics_system_styl1/li-cervena2.gif />
+      </div>
+      <div class = "text">Vtip:</div>
+      <div class = "radek">
+        <img src = /system_styly/pics_system_styl1/li-cervena2.gif />
+        <img src = /system_styly/pics_system_styl1/li-cervena2.gif />
+        <img src = /system_styly/pics_system_styl1/li-cervena2.gif />
+      </div>
+    </div>
+    <div class = "popis">
+      <p>Není důležité přežít, ale prožít. Heslo kterým se řídím. Smrt postavy pro mě
+není překážkou a ani výsledné řešení. Zážitky ze hry a příjemně strávený čas
+je pro mě důležitější, než vyřešení zápletky. Nestavím se při hraní do role
+boha, nebo osudu, ale do pozice okolního života.</p> 
+<p>Velice si cením každé snahy, férově reaguji na jednání postav a koušu, když
+je mi lháno.</p>
+    </div>
+  </div>
+  </span>  
+</div>-->
+
+<div class = "organizatori">
+  <div class = "jmeno">Dodo – Daniel Mentlík</div>
+  <div class = "foto">
+    <img src = "/system_styly/organizatori/dodo.jpg" />
+  </div>
+  <strong>Funkce na GC</strong><br />pán jeskyně<br />
+  <strong><a href = "dodo o sobě" onclick = "ukaz(5); return false;">O sobě píše</a></strong> - <strong><a href = "dodo - herní profil" onclick = "ukaz(905); return false;">Herní profil</a></strong><br />
+  <span  id = "objekt5" style = "display: none;">
+  <p>K RPG jsem se dostal v roce 1990, kdy mi kamarád ukázal sponkou scvaknutá pravidla DrD. O dva dny později už jsem měl vlastní výtisk a od té doby mne hry na hrdiny nepustily.</p>
+  <p>Na Gameconu je mé působení od jeho druhého ročníku charakterizováno každoroční marnou snahou turnaj v doupěti vyhrát. Vytrvalost ovšem přinesla ovoce a na desátý pokus se to naší družince podařilo v roce 2005. Kdysi jsem slíbil, že až se mi to povede, pojedu jako PJ. Loni to ještě nevyšlo - tak jsme zkusili úspěch obhájit - ale letos už na druhé straně barikády budu.</p>
+  <p>Z ostatních zálib či aktivit bych mohl zmínit filmy, četbu SF&F literatury, fotografování přírody či účast v porotě posledních dvou ročníků Spáru.</p></span>
+    <span id = "objekt905" style = "display: none;">
+  <div class = "pjove">
+    <div class = "staty">
+      <div class = "text">Akce:</div>
+      <div class = "radek">
+        <img src = /system_styly/pics_system_styl1/li-cervena2.gif />
+        <img src = /system_styly/pics_system_styl1/li-cervena2.gif />
+        <img src = /system_styly/pics_system_styl1/li-cervena2.gif />
+      </div>
+      <div class = "text">Roleplaying:</div>
+      <div class = "radek">
+        <img src = /system_styly/pics_system_styl1/li-cervena2.gif />
+        <img src = /system_styly/pics_system_styl1/li-cervena2.gif />
+        <img src = /system_styly/pics_system_styl1/li-cervena2.gif />
+        <img src = /system_styly/pics_system_styl1/li-cervena2.gif />
+      </div>
+      <div class = "text">Pravidla:</div>
+      <div class = "radek">
+        <img src = /system_styly/pics_system_styl1/li-cervena2.gif />
+        <img src = /system_styly/pics_system_styl1/li-cervena2.gif />
+      </div>
+      <div class = "text">Atmosféra:</div>
+      <div class = "radek">
+        <img src = /system_styly/pics_system_styl1/li-cervena2.gif />
+        <img src = /system_styly/pics_system_styl1/li-cervena2.gif />
+        <img src = /system_styly/pics_system_styl1/li-cervena2.gif />
+        <img src = /system_styly/pics_system_styl1/li-cervena2.gif />
+      </div>
+      <div class = "text">Vtip:</div>
+      <div class = "radek">
+        <img src = /system_styly/pics_system_styl1/li-cervena2.gif />
+        <img src = /system_styly/pics_system_styl1/li-cervena2.gif />
+      </div>
+    </div>
+    <div class = "popis">
+      <p>Mám rád dobrodružství, která mají nějaký příběh; nezáleží na tom, jestli o něm postavy vědí nebo ne. Příběh je to, co mě při hraní vede a říká mi, jak řešit neočekávané situace. Mám konkrétní představu o tom, jak věci a prostředí vypadají a snažím se to hráčům také popsat, aby se ocitli ve stejném místě jako já.</p>
+      <p>Rád improvizuji a na pravidla moc nehledím - pokud jsou akce logické a dobře naplánované a nezradí náhoda (kostky), je vše v pořádku. Pokud ale hráči/postavy dělají chyby proti logice světa/příběhu, přichází trest; každá akce vyvolává zaslouženou reakci. Jestli máte rádi stejný styl hry, jsem váš muž (PJ).</p>
+    </div>
+  </div>
+  </span>  
+</div>
+
+<div class = "organizatori">
+  <div class = "jmeno">Draken Korin – Stanislav Horák</div>
+  <div class = "foto">
+    <img src = "/system_styly/organizatori/drakenkorin.jpg" />
+  </div>
+  <strong>Funkce na GC</strong><br />pán jeskyně<br />
+  <!--<strong><a href = "Draken Korin o sobě" onclick = "ukaz(2004); return false;">O sobě píše</a></strong> - --><strong><a href = "Draken Korin - herní profil" onclick = "ukaz(2005); return false;">Herní profil</a></strong><br />
+  <!--<span  id = "objekt2004" style = "display: none;">
+  <p></p>
+
+ </span>-->
+
+  <span id = "objekt2005" style = "display: none;">
+  <div class = "pjove">
+    <div class = "staty">
+      <div class = "text">Akce:</div>
+      <div class = "radek">
+        <img src = /system_styly/pics_system_styl1/li-cervena2.gif />
+        <img src = /system_styly/pics_system_styl1/li-cervena2.gif />
+        <img src = /system_styly/pics_system_styl1/li-cervena2.gif />
+      </div>
+      <div class = "text">Roleplaying:</div>
+      <div class = "radek">
+        <img src = /system_styly/pics_system_styl1/li-cervena2.gif />
+        <img src = /system_styly/pics_system_styl1/li-cervena2.gif />
+        <img src = /system_styly/pics_system_styl1/li-cervena2.gif />
+        <img src = /system_styly/pics_system_styl1/li-cervena2.gif />
+      </div>
+      <div class = "text">Pravidla:</div>
+      <div class = "radek">
+        <img src = /system_styly/pics_system_styl1/li-cervena2.gif />
+        <img src = /system_styly/pics_system_styl1/li-cervena2.gif />
+      </div>
+      <div class = "text">Atmosféra:</div>
+      <div class = "radek">
+        <img src = /system_styly/pics_system_styl1/li-cervena2.gif />
+        <img src = /system_styly/pics_system_styl1/li-cervena2.gif />
+        <img src = /system_styly/pics_system_styl1/li-cervena2.gif />
+        <img src = /system_styly/pics_system_styl1/li-cervena2.gif />
+      </div>
+      <div class = "text">Vtip:</div>
+      <div class = "radek">
+        <img src = /system_styly/pics_system_styl1/li-cervena2.gif />
+        <img src = /system_styly/pics_system_styl1/li-cervena2.gif />
+        <img src = /system_styly/pics_system_styl1/li-cervena2.gif />
+      </div>
+    </div>
+    <div class = "popis">
+      <p>Optimální hraní? Baví se družina i PJ. Ten opravdu nemá za úkol družinu zabít, ale ani jí chystat červený koberec k cíli hry, ale má být prostředkem, jak si ji užít a pobavit se. Pochopitelně každý má rád něco jiného – někdo preferuje pořádnou rubačku, jiný intrikování, další zase podzemí, v němž si není nikdo jistý, kde se skrývá past nebo nepřítel.</p>
+<p>Preferuji, když pro hráče není postava jen pár čísel a text na papíře, ale dokáže se během dobrodružství oprostit od svého reálného já a postavu si opravdu zahraje. Stejně tak by ani družina neměla být sborem individualit, ale alespoň trochu spolupracujícím a fungujícím tělesem, ačkoli roleplaying dokáže přinést i do takových družin spoustu zajímavých a zábavných situací.</p>
+<p>Pravidla jsou od toho, aby se dodržovaly a nastavují postavám určité hranice, ale dobrý roleplaying má u mě trochu větší váhu. Samozřejmě ale není možné pravidla ignorovat, to si hráči nemůžou dovolit v žádné hře.</p>
+    </div>
+  </div>
+  </span>
+</div>
+
+<div class = "organizatori">
+  <div class = "jmeno">Elden - Jakub Jandák</div>
+  <div class = "foto">
+    <img src = "/system_styly/organizatori/elden.jpg" />
+  </div>
+  <strong>Funkce na GC</strong><br />pán jeskyně<br />
+  <strong>Kontakt</strong><br /> <a href = "mailto:elden@gamecon.cz">elden@gamecon.cz</a><br />
+  <strong><a href = "elden o sobě" onclick = "ukaz(48); return false;">O sobě píše</a></strong> - <strong><a href = "elden - herní profil" onclick = "ukaz(948); return false;">Herní profil</a></strong><br />
+  <span  id = "objekt48" style = "display: none;">
+    <p>Človíček s nohama v oblacích a hlavou pevně na zemi, což často způsobuje bolestivé životní kotrmelce. Dlouhodobě dává přednost žití mimo naši realitu, a tak se kratochvílím jako například DrD věnuje snad odnepaměti.<br />Letos navíc bastlí gepardí rychlostí se svým týmem programátorů (Levá Ruka, Pravá Ruka, kluci, díky!) tenhle web.<br />Na GameCon jezdí již deset let, pět z toho jako PJ.</p>
+  </span>
+  <span id = "objekt948" style = "display: none;">
+  <div class = "pjove">
+    <div class = "staty">
+      <div class = "text">Akce:</div>
+      <div class = "radek">
+        <img src = /system_styly/pics_system_styl1/li-cervena2.gif />
+        <img src = /system_styly/pics_system_styl1/li-cervena2.gif />        
+      </div>
+      <div class = "text">Roleplaying:</div>
+      <div class = "radek">
+        <img src = /system_styly/pics_system_styl1/li-cervena2.gif />
+        <img src = /system_styly/pics_system_styl1/li-cervena2.gif />        
+      </div>
+      <div class = "text">Pravidla:</div>
+      <div class = "radek">
+        <img src = /system_styly/pics_system_styl1/li-cervena2.gif />
+        <img src = /system_styly/pics_system_styl1/li-cervena2.gif />
+        <img src = /system_styly/pics_system_styl1/li-cervena2.gif />
+      </div>
+      <div class = "text">Atmosféra:</div>
+      <div class = "radek">
+        <img src = /system_styly/pics_system_styl1/li-cervena2.gif />
+        <img src = /system_styly/pics_system_styl1/li-cervena2.gif />
+        <img src = /system_styly/pics_system_styl1/li-cervena2.gif />
+        <img src = /system_styly/pics_system_styl1/li-cervena2.gif />
+      </div>
+      <div class = "text">Vtip:</div>
+      <div class = "radek">
+        <img src = /system_styly/pics_system_styl1/li-cervena2.gif />
+        <img src = /system_styly/pics_system_styl1/li-cervena2.gif />
+        <img src = /system_styly/pics_system_styl1/li-cervena2.gif />
+        <img src = /system_styly/pics_system_styl1/li-cervena2.gif />
+      </div>
+    </div>
+    <div class = "popis">
+      <p>Jako PJ mám špatné a snad i nějaké dobré vlastnosti.<br /> Mezi ty špatné patří bezpochyby jistá dávka surovosti a tvrdosti, družinka ode mě nic nedostane zadarmo, a pokud udělá hloupost, tak trvám na tom, že si její důsledek musí vypít do poslední kapky. Naopak můžu nabídnout analytický pohled na dobrodružství, reálné řešení situací a (pevně doufám) zábavnou a vyrovnanou hru.</p>
+      <p>Na pravidlech nebazíruju, nebudu se hádat kvůli každému slovu nebo umístění čárky ve větě, ale uznávám, že pravidla jako nastavení mantinelů světa jsou pro hru důležitá.<br />Mám rád roleplay, ale ne přehnaný - nebudu vás nutit měnit hlas, poskakovat po pokoji a přehrávat do posledního pohybu scénku z nevěstince; věřím, že nejdůležitější část rolových her se odehrává v hráčově fantasii.</p>
+    </div>
+  </div>
+  </span>  
+</div>
+
+<div class = "organizatori">
+  <div class = "jmeno">Gandalf - Petr Holub</div>
+  <div class = "foto">
+    <img src = "/system_styly/organizatori/gandalf.jpg" />
+  </div>                  
+  <strong>Funkce na GC</strong><br />pán jeskyně<br />
+  <strong>Kontakt</strong><br /> <a href = "mailto:gandalf@gamecon.cz">gandalf@gamecon.cz</a><br />
+  <strong><a href = "gandalf o sobě" onclick = "ukaz(0); return false;">O sobě píše</a></strong> - <strong><a href = "gandalf - herní profil" onclick = "ukaz(90); return false;">Herní profil</a></strong><br />
+  <span  id = "objekt0" style = "display: none;">
+  <p>Rolovým hrám jsem propadl někdy kolem roku 1994. Ze začátku to byl dračák, ten ale rychle vystřídalo Ad&D a Shadowrun. V posledních letech je to horší a na hraní už moc nezbývá čas. Naštěstí jsou tu aspoň deskovky a sem tam nějaká ta herní sešlost.</p>
+  <p>Za tu dobu, co jezdím na GameCon jako organizátor a PJ (od roku 1997), jsem k němu přirostl a stal se něco jako inventářem, až jsem byl nakonec postaven do jeho čela. V letech 2009 a 2010 jsem stál v čele organizačního týmu GameConu jako hlavní organizátor, ale ač nerad, musel jsem ze své funkce letos na GameConu odstoupit. Narodily se mi totiž dvě holčičky a to už bohužel nebylo možné dál v takovém nasazení zvládat.</p>
+  </span>
+  <span id = "objekt90" style = "display: none;">
+  <div class = "pjove">
+    <div class = "staty">
+      <div class = "text">Akce:</div>
+      <div class = "radek">
+        <img src = /system_styly/pics_system_styl1/li-cervena2.gif />
+        <img src = /system_styly/pics_system_styl1/li-cervena2.gif />        
+      </div>
+      <div class = "text">Roleplaying:</div>
+      <div class = "radek">
+        <img src = /system_styly/pics_system_styl1/li-cervena2.gif />
+        <img src = /system_styly/pics_system_styl1/li-cervena2.gif />
+        <img src = /system_styly/pics_system_styl1/li-cervena2.gif />
+        <img src = /system_styly/pics_system_styl1/li-cervena2.gif />        
+      </div>
+      <div class = "text">Pravidla:</div>
+      <div class = "radek">
+        <img src = /system_styly/pics_system_styl1/li-cervena2.gif />
+        <img src = /system_styly/pics_system_styl1/li-cervena2.gif />
+      </div>
+      <div class = "text">Atmosféra:</div>
+      <div class = "radek">
+        <img src = /system_styly/pics_system_styl1/li-cervena2.gif />
+        <img src = /system_styly/pics_system_styl1/li-cervena2.gif />
+        <img src = /system_styly/pics_system_styl1/li-cervena2.gif />
+        <img src = /system_styly/pics_system_styl1/li-cervena2.gif />
+      </div>
+      <div class = "text">Vtip:</div>
+      <div class = "radek">
+        <img src = /system_styly/pics_system_styl1/li-cervena2.gif />
+        <img src = /system_styly/pics_system_styl1/li-cervena2.gif />
+        <img src = /system_styly/pics_system_styl1/li-cervena2.gif />
+      </div>
+    </div>
+    <div class = "popis">
+      <p>Hraní podle mě není o tom začít házet kostkami při nahazování postavy a pokračovat s tím až do jejího hrobu. Mnohem důležitější je tu postavu prožívat a užít si hru a příběh. Raději uvidím, když řešení vymyslíte než když zkusíte štěstí na kostkách. Pravidla pomáhají a dávají rámec ve kterém hrát. Nestojí ale za to každou chvilku v nich listovat a trávit více času čtením než hrou samotnou.</p>
+<p>Ve hře je pro mě hodně důležitá atmosféra. Přiznám ale, že jsem spíše člověk pro zábavné a odlehčené hraní (nemyslím trapné nebo směšné) než pro temné horory. Důležité pro mě je, aby nás hra bavila všechny.</p>
+<p>Jestli teda můžu navrhnout, zkuste se zapojit a vžít se trochu do své postavy. Nemusíte hned měnit hlasy a hrát ochotnické divadlo, ale myslím, že i vy si hru více užijete, když se místo prostého „Zajdu za hospodským a zeptám se ho…“ toho hospodského (PJ) opravdu sami zeptáte.</p>
+    </div>
+  </div>
+  </span>  
+</div>
+
+<div class = "organizatori">
+  <div class = "jmeno">Guff Morshad</div>
+  <div class = "foto">
+    <img src = "/system_styly/organizatori/guff.jpg" />
+  </div>
+  <strong>Funkce na GC</strong><br />pán jeskyně<br />
+  <strong><a href = "Guff Morshad o sobě" onclick = "ukaz(2006); return false;">O sobě píše</a></strong> - <strong><a href = "Guff Morshad - herní profil" onclick = "ukaz(2007); return false;">Herní profil</a></strong><br />
+  <span  id = "objekt2006" style = "display: none;">
+  <p>S DrD jsem se seznámil již před více než 20 lety na základní škole. Dobrodružství odehrávaná o přestávkách nebyla nic moc, a tak, když jsem odešel na gymnázium, Dračí Doupě skončilo v šuplíku. Do rukou se mi dostalo až v posledním ročníku na gymnáziu v roce 2001, kdy se zformovala naše současná družinka a začala moje kariéra PJ.</p>
+<p>Až po osmi letech jsme s družinou našli odvahu a utkali se s ostatními na GameConu 2009 v Pardubicích. Potvrdili jsme přísloví, že štěstí přeje začátečníkům, a mistrovství vyhráli. Účast na mistrovstí byla pro nás obrovskou školou a své hraní jsme obohatili. V roce 2010 jsme byli taktéž velmi úspěšní a tak jsem si řekl, proč to nezkusit z druhé strany.</p>
+ </span>
+  <span id = "objekt2007" style = "display: none;">
+  <div class = "pjove">
+    <div class = "staty">
+      <div class = "text">Akce:</div>
+      <div class = "radek">
+        <img src = /system_styly/pics_system_styl1/li-cervena2.gif />
+        <img src = /system_styly/pics_system_styl1/li-cervena2.gif />
+        <img src = /system_styly/pics_system_styl1/li-cervena2.gif />
+      </div>
+      <div class = "text">Roleplaying:</div>
+      <div class = "radek">
+        <img src = /system_styly/pics_system_styl1/li-cervena2.gif />
+        <img src = /system_styly/pics_system_styl1/li-cervena2.gif />
+        <img src = /system_styly/pics_system_styl1/li-cervena2.gif />
+        <img src = /system_styly/pics_system_styl1/li-cervena2.gif />
+      </div>
+      <div class = "text">Pravidla:</div>
+      <div class = "radek">
+        <img src = /system_styly/pics_system_styl1/li-cervena2.gif />
+        <img src = /system_styly/pics_system_styl1/li-cervena2.gif />
+      </div>
+      <div class = "text">Atmosféra:</div>
+      <div class = "radek">
+        <img src = /system_styly/pics_system_styl1/li-cervena2.gif />
+        <img src = /system_styly/pics_system_styl1/li-cervena2.gif />
+        <img src = /system_styly/pics_system_styl1/li-cervena2.gif />
+        <img src = /system_styly/pics_system_styl1/li-cervena2.gif />
+      </div>
+      <div class = "text">Vtip:</div>
+      <div class = "radek">
+        <img src = /system_styly/pics_system_styl1/li-cervena2.gif />
+        <img src = /system_styly/pics_system_styl1/li-cervena2.gif />
+      </div>
+    </div>
+    <div class = "popis">
+      <p>Na hraní DrD mě baví především aktivní roleplaying jak hráčů, tak PJ. S dobrým roleplayingem přichází ta správná atmosféra a zážitek, na který se rádo vzpomíná. Přílišné lpění na pravidlech dle mého názoru svazuje hráče v hraní a v nejhorším může pohřbít veškerou zábavu.</p>
+    </div>
+  </div>
+  </span>
+</div>
+
+<div class = "organizatori">
+  <div class = "jmeno">John Jarik – Filip Novotný</div>
+  <div class = "foto">
+    <img src = "/system_styly/organizatori/johnjarik.jpg" />
+  </div>
+  <strong>Funkce na GC</strong><br />pán jeskyně<br />
+  <strong>Kontakt</strong><br /> <a href = "mailto:johnjarik@gamecon.cz">johnjarik@gamecon.cz</a><br />
+  <strong><a href = "john jarik o sobě" onclick = "ukaz(6); return false;">O sobě píše</a></strong> - <strong><a href = "john jarik - herní profil" onclick = "ukaz(906); return false;">Herní profil</a></strong><br />
+  <span  id = "objekt6" style = "display: none;">
+  <p>Od počátků věků (1989) se věnuji DrD pasivně i aktivně. Od 2002 coby PJ na GameConu s rozvahou vylučuji amatéry již v prvním kole. Od stejného roku aktivně i pasivně spolupracuji na DrD+. V roce 2005 jsem si dal s PJováním pauzu a v roce 2006 si ověřil, jaké je to být hráč na GC (je to těžké). Od roku 2007 opět rozšiřuji PJské řady.</p>
+  <p>Zájmy - ST, SG, RPG</p></span>
+  <span id = "objekt906" style = "display: none;">
+  <div class = "pjove">
+    <div class = "staty">
+      <div class = "text">Akce:</div>
+      <div class = "radek">
+        <img src = /system_styly/pics_system_styl1/li-cervena2.gif />
+        <img src = /system_styly/pics_system_styl1/li-cervena2.gif />
+        <img src = /system_styly/pics_system_styl1/li-cervena2.gif />
+        <img src = /system_styly/pics_system_styl1/li-cervena2.gif />
+      </div>
+      <div class = "text">Roleplaying:</div>
+      <div class = "radek">
+        <img src = /system_styly/pics_system_styl1/li-cervena2.gif />
+        <img src = /system_styly/pics_system_styl1/li-cervena2.gif />
+        <img src = /system_styly/pics_system_styl1/li-cervena2.gif />
+      </div>
+      <div class = "text">Pravidla:</div>
+      <div class = "radek">
+        <img src = /system_styly/pics_system_styl1/li-cervena2.gif />
+        <img src = /system_styly/pics_system_styl1/li-cervena2.gif />
+        <img src = /system_styly/pics_system_styl1/li-cervena2.gif />
+        <img src = /system_styly/pics_system_styl1/li-cervena2.gif />
+      </div>
+      <div class = "text">Atmosféra:</div>
+      <div class = "radek">
+        <img src = /system_styly/pics_system_styl1/li-cervena2.gif />
+        <img src = /system_styly/pics_system_styl1/li-cervena2.gif />
+      </div>
+      <div class = "text">Vtip:</div>
+      <div class = "radek">
+        <img src = /system_styly/pics_system_styl1/li-cervena2.gif />
+        <img src = /system_styly/pics_system_styl1/li-cervena2.gif />
+      </div>
+    </div>
+    <div class = "popis">
+      <p>Jsem rad, když družinka spolupracuje (a nehraje jen jednotlivec). Když postavy nejsou plochá sada čísel.</p> 
+      <p>Pravidla nám mohou hru pomoci vytvářet, tak proč je ignorovat.</p>
+      <p>Že se vám nedaří hrát vážně/vtipně? Nevadí. Mně často taky ne :)</p>
+    </div>
+  </div>
+  </span> 
+</div>
+
+<!--<div class = "organizatori">
+  <div class = "jmeno">Lečo – Martin Vilém Novotný</div>
+  <div class = "foto">
+    <img src = "/system_styly/organizatori/leco.jpg" />
+  </div>
+  <strong>Funkce na GC</strong><br />pán jeskyně<br />
+  <strong><a href = "lečo o sobě" onclick = "ukaz(7); return false;">O sobě píše</a></strong> - <strong><a href = "lečo - herní profil" onclick = "ukaz(907); return false;">Herní profil</a></strong><br />
+  <span  id = "objekt7" style = "display: none;">
+  <p>První pravidla DrD jsem otevřel někdy na podzim roku 1994. Svůj první GameCon jsem navštívil v roce 1996. Hrál jsem altaří deskovky, DrD, Shadowrun a nepočítaně karetních her. Dělat PJ na GameConu byl sen pro mé ego a pro mě samotného ohromná výzva. Roku 1999 se mi to splnilo. Získal jsem si mezi hráči pověst krutého PJ, která se ale nezakládá na pravdě.</p>
+  <p>Civilním zaměstnáním jsem obchodní manažer. Aktivně se teď nevěnuji žádné RPG. Jsem vášnivý hráč deskových i počítačových her, milovník dobrého čaje, kávy, vína, sýru a hlavně dobrého jídla. Takže chcete-li si mě naklonit…</p>
+  <p>Pomáhám také s organizací Fénixconu v Brně, který se koná každoročně v prosinci o mikuláškém víkendu a pořádá ho Conan Society, které jsem členem.</p>
+  <p>Jsem poslední žijící člověk zplozen spojením rajčete a papriky.</p></span>
+  <span id = "objekt907" style = "display: none;">
+  <div class = "pjove">
+    <div class = "staty">
+      <div class = "text">Akce:</div>
+      <div class = "radek">
+        <img src = /system_styly/pics_system_styl1/li-cervena2.gif />
+        <img src = /system_styly/pics_system_styl1/li-cervena2.gif />
+        <img src = /system_styly/pics_system_styl1/li-cervena2.gif />
+        <img src = /system_styly/pics_system_styl1/li-cervena2.gif />
+      </div>
+      <div class = "text">Roleplaying:</div>
+      <div class = "radek">
+        <img src = /system_styly/pics_system_styl1/li-cervena2.gif />
+        <img src = /system_styly/pics_system_styl1/li-cervena2.gif />
+        <img src = /system_styly/pics_system_styl1/li-cervena2.gif />
+        <img src = /system_styly/pics_system_styl1/li-cervena2.gif />
+      </div>
+      <div class = "text">Pravidla:</div>
+      <div class = "radek">
+        <img src = /system_styly/pics_system_styl1/li-cervena2.gif />
+      </div>
+      <div class = "text">Atmosféra:</div>
+      <div class = "radek">
+        <img src = /system_styly/pics_system_styl1/li-cervena2.gif />
+        <img src = /system_styly/pics_system_styl1/li-cervena2.gif />
+        <img src = /system_styly/pics_system_styl1/li-cervena2.gif />
+      </div>
+      <div class = "text">Vtip:</div>
+      <div class = "radek">
+        <img src = /system_styly/pics_system_styl1/li-cervena2.gif />
+        <img src = /system_styly/pics_system_styl1/li-cervena2.gif />
+        <img src = /system_styly/pics_system_styl1/li-cervena2.gif />
+      </div>
+    </div>
+    <div class = "popis">
+      <p>Je dobře, když se celá družina zapojí a společně lámou krizové situace, kdy se musí zničehonic rozhodnout. Důležitý je taky roleplaying. Bez něj by nebyl ve hře vtip a hra postrádá šťávu, protože RP vytváří atmosféru.</p> 
+      <p>Pokud se to přehání s pravidly, tak zapomeňte na vtip a částečně roleplaying. Atmosférou hráče přimrazíte k zemi a co se vtipu týče, nemám rád, když se hráči koušou nudou a stereotypem.</p>
+    </div>
+  </div>
+  </span> 
+</div>  -->
+
+<div class = "organizatori">
+  <div class = "jmeno">Lumík – Stanislav Kamenský</div>
+  <div class = "foto">
+    <img src = "/system_styly/organizatori/lumik.jpg" />
+  </div>
+  <strong>Funkce na GC</strong><br />pán jeskyně<br />
+  <strong><a href = "lumík o sobě" onclick = "ukaz(8); return false;">O sobě píše</a></strong> - <strong><a href = "lumík - herní profil" onclick = "ukaz(908); return false;">Herní profil</a></strong><br />
+  <span  id = "objekt8" style = "display: none;">
+  <p>Dračímu doupěti se věnuji zhruba od roku 1998, GameConu jsem se v letech 2000 a 2001 zúčastnil jako hráč, ale nikdy nepostoupil a jednou dokonce zemřel (i když jak jsem později zjistil, to je ještě velmi dobrá statistika :-)) Proto jsem se rozhodl udělat kariéru na druhé straně barikády a přeběhl k Pánům jeskyně, kde od roku 2002 vytrvale a s nadšením pobíjím postavy, přičemž má kolaborace dosud nebyla potrestána.</p>
+  <p>Zatím jsem stále věkem nejmladší PJ na conu, služebně už tomu tak není. Z neznámého důvodu se o mně mezi hráči začalo šířit, že jsem hodný a milý, a tak toho dosud zneužívám... Kromě DrD jsem přičichl i k BattleTechu či Shadowrunu a velmi rád mám také deskovky. Už dlouho se chystám vyrazit na svůj první LARP, ale hvězdy mi dosud nepřály.</p></span>
+  <span id = "objekt908" style = "display: none;">
+  <div class = "pjove">
+    <div class = "staty">
+      <div class = "text">Akce:</div>
+      <div class = "radek">
+        <img src = /system_styly/pics_system_styl1/li-cervena2.gif />
+        <img src = /system_styly/pics_system_styl1/li-cervena2.gif />
+        <img src = /system_styly/pics_system_styl1/li-cervena2.gif />
+      </div>
+      <div class = "text">Roleplaying:</div>
+      <div class = "radek">
+        <img src = /system_styly/pics_system_styl1/li-cervena2.gif />
+        <img src = /system_styly/pics_system_styl1/li-cervena2.gif />
+        <img src = /system_styly/pics_system_styl1/li-cervena2.gif />
+        <img src = /system_styly/pics_system_styl1/li-cervena2.gif />
+      </div>
+      <div class = "text">Pravidla:</div>
+      <div class = "radek">
+        <img src = /system_styly/pics_system_styl1/li-cervena2.gif />
+        <img src = /system_styly/pics_system_styl1/li-cervena2.gif />
+        <img src = /system_styly/pics_system_styl1/li-cervena2.gif />
+      </div>
+      <div class = "text">Atmosféra:</div>
+      <div class = "radek">
+        <img src = /system_styly/pics_system_styl1/li-cervena2.gif />
+        <img src = /system_styly/pics_system_styl1/li-cervena2.gif />
+      </div>
+      <div class = "text">Vtip:</div>
+      <div class = "radek">
+        <img src = /system_styly/pics_system_styl1/li-cervena2.gif />
+        <img src = /system_styly/pics_system_styl1/li-cervena2.gif />
+        <img src = /system_styly/pics_system_styl1/li-cervena2.gif />
+      </div>
+    </div>
+    <div class = "popis">
+      <p>Na dobře promyšlenou akci kde má každý jasně daný úkol je radost pohledět, stejně jako na družinu která neztrácí čas dlouhým rozmýšlením a jedná. Neplést s akčností amerických akčních filmů, úspěšnost (hráčů, nikoliv PJ ;-)) není dána počtem mrtvých.</p>
+      <p>Kvůli roleplayingu to přeci hrajeme, hráči si ještě po půl roce musí vybavit arogantního velitele gardy, kterému měli chuť rozbít hubu, nebo sklerotického staříka, kvůli kterému si museli střihnout aby vybrali, kdo se obětuje a promluví si s ním znovu. Stejně tak jsem rád, když umí i hráči vtisknout svým postavám nějaký charakter.</p>
+      <p>Pravidla jsou provazy v ringu a určují základy. Co je uvnitř je na nás. Pokud jsou hráč/ky ochotní mi zahrát jak se ke mně jako vězeňskému dozorci vilně přitulí a pak mě kopnou do koulí, nebudu to kazit házením kostek :-D Na druhou stranu ale odhazuji pravidla spíš výjimečně a všechno má své meze. Při běžných situacích si jejich dodržování hlídám, takže kouzlit na účet volaného vás nenechám a hraničářovo léčení je opravdu na dotyk a trvá tři kola.</p>
+      <p>Moje hraní jsou spíše jednotlivé scény než souvislý příběh, ten se skládá pomalu někde v pozadí. Atmosféru umím hlavně pozitivní, pokud si chcete pořádně užít hororové dobrodružství, najděte si někoho jiného. Ne že bych neuměl hráče deptat (to bych nemohl být PJ na Gameconu ;-) ale zkrátka radši slyším smích než zvuk kousaných nehtů. Koneckonců jsme se přišli hlavně pobavit, ne?</p>
+    </div>
+  </div>
+  </span>    
+</div>
+
+<div class = "organizatori">
+  <div class = "jmeno">Palča – Martin Kolařík</div>
+  <div class = "foto">
+    <img src = "/system_styly/organizatori/palca.jpg" />
+  </div>
+  <strong>Funkce na GC</strong><br />pán jeskyně<br />
+  <strong><a href = "palča o sobě" onclick = "ukaz(9); return false;">O sobě píše</a></strong> - <strong><a href = "palča - herní profil" onclick = "ukaz(909); return false;">Herní profil</a></strong><br />
+  <span  id = "objekt9" style = "display: none;">
+  <p>Hraní DrD jsem se začal věnovat od chvíle, kdy se pravidla začala prodávat, a záhy jsem se stal jedním z redaktorů bývalého kultovního časopisu pro hráče Šavlozubá veverka. Organizování šermovaček na téma Pána prstenů a Silmarillionu k tomu taky patřilo. Dnes již na rodinném "odpočinku", hraju jen příležitostně, o to víc fandím všem hráčům i PJům a rád vypomůžu s organizací.</p>
+  <p>Na Gameconech pravidelně přítomen, téměř od začátku jako PJ.</p></span>
+  <span id = "objekt909" style = "display: none;">
+  <div class = "pjove">
+    <div class = "staty">
+      <div class = "text">Akce:</div>
+      <div class = "radek">
+        <img src = /system_styly/pics_system_styl1/li-cervena2.gif />
+        <img src = /system_styly/pics_system_styl1/li-cervena2.gif />
+        <img src = /system_styly/pics_system_styl1/li-cervena2.gif />
+        <img src = /system_styly/pics_system_styl1/li-cervena2.gif />
+      </div>
+      <div class = "text">Roleplaying:</div>
+      <div class = "radek">
+        <img src = /system_styly/pics_system_styl1/li-cervena2.gif />
+        <img src = /system_styly/pics_system_styl1/li-cervena2.gif />
+        <img src = /system_styly/pics_system_styl1/li-cervena2.gif />
+      </div>
+      <div class = "text">Pravidla:</div>
+      <div class = "radek">
+        <img src = /system_styly/pics_system_styl1/li-cervena2.gif />
+      </div>
+      <div class = "text">Atmosféra:</div>
+      <div class = "radek">
+        <img src = /system_styly/pics_system_styl1/li-cervena2.gif />
+        <img src = /system_styly/pics_system_styl1/li-cervena2.gif />
+        <img src = /system_styly/pics_system_styl1/li-cervena2.gif />
+        <img src = /system_styly/pics_system_styl1/li-cervena2.gif />
+        <img src = /system_styly/pics_system_styl1/li-cervena2.gif />
+      </div>
+      <div class = "text">Vtip:</div>
+      <div class = "radek">
+        <img src = /system_styly/pics_system_styl1/li-cervena2.gif />
+        <img src = /system_styly/pics_system_styl1/li-cervena2.gif />
+      </div>
+    </div>
+    <div class = "popis">
+      <p>Dobrá atmosféra je pro mě při hraní DrD nejdůležitější. Vždy se jako vypravěč snažím, aby hráči se svými postavami příběh prožívali a ponořili se do děje. Hra musí být zábavná, se střídáním akce a uvolnění.  Mám rád, když družina spolupracuje a dělí si úlohy. Dokážu ocenit, když  hráči vědí, co si mohou ve světě DrD dovolit a co je nad jejich síly, i bez konzultace s pravidly.</p>
+    </div>
+  </div>
+  </span>   
+</div>
+
+<div class = "organizatori">
+  <div class = "jmeno">Quarion - Petr Luba</div>
+  <div class = "foto">
+    <img src = "/system_styly/organizatori/quarion.jpg" />
+  </div>
+  <strong>Funkce na GC</strong><br />pán jeskyně<br />
+    <strong><a href = "quarion o sobě" onclick = "ukaz(105); return false;">O sobě píše</a></strong> - <strong><a href = "quarion - herní profil" onclick = "ukaz(1005); return false;">Herní profil</a></strong><br />
+  <span  id = "objekt105" style = "display: none;">
+  <p>K DrD a RPG jako takovému jsem se dostal asi před 8mi roky. Začínal jsem u DrD později zkoušel DRD+ a nakonec DnD které mi vyhovovalo nejvíc. Letos to bude moje třetí účast na gameconu a první jako PJ.</p>
+  <p>Zájmy: sci-fi, fantasy, RPG</p></span>
+  <span id = "objekt1005" style = "display: none;">
+  <div class = "pjove">
+    <div class = "staty">
+      <div class = "text">Akce:</div>
+      <div class = "radek">
+        <img src = /system_styly/pics_system_styl1/li-cervena2.gif />
+        <img src = /system_styly/pics_system_styl1/li-cervena2.gif />
+        <img src = /system_styly/pics_system_styl1/li-cervena2.gif />
+      </div>
+      <div class = "text">Roleplaying:</div>
+      <div class = "radek">
+        <img src = /system_styly/pics_system_styl1/li-cervena2.gif />
+        <img src = /system_styly/pics_system_styl1/li-cervena2.gif />
+        <img src = /system_styly/pics_system_styl1/li-cervena2.gif />
+      </div>
+      <div class = "text">Pravidla:</div>
+      <div class = "radek">
+        <img src = /system_styly/pics_system_styl1/li-cervena2.gif />
+        <img src = /system_styly/pics_system_styl1/li-cervena2.gif />
+      </div>
+      <div class = "text">Atmosféra:</div>
+      <div class = "radek">
+        <img src = /system_styly/pics_system_styl1/li-cervena2.gif />
+        <img src = /system_styly/pics_system_styl1/li-cervena2.gif />
+        <img src = /system_styly/pics_system_styl1/li-cervena2.gif />
+        <img src = /system_styly/pics_system_styl1/li-cervena2.gif />
+      </div>
+      <div class = "text">Vtip:</div>
+      <div class = "radek">
+        <img src = /system_styly/pics_system_styl1/li-cervena2.gif />
+        <img src = /system_styly/pics_system_styl1/li-cervena2.gif />
+        <img src = /system_styly/pics_system_styl1/li-cervena2.gif />
+      </div>
+    </div>
+    <div class = "popis">
+      <p>Nejdůležitější je zábava takže vyvážená kombinace všeho. Na GameConu nejde vyžadovat tolik RP jako normálně (není na to tolik času) ale na určitých základech bych rád stavěl. Pravidla a čísla a statistiky pro mě obvykle nejsou nějak moc důležité, víc si vážím uvažování. Když hraje člověk dobře nepotřebuje statistiky.</p>
+      <p>Nejsem „lehký“ PJ ale myslím že pokud družina nedělá zásadní chyby hru se mnou si užije.</p>
+    </div>
+  </div>
+  </span>  
+</div>
+
+<div class = "organizatori">
+  <div class = "jmeno">Rannik – Pavel Zahradil</div>
+
+  <div class = "foto">
+    <img src = "/system_styly/organizatori/rannik.jpg" />
+  </div>
+  <strong>Funkce na GC</strong><br />pán jeskyně<br />
+  <strong><a href = "rannik o sobě" onclick = "ukaz(1111); return false;">O sobě píše</a></strong> - <strong><a href = "rannik - herní profil" onclick = "ukaz(9111); return false;">Herní profil</a></strong><br />
+  <span  id = "objekt1111" style = "display: none;">
+  <p>Drd jsem poprvé hrál podle pravidel 1.2 na konci základní školy a hned jsem se rozhodl pokračovat pravidelně. Poskládali jsme družinku z bývalých spolužáků a začali jsme se scházet pravidelně, což nám vydrželo až do nedávné doby.<br />
+     Na Gameconu působím od přelomu tisíciletí, kdy jsme coby skupina začínajících hráčů poprvé přijeli do Olomouce a od té jsme se pravidelně účastnili mistrovství v DrD. Po deseti letech bojů o titul jsem se rozhodl přejít na druhou stranu barikády a letos poprvé přijíždím na Gamecon jako Pán jeskyně.<br />
+     Mezi moje další koníčky patří lezení, in-line brusle, sport obecně, sci-fi a fantasy literatura a literatura obecně, historie, cestování další.
+  </p>
+  </span> 
+  <span id = "objekt9111" style = "display: none;">
+  <div class = "pjove">
+    <div class = "staty">
+      <div class = "text">Akce:</div>
+      <div class = "radek">
+        <img src = /system_styly/pics_system_styl1/li-cervena2.gif />
+        <img src = /system_styly/pics_system_styl1/li-cervena2.gif />
+        <img src = /system_styly/pics_system_styl1/li-cervena2.gif />
+      </div>
+      <div class = "text">Roleplaying:</div>
+      <div class = "radek">
+        <img src = /system_styly/pics_system_styl1/li-cervena2.gif />
+        <img src = /system_styly/pics_system_styl1/li-cervena2.gif />
+        <img src = /system_styly/pics_system_styl1/li-cervena2.gif />
+      </div>
+      <div class = "text">Pravidla:</div>
+      <div class = "radek">
+        <img src = /system_styly/pics_system_styl1/li-cervena2.gif />
+        <img src = /system_styly/pics_system_styl1/li-cervena2.gif />
+        <img src = /system_styly/pics_system_styl1/li-cervena2.gif />
+      </div>
+      <div class = "text">Atmosféra:</div>
+      <div class = "radek">
+        <img src = /system_styly/pics_system_styl1/li-cervena2.gif />
+        <img src = /system_styly/pics_system_styl1/li-cervena2.gif />
+        <img src = /system_styly/pics_system_styl1/li-cervena2.gif />
+        <img src = /system_styly/pics_system_styl1/li-cervena2.gif />
+      </div>
+      <div class = "text">Vtip:</div>
+      <div class = "radek">
+        <img src = /system_styly/pics_system_styl1/li-cervena2.gif />
+        <img src = /system_styly/pics_system_styl1/li-cervena2.gif />
+      </div>
+    </div>
+    <div class = "popis">
+      <p>Mám rád, když má hra atmosféru, spád a všichni se dobře baví. Důležité je, když všichni byli na stejné vlně a věděli, co je cílem – dobře si zahrát. Podle mě PJ není nepřítel postav, ale zastupuje okolní svět, se kterým hráči přichází do styku. Což ale neznamená, že se okolní svět nepokusí postavy sprovodit ze světa.:)<br />
+         Pravidla jsou důležitá a je potřeba je respektovat, ale hra není o pravidlech. Zastávám fér přístup jak k vlastním postavám a CP, takže to, co může udělat jedna strana, smí udělat i druhá. Cílem je si zahrát, ne se naučit pravidla nazpaměť a hledat v nich skulinku jak vyrobit široký meč 13/+3.
+      </p>
+    </div>
+  </div>
+  </span>
+</div>
+
+<div class = "organizatori">
+  <div class = "jmeno">Skála – Petr Kreidl</div>
+  <div class = "foto">
+    <img src = "/system_styly/organizatori/skala.jpg" />
+  </div>
+  <strong>Funkce na GC</strong><br />pán jeskyně<br />
+  <strong><a href = "skála o sobě" onclick = "ukaz(27); return false;">O sobě píše</a></strong> - <strong><a href = "skála - herní profil" onclick = "ukaz(927); return false;">Herní profil</a></strong><br />
+  <span  id = "objekt27" style = "display: none;">
+  <p>K DrD jsem se dostal někdy v roce 1997, jako mladý kluk, který hledal způsob zábavy na koleji. U rolových her jsem zůstal, protože jsem v tom vždy viděl skvělý druh zábavy. Snad na počátku GameConu v Olomouci jsem se stal PJ GameConu.</p>
+  <p>Když není čas na hraní, pustím do svého života scifi svět v podobě Battlestar Galactica, nebo online hru OGame.</p>
+ </span> 
+    <span id = "objekt927" style = "display: none;">
+  <div class = "pjove">
+    <div class = "staty">
+      <div class = "text">Akce:</div>
+      <div class = "radek">
+        <img src = /system_styly/pics_system_styl1/li-cervena2.gif />
+        <img src = /system_styly/pics_system_styl1/li-cervena2.gif />
+        <img src = /system_styly/pics_system_styl1/li-cervena2.gif />
+      </div>
+      <div class = "text">Roleplaying:</div>
+      <div class = "radek">
+        <img src = /system_styly/pics_system_styl1/li-cervena2.gif />
+        <img src = /system_styly/pics_system_styl1/li-cervena2.gif />
+        <img src = /system_styly/pics_system_styl1/li-cervena2.gif />
+        <img src = /system_styly/pics_system_styl1/li-cervena2.gif />
+      </div>
+      <div class = "text">Pravidla:</div>
+      <div class = "radek">
+        <img src = /system_styly/pics_system_styl1/li-cervena2.gif />
+        <img src = /system_styly/pics_system_styl1/li-cervena2.gif />
+      </div>
+      <div class = "text">Atmosféra:</div>
+      <div class = "radek">
+        <img src = /system_styly/pics_system_styl1/li-cervena2.gif />
+        <img src = /system_styly/pics_system_styl1/li-cervena2.gif />
+        <img src = /system_styly/pics_system_styl1/li-cervena2.gif />
+        <img src = /system_styly/pics_system_styl1/li-cervena2.gif />
+      </div>
+      <div class = "text">Vtip:</div>
+      <div class = "radek">
+        <img src = /system_styly/pics_system_styl1/li-cervena2.gif />
+        <img src = /system_styly/pics_system_styl1/li-cervena2.gif />
+      </div>
+    </div>
+    <div class = "popis">
+      <p>Jak jsem nastínil v číselné škále, nejdůležitější je pro mne hratelnost. Hraní dobrodružství beru jako zábavu pro hráče. Nevadí, když se družina zatoulá, nebo pokud má ztráty. Důležité je, aby hráči měli ze hry dobrý pocit. O tom přece Dračí doupě je.</p>
+    </div>
+  </div>
+  </span>  
+</div>
+
+<!--<div class = "organizatori">
+  <div class = "jmeno">Tari - Renata Doubravová</div>
+  <div class = "foto">
+    <img src = "/system_styly/organizatori/tari.jpg" />
+  </div>
+  <strong>Funkce na GC</strong><br />pán jeskyně<br />
+  <strong><a href = "tari o sobě" onclick = "ukaz(11); return false;">O sobě píše</a></strong> - <strong><a href = "tari - herní profil" onclick = "ukaz(911); return false;">Herní profil</a></strong><br />
+  <span  id = "objekt11" style = "display: none;">
+  <p>Ač se čítám mezi věkově starší lidi kolem dračáku, larpů a RPG vůbec, nic to nemění na tom, že jsem se tomu věnuji naplno. RPG hraju už od roku 1985, kdy jsme si pravidla hry vytvářeli sami. Mou knihovničku zdobí téměř všechna vydání Dračího doupěte, DrD+, DnD 3,5, DnD 4,Shadowrun a jiná. Aktivně se věnuji hraní různých RPG, ať už jako hráč či jako PJ. Založila jsem a vedu Herní klub Fenris, kde se hraje dráčko jednou až dvakrát týdně, máme spoustu deskovek, dělají se víkendové akce, připravují se larpy (<a href = "http://www.klubfenris.com")>www.klubfenris.com</a>), organizujeme LipCon. GC jsem se zúčastnila s naší družinkou čtyřikrát jako hráč a loni poprvé jako PJ.</p>
+ </span>
+  <span id = "objekt911" style = "display: none;">
+  <div class = "pjove">
+    <div class = "staty">
+      <div class = "text">Akce:</div>
+      <div class = "radek">
+        <img src = /system_styly/pics_system_styl1/li-cervena2.gif />
+        <img src = /system_styly/pics_system_styl1/li-cervena2.gif />
+      </div>
+      <div class = "text">Roleplaying:</div>
+      <div class = "radek">
+        <img src = /system_styly/pics_system_styl1/li-cervena2.gif />
+        <img src = /system_styly/pics_system_styl1/li-cervena2.gif />
+        <img src = /system_styly/pics_system_styl1/li-cervena2.gif />
+        <img src = /system_styly/pics_system_styl1/li-cervena2.gif />
+      </div>
+      <div class = "text">Pravidla:</div>
+      <div class = "radek">
+        <img src = /system_styly/pics_system_styl1/li-cervena2.gif />
+        <img src = /system_styly/pics_system_styl1/li-cervena2.gif />
+      </div>
+      <div class = "text">Atmosféra:</div>
+      <div class = "radek">
+        <img src = /system_styly/pics_system_styl1/li-cervena2.gif />
+        <img src = /system_styly/pics_system_styl1/li-cervena2.gif />
+        <img src = /system_styly/pics_system_styl1/li-cervena2.gif />
+        <img src = /system_styly/pics_system_styl1/li-cervena2.gif />
+      </div>
+      <div class = "text">Vtip:</div>
+      <div class = "radek">
+        <img src = /system_styly/pics_system_styl1/li-cervena2.gif />
+        <img src = /system_styly/pics_system_styl1/li-cervena2.gif />
+        <img src = /system_styly/pics_system_styl1/li-cervena2.gif />
+      </div>
+    <div class = "popis">
+      <p>Akce je prostě akce, ale všeho moc škodí ;-) Roleplaying je to, co na těchto hrách mám ráda, proč je hraju a proč je pánuju. Pravidla jsou důležitá, nešlo by  bez nich hrát, nicméně upřednostním dobře zahranou situaci před dobře nahozenou. Už při čtení příběhu prožívám celou situaci a představuji si, jak by moje postava reagovala a atmosféra je to, co mě vede. Vtipnost nezaměňuji ovšem se směšností a nemám ráda ani nadsázku a zesměšňování.</p>
+      <p>Mám ráda příběh, který má „šťávu“, který není lineárním voděním hráče za ručičku, který je schopný reagovat na většinu nečekaných hráčských „zásahů“. Tvrdím, že zbytečně zabitá postava, která neudělala herní chybu, je chybou PJ. Při pánování mi jde o to, aby se pobavili všichni zúčastnění.</p>
+    </div>
+  </div>
+  </span>  
+</div>-->
+
+<!--<div class = "organizatori">
+  <div class = "jmeno">Tramis – Víťa Procházka</div>
+
+  <div class = "foto">
+    <img src = "/system_styly/organizatori/tramis.jpg" />
+  </div>
+  <strong>Funkce na GC</strong><br />pán jeskyně<br />
+  <strong>Kontakt</strong><br /> <a href = "mailto:tramis@gamecon.cz">tramis@gamecon.cz</a><br />
+  
+  <strong><a href = "tramis o sobě" onclick = "ukaz(1); return false;">O sobě píše</a></strong> - <strong><a href = "tari - herní profil" onclick = "ukaz(91); return false;">Herní profil</a></strong><br />
+  <span  id = "objekt1" style = "display: none;">
+  <p>Tramis zarytě mlčí. Mučení nepomáhá. Správný to mužik.</p>
+  </span> 
+  <span id = "objekt91" style = "display: none;">
+  <div class = "pjove">
+    <div class = "staty">
+      <div class = "text">Akce:</div>
+      <div class = "radek">
+        <img src = /system_styly/pics_system_styl1/li-cervena2.gif />
+        <img src = /system_styly/pics_system_styl1/li-cervena2.gif />
+      </div>
+      <div class = "text">Roleplaying:</div>
+      <div class = "radek">
+        <img src = /system_styly/pics_system_styl1/li-cervena2.gif />
+        <img src = /system_styly/pics_system_styl1/li-cervena2.gif />
+        <img src = /system_styly/pics_system_styl1/li-cervena2.gif />
+        <img src = /system_styly/pics_system_styl1/li-cervena2.gif />
+      </div>
+      <div class = "text">Pravidla:</div>
+      <div class = "radek">
+        <img src = /system_styly/pics_system_styl1/li-cervena2.gif />
+        <img src = /system_styly/pics_system_styl1/li-cervena2.gif />
+      </div>
+      <div class = "text">Atmosféra:</div>
+      <div class = "radek">
+        <img src = /system_styly/pics_system_styl1/li-cervena2.gif />
+        <img src = /system_styly/pics_system_styl1/li-cervena2.gif />
+        <img src = /system_styly/pics_system_styl1/li-cervena2.gif />
+        <img src = /system_styly/pics_system_styl1/li-cervena2.gif />
+        <img src = /system_styly/pics_system_styl1/li-cervena2.gif />
+      </div>
+      <div class = "text">Vtip:</div>
+      <div class = "radek">
+        <img src = /system_styly/pics_system_styl1/li-cervena2.gif />
+        <img src = /system_styly/pics_system_styl1/li-cervena2.gif />
+      </div>
+    </div>
+    <div class = "popis">
+      <p>Zkřivený úsměv vás uvítá, zkřivený úsměv vás také vyprovodí. Co bude mezi tím, záleží jen na vás. Každá nerozumnost bude po zásluze odměněna, každá snaha patřičně potrestána. Bude to tvrdá hra, ale čestná. Důležité není přežít, ale hru prožít, věřit jí a vcítit se do ní.</p>
+      <p>Možná to budu trochu přehánět se scénickými popisy. Možná budu chtít slyšet, jak vaše postavy jednají a co přesně dělají. Možná budu jen mlčet a dívat se, jak se trápíte. Ale možná také pomohu. Jen mi, prosím, nevěřte. A nebo raději jo. Vše je jen na vás.</p>
+    </div>
+  </div>
+  </span>
+</div>-->
+
+<div class = "organizatori">
+  <div class = "jmeno">Wulf – Radovan Vlk</div>
+  <div class = "foto">
+    <img src = "/system_styly/organizatori/wulf.jpg" />
+  </div>
+  <strong>Funkce na GC</strong><br />pán jeskyně<br />
+  <strong>Kontakt</strong><br /> <a href = "mailto:wulf@gamecon.cz">wulf@gamecon.cz</a><br />
+    <strong><a href = "wulf o sobě" onclick = "ukaz(10); return false;">O sobě píše</a></strong><br />
+  <span id = "objekt10" style = "display: none;">
+  <p>Svá první pravidla DrD jsem dostal na vánoce roku 1992. Ze začátku jsem hledal dokonalé podzemí, potom dokonalá pravidla, potom dokonalý svět. V současné době jsem se na nějaké hledání dokonalosti vykašlal a hraju si jen tak.</p>
+  <p>Na GameCon jezdím jako hráč od roku 1995, od roku 1999 jako PJ. Již od roku 2000 si myslím, že na další GameCon vytvořím soutěžní dobrodružství já, ale naštěstí to neříkám moc nahlas. Letos se to stalo skutkem.</p>
+  <p>Autorsky jsem se podílel na Dračím doupěti Plus a na přestavbě DrD verze 1.5 na verzi 1.6, ale doufám, že si toho nikdo nevšiml. Pokud jste v posledních letech poslali dobrodružství do Spáru Zlatého draka, je možné, že jsem ho četl.</p>
+  <p>Mimo RPG se zajímám o fotografování, snažím se občas spravovat svou homepage a kdysi jsem psával povídky. V poslední době se věnuji i LARPům.</p>
+  </span>
+</div>
+    </div>
+  </div>
+<div class = "main-bottom"><br /></div>
+      </div>
+      <div class = "side">
+        
+  <div class = "nadpis">Přednášky & Dílny</div>
+  <div class = "obsah">
+    <div class = "ram">
+      <a href = "/prednasky/vyhra-pje-aneb-jak-zabranit-vyhoreni" title = "Výhra PJe, aneb jak zabránit vyhoření"><img src = "/system_styly/side/vyhra-pje-aneb-jak-zabranit-vyhoreni.gif" /></a>
+    </div>
+  </div>
+  <div class = "nadpis">Larpy & Bonusy</div>
+  <div class = "obsah">
+    <div class = "ram">
+      <a href = "/bonusove-hry/mixer" title = "Mixér"><img src = "/system_styly/side/mixer.gif" /></a>
+    </div>
+  </div>
+  <div class = "nadpis">RPG</div>
+  <div class = "obsah">
+    <div class = "ram">
+      <a href = "/rpg/prime-time-adventures" title = "Prime Time Adventures"><img src = "/system_styly/side/prime-time-adventures.gif" /></a>
+    </div>
+  </div>
+  <div class = "nadpis">Deskovky & Wargaming</div>
+  <div class = "obsah">
+    <div class = "ram">
+      <a href = "/deskove-hry/hra-o-truny-lcg" title = "Hra o Trůny LCG"><img src = "/system_styly/side/hra-o-truny-lcg.gif" /></a>
+    </div>
+  </div>      </div>
+      <!--<div class = "horizontbottom">
+        horizont bottom
+      </div>-->
+      <div class = "paticka">
+        <div class = "sponzori_ohraniceni" style = "margin-bottom: 0px; height: 20px;">Naši partneři</div>
+<div class = "sponzori_ohraniceni" style="width:512px;padding-right:217px;">
+  <div class = "sponzor" style = "width: 50px;">
+    <a href=" http://www.altar.cz/" onclick = "window.open(this.href,'_blank'); return false" title="Altar"><img src = "/system_styly/sponzori/altar.gif"></a>
+  </div>
+  <div class = "sponzor">
+    <a href=" http://www.fantasyobchod.cz/" onclick = "window.open(this.href,'_blank'); return false" title="Fantasy obchod"><img src = "/system_styly/sponzori/fantasy_obchod.gif"></a>
+  </div>
+  <!-- <div class = "sponzor">
+    <a href=" http://www.zazitky.cz/" onclick = "window.open(this.href,'_blank'); return false" title="Zážitky jako dokonalé dárky"><img src = "/system_styly/sponzori/zazitky.gif"></a>
+    <a href=" http://www.zazitky.cz/zazitkove-hry/" onclick = "window.open(this.href,'_blank'); return false" title="Zážitkové hry">Zážitkové hry</a>
+  </div> -->
+  <div class = "sponzor">
+    <a href=" http://www.albi.cz/" onclick = "window.open(this.href,'_blank'); return false" title="Albi"><img src = "/system_styly/sponzori/albi.png"></a>
+    <a href=" http://www.capsa.cz/" onclick = "window.open(this.href,'_blank'); return false" title="Capsa"><img src = "/system_styly/sponzori/capsa.png"></a>
+  </div>
+  <!-- <div class = "sponzor">
+    <a href="http://www.toptopic.cz/" onclick = "window.open(this.href,'_blank'); return false" title="Top Topic"><img src = "/system_styly/sponzori/top-topic.gif"></a>
+  </div> -->
+  <div class = "sponzor">
+    <a href="http://www.cokoklasik.cz/" onclick = "window.open(this.href,'_blank'); return false" title="Čokoklasik"><img src = "/system_styly/sponzori/cokoklasik.gif"></a>
+  </div>
+  <div class = "sponzor"> 
+    <div class = "sponzor" style = "height: 30px;">
+      <a href=" http://www.mindok.cz/" onclick = "window.open(this.href,'_blank'); return false" title="Mindok"><img src = "/system_styly/sponzori/mindok.gif"></a>
+    </div>
+    <div class = "sponzor"  style = "height: 40px; margin-top: 3px;">
+      <a href=" http://www.blackfire.cz/" onclick = "window.open(this.href,'_blank'); return false" title="Blackfire"><img src = "/system_styly/sponzori/blackfire.gif"></a>
+    </div>
+  </div>
+  <div class = "sponzor"> 
+    <div class = "sponzor">
+			<a href=" http://www.svet-deskovych-her.cz/" onclick = "window.open(this.href,'_blank'); return false" title="Svět deskových her"><img src = "/system_styly/sponzori/svet_deskovych_her.gif"></a>
+		</div>
+  </div>
+  <p><br /></p>
+  <div class = "sponzor">
+    <a href=" http://www.hbo.cz/" onclick = "window.open(this.href,'_blank'); return false" title="HBO"><img src = "/system_styly/sponzori/hbo.png"></a>
+    <a href="http://www.czechboardgames.com/" onclick = "window.open(this.href,'_blank'); return false" title="Czech Board Games"><img src = "/system_styly/sponzori/cbg.png"></a>
+  </div>
+</div>
+              </div>
+    </div>
+  
+  </body>
+</html>
+  

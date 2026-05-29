@@ -25,15 +25,20 @@ Both are **lost**:
 A faithful **static snapshot** of the site as the Internet Archive captured it
 on **2011-12-31**, served as flat HTML:
 
-- `index.html`, `gamecon/o-gameconu.html`, `organizatori/organizacni-tym.html`,
-  `kontakt.html` — the captured pages (real 2011 news feed, copy and menu),
-  cleaned of the Google Analytics tracker and dead third-party banners.
+- `index.html` plus **232 content pages** under `gamecon/`, `organizatori/`,
+  `rpg/`, `deskove-hry/`, `prednasky/`, `larp/`, `mistrovstvi-v-drd/`,
+  `wargaming/`, `galerie-materialy/`, … — the captured pages (real 2011 news
+  feed, program, organizer profiles, copy and menu), cleaned of the Google
+  Analytics tracker. Four were hand-cleaned in the initial reconstruction; the
+  rest were bulk-restored from the Internet Archive (raw `id_` captures, latest
+  2011 snapshot per URL; see `symfony/var/restore-2011.py` in the build).
 - `system_styly/`, `lightbox/`, `galerie/materialy-2010/` — the **real** theme
   and images, copied from the host's 2011 tree (the captured HTML already used
   root-relative paths, so they resolve directly).
-- `.htaccess` — maps the original pretty URLs onto the static files and renders
-  the home page for any unresolved URL (mirroring the original behaviour, whose
-  404 branch was disabled).
+- `.htaccess` — maps each original pretty URL onto its static file. Unmapped
+  URLs return a themed `404.html` ("Stránka nebyla archivována") instead of
+  silently rendering the News home page, so genuinely uncaptured links read as
+  honestly dead rather than misleading.
 
 Dynamic features (login, registration, forum, search) are inert — there is no
 backend or database. That is the nature of a static archive of a lost dynamic
