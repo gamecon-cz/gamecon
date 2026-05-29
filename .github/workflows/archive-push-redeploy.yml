@@ -1,0 +1,39 @@
+name: Archive push redeploy
+
+# Frozen archive branches (archive/YYYY) can't carry the real deploy
+# workflow: deploy-year-archive.yml holds a per-year BASE_IMAGE/PHP_EXTS map
+# that is actively maintained on main, and copying it onto ~15 frozen
+# branches would fork that map (a push could then build with a stale base
+# image). Instead this tiny, YEAR-AGNOSTIC dispatcher lives on each archive
+# branch. On push it does ONE thing: trigger deploy-year-archive.yml *as
+# defined on main* (so the year-map stays single-source on main), passing
+# this branch's name as the `branch` input. The real workflow then checks
+# out this branch for the build context. No year logic here → never drifts.
+#
+# yamllint disable-line rule:truthy
+on:
+    push:
+        branches:
+            - 'archive/**'
+
+# Only needs to dispatch another workflow; no checkout, no build here.
+permissions:
+    actions: write
+
+jobs:
+    redeploy:
+        runs-on: ubuntu-24.04
+        steps:
+            -   name: Dispatch deploy-year-archive.yml on main for this branch
+                uses: actions/github-script@v7
+                with:
+                    script: |
+                        const branch = context.ref.replace('refs/heads/', '');
+                        core.info(`Dispatching deploy-year-archive.yml (main) for ${branch}`);
+                        await github.rest.actions.createWorkflowDispatch({
+                            owner: context.repo.owner,
+                            repo: context.repo.repo,
+                            workflow_id: 'deploy-year-archive.yml',
+                            ref: 'main',
+                            inputs: { branch },
+                        });
