@@ -59,9 +59,20 @@ site.
 
 ## `db/` — reconstructed schema (artifact, not used at runtime)
 
-`db/dbgacon-reconstructed-schema.sql` + `db/dbgacon-reconstructed-seed.sql`
-reverse-engineer the `dbgacon` schema (16 tables) from the SQL in the surviving
-`_ver3` dev fork, with seed data backfilled from the developers' page-copy doc.
-They are **not** loaded by this static archive — they are preserved so that, if
-anyone later wants to stand up a *dynamic* 2011 site from the `_ver3` fork, the
-schema work is already done.
+- `db/dbgacon-reconstructed-schema.sql` — reverse-engineers the `dbgacon`
+  schema (16 tables) from the SQL in the surviving `_ver3` dev fork.
+- `db/dbgacon-reconstructed-seed.sql` — a minimal hand-written seed (menu tree
+  + a few core pages, backfilled from the developers' page-copy doc).
+- `db/dbgacon-wayback-seed.sql` — a **full** seed: the same 232 Internet Archive
+  captures that this static archive serves, transformed into the schema's
+  tables (`stranky_obsah`/`menu_seznam`/`stranky_meta`/`stranky_fulltext`). So
+  the dynamic path carries identical *content* to the static archive — it adds
+  no new pages, only a different (DB + PHP 5.6) serving mechanism plus a working
+  search box.
+
+These are **not** loaded by this static archive. They are preserved because the
+dynamic path was built and validated end-to-end (the `_ver3` engine on PHP 5.6,
+served at the domain root with the live root theme, rendering all 232 pages from
+this seed). The **static archive was chosen as the deployed artifact** — same
+content, zero moving parts, nothing to break — so this SQL is documentation /
+a head-start for anyone who later wants the dynamic version instead.
