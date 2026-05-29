@@ -5,9 +5,10 @@ use Gamecon\Kanaly\MailLogger;
 use Gamecon\XTemplate\XTemplate;
 
 /**
- * nazev: Logy
- * pravo: 105
- * submenu_group: 8
+ * nazev: Mailové logy
+ * pravo: 113
+ * submenu_group: 1
+ * submenu_order: 4
  */
 
 /** @var Uzivatel $u */
@@ -48,7 +49,7 @@ if ($idDetailu > 0) {
     $detail = $mailLogger->detail($idDetailu);
     if ($detail === null) {
         http_response_code(404);
-        echo '<h1>Záznam nenalezen</h1><p><a class="tlacitko" href="logy">Zpět na seznam</a></p>';
+        echo '<h1>Záznam nenalezen</h1><p><a class="tlacitko" href=".">Zpět na seznam</a></p>';
         return;
     }
     $adresatiDetail = json_decode((string) $detail['adresati'], true) ?: [];
@@ -92,7 +93,7 @@ $sestavUrl = static function (array $parametry) use ($filtr): string {
         'smer'   => $parametry['smer']   ?? null,
         'strana' => $parametry['strana'] ?? null,
     ], static fn($hodnota) => $hodnota !== null && $hodnota !== '');
-    return 'logy?' . http_build_query($vychozi);
+    return '.?' . http_build_query($vychozi);
 };
 
 $odkazRazeni = static function (string $sloupec) use ($razeniSloupec, $razeniSmer, $sestavUrl): string {
