@@ -25,16 +25,29 @@ Both are **lost**:
 A faithful **static snapshot** of the site as the Internet Archive captured it
 on **2011-12-31**, served as flat HTML:
 
-- `index.html` plus **232 content pages** under `gamecon/`, `organizatori/`,
+- `index.html` plus **174 content pages** under `gamecon/`, `organizatori/`,
   `rpg/`, `deskove-hry/`, `prednasky/`, `larp/`, `mistrovstvi-v-drd/`,
   `wargaming/`, `galerie-materialy/`, … — the captured pages (real 2011 news
   feed, program, organizer profiles, copy and menu), cleaned of the Google
   Analytics tracker. Four were hand-cleaned in the initial reconstruction; the
   rest were bulk-restored from the Internet Archive (raw `id_` captures, latest
-  2011 snapshot per URL; see `symfony/var/restore-2011.py` in the build).
-- `system_styly/`, `lightbox/`, `galerie/materialy-2010/` — the **real** theme
-  and images, copied from the host's 2011 tree (the captured HTML already used
-  root-relative paths, so they resolve directly).
+  2011 snapshot per URL). Captures that were themselves the News front page
+  (URLs the 2011 site already served News for) were dropped so they 404
+  honestly instead of misleadingly showing News.
+- `system_styly/`, `lightbox/` — the **real** theme assets, copied from the
+  host's 2011 tree (the captured HTML already used root-relative paths, so they
+  resolve directly).
+- **Photo galleries (`/galerie/`)** — the original ~45 MB of photos
+  (`fotogalerie-fotosoutez2011`, the `fotogalerie-gamecon08/09/10` event
+  galleries, the `materialy-*` promo materials, …) survive in the host's
+  bare-metal 2011 tree but are too large to bake into the image. They are
+  **bind-mounted read-only** from the host at container start
+  (`/srv/.../2011/galerie` → `/var/www/html/gamecon/galerie`), wired up in the
+  `year_archive_deployer` role's `deploy-year-archive.sh` (ansible repo). The
+  Internet Archive never captured these galleries, so the host tree is the only
+  source. `galerie/materialy-2010/gc-pf-2011-2.jpg` (the homepage PF image) is
+  also baked into the image as a fallback; the host mount is a superset and does
+  not hide it.
 - `.htaccess` — maps each original pretty URL onto its static file. Unmapped
   URLs return a themed `404.html` ("Stránka nebyla archivována") instead of
   silently rendering the News home page, so genuinely uncaptured links read as
