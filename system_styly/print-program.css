@@ -1,0 +1,98 @@
+      body {
+        font-family: Tahoma, "Lucida Grande CE", lucida, sans-serif;
+        font-size: 0.5em;
+        text-align: center;
+      }
+      h1 {
+        font-size: 150%;
+        text-align: left;
+        padding: 5px;
+        margin: 0px;
+        padding-left: 40px;
+        padding-top: 25px;
+      }
+      
+      h2 {
+        font-size: 150%;
+        }
+        
+      table {
+        border-top: none;
+        border-spacing: 0px;
+        margin: auto;
+        table-layout:fixed;
+      }
+      td {
+        width: 25px;
+        padding: 3px;
+        margin: 0px;
+        border-left: 1px solid #fff;
+        border-right: 1px solid #000;
+        border-top: 1px solid #fff;
+        border-bottom: 1px solid #000;
+        overflow: hidden;
+        font-weight: bold;
+        vertical-align: middle;
+        text-align: center;
+      }
+      
+      td a {
+        color: #ab0000;
+        text-decoration: none;
+        font-weight: normal;
+      }
+      
+      td a:hover {
+        text-decoration: underline;
+      }
+      
+      .program_radek0 {
+      }
+      .program_radek1 {
+      }
+      
+      .program_casy {
+        color:#000;
+        font-weight: normal;
+        text-align: center;
+        width: 50px;
+      }
+      
+      .program_casy2 {
+        color:#000;
+        font-weight: normal;
+        text-align: center;
+      }
+      .program_casy3 {
+        color:#000;
+        font-weight: normal;
+        text-align: center;
+        border-right: none;
+      }
+      
+      .pozadi {
+      }
+      .pozadi .top {
+      }
+      .pozadi .bottom {
+      }
+      .pozadi .opakovane {
+      }
+      .pozadi .neopakovane {
+      }
+      .gamecoruny {
+        float: right;
+        font-size: 130%;
+        padding-right: 100px;
+      }
+      .program_vnitrek_prihlasen {
+        color: #0000ab;
+      }
+      
+      .program_vnitrek_prihlasen a{
+        color: #0000ab;
+      }
+      
+      .program_vnitrek a{
+        color: #000;
+      }

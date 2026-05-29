@@ -1,0 +1,36 @@
+# Static archive of gamecon.cz as it stood on 2011-12-31 (reconstructed from
+# the Internet Archive). The original site was DB-driven with pretty URLs
+# rewritten into a front controller; both the live router and its database
+# (dbgacon) are lost. This archive serves the captured pages as flat HTML and
+# maps the original pretty URLs onto them. Real theme/images live under
+# /system_styly, /lightbox, /galerie (copied from the host's 2011 tree).
+
+DirectoryIndex index.html
+
+<IfModule mod_rewrite.c>
+    RewriteEngine On
+
+    # Never rewrite real files (assets) or directories.
+    RewriteCond %{REQUEST_FILENAME} -f [OR]
+    RewriteCond %{REQUEST_FILENAME} -d
+    RewriteRule ^ - [L]
+
+    # Don't rewrite asset-type requests (e.g. favicon.ico) to HTML — let them
+    # 404 naturally rather than serving an HTML body with the wrong type.
+    RewriteRule \.(ico|css|js|jpg|jpeg|gif|png|pdf|svg|woff2?|ttf)$ - [L]
+
+    # Homepage / news -> the captured front page.
+    RewriteRule ^$              index.html [L]
+    RewriteRule ^novinky(/.*)?$ index.html [L]
+
+    # Captured content pages (pretty URL -> static .html).
+    RewriteRule ^gamecon/o-gameconu/?$            gamecon/o-gameconu.html [L]
+    RewriteRule ^organizatori/organizacni-tym/?$  organizatori/organizacni-tym.html [L]
+    RewriteRule ^kontakt/?$                       kontakt.html [L]
+
+    # The original site rendered the last/home page for any unresolved URL
+    # (its 404 branch was disabled). Mirror that: unknown pages -> home,
+    # rather than an Apache 404. A captured page that happens to exist as a
+    # file is already served by the -f rule above.
+    RewriteRule ^.*$ index.html [L]
+</IfModule>

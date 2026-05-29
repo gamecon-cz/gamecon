@@ -1,0 +1,47 @@
+# Dockerfile.preview COPYs the entire context into the image. Exclude
+# things that bloat the layer, contain secrets, or come from local dev
+# state that shouldn't end up in a published image.
+#
+# .docker/Dockerfile (the dev base image) doesn't COPY application code
+# — dev compose bind-mounts the source — so its build doesn't read this
+# file. This .dockerignore is here for Dockerfile.preview's benefit.
+
+# VCS
+.git
+.gitignore
+.gitattributes
+
+# CI / GitHub
+.github
+
+# Editor / IDE
+.idea
+.vscode
+.envrc
+.mcp.json
+
+# PHP test/static-analysis artefacts
+phpunit_log
+phpunit.xml
+phpstan.neon
+.phpunit.result.cache
+.phpunit.cache
+test-results
+
+# Local dev only — bind-mounted in dev compose, never needed in image
+.docker
+
+# Runtime state — must NOT bake stale logs / cache / uploads into image
+cache/private/*
+!cache/private/.htaccess
+cache/public/*
+!cache/public/.htaccess
+logy/*
+!logy/.htaccess
+
+# UI build state
+node_modules
+ui/node_modules
+
+# Symfony runtime artefacts (rebuilt on first request)
+symfony/var
