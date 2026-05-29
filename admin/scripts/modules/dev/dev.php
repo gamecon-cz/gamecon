@@ -78,6 +78,10 @@ $datumAnonymExportu = AnonymizovanaDatabaze::datumPoslednihoExportu();
         <h3>SQL update pro uzavření financí</h3>
         <p>Vygenerování SQL pro překlápění ročníku (uzavření financí).</p>
     </a>
+    <a href="<?php echo URL_ADMIN; ?>/dev/logy">
+        <h3>Mailové logy</h3>
+        <p></p>
+    </a>
 </div>
 
 <div class="dev-akce">
