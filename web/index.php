@@ -24,6 +24,17 @@ $u = Uzivatel::zSession();
  * @var \Gamecon\SystemoveNastaveni\SystemoveNastaveni $systemoveNastaveni
  */
 
+// Postupná migrace na Symfony: vybrané veřejné cesty obsluhuje Symfony
+// controller. Kernel bootujeme JEN pro tyhle cesty (jsou pro nepřihlášené
+// uživatele), ať neplatíme režii na každém veřejném requestu. Legacy router
+// pracuje s $_GET['req'] (Apache rewrite z .htaccess), takže i tady cestu
+// bereme odtud, ne z REQUEST_URI (to nese prefix /web).
+$symfonyVerejneCesty = ['/zapomenute-heslo', '/obnova-hesla'];
+$aktualniCesta = '/' . trim((string)($_GET['req'] ?? ''), '/');
+if (in_array($aktualniCesta, $symfonyVerejneCesty, true)) {
+    require __DIR__ . '/_symfony.php';
+}
+
 try {
     $url = Url::zAktualni();
 } catch (UrlException $e) {
