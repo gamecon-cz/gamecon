@@ -38,7 +38,7 @@ $prListUrl = static fn (string $slug): string => 'https://github.com/gamecon-cz/
         webmail.preview.gamecon.cz
     </a>
     <div style="margin-top: 6px; font-size: 0.85em; color: #555;">
-        Přihlášení k bráně:
+        Přihlášení k bráně (basic auth):
         <code style="user-select: all;"><?php echo htmlspecialchars(PREVIEW_BASIC_AUTH_USER); ?></code>
         /
         <code style="user-select: all;"><?php echo htmlspecialchars(PREVIEW_BASIC_AUTH_PASSWORD); ?></code>
