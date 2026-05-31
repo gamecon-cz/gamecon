@@ -126,7 +126,7 @@ class MailLoggerTest extends TestCase
     public function detailVraciCeleTeloAChybuNeboNullProNeznameId(): void
     {
         $logger = new MailLogger($this->cestaSqlite);
-        $logger->zalogujOdeslani('Detail test', 'html', ['x@y.cz'], 1, 'plné tělo e-mailu', null);
+        $logger->zalogujOdeslani('Detail test', 'html', ['x@y.cz'], 1, 'plné tělo e-mailu', '<p>HTML</p>', null);
 
         $zaznamy = $logger->najdi();
         $id = (int) $zaznamy[0]['id'];
@@ -135,6 +135,7 @@ class MailLoggerTest extends TestCase
         self::assertNotNull($detail);
         self::assertSame('Detail test', $detail['predmet']);
         self::assertSame('plné tělo e-mailu', $detail['telo']);
+        self::assertSame('<p>HTML</p>', $detail['telo_html']);
         self::assertNull($detail['chyba']);
 
         self::assertNull($logger->detail(999999));
@@ -146,9 +147,24 @@ class MailLoggerTest extends TestCase
     public function zaznamuSChybouMaVyplnenouChybu(): void
     {
         $logger = new MailLogger($this->cestaSqlite);
-        $logger->zalogujOdeslani('Nepodařilo se', 'html', ['x@y.cz'], 0, 'telo', 'SMTP server nereaguje');
+        $logger->zalogujOdeslani('Nepodařilo se', 'html', ['x@y.cz'], 0, 'telo', null, 'SMTP server nereaguje');
 
         $zaznam = $logger->najdi()[0];
         self::assertSame('SMTP server nereaguje', $zaznam['chyba']);
+    }
+
+    /**
+     * @test
+     */
+    public function ukladaIVraciSamostatnyHtmlNahled(): void
+    {
+        $logger = new MailLogger($this->cestaSqlite);
+        $logger->zalogujOdeslani('S HTML', 'html', ['a@b.cz'], 0, 'raw mime', '<p>Ahoj</p>');
+        $logger->zalogujOdeslani('Bez HTML', 'text', ['c@d.cz'], 0, 'jen text');
+
+        $zaznamy = array_column($logger->najdi(razeniSloupec: 'kdy', razeniSmer: 'ASC'), null, 'predmet');
+
+        self::assertSame('<p>Ahoj</p>', $logger->detail((int) $zaznamy['S HTML']['id'])['telo_html']);
+        self::assertNull($logger->detail((int) $zaznamy['Bez HTML']['id'])['telo_html']);
     }
 }

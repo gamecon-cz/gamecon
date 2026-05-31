@@ -2,6 +2,7 @@
 
 use Gamecon\Kanaly\GcMail;
 use Gamecon\Kanaly\MailLogger;
+use Gamecon\Kanaly\MimeNahled;
 use Gamecon\XTemplate\XTemplate;
 
 /**
@@ -54,6 +55,13 @@ if ($idDetailu > 0) {
     }
     $adresatiDetail = json_decode((string) $detail['adresati'], true) ?: [];
 
+    // čitelný náhled: přednostně samostatně uložené HTML, jinak dekódovat ze syrové MIME zprávy
+    $teloHtml = $detail['telo_html'] ?? null;
+    if ($teloHtml === null || $teloHtml === '') {
+        $tela     = MimeNahled::vytahniTela((string) $detail['telo']);
+        $teloHtml = $tela['html'] ?? ($tela['text'] !== null ? nl2br(htmlspecialchars($tela['text'])) : null);
+    }
+
     $t = new XTemplate(__DIR__ . '/logy.xtpl');
     $t->assign('kdy', htmlspecialchars((string) $detail['kdy']));
     $t->assign('predmet', htmlspecialchars((string) $detail['predmet']));
@@ -61,7 +69,12 @@ if ($idDetailu > 0) {
     $t->assign('adresati', htmlspecialchars(implode(', ', array_map('strval', $adresatiDetail))));
     $t->assign('prilohy', (int) $detail['prilohy_count']);
     $t->assign('chyba', $detail['chyba'] !== null ? htmlspecialchars((string) $detail['chyba']) : '—');
+    // náhled běží v izolovaném iframe (srcdoc), aby HTML e-mailu neovlivnilo admin stránku
+    $t->assign('nahledSrcdoc', $teloHtml !== null ? htmlspecialchars($teloHtml, ENT_QUOTES) : '');
     $t->assign('telo', htmlspecialchars((string) $detail['telo']));
+    if ($teloHtml !== null) {
+        $t->parse('detail.nahled');
+    }
     $t->parse('detail');
     $t->out('detail');
     return;

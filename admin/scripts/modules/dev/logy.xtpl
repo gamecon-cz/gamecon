@@ -189,7 +189,15 @@
   <tr><th>Chyba</th><td>{chyba}</td></tr>
 </table>
 
-<h2>Tělo e-mailu</h2>
-<pre style="white-space: pre-wrap; word-break: break-word; background: #f5f5f5; padding: 1em; border: 1px solid #ddd">{telo}</pre>
+<!-- begin:nahled -->
+<h2>Náhled e-mailu</h2>
+<iframe srcdoc="{nahledSrcdoc}" sandbox="" title="Náhled e-mailu" style="width: 100%; min-height: 24em; background: #fff; border: 1px solid #ddd"></iframe>
+<!-- end:nahled -->
+
+<h2>Zdroj (syrová MIME zpráva)</h2>
+<details>
+  <summary>Zobrazit zdroj</summary>
+  <pre style="white-space: pre-wrap; word-break: break-word; background: #f5f5f5; padding: 1em; border: 1px solid #ddd">{telo}</pre>
+</details>
 
 <!-- end:detail -->

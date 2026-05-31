@@ -72,8 +72,10 @@ class GcMail
             ->subject($predmet);
         $body = $this->pridejPrefixPodleProstredi($this->dejText());
         $mail->text(strip_tags($body));
+        $teloHtml = null;
         if ($format === self::FORMAT_HTML) {
             $mail->html($body);
+            $teloHtml = $body;
         }
 
         $odeslano = false;
@@ -82,7 +84,7 @@ class GcMail
         if ($adresatiDoSouboru) {
             $mail->addBcc(...$adresatiDoSouboru);
             $odeslano = $this->zalogovatDo(MAILY_DO_SOUBORU, $mail->toString()) || $odeslano;
-            $this->zalogujOdeslani($predmet, $format, $adresatiDoSouboru, $mail->toString());
+            $this->zalogujOdeslani($predmet, $format, $adresatiDoSouboru, $mail->toString(), $teloHtml);
         }
         $adresati = $this->adresatiPovoleniPodleRoli();
         if ($adresati) {
@@ -98,9 +100,9 @@ class GcMail
             try {
                 $mailer->send($mail);
                 $odeslano = true;
-                $this->zalogujOdeslani($predmet, $format, $adresati, $mail->toString());
+                $this->zalogujOdeslani($predmet, $format, $adresati, $mail->toString(), $teloHtml);
             } catch (Throwable $chyba) {
-                $this->zalogujOdeslani($predmet, $format, $adresati, $mail->toString(), $chyba->getMessage());
+                $this->zalogujOdeslani($predmet, $format, $adresati, $mail->toString(), $teloHtml, $chyba->getMessage());
                 throw $chyba;
             }
         }
@@ -112,6 +114,7 @@ class GcMail
         string  $format,
         array   $adresati,
         string  $telo,
+        ?string $teloHtml = null,
         ?string $chyba = null,
     ): void {
         $mailLogger = $this->mailLogger ?? MailLogger::zGlobals();
@@ -127,6 +130,7 @@ class GcMail
             adresati: $adresati,
             pocetPriloh: $pocetPriloh,
             telo: $telo,
+            teloHtml: $teloHtml,
             chyba: $chyba,
         );
     }
