@@ -39,7 +39,7 @@ $gateUrl = static fn (string $url): string => GateLink::podepis($url, ARCHIVE_GA
     <p><em>Žádný dockerizovaný archivní ročník zatím není nasazený.</em></p>
 <?php } else { ?>
     <p style="margin: 8px 0; color: #555;">
-        Přihlášení k bráně (zeptá se prohlížeč při prvním otevření):
+        Přihlášení k bráně (basic auth):
         <code style="user-select: all;"><?php echo htmlspecialchars(ARCHIVE_BASIC_AUTH_USER); ?></code>
         /
         <code style="user-select: all;"><?php echo htmlspecialchars(ARCHIVE_BASIC_AUTH_PASSWORD); ?></code>
