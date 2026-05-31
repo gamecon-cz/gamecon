@@ -6,7 +6,7 @@ use Gamecon\Kanaly\MimeNahled;
 use Gamecon\XTemplate\XTemplate;
 
 /**
- * nazev: Mailové logy
+ * nazev: Mail logy
  * pravo: 113
  * submenu_group: 1
  * submenu_order: 4

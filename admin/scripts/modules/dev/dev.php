@@ -6,7 +6,7 @@ use Gamecon\SystemoveNastaveni\AnonymizovanaDatabaze;
 /**
  * Rozcestník pro vývojářské nástroje.
  *
- * Naviguje na Previews / Staré ročníky / SQL update.
+ * Naviguje na Chyby / SQL update / Mail logy.
  * Anonymizovaná databáze se generuje cronem
  * (admin/cron/anonymizace_databaze.php) jednou denně; tato stránka
  * jen zpřístupní poslední vygenerovaný soubor ke stažení rovnou
@@ -66,10 +66,6 @@ $datumAnonymExportu = AnonymizovanaDatabaze::datumPoslednihoExportu();
     }
 </style>
 <div class="dev-rozcestnik">
-    <a href="<?php echo URL_ADMIN; ?>/dev/previews">
-        <h3>Previews</h3>
-        <p>Aktivní preview prostředí (dockerizovaná nasazení feature větví).</p>
-    </a>
     <a href="<?php echo URL_ADMIN; ?>/dev/chyby">
         <h3>Chyby</h3>
         <p>Zachycené výjimky a chyby aplikace.</p>
@@ -79,8 +75,8 @@ $datumAnonymExportu = AnonymizovanaDatabaze::datumPoslednihoExportu();
         <p>Vygenerování SQL pro překlápění ročníku (uzavření financí).</p>
     </a>
     <a href="<?php echo URL_ADMIN; ?>/dev/logy">
-        <h3>Mailové logy</h3>
-        <p></p>
+        <h3>Mail logy</h3>
+        <p>Záznamy odeslaných e-mailů.</p>
     </a>
 </div>
 

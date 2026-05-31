@@ -7,9 +7,8 @@ use Gamecon\Dev\GateLink;
  * Seznam aktivních preview prostředí.
  *
  * nazev: Previews
- * pravo: 113
- * submenu_group: 1
- * submenu_order: 2
+ * pravo: 105
+ * submenu_group: 9
  */
 $reader = new DeploymentsReader();
 $unavailableReason = $reader->unavailableReason();
