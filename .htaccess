@@ -135,6 +135,15 @@ ErrorDocument 404 /404.html
     # it on every page, so reproduce that redirect instead of 404ing. Target
     # is the real, captured /organizatori/PJove page.
     RewriteRule ^mistrovstvi\-v\-drd/panove\-jeskyne/?$  /organizatori/PJove [R=301,L]
+    # The 2011 site linked an /archiv/<section>-2010 retrospective for each
+    # program section, but those pages were never captured here. The real 2010
+    # site is now archived at 2010.gamecon.cz, so send each link to the matching
+    # 2010 section landing page instead of 404ing.
+    RewriteRule ^archiv/rpg\-2010/?$        https://2010.gamecon.cz/rpg/o-rpg-na-gc [R=301,L]
+    RewriteRule ^archiv/larpy\-2010/?$      https://2010.gamecon.cz/larp/o-larpech-na-gc [R=301,L]
+    RewriteRule ^archiv/deskovky\-2010/?$   https://2010.gamecon.cz/deskove-hry/o-deskovych-hrach-na-gc [R=301,L]
+    RewriteRule ^archiv/prednasky\-2010/?$  https://2010.gamecon.cz/prednasky/o-prednaskach-na-gc [R=301,L]
+    RewriteRule ^archiv/wargaming\-2010/?$  https://2010.gamecon.cz/wargaming/o-wargamingu-na-gc [R=301,L]
     RewriteRule ^novinky/archiv\-novinek/?$  novinky/archiv-novinek.html [L]
     RewriteRule ^novinky/novinky/?$  novinky/novinky.html [L]
     RewriteRule ^organizatori/PJove/?$  organizatori/PJove.html [L]
