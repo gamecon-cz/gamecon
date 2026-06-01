@@ -36,7 +36,14 @@ on **2011-12-31**, served as flat HTML:
   honestly instead of misleadingly showing News.
 - `system_styly/`, `lightbox/` — the **real** theme assets, copied from the
   host's 2011 tree (the captured HTML already used root-relative paths, so they
-  resolve directly).
+  resolve directly). One correction: the host tree's `pics_system_styl1/logo.gif`
+  had already been updated to the **2012** logo by the time it was captured
+  (Feb 2012), so the masthead wrongly read "2012". We restored the genuine 2011
+  logo from the host's `logo.gif.bak` ("GameCon 21.–24. 7. 2011 Česká Třebová").
+- **Internal links** in the captured HTML were absolute (`http://www.gamecon.cz/…`),
+  so the logo, breadcrumbs and many in-page links would have **left the archive
+  for the live site**. They are rewritten to root-relative (`/…`) so navigation
+  stays inside `2011.gamecon.cz`.
 - **Photo galleries (`/galerie/`)** — the original ~45 MB of photos
   (`fotogalerie-fotosoutez2011`, the `fotogalerie-gamecon08/09/10` event
   galleries, the `materialy-*` promo materials, …) survive in the host's
@@ -61,7 +68,10 @@ on **2011-12-31**, served as flat HTML:
 - `.htaccess` — maps each original pretty URL onto its static file. Unmapped
   URLs return a themed `404.html` ("Stránka nebyla archivována") instead of
   silently rendering the News home page, so genuinely uncaptured links read as
-  honestly dead rather than misleading.
+  honestly dead rather than misleading. `/novinky` is mapped *before* the
+  "real directory" short-circuit, because a `novinky/` directory exists (holds
+  sub-pages) and would otherwise be served as a bare dir → Apache 403 instead of
+  the captured front page.
 
 Dynamic features (login, registration, forum, search) are inert — there is no
 backend or database. That is the nature of a static archive of a lost dynamic
