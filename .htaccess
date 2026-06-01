@@ -133,9 +133,13 @@ ErrorDocument 404 /404.html
     RewriteRule ^novinky/novinky/?$  novinky/novinky.html [L]
     RewriteRule ^o\-gamecon\-trojboji/mexicky\-pat/?$  o-gamecon-trojboji/mexicky-pat.html [L]
     RewriteRule ^organizatori/PJove/?$  organizatori/PJove.html [L]
-    RewriteRule ^organizatori/dodo%20o%20sob%C4%9B/?$  organizatori/dodo%20o%20sob%C4%9B.html [L]
+    # "Pánové Jeskyně" and lowercase /organizatori/pjove had no page of their
+    # own on the live 2010 site — they 302-redirected to the PJové (Dungeon
+    # Masters) listing. Reproduce that instead of 404ing (both are linked from
+    # every page's menu). Target is the real, captured /organizatori/PJove.
+    RewriteRule ^mistrovstvi\-v\-drd/panove\-jeskyne/?$  /organizatori/PJove [R=301,L]
+    RewriteRule ^organizatori/pjove/?$  /organizatori/PJove [R=301,L]
     RewriteRule ^organizatori/jak\-se\-stat\-organizatorem/?$  organizatori/jak-se-stat-organizatorem.html [L]
-    RewriteRule ^organizatori/le%C4%8Do%20o%20sob%C4%9B/?$  organizatori/le%C4%8Do%20o%20sob%C4%9B.html [L]
     RewriteRule ^organizatori/organizacni\-tym/?$  organizatori/organizacni-tym.html [L]
     RewriteRule ^organizatori/organizatori\-larpu/?$  organizatori/organizatori-larpu.html [L]
     RewriteRule ^organizatori/organizatori\-wargamingu/?$  organizatori/organizatori-wargamingu.html [L]
@@ -143,7 +147,6 @@ ErrorDocument 404 /404.html
     RewriteRule ^organizatori/ostatni\-organizatori/?$  organizatori/ostatni-organizatori.html [L]
     RewriteRule ^organizatori/prednasejici/?$  organizatori/prednasejici.html [L]
     RewriteRule ^organizatori/vypraveci/?$  organizatori/vypraveci.html [L]
-    RewriteRule ^organizatori/wulf%20o%20sob%C4%9B/?$  organizatori/wulf%20o%20sob%C4%9B.html [L]
     RewriteRule ^prednasky/10\-dovodov\-preco\-jazdit\-na\-jeepe/?$  prednasky/10-dovodov-preco-jazdit-na-jeepe.html [L]
     RewriteRule ^prednasky/27985\-dni\-leta/?$  prednasky/27985-dni-leta.html [L]
     RewriteRule ^prednasky/alternativni\-storytelling\-a\-roleplaying/?$  prednasky/alternativni-storytelling-a-roleplaying.html [L]

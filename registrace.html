@@ -13,7 +13,6 @@
     <link rel="stylesheet" href="/lightbox/css/lightbox.css" type="text/css" media="screen" />
     <!--  lightbox konec //-->
     <!--  java otevirani a ankety začátek //-->
-    <script type="text/javascript" src="/java.js"></script>
     <!--  java otevirani a ankety konec //-->
     
     <title>
@@ -385,7 +384,7 @@
         jejich souhlasem a nebo pod jejich dohledem.<br />
       </div>
       <div class = "registrace_radek">
-      <input type = "checkbox" name = "souhlas" checked = "checked"> Souhlasím s <a href = "podmínky registrace" onclick = "ukaz(0); return false;">podmínkami registrace</a><br /><br />
+      <input type = "checkbox" name = "souhlas" checked = "checked"> Souhlasím s <a href = "#" onclick = "ukaz(0); return false;">podmínkami registrace</a><br /><br />
     </div>
       <div class = "buttonky" style = "padding-left: 200px;"><input type="image" src="/system_styly/pics_system_styl1/tlacitka/zaregistrovat.gif" value="Submit" alt="zaregistrovat" style = "width: 88px; height: 26px;" /></div>
   </form>
@@ -467,6 +466,13 @@
       </div>
     </div>
   
+      <script type="text/javascript">
+      // Toggle medailonku „O sobě píše“ / „Herní profil“ (původně z /java.js).
+      function ukaz(id) {
+        var element = document.getElementById('objekt' + id);
+        if (element) { element.style.display = element.style.display === 'none' ? 'block' : 'none'; }
+      }
+    </script>
   </body>
 </html>
   
