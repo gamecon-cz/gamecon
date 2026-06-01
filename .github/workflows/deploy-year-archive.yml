@@ -62,8 +62,8 @@ jobs:
                         exit 1
                     fi
                     year="${BASH_REMATCH[1]}"
-                    if (( year < 2011 || year > 2099 )); then
-                        echo "::error::Year $year outside supported range 2011..2099" >&2
+                    if (( year < 2010 || year > 2099 )); then
+                        echo "::error::Year $year outside supported range 2010..2099" >&2
                         exit 1
                     fi
                     sha7=$(git rev-parse --short=7 HEAD)
@@ -79,10 +79,12 @@ jobs:
                     # gameconcz/gamecon:8.2 image baked into Dockerfile.archive.
                     # Add a row when a year's PHP era is confirmed during recon.
                     case "$year" in
-                        # 2011 is a STATIC archive (the live DB + router are
-                        # lost) — flat HTML reconstructed from the Internet
-                        # Archive. Any base works; php:5.6-apache matches its
-                        # neighbours and stays lightweight (no PHP executes).
+                        # 2010 and 2011 are STATIC archives (the live DB +
+                        # router are lost) — flat HTML reconstructed from the
+                        # Internet Archive. Any base works; php:5.6-apache
+                        # matches their neighbours and stays lightweight (no
+                        # PHP executes).
+                        2010) base_image="php:5.6-apache" ;;
                         2011) base_image="php:5.6-apache" ;;
                         2012) base_image="php:5.6-apache" ;;
                         2013) base_image="php:5.6-apache" ;;
@@ -105,9 +107,10 @@ jobs:
                     # extension (mysql, removed in PHP 7 but installable on 5.6).
                     # Both build with no apt packages.
                     case "$year" in
-                        # 2011 static archive needs no PHP extension at all
-                        # (no DB, no dynamic code) — empty list skips the
-                        # Dockerfile's whole install step.
+                        # 2010 and 2011 static archives need no PHP extension
+                        # at all (no DB, no dynamic code) — empty list skips
+                        # the Dockerfile's whole install step.
+                        2010) php_exts="" ;;
                         2011) php_exts="" ;;
                         2012) php_exts="mysql" ;;
                         2013) php_exts="mysql" ;;
