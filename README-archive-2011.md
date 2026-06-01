@@ -48,6 +48,16 @@ on **2011-12-31**, served as flat HTML:
   source. `galerie/materialy-2010/gc-pf-2011-2.jpg` (the homepage PF image) is
   also baked into the image as a fallback; the host mount is a superset and does
   not hide it.
+- **Downloads (`/download/`)** — the original ~79 MB of PDFs/JPGs (DrD newspapers
+  `noviny/sluncesvit-*.pdf`, the císařství/vinný-kraj maps, `charaktery-2011.*`
+  character sheets, and the `starsi-dobrodruzstvi/GC0*_*.pdf` older adventures)
+  also survive in the host's bare-metal 2011 tree but are too large to bake into
+  the image. Like the galleries they are **bind-mounted read-only** from the host
+  at container start (`/srv/.../2011/download` → `/var/www/html/gamecon/download`),
+  wired up in the same `year_archive_deployer` role's `deploy-year-archive.sh`
+  (ansible repo). The Internet Archive never captured these binaries either, so
+  the host tree is the only source. Until the mount is in place these links 404;
+  the files themselves are **not lost**.
 - `.htaccess` — maps each original pretty URL onto its static file. Unmapped
   URLs return a themed `404.html` ("Stránka nebyla archivována") instead of
   silently rendering the News home page, so genuinely uncaptured links read as
