@@ -15,6 +15,13 @@ ErrorDocument 404 /404.html
 <IfModule mod_rewrite.c>
     RewriteEngine On
 
+    # /forum and /novinky exist as real directories (they hold sub-pages), so
+    # the -d short-circuit below would serve the bare dir and Apache would 403
+    # it (no DirectoryIndex inside). Map these landing URLs to their captured
+    # pages first, before the -d rule can claim them.
+    RewriteRule ^forum/?$       forum.html [L]
+    RewriteRule ^novinky/?$     index.html [L]
+
     # Never rewrite real files (assets) or directories.
     RewriteCond %{REQUEST_FILENAME} -f [OR]
     RewriteCond %{REQUEST_FILENAME} -d
