@@ -15,6 +15,12 @@ ErrorDocument 404 /404.html
 <IfModule mod_rewrite.c>
     RewriteEngine On
 
+    # /novinky exists as a real directory (holds sub-pages), so the -d
+    # short-circuit below would serve the bare dir and Apache would 403 it
+    # (no DirectoryIndex inside). Map this landing URL to the captured front
+    # page first, before the -d rule can claim it.
+    RewriteRule ^novinky/?$     index.html [L]
+
     # Never rewrite real files (assets) or directories.
     RewriteCond %{REQUEST_FILENAME} -f [OR]
     RewriteCond %{REQUEST_FILENAME} -d
