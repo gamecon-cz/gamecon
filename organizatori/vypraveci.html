@@ -564,6 +564,17 @@ Připravovaná letní škola BioInformatiky: <a href="http://www.physics.muni.cz
               </div>
     </div>
   
+    <script type="text/javascript">
+      // Přepínání zobrazení medailonků „O sobě píše“ / „Herní profil“.
+      // Statická archivní kopie přišla o tuto funkci z původního dynamického webu,
+      // takže odkazy nešly rozkliknout. Texty samotné jsou v <span id="objektN">.
+      function ukaz(id) {
+        var element = document.getElementById('objekt' + id);
+        if (element) {
+          element.style.display = element.style.display === 'none' ? 'block' : 'none';
+        }
+      }
+    </script>
   </body>
 </html>
   
