@@ -1,0 +1,334 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="cs" lang="cs">
+
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <link rel="stylesheet" type="text/css" href="/system_styly/styl1.css" media="all" /> 
+    <link rel = "shortcut icon" href = "/favicon.ico" />
+    
+    <!--  lightbox začátek //-->
+    <script type="text/javascript" src="/lightbox/js/prototype.js"></script>
+    <script type="text/javascript" src="/lightbox/js/scriptaculous.js?load=effects,builder"></script>
+    <script type="text/javascript" src="/lightbox/js/lightbox.js"></script>
+    <link rel="stylesheet" href="/lightbox/css/lightbox.css" type="text/css" media="screen" />
+    <!--  lightbox konec //-->
+    <!--  java otevirani a ankety začátek //-->
+    <script type="text/javascript" src="/java.js"></script>
+    <!--  java otevirani a ankety konec //-->
+    
+    <title>
+      GameCon - Novinky    </title>
+    <meta name="keywords" content="KW" />
+    <meta name="description" content="DS" />
+    
+    
+    
+  </head>
+  <body>
+    <div class = "ohraniceni">
+      <div class = "search">
+        <div class = "bok-top2">
+  <form action = "/vyhledavani" method = "post">
+    <input type = "text" value = "GameCon" name = "fraze" class = "edt_login" style = "width: 140px;" onclick="this.value=''"; />
+    <input type="image" src="/system_styly/pics_system_styl1/tlacitka/hledat_maly.gif" value="Submit" alt="přihlásit" style = "width: 50px; height: 18px;" />
+  </form>
+</div>
+      </div>
+      <div class = "logo">
+        <a href = "http://www.gamecon.cz/gamecon/o-gameconu" style = "width: 100%; height: 100%; display: block;"><span style = "visibility: hidden;">Gamecon - O GameConu</span></a>
+      
+      </div>
+      <div class = "login">
+        <div class = "bok-top2">
+    <form action = "/novinky/novinky" method = "post">
+      <input type = "hidden" name = "prihlaseni" value = "1" />
+    <input name = "login" type = "text" class = "edt_login" value = 
+    "login" style = "width: 70px;" 
+     onclick="this.value=''";
+       />
+    <input name = "heslo" type = "password" class = "edt_login" value = "heslo" style = "width: 75px;" onclick="this.value=''"; />
+    <input type="image" src="/system_styly/pics_system_styl1/tlacitka/prihlasit_maly.gif" value="Submit" alt="přihlásit" style = "width: 50px; height: 18px;" />
+  </form>
+  <form action = "" method = "post" id = "registrace">
+  <input type = "hidden" name = "registrace" value = "1"/>
+  </form>
+  <form action = "" method = "post" id="zapomenute_heslo">
+  <input type = "hidden" name = "zapomenute_heslo" value = "1" />
+  </form>
+  <a href="javascript: document.getElementById('registrace').submit()">registrovat</a> - 
+  <a href="javascript: document.getElementById('zapomenute_heslo').submit()">zapomenuté heslo</a>
+</div>
+      </div>
+      <div class = "menuhorizont">
+        <ul>
+  <li><a href = "/gamecon/o-gameconu">GameCon</a></li>
+  <li><a href = "/rpg/o-rpg-na-gc">RPG</a></li>
+  <li><a href = "/larp/o-larpech-na-gc">Larp</a></li>
+  <li><a href = "/deskove-hry/o-deskovych-hrach-na-gc">Deskové hry</a></li>
+  <li><a href = "/prednasky/o-prednaskach-na-gc">Přednášky</a></li>
+  <li><a href = "/mistrovstvi-v-drd/o-mistrovstvi-v-drd">Mistrovství v DrD</a></li>
+  <!--<li><a href = "/dilny/o-dilnach-na-gc">Dílny</a></li>-->
+  <li><a href = "/forum">Fórum</a></li>
+  <li><a href = "/galerie-materialy/fotogalerie-gamecon09">Fotogalerie</a></li>
+  <li><a href = "/organizatori/organizacni-tym">Organizátoři</a></li>
+  <li><a href = "/kontakt">Kontakt</a></li>
+</ul>
+      </div>
+      <div class = "menu">
+        <div class = "menu_zacatek"></div><ul>
+<li style = "display: list-item;" class = "aktivni"><a href = "/novinky/novinky"><span>Novinky</span></a></li>
+<div class = "menu_zacatek"></div><ul>
+<li style = "display: list-item;" class = "aktivni"><a href = "/novinky/novinky"><span>Novinky</span></a></li>
+<li style = "display: list-item;"><a href = "/novinky/archiv-novinek"><span>Archiv novinek</span></a></li>
+</ul><div class = "menu_konec"></div>
+<li style = "display: list-item;"><a href = "/gamecon/o-gameconu"><span>GameCon</span></a></li>
+<li style = "display: none;"><a href = "/gamecon/o-gameconu"><span>O GameConu</span></a></li>
+<li style = "display: none;"><a href = "/gamecon/program"><span>Program</span></a></li>
+<li style = "display: none;"><a href = "/gamecon/prihlaska"><span>Přihláška</span></a></li>
+<li style = "display: none;"><a href = "/gamecon/prehled-registrace"><span>Přehled registrace</span></a></li>
+<li style = "display: none;"><a href = "/gamecon/cenik"><span>Ceník</span></a></li>
+<li style = "display: none;"><a href = "/gamecon/ubytovani"><span>Ubytování</span></a></li>
+<li style = "display: none;"><a href = "/gamecon/cajovna"><span>Čajovna</span></a></li>
+<li style = "display: none;"><a href = "/gamecon/kde-se-gamecon-kona"><span>Kde se GameCon koná a cesta na něj</span></a></li>
+<li style = "display: none;"><a href = "/gamecon/prihlasovani-na-aktivity"><span>Návod - přihlašování na GameConu</span></a></li>
+<li style = "display: none;"><a href = "/gamecon/placeni"><span>Návod - placení a slevy</span></a></li>
+<li style = "display: none;"><a href = "/gamecon/napsali-o-nas"><span>Napsali o nás</span></a></li>
+<li style = "display: list-item;"><a href = "/gamecon-trojboj/o-gamecon-trojboji"><span>GameCon Trojboj</span></a></li>
+<li style = "display: none;"><a href = "/gamecon-trojboj/o-gamecon-trojboji"><span>O GameCon Trojboji</span></a></li>
+<li style = "display: list-item;"><a href = "/rpg/o-rpg-na-gc"><span>RPG</span></a></li>
+<li style = "display: none;"><a href = "/rpg/o-rpg-na-gc"><span>O RPG na GC</span></a></li>
+<li style = "display: none;"><a href = "/rpg/co-jsou-to-rpg-hry"><span>Co jsou to RPG hry?</span></a></li>
+<li style = "display: none;"><a href = "/rpg/agon"><span>Agon</span></a></li>
+<li style = "display: none;"><a href = "/rpg/cold-city-1950"><span>Cold City: 1950</span></a></li>
+<li style = "display: none;"><a href = "/rpg/draci-doupe-plus-vinobrani"><span>Dračí doupě Plus: Vinobraní</span></a></li>
+<li style = "display: none;"><a href = "/rpg/dread-cthulhu"><span>Dread: Cthulhu</span></a></li>
+<li style = "display: none;"><a href = "/rpg/gurps-stopa"><span>GURPS: Stopa</span></a></li>
+<li style = "display: none;"><a href = "/rpg/labyrinths-and-lycanthropes"><span>Labyrinths and Lycanthropes</span></a></li>
+<li style = "display: none;"><a href = "/rpg/mouse-guard-2010"><span>Mouse Guard (2010)</span></a></li>
+<li style = "display: none;"><a href = "/rpg/og-unearthed-edition-jit-novy-jeskyne"><span>Og (Unearthed Edition): "jít nový jeskyně"</span></a></li>
+<li style = "display: none;"><a href = "/rpg/pendragon"><span>Pendragon</span></a></li>
+<li style = "display: none;"><a href = "/rpg/pribehy-imperia"><span>Příběhy Impéria</span></a></li>
+<li style = "display: none;"><a href = "/rpg/savage-worlds"><span>Savage Worlds</span></a></li>
+<li style = "display: none;"><a href = "/rpg/space-opera---acheron"><span>Space opera - Acheron</span></a></li>
+<li style = "display: none;"><a href = "/rpg/star-wars-d6---operacia-padajuca-hviezda"><span>Star Wars D6 - Operácia "Padajúca hviezda"</span></a></li>
+<li style = "display: none;"><a href = "/rpg/strepy-snu-probuzeni-do-chladu"><span>Střepy snů: Probuzení do chladu </span></a></li>
+<li style = "display: none;"><a href = "/rpg/treti-kralovstvi--cesta-havrana"><span>Třetí království – Cesta Havrana</span></a></li>
+<li style = "display: none;"><a href = "/rpg/seznam-rpg-na-gc2009"><span>Archiv RPG 2009</span></a></li>
+<li style = "display: none;"><a href = "/rpg/archiv-rpg-2008"><span>Archiv RPG 2008</span></a></li>
+<li style = "display: list-item;"><a href = "/larp/o-larpech-na-gc"><span>Larp</span></a></li>
+<li style = "display: none;"><a href = "/larp/o-larpech-na-gc"><span>O larpech na GC</span></a></li>
+<li style = "display: none;"><a href = "/larp/klub-sebevrahu"><span>Klub sebevrahů</span></a></li>
+<li style = "display: none;"><a href = "/larp/podraz-2010"><span>Podraz (2010)</span></a></li>
+<li style = "display: none;"><a href = "/larp/previous-occupants"><span>Previous Occupants</span></a></li>
+<li style = "display: none;"><a href = "/larp/seance"><span>Seance</span></a></li>
+<li style = "display: none;"><a href = "/larp/za-oponou"><span>Za oponou</span></a></li>
+<li style = "display: none;"><a href = "/larp/prehled-larpu-na-gc2009"><span>Archiv larp 2009</span></a></li>
+<li style = "display: none;"><a href = "/larp/archiv-larp-2008"><span>Archiv larp 2008</span></a></li>
+<li style = "display: list-item;"><a href = "/bonusy/gamecon-bonusy"><span>Bonusy</span></a></li>
+<li style = "display: none;"><a href = "/bonusy/gamecon-bonusy"><span>GameCon Bonusy</span></a></li>
+<li style = "display: none;"><a href = "/bonusy/hon-na-rudy-rijen"><span>Hon na Rudý říjen</span></a></li>
+<li style = "display: none;"><a href = "/bonusy/mixer"><span>Mixér</span></a></li>
+<li style = "display: none;"><a href = "/bonusy/spina-2010"><span>Špína (2010)</span></a></li>
+<li style = "display: list-item;"><a href = "/wargaming/o-wargamingu-na-gc"><span>Wargaming</span></a></li>
+<li style = "display: none;"><a href = "/wargaming/o-wargamingu-na-gc"><span>O wargamingu na GC</span></a></li>
+<li style = "display: none;"><a href = "/wargaming/wargaming-tour-2010"><span>Wargaming Tour 2010</span></a></li>
+<li style = "display: none;"><a href = "/wargaming/archiv-wargaming-na-gc-2009"><span>Archiv Wargaming 2009</span></a></li>
+<li style = "display: list-item;"><a href = "/deskove-hry/o-deskovych-hrach-na-gc"><span>Deskové hry</span></a></li>
+<li style = "display: none;"><a href = "/deskove-hry/o-deskovych-hrach-na-gc"><span>O deskových hrách na GC</span></a></li>
+<li style = "display: none;"><a href = "/deskove-hry/deskoherna"><span>Deskoherna</span></a></li>
+<li style = "display: none;"><a href = "/deskove-hry/ceny-pro-viteze-turnaju"><span>Ceny pro vítěze turnajů</span></a></li>
+<li style = "display: none;"><a href = "/deskove-hry/bang-2010"><span>Bang! (2010)</span></a></li>
+<li style = "display: none;"><a href = "/deskove-hry/colossal-arena"><span>Colossal Arena</span></a></li>
+<li style = "display: none;"><a href = "/deskove-hry/osadnici-z-katanu-2010"><span>Osadníci z katanu (2010)</span></a></li>
+<li style = "display: none;"><a href = "/deskove-hry/proroctvi---kvalifikace"><span>Proroctví - kvalifikace</span></a></li>
+<li style = "display: none;"><a href = "/deskove-hry/proroctvi---mistrovstvi-cr-2010"><span>Proroctví - Mistrovství ČR (2010)</span></a></li>
+<li style = "display: none;"><a href = "/deskove-hry/prehled-deskovych-her-na-gc2009"><span>Archiv deskových her 2009</span></a></li>
+<li style = "display: list-item;"><a href = "/prednasky/o-prednaskach-na-gc"><span>Přednášky</span></a></li>
+<li style = "display: none;"><a href = "/prednasky/o-prednaskach-na-gc"><span>O přednáškách na GC</span></a></li>
+<li style = "display: none;"><a href = "/prednasky/27985-dni-leta"><span>27.985 dní léta</span></a></li>
+<li style = "display: none;"><a href = "/prednasky/draci-doupe-ii"><span>Dračí doupě II</span></a></li>
+<li style = "display: none;"><a href = "/prednasky/hranice-pribehu-hranice-vedy"><span>Hranice příběhů, hranice vědy</span></a></li>
+<li style = "display: none;"><a href = "/prednasky/jak-prednaset-jako-rock-star"><span>Jak přednášet jako rock star?</span></a></li>
+<li style = "display: none;"><a href = "/prednasky/jak-si-na-vecirku-povidat-s-devcaty"><span>Jak si na večírku povídat s děvčaty</span></a></li>
+<li style = "display: none;"><a href = "/prednasky/krizom-krazom-zakutiami-rpg"><span>Krížom-krážom zákutiami RPG</span></a></li>
+<li style = "display: none;"><a href = "/prednasky/pribehy-imperia-krest-rukoveti-maga"><span>Příběhy Impéria: Křest Rukověti mága</span></a></li>
+<li style = "display: none;"><a href = "/prednasky/role-playing-neni-pro-stary"><span>Role-playing není pro starý!</span></a></li>
+<li style = "display: none;"><a href = "/prednasky/strepy-snu-prvni-rok-a-velka-vyzva"><span>Střepy snů: První rok a velká výzva</span></a></li>
+<li style = "display: none;"><a href = "/prednasky/zasad-strom-postav-dum"><span>Zasaď strom, postav dům</span></a></li>
+<li style = "display: none;"><a href = "/prednasky/seznam-prednasek-na-gc2009"><span>Archiv přednášek 2009</span></a></li>
+<li style = "display: none;"><a href = "/prednasky/archiv-prednasek-2008"><span>Archiv přednášek 2008</span></a></li>
+<li style = "display: list-item;"><a href = "/mistrovstvi-v-drd/o-mistrovstvi-v-drd"><span>Mistrovství v DrD</span></a></li>
+<li style = "display: none;"><a href = "/mistrovstvi-v-drd/o-mistrovstvi-v-drd"><span>O Mistrovství v DrD</span></a></li>
+<li style = "display: none;"><a href = "/mistrovstvi-v-drd/prihlaska-na-drd"><span>Přihláška na DrD</span></a></li>
+<li style = "display: none;"><a href = "/mistrovstvi-v-drd/navod---prihlaseni-na-drd"><span>Návod - přihlášení na DrD</span></a></li>
+<li style = "display: none;"><a href = "/mistrovstvi-v-drd/organizace-turnaje"><span>Organizace turnaje</span></a></li>
+<li style = "display: none;"><a href = "/mistrovstvi-v-drd/pravidla-pro-tvorbu-postav"><span>Pravidla pro tvorbu postav</span></a></li>
+<li style = "display: none;"><a href = "/mistrovstvi-v-drd/sluncesvit-cisarske-noviny"><span>Sluncesvit - císařské noviny</span></a></li>
+<li style = "display: none;"><a href = "/mistrovstvi-v-drd/informace-o-dobrodruzstvi"><span>Informace o dobrodružství</span></a></li>
+<li style = "display: none;"><a href = "/mistrovstvi-v-drd/starsi-dobrodruzstvi"><span>Starší dobrodružství</span></a></li>
+<li style = "display: none;"><a href = "/mistrovstvi-v-drd/panove-jeskyne"><span>Pánové Jeskyně</span></a></li>
+<li style = "display: none;"><a href = "/mistrovstvi-v-drd/sin-slavy"><span>Síň slávy</span></a></li>
+<li style = "display: none;"><a href = "/dilny/o-dilnach-na-gc"><span>O dílnách na GC</span></a></li>
+<li style = "display: none;"><a href = "/dilny/archiv-dilny-2008"><span>Archiv dílny 2008</span></a></li>
+<li style = "display: list-item;"><a href = "/forum"><span>Fórum</span></a></li>
+<li style = "display: list-item;"><a href = "/galerie-materialy/materialy-2010"><span>Galerie, materiály</span></a></li>
+<li style = "display: none;"><a href = "/galerie-materialy/materialy-2010"><span>Materiály 2010</span></a></li>
+<li style = "display: none;"><a href = "/galerie-materialy/materialy-2009"><span>Materiály 2009</span></a></li>
+<li style = "display: none;"><a href = "/galerie-materialy/fotosoutez-2009"><span>Fotosoutěž 2009</span></a></li>
+<li style = "display: none;"><a href = "/galerie-materialy/fotogalerie-gamecon09"><span>Fotogalerie GameCon09</span></a></li>
+<li style = "display: none;"><a href = "/galerie-materialy/fotogalerie-gamecon08"><span>Fotogalerie GameCon08</span></a></li>
+<li style = "display: none;"><a href = "/galerie-materialy/dalsi-partneri-zajimave-odkazy"><span>Další partneři, zajímavé odkazy</span></a></li>
+<li style = "display: list-item;"><a href = "/organizatori/organizacni-tym"><span>Organizátoři</span></a></li>
+<li style = "display: none;"><a href = "/organizatori/organizacni-tym"><span>Organizační tým</span></a></li>
+<li style = "display: none;"><a href = "/organizatori/pjove"><span>PJové</span></a></li>
+<li style = "display: none;"><a href = "/organizatori/vypraveci"><span>Vypravěči</span></a></li>
+<li style = "display: none;"><a href = "/organizatori/organizatori-larpu"><span>Organizátoři larpů</span></a></li>
+<li style = "display: none;"><a href = "/organizatori/prednasejici"><span>Přednášející</span></a></li>
+<li style = "display: none;"><a href = "/organizatori/organizatori-wargamingu"><span>Organizátoři wargamingu</span></a></li>
+<li style = "display: none;"><a href = "/organizatori/ostatni-organizatori"><span>Ostatní organizátoři</span></a></li>
+<li style = "display: none;"><a href = "/organizatori/jak-se-stat-organizatorem"><span>Jak se stát organizátorem</span></a></li>
+<li style = "display: list-item;"><a href = "/kontakt"><span>Kontakt</span></a></li>
+</ul><div class = "menu_konec"></div>
+      </div>
+      <div class = "horizonttop">
+        <a href = "http://www.gamecon.cz/">GameCon</a>  &raquo; <a href = "/novinky/novinky">Novinky</a> &raquo; <a href = "/novinky/novinky">Novinky</a>      </div>
+      <div class = "main">
+        <div class = "main-top"></div>
+  <div class = "main-middle">
+    <div class = "main-middle-in">
+<h1>Novinky</h1><h2>31.5.2010</h2>
+
+<h3>ČTVRTÉ číslo Sluncesvitu je na světě</h3>
+
+<p>
+Ano. Dnes již od 12.00 je na světě nový díl plátku, který Vás provází zákulisím letošního dobrodružství Mistrovství v DrD. <a href="http://www.gamecon.cz/download/noviny/sluncesvit-04.pdf">Přečtěte si</a>, co nového se událo v Slunečním císařství.
+</p>
+<h2>30.5.2010</h2>
+
+<h3>Mistrovství v DrD</h3>
+
+<p>
+Od zítřejší půlnoci (to je ta mezi 31.5. a 1.6.) si můžete vybírat svého PJ pro Mistrovství v DrD. Aktuální seznam PJů naleznete <a href = "http://www.gamecon.cz/organizatori/pjove">ZDE</a>. </p>
+<p>
+Zároveň si můžete již nyní přečíst <a href = "http://www.gamecon.cz/mistrovstvi-v-drd/informace-o-dobrodruzstvi">rozsáhlý článek o Slunečném císařství</a>, kde se bude letošní dobrodružství odehrávat.
+</p><h2>25.5.2010</h2>
+<h3>Program 2010</h3>
+GameCon se rychle blíží a my vám přinášíme zveřejněnou první část programu <a href = "/rpg/o-rpg-na-gc">RPG</a>, <a href = "/larp/o-larpech-na-gc">Larpy</a> a <a href = "/prednasky/o-prednaskach-na-gc">Přednášky</a>. Další položky budou už jen a jen přibývat, máte se letos na co těšit!<h2>24.5.2010</h2>
+
+<h3>GameCon na webu Facebook</h3>
+
+<p>
+Na základě Vašich četných přání, jsme se rozhodli Vám vyhovět a na webu FB vytvořit <a href = "http://www.facebook.com/gamecon">vlastní stránku</a>. 
+Najdete na ní takové informace ze zákulisí, kterými nechceme zahltit oficiální stránky.</p>
+<p>Věříme, že Vám tento počin přijde k duhu.</p>
+
+<h3>Jsme mistři!</h3>
+<p>I takový titulek se objevil v novém vydání <a href = "/mistrovstvi-v-drd/sluncesvit-cisarske-noviny">císařských novin</a>. Přečtěte si, jaký těžký turnaj mají císařští za sebou a čím vším si prošli. Jako bonus pár šprýmů navrch.
+</p><h2>18.5.2010</h2>
+
+<h3>Další vydání Sluncesvitu v oběhu</h3>
+
+<p>
+Podařilo se nám ukořistit starší vydání Sluncesvitu s článkem o mořských pannách, který by vás mohl zajímat. Zároveň se můžete něco dozvědět o dechberoucím odhalení z Kraje u sedmi jezer. Račte pokračovat <a href = "/mistrovstvi-v-drd/sluncesvit-cisarske-noviny">na stránky Sluncesvitu</a>.
+</p><h2>9.5.2010</h2>
+<h3>Registrace na GameCon 2010 spuštěny!</h3>
+<p><br />
+  Dnes jsme spustili <strong>registraci na GameCon 2010</strong>. Neváhejte a přihlašte se - bude to stát za to.
+</p>
+<p>
+  Pro snazší orientaci v registracích jsme pro vás také připravili <a href = "/gamecon/prehled-registrace">souhrnný přehled</a>, kde se můžete ujistit, jak jste na tom s přihláškami na jednotlivé aktivity.
+</p>
+<p>
+  V průběhu dalších dnů a týdnů budeme přidávat aktivity a upřesňovat program, proto web nezapomínejte sledovat. Podrobněji o novinkách letošního ročníku se můžete dočíst na stránce <a href = "/gamecon/o-gameconu#novinky">O GameConu</a>.
+</p>
+<p>
+  <strong>Těšíme se na shledání v České Třebové!</strong>
+</p><h2>8.5.2010</h2>
+
+<h3>GameCon 2010 se blíží</h3>
+
+<p><br />
+<strong>15.-18.7.2010</strong> se v <strong>České Třebové</strong> uskuteční GameCon a my vás na něj srdečně zveme. A protože se toto setkání odehraje již za nějaké dva měsíce, je na čase, abychom vás informovali o novinkách, které jsme pro vás na tento rok připravili.
+</p>
+
+<p>
+Nevýraznější změnou je určitě přesun do České Třebové. V této souvislosti máme pro vás ale jen samé dobré zprávy:
+<ul>
+<li>všechny aktivity tak budou pod jednou střechou,</li>
+<li><a href = "/deskove-hry/deskoherna">deskoherna</a> bude ve velkém, prostorném sále a hlavně je dobře větratelná,</li>
+<li>podařilo se nám vyjednat <a href = "/gamecon/ubytovani">levnější ubytování</a>, zaplatíte jen 170 Kč (oproti loňským dvěma stovkám, takže za tři noci nakonec ušetříte téměř stokorunu),</li>
+<li>pro dobrodružné zájemce bude možnost <a href = "/gamecon/ubytovani">spát hromadně ve třídě</a> ve vlastním spacáku.</li>
+</ul>
+</p>
+
+<p>To byly doposud jen novinky ve spojitosti s novým městem, na následujících řádcích vás čeká nášup dalších zlepšení, která jsme pro vás připravili:
+<ul>
+<li><strong>poprvé</strong> bude <strong>celý GameCon v duchu nějakého tématu</strong>, tentokrát to bude <strong>exodus</strong> a spíše než vyhnání z ráje to bude jeho hledání. Těšte se na spoustu zábavy s tím spojené, brzy vás budeme informovat podrobněji.</li>
+<li><a href = "/mistrovstvi-v-drd/o-mistrovstvi-v-drd">Mistrovství v Dračím doupěti</a> jsme okořenili o pár bonusů pro vás. O těch vám bližší informace řekneme později, ale již nyní můžete prozkoumávat <a href = "/mistrovstvi-v-drd/sluncesvit-cisarske-noviny">první indície dobrodružství</a>, kterými vás budeme zásobit <strong>každý týden</strong>.</li>
+<li><a href = "/gamecon-trojboj/o-gamecon-trojboji">Trojboj</a> bude trvat <strong>jen jeden herní blok</strong>, je o to lákavější pustit se do této akce "tři v jednom".</li>
+<li>V bitvě miniaturních armád vás čeká <a href = "/wargaming/wargaming-tour-2010">Wargaming Tour 2010</a>, <strong>Špína</strong> se ponese ve znamení "osídlení nového města" a <strong>gobliní ponorky</strong> budou bojovat o nová naleziště.</li>
+<li>A velké překvapení na konec: na sobotní večer pro vás připravujeme <strong>hromadné klání v duchu televizních soutěží</strong>.</li>
+</ul>
+</p>
+
+<p>Toliko stručný soupis, chcete-li vědět více, klikejte na podstránky jednotlivých akcí nebo se podívejte na <a href = "/gamecon/o-gameconu#novinky">podrobnější celkový souhrn</a>.</p>
+
+<p>
+<strong>GameCon 2010 je za dveřmi a těšíme se, že na něm všichni sejdeme.</strong><br />
+</p><p><a href="/novinky/archiv-novinek">Archiv starších novinek</a></p>
+    </div>
+  </div>
+<div class = "main-bottom"><br /></div>
+      </div>
+      <div class = "side">
+        
+  <div class = "nadpis">RPG 2010</div>
+  <div class = "obsah">
+    <div class = "ram">
+      <a href = "/rpg/cold-city-1950" title = "Cold City: 1950"><img src = "/system_styly/side/cold-city-1950.gif" /></a>
+    </div>
+  </div>
+  <div class = "nadpis">Přednášky & Dílny 2010</div>
+  <div class = "obsah">
+    <div class = "ram">
+      <a href = "/prednasky/role-playing-neni-pro-stary" title = "Role-playing není pro starý!"><img src = "/system_styly/side/role-playing-neni-pro-stary.gif" /></a>
+    </div>
+  </div>
+  <div class = "nadpis">LARP 2010</div>
+  <div class = "obsah">
+    <div class = "ram">
+      <a href = "/bonusy/spina-2010" title = "Špína (2010)"><img src = "/system_styly/side/spina-2010.gif" /></a>
+    </div>
+  </div>
+
+      </div>
+      <!--<div class = "horizontbottom">
+        horizont bottom
+      </div>-->
+      <div class = "paticka">
+        <div class = "sponzori_ohraniceni" style = "margin-bottom: 0px; height: 20px;">Naši partneři</div>
+<div class = "sponzori_ohraniceni">
+  <div class = "sponzor" style = "width: 50px;">
+    <a href=" http://www.altar.cz/" onclick = "window.open(this.href,'_blank'); return false" title="Altar"><img src = "/system_styly/sponzori/altar.gif"></a>
+  </div>
+  <div class = "sponzor">
+    <a href=" http://www.fantasyobchod.cz/" onclick = "window.open(this.href,'_blank'); return false" title="Fantasy obchod"><img src = "/system_styly/sponzori/fantasy_obchod.gif"></a>
+  </div>
+  <div class = "sponzor">
+    <a href=" http://www.zazitky.cz/" onclick = "window.open(this.href,'_blank'); return false" title="Zážitky jako dokonalé dárky"><img src = "/system_styly/sponzori/zazitky.gif"></a>
+    <a href=" http://www.zazitky.cz/zazitkove-hry/" onclick = "window.open(this.href,'_blank'); return false" title="Zážitkové hry">Zážitkové hry</a>
+  </div>
+  <div class = "sponzor">
+    <a href=" http://www.albi.cz/" onclick = "window.open(this.href,'_blank'); return false" title="Albi"><img src = "/system_styly/sponzori/albi.png"></a>
+  </div>
+  <div class = "sponzor" style = "height: 30px;">
+    <a href=" http://www.mindok.cz/" onclick = "window.open(this.href,'_blank'); return false" title="Mindok"><img src = "/system_styly/sponzori/mindok.gif"></a>
+  </div>
+</div>
+      </div>
+    </div>
+  
+  </body>
+</html>
+  

@@ -1,1 +1,0 @@
-export { ObchodNastaveni } from './app'

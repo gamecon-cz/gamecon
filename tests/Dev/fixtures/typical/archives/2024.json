@@ -1,8 +1,0 @@
-{
-    "schema_version": 1,
-    "year": 2024,
-    "url": "https://2024.gamecon.cz/",
-    "image": "ghcr.io/gamecon-cz/gamecon:archive-2024-aaa0001",
-    "sha7": "aaa0001",
-    "deployed_at": "2026-05-21T19:43:11+02:00"
-}

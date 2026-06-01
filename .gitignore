@@ -1,59 +1,11 @@
-/_*
 
-/.idea/
-/.vscode/
-/.envrc
-/.mcp.json
+# Bordel složky
+/_*/
 
-/.phpunit.result.cache
-/.phpunit.cache
-/phpunit_log
-/phpunit.xml
-/phpstan.neon
-
-/test-results
-
-/cache/private/*
-!/cache/private/.htaccess
-/cache/public/*
-!/cache/public/.htaccess
-/logy/*
-!/logy/.htaccess
-/symfony/var/*
-/symfony/config/reference.php
-!/symfony/var/.htaccess
-
-/admin/*.sql.gz
-
-/web/soubory/obsah/**
-!/web/soubory/obsah/**/.gitignore
-!/web/soubory/blackarrow
-!/web/soubory/styl
-!/web/soubory/*.js
-!/web/soubory/ui
-/web/soubory/**/*.js.map
-!/web/soubory/systemove
-/web/soubory/systemove/*/*
-!/web/soubory/systemove/*/.gitkeep
-!/web/soubory/systemove/*/.htaccess
-*.map
-
-/nasad.log
-/.htdeployment
-
-# Generated at runtime by vytvorSouborSkrytehoNastaveniPodleEnv from env vars.
-# Contains decrypted DB creds & app secrets — must never be committed.
-/nastaveni/nastaveni-produkce.php
-/nastaveni/nastaveni-beta.php
-/nastaveni/nastaveni-preview.php
-
-/docker-compose.override.yml
-/.env
-
-###> symfony/framework-bundle ###
-/.env.local
-/.env.local.php
-/.env.*.local
-/symfony/config/secrets/prod/prod.decrypt.private.php
-/symfony/public/bundles/
-###< symfony/framework-bundle ###
+# Neverzované věci z webu
+/app/admin/files/logs/*
+/app/vendor/*
+/app/web/soubory/*
+!/app/web/soubory/styl
+!/app/web/soubory/*.js
+/spec/*

@@ -1,0 +1,124 @@
+      body {
+        background-image: url('/system_styly/pics_system_styl1/background.jpg');
+        background-repeat: repeat-x;
+        background-attachment: fixed;
+        font-family: Tahoma, "Lucida Grande CE", lucida, sans-serif;
+        font-size: 0.6em;
+        text-align: center;
+      }
+      h1 {
+        font-size: 150%;
+        text-align: left;
+        padding: 5px;
+        margin: 0px;
+        padding-left: 40px;
+        padding-top: 25px;
+      }
+      table {
+        border-top: none;
+        border-spacing: 0px;
+        margin: auto;
+        table-layout:fixed;
+      }
+      td {
+        width: 55px;
+        padding: 3px;
+        margin: 0px;
+        border-left: 1px solid #fff;
+        border-right: 1px solid #000;
+        border-top: 1px solid #fff;
+        border-bottom: 1px solid #000;
+        overflow: hidden;
+        font-weight: bold;
+        vertical-align: middle;
+        text-align: center;
+      }
+      
+      td a {
+        color: #ab0000;
+        text-decoration: none;
+        font-weight: normal;
+      }
+      
+      td a:hover {
+        text-decoration: underline;
+      }
+      
+      .program_radek0 {
+        background-color: #CAAE99;
+      }
+      .program_radek1 {
+        background-color: #D2C0B2;
+      }
+      
+      .program_casy {
+        background-image: url('/system_styly/pics_system_styl1/program-top.gif');
+        background-position: left top;
+        color:#fff;
+        font-weight: normal;
+        text-align: center;
+      }
+      
+      .program_casy2 {
+        background-image: url('/system_styly/pics_system_styl1/program-top.gif');
+        background-position: 50% top;
+        color:#fff;
+        font-weight: normal;
+        text-align: center;
+      }
+      .program_casy3 {
+        background-image: url('/system_styly/pics_system_styl1/program-top.gif');
+        background-position: right top;
+        color:#fff;
+        font-weight: normal;
+        text-align: center;
+        border-right: none;
+      }
+      
+      .pozadi {
+        width: 1220px;
+        margin: auto;
+      }
+      .pozadi .top {
+        width: 1220px;
+        background-image: url('/system_styly/pics_system_styl1/prg_top.gif');
+        height: 17px;
+        background-repeat: no-repeat;
+        float: left;
+      }
+      .pozadi .bottom {
+        width: 1220px;
+        background-image: url('/system_styly/pics_system_styl1/prg_bottom.gif');
+        height: 9px;
+        background-repeat: no-repeat;
+        float: left;
+      }
+      .pozadi .opakovane {
+        width: 1220px;
+        background-image: url('/system_styly/pics_system_styl1/prg_repeat.gif');
+        background-repeat: repeat-y;
+        float: left;
+      }
+      .pozadi .neopakovane {
+        width: 1220px;
+        background-image: url('/system_styly/pics_system_styl1/prg_norepeat.jpg');
+        background-repeat: no-repeat;
+        min-height: 817px;
+        float: left;
+      }
+      .gamecoruny {
+        float: right;
+        font-size: 130%;
+        padding-right: 100px;
+      }
+      .program_vnitrek_prihlasen {
+        color: #0000ab;
+      }
+      
+      .program_vnitrek_prihlasen a{
+        color: #0000ab;
+      }
+      
+      .program_vnitrek a{
+        color: #000;
+      }

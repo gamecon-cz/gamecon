@@ -1,0 +1,551 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="cs" lang="cs">
+
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <link rel="stylesheet" type="text/css" href="/system_styly/styl1.css" media="all" /> 
+    
+    <!--  lightbox začátek //-->
+    <script type="text/javascript" src="/lightbox/js/prototype.js"></script>
+    <script type="text/javascript" src="/lightbox/js/scriptaculous.js?load=effects,builder"></script>
+    <script type="text/javascript" src="/lightbox/js/lightbox.js"></script>
+    <link rel="stylesheet" href="/lightbox/css/lightbox.css" type="text/css" media="screen" />
+    <!--  lightbox konec //-->
+    <!--  java otevirani a ankety začátek //-->
+    <script type="text/javascript" src="/java.js"></script>
+    <!--  java otevirani a ankety konec //-->
+    
+    <title>
+      GameCon - Dobrodružství 2009    </title>
+    <meta name="keywords" content="KW" />
+    <meta name="description" content="DS" />
+    
+    
+    
+  </head>
+  <body>
+    <div class = "ohraniceni">
+      <div class = "search">
+        <div class = "bok-top2">
+  <form action = "/vyhledavani" method = "post">
+    <input type = "text" value = "GameCon" name = "fraze" class = "edt_login" style = "width: 140px;" onclick="this.value=''"; />
+    <input type="image" src="/system_styly/pics_system_styl1/tlacitka/hledat_maly.gif" value="Submit" alt="přihlásit" style = "width: 50px; height: 18px;" />
+  </form>
+</div>
+      </div>
+      <div class = "logo">
+        <a href = "http://www.gamecon.cz/gamecon/o-gameconu" style = "width: 100%; height: 100%; display: block;"><span style = "visibility: hidden;">Gamecon - O GameConu</span></a>
+      
+      </div>
+      <div class = "login">
+        <div class = "bok-top2">
+    <form action = "/novinky" method = "post">
+      <input type = "hidden" name = "prihlaseni" value = "1" />
+    <input name = "login" type = "text" class = "edt_login" value = 
+    "login" style = "width: 70px;" 
+     onclick="this.value=''";
+       />
+    <input name = "heslo" type = "password" class = "edt_login" value = "heslo" style = "width: 75px;" onclick="this.value=''"; />
+    <input type="image" src="/system_styly/pics_system_styl1/tlacitka/prihlasit_maly.gif" value="Submit" alt="přihlásit" style = "width: 50px; height: 18px;" />
+  </form>
+  <form action = "" method = "post" id = "registrace">
+  <input type = "hidden" name = "registrace" value = "1"/>
+  </form>
+  <form action = "" method = "post" id="zapomenute_heslo">
+  <input type = "hidden" name = "zapomenute_heslo" value = "1" />
+  </form>
+  <a href="javascript: document.getElementById('registrace').submit()">registrovat</a> - 
+  <a href="javascript: document.getElementById('zapomenute_heslo').submit()">zapomenuté heslo</a>
+</div>
+      </div>
+      <div class = "menuhorizont">
+        <ul>
+  <li><a href = "/gamecon/o-gameconu">GameCon</a></li>
+  <li><a href = "/mistrovstvi-v-drd/o-mistrovstvi-v-drd">Mistrovství v DrD</a></li>
+  <li><a href = "/rpg/o-rpg-na-gc">RPG</a></li>
+  <li><a href = "/larp/o-larpech-na-gc">LARP</a></li>
+  <li><a href = "/deskove-hry/o-deskovych-hrach-na-gc">Deskové hry</a></li>
+  <li><a href = "/prednasky/o-prednaskach-na-gc">Přednášky</a></li>
+  <li><a href = "/dilny/o-dilnach-na-gc">Dílny</a></li>
+  <li><a href = "/forum">Fórum</a></li>
+  <li><a href = "/galerie-materialy/fotogalerie-gamecon09">Fotogalerie</a></li>
+  <li><a href = "/organizatori/organizacni-tym">Organizátoři</a></li>
+  <li><a href = "/kontakt">Kontakt</a></li>
+</ul>
+      </div>
+      <div class = "menu">
+        <div class = "menu_zacatek"></div><ul>
+<li style = "display: list-item;"><a href = "/novinky"><span>Novinky</span></a></li>
+<li style = "display: list-item;"><a href = "/souteze"><span>Soutěže</span></a></li>
+<li style = "display: list-item;"><a href = "/fotosoutez"><span>Fotosoutěž</span></a></li>
+<li style = "display: list-item;"><a href = "/gamecon/o-gameconu"><span>GameCon</span></a></li>
+<li style = "display: none;"><a href = "/gamecon/o-gameconu"><span>O GameConu</span></a></li>
+<li style = "display: none;"><a href = "/gamecon/program"><span>Program</span></a></li>
+<li style = "display: none;"><a href = "/gamecon/cenik"><span>Ceník</span></a></li>
+<li style = "display: none;"><a href = "/gamecon/ubytovani"><span>Ubytování</span></a></li>
+<li style = "display: none;"><a href = "/gamecon/cajovna"><span>Čajovna</span></a></li>
+<li style = "display: none;"><a href = "/gamecon/kde-se-gamecon-kona"><span>Kde se GameCon koná a cesta na něj</span></a></li>
+<li style = "display: none;"><a href = "/gamecon/napsali-o-nas"><span>Napsali o nás</span></a></li>
+<li style = "display: list-item;"><a href = "/gamecon-trojboj/o-gamecon-trojboji"><span>GameCon Trojboj</span></a></li>
+<li style = "display: none;"><a href = "/gamecon-trojboj/o-gamecon-trojboji"><span>O GameCon Trojboji</span></a></li>
+<li style = "display: none;"><a href = "/o-gamecon-trojboji/mexicky-pat"><span>GC Trojboj - Mexický pat</span></a></li>
+<li style = "display: none;"><a href = "/gamecon-trojboj/space-alert"><span>GC Trojboj - Space Alert</span></a></li>
+<li style = "display: none;"><a href = "/gamecon-trojboj/gc-trojboj---sifrovacka"><span>GC Trojboj - Šifrovačka</span></a></li>
+<li style = "display: list-item;" class = "aktivni"><a href = "/mistrovstvi-v-drd/o-mistrovstvi-v-drd"><span>Mistrovství v DrD</span></a></li>
+<div class = "menu_zacatek"></div><ul>
+<li style = "display: list-item;"><a href = "/mistrovstvi-v-drd/o-mistrovstvi-v-drd"><span>O Mistrovství v DrD</span></a></li>
+<li style = "display: list-item;"><a href = "/mistrovstvi-v-drd/organizace-turnaje"><span>Organizace turnaje</span></a></li>
+<li style = "display: list-item;" class = "aktivni"><a href = "/mistrovstvi-v-drd/dobrodruzstvi-2009"><span>Dobrodružství 2009</span></a></li>
+<li style = "display: list-item;"><a href = "/mistrovstvi-v-drd/pravidla-pro-tvorbu-postav"><span>Pravidla pro tvorbu postav</span></a></li>
+<li style = "display: list-item;"><a href = "/mistrovstvi-v-drd/postavy-pro-letosni-dobrodruzstvi"><span>Postavy pro letošní dobrodružství</span></a></li>
+<li style = "display: list-item;"><a href = "/mistrovstvi-v-drd/starsi-dobrodruzstvi"><span>Starší dobrodružství</span></a></li>
+<li style = "display: list-item;"><a href = "/mistrovstvi-v-drd/panove-jeskyne"><span>Pánové Jeskyně</span></a></li>
+<li style = "display: list-item;"><a href = "/mistrovstvi-v-drd/sin-slavy"><span>Síň slávy</span></a></li>
+</ul><div class = "menu_konec"></div>
+<li style = "display: list-item;"><a href = "/rpg/o-rpg-na-gc"><span>RPG</span></a></li>
+<li style = "display: none;"><a href = "/rpg/o-rpg-na-gc"><span>O RPG na GC</span></a></li>
+<li style = "display: none;"><a href = "/rpg/co-jsou-to-rpg-hry"><span>Co jsou to RPG hry?</span></a></li>
+<li style = "display: none;"><a href = "/rpg/call-of-cthulhu"><span>Call of Cthulhu</span></a></li>
+<li style = "display: none;"><a href = "/rpg/dnd-4e---stribrna-jeskyne-almi"><span>DnD 4E - Stříbrné jeskyně (Almi)</span></a></li>
+<li style = "display: none;"><a href = "/rpg/dogs-in-the-vineyard"><span>Dogs in the Vineyard</span></a></li>
+<li style = "display: none;"><a href = "/rpg/draci-doupe---koruna-vitezstvi"><span>Dračí Doupě - Koruna vítězství</span></a></li>
+<li style = "display: none;"><a href = "/rpg/draci-doupe---putovani-s-conanem"><span>Dračí Doupě - Putování s Conanem</span></a></li>
+<li style = "display: none;"><a href = "/rpg/pohane-dobrodruzstvi-drd"><span>DrD+ - Pohané</span></a></li>
+<li style = "display: none;"><a href = "/rpg/drdasterion-----pevnost-stinu"><span>DrD+/Asterion  -  Pevnost Stínů</span></a></li>
+<li style = "display: none;"><a href = "/rpg/dread"><span>Dread</span></a></li>
+<li style = "display: none;"><a href = "/rpg/dungeons-and-dragons-4e"><span>Dungeons and Dragons 4E</span></a></li>
+<li style = "display: none;"><a href = "/rpg/fate---cesta-domu"><span>FATE - Cesta domů</span></a></li>
+<li style = "display: none;"><a href = "/rpg/mouse-guard"><span>Mouse Guard</span></a></li>
+<li style = "display: none;"><a href = "/rpg/og-unearthed-edition---velky-lov"><span>Og (Unearthed Edition) - Velký lov</span></a></li>
+<li style = "display: none;"><a href = "/rpg/pendragon---bolestiva-straz"><span>Pendragon - Bolestivá Stráž</span></a></li>
+<li style = "display: none;"><a href = "/rpg/poisond"><span>Poison'D</span></a></li>
+<li style = "display: none;"><a href = "/rpg/shadowrun---pomsta-mrtveho-maga"><span>Shadowrun - Pomsta mrtvého mága</span></a></li>
+<li style = "display: none;"><a href = "/rpg/star-wars-d6---jedi-academy"><span>Star Wars d6 - Jedi Academy</span></a></li>
+<li style = "display: none;"><a href = "/rpg/star-wars-d6---rytieri-starej-republiky"><span>Star Wars d6 - Rytieri Starej Republiky</span></a></li>
+<li style = "display: none;"><a href = "/rpg/stories-of-the-empire"><span>Stories of the Empire</span></a></li>
+<li style = "display: none;"><a href = "/rpg/strepy-snu-erric"><span>Střepy snů (Erric)</span></a></li>
+<li style = "display: none;"><a href = "/rpg/strepy-snu-peekay"><span>Střepy snů (Peekay)</span></a></li>
+<li style = "display: none;"><a href = "/rpg/vampire-the-masquerade"><span>Vampire: the Masquerade</span></a></li>
+<li style = "display: none;"><a href = "/rpg/world-of-darkness---stredoskolska-tradice"><span>World of Darkness - Středoškolská tradice</span></a></li>
+<li style = "display: none;"><a href = "/rpg/wushu-open---jeskyne-rudeho-draka"><span>Wushu (Open) - Jeskyně rudého draka</span></a></li>
+<li style = "display: none;"><a href = "/rpg/archiv-rpg-2008"><span>Archiv RPG 2008</span></a></li>
+<li style = "display: list-item;"><a href = "/larp/o-larpech-na-gc"><span>LARP</span></a></li>
+<li style = "display: none;"><a href = "/larp/o-larpech-na-gc"><span>O LARPech na GC</span></a></li>
+<li style = "display: none;"><a href = "/larp/cela"><span>Cela</span></a></li>
+<li style = "display: none;"><a href = "/larp/delegace-ankh-morpork"><span>Delegace: Ankh-Morpork</span></a></li>
+<li style = "display: none;"><a href = "/larp/chnapsni-vlajku"><span>Chňapsni vlajku!</span></a></li>
+<li style = "display: none;"><a href = "/larp/podraz"><span>Podraz</span></a></li>
+<li style = "display: none;"><a href = "/larp/rande"><span>Rande</span></a></li>
+<li style = "display: none;"><a href = "/larp/spina"><span>Špína</span></a></li>
+<li style = "display: none;"><a href = "/larp/archiv-larp-2008"><span>Archiv LARP 2008</span></a></li>
+<li style = "display: list-item;"><a href = "/wargaming/o-wargamingu-na-gc"><span>Wargaming</span></a></li>
+<li style = "display: none;"><a href = "/wargaming/o-wargamingu-na-gc"><span>O wargamingu na GC</span></a></li>
+<li style = "display: none;"><a href = "/wargaming/birds-of-prey"><span>Birds of Prey</span></a></li>
+<li style = "display: none;"><a href = "/wargaming/warhammer-demo-hrani"><span>Warhammer demo hraní</span></a></li>
+<li style = "display: none;"><a href = "/wargaming/warhammer---predvadeci-bitva"><span>Warhammer - předváděcí bitva</span></a></li>
+<li style = "display: none;"><a href = "/wargaming/warhammer-fantasy"><span>Warhammer Fantasy</span></a></li>
+<li style = "display: none;"><a href = "/wargaming/warhammer-40000"><span>Warhammer 40.000</span></a></li>
+<li style = "display: none;"><a href = "/wargaming/warhammer---rezervace-stolu"><span>Warhammer - rezervace stolu</span></a></li>
+<li style = "display: none;"><a href = "/wargaming/warhammer-a-rpg"><span>Warhammer a RPG</span></a></li>
+<li style = "display: none;"><a href = "/wargaming/figurky"><span>Figurky</span></a></li>
+<li style = "display: none;"><a href = "/wargaming/zaklady-modelareni"><span>Základy modelaření</span></a></li>
+<li style = "display: none;"><a href = "/wargaming/pokrocile-modelareni"><span>Pokročilé modelaření</span></a></li>
+<li style = "display: none;"><a href = "/wargaming/chaotit"><span>Chaotit</span></a></li>
+<li style = "display: list-item;"><a href = "/deskove-hry/o-deskovych-hrach-na-gc"><span>Deskové hry</span></a></li>
+<li style = "display: none;"><a href = "/deskove-hry/o-deskovych-hrach-na-gc"><span>O deskových hrách na GC</span></a></li>
+<li style = "display: none;"><a href = "/deskove-hry/non-stop-herna"><span>Non-stop herna</span></a></li>
+<li style = "display: none;"><a href = "/deskove-hry/ceny-pro-viteze-turnaju"><span>Ceny pro vítěze turnajů</span></a></li>
+<li style = "display: none;"><a href = "/deskove-hry/bang"><span>Bang!</span></a></li>
+<li style = "display: none;"><a href = "/deskove-hry/carcassonne"><span>Carcassonne</span></a></li>
+<li style = "display: none;"><a href = "/deskove-hry/galaxy-trucker"><span>Galaxy Trucker</span></a></li>
+<li style = "display: none;"><a href = "/deskove-hry/heckmeck"><span>Heckmeck</span></a></li>
+<li style = "display: none;"><a href = "/deskove-hry/jantaris"><span>Jantaris</span></a></li>
+<li style = "display: none;"><a href = "/deskove-hry/legie"><span>Legie</span></a></li>
+<li style = "display: none;"><a href = "/deskove-hry/osadnici-z-katanu"><span>Osadníci z Katanu</span></a></li>
+<li style = "display: none;"><a href = "/deskove-hry/proroctvi"><span>Proroctví - kvalifikační turnaj</span></a></li>
+<li style = "display: none;"><a href = "/deskove-hry/proroctvi---mistrovstvi-cr"><span>Proroctví - Mistrovství ČR</span></a></li>
+<li style = "display: none;"><a href = "/deskove-hry/theby"><span>Théby</span></a></li>
+<li style = "display: none;"><a href = "/deskove-hry/zelvi-zavody"><span>Želví závody</span></a></li>
+<li style = "display: list-item;"><a href = "/prednasky/o-prednaskach-na-gc"><span>Přednášky</span></a></li>
+<li style = "display: none;"><a href = "/prednasky/o-prednaskach-na-gc"><span>O přednáškách na GC</span></a></li>
+<li style = "display: none;"><a href = "/prednasky/prezentace-deskovych-her---altar"><span>Altar plánuje</span></a></li>
+<li style = "display: none;"><a href = "/prednasky/alternativni-storytelling-a-roleplaying"><span>Alternativní storytelling a roleplaying</span></a></li>
+<li style = "display: none;"><a href = "/prednasky/asterion--hranice-fantazie"><span>Asterion – Hranice fantazie</span></a></li>
+<li style = "display: none;"><a href = "/prednasky/baleni-na-conech"><span>Balení na conech</span></a></li>
+<li style = "display: none;"><a href = "/prednasky/budoucnost-gc"><span>Budoucnost GameConu</span></a></li>
+<li style = "display: none;"><a href = "/prednasky/drakkar--internetovy-casopis"><span>Drakkar – internetový časopis</span></a></li>
+<li style = "display: none;"><a href = "/prednasky/dungeons-and-dragons-4e"><span>Dungeons and Dragons 4E</span></a></li>
+<li style = "display: none;"><a href = "/prednasky/engel-d20"><span>Engel d20</span></a></li>
+<li style = "display: none;"><a href = "/prednasky/hlavni-role-pro-vas"><span>Hlavní role pro vás</span></a></li>
+<li style = "display: none;"><a href = "/prednasky/improvizovane-hrani"><span>Improvizované hraní RPG</span></a></li>
+<li style = "display: none;"><a href = "/prednasky/kalevala-v-rpg-a-fantasy"><span>Kalevala v RPG a fantasy</span></a></li>
+<li style = "display: none;"><a href = "/prednasky/komorni-larp---rpg-bez-kostek"><span>Komorní larp - RPG bez kostek</span></a></li>
+<li style = "display: none;"><a href = "/prednasky/prezentace-deskovych-her---albi"><span>Moderní deskové hry - Albi, CGE</span></a></li>
+<li style = "display: none;"><a href = "/prednasky/prezentace-deskovych-her---corfix"><span>Moderní deskové hry - Corfix</span></a></li>
+<li style = "display: none;"><a href = "/prednasky/napric-spektrem-rpg"><span>Napříč spektrem RPG</span></a></li>
+<li style = "display: none;"><a href = "/prednasky/netradicni-prezentace-her-jirasgames"><span>Netradiční prezentace her Jirasgames</span></a></li>
+<li style = "display: none;"><a href = "/prednasky/odmente-svojich-hracov"><span>Odmeňte svojich hráčov!</span></a></li>
+<li style = "display: none;"><a href = "/prednasky/pribeh-zaklad-zivota"><span>Příběh, základ života</span></a></li>
+<li style = "display: none;"><a href = "/prednasky/soucastnost-a-budoucnost-vydavani-her"><span>Součastnost a budoucnost vydávání her</span></a></li>
+<li style = "display: none;"><a href = "/prednasky/stories-of-the-empire"><span>Stories of the Empire</span></a></li>
+<li style = "display: none;"><a href = "/prednasky/strepy-snu-krest-knihy"><span>Střepy snů: Křest knihy</span></a></li>
+<li style = "display: none;"><a href = "/prednasky/strepy-snu-o-vyvoji"><span>Střepy snů: O vývoji</span></a></li>
+<li style = "display: none;"><a href = "/prednasky/taria-svet-pribehu-pribeh-sveta"><span>Taria: Svět příběhů, příběh světa</span></a></li>
+<li style = "display: none;"><a href = "/prednasky/tempo-a-obsah-hry-stylizace-scen"><span>Tempo a obsah hry, stylizace scén</span></a></li>
+<li style = "display: none;"><a href = "/prednasky/typologie-pribehu"><span>Typologie příběhů</span></a></li>
+<li style = "display: none;"><a href = "/prednasky/zahranicni-larpove-hity"><span>Zahraniční larpové hity</span></a></li>
+<li style = "display: none;"><a href = "/prednasky/archiv-prednasek-2008"><span>Archiv přednášek 2008</span></a></li>
+<li style = "display: list-item;"><a href = "/dilny/o-dilnach-na-gc"><span>Dílny</span></a></li>
+<li style = "display: none;"><a href = "/dilny/o-dilnach-na-gc"><span>O dílnách na GC</span></a></li>
+<li style = "display: none;"><a href = "/dilny/mrak---predstaveni-a-workshop"><span>Mrak - tvorba deskových her</span></a></li>
+<li style = "display: none;"><a href = "/dilny/spory-v-druzine-workshop"><span>Spory v družině (Workshop)</span></a></li>
+<li style = "display: none;"><a href = "/dilny/archiv-dilny-2008"><span>Archiv dílny 2008</span></a></li>
+<li style = "display: list-item;"><a href = "/forum"><span>Fórum</span></a></li>
+<li style = "display: list-item;"><a href = "/galerie-materialy/fotogalerie-gamecon09"><span>Galerie, materiály</span></a></li>
+<li style = "display: none;"><a href = "/galerie-materialy/fotogalerie-gamecon09"><span>Fotogalerie GameCon09</span></a></li>
+<li style = "display: none;"><a href = "/galerie-materialy/fotogalerie-gamecon08"><span>Fotogalerie GameCon08</span></a></li>
+<li style = "display: none;"><a href = "/galerie-materialy/materialy-2009"><span>Materiály 2009</span></a></li>
+<li style = "display: none;"><a href = "/galerie-materialy/dalsi-partneri-zajimave-odkazy"><span>Další partneři, zajímavé odkazy</span></a></li>
+<li style = "display: list-item;"><a href = "/organizatori/organizacni-tym"><span>Organizátoři</span></a></li>
+<li style = "display: none;"><a href = "/organizatori/organizacni-tym"><span>Organizační tým</span></a></li>
+<li style = "display: none;"><a href = "/organizatori/pjove"><span>PJové</span></a></li>
+<li style = "display: none;"><a href = "/organizatori/vypraveci"><span>Vypravěči</span></a></li>
+<li style = "display: none;"><a href = "/organizatori/organizatori-larpu"><span>Organizátoři larpů</span></a></li>
+<li style = "display: none;"><a href = "/organizatori/prednasejici"><span>Přednášející</span></a></li>
+<li style = "display: none;"><a href = "/organizatori/organizatori-wargamingu"><span>Organizátoři wargamingu</span></a></li>
+<li style = "display: none;"><a href = "/organizatori/ostatni-organizatori"><span>Ostatní organizátoři</span></a></li>
+<li style = "display: none;"><a href = "/organizatori/jak-se-stat-organizatorem"><span>Jak se stát organizátorem</span></a></li>
+<li style = "display: list-item;"><a href = "/kontakt"><span>Kontakt</span></a></li>
+</ul><div class = "menu_konec"></div>
+      </div>
+      <div class = "horizonttop">
+        <a href = "http://www.gamecon.cz/">GameCon</a>  &raquo; <a href = "/mistrovstvi-v-drd/o-mistrovstvi-v-drd">Mistrovství v DrD</a> &raquo; <a href = "/mistrovstvi-v-drd/dobrodruzstvi-2009">Dobrodružství 2009</a>      </div>
+      <div class = "main">
+        <div class = "main-top"></div>
+  <div class = "main-middle">
+    <div class = "main-middle-in">
+<h1 id="zpet">Dobrodružství 2009</h1>
+
+<p><strong>Dobrodružství "Nájezdníci" pro GameCon 2009 naleznete ke stažení v sekci "<a href = "/mistrovstvi-v-drd/starsi-dobrodruzstvi">Starší dobrodružství</a>"</strong></p>
+
+<h3><a href = "#prostredi">1. Prostředí dobrodružství I.</a></h3>
+<h3><a href = "#rasy">2. Rasy</a></h3>
+<h3><a href = "#povolani">3. Povolání</a></h3>
+<h3><a href = "#mytologie">4. Mytologie</a></h3>
+<h3><a href = "#prostredi2">5. Prostředí dobrodružství II.</a></h3>
+<h3><a href = "#uvod_do_dobrodruzstvi">6. Úvod do příběhu</a></h3>
+
+
+<h2 id="prostredi">1. Prostředí dobrodružství I.</h2> 
+<h3>Historie a současnost</h3>
+<p>Letošní dobrodružství bude trochu výjimečné, neboť je přímo inspirováno konkrétní historií. Mohlo by se odehrávat v paralelní historii našeho světa a kdo ví, zda se skutečně nestalo? Dobrodružství by se dalo zasadit do Wallesu či Skotska pátého až sedmého století našeho letopočtu. Seznámí vás s mytologií a prostředím raně středověkých Keltů.</p>  
+
+<p>Keltové byli ze střední a západní Evropy vytlačeni římskými legiemi a následně i vpádem Germánů. Odcházeli na severozápad přes moře do Velké Británie. Neuplynulo však ani několik staletí a zamířily tam za nimi germánské kmeny Anglů, Sasů a Jutů. Opět byli tlačeni na západ a sever – do Cornwallu, Walesu, Skotska a Irska. Pak už nebylo kam ustupovat. A ty největší dobyvačné výpravy - Vikingů a Angličanů - měly teprve přijít.  
+</p> 
+
+<p>Nacházíme se tedy v nelehké době. Daleko na slunném jihu se nachází kdysi nejmocnější impérium se svými dlážděnými náměstími, rovnými a dlouhými silnicemi, mramorovými paláci a cihlovými domy. Impérium právě prochází velkou krizí - vládnou zde krutí císařové, rozděluje se na dvě části a hroutí se pod nelítostnými nájezdy barbarů. Kolem tohoto impéria však existují jen kočovná kmenová společenství, jejichž členové bydlí ve srubech či chatrčích z větví. Lidé se živí, jak se dá – hlavně lovem, rybolovem a pastevectví, zemědělstvím jen výjimečně. Stěhování národů je v plném proudu a často dochází k nájezdům a drancování civilizovanějších oblastí. 
+</p>
+<h3>Prostředí a společnost</h3>
+<p>Vraťme se ale zpět na sever. Města a vesnice v takové podobě, jak je známe dnes tady nenajdete. Ty existují pouze na jihu,  stejně jako hrady a kamenné pevnosti. Obchoduje se především ve výměnné formě, peníze se moc nepoužívají. Cesty v dnešní podobě také neexistují – jsou to spíše pěší stezky, které nejsou přizpůsobeny ani povozům. Větší zboží je přepravováno po moři či řekách. Osady ležící na pobřeží či velkých řekách jsou bohatší a dá  se v nich také získat zboží, které jinde neseženete.
+</p>
+<p>Každé území spravuje vládce, který již není podřízený nikomu vyššímu. Budeme je trochu nepřesně nazývat králi, protože vhodnější výraz nemáme. Jsou to svrchovaní vládci, ale jejich království se rozlohou a významem nedají příliš srovnávat s královstvími z vrcholného středověku. Dnes už ani neznáme jejich názvy. Zachovala se pouze jména králů.
+</p>
+
+<h3>Druidové</h3>
+<p>Nejprestižnější sociální vrstvou jsou nepochybně druidové. Jsou to kněží, rádci králů, sudí, věštci i kouzelníci. Můžeme je rozdělit do tří skupin:
+</p>
+<ul>
+  <li>Bardové (fili – básníci) skládají písně, básně, modlitby k bohům, jsou to nositelé historie a bájí a umí hrát na v této době velmi vzácné hudební nástroje.</li>
+  <li>Vates jsou jasnovidci a věštci schopní vyčíst ze znamení a z obětí budoucnost. Nejvíc se podobají kněžím, jak je známe dnes.</li>
+  <li>Druidové – to slovo znamená vědoucí. Filosofové, vědci, znalci přírody a náboženští vůdcové. Nevíme o nich téměř nic, své tajemství si zachovali a zmizelo spolu s jejich moudrostí.</li>
+</ul>  
+
+<p>Studium druidství trvá až dvacet let a není pro každého. Magie druidů je založena hlavně na slovech – těmi dokáží ovlivnit počasí, svět kolem sebe nebo i mysl lidí či dokonce podlomit něčí zdraví.
+</p>
+ 
+<p>Zvláštní pozornosti se těší také hrdinové – i když ti existují spíše v bájích, nežli v reálném životě. Většina mužů se však dokáže slušně ohánět nějakou tou zbraní, což je v těchto dobách nutnost, chcete-li se dožít alespoň průměrného věku.  
+</p>
+<h3>Na závěr</h3>
+<p>Toto víme z historie, ale dobrodružství samotné se nebude držet historie a mytologie za každou cenu – to by se potom nedalo s pravidly Dračího doupěte hrát. Dobrodružství nebude prázdninovou zkouškou z dějepisu, neočekáváme od vás hluboké znalosti prostředí a historie a tak ani vy je, prosím, neočekávejte od našich Pánů jeskyně. Naopak, dobrodružství bude hrdinštější a magičtější, i když možná ne tolik, jako jiné ročníky.  
+</p>
+<p>To byl malý výlet do prostředí světa, ve kterém se bude odehrávat letošní dobrodružství. Na tento článek později volně naváže další, který se bude zabývat způsobem života. Příště se však můžete těšit na exkurzi do keltské mytologie.
+</p>
+
+<a href = "#zpet">Zpět nahoru</a><br />
+<br />
+
+<h2 id="rasy">2. Rasy</h2>
+<h3>Na úvod</h3>
+<p>Minule jsme avizovali, že toto povídání bude o mytologii. Nakonec jsme se to však rozhodli změnit, protože spuštění registrací se blíží a než si vytvoříte svoji turnajovou postavu, měli byste něco vědět o letošním pojetí ras a povolání.
+</p>
+<p>Jak již bylo řečeno, letošní dobrodružství  je koncipováno tak, jakoby se mohlo odehrávat v paralelním světě či v paralelní historii. Rasy z Dračího doupěte s tím však nejdou příliš dobře dohromady. Jak jsme se to tedy rozhodli vyřešit?
+</p>
+
+<h3>Pojetí ras</h3>
+<p>Pro tuto hru nebudou jiné rasy znamenat přímo rasy od člověka tak odlišné. Dokonce je nebudeme brát ani jako odlišné národy. Byli bychom rádi, kdybyste je protentokrát, v rámci tohoto dobrodružství, chápali jako jiné kmeny žijící na různých místech Britských ostrovů.
+</p>
+<p>Takže "elfové" budou skutečně vznešenější, obratnější, vzdělanější – a slabší – než je průměr, a budou mít trošku špičatější uši, ale jinak budou vypadat jako lidé. Stejně tak hobiti budou usedlejší, poživačnější, šikovnější a přátelštější, a obvykle též kulatější a menší, ale o mnoho více rozdílů nenajdete.
+</p>
+<p>Jen krollové stojí trochu bokem – jsou opravdu jiným národem, známí jako nájezdníci a dobyvatelé, jejichž útoky sužují většinu známého světa.
+</p>
+
+<h3>Hobiti z plání</h3>
+<p>Na většině Británie se rozkládají mírně zvlněné pláně – stepi. Kolem těch nemnoha řek jsou úrodné a na těch nejúrodnějších místech žije vzácný kmen hobitů. Mají výborný čich na kvalitu půdy, živí se totiž hlavně zemědělstvím. Jeho příslušníci jsou velcí gurmáni a kulináři; hostince, které provozují, jsou vyhlášené. Jsou pohodlní, přátelští, mají vytříbené smysly a často mívají nadváhu. Na zimu si dělají velké zásoby, a jen máloco je dostane z jejich vísky. Ale když už se tak stane, obvykle to stojí zato.
+</p>
+
+<h3>Kudůci z Wallesu</h3>
+<p>V rozsáhlých lesích a kopcích Wallesu žijí lidé hodně sepjatí s přírodou. Větších osad je tam jen několik, často žijí osamoceně. Kudůci samotní nedosahují kdovíjak velkého vzrůstu, ale zato jsou obratní a odolní. Dobře se vyznají v bylinkářství. 
+</p>
+
+<h3>Trpaslíci z Alby a Kaledonie</h3>
+<p>Na severu země se nachází velké a prastaré hory. Je to neúrodný a krutý kraj, notně ošlehaný neustávajícími větry ze severu. Studená léta, kruté zimy, kamenitá země. Zato hory skrývají železo i jiné kovy. Zdejší lidé nedosahují příliš velkého vzrůstu, ale o to jsou statnější. Žijí v malých kamenných domcích, které téměř splývají s okolními skalami a spousty času tráví v podzemních štolách. Jsou odolní a tvrdí jako země, z které pocházejí.
+</p>
+
+<h3>Elfové z Erinu</h3>
+<p>Zelený ostrov je krásnou zemí, plnou mlh, dešťů a bouří. Nachází se zde pláně a lesy, stejně jako hory a vysoké útesy. Zdejší  lidé jsou spíše útlí a slabší, ale vznešení a vzdělaní. Málokde bývá duha tak často jako zde, a čtyřlístky jim nosí štěstí.
+</p>
+
+<h3>Lidé z Plání</h3>
+<p>Lidé žijí ve větší či menší míře téměř všude. Nejvíce však na zvlněných pláních a stepích, ale daří se jim i kdekoliv jinde. Jsou takoví nevýrazní. Nejsou ani vysoce odolní, stejně tak nejsou nijak zvlášť silní či obratní, zato jsou ale schopní přizpůsobit se téměř všemu.
+</p>
+
+<h3>Barbaři z Hebrid a Cornwallu</h3>
+<p>Na skalnatých ostrovech Hebrid i na drsném pobřeží Cornwallu žije kmen barbarů. Přírodní podmínky se tady hodně podobají těm v horách Alby, ale není zde tolik skalisek, ačkoliv jsou stejně staré. Moře zde stále svádí svůj boj se zemí, a tak jsou dobrými plavci i námořníky. Drsný život je naučil vyžít z mála a umět dobře bojovat a postarat se o sebe. Jsou odolní a silní, i když někteří by o nich mohli říci, že jsou i škaredí a nevzdělaní.
+</p>
+
+<h3>Krollové z Orkney</h3>
+<p>Krollové jsou, na rozdíl od ostatních „ras“ popsaných výše, opravdu trochu odlišní . Jsou to nájezdníci a dobyvatelé. Žijí na Severních ostrovech – Orkneyích, a na dlouhých lodích připlouvají od severovýchodu přes moře. Jsou velicí, silní, škaredí a odolní – ale chudí po ostatních stránkách. I ve vaší zemi jich žije nezanedbatelné množství – obvykle jako důsledek útoků z moře. Život se s těmito syny bez otců příliš nemazlil a hodně lidí jim dává najevo, že je nevidí zrovna rádo. O to víc však oni nenávidí divoké krolly, nájezdníky. Kvůli tomu pro ně nebývá až tak nesnadné nalézt přátele.
+</p>
+
+<h3>Zvláštní schopnosti podle rasy</h3>
+<p>Díky této úpravě ras ovšem musíme pro toto dobrodružství omezit zvláštní schopnosti ras – hobití čich, trpasličí infravidění a krollí sluch proto nemohou existovat. Trpaslíci ale budou nadále vnímavější ve tmě, hobiti budou mít stále dokonalejší čich a krollové pak budou trochu vnímavější v periferním vidění a lépe vnímat pohyb nepřátel.
+</p>
+<p>Jiných změn rasy nedoznávají, tabulka vlastností, oprav i tříd velikostí zůstávají nezměněny.
+</p>
+<p>Můžeme vás však ubezpečit, že všechna tato omezení – utlumení rozdílů mezi rasami i historický kontext, se týkají zatím jen tohoto jednoho – patnáctého – ročníku GameConu.
+</p>
+
+<a href = "#zpet">Zpět nahoru</a><br />
+<br />
+
+
+<h2 id="povolani">3. Povolání</h2>
+<h3>Povolání</h3>
+<p>Když už byla řeč o tom, jak vypadají jednotlivé rasy, mohli bychom si povědět i něco o tom, jak jsou vnímána jednotlivá povolání. Opět se pokusíme spojit historické reálie i reálie Dračího doupěte a zkusíme oba světy propojit do sebe. Pro jednoduchost jsme zachovali tradiční označení z DrD. 
+</p>
+
+<h3>Válečník</h3>
+<p>Být válečníkem je poměrně výsadní povolání. Bojovat sice umí všichni muži a většina chlapců; lov je zábavou, společenskou událostí i zdrojem obživy. Ale být členem šlechtické družiny a živit se pouze bojem je téměř až výsadním právem. 
+</p>
+<p>Zkušení válečníci se pak zaměřují – obvykle dle své fyzické konstituce – na hrubou sílu, nebo na pilování bojové techniky.
+</p>
+
+<h3>Hraničář</h3>
+<p>Hraničáři jsou taktéž velmi ctěni. Několik hraničářů potřebuje každá osada, jsou to výborní lovci zvěře a stopaři. Zkušení hraničáři později zjistí, že vázat se na svoji rodnou vesnici jim může i překážet, když většinu života tráví v divočině.  Pak se z nich stávají potulní chodci – prochází krajem, spolu s bardy přináší zprávy odjinud, hlídají cesty a pomáhají pocestným. 
+</p>
+
+<h3>Druidové</h3>
+<p>Jednoznačně nejváženější  je ovšem kněžská vrstva druidů. Jsou nositeli moudrosti a znalostí. Někteří se starají hlavně o kontakt s přírodou – bohyní matkou (druidové), jiní o znalosti, vědomosti a věštění (theurgové), další se zabývají lidskou myslí (mágové) či praktickou magií všeobecně (kouzelníci, čarodějové). Tito jsou však spíše vzácní a nedávají své umění (zejména to s vizuálními a se zvukovými efekty) příliš najevo a dávají přednost rituálům, kterými dosahují snadněji téhož výsledku. (V praxi ponecháno zcela na posouzení hráče jak bude chtít svého „druida“ hrát.) 
+</p>
+<p>V případě druidů se tedy skutečnost od Dračího doupěte trochu liší , neboť  druidové pod sebe zahrnou i jiná povolání: druidy samotné, obě kouzelnická povolání – mága i čaroděje a nakonec také theurga.
+</p>
+
+<h3>Alchymista</h3>
+<p>Dále zde máme různé mastičkáře (zvané též alchymisty), schopné vyrobit kdeco, z nichž někteří dosahují pozoruhodných specializací a bývají zaměstnáni u vyšší šlechty. Pyroforové i alchymisté bez specializace jsou označováni jako alchymisté.
+</p>
+
+<h3>Zloděj</h3>
+<p>V neposlední řadě existují i zloději, lupiči a siccové. Více jich je převážně jen na jihu, kde najdete velká města spojená širokými cestami, na kterých číhají (lupiči). Jiní žijí jen ve větších městech nebo putují mezi městy či státy a jsou to diplomaté, vyslanci, průzkumníci a špehové (siccové). Tito lidé jsou tak pravděpodobně z vaší družiny jediní, kteří se podívali za hranice Britských ostrovů.
+</p>
+
+
+<a href = "#zpet">Zpět nahoru</a><br />
+<br />
+
+<h2 id="mytologie">4. Keltská mytologie</h2>
+
+<h3>Bohové</h3>
+<p>
+Náš příběh se bude odehrávat ještě před příchodem křesťanství. Keltové měli polyteistické náboženství. Bohů měli hodně, ale neměli jejich vazby a úlohy tak pevně svázané jako například Řekové. Nelze o některém z nich říci, že byl vyšší než jiný, nebo jej definovat třeba jako boha smrti. Působnost a moc jejich bohů byla na jednotlivých místech hodně odlišná. Někde považovali za hlavní tu bohyni, o jejíž existenci dvě stě kilometrů vzdálená osada neměla ani tušení. Někteří bohové či mýtické bytosti byly svázány s konkrétními místy. Mezi nejznámější bohy patřil Lugh – jasný bůh, Belen – bůh slunce, bohyně koní Epona, či Brigid, bohyně úrody.
+</p>
+<h3>Dualita</h3>
+<p>
+Neměli duální systém dobro versus zlo, jako je v křesťanství. Jejich vnímání světa bylo v mnohém jiné, než je naše. Nejvíc by se dalo přirovnat k tomu, co dnes známe jako ying a yang. Nový den pro ně nezačínal půlnocí či ránem. Začínal západem slunce. Noc byla tou, ze které se zrodil den. Podobně to bylo se začátkem nového roku, který byl vázaný na svátek samhain (naše dušičky na přelomu října a listopadu). Napřed byla tmavá, zimní polovina roku, která dala život období světla a tepla.
+</p>
+<h3>Keltské svátky</h3>
+<p>
+Po samhainu následoval imbolc, který je dodnes zachovaný jako hromnice. Půlka zimy již byla pryč, světla přibývalo. Ze stáda se zabily ty kusy, které by se jara nedožily, nebo na které by nezbylo píce, a udělala se velká hostina. Následoval svátek jara beltene – konečné zahnání zimy pryč, příchod světlé a teplé poloviny roku. Stádo se omladilo (takže zase byla hostina) a vyhnalo se na pastvu, na kopcích se rozdělávaly ohně. Svátek dodnes přežil jako čarodějnice. Na přelomu července a srpna pak nastal lugnasadh – oslava sklizně. Rok byl zakončen samhainem, symbolickým příchodem zimy, tmy, svátkem, kdy bylo možné se setkat s dušemi zemřelých.
+</p>
+<h3>Jiný svět</h3>
+<p>
+Tak, jako Keltové měli dualitu časovou, měli dualitu i prostorovou. Když někdo zemřel, neodcházel do žádného nebe, pekla, do Valhally či Hádovy říše. Odcházel do „Jiného světa“. Tam žili po své smrti hrdinové, prostí lidé, ale také mýtické bytosti – čarodějnice či obři. Bardové z něj čerpali inspiraci a druidové moudrost. Z Jiného světa se do toho našeho dostávala skrze prameny voda. Hranice mezi oběma světy se daly překročit v magické časy – západ či východ slunce, skrze magická místa – jezera či prameny. Nejtenčí hranice mezi oběma světy byla právě o samhainu.
+</p>
+<h3>Hrdinové</h3>
+<p>
+Keltské báje jsou plné hrdinů, hrdinských skutků, neuvěřitelných setkání, velkých bojů a mýtických stvoření. Hrdinové se zde setkávají s bohy i s králi, občas zabloudí do vzdálených zemí či do Jiného světa a nachází prapodivné předměty.
+</p>
+
+<a href = "#zpet">Zpět nahoru</a><br />
+
+<h2 id="prostredi2">5. Prostředí dobrodružství II.</h2> 
+<h3>Spíše pravěk, nežli středověk</h3>
+<p>Dnešní fantasy se často odehrávají jakoby v dnešním světě, jen převlečeného do fantasy hávu. Města mají desítky tisíc obyvatel, skoro nikdo se neživí zemědělstvím, zato všichni obchodem či řemesly, na každé ulici je několik obchodů, hospod a řemeslníků, a velké množství lidí pracuje ve službách – poslíčci, válečníci, kouzelníci, špióni, kočí, sluhové, atd. Zatímco magie existuje, tak náboženství vlastně ne (a když, tak jen na oko). A každý člověk se na svět dívá velmi pragmaticky.
+</p>  
+<p>Tak přesně takový tento svět, v němž se bude odehrávat toto dobrodružství… nebude. Bude úplně jiný.
+</p> 
+<p>Nacházíme se tedy v nelehké době. Daleko na slunném jihu se nachází kdysi nejmocnější impérium se svými dlážděnými náměstími, rovnými a dlouhými silnicemi, mramorovými paláci a cihlovými domy. Impérium právě prochází velkou krizí - vládnou zde krutí císařové, rozděluje se na dvě části a hroutí se pod nelítostnými nájezdy barbarů. Kolem tohoto impéria však existují jen kočovná kmenová společenství, jejichž členové bydlí ve srubech či chatrčích z větví. Lidé se živí, jak se dá – hlavně lovem, rybolovem a pastevectví, zemědělstvím jen výjimečně. Stěhování národů je v plném proudu a často dochází k nájezdům a drancování civilizovanějších oblastí. 
+</p>
+<p>Dobrodružství se bude odehrávat v prostředí inspirovaným raným středověkem. Nenechte se mýlit oním slůvkem „středověkem“, to rané období se daleko spíše podobá pravěku.
+</p>
+<p>Jak – zjednodušeně – to ve Walesu v tomto období vypadá? Neexistují státy, města, ani kamenné hrady. Města ani kamenné hrady nebudou v Británii existovat ještě ani dalších 500 let. Neexistuje infrastrukrura – nejsou cesty, doly, peníze, obchodníci, ani hospody.
+</p>
+<p>Společnost není založena na feudálních principech (král na hradě spravující a ochraňující určité území a nevolníci, kterým ve spojení s církví vládne), ale na kmenovém řádu (matka, praotec či náčelník rodu, sněm dospělých mužů či rada starších).
+</p>
+<p>Nechceme to přehánět s podrobnými detaily. Vaše postavy sice nenajdou hospodu ani obchod, ale v každé vesnici vás nechá někdo přespat, když mu na oplátku třeba naštípáte dříví nebo jej podarujete králíkem uloveným během cesty. Peníze i králové budou, jenom nečekejte mnoho širokých cest, velkých měst a knihovnu na každém rohu.
+</p>
+
+<h3>Inspirace</h3>
+<p>Pokud si chcete lépe představit, jak prostředí a životní podmínky mohly vypadat, doporučuji se podívat na filmy jako Statečné srdce (pozor, odehrává se o 800 let později, ale pro představu stačí), Tristan a Isolda, či Král Artuš.
+</p>
+
+<h3>Život prostých lidí</h3>
+<p>Lidé žili v kmenových zřízeních v malých osadách. Když je hlad, náčelník řekne, a jde se na lov; když je nuda, náčelník řekne, a uspořádá se hrdinská výprava, při které se na nepřátelském a vzdáleném pobřeží vyrabuje pár vesnic.
+</p>
+<p>Příbytky tvoří chatrče postavené z tenčích kmínků, větví, hlíny a rákosu, nebo větší sruby ze silných kmenů. Uprostřed je ohniště, kouř odchází dírou ve stropě ze snopů rákosu. Dalo by se říci, že města neexistují, jsou jen vesnice. Velké osady mají opevnění z palisády a příkopu.
+</p>
+<p>Keltové se živí hlavně pastevectvím, zemědělství však také hraje výraznou složku. Jen pro něj nejsou všude ve Walesu dobré podmínky. Poklady se neměří ve špercích, ani ve zlatě, ale v obyčejnějším majetku. Např. ve stejném období u Piktů (žili ve Skotsku a na Orknejích) bylo znakem zámožnosti vlastnictví krávy či koně – ostatní měli jen vepře, ovce či kozy. Počítání majetku na „krávy“ pak probíhalo ještě celý středověk. 
+</p>
+<p>Důležitou roli v životě lidí hrají svátky, jako je třeba samhain. O beltenu se často uzavírají sňatky, pokud dotyční zjistí, že jim to spolu neklape, mohou se o tři měsíce později, na lughnasadh, nechat „rozvést“.
+</p>
+<p>Celý svět je divoký a barbarský, nejvíce zmůže hrubá síla, na sofistikované metody nejsou podmínky.
+</p>
+
+<h3>Trocha historie pro zájemce :-)</h3>
+<p>Velká Británie byla římskými legiemi dobývána v letech 43 – 75 našeho letopočtu. Římané asimilovali zdejší obyvatelstvo, ale ono zcela peřijalo jejich způsob života. Bylo postaveno několik měst v původním významu tohoto slova – s lázněmi, silnicemi, vodovody a amfiteátry, ale po odchodu Římanů tato města postupně pustla a zanikala. Poslední legie odešly roku 407. O dalším období se toho ví velice málo.
+</p>
+<p>Keltové poté žádný státní útvar nevytvořili (netvořili jej ani nikdy předtím). Jednotliví vládcové a kmeny bojovali v drobných potyčkách proti jiným místním vládcům a kmenům. Když o několik desetiletí později nastala postupná invaze germánských kmenů, nenarážela na příliš silný a organizovaný odpor.
+</p>
+<p>První významnější vpády kmenů Anglů a Sasů přišly v letech 450 a 451 a přišly z Dánska a severního Německa, ale první anglosaská království v Británii se zformovala až o sto let později. Krátce předtím nastává také doba krále Artuše, který sjednotil poslední zbytky Keltů v Cornwallu a Walesu a vedl proti Anglosasům (za jeden národ jsou kmeny Anglů, Sasů a Jutů označovány již od šestého století) vítězná tažení. Nájezdy Vikingů začaly až roku 793 a byli již vedeny proti anglosaským královstvím, nikoliv proti Keltům.
+</p>
+<p>Křesťanství bylo v Irsku přijato v průběhu pátého století a odtud se začalo šířit do Británie. Nebylo centralizováno do měst jako jinde v Evropě, protože zde žádná města neexistovala, ale do klášterů. Když si Anglosasové podmaňovali keltské obyvatelstvo (cca 450 – 500), to již tehdy bylo křestanské. Sami Anglosasové začali přijímat Křesťanství až po vyslání svatého Augustina v roce 596.
+</p>
+<p><strong>A kdy se v tomto zmatku odehrává naše dobrodružství?</strong> Poté, co římské legie odešly a Keltové byli opět svobodní; ale před tím, než se zde rozšířilo křesťanství, než přišli germánské kmeny a objevil se Artuš.
+</p>
+<p>V průběhu dobrodružství bude (teoreticky) možné setkat se s třemi jazyky: domorodou gaelštinou, latinou a germánštinou.
+</p>
+
+<h3>Zbroje - nepovinná úprava</h3>
+<p>Nejlepším brněním v této době, které mělo jen pár vyvolených, byla kroužková košile. Pokud budete chtít vytvořit pro svou hru věrnější atmosféru, můžete použít nepovinnou úpravu, která spočívá ve změně vzhledu a názvu zbrojí. Všechna ostatní pravidla (kvalita zbroje a kdo co podle toho může používat) se nemění.
+</p>
+<p>Nepovinná úprava tabulky zbrojí:
+</p>
+<ul>
+  <li><strong>žádné</strong> brnění - KZ 1</li>
+  <li><strong>prošívané</strong> brnění (dle pravidel vycpávané) - KZ 2</li>
+  <li><strong>vycpávané</strong> brnění (dle pravidel kožené) - KZ 3</li>
+  <li><strong>kožené</strong> brnění (dle pravidel šupinové) - KZ 4</li>
+  <li><strong>kožené brnění s železnými cvoky</strong> (dle pravidel kroužkové) - KZ 5</li>
+  <li><strong>šupinové</strong> brnění (dle pravidel plátové) - KZ 6</li>
+  <li><strong>kroužkové</strong> brnění (dle pravidel rytířská zbroj) - KZ 7</li>
+  <li><strong>štít</strong> - KZ +1</li>
+</ul> 
+<p>Tak například nejlepší brnění, jaké mohl doposud hraničář používat, je kroužková košile s KZ 5. Neznamená to, že v tomto dobrodsružství může používat kroužkovou košili z KZ 7; znamená to, že že nejlepší brnění, jaké může používat, je kožené brnění pobité železnými cvoky s KZ 5. Čísla se tedy nemění, jen se jinak jmenuje. 
+</p>
+
+<a href = "#zpet">Zpět nahoru</a><br />
+
+<h2 id="uvod_do_dobrodruzstvi">6. Úvod do příběhu</h2> 
+<p>Mění se čas, a s ním se mění i země.
+</p><p>
+Rozkvetlé louky, voňavé  kvítí, svěží zelená příroda či žluté  a červené listí – všechno je to pryč. Kvítí  uvadlo, tráva zhnědla, listí se zkroutilo a opadalo na zem. Blíží se samhain, čas, kdy živí vzpomínají na mrtvé.
+</p><p>
+Fialová vřesoviště v Caledonii již zapadala sněhem. Každý den fouká od severu studený vítr. Často prší, občas se do deště zamíchá i sníh. A cesta na jih pomalu ubývá.
+</p><p>
+Noc je každým dnem delší a delší, a už trvá mnohem déle, než den samotný. Vše pozdě vstává a brzy se ukládá ke spánku, i vy. Země se mění, přichází ta tmavší, magičtější část roku, ve které je dobré zavřít se doma a moc nevylézat ven. Brzy začne nový rok, který bude zpočátku tmavý a nepřívětivý, aby se z něj mohl na belten zrodit ten svěží, veselý a bujarý. Takový, jako byl tento.  
+</p><p>
+Belten. Letos jste jej slavili poblíž městečka Deva, pojmenovaném podle bohyně řeky Dee, když jste putovali na sever. Setkali jste se tam Connrou, spolubojovníkem ze začátků vašich výprav. Vyprávěl vám o tom, jak se oženil s krásnou a starostlivou Gwendybreth, o tom, jak se mu napřed narodila holčička Laidgwynn, která vyspěla do veliké krásy, teď je akorát tak na vdávání, a že má šikovného kluka Connilu, který po něm všechno zdědí, letos mu bylo deset zim. Vaše setkání to bylo bujaré, ale krátké, on se vracel domů do LLwyngwrillu, zatímco vy jste putovali na sever. Ale domluvili jste se, že až se budete za půl roku vracet zpátky na jih, stavíte se u něj v LLwyngwrillu a společně oslavíte svátek samhain.
+</p><p>
+Nyní již druhým měsícem putujete ze severních končin Kaledonie, kam vás zavedly vaše kroky, zpět na jih. Zimu hodláte přečkat v jednom malém městečku –  Gwyndabaru, kde již víte, že zimy bývají teplé  a máte tam příbuzné. Ale třeba tam ani nepojedete a zůstane s Connlou v LLwyngwrillu, třeba si do zimy stačíte postavit nějaký srub a sehnat jídlo na zimu, však ze severu nepřijíždíte s prázdnou.  Wales je krásné a prý i magické místo, zdejší vysoké kopce a hluboká údolí ostře kontrastují s plochou zemí na východě a je tu krásně. Však čas ukáže.
+</p><p>
+Dnes navečer jste dorazili k jezeru Tal Y Llyn, do kterého nevtéká žádný potok, ale přec z něj vytéká říčka, a podle toho jste poznali, že když si pohnete, ještě před započetím nového dne to stihnete do LLwyngwrillu. Vzali jste to raději zkratkou přes sedlo, než abyste to objížděli podél řeky Dysynni. Právě teď hledíte směrem k západu, jak tam slunce zapadá do moře, začíná nový den. Zbývá vám pět mil. Za světla to asi do Llyngwrilu nestihnete, ale nevadí.
+</p><p>
+Sjíždíte dolů a užíváte si nového dne. 
+</p>
+<a href = "#zpet">Zpět nahoru</a><br />
+    </div>
+  </div>
+<div class = "main-bottom"><br /></div>
+      </div>
+      <div class = "side">
+        
+  <div class = "nadpis">RPG</div>
+  <div class = "obsah">
+    <div class = "ram">
+      <a href = "/rpg/pohane-dobrodruzstvi-drd" title = "Pohané (Dobrodružství DrD+)"><img src = "/system_styly/side/pohane--dobrodruzstvi-drd-.jpg" /></a>
+    </div>
+  </div>
+  <div class = "nadpis">Wargaming</div>
+  <div class = "obsah">
+    <div class = "ram">
+      <a href = "/wargaming/birds-of-prey" title = "Birds of Prey"><img src = "/system_styly/side/birds-of-prey.gif" /></a>
+    </div>
+  </div>
+  <div class = "nadpis">Deskové hry</div>
+  <div class = "obsah">
+    <div class = "ram">
+      <a href = "/deskove-hry/bang" title = "Bang!"><img src = "/system_styly/side/bang-.jpg" /></a>
+    </div>
+  </div>
+  <div class = "nadpis">Přednášky & Dílny</div>
+  <div class = "obsah">
+    <div class = "ram">
+      <a href = "/prednasky/pribeh-zaklad-zivota" title = "Příběh, základ života"><img src = "/system_styly/side/pribeh--zaklad-zivota.gif" /></a>
+    </div>
+  </div>      </div>
+      <!--<div class = "horizontbottom">
+        horizont bottom
+      </div>-->
+      <div class = "paticka">
+        <div class = "sponzori_ohraniceni" style = "margin-bottom: 0px; height: 20px;">Naši partneři</div>
+<div class = "sponzori_ohraniceni">   
+  <div class = "sponzor">
+    <a href=" http://www.alza.cz/" onclick = "window.open(this.href,'_blank'); return false" title="Alza.cz"><img src = "/system_styly/sponzori/alza.gif"></a>
+  </div>
+  <div class = "sponzor">
+    <a href="http://www.knihcentrum.cz/" onclick = "window.open(this.href,'_blank'); return false" title="Knihcentrum.cz - Vaše rodinné knihkupectví"><img src = "/system_styly/sponzori/knihcentrum.gif"></a>
+  </div>
+  <div class = "sponzor" style = "width: 50px;">
+    <a href=" http://www.altar.cz/" onclick = "window.open(this.href,'_blank'); return false" title="Altar"><img src = "/system_styly/sponzori/altar.gif"></a>
+  </div>
+  <div class = "sponzor">
+    <a href=" http://www.albi.cz/" onclick = "window.open(this.href,'_blank'); return false" title="Albi"><img src = "/system_styly/sponzori/albi.png"></a>
+  </div>
+  <div class = "sponzor">
+    <a href=" http://www.corfix.cz/" onclick = "window.open(this.href,'_blank'); return false" title="Corfix"><img src = "/system_styly/sponzori/corfix.gif"></a>
+  </div>
+  <div class = "sponzor">
+    <a href=" http://www.fantasyobchod.cz/" onclick = "window.open(this.href,'_blank'); return false" title="Fantasy obchod"><img src = "/system_styly/sponzori/fantasy_obchod.gif"></a>
+  </div>
+  <div class = "sponzor">
+    <a href="http://www.toptopic.cz/" onclick = "window.open(this.href,'_blank'); return false" title="Top Topic"><img src = "/system_styly/sponzori/top-topic.gif"></a>
+  </div>
+  <div class = "sponzor">
+    <a href=" http://www.zazitky.cz/" onclick = "window.open(this.href,'_blank'); return false" title="Zážitky jako dokonalé dárky"><img src = "/system_styly/sponzori/zazitky.gif"></a>
+    <a href=" http://www.zazitky.cz/zazitkove-hry/" onclick = "window.open(this.href,'_blank'); return false" title="Zážitkové hry">Zážitkové hry</a>
+  </div>
+  <div class = "sponzor"> 
+    <div class = "sponzor" style = "height: 30px;">
+      <a href=" http://www.mindok.cz/" onclick = "window.open(this.href,'_blank'); return false" title="Mindok"><img src = "/system_styly/sponzori/mindok.gif"></a>
+    </div>
+    <div class = "sponzor"  style = "height: 40px;">
+      <a href=" http://www.czechgames.cz/" onclick = "window.open(this.href,'_blank'); return false" title="CGE"><img src = "/system_styly/sponzori/cge.gif"></a>
+    </div>
+  </div>
+</div>
+      </div>
+    </div>
+  
+  </body>
+</html>
+  

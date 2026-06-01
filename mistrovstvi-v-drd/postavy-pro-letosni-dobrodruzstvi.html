@@ -1,0 +1,678 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="cs" lang="cs">
+
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <link rel="stylesheet" type="text/css" href="/system_styly/styl1.css" media="all" /> 
+    
+    <!--  lightbox začátek //-->
+    <script type="text/javascript" src="/lightbox/js/prototype.js"></script>
+    <script type="text/javascript" src="/lightbox/js/scriptaculous.js?load=effects,builder"></script>
+    <script type="text/javascript" src="/lightbox/js/lightbox.js"></script>
+    <link rel="stylesheet" href="/lightbox/css/lightbox.css" type="text/css" media="screen" />
+    <!--  lightbox konec //-->
+    <!--  java otevirani a ankety začátek //-->
+    <script type="text/javascript" src="/java.js"></script>
+    <!--  java otevirani a ankety konec //-->
+    
+    <title>
+      GameCon - Postavy pro letošní dobrodružství    </title>
+    <meta name="keywords" content="KW" />
+    <meta name="description" content="DS" />
+    
+    
+    
+  </head>
+  <body>
+    <div class = "ohraniceni">
+      <div class = "search">
+        <div class = "bok-top2">
+  <form action = "/vyhledavani" method = "post">
+    <input type = "text" value = "GameCon" name = "fraze" class = "edt_login" style = "width: 140px;" onclick="this.value=''"; />
+    <input type="image" src="/system_styly/pics_system_styl1/tlacitka/hledat_maly.gif" value="Submit" alt="přihlásit" style = "width: 50px; height: 18px;" />
+  </form>
+</div>
+      </div>
+      <div class = "logo">
+        <a href = "http://www.gamecon.cz/gamecon/o-gameconu" style = "width: 100%; height: 100%; display: block;"><span style = "visibility: hidden;">Gamecon - O GameConu</span></a>
+      
+      </div>
+      <div class = "login">
+        <div class = "bok-top2">
+    <form action = "/novinky" method = "post">
+      <input type = "hidden" name = "prihlaseni" value = "1" />
+    <input name = "login" type = "text" class = "edt_login" value = 
+    "login" style = "width: 70px;" 
+     onclick="this.value=''";
+       />
+    <input name = "heslo" type = "password" class = "edt_login" value = "heslo" style = "width: 75px;" onclick="this.value=''"; />
+    <input type="image" src="/system_styly/pics_system_styl1/tlacitka/prihlasit_maly.gif" value="Submit" alt="přihlásit" style = "width: 50px; height: 18px;" />
+  </form>
+  <form action = "" method = "post" id = "registrace">
+  <input type = "hidden" name = "registrace" value = "1"/>
+  </form>
+  <form action = "" method = "post" id="zapomenute_heslo">
+  <input type = "hidden" name = "zapomenute_heslo" value = "1" />
+  </form>
+  <a href="javascript: document.getElementById('registrace').submit()">registrovat</a> - 
+  <a href="javascript: document.getElementById('zapomenute_heslo').submit()">zapomenuté heslo</a>
+</div>
+      </div>
+      <div class = "menuhorizont">
+        <ul>
+  <li><a href = "/gamecon/o-gameconu">GameCon</a></li>
+  <li><a href = "/mistrovstvi-v-drd/o-mistrovstvi-v-drd">Mistrovství v DrD</a></li>
+  <li><a href = "/rpg/o-rpg-na-gc">RPG</a></li>
+  <li><a href = "/larp/o-larpech-na-gc">LARP</a></li>
+  <li><a href = "/deskove-hry/o-deskovych-hrach-na-gc">Deskové hry</a></li>
+  <li><a href = "/prednasky/o-prednaskach-na-gc">Přednášky</a></li>
+  <li><a href = "/dilny/o-dilnach-na-gc">Dílny</a></li>
+  <li><a href = "/forum">Fórum</a></li>
+  <li><a href = "/galerie-materialy/fotogalerie-gamecon09">Fotogalerie</a></li>
+  <li><a href = "/organizatori/organizacni-tym">Organizátoři</a></li>
+  <li><a href = "/kontakt">Kontakt</a></li>
+</ul>
+      </div>
+      <div class = "menu">
+        <div class = "menu_zacatek"></div><ul>
+<li style = "display: list-item;"><a href = "/novinky"><span>Novinky</span></a></li>
+<li style = "display: list-item;"><a href = "/souteze"><span>Soutěže</span></a></li>
+<li style = "display: list-item;"><a href = "/fotosoutez"><span>Fotosoutěž</span></a></li>
+<li style = "display: list-item;"><a href = "/gamecon/o-gameconu"><span>GameCon</span></a></li>
+<li style = "display: none;"><a href = "/gamecon/o-gameconu"><span>O GameConu</span></a></li>
+<li style = "display: none;"><a href = "/gamecon/program"><span>Program</span></a></li>
+<li style = "display: none;"><a href = "/gamecon/cenik"><span>Ceník</span></a></li>
+<li style = "display: none;"><a href = "/gamecon/ubytovani"><span>Ubytování</span></a></li>
+<li style = "display: none;"><a href = "/gamecon/cajovna"><span>Čajovna</span></a></li>
+<li style = "display: none;"><a href = "/gamecon/kde-se-gamecon-kona"><span>Kde se GameCon koná a cesta na něj</span></a></li>
+<li style = "display: none;"><a href = "/gamecon/napsali-o-nas"><span>Napsali o nás</span></a></li>
+<li style = "display: list-item;"><a href = "/gamecon-trojboj/o-gamecon-trojboji"><span>GameCon Trojboj</span></a></li>
+<li style = "display: none;"><a href = "/gamecon-trojboj/o-gamecon-trojboji"><span>O GameCon Trojboji</span></a></li>
+<li style = "display: none;"><a href = "/o-gamecon-trojboji/mexicky-pat"><span>GC Trojboj - Mexický pat</span></a></li>
+<li style = "display: none;"><a href = "/gamecon-trojboj/space-alert"><span>GC Trojboj - Space Alert</span></a></li>
+<li style = "display: none;"><a href = "/gamecon-trojboj/gc-trojboj---sifrovacka"><span>GC Trojboj - Šifrovačka</span></a></li>
+<li style = "display: list-item;" class = "aktivni"><a href = "/mistrovstvi-v-drd/o-mistrovstvi-v-drd"><span>Mistrovství v DrD</span></a></li>
+<div class = "menu_zacatek"></div><ul>
+<li style = "display: list-item;"><a href = "/mistrovstvi-v-drd/o-mistrovstvi-v-drd"><span>O Mistrovství v DrD</span></a></li>
+<li style = "display: list-item;"><a href = "/mistrovstvi-v-drd/organizace-turnaje"><span>Organizace turnaje</span></a></li>
+<li style = "display: list-item;"><a href = "/mistrovstvi-v-drd/dobrodruzstvi-2009"><span>Dobrodružství 2009</span></a></li>
+<li style = "display: list-item;"><a href = "/mistrovstvi-v-drd/pravidla-pro-tvorbu-postav"><span>Pravidla pro tvorbu postav</span></a></li>
+<li style = "display: list-item;" class = "aktivni"><a href = "/mistrovstvi-v-drd/postavy-pro-letosni-dobrodruzstvi"><span>Postavy pro letošní dobrodružství</span></a></li>
+<li style = "display: list-item;"><a href = "/mistrovstvi-v-drd/starsi-dobrodruzstvi"><span>Starší dobrodružství</span></a></li>
+<li style = "display: list-item;"><a href = "/mistrovstvi-v-drd/panove-jeskyne"><span>Pánové Jeskyně</span></a></li>
+<li style = "display: list-item;"><a href = "/mistrovstvi-v-drd/sin-slavy"><span>Síň slávy</span></a></li>
+</ul><div class = "menu_konec"></div>
+<li style = "display: list-item;"><a href = "/rpg/o-rpg-na-gc"><span>RPG</span></a></li>
+<li style = "display: none;"><a href = "/rpg/o-rpg-na-gc"><span>O RPG na GC</span></a></li>
+<li style = "display: none;"><a href = "/rpg/co-jsou-to-rpg-hry"><span>Co jsou to RPG hry?</span></a></li>
+<li style = "display: none;"><a href = "/rpg/call-of-cthulhu"><span>Call of Cthulhu</span></a></li>
+<li style = "display: none;"><a href = "/rpg/dnd-4e---stribrna-jeskyne-almi"><span>DnD 4E - Stříbrné jeskyně (Almi)</span></a></li>
+<li style = "display: none;"><a href = "/rpg/dogs-in-the-vineyard"><span>Dogs in the Vineyard</span></a></li>
+<li style = "display: none;"><a href = "/rpg/draci-doupe---koruna-vitezstvi"><span>Dračí Doupě - Koruna vítězství</span></a></li>
+<li style = "display: none;"><a href = "/rpg/draci-doupe---putovani-s-conanem"><span>Dračí Doupě - Putování s Conanem</span></a></li>
+<li style = "display: none;"><a href = "/rpg/pohane-dobrodruzstvi-drd"><span>DrD+ - Pohané</span></a></li>
+<li style = "display: none;"><a href = "/rpg/drdasterion-----pevnost-stinu"><span>DrD+/Asterion  -  Pevnost Stínů</span></a></li>
+<li style = "display: none;"><a href = "/rpg/dread"><span>Dread</span></a></li>
+<li style = "display: none;"><a href = "/rpg/dungeons-and-dragons-4e"><span>Dungeons and Dragons 4E</span></a></li>
+<li style = "display: none;"><a href = "/rpg/fate---cesta-domu"><span>FATE - Cesta domů</span></a></li>
+<li style = "display: none;"><a href = "/rpg/mouse-guard"><span>Mouse Guard</span></a></li>
+<li style = "display: none;"><a href = "/rpg/og-unearthed-edition---velky-lov"><span>Og (Unearthed Edition) - Velký lov</span></a></li>
+<li style = "display: none;"><a href = "/rpg/pendragon---bolestiva-straz"><span>Pendragon - Bolestivá Stráž</span></a></li>
+<li style = "display: none;"><a href = "/rpg/poisond"><span>Poison'D</span></a></li>
+<li style = "display: none;"><a href = "/rpg/shadowrun---pomsta-mrtveho-maga"><span>Shadowrun - Pomsta mrtvého mága</span></a></li>
+<li style = "display: none;"><a href = "/rpg/star-wars-d6---jedi-academy"><span>Star Wars d6 - Jedi Academy</span></a></li>
+<li style = "display: none;"><a href = "/rpg/star-wars-d6---rytieri-starej-republiky"><span>Star Wars d6 - Rytieri Starej Republiky</span></a></li>
+<li style = "display: none;"><a href = "/rpg/stories-of-the-empire"><span>Stories of the Empire</span></a></li>
+<li style = "display: none;"><a href = "/rpg/strepy-snu-erric"><span>Střepy snů (Erric)</span></a></li>
+<li style = "display: none;"><a href = "/rpg/strepy-snu-peekay"><span>Střepy snů (Peekay)</span></a></li>
+<li style = "display: none;"><a href = "/rpg/vampire-the-masquerade"><span>Vampire: the Masquerade</span></a></li>
+<li style = "display: none;"><a href = "/rpg/world-of-darkness---stredoskolska-tradice"><span>World of Darkness - Středoškolská tradice</span></a></li>
+<li style = "display: none;"><a href = "/rpg/wushu-open---jeskyne-rudeho-draka"><span>Wushu (Open) - Jeskyně rudého draka</span></a></li>
+<li style = "display: none;"><a href = "/rpg/archiv-rpg-2008"><span>Archiv RPG 2008</span></a></li>
+<li style = "display: list-item;"><a href = "/larp/o-larpech-na-gc"><span>LARP</span></a></li>
+<li style = "display: none;"><a href = "/larp/o-larpech-na-gc"><span>O LARPech na GC</span></a></li>
+<li style = "display: none;"><a href = "/larp/cela"><span>Cela</span></a></li>
+<li style = "display: none;"><a href = "/larp/delegace-ankh-morpork"><span>Delegace: Ankh-Morpork</span></a></li>
+<li style = "display: none;"><a href = "/larp/chnapsni-vlajku"><span>Chňapsni vlajku!</span></a></li>
+<li style = "display: none;"><a href = "/larp/podraz"><span>Podraz</span></a></li>
+<li style = "display: none;"><a href = "/larp/rande"><span>Rande</span></a></li>
+<li style = "display: none;"><a href = "/larp/spina"><span>Špína</span></a></li>
+<li style = "display: none;"><a href = "/larp/archiv-larp-2008"><span>Archiv LARP 2008</span></a></li>
+<li style = "display: list-item;"><a href = "/wargaming/o-wargamingu-na-gc"><span>Wargaming</span></a></li>
+<li style = "display: none;"><a href = "/wargaming/o-wargamingu-na-gc"><span>O wargamingu na GC</span></a></li>
+<li style = "display: none;"><a href = "/wargaming/birds-of-prey"><span>Birds of Prey</span></a></li>
+<li style = "display: none;"><a href = "/wargaming/warhammer-demo-hrani"><span>Warhammer demo hraní</span></a></li>
+<li style = "display: none;"><a href = "/wargaming/warhammer---predvadeci-bitva"><span>Warhammer - předváděcí bitva</span></a></li>
+<li style = "display: none;"><a href = "/wargaming/warhammer-fantasy"><span>Warhammer Fantasy</span></a></li>
+<li style = "display: none;"><a href = "/wargaming/warhammer-40000"><span>Warhammer 40.000</span></a></li>
+<li style = "display: none;"><a href = "/wargaming/warhammer---rezervace-stolu"><span>Warhammer - rezervace stolu</span></a></li>
+<li style = "display: none;"><a href = "/wargaming/warhammer-a-rpg"><span>Warhammer a RPG</span></a></li>
+<li style = "display: none;"><a href = "/wargaming/figurky"><span>Figurky</span></a></li>
+<li style = "display: none;"><a href = "/wargaming/zaklady-modelareni"><span>Základy modelaření</span></a></li>
+<li style = "display: none;"><a href = "/wargaming/pokrocile-modelareni"><span>Pokročilé modelaření</span></a></li>
+<li style = "display: none;"><a href = "/wargaming/chaotit"><span>Chaotit</span></a></li>
+<li style = "display: list-item;"><a href = "/deskove-hry/o-deskovych-hrach-na-gc"><span>Deskové hry</span></a></li>
+<li style = "display: none;"><a href = "/deskove-hry/o-deskovych-hrach-na-gc"><span>O deskových hrách na GC</span></a></li>
+<li style = "display: none;"><a href = "/deskove-hry/non-stop-herna"><span>Non-stop herna</span></a></li>
+<li style = "display: none;"><a href = "/deskove-hry/ceny-pro-viteze-turnaju"><span>Ceny pro vítěze turnajů</span></a></li>
+<li style = "display: none;"><a href = "/deskove-hry/bang"><span>Bang!</span></a></li>
+<li style = "display: none;"><a href = "/deskove-hry/carcassonne"><span>Carcassonne</span></a></li>
+<li style = "display: none;"><a href = "/deskove-hry/galaxy-trucker"><span>Galaxy Trucker</span></a></li>
+<li style = "display: none;"><a href = "/deskove-hry/heckmeck"><span>Heckmeck</span></a></li>
+<li style = "display: none;"><a href = "/deskove-hry/jantaris"><span>Jantaris</span></a></li>
+<li style = "display: none;"><a href = "/deskove-hry/legie"><span>Legie</span></a></li>
+<li style = "display: none;"><a href = "/deskove-hry/osadnici-z-katanu"><span>Osadníci z Katanu</span></a></li>
+<li style = "display: none;"><a href = "/deskove-hry/proroctvi"><span>Proroctví - kvalifikační turnaj</span></a></li>
+<li style = "display: none;"><a href = "/deskove-hry/proroctvi---mistrovstvi-cr"><span>Proroctví - Mistrovství ČR</span></a></li>
+<li style = "display: none;"><a href = "/deskove-hry/theby"><span>Théby</span></a></li>
+<li style = "display: none;"><a href = "/deskove-hry/zelvi-zavody"><span>Želví závody</span></a></li>
+<li style = "display: list-item;"><a href = "/prednasky/o-prednaskach-na-gc"><span>Přednášky</span></a></li>
+<li style = "display: none;"><a href = "/prednasky/o-prednaskach-na-gc"><span>O přednáškách na GC</span></a></li>
+<li style = "display: none;"><a href = "/prednasky/prezentace-deskovych-her---altar"><span>Altar plánuje</span></a></li>
+<li style = "display: none;"><a href = "/prednasky/alternativni-storytelling-a-roleplaying"><span>Alternativní storytelling a roleplaying</span></a></li>
+<li style = "display: none;"><a href = "/prednasky/asterion--hranice-fantazie"><span>Asterion – Hranice fantazie</span></a></li>
+<li style = "display: none;"><a href = "/prednasky/baleni-na-conech"><span>Balení na conech</span></a></li>
+<li style = "display: none;"><a href = "/prednasky/budoucnost-gc"><span>Budoucnost GameConu</span></a></li>
+<li style = "display: none;"><a href = "/prednasky/drakkar--internetovy-casopis"><span>Drakkar – internetový časopis</span></a></li>
+<li style = "display: none;"><a href = "/prednasky/dungeons-and-dragons-4e"><span>Dungeons and Dragons 4E</span></a></li>
+<li style = "display: none;"><a href = "/prednasky/engel-d20"><span>Engel d20</span></a></li>
+<li style = "display: none;"><a href = "/prednasky/hlavni-role-pro-vas"><span>Hlavní role pro vás</span></a></li>
+<li style = "display: none;"><a href = "/prednasky/improvizovane-hrani"><span>Improvizované hraní RPG</span></a></li>
+<li style = "display: none;"><a href = "/prednasky/kalevala-v-rpg-a-fantasy"><span>Kalevala v RPG a fantasy</span></a></li>
+<li style = "display: none;"><a href = "/prednasky/komorni-larp---rpg-bez-kostek"><span>Komorní larp - RPG bez kostek</span></a></li>
+<li style = "display: none;"><a href = "/prednasky/prezentace-deskovych-her---albi"><span>Moderní deskové hry - Albi, CGE</span></a></li>
+<li style = "display: none;"><a href = "/prednasky/prezentace-deskovych-her---corfix"><span>Moderní deskové hry - Corfix</span></a></li>
+<li style = "display: none;"><a href = "/prednasky/napric-spektrem-rpg"><span>Napříč spektrem RPG</span></a></li>
+<li style = "display: none;"><a href = "/prednasky/netradicni-prezentace-her-jirasgames"><span>Netradiční prezentace her Jirasgames</span></a></li>
+<li style = "display: none;"><a href = "/prednasky/odmente-svojich-hracov"><span>Odmeňte svojich hráčov!</span></a></li>
+<li style = "display: none;"><a href = "/prednasky/pribeh-zaklad-zivota"><span>Příběh, základ života</span></a></li>
+<li style = "display: none;"><a href = "/prednasky/soucastnost-a-budoucnost-vydavani-her"><span>Součastnost a budoucnost vydávání her</span></a></li>
+<li style = "display: none;"><a href = "/prednasky/stories-of-the-empire"><span>Stories of the Empire</span></a></li>
+<li style = "display: none;"><a href = "/prednasky/strepy-snu-krest-knihy"><span>Střepy snů: Křest knihy</span></a></li>
+<li style = "display: none;"><a href = "/prednasky/strepy-snu-o-vyvoji"><span>Střepy snů: O vývoji</span></a></li>
+<li style = "display: none;"><a href = "/prednasky/taria-svet-pribehu-pribeh-sveta"><span>Taria: Svět příběhů, příběh světa</span></a></li>
+<li style = "display: none;"><a href = "/prednasky/tempo-a-obsah-hry-stylizace-scen"><span>Tempo a obsah hry, stylizace scén</span></a></li>
+<li style = "display: none;"><a href = "/prednasky/typologie-pribehu"><span>Typologie příběhů</span></a></li>
+<li style = "display: none;"><a href = "/prednasky/zahranicni-larpove-hity"><span>Zahraniční larpové hity</span></a></li>
+<li style = "display: none;"><a href = "/prednasky/archiv-prednasek-2008"><span>Archiv přednášek 2008</span></a></li>
+<li style = "display: list-item;"><a href = "/dilny/o-dilnach-na-gc"><span>Dílny</span></a></li>
+<li style = "display: none;"><a href = "/dilny/o-dilnach-na-gc"><span>O dílnách na GC</span></a></li>
+<li style = "display: none;"><a href = "/dilny/mrak---predstaveni-a-workshop"><span>Mrak - tvorba deskových her</span></a></li>
+<li style = "display: none;"><a href = "/dilny/spory-v-druzine-workshop"><span>Spory v družině (Workshop)</span></a></li>
+<li style = "display: none;"><a href = "/dilny/archiv-dilny-2008"><span>Archiv dílny 2008</span></a></li>
+<li style = "display: list-item;"><a href = "/forum"><span>Fórum</span></a></li>
+<li style = "display: list-item;"><a href = "/galerie-materialy/fotogalerie-gamecon09"><span>Galerie, materiály</span></a></li>
+<li style = "display: none;"><a href = "/galerie-materialy/fotogalerie-gamecon09"><span>Fotogalerie GameCon09</span></a></li>
+<li style = "display: none;"><a href = "/galerie-materialy/fotogalerie-gamecon08"><span>Fotogalerie GameCon08</span></a></li>
+<li style = "display: none;"><a href = "/galerie-materialy/materialy-2009"><span>Materiály 2009</span></a></li>
+<li style = "display: none;"><a href = "/galerie-materialy/dalsi-partneri-zajimave-odkazy"><span>Další partneři, zajímavé odkazy</span></a></li>
+<li style = "display: list-item;"><a href = "/organizatori/organizacni-tym"><span>Organizátoři</span></a></li>
+<li style = "display: none;"><a href = "/organizatori/organizacni-tym"><span>Organizační tým</span></a></li>
+<li style = "display: none;"><a href = "/organizatori/pjove"><span>PJové</span></a></li>
+<li style = "display: none;"><a href = "/organizatori/vypraveci"><span>Vypravěči</span></a></li>
+<li style = "display: none;"><a href = "/organizatori/organizatori-larpu"><span>Organizátoři larpů</span></a></li>
+<li style = "display: none;"><a href = "/organizatori/prednasejici"><span>Přednášející</span></a></li>
+<li style = "display: none;"><a href = "/organizatori/organizatori-wargamingu"><span>Organizátoři wargamingu</span></a></li>
+<li style = "display: none;"><a href = "/organizatori/ostatni-organizatori"><span>Ostatní organizátoři</span></a></li>
+<li style = "display: none;"><a href = "/organizatori/jak-se-stat-organizatorem"><span>Jak se stát organizátorem</span></a></li>
+<li style = "display: list-item;"><a href = "/kontakt"><span>Kontakt</span></a></li>
+</ul><div class = "menu_konec"></div>
+      </div>
+      <div class = "horizonttop">
+        <a href = "http://www.gamecon.cz/">GameCon</a>  &raquo; <a href = "/mistrovstvi-v-drd/o-mistrovstvi-v-drd">Mistrovství v DrD</a> &raquo; <a href = "/mistrovstvi-v-drd/postavy-pro-letosni-dobrodruzstvi">Postavy pro letošní dobrodružství</a>      </div>
+      <div class = "main">
+        <div class = "main-top"></div>
+  <div class = "main-middle">
+    <div class = "main-middle-in">
+<h1 id = "zacatek">Postavy pro letošní dobrodružství</h1>
+<p>
+  Na této stránce je pro vás připraven výběr předpřipravených postav pro GC dobrodružství 2009. Postavy mají přednastaveny vlastnosti a krátkou historii. Ostatní parametry včetně vybavení si budete moci dotvořit v systému, který bude fungovat v rámci přihlášky (naváže na dosavadní volbu rasy a povolání) a který brzy spustíme.
+</p>
+<p>
+  Nemusíte si vybírat žádnou z postav na této stránce. Můžete si jakoukoli svou svobodně vytvořit v systému, který brzy spustíme. Nabídka postav je jen pro usnadnění hráčům, kterým by se třeba zalíbily a nebo se jim nechce vymýšlet historii vlastní postavy a přesto by rádi nějakou měli.
+</p>
+<p>
+  <ul>
+    <li><a href = "#cathal">Cathal - trpaslík bojovník</a></li>
+    <li><a href = "#uallas">Uallas - barbar šermíř</a></li>
+    <li><a href = "#malaia">Malaia - elfka druidka</a></li>
+    <li><a href = "#taran">Taran - kroll chodec</a></li>
+    <li><a href = "#farquar">Farquar - člověk theurg</a></li>
+    <li><a href = "#ros">Rós - kudůkyně pyroforka</a></li>
+    <li><a href = "#rona">Rona - člověk sico</a></li>
+    <li><a href = "#luag">Luag - elf mág</a></li>
+    <li><a href = "#seytach">Seytach - barbar čaroděj</a></li>
+    <li><a href = "#flora">Flora - hobitka lupička</a></li>
+  </ul>
+</p>
+
+<h2 id = "cathal">Cathal - trpaslík bojovník</h2>
+<p>
+<ul>
+  <li style = "float: left; width: 400px;"><div style = "width: 90px; float: left;">síla:</div> <strong style = "float: left;">17/+3</strong></li>
+  <li style = "float: left; width: 400px;"><div style = "width: 90px; float: left;">obratnost:</div> <strong style = "float: left;">9/-1</strong></li>
+  <li style = "float: left; width: 400px;"><div style = "width: 90px; float: left;">odolnost:</div> <strong style = "float: left;">21/+5</strong></li>
+  <li style = "float: left; width: 400px;"><div style = "width: 90px; float: left;">inteligence:</div> <strong style = "float: left;">11/0</strong></li>
+  <li style = "float: left; width: 400px;"><div style = "width: 90px; float: left;">charisma:</div> <strong style = "float: left;">11/0</strong></li>
+  <li style = "float: left; width: 400px;"><div style = "width: 90px; float: left;">životy:</div> <strong style = "float: left;">75</strong></li>
+  <li style = "float: left; width: 400px;"><div style = "width: 90px; float: left;">věk:</div> <strong style = "float: left;">18 let</strong></li>
+</ul>
+</p>
+    <p style = "clear: both;">Když se před 18 léty narodilo v Adrii vojáku Cesanovi páté dítě, byla jeho radost bezmezná. Lépe řečeno: byla omezena čtyřmi dny a čtyřmi nocemi oslav. Byl to totiž syn – jeho první syn. 
+    </p><p>Syn, do kterého Cesan vložil veškerou svou důvěru a své naděje. Hrdě jej pojmenoval Cathal – „Ten, který bojuje mocně“. Po dlouhých patnáct let jej nepustil ze vsi, vyžadoval od něj vše, co mu nemohly dát dcery. 
+    </p><p>Již od útlého věku jej myl ve studené řece stékající z ledovců, aby se tělo připravilo na těžké zimy. S božími zázraky a svědomitou péčí se tak stal z Cathala nejzdravější mladík vesnice. Nikdy nestonající, nikdy netrpící chladem. Jakoby se stal samotným mrazem severu. 
+    </p><p>Většina mladíků rostla do výšky a krásy, Cathal však nikoliv. Pod tíhou výcviku a práce v hospodářství se jeho tělo rozhodlo zastavit růst na 140 coulech. Místo rovných zad získala Cathalova ohnutý tvar – co ale nedostal na výšce, to získal na mohutnosti. Jeho zjev přinesl mladíkovi (v tu dobu již patnáctiletému) přezdívku „Dědek“. 
+    </p><p>Jak strašně tuto přezdívku nenáviděl, jak se mu začala vřít vzteky krev, kdykoli ji zaslechl, jak mu rozum i oči zaslepila divoká nenávist. Vždy si prohrábl svou hustou hnědou kštici, aby se uklidnil. Snažil se ovládnout svůj hněv, jak to po něm vyžadoval jeho otec. Ne vždy byla jeho snaha úspěšná, pak se do díla pustily jeho pěsti, které do provokatéra bušily jako kladiva do kovadliny. Samozřejmě, že od otce se za tyto výbuchy pochvaly nedočkal. 
+    </p><p>Kdykoliv nebyl mládenec ve službě, odcházel na mořská skaliska, kde hledal samotu. Bouře přirážejících vln zaplavovala jeho mysl a překřikovala vzpomínky na posměch. Cathal se nechal tímto hlukem rád ohlušit. Nevěděl, že se sám stává tím příbojem, tím hlukem chladných vod. Jeho ústa soupeřila s hlasem moře, bouři chvílemi přesahoval křik. Křik po chvíli udolával opět hřmot hlubin oceánu. Vyčerpán a osamocen, připadal si konečně svobodný. 
+    </p><p>Pár dní po šestnácté prožité oslavě letního slunovratu vydal se Cathal na zkušenou. Jako odsouzenec, kterému sejmou okovy, rozběhl se do světa, nevěda, kolik zkoušek jej čeká.  
+    </p><p>Přes kožený kabát připnul opasek s mečem a dýkou, do ruky uchopil obouruční sekyru. 
+    </p><p>Svému starému otci podal ruku jako zralý muž. Poděkoval mu za vše a uklonil se. Matku a pět sester krátce políbil.  
+    </p><p>Tehdy opustil Adrii, aby se snad jednoho dne vrátil.
+</p>
+<p>
+  <ul>
+    <li>
+      <a href = "#zacatek">návrat na začátek</a>
+    </li>
+  </ul>
+</p>
+
+<h2 id = "uallas">Uallas - barbar šermíř</h2>
+<p>
+<ul>
+  <li style = "float: left; width: 400px;"><div style = "width: 90px; float: left;">síla:</div> <strong style = "float: left;">19/+4</strong></li>
+  <li style = "float: left; width: 400px;"><div style = "width: 90px; float: left;">obratnost:</div> <strong style = "float: left;">11/+1</strong></li>
+  <li style = "float: left; width: 400px;"><div style = "width: 90px; float: left;">odolnost:</div> <strong style = "float: left;">17/+3</strong></li>
+  <li style = "float: left; width: 400px;"><div style = "width: 90px; float: left;">inteligence:</div> <strong style = "float: left;">8/-1</strong></li>
+  <li style = "float: left; width: 400px;"><div style = "width: 90px; float: left;">charisma:</div> <strong style = "float: left;">10/0</strong></li>
+  <li style = "float: left; width: 400px;"><div style = "width: 90px; float: left;">životy:</div> <strong style = "float: left;">63</strong></li>
+  <li style = "float: left; width: 400px;"><div style = "width: 90px; float: left;">věk:</div> <strong style = "float: left;">26 zim</strong></li>
+</ul>
+</p>
+    <p style = "clear: both;">Nikdo netušil, odkud se vzalo. Ale jednoho rána se  koncem podzimu před palisádou objevilo dítě. Vyplašeně se krčilo ve výklenku u západní brány, aby zde nalezlo alespoň trochu závětří. Jeho slovům nikdo nerozuměl. 
+</p><p>
+    Unavené a promrzlé se však nemohlo bránit a tak jej strážní odnesli k místní bylinkářce. 
+</p><p>
+    Bylinkářka o chlapce pečovala celou dlouhou zimu,a naučila hocha několik málo slov a vět v místním jazyce. Jedním z prvních slov, které se chlapec naučil, bylo Uallas [Valis]– Cizí. Postupně jej tak všichni začali oslovovat.   
+</p><p>
+    Trvalo to dlouho, ale nakonec se chlapec k ženě přimkl a stal se jí vlastním. Úspěšně vyléčila jeho tělo a pak i jeho duši. 
+</p><p>
+    O deset let později byl již z Uallase pohledný mladík, za kterým se otáčela nejedna dívka či paní. Ač jeho mysl nepatřila k nejbystřejším, vyslovily-li ženské rty milým hlasem prosbu, rád a bez meškání vyhověl. 
+</p><p>
+    Pohyboval se vždy s ladností divoké kočky, svaly na jeho těle jen hrály, jeho ruce byly jemné a citlivé, jeho oči jako dva jantary plály nevídaným jasem. A to vše doplňovala záře jeho zlatavých vlasů. 
+</p><p>
+    Často dával své tělo na odiv rannímu slunci, když cvičil v rytmu podivných písní, o kterých sám netušil, odkud je zná a které vycházely přímo z jeho srdce.  Možná to bylo jediné spojení s jeho matkou, rodinou či vlastí. 
+</p><p>
+    Jeho zevnějšek, charisma, ho měly předurčovat k vznešeným cílům, ale Uallas byl Cizí. Narodil se někde v Divočině. I když zde žil několik let, pořád byla jeho řeč trochu lámaná; i když lovil to, co ostatní, i když žil jako ostatní… nepatřil sem.  A všichni to věděli, i on sám to věděl. 
+</p><p>
+    Po smrti své opatrovnice, která se mu stala matkou, již neměl dál důvod zde setrvávat, opustil tedy bylinkářskou chýši a vydal se na cesty. 
+</p><p>
+    Jeho společníky se stali meč a vítr. A ty oči. Tajemné oči, které viděl v každém svém snu. Oči, které jej konejšily a očarovávaly, které nad ním bděly a které ho lákaly stále dál. 
+</p><p>
+    Věřil, že se do nich jednou zahledí a že tehdy snad potká i svou matku. Ne dnes, ne zítra… ale jednou ano.
+</p>
+<p>
+  <ul>
+    <li>
+      <a href = "#zacatek">návrat na začátek</a>
+    </li>
+  </ul>
+</p>
+
+<h2 id = "malaia">Malaia - elfka druidka</h2>
+<p>
+<ul>
+  <li style = "float: left; width: 400px;"><div style = "width: 90px; float: left;">síla:</div> <strong style = "float: left;">14/+1</strong></li>
+  <li style = "float: left; width: 400px;"><div style = "width: 90px; float: left;">obratnost:</div> <strong style = "float: left;">13/+1</strong></li>
+  <li style = "float: left; width: 400px;"><div style = "width: 90px; float: left;">odolnost:</div> <strong style = "float: left;">8/-1</strong></li>
+  <li style = "float: left; width: 400px;"><div style = "width: 90px; float: left;">inteligence:</div> <strong style = "float: left;">19/+4</strong></li>
+  <li style = "float: left; width: 400px;"><div style = "width: 90px; float: left;">charisma:</div> <strong style = "float: left;">16/+2</strong></li>
+  <li style = "float: left; width: 400px;"><div style = "width: 90px; float: left;">životy:</div> <strong style = "float: left;">32</strong></li>
+  <li style = "float: left; width: 400px;"><div style = "width: 90px; float: left;">magy:</div> <strong style = "float: left;">24</strong></li>
+  <li style = "float: left; width: 400px;"><div style = "width: 90px; float: left;">věk:</div> <strong style = "float: left;">26 zim</strong></li>
+</ul>
+</p>
+    <p style = "clear: both;"> Malaia byla pravou představitelkou erinského lidu. Její tělo bylo hbité, ladné i poddajné. Jejím nesmírným darem byla bystrá mysl, která ji dokázala ochránit i ve chvílích  nejtěžších zkoušek. 
+</p><p>
+    Nedaleko od jejich vsi bylo zakázané místo, kde se scházeli muži z kamenných domů. Jen muži směli a měli právo na toto místo vstoupit. Tajemství a zákazy, které tento kus lesa obklopovaly, jen podněcovaly v Malaii touhou po nepoznaném. Den co den ji něco v jejím nitru táhlo tam– tam, na ten palouček, na mírném návrší, kde jakoby příroda kolem zmlkla, aby se vzápětí rozezněla v tóninách a hlasech naprosto nových, nikde jinde neslyšených. S jak velkou úctou vztahovala ruce k oněm menhirům, které zde stály v kruhu kolem ní. Když se její ruce potkaly s chladným kamenem, cítila hluboko ve svém srdci, že k ní promlouvá, zjevuje před ní obrazy, jakoby snad ona sama byla jednou z těch, kteří do kamene obrazce vyrývali. Pak jako v mrákotách klesla uprostřed mezi těmito monumenty k zemi a tehdy se jí v hlavě rozezvučela slova a spojovala se do krásných obrazů.   
+</p><p>
+    Bez dechu pak pozorovala z úkrytu muže, kteří se zde scházeli noc co noc. Když odešli, bylo ona paní paloučku. Aniž by věděla proč, pronášela slova, kterým snad ani nerozuměla, ale chápala, že jimi vzdává hold všemu živému kolem sebe. Nepřemýšlela nad tím, kde se v ní berou ta slova, ani gesta, kterými je doprovázela. Věděla však s neochvějnou jistotou, že to tak je správné a že ona sem patří. 
+</p><p>
+    Když se z ní pak jednoho úplňku stala skutečná žena, dovršilo se i její spojení s přírodou, rostliny i zvěř jí naslouchaly a ona jim rozuměla. Dostalo se ji nesmírného daru, daru moudrosti, daru souznění s přírodou. Ale všechno má svou cenu, i Malaia musela zaplatit. 
+</p><p>
+    Jedné noci, kdy oblohu opět zdobil úplněk, počala Malaia dítě. Už tehdy si uvědomila, že dítě bude tím, co musí zaplatit.Ač se její srdce trápilo, hluboko ve svém nitru věděla, že nemá na vybranou a že o její dítě bude postaráno, jen ona jej už nikdy v životě nespatří. 
+</p><p>
+    V noc, kdy se ji narodil překrásný chlapeček, se kolem ní shromáždilo několik vlků. Když pak držela své dítě poprvé v náruči, znovu se jí rozezněla v hlavě ta slova: Příroda… Moudrost… Život… Oběť… Věděla, že tou obětí, kterou nesmí odmítnout, je její dítě,. Oproti tomu se v ní však ozýval i mateřský pud, který nechtěl novorozeně vydat. Vlci byli krutě milosrdní, nechali ji dítě ještě pochovat, pohladit, polaskat, nakrmit, ale pak jim jej musela vydat. Nemohla jinak. Vlci jej odnesli pryč. 
+</p><p>
+    Krutá bolest se navždy usídlila v jejím nitru, čas ji jen trochu obrousil a z bolesti se zrodila vnitřní síla. Malaia vyrazila na cestu Přírodou, aby ji chránila, aby ji rozuměla, aby ji pomáhala.
+</p>
+<p>
+  <ul>
+    <li>
+      <a href = "#zacatek">návrat na začátek</a>
+    </li>
+  </ul>
+</p>
+
+<h2 id = "taran">Taran - kroll chodec</h2>
+<p>
+<ul>
+  <li style = "float: left; width: 400px;"><div style = "width: 90px; float: left;">síla:</div> <strong style = "float: left;">17/+3</strong></li>
+  <li style = "float: left; width: 400px;"><div style = "width: 90px; float: left;">obratnost:</div> <strong style = "float: left;">8/-1</strong></li>
+  <li style = "float: left; width: 400px;"><div style = "width: 90px; float: left;">odolnost:</div> <strong style = "float: left;">16/+2</strong></li>
+  <li style = "float: left; width: 400px;"><div style = "width: 90px; float: left;">inteligence:</div> <strong style = "float: left;">11/0</strong></li>
+  <li style = "float: left; width: 400px;"><div style = "width: 90px; float: left;">charisma:</div> <strong style = "float: left;">7/-2</strong></li>
+  <li style = "float: left; width: 400px;"><div style = "width: 90px; float: left;">životy:</div> <strong style = "float: left;">50</strong></li>
+  <li style = "float: left; width: 400px;"><div style = "width: 90px; float: left;">magy:</div> <strong style = "float: left;">16</strong></li>
+  <li style = "float: left; width: 400px;"><div style = "width: 90px; float: left;">věk:</div> <strong style = "float: left;">28 jar</strong></li>
+</ul>
+</p>
+    <p style = "clear: both;">  Je tomu už dávno, co Taranův otec připlul do těchto končin. Jako každý dobyvatel zabíjel, drancoval, znásilňoval. Nejedna žena tak poznala jeho chtíč a ač zrodilo se mnoho potomků jeho krve, je zde jeho jméno dávno raději zapomenuto. Nevedlo se dobře ani matkám, ani jejich potomkům, jen málokdo měl soucit se ženou, kterou obtěžkal násilník z cizího kmene. Nikdo se laskavě nepodíval na bastarda, jehož otec byl neznámý. Dobytek měl leckde větší cenu než tyto děti. 
+</p><p>
+    I Taran byl jedním z těchto dětí, Taran – „Ten, který nemá nikde domov“. Taran i jeho matka však měli velké štěstí. Vesnice Walgar ležela vysoko v kopcích, zdejší lidé jen těžko z hory dobývali obživu, neměli tedy čas na předsudky a byli chápaví, to vše usnadnilo oběma uprchlíkům těžkou situaci. Lidé ve vsi byli neobyčejně laskaví, Tarana přijali za svého. U každého ohně se mohl ohřát, u každého se mohl najíst. Každý ho naučil to nejlepší, co sám uměl. Sběrač mu vysvětlil, které plody přírody se dají jíst a kterým je lepší se vyhnout. Lovec mu ukázal, kde se v lese skrývá zvěř a jak čtením stop dojde k cíli. Kdy je dobrý čas pro lov a kdy naopak je správné nechat zvěři klid.  Ze zakřiknutého bojácného dítěte tak díky péči celé vesnice vyrostl statný, sebejistý mladík, který ke každému dokázal promluvit jazykem jeho duše. Jinoch, jemuž žádná práce nebyla cizí. Nejlépe se cítil, když mohl někomu pomoci. A pokud při této pomoci musel vynaložit hodně síly, byl ještě spokojenější. 
+</p><p>
+    I druid stál s podivem, když viděl jak Taran kácí strom. To nebyl souboj mezi člověkem a stromem, při němž člověk supí, potí se a námahou se mu napínají svaly k prasknutí a strom sténá, naříká a roní pryskyřičné slzy. Ne, to nebyl boj, to byl tanec, ve kterém Taran zprvu ke stromu přistoupil, pohladil jej, poklonil se mu, jako když muž ženu k tanci vyzývá. Pak odstoupil, uchopil pevně sekeru, napřáhla se a ťal. Ač je to k nevíře, strom jako by sám nastavoval své nejslabší místo… a pak již v jakémsi tanečním rytmu, zlehka padl strom k zemi. Pak Taran jen sklonil hlavu a mlčky se s lesním velikánem rozloučil.  
+</p><p>
+    Stejně tak při lovu velmi opatrně volil kus, který pak skolil, potom i jemu vzdal poctu. 
+</p><p>
+    Druid dlouho pozoroval Tarana, a došel k závěru, že jeho srdce je čisté. Oslovil jej tedy a vyzval jej, aby se stal jeho pomocníkem. Tehdy v sobě Taran objevil dar hudby a zpěvu a jeho bubínek od té chvíle doprovázel všechny slavnosti, ať už to bylo vítání jara, uctívání bohů nebo jen tak pro radost. Taranova hudba dávala lidem zapomenout na starosti a bolesti, nabízela jim odpočinek, naději, radost, víru. 
+</p><p>
+    Když bylo Taranovi pětadvacet, uvědomil si, že je na čase, aby se vydal na svou pouť. Když se loučil se všemi těmi, kteří mu byli rodinou, už dávno zapomněl, že je bastardem, kterého kdysi kdesi nikdo nechtěl. Jeden ze starších vesnice k němu přistoupil a podával mu předmět zabalený do plátna. Když Taran spatřil meč, vytanula mu v hlavě vzpomínka, ale nepodařilo se mu ji zachytit. Věděl jen, že ten meč mu po právu patří a že ho bude provázet jako věrný druh životem. Ale také věděl, že chce tento meč použít vždy jen na svou obranu a sám před sebou a svými bohy odpřisáhl, že nikdy tento meč nepoužije k tomu, aby zabil jiného člověka. A do dnešních dnů, kdy putuje od vesnice k vesnici, svůj slib neporušil.
+</p>
+<p>
+  <ul>
+    <li>
+      <a href = "#zacatek">návrat na začátek</a>
+    </li>
+  </ul>
+</p>
+
+<h2 id = "farquar">Farquar - člověk theurg</h2>
+<p>
+<ul>
+  <li style = "float: left; width: 400px;"><div style = "width: 90px; float: left;">síla:</div> <strong style = "float: left;">12/0</strong></li>
+  <li style = "float: left; width: 400px;"><div style = "width: 90px; float: left;">obratnost:</div> <strong style = "float: left;">16/+2</strong></li>
+  <li style = "float: left; width: 400px;"><div style = "width: 90px; float: left;">odolnost:</div> <strong style = "float: left;">17/+3</strong></li>
+  <li style = "float: left; width: 400px;"><div style = "width: 90px; float: left;">inteligence:</div> <strong style = "float: left;">13/+1</strong></li>
+  <li style = "float: left; width: 400px;"><div style = "width: 90px; float: left;">charisma:</div> <strong style = "float: left;">11/0</strong></li>
+  <li style = "float: left; width: 400px;"><div style = "width: 90px; float: left;">životy:</div> <strong style = "float: left;">50</strong></li>
+  <li style = "float: left; width: 400px;"><div style = "width: 90px; float: left;">věk:</div> <strong style = "float: left;">25 let</strong></li>
+</ul>
+</p>
+    <p style = "clear: both;">Farquar se narodil v neúplné rodině. Matka skonala při porodu a otec měl co dělat, aby malého chlapce udržel při životě. Pro oba to byla zkouška života. Jeden bez druhého by asi nevydrželi ani den. Ten maličký měl ve velkém ochránce. Ten větší pak ve svém synkovi hledal radost a útěchu. 
+</p><p>
+    Den za dnem táhl postarší hvězdopravec svou káru od vesnice k vesnici, aby lidem zvěstoval, co je čeká. Dával jim rady, kdy zasít a kdy sklidit. Kdy počít nového potomka i jak správně pohřbít nebožtíka. Malinký Farquar se pomalu vše od svého otce učil. Nevadil mu ten kočovný způsob života, hlavně když se mohl kdykoli chytit táty za ruku. 
+</p><p>
+    Celý den se Farquar těšil na večer, kdy se na nebi objeví první hvězda. Sebelepší hraničář nečetl v čerstvém sněhu stopy tak dobře, jako Farquarův otec ve hvězdách. Každý večer vybral jednu hvězdu na nebi a o té vyprávěl svému synkovi překrásný příběh. Jedna za druhou odkrývaly hvězdy před Farquarem svá tajemství a přesto věděl, že je pořád pouze na počátku svého poznání.
+</p><p>
+    Tak se Farquar dozvěděl o Velkém draku, který střeží náš svět svým pohledem a čeká na odvážlivce, kteří dokáží vstoupit na nebesa a porazit jej.
+</p><p>
+    „Ale tati, jak by člověk mohl vstoupit na oblohu, mezi hvězdy?“
+</p><p>
+    Pohladil otec syna, pohlédl na něj láskyplným pohledem:
+</p><p>
+    „Jen ten, milý hochu, kdo ve svém srdci pokoru má, úctu k moudrým v sobě chová, ten je hoden vstupu na nebeskou klenbu.“ 
+</p><p>
+    Vyslechl příběh o Krvavém vlku a Válečníkovi, kteří spolu bojovali před drahnou dobou o srdce Zlaté vlkodlačice. Slepě bojovali o srdce té, která jen s úsměvem přihlížela. Jeden jako druhý se zapřisáhli, že jejich boj neskončí, dokud ten druhý mrtvý nepadne. Bojovali dlouho a urputně, štěstí se přiklánělo tu na jednu, tu na druhou stranu. Zranění přibývala, síly se vytrácely. Nakonec stanuli přímo proti sobě, oba posetí ranami a k smrti vyčerpáni. Věděli, že tento střet bude poslední, teď vzejde vítěz. Vlk vyskočil a sekl drápy, válečník po něm tnul sekerou. Válečník padl k zemi, ale  vlk také. Žádný z nich nebyl mrtvý, ale žádný z nich ani neměl síly se postavit. Jejich přísaha je odnesla na nebesa, kde musí spolu bojovat, dokud jeden nezemře.
+</p><p>
+    „Vidíš synku, ani jeden z nich srdce milované nezískal. Tím ti hvězdy chtějí říci, že štěstí jednoho nemůže vyrůst ze smrti jiného.“ 
+</p><p>
+    Farquar vyslechl mnoho příběhů, které přinášely poselství hvězd, poselství stará a moudrá. Učily jej být lepším člověkem.
+</p><p>
+    „Za každou chybu, kterou ve svém životě uděláš, buď můj synku vděčný a nauč se z ní tomu, jak to příště udělat lépe.“ 
+</p><p>
+    Každodenní putování a útrapy cest způsobily, že jednoho podzimního večera o svátku rovnodennosti zesnul Farquarův otec přímo pod hvězdami, které tolik miloval. Farquar, byť tehdy již dvacetiletý, proplakal celou noc. Pak si vzpomněl na to, co mu otec vždy říkal, že bude vždy s ním, že se po své smrti stane hvězdou, která mu bude svítit na cestu. Přestal truchlit a rozhodl se uctít svého otce nádherným náhrobkem. Stvořil obrovský kalendář.  
+</p><p>
+    Každý, kdo šel kolem, se ptal, co činí. A Farquar vyprávěl. Vyprávěl jim o životě malého chlapce a jeho otce. O Velkém draku, Krvavém psu i Válečníkovi. A ti, kdo poslouchali, mu začali při jeho práci pomáhat. Celý rok trvala stavba kalendáře.  
+</p><p>
+    Když však Farquar v den ročního výročí úmrtí otce odcházel z těchto míst, najednou vše zmizelo. Jakoby nikdy jeho otec neexistoval, jako by to vše byl jen další příběh, který se vypráví. Jen Farquar věděl, co je pravda a ještě někdo – malinká hvězdička, která se objevila poblíž souhvězdí Velkého draka, přesně uprostřed mezi jeho očima. Ne však proto, aby s majestátností Velkého soupeřila, ale proto, aby mu prokazovala úctu a přitom hlídala cestu jednoho z těch tam dole.
+</p>
+<p>
+  <ul>
+    <li>
+      <a href = "#zacatek">návrat na začátek</a>
+    </li>
+  </ul>
+</p>
+
+<h2 id = "ros">Rós - kudůkyně pyroforka</h2>
+<p>
+<ul>
+  <li style = "float: left; width: 400px;"><div style = "width: 90px; float: left;">síla:</div> <strong style = "float: left;">8/-1</strong></li>
+  <li style = "float: left; width: 400px;"><div style = "width: 90px; float: left;">obratnost:</div> <strong style = "float: left;">19/+4</strong></li>
+  <li style = "float: left; width: 400px;"><div style = "width: 90px; float: left;">odolnost:</div> <strong style = "float: left;">16/+2</strong></li>
+  <li style = "float: left; width: 400px;"><div style = "width: 90px; float: left;">inteligence:</div> <strong style = "float: left;">13/+1</strong></li>
+  <li style = "float: left; width: 400px;"><div style = "width: 90px; float: left;">charisma:</div> <strong style = "float: left;">9/-1</strong></li>
+  <li style = "float: left; width: 400px;"><div style = "width: 90px; float: left;">životy:</div> <strong style = "float: left;">44</strong></li>
+  <li style = "float: left; width: 400px;"><div style = "width: 90px; float: left;">věk:</div> <strong style = "float: left;">33 let</strong></li>
+</ul>
+</p>
+    <p style = "clear: both;">Na západním okraji Cornwallu se v jedné osadě narodila překvapivě šikovná holčička. Její zručnost byla nevídaná, navlékání korálků, splétání věnečků, tkaní látek či jejich barvení, šití nebo výroba dřevěného nádobí do kuchyně bylo úchvatné. Mohla se pustit do čeho chtěla, výsledek byl vždy obdivuhodný. A figurky, které dokázala vytvarovat z hlíny, vypadaly jako živé. 
+</p><p>
+    Čím více si hrála s hlínou a ohněm, tím více ji tyto dva elementy okouzlovaly. Zjistila (aniž by ji to kdokoliv učil), že krom země a ohně jsou k životu potřeba i jejich protiklady – voda a vzduch. 
+</p><p>
+    Všechny čtyři živly, jako by ji začaly pro její líbeznou tvář poslouchat. Rós odhalila, že míchání živlů je stejné jako vaření. Nejde jen o to, vložit určitý živel do konečné směsi, je také velmi důležité, kolik a jakého druhu živlu se přidá. 
+</p><p>
+    Prvním podařeným výrobkem bylo Žertovné nádobí – jak mu Rós říkala. Šlo o dřevěnou misku, která se po nalití horké tekutiny rozpadla. Radost z úspěchu však Rós slávu nepřineslo. Právě naopak. Země a oheň, její nejoblíbenější živly ji vyhnaly z rodné vesnice. 
+</p><p>
+    Rós zaplatila velkou daň za svou zálibu. Vesničané podpálili dům jejich rodičů a ti se spolu s jejím mladším bratrem stali oběťmi ohnivého živlu. Rós přežila jen zázrakem. Plameny ji zhyzdily pouze na těle, tvář zůstala andělsky krásná. 
+</p><p>
+    Něco se však v Rós zlomilo. Začala se lidem mstít. Chtěla jim škodit. Táhla podzimním krajem jako zlá čarodějnice a za ní zůstávalo jen sežehnuté obilí. 
+</p><p>
+    Asi by ji nečekal dobrý osud, kdyby nepotkala druida Gwendriona. Zamotal její duši i mysl. Viděl ji takovou, jaká byla v dětství, ne takovou, kterou se stala. Obrousil její nenávist. Oba dva byli šťastni za dlouhou zimu, kterou spolu museli prožít na samotě v hloubi Waleských hvozdů. 
+</p><p>
+    Ani jeden z nich neplakal, když se s jarem rozcházeli. Gwendrionkráčel směrem k Doveru, kde žila jeho rodina. Rós pak k západním břehům Walesu, kde chtěla najít nový život.
+</p>
+<p>
+  <ul>
+    <li>
+      <a href = "#zacatek">návrat na začátek</a>
+    </li>
+  </ul>
+</p>
+
+<h2 id = "rona">Rona - člověk sico</h2>
+<p>
+<ul>
+  <li style = "float: left; width: 400px;"><div style = "width: 90px; float: left;">síla:</div> <strong style = "float: left;">13/+1</strong></li>
+  <li style = "float: left; width: 400px;"><div style = "width: 90px; float: left;">obratnost:</div> <strong style = "float: left;">17/+3</strong></li>
+  <li style = "float: left; width: 400px;"><div style = "width: 90px; float: left;">odolnost:</div> <strong style = "float: left;">11/0</strong></li>
+  <li style = "float: left; width: 400px;"><div style = "width: 90px; float: left;">inteligence:</div> <strong style = "float: left;">13/+1</strong></li>
+  <li style = "float: left; width: 400px;"><div style = "width: 90px; float: left;">charisma:</div> <strong style = "float: left;">17/+3</strong></li>
+  <li style = "float: left; width: 400px;"><div style = "width: 90px; float: left;">životy:</div> <strong style = "float: left;">26</strong></li>
+  <li style = "float: left; width: 400px;"><div style = "width: 90px; float: left;">věk:</div> <strong style = "float: left;">30 let</strong></li>
+</ul>
+</p>
+    <p style = "clear: both;"> Rona se narodila jako dcera obchodníka Killia. Již jako dítě se odlišovala od ostatních. Každého nově příchozího si bedlivě prohlížela, ba přímo ho svýma očkama probodávala. Často to byl on, kdo jako první odvrátil zrak.  
+</p><p>
+    Měla neobyčejně bystrý úsudek a každou situaci nejdříve pečlivě rozmýšlela, než se rozhodla do dění zapojit, případně přijmout nějaký názor. Když pak ovšem něco řekla nebo udělala, dávalo to smysl. Stávala se automaticky vůdčím duchem každé skupiny, do které se dostala. Ne tím, kdo velel či nařizoval, ale tím, kdo věděl, jak to udělat, či u koho zjistit, jak to udělat. Měla výborný „čich na lidi“. Už od svých osmi let doprovázela otce na obchodních jednáních, kde mu očima či stiskem ruky dávala najevo, kdo má úmysly čestné a kdo by mu naopak mohl uškodit. Nebylo divu, že již tak velké bohatství Killia ještě vzrostlo. 
+</p><p>
+    Nic tedy nebránilo tomu, aby vynaložil nemalé prostředky na to, aby se jeho dceři dostalo rad od nejváženějších členů kmene v širém kraji.  A protože Rona byla nesmírně zvídavá a inteligentní, bystrá a nadaná, bylo radostí ji učit a vzdělávat. A tak se velmi snadno naučila jazyku druidů i prostých lidí, řečem lidu z jiných krajů i různým nářečím. Naučila se číst a psát řecky i latinsky. Vyučili ji v umění dvorském i diplomatickém, seznámili ji se světem intrik a politiky. 
+</p><p>
+    Protože se Killius dalšího potomka od své milované ženy nedočkal, viděl ve své dceři svého nástupce. Nnechtěl však, aby se jednou její manžel stal jejím pánem a ona na něm byla závislá. Proto nejenže nešetřil na Ronině vzdělání, ale zasloužil se i o to, aby se dokázala sama o sebe postarat, sama sebe bránit. Najal nejlepšího šermíře v kraji. Ale tady poprvé Rona prokázala určitou neschopnost, meč byl pro její ruku příliš těžký, i když se snažila ze všech svých sil, nedokázala jej ani po hodinách tréninku účinně použít. V zoufalství nad tím, že nebude schopna vyhovět otcovu přání, bezděky chytla do  ruky dýku a aby ze sebe dostala vztek nad vlastní neschopností, začala s ní kolem sebe mávat, jako by to  byl meč. Netušila, že ji její šermířský mistr pozoruje. Uvědomil si, že tohle je ta pravá zbraň pro ni. Šel za Killiusem a poradil mu, ať najme jiného učitele. Ten ji ukázal jak dýky správně použít, jak se s ní velmi efektně bránit a jak snadno a rychle jednou ranou zabít. 
+</p><p>
+    Jednoho dne si Ronu a Killia předvolal Eoghan, pán kraje, a zeptal se Rony, zda by byla ochotna vstoupit do jeho služeb. Doslechl se o jejich kvalitách a schopnostech a chtěl je využít ve prospěch svůj i své země. Rona bez váhání souhlasila, těšilo ji, že může ukázat svému otci, že dokáže využít to, co do ní vložil. Killius s tím sice nesouhlasil, ale nedokázal Roně ničeho odepřít. Tak se z ní stal, řečeno dnešní mluvou, diplomatický vyslanec svého pána. Díky svým znalostem, dovednostem i ženskému šarmu se vypracovala velmi rychle. 
+</p><p>
+    Urovnávala vztahy v družině svého pána, umně řešila konfliktní situace, navázala řadu přátelství, nicméně získala i řadu nepřátel. Její hbitost a um v zacházení s dýkou  ji nejednou pomohly dostat se z nelehké situace. Až jednou, v jedné z temných uliček bohatého města na jihu, kde byla z pověření svého pána řešit choulostivý problém týkající se jeho syna, na ni zaútočili dva muži. I když se velice obratně bránila, první z mužů ji zranil a ona použila jeden ze svých triků poprvé v praxi – úspěšně. Když její protivník padl mrtev k zemi, ten druhý ji výsměšně sdělil, že právě zabila syna svého pána. Aniž by se přesvědčila o pravdivosti jeho slov, spěšně prchla z města.
+</p>
+<p>
+  <ul>
+    <li>
+      <a href = "#zacatek">návrat na začátek</a>
+    </li>
+  </ul>
+</p>
+
+<h2 id = "luag">Luag - elf mág</h2>
+<p>
+<ul>
+  <li style = "float: left; width: 400px;"><div style = "width: 90px; float: left;">síla:</div> <strong style = "float: left;">8/-1</strong></li>
+  <li style = "float: left; width: 400px;"><div style = "width: 90px; float: left;">obratnost:</div> <strong style = "float: left;">13/+1</strong></li>
+  <li style = "float: left; width: 400px;"><div style = "width: 90px; float: left;">odolnost:</div> <strong style = "float: left;">9/-1</strong></li>
+  <li style = "float: left; width: 400px;"><div style = "width: 90px; float: left;">inteligence:</div> <strong style = "float: left;">19/+4</strong></li>
+  <li style = "float: left; width: 400px;"><div style = "width: 90px; float: left;">charisma:</div> <strong style = "float: left;">20/+4</strong></li>
+  <li style = "float: left; width: 400px;"><div style = "width: 90px; float: left;">životy:</div> <strong style = "float: left;">26</strong></li>
+  <li style = "float: left; width: 400px;"><div style = "width: 90px; float: left;">věk:</div> <strong style = "float: left;">35 let</strong></li>
+</ul>
+</p>
+    <p style = "clear: both;">  Stejně jako většina erinského lidu měl i Luag velmi blízko k přírodě. Velkou část svého dětství strávil posloucháním vyprávění druidů o moci přírody a rovnováze, která v ní panuje. Každou svou volnou chvíli trávil v lese, seděl a naslouchal, pak přeběhl o kus dál a znovu se posadil a zaposlouchal se do tajemných zvuků kolem sebe. Uvědomil si, že chce znát víc, vstoupil tedy do učení k druidům a začal poznávat taje a zákony přírody.  
+</p><p>
+    Jeho neklidná povaha byla však na obtíž jeho studiu, které v první řadě vyžadovalo obrovskou dávku trpělivosti a stálosti. On sám u ničeho nevydržel dlouho. Začal se nejdříve zajímat o rostliny, ale to jej brzy omrzelo, bylo v tom moc klidu, jen tak sedět a koukat na nějakou kytku. Chtěl víc.  
+</p><p>
+    Zvířata se pohybují, jejich pozorování snad bude zajímavější. Ale po krátkém čase zjistil, že ani to není to pravé. Přece jen se dalo po jisté době chování zvířete předvídat a pak to celé již ztratilo na významu. Když přišel za druidem, svým učitelem, a řekl, že chce dělat něco jiného, ten se na něj rozhněval a řekl, že pokud není schopen prokázat více trpělivosti, není hoden získat vědomostí druidů. Luag nedal najevo své znechucení, ale poslechl a vrátil se k pozorování. Pozoroval chování zvířat a jen tak z legrace je někdy připodobňoval svým přátelům. To, co bylo zpočátku jen pro pobavení a legraci, se záhy stalo velkým zaujetím. Po nějaké době totiž zjistil, že lidé se v některých situacích chovají stejně instinktivně jako zvířata. To ho zaujalo a začal tedy podobným způsobem studovat lidi. Nahlížel na ně stejně jako na zvířata, sledoval jejich chování v určitých situacích. Po nějaké době dokonce začal provádět jisté experimenty. Záměrně uváděl různé lidi do určitých situací a sledoval, co se bude dít. Několikrát se mu to vymstilo, ale díky jeho bystrému úsudku a kouzlu osobnosti se mu z toho vždycky podařilo nějak dostat. 
+</p><p>
+    Jeho fascinace lidským chováním a myšlením a jeho pokusy s nimi ale nakonec vedly k jeho vyhoštění z ostrova. Jediné, co mu zbylo, byl druidský háv a kručící žaludek. Ale hned v první vesnici, na kterou narazil, využil svých znalostí a schopností a dostalo se mu vřelého uvítání. Najednou neměl nouzi. Postupně nad vesničany získal moc, ale to nebylo to, po čem prahl. Vydal se tedy dál na cestu za poznáním. Za poznáním lidské mysli.
+</p>
+<p>
+  <ul>
+    <li>
+      <a href = "#zacatek">návrat na začátek</a>
+    </li>
+  </ul>
+</p>
+
+<h2 id = "seytach">Seytach - barbar čaroděj</h2>
+<p>
+<ul>
+  <li style = "float: left; width: 400px;"><div style = "width: 90px; float: left;">síla:</div> <strong style = "float: left;">13/+1</strong></li>
+  <li style = "float: left; width: 400px;"><div style = "width: 90px; float: left;">obratnost:</div> <strong style = "float: left;">11/0</strong></li>
+  <li style = "float: left; width: 400px;"><div style = "width: 90px; float: left;">odolnost:</div> <strong style = "float: left;">13/+1</strong></li>
+  <li style = "float: left; width: 400px;"><div style = "width: 90px; float: left;">inteligence:</div> <strong style = "float: left;">17/+3</strong></li>
+  <li style = "float: left; width: 400px;"><div style = "width: 90px; float: left;">charisma:</div> <strong style = "float: left;">16/+2</strong></li>
+  <li style = "float: left; width: 400px;"><div style = "width: 90px; float: left;">životy:</div> <strong style = "float: left;">32</strong></li>
+  <li style = "float: left; width: 400px;"><div style = "width: 90px; float: left;">věk:</div> <strong style = "float: left;">35 let</strong></li>
+</ul>
+</p>
+    <p style = "clear: both;">V jedné malé osadě na irském pobřeží se narodil malý chlapec. Pojmenovali jej Seytach. Od dětství byl veden k lásce k přírodě a také se učil, jak se v ní chovat a jak s ní zacházet. Už od mládí byl bystřejší než ostatní, jakoby viděl svět jinýma očima. Někdy věděl o věcech, které se ještě nestaly, slyšel hlasy, které neslyšel nikdo jiný.  
+</p><p>
+     Seytach trávil mnoho času na pobřeží, běhal, skákal, zvedal těžké kameny, snažil se unavit své tělo, aby unavil svého ducha a umlčel hlasy ve svém nitru. Kromě toho, že náročná fyzická cvičení z něj udělala velmi zdatného, svalnatého mladíka, rozvinul Seytachův vnitřní boj jeho ducha a naučil jej poslouchat i to, co nebylo vyřčeno ústy. 
+</p><p>
+     Jeho rodiče, Brian a Brönwynn, chtěli, aby z něj byl druid a tím aby jejich rodině bylo požehnáno. Když však několikrát varoval vesnici před vysokým přílivem či nájezdem útočníků a když se pak svěřil svým rodičům i o tajemných vnitřních hlasech, uvědomili si, že jejich syn je jiný. 
+</p><p>
+     Rodiče odvedli Seytacha za starým fílí Coenem, aby jim řekl, zda se z jejich syna může stát druid. Coen a Seytach spolu dlouho hovořili. Coen Seytachovi vysvětlil, že má velký dar, že k němu těmi hlasy promlouvají bohové a že je předurčený k tomu, aby jim rozuměl. Čekají ho velké úkoly, na které se musí pečlivě připravit. Seytach  se vrátil na pobřeží, aby se modlil, aby svou vírou dokázal bohům, že je hoden jejich daru. V odloučení od lidí, v půstu a samotě v něm dozrávala obrovská duševní síla. Začal si uvědomovat změny ve své mysli i na svém těle, zjistil, že ho bohové obdařili neobyčejnými schopnostmi. Dokázal vydržet pod hladinou moře několikanásobně déle než kdokoli jiný, na své dlani dokázal vyvolat světlo, aby si posvítil. Myšlenkou dokázal přinutit věci, aby se pohnuly. Zjistil, že musí zklidnit tělo i mysl, když chce své schopnosti využívat. Uvědomil si, že po ránu je ta vhodná chvíle, kdy může navázat spojení s bohy, aby mu dali dostatek sil své schopnosti využívat. Naučil se také se svými silami šetřit a rozumně si je rozdělit na celý den. 
+</p><p>
+     Teprve potom se vrátil zpět do vesnice. Řekl rodičům, že je připraven stát se vesnickým druidem. Rodiče se vyděsili a místní druid se rozlítil. Jak by se dvacetiletý mladík mohl stát druidem? Nic neumí, nikdo ho zatím nic nenaučil. Marně Seytach vysvětloval, že ho učili samotní bohové. Neposlouchali jej. Když jej pak přece jen vyslechli, řekli mu, ať ukáže, co umí. Chtěl, strašně moc chtěl. Ale v mladické nerozvážnosti a ve snaze předvést své umění, zapomněl na soustředění, na zklidnění mysli – světlo se neobjevilo, v moři se málem utopil a věci se nepohnuly. 
+</p><p>
+     Neunesl tíhu posměchu a ve spěchu a bez rozloučení opustil rodnou ves. Když se pak zoufalý a hladový začal modlit ke svým bohům, uvědomil si, na co zapomněl – ale bylo již pozdě. Vrátit se již nemohl, vydal se tedy na cestu. 
+</p>
+<p>
+  <ul>
+    <li>
+      <a href = "#zacatek">návrat na začátek</a>
+    </li>
+  </ul>
+</p>
+
+
+<h2 id = "flora">Flora - hobitka lupička</h2>
+<p>
+<ul>
+  <li style = "float: left; width: 400px;"><div style = "width: 90px; float: left;">síla:</div> <strong style = "float: left;">5/-3</strong></li>
+  <li style = "float: left; width: 400px;"><div style = "width: 90px; float: left;">obratnost:</div> <strong style = "float: left;">21/+5</strong></li>
+  <li style = "float: left; width: 400px;"><div style = "width: 90px; float: left;">odolnost:</div> <strong style = "float: left;">11/0</strong></li>
+  <li style = "float: left; width: 400px;"><div style = "width: 90px; float: left;">inteligence:</div> <strong style = "float: left;">13/+1</strong></li>
+  <li style = "float: left; width: 400px;"><div style = "width: 90px; float: left;">charisma:</div> <strong style = "float: left;">18/+3</strong></li>
+  <li style = "float: left; width: 400px;"><div style = "width: 90px; float: left;">životy:</div> <strong style = "float: left;">26</strong></li>
+  <li style = "float: left; width: 400px;"><div style = "width: 90px; float: left;">věk:</div> <strong style = "float: left;">25 let</strong></li>
+</ul>
+</p>
+    <p style = "clear: both;">Za krásného jarního dne, kdy se konečně po dlouhé zimě na nebi objevilo slunce, aby prohřálo zemi i srdce lidí svými paprsky, se Brianu Brambleburrovi  narodila překrásná zlatovlasá holčička s modrýma očima. Stala se rázem miláčkem nejen svých rodičů a sourozenců, ale také celého okolí. Její zvonivý smích potěšil každé srdce, její pohlazení zaplašilo kdejakou chmuru. Není divu, že takto rozdávajíce lásku ji také plnými hrstmi přijímala. Nepoznala křivdy, nepotkala se se zlobou či závistí. Takže nikomu nevadilo, že se tu a tam po její návštěvě ztratila nějaká drobnost. Zpočátku to dokonce nikdo ani s Florou nespojoval, když snad někdo přece, buď se nad tím mávlo rukou, že to byla jen drobnost, která stejně neměla velkou hodnotu, především ale lidé nevěřili, že by ta miloučká Flora snad kradla – vždyť to bylo malé děvčátko. 
+</p><p>
+     Floře tak ani nedocházelo, že by dělala něco špatného, možná si ani neuvědomovala, že ty věci bere. Prostě jen poslouchala své nitro, které ji donutilo onu věc vzít. 
+</p><p>
+     Když se pak z malého děvčátka stala přirozeně krásná slečna, její drobné krádeže už jejím okolím přestávaly být chápány jako dětská roztomilost, ale stávaly se dotěrnou nepříjemností. Mnohokrát ji rodiče domlouvali, vysvětlovali, že to není správné. Vždy jim slíbila, že už to neudělá a myslela to při tom smrtelně váženě, dušovala se i sama před sebou. Nicméně, nebylo zbytí, nešlo to jinak. Kdykoli někam šla, její vnitřní nutkání zvítězilo nad jejím odhodláním, a ona opět něco sebrala. Doma pak zoufale sama nad sebou plakala, trápila se výčitkami, až přestala úplně chodit mezi lidi, stranila se přátel, přestala jíst a chřadla. 
+</p><p>
+     Rodiče se stavem své milované dcery velmi trápili, hledali, jak ji pomoci. Když se dozvěděli, že do osady dorazil známý lékař, Berilac Frogmorton, vyhledali jej a požádali o pomoc. Berilac byl pohledný černovlasý hobití mladík, a nebyl jen lékařem, ale také velmi schopným alchymistou a zlodějíčkem. Jakmile mu manželé Brambleburrovi  popsali Flořiny potíže, pochopil, s jakým problémem se Flora potýká. Když ji pak poprvé spatřil, ihned se mu velmi zalíbila. Hbitě vymyslel lstivý plán. Sáhodlouze začal rodičům vysvětlovat, jaký že to neduh trápí jejich Floru, a že ji velmi rád vyléčí, nicméně pokud zůstane ve stávajícím prostředí, které ji bude její minulost připomínat, její problémy se budou stále vracet. A také jim se sklopenou hlavou a chvějícím hlasem oznámil, že se do Flory zamiloval a že by si ji rád vzal za ženu. Rodiče byli překvapeni a Flora, která v tom viděla možnost odejít z prostředí, kde ji všichni považovali pouze za zlodějku a hleděli na ni s opovržením, ráda nabídku přijala.. 
+</p><p>
+     Konala se velká svatba, po které novomanželé brzy opustili kraj. Berliac po svatbě Floře vysvětlil, co je to kleptomanie a že se tomu až tak moc nedá bránit, ale že by ji mohl naučit, jak to zařídit, aby ji při krádeži nikdo neviděl a nechytil. Flora, která v tu dobu již měla  Berliaca  také ráda, po dlouhém váhání souhlasila. 
+</p><p>
+     Co by neudělala pro milovaného muže. A tak dvojice velmi šikovných zlodějíčků, z nichž jeden uměl také míchat nejrůznější lektvary a léčit, a druhý překrásně zpíval a tančil, putovala světem. Na nouzi si stěžovat nemohli, nikde nezůstali tak dlouho, aby si je někdo dal do souvislosti s krádežemi. Kdo by to také od takových dvou milých mladých lidí čekal, že. 
+</p><p>
+     Flora měla na každém místě, kde se zastavili, hodně ctitelů, kteří po jejím zpěvu a tanci byli ochotni pro ni udělat téměř cokoli. Měla nad muži moc, zvábila je svýma očima, zlákala je svým hlasem tak, že se stali slepými k Berliacovi, který je pak snadno okrádal. 
+</p><p>
+     To vše Floře stouplo do hlavy a rozhodla se, že půjde svou cestou, že si vyzkouší, jaké to je, postarat se o sebe sama. Marně ji Berliac přemlouval, marně ji hrozil, marně ji přivazoval, situaci to jen zhoršovalo. Dobře svou „svěřenkyni“ vycvičil. Jedné měsíční noci se vymanila z pout,  neslyšně si sbalila pár věcí, něco ze společných peněz a vyrazila do světa za svým vlastním osudem.   
+</p>
+<p>
+  <ul>
+    <li>
+      <a href = "#zacatek">návrat na začátek</a>
+    </li>
+  </ul>
+</p>
+    </div>
+  </div>
+<div class = "main-bottom"><br /></div>
+      </div>
+      <div class = "side">
+        
+  <div class = "nadpis">RPG</div>
+  <div class = "obsah">
+    <div class = "ram">
+      <a href = "/rpg/draci-doupe---putovani-s-conanem" title = "Dračí Doupě – Putování s Conanem"><img src = "/system_styly/side/draci-doupe-putovani-s-conanem.gif" /></a>
+    </div>
+  </div>
+  <div class = "nadpis">LARP</div>
+  <div class = "obsah">
+    <div class = "ram">
+      <a href = "/larp/podraz" title = "Podraz"><img src = "/system_styly/side/podraz.gif" /></a>
+    </div>
+  </div>
+  <div class = "nadpis">Deskové hry</div>
+  <div class = "obsah">
+    <div class = "ram">
+      <a href = "/deskove-hry/legie" title = "Legie"><img src = "/system_styly/side/legie.jpg" /></a>
+    </div>
+  </div>
+  <div class = "nadpis">Přednášky & Dílny</div>
+  <div class = "obsah">
+    <div class = "ram">
+      <a href = "/prednasky/strepy-snu-o-vyvoji" title = "Střepy snů: O vývoji"><img src = "/system_styly/side/strepy-snu-o-vyvoji.jpg" /></a>
+    </div>
+  </div>      </div>
+      <!--<div class = "horizontbottom">
+        horizont bottom
+      </div>-->
+      <div class = "paticka">
+        <div class = "sponzori_ohraniceni" style = "margin-bottom: 0px; height: 20px;">Naši partneři</div>
+<div class = "sponzori_ohraniceni">   
+  <div class = "sponzor">
+    <a href=" http://www.alza.cz/" onclick = "window.open(this.href,'_blank'); return false" title="Alza.cz"><img src = "/system_styly/sponzori/alza.gif"></a>
+  </div>
+  <div class = "sponzor">
+    <a href="http://www.knihcentrum.cz/" onclick = "window.open(this.href,'_blank'); return false" title="Knihcentrum.cz - Vaše rodinné knihkupectví"><img src = "/system_styly/sponzori/knihcentrum.gif"></a>
+  </div>
+  <div class = "sponzor" style = "width: 50px;">
+    <a href=" http://www.altar.cz/" onclick = "window.open(this.href,'_blank'); return false" title="Altar"><img src = "/system_styly/sponzori/altar.gif"></a>
+  </div>
+  <div class = "sponzor">
+    <a href=" http://www.albi.cz/" onclick = "window.open(this.href,'_blank'); return false" title="Albi"><img src = "/system_styly/sponzori/albi.png"></a>
+  </div>
+  <div class = "sponzor">
+    <a href=" http://www.corfix.cz/" onclick = "window.open(this.href,'_blank'); return false" title="Corfix"><img src = "/system_styly/sponzori/corfix.gif"></a>
+  </div>
+  <div class = "sponzor">
+    <a href=" http://www.fantasyobchod.cz/" onclick = "window.open(this.href,'_blank'); return false" title="Fantasy obchod"><img src = "/system_styly/sponzori/fantasy_obchod.gif"></a>
+  </div>
+  <div class = "sponzor">
+    <a href="http://www.toptopic.cz/" onclick = "window.open(this.href,'_blank'); return false" title="Top Topic"><img src = "/system_styly/sponzori/top-topic.gif"></a>
+  </div>
+  <div class = "sponzor">
+    <a href=" http://www.zazitky.cz/" onclick = "window.open(this.href,'_blank'); return false" title="Zážitky jako dokonalé dárky"><img src = "/system_styly/sponzori/zazitky.gif"></a>
+    <a href=" http://www.zazitky.cz/zazitkove-hry/" onclick = "window.open(this.href,'_blank'); return false" title="Zážitkové hry">Zážitkové hry</a>
+  </div>
+  <div class = "sponzor"> 
+    <div class = "sponzor" style = "height: 30px;">
+      <a href=" http://www.mindok.cz/" onclick = "window.open(this.href,'_blank'); return false" title="Mindok"><img src = "/system_styly/sponzori/mindok.gif"></a>
+    </div>
+    <div class = "sponzor"  style = "height: 40px;">
+      <a href=" http://www.czechgames.cz/" onclick = "window.open(this.href,'_blank'); return false" title="CGE"><img src = "/system_styly/sponzori/cge.gif"></a>
+    </div>
+  </div>
+</div>
+      </div>
+    </div>
+  
+  </body>
+</html>
+  

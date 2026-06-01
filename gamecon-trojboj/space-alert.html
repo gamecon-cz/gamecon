@@ -1,0 +1,227 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="cs" lang="cs">
+
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <link rel="stylesheet" type="text/css" href="/system_styly/styl1.css" media="all" /> 
+    <link rel = "shortcut icon" href = "/favicon.ico" />
+    
+    <!--  lightbox začátek //-->
+    <script type="text/javascript" src="/lightbox/js/prototype.js"></script>
+    <script type="text/javascript" src="/lightbox/js/scriptaculous.js?load=effects,builder"></script>
+    <script type="text/javascript" src="/lightbox/js/lightbox.js"></script>
+    <link rel="stylesheet" href="/lightbox/css/lightbox.css" type="text/css" media="screen" />
+    <!--  lightbox konec //-->
+    <!--  java otevirani a ankety začátek //-->
+    <script type="text/javascript" src="/java.js"></script>
+    <!--  java otevirani a ankety konec //-->
+    
+    <title>
+      GameCon - Space Alert    </title>
+    <meta name="keywords" content="KW" />
+    <meta name="description" content="DS" />
+    
+    
+    
+  </head>
+  <body>
+    <div class = "ohraniceni">
+      <div class = "search">
+        <div class = "bok-top2">
+  <form action = "/vyhledavani" method = "post">
+    <input type = "text" value = "GameCon" name = "fraze" class = "edt_login" style = "width: 140px;" onclick="this.value=''"; />
+    <input type="image" src="/system_styly/pics_system_styl1/tlacitka/hledat_maly.gif" value="Submit" alt="přihlásit" style = "width: 50px; height: 18px;" />
+  </form>
+</div>
+      </div>
+      <div class = "logo">
+        <a href = "http://www.gamecon.cz/gamecon/o-gameconu" style = "width: 100%; height: 100%; display: block;"><span style = "visibility: hidden;">Gamecon - O GameConu</span></a>
+      
+      </div>
+      <div class = "login">
+        <div class = "bok-top2">
+    <form action = "/novinky" method = "post">
+      <input type = "hidden" name = "prihlaseni" value = "1" />
+    <input name = "login" type = "text" class = "edt_login" value = 
+    "login" style = "width: 70px;" 
+     onclick="this.value=''";
+       />
+    <input name = "heslo" type = "password" class = "edt_login" value = "heslo" style = "width: 75px;" onclick="this.value=''"; />
+    <input type="image" src="/system_styly/pics_system_styl1/tlacitka/prihlasit_maly.gif" value="Submit" alt="přihlásit" style = "width: 50px; height: 18px;" />
+  </form>
+  <form action = "" method = "post" id = "registrace">
+  <input type = "hidden" name = "registrace" value = "1"/>
+  </form>
+  <form action = "" method = "post" id="zapomenute_heslo">
+  <input type = "hidden" name = "zapomenute_heslo" value = "1" />
+  </form>
+  <a href="javascript: document.getElementById('registrace').submit()">registrovat</a> - 
+  <a href="javascript: document.getElementById('zapomenute_heslo').submit()">zapomenuté heslo</a>
+</div>
+      </div>
+      <div class = "menuhorizont">
+        <ul>
+  <li><a href = "/gamecon/o-gameconu">GameCon</a></li>
+  <li><a href = "/mistrovstvi-v-drd/o-mistrovstvi-v-drd">Mistrovství v DrD</a></li>
+  <li><a href = "/rpg/o-rpg-na-gc">RPG</a></li>
+  <li><a href = "/larp/o-larpech-na-gc">LARP</a></li>
+  <li><a href = "/deskove-hry/o-deskovych-hrach-na-gc">Deskové hry</a></li>
+  <li><a href = "/prednasky/o-prednaskach-na-gc">Přednášky</a></li>
+  <li><a href = "/dilny/o-dilnach-na-gc">Dílny</a></li>
+  <li><a href = "/forum">Fórum</a></li>
+  <li><a href = "/galerie-materialy/fotogalerie-gamecon09">Fotogalerie</a></li>
+  <li><a href = "/organizatori/organizacni-tym">Organizátoři</a></li>
+  <li><a href = "/kontakt">Kontakt</a></li>
+</ul>
+      </div>
+      <div class = "menu">
+        <div class = "menu_zacatek"></div><ul>
+<li style = "display: list-item;"><a href = "/novinky"><span>Novinky</span></a></li>
+<li style = "display: list-item;"><a href = "/gamecon/o-gameconu"><span>GameCon</span></a></li>
+<li style = "display: none;"><a href = "/gamecon/o-gameconu"><span>O GameConu</span></a></li>
+<li style = "display: none;"><a href = "/gamecon/program"><span>Program</span></a></li>
+<li style = "display: none;"><a href = "/gamecon/cajovna"><span>Čajovna</span></a></li>
+<li style = "display: none;"><a href = "/gamecon/napsali-o-nas"><span>Napsali o nás</span></a></li>
+<li style = "display: list-item;" class = "aktivni"><a href = "/gamecon-trojboj/o-gamecon-trojboji"><span>GameCon Trojboj</span></a></li>
+<div class = "menu_zacatek"></div><ul>
+<li style = "display: list-item;"><a href = "/gamecon-trojboj/o-gamecon-trojboji"><span>O GameCon Trojboji</span></a></li>
+</ul><div class = "menu_konec"></div>
+<li style = "display: list-item;"><a href = "/mistrovstvi-v-drd/o-mistrovstvi-v-drd"><span>Mistrovství v DrD</span></a></li>
+<li style = "display: none;"><a href = "/mistrovstvi-v-drd/o-mistrovstvi-v-drd"><span>O Mistrovství v DrD</span></a></li>
+<li style = "display: none;"><a href = "/mistrovstvi-v-drd/organizace-turnaje"><span>Organizace turnaje</span></a></li>
+<li style = "display: none;"><a href = "/mistrovstvi-v-drd/pravidla-pro-tvorbu-postav"><span>Pravidla pro tvorbu postav</span></a></li>
+<li style = "display: none;"><a href = "/mistrovstvi-v-drd/sluncesvit-cisarske-noviny"><span>Sluncesvit - císařské noviny</span></a></li>
+<li style = "display: none;"><a href = "/mistrovstvi-v-drd/starsi-dobrodruzstvi"><span>Starší dobrodružství</span></a></li>
+<li style = "display: none;"><a href = "/mistrovstvi-v-drd/panove-jeskyne"><span>Pánové Jeskyně</span></a></li>
+<li style = "display: none;"><a href = "/mistrovstvi-v-drd/sin-slavy"><span>Síň slávy</span></a></li>
+<li style = "display: list-item;"><a href = "/rpg/o-rpg-na-gc"><span>RPG</span></a></li>
+<li style = "display: none;"><a href = "/rpg/o-rpg-na-gc"><span>O RPG na GC</span></a></li>
+<li style = "display: none;"><a href = "/rpg/co-jsou-to-rpg-hry"><span>Co jsou to RPG hry?</span></a></li>
+<li style = "display: none;"><a href = "/rpg/seznam-rpg-na-gc2009"><span>Archiv RPG 2009</span></a></li>
+<li style = "display: none;"><a href = "/rpg/archiv-rpg-2008"><span>Archiv RPG 2008</span></a></li>
+<li style = "display: list-item;"><a href = "/larp/o-larpech-na-gc"><span>LARP</span></a></li>
+<li style = "display: none;"><a href = "/larp/o-larpech-na-gc"><span>O LARPech na GC</span></a></li>
+<li style = "display: none;"><a href = "/larp/prehled-larpu-na-gc2009"><span>Archiv LARP 2009</span></a></li>
+<li style = "display: none;"><a href = "/larp/archiv-larp-2008"><span>Archiv LARP 2008</span></a></li>
+<li style = "display: list-item;"><a href = "/wargaming/o-wargamingu-na-gc"><span>Wargaming</span></a></li>
+<li style = "display: none;"><a href = "/wargaming/o-wargamingu-na-gc"><span>O wargamingu na GC</span></a></li>
+<li style = "display: none;"><a href = "/wargaming/wargaming-tour-2010"><span>Wargaming Tour 2010</span></a></li>
+<li style = "display: none;"><a href = "/wargaming/archiv-wargaming-na-gc-2009"><span>Archiv Wargaming 2009</span></a></li>
+<li style = "display: list-item;"><a href = "/deskove-hry/o-deskovych-hrach-na-gc"><span>Deskové hry</span></a></li>
+<li style = "display: none;"><a href = "/deskove-hry/o-deskovych-hrach-na-gc"><span>O deskových hrách na GC</span></a></li>
+<li style = "display: none;"><a href = "/deskove-hry/deskoherna"><span>Deskoherna</span></a></li>
+<li style = "display: none;"><a href = "/deskove-hry/ceny-pro-viteze-turnaju"><span>Ceny pro vítěze turnajů</span></a></li>
+<li style = "display: none;"><a href = "/deskove-hry/prehled-deskovych-her-na-gc2009"><span>Archiv deskových her 2009</span></a></li>
+<li style = "display: list-item;"><a href = "/prednasky/o-prednaskach-na-gc"><span>Přednášky</span></a></li>
+<li style = "display: none;"><a href = "/prednasky/o-prednaskach-na-gc"><span>O přednáškách na GC</span></a></li>
+<li style = "display: none;"><a href = "/prednasky/seznam-prednasek-na-gc2009"><span>Archiv přednášek 2009</span></a></li>
+<li style = "display: none;"><a href = "/prednasky/archiv-prednasek-2008"><span>Archiv přednášek 2008</span></a></li>
+<li style = "display: list-item;"><a href = "/dilny/o-dilnach-na-gc"><span>Dílny</span></a></li>
+<li style = "display: none;"><a href = "/dilny/o-dilnach-na-gc"><span>O dílnách na GC</span></a></li>
+<li style = "display: none;"><a href = "/dilny/archiv-dilny-2008"><span>Archiv dílny 2008</span></a></li>
+<li style = "display: list-item;"><a href = "/forum"><span>Fórum</span></a></li>
+<li style = "display: list-item;"><a href = "/galerie-materialy/fotogalerie-gamecon09"><span>Galerie, materiály</span></a></li>
+<li style = "display: none;"><a href = "/galerie-materialy/materialy-2010"><span>Materiály 2010</span></a></li>
+<li style = "display: none;"><a href = "/galerie-materialy/materialy-2009"><span>Materiály 2009</span></a></li>
+<li style = "display: none;"><a href = "/galerie-materialy/fotosoutez-2009"><span>Fotosoutěž 2009</span></a></li>
+<li style = "display: none;"><a href = "/galerie-materialy/fotogalerie-gamecon09"><span>Fotogalerie GameCon09</span></a></li>
+<li style = "display: none;"><a href = "/galerie-materialy/fotogalerie-gamecon08"><span>Fotogalerie GameCon08</span></a></li>
+<li style = "display: none;"><a href = "/galerie-materialy/dalsi-partneri-zajimave-odkazy"><span>Další partneři, zajímavé odkazy</span></a></li>
+<li style = "display: list-item;"><a href = "/organizatori/organizacni-tym"><span>Organizátoři</span></a></li>
+<li style = "display: none;"><a href = "/organizatori/organizacni-tym"><span>Organizační tým</span></a></li>
+<li style = "display: none;"><a href = "/organizatori/pjove"><span>PJové</span></a></li>
+<li style = "display: none;"><a href = "/organizatori/vypraveci"><span>Vypravěči</span></a></li>
+<li style = "display: none;"><a href = "/organizatori/organizatori-larpu"><span>Organizátoři larpů</span></a></li>
+<li style = "display: none;"><a href = "/organizatori/prednasejici"><span>Přednášející</span></a></li>
+<li style = "display: none;"><a href = "/organizatori/organizatori-wargamingu"><span>Organizátoři wargamingu</span></a></li>
+<li style = "display: none;"><a href = "/organizatori/ostatni-organizatori"><span>Ostatní organizátoři</span></a></li>
+<li style = "display: none;"><a href = "/organizatori/jak-se-stat-organizatorem"><span>Jak se stát organizátorem</span></a></li>
+<li style = "display: list-item;"><a href = "/kontakt"><span>Kontakt</span></a></li>
+</ul><div class = "menu_konec"></div>
+      </div>
+      <div class = "horizonttop">
+        <a href = "http://www.gamecon.cz/">GameCon</a>  &raquo; <a href = "/gamecon-trojboj/o-gamecon-trojboji">GameCon Trojboj</a> &raquo; <a href = "/gamecon-trojboj/space-alert">GC Trojboj - Space Alert</a>      </div>
+      <div class = "main">
+        <div class = "main-top"></div>
+  <div class = "main-middle">
+    <div class = "main-middle-in">
+<h1>GameCon Trojboj - Space Alert</h1><p><div style = "width: 172px; height: 129px; float: left; background-image:url('/system_styly/pics_system_styl1/obrazek.gif'); padding-top: 3px; padding-left: 3px; margin-right: 10px; margin-bottom: 18px;"><img src = "/system_styly/side/gamecon-trojboj---space-alert.gif" style = "float: left; "/ /></div>
+<div style = "padding-bottom: 20px; width: 280px; float: left;">
+ Vláďa Chvátil<br />
+  <strong>čas akce</strong><br />pátek 17.7 - 13:00 až 15:00  <br />sobota 18.7 - 16:00 až 18:00  <br />
+ <strong>další akce organizátora</strong> <br /><div style = "text-align: left;"><a href = "/deskove-hry/galaxy-trucker">Galaxy Trucker</a></div>
+</div>
+</p>
+<p style = "clear: both;">
+  Space Alert je nová hra Vlaadi Chvátila. Jedná se o netradiční kooperativní hru, v níž se hráči stávají členy posádky malé kosmické lodi provádějící průzkum nebezpečných sektorů galaxie. Celá mise trvá jen deset minut (hyperprostorem tam, rychlý scan sektoru, hyperprostorem zpět), a úkolem hráčů je po těchto deset minut udržet loď pohromadě.</p>
+  <p>A tady je háček. Hra skutečně trvá deset minut. V každé hře vám pustíme desetiminutovou zvukovou stopu, která představuje hlášení počítače o výskytech nepřátelských kosmických lodí, mezihvězdných oblud nebo i vetřelců přímo na palubě lodi. Budete si muset v reálném čase rozdělit úkoly a koordinovat své akce tak, abyste pomocí zbraní, štítů, reaktorů, bojových robotů, samonaváděných raket atd. rozmístěných po celé lodi útoky odrazili a v pořádku se vrátili zpět.</p>
+  <p>Pokud jste Space Alert nikdy neviděli, máte možnost se ho na GameConu naučit. A kdo by vás to mohl naučit lépe než sám autor a lidé z Czech Games Edition. Před GameConem jsme si hru vyzkoušeli, abychom zjistili, jestli to půjde i pro začátečníky a není to problém. Doporučujeme jednou nebo dvakrát si ji před turnajem zkusit (což je v deskoherně na GameConu pohoda – kluci z CGE vás ji rádi naučí) a na turnaji můžete být ostřílenými vesmírnými průzkumníky.</p>
+   <p><strong>Space Alert se v rámci GameCon Trojboje odehraje spolu s Mexickým patem najednou v jednom 4 hodinovém bloku. Trojboj vám tak zabere pouze dva herní bloky.</strong></p>
+</p>
+<br />
+<p>
+<strong><a href = "/forum/gamecon-trojboj">Řekněte na fóru, co si o GameCon Trojboji myslíte.</a></strong>
+</p>
+<p>
+  <ul>
+         <li>
+              </li>
+    </ul>
+  </p>
+  <div style = "width: 100%; float: left;">
+    <div style = "width: 50%; text-align: left; float: left; padding-top: 20px; padding-bottom: 15px;">&laquo; <a href = "/o-gamecon-trojboji/mexicky-pat">GC Trojboj - Mexický pat</a></div>    <div style = "width: 50%; text-align: right; float: right; padding-top: 20px; padding-bottom: 15px;"><a href = "/gamecon-trojboj/gc-trojboj---sifrovacka">GC Trojboj - Šifrovačka</a> &raquo;</div>  </div>
+  
+    </div>
+  </div>
+<div class = "main-bottom"><br /></div>
+      </div>
+      <div class = "side">
+        
+  <div class = "nadpis">RPG</div>
+  <div class = "obsah">
+    <div class = "ram">
+      <a href = "/o-gamecon-trojboji/mexicky-pat" title = "GameCon Trojboj - Mexický pat"><img src = "/system_styly/side/gamecon-trojboj---mexicky-pat.gif" /></a>
+    </div>
+  </div>
+  <div class = "nadpis">LARP</div>
+  <div class = "obsah">
+    <div class = "ram">
+      <a href = "/larp/podraz" title = "Podraz"><img src = "/system_styly/side/podraz.gif" /></a>
+    </div>
+  </div>
+  <div class = "nadpis">Deskové hry</div>
+  <div class = "obsah">
+    <div class = "ram">
+      <a href = "/deskove-hry/carcassonne" title = "Carcassonne"><img src = "/system_styly/side/carcassonne.jpg" /></a>
+    </div>
+  </div>
+  <div class = "nadpis">Přednášky & Dílny</div>
+  <div class = "obsah">
+    <div class = "ram">
+      <a href = "/prednasky/improvizovane-hrani" title = "Improvizované hraní RPG"><img src = "/system_styly/side/improvizovane-hrani-rpg.gif" /></a>
+    </div>
+  </div>      </div>
+      <!--<div class = "horizontbottom">
+        horizont bottom
+      </div>-->
+      <div class = "paticka">
+        <div class = "sponzori_ohraniceni" style = "margin-bottom: 0px; height: 20px;">Naši partneři</div>
+<div class = "sponzori_ohraniceni">
+  <div class = "sponzor" style = "width: 50px;">
+    <a href=" http://www.altar.cz/" onclick = "window.open(this.href,'_blank'); return false" title="Altar"><img src = "/system_styly/sponzori/altar.gif"></a>
+  </div>
+  <div class = "sponzor">
+    <a href=" http://www.fantasyobchod.cz/" onclick = "window.open(this.href,'_blank'); return false" title="Fantasy obchod"><img src = "/system_styly/sponzori/fantasy_obchod.gif"></a>
+  </div>
+  <div class = "sponzor">
+    <a href=" http://www.zazitky.cz/" onclick = "window.open(this.href,'_blank'); return false" title="Zážitky jako dokonalé dárky"><img src = "/system_styly/sponzori/zazitky.gif"></a>
+    <a href=" http://www.zazitky.cz/zazitkove-hry/" onclick = "window.open(this.href,'_blank'); return false" title="Zážitkové hry">Zážitkové hry</a>
+  </div>
+</div>
+      </div>
+    </div>
+  
+  </body>
+</html>
+  

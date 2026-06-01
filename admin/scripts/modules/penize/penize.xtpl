@@ -1,9 +1,0 @@
-<!-- begin:penize -->
-
-<h1>Peníze</h1>
-
-<!--{FILE "scripts/modules/penize/_vyplatitBonusZaVedeniAktivity.xtpl"}-->
-
-{FILE "scripts/modules/penize/_pripsatSlevu.xtpl"}
-
-<!-- end:penize -->

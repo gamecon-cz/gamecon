@@ -1,0 +1,465 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="cs" lang="cs">
+
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <link rel="stylesheet" type="text/css" href="/system_styly/styl1.css" media="all" /> 
+    
+    <!--  lightbox začátek //-->
+    <script type="text/javascript" src="/lightbox/js/prototype.js"></script>
+    <script type="text/javascript" src="/lightbox/js/scriptaculous.js?load=effects,builder"></script>
+    <script type="text/javascript" src="/lightbox/js/lightbox.js"></script>
+    <link rel="stylesheet" href="/lightbox/css/lightbox.css" type="text/css" media="screen" />
+    <!--  lightbox konec //-->
+    <!--  java otevirani a ankety začátek //-->
+    <script type="text/javascript" src="/java.js"></script>
+    <!--  java otevirani a ankety konec //-->
+    
+    <title>
+      GameCon - Vypravěči    </title>
+    <meta name="keywords" content="KW" />
+    <meta name="description" content="DS" />
+    
+    
+    
+  </head>
+  <body>
+    <div class = "ohraniceni">
+      <div class = "search">
+        <div class = "bok-top2">
+  <form action = "/vyhledavani" method = "post">
+    <input type = "text" value = "GameCon" name = "fraze" class = "edt_login" style = "width: 140px;" onclick="this.value=''"; />
+    <input type="image" src="/system_styly/pics_system_styl1/tlacitka/hledat_maly.gif" value="Submit" alt="přihlásit" style = "width: 50px; height: 18px;" />
+  </form>
+</div>
+      </div>
+      <div class = "logo">
+        <a href = "http://www.gamecon.cz/gamecon/o-gameconu" style = "width: 100%; height: 100%; display: block;"><span style = "visibility: hidden;">Gamecon - O GameConu</span></a>
+      
+      </div>
+      <div class = "login">
+        <div class = "bok-top2">
+    <form action = "/novinky" method = "post">
+      <input type = "hidden" name = "prihlaseni" value = "1" />
+    <input name = "login" type = "text" class = "edt_login" value = 
+    "login" style = "width: 70px;" 
+     onclick="this.value=''";
+       />
+    <input name = "heslo" type = "password" class = "edt_login" value = "heslo" style = "width: 75px;" onclick="this.value=''"; />
+    <input type="image" src="/system_styly/pics_system_styl1/tlacitka/prihlasit_maly.gif" value="Submit" alt="přihlásit" style = "width: 50px; height: 18px;" />
+  </form>
+  <form action = "" method = "post" id = "registrace">
+  <input type = "hidden" name = "registrace" value = "1"/>
+  </form>
+  <form action = "" method = "post" id="zapomenute_heslo">
+  <input type = "hidden" name = "zapomenute_heslo" value = "1" />
+  </form>
+  <a href="javascript: document.getElementById('registrace').submit()">registrovat</a> - 
+  <a href="javascript: document.getElementById('zapomenute_heslo').submit()">zapomenuté heslo</a>
+</div>
+      </div>
+      <div class = "menuhorizont">
+        <ul>
+  <li><a href = "/gamecon/o-gameconu">GameCon</a></li>
+  <li><a href = "/mistrovstvi-v-drd/o-mistrovstvi-v-drd">Mistrovství v DrD</a></li>
+  <li><a href = "/rpg/o-rpg-na-gc">RPG</a></li>
+  <li><a href = "/larp/o-larpech-na-gc">LARP</a></li>
+  <li><a href = "/deskove-hry/o-deskovych-hrach-na-gc">Deskové hry</a></li>
+  <li><a href = "/prednasky/o-prednaskach-na-gc">Přednášky</a></li>
+  <li><a href = "/dilny/o-dilnach-na-gc">Dílny</a></li>
+  <li><a href = "/forum">Fórum</a></li>
+  <li><a href = "/galerie-materialy/fotogalerie-gamecon09">Fotogalerie</a></li>
+  <li><a href = "/organizatori/organizacni-tym">Organizátoři</a></li>
+  <li><a href = "/kontakt">Kontakt</a></li>
+</ul>
+      </div>
+      <div class = "menu">
+        <div class = "menu_zacatek"></div><ul>
+<li style = "display: list-item;"><a href = "/novinky"><span>Novinky</span></a></li>
+<li style = "display: list-item;"><a href = "/gamecon/o-gameconu"><span>GameCon</span></a></li>
+<li style = "display: none;"><a href = "/gamecon/o-gameconu"><span>O GameConu</span></a></li>
+<li style = "display: none;"><a href = "/gamecon/program"><span>Program</span></a></li>
+<li style = "display: none;"><a href = "/gamecon/cajovna"><span>Čajovna</span></a></li>
+<li style = "display: none;"><a href = "/gamecon/napsali-o-nas"><span>Napsali o nás</span></a></li>
+<li style = "display: list-item;"><a href = "/gamecon-trojboj/o-gamecon-trojboji"><span>GameCon Trojboj</span></a></li>
+<li style = "display: none;"><a href = "/gamecon-trojboj/o-gamecon-trojboji"><span>O GameCon Trojboji</span></a></li>
+<li style = "display: none;"><a href = "/o-gamecon-trojboji/mexicky-pat"><span>GC Trojboj - Mexický pat</span></a></li>
+<li style = "display: none;"><a href = "/gamecon-trojboj/space-alert"><span>GC Trojboj - Space Alert</span></a></li>
+<li style = "display: none;"><a href = "/gamecon-trojboj/gc-trojboj---sifrovacka"><span>GC Trojboj - Šifrovačka</span></a></li>
+<li style = "display: list-item;"><a href = "/mistrovstvi-v-drd/o-mistrovstvi-v-drd"><span>Mistrovství v DrD</span></a></li>
+<li style = "display: none;"><a href = "/mistrovstvi-v-drd/o-mistrovstvi-v-drd"><span>O Mistrovství v DrD</span></a></li>
+<li style = "display: none;"><a href = "/mistrovstvi-v-drd/organizace-turnaje"><span>Organizace turnaje</span></a></li>
+<li style = "display: none;"><a href = "/mistrovstvi-v-drd/starsi-dobrodruzstvi"><span>Starší dobrodružství</span></a></li>
+<li style = "display: none;"><a href = "/mistrovstvi-v-drd/panove-jeskyne"><span>Pánové Jeskyně</span></a></li>
+<li style = "display: none;"><a href = "/mistrovstvi-v-drd/sin-slavy"><span>Síň slávy</span></a></li>
+<li style = "display: list-item;"><a href = "/rpg/o-rpg-na-gc"><span>RPG</span></a></li>
+<li style = "display: none;"><a href = "/rpg/o-rpg-na-gc"><span>O RPG na GC</span></a></li>
+<li style = "display: none;"><a href = "/rpg/co-jsou-to-rpg-hry"><span>Co jsou to RPG hry?</span></a></li>
+<li style = "display: none;"><a href = "/rpg/call-of-cthulhu"><span>Call of Cthulhu</span></a></li>
+<li style = "display: none;"><a href = "/rpg/dnd-4e---stribrna-jeskyne-almi"><span>DnD 4E - Stříbrné jeskyně (Almi)</span></a></li>
+<li style = "display: none;"><a href = "/rpg/dogs-in-the-vineyard"><span>Dogs in the Vineyard</span></a></li>
+<li style = "display: none;"><a href = "/rpg/draci-doupe---koruna-vitezstvi"><span>Dračí Doupě - Koruna vítězství</span></a></li>
+<li style = "display: none;"><a href = "/rpg/draci-doupe---putovani-s-conanem"><span>Dračí Doupě - Putování s Conanem</span></a></li>
+<li style = "display: none;"><a href = "/rpg/pohane-dobrodruzstvi-drd"><span>DrD+ - Pohané</span></a></li>
+<li style = "display: none;"><a href = "/rpg/drdasterion-----pevnost-stinu"><span>DrD+/Asterion  -  Pevnost Stínů</span></a></li>
+<li style = "display: none;"><a href = "/rpg/dread"><span>Dread</span></a></li>
+<li style = "display: none;"><a href = "/rpg/dungeons-and-dragons-4e"><span>Dungeons and Dragons 4E</span></a></li>
+<li style = "display: none;"><a href = "/rpg/fate---cesta-domu"><span>FATE - Cesta domů</span></a></li>
+<li style = "display: none;"><a href = "/rpg/mouse-guard"><span>Mouse Guard</span></a></li>
+<li style = "display: none;"><a href = "/rpg/og-unearthed-edition---velky-lov"><span>Og (Unearthed Edition) - Velký lov</span></a></li>
+<li style = "display: none;"><a href = "/rpg/pendragon---bolestiva-straz"><span>Pendragon - Bolestivá Stráž</span></a></li>
+<li style = "display: none;"><a href = "/rpg/poisond"><span>Poison'D</span></a></li>
+<li style = "display: none;"><a href = "/rpg/shadowrun---pomsta-mrtveho-maga"><span>Shadowrun - Pomsta mrtvého mága</span></a></li>
+<li style = "display: none;"><a href = "/rpg/star-wars-d6---jedi-academy"><span>Star Wars d6 - Jedi Academy</span></a></li>
+<li style = "display: none;"><a href = "/rpg/star-wars-d6---rytieri-starej-republiky"><span>Star Wars d6 - Rytieri Starej Republiky</span></a></li>
+<li style = "display: none;"><a href = "/rpg/stories-of-the-empire"><span>Stories of the Empire</span></a></li>
+<li style = "display: none;"><a href = "/rpg/strepy-snu-erric"><span>Střepy snů (Erric)</span></a></li>
+<li style = "display: none;"><a href = "/rpg/strepy-snu-peekay"><span>Střepy snů (Peekay)</span></a></li>
+<li style = "display: none;"><a href = "/rpg/vampire-the-masquerade"><span>Vampire: the Masquerade</span></a></li>
+<li style = "display: none;"><a href = "/rpg/world-of-darkness---stredoskolska-tradice"><span>World of Darkness - Středoškolská tradice</span></a></li>
+<li style = "display: none;"><a href = "/rpg/wushu-open---jeskyne-rudeho-draka"><span>Wushu (Open) - Jeskyně rudého draka</span></a></li>
+<li style = "display: none;"><a href = "/rpg/archiv-rpg-2008"><span>Archiv RPG 2008</span></a></li>
+<li style = "display: list-item;"><a href = "/larp/o-larpech-na-gc"><span>LARP</span></a></li>
+<li style = "display: none;"><a href = "/larp/o-larpech-na-gc"><span>O LARPech na GC</span></a></li>
+<li style = "display: none;"><a href = "/larp/cela"><span>Cela</span></a></li>
+<li style = "display: none;"><a href = "/larp/delegace-ankh-morpork"><span>Delegace: Ankh-Morpork</span></a></li>
+<li style = "display: none;"><a href = "/larp/chnapsni-vlajku"><span>Chňapsni vlajku!</span></a></li>
+<li style = "display: none;"><a href = "/larp/podraz"><span>Podraz</span></a></li>
+<li style = "display: none;"><a href = "/larp/rande"><span>Rande</span></a></li>
+<li style = "display: none;"><a href = "/larp/spina"><span>Špína</span></a></li>
+<li style = "display: none;"><a href = "/larp/archiv-larp-2008"><span>Archiv LARP 2008</span></a></li>
+<li style = "display: list-item;"><a href = "/wargaming/o-wargamingu-na-gc"><span>Wargaming</span></a></li>
+<li style = "display: none;"><a href = "/wargaming/o-wargamingu-na-gc"><span>O wargamingu na GC</span></a></li>
+<li style = "display: none;"><a href = "/wargaming/birds-of-prey"><span>Birds of Prey</span></a></li>
+<li style = "display: none;"><a href = "/wargaming/warhammer-demo-hrani"><span>Warhammer demo hraní</span></a></li>
+<li style = "display: none;"><a href = "/wargaming/warhammer---predvadeci-bitva"><span>Warhammer - předváděcí bitva</span></a></li>
+<li style = "display: none;"><a href = "/wargaming/warhammer-fantasy"><span>Warhammer Fantasy</span></a></li>
+<li style = "display: none;"><a href = "/wargaming/warhammer-40000"><span>Warhammer 40.000</span></a></li>
+<li style = "display: none;"><a href = "/wargaming/warhammer---rezervace-stolu"><span>Warhammer - rezervace stolu</span></a></li>
+<li style = "display: none;"><a href = "/wargaming/warhammer-a-rpg"><span>Warhammer a RPG</span></a></li>
+<li style = "display: none;"><a href = "/wargaming/figurky"><span>Figurky</span></a></li>
+<li style = "display: none;"><a href = "/wargaming/zaklady-modelareni"><span>Základy modelaření</span></a></li>
+<li style = "display: none;"><a href = "/wargaming/pokrocile-modelareni"><span>Pokročilé modelaření</span></a></li>
+<li style = "display: none;"><a href = "/wargaming/chaotit"><span>Chaotit</span></a></li>
+<li style = "display: list-item;"><a href = "/deskove-hry/o-deskovych-hrach-na-gc"><span>Deskové hry</span></a></li>
+<li style = "display: none;"><a href = "/deskove-hry/o-deskovych-hrach-na-gc"><span>O deskových hrách na GC</span></a></li>
+<li style = "display: none;"><a href = "/deskove-hry/non-stop-herna"><span>Non-stop herna</span></a></li>
+<li style = "display: none;"><a href = "/deskove-hry/ceny-pro-viteze-turnaju"><span>Ceny pro vítěze turnajů</span></a></li>
+<li style = "display: none;"><a href = "/deskove-hry/bang"><span>Bang!</span></a></li>
+<li style = "display: none;"><a href = "/deskove-hry/carcassonne"><span>Carcassonne</span></a></li>
+<li style = "display: none;"><a href = "/deskove-hry/galaxy-trucker"><span>Galaxy Trucker</span></a></li>
+<li style = "display: none;"><a href = "/deskove-hry/heckmeck"><span>Heckmeck</span></a></li>
+<li style = "display: none;"><a href = "/deskove-hry/jantaris"><span>Jantaris</span></a></li>
+<li style = "display: none;"><a href = "/deskove-hry/legie"><span>Legie</span></a></li>
+<li style = "display: none;"><a href = "/deskove-hry/osadnici-z-katanu"><span>Osadníci z Katanu</span></a></li>
+<li style = "display: none;"><a href = "/deskove-hry/proroctvi"><span>Proroctví - kvalifikační turnaj</span></a></li>
+<li style = "display: none;"><a href = "/deskove-hry/proroctvi---mistrovstvi-cr"><span>Proroctví - Mistrovství ČR</span></a></li>
+<li style = "display: none;"><a href = "/deskove-hry/theby"><span>Théby</span></a></li>
+<li style = "display: none;"><a href = "/deskove-hry/zelvi-zavody"><span>Želví závody</span></a></li>
+<li style = "display: list-item;"><a href = "/prednasky/o-prednaskach-na-gc"><span>Přednášky</span></a></li>
+<li style = "display: none;"><a href = "/prednasky/o-prednaskach-na-gc"><span>O přednáškách na GC</span></a></li>
+<li style = "display: none;"><a href = "/prednasky/prezentace-deskovych-her---altar"><span>Altar plánuje</span></a></li>
+<li style = "display: none;"><a href = "/prednasky/alternativni-storytelling-a-roleplaying"><span>Alternativní storytelling a roleplaying</span></a></li>
+<li style = "display: none;"><a href = "/prednasky/asterion--hranice-fantazie"><span>Asterion – Hranice fantazie</span></a></li>
+<li style = "display: none;"><a href = "/prednasky/baleni-na-conech"><span>Balení na conech</span></a></li>
+<li style = "display: none;"><a href = "/prednasky/budoucnost-gc"><span>Budoucnost GameConu</span></a></li>
+<li style = "display: none;"><a href = "/prednasky/drakkar--internetovy-casopis"><span>Drakkar – internetový časopis</span></a></li>
+<li style = "display: none;"><a href = "/prednasky/dungeons-and-dragons-4e"><span>Dungeons and Dragons 4E</span></a></li>
+<li style = "display: none;"><a href = "/prednasky/engel-d20"><span>Engel d20</span></a></li>
+<li style = "display: none;"><a href = "/prednasky/hlavni-role-pro-vas"><span>Hlavní role pro vás</span></a></li>
+<li style = "display: none;"><a href = "/prednasky/improvizovane-hrani"><span>Improvizované hraní RPG</span></a></li>
+<li style = "display: none;"><a href = "/prednasky/kalevala-v-rpg-a-fantasy"><span>Kalevala v RPG a fantasy</span></a></li>
+<li style = "display: none;"><a href = "/prednasky/komorni-larp---rpg-bez-kostek"><span>Komorní larp - RPG bez kostek</span></a></li>
+<li style = "display: none;"><a href = "/prednasky/prezentace-deskovych-her---albi"><span>Moderní deskové hry - Albi, CGE</span></a></li>
+<li style = "display: none;"><a href = "/prednasky/prezentace-deskovych-her---corfix"><span>Moderní deskové hry - Corfix</span></a></li>
+<li style = "display: none;"><a href = "/prednasky/napric-spektrem-rpg"><span>Napříč spektrem RPG</span></a></li>
+<li style = "display: none;"><a href = "/prednasky/netradicni-prezentace-her-jirasgames"><span>Netradiční prezentace her Jirasgames</span></a></li>
+<li style = "display: none;"><a href = "/prednasky/odmente-svojich-hracov"><span>Odmeňte svojich hráčov!</span></a></li>
+<li style = "display: none;"><a href = "/prednasky/pribeh-zaklad-zivota"><span>Příběh, základ života</span></a></li>
+<li style = "display: none;"><a href = "/prednasky/soucastnost-a-budoucnost-vydavani-her"><span>Součastnost a budoucnost vydávání her</span></a></li>
+<li style = "display: none;"><a href = "/prednasky/stories-of-the-empire"><span>Stories of the Empire</span></a></li>
+<li style = "display: none;"><a href = "/prednasky/strepy-snu-krest-knihy"><span>Střepy snů: Křest knihy</span></a></li>
+<li style = "display: none;"><a href = "/prednasky/strepy-snu-o-vyvoji"><span>Střepy snů: O vývoji</span></a></li>
+<li style = "display: none;"><a href = "/prednasky/taria-svet-pribehu-pribeh-sveta"><span>Taria: Svět příběhů, příběh světa</span></a></li>
+<li style = "display: none;"><a href = "/prednasky/tempo-a-obsah-hry-stylizace-scen"><span>Tempo a obsah hry, stylizace scén</span></a></li>
+<li style = "display: none;"><a href = "/prednasky/typologie-pribehu"><span>Typologie příběhů</span></a></li>
+<li style = "display: none;"><a href = "/prednasky/zahranicni-larpove-hity"><span>Zahraniční larpové hity</span></a></li>
+<li style = "display: none;"><a href = "/prednasky/archiv-prednasek-2008"><span>Archiv přednášek 2008</span></a></li>
+<li style = "display: list-item;"><a href = "/dilny/o-dilnach-na-gc"><span>Dílny</span></a></li>
+<li style = "display: none;"><a href = "/dilny/o-dilnach-na-gc"><span>O dílnách na GC</span></a></li>
+<li style = "display: none;"><a href = "/dilny/mrak---predstaveni-a-workshop"><span>Mrak - tvorba deskových her</span></a></li>
+<li style = "display: none;"><a href = "/dilny/spory-v-druzine-workshop"><span>Spory v družině (Workshop)</span></a></li>
+<li style = "display: none;"><a href = "/dilny/archiv-dilny-2008"><span>Archiv dílny 2008</span></a></li>
+<li style = "display: list-item;"><a href = "/forum"><span>Fórum</span></a></li>
+<li style = "display: list-item;"><a href = "/galerie-materialy/fotogalerie-gamecon09"><span>Galerie, materiály</span></a></li>
+<li style = "display: none;"><a href = "/galerie-materialy/fotogalerie-gamecon09"><span>Fotogalerie GameCon09</span></a></li>
+<li style = "display: none;"><a href = "/galerie-materialy/fotosoutez-2009"><span>Fotosoutěž 2009</span></a></li>
+<li style = "display: none;"><a href = "/galerie-materialy/fotogalerie-gamecon08"><span>Fotogalerie GameCon08</span></a></li>
+<li style = "display: none;"><a href = "/galerie-materialy/materialy-2009"><span>Materiály 2009</span></a></li>
+<li style = "display: none;"><a href = "/galerie-materialy/dalsi-partneri-zajimave-odkazy"><span>Další partneři, zajímavé odkazy</span></a></li>
+<li style = "display: list-item;" class = "aktivni"><a href = "/organizatori/organizacni-tym"><span>Organizátoři</span></a></li>
+<div class = "menu_zacatek"></div><ul>
+<li style = "display: list-item;"><a href = "/organizatori/organizacni-tym"><span>Organizační tým</span></a></li>
+<li style = "display: list-item;"><a href = "/organizatori/pjove"><span>PJové</span></a></li>
+<li style = "display: list-item;" class = "aktivni"><a href = "/organizatori/vypraveci"><span>Vypravěči</span></a></li>
+<li style = "display: list-item;"><a href = "/organizatori/organizatori-larpu"><span>Organizátoři larpů</span></a></li>
+<li style = "display: list-item;"><a href = "/organizatori/prednasejici"><span>Přednášející</span></a></li>
+<li style = "display: list-item;"><a href = "/organizatori/organizatori-wargamingu"><span>Organizátoři wargamingu</span></a></li>
+<li style = "display: list-item;"><a href = "/organizatori/ostatni-organizatori"><span>Ostatní organizátoři</span></a></li>
+<li style = "display: list-item;"><a href = "/organizatori/jak-se-stat-organizatorem"><span>Jak se stát organizátorem</span></a></li>
+</ul><div class = "menu_konec"></div>
+<li style = "display: list-item;"><a href = "/kontakt"><span>Kontakt</span></a></li>
+</ul><div class = "menu_konec"></div>
+      </div>
+      <div class = "horizonttop">
+        <a href = "http://www.gamecon.cz/">GameCon</a>  &raquo; <a href = "/organizatori/organizacni-tym">Organizátoři</a> &raquo; <a href = "/organizatori/vypraveci">Vypravěči</a>      </div>
+      <div class = "main">
+        <div class = "main-top"></div>
+  <div class = "main-middle">
+    <div class = "main-middle-in">
+<h2 style = "float: left; width: 100%;" id = "vypraveci">Vypravěči</h2>
+<div class = "organizatori">
+  <div class = "jmeno">Almi - Jiří Kučera</div>
+  <div class = "foto">
+    <img src = "/system_styly/organizatori/almi.jpg" />
+  </div>
+  <strong>Funkce na GC</strong><br />pán jeskyně, vypravěč<br />
+  <strong>Program na GC2009</strong><br /> <a href = "/rpg/dnd-4e---stribrna-jeskyne-almi">DnD 4E - Cesta napříč Stříbrnými jeskyněmi</a>, <a href = "/mistrovstvi-v-drd/o-mistrovstvi-v-drd">Mistrovství v DrD</a><br />
+  <strong><a href = "almi o sobě" onclick = "ukaz(67); return false;">O sobě píše</a></strong><br /><span  id = "objekt67" style = "display: none;">
+  <p>Na Gameconu od devadesátých let, co jsem jako malý kluk s vykulenýma očima zjistil, že i PJ je člověk z masa a kostí. Za rok mne pak přijali mezi sebe a od té doby se snažím ukázat hráčům totéž. Miluju dobrý příběh, atmosféru při níž mrazí i zábavu a snažím se o to ve všech hrách co vedu. DrD hraju od jeho vzniku, mám rád deskovky, fantasy i sci-fi, historii a cestování po hradech a zámcích, stejně jako objevování zapomenutých míst tam, kde by je nikdo nehledal. Poslední rok se pohybuji kolem projektu na d20.cz, intenzivně vedu hry ve 4. edici DnD a tak mne lze na GC potkat i v této sekci.</p>
+  <p>Pokud mne potkáte, nebojte se mne zeptat na cokoliv, od pravidel po organizaci. Odpovím vždy, v lepším případě to dává i smysl a je-li nejhůř, vím, kde informaci získat.</p>
+  </span>
+</div>
+
+<div class = "organizatori">
+  <div class = "jmeno">Boubaque - Jakub Maruš</div>
+  <div class = "foto">
+    <img src = "/system_styly/organizatori/boubaque.jpg" />
+  </div>
+  <strong>Funkce na GC</strong><br />přednášející, vypravěč<br />
+  <strong>Program na GC2009</strong><br /> <a href = "/rpg/og-unearthed-edition---velky-lov">Og (Unearthed Edition) - Velký lov</a>, <a href = "/rpg/wushu-open---jeskyne-rudeho-draka">Wushu (Open) - Jeskyně rudého draka</a><br />
+  <strong><a href = "boubaque o sobě" onclick = "ukaz(76); return false;">O sobě píše</a></strong><br /><span  id = "objekt76" style = "display: none;">
+  <p>Jsem člověk s mnoha různými zájmy od literatury a hudby přes sport až po jazyk (kterému se věnuji i studijně), na které (už) většinou nemám čas, a proto znám mnoho věcí, ale zato jen povrchně :) Ovšem jedním z nejstálejších a nejhlubších zájmů je oblast RPG, kterým se věnuji často a rád už zhruba deset let. Za tu dobu jsem vyzkoušel her vícero jako hráč i vypravěč a zjistil, že nejvíc mi sedí hry jednoduché, které přesto kladou alespoň malé nároky na své hráče, zvláště panuje-li při jejich hraní uvolněná (ale ne nutně rozjařená) nálada.</p>
+  </span>
+</div>
+
+<div class = "organizatori">
+  <div class = "jmeno">Conlai – David Klimeček</div>
+  <div class = "foto">
+    <img src = "/system_styly/organizatori/default.jpg" />
+  </div>
+  <strong>Funkce na GC</strong><br />vypravěč<br />
+  <strong>Program na GC2009</strong><br /> <a href = "/rpg/dungeons-and-dragons-4e">Dungeons and Dragons 4E</a>, <a href = "/rpg/mouse-guard">Mouse Guard</a><br />
+  <strong><a href = "conlai o sobě" onclick = "ukaz(1); return false;">O sobě píše</a></strong><br /><span  id = "objekt1" style = "display: none;">
+  <p>Rolovým hrám se věnuji více než deset let, během kterých jsem vystřídal větší než malé množství systémů. S různými pravidly, světy a přístupy ke hře se měnil i můj pohled na hry jako takové. Nakonec jsem došel k přesvědčení, že hra je jen hra a proto je třeba brát ji zatraceně vážně.</p>
+  <p>Mé preference ohledně her jsou svou povahou proteovské - mění se z měsíce na měsíc. Mám rád fantasy, cyberpunk, horor, hry od komerčních molochů i nezávislých vydavatelů. Mimo RPG samozřejmě nepohrdnu ani stolovkou či kartičkami.</p>
+  </span> 
+</div>
+
+<div class = "organizatori">
+  <div class = "jmeno">Ecthelion^2</div>
+  <div class = "foto">
+    <img src = "/system_styly/organizatori/ecthelion-2.jpg" />
+  </div>
+  <strong>Funkce na GC</strong><br />přednášející, vypravěč<br />
+  <strong>Kontakt</strong><br /> <a href = "mailto:thorongil@seznam.cz">thorongil@seznam.cz</a><br />
+  <strong>Program na GC2009</strong><br /> <a href = "/rpg/stories-of-the-empire">Stories of the Empire (RPG)</a>, <a href = "/prednasky/stories-of-the-empire">Stories of the Empire (přednáška)</a><br />
+  <strong><a href = "nick o sobě" onclick = "ukaz(101); return false;">O sobě píše</a></strong><br /><span  id = "objekt101" style = "display: none;">
+  <p>Jsme autorská dvojice, RPG se věnujeme jistě přes deset let.</p>
+  <p>Zajímáme se o různé druhy her a příběhy, které lze skrze ně utvářet. Postupně jsme se přes hraní a vyprávění dostali k tvorbě her nových a kromě tajemně viktoriánských Stories of the Empire jsme vytvořili i několik dalších, z nichž Vendetta obsadila 2.-3. místo v soutěži RPG Kuchyně a Blanc pak místo 1.-2.</p>
+  </span> 
+</div> 
+
+<div class = "organizatori">
+  <div class = "jmeno">Erric – Matouš Ježek</div>
+  <div class = "foto">
+    <img src = "/system_styly/organizatori/erric.jpg" />
+  </div>
+  <strong>Funkce na GC</strong><br />koordinátor sekce volného hraní a přednášek, přednášející, vypravěč<br />
+  <strong>Kontakt</strong><br /> <a href = "mailto:erric@email.cz">erric@email.cz</a><br />
+  <strong>Program na GC2009</strong><br /> <a href = "/rpg/strepy-snu-erric">Střepy snů</a>, <a href = "/prednasky/strepy-snu-krest-knihy">Střepy snů: Křest knihy</a>, <a href = "/prednasky/strepy-snu-o-vyvoji">Střepy snů: O vývoji</a><br />
+  <strong><a href = "erric o sobě" onclick = "ukaz(3); return false;">O sobě píše</a></strong><br /><span  id = "objekt3" style = "display: none;">
+  <p>Na Gameconu jsem byl poprvé v roce 2000, kde jsem naprosto propadl hrám. Spolupracoval jsem na vývoji hry Dračí doupě Plus. Práci na tomto projektu jsem završil vydáním samostatné publikace DrD+ Bestiář v létě 2006. Býval jsem PJ na mistrovství v DrD, ale nyní už se věnuji koordinaci volného hraní ostatních RPG her a také přednáškové sekce.</p>
+  <p>Pracuji jako designér počítačových her a ve volném čase se věnuji návrhu rolových her. Mým srdcovým projektem je nová RPG hra Střepy snů. Na hrách mě nejvíce zajímá příběh, ve všech jeho podobách a přístupech k němu.</p>
+  </span> 
+</div>
+
+<div class = "organizatori">
+  <div class = "jmeno">Gekon – Jiří Zlatohlávek</div>
+  <div class = "foto">
+    <img src = "/system_styly/organizatori/gekon.jpg" />
+  </div>
+  <strong>Funkce na GC</strong><br />organizátor larpů<br />
+  <strong>Program na GC2009</strong><br /> <a href = "/rpg/call-of-cthulhu">Call of Cthulhu</a>, <a href = "/larp/cela">Cela</a>, <a href = "/larp/delegace-ankh-morpork">Delegace: Ankh-Morpork</a>, <a href = "/larp/chnapsni-vlajku">Chňapsni vlajku!</a>, <a href = "/larp/podraz">Podraz</a>, <a href = "/larp/rande">Rande</a>, <a href = "/larp/spina">Špína</a><br />
+  <strong><a href = "gekon o sobě" onclick = "ukaz(11); return false;">O sobě píše</a></strong><br /><span  id = "objekt11" style = "display: none;">
+  <p>Rolovým hrám se věnuji osm let, od roku 2007 intezivně v rámci občanského sdružení Court of Moravia. Na Gameconu vyprávím letos pátým rokem. Preferuji koncepční hry, dramatický přístup he hraní a prostředí moderní mystiky. Ve chvílích školního volna pracuji v čajovně, organizuji larpy a vemlouvám se slečnám do přízně.</p> 
+  </span> 
+</div>
+
+<div class = "organizatori">
+  <div class = "jmeno">Lev - Michal Širaň</div>
+  <div class = "foto">
+    <img src = "/system_styly/organizatori/lev.jpg" />
+  </div>
+  <strong>Funkce na GC</strong><br />přednášející, vypravěč<br />
+  <strong>Kontakt</strong><br /> <a href = "mailto:lev@ba-rats.com">lev@ba-rats.com</a><br />
+  <strong>Program na GC2009</strong><br /> <a href = "/prednasky/odmente-svojich-hracov">Odmeňte svojich hráčov!</a>, <a href = "/rpg/star-wars-d6---jedi-academy">Star Wars d6 - Jedi Academy</a>, <a href = "/rpg/star-wars-d6---rytieri-starej-republiky">Star Wars d6 - Rytieri Starej Republiky</a>, <a href = "/rpg/vampire-the-masquerade">Vampire: the Masquerade</a><br />
+  <strong><a href = "lev o sobě" onclick = "ukaz(90); return false;">O sobě píše</a></strong><br /><span  id = "objekt90" style = "display: none;">
+  <p>Preferujem atmosférické a hororové hry, nabité morálnymi dilemami a hlbokým vnútorným prežívaním postáv. Ako hráč si najviac užívam ťažké rozhodnutia a prežité emócie, preto sa toto snažím sprostredkovať aj svojim hráčom.</p>
+  </span> 
+</div>  
+
+<div class = "organizatori">
+  <div class = "jmeno">Lumík – Stanislav Kamenský</div>
+  <div class = "foto">
+    <img src = "/system_styly/organizatori/lumik.jpg" />
+  </div>
+  <strong>Funkce na GC</strong><br />pán jeskyně<br />
+  <strong>Program na GC2009</strong><br /> <a href = "/mistrovstvi-v-drd/o-mistrovstvi-v-drd">Mistrovství v DrD</a><br />
+  <strong><a href = "lumík o sobě" onclick = "ukaz(8); return false;">O sobě píše</a></strong><br /><span  id = "objekt8" style = "display: none;">
+  <p>Dračímu doupěti se věnuji zhruba od roku 1998, GameConu jsem se v letech 2000 a 2001 zúčastnil jako hráč, ale nikdy nepostoupil a jednou dokonce zemřel (i když jak jsem později zjistil, to je ještě velmi dobrá statistika :-)) Proto jsem se rozhodl udělat kariéru na druhé straně barikády a přeběhl k Pánům jeskyně, kde od roku 2002 vytrvale a s nadšením pobíjím postavy, přičemž má kolaborace dosud nebyla potrestána.</p>
+  <p>Zatím jsem stále věkem nejmladší PJ na conu, služebně už tomu tak není. Z neznámého důvodu se o mně mezi hráči začalo šířit, že jsem hodný a milý, a tak toho dosud zneužívám... Kromě DrD jsem přičichl i k BattleTechu či Shadowrunu a velmi rád mám také deskovky. Už dlouho se chystám vyrazit na svůj první LARP, ale hvězdy mi dosud nepřály.</p>
+  </span> 
+</div>
+
+<div class = "organizatori">
+  <div class = "jmeno">Markus - Jiří Petrů</div>
+  <div class = "foto">
+    <img src = "/system_styly/organizatori/markus.jpg" />
+  </div>
+  <strong>Funkce na GC</strong><br />přednášející, vypravěč<br />
+  <strong>Kontakt</strong><br /> <a href = "mailto:jpe@razdva.cz">jpe@razdva.cz</a><br />
+  <strong>Program na GC2009</strong><br /> <a href = "/rpg/dogs-in-the-vineyard">Dogs in the Vineyard</a>, <a href = "/rpg/poisond">Poison'D</a><br />
+  <strong><a href = "nick o sobě" onclick = "ukaz(100); return false;">O sobě píše</a></strong><br /><span  id = "objekt100" style = "display: none;">
+  <p>Coby neposedný člověk musím neustále zkoušet něco nového a u ničeho nevydržím - což u RPG her vedlo k tomu, že jsem si oblíbil inovativní hry s netradičními herními styly. Rád objevuji nové myšlenky, zkouším různé přístupy ke hře, vrtám se v teorii... a mám neutuchající potřebu pořád o tom mluvit, čímž mnoha lidem lezu na nervy.</p>
+  <p>K mým aktivistickým činnostem patří podílení se na správě portálu RPGforum.cz a RPG.sk. Jinak vedu i nějaký ten osobní život, pracuji jako překladatel na volné noze a rád nosím červené košile.</p>
+  </span> 
+</div> 
+
+<div class = "organizatori">
+  <div class = "jmeno">Peekay - Peter Kopáč</div>
+  <div class = "foto">
+    <img src = "/system_styly/organizatori/peekay.jpg" />
+  </div>
+  <strong>Funkce na GC</strong><br />přednášející, vypravěč<br />
+  <strong>Kontakt</strong><br /> <a href = "mailto:peekay@ba-rats.com">peekay@ba-rats.com</a><br />
+  <strong>Program na GC2009</strong><br /> <a href = "/rpg/dread">Dread</a>,  <a href = "/prednasky/odmente-svojich-hracov">Odmeňte svojich hráčov!</a>, <a href = "/rpg/pendragon---bolestiva-straz">Pendragon - Bolestivá Stráž</a>, <a href = "/rpg/strepy-snu-peekay">Střepy snů</a><br />
+  <strong><a href = "peekay o sobě" onclick = "ukaz(91); return false;">O sobě píše</a></strong><br /><span  id = "objekt91" style = "display: none;">
+  <p>Preferujem hry s akčným a odľahčeným zameraním, ale nebránim sa ani dramatickým hrám s ťažkými témami. Ako rozprávač sa snažím v prvom rade zabezpečiť, aby bola hra pre hráčov pútavá a zábavná - akým spôsobom presne záleží od žánru danej hry.</p> 
+  </span> 
+</div> 
+
+<div class = "organizatori">
+  <div class = "jmeno">RomiK – Roman Hora</div>
+  <div class = "foto">
+    <img src = "/system_styly/organizatori/romik.jpg" />
+  </div>
+  <strong>Funkce na GC</strong><br />přednášející, vypravěč<br />
+  <strong><a href = "romik o sobě" onclick = "ukaz(19); return false;">O sobě píše</a></strong><br /><span  id = "objekt19" style = "display: none;">
+  <p>RPG jsou něco jako můj život, tedy kromě dalších zájmů, kterými jsou knihy, historie a vtipy. V každé situaci, ač se to hodí nebo ne si vzpomenu alespoň na jeden vtip. Skoro vždy si ho nenechám jen pro sebe a buď vyvlám smích v okolí a nebo jsem poslán do krajin dalekých a temných.</p>
+  <p>RPG nejraději hraji s důrazem na příběh, drama a emocionální prožitek hráčů. Čísla a charakteristiyk postav pro mě mají druhotnou roli...většinou. Na hraní mám prostě rád to, že si mohu zvolit jakýk stylem, jakou hru a to si zahrát. Chci hrát hodně akční hru jen o kostkách? Není problém, baví mě to. Chci hrát hororovou hru bez kostek? Není problém, baví mě to. To dává asi tušit jaký hlavně jsem: potřeštěný, bláznivý optimista.</p>
+  </span> 
+</div>
+
+<div class = "organizatori">
+  <div class = "jmeno">Seth – David Rozsíval</div>
+  <div class = "foto">
+    <img src = "/system_styly/organizatori/seth.jpg" />
+  </div>
+  <strong>Funkce na GC</strong><br />přednášející, vypravěč<br />
+  <strong>Program na GC2009</strong><br /> <a href = "/prednasky/asterion--hranice-fantazie">Asterion – Hranice fantazie</a>, <a href = "/rpg/drdasterion-----pevnost-stinu">DrD+/Asterion - Pevnost Stínů</a><br />
+  <strong><a href = "sirien o sobě" onclick = "ukaz(33); return false;">O sobě píše</a></strong><br /><span  id = "objekt33" style = "display: none;">
+  <p>Ač jsem nejmladším členem autorského týmu Asterionu, jak věkem, tak služebně, byl jsem za tento svět delegován na letošní Gamecon. Vrhám se proto tak trochu do jámy lvové, nicméně mě jen tak nějaký lev nevytrhne. Přijďte, vizte, užijte si.</p>
+  </span> 
+</div>
+
+<div class = "organizatori">
+  <div class = "jmeno">Sirien - Petr Mazák</div>
+  <div class = "foto">
+    <img src = "/system_styly/organizatori/sirien.jpg" />
+  </div>
+  <strong>Funkce na GC</strong><br />přednášející, vypravěč<br />
+  <strong>Kontakt</strong><br /> <a href = "mailto:sirien.neiris@gmail.com">sirien.neiris@gmail.com</a><br />
+  <strong>Program na GC2009</strong><br /> <a href = "/prednasky/alternativni-storytelling-a-roleplaying">Alternativní storytelling a roleplaying</a>, <a href = "/rpg/fate---cesta-domu">FATE - Cesta domů</a>, <a href = "/prednasky/napric-spektrem-rpg">Napříč spektrem RPG</a>, <a href = "/rpg/shadowrun---pomsta-mrtveho-maga">Shadowrun - Pomsta mrtvého mága</a>, <a href = "/prednasky/tempo-a-obsah-hry-stylizace-scen">Tempo a obsah hry, stylizace scén</a>, <a href = "/prednasky/typologie-pribehu">Typologie příběhů</a>, <a href = "/rpg/world-of-darkness---stredoskolska-tradice">World of Darkness - Středoškolská tradice</a><br />
+  <strong><a href = "sirien o sobě" onclick = "ukaz(102); return false;">O sobě píše</a></strong><br /><span  id = "objekt102" style = "display: none;">
+  <p>RPG se věnuji již zhruba třináct let, za tu dobu jsem si zkusil a přečetl docela hodně. Aktivně se jejich otevřenému hraní a propagaci věnuji asi čtyři roky, dosud především na Festivalu fantazie a Pragoconu se sdružením MaelströM (svého času chvíli za bývalý OpenGameing).</p>
+  <p>Z mnoha her a přístupů, které jsem vyzkoušel, jsem si oblíbil především hraní zaměřené na svět a postavy, se silným podtextem příběhu. Za autory, kteří nejvíce ovlivnili můj pohled na hraní, považuji především designery firmy White Wolf (u nás známá především díky RPG z prostředí World of Darkness) a pár autorů více či méně nezávislých. I přes herní teorii, které se s oblibou věnuji, zastávám názor že hraní RPG je především a v první řadě zábava a až potom něco dalšího.</p>
+  </span> 
+</div>
+    </div>
+  </div>
+<div class = "main-bottom"><br /></div>
+      </div>
+      <div class = "side">
+        
+  <div class = "nadpis">RPG</div>
+  <div class = "obsah">
+    <div class = "ram">
+      <a href = "/rpg/stories-of-the-empire" title = "Stories of the Empire"><img src = "/system_styly/side/stories-of-the-empire.jpg" /></a>
+    </div>
+  </div>
+  <div class = "nadpis">LARP</div>
+  <div class = "obsah">
+    <div class = "ram">
+      <a href = "/larp/rande" title = "Rande"><img src = "/system_styly/side/rande.gif" /></a>
+    </div>
+  </div>
+  <div class = "nadpis">Deskové hry</div>
+  <div class = "obsah">
+    <div class = "ram">
+      <a href = "/gamecon-trojboj/space-alert" title = "GameCon Trojboj - Space Alert"><img src = "/system_styly/side/gamecon-trojboj---space-alert.gif" /></a>
+    </div>
+  </div>
+  <div class = "nadpis">Přednášky & Dílny</div>
+  <div class = "obsah">
+    <div class = "ram">
+      <a href = "/prednasky/typologie-pribehu" title = "Typologie příběhů"><img src = "/system_styly/side/typologie-pribehu.jpg" /></a>
+    </div>
+  </div>      </div>
+      <!--<div class = "horizontbottom">
+        horizont bottom
+      </div>-->
+      <div class = "paticka">
+        <div class = "sponzori_ohraniceni" style = "margin-bottom: 0px; height: 20px;">Naši partneři</div>
+<div class = "sponzori_ohraniceni">   
+  <div class = "sponzor">
+    <a href=" http://www.alza.cz/" onclick = "window.open(this.href,'_blank'); return false" title="Alza.cz"><img src = "/system_styly/sponzori/alza.gif"></a>
+  </div>
+  <div class = "sponzor">
+    <a href="http://www.knihcentrum.cz/" onclick = "window.open(this.href,'_blank'); return false" title="Knihcentrum.cz - Vaše rodinné knihkupectví"><img src = "/system_styly/sponzori/knihcentrum.gif"></a>
+  </div>
+  <div class = "sponzor" style = "width: 50px;">
+    <a href=" http://www.altar.cz/" onclick = "window.open(this.href,'_blank'); return false" title="Altar"><img src = "/system_styly/sponzori/altar.gif"></a>
+  </div>
+  <div class = "sponzor">
+    <a href=" http://www.albi.cz/" onclick = "window.open(this.href,'_blank'); return false" title="Albi"><img src = "/system_styly/sponzori/albi.png"></a>
+  </div>
+  <div class = "sponzor">
+    <a href=" http://www.corfix.cz/" onclick = "window.open(this.href,'_blank'); return false" title="Corfix"><img src = "/system_styly/sponzori/corfix.gif"></a>
+  </div>
+  <div class = "sponzor">
+    <a href=" http://www.fantasyobchod.cz/" onclick = "window.open(this.href,'_blank'); return false" title="Fantasy obchod"><img src = "/system_styly/sponzori/fantasy_obchod.gif"></a>
+  </div>
+  <div class = "sponzor">
+    <a href="http://www.toptopic.cz/" onclick = "window.open(this.href,'_blank'); return false" title="Top Topic"><img src = "/system_styly/sponzori/top-topic.gif"></a>
+  </div>
+  <div class = "sponzor">
+    <a href=" http://www.zazitky.cz/" onclick = "window.open(this.href,'_blank'); return false" title="Zážitky jako dokonalé dárky"><img src = "/system_styly/sponzori/zazitky.gif"></a>
+    <a href=" http://www.zazitky.cz/zazitkove-hry/" onclick = "window.open(this.href,'_blank'); return false" title="Zážitkové hry">Zážitkové hry</a>
+  </div>
+  <div class = "sponzor"> 
+    <div class = "sponzor" style = "height: 30px;">
+      <a href=" http://www.mindok.cz/" onclick = "window.open(this.href,'_blank'); return false" title="Mindok"><img src = "/system_styly/sponzori/mindok.gif"></a>
+    </div>
+    <div class = "sponzor"  style = "height: 40px;">
+      <a href=" http://www.czechgames.cz/" onclick = "window.open(this.href,'_blank'); return false" title="CGE"><img src = "/system_styly/sponzori/cge.gif"></a>
+    </div>
+  </div>
+</div>
+      </div>
+    </div>
+  
+  </body>
+</html>
+  

@@ -1,0 +1,316 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="cs" lang="cs">
+
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <link rel="stylesheet" type="text/css" href="/system_styly/styl1.css" media="all" /> 
+    <link rel = "shortcut icon" href = "/favicon.ico" />
+    
+    <!--  lightbox začátek //-->
+    <script type="text/javascript" src="/lightbox/js/prototype.js"></script>
+    <script type="text/javascript" src="/lightbox/js/scriptaculous.js?load=effects,builder"></script>
+    <script type="text/javascript" src="/lightbox/js/lightbox.js"></script>
+    <link rel="stylesheet" href="/lightbox/css/lightbox.css" type="text/css" media="screen" />
+    <!--  lightbox konec //-->
+    <!--  java otevirani a ankety začátek //-->
+    <script type="text/javascript" src="/java.js"></script>
+    <!--  java otevirani a ankety konec //-->
+    
+    <title>
+      GameCon - informace o dobrodružství    </title>
+    <meta name="keywords" content="KW" />
+    <meta name="description" content="DS" />
+    
+    
+    
+  </head>
+  <body>
+    <div class = "ohraniceni">
+      <div class = "search">
+        <div class = "bok-top2">
+  <form action = "/vyhledavani" method = "post">
+    <input type = "text" value = "GameCon" name = "fraze" class = "edt_login" style = "width: 140px;" onclick="this.value=''"; />
+    <input type="image" src="/system_styly/pics_system_styl1/tlacitka/hledat_maly.gif" value="Submit" alt="přihlásit" style = "width: 50px; height: 18px;" />
+  </form>
+</div>
+      </div>
+      <div class = "logo">
+        <a href = "http://www.gamecon.cz/gamecon/o-gameconu" style = "width: 100%; height: 100%; display: block;"><span style = "visibility: hidden;">Gamecon - O GameConu</span></a>
+      
+      </div>
+      <div class = "login">
+        <div class = "bok-top2">
+    <form action = "/novinky/novinky" method = "post">
+      <input type = "hidden" name = "prihlaseni" value = "1" />
+    <input name = "login" type = "text" class = "edt_login" value = 
+    "login" style = "width: 70px;" 
+     onclick="this.value=''";
+       />
+    <input name = "heslo" type = "password" class = "edt_login" value = "heslo" style = "width: 75px;" onclick="this.value=''"; />
+    <input type="image" src="/system_styly/pics_system_styl1/tlacitka/prihlasit_maly.gif" value="Submit" alt="přihlásit" style = "width: 50px; height: 18px;" />
+  </form>
+  <form action = "" method = "post" id = "registrace">
+  <input type = "hidden" name = "registrace" value = "1"/>
+  </form>
+  <form action = "" method = "post" id="zapomenute_heslo">
+  <input type = "hidden" name = "zapomenute_heslo" value = "1" />
+  </form>
+  <a href="javascript: document.getElementById('registrace').submit()">registrovat</a> - 
+  <a href="javascript: document.getElementById('zapomenute_heslo').submit()">zapomenuté heslo</a>
+</div>
+      </div>
+      <div class = "menuhorizont">
+        <ul>
+  <li><a href = "/gamecon/o-gameconu">GameCon</a></li>
+  <li><a href = "/rpg/o-rpg-na-gc">RPG</a></li>
+  <li><a href = "/larp/o-larpech-na-gc">Larp</a></li>
+  <li><a href = "/deskove-hry/o-deskovych-hrach-na-gc">Deskové hry</a></li>
+  <li><a href = "/prednasky/o-prednaskach-na-gc">Přednášky</a></li>
+  <li><a href = "/mistrovstvi-v-drd/o-mistrovstvi-v-drd">Mistrovství v DrD</a></li>
+  <!--<li><a href = "/dilny/o-dilnach-na-gc">Dílny</a></li>-->
+  <li><a href = "/forum">Fórum</a></li>
+  <li><a href = "/galerie-materialy/fotogalerie-gamecon09">Fotogalerie</a></li>
+  <li><a href = "/organizatori/organizacni-tym">Organizátoři</a></li>
+  <li><a href = "/kontakt">Kontakt</a></li>
+</ul>
+      </div>
+      <div class = "menu">
+        <div class = "menu_zacatek"></div><ul>
+<li style = "display: list-item;"><a href = "/novinky/novinky"><span>Novinky</span></a></li>
+<li style = "display: none;"><a href = "/novinky/novinky"><span>Novinky</span></a></li>
+<li style = "display: none;"><a href = "/novinky/archiv-novinek"><span>Archiv novinek</span></a></li>
+<li style = "display: list-item;"><a href = "/gamecon/o-gameconu"><span>GameCon</span></a></li>
+<li style = "display: none;"><a href = "/gamecon/o-gameconu"><span>O GameConu</span></a></li>
+<li style = "display: none;"><a href = "/gamecon/program"><span>Program</span></a></li>
+<li style = "display: none;"><a href = "/gamecon/prihlaska"><span>Přihláška</span></a></li>
+<li style = "display: none;"><a href = "/gamecon/prehled-registrace"><span>Přehled registrace</span></a></li>
+<li style = "display: none;"><a href = "/gamecon/cenik"><span>Ceník</span></a></li>
+<li style = "display: none;"><a href = "/gamecon/ubytovani"><span>Ubytování</span></a></li>
+<li style = "display: none;"><a href = "/gamecon/cajovna"><span>Čajovna</span></a></li>
+<li style = "display: none;"><a href = "/gamecon/kde-se-gamecon-kona"><span>Kde se GameCon koná a cesta na něj</span></a></li>
+<li style = "display: none;"><a href = "/gamecon/prihlasovani-na-aktivity"><span>Návod - přihlašování na GameConu</span></a></li>
+<li style = "display: none;"><a href = "/gamecon/placeni"><span>Návod - placení a slevy</span></a></li>
+<li style = "display: none;"><a href = "/gamecon/napsali-o-nas"><span>Napsali o nás</span></a></li>
+<li style = "display: list-item;"><a href = "/gamecon-trojboj/o-gamecon-trojboji"><span>GameCon Trojboj</span></a></li>
+<li style = "display: none;"><a href = "/gamecon-trojboj/o-gamecon-trojboji"><span>O GameCon Trojboji</span></a></li>
+<li style = "display: list-item;"><a href = "/rpg/o-rpg-na-gc"><span>RPG</span></a></li>
+<li style = "display: none;"><a href = "/rpg/o-rpg-na-gc"><span>O RPG na GC</span></a></li>
+<li style = "display: none;"><a href = "/rpg/co-jsou-to-rpg-hry"><span>Co jsou to RPG hry?</span></a></li>
+<li style = "display: none;"><a href = "/rpg/agon"><span>Agon</span></a></li>
+<li style = "display: none;"><a href = "/rpg/cold-city-1950"><span>Cold City: 1950</span></a></li>
+<li style = "display: none;"><a href = "/rpg/draci-doupe-plus-vinobrani"><span>Dračí doupě Plus: Vinobraní</span></a></li>
+<li style = "display: none;"><a href = "/rpg/dread-cthulhu"><span>Dread: Cthulhu</span></a></li>
+<li style = "display: none;"><a href = "/rpg/gurps-stopa"><span>GURPS: Stopa</span></a></li>
+<li style = "display: none;"><a href = "/rpg/labyrinths-and-lycanthropes"><span>Labyrinths and Lycanthropes</span></a></li>
+<li style = "display: none;"><a href = "/rpg/mouse-guard-2010"><span>Mouse Guard (2010)</span></a></li>
+<li style = "display: none;"><a href = "/rpg/og-unearthed-edition-jit-novy-jeskyne"><span>Og (Unearthed Edition): "jít nový jeskyně"</span></a></li>
+<li style = "display: none;"><a href = "/rpg/pendragon"><span>Pendragon</span></a></li>
+<li style = "display: none;"><a href = "/rpg/pribehy-imperia"><span>Příběhy Impéria</span></a></li>
+<li style = "display: none;"><a href = "/rpg/savage-worlds"><span>Savage Worlds</span></a></li>
+<li style = "display: none;"><a href = "/rpg/space-opera---acheron"><span>Space opera - Acheron</span></a></li>
+<li style = "display: none;"><a href = "/rpg/star-wars-d6---operacia-padajuca-hviezda"><span>Star Wars D6 - Operácia "Padajúca hviezda"</span></a></li>
+<li style = "display: none;"><a href = "/rpg/strepy-snu-probuzeni-do-chladu"><span>Střepy snů: Probuzení do chladu </span></a></li>
+<li style = "display: none;"><a href = "/rpg/treti-kralovstvi--cesta-havrana"><span>Třetí království – Cesta Havrana</span></a></li>
+<li style = "display: none;"><a href = "/rpg/seznam-rpg-na-gc2009"><span>Archiv RPG 2009</span></a></li>
+<li style = "display: none;"><a href = "/rpg/archiv-rpg-2008"><span>Archiv RPG 2008</span></a></li>
+<li style = "display: list-item;"><a href = "/larp/o-larpech-na-gc"><span>Larp</span></a></li>
+<li style = "display: none;"><a href = "/larp/o-larpech-na-gc"><span>O larpech na GC</span></a></li>
+<li style = "display: none;"><a href = "/larp/klub-sebevrahu"><span>Klub sebevrahů</span></a></li>
+<li style = "display: none;"><a href = "/larp/podraz-2010"><span>Podraz (2010)</span></a></li>
+<li style = "display: none;"><a href = "/larp/previous-occupants"><span>Previous Occupants</span></a></li>
+<li style = "display: none;"><a href = "/larp/seance"><span>Seance</span></a></li>
+<li style = "display: none;"><a href = "/larp/za-oponou"><span>Za oponou</span></a></li>
+<li style = "display: none;"><a href = "/larp/prehled-larpu-na-gc2009"><span>Archiv larp 2009</span></a></li>
+<li style = "display: none;"><a href = "/larp/archiv-larp-2008"><span>Archiv larp 2008</span></a></li>
+<li style = "display: list-item;"><a href = "/bonusy/gamecon-bonusy"><span>Bonusy</span></a></li>
+<li style = "display: none;"><a href = "/bonusy/gamecon-bonusy"><span>GameCon Bonusy</span></a></li>
+<li style = "display: none;"><a href = "/bonusy/hon-na-rudy-rijen"><span>Hon na Rudý říjen</span></a></li>
+<li style = "display: none;"><a href = "/bonusy/mixer"><span>Mixér</span></a></li>
+<li style = "display: none;"><a href = "/bonusy/spina-2010"><span>Špína (2010)</span></a></li>
+<li style = "display: list-item;"><a href = "/wargaming/o-wargamingu-na-gc"><span>Wargaming</span></a></li>
+<li style = "display: none;"><a href = "/wargaming/o-wargamingu-na-gc"><span>O wargamingu na GC</span></a></li>
+<li style = "display: none;"><a href = "/wargaming/wargaming-tour-2010"><span>Wargaming Tour 2010</span></a></li>
+<li style = "display: none;"><a href = "/wargaming/archiv-wargaming-na-gc-2009"><span>Archiv Wargaming 2009</span></a></li>
+<li style = "display: list-item;"><a href = "/deskove-hry/o-deskovych-hrach-na-gc"><span>Deskové hry</span></a></li>
+<li style = "display: none;"><a href = "/deskove-hry/o-deskovych-hrach-na-gc"><span>O deskových hrách na GC</span></a></li>
+<li style = "display: none;"><a href = "/deskove-hry/deskoherna"><span>Deskoherna</span></a></li>
+<li style = "display: none;"><a href = "/deskove-hry/ceny-pro-viteze-turnaju"><span>Ceny pro vítěze turnajů</span></a></li>
+<li style = "display: none;"><a href = "/deskove-hry/bang-2010"><span>Bang! (2010)</span></a></li>
+<li style = "display: none;"><a href = "/deskove-hry/colossal-arena"><span>Colossal Arena</span></a></li>
+<li style = "display: none;"><a href = "/deskove-hry/osadnici-z-katanu-2010"><span>Osadníci z katanu (2010)</span></a></li>
+<li style = "display: none;"><a href = "/deskove-hry/proroctvi---kvalifikace"><span>Proroctví - kvalifikace</span></a></li>
+<li style = "display: none;"><a href = "/deskove-hry/proroctvi---mistrovstvi-cr-2010"><span>Proroctví - Mistrovství ČR (2010)</span></a></li>
+<li style = "display: none;"><a href = "/deskove-hry/prehled-deskovych-her-na-gc2009"><span>Archiv deskových her 2009</span></a></li>
+<li style = "display: list-item;"><a href = "/prednasky/o-prednaskach-na-gc"><span>Přednášky</span></a></li>
+<li style = "display: none;"><a href = "/prednasky/o-prednaskach-na-gc"><span>O přednáškách na GC</span></a></li>
+<li style = "display: none;"><a href = "/prednasky/27985-dni-leta"><span>27.985 dní léta</span></a></li>
+<li style = "display: none;"><a href = "/prednasky/draci-doupe-ii"><span>Dračí doupě II</span></a></li>
+<li style = "display: none;"><a href = "/prednasky/hranice-pribehu-hranice-vedy"><span>Hranice příběhů, hranice vědy</span></a></li>
+<li style = "display: none;"><a href = "/prednasky/jak-prednaset-jako-rock-star"><span>Jak přednášet jako rock star?</span></a></li>
+<li style = "display: none;"><a href = "/prednasky/jak-si-na-vecirku-povidat-s-devcaty"><span>Jak si na večírku povídat s děvčaty</span></a></li>
+<li style = "display: none;"><a href = "/prednasky/krizom-krazom-zakutiami-rpg"><span>Krížom-krážom zákutiami RPG</span></a></li>
+<li style = "display: none;"><a href = "/prednasky/pribehy-imperia-krest-rukoveti-maga"><span>Příběhy Impéria: Křest Rukověti mága</span></a></li>
+<li style = "display: none;"><a href = "/prednasky/role-playing-neni-pro-stary"><span>Role-playing není pro starý!</span></a></li>
+<li style = "display: none;"><a href = "/prednasky/strepy-snu-prvni-rok-a-velka-vyzva"><span>Střepy snů: První rok a velká výzva</span></a></li>
+<li style = "display: none;"><a href = "/prednasky/zasad-strom-postav-dum"><span>Zasaď strom, postav dům</span></a></li>
+<li style = "display: none;"><a href = "/prednasky/seznam-prednasek-na-gc2009"><span>Archiv přednášek 2009</span></a></li>
+<li style = "display: none;"><a href = "/prednasky/archiv-prednasek-2008"><span>Archiv přednášek 2008</span></a></li>
+<li style = "display: list-item;" class = "aktivni"><a href = "/mistrovstvi-v-drd/o-mistrovstvi-v-drd"><span>Mistrovství v DrD</span></a></li>
+<div class = "menu_zacatek"></div><ul>
+<li style = "display: list-item;"><a href = "/mistrovstvi-v-drd/o-mistrovstvi-v-drd"><span>O Mistrovství v DrD</span></a></li>
+<li style = "display: list-item;"><a href = "/mistrovstvi-v-drd/prihlaska-na-drd"><span>Přihláška na DrD</span></a></li>
+<li style = "display: list-item;"><a href = "/mistrovstvi-v-drd/navod---prihlaseni-na-drd"><span>Návod - přihlášení na DrD</span></a></li>
+<li style = "display: list-item;"><a href = "/mistrovstvi-v-drd/organizace-turnaje"><span>Organizace turnaje</span></a></li>
+<li style = "display: list-item;"><a href = "/mistrovstvi-v-drd/pravidla-pro-tvorbu-postav"><span>Pravidla pro tvorbu postav</span></a></li>
+<li style = "display: list-item;"><a href = "/mistrovstvi-v-drd/sluncesvit-cisarske-noviny"><span>Sluncesvit - císařské noviny</span></a></li>
+<li style = "display: list-item;" class = "aktivni"><a href = "/mistrovstvi-v-drd/informace-o-dobrodruzstvi"><span>Informace o dobrodružství</span></a></li>
+<li style = "display: list-item;"><a href = "/mistrovstvi-v-drd/starsi-dobrodruzstvi"><span>Starší dobrodružství</span></a></li>
+<li style = "display: list-item;"><a href = "/mistrovstvi-v-drd/panove-jeskyne"><span>Pánové Jeskyně</span></a></li>
+<li style = "display: list-item;"><a href = "/mistrovstvi-v-drd/sin-slavy"><span>Síň slávy</span></a></li>
+</ul><div class = "menu_konec"></div>
+<li style = "display: none;"><a href = "/dilny/o-dilnach-na-gc"><span>O dílnách na GC</span></a></li>
+<li style = "display: none;"><a href = "/dilny/archiv-dilny-2008"><span>Archiv dílny 2008</span></a></li>
+<li style = "display: list-item;"><a href = "/forum"><span>Fórum</span></a></li>
+<li style = "display: list-item;"><a href = "/galerie-materialy/materialy-2010"><span>Galerie, materiály</span></a></li>
+<li style = "display: none;"><a href = "/galerie-materialy/materialy-2010"><span>Materiály 2010</span></a></li>
+<li style = "display: none;"><a href = "/galerie-materialy/materialy-2009"><span>Materiály 2009</span></a></li>
+<li style = "display: none;"><a href = "/galerie-materialy/fotosoutez-2009"><span>Fotosoutěž 2009</span></a></li>
+<li style = "display: none;"><a href = "/galerie-materialy/fotogalerie-gamecon09"><span>Fotogalerie GameCon09</span></a></li>
+<li style = "display: none;"><a href = "/galerie-materialy/fotogalerie-gamecon08"><span>Fotogalerie GameCon08</span></a></li>
+<li style = "display: none;"><a href = "/galerie-materialy/dalsi-partneri-zajimave-odkazy"><span>Další partneři, zajímavé odkazy</span></a></li>
+<li style = "display: list-item;"><a href = "/organizatori/organizacni-tym"><span>Organizátoři</span></a></li>
+<li style = "display: none;"><a href = "/organizatori/organizacni-tym"><span>Organizační tým</span></a></li>
+<li style = "display: none;"><a href = "/organizatori/pjove"><span>PJové</span></a></li>
+<li style = "display: none;"><a href = "/organizatori/vypraveci"><span>Vypravěči</span></a></li>
+<li style = "display: none;"><a href = "/organizatori/organizatori-larpu"><span>Organizátoři larpů</span></a></li>
+<li style = "display: none;"><a href = "/organizatori/prednasejici"><span>Přednášející</span></a></li>
+<li style = "display: none;"><a href = "/organizatori/organizatori-wargamingu"><span>Organizátoři wargamingu</span></a></li>
+<li style = "display: none;"><a href = "/organizatori/ostatni-organizatori"><span>Ostatní organizátoři</span></a></li>
+<li style = "display: none;"><a href = "/organizatori/jak-se-stat-organizatorem"><span>Jak se stát organizátorem</span></a></li>
+<li style = "display: list-item;"><a href = "/kontakt"><span>Kontakt</span></a></li>
+</ul><div class = "menu_konec"></div>
+      </div>
+      <div class = "horizonttop">
+        <a href = "http://www.gamecon.cz/">GameCon</a>  &raquo; <a href = "/mistrovstvi-v-drd/o-mistrovstvi-v-drd">Mistrovství v DrD</a> &raquo; <a href = "/mistrovstvi-v-drd/informace-o-dobrodruzstvi">Informace o dobrodružství</a>      </div>
+      <div class = "main">
+        <div class = "main-top"></div>
+  <div class = "main-middle">
+    <div class = "main-middle-in">
+<h1>Slunečné císařství</h1>
+
+<p>	Z východu je ohraničeno velkými jezery a nepředvídatelnými bažinami, na jihu a západě je omývá moře, pouze ze severu se nad zemí tyčí vysoké hory – není tedy divu, že zdejší stát nese tak poetický název, neboť opravdu je od rána do večera celá zem sluncem prosvícena. Naštěstí jsou zdejší kraje hustě porostlé lesy, obklopeny rozlehlými jezery a od moře vanou příznivé větry, proto není zdejší císařství vyprahlé jako nekonečné pouště daleko na jihu, naopak bere si ze slunce jen to nejlepší.</p>
+<p>	Celé zemi se neskutečně daří v zemědělství, často je každý region na něco specializovaný (na jihu jsou to olivy a víno, na severu ječmen či brambory), ale díky své rozloze pokrývá císařství spousta různorodých krajin a tak zde naleznete spoustu rozličných odvětví.</p>
+<p>	Císařství ale nebylo tak velké vždy. Je to však již hodně dávno, kdy se původním obyvatelům z Železného kraje podařilo dobýt okolní království a sjednotit je pod jednu vlajku. Naštěstí byli dávní vládci císařství natolik moudří, že brzy zajistili nově dobytým krajům stejná práva jako svým původním podřízeným, a vyhnuli se tak občanským válkám a krvelačným půtkám mezi císařským lidem. A síla ve velké jednotě, technologický pokrok vzájemnou pomocí a moudrá slova císaře byli natolik nezpochybnitelnou silou a výhodou, že nikdo nevzdoroval a císařství zůstává jednotné.</p>
+<p>	Jako jeden stát působí pro okolní země, vnitřně je rozděleno do třinácti oblastí. Rozložení krajů vyhází z přirozených hranic původních království před dobytím, dnes však mají pouze organizační účel. Každý z regionů má svého správce, který se stará o svůj kraj a zodpovídá se císaři. Stejně tak má svou regionální pravomoc a své úředníky. Dvanáct regionů se nachází na velké kontinentální části císařství, jeden region je pak ostrovní kraj.</p>
+
+<h2>Kraje Slunečného císařství</h2>
+
+<h3>Železný kraj</h3>
+<p>	Původní království, ze kterého vzešlo nynější císařství. Tato část byla hodně bohatá na železo a zároveň se nacházela i jinde než jen v horských oblastech, takže zdejší lid se nesnažil využít nalezený kov pouze pro kutání v dolech, ale používal jej pro různé přístroje a nástroje, mimo jiné i pro zbraně. Rozhodující však byl technologický náskok zdejšího kraje, díky němuž zvítězili nad ostatními královstvími.</p>
+<p>	Nachází se zde císařské město <strong>Slunostěn</strong> (původní název byl Plánička, ale bylo přejmenováno 160 let nazpět císařem Otakarem IV. Budovatelem). Je to unikátní nádherné a na historii bohaté město, ve kterém je i císařský palác.</p>
+<p>	Vládce Železného kraje však není císař, je to samostatně volený správce a jeho sídlo je v <strong>Novoměstě</strong>, které je i hlavním městem celé provincie.</p>
+
+<h3>Horský kraj</h3>
+<p>	Sousední region Železného kraje, nachází se v nejsevernější části císařství a jeho plochu povětšinou zabírají strmé a vysoké Dračí hory. Vedle divokých potvor, který daly pohoří název, se zde také nachází velké množství nerostného bohatství a tak není divu, že kraj je plný dolů, továren a alchymistických dílen.</p>
+<p>	Hlavním městem je <strong>Horobydlo</strong> a je to nejvýše umístěné krajské město v celém císařství. Legendy praví, že tohle město postavili sami obři na základech hnízda velkých bouřkových orlů. Leckdo se této povídačce může smát, ale jakmile by spatřil na vlastní oči město vytesané do skal a koupající se v mračnech, hned by místopřísežně prohlásil, že tomu nemohlo být jinak.</p>
+
+<h3>Ledový kraj</h3>
+<p>	Na západ od hranic Horského kraje se Dračí hory začínají postupně drobit na menší a stále stejně nebezpečná drobná skaliska, mezi něž se mísí chladivá voda Severního moře. Ledový kraj sestává především ze stovek malých ostrůvků, fjordů, ledovcových plání a kusu pobřeží. Kvůli mrazivým vírům je tato provincie zemí takřka věčného sněhu, ale vděk tomu i velmi otužilých obyvatel.</p>
+<p>	Většina krajanů žije na pobřeží blízko hlavního města <strong>Mrázochrámu</strong> nebo tajemného poutního místa <strong>Černoděr</strong>, což je hluboká díra v zemi, ze které vychází teplo a o které se traduje, že navazuje na tajemné chodby vedené pod celým zemských povrchem.</p>
+
+<h3>Kraj u sedmi jezer</h3>
+<p>	Na jih od Horského kraje tvoří východní hranici císařství Sedmijezeří. Zdejší dominantou je sedm obřích jezer, které jsou zdrojem potravy, bohatství, ale také nesčetně bájných historek a dohadů. V každém z nich je prý podvodní palác postaven z perel, mušlí a rákosu a třeba bylo podniknuto již mnoho výzkumných výprav, žádná z nich to nepotvrdila. To prý má císař s podvodním národem tajnou úmluvu a tak pravda nikdy nevyjde na světlo.</p>
+<p>	Západní část jezer jsou dokonce vyhledávaným odpočinkovým místem bohatších císařských obyvatel a rádi zavítají i do honosného města <strong>Perleťov</strong>. Východní část kraje už tak oblíbená není, neboť je prostoupena zrádnými mokřinami, které ale tak tvoří přirozenou hranici vůči případným nepřátelům.</p>
+
+<h3>Křišťálový kraj</h3>
+<p>	Mezi Železným regionem a Sedmijezeřím se nachází Kraj křišťálový. Ještě až sem sahá mohutné severní pohoří, zde však v drobnější míře a přecházejí zde do menších skal, ve kterých jsou k nalezení stovky jeskyní. V těch se pak nachází druhé největší bohatství tohoto kraje a tím jsou ty nejrozmanitější křišťály a diamanty na světě.</p>
+<p>	Tím prvním bohatstvím této provincie jsou zdejší umělci, kteří s drahými kameny dokáží dělat učiněné divy. Většina z nich žije v hlavním městě <strong>Bižu</strong> a o mnohých z nich se traduje, že jsou to utajovaní potomci permoníků, kteří se prý stále schovávají v křišťálových jeskyních.</p>
+
+<h3>Kraj lesů, luk a hájů</h3>
+<p>	Mnohem častěji se mu však říká pouze Lesní kraj. Zdejší oblast bývá také často popisována jako nejnádhernější a nejklidnější místo na světě, nebo zahrada bohů. Nenachází se zde žádná města v tom pravém slova smyslu, vše je budováno v souladu s přírodou, takže i sídelní místo správce <strong>Květolist</strong> je vyšlechtěno s touto ideou a rozléhá se v korunách Květolistového lesa.</p>
+<p>	Prý soulad s přírodou vede až k takovým věcem, že se na těchto místech příroda probouzí, stromy zde pochodují a obyvatelé mluví se zvířaty.</p>
+
+<h3>Kopcovitý kraj</h3>
+<p>	Na západ od Lesního kraje a na jih od Železného se nachází Kraj kopců. Tato drobně zvlněná zem je bohatým sadem, plodným polem a domovem nejlepších kuchařů. Ne nadarmo se říká, chceš-li poznat, co je to opravdu jídlo, vyraz do Kopců.</p>
+<p>	Hlavním provinčním městem je <strong>Horní a dolní Kopcov</strong> a vedle výtečného koření a tabáku je také znám letním sídlem císařské rodiny, kteří do tohoto pohostinného kraje zajedou každou volnou chvíli.</p>
+
+<h3>Kraj řemeslníků</h3>
+<p>	Dříve se tento region jmenoval Kraj bílých skal pro svá pískovcová skaliska, ale velmi rychle přešel ve známost a nakonec i formální používání nynější název, neboť provincie těží ze skvělého umístění mezi ostatními regiony a pomocí svých činorodých obyvatel vydává z produktů okolních zemí to nejlepší. Je to také země vynálezců a umělců a ti nejlepší z nich se rodí v <strong>Bílozdi</strong>, v praktickém a rozlehlém městě postaveném ze zdejšího nezaměnitelného kamene.</p>
+
+<h3>Solný kraj</h3>
+<p>	Na jih od Kraje řemeslníků a Kopcovitého regionu se nachází Solný kraj. Je to až k nevíře, ale zdejší lidé se naučili tuto surovinu vydobýt takřka ze všeho a následně celé císařství ocenilo výhody této nenahraditelné ingredience. Hlavní obchod a zločin se zde točí okolo soli, ale spolu s ní zde kvete také další obchod, především potravinářského charakteru.</p>
+<p>	Hlavním městem je <strong>Solnohrad</strong> a povídačky tvrdí, že správcův hrad je postaven na velké hroudě zlata. Kolují totiž zvěsti, že sůl se leskne přece proto, že v sobě obsahuje malinkaté kousky zlata. Takže někdy na dně, na konci solných dolů se musí objevit zlaté žíly.</p>
+
+<h3>Pobřežní kraj</h3>
+<p>	Západní část pevniny pak uzavírá Pobřežní kraj s hlavním městem <strong>Vlnolam</strong>. Tato země dala světu ty opravdové námořníky, mořeplavce a někdy i piráty. Zde se naučili krotit nespoutaný mořský živel a podvolit si k vlastním potřebám.</p>
+<p>	Z těchto končin vyplouvá do světa nejvíce lodí, ale zároveň jich sem také nejvíce připlouvá. Je tedy pochopitelné, že spolu se zahraničním zbožím se sem také dostanou věci v císařství ne zcela běžné, takže Pobřežní města jsou plná roztodivností a bizarností.</p>
+
+<h3>Vinný kraj</h3>
+<p>	Region proslavený svou výtečnou pochutinou. Vinnou révu zde naleznete na každém kroku a snad jen zdejší sommeliéři se vyznají ve všech odrůdách a ročnících, které se zde vedou.</p>
+<p>	Vděk slastné tekutině se nadneseně tvrdí, že <strong>Hroznová Lhota</strong> patří mezi nejveselejší sídelní města. Je radostné tomu uvěřit, protože provincie má i velmi výhodnou polohu. Ze západu začíná jižní hranici císařství a přes Středové sem vanou teplé větrné proudy.</p>
+
+<h3>Olivový kraj</h3>
+<p>	Tento region uzavírá jižní hranici císařství a ve zdejším suchém přímořském ovzduší se výtečně vede olivám. Zároveň zde vzkvétá zahraniční obchod, což sice navyšuje životní úroveň, ale zároveň to sem láká velké množství zlotřilců.</p>
+<p>	Není tedy divu, že v pestrém sídelní městě <strong>Olivojlu</strong> zaslechneme častěji cizince.</p>
+
+<h3>Korálový kraj</h3>
+<p>	Nejpozději připojená provincie celého císařství. Na rozdíl od ostatních regionů se Korálový kraj nenachází na stejné pevnině jako ostatní země, ale jedná se o samostatný ostrov. Mezi ostatními obyvateli císařství občas kolují pomlouvačné fámy, že je to kraj divochů, nezkrocený sil a dřívějších civilizací. Že je nejvyšší čas, aby císař i tomuto regionu vtiskl ráz technicky vyspělé země jako zbytku císařství. Jedná se však spíše o pomluvy, Korálový kraj je na srovnatelné technické výši, pravdou však zůstává, že místy si zachovává i svůj původní folklór, jako například kolonie Vodních lidí na západě ostrova. Není ale nejmenších důvodů strachovat se, všichni jsou loajální císaři.</p>
+<p>	Hlavní město korálové provincie se jmenuje <strong>Vodostav</strong> a říká se, že ty nejkrásnější ze zdejších budov jsou památka na původní obyvatele. Těm je však dávno konec a na ostrově vládce císař.</p>
+<p><br /></p>
+<p>	Vzhledem k tomu, že císařství je sjednocením velkého množství těchto rozmanitých zemí a všem tato pospolitost prospívá, nedá se říct, že by se někde objevovala nevraživost vůči různým rasám či vyznáním. Většina císařských již dávno pochopila, že naopak tyto rozdíly dopomohly císařství k větší slávě, pokrokům a blahobytu.</p>
+    </div>
+  </div>
+<div class = "main-bottom"><br /></div>
+      </div>
+      <div class = "side">
+        
+  <div class = "nadpis">RPG 2010</div>
+  <div class = "obsah">
+    <div class = "ram">
+      <a href = "/rpg/pendragon" title = "Pendragon"><img src = "/system_styly/side/pendragon.gif" /></a>
+    </div>
+  </div>
+  <div class = "nadpis">Přednášky & Dílny 2010</div>
+  <div class = "obsah">
+    <div class = "ram">
+      <a href = "/prednasky/hranice-pribehu-hranice-vedy" title = "Hranice příběhů, hranice vědy"><img src = "/system_styly/side/hranice-pribehu-hranice-vedy.gif" /></a>
+    </div>
+  </div>
+  <div class = "nadpis">LARP 2010</div>
+  <div class = "obsah">
+    <div class = "ram">
+      <a href = "/bonusy/hon-na-rudy-rijen" title = "Hon na Rudý říjen"><img src = "/system_styly/side/hon-na-rudy-rijen.gif" /></a>
+    </div>
+  </div>
+
+      </div>
+      <!--<div class = "horizontbottom">
+        horizont bottom
+      </div>-->
+      <div class = "paticka">
+        <div class = "sponzori_ohraniceni" style = "margin-bottom: 0px; height: 20px;">Naši partneři</div>
+<div class = "sponzori_ohraniceni">
+  <div class = "sponzor" style = "width: 50px;">
+    <a href=" http://www.altar.cz/" onclick = "window.open(this.href,'_blank'); return false" title="Altar"><img src = "/system_styly/sponzori/altar.gif"></a>
+  </div>
+  <div class = "sponzor">
+    <a href=" http://www.fantasyobchod.cz/" onclick = "window.open(this.href,'_blank'); return false" title="Fantasy obchod"><img src = "/system_styly/sponzori/fantasy_obchod.gif"></a>
+  </div>
+  <div class = "sponzor">
+    <a href=" http://www.zazitky.cz/" onclick = "window.open(this.href,'_blank'); return false" title="Zážitky jako dokonalé dárky"><img src = "/system_styly/sponzori/zazitky.gif"></a>
+    <a href=" http://www.zazitky.cz/zazitkove-hry/" onclick = "window.open(this.href,'_blank'); return false" title="Zážitkové hry">Zážitkové hry</a>
+  </div>
+  <div class = "sponzor">
+    <a href=" http://www.albi.cz/" onclick = "window.open(this.href,'_blank'); return false" title="Albi"><img src = "/system_styly/sponzori/albi.png"></a>
+  </div>
+  <div class = "sponzor" style = "height: 30px;">
+    <a href=" http://www.mindok.cz/" onclick = "window.open(this.href,'_blank'); return false" title="Mindok"><img src = "/system_styly/sponzori/mindok.gif"></a>
+  </div>
+</div>
+      </div>
+    </div>
+  
+  </body>
+</html>
+  
