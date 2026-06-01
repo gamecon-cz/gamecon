@@ -130,6 +130,11 @@ ErrorDocument 404 /404.html
     RewriteRule ^mistrovstvi\-v\-drd/sluncesvit\-cisarske\-noviny/?$  mistrovstvi-v-drd/sluncesvit-cisarske-noviny.html [L]
     RewriteRule ^mistrovstvi\-v\-drd/starsi\-dobrodruzstvi/?$  mistrovstvi-v-drd/starsi-dobrodruzstvi.html [L]
     RewriteRule ^mistrovstvi\-v\-drd/uvod\-do\-mistrovstvi\-v\-drd/?$  mistrovstvi-v-drd/uvod-do-mistrovstvi-v-drd.html [L]
+    # "Pánové Jeskyně" had no page of its own on the live 2011 site — it
+    # 302-redirected to the PJové (Dungeon Masters) listing. The menu links
+    # it on every page, so reproduce that redirect instead of 404ing. Target
+    # is the real, captured /organizatori/PJove page.
+    RewriteRule ^mistrovstvi\-v\-drd/panove\-jeskyne/?$  /organizatori/PJove [R=301,L]
     RewriteRule ^novinky/archiv\-novinek/?$  novinky/archiv-novinek.html [L]
     RewriteRule ^novinky/novinky/?$  novinky/novinky.html [L]
     RewriteRule ^organizatori/PJove/?$  organizatori/PJove.html [L]
