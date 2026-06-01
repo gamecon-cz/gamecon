@@ -9,6 +9,7 @@ Pravidla **kdy** konzultovat / vytvořit dokument jsou v kořenovém `CLAUDE.md`
 <!-- Formát: `- [nazev-souboru](nazev-souboru.md) — jedna věta o čem to je` -->
 
 - [prepnuti-na-uzivatele](prepnuti-na-uzivatele.md) — přihlášení v adminu jako libovolný uživatel; dřív hardcoded „superadmin“, nově dočasné ročníkové právo udělované radou
+- [archiv-rekonstrukce-z-wayback](archiv-rekonstrukce-z-wayback.md) — postavení `NNNN.gamecon.cz` jako statického archivu z Internet Archive pro ročníky bez DB/kódu (≤2011); tři year-guardy, landmines (logo, absolutní odkazy, 403), operační sekvence
 
 ## Povinné minimum dokumentu
 
