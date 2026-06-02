@@ -62,8 +62,8 @@ jobs:
                         exit 1
                     fi
                     year="${BASH_REMATCH[1]}"
-                    if (( year < 2007 || year > 2099 )); then
-                        echo "::error::Year $year outside supported range 2007..2099" >&2
+                    if (( year < 2006 || year > 2099 )); then
+                        echo "::error::Year $year outside supported range 2006..2099" >&2
                         exit 1
                     fi
                     sha7=$(git rev-parse --short=7 HEAD)
@@ -79,12 +79,13 @@ jobs:
                     # gameconcz/gamecon:8.2 image baked into Dockerfile.archive.
                     # Add a row when a year's PHP era is confirmed during recon.
                     case "$year" in
-                        # 2007–2011 are STATIC archives (the live DB + router
+                        # 2006–2011 are STATIC archives (the live DB + router
                         # are lost) — flat HTML reconstructed from the Internet
                         # Archive. Any base works; php:5.6-apache matches their
                         # neighbours and stays lightweight (no PHP executes).
-                        # 2007 & 2008 are the Altar-era gamecon.altar.cz site
+                        # 2006–2008 are the Altar-era gamecon.altar.cz site
                         # (different CMS), still pure static HTML — same base.
+                        2006) base_image="php:5.6-apache" ;;
                         2007) base_image="php:5.6-apache" ;;
                         2008) base_image="php:5.6-apache" ;;
                         2009) base_image="php:5.6-apache" ;;
@@ -111,9 +112,10 @@ jobs:
                     # extension (mysql, removed in PHP 7 but installable on 5.6).
                     # Both build with no apt packages.
                     case "$year" in
-                        # 2007–2011 static archives need no PHP extension at
+                        # 2006–2011 static archives need no PHP extension at
                         # all (no DB, no dynamic code) — empty list skips the
                         # Dockerfile's whole install step.
+                        2006) php_exts="" ;;
                         2007) php_exts="" ;;
                         2008) php_exts="" ;;
                         2009) php_exts="" ;;
