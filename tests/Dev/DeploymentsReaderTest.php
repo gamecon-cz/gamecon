@@ -35,7 +35,12 @@ class DeploymentsReaderTest extends TestCase
         self::assertCount(2, $previews);
         // glob() + sort() yields alphabetical order: feature-x, phase1-preview
         self::assertSame('feature-x', $previews[0]->slug);
+        // branch is the original git ref (slug 'feature-x' ← branch 'feature_x'),
+        // stored separately because the slug is a lossy slugification.
+        self::assertSame('feature_x', $previews[0]->branch);
         self::assertSame('phase1-preview', $previews[1]->slug);
+        // No "branch" key in this fixture → null (records predating branch tracking).
+        self::assertNull($previews[1]->branch);
         self::assertSame('abc1234', $previews[1]->sha7);
         self::assertSame(
             'ghcr.io/gamecon-cz/gamecon:preview-phase1-preview-abc1234',
@@ -92,6 +97,7 @@ class DeploymentsReaderTest extends TestCase
         self::assertSame('only-required', $previews[0]->slug);
         self::assertNull($previews[0]->image);
         self::assertNull($previews[0]->sha7);
+        self::assertNull($previews[0]->branch);
         self::assertNull($previews[0]->deployedAt);
 
         $archives = $reader->readArchives();
