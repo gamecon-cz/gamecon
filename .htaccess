@@ -1,15 +1,23 @@
-# Static archive of GameCon 2006 (reconstructed from the Internet Archive).
+# Static archive of GameCon 2005 (reconstructed from the Internet Archive).
 #
-# The 2006 festival ran 13.-16. 7. 2006 in OLOMOUC (DDM, tř. 17. listopadu 47 +
-# nearby university dorms) — the venue moved to Pardubice only from 2007. It
-# was still run by the Altar publishing house; the website lived at
-# gamecon.altar.cz (a different host and CMS from the 2009+ gamecon.cz site).
-# This serves the captured flat .html pages as-is. Pages were restored from
-# web.archive.org, transcoded ISO-8859-2 -> UTF-8, with gamecon.altar.cz
-# absolute links rewritten to root-relative.
+# The 2005 festival ran 7.-10. 7. 2005 in OLOMOUC (DDM, tř. 17. listopadu 47 +
+# nearby university dorms). It was still run by the Altar publishing house, and
+# in 2005 GameCon was a SECTION of the whole altar.cz publisher site (path
+# altar.cz/gamecon/), not a standalone site or subdomain — older than the
+# gamecon.altar.cz era (2006-2008).
 #
-# The 2006 pages reference no internal .php endpoints (only external links), so
-# no .php redirects are needed. Uncaptured URLs -> themed 404.
+# Scope: only the GameCon pages were reconstructed (the ~29 /gamecon/ pages,
+# incl. the Mistrovství v DrD results archive vysledky95..vysledky04), served
+# here at the root. The original /gamecon/ link prefix was rewritten to /.
+# Pages were restored from web.archive.org, transcoded ISO-8859-2 -> UTF-8.
+#
+# The 2005 pages share Altar's global site nav, which links all over the parent
+# publisher site (/altar/*, /drd/, /kontakt/, /cgi/*, the shop, etc.). Those
+# cross-site links are intentionally NOT reconstructed — they fall to the themed
+# 404, as does any uncaptured URL.
+#
+# Assets (stylesheets/default.css, img/gamecon/*) are served at their original
+# absolute paths, since the pages reference them absolutely.
 
 DirectoryIndex index.html
 ErrorDocument 404 /404.html
@@ -17,7 +25,7 @@ ErrorDocument 404 /404.html
 <IfModule mod_rewrite.c>
     RewriteEngine On
 
-    # Serve real files / dirs directly (links are flat bare filenames).
+    # Serve real files / dirs directly (pages at root, assets under their paths).
     RewriteCond %{REQUEST_FILENAME} -f [OR]
     RewriteCond %{REQUEST_FILENAME} -d
     RewriteRule ^ - [L]
@@ -25,6 +33,6 @@ ErrorDocument 404 /404.html
     # Homepage.
     RewriteRule ^$  index.html [L]
 
-    # Everything else (uncaptured) -> themed 404.
+    # Everything else (cross-site Altar chrome, uncaptured) -> themed 404.
     RewriteRule ^.*$ - [R=404,L]
 </IfModule>

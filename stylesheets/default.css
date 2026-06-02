@@ -1,0 +1,218 @@
+BODY {
+ background : #000033 ;
+ color : #000099;
+ margin: 0px; padding: 0px}
+
+A:link {
+ color : blue
+}
+A:visited {
+ color : #6666FF
+}
+A:active {
+ color : red
+}
+A.yellow, A.yellow:visited {
+ color : yellow
+}
+A.external, A.external:visited {
+ color : #333333
+}
+A.download-zip {
+ font-style : italic
+}
+A.mail, A.mail:visited {
+ color : green
+}
+A.root {
+ font-weight : bold
+}
+A.local, A.local:visited {
+ color : #990099
+}
+
+H1 {
+ color : yellow ;
+ text-align : center
+}
+H2, H3, H4, H5, H6 {
+ color : blue
+}
+
+H2.sep {
+ text-align : center
+}
+
+P.list-0 {
+ margin-bottom : 0
+}
+H3.list-0 {
+ margin-bottom : 0 ;
+ text-transform : uppercase
+}
+H4.list-0 {
+ margin-bottom : 0 ;
+ margin-top : 1mm
+}
+UL.list-0 {
+ margin-top : 0 ;
+ margin-bottom : 0 ;
+ margin-left : 5mm ;
+ list-style : disc outside
+}
+OL.list-0 {
+ margin-top : 0 ;
+ margin-bottom : 0 ;
+ margin-left : 5mm
+}
+
+P.list-top {
+ margin-bottom : 0
+}
+UL.list-top {
+ margin-top : 0
+}
+
+UL.pomlcky {
+ margin-left : 0 ;
+ list-style-type : none ;
+ font-weight : bold ;
+ color : blue
+}
+UL.pomlcky UL {
+ margin-left : 5mm ;
+ list-style-type : none ;
+ font-weight : normal ;
+ color : #000099
+}
+
+P.list-cisla {
+ margin-bottom : 0
+}
+OL.list-cisla {
+ margin-top : 0 ;
+ list-style-type : decimal
+}
+
+LI.vitez {
+ color:red ;
+}
+
+P.list-tecka {
+ margin-bottom : 0
+}
+UL.list-tecka {
+ margin-top : 0 ;
+ list-style-type : disc
+}
+
+P.hardware {
+ margin-bottom : 0 ;
+ font-weight : bold ;
+ color : blue
+}
+UL.hardware {
+ margin-top : 0 ;
+ margin-left : 5mm ;
+ list-style-type : disc ;
+ white-space : nowrap
+}
+
+P.note {
+ font-style : italic ;
+ margin-left : 5mm ;
+ padding-left : 5mm ;
+ border-left-width : 0.75mm ;
+ border-color : blue
+}
+
+DIV.knihy P.titulek {
+ margin-bottom : 1px
+}
+DIV.knihy P.titulek B {
+ color : #000066
+}
+DIV.knihy P.titulek A {
+ font-weight : bold
+}
+DIV.knihy P.popis {
+ margin-top : 1px ;
+ padding-left : 10mm
+}
+
+DIV.recenze P.zaver {
+ font-style : italic
+}
+DIV.recenze P.autor {
+ padding-right : 5mm ;
+ font-weight : bold ;
+ text-align : right
+}
+DIV.recenze P.citace {
+ font-style : italic ;
+ padding-left : 5mm
+}
+DIV.recenze IMG.obalka {
+ margin-right : 5mm ;
+ border : black thin solid
+}
+DIV.novinka {
+ border : red thin solid ;
+ padding : 2mm ;
+ margin-bottom : 5mm; 
+ margin-top: 0mm;
+ font-size: 70%; font-family: sans-serif}
+DIV.novinka H2 {
+ color : red ;
+ text-align : center;
+ margin-top: 0px;
+}
+DIV.novinka P {
+}
+
+TH {
+ text-align : left ;
+ background : #FFCCCC
+}
+
+TD.odsazeni {
+ padding-left : 5mm
+}
+
+DIV.katalog TD {
+  vertical-align : top
+}
+DIV.katalog TD.nadpis {
+ color : red ;
+ font-weight : bold
+}
+DIV.katalog TD.cena {
+ text-align : right ;
+ color : red ;
+ font-weight : bold ;
+ padding-right : 5px
+}
+DIV.katalog TD.text UL {
+ margin-left : 5mm ;
+ list-style : outside
+}
+DIV.katalog TD.obrazek {
+ text-align : center
+}
+
+A.lmenu {font-family: sans-serif; font-weight:600; text-decoration:none; color:#FFFFCC;}
+A.lmenu:visited {color:#FFFFCC}
+A.lmenu:hover {text-decoration:underline}
+A.lmenu:active {color:#FFFFCC}
+
+TD.holi_svetla {text-align:center; background-color:#444477;}
+TD.holi_tmava {text-align:center; background-color:#333366;}
+
+.invisible { display:none }
+table[id="horni_lista"] { position: fixed }
+table[id="vyrovnani"] { display:table; }
+
+A.hmenu {font-family: sans-serif; font-size:smaller; font-weight:500; text-decoration:none; color:#FFFFCC}
+A.hmenu:visited {color:#FFFFCC}
+A.hmenu:hover {color:#FFCC99}
+A.hmenu:active {color:#FFCC99}
