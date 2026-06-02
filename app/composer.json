@@ -1,6 +1,0 @@
-{
-  "require": {
-    "michelf/php-markdown": "1.4.1",
-    "less.php/less.php": "~1.7"
-  }
-}

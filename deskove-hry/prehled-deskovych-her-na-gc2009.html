@@ -5,7 +5,6 @@
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     <link rel="stylesheet" type="text/css" href="/system_styly/styl1.css" media="all" /> 
-    <link rel = "shortcut icon" href = "/favicon.ico" />
     
     <!--  lightbox začátek //-->
     <script type="text/javascript" src="/lightbox/js/prototype.js"></script>
@@ -13,15 +12,13 @@
     <script type="text/javascript" src="/lightbox/js/lightbox.js"></script>
     <link rel="stylesheet" href="/lightbox/css/lightbox.css" type="text/css" media="screen" />
     <!--  lightbox konec //-->
-    <!--  java otevirani a ankety začátek //-->
-    <!--  java otevirani a ankety konec //-->
+    <!--  java otevirani začátek //-->
+    <!--  java otevirani konec //-->
     
     <title>
       GameCon - Přehled deskových her na GC2009    </title>
     <meta name="keywords" content="KW" />
     <meta name="description" content="DS" />
-    
-        
   </head>
   <body>
     <div class = "ohraniceni">
@@ -33,10 +30,7 @@
   </form>
 </div>
 
-<div style = "text-align: center;">
-  <!-- <a href = "/gamecon/prihlaska"><img src = "/system_styly/pics_system_styl2/top/prihlaseni-na-gamecon2-2011.gif" alt = "Přihlášení na GameCon" style = "border: 1px solid #fff; margin-top: 8px;" /></a> -->
-  <a href = "/program-tabulka" onclick = "window.open(this.href,'_blank'); return false"><img src = "/system_styly/pics_system_styl2/top/program-gc-2011.gif" alt = "Program GC 2011" style = "border: 1px solid #fff; margin-top: 8px;" /></a>
-</div>
+
       </div>
       <div class = "logo">
         <a href = "/gamecon/o-gameconu" style = "width: 100%; height: 100%; display: block;"><span style = "visibility: hidden;">Gamecon - O GameConu</span></a>
@@ -44,10 +38,13 @@
       </div>
       <div class = "login">
         <div class = "bok-top2">
-    <form action = "/novinky/novinky" method = "post">
+    <form action = "/novinky" method = "post">
       <input type = "hidden" name = "prihlaseni" value = "1" />
-    <input name = "login" type = "text" class = "edt_login" style = "width: 70px;" />
-    <input name = "heslo" type = "password" class = "edt_login" style = "width: 75px;" onclick="this.value=''"; />
+    <input name = "login" type = "text" class = "edt_login" value = 
+    "login" style = "width: 70px;" 
+     onclick="this.value=''";
+       />
+    <input name = "heslo" type = "password" class = "edt_login" value = "heslo" style = "width: 75px;" onclick="this.value=''"; />
     <input type="image" src="/system_styly/pics_system_styl1/tlacitka/prihlasit_maly.gif" value="Submit" alt="přihlásit" style = "width: 50px; height: 18px;" />
   </form>
   <form action = "" method = "post" id = "registrace">
@@ -63,192 +60,147 @@
       <div class = "menuhorizont">
         <ul>
   <li><a href = "/gamecon/o-gameconu">GameCon</a></li>
+  <li><a href = "/mistrovstvi-v-drd/o-mistrovstvi-v-drd">Mistrovství v DrD</a></li>
   <li><a href = "/rpg/o-rpg-na-gc">RPG</a></li>
-  <li><a href = "/larp/o-larpech-na-gc">Larp</a></li>
+  <li><a href = "/larp/o-larpech-na-gc">LARP</a></li>
   <li><a href = "/deskove-hry/o-deskovych-hrach-na-gc">Deskové hry</a></li>
   <li><a href = "/prednasky/o-prednaskach-na-gc">Přednášky</a></li>
-  <li><a href = "/mistrovstvi-v-drd/o-mistrovstvi-v-drd">Mistrovství v DrD</a></li>
-  <!--<li><a href = "/dilny/o-dilnach-na-gc">Dílny</a></li>-->
+  <li><a href = "/dilny/o-dilnach-na-gc">Dílny</a></li>
   <li><a href = "/forum">Fórum</a></li>
-  <li><a href = "/galerie-materialy/fotogalerie-gamecon10">Fotogalerie</a></li>
+  <li><a href = "/galerie-materialy/fotogalerie-gamecon08">Fotogalerie</a></li>
   <li><a href = "/organizatori/organizacni-tym">Organizátoři</a></li>
   <li><a href = "/kontakt">Kontakt</a></li>
 </ul>
       </div>
       <div class = "menu">
         <div class = "menu_zacatek"></div><ul>
-<li style = "display: list-item;"><a href = "/novinky/novinky"><span>Novinky</span></a></li>
-<li style = "display: none;"><a href = "/novinky/novinky"><span>Novinky</span></a></li>
-<li style = "display: none;"><a href = "/novinky/archiv-novinek"><span>Archiv novinek</span></a></li>
-<li style = "display: list-item;"><a href = "/anketa-2011"><span>Anketa 2011</span></a></li>
-<li style = "display: list-item;"><a href = "/fotosoutez-2011"><span>Fotosoutěž 2011</span></a></li>
+<li style = "display: list-item;"><a href = "/novinky"><span>Novinky</span></a></li>
 <li style = "display: list-item;"><a href = "/gamecon/o-gameconu"><span>GameCon</span></a></li>
 <li style = "display: none;"><a href = "/gamecon/o-gameconu"><span>O GameConu</span></a></li>
-<li style = "display: none;"><a href = "/gamecon/gamecon-v-nekolika-snadnych-krocich"><span>GameCon v několika snadných krocích</span></a></li>
-<li style = "display: none;"><a href = "/gamecon/prihlaska"><span>Přihláška</span></a></li>
-<li style = "display: none;"><a href = "/gamecon/prehled-registrace"><span>Přehled registrace</span></a></li>
+<li style = "display: none;"><a href = "/gamecon/program"><span>Program</span></a></li>
 <li style = "display: none;"><a href = "/gamecon/cenik"><span>Ceník</span></a></li>
 <li style = "display: none;"><a href = "/gamecon/ubytovani"><span>Ubytování</span></a></li>
 <li style = "display: none;"><a href = "/gamecon/cajovna"><span>Čajovna</span></a></li>
 <li style = "display: none;"><a href = "/gamecon/kde-se-gamecon-kona"><span>Kde se GameCon koná a cesta na něj</span></a></li>
-<li style = "display: none;"><a href = "/gamecon/restaurace-a-obchody"><span>Restaurace a obchody</span></a></li>
-<li style = "display: none;"><a href = "/gamecon/prihlasovani-na-aktivity"><span>Návod - přihlašování na GameConu</span></a></li>
-<li style = "display: none;"><a href = "/gamecon/placeni"><span>Návod - placení a slevy</span></a></li>
 <li style = "display: none;"><a href = "/gamecon/napsali-o-nas"><span>Napsali o nás</span></a></li>
 <li style = "display: list-item;"><a href = "/gamecon-trojboj/o-gamecon-trojboji"><span>GameCon Trojboj</span></a></li>
 <li style = "display: none;"><a href = "/gamecon-trojboj/o-gamecon-trojboji"><span>O GameCon Trojboji</span></a></li>
-<li style = "display: none;"><a href = "/gamecon-trojboj/prihlaska-na-gc-trojboj"><span>Přihláška na GC Trojboj</span></a></li>
-<li style = "display: none;"><a href = "/gamecon-trojboj/navod---prihlaseni-na-gamecon-trojboj"><span>Návod - přihlášení na GameCon Trojboj</span></a></li>
-<li style = "display: none;"><a href = "/gamecon-trojboj/akcni-hra"><span>Akční hra</span></a></li>
-<li style = "display: none;"><a href = "/gamecon-trojboj/olympijske-rosady"><span>Olympijské rošády</span></a></li>
-<li style = "display: none;"><a href = "/gamecon-trojboj/bobri-banda"><span>Bobří banda</span></a></li>
-<li style = "display: none;"><a href = "/gamecon-trojboj/archiv-trojboj-2010"><span>Archiv Trojboj 2010</span></a></li>
-<li style = "display: list-item;"><a href = "/rpg/o-rpg-na-gc"><span>RPG</span></a></li>
-<li style = "display: none;"><a href = "/rpg/o-rpg-na-gc"><span>O RPG na GC</span></a></li>
-<li style = "display: none;"><a href = "/rpg/co-jsou-to-rpg-hry"><span>Co jsou to RPG hry?</span></a></li>
-<li style = "display: none;"><a href = "/rpg/dlouha-hlidka"><span>Dlouhá hlídka</span></a></li>
-<li style = "display: none;"><a href = "/rpg/dnd-4e"><span>DnD 4E</span></a></li>
-<li style = "display: none;"><a href = "/rpg/dnd-4e-"><span>DnD 4E +</span></a></li>
-<li style = "display: none;"><a href = "/rpg/dogs-in-the-vineyard"><span>Dogs in the Vineyard</span></a></li>
-<li style = "display: none;"><a href = "/rpg/drd-ii---nezbedna-manzelka"><span>DrD II - Nezbedná manželka</span></a></li>
-<li style = "display: none;"><a href = "/rpg/drdii---navrat-do-bileho-hradu"><span>DrDII - Návrat do Bílého hradu</span></a></li>
-<li style = "display: none;"><a href = "/rpg/drdii---perlik-vzpoury"><span>DrDII - Perlík vzpoury</span></a></li>
-<li style = "display: none;"><a href = "/rpg/fate---bouchacky-pro-hitmana"><span>Fate - Bouchačky pro Hitmana</span></a></li>
-<li style = "display: none;"><a href = "/rpg/inspectres"><span>InSpectres</span></a></li>
-<li style = "display: none;"><a href = "/rpg/lady-blackbird"><span>Lady Blackbird</span></a></li>
-<li style = "display: none;"><a href = "/rpg/mage-the-awakecension-"><span>Mage: the Awakecension </span></a></li>
-<li style = "display: none;"><a href = "/rpg/mouse-guard-"><span>Mouse Guard </span></a></li>
-<li style = "display: none;"><a href = "/rpg/my-life-with-master"><span>My Life with Master</span></a></li>
-<li style = "display: none;"><a href = "/rpg/pendragon"><span>Pendragon</span></a></li>
-<li style = "display: none;"><a href = "/rpg/prime-time-adventures"><span>Prime Time Adventures</span></a></li>
-<li style = "display: none;"><a href = "/rpg/pribehy-imperia"><span>Příběhy Impéria</span></a></li>
-<li style = "display: none;"><a href = "/rpg/ruda-planeta"><span>Rudá planeta</span></a></li>
-<li style = "display: none;"><a href = "/rpg/sanatorium-podvrzenych"><span>Sanatorium podvržených</span></a></li>
-<li style = "display: none;"><a href = "/rpg/sen-na-dozivoti"><span>Sen! Na doživotí...</span></a></li>
-<li style = "display: none;"><a href = "/rpg/star-wars-ve-storyteller-systemu"><span>Star Wars ve Storyteller systému</span></a></li>
-<li style = "display: none;"><a href = "/rpg/steamferno-krvavy-pisek"><span>Steamferno: Krvavý písek</span></a></li>
-<li style = "display: none;"><a href = "/rpg/steamferno-zelene-peklo"><span>Steamferno: Zelené peklo</span></a></li>
-<li style = "display: none;"><a href = "/rpg/strepicka"><span>Strepicka</span></a></li>
-<li style = "display: none;"><a href = "/rpg/sustot-kridel-a-stranek"><span>Šustot křídel a stránek</span></a></li>
-<li style = "display: none;"><a href = "/rpg/volna-hra"><span>Volná hra</span></a></li>
-<li style = "display: none;"><a href = "/rpg/wargames"><span>Wargames</span></a></li>
-<li style = "display: none;"><a href = "/rpg/wernion"><span>Wernion</span></a></li>
-<li style = "display: none;"><a href = "/archiv/rpg-2010"><span>Archiv RPG 2010</span></a></li>
-<li style = "display: none;"><a href = "/rpg/seznam-rpg-na-gc2009"><span>Archiv RPG 2009</span></a></li>
-<li style = "display: none;"><a href = "/rpg/archiv-rpg-2008"><span>Archiv RPG 2008</span></a></li>
-<li style = "display: list-item;"><a href = "/larp/o-larpech-na-gc"><span>Larp</span></a></li>
-<li style = "display: none;"><a href = "/larp/o-larpech-na-gc"><span>O larpech na GC</span></a></li>
-<li style = "display: none;"><a href = "/larp/game-over"><span>Game Over</span></a></li>
-<li style = "display: none;"><a href = "/larp/odznak"><span>Odznak</span></a></li>
-<li style = "display: none;"><a href = "/larp/sofiina-volba"><span>Sofiina volba</span></a></li>
-<li style = "display: none;"><a href = "/larp/skola"><span>Škola</span></a></li>
-<li style = "display: none;"><a href = "/larp/sotcin"><span>Šotčín</span></a></li>
-<li style = "display: none;"><a href = "/larp/zavet"><span>Závěť</span></a></li>
-<li style = "display: none;"><a href = "/archiv/larpy-2010"><span>Archiv larp 2010</span></a></li>
-<li style = "display: none;"><a href = "/larp/prehled-larpu-na-gc2009"><span>Archiv larp 2009</span></a></li>
-<li style = "display: none;"><a href = "/larp/archiv-larp-2008"><span>Archiv larp 2008</span></a></li>
-<li style = "display: list-item;"><a href = "/bonusy/gamecon-bonusy"><span>Bonusové hry</span></a></li>
-<li style = "display: none;"><a href = "/bonusy/gamecon-bonusy"><span>GameCon Bonusové hry</span></a></li>
-<li style = "display: none;"><a href = "/bonusove-hry/hon-na-rudy-rijen"><span>Hon na Rudý říjen</span></a></li>
-<li style = "display: none;"><a href = "/bonusove-hry/mixer"><span>Mixér</span></a></li>
-<li style = "display: none;"><a href = "/bonusove-hry/spina"><span>Špína</span></a></li>
-<li style = "display: list-item;"><a href = "/wargaming/o-wargamingu-na-gc"><span>Wargaming</span></a></li>
-<li style = "display: none;"><a href = "/wargaming/o-wargamingu-na-gc"><span>O wargamingu na GC</span></a></li>
-<li style = "display: none;"><a href = "/wargaming/-malovani-miniatur---workshop"><span> Malování miniatur - workshop</span></a></li>
-<li style = "display: none;"><a href = "/archiv/wargaming-2010"><span>Archiv Wargaming 2010</span></a></li>
-<li style = "display: none;"><a href = "/wargaming/wargaming---pan-prstenu"><span>Wargaming - Pán Prstenů</span></a></li>
-<li style = "display: none;"><a href = "/wargaming/archiv-wargaming-na-gc-2009"><span>Archiv Wargaming 2009</span></a></li>
-<li style = "display: list-item;"><a href = "/deskove-hry/o-deskovych-hrach-na-gc"><span>Deskové hry</span></a></li>
-<div class = "menu_zacatek"></div><ul>
-<li style = "display: list-item;"><a href = "/deskove-hry/o-deskovych-hrach-na-gc"><span>O deskových hrách na GC</span></a></li>
-<li style = "display: list-item;"><a href = "/deskove-hry/epicke-hrani"><span>Epické hraní</span></a></li>
-<li style = "display: list-item;"><a href = "/deskove-hry/magic-the-gathering"><span>Magic: The Gathering</span></a></li>
-<li style = "display: list-item;"><a href = "/deskove-hry/predstaveni-hry-o-truny-lcg"><span>Představení Hry o Trůny LCG</span></a></li>
-<li style = "display: list-item;"><a href = "/deskove-hry/deskoherna"><span>Deskoherna</span></a></li>
-<li style = "display: list-item;"><a href = "/deskove-hry/ceny-pro-viteze-turnaju"><span>Ceny pro vítěze turnajů</span></a></li>
-<li style = "display: list-item;"><a href = "/deskove-hry/arkham-horror"><span>Arkham Horror</span></a></li>
-<li style = "display: list-item;"><a href = "/deskove-hry/armada-game"><span>Armada Game</span></a></li>
-<li style = "display: list-item;"><a href = "/deskove-hry/bang-"><span>Bang! </span></a></li>
-<li style = "display: list-item;"><a href = "/deskove-hry/battlestar-galactica"><span>Battlestar Galactica</span></a></li>
-<li style = "display: list-item;"><a href = "/deskove-hry/carcassonne"><span>Carcassonne</span></a></li>
-<li style = "display: list-item;"><a href = "/deskove-hry/colossal-arena"><span>Colossal Arena</span></a></li>
-<li style = "display: list-item;"><a href = "/deskove-hry/dobble"><span>Dobble</span></a></li>
-<li style = "display: list-item;"><a href = "/deskove-hry/dominion"><span>Dominion</span></a></li>
-<li style = "display: list-item;"><a href = "/deskove-hry/duch"><span>Duch!</span></a></li>
-<li style = "display: list-item;"><a href = "/deskove-hry/duna"><span>Duna</span></a></li>
-<li style = "display: list-item;"><a href = "/deskove-hry/galaxy-trucker"><span>Galaxy Trucker</span></a></li>
-<li style = "display: list-item;"><a href = "/deskove-hry/hra-o-truny"><span>Hra o trůny</span></a></li>
-<li style = "display: list-item;"><a href = "/deskove-hry/hra-o-truny-lcg"><span>Hra o Trůny LCG</span></a></li>
-<li style = "display: list-item;"><a href = "/deskove-hry/kaleidoskop"><span>Kaleidoskop</span></a></li>
-<li style = "display: list-item;"><a href = "/deskove-hry/mini-hry"><span>Mini-hry</span></a></li>
-<li style = "display: list-item;"><a href = "/deskove-hry/mtg-allcommon-highlander"><span>MtG: allcommon highlander</span></a></li>
-<li style = "display: list-item;"><a href = "/deskove-hry/mtg-highlander"><span>MtG: Highlander</span></a></li>
-<li style = "display: list-item;"><a href = "/deskove-hry/novinky-cge"><span>Novinky CGE</span></a></li>
-<li style = "display: list-item;"><a href = "/deskove-hry/osadnici-z-katanu"><span>Osadníci z Katanu</span></a></li>
-<li style = "display: list-item;"><a href = "/deskove-hry/proroctvi"><span>Proroctví</span></a></li>
-<li style = "display: list-item;"><a href = "/deskove-hry/republic-of-rome"><span>Republic of Rome</span></a></li>
-<li style = "display: list-item;"><a href = "/deskove-hry/starcraft"><span>Starcraft</span></a></li>
-<li style = "display: list-item;"><a href = "/deskove-hry/texas-holdem"><span>Texas Hold'em</span></a></li>
-<li style = "display: list-item;"><a href = "/deskove-hry/times-up"><span>Time´s Up!</span></a></li>
-<li style = "display: list-item;"><a href = "/deskove-hry/ubongo"><span>Ubongo</span></a></li>
-<li style = "display: list-item;"><a href = "/deskove-hry/valka-o-prsten"><span>Válka o Prsten</span></a></li>
-<li style = "display: list-item;"><a href = "/deskove-hry/vladci-podzemi"><span>Vládci podzemí</span></a></li>
-<li style = "display: list-item;"><a href = "/archiv/deskovky-2010"><span>Archiv deskových her 2010</span></a></li>
-<li style = "display: list-item;" class = "aktivni"><a href = "/deskove-hry/prehled-deskovych-her-na-gc2009"><span>Archiv deskových her 2009</span></a></li>
-</ul><div class = "menu_konec"></div>
-<li style = "display: list-item;"><a href = "/prednasky/o-prednaskach-na-gc"><span>Přednášky</span></a></li>
-<li style = "display: none;"><a href = "/prednasky/o-prednaskach-na-gc"><span>O přednáškách na GC</span></a></li>
-<li style = "display: none;"><a href = "/prednasky/altar-planuje"><span>Altar plánuje</span></a></li>
-<li style = "display: none;"><a href = "/prednasky/amaterska-tvorba-a-vydavani-deskovek-v-cr"><span>Amatérská tvorba a vydávání deskovek v ČR</span></a></li>
-<li style = "display: none;"><a href = "/prednasky/armada-game---prednaska"><span>Armada Game - přednáška</span></a></li>
-<li style = "display: none;"><a href = "/prednasky/asterion---ozveny-budoucnosti"><span>Asterion - Ozvěny budoucnosti</span></a></li>
-<li style = "display: none;"><a href = "/prednasky/beseda-k-pribehum-odvahy-a-dobrodruzstvi"><span>Beseda k Příběhům Odvahy a Dobrodružství</span></a></li>
-<li style = "display: none;"><a href = "/prednasky/dobry-souboj-v-drd"><span>Dobrý souboj v DrD?</span></a></li>
-<li style = "display: none;"><a href = "/prednasky/hruza-a-des-v-rpg"><span>Hrůza a děs v RPG</span></a></li>
-<li style = "display: none;"><a href = "/prednasky/jak-mocne-vyhrat-drd"><span>Jak mocně vyhrát DrD</span></a></li>
-<li style = "display: none;"><a href = "/prednasky/jsem-hrac-a-nestydim-se-za-to"><span>Jsem hráč a nestydím se za to!</span></a></li>
-<li style = "display: none;"><a href = "/prednasky/krest-drdii-a-nasledna-beseda"><span>Křest DrDII a následná beseda</span></a></li>
-<li style = "display: none;"><a href = "/prednasky/o-designovani-psani-publikovani-rpg"><span>O designování, psaní, publikování RPG</span></a></li>
-<li style = "display: none;"><a href = "/prednasky/o-gc-po-gc-a-o-dalsich-gc"><span>O GC po GC a o dalších GC</span></a></li>
-<li style = "display: none;"><a href = "/prednasky/postapo-larpy"><span>PostApo larpy</span></a></li>
-<li style = "display: none;"><a href = "/prednasky/prasky-na-psani"><span>Prášky na psaní</span></a></li>
-<li style = "display: none;"><a href = "/prednasky/priprava-hry-a-hracska-invence"><span>Příprava hry a hráčská invence</span></a></li>
-<li style = "display: none;"><a href = "/prednasky/situace-a-budoucnost-rpg-v-cr-a-sr"><span>Situace a budoucnost RPG v ČR a SR</span></a></li>
-<li style = "display: none;"><a href = "/prednasky/stavba-pribehudetektivky-a-konspirace"><span>Stavba příběhu+detektivky a konspirace</span></a></li>
-<li style = "display: none;"><a href = "/prednasky/steamferno"><span>Steamferno</span></a></li>
-<li style = "display: none;"><a href = "/prednasky/vydavani-her-a-herni-novinky"><span>Vydávání her a herní novinky</span></a></li>
-<li style = "display: none;"><a href = "/prednasky/vyhlaseni-vysledku-pribehu-odvahy-a-dobrodruzstvi"><span>Vyhlášení výsledků Příběhů Odvahy a Dobrodružství</span></a></li>
-<li style = "display: none;"><a href = "/prednasky/vyhra-pje-aneb-jak-zabranit-vyhoreni"><span>Výhra PJe, aneb jak zabránit vyhoření</span></a></li>
-<li style = "display: none;"><a href = "/archiv/prednasky-2010"><span>Archiv přednášek 2010</span></a></li>
-<li style = "display: none;"><a href = "/prednasky/seznam-prednasek-na-gc2009"><span>Archiv přednášek 2009</span></a></li>
-<li style = "display: none;"><a href = "/prednasky/archiv-prednasek-2008"><span>Archiv přednášek 2008</span></a></li>
+<li style = "display: none;"><a href = "/o-gamecon-trojboji/mexicky-pat"><span>GC Trojboj - Mexický pat</span></a></li>
+<li style = "display: none;"><a href = "/gamecon-trojboj/space-alert"><span>GC Trojboj - Space Alert</span></a></li>
+<li style = "display: none;"><a href = "/gamecon-trojboj/gc-trojboj---sifrovacka"><span>GC Trojboj - Šifrovačka</span></a></li>
 <li style = "display: list-item;"><a href = "/mistrovstvi-v-drd/o-mistrovstvi-v-drd"><span>Mistrovství v DrD</span></a></li>
 <li style = "display: none;"><a href = "/mistrovstvi-v-drd/o-mistrovstvi-v-drd"><span>O Mistrovství v DrD</span></a></li>
-<li style = "display: none;"><a href = "/mistrovstvi-v-drd/prihlaska-na-drd"><span>Přihláška na DrD</span></a></li>
-<li style = "display: none;"><a href = "/mistrovstvi-v-drd/navod---prihlaseni-na-drd"><span>Návod - přihlášení na DrD</span></a></li>
-<li style = "display: none;"><a href = "/mistrovstvi-v-drd/uvod-do-mistrovstvi-v-drd"><span>Úvod do mistrovství v DrD</span></a></li>
 <li style = "display: none;"><a href = "/mistrovstvi-v-drd/organizace-turnaje"><span>Organizace turnaje</span></a></li>
+<li style = "display: none;"><a href = "/mistrovstvi-v-drd/dobrodruzstvi-2009"><span>Dobrodružství 2009</span></a></li>
 <li style = "display: none;"><a href = "/mistrovstvi-v-drd/pravidla-pro-tvorbu-postav"><span>Pravidla pro tvorbu postav</span></a></li>
-<li style = "display: none;"><a href = "/mistrovstvi-v-drd/sluncesvit-cisarske-noviny"><span>Sluncesvit - císařské noviny</span></a></li>
-<li style = "display: none;"><a href = "/mistrovstvi-v-drd/informace-o-dobrodruzstvi"><span>Informace o dobrodružství</span></a></li>
-<li style = "display: none;"><a href = "/mistrovstvi-v-drd/novy-herni-prvek"><span>Nový herní prvek</span></a></li>
+<li style = "display: none;"><a href = "/mistrovstvi-v-drd/postavy-pro-letosni-dobrodruzstvi"><span>Postavy pro letošní dobrodružství</span></a></li>
 <li style = "display: none;"><a href = "/mistrovstvi-v-drd/starsi-dobrodruzstvi"><span>Starší dobrodružství</span></a></li>
 <li style = "display: none;"><a href = "/mistrovstvi-v-drd/panove-jeskyne"><span>Pánové Jeskyně</span></a></li>
 <li style = "display: none;"><a href = "/mistrovstvi-v-drd/sin-slavy"><span>Síň slávy</span></a></li>
+<li style = "display: list-item;"><a href = "/rpg/o-rpg-na-gc"><span>RPG</span></a></li>
+<li style = "display: none;"><a href = "/rpg/o-rpg-na-gc"><span>O RPG na GC</span></a></li>
+<li style = "display: none;"><a href = "/rpg/co-jsou-to-rpg-hry"><span>Co jsou to RPG hry?</span></a></li>
+<li style = "display: none;"><a href = "/rpg/call-of-cthulhu"><span>Call of Cthulhu</span></a></li>
+<li style = "display: none;"><a href = "/rpg/dnd-4e---stribrna-jeskyne-almi"><span>DnD 4E - Stříbrné jeskyně (Almi)</span></a></li>
+<li style = "display: none;"><a href = "/rpg/dogs-in-the-vineyard"><span>Dogs in the Vineyard</span></a></li>
+<li style = "display: none;"><a href = "/rpg/draci-doupe---koruna-vitezstvi"><span>Dračí Doupě - Koruna vítězství</span></a></li>
+<li style = "display: none;"><a href = "/rpg/draci-doupe---putovani-s-conanem"><span>Dračí Doupě - Putování s Conanem</span></a></li>
+<li style = "display: none;"><a href = "/rpg/pohane-dobrodruzstvi-drd"><span>DrD+ - Pohané</span></a></li>
+<li style = "display: none;"><a href = "/rpg/drdasterion-----pevnost-stinu"><span>DrD+/Asterion  -  Pevnost Stínů</span></a></li>
+<li style = "display: none;"><a href = "/rpg/dread"><span>Dread</span></a></li>
+<li style = "display: none;"><a href = "/rpg/dungeons-and-dragons-4e"><span>Dungeons and Dragons 4E</span></a></li>
+<li style = "display: none;"><a href = "/rpg/fate---cesta-domu"><span>FATE - Cesta domů</span></a></li>
+<li style = "display: none;"><a href = "/rpg/mouse-guard"><span>Mouse Guard</span></a></li>
+<li style = "display: none;"><a href = "/rpg/og-unearthed-edition---velky-lov"><span>Og (Unearthed Edition) - Velký lov</span></a></li>
+<li style = "display: none;"><a href = "/rpg/pendragon---bolestiva-straz"><span>Pendragon - Bolestivá Stráž</span></a></li>
+<li style = "display: none;"><a href = "/rpg/poisond"><span>Poison'D</span></a></li>
+<li style = "display: none;"><a href = "/rpg/shadowrun---pomsta-mrtveho-maga"><span>Shadowrun - Pomsta mrtvého mága</span></a></li>
+<li style = "display: none;"><a href = "/rpg/star-wars-d6---jedi-academy"><span>Star Wars d6 - Jedi Academy</span></a></li>
+<li style = "display: none;"><a href = "/rpg/star-wars-d6---rytieri-starej-republiky"><span>Star Wars d6 - Rytieri Starej Republiky</span></a></li>
+<li style = "display: none;"><a href = "/rpg/stories-of-the-empire"><span>Stories of the Empire</span></a></li>
+<li style = "display: none;"><a href = "/rpg/strepy-snu-erric"><span>Střepy snů (Erric)</span></a></li>
+<li style = "display: none;"><a href = "/rpg/strepy-snu-peekay"><span>Střepy snů (Peekay)</span></a></li>
+<li style = "display: none;"><a href = "/rpg/vampire-the-masquerade"><span>Vampire: the Masquerade</span></a></li>
+<li style = "display: none;"><a href = "/rpg/world-of-darkness---stredoskolska-tradice"><span>World of Darkness - Středoškolská tradice</span></a></li>
+<li style = "display: none;"><a href = "/rpg/wushu-open---jeskyne-rudeho-draka"><span>Wushu (Open) - Jeskyně rudého draka</span></a></li>
+<li style = "display: none;"><a href = "/rpg/archiv-rpg-2008"><span>Archiv RPG 2008</span></a></li>
+<li style = "display: list-item;"><a href = "/larp/o-larpech-na-gc"><span>LARP</span></a></li>
+<li style = "display: none;"><a href = "/larp/o-larpech-na-gc"><span>O LARPech na GC</span></a></li>
+<li style = "display: none;"><a href = "/larp/cela"><span>Cela</span></a></li>
+<li style = "display: none;"><a href = "/larp/delegace-ankh-morpork"><span>Delegace: Ankh-Morpork</span></a></li>
+<li style = "display: none;"><a href = "/larp/chnapsni-vlajku"><span>Chňapsni vlajku!</span></a></li>
+<li style = "display: none;"><a href = "/larp/podraz"><span>Podraz</span></a></li>
+<li style = "display: none;"><a href = "/larp/rande"><span>Rande</span></a></li>
+<li style = "display: none;"><a href = "/larp/spina"><span>Špína</span></a></li>
+<li style = "display: none;"><a href = "/larp/archiv-larp-2008"><span>Archiv LARP 2008</span></a></li>
+<li style = "display: list-item;"><a href = "/wargaming/o-wargamingu-na-gc"><span>Wargaming</span></a></li>
+<li style = "display: none;"><a href = "/wargaming/o-wargamingu-na-gc"><span>O wargamingu na GC</span></a></li>
+<li style = "display: none;"><a href = "/wargaming/birds-of-prey"><span>Birds of Prey</span></a></li>
+<li style = "display: none;"><a href = "/wargaming/warhammer-demo-hrani"><span>Warhammer demo hraní</span></a></li>
+<li style = "display: none;"><a href = "/wargaming/warhammer---predvadeci-bitva"><span>Warhammer - předváděcí bitva</span></a></li>
+<li style = "display: none;"><a href = "/wargaming/warhammer-fantasy"><span>Warhammer Fantasy</span></a></li>
+<li style = "display: none;"><a href = "/wargaming/warhammer-40000"><span>Warhammer 40.000</span></a></li>
+<li style = "display: none;"><a href = "/wargaming/warhammer---rezervace-stolu"><span>Warhammer - rezervace stolu</span></a></li>
+<li style = "display: none;"><a href = "/wargaming/warhammer-a-rpg"><span>Warhammer a RPG</span></a></li>
+<li style = "display: none;"><a href = "/wargaming/figurky"><span>Figurky</span></a></li>
+<li style = "display: none;"><a href = "/wargaming/zaklady-modelareni"><span>Základy modelaření</span></a></li>
+<li style = "display: none;"><a href = "/wargaming/pokrocile-modelareni"><span>Pokročilé modelaření</span></a></li>
+<li style = "display: none;"><a href = "/wargaming/chaotit"><span>Chaotit</span></a></li>
+<li style = "display: list-item;" class = "aktivni"><a href = "/deskove-hry/o-deskovych-hrach-na-gc"><span>Deskové hry</span></a></li>
+<div class = "menu_zacatek"></div><ul>
+<li style = "display: list-item;"><a href = "/deskove-hry/o-deskovych-hrach-na-gc"><span>O deskových hrách na GC</span></a></li>
+<li style = "display: list-item;"><a href = "/deskove-hry/non-stop-herna"><span>Non-stop herna</span></a></li>
+<li style = "display: list-item;"><a href = "/deskove-hry/ceny-pro-viteze-turnaju"><span>Ceny pro vítěze turnajů</span></a></li>
+<li style = "display: list-item;"><a href = "/deskove-hry/bang"><span>Bang!</span></a></li>
+<li style = "display: list-item;"><a href = "/deskove-hry/carcassonne"><span>Carcassonne</span></a></li>
+<li style = "display: list-item;"><a href = "/deskove-hry/galaxy-trucker"><span>Galaxy Trucker</span></a></li>
+<li style = "display: list-item;"><a href = "/deskove-hry/heckmeck"><span>Heckmeck</span></a></li>
+<li style = "display: list-item;"><a href = "/deskove-hry/jantaris"><span>Jantaris</span></a></li>
+<li style = "display: list-item;"><a href = "/deskove-hry/legie"><span>Legie</span></a></li>
+<li style = "display: list-item;"><a href = "/deskove-hry/osadnici-z-katanu"><span>Osadníci z Katanu</span></a></li>
+<li style = "display: list-item;"><a href = "/deskove-hry/proroctvi"><span>Proroctví - kvalifikační turnaj</span></a></li>
+<li style = "display: list-item;"><a href = "/deskove-hry/proroctvi---mistrovstvi-cr"><span>Proroctví - Mistrovství ČR</span></a></li>
+<li style = "display: list-item;"><a href = "/deskove-hry/theby"><span>Théby</span></a></li>
+<li style = "display: list-item;"><a href = "/deskove-hry/zelvi-zavody"><span>Želví závody</span></a></li>
+</ul><div class = "menu_konec"></div>
+<li style = "display: list-item;"><a href = "/prednasky/o-prednaskach-na-gc"><span>Přednášky</span></a></li>
+<li style = "display: none;"><a href = "/prednasky/o-prednaskach-na-gc"><span>O přednáškách na GC</span></a></li>
+<li style = "display: none;"><a href = "/prednasky/prezentace-deskovych-her---altar"><span>Altar plánuje</span></a></li>
+<li style = "display: none;"><a href = "/prednasky/alternativni-storytelling-a-roleplaying"><span>Alternativní storytelling a roleplaying</span></a></li>
+<li style = "display: none;"><a href = "/prednasky/asterion--hranice-fantazie"><span>Asterion – Hranice fantazie</span></a></li>
+<li style = "display: none;"><a href = "/prednasky/baleni-na-conech"><span>Balení na conech</span></a></li>
+<li style = "display: none;"><a href = "/prednasky/budoucnost-gc"><span>Budoucnost GameConu</span></a></li>
+<li style = "display: none;"><a href = "/prednasky/drakkar--internetovy-casopis"><span>Drakkar – internetový časopis</span></a></li>
+<li style = "display: none;"><a href = "/prednasky/dungeons-and-dragons-4e"><span>Dungeons and Dragons 4E</span></a></li>
+<li style = "display: none;"><a href = "/prednasky/engel-d20"><span>Engel d20</span></a></li>
+<li style = "display: none;"><a href = "/prednasky/hlavni-role-pro-vas"><span>Hlavní role pro vás</span></a></li>
+<li style = "display: none;"><a href = "/prednasky/improvizovane-hrani"><span>Improvizované hraní RPG</span></a></li>
+<li style = "display: none;"><a href = "/prednasky/kalevala-v-rpg-a-fantasy"><span>Kalevala v RPG a fantasy</span></a></li>
+<li style = "display: none;"><a href = "/prednasky/komorni-larp---rpg-bez-kostek"><span>Komorní larp - RPG bez kostek</span></a></li>
+<li style = "display: none;"><a href = "/prednasky/prezentace-deskovych-her---albi"><span>Moderní deskové hry - Albi, CGE</span></a></li>
+<li style = "display: none;"><a href = "/prednasky/prezentace-deskovych-her---corfix"><span>Moderní deskové hry - Corfix</span></a></li>
+<li style = "display: none;"><a href = "/prednasky/napric-spektrem-rpg"><span>Napříč spektrem RPG</span></a></li>
+<li style = "display: none;"><a href = "/prednasky/netradicni-prezentace-her-jirasgames"><span>Netradiční prezentace her Jirasgames</span></a></li>
+<li style = "display: none;"><a href = "/prednasky/odmente-svojich-hracov"><span>Odmeňte svojich hráčov!</span></a></li>
+<li style = "display: none;"><a href = "/prednasky/pribeh-zaklad-zivota"><span>Příběh, základ života</span></a></li>
+<li style = "display: none;"><a href = "/prednasky/soucastnost-a-budoucnost-vydavani-her"><span>Součastnost a budoucnost vydávání her</span></a></li>
+<li style = "display: none;"><a href = "/prednasky/stories-of-the-empire"><span>Stories of the Empire</span></a></li>
+<li style = "display: none;"><a href = "/prednasky/strepy-snu-krest-knihy"><span>Střepy snů: Křest knihy</span></a></li>
+<li style = "display: none;"><a href = "/prednasky/strepy-snu-o-vyvoji"><span>Střepy snů: O vývoji</span></a></li>
+<li style = "display: none;"><a href = "/prednasky/taria-svet-pribehu-pribeh-sveta"><span>Taria: Svět příběhů, příběh světa</span></a></li>
+<li style = "display: none;"><a href = "/prednasky/tempo-a-obsah-hry-stylizace-scen"><span>Tempo a obsah hry, stylizace scén</span></a></li>
+<li style = "display: none;"><a href = "/prednasky/typologie-pribehu"><span>Typologie příběhů</span></a></li>
+<li style = "display: none;"><a href = "/prednasky/zahranicni-larpove-hity"><span>Zahraniční larpové hity</span></a></li>
+<li style = "display: none;"><a href = "/prednasky/archiv-prednasek-2008"><span>Archiv přednášek 2008</span></a></li>
 <li style = "display: list-item;"><a href = "/dilny/o-dilnach-na-gc"><span>Dílny</span></a></li>
 <li style = "display: none;"><a href = "/dilny/o-dilnach-na-gc"><span>O dílnách na GC</span></a></li>
-<li style = "display: none;"><a href = "/dilny/vypravecska-dilna"><span>Vypravěčská dílna</span></a></li>
+<li style = "display: none;"><a href = "/dilny/mrak---predstaveni-a-workshop"><span>Mrak - tvorba deskových her</span></a></li>
+<li style = "display: none;"><a href = "/dilny/spory-v-druzine-workshop"><span>Spory v družině (Workshop)</span></a></li>
 <li style = "display: none;"><a href = "/dilny/archiv-dilny-2008"><span>Archiv dílny 2008</span></a></li>
 <li style = "display: list-item;"><a href = "/forum"><span>Fórum</span></a></li>
-<li style = "display: list-item;"><a href = "/galerie-materialy/materialy-2011"><span>Galerie, materiály</span></a></li>
-<li style = "display: none;"><a href = "/galerie-materialy/materialy-2011"><span>Materiály 2011</span></a></li>
-<li style = "display: none;"><a href = "/galerie-materialy/materialy-2010"><span>Materiály 2010</span></a></li>
+<li style = "display: list-item;"><a href = "/galerie-materialy/fotogalerie-gamecon08"><span>Galerie, materiály</span></a></li>
+<li style = "display: none;"><a href = "/galerie-materialy/fotogalerie-gamecon08"><span>Fotoalerie GameCon08</span></a></li>
 <li style = "display: none;"><a href = "/galerie-materialy/materialy-2009"><span>Materiály 2009</span></a></li>
-<li style = "display: none;"><a href = "/galerie-materialy/fotosoutez-2010"><span>Fotosoutěž 2010</span></a></li>
-<li style = "display: none;"><a href = "/galerie-materialy/fotosoutez-2009"><span>Fotosoutěž 2009</span></a></li>
-<li style = "display: none;"><a href = "/galerie-materialy/fotogalerie-gamecon10"><span>Fotogalerie GameCon10</span></a></li>
-<li style = "display: none;"><a href = "/galerie-materialy/fotogalerie-gamecon09"><span>Fotogalerie GameCon09</span></a></li>
-<li style = "display: none;"><a href = "/galerie-materialy/fotogalerie-gamecon08"><span>Fotogalerie GameCon08</span></a></li>
 <li style = "display: none;"><a href = "/galerie-materialy/dalsi-partneri-zajimave-odkazy"><span>Další partneři, zajímavé odkazy</span></a></li>
 <li style = "display: list-item;"><a href = "/organizatori/organizacni-tym"><span>Organizátoři</span></a></li>
 <li style = "display: none;"><a href = "/organizatori/organizacni-tym"><span>Organizační tým</span></a></li>
@@ -263,48 +215,50 @@
 </ul><div class = "menu_konec"></div>
       </div>
       <div class = "horizonttop">
-        <a href = "/">GameCon</a>  &raquo; <a href = "/deskove-hry/o-deskovych-hrach-na-gc">Deskové hry</a> &raquo; <a href = "/deskove-hry/prehled-deskovych-her-na-gc2009">Archiv deskových her 2009</a>      </div>
+        <a href = "/">GameCon</a>  &raquo; <a href = "/deskove-hry/o-deskovych-hrach-na-gc">Deskové hry</a> &raquo; <a href = "/deskove-hry/prehled-deskovych-her-na-gc2009">Přehled deskových her na GC2009</a>      </div>
       <div class = "main">
         <div class = "main-top"></div>
   <div class = "main-middle">
     <div class = "main-middle-in">
-<h1>Archiv turnajů v deskových hrách na GameConu 2010</h1>
-<h2>Bang!</h2><p><div style = "width: 172px; height: 129px; float: left; background-image:url('/system_styly/pics_system_styl1/obrazek.gif'); padding-top: 3px; padding-left: 3px; margin-right: 10px; margin-bottom: 18px;"><img src = "/system_styly/side/bang-.jpg" style = "float: left; "/ /></div></p>
+<h1>Přehled turnajů v deskových hrách na GameConu 2009</h1>
+<h2>Bang!</h2><p><div style = "width: 172px; height: 129px; float: left; background-image:url('/system_styly/pics_system_styl1/obrazek.gif'); padding-top: 3px; padding-left: 3px; margin-right: 10px; margin-bottom: 18px;"><img src = "/system_styly/side/bang-.jpg" style = "float: left; "/ /></div>Detail hry: <a href = "/deskove-hry/bang">Bang!</a></p>
 <p>
 <div style = "padding-bottom: 20px; width: 280px; float: left;">
  <strong>organizátor</strong><br />Petr "Gandalf" Holub, Albi<br />
+  <strong>čas akce</strong><br /> prozatím není k dispozici<br />
+ <strong>další akce organizátora</strong> <br /><div style = "text-align: left;"><a href = "/prednasky/budoucnost-gc">Budoucnost GameConu</a></div>
 </div>
 </p>
 <p style = "clear: both;">
   Pravý divoký západ! Šerif pronásleduje bandity. Banditi zkouší sejmout šerifa a jeho pomocníci ho musí bránit a třeba pro něj i zemřít. Pozor ale na podrazáky odpadlíky, kteří to hrají na obě strany a jejich cíl je jasný – sejmi je všechny! Všechno to má ale jeden drobný háček - šerif je jasný, ale kdo je kdo z ostatních?</p><p>
   Nabijte kolty a nebojte se střílet. Bang párty hned první večer je skvělý začátek letošního GameConu. Svižná cool hra, která Vás hodí do té správné nálady a navíc se můžete stát tím nejlepším šerifem a nebo nejslavnějším banditou celého GameConu.</p><p>
-
   Pokud jste začátečníci a nebo Bang ještě neznáte, nebojte se, není to těžké. Před slavnostním zahájením, po kterém bude turnajová Bang párty následovat, bude otevřená deskoherna a v ní dost času zjistit, jak se Bang hraje a vyzkoušet si ho. Stačí Vám jedna, dvě hry a můžete se přidat. Máte-li rádi zábavné hry, tohle byste neměli minout.</p><p>
   <strong>Pravidla turnaje budou ještě upřesněna.</strong>
 </p>
 <p>
   <ul>
-    <h2>Carcassonne</h2><p><div style = "width: 172px; height: 129px; float: left; background-image:url('/system_styly/pics_system_styl1/obrazek.gif'); padding-top: 3px; padding-left: 3px; margin-right: 10px; margin-bottom: 18px;"><img src = "/system_styly/side/carcassonne.jpg" style = "float: left; "/ /></div></p>
+    <h2>Carcassonne</h2><p><div style = "width: 172px; height: 129px; float: left; background-image:url('/system_styly/pics_system_styl1/obrazek.gif'); padding-top: 3px; padding-left: 3px; margin-right: 10px; margin-bottom: 18px;"><img src = "/system_styly/side/carcassonne.jpg" style = "float: left; "/ /></div>Detail hry: <a href = "/deskove-hry/carcassonne">Carcassonne</a></p>
 <p>
 <div style = "padding-bottom: 20px; width: 280px; float: left;">
  <strong>organizátor</strong><br />MindOK<br />
+  <strong>čas akce</strong><br /> prozatím není k dispozici<br />
+ <strong>další akce organizátora</strong> <br /><div style = "text-align: left;"><a href = "/deskove-hry/heckmeck">Heckmeck</a></div>
 </div>
 </p>
 <p style = "clear: both;">
-
   Máte rádi trochu taktiky, budování a zatápění protivníkům? Pak jim to pojďte natřít v taktické stolní hře Carcassonne.</p><p>
   Carcassonne je opevněné město na jihu Francie a jeho okolí je připraveno pro to, abyste za pomocí svých karet utvářeli krajinu, budovali cesty, stavěli kláštery… a taky používali své družiníky, rytíře, mnichy, ale taky sedláky a lapky, k tomu, abyste rozšířili svůj vliv a získali převahu nad svými protivníky.</p><p>
   <strong>Pravidla turnaje budou ještě upřesněna podle počtu účastníků.</strong>
 </p>
 <p>
   <ul>
-    <h2>Galaxy Trucker</h2><p><div style = "width: 172px; height: 129px; float: left; background-image:url('/system_styly/pics_system_styl1/obrazek.gif'); padding-top: 3px; padding-left: 3px; margin-right: 10px; margin-bottom: 18px;"><img src = "/system_styly/side/galaxy-trucker.jpg" style = "float: left; "/ /></div></p>
-
+    <h2>Galaxy Trucker</h2><p><div style = "width: 172px; height: 129px; float: left; background-image:url('/system_styly/pics_system_styl1/obrazek.gif'); padding-top: 3px; padding-left: 3px; margin-right: 10px; margin-bottom: 18px;"><img src = "/system_styly/side/galaxy-trucker.jpg" style = "float: left; "/ /></div>Detail hry: <a href = "/deskove-hry/galaxy-trucker">Galaxy Trucker</a></p>
 <p>
 <div style = "padding-bottom: 20px; width: 280px; float: left;">
  <strong>organizátor</strong><br />Vláďa Chvátil, Czech Games Edition<br />
+  <strong>čas akce</strong><br /> prozatím není k dispozici<br />
+ <strong>další akce organizátora</strong> <br /><div style = "text-align: left;"><a href = "/gamecon-trojboj/space-alert">GameCon Trojboj - Space Alert</a></div>
 </div>
-
 </p>
 <p style = "clear: both;">
   Společnost, s.r.o., jednička na trhu v oblasti stavby kanalizací a nízkorozpočtového bydlení, hledá všeho schopné muže či dívky na nebezpečné trasy do odlehlých částí Galaxie. Ochota potýkat se s meteory, piráty či pašeráky podmínkou. Praxe ve spolupráci s mimozemšťany výhodou. Vysoké výdělky, bonusy za rychlé a kvalitní doručení materiálu.<br /><br />
@@ -312,34 +266,33 @@
   Hra sestává ze tří etap. V každé etapě se nejdříve hráči vrhnou do Skladu, aby si pro sebe urvali co nejlepší součástky a postavili z nich co nejlepší loď. Tu pak připraví na cestu a odstartují. Cestou k cíli se snaží přestát četná nebezpečí a překonat překážky, chytře využít možností na výdělek, a pokud možno doletět první a s nepoškozenou lodí.<br /><br />
   Když budete mít smůlu, do konce života se nevyhrabete z dluhů. Když se však na vás cestou usměje štěstí, vyděláte balík a vyhoupnete se mezi horních deset miliard.<br /><br />
   Galaxy Trucker je zábavná hra českého světoznámého tvůrce Vládi Chvátila.<br /><br />
-
   <strong>Pravidla turnaje budou ještě upřesněna podle počtu účastníků.</strong>
   
 </p>
 <p>
   <ul>
-    <h2>Heckmeck</h2><p><div style = "width: 172px; height: 129px; float: left; background-image:url('/system_styly/pics_system_styl1/obrazek.gif'); padding-top: 3px; padding-left: 3px; margin-right: 10px; margin-bottom: 18px;"><img src = "/system_styly/side/heckmeck.jpg" style = "float: left; "/ /></div></p>
+    <h2>Heckmeck</h2><p><div style = "width: 172px; height: 129px; float: left; background-image:url('/system_styly/pics_system_styl1/obrazek.gif'); padding-top: 3px; padding-left: 3px; margin-right: 10px; margin-bottom: 18px;"><img src = "/system_styly/side/heckmeck.jpg" style = "float: left; "/ /></div>Detail hry: <a href = "/deskove-hry/heckmeck">Heckmeck</a></p>
 <p>
 <div style = "padding-bottom: 20px; width: 280px; float: left;">
  <strong>organizátor</strong><br />MindOK<br />
-
+  <strong>čas akce</strong><br /> prozatím není k dispozici<br />
+ <strong>další akce organizátora</strong> <br /><div style = "text-align: left;"><a href = "/deskove-hry/carcassonne">Carcassonne</a></div>
 </div>
 </p>
 <p style = "clear: both;">
   Heckmeck z žížalek je extrémně zábavná kostková hra pro 2-7 ptačích opeřenců, kteří mají rádi pečené červíky. Ty můžete získat jednoduše přímo z grilu a nebo ukradením svým sousedům.</p><p>
   Heckmeck je rychlá a velmi jednoduchá hra, kterou se můžete klidně naučit za tři minutky před začátkem turnaje, což z Heckmecku dělá pohodový turnaj pro volnou chvíli na GameConu.</p><p>
-
   <strong>Pravidla turnaje budou ještě upřesněna.</strong>
 </p>
 <p>
   <ul>
-<h2>Jantaris</h2><p><div style = "width: 172px; height: 129px; float: left; background-image:url('/system_styly/pics_system_styl1/obrazek.gif'); padding-top: 3px; padding-left: 3px; margin-right: 10px; margin-bottom: 18px;"><img src = "/system_styly/side/jantaris.jpg" style = "float: left; "/ /></div></p>
+<h2>Jantaris</h2><p><div style = "width: 172px; height: 129px; float: left; background-image:url('/system_styly/pics_system_styl1/obrazek.gif'); padding-top: 3px; padding-left: 3px; margin-right: 10px; margin-bottom: 18px;"><img src = "/system_styly/side/jantaris.jpg" style = "float: left; "/ /></div>Detail hry: <a href = "/deskove-hry/jantaris">Jantaris</a></p>
 <p>
 <div style = "padding-bottom: 20px; width: 280px; float: left;">
  <strong>organizátor</strong><br />Altar<br />
-
+  <strong>čas akce</strong><br /> prozatím není k dispozici<br />
+ <strong>další akce organizátora</strong> <br /><div style = "text-align: left;"><a href = "/deskove-hry/legie">Legie</a>, <a href = "/deskove-hry/proroctvi">Proroctví - kvalifikační turnaj</a>, <a href = "/prednasky/prezentace-deskovych-her---altar">Altar plánuje</a>, <a href = "/deskove-hry/proroctvi---mistrovstvi-cr">Proroctví - Mistrovství ČR</a></div>
 </div>
-
 </p>
 <p style = "clear: both;">
   <i>Jantaris - město obchodu, plné malých krámků i velkých tržišť. Dva soupeřící mocné obchodní cechy zde diktují podmínky trhu a činí si nárok na všechny výnosné obchody. Ostatní menší obchodníci jen živoří v jejich stínu.</i></p><p>
@@ -349,7 +302,6 @@
 <h2>Pravidla turnaje</h2>
 <p style = "clear: both;">
   Účastníci budou rozděleni do skupin po 3 hráčích (v případě, že celkový počet účastníků nebude dělitelný třemi, vznikne jedna nebo dvě skupiny o 4 hráčích). Hraje se švýcarským systémem na 3-4 kola. Časový limit na jedno kolo je 60 minut.</p><p>
-
   O celkovém umístění rozhoduje celkový počet dosažených bodů prestiže za všechna kola.</p><p>
   Výsledky je nutné oznámit pořadateli turnaje ihned po skončení partie. Nebude-li výsledek oznámen do 15 minut po skončení partie, má se za to, že všichni účastníci partie z turnaje odstoupili. Odstoupí-li někdo v průběhu turnaje, sdělí to neprodleně organizátorovi.</p><p>
   Hraje se podle standardních pravidel hry Jantaris se dvěma modifikacemi:
@@ -360,18 +312,18 @@
   <li>
   Na konci hry (pokud není ukončena vypršením časového limitu) získají hráči po 1 vítězném bodu za každé 4 kusy zboží, které jim zůstaly.
   </li>
-
 </ul>
   Každá skupina odehraje partii podle standardních pravidel. Hra končí buď podle pravidel, nebo vypršením časového limitu 60 minut.</p><p>
   Je zakázáno se během hry domlouvat – každý hraje sám za sebe. V případě že organizátor zjistí že se hráči mezi sebou domlouvají, má právo je z turnaje vyloučit.
 </p>
 <p>
   <ul>
-   <h2>Legie</h2><p><div style = "width: 172px; height: 129px; float: left; background-image:url('/system_styly/pics_system_styl1/obrazek.gif'); padding-top: 3px; padding-left: 3px; margin-right: 10px; margin-bottom: 18px;"><img src = "/system_styly/side/legie.jpg" style = "float: left; "/ /></div></p>
+   <h2>Legie</h2><p><div style = "width: 172px; height: 129px; float: left; background-image:url('/system_styly/pics_system_styl1/obrazek.gif'); padding-top: 3px; padding-left: 3px; margin-right: 10px; margin-bottom: 18px;"><img src = "/system_styly/side/legie.jpg" style = "float: left; "/ /></div>Detail hry: <a href = "/deskove-hry/legie">Legie</a></p>
 <p>
 <div style = "padding-bottom: 20px; width: 280px; float: left;">
-
  <strong>organizátor</strong><br />Altar<br />
+  <strong>čas akce</strong><br /> prozatím není k dispozici<br />
+ <strong>další akce organizátora</strong> <br /><div style = "text-align: left;"><a href = "/deskove-hry/jantaris">Jantaris</a>, <a href = "/deskove-hry/proroctvi">Proroctví - kvalifikační turnaj</a>, <a href = "/prednasky/prezentace-deskovych-her---altar">Altar plánuje</a>, <a href = "/deskove-hry/proroctvi---mistrovstvi-cr">Proroctví - Mistrovství ČR</a></div>
 </div>
 </p>
 <p style = "clear: both;">
@@ -381,7 +333,6 @@
   <strong>Je čas vyrazit do útoku!</strong>
 </p>
 <h2>Pravidla turnaje</h2>
-
 <p style = "clear: both;">
   Účastníci budou rozděleni do skupin po 4 hráčích (v případě, že celkový počet účastníků nebude dělitelný čtyřmi, vzniknou 1-3 skupiny o 3 hráčích). V každé skupině odehrají všichni hráči po dvou partiích (vždy jednu s bílými a jednu s černými kameny) s každým ze soupeřů. Časový limit na jednu partii je 15 minut.</p><p>
   O postupu do finále rozhoduje počet dosažených bodů během základního kola. Za každou partii získá vítěz 2 body, poražený 0 bodů. V případě překročení časového limitu získají oba hráči po 1 bodu, záměrné zdržování hry však může být organizátorem penalizováno.</p><p>
@@ -389,21 +340,21 @@
   Do finále postoupí vítěz (hráč s největším počtem bodů) každé skupiny. V případě rovnosti bodů rozhoduje vzájemné skóre.</p><p>
   Ve finále, které se hraje vyřazovacím systémem (dvojice odehraje dvě partie, každý hráč jednu s bílými a jednu s černými kameny, vítěz postupuje) se rozhodne o konečném pořadí v turnaji.</p><p>
   Hraje se podle základních pravidel včetně vlivu terénu.</p><p>
-
   Pravidla se mohou ještě změnit v závislosti na počtu přihlášených.
 </p>
 <p>
   <ul>
-    <h2>Osadníci z Katanu</h2><p><div style = "width: 172px; height: 129px; float: left; background-image:url('/system_styly/pics_system_styl1/obrazek.gif'); padding-top: 3px; padding-left: 3px; margin-right: 10px; margin-bottom: 18px;"><img src = "/system_styly/side/osadnici-z-katanu.jpg" style = "float: left; "/ /></div></p>
+    <h2>Osadníci z Katanu</h2><p><div style = "width: 172px; height: 129px; float: left; background-image:url('/system_styly/pics_system_styl1/obrazek.gif'); padding-top: 3px; padding-left: 3px; margin-right: 10px; margin-bottom: 18px;"><img src = "/system_styly/side/osadnici-z-katanu.jpg" style = "float: left; "/ /></div>Detail hry: <a href = "/deskove-hry/osadnici-z-katanu">Osadníci z Katanu</a></p>
 <p>
 <div style = "padding-bottom: 20px; width: 280px; float: left;">
  <strong>organizátor</strong><br />Albi, Miloš Čeřovský<br />
+  <strong>čas akce</strong><br /> prozatím není k dispozici<br />
+ <strong>další akce organizátora</strong> <br /><div style = "text-align: left;"><a href = "/prednasky/prezentace-deskovych-her---albi">Moderní deskové hry - Albi</a></div>
 </div>
 </p>
 <p style = "clear: both;">
   Vylodili jste se právě na neprobádaném ostrově a není čas otálet. Je třeba začít budovat vesnice a města, stavět cesty a hlavně poohlédnout se po potřebných surovinách. Háček je v tom, že jste se nevylodili sami a tak si musíte pospíšit, aby vám ostatní nevybrali všechna lukrativní místa na ostrově. Kdo nebuduje, ten upadá.</p><p>
   Pokud náhodou, Osadníky z Katanu neznáte, není to žádný problém. Osadníci jsou hra, kterou se ovládnete bez obtíží krátce před turnajem. Jednou, dvakrát si je vyzkoušíte a jste připraveni porazit své protivníky.</p><p>
-
   Osadníci z Katanu budou nejen vyhodnoceni jako samostatný turnaj na GameConu, ale jsou také kvalifikačním turnajem na Mistrovství ČR. V případě vítězství získáte tedy nejen věcné ceny, ale také body, které vám mohou pomoci zajistit účast na Mistrovství ČR, které se bude konat 26. září 2009 v Praze.</p><p>
   Další informace najdete na oficiálních stránkách:
 <ul>
@@ -414,17 +365,17 @@
 </p>
 
 <p>
-
   <ul>
-   <h2>Proroctví - kvalifikační turnaj</h2><p><div style = "width: 172px; height: 129px; float: left; background-image:url('/system_styly/pics_system_styl1/obrazek.gif'); padding-top: 3px; padding-left: 3px; margin-right: 10px; margin-bottom: 18px;"><img src = "/system_styly/side/proroctvi.jpg" style = "float: left; "/ /></div></p>
+   <h2>Proroctví - kvalifikační turnaj</h2><p><div style = "width: 172px; height: 129px; float: left; background-image:url('/system_styly/pics_system_styl1/obrazek.gif'); padding-top: 3px; padding-left: 3px; margin-right: 10px; margin-bottom: 18px;"><img src = "/system_styly/side/proroctvi.jpg" style = "float: left; "/ /></div>Detail hry: <a href = "/deskove-hry/proroctvi">Proroctví - kvalifikační turnaj</a></p>
 <p>
 <div style = "padding-bottom: 20px; width: 280px; float: left;">
  <strong>organizátor</strong><br />Altar<br />
+  <strong>čas akce</strong><br /> prozatím není k dispozici<br />
+ <strong>další akce organizátora</strong> <br /><div style = "text-align: left;"><a href = "/deskove-hry/jantaris">Jantaris</a>, <a href = "/deskove-hry/legie">Legie</a>, <a href = "/prednasky/prezentace-deskovych-her---altar">Altar plánuje</a>, <a href = "/deskove-hry/proroctvi---mistrovstvi-cr">Proroctví - Mistrovství ČR</a></div>
 </div>
 </p>
 <p style = "clear: both;">
   <i>Hrdina krve královské se zjeví, ve zbroji dávných vládců oděný, a na královský trůn usedne, by bezvládí a chaos ukončil.</i></p>
-
   <p>Co když jsi to právě ty, komu v žilách koluje krev prastarých králů? Co když právě tobě se podaří vyrvat sférám přísně střežené artefakty a stát se králem celé země? To stojí za to vyzkoušet...</p>
   <p>Nasbírej zkušenosti, schrasti peněz co půjde, posiluj své tělo a mysl, nauč se, co můžeš – mocná kouzla a šikovné dovednosti. Po cestě najdeš nové přátele a budeš muset pobít obludy a démony, kteří ti budou stát v cestě. Až se na to budeš cítit, pusť se do boje o bájné artefakty, které budeš potřebovat k vítězství.</p>
   <p>A pak? Pak přijde to nejlepší. Znič své nepřátele, kteří chtějí uchvátit to, co je po právu tvé, a staň se králem.</p>
@@ -434,18 +385,18 @@
 <p>Pravidla turnaje jsou stejná jako v případě <a href = "/deskove-hry/proroctvi---mistrovstvi-cr">Proroctví - Mistrovství ČR</a></li>.
 
 </p>
-
 <p>
   <ul>
-    <h2>Proroctví - Mistrovství ČR</h2><p><div style = "width: 172px; height: 129px; float: left; background-image:url('/system_styly/pics_system_styl1/obrazek.gif'); padding-top: 3px; padding-left: 3px; margin-right: 10px; margin-bottom: 18px;"><img src = "/system_styly/side/proroctvi.jpg" style = "float: left; "/ /></div></p>
+    <h2>Proroctví - Mistrovství ČR</h2><p><div style = "width: 172px; height: 129px; float: left; background-image:url('/system_styly/pics_system_styl1/obrazek.gif'); padding-top: 3px; padding-left: 3px; margin-right: 10px; margin-bottom: 18px;"><img src = "/system_styly/side/proroctvi.jpg" style = "float: left; "/ /></div>Detail hry: <a href = "/deskove-hry/proroctvi---mistrovstvi-cr">Proroctví - Mistrovství ČR</a></p>
 <p>
 <div style = "padding-bottom: 20px; width: 280px; float: left;">
  <strong>organizátor</strong><br />Altar<br />
+  <strong>čas akce</strong><br /> prozatím není k dispozici<br />
+ <strong>další akce organizátora</strong> <br /><div style = "text-align: left;"><a href = "/deskove-hry/jantaris">Jantaris</a>, <a href = "/deskove-hry/legie">Legie</a>, <a href = "/deskove-hry/proroctvi">Proroctví - kvalifikační turnaj</a>, <a href = "/prednasky/prezentace-deskovych-her---altar">Altar plánuje</a></div>
 </div>
 </p>
 <p style = "clear: both;">
   <i>Hrdina krve královské se zjeví, ve zbroji dávných vládců oděný, a na královský trůn usedne, by bezvládí a chaos ukončil.</i></p>
-
   <p>Co když jsi to právě ty, komu v žilách koluje krev prastarých králů? Co když právě tobě se podaří vyrvat sférám přísně střežené artefakty a stát se králem celé země? To stojí za to vyzkoušet...</p>
   <p>Nasbírej zkušenosti, schrasti peněz co půjde, posiluj své tělo a mysl, nauč se, co můžeš – mocná kouzla a šikovné dovednosti. Po cestě najdeš nové přátele a budeš muset pobít obludy a démony, kteří ti budou stát v cestě. Až se na to budeš cítit, pusť se do boje o bájné artefakty, které budeš potřebovat k vítězství.</p>
   <p>A pak? Pak přijde to nejlepší. Znič své nepřátele, kteří chtějí uchvátit to, co je po právu tvé, a staň se králem.</p>
@@ -453,7 +404,6 @@
   
 </p>
 <h2>Pravidla turnaje</h2>
-
 <p style = "clear: both;">
   <h3>Organizace</h3>
   Účastníci budou rozděleni do skupin po 3 hráčích (v případě, že celkový počet účastníků nebude dělitelný třemi, vznikne jedna nebo dvě skupiny o 4 hráčích). Každý hráč odehraje dvě partie, pokaždé ve skupině s jiným složením. Časový limit na jednu partii je 120 minut (pokud jsou hráči čtyři, pak 150 minut).</p>
@@ -461,7 +411,6 @@
   <p>O postupu do finále rozhoduje počet dosažených bodů během dvou základních kol (vítěz získá 3 body, hráč na druhém místě 2 body, na třetím místě jeden bod). V případě shody počtu bodů rozhoduje počet poražených vyšších strážců v obou kolech hry, a pokud ani ten nerozhodne, pak počet poražených nižších strážců.</p>
   <p>O pořadí v jednotlivých kolech rozhoduje primárně počet artefaktů (ať už se hra dohrála či nikoli), sekundárně počet poražených vyšších strážců, terciárně počet poražených nižších strážců. Neporažení strážci se započítají hráči, který získal čtyři artefakty (pokud by žádný hráč v časovém limitu 4 artefakty nezískal, neporažení strážci se nezapočítají nikomu). V případě rovnosti všech kritérií se body za obě (resp. všechna tři) místa rovnoměrně rozdělí, tedy např. za druhé až třetí místo je shodně 1,5 bodu.</p>
   <p>Do finále postoupí 4 hráči, kteří po skončení obou základních kol získají nejvíce bodů. Hraje se na jedné hrací desce. V případě malého počtu účastníků turnaje může být počet finalistů snížen.</p>
-
   <p>O pořadí ve finále se rozhoduje stejným způsobem, jako v základních kolech, přičemž Dračí srdce a Duhová perla se počítají jako vyšší strážci. V případě rovnosti se hráči o příslušná místa dělí.</p>
   <p>Pravidla se mohou ještě změnit v závislosti na počtu přihlášených.
   
@@ -471,40 +420,43 @@
   <h3>Pravidla hry</h3>
   V základních kolech se hraje podle základních pravidel 3. vydání Proroctví s hlavním modulem, rozšířeným o Rasy a karty určené na základní plán z rozšíření Dračí říše a Vodní říše. Ve finále se hraje včetně obou těchto rozšíření.</p>
   <p>Každá skupina odehraje partii Proroctví podle základních pravidel. Hráč, jehož postava zahyne, nenasazuje další postavu. Hra končí buď podle pravidel tím, že jeden hráč získá čtyři artefakty, nebo tím, že zbude ve hře jediná živá postava, nebo vypršením časového limitu 120 minut (resp. 150 minut pro 4 hráče). Finále se hraje bez časového limitu, s variantou zakončení Apokalypsa. O případném předčasném ukončení hry může rozhodnout organizátor.</p>
-
   <p>Hráč má ve svém tahu právo odstoupit ze hry (pokud prohraje boj s nestvůrou, toto právo ztrácí a nabude jej zase až v dalším tahu). Pokud hráč odstoupí, naloží se s jeho postavou, jako by zahynula na poli, kde se právě nachází.</p>
   <p>Je zakázáno se během hry domlouvat – každý hraje sám za sebe. V případě že organizátor zjistí že se hráči mezi sebou domlouvají, má právo je z turnaje vyloučit.
 </p>
 <p>
   <ul>
-    <h2>Théby</h2><p><div style = "width: 172px; height: 129px; float: left; background-image:url('/system_styly/pics_system_styl1/obrazek.gif'); padding-top: 3px; padding-left: 3px; margin-right: 10px; margin-bottom: 18px;"><img src = "/system_styly/side/theby.jpg" style = "float: left; "/ /></div></p>
+    <h2>Théby</h2><p><div style = "width: 172px; height: 129px; float: left; background-image:url('/system_styly/pics_system_styl1/obrazek.gif'); padding-top: 3px; padding-left: 3px; margin-right: 10px; margin-bottom: 18px;"><img src = "/system_styly/side/theby.jpg" style = "float: left; "/ /></div>Detail hry: <a href = "/deskove-hry/theby">Théby</a></p>
 <p>
 <div style = "padding-bottom: 20px; width: 280px; float: left;">
  <strong>organizátor</strong><br />Corfix<br />
+  <strong>čas akce</strong><br /> prozatím není k dispozici<br />
+ <strong>další akce organizátora</strong> <br /><div style = "text-align: left;"><a href = "/deskove-hry/zelvi-zavody">Želví závody</a>, <a href = "/prednasky/prezentace-deskovych-her---corfix">Moderní deskové hry - Corfix</a></div>
 </div>
 </p>
 <p style = "clear: both;">
   Chtěli jste být někdy archeologem? Cestovat po světě a pátrat po artefaktech dávných civilizací a historii zaniklých kultur? Teď máte možnost. Dokonce se můžete pozvednout nad ostatní a stát se tím nejuznávanějším archeologem.</p><p>
-
 To ale nejde samo a přes noc. Musíte se připravit a získat potřebné znalosti. Spolu se svým asistentem shánět veškeré vybavení a potřebné služby. Teprve pak můžete vyrazit na lov po nalezištích, vykopat cenné artefakty a chlubit se s nimi na výstavě nebo kongresu plném závistivých kolegů. Pozor ale na čas – určitě nechcete, aby vás někdo předběhl.</p><p>
   <strong>Pravidla turnaje budou ještě upřesněna podle počtu účastníků.</strong>
 </p>
 <p>
   <ul>
-    <h2>Želví závody</h2><p><div style = "width: 172px; height: 129px; float: left; background-image:url('/system_styly/pics_system_styl1/obrazek.gif'); padding-top: 3px; padding-left: 3px; margin-right: 10px; margin-bottom: 18px;"><img src = "/system_styly/side/zelvi-zavody.jpg" style = "float: left; "/ /></div></p>
+    <h2>Želví závody</h2><p><div style = "width: 172px; height: 129px; float: left; background-image:url('/system_styly/pics_system_styl1/obrazek.gif'); padding-top: 3px; padding-left: 3px; margin-right: 10px; margin-bottom: 18px;"><img src = "/system_styly/side/zelvi-zavody.jpg" style = "float: left; "/ /></div>Detail hry: <a href = "/deskove-hry/zelvi-zavody">Želví závody</a></p>
 <p>
 <div style = "padding-bottom: 20px; width: 280px; float: left;">
  <strong>organizátor</strong><br />Corfix<br />
+  <strong>čas akce</strong><br /> prozatím není k dispozici<br />
+ <strong>další akce organizátora</strong> <br /><div style = "text-align: left;"><a href = "/deskove-hry/theby">Théby</a>, <a href = "/prednasky/prezentace-deskovych-her---corfix">Moderní deskové hry - Corfix</a></div>
 </div>
 </p>
 <p style = "clear: both;">
   Želvy jsou obvykle líné a nikam se neženou… Cože? Měli jste někdy želvu? Jestli jo,tak víte, že když chce a má důvod, tak to pěkně rozkulí. A co je lepším důvodem než skvělý, čerstvý a křupavý salátek?</p><p>
-
   Salát může dostat jenom jedna! Na druhou stranu ale špinavé triky jsou povolené a tak se klidně můžete pokusit kousek svézt nějaké jiné hloupější želvě na zádech a nebo jí třeba nakukat, že jde špatným směrem.</p><p>
   Želví závody jsou jednoduchá hra, kterou za chvilku zvládne každý, takže i když ji neznáte, stačí chvilka před turnajem a můžete za salátem vyrazit taky.</p><p>
   Zní vám to moc primitivně? Možná je to hodně jednoduché, ale je to cool zábava. Perfektní turnaj, pro pohodově strávené unavené nedělní dopoledne na konci GameConu. Není to nic složitého a můžete se pobavit, strávit příjemně čas do slavnostního zakončení a pokud vyhrajete, ještě se královsky nadlábnout ;-)</p><p>
   <strong>Pravidla turnaje budou ještě upřesněna podle počtu účastníků.</strong>
 </p>
+<p>
+  <ul>
 
     </div>
   </div>
@@ -512,28 +464,28 @@ To ale nejde samo a přes noc. Musíte se připravit a získat potřebné znalos
       </div>
       <div class = "side">
         
-  <div class = "nadpis">Přednášky & Dílny</div>
-  <div class = "obsah">
-    <div class = "ram">
-      <a href = "/prednasky/altar-planuje" title = "Altar plánuje"><img src = "/system_styly/side/altar-planuje.gif" /></a>
-    </div>
-  </div>
-  <div class = "nadpis">Larpy & Bonusy</div>
-  <div class = "obsah">
-    <div class = "ram">
-      <a href = "/larp/skola" title = "Škola"><img src = "/system_styly/side/skola.gif" /></a>
-    </div>
-  </div>
   <div class = "nadpis">RPG</div>
   <div class = "obsah">
     <div class = "ram">
-      <a href = "/rpg/mage-the-awakecension-" title = "Mage: the Awakecension "><img src = "/system_styly/side/mage-the-awakecension-.gif" /></a>
+      <a href = "/rpg/dungeons-and-dragons-4e" title = "Dungeons and Dragons 4E"><img src = "/system_styly/side/dungeons-and-dragons-4e.jpg" /></a>
     </div>
   </div>
-  <div class = "nadpis">Deskovky & Wargaming</div>
+  <div class = "nadpis">Wargaming</div>
   <div class = "obsah">
     <div class = "ram">
-      <a href = "/deskove-hry/duch" title = "Duch!"><img src = "/system_styly/side/duch.gif" /></a>
+      <a href = "/wargaming/warhammer-fantasy" title = "Warhammer Fantasy"><img src = "/system_styly/side/warhammer-fantasy.gif" /></a>
+    </div>
+  </div>
+  <div class = "nadpis">Přednášky & Dílny</div>
+  <div class = "obsah">
+    <div class = "ram">
+      <a href = "/dilny/spory-v-druzine-workshop" title = "Spory v družině (Workshop)"><img src = "/system_styly/side/spory-v-druzine--workshop-.jpg" /></a>
+    </div>
+  </div>
+  <div class = "nadpis">Deskové hry</div>
+  <div class = "obsah">
+    <div class = "ram">
+      <a href = "/gamecon-trojboj/space-alert" title = "GameCon Trojboj - Space Alert"><img src = "/system_styly/side/gamecon-trojboj---space-alert.gif" /></a>
     </div>
   </div>      </div>
       <!--<div class = "horizontbottom">
@@ -541,47 +493,42 @@ To ale nejde samo a přes noc. Musíte se připravit a získat potřebné znalos
       </div>-->
       <div class = "paticka">
         <div class = "sponzori_ohraniceni" style = "margin-bottom: 0px; height: 20px;">Naši partneři</div>
-<div class = "sponzori_ohraniceni" style="width:512px;padding-right:217px;">
+<div class = "sponzori_ohraniceni">   
+  <div class = "sponzor">
+    <a href=" http://www.alza.cz/" onclick = "window.open(this.href,'_blank'); return false" title="Alza.cz"><img src = "/system_styly/sponzori/alza.gif"></a>
+  </div>
+  <div class = "sponzor">
+    <a href="http://www.knihcentrum.cz/" onclick = "window.open(this.href,'_blank'); return false" title="Knihcentrum.cz - Vaše rodinné knihkupectví"><img src = "/system_styly/sponzori/knihcentrum.gif"></a>
+  </div>
   <div class = "sponzor" style = "width: 50px;">
     <a href=" http://www.altar.cz/" onclick = "window.open(this.href,'_blank'); return false" title="Altar"><img src = "/system_styly/sponzori/altar.gif"></a>
   </div>
   <div class = "sponzor">
+    <a href=" http://www.albi.cz/" onclick = "window.open(this.href,'_blank'); return false" title="Albi"><img src = "/system_styly/sponzori/albi.png"></a>
+  </div>
+  <div class = "sponzor">
+    <a href=" http://www.corfix.cz/" onclick = "window.open(this.href,'_blank'); return false" title="Corfix"><img src = "/system_styly/sponzori/corfix.gif"></a>
+  </div>
+  <div class = "sponzor">
     <a href=" http://www.fantasyobchod.cz/" onclick = "window.open(this.href,'_blank'); return false" title="Fantasy obchod"><img src = "/system_styly/sponzori/fantasy_obchod.gif"></a>
   </div>
-  <!-- <div class = "sponzor">
+  <div class = "sponzor">
+    <a href="http://www.toptopic.cz/" onclick = "window.open(this.href,'_blank'); return false" title="Top Topic"><img src = "/system_styly/sponzori/top-topic.gif"></a>
+  </div>
+  <div class = "sponzor">
     <a href=" http://www.zazitky.cz/" onclick = "window.open(this.href,'_blank'); return false" title="Zážitky jako dokonalé dárky"><img src = "/system_styly/sponzori/zazitky.gif"></a>
     <a href=" http://www.zazitky.cz/zazitkove-hry/" onclick = "window.open(this.href,'_blank'); return false" title="Zážitkové hry">Zážitkové hry</a>
-  </div> -->
-  <div class = "sponzor">
-    <a href=" http://www.albi.cz/" onclick = "window.open(this.href,'_blank'); return false" title="Albi"><img src = "/system_styly/sponzori/albi.png"></a>
-    <a href=" http://www.capsa.cz/" onclick = "window.open(this.href,'_blank'); return false" title="Capsa"><img src = "/system_styly/sponzori/capsa.png"></a>
-  </div>
-  <!-- <div class = "sponzor">
-    <a href="http://www.toptopic.cz/" onclick = "window.open(this.href,'_blank'); return false" title="Top Topic"><img src = "/system_styly/sponzori/top-topic.gif"></a>
-  </div> -->
-  <div class = "sponzor">
-    <a href="http://www.cokoklasik.cz/" onclick = "window.open(this.href,'_blank'); return false" title="Čokoklasik"><img src = "/system_styly/sponzori/cokoklasik.gif"></a>
   </div>
   <div class = "sponzor"> 
     <div class = "sponzor" style = "height: 30px;">
       <a href=" http://www.mindok.cz/" onclick = "window.open(this.href,'_blank'); return false" title="Mindok"><img src = "/system_styly/sponzori/mindok.gif"></a>
     </div>
-    <div class = "sponzor"  style = "height: 40px; margin-top: 3px;">
-      <a href=" http://www.blackfire.cz/" onclick = "window.open(this.href,'_blank'); return false" title="Blackfire"><img src = "/system_styly/sponzori/blackfire.gif"></a>
+    <div class = "sponzor"  style = "height: 40px;">
+      <a href=" http://www.czechgames.cz/" onclick = "window.open(this.href,'_blank'); return false" title="CGE"><img src = "/system_styly/sponzori/cge.gif"></a>
     </div>
   </div>
-  <div class = "sponzor"> 
-    <div class = "sponzor">
-			<a href=" http://www.svet-deskovych-her.cz/" onclick = "window.open(this.href,'_blank'); return false" title="Svět deskových her"><img src = "/system_styly/sponzori/svet_deskovych_her.gif"></a>
-		</div>
-  </div>
-  <p><br /></p>
-  <div class = "sponzor">
-    <a href=" http://www.hbo.cz/" onclick = "window.open(this.href,'_blank'); return false" title="HBO"><img src = "/system_styly/sponzori/hbo.png"></a>
-    <a href="http://www.czechboardgames.com/" onclick = "window.open(this.href,'_blank'); return false" title="Czech Board Games"><img src = "/system_styly/sponzori/cbg.png"></a>
-  </div>
 </div>
-              </div>
+      </div>
     </div>
   
   </body>

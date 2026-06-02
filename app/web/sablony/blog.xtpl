@@ -1,4 +1,0 @@
-<!-- begin:blog -->
-  <h1>{blog.nazev}</h1>
-  {blog.text}
-<!-- end:blog -->
