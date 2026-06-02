@@ -62,8 +62,8 @@ jobs:
                         exit 1
                     fi
                     year="${BASH_REMATCH[1]}"
-                    if (( year < 2005 || year > 2099 )); then
-                        echo "::error::Year $year outside supported range 2005..2099" >&2
+                    if (( year < 2004 || year > 2099 )); then
+                        echo "::error::Year $year outside supported range 2004..2099" >&2
                         exit 1
                     fi
                     sha7=$(git rev-parse --short=7 HEAD)
@@ -79,13 +79,14 @@ jobs:
                     # gameconcz/gamecon:8.2 image baked into Dockerfile.archive.
                     # Add a row when a year's PHP era is confirmed during recon.
                     case "$year" in
-                        # 2005–2011 are STATIC archives (the live DB + router
+                        # 2004–2011 are STATIC archives (the live DB + router
                         # are lost) — flat HTML reconstructed from the Internet
                         # Archive. Any base works; php:5.6-apache matches their
                         # neighbours and stays lightweight (no PHP executes).
-                        # 2005–2008 are the Altar-era sites (2005 = altar.cz
+                        # 2004–2008 are the Altar-era sites (2004–2005 = altar.cz
                         # /gamecon/ path; 2006–2008 = gamecon.altar.cz subdomain;
                         # different CMS), still pure static HTML — same base.
+                        2004) base_image="php:5.6-apache" ;;
                         2005) base_image="php:5.6-apache" ;;
                         2006) base_image="php:5.6-apache" ;;
                         2007) base_image="php:5.6-apache" ;;
@@ -114,9 +115,10 @@ jobs:
                     # extension (mysql, removed in PHP 7 but installable on 5.6).
                     # Both build with no apt packages.
                     case "$year" in
-                        # 2005–2011 static archives need no PHP extension at
+                        # 2004–2011 static archives need no PHP extension at
                         # all (no DB, no dynamic code) — empty list skips the
                         # Dockerfile's whole install step.
+                        2004) php_exts="" ;;
                         2005) php_exts="" ;;
                         2006) php_exts="" ;;
                         2007) php_exts="" ;;
