@@ -94,10 +94,6 @@ OL.list-cisla {
  list-style-type : decimal
 }
 
-LI.vitez {
- color:red ;
-}
-
 P.list-tecka {
  margin-bottom : 0
 }
@@ -205,14 +201,8 @@ A.lmenu:visited {color:#FFFFCC}
 A.lmenu:hover {text-decoration:underline}
 A.lmenu:active {color:#FFFFCC}
 
-TD.holi_svetla {text-align:center; background-color:#444477;}
-TD.holi_tmava {text-align:center; background-color:#333366;}
-
-.invisible { display:none }
-table[id="horni_lista"] { position: fixed }
-table[id="vyrovnani"] { display:table; }
-
-A.hmenu {font-family: sans-serif; font-size:smaller; font-weight:500; text-decoration:none; color:#FFFFCC}
+TD.holi {text-align:center; background-color:#333366;}
+A.hmenu {font-family: sans-serif; font-size:smaller; font-weight:600; text-decoration:none; color:#FFFFCC}
 A.hmenu:visited {color:#FFFFCC}
 A.hmenu:hover {color:#FFCC99}
 A.hmenu:active {color:#FFCC99}

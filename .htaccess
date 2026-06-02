@@ -1,23 +1,23 @@
-# Static archive of GameCon 2005 (reconstructed from the Internet Archive).
+# Static archive of GameCon 2004 (reconstructed from the Internet Archive).
 #
-# The 2005 festival ran 7.-10. 7. 2005 in OLOMOUC (DDM, tř. 17. listopadu 47 +
-# nearby university dorms). It was still run by the Altar publishing house, and
-# in 2005 GameCon was a SECTION of the whole altar.cz publisher site (path
-# altar.cz/gamecon/), not a standalone site or subdomain — older than the
-# gamecon.altar.cz era (2006-2008).
+# The 2004 festival ran 8.-11. 7. 2004 in OLOMOUC (DDM, tř. 17. listopadu 47 +
+# nearby university dorms). It was run by the Altar publishing house, and in
+# 2004 GameCon was a SECTION of the whole altar.cz publisher site (path
+# altar.cz/gamecon/) — the same path-era as 2005, older than the
+# gamecon.altar.cz subdomain (2006-2008).
 #
-# Scope: only the GameCon pages were reconstructed (the ~29 /gamecon/ pages,
-# incl. the Mistrovství v DrD results archive vysledky95..vysledky04), served
-# here at the root. The original /gamecon/ link prefix was rewritten to /.
-# Pages were restored from web.archive.org, transcoded ISO-8859-2 -> UTF-8.
+# Scope: only the GameCon pages were reconstructed (~31 /gamecon/ pages, incl.
+# the Mistrovství v DrD results archive vysledky95..vysledky04), served here at
+# the root; the original /gamecon/ link prefix was rewritten to /. Pages were
+# restored from web.archive.org, transcoded WINDOWS-1250 -> UTF-8 (with an
+# injected <meta charset>, since the source declared charset only via the HTTP
+# header).
 #
-# The 2005 pages share Altar's global site nav, which links all over the parent
-# publisher site (/altar/*, /drd/, /kontakt/, /cgi/*, the shop, etc.). Those
+# The pages share Altar's global site nav, which links all over the parent
+# publisher site (/altar/*, /drd/, /kontakt/, /cgi/*, the shop, …). Those
 # cross-site links are intentionally NOT reconstructed — they fall to the themed
-# 404, as does any uncaptured URL.
-#
-# Assets (stylesheets/default.css, img/gamecon/*) are served at their original
-# absolute paths, since the pages reference them absolutely.
+# 404, as does any uncaptured URL. Assets (stylesheets/default.css,
+# img/gamecon/*) are served at their original absolute paths.
 
 DirectoryIndex index.html
 ErrorDocument 404 /404.html
