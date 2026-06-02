@@ -32,9 +32,7 @@ form table { border-spacing:0px; }
 <!-- index-off -->
 <div class="button-line">
 <a href="mistrovstvi_drd.html" class="button">MČR&nbsp;v&nbsp;DrD</a>
-<!--
 <a href="mistrovstvi_proroctvi.html" class="button">MČR&nbsp;Proroctví</a>
--->
 <a href="deskovky.html" class="button">Stolní&nbsp;hry</a>
 <a href="rpg.html" class="button">RPG</a>
 <a href="larp.html" class="button">LARP</a>
@@ -56,32 +54,23 @@ form table { border-spacing:0px; }
 
 <h1>Rezervace RPG a larpů</h1>
 <div class="content-file">
-GameCon 2008 již proběhl.
-<!--
+
 <div>
 Internetové rezervace byly uzavřeny. Další rezervace budou možné na místě.
+<!--
 Pomocí této stránky a formuláře, který se na ní nachází, si můžete rezervovat konkrétní blok <a href="rpg.html">volného hraní RPG</a> nebo <a href="larp.html">larpu</a>.<br/>
-U každé hry jsou uvedeny počty volných herních pozic a maximální počet herních pozic. 
+U každé hry jsou uvedeny počty volných herních pozic a maximální počet herních pozic. <cite>Aktualizováno k 11.7.2007 09:55.</cite>
 -->
-
-<!--
-<cite>Aktualizováno k 
-     #echo var="LAST_MODIFIED" -->
-<!--
-.</cite>
 </div>
 
 </div>
-
+<!--
 <h2>Pokyny k rezervaci</h2>
 <div class="content-file">
 
 <div>Rezervovat si samozřejmě můžete jen tolik her, kolik jste si objednali v přihlášce.
 V případě, že budete chtít rezervaci zrušit nebo změnit, učiňte tak výhradně prostřednictvím <a href="dotaz.php">kontaktního formuláře</a>.
-Ten také využívejte k veškerým dotazům.<br/>
-<strong>Hru si rezervujte jen v případě, že jste si svou volbou skutečně jisti. 
-Jinak doporučujeme napřed si na conu pohovořit s Vypravěčem, abyste nebyli ve svém očekávání zklamáni. </strong>
-</div>
+Ten také využívejte k veškerým dotazům.</div>
 
 </div>
 
@@ -90,19 +79,69 @@ Jinak doporučujeme napřed si na conu pohovořit s Vypravěčem, abyste nebyli 
 
 <form method="post" action="prihlaska3_zpracuj.php">
 <input type="hidden" name="form.language" value="cz">
-<input type="hidden" name="formular" value="gamecon.rpg">
+<input type="hidden" name="formular" value="gamecon.druzina">
 <input type="hidden" name="required" value="ic">
 <span class="required"><strong>IČ: </strong></span><input name="ic" class="input-text" /><br/><br/>
-     #include virtual="rezervace.txt" -->
-<!--
+<table style="text-align:left">
+<tr class="heading-row" style="text-align:center"><td>Den</td><td colspan="3">Blok</td></tr>
+<tr style="text-align:center"><td>&nbsp;</td><td>ráno</td><td>odpoledne</td><td>večer</td></tr>
+<tr><td>12.&nbsp;7.</td>
+  <td>&nbsp;</td>
+  <td>&nbsp;</td>
+  <td><input type="radio" checked="checked" name="12_C" value="nic" />nic<br/>
+      <input type="radio" name="12_C" value="drd_kanec"/>DrD+ Lov na kance (2/6)<br/>
+      <input type="radio" name="12_C" value="drd_tajemstvi" disabled="disabled" />DrD+ Tajemství (0/6)</td></tr>
+<tr><td>13.&nbsp;7.</td>
+  <td><input type="radio" checked="checked" name="13_A" value="nic" />nic<br/>
+      <input type="radio" name="13_A" value="drd_kanec"/>DrD+ Lov na kance (4/6)<br/>
+      <input type="radio" name="13_A" value="wod_pokoj"/>WoD Ztracený pokoj (1/6)</td>
+  <td><input type="radio" checked="checked" name="13_B" value="nic" />nic<br/>
+      <input type="radio" name="13_B" value="drd_tajemstvi"/>DrD+&nbsp;Tajemství (1/6)<br/>
+      <input type="radio" name="13_B" value="ua_rany"/>UA&nbsp;Čtyři&nbsp;rány (2/4)<br/>
+      <input type="radio" name="13_B" value="grimm"/>Grimm d20 (4/6)<br/>
+      <input type="radio" name="13_B" value="star_wars"/>Star Wars d20 (6/6)<br/>
+      <input type="radio" name="13_B" value="cela"/>LARP Cela (1/10) JEN DÍVKA!</td>
+  <td><input type="radio" checked="checked" name="13_C" value="nic" />nic<br/>
+      <input type="radio" name="13_C" value="cadwallon"/>Cadwallon (6/6)<br/>
+      <input type="radio" name="13_C" value="mlwm" disabled="disabled" />My Life with Master (0/6)<br/>
+      <input type="radio" name="13_C" value="wod_chata" disabled="disabled" />WoD Chata (0/6)<br/>
+      <input type="radio" name="13_C" value="vtm"/>Vampire (2/6)<br/>
+      <input type="radio" name="13_C" value="korist"/>LARP Kořist (6/10)</td></tr>
+<tr><td>14.&nbsp;7.</td>
+  <td><input type="radio" checked="checked" name="14_A" value="nic" />nic<br/>
+      <input type="radio" name="14_A" value="drd_kanec"/>DrD+ Lov na kance (6/6)<br/>
+      <input type="radio" name="14_A" value="dragonlance"/>Dragonlance (4/6)<br/>
+      <input type="radio" name="14_A" value="cela"/>LARP Cela (9/10)</td>
+  <td><input type="radio" checked="checked" name="14_B" value="nic" />nic<br/>
+      <input type="radio" name="14_B" value="mlwm"/>My Life with Master (5/6)<br/>
+      <input type="radio" name="14_B" value="wod_pokoj" disabled="disabled" />WoD Ztracený pokoj (0/6)<br/>
+      <input type="radio" name="14_B" value="ua_tvar"/>UA&nbsp;Tvář v davu (1/6)<br/>
+      <input type="radio" name="14_B" value="creet"/>Creet (6/6)</td>
+  <td><input type="radio" checked="checked" name="14_C" value="nic" />nic<br/>
+      <input type="radio" name="14_C" value="drd_kanec"/>DrD+ Lov na kance (2/6)<br/>
+      <input type="radio" name="14_C" value="drd_tajemstvi"/>DrD+&nbsp;Tajemství (2/6)<br/>
+      <input type="radio" name="14_C" value="vtm" disabled="disabled" />Vampire (0/6)<br/>
+      <input type="radio" name="14_C" value="cthulhu" disabled="disabled" />Call&nbsp;of&nbsp;Cthulhu (0/6)<br/>
+      <input type="radio" name="14_C" value="korist"/>LARP Kořist (2/10) JEN DÍVKY!</td></tr>
+<tr><td>15.&nbsp;7.</td>
+  <td><input type="radio" checked="checked" name="15_A" value="nic" />nic<br/>
+      <input type="radio" name="15_A" value="drd_tajemstvi"/>DrD+&nbsp;Tajemství (5/6)<br/>
+      <input type="radio" name="15_A" value="mlwm"/>My Life with Master (6/6)<br/>
+      <input type="radio" name="15_A" value="wod_pokoj"/>WoD Ztracený pokoj (5/6)<br/>
+      <input type="radio" name="15_A" value="vtm"/>Vampire (1/6)<br/>
+      <input type="radio" name="15_A" value="ua_prach"/>UA&nbsp;Diamantový prach (3/6)<br/>
+      <input type="radio" name="15_A" value="engel"/>Engel d20 (4/6)<br/>
+      <input type="radio" name="15_A" value="creet"/>Creet (5/6)</td>
+  <td>&nbsp;</td>
+  <td>&nbsp;</td></tr>
+</table>
 <hr/>
 <p>Chcete-li rezervaci odeslat, stiskněte tlačítko <em>Odeslat přihlášku</em>.
 Chcete-li údaje z formuláře z nějakého důvodu vymazat, stiskněte tlačítko
 <em>Vymazat údaje</em>.</p>
 
 <p>Nezapomeňte vyplnit všechny údaje ve formuláři, zvláště ty, které jsou
-označeny barevně (IČ naleznete u svého jména v seznamu přihlášených). 
-Budou-li některé z těchto údajů chybět, objeví se ihned
+označeny barevně. Budou-li některé z těchto údajů chybět, objeví se ihned
 po odeslání rezervace informace o tom, které údaje chybějí nebo jsou vyplněny
 špatně. V takovém případě nebude samozřejmě rezervace odeslána.<p>
 
@@ -111,19 +150,16 @@ po odeslání rezervace informace o tom, které údaje chybějí nebo jsou vypln
 <input type="reset" class="input-button" value="Vymazat údaje">
 </center></p>
 </form>
--->
 
 </div>
-
+-->
 </div><!-- end of #content-right -->
 
 <div id="content-left">
 <!-- index-off -->
 <h2>Obsah</h2>
 <div class="content-file-left">
-<!--
 <a href="aktualne.html" title="Aktuality">Aktuality</a>
--->
 <a href="poplatky.html" title="Poplatky">Poplatky</a>
 <a href="prihlaska.php" title="Přihláška">Přihláška na akci</a>
 <a href="prihlaska2.html" title="Registrace družin">Registrace družin</a>
@@ -144,36 +180,27 @@ po odeslání rezervace informace o tom, které údaje chybějí nebo jsou vypln
 <h2>Partneři</h2>
 <div class="content-file-left">
 <a href="http://www.pevnost.cz/" title="Domovská stránka časopisu Pevnost">Pevnost&nbsp;&ndash;&nbsp;mediální&nbsp;partner</a>
-<a href="http://www.albi.cz/" title="Domovská stránka firmy Albi">Albi</a>
+<a href="http://www.hrajeme.cz/" title="Domovská stránka firmy Albi">Albi</a>
 <a href="http://www.corfix.cz/" title="Domovská stránka firmy Corfix">Corfix</a>
-<a href="http://www.hrajeme.cz/"  title="Domovská stránka firmy MindOK">MindOK</a>
-<!--
+<a href="http://www.moorboyz.com/"  title="Domovská stránka herního klubu Moorboyz">Moorboyz</a>
 <a href="http://www.vampire.cz/"  title="Domovská stránka organizace Prague by Night">Prague by Night</a>
--->
 </div>
 
 <h2>Novinky</h2>
 <div class="content-file-left" style="text-align: left">
-<b class="date">23. 08. 2008</b> &ndash; Přidány dotazníky.<br/>
-<b class="date">23. 07. 2008</b> &ndash; Aktualizována Historie.<br/>
-<b class="date">19. 07. 2008</b> &ndash; Spuštěna Kniha návštěv.<br/>
-<!--
+<b class="date">09. 07. 2007</b> &ndash; Přidány Aktuality.<br/>
+<b class="date">04. 07. 2007</b> &ndash; Spuštěny rezervace RPG a LARPů.<br/>
 <b class="date">03. 06. 2007</b> &ndash; Doplněny anotace přednášek a LARPů.<br/>
 <b class="date">10. 05. 2007</b> &ndash; Doplněny anotace RPG.<br/>
-<b class="date">08. 07. 2008</b> &ndash; Přidány Aktuality.<br/>
-<b class="date">28. 06. 2008</b> &ndash; Spuštěny rezervace RPG a LARPů.<br/>
-<b class="date">07. 05. 2008</b> &ndash; Spuštěna registrace družin.<br/>
-<b class="date">05. 05. 2008</b> &ndash; Spuštěno přihlašování.<br/>
-<b class="date">08. 03. 2008</b> &ndash; Informace o&nbsp;termínu a místě konání GC 2008.
--->
+<b class="date">17. 04. 2007</b> &ndash; Spuštěna registrace družin.<br/>
+<b class="date">05. 04. 2007</b> &ndash; Spuštěno přihlašování.<br/>
+<b class="date">28. 02. 2007</b> &ndash; Informace o&nbsp;termínu a místě konání GC 2007.
 </div>
 
 <h2>Napište nám</h2>
 <div class="content-file-left">
 <a href="dotaz.php" title="Formulář">Kontaktní formulář</a>
-<a href="guestbook.php" title="Diskuse">Kniha návštěv</a>
-<a href="dotaznik_obecny.php" title="Obecný dotazník">Dotazník 1</a>
-<a href="dotaznik_drd.php" title="Dotazník k Mistrovství v DrD">Dotazník 2</a>
+<a href="http://www.lopuch.cz/klub.php?klub=gamecon" title="Diskuse">Diskusní fórum</a>
 </div>
 <!-- index-on  -->
 </div><!-- end of #content-left -->

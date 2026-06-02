@@ -152,6 +152,25 @@ ul li {
 	width:133px;
 }
 
+.org-pic {
+	width:62px;
+	height:102px;
+	overflow:hidden;
+	float:left;
+}
+
+.org-pic img {
+	border:1px solid #cccccc;
+}
+
+.quote {
+	font-style:italic;
+}
+
+div.org-content {
+	margin-left:67px;
+}
+
 form span.required {
 	color:#336699;
 }
