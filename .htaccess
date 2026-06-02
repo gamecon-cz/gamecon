@@ -22,10 +22,13 @@ ErrorDocument 404 /404.html
     # .php links that have a captured .html snapshot -> redirect to it, so
     # the (ubiquitous) menu links don't 404. prihlaska.php was the dynamic
     # registration entry; send it to the captured registration-info page.
-    RewriteRule ^prihlaska\.php$            prihlaska2.html [R=301,L]
-    RewriteRule ^prihlaska3\.php$           prihlaska3.html [R=301,L]
-    RewriteRule ^seznam_druzin\.php$        seznam_druzin.html [R=301,L]
-    RewriteRule ^seznam_prihlasenych\.php$  seznam_prihlasenych.html [R=301,L]
+    # Targets are root-relative (leading /): an [R] redirect with a
+    # relative target would otherwise be resolved against the filesystem
+    # DocumentRoot and produce a bogus /var/www/.../x.html Location.
+    RewriteRule ^prihlaska\.php$            /prihlaska2.html [R=301,L]
+    RewriteRule ^prihlaska3\.php$           /prihlaska3.html [R=301,L]
+    RewriteRule ^seznam_druzin\.php$        /seznam_druzin.html [R=301,L]
+    RewriteRule ^seznam_prihlasenych\.php$  /seznam_prihlasenych.html [R=301,L]
 
     # Serve real files / dirs directly (links are flat bare filenames).
     RewriteCond %{REQUEST_FILENAME} -f [OR]
