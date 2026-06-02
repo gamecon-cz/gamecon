@@ -1,0 +1,157 @@
+/* CSS Document */
+
+body {
+	font-size:0.8em;
+	font-family:Trebuchet MS, Arial, Helvetica, sans-serif;
+	text-align:justify;
+	color:#555555;
+	line-height:1.4em;
+}
+
+h1 {
+	font-size:1.3em;
+	padding:1px 50px;
+	margin:5px 0px;
+	font-weight:bold;
+	text-align:left;
+	background:#eeeeee;
+	color:#336699;
+	border-bottom:1px solid #dddddd;
+	border-top:1px solid #dddddd;
+}
+
+h2 {
+	font-size:1.1em;
+	padding:1px 50px;
+	margin:5px 0px;
+	font-weight:bold;
+	text-align:left;
+	background:#eeeeee;
+	color:#336699;
+	border-bottom:1px solid #dddddd;
+	border-top:1px solid #dddddd;
+}
+
+h3 {
+	font-size:1em;
+	padding:0px 15px;
+	margin:2px 0px 3px;
+	font-weight:bold;
+	text-align:left;
+	background:#eeeeee;
+	color:#336699;
+	border-bottom:1px solid #dddddd;
+	border-top:1px solid #dddddd;
+}
+
+a {
+	text-decoration:underline;
+	color:#666666;
+	font-weight:bold;
+}
+
+a:hover {
+	text-decoration:underline;
+	color:#336699;
+}
+
+b {
+	font-weight:bold;
+	color:#666666;
+}
+
+b.date {
+	color:#336699;
+}
+
+table {
+	border:none;
+	padding:2px;
+	border-collapse:collapse;
+	width:477px;
+	font-size:1em;
+	margin:7px 0px 7px 0px;
+	vertical-align:top;
+}
+
+*>table {
+	width:478px;
+}
+
+tr.heading-row td {
+	background:#eeeeee;
+	border-bottom:1px solid #cccccc;
+	font-weight:bold;
+	color:#336699;
+}
+
+td {
+	border:1px solid #dddddd;
+	padding:0px 10px 0px 10px;
+	vertical-align:top;
+}
+
+td.num {
+	padding:0px 2px 0px 2px;
+	text-align:center;
+	width:30px;
+}
+
+form table {
+	border:none;
+	padding:0px;
+	margin-left:20px;
+	margin-top:0px;
+	border-collapse:separate;
+	border-spacing:3px;
+	width:457px;
+	font-size:1em;
+}
+
+form>table {
+	width:458px;
+}
+
+form table tr td {
+	border:none;
+	padding:0px;
+}
+
+form table tr td.right {
+	text-align:right;
+}
+
+ul {
+	padding-top:3px;
+	padding-bottom:0px;
+	margin-top:0px;
+	margin-bottom:0px;
+}
+
+ul li {
+	list-style-image:url(/layout/l-type.gif);
+	list-style-type:square;
+}
+
+.input-text {
+	border:1px solid #bbbbbb;
+	background:#ffffff;
+	font-family:Arial, Helvetica, sans-serif;
+	font-size:1em;
+	color:#336699;
+	width:230px;
+}
+
+.input-button {
+	border:1px solid #bbbbbb;
+	background:#f6f6f6;
+	font-family:Arial, Helvetica, sans-serif;
+	font-size:1em;
+	font-weight:bold;
+	color:#336699;
+	width:133px;
+}
+
+form span.required {
+	color:#336699;
+}

@@ -1,12 +1,17 @@
-# Static archive of gamecon.cz 2009 (reconstructed from the Internet
-# Archive). The live DB-driven router and database are lost; this serves the
-# captured pages as flat HTML and maps the original pretty URLs onto them.
-# Theme/images live under /system_styly and /lightbox.
+# Static archive of GameCon 2008 (reconstructed from the Internet Archive).
 #
-# Content pages were restored from web.archive.org (see README-archive-2009.md).
-# GameCon 2009 was held 16.-19. 7. 2009 at the University of Pardubice campus.
-# Uncaptured URLs (forum threads, gallery photos, download PDFs, dynamic .php
-# pages) return a real HTTP 404 + the themed 404 page.
+# The 2008 festival ran 10.-13. 7. 2008 in Pardubice and was still run by the
+# Altar publishing house; its website lived at gamecon.altar.cz (a different
+# host and a completely different CMS/theme from the 2009+ gamecon.cz site).
+# This serves the captured flat .html pages as-is. Pages were restored from
+# web.archive.org, transcoded ISO-8859-2 -> UTF-8, with gamecon.altar.cz
+# absolute links rewritten to root-relative.
+#
+# Dynamic .php endpoints (registration form, guestbook, questionnaires, live
+# participant/team lists) had no backend to capture and are intentionally not
+# served -> they fall through to the themed 404. Where a static snapshot of a
+# .php page's content survived (prihlaska3, seznam_druzin, seznam_prihlasenych),
+# the .php URL is redirected to that .html snapshot so the menu links resolve.
 
 DirectoryIndex index.html
 ErrorDocument 404 /404.html
@@ -14,182 +19,22 @@ ErrorDocument 404 /404.html
 <IfModule mod_rewrite.c>
     RewriteEngine On
 
-    # /forum exists as a real directory (would hold the uncaptured forum
-    # threads), so the -d short-circuit below would serve the bare dir and
-    # Apache would 403 it (no DirectoryIndex inside). Map this landing URL to
-    # the captured forum front page first, before the -d rule can claim it.
-    RewriteRule ^forum/?$    forum.html [L]
+    # .php links that have a captured .html snapshot -> redirect to it, so
+    # the (ubiquitous) menu links don't 404. prihlaska.php was the dynamic
+    # registration entry; send it to the captured registration-info page.
+    RewriteRule ^prihlaska\.php$            prihlaska2.html [R=301,L]
+    RewriteRule ^prihlaska3\.php$           prihlaska3.html [R=301,L]
+    RewriteRule ^seznam_druzin\.php$        seznam_druzin.html [R=301,L]
+    RewriteRule ^seznam_prihlasenych\.php$  seznam_prihlasenych.html [R=301,L]
 
-    # Never rewrite real files (assets) or directories.
+    # Serve real files / dirs directly (links are flat bare filenames).
     RewriteCond %{REQUEST_FILENAME} -f [OR]
     RewriteCond %{REQUEST_FILENAME} -d
     RewriteRule ^ - [L]
 
-    # Asset-type requests 404 naturally rather than serving HTML.
-    RewriteRule \.(ico|css|js|jpg|jpeg|gif|png|pdf|svg|woff2?|ttf)$ - [L]
+    # Homepage.
+    RewriteRule ^$  index.html [L]
 
-    # Homepage / news -> the captured front page.
-    RewriteRule ^$           index.html [L]
-    RewriteRule ^novinky/?$  novinky.html [L]
-
-    # "Pánové Jeskyně" had no page of its own on the live 2009 site - the menu
-    # links it but it 302-redirected to the PJové (Dungeon Masters) listing.
-    # Reproduce that redirect instead of 404ing. Target is the captured page.
-    RewriteRule ^mistrovstvi\-v\-drd/panove\-jeskyne/?$  /organizatori/pjove [R=301,L]
-
-    # Pages restored from the Internet Archive (pretty URL -> static file).
-    RewriteRule ^anketa\-2009/?$  anketa-2009.html [L]
-    RewriteRule ^deskove\-hry/bang/?$  deskove-hry/bang.html [L]
-    RewriteRule ^deskove\-hry/carcassonne/?$  deskove-hry/carcassonne.html [L]
-    RewriteRule ^deskove\-hry/ceny\-pro\-viteze\-turnaju/?$  deskove-hry/ceny-pro-viteze-turnaju.html [L]
-    RewriteRule ^deskove\-hry/galaxy\-trucker/?$  deskove-hry/galaxy-trucker.html [L]
-    RewriteRule ^deskove\-hry/heckmeck/?$  deskove-hry/heckmeck.html [L]
-    RewriteRule ^deskove\-hry/jantaris/?$  deskove-hry/jantaris.html [L]
-    RewriteRule ^deskove\-hry/legie/?$  deskove-hry/legie.html [L]
-    RewriteRule ^deskove\-hry/non\-stop\-herna/?$  deskove-hry/non-stop-herna.html [L]
-    RewriteRule ^deskove\-hry/o\-deskovych\-hrach\-na\-gc/?$  deskove-hry/o-deskovych-hrach-na-gc.html [L]
-    RewriteRule ^deskove\-hry/osadnici\-z\-katanu/?$  deskove-hry/osadnici-z-katanu.html [L]
-    RewriteRule ^deskove\-hry/prehled\-deskovych\-her\-na\-gc2009/?$  deskove-hry/prehled-deskovych-her-na-gc2009.html [L]
-    RewriteRule ^deskove\-hry/proroctvi\-\-\-mistrovstvi\-cr/?$  deskove-hry/proroctvi---mistrovstvi-cr.html [L]
-    RewriteRule ^deskove\-hry/proroctvi/?$  deskove-hry/proroctvi.html [L]
-    RewriteRule ^deskove\-hry/theby/?$  deskove-hry/theby.html [L]
-    RewriteRule ^deskove\-hry/zelvi\-zavody/?$  deskove-hry/zelvi-zavody.html [L]
-    RewriteRule ^dilny/archiv\-dilny\-2008/?$  dilny/archiv-dilny-2008.html [L]
-    RewriteRule ^dilny/mrak\-\-\-predstaveni\-a\-workshop/?$  dilny/mrak---predstaveni-a-workshop.html [L]
-    RewriteRule ^dilny/o\-dilnach\-na\-gc/?$  dilny/o-dilnach-na-gc.html [L]
-    RewriteRule ^dilny/spory\-v\-druzine\-workshop/?$  dilny/spory-v-druzine-workshop.html [L]
-    RewriteRule ^forum/deskove_hry/?$  forum/deskove_hry.html [L]
-    RewriteRule ^forum/gamecon\-trojboj/?$  forum/gamecon-trojboj.html [L]
-    RewriteRule ^forum/larpy/?$  forum/larpy.html [L]
-    RewriteRule ^forum/spolecna\-cesta\-na\-gamecon/?$  forum/spolecna-cesta-na-gamecon.html [L]
-    RewriteRule ^forum/vitejte_na_gamecon_foru/?$  forum/vitejte_na_gamecon_foru.html [L]
-    RewriteRule ^forum/wargaming/?$  forum/wargaming.html [L]
-    RewriteRule ^galerie\-materialy/dalsi\-partneri\-zajimave\-odkazy/?$  galerie-materialy/dalsi-partneri-zajimave-odkazy.html [L]
-    RewriteRule ^galerie\-materialy/fotogalerie\-gamecon08/?$  galerie-materialy/fotogalerie-gamecon08.html [L]
-    RewriteRule ^galerie\-materialy/fotogalerie\-gamecon09/?$  galerie-materialy/fotogalerie-gamecon09.html [L]
-    RewriteRule ^galerie\-materialy/fotosoutez\-2009/?$  galerie-materialy/fotosoutez-2009.html [L]
-    RewriteRule ^galerie\-materialy/materialy\-2009/?$  galerie-materialy/materialy-2009.html [L]
-    RewriteRule ^gamecon\-trojboj/gc\-trojboj\-\-\-sifrovacka/?$  gamecon-trojboj/gc-trojboj---sifrovacka.html [L]
-    RewriteRule ^gamecon\-trojboj/navod\-\-\-prihlaseni\-na\-gamecon\-trojboj/?$  gamecon-trojboj/navod---prihlaseni-na-gamecon-trojboj.html [L]
-    RewriteRule ^gamecon\-trojboj/o\-gamecon\-trojboji/?$  gamecon-trojboj/o-gamecon-trojboji.html [L]
-    RewriteRule ^gamecon\-trojboj/prihlaska\-na\-gc\-trojboj/?$  gamecon-trojboj/prihlaska-na-gc-trojboj.html [L]
-    RewriteRule ^gamecon\-trojboj/space\-alert/?$  gamecon-trojboj/space-alert.html [L]
-    RewriteRule ^gamecon/cajovna/?$  gamecon/cajovna.html [L]
-    RewriteRule ^gamecon/cenik/?$  gamecon/cenik.html [L]
-    RewriteRule ^gamecon/kde\-se\-gamecon\-kona/?$  gamecon/kde-se-gamecon-kona.html [L]
-    RewriteRule ^gamecon/napsali\-o\-nas/?$  gamecon/napsali-o-nas.html [L]
-    RewriteRule ^gamecon/o\-gameconu/?$  gamecon/o-gameconu.html [L]
-    RewriteRule ^gamecon/placeni/?$  gamecon/placeni.html [L]
-    RewriteRule ^gamecon/prihlaska/?$  gamecon/prihlaska.html [L]
-    RewriteRule ^gamecon/prihlasovani\-na\-aktivity/?$  gamecon/prihlasovani-na-aktivity.html [L]
-    RewriteRule ^gamecon/program/?$  gamecon/program.html [L]
-    RewriteRule ^gamecon/ubytovani/?$  gamecon/ubytovani.html [L]
-    RewriteRule ^kontakt/?$  kontakt.html [L]
-    RewriteRule ^larp/archiv\-larp\-2008/?$  larp/archiv-larp-2008.html [L]
-    RewriteRule ^larp/cela/?$  larp/cela.html [L]
-    RewriteRule ^larp/chnapsni\-vlajku/?$  larp/chnapsni-vlajku.html [L]
-    RewriteRule ^larp/delegace\-ankh\-morpork/?$  larp/delegace-ankh-morpork.html [L]
-    RewriteRule ^larp/o\-larpech\-na\-gc/?$  larp/o-larpech-na-gc.html [L]
-    RewriteRule ^larp/podraz/?$  larp/podraz.html [L]
-    RewriteRule ^larp/prehled\-larpu\-na\-gc2009/?$  larp/prehled-larpu-na-gc2009.html [L]
-    RewriteRule ^larp/rande/?$  larp/rande.html [L]
-    RewriteRule ^larp/spina/?$  larp/spina.html [L]
-    RewriteRule ^me\-nastaveni/?$  me-nastaveni.html [L]
-    RewriteRule ^mistrovstvi\-v\-drd/dobrodruzstvi\-2009/?$  mistrovstvi-v-drd/dobrodruzstvi-2009.html [L]
-    RewriteRule ^mistrovstvi\-v\-drd/navod\-\-\-prihlaseni\-na\-drd/?$  mistrovstvi-v-drd/navod---prihlaseni-na-drd.html [L]
-    RewriteRule ^mistrovstvi\-v\-drd/o\-mistrovstvi\-v\-drd/?$  mistrovstvi-v-drd/o-mistrovstvi-v-drd.html [L]
-    RewriteRule ^mistrovstvi\-v\-drd/organizace\-turnaje/?$  mistrovstvi-v-drd/organizace-turnaje.html [L]
-    RewriteRule ^mistrovstvi\-v\-drd/postavy\-pro\-letosni\-dobrodruzstvi/?$  mistrovstvi-v-drd/postavy-pro-letosni-dobrodruzstvi.html [L]
-    RewriteRule ^mistrovstvi\-v\-drd/pravidla\-pro\-tvorbu\-postav/?$  mistrovstvi-v-drd/pravidla-pro-tvorbu-postav.html [L]
-    RewriteRule ^mistrovstvi\-v\-drd/prihlaska\-na\-drd/?$  mistrovstvi-v-drd/prihlaska-na-drd.html [L]
-    RewriteRule ^mistrovstvi\-v\-drd/sin\-slavy/?$  mistrovstvi-v-drd/sin-slavy.html [L]
-    RewriteRule ^mistrovstvi\-v\-drd/starsi\-dobrodruzstvi/?$  mistrovstvi-v-drd/starsi-dobrodruzstvi.html [L]
-    RewriteRule ^o\-gamecon\-trojboji/mexicky\-pat/?$  o-gamecon-trojboji/mexicky-pat.html [L]
-    RewriteRule ^organizatori/PJove/?$  organizatori/PJove.html [L]
-    RewriteRule ^organizatori/jak\-se\-stat\-organizatorem/?$  organizatori/jak-se-stat-organizatorem.html [L]
-    RewriteRule ^organizatori/organizacni\-tym/?$  organizatori/organizacni-tym.html [L]
-    RewriteRule ^organizatori/organizatori\-larpu/?$  organizatori/organizatori-larpu.html [L]
-    RewriteRule ^organizatori/organizatori\-wargamingu/?$  organizatori/organizatori-wargamingu.html [L]
-    RewriteRule ^organizatori/organizatori/?$  organizatori/organizatori.html [L]
-    RewriteRule ^organizatori/ostatni\-organizatori/?$  organizatori/ostatni-organizatori.html [L]
-    RewriteRule ^organizatori/pjove/?$  organizatori/pjove.html [L]
-    RewriteRule ^organizatori/prednasejici/?$  organizatori/prednasejici.html [L]
-    RewriteRule ^organizatori/vypraveci/?$  organizatori/vypraveci.html [L]
-    RewriteRule ^prednasky/alternativni\-storytelling\-a\-roleplaying/?$  prednasky/alternativni-storytelling-a-roleplaying.html [L]
-    RewriteRule ^prednasky/archiv\-prednasek\-2008/?$  prednasky/archiv-prednasek-2008.html [L]
-    RewriteRule ^prednasky/asterion\-\-hranice\-fantazie/?$  prednasky/asterion--hranice-fantazie.html [L]
-    RewriteRule ^prednasky/baleni\-na\-conech/?$  prednasky/baleni-na-conech.html [L]
-    RewriteRule ^prednasky/budoucnost\-gc/?$  prednasky/budoucnost-gc.html [L]
-    RewriteRule ^prednasky/drakkar\-\-internetovy\-casopis/?$  prednasky/drakkar--internetovy-casopis.html [L]
-    RewriteRule ^prednasky/dungeons\-and\-dragons\-4e/?$  prednasky/dungeons-and-dragons-4e.html [L]
-    RewriteRule ^prednasky/engel\-d20/?$  prednasky/engel-d20.html [L]
-    RewriteRule ^prednasky/hlavni\-role\-pro\-vas/?$  prednasky/hlavni-role-pro-vas.html [L]
-    RewriteRule ^prednasky/improvizovane\-hrani/?$  prednasky/improvizovane-hrani.html [L]
-    RewriteRule ^prednasky/kalevala\-v\-rpg\-a\-fantasy/?$  prednasky/kalevala-v-rpg-a-fantasy.html [L]
-    RewriteRule ^prednasky/komorni\-larp\-\-\-rpg\-bez\-kostek/?$  prednasky/komorni-larp---rpg-bez-kostek.html [L]
-    RewriteRule ^prednasky/napric\-spektrem\-rpg/?$  prednasky/napric-spektrem-rpg.html [L]
-    RewriteRule ^prednasky/netradicni\-prezentace\-her\-jirasgames/?$  prednasky/netradicni-prezentace-her-jirasgames.html [L]
-    RewriteRule ^prednasky/o\-prednaskach\-na\-gc/?$  prednasky/o-prednaskach-na-gc.html [L]
-    RewriteRule ^prednasky/odmente\-svojich\-hracov/?$  prednasky/odmente-svojich-hracov.html [L]
-    RewriteRule ^prednasky/prezentace\-deskovych\-her\-\-\-albi/?$  prednasky/prezentace-deskovych-her---albi.html [L]
-    RewriteRule ^prednasky/prezentace\-deskovych\-her\-\-\-altar/?$  prednasky/prezentace-deskovych-her---altar.html [L]
-    RewriteRule ^prednasky/prezentace\-deskovych\-her\-\-\-corfix/?$  prednasky/prezentace-deskovych-her---corfix.html [L]
-    RewriteRule ^prednasky/pribeh\-zaklad\-zivota/?$  prednasky/pribeh-zaklad-zivota.html [L]
-    RewriteRule ^prednasky/seznam\-prednasek\-na\-gc2009/?$  prednasky/seznam-prednasek-na-gc2009.html [L]
-    RewriteRule ^prednasky/soucastnost\-a\-budoucnost\-vydavani\-her/?$  prednasky/soucastnost-a-budoucnost-vydavani-her.html [L]
-    RewriteRule ^prednasky/stories\-of\-the\-empire/?$  prednasky/stories-of-the-empire.html [L]
-    RewriteRule ^prednasky/strepy\-snu\-krest\-knihy/?$  prednasky/strepy-snu-krest-knihy.html [L]
-    RewriteRule ^prednasky/strepy\-snu\-o\-vyvoji/?$  prednasky/strepy-snu-o-vyvoji.html [L]
-    RewriteRule ^prednasky/taria\-svet\-pribehu\-pribeh\-sveta/?$  prednasky/taria-svet-pribehu-pribeh-sveta.html [L]
-    RewriteRule ^prednasky/tempo\-a\-obsah\-hry\-stylizace\-scen/?$  prednasky/tempo-a-obsah-hry-stylizace-scen.html [L]
-    RewriteRule ^prednasky/typologie\-pribehu/?$  prednasky/typologie-pribehu.html [L]
-    RewriteRule ^prednasky/zahranicni\-larpove\-hity/?$  prednasky/zahranicni-larpove-hity.html [L]
-    RewriteRule ^registrace/?$  registrace.html [L]
-    RewriteRule ^rpg/archiv\-rpg\-2008/?$  rpg/archiv-rpg-2008.html [L]
-    RewriteRule ^rpg/call\-of\-cthulhu/?$  rpg/call-of-cthulhu.html [L]
-    RewriteRule ^rpg/co\-jsou\-to\-rpg\-hry/?$  rpg/co-jsou-to-rpg-hry.html [L]
-    RewriteRule ^rpg/dnd\-4e\-\-\-stribrna\-jeskyne\-almi/?$  rpg/dnd-4e---stribrna-jeskyne-almi.html [L]
-    RewriteRule ^rpg/dogs\-in\-the\-vineyard/?$  rpg/dogs-in-the-vineyard.html [L]
-    RewriteRule ^rpg/draci\-doupe\-\-\-koruna\-vitezstvi/?$  rpg/draci-doupe---koruna-vitezstvi.html [L]
-    RewriteRule ^rpg/draci\-doupe\-\-\-putovani\-s\-conanem/?$  rpg/draci-doupe---putovani-s-conanem.html [L]
-    RewriteRule ^rpg/drdasterion\-\-\-\-\-pevnost\-stinu/?$  rpg/drdasterion-----pevnost-stinu.html [L]
-    RewriteRule ^rpg/dread/?$  rpg/dread.html [L]
-    RewriteRule ^rpg/dungeons\-and\-dragons\-4e/?$  rpg/dungeons-and-dragons-4e.html [L]
-    RewriteRule ^rpg/fate\-\-\-cesta\-domu/?$  rpg/fate---cesta-domu.html [L]
-    RewriteRule ^rpg/mouse\-guard/?$  rpg/mouse-guard.html [L]
-    RewriteRule ^rpg/o\-rpg\-na\-gc/?$  rpg/o-rpg-na-gc.html [L]
-    RewriteRule ^rpg/og\-unearthed\-edition\-\-\-velky\-lov/?$  rpg/og-unearthed-edition---velky-lov.html [L]
-    RewriteRule ^rpg/pendragon\-\-\-bolestiva\-straz/?$  rpg/pendragon---bolestiva-straz.html [L]
-    RewriteRule ^rpg/pohane\-dobrodruzstvi\-drd/?$  rpg/pohane-dobrodruzstvi-drd.html [L]
-    RewriteRule ^rpg/poisond/?$  rpg/poisond.html [L]
-    RewriteRule ^rpg/seznam\-rpg\-na\-gc2009/?$  rpg/seznam-rpg-na-gc2009.html [L]
-    RewriteRule ^rpg/shadowrun\-\-\-pomsta\-mrtveho\-maga/?$  rpg/shadowrun---pomsta-mrtveho-maga.html [L]
-    RewriteRule ^rpg/star\-wars\-d6\-\-\-jedi\-academy/?$  rpg/star-wars-d6---jedi-academy.html [L]
-    RewriteRule ^rpg/star\-wars\-d6\-\-\-rytieri\-starej\-republiky/?$  rpg/star-wars-d6---rytieri-starej-republiky.html [L]
-    RewriteRule ^rpg/stories\-of\-the\-empire/?$  rpg/stories-of-the-empire.html [L]
-    RewriteRule ^rpg/strepy\-snu\-erric/?$  rpg/strepy-snu-erric.html [L]
-    RewriteRule ^rpg/strepy\-snu\-peekay/?$  rpg/strepy-snu-peekay.html [L]
-    RewriteRule ^rpg/vampire\-the\-masquerade/?$  rpg/vampire-the-masquerade.html [L]
-    RewriteRule ^rpg/world\-of\-darkness\-\-\-stredoskolska\-tradice/?$  rpg/world-of-darkness---stredoskolska-tradice.html [L]
-    RewriteRule ^rpg/wushu\-open\-\-\-jeskyne\-rudeho\-draka/?$  rpg/wushu-open---jeskyne-rudeho-draka.html [L]
-    RewriteRule ^souteze/?$  souteze.html [L]
-    RewriteRule ^vyhledavani/?$  vyhledavani.html [L]
-    RewriteRule ^wargaming/birds\-of\-prey/?$  wargaming/birds-of-prey.html [L]
-    RewriteRule ^wargaming/chaotit/?$  wargaming/chaotit.html [L]
-    RewriteRule ^wargaming/figurky/?$  wargaming/figurky.html [L]
-    RewriteRule ^wargaming/o\-wargamingu\-na\-gc/?$  wargaming/o-wargamingu-na-gc.html [L]
-    RewriteRule ^wargaming/pokrocile\-modelareni/?$  wargaming/pokrocile-modelareni.html [L]
-    RewriteRule ^wargaming/warhammer\-\-\-predvadeci\-bitva/?$  wargaming/warhammer---predvadeci-bitva.html [L]
-    RewriteRule ^wargaming/warhammer\-\-\-rezervace\-stolu/?$  wargaming/warhammer---rezervace-stolu.html [L]
-    RewriteRule ^wargaming/warhammer\-40000/?$  wargaming/warhammer-40000.html [L]
-    RewriteRule ^wargaming/warhammer\-a\-rpg/?$  wargaming/warhammer-a-rpg.html [L]
-    RewriteRule ^wargaming/warhammer\-demo\-hrani/?$  wargaming/warhammer-demo-hrani.html [L]
-    RewriteRule ^wargaming/warhammer\-fantasy/?$  wargaming/warhammer-fantasy.html [L]
-    RewriteRule ^wargaming/zaklady\-modelareni/?$  wargaming/zaklady-modelareni.html [L]
-    RewriteRule ^zapomenute\-heslo/?$  zapomenute-heslo.html [L]
-
-    # Anything else is genuinely uncaptured (forum threads, gallery images,
-    # download PDFs, dynamic .php pages): return a real 404 status and the
-    # themed 404 page.
+    # Everything else (uncaptured dynamic .php, missing pages) -> themed 404.
     RewriteRule ^.*$ - [R=404,L]
 </IfModule>

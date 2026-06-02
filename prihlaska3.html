@@ -12,7 +12,13 @@
 <link rel="stylesheet" href="stylesheets/content.css" type="text/css" media="screen" />
 <link rel="stylesheet" href="stylesheets/print.css" type="text/css" media="print" />
 <link rel="Shortcut Icon" href="favicon.ico" />
-<title>GameCon | Oficiální stránky</title>
+<title>GameCon | Organizační informace | Rezervace RPG a larpů</title>
+<style type="text/css">
+form table tr td { border:1px solid #dddddd; padding:2px; }
+form table { border-spacing:0px; }
+
+
+</style>
 </head>
 
 <body>
@@ -47,33 +53,87 @@
 <!-- index-on  -->
 
 <div id="content-right">
-<h1>GameCon</h1>
+
+<h1>Rezervace RPG a larpů</h1>
 <div class="content-file">
-<div>GameCon je nejstarší český herní con. Poprvé byl uspořádán v roce 1995 jako reakce na stále rostoucí popularitu her na hrdiny (RPG) a stolních her s fantasy a sci-fi tématikou.</div>
-<div>V roce 2008 se GameCon konal 10.&ndash;13. července v Pardubicích, podruhé pod křídly mezinárodního festivalu <a href="http://www.czechopen.net/index_cz.php" title="Domovská stránka festivalu Czech Open">Czech&nbsp;Open</a>.</div>
-<div>Mediálním partnerem GameConu je časopis <a href="http://www.pevnost.cz/" title="Domovská stránka časopisu Pevnost">Pevnost</a>.</div>
+GameCon 2008 již proběhl.
 <!--
-<div><strong>Nejnovější informace, rady a doporučení před odjezdem na GameCon najdete na <a href="aktualne.html" title="Aktuality">stránce aktualit</a>.</strong></div>
+<div>
+Internetové rezervace byly uzavřeny. Další rezervace budou možné na místě.
+Pomocí této stránky a formuláře, který se na ní nachází, si můžete rezervovat konkrétní blok <a href="rpg.html">volného hraní RPG</a> nebo <a href="larp.html">larpu</a>.<br/>
+U každé hry jsou uvedeny počty volných herních pozic a maximální počet herních pozic. 
 -->
+
+<!--
+<cite>Aktualizováno k 
+     #echo var="LAST_MODIFIED" -->
+<!--
+.</cite>
 </div>
 
-<h2>Zaměření akce</h2>
+</div>
+
+<h2>Pokyny k rezervaci</h2>
 <div class="content-file">
-<div>GameCon není klasickým conem, jak je zvykem v ČR, ale je zaměřen výhradně na hry a hráče. Z původní akce, soustředěné především na organizaci Mistrovství České republiky v Dračím doupěti, se v průběhu posledních let stal akcí, kde se setkávají hráči her na hrdiny, hráči deskových her i příznivci LARPů. A přesně pro tyto účastníky je GameCon připravován a pořádán.</div>
-<div>Pokud patříte mezi příznivce výše zmíněných aktivit, pak je pro vás na GameConu nachystán bohatý program, sestávající z turnajů v deskových hrách, organizovaného hraní her na životní příběhy, tematických přednášek, praktických dílen a samozřejmě Mistrovství ČR v Dračím doupěti.</div>
-<div>Krom bohatého programu však budete mít hlavně možnost poznat ostatní hráče, seznámit se s novými lidmi a třeba i nalézt nové přátele. Na jednom místě si tak můžete pohovořit s těmi, kdo mají stejné zájmy a záliby, zjistit, jak se hraje v jiném kraji, a sdělit si vzájemně zkušenosti z herní oblasti. Ostatně to je to, co anglické &quot;convention&quot; (odkud pochází zkratka con) vyjadřuje.</div>
+
+<div>Rezervovat si samozřejmě můžete jen tolik her, kolik jste si objednali v přihlášce.
+V případě, že budete chtít rezervaci zrušit nebo změnit, učiňte tak výhradně prostřednictvím <a href="dotaz.php">kontaktního formuláře</a>.
+Ten také využívejte k veškerým dotazům.<br/>
+<strong>Hru si rezervujte jen v případě, že jste si svou volbou skutečně jisti. 
+Jinak doporučujeme napřed si na conu pohovořit s Vypravěčem, abyste nebyli ve svém očekávání zklamáni. </strong>
 </div>
 
-<h2>Obsah stránek</h2>
+</div>
+
+<h2>Rezervační formulář</h2>
 <div class="content-file">
-<div>Na těchto stránkách naleznete všechy potřebné informace o samotné akci, ubytování, přihlášení i programu, který je pro vás připraven. Pokud by vám na stránkách cokoliv chybělo, napište nám, prosím, přes <a href="dotaz.php" title="Formulář">kontaktní formulář</a></div>
-</div>
 
-<img src="blank.php" width="1" height="1">
+<form method="post" action="prihlaska3_zpracuj.php">
+<input type="hidden" name="form.language" value="cz">
+<input type="hidden" name="formular" value="gamecon.rpg">
+<input type="hidden" name="required" value="ic">
+<span class="required"><strong>IČ: </strong></span><input name="ic" class="input-text" /><br/><br/>
+     #include virtual="rezervace.txt" -->
+<!--
+<hr/>
+<p>Chcete-li rezervaci odeslat, stiskněte tlačítko <em>Odeslat přihlášku</em>.
+Chcete-li údaje z formuláře z nějakého důvodu vymazat, stiskněte tlačítko
+<em>Vymazat údaje</em>.</p>
+
+<p>Nezapomeňte vyplnit všechny údaje ve formuláři, zvláště ty, které jsou
+označeny barevně (IČ naleznete u svého jména v seznamu přihlášených). 
+Budou-li některé z těchto údajů chybět, objeví se ihned
+po odeslání rezervace informace o tom, které údaje chybějí nebo jsou vyplněny
+špatně. V takovém případě nebude samozřejmě rezervace odeslána.<p>
+
+<p><center>
+<input type="submit" class="input-button" value="Odeslat přihlášku">
+<input type="reset" class="input-button" value="Vymazat údaje">
+</center></p>
+</form>
+-->
+
+</div>
 
 </div><!-- end of #content-right -->
 
 <div id="content-left">
+<!-- index-off -->
+<h2>Obsah</h2>
+<div class="content-file-left">
+<!--
+<a href="aktualne.html" title="Aktuality">Aktuality</a>
+-->
+<a href="poplatky.html" title="Poplatky">Poplatky</a>
+<a href="prihlaska.php" title="Přihláška">Přihláška na akci</a>
+<a href="prihlaska2.html" title="Registrace družin">Registrace družin</a>
+<a href="prihlaska3.html" title="Rezervace RPG, LARP">Rezervace RPG, LARP</a>
+<a href="seznam_prihlasenych.php" title="Seznam přihlášených">Seznam přihlášených</a>
+<a href="seznam_druzin.php" title="Seznam družin">Seznam družin</a>
+<a href="ubytovani.html" title="Ubytování">Ubytování</a>
+<a href="stravovani.html" title="Stravování">Stravování</a>
+</div>
+<!-- index-on  -->
 <!-- index-off -->
 <h2>Organizátoři</h2>
 <div class="content-file-left">
