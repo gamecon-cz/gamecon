@@ -1,4 +1,5 @@
 <?php
+
 declare(strict_types=1);
 
 namespace Gamecon\Dev;
@@ -34,7 +35,7 @@ namespace Gamecon\Dev;
 final class DeploymentsReader
 {
     public const DEFAULT_DIRECTORY = '/var/lib/gamecon/deployments';
-    public const SUPPORTED_SCHEMA  = 1;
+    public const SUPPORTED_SCHEMA = 1;
 
     private const SUBDIR_PREVIEWS = 'previews';
     private const SUBDIR_ARCHIVES = 'archives';
@@ -50,16 +51,17 @@ final class DeploymentsReader
      */
     public function unavailableReason(): ?string
     {
-        if (!is_dir($this->directory)) {
+        if (! is_dir($this->directory)) {
             return "Directory `{$this->directory}` does not exist. "
                 . 'It is created by the ansible roles `preview_deployer` / '
                 . '`year_archive_deployer` on the production host. '
                 . 'On local / beta nothing will show.';
         }
-        if (!is_readable($this->directory)) {
+        if (! is_readable($this->directory)) {
             return "Directory `{$this->directory}` is not readable by "
                 . get_current_user() . '. Expected mode 0755 root:root.';
         }
+
         return null;
     }
 
@@ -75,6 +77,7 @@ final class DeploymentsReader
                 $previews[] = $preview;
             }
         }
+
         return $previews;
     }
 
@@ -90,6 +93,7 @@ final class DeploymentsReader
                 $archives[] = $archive;
             }
         }
+
         return $archives;
     }
 
@@ -109,6 +113,7 @@ final class DeploymentsReader
                 }
             }
         }
+
         return $maxStamp;
     }
 
@@ -127,7 +132,7 @@ final class DeploymentsReader
     private function readFilesInSubdir(string $subdir): iterable
     {
         $path = $this->directory . '/' . $subdir;
-        if (!is_dir($path) || !is_readable($path)) {
+        if (! is_dir($path) || ! is_readable($path)) {
             return;
         }
         $files = glob($path . '/*.json') ?: [];
@@ -138,7 +143,7 @@ final class DeploymentsReader
             // and 4-digit years for archives. Anything else is a hand-edited or
             // orphaned file we'd rather skip than misread.
             $name = basename($file, '.json');
-            if (!preg_match('~^[a-z0-9-]{1,30}$~', $name)) {
+            if (! preg_match('~^[a-z0-9-]{1,30}$~', $name)) {
                 continue;
             }
             $raw = @file_get_contents($file);
@@ -146,10 +151,10 @@ final class DeploymentsReader
                 continue;
             }
             $data = json_decode($raw, true);
-            if (!is_array($data)) {
+            if (! is_array($data)) {
                 continue;
             }
-            $schema = isset($data['schema_version']) ? (int)$data['schema_version'] : self::SUPPORTED_SCHEMA;
+            $schema = isset($data['schema_version']) ? (int) $data['schema_version'] : self::SUPPORTED_SCHEMA;
             if ($schema > self::SUPPORTED_SCHEMA) {
                 // Future schema. Skip — better to hide one record than
                 // to render it through a guessed mapping.
@@ -167,17 +172,19 @@ final class DeploymentsReader
      */
     private function buildPreview(array $data): ?Preview
     {
-        $slug = isset($data['slug']) ? (string)$data['slug'] : (string)($data['__filename'] ?? '');
-        $url  = isset($data['url']) ? (string)$data['url'] : null;
+        $slug = isset($data['slug']) ? (string) $data['slug'] : (string) ($data['__filename'] ?? '');
+        $url = isset($data['url']) ? (string) $data['url'] : null;
         if ($slug === '' || $url === null || $url === '') {
             return null;
         }
+
         return new Preview(
-            slug:       $slug,
-            url:        $url,
-            image:      isset($data['image']) ? (string)$data['image'] : null,
-            sha7:       isset($data['sha7']) ? (string)$data['sha7'] : null,
+            slug: $slug,
+            url: $url,
+            image: isset($data['image']) ? (string) $data['image'] : null,
+            sha7: isset($data['sha7']) ? (string) $data['sha7'] : null,
             deployedAt: $this->parseTimestamp($data['deployed_at'] ?? null),
+            branch: isset($data['branch']) && $data['branch'] !== null ? (string) $data['branch'] : null,
         );
     }
 
@@ -187,24 +194,25 @@ final class DeploymentsReader
     private function buildArchive(array $data): ?Archive
     {
         $year = isset($data['year'])
-            ? (int)$data['year']
-            : (ctype_digit((string)($data['__filename'] ?? '')) ? (int)$data['__filename'] : 0);
-        $url = isset($data['url']) ? (string)$data['url'] : null;
+            ? (int) $data['year']
+            : (ctype_digit((string) ($data['__filename'] ?? '')) ? (int) $data['__filename'] : 0);
+        $url = isset($data['url']) ? (string) $data['url'] : null;
         if ($year === 0 || $url === null || $url === '') {
             return null;
         }
+
         return new Archive(
-            year:       $year,
-            url:        $url,
-            image:      isset($data['image']) ? (string)$data['image'] : null,
-            sha7:       isset($data['sha7']) ? (string)$data['sha7'] : null,
+            year: $year,
+            url: $url,
+            image: isset($data['image']) ? (string) $data['image'] : null,
+            sha7: isset($data['sha7']) ? (string) $data['sha7'] : null,
             deployedAt: $this->parseTimestamp($data['deployed_at'] ?? null),
         );
     }
 
     private function parseTimestamp(mixed $value): ?\DateTimeImmutable
     {
-        if (!is_string($value) || $value === '') {
+        if (! is_string($value) || $value === '') {
             return null;
         }
         try {

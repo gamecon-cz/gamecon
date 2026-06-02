@@ -148,14 +148,27 @@ jobs:
                 # the workflow run. Nothing persists on the host.
                 env:
                     GHCR_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+                    # Raw git branch name, passed as the deploy's 3rd arg so the
+                    # host stores it in the deployment record (the slug is a
+                    # lossy slugification; the admin links the PR by exact
+                    # branch). Via env (not string-interpolated into the script)
+                    # to avoid Actions expression injection from a hostile ref.
+                    BRANCH: ${{ github.event.inputs.branch || github.ref_name }}
                 run: |
                     # Reference the SHA-pinned tag (not the rolling slug
                     # tag) so the deploy is guaranteed to be this commit's
                     # build. If the script falls back to a cached image,
                     # it can only ever match this exact commit.
                     image="ghcr.io/${{ github.repository_owner }}/gamecon:preview-${{ steps.slug.outputs.slug }}-${{ steps.slug.outputs.sha7 }}"
+                    # Append branch as a 3rd arg only when it's safe to embed in
+                    # the single-quoted remote command (no single quote). The
+                    # wrapper's BRANCH_RE rejects shell metachars regardless.
+                    branch_arg=""
+                    if [ -n "$BRANCH" ] && case "$BRANCH" in *\'*) false ;; *) true ;; esac; then
+                        branch_arg=" '$BRANCH'"
+                    fi
                     echo "$GHCR_TOKEN" | ssh -o StrictHostKeyChecking=yes root@gamecon.cz \
-                        "/usr/local/sbin/deploy-preview-branch.sh '${{ steps.slug.outputs.slug }}' '$image'"
+                        "/usr/local/sbin/deploy-preview-branch.sh '${{ steps.slug.outputs.slug }}' '$image'$branch_arg"
 
             -   name: Output preview URL
                 run: |
