@@ -9,6 +9,13 @@ on:
     pull_request:
         types:
             - closed
+    # Branch deleted → tear down its preview. Covers the gap that
+    # `pull_request: closed` misses: a branch that got a preview (via push)
+    # but was deleted WITHOUT ever opening/closing a PR — no close event
+    # ever fires, so its container would otherwise run forever. Also a
+    # belt-and-suspenders for merged PRs (the branch delete that usually
+    # follows a merge re-triggers teardown idempotently).
+    delete:
     workflow_dispatch:
         inputs:
             branch:
@@ -33,13 +40,14 @@ permissions:
 # in-flight deploy completes before teardown starts, rather than being
 # killed mid-build and leaving partial state on GHCR or the host.
 concurrency:
-    group: deploy-preview-${{ github.event.pull_request.head.ref || github.event.inputs.branch || github.ref_name }}
+    group: deploy-preview-${{ github.event.pull_request.head.ref || github.event.inputs.branch || github.event.ref || github.ref_name }}
     cancel-in-progress: false
 
 jobs:
-    # Deploy on push to a feature branch (or workflow_dispatch).
+    # Deploy on push to a feature branch (or workflow_dispatch). NOT on
+    # pull_request (closed → teardown) or delete (branch gone → teardown).
     deploy:
-        if: github.event_name != 'pull_request'
+        if: github.event_name == 'push' || github.event_name == 'workflow_dispatch'
         runs-on: ubuntu-24.04
         steps:
             -   name: Checkout code
@@ -153,24 +161,40 @@ jobs:
                 run: |
                     echo "::notice::Preview at https://${{ steps.slug.outputs.slug }}.preview.gamecon.cz/"
 
-    # Tear down the preview when its PR closes (merged or abandoned).
+    # Tear down the preview when its PR closes (merged or abandoned) OR when
+    # the branch is deleted. The two triggers overlap for the common
+    # merge-then-delete flow (teardown is idempotent — `--remove` of an
+    # already-gone preview is a no-op), and between them they close the gap:
+    # a branch deleted without a PR fires `delete` but never `pull_request`.
+    # Skip the `delete` of a tag (only branches get previews).
     teardown:
-        if: github.event_name == 'pull_request' && github.event.action == 'closed'
+        if: >-
+            (github.event_name == 'pull_request' && github.event.action == 'closed') ||
+            (github.event_name == 'delete' && github.event.ref_type == 'branch')
         runs-on: ubuntu-24.04
         steps:
-            -   name: Derive slug from PR branch name
+            -   name: Derive slug from branch name
                 id: slug
+                # pull_request: branch is head.ref; delete: branch is event.ref.
                 run: |
-                    raw="${{ github.event.pull_request.head.ref }}"
+                    raw="${{ github.event.pull_request.head.ref || github.event.ref }}"
                     slug=$(echo -n "$raw" \
                         | iconv -f UTF-8 -t ASCII//TRANSLIT//IGNORE \
                         | tr '[:upper:]' '[:lower:]' \
                         | sed -E 's/[^a-z0-9]+/-/g; s/^-+//; s/-+$//' \
                         | cut -c1-30 \
                         | sed -E 's/-+$//')
+                    # Empty slug = branch name was all special chars. On a
+                    # closed PR we can reconstruct the same sha-fallback the
+                    # deploy used; on a delete event there is no SHA to
+                    # reconstruct from, so leave it empty and skip teardown
+                    # (nothing reliable to target).
                     if [ -z "$slug" ]; then
-                        slug="sha-${{ github.event.pull_request.head.sha }}"
-                        slug="${slug:0:12}"
+                        sha="${{ github.event.pull_request.head.sha }}"
+                        if [ -n "$sha" ]; then
+                            slug="sha-${sha}"
+                            slug="${slug:0:12}"
+                        fi
                     fi
                     echo "slug=$slug" >> "$GITHUB_OUTPUT"
 
@@ -186,6 +210,9 @@ jobs:
                     chmod 0644 ~/.ssh/known_hosts
 
             -   name: Tear down preview on gamecon.cz
+                # Skip when slug is empty (delete event for an all-special-char
+                # branch name — no reliable target). Normal slugs always run.
+                if: steps.slug.outputs.slug != ''
                 run: |
                     ssh -o StrictHostKeyChecking=yes root@gamecon.cz \
                         "/usr/local/sbin/deploy-preview-branch.sh --remove '${{ steps.slug.outputs.slug }}'"
