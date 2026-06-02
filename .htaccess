@@ -1,30 +1,21 @@
-# Static archive of GameCon 2007 (reconstructed from the Internet Archive).
+# Static archive of GameCon 2006 (reconstructed from the Internet Archive).
 #
-# The 2007 festival ran 12.-15. 7. 2007 in Pardubice and was still run by the
-# Altar publishing house; its website lived at gamecon.altar.cz (a different
-# host and a completely different CMS/theme from the 2009+ gamecon.cz site).
+# The 2006 festival ran 13.-16. 7. 2006 in OLOMOUC (DDM, tř. 17. listopadu 47 +
+# nearby university dorms) — the venue moved to Pardubice only from 2007. It
+# was still run by the Altar publishing house; the website lived at
+# gamecon.altar.cz (a different host and CMS from the 2009+ gamecon.cz site).
 # This serves the captured flat .html pages as-is. Pages were restored from
 # web.archive.org, transcoded ISO-8859-2 -> UTF-8, with gamecon.altar.cz
 # absolute links rewritten to root-relative.
 #
-# Dynamic .php endpoints (registration, contact form, live participant/team
-# lists) had no backend to capture; each has a captured static .html snapshot,
-# so the .php URL is redirected to that .html (root-relative target — a
-# relative [R] target would resolve against the filesystem DocumentRoot and
-# 404). Everything else uncaptured -> themed 404.
+# The 2006 pages reference no internal .php endpoints (only external links), so
+# no .php redirects are needed. Uncaptured URLs -> themed 404.
 
 DirectoryIndex index.html
 ErrorDocument 404 /404.html
 
 <IfModule mod_rewrite.c>
     RewriteEngine On
-
-    # .php links -> their captured .html snapshot. Root-relative targets:
-    # a relative [R=301] target resolves against /var/www/... and 404s.
-    RewriteRule ^prihlaska\.php$            /prihlaska.html [R=301,L]
-    RewriteRule ^dotaz\.php$                /dotaz.html [R=301,L]
-    RewriteRule ^seznam_druzin\.php$        /seznam_druzin.html [R=301,L]
-    RewriteRule ^seznam_prihlasenych\.php$  /seznam_prihlasenych.html [R=301,L]
 
     # Serve real files / dirs directly (links are flat bare filenames).
     RewriteCond %{REQUEST_FILENAME} -f [OR]
@@ -34,6 +25,6 @@ ErrorDocument 404 /404.html
     # Homepage.
     RewriteRule ^$  index.html [L]
 
-    # Everything else (uncaptured / dynamic) -> themed 404.
+    # Everything else (uncaptured) -> themed 404.
     RewriteRule ^.*$ - [R=404,L]
 </IfModule>
