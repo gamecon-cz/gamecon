@@ -1,6 +1,6 @@
 # archiv-rekonstrukce-z-wayback
 
-TL;DR: Jak postavit `NNNN.gamecon.cz` jako **statický archiv rekonstruovaný z Internet Archive (Wayback)** pro ročník, jehož DB i router jsou nenávratně ztracené (≤2011). Liší se od skillu `dockerize-gamecon-year-archive`, který přenáší **živý PHP ročník** do Dockeru — tady žádný funkční backend neexistuje, servírujeme zachycené ploché HTML. Hotovo a živě: **2011, 2010, 2009, 2008**. 2007 a starší půjdou stejně, pokud je Wayback vůbec zachytil.
+TL;DR: Jak postavit `NNNN.gamecon.cz` jako **statický archiv rekonstruovaný z Internet Archive (Wayback)** pro ročník, jehož DB i router jsou nenávratně ztracené (≤2011). Liší se od skillu `dockerize-gamecon-year-archive`, který přenáší **živý PHP ročník** do Dockeru — tady žádný funkční backend neexistuje, servírujeme zachycené ploché HTML. Hotovo a živě: **2011, 2010, 2009, 2008, 2007**. 2006 a starší půjdou stejně, pokud je Wayback vůbec zachytil.
 
 Pro plně dynamické ročníky (2012+) **nepoužívej tento dokument** → použij skill `dockerize-gamecon-year-archive`.
 
@@ -33,7 +33,7 @@ Year-agnostic, zdědí se odbočením ze sousední `archive/*`:
 Theme se NEdědí jako scaffolding — řiď se sekcí Rekonstrukce bod 6 (2009–2011 kopíruj `system_styly/ lightbox/` z 2011; 2008 stáhni vlastní z Waybacku).
 
 ## Rekonstrukce obsahu (Wayback)
-1. **Seznam stránek**: jeden CDX dotaz `url=<doména>*&collapse=urlkey&from=NNNN0101&to=(NNNN+1)0430&filter=statuscode:200&filter=mimetype:text/html&fl=timestamp,original` (`collapse=urlkey` = první zachycení per URL; vrací rychle, ~sekundy). **Per-URL latest-snapshot dotazy jsou neúnosně pomalé** (Wayback throttluje, ~30 s/dotaz) — nepoužívat. Místo nich stáhni VŠECHNY řádky (bez `collapse`) a vyber latest-per-urlkey v Pythonu.
+1. **Seznam stránek**: jeden CDX dotaz `url=<doména>*&from=NNNN0101&to=<horní mez>&filter=statuscode:200&fl=urlkey,timestamp,original,mimetype` — stáhni VŠECHNY řádky (bez `collapse`) a vyber **latest-per-urlkey** v Pythonu. **Per-URL latest-snapshot dotazy přes CDX jsou neúnosně pomalé** (Wayback throttluje, ~30 s/dotaz) — nepoužívat. **Horní mez okna kriticky urči podle landmine #6** (NE paušálně `(NNNN+1)0430`).
 2. **Stažení**: pro každý řádek stáhni `http://web.archive.org/web/<ts>id_/<original>` — sufix **`id_`** = surová kopie bez Wayback toolbaru. Pool ~6 vláken, retry na 5xx **a na `Connection refused`** (Wayback throttluje pod zátěží — to NENÍ chybějící stránka; serial retry s delším backoffem to dobere). Strip GA tracker (`_gaq`/`google-analytics`).
 3. **Kódování**: 2009+ (`gamecon.cz`) je UTF-8. **Pre-2009 (`gamecon.altar.cz`) je ISO-8859-2** → dekóduj `iso-8859-2`, přepiš `charset=`/`encoding=` meta na utf-8, ulož UTF-8 (viz landmine #4).
 4. **`.htaccess`**: závisí na URL schématu ročníku:
@@ -60,6 +60,9 @@ Pokud existuje **adresář** `novinky/` (drží substránky), `.htaccess` `Rewri
 
 ### 5. `[R]` redirect s relativním cílem → `/var/www/...` 404
 `RewriteRule ^x\.php$ x.html [R=301,L]` (relativní cíl) Apache při **externím** redirectu rozvine proti **filesystem DocumentRootu** → `Location: https://host/var/www/html/gamecon/x.html` = 404. Fix: cíl **root-relativní s lomítkem** — `RewriteRule ^x\.php$ /x.html [R=301,L]`. (Interní `[L]` rewrite relativní cíl snese; problém je jen u `[R]`.)
+
+### 6. Okno CDX přetekne do dalšího ročníku (latest-per-URL chytne špatný rok)
+Doména (`gamecon.cz` i `gamecon.altar.cz`) se recykluje rok po roce na stejných URL. „Latest-per-urlkey" v širokém okně proto chytne **už překlopený obsah dalšího ročníku** — typicky homepage, kterou přepíšou na „save the date" pro příští rok dřív, než zmizí zbytek letošního webu. Reálně: 2007 s oknem do `2008-04-30` dostal homepage z capture 2008-03-17 = datum „10.–13." (2008) místo „12.–15." (2007), přičemž novinky ještě byly 2007 → tichý mix. **Fix:** než zafixuješ horní mez, projdi homepage capture timeline (`url=<doména>&from=…&to=…&fl=timestamp,length`, příp. stáhni pár `id_` a koukni na datum/`<h1>`) a **najdi bod překlopení** na příští ročník; okno ukonči **těsně před ním** (2007 → `to=20080131`). Po fetchi vždy ověř, že `index.html` ukazuje datum/novinky **správného roku**.
 
 ## Year-guards — TŘI místa (rozšířit dolní mez)
 Spodní mez se s každým ročníkem posouvá dolů (`2011`→2010→2009→**2008**). Nový rok pod aktuální mezí musí projít **třemi** guardy, jinak deploy padne. Najdi aktuální `year < NNNN` ve všech třech a sniž:
