@@ -27,9 +27,12 @@ and sharing Altar's global site navigation:
   section landing pages (Aréna, BattleTech, Dračí doupě, DrD PLUS, Dech draka,
   Hexaedr, Akce, Programy, Odkazy, ALTAR, Novinky, Připravujeme, Dotazy, Kontakt,
   Informace) and one level of pages they link to were reconstructed from Wayback
-  (cp1250 → UTF-8), so the menu actually works. Dynamic CGI items (`Katalog` →
-  `/cgi/doc/katalog`, `Hledání` → `/cgi/search.cgi`) have no static capture and
-  fall to the themed 404, as do pages deeper than one level.
+  (cp1250 → UTF-8), so the menu actually works. The game-relevant **`/cgi/doc/*`
+  document tree** is also reconstructed — the DrD rules & FAQ (kouzla, nestvůry,
+  dovednosti, …), plus BattleTech, Aréna, Talisman and Pelennor docs — ~680
+  pages, served at their dir-style URLs via `DirectoryIndex`. Dynamic CGI items
+  (`Katalog` → `/cgi/doc/katalog`, `Hledání` → `/cgi/search.cgi`) have no static
+  capture and fall to the themed 404.
 
 There was never a `2003.gamecon.cz` subdomain in 2003; this archive adopts the
 per-year convention to serve the frozen snapshot at a stable address.
@@ -80,6 +83,13 @@ The post-festival `index.html` was captured Aug 2003; the pre-festival
   `/altar/zasilkova.html`, `/drdplus/alfatest.html`, `/knihy/*`) are beyond the
   reconstructed depth or weren't captured — they 404. The nav menu itself and
   its section landing pages are live.
+- **`/cgi/doc/*` intermediate index pages** (~100) were a catalog-backed CGI
+  that Wayback only ever captured as runtime-error pages ("Chyba programu
+  Katalog"); they were dropped, so a few sub-paths (e.g. `/cgi/doc/drd/faq/hrad/`)
+  404. Their leaf pages survive and are reachable directly. `Options -Indexes`
+  keeps orphaned dirs falling to the themed 404 rather than a file listing.
+- The **product catalog** (`/cgi/doc/katalog/*`) and the non-game doc sections
+  (`blbe`, `anonymy`) were intentionally not reconstructed — out of scope.
 - **Several award-diploma thumbnails** on the `vysledky*` results pages
   (`drd.jpg`, `arena_single/double.jpg`, `talisman_*.jpg`, `bt_3D/special.jpg`,
   `bankovka.jpg`, `arena_melee.jpg`) and the `logo1998.jpg` masthead image were
