@@ -6,12 +6,13 @@
  *   X.html       = Po  (post-festival, the default)
  *   X-pred.html  = Před (pre / closest-before festival)
  *
- * Epoch is a GLOBAL mode (both buttons always togglable); it lives in
- * ?epoch=pred|po and is remembered (localStorage) so it carries across
- * navigation. A page may have only the Po variant (data-epoch-pred="none") —
- * then it just keeps its single body under either mode. When Před is selected
- * on a page that DOES have a distinct variant, we fetch the sibling -pred.html
- * and swap its <body> in, keeping this widget.
+ * Epoch is a GLOBAL mode; it lives in ?epoch=pred|po and is remembered
+ * (localStorage) so it carries across navigation. A year may have both epochs,
+ * or only one (<html data-epoch-year="po-only"|"pred-only">) — the missing
+ * epoch's button is grayed/disabled with a tooltip. A page may have only the Po
+ * variant (data-epoch-pred="none") — then it keeps its single body under either
+ * mode. When Před is selected on a page that DOES have a distinct variant, we
+ * fetch the sibling -pred.html and swap its <body> in, keeping this widget.
  *
  * Self-contained, no dependencies; injected verbatim into every archive page.
  */
@@ -68,14 +69,17 @@
         return path + "?" + PARAM + "=" + epoch;
     }
 
-    // Epoch is a GLOBAL mode — Před/Po are togglable whenever the archive has a
-    // pre-festival snapshot SOMEWHERE. Two distinct "no pred" cases:
-    //   - yearHasPred === false  → the WHOLE archive lacks a pre-festival
-    //     capture (e.g. a year whose homepage was only ever a rolling feed):
-    //     Před is rendered grayed + disabled with an explanatory tooltip.
-    //   - this page carries data-epoch-pred="none" but the year HAS pred → the
-    //     mode still toggles globally; this page just keeps its single body.
-    function buildWidget(epoch, yearHasPred) {
+    // One <html data-epoch-year> attribute per archive describes which epochs
+    // the year actually has a captured homepage for:
+    //   absent      → both Po and Před exist (index.html = Po, index-pred.html = Před)
+    //   "po-only"   → only a post/rolling-feed state was ever captured; Před is
+    //                 grayed + disabled with a tooltip.
+    //   "pred-only" → only a pre-festival state exists (the site never published
+    //                 a post-festival page); Po is grayed + disabled with a
+    //                 tooltip, Před is the active default.
+    // Each button is a real toggle only when that epoch exists; the missing one
+    // renders as a disabled <span> carrying the explanation.
+    function buildWidget(epoch, yearMode) {
         var box = document.createElement("div");
         box.id = "gc-epoch-switch";
         box.setAttribute("role", "group");
@@ -87,21 +91,24 @@
             + '<line x1="12" y1="12" x2="15.5" y2="13.5" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>'
             + "</svg>";
 
-        var predMarkup;
-        if (yearHasPred) {
-            predMarkup = '<a href="' + urlForEpoch("pred") + '" class="gc-epoch-opt'
-                + (epoch === "pred" ? " gc-epoch-active" : "")
-                + '" title="Stav webu před festivalem (program, přihlášky)">Před</a>';
-        } else {
-            predMarkup = '<span class="gc-epoch-opt gc-epoch-disabled" aria-disabled="true"'
-                + ' title="Pro tento ročník nebyl zachycen stav webu před festivalem '
-                + '(úvodní stránka byla průběžně aktualizovaná).">Před</span>';
+        function opt(which, label, activeTitle, disabledTitle) {
+            var disabled = (which === "pred" && yearMode === "po-only")
+                || (which === "po" && yearMode === "pred-only");
+            if (disabled) {
+                return '<span class="gc-epoch-opt gc-epoch-disabled" aria-disabled="true" title="'
+                    + disabledTitle + '">' + label + "</span>";
+            }
+            return '<a href="' + urlForEpoch(which) + '" class="gc-epoch-opt'
+                + (epoch === which ? " gc-epoch-active" : "")
+                + '" title="' + activeTitle + '">' + label + "</a>";
         }
 
-        box.innerHTML = clock + predMarkup
-            + '<a href="' + urlForEpoch("po") + '" class="gc-epoch-opt'
-            + (epoch === "po" ? " gc-epoch-active" : "")
-            + '" title="Stav webu po festivalu (výchozí)">Po</a>';
+        box.innerHTML = clock
+            + opt("pred", "Před", "Stav webu před festivalem (program, přihlášky)",
+                "Pro tento ročník nebyl zachycen stav webu před festivalem.")
+            + opt("po", "Po", "Stav webu po festivalu (výchozí)",
+                "Pro tento ročník nebyl zachycen stav webu po festivalu "
+                + "(úvodní stránka zůstala v předfestivalovém znění).");
 
         return box;
     }
@@ -136,27 +143,31 @@
     }
 
     function init() {
-        // Does the WHOLE archive have any pre-festival snapshot? Signalled once
-        // per year via <html data-epoch-year="po-only"> on every page.
-        var yearHasPred = document.documentElement.getAttribute("data-epoch-year") !== "po-only";
+        // Which epochs does this archive have? Signalled once per year via
+        // <html data-epoch-year="po-only"|"pred-only"> (absent = both).
+        var yearMode = document.documentElement.getAttribute("data-epoch-year") || "both";
 
         var epoch = readEpoch();
-        if (!yearHasPred) {
-            epoch = "po"; // no Před anywhere — force the default mode.
+        // A single-epoch year forces the only epoch it actually has, so the
+        // disabled button can never become the active view.
+        if (yearMode === "po-only") {
+            epoch = "po";
+        } else if (yearMode === "pred-only") {
+            epoch = "pred";
         }
         rememberEpoch(epoch);
 
-        var widget = buildWidget(epoch, yearHasPred);
+        var widget = buildWidget(epoch, yearMode);
         document.body.appendChild(widget);
 
-        // Does THIS page have a distinct pre-festival body to fetch? Pages that
-        // look identical in both epochs carry data-epoch-pred="none" and just
-        // keep their single body — the chosen mode still persists.
-        var pagePredAvailable = document.documentElement.getAttribute("data-epoch-pred") !== "none";
+        // A pred-only year's single body IS the pre-festival state already, so
+        // there's nothing to fetch — only swap when a distinct -pred sibling
+        // exists (the "both" case). Pages with data-epoch-pred="none" keep their
+        // single body; the chosen mode still persists across navigation.
+        var pageHasDistinctPred = yearMode === "both"
+            && document.documentElement.getAttribute("data-epoch-pred") !== "none";
 
-        // If Před is selected and we're showing the Po body of a page that has a
-        // distinct Před, swap it in.
-        if (yearHasPred && epoch === "pred" && pagePredAvailable && !isPredPath(currentPath())) {
+        if (epoch === "pred" && pageHasDistinctPred && !isPredPath(currentPath())) {
             swapToPred(predVariant(poVariant(currentPath())));
         }
     }
