@@ -30,7 +30,8 @@
     transition: background 0.12s, color 0.12s;
 }
 
-#gc-epoch-switch .gc-epoch-opt:hover {
+/* Only the clickable (link) options react to hover. */
+#gc-epoch-switch a.gc-epoch-opt:hover {
     color: #fff;
 }
 
@@ -38,10 +39,13 @@
     background: #fff;
     color: #1c1c1e;
     font-weight: bold;
+    cursor: default; /* it's the current view — a non-clickable <span> */
 }
 
+/* Not captured for this year. Dimmed + not-allowed cursor; we deliberately do
+   NOT set pointer-events:none so the browser still shows the title tooltip
+   explaining why it's disabled. */
 #gc-epoch-switch .gc-epoch-disabled {
     opacity: 0.4;
-    pointer-events: none;
-    cursor: default;
+    cursor: not-allowed;
 }
