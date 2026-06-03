@@ -157,17 +157,6 @@ DIV.recenze IMG.obalka {
  margin-right : 5mm ;
  border : black thin solid
 }
-DIV.novinka {
- border : red thin solid ;
- padding : 2mm ;
- margin-bottom : 5mm
-}
-DIV.novinka H2 {
- color : red ;
- text-align : center
-}
-DIV.novinka P {
-}
 
 TH {
  text-align : left ;

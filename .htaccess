@@ -1,44 +1,40 @@
-# Static archive of GameCon 2002 (reconstructed from the Internet Archive).
+# Static archive of GameCon 2001 (reconstructed from the Internet Archive).
 #
-# GameCon 2002 was SPECIAL — it ran as part of Avalcon/Eurocon in CHOTĚBOŘ
-# (not the usual Olomouc; the European SF/F/horror meet). It was run by the
-# Altar publishing house, and in 2002 GameCon was a SECTION of the whole
-# altar.cz publisher site (path altar.cz/gamecon/) — the same path-era as
-# 2003-2005, older than the gamecon.altar.cz subdomain (2006-2008).
+# GameCon 2001 ran in OLOMOUC (per Wikipedia). It was a SECTION of the whole
+# altar.cz publisher site (path altar.cz/gamecon/), the same path-era as
+# 2002-2005 — older than the gamecon.altar.cz subdomain (2006-2008).
 #
-# Scope: the GameCon pages (homepage, mistrovství, přihláška, the tournament
-# pages, and the Mistrovství v DrD results archive vysledky98..02) served at the
-# root, PLUS the Altar publisher-site nav menu it links to (section landing
-# pages, fetched from the 2002 capture window). All restored from
-# web.archive.org, transcoded WINDOWS-1250 -> UTF-8 (with an injected
-# <meta charset>, since the source declared charset only via the HTTP header).
+# IMPORTANT — this is a MINIMAL, honest archive. Wayback never preserved a
+# genuine GameCon 2001 festival site (no gamecon.cz domain or subdomain existed
+# then; the only 2001-window homepage capture is the OFF-SEASON placeholder,
+# still showing the 2000 recap and "informace o Gameconu 2001 zatím nejsou k
+# dispozici"). What genuinely survives, and is served here:
+#   - the homepage as captured (the honest 2001 off-season state),
+#   - the Mistrovství v DrD RESULTS: vysledky01 (real 2001 results, from a 2004
+#     capture) + vysledky98/99/00,
+#   - the Altar publisher-site nav menu (2001-window captures) + era theme.
+# The 2001 program/tournament pages were never published/captured — they 404.
 #
-# The Avalcon special page (www.avalcon.cz) was a SEPARATE domain (the combined
-# con's own site) — now dead, left as a captured external link. Dynamic CGI
-# (/cgi/*), the catalog, and uncaptured pages fall to the themed 404. Assets
-# (stylesheets/default.css, img/*) are served at their original absolute paths.
+# Pages restored from web.archive.org, transcoded WINDOWS-1250 -> UTF-8 (with an
+# injected <meta charset>; the source declared charset only via the HTTP header).
+# Dead ad embeds (billboard.cz, eReklama) stripped. Dynamic CGI -> themed 404.
 
 DirectoryIndex index.html
 ErrorDocument 404 /404.html
 
-# No directory listings — an orphaned dir should fall to the themed 404.
 Options -Indexes
 
 <IfModule mod_rewrite.c>
     RewriteEngine On
 
-    # Serve real files directly (pages at root, assets under their paths).
     RewriteCond %{REQUEST_FILENAME} -f
     RewriteRule ^ - [L]
 
-    # Serve a real directory only if it has an index.html; else themed 404.
     RewriteCond %{REQUEST_FILENAME} -d
     RewriteCond %{REQUEST_FILENAME}/index.html -f
     RewriteRule ^ - [L]
 
-    # Homepage.
     RewriteRule ^$  index.html [L]
 
-    # Everything else (cross-site Altar chrome, uncaptured) -> themed 404.
     RewriteRule ^.*$ - [R=404,L]
 </IfModule>
