@@ -27,6 +27,27 @@ usort($archives, static fn ($a, $b) => $b->year <=> $a->year);
 // text (prohlížeč se zeptá při prvním otevření). Viz GateLink + ansible
 // role gate_validator.
 $gateUrl = static fn (string $url): string => GateLink::podepis($url, ARCHIVE_GATE_SECRET);
+
+// Ročníky spadají do tří epoch podle toho, co archiv reálně obsahuje (hranice
+// jsou shodné s base_image / reconstruction érami v deploy-year-archive.yml):
+//   - 2012+      živá PHP aplikace nad vlastní DB (plně funkční admin) — bez nadpisu
+//   - 2009–2011  statická kopie z Internet Archive (gamecon.cz éra, žádná DB)
+//   - ≤2008      éra Altaru (altar.cz/gamecon/ path 2003–2005, gamecon.altar.cz
+//                subdoména 2006–2008) — taky statická, ale jiný web/CMS
+$epochaRocniku = static function (int $year): string {
+    if ($year >= 2012) {
+        return 'ziva';
+    }
+    if ($year >= 2009) {
+        return 'staticka';
+    }
+
+    return 'altar';
+};
+$nadpisEpochy = [
+    'staticka' => 'Pouze statické kopie',
+    'altar'    => 'Věk Altaru',
+];
 ?>
 <h2>Staré ročníky</h2>
 
@@ -53,7 +74,19 @@ $gateUrl = static fn (string $url): string => GateLink::podepis($url, ARCHIVE_GA
             </tr>
         </thead>
         <tbody>
+        <?php $epochaPredchozi = null; ?>
         <?php foreach ($archives as $archive) { ?>
+            <?php
+            $epocha = $epochaRocniku($archive->year);
+            if ($epocha !== $epochaPredchozi && isset($nadpisEpochy[$epocha])) { ?>
+                <tr>
+                    <th colspan="3" style="text-align: left; padding-top: 18px; border-bottom: 2px solid #888;">
+                        <?php echo htmlspecialchars($nadpisEpochy[$epocha]); ?>
+                    </th>
+                </tr>
+            <?php }
+            $epochaPredchozi = $epocha;
+            ?>
             <tr>
                 <td><?php echo htmlspecialchars((string) $archive->year); ?></td>
                 <td>
