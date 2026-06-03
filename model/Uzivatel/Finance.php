@@ -1080,6 +1080,14 @@ SQL;
             }
         }
 
+        if ($this->u->maPravo(Pravo::AKTIVITY_ZDARMA))
+        {
+            $nejdrazsiPrihlasena = 0;
+        } elseif ($this->u->maPravo(Pravo::CASTECNA_SLEVA_NA_AKTIVITY))
+        {
+            $nejdrazsiPrihlasena = round($nejdrazsiPrihlasena / 100 * (100 - Finance::CASTECNA_SLEVA_PROCENT));
+        }
+
         if ($nejdrazsiPrihlasena > 0) {
             if (dbRecordExists('slevy', [
                 'id_uzivatele' => $this->u->id(),
