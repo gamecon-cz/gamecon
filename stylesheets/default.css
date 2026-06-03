@@ -1,7 +1,12 @@
+<HTML>
+<HEAD>
+
+<STYLE TYPE="text/css">
+
 BODY {
  background : #000033 ;
- color : #000099;
- margin: 0px; padding: 0px}
+ color : #000099
+}
 
 A:link {
  color : blue
@@ -152,19 +157,6 @@ DIV.recenze IMG.obalka {
  margin-right : 5mm ;
  border : black thin solid
 }
-DIV.novinka {
- border : red thin solid ;
- padding : 2mm ;
- margin-bottom : 5mm; 
- margin-top: 0mm;
- font-size: 70%; font-family: sans-serif}
-DIV.novinka H2 {
- color : red ;
- text-align : center;
- margin-top: 0px;
-}
-DIV.novinka P {
-}
 
 TH {
  text-align : left ;
@@ -196,13 +188,9 @@ DIV.katalog TD.obrazek {
  text-align : center
 }
 
-A.lmenu {font-family: sans-serif; font-weight:600; text-decoration:none; color:#FFFFCC;}
-A.lmenu:visited {color:#FFFFCC}
-A.lmenu:hover {text-decoration:underline}
-A.lmenu:active {color:#FFFFCC}
+</STYLE>
 
-TD.holi {text-align:center; background-color:#333366;}
-A.hmenu {font-family: sans-serif; font-size:smaller; font-weight:600; text-decoration:none; color:#FFFFCC}
-A.hmenu:visited {color:#FFFFCC}
-A.hmenu:hover {color:#FFCC99}
-A.hmenu:active {color:#FFCC99}
+</HEAD>
+<BODY>
+</BODY>
+</HTML>
