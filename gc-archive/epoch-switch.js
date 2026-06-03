@@ -95,12 +95,18 @@
             var disabled = (which === "pred" && yearMode === "po-only")
                 || (which === "po" && yearMode === "pred-only");
             if (disabled) {
+                // This epoch wasn't captured — non-clickable, explains why on hover.
                 return '<span class="gc-epoch-opt gc-epoch-disabled" aria-disabled="true" title="'
                     + disabledTitle + '">' + label + "</span>";
             }
-            return '<a href="' + urlForEpoch(which) + '" class="gc-epoch-opt'
-                + (epoch === which ? " gc-epoch-active" : "")
-                + '" title="' + activeTitle + '">' + label + "</a>";
+            if (epoch === which) {
+                // Already the current epoch — render as active, not a link
+                // (clicking would just reload the same view).
+                return '<span class="gc-epoch-opt gc-epoch-active" aria-current="true" title="'
+                    + activeTitle + '">' + label + "</span>";
+            }
+            return '<a href="' + urlForEpoch(which) + '" class="gc-epoch-opt" title="'
+                + activeTitle + '">' + label + "</a>";
         }
 
         box.innerHTML = clock
