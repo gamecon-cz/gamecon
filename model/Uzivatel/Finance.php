@@ -14,6 +14,7 @@ use Gamecon\Cache\DataSourcesCollector;
 use Gamecon\Cas\DateTimeCz;
 use Gamecon\Exceptions\NeznamyTypPredmetu;
 use Gamecon\Finance\QrPlatba;
+use Gamecon\Finance\SqlStruktura\DiscountsGeneratedSqlStruktura;
 use Gamecon\Finance\SqlStruktura\SlevySqlStruktura;
 use Gamecon\Objekt\ObnoveniVychozichHodnotTrait;
 use Gamecon\Pravo;
@@ -607,7 +608,8 @@ SELECT
         * IF(aktivita.typ IN ($technicka, $brigadnicka) AND prihlaseni.id_stavu_prihlaseni IN ($prihlasenAleNedorazil, $pozdeZrusil), 0.0, 1.0) -- zrušit 'storno' pro pozdě odhlášené technické a brigádnické aktivity
      ) AS cena,
     aktivita.typ,
-    stav_prihlaseni.id_stavu_prihlaseni
+    stav_prihlaseni.id_stavu_prihlaseni,
+    discounts_generated.castka as sleva_prima
 FROM (
     SELECT * FROM akce_prihlaseni WHERE id_uzivatele = $idUcastnika
     UNION
@@ -617,7 +619,8 @@ JOIN akce_seznam AS aktivita
     ON prihlaseni.id_akce = aktivita.id_akce
 JOIN akce_prihlaseni_stavy AS stav_prihlaseni
     ON prihlaseni.id_stavu_prihlaseni = stav_prihlaseni.id_stavu_prihlaseni
-WHERE rok = $rok
+LEFT JOIN discounts_generated on discounts_generated.id_akce = aktivita.id_akce and discounts_generated.rok = aktivita.rok
+WHERE aktivita.rok = $rok
 SQL;
 
         $result = $this->systemoveNastaveni->db()->dbFetchAll(
@@ -626,6 +629,7 @@ SQL;
                 AkcePrihlaseniSqlStruktura::AKCE_PRIHLASENI_TABULKA,
                 AkcePrihlaseniSpecSqlStruktura::AKCE_PRIHLASENI_SPEC_TABULKA,
                 AkcePrihlaseniStavySqlStruktura::AKCE_PRIHLASENI_STAVY_TABULKA,
+                DiscountsGeneratedSqlStruktura::DISCOUNTS_GENERATED_TABULKA
             ],
             $sql,
         );
@@ -663,6 +667,7 @@ SQL;
             $castkaAktivity = in_array($r['typ'], TypAktivity::interniTypy())
                 ? 0.0
                 : (float)$r['cena'];
+            $castkaAktivity -= $r['sleva_prima'] ?? 0.0;
             $this->log(
                 nazev: $r['nazev'] . $poznamka,
                 castka: $castkaAktivity,
@@ -674,7 +679,7 @@ SQL;
                 pocet: 1,
                 priceAfterDiscountDto: new PriceAfterDiscountDto(
                     finalPrice: $castkaAktivity,
-                    discount: 0,
+                    discount: $r['sleva_prima'] ?? 0.0,
                 ),
                 typ: self::AKTIVITY,
                 kodPredmetu: '',
@@ -883,6 +888,18 @@ SQL;
         foreach ($q as $sleva) {
             $this->slevaObecna += (float)$sleva[SlevySqlStruktura::CASTKA];
         }
+
+        $q = dbQuery('
+            SELECT castka, id_akce, id_nakupu
+            FROM discounts_generated
+            WHERE id_uzivatele = $0 AND rok = $1 AND id_akce is null
+            ', [$this->u->id(), ROCNIK],
+        );
+
+        foreach ($q as $sleva) {
+            $this->slevaObecna += (float)$sleva[SlevySqlStruktura::CASTKA];
+        }
+
         $this->zapocteno[__FUNCTION__] = true;
     }
 
