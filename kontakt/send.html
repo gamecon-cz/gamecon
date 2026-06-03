@@ -1,0 +1,253 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Strict//EN" "http://www.w3.org/TR/html4/strict.dtd">
+<HTML>
+<HEAD>
+<meta charset="utf-8">
+  <TITLE>Odeslání dotazu</TITLE>
+  <LINK REL="stylesheet" TYPE="text/css" HREF="/stylesheets/default.css" TITLE="Default">
+  <META NAME="keywords" CONTENT="kontakt, dotaz, otázka, odpověď, komentář, faq, formulář">
+  <META NAME="section" CONTENT="Otázky a odpovědi">
+  <META NAME="section" CONTENT="Kontakt">
+</HEAD>
+
+<BODY>
+
+<!-- horni menu -->
+<!-- index-off -->
+<DIV class="hlavni" id="hlavni_lista">
+<SPAN class="hlavni_svetla mmedium">
+<A HREF="/altar/novinky.html" class="hmenu">Novinky</A>
+</SPAN>
+<SPAN class="inv"> | </SPAN>
+<SPAN class="hlavni_tmava mlong">
+<A HREF="/drd/index.html" class="hmenu">Dračí&nbsp;doupě</A>
+</SPAN>
+<SPAN class="inv"> | </SPAN>
+<SPAN class="hlavni_svetla mmedium">
+<A HREF="http://asterion.altar.cz" class="hmenu">Asterion</A>
+</SPAN>
+<SPAN class="inv"> | </SPAN>
+<SPAN class="hlavni_tmava mshort">
+<A HREF="http://taria.altar.cz" class="hmenu">Taria</A>
+</SPAN>
+<SPAN class="inv"> | </SPAN>
+<SPAN class="hlavni_svetla mmedium">
+<A HREF="http://proroctvi.altar.cz" class="hmenu">Proroctví</A>
+</SPAN>
+<SPAN class="inv"> | </SPAN>
+<SPAN class="hlavni_tmava mmedium">
+<A HREF="http://risesnu.altar.cz" class="hmenu">Říše&nbsp;Snů</A>
+</SPAN>
+<SPAN class="inv"> | </SPAN>
+<SPAN class="hlavni_svetla mlong">
+<A HREF="/dech/index.html" class="hmenu">Dech&nbsp;draka</A>
+</SPAN>
+<SPAN class="inv"> | </SPAN>
+<SPAN class="hlavni_tmava mmedium">
+<A HREF="/index.html" class="hmenu">GameCon</A>
+</SPAN>
+<SPAN class="inv"> | </SPAN>
+<SPAN class="hlavni_svetla mmedium">
+<A HREF="/cgi/doc/katalog" class="hmenu">Katalog</A>
+</SPAN>
+</DIV>
+
+<DIV class="hlavni invisible" id="vyrovnani"></DIV>
+<!-- index-on  -->
+
+<HR CLASS="invisible">
+
+<DIV CLASS="rbl title">
+<H1>Otázka či komentář</H1>
+</DIV>
+
+<DIV CLASS="rbl content">
+
+<P>Pomocí této stránky a formuláře, který se na ní nachází, nám můžete poslat jakýkoliv
+dotaz nebo komentář, který se týká Dračího doupěte, našich WWW stránky nebo čehokoliv
+dalšího. Vyplňte tedy následující formulář a poté klikněte na
+tlačítko <I>Odeslat dotaz</I>.</P>
+
+<P><B>Pro dotazy k pravidlům Dračího doupěte Plus použijte
+<A HREF="/drdplus/send.html">zvláštní formulář</A>.</B></P>
+
+<P>Všeobecné informace týkající se posílání dotazů si můžete přečíst
+<A HREF="info.html">na této stránce</A>; 
+<B>prosíme Vás, abyste tak předtím, než nám dotaz odešlete, opravdu učinili.</B></P>
+
+<P>Pokud se chcete v nějaké konkrétní záležitosti obrátit na konkrétní osobu, můžete si její e-mail najít v <A HREF="index.html">tomto seznamu</A>; 
+předtím si ale přečtěte výše zmiňované <A HREF="info.html">informace</A>.</P>
+
+<FORM METHOD="post" ACTION="/cgi/submit.cgi">
+<INPUT TYPE="hidden" NAME="form.language" VALUE="cz">
+<INPUT TYPE="hidden" NAME="formular" VALUE="FAQ">
+<INPUT TYPE="hidden" NAME="required" VALUE="prijmeni,jmeno,email,text,vec">
+
+<P CLASS="form">
+
+<SPAN CLASS="form_item">Věc: (vyberte ze seznamu)</SPAN>
+<SELECT NAME="vec">
+  <OPTION VALUE="" SELECTED>Šipkou vpravo vyberte správnou věc
+  <OPTION VALUE="akce">Akce a cony
+  <OPTION VALUE="arena">Aréna - nejasnosti v pravidlech
+  <OPTION VALUE="asterion">Asterion - nejasnosti v obsahu
+  <OPTION VALUE="battletech">Battletech - nejasnosti v pravidlech
+  <OPTION VALUE="pelennor">Bitva na polích Pelennoru – nejasnosti v pravidlech
+  <OPTION VALUE="clenstvi">Členství v klubu HEXAEDR
+  <OPTION VALUE="dech">Dech Draka - obsah (ne předplatné)
+  <OPTION VALUE="drd">DrD 1.6 - nejasnosti v pravidlech verze 1.6
+  <OPTION VALUE="drdstare">DrD starší - nejasnosti v pravidlech v. 1.5 a starší
+  <OPTION VALUE="dodatek">DrD - moje vlastni dodatky (ne otázky!)
+  <OPTION VALUE="fillets">Fish Fillets
+  <OPTION VALUE="gamecon">Gamecon
+  <OPTION VALUE="autor">Nabídka spolupráce – autoři textů a hobby her
+  <OPTION VALUE="ilustrator">Nabídka spolupráce – ilustrátoři
+  <OPTION VALUE="objednavani">Objednávání, nákup a prodej publikací, katalog
+  <OPTION VALUE="moduly">Ostatní moduly k DrD – nejasnosti v obsahu
+  <OPTION VALUE="hry">Počítačové hry
+  <OPTION VALUE="programy">Počítačové programy
+  <OPTION VALUE="proroctvi">Proroctví – nejasnosti v pravidlech
+  <OPTION VALUE="risesnu">Říše Snů – nejasnosti v pravidlech
+  <OPTION VALUE="talisman">Talisman - nejasnosti v pravidlech
+  <OPTION VALUE="taria">Taria - nejasnosti v obsahu
+  <OPTION VALUE="titul">Tituly z nabídky ALTARu (ediční plán)
+  <OPTION VALUE="search">Vyhledávací program pro tento server
+  <OPTION VALUE="web">WWW stránky ALTARu
+  <OPTION VALUE="jiny">Zde neuvedená věc (opravdu není výše?)
+</SELECT><BR><BR>
+
+<SPAN CLASS="form_item required">Vaše příjmení:</SPAN>
+<INPUT NAME="prijmeni" SIZE="40" ROWS="1" COLS="25"><BR>
+
+<SPAN CLASS="form_item required">Vaše jméno:</SPAN>
+<INPUT NAME="jmeno" SIZE="40" ROWS="1" COLS="25"><BR>
+
+<SPAN CLASS="form_item">Ulice a číslo popisné:</SPAN>
+<INPUT NAME="ulice" SIZE="40" ROWS="1" COLS="25"><BR>
+
+<SPAN CLASS="form_item">Město:</SPAN>
+<INPUT NAME="mesto" SIZE="40" ROWS="1" COLS="25"><BR>
+
+<SPAN CLASS="form_item">PSČ:</SPAN>
+<INPUT NAME="psc" SIZE="40" ROWS="1" COLS="25"><BR>
+
+<SPAN CLASS="form_item required">E-mail:</SPAN>
+<INPUT NAME="email" SIZE="40" ROWS="1" COLS="25"><BR>
+
+<SPAN CLASS="form_item">Telefon:</SPAN>
+<INPUT NAME="telefon" SIZE="40" ROWS="1" COLS="25"><BR>
+
+<SPAN CLASS="form_item">Člen HEXAEDRu?</SPAN>
+  <SELECT NAME="clen">
+  <OPTION SELECTED VALUE="ne">Ne, nejsem členem klubu HEXAEDR
+  <OPTION VALUE="pasivni">Jsem pasivním členem klubu HEXAEDR
+  <OPTION VALUE="plny">Jsem plným členem klubu HEXAEDR
+  </SELECT>
+</P>
+
+<P>A do následující kolonky zapište Vaši otázku či komentář.<BR>
+<CENTER><TEXTAREA ROWS="10" COLS="55" NAME="text"></TEXTAREA></CENTER></P>
+
+<P><HR>Chcete-li dotaz či komentář odeslat ALTARu, stiskněte tlačítko
+<I>Odeslat dotaz</I> – předtím si však ve vlastním zájmu <B>zkontrolujte, zda jse vybrali z nabízeného seznamu správnou <I>Věc</I>, podle ní se zprávy rozesílají zodpovědným lidem</B>.
+
+<P><B>POZOR! Pokud nevyberete žádnou <I>Věc</I> (v potvrzovacím mailu bude uvedeno &quot;[neznama vec]&quot;), nedostanete žádnou odpověď, neboť takový dotaz nebude žádné osobě doručen, i když se bude tvářit jako odeslaný.</B>
+
+
+<P>Chcete-li údaje z formuláře z nějakého důvodu vymazat,
+stiskněte tlačítko <I>Vymazat údaje</I>.</P>
+
+<P>Budou-li některé z červeně označených údajů chybět, objeví se ihned po odeslání formuláře
+informace o tom, které údaje chybí nebo jsou vyplněny špatně.</P>
+
+<P><CENTER>
+<INPUT TYPE="submit" VALUE="Odeslat dotaz">
+<INPUT TYPE="reset" VALUE="Vymazat údaje">
+</CENTER></P>
+
+</FORM>
+
+</DIV>
+
+<HR CLASS="invisible">
+
+<!-- leve menu -->
+<DIV CLASS="menu">
+<!-- index-off -->
+  <DIV class="invisible"><H3>Navigace</H3></DIV>
+  <B><A HREF="/altar/novinky.html" CLASS="menu_item group">Novinky</A></B>
+  <HR CLASS="oddelovac">
+  <B><A HREF="/altar/rpg.html" CLASS="menu_item group">Hry&nbsp;na&nbsp;hrdiny</A></B>
+  <SPAN class="inv"> || </SPAN>
+  <A HREF="/drd/index.html" CLASS="menu_item">Dračí&nbsp;doupě</A>
+  <SPAN class="inv"> | </SPAN>
+  <A HREF="/drdplus/index.html" CLASS="menu_item">DrD Plus</A>
+  <HR CLASS="oddelovac">
+  <B><A HREF="/altar/stolni.html" CLASS="menu_item group">Stolní hry</A></B>
+  <SPAN class="inv"> || </SPAN>
+  <A HREF="/proroctvi/index.html" CLASS="menu_item">Proroctví</A>
+  <SPAN class="inv"> | </SPAN>
+  <A HREF="/risesnu/index.html" CLASS="menu_item">Říše&nbsp;Snů</A>
+  <SPAN class="inv"> | </SPAN>
+  <A HREF="/arena/index.html" CLASS="menu_item">Aréna</A>
+  <SPAN class="inv"> | </SPAN>
+  <A HREF="/battletech/index.html" CLASS="menu_item">Battletech</A>
+  <HR CLASS="oddelovac">
+  <B><A HREF="/altar/ostatni.html" CLASS="menu_item group">Jiné&nbsp;produkty</A></B>
+  <SPAN class="inv"> || </SPAN>
+  <A HREF="/dech/index.html" CLASS="menu_item">Dech draka</A>
+  <SPAN class="inv"> | </SPAN>
+  <A HREF="/prog/index.html" CLASS="menu_item">Programy</A>
+  <HR CLASS="oddelovac">
+  <B><A HREF="/altar/aktivity.html" CLASS="menu_item group">Aktivity</A></B>
+  <SPAN class="inv"> || </SPAN>
+  <A HREF="/index.html" CLASS="menu_item">Gamecon</A>
+  <SPAN class="inv"> | </SPAN>
+  <A HREF="/akce/index.html" CLASS="menu_item">Cony&nbsp;a&nbsp;akce</A>
+  <SPAN class="inv"> | </SPAN>
+  <A HREF="/akce/souteze.html" CLASS="menu_item">Soutěže</A>
+  <SPAN class="inv"> | </SPAN>
+  <A HREF="/hexaedr/index.html" CLASS="menu_item">Hexaedr</A>
+  <HR CLASS="oddelovac">
+  <B><A HREF="/altar/obchod.html" CLASS="menu_item group">Obchod</A></B>
+  <SPAN class="inv"> || </SPAN>
+  <A HREF="/cgi/doc/katalog" CLASS="menu_item">Katalog</A>
+  <SPAN class="inv"> | </SPAN>
+  <A HREF="/altar/pripravujeme.html" CLASS="menu_item">Připravujeme</A>
+  <HR CLASS="oddelovac">
+  <B><A HREF="/altar/altar.html" CLASS="menu_item group">ALTAR</A></B>
+  <SPAN class="inv"> || </SPAN>
+  <A HREF="/kontakt/dotazy.html" CLASS="menu_item">Dotazy</A>
+  <SPAN class="inv"> | </SPAN>
+  <A HREF="/kontakt/send.html" CLASS="menu_item">Kontakt</A>
+  <SPAN class="inv"> | </SPAN>
+  <A HREF="/altar/onas.html" CLASS="menu_item">O&nbsp;nás</A>
+  <HR CLASS="oddelovac">
+  <B><A HREF="/odkazy/index.html" CLASS="menu_item group">Odkazy</A></B>
+  <HR CLASS="oddelovac">
+  <B><A HREF="/cgi/search.cgi?form=simple" CLASS="menu_item group">Hledání</A></B>
+<!--  <HR CLASS="oddelovac">
+  <A HREF="/help/informace.html" CLASS="menu_item">Informace</A>  -->
+<!-- index-on  -->
+</DIV>
+
+<HR CLASS="invisible">
+
+<!-- paticka -->
+<DIV CLASS="rbl foot_info">
+<!-- index-off -->
+  <SPAN class="foot_text">
+  
+  Poslední modifikace této stránky: Monday, 27-Dec-2004 09:49:28 CET
+  <BR>
+  Design by ALTAR.
+  </SPAN>
+<!-- index-on  -->
+</DIV>
+
+
+<HR CLASS="invisible">
+
+
+
+</BODY>
+</HTML>

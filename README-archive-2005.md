@@ -22,9 +22,14 @@ the `gamecon.altar.cz` era (2006–2008):
   captures had already rolled over to advertise 2006 — the fetch window stops at
   2005-08-31 to capture the genuine 2005 state; see landmine #6 in the playbook.)
 - **Embedded in the publisher site**: the pages' global nav links all over the
-  parent `altar.cz` site (`/altar/*`, `/drd/`, `/kontakt/`, `/cgi/*`, the shop,
-  …). **Scope decision: only the GameCon pages were reconstructed** — those
-  cross-site links are intentionally left to fall to the themed 404.
+  parent `altar.cz` site (`/altar/*`, `/drd/`, `/kontakt/`, `/cgi/*`, …).
+  **Scope: GameCon pages + the publisher-site nav menu** (section landing pages
+  + one level deeper), fetched from the **2005 capture window** so the publisher
+  content matches the year, transcoded cp1250 → UTF-8. Dynamic CGI
+  (`/cgi/search.cgi`, `/cgi/doc/*`), the catalog, and deeper links fall to the
+  themed 404 (incl. `/altar/index.html`, `/help/informace.html` — uncaptured in
+  2005). The two still-live external subdomains (`asterion`, `proroctvi`) keep
+  their links (https); `taria`/`risesnu` are dead and left as-is.
 
 There was never a `2005.gamecon.cz` subdomain in 2005; this archive adopts the
 per-year convention to serve the frozen snapshot at a stable address.
