@@ -22,9 +22,13 @@ Altar's global site navigation:
   header). NB: cp1250, **not** ISO-8859-2 — Latin-2 silently drops `š`/`ž`
   (bytes 0x9a/0x9e); byte-verified before fetching.
 - **Embedded in the publisher site**: the global nav links all over the parent
-  `altar.cz` site (`/altar/*`, `/drd/`, `/kontakt/`, `/cgi/*`, the shop, …).
-  **Scope: only GameCon pages were reconstructed** — cross-site links fall to
-  the themed 404.
+  `altar.cz` site (`/altar/*`, `/drd/`, `/kontakt/`, `/cgi/*`, …).
+  **Scope: GameCon pages + the publisher-site nav menu** (section landing pages
+  + one level deeper), fetched from the **2004 capture window** so the publisher
+  content matches the year. Dynamic CGI (`/cgi/search.cgi`, `/cgi/doc/*`), the
+  catalog, and deeper links fall to the themed 404. The two still-live external
+  game-world subdomains (`asterion.altar.cz`, `proroctvi.altar.cz`) keep their
+  links (upgraded to https); `taria`/`risesnu` are dead and left as-is.
 
 There was never a `2004.gamecon.cz` subdomain in 2004; this archive adopts the
 per-year convention to serve the frozen snapshot at a stable address.

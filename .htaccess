@@ -6,18 +6,20 @@
 # altar.cz/gamecon/) — the same path-era as 2005, older than the
 # gamecon.altar.cz subdomain (2006-2008).
 #
-# Scope: only the GameCon pages were reconstructed (~31 /gamecon/ pages, incl.
-# the Mistrovství v DrD results archive vysledky95..vysledky04), served here at
-# the root; the original /gamecon/ link prefix was rewritten to /. Pages were
-# restored from web.archive.org, transcoded WINDOWS-1250 -> UTF-8 (with an
-# injected <meta charset>, since the source declared charset only via the HTTP
-# header).
+# Scope: the GameCon pages (~31 /gamecon/ pages, incl. the Mistrovství v DrD
+# results archive vysledky95..vysledky04) served at the root, PLUS the Altar
+# publisher-site nav menu it links to — the section landing pages (/altar/*,
+# /arena/, /battletech/, /drd/, /drdplus/, /dech/, /hexaedr/, /akce/, /prog/,
+# /odkazy/, /kontakt/, /help/, plus the altar.cz path pages /proroctvi/,
+# /risesnu/) and one level deeper. All restored from web.archive.org in the 2004
+# capture window (so the publisher content matches the year), transcoded
+# WINDOWS-1250 -> UTF-8 (with an injected <meta charset>, since the source
+# declared charset only via the HTTP header).
 #
-# The pages share Altar's global site nav, which links all over the parent
-# publisher site (/altar/*, /drd/, /kontakt/, /cgi/*, the shop, …). Those
-# cross-site links are intentionally NOT reconstructed — they fall to the themed
-# 404, as does any uncaptured URL. Assets (stylesheets/default.css,
-# img/gamecon/*) are served at their original absolute paths.
+# Still out of scope (themed 404): dynamic CGI (/cgi/search.cgi, /cgi/doc/*),
+# the product catalog, and links deeper than one level. (The /cgi/doc DrD rules
+# tree was reconstructed only for the 2003 archive.) Assets
+# (stylesheets/default.css, img/*) are served at their original absolute paths.
 
 DirectoryIndex index.html
 ErrorDocument 404 /404.html
