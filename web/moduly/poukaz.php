@@ -5,7 +5,11 @@
 use Gamecon\Role\Role;
 
 if (!$u) {
-    back(URL_WEBU);
+    back(URL_WEBU . '/prihlaseni');
+}
+
+if (!$u->gcPrihlasen()) {
+    back(URL_WEBU . '/prihlaska');
 }
 
 if ($u->maRoli(Role::LETOSNI_JEDNA_AKTIVITA_ZDARMA)) {
