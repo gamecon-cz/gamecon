@@ -1,23 +1,23 @@
-# Static archive of GameCon 2001 (reconstructed from the Internet Archive).
+# Static archive of GameCon 1998 (reconstructed from the Internet Archive).
 #
-# GameCon 2001 ran in OLOMOUC (per Wikipedia). It was a SECTION of the whole
-# altar.cz publisher site (path altar.cz/gamecon/), the same path-era as
-# 2002-2005 — older than the gamecon.altar.cz subdomain (2006-2008).
+# GameCon 1998 ran in OLOMOUC. It was a SECTION of the whole altar.cz publisher
+# site (path altar.cz/gamecon/), the same path-era as 1999-2005 — older than
+# the gamecon.altar.cz subdomain (2006-2008).
 #
-# IMPORTANT — this is a MINIMAL, honest archive. Wayback never preserved a
-# genuine GameCon 2001 festival site (no gamecon.cz domain or subdomain existed
-# then; the only 2001-window homepage capture is the OFF-SEASON placeholder,
-# still showing the 2000 recap and "informace o Gameconu 2001 zatím nejsou k
-# dispozici"). What genuinely survives, and is served here:
-#   - the homepage as captured (the honest 2001 off-season state),
-#   - the Mistrovství v DrD RESULTS: vysledky01 (real 2001 results, from a 2004
-#     capture) + vysledky98/99/00,
-#   - the Altar publisher-site nav menu (2001-window captures) + era theme.
-# The 2001 program/tournament pages were never published/captured — they 404.
+# This is the EARLIEST GameCon year on Wayback. What genuinely survives, and is
+# served here:
+#   - the GameCon 1998 homepage exactly as captured (Dec 1998, title
+#     "Gamecon 1998", "Gamecon 1998 již skončil … jména vítězů na této stránce"),
+#   - the Mistrovství v DrD + tournament RESULTS: vysledky98 (real 1998 results).
+# 1998 had no separate program/tournament pages on the web — they 404.
+#
+# The homepage's year-logo originally used a thumbnail GIF (small.logo1998.gif)
+# that Wayback never captured; we point the thumbnail at the full logo1998.jpg
+# (the only surviving 1998 logo image), scaled down.
 #
 # Pages restored from web.archive.org, transcoded WINDOWS-1250 -> UTF-8 (with an
 # injected <meta charset>; the source declared charset only via the HTTP header).
-# Dead ad embeds (billboard.cz, eReklama) stripped. Dynamic CGI -> themed 404.
+# Dead ad embeds (Mr.Lin(x), billboard.cz) stripped. Dynamic CGI -> themed 404.
 
 DirectoryIndex index.html
 ErrorDocument 404 /404.html
