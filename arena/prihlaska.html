@@ -1,0 +1,155 @@
+
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2//EN">
+<HTML>
+<HEAD>
+<meta charset="utf-8">
+  <TITLE>Přihláška na Mistrovství v Aréně</TITLE>
+  <LINK REL="stylesheet" TYPE="text/css" HREF="/stylesheets/default.css" TITLE="Default">
+  <META NAME="keywords" CONTENT="Aréna, mistrovství, přihláška">
+  <META NAME="section" CONTENT="Aréna">
+</HEAD>
+
+<BODY BGCOLOR="#000033" TEXT="#000099" LINK="#0000FF" VLINK="#9999FF" ALINK="#FF0000">
+
+<TABLE BORDER="0" CELLPADDING="5">
+<TR>
+<TD ALIGN="center" VALIGN="top" WIDTH="125" ROWSPAN="2">
+  <META NAME="pragma" CONTENT="index-off">
+<IMG SRC="/img/altar.gif" HEIGHT="200" WIDTH="125" ALT="Logo ALTARu">
+<BR><BR>
+<A HREF="/altar/index.html" CLASS="yellow"><IMG SRC="/cgi/text?ALTAR" BORDER="0" ALT="ALTAR"></A><BR>
+<A HREF="/arena/index.html" CLASS="yellow"><IMG SRC="/cgi/text?Ar.e1na" BORDER="0" ALT="Aréna"></A><BR>
+<A HREF="/battletech/index.html" CLASS="yellow"><IMG SRC="/cgi/text?Battletech" BORDER="0" ALT="Battletech"></A><BR>
+<A HREF="/akce/index.html" CLASS="yellow"><IMG SRC="/cgi/text?Cony_a_akce" BORDER="0" ALT="Cony a akce"></A><BR>
+<A HREF="/dech/index.html" CLASS="yellow"><IMG SRC="/cgi/text?Dech_draka" BORDER="0" ALT="Dech draka"></A><BR>
+<A HREF="/drd/index.html" CLASS="yellow"><IMG SRC="/cgi/text?Dra.c2.i1_doup.e2" BORDER="0" ALT="Dračí doupě"></A><BR>
+<A HREF="/drdplus/index.html" CLASS="yellow"><IMG SRC="/cgi/text?DrD_PLUS" BORDER="0" ALT="DrD PLUS"></A><BR>
+<A HREF="/index.html" CLASS="yellow"><IMG SRC="/cgi/text?Gamecon" BORDER="0" ALT="Gamecon"></A><BR>
+<A HREF="/hexaedr/index.html" CLASS="yellow"><IMG SRC="/cgi/text?Hexaedr" BORDER="0" ALT="Hexaedr"></A><BR>
+<A HREF="/cgi/doc/katalog" CLASS="yellow"><IMG SRC="/cgi/text?Katalog" BORDER="0" ALT="Katalog"></A><BR>
+<A HREF="/altar/novinky.html" CLASS="yellow"><IMG SRC="/cgi/text?Novinky" BORDER="0" ALT="Novinky"></A><BR>
+<A HREF="/prog/index.html" CLASS="yellow"><IMG SRC="/cgi/text?Programy" BORDER="0" ALT="Programy"></A><BR>
+<HR ALIGN="center" WIDTH="33%">
+<A HREF="/cgi/search.cgi?form=simple" CLASS="yellow"><IMG SRC="/cgi/text?Hled.a1n.i1" BORDER="0" ALT="Hledání"></A><BR>
+<A HREF="/kontakt/dotazy.html" CLASS="yellow"><IMG SRC="/cgi/text?Dotazy" BORDER="0" ALT="Dotazy"></A><BR>
+<A HREF="/kontakt/send.html" CLASS="yellow"><IMG SRC="/cgi/text?Kontakt" BORDER="0" ALT="Kontakt"></A><BR>
+<HR ALIGN="center" WIDTH="33%">
+<A HREF="/index.html" CLASS="yellow"><IMG SRC="/cgi/text?Intro" BORDER="0" ALT="Intro"></A><BR>
+<A HREF="/odkazy/index.html" CLASS="yellow"><IMG SRC="/cgi/text?Odkazy" BORDER="0" ALT="Odkazy"></A><BR>
+<META NAME="pragma" CONTENT="index-on">
+
+</TD>
+<TD WIDTH="495">
+  <BR>
+<!-- Reklama - start --><!-- Reklama - konec -->
+  <BR>
+  <H1 ALIGN="center"><FONT COLOR="yellow">Přihláška na Mistrovství v Aréně</FONT></H1>
+  <BR>
+</TD>
+</TR>
+
+<TR>
+<TD VALIGN="top" BGCOLOR="#FFFFCC" BACKGROUND="/img/background/white.gif" WIDTH="495">
+
+<P>Pomocí této stránky a formuláře, který se na ní nachází, nám můžeš zaslat
+přihlášku na <A HREF="mistrovstvi.html">Mistrovství ČR v Aréně</A>.</P>
+
+<FORM METHOD=POST ACTION="/cgi/submit.cgi">
+<INPUT TYPE="hidden" NAME="form.language" VALUE="cz">
+<INPUT TYPE="hidden" NAME="formular" VALUE="prihlaska.ar">
+<INPUT TYPE="hidden" NAME="required" VALUE="prijmeni,jmeno,narozeni,ulice,mesto,psc,email">
+
+<TABLE BORDER="0">
+
+<TR><TD><B><FONT COLOR="red">Přihlašuji se:</FONT></B></TD>
+<TD><SELECT NAME="typ.prihlasky">
+  <OPTION SELECTED VALUE="zavazne">Závazně
+  <OPTION VALUE="predbezne">Předběžně
+</SELECT></TD></TR>
+
+<TR><TD><B><FONT COLOR="red">Příjmení:</FONT></B></TD>
+<TD><INPUT NAME="prijmeni" SIZE="40" ROWS="1" COLS="25"></TD></TR>
+
+<TR><TD><B><FONT COLOR="red">Jméno:</FONT></B></TD>
+<TD><INPUT NAME="jmeno" SIZE="40" ROWS="1" COLS="25"></TD></TR>
+
+<TR><TD><B><FONT COLOR="red">Datum narození:</FONT></B></TD>
+<TD><INPUT NAME="narozeni" SIZE="40" MAXLENGTH="10" ROWS="1" COLS="25"></TD></TR>
+
+<TR><TD><B>Rodné číslo:</B></TD>
+<TD><INPUT NAME="rodnecislo" SIZE="40" MAXLENGTH="11" ROWS="1" COLS="25"></TD></TR>
+
+<TR><TD><B><FONT COLOR="red">Ulice a číslo popisné:</FONT></B></TD>
+<TD><INPUT NAME="ulice" SIZE="40" ROWS="1" COLS="25"></TD></TR>
+
+<TR><TD><B><FONT COLOR="red">Město:</FONT></B></TD>
+<TD><INPUT NAME="mesto" SIZE="40" ROWS="1" COLS="25"></TD></TR>
+
+<TR><TD><B><FONT COLOR="red">PSČ:</FONT></B></TD>
+<TD><INPUT NAME="psc" SIZE="40" ROWS="1" COLS="25"></TD></TR>
+
+<TR><TD><B>Telefon:</B></TD>
+<TD><INPUT NAME="telefon" SIZE="40"></TD></TR>
+
+<TR><TD><B><FONT COLOR="red">E-mail:</FONT></B></TD>
+<TD><INPUT NAME="email" SIZE="40"></TD></TR>
+
+<TR><TD><B>Herní oblast</B></TD>
+<TD VALIGN="top"><INPUT NAME="herni.oblast" SIZE="40"></TD></TR>
+<TR><TD COLSPAN="2">(v případě, že není totožná s adresou, například
+u studentů na internátě či kolejích)</TD><TR>
+
+<TR><TD COLSPAN="2">Mohu u sebe nechat přespat
+<INPUT NAME="prespat.osob" SIZE="2" MAXLENGTH="2"> osob, které si přivezou
+vlastní spacák, eventuálně karimatku.</TD></TR>
+
+<TR><TD COLSPAN="2">Jsem ochoten dojíždět cca
+<INPUT NAME="dojizdet.km" SIZE="3" MAXLENGTH="3">&nbsp;km.</TD></TR>
+
+</TABLE>
+
+<P><HR>Chceš-li přihlášku odeslat, stiskni tlačítko <I>Odeslat přihlášku</I>.
+Chceš-li údaje z formuláře z nějakého důvodu vymazat, stiskni tlačítko
+<I>Vymazat údaje</I>.</P>
+
+<P>Nezapomeň vyplnit všechny údaje ve formuláři, zvláště ty, které jsou
+označeny červeně. Budou-li některé z těchto údajů chybět, objeví se ihned
+po odeslání přihlášky informace o tom, které údaje chybí nebo jsou vyplněny
+špatně. V takovém případě nebude samozřejmě přihláška odeslána.</P>
+
+<P>Uzávěrka přihlášek je posledního října. Pokud se doté doby přihlásíš závazně a seznáš,
+že se s nějakého důvodu nemůžeš zúčastnit, nezapomeň nám to neprodleně oznámit!<P>
+
+<P><CENTER>
+<INPUT TYPE="submit" VALUE="Odeslat přihlášku">
+<INPUT TYPE="reset" VALUE="Vymazat údaje">
+</CENTER></P>
+
+</FORM>
+
+<P>&nbsp;</P>
+
+</TD>
+</TR>
+
+<!-- Reklama - start --><!-- Reklama - konec -->
+
+<META NAME="pragma" CONTENT="index-off">
+<TR>
+<TD></TD><TD ALIGN="center">
+  
+  <P>
+  <FONT COLOR="yellow" SIZE="-1">
+  Poslední modifikace této stránky: Thursday, 26-Sep-2002 16:45:09 CEST
+  <BR>
+  Design by ALTAR
+  </FONT>
+  </P>
+</TD>
+</TR>
+<META NAME="pragma" CONTENT="index-on">
+
+</TABLE>
+
+</BODY>
+</HTML>
