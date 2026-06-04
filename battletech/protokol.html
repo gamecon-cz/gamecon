@@ -1,0 +1,155 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2//EN">
+<HTML>
+<HEAD>
+<meta charset="utf-8">
+  <TITLE>Protokol o zápasu</TITLE>
+  <LINK REL="stylesheet" TYPE="text/css" HREF="/stylesheets/default.css" TITLE="Default">
+  <META NAME="keywords" CONTENT="Battletech, mistrovství, protokol">
+  <META NAME="section" CONTENT="Battletech">
+</HEAD>
+
+<BODY BGCOLOR="#000033" TEXT="#000099" LINK="#0000FF" VLINK="#9999FF" ALINK="#FF0000">
+
+<TABLE BORDER="0" CELLPADDING="5">
+<TR>
+<TD ALIGN="center" VALIGN="top" WIDTH="125" ROWSPAN="2">
+  <META NAME="pragma" CONTENT="index-off">
+<IMG SRC="/img/altar.gif" HEIGHT="200" WIDTH="125" ALT="Logo ALTARu">
+<BR><BR>
+<A HREF="/altar/index.html" CLASS="yellow"><IMG SRC="/cgi/text?ALTAR" BORDER="0" ALT="ALTAR"></A><BR>
+<A HREF="/arena/index.html" CLASS="yellow"><IMG SRC="/cgi/text?Ar.e1na" BORDER="0" ALT="Aréna"></A><BR>
+<A HREF="/battletech/index.html" CLASS="yellow"><IMG SRC="/cgi/text?Battletech" BORDER="0" ALT="Battletech"></A><BR>
+<A HREF="/akce/index.html" CLASS="yellow"><IMG SRC="/cgi/text?Cony_a_akce" BORDER="0" ALT="Cony a akce"></A><BR>
+<A HREF="/dech/index.html" CLASS="yellow"><IMG SRC="/cgi/text?Dech_draka" BORDER="0" ALT="Dech draka"></A><BR>
+<A HREF="/drd/index.html" CLASS="yellow"><IMG SRC="/cgi/text?Dra.c2.i1_doup.e2" BORDER="0" ALT="Dračí doupě"></A><BR>
+<A HREF="/drdplus/index.html" CLASS="yellow"><IMG SRC="/cgi/text?DrD_PLUS" BORDER="0" ALT="DrD PLUS"></A><BR>
+<A HREF="/fillets/index.html" CLASS="yellow"><IMG SRC="/cgi/text?Fillets" BORDER="0" ALT="Fillets"></A><BR>
+<A HREF="/index.html" CLASS="yellow"><IMG SRC="/cgi/text?Gamecon" BORDER="0" ALT="Gamecon"></A><BR>
+<A HREF="/hexaedr/index.html" CLASS="yellow"><IMG SRC="/cgi/text?Hexaedr" BORDER="0" ALT="Hexaedr"></A><BR>
+<A HREF="/cgi/sicco.cgi?grpid=katalog" CLASS="yellow"><IMG SRC="/cgi/text?Katalog" BORDER="0" ALT="Katalog"></A><BR>
+<A HREF="/prog/index.html" CLASS="yellow"><IMG SRC="/cgi/text?Programy" BORDER="0" ALT="Programy"></A><BR>
+<HR ALIGN="center" WIDTH="33%">
+<A HREF="/cgi/search.cgi?form=simple" CLASS="yellow"><IMG SRC="/cgi/text?Hled.a1n.i1" BORDER="0" ALT="Hledání"></A><BR>
+<A HREF="/kontakt/dotazy.html" CLASS="yellow"><IMG SRC="/cgi/text?Dotazy" BORDER="0" ALT="Dotazy"></A><BR>
+<A HREF="/kontakt/send.html" CLASS="yellow"><IMG SRC="/cgi/text?Kontakt" BORDER="0" ALT="Kontakt"></A><BR>
+<HR ALIGN="center" WIDTH="33%">
+<A HREF="/index.html" CLASS="yellow"><IMG SRC="/cgi/text?Intro" BORDER="0" ALT="Intro"></A><BR>
+<A HREF="/odkazy/index.html" CLASS="yellow"><IMG SRC="/cgi/text?Odkazy" BORDER="0" ALT="Odkazy"></A><BR>
+<META NAME="pragma" CONTENT="index-on">
+
+</TD>
+<TD WIDTH="495">
+  <BR>
+  <H1 ALIGN="center"><FONT COLOR="yellow">Protokol o zápasu</FONT></H1>
+  <BR>&nbsp;
+</TD>
+</TR>
+
+<TR>
+<TD VALIGN="top" BGCOLOR="#FFFFCC" BACKGROUND="/img/background/white.gif" WIDTH="495">
+
+<P>Na této stránce nám můžete zaslat protokol o zápasu odehraném jako součást
+<A HREF="mistrovstvi.html">Mistrovství v Battletechu</A>. I když tak učiníte, pošlete
+nám protokol ještě klasickou poštou, s podpisy obou účastníků zápasu.</P>
+
+<P>Do kolonky <B>útočník</B>, resp. <B>obránce</B>, napište jméno i příjmení útočníka či
+obránce. Do kolonky <B>pancíř&nbsp;+&nbsp;VS</B> zapište počet zbývajících nebo zničených
+bodů a připiště, zda se jedná o zbývající či zničené body. Do kolonky <B>vyřazené obry</B>
+napište vyřazené obry jmenovitě, počet uvádět nemusíte.</P>
+
+<FORM METHOD="post" ACTION="/cgi/submit.cgi">
+<INPUT TYPE="hidden" NAME="form.language" VALUE="cz">
+<INPUT TYPE="hidden" NAME="formular" VALUE="Protokol.bt">
+<INPUT TYPE="hidden" NAME="required" VALUE="datum,scenar,utocnik,obrance,utocnik.body,obrance.body,utocnik.vyradil,obrance.vyradil,utocnik.falanga,obrance.falanga,utocnik.vaha,obrance.vaha,kola,doba,utocnik.pancir,obrance.pancir">
+
+<TABLE BORDER="0">
+
+<TR><TD><B><FONT COLOR="red">Útočník:</FONT></B></TD>
+<TD><INPUT NAME="utocnik" SIZE="40" ROWS="1" COLS="25"></TD></TR>
+
+<TR><TD><B><FONT COLOR="red">Obránce:</FONT></B></TD>
+<TD><INPUT NAME="obrance" SIZE="40" ROWS="1" COLS="25"></TD></TR>
+
+<TR><TD><B><FONT COLOR="red">Datum:</FONT></B></TD>
+<TD><INPUT NAME="datum" SIZE="40" ROWS="1" COLS="25"></TD></TR>
+
+<TR><TD><B><FONT COLOR="red">Scenář:</FONT></B></TD>
+<TD><SELECT NAME="scenar"><OPTION>A<OPTION>B</SELECT></TD></TR>
+
+<TR><TD><B><FONT COLOR="red">Útočníkova falanga:</FONT></B></TD>
+<TD><INPUT NAME="utocnik.falanga" SIZE="40" ROWS="1" COLS="25"></TD></TR>
+
+<TR><TD><B><FONT COLOR="red">Její váha:</FONT></B></TD>
+<TD><INPUT NAME="utocnik.vaha" SIZE="40" ROWS="1" COLS="25"></TD></TR>
+
+<TR><TD><B><FONT COLOR="red">Pancíř + VS:</FONT></B></TD>
+<TD><INPUT NAME="utocnik.pancir" SIZE="40" ROWS="1" COLS="25"></TD></TR>
+
+<TR><TD><B><FONT COLOR="red">Obráncova falanga:</FONT></B></TD>
+<TD><INPUT NAME="obrance.falanga" SIZE="40" ROWS="1" COLS="25"></TD></TR>
+
+<TR><TD><B><FONT COLOR="red">Její váha:</FONT></B></TD>
+<TD><INPUT NAME="obrance.vaha" SIZE="40" ROWS="1" COLS="25"></TD></TR>
+
+<TR><TD><B><FONT COLOR="red">Pancíř + VS:</FONT></B></TD>
+<TD><INPUT NAME="obrance.pancir" SIZE="40" ROWS="1" COLS="25"></TD></TR>
+
+<TR><TD><B><FONT COLOR="red">Body - útočník:</FONT></B></TD>
+<TD><SELECT NAME="utocnik.body"><OPTION>0<OPTION>1<OPTION>2</SELECT></TD></TR>
+
+<TR><TD><B><FONT COLOR="red">Body - obránce:</FONT></B></TD>
+<TD><SELECT NAME="obrance.body"><OPTION>0<OPTION>1<OPTION>2</SELECT></TD></TR>
+
+<TR><TD><B><FONT COLOR="red">Útočníkem vyřazené obry:</FONT></B></TD>
+<TD><INPUT NAME="utocnik.vyradil" SIZE="40" ROWS="1" COLS="25"></TD></TR>
+
+<TR><TD><B><FONT COLOR="red">Obráncem vyřazené obry:</FONT></B></TD>
+<TD><INPUT NAME="obrance.vyradil" SIZE="40" ROWS="1" COLS="25"></TD></TR>
+
+<TR><TD><B><FONT COLOR="red">Počet kol:</FONT></B></TD>
+<TD><INPUT NAME="kola" SIZE="40" ROWS="1" COLS="25"></TD></TR>
+
+<TR><TD><B><FONT COLOR="red">Hrací doba:</FONT></B></TD>
+<TD><INPUT NAME="doba" SIZE="40" ROWS="1" COLS="25"></TD></TR>
+
+</TABLE>
+
+<P>Chcete-li protokol odeslat ALTARu, stiskněte tlačítko
+<I>Odeslat protokol</I>. Chcete-li údaje z formuláře z nějakého důvodu vymazat,
+stiskněte tlačítko <I>Vymazat údaje</I>. Budou-li některé údaje
+chybět, objeví se ihned po odeslání formuláře informace o tom, které
+údaje chybí nebo jsou vyplněny špatně.</P>
+
+<P><CENTER>
+<INPUT TYPE="submit" VALUE="Odeslat protokol">
+<INPUT TYPE="reset" VALUE="Vymazat údaje">
+</CENTER></P>
+
+</FORM>
+
+<P>&nbsp;</P>
+
+</TD>
+</TR>
+
+<META NAME="pragma" CONTENT="index-off">
+<TR>
+<TD ALIGN="center" COLSPAN="2">
+  
+  <BR><BR>
+  <P>
+  <FONT COLOR="yellow" SIZE="-1">
+  Poslední modifikace této stránky: Wednesday, 28-Oct-1998 16:32:50 CET
+  <BR>
+  Design by ALTAR
+  </FONT>
+  </P>
+</TD>
+</TR>
+<META NAME="pragma" CONTENT="index-on">
+
+</TABLE>
+
+</BODY>
+</HTML>
+

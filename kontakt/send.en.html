@@ -1,0 +1,157 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2//EN">
+<HTML>
+<HEAD>
+<meta charset="utf-8">
+  <TITLE>Send a comment</TITLE>
+  <LINK REL="stylesheet" TYPE="text/css" HREF="/stylesheets/default.css" TITLE="Default">
+  <META NAME="keywords" CONTENT="contact, question, faq, answer, comment, form">
+  <META NAME="section" CONTENT="Otázky a odpovědi">
+  <META NAME="section" CONTENT="Kontakt">
+  <META NAME="language" CONTENT="en">
+</HEAD>
+
+<BODY BGCOLOR="#000033" TEXT="#000099" LINK="#0000FF" VLINK="#9999FF" ALINK="#FF0000">
+
+<TABLE BORDER="0" CELLPADDING="5">
+<TR>
+<TD ALIGN="center" VALIGN="top" WIDTH="125" ROWSPAN="2">
+  <META NAME="pragma" CONTENT="index-off">
+<IMG SRC="/img/altar.gif" HEIGHT="200" WIDTH="125" ALT="Logo ALTARu">
+<BR><BR>
+<!--
+  <A HREF="/altar/index.en.html" CLASS="yellow"><IMG SRC="/cgi/text?ALTAR" BORDER="0" ALT="ALTAR"></A><BR>
+  <A HREF="/arena/index.en.html" CLASS="yellow"><IMG SRC="/cgi/text?Arena" BORDER="0" ALT="Arena"></A><BR>
+  <A HREF="/akce/index.en.html" CLASS="yellow"><IMG SRC="/cgi/text?Cons" BORDER="0" ALT="Cons"></A><BR>
+  <A HREF="/drd/index.en.html" CLASS="yellow"><IMG SRC="/cgi/text?Dra.c2.i1_Doup.e2" BORDER="0" ALT="Dračí Doupě"></A><BR>
+-->
+  <A HREF="/fillets/index.en.html" CLASS="yellow"><IMG SRC="/cgi/text?Fillets" BORDER="0" ALT="Fillets"></A><BR>
+<!--
+  <A HREF="/index.en.html" CLASS="yellow"><IMG SRC="/cgi/text?Gamecon" BORDER="0" ALT="Gamecon"></A><BR>
+  <A HREF="/prog/index.en.html" CLASS="yellow"><IMG SRC="/cgi/text?Programs" BORDER="0" ALT="Programs"></A><BR>
+-->
+  <HR ALIGN="center" WIDTH="33%">
+<!--
+  <A HREF="/cgi/search.cgi?form=simple" CLASS="yellow"><IMG SRC="/cgi/text?Search" BORDER="0" ALT="Search"></A><BR>
+  <A HREF="/kontakt/faq.en.html" CLASS="yellow"><IMG SRC="/cgi/text?FAQ" BORDER="0" ALT="FAQ"></A><BR>
+-->
+  <A HREF="/kontakt/send.en.html" CLASS="yellow"><IMG SRC="/cgi/text?Contact_us" BORDER="0" ALT="Contact us"></A><BR>
+  <HR ALIGN="center" WIDTH="33%">
+<A HREF="/index.en.html" CLASS="yellow"><IMG SRC="/cgi/text?Intro" BORDER="0" ALT="Intro"></A><BR>
+<!--
+  <A HREF="/odkazy/index.en.html" CLASS="yellow"><IMG SRC="/cgi/text?Links" BORDER="0" ALT="Links"></A><BR>
+-->
+<META NAME="pragma" CONTENT="index-on">
+
+</TD>
+<TD WIDTH="495">
+  <BR>
+  <H1 ALIGN="center"><FONT COLOR="yellow">Question or comment</FONT></H1>
+  <BR>&nbsp;
+</TD>
+</TR>
+
+<TR>
+<TD VALIGN="top" BGCOLOR="#FFFFCC" BACKGROUND="/img/background/white.gif" WIDTH="495">
+
+<P>Using this page and the fill-in form it contains you can send a question, a comment, or
+a proposal to us. Fill the fields below and the click the <I>Send</I> button.</P>
+
+<!--
+<P>Všeobecné informace týkající se posílání dotazů si můžete přečíst
+<A HREF="info.html">na této stránce</A>; prosíme Vás, abyste tak předtím, než
+nám dotaz odešlete, opravdu učinili.</P>
+-->
+
+<!--
+<P>Pokud se chcete v nějaké konkrétní záležitosti obrátit na konkrétní osobu, můžete
+si její e-mail najít v <A HREF="index.html">tomto seznamu</A>; předtím si ale
+přečtěte výše zmiňované <A HREF="info.html">informace</A>.</P>
+-->
+
+<FORM METHOD="post" ACTION="/cgi/submit.cgi">
+<INPUT TYPE="hidden" NAME="form.language" VALUE="en">
+<INPUT TYPE="hidden" NAME="formular" VALUE="FAQ">
+<INPUT TYPE="hidden" NAME="required" VALUE="prijmeni,jmeno,email,text">
+
+<TABLE BORDER="0">
+
+<TR><TD><B>Subject:</B></TD>
+<TD><SELECT NAME="vec">
+  <OPTION VALUE="web">ALTAR's WWW pages
+  <OPTION VALUE="arena">Arena
+  <OPTION VALUE="battletech">Battletech
+  <OPTION VALUE="programy">Computer programs and games
+  <OPTION VALUE="fillets">Fish Fillets
+  <OPTION VALUE="gamecon">Gamecon
+  <OPTION VALUE="search">Search engine for this server
+  <OPTION VALUE="jiny">--------------------------------------
+  <OPTION VALUE="jiny">Something else
+</SELECT></TD></TR>
+
+<TR><TD><B><FONT COLOR="red">Your surname:</FONT></B></TD>
+<TD><INPUT NAME="prijmeni" SIZE="40" ROWS="1" COLS="25"></TD></TR>
+
+<TR><TD><B><FONT COLOR="red">Your first name:</FONT></B></TD>
+<TD><INPUT NAME="jmeno" SIZE="40" ROWS="1" COLS="25"></TD></TR>
+
+<TR><TD><B>Street and number:</B></TD>
+<TD><INPUT NAME="ulice" SIZE="40" ROWS="1" COLS="25"></TD></TR>
+
+<TR><TD><B>City:</B></TD>
+<TD><INPUT NAME="mesto" SIZE="40" ROWS="1" COLS="25"></TD></TR>
+
+<TR><TD><B>ZIP code:</B></TD>
+<TD><INPUT NAME="psc" SIZE="40" ROWS="1" COLS="25"></TD></TR>
+
+<TR><TD><B>Country:</B></TD>
+<TD><INPUT NAME="zeme" SIZE="40" ROWS="1" COLS="25"></TD></TR>
+
+<TR><TD><B><FONT COLOR="red">E-mail:</FONT></B></TD>
+<TD><INPUT NAME="email" SIZE="40" ROWS="1" COLS="25"></TD></TR>
+
+<TR><TD><B>Phone number:</B></TD>
+<TD><INPUT NAME="telefon" SIZE="40" ROWS="1" COLS="25"></TD></TR>
+
+</TABLE>
+
+<P>Your comment comes here.<BR>
+<CENTER><TEXTAREA ROWS="10" COLS="55" NAME="text"></TEXTAREA></CENTER></P>
+
+<P><HR>To send the comment or question, click the <I>Send</I> button. To revert the fields
+to their default contents, click the <I>Reset</I> button. If you try to send the form and
+some of the red labeled fields are empty or invalid, the form will not be sent and
+an error message will be given instead.</P>
+
+<P><CENTER>
+<INPUT TYPE="submit" VALUE="Send">
+<INPUT TYPE="reset" VALUE="Reset">
+</CENTER></P>
+
+</FORM>
+
+<P>&nbsp;</P>
+
+</TD>
+</TR>
+
+<META NAME="pragma" CONTENT="index-off">
+<TR>
+<TD ALIGN="center" COLSPAN="2">
+  
+  <BR><BR>
+  <P>
+  <FONT COLOR="yellow" SIZE="-1">
+  Poslední modifikace této stránky: Friday, 30-Oct-1998 09:33:24 CET
+  <BR>
+  Design by ALTAR
+  </FONT>
+  </P>
+</TD>
+</TR>
+<META NAME="pragma" CONTENT="index-on">
+
+</TABLE>
+
+</BODY>
+</HTML>
+
