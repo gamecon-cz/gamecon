@@ -191,5 +191,32 @@ ErrorDocument 404 /404.html
     # Anything else is genuinely uncaptured (forum threads, gallery images,
     # download PDFs, dynamic .php pages): return a real 404 status and the
     # themed 404 page.
+    RewriteRule ^mistrovstvi/?$  mistrovstvi.html [L]
+    RewriteRule ^organizatori/Diskor \- herní profil/?$  organizatori/Diskor - herní profil.html [L]
+    RewriteRule ^organizatori/Diskor o sobě/?$  organizatori/Diskor o sobě.html [L]
+    RewriteRule ^organizatori/almi \- herní profil/?$  organizatori/almi - herní profil.html [L]
+    RewriteRule ^organizatori/almi o sobě/?$  organizatori/almi o sobě.html [L]
+    RewriteRule ^organizatori/dodo \- herní profil/?$  organizatori/dodo - herní profil.html [L]
+    RewriteRule ^organizatori/dodo o sobě/?$  organizatori/dodo o sobě.html [L]
+    RewriteRule ^organizatori/elden \- herní profil/?$  organizatori/elden - herní profil.html [L]
+    RewriteRule ^organizatori/elden o sobě/?$  organizatori/elden o sobě.html [L]
+    RewriteRule ^organizatori/john jarik \- herní profil/?$  organizatori/john jarik - herní profil.html [L]
+    RewriteRule ^organizatori/john jarik o sobě/?$  organizatori/john jarik o sobě.html [L]
+    RewriteRule ^organizatori/lečo \- herní profil/?$  organizatori/lečo - herní profil.html [L]
+    RewriteRule ^organizatori/lečo o sobě/?$  organizatori/lečo o sobě.html [L]
+    RewriteRule ^organizatori/lumík \- herní profil/?$  organizatori/lumík - herní profil.html [L]
+    RewriteRule ^organizatori/lumík o sobě/?$  organizatori/lumík o sobě.html [L]
+    RewriteRule ^organizatori/palča \- herní profil/?$  organizatori/palča - herní profil.html [L]
+    RewriteRule ^organizatori/palča o sobě/?$  organizatori/palča o sobě.html [L]
+    RewriteRule ^organizatori/quarion \- herní profil/?$  organizatori/quarion - herní profil.html [L]
+    RewriteRule ^organizatori/quarion o sobě/?$  organizatori/quarion o sobě.html [L]
+    RewriteRule ^organizatori/skála \- herní profil/?$  organizatori/skála - herní profil.html [L]
+    RewriteRule ^organizatori/skála o sobě/?$  organizatori/skála o sobě.html [L]
+    RewriteRule ^organizatori/tari \- herní profil/?$  organizatori/tari - herní profil.html [L]
+    RewriteRule ^organizatori/tari o sobě/?$  organizatori/tari o sobě.html [L]
+    RewriteRule ^organizatori/tramis o sobě/?$  organizatori/tramis o sobě.html [L]
+    RewriteRule ^organizatori/wulf o sobě/?$  organizatori/wulf o sobě.html [L]
+    RewriteRule ^podmínky registrace/?$  podmínky registrace.html [L]
+
     RewriteRule ^.*$ - [R=404,L]
 </IfModule>
