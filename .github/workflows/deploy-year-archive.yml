@@ -62,8 +62,8 @@ jobs:
                         exit 1
                     fi
                     year="${BASH_REMATCH[1]}"
-                    if (( year < 2001 || year > 2099 )); then
-                        echo "::error::Year $year outside supported range 2001..2099" >&2
+                    if (( year < 1998 || year > 2099 )); then
+                        echo "::error::Year $year outside supported range 1998..2099" >&2
                         exit 1
                     fi
                     sha7=$(git rev-parse --short=7 HEAD)
@@ -83,11 +83,15 @@ jobs:
                         # are lost) — flat HTML reconstructed from the Internet
                         # Archive. Any base works; php:5.6-apache matches their
                         # neighbours and stays lightweight (no PHP executes).
-                        # 2001–2008 are the Altar-era sites (2001–2005 = altar.cz
+                        # 1998–2008 are the Altar-era sites (1998–2005 = altar.cz
                         # /gamecon/ path; 2006–2008 = gamecon.altar.cz subdomain;
                         # different CMS), still pure static HTML — same base.
-                        # (2002 = the Avalcon/Eurocon year in Chotěboř; 2001 =
-                        # minimal results-only archive — Wayback caught no full site.)
+                        # (2002 = the Avalcon/Eurocon year in Chotěboř; 1998–2001 =
+                        # minimal results-centric archives — Wayback caught only the
+                        # 1998 homepage + the DrD-championship results listings.)
+                        1998) base_image="php:5.6-apache" ;;
+                        1999) base_image="php:5.6-apache" ;;
+                        2000) base_image="php:5.6-apache" ;;
                         2001) base_image="php:5.6-apache" ;;
                         2002) base_image="php:5.6-apache" ;;
                         2003) base_image="php:5.6-apache" ;;
@@ -120,9 +124,12 @@ jobs:
                     # extension (mysql, removed in PHP 7 but installable on 5.6).
                     # Both build with no apt packages.
                     case "$year" in
-                        # 2001–2011 static archives need no PHP extension at
+                        # 1998–2011 static archives need no PHP extension at
                         # all (no DB, no dynamic code) — empty list skips the
                         # Dockerfile's whole install step.
+                        1998) php_exts="" ;;
+                        1999) php_exts="" ;;
+                        2000) php_exts="" ;;
                         2001) php_exts="" ;;
                         2002) php_exts="" ;;
                         2003) php_exts="" ;;
