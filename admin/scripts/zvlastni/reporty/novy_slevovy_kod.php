@@ -19,8 +19,17 @@ for ($j = 0; $j < 10; $j++) {
     $kod .= $sleva_charset[random_int(0, strlen($sleva_charset) - 1)];
 }
 dbQuery("INSERT INTO slevove_kody(kod, createdBy, createdAt, usedBy, usedAt, invalidated) VALUE ($0, $1, NOW(), NULL, NULL, 0)", [$kod, $u->id()]);
-?>
-<html>
-<head><title>Nový slevový kód</title></head>
-<body><h1><?= $kod ?></h1></body>
-</html>
+
+$poukaz = new Imagick(ADMIN . "/files/design/poukaz2026.png");
+$color = new ImagickPixel('#000000');
+$imagickDraw = new ImagickDraw();
+$imagickDraw->setFont(ADMIN . "/files/design/JetBrainsMono-Bold.ttf");
+$imagickDraw->setFontSize(110);
+$imagickDraw->setTextKerning(13);
+$imagickDraw->setFillColor($color);
+$imagickDraw->rotate(-5.8);
+$imagickDraw->annotation(605, 645, $kod);
+$poukaz->drawImage($imagickDraw);
+$poukaz->setFormat('png');
+header("Content-Type: image/png");
+echo $poukaz->getImageBlob();
