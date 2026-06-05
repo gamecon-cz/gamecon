@@ -61,7 +61,14 @@ Uživatel rozhodl tahat **všechno, na co nav odkazuje** (celé Altar sekce + `/
    - **Throttle**: pool 4 vlákna; Wayback odmítá část souběžných reqů `Connection refused` (HTTP 000) — **to NENÍ 404**. Serial retry pass s delším backoffem to dobere (reálně 142 failů → 0 po serial passu). Skutečné 404 (CDX hlásí 200, ale `id_` je pryč — typicky dynamické `prihlaska.html` formuláře) zůstanou 404; to je OK.
 3. **Integrace `integrate.sh <rok>`** — **ADITIVNÍ ONLY**: zkopíruj jen stránky, které větev ještě NEMÁ; existující commitnuté (homepage se switcherem, ověřené výsledky) **nikdy nepřepisuj**. Stage přes `git add -- . ':!.envrc' ':!symfony' ':!var'`, abort když by se cokoli **modifikovalo** (additive = jen `A` statusy) nebo když by se stageovalo `symfony`/`.envrc`.
 
-Reálné výsledky path éry: 1998=712, 1999=749, 2000=79 (Wayback má málo), 2001=610, 2002=241, 2003=1000, 2004=584, 2005=587 souborů. Pozdější éry (2006–2008 `gamecon.altar.cz` ISO-8859-2; 2009–2011 `gamecon.cz`) potřebují **jiný HOST list + kódování** v crawleru — adaptovat zvlášť.
+Reálné výsledky path éry: 1998=712, 1999=749, 2000=79 (Wayback má málo), 2001=610, 2002=241, 2003=1000, 2004=584, 2005=587 souborů.
+
+**Pozdější éry (hotovo):** 2006–2008 (`gamecon.altar.cz`, **ISO-8859-2** — byte-ověřeno: 0xb9→š, 0xbe→ž, 0xa9→Š; cp1250 by to rozbilo) byly samostatné weby a už byly kompletní (0 nových). 2009–2011 (`gamecon.cz`, UTF-8, pretty-URL přes per-page RewriteRule) měly **mezery** doplněné: 2009 +26 (profily organizátorů), 2011 +59 (RPG/larp/přednášky popisy). Crawler je éra-aware (`crawl_aggressive.py` HOST list + `meta.json` encoding).
+
+**Restaurace obrázků (`restore_images.py`):** stránky se servírovaly s rozbitými `<img>` — crawl tahal jen HTML/CSS, ne obrázky. Skript sebere image refs z commitnutých HTML/CSS, nechá jen ty, které větev NEMÁ, namatchuje na Wayback CDX a stáhne `id_` **binárně (žádný transcode)**. Klíčové: **CDX okno pro obrázky musí být ŠIROKÉ** (path éra `1998..2006`, ne per-rok) — sdílené `altar.cz/img/*` assety žijí napříč érou, takže glyph zachycený 2005 patří i do 2003. Integrace aditivní; `.gif/.jpg/...` se servírují přímo (žádné RewriteRule). Reálně doplněno path éra 1998–2005 (+8–32 obrázků/rok); 2006–2011 už obrázky měly.
+
+### Landmine #8: literal space v RewriteRule pattern → Apache 500 na VŠECHNO
+2009–2011 mají pretty-URL s **mezerami** (`organizatori/Diskor - herní profil`). `RewriteRule ^organizatori/Diskor - herní profil/?$  ...` — Apache dělí direktivu na whitespace, takže mezera v patternu = **syntax error v .htaccess → 500 na každý request** (i homepage). Fix: obě části **uvozovkovat** a v patternu mezery jako `\s`: `RewriteRule "^organizatori/Diskor\s\-\sherní\sprofil/?$"  "organizatori/Diskor - herní profil.html" [L]`.
 
 ## Landmines, které jsme reálně chytili
 
