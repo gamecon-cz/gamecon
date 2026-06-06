@@ -2,12 +2,14 @@
 
 use Gamecon\Kanaly\GcMail;
 use Gamecon\Kanaly\MailLogger;
+use Gamecon\Kanaly\MimeNahled;
 use Gamecon\XTemplate\XTemplate;
 
 /**
- * nazev: Logy
- * pravo: 105
- * submenu_group: 8
+ * nazev: Mail logy
+ * pravo: 113
+ * submenu_group: 1
+ * submenu_order: 4
  */
 
 /** @var Uzivatel $u */
@@ -48,10 +50,17 @@ if ($idDetailu > 0) {
     $detail = $mailLogger->detail($idDetailu);
     if ($detail === null) {
         http_response_code(404);
-        echo '<h1>Záznam nenalezen</h1><p><a class="tlacitko" href="logy">Zpět na seznam</a></p>';
+        echo '<h1>Záznam nenalezen</h1><p><a class="tlacitko" href="dev/logy">Zpět na seznam</a></p>';
         return;
     }
     $adresatiDetail = json_decode((string) $detail['adresati'], true) ?: [];
+
+    // čitelný náhled: přednostně samostatně uložené HTML, jinak dekódovat ze syrové MIME zprávy
+    $teloHtml = $detail['telo_html'] ?? null;
+    if ($teloHtml === null || $teloHtml === '') {
+        $tela     = MimeNahled::vytahniTela((string) $detail['telo']);
+        $teloHtml = $tela['html'] ?? ($tela['text'] !== null ? nl2br(htmlspecialchars($tela['text'])) : null);
+    }
 
     $t = new XTemplate(__DIR__ . '/logy.xtpl');
     $t->assign('kdy', htmlspecialchars((string) $detail['kdy']));
@@ -60,7 +69,12 @@ if ($idDetailu > 0) {
     $t->assign('adresati', htmlspecialchars(implode(', ', array_map('strval', $adresatiDetail))));
     $t->assign('prilohy', (int) $detail['prilohy_count']);
     $t->assign('chyba', $detail['chyba'] !== null ? htmlspecialchars((string) $detail['chyba']) : '—');
+    // náhled běží v izolovaném iframe (srcdoc), aby HTML e-mailu neovlivnilo admin stránku
+    $t->assign('nahledSrcdoc', $teloHtml !== null ? htmlspecialchars($teloHtml, ENT_QUOTES) : '');
     $t->assign('telo', htmlspecialchars((string) $detail['telo']));
+    if ($teloHtml !== null) {
+        $t->parse('detail.nahled');
+    }
     $t->parse('detail');
     $t->out('detail');
     return;
@@ -92,7 +106,7 @@ $sestavUrl = static function (array $parametry) use ($filtr): string {
         'smer'   => $parametry['smer']   ?? null,
         'strana' => $parametry['strana'] ?? null,
     ], static fn($hodnota) => $hodnota !== null && $hodnota !== '');
-    return 'logy?' . http_build_query($vychozi);
+    return 'dev/logy?' . http_build_query($vychozi);
 };
 
 $odkazRazeni = static function (string $sloupec) use ($razeniSloupec, $razeniSmer, $sestavUrl): string {

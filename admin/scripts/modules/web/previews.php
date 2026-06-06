@@ -7,9 +7,8 @@ use Gamecon\Dev\GateLink;
  * Seznam aktivních preview prostředí.
  *
  * nazev: Previews
- * pravo: 113
- * submenu_group: 1
- * submenu_order: 2
+ * pravo: 105
+ * submenu_group: 9
  */
 $reader = new DeploymentsReader();
 $unavailableReason = $reader->unavailableReason();
@@ -25,11 +24,14 @@ $gateUrl = static fn (string $url): string => GateLink::podepis($url, PREVIEW_GA
 
 $mailpitUrl = $gateUrl('https://webmail.preview.gamecon.cz/');
 
-// Preview slug = git branch name (viz .github/workflows/deploy-preview.yml).
-// Linkujeme do filtru PR listu — funguje pro open i closed PR a nerozbije
-// se, pokud větev neexistuje / PR ještě nevznikl.
-$prListUrl = static fn (string $slug): string => 'https://github.com/gamecon-cz/gamecon/pulls?q='
-    . rawurlencode('is:pr head:' . $slug);
+// Odkaz do filtru PR listu podle větve. POZOR: slug NENÍ jméno větve — je to
+// jeho slugifikace (podtržítka→pomlčky, diakritika pryč, ořez na 30 znaků; viz
+// deploy-preview.yml). Pro odkaz na PR proto použijeme uloženou původní větev
+// (`$preview->branch`); když chybí (staré záznamy bez branch), spadneme na slug
+// jako dřív. `head:` v GitHub PR hledání matchuje prefix, takže to funguje pro
+// open i closed PR a nerozbije se, pokud větev neexistuje.
+$prListUrl = static fn (string $ref): string => 'https://github.com/gamecon-cz/gamecon/pulls?q='
+    . rawurlencode('is:pr head:' . $ref);
 ?>
 <h2>Preview prostředí</h2>
 
@@ -39,7 +41,7 @@ $prListUrl = static fn (string $slug): string => 'https://github.com/gamecon-cz/
         webmail.preview.gamecon.cz
     </a>
     <div style="margin-top: 6px; font-size: 0.85em; color: #555;">
-        Přihlášení k bráně:
+        Přihlášení k bráně (basic auth):
         <code style="user-select: all;"><?php echo htmlspecialchars(PREVIEW_BASIC_AUTH_USER); ?></code>
         /
         <code style="user-select: all;"><?php echo htmlspecialchars(PREVIEW_BASIC_AUTH_PASSWORD); ?></code>
@@ -71,8 +73,9 @@ $prListUrl = static fn (string $slug): string => 'https://github.com/gamecon-cz/
                     </a>
                 </td>
                 <td>
-                    <a href="<?php echo htmlspecialchars($prListUrl($preview->slug)); ?>" target="_blank" rel="noopener">
-                        <?php echo htmlspecialchars($preview->slug); ?>
+                    <?php $prRef = $preview->branch ?? $preview->slug; ?>
+                    <a href="<?php echo htmlspecialchars($prListUrl($prRef)); ?>" target="_blank" rel="noopener">
+                        <?php echo htmlspecialchars($prRef); ?>
                     </a>
                 </td>
                 <td>

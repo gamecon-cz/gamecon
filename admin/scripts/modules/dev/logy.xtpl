@@ -8,7 +8,7 @@
     <input type="text" name="filtr" value="{filtr}">
   </label>
   <input type="submit" value="Filtrovat">
-  <!-- begin:zrusitFiltr --><a class="tlacitko" href="logy" title="Zrušit filtr">❌</a><!-- end:zrusitFiltr -->
+  <!-- begin:zrusitFiltr --><a class="tlacitko" href="dev/logy" title="Zrušit filtr">❌</a><!-- end:zrusitFiltr -->
 </form>
 
 <p>Celkem záznamů: {celkem}. Strana {aktualniStrana} / {pocetStran}.</p>
@@ -31,7 +31,7 @@
     <td>{adresati}</td>
     <td style="text-align: center">{prilohy}</td>
     <td>{chyba}</td>
-    <td style="text-align: center"><a class="tlacitko" href="logy?id={id}" title="Zobrazit detail">🔍</a></td>
+    <td style="text-align: center"><a class="tlacitko" href="dev/logy?id={id}" title="Zobrazit detail">🔍</a></td>
   </tr>
   <!-- end:radek -->
 </table>
@@ -51,7 +51,7 @@
       <h3 id="modalTestovaciEmailNadpis">Odeslat testovací email</h3>
       <button type="button" class="logy-modal__zavrit" aria-label="Zavřít" data-zavrit-test-email-modal>&times;</button>
     </div>
-    <form method="post" action="logy">
+    <form method="post">
       <p>Testovací e-mail bude odeslán na: <strong>{emailAdminaProTest}</strong></p>
       <p>
         <label for="testEmailPredmet">Předmět <span aria-hidden="true">*</span></label><br>
@@ -178,7 +178,7 @@
 
 <h1>Detail e-mailu</h1>
 
-<p><a class="tlacitko" href="logy">« Zpět na seznam</a></p>
+<p><a class="tlacitko" href="dev/logy">« Zpět na seznam</a></p>
 
 <table class="zvyraznovana">
   <tr><th>Kdy</th><td>{kdy}</td></tr>
@@ -189,7 +189,15 @@
   <tr><th>Chyba</th><td>{chyba}</td></tr>
 </table>
 
-<h2>Tělo e-mailu</h2>
-<pre style="white-space: pre-wrap; word-break: break-word; background: #f5f5f5; padding: 1em; border: 1px solid #ddd">{telo}</pre>
+<!-- begin:nahled -->
+<h2>Náhled e-mailu</h2>
+<iframe srcdoc="{nahledSrcdoc}" sandbox="" title="Náhled e-mailu" style="width: 100%; min-height: 24em; background: #fff; border: 1px solid #ddd"></iframe>
+<!-- end:nahled -->
+
+<h2>Odeslané MIME</h2>
+<details>
+  <summary>Zobrazit zdroj</summary>
+  <pre style="white-space: pre-wrap; word-break: break-word; background: #f5f5f5; padding: 1em; border: 1px solid #ddd">{telo}</pre>
+</details>
 
 <!-- end:detail -->

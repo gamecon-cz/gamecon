@@ -62,8 +62,8 @@ jobs:
                         exit 1
                     fi
                     year="${BASH_REMATCH[1]}"
-                    if (( year < 2011 || year > 2099 )); then
-                        echo "::error::Year $year outside supported range 2011..2099" >&2
+                    if (( year < 1998 || year > 2099 )); then
+                        echo "::error::Year $year outside supported range 1998..2099" >&2
                         exit 1
                     fi
                     sha7=$(git rev-parse --short=7 HEAD)
@@ -79,6 +79,32 @@ jobs:
                     # gameconcz/gamecon:8.2 image baked into Dockerfile.archive.
                     # Add a row when a year's PHP era is confirmed during recon.
                     case "$year" in
+                        # 2003–2011 are STATIC archives (the live DB + router
+                        # are lost) — flat HTML reconstructed from the Internet
+                        # Archive. Any base works; php:5.6-apache matches their
+                        # neighbours and stays lightweight (no PHP executes).
+                        # 1998–2008 are the Altar-era sites (1998–2005 = altar.cz
+                        # /gamecon/ path; 2006–2008 = gamecon.altar.cz subdomain;
+                        # different CMS), still pure static HTML — same base.
+                        # (2002 = the Avalcon/Eurocon year in Chotěboř; 1998–2001 =
+                        # minimal results-centric archives — Wayback caught only the
+                        # 1998 homepage + the DrD-championship results listings.)
+                        1998) base_image="php:5.6-apache" ;;
+                        1999) base_image="php:5.6-apache" ;;
+                        2000) base_image="php:5.6-apache" ;;
+                        2001) base_image="php:5.6-apache" ;;
+                        2002) base_image="php:5.6-apache" ;;
+                        2003) base_image="php:5.6-apache" ;;
+                        2004) base_image="php:5.6-apache" ;;
+                        2005) base_image="php:5.6-apache" ;;
+                        2006) base_image="php:5.6-apache" ;;
+                        2007) base_image="php:5.6-apache" ;;
+                        2008) base_image="php:5.6-apache" ;;
+                        2009) base_image="php:5.6-apache" ;;
+                        2010) base_image="php:5.6-apache" ;;
+                        2011) base_image="php:5.6-apache" ;;
+                        2012) base_image="php:5.6-apache" ;;
+                        2013) base_image="php:5.6-apache" ;;
                         2014) base_image="php:5.6-apache" ;;
                         2015) base_image="php:5.6-apache" ;;
                         2016) base_image="php:5.6-apache" ;;
@@ -98,6 +124,25 @@ jobs:
                     # extension (mysql, removed in PHP 7 but installable on 5.6).
                     # Both build with no apt packages.
                     case "$year" in
+                        # 1998–2011 static archives need no PHP extension at
+                        # all (no DB, no dynamic code) — empty list skips the
+                        # Dockerfile's whole install step.
+                        1998) php_exts="" ;;
+                        1999) php_exts="" ;;
+                        2000) php_exts="" ;;
+                        2001) php_exts="" ;;
+                        2002) php_exts="" ;;
+                        2003) php_exts="" ;;
+                        2004) php_exts="" ;;
+                        2005) php_exts="" ;;
+                        2006) php_exts="" ;;
+                        2007) php_exts="" ;;
+                        2008) php_exts="" ;;
+                        2009) php_exts="" ;;
+                        2010) php_exts="" ;;
+                        2011) php_exts="" ;;
+                        2012) php_exts="mysql" ;;
+                        2013) php_exts="mysql" ;;
                         2014) php_exts="mysql" ;;
                         2015) php_exts="mysql" ;;
                         2016) php_exts="mysqli" ;;

@@ -35,11 +35,12 @@ class MailLogger
         array  $adresati,
         int    $pocetPriloh,
         string $telo,
+        ?string $teloHtml = null,
         ?string $chyba = null,
     ): void {
         $dotaz = $this->databaze()->prepare(
-            'INSERT INTO maily (kdy, predmet, predmet_lower, format, adresati, prilohy_count, telo, chyba)
-             VALUES (:kdy, :predmet, :predmet_lower, :format, :adresati, :prilohy_count, :telo, :chyba)'
+            'INSERT INTO maily (kdy, predmet, predmet_lower, format, adresati, prilohy_count, telo, telo_html, chyba)
+             VALUES (:kdy, :predmet, :predmet_lower, :format, :adresati, :prilohy_count, :telo, :telo_html, :chyba)'
         );
         $dotaz->execute([
             ':kdy'           => date('c'),
@@ -49,6 +50,7 @@ class MailLogger
             ':adresati'      => json_encode(array_values($adresati), JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES),
             ':prilohy_count' => $pocetPriloh,
             ':telo'          => $telo,
+            ':telo_html'     => $teloHtml,
             ':chyba'         => $chyba,
         ]);
     }
@@ -89,7 +91,7 @@ class MailLogger
     public function detail(int $id): ?array
     {
         $dotaz = $this->databaze()->prepare(
-            'SELECT id, kdy, predmet, format, adresati, prilohy_count, telo, chyba
+            'SELECT id, kdy, predmet, format, adresati, prilohy_count, telo, telo_html, chyba
              FROM maily
              WHERE id = :id'
         );
@@ -154,6 +156,7 @@ class MailLogger
                 adresati        JSON NOT NULL,
                 prilohy_count   INTEGER NOT NULL DEFAULT 0,
                 telo            TEXT NOT NULL,
+                telo_html       TEXT,
                 chyba           TEXT
             )
             SQLITE3);
@@ -161,6 +164,21 @@ class MailLogger
         $sqlite->query('CREATE INDEX IF NOT EXISTS idx_maily_prilohy_count ON maily (prilohy_count)');
         $sqlite->query('CREATE INDEX IF NOT EXISTS idx_maily_predmet_lower ON maily (predmet_lower)');
 
-        return $this->sqlite = $sqlite;
+        $this->sqlite = $sqlite;
+        $this->dodejSloupecTeloHtml();
+
+        return $sqlite;
+    }
+
+    /**
+     * Doplní sloupec `telo_html` do již existující databáze, která vznikla
+     * před jeho zavedením (SQLite nemá ADD COLUMN IF NOT EXISTS).
+     */
+    private function dodejSloupecTeloHtml(): void
+    {
+        $sloupce = $this->sqlite->query('PRAGMA table_info(maily)')->fetchAll(PDO::FETCH_COLUMN, 1);
+        if (!in_array('telo_html', $sloupce, true)) {
+            $this->sqlite->query('ALTER TABLE maily ADD COLUMN telo_html TEXT');
+        }
     }
 }

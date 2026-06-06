@@ -141,6 +141,14 @@ RUN mkdir -p \
         # Without this the archive renders unstyled (css/js 404).
         mkdir -p /var/www/html/gamecon/app/web/cache; \
         ln -sfn ../../../spec/cache /var/www/html/gamecon/app/web/cache/public; \
+    fi \
+    # Oldest era (≤2014, www/+sdilene/+specificke/ framework): the .hhp
+    # framework writes compiled .xtpc templates next to their .xtpl sources
+    # (handled by the COPY --chown above) and appends a merge log to
+    # admin/files/logs/. Ensure that log dir exists + is writable.
+    && if [ -d /var/www/html/gamecon/sdilene ]; then \
+        mkdir -p /var/www/html/gamecon/admin/files/logs; \
+        chown -R www-data:www-data /var/www/html/gamecon/admin/files/logs; \
     fi
 
 # Apache snippet honoring X-Forwarded-Proto from the upstream proxy chain
