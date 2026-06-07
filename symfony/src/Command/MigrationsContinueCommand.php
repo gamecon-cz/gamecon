@@ -13,7 +13,7 @@ use Symfony\Component\Console\Style\SymfonyStyle;
 
 #[AsCommand(
     name: 'migrations:continue',
-    description: 'Updates database schema by running all new migrations (legacy + Doctrine)',
+    description: 'Runs all new SQL migrations via the legacy runner and marks the JSON program cache dirty',
 )]
 class MigrationsContinueCommand extends Command
 {
