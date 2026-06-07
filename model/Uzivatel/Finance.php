@@ -620,7 +620,10 @@ JOIN akce_seznam AS aktivita
     ON prihlaseni.id_akce = aktivita.id_akce
 JOIN akce_prihlaseni_stavy AS stav_prihlaseni
     ON prihlaseni.id_stavu_prihlaseni = stav_prihlaseni.id_stavu_prihlaseni
-LEFT JOIN discounts_generated on discounts_generated.id_akce = aktivita.id_akce and discounts_generated.rok = aktivita.rok
+LEFT JOIN discounts_generated
+    ON discounts_generated.id_akce = aktivita.id_akce
+    AND discounts_generated.rok = aktivita.rok
+    AND discounts_generated.id_uzivatele = $idUcastnika
 WHERE aktivita.rok = $rok
 SQL;
 
@@ -646,7 +649,9 @@ SQL;
                     $this->brigadnickaOdmena += (float)$r['cena'];
                 }
             } else {
-                $this->cenaAktivit += $r['cena'];
+                // sleva_prima (generovaná sleva k aktivitě) snižuje účtovanou cenu;
+                // storno níže ale počítáme z plné ceny — penále za neúčast se slevou nesnižujeme.
+                $this->cenaAktivit += $r['cena'] - ($r['sleva_prima'] ?? 0.0);
                 $idStavuPrihlaseni = (int)$r['id_stavu_prihlaseni'];
                 if ($idStavuPrihlaseni === StavPrihlaseni::PRIHLASEN_ALE_NEDORAZIL) {
                     $this->sumaStorna += $r['cena'];
