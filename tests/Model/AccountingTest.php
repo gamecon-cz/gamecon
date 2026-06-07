@@ -722,4 +722,47 @@ SQL,
             'Cena aktivit (a tím i celkový stav financí) musí být snížena o generovanou slevu k aktivitě, ne jen řádek v rozpisu',
         );
     }
+
+    private function pocetGenerovanychSlev(): int
+    {
+        return (int) dbOneLine('SELECT COUNT(*) AS pocet FROM discounts_generated')['pocet'];
+    }
+
+    /**
+     * @test
+     */
+    public function testSmazaniAktivitySmazeGenerovanouSlevuKACi(): void
+    {
+        $this->vlozAktivitu(idAktivity: 55612, nazev: 'Kubb', cena: 250);
+        $this->vlozGenerovanouSlevu(castka: 100, idAkce: 55612);
+        self::assertSame(1, $this->pocetGenerovanychSlev());
+
+        // Přihlášku odebíráme zvlášť — má vlastní FK na akce_seznam bez cascade,
+        // takže by jinak smazání aktivity zablokovala. Testujeme cascade na slevu.
+        dbQuery('DELETE FROM akce_prihlaseni WHERE id_akce = $0', [55612]);
+        dbQuery('DELETE FROM akce_seznam WHERE id_akce = $0', [55612]);
+
+        self::assertSame(
+            0,
+            $this->pocetGenerovanychSlev(),
+            'FK ON DELETE CASCADE musí smazat generovanou slevu, když zanikne navázaná aktivita (jinak osiřelý řádek dál snižuje cenu)',
+        );
+    }
+
+    /**
+     * @test
+     */
+    public function testSmazaniUzivateleSmazeJehoGenerovaneSlevy(): void
+    {
+        $this->vlozGenerovanouSlevu(castka: 100);
+        self::assertSame(1, $this->pocetGenerovanychSlev());
+
+        dbQuery('DELETE FROM uzivatele_hodnoty WHERE id_uzivatele = $0', [555]);
+
+        self::assertSame(
+            0,
+            $this->pocetGenerovanychSlev(),
+            'FK ON DELETE CASCADE musí smazat generované slevy zaniklého uživatele',
+        );
+    }
 }
