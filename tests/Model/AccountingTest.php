@@ -200,6 +200,22 @@ SQL,
         );
     }
 
+    private function vlozGenerovanouSlevu(
+        float $castka,
+        ?int $idAkce = null,
+        int $idUzivatele = 555,
+    ): void {
+        dbQuery(
+            'INSERT INTO discounts_generated(id_uzivatele, rok, castka, id_akce) VALUES($0, $1, $2, $3)',
+            [
+                0 => $idUzivatele,
+                1 => ROCNIK,
+                2 => $castka,
+                3 => $idAkce,
+            ],
+        );
+    }
+
     private function pridelPravo(int $idPrava): void
     {
         $unique = uniqid('', true);
@@ -665,5 +681,45 @@ SQL,
 
         self::assertStringContainsString('<td>ubytování 2×</td><td>400</td>', $html);
         self::assertStringContainsString('<td>Sleva z ubytování 2×</td><td>-400</td>', $html);
+    }
+
+    /**
+     * @test
+     */
+    public function testGenerovanaSlevaJinehoUzivateleNeovlivniCenuAktivity(): void
+    {
+        // Uživatel 556 dostane generovanou slevu na aktivitu 55610. Uživatel 555
+        // je na téže aktivitě přihlášen, ale slevu nemá → jeho cena musí zůstat plná.
+        dbQuery(
+            "INSERT INTO uzivatele_hodnoty SET id_uzivatele = 556, login_uzivatele = 'TestAccounting2', email1_uzivatele = 'test.accounting2@example.org'",
+        );
+        $this->vlozAktivitu(idAktivity: 55610, nazev: 'Kubb', cena: 250);
+        $this->vlozGenerovanouSlevu(castka: 100, idAkce: 55610, idUzivatele: 556);
+
+        $account = Accounting::getPersonalFinance($this->dejUzivatele(), showDiscounts: false);
+        $aktivity = array_values(array_filter(
+            $account->getTransactions(),
+            fn ($transaction) => $transaction->getCategory() === TransactionCategoryEnum::ACTIVITY,
+        ));
+
+        self::assertCount(1, $aktivity, 'Aktivita se nesmí kvůli join na cizí slevu zduplikovat');
+        self::assertSame(-250, $aktivity[0]->getTotalAmount(), 'Generovaná sleva jiného uživatele nesmí snížit cenu aktivity tohoto uživatele');
+    }
+
+    /**
+     * @test
+     */
+    public function testGenerovanaSlevaSnizujeCenuAktivitVCelkovemStavu(): void
+    {
+        $this->vlozAktivitu(idAktivity: 55611, nazev: 'Kubb', cena: 250);
+        $this->vlozGenerovanouSlevu(castka: 100, idAkce: 55611);
+
+        $finance = $this->dejUzivatele()->finance();
+
+        self::assertSame(
+            150.0,
+            $finance->cenaAktivit(),
+            'Cena aktivit (a tím i celkový stav financí) musí být snížena o generovanou slevu k aktivitě, ne jen řádek v rozpisu',
+        );
     }
 }
