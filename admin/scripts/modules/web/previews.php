@@ -1,7 +1,9 @@
 <?php
 
+use Gamecon\Dev\CrossSiteLogin;
 use Gamecon\Dev\DeploymentsReader;
 use Gamecon\Dev\GateLink;
+use Gamecon\Dev\SsoParovaciCookie;
 
 /**
  * Seznam aktivních preview prostředí.
@@ -21,6 +23,40 @@ $previews = $unavailableReason === null ? $reader->readPreviews() : [];
 // není nastavený, brána spadne na basic auth — proto údaje ukazujeme jako
 // kopírovatelný text. Viz GateLink + ansible role gate_validator.
 $gateUrl = static fn (string $url): string => GateLink::podepis($url, PREVIEW_GATE_SECRET);
+
+// Magické přihlášení do preview adminu: k odkazu na /admin připojíme podepsaný
+// ?gcsso= token vázaný na id_uzivatele přihlášeného admina + náhodný nonce, který
+// zároveň uložíme do spárovací cookie (.gamecon.cz). Preview pak admina přihlásí
+// podle ID — ale jen když nonce z tokenu sedí s nonce z cookie, takže pouhé sdílení
+// odkazu nikoho nepřihlásí (cizí prohlížeč cookie nemá). Bez masteru / ID se token
+// nepřipojí a zůstane jen basic-auth brána.
+//
+// Na rozdíl od archivů (ty ověřují klíčem ODVOZENÝM pro daný ročník) preview
+// podepisuje i ověřuje přímo MASTEREM GAMECON_SSO_SECRET: preview není ročník v
+// rámci fan-outu, je to jedno samostatné prostředí, které přihlašuje samo sebe —
+// žádné odvození per-prostředí netřeba. Master se do preview dostává přes
+// deploy-preview-branch.sh (-e GAMECON_SSO_SECRET); ověřovací stranu viz
+// admin/scripts/prihlaseni.php (větev jsmeNaPreview()).
+$ssoMaster = defined('GAMECON_SSO_SECRET') ? GAMECON_SSO_SECRET : '';
+$ssoNonce = null;
+$ssoIdUzivatele = $u->id() ?? 0;
+if ($ssoIdUzivatele > 0 && $ssoMaster !== '') {
+    // Kryptograficky náhodný nonce (128 bitů) — bezpečnostní párovací token.
+    $ssoNonce = bin2hex(random_bytes(16));
+    SsoParovaciCookie::nastav($ssoNonce);
+}
+$adminUrlSeSso = static function (string $previewUrl) use ($ssoNonce, $ssoIdUzivatele, $ssoMaster, $gateUrl): string {
+    $adminUrl = rtrim($previewUrl, '/') . '/admin';
+    if ($ssoNonce !== null) {
+        $gcsso = CrossSiteLogin::podepis($ssoIdUzivatele, $ssoNonce, $ssoMaster);
+        if ($gcsso !== '') {
+            $oddelovac = str_contains($adminUrl, '?') ? '&' : '?';
+            $adminUrl .= $oddelovac . 'gcsso=' . $gcsso;
+        }
+    }
+
+    return $gateUrl($adminUrl);
+};
 
 $mailpitUrl = $gateUrl('https://webmail.preview.gamecon.cz/');
 
@@ -60,6 +96,7 @@ $prListUrl = static fn (string $ref): string => 'https://github.com/gamecon-cz/g
         <thead>
             <tr>
                 <th>URL</th>
+                <th>Admin</th>
                 <th>PR</th>
                 <th>Deployed</th>
             </tr>
@@ -71,6 +108,9 @@ $prListUrl = static fn (string $ref): string => 'https://github.com/gamecon-cz/g
                     <a href="<?php echo htmlspecialchars($gateUrl($preview->url)); ?>" target="_blank" rel="noopener">
                         <?php echo htmlspecialchars(preg_replace('/^https?:\/\/|\/$/', '', $preview->url)); ?>
                     </a>
+                </td>
+                <td>
+                    <a href="<?php echo htmlspecialchars($adminUrlSeSso($preview->url)); ?>" target="_blank" rel="noopener">/admin</a>
                 </td>
                 <td>
                     <?php $prRef = $preview->branch ?? $preview->slug; ?>
