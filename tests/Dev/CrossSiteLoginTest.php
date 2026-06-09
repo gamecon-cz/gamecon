@@ -83,6 +83,21 @@ class CrossSiteLoginTest extends TestCase
         self::assertNull(CrossSiteLogin::over($token, 'secret-b'));
     }
 
+    public function testKlicOdvozenyProRocnikNeoveriTokenJinehoRocniku(): void
+    {
+        // Izolace ročníků: ostrá podepisuje klíčem HMAC(rok, master); archiv ověřuje
+        // jen svým odvozeným klíčem. Token pro 2025 NESMÍ projít klíčem 2024 —
+        // popadený archiv 2025 tak neumí podvrhnout login do 2024.
+        $master = 'master-sso-secret';
+        $klic2025 = hash_hmac('sha256', '2025', $master);
+        $klic2024 = hash_hmac('sha256', '2024', $master);
+
+        $token2025 = CrossSiteLogin::podepis('admin@gamecon.cz', 'nonce', $klic2025);
+
+        self::assertNotNull(CrossSiteLogin::over($token2025, $klic2025), 'vlastní ročník projde');
+        self::assertNull(CrossSiteLogin::over($token2025, $klic2024), 'cizí ročník neprojde');
+    }
+
     public function testNesmyslnyTvarTokenuVratiNull(): void
     {
         self::assertNull(CrossSiteLogin::over('bez-tecky', self::SECRET));

@@ -74,3 +74,5 @@ jobs:
                     # Gate-token signing secrets (viz deploy-ostra.yml).
                     PREVIEW_GATE_SECRET: ${{ secrets.PREVIEW_GATE_SECRET }}
                     ARCHIVE_GATE_SECRET: ${{ secrets.ARCHIVE_GATE_SECRET }}
+                    # Master pro magické přihlášení do archivu (viz deploy-ostra.yml).
+                    GAMECON_SSO_SECRET: ${{ secrets.GAMECON_SSO_SECRET }}

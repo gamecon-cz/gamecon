@@ -155,4 +155,13 @@ if (! defined('ARCHIVE_GATE_SECRET')) {
     define('ARCHIVE_GATE_SECRET', getenv('ARCHIVE_GATE_SECRET') ?: '');
 }
 
+// Magické přihlášení do archivu (?gcsso=). Lokálně prázdné — feature se nepřipojí.
+// GAMECON_SSO_SECRET = master (ostrá), GAMECON_SSO_KEY = odvozený klíč ročníku (archiv).
+if (! defined('GAMECON_SSO_SECRET')) {
+    define('GAMECON_SSO_SECRET', getenv('GAMECON_SSO_SECRET') ?: '');
+}
+if (! defined('GAMECON_SSO_KEY')) {
+    define('GAMECON_SSO_KEY', getenv('GAMECON_SSO_KEY') ?: '');
+}
+
 error_reporting(E_ALL);
