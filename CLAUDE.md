@@ -180,6 +180,19 @@ This overrides the global YouTrack-style naming rule from
 ticket IDs like `PCA-682` aren't unique without the project prefix;
 Trello card numbers are).
 
+## Merging to `main`
+
+Pushing to `main` auto-deploys OSTRA (prod) via `deploy-ostra.yml`. So
+**all changes go through a PR** — branch off `origin/main`, open a PR,
+merge it. Never push straight to `main`.
+
+**The only exception is a critical hotfix saving a failing production**
+(prod is down or actively broken and a PR round-trip would prolong the
+outage). In that case a direct push to `main` is acceptable to get the
+fix live immediately; open a follow-up PR / note afterwards for the
+record. Outside that narrow case — even for a "tiny" or "obviously
+safe" change — use a PR.
+
 ## SQL Coding Style
 - **No table aliases**: Use full table names in queries whenever possible
 - **No single-letter aliases**: Avoid cryptic aliases like `t`, `n`, `a`
