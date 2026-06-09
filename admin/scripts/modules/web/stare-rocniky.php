@@ -43,20 +43,23 @@ $gateUrl = static fn (string $url): string => GateLink::podepis($url, ARCHIVE_GA
 // do toho jednoho ročníku, ne do ostatních a hlavně NE k SECRET_CRYPTO_KEY (ten šifruje
 // osobní data na ostré a do archivů nepatří). Odvození je shodné s bash stranou v
 // deploy-year-archive.sh (openssl dgst -sha256 -hmac).
+// Token nese ČÍSELNÉ id_uzivatele, ne e-mail: ID je napříč ostrou i zmrazenými
+// archivními snapshoty stabilní, kdežto e-mail je proměnný a mohl by se časem
+// přiřadit jinému člověku (→ přihlášení do cizího účtu).
 $ssoMaster = defined('GAMECON_SSO_SECRET') ? GAMECON_SSO_SECRET : '';
 $ssoNonce = null;
-$ssoEmail = $u->mail() ?? '';
-if ($ssoEmail !== '' && $ssoMaster !== '') {
+$ssoIdUzivatele = $u->id() ?? 0;
+if ($ssoIdUzivatele > 0 && $ssoMaster !== '') {
     // Kryptograficky náhodný nonce (128 bitů). Ne randHex() — ta stropuje na 32
     // znaků a stojí na substr(md5(mt_rand())), což má slabou entropii; tady jde
     // o bezpečnostní párovací token, tak chceme random_bytes.
     $ssoNonce = bin2hex(random_bytes(16));
     SsoParovaciCookie::nastav($ssoNonce);
 }
-$adminUrlSeSso = static function (string $adminUrl, int $rocnik) use ($ssoNonce, $ssoEmail, $ssoMaster, $gateUrl): string {
+$adminUrlSeSso = static function (string $adminUrl, int $rocnik) use ($ssoNonce, $ssoIdUzivatele, $ssoMaster, $gateUrl): string {
     if ($ssoNonce !== null) {
         $klicRocniku = hash_hmac('sha256', (string) $rocnik, $ssoMaster);
-        $gcsso = CrossSiteLogin::podepis($ssoEmail, $ssoNonce, $klicRocniku);
+        $gcsso = CrossSiteLogin::podepis($ssoIdUzivatele, $ssoNonce, $klicRocniku);
         if ($gcsso !== '') {
             $oddelovac = str_contains($adminUrl, '?') ? '&' : '?';
             $adminUrl .= $oddelovac . 'gcsso=' . $gcsso;
