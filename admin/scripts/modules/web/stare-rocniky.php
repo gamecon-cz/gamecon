@@ -138,7 +138,7 @@ $nadpisEpochy = [
                     if ($epocha === 'ziva') {
                         $adminUrl = rtrim($archive->url, '/') . '/admin';
                         ?>
-                        <a href="<?php echo htmlspecialchars($adminUrlSeSso($adminUrl, $archive->year)); ?>" target="_blank" rel="noopener">/admin</a>
+                        <a href="<?php echo htmlspecialchars($adminUrlSeSso($adminUrl, $archive->year)); ?>" target="_blank" rel="noopener"><?php echo $archive->year; ?> /admin</a>
                     <?php } else { ?>
                         —
                     <?php } ?>
