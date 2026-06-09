@@ -58,3 +58,11 @@ if (!defined('FTP_ZALOHA_DB')) define('FTP_ZALOHA_DB', '');
 // standard dummy from nastaveni-local-default.php.
 if (!defined('SECRET_CRYPTO_KEY')) define('SECRET_CRYPTO_KEY', getenv('SECRET_CRYPTO_KEY')
     ?: 'def0000066cba9ae32fdda839a143276cc0646b3880920c93876ecc1bbaca96ee6ed251559516b1804f4742c2165e4c7eb3ed5c7a5abe857c6db8608e3b5fe97a8cdf15a');
+
+// GAMECON_SSO_KEY — klíč pro ověření magického přihlášení (?gcsso=), odvozený pro
+// tento ročník (HMAC(rok, master)) a vstříknutý deployem přes -e. Tenhle (commitnutý)
+// nastaveni-produkce.php je na archivu reálně načítaný soubor — bake přes
+// skryte-nastaveni-z-env-funkce.php se neprovede, protože tenhle soubor už existuje.
+// Proto se getenv('GAMECON_SSO_KEY') musí číst právě TADY, jinak konstanta zůstane
+// nedefinovaná a SSO se neuplatní. Prázdný fallback = SSO vypnuté.
+if (!defined('GAMECON_SSO_KEY')) define('GAMECON_SSO_KEY', getenv('GAMECON_SSO_KEY') ?: '');
