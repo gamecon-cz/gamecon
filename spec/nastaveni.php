@@ -51,3 +51,11 @@ define('URL_ADMIN', 'https://2016.gamecon.cz/admin');         // absolutní url 
 define('URL_CACHE', 'https://2016.gamecon.cz/cache/public');  // url sdílených cachí (path-based)
 
 define('GOOGLE_ANALYTICS', false);
+
+// GAMECON_SSO_KEY — klíč pro ověření magického přihlášení (?gcsso=), odvozený pro
+// tento ročník (HMAC(rok, master)) a vstříknutý deployem přes -e. Tenhle (commitnutý)
+// nastaveni-produkce.php je na archivu reálně načítaný soubor — bake přes
+// skryte-nastaveni-z-env-funkce.php se neprovede, protože tenhle soubor už existuje.
+// Proto se getenv('GAMECON_SSO_KEY') musí číst právě TADY, jinak konstanta zůstane
+// nedefinovaná a SSO se neuplatní. Prázdný fallback = SSO vypnuté.
+if (!defined('GAMECON_SSO_KEY')) define('GAMECON_SSO_KEY', getenv('GAMECON_SSO_KEY') ?: '');
