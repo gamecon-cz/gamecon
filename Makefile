@@ -11,7 +11,10 @@ init:
 	docker compose up -d
 	# has to explicitly use direnv exec to use the freshly allowed .envrc in current prompt instance
 	direnv exec bin-docker/composer install
-	npm --prefix ui run build
+	# install ui deps before building — restores a wiped/incomplete ui/node_modules
+	# (e.g. after a hard reset mid-install), otherwise the build fails with "tsc: not found"
+	direnv exec bin-docker/yarn install --frozen-lockfile
+	direnv exec bin-docker/yarn build
 	@make cache
 	@echo 'Gamecon initialized ✅'
 
@@ -51,7 +54,10 @@ static: fix phpstan
 
 migrations-run:
 	./bin-docker/php ./bin/console migrations:continue
-	./bin-docker/php ./bin/console app:cache:doctrine:invalidate
+	# invalidate Doctrine caches so the app picks up the migrated schema
+	# (app:cache:doctrine:invalidate never existed — was a dangling reference)
+	./bin-docker/php ./bin/console doctrine:cache:clear-metadata
+	./bin-docker/php ./bin/console doctrine:cache:clear-result
 
 migrations-diff:
 	./bin-docker/php ./bin/console --env=test migrations:continue

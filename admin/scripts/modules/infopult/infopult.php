@@ -242,9 +242,9 @@ if ($uPracovni) {
             $zpravyProPotvrzeni = array_map(static fn(string $zprava) => "- $zprava", $zpravyProPotvrzeni);
             $zpravyProPotvrzeniZruseniPraceText = implode("\n", $zpravyProPotvrzeni);
 
-            $ucastnikNazev = $uPracovni->jeMuz()
-                ? 'Účastník'
-                : 'Účastnice';
+            $ucastnikNazev = $uPracovni->jeZena()
+                ? 'Účastnice'
+                : 'Účastník';
             $x->assign(
                 'zpravaProPotvrzeniZruseniPrace',
                 // json_encode kvůli JS error "SyntaxError: '' string literal contains an unescaped line break"

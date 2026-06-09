@@ -26,6 +26,7 @@ use Gamecon\SystemoveNastaveni\SystemoveNastaveni;
 use Gamecon\Uzivatel\Dto\PolozkaProBfgr;
 use Gamecon\Uzivatel\Dto\PriceAfterDiscountDto;
 use Gamecon\Uzivatel\SqlStruktura\PlatbySqlStruktura;
+use Uzivatel;
 
 /**
  * Třída zodpovídající za spočítání finanční bilance uživatele na GC.
@@ -1083,6 +1084,65 @@ SQL;
         }
 
         return $this->kategorieNeplatice;
+    }
+
+    // 2026 - zavedeny poukazy na slevu na jednu (nejdražší) aktivitu zdarma. Vzhledem k tomu že shop je shitfest, tak raději budeme dávat explicitní slevu, stejně se to za rok smaže
+    public function prepoctiSlevuNaJednuAktivitu(): void
+    {
+        if (!$this->u->maPravo(Pravo::JEDNA_AKTIVITA_ZDARMA))
+        {
+            return;
+        }
+
+        $aktivity = $this->u->zapsaneAktivity();
+        $nejdrazsiPrihlasena = 0;
+        foreach ($aktivity as $a) {
+            if ($a->cenaZaklad() > $nejdrazsiPrihlasena) {
+                $nejdrazsiPrihlasena = $a->cenaZaklad();
+            }
+        }
+
+        if ($this->u->maPravo(Pravo::AKTIVITY_ZDARMA))
+        {
+            $nejdrazsiPrihlasena = 0;
+        } elseif ($this->u->maPravo(Pravo::CASTECNA_SLEVA_NA_AKTIVITY))
+        {
+            $nejdrazsiPrihlasena = round($nejdrazsiPrihlasena / 100 * (100 - Finance::CASTECNA_SLEVA_PROCENT));
+        }
+
+        if ($nejdrazsiPrihlasena > 0) {
+            if (dbRecordExists('slevy', [
+                'id_uzivatele' => $this->u->id(),
+                'poznamka' => 'Poukaz na jednu aktivitu zdarma',
+                'rok' => ROCNIK,
+                'provedl' => Uzivatel::SYSTEM,
+                ]))
+            {
+                dbQuery('UPDATE slevy SET castka = $0, provedeno = current_timestamp() WHERE id_uzivatele = $1 and poznamka = $2 and rok = $3 and provedl = $4', [
+                    $nejdrazsiPrihlasena,
+                    $this->u->id(),
+                    'Poukaz na jednu aktivitu zdarma',
+                    ROCNIK,
+                    \Uzivatel::SYSTEM
+                ]);
+            } else {
+                dbQuery('INSERT INTO slevy (id_uzivatele, castka, poznamka, rok, provedl) VALUES ($0, $1, $2, $3, $4)', [
+                    $this->u->id(),
+                    $nejdrazsiPrihlasena,
+                    'Poukaz na jednu aktivitu zdarma',
+                    ROCNIK,
+                    \Uzivatel::SYSTEM
+                ]);
+            }
+        } else
+        {
+            dbQuery('DELETE FROM slevy WHERE id_uzivatele = $0 and poznamka = $1 and rok = $2 and provedl = $3', [
+                $this->u->id(),
+                'Poukaz na jednu aktivitu zdarma',
+                ROCNIK,
+                \Uzivatel::SYSTEM
+            ]);
+        }
     }
 
     public function dejQrKodProCeskouPlatbu(): ResultInterface

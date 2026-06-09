@@ -41,7 +41,7 @@ SQL,
         $un->nactiPrava();
         if (($stav = $un->finance()->stav()) >= $min) {
             $x->assign([
-                'login'     => $un->prezdivka(),
+                'login'     => $un->login(),
                 'stav'      => $stav,
                 'aktivity'  => $un->finance()->cenaAktivit(),
                 'ubytovani' => $un->finance()->cenaUbytovani(),

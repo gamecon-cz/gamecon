@@ -1,0 +1,13 @@
+<!-- begin:poukaz -->
+<div class="stranka">
+
+    <form method="POST">
+        <label for="kod">
+            Kód slevového poukazu:
+        </label>
+        <input type="text" id="kod" name="kod">
+        <input type="submit" value="Uplatnit">
+    </form>
+
+</div>
+<!-- end:poukaz -->

@@ -9,6 +9,10 @@
          displayDetailsOnTestsThatTriggerWarnings="false"
          displayDetailsOnPhpunitDeprecations="false">
     <php>
+        <!-- force=true so the test kernel boots the test env even when the
+             container sets APP_ENV=dev (docker-compose); without this, Foundry
+             can't find test.service_container -->
+        <env name="APP_ENV" value="test" force="true"/>
         <env name="KERNEL_CLASS" value="App\Kernel"/>
         <env name="SYMFONY_DEPRECATIONS_HELPER" value="disabled=1"/>
         <env name="SHELL_VERBOSITY" value="-1"/>
