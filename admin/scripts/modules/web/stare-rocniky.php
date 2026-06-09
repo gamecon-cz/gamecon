@@ -69,7 +69,8 @@ $nadpisEpochy = [
         <thead>
             <tr>
                 <th>Ročník</th>
-                <th>URL</th>
+                <th>Web</th>
+                <th>Admin</th>
                 <th>Deployed</th>
             </tr>
         </thead>
@@ -80,7 +81,7 @@ $nadpisEpochy = [
             $epocha = $epochaRocniku($archive->year);
             if ($epocha !== $epochaPredchozi && isset($nadpisEpochy[$epocha])) { ?>
                 <tr>
-                    <th colspan="3" style="text-align: left; padding-top: 18px; border-bottom: 2px solid #888;">
+                    <th colspan="4" style="text-align: left; padding-top: 18px; border-bottom: 2px solid #888;">
                         <?php echo htmlspecialchars($nadpisEpochy[$epocha]); ?>
                     </th>
                 </tr>
@@ -93,6 +94,16 @@ $nadpisEpochy = [
                     <a href="<?php echo htmlspecialchars($gateUrl($archive->url)); ?>" target="_blank" rel="noopener">
                         <?php echo htmlspecialchars(preg_replace('/^https?:\/\/|\/$/', '', $archive->url)); ?>
                     </a>
+                </td>
+                <td>
+                    <?php
+                    if ($epocha === 'ziva') {
+                        $adminUrl = rtrim($archive->url, '/') . '/admin';
+                        ?>
+                        <a href="<?php echo htmlspecialchars($gateUrl($adminUrl)); ?>" target="_blank" rel="noopener">/admin</a>
+                    <?php } else { ?>
+                        —
+                    <?php } ?>
                 </td>
                 <td>
                     <?php echo $archive->deployedAt !== null
