@@ -1,6 +1,6 @@
 <?php
 
-use Gamecon\Dev\CrossSiteLogin;
+use Gamecon\Dev\ArchivSsoPrihlaseni;
 use Gamecon\Dev\SsoParovaciCookie;
 use Gamecon\Login\Login;
 use Gamecon\Exceptions\UzivatelNenalezen;
@@ -31,23 +31,15 @@ $u = Uzivatel::zSession();
 // nikdo není přihlášený (cizí sezení na archivu nepřepisujeme), token je platný,
 // nonce z tokenu sedí s nonce z cookie (= jde o prohlížeč, který klikl — sdílená
 // URL nestačí) a uživatele s tím e-mailem máme v téhle DB. Jakékoli selhání je
-// tiché: token z URL odstraníme a necháme doběhnout běžné přihlášení.
-// Viz CrossSiteLogin + SsoParovaciCookie + admin/scripts/modules/web/stare-rocniky.php.
+// tiché: token z URL odstraníme a necháme doběhnout běžné přihlášení. Pravidla
+// rozhodnutí drží ArchivSsoPrihlaseni (sdílí je s testem).
+// Viz ArchivSsoPrihlaseni + SsoParovaciCookie + admin/scripts/modules/web/stare-rocniky.php.
 if (($gcsso = get('gcsso')) !== null) {
-    if (! $u) {
-        $overene = CrossSiteLogin::over((string) $gcsso, SECRET_CRYPTO_KEY);
-        $nonceCookie = SsoParovaciCookie::precti();
-        if (
-            $overene !== null
-            && $nonceCookie !== null
-            && hash_equals($overene->nonce, $nonceCookie)
-        ) {
-            $uzivatelDleMailu = Uzivatel::zEmailu($overene->email);
-            if ($uzivatelDleMailu !== null) {
-                $u = Uzivatel::prihlasId($uzivatelDleMailu->id());
-            }
-        }
-    }
+    $u = (new ArchivSsoPrihlaseni(SECRET_CRYPTO_KEY))->prihlas(
+        (string) $gcsso,
+        SsoParovaciCookie::precti(),
+        $u,
+    );
     back(getCurrentUrlWithQuery([
         'gcsso' => null,
     ]));
