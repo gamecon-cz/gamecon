@@ -37,18 +37,26 @@ $gateUrl = static fn (string $url): string => GateLink::podepis($url, ARCHIVE_GA
 // nikoho nepřihlásí (cizí prohlížeč cookie nemá). Bez secretu / e-mailu se token
 // nepřipojí a chování zůstává jako dřív (jen basic-auth brána). Viz CrossSiteLogin
 // + SsoParovaciCookie + admin/scripts/prihlaseni.php (ověřovací strana).
+// Magické přihlášení podepisujeme klíčem ODVOZENÝM PRO DANÝ ROČNÍK z master tajemství
+// GAMECON_SSO_SECRET (master žije jen na ostré). Archiv dostane jen svůj odvozený klíč
+// (HMAC(rok, master)) — když ho někdo z archivu vytáhne, umí podvrhnout přihlášení jen
+// do toho jednoho ročníku, ne do ostatních a hlavně NE k SECRET_CRYPTO_KEY (ten šifruje
+// osobní data na ostré a do archivů nepatří). Odvození je shodné s bash stranou v
+// deploy-year-archive.sh (openssl dgst -sha256 -hmac).
+$ssoMaster = defined('GAMECON_SSO_SECRET') ? GAMECON_SSO_SECRET : '';
 $ssoNonce = null;
 $ssoEmail = $u->mail() ?? '';
-if ($ssoEmail !== '' && SECRET_CRYPTO_KEY !== '') {
+if ($ssoEmail !== '' && $ssoMaster !== '') {
     // Kryptograficky náhodný nonce (128 bitů). Ne randHex() — ta stropuje na 32
     // znaků a stojí na substr(md5(mt_rand())), což má slabou entropii; tady jde
     // o bezpečnostní párovací token, tak chceme random_bytes.
     $ssoNonce = bin2hex(random_bytes(16));
     SsoParovaciCookie::nastav($ssoNonce);
 }
-$adminUrlSeSso = static function (string $adminUrl) use ($ssoNonce, $ssoEmail, $gateUrl): string {
+$adminUrlSeSso = static function (string $adminUrl, int $rocnik) use ($ssoNonce, $ssoEmail, $ssoMaster, $gateUrl): string {
     if ($ssoNonce !== null) {
-        $gcsso = CrossSiteLogin::podepis($ssoEmail, $ssoNonce, SECRET_CRYPTO_KEY);
+        $klicRocniku = hash_hmac('sha256', (string) $rocnik, $ssoMaster);
+        $gcsso = CrossSiteLogin::podepis($ssoEmail, $ssoNonce, $klicRocniku);
         if ($gcsso !== '') {
             $oddelovac = str_contains($adminUrl, '?') ? '&' : '?';
             $adminUrl .= $oddelovac . 'gcsso=' . $gcsso;
@@ -130,7 +138,7 @@ $nadpisEpochy = [
                     if ($epocha === 'ziva') {
                         $adminUrl = rtrim($archive->url, '/') . '/admin';
                         ?>
-                        <a href="<?php echo htmlspecialchars($adminUrlSeSso($adminUrl)); ?>" target="_blank" rel="noopener">/admin</a>
+                        <a href="<?php echo htmlspecialchars($adminUrlSeSso($adminUrl, $archive->year)); ?>" target="_blank" rel="noopener">/admin</a>
                     <?php } else { ?>
                         —
                     <?php } ?>

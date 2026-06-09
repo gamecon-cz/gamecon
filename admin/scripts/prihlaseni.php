@@ -32,10 +32,14 @@ $u = Uzivatel::zSession();
 // nonce z tokenu sedí s nonce z cookie (= jde o prohlížeč, který klikl — sdílená
 // URL nestačí) a uživatele s tím e-mailem máme v téhle DB. Jakékoli selhání je
 // tiché: token z URL odstraníme a necháme doběhnout běžné přihlášení. Pravidla
-// rozhodnutí drží ArchivSsoPrihlaseni (sdílí je s testem).
+// rozhodnutí drží ArchivSsoPrihlaseni (sdílí je s testem). Ověřujeme klíčem
+// GAMECON_SSO_KEY = klíč odvozený pro TENTO ročník (HMAC(rok, master)), který archivu
+// vstříkne deploy přes -e. Na ostré je prázdný (master se k odvození nepoužívá pro
+// vlastní login), takže se tu SSO nikdy neuplatní — což je správně.
 // Viz ArchivSsoPrihlaseni + SsoParovaciCookie + admin/scripts/modules/web/stare-rocniky.php.
 if (($gcsso = get('gcsso')) !== null) {
-    $u = (new ArchivSsoPrihlaseni(SECRET_CRYPTO_KEY))->prihlas(
+    $ssoKlic = defined('GAMECON_SSO_KEY') ? GAMECON_SSO_KEY : '';
+    $u = (new ArchivSsoPrihlaseni($ssoKlic))->prihlas(
         (string) $gcsso,
         SsoParovaciCookie::precti(),
         $u,

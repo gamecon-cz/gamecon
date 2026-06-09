@@ -46,6 +46,15 @@ function vytvorSouborSkrytehoNastaveniPodleEnv(
         $PREVIEW_GATE_SECRET = getenv('PREVIEW_GATE_SECRET');
         $ARCHIVE_GATE_SECRET = getenv('ARCHIVE_GATE_SECRET');
 
+        // Magické přihlášení do archivního adminu (?gcsso=). GAMECON_SSO_SECRET je
+        // master — žije JEN na ostré, kde z něj odvozujeme klíč pro daný ročník.
+        // GAMECON_SSO_KEY je ten ODVOZENÝ klíč (HMAC(rok, master)), který dostane jen
+        // konkrétní archiv (vstříkne deploy přes -e). Tím archiv ověří token, ale když
+        // ho někdo z archivu vytáhne, podvrhne login jen do toho ročníku — ne k masteru
+        // ani k SECRET_CRYPTO_KEY. Viz CrossSiteLogin + stare-rocniky.php / prihlaseni.php.
+        $GAMECON_SSO_SECRET = getenv('GAMECON_SSO_SECRET');
+        $GAMECON_SSO_KEY = getenv('GAMECON_SSO_KEY');
+
         $ted = date(DATE_ATOM);
         $nazevTetoFunkce = __FUNCTION__;
 
@@ -94,6 +103,10 @@ function vytvorSouborSkrytehoNastaveniPodleEnv(
             // Tajemství pro podpis gate tokenu (one-click přístup přes bránu)
             define('PREVIEW_GATE_SECRET', '{$PREVIEW_GATE_SECRET}');
             define('ARCHIVE_GATE_SECRET', '{$ARCHIVE_GATE_SECRET}');
+
+            // Magické přihlášení do archivu: master jen na ostré, odvozený klíč jen v archivu
+            define('GAMECON_SSO_SECRET', '{$GAMECON_SSO_SECRET}');
+            define('GAMECON_SSO_KEY', '{$GAMECON_SSO_KEY}');
             PHP,
         );
     }

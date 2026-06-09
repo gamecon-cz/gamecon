@@ -84,3 +84,7 @@ jobs:
                     # v ansible secrets.yaml.
                     PREVIEW_GATE_SECRET: ${{ secrets.PREVIEW_GATE_SECRET }}
                     ARCHIVE_GATE_SECRET: ${{ secrets.ARCHIVE_GATE_SECRET }}
+                    # Master tajemství pro magické přihlášení do archivu (?gcsso=).
+                    # JEN ostrá — z něj odvozuje klíč pro daný ročník. Archivy dostanou
+                    # jen odvozený klíč (ne tohle), takže popadený archiv master neunese.
+                    GAMECON_SSO_SECRET: ${{ secrets.GAMECON_SSO_SECRET }}
