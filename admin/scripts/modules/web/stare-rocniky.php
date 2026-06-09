@@ -1,7 +1,9 @@
 <?php
 
+use Gamecon\Dev\CrossSiteLogin;
 use Gamecon\Dev\DeploymentsReader;
 use Gamecon\Dev\GateLink;
+use Gamecon\Dev\SsoParovaciCookie;
 
 /**
  * Seznam dockerizovaných archivních ročníků (YYYY.gamecon.cz).
@@ -27,6 +29,31 @@ usort($archives, static fn ($a, $b) => $b->year <=> $a->year);
 // text (prohlížeč se zeptá při prvním otevření). Viz GateLink + ansible
 // role gate_validator.
 $gateUrl = static fn (string $url): string => GateLink::podepis($url, ARCHIVE_GATE_SECRET);
+
+// Magické přihlášení do archivního adminu: k odkazu na /admin připojíme podepsaný
+// ?gcsso= token vázaný na e-mail přihlášeného admina + náhodný nonce, který zároveň
+// uložíme do spárovací cookie (.gamecon.cz). Archiv pak admina přihlásí podle e-mailu
+// — ale jen když nonce z tokenu sedí s nonce z cookie, takže pouhé sdílení odkazu
+// nikoho nepřihlásí (cizí prohlížeč cookie nemá). Bez secretu / e-mailu se token
+// nepřipojí a chování zůstává jako dřív (jen basic-auth brána). Viz CrossSiteLogin
+// + SsoParovaciCookie + admin/scripts/prihlaseni.php (ověřovací strana).
+$ssoNonce = null;
+$ssoEmail = $u->mail() ?? '';
+if ($ssoEmail !== '' && SECRET_CRYPTO_KEY !== '') {
+    $ssoNonce = randHex(40);
+    SsoParovaciCookie::nastav($ssoNonce);
+}
+$adminUrlSeSso = static function (string $adminUrl) use ($ssoNonce, $ssoEmail, $gateUrl): string {
+    if ($ssoNonce !== null) {
+        $gcsso = CrossSiteLogin::podepis($ssoEmail, $ssoNonce, SECRET_CRYPTO_KEY);
+        if ($gcsso !== '') {
+            $oddelovac = str_contains($adminUrl, '?') ? '&' : '?';
+            $adminUrl .= $oddelovac . 'gcsso=' . $gcsso;
+        }
+    }
+
+    return $gateUrl($adminUrl);
+};
 
 // Ročníky spadají do tří epoch podle toho, co archiv reálně obsahuje (hranice
 // jsou shodné s base_image / reconstruction érami v deploy-year-archive.yml):
@@ -100,7 +127,7 @@ $nadpisEpochy = [
                     if ($epocha === 'ziva') {
                         $adminUrl = rtrim($archive->url, '/') . '/admin';
                         ?>
-                        <a href="<?php echo htmlspecialchars($gateUrl($adminUrl)); ?>" target="_blank" rel="noopener">/admin</a>
+                        <a href="<?php echo htmlspecialchars($adminUrlSeSso($adminUrl)); ?>" target="_blank" rel="noopener">/admin</a>
                     <?php } else { ?>
                         —
                     <?php } ?>

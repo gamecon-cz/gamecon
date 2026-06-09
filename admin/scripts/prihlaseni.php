@@ -1,5 +1,7 @@
 <?php
 
+use Gamecon\Dev\CrossSiteLogin;
+use Gamecon\Dev\SsoParovaciCookie;
 use Gamecon\Login\Login;
 use Gamecon\Exceptions\UzivatelNenalezen;
 use Gamecon\Pravo;
@@ -22,6 +24,35 @@ if (post(Login::LOGIN_INPUT_NAME) && post(Login::PASSWORD_INPUT_NAME)) {
     back();
 }
 $u = Uzivatel::zSession();
+
+// Magické přihlášení z administračního rozcestníku na ostré (?gcsso= token).
+// Hlavní admin podepsal token na e-mail klikajícího uživatele + nonce a uložil
+// stejný nonce do spárovací cookie (.gamecon.cz). Přihlásíme jen když: tady ještě
+// nikdo není přihlášený (cizí sezení na archivu nepřepisujeme), token je platný,
+// nonce z tokenu sedí s nonce z cookie (= jde o prohlížeč, který klikl — sdílená
+// URL nestačí) a uživatele s tím e-mailem máme v téhle DB. Jakékoli selhání je
+// tiché: token z URL odstraníme a necháme doběhnout běžné přihlášení.
+// Viz CrossSiteLogin + SsoParovaciCookie + admin/scripts/modules/web/stare-rocniky.php.
+if (($gcsso = get('gcsso')) !== null) {
+    if (! $u) {
+        $overene = CrossSiteLogin::over((string) $gcsso, SECRET_CRYPTO_KEY);
+        $nonceCookie = SsoParovaciCookie::precti();
+        if (
+            $overene !== null
+            && $nonceCookie !== null
+            && hash_equals($overene->nonce, $nonceCookie)
+        ) {
+            $uzivatelDleMailu = Uzivatel::zEmailu($overene->email);
+            if ($uzivatelDleMailu !== null) {
+                $u = Uzivatel::prihlasId($uzivatelDleMailu->id());
+            }
+        }
+    }
+    back(getCurrentUrlWithQuery([
+        'gcsso' => null,
+    ]));
+}
+
 if (post('odhlasNAdm')) {
     if ($u) {
         $u->odhlas(false);
