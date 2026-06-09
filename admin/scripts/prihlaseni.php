@@ -38,7 +38,11 @@ if (($gcsso = get('gcsso')) !== null) {
     require_once __DIR__ . '/../../model/Dev/SsoParovaciCookie.php';
     require_once __DIR__ . '/../../model/Dev/ArchivSsoPrihlaseni.php';
 
-    $u = (new \Gamecon\Dev\ArchivSsoPrihlaseni(SECRET_CRYPTO_KEY))->prihlas(
+    // GAMECON_SSO_KEY = klíč odvozený pro TENTO ročník (HMAC(rok, master)), který
+    // archivu vstříkne deploy přes -e. NE SECRET_CRYPTO_KEY — ten šifruje osobní data
+    // a do (zmrazeného, zranitelného) archivu nepatří. Prázdný → SSO se neuplatní.
+    $ssoKlic = defined('GAMECON_SSO_KEY') ? GAMECON_SSO_KEY : '';
+    $u = (new \Gamecon\Dev\ArchivSsoPrihlaseni($ssoKlic))->prihlas(
         (string) $gcsso,
         \Gamecon\Dev\SsoParovaciCookie::precti(),
         $u,

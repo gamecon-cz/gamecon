@@ -28,6 +28,11 @@ function vytvorSouborSkrytehoNastaveniPodleEnv(
         $APP_DEBUG = getenv('APP_DEBUG') ? 'true' : 'false';
         $APP_SECRET = getenv('APP_SECRET');
 
+        // Magické přihlášení do archivu (?gcsso=): klíč ODVOZENÝ pro tento ročník
+        // (HMAC(rok, master)), který archivu vstříkne deploy přes -e. Master sám
+        // do archivu nikdy nejde. Prázdný → archiv žádný token neověří.
+        $GAMECON_SSO_KEY = getenv('GAMECON_SSO_KEY');
+
         $ted = date(DATE_ATOM);
         $nazevTetoFunkce = __FUNCTION__;
 
@@ -66,6 +71,9 @@ function vytvorSouborSkrytehoNastaveniPodleEnv(
             define('APP_ENV', '$APP_ENV');
             define('APP_DEBUG', $APP_DEBUG);
             define('APP_SECRET', '$APP_SECRET');
+
+            // Magické přihlášení do archivu — odvozený klíč ročníku (ne master)
+            define('GAMECON_SSO_KEY', '$GAMECON_SSO_KEY');
             PHP,
         );
     }

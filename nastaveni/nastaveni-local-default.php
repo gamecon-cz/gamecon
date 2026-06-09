@@ -65,4 +65,7 @@ if (!defined('VAROVAT_O_ZASEKLE_SYNCHRONIZACI_PLATEB')) define('VAROVAT_O_ZASEKL
 if (!defined('APP_SECRET')) define('APP_SECRET', getenv('APP_SECRET')
     ?: 'someRandomStringForAppSecretThatYouShouldChange');
 
+// Magické přihlášení do archivu (?gcsso=) — odvozený klíč ročníku z -e; lokálně prázdné.
+if (!defined('GAMECON_SSO_KEY')) define('GAMECON_SSO_KEY', getenv('GAMECON_SSO_KEY') ?: '');
+
 error_reporting(E_ALL);
