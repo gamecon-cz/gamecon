@@ -3,6 +3,15 @@ RewriteEngine on
 # Archive 2014 (old www/+sdilene/+specificke/ framework): the Docker
 # DocumentRoot is the project root. The real web root for this era is www/,
 # so rewrite all requests into it; www/.htaccess then routes to index.php.
+#
+# /admin is PATH-BASED on the dockerized archive (the admin app lives at the
+# project-root admin/ dir, URL_ADMIN serves it at /admin). The catch-all below
+# would 404 it into the public www/, so route /admin to its real location FIRST.
+# Without this /admin lands on the public site and the admin (incl. the ?gcsso=
+# magic login) is unreachable.
+RewriteRule ^admin$ admin/ [L]
+RewriteRule ^admin/(.*)$ admin/$1 [L]
+
 RewriteRule .* www/$0 [L]
 
 RewriteRule .* - [F,L]

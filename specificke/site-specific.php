@@ -28,9 +28,19 @@ define ( 'ADMIN_WWW_CESTA', '../www' );    // cesta z rootu admina do rootu uži
 define ( 'SDILENE_WWW_CESTA', '../www' );  // cesta z sdílených tříd do rootu uživatelské části
 define ( 'SDILENE_ADMIN_CESTA', '../admin' ); // cesta z sdílených tříd do rootu adminu
 
-// Archive 2014: single subdomain serves the year. The original config used
-// http://2014.gamecon.cz for both web and admin; keep that shape but https.
-define ( 'URL_WEBU', 'https://2014.gamecon.cz' );  // absolutní url uživatelského webu
-define ( 'URL_ADMIN', 'https://2014.gamecon.cz' ); // absolutní url adminu
+// Archive 2014: single subdomain serves the year, admin path-based pod /admin
+// (root .htaccess směruje /admin do admin/). URL_ADMIN proto MUSÍ obsahovat
+// /admin — jinak admin/index.php staví base i přesměrování (back('uvod')) vůči
+// kořeni a skončí na veřejném webu (500). URL_WEBU zůstává kořen domény.
+define ( 'URL_WEBU', 'https://2014.gamecon.cz' );        // absolutní url uživatelského webu
+define ( 'URL_ADMIN', 'https://2014.gamecon.cz/admin' ); // absolutní url adminu (path-based)
 
 date_default_timezone_set ( 'Europe/Prague' );
+
+// GAMECON_SSO_KEY — klíč pro ověření magického přihlášení (?gcsso=), odvozený pro
+// tento ročník (HMAC(rok, master)) a vstříknutý deployem přes -e. Tenhle (commitnutý)
+// nastaveni-produkce.php je na archivu reálně načítaný soubor — bake přes
+// skryte-nastaveni-z-env-funkce.php se neprovede, protože tenhle soubor už existuje.
+// Proto se getenv('GAMECON_SSO_KEY') musí číst právě TADY, jinak konstanta zůstane
+// nedefinovaná a SSO se neuplatní. Prázdný fallback = SSO vypnuté.
+if (!defined('GAMECON_SSO_KEY')) define('GAMECON_SSO_KEY', getenv('GAMECON_SSO_KEY') ?: '');
