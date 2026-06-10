@@ -17,6 +17,40 @@ if(post('loginNAdm') && post('hesloNAdm'))
     back(); //todo: ošetření chyby obecným způsobem
 }
 $u=Uzivatel::nactiPrihlaseneho();
+
+// Magické přihlášení z administračního rozcestníku na ostré (?gcsso= token).
+// Varianta pro nejstarší éru (2012-2013): login se řeší přímo tady v admin/index.php
+// (žádné samostatné prihlaseni.php), get() vrací '' (ne null), Dev třídy žijí v
+// sdilene/Dev/ a vendor/autoload není → require_once. Pravidla drží
+// ArchivSsoPrihlaseni (volá rovnou Uzivatel::prihlasId — dbOneCol téhle éry nebere
+// pole parametrů). Mint je na ostré v admin/.../web/stare-rocniky.php.
+if(get('gcsso') !== '') {
+  $gcsso = get('gcsso');
+  require_once(__DIR__ . '/../sdilene/Dev/OvereneSso.php');
+  require_once(__DIR__ . '/../sdilene/Dev/CrossSiteLogin.php');
+  require_once(__DIR__ . '/../sdilene/Dev/SsoParovaciCookie.php');
+  require_once(__DIR__ . '/../sdilene/Dev/ArchivSsoPrihlaseni.php');
+
+  // GAMECON_SSO_KEY = klíč odvozený pro TENTO ročník (HMAC(rok, master)), vstříknutý
+  // deployem přes -e. Prázdný → SSO se neuplatní.
+  $ssoKlic = defined('GAMECON_SSO_KEY') ? GAMECON_SSO_KEY : '';
+  $ssoPrihlaseni = new Gamecon\Dev\ArchivSsoPrihlaseni($ssoKlic);
+  $uSso = $ssoPrihlaseni->prihlas(
+    (string) $gcsso,
+    Gamecon\Dev\SsoParovaciCookie::precti(),
+    $u
+  );
+  if($uSso !== null)
+    $u = $uSso;
+
+  // Token z URL odstraníme (ať nezůstane v historii / referreru).
+  $cistaQuery = $_GET;
+  unset($cistaQuery['gcsso']);
+  $cilo = strtok($_SERVER['REQUEST_URI'], '?');
+  if(!empty($cistaQuery))
+    $cilo .= '?' . http_build_query($cistaQuery);
+  back($cilo);
+}
 if(post('odhlasNAdm'))
   $u->odhlas(true);
 
@@ -29,7 +63,8 @@ $xtpl=new XTemplate('./templates/main.xtpl');
 $xtpl->assign('pageTitle','GameCon – Administrace');
 
 if(!get('req'))
-  back('/uvod'); //nastavení stránky, prázdná url => přesměrování na úvod
+  back(URL_ADMIN.'/uvod'); //nastavení stránky, prázdná url => přesměrování na úvod
+  // Absolutní URL vč. /admin: relativní '/uvod' míří na veřejný web (500), ne do adminu.
 $req=explode('/',get('req'));
 $stranka=$req[0];
 $podstranka=isset($req[1])?$req[1]:'';
