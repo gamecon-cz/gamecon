@@ -26,9 +26,12 @@ $xtpl->assign([
   'base'      =>  URL_ADMIN.'/',
 ]);
 
-// nastavení stránky, prázdná url => přesměrování na úvod
+// nastavení stránky, prázdná url => přesměrování na úvod.
+// Absolutní URL (ne relativní 'uvod'): relativní cíl se v prohlížeči vyhodnotí
+// vůči aktuální URL, takže z /admin (bez lomítka — kam vede proklik magického
+// přihlášení) by 'uvod' mířilo na veřejné /uvod (500), ne na /admin/uvod.
 if(!get('req'))
-  back('uvod');
+  back(URL_ADMIN.'/uvod');
 $req=explode('/',get('req'));
 $stranka=$req[0];
 $podstranka=isset($req[1])?$req[1]:'';
