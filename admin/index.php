@@ -61,6 +61,9 @@ require_once('./scripts/vyber-uzivatele-old.hhp');
 //xtemplate inicializace
 $xtpl=new XTemplate('./templates/main.xtpl');
 $xtpl->assign('pageTitle','GameCon – Administrace');
+// {base} = absolutní URL adminu (vč. /admin). Bez něj se {base}/files/... a odkazy
+// rozpadnou na kořen domény (veřejný web) — admin běží na pod-cestě /admin.
+$xtpl->assign('base',URL_ADMIN);
 
 if(!get('req'))
   back(URL_ADMIN.'/uvod'); //nastavení stránky, prázdná url => přesměrování na úvod
