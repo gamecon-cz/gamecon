@@ -108,8 +108,8 @@ jobs:
                         2014) base_image="php:5.6-apache" ;;
                         2015) base_image="php:5.6-apache" ;;
                         2016) base_image="php:5.6-apache" ;;
-                        2017) base_image="php:5.6-apache" ;;
-                        2018) base_image="php:5.6-apache" ;;
+                        2017) base_image="php:7.3-apache" ;;
+                        2018) base_image="php:7.3-apache" ;;
                         2019) base_image="php:7.3-apache" ;;
                         2020) base_image="php:7.3-apache" ;;
                         2021) base_image="php:7.3-apache" ;;
