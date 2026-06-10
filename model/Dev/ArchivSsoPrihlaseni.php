@@ -8,12 +8,10 @@ namespace Gamecon\Dev;
  * Ověřovací (consume) strana magického přihlášení do archivu — rozhoduje, zda
  * `?gcsso=` token uživatele přihlásí. Drží pravidla na jednom místě.
  *
- * Identita = číselné `id_uzivatele` z tokenu (ne e-mail — ten je proměnný a mohl by
- * mířit na cizí účet). ID je napříč ostrou i archivními snapshoty stabilní. Ověříme
- * jen, že takový uživatel v TÉHLE archivní DB existuje (kdo v daném ročníku ještě
- * účet neměl, se nenajde → nepřihlásí), a přihlásíme přes Uzivatel::prihlasId
- * (přítomné všude). Přímý dotaz místo Uzivatel::zId, který ve starších ročnících
- * nemusí existovat.
+ * Archivní varianta: e-mail → id_uzivatele řeší přímým dotazem (ne Uzivatel::zEmailu,
+ * která ve starších archivních ročnících nemusí existovat). Sloupec
+ * `email1_uzivatele` v `uzivatele_hodnoty` je napříč ročníky stabilní; přihlášení
+ * pak provede Uzivatel::prihlasId (přítomné všude).
  *
  * Nepracuje s HTTP (žádné $_GET/$_COOKIE/redirect) — token i nonce z cookie dostane
  * předané; volající si pak řeší odstranění parametru z URL. Viz {@see CrossSiteLogin}
@@ -31,8 +29,8 @@ final class ArchivSsoPrihlaseni
      *
      * Přihlásí jen když: nikdo tu ještě není přihlášený (cizí sezení na archivu
      * nepřepisujeme), token je platný, jeho nonce sedí s nonce ze spárovací cookie
-     * (= jde o prohlížeč, který klikl — sdílená URL nestačí) a uživatele s tím ID
-     * v téhle DB máme. Jinak vrací beze změny (tiché selhání).
+     * (= jde o prohlížeč, který klikl — sdílená URL nestačí) a uživatele s tím
+     * e-mailem v téhle DB máme. Jinak vrací beze změny (tiché selhání).
      *
      * @param string         $token         hodnota `?gcsso=` z URL
      * @param string|null    $nonceZCookie  nonce ze spárovací cookie ({@see SsoParovaciCookie::precti})
@@ -58,14 +56,14 @@ final class ArchivSsoPrihlaseni
             return null;
         }
 
-        $idVDb = dbOneCol(
-            'SELECT id_uzivatele FROM uzivatele_hodnoty WHERE id_uzivatele = $0',
-            [$overene->idUzivatele],
+        $idUzivatele = dbOneCol(
+            'SELECT id_uzivatele FROM uzivatele_hodnoty WHERE email1_uzivatele = $0',
+            [$overene->email],
         );
-        if ($idVDb === null) {
+        if ($idUzivatele === null) {
             return null;
         }
 
-        return \Uzivatel::prihlasId((int) $idVDb);
+        return \Uzivatel::prihlasId((int) $idUzivatele);
     }
 }
