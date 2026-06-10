@@ -46,12 +46,17 @@ ON DUPLICATE KEY UPDATE id_role = id_role
 
 $this->q("
 CREATE TABLE slevove_kody (
-    id bigint auto_increment PRIMARY KEY,
+    id bigint(20) unsigned NOT NULL AUTO_INCREMENT,
     kod VARCHAR(255) not null unique,
-    createdBy bigint unsigned NOT NULL references uzivatele_hodnoty(id_uzivatele),
+    createdBy bigint(20) unsigned NOT NULL,
     createdAt datetime NOT NULL,
-    usedBy bigint unsigned NULL references uzivatele_hodnoty(id_uzivatele),
+    usedBy bigint(20) unsigned NULL,
     usedAt datetime NULL,
-    invalidated boolean not null default false
+    invalidated boolean not null default false,
+    PRIMARY KEY (id),
+    KEY (createdBy),
+    KEY (usedBy),
+    FOREIGN KEY (createdBy) REFERENCES uzivatele_hodnoty(id_uzivatele) ON UPDATE CASCADE,
+    FOREIGN KEY (usedBy) REFERENCES uzivatele_hodnoty(id_uzivatele) ON DELETE SET NULL ON UPDATE CASCADE
 );
 ");
