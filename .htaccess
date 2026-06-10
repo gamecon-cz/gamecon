@@ -3,6 +3,17 @@ RewriteEngine on
 # Archive 2016 (old app/+spec/ layout): the Docker DocumentRoot is the project
 # root (/var/www/html/gamecon). The real web root for this era is app/web/, so
 # rewrite all requests into it; app/web/.htaccess then routes to index.php.
+#
+# /admin and /cache are PATH-BASED on the dockerized archive (URL_ADMIN /
+# URL_CACHE in spec/nastaveni.php point at /admin and /cache/public).
+# Historically this year served them as separate sub-subdomains; the catch-all
+# below would 404 them into the public web, so route them to their real app/
+# locations FIRST. Without this /admin lands on the public "Stránka nenalezena"
+# page and the admin (incl. the ?gcsso= magic login) is unreachable.
+RewriteRule ^admin$ app/admin/ [L]
+RewriteRule ^admin/(.*)$ app/admin/$1 [L]
+RewriteRule ^cache/(.*)$ app/web/cache/$1 [L]
+
 RewriteRule .* app/web/$0 [L]
 
 RewriteRule .* - [F,L]
