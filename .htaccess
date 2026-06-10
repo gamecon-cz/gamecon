@@ -8,6 +8,15 @@ RewriteEngine on
 RewriteRule ^admin$ admin/ [L]
 RewriteRule ^admin/(.*)$ admin/$1 [L]
 
+# Admin moduly odkazují část assetů jako kořenové /files/X (historicky, admin běžel
+# na vlastní subdoméně). Pod /admin pod-cestou by to 404lo do veřejného www/. Když
+# tedy /files/X existuje v admin/files/, naservíruj ho odtud; jinak spadni na
+# veřejné www/files/X (ten /files používá i veřejný web). Tím se obrázky/skripty
+# adminu (warning.png, omnibox.js, …) opraví bez editace každé šablony.
+RewriteCond %{REQUEST_URI} ^/files/(.*)$
+RewriteCond %{DOCUMENT_ROOT}/admin/files/%1 -f
+RewriteRule ^files/(.*)$ admin/files/$1 [L]
+
 RewriteRule .* www/$0 [L]
 
 RewriteRule .* - [F,L]
