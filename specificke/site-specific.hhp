@@ -26,8 +26,16 @@ define('ADMIN_WWW_CESTA', '../www'); //cesta z rootu admina do rootu uživatelsk
 // pointed at an internal admin.gamecon.priv. Serve both from the one archive
 // subdomain over https.
 define('URL_WEBU', 'https://2012.gamecon.cz');  //absolutní url uživatelského webu
-define('URL_ADMIN', 'https://2012.gamecon.cz'); //absolutní url adminu
+define('URL_ADMIN', 'https://2012.gamecon.cz/admin'); //absolutní url adminu
 
 date_default_timezone_set('Europe/Prague');
 
 ?>
+
+// GAMECON_SSO_KEY — klíč pro ověření magického přihlášení (?gcsso=), odvozený pro
+// tento ročník (HMAC(rok, master)) a vstříknutý deployem přes -e. Tenhle (commitnutý)
+// nastaveni-produkce.php je na archivu reálně načítaný soubor — bake přes
+// skryte-nastaveni-z-env-funkce.php se neprovede, protože tenhle soubor už existuje.
+// Proto se getenv('GAMECON_SSO_KEY') musí číst právě TADY, jinak konstanta zůstane
+// nedefinovaná a SSO se neuplatní. Prázdný fallback = SSO vypnuté.
+if (!defined('GAMECON_SSO_KEY')) define('GAMECON_SSO_KEY', getenv('GAMECON_SSO_KEY') ?: '');
