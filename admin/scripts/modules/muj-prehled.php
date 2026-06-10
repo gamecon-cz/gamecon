@@ -11,6 +11,9 @@
  */
 
 $tpl=new XTemplate('muj-prehled.xtpl');
+// {base} = absolutní URL adminu (vč. /admin); modul má vlastní XTemplate, takže si
+// base musí přiřadit sám — jinak by {base}/files/... spadlo na kořen domény (404).
+$tpl->assign('base',URL_ADMIN);
 
 $odpoved=dbQuery('
   SELECT a.nazev_akce as nazevAktivity, a.id_akce as id, (a.kapacita+a.kapacita_m+a.kapacita_f) as kapacita, a.den, a.zacatek,
