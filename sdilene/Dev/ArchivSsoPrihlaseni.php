@@ -36,7 +36,10 @@ final class ArchivSsoPrihlaseni
      */
     public function prihlas($token, $nonceZCookie, $jizPrihlaseny)
     {
-        if ($jizPrihlaseny !== null) {
+        // POZOR na starou éru: nactiPrihlaseneho() vrací FALSE (2012), jinde null (2013),
+        // když nikdo přihlášený není. Proto truthy test, ne striktní !== null — jinak by
+        // FALSE prošlo jako "už přihlášený" a SSO by se přeskočilo (tichý nelogin).
+        if ($jizPrihlaseny) {
             return $jizPrihlaseny;
         }
         if ($nonceZCookie === null) {
