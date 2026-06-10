@@ -6,14 +6,10 @@ namespace Gamecon\Dev;
 
 /**
  * Magické přihlášení napříč subdoménami: hlavní admin (admin.gamecon.cz) podepíše
- * token vázaný na `id_uzivatele` přihlášeného uživatele, archiv (NNNN.gamecon.cz)
- * ho ověří a uživatele podle ID přihlásí — bez zadávání hesla.
+ * token vázaný na e-mail přihlášeného uživatele, archiv (NNNN.gamecon.cz) ho ověří
+ * a uživatele podle e-mailu přihlásí — bez zadávání hesla.
  *
- * Identitu nese ČÍSELNÉ ID, ne e-mail: ID je napříč ostrou i zmrazenými archivními
- * snapshoty téhož kontinuálního `uzivatele` stabilní, kdežto e-mail je proměnný a
- * může se časem přiřadit jinému člověku (→ přihlášení do cizího účtu).
- *
- * Token nese jen IDENTITU (ID) a NESMÍ sám o sobě nikoho přihlásit: podepsaný
+ * Token nese jen IDENTITU (e-mail) a NESMÍ sám o sobě nikoho přihlásit: podepsaný
  * odkaz se může sdílet jako každý jiný. Proto je k němu při ověření vyžadován ještě
  * spárovaný „nonce", který zná jen prohlížeč, co na odkaz klikl (cookie `gc_sso_pair`
  * scope `.gamecon.cz`). Token commituje na konkrétní nonce; archiv přihlásí jen když
@@ -21,17 +17,16 @@ namespace Gamecon\Dev;
  * nemá → nepřihlásí. Viz {@see GateLink} (ten řeší jen průchod bránou,
  * ne přihlášení) a admin/scripts/prihlaseni.php (ověřovací strana).
  *
- * Podpis stojí na klíči ODVOZENÉM PRO DANÝ ROČNÍK z master tajemství
- * (`hash_hmac('sha256', (string) $rocnik, GAMECON_SSO_SECRET)`); master žije jen na
- * ostré, archiv dostane jen svůj odvozený klíč přes `-e GAMECON_SSO_KEY`. NE
- * `SECRET_CRYPTO_KEY` — ten šifruje osobní data a do zmrazeného archivu nepatří.
+ * Podpis stojí na `SECRET_CRYPTO_KEY`, který je BAJTOVĚ STEJNÝ na ostré i ve všech
+ * archivních images (viz audit v CLAUDE.md) — archiv tak umí ověřit, co hlavní admin
+ * podepsal, bez zavádění nového tajemství.
  *
  * Formát tokenu (`?gcsso=`):
  *
- *     gcsso = base64url(id "|" expiry "|" nonce) "." base64url(HMAC_SHA256(payload, secret))
+ *     gcsso = base64url(email "|" expiry "|" nonce) "." base64url(HMAC_SHA256(payload, secret))
  *
- * `id` i `expiry` jsou ASCII číslice; HMAC se počítá nad celým payloadem
- * (id|expiry|nonce). base64url = RFC 4648 §5 bez `=`.
+ * `expiry` jsou ASCII číslice unixového času; HMAC se počítá nad celým payloadem
+ * (e-mail|expiry|nonce). base64url = RFC 4648 §5 bez `=`.
  *
  * Když secret není nastavený (lokální vývoj), {@see self::podepis} vrátí prázdný
  * řetězec a volající `?gcsso=` nepřipojí — feature je prostě vypnutá.
@@ -48,12 +43,12 @@ final class CrossSiteLogin
     private const ODDELOVAC_PAYLOADU = '|';
 
     /**
-     * Vrátí hodnotu pro `?gcsso=` (samotný token, bez prefixu) podepsanou pro dané
-     * `id_uzivatele` a nonce. Prázdný řetězec, pokud secret není nastavený — volající
-     * pak `?gcsso=` nepřipojuje.
+     * Vrátí hodnotu pro `?gcsso=` (samotný token, bez prefixu) podepsanou pro daný
+     * e-mail a nonce. Prázdný řetězec, pokud secret není nastavený — volající pak
+     * `?gcsso=` nepřipojuje.
      */
     public static function podepis(
-        int $idUzivatele,
+        string $email,
         string $nonce,
         string $secret,
         ?int $ted = null,
@@ -63,15 +58,15 @@ final class CrossSiteLogin
         }
 
         $expiry = (string) (($ted ?? time()) + self::TTL_SEKUND);
-        $payload = $idUzivatele . self::ODDELOVAC_PAYLOADU . $expiry . self::ODDELOVAC_PAYLOADU . $nonce;
+        $payload = $email . self::ODDELOVAC_PAYLOADU . $expiry . self::ODDELOVAC_PAYLOADU . $nonce;
         $podpis = hash_hmac('sha256', $payload, $secret, true);
 
         return self::base64Url($payload) . '.' . self::base64Url($podpis);
     }
 
     /**
-     * Ověří token: správný podpis a nevypršelá platnost. Vrátí ověřené `id_uzivatele`
-     * + nonce, nebo null při jakékoli nesrovnalosti (špatný formát, neplatný podpis,
+     * Ověří token: správný podpis a nevypršelá platnost. Vrátí ověřený e-mail +
+     * nonce, nebo null při jakékoli nesrovnalosti (špatný formát, neplatný podpis,
      * vypršení). Shodu nonce s cookie kontroluje volající.
      */
     public static function over(string $token, string $secret): ?OvereneSso
@@ -99,16 +94,16 @@ final class CrossSiteLogin
         if (count($casti) !== 3) {
             return null;
         }
-        [$idUzivatele, $expiry, $nonce] = $casti;
+        [$email, $expiry, $nonce] = $casti;
 
         if (! ctype_digit($expiry) || (int) $expiry < time()) {
             return null;
         }
-        if (! ctype_digit($idUzivatele) || (int) $idUzivatele <= 0 || $nonce === '') {
+        if ($email === '' || $nonce === '') {
             return null;
         }
 
-        return new OvereneSso((int) $idUzivatele, $nonce);
+        return new OvereneSso($email, $nonce);
     }
 
     private static function base64Url(string $data): string
