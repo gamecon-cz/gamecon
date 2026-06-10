@@ -1091,12 +1091,21 @@ SQL;
     {
         if (!$this->u->maPravo(Pravo::JEDNA_AKTIVITA_ZDARMA))
         {
+            // právo bylo odebráno (nebo ho nikdy neměl) -> zruš případný zbylý poukaz
+            $this->smazPoukazNaJednuAktivitu();
+
             return;
         }
 
         $aktivity = $this->u->zapsaneAktivity();
         $nejdrazsiPrihlasena = 0;
         foreach ($aktivity as $a) {
+            // poukaz proplácí jednu reálně placenou aktivitu; technické a brigádnické
+            // se účastníkovi neúčtují (jdou do bonusu/odměny vypravěče), takže je nesmí
+            // určovat hodnotu poukazu
+            if ($a->typ()->jeInterni()) {
+                continue;
+            }
             if ($a->cenaZaklad() > $nejdrazsiPrihlasena) {
                 $nejdrazsiPrihlasena = $a->cenaZaklad();
             }
@@ -1136,13 +1145,48 @@ SQL;
             }
         } else
         {
-            dbQuery('DELETE FROM slevy WHERE id_uzivatele = $0 and poznamka = $1 and rok = $2 and provedl = $3', [
-                $this->u->id(),
-                'Poukaz na jednu aktivitu zdarma',
-                ROCNIK,
-                \Uzivatel::SYSTEM
-            ]);
+            $this->smazPoukazNaJednuAktivitu();
         }
+    }
+
+    private function smazPoukazNaJednuAktivitu(): void
+    {
+        dbQuery('DELETE FROM slevy WHERE id_uzivatele = $0 and poznamka = $1 and rok = $2 and provedl = $3', [
+            $this->u->id(),
+            'Poukaz na jednu aktivitu zdarma',
+            ROCNIK,
+            \Uzivatel::SYSTEM,
+        ]);
+    }
+
+    /**
+     * Hromadně přepočítá poukaz „jedna aktivita zdarma“ všem aktuálním držitelům
+     * práva. Běžně se poukaz přepočítává sám při změně role / přihlášky; tahle
+     * metoda je pro ruční opravu (po změně cen aktivit nebo při chybě).
+     * Vrací počet zpracovaných uživatelů.
+     */
+    public static function prepocitejVsechnyPoukazyNaJednuAktivitu(): int
+    {
+        // Zpracujeme nejen aktuální držitele práva (přepočet hodnoty), ale i ty,
+        // kdo už jen mají zbylý poukaz v `slevy` – těm právo mohlo být odebráno
+        // dřív, než existovala logika mazání, takže mají osiřelý řádek bez nároku.
+        // prepoctiSlevuNaJednuAktivitu() pak u nich poukaz smaže.
+        $idsUzivatelu = dbOneArray('
+            SELECT platne_role_uzivatelu.id_uzivatele
+            FROM platne_role_uzivatelu
+            JOIN prava_role ON prava_role.id_role = platne_role_uzivatelu.id_role
+            WHERE prava_role.id_prava = $0
+            UNION
+            SELECT slevy.id_uzivatele
+            FROM slevy
+            WHERE slevy.poznamka = $1 AND slevy.rok = $2 AND slevy.provedl = $3
+        ', [Pravo::JEDNA_AKTIVITA_ZDARMA, 'Poukaz na jednu aktivitu zdarma', ROCNIK, \Uzivatel::SYSTEM]);
+
+        foreach ($idsUzivatelu as $idUzivatele) {
+            \Uzivatel::zId((int)$idUzivatele)->finance()->prepoctiSlevuNaJednuAktivitu();
+        }
+
+        return count($idsUzivatelu);
     }
 
     public function dejQrKodProCeskouPlatbu(): ResultInterface
