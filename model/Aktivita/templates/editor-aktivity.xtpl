@@ -310,10 +310,10 @@
         </th>
         <td>
             <div id="kapacitaStd">
-                <input id="kapacitaInput" type="text" style="width:25px" name="{fields}[kapacita]" value="{kapacita}"> /
-                <input type="text" style="width:25px" name="{fields}[kapacita_m]" value="{kapacita_m}"> /
-                <input type="text" style="width:25px" name="{fields}[kapacita_f]" value="{kapacita_f}">
-                <div style="font-size:11px;color:#888;margin-top:2px">unisex / muži / ženy &nbsp;(0/0/0 = bez omezení)</div>
+                <input id="kapacitaInput" type="text" style="width:25px" name="{fields}[kapacita]" value="{kapacita}" placeholder="U" title="Univerzální (unisex)"> /
+                <input type="text" style="width:25px" name="{fields}[kapacita_m]" value="{kapacita_m}" placeholder="M" title="Muži"> /
+                <input type="text" style="width:25px" name="{fields}[kapacita_f]" value="{kapacita_f}" placeholder="Ž" title="Ženy">
+                <div style="font-size:11px;color:#888;margin-top:2px">U = unisex / M = muži / Ž = ženy &nbsp;(0/0/0 = bez omezení)</div>
             </div>
             <div id="teamVelikost" style="display:none">
                 min: <input type="text" style="width:25px" name="{fields}[team_min]" value="{team_min}">
