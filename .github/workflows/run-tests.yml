@@ -27,6 +27,14 @@ on:
             - reopened
             - ready_for_review
 
+# Feature větve spouští testy přes oba triggery (push i pull_request),
+# takže po otevření PR by stejný commit běžel dvakrát. Skupina klíčovaná
+# na větev (head_ref na PR, jinak ref) je u obou běhů stejná, takže
+# druhý běh ten první zruší a testy proběhnou jen jednou.
+concurrency:
+    group: run-tests-${{ github.head_ref || github.ref }}
+    cancel-in-progress: true
+
 jobs:
     run-tests:
         strategy:
