@@ -1,4 +1,5 @@
 <?php
+
 declare(strict_types=1);
 
 namespace Gamecon\SystemoveNastaveni;
@@ -17,9 +18,9 @@ readonly class KopieOstreDatabaze
     }
 
     public function __construct(
-        private NastrojeDatabaze   $nastrojeDatabaze,
+        private NastrojeDatabaze $nastrojeDatabaze,
         private SystemoveNastaveni $systemoveNastaveni,
-        private Vyjimkovac         $vyjimkovac,
+        private Vyjimkovac $vyjimkovac,
     ) {
     }
 
@@ -38,20 +39,20 @@ readonly class KopieOstreDatabaze
         }
         $allowedBaseDirs = array_filter($allowedBaseDirs);
 
-        $realFile     = realpath($gzipSouborZalohy);
-        $inAllowedDir = $realFile !== false && (bool)array_filter(
-                $allowedBaseDirs,
-                fn(
-                    $dir,
-                ) => str_starts_with($realFile, $dir . '/'),
-            );
+        $realFile = realpath($gzipSouborZalohy);
+        $inAllowedDir = $realFile !== false && (bool) array_filter(
+            $allowedBaseDirs,
+            fn (
+                $dir,
+            ) => str_starts_with($realFile, $dir . '/'),
+        );
 
-        if (!$inAllowedDir || !preg_match('~^export_.*\.sql\.gz$~', basename($realFile))) {
+        if (! $inAllowedDir || ! preg_match('~^export_.*\.sql\.gz$~', basename($realFile))) {
             throw new \RuntimeException("Nepovolený soubor zálohy: {$gzipSouborZalohy}");
         }
 
         $puvodniPriZalogovaniOdeslatMailem = $this->vyjimkovac->priZalogovaniOdeslatMailem();
-        $puvodniZobrazeniChyb              = $this->vyjimkovac->zobrazeni();
+        $puvodniZobrazeniChyb = $this->vyjimkovac->zobrazeni();
         $this->vyjimkovac->priZalogovaniOdeslatMailem(false);
         $this->vyjimkovac->zobrazeni($this->vyjimkovac::TRACY);
 
@@ -73,7 +74,7 @@ readonly class KopieOstreDatabaze
                     gzclose($gz);
                     throw new \RuntimeException('Nepodařilo se otevřít dočasný soubor pro zápis');
                 }
-                while (!gzeof($gz)) {
+                while (! gzeof($gz)) {
                     fwrite($fp, gzread($gz, 524288)); // 512 KB chunks
                 }
                 gzclose($gz);
@@ -81,6 +82,10 @@ readonly class KopieOstreDatabaze
 
                 // Strip DEFINERs from the plain SQL
                 NastrojeDatabaze::removeDefiners($tempFile);
+                // Zálohy ostré nesou `CREATE DATABASE`/`USE d16779_gcostra`; bez
+                // odstranění by se import přepnul na produkční jméno DB místo
+                // aktuální (preview / beta) databáze.
+                NastrojeDatabaze::removeDatabaseSelection($tempFile);
 
                 // Connect to local (beta) DB
                 [
@@ -125,35 +130,35 @@ readonly class KopieOstreDatabaze
         set_time_limit(120);
 
         $zdrojovaDbName = trim($zdrojovaDbName);
-        $jeTestovaciDb  = defined('DB_TEST_PREFIX') && str_starts_with($zdrojovaDbName, DB_TEST_PREFIX);
-        $jeOstraDb      = $zdrojovaDbName === $this->systemoveNastaveni->prihlasovaciUdajeOstreDatabaze()['DB_NAME'];
-        if (!preg_match('~^gamecon(_\d{4})?$~', $zdrojovaDbName) && !$jeTestovaciDb && !$jeOstraDb) {
+        $jeTestovaciDb = defined('DB_TEST_PREFIX') && str_starts_with($zdrojovaDbName, DB_TEST_PREFIX);
+        $jeOstraDb = $zdrojovaDbName === $this->systemoveNastaveni->prihlasovaciUdajeOstreDatabaze()['DB_NAME'];
+        if (! preg_match('~^gamecon(_\d{4})?$~', $zdrojovaDbName) && ! $jeTestovaciDb && ! $jeOstraDb) {
             throw new \RuntimeException("Nepovolený název databáze: {$zdrojovaDbName}");
         }
 
         $puvodniPriZalogovaniOdeslatMailem = $this->vyjimkovac->priZalogovaniOdeslatMailem();
-        $puvodniZobrazeniChyb              = $this->vyjimkovac->zobrazeni();
+        $puvodniZobrazeniChyb = $this->vyjimkovac->zobrazeni();
 
         $this->vyjimkovac->priZalogovaniOdeslatMailem(false);
         $this->vyjimkovac->zobrazeni($this->vyjimkovac::TRACY);
 
         try {
-            $nastaveniZdroj            = $this->systemoveNastaveni->prihlasovaciUdajeOstreDatabaze();
+            $nastaveniZdroj = $this->systemoveNastaveni->prihlasovaciUdajeOstreDatabaze();
             $nastaveniZdroj['DB_NAME'] = $zdrojovaDbName;
 
             // pro speciální archivy na stejném serveru použijeme lokální DB účet
             if ($zdrojovaDbName === 'gamecon_2024') {
-                $lokalni                    = $this->systemoveNastaveni->prihlasovaciUdajeSoucasneDatabaze();
+                $lokalni = $this->systemoveNastaveni->prihlasovaciUdajeSoucasneDatabaze();
                 $nastaveniZdroj['DBM_USER'] = $lokalni['DBM_USER'];
                 $nastaveniZdroj['DBM_PASS'] = $lokalni['DBM_PASS'];
-                $nastaveniZdroj['DB_SERV']  = $lokalni['DB_SERV'];
-                $nastaveniZdroj['DB_PORT']  = $lokalni['DB_PORT'];
+                $nastaveniZdroj['DB_SERV'] = $lokalni['DB_SERV'];
+                $nastaveniZdroj['DB_PORT'] = $lokalni['DB_PORT'];
             }
 
             if (
                 $nastaveniZdroj['DB_SERV'] === DB_SERV
                 && $nastaveniZdroj['DB_NAME'] === DB_NAME
-                && !$this->systemoveNastaveni->jsmeNaLocale()
+                && ! $this->systemoveNastaveni->jsmeNaLocale()
             ) {
                 throw new \RuntimeException('Kopírovat sebe sama nemá smysl');
             }
