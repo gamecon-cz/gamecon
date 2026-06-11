@@ -86,10 +86,11 @@ $sledujici = StavPrihlaseni::SLEDUJICI;
 $odpoved = dbQuery(<<<SQL
 SELECT  akce_seznam.nazev_akce AS nazevAktivity, akce_seznam.id_akce AS id,
         (akce_seznam.kapacita + akce_seznam.kapacita_m + akce_seznam.kapacita_f) AS kapacita,
+        akce_seznam.kapacita AS kapacita_u, akce_seznam.kapacita_m, akce_seznam.kapacita_f,
     akce_seznam.zacatek, akce_seznam.konec,
         ucastnik.login_uzivatele AS nick, ucastnik.jmeno_uzivatele AS jmeno, ucastnik.id_uzivatele,
         ucastnik.prijmeni_uzivatele AS prijmeni, ucastnik.email1_uzivatele AS mail, ucastnik.telefon_uzivatele AS telefon,
-        ucastnik.datum_narozeni,
+        ucastnik.datum_narozeni, ucastnik.pohlavi,
         prihlaseni.je_sledujici,
         (SELECT GROUP_CONCAT(organizator.login_uzivatele SEPARATOR ', ')
             FROM akce_organizatori
@@ -128,9 +129,17 @@ SQL,
     ]
 );
 
+// Rozpad obsazenosti i kapacity podle pohlaví: u = univerzální/neuvedeno, m = muži, ž = ženy.
+$rozpadPohlavi = static function (int $unisex, int $muzi, int $zeny): string {
+    return sprintf('%d+%d+%d', $unisex, $muzi, $zeny);
+};
+
 $totoPrihlaseni = mysqli_fetch_assoc($odpoved) ?: [];
 $dalsiPrihlaseni = mysqli_fetch_assoc($odpoved) ?: [];
 $obsazenost = 0;
+$obsazenostMuzi = 0;
+$obsazenostZeny = 0;
+$obsazenostUniverzalni = 0;
 $pocetSledujicich = 0;
 $odd = 0;
 $maily = [];
@@ -151,21 +160,41 @@ while ($totoPrihlaseni) {
         } else {
             $maily[] = $totoPrihlaseni['mail'];
             ++$obsazenost;
+            match ($totoPrihlaseni['pohlavi'] ?? '') {
+                'm'     => ++$obsazenostMuzi,
+                'f'     => ++$obsazenostZeny,
+                default => ++$obsazenostUniverzalni,
+            };
         }
     }
     if (($totoPrihlaseni['id'] ?? null) !== ($dalsiPrihlaseni['id'] ?? null)) {
         $xtpl2->assign('maily', implode('; ', $maily));
         $xtpl2->assign('cas', $formatCasAktivity($totoPrihlaseni));
         $xtpl2->assign('orgove', $totoPrihlaseni['orgove']);
-        $xtpl2->assign('obsazenost', $obsazenost .
-            ($totoPrihlaseni['kapacita'] ? '/' . $totoPrihlaseni['kapacita'] : '') .
-            ($pocetSledujicich ? " + {$pocetSledujicich} sledujících" : ''));
+        $maKapacitu = (bool) $totoPrihlaseni['kapacita'];
+        $obsazenostText = $obsazenost
+            . ($maKapacitu ? '/' . $totoPrihlaseni['kapacita'] : '')
+            . ($pocetSledujicich ? " + {$pocetSledujicich} sledujících" : '');
+        $rozpadObsazenosti = $rozpadPohlavi($obsazenostUniverzalni, $obsazenostMuzi, $obsazenostZeny);
+        $rozpadKapacity = $maKapacitu
+            ? ' / ' . $rozpadPohlavi(
+                (int) $totoPrihlaseni['kapacita_u'],
+                (int) $totoPrihlaseni['kapacita_m'],
+                (int) $totoPrihlaseni['kapacita_f'],
+            )
+            : '';
+        $xtpl2->assign('obsazenost', $obsazenostText
+            . ' <span style="font-size: small; color: grey">'
+            . $rozpadObsazenosti . $rozpadKapacity . ' (u + m + ž)</span>');
         $xtpl2->assign('druzina', '');
         if ($obsazenost || $pocetSledujicich) {
             $xtpl2->parse('prihlaseni.aktivita.lide');
         }
         $xtpl2->parse('prihlaseni.aktivita');
         $obsazenost = 0;
+        $obsazenostMuzi = 0;
+        $obsazenostZeny = 0;
+        $obsazenostUniverzalni = 0;
         $pocetSledujicich = 0;
         $odd = 0;
         $maily = [];
