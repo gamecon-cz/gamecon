@@ -6,7 +6,7 @@ TL;DR: Schopnost přihlásit se v adminu jako libovolný uživatel ("přepnout s
 - Právo: `Gamecon\Pravo::PREPNUTI_NA_UZIVATELE` (= 114), `model/Pravo.php`.
 - Role (ročníková): `Gamecon\Role\Role::LETOSNI_PREPINANI_UZIVATELE()`, base id `ROLE_PREPINANI_UZIVATELE_ID_ZAKLAD = 30`, význam `VYZNAM_PREPINANI_UZIVATELE`.
 - Konstanta `ROLE_PREPINANI_UZIVATELE`: `nastaveni/nastaveni-role.php`.
-- Vynucení práva: `admin/scripts/prihlaseni.php` (větev `prihlasitSeJakoUzivatel`) a `admin/index.php` (zobrazení omniboxu „přepnutí uživatele“).
+- Vynucení práva: `admin/scripts/prihlaseni.php` (větev `prihlasitSeJakoUzivatel`) a `admin/index.php` (zobrazení omniboxu „přepnutí uživatele“). Obě místa volají `Uzivatel::muzePrepnoutNaJinehoUzivatele()` (= drží právo **nebo** `jsmeNaLocale()`).
 - Auto-zakládání role pro nový ročník: `migrace/9999_01-letosni-role-krome-ucasti-endless.php` (iteruje `Role::vsechnyRocnikoveRole`).
 - První zavedení: `migrace/2026-05-24-111857_prepnuti-na-uzivatele-pravo.php`.
 
@@ -15,6 +15,7 @@ TL;DR: Schopnost přihlásit se v adminu jako libovolný uživatel ("přepnout s
 - **(záměr)** **Uděluje rada** (`CLEN_RADY`), ne kdokoli: role má `kategorie_role = KATEGORIE_OMEZENA (0)`, takže `Uzivatel::maPravoNaPrirazeniRole()` ji pustí přidělit jen členu rady. Viz `Role::kategoriePodleVyznamu(VYZNAM_PREPINANI_UZIVATELE) => KATEGORIE_OMEZENA`.
 - **(záměr)** Držení `CLEN_RADY` samo o sobě **nedává** přepínání — člen rady ji musí dostat přiřazenou jako každý jiný. Rada tedy právo *spravuje*, ale automaticky *nemá*.
 - **(záměr)** Pro rok 2026 není přiřazen **nikdo** — rada přiřadí ručně přes `/admin/prava`. Do té doby nemůže přepínat nikdo.
+- **(záměr)** **Na locale (`jsmeNaLocale()`) smí přepínat každý admin i bez přiřazené role.** Lokální vývoj jede na čerstvě naseedované DB, kde nikomu není přiřazená letošní ročníková role pro přepínání — bez tohoto pravidla by se vývojář na svém stroji nemohl přepnout vůbec. Na preview řeší tentýž problém deploy příkazem `app:grant-switch-user-role-to-devs` (uděluje roli Dev uživatelům po restore ostré DB); na locale to řeší přímo `muzePrepnoutNaJinehoUzivatele()`. Není to bezpečnostní díra — locale je vývojářův vlastní stroj.
 - Infopulťák (`jeInfopultak`) má i nadále vlastní *omezené* přepínání (jen na vypravěče/partnery) nezávisle na tomto právu — viz druhá větev v `admin/index.php` / `prihlaseni.php`.
 
 ## Gotchas

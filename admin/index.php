@@ -1,12 +1,14 @@
 <?php
 
-use Gamecon\XTemplate\XTemplate;
+declare(strict_types=1);
+
+use Gamecon\Cas\DateTimeCz;
+use Gamecon\Pravo;
+use Gamecon\Role\Role;
+use Gamecon\Uzivatel\Platby;
 use Gamecon\Web\Info;
 use Gamecon\Web\VerzeSouboru;
-use Gamecon\Role\Role;
-use Gamecon\Pravo;
-use Gamecon\Uzivatel\Platby;
-use Gamecon\Cas\DateTimeCz;
+use Gamecon\XTemplate\XTemplate;
 
 require __DIR__ . '/../nastaveni/zavadec.php';
 
@@ -19,7 +21,7 @@ if (HTTPS_ONLY) {
 
 // nastaví uživatele $u a $uPracovni
 require __DIR__ . '/scripts/prihlaseni.php';
-/**
+/*
  * @var Uzivatel|void|null $u
  * @var Uzivatel|void|null $uPracovni
  */
@@ -29,7 +31,7 @@ require __DIR__ . '/scripts/prihlaseni.php';
 include __DIR__ . '/_symfony.php';
 
 // nastavení stránky, prázdná url => přesměrování na úvod
-if (!$stranka) {
+if (! $stranka) {
     if ($u) {
         if ($u->jeOrganizator() && $u->maPravo(Pravo::ADMINISTRACE_INFOPULT)) {
             back(URL_ADMIN . '/' . basename(__DIR__ . '/scripts/modules/uzivatel.php', '.php'));
@@ -44,7 +46,7 @@ if (!$stranka) {
     }
 }
 
-if ($stranka == "api") {
+if ($stranka === 'api') {
     $apiDir = __DIR__ . '/scripts/api';
     chdir($apiDir);
     if (is_file($apiDir . '/' . $podstranka . '.php')) {
@@ -69,17 +71,19 @@ $xtpl->assign([
     'cssVersions'             => new VerzeSouboru(__DIR__ . '/files/design', 'css'),
     'jsVersions'              => new VerzeSouboru(__DIR__ . '/files', 'js'),
     'urlSPracovnimUzivatelem' => $uPracovni
-        ? getCurrentUrlWithQuery(['pracovni_uzivatel' => $uPracovni->id()])
+        ? getCurrentUrlWithQuery([
+            'pracovni_uzivatel' => $uPracovni->id(),
+        ])
         : '',
 ]);
 
 // kontrola přihlášení při ajaxovém volání (kvůli elektronickým prezenčkám)
-if (!$u && get('ajax')) {
+if (! $u && get('ajax')) {
     http_response_code(403);
 }
 
 // zobrazení stránky
-if (!$u && !in_array($stranka, ['last-minute-tabule', 'program-obecny'])) {
+if (! $u && ! in_array($stranka, ['last-minute-tabule', 'program-obecny'], true)) {
     require __DIR__ . '/login.php';
     profilInfo();
 
@@ -110,9 +114,9 @@ if (VAROVAT_O_ZASEKLE_SYNCHRONIZACI_PLATEB && $u && $u->jeOrganizator() && empty
     ) {
         varovani(
             'Platby z Fio byly naposledy aktualizovány ' . (
-            $platbyNaposledyAktualizovanyKdy === null
-                ? '"nikdy"'
-                : DateTimeCz::createFromInterface($platbyNaposledyAktualizovanyKdy)->relativni()
+                $platbyNaposledyAktualizovanyKdy === null
+                    ? '"nikdy"'
+                    : DateTimeCz::createFromInterface($platbyNaposledyAktualizovanyKdy)->relativni()
             ),
             false,
         );
@@ -127,7 +131,7 @@ $menu = $menuObject->pole();
 // načtení submenu
 $submenu = [];
 $submenuObject = null;
-if (!empty($menu[$stranka]['submenu'])) {
+if (! empty($menu[$stranka]['submenu'])) {
     $submenuObject = new AdminMenu(__DIR__ . '/scripts/modules/' . $stranka . '/', true);
     $submenu = $submenuObject->pole();
 }
@@ -173,7 +177,7 @@ if ($strankaExistuje && $uzivatelMaPristup) {
     if ($BEZ_DEKORACE) {
         return;
     }
-} elseif ($strankaExistuje && !$uzivatelMaPristup) {
+} elseif ($strankaExistuje && ! $uzivatelMaPristup) {
     http_response_code(403);
     if ($u) {
         $xtpl->assign('a', $u->koncovkaDlePohlavi());
@@ -193,9 +197,9 @@ if ($strankaExistuje && $uzivatelMaPristup) {
 // operátor - info & odhlašování
 $xtpl->assign('a', $u->koncovkaDlePohlavi());
 $xtpl->assign('operator', $u->jmenoNick());
-if ($u && ($u->maPravo(Pravo::PREPNUTI_NA_UZIVATELE) || $u->jeInfopultak())) {
+if ($u && ($u->muzePrepnoutNaJinehoUzivatele() || $u->jeInfopultak())) {
     $dataOmnibox = [];
-    if ($u->jeInfopultak() && !$u->maPravo(Pravo::PREPNUTI_NA_UZIVATELE)) {
+    if ($u->jeInfopultak() && ! $u->muzePrepnoutNaJinehoUzivatele()) {
         $dataOmnibox['jenSRolemi'] = [Role::LETOSNI_VYPRAVEC, Role::LETOSNI_PARTNER];
     }
     $xtpl->assign('dataOmniboxJson', htmlspecialchars(json_encode($dataOmnibox, JSON_FORCE_OBJECT)));
@@ -211,7 +215,7 @@ if ($u && $u->maPravo(Pravo::ADMINISTRACE_INFOPULT)) {
         $xtpl->parse('all.uzivatel.omnibox');
     }
     $historiePredchozich = $_SESSION['pracovni_uzivatel_predchozi'] ?? [];
-    if (!is_array($historiePredchozich)) {
+    if (! is_array($historiePredchozich)) {
         $historiePredchozich = $historiePredchozich ? [$historiePredchozich] : [];
     }
     $idPracovnihoUzivatele = $uPracovni ? $uPracovni->id() : null;
@@ -239,7 +243,7 @@ foreach ($menu as $url => $polozka) {
     if ($u->maPravo($polozka['pravo'])) {
         $xtpl->assign('url', $url);
         $xtpl->assign('nazev', $polozka['nazev']);
-        $xtpl->assign('aktivni', $stranka == $url
+        $xtpl->assign('aktivni', $stranka === $url
             ? 'class="active"'
             : '');
         $xtpl->parse('all.menuPolozka');
@@ -252,9 +256,9 @@ uasort($submenu, function (
     $b,
 ) {
     $diff = $a['group'] - $b['group'];
-    if ($diff == 0) {
+    if ($diff === 0) {
         $diff = $a['order'] - $b['order'];
-        if ($diff == 0) {
+        if ($diff === 0) {
             return 0;
         }
     }
@@ -266,7 +270,7 @@ uasort($submenu, function (
 $allHidden = true;
 foreach ($submenu as $url => $polozka) {
     if ($u && $u->maPravo($polozka['pravo'])) {
-        $xtpl->assign('url', $url == $stranka
+        $xtpl->assign('url', $url === $stranka
             ? $url
             : $stranka . '/' . $url);
         $xtpl->assign('nazev', $polozka['nazev']);
@@ -274,14 +278,14 @@ foreach ($submenu as $url => $polozka) {
         if ($polozka['link_in_blank']) {
             $addAttributes[] = 'target="_blank"';
         }
-        if (($podstranka != '' && $podstranka == $url) || ($podstranka == '' && $stranka == $url)) {
+        if (($podstranka !== '' && $podstranka === $url) || ($podstranka === '' && $stranka === $url)) {
             $addAttributes[] = 'class="activeSubmenuLink"';
             $info->nazev($polozka['nazev']);
         }
         $xtpl->assign('add_attributes', implode(' ', $addAttributes));
 
         $displayPolozka = '';
-        if (!empty($polozka['hidden'])) {
+        if (! empty($polozka['hidden'])) {
             $displayPolozka = 'none';
         } else {
             $allHidden = false;
@@ -289,7 +293,7 @@ foreach ($submenu as $url => $polozka) {
         $xtpl->assign('displayPolozka', $displayPolozka);
 
         $itemBreak = '';
-        if ($polozka['order'] == 1 && $polozka['group'] > 1) {
+        if ($polozka['order'] === 1 && $polozka['group'] > 1) {
             $itemBreak = '</ul></li><li><ul class="adm_submenu_group">';
         }
         $xtpl->assign('break', $itemBreak);
@@ -319,7 +323,7 @@ $info->nazev($info->nazev() ?? '', 'Administrace');
 $xtpl->assign('protip', $protipy[array_rand($protipy)]);
 $xtpl->parse('all.paticka');
 $xtpl->assign('chyba', chyba::vyzvedniHtml());
-$xtpl->assign('jsVyjimkovac', \Gamecon\Vyjimkovac\Vyjimkovac::js(URL_WEBU));
+$xtpl->assign('jsVyjimkovac', Gamecon\Vyjimkovac\Vyjimkovac::js(URL_WEBU));
 $xtpl->assign('headerPageInfo', $info->html());
 $xtpl->parse('all');
 $xtpl->out('all');
