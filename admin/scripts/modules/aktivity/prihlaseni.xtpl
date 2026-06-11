@@ -1,5 +1,9 @@
 <!-- begin:prihlaseni -->
 
+<style>
+.vypis tr.sledujici { color: #888; font-style: italic; }
+</style>
+
 <ul class="aktivityPrihlaseni_seznam_menu">
 <!-- begin:vyber -->
   <li><a href="aktivity/prihlaseni?typ={id_typu}">{typ_1pmn}</a></li>
@@ -33,8 +37,8 @@ function tgl(id)
     <th style="min-width: 125px">Datum</th>
   </tr>
   <!-- begin:clovek -->
-  <tr class="{odd}">
-    <td>{nick}</td>
+  <tr class="{odd} {sledujiciTrida}">
+    <td>{nick}{sledujiciStitek}</td>
     <td>{jmeno} {prijmeni}</td>
     <td>{mail}</td>
     <td>{vek}</td>
