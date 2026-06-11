@@ -311,9 +311,9 @@
         <td>
             <div id="kapacitaStd">
                 <input id="kapacitaInput" type="text" style="width:25px" name="{fields}[kapacita]" value="{kapacita}"> /
-                <input type="text" style="width:25px" name="{fields}[kapacita_f]" value="{kapacita_f}"> /
-                <input type="text" style="width:25px" name="{fields}[kapacita_m]" value="{kapacita_m}">
-                <span class="hinted"><div class="hint">Univerzálně / holky / kluky<br/>Kapacita 0/0/0 znamená bez omezení</div></span>
+                <input type="text" style="width:25px" name="{fields}[kapacita_m]" value="{kapacita_m}"> /
+                <input type="text" style="width:25px" name="{fields}[kapacita_f]" value="{kapacita_f}">
+                <div style="font-size:11px;color:#888;margin-top:2px">unisex / muži / ženy &nbsp;(0/0/0 = bez omezení)</div>
             </div>
             <div id="teamVelikost" style="display:none">
                 min: <input type="text" style="width:25px" name="{fields}[team_min]" value="{team_min}">
