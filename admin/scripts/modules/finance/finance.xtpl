@@ -39,6 +39,22 @@
 
 <hr style="clear: left">
 
+<div>
+  <strong>Údržba kupónů „jedna aktivita zdarma“</strong>
+  <p style="max-width: 40em">
+    Přepočítá hodnotu kupónů všem aktuálním držitelům práva (nejdražší reálně placená
+    aktivita). Běžně se přepočítávají samy při změně role nebo přihlášky – tohle použij
+    jen <strong>při chybě nebo po změně cen aktivit</strong>.
+  </p>
+  <form method="post"
+        onsubmit="return confirm('Opravdu přepočítat všechny kupóny „jedna aktivita zdarma“? Přepíše to jejich hodnotu u všech držitelů.');">
+    <input type="hidden" name="prepocitatPoukazyJednaAktivitaZdarma" value="1">
+    <input type="submit" value="Přepočítat kupóny">
+  </form>
+</div>
+
+<hr style="clear: left">
+
 <!-- begin:reporty -->
 <table class="zvyraznovana">
   <tbody>

@@ -363,6 +363,10 @@ SQL, [Pravo::PORADANI_AKTIVIT],
             throw new Chyba('Uživatel už má jinou unikátní roli.');
         }
 
+        // Default false pro případ souběhu: když roli mezitím přidá jiný request,
+        // INSERT skončí DbDuplicateEntryException a níže ji jen spolkneme – proměnná
+        // pak nesmí zůstat neinicializovaná, jinak by `return` spadl na TypeError.
+        $roleNovePridana = false; // Default false for concurrency case
         try {
             $result = dbQuery(
                 'INSERT INTO uzivatele_role(id_uzivatele, id_role, posadil)
@@ -2389,6 +2393,8 @@ SQL,
             $this->zalogujZmenuRole($idRole, $editor->id(), self::SESAZEN);
         }
         $this->aktualizujPrava();
+
+        $this->finance()->prepoctiSlevuNaJednuAktivitu();
 
         return $roleNoveOdebrana;
     }
