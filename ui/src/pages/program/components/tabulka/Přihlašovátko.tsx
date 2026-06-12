@@ -162,18 +162,25 @@ export const Přihlašovátko: FunctionComponent<TPřihlašovátkoProps> = (
 
     if (volnoTyp === "u" || volnoTyp === "t" || volnoTyp === účastník.pohlavi)
       return <FormTlačítko akitivitaId={akitivitaId} typ={"prihlasit"} tymova={aktivita.tymova} />;
-    else if (volnoTyp === "f") return <>pouze ženská místa</>;
-    else if (volnoTyp === "m") return <>pouze mužská místa</>;
 
-    // todo(tym): nahradit kontrolu: !aktivita?.dite?.length && !aktivita?.tymova
-    const prihlasovatelnaProSledujici = !aktivita?.tymova;
-    if (prihlasovatelnaProSledujici) {
-      if (aktivita.stavPrihlaseni === "sledujici")
-        return <FormTlačítko akitivitaId={akitivitaId} typ={"odhlasSledujiciho"} tymova={aktivita.tymova} />;
-      else return <FormTlačítko akitivitaId={akitivitaId} typ={"prihlasSledujiciho"} tymova={aktivita.tymova} />;
-    }
+    // volno už je jen pro opačné pohlaví → pro tohoto účastníka je plno, smí proto sledovat
+    // (oddělovač od textu „pouze … místa" zajišťuje border-left na .program ... form > a v CSS)
+    if (volnoTyp === "f")
+      return <>pouze ženská místa{sledováníTlačítko()}</>;
+    if (volnoTyp === "m")
+      return <>pouze mužská místa{sledováníTlačítko()}</>;
+
+    return <>{sledováníTlačítko()}</>;
   }
   return <></>;
+
+  // todo(tym): nahradit kontrolu: !aktivita?.dite?.length && !aktivita?.tymova
+  function sledováníTlačítko() {
+    const prihlasovatelnaProSledujici = !aktivita?.tymova;
+    if (!prihlasovatelnaProSledujici) return <></>;
+    const typ = aktivita?.stavPrihlaseni === "sledujici" ? "odhlasSledujiciho" : "prihlasSledujiciho";
+    return <FormTlačítko akitivitaId={akitivitaId} typ={typ} tymova={aktivita?.tymova} />;
+  }
 };
 
 Přihlašovátko.displayName = "Přihlašovátko";
