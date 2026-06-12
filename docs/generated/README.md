@@ -8,6 +8,7 @@ Pravidla **kdy** konzultovat / vytvořit dokument jsou v kořenovém `CLAUDE.md`
 
 <!-- Formát: `- [nazev-souboru](nazev-souboru.md) — jedna věta o čem to je` -->
 
+- [sledovani-aktivit](sledovani-aktivit.md) — watchlist aktivity (mail při uvolnění místa); kde se zobrazuje „sledovat/zrušit", jediný trigger mailu v `odhlas()` při `volno()==='x'`; tři chyby u genderově rozdělených aktivit (volno jen pro opačné pohlaví → nejde sledovat ani odhlásit ze sledování, maily se neposílají)
 - [prepnuti-na-uzivatele](prepnuti-na-uzivatele.md) — přihlášení v adminu jako libovolný uživatel; dřív hardcoded „superadmin“, nově dočasné ročníkové právo udělované radou
 - [archiv-rekonstrukce-z-wayback](archiv-rekonstrukce-z-wayback.md) — postavení `NNNN.gamecon.cz` jako statického archivu z Internet Archive pro ročníky bez DB/kódu (≤2011, hotovo 2005–2011); kde hledat zdroj (2006–2008 = `gamecon.altar.cz`, 2005− = path `altar.cz/gamecon/`, jiný CMS, ISO-8859-2), tři year-guardy, landmines (logo, absolutní odkazy, 403, jiný CMS, `[R]` redirect, CDX okno přeteče do dalšího roku, chybějící charset → mojibake), operační sekvence
 

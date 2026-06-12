@@ -1,15 +1,17 @@
 <!-- begin:zkopirovatDatabaziZOstre -->
-<h1>Beta</h1>
+<h1>{nadpisProstredi}</h1>
 
 <!-- begin:formular -->
-<form method="post" onsubmit="return confirm('Opravdu přemazat současná data na betě daty z ostré?') || (unblockAndRemoveLoading(this.querySelector('button')) && false)">
+<!-- begin:ostraForm -->
+<form method="post" onsubmit="return confirm('Opravdu přemazat současná data daty z ostré?') || (unblockAndRemoveLoading(this.querySelector('button')) && false)">
   <button type="submit" value="1" name="{synchronniPostKlic}[{zkopirovatOstrouKlic}]"
           class="disable-and-show-loading-on-click without-safety-unlock">
     Zkopírovat databázi z ostré
   </button>
 </form>
+<!-- end:ostraForm -->
 <!-- begin:archivniForm -->
-<form method="post" style="margin-top: 8px" onsubmit="return confirm('Opravdu přemazat současná data na betě daty z archivní databáze gamecon_' + this.querySelector('select').value + '?') || (unblockAndRemoveLoading(this.querySelector('button')) && false)">
+<form method="post" style="margin-top: 8px" onsubmit="return confirm('Opravdu přemazat současná data daty z archivní databáze gamecon_' + this.querySelector('select').value + '?') || (unblockAndRemoveLoading(this.querySelector('button')) && false)">
   <select name="{synchronniPostKlic}[{zkopirovatArchivniKlic}]" style="margin-right: 6px">
     {archivniRokyOptions}
   </select>
@@ -19,7 +21,7 @@
 </form>
 <!-- end:archivniForm -->
 <!-- begin:zalohaForm -->
-<form method="post" style="margin-top: 8px" onsubmit="return confirm('Opravdu přemazat současná data na betě daty ze souboru zálohy ' + this.querySelector('select').value + '?') || (unblockAndRemoveLoading(this.querySelector('button')) && false)">
+<form method="post" style="margin-top: 8px" onsubmit="return confirm('Opravdu přemazat současná data daty ze souboru zálohy ' + this.querySelector('select').value + '?') || (unblockAndRemoveLoading(this.querySelector('button')) && false)">
   <select name="{synchronniPostKlic}[{zkopirovatZeZalohyKlic}]" style="margin-right: 6px">
     {souboruZalohOptions}
   </select>

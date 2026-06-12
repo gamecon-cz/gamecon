@@ -11,19 +11,21 @@ class NastrojeDatabaze
     public static function vytvorZGlobals()
     {
         global $systemoveNastaveni;
-        if (!$systemoveNastaveni) {
+        if (! $systemoveNastaveni) {
             $systemoveNastaveni = SystemoveNastaveni::zGlobals();
         }
+
         return new self($systemoveNastaveni);
     }
 
     public function __construct(
         private SystemoveNastaveni $systemoveNastaveni,
-    )
-    {
+    ) {
     }
 
-    public function vytvorMysqldumpOstreDatabaze(array $mysqldumpSettings = ['skip-definer' => true]): Mysqldump
+    public function vytvorMysqldumpOstreDatabaze(array $mysqldumpSettings = [
+        'skip-definer' => true,
+    ]): Mysqldump
     {
         $nastaveniOstre = $this->systemoveNastaveni->prihlasovaciUdajeOstreDatabaze();
 
@@ -42,9 +44,10 @@ class NastrojeDatabaze
      */
     public function vytvorMysqldumpDatabaze(
         array $nastaveniDb,
-        array $mysqldumpSettings = ['skip-definer' => true],
-    ): Mysqldump
-    {
+        array $mysqldumpSettings = [
+            'skip-definer' => true,
+        ],
+    ): Mysqldump {
         return $this->vytvorMysqldump(
             $nastaveniDb['DB_SERV'],
             $nastaveniDb['DBM_USER'], // dbm účet kvůli SHOW VIEW
@@ -54,7 +57,9 @@ class NastrojeDatabaze
         );
     }
 
-    public function vytvorMysqldumpHlavniDatabaze(array $mysqldumpSettings = ['skip-definer' => true]): Mysqldump
+    public function vytvorMysqldumpHlavniDatabaze(array $mysqldumpSettings = [
+        'skip-definer' => true,
+    ]): Mysqldump
     {
         return $this->vytvorMysqldump(
             $this->systemoveNastaveni->databazoveNastaveni()->serverHlavniDatabaze(),
@@ -65,7 +70,9 @@ class NastrojeDatabaze
         );
     }
 
-    public function vytvorMysqldumpAnonymniDatabaze(array $mysqldumpSettings = ['skip-definer' => true]): Mysqldump
+    public function vytvorMysqldumpAnonymniDatabaze(array $mysqldumpSettings = [
+        'skip-definer' => true,
+    ]): Mysqldump
     {
         return $this->vytvorMysqldump(
             $this->systemoveNastaveni->databazoveNastaveni()->serverAnonymizovaneDatabase(),
@@ -81,9 +88,8 @@ class NastrojeDatabaze
         string $dbUser,
         string $dbPassword,
         string $dbName,
-        array  $mysqldumpSettings,
-    ): Mysqldump
-    {
+        array $mysqldumpSettings,
+    ): Mysqldump {
         return new Mysqldump(
             $this->vytvorDsn($dbServer, $dbName),
             $dbUser,
@@ -98,6 +104,23 @@ class NastrojeDatabaze
     {
         $file = file_get_contents($filename);
         $file = preg_replace('#DEFINER=`(?:[^`]|``)*`@`(?:[^`]|``)*`#', '', $file);
+        file_put_contents($filename, $file);
+    }
+
+    // Zálohy ostré databáze pořízené Adminerem / mysqldumpem --databases v sobě
+    // nesou hlavičku `CREATE DATABASE d16779_gcostra` + `USE d16779_gcostra`.
+    // Při importu přes MySQLImport, který příkazy pouští tak jak jsou, by se tím
+    // spojení přepnulo na produkční jméno DB (a tabulky by skončily mimo cílovou
+    // DB nebo s chybou práv). Odstraněním těchto příkazů se obsah zálohy nahraje
+    // do databáze, ke které je spojení už připojené (preview / beta DB).
+    public static function removeDatabaseSelection(string $filename): void
+    {
+        $file = file_get_contents($filename);
+        $file = preg_replace(
+            '~^\s*(?:CREATE\s+DATABASE|USE|DROP\s+DATABASE)\b[^;]*;\s*$~im',
+            '',
+            $file,
+        );
         file_put_contents($filename, $file);
     }
 
@@ -116,7 +139,7 @@ class NastrojeDatabaze
         if ($databaze === $this->systemoveNastaveni->databazoveNastaveni()->hlavniDatabaze()
             && $this->systemoveNastaveni->jsmeNaOstre()
         ) {
-            throw new \LogicException("Nemůžeme promazávat databázi na ostré");
+            throw new \LogicException('Nemůžeme promazávat databázi na ostré');
         }
         $this->smazTabulkyAPohledy($databaze, $spojeni);
         $this->smazNaseFunkce($databaze, $spojeni);
@@ -140,17 +163,17 @@ class NastrojeDatabaze
             $showCreateTableResult = mysqli_query(
                 $spojeni,
                 <<<SQL
-                    SHOW CREATE TABLE `$table`
+                    SHOW CREATE TABLE `{$table}`
                 SQL,
             );
-            $showCreateTable       = mysqli_fetch_assoc($showCreateTableResult);
-            $type                  = !empty($showCreateTable['View'])
+            $showCreateTable = mysqli_fetch_assoc($showCreateTableResult);
+            $type = ! empty($showCreateTable['View'])
                 ? 'VIEW'
                 : 'TABLE';
             mysqli_query(
                 $spojeni,
                 <<<SQL
-                    DROP $type `$table`
+                    DROP {$type} `{$table}`
                 SQL,
             );
         }
@@ -169,7 +192,7 @@ class NastrojeDatabaze
             mysqli_query(
                 $spojeni,
                 <<<SQL
-                    DROP FUNCTION `$nazevNasiFunkce`
+                    DROP FUNCTION `{$nazevNasiFunkce}`
                 SQL,
             );
         }
@@ -177,20 +200,20 @@ class NastrojeDatabaze
 
     private function nazvyNasichFunkci(string $databaze, \mysqli $spojeni): array
     {
-        $result                 = mysqli_query(
+        $result = mysqli_query(
             $spojeni,
             <<<SQL
                 SHOW FUNCTION STATUS
             SQL,
         );
-        $functionsStatuses      = mysqli_fetch_all($result, MYSQLI_ASSOC);
+        $functionsStatuses = mysqli_fetch_all($result, MYSQLI_ASSOC);
         $localFunctionsStatuses = array_filter($functionsStatuses, static function (array $functionStatus) use ($databaze) {
             return $functionStatus['Db'] === $databaze && $functionStatus['Type'] === 'FUNCTION';
         });
-        if (!$localFunctionsStatuses) {
+        if (! $localFunctionsStatuses) {
             return [];
         }
 
-        return array_map(static fn(array $definition) => $definition['Name'], $localFunctionsStatuses);
+        return array_map(static fn (array $definition) => $definition['Name'], $localFunctionsStatuses);
     }
 }

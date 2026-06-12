@@ -97,4 +97,38 @@ SQL,
             'Uživatel bez práva na přepnutí nesmí přepnout na uživatele',
         );
     }
+
+    /**
+     * Lokální vývoj jede na čerstvě naseedované DB, kde nikomu není přiřazená
+     * ročníková role pro přepínání — bez tohoto pravidla by se vývojář nemohl
+     * přepnout na jiného uživatele vůbec. Testy běží na locale (ENV=local),
+     * takže ho rovnou ověřujeme v reálném locale prostředí.
+     */
+    public function testNaLocaleSmiPrepnoutIBezPrava(): void
+    {
+        self::assertTrue(jsmeNaLocale(), 'Předpoklad testu: testy běží na locale');
+
+        $uzivatel = $this->vytvorUzivatele('locale_bez_prava');
+        $uzivatel = $this->pridelPravo($uzivatel, Pravo::ADMINISTRACE_INFOPULT);
+        self::assertFalse(
+            $uzivatel->maPravo(Pravo::PREPNUTI_NA_UZIVATELE),
+            'Předpoklad testu: uživatel nemá právo na přepnutí',
+        );
+
+        self::assertTrue(
+            $uzivatel->muzePrepnoutNaJinehoUzivatele(),
+            'Na locale smí přepnout na uživatele i bez přiděleného práva',
+        );
+    }
+
+    public function testSPravemSmiPrepnout(): void
+    {
+        $uzivatel = $this->vytvorUzivatele('s_pravem_muze_prepnout');
+        $uzivatel = $this->pridelPravo($uzivatel, Pravo::PREPNUTI_NA_UZIVATELE);
+
+        self::assertTrue(
+            $uzivatel->muzePrepnoutNaJinehoUzivatele(),
+            'Uživatel s přiděleným právem smí přepnout na uživatele',
+        );
+    }
 }
