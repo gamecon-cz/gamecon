@@ -3171,23 +3171,12 @@ HTML
                         '<a href="#" onclick="this.parentNode.submit(); return false">přihlásit</a>' .
                         '</form>';
                 } elseif ($volno === 'f') {
-                    $out = 'pouze ženská místa';
+                    // volno už je jen pro ženy → pro tohoto uživatele (muže) je plno, smí proto sledovat
+                    $out = 'pouze ženská místa' . $this->prihlasovatkoSledovani($u, ' | ');
                 } elseif ($volno === 'm') {
-                    $out = 'pouze mužská místa';
-                } elseif ($this->prihlasovatelnaProSledujici()) {
-                    if ($u->prihlasenJakoSledujici($this)) {
-                        $out =
-                            '<form method="post" style="display:inline">' .
-                            '<input type="hidden" name="odhlasSledujiciho" value="' . $this->id() . '">' .
-                            '<a href="#" onclick="this.parentNode.submit(); return false">zrušit sledování</a>' .
-                            '</form>';
-                    } else {
-                        $out =
-                            '<form method="post" style="display:inline">' .
-                            '<input type="hidden" name="prihlasSledujiciho" value="' . $this->id() . '">' .
-                            '<a href="#" onclick="this.parentNode.submit(); return false">sledovat</a>' .
-                            '</form>';
-                    }
+                    $out = 'pouze mužská místa' . $this->prihlasovatkoSledovani($u, ' | ');
+                } else {
+                    $out = $this->prihlasovatkoSledovani($u);
                 }
             }
         }
@@ -3196,6 +3185,33 @@ HTML
         }
 
         return $out;
+    }
+
+    /**
+     * Odkaz „sledovat" / „zrušit sledování" pro uživatele, pro kterého je aktivita plná.
+     * Vrátí prázdný řetězec, pokud aktivitu nelze sledovat (týmová, součást turnaje).
+     * $prefix se vloží před odkaz jen když nějaký odkaz vznikne (oddělovač od textu „pouze … místa").
+     */
+    private function prihlasovatkoSledovani(Uzivatel $u, string $prefix = ''): string
+    {
+        if (!$this->prihlasovatelnaProSledujici()) {
+            return '';
+        }
+        if ($u->prihlasenJakoSledujici($this)) {
+            $formular =
+                '<form method="post" style="display:inline">' .
+                '<input type="hidden" name="odhlasSledujiciho" value="' . $this->id() . '">' .
+                '<a href="#" onclick="this.parentNode.submit(); return false">zrušit sledování</a>' .
+                '</form>';
+        } else {
+            $formular =
+                '<form method="post" style="display:inline">' .
+                '<input type="hidden" name="prihlasSledujiciho" value="' . $this->id() . '">' .
+                '<a href="#" onclick="this.parentNode.submit(); return false">sledovat</a>' .
+                '</form>';
+        }
+
+        return $prefix . $formular;
     }
 
     public function formatujDuvodProTesting(string $duvod): string
