@@ -6,6 +6,7 @@ namespace App\Controller;
 
 use App\Service\LegacySessionService;
 use Gamecon\Kanaly\GcMail;
+use Gamecon\Kanaly\GcMailSablona;
 use Gamecon\Uzivatel\ResetHeslaToken;
 use Gamecon\Web\MenuWebu;
 use Gamecon\XTemplate\XTemplate;
@@ -215,7 +216,8 @@ class ObnovaHeslaController extends AbstractController
         $token = ResetHeslaToken::podepis((int) $uzivatel->id(), $hesloMd5, self::secret());
         $odkaz = URL_WEBU . '/obnova-hesla?token=' . $token;
 
-        $telo = \hlaskaMail('zapomenuteHeslo', $uzivatel, $odkaz);
+        $obsah = \hlaska('zapomenuteHeslo', $uzivatel, $odkaz);
+        $telo = GcMailSablona::obal($obsah, 'Obnova hesla');
 
         $mail = new GcMail(\Gamecon\SystemoveNastaveni\SystemoveNastaveni::zGlobals(), $telo);
         $mail->adresat($uzivatel->mail());
