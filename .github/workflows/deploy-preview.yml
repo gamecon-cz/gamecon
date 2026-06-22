@@ -34,13 +34,22 @@ permissions:
 # clean up (the teardown workflow only fires on `pull_request: closed`,
 # which has already fired).
 #
-# Keying on head_ref (PRs) / ref_name (push, workflow_dispatch) matches
-# the slug derivation below — runs for the same branch queue, runs for
-# different branches stay parallel. `cancel-in-progress: false` so an
+# Keying on head_ref (PRs) / ref_name (push, delete, workflow_dispatch)
+# matches the slug derivation below — runs for the same branch queue, runs
+# for different branches stay parallel. `cancel-in-progress: false` so an
 # in-flight deploy completes before teardown starts, rather than being
 # killed mid-build and leaving partial state on GHCR or the host.
+#
+# All fields below MUST resolve to the SAME short branch name across event
+# types, or the deploy and teardown of one branch land in different groups
+# and run in parallel — exactly the race this block exists to stop. Do NOT
+# add `github.event.ref`: on a push it is the FULL ref (`refs/heads/foo`),
+# which differs from the PR event's short `head.ref` (`foo`), so the two
+# never share a group and a deploy finishing after the merge-teardown
+# recreates a zombie preview. `github.ref_name` already covers push /
+# delete / workflow_dispatch with the short name.
 concurrency:
-    group: deploy-preview-${{ github.event.pull_request.head.ref || github.event.inputs.branch || github.event.ref || github.ref_name }}
+    group: deploy-preview-${{ github.event.pull_request.head.ref || github.event.inputs.branch || github.ref_name }}
     cancel-in-progress: false
 
 jobs:
