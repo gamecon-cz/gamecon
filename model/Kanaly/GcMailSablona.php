@@ -21,10 +21,8 @@ class GcMailSablona
     private const PISMO = "'Gilroy', 'Segoe UI', Arial, sans-serif";
 
     // Logo „Con" je v PNG vyříznuté (průhledné) — červenou si bere z pozadí
-    // záhlaví, proto musí sedět na {@see CERVENA}. Načítá se z kanonické
-    // produkční domény: preview/beta hosty jsou za bránou a v reálném
-    // mailovém klientovi by se obrázek nenačetl; brand logo je všude stejné.
-    private const LOGO_URL = 'https://gamecon.cz/soubory/blackarrow/menu/logo-email.png';
+    // záhlaví, proto musí sedět na {@see CERVENA}.
+    private const LOGO_CESTA = '/soubory/blackarrow/menu/logo-email.png';
 
     /**
      * @param string $obsahHtml vnitřní obsah mailu (už jako HTML, např. z hlaskaMail())
@@ -35,7 +33,9 @@ class GcMailSablona
         $tmava = self::TMAVA;
         $kremova = self::KREMOVA;
         $pismo = self::PISMO;
-        $logoUrl = self::LOGO_URL;
+        // Absolutní URL z aktuálního prostředí — asset i odkaz na něj se
+        // nasazují společně, takže nevzniká okno, kdy obrázek 404uje.
+        $logoUrl = URL_WEBU . self::LOGO_CESTA;
         $rok = date('Y');
 
         $nadpisHtml = $nadpis === ''
@@ -58,7 +58,7 @@ class GcMailSablona
                             <table role="presentation" width="600" cellpadding="0" cellspacing="0" style="width: 600px; max-width: 100%; background-color: #ffffff; border-radius: 12px; overflow: hidden;">
                                 <tr>
                                     <td style="background-color: {$cervena}; padding: 24px 40px;">
-                                        <img src="{$logoUrl}" alt="GameCon" width="175" height="36" style="display: block; border: 0; width: 175px; height: auto;">
+                                        <img src="{$logoUrl}" alt="GameCon" width="175" height="36" style="display: block; border: 0; width: 175px; height: auto; font-size: 24px; font-weight: 800; color: #ffffff;">
                                     </td>
                                 </tr>
                                 <tr>
