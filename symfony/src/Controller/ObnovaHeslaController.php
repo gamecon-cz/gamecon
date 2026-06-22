@@ -58,10 +58,12 @@ class ObnovaHeslaController extends AbstractController
             return $this->strankaResponse(
                 'Zapomenuté heslo',
                 <<<HTML
-                <h1>Zkontroluj e-mail</h1>
-                <p>Pokud k zadané e-mailové adrese existuje účet, poslali jsme na něj
-                odkaz pro nastavení nového hesla. Odkaz platí 1&nbsp;hodinu.</p>
-                <p><a href="prihlaseni">Zpět na přihlášení</a></p>
+                <div class="stranka">
+                    <h1>Zkontroluj e-mail</h1>
+                    <p>Pokud k zadané e-mailové adrese existuje účet, poslali jsme na něj
+                    odkaz pro nastavení nového hesla. Odkaz platí 1&nbsp;hodinu.</p>
+                    <p><a href="prihlaseni">Zpět na přihlášení</a></p>
+                </div>
                 HTML,
             );
         }
