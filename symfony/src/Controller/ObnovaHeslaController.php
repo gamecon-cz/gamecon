@@ -123,9 +123,8 @@ class ObnovaHeslaController extends AbstractController
         if ($request->isMethod('POST')) {
             \omezCsrf();
             $heslo = (string) $request->request->get('heslo', '');
-            $heslo2 = (string) $request->request->get('heslo_kontrola', '');
 
-            $chyba = $this->zkontrolujHeslo($heslo, $heslo2);
+            $chyba = $this->zkontrolujHeslo($heslo);
             if ($chyba !== null) {
                 // Post/Redirect/Get: po chybě přesměrujeme zpět na GET formulář
                 // (chybu přenese cookie přes Chyba). Bez redirectu Firefox bere
@@ -197,21 +196,14 @@ class ObnovaHeslaController extends AbstractController
                     Nové heslo
                     <input type="password" name="heslo" autocomplete="new-password" required minlength="8" autofocus>
                 </label>
-                <label class="formular_polozka">
-                    Heslo pro kontrolu
-                    <input type="password" name="heslo_kontrola" autocomplete="new-password" required minlength="8">
-                </label>
                 <input type="submit" value="Nastavit nové heslo" class="formular_primarni formular_primarni-sipka">
             </form>
             HTML,
         );
     }
 
-    private function zkontrolujHeslo(string $heslo, string $heslo2): ?string
+    private function zkontrolujHeslo(string $heslo): ?string
     {
-        if ($heslo !== $heslo2) {
-            return 'Zadaná hesla se neshodují.';
-        }
         if (mb_strlen($heslo) < self::MIN_DELKA_HESLA) {
             return 'Heslo musí mít aspoň ' . self::MIN_DELKA_HESLA . ' znaků.';
         }
