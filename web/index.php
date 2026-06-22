@@ -1,13 +1,11 @@
 <?php
 
-use Gamecon\XTemplate\XTemplate;
+declare(strict_types=1);
 
 use Gamecon\Aktivita\TypAktivity;
-use Gamecon\Web\Info;
 use Gamecon\Vyjimkovac\Vyjimkovac;
-use Gamecon\Pravo;
-use Gamecon\Aktivita\VlastniTypAktivity;
-use Gamecon\Uzivatel\ZpusobZobrazeniNaWebu;
+use Gamecon\Web\Info;
+use Gamecon\XTemplate\XTemplate;
 
 require __DIR__ . '/../nastaveni/zavadec.php';
 require __DIR__ . '/tridy/modul.php';
@@ -20,9 +18,7 @@ omezCsrf();
 
 $u = Uzivatel::zSession();
 
-/**
- * @var \Gamecon\SystemoveNastaveni\SystemoveNastaveni $systemoveNastaveni
- */
+/** @var Gamecon\SystemoveNastaveni\SystemoveNastaveni $systemoveNastaveni */
 
 // Postupná migrace na Symfony: vybrané veřejné cesty obsluhuje Symfony
 // controller. Kernel bootujeme JEN pro tyhle cesty (jsou pro nepřihlášené
@@ -30,7 +26,7 @@ $u = Uzivatel::zSession();
 // pracuje s $_GET['req'] (Apache rewrite z .htaccess), takže i tady cestu
 // bereme odtud, ne z REQUEST_URI (to nese prefix /web).
 $symfonyVerejneCesty = ['/zapomenute-heslo', '/obnova-hesla'];
-$aktualniCesta = '/' . trim((string)($_GET['req'] ?? ''), '/');
+$aktualniCesta = '/' . trim((string) ($_GET['req'] ?? ''), '/');
 if (in_array($aktualniCesta, $symfonyVerejneCesty, true)) {
     require __DIR__ . '/_symfony.php';
 }
@@ -45,34 +41,33 @@ try {
 $m = $url
     ? Modul::zUrl(null, $systemoveNastaveni)
     : Modul::zNazvu('nenalezeno', null, $systemoveNastaveni);
-if (!$m && ($stranka = Stranka::zUrl())) {
-    if ($stranka->isRedirect())
-    {
+if (! $m && ($stranka = Stranka::zUrl())) {
+    if ($stranka->isRedirect()) {
         header('Location: ' . $stranka->redirectUrl(), true, 301);
         exit;
     }
     $m = Modul::zNazvu('stranka', null, $systemoveNastaveni);
     $m->param('stranka', $stranka);
 }
-if (!$m && (($typ = TypAktivity::zUrl()) || ($org = Uzivatel::zUrl()))) {
+if (! $m && (($typ = TypAktivity::zUrl()) || ($org = Uzivatel::zUrl()))) {
     $m = Modul::zNazvu('aktivity', null, $systemoveNastaveni);
     $m->param('typ', $typ ?: null);
-    $m->param('org', !$typ ? $org : null);
+    $m->param('org', ! $typ ? $org : null);
 }
-if (!$m) {
+if (! $m) {
     $m = Modul::zNazvu('nenalezeno', null, $systemoveNastaveni);
 }
 
 // spuštění kódu modulu + buffering výstupu a nastavení
 $m->param('u', $u);
 $m->param('url', $url);
-    if (($url?->cast(0) ?? null) === 'api') {
+if (($url?->cast(0) ?? null) === 'api') {
     $m->bezStranky(true);
 }
 $i = (new Info($systemoveNastaveni))
     ->obrazek('soubory/styl/og-image.jpg')
     ->site('GameCon')
-    ->url("http://$_SERVER[HTTP_HOST]$_SERVER[REQUEST_URI]");
+    ->url("http://{$_SERVER['HTTP_HOST']}{$_SERVER['REQUEST_URI']}");
 $m->info($i);
 
 try {
@@ -85,49 +80,14 @@ try {
 
 // sestavení menu
 $menu = '';
-if (!$m->bezStranky() && !$m->bezMenu()) {
-    $t = new XTemplate(__DIR__ . '/sablony/blackarrow/menu.xtpl');
-
-    $typy = serazenePodle(TypAktivity::zViditelnych(), 'poradi');
-
-    $t->parseEach($typy, 'typ', 'menu.typAktivit');
-
-    // položky uživatelského menu
-    if ($u) {
-        $jmenoDoMenu = match ($u->zpusobZobrazeniNaWebu()) {
-            ZpusobZobrazeniNaWebu::JMENO_A_PRIJMENI => $u->celeJmeno(),
-            ZpusobZobrazeniNaWebu::POUZE_PREZDIVKA,
-            ZpusobZobrazeniNaWebu::JMENO_S_PREZDIVKOU_A_PRIJMENI => $u->nick(),
-        };
-        if ($jmenoDoMenu === '') {
-            $jmenoDoMenu = $u->jmenoNaWebu();
-        }
-
-        $t->assign(['u' => $u]);
-        $t->assign(['uJmenoMenu' => $jmenoDoMenu]);
-        $t->assign(["gcPrihlaska" => $u->gcPrihlasen() ? "Upravit přihlášku" : "Přihláška na GC"]);
-        if ($u->maPravo(Pravo::ADMINISTRACE_INFOPULT)) {
-            $t->assign(['uvodniAdminUrl' => $u->uvodniAdminUrl()]);
-            $t->parse('menu.prihlasen.admin');
-        } else if ($u->maPravo(Pravo::ADMINISTRACE_MOJE_AKTIVITY)) {
-            $t->assign(['mojeAktivityAdminUrl' => $u->mojeAktivityAdminUrl()]);
-            $t->parse('menu.prihlasen.mujPrehled');
-        }
-
-        $t->parse('menu.prihlasen');
-    } else {
-        $t->parse('menu.neprihlasen');
-        $t->assign(["gcPrihlaska" => "Přihláška na GC"]);
-    }
-
-    $t->parse('menu');
-    $menu = $t->text('menu');
-    // TODO odstranit starou třídu menu
+if (! $m->bezStranky() && ! $m->bezMenu()) {
+    $menu = Gamecon\Web\MenuWebu::html($u);
 }
 
 // výstup (s ohledem na to co modul nastavil)
 if ($m->bezStranky()) {
     echo $m->vystup();
+
     return;
 }
 
@@ -144,8 +104,8 @@ $t->assign([
 ]);
 $t->parseEach($m->cssUrls(), 'url', 'index.extraCss');
 $t->parseEach($m->jsUrls(), 'url', 'index.extraJs');
-if (!$m->bezPaticky()) {
-    if ($u?->jeOrganizator()){
+if (! $m->bezPaticky()) {
+    if ($u?->jeOrganizator()) {
         $t->parse('index.paticka.qrka');
     }
     $t->parse('index.paticka');
