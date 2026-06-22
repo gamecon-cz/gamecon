@@ -3,13 +3,22 @@
         'name' => 'gamecon-cz/gamecon',
         'pretty_version' => 'dev-main',
         'version' => 'dev-main',
-        'reference' => '57cd60c75faceaac954a60acfe1eaf4ca6b059c8',
+        'reference' => 'f0a54480838f4a17076e25ade9332dd8fffa15b2',
         'type' => 'project',
         'install_path' => __DIR__ . '/../../',
         'aliases' => array(),
         'dev' => true,
     ),
     'versions' => array(
+        'altcha-org/altcha' => array(
+            'pretty_version' => 'v2.0.2',
+            'version' => '2.0.2.0',
+            'reference' => '1028107ae5455edd92b27aa2de0fa9e278e2f2ff',
+            'type' => 'library',
+            'install_path' => __DIR__ . '/../altcha-org/altcha',
+            'aliases' => array(),
+            'dev_requirement' => false,
+        ),
         'bacon/bacon-qr-code' => array(
             'pretty_version' => '2.0.8',
             'version' => '2.0.8.0',
@@ -202,7 +211,7 @@
         'gamecon-cz/gamecon' => array(
             'pretty_version' => 'dev-main',
             'version' => 'dev-main',
-            'reference' => '57cd60c75faceaac954a60acfe1eaf4ca6b059c8',
+            'reference' => 'f0a54480838f4a17076e25ade9332dd8fffa15b2',
             'type' => 'project',
             'install_path' => __DIR__ . '/../../',
             'aliases' => array(),

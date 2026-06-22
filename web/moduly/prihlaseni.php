@@ -13,16 +13,20 @@ if (post('odhlasit')) {
 }
 
 if (post('prihlasit')) {
-    if (post('trvale')) {
-        $u = Uzivatel::prihlasTrvale(post('login'), post('heslo'));
+    if (! Gamecon\Antibot\Altcha::zGlobals()->overReseni((string) post('altcha'))) {
+        Chyba::nastav('Ověř prosím, že nejsi robot.');
     } else {
-        $u = Uzivatel::prihlas(post('login'), post('heslo'));
-    }
+        if (post('trvale')) {
+            $u = Uzivatel::prihlasTrvale(post('login'), post('heslo'));
+        } else {
+            $u = Uzivatel::prihlas(post('login'), post('heslo'));
+        }
 
-    if ($u) {
-        back(URL_WEBU . '/prihlaska');
-    } else {
-        Chyba::nastav(hlaska('chybaPrihlaseni'));
+        if ($u) {
+            back(URL_WEBU . '/prihlaska');
+        } else {
+            Chyba::nastav(hlaska('chybaPrihlaseni'));
+        }
     }
 }
 
@@ -39,7 +43,7 @@ if ($u) {
 
     <label class="formular_polozka">
         E-mailová adresa
-        <input type="text" name="login" autocomplete="username" autofocus value="<?= post('login') ?>" placeholder="" tabindex="1">
+        <input type="text" name="login" autocomplete="username" autofocus value="<?php echo post('login'); ?>" placeholder="" tabindex="1">
     </label>
 
     <a href="zapomenute-heslo" class="formular_zapomenuteHeslo" tabindex="2">zapomenuté heslo</a>
@@ -54,6 +58,8 @@ if ($u) {
     </label>
 
     <input type="hidden" name="prihlasit" value="true">
+
+    <?php echo altchaWidget(); ?>
 
     <input type="submit" value="Přihlásit se" class="formular_primarni formular_primarni-sipka" tabindex="1">
 

@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Controller;
 
 use App\Service\LegacySessionService;
+use Gamecon\Antibot\Altcha;
 use Gamecon\Kanaly\GcMail;
 use Gamecon\Kanaly\GcMailSablona;
 use Gamecon\Uzivatel\ResetHeslaToken;
@@ -46,6 +47,13 @@ class ObnovaHeslaController extends AbstractController
 
         if ($request->isMethod('POST')) {
             \omezCsrf();
+
+            if (! Altcha::zGlobals()->overReseni((string) $request->request->get('altcha', ''))) {
+                \Chyba::nastav('Ověř prosím, že nejsi robot.', \Chyba::CHYBA);
+
+                return new RedirectResponse(URL_WEBU . '/zapomenute-heslo');
+            }
+
             $email = trim((string) $request->request->get('mail', ''));
             $uzivatel = $email === ''
                 ? null
@@ -73,6 +81,8 @@ class ObnovaHeslaController extends AbstractController
             );
         }
 
+        $widget = \altchaWidget();
+
         return $this->strankaResponse(
             'Zapomenuté heslo',
             <<<HTML
@@ -86,6 +96,7 @@ class ObnovaHeslaController extends AbstractController
                     Můj e-mail
                     <input type="email" name="mail" id="emailProObnovuHesla" autocomplete="username" required>
                 </label>
+                {$widget}
                 <input type="submit" value="Odeslat odkaz" class="formular_primarni formular_primarni-sipka">
             </form>
             HTML,
