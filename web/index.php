@@ -25,7 +25,7 @@ $u = Uzivatel::zSession();
 // uživatele), ať neplatíme režii na každém veřejném requestu. Legacy router
 // pracuje s $_GET['req'] (Apache rewrite z .htaccess), takže i tady cestu
 // bereme odtud, ne z REQUEST_URI (to nese prefix /web).
-$symfonyVerejneCesty = ['/zapomenute-heslo', '/obnova-hesla'];
+$symfonyVerejneCesty = ['/zapomenute-heslo', '/obnova-hesla', '/altcha-challenge'];
 $aktualniCesta = '/' . trim((string) ($_GET['req'] ?? ''), '/');
 if (in_array($aktualniCesta, $symfonyVerejneCesty, true)) {
     require __DIR__ . '/_symfony.php';

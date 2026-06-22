@@ -200,6 +200,7 @@ class ComposerStaticInitdb580ec440eba8dacea536916cb0200b
         'A' =>
         array (
             'App\\' => 4,
+            'AltchaOrg\\Altcha\\' => 17,
         ),
     );
 
@@ -633,6 +634,10 @@ class ComposerStaticInitdb580ec440eba8dacea536916cb0200b
         'App\\' =>
         array (
             0 => __DIR__ . '/../..' . '/symfony/src',
+        ),
+        'AltchaOrg\\Altcha\\' =>
+        array (
+            0 => __DIR__ . '/..' . '/altcha-org/altcha/src',
         ),
     );
 

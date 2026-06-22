@@ -1,4 +1,6 @@
 <?php
+
+declare(strict_types=1);
 /**
  * Vrací hlášku s daným názvem. Libovolný počet argumentů. Pokud je druhým
  * argumentem uživatel, podporuje symbol {a} jako proměnlivou koncovku a. Další
@@ -8,16 +10,18 @@
  * atd...
  *
  * @return string hláška s případnými substitucemi
+ *
  * @todo fixnout málo zadaných argumentů
  */
 function hlaska($nazev, $u = null, ...$parametry)
 {
     global $HLASKY, $HLASKY_SUBST;
 
-    if (func_num_args() == 1) {
+    if (func_num_args() === 1) {
         return $HLASKY[$nazev];
-    } else if ($u instanceof Uzivatel) {
-        $koncA = $u->pohlavi() == 'f' ? 'a' : '';
+    } elseif ($u instanceof Uzivatel) {
+        $koncA = $u->pohlavi() === 'f' ? 'a' : '';
+
         return strtr($HLASKY_SUBST[$nazev], [
             "\n"  => '<br />',
             '{a}' => $koncA,
@@ -26,7 +30,7 @@ function hlaska($nazev, $u = null, ...$parametry)
             '%3'  => func_num_args() > 4 ? func_get_arg(4) : '',
             '%4'  => func_num_args() > 5 ? func_get_arg(5) : '',
         ]);
-    } else if (func_num_args() > 1) {
+    } elseif (func_num_args() > 1) {
         return \strtr($HLASKY_SUBST[$nazev], [
             "\n" => '<br />',
             '%1' => func_num_args() > 1 ? func_get_arg(1) : '',
@@ -35,9 +39,8 @@ function hlaska($nazev, $u = null, ...$parametry)
             '%4' => func_num_args() > 4 ? func_get_arg(4) : '',
             '%5' => func_num_args() > 4 ? func_get_arg(5) : '',
         ]);
-    } else {
-        throw new Exception('missing mandatory argument');
     }
+    throw new Exception('missing mandatory argument');
 }
 
 function hlaskaMail($nazev, $u = null, ...$parametry)
@@ -48,6 +51,7 @@ function hlaskaMail($nazev, $u = null, ...$parametry)
         func_num_args() > 3 ? func_get_arg(3) : '',
         func_num_args() > 4 ? func_get_arg(4) : '',
         func_num_args() > 5 ? func_get_arg(5) : '');
+
     return '<html><body>' . $out . '</body></html>';
 }
 
@@ -59,9 +63,9 @@ function httpsOnly()
 {
     if (empty($_SERVER['HTTPS']) || $_SERVER['HTTPS'] === 'off') {
         $redirect = 'https://' . $_SERVER['HTTP_HOST'] . $_SERVER['REQUEST_URI'];
-        //header('HTTP/1.1 301 Moved Permanently');
+        // header('HTTP/1.1 301 Moved Permanently');
         header('Location: ' . $redirect);
-        exit();
+        exit;
     }
 }
 
@@ -70,7 +74,7 @@ function httpsOnly()
  */
 function chyba($zprava, $back = true)
 {
-    Chyba::nastav((string)$zprava, Chyba::CHYBA);
+    Chyba::nastav((string) $zprava, Chyba::CHYBA);
     if ($back) {
         back();
     }
@@ -89,12 +93,13 @@ function varovani(string $zprava, bool $back = true)
 
 /**
  * Předá oznámení volajícímu skritpu, vyvolá reload
+ *
  * @param string $zprava
- * @param bool $back má se reloadovat?
+ * @param bool   $back   má se reloadovat?
  */
 function oznameni($zprava, $back = true)
 {
-    Chyba::nastav((string)$zprava, Chyba::OZNAMENI);
+    Chyba::nastav((string) $zprava, Chyba::OZNAMENI);
     if ($back) {
         back();
     }
@@ -105,20 +110,20 @@ function oznameni($zprava, $back = true)
  */
 function oznameniPresmeruj($zprava, $cil, int $typOznameni = Chyba::OZNAMENI)
 {
-    Chyba::nastav((string)$zprava, $typOznameni);
+    Chyba::nastav((string) $zprava, $typOznameni);
     back($cil);
 }
 
 /** Tisk informace profileru. */
 function profilInfo()
 {
-    if (!PROFILOVACI_LISTA) {
+    if (! PROFILOVACI_LISTA) {
         return; // v ostré verzi se neprofiluje
     }
-    $schema  = 'data:image/png;base64,';
-    $iDb     = $schema . base64_encode(file_get_contents(__DIR__ . '/db.png'));
+    $schema = 'data:image/png;base64,';
+    $iDb = $schema . base64_encode(file_get_contents(__DIR__ . '/db.png'));
     $iHodiny = $schema . base64_encode(file_get_contents(__DIR__ . '/hodiny.png'));
-    //$iconRoot = URL_ADMIN.'/files/design/';
+    // $iconRoot = URL_ADMIN.'/files/design/';
     $delka = microtime(true) - $GLOBALS['SKRIPT_ZACATEK'];
     // počet sekund, kdy už je skript pomalý (čas zčervená)
     $barva = $delka > 0.2 ? 'color:#f80;' : '';
@@ -167,10 +172,10 @@ function profilInfo()
 /** if current call is AJAX */
 function is_ajax(): bool
 {
-    return (!empty($_REQUEST['ajax'])
-        || (!empty($_SERVER['HTTP_X_REQUESTED_WITH']) && strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) == 'xmlhttprequest')
+    return ! empty($_REQUEST['ajax'])
+        || (! empty($_SERVER['HTTP_X_REQUESTED_WITH']) && strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) === 'xmlhttprequest')
         || str_contains($_SERVER['REQUEST_URI'] ?? '', '/api/')
-    );
+    ;
 }
 
 /**
@@ -195,7 +200,38 @@ function cestaObrazkuLinie(int $idTypu): string
         return $legacyCesta . '?v=' . filemtime($legacyAbsolutni);
     }
     $fallbackCesta = 'soubory/systemove/avatary/default.png';
+
     return $fallbackCesta . '?v=' . filemtime(ADRESAR_WEBU_S_OBRAZKY . '/' . $fallbackCesta);
+}
+
+/**
+ * HTML ALTCHA widgetu (self-hostovaná ochrana proti botům, proof-of-work) pro
+ * vložení do veřejného formuláře. Server vygeneruje podepsanou výzvu, klient ji
+ * v prohlížeči vyřeší a vloží řešení do skrytého pole „altcha", které pak
+ * ověříme přes {@see \Gamecon\Antibot\Altcha::overReseni()}.
+ *
+ * Script tagu vložíme jen jednou na stránku (statický strážce), i kdyby bylo
+ * na stránce víc formulářů.
+ */
+function altchaWidget(): string
+{
+    static $scriptVlozen = false;
+
+    $script = '';
+    if (! $scriptVlozen) {
+        $scriptVlozen = true;
+        $script = '<script async defer src="' . URL_WEBU . '/soubory/altcha/altcha.min.js" type="module"></script>';
+    }
+
+    // Widget si vyzvedne čerstvou podepsanou výzvu z našeho endpointu (vrací
+    // application/json). auto=onload ji vyřeší hned po načtení, takže uživatel
+    // jen vidí „Verifying… ✓" bez klikání.
+    $challengeUrl = htmlspecialchars(URL_WEBU . '/altcha-challenge', ENT_QUOTES);
+
+    return $script
+        . '<altcha-widget style="margin-bottom: 17px; --altcha-max-width: 444px"'
+        . ' auto="onload"'
+        . ' challenge="' . $challengeUrl . '"></altcha-widget>';
 }
 
 /**
@@ -218,5 +254,6 @@ function cestaObrazkuLinieNaTitulce(int $idTypu): string
     }
 
     $fallbackCesta = 'soubory/systemove/avatary/default.png';
+
     return $fallbackCesta . '?v=' . filemtime(ADRESAR_WEBU_S_OBRAZKY . '/' . $fallbackCesta);
 }
