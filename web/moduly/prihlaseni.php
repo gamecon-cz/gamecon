@@ -39,13 +39,13 @@ if ($u) {
 
     <label class="formular_polozka">
         E-mailová adresa
-        <input type="text" name="login" autofocus value="<?= post('login') ?>" placeholder="" tabindex="1">
+        <input type="text" name="login" autocomplete="username" autofocus value="<?= post('login') ?>" placeholder="" tabindex="1">
     </label>
 
     <a href="zapomenute-heslo" class="formular_zapomenuteHeslo" tabindex="2">zapomenuté heslo</a>
     <label class="formular_polozka">
         Heslo
-        <input type="password" name="heslo" placeholder="" tabindex="1">
+        <input type="password" name="heslo" autocomplete="current-password" placeholder="" tabindex="1">
     </label>
 
     <label style="margin: 30px 0; display: block" class="formular_polozka-checkbox">
