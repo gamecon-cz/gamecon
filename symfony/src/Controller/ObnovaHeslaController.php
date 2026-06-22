@@ -172,10 +172,12 @@ class ObnovaHeslaController extends AbstractController
     private function formularNovehoHesla(string $token, ?string $chyba = null): Response
     {
         $tokenHtml = htmlspecialchars($token, ENT_QUOTES);
-        $chybaHtml = $chyba === null
-            ? ''
-            : '<div class="chybaBlok chybaBlok-errorHlaska"><div class="hlaska errorHlaska">'
-                . htmlspecialchars($chyba, ENT_QUOTES) . '</div></div>';
+        // Chybu necháme vykreslit přes standardní Chyba blok (slot {chyba} v
+        // šabloně), takže má stejný vzhled, křížek i auto-zmizení jako ostatní
+        // hlášky webu. Cookie se přes $_COOKIE projeví hned v tomto requestu.
+        if ($chyba !== null) {
+            \Chyba::nastav($chyba, \Chyba::CHYBA);
+        }
 
         return $this->strankaResponse(
             'Zadej nové heslo',
@@ -185,7 +187,6 @@ class ObnovaHeslaController extends AbstractController
 
                 <div class="formular_strankaNadpis">Nové heslo</div>
 
-                {$chybaHtml}
                 <input type="hidden" name="token" value="{$tokenHtml}">
                 <label class="formular_polozka">
                     Nové heslo
