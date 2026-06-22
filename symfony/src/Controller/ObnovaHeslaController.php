@@ -7,6 +7,7 @@ namespace App\Controller;
 use App\Service\LegacySessionService;
 use Gamecon\Kanaly\GcMail;
 use Gamecon\Uzivatel\ResetHeslaToken;
+use Gamecon\Web\MenuWebu;
 use Gamecon\XTemplate\XTemplate;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\RedirectResponse;
@@ -277,7 +278,7 @@ class ObnovaHeslaController extends AbstractController
             $sablona->assign([
                 'css'        => \perfectcache('soubory/blackarrow/*/*.less'),
                 'chyba'      => \Chyba::vyzvedniHtml(),
-                'menu'       => '',
+                'menu'       => MenuWebu::html($this->legacySession->getCurrentUser()),
                 'obsah'      => $obsah,
                 'base'       => URL_WEBU . '/',
                 'info'       => '<title>' . htmlspecialchars($nazev, ENT_QUOTES) . ' – GameCon</title>',
