@@ -75,10 +75,12 @@ class ObnovaHeslaController extends AbstractController
             <div class="stranka">
                 <h1>Zapomenuté heslo</h1>
                 <p>Zadej svůj e-mail. Pošleme ti odkaz, na kterém si nastavíš nové heslo.</p>
-                <form method="post">
-                    <label for="emailProObnovuHesla"><strong>Můj e-mail:</strong></label>
-                    <input type="email" name="mail" id="emailProObnovuHesla" autocomplete="username" required>
-                    <input type="submit" value="Odeslat odkaz">
+                <form method="post" class="formular formular_stranka">
+                    <label class="formular_polozka">
+                        Můj e-mail
+                        <input type="email" name="mail" id="emailProObnovuHesla" autocomplete="username" required>
+                    </label>
+                    <input type="submit" value="Odeslat odkaz" class="formular_primarni">
                 </form>
             </div>
             HTML,
@@ -172,15 +174,17 @@ class ObnovaHeslaController extends AbstractController
             <div class="stranka">
                 <h1>Zadej nové heslo</h1>
                 {$chybaHtml}
-                <form method="post" action="obnova-hesla">
+                <form method="post" action="obnova-hesla" class="formular formular_stranka">
                     <input type="hidden" name="token" value="{$tokenHtml}">
-                    <label><strong>Nové heslo:</strong>
-                        <input type="password" name="heslo" required minlength="8" autofocus>
+                    <label class="formular_polozka">
+                        Nové heslo
+                        <input type="password" name="heslo" autocomplete="new-password" required minlength="8" autofocus>
                     </label>
-                    <label><strong>Heslo pro kontrolu:</strong>
-                        <input type="password" name="heslo_kontrola" required minlength="8">
+                    <label class="formular_polozka">
+                        Heslo pro kontrolu
+                        <input type="password" name="heslo_kontrola" autocomplete="new-password" required minlength="8">
                     </label>
-                    <input type="submit" value="Nastavit nové heslo">
+                    <input type="submit" value="Nastavit nové heslo" class="formular_primarni">
                 </form>
             </div>
             HTML,
