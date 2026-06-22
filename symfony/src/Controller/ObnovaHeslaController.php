@@ -60,8 +60,11 @@ class ObnovaHeslaController extends AbstractController
             return $this->strankaResponse(
                 'Zapomenuté heslo',
                 <<<HTML
-                <div class="stranka">
-                    <h1>Zkontroluj e-mail</h1>
+                <div class="formular formular_stranka formular_stranka-login">
+                    <div class="bg"></div>
+
+                    <div class="formular_strankaNadpis">Zkontroluj e-mail</div>
+
                     <p>Pokud k zadané e-mailové adrese existuje účet, poslali jsme na něj
                     odkaz pro nastavení nového hesla. Odkaz platí 1&nbsp;hodinu.</p>
                     <p><a href="prihlaseni">Zpět na přihlášení</a></p>
@@ -73,17 +76,18 @@ class ObnovaHeslaController extends AbstractController
         return $this->strankaResponse(
             'Zapomenuté heslo',
             <<<HTML
-            <div class="stranka">
-                <h1>Zapomenuté heslo</h1>
+            <form method="post" class="formular formular_stranka formular_stranka-login">
+                <div class="bg"></div>
+
+                <div class="formular_strankaNadpis">Zapomenuté heslo</div>
+
                 <p>Zadej svůj e-mail. Pošleme ti odkaz, na kterém si nastavíš nové heslo.</p>
-                <form method="post" class="formular formular_stranka">
-                    <label class="formular_polozka">
-                        Můj e-mail
-                        <input type="email" name="mail" id="emailProObnovuHesla" autocomplete="username" required>
-                    </label>
-                    <input type="submit" value="Odeslat odkaz" class="formular_primarni">
-                </form>
-            </div>
+                <label class="formular_polozka">
+                    Můj e-mail
+                    <input type="email" name="mail" id="emailProObnovuHesla" autocomplete="username" required>
+                </label>
+                <input type="submit" value="Odeslat odkaz" class="formular_primarni formular_primarni-sipka">
+            </form>
             HTML,
         );
     }
@@ -102,8 +106,11 @@ class ObnovaHeslaController extends AbstractController
             return $this->strankaResponse(
                 'Neplatný odkaz',
                 <<<HTML
-                <div class="stranka">
-                    <h1>Odkaz je neplatný nebo vypršel</h1>
+                <div class="formular formular_stranka formular_stranka-login">
+                    <div class="bg"></div>
+
+                    <div class="formular_strankaNadpis">Neplatný odkaz</div>
+
                     <p>Odkaz pro obnovu hesla platí jen omezenou dobu a po nastavení
                     hesla přestane fungovat. Nech si prosím poslat nový.</p>
                     <p><a href="zapomenute-heslo">Poslat nový odkaz</a></p>
@@ -172,22 +179,23 @@ class ObnovaHeslaController extends AbstractController
         return $this->strankaResponse(
             'Zadej nové heslo',
             <<<HTML
-            <div class="stranka">
-                <h1>Zadej nové heslo</h1>
+            <form method="post" action="obnova-hesla" class="formular formular_stranka formular_stranka-login">
+                <div class="bg"></div>
+
+                <div class="formular_strankaNadpis">Nové heslo</div>
+
                 {$chybaHtml}
-                <form method="post" action="obnova-hesla" class="formular formular_stranka">
-                    <input type="hidden" name="token" value="{$tokenHtml}">
-                    <label class="formular_polozka">
-                        Nové heslo
-                        <input type="password" name="heslo" autocomplete="new-password" required minlength="8" autofocus>
-                    </label>
-                    <label class="formular_polozka">
-                        Heslo pro kontrolu
-                        <input type="password" name="heslo_kontrola" autocomplete="new-password" required minlength="8">
-                    </label>
-                    <input type="submit" value="Nastavit nové heslo" class="formular_primarni">
-                </form>
-            </div>
+                <input type="hidden" name="token" value="{$tokenHtml}">
+                <label class="formular_polozka">
+                    Nové heslo
+                    <input type="password" name="heslo" autocomplete="new-password" required minlength="8" autofocus>
+                </label>
+                <label class="formular_polozka">
+                    Heslo pro kontrolu
+                    <input type="password" name="heslo_kontrola" autocomplete="new-password" required minlength="8">
+                </label>
+                <input type="submit" value="Nastavit nové heslo" class="formular_primarni formular_primarni-sipka">
+            </form>
             HTML,
         );
     }
