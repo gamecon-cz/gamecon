@@ -24,6 +24,19 @@ class GcMailSablona
     // záhlaví, proto musí sedět na {@see CERVENA}.
     private const LOGO_CESTA = '/soubory/blackarrow/menu/logo-email.png';
 
+    // Logo vkládáme do mailu inline (cid:) — viz {@see logoSoubor()}. Klient
+    // ho pak zobrazí i bez „načíst obrázky", na rozdíl od odkazu na URL.
+    public const LOGO_CID = 'gamecon-logo';
+
+    /**
+     * Cesta k souboru loga na disku — volající ho vloží do mailu přes
+     * {@see \Gamecon\Kanaly\GcMail::obrazekInline()} pod {@see LOGO_CID}.
+     */
+    public static function logoSoubor(): string
+    {
+        return WWW . self::LOGO_CESTA;
+    }
+
     /**
      * @param string $obsahHtml vnitřní obsah mailu (už jako HTML, např. z hlaskaMail())
      */
@@ -33,9 +46,7 @@ class GcMailSablona
         $tmava = self::TMAVA;
         $kremova = self::KREMOVA;
         $pismo = self::PISMO;
-        // Absolutní URL z aktuálního prostředí — asset i odkaz na něj se
-        // nasazují společně, takže nevzniká okno, kdy obrázek 404uje.
-        $logoUrl = URL_WEBU . self::LOGO_CESTA;
+        $logoCid = self::LOGO_CID;
         $rok = date('Y');
 
         $nadpisHtml = $nadpis === ''
@@ -58,7 +69,7 @@ class GcMailSablona
                             <table role="presentation" width="600" cellpadding="0" cellspacing="0" style="width: 600px; max-width: 100%; background-color: #ffffff; border-radius: 12px; overflow: hidden;">
                                 <tr>
                                     <td style="background-color: {$cervena}; padding: 24px 40px;">
-                                        <img src="{$logoUrl}" alt="GameCon" width="175" height="36" style="display: block; border: 0; width: 175px; height: auto; font-size: 24px; font-weight: 800; color: #ffffff;">
+                                        <img src="cid:{$logoCid}" alt="GameCon" width="175" height="36" style="display: block; border: 0; width: 175px; height: auto; font-size: 24px; font-weight: 800; color: #ffffff;">
                                     </td>
                                 </tr>
                                 <tr>
