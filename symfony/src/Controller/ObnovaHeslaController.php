@@ -127,7 +127,13 @@ class ObnovaHeslaController extends AbstractController
 
             $chyba = $this->zkontrolujHeslo($heslo, $heslo2);
             if ($chyba !== null) {
-                return $this->formularNovehoHesla($token, $chyba);
+                // Post/Redirect/Get: po chybě přesměrujeme zpět na GET formulář
+                // (chybu přenese cookie přes Chyba). Bez redirectu Firefox bere
+                // POST odpověď jako dokončené odeslání a nabízí uložit i
+                // zamítnuté (neshodující se) heslo.
+                \Chyba::nastav($chyba, \Chyba::CHYBA);
+
+                return new RedirectResponse(URL_WEBU . '/obnova-hesla?token=' . urlencode($token));
             }
 
             $uzivatel->heslo($heslo);
@@ -139,7 +145,7 @@ class ObnovaHeslaController extends AbstractController
             return new RedirectResponse(URL_WEBU . '/prihlaseni');
         }
 
-        return $this->formularNovehoHesla($token);
+        return $this->formularNovehoHesla($token, $uzivatel->mail());
     }
 
     private function uzivatelZTokenu(string $token): ?\Uzivatel
@@ -169,16 +175,14 @@ class ObnovaHeslaController extends AbstractController
         return \Uzivatel::zId($idOvereny);
     }
 
-    private function formularNovehoHesla(string $token, ?string $chyba = null): Response
+    private function formularNovehoHesla(string $token, string $email): Response
     {
         $tokenHtml = htmlspecialchars($token, ENT_QUOTES);
-        // Chybu necháme vykreslit přes standardní Chyba blok (slot {chyba} v
-        // šabloně), takže má stejný vzhled, křížek i auto-zmizení jako ostatní
-        // hlášky webu. Cookie se přes $_COOKIE projeví hned v tomto requestu.
-        if ($chyba !== null) {
-            \Chyba::nastav($chyba, \Chyba::CHYBA);
-        }
+        $emailHtml = htmlspecialchars($email, ENT_QUOTES);
 
+        // Skryté pole s e-mailem (autocomplete=username) napojí formulář na
+        // konkrétní uložené přihlášení — bez něj správce hesel neumí spárovat
+        // změnu s účtem a nenabídne aktualizaci uloženého hesla po úspěchu.
         return $this->strankaResponse(
             'Zadej nové heslo',
             <<<HTML
@@ -188,6 +192,7 @@ class ObnovaHeslaController extends AbstractController
                 <div class="formular_strankaNadpis">Nové heslo</div>
 
                 <input type="hidden" name="token" value="{$tokenHtml}">
+                <input type="email" name="email" value="{$emailHtml}" autocomplete="username" readonly hidden>
                 <label class="formular_polozka">
                     Nové heslo
                     <input type="password" name="heslo" autocomplete="new-password" required minlength="8" autofocus>
