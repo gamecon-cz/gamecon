@@ -224,13 +224,13 @@ function altchaWidget(): string
     }
 
     // Widget si vyzvedne čerstvou podepsanou výzvu z našeho endpointu (vrací
-    // application/json). auto=onload ji vyřeší hned po načtení, takže uživatel
-    // jen vidí „Verifying… ✓" bez klikání.
+    // application/json). display=invisible + auto=onload = neviditelná ochrana:
+    // widget nic nevykreslí a výzvu vyřeší tiše na pozadí hned po načtení,
+    // uživatel o ničem neví. Skryté pole „altcha" se naplní pro odeslání.
     $challengeUrl = htmlspecialchars(URL_WEBU . '/altcha-challenge', ENT_QUOTES);
 
     return $script
-        . '<altcha-widget style="margin-bottom: 17px; --altcha-max-width: 444px"'
-        . ' auto="onload"'
+        . '<altcha-widget display="invisible" auto="onload"'
         . ' challenge="' . $challengeUrl . '"></altcha-widget>';
 }
 
