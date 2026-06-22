@@ -174,7 +174,8 @@ class ObnovaHeslaController extends AbstractController
         $tokenHtml = htmlspecialchars($token, ENT_QUOTES);
         $chybaHtml = $chyba === null
             ? ''
-            : '<p class="errorHlaska">' . htmlspecialchars($chyba, ENT_QUOTES) . '</p>';
+            : '<div class="chybaBlok chybaBlok-errorHlaska"><div class="hlaska errorHlaska">'
+                . htmlspecialchars($chyba, ENT_QUOTES) . '</div></div>';
 
         return $this->strankaResponse(
             'Zadej nové heslo',
