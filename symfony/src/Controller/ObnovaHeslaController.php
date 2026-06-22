@@ -74,7 +74,7 @@ class ObnovaHeslaController extends AbstractController
                 <p>Zadej svůj e-mail. Pošleme ti odkaz, na kterém si nastavíš nové heslo.</p>
                 <form method="post">
                     <label for="emailProObnovuHesla"><strong>Můj e-mail:</strong></label>
-                    <input type="email" name="mail" id="emailProObnovuHesla" required>
+                    <input type="email" name="mail" id="emailProObnovuHesla" autocomplete="username" required>
                     <input type="submit" value="Odeslat odkaz">
                 </form>
             </div>
