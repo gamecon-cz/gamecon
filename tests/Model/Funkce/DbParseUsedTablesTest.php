@@ -54,6 +54,13 @@ class DbParseUsedTablesTest extends TestCase
                 'select 1 from (`uzivatele_role` join `platne_role` on(`uzivatele_role`.`id_role` = `platne_role`.`id_role`))',
                 ['uzivatele_role', 'platne_role'],
             ],
+            // MariaDB zanořuje join tří a víc tabulek do více závorek
+            // (`from ((a join b) join c)`); první tabulka je za dvěma `(` a nesmí
+            // se vynechat.
+            'definice view: FROM (vnořený JOIN tří tabulek)' => [
+                'select 1 from ((`gamecon`.`uzivatele_role` join `gamecon`.`platne_role` on(1)) join `gamecon`.`role_seznam` on(1))',
+                ['uzivatele_role', 'platne_role', 'role_seznam'],
+            ],
             // information_schema vrací názvy kvalifikované jménem databáze –
             // chceme název tabulky, ne `gamecon`.
             'definice view: db-kvalifikované názvy' => [

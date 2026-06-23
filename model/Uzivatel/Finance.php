@@ -37,6 +37,9 @@ class Finance
 
     public const KLIC_ZRUS_NAKUP_POLOZKY = 'zrus-nakup-polozky';
 
+    /** Diskriminátor řádku v `slevy` pro poukaz „jedna aktivita zdarma“ (sloupec poznamka). */
+    private const POZNAMKA_POUKAZ_JEDNA_AKTIVITA = 'Poukaz na jednu aktivitu zdarma';
+
     private const MAX_SLEVA_AKTIVIT_PROCENT = 100;
     private const PLNA_SLEVA_PROCENT        = 100;
     private const CASTECNA_SLEVA_PROCENT    = 40;
@@ -1122,7 +1125,7 @@ SQL;
         if ($nejdrazsiPrihlasena > 0) {
             if (dbRecordExists('slevy', [
                 'id_uzivatele' => $this->u->id(),
-                'poznamka' => 'Poukaz na jednu aktivitu zdarma',
+                'poznamka' => self::POZNAMKA_POUKAZ_JEDNA_AKTIVITA,
                 'rok' => ROCNIK,
                 'provedl' => Uzivatel::SYSTEM,
                 ]))
@@ -1130,7 +1133,7 @@ SQL;
                 dbQuery('UPDATE slevy SET castka = $0, provedeno = current_timestamp() WHERE id_uzivatele = $1 and poznamka = $2 and rok = $3 and provedl = $4', [
                     $nejdrazsiPrihlasena,
                     $this->u->id(),
-                    'Poukaz na jednu aktivitu zdarma',
+                    self::POZNAMKA_POUKAZ_JEDNA_AKTIVITA,
                     ROCNIK,
                     \Uzivatel::SYSTEM
                 ]);
@@ -1138,7 +1141,7 @@ SQL;
                 dbQuery('INSERT INTO slevy (id_uzivatele, castka, poznamka, rok, provedl) VALUES ($0, $1, $2, $3, $4)', [
                     $this->u->id(),
                     $nejdrazsiPrihlasena,
-                    'Poukaz na jednu aktivitu zdarma',
+                    self::POZNAMKA_POUKAZ_JEDNA_AKTIVITA,
                     ROCNIK,
                     \Uzivatel::SYSTEM
                 ]);
@@ -1153,7 +1156,7 @@ SQL;
     {
         dbQuery('DELETE FROM slevy WHERE id_uzivatele = $0 and poznamka = $1 and rok = $2 and provedl = $3', [
             $this->u->id(),
-            'Poukaz na jednu aktivitu zdarma',
+            self::POZNAMKA_POUKAZ_JEDNA_AKTIVITA,
             ROCNIK,
             \Uzivatel::SYSTEM,
         ]);
@@ -1180,13 +1183,18 @@ SQL;
             SELECT slevy.id_uzivatele
             FROM slevy
             WHERE slevy.poznamka = $1 AND slevy.rok = $2 AND slevy.provedl = $3
-        ', [Pravo::JEDNA_AKTIVITA_ZDARMA, 'Poukaz na jednu aktivitu zdarma', ROCNIK, \Uzivatel::SYSTEM]);
+        ', [Pravo::JEDNA_AKTIVITA_ZDARMA, self::POZNAMKA_POUKAZ_JEDNA_AKTIVITA, ROCNIK, \Uzivatel::SYSTEM]);
 
-        foreach ($idsUzivatelu as $idUzivatele) {
-            \Uzivatel::zId((int)$idUzivatele)->finance()->prepoctiSlevuNaJednuAktivitu();
+        // Hromadné načtení jedním dotazem místo zId() v cyklu (N+1). Smazaný/sloučený
+        // uživatel, na kterého ukazuje osiřelý řádek v `slevy`, se v zIds() prostě
+        // neobjeví – přeskočíme ho, ať jednorázový přepočet (i v migraci) nespadne.
+        $prepocitano = 0;
+        foreach (\Uzivatel::zIds($idsUzivatelu) as $uzivatel) {
+            $uzivatel->finance()->prepoctiSlevuNaJednuAktivitu();
+            $prepocitano++;
         }
 
-        return count($idsUzivatelu);
+        return $prepocitano;
     }
 
     public function dejQrKodProCeskouPlatbu(): ResultInterface
