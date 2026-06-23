@@ -7,6 +7,18 @@ on:
             - 'main'
     workflow_dispatch:
 
+# Serialize OSTRA deploys. The FTP deployment uploads each file as a
+# `.deploytmp` then renames it into place; two deploys running at once
+# race on those temp files and the loser dies with "Overwrite permission
+# denied". A burst of merges to `main` (e.g. several Dependabot PRs in
+# quick succession) otherwise launches one concurrent deploy per merge.
+# `cancel-in-progress: false` lets an in-flight sync finish rather than
+# being killed mid-upload, which could leave prod half-updated; later
+# deploys queue and run one after another.
+concurrency:
+    group: deploy-ostra
+    cancel-in-progress: false
+
 jobs:
     publish:
         runs-on: ubuntu-24.04
