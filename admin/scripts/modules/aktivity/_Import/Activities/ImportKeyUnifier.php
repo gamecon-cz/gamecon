@@ -35,11 +35,11 @@ class ImportKeyUnifier
         if (in_array($unifiedKey, $occupiedKeys, true)) {
             throw new DuplicatedUnifiedKeyException(
                 sprintf(
-                    "Can not create unified key from '%s' as resulting key '%s' using unify depth %d already exists. Existing keys: %s",
+                    "Can not create unified key from '%s' using unify depth %d. Resulted key '%s' already exists. Existing keys: %s",
                     $value,
                     $unifiedKey,
                     $unifyDepth,
-                    implode(';', array_map(static function (
+                    implode(', ', array_map(static function (
                         string $occupiedKey,
                     ) {
                         return "'$occupiedKey'";
