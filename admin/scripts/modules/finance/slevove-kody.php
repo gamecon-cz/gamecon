@@ -37,8 +37,12 @@ if (post('zneplatnitId')) {
         'invalidated' => 1,
     ])) {
         // už byl zneplatněný – cíl splněn, není co hlásit
+    } elseif (dbRecordExists('slevove_kody', [
+        'id' => $id,
+    ])) {
+        chyba('Poukaz nešlo zneplatnit – už byl uplatněný.');
     } else {
-        chyba('Poukaz nešlo zneplatnit – buď neexistuje, nebo už byl uplatněný.');
+        chyba('Poukaz nešlo zneplatnit – neexistuje.');
     }
 }
 
@@ -56,8 +60,12 @@ if (post('obnovitId')) {
         'invalidated' => 0,
     ])) {
         // už byl platný – cíl splněn, není co hlásit
+    } elseif (dbRecordExists('slevove_kody', [
+        'id' => $id,
+    ])) {
+        chyba('Platnost poukazu nešlo obnovit – už byl uplatněný.');
     } else {
-        chyba('Platnost poukazu nešlo obnovit - buď neexistuje, nebo už byl uplatněný.');
+        chyba('Platnost poukazu nešlo obnovit – neexistuje.');
     }
 }
 
