@@ -7,6 +7,15 @@ on:
             - 'beta'
     workflow_dispatch:
 
+# Serialize BETA deploys for the same reason as OSTRA: concurrent FTP
+# syncs race on `.deploytmp` files and fail with "Overwrite permission
+# denied". A separate group from ostra (different target) so the two
+# never block each other. `cancel-in-progress: false` so an in-flight
+# sync completes instead of being killed mid-upload.
+concurrency:
+    group: deploy-beta
+    cancel-in-progress: false
+
 jobs:
     publish:
         runs-on: ubuntu-24.04
