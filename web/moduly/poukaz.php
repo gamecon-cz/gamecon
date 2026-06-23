@@ -1,22 +1,27 @@
 <?php
 
+declare(strict_types=1);
+
 /** @var Uzivatel|null $u */
 
 use Gamecon\Role\Role;
 
-$prihlasen    = (bool)$u;
-$gcPrihlasen  = $prihlasen && $u->gcPrihlasen();
+$prihlasen = (bool) $u;
+$gcPrihlasen = $prihlasen && $u->gcPrihlasen();
 $jizUplatneno = $prihlasen && $u->maRoli(Role::LETOSNI_JEDNA_AKTIVITA_ZDARMA);
 
 // Kód zpracujeme jen ve stavu, kdy ho uživatel reálně smí uplatnit (přihlášený,
 // přihlášený na GC a zatím bez slevy). V ostatních stavech se místo formuláře
 // zobrazí informace, co má udělat – viz výběr bloku níže.
-if ($gcPrihlasen && !$jizUplatneno && post('kod')) {
-    $kod = strtoupper(trim(post('kod')));
+if ($gcPrihlasen && ! $jizUplatneno && post('kod')) {
+    // post('kod') vrací syrovou hodnotu z $_POST – při `kod[]=…` je to pole;
+    // bez kontroly by trim(pole) skončilo fatální TypeError. Nescalar = neplatný kód.
+    $kodInput = post('kod');
+    $kod = is_scalar($kodInput) ? strtoupper(trim((string) $kodInput)) : '';
     if ($kod === '') {
         chyba('Tento slevový kód neplatí. Zkontroluj, že jsi ho opsal(a) správně a velkými písmeny, nebo jestli už nebyl použitý.');
     } else {
-        $uplatneno  = false;
+        $uplatneno = false;
         $jizMelRoli = false;
         dbBegin();
         try {
@@ -39,7 +44,7 @@ if ($gcPrihlasen && !$jizUplatneno && post('kod')) {
             } else {
                 dbRollback();
             }
-        } catch (\Throwable $throwable) {
+        } catch (Throwable $throwable) {
             dbRollback();
             throw $throwable;
         }
@@ -58,9 +63,9 @@ $this->info()->nazev('Uplatnění slevového poukazu');
 
 $t->assign('urlWebu', URL_WEBU);
 
-if (!$prihlasen) {
+if (! $prihlasen) {
     $t->parse('poukaz.neprihlasen');
-} elseif (!$gcPrihlasen) {
+} elseif (! $gcPrihlasen) {
     $t->parse('poukaz.bezGcPrihlasky');
 } elseif ($jizUplatneno) {
     $t->parse('poukaz.jizUplatneno');

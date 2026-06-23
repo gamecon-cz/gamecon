@@ -1,7 +1,9 @@
 <?php
 
-use Gamecon\XTemplate\XTemplate;
+declare(strict_types=1);
+
 use Gamecon\Cas\DateTimeCz;
+use Gamecon\XTemplate\XTemplate;
 
 /**
  * nazev: Slevové poukazy 🎟️
@@ -21,13 +23,16 @@ if (post('vygenerovat')) {
 }
 
 if (post('zneplatnitId')) {
-    $id = (int)post('zneplatnitId');
-    // zneplatnit jde jen dosud nepoužitý kód – použitý už slevu udělil a měnit ho nemá smysl
-    $zmeneno = dbAffectedOrNumRows(dbQuery(
-        'UPDATE slevove_kody SET invalidated = 1 WHERE id = $0 AND usedAt IS NULL',
-        [$id],
-    ));
-    if ($zmeneno) {
+    $id = (int) post('zneplatnitId');
+    // zneplatnit jde jen dosud nepoužitý kód – použitý už slevu udělil a měnit ho nemá smysl.
+    // Úspěch řídíme podle toho, zda nepoužitý poukaz existuje, ne podle počtu změněných
+    // řádků: opakované zneplatnění už zneplatněného kódu nezmění žádný řádek, ale není to chyba.
+    $jeUpravitelny = dbRecordExists('slevove_kody', [
+        'id'     => $id,
+        'usedAt' => null,
+    ]);
+    if ($jeUpravitelny) {
+        dbQuery('UPDATE slevove_kody SET invalidated = 1 WHERE id = $0 AND usedAt IS NULL', [$id]);
         oznameni('Poukaz byl zneplatněn.');
     } else {
         chyba('Poukaz nešlo zneplatnit – buď neexistuje, nebo už byl uplatněný.');
@@ -35,12 +40,13 @@ if (post('zneplatnitId')) {
 }
 
 if (post('obnovitId')) {
-    $id = (int)post('obnovitId');
-    $zmeneno = dbAffectedOrNumRows(dbQuery(
-        'UPDATE slevove_kody SET invalidated = 0 WHERE id = $0 AND usedAt IS NULL',
-        [$id],
-    ));
-    if ($zmeneno) {
+    $id = (int) post('obnovitId');
+    $jeUpravitelny = dbRecordExists('slevove_kody', [
+        'id'     => $id,
+        'usedAt' => null,
+    ]);
+    if ($jeUpravitelny) {
+        dbQuery('UPDATE slevove_kody SET invalidated = 0 WHERE id = $0 AND usedAt IS NULL', [$id]);
         oznameni('Platnost poukazu byla obnovena.');
     } else {
         chyba('Platnost poukazu nešlo obnovit - buď neexistuje, nebo už byl uplatněný.');
@@ -48,8 +54,8 @@ if (post('obnovitId')) {
 }
 
 if (post('poznamkaId')) {
-    $id       = (int)post('poznamkaId');
-    $poznamka = trim((string)post('poznamka'));
+    $id = (int) post('poznamkaId');
+    $poznamka = trim((string) post('poznamka'));
     dbQuery(
         'UPDATE slevove_kody SET poznamka = $0 WHERE id = $1',
         [$poznamka === '' ? null : $poznamka, $id],
@@ -82,12 +88,12 @@ LEFT JOIN uzivatele_hodnoty AS pouzil   ON pouzil.id_uzivatele = slevove_kody.us
 ORDER BY slevove_kody.createdAt DESC, slevove_kody.id DESC
 SQL);
 
-$celkem    = 0;
-$volnych   = 0;
+$celkem = 0;
+$volnych = 0;
 $pouzitych = 0;
 
 while ($r = mysqli_fetch_assoc($kody)) {
-    $celkem++;
+    ++$celkem;
 
     $vytvoril = Uzivatel::jmenoNickZjisti([
         'jmeno_uzivatele'    => $r['vytvoril_jmeno'],
@@ -96,40 +102,40 @@ while ($r = mysqli_fetch_assoc($kody)) {
     ]);
 
     if ($r['usedAt'] !== null) {
-        $pouzitych++;
-        $stav     = 'Použitý';
+        ++$pouzitych;
+        $stav = 'Použitý';
         $stavTrida = 'slevoveKody_stav-pouzity';
-        $pouzil   = Uzivatel::jmenoNickZjisti([
+        $pouzil = Uzivatel::jmenoNickZjisti([
             'jmeno_uzivatele'    => $r['pouzil_jmeno'],
             'prijmeni_uzivatele' => $r['pouzil_prijmeni'],
             'login_uzivatele'    => $r['pouzil_login'],
         ]);
-        $pouzitoKdy = DateTimeCz::createFromInterface(new \DateTime($r['usedAt']))->formatCasStandard();
-        $pouzito    = htmlspecialchars((string)$pouzil) . '<br><small>' . $pouzitoKdy . '</small>';
+        $pouzitoKdy = DateTimeCz::createFromInterface(new DateTime($r['usedAt']))->formatCasStandard();
+        $pouzito = htmlspecialchars((string) $pouzil) . '<br><small>' . $pouzitoKdy . '</small>';
     } elseif ($r['invalidated']) {
-        $stav      = 'Zneplatněný';
+        $stav = 'Zneplatněný';
         $stavTrida = 'slevoveKody_stav-zneplatneny';
-        $pouzito   = '–';
+        $pouzito = '–';
     } else {
-        $volnych++;
-        $stav      = 'Platný';
+        ++$volnych;
+        $stav = 'Platný';
         $stavTrida = 'slevoveKody_stav-platny';
-        $pouzito   = '–';
+        $pouzito = '–';
     }
 
     $x->assign([
-        'id'         => (int)$r['id'],
-        'kod'        => htmlspecialchars((string)$r['kod']),
-        'vytvoril'   => htmlspecialchars((string)$vytvoril),
-        'vytvoreno'  => DateTimeCz::createFromInterface(new \DateTime($r['createdAt']))->formatCasStandard(),
-        'stav'       => $stav,
-        'stavTrida'  => $stavTrida,
-        'pouzito'    => $pouzito,
-        'poznamka'   => htmlspecialchars((string)$r['poznamka']),
+        'id'        => (int) $r['id'],
+        'kod'       => htmlspecialchars((string) $r['kod']),
+        'vytvoril'  => htmlspecialchars((string) $vytvoril),
+        'vytvoreno' => DateTimeCz::createFromInterface(new DateTime($r['createdAt']))->formatCasStandard(),
+        'stav'      => $stav,
+        'stavTrida' => $stavTrida,
+        'pouzito'   => $pouzito,
+        'poznamka'  => htmlspecialchars((string) $r['poznamka']),
     ]);
 
     // akce vpravo: zneplatnit jen volný, obnovit jen zneplatněný (a vždy jen nepoužitý)
-    if ($r['usedAt'] === null && !$r['invalidated']) {
+    if ($r['usedAt'] === null && ! $r['invalidated']) {
         $x->parse('slevoveKody.kod.zneplatnit');
     } elseif ($r['usedAt'] === null && $r['invalidated']) {
         $x->parse('slevoveKody.kod.obnovit');

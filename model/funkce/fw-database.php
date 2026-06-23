@@ -1048,15 +1048,16 @@ function dbParseUsedTables(
     /**
      * https://dev.mysql.com/doc/refman/8.4/en/identifiers.html
      *
-     * Pozn.: `\(?\s*` přeskočí otevírací závorku, kterou MariaDB přidává před
-     * závorkovaný JOIN ve `from (…)` definicích view – bez ní by se první
-     * tabulka v joinu (hned za `FROM (`) vynechala. Negative lookahead
+     * Pozn.: `(?:\(\s*)*` přeskočí libovolný počet otevíracích závorek, které
+     * MariaDB přidává před závorkovaný JOIN ve `from (…)` definicích view. Pro
+     * tři a víc tabulek je join zanořený do více závorek (`from ((a join b) join c)`),
+     * takže by jediná `\(?` první tabulku za `from ((` vynechala. Negative lookahead
      * `(?!SELECT\b|VALUES\b)` zajistí, že u odvozené tabulky `FROM (SELECT …)`
      * nezachytíme klíčové slovo místo tabulky. Volitelná `db.`-část
      * (`(?:`?…`?\s*\.\s*)?`) zahodí kvalifikaci jménem databáze, takže se
      * zachytí skutečný název tabulky, ne jméno DB.
      */
-    preg_match_all('~(?:FROM|JOIN|INTO)\s+\(?\s*(?!SELECT\b|VALUES\b)(?:`?[a-zA-Z0-9$_]+`?\s*\.\s*)?`?([a-zA-Z0-9$_]+)~i', $query, $matches);
+    preg_match_all('~(?:FROM|JOIN|INTO)\s+(?:\(\s*)*(?!SELECT\b|VALUES\b)(?:`?[a-zA-Z0-9$_]+`?\s*\.\s*)?`?([a-zA-Z0-9$_]+)~i', $query, $matches);
 
     return array_unique($matches[1]);
 }
