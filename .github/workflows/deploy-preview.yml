@@ -55,8 +55,15 @@ concurrency:
 jobs:
     # Deploy on push to a feature branch (or workflow_dispatch). NOT on
     # pull_request (closed → teardown) or delete (branch gone → teardown).
+    #
+    # Skip Dependabot's branches: a `dependabot[bot]` push runs with a
+    # read-only token and no access to the deploy secrets, so the SSH
+    # step always fails — a dependency bump needs no preview anyway.
+    # `workflow_dispatch` stays exempt so a human can still force one.
     deploy:
-        if: github.event_name == 'push' || github.event_name == 'workflow_dispatch'
+        if: >-
+            (github.event_name == 'push' && github.actor != 'dependabot[bot]')
+            || github.event_name == 'workflow_dispatch'
         runs-on: ubuntu-24.04
         steps:
             -   name: Checkout code
