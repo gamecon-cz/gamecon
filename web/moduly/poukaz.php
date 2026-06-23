@@ -14,8 +14,6 @@ $jizUplatneno = $prihlasen && $u->maRoli(Role::LETOSNI_JEDNA_AKTIVITA_ZDARMA);
 // přihlášený na GC a zatím bez slevy). V ostatních stavech se místo formuláře
 // zobrazí informace, co má udělat – viz výběr bloku níže.
 if ($gcPrihlasen && ! $jizUplatneno && post('kod')) {
-    // post('kod') vrací syrovou hodnotu z $_POST – při `kod[]=…` je to pole;
-    // bez kontroly by trim(pole) skončilo fatální TypeError. Nescalar = neplatný kód.
     $kodInput = post('kod');
     $kod = is_scalar($kodInput) ? strtoupper(trim((string) $kodInput)) : '';
     if ($kod === '') {
