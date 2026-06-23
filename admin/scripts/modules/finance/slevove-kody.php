@@ -25,15 +25,18 @@ if (post('vygenerovat')) {
 if (post('zneplatnitId')) {
     $id = (int) post('zneplatnitId');
     // zneplatnit jde jen dosud nepoužitý kód – použitý už slevu udělil a měnit ho nemá smysl.
-    // Úspěch řídíme podle toho, zda nepoužitý poukaz existuje, ne podle počtu změněných
-    // řádků: opakované zneplatnění už zneplatněného kódu nezmění žádný řádek, ale není to chyba.
-    $jeUpravitelny = dbRecordExists('slevove_kody', [
-        'id'     => $id,
-        'usedAt' => null,
-    ]);
-    if ($jeUpravitelny) {
-        dbQuery('UPDATE slevove_kody SET invalidated = 1 WHERE id = $0 AND usedAt IS NULL', [$id]);
+    $zmeneno = dbAffectedOrNumRows(dbQuery(
+        'UPDATE slevove_kody SET invalidated = 1 WHERE id = $0 AND usedAt IS NULL AND invalidated = 0',
+        [$id],
+    ));
+    if ($zmeneno) {
         oznameni('Poukaz byl zneplatněn.');
+    } elseif (dbRecordExists('slevove_kody', [
+        'id'          => $id,
+        'usedAt'      => null,
+        'invalidated' => 1,
+    ])) {
+        // už byl zneplatněný – cíl splněn, není co hlásit
     } else {
         chyba('Poukaz nešlo zneplatnit – buď neexistuje, nebo už byl uplatněný.');
     }
@@ -41,13 +44,18 @@ if (post('zneplatnitId')) {
 
 if (post('obnovitId')) {
     $id = (int) post('obnovitId');
-    $jeUpravitelny = dbRecordExists('slevove_kody', [
-        'id'     => $id,
-        'usedAt' => null,
-    ]);
-    if ($jeUpravitelny) {
-        dbQuery('UPDATE slevove_kody SET invalidated = 0 WHERE id = $0 AND usedAt IS NULL', [$id]);
+    $zmeneno = dbAffectedOrNumRows(dbQuery(
+        'UPDATE slevove_kody SET invalidated = 0 WHERE id = $0 AND usedAt IS NULL AND invalidated = 1',
+        [$id],
+    ));
+    if ($zmeneno) {
         oznameni('Platnost poukazu byla obnovena.');
+    } elseif (dbRecordExists('slevove_kody', [
+        'id'          => $id,
+        'usedAt'      => null,
+        'invalidated' => 0,
+    ])) {
+        // už byl platný – cíl splněn, není co hlásit
     } else {
         chyba('Platnost poukazu nešlo obnovit - buď neexistuje, nebo už byl uplatněný.');
     }
