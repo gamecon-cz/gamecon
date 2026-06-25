@@ -170,13 +170,13 @@ SQL,
     public function vytvorCfoReport(array $uzivatele): array
     {
         $aktualniRocnik = $this->systemoveNastaveni->rocnik();
-        $maxRok         = $this->systemoveNastaveni->poPrihlasovaniUcastniku($aktualniRocnik)
+        $maxRok         = $this->systemoveNastaveni->jePoPrihlasovaniUcastniku($aktualniRocnik)
             ? $aktualniRocnik
             : $aktualniRocnik - 1;
 
         $ucastPodleRoku = [];
         for ($rokUcasti = 2009; $rokUcasti <= $maxRok; $rokUcasti++) {
-            $ucastPodleRoku[Role::pritomenNaRocniku($rokUcasti)] = 'účast ' . $rokUcasti;
+            $ucastPodleRoku[Role::prihlasenNaRocnik($rokUcasti)] = 'registrace ' . $rokUcasti;
         }
 
         $obsah = [];
@@ -187,7 +187,7 @@ SQL,
                 : [];
 
             foreach ($ucastPodleRoku as $nazevUcasti) {
-                $rocnik                       = (int)str_replace('účast ', '', $nazevUcasti);
+                $rocnik                       = (int)str_replace('registrace ', '', $nazevUcasti);
                 $ucastiHistorie[$nazevUcasti] = in_array((string)$rocnik, $idsRoliUcastnika, true)
                     ? 'ano'
                     : 'ne';
