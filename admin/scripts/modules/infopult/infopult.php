@@ -207,6 +207,10 @@ if ($uPracovni) {
             ),
         );
         $x->assign('jidloHtml', $shop->jidloHtml(true));
+        if ($shop->objednalNejakeJidlo()) {
+            $x->assign('urlStravenky', URL_ADMIN . '/reporty/stravenky?format=html&id_uzivatele=' . $uPracovni->id());
+            $x->parse('infopult.uzivatel.jidlo.odkazStravenky');
+        }
         $x->parse('infopult.uzivatel.jidlo');
     }
 
@@ -288,10 +292,6 @@ if ($uPracovni) {
         $x->parse('infopult.uzivatel.idFioPohybu');
     }
 
-    if ($shop->objednalNejakeJidlo()) {
-        $x->assign('urlStravenky', URL_ADMIN . '/reporty/stravenky?format=html&id_uzivatele=' . $uPracovni->id());
-        $x->parse('infopult.uzivatel.objednavky.odkazStravenky');
-    }
     $x->parse('infopult.uzivatel.objednavky');
     $x->parse('infopult.uzivatel');
 } else {
