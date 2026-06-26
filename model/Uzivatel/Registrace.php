@@ -384,7 +384,7 @@ HTML
                 ? ''
                 : 'selected') . '></option>';
         foreach ($moznosti as $hodnota => $popis) {
-            $selected = $vybranaHodnota === $hodnota;
+            $selected = (string) $vybranaHodnota === (string) $hodnota;
             $selectedHtml = $selected
                 ? 'selected'
                 : '';
