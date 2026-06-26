@@ -31,6 +31,12 @@ if (defined('URL_WEBU') && URL_WEBU) {
     $domain = parse_url(URL_WEBU, PHP_URL_HOST) ?: 'localhost';
     $secure = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off')
         || (!empty($_SERVER['SERVER_PORT']) && (int)$_SERVER['SERVER_PORT'] === 443);
+    // Výchozí PHP session vyprší po ~24 minutách nečinnosti. Vyplnění přihlášky je
+    // dlouhé a účastník u ní často na chvíli odejde – session pak server-side vyprší,
+    // odeslání dorazí jako nepřihlášené a přihláška tiše propadne. Prodlužujeme proto
+    // jen server-side životnost session (gc_maxlifetime). Cookie záměrně zůstává
+    // session-only (lifetime 0) a umírá při zavření prohlížeče – bezpečnost.
+    ini_set('session.gc_maxlifetime', (string)(60 * 60 * 24));
     session_set_cookie_params([
         'lifetime' => 0,
         'path'     => '/',
