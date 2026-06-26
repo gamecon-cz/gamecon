@@ -92,8 +92,14 @@ if ($systemoveNastaveni->gcBezi()) {
 }
 
 if (!$u) {
+    // Když přijde POST (účastník odeslal formulář) a přitom není přihlášen, jeho
+    // session mezitím vypršela – data se neuložila. Bez téhle hlášky odejde s pocitem,
+    // že je přihlášený na GameCon, ač ho odeslání jen odbylo na homepage/přihlášení.
+    $sessionVyprsela = ($_SERVER['REQUEST_METHOD'] ?? '') === 'POST';
     oznameniPresmeruj(
-        'Tato stránka vyžaduje přihlášení',
+        $sessionVyprsela
+            ? 'Mezitím došlo k odhlášení, takže se přihláška neuložila. Přihlas se prosím znovu a odešli ji ještě jednou.'
+            : 'Tato stránka vyžaduje přihlášení',
         URL_WEBU . '/prihlaseni',
         Chyba::VAROVANI
     );
