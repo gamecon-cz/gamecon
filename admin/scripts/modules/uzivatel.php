@@ -77,6 +77,10 @@ if ($uPracovni && $uPracovni->gcPrihlasen()) {
         ),
     );
     $x->assign('jidloHtml', $shop->jidloHtml(true));
+    if ($shop->objednalNejakeJidlo()) {
+        $x->assign('urlStravenky', URL_ADMIN . '/reporty/stravenky?format=html&id_uzivatele=' . $uPracovni->id());
+        $x->parse('uzivatel.jidlo.odkazStravenky');
+    }
     $x->parse('uzivatel.ubytovani');
     $x->parse('uzivatel.jidlo');
     $x->parse('uzivatel.pokojPridel');
