@@ -17,7 +17,8 @@ dostali jsme žádost o nastavení nového hesla na Gamecon.cz. Klikni na odkaz 
 
 Odkaz platí 1 hodinu. Pokud jsi o změnu hesla nežádal/a, tento e-mail ignoruj — heslo zůstane beze změny.
 
-S pozdravem Tým organizátorů GameConu',
+Tvůj
+organizační tým GameConu',
     'odhlaseniZGc'   => 'Odhlášení z GameConu ' . ROCNIK . ' proběhlo úspěšně',
     'prihlaseniNaGc' => 'Přihlášení na GameCon ' . ROCNIK . ' proběhlo úspěšně',
     'kapacitaMaxUpo' => 'Z ubytovací kapacity typu %1 je naplněno %2 míst z maxima %3 míst.',

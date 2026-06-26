@@ -407,7 +407,8 @@ Platnost současného hromadného odhlašování byla '%s' (%s), teď je '%s' a 
 
                 Aktivity si můžeš znovu přihlásit v další vlně, předměty si můžeš znovu objednat kdykoliv. Jen prosíme ohlídej své platby.
 
-                Tým Gameconu
+                Tvůj
+                organizační tým GameConu
                 TEXT,
             )
             ->odeslat(GcMail::FORMAT_TEXT);
