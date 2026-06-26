@@ -3,8 +3,17 @@ import preact from '@preact/preset-vite'
 import * as path from 'path'
 
 // https://vitejs.dev/config/
-export default defineConfig({
+export default defineConfig(({ mode }) => ({
   plugins: [preact()],
+  // V lib/IIFE buildu Vite nenahrazuje `process.env.*` – nechává je na
+  // downstream bundleru. Tenhle bundle ale běží přímo v prohlížeči, kde
+  // `process` neexistuje, takže závislosti čtoucí `process.env.NODE_ENV`
+  // (zustand devtools, immer, preact) jinak shodí celý program hláškou
+  // "process is not defined". Proto je nahrazujeme staticky při buildu.
+  define: {
+    "process.env.NODE_ENV": JSON.stringify(mode === "development" ? "development" : "production"),
+    "process.env": "{}",
+  },
   build: {
     target: "es6",
     outDir: "./../web/soubory/ui",
@@ -36,4 +45,4 @@ export default defineConfig({
     },
     host: true,
   },
-})
+}))
