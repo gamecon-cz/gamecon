@@ -1,6 +1,6 @@
 import { AktivitaStav } from "../../../api/program";
 import { GAMECON_KONSTANTY } from "../../../env";
-import { formátujDenVTýdnu } from "../../../utils";
+import { formátujDenVTýdnu, pražskéHodiny, pražskýRok, pražskýMěsíc, pražskýDenVMěsíci } from "../../../utils";
 
 export type ProgramTabulkaVýběr =
   | {
@@ -32,9 +32,40 @@ export type ProgramURLStav = {
   autoRefresh?: boolean,
 }
 
+const DEN_MS = 24 * 60 * 60 * 1000;
+
+/** Klíč pro porovnání dat podle pražského kalendářního dne. */
+const pražskýDenKlíč = (datum: Date): string =>
+  `${pražskýRok(datum)}-${pražskýMěsíc(datum)}-${pražskýDenVMěsíci(datum)}`;
+
+/**
+ * Programový den (datum z PROGRAM_DNY), do kterého spadá daný okamžik, nebo
+ * undefined, pokud je okamžik mimo dny programu. Aktivity před začátkem
+ * programového dne (PROGRAM_ZACATEK) patří ještě do předchozího dne – stejně
+ * jako se po půlnoci sdružují k předchozímu dni.
+ */
+const programovýDenProČas = (čas: number): Date | undefined => {
+  const posunutýČas = pražskéHodiny(new Date(čas)) < GAMECON_KONSTANTY.PROGRAM_ZACATEK
+    ? čas - DEN_MS
+    : čas;
+  const klíč = pražskýDenKlíč(new Date(posunutýČas));
+  const den = GAMECON_KONSTANTY.PROGRAM_DNY.find(
+    (denMs) => pražskýDenKlíč(new Date(denMs)) === klíč,
+  );
+  return den === undefined ? undefined : new Date(den);
+};
+
+/**
+ * Výchozí den = den, který právě probíhá (dle serverového "teď", takže
+ * respektuje ročník zobrazený v daném prostředí – beta/preview/produkce).
+ * Mimo dny GameConu (typicky beta s loňským ročníkem) padá na první den programu.
+ */
+const výchozíDenProgramu = (): Date =>
+  programovýDenProČas(GAMECON_KONSTANTY.TED) ?? new Date(GAMECON_KONSTANTY.PROGRAM_OD);
+
 export const URL_STATE_VÝCHOZÍ_MOŽNOST = Object.freeze({
   typ: "den",
-  datum: new Date(GAMECON_KONSTANTY.PROGRAM_OD),
+  datum: výchozíDenProgramu(),
 });
 
 export const URL_STATE_VÝCHOZÍ_STAV: ProgramURLStav = Object.freeze({
