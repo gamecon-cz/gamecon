@@ -11,11 +11,19 @@ export default defineConfig({
     // TODO: výstup půjde i nějak do web/soubory
     // outDir: "./../admin/files/ui",
     emptyOutDir: true,
+    cssCodeSplit: false,
     lib: {
       entry: path.resolve(__dirname, 'src/main.ts'),
       name: "script",
       fileName: () => "bundle.js",
       formats: ["iife"]
+    },
+    rollupOptions: {
+      output: {
+        // Vite 3+ jinak pojmenuje lib CSS podle "name" v package.json
+        // (preact-test.css); PHP ale odkazuje na stabilní style.css.
+        assetFileNames: "style.css",
+      },
     },
     minify: true,
     sourcemap: true,
