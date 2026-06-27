@@ -112,7 +112,7 @@ for (uživ of uživatelé) {
     if (stránkaZustává === 0)
       vytvořStránku();
     vytvořBuňku([
-      buňka.login_uzivatele.slice(0,18) + (buňka.login_uzivatele.length >= 18 ? "..." : ""),
+      buňka.login_uzivatele.slice(0,15) + (buňka.login_uzivatele.length >= 15 ? "..." : ""),
       "ID " + buňka.id_uzivatele,
       buňka.nazev,
     ]);
