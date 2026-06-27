@@ -3,7 +3,7 @@
  */
 
 import { ApiPřihlášenýUživatel } from "./api/přihlášenýUživatel";
-import { ProgramManifest } from "./api/program";
+import { ApiLokace, ProgramManifest } from "./api/program";
 import { range } from "./utils";
 
 
@@ -56,6 +56,24 @@ define('FORCE_REDUX_DEVTOOLS', true);
   URL_PROGRAM_CACHE: string;
   /** Pre-embedded manifest from server, null if static files not yet generated */
   programManifest: ProgramManifest | null;
+  /**
+   * Výchozí nastavení zobrazení pro danou stránku, klíčované query parametrem
+   * url-stavu (viz logic/url.ts). Použije se jen když daný query param v URL
+   * chybí – např. stránka „Program po místnostech“ posílá { podleMistnosti: true }.
+   */
+  PROGRAM_VYCHOZI_NASTAVENI: { [queryKlíč: string]: unknown };
+  /**
+   * Výchozí slug výběru dne (např. "vsechny-dny"), použije se když je v URL
+   * prázdný slug. null = padá na obvyklý výchozí den. Stránka „Program po
+   * místnostech“ posílá "vsechny-dny", aby nabíhala přes všechny dny.
+   */
+  PROGRAM_VYCHOZI_VYBER: string | null;
+  /**
+   * Úplný seznam místností (seřazený dle pořadí), jen pro admina. Zobrazení
+   * „po místnostech“ s aktivním přepínačem „Prázdné“ jím doplní i místnosti
+   * bez aktivit, aby tabulka odpovídala kompletnímu rozpisu místností.
+   */
+  PROGRAM_MISTNOSTI: ApiLokace[];
 }
 
 type GameconPřednačtení = {
@@ -105,6 +123,9 @@ const GAMECON_KONSTANTY_DEFAULT: GameconKonstanty = {
   JE_ADMIN: false,
   URL_PROGRAM_CACHE: "/cache/public/program",
   programManifest: null,
+  PROGRAM_VYCHOZI_NASTAVENI: {},
+  PROGRAM_VYCHOZI_VYBER: null,
+  PROGRAM_MISTNOSTI: [],
 };
 
 export const GAMECON_KONSTANTY = {
