@@ -63,9 +63,21 @@ export const ProgramTabulka: FunctionComponent<ProgramTabulkaProps> = (
       ? SeskupováníAktivit.den
       : SeskupováníAktivit.linie;
 
+  // V zobrazení po místnostech s aktivním přepínačem „Prázdné“ doplníme i
+  // místnosti bez aktivit, aby tabulka odpovídala kompletnímu rozpisu místností.
+  // Seznam místností ze serveru platí pro aktuální ročník, takže ho použijeme
+  // jen když je zobrazený právě ten – u starších ročníků by místnosti neseděly.
+  const prázdnéMístnosti =
+    seskupPodle === SeskupováníAktivit.mistnost
+      && urlStav.zobrazPrázdné
+      && urlStav.ročník === GAMECON_KONSTANTY.ROCNIK
+      ? GAMECON_KONSTANTY.PROGRAM_MISTNOSTI.map((místnost) => místnost.nazev)
+      : [];
+
   const předpřipravenáTabulka = připravTabulkuAktivit(
     aktivityFiltrované,
-    seskupPodle
+    seskupPodle,
+    prázdnéMístnosti
   );
 
   const tabulkaHlavičkaČasy = (
@@ -160,7 +172,10 @@ export const ProgramTabulka: FunctionComponent<ProgramTabulkaProps> = (
   const tabulka = (
     <>
       {tabulkaHlavičkaČasy}
-      {aktivityFiltrované.length || seskupPodle === SeskupováníAktivit.den || seskupPodle === SeskupováníAktivit.denALinie
+      {aktivityFiltrované.length
+        || seskupPodle === SeskupováníAktivit.den
+        || seskupPodle === SeskupováníAktivit.denALinie
+        || (seskupPodle === SeskupováníAktivit.mistnost && prázdnéMístnosti.length)
         ? tabulkaŘádky
         : tabulkaŽádnéAktivity}
     </>

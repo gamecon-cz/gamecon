@@ -72,9 +72,9 @@ export type PředpřivenáTabulkaAktivit = { [klíč: string]: { řádek: number
 export type PředpřivenáTabulkaAktivitHierarchie = { [denKlíč: string]: PředpřivenáTabulkaAktivit }
 
 // todo: vždy bude vracet typ PředpřivenáTabulkaAktivitHierarchie. Pokud bude obsahovat pouze jeden klíč tak se zobrazovat nebude.
-export const připravTabulkuAktivit = (aktivity: Aktivita[], seskupitPodle = SeskupováníAktivit.linie): PředpřivenáTabulkaAktivit | PředpřivenáTabulkaAktivitHierarchie => {
+export const připravTabulkuAktivit = (aktivity: Aktivita[], seskupitPodle = SeskupováníAktivit.linie, prázdnéMístnosti: string[] = []): PředpřivenáTabulkaAktivit | PředpřivenáTabulkaAktivitHierarchie => {
   if (seskupitPodle === SeskupováníAktivit.denALinie || seskupitPodle === SeskupováníAktivit.mistnost) {
-    return připravTabulkuAktivitDenALinie(aktivity, seskupitPodle);
+    return připravTabulkuAktivitDenALinie(aktivity, seskupitPodle, prázdnéMístnosti);
   }
 
   const seskupené = seskupAktivity(aktivity, seskupitPodle);
@@ -92,7 +92,7 @@ export const připravTabulkuAktivit = (aktivity: Aktivita[], seskupitPodle = Ses
   return tabulka;
 };
 
-const připravTabulkuAktivitDenALinie = (aktivity: Aktivita[], seskupitPodle = SeskupováníAktivit.linie): PředpřivenáTabulkaAktivitHierarchie => {
+const připravTabulkuAktivitDenALinie = (aktivity: Aktivita[], seskupitPodle = SeskupováníAktivit.linie, prázdnéMístnosti: string[] = []): PředpřivenáTabulkaAktivitHierarchie => {
   const aktivitySeskupDen: { [denKlíč: string]: Aktivita[] } = {};
 
   PROGRAM_DNY_TEXT.forEach(den => {
@@ -111,6 +111,12 @@ const připravTabulkuAktivitDenALinie = (aktivity: Aktivita[], seskupitPodle = S
   const výsledek: PředpřivenáTabulkaAktivitHierarchie = Object.fromEntries(
     Object.entries(aktivitySeskupDen).map(([denKlíč, aktivitySeskupDenyDen]) => {
       const skupiny: { [linieKlíč: string]: Aktivita[] } = {};
+
+      // V zobrazení po místnostech předvyplníme všechny místnosti (i prázdné),
+      // ať se každý den vypíše kompletní rozpis místností ve správném pořadí.
+      if (seskupitPodle === SeskupováníAktivit.mistnost)
+        for (const místnost of prázdnéMístnosti)
+          skupiny[místnost] = [];
 
       if (seskupitPodle === SeskupováníAktivit.mistnost)
         aktivitySeskupDenyDen.sort((a,b)=> (a.mistnosti?.[0]?.poradi ?? Number.MAX_SAFE_INTEGER) - (b.mistnosti?.[0]?.poradi ?? Number.MAX_SAFE_INTEGER) )
