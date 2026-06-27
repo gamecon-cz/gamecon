@@ -25,8 +25,8 @@ $typUbytovani             = Shop::UBYTOVANI;
 $o                        = dbQuery(<<<SQL
     SELECT
       uzivatele.id_uzivatele, uzivatele.login_uzivatele, predmety.nazev,
-      FIELD(SUBSTRING(TRIM(nazev), POSITION(' ' IN TRIM(nazev)) + 1), 'středa', 'čtvrtek', 'pátek', 'sobota', 'neděle') AS poradi_dne,
-      FIELD(SUBSTRING(TRIM(nazev), 1, POSITION(' ' IN TRIM(nazev)) - 1), 'Snídaně', 'Oběd', 'Večeře') AS poradi_jidla
+      FIELD(SUBSTRING(TRIM(predmety.nazev), POSITION(' ' IN TRIM(predmety.nazev)) + 1), 'středa', 'čtvrtek', 'pátek', 'sobota', 'neděle') AS poradi_dne,
+      FIELD(SUBSTRING(TRIM(predmety.nazev), 1, POSITION(' ' IN TRIM(predmety.nazev)) - 1), 'Snídaně', 'Oběd', 'Večeře') AS poradi_jidla
     FROM uzivatele_hodnoty AS uzivatele
     JOIN platne_role_uzivatelu AS role
         ON role.id_uzivatele = uzivatele.id_uzivatele AND role.id_role = {$rolePrihlasenNaLetosniGc}
