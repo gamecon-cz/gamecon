@@ -12,6 +12,9 @@ use PHPUnit\Framework\TestCase;
 
 class ZmenyAktivitySPrihlasenymiTest extends TestCase
 {
+    /**
+     * @param array<string, int> $rawDbData
+     */
     private function vytvorAktivituSMocky(
         int $pocetPrihlasenych,
         ?string $den,
@@ -70,8 +73,10 @@ class ZmenyAktivitySPrihlasenymiTest extends TestCase
         self::assertFalse($zmeny->maZmenySPrihlasenymi());
     }
 
-    public function testSPrihlasenymiNaJineInstanciZmenenDen(): void
+    public function testPrazdnaInstanceSPrihlasenymiNaJineInstanciNevarujeProZmenuDne(): void
     {
+        // Den je per-instance pole. Tato instance je prázdná (0 přihlášených) – byť sourozenecká
+        // instance má hráče, změna dne se jich nedotkne, takže se upozornění nemá objevit.
         $aktivita = $this->vytvorAktivituSMocky(
             0,
             '2026-07-16',
@@ -90,9 +95,62 @@ class ZmenyAktivitySPrihlasenymiTest extends TestCase
         ];
 
         $zmeny = new ZmenyAktivitySPrihlasenymi($aktivita, $dataZFormulare);
+        self::assertFalse($zmeny->maZmenySPrihlasenymi());
+    }
+
+    public function testPrazdnaInstanceVaruujeProZmenuCenyKvuliPrihlasenymVRodine(): void
+    {
+        // Cena se propaguje na celou rodinu instancí. Tato instance je prázdná, ale sourozenecká
+        // instance má 2 hráče → změna ceny se jich dotkne, takže upozornění musí vyskočit.
+        $aktivita = $this->vytvorAktivituSMocky(
+            0,
+            '2026-07-16',
+            '2026-07-16 10:00:00',
+            '2026-07-16 12:00:00',
+            100,
+            [],
+            2,
+        );
+
+        $dataZFormulare = [
+            'den'        => '2026-07-16',
+            Sql::ZACATEK => '10',
+            Sql::KONEC   => '12',
+            Sql::CENA    => 150, // změna ceny propagovaná na celou rodinu
+        ];
+
+        $zmeny = new ZmenyAktivitySPrihlasenymi($aktivita, $dataZFormulare);
         self::assertTrue($zmeny->maZmenySPrihlasenymi());
-        self::assertStringContainsString('den', $zmeny->dejTextPotvrzeniZmenyUdajuSPrihlasenymi());
+        self::assertStringContainsString('cenu', $zmeny->dejTextPotvrzeniZmenyUdajuSPrihlasenymi());
         self::assertStringContainsString('(2)', $zmeny->dejTextPotvrzeniZmenyUdajuSPrihlasenymi());
+    }
+
+    public function testPrazdnaInstanceVaruujeProZmenuKapacityKvuliPrihlasenymVRodine(): void
+    {
+        // Kapacita se propaguje na celou rodinu instancí – stejná logika jako u ceny.
+        $aktivita = $this->vytvorAktivituSMocky(
+            0,
+            '2026-07-16',
+            '2026-07-16 10:00:00',
+            '2026-07-16 12:00:00',
+            100,
+            [
+                Sql::KAPACITA => 5,
+            ],
+            2,
+        );
+
+        $dataZFormulare = [
+            'den'         => '2026-07-16',
+            Sql::ZACATEK  => '10',
+            Sql::KONEC    => '12',
+            Sql::CENA     => 100,
+            Sql::KAPACITA => 6, // změna kapacity propagovaná na celou rodinu
+        ];
+
+        $zmeny = new ZmenyAktivitySPrihlasenymi($aktivita, $dataZFormulare);
+        self::assertTrue($zmeny->maZmenySPrihlasenymi());
+        self::assertStringContainsString('kapacitu', $zmeny->dejTextPotvrzeniZmenyUdajuSPrihlasenymi());
     }
 
     public function testSPrihlasenymiZadneZmenyUdaju(): void

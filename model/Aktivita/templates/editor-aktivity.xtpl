@@ -17,11 +17,14 @@
 
     $(function () {
         const pocetPrihlasenych = Number.parseInt('{pocetPrihlasenych}', 10) || 0
+        const pocetPrihlasenychVcetneInstanci = Number.parseInt('{pocetPrihlasenychVcetneInstanci}', 10) || 0
         const $tlacitkoUlozit = $('[name="{fields}Odesilatko"]')
         const $form = $tlacitkoUlozit.closest('form')
         const $potvrzeniZmenyUdajuSPrihlasenymi = $form.find('[name="{potvrditZmenuUdajuSPrihlasenymiKlic}"]')
 
         const sledovanaPoleConfig = {sledovanaPoleConfig}
+        // Pole, jejichž změna se u rodiny instancí propaguje na všechny instance → varovat i kvůli hráčům na sourozeneckých instancích.
+        const poleNaRodinu = {poleNaRodinuConfig}
 
         function getFieldVal(name) {
             const $el = $form.find('[name="{fields}[' + name + ']"]')
@@ -42,17 +45,27 @@
               return false
             }
             $potvrzeniZmenyUdajuSPrihlasenymi.val('0')
-            if (pocetPrihlasenych > 0) {
+            if (pocetPrihlasenychVcetneInstanci > 0) {
                 const zmeneneUdaje = []
+                let pocetDotcenych = 0
                 for (const [stitek, pole] of Object.entries(sledovanaPoleConfig)) {
                     const aktualni = pole.map(getFieldVal).join('|')
-                    if (aktualni !== puvodniUdajeConfig[stitek]) {
+                    if (aktualni === puvodniUdajeConfig[stitek]) {
+                        continue
+                    }
+                    // per-instance pole (den, čas) varují jen kvůli hráčům na této instanci,
+                    // pole propagovaná na rodinu i kvůli hráčům na sourozeneckých instancích.
+                    const pocetProPole = poleNaRodinu.includes(stitek)
+                        ? pocetPrihlasenychVcetneInstanci
+                        : pocetPrihlasenych
+                    if (pocetProPole > 0) {
                         zmeneneUdaje.push(stitek)
+                        pocetDotcenych = Math.max(pocetDotcenych, pocetProPole)
                     }
                 }
 
                 if (zmeneneUdaje.length > 0) {
-                    const zprava = 'Tato aktivita už má přihlášené hráče (' + pocetPrihlasenych
+                    const zprava = 'Tato změna se dotkne přihlášených hráčů (' + pocetDotcenych
                         + '). Opravdu chcete změnit ' + zmeneneUdaje.join(' / ') + '?'
                     if (!window.confirm(zprava)) {
                         return false

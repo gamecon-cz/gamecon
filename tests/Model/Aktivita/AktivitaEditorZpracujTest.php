@@ -60,44 +60,14 @@ SQL,
         parent::tearDown();
     }
 
-    public function testEditorZpracujVyžadujePotvrzeníIProPřihlášenéNaJinéInstanci(): void
+    public function testEditorZpracujNevyžadujePotvrzeníProPrázdnouInstanci(): void
     {
+        // 7102 je prázdná instance (žádní přihlášení), byť sourozenecká 7103 hráče má.
+        // Upozornění se týká jen lidí na této konkrétní aktivitě → změna projde bez potvrzení.
         $_POST[Aktivita::POST_KLIC] = [
             Sql::ID_AKCE    => 7102,
             Sql::NAZEV_AKCE => 'Instance bez přihlášených',
-            Sql::URL_AKCE   => 'instance-bez-prihlasenych-editor-test',
-            Sql::PATRI_POD  => 9101,
-            Sql::POPIS      => '',
-            'den'           => ROCNIK . '-07-17',
-            Sql::ZACATEK    => '10',
-            Sql::KONEC      => '12',
-            Sql::CENA       => 100,
-            Sql::TEAMOVA    => 0,
-            Sql::KAPACITA   => 5,
-            Sql::KAPACITA_F => 0,
-            Sql::KAPACITA_M => 0,
-        ];
-        $_POST[Aktivita::POTVRDIT_ZMENU_UDAJU_S_PRIHLASENYMI_KLIC] = '0';
-
-        $upravenaAktivita = Aktivita::editorZpracuj(null);
-
-        self::assertNull($upravenaAktivita, 'Bez potvrzení se změna nemá uložit.');
-        self::assertSame(
-            ROCNIK . '-07-16 10:00:00',
-            dbOneCol('SELECT zacatek FROM akce_seznam WHERE id_akce = 7102'),
-            'Aktivita se bez potvrzení nesmí změnit.',
-        );
-
-        $varovaniHtml = \Chyba::vyzvedniHtml();
-        self::assertStringContainsString('Tato aktivita už má přihlášené hráče (1).', $varovaniHtml);
-        self::assertStringContainsString('změnit den', $varovaniHtml);
-    }
-
-    public function testEditorZpracujVyžadujePotvrzeníProHlavníAktivituSPřihlášenýmiNaInstanci(): void
-    {
-        $_POST[Aktivita::POST_KLIC] = [
-            Sql::ID_AKCE    => 7101,
-            Sql::NAZEV_AKCE => 'Hlavní aktivita',
+            // URL je „main-only" pole sdílené přes hlavní aktivitu rodiny instancí.
             Sql::URL_AKCE   => 'hlavni-aktivita-editor-test',
             Sql::PATRI_POD  => 9101,
             Sql::POPIS      => '',
@@ -114,16 +84,85 @@ SQL,
 
         $upravenaAktivita = Aktivita::editorZpracuj(null);
 
+        self::assertNotNull($upravenaAktivita, 'Prázdná instance se má uložit i bez potvrzení.');
+        self::assertSame(
+            ROCNIK . '-07-17 10:00:00',
+            dbOneCol('SELECT zacatek FROM akce_seznam WHERE id_akce = 7102'),
+            'Prázdná instance se měla uložit se změněným dnem.',
+        );
+
+        self::assertStringNotContainsString(
+            'Tato aktivita už má přihlášené hráče',
+            \Chyba::vyzvedniHtml(),
+        );
+    }
+
+    public function testEditorZpracujVyžadujePotvrzeníProInstanciSPřihlášenými(): void
+    {
+        $_POST[Aktivita::POST_KLIC] = [
+            Sql::ID_AKCE    => 7103,
+            Sql::NAZEV_AKCE => 'Instance s přihlášenými',
+            Sql::URL_AKCE   => 'instance-s-prihlasenymi-editor-test',
+            Sql::PATRI_POD  => 9101,
+            Sql::POPIS      => '',
+            'den'           => ROCNIK . '-07-17',
+            Sql::ZACATEK    => '10',
+            Sql::KONEC      => '12',
+            Sql::CENA       => 100,
+            Sql::TEAMOVA    => 0,
+            Sql::KAPACITA   => 5,
+            Sql::KAPACITA_F => 0,
+            Sql::KAPACITA_M => 0,
+        ];
+        $_POST[Aktivita::POTVRDIT_ZMENU_UDAJU_S_PRIHLASENYMI_KLIC] = '0';
+
+        $upravenaAktivita = Aktivita::editorZpracuj(null);
+
         self::assertNull($upravenaAktivita, 'Bez potvrzení se změna nemá uložit.');
         self::assertSame(
             ROCNIK . '-07-16 10:00:00',
-            dbOneCol('SELECT zacatek FROM akce_seznam WHERE id_akce = 7101'),
-            'Hlavní aktivita se bez potvrzení nesmí změnit.',
+            dbOneCol('SELECT zacatek FROM akce_seznam WHERE id_akce = 7103'),
+            'Aktivita s přihlášenými se bez potvrzení nesmí změnit.',
         );
 
         $varovaniHtml = \Chyba::vyzvedniHtml();
-        self::assertStringContainsString('Tato aktivita už má přihlášené hráče (1).', $varovaniHtml);
+        self::assertStringContainsString('Tato změna se dotkne přihlášených hráčů (1).', $varovaniHtml);
         self::assertStringContainsString('změnit den', $varovaniHtml);
+    }
+
+    public function testEditorZpracujVyžadujePotvrzeníProZměnuCenyPrázdnéInstanceSPřihlášenýmiVRodině(): void
+    {
+        // 7102 je prázdná instance, ale cena se propaguje na celou rodinu (i na 7103 s hráčem) →
+        // změna ceny musí vyžadovat potvrzení a bez něj se nesmí uložit.
+        $_POST[Aktivita::POST_KLIC] = [
+            Sql::ID_AKCE    => 7102,
+            Sql::NAZEV_AKCE => 'Instance bez přihlášených',
+            Sql::URL_AKCE   => 'hlavni-aktivita-editor-test',
+            Sql::PATRI_POD  => 9101,
+            Sql::POPIS      => '',
+            'den'           => ROCNIK . '-07-16',
+            Sql::ZACATEK    => '10',
+            Sql::KONEC      => '12',
+            Sql::CENA       => 150, // změna ze 100 na 150 – propaguje se na celou rodinu
+            Sql::TEAMOVA    => 0,
+            Sql::KAPACITA   => 5,
+            Sql::KAPACITA_F => 0,
+            Sql::KAPACITA_M => 0,
+        ];
+        $_POST[Aktivita::POTVRDIT_ZMENU_UDAJU_S_PRIHLASENYMI_KLIC] = '0';
+
+        $upravenaAktivita = Aktivita::editorZpracuj(null);
+
+        self::assertNull($upravenaAktivita, 'Bez potvrzení se změna ceny nemá uložit.');
+        self::assertSame(
+            '100',
+            dbOneCol('SELECT cena FROM akce_seznam WHERE id_akce = 7103'),
+            'Cena se na instanci s přihlášenými nesmí bez potvrzení změnit.',
+        );
+
+        $varovaniHtml = \Chyba::vyzvedniHtml();
+        self::assertStringContainsString('Tato změna se dotkne přihlášených hráčů (1).', $varovaniHtml);
+        self::assertStringContainsString('změnit cenu', $varovaniHtml);
     }
 
     protected static function keepSingleTestMethodDbChangesInTransaction(): bool
