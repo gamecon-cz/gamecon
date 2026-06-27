@@ -217,3 +217,15 @@ const urlZTabulkaVýběr = (výběr: ProgramTabulkaVýběr) =>
 
 export const porovnejTabulkaVýběr = (v1: ProgramTabulkaVýběr, v2: ProgramTabulkaVýběr) =>
   urlZTabulkaVýběr(v1) === urlZTabulkaVýběr(v2);
+
+/**
+ * Název stránky pro daný výběr – zrcadlí serverové nazevStranky()
+ * z web/moduly/program.php, aby se titulek v záložce po přepnutí dne
+ * shodoval s tím, co by vyrenderovalo PHP po F5.
+ */
+export const nadpisProgramu = (výběr: ProgramTabulkaVýběr): string =>
+  výběr.typ === "můj"
+    ? "Můj program"
+    : výběr.typ === "všechny_dny"
+    ? "Program – všechny dny"
+    : `Program ${formátujDenVTýdnu(výběr.datum, true)}`;
