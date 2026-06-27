@@ -207,6 +207,10 @@ if ($uPracovni) {
             ),
         );
         $x->assign('jidloHtml', $shop->jidloHtml(true));
+        if ($shop->objednalNejakeJidlo()) {
+            $x->assign('urlStravenky', URL_ADMIN . '/reporty/stravenky?format=html&id_uzivatele=' . $uPracovni->id());
+            $x->parse('infopult.uzivatel.jidlo.odkazStravenky');
+        }
         $x->parse('infopult.uzivatel.jidlo');
     }
 
@@ -242,9 +246,9 @@ if ($uPracovni) {
             $zpravyProPotvrzeni = array_map(static fn(string $zprava) => "- $zprava", $zpravyProPotvrzeni);
             $zpravyProPotvrzeniZruseniPraceText = implode("\n", $zpravyProPotvrzeni);
 
-            $ucastnikNazev = $uPracovni->jeMuz()
-                ? 'Účastník'
-                : 'Účastnice';
+            $ucastnikNazev = $uPracovni->jeZena()
+                ? 'Účastnice'
+                : 'Účastník';
             $x->assign(
                 'zpravaProPotvrzeniZruseniPrace',
                 // json_encode kvůli JS error "SyntaxError: '' string literal contains an unescaped line break"
@@ -288,10 +292,6 @@ if ($uPracovni) {
         $x->parse('infopult.uzivatel.idFioPohybu');
     }
 
-    if ($shop->objednalNejakeJidlo()) {
-        $x->assign('urlStravenky', URL_ADMIN . '/reporty/stravenky?format=html&id_uzivatele=' . $uPracovni->id());
-        $x->parse('infopult.uzivatel.objednavky.odkazStravenky');
-    }
     $x->parse('infopult.uzivatel.objednavky');
     $x->parse('infopult.uzivatel');
 } else {

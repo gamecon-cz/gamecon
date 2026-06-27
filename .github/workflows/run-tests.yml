@@ -4,6 +4,10 @@ name: Run tests
 on:
     push:
         branches:
+            # Filtr s negacemi musí mít aspoň jeden pozitivní vzor, jinak
+            # nematchuje NIC (GitHub Actions): bez '**' se testy na push do
+            # feature větví vůbec nespouští.
+            - '**'
             # beta a main si pouští testy samy, před deployem,
             # viz deploy-beta.yml a deploy-ostra.yml
             - '!beta'
@@ -22,6 +26,14 @@ on:
             - synchronize
             - reopened
             - ready_for_review
+
+# Feature větve spouští testy přes oba triggery (push i pull_request),
+# takže po otevření PR by stejný commit běžel dvakrát. Skupina klíčovaná
+# na větev (head_ref na PR, jinak ref) je u obou běhů stejná, takže
+# druhý běh ten první zruší a testy proběhnou jen jednou.
+concurrency:
+    group: run-tests-${{ github.head_ref || github.ref }}
+    cancel-in-progress: true
 
 jobs:
     run-tests:

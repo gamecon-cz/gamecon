@@ -14,6 +14,7 @@ use Gamecon\Cache\DataSourcesCollector;
 use Gamecon\Cas\DateTimeCz;
 use Gamecon\Exceptions\NeznamyTypPredmetu;
 use Gamecon\Finance\QrPlatba;
+use Gamecon\Finance\SqlStruktura\DiscountsGeneratedSqlStruktura;
 use Gamecon\Finance\SqlStruktura\SlevySqlStruktura;
 use Gamecon\Objekt\ObnoveniVychozichHodnotTrait;
 use Gamecon\Pravo;
@@ -25,6 +26,7 @@ use Gamecon\SystemoveNastaveni\SystemoveNastaveni;
 use Gamecon\Uzivatel\Dto\PolozkaProBfgr;
 use Gamecon\Uzivatel\Dto\PriceAfterDiscountDto;
 use Gamecon\Uzivatel\SqlStruktura\PlatbySqlStruktura;
+use Uzivatel;
 
 /**
  * Třída zodpovídající za spočítání finanční bilance uživatele na GC.
@@ -34,6 +36,9 @@ class Finance
     use ObnoveniVychozichHodnotTrait;
 
     public const KLIC_ZRUS_NAKUP_POLOZKY = 'zrus-nakup-polozky';
+
+    /** Diskriminátor řádku v `slevy` pro poukaz „jedna aktivita zdarma“ (sloupec poznamka). */
+    private const POZNAMKA_POUKAZ_JEDNA_AKTIVITA = 'Poukaz na jednu aktivitu zdarma';
 
     private const MAX_SLEVA_AKTIVIT_PROCENT = 100;
     private const PLNA_SLEVA_PROCENT        = 100;
@@ -607,7 +612,8 @@ SELECT
         * IF(aktivita.typ IN ($technicka, $brigadnicka) AND prihlaseni.id_stavu_prihlaseni IN ($prihlasenAleNedorazil, $pozdeZrusil), 0.0, 1.0) -- zrušit 'storno' pro pozdě odhlášené technické a brigádnické aktivity
      ) AS cena,
     aktivita.typ,
-    stav_prihlaseni.id_stavu_prihlaseni
+    stav_prihlaseni.id_stavu_prihlaseni,
+    discounts_generated.castka as sleva_prima
 FROM (
     SELECT * FROM akce_prihlaseni WHERE id_uzivatele = $idUcastnika
     UNION
@@ -617,7 +623,11 @@ JOIN akce_seznam AS aktivita
     ON prihlaseni.id_akce = aktivita.id_akce
 JOIN akce_prihlaseni_stavy AS stav_prihlaseni
     ON prihlaseni.id_stavu_prihlaseni = stav_prihlaseni.id_stavu_prihlaseni
-WHERE rok = $rok
+LEFT JOIN discounts_generated
+    ON discounts_generated.id_akce = aktivita.id_akce
+    AND discounts_generated.rok = aktivita.rok
+    AND discounts_generated.id_uzivatele = $idUcastnika
+WHERE aktivita.rok = $rok
 SQL;
 
         $result = $this->systemoveNastaveni->db()->dbFetchAll(
@@ -626,6 +636,7 @@ SQL;
                 AkcePrihlaseniSqlStruktura::AKCE_PRIHLASENI_TABULKA,
                 AkcePrihlaseniSpecSqlStruktura::AKCE_PRIHLASENI_SPEC_TABULKA,
                 AkcePrihlaseniStavySqlStruktura::AKCE_PRIHLASENI_STAVY_TABULKA,
+                DiscountsGeneratedSqlStruktura::DISCOUNTS_GENERATED_TABULKA
             ],
             $sql,
         );
@@ -641,7 +652,9 @@ SQL;
                     $this->brigadnickaOdmena += (float)$r['cena'];
                 }
             } else {
-                $this->cenaAktivit += $r['cena'];
+                // sleva_prima (generovaná sleva k aktivitě) snižuje účtovanou cenu;
+                // storno níže ale počítáme z plné ceny — penále za neúčast se slevou nesnižujeme.
+                $this->cenaAktivit += $r['cena'] - ($r['sleva_prima'] ?? 0.0);
                 $idStavuPrihlaseni = (int)$r['id_stavu_prihlaseni'];
                 if ($idStavuPrihlaseni === StavPrihlaseni::PRIHLASEN_ALE_NEDORAZIL) {
                     $this->sumaStorna += $r['cena'];
@@ -663,6 +676,7 @@ SQL;
             $castkaAktivity = in_array($r['typ'], TypAktivity::interniTypy())
                 ? 0.0
                 : (float)$r['cena'];
+            $castkaAktivity -= $r['sleva_prima'] ?? 0.0;
             $this->log(
                 nazev: $r['nazev'] . $poznamka,
                 castka: $castkaAktivity,
@@ -674,7 +688,7 @@ SQL;
                 pocet: 1,
                 priceAfterDiscountDto: new PriceAfterDiscountDto(
                     finalPrice: $castkaAktivity,
-                    discount: 0,
+                    discount: $r['sleva_prima'] ?? 0.0,
                 ),
                 typ: self::AKTIVITY,
                 kodPredmetu: '',
@@ -883,6 +897,18 @@ SQL;
         foreach ($q as $sleva) {
             $this->slevaObecna += (float)$sleva[SlevySqlStruktura::CASTKA];
         }
+
+        $q = dbQuery('
+            SELECT castka, id_akce, id_nakupu
+            FROM discounts_generated
+            WHERE id_uzivatele = $0 AND rok = $1 AND id_akce is null
+            ', [$this->u->id(), ROCNIK],
+        );
+
+        foreach ($q as $sleva) {
+            $this->slevaObecna += (float)$sleva[SlevySqlStruktura::CASTKA];
+        }
+
         $this->zapocteno[__FUNCTION__] = true;
     }
 
@@ -1061,6 +1087,114 @@ SQL;
         }
 
         return $this->kategorieNeplatice;
+    }
+
+    // 2026 - zavedeny poukazy na slevu na jednu (nejdražší) aktivitu zdarma. Vzhledem k tomu že shop je shitfest, tak raději budeme dávat explicitní slevu, stejně se to za rok smaže
+    public function prepoctiSlevuNaJednuAktivitu(): void
+    {
+        if (!$this->u->maPravo(Pravo::JEDNA_AKTIVITA_ZDARMA))
+        {
+            // právo bylo odebráno (nebo ho nikdy neměl) -> zruš případný zbylý poukaz
+            $this->smazPoukazNaJednuAktivitu();
+
+            return;
+        }
+
+        $aktivity = $this->u->zapsaneAktivity();
+        $nejdrazsiPrihlasena = 0;
+        foreach ($aktivity as $a) {
+            // poukaz proplácí jednu reálně placenou aktivitu; technické a brigádnické
+            // se účastníkovi neúčtují (jdou do bonusu/odměny vypravěče), takže je nesmí
+            // určovat hodnotu poukazu
+            if ($a->typ()->jeInterni()) {
+                continue;
+            }
+            if ($a->cenaZaklad() > $nejdrazsiPrihlasena) {
+                $nejdrazsiPrihlasena = $a->cenaZaklad();
+            }
+        }
+
+        if ($this->u->maPravo(Pravo::AKTIVITY_ZDARMA))
+        {
+            $nejdrazsiPrihlasena = 0;
+        } elseif ($this->u->maPravo(Pravo::CASTECNA_SLEVA_NA_AKTIVITY))
+        {
+            $nejdrazsiPrihlasena = round($nejdrazsiPrihlasena / 100 * (100 - Finance::CASTECNA_SLEVA_PROCENT));
+        }
+
+        if ($nejdrazsiPrihlasena > 0) {
+            if (dbRecordExists('slevy', [
+                'id_uzivatele' => $this->u->id(),
+                'poznamka' => self::POZNAMKA_POUKAZ_JEDNA_AKTIVITA,
+                'rok' => ROCNIK,
+                'provedl' => Uzivatel::SYSTEM,
+                ]))
+            {
+                dbQuery('UPDATE slevy SET castka = $0, provedeno = current_timestamp() WHERE id_uzivatele = $1 and poznamka = $2 and rok = $3 and provedl = $4', [
+                    $nejdrazsiPrihlasena,
+                    $this->u->id(),
+                    self::POZNAMKA_POUKAZ_JEDNA_AKTIVITA,
+                    ROCNIK,
+                    \Uzivatel::SYSTEM
+                ]);
+            } else {
+                dbQuery('INSERT INTO slevy (id_uzivatele, castka, poznamka, rok, provedl) VALUES ($0, $1, $2, $3, $4)', [
+                    $this->u->id(),
+                    $nejdrazsiPrihlasena,
+                    self::POZNAMKA_POUKAZ_JEDNA_AKTIVITA,
+                    ROCNIK,
+                    \Uzivatel::SYSTEM
+                ]);
+            }
+        } else
+        {
+            $this->smazPoukazNaJednuAktivitu();
+        }
+    }
+
+    private function smazPoukazNaJednuAktivitu(): void
+    {
+        dbQuery('DELETE FROM slevy WHERE id_uzivatele = $0 and poznamka = $1 and rok = $2 and provedl = $3', [
+            $this->u->id(),
+            self::POZNAMKA_POUKAZ_JEDNA_AKTIVITA,
+            ROCNIK,
+            \Uzivatel::SYSTEM,
+        ]);
+    }
+
+    /**
+     * Hromadně přepočítá poukaz „jedna aktivita zdarma“ všem aktuálním držitelům
+     * práva. Běžně se poukaz přepočítává sám při změně role / přihlášky; tahle
+     * metoda je pro ruční opravu (po změně cen aktivit nebo při chybě).
+     * Vrací počet zpracovaných uživatelů.
+     */
+    public static function prepocitejVsechnyPoukazyNaJednuAktivitu(): int
+    {
+        // Zpracujeme nejen aktuální držitele práva (přepočet hodnoty), ale i ty,
+        // kdo už jen mají zbylý poukaz v `slevy` – těm právo mohlo být odebráno
+        // dřív, než existovala logika mazání, takže mají osiřelý řádek bez nároku.
+        // prepoctiSlevuNaJednuAktivitu() pak u nich poukaz smaže.
+        $idsUzivatelu = dbOneArray('
+            SELECT platne_role_uzivatelu.id_uzivatele
+            FROM platne_role_uzivatelu
+            JOIN prava_role ON prava_role.id_role = platne_role_uzivatelu.id_role
+            WHERE prava_role.id_prava = $0
+            UNION
+            SELECT slevy.id_uzivatele
+            FROM slevy
+            WHERE slevy.poznamka = $1 AND slevy.rok = $2 AND slevy.provedl = $3
+        ', [Pravo::JEDNA_AKTIVITA_ZDARMA, self::POZNAMKA_POUKAZ_JEDNA_AKTIVITA, ROCNIK, \Uzivatel::SYSTEM]);
+
+        // Hromadné načtení jedním dotazem místo zId() v cyklu (N+1). Smazaný/sloučený
+        // uživatel, na kterého ukazuje osiřelý řádek v `slevy`, se v zIds() prostě
+        // neobjeví – přeskočíme ho, ať jednorázový přepočet (i v migraci) nespadne.
+        $prepocitano = 0;
+        foreach (\Uzivatel::zIds($idsUzivatelu) as $uzivatel) {
+            $uzivatel->finance()->prepoctiSlevuNaJednuAktivitu();
+            $prepocitano++;
+        }
+
+        return $prepocitano;
     }
 
     public function dejQrKodProCeskouPlatbu(): ResultInterface

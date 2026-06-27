@@ -6,6 +6,15 @@
 <style>
     .shopUbytovani_prvniSloupec, .shopUbytovani_sloupec {
         float: left;
+    }
+
+    .shopUbytovani_prvniSloupec {
+        width: fit-content;
+        padding-right: 10px;
+        white-space: nowrap;
+    }
+
+    .shopUbytovani_sloupec {
         width: 65px;
     }
 
@@ -45,6 +54,9 @@
       {jidloHtml}
       <input type="submit" name="zpracujJidlo" value="Uložit" class="submit-btn">
     </form>
+    <!-- begin:odkazStravenky -->
+    <a href="{urlStravenky}" target="_blank">Tisk stravenek</a>
+    <!-- end:odkazStravenky -->
     <!-- end:jidlo -->
     {status}
   </div>

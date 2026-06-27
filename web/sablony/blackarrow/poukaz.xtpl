@@ -1,0 +1,68 @@
+<!-- begin:poukaz -->
+<div class="stranka">
+
+    <h1>Slevový poukaz</h1>
+
+    <p>
+        Slevový poukaz ti umožní zúčastnit se jedné aktivity na GameConu zdarma –
+        sleva se automaticky uplatní na tvoji nejdražší přihlášenou aktivitu.
+    </p>
+
+    <!-- begin:neprihlasen -->
+    <div class="formular_infobox">
+        <b>Nejdřív se přihlas</b>
+        Poukaz jde uplatnit jen na přihlášený účet. Přihlas se prosím a pak se sem
+        vrať poukaz uplatnit.
+    </div>
+    <p>
+        <a href="{urlWebu}/prihlaseni" class="formular_primarni formular_primarni-sipka" style="display: inline-block">Přihlásit se</a>
+    </p>
+    <p class="formular_duleziteInfo">
+        Ještě nemáš účet? <a href="{urlWebu}/registrace">Zaregistruj se</a>.
+    </p>
+    <!-- end:neprihlasen -->
+
+    <!-- begin:bezGcPrihlasky -->
+    <div class="formular_infobox">
+        <b>Nejdřív vyplň přihlášku na GameCon</b>
+        Poukaz jde uplatnit, až budeš přihlášený(á) na letošní GameCon. Vyplň prosím
+        přihlášku a pak se sem vrať poukaz uplatnit.
+    </div>
+    <p>
+        <a href="{urlWebu}/prihlaska" class="formular_primarni formular_primarni-sipka" style="display: inline-block">Vyplnit přihlášku</a>
+    </p>
+    <!-- end:bezGcPrihlasky -->
+
+    <!-- begin:jizUplatneno -->
+    <div class="formular_infobox">
+        <b>Poukaz už máš uplatněný</b>
+        Slevu na jednu aktivitu zdarma máš aktivní – další poukaz už uplatnit nejde.
+    </div>
+    <p>
+        <a href="{urlWebu}" class="formular_primarni formular_primarni-sipka" style="display: inline-block">Zpět na úvod</a>
+    </p>
+    <!-- end:jizUplatneno -->
+
+    <!-- begin:formular -->
+    <form method="post" class="formular">
+        <label class="formular_polozka">
+            Kód slevového poukazu
+            <input
+                type="text"
+                name="kod"
+                class="formular_input"
+                style="text-transform: uppercase"
+                maxlength="10"
+                autofocus
+                autocomplete="off"
+                autocapitalize="characters"
+                spellcheck="false"
+                placeholder="10 znaků z poukazu"
+            >
+        </label>
+        <input type="submit" value="Uplatnit poukaz" class="formular_primarni formular_primarni-sipka">
+    </form>
+    <!-- end:formular -->
+
+</div>
+<!-- end:poukaz -->

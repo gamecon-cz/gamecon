@@ -663,6 +663,9 @@
       {jidloHtml}
       <input type="submit" name="zpracujJidlo" value="Uložit" class="submit-btn">
     </form>
+    <!-- begin:odkazStravenky -->
+    <a href="{urlStravenky}" target="_blank">Tisk stravenek</a>
+    <!-- end:odkazStravenky -->
   </div>
   <!-- end:jidlo -->
 
@@ -674,9 +677,6 @@
       <table class="objednavky">
           {prehledPredmetu}
       </table>
-    <!-- begin:odkazStravenky -->
-    <a href="{urlStravenky}" target="_blank">Tisk stravenek</a>
-    <!-- end:odkazStravenky -->
   </div>
   <!-- end:objednavky -->
 

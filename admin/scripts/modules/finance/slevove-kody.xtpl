@@ -1,0 +1,87 @@
+<!-- begin: slevoveKody -->
+
+<h1>Slevové poukazy 🎟️</h1>
+
+<p>
+  Přehled vygenerovaných poukazů na jednu aktivitu zdarma. Nepoužitý poukaz lze
+  zneplatnit (nepůjde pak uplatnit), u libovolného poukazu lze uložit poznámku
+  (komu byl předán, k jaké akci patří&nbsp;apod.).
+</p>
+
+<p>
+  Celkem: <strong>{celkem}</strong> &middot;
+  platných: <strong>{volnych}</strong> &middot;
+  použitých: <strong>{pouzitych}</strong>
+</p>
+
+<form method="post" class="slevoveKody_vygenerovat">
+  <input type="hidden" name="vygenerovat" value="1">
+  <input type="submit" value="Vygenerovat nový poukaz">
+</form>
+
+<table class="zvyraznovana">
+  <thead>
+  <tr>
+    <th>Kód</th>
+    <th>Stav</th>
+    <th>Vytvořil</th>
+    <th>Vytvořeno</th>
+    <th>Uplatnil</th>
+    <th>Poznámka</th>
+    <th>Akce</th>
+  </tr>
+  </thead>
+  <tbody>
+  <!-- begin: kod -->
+  <tr>
+    <td><code>{kod}</code></td>
+    <td><span class="slevoveKody_stav {stavTrida}">{stav}</span></td>
+    <td>{vytvoril}</td>
+    <td>{vytvoreno}</td>
+    <td>{pouzito}</td>
+    <td>
+      <form method="post" class="slevoveKody_poznamkaForm">
+        <input type="hidden" name="poznamkaId" value="{id}">
+        <input type="text" name="poznamka" value="{poznamka}" maxlength="255" placeholder="(bez poznámky)">
+        <input type="submit" value="Uložit">
+      </form>
+    </td>
+    <td>
+      <a href="{urlAdmin}/reporty/slevovy_poukaz?id={id}" target="_blank" rel="noopener">Zobrazit poukaz</a>
+      <!-- begin: zneplatnit -->
+      <form method="post" onsubmit="return confirm('Opravdu zneplatnit tento poukaz? Nepůjde pak uplatnit.')">
+        <input type="hidden" name="zneplatnitId" value="{id}">
+        <input type="submit" value="Zneplatnit">
+      </form>
+      <!-- end: zneplatnit -->
+      <!-- begin: obnovit -->
+      <form method="post">
+        <input type="hidden" name="obnovitId" value="{id}">
+        <input type="submit" value="Obnovit platnost">
+      </form>
+      <!-- end: obnovit -->
+    </td>
+  </tr>
+  <!-- end: kod -->
+  <!-- begin: zadne -->
+  <tr><td colspan="7"><em>Zatím nebyl vygenerován žádný poukaz.</em></td></tr>
+  <!-- end: zadne -->
+  </tbody>
+</table>
+
+<style>
+  .slevoveKody_stav {
+    display: inline-block;
+    padding: 1px 8px;
+    border-radius: 3px;
+    font-size: 12px;
+    white-space: nowrap;
+  }
+  .slevoveKody_stav-platny { background: #d6f5d6; color: #1a6b1a; }
+  .slevoveKody_stav-pouzity { background: #e2e2e2; color: #555; }
+  .slevoveKody_stav-zneplatneny { background: #f8d6d6; color: #9b1c1c; }
+  .slevoveKody_poznamkaForm { display: flex; gap: 4px; }
+  .slevoveKody_poznamkaForm input[type="text"] { min-width: 160px; }
+</style>
+
+<!-- end: slevoveKody -->

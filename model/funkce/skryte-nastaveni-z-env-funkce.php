@@ -1,9 +1,11 @@
 <?php
+
+declare(strict_types=1);
 function vytvorSouborSkrytehoNastaveniPodleEnv(
     string $souborVerejnehoNastaveni,
 ) {
     $souborSkrytehoNastaveni = souborSkrytehoNastaveniPodleVerejneho($souborVerejnehoNastaveni);
-    if (!is_file($souborSkrytehoNastaveni)) {
+    if (! is_file($souborSkrytehoNastaveni)) {
         // ENV názvy a hodnoty viz například .github/workflows/deploy-ostra.yml
         $DB_USER = getenv('DB_USER');
         $DB_PASS = getenv('DB_PASS');
@@ -28,44 +30,83 @@ function vytvorSouborSkrytehoNastaveniPodleEnv(
         $APP_DEBUG = getenv('APP_DEBUG') ? 'true' : 'false';
         $APP_SECRET = getenv('APP_SECRET');
 
+        // Basic-auth pro Caddy bránu před preview / archive prostředími.
+        // Admin rozcestník u odkazů ukazuje tyto údaje jako kopírovatelný text
+        // (prohlížeč se zeptá při prvním otevření).
+        $PREVIEW_BASIC_AUTH_USER = getenv('PREVIEW_BASIC_AUTH_USER');
+        $PREVIEW_BASIC_AUTH_PASSWORD = getenv('PREVIEW_BASIC_AUTH_PASSWORD');
+        $ARCHIVE_BASIC_AUTH_USER = getenv('ARCHIVE_BASIC_AUTH_USER');
+        $ARCHIVE_BASIC_AUTH_PASSWORD = getenv('ARCHIVE_BASIC_AUTH_PASSWORD');
+
+        // Tajemství pro podpis „gate" tokenu, kterým admin rozcestník připojí
+        // ?gate=<podpis> k odkazům na preview / archive. Musí být shodné s tím,
+        // co drží gate-validator (ansible repo, role gate_validator), aby
+        // podepsaný token prošel ověřením. Dvě oddělená tajemství = izolace
+        // preview vs. archive (dvě instance validatoru). Viz GateLink.
+        $PREVIEW_GATE_SECRET = getenv('PREVIEW_GATE_SECRET');
+        $ARCHIVE_GATE_SECRET = getenv('ARCHIVE_GATE_SECRET');
+
+        // Magické přihlášení do archivního adminu (?gcsso=). GAMECON_SSO_SECRET je
+        // master — žije JEN na ostré, kde z něj odvozujeme klíč pro daný ročník.
+        // GAMECON_SSO_KEY je ten ODVOZENÝ klíč (HMAC(rok, master)), který dostane jen
+        // konkrétní archiv (vstříkne deploy přes -e). Tím archiv ověří token, ale když
+        // ho někdo z archivu vytáhne, podvrhne login jen do toho ročníku — ne k masteru
+        // ani k SECRET_CRYPTO_KEY. Viz CrossSiteLogin + stare-rocniky.php / prihlaseni.php.
+        $GAMECON_SSO_SECRET = getenv('GAMECON_SSO_SECRET');
+        $GAMECON_SSO_KEY = getenv('GAMECON_SSO_KEY');
+
         $ted = date(DATE_ATOM);
         $nazevTetoFunkce = __FUNCTION__;
 
         file_put_contents($souborSkrytehoNastaveni, <<<PHP
             <?php
-            // vygenerováno $ted v $nazevTetoFunkce
+            // vygenerováno {$ted} v {$nazevTetoFunkce}
             
             // uživatel se základním přístupem
-            define('DB_USER', '$DB_USER');
-            define('DB_PASS', '$DB_PASS');
-            define('DB_NAME', '$DB_NAME');
-            define('DB_SERV', '$DB_SERV');
-            define('DB_PORT', '$DB_PORT');
+            define('DB_USER', '{$DB_USER}');
+            define('DB_PASS', '{$DB_PASS}');
+            define('DB_NAME', '{$DB_NAME}');
+            define('DB_SERV', '{$DB_SERV}');
+            define('DB_PORT', '{$DB_PORT}');
             
             // uživatel s přístupem k změnám struktury
-            define('DBM_USER', '$DBM_USER');
-            define('DBM_PASS', '$DBM_PASS');
+            define('DBM_USER', '{$DBM_USER}');
+            define('DBM_PASS', '{$DBM_PASS}');
             
-            define('DB_ANONYM_SERV', '$DB_ANONYM_SERV');
-            define('DB_ANONYM_USER', '$DB_ANONYM_USER');
-            define('DB_ANONYM_PASS', '$DB_ANONYM_PASS');
-            define('DB_ANONYM_NAME', '$DB_ANONYM_NAME');
+            define('DB_ANONYM_SERV', '{$DB_ANONYM_SERV}');
+            define('DB_ANONYM_USER', '{$DB_ANONYM_USER}');
+            define('DB_ANONYM_PASS', '{$DB_ANONYM_PASS}');
+            define('DB_ANONYM_NAME', '{$DB_ANONYM_NAME}');
             
-            define('MIGRACE_HESLO', '$MIGRACE_HESLO');
-            define('SECRET_CRYPTO_KEY', '$SECRET_CRYPTO_KEY');
+            define('MIGRACE_HESLO', '{$MIGRACE_HESLO}');
+            define('SECRET_CRYPTO_KEY', '{$SECRET_CRYPTO_KEY}');
             
-            define('CRON_KEY', '$CRON_KEY'); // pozor změnu CRON_KEY je nutné provést i v https://console.cron-job.org
+            define('CRON_KEY', '{$CRON_KEY}'); // pozor změnu CRON_KEY je nutné provést i v https://console.cron-job.org
             
-            define('GOOGLE_API_CREDENTIALS', json_decode('$GOOGLE_API_CREDENTIALS', true));
+            define('GOOGLE_API_CREDENTIALS', json_decode('{$GOOGLE_API_CREDENTIALS}', true));
             
-            define('FIO_TOKEN', '$FIO_TOKEN'); // platnost do 11.9.2030
+            define('FIO_TOKEN', '{$FIO_TOKEN}'); // platnost do 11.9.2030
             
-            define('MAILER_DSN', '$MAILER_DSN');
+            define('MAILER_DSN', '{$MAILER_DSN}');
             
             // Symfony
-            define('APP_ENV', '$APP_ENV');
-            define('APP_DEBUG', $APP_DEBUG);
-            define('APP_SECRET', '$APP_SECRET');
+            define('APP_ENV', '{$APP_ENV}');
+            define('APP_DEBUG', {$APP_DEBUG});
+            define('APP_SECRET', '{$APP_SECRET}');
+
+            // Basic-auth pro Caddy bránu před preview / archive prostředími
+            define('PREVIEW_BASIC_AUTH_USER', '{$PREVIEW_BASIC_AUTH_USER}');
+            define('PREVIEW_BASIC_AUTH_PASSWORD', '{$PREVIEW_BASIC_AUTH_PASSWORD}');
+            define('ARCHIVE_BASIC_AUTH_USER', '{$ARCHIVE_BASIC_AUTH_USER}');
+            define('ARCHIVE_BASIC_AUTH_PASSWORD', '{$ARCHIVE_BASIC_AUTH_PASSWORD}');
+
+            // Tajemství pro podpis gate tokenu (one-click přístup přes bránu)
+            define('PREVIEW_GATE_SECRET', '{$PREVIEW_GATE_SECRET}');
+            define('ARCHIVE_GATE_SECRET', '{$ARCHIVE_GATE_SECRET}');
+
+            // Magické přihlášení do archivu: master jen na ostré, odvozený klíč jen v archivu
+            define('GAMECON_SSO_SECRET', '{$GAMECON_SSO_SECRET}');
+            define('GAMECON_SSO_KEY', '{$GAMECON_SSO_KEY}');
             PHP,
         );
     }
@@ -93,7 +134,7 @@ function vytvorSouborServerNastaveniPodleEnv(
     string $souborVerejnehoNastaveni,
 ) {
     $souborServerNastaveniPodleEnv = souborServerNastaveniPodleEnv($souborVerejnehoNastaveni);
-    if (!is_file($souborServerNastaveniPodleEnv)) {
+    if (! is_file($souborServerNastaveniPodleEnv)) {
         // ENV názvy a hodnoty viz například .github/workflows/deploy-ostra.yml
         $SERVER_NAME = getenv('SERVER_NAME');
 
@@ -102,9 +143,9 @@ function vytvorSouborServerNastaveniPodleEnv(
 
         file_put_contents($souborServerNastaveniPodleEnv, <<<PHP
             <?php
-            // vygenerováno $ted v $nazevTetoFunkce
+            // vygenerováno {$ted} v {$nazevTetoFunkce}
             
-            define('SERVER_NAME', '$SERVER_NAME');
+            define('SERVER_NAME', '{$SERVER_NAME}');
             PHP,
         );
     }

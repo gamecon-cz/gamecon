@@ -19,6 +19,8 @@ use Gamecon\Uzivatel\Platby;
 
 require __DIR__ . '/../penize/_postUzivatelProPripsaniSlevy.php';
 
+require __DIR__ . '/../penize/_postPrepocetPoukazu.php';
+
 require __DIR__ . '/../penize/_postUzivatelKVyplaceniAktivity.php';
 
 require __DIR__ . '/../penize/_ajaxGetUzivatelKVyplaceniAktivity.php';
@@ -41,7 +43,7 @@ SQL,
         $un->nactiPrava();
         if (($stav = $un->finance()->stav()) >= $min) {
             $x->assign([
-                'login'     => $un->prezdivka(),
+                'login'     => $un->login(),
                 'stav'      => $stav,
                 'aktivity'  => $un->finance()->cenaAktivit(),
                 'ubytovani' => $un->finance()->cenaUbytovani(),

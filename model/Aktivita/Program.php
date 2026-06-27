@@ -44,9 +44,10 @@ class Program
 
     public static function gameconKonstanty($jeAdmin = false, $pageName = "program"): array
     {
-        $legendaText = Stranka::zUrl('program-legenda-text')?->html();
-        $basePathApi = ($jeAdmin ? URL_ADMIN : URL_WEBU) . '/api/';
-        $basePathPage = ($jeAdmin ? URL_ADMIN : URL_WEBU) . '/' . $pageName . '/';
+        $legendaText        = Stranka::zUrl('program-legenda-text')?->html();
+        $basePathApi        = ($jeAdmin ? URL_ADMIN : URL_WEBU) . '/api/';
+        $basePathPage       = ($jeAdmin ? URL_ADMIN : URL_WEBU) . '/' . $pageName . '/';
+        $systemoveNastaveni = SystemoveNastaveni::zGlobals();
 
         $konstanty = [
             'BASE_PATH_API'                => $basePathApi,
@@ -56,11 +57,15 @@ class Program
             'FORCE_REDUX_DEVTOOLS'         => defined('FORCE_REDUX_DEVTOOLS'),
             'PROGRAM_OD'                   => (new DateTimeCz(PROGRAM_OD))->getTimestamp() * 1000,
             'PROGRAM_DO'                   => (new DateTimeCz(PROGRAM_DO))->getTimestamp() * 1000,
+            // serverové "teď" – respektuje ročník zobrazený v daném prostředí
+            // (beta loňský ročník, produkce letošní, …). Frontend z něj určuje,
+            // který den programu právě probíhá.
+            'TED'                          => $systemoveNastaveni->ted()->getTimestamp() * 1000,
             'PROGRAM_ZACATEK'              => PROGRAM_ZACATEK,
             'PROGRAM_KONEC'                => PROGRAM_KONEC,
             'CAS_NA_PRIPRAVENI_TYMU_MINUT' => AktivitaTym::CAS_NA_PRIPRAVENI_TYMU_MINUT,
             'URL_PROGRAM_CACHE'            => URL_CACHE . '/program',
-            'programManifest'              => (new ProgramStaticFileGenerator(SystemoveNastaveni::zGlobals()))->readManifest(),
+            'programManifest'              => (new ProgramStaticFileGenerator($systemoveNastaveni))->readManifest(),
         ];
 
         if ($jeAdmin) {

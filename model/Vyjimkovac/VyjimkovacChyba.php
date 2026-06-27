@@ -18,7 +18,7 @@ class VyjimkovacChyba
 
     public static function urlDetailuChyby(int $idChyby): string
     {
-        return '/web/chyby?' . self::VYJIMKA . '=' . $idChyby;
+        return '/dev/chyby?' . self::VYJIMKA . '=' . $idChyby;
     }
 
     public static function zVyjimky(\Throwable $throwable)
@@ -175,7 +175,7 @@ class VyjimkovacChyba
             GcMail::vytvorZGlobals()
                 ->adresati($emails)
                 ->predmet("Gamecon chyba: {$kodJazyka}, typ {$this->radek['typ']}, '$zkracenaZprava'")
-                ->text($zprava . "\r\n\r\n<a href='" . URL_ADMIN . "/web/chyby/?" . self::VYJIMKA . "={$this->idPosledniUlozeneChyby}'>Detail</a>")
+                ->text($zprava . "\r\n\r\n<a href='" . self::absolutniUrlDetailuChyby((int)$this->idPosledniUlozeneChyby) . "'>Detail</a>")
                 ->odeslat();
         }
     }

@@ -56,7 +56,7 @@
     <div class="mobstin"></div>
     <div class="main">
       <!-- begin:submenu -->
-      <ul id="submenu" class="submenu-selected-{stranka}" style="display: {displaySubmenu}">
+      <ul id="submenu" class="submenu-selected-{stranka}" data-stranka="{stranka}" data-podstranka="{podstranka}" style="display: {displaySubmenu}">
         <li>
           <ul class="adm_submenu_group"><!-- begin:polozka -->
             {break}

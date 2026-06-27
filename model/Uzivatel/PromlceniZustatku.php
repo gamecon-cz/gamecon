@@ -427,7 +427,8 @@ Co můžeš proti tomu udělat:
 Tvůj zůstatek: $zustatek Kč
 
 Děkujeme za pochopení!
-Tým GameConu
+Tvůj
+organizační tým GameConu
 TEXT,
             TypVarovaniPromlceni::TYDEN => <<<TEXT
 Ahoj $jmeno,
@@ -448,7 +449,8 @@ Co můžeš udělat:
 Tvůj zůstatek: $zustatek Kč
 
 Děkujeme!
-Tým GameConu
+Tvůj
+organizační tým GameConu
 TEXT,
         };
     }

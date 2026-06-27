@@ -29,6 +29,11 @@ define('FORCE_REDUX_DEVTOOLS', true);
   PROGRAM_OD: number,
   PROGRAM_DO: number,
   /**
+   * Serverové "teď" (ms). Respektuje ročník zobrazený v daném prostředí
+   * (beta/preview/produkce), proto se z něj určuje aktivní den programu.
+   */
+  TED: number,
+  /**
    * !nenastavovat ručně, dopočítá se při startu z PROGRAM_OD-..._DO
    */
   PROGRAM_DNY: number[],
@@ -82,6 +87,8 @@ const GAMECON_KONSTANTY_DEFAULT: GameconKonstanty = {
   ROCNIK: 2022,
   PROGRAM_OD: 1658268000000,
   PROGRAM_DO: 1658689200000,
+  // bez serverové hodnoty padne výběr dne na první den programu (PROGRAM_OD)
+  TED: 1658268000000,
   PROGRAM_DNY: [],
   LEGENDA: "",
   PROGRAM_ŘAZENÍ_LINIE: [

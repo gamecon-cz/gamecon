@@ -2,10 +2,14 @@ name: Deploy year archive
 
 # yamllint disable-line rule:truthy
 on:
-    # Manual trigger only — year archives are deployed once per year (or
-    # on the rare backfill of an older year). Auto-trigger on push to
-    # archive/* is intentionally absent: pushing a fixup commit to an
-    # archive branch shouldn't redeploy a frozen historical site.
+    # Auto-deploy on every push to an archive branch: pushing a fix to
+    # archive/YYYY redeploys that year's site so the change goes live
+    # without a manual dispatch. Branch shape is validated in the
+    # "Derive year" step (anything not archive/YYYY[-suffix] fails there).
+    push:
+        branches:
+            - 'archive/**'
+    # Manual trigger kept for backfills / redeploying a specific commit.
     workflow_dispatch:
         inputs:
             branch:
@@ -16,6 +20,14 @@ permissions:
     contents: read
     packages: write   # push to ghcr.io
 
+# Serialize deploys of the same archive branch. With push auto-deploy a
+# burst of commits could otherwise launch overlapping runs that race to
+# build + SSH-deploy the same year on the host. Newer push wins; we
+# don't cancel an in-flight run mid-deploy (let it finish cleanly).
+concurrency:
+    group: deploy-year-archive-${{ github.event.inputs.branch || github.ref_name }}
+    cancel-in-progress: false
+
 jobs:
     deploy:
         runs-on: ubuntu-24.04
@@ -23,7 +35,9 @@ jobs:
             -   name: Checkout archive branch
                 uses: actions/checkout@v4
                 with:
-                    ref: ${{ github.event.inputs.branch }}
+                    # workflow_dispatch supplies the branch as an input;
+                    # push supplies it as github.ref_name. Coalesce to one.
+                    ref: ${{ github.event.inputs.branch || github.ref_name }}
 
             -   name: Derive year from branch name + sha from checked-out HEAD
                 id: year
@@ -42,20 +56,106 @@ jobs:
                 # would tag the archive image with main's commit even
                 # though its content comes from the archive branch.
                 run: |
-                    branch="${{ github.event.inputs.branch }}"
+                    branch="${{ github.event.inputs.branch || github.ref_name }}"
                     if [[ ! "$branch" =~ ^archive/([0-9]{4})(-[a-z0-9-]+)?$ ]]; then
                         echo "::error::Branch '$branch' does not match archive/YYYY[-suffix]" >&2
                         exit 1
                     fi
                     year="${BASH_REMATCH[1]}"
-                    if (( year < 2011 || year > 2099 )); then
-                        echo "::error::Year $year outside supported range 2011..2099" >&2
+                    if (( year < 1998 || year > 2099 )); then
+                        echo "::error::Year $year outside supported range 1998..2099" >&2
                         exit 1
                     fi
                     sha7=$(git rev-parse --short=7 HEAD)
+
+                    # Per-year base image map. Older years' code predates
+                    # PHP 8.1/8.2 deprecations (the app's error handler
+                    # escalates any deprecation to a fatal 500), so they must
+                    # build on a period-correct PHP. We use the official,
+                    # publicly-pullable php:<ver>-apache images directly —
+                    # Dockerfile.archive's setup block installs the needed
+                    # extensions on a bare base — so no custom base image /
+                    # registry is involved. Default (unlisted years) = the
+                    # gameconcz/gamecon:8.2 image baked into Dockerfile.archive.
+                    # Add a row when a year's PHP era is confirmed during recon.
+                    case "$year" in
+                        # 2003–2011 are STATIC archives (the live DB + router
+                        # are lost) — flat HTML reconstructed from the Internet
+                        # Archive. Any base works; php:5.6-apache matches their
+                        # neighbours and stays lightweight (no PHP executes).
+                        # 1998–2008 are the Altar-era sites (1998–2005 = altar.cz
+                        # /gamecon/ path; 2006–2008 = gamecon.altar.cz subdomain;
+                        # different CMS), still pure static HTML — same base.
+                        # (2002 = the Avalcon/Eurocon year in Chotěboř; 1998–2001 =
+                        # minimal results-centric archives — Wayback caught only the
+                        # 1998 homepage + the DrD-championship results listings.)
+                        1998) base_image="php:5.6-apache" ;;
+                        1999) base_image="php:5.6-apache" ;;
+                        2000) base_image="php:5.6-apache" ;;
+                        2001) base_image="php:5.6-apache" ;;
+                        2002) base_image="php:5.6-apache" ;;
+                        2003) base_image="php:5.6-apache" ;;
+                        2004) base_image="php:5.6-apache" ;;
+                        2005) base_image="php:5.6-apache" ;;
+                        2006) base_image="php:5.6-apache" ;;
+                        2007) base_image="php:5.6-apache" ;;
+                        2008) base_image="php:5.6-apache" ;;
+                        2009) base_image="php:5.6-apache" ;;
+                        2010) base_image="php:5.6-apache" ;;
+                        2011) base_image="php:5.6-apache" ;;
+                        2012) base_image="php:5.6-apache" ;;
+                        2013) base_image="php:5.6-apache" ;;
+                        2014) base_image="php:5.6-apache" ;;
+                        2015) base_image="php:5.6-apache" ;;
+                        2016) base_image="php:5.6-apache" ;;
+                        2017) base_image="php:7.3-apache" ;;
+                        2018) base_image="php:7.3-apache" ;;
+                        2019) base_image="php:7.3-apache" ;;
+                        2020) base_image="php:7.3-apache" ;;
+                        2021) base_image="php:7.3-apache" ;;
+                        *)    base_image="gameconcz/gamecon:8.2" ;;
+                    esac
+
+                    # PHP extensions to install on a bare base. Defaults to the
+                    # modern set; very old years that run on an EOL Debian base
+                    # (whose apt repos are gone) need a trimmed list so the
+                    # Dockerfile's apt step is skipped. 2016-2018 (PHP 5.6) need
+                    # only mysqli; 2015 and older use the even-older mysql_*
+                    # extension (mysql, removed in PHP 7 but installable on 5.6).
+                    # Both build with no apt packages.
+                    case "$year" in
+                        # 1998–2011 static archives need no PHP extension at
+                        # all (no DB, no dynamic code) — empty list skips the
+                        # Dockerfile's whole install step.
+                        1998) php_exts="" ;;
+                        1999) php_exts="" ;;
+                        2000) php_exts="" ;;
+                        2001) php_exts="" ;;
+                        2002) php_exts="" ;;
+                        2003) php_exts="" ;;
+                        2004) php_exts="" ;;
+                        2005) php_exts="" ;;
+                        2006) php_exts="" ;;
+                        2007) php_exts="" ;;
+                        2008) php_exts="" ;;
+                        2009) php_exts="" ;;
+                        2010) php_exts="" ;;
+                        2011) php_exts="" ;;
+                        2012) php_exts="mysql" ;;
+                        2013) php_exts="mysql" ;;
+                        2014) php_exts="mysql" ;;
+                        2015) php_exts="mysql" ;;
+                        2016) php_exts="mysqli" ;;
+                        2017) php_exts="mysqli" ;;
+                        2018) php_exts="mysqli" ;;
+                        *)    php_exts="mysqli pdo_mysql intl exif bcmath gd" ;;
+                    esac
+
                     echo "year=$year" >> "$GITHUB_OUTPUT"
                     echo "sha7=$sha7" >> "$GITHUB_OUTPUT"
-                    echo "Deploying year $year ($sha7)"
+                    echo "base_image=$base_image" >> "$GITHUB_OUTPUT"
+                    echo "php_exts=$php_exts" >> "$GITHUB_OUTPUT"
+                    echo "Deploying year $year ($sha7) on base $base_image (exts: $php_exts)"
 
             -   name: Log in to GHCR
                 uses: docker/login-action@v3
@@ -83,6 +183,23 @@ jobs:
                     tags: |
                         ghcr.io/${{ github.repository_owner }}/gamecon:archive-${{ steps.year.outputs.year }}
                         ghcr.io/${{ github.repository_owner }}/gamecon:archive-${{ steps.year.outputs.year }}-${{ steps.year.outputs.sha7 }}
+                    # Basic-auth creds + gate-token signing secrets for the
+                    # Caddy gate in front of preview / archive envs. Baked into
+                    # the image so the admin's dev rozcestník in the archive
+                    # renders links identically to ostra (clean URL + copyable
+                    # creds, and a signed ?gate= token for one-click access).
+                    # These are access-control secrets shared across all
+                    # archives (not user data) — fine to bake. GHCR repo is
+                    # private.
+                    build-args: |
+                        BASE_IMAGE=${{ steps.year.outputs.base_image }}
+                        PHP_EXTS=${{ steps.year.outputs.php_exts }}
+                        PREVIEW_BASIC_AUTH_USER=${{ secrets.PREVIEW_BASIC_AUTH_USER }}
+                        PREVIEW_BASIC_AUTH_PASSWORD=${{ secrets.PREVIEW_BASIC_AUTH_PASSWORD }}
+                        ARCHIVE_BASIC_AUTH_USER=${{ secrets.ARCHIVE_BASIC_AUTH_USER }}
+                        ARCHIVE_BASIC_AUTH_PASSWORD=${{ secrets.ARCHIVE_BASIC_AUTH_PASSWORD }}
+                        PREVIEW_GATE_SECRET=${{ secrets.PREVIEW_GATE_SECRET }}
+                        ARCHIVE_GATE_SECRET=${{ secrets.ARCHIVE_GATE_SECRET }}
                     # Reuse layers across archive builds. Heavy layers
                     # (apt + pecl from the base) come from the base image
                     # so the gha cache mostly helps with the COPY layer

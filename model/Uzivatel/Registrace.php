@@ -7,34 +7,36 @@ namespace Gamecon\Uzivatel;
 use Chyby;
 use Gamecon\Stat;
 use Gamecon\SystemoveNastaveni\SystemoveNastaveni;
-use Uzivatel;
 use Gamecon\Uzivatel\SqlStruktura\UzivateleHodnotySqlStruktura as Sql;
+use Uzivatel;
 
 class Registrace
 {
-
     public const FORM_DATA_KEY = 'registraceFormData';
 
-    private string | null | array $formData = 'undefined';
-    private null | Chyby          $chyby    = null;
+    private string|array|null $formData = 'undefined';
+    private ?Chyby $chyby = null;
 
     public function __construct(
         private readonly SystemoveNastaveni $systemoveNastaveni,
-        private ?Uzivatel                   $u,
+        private ?Uzivatel $u,
     ) {
     }
 
     public function zpracujRegistraci()
     {
         try {
-            if (!post('registrovat')) {
+            if (! post('registrovat')) {
                 return;
+            }
+            if (! \Gamecon\Antibot\Altcha::zGlobals()->overReseni((string) post('altcha'))) {
+                throw Chyby::jedna('Ověř prosím, že nejsi robot.');
             }
             if ($this->u) {
                 throw Chyby::jedna('Jiný uživatel v tomto prohlížeči už je přihlášený.');
             }
 
-            $id      = Uzivatel::registruj((array)post(self::FORM_DATA_KEY));
+            $id = Uzivatel::registruj((array) post(self::FORM_DATA_KEY));
             $this->u = Uzivatel::prihlasId($id);
 
             if (post('aPrihlasit')) {
@@ -59,7 +61,7 @@ class Registrace
 
     public function zpracujUpravu()
     {
-        if (!post('upravit')) {
+        if (! post('upravit')) {
             return;
         }
         if ($this->ulozZmeny()) {
@@ -70,7 +72,7 @@ class Registrace
     public function ulozZmeny(): bool
     {
         try {
-            if (!$this->u) {
+            if (! $this->u) {
                 throw Chyby::jedna('Došlo k odhlášení, přihlaš se prosím znovu.');
             }
 
@@ -79,9 +81,9 @@ class Registrace
                 return false;
             }
 
-            $idUlozenehoUzivatele = $this->u->uprav((array)$formData);
+            $idUlozenehoUzivatele = $this->u->uprav((array) $formData);
 
-            return (bool)$idUlozenehoUzivatele;
+            return (bool) $idUlozenehoUzivatele;
         } catch (Chyby $chyby) {
             $this->zpracujChyby($chyby);
 
@@ -101,19 +103,18 @@ class Registrace
         string $nazev,
         string $typ,
         string $klic,
-        ?bool  $required = null,
+        ?bool $required = null,
         string $inputCss = '',
         string $predrazeneHtml = '',
         string $placeholder = ' ', // schválně mezera
-    ): string
-    {
+    ): string {
         $predvyplneno = $this->formData()[$klic] ?? '';
 
-        $required       ??= array_key_exists($klic, Uzivatel::povinneUdajeProRegistraci());
-        $requiredHtml   = $required || $typ == 'date'
+        $required ??= array_key_exists($klic, Uzivatel::povinneUdajeProRegistraci());
+        $requiredHtml = $required || $typ === 'date'
             ? 'required'
             : '';
-        $disabledHtml   = $this->jeUdajZamcenyPoKontrole($klic)
+        $disabledHtml = $this->jeUdajZamcenyPoKontrole($klic)
             ? 'disabled'
             : '';
         $additionalHtml = $typ === 'password'
@@ -121,10 +122,10 @@ class Registrace
             // aby se nám automaticky nevkládalo heslo
             : '';
 
-        $chybaHtml  = '';
+        $chybaHtml = '';
         $chybaTrida = '';
         if ($chyba = $this->chyby()->klic($klic)) {
-            $chybaHtml  = '<div class="formular_chyba">' . $chyba . '</div>';
+            $chybaHtml = '<div class="formular_chyba">' . $chyba . '</div>';
             $chybaTrida = 'formular_polozka-chyba';
         }
 
@@ -140,7 +141,7 @@ class Registrace
                     type="{$typ}"
                     name="{$this->inputName()}[{$klic}]"
                     value="{$predvyplneno}"
-                    placeholder="$placeholder"
+                    placeholder="{$placeholder}"
                     {$requiredHtml}
                     {$disabledHtml}
                     {$additionalHtml}
@@ -172,7 +173,7 @@ HTML;
         if ($this->formData === 'undefined') {
             $postData = post(self::FORM_DATA_KEY);
             if ($postData !== null) {
-                $this->formData = array_merge($this->dataUzivatele(), (array)$postData);
+                $this->formData = array_merge($this->dataUzivatele(), (array) $postData);
             } else {
                 $this->formData = $this->dataUzivatele();
             }
@@ -184,8 +185,8 @@ HTML;
 
     private function dataUzivatele(): array
     {
-        $dataUzivatele = (array)($this->u?->rawDb() ?? []);
-        if (!empty(($dataUzivatele[Sql::OP]))) {
+        $dataUzivatele = (array) ($this->u?->rawDb() ?? []);
+        if (! empty($dataUzivatele[Sql::OP])) {
             $dataUzivatele[Sql::OP] = \Sifrovatko::desifruj($dataUzivatele[Sql::OP]);
         }
 
@@ -217,7 +218,7 @@ HTML;
               <?php
               if (pred($this->systemoveNastaveni->prihlasovaniUcastnikuOd())) { ?>
                 <div class="formular_infobox">
-                  <b>Přihlašování na GameCon se spustí <?= $this->zacatekPrihlasovani() ?></b>
+                  <b>Přihlašování na GameCon se spustí <?php echo $this->zacatekPrihlasovani(); ?></b>
                   Můžeš si předem vytvořit účet a přihlašování ti připomeneme e-mailem.
                 </div>
                   <?php
@@ -242,17 +243,17 @@ HTML;
             </div>
           </div>
         </div>
-          <?= $this->input('E-mailová adresa', 'email', Sql::EMAIL1_UZIVATELE) ?>
+          <?php echo $this->input('E-mailová adresa', 'email', Sql::EMAIL1_UZIVATELE); ?>
 
-          <?= $this->input('Telefonní číslo', 'text', Sql::TELEFON_UZIVATELE, true, '', '', 'např. +420 789 123 456') ?>
+          <?php echo $this->input('Telefonní číslo', 'text', Sql::TELEFON_UZIVATELE, true, '', '', 'např. +420 789 123 456'); ?>
 
-          <?= $this->povinneUdajeProUbytovaniHtml(vyzadovatAdresuADoklad: false) ?>
+          <?php echo $this->povinneUdajeProUbytovaniHtml(vyzadovatAdresuADoklad: false); ?>
 
         <h2 class="formular_sekceNadpis">Ostatní</h2>
 
         <div class="formular_sloupce">
-            <?= $this->input('Přezdívka', 'text', Sql::LOGIN_UZIVATELE) ?>
-            <?= $this->select(
+            <?php echo $this->input('Přezdívka', 'text', Sql::LOGIN_UZIVATELE); ?>
+            <?php echo $this->select(
                 nazev: 'Zobrazení na webu',
                 klic: Sql::ZPUSOB_ZOBRAZENI_NA_WEBU,
                 moznosti: ZpusobZobrazeniNaWebu::proSelect(),
@@ -267,9 +268,9 @@ HTML;
   </div>
 </div>
 HTML
-            ) ?>
+            ); ?>
           <div style="float:left">
-              <?= $this->select(
+              <?php echo $this->select(
                   nazev: 'Pohlaví',
                   klic: Sql::POHLAVI,
                   moznosti: Pohlavi::seznamProSelect(),
@@ -291,20 +292,20 @@ HTML
   </div>
 </div>
 HTML
-              ) ?>
+              ); ?>
           </div>
         </div>
 
         <div class="formular_sloupce">
-            <?= $this->input('Heslo', 'password', 'heslo', $this->u === null) ?>
-            <?= $this->input('Heslo pro kontrolu', 'password', 'heslo_kontrola', $this->u === null) ?>
+            <?php echo $this->input('Heslo', 'password', 'heslo', $this->u === null); ?>
+            <?php echo $this->input('Heslo pro kontrolu', 'password', 'heslo_kontrola', $this->u === null); ?>
         </div>
 
         <div style="margin: 30px 0 40px" class="formular_polozka-checkbox">
           <label style="float: left; margin-right: 1em">
-            <input type="checkbox" required <?= $this->souhlasilSeZpracovanimOsobnichUdaju()
+            <input type="checkbox" required <?php echo $this->souhlasilSeZpracovanimOsobnichUdaju()
                 ? 'checked'
-                : '' ?>>
+                : ''; ?>>
             <span class="formular_duleziteInfo">
                   Souhlasím se <a href="legal" target="_blank">zpracováním osobních údajů</a>
             </span>
@@ -330,6 +331,7 @@ HTML
               <?php
           } else { ?>
             <input type="hidden" name="registrovat" value="true">
+            <?php echo altchaWidget(); ?>
               <?php
               if ($this->systemoveNastaveni->prihlasovaniUcastnikuSpusteno()) { ?>
                 <input type="submit" name="aPrihlasit" value="Přihlásit na GameCon" class="formular_primarni">
@@ -340,7 +342,7 @@ HTML
                   <input type="submit" name="aPrihlasit" value="Přihlásit na GameCon" class="formular_primarni"
                          disabled>
                   <div class="tooltip_obsah">
-                    Přihlašování na GameCon se spustí <?= $this->zacatekPrihlasovani() ?>. Můžeš si předem
+                    Přihlašování na GameCon se spustí <?php echo $this->zacatekPrihlasovani(); ?>. Můžeš si předem
                     vytvořit
                     účet a přihlašování ti připomeneme e-mailem.
                   </div>
@@ -371,8 +373,8 @@ HTML
     private function select(
         string $nazev,
         string $klic,
-        array  $moznosti,
-        bool   $required = true,
+        array $moznosti,
+        bool $required = true,
         string $tooltip = '',
     ): string {
         $vybranaHodnota = $this->formData()[$klic] ?? '';
@@ -382,17 +384,17 @@ HTML
                 ? ''
                 : 'selected') . '></option>';
         foreach ($moznosti as $hodnota => $popis) {
-            $selected     = $vybranaHodnota == $hodnota;
+            $selected = (string) $vybranaHodnota === (string) $hodnota;
             $selectedHtml = $selected
                 ? 'selected'
                 : '';
             $moznostiHtml .= '<option value="' . $hodnota . '" ' . $selectedHtml . '>' . $popis . '</option>';
         }
 
-        $chybaHtml  = '';
+        $chybaHtml = '';
         $chybaTrida = '';
         if ($chyba = $this->chyby()->klic($klic)) {
-            $chybaHtml  = '<div class="formular_chyba">' . $chyba . '</div>';
+            $chybaHtml = '<div class="formular_chyba">' . $chyba . '</div>';
             $chybaTrida = 'formular_polozka-chyba';
         }
 
@@ -422,7 +424,7 @@ HTML
      */
     private function jeUdajZamcenyPoKontrole(string $klic): bool
     {
-        if (!$this->u || !$this->u->maZkontrolovaneUdaje()) {
+        if (! $this->u || ! $this->u->maZkontrolovaneUdaje()) {
             return false;
         }
 
@@ -433,8 +435,7 @@ HTML
         string $nadpis = '',
         string $tooltip = '',
         bool $vyzadovatAdresuADoklad = true,
-    ): string
-    {
+    ): string {
         $nadpisHtml = '';
         if ($nadpis !== '') {
             $nadpisHtml = "<h2 class='formular_sekceNadpis'>{$nadpis}</h2>";

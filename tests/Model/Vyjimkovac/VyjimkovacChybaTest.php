@@ -15,19 +15,19 @@ class VyjimkovacChybaTest extends TestCase
     public function muzuZiskatUrlDetailuChyby()
     {
         self::assertFileExists(
-            __DIR__ . '/../../../admin/scripts/modules/web/chyby.php',
+            __DIR__ . '/../../../admin/scripts/modules/dev/chyby.php',
             'Cesta ke skriptu pro zpracování chyb se změnila, URL pro detail chyby už neplatí a je nutné ho změnit'
         );
         self::assertSame(
-            '/web/chyby?vyjimka=123',
+            '/dev/chyby?vyjimka=123',
             VyjimkovacChyba::urlDetailuChyby(123)
         );
         self::assertSame(
-            '/web/chyby?' . VyjimkovacChyba::VYJIMKA . '=123',
+            '/dev/chyby?' . VyjimkovacChyba::VYJIMKA . '=123',
             VyjimkovacChyba::urlDetailuChyby(123)
         );
         self::assertSame(
-            'http://admin.gamecon.kdesi/web/chyby?vyjimka=123',
+            'http://admin.gamecon.kdesi/dev/chyby?vyjimka=123',
             VyjimkovacChyba::absolutniUrlDetailuChyby(123, 'http://admin.gamecon.kdesi')
         );
     }

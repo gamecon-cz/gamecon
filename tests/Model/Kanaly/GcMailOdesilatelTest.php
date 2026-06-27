@@ -17,11 +17,11 @@ class GcMailOdesilatelTest extends TestCase
     public function odesilatelSeJmenemAEmailemProjdeNaOstrem(): void
     {
         $vystup = $this->vyvolejPridejPrefix(
-            odesilatel: new Address('gamecon.fallback@seznam.cz', 'GameCon'),
+            odesilatel: new Address('notifikace@gamecon.cz', 'GameCon'),
             prefix: '',
         );
 
-        self::assertSame('gamecon.fallback@seznam.cz', $vystup->getAddress());
+        self::assertSame('notifikace@gamecon.cz', $vystup->getAddress());
         self::assertSame('GameCon', $vystup->getName());
     }
 
@@ -31,11 +31,11 @@ class GcMailOdesilatelTest extends TestCase
     public function odesilatelBezJmenaProjdeNaProstrediSPrefixem(): void
     {
         $vystup = $this->vyvolejPridejPrefix(
-            odesilatel: new Address('gamecon.fallback@seznam.cz'),
+            odesilatel: new Address('notifikace@gamecon.cz'),
             prefix: 'β',
         );
 
-        self::assertSame('gamecon.fallback@seznam.cz', $vystup->getAddress());
+        self::assertSame('notifikace@gamecon.cz', $vystup->getAddress());
         self::assertSame('β', $vystup->getName());
     }
 
@@ -45,11 +45,11 @@ class GcMailOdesilatelTest extends TestCase
     public function odesilatelSeJmenemDostanePrefixVeJmene(): void
     {
         $vystup = $this->vyvolejPridejPrefix(
-            odesilatel: new Address('gamecon.fallback@seznam.cz', 'GameCon'),
+            odesilatel: new Address('notifikace@gamecon.cz', 'GameCon'),
             prefix: 'β',
         );
 
-        self::assertSame('gamecon.fallback@seznam.cz', $vystup->getAddress());
+        self::assertSame('notifikace@gamecon.cz', $vystup->getAddress());
         self::assertSame('β GameCon', $vystup->getName());
     }
 
@@ -59,11 +59,11 @@ class GcMailOdesilatelTest extends TestCase
     public function emailovaAdresaNikdyNedostanePrefix(): void
     {
         $vystup = $this->vyvolejPridejPrefix(
-            odesilatel: new Address('gamecon.fallback@seznam.cz', 'GameCon'),
+            odesilatel: new Address('notifikace@gamecon.cz', 'GameCon'),
             prefix: 'άλφα',
         );
 
-        self::assertSame('gamecon.fallback@seznam.cz', $vystup->getAddress());
+        self::assertSame('notifikace@gamecon.cz', $vystup->getAddress());
         self::assertStringNotContainsString('@', $vystup->getName());
     }
 
@@ -77,7 +77,7 @@ class GcMailOdesilatelTest extends TestCase
             prefix: '',
         );
 
-        self::assertSame('gamecon.fallback@seznam.cz', $vystup->getAddress());
+        self::assertSame('notifikace@gamecon.cz', $vystup->getAddress());
         self::assertSame('GameCon', $vystup->getName());
     }
 
@@ -91,7 +91,7 @@ class GcMailOdesilatelTest extends TestCase
             prefix: 'β',
         );
 
-        self::assertSame('gamecon.fallback@seznam.cz', $vystup->getAddress());
+        self::assertSame('notifikace@gamecon.cz', $vystup->getAddress());
         self::assertSame('β GameCon', $vystup->getName());
     }
 

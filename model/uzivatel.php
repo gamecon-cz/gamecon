@@ -24,13 +24,13 @@ use Gamecon\Uzivatel\Exceptions\DuplicitniLogin;
 use Gamecon\Uzivatel\Finance;
 use Gamecon\Uzivatel\Medailonek;
 use Gamecon\Uzivatel\Pohlavi;
-use Gamecon\Uzivatel\ZpusobZobrazeniNaWebu;
 use Gamecon\Uzivatel\SqlStruktura\PlatneRoleUzivateluSqlStruktura;
 use Gamecon\Uzivatel\SqlStruktura\PravaRoleSqlStruktura;
 use Gamecon\Uzivatel\SqlStruktura\UzivateleHodnotySqlStruktura as Sql;
 use Gamecon\Uzivatel\UserController;
 use Gamecon\Uzivatel\UserRepository;
 use Gamecon\Uzivatel\UzivatelSlucovani;
+use Gamecon\Uzivatel\ZpusobZobrazeniNaWebu;
 
 /**
  * Třída popisující uživatele a jeho vlastnosti
@@ -128,7 +128,7 @@ class Uzivatel extends DbObject
      */
     public function odeberZamceneUdajePoKontrole(array $udaje): array
     {
-        if (!$this->maZkontrolovaneUdaje()) {
+        if (! $this->maZkontrolovaneUdaje()) {
             return $udaje;
         }
 
@@ -223,10 +223,10 @@ SQL, [Pravo::PORADANI_AKTIVIT],
     public function nechceUbytovani(?bool $nechceUbytovani = null): bool
     {
         if ($nechceUbytovani !== null) {
-            $this->r[Sql::NECHCE_UBYTOVANI] = (int)$nechceUbytovani;
+            $this->r[Sql::NECHCE_UBYTOVANI] = (int) $nechceUbytovani;
         }
 
-        return (bool)($this->r[Sql::NECHCE_UBYTOVANI] ?? false);
+        return (bool) ($this->r[Sql::NECHCE_UBYTOVANI] ?? false);
     }
 
     /**
@@ -363,6 +363,10 @@ SQL, [Pravo::PORADANI_AKTIVIT],
             throw new Chyba('Uživatel už má jinou unikátní roli.');
         }
 
+        // Default false pro případ souběhu: když roli mezitím přidá jiný request,
+        // INSERT skončí DbDuplicateEntryException a níže ji jen spolkneme – proměnná
+        // pak nesmí zůstat neinicializovaná, jinak by `return` spadl na TypeError.
+        $roleNovePridana = false;
         try {
             $result = dbQuery(
                 'INSERT INTO uzivatele_role(id_uzivatele, id_role, posadil)
@@ -378,6 +382,8 @@ SQL, [Pravo::PORADANI_AKTIVIT],
         }
 
         $this->aktualizujPrava();
+
+        $this->finance()->prepoctiSlevuNaJednuAktivitu();
 
         return $roleNovePridana;
     }
@@ -773,17 +779,10 @@ SQL,
 
     public function zkontrolujGcPrihlasen(
         bool $hlaskyVeTretiOsobe = false,
-        ?DataSourcesCollector $dataSourcesCollector = null) {
-        if (!$this->gcPrihlasen($dataSourcesCollector)) {
-            throw new \Chyba(
-                ($hlaskyVeTretiOsobe
-                    ? 'Uživatel ' . $this->jmenoVolitelnyNick() . ' '
-                    : ''
-                ) .
-                hlaska($hlaskyVeTretiOsobe
-                    ? 'neniPrihlasenNaGc'
-                    : 'nejsiPrihlasenNaGc'),
-            );
+        ?DataSourcesCollector $dataSourcesCollector = null)
+    {
+        if (! $this->gcPrihlasen($dataSourcesCollector)) {
+            throw new Chyba(($hlaskyVeTretiOsobe ? 'Uživatel ' . $this->jmenoVolitelnyNick() . ' ' : '') . hlaska($hlaskyVeTretiOsobe ? 'neniPrihlasenNaGc' : 'nejsiPrihlasenNaGc'));
         }
     }
 
@@ -963,16 +962,16 @@ SQL,
 
     public static function jmenoNaWebuZjisti(array $r): string
     {
-        $jmeno     = trim((string) ($r[Sql::JMENO_UZIVATELE] ?? ''));
-        $prijmeni  = trim((string) ($r[Sql::PRIJMENI_UZIVATELE] ?? ''));
-        $login     = trim((string) ($r[Sql::LOGIN_UZIVATELE] ?? ''));
-        $nick      = str_contains($login, '@') ? '' : $login;
+        $jmeno = trim((string) ($r[Sql::JMENO_UZIVATELE] ?? ''));
+        $prijmeni = trim((string) ($r[Sql::PRIJMENI_UZIVATELE] ?? ''));
+        $login = trim((string) ($r[Sql::LOGIN_UZIVATELE] ?? ''));
+        $nick = str_contains($login, '@') ? '' : $login;
         $celeJmeno = trim($jmeno . ' ' . $prijmeni);
 
         $zpusob = ZpusobZobrazeniNaWebu::zHodnoty($r[Sql::ZPUSOB_ZOBRAZENI_NA_WEBU] ?? null);
 
         $zvolene = match ($zpusob) {
-            ZpusobZobrazeniNaWebu::JMENO_A_PRIJMENI => $celeJmeno,
+            ZpusobZobrazeniNaWebu::JMENO_A_PRIJMENI              => $celeJmeno,
             ZpusobZobrazeniNaWebu::JMENO_S_PREZDIVKOU_A_PRIJMENI => $nick === ''
                 ? ''
                 : trim(implode(' ', array_filter(
@@ -1186,6 +1185,20 @@ SQL,
         return $this->maRoli(Role::LETOSNI_INFOPULT);
     }
 
+    /**
+     * Smí se v adminu přihlásit jako libovolný uživatel ("přepnout se na").
+     *
+     * Drží-li právo PREPNUTI_NA_UZIVATELE, nebo běžíme na locale: lokální vývoj
+     * jede na čerstvě naseedované DB, kde nikomu není přiřazená ročníková role
+     * pro přepínání (stejný problém jako na preview, kde ji deploy uděluje
+     * příkazem app:grant-switch-user-role-to-devs). Na vlastním stroji vývojáře
+     * je plné přepínání bez bezpečnostního rizika, tak ho povolíme rovnou.
+     */
+    public function muzePrepnoutNaJinehoUzivatele(): bool
+    {
+        return $this->maPravo(Pravo::PREPNUTI_NA_UZIVATELE) || jsmeNaLocale();
+    }
+
     public function jeHerman(): bool
     {
         return $this->maRoli(Role::LETOSNI_HERMAN);
@@ -1200,9 +1213,10 @@ SQL,
         ?Aktivita $ignorovanaAktivita = null,
         bool $jenPritomen = false,
     ): ?Aktivita {
-        if (!$aktivita->zacatek() || !$aktivita->konec()) {
+        if (! $aktivita->zacatek() || ! $aktivita->konec()) {
             return null;
         }
+
         return $this->maKoliziSJinouAktivitouVCase($aktivita->zacatek(), $aktivita->konec(), $ignorovanaAktivita, $jenPritomen);
     }
 
@@ -1418,7 +1432,7 @@ SQL,
      */
     public function login(): string
     {
-        return $this->r['login_uzivatele'];
+        return $this->r[Sql::LOGIN_UZIVATELE];
     }
 
     /** Odhlásí aktuálně přihlášeného uživatele, pokud není přihlášen, nic
@@ -1963,9 +1977,9 @@ SQL,
                 '^(' . implode('|', ZpusobZobrazeniNaWebu::platneHodnoty()) . ')$',
                 'vyber prosím způsob zobrazení na webu',
             ],
-            Sql::POHLAVI                  => ['^(m|f)$', 'vyber prosím pohlaví'],
-            'heslo'                       => $validaceHesla,
-            'heslo_kontrola'              => $validaceHesla,
+            Sql::POHLAVI     => ['^(m|f)$', 'vyber prosím pohlaví'],
+            'heslo'          => $validaceHesla,
+            'heslo_kontrola' => $validaceHesla,
         ];
 
         // provedení validací
@@ -2069,7 +2083,7 @@ SQL,
      * pole "vypraveci" v aktivity.json, pokud je uživatel vypravěčem.
      */
     public static function zmeniloSeJmenoNaWebu(
-        self  $stavajici,
+        self $stavajici,
         array $noveHodnoty,
     ): bool {
         $sledovanaPole = [
@@ -2098,14 +2112,14 @@ SQL,
     public static function invalidujProgramCacheJeLiVypravecem(int $idUzivatele): void
     {
         $systemoveNastaveni = SystemoveNastaveni::zGlobals();
-        $jeVypravec         = (bool) dbOneCol(
+        $jeVypravec = (bool) dbOneCol(
             'SELECT 1 FROM akce_organizatori
                 JOIN akce_seznam ON akce_seznam.id_akce = akce_organizatori.id_akce
                 WHERE akce_organizatori.id_uzivatele = $1 AND akce_seznam.rok = $2
                 LIMIT 1',
             [$idUzivatele, $systemoveNastaveni->rocnik()],
         );
-        if (!$jeVypravec) {
+        if (! $jeVypravec) {
             return;
         }
         (new ProgramStaticFileGenerator($systemoveNastaveni))
@@ -2179,16 +2193,6 @@ SQL,
         }
 
         return $uid;
-    }
-
-    private static function posledniPoradiRychloregistrace(string $prefix): int
-    {
-        return (int) dbFetchSingle(<<<SQL
-SELECT MAX(CAST(REPLACE(login_uzivatele, '{$prefix}', '') AS INT))
-FROM uzivatele_hodnoty
-WHERE z_rychloregistrace = 1
-SQL,
-        );
     }
 
     /**
@@ -2390,6 +2394,8 @@ SQL,
         }
         $this->aktualizujPrava();
 
+        $this->finance()->prepoctiSlevuNaJednuAktivitu();
+
         return $roleNoveOdebrana;
     }
 
@@ -2429,16 +2435,6 @@ SQL,
     public function jeZena(): bool
     {
         return $this->pohlavi() === Pohlavi::ZENA_KOD;
-    }
-
-    public function jeMuz(): bool
-    {
-        return $this->pohlavi() === Pohlavi::MUZ_KOD;
-    }
-
-    public function prezdivka(): string
-    {
-        return (string) $this->r[Sql::LOGIN_UZIVATELE];
     }
 
     /**
@@ -2966,38 +2962,39 @@ SQL;
     /**
      * Vrací anonymní objekt pro api
      */
-    public function apiUzivatel() {
+    public function apiUzivatel()
+    {
         $res = [];
 
-        $res["id"] = $this->id();
-        $res["pohlavi"] = $this->pohlavi();
+        $res['id'] = $this->id();
+        $res['pohlavi'] = $this->pohlavi();
 
-        $res["gcStav"] = "nepřihlášen";
+        $res['gcStav'] = 'nepřihlášen';
 
         if ($this->gcPrihlasen()) {
-            $res["gcStav"] = "přihlášen";
+            $res['gcStav'] = 'přihlášen';
         }
         if ($this->gcPritomen()) {
-            $res["gcStav"] = "přítomen";
+            $res['gcStav'] = 'přítomen';
         }
         if ($this->gcOdjel()) {
-            $res["gcStav"] = "odjel";
+            $res['gcStav'] = 'odjel';
         }
 
         $role = [];
 
         if ($this->jeOrganizator()) {
-            $role["organizator"] = true;
+            $role['organizator'] = true;
         }
         if ($this->jeBrigadnik()) {
-            $role["brigadnik"] = true;
+            $role['brigadnik'] = true;
         }
         if ($this->maRoli(Role::SEF_INFOPULTU)) {
-            $role["sefInfa"] = true;
+            $role['sefInfa'] = true;
         }
 
-        if (!empty($role)){
-            $res["role"] = $role;
+        if (! empty($role)) {
+            $res['role'] = $role;
         }
 
         return $res;
@@ -3005,10 +3002,9 @@ SQL;
 
     /**
      * Používá fetchPřihlášenýUživatel.
-     *
-     * @param bool $ucastnikJeOperator používá se když chceme ignorovat uPraconi
      */
-    public static function apiPrihlasenyUzivatel() {
+    public static function apiPrihlasenyUzivatel()
+    {
         /** @var Uzivatel $u */
         global $u;
         /** @var Uzivatel $uPracovni */
@@ -3018,8 +3014,8 @@ SQL;
         $ucastnik = $uPracovni ? $uPracovni : $u;
 
         return [
-            "ucastnik" => $ucastnik?->apiUzivatel(),
-            "operator" => $operator?->apiUzivatel(),
+            'ucastnik' => $ucastnik?->apiUzivatel(),
+            'operator' => $operator?->apiUzivatel(),
         ];
     }
 }
