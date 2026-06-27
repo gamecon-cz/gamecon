@@ -570,6 +570,7 @@ SQL
         $xtpl->assign('limitPopisKratky', self::LIMIT_POPIS_KRATKY);
         $xtpl->assign('typBrigadnicka', TypAktivity::BRIGADNICKA);
         $xtpl->assign('sledovanaPoleConfig', json_encode(ZmenyAktivitySPrihlasenymi::SLEDOVANA_POLE, JSON_UNESCAPED_UNICODE));
+        $xtpl->assign('poleNaRodinuConfig', json_encode(ZmenyAktivitySPrihlasenymi::POLE_PROPAGOVANA_NA_RODINU, JSON_UNESCAPED_UNICODE));
 
         if ($aktivita) {
             $aktivitaData = $aktivita->a; // databázový řádek
@@ -578,7 +579,8 @@ SQL
             $xtpl->assign('urlObrazku', $aktivita->obrazek());
             $xtpl->assign(Sql::VYBAVENI, $aktivita->vybaveni());
         }
-        $xtpl->assign('pocetPrihlasenych', $aktivita?->pocetPrihlasenychVcetneInstanci() ?? 0);
+        $xtpl->assign('pocetPrihlasenych', $aktivita?->pocetPrihlasenych() ?? 0);
+        $xtpl->assign('pocetPrihlasenychVcetneInstanci', $aktivita?->pocetPrihlasenychVcetneInstanci() ?? 0);
 
         self::parseUpravyTabulkaTagy($aktivita, $editorTagu, $xtpl);
         self::parseUpravyTabulkaLokace($aktivita, $xtpl);
