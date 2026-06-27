@@ -57,10 +57,8 @@ table {
     display: grid;
     grid-template-columns: repeat(3, 1fr);
     grid-template-rows: repeat(8, 1fr);
-    width: 100%;
-    height: 100%;
-    /* gap: 5mm; */
-    /* padding: 10mm; */
+    width: 210mm;
+    height: 297mm;
     padding-left: var(--l, "0px");
     padding-right: var(--r, "0px");
     padding-top: var(--u, "0px");
@@ -68,32 +66,61 @@ table {
     box-sizing: border-box;
   }
 
-  .bunka {
-    position: relative;
+  .bunka-obal {
     display: flex;
     justify-content: center;
     align-items: center;
-    gap: 2px;
+  }
+
+  .bunka {
+    position: relative;
+    display: flex;
+    justify-content: flex-start;
+    align-items: center;
+    border: 2px dashed;
+    width: 85%;
+    height: 70%;
+    z-index: 0;
+  }
+
+  .bunka-obrazek-obal {
+    position: absolute;
+    top: -15px;
+    right: 16px;
+    background-color: white;
+    padding: 0 5px;
+    z-index: -20;
   }
 
   .bunka-obrazek {
+    object-fit: contain;
+    display: block;
+    height: 35px;
+  }
+
+  .bunka-kraken-obal {
+    position: absolute;
+    padding-top: 16px;
+    top: 0;
+    bottom: 0;
+    right: 0;
+    z-index: -10;
+  }
+
+  .bunka-kraken {
     transform-origin: center;
     object-fit: contain;
     display: block;
-    width: 110px;
-    /* To re-center the image after rotation */
-    transform: rotate(-90deg);
-    margin-left: -45px;
-  }
-  .bunka-obrazek-obal {
-    width: 33px;
+    height: 100%;
   }
 
+
   .texty {
+    margin-left: 8px;
     display: flex;
     flex-direction: column;
     justify-content: center;
-    gap: 8px;
+    gap: 4px;
     width: 75%;
   }
   .text {
@@ -101,10 +128,8 @@ table {
     font-weight: bold;
   }
   .text-id {
-    font-size: 1.2em;
   }
   .text-den {
-    font-size: 1.3em;
   }
 
   @media print {
