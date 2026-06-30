@@ -230,7 +230,7 @@ if (!$zaplaceno) {
                         <strong>BIC/SWIFT:</strong> <?= BIC_SWIFT ?><br>
                         <strong>Reference platby:</strong> VS:<?= $uid ?><br>
                         <strong>Částka k zaplacení:</strong> <?= $castkaEUR ?>
-                        <br><small class="poznamka">Částka v eurech zahrnuje kurzovou rezervu, nemusí proto přesně odpovídat aktuálnímu kurzu. Případný přeplatek ti po GameConu rádi vrátíme.</small>
+                        <br><small class="poznamka">Částka v eurech zahrnuje kurzovou rezervu, nemusí proto přesně odpovídat aktuálnímu kurzu. Případný přeplatek ti zůstane na GC účtu nebo ti ho rádi vrátíme.</small>
                     </div>
                     <?php if ($qrKodProSlovenskouPlatbu !== null): ?>
                         <div class="payment-method__qr">
@@ -248,7 +248,7 @@ if (!$zaplaceno) {
                         <strong>BIC/SWIFT:</strong> <?= BIC_SWIFT ?><br>
                         <strong>Reference platby:</strong> VS:<?= $uid ?><br>
                         <strong>Částka k zaplacení:</strong> <?= $castkaEUR ?>
-                        <br><small class="poznamka">Částka v eurech zahrnuje kurzovou rezervu, nemusí proto přesně odpovídat aktuálnímu kurzu. Případný přeplatek ti po GameConu rádi vrátíme.</small>
+                        <br><small class="poznamka">Částka v eurech zahrnuje kurzovou rezervu, nemusí proto přesně odpovídat aktuálnímu kurzu. Případný přeplatek ti zůstane na GC účtu nebo ti ho rádi vrátíme.</small>
                     </div>
                     <div class="payment-method__qr">
                         <img src="<?= $qrKodProSepaPlatbu->getDataUri() ?>" alt="qrPlatbaSepa">
@@ -261,7 +261,7 @@ if (!$zaplaceno) {
             <p>
                 GameCon je nutné zaplatit převodem <strong>do <?= $limit ?></strong> (tento den musejí být peníze na účtu GameConu). Platíš celkem
                 <strong><?= $castkaCZ ?><span data-qr-eur-text<?= $jeVychoziCz ? ' hidden' : '' ?>> / <?= $castkaEUR ?></span></strong>, přesné údaje o platbě nalezneš výše.
-                <span data-qr-eur-text<?= $jeVychoziCz ? ' hidden' : '' ?>>Eurová částka zahrnuje kurzovou rezervu, nemusí proto přesně odpovídat aktuálnímu kurzu; případný přeplatek ti po GameConu rádi vrátíme.</span>
+                <span data-qr-eur-text<?= $jeVychoziCz ? ' hidden' : '' ?>>Eurová částka zahrnuje kurzovou rezervu, nemusí proto přesně odpovídat aktuálnímu kurzu; případný přeplatek ti zůstane na GC účtu nebo ti ho rádi vrátíme.</span>
             </p>
 
             <?php if (pred($nejpozdejiZaplatitDo) && !$u->maPravoNerusitObjednavky()): ?>
@@ -287,7 +287,7 @@ if (!$zaplaceno) {
             <p>
                 Zaplatit můžeš převodem nebo na místě. Platíš celkem
                 <strong><?= $castkaCZ ?><span data-qr-eur-text<?= $jeVychoziCz ? ' hidden' : '' ?>> / <?= $castkaEUR ?></span></strong>, přesné údaje o platbě nalezneš výše.
-                <span data-qr-eur-text<?= $jeVychoziCz ? ' hidden' : '' ?>>Eurová částka zahrnuje kurzovou rezervu, nemusí proto přesně odpovídat aktuálnímu kurzu; případný přeplatek ti po GameConu rádi vrátíme.</span>
+                <span data-qr-eur-text<?= $jeVychoziCz ? ' hidden' : '' ?>>Eurová částka zahrnuje kurzovou rezervu, nemusí proto přesně odpovídat aktuálnímu kurzu; případný přeplatek ti zůstane na GC účtu nebo ti ho rádi vrátíme.</span>
             </p>
             <ul class="seznam-bez-okraje">
                 <li class="poznamka">
