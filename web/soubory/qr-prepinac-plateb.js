@@ -8,6 +8,8 @@
     function nastavPrepinac(kontejner) {
         var tlacitka = kontejner.querySelectorAll('[data-qr-tlacitko]');
         var karty = kontejner.querySelectorAll('[data-qr-karta]');
+        // Eurová část souhrnného textu je mimo tento kontejner, proto ji hledáme v celém dokumentu.
+        var euroTexty = document.querySelectorAll('[data-qr-eur-text]');
         var vychoziTyp = kontejner.getAttribute('data-qr-prepinac-plateb') || 'cz';
 
         var nastavAktivniKartu = function (typQrPlatby) {
@@ -20,6 +22,11 @@
                 var jeAktivni = tlacitko.getAttribute('data-qr-tlacitko') === typQrPlatby;
                 tlacitko.classList.toggle('is-aktivni', jeAktivni);
                 tlacitko.setAttribute('aria-pressed', jeAktivni ? 'true' : 'false');
+            }
+            // CZ platba je v korunách – eurovou částku i poznámku k ní schováme.
+            var jenCeskaKoruna = typQrPlatby === 'cz';
+            for (var euroIndex = 0; euroIndex < euroTexty.length; euroIndex++) {
+                euroTexty[euroIndex].hidden = jenCeskaKoruna;
             }
         };
 
