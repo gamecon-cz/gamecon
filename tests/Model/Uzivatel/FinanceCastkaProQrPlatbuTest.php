@@ -21,7 +21,7 @@ class FinanceCastkaProQrPlatbuTest extends TestCase
 
     public static function setUpBeforeClass(): void
     {
-        if (!\defined('KURZ_EURO')) {
+        if (! \defined('KURZ_EURO')) {
             \define('KURZ_EURO', self::TESTOVACI_KURZ_EURO);
         }
     }
@@ -47,7 +47,7 @@ class FinanceCastkaProQrPlatbuTest extends TestCase
      */
     private function kurzEuro(): float
     {
-        return (float)\constant('KURZ_EURO');
+        return (float) \constant('KURZ_EURO');
     }
 
     /**
@@ -55,11 +55,11 @@ class FinanceCastkaProQrPlatbuTest extends TestCase
      */
     public function eurovaCastkaObsahujeKurzovouRezervu(): void
     {
-        $dluhKc  = 1000.0;
+        $dluhKc = 1000.0;
         $finance = $this->financeSeStavem(-$dluhKc);
 
-        $nasobek   = $this->konstanta('KURZOVA_REZERVA_EUR_NASOBEK');
-        $fixni     = $this->konstanta('KURZOVA_REZERVA_EUR_FIXNI');
+        $nasobek = $this->konstanta('KURZOVA_REZERVA_EUR_NASOBEK');
+        $fixni = $this->konstanta('KURZOVA_REZERVA_EUR_FIXNI');
         $ocekavano = $dluhKc / $this->kurzEuro() * $nasobek + $fixni;
 
         self::assertEqualsWithDelta($ocekavano, $finance->dejCastkuProQrPlatbuVEurech(), 0.0001);

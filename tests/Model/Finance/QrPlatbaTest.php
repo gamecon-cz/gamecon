@@ -39,6 +39,7 @@ class QrPlatbaTest extends TestCase
      * nerozcházely. Ověřujeme tedy, že QrPlatba zaokrouhlí vstup stejně jako výpis.
      *
      * @test
+     *
      * @dataProvider neceleEuroveCastky
      */
     public function qrKodZaokrouhliCastkuNaDveDesetinnaMistaShodneSVypisem(float $castkaEur): void
@@ -55,9 +56,9 @@ class QrPlatbaTest extends TestCase
     public static function neceleEuroveCastky(): array
     {
         return [
-            'zaokrouhlení dolů'  => [41.32411],
+            'zaokrouhlení dolů'   => [41.32411],
             'zaokrouhlení nahoru' => [41.32987],
-            'výsledek rezervy'   => [1000 / 24.2 * 1.015 + 0.25],
+            'výsledek rezervy'    => [1000 / 24.2 * 1.015 + 0.25],
         ];
     }
 }
