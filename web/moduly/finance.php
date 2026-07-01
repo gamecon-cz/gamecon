@@ -58,7 +58,8 @@ if (!$zaplaceno) {
     );
     $limit                           = datum4($nejpozdejiZaplatitDo);
     $castkaCZ = $castka . '&thinsp;Kč';
-    $castkaEUR = round($castka / KURZ_EURO, 2) . '&thinsp;€';
+    // Stejná částka (vč. kurzové rezervy), jaká jde do QR kódu, ať se výpis a QR nerozejdou.
+    $castkaEUR = round($u->finance()->dejCastkuProQrPlatbuVEurech(), 2) . '&thinsp;€';
 }
 
 ?>
@@ -227,8 +228,9 @@ if (!$zaplaceno) {
                     <div class="payment-method__details">
                         <strong>IBAN:</strong> <?= IBAN ?><br>
                         <strong>BIC/SWIFT:</strong> <?= BIC_SWIFT ?><br>
-                        <strong>Reference platby:</strong> VS<?= $uid ?><br>
+                        <strong>Reference platby:</strong> VS:<?= $uid ?><br>
                         <strong>Částka k zaplacení:</strong> <?= $castkaEUR ?>
+                        <br><small class="poznamka">Částka v eurech zahrnuje kurzovou rezervu, nemusí proto přesně odpovídat aktuálnímu kurzu. Případný přeplatek ti zůstane na GC účtu nebo ti ho rádi vrátíme.</small>
                     </div>
                     <?php if ($qrKodProSlovenskouPlatbu !== null): ?>
                         <div class="payment-method__qr">
@@ -244,8 +246,9 @@ if (!$zaplaceno) {
                     <div class="payment-method__details">
                         <strong>IBAN:</strong> <?= IBAN ?><br>
                         <strong>BIC/SWIFT:</strong> <?= BIC_SWIFT ?><br>
-                        <strong>Reference platby:</strong> VS<?= $uid ?><br>
+                        <strong>Reference platby:</strong> VS:<?= $uid ?><br>
                         <strong>Částka k zaplacení:</strong> <?= $castkaEUR ?>
+                        <br><small class="poznamka">Částka v eurech zahrnuje kurzovou rezervu, nemusí proto přesně odpovídat aktuálnímu kurzu. Případný přeplatek ti zůstane na GC účtu nebo ti ho rádi vrátíme.</small>
                     </div>
                     <div class="payment-method__qr">
                         <img src="<?= $qrKodProSepaPlatbu->getDataUri() ?>" alt="qrPlatbaSepa">
@@ -257,7 +260,8 @@ if (!$zaplaceno) {
         <?php if (pred($nejpozdejiZaplatitDo)): ?>
             <p>
                 GameCon je nutné zaplatit převodem <strong>do <?= $limit ?></strong> (tento den musejí být peníze na účtu GameConu). Platíš celkem
-                <strong><?= $castkaCZ . ' / ' . $castkaEUR ?></strong>, přesné údaje o platbě nalezneš výše.
+                <strong><?= $castkaCZ ?><span data-qr-eur-text<?= $jeVychoziCz ? ' hidden' : '' ?>> / <?= $castkaEUR ?></span></strong>, přesné údaje o platbě nalezneš výše.
+                <span data-qr-eur-text<?= $jeVychoziCz ? ' hidden' : '' ?>>Eurová částka zahrnuje kurzovou rezervu, nemusí proto přesně odpovídat aktuálnímu kurzu; případný přeplatek ti zůstane na GC účtu nebo ti ho rádi vrátíme.</span>
             </p>
 
             <?php if (pred($nejpozdejiZaplatitDo) && !$u->maPravoNerusitObjednavky()): ?>
@@ -282,7 +286,8 @@ if (!$zaplaceno) {
         <?php else: ?>
             <p>
                 Zaplatit můžeš převodem nebo na místě. Platíš celkem
-                <strong><?= $castkaCZ . ' / ' . $castkaEUR ?></strong>, přesné údaje o platbě nalezneš výše.
+                <strong><?= $castkaCZ ?><span data-qr-eur-text<?= $jeVychoziCz ? ' hidden' : '' ?>> / <?= $castkaEUR ?></span></strong>, přesné údaje o platbě nalezneš výše.
+                <span data-qr-eur-text<?= $jeVychoziCz ? ' hidden' : '' ?>>Eurová částka zahrnuje kurzovou rezervu, nemusí proto přesně odpovídat aktuálnímu kurzu; případný přeplatek ti zůstane na GC účtu nebo ti ho rádi vrátíme.</span>
             </p>
             <ul class="seznam-bez-okraje">
                 <li class="poznamka">
@@ -340,7 +345,7 @@ if (!$zaplaceno) {
                     <div class="payment-method__details">
                         <strong>IBAN:</strong> <?= IBAN ?><br>
                         <strong>BIC/SWIFT:</strong> <?= BIC_SWIFT ?><br>
-                        <strong>Reference platby:</strong> VS<?= $uid ?><br>
+                        <strong>Reference platby:</strong> VS:<?= $uid ?><br>
                     </div>
                     <?php if ($qrKodProSlovenskouPlatbu !== null): ?>
                         <div class="payment-method__qr">
@@ -356,7 +361,7 @@ if (!$zaplaceno) {
                     <div class="payment-method__details">
                         <strong>IBAN:</strong> <?= IBAN ?><br>
                         <strong>BIC/SWIFT:</strong> <?= BIC_SWIFT ?><br>
-                        <strong>Reference platby:</strong> VS<?= $uid ?><br>
+                        <strong>Reference platby:</strong> VS:<?= $uid ?><br>
                     </div>
                     <div class="payment-method__qr">
                         <img src="<?= $qrKodProSepaPlatbu->getDataUri() ?>" alt="qrPlatbaSepa">

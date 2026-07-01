@@ -1,6 +1,6 @@
 import { FunctionComponent } from "preact";
 import { useRef } from "preact/hooks";
-import { DNY_NÁZVY_S_HÁČKY, range } from "../../../../utils";
+import { DNY_NÁZVY_S_HÁČKY, formátujDenVTýdnu, range } from "../../../../utils";
 import { ProgramPosuv } from "./ProgramPosuv";
 import {
   připravTabulkuAktivit,
@@ -63,9 +63,44 @@ export const ProgramTabulka: FunctionComponent<ProgramTabulkaProps> = (
       ? SeskupováníAktivit.den
       : SeskupováníAktivit.linie;
 
+  // Je aktivní nějaké omezení obsahu (mimo výběr dne)? Když ano, kostru prázdných
+  // místností nevyplňujeme – jinak by filtr vizuálně „nic nedělal“, protože by
+  // prázdné řádky zůstaly zobrazené bez ohledu na to, co filtr vyhodil. Výběr
+  // „Můj program“ je taky omezení obsahu (aktivity se filtrují na přihlášené),
+  // takže s ním kostru prázdných místností taky nevyplňujeme.
+  const obsahovýFiltrAktivní = !!(
+    urlStavVýběr.typ === "můj"
+    || urlStav.filtrLinie?.length
+    || urlStav.filtrTagy?.length
+    || urlStav.filtrText
+    || urlStav.filtrStavAktivit?.length
+    || urlStav.filtrPřihlašovatelné
+  );
+
+  // V zobrazení po místnostech s aktivním přepínačem „Prázdné“ doplníme i
+  // místnosti bez aktivit, aby tabulka odpovídala kompletnímu rozpisu místností.
+  // Seznam místností ze serveru platí pro aktuální ročník, takže ho použijeme
+  // jen když je zobrazený právě ten – u starších ročníků by místnosti neseděly.
+  const prázdnéMístnosti =
+    seskupPodle === SeskupováníAktivit.mistnost
+      && urlStav.zobrazPrázdné
+      && urlStav.ročník === GAMECON_KONSTANTY.ROCNIK
+      && !obsahovýFiltrAktivní
+      ? GAMECON_KONSTANTY.PROGRAM_MISTNOSTI.map((místnost) => místnost.nazev)
+      : [];
+
+  // V hierarchickém zobrazení (po dnech) ukazujeme jen vybraný den, pokud je
+  // zvolený konkrétní den – jinak by přepínač dnů „nic nedělal“, protože by se
+  // pořád renderovaly všechny dny (zvlášť s vyplněnou kostrou místností).
+  const zobrazitDenVHierarchii = (denKlíč: string): boolean =>
+    urlStavVýběr.typ !== "den"
+      ? true
+      : denKlíč === formátujDenVTýdnu(urlStavVýběr.datum, true);
+
   const předpřipravenáTabulka = připravTabulkuAktivit(
     aktivityFiltrované,
-    seskupPodle
+    seskupPodle,
+    prázdnéMístnosti
   );
 
   const tabulkaHlavičkaČasy = (
@@ -147,6 +182,7 @@ export const ProgramTabulka: FunctionComponent<ProgramTabulkaProps> = (
   const tabulkaŘádky =
     (seskupPodle === SeskupováníAktivit.denALinie || seskupPodle === SeskupováníAktivit.mistnost)
       ? Object.entries(předpřipravenáTabulka as PředpřivenáTabulkaAktivitHierarchie)
+          .filter(([denKlíč]) => zobrazitDenVHierarchii(denKlíč))
           .flatMap(([denKlíč, tabulkaProDen]) => [
             <tr key={`nadpis-${denKlíč}`}>
               <td colSpan={PROGRAM_ČASY.length + 1}>
@@ -160,7 +196,10 @@ export const ProgramTabulka: FunctionComponent<ProgramTabulkaProps> = (
   const tabulka = (
     <>
       {tabulkaHlavičkaČasy}
-      {aktivityFiltrované.length || seskupPodle === SeskupováníAktivit.den || seskupPodle === SeskupováníAktivit.denALinie
+      {aktivityFiltrované.length
+        || seskupPodle === SeskupováníAktivit.den
+        || seskupPodle === SeskupováníAktivit.denALinie
+        || (seskupPodle === SeskupováníAktivit.mistnost && prázdnéMístnosti.length)
         ? tabulkaŘádky
         : tabulkaŽádnéAktivity}
     </>

@@ -44,6 +44,17 @@ class Finance
     private const PLNA_SLEVA_PROCENT        = 100;
     private const CASTECNA_SLEVA_PROCENT    = 40;
 
+    /**
+     * Kurzová rezerva pro platby v eurech. Dluh je veden v korunách, ale banka
+     * příchozí euro platbu převede zpět na koruny svým (jiným a kolísajícím)
+     * kurzem a se spreadem, takže by připsaná částka mohla dluh nedorovnat.
+     * Eurovou částku proto navýšíme o 1,5 % (pokryje kolísání kurzu a spread,
+     * úměrně velikosti platby) a přičteme pevných 0,25 € (pokryje zaokrouhlení
+     * a fixní poplatky i u malých částek). Případný drobný přeplatek vracíme.
+     */
+    private const KURZOVA_REZERVA_EUR_NASOBEK = 1.015;
+    private const KURZOVA_REZERVA_EUR_FIXNI   = 0.25;
+
     private ?float $stav                  = null;  // celkový výsledný stav uživatele na účtu
     private ?float $soucinitelCenyAktivit = null;              // součinitel ceny aktivit
     private ?Cenik $cenik                 = null;             // instance ceníku
@@ -1245,12 +1256,12 @@ SQL;
             : -$this->stav();
     }
 
-    private function dejCastkuProQrPlatbuVEurech(): float
+    public function dejCastkuProQrPlatbuVEurech(): float
     {
         return $this->stav() >= 0
             ? 0.1
             // nulová, respektive dobrovolná platba
-            : -$this->stav() / KURZ_EURO;
+            : -$this->stav() / KURZ_EURO * self::KURZOVA_REZERVA_EUR_NASOBEK + self::KURZOVA_REZERVA_EUR_FIXNI;
     }
 
     public function sumaStorna(): float
