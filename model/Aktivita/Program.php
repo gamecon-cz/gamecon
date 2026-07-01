@@ -70,7 +70,41 @@ class Program
 
         if ($jeAdmin) {
             $konstanty['JE_ADMIN'] = $jeAdmin;
+            // Úplný seznam místností (seřazený dle pořadí) pro aktuální ročník –
+            // frontend jím v zobrazení „po místnostech“ doplní i prázdné místnosti
+            // bez aktivit. Místnosti s rok=0 jsou globální (napříč ročníky),
+            // proto bereme rok=0 i rok=ROCNIK; cizí ročníky vynecháváme, ať se
+            // do programu aktuálního ročníku netahají nerelevantní místnosti.
+            $lokaceProRocnik = array_filter(
+                Lokace::zVsech(),
+                static fn(Lokace $lokace) => $lokace->rok() === 0 || $lokace->rok() === ROCNIK,
+            );
+            usort(
+                $lokaceProRocnik,
+                static fn(Lokace $a, Lokace $b) => $a->poradi() <=> $b->poradi(),
+            );
+            $konstanty['PROGRAM_MISTNOSTI'] = array_map(
+                static fn(Lokace $lokace) => $lokace->apiLokace(),
+                array_values($lokaceProRocnik),
+            );
         }
+
+        // Výchozí nastavení zobrazení programu pro konkrétní stránku. Klíče
+        // PROGRAM_VYCHOZI_NASTAVENI odpovídají query parametrům url-stavu Preactu
+        // (viz logic/url.ts) a použijí se jen když daný query param v URL chybí;
+        // PROGRAM_VYCHOZI_VYBER je výchozí slug výběru dne (např. "vsechny-dny"),
+        // použije se když je v URL prázdný slug. Dedikovaná stránka „Program po
+        // místnostech“ tak nabíhá rovnou přes všechny dny a seskupená dle
+        // místností, jak tomu bývalo před přechodem na Preact.
+        $vychoziNastaveniProgramu = [];
+        $vychoziVyberProgramu     = null;
+        if ($pageName === 'program-mistnosti') {
+            $vychoziNastaveniProgramu['podleMistnosti'] = true;
+            $vychoziNastaveniProgramu['zobrazPrazdne']  = true;
+            $vychoziVyberProgramu                       = 'vsechny-dny';
+        }
+        $konstanty['PROGRAM_VYCHOZI_NASTAVENI'] = (object)$vychoziNastaveniProgramu;
+        $konstanty['PROGRAM_VYCHOZI_VYBER']     = $vychoziVyberProgramu;
 
         return $konstanty;
     }

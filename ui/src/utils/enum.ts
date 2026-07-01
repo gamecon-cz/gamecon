@@ -1,9 +1,9 @@
 
 type StringEnum = { [key: string | number]: number | string };
 
-export const getEnumValues = (myEnum: StringEnum) =>
+export const getEnumValues = (myEnum: StringEnum): number[] =>
   Object.values(myEnum)
-    .filter(value => typeof value === "number") as number[]
+    .filter((value): value is number => typeof value === "number")
   ;
 
 export const getEnumNames = (myEnum: StringEnum): string[] =>

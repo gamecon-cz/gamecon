@@ -43,14 +43,18 @@ const vytvořStránku = () => {
 };
 
 const vytvořBuňku = (texty) => {
-  const buňkaElm = document.createElement("div");
-  buňkaElm.classList.add("bunka");
   stránkaZustává -= 1;
 
+  const buňkaObalElm = document.createElement("div");
+  buňkaObalElm.classList.add("bunka-obal");
+
   if (!texty.length) {
-    stránkaElm.appendChild(buňkaElm);
+    stránkaElm.appendChild(buňkaObalElm);
     return;
   }
+
+  const buňkaElm = document.createElement("div");
+  buňkaElm.classList.add("bunka");
 
   const obrazekElm = document.createElement("img");
   obrazekElm.src = "../files/design/logo_stravenky.png";
@@ -61,6 +65,16 @@ const vytvořBuňku = (texty) => {
 
   obrazekObalElm.appendChild(obrazekElm);
   buňkaElm.appendChild(obrazekObalElm);
+
+  const krakenElm = document.createElement("img");
+  krakenElm.src = "../files/design/kraken.png";
+  krakenElm.classList.add("bunka-kraken");
+
+  const krakenObalElm = document.createElement("div");
+  krakenObalElm.classList.add("bunka-kraken-obal");
+
+  krakenObalElm.appendChild(krakenElm);
+  buňkaElm.appendChild(krakenObalElm);
 
   const textyElm = document.createElement("div");
   textyElm.classList.add("texty");
@@ -78,7 +92,8 @@ const vytvořBuňku = (texty) => {
   }
   buňkaElm.appendChild(textyElm);
 
-  stránkaElm.appendChild(buňkaElm);
+  buňkaObalElm.appendChild(buňkaElm);
+  stránkaElm.appendChild(buňkaObalElm);
 }
 
 
@@ -97,7 +112,7 @@ for (uživ of uživatelé) {
     if (stránkaZustává === 0)
       vytvořStránku();
     vytvořBuňku([
-      buňka.login_uzivatele.slice(0,18) + (buňka.login_uzivatele.length >= 18 ? "..." : ""),
+      buňka.login_uzivatele.slice(0,15) + (buňka.login_uzivatele.length >= 15 ? "..." : ""),
       "ID " + buňka.id_uzivatele,
       buňka.nazev,
     ]);

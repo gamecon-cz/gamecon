@@ -82,7 +82,7 @@ export const EditorMřížek: FunctionComponent<TEditorMřížekProps> = (props)
     <>
       <div>
         <button onClick={přidatMřížku}>Přidat mřížku</button>
-        <button onClick={uložMřížky} style={{ marginLeft: "24px" }}>
+        <button onClick={() => void uložMřížky()} style={{ marginLeft: "24px" }}>
           Ulož všechny změny
         </button>
       </div>

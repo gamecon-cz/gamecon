@@ -204,7 +204,10 @@ class QrPlatba
                               : 0.1,/** nejmenší povolená částka, @see \SepaQr\Data::setAmount */
                           )
                           ->setCurrency($this->kodMeny)
-                          ->setRemittanceReference($this->sepaReferencePlatby());
+                          // Unstructured remittance text (AT-05 unstructured), ne structured
+                          // reference: structured pole EPC QR očekává RF creditor referenci
+                          // (ISO 11649), náš "VS:..." je volný text a banky by ho mohly odmítnout.
+                          ->setRemittanceText($this->sepaZpravaProPrijemce());
 
         return Builder::create()
                       ->errorCorrectionLevel(new ErrorCorrectionLevelMedium())
@@ -217,9 +220,9 @@ class QrPlatba
         return 'VS:' . $this->variabilniSymbol;
     }
 
-    private function sepaReferencePlatby(): string
+    private function sepaZpravaProPrijemce(): string
     {
-        return 'VS' . $this->variabilniSymbol;
+        return 'VS:' . $this->variabilniSymbol;
     }
 
 }

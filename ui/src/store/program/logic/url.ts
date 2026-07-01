@@ -137,15 +137,34 @@ const vytvořQueryHodnotuZeStavu = (
   klíčVUrlStav: keyof ProgramURLStav,
   klíčVQuery: string
 ) => {
-  if (urlStav[klíčVUrlStav])
-    search.push(`${klíčVQuery}=${encodeURIComponent(JSON.stringify(urlStav[klíčVUrlStav]))}`);
+  const hodnota = urlStav[klíčVUrlStav];
+  const výchozíStránky = GAMECON_KONSTANTY.PROGRAM_VYCHOZI_NASTAVENI?.[klíčVQuery];
+
+  // Klíč s výchozí hodnotou stránky (např. podleMistnosti=true na stránce „po
+  // místnostech“): serializujeme efektivní bool a zapíšeme ho jen když se od
+  // defaultu liší – jinak by přepínač nešlo trvale vypnout (přežít refresh /
+  // nasdílet URL), protože při chybějícím parametru se default aplikuje znovu.
+  if (výchozíStránky !== undefined) {
+    const efektivní = !!hodnota;
+    if (efektivní !== výchozíStránky)
+      search.push(`${klíčVQuery}=${encodeURIComponent(JSON.stringify(efektivní))}`);
+    return;
+  }
+
+  if (hodnota)
+    search.push(`${klíčVQuery}=${encodeURIComponent(JSON.stringify(hodnota))}`);
 };
 
 export const parsujUrl = (url: string) => {
   const basePath = new URL(GAMECON_KONSTANTY.BASE_PATH_PAGE).pathname;
   const urlObj = new URL(url, GAMECON_KONSTANTY.BASE_PATH_PAGE);
 
-  const den = urlObj.pathname.slice(basePath.length);
+  // Pokud je v URL prázdný slug, použij výchozí slug stránky (např. stránka
+  // „Program po místnostech“ posílá "vsechny-dny"), jinak padáme na obvyklý
+  // výchozí den.
+  const den = urlObj.pathname.slice(basePath.length)
+    || GAMECON_KONSTANTY.PROGRAM_VYCHOZI_VYBER
+    || "";
 
   // TODO: co tady dělá přihlášen: true ?? nemá být náhodou z předaných konstant ?
   const výběr = urlStavProgramTabulkaMožnostíDnyMůj({ přihlášen: true, jeAdmin: GAMECON_KONSTANTY.JE_ADMIN })
@@ -164,6 +183,15 @@ export const parsujUrl = (url: string) => {
     ]
   )) {
     parsujUrlDoStavu(urlObj, urlStav, stavString, query);
+    // Když query param v URL chybí, použij výchozí nastavení stránky (např.
+    // dedikovaná stránka „Program po místnostech“ posílá podleMistnosti=true),
+    // aby stránka nabíhala se správným seskupením i bez query parametru.
+    if (urlStav[stavString] === undefined) {
+      const výchozíStránky = GAMECON_KONSTANTY.PROGRAM_VYCHOZI_NASTAVENI?.[query];
+      if (výchozíStránky !== undefined) {
+        (urlStav[stavString] as unknown) = výchozíStránky;
+      }
+    }
   }
 
   return urlStav;

@@ -178,11 +178,13 @@ export const Obchod: FunctionComponent<TObchodProps> = (props) => {
     setVisible(false);
   }, []);
 
-  const onPotvrdit = useCallback(async () => {
-    await fetchProdej(předměty);
-    předmětySmažVšechny();
-    setMřížka.výchozí();
-    setVisible(false);
+  const onPotvrdit = useCallback(() => {
+    void (async () => {
+      await fetchProdej(předměty);
+      předmětySmažVšechny();
+      setMřížka.výchozí();
+      setVisible(false);
+    })();
   }, [předměty]);
 
   return (
