@@ -16,7 +16,7 @@ export const PředmětyContext = createContext<Předmět[]>([]);
 const usePředměty = () => {
   const [předměty, setPředměty] = useState<Předmět[] | null | undefined>();
   useEffect(() => {
-    (async () => {
+    void (async () => {
       setPředměty(await fetchPředměty());
     })();
   }, []);
@@ -34,7 +34,7 @@ export const App: FunctionComponent<TAppProps> = (props) => {
   const předměty = usePředměty();
 
   useEffect(() => {
-    (async () => {
+    void (async () => {
       setDefiniceObchod(await fetchMřížky());
     })();
   }, []);

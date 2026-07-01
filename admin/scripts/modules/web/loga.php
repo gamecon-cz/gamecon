@@ -1,6 +1,7 @@
 <?php
 
 use Gamecon\Web\ZpracovaneObrazky;
+use Gamecon\Web\LogoUpload;
 use Gamecon\XTemplate\XTemplate;
 use Symfony\Component\Filesystem\Filesystem;
 
@@ -153,43 +154,50 @@ if ($_POST) {
             $fileInfo = pathinfo($uploadedFile['name']);
             $extension = strtolower($fileInfo['extension']);
 
-            if (in_array($extension, ['jpg', 'jpeg', 'png', 'gif', 'webp'])) {
-                $sanitizedUrl = preg_replace('/^https?:\/\//', '', $url);
-                $filename = $sanitizedUrl . '.' . $extension;
+            if (LogoUpload::jePodporovanaPripona($extension)) {
+                $host = LogoUpload::hostZUrlProNazevSouboru($url);
 
-                $targetDir = '';
-                switch ($action) {
-                    case 'upload_sponzor_titulka':
-                        $targetDir = ZpracovaneObrazky::adresarSponzoruTitulka();
-                        break;
-                    case 'upload_partner_titulka':
-                        $targetDir = ZpracovaneObrazky::adresarPartneruTitulka();
-                        break;
-                    case 'upload_sponzor_prehled':
-                        $targetDir = ZpracovaneObrazky::adresarSponzoruPrehled();
-                        break;
-                    case 'upload_partner_prehled':
-                        $targetDir = ZpracovaneObrazky::adresarPartneruPrehled();
-                        break;
-                    default:
-                        throw new \RuntimeException(sprintf('Neznámá akce: %s', $action));
-                }
-
-                if ($targetDir) {
-                    (new Filesystem())->mkdir($targetDir);
-
-                    $targetPath = $targetDir . '/' . $filename;
-
-                    if (move_uploaded_file($uploadedFile['tmp_name'], $targetPath)) {
-                        $successMessage = "Logo $filename bylo úspěšně nahráno.";
-                    } else {
-                        $errorMessage = "Nepodařilo se nahrát soubor.";
-                    }
+                if ($host === '') {
+                    $errorMessage = "Neplatná URL.";
+                } elseif ($extension === 'svg' && ($svgError = LogoUpload::validujSvgSoubor($uploadedFile['tmp_name']))) {
+                    $errorMessage = $svgError;
                 } else {
-                    $errorMessage = "Neplatná akce.";
+                    $filename = $host . '.' . $extension;
+
+                    $targetDir = '';
+                    switch ($action) {
+                        case 'upload_sponzor_titulka':
+                            $targetDir = ZpracovaneObrazky::adresarSponzoruTitulka();
+                            break;
+                        case 'upload_partner_titulka':
+                            $targetDir = ZpracovaneObrazky::adresarPartneruTitulka();
+                            break;
+                        case 'upload_sponzor_prehled':
+                            $targetDir = ZpracovaneObrazky::adresarSponzoruPrehled();
+                            break;
+                        case 'upload_partner_prehled':
+                            $targetDir = ZpracovaneObrazky::adresarPartneruPrehled();
+                            break;
+                        default:
+                            throw new \RuntimeException(sprintf('Neznámá akce: %s', $action));
+                    }
+
+                    if ($targetDir) {
+                        (new Filesystem())->mkdir($targetDir);
+
+                        $targetPath = $targetDir . '/' . $filename;
+
+                        if (move_uploaded_file($uploadedFile['tmp_name'], $targetPath)) {
+                            $successMessage = "Logo $filename bylo úspěšně nahráno.";
+                        } else {
+                            $errorMessage = "Nepodařilo se nahrát soubor.";
+                        }
+                    } else {
+                        $errorMessage = "Neplatná akce.";
+                    }
                 }
             } else {
-                $errorMessage = "Podporované formáty: JPG, PNG, GIF, WebP.";
+                $errorMessage = "Podporované formáty: JPG, PNG, GIF, WebP, SVG.";
             }
         } else {
             $errorMessage = "Název a URL jsou povinné.";

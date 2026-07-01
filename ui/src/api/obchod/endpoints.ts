@@ -35,7 +35,7 @@ export const fetchMřížky = async (): Promise<DefiniceObchod | null> => {
         text: mřížkaRaw.text,
         buňky: mřížkaRaw.bunky?.map(
           (buňka) => ({
-            typ: DefiniceObchodMřížkaBuňkaTyp[buňka.typ] as string,
+            typ: DefiniceObchodMřížkaBuňkaTyp[buňka.typ],
             cilId: buňka.cilId,
             text: buňka.text,
             barvaPozadí: buňka.barva,

@@ -91,7 +91,7 @@ export const TymDetail: FunctionComponent<TymDetailProps> = ({
             value={nazevDraft}
             maxLength={255}
             placeholder="Zadejte název týmu"
-            onInput={(e) => setNazevDraft((e.currentTarget as HTMLInputElement).value)}
+            onInput={(e) => setNazevDraft(e.currentTarget.value)}
             onKeyDown={(e) => {
               if (e.key === "Enter") ulozNazev();
               if (e.key === "Escape") setNazevDraft(nazevServer);
