@@ -48,6 +48,20 @@ final class LogoUpload
         return preg_replace('~[^\w.\-]~u', '', trim($host, " \t."));
     }
 
+    private static function jePovolenySvgDoctype(\DOMDocumentType $doctype): bool
+    {
+        // Interní DTD podmnožina (`<!DOCTYPE svg [ ... ]>`) může nést entity → nikdy nepovolíme.
+        if (($doctype->internalSubset ?? '') !== '') {
+            return false;
+        }
+
+        // Musí to být PUBLIC SVG doctype: název `svg`, veřejný identifikátor W3C SVG DTD
+        // a systémový identifikátor směřující na .dtd na w3.org. SYSTEM (bez publicId) neprojde.
+        return mb_strtolower($doctype->name) === 'svg'
+            && preg_match('~^-//W3C//DTD SVG \S~i', (string) $doctype->publicId) === 1
+            && preg_match('~^https?://[^/]*\.w3\.org/\S+\.dtd$~i', (string) $doctype->systemId) === 1;
+    }
+
     public static function validujSvgSoubor(string $cestaKSouboru): ?string
     {
         $obsah = file_get_contents($cestaKSouboru);
@@ -55,7 +69,10 @@ final class LogoUpload
             return 'SVG soubor je prázdný nebo nečitelný.';
         }
 
-        if (preg_match('~<!(DOCTYPE|ENTITY)\b|<\?xml-stylesheet\b~i', $obsah)) {
+        // Definice entit (XXE / billion laughs) a XML stylesheety zakazujeme vždy.
+        // Kontrola nad raw textem je zde záměrně konzervativní (blokuje i výskyt v komentáři):
+        // bezpečný směr je odmítnout, ne pustit.
+        if (preg_match('~<!ENTITY\b~i', $obsah) || preg_match('~<\?xml-stylesheet\b~i', $obsah)) {
             return 'SVG soubor obsahuje nepovolené XML konstrukce.';
         }
 
@@ -71,6 +88,15 @@ final class LogoUpload
 
         if (!$nacteno) {
             return 'SVG soubor nemá platný XML formát.';
+        }
+
+        // DOCTYPE vyhodnocujeme z reálně naparsovaného uzlu, ne regexem nad textem – komentář
+        // s „povoleným" doctypem tak nemůže obejít kontrolu a nezáleží na uvozovkách/whitespace.
+        // Povolen je jen známý veřejný W3C SVG doctype bez interní podmnožiny; cokoli jiného
+        // (SYSTEM s externím identifikátorem, interní DTD `[...]`, jiný než SVG doctype) odmítáme.
+        $doctype = $dom->doctype;
+        if ($doctype !== null && !self::jePovolenySvgDoctype($doctype)) {
+            return 'SVG soubor obsahuje nepovolené XML konstrukce.';
         }
 
         $koren = $dom->documentElement;
