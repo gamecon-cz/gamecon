@@ -66,6 +66,118 @@ SVG);
     /**
      * @test
      */
+    public function svgSProstymDoctypeProjede()
+    {
+        $cesta = $this->vytvorDocasnySoubor(<<<'SVG'
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN" "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 20">
+  <rect width="100" height="20" fill="#fff" />
+</svg>
+SVG);
+
+        try {
+            self::assertNull(LogoUpload::validujSvgSoubor($cesta));
+        } finally {
+            unlink($cesta);
+        }
+    }
+
+    /**
+     * @test
+     */
+    public function svgSEntitouJeOdmitnute()
+    {
+        $cesta = $this->vytvorDocasnySoubor(<<<'SVG'
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE svg [
+  <!ENTITY xxe SYSTEM "file:///etc/passwd">
+]>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 10 10">
+  <text>&xxe;</text>
+</svg>
+SVG);
+
+        try {
+            self::assertSame(
+                'SVG soubor obsahuje nepovolené XML konstrukce.',
+                LogoUpload::validujSvgSoubor($cesta),
+            );
+        } finally {
+            unlink($cesta);
+        }
+    }
+
+    /**
+     * @test
+     */
+    public function svgSProstymDoctypeSJednoduchymiUvozovkamiProjede()
+    {
+        $cesta = $this->vytvorDocasnySoubor(<<<'SVG'
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE svg PUBLIC '-//W3C//DTD SVG 1.1//EN' 'http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd'>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 20">
+  <rect width="100" height="20" fill="#fff" />
+</svg>
+SVG);
+
+        try {
+            self::assertNull(LogoUpload::validujSvgSoubor($cesta));
+        } finally {
+            unlink($cesta);
+        }
+    }
+
+    /**
+     * @test
+     */
+    public function svgSeSystemDoctypeAPovolenymDoctypemVKomentariJeOdmitnute()
+    {
+        $cesta = $this->vytvorDocasnySoubor(<<<'SVG'
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE svg SYSTEM "file:///etc/passwd">
+<!-- <!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN" "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd"> -->
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 10 10">
+  <rect width="10" height="10" fill="#fff" />
+</svg>
+SVG);
+
+        try {
+            self::assertSame(
+                'SVG soubor obsahuje nepovolené XML konstrukce.',
+                LogoUpload::validujSvgSoubor($cesta),
+            );
+        } finally {
+            unlink($cesta);
+        }
+    }
+
+    /**
+     * @test
+     */
+    public function svgSeSystemDoctypeJeOdmitnute()
+    {
+        $cesta = $this->vytvorDocasnySoubor(<<<'SVG'
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE svg SYSTEM "file:///etc/passwd">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 10 10">
+  <rect width="10" height="10" fill="#fff" />
+</svg>
+SVG);
+
+        try {
+            self::assertSame(
+                'SVG soubor obsahuje nepovolené XML konstrukce.',
+                LogoUpload::validujSvgSoubor($cesta),
+            );
+        } finally {
+            unlink($cesta);
+        }
+    }
+
+    /**
+     * @test
+     */
     public function svgSeSkriptemJeOdmitnute()
     {
         $cesta = $this->vytvorDocasnySoubor(<<<'SVG'
