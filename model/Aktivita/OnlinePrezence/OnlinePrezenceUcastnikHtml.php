@@ -21,6 +21,7 @@ class OnlinePrezenceUcastnikHtml
     public function sestavHmlUcastnikaAktivity(
         Uzivatel $ucastnik,
         Aktivita $aktivita,
+        Uzivatel $vypravec,
         int      $stavPrihlaseni,
         bool     $ucastnikMuzeBytPridan,
         bool     $ucastnikMuzeBytOdebran,
@@ -47,7 +48,7 @@ class OnlinePrezenceUcastnikHtml
             $ucastnikTemplate->parse('ucastnik.nepritomen');
         }
 
-        if ($ucastnik->telefon()) {
+        if ($ucastnik->telefon() && $this->smiZobrazitTelefon($vypravec)) {
             $ucastnikTemplate->assign('telefonHtml', $ucastnik->telefon(true));
             $ucastnikTemplate->assign('telefonRaw', $ucastnik->telefon(false));
             $ucastnikTemplate->parse('ucastnik.telefon');
@@ -74,6 +75,34 @@ class OnlinePrezenceUcastnikHtml
 
         $ucastnikTemplate->parse('ucastnik');
         return $ucastnikTemplate->text('ucastnik');
+    }
+
+    /**
+     * Rozhoduje podle role aktuálního diváka prezence ($vypravec), ne podle
+     * zobrazovaného účastníka: organizátor vidí telefony vždy (kvůli
+     * koordinaci), ostatní (typicky uživatelé s právem ADMINISTRACE_PREZENCE
+     * bez organizátorské role) jen po dobu běhu GameConu – ochrana osobních
+     * údajů, aby se čísla nedala hromadně vytáhnout před akcí ani po ní.
+     */
+    private function smiZobrazitTelefon(Uzivatel $vypravec): bool
+    {
+        return $vypravec->jeOrganizator()
+            || $this->gcBeziPodleInjektovanehoCasu();
+    }
+
+    /**
+     * Obdoba {@see SystemoveNastaveni::gcBezi()}, ale porovnává proti
+     * injektovanému času ($this->ted()) místo reálného time(). Zbytek prezence
+     * (editovatelnost, checkboxy) se řídí injektovaným časem, takže i skrývání
+     * telefonů musí, jinak by v testech / preview s nasimulovaným časem bylo UI
+     * nekonzistentní. Hranice jsou inkluzivní stejně jako v mezi() – v okamžiku
+     * GC_BEZI_OD i GC_BEZI_DO je GameCon považován za běžící.
+     */
+    private function gcBeziPodleInjektovanehoCasu(): bool
+    {
+        $ted = $this->systemoveNastaveni->ted()->getTimestamp();
+        return $this->systemoveNastaveni->gcBeziOd()->getTimestamp() <= $ted
+            && $ted <= $this->systemoveNastaveni->gcBeziDo()->getTimestamp();
     }
 
     private function cssZobrazitKdyz(bool $zobrazit): string
