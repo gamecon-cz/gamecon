@@ -254,6 +254,6 @@ class OnlinePrezenceHtml
         $odebratelnyHned                 = $editovatelnaOdTimestamp <= 0 && $ucastniciOdebratelniDoTimestamp > 0;
 
         return $this->dejOnlinePrezenceUcastnikHtml()
-            ->sestavHmlUcastnikaAktivity($ucastnik, $aktivita, $stavPrihlaseni, $pridatelnyHned, $odebratelnyHned);
+            ->sestavHmlUcastnikaAktivity($ucastnik, $aktivita, $vypravec, $stavPrihlaseni, $pridatelnyHned, $odebratelnyHned);
     }
 }
