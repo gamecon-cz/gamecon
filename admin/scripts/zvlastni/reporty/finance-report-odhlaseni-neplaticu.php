@@ -35,6 +35,7 @@ $data = dbFetchAll(<<<SQL
         zruseni.typ_shop                                  AS typ_shop,
         zruseni.nazev_polozky                             AS nazev_polozky,
         zruseni.cena                                      AS cena,
+        zruseni.objednano_kdy                             AS objednano_kdy,
         zruseni.zruseno_kdy                               AS zruseno_kdy,
         zruseni.zdroj                                     AS zdroj_zruseni
     FROM (
@@ -45,6 +46,7 @@ $data = dbFetchAll(<<<SQL
             shop_predmety.typ                    AS typ_shop,
             NULL                                 AS je_aktivita,
             shop_nakupy_zrusene.cena_nakupni     AS cena,
+            shop_nakupy_zrusene.datum_nakupu     AS objednano_kdy,
             shop_nakupy_zrusene.datum_zruseni    AS zruseno_kdy,
             shop_nakupy_zrusene.zdroj_zruseni    AS zdroj
         FROM shop_nakupy_zrusene
@@ -61,6 +63,15 @@ $data = dbFetchAll(<<<SQL
             NULL                                 AS typ_shop,
             1                                    AS je_aktivita,
             NULL                                 AS cena,
+            (
+                SELECT MAX(prihlaseni_log.kdy)
+                FROM akce_prihlaseni_log AS prihlaseni_log
+                WHERE prihlaseni_log.id_akce = akce_prihlaseni_log.id_akce
+                  AND prihlaseni_log.id_uzivatele = akce_prihlaseni_log.id_uzivatele
+                  AND prihlaseni_log.rocnik = akce_prihlaseni_log.rocnik
+                  AND prihlaseni_log.typ IN ('prihlaseni', 'prihlaseni_nahradnik')
+                  AND prihlaseni_log.kdy <= akce_prihlaseni_log.kdy
+            )                                    AS objednano_kdy,
             akce_prihlaseni_log.kdy              AS zruseno_kdy,
             akce_prihlaseni_log.zdroj_zmeny      AS zdroj
         FROM akce_prihlaseni_log
@@ -92,6 +103,7 @@ foreach ($data as $radek) {
         'typ_polozky'    => $typPolozky,
         'nazev_polozky'  => $radek['nazev_polozky'],
         'cena'           => $radek['cena'] !== null ? (float)$radek['cena'] : '',
+        'objednano_kdy'  => $radek['objednano_kdy'],
         'zruseno_kdy'    => $radek['zruseno_kdy'],
         'zdroj_zruseni'  => $radek['zdroj_zruseni'],
     ];
@@ -100,7 +112,7 @@ foreach ($data as $radek) {
 $report = $radky
     ? Report::zPole($radky)
     : Report::zPoli(
-        ['rocnik', 'ucastnik', 'email', 'typ_polozky', 'nazev_polozky', 'cena', 'zruseno_kdy', 'zdroj_zruseni'],
+        ['rocnik', 'ucastnik', 'email', 'typ_polozky', 'nazev_polozky', 'cena', 'objednano_kdy', 'zruseno_kdy', 'zdroj_zruseni'],
         [],
     );
 
