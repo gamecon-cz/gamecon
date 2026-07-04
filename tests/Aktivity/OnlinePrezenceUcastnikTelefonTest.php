@@ -28,11 +28,11 @@ class OnlinePrezenceUcastnikTelefonTest extends AbstractUzivatelTestDb
     public static function poskytniCasy(): array
     {
         return [
-            'sekundu před začátkem'     => ['2099-06-18 19:59:59', false],
-            'přesně na začátku (od)'    => [self::GC_OD, true],
-            'uprostřed'                 => ['2099-06-20 12:00:00', true],
-            'přesně na konci (do)'      => [self::GC_DO, true],
-            'sekundu po konci'          => ['2099-06-22 18:00:01', false],
+            'sekundu před začátkem'  => ['2099-06-18 19:59:59', false],
+            'přesně na začátku (od)' => [self::GC_OD, true],
+            'uprostřed'              => ['2099-06-20 12:00:00', true],
+            'přesně na konci (do)'   => [self::GC_DO, true],
+            'sekundu po konci'       => ['2099-06-22 18:00:01', false],
         ];
     }
 
@@ -41,7 +41,7 @@ class OnlinePrezenceUcastnikTelefonTest extends AbstractUzivatelTestDb
      */
     public function testGcBeziPodleInjektovanehoCasuRespektujeInkluzivniHranice(
         string $ted,
-        bool   $ocekavanoBezi,
+        bool $ocekavanoBezi,
     ): void {
         $ucastnikHtml = new OnlinePrezenceUcastnikHtml($this->nastaveniSCasem($ted));
 
@@ -51,7 +51,7 @@ class OnlinePrezenceUcastnikTelefonTest extends AbstractUzivatelTestDb
         self::assertSame(
             $ocekavanoBezi,
             $metoda->invoke($ucastnikHtml),
-            "Pro čas $ted mělo být 'GC běží' = " . ($ocekavanoBezi ? 'true' : 'false'),
+            "Pro čas {$ted} mělo být 'GC běží' = " . ($ocekavanoBezi ? 'true' : 'false'),
         );
     }
 
@@ -59,10 +59,10 @@ class OnlinePrezenceUcastnikTelefonTest extends AbstractUzivatelTestDb
     {
         // [divák je organizátor, GC běží (čas uvnitř okna), očekávaná viditelnost telefonu]
         return [
-            'organizátor mimo GC vidí'          => [true,  false, true],
-            'organizátor během GC vidí'         => [true,  true,  true],
-            'neorganizátor mimo GC nevidí'      => [false, false, false],
-            'neorganizátor během GC vidí'       => [false, true,  true],
+            'organizátor mimo GC vidí'     => [true,  false, true],
+            'organizátor během GC vidí'    => [true,  true,  true],
+            'neorganizátor mimo GC nevidí' => [false, false, false],
+            'neorganizátor během GC vidí'  => [false, true,  true],
         ];
     }
 
@@ -74,7 +74,7 @@ class OnlinePrezenceUcastnikTelefonTest extends AbstractUzivatelTestDb
         bool $gcBezi,
         bool $ocekavanaViditelnost,
     ): void {
-        $ted          = $gcBezi ? '2099-06-20 12:00:00' : '2099-06-01 12:00:00';
+        $ted = $gcBezi ? '2099-06-20 12:00:00' : '2099-06-01 12:00:00';
         $ucastnikHtml = new OnlinePrezenceUcastnikHtml($this->nastaveniSCasem($ted));
 
         $vypravec = $this->createMock(\Uzivatel::class);
@@ -95,7 +95,7 @@ class OnlinePrezenceUcastnikTelefonTest extends AbstractUzivatelTestDb
 
         return new class($original, $ted, self::GC_OD, self::GC_DO) extends SystemoveNastaveni {
             public function __construct(
-                SystemoveNastaveni      $original,
+                SystemoveNastaveni $original,
                 private readonly string $tedStr,
                 private readonly string $odStr,
                 private readonly string $doStr,
