@@ -469,11 +469,11 @@ SQL,
     }
 
     /**
-     * Modré tričko zdarma je ještě navíc k tomuto. Takže totální maximální počet triček zdarma je
-     * @see maximalniPocetLibovolnychTricekZdarmaBezModrychZdarma
-     * + @see maximalniPocetModrychTricekZdarma
+     * Tričko zdarma za dosažení bonusu je ještě navíc k tomuto. Takže totální maximální počet triček zdarma je
+     * @see maximalniPocetLibovolnychTricekZdarmaBezBonusovych
+     * + @see maximalniPocetBonusovychTricekZdarma
      */
-    public function maximalniPocetLibovolnychTricekZdarmaBezModrychZdarma(): int
+    public function maximalniPocetLibovolnychTricekZdarmaBezBonusovych(): int
     {
         return $this->u->maPravo(Pravo::DVE_JAKAKOLI_TRICKA_ZDARMA)
             ? 2
@@ -484,7 +484,10 @@ SQL,
             );
     }
 
-    public function maximalniPocetModrychTricekZdarma(): int
+    /**
+     * Za dosažení bonusu je zdarma jedno libovolné (nejlevnější) tričko v košíku.
+     */
+    public function maximalniPocetBonusovychTricekZdarma(): int
     {
         return $this->u->maPravo(Pravo::MODRE_TRICKO_ZDARMA) && $this->bonusZaVedeniAktivit() >= $this->systemoveNastaveni->modreTrickoZdarmaOd()
             ? 1

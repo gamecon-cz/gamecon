@@ -106,7 +106,10 @@ SQL,
         $cenaPredmetuBezTricek = 333.11 + 333.12;
         $cenaTricek = 333.17 + 333.18;
         $cenaVsechPredmetu = $cenaPredmetuBezTricek + $cenaTricek;
-        define('MODRE_TRICKO_ZDARMA_OD', 0);
+        // Uživatel 333 nemá právo MODRE_TRICKO_ZDARMA, takže práh bonusu (konstanta
+        // MODRE_TRICKO_ZDARMA_OD) na výsledek nemá vliv – žádné tričko zdarma nedostane.
+        // Proto ho tu vůbec nenastavujeme; dřívější define() byl zbytečný a navíc
+        // pořadově závislý (jednou definovaná konstanta se v procesu už nezmění).
         $finance = new Finance($this->dejUzivateleSNakupy(), 0, SystemoveNastaveni::zGlobals());
         self::assertSame(
             round($cenaVsechPredmetu, 2),

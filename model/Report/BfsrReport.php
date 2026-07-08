@@ -209,15 +209,20 @@ SQL,
                     $trickaSlevyCelkem  += $polozka->sleva;
 
                     if ($this->jeZdarma($polozka)) {
+                        // Rozpad volných triček podle BARVY položky (ne podle důvodu slevy).
+                        // Vypravěčský bonus dává zdarma libovolné (nejlevnější) tričko, ne
+                        // nutně modré (viz Cenik::cena), takže z barvy už nejde odvodit důvod.
+                        // Historické kódy Orgovska/Vypravecska/Ucastnicka jsou zachovány kvůli
+                        // exportu, ale významově jde o červená / modrá / ostatní.
                         if (Predmet::jeToCervene($polozka)) {
-                            $trickaOrgovskaZdarma++;
+                            $trickaOrgovskaZdarma++; // červená
                             continue;
                         }
                         if (Predmet::jeToModre($polozka)) {
-                            $trickaVypravecskaZdarma++;
+                            $trickaVypravecskaZdarma++; // modrá
                             continue;
                         }
-                        $trickaUcastnickaZdarma++;
+                        $trickaUcastnickaZdarma++; // ostatní
                     } elseif ($this->jeSeSlevou($polozka)) {
                         $trickaSeSlevou++;
                         continue;
@@ -232,15 +237,17 @@ SQL,
                     $tilkaSlevyCelkem  += $polozka->sleva;
 
                     if ($this->jeZdarma($polozka)) {
+                        // Rozpad volných tílek podle BARVY (stejná logika jako u triček výše):
+                        // historické kódy Orgovska/Vypravecska/Ucastnicka = červená / modrá / ostatní.
                         if (Predmet::jeToCervene($polozka)) {
-                            $tilkaOrgovskaZdarma++;
+                            $tilkaOrgovskaZdarma++; // červená
                             continue;
                         }
                         if (Predmet::jeToModre($polozka)) {
-                            $tilkaVypravecskaZdarma++;
+                            $tilkaVypravecskaZdarma++; // modrá
                             continue;
                         }
-                        $tilkaUcastnickaZdarma++;
+                        $tilkaUcastnickaZdarma++; // ostatní
                     } elseif ($this->jeSeSlevou($polozka)) {
                         $tilkaSeSlevou++;
                         continue;
@@ -455,15 +462,15 @@ SQL,
             ['Ir-Ucast-Hermani', 'Počet letos přihlášených hermanů, kteří souběžně nejsou partneři ani vypravěči', $participantStats['Ir-Ucast-Hermani'] ?? 0],
             ['Xr-Tricka-Zaklad', 'Trička placená - kusy', $trickaPlacena],
             ['Xr-Tricka-Sleva', 'Trička se slevou - kusy', $trickaSeSlevou],
-            ['Nr-TrickaOrgovskaZdarma', 'Trička zdarma - kusy', $trickaOrgovskaZdarma],
-            ['Nr-TrickaVypravecskaZdarma', 'Trička zdarma - kusy', $trickaVypravecskaZdarma],
-            ['Nr-TrickaUcastnickaZdarma', 'Trička zdarma - kusy', $trickaUcastnickaZdarma],
+            ['Nr-TrickaOrgovskaZdarma', 'Trička zdarma - červená - kusy', $trickaOrgovskaZdarma],
+            ['Nr-TrickaVypravecskaZdarma', 'Trička zdarma - modrá - kusy', $trickaVypravecskaZdarma],
+            ['Nr-TrickaUcastnickaZdarma', 'Trička zdarma - ostatní - kusy', $trickaUcastnickaZdarma],
             ['Nr-TrickaZdarma', 'Trička zdarma - kusy', $trickaZdarma],
             ['Xr-Tilka-Zaklad', 'Tílka placená - kusy', $tilkaPlacena],
             ['Xr-Tilka-Sleva', 'Tílka se slevou - kusy', $tilkaSeSlevou],
-            ['Nr-TilkaOrgovskaZdarma', 'Tílka zdarma - kusy', $tilkaOrgovskaZdarma],
-            ['Nr-TilkaVypravecskaZdarma', 'Tílka zdarma - kusy', $tilkaVypravecskaZdarma],
-            ['Nr-TilkaUcastnickaZdarma', 'Tílka zdarma - kusy', $tilkaUcastnickaZdarma],
+            ['Nr-TilkaOrgovskaZdarma', 'Tílka zdarma - červená - kusy', $tilkaOrgovskaZdarma],
+            ['Nr-TilkaVypravecskaZdarma', 'Tílka zdarma - modrá - kusy', $tilkaVypravecskaZdarma],
+            ['Nr-TilkaUcastnickaZdarma', 'Tílka zdarma - ostatní - kusy', $tilkaUcastnickaZdarma],
             ['Nr-TilkaZdarma', 'Tílka zdarma - kusy', $tilkaZdarma],
             ['Vr-Svrsky-Celkem', 'Celkem svršků (trička + tílka) - kusy', $trickaZdarma + $trickaSeSlevou + $trickaPlacena + $tilkaZdarma + $tilkaSeSlevou + $tilkaPlacena],
             ['Vr-Tricka-Celkem', 'Celkem triček - kusy', $trickaZdarma + $trickaSeSlevou + $trickaPlacena],

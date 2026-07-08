@@ -20,7 +20,7 @@ class Cenik
     private int   $zbyvajicichMoznychKostekZdarma = 1;
     private int   $zbyvajicichMoznychPlacekZdarma = 1;
     private ?int  $jakychkoliTricekZdarma         = null;
-    private ?int  $modrychTricekZdarma            = null;
+    private ?int  $bonusovychTricekZdarma         = null;
     private array $textySlevExtra                 = [];
 
     /**
@@ -92,7 +92,7 @@ class Cenik
             Pravo::JAKEKOLIV_TRICKO_ZDARMA           => ['jedno jakékoliv tričko zdarma', Pravo::DVE_JAKAKOLI_TRICKA_ZDARMA],
             Pravo::MUZE_OBJEDNAVAT_MODRA_TRICKA      => 'modré tričko se slevou',
             Pravo::UBYTOVANI_MUZE_OBJEDNAT_JEDNU_NOC => 'můžeš si objednat ubytování i pro jedinou noc',
-            Pravo::MODRE_TRICKO_ZDARMA               => 'modré tričko zdarma za dosažení bonusu %d',
+            Pravo::MODRE_TRICKO_ZDARMA               => 'tričko zdarma za dosažení bonusu %d',
         ];
         $bonus                             = $this->systemoveNastaveni->modreTrickoZdarmaOd();
         $texty[Pravo::MODRE_TRICKO_ZDARMA] = sprintf(
@@ -276,8 +276,12 @@ class Cenik
                     discount: $cenaSeSlevou['sleva'],
                 );
             }
-        } elseif ($typ == TypPredmetu::TRICKO && Predmet::jeToModre($r[PredmetySql::NAZEV]) && $this->modrychTricekZdarma() > 0) {
-            $this->modrychTricekZdarma($this->modrychTricekZdarma() - 1);
+        } elseif ($typ == TypPredmetu::TRICKO && $this->bonusovychTricekZdarma() > 0) {
+            // Za dosažení bonusu je zdarma libovolné tričko. Nákupy se cení od
+            // nejlevnějšího (viz ORDER BY v Finance::zapoctiShop), takže sleva
+            // vždy dopadne na nejlevnější tričko v košíku. Pokud v košíku žádné
+            // tričko není, čítač se nevyčerpá a bonus se neuplatní.
+            $this->bonusovychTricekZdarma($this->bonusovychTricekZdarma() - 1);
 
             return new PriceAfterDiscountDto(
                 finalPrice: 0.0,
@@ -335,14 +339,14 @@ class Cenik
         return $this->jakychkoliTricekZdarma;
     }
 
-    private function modrychTricekZdarma(?int $modrychTricekZdarma = null): int
+    private function bonusovychTricekZdarma(?int $bonusovychTricekZdarma = null): int
     {
-        if ($modrychTricekZdarma !== null) {
-            $this->modrychTricekZdarma = $modrychTricekZdarma;
-        } elseif ($this->modrychTricekZdarma === null) {
-            $this->modrychTricekZdarma = $this->finance->maximalniPocetModrychTricekZdarma();
+        if ($bonusovychTricekZdarma !== null) {
+            $this->bonusovychTricekZdarma = $bonusovychTricekZdarma;
+        } elseif ($this->bonusovychTricekZdarma === null) {
+            $this->bonusovychTricekZdarma = $this->finance->maximalniPocetBonusovychTricekZdarma();
         }
 
-        return $this->modrychTricekZdarma;
+        return $this->bonusovychTricekZdarma;
     }
 }
