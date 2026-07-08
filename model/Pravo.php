@@ -46,7 +46,8 @@ class Pravo extends \DbObject
     public const JIDLO_ZDARMA     = 1005; // Může si objednávat jídlo zdarma
     public const UBYTOVANI_ZDARMA = 1008; // Má zdarma ubytování po celou dobu
     /**
-     * modré tričko zdarma při slevě, jejíž hodnota je určená konstantou @see MODRE_TRICKO_ZDARMA_OD
+     * Tričko zdarma při dosažení bonusu, jehož hodnota je určená konstantou @see MODRE_TRICKO_ZDARMA_OD
+     * (dříve platilo jen na modré tričko, nově na libovolné – aplikuje se na nejlevnější tričko v košíku)
      * @see \Gamecon\SystemoveNastaveni\SystemoveNastaveni::definujOdvozeneKonstanty
      */
     public const MODRE_TRICKO_ZDARMA                         = 1012;
