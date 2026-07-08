@@ -2685,6 +2685,12 @@ SQL
             $parametry |= self::NEOTEVRENE;
             $parametry |= self::DOPREDNE;
         }
+        if ($prihlasujici->maPravoNaPristupDoPrezence()) {
+            // prezenční admin smí posadit účastníky i na dosud nepublikované (NOVA)
+            // technické a brigádnické aktivity – výjimku dál zužuje guard v
+            // procNeniPrihlasovatelna() na typ()->jeInterni()
+            $parametry |= self::INTERNI;
+        }
 
         $prihlasovatelna = $this->prihlasovatelna($parametry);
         if (!$prihlasovatelna) {
@@ -3053,6 +3059,12 @@ SQL
         if ($prihlasujici->maPravoNaPrihlasovaniNaDosudNeotevrene()) {
             $parametry |= self::NEOTEVRENE;
             $parametry |= self::DOPREDNE;
+        }
+        if ($prihlasujici->maPravoNaPristupDoPrezence()) {
+            // prezenční admin smí posadit účastníky i na dosud nepublikované (NOVA)
+            // technické a brigádnické aktivity – výjimku dál zužuje guard v
+            // procNeniPrihlasovatelna() na typ()->jeInterni()
+            $parametry |= self::INTERNI;
         }
 
         return $this->prihlasovatelna($parametry);
@@ -3745,6 +3757,13 @@ SQL,
             )
             // todo: přidat DSC
             || ($uzivatel && ($this->prihlasen($uzivatel) || $this->organizuje($uzivatel) || $uzivatel->jeOrganizator()))
+            // prezenční admin vidí skryté (NOVA) technické/brigádnické aktivity, aby na ně
+            // mohl posadit účastníky – shodné zúžení jako enrollment guard v procNeniPrihlasovatelna().
+            // Záměrně NE ostatní neveřejné aktivity (jiný stav/typ), na ty přihlašovat nesmí.
+            || ($uzivatel
+                && $uzivatel->maPravoNaPristupDoPrezence()
+                && $this->a[Sql::STAV] == StavAktivity::NOVA
+                && TypAktivity::jeInterniDleId($this->a[Sql::TYP]))
         );
     }
 
