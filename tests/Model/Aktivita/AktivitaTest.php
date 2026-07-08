@@ -55,6 +55,13 @@ SQL,
                     TypSql::STRANKA_O => dbFetchSingle('SELECT id_stranky FROM stranky LIMIT 1'),
                 ],
             ),
+            fn () => dbInsertUpdate(
+                TypSql::TYP_AKTIVITY_TABULKA,
+                [
+                    TypSql::ID_TYPU   => TypAktivity::TECHNICKA,
+                    TypSql::STRANKA_O => dbFetchSingle('SELECT id_stranky FROM stranky LIMIT 1'),
+                ],
+            ),
         ];
     }
 
@@ -265,6 +272,130 @@ SQL,
 
         self::assertFalse($aktivita->prihlasovatelnaProPrihlasujiciho($bezPrava));
         self::assertTrue($aktivita->prihlasovatelnaProPrihlasujiciho($sPravem));
+    }
+
+    /**
+     * @test
+     */
+    public function prezencniAdminMuzePosaditNaSkrytouTechnickouAktivitu(): void
+    {
+        $ted = self::ted();
+        dbUpdate(
+            Sql::AKCE_SEZNAM_TABULKA,
+            [
+                Sql::ZACATEK => DateTimeGamecon::createFromInterface($ted->modify('+2 days')),
+                Sql::KONEC   => DateTimeGamecon::createFromInterface($ted->modify('+2 days +2 hours')),
+                Sql::TYP     => TypAktivity::TECHNICKA,
+                // NOVA = v přípravě, neveřejná (nepublikovaná)
+                Sql::STAV    => StavAktivity::NOVA,
+            ],
+            [
+                Sql::ID_AKCE => 1,
+            ],
+        );
+
+        $aktivita = Aktivita::zId(
+            id: 1,
+            systemoveNastaveni: $this->systemoveNastaveniSBeziciRegistraci($ted),
+        );
+
+        // Bez práva do prezence: skrytou technickou aktivitu nelze obsloužit …
+        $bezPrava = $this->createMock(\Uzivatel::class);
+        $bezPrava->method('maPravoNaPristupDoPrezence')->willReturn(false);
+
+        // … prezenční admin (Pravo::ADMINISTRACE_PREZENCE) ano.
+        $prezencniAdmin = $this->createMock(\Uzivatel::class);
+        $prezencniAdmin->method('maPravoNaPristupDoPrezence')->willReturn(true);
+
+        self::assertFalse($aktivita->prihlasovatelnaProPrihlasujiciho($bezPrava));
+        self::assertTrue($aktivita->prihlasovatelnaProPrihlasujiciho($prezencniAdmin));
+    }
+
+    /**
+     * Regresní pojistka pro filtr v web/moduly/api/aktivityUzivatel.php – skrytou
+     * (NOVA) aktivitu zahazuje přes !viditelnaPro($u) ještě před výpočtem
+     * prihlasovatelna. Prezenční admin (neorg) ji musí vidět, jinak by ji z UI
+     * neměl jak přihlásit.
+     *
+     * @test
+     */
+    public function prezencniAdminVidiSkrytouTechnickouAktivitu(): void
+    {
+        $ted = self::ted();
+        dbUpdate(
+            Sql::AKCE_SEZNAM_TABULKA,
+            [
+                Sql::ZACATEK => DateTimeGamecon::createFromInterface($ted->modify('+2 days')),
+                Sql::KONEC   => DateTimeGamecon::createFromInterface($ted->modify('+2 days +2 hours')),
+                Sql::TYP     => TypAktivity::TECHNICKA,
+                Sql::STAV    => StavAktivity::NOVA,
+            ],
+            [
+                Sql::ID_AKCE => 1,
+            ],
+        );
+
+        $aktivita = Aktivita::zId(id: 1);
+
+        // Běžný uživatel (neorg, bez práva do prezence) skrytou aktivitu nevidí …
+        $bezPrava = $this->createMock(\Uzivatel::class);
+        $bezPrava->method('jeOrganizator')->willReturn(false);
+        $bezPrava->method('maPravoNaPristupDoPrezence')->willReturn(false);
+
+        // … prezenční admin ano.
+        $prezencniAdmin = $this->createMock(\Uzivatel::class);
+        $prezencniAdmin->method('jeOrganizator')->willReturn(false);
+        $prezencniAdmin->method('maPravoNaPristupDoPrezence')->willReturn(true);
+
+        self::assertFalse($aktivita->viditelnaPro($bezPrava));
+        self::assertTrue($aktivita->viditelnaPro($prezencniAdmin));
+        // veřejně (bez uživatele) zůstává neviditelná
+        self::assertFalse($aktivita->viditelnaPro(null));
+
+        // Negativní pojistka: neveřejnou NEINTERNÍ aktivitu (běžný typ) prezenční
+        // admin vidět NESMÍ – přihlašovat na ni nemůže, viditelnost je zúžená
+        // shodně s enrollment guardem (NOVA && typ()->jeInterni()).
+        dbUpdate(
+            Sql::AKCE_SEZNAM_TABULKA,
+            [
+                Sql::ZACATEK => DateTimeGamecon::createFromInterface($ted->modify('+2 days')),
+                Sql::KONEC   => DateTimeGamecon::createFromInterface($ted->modify('+2 days +2 hours')),
+                Sql::TYP     => TypAktivity::DESKOHERNA,
+                Sql::STAV    => StavAktivity::NOVA,
+            ],
+            [
+                Sql::ID_AKCE => 2,
+            ],
+        );
+        $beznaSkryta = Aktivita::zId(id: 2);
+
+        self::assertFalse($beznaSkryta->viditelnaPro($prezencniAdmin));
+        self::assertFalse($beznaSkryta->viditelnaPro($bezPrava));
+    }
+
+    private function systemoveNastaveniSBeziciRegistraci(DateTimeImmutableStrict $ted): SystemoveNastaveni
+    {
+        return new class($ted) extends SystemoveNastaveni {
+            public function __construct(
+                DateTimeImmutableStrict $ted,
+            ) {
+                parent::__construct(
+                    rocnik: ROCNIK,
+                    ted: $ted,
+                    prostredi: Prostredi::Production,
+                    databazoveNastaveni: DatabazoveNastaveni::vytvorZGlobals(),
+                    rootAdresarProjektu: '',
+                    privateCacheDir: SPEC,
+                    kernel: new Kernel('test', false),
+                    publicCacheDir: CACHE,
+                );
+            }
+
+            public function probihaRegistraceAktivit(): bool
+            {
+                return true;
+            }
+        };
     }
 
     private function systemoveNastaveniPredPrvniVlnou(DateTimeImmutableStrict $ted): SystemoveNastaveni
