@@ -285,9 +285,8 @@ SQL,
             [
                 Sql::ZACATEK => DateTimeGamecon::createFromInterface($ted->modify('+2 days')),
                 Sql::KONEC   => DateTimeGamecon::createFromInterface($ted->modify('+2 days +2 hours')),
-                // NOVA = v přípravě, neveřejná (nepublikovaná)
                 Sql::TYP     => TypAktivity::TECHNICKA,
-                Sql::STAV    => StavAktivity::NOVA,
+                Sql::STAV    => StavAktivity::NOVA, // NOVA = v přípravě, neveřejná (nepublikovaná)
             ],
             [
                 Sql::ID_AKCE => 1,
