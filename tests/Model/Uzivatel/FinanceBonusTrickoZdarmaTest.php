@@ -18,7 +18,7 @@ use Gamecon\Uzivatel\Finance;
 class FinanceBonusTrickoZdarmaTest extends AbstractTestDb
 {
     private const ID_UZIVATELE = 334;
-    private const ID_ROLE      = -334334;
+    private const ID_ROLE = -334334;
 
     protected static array $initQueries = [
         <<<SQL
@@ -30,45 +30,64 @@ SQL,
 INSERT INTO role_seznam(id_role, kod_role, nazev_role, popis_role, rocnik_role, typ_role, vyznam_role)
 VALUES ($0, 'TEST_BONUS_TRICKO', 'Test role bonus tričko', '', -1, 'trvala', '')
 SQL,
-            [0 => self::ID_ROLE],
+            [
+                0 => self::ID_ROLE,
+            ],
         ],
         [
             <<<SQL
 INSERT INTO prava_role(id_role, id_prava) VALUES ($0, $1)
 SQL,
-            [0 => self::ID_ROLE, 1 => Pravo::MODRE_TRICKO_ZDARMA],
+            [
+                0 => self::ID_ROLE,
+                1 => Pravo::MODRE_TRICKO_ZDARMA,
+            ],
         ],
         [
             <<<SQL
 INSERT INTO uzivatele_role(id_uzivatele, id_role, posadil) VALUES ($0, $1, $0)
 SQL,
-            [0 => self::ID_UZIVATELE, 1 => self::ID_ROLE],
+            [
+                0 => self::ID_UZIVATELE,
+                1 => self::ID_ROLE,
+            ],
         ],
         // jeden předmět + dvě NEmodrá trička s různou cenou
         [
             <<<SQL
 INSERT INTO shop_predmety SET id_predmetu = 33420, nazev = 'nějaký předmět', model_rok = $0, kod_predmetu = CONCAT('bonus_predmet_', $0), cena_aktualni = 200, stav = 1, nabizet_do = NOW(), kusu_vyrobeno = 100, typ = $1
 SQL,
-            [0 => ROCNIK, 1 => TypPredmetu::PREDMET],
+            [
+                0 => ROCNIK,
+                1 => TypPredmetu::PREDMET,
+            ],
         ],
         [
             <<<SQL
 INSERT INTO shop_predmety SET id_predmetu = 33421, nazev = 'zelené tričko', model_rok = $0, kod_predmetu = CONCAT('bonus_zelene_tricko_', $0), cena_aktualni = 300, stav = 1, nabizet_do = NOW(), kusu_vyrobeno = 100, typ = $1
 SQL,
-            [0 => ROCNIK, 1 => TypPredmetu::TRICKO],
+            [
+                0 => ROCNIK,
+                1 => TypPredmetu::TRICKO,
+            ],
         ],
         [
             <<<SQL
 INSERT INTO shop_predmety SET id_predmetu = 33422, nazev = 'žluté tričko', model_rok = $0, kod_predmetu = CONCAT('bonus_zlute_tricko_', $0), cena_aktualni = 500, stav = 1, nabizet_do = NOW(), kusu_vyrobeno = 100, typ = $1
 SQL,
-            [0 => ROCNIK, 1 => TypPredmetu::TRICKO],
+            [
+                0 => ROCNIK,
+                1 => TypPredmetu::TRICKO,
+            ],
         ],
         [
             <<<SQL
 INSERT INTO shop_nakupy(id_uzivatele, id_predmetu, rok, cena_nakupni)
 SELECT 334, id_predmetu, $0, cena_aktualni FROM shop_predmety WHERE id_predmetu BETWEEN 33420 AND 33422
 SQL,
-            [0 => ROCNIK],
+            [
+                0 => ROCNIK,
+            ],
         ],
         // Práh pro tričko zdarma (MODRE_TRICKO_ZDARMA_OD) je odvozený jako
         // 3× BONUS_ZA_STANDARDNI_3H_AZ_5H_AKTIVITU (viz definujOdvozeneKonstanty).
@@ -100,7 +119,7 @@ SQL,
             $systemoveNastaveni->modreTrickoZdarmaOd(),
             'Práh bonusu musí být 0 (nastaveno přes DB). Nedefinoval někdo konstantu MODRE_TRICKO_ZDARMA_OD?',
         );
-        $finance            = new Finance(\Uzivatel::zIdUrcite(self::ID_UZIVATELE), 0, $systemoveNastaveni);
+        $finance = new Finance(\Uzivatel::zIdUrcite(self::ID_UZIVATELE), 0, $systemoveNastaveni);
 
         // předmět 200 + trička 300 + 500, zdarma nejlevnější tričko (300)
         self::assertSame(
