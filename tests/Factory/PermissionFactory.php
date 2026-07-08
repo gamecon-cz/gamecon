@@ -43,7 +43,11 @@ final class PermissionFactory extends PersistentProxyObjectFactory
     protected function defaults(): array|callable
     {
         return [
-            PermissionEntityStructure::id         => self::faker()->unique()->numberBetween(1, 100000),
+            // Stay well above seeded r_prava_soupis rows (ids run up to
+            // ~1037 today; new hand-curated permissions land near the top
+            // of that small range). 10000..999999 leaves ample headroom
+            // and unique() has 990k slots.
+            PermissionEntityStructure::id         => self::faker()->unique()->numberBetween(10_000, 999_999),
             PermissionEntityStructure::jmenoPrava => self::faker()->unique()->text(255),
             PermissionEntityStructure::popisPrava => self::faker()->text(),
         ];
