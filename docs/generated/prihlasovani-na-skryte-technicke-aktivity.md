@@ -18,9 +18,11 @@ $interni && $this->idStavu() == StavAktivity::NOVA && $this->typ()->jeInterni()
 
 Kontroluje se **operátor** (`$prihlasujici`), ne posazovaný uživatel. Přihlašování z programu (web i admin) jde přes jeden endpoint `web/moduly/api/aktivitaAkce.php` (admin `admin/scripts/api/aktivitaAkce.php` ho jen `require`-uje) → `Aktivita::prihlasovatkoZpracujBezBack($uPracovni, $u)`, kde `$u` (2. param `$prihlasujici`) je přihlášený operátor. Běžný účastník je sám sobě operátorem a právo 103 nemá → sám sebe na skrytou technickou nepřihlásí.
 
-## Dvě brány, ne jedna (gotcha)
+## Tři brány, ne jedna (gotcha)
 
 Povolit backendový guard (`INTERNI`) **nestačí**. Preact program bere aktivity z `web/moduly/api/aktivityUzivatel.php`, které skrytou aktivitu zahodí filtrem `!$aktivita->viditelnaPro($u)` **ještě před** výpočtem `prihlasovatelna`. `Aktivita::viditelnaPro()` proto pouští prezenčnímu adminovi (`maPravoNaPristupDoPrezence()`) právě **NOVA aktivity interního typu** (`jeInterniDleId`) — stejné zúžení jako enrollment guard. Záměrně **ne** ostatní neveřejné aktivity (jiný stav/typ), na ty přihlašovat nesmí. Obě místa (visibility + enrollment guard) musí zůstat v souladu, jinak buď admin aktivitu neuvidí, nebo naopak vidí víc, než na co smí sahat.
+
+**Třetí brána je ve frontendu (Preact).** I když backend interní aktivitu do `aktivitySkryte` pošle, program ji ještě filtruje v `ui/src/store/program/logic/aktivity.ts` (`filtrujAktivity`). Bez zapnutého admin tlačítka „Interní" (`zobrazInterni`/`filtrInterni`) se interní aktivity, na které účastník **není** přihlášen, schovají jako clutter; ty, na které **je** přihlášen, zůstávají. Správná podmínka je `!aktivita.interni || !!aktivita.stavPrihlaseni`. Historicky tu byla **obrácená negace** (`!aktivita.stavPrihlaseni`) → po posazení účastníka na interní aktivitu ta z programu (i z „můj program") **zmizela**, přitom ji účastník měl dál ve výpisu aktivit na tabu Uživatel. Opraveno 2026-07 (commit „Povolit zápis na skryté interní aktivity" byl backend; frontend fix následoval). **Bundle je verzovaný** (`web/soubory/ui/bundle.js` + `admin/files/ui/bundle.js`) — po změně `.ts` je nutný rebuild (`cd ui && vite build` + `vite build --outDir ../admin/files/ui`), jinak se změna neprojeví.
 
 ## Časová brána
 
