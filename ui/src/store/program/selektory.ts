@@ -8,10 +8,20 @@ import { GAMECON_KONSTANTY } from "../../env";
 import { Aktivita } from "./slices/programDataSlice";
 import { NastaveniTymuData } from "./slices/všeobecnéSlice";
 
-const useFiltrAktivitNeboZeStavu = (aktivitaFiltr?: FiltrAktivit) => {
+const useFiltrAktivitNeboZeStavu = (aktivitaFiltr?: FiltrAktivit): FiltrAktivit => {
   const urlStav = useProgramStore((s) => s.urlStav);
 
-  return aktivitaFiltr ?? (urlStav as FiltrAktivit);
+  if (aktivitaFiltr) return aktivitaFiltr;
+
+  // URL stav používá klíč `zobrazInterni` (přepínač „Interní"), ale filtr
+  // (filtrujAktivity) čte `filtrInterni`. Bez tohoto přemostění by
+  // `filtrInterni` bylo vždy undefined → interní (nepublikované technické/
+  // brigádnické) aktivity by se skrývaly pro všechny a tlačítko „Interní"
+  // by nedělalo nic.
+  return {
+    ...(urlStav as FiltrAktivit),
+    filtrInterni: urlStav.zobrazInterni,
+  };
 };
 
 const useMapováníTagů = () => {
