@@ -8,8 +8,8 @@
   <form method="post" enctype="multipart/form-data">
     <input type="file" name="{souborInputName}"> <input type="submit" name="pokojeImport" value="Nahrát">
     <label>
-      <input type="checkbox" name="povolitMazaniOp" value="1">
-      <i class="fa fa-trash"></i> Povolit mazání OP <span style="font-size: smaller">(prázdnou buňkou)</span>
+      <input type="checkbox" name="povolitPrepisOsobnichUdaju" value="1">
+      <i class="fa fa-trash"></i> Povolit přepis / mazání osobních údajů <span style="font-size: smaller">(OP a občanství &ndash; přepsání existující hodnoty i smazání prázdnou buňkou)</span>
     </label>
   </form>
 </div>
