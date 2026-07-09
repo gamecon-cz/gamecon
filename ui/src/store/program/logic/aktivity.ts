@@ -219,10 +219,12 @@ export const filtrujAktivity = (aktivity: Aktivita[], filtr: FiltrAktivit, mapov
   if (!filtrInterni)
     aktivityFiltrované = aktivityFiltrované.filter(
       // Bez zapnutého filtru „Interní" schováme interní (nepublikované technické/
-      // brigádnické) aktivity, na které účastník NENÍ přihlášený – ty jsou jen
-      // clutter. Aktivitu, na kterou už přihlášený je, ponecháme (jinak by po
-      // posazení účastníka zmizela z programu i z „můj program").
-      (aktivita) => !aktivita.interni || !!aktivita.stavPrihlaseni
+      // brigádnické) aktivity, ke kterým účastník nemá vztah – ty jsou jen
+      // clutter. Aktivitu, na kterou už přihlášený je, nebo kterou vede (vedu),
+      // ponecháme (jinak by po posazení účastníka zmizela z programu i z „můj
+      // program", a stejně tak by z „můj program" zmizela org jeho neveřejná
+      // technická/brigádnická aktivita – „můj program" ji přitom vč. vedu bere).
+      (aktivita) => !aktivita.interni || !!aktivita.stavPrihlaseni || !!aktivita.vedu
     );
 
   // TODO: filtrovat podle všech podmínek oddělených | ne jen podle první
