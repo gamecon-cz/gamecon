@@ -77,7 +77,7 @@ class GcMailOdesilatelTest extends TestCase
             prefix: '',
         );
 
-        self::assertSame('notifikace@gamecon.cz', $vystup->getAddress());
+        self::assertSame('info@gamecon.cz', $vystup->getAddress());
         self::assertSame('GameCon', $vystup->getName());
     }
 
@@ -91,7 +91,7 @@ class GcMailOdesilatelTest extends TestCase
             prefix: 'β',
         );
 
-        self::assertSame('notifikace@gamecon.cz', $vystup->getAddress());
+        self::assertSame('info@gamecon.cz', $vystup->getAddress());
         self::assertSame('β GameCon', $vystup->getName());
     }
 
