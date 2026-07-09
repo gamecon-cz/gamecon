@@ -98,6 +98,17 @@ class Program
         // místností, jak tomu bývalo před přechodem na Preact.
         $vychoziNastaveniProgramu = [];
         $vychoziVyberProgramu     = null;
+        if ($jeAdmin) {
+            // Adminům defaultně zapneme filtr „Interní", aby v programu rovnou
+            // viděli nepublikované (NOVA) technické/brigádnické aktivity a mohli
+            // na ně jednoduše zapisovat (bez tohoto defaultu chybí i celá sekce
+            // „Brigádnické (aktivity)", protože se skládá jen z reálně
+            // zobrazených aktivit). Přepínač jde vypnout – „interni=false" se pak
+            // zapíše do URL a vypnutí přežije reload (viz PROGRAM_VYCHOZI_NASTAVENI
+            // v logic/url.ts). Klíč je query klíč „interni" (ZOBRAZ_INTERNÍ_QUERY_KEY),
+            // ne stavový „zobrazInterni".
+            $vychoziNastaveniProgramu['interni'] = true;
+        }
         if ($pageName === 'program-mistnosti') {
             $vychoziNastaveniProgramu['podleMistnosti'] = true;
             $vychoziNastaveniProgramu['zobrazPrazdne']  = true;

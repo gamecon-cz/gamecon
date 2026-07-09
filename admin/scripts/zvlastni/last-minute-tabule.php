@@ -22,9 +22,20 @@ $aktivity                  = Aktivita::zRozmezi(
     Aktivita::JEN_VOLNE | Aktivita::VEREJNE | Aktivita::NEUZAVRENE,
 );
 usort($aktivity, static function (Aktivita $nejakaAktivita, Aktivita $dalsiAktivita) {
-    return $nejakaAktivita->zacatek() <=> $dalsiAktivita->zacatek();
+    $i = $nejakaAktivita->zacatek() <=> $dalsiAktivita->zacatek();
+    if ($i == 0)
+    {
+        $zaplnenost1 = $nejakaAktivita->pocetPrihlasenych() / $nejakaAktivita->kapacita();
+        $zaplnenost2 = $dalsiAktivita->pocetPrihlasenych() / $dalsiAktivita->kapacita();
+        return -($zaplnenost1 <=> $zaplnenost2);
+    }
+    return $i;
 });
 foreach ($aktivity as $a) {
+    if (!$a->prihlasovatelna() || $a->jeToDalsiKolo())
+    {
+        continue;
+    }
     $zacatekPrvniAktivityBloku = $zacatekPrvniAktivityBloku ?: $a->zacatek()->format('G:i');
     if ($denPredchozihoBloku && $denPredchozihoBloku != $a->zacatek()->format('z')) {
         $zacatekPrvniAktivityBloku = $zacatekPrvniAktivityBloku ?: $a->zacatek()->format('G:i');

@@ -18,7 +18,7 @@ class GcMail
 {
     public const FORMAT_HTML = 'html';
     public const FORMAT_TEXT = 'text';
-    private const VYCHOZI_EMAIL_ODESILATELE = 'notifikace@gamecon.cz';
+    private const VYCHOZI_EMAIL_ODESILATELE = 'info@gamecon.cz';
 
     public static function vytvorZGlobals(string $text = ''): static
     {
@@ -117,8 +117,15 @@ class GcMail
                 $odeslano = true;
                 $this->zalogujOdeslani($predmet, $format, $adresati, $mail->toString(), $teloHtml);
             } catch (\Throwable $chyba) {
-                $this->zalogujOdeslani($predmet, $format, $adresati, $mail->toString(), $teloHtml, $chyba->getMessage());
-                throw $chyba;
+                sleep(1); //ratelimiting
+                try {
+                    $mailer->send($mail);
+                    $odeslano = true;
+                    $this->zalogujOdeslani($predmet, $format, $adresati, $mail->toString(), $teloHtml);
+                } catch (\Throwable $chyba) {
+                    $this->zalogujOdeslani($predmet, $format, $adresati, $mail->toString(), $teloHtml, $chyba->getMessage());
+                    throw $chyba;
+                }
             }
         }
 
