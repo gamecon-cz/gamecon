@@ -24,8 +24,8 @@ if (!post('pokojeImport')) {
     return;
 }
 
-$vstupniSoubor   = $_FILES[$souborInputName]['tmp_name'] ?? '';
-$povolitMazaniOp = post('povolitMazaniOp');
+$vstupniSoubor              = $_FILES[$souborInputName]['tmp_name'] ?? '';
+$povolitPrepisOsobnichUdaju = (bool)post('povolitPrepisOsobnichUdaju');
 
 if (!is_readable($vstupniSoubor)) {
     throw new Chyba('Soubor se nepodařilo načíst');
@@ -175,27 +175,39 @@ while ($rowIterator->valid()) {
                 if ($cisloDokladu === '') {
                     // prázdná buňka = případné smazání existujícího dokladu (jen s explicitním povolením)
                     if ($soucasneCislo !== '') {
-                        if ($povolitMazaniOp) {
+                        if ($povolitPrepisOsobnichUdaju) {
                             $ucastnik->cisloOp('');
                             $ucastnik->typDokladuTotoznosti('');
                             $zapsanoZmenVTransakci++;
                         } else {
                             $a          = $u->koncovkaDlePohlavi();
-                            $varovani[] = "Účastník {$ucastnik->jmenoNick()} z řádku {$poradiRadku} má prázdné 'cislo_dokladu' ale mazání OP jsi nepovolil{$a}";
+                            $varovani[] = "Účastník {$ucastnik->jmenoNick()} z řádku {$poradiRadku} má prázdné 'cislo_dokladu' ale přepis/mazání osobních údajů jsi nepovolil{$a}";
                         }
                     }
                 } elseif ($cisloDokladu !== $soucasneCislo) {
-                    // neprázdná buňka = přepsat číslo dokladu (i když už nějaké má)
-                    $ucastnik->cisloOp($cisloDokladu);
-                    $zapsanoZmenVTransakci++;
+                    // neprázdná buňka = zápis čísla dokladu; přepis existující hodnoty jen s explicitním povolením
+                    if ($soucasneCislo !== '' && !$povolitPrepisOsobnichUdaju) {
+                        $a          = $u->koncovkaDlePohlavi();
+                        $varovani[] = "Účastník {$ucastnik->jmenoNick()} z řádku {$poradiRadku} už má vyplněné číslo dokladu, ale přepis osobních údajů jsi nepovolil{$a}";
+                    } else {
+                        $ucastnik->cisloOp($cisloDokladu);
+                        $zapsanoZmenVTransakci++;
+                    }
                 }
             }
             if ($indexStatniObcanstvi !== null) {
-                // Občanství přepíšeme jen když je buňka vyplněná (prázdnou nechceme mazat existující údaj).
-                $statniObcanstvi = trim((string)$radek[$indexStatniObcanstvi]);
-                if ($statniObcanstvi !== '' && $statniObcanstvi !== $ucastnik->statniObcanstvi()) {
-                    $ucastnik->statniObcanstvi($statniObcanstvi);
-                    $zapsanoZmenVTransakci++;
+                // Občanství zapíšeme jen když je buňka vyplněná (prázdnou nechceme mazat existující údaj).
+                $statniObcanstvi   = trim((string)$radek[$indexStatniObcanstvi]);
+                $soucasneObcanstvi = $ucastnik->statniObcanstvi();
+                if ($statniObcanstvi !== '' && $statniObcanstvi !== $soucasneObcanstvi) {
+                    // přepis existující hodnoty jen s explicitním povolením
+                    if ($soucasneObcanstvi !== '' && !$povolitPrepisOsobnichUdaju) {
+                        $a          = $u->koncovkaDlePohlavi();
+                        $varovani[] = "Účastník {$ucastnik->jmenoNick()} z řádku {$poradiRadku} už má vyplněné občanství, ale přepis osobních údajů jsi nepovolil{$a}";
+                    } else {
+                        $ucastnik->statniObcanstvi($statniObcanstvi);
+                        $zapsanoZmenVTransakci++;
+                    }
                 }
             }
             dbCommit();
