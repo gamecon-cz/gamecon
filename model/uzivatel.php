@@ -335,6 +335,70 @@ SQL, [Pravo::PORADANI_AKTIVIT],
     }
 
     /**
+     * Vrátí / nastaví státní občanství (volný text, např. "CZE", "SVK").
+     */
+    public function statniObcanstvi(?string $statniObcanstvi = null): string
+    {
+        if ($statniObcanstvi !== null) {
+            $statniObcanstvi = trim($statniObcanstvi);
+            dbQuery(
+                'UPDATE uzivatele_hodnoty SET statni_obcanstvi = $0 WHERE id_uzivatele = ' . $this->r[Sql::ID_UZIVATELE],
+                [0 => $statniObcanstvi],
+            );
+            $this->r[Sql::STATNI_OBCANSTVI] = $statniObcanstvi;
+
+            return $statniObcanstvi;
+        }
+
+        return trim((string)($this->r[Sql::STATNI_OBCANSTVI] ?? ''));
+    }
+
+    /**
+     * Rozpozná, jestli volně psané "státní občanství" znamená ČR. Pole je volný text a reálná data
+     * obsahují spoustu variant ("ČR", "CZ", "CZE", "České", "Česká Republika", "Čech", …).
+     *
+     * Pozor na diakritiku: "ČR"/"ČT" (s háčkem) je jednoznačně české, ale "CR"/"CT" (bez háčku)
+     * jsou dvojznačné (CR = ISO kód Kostariky) → ty za české nebereme. Proto krátký tvar "čr"/"čt"
+     * matchujeme S diakritikou; jednoznačné kódy a slovní tvary až po odstranění diakritiky.
+     */
+    public static function jeCeskeObcanstvi(?string $obcanstvi): bool
+    {
+        $orezane = mb_strtolower(trim((string)$obcanstvi));
+        if ($orezane === '') {
+            return false;
+        }
+        // dvojznačné zkratky bereme za české jen s háčkem ("čt" = běžný překlep "čr")
+        if (in_array($orezane, ['čr', 'čt'], true)) {
+            return true;
+        }
+        $bezDiakritiky = mb_strtolower(removeDiacritics($orezane));
+        // jednoznačné kódy, které žádný cizí stát nepoužívá
+        if (in_array($bezDiakritiky, ['cz', 'cze'], true)) {
+            return true;
+        }
+        // slovní tvary: "ceska/ceske/cesky/cesko/ceska republika", "cechy/cech", "czech/czechia/czech republic"
+        foreach (['cesk', 'cech', 'czech'] as $prefix) {
+            if (str_starts_with($bezDiakritiky, $prefix)) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    /**
+     * Je účastník cizinec? = má vyplněné občanství, které není české (viz jeCeskeObcanstvi()).
+     * Prázdné občanství = nevíme → nepovažujeme za cizince (aby to nehlásilo false-positive
+     * u nevyplněných záznamů; skutečná hodnota se doplní importem ubytování).
+     */
+    public function jeCizinec(): bool
+    {
+        $obcanstvi = $this->statniObcanstvi();
+
+        return $obcanstvi !== '' && !self::jeCeskeObcanstvi($obcanstvi);
+    }
+
+    /**
      * Vrátí datum narození uživatele jako DateTime
      */
     public function datumNarozeni(): DateTimeCz
@@ -1428,6 +1492,18 @@ SQL,
     }
 
     /**
+     * Datum, kdy infopult evidoval převzatý registrační formulář cizince (NULL = chybí).
+     */
+    public function formularCizinceOd(): ?DateTimeImmutable
+    {
+        $formularCizinceOdString = $this->r[Sql::FORMULAR_CIZINCE_OD] ?? null;
+
+        return $formularCizinceOdString
+            ? new DateTimeImmutable($formularCizinceOdString)
+            : null;
+    }
+
+    /**
      * Vrátí přezdívku (nickname) uživatele
      */
     public function login(): string
@@ -2155,6 +2231,7 @@ SQL,
         $tab[Sql::ZUSTATEK] = 0;
         $tab[Sql::POHLAVI] = Pohlavi::MUZ_KOD;
         $tab[Sql::POTVRZENI_ZAKONNEHO_ZASTUPCE] = null;
+        $tab[Sql::FORMULAR_CIZINCE_OD] = null; // nullable DATE, prázdný string by byl nevalidní
         $tab[Sql::ZPUSOB_ZOBRAZENI_NA_WEBU] ??= ZpusobZobrazeniNaWebu::vychozi()->value;
         foreach (Sql::sloupce() as $sloupec) {
             if (! array_key_exists($sloupec, $tab)) {
