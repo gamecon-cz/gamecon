@@ -353,6 +353,17 @@
         </tr>
         <!-- end:potvrzeni -->
 
+        <!-- begin:formularCizince -->
+        <tr>
+          <td><label for="udaj_formular_cizince">Cizinec:</label></td>
+          <td>
+            <input type="checkbox" name="udaje[formular_cizince_od]"
+                   style="margin-left: -3px;" id="udaj_formular_cizince" {formularCizinceAttr}>
+            {formularCizinceText}
+          </td>
+        </tr>
+        <!-- end:formularCizince -->
+
         <tr>
           <td colspan="2" class="clearfix">
             <button style="margin: 0" type="submit" name="kontrolaOsobnichUdajuSubmit" value="1"

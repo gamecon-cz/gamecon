@@ -1,7 +1,7 @@
 <?php
 
 use Gamecon\XTemplate\XTemplate;
-use OpenSpout\Reader\Common\Creator\ReaderFactory;
+use OpenSpout\Reader\XLSX\Reader as XlsxReader;
 
 $souborInputName = 'souborSBalicky';
 
@@ -26,9 +26,8 @@ $dejPoznamkuOVelkemBalicku = static fn(string $balicek, int $rok): string => str
     ? "velký balíček $rok"
     : '';
 
-$reader = ReaderFactory::createFromFileByMimeType($vstupniSoubor);
-$reader->open($vstupniSoubor);
-
+// Přímý XLSX reader místo hádání podle MIME (viz import ubytování).
+$reader = new XlsxReader();
 $reader->open($vstupniSoubor);
 
 $reader->getSheetIterator()->rewind();

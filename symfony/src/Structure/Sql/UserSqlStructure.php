@@ -170,6 +170,11 @@ class UserSqlStructure
     public const statni_obcanstvi = 'statni_obcanstvi';
 
     /**
+     * @see User::$formularCizinceOd
+     */
+    public const formular_cizince_od = 'formular_cizince_od';
+
+    /**
      * @see User::$zpusobZobrazeniNaWebu
      */
     public const zpusob_zobrazeni_na_webu = 'zpusob_zobrazeni_na_webu';

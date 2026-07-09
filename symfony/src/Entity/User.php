@@ -117,6 +117,9 @@ class User
     #[ORM\Column(name: 'statni_obcanstvi', length: 64, nullable: true)]
     private ?string $statniObcanstvi = null;
 
+    #[ORM\Column(name: 'formular_cizince_od', type: Types::DATE_MUTABLE, nullable: true)]
+    private ?\DateTimeInterface $formularCizinceOd = null;
+
     #[ORM\Column(name: 'zpusob_zobrazeni_na_webu', type: Types::SMALLINT, nullable: false, options: [
         'default' => ZpusobZobrazeniNaWebu::POUZE_PREZDIVKA->value,
     ])]
@@ -472,6 +475,18 @@ class User
     public function setStatniObcanstvi(?string $statniObcanstvi): static
     {
         $this->statniObcanstvi = $statniObcanstvi;
+
+        return $this;
+    }
+
+    public function getFormularCizinceOd(): ?\DateTimeInterface
+    {
+        return $this->formularCizinceOd;
+    }
+
+    public function setFormularCizinceOd(?\DateTimeInterface $formularCizinceOd): static
+    {
+        $this->formularCizinceOd = $formularCizinceOd;
 
         return $this;
     }

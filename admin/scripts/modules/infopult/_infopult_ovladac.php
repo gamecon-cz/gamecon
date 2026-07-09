@@ -155,7 +155,7 @@ function updateUzivatelHodnoty(array $udaje, int $uPracovniId, Vyjimkovac $vyjim
 if ($uPracovni && ($udaje = (array)post('udaje'))) {
 
 
-    foreach (['potvrzeni_zakonneho_zastupce'] as $klic) {
+    foreach (['potvrzeni_zakonneho_zastupce', 'formular_cizince_od'] as $klic) {
         if (isset($udaje[$klic])) {
             // pokud je hodnota "" tak to znamená že nedošlo ke změně
             if ($udaje[$klic] == "")

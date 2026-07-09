@@ -88,6 +88,49 @@ SQL,
         return $idsPredmetuUbytovani;
     }
 
+    /**
+     * Dohledá IDs předmětů ubytování podle "typu" (kód předmětu bez poslední 3znakové přípony dne,
+     * viz report ubytování) a seznamu dnů. Používá se při importu ubytování, aby nezáviselo na
+     * konkrétním názvu předmětu (ten se mezi ročníky mění).
+     *
+     * @param string $kodTypu např. "1L", "Hd-1L", "spacak"
+     * @param int[] $dny indexy dnů od začátku Gameconu (shop_predmety.ubytovani_den)
+     * @return int[] IDs předmětů seřazená podle dne
+     * @throws Chyba když se nenajde právě jeden předmět pro každý požadovaný den
+     */
+    public static function dejIdsPredmetuUbytovaniPodleKoduTypu(
+        string $kodTypu,
+        array  $dny,
+        int    $rok = ROCNIK,
+        bool   $hodVyjimkuNeniLiPresne = true,
+    ): array {
+        $dny         = array_values(array_unique(array_map('intval', $dny)));
+        $nalezene    = dbFetchAll(<<<SQL
+SELECT id_predmetu, ubytovani_den
+FROM shop_predmety
+WHERE LEFT(kod_predmetu, CHAR_LENGTH(kod_predmetu) - 3) = $0 COLLATE utf8_czech_ci
+  AND typ = $1
+  AND model_rok = $2
+  AND ubytovani_den IN ($3)
+ORDER BY ubytovani_den
+SQL,
+            [$kodTypu, TypPredmetu::UBYTOVANI, $rok, $dny],
+        );
+        $idsPredmetu = array_map(static fn($radek) => (int)$radek['id_predmetu'], $nalezene);
+
+        if ($hodVyjimkuNeniLiPresne && count($idsPredmetu) !== count($dny)) {
+            throw new Chyba(sprintf(
+                'Nepodařilo se jednoznačně dohledat ubytování typu "%s" pro %d %s. Nalezeno %d předmětů.',
+                $kodTypu,
+                count($dny),
+                count($dny) === 1 ? 'den' : 'dnů',
+                count($idsPredmetu),
+            ));
+        }
+
+        return $idsPredmetu;
+    }
+
     public static function ulozPokojUzivatele(
         string   $pokoj,
         ?int     $prvniNoc,

@@ -35,6 +35,7 @@ class UzivateleHodnotySqlStruktura
     public const TYP_DOKLADU_TOTOZNOSTI              = 'typ_dokladu_totoznosti';
     public const OP                                  = 'op';
     public const STATNI_OBCANSTVI                    = 'statni_obcanstvi';
+    public const FORMULAR_CIZINCE_OD                 = 'formular_cizince_od';
     public const POTVRZENI_ZAKONNEHO_ZASTUPCE        = 'potvrzeni_zakonneho_zastupce';
     public const POTVRZENI_ZAKONNEHO_ZASTUPCE_SOUBOR = 'potvrzeni_zakonneho_zastupce_soubor';
     public const INFOPULT_POZNAMKA                   = 'infopult_poznamka';

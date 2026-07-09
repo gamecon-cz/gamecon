@@ -15,11 +15,10 @@ SELECT
     uzivatele.login_uzivatele,
     uzivatele.jmeno_uzivatele,
     uzivatele.prijmeni_uzivatele,
-    GROUP_CONCAT(DISTINCT IF(
-        predmety.nazev LIKE CONVERT('Spacák%' USING utf8) COLLATE utf8_czech_ci,
-        'Spacák',
-        SUBSTR(predmety.nazev,1, LOCATE(' ', predmety.nazev))
-    )) as typ,
+    -- typ ubytování odvozený z kódu předmětu bez posledních 3 znaků (přípona dne, např. "_st"/"-ct");
+    -- např. "1L_ct" → "1L", "Hd-1L-ne" → "Hd-1L", "spacak_st" → "spacak".
+    -- Nezávisí na názvu předmětu (ten byl 2026 přejmenován na "Postel na …"), a je jednoznačný pro import zpět.
+    GROUP_CONCAT(DISTINCT LEFT(predmety.kod_predmetu, CHAR_LENGTH(predmety.kod_predmetu) - 3)) as typ,
     IF (COUNT(predmety.nazev) != (MAX(predmety.ubytovani_den) - MIN(predmety.ubytovani_den) +1 /* od 0 do 4, tedy 5 dní max */),
         GROUP_CONCAT(predmety.nazev),
         ''

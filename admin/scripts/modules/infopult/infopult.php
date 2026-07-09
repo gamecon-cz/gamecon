@@ -195,6 +195,20 @@ if ($uPracovni) {
         $x->parse('infopult.uzivatel.potvrzeni');
     }
 
+    // Formulář cizince: koleje vyžadují u ubytovaných cizinců (občanství ≠ CZE) registrační formulář.
+    $jeUbytovanyCizinec        = $maObjednaneUbytovani && $uPracovni->jeCizinec();
+    $formularCizinceOd         = $uPracovni->formularCizinceOd();
+    $maLetosniFormularCizince  = $formularCizinceOd && $formularCizinceOd->format('Y') == ROCNIK;
+    if ($jeUbytovanyCizinec) {
+        if ($maLetosniFormularCizince) {
+            $x->assign("formularCizinceAttr", 'checked value=""');
+            $x->assign("formularCizinceText", $ok . " má formulář cizince");
+        } else {
+            $x->assign("formularCizinceText", $err . " chybí formulář cizince!");
+        }
+        $x->parse('infopult.uzivatel.formularCizince');
+    }
+
     $x->assign("telefon", $uPracovni->telefon());
 
     if ($uPracovni->gcPrihlasen()) {
@@ -235,6 +249,9 @@ if ($uPracovni) {
         }
         if ($potrebujePotvrzeniKvuliVeku && !$mameLetosniPotvrzeniKvuliVeku) {
             $zpravyProPotvrzeni[] = 'nemá potvrzení od rodičů';
+        }
+        if ($jeUbytovanyCizinec && !$maLetosniFormularCizince) {
+            $zpravyProPotvrzeni[] = 'nemá formulář cizince';
         }
         if (count($chybejiciUdaje) > 0) {
             $zpravyProPotvrzeni[] = 'nemá kompletní osobní údaje';

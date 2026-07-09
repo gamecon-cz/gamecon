@@ -1,10 +1,9 @@
 <?php
 
-use Gamecon\Cas\DateTimeGamecon;
 use Gamecon\Pravo;
 use Gamecon\Shop\ShopUbytovani;
 use Gamecon\XTemplate\XTemplate;
-use OpenSpout\Reader\Common\Creator\ReaderFactory;
+use OpenSpout\Reader\XLSX\Reader as XlsxReader;
 use Gamecon\Uzivatel\SqlStruktura\UzivateleHodnotySqlStruktura as UzivatelSql;
 
 /**
@@ -34,7 +33,10 @@ if (!is_readable($vstupniSoubor)) {
 
 $zapsanoZmenPerUcastnik = 0;
 
-$reader = ReaderFactory::createFromFileByMimeType($vstupniSoubor);
+// Report ubytování je vždy XLSX; použijeme přímo XLSX reader místo hádání podle MIME
+// (mime_content_type je nespolehlivý – u přeuloženého Excelu vrací i application/zip apod.
+// a ReaderFactory pak hodí neošetřenou výjimku → "stránka nefunguje").
+$reader = new XlsxReader();
 $reader->open($vstupniSoubor);
 
 $reader->getSheetIterator()->rewind();
@@ -55,8 +57,9 @@ $indexPrvniNoc     = $hlavicka['prvni_noc'];
 $indexPosledniNoc  = $hlavicka['posledni_noc'];
 $indexPokoj        = $hlavicka['pokoj'];
 $indexTyp          = $hlavicka['typ'];
-$indexUbytovanS    = $hlavicka['ubytovan_s'] ?? null;
-$indexCisloDokladu = $hlavicka['cislo_dokladu'] ?? null;
+$indexUbytovanS       = $hlavicka['ubytovan_s'] ?? null;
+$indexCisloDokladu    = $hlavicka['cislo_dokladu'] ?? null;
+$indexStatniObcanstvi = $hlavicka['statni_obcanstvi'] ?? null;
 
 $zasifrovanePrazdneOp = Sifrovatko::zasifruj('');
 
@@ -147,10 +150,9 @@ while ($rowIterator->valid()) {
             if (($prvniNoc ?? $posledniNoc) !== null && count($typy) === 1) {
                 $dny          = range($prvniNoc, $posledniNoc);
                 $jedinyTyp    = reset($typy);
-                $typyPoDnech  = array_map(static function (int $den) use ($jedinyTyp) {
-                    return $jedinyTyp . ' ' . DateTimeGamecon::denPodleIndexuOdZacatkuGameconu($den);
-                }, $dny);
-                $idsUbytovani = ShopUbytovani::dejIdsPredmetuUbytovani($typyPoDnech);
+                // "typ" z reportu je kód předmětu bez poslední 3znakové přípony dne (viz finance-report-ubytovani.php);
+                // dohledáme podle něj + dnů, nezávisle na názvu předmětu.
+                $idsUbytovani = ShopUbytovani::dejIdsPredmetuUbytovaniPodleKoduTypu($jedinyTyp, $dny);
             }
             $zapsanoZmenVTransakci += ShopUbytovani::ulozObjednaneUbytovaniUcastnika(
                 $idsUbytovani,
@@ -165,19 +167,35 @@ while ($rowIterator->valid()) {
                 );
             }
             if ($indexCisloDokladu !== null) {
-                $cisloDokladu = trim((string)$radek[$indexCisloDokladu]);
-                if ($cisloDokladu === ''
-                    && ($ucastnik->rawDb()[UzivatelSql::OP] ?? '') !== ''
-                    && Sifrovatko::desifruj($ucastnik->rawDb()[UzivatelSql::OP] ?? '') !== ''
-                ) {
-                    if ($povolitMazaniOp) {
-                        $ucastnik->cisloOp('');
-                        $ucastnik->typDokladuTotoznosti('');
-                        $zapsanoZmenVTransakci++;
-                    } else {
-                        $a          = $u->koncovkaDlePohlavi();
-                        $varovani[] = "Účastník {$ucastnik->jmenoNick()} z řádku {$poradiRadku} má prázdné 'cislo_dokladu' ale mazání OP jsi nepovolil{$a}";
+                $cisloDokladu   = trim((string)$radek[$indexCisloDokladu]);
+                $zasifrovaneOp  = $ucastnik->rawDb()[UzivatelSql::OP] ?? '';
+                $soucasneCislo  = $zasifrovaneOp !== ''
+                    ? Sifrovatko::desifruj($zasifrovaneOp)
+                    : '';
+                if ($cisloDokladu === '') {
+                    // prázdná buňka = případné smazání existujícího dokladu (jen s explicitním povolením)
+                    if ($soucasneCislo !== '') {
+                        if ($povolitMazaniOp) {
+                            $ucastnik->cisloOp('');
+                            $ucastnik->typDokladuTotoznosti('');
+                            $zapsanoZmenVTransakci++;
+                        } else {
+                            $a          = $u->koncovkaDlePohlavi();
+                            $varovani[] = "Účastník {$ucastnik->jmenoNick()} z řádku {$poradiRadku} má prázdné 'cislo_dokladu' ale mazání OP jsi nepovolil{$a}";
+                        }
                     }
+                } elseif ($cisloDokladu !== $soucasneCislo) {
+                    // neprázdná buňka = přepsat číslo dokladu (i když už nějaké má)
+                    $ucastnik->cisloOp($cisloDokladu);
+                    $zapsanoZmenVTransakci++;
+                }
+            }
+            if ($indexStatniObcanstvi !== null) {
+                // Občanství přepíšeme jen když je buňka vyplněná (prázdnou nechceme mazat existující údaj).
+                $statniObcanstvi = trim((string)$radek[$indexStatniObcanstvi]);
+                if ($statniObcanstvi !== '' && $statniObcanstvi !== $ucastnik->statniObcanstvi()) {
+                    $ucastnik->statniObcanstvi($statniObcanstvi);
+                    $zapsanoZmenVTransakci++;
                 }
             }
             dbCommit();

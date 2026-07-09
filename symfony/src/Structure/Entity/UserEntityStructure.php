@@ -155,6 +155,11 @@ class UserEntityStructure
     public const statniObcanstvi = 'statniObcanstvi';
 
     /**
+     * @see User::$formularCizinceOd
+     */
+    public const formularCizinceOd = 'formularCizinceOd';
+
+    /**
      * @see User::$zpusobZobrazeniNaWebu
      */
     public const zpusobZobrazeniNaWebu = 'zpusobZobrazeniNaWebu';
