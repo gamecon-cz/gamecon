@@ -155,7 +155,13 @@ class ProgramStaticFileGenerator implements ResetInterface
         return $this->writeJsonFile('obsazenosti', $rok, $aktivityObsazenost);
     }
 
-    public function updateManifest(int $rok): void
+    /**
+     * @param array<string, string> $freshFiles Mapa {@see ProgramStaticFileType}->value => jméno
+     *   právě vygenerovaného souboru (návratová hodnota generateX()). Pro tyto
+     *   typy se do manifestu zapíše přesně toto jméno – deterministicky, bez
+     *   ohledu na mtime na disku.
+     */
+    public function updateManifest(int $rok, array $freshFiles = []): void
     {
         $outputDir = $this->outputDir;
         $manifestPath = $this->getManifestPath($rok);
@@ -169,10 +175,23 @@ class ProgramStaticFileGenerator implements ResetInterface
 
         // Find current files for each type
         foreach (ProgramStaticFileType::cases() as $type) {
+            // Preferuj přesné jméno souboru vrácené generátorem pro tenhle běh.
+            // Spoléhat se na mtime je nespolehlivé: writeJsonFile() deduplikuje
+            // podle hashe obsahu a při shodě zápis PŘESKOČÍ (ponechá starý mtime).
+            // Když se stav programu vrátí do dřívějšího (bajt po bajtu shodného)
+            // stavu, aktuální soubor má starý mtime, kdežto novější – teď už
+            // neplatný – mezistav by v řazení „nejnovější podle mtime" vyhrál a
+            // zamrazil manifest na neaktuálních datech (např. plná obsazenost).
+            if (isset($freshFiles[$type->value])) {
+                $manifest[$type->value] = $freshFiles[$type->value];
+                continue;
+            }
+
+            // Fallback pro volající, kteří jméno nedodali (první běh apod.):
+            // vezmi nejnověji upravený soubor.
             $pattern = "{$outputDir}/{$type->value}-{$rok}-*.json";
             $files = glob($pattern);
             if ($files) {
-                // Use the most recently modified file
                 usort($files, fn (
                     $a,
                     $b,
@@ -195,11 +214,13 @@ class ProgramStaticFileGenerator implements ResetInterface
             if ($this->readManifest($rok) !== null) {
                 return;
             }
-            $this->generateActivities($rok);
-            $this->generatePopisy($rok);
-            $this->generateObsazenosti($rok);
-            $this->generateStitky($rok);
-            $this->updateManifest($rok);
+            $freshFiles = [
+                ProgramStaticFileType::AKTIVITY->value    => $this->generateActivities($rok),
+                ProgramStaticFileType::POPISY->value      => $this->generatePopisy($rok),
+                ProgramStaticFileType::OBSAZENOSTI->value => $this->generateObsazenosti($rok),
+                ProgramStaticFileType::TAGY->value        => $this->generateStitky($rok),
+            ];
+            $this->updateManifest($rok, $freshFiles);
         } finally {
             $fileLock->unlock("program-static-{$rok}");
         }
