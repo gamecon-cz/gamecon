@@ -401,17 +401,25 @@ class ProgramStaticFileGeneratorTest extends AbstractTestDb
         // Stav A → soubor A, manifest ukazuje na A
         $generator = $this->createGenerator();
         $souborA = $generator->generateActivities(self::ROK);
-        $generator->updateManifest(self::ROK, [ProgramStaticFileType::AKTIVITY->value => $souborA]);
+        $generator->updateManifest(self::ROK, [
+            ProgramStaticFileType::AKTIVITY->value => $souborA,
+        ]);
 
         // Stav B (jiný obsah) → nový soubor B, manifest ukazuje na B
         dbUpdate(
             Sql::AKCE_SEZNAM_TABULKA,
-            [Sql::NAZEV_AKCE => 'Aktivita B'],
-            [Sql::ID_AKCE => $idAktivity],
+            [
+                Sql::NAZEV_AKCE => 'Aktivita B',
+            ],
+            [
+                Sql::ID_AKCE => $idAktivity,
+            ],
         );
         $generator = $this->createGenerator();
         $souborB = $generator->generateActivities(self::ROK);
-        $generator->updateManifest(self::ROK, [ProgramStaticFileType::AKTIVITY->value => $souborB]);
+        $generator->updateManifest(self::ROK, [
+            ProgramStaticFileType::AKTIVITY->value => $souborB,
+        ]);
 
         self::assertNotSame($souborA, $souborB, 'Změna dat musí dát jiný soubor (jiný hash).');
 
@@ -419,8 +427,12 @@ class ProgramStaticFileGeneratorTest extends AbstractTestDb
         // protože soubor s tímto hashem už existuje a jeho mtime zůstává starý).
         dbUpdate(
             Sql::AKCE_SEZNAM_TABULKA,
-            [Sql::NAZEV_AKCE => 'Aktivita A'],
-            [Sql::ID_AKCE => $idAktivity],
+            [
+                Sql::NAZEV_AKCE => 'Aktivita A',
+            ],
+            [
+                Sql::ID_AKCE => $idAktivity,
+            ],
         );
         $generator = $this->createGenerator();
         $souborAznovu = $generator->generateActivities(self::ROK);
@@ -431,7 +443,9 @@ class ProgramStaticFileGeneratorTest extends AbstractTestDb
         touch($this->publicCacheDir . '/program/' . $souborA, time() - 100);
         touch($this->publicCacheDir . '/program/' . $souborB, time() - 10);
 
-        $generator->updateManifest(self::ROK, [ProgramStaticFileType::AKTIVITY->value => $souborAznovu]);
+        $generator->updateManifest(self::ROK, [
+            ProgramStaticFileType::AKTIVITY->value => $souborAznovu,
+        ]);
 
         $manifest = $generator->readManifest(self::ROK);
         self::assertSame(
