@@ -157,9 +157,9 @@ class ProgramStaticFileGenerator implements ResetInterface
 
     /**
      * @param array<string, string> $freshFiles Mapa {@see ProgramStaticFileType}->value => jméno
-     *   právě vygenerovaného souboru (návratová hodnota generateX()). Pro tyto
-     *   typy se do manifestu zapíše přesně toto jméno – deterministicky, bez
-     *   ohledu na mtime na disku.
+     *                                          právě vygenerovaného souboru (návratová hodnota generateX()). Pro tyto
+     *                                          typy se do manifestu zapíše přesně toto jméno – deterministicky, bez
+     *                                          ohledu na mtime na disku.
      */
     public function updateManifest(int $rok, array $freshFiles = []): void
     {
