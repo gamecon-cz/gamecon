@@ -348,6 +348,11 @@ class ProgramStaticFileGenerator implements ResetInterface
     public function reset(): void
     {
         $this->activitiesCache = [];
+        // Worker běží jako jeden dlouho žijící proces přes víc iterací. Bez tohoto
+        // by statická Aktivita::$prihlaseniRawCache držela seznam přihlášených
+        // z předchozí iterace (+= nikdy nepřepíše existující id), takže regenerace
+        // vyvolaná odhlášením by přepočítala obsazenost ze zastaralých dat.
+        Aktivita::smazCache();
     }
 
     private function writeJsonFile(
