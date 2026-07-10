@@ -382,6 +382,66 @@ class ProgramStaticFileGeneratorTest extends AbstractTestDb
     }
 
     /**
+     * Regrese na „duchy" v obsazenosti: když se stav programu vrátí do
+     * dřívějšího (bajt po bajtu shodného) stavu — např. přihlásím a hned zas
+     * odhlásím účastníka — writeJsonFile() přeskočí zápis (hash už existuje) a
+     * ponechá starému souboru starý mtime. Manifest se proto NESMÍ řídit podle
+     * „nejnovějšího mtime", jinak by vyhrál novější, ale už neplatný mezistav
+     * (např. plná obsazenost) a zamrzl na neaktuálních datech. Musí ho určit
+     * jméno souboru vrácené generátorem pro aktuální běh.
+     *
+     * @test
+     */
+    public function manifestOdkazujeNaAktualniStavIKdyzSeVratiDoDrivejsiho(): void
+    {
+        $idAktivity = $this->insertAktivita([
+            Sql::NAZEV_AKCE => 'Aktivita A',
+        ]);
+
+        // Stav A → soubor A, manifest ukazuje na A
+        $generator = $this->createGenerator();
+        $souborA = $generator->generateActivities(self::ROK);
+        $generator->updateManifest(self::ROK, [ProgramStaticFileType::AKTIVITY->value => $souborA]);
+
+        // Stav B (jiný obsah) → nový soubor B, manifest ukazuje na B
+        dbUpdate(
+            Sql::AKCE_SEZNAM_TABULKA,
+            [Sql::NAZEV_AKCE => 'Aktivita B'],
+            [Sql::ID_AKCE => $idAktivity],
+        );
+        $generator = $this->createGenerator();
+        $souborB = $generator->generateActivities(self::ROK);
+        $generator->updateManifest(self::ROK, [ProgramStaticFileType::AKTIVITY->value => $souborB]);
+
+        self::assertNotSame($souborA, $souborB, 'Změna dat musí dát jiný soubor (jiný hash).');
+
+        // Návrat do stavu A → generátor vrátí PŮVODNÍ soubor A (zápis se přeskočí,
+        // protože soubor s tímto hashem už existuje a jeho mtime zůstává starý).
+        dbUpdate(
+            Sql::AKCE_SEZNAM_TABULKA,
+            [Sql::NAZEV_AKCE => 'Aktivita A'],
+            [Sql::ID_AKCE => $idAktivity],
+        );
+        $generator = $this->createGenerator();
+        $souborAznovu = $generator->generateActivities(self::ROK);
+        self::assertSame($souborA, $souborAznovu, 'Shodný obsah musí vést na týž soubor (dedup podle hashe).');
+
+        // Zaručíme, že novější (teď už neplatný) soubor B má opravdu novější mtime
+        // než aktuální soubor A — jinak by se bug podle mtime nemusel projevit.
+        touch($this->publicCacheDir . '/program/' . $souborA, time() - 100);
+        touch($this->publicCacheDir . '/program/' . $souborB, time() - 10);
+
+        $generator->updateManifest(self::ROK, [ProgramStaticFileType::AKTIVITY->value => $souborAznovu]);
+
+        $manifest = $generator->readManifest(self::ROK);
+        self::assertSame(
+            $souborA,
+            $manifest[ProgramStaticFileType::AKTIVITY->value],
+            'Manifest musí ukazovat na aktuální stav (A), ne na novější, ale neplatný mezistav (B).',
+        );
+    }
+
+    /**
      * @test
      */
     public function invisibleActivityIsNotInGeneratedJson(): void

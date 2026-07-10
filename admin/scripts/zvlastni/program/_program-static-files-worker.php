@@ -91,24 +91,34 @@ try {
             $generator->deleteDirtyFlag(ProgramStaticFileType::TAGY);
         }
 
+        // Sbíráme přesná jména vygenerovaných souborů a předáme je do manifestu.
+        // Nesmíme se spoléhat na výběr podle mtime — když se stav vrátí do
+        // dřívějšího (bajt po bajtu shodného) stavu, writeJsonFile() přeskočí
+        // zápis a starý soubor si ponechá starý mtime, takže by v manifestu
+        // vyhrál novější, ale už neplatný mezistav.
+        $generatedFiles = [];
         if ($dirtyAktivity) {
             $file = $generator->generateActivities($rocnik);
+            $generatedFiles[ProgramStaticFileType::AKTIVITY->value] = $file;
             logMessage("Vygenerováno: $file");
         }
         if ($dirtyPopisy) {
             $file = $generator->generatePopisy($rocnik);
+            $generatedFiles[ProgramStaticFileType::POPISY->value] = $file;
             logMessage("Vygenerováno: $file");
         }
         if ($dirtyObsazenosti) {
             $file = $generator->generateObsazenosti($rocnik);
+            $generatedFiles[ProgramStaticFileType::OBSAZENOSTI->value] = $file;
             logMessage("Vygenerováno: $file");
         }
         if ($dirtyStitky) {
             $file = $generator->generateStitky($rocnik);
+            $generatedFiles[ProgramStaticFileType::TAGY->value] = $file;
             logMessage("Vygenerováno: $file");
         }
 
-        $generator->updateManifest($rocnik);
+        $generator->updateManifest($rocnik, $generatedFiles);
         logMessage("Manifest aktualizován");
     }
 
