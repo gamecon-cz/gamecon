@@ -1032,6 +1032,21 @@ SQL;
                 $this->brigadnickaOdmena(),
                 self::BRIGADNICKA_ODMENA,
             );
+            // Stejně jako bonus za vedení aktivit musí odměna dorazit i do BFGR
+            // přehledu (Accounting::getPersonalFinance), ze kterého se skládá
+            // admin i webový přehled financí a zůstatek – jinak v něm chybí
+            // řádek i vliv na zůstatek.
+            $this->logPolozkaProBfgr(
+                nazev: 'Brigádnická odměna',
+                pocet: 1,
+                priceAfterDiscountDto: new PriceAfterDiscountDto(
+                    finalPrice: -$this->brigadnickaOdmena(),
+                    discount: 0,
+                ),
+                typ: self::BRIGADNICKA_ODMENA,
+                kodPredmetu: '',
+                idPredmetu: '',
+            );
         }
 
         return $cena - $this->brigadnickaOdmena();

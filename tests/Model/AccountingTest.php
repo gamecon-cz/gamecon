@@ -245,6 +245,33 @@ SQL,
         );
     }
 
+    private function udelejBrigadnikem(): void
+    {
+        $idRole = Role::LETOSNI_BRIGADNIK();
+        // Role letošního ročníku musí být v role_seznam s rocnik_role = ROCNIK,
+        // jinak ji view platne_role_uzivatelu (a tím i jeBrigadnik()) neuvidí.
+        dbQuery(
+            <<<SQL
+            INSERT IGNORE INTO role_seznam(id_role, kod_role, nazev_role, popis_role, rocnik_role, typ_role, vyznam_role)
+            VALUES($0, $1, 'Brigádník (test)', '', $2, 'rocnikova', $3)
+            SQL,
+            [
+                0 => $idRole,
+                1 => 'TEST_BRIGADNIK_' . ROCNIK,
+                2 => ROCNIK,
+                3 => Role::VYZNAM_BRIGADNIK,
+            ],
+        );
+        dbQuery(
+            'INSERT INTO uzivatele_role(id_uzivatele, id_role, posadil) VALUES($0, $1, $2)',
+            [
+                0 => 555,
+                1 => $idRole,
+                2 => 555,
+            ],
+        );
+    }
+
     private function dejUzivatele(): \Uzivatel
     {
         return \Uzivatel::zIdUrcite(555);
@@ -609,6 +636,39 @@ SQL,
             '<td>Bonus za aktivity</td><td>' . $ocekavanyBonus . '</td>',
             $htmlProFinance,
         );
+    }
+
+    /**
+     * @test
+     */
+    public function testBrigadnickaOdmenaJeVidetVManualMovements(): void
+    {
+        $this->udelejBrigadnikem();
+        $this->vlozAktivitu(
+            idAktivity: 55620,
+            nazev: 'Bedňák ČT 13-20',
+            cena: 160,
+            typ: TypAktivity::BRIGADNICKA,
+        );
+
+        $finance = $this->dejUzivatele()->finance();
+        self::assertSame(160.0, $finance->brigadnickaOdmena());
+
+        $account = Accounting::getPersonalFinance($this->dejUzivatele(), showDiscounts: false);
+        $manualMovements = array_values(array_filter(
+            $account->getTransactions(),
+            fn ($transaction) => $transaction->getCategory() === TransactionCategoryEnum::MANUAL_MOVEMENTS,
+        ));
+
+        self::assertCount(1, $manualMovements, 'Brigádnická odměna musí být reprezentována transakcí v MANUAL_MOVEMENTS');
+        self::assertSame(160, $manualMovements[0]->getTotalAmount());
+        // Brigádnická aktivita je interní (cena účastníka 0), takže do zůstatku
+        // přispívá jen samotná odměna.
+        self::assertSame(160, $account->getTotal(), 'Brigádnická odměna se musí projevit v zůstatku');
+
+        $html = Accounting::getPersonalFinance($this->dejUzivatele(), showDiscounts: true)
+            ->formatForHtml(positivePrices: true);
+        self::assertStringContainsString('Brigádnická odměna', $html);
     }
 
     /**
