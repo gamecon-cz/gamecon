@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace Gamecon\BackgroundProcess;
 
-use Gamecon\SystemoveNastaveni\SystemoveNastaveni;
 use Symfony\Component\Clock\ClockInterface;
+use Symfony\Component\Clock\NativeClock;
 
 /**
  * Služba pro správu background procesů
@@ -22,9 +22,12 @@ class BackgroundProcessService
 
     public static function vytvorZGlobals(): self
     {
-        return new self(
-            SystemoveNastaveni::zGlobals()->kernel()->getContainer()->get('app.clock'),
-        );
+        // Záměrně NEboualíme Symfony kernel jen kvůli hodinám. Získat 'app.clock'
+        // z kontejneru znamená plný boot kernelu (~0,8 s) — a tenhle servis se
+        // volá z legacy hot-path (přihlášení/odhlášení z aktivity) na každý
+        // request, kde kernel jinak nabootovaný není. NativeClock je přesně to,
+        // na co se 'app.clock' v produkci rozhodne (dekoruje výchozí clock).
+        return new self(new NativeClock());
     }
 
     public function __construct(
