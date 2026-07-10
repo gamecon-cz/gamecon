@@ -586,6 +586,79 @@ class ProgramStaticFileGeneratorTest extends AbstractTestDb
 
     /**
      * @test
+     * Regrese: worker běží jako jeden dlouho žijící proces přes víc iterací.
+     * Odhlásí-li se účastník mezi dvěma iteracemi, přepočítaná obsazenost v
+     * JSONu musí klesnout. Dřív ne — statická Aktivita::$prihlaseniRawCache
+     * přežila reset() (generator čistil jen svou vlastní activitiesCache a
+     * verze tabulek), takže regenerace vyvolaná odhlášením vzala seznam
+     * přihlášených z předchozí iterace a obsazenost zůstala „viset" nahoře.
+     * Fixlo se to teprve novým přihlášením do fresh procesu — přesně jak to
+     * hlásili z produkce.
+     */
+    public function odhlaseniMeziIteracemiWorkeruSniziObsazenost(): void
+    {
+        $idAktivity = $this->insertAktivita([
+            Sql::NAZEV_AKCE => 'Aktivita se stálým procesem workeru',
+            Sql::KAPACITA   => 4,
+        ]);
+
+        $idUcastnika = 900101;
+        dbInsertUpdate('uzivatele_hodnoty', [
+            'id_uzivatele'    => $idUcastnika,
+            'login_uzivatele' => 'ucastnik-obsazenost',
+            'pohlavi'         => \Gamecon\Uzivatel\Pohlavi::MUZ_KOD,
+        ]);
+        dbInsertUpdate('akce_prihlaseni', [
+            'id_uzivatele' => $idUcastnika,
+            'id_akce'      => $idAktivity,
+        ]);
+
+        $systemoveNastaveni = $this->createSystemoveNastaveni();
+        $generator = new ProgramStaticFileGenerator($systemoveNastaveni);
+
+        // === Iterace 1 workeru: obsazenost 1/4 ===
+        $filenameV1 = $generator->generateObsazenosti(self::ROK);
+        self::assertSame(
+            1,
+            $this->obsazenostMuzuZJsonu($filenameV1, $idAktivity),
+            'Po přihlášení musí obsazenost ukazovat 1.',
+        );
+
+        // Účastník se odhlásí (odhlas() smaže řádek v akce_prihlaseni).
+        dbQuery(
+            'DELETE FROM akce_prihlaseni WHERE id_uzivatele = $1 AND id_akce = $2',
+            [$idUcastnika, $idAktivity],
+        );
+
+        // === Iterace 2 workeru ve STEJNÉM procesu ===
+        // Přesně co dělá _program-static-files-worker.php na začátku iterace.
+        $systemoveNastaveni->db()->clearPrefetchedDataVersions();
+        $generator->reset();
+
+        $filenameV2 = $generator->generateObsazenosti(self::ROK);
+        self::assertSame(
+            0,
+            $this->obsazenostMuzuZJsonu($filenameV2, $idAktivity),
+            'Po odhlášení musí regenerace ve stejném procesu ukázat 0 — jinak obsazenost „visí" nahoře.',
+        );
+    }
+
+    private function obsazenostMuzuZJsonu(string $filename, int $idAktivity): int
+    {
+        $data = json_decode(
+            file_get_contents($this->publicCacheDir . '/program/' . $filename),
+            true,
+        );
+        foreach ($data as $item) {
+            if ($item['idAktivity'] === $idAktivity) {
+                return (int) $item['obsazenost']['m'];
+            }
+        }
+        self::fail("Obsazenost aktivity {$idAktivity} nenalezena v {$filename}");
+    }
+
+    /**
+     * @test
      */
     public function readManifestReturnsNullWhenNoManifestExists(): void
     {
