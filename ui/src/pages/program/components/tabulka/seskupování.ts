@@ -122,11 +122,23 @@ const připravTabulkuAktivitDenALinie = (aktivity: Aktivita[], seskupitPodle = S
         aktivitySeskupDenyDen.sort((a,b)=> (a.mistnosti?.[0]?.poradi ?? Number.MAX_SAFE_INTEGER) - (b.mistnosti?.[0]?.poradi ?? Number.MAX_SAFE_INTEGER) )
 
       for (const aktivita of aktivitySeskupDenyDen) {
-        const klíč = seskupitPodle === SeskupováníAktivit.mistnost ?
-        (aktivita.mistnosti?.length ? aktivita.mistnosti[0].nazev ?? "" : "")
-        : aktivita.linie;
-        if (!skupiny[klíč]) skupiny[klíč] = [];
-        skupiny[klíč].push(aktivita);
+        if (seskupitPodle === SeskupováníAktivit.mistnost) {
+          // Aktivita může zabírat víc místností najednou. Zařadíme ji do
+          // KAŽDÉ z nich, aby byl rozpis obsazenosti každé místnosti úplný –
+          // dřív se použila jen mistnosti[0] (hlavní lokace) a v ostatních
+          // sálech aktivita chyběla, takže vypadaly volně.
+          const klíče = aktivita.mistnosti?.length
+            ? aktivita.mistnosti.map((místnost) => místnost.nazev ?? "")
+            : [""];
+          for (const klíč of klíče) {
+            if (!skupiny[klíč]) skupiny[klíč] = [];
+            skupiny[klíč].push(aktivita);
+          }
+        } else {
+          const klíč = aktivita.linie;
+          if (!skupiny[klíč]) skupiny[klíč] = [];
+          skupiny[klíč].push(aktivita);
+        }
       }
 
       const tabulkaProDen: PředpřivenáTabulkaAktivit = Object.fromEntries(
