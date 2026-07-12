@@ -114,12 +114,25 @@ const připravTabulkuAktivitDenALinie = (aktivity: Aktivita[], seskupitPodle = S
 
       // V zobrazení po místnostech předvyplníme všechny místnosti (i prázdné),
       // ať se každý den vypíše kompletní rozpis místností ve správném pořadí.
-      if (seskupitPodle === SeskupováníAktivit.mistnost)
+      if (seskupitPodle === SeskupováníAktivit.mistnost) {
         for (const místnost of prázdnéMístnosti)
           skupiny[místnost] = [];
 
-      if (seskupitPodle === SeskupováníAktivit.mistnost)
-        aktivitySeskupDenyDen.sort((a,b)=> (a.mistnosti?.[0]?.poradi ?? Number.MAX_SAFE_INTEGER) - (b.mistnosti?.[0]?.poradi ?? Number.MAX_SAFE_INTEGER) )
+        // Skupiny (místnosti) zakládáme předem v pořadí dle `poradi`. Řádky
+        // tak vyjdou vždy stejně i bez předvyplněné kostry prázdných místností
+        // (např. při aktivním filtru); jinak by pořadí místností záviselo na
+        // pořadí polí `mistnosti` z API u první vícemístnostní aktivity, protože
+        // ProgramTabulka řadí skupiny místností jen podle pořadí jejich vzniku.
+        const poradiPodleNazvu: { [nazev: string]: number } = {};
+        for (const aktivita of aktivitySeskupDenyDen)
+          for (const místnost of aktivita.mistnosti ?? [])
+            poradiPodleNazvu[místnost.nazev ?? ""] = místnost.poradi;
+        Object.keys(poradiPodleNazvu)
+          .sort((a, b) => poradiPodleNazvu[a] - poradiPodleNazvu[b])
+          .forEach((nazev) => {
+            if (!skupiny[nazev]) skupiny[nazev] = [];
+          });
+      }
 
       for (const aktivita of aktivitySeskupDenyDen) {
         if (seskupitPodle === SeskupováníAktivit.mistnost) {
