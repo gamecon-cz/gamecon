@@ -51,12 +51,18 @@ type TProgramTabulkaBuňkaProps = {
   aktivitaId: number;
   zobrazLinii?: boolean;
   kompaktní?: boolean;
+  /**
+   * Název místnosti, ve které se karta vypisuje. V zobrazení po místnostech
+   * může být aktivita ve víc sálech zároveň, takže karta musí ukázat právě tu
+   * místnost, do jejíhož řádku patří – ne vždy hlavní lokaci (mistnosti[0]).
+   */
+  lokaceNazev?: string;
 };
 
 export const ProgramTabulkaBuňka: FunctionComponent<
   TProgramTabulkaBuňkaProps
 > = (props) => {
-  const { aktivitaId, zobrazLinii, kompaktní } = props;
+  const { aktivitaId, zobrazLinii, kompaktní, lokaceNazev } = props;
 
   const aktivita = useAktivita(aktivitaId);
   const pohlavi = useÚčastníkPohlaví();
@@ -70,6 +76,10 @@ export const ProgramTabulkaBuňka: FunctionComponent<
   };
 
   if (!aktivita) return <></>;
+
+  // V zobrazení po místnostech dostaneme název místnosti řádku (lokaceNazev) –
+  // jinak (linie/den) padneme zpět na hlavní lokaci aktivity.
+  const zobrazenáLokace = lokaceNazev ?? aktivita.mistnosti?.[0]?.nazev;
 
   const hodinOd = new Date(aktivita.cas.od).getHours();
   const hodinDo = new Date(aktivita.cas.do).getHours();
@@ -96,8 +106,8 @@ export const ProgramTabulkaBuňka: FunctionComponent<
             probehnuta={aktivita.probehnuta ?? false}
           />
           <Přihlašovátko akitivitaId={aktivita.id} />
-          {aktivita.mistnosti?.length && (
-            <div class="program_lokace">{aktivita.mistnosti[0].nazev}</div>
+          {zobrazenáLokace && (
+            <div class="program_lokace">{zobrazenáLokace}</div>
           )}
           {zobrazLinii ? (
             <span class="program_osobniTyp">{aktivita.linie}</span>

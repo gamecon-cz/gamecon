@@ -118,7 +118,7 @@ export const ProgramTabulka: FunctionComponent<ProgramTabulkaProps> = (
     </tr>
   );
 
-  const vytvořŘádkyZeSeskupiny = (tabulka: PředpřivenáTabulkaAktivit, zobrazitLinii: boolean) =>
+  const vytvořŘádkyZeSeskupiny = (tabulka: PředpřivenáTabulkaAktivit, zobrazitLinii: boolean, jeMístnost = false) =>
     Object.entries(tabulka)
       .sort((a, b) => indexŘazení(a[0]) - indexŘazení(b[0]))
       .flatMap(([klíč, skupina]) => {
@@ -167,6 +167,7 @@ export const ProgramTabulka: FunctionComponent<ProgramTabulkaProps> = (
                         aktivitaId={aktivita.id}
                         zobrazLinii={zobrazitLinii}
                         kompaktní={kompaktní}
+                        lokaceNazev={jeMístnost ? klíč : undefined}
                       />
                     </>
                   );
@@ -189,7 +190,7 @@ export const ProgramTabulka: FunctionComponent<ProgramTabulkaProps> = (
                 <div class="program_den_nadpis">{denKlíč}</div>
               </td>
             </tr>,
-            ...vytvořŘádkyZeSeskupiny(tabulkaProDen, true),
+            ...vytvořŘádkyZeSeskupiny(tabulkaProDen, true, seskupPodle === SeskupováníAktivit.mistnost),
           ])
       : vytvořŘádkyZeSeskupiny(předpřipravenáTabulka as PředpřivenáTabulkaAktivit, seskupPodle === SeskupováníAktivit.den);
 

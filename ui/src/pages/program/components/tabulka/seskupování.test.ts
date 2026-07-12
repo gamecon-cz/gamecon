@@ -47,4 +47,18 @@ describe("připravTabulkuAktivit – seskupení po místnostech", () => {
     expect(idVMístnosti("Sál B")).toContain(11);
     expect(idVMístnosti("Sál A")).not.toContain(11);
   });
+
+  it("řadí místnosti dle poradi, ne dle pořadí polí z API", () => {
+    // První (a jediná) aktivita má místnosti v API v opačném pořadí, než je
+    // jejich poradi. Skupiny přesto musí vyjít Sál A (poradi 1) → Sál B (2).
+    const výsledekOpačně = připravTabulkuAktivit(
+      [aktivita(20, [salB, salA])],
+      SeskupováníAktivit.mistnost,
+    ) as PředpřivenáTabulkaAktivitHierarchie;
+
+    const denSAktivitou = Object.values(výsledekOpačně).find(
+      (den) => Object.keys(den).length > 0,
+    );
+    expect(Object.keys(denSAktivitou ?? {})).toEqual(["Sál A", "Sál B"]);
+  });
 });
