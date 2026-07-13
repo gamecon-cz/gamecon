@@ -556,6 +556,13 @@ SQL, [Pravo::PORADANI_AKTIVIT],
             );
         }
 
+        foreach ($this->aktivitySledovane() as $aktivita) {
+            $aktivita->odhlasSledujiciho(
+                $this,
+                $odhlasujici
+            );
+        }
+
         // finální odebrání role "registrován na GC"
         $this->odeberRoli(Role::PRIHLASEN_NA_LETOSNI_GC, $odhlasujici);
         // zrušení nákupů (až po použití dejShop a ubytovani)
@@ -707,6 +714,27 @@ AND akce_prihlaseni.id_stavu_prihlaseni = $2
 AND akce_seznam.rok = $3
 SQL,
             [$this->id(), StavPrihlaseni::PRIHLASEN, $rok],
+        );
+
+        return Aktivita::zIds($ids, $this->systemoveNastaveni);
+    }
+
+    /**
+     * @return Aktivita[]
+     */
+    public function aktivitySledovane(?int $rok = null): array
+    {
+        $rok ??= $this->systemoveNastaveni->rocnik();
+
+        $ids = dbOneArray(<<<SQL
+SELECT akce_prihlaseni_spec.id_akce
+FROM akce_prihlaseni_spec
+JOIN akce_seznam ON akce_prihlaseni_spec.id_akce = akce_seznam.id_akce
+WHERE akce_prihlaseni_spec.id_uzivatele = $1
+AND akce_prihlaseni_spec.id_stavu_prihlaseni = $2
+AND akce_seznam.rok = $3
+SQL,
+            [$this->id(), StavPrihlaseni::SLEDUJICI, $rok],
         );
 
         return Aktivita::zIds($ids, $this->systemoveNastaveni);
