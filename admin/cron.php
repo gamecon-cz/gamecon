@@ -6,7 +6,7 @@ use Symfony\Component\Filesystem\Filesystem;
 
 /**
  * Skript který je hostingem automaticky spouštěn jednou za hodinu. Standardní
- * limit vykonání je !!!30!!! sekund jako jinde na webu.
+ * limit vykonání je 30 sekund jako jinde na webu.
  */
 
 require_once __DIR__ . '/cron/_cron_zavadec.php';
