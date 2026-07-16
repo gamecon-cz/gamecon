@@ -16,6 +16,16 @@ try {
         }
     }
 
+    // Aktivace aktivit musí následovat hned po odhlášení neplatičů, aby pracovala
+    // s dokončeným odhlášením. Zároveň zůstává uvnitř try - když odhlášení spadne,
+    // catch aktivaci přeskočí (nesmí aktivovat nad polovičatě odhlášeným stavem).
+    if (in_array($job, ['aktivace_aktivit', 'aktivity_hromadne'])) {
+        require __DIR__ . '/jobs/aktivace_aktivit.php';
+        if ($job === 'aktivace_aktivit') {
+            return;
+        }
+    }
+
     if (in_array($job, ['mail_cfo_brzke_odhlaseni_neplaticu', 'aktivity_hromadne'])) {
         require __DIR__ . '/jobs/mail_cfo_brzke_odhlaseni_neplaticu.php';
         if ($job === 'mail_cfo_brzke_odhlaseni_neplaticu') {
@@ -38,14 +48,7 @@ try {
     }
 } catch (Throwable $e) {
     (new \Gamecon\Cron\CronErrorNotifier($systemoveNastaveni))
-        ->ohlas($e, 'odhlašování neplatičů / maily neplatičům');
-}
-
-if (in_array($job, ['aktivace_aktivit', 'aktivity_hromadne'])) {
-    require __DIR__ . '/jobs/aktivace_aktivit.php';
-    if ($job === 'aktivace_aktivit') {
-        return;
-    }
+        ->ohlas($e, 'odhlašování neplatičů / aktivace aktivit / maily neplatičům');
 }
 
 if (in_array($job, ['mazani_nepripravenych_tymu', 'aktivity_hromadne'])) {
