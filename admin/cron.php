@@ -93,20 +93,7 @@ logs('Spuštím cron script...');
 try {
     require __DIR__ . '/cron/fio_stazeni_novych_plateb.php';
 } catch (Throwable $e) {
-    $traceString = $e->getTraceAsString();
-
-    if (str_contains($e->getTrace()[0]["file"], "Fio")) {
-        (new \Gamecon\Kanaly\GcMail($systemoveNastaveni))
-            ->adresati(['it@gamecon.cz'])
-            ->predmet("Selhala komunikace s Fio, pravděpodobně jenom dočasný výpadek")
-            ->text(<<<TEXT
-        V rámci běhu Cron selhala komunikace s Fio. Pokud se neopakuje dlouhodobě, lze pravděpodobně ignorovat.
-
-        $traceString
-        TEXT,
-            )
-            ->odeslat(\Gamecon\Kanaly\GcMail::FORMAT_TEXT);
-    }
+    (new \Gamecon\Cron\CronErrorNotifier($systemoveNastaveni))->ohlas($e);
 }
 
 logs('Expiruju týmy...');
