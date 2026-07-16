@@ -37,7 +37,8 @@ try {
         }
     }
 } catch (Throwable $e) {
-    (new \Gamecon\Cron\CronErrorNotifier($systemoveNastaveni))->ohlas($e);
+    (new \Gamecon\Cron\CronErrorNotifier($systemoveNastaveni))
+        ->ohlas($e, 'odhlašování neplatičů / maily neplatičům');
 }
 
 if (in_array($job, ['aktivace_aktivit', 'aktivity_hromadne'])) {

@@ -20,10 +20,13 @@ class CronErrorNotifier
     ) {
     }
 
-    public function ohlas(\Throwable $chyba): void
+    /**
+     * @param string $nazevJobu lidsky čitelný název jobu, který spadl (kvůli přesnému předmětu mailu)
+     */
+    public function ohlas(\Throwable $chyba, string $nazevJobu): void
     {
         try {
-            $this->odesliUpozorneni($chyba);
+            $this->odesliUpozorneni($chyba, $nazevJobu);
         } catch (\Throwable $chybaOdeslani) {
             // Odeslání upozornění samo selhalo (např. nedostupné SMTP). Nesmíme
             // shodit zbytek cronu - jen zalogujeme a běžíme dál.
@@ -31,7 +34,7 @@ class CronErrorNotifier
         }
     }
 
-    private function odesliUpozorneni(\Throwable $chyba): void
+    private function odesliUpozorneni(\Throwable $chyba, string $nazevJobu): void
     {
         $traceString = $chyba->getTraceAsString();
 
@@ -48,7 +51,7 @@ class CronErrorNotifier
         } else {
             (new GcMail($this->systemoveNastaveni))
                 ->adresati(['it@gamecon.cz', 'info@gamecon.cz'])
-                ->predmet('!!IMPORTANT!! spadnulo odhlašování neplatičů')
+                ->predmet("!!IMPORTANT!! spadl cron job: {$nazevJobu}")
                 ->text(<<<TEXT
                     {$traceString}
                     TEXT)
