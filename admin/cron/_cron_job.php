@@ -1,44 +1,71 @@
 <?php
 /** @var Gamecon\SystemoveNastaveni\SystemoveNastaveni $systemoveNastaveni */
 
-$job   ??= null;
+$job ??= null;
 $znovu = filter_var(get('znovu'), FILTER_VALIDATE_BOOL)
     && ($systemoveNastaveni->jsmeNaLocale()
         || (defined('TEST_HROMADNE_AKCE_AKTIVIT_CRONEM_PORAD') && TEST_HROMADNE_AKCE_AKTIVIT_CRONEM_PORAD)
     );
 
-// Pozor, pořadí je důležité - úkoly na prvním místě jsou ty, co mají přednost (nikoli časovou, ale významovou) před ostatními
-if (in_array($job, ['odhlaseni_neplaticu', 'aktivity_hromadne'])) {
-    require __DIR__ . '/jobs/odhlaseni_neplaticu.php';
-    if ($job === 'odhlaseni_neplaticu') {
-        return;
+try {
+    // Pozor, pořadí je důležité - úkoly na prvním místě jsou ty, co mají přednost (nikoli časovou, ale významovou) před ostatními
+    if (in_array($job, ['odhlaseni_neplaticu', 'aktivity_hromadne'])) {
+        require __DIR__ . '/jobs/odhlaseni_neplaticu.php';
+        if ($job === 'odhlaseni_neplaticu') {
+            return;
+        }
+    }
+
+    if (in_array($job, ['mail_cfo_brzke_odhlaseni_neplaticu', 'aktivity_hromadne'])) {
+        require __DIR__ . '/jobs/mail_cfo_brzke_odhlaseni_neplaticu.php';
+        if ($job === 'mail_cfo_brzke_odhlaseni_neplaticu') {
+            return;
+        }
+    }
+
+    if (in_array($job, ['mail_varovani_neplaticum_o_brzkem_odhlaseni', 'aktivity_hromadne'])) {
+        require __DIR__ . '/jobs/mail_varovani_neplaticum_o_brzkem_odhlaseni.php';
+        if ($job === 'mail_varovani_neplaticum_o_brzkem_odhlaseni') {
+            return;
+        }
+    }
+
+    if (in_array($job, ['mail_cfo_nesparovane_platby', 'aktivity_hromadne'])) {
+        require __DIR__ . '/jobs/mail_cfo_nesparovane_platby.php';
+        if ($job === 'mail_cfo_nesparovane_platby') {
+            return;
+        }
+    }
+} catch (Throwable $e) {
+    $traceString = $e->getTraceAsString();
+
+    if (str_contains($e->getTrace()[0]["file"], "Fio"))
+    {
+        (new \Gamecon\Kanaly\GcMail($systemoveNastaveni))
+            ->adresati(['it@gamecon.cz'])
+            ->predmet("Selhala komunikace s Fio, pravděpodobně jenom dočasný výpadek")
+            ->text(<<<TEXT
+        V rámci běhu Cron selhala komunikace s Fio. Pokud se neopakuje dlouhodobě, lze pravděpodobně ignorovat.
+
+        $traceString
+        TEXT,
+            )
+            ->odeslat(\Gamecon\Kanaly\GcMail::FORMAT_TEXT);
+    } else {
+        (new \Gamecon\Kanaly\GcMail($systemoveNastaveni))
+            ->adresati(['it@gamecon.cz', 'info@gamecon.cz'])
+            ->predmet("!!IMPORTANT!! spadnulo odhlašování neplatičů")
+            ->text(<<<TEXT
+        $traceString
+        TEXT,
+            )
+            ->odeslat(\Gamecon\Kanaly\GcMail::FORMAT_TEXT);
     }
 }
 
 if (in_array($job, ['aktivace_aktivit', 'aktivity_hromadne'])) {
     require __DIR__ . '/jobs/aktivace_aktivit.php';
     if ($job === 'aktivace_aktivit') {
-        return;
-    }
-}
-
-if (in_array($job, ['mail_cfo_brzke_odhlaseni_neplaticu', 'aktivity_hromadne'])) {
-    require __DIR__ . '/jobs/mail_cfo_brzke_odhlaseni_neplaticu.php';
-    if ($job === 'mail_cfo_brzke_odhlaseni_neplaticu') {
-        return;
-    }
-}
-
-if (in_array($job, ['mail_varovani_neplaticum_o_brzkem_odhlaseni', 'aktivity_hromadne'])) {
-    require __DIR__ . '/jobs/mail_varovani_neplaticum_o_brzkem_odhlaseni.php';
-    if ($job === 'mail_varovani_neplaticum_o_brzkem_odhlaseni') {
-        return;
-    }
-}
-
-if (in_array($job, ['mail_cfo_nesparovane_platby', 'aktivity_hromadne'])) {
-    require __DIR__ . '/jobs/mail_cfo_nesparovane_platby.php';
-    if ($job === 'mail_cfo_nesparovane_platby') {
         return;
     }
 }
