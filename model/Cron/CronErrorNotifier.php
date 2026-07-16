@@ -24,7 +24,7 @@ class CronErrorNotifier
     {
         $traceString = $chyba->getTraceAsString();
 
-        if (str_contains($chyba->getTrace()[0]['file'], 'Fio')) {
+        if ($this->jeVypadekFio($chyba)) {
             (new GcMail($this->systemoveNastaveni))
                 ->adresati(['it@gamecon.cz'])
                 ->predmet('Selhala komunikace s Fio, pravděpodobně jenom dočasný výpadek')
@@ -43,5 +43,28 @@ class CronErrorNotifier
                     TEXT)
                 ->odeslat(GcMail::FORMAT_TEXT);
         }
+    }
+
+    /**
+     * Fio chyby vznikají v souborech, jejichž cesta obsahuje "Fio"
+     * (model/Finance/FioPlatba.php, model/Command/FioStazeniNovychPlateb.php).
+     * Prohledáme celý zásobník i řetěz příčin, ne jen vrcholový rámec - ten může
+     * být prázdný nebo bez klíče "file" (a přímé indexování getTrace()[0]["file"]
+     * pak vyhodí "Undefined array key" a str_contains dostane null).
+     */
+    private function jeVypadekFio(\Throwable $chyba): bool
+    {
+        for ($aktualni = $chyba; $aktualni !== null; $aktualni = $aktualni->getPrevious()) {
+            if (str_contains($aktualni->getFile(), 'Fio')) {
+                return true;
+            }
+            foreach ($aktualni->getTrace() as $ramec) {
+                if (isset($ramec['file']) && str_contains($ramec['file'], 'Fio')) {
+                    return true;
+                }
+            }
+        }
+
+        return false;
     }
 }
