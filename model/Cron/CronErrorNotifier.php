@@ -22,6 +22,17 @@ class CronErrorNotifier
 
     public function ohlas(\Throwable $chyba): void
     {
+        try {
+            $this->odesliUpozorneni($chyba);
+        } catch (\Throwable $chybaOdeslani) {
+            // Odeslání upozornění samo selhalo (např. nedostupné SMTP). Nesmíme
+            // shodit zbytek cronu - jen zalogujeme a běžíme dál.
+            logs('Nepodařilo se odeslat upozornění na chybu cronu: ' . $chybaOdeslani->getMessage());
+        }
+    }
+
+    private function odesliUpozorneni(\Throwable $chyba): void
+    {
         $traceString = $chyba->getTraceAsString();
 
         if ($this->jeVypadekFio($chyba)) {
