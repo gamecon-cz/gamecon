@@ -37,30 +37,7 @@ try {
         }
     }
 } catch (Throwable $e) {
-    $traceString = $e->getTraceAsString();
-
-    if (str_contains($e->getTrace()[0]["file"], "Fio"))
-    {
-        (new \Gamecon\Kanaly\GcMail($systemoveNastaveni))
-            ->adresati(['it@gamecon.cz'])
-            ->predmet("Selhala komunikace s Fio, pravděpodobně jenom dočasný výpadek")
-            ->text(<<<TEXT
-        V rámci běhu Cron selhala komunikace s Fio. Pokud se neopakuje dlouhodobě, lze pravděpodobně ignorovat.
-
-        $traceString
-        TEXT,
-            )
-            ->odeslat(\Gamecon\Kanaly\GcMail::FORMAT_TEXT);
-    } else {
-        (new \Gamecon\Kanaly\GcMail($systemoveNastaveni))
-            ->adresati(['it@gamecon.cz', 'info@gamecon.cz'])
-            ->predmet("!!IMPORTANT!! spadnulo odhlašování neplatičů")
-            ->text(<<<TEXT
-        $traceString
-        TEXT,
-            )
-            ->odeslat(\Gamecon\Kanaly\GcMail::FORMAT_TEXT);
-    }
+    (new \Gamecon\Cron\CronErrorNotifier($systemoveNastaveni))->ohlas($e);
 }
 
 if (in_array($job, ['aktivace_aktivit', 'aktivity_hromadne'])) {
