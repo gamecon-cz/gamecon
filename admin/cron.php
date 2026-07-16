@@ -89,6 +89,7 @@ if ($job !== null) {
 logs('Spuštím cron script...');
 
 /** @var Gamecon\SystemoveNastaveni\SystemoveNastaveni $systemoveNastaveni */
+global $systemoveNastaveni;
 
 try {
     require __DIR__ . '/cron/fio_stazeni_novych_plateb.php';
@@ -98,7 +99,6 @@ try {
 }
 
 logs('Expiruju týmy...');
-global $systemoveNastaveni;
 $odemcenoTymovychAktivit = (new HromadneAkceAktivit($systemoveNastaveni))
     ->vyresExpirovaneTymyHromadne(Uzivatel::zId(Uzivatel::SYSTEM, true));
 logs("Expirováno $odemcenoTymovychAktivit týmů.");
