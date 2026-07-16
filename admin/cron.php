@@ -93,7 +93,8 @@ logs('Spuštím cron script...');
 try {
     require __DIR__ . '/cron/fio_stazeni_novych_plateb.php';
 } catch (Throwable $e) {
-    (new \Gamecon\Cron\CronErrorNotifier($systemoveNastaveni))->ohlas($e);
+    (new \Gamecon\Cron\CronErrorNotifier($systemoveNastaveni))
+        ->ohlas($e, 'stažení nových plateb z Fio');
 }
 
 logs('Expiruju týmy...');
