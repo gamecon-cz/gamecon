@@ -137,12 +137,20 @@ if (! empty($menu[$stranka]['submenu'])) {
 }
 
 // zjištění práv na zobrazení stránky
+$maNekterePravo = static function (array $polozkaMenu) use ($u): bool {
+    foreach ($polozkaMenu['prava'] ?? [$polozkaMenu['pravo']] as $pravo) {
+        if ($u->maPravo($pravo)) {
+            return true;
+        }
+    }
+    return false;
+};
 $strankaExistuje = isset($menu[$stranka]);
 $podstrankaExistuje = isset($submenu[$podstranka]);
 $uzivatelMaPristup = $strankaExistuje
                      && (
-                         $u->maPravo($menu[$stranka]['pravo'])
-                         || ($podstrankaExistuje && $u->maPravo($submenu[$podstranka]['pravo']))
+                         $maNekterePravo($menu[$stranka])
+                         || ($podstrankaExistuje && $maNekterePravo($submenu[$podstranka]))
                      );
 
 // konstrukce stránky
@@ -240,7 +248,7 @@ if ($u && $u->maPravo(Pravo::ADMINISTRACE_INFOPULT)) {
 
 // výstup menu
 foreach ($menu as $url => $polozka) {
-    if ($u->maPravo($polozka['pravo'])) {
+    if ($maNekterePravo($polozka)) {
         $xtpl->assign('url', $url);
         $xtpl->assign('nazev', $polozka['nazev']);
         $xtpl->assign('aktivni', $stranka === $url
@@ -269,7 +277,7 @@ uasort($submenu, function (
 // výstup submenu
 $allHidden = true;
 foreach ($submenu as $url => $polozka) {
-    if ($u && $u->maPravo($polozka['pravo'])) {
+    if ($u && $maNekterePravo($polozka)) {
         $xtpl->assign('url', $url === $stranka
             ? $url
             : $stranka . '/' . $url);

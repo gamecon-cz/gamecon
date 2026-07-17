@@ -31,6 +31,7 @@ class AdminMenu
                 $this->menu[$url]['nazev'] = $m[1];
                 preg_match('@\* pravo: (\d*)@', $fc, $m);
                 $this->menu[$url]['pravo']  = (int)$m[1];
+                $this->menu[$url]['prava']  = $this->parsePrava($fc, (int)$m[1]);
                 $this->menu[$url]['soubor'] = $this->src . $file;
                 if ($this->isSubmenu) {
                     $this->parseSubMenu($fc, $url);
@@ -43,6 +44,7 @@ class AdminMenu
                 $this->menu[$url]['nazev'] = $m[1];
                 preg_match('@\* pravo: (.*)@', $fc, $m);
                 $this->menu[$url]['pravo']   = (int)$m[1];
+                $this->menu[$url]['prava']   = $this->parsePrava($fc, (int)$m[1]);
                 $this->menu[$url]['soubor']  = $this->src . $file . '/' . $file . '.php';
                 $this->menu[$url]['submenu'] = 1;
                 if ($this->isSubmenu) {
@@ -72,6 +74,23 @@ class AdminMenu
             }
             return strcmp($a['nazev'], $b['nazev']);
         });
+    }
+
+    /**
+     * Modul může místo jediného práva (hlavička `pravo:`) vyjmenovat hlavičkou
+     * `prava: 100, 102, ...` víc práv — stránku pak vidí a smí otevřít každý,
+     * kdo má KTERÉKOLI z nich (typicky Nápověda, viditelná pro všechny části
+     * adminu). Bez hlavičky `prava:` zůstává chování jako dřív, tj. jen `pravo:`.
+     *
+     * @return int[]
+     */
+    private function parsePrava(string $fc, int $pravo): array
+    {
+        if (!preg_match('@\* prava: ([\d, ]+)@', $fc, $m)) {
+            return [$pravo];
+        }
+        $prava = array_map('intval', array_filter(array_map('trim', explode(',', $m[1]))));
+        return $prava ?: [$pravo];
     }
 
     private function parseSubMenu(string $fc, string $url)
