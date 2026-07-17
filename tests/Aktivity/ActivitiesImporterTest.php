@@ -11,6 +11,7 @@ use Gamecon\Admin\Modules\Aktivity\Import\Activities\ActivitiesImporter;
 use Gamecon\Admin\Modules\Aktivity\Import\Activities\ActivitiesImportLogger;
 use Gamecon\Aktivita\Aktivita;
 use Gamecon\Cas\DateTimeCz;
+use Gamecon\Cas\DateTimeGamecon;
 use Gamecon\Mutex\Mutex;
 use Gamecon\SystemoveNastaveni\SystemoveNastaveni;
 use Gamecon\Tests\Db\AbstractTestDb;
@@ -282,6 +283,18 @@ class ActivitiesImporterTest extends AbstractTestDb
     }
 
     /**
+     * Importér odmítá editovat aktivitu, která už začala. Testovací aktivity se plánují
+     * na dny GameConu daného ročníku, takže s reálnými hodinami by testy začaly padat
+     * v okamžiku, kdy ročník reálně proběhne. Čas proto zmrazíme na půlnoc dne zahájení.
+     */
+    private function importedAt(): \DateTimeImmutable
+    {
+        return \DateTimeImmutable::createFromInterface(
+            DateTimeGamecon::zacatekGameconu(ROCNIK)->setTime(0, 0),
+        );
+    }
+
+    /**
      * Helper method to create ActivitiesImporter with mocked dependencies
      */
     private function createImporter(array $mockSheetData): ActivitiesImporter
@@ -309,7 +322,7 @@ class ActivitiesImporterTest extends AbstractTestDb
             googleDriveService: $mockGoogleDrive,
             googleSheetsService: $mockGoogleSheets,
             editActivityUrlSkeleton: '/admin/aktivity/upravit?id=%d',
-            now: new \DateTimeImmutable(),
+            now: $this->importedAt(),
             storytellersPermissionsUrl: '/permissions',
             logovac: $mockLogovac,
             mutexPattern: $mockMutex,
