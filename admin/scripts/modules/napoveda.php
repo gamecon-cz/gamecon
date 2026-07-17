@@ -9,8 +9,13 @@ use Gamecon\Pravo;
  * Markdown soubory v docs/napoveda/ (verzované s kódem, nasazované spolu
  * s aplikací). Uživatel vidí jen kapitoly k částem adminu, na které má právo.
  *
+ * Přístup řídí hlavička `prava:` (stačí kterékoli právo na panel adminu).
+ * Hodnota `pravo:` už tedy neomezuje přístup — slouží jen jako pozice v menu:
+ * menu se třídí podle ní vzestupně. 999 není reálné právo, jen záměrně vysoká
+ * hodnota, aby Nápověda skončila úplně poslední, pod Dev (113).
+ *
  * nazev: Nápověda
- * pravo: 100
+ * pravo: 999
  * prava: 100, 101, 102, 103, 104, 105, 106, 107, 108, 109, 110, 111, 112, 113
  *
  * @var Uzivatel $u
