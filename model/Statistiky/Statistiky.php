@@ -45,7 +45,9 @@ class Statistiky
         /** @var \DateTimeImmutable|DateTimeGamecon $zacatekRegistraci */
         $zacatekRegistraci = min(DateTimeGamecon::spocitejPrihlasovaniUcastnikuOd($rok), $doChvile);
         /** @var \DateTimeImmutable|DateTimeGamecon $konecGc */
-        $konecGc     = DateTimeGamecon::spocitejKonecGameconu($rok);
+        // konecGameconu() respektuje případně posunutý termín festivalu (GC_BEZI_DO)
+        // pro aktuální ročník; pro starší ročníky spadne zpět na vypočtené datum.
+        $konecGc     = DateTimeGamecon::konecGameconu($rok);
         $posledniDen = min($konecGc, $doChvile);
 
         $ucastResult         = dbQuery(<<<SQL
@@ -357,7 +359,7 @@ SQL,
             $nazvyDnuJednohoRoku          = [];
             $zacatekRegistraciJednohoRoku = DateTimeGamecon::spocitejPrihlasovaniUcastnikuOd($rok)->formatDatumDb();
             $zacatekGcJednohoRoku         = DateTimeGamecon::spocitejZacatekGameconu($rok)->formatDatumDb();
-            $konecGcJednohoRoku           = DateTimeGamecon::spocitejKonecGameconu($rok)->formatDatumDb();
+            $konecGcJednohoRoku           = DateTimeGamecon::konecGameconu($rok)->formatDatumDb();
             $dnes                         = $this->zdrojRocniku->ted()->formatDatumDb();
 
             if ($rok === $this->soucasnyRocnik) {
