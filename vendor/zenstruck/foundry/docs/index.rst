@@ -1,7 +1,9 @@
 Foundry
 =======
 
-Foundry makes creating fixtures data fun again, via an expressive, auto-completable, on-demand fixtures system with
+"Fixtures you'll actually enjoy writing!"
+
+Foundry turns fixture creation into a joy, via an expressive, auto-completable, on-demand fixtures system with
 Symfony and Doctrine:
 
 Foundry supports ``doctrine/orm`` (with `doctrine/doctrine-bundle <https://github.com/doctrine/doctrinebundle>`_),
@@ -15,7 +17,7 @@ or a combination of these.
 
 .. warning::
 
-    You're reading the documentation for Foundry v2 which is brand new.
+    You're reading the documentation for Foundry v2.
     You might want to look at `Foundry v1 documentation <https://symfony.com/bundles/ZenstruckFoundryBundle/1.x/index.html>`_
     or `the upgrade guide to v2 <https://github.com/zenstruck/foundry/blob/1.x/UPGRADE-2.0.md>`_
 
@@ -663,6 +665,24 @@ they were added, or by priority (higher priority hooks are executed first).
 
     Hook priority were added in Foundry 2.8.
 
+``beforeInstantiate`` and ``afterInstantiate`` hooks run **before** the object graph is handed over to the
+object manager: state set by Doctrine lifecycle listeners (e.g. a field computed in a ``PrePersist``
+listener) is not yet available, even for objects created by a nested factory. To observe such state,
+register an ``afterInstantiate`` hook with a priority lower than
+``PersistentObjectFactory::PRIORITY_SCHEDULE_FOR_INSERT``: it runs once the whole object graph has been
+persisted (but not flushed yet):
+
+::
+
+    use Zenstruck\Foundry\Persistence\PersistentObjectFactory;
+
+    PostFactory::new()
+        ->afterInstantiate(function(Post $post): void {
+            // the "pre persist" events of the whole object graph have been triggered:
+            // any state they computed is visible here
+        }, priority: PersistentObjectFactory::PRIORITY_SCHEDULE_FOR_INSERT - 1)
+    ;
+
 You can also add hooks directly in your factory class:
 
 ::
@@ -1307,6 +1327,41 @@ If you'd like your factory to not persist by default, override its ``initialize(
 Now, after creating objects using this factory, you'd have to call ``\Zenstruck\Foundry\Persistence\save()`` to actually
 persist them to the database.
 
+.. _without-doctrine-events:
+
+Without Doctrine Events
+~~~~~~~~~~~~~~~~~~~~~~~
+
+When loading fixtures, Doctrine event listeners fire as usual and can cause unwanted side effects. You can disable
+them during object creation to avoid this.
+
+::
+
+    use App\Factory\PostFactory;
+
+    // disable ALL Doctrine event listeners during creation
+    $post = PostFactory::new()->withoutDoctrineEvents()->create(); // returns Post
+
+    // disable only a specific listener/subscriber
+    $post = PostFactory::new()->withoutDoctrineEvents(PostListener::class)->create(); // returns Post
+
+    $posts = PostFactory::new()->withoutDoctrineEvents()->many(5)->create(); // returns Post[]
+
+If you'd like your factory to always disable Doctrine events, override its ``initialize()`` method:
+
+::
+
+    protected function initialize(): static
+    {
+        return $this
+            ->withoutDoctrineEvents()
+        ;
+    }
+
+.. note::
+
+    ``withoutDoctrineEvents()`` cannot be used inside ``flush_after()``.
+
 Array factories
 ~~~~~~~~~~~~~~~
 
@@ -1915,7 +1970,7 @@ Auto-Refresh
     Auto-refresh mechanism leverages `PHP 8.4 lazy objects <https://www.php.net/manual/en/language.oop5.lazy-objects.php>`_,
     so this feature is only available when using PHP 8.4 or later.
 
-.. info::
+.. note::
 
     For PHP versions older than PHP 8.4, auto-refresh is made using :ref:`Proxy mechanism <object-proxy>`.
 

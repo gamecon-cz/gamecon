@@ -8,7 +8,7 @@
  * For the full copyright and license information, please view
  * the LICENSE file that was distributed with this source code.
  */
-namespace RectorPrefix202604\Composer\Pcre;
+namespace RectorPrefix202607\Composer\Pcre;
 
 class Preg
 {
@@ -352,7 +352,7 @@ class Preg
      * @return array<int|string, string>
      * @throws UnexpectedNullMatchException
      */
-    private static function enforceNonNullMatches(string $pattern, array $matches, string $variantMethod)
+    private static function enforceNonNullMatches(string $pattern, array $matches, string $variantMethod): array
     {
         foreach ($matches as $group => $match) {
             if (is_string($match) || is_array($match) && is_string($match[0])) {
@@ -368,7 +368,7 @@ class Preg
      * @return array<int|string, list<string>>
      * @throws UnexpectedNullMatchException
      */
-    private static function enforceNonNullMatchAll(string $pattern, array $matches, string $variantMethod)
+    private static function enforceNonNullMatchAll(string $pattern, array $matches, string $variantMethod): array
     {
         foreach ($matches as $group => $groupMatches) {
             foreach ($groupMatches as $match) {

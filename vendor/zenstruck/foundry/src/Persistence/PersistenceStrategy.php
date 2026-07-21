@@ -99,4 +99,14 @@ abstract class PersistenceStrategy
     abstract public function isEmbeddable(object $object): bool;
 
     abstract public function isScheduledForInsert(object $object): bool;
+
+    /**
+     * Removes the given Doctrine listeners immediately and returns a restorer closure.
+     *
+     * @param class-string       $entityClass
+     * @param list<class-string> $disabledClasses [] = disable all, [Foo::class] = disable specific
+     *
+     * @return callable():void
+     */
+    abstract public function disableDoctrineEvents(string $entityClass, array $disabledClasses): callable;
 }

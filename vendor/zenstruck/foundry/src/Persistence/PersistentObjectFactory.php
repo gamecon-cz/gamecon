@@ -46,11 +46,19 @@ abstract class PersistentObjectFactory extends ObjectFactory
 
     private PersistMode $persist = PersistMode::PERSIST;
 
+    /** @var list<class-string>|null null = disabled not requested, [] = disable all, [Foo::class] = disable specific */
+    private ?array $disabledDoctrineEventClasses = null;
+
+    private ?DoctrineEventsScope $doctrineEventsScope = null;
+
     /** @phpstan-var array<int, list<callable(T, Parameters, static):void|callable(T, Parameters, static):bool>> */
     private array $afterPersist = [];
 
     /** @var list<callable(T):void> */
     private array $inverseRelationshipCallbacks = [];
+
+    /** @var list<string> */
+    private array $skipInverseWiringFields = [];
 
     private bool $isRootFactory = true;
 
@@ -238,32 +246,27 @@ abstract class PersistentObjectFactory extends ObjectFactory
     {
         $configuration = Configuration::instance();
 
-        if ($configuration->inADataProvider()
-            && (\PHP_VERSION_ID >= 80400 || $this instanceof PersistentProxyObjectFactory)
-            && ($this->isPersisting() || $configuration->isInMemoryEnabled())
-        ) {
-            return ProxyGenerator::wrapFactory($this->with($attributes));
-        }
-
-        $object = parent::create($attributes);
-
-        $this->throwIfCannotCreateObject();
-
-        if (PersistMode::PERSIST !== $this->persistMode()) {
-            return $object;
-        }
-
-        if ($configuration->flushOnce && !$this->isRootFactory) {
-            return $object;
-        }
-
         if (!$configuration->isPersistenceAvailable()) {
-            throw new \LogicException('Persistence cannot be used in unit tests.');
+            return $this->doCreate($attributes);
         }
 
-        $configuration->persistence()->save($object);
+        // a scope opened here must be closed here, once the root flush is done
+        $ownedScope = $this->doctrineEventsScope?->isOpen() ? null : new DoctrineEventsScope($configuration->persistence());
+        $factory = $this->withDoctrineEventsScope($ownedScope);
 
-        return $object;
+        $factory->doctrineEventsScope?->disable(static::class(), $this->disabledDoctrineEventClasses);
+
+        try {
+            return $factory->doCreate($attributes);
+        } catch (\Throwable $e) {
+            if (null !== $ownedScope) {
+                $configuration->persistence()->discardScheduled();
+            }
+
+            throw $e;
+        } finally {
+            $ownedScope?->close();
+        }
     }
 
     final public function andPersist(): static
@@ -278,6 +281,35 @@ abstract class PersistentObjectFactory extends ObjectFactory
     {
         $clone = clone $this;
         $clone->persist = PersistMode::WITHOUT_PERSISTING;
+
+        return $clone;
+    }
+
+    /**
+     * Disable Doctrine event listeners/subscribers during object creation.
+     * Call with no arguments to disable all listeners, or pass specific class names to disable selectively.
+     *
+     * @param class-string ...$classes
+     */
+    final public function withoutDoctrineEvents(string ...$classes): static
+    {
+        $clone = clone $this;
+        $clone->disabledDoctrineEventClasses = \array_values($classes);
+
+        return $clone;
+    }
+
+    /**
+     * @internal
+     */
+    public function withDoctrineEventsScope(?DoctrineEventsScope $scope): static
+    {
+        if (null === $scope || $this->doctrineEventsScope?->isOpen()) {
+            return $this; // an outer open scope always wins
+        }
+
+        $clone = clone $this;
+        $clone->doctrineEventsScope = $scope;
 
         return $clone;
     }
@@ -349,6 +381,20 @@ abstract class PersistentObjectFactory extends ObjectFactory
     }
 
     /**
+     * The inverse side of the given field will not be silently wired when this
+     * factory's object is created: the owner of the relation does the wiring itself.
+     *
+     * @internal
+     */
+    public function skipInverseWiringFor(string $field): static
+    {
+        $clone = clone $this;
+        $clone->skipInverseWiringFields[] = $field;
+
+        return $clone;
+    }
+
+    /**
      * @internal
      */
     public function notRootFactory(): static
@@ -376,7 +422,8 @@ abstract class PersistentObjectFactory extends ObjectFactory
         if ($value instanceof self) {
             $value = $value
                 ->withPersistMode($this->persist)
-                ->notRootFactory();
+                ->notRootFactory()
+                ->withDoctrineEventsScope($this->doctrineEventsScope);
 
             $pm = Configuration::instance()->persistence();
 
@@ -434,12 +481,22 @@ abstract class PersistentObjectFactory extends ObjectFactory
 
         $inverseRelationshipMetadata = $pm->bidirectionalRelationshipMetadata(static::class(), $collection->factory::class(), $field);
 
+        // scope rides on the item factories themselves, so it survives any collection
+        // reconstruction (reuse(), distribute()) without FactoryCollection knowing about it
+        if (null !== $scope = $this->doctrineEventsScope) {
+            $collection = $collection->map(static fn(Factory $f) => $f instanceof self ? $f->withDoctrineEventsScope($scope) : $f);
+        }
+
         $collection = $collection->notRootFactory();
 
         if ($inverseRelationshipMetadata instanceof OneToManyRelationship) {
-            $this->inverseRelationshipCallbacks[] = function(object $object) use ($collection, $inverseRelationshipMetadata, $field) {
-                $inverseField = $inverseRelationshipMetadata->inverseField();
+            $inverseField = $inverseRelationshipMetadata->inverseField();
 
+            // this factory's accessor (see the callback below) is the single wiring agent
+            // for its own collection: children must not silently touch it from their side
+            $collection = $collection->map(static fn(Factory $f) => $f instanceof self ? $f->skipInverseWiringFor($inverseField) : $f);
+
+            $this->inverseRelationshipCallbacks[] = function(object $object) use ($collection, $inverseRelationshipMetadata, $field, $inverseField) {
                 $inverseObjects = $collection
                     ->reuse(...$this->reusedObjects())
                     ->withPersistMode($this->isPersisting() ? PersistMode::NO_PERSIST_BUT_SCHEDULE_FOR_INSERT : PersistMode::WITHOUT_PERSISTING)
@@ -447,15 +504,18 @@ abstract class PersistentObjectFactory extends ObjectFactory
 
                 $inverseObjects = ProxyGenerator::unwrap($inverseObjects, withAutoRefresh: false);
 
-                // if the collection is indexed by a field, index the array
+                // if the collection is indexed by a field, index the array and keep a raw
+                // assignment: going through an adder would lose the keys
                 if ($inverseRelationshipMetadata->collectionIndexedBy) {
                     $inverseObjects = \array_combine(
                         \array_map(static fn($o) => get($o, $inverseRelationshipMetadata->collectionIndexedBy), $inverseObjects),
                         \array_values($inverseObjects)
                     );
-                }
 
-                set($object, $field, $inverseObjects);
+                    Hydrator::forceSet($object, $field, $inverseObjects);
+                } else {
+                    $this->hydrator()->addAll($object, $field, $inverseObjects);
+                }
             };
 
             // creation delegated to tempAfterInstantiate hook - return empty array here
@@ -490,11 +550,11 @@ abstract class PersistentObjectFactory extends ObjectFactory
 
         if ($inverseRelationship instanceof OneToOneRelationship) {
             $this->inverseRelationshipCallbacks[] = static function(object $newObject) use ($object, $inverseRelationship) {
-                Hydrator::set($object, $inverseRelationship->inverseField(), $newObject, catchErrors: true);
+                Hydrator::forceSet($object, $inverseRelationship->inverseField(), $newObject, catchErrors: true);
             };
         }
 
-        if ($inverseRelationship instanceof ManyToOneRelationship) {
+        if ($inverseRelationship instanceof ManyToOneRelationship && !\in_array($field, $this->skipInverseWiringFields, true)) {
             $this->inverseRelationshipCallbacks[] = static function(object $newObject) use ($object, $inverseRelationship) {
                 Hydrator::add($object, $inverseRelationship->inverseField(), $newObject);
             };
@@ -541,7 +601,14 @@ abstract class PersistentObjectFactory extends ObjectFactory
                         };
                     }
 
-                    Configuration::instance()->persistence()->scheduleForInsert($object, $afterPersistCallbacks);
+                    $persistenceManager = Configuration::instance()->persistence();
+                    $persistenceManager->scheduleForInsert($object, $afterPersistCallbacks);
+
+                    // the root factory's hook is the single point where the whole object graph
+                    // is guaranteed instantiated and wired: persist everything now
+                    if ($factoryUsed->isRootFactory && PersistMode::PERSIST === $factoryUsed->persistMode()) {
+                        $persistenceManager->persistScheduled();
+                    }
                 },
                 self::PRIORITY_SCHEDULE_FOR_INSERT
             )
@@ -574,6 +641,43 @@ abstract class PersistentObjectFactory extends ObjectFactory
                 return false; // don't perform a flush after the hook
             }
         );
+    }
+
+    /**
+     * @phpstan-param callable(int):Parameters|Parameters $attributes
+     *
+     * @return T
+     */
+    private function doCreate(callable|array $attributes): object
+    {
+        $configuration = Configuration::instance();
+
+        if ($configuration->inADataProvider()
+            && (\PHP_VERSION_ID >= 80400 || $this instanceof PersistentProxyObjectFactory)
+            && ($this->isPersisting() || $configuration->isInMemoryEnabled())
+        ) {
+            return ProxyGenerator::wrapFactory($this->with($attributes));
+        }
+
+        $object = parent::create($attributes);
+
+        $this->throwIfCannotCreateObject();
+
+        if (PersistMode::PERSIST !== $this->persistMode()) {
+            return $object;
+        }
+
+        if ($configuration->flushOnce && !$this->isRootFactory) {
+            return $object;
+        }
+
+        if (!$configuration->isPersistenceAvailable()) {
+            throw new \LogicException('Persistence cannot be used in unit tests.');
+        }
+
+        $configuration->persistence()->save($object);
+
+        return $object;
     }
 
     private function throwIfCannotCreateObject(): void

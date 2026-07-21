@@ -7,8 +7,7 @@ use PhpParser\Node;
 use PhpParser\Node\ClosureUse;
 use PhpParser\Node\Expr;
 use PhpParser\Node\FunctionLike;
-use Rector\Contract\PhpParser\Node\StmtsAwareInterface;
-class Closure extends Expr implements FunctionLike, StmtsAwareInterface
+class Closure extends Expr implements FunctionLike
 {
     /** @var bool Whether the closure is static */
     public bool $static;

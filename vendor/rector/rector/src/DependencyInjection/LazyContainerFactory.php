@@ -3,9 +3,9 @@
 declare (strict_types=1);
 namespace Rector\DependencyInjection;
 
-use RectorPrefix202604\Doctrine\Inflector\Inflector;
-use RectorPrefix202604\Doctrine\Inflector\Rules\English\InflectorFactory;
-use RectorPrefix202604\Illuminate\Container\Container;
+use RectorPrefix202607\Doctrine\Inflector\Inflector;
+use RectorPrefix202607\Doctrine\Inflector\Rules\English\InflectorFactory;
+use RectorPrefix202607\Illuminate\Container\Container;
 use PhpParser\Lexer;
 use PHPStan\Analyser\NodeScopeResolver;
 use PHPStan\Analyser\ScopeFactory;
@@ -176,6 +176,7 @@ use Rector\PostRector\Application\PostFileProcessor;
 use Rector\Rector\AbstractRector;
 use Rector\Reporting\DeprecatedRulesReporter;
 use Rector\Skipper\Skipper\Skipper;
+use Rector\Skipper\Skipper\UsedSkipCollector;
 use Rector\StaticTypeMapper\Contract\PhpDocParser\PhpDocTypeMapperInterface;
 use Rector\StaticTypeMapper\Contract\PhpParser\PhpParserNodeMapperInterface;
 use Rector\StaticTypeMapper\Mapper\PhpParserNodeMapper;
@@ -192,10 +193,10 @@ use Rector\StaticTypeMapper\PhpParser\NameNodeMapper;
 use Rector\StaticTypeMapper\PhpParser\NullableTypeNodeMapper;
 use Rector\StaticTypeMapper\PhpParser\StringNodeMapper;
 use Rector\StaticTypeMapper\PhpParser\UnionTypeNodeMapper;
-use RectorPrefix202604\Symfony\Component\Console\Application;
-use RectorPrefix202604\Symfony\Component\Console\Command\Command;
-use RectorPrefix202604\Symfony\Component\Console\Style\SymfonyStyle;
-use RectorPrefix202604\Webmozart\Assert\Assert;
+use RectorPrefix202607\Symfony\Component\Console\Application;
+use RectorPrefix202607\Symfony\Component\Console\Command\Command;
+use RectorPrefix202607\Symfony\Component\Console\Style\SymfonyStyle;
+use RectorPrefix202607\Webmozart\Assert\Assert;
 final class LazyContainerFactory
 {
     /**
@@ -282,6 +283,8 @@ final class LazyContainerFactory
         $rectorConfig->when(DeprecatedRulesReporter::class)->needs('$rectors')->giveTagged(RectorInterface::class);
         $rectorConfig->singleton(FileProcessor::class);
         $rectorConfig->singleton(PostFileProcessor::class);
+        // shared state: collects used skips across skipper voters and the file processor
+        $rectorConfig->singleton(UsedSkipCollector::class);
         $rectorConfig->when(RectorNodeTraverser::class)->needs('$rectors')->giveTagged(RectorInterface::class);
         $rectorConfig->when(ConfigInitializer::class)->needs('$rectors')->giveTagged(RectorInterface::class);
         $rectorConfig->when(ClassNameImportSkipper::class)->needs('$classNameImportSkipVoters')->giveTagged(ClassNameImportSkipVoterInterface::class);

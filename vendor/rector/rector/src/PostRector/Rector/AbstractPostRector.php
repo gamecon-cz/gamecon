@@ -9,7 +9,7 @@ use PhpParser\NodeVisitorAbstract;
 use Rector\ChangesReporting\ValueObject\RectorWithLineChange;
 use Rector\PostRector\Contract\Rector\PostRectorInterface;
 use Rector\ValueObject\Application\File;
-use RectorPrefix202604\Webmozart\Assert\Assert;
+use RectorPrefix202607\Webmozart\Assert\Assert;
 abstract class AbstractPostRector extends NodeVisitorAbstract implements PostRectorInterface
 {
     /**
@@ -27,7 +27,7 @@ abstract class AbstractPostRector extends NodeVisitorAbstract implements PostRec
     {
         $this->file = $file;
     }
-    public function getFile(): File
+    protected function getFile(): File
     {
         Assert::isInstanceOf($this->file, File::class);
         return $this->file;
@@ -36,6 +36,6 @@ abstract class AbstractPostRector extends NodeVisitorAbstract implements PostRec
     {
         Assert::isInstanceOf($this->file, File::class);
         $rectorWithLineChange = new RectorWithLineChange(static::class, $node->getStartLine());
-        $this->file->addRectorClassWithLine($rectorWithLineChange);
+        $this->getFile()->addRectorClassWithLine($rectorWithLineChange);
     }
 }

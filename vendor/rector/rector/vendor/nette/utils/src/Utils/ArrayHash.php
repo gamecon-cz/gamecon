@@ -1,13 +1,13 @@
 <?php
 
+declare (strict_types=1);
 /**
  * This file is part of the Nette Framework (https://nette.org)
  * Copyright (c) 2004 David Grudl (https://davidgrudl.com)
  */
-declare (strict_types=1);
-namespace RectorPrefix202604\Nette\Utils;
+namespace RectorPrefix202607\Nette\Utils;
 
-use RectorPrefix202604\Nette;
+use RectorPrefix202607\Nette;
 use function count, is_array, is_scalar, sprintf;
 /**
  * Array-like object with property access.

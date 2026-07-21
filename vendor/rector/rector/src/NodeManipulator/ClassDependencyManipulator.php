@@ -3,11 +3,14 @@
 declare (strict_types=1);
 namespace Rector\NodeManipulator;
 
+use PhpParser\Modifiers;
+use PhpParser\Node;
 use PhpParser\Node\Arg;
 use PhpParser\Node\Expr\Assign;
 use PhpParser\Node\Expr\StaticCall;
 use PhpParser\Node\Expr\Variable;
 use PhpParser\Node\Name;
+use PhpParser\Node\Param;
 use PhpParser\Node\Stmt;
 use PhpParser\Node\Stmt\Class_;
 use PhpParser\Node\Stmt\ClassLike;
@@ -159,6 +162,24 @@ final class ClassDependencyManipulator
         }
         $classMethod->stmts = array_merge($stmts, (array) $classMethod->stmts);
     }
+    public function hasFinalParentConstructor(Class_ $class): bool
+    {
+        if ($class->getMethod(MethodName::CONSTRUCT) instanceof ClassMethod) {
+            return \false;
+        }
+        $classReflection = $this->reflectionResolver->resolveClassReflection($class);
+        if (!$classReflection instanceof ClassReflection) {
+            return \false;
+        }
+        $ancestors = array_filter($classReflection->getAncestors(), static fn(ClassReflection $ancestor): bool => $ancestor->getName() !== $classReflection->getName());
+        foreach ($ancestors as $ancestor) {
+            if (!$ancestor->hasNativeMethod(MethodName::CONSTRUCT)) {
+                continue;
+            }
+            return $ancestor->getNativeMethod(MethodName::CONSTRUCT)->isFinalByKeyword()->yes();
+        }
+        return \false;
+    }
     private function resolveConstruct(Class_ $class): ?ClassMethod
     {
         $constructorMethod = $class->getMethod(MethodName::CONSTRUCT);
@@ -200,12 +221,27 @@ final class ClassDependencyManipulator
     {
         $param = $this->nodeFactory->createPromotedPropertyParam($propertyMetadata);
         if ($constructClassMethod instanceof ClassMethod) {
-            // parameter is already added
-            if ($this->hasMethodParameter($constructClassMethod, $propertyMetadata->getName())) {
+            $hasOwnConstruct = $class->getMethod(MethodName::CONSTRUCT) instanceof ClassMethod;
+            $matchedParam = $this->matchMethodParameter($constructClassMethod, $propertyMetadata->getName());
+            if ($matchedParam instanceof Param) {
+                // own constructor already has this param → nothing to do
+                if ($hasOwnConstruct) {
+                    return;
+                }
+                // parent constructor has a same-named param; if it is a private promoted
+                // property, the child cannot access it via $this — add a fresh constructor
+                // on the child instead of trying to extend the parent signature
+                if (($matchedParam->flags & Modifiers::PRIVATE) !== 0) {
+                    $childConstructClassMethod = $this->nodeFactory->createPublicMethod(MethodName::CONSTRUCT);
+                    $childConstructClassMethod->params[] = $param;
+                    $this->classInsertManipulator->addAsFirstMethod($class, $childConstructClassMethod);
+                    return;
+                }
+                // parent's matching param is protected/public — accessible from child, no add needed
                 return;
             }
             // found construct, but only on parent, add to current class
-            if (!$class->getMethod(MethodName::CONSTRUCT) instanceof ClassMethod) {
+            if (!$hasOwnConstruct) {
                 $parentArgs = [];
                 foreach ($constructClassMethod->params as $originalParam) {
                     $parentArgs[] = new Arg(new Variable((string) $this->nodeNameResolver->getName($originalParam->var)));
@@ -228,12 +264,14 @@ final class ClassDependencyManipulator
         if (!$classReflection instanceof ClassReflection) {
             return \false;
         }
+        $found = \false;
         foreach ($classReflection->getParents() as $parentClassReflection) {
             if ($parentClassReflection->hasMethod($methodName)) {
-                return \true;
+                $found = \true;
+                break;
             }
         }
-        return \false;
+        return $found;
     }
     private function createParentClassMethodCall(string $methodName): Expression
     {
@@ -246,12 +284,14 @@ final class ClassDependencyManipulator
         if (!$constructClassMethod instanceof ClassMethod) {
             return \false;
         }
+        $found = \false;
         foreach ($constructClassMethod->params as $param) {
             if ($this->nodeNameResolver->isName($param, $propertyName)) {
-                return \true;
+                $found = \true;
+                break;
             }
         }
-        return \false;
+        return $found;
     }
     private function hasClassPropertyAndDependency(Class_ $class, PropertyMetadata $propertyMetadata): bool
     {
@@ -265,14 +305,14 @@ final class ClassDependencyManipulator
         // is inject/autowired property?
         return $property instanceof Property;
     }
-    private function hasMethodParameter(ClassMethod $classMethod, string $name): bool
+    private function matchMethodParameter(ClassMethod $classMethod, string $name): ?Param
     {
         foreach ($classMethod->params as $param) {
             if ($this->nodeNameResolver->isName($param->var, $name)) {
-                return \true;
+                return $param;
             }
         }
-        return \false;
+        return null;
     }
     private function shouldAddPromotedProperty(Class_ $class, PropertyMetadata $propertyMetadata): bool
     {

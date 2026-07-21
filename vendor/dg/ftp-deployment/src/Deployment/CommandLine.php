@@ -1,12 +1,10 @@
-<?php
+<?php declare(strict_types=1);
 
 /**
  * FTP Deployment
  *
  * Copyright (c) 2009 David Grudl (https://davidgrudl.com)
  */
-
-declare(strict_types=1);
 
 namespace Deployment;
 
@@ -23,7 +21,7 @@ class CommandLine
 		RealPath = 'realpath',
 		Value = 'default';
 
-	/** @var array[] */
+	/** @var array<string, array{argument?: bool, optional?: bool, repeatable?: bool, realpath?: bool, default?: ?string}> */
 	private array $options = [];
 
 	/** @var string[] */
@@ -34,6 +32,7 @@ class CommandLine
 	private string $help;
 
 
+	/** @param array<string, array{argument?: bool, optional?: bool, repeatable?: bool, realpath?: bool, default?: ?string}> $defaults */
 	public function __construct(string $help, array $defaults = [])
 	{
 		$this->help = $help;
@@ -46,11 +45,11 @@ class CommandLine
 				throw new \InvalidArgumentException("Unable to parse '$line[1]'.");
 			}
 
-			$name = end($m[1]);
+			$name = (string) end($m[1]);
 			$opts = $this->options[$name] ?? [];
 			$this->options[$name] = $opts + [
 				self::Argument => (bool) end($m[2]),
-				self::Optional => isset($line[2]) || (substr(end($m[2]), 0, 1) === '[') || isset($opts[self::Value]),
+				self::Optional => isset($line[2]) || (substr((string) end($m[2]), 0, 1) === '[') || isset($opts[self::Value]),
 				self::Repeatable => (bool) end($m[3]),
 				self::Value => $line[2] ?? null,
 			];
@@ -67,6 +66,10 @@ class CommandLine
 	}
 
 
+	/**
+	 * @param  ?list<string>  $args
+	 * @return array<string, mixed>
+	 */
 	public function parse(?array $args = null): array
 	{
 		if ($args === null) {
@@ -146,7 +149,8 @@ class CommandLine
 	}
 
 
-	public function checkArg(array $opt, &$arg): void
+	/** @param array<string, mixed> $opt */
+	public function checkArg(array $opt, mixed &$arg): void
 	{
 		if (!empty($opt[self::RealPath])) {
 			$path = realpath($arg);

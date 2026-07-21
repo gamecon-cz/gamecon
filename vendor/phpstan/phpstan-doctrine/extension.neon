@@ -18,6 +18,7 @@ parameters:
 		- stubs/DBAL/Types/Type.stub
 		- stubs/DBAL/Exception.stub
 		- stubs/DBAL/Result.stub
+		- stubs/DBAL/Statement.stub
 		- stubs/DocumentManager.stub
 		- stubs/DocumentRepository.stub
 		- stubs/EntityManager.stub
@@ -31,6 +32,7 @@ parameters:
 		- stubs/Persistence/ObjectManagerDecorator.stub
 		- stubs/Persistence/ObjectRepository.stub
 		- stubs/RepositoryFactory.stub
+		- stubs/Collections/AbstractLazyCollection.stub
 		- stubs/Collections/ArrayCollection.stub
 		- stubs/Collections/Selectable.stub
 		- stubs/ORM/AbstractQuery.stub
@@ -370,6 +372,9 @@ services:
 		tags: [phpstan.doctrine.typeDescriptor]
 	-
 		class: PHPStan\Type\Doctrine\Descriptors\JsonType
+		tags: [phpstan.doctrine.typeDescriptor]
+	-
+		class: PHPStan\Type\Doctrine\Descriptors\NumberType
 		tags: [phpstan.doctrine.typeDescriptor]
 	-
 		class: PHPStan\Type\Doctrine\Descriptors\ObjectType

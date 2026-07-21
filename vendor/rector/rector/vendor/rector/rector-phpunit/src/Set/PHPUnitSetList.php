@@ -47,7 +47,15 @@ final class PHPUnitSetList
     /**
      * @var string
      */
+    public const PHPUNIT_MOCK_TO_STUB = __DIR__ . '/../../config/sets/phpunit-mock-to-stub.php';
+    /**
+     * @var string
+     */
     public const PHPUNIT_CODE_QUALITY = __DIR__ . '/../../config/sets/phpunit-code-quality.php';
+    /**
+     * @var string
+     */
+    public const PHPUNIT_NARROW_ASSERTS = __DIR__ . '/../../config/sets/phpunit-narrow-asserts.php';
     /**
      * @var string
      */

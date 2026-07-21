@@ -5,7 +5,9 @@
 [![Latest Version](https://img.shields.io/packagist/v/zenstruck/foundry.svg)](https://packagist.org/packages/zenstruck/foundry)
 [![Downloads](https://img.shields.io/packagist/dm/zenstruck/foundry)](https://packagist.org/packages/zenstruck/foundry)
 
-Foundry makes creating fixtures data fun again, via an expressive, auto-completable, on-demand fixtures system with
+"Fixtures you'll actually enjoy writing!"
+
+Foundry turns fixture creation into a joy, via an expressive, auto-completable, on-demand fixtures system with
 Symfony and Doctrine:
 
 ```php
@@ -142,3 +144,7 @@ The [AAA](https://www.thephilocoder.com/unit-testing-aaa-pattern/) style of test
 [Adam Wathan's](https://adamwathan.me/) excellent [Test Driven Laravel Course](https://course.testdrivenlaravel.com/).
 The inspiration for this libraries API comes from [Laravel factories](https://laravel.com/docs/master/database-testing)
 and [christophrumpel/laravel-factories-reloaded](https://github.com/christophrumpel/laravel-factories-reloaded).
+
+## Security Policy
+
+If you discover a security vulnerability, please do not open a public issue or pull request. Instead, please review this repository's [Security Policy](https://github.com/zenstruck/foundry/security) for instructions on how to report it responsibly.

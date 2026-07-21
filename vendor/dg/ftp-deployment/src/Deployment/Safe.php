@@ -1,12 +1,10 @@
-<?php
+<?php declare(strict_types=1);
 
 /**
  * FTP Deployment
  *
  * Copyright (c) 2009 David Grudl (https://davidgrudl.com)
  */
-
-declare(strict_types=1);
 
 namespace Deployment;
 
@@ -24,12 +22,12 @@ namespace Deployment;
  * @method static resource ftp_connect(string $host, int $port = 21, int $timeout = 90)
  * @method static void ftp_delete(resource $ftp_stream, string $path)
  * @method static void ftp_exec(resource $ftp_stream, string $command)
- * @method static void ftp_get(resource $ftp_stream, string $local_file, string $remote_file, int $mode = FTP_BINARY, int $resumepos = 0)
+ * @method static void ftp_get(resource $ftp_stream, string $local_file, string $remote_file, int $mode, int $resumepos = 0)
  * @method static void ftp_login(resource $ftp_stream, string $username, string $password)
  * @method static string ftp_mkdir(resource $ftp_stream, string $directory)
  * @method static int ftp_nb_continue(resource $ftp_stream)
- * @method static int ftp_nb_put(resource $ftp_stream, string $remote_file, string $local_file, int $mode = FTP_IMAGE, int $startpos = 0)
- * @method static array ftp_nlist(resource $ftp_stream, string $directory)
+ * @method static int ftp_nb_put(resource $ftp_stream, string $remote_file, string $local_file, int $mode, int $startpos = 0)
+ * @method static list<string> ftp_nlist(resource $ftp_stream, string $directory)
  * @method static void ftp_pasv(resource $ftp_stream, bool $pasv)
  * @method static string ftp_pwd(resource $ftp_stream)
  * @method static void ftp_rename(resource $ftp_stream, string $oldname, string $newname)
@@ -44,8 +42,8 @@ namespace Deployment;
  * @method static void ssh2_auth_agent(resource $session, string $username)
  * @method static void ssh2_auth_password(resource $session, string $username, string $password)
  * @method static void ssh2_auth_pubkey_file(resource $session, string $username, string $pubkeyfile, string $privkeyfile, string $passphrase)
- * @method static resource ssh2_connect(string $host, int $port = 22, array $methods = [], array $callbacks = [])
- * @method static resource ssh2_exec(resource $session, string $command, string $pty = '', array $env = [], int $width = 80, int $height = 25, int $width_height_type = SSH2_TERM_UNIT_CHARS)
+ * @method static resource ssh2_connect(string $host, int $port = 22, array<string, mixed> $methods = [], array<string, mixed> $callbacks = [])
+ * @method static resource ssh2_exec(resource $session, string $command, string $pty = '', array<string, string> $env = [], int $width = 80, int $height = 25, int $width_height_type = 0)
  * @method static resource ssh2_sftp(resource $session)
  * @method static void ssh2_sftp_chmod(resource $sftp, string $filename, int $mode)
  * @method static void ssh2_sftp_mkdir(resource $sftp, string $dirname, int $mode = 0777, bool $recursive = false)
@@ -58,10 +56,10 @@ namespace Deployment;
 class Safe
 {
 	/**
-	 * @return mixed
+	 * @param list<mixed>  $args
 	 * @throws ServerException
 	 */
-	public static function __callStatic(string $func, array $args = [])
+	public static function __callStatic(string $func, array $args = []): mixed
 	{
 		set_error_handler(function (int $severity, string $message) {
 			if (ini_get('html_errors')) {
@@ -71,7 +69,7 @@ class Safe
 				$message = $m[1];
 			}
 			$trace = debug_backtrace(DEBUG_BACKTRACE_IGNORE_ARGS);
-			throw new ServerException($message, $trace[2]['file'], $trace[2]['line']);
+			throw new ServerException($message, $trace[2]['file'] ?? null, $trace[2]['line'] ?? null);
 		});
 		try {
 			$res = $func(...$args);
@@ -82,13 +80,16 @@ class Safe
 		}
 		if ($res === false) {
 			$trace = debug_backtrace(DEBUG_BACKTRACE_IGNORE_ARGS);
-			throw new ServerException("$func() failures.", $trace[1]['file'], $trace[1]['line']);
+			throw new ServerException("$func() failures.", $trace[1]['file'] ?? null, $trace[1]['line'] ?? null);
 		}
 		return $res;
 	}
 
 
-	/** @throws ServerException */
+	/**
+	 * @param ?list<string> $output
+	 * @throws ServerException
+	 */
 	public static function exec(string $command, ?array &$output = null, ?int &$return_var = null): string
 	{
 		return self::__callStatic(__FUNCTION__, [$command, &$output, &$return_var]);

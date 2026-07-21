@@ -1,15 +1,15 @@
 <?php
 
+declare (strict_types=1);
 /**
  * This file is part of the Nette Framework (https://nette.org)
  * Copyright (c) 2004 David Grudl (https://davidgrudl.com)
  */
-declare (strict_types=1);
-namespace RectorPrefix202604\Nette\Utils;
+namespace RectorPrefix202607\Nette\Utils;
 
 use function array_merge, checkdate, implode, is_numeric, is_string, preg_replace_callback, sprintf, time, trim;
 /**
- * DateTime.
+ * Extends PHP's DateTime with strict validation and additional factory methods.
  */
 class DateTime extends \DateTime implements \JsonSerializable
 {
@@ -57,8 +57,8 @@ class DateTime extends \DateTime implements \JsonSerializable
     }
     /**
      * Returns a new DateTime object formatted according to the specified format.
-     * @param string|\DateTimeZone|null $timezone
      * @return static|false
+     * @param string|\DateTimeZone|null $timezone
      */
     public static function createFromFormat(string $format, string $datetime, $timezone = null)
     {
@@ -142,7 +142,7 @@ class DateTime extends \DateTime implements \JsonSerializable
         return $this->format('Y-m-d H:i:s');
     }
     /**
-     * You'd better use: (clone $dt)->modify(...)
+     * Returns a modified copy of the object. Use (clone $dt)->modify(...) for better type safety.
      * @return static
      */
     public function modifyClone(string $modify = '')

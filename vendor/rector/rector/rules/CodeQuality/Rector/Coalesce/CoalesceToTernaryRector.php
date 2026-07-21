@@ -7,6 +7,7 @@ use PhpParser\Node;
 use PhpParser\Node\Expr\ArrayDimFetch;
 use PhpParser\Node\Expr\BinaryOp\Coalesce;
 use PhpParser\Node\Expr\Ternary;
+use PhpParser\Node\Expr\Variable;
 use PHPStan\Type\ErrorType;
 use PHPStan\Type\MixedType;
 use PHPStan\Type\NullType;
@@ -17,6 +18,8 @@ use Symplify\RuleDocGenerator\ValueObject\CodeSample\CodeSample;
 use Symplify\RuleDocGenerator\ValueObject\RuleDefinition;
 /**
  * @see \Rector\Tests\CodeQuality\Rector\Coalesce\CoalesceToTernaryRector\CoalesceToTernaryRectorTest
+ *
+ * @see https://github.com/rectorphp/rector/issues/9730
  */
 final class CoalesceToTernaryRector extends AbstractRector
 {
@@ -74,6 +77,9 @@ CODE_SAMPLE
                     return null;
                 }
             }
+        }
+        if ($node->left instanceof Variable && !$scope->hasVariableType((string) $this->getName($node->left))->yes()) {
+            return null;
         }
         return new Ternary($node->left, null, $node->right);
     }

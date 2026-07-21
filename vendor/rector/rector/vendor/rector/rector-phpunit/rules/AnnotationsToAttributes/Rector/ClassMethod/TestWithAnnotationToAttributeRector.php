@@ -3,7 +3,7 @@
 declare (strict_types=1);
 namespace Rector\PHPUnit\AnnotationsToAttributes\Rector\ClassMethod;
 
-use RectorPrefix202604\Nette\Utils\Json;
+use RectorPrefix202607\Nette\Utils\Json;
 use PhpParser\Node;
 use PhpParser\Node\Stmt\ClassMethod;
 use PHPStan\PhpDocParser\Ast\PhpDoc\GenericTagValueNode;
@@ -132,7 +132,6 @@ CODE_SAMPLE
             }
             // test from doc blocks
             $this->phpDocTagRemover->removeTagValueFromNode($phpDocInfo, $testWithPhpDocTagNode);
-            /** @var GenericTagValueNode $genericTagValueNode */
             $genericTagValueNode = $testWithPhpDocTagNode->value;
             $testWithItems = explode("\n", trim($genericTagValueNode->value));
             foreach ($testWithItems as $testWithItem) {

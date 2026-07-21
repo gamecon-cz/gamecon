@@ -11,11 +11,13 @@ use PhpParser\Node\Name;
 use PhpParser\Node\Name\FullyQualified;
 use PhpParser\Node\Stmt\Class_;
 use PhpParser\Node\Stmt\Expression;
+use PHPStan\Reflection\ClassReflection;
 use PHPStan\Reflection\ReflectionProvider;
 use Rector\Enum\ObjectReference;
 use Rector\NodeAnalyzer\ClassAnalyzer;
 use Rector\NodeManipulator\ClassMethodManipulator;
 use Rector\Rector\AbstractRector;
+use Rector\Reflection\ClassReflectionAnalyzer;
 use Symplify\RuleDocGenerator\ValueObject\CodeSample\CodeSample;
 use Symplify\RuleDocGenerator\ValueObject\RuleDefinition;
 /**
@@ -35,11 +37,16 @@ final class RemoveParentCallWithoutParentRector extends AbstractRector
      * @readonly
      */
     private ReflectionProvider $reflectionProvider;
-    public function __construct(ClassMethodManipulator $classMethodManipulator, ClassAnalyzer $classAnalyzer, ReflectionProvider $reflectionProvider)
+    /**
+     * @readonly
+     */
+    private ClassReflectionAnalyzer $classReflectionAnalyzer;
+    public function __construct(ClassMethodManipulator $classMethodManipulator, ClassAnalyzer $classAnalyzer, ReflectionProvider $reflectionProvider, ClassReflectionAnalyzer $classReflectionAnalyzer)
     {
         $this->classMethodManipulator = $classMethodManipulator;
         $this->classAnalyzer = $classAnalyzer;
         $this->reflectionProvider = $reflectionProvider;
+        $this->classReflectionAnalyzer = $classReflectionAnalyzer;
     }
     public function getRuleDefinition(): RuleDefinition
     {
@@ -140,6 +147,36 @@ CODE_SAMPLE
         if (!is_string($calledMethodName)) {
             return \false;
         }
-        return $this->classMethodManipulator->hasParentMethodOrInterfaceMethod($class, $calledMethodName);
+        if ($this->classMethodManipulator->hasParentMethodOrInterfaceMethod($class, $calledMethodName)) {
+            return \true;
+        }
+        // the called method may be defined in an ancestor that cannot be resolved
+        // (e.g. a grandparent class is not autoloadable); in that case we cannot
+        // safely tell the method does not exist, so the call must not be removed
+        return $this->hasUnresolvableAncestor($class->extends);
+    }
+    private function hasUnresolvableAncestor(Name $parentName): bool
+    {
+        $parentClassName = $this->getName($parentName);
+        if (!is_string($parentClassName)) {
+            return \false;
+        }
+        if (!$this->reflectionProvider->hasClass($parentClassName)) {
+            return \true;
+        }
+        $parentClassReflection = $this->reflectionProvider->getClass($parentClassName);
+        return $this->hasUnresolvableParentClass($parentClassReflection);
+    }
+    private function hasUnresolvableParentClass(ClassReflection $classReflection): bool
+    {
+        $parentClassName = $this->classReflectionAnalyzer->resolveParentClassName($classReflection);
+        if ($parentClassName === null) {
+            return \false;
+        }
+        $parentClassReflection = $classReflection->getParentClass();
+        if (!$parentClassReflection instanceof ClassReflection) {
+            return \true;
+        }
+        return $this->hasUnresolvableParentClass($parentClassReflection);
     }
 }

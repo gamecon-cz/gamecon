@@ -1,13 +1,13 @@
 <?php
 
+declare (strict_types=1);
 /**
  * This file is part of the Nette Framework (https://nette.org)
  * Copyright (c) 2004 David Grudl (https://davidgrudl.com)
  */
-declare (strict_types=1);
-namespace RectorPrefix202604\Nette\Utils;
+namespace RectorPrefix202607\Nette\Utils;
 
-use RectorPrefix202604\Nette;
+use RectorPrefix202607\Nette;
 use function explode, func_get_args, ini_get, is_array, is_callable, is_object, is_string, preg_replace, restore_error_handler, set_error_handler, sprintf, str_contains, str_ends_with;
 /**
  * PHP callable tools.
@@ -41,8 +41,8 @@ final class Callback
         }
     }
     /**
-     * Checks that $callable is valid PHP callback. Otherwise throws exception. If the $syntax is set to true, only verifies
-     * that $callable has a valid structure to be used as a callback, but does not verify if the class or method actually exists.
+     * Checks that $callable is a valid PHP callback and returns it. With $syntax set to true, only verifies
+     * the structural validity without checking whether the class or method actually exists.
      * @return callable
      * @throws Nette\InvalidArgumentException
      * @param mixed $callable

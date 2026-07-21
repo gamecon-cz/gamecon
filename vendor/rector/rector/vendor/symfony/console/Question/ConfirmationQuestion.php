@@ -8,7 +8,7 @@
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
  */
-namespace RectorPrefix202604\Symfony\Component\Console\Question;
+namespace RectorPrefix202607\Symfony\Component\Console\Question;
 
 /**
  * Represents a yes/no question.
@@ -36,7 +36,7 @@ class ConfirmationQuestion extends Question
     {
         $default = $this->getDefault();
         $regex = $this->trueAnswerRegex;
-        return function ($answer) use ($default, $regex) {
+        return static function ($answer) use ($default, $regex) {
             if (\is_bool($answer)) {
                 return $answer;
             }

@@ -4,8 +4,7 @@ declare (strict_types=1);
 namespace PhpParser\Node\Stmt;
 
 use PhpParser\Node;
-use Rector\Contract\PhpParser\Node\StmtsAwareInterface;
-class TryCatch extends Node\Stmt implements StmtsAwareInterface
+class TryCatch extends Node\Stmt
 {
     /** @var Node\Stmt[] Statements */
     public array $stmts;

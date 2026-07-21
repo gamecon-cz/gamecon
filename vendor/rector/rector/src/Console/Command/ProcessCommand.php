@@ -24,11 +24,11 @@ use Rector\Util\MemoryLimiter;
 use Rector\ValueObject\Configuration;
 use Rector\ValueObject\Configuration\LevelOverflow;
 use Rector\ValueObject\ProcessResult;
-use RectorPrefix202604\Symfony\Component\Console\Application;
-use RectorPrefix202604\Symfony\Component\Console\Command\Command;
-use RectorPrefix202604\Symfony\Component\Console\Input\InputInterface;
-use RectorPrefix202604\Symfony\Component\Console\Output\OutputInterface;
-use RectorPrefix202604\Symfony\Component\Console\Style\SymfonyStyle;
+use RectorPrefix202607\Symfony\Component\Console\Application;
+use RectorPrefix202607\Symfony\Component\Console\Command\Command;
+use RectorPrefix202607\Symfony\Component\Console\Input\InputInterface;
+use RectorPrefix202607\Symfony\Component\Console\Output\OutputInterface;
+use RectorPrefix202607\Symfony\Component\Console\Style\SymfonyStyle;
 final class ProcessCommand extends Command
 {
     /**
@@ -190,9 +190,9 @@ EOF
         // 4. Deprecations reporter
         $this->deprecatedRulesReporter->reportDeprecatedRules();
         $this->deprecatedRulesReporter->reportDeprecatedSkippedRules();
-        $this->deprecatedRulesReporter->reportDeprecatedNodeTypes();
         $this->deprecatedRulesReporter->reportDeprecatedRectorUnsupportedMethods();
         $this->missConfigurationReporter->reportSkippedNeverRegisteredRules();
+        $this->missConfigurationReporter->reportUnusedSkips($processResult);
         return $this->resolveReturnCode($processResult, $configuration);
     }
     protected function initialize(InputInterface $input, OutputInterface $output): void
@@ -202,12 +202,9 @@ EOF
             throw new ShouldNotHappenException();
         }
         $optionDebug = (bool) $input->getOption(Option::DEBUG);
+        // clear cache
         if ($optionDebug) {
             $application->setCatchExceptions(\false);
-        }
-        // clear cache
-        $optionClearCache = (bool) $input->getOption(Option::CLEAR_CACHE);
-        if ($optionDebug || $optionClearCache) {
             $this->changedFilesDetector->clear();
         }
     }

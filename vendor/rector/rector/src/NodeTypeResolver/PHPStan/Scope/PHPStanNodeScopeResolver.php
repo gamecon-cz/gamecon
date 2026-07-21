@@ -5,7 +5,6 @@ namespace Rector\NodeTypeResolver\PHPStan\Scope;
 
 use Error;
 use PhpParser\Node;
-use PhpParser\Node\Arg;
 use PhpParser\Node\ArrayItem;
 use PhpParser\Node\Expr;
 use PhpParser\Node\Expr\Array_;
@@ -108,7 +107,7 @@ use Rector\NodeNameResolver\NodeNameResolver;
 use Rector\NodeTypeResolver\Node\AttributeKey;
 use Rector\PhpParser\Node\FileNode;
 use Rector\Util\Reflection\PrivatesAccessor;
-use RectorPrefix202604\Webmozart\Assert\Assert;
+use RectorPrefix202607\Webmozart\Assert\Assert;
 /**
  * @inspired by https://github.com/silverstripe/silverstripe-upgrader/blob/532182b23e854d02e0b27e68ebc394f436de0682/src/UpgradeRule/PHP/Visitor/PHPStanScopeVisitor.php
  * - https://github.com/silverstripe/silverstripe-upgrader/pull/57/commits/e5c7cfa166ad940d9d4ff69537d9f7608e992359#diff-5e0807bb3dc03d6a8d8b6ad049abd774
@@ -243,10 +242,6 @@ final class PHPStanNodeScopeResolver
             }
             if ($node instanceof BinaryOp) {
                 $this->processBinaryOp($node, $mutatingScope);
-                return;
-            }
-            if ($node instanceof Arg) {
-                $node->value->setAttribute(AttributeKey::SCOPE, $mutatingScope);
                 return;
             }
             if ($node instanceof Foreach_) {
@@ -422,6 +417,12 @@ final class PHPStanNodeScopeResolver
             $callLike->name->setAttribute(AttributeKey::SCOPE, $mutatingScope);
         } elseif ($callLike instanceof New_ && !$callLike->class instanceof Class_) {
             $callLike->class->setAttribute(AttributeKey::SCOPE, $mutatingScope);
+        }
+        if ($callLike->isFirstClassCallable()) {
+            return;
+        }
+        foreach ($callLike->getArgs() as $arg) {
+            $arg->value->setAttribute(AttributeKey::SCOPE, $mutatingScope);
         }
     }
     /**

@@ -357,7 +357,7 @@ class Configuration implements ConfigurationInterface
                 ->end()
                 ->scalarNode('default_dbname')
                     ->info(
-                        'Override the default database (postgres) to connect to for PostgreSQL connexion.',
+                        'Override the default database (postgres) to connect to for PostgreSQL connection.',
                     )
                 ->end()
                 ->scalarNode('sslmode')

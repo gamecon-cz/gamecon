@@ -1,12 +1,10 @@
-<?php
+<?php declare(strict_types=1);
 
 /**
  * FTP Deployment
  *
  * Copyright (c) 2009 David Grudl (https://davidgrudl.com)
  */
-
-declare(strict_types=1);
 
 namespace Deployment;
 
@@ -96,7 +94,7 @@ class FileServer implements Server
 	public function createDir(string $dir): void
 	{
 		if (trim($dir, '/') !== '' && !file_exists($path = $this->root . $dir)) {
-			Safe::mkdir($path, $this->dirPermissions ?? 0777, true);
+			Safe::mkdir($path, $this->dirPermissions ?? 0o777, true);
 		}
 	}
 
@@ -163,6 +161,6 @@ class FileServer implements Server
 	public function execute(string $command): string
 	{
 		Safe::exec($command, $out);
-		return implode("\n", $out);
+		return implode("\n", $out ?? []);
 	}
 }

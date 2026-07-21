@@ -8,7 +8,7 @@
  * For the full copyright and license information, please view
  * the LICENSE file that was distributed with this source code.
  */
-namespace RectorPrefix202604\Composer\Semver\Constraint;
+namespace RectorPrefix202607\Composer\Semver\Constraint;
 
 /**
  * Defines a conjunctive or disjunctive set of constraints.
@@ -138,6 +138,7 @@ class MultiConstraint implements ConstraintInterface
     /**
      * {@inheritDoc}
      */
+    #[\ReturnTypeWillChange]
     public function __toString()
     {
         if ($this->string !== null) {

@@ -1,12 +1,10 @@
-<?php
+<?php declare(strict_types=1);
 
 /**
  * FTP Deployment
  *
  * Copyright (c) 2009 David Grudl (https://davidgrudl.com)
  */
-
-declare(strict_types=1);
 
 namespace Deployment;
 
@@ -31,13 +29,13 @@ class Deployer
 	/** @var string[] relative paths */
 	public array $toPurge = [];
 
-	/** @var array of string|callable */
+	/** @var list<string|(callable(Server, Logger, Deployer): (false|void))> */
 	public array $runBefore = [];
 
-	/** @var array of string|callable */
+	/** @var list<string|(callable(Server, Logger, Deployer): (false|void))> */
 	public array $runAfterUpload = [];
 
-	/** @var array of string|callable */
+	/** @var list<string|(callable(Server, Logger, Deployer): (false|void))> */
 	public array $runAfter = [];
 	public string $tempDir = '';
 
@@ -47,18 +45,27 @@ class Deployer
 	private string $localDir;
 	private string $remoteDir;
 	private Logger $logger;
+
+	/** @var array<string, list<array{filter: callable(string, string): ?string, cached: bool}>> */
 	private array $filters = [];
 	private Server $server;
+	private ?InterruptHandler $interruptHandler;
 
 
-	public function __construct(Server $server, string $localDir, Logger $logger)
-	{
-		$this->localDir = realpath($localDir);
-		if (!$this->localDir) {
+	public function __construct(
+		Server $server,
+		string $localDir,
+		Logger $logger,
+		?InterruptHandler $interruptHandler = null,
+	) {
+		$path = realpath($localDir);
+		if (!$path) {
 			throw new \InvalidArgumentException("Directory $localDir not found.");
 		}
+		$this->localDir = $path;
 		$this->server = $server;
 		$this->logger = $logger;
+		$this->interruptHandler = $interruptHandler;
 	}
 
 
@@ -71,14 +78,18 @@ class Deployer
 		$this->server->connect();
 		$this->remoteDir = $this->server->getDir();
 
-		$runBefore = [null, null];
+		$localBefore = $otherBefore = [];
 		foreach ($this->runBefore as $job) {
-			$runBefore[is_string($job) && preg_match('#^local:#', $job)][] = $job;
+			if (is_string($job) && preg_match('#^local:#', $job)) {
+				$localBefore[] = $job;
+			} else {
+				$otherBefore[] = $job;
+			}
 		}
 
-		if ($runBefore[1]) {
+		if ($localBefore) {
 			$this->logger->log("\nLocal-jobs:");
-			$this->runJobs($runBefore[1]);
+			$this->runJobs($localBefore);
 			$this->logger->log('');
 		}
 
@@ -92,7 +103,7 @@ class Deployer
 
 		$this->logger->log("Scanning files in $this->localDir");
 		static $cache;
-		$localPaths = &$cache[serialize([$this->localDir, $this->ignoreMasks, $this->includeMasks, $this->filters, $this->preprocessMasks])];
+		$localPaths = &$cache[serialize([$this->localDir, $this->ignoreMasks, $this->includeMasks, array_keys($this->filters), $this->preprocessMasks])];
 		if ($localPaths === null) {
 			$localPaths = $this->collectPaths();
 		}
@@ -103,13 +114,12 @@ class Deployer
 
 		if ($localPaths !== $remotePaths) { // ignores allowDelete
 			$deploymentFile = $this->writeDeploymentFile($localPaths);
-			$toUpload[] = "/$this->deploymentFile"; // must be last
 		}
 
-		if (!$toUpload && !$toDelete) {
+		if (!$toUpload && !$toDelete && !isset($deploymentFile)) {
 			$this->logger->log('Already synchronized.', 'lime');
 
-			$runAfterLocal = array_filter($this->runAfter, fn($job) => is_string($job) && preg_match('#^local:#', $job));
+			$runAfterLocal = array_values(array_filter($this->runAfter, fn($job) => is_string($job) && preg_match('#^local:#', $job)));
 			if ($runAfterLocal) {
 				$this->logger->log("\nLocal-after-jobs:");
 				$this->runJobs($runAfterLocal);
@@ -125,20 +135,35 @@ class Deployer
 			return;
 		}
 
-		if ($runBefore[0]) {
+		if ($otherBefore) {
 			$this->logger->log("\nBefore-jobs:");
-			$this->runJobs($runBefore[0]);
+			$this->runJobs($otherBefore);
 		}
 
 		try {
 			$tempFiles = [];
+			$skippedPaths = [];
 			if ($toUpload) {
 				$this->logger->log("\nUploading:");
-				$this->uploadPaths($toUpload, $tempFiles);
-				if ($this->runAfterUpload) {
-					$this->logger->log("\nAfter-upload-jobs:");
-					$this->runJobs($this->runAfterUpload);
-				}
+				$skippedPaths = $this->uploadPaths($toUpload, $tempFiles);
+				$toUpload = array_values(array_diff($toUpload, $skippedPaths));
+			}
+
+			if (isset($deploymentFile)) {
+				$adjustedPaths = $localPaths;
+				$this->revertSkippedPaths($adjustedPaths, $skippedPaths, $remotePaths);
+				$deploymentFile = $this->writeDeploymentFile($adjustedPaths);
+				$toUpload[] = "/$this->deploymentFile";
+				$tempFiles["/$this->deploymentFile" . self::TemporarySuffix] = true;
+				$this->server->writeFile(
+					$deploymentFile,
+					$this->remoteDir . '/' . $this->deploymentFile . self::TemporarySuffix,
+				);
+			}
+
+			if ($this->runAfterUpload) {
+				$this->logger->log("\nAfter-upload-jobs:");
+				$this->runJobs($this->runAfterUpload);
 			}
 
 			$this->logger->log("Creating remote file $this->deploymentFile.running");
@@ -148,12 +173,33 @@ class Deployer
 
 			if ($toUpload) {
 				$this->logger->log("\nRenaming:");
-				$this->renamePaths($toUpload, $tempFiles);
+				$skippedRenames = $this->renamePaths($toUpload, $tempFiles);
+				// Skipped renames mean the .deploytmp file will be cleaned up by finally,
+				// leaving the old version on server. Re-generate the deployment file to
+				// reflect the actual server state, otherwise next deploy would skip these files.
+				if ($skippedRenames && isset($adjustedPaths)) {
+					$this->revertSkippedPaths($adjustedPaths, $skippedRenames, $remotePaths);
+					$deploymentFile = $this->writeDeploymentFile($adjustedPaths);
+					$this->server->writeFile(
+						$deploymentFile,
+						$this->remoteDir . '/' . $this->deploymentFile,
+					);
+				}
 			}
 
 			if ($toDelete) {
 				$this->logger->log("\nDeleting:");
-				$this->deletePaths($toDelete);
+				$skippedDeletes = $this->deletePaths($toDelete);
+				// Skipped deletes leave files on server that the deployment file
+				// no longer tracks. Add them back so next deploy retries the deletion.
+				if ($skippedDeletes && isset($adjustedPaths)) {
+					$this->revertSkippedPaths($adjustedPaths, $skippedDeletes, $remotePaths);
+					$deploymentFile = $this->writeDeploymentFile($adjustedPaths);
+					$this->server->writeFile(
+						$deploymentFile,
+						$this->remoteDir . '/' . $this->deploymentFile,
+					);
+				}
 			}
 
 			foreach ($this->toPurge as $path) {
@@ -192,6 +238,7 @@ class Deployer
 
 	/**
 	 * Appends preprocessor for files.
+	 * @param callable(string, string): ?string  $filter
 	 */
 	public function addFilter(string $extension, callable $filter, bool $cached = false): void
 	{
@@ -201,7 +248,7 @@ class Deployer
 
 	/**
 	 * Downloads and decodes .htdeployment from the server.
-	 * @return string[]|null  relative paths, starts with /
+	 * @return ?array<string, string|true> relative paths, starts with /
 	 */
 	private function loadDeploymentFile(): ?array
 	{
@@ -216,7 +263,13 @@ class Deployer
 			return null;
 		}
 		$s = file_get_contents($tempFile);
+		if ($s === false) {
+			return null;
+		}
 		$content = @gzinflate($s) ?: gzdecode($s);
+		if ($content === false) {
+			return null;
+		}
 		$res = [];
 		foreach (explode("\n", $content) as $item) {
 			if (count($item = explode('=', $item, 2)) === 2) {
@@ -229,6 +282,7 @@ class Deployer
 
 	/**
 	 * Prepares .htdeployment for upload.
+	 * @param array<string, string|true>  $localPaths
 	 */
 	public function writeDeploymentFile(array $localPaths): string
 	{
@@ -237,7 +291,7 @@ class Deployer
 			$s .= "$v=$k\n";
 		}
 		$file = $this->localDir . '/' . $this->deploymentFile;
-		@mkdir(dirname($file), 0777, true); // @ dir may exists
+		@mkdir(dirname($file), 0o777, true); // @ dir may exists
 		file_put_contents($file, gzencode($s, 9));
 		return $file;
 	}
@@ -246,11 +300,21 @@ class Deployer
 	/**
 	 * Uploades files and creates directories.
 	 * @param  string[]  $paths  relative paths, starts with /
+	 * @param  array<string, true>  $tempFiles
+	 * @return string[]  skipped paths
 	 */
-	private function uploadPaths(array $paths, array &$tempFiles): void
+	private function uploadPaths(array $paths, array &$tempFiles): array
 	{
+		$skippedPaths = [];
 		$prevDir = null;
 		foreach ($paths as $num => $path) {
+			try {
+				$this->interruptHandler?->check("Upload $path");
+			} catch (SkipException) {
+				$skippedPaths[] = $path;
+				continue;
+			}
+
 			$remotePath = $this->remoteDir . $path;
 			$isDir = substr($remotePath, -1) === '/';
 			$remoteDir = $isDir
@@ -268,70 +332,103 @@ class Deployer
 
 			$tempFiles[$path . self::TemporarySuffix] = true;
 			$localFile = $this->preprocess($path);
-			if ($localFile !== $this->localDir . $path) {
-				$path .= ' (filters applied)';
-			}
+			$displayPath = $localFile !== $this->localDir . $path
+				? $path . ' (filters applied)'
+				: $path;
 
-			$this->server->writeFile(
-				$localFile,
-				$remotePath . self::TemporarySuffix,
-				function ($percent) use ($num, $paths, $path) {
-					$this->writeProgress($num + 1, count($paths), $path, $percent, 'green');
-				},
-			);
-			$this->writeProgress($num + 1, count($paths), $path, null, 'green');
+			try {
+				$this->server->writeFile(
+					$localFile,
+					$remotePath . self::TemporarySuffix,
+					// Interrupt check inside progress callback allows Ctrl+C mid-upload
+					function ($percent) use ($num, $paths, $displayPath) {
+						$this->writeProgress($num + 1, count($paths), $displayPath, $percent, 'green');
+						$this->interruptHandler?->check("Upload $displayPath");
+					},
+				);
+				$this->writeProgress($num + 1, count($paths), $displayPath, null, 'green');
+			} catch (SkipException) {
+				$skippedPaths[] = $path;
+			}
 		}
+
+		return $skippedPaths;
 	}
 
 
 	/**
 	 * Renames uploaded files.
 	 * @param  string[]  $paths  relative paths, starts with /
+	 * @param  array<string, true>  $tempFiles
+	 * @return string[]  skipped paths
 	 */
-	private function renamePaths(array $paths, array &$tempFiles): void
+	private function renamePaths(array $paths, array &$tempFiles): array
 	{
+		$skippedPaths = [];
 		$files = array_values(array_filter($paths, fn($path) => substr($path, -1) !== '/'));
 		foreach ($files as $num => $file) {
-			$this->writeProgress($num + 1, count($files), "Renaming $file", null, 'olive');
-			$remoteFile = $this->remoteDir . $file;
-			$this->server->renameFile($remoteFile . self::TemporarySuffix, $remoteFile);
+			try {
+				// Deployment file rename is never skippable to keep server state consistent
+				if ($file !== "/$this->deploymentFile") {
+					$this->interruptHandler?->check("Rename $file");
+				}
+
+				$this->writeProgress($num + 1, count($files), "Renaming $file", null, 'olive');
+				$remoteFile = $this->remoteDir . $file;
+				$this->server->renameFile($remoteFile . self::TemporarySuffix, $remoteFile);
+			} catch (SkipException) {
+				$this->interruptHandler->addSkipped("Rename $file");
+				$skippedPaths[] = $file;
+				continue; // skipped temp file stays in $tempFiles, cleaned up by finally block
+			}
 			unset($tempFiles[$file . self::TemporarySuffix]);
 		}
+		return $skippedPaths;
 	}
 
 
 	/**
 	 * Deletes files and directories.
 	 * @param  string[]  $paths  relative paths, starts with /
+	 * @return string[]  skipped paths
 	 */
-	private function deletePaths(array $paths): void
+	private function deletePaths(array $paths): array
 	{
+		$skippedPaths = [];
 		rsort($paths);
 		foreach ($paths as $num => $path) {
 			$remotePath = $this->remoteDir . $path;
-			$this->writeProgress($num + 1, count($paths), "Deleting $path", null, 'maroon');
 			try {
+				$this->interruptHandler?->check("Delete $path");
+				$this->writeProgress($num + 1, count($paths), "Deleting $path", null, 'maroon');
 				if (substr($path, -1) === '/') { // is directory?
 					$this->server->removeDir($remotePath);
 				} else {
 					$this->server->removeFile($remotePath);
 				}
-			} catch (ServerException $e) {
+			} catch (SkipException) {
+				$this->interruptHandler->addSkipped("Delete $path");
+				$skippedPaths[] = $path;
+			} catch (ServerException) {
 				$this->logger->log("Unable to delete $remotePath", 'red');
 			}
 		}
+		return $skippedPaths;
 	}
 
 
 	/**
 	 * Scans directory.
-	 * @param  string   $subdir  relative subdir, starts with /
-	 * @return string[] relative paths, starts with /
+	 * @param  string  $subdir  relative subdir, starts with /
+	 * @return array<string, string|true> relative paths, starts with /
 	 */
 	public function collectPaths(string $subdir = ''): array
 	{
 		$list = [];
 		$iterator = dir($this->localDir . $subdir);
+		if (!$iterator) {
+			throw new \RuntimeException("Cannot open directory {$this->localDir}{$subdir}");
+		}
 		$counter = 0;
 		while (($entry = $iterator->read()) !== false) {
 			$this->logger->progress(str_pad(str_repeat('.', $counter++ % 40), 40));
@@ -376,15 +473,18 @@ class Deployer
 
 		$full = $this->localDir . str_replace('/', DIRECTORY_SEPARATOR, $file);
 		$content = file_get_contents($full);
+		if ($content === false) {
+			return $this->localDir . $file;
+		}
 
 		foreach ($this->filters[$ext] as $info) {
-			is_callable($info['filter'], false, $callable_name);
+			$callable_name = is_array($info['filter']) ? implode('::', $info['filter']) : '';
 			$cacheFile = $info['cached']
 				? $this->tempDir . '/' . md5($content . $callable_name)
 				: null;
 
 			if ($cacheFile && is_file($cacheFile)) {
-				$content = file_get_contents($tempFile = $cacheFile);
+				$content = (string) file_get_contents($tempFile = $cacheFile);
 			} else {
 				$res = $info['filter']($content, $full);
 				if ($res !== null) {
@@ -407,36 +507,62 @@ class Deployer
 
 
 	/**
-	 * @param  array  $jobs  string|callable
+	 * @param list<string|(callable(Server, Logger, Deployer): (false|void))>  $jobs
 	 */
 	private function runJobs(array $jobs): void
 	{
 		$runner = new JobRunner($this->server, $this->localDir, $this->remoteDir);
 
 		foreach ($jobs as $job) {
-			if (is_string($job) && preg_match('#^(https?|local|remote|upload|download):\s*(.+)#', $job, $m)) {
-				$this->logger->log($job);
-				$method = $m[1];
-				if ($method === 'http' || $method === 'https') {
-					[$out, $err] = $runner->http($m[0]);
+			$jobName = is_string($job) ? $job : 'callable';
+			try {
+				$this->interruptHandler?->check("Job $jobName");
+
+				if (is_string($job) && preg_match('#^(https?|local|remote|upload|download):\s*(.+)#', $job, $m)) {
+					$this->logger->log($job);
+					$method = $m[1];
+					if ($method === 'http' || $method === 'https') {
+						[$out, $err] = $runner->http($m[0]);
+					} else {
+						[$out, $err] = $runner->$method($m[2]);
+					}
+
+					if ($out != null) { // intentionally ==
+						$this->logger->log("-> $out", 'gray', -3);
+					}
+					if ($err) {
+						throw new JobException('Job failed, ' . $err);
+					}
+
+				} elseif (is_callable($job)) {
+					if ($job($this->server, $this->logger, $this) === false) {
+						throw new JobException('Job failed');
+					}
+
 				} else {
-					[$out, $err] = $runner->$method($m[2]);
+					throw new \InvalidArgumentException("Invalid job $job, must start with http:, local:, remote: or upload:");
 				}
+			} catch (SkipException) {
+				$this->interruptHandler->addSkipped("Job: $jobName");
+			}
+		}
+	}
 
-				if ($out != null) { // intentionally ==
-					$this->logger->log("-> $out", 'gray', -3);
-				}
-				if ($err) {
-					throw new JobException('Job failed, ' . $err);
-				}
 
-			} elseif (is_callable($job)) {
-				if ($job($this->server, $this->logger, $this) === false) {
-					throw new JobException('Job failed');
-				}
-
+	/**
+	 * Reverts skipped paths to their remote state in the deployment file data.
+	 * For existing files, restores the old hash. For new files (not on server), removes them.
+	 * @param  array<string, string|true>  $adjustedPaths
+	 * @param  string[]  $skippedPaths
+	 * @param  array<string, string|true>  $remotePaths
+	 */
+	private function revertSkippedPaths(array &$adjustedPaths, array $skippedPaths, array $remotePaths): void
+	{
+		foreach ($skippedPaths as $path) {
+			if (isset($remotePaths[$path])) {
+				$adjustedPaths[$path] = $remotePaths[$path];
 			} else {
-				throw new \InvalidArgumentException("Invalid job $job, must start with http:, local:, remote: or upload:");
+				unset($adjustedPaths[$path]);
 			}
 		}
 	}

@@ -25,7 +25,6 @@ use Rector\Contract\Rector\RectorInterface;
 use Rector\Doctrine\Set\DoctrineSetList;
 use Rector\Enum\Config\Defaults;
 use Rector\Exception\Configuration\InvalidConfigurationException;
-use Rector\NodeTypeResolver\PHPStan\Scope\Contract\NodeVisitor\ScopeResolverNodeVisitorInterface;
 use Rector\Php\PhpVersionResolver\ComposerJsonPhpVersionResolver;
 use Rector\Php80\Rector\Class_\AnnotationToAttributeRector;
 use Rector\Php80\ValueObject\AnnotationToAttribute;
@@ -39,11 +38,11 @@ use Rector\Symfony\Set\SymfonyInternalSetList;
 use Rector\Symfony\Set\SymfonySetList;
 use Rector\ValueObject\Configuration\LevelOverflow;
 use Rector\ValueObject\PhpVersion;
-use RectorPrefix202604\Symfony\Component\Console\Input\ArgvInput;
-use RectorPrefix202604\Symfony\Component\Console\Output\ConsoleOutput;
-use RectorPrefix202604\Symfony\Component\Console\Style\SymfonyStyle;
-use RectorPrefix202604\Symfony\Component\Finder\Finder;
-use RectorPrefix202604\Webmozart\Assert\Assert;
+use RectorPrefix202607\Symfony\Component\Console\Input\ArgvInput;
+use RectorPrefix202607\Symfony\Component\Console\Output\ConsoleOutput;
+use RectorPrefix202607\Symfony\Component\Console\Style\SymfonyStyle;
+use RectorPrefix202607\Symfony\Component\Finder\Finder;
+use RectorPrefix202607\Webmozart\Assert\Assert;
 /**
  * @api
  */
@@ -129,6 +128,10 @@ final class RectorConfigBuilder
     private ?bool $isFluentNewLine = null;
     private ?bool $isTreatClassesAsFinal = null;
     /**
+     * @var string[]
+     */
+    private array $typeGuardedClasses = [];
+    /**
      * @var RegisteredService[]
      */
     private array $registerServices = [];
@@ -137,6 +140,7 @@ final class RectorConfigBuilder
      */
     private array $setGroups = [];
     private ?bool $reportingRealPath = null;
+    private ?bool $reportUnusedSkips = null;
     /**
      * @var string[]
      */
@@ -274,11 +278,17 @@ final class RectorConfigBuilder
         if ($this->isFluentNewLine !== null) {
             $rectorConfig->newLineOnFluentCall($this->isFluentNewLine);
         }
+        if ($this->typeGuardedClasses !== []) {
+            $rectorConfig->typeGuardedClasses($this->typeGuardedClasses);
+        }
         if ($this->isTreatClassesAsFinal !== null) {
             $rectorConfig->treatClassesAsFinal($this->isTreatClassesAsFinal);
         }
         if ($this->reportingRealPath !== null) {
             $rectorConfig->reportingRealPath($this->reportingRealPath);
+        }
+        if ($this->reportUnusedSkips !== null) {
+            $rectorConfig->reportUnusedSkips($this->reportUnusedSkips);
         }
         if ($this->editorUrl !== null) {
             $rectorConfig->editorUrl($this->editorUrl);
@@ -360,7 +370,7 @@ final class RectorConfigBuilder
             $this->sets[] = DoctrineSetList::ANNOTATIONS_TO_ATTRIBUTES;
         }
         if ($mongoDb || $all) {
-            $this->sets[] = DoctrineSetList::MONGODB__ANNOTATIONS_TO_ATTRIBUTES;
+            $this->sets[] = DoctrineSetList::MONGODB_ANNOTATIONS_TO_ATTRIBUTES;
         }
         if ($gedmo || $all) {
             $this->sets[] = DoctrineSetList::GEDMO_ANNOTATIONS_TO_ATTRIBUTES;
@@ -548,6 +558,7 @@ final class RectorConfigBuilder
         bool $typeDeclarationDocblocks = \false,
         bool $privatization = \false,
         bool $naming = \false,
+        bool $namedArgs = \false,
         bool $instanceOf = \false,
         bool $earlyReturn = \false,
         /** @deprecated */
@@ -555,6 +566,8 @@ final class RectorConfigBuilder
         bool $carbon = \false,
         bool $rectorPreset = \false,
         bool $phpunitCodeQuality = \false,
+        bool $phpunitNarrowAsserts = \false,
+        bool $phpunitMockToStub = \false,
         bool $doctrineCodeQuality = \false,
         bool $symfonyCodeQuality = \false,
         bool $symfonyConfigs = \false
@@ -566,7 +579,7 @@ final class RectorConfigBuilder
             $symfonyStyle = new SymfonyStyle(new ArgvInput(), new ConsoleOutput());
             $symfonyStyle->warning($message);
         }
-        $setMap = [SetList::DEAD_CODE => $deadCode, SetList::CODE_QUALITY => $codeQuality, SetList::CODING_STYLE => $codingStyle, SetList::TYPE_DECLARATION => $typeDeclarations, SetList::TYPE_DECLARATION_DOCBLOCKS => $typeDeclarationDocblocks, SetList::PRIVATIZATION => $privatization, SetList::NAMING => $naming, SetList::INSTANCEOF => $instanceOf, SetList::EARLY_RETURN => $earlyReturn, SetList::CARBON => $carbon, SetList::RECTOR_PRESET => $rectorPreset, PHPUnitSetList::PHPUNIT_CODE_QUALITY => $phpunitCodeQuality, DoctrineSetList::DOCTRINE_CODE_QUALITY => $doctrineCodeQuality, SymfonySetList::SYMFONY_CODE_QUALITY => $symfonyCodeQuality, SymfonySetList::CONFIGS => $symfonyConfigs];
+        $setMap = [SetList::DEAD_CODE => $deadCode, SetList::CODE_QUALITY => $codeQuality, SetList::CODING_STYLE => $codingStyle, SetList::TYPE_DECLARATION => $typeDeclarations, SetList::TYPE_DECLARATION_DOCBLOCKS => $typeDeclarationDocblocks, SetList::PRIVATIZATION => $privatization, SetList::NAMING => $naming, SetList::NAMED_ARGS => $namedArgs, SetList::INSTANCEOF => $instanceOf, SetList::EARLY_RETURN => $earlyReturn, SetList::CARBON => $carbon, SetList::RECTOR_PRESET => $rectorPreset, PHPUnitSetList::PHPUNIT_CODE_QUALITY => $phpunitCodeQuality, PHPUnitSetList::PHPUNIT_NARROW_ASSERTS => $phpunitNarrowAsserts, PHPUnitSetList::PHPUNIT_MOCK_TO_STUB => $phpunitMockToStub, DoctrineSetList::DOCTRINE_CODE_QUALITY => $doctrineCodeQuality, SymfonySetList::SYMFONY_CODE_QUALITY => $symfonyCodeQuality, SymfonySetList::CONFIGS => $symfonyConfigs];
         foreach ($setMap as $setPath => $isEnabled) {
             if ($isEnabled) {
                 $this->sets[] = $setPath;
@@ -574,9 +587,9 @@ final class RectorConfigBuilder
         }
         return $this;
     }
-    public function withComposerBased(bool $twig = \false, bool $doctrine = \false, bool $phpunit = \false, bool $symfony = \false, bool $netteUtils = \false, bool $laravel = \false): self
+    public function withComposerBased(bool $twig = \false, bool $doctrine = \false, bool $phpunit = \false, bool $symfony = \false, bool $netteUtils = \false, bool $laravel = \false, bool $drupal = \false): self
     {
-        $setMap = [SetGroup::TWIG => $twig, SetGroup::DOCTRINE => $doctrine, SetGroup::PHPUNIT => $phpunit, SetGroup::SYMFONY => $symfony, SetGroup::NETTE_UTILS => $netteUtils, SetGroup::LARAVEL => $laravel];
+        $setMap = [SetGroup::TWIG => $twig, SetGroup::DOCTRINE => $doctrine, SetGroup::PHPUNIT => $phpunit, SetGroup::SYMFONY => $symfony, SetGroup::NETTE_UTILS => $netteUtils, SetGroup::LARAVEL => $laravel, SetGroup::DRUPAL => $drupal];
         foreach ($setMap as $setPath => $isEnabled) {
             if ($isEnabled) {
                 $this->setGroups[] = $setPath;
@@ -652,7 +665,7 @@ final class RectorConfigBuilder
         $this->parallel = \false;
         return $this;
     }
-    public function withImportNames(bool $importNames = \true, bool $importDocBlockNames = \true, bool $importShortClasses = \true, bool $removeUnusedImports = \false): self
+    public function withImportNames(bool $importNames = \true, bool $importDocBlockNames = \true, bool $importShortClasses = \true, bool $removeUnusedImports = \true): self
     {
         $this->importNames = $importNames;
         $this->importDocBlockNames = $importDocBlockNames;
@@ -852,12 +865,19 @@ final class RectorConfigBuilder
         $this->isTreatClassesAsFinal = $isTreatClassesAsFinal;
         return $this;
     }
+    /**
+     * Guard the listed classes and their non-final descendants against method signature changes
+     * that would break child classes - e.g. adding a return type or a param type.
+     *
+     * @param string[] $typeGuardedClasses
+     */
+    public function withTypeGuardedClasses(array $typeGuardedClasses): self
+    {
+        $this->typeGuardedClasses = $typeGuardedClasses;
+        return $this;
+    }
     public function registerService(string $className, ?string $alias = null, ?string $tag = null): self
     {
-        // BC layer since 2.2.9
-        if ($tag === ScopeResolverNodeVisitorInterface::class) {
-            $tag = DecoratingNodeVisitorInterface::class;
-        }
         $this->registerServices[] = new RegisteredService($className, $alias, $tag);
         return $this;
     }
@@ -902,6 +922,15 @@ final class RectorConfigBuilder
     public function withRealPathReporting(bool $absolutePath = \true): self
     {
         $this->reportingRealPath = $absolutePath;
+        return $this;
+    }
+    /**
+     * Report skips configured via withSkip() that never matched anything during the run,
+     * so they can be safely removed.
+     */
+    public function reportUnusedSkips(bool $report = \true): self
+    {
+        $this->reportUnusedSkips = $report;
         return $this;
     }
     public function withEditorUrl(string $editorUrl): self

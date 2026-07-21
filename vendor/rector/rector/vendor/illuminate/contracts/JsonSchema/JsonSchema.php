@@ -1,6 +1,6 @@
 <?php
 
-namespace RectorPrefix202604\Illuminate\Contracts\JsonSchema;
+namespace RectorPrefix202607\Illuminate\Contracts\JsonSchema;
 
 use Closure;
 interface JsonSchema
@@ -42,4 +42,11 @@ interface JsonSchema
      * @return \Illuminate\JsonSchema\Types\BooleanType
      */
     public function boolean();
+    /**
+     * Create a new multi-type union instance.
+     *
+     * @param  array<int, string>  $types
+     * @return \Illuminate\JsonSchema\Types\UnionType
+     */
+    public function union(array $types);
 }

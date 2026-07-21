@@ -8,13 +8,13 @@
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
  */
-namespace RectorPrefix202604\Symfony\Component\Console\Descriptor;
+namespace RectorPrefix202607\Symfony\Component\Console\Descriptor;
 
-use RectorPrefix202604\Symfony\Component\Console\Application;
-use RectorPrefix202604\Symfony\Component\Console\Command\Command;
-use RectorPrefix202604\Symfony\Component\Console\Input\InputArgument;
-use RectorPrefix202604\Symfony\Component\Console\Input\InputDefinition;
-use RectorPrefix202604\Symfony\Component\Console\Input\InputOption;
+use RectorPrefix202607\Symfony\Component\Console\Application;
+use RectorPrefix202607\Symfony\Component\Console\Command\Command;
+use RectorPrefix202607\Symfony\Component\Console\Input\InputArgument;
+use RectorPrefix202607\Symfony\Component\Console\Input\InputDefinition;
+use RectorPrefix202607\Symfony\Component\Console\Input\InputOption;
 /**
  * XML descriptor.
  *
@@ -120,7 +120,7 @@ class XmlDescriptor extends Descriptor
      */
     private function appendDocument(\DOMNode $parentNode, \DOMNode $importedParent): void
     {
-        foreach ($importedParent->childNodes as $childNode) {
+        foreach ($importedParent->childNodes ?? [] as $childNode) {
             $parentNode->appendChild($parentNode->ownerDocument->importNode($childNode, \true));
         }
     }

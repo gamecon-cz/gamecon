@@ -8,9 +8,9 @@
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
  */
-namespace RectorPrefix202604\Symfony\Component\Console\Output;
+namespace RectorPrefix202607\Symfony\Component\Console\Output;
 
-use RectorPrefix202604\Symfony\Component\Console\Exception\InvalidArgumentException;
+use RectorPrefix202607\Symfony\Component\Console\Exception\InvalidArgumentException;
 class AnsiColorMode
 {
     public const Ansi4 = 'ansi4';
@@ -69,8 +69,7 @@ class AnsiColorMode
                 return 231;
             }
             return (int) round(($r - 8) / 247 * 24) + 232;
-        } else {
-            return 16 + 36 * (int) round($r / 255 * 5) + 6 * (int) round($g / 255 * 5) + (int) round($b / 255 * 5);
         }
+        return 16 + 36 * (int) round($r / 255 * 5) + 6 * (int) round($g / 255 * 5) + (int) round($b / 255 * 5);
     }
 }

@@ -94,9 +94,6 @@
         "patches": {
             "doctrine/orm": [
                 "patches/doctrine-orm-src-tools-schematool-php.patch"
-            ],
-            "dg/mysql-dump": [
-                "patches/dg-mysql-dump-src-mysqlimport-php.patch"
             ]
         },
         "google/apiclient-services": [

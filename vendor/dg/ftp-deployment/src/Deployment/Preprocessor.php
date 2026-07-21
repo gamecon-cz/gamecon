@@ -1,12 +1,10 @@
-<?php
+<?php declare(strict_types=1);
 
 /**
  * FTP Deployment
  *
  * Copyright (c) 2009 David Grudl (https://davidgrudl.com)
  */
-
-declare(strict_types=1);
 
 namespace Deployment;
 
@@ -51,7 +49,7 @@ class Preprocessor
 		$cmd = escapeshellarg($this->uglifyJsBinary) . ' --compress --mangle';
 		[$ok, $output] = $this->execute($cmd, $content, false);
 		if (!$ok) {
-			$this->logger->log("Error while executing $this->uglifyJsBinary, install Node.js and uglify-es.", 'red');
+			$this->logger->log("Error while executing $this->uglifyJsBinary, install Node.js and uglify-js.", 'red');
 			$this->logger->log($output);
 			return null;
 		}
@@ -90,6 +88,9 @@ class Preprocessor
 
 	private function checkCssClean(): ?string
 	{
+		if (!$this->cleanCssBinary) {
+			return 'clean-css binary not configured';
+		}
 		[$ok, $output] = $this->execute(escapeshellarg($this->cleanCssBinary) . ' --version', '', false);
 		if (!$ok) {
 			return "Error while executing $this->cleanCssBinary, install Node.js and clean-css-cli.";
@@ -115,6 +116,9 @@ class Preprocessor
 
 			$this->logger->log("Including $file");
 			$s = file_get_contents($file);
+			if ($s === false) {
+				return $m[0];
+			}
 			$newDir = dirname($file);
 			$s = $this->expandCssImports($s, $file);
 			if ($newDir !== $dir) {
@@ -144,14 +148,18 @@ class Preprocessor
 			}
 
 			$this->logger->log("Including $file");
-			return $this->expandApacheImports(file_get_contents($file), $file);
+			$s = file_get_contents($file);
+			if ($s === false) {
+				return $m[0];
+			}
+			return $this->expandApacheImports($s, $file);
 		}, $content);
 	}
 
 
 	/**
 	 * Executes command.
-	 * @return array  [success, output]
+	 * @return array{bool, string} [success, output]
 	 * @throws \ErrorException
 	 */
 	private function execute(string $command, string $input, bool $bypassShell = true): array
@@ -164,6 +172,9 @@ class Preprocessor
 			null,
 			['bypass_shell' => $bypassShell],
 		);
+		if (!$process) {
+			return [false, ''];
+		}
 
 		fwrite($pipes[0], $input);
 		fclose($pipes[0]);

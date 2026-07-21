@@ -1,13 +1,13 @@
 <?php
 
+declare (strict_types=1);
 /**
  * This file is part of the Nette Framework (https://nette.org)
  * Copyright (c) 2004 David Grudl (https://davidgrudl.com)
  */
-declare (strict_types=1);
-namespace RectorPrefix202604\Nette\Utils;
+namespace RectorPrefix202607\Nette\Utils;
 
-use RectorPrefix202604\Nette;
+use RectorPrefix202607\Nette;
 use function array_unique, ini_get, levenshtein, max, min, ob_end_clean, ob_get_clean, ob_start, preg_replace, strlen;
 use const PHP_OS_FAMILY;
 /**
@@ -66,7 +66,7 @@ class Helpers
         return min(max($value, $min), $max);
     }
     /**
-     * Looks for a string from possibilities that is most similar to value, but not the same (for 8-bit encoding).
+     * Finds the string from $possibilities most similar to $value using Levenshtein distance, or null if none is close enough.
      * @param  string[]  $possibilities
      */
     public static function getSuggestion(array $possibilities, string $value): ?string

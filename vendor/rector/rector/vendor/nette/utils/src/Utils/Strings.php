@@ -1,14 +1,14 @@
 <?php
 
+declare (strict_types=1);
 /**
  * This file is part of the Nette Framework (https://nette.org)
  * Copyright (c) 2004 David Grudl (https://davidgrudl.com)
  */
-declare (strict_types=1);
-namespace RectorPrefix202604\Nette\Utils;
+namespace RectorPrefix202607\Nette\Utils;
 
-use RectorPrefix202604\JetBrains\PhpStorm\Language;
-use RectorPrefix202604\Nette;
+use RectorPrefix202607\JetBrains\PhpStorm\Language;
+use RectorPrefix202607\Nette;
 use function array_keys, array_map, array_shift, array_values, bin2hex, class_exists, defined, extension_loaded, function_exists, htmlspecialchars, htmlspecialchars_decode, iconv, iconv_strlen, iconv_substr, implode, in_array, is_array, is_callable, is_int, is_object, is_string, key, max, mb_convert_case, mb_strlen, mb_strtolower, mb_strtoupper, mb_substr, pack, preg_last_error, preg_last_error_msg, preg_quote, preg_replace, str_contains, str_ends_with, str_repeat, str_replace, str_starts_with, strlen, strpos, strrev, strrpos, strtolower, strtoupper, strtr, substr, trim, unpack, utf8_decode;
 use const ENT_IGNORE, ENT_NOQUOTES, ICONV_IMPL, MB_CASE_TITLE, PHP_EOL, PREG_OFFSET_CAPTURE, PREG_PATTERN_ORDER, PREG_SET_ORDER, PREG_SPLIT_DELIM_CAPTURE, PREG_SPLIT_NO_EMPTY, PREG_SPLIT_OFFSET_CAPTURE, PREG_UNMATCHED_AS_NULL;
 /**
@@ -433,7 +433,7 @@ class Strings
         return Helpers::falseToNull($pos);
     }
     /**
-     * Divides the string into arrays according to the regular expression. Expressions in parentheses will be captured and returned as well.
+     * Splits the string by a regular expression. Expressions in parentheses will be captured and returned as well.
      * @return list<string>
      * @param bool|int $captureOffset
      */
@@ -455,8 +455,8 @@ class Strings
         return $utf8 && $captureOffset ? self::bytesToChars($subject, [$m])[0] : $m;
     }
     /**
-     * Searches the string for the part matching the regular expression and returns
-     * an array with the found expression and individual subexpressions, or `null`.
+     * Searches the string for the first match of the regular expression and returns
+     * an array with the found expression and individual subexpressions, or null.
      * @return ?array<string>
      * @param bool|int $captureOffset
      */
@@ -489,8 +489,8 @@ class Strings
         }
     }
     /**
-     * Searches the string for all occurrences matching the regular expression and
-     * returns an array of arrays containing the found expression and each subexpression.
+     * Searches the string for all occurrences matching the regular expression and returns
+     * an array of arrays containing the found expression and each subexpression.
      * @return ($lazy is true ? \Generator<int, array<string>> : list<array<string>>)
      * @param bool|int $captureOffset
      */
@@ -538,7 +538,7 @@ class Strings
         return $utf8 && $captureOffset ? self::bytesToChars($subject, $m) : $m;
     }
     /**
-     * Replaces all occurrences matching regular expression $pattern which can be string or array in the form `pattern => replacement`.
+     * Replaces all occurrences matching the regular expression $pattern, which can be a string or array in the form `pattern => replacement`.
      * @param  string|array<string, string>  $pattern
      * @param string|callable $replacement
      */

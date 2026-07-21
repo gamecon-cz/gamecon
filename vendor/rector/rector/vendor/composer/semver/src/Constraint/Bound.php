@@ -8,7 +8,7 @@
  * For the full copyright and license information, please view
  * the LICENSE file that was distributed with this source code.
  */
-namespace RectorPrefix202604\Composer\Semver\Constraint;
+namespace RectorPrefix202607\Composer\Semver\Constraint;
 
 class Bound
 {
@@ -82,6 +82,7 @@ class Bound
         // Question we're answering here is "am I higher than $other?"
         return '>' === $operator ? $other->isInclusive() : !$other->isInclusive();
     }
+    #[\ReturnTypeWillChange]
     public function __toString()
     {
         return sprintf('%s [%s]', $this->getVersion(), $this->isInclusive() ? 'inclusive' : 'exclusive');

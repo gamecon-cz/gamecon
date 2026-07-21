@@ -3,7 +3,7 @@
 declare (strict_types=1);
 namespace Rector\Testing\Fixture;
 
-use RectorPrefix202604\Nette\Utils\FileSystem;
+use RectorPrefix202607\Nette\Utils\FileSystem;
 /**
  * @api
  */

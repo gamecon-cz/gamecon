@@ -1,12 +1,10 @@
-<?php
+<?php declare(strict_types=1);
 
 /**
  * FTP Deployment
  *
  * Copyright (c) 2009 David Grudl (https://davidgrudl.com)
  */
-
-declare(strict_types=1);
 
 namespace Deployment;
 
@@ -30,6 +28,7 @@ interface Server
 
 	/**
 	 * Uploads file to server. Paths are absolute.
+	 * @param ?(callable(float): void)  $progress
 	 * @throws ServerException
 	 */
 	function writeFile(string $local, string $remote, ?callable $progress = null): void;
@@ -60,6 +59,7 @@ interface Server
 
 	/**
 	 * Recursive deletes content of directory or file. Path is absolute.
+	 * @param ?(callable(string): void)  $progress
 	 * @throws ServerException
 	 */
 	function purge(string $path, ?callable $progress = null): void;

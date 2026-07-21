@@ -1,12 +1,10 @@
-<?php
+<?php declare(strict_types=1);
 
 /**
  * FTP Deployment
  *
  * Copyright (c) 2009 David Grudl (https://davidgrudl.com)
  */
-
-declare(strict_types=1);
 
 namespace Deployment;
 
@@ -26,6 +24,7 @@ class JobRunner
 	}
 
 
+	/** @return array{?string, ?string} */
 	public function local(string $command): array
 	{
 		@exec($command, $out, $code);
@@ -35,6 +34,7 @@ class JobRunner
 	}
 
 
+	/** @return array{?string, ?string} */
 	public function remote(string $command): array
 	{
 		if (preg_match('#^(mkdir|rmdir|unlink|mv|chmod)\s+(\S+)(?:\s+(\S+))?()$#', $command, $m)) {
@@ -49,8 +49,8 @@ class JobRunner
 				$this->server->removeFile($a);
 			} elseif ($cmd === 'mv') {
 				$this->server->renameFile($a, $b);
-			} elseif ($cmd === 'chmod') {
-				$this->server->chmod($b, octdec($m[2]));
+			} else { // chmod
+				$this->server->chmod($b, (int) octdec($m[2]));
 			}
 			return [null, null];
 		}
@@ -60,6 +60,7 @@ class JobRunner
 	}
 
 
+	/** @return array{?string, ?string} */
 	public function download(string $command): array
 	{
 		[$remotePath, $localFile] = explode(' ', $command);
@@ -73,6 +74,7 @@ class JobRunner
 	}
 
 
+	/** @return array{?string, ?string} */
 	public function upload(string $command): array
 	{
 		[$localFile, $remotePath] = explode(' ', $command);
@@ -87,6 +89,7 @@ class JobRunner
 	}
 
 
+	/** @return array{?string, ?string} */
 	public function http(string $url): array
 	{
 		$out = Helpers::fetchUrl($url, $err);

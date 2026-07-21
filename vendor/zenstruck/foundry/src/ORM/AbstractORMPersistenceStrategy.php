@@ -12,6 +12,7 @@
 namespace Zenstruck\Foundry\ORM;
 
 use Doctrine\ORM\EntityManagerInterface;
+use Doctrine\ORM\Events;
 use Doctrine\ORM\Mapping\MappingException as ORMMappingException;
 use Doctrine\Persistence\Mapping\MappingException;
 use Zenstruck\Foundry\Persistence\PersistenceStrategy;
@@ -117,5 +118,109 @@ abstract class AbstractORMPersistenceStrategy extends PersistenceStrategy
             },
             $identifiers
         );
+    }
+
+    public function disableDoctrineEvents(string $entityClass, array $disabledClasses): callable
+    {
+        $om = $this->objectManagerFor($entityClass);
+
+        // Entity listeners first: getClassMetadata() triggers loadClassMetadata which registers
+        // #[AsEntityListener] listeners. Global listeners must still be active at that point.
+        $entityListenersBackup = $this->removeEntityListeners($om, $entityClass, $disabledClasses);
+        $globalListenersBackup = $this->removeGlobalListeners($om, $disabledClasses);
+
+        return function() use ($om, $entityClass, $entityListenersBackup, $globalListenersBackup): void {
+            $this->restoreGlobalListeners($om, $globalListenersBackup);
+            $this->restoreEntityListeners($om, $entityClass, $entityListenersBackup);
+        };
+    }
+
+    /**
+     * @param list<class-string> $disabledClasses
+     *
+     * @return array<string, list<object>>
+     */
+    private function removeGlobalListeners(EntityManagerInterface $om, array $disabledClasses): array
+    {
+        $eventManager = $om->getEventManager();
+        $removed = [];
+
+        foreach ($eventManager->getAllListeners() as $eventName => $listeners) {
+            // Removing mapping infrastructure listeners (e.g. DoctrineBundle's AttachEntityListenersListener)
+            // would permanently corrupt the metadata of any class loaded for the first time during the
+            // disabling window: its #[AsEntityListener] listeners would be cached away forever.
+            if ([] === $disabledClasses && \in_array($eventName, [Events::loadClassMetadata, Events::onClassMetadataNotFound], true)) {
+                continue;
+            }
+
+            foreach ($listeners as $listener) {
+                if ([] === $disabledClasses || \in_array($listener::class, $disabledClasses, true)) {
+                    $eventManager->removeEventListener([$eventName], $listener);
+                    $removed[$eventName][] = $listener;
+                }
+            }
+        }
+
+        return $removed;
+    }
+
+    /**
+     * @param array<string, list<object>> $removedListeners
+     */
+    private function restoreGlobalListeners(EntityManagerInterface $om, array $removedListeners): void
+    {
+        $eventManager = $om->getEventManager();
+
+        foreach ($removedListeners as $eventName => $listeners) {
+            foreach ($listeners as $listener) {
+                $eventManager->addEventListener([$eventName], $listener);
+            }
+        }
+    }
+
+    /**
+     * @param class-string       $entityClass
+     * @param list<class-string> $disabledClasses
+     *
+     * @return array<string, list<array{class: class-string, method: string}>>
+     */
+    private function removeEntityListeners(EntityManagerInterface $om, string $entityClass, array $disabledClasses): array
+    {
+        $metadata = $om->getClassMetadata($entityClass);
+        $original = $metadata->entityListeners;
+
+        if ([] === $original) {
+            return [];
+        }
+
+        if ([] === $disabledClasses) {
+            $metadata->entityListeners = [];
+
+            return $original;
+        }
+
+        $metadata->entityListeners = \array_filter(
+            \array_map(
+                static fn(array $listeners) => \array_values(\array_filter(
+                    $listeners,
+                    static fn(array $listener) => !\in_array($listener['class'], $disabledClasses, true),
+                )),
+                $original,
+            ),
+            static fn(array $listeners) => [] !== $listeners,
+        );
+
+        return $original;
+    }
+
+    /**
+     * @param class-string                                                    $entityClass
+     * @param array<string, list<array{class: class-string, method: string}>> $original
+     */
+    private function restoreEntityListeners(EntityManagerInterface $om, string $entityClass, array $original): void
+    {
+        if ([] !== $original) {
+            $om->getClassMetadata($entityClass)->entityListeners = $original;
+        }
     }
 }

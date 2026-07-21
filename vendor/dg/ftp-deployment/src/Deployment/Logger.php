@@ -1,12 +1,10 @@
-<?php
+<?php declare(strict_types=1);
 
 /**
  * FTP Deployment
  *
  * Copyright (c) 2009 David Grudl (https://davidgrudl.com)
  */
-
-declare(strict_types=1);
 
 namespace Deployment;
 
@@ -21,6 +19,8 @@ class Logger
 
 	/** @var resource */
 	private $file;
+
+	/** @var array<string, string> */
 	private array $colors = [
 		'black' => '0;30',
 		'gray' => '1;30',
@@ -43,7 +43,8 @@ class Logger
 
 	public function __construct(string $file)
 	{
-		$this->file = fopen($file, 'a');
+		$this->file = fopen($file, 'a')
+			?: throw new \RuntimeException("Cannot open log file '$file'");
 	}
 
 

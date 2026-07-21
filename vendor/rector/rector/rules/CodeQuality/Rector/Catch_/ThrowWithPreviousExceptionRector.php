@@ -13,6 +13,7 @@ use PhpParser\Node\Identifier;
 use PhpParser\Node\Name;
 use PhpParser\Node\Stmt\Catch_;
 use PhpParser\NodeVisitor;
+use PHPStan\Reflection\ExtendedParameterReflection;
 use PHPStan\Reflection\ParametersAcceptorSelector;
 use PHPStan\Reflection\ReflectionProvider;
 use PHPStan\Type\ObjectType;
@@ -91,10 +92,14 @@ CODE_SAMPLE
             if (!$node instanceof Throw_) {
                 return null;
             }
-            $isChanged = $this->refactorThrow($node, $caughtThrowableVariable);
-            return $isChanged;
+            $result = $this->refactorThrow($node, $caughtThrowableVariable);
+            if ($result === null) {
+                return null;
+            }
+            $isChanged = \true;
+            return $result;
         });
-        if (!(bool) $isChanged) {
+        if (!$isChanged) {
             return null;
         }
         return $node;
@@ -122,6 +127,11 @@ CODE_SAMPLE
         /** @var Arg|null $messageArgument */
         $messageArgument = $new->args[0] ?? null;
         $shouldUseNamedArguments = $messageArgument instanceof Arg && $messageArgument->name instanceof Identifier;
+        $hasCodeParameter = $this->hasParameter($new, 'code');
+        $hasCodeArgument = $this->hasArgument($new, 'code');
+        if (!isset($new->getArgs()[1]) && (!$hasCodeParameter || $hasCodeArgument)) {
+            return null;
+        }
         $hasChanged = \false;
         if (!isset($new->args[0])) {
             // get previous message
@@ -134,7 +144,7 @@ CODE_SAMPLE
             $hasChanged = \true;
         }
         if (!isset($new->getArgs()[1])) {
-            if ($this->hasParameter($new, 'code') && !$this->hasArgument($new, 'code')) {
+            if ($hasCodeParameter && !$hasCodeArgument) {
                 // get previous code
                 $new->args[1] = new Arg(new MethodCall($caughtThrowableVariable, 'getCode'), \false, \false, [], $shouldUseNamedArguments ? new Identifier('code') : null);
                 $hasChanged = \true;
@@ -145,7 +155,7 @@ CODE_SAMPLE
         /** @var Arg $arg1 */
         $arg1 = $new->args[1];
         if ($arg1->name instanceof Identifier && $arg1->name->toString() === 'previous') {
-            if ($this->hasParameter($new, 'code') && !$this->hasArgument($new, 'code')) {
+            if ($hasCodeParameter && !$hasCodeArgument) {
                 $new->args[1] = new Arg(new MethodCall($caughtThrowableVariable, 'getCode'), \false, \false, [], $shouldUseNamedArguments ? new Identifier('code') : null);
                 $new->args[$exceptionArgumentPosition] = $arg1;
                 $hasChanged = \true;
@@ -179,21 +189,25 @@ CODE_SAMPLE
         }
         $extendedMethodReflection = $classReflection->getConstructor();
         $extendedParametersAcceptor = ParametersAcceptorSelector::combineAcceptors($extendedMethodReflection->getVariants());
+        $found = \false;
         foreach ($extendedParametersAcceptor->getParameters() as $extendedParameterReflection) {
             if ($extendedParameterReflection->getName() === $parameterName) {
-                return \true;
+                $found = \true;
+                break;
             }
         }
-        return \false;
+        return $found;
     }
     private function hasArgument(New_ $new, string $argumentName): bool
     {
+        $found = \false;
         foreach ($new->getArgs() as $arg) {
             if ($arg->name instanceof Identifier && $arg->name->toString() === $argumentName) {
-                return \true;
+                $found = \true;
+                break;
             }
         }
-        return \false;
+        return $found;
     }
     private function resolveExceptionArgumentPosition(Name $exceptionName): ?int
     {

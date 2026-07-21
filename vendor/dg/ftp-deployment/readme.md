@@ -164,6 +164,12 @@ return [
 Syncing a large number of files attempts to run in (something like) a transaction: all files are
 uploaded with extension `.deploytmp` and then quickly renamed.
 
+You can press **Ctrl+C** at any time during deployment. An interactive prompt will appear with three choices:
+**[s]kip** the current operation and continue with the next one, **[r]esume** to ignore the interruption,
+or **[c]ancel** the entire deployment. Skipped operations are reported at the end. Temporary files are always
+cleaned up, and the deployment file on the server is kept consistent even when operations are skipped.
+In non-interactive environments (CI/CD), Ctrl+C terminates immediately.
+
 An `.htdeployment` file is uploaded to the server, which contains MD5 hashes of all the files and
 is used for synchronization. So the next time you run `deployment`, only modified files are uploaded
 and deleted files are deleted from server (if it is not forbidden by the `allowDelete` directive).
@@ -186,7 +192,7 @@ This tool will combine scripts together and minify them with the Closure Compile
 Installing FTP Deployment
 -------------------------
 
-FTP Deployment 3.6 requires PHP 8.0 or later. It also requires openssl extensions for ftps:// and SSH2 extension for sftp:// connections.
+FTP Deployment requires PHP 8.2 or later. It also requires openssl extensions for ftps:// and SSH2 extension for sftp:// connections.
 
 The easiest way to obtain FTP Deployment is to download [a single PHAR file](https://github.com/dg/ftp-deployment/releases).
 

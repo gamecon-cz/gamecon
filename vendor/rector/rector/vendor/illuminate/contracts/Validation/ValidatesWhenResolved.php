@@ -1,6 +1,6 @@
 <?php
 
-namespace RectorPrefix202604\Illuminate\Contracts\Validation;
+namespace RectorPrefix202607\Illuminate\Contracts\Validation;
 
 interface ValidatesWhenResolved
 {

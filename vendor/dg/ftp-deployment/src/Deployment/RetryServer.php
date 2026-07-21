@@ -1,12 +1,10 @@
-<?php
+<?php declare(strict_types=1);
 
 /**
  * FTP Deployment
  *
  * Copyright (c) 2009 David Grudl (https://davidgrudl.com)
  */
-
-declare(strict_types=1);
 
 namespace Deployment;
 
@@ -21,12 +19,14 @@ class RetryServer implements Server
 
 	private Server $server;
 	private Logger $logger;
+	private ?InterruptHandler $interruptHandler;
 
 
-	public function __construct(Server $server, Logger $logger)
+	public function __construct(Server $server, Logger $logger, ?InterruptHandler $interruptHandler = null)
 	{
 		$this->server = $server;
 		$this->logger = $logger;
+		$this->interruptHandler = $interruptHandler;
 	}
 
 
@@ -96,26 +96,40 @@ class RetryServer implements Server
 	}
 
 
-	public function noRetry(string $method, ...$args)
+	public function noRetry(string $method, mixed ...$args): void
 	{
 		$this->server->$method(...$args);
 	}
 
 
 	/**
-	 * @return mixed
+	 * @param list<mixed>  $args
 	 * @throws ServerException
 	 */
-	private function retry(string $method, array $args)
+	private function retry(string $method, array $args): mixed
 	{
-		$counter = 0;
-		$lastError = null;
-		retry:
-		try {
-			return $this->server->$method(...$args);
+		$interruptible = in_array($method, ['writeFile', 'readFile', 'removeFile', 'renameFile', 'removeDir'], true);
+		$lastError = '';
+		for ($counter = 0; ; $counter++) {
+			try {
+				return $this->server->$method(...$args);
 
-		} catch (ServerException $e) {
-			if ($counter < self::Retries) {
+			} catch (SkipException | TerminatedException $e) {
+				// These exceptions are thrown from user callbacks (e.g. progress callback in writeFile)
+				// and may interrupt a transfer mid-stream, leaving the connection in a broken state.
+				// Reconnect before re-throwing so that subsequent operations (e.g. cleanup) work.
+				if ($method !== 'connect') {
+					try {
+						$this->server->connect();
+					} catch (\Throwable) {
+					}
+				}
+				throw $e;
+
+			} catch (ServerException $e) {
+				if ($counter >= self::Retries) {
+					throw $e;
+				}
 				if ($e->getMessage() !== $lastError) {
 					$lastError = $e->getMessage();
 					$this->logger->log("Error: $e", 'red');
@@ -125,13 +139,16 @@ class RetryServer implements Server
 					$this->retry('connect', []); // first try to reconnect
 				}
 
-				$counter++;
-				$this->logger->progress('retrying ' . str_pad(str_repeat('.', $counter % 40), 40));
+				$this->logger->progress('retrying ' . str_pad(str_repeat('.', ($counter + 1) % 40), 40));
 
-				sleep(self::Delay);
-				goto retry;
+				// Fragmented sleep (200ms intervals) to stay responsive to Ctrl+C
+				for ($i = 0; $i < self::Delay * 5; $i++) {
+					usleep(200_000);
+					if ($interruptible) {
+						$this->interruptHandler?->check("Retry $method");
+					}
+				}
 			}
-			throw $e;
 		}
 	}
 }

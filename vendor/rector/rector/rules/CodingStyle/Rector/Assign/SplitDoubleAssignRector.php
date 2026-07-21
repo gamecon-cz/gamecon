@@ -65,6 +65,7 @@ CODE_SAMPLE
         if ($collectExpressions === []) {
             return null;
         }
+        $this->mirrorComments($collectExpressions[0], $node);
         return $collectExpressions;
     }
     /**

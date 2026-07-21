@@ -5,9 +5,11 @@ namespace Rector\NodeAnalyzer;
 
 use PhpParser\Node\Expr\FuncCall;
 use PhpParser\Node\Expr\MethodCall;
+use PhpParser\Node\Expr\New_;
 use PhpParser\Node\Expr\StaticCall;
 use PHPStan\Reflection\FunctionReflection;
 use PHPStan\Reflection\MethodReflection;
+use PHPStan\Reflection\ParametersAcceptor;
 use Rector\Reflection\ReflectionResolver;
 final class VariadicAnalyzer
 {
@@ -20,7 +22,7 @@ final class VariadicAnalyzer
         $this->reflectionResolver = $reflectionResolver;
     }
     /**
-     * @param \PhpParser\Node\Expr\FuncCall|\PhpParser\Node\Expr\StaticCall|\PhpParser\Node\Expr\MethodCall $call
+     * @param \PhpParser\Node\Expr\FuncCall|\PhpParser\Node\Expr\StaticCall|\PhpParser\Node\Expr\MethodCall|\PhpParser\Node\Expr\New_ $call
      */
     public function hasVariadicParameters($call): bool
     {
@@ -35,12 +37,13 @@ final class VariadicAnalyzer
      */
     private function hasVariadicVariant($functionLikeReflection): bool
     {
+        $found = \false;
         foreach ($functionLikeReflection->getVariants() as $parametersAcceptor) {
-            // can be any number of arguments → nothing to limit here
             if ($parametersAcceptor->isVariadic()) {
-                return \true;
+                $found = \true;
+                break;
             }
         }
-        return \false;
+        return $found;
     }
 }

@@ -8,23 +8,23 @@
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
  */
-namespace RectorPrefix202604\Symfony\Component\Yaml\Command;
+namespace RectorPrefix202607\Symfony\Component\Yaml\Command;
 
-use RectorPrefix202604\Symfony\Component\Console\Attribute\AsCommand;
-use RectorPrefix202604\Symfony\Component\Console\CI\GithubActionReporter;
-use RectorPrefix202604\Symfony\Component\Console\Command\Command;
-use RectorPrefix202604\Symfony\Component\Console\Completion\CompletionInput;
-use RectorPrefix202604\Symfony\Component\Console\Completion\CompletionSuggestions;
-use RectorPrefix202604\Symfony\Component\Console\Exception\InvalidArgumentException;
-use RectorPrefix202604\Symfony\Component\Console\Exception\RuntimeException;
-use RectorPrefix202604\Symfony\Component\Console\Input\InputArgument;
-use RectorPrefix202604\Symfony\Component\Console\Input\InputInterface;
-use RectorPrefix202604\Symfony\Component\Console\Input\InputOption;
-use RectorPrefix202604\Symfony\Component\Console\Output\OutputInterface;
-use RectorPrefix202604\Symfony\Component\Console\Style\SymfonyStyle;
-use RectorPrefix202604\Symfony\Component\Yaml\Exception\ParseException;
-use RectorPrefix202604\Symfony\Component\Yaml\Parser;
-use RectorPrefix202604\Symfony\Component\Yaml\Yaml;
+use RectorPrefix202607\Symfony\Component\Console\Attribute\AsCommand;
+use RectorPrefix202607\Symfony\Component\Console\CI\GithubActionReporter;
+use RectorPrefix202607\Symfony\Component\Console\Command\Command;
+use RectorPrefix202607\Symfony\Component\Console\Completion\CompletionInput;
+use RectorPrefix202607\Symfony\Component\Console\Completion\CompletionSuggestions;
+use RectorPrefix202607\Symfony\Component\Console\Exception\InvalidArgumentException;
+use RectorPrefix202607\Symfony\Component\Console\Exception\RuntimeException;
+use RectorPrefix202607\Symfony\Component\Console\Input\InputArgument;
+use RectorPrefix202607\Symfony\Component\Console\Input\InputInterface;
+use RectorPrefix202607\Symfony\Component\Console\Input\InputOption;
+use RectorPrefix202607\Symfony\Component\Console\Output\OutputInterface;
+use RectorPrefix202607\Symfony\Component\Console\Style\SymfonyStyle;
+use RectorPrefix202607\Symfony\Component\Yaml\Exception\ParseException;
+use RectorPrefix202607\Symfony\Component\Yaml\Parser;
+use RectorPrefix202607\Symfony\Component\Yaml\Yaml;
 /**
  * Validates YAML files syntax and outputs encountered errors.
  *
@@ -168,7 +168,7 @@ EOF
     private function displayJson(SymfonyStyle $io, array $filesInfo): int
     {
         $errors = 0;
-        array_walk($filesInfo, function (&$v) use (&$errors) {
+        array_walk($filesInfo, static function (&$v) use (&$errors) {
             $v['file'] = (string) $v['file'];
             if (!$v['valid']) {
                 ++$errors;
@@ -199,7 +199,7 @@ EOF
     }
     private function getDirectoryIterator(string $directory): iterable
     {
-        $default = fn($directory) => new \RecursiveIteratorIterator(new \RecursiveDirectoryIterator($directory, \FilesystemIterator::SKIP_DOTS | \FilesystemIterator::FOLLOW_SYMLINKS), \RecursiveIteratorIterator::LEAVES_ONLY);
+        $default = static fn($directory) => new \RecursiveIteratorIterator(new \RecursiveDirectoryIterator($directory, \FilesystemIterator::SKIP_DOTS | \FilesystemIterator::FOLLOW_SYMLINKS), \RecursiveIteratorIterator::LEAVES_ONLY);
         if (null !== $this->directoryIteratorProvider) {
             return ($this->directoryIteratorProvider)($directory, $default);
         }

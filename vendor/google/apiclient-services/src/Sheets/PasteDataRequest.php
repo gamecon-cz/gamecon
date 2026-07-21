@@ -28,7 +28,7 @@ class PasteDataRequest extends \Google\Model
    */
   public const TYPE_PASTE_VALUES = 'PASTE_VALUES';
   /**
-   * Paste the format and data validation only.
+   * Paste the format only, excluding data validation.
    */
   public const TYPE_PASTE_FORMAT = 'PASTE_FORMAT';
   /**

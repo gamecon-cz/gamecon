@@ -1,13 +1,13 @@
 <?php
 
+declare (strict_types=1);
 /**
  * This file is part of the Nette Framework (https://nette.org)
  * Copyright (c) 2004 David Grudl (https://davidgrudl.com)
  */
-declare (strict_types=1);
-namespace RectorPrefix202604\Nette\Utils;
+namespace RectorPrefix202607\Nette\Utils;
 
-use RectorPrefix202604\Nette;
+use RectorPrefix202607\Nette;
 use function array_key_exists, class_exists, explode, gettype, interface_exists, is_callable, is_float, is_int, is_iterable, is_numeric, is_object, is_string, preg_match, str_ends_with, str_replace, str_starts_with, strlen, strtolower, substr, trait_exists, var_export;
 /**
  * Validation utilities.
@@ -83,7 +83,7 @@ class Validators
         }
     }
     /**
-     * Verifies that element $key in array is of expected types separated by pipe.
+     * Verifies that item $key in array exists and is of expected types separated by pipe.
      * @param  mixed[]  $array
      * @throws AssertionException
      * @param int|string $key
@@ -150,7 +150,7 @@ class Validators
     }
     /**
      * Finds whether all values are of expected types separated by pipe.
-     * @param  mixed[]  $values
+     * @param  iterable<mixed>  $values
      */
     public static function everyIs(iterable $values, string $expected): bool
     {

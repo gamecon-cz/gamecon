@@ -4,8 +4,7 @@ declare (strict_types=1);
 namespace PhpParser\Node\Stmt;
 
 use PhpParser\Node;
-use Rector\Contract\PhpParser\Node\StmtsAwareInterface;
-class Namespace_ extends Node\Stmt implements StmtsAwareInterface
+class Namespace_ extends Node\Stmt
 {
     /* For use in the "kind" attribute */
     public const KIND_SEMICOLON = 1;

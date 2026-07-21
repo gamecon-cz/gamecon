@@ -82,29 +82,32 @@ CODE_SAMPLE
         if ($node->isFirstClassCallable()) {
             return null;
         }
-        if ($node->getArgs() === []) {
+        $args = $node->getArgs();
+        if ($args === []) {
             return null;
+        }
+        // named args are handled by RemoveNullNamedArgOnNullDefaultParamRector
+        foreach ($args as $arg) {
+            if ($arg->name instanceof Identifier) {
+                return null;
+            }
+            if ($arg->unpack) {
+                return null;
+            }
         }
         $nullPositions = $this->callLikeParamDefaultResolver->resolveNullPositions($node);
         if ($nullPositions === []) {
             return null;
         }
         $hasChanged = \false;
-        $args = $node->getArgs();
-        $lastArgPosition = count($args) - 1;
-        for ($position = $lastArgPosition; $position >= 0; --$position) {
-            if (!isset($args[$position])) {
-                continue;
-            }
+        for ($position = count($args) - 1; $position >= 0; --$position) {
             $arg = $args[$position];
-            if ($arg->unpack) {
-                break;
-            }
-            // stop when found named arg and position not match
-            if ($arg->name instanceof Identifier && $position !== $this->callLikeParamDefaultResolver->resolvePositionParameterByName($node, $arg->name->toString())) {
-                break;
-            }
             if (!$this->valueResolver->isNull($arg->value)) {
+                // a named non-null argument can be skipped over: removing an earlier
+                // named null argument still leaves the remaining named arguments validly bound
+                if ($arg->name instanceof Identifier) {
+                    continue;
+                }
                 break;
             }
             if (!in_array($position, $nullPositions, \true)) {

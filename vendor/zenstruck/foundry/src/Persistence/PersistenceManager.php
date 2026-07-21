@@ -30,14 +30,19 @@ use Zenstruck\Foundry\Persistence\ResetDatabase\ResetDatabaseManager;
  * @author Kevin Bond <kevinbond@gmail.com>
  *
  * @internal
+ *
+ * @final not final only to be mockable in tests
  */
-final class PersistenceManager
+class PersistenceManager
 {
     private bool $flush = true;
     private bool $persist = true;
 
     /** @var list<callable():bool> */
     private array $afterPersistCallbacks = [];
+
+    /** @var array<int, object> objects awaiting an object manager persist, in creation order */
+    private array $pendingForInsert = [];
 
     /**
      * @param iterable<PersistenceStrategy> $strategies
@@ -76,6 +81,8 @@ final class PersistenceManager
             return $object->_save();
         }
 
+        $this->persistScheduled();
+
         $om = $this->strategyFor($object::class)->objectManagerFor($object::class);
         $om->persist($object);
         $this->flush($om);
@@ -103,12 +110,30 @@ final class PersistenceManager
             $object = ProxyGenerator::unwrap($object);
         }
 
-        $om = $this->strategyFor($object::class)->objectManagerFor($object::class);
-        $om->persist($object);
+        $this->pendingForInsert[\spl_object_id($object)] ??= $object;
 
         $this->afterPersistCallbacks = [...$this->afterPersistCallbacks, ...$afterPersistCallbacks];
 
         return $object;
+    }
+
+    /**
+     * Persists all scheduled objects, in creation order. Doing this only once the whole
+     * object graph is instantiated and wired guarantees lifecycle events (eg: "pre persist")
+     * never observe half-built objects.
+     */
+    public function persistScheduled(): void
+    {
+        // a "pre persist" listener may schedule new objects: keep draining until empty
+        while ($this->pendingForInsert) {
+            $object = \array_shift($this->pendingForInsert);
+            $this->strategyFor($object::class)->objectManagerFor($object::class)->persist($object);
+        }
+    }
+
+    public function discardScheduled(): void
+    {
+        $this->pendingForInsert = [];
     }
 
     /**
@@ -126,6 +151,7 @@ final class PersistenceManager
 
         $this->flush = true;
 
+        $this->persistScheduled();
         $this->flushAllStrategies();
 
         $callbacksCalled = $this->callPostPersistCallbacks();
@@ -435,6 +461,23 @@ final class PersistenceManager
 
             return 1 === \count($strategies) && $strategies[0] instanceof AbstractORMPersistenceStrategy;
         })();
+    }
+
+    /**
+     * Removes the given Doctrine listeners immediately and returns a restorer closure.
+     *
+     * @param class-string       $entityClass
+     * @param list<class-string> $disabledClasses [] = all, [Foo::class] = specific
+     *
+     * @return callable():void
+     */
+    public function disableDoctrineEvents(string $entityClass, array $disabledClasses): callable
+    {
+        if (!$this->flush) {
+            throw new \LogicException('withoutDoctrineEvents() cannot be used inside flush_after().');
+        }
+
+        return $this->strategyFor($entityClass)->disableDoctrineEvents($entityClass, $disabledClasses);
     }
 
     private function flushAllStrategies(): void

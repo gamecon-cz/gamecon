@@ -1,5 +1,38 @@
 # CHANGELOG
 
+## [v2.10.3](https://github.com/zenstruck/foundry/releases/tag/v2.10.3)
+
+July 20th, 2026 - [v2.10.2...v2.10.3](https://github.com/zenstruck/foundry/compare/v2.10.2...v2.10.3)
+
+* c851f6d fix: defer `$em->persist()` until the object graph is wired + natural accessor directionality (#1134) by @nikophil
+
+## [v2.10.2](https://github.com/zenstruck/foundry/releases/tag/v2.10.2)
+
+July 19th, 2026 - [v2.10.1...v2.10.2](https://github.com/zenstruck/foundry/compare/v2.10.1...v2.10.2)
+
+* 1ad45ac fix: `withoutDoctrineEvents()` should not remove `loadClassMetadata` listeners (#1133) by @nikophil
+* 5553b63 fix: withoutDoctrineEvents should work with nested entities (#1132) by @nikophil
+* 6917146 chore: fix Roave BC check (composer >= 2.9.8) and restrict phpunit < 13.2 (#1127) by @nikophil
+* d9ed62b doc: add README Security Policy section (#1123) by @Copilot
+
+## [v2.10.1](https://github.com/zenstruck/foundry/releases/tag/v2.10.1)
+
+May 19th, 2026 - [v2.10.0...v2.10.1](https://github.com/zenstruck/foundry/compare/v2.10.0...v2.10.1)
+
+* bc10d82 fix: `withoutDoctrineEvents` should do nothgin in unit tests (#1121) by @VincentLanglet
+
+## [v2.10.0](https://github.com/zenstruck/foundry/releases/tag/v2.10.0)
+
+May 19th, 2026 - [v2.9.2...v2.10.0](https://github.com/zenstruck/foundry/compare/v2.9.2...v2.10.0)
+
+* db2b673 fix: use full semver versions for PHPUnit requirements (#1118) by @nikophil
+* d109883 Update warning message for Foundry v2 documentation (#1113) by @gisostallenberg
+* 31c90dd Minor doc fix (#1117) by @javiereguiluz
+* 11f55e7 feat: throw when `withoutDoctrineEvents()` is called within `flush_after()` (#1111) by @nikophil
+* f81db0d feat: add `withoutDoctrineEvents()` to suppress listeners during factory create (#1109) by @seb-jean
+* 1408436 fix: factory template formatting (#1110) by @enekochan
+* b8f8909 minor: change Foundry's baseline (#1108) by @nikophil
+
 ## [v2.9.2](https://github.com/zenstruck/foundry/releases/tag/v2.9.2)
 
 February 17th, 2026 - [v2.9.1...v2.9.2](https://github.com/zenstruck/foundry/compare/v2.9.1...v2.9.2)

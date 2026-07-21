@@ -18,7 +18,7 @@ use Rector\Reflection\ReflectionResolver;
 use Rector\TypeDeclaration\NodeAnalyzer\AutowiredClassMethodOrPropertyAnalyzer;
 use Symplify\RuleDocGenerator\ValueObject\CodeSample\ConfiguredCodeSample;
 use Symplify\RuleDocGenerator\ValueObject\RuleDefinition;
-use RectorPrefix202604\Webmozart\Assert\Assert;
+use RectorPrefix202607\Webmozart\Assert\Assert;
 /**
  * @changelog https://www.php.net/manual/en/migration72.new-features.php#migration72.new-features.param-type-widening
  * @changelog https://3v4l.org/fOgSE
@@ -137,6 +137,7 @@ CODE_SAMPLE
         $unsafeTypesToMethods = $configuration;
         foreach ($unsafeTypesToMethods as $key => $value) {
             Assert::string($key);
+            Assert::isArray($value);
             Assert::allString($value);
         }
         $this->unsafeTypesToMethods = $unsafeTypesToMethods;
@@ -189,12 +190,14 @@ CODE_SAMPLE
     }
     private function hasParamAlreadyNonTyped(ClassMethod $classMethod): bool
     {
+        $found = \true;
         foreach ($classMethod->params as $param) {
-            if ($param->type !== null) {
-                return \false;
+            if (!!$param->type instanceof Node) {
+                $found = \false;
+                break;
             }
         }
-        return \true;
+        return $found;
     }
     private function isSafeType(ClassReflection $classReflection, ClassMethod $classMethod): bool
     {

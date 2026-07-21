@@ -120,10 +120,6 @@ final class SymfonyClass
     /**
      * @var string
      */
-    public const PARAMETER_BAG_INTERFACE = 'Symfony\Component\DependencyInjection\ParameterBag\ParameterBagInterface';
-    /**
-     * @var string
-     */
     public const SYMFONY_STYLE = 'Symfony\Component\Console\Style\SymfonyStyle';
     /**
      * @var string
@@ -196,13 +192,13 @@ final class SymfonyClass
     /**
      * @var string
      */
-    public const CONTAINER = 'Symfony\Component\DependencyInjection\Container';
-    /**
-     * @var string
-     */
     public const ABSTRACT_TYPE_EXTENSION = 'Symfony\Component\Form\AbstractTypeExtension';
     /**
      * @var string
      */
     public const ABSTRACT_TYPE = 'Symfony\Component\Form\AbstractType';
+    /**
+     * @var string
+     */
+    public const ULID_CLASS = 'Symfony\Component\Uid\Ulid';
 }

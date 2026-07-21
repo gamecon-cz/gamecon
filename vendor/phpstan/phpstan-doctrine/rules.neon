@@ -20,7 +20,6 @@ parametersSchema:
 
 rules:
 	- PHPStan\Rules\Doctrine\ORM\DqlRule
-	- PHPStan\Rules\Doctrine\ORM\RepositoryMethodCallRule
 	- PHPStan\Rules\Doctrine\ORM\EntityConstructorNotFinalRule
 	- PHPStan\Rules\Doctrine\ORM\EntityMappingExceptionRule
 	- PHPStan\Rules\Doctrine\ORM\EntityNotFinalRule
@@ -44,6 +43,12 @@ services:
 		class: PHPStan\Rules\Doctrine\ORM\EntityRelationRule
 		arguments:
 			allowNullablePropertyForRequiredField: %doctrine.allowNullablePropertyForRequiredField%
+		tags:
+			- phpstan.rules.rule
+	-
+		class: PHPStan\Rules\Doctrine\ORM\RepositoryMethodCallRule
+		arguments:
+			checkOrderByFields: %featureToggles.bleedingEdge%
 		tags:
 			- phpstan.rules.rule
 	-

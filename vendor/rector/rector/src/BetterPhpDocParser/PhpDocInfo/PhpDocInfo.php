@@ -3,6 +3,7 @@
 declare (strict_types=1);
 namespace Rector\BetterPhpDocParser\PhpDocInfo;
 
+use RectorPrefix202607\Nette\Utils\Strings;
 use PHPStan\PhpDocParser\Ast\ConstExpr\ConstFetchNode;
 use PHPStan\PhpDocParser\Ast\Node;
 use PHPStan\PhpDocParser\Ast\PhpDoc\ExtendsTagValueNode;
@@ -33,7 +34,10 @@ use Rector\BetterPhpDocParser\ValueObject\PhpDocAttributeKey;
 use Rector\BetterPhpDocParser\ValueObject\Type\ShortenedIdentifierTypeNode;
 use Rector\Exception\ShouldNotHappenException;
 use Rector\PhpDocParser\PhpDocParser\PhpDocNodeTraverser;
+use Rector\StaticTypeMapper\Naming\NameScopeFactory;
 use Rector\StaticTypeMapper\StaticTypeMapper;
+use Rector\Validation\RectorAssert;
+use RectorPrefix202607\Webmozart\Assert\InvalidArgumentException;
 /**
  * @see \Rector\Tests\BetterPhpDocParser\PhpDocInfo\PhpDocInfo\PhpDocInfoTest
  */
@@ -64,6 +68,15 @@ final class PhpDocInfo
      */
     private PhpDocNodeByTypeFinder $phpDocNodeByTypeFinder;
     /**
+     * @readonly
+     */
+    private NameScopeFactory $nameScopeFactory;
+    /**
+     * @see https://regex101.com/r/7GCrlj/2
+     * @var string
+     */
+    private const INLINE_GENERIC_USES_CLASS_REFERENCE_REGEX = '#\{@(?:uses|used-by|see)\s+(?<class_name>[^}\s]+)#';
+    /**
      * @var array<class-string<PhpDocTagValueNode>, string>
      */
     private const TAGS_TYPES_TO_NAMES = [ReturnTagValueNode::class => '@return', ParamTagValueNode::class => '@param', VarTagValueNode::class => '@var', MethodTagValueNode::class => '@method', PropertyTagValueNode::class => '@property', ExtendsTagValueNode::class => '@extends', ImplementsTagValueNode::class => '@implements'];
@@ -72,7 +85,7 @@ final class PhpDocInfo
      * @readonly
      */
     private PhpDocNode $originalPhpDocNode;
-    public function __construct(PhpDocNode $phpDocNode, BetterTokenIterator $betterTokenIterator, StaticTypeMapper $staticTypeMapper, \PhpParser\Node $node, AnnotationNaming $annotationNaming, PhpDocNodeByTypeFinder $phpDocNodeByTypeFinder)
+    public function __construct(PhpDocNode $phpDocNode, BetterTokenIterator $betterTokenIterator, StaticTypeMapper $staticTypeMapper, \PhpParser\Node $node, AnnotationNaming $annotationNaming, PhpDocNodeByTypeFinder $phpDocNodeByTypeFinder, NameScopeFactory $nameScopeFactory)
     {
         $this->phpDocNode = $phpDocNode;
         $this->betterTokenIterator = $betterTokenIterator;
@@ -80,6 +93,7 @@ final class PhpDocInfo
         $this->node = $node;
         $this->annotationNaming = $annotationNaming;
         $this->phpDocNodeByTypeFinder = $phpDocNodeByTypeFinder;
+        $this->nameScopeFactory = $nameScopeFactory;
         $this->originalPhpDocNode = clone $phpDocNode;
         if (!$betterTokenIterator->containsTokenType(Lexer::TOKEN_PHPDOC_EOL)) {
             $this->isSingleLine = \true;
@@ -163,24 +177,28 @@ final class PhpDocInfo
      */
     public function hasByTypes(array $types): bool
     {
+        $found = \false;
         foreach ($types as $type) {
             if ($this->hasByType($type)) {
-                return \true;
+                $found = \true;
+                break;
             }
         }
-        return \false;
+        return $found;
     }
     /**
      * @param string[] $names
      */
     public function hasByNames(array $names): bool
     {
+        $found = \false;
         foreach ($names as $name) {
             if ($this->hasByName($name)) {
-                return \true;
+                $found = \true;
+                break;
             }
         }
-        return \false;
+        return $found;
     }
     public function hasByName(string $name): bool
     {
@@ -383,6 +401,16 @@ final class PhpDocInfo
             // add default original value
             $resolvedClasses[] = $genericTagValueNode->value;
             if (strpos($genericTagValueNode->value, '::') === \false) {
+                // keep the import for the leading class reference in "@see Foo some description"
+                $leadingReference = strtok($genericTagValueNode->value, " \t\n\r");
+                if ($leadingReference !== \false && $leadingReference !== $genericTagValueNode->value) {
+                    try {
+                        RectorAssert::className($leadingReference);
+                        $resolvedClasses[] = $leadingReference;
+                    } catch (InvalidArgumentException $exception) {
+                        continue;
+                    }
+                }
                 continue;
             }
             // add resolved class name if any
@@ -394,6 +422,27 @@ final class PhpDocInfo
             $resolvedClasses[] = $resolvedClass;
         }
         return $resolvedClasses;
+    }
+    /**
+     * @return string[]
+     */
+    public function getInlineGenericUsesTagClassNames(): array
+    {
+        $printedPhpDocNode = (string) $this->phpDocNode;
+        if (strpos($printedPhpDocNode, '{') === \false) {
+            return [];
+        }
+        $matches = Strings::matchAll($printedPhpDocNode, self::INLINE_GENERIC_USES_CLASS_REFERENCE_REGEX);
+        $classNames = [];
+        foreach ($matches as $match) {
+            $reference = $match['class_name'];
+            $resolvedClassNames = $this->resolveInlineGenericUsesReferenceClassNames($reference);
+            if ($resolvedClassNames === []) {
+                continue;
+            }
+            $classNames = array_merge($classNames, $resolvedClassNames);
+        }
+        return array_unique($classNames);
     }
     /**
      * @return string[]
@@ -451,6 +500,33 @@ final class PhpDocInfo
             }
         }
         return null;
+    }
+    /**
+     * @return string[]
+     */
+    private function resolveInlineGenericUsesReferenceClassNames(string $reference): array
+    {
+        $reference = explode('|', $reference, 2)[0];
+        $reference = explode('::', $reference, 2)[0];
+        $referenceToResolve = $reference;
+        $reference = ltrim($reference, '\\');
+        try {
+            RectorAssert::className($reference);
+        } catch (InvalidArgumentException $exception) {
+            return [];
+        }
+        // fqcn not reference to any use statements
+        if (strncmp($referenceToResolve, '\\', strlen('\\')) === 0) {
+            return [$referenceToResolve];
+        }
+        $nameScope = $this->nameScopeFactory->createNameScopeFromNodeWithoutTemplateTypes($this->node);
+        $resolvedClassName = $nameScope->resolveStringName($referenceToResolve);
+        if (strpos($reference, '\\') !== \false) {
+            // Keep both forms: resolved class for namespace-aware matching and original class
+            // for alias-partial matching in unused import checks.
+            return array_unique([$resolvedClassName, $reference]);
+        }
+        return [$resolvedClassName];
     }
     /**
      * @return \PHPStan\Type\MixedType|\PHPStan\Type\Type

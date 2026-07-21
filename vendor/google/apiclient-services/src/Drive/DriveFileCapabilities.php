@@ -27,6 +27,12 @@ class DriveFileCapabilities extends \Google\Model
    */
   public $canAcceptOwnership;
   /**
+   * Whether the current user can access this file via Gen AI features.
+   *
+   * @var bool
+   */
+  public $canAccessViaGenAi;
+  /**
    * Output only. Whether the current user can add children to this folder. This
    * is always `false` when the item isn't a folder.
    *
@@ -314,6 +320,12 @@ class DriveFileCapabilities extends \Google\Model
    */
   public $canShare;
   /**
+   * Whether the current user can start an approval on the file.
+   *
+   * @var bool
+   */
+  public $canStartApproval;
+  /**
    * Output only. Whether the current user can move this file to trash.
    *
    * @var bool
@@ -350,6 +362,22 @@ class DriveFileCapabilities extends \Google\Model
   public function getCanAcceptOwnership()
   {
     return $this->canAcceptOwnership;
+  }
+  /**
+   * Whether the current user can access this file via Gen AI features.
+   *
+   * @param bool $canAccessViaGenAi
+   */
+  public function setCanAccessViaGenAi($canAccessViaGenAi)
+  {
+    $this->canAccessViaGenAi = $canAccessViaGenAi;
+  }
+  /**
+   * @return bool
+   */
+  public function getCanAccessViaGenAi()
+  {
+    return $this->canAccessViaGenAi;
   }
   /**
    * Output only. Whether the current user can add children to this folder. This
@@ -1046,6 +1074,22 @@ class DriveFileCapabilities extends \Google\Model
   public function getCanShare()
   {
     return $this->canShare;
+  }
+  /**
+   * Whether the current user can start an approval on the file.
+   *
+   * @param bool $canStartApproval
+   */
+  public function setCanStartApproval($canStartApproval)
+  {
+    $this->canStartApproval = $canStartApproval;
+  }
+  /**
+   * @return bool
+   */
+  public function getCanStartApproval()
+  {
+    return $this->canStartApproval;
   }
   /**
    * Output only. Whether the current user can move this file to trash.

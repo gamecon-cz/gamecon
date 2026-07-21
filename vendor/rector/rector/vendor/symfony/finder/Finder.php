@@ -8,20 +8,20 @@
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
  */
-namespace RectorPrefix202604\Symfony\Component\Finder;
+namespace RectorPrefix202607\Symfony\Component\Finder;
 
-use RectorPrefix202604\Symfony\Component\Finder\Comparator\DateComparator;
-use RectorPrefix202604\Symfony\Component\Finder\Comparator\NumberComparator;
-use RectorPrefix202604\Symfony\Component\Finder\Exception\DirectoryNotFoundException;
-use RectorPrefix202604\Symfony\Component\Finder\Iterator\CustomFilterIterator;
-use RectorPrefix202604\Symfony\Component\Finder\Iterator\DateRangeFilterIterator;
-use RectorPrefix202604\Symfony\Component\Finder\Iterator\DepthRangeFilterIterator;
-use RectorPrefix202604\Symfony\Component\Finder\Iterator\ExcludeDirectoryFilterIterator;
-use RectorPrefix202604\Symfony\Component\Finder\Iterator\FilecontentFilterIterator;
-use RectorPrefix202604\Symfony\Component\Finder\Iterator\FilenameFilterIterator;
-use RectorPrefix202604\Symfony\Component\Finder\Iterator\LazyIterator;
-use RectorPrefix202604\Symfony\Component\Finder\Iterator\SizeRangeFilterIterator;
-use RectorPrefix202604\Symfony\Component\Finder\Iterator\SortableIterator;
+use RectorPrefix202607\Symfony\Component\Finder\Comparator\DateComparator;
+use RectorPrefix202607\Symfony\Component\Finder\Comparator\NumberComparator;
+use RectorPrefix202607\Symfony\Component\Finder\Exception\DirectoryNotFoundException;
+use RectorPrefix202607\Symfony\Component\Finder\Iterator\CustomFilterIterator;
+use RectorPrefix202607\Symfony\Component\Finder\Iterator\DateRangeFilterIterator;
+use RectorPrefix202607\Symfony\Component\Finder\Iterator\DepthRangeFilterIterator;
+use RectorPrefix202607\Symfony\Component\Finder\Iterator\ExcludeDirectoryFilterIterator;
+use RectorPrefix202607\Symfony\Component\Finder\Iterator\FilecontentFilterIterator;
+use RectorPrefix202607\Symfony\Component\Finder\Iterator\FilenameFilterIterator;
+use RectorPrefix202607\Symfony\Component\Finder\Iterator\LazyIterator;
+use RectorPrefix202607\Symfony\Component\Finder\Iterator\SizeRangeFilterIterator;
+use RectorPrefix202607\Symfony\Component\Finder\Iterator\SortableIterator;
 /**
  * Finder allows to build rules to find files and directories.
  *
@@ -737,7 +737,7 @@ class Finder implements \IteratorAggregate, \Countable
     /**
      * Normalizes given directory names by removing trailing slashes.
      *
-     * Excluding: (s)ftp:// or ssh2.(s)ftp:// wrapper
+     * Excluding: stream wrapper schemes such as ftp:// or s3://
      */
     private function normalizeDir(string $dir): string
     {
@@ -745,7 +745,7 @@ class Finder implements \IteratorAggregate, \Countable
             return $dir;
         }
         $dir = rtrim($dir, '/' . \DIRECTORY_SEPARATOR);
-        if (preg_match('#^(ssh2\.)?s?ftp://#', $dir)) {
+        if (preg_match('#^[a-zA-Z][a-zA-Z0-9.+-]*://#', $dir)) {
             $dir .= '/';
         }
         return $dir;

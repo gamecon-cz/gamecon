@@ -8,7 +8,7 @@
  * For the full copyright and license information, please view
  * the LICENSE file that was distributed with this source code.
  */
-namespace RectorPrefix202604\Composer\Semver\Constraint;
+namespace RectorPrefix202607\Composer\Semver\Constraint;
 
 /**
  * Blackhole of constraints, nothing escapes it
@@ -53,6 +53,7 @@ class MatchNoneConstraint implements ConstraintInterface
     /**
      * {@inheritDoc}
      */
+    #[\ReturnTypeWillChange]
     public function __toString()
     {
         return '[]';
