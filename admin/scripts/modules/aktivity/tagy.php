@@ -25,8 +25,9 @@ if (!$zpracovanyTag) {
     $zpracovanyTag = $editorTagu->editujTag();
 }
 if ($zpracovanyTag) {
-    (new ProgramStaticFileGenerator($systemoveNastaveni))
-        ->touchDirtyFlag(ProgramStaticFileType::TAGY);
+    $programStaticFileGenerator = new ProgramStaticFileGenerator($systemoveNastaveni);
+    $programStaticFileGenerator->touchDirtyFlag(ProgramStaticFileType::TAGY);
+    $programStaticFileGenerator->touchDirtyFlag(ProgramStaticFileType::AKTIVITY);
     header('Content-Type: application/json');
     echo json_encode([
         'tag'         => $zpracovanyTag['tag'] ?? [],

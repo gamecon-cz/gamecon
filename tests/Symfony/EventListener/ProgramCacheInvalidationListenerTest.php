@@ -93,7 +93,7 @@ class ProgramCacheInvalidationListenerTest extends AbstractTestDb
     /**
      * @test
      */
-    public function persistTaguNastaviTagyFlag(): void
+    public function zmenaTaguNastaviTagyIAktivityFlag(): void
     {
         TagFactory::createOne();
 
@@ -101,17 +101,25 @@ class ProgramCacheInvalidationListenerTest extends AbstractTestDb
             ProgramStaticFileType::TAGY,
             'persist nového tagu přes Doctrine',
         );
+        $this->assertDirtyFlagNastaven(
+            ProgramStaticFileType::AKTIVITY,
+            'persist nového tagu přes Doctrine',
+        );
     }
 
     /**
      * @test
      */
-    public function persistCategoryTaguNastaviTagyFlag(): void
+    public function zmenaCategoryTaguNastaviTagyIAktivityFlag(): void
     {
         CategoryTagFactory::createOne();
 
         $this->assertDirtyFlagNastaven(
             ProgramStaticFileType::TAGY,
+            'persist nové kategorie tagu přes Doctrine',
+        );
+        $this->assertDirtyFlagNastaven(
+            ProgramStaticFileType::AKTIVITY,
             'persist nové kategorie tagu přes Doctrine',
         );
     }
