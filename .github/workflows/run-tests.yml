@@ -28,11 +28,12 @@ on:
             - ready_for_review
 
 # Feature větve spouští testy přes oba triggery (push i pull_request),
-# takže po otevření PR by stejný commit běžel dvakrát. Skupina klíčovaná
-# na větev (head_ref na PR, jinak ref) je u obou běhů stejná, takže
+# takže po otevření PR by stejný commit běžel dvakrát. Klíčujeme na SHA
+# hlavičkového commitu – ten je u push i u odpovídajícího pull_request běhu
+# totožný (na PR je github.sha merge commit, proto bereme head.sha), takže
 # druhý běh ten první zruší a testy proběhnou jen jednou.
 concurrency:
-    group: run-tests-${{ github.head_ref || github.ref }}
+    group: run-tests-${{ github.event.pull_request.head.sha || github.sha }}
     cancel-in-progress: true
 
 jobs:
