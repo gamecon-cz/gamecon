@@ -1918,19 +1918,14 @@ SQL
         if (!$this->prihlasovatelna() && !$this->probehnuta()) { // u proběhnutých aktivit se zobrazí čísla. Možno měnit.
             return " <span class=\"neprihlasovatelna\">($prihlasenoCelkem/$kapacitaCelkova)</span>";
         }
-        switch ($this->volno()) {
-            case 'u':
-            case 'x':
-                return " ($prihlasenoCelkem/$kapacitaCelkova)";
-            case 'f':
-                return ' <span class="f">(' . $prihlasenoZen . '/' . $kapacitaZeny . ')</span>' .
-                       ' <span class="m">(' . $prihlasenoMuzu . '/' . ($kapacitaMuzi + $kapacitaUniverzalni) . ')</span>';
-            case 'm':
-                return ' <span class="f">(' . $prihlasenoZen . '/' . ($kapacitaZeny + $kapacitaUniverzalni) . ')</span>' .
-                       ' <span class="m">(' . $prihlasenoMuzu . '/' . $kapacitaMuzi . ')</span>';
-            default :
-                return '';
-        }
+        return match ($this->volnoPro()) {
+            VolnoProEnum::PRO_VSECHNY,
+            VolnoProEnum::PLNO     => " ({$prihlasenoCelkem}/{$kapacitaCelkova})",
+            VolnoProEnum::JEN_ZENY => ' <span class="f">(' . $prihlasenoZen . '/' . $kapacitaZeny . ')</span>' .
+                       ' <span class="m">(' . $prihlasenoMuzu . '/' . ($kapacitaMuzi + $kapacitaUniverzalni) . ')</span>',
+            VolnoProEnum::JEN_MUZI => ' <span class="f">(' . $prihlasenoZen . '/' . ($kapacitaZeny + $kapacitaUniverzalni) . ')</span>' .
+                       ' <span class="m">(' . $prihlasenoMuzu . '/' . $kapacitaMuzi . ')</span>',
+        };
     }
 
     /**
@@ -1985,6 +1980,10 @@ SQL
             return; // ignorovat pokud přihlášen není tak či tak
         }
 
+        // Stav zaplněnosti před odhlášením – zjistíme rozdíl oproti stavu po odhlášení,
+        // abychom sledujícím poslali mail jen o místě, které se opravdu nově uvolnilo.
+        $volnoProPredOdhlasenim = $this->volnoPro();
+
         $tym = $this->tymova()
             ? AktivitaTym::najdiPodleUzivateleAktivity($u->id(), $this->id())
             : null ;
@@ -2037,17 +2036,19 @@ SQL,
         if ($this->tymova()) {
             AktivitaTym::odhlasUzivateleOdTymu($idUzivatele, $idAktivity);
         }
-        // Poslání mailu lidem na watchlistu.
-        // volno() zde ještě odráží stav před odhlášením (DELETE výše neinvaliduje cache přihlášených).
-        // Sledovat lze i genderově plnou aktivitu, kde volno() vrací 'f'/'m' (plno jen pro jedno pohlaví),
-        // ne jen beznadějně plnou 'x' — mail proto posíláme, kdykoli byla aktivita před odhlášením
-        // plná alespoň pro jedno pohlaví.
-        $volnoPredOdhlasenim = $this->volno();
-        $bylaPlna            = in_array($volnoPredOdhlasenim, ['x', 'f', 'm'], true);
-        if ($bylaPlna && !($params & self::NEPOSILAT_MAILY_SLEDUJICIM)) {
-            $this->poslatMailSledujicim();
-        }
         $this->refresh();
+
+        // Poslání mailu lidem na watchlistu. Uvolnit se mohlo místo pro jedno pohlaví (genderové) i pro
+        // obě (univerzální), proto porovnáme zaplněnost před a po odhlášení a mailujeme jen sledující těch
+        // pohlaví, pro která volné místo předtím nebylo a teď je (jinak se pro ně nic nového neuvolnilo).
+        // Sledovat lze i genderově plnou aktivitu (volnoPro() === JEN_ZENY/JEN_MUZI), ne jen beznadějně plnou.
+        $pohlaviSNoveUvolnenymMistem = array_values(array_filter(
+            $this->volnoPro()->pohlaviSVolnymMistem(),
+            static fn (string $pohlavi): bool => ! $volnoProPredOdhlasenim->proPohlaviJeVolno($pohlavi),
+        ));
+        if ($pohlaviSNoveUvolnenymMistem && ! ($params & self::NEPOSILAT_MAILY_SLEDUJICIM)) {
+            $this->poslatMailSledujicim($pohlaviSNoveUvolnenymMistem);
+        }
 
         $this->touchDirtyFlag(ProgramStaticFileType::OBSAZENOSTI);
 
@@ -2378,16 +2379,21 @@ SQL
     }
 
     /**
-     * Pošle mail potenciálním náhradníkům o volném místě na aktivitě.
+     * Pošle sledujícím mail o uvolněném místě. Adresáty omezí na pohlaví, pro která se místo uvolnilo –
+     * ostatní se stejně nemají kam nově přihlásit.
+     *
+     * @param list<string> $pohlaviSVolnymMistem kódy pohlaví ({@see Pohlavi}), pro která se místo uvolnilo
      */
-    private function poslatMailSledujicim(): void
+    private function poslatMailSledujicim(array $pohlaviSVolnymMistem): void
     {
-        $emaily = dbOneArray("
-      SELECT u.email1_uzivatele
-      FROM akce_prihlaseni_spec a
-      JOIN uzivatele_hodnoty u ON u.id_uzivatele = a.id_uzivatele
-      WHERE a.id_akce = $0 AND a.id_stavu_prihlaseni = $1
-    ", [$this->id(), StavPrihlaseni::SLEDUJICI]);
+        $emaily = dbOneArray('
+      SELECT uzivatele_hodnoty.email1_uzivatele
+      FROM akce_prihlaseni_spec
+      JOIN uzivatele_hodnoty ON uzivatele_hodnoty.id_uzivatele = akce_prihlaseni_spec.id_uzivatele
+      WHERE akce_prihlaseni_spec.id_akce = $0
+        AND akce_prihlaseni_spec.id_stavu_prihlaseni = $1
+        AND uzivatele_hodnoty.pohlavi IN ($2)
+    ', [$this->id(), StavPrihlaseni::SLEDUJICI, $pohlaviSVolnymMistem]);
         foreach ($emaily as $email) {
             $mail = GcMail::vytvorZGlobals();
             $mail->predmet('Gamecon: Volné místo na aktivitě ' . $this->nazev());
@@ -2481,7 +2487,7 @@ SQL
 
             // Re-check capacity with fresh data inside the lock
             $this->refresh();
-            if (!(self::IGNOROVAT_LIMIT & $parametry) && $this->volno() !== 'u' && $this->volno() !== $uzivatel->pohlavi()) {
+            if (! (self::IGNOROVAT_LIMIT & $parametry) && ! $this->volnoPro()->proPohlaviJeVolno($uzivatel->pohlavi())) {
                 dbCommit();
                 throw new \Chyba(hlaska('plno'));
             }
@@ -2547,7 +2553,7 @@ SQL
         string $pohlavi = "",
         int $parametry = 0,
     ) {
-        if (!(self::IGNOROVAT_LIMIT & $parametry) && $this->volno() !== 'u' && $this->volno() !== $pohlavi) {
+        if (! (self::IGNOROVAT_LIMIT & $parametry) && ! $this->volnoPro()->proPohlaviJeVolno($pohlavi)) {
             throw new \Chyba(hlaska('plno'));
         }
     }
@@ -3183,17 +3189,17 @@ SQL
 HTML
                        . $this->formatujDuvodProTesting('Aktivita už je zamknutá');
             } else {
-                $volno = $this->volno();
-                if ($volno === 'u' || $volno == $u->pohlavi()) {
+                $volnoPro = $this->volnoPro();
+                if ($volnoPro->proPohlaviJeVolno($u->pohlavi())) {
                     $out =
                         '<form method="post" style="display:inline">' .
                         '<input type="hidden" name="prihlasit" value="' . $this->id() . '">' .
                         '<a href="#" onclick="this.parentNode.submit(); return false">přihlásit</a>' .
                         '</form>';
-                } elseif ($volno === 'f') {
+                } elseif ($volnoPro === VolnoProEnum::JEN_ZENY) {
                     // volno už je jen pro ženy → pro tohoto uživatele (muže) je plno, smí proto sledovat
                     $out = 'pouze ženská místa' . $this->prihlasovatkoSledovani($u, ' | ');
-                } elseif ($volno === 'm') {
+                } elseif ($volnoPro === VolnoProEnum::JEN_MUZI) {
                     $out = 'pouze mužská místa' . $this->prihlasovatkoSledovani($u, ' | ');
                 } else {
                     $out = $this->prihlasovatkoSledovani($u);
@@ -3710,7 +3716,7 @@ SQL,
     }
 
     /** Vrátí typ volných míst na aktivitě */
-    public function volno(?DataSourcesCollector $dataSourcesCollector = null)
+    public function volnoPro(?DataSourcesCollector $dataSourcesCollector = null): VolnoProEnum
     {
         $prihlasenoMuzu = $this->pocetPrihlasenychMuzu($dataSourcesCollector);
         $prihlasenoZen = $this->pocetPrihlasenychZen($dataSourcesCollector);
@@ -3718,20 +3724,20 @@ SQL,
         $kapacitaMuzu = $this->a[Sql::KAPACITA_M];
         $kapacitaZen = $this->a[Sql::KAPACITA_F];
         if (($unisexKapacita + $kapacitaMuzu + $kapacitaZen) <= 0) {
-            return 'u'; //aktivita bez omezení
+            return VolnoProEnum::PRO_VSECHNY; // aktivita bez omezení
         }
         if ($prihlasenoMuzu + $prihlasenoZen >= $unisexKapacita + $kapacitaMuzu + $kapacitaZen) {
-            return 'x'; //beznadějně plno
+            return VolnoProEnum::PLNO; // beznadějně plno
         }
         if ($prihlasenoMuzu >= $unisexKapacita + $kapacitaMuzu) {
-            return 'f'; //muži zabrali všechna univerzální i mužská místa
+            return VolnoProEnum::JEN_ZENY; // muži zabrali všechna univerzální i mužská místa
         }
         if ($prihlasenoZen >= $unisexKapacita + $kapacitaZen) {
-            return 'm'; //LIKE WTF? (opak předchozího)
+            return VolnoProEnum::JEN_MUZI; // ženy zabraly všechna univerzální i ženská místa
         }
 
-        //else
-        return 'u'; //je volno a žádné pohlaví nevyžralo limit míst
+        // else
+        return VolnoProEnum::PRO_VSECHNY; // je volno a žádné pohlaví nevyžralo limit míst
     }
 
     public function getKapacitaUnisex(): int
@@ -4335,8 +4341,8 @@ SQL,
             razeni: $razeni,
         );
         if ($flags & self::JEN_VOLNE) {
-            foreach ($aktivity as $i => $a) {
-                if ($a->volno() === 'x') {
+            foreach ($aktivity as $i => $aktivita) {
+                if ($aktivita->volnoPro() === VolnoProEnum::PLNO) {
                     unset($aktivity[$i]);
                 }
             }

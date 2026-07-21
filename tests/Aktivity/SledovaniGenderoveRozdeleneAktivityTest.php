@@ -10,6 +10,7 @@ use Gamecon\Aktivita\Aktivita;
 use Gamecon\Aktivita\SqlStruktura\AkceSeznamSqlStruktura as AktivitaSql;
 use Gamecon\Aktivita\StavAktivity;
 use Gamecon\Aktivita\TypAktivity;
+use Gamecon\Aktivita\VolnoProEnum;
 use Gamecon\Kanaly\MailLogger;
 use Gamecon\Role\Role;
 use Gamecon\SystemoveNastaveni\SystemoveNastaveni;
@@ -68,11 +69,11 @@ class SledovaniGenderoveRozdeleneAktivityTest extends AbstractTestDb
 
     public function testUplnePlnaAktivitaNabidneSledovaniBeztextu(): void
     {
-        // regrese: u úplně plné aktivity (volno() === 'x') zůstává jen odkaz na sledování, bez textu „pouze … místa"
+        // regrese: u úplně plné aktivity (volnoPro() === PLNO) zůstává jen odkaz na sledování, bez textu „pouze … místa"
         $aktivita = $this->genderoveRozdelenaAktivita(kapacitaMuzu: 1, kapacitaZen: 0);
         $muzNaMiste = $this->prihlasenyUzivatelNaGc(Pohlavi::MUZ_KOD);
         $aktivita->prihlas($muzNaMiste, $muzNaMiste, Aktivita::UKAZAT_DETAILY_CHYBY);
-        self::assertSame('x', $aktivita->volno());
+        self::assertSame(VolnoProEnum::PLNO, $aktivita->volnoPro());
 
         $dalsiMuz = $this->prihlasenyUzivatelNaGc(Pohlavi::MUZ_KOD);
         $out = $aktivita->prihlasovatko($dalsiMuz, 0);
@@ -88,8 +89,8 @@ class SledovaniGenderoveRozdeleneAktivityTest extends AbstractTestDb
 
         $muzNaMiste = $this->prihlasenyUzivatelNaGc(Pohlavi::MUZ_KOD);
         $aktivita->prihlas($muzNaMiste, $muzNaMiste, Aktivita::UKAZAT_DETAILY_CHYBY);
-        // Pro muže je aktivita plná (zbývá jen ženské místo), ale volno() vrací 'f', ne 'x'
-        self::assertSame('f', $aktivita->volno());
+        // Pro muže je aktivita plná (zbývá jen ženské místo), volnoPro() vrací JEN_ZENY, ne PLNO
+        self::assertSame(VolnoProEnum::JEN_ZENY, $aktivita->volnoPro());
 
         $sledujici = $this->prihlasenyUzivatelNaGc(Pohlavi::MUZ_KOD);
         $aktivita->prihlasSledujiciho($sledujici, $sledujici);
@@ -100,19 +101,93 @@ class SledovaniGenderoveRozdeleneAktivityTest extends AbstractTestDb
         self::assertSame(
             $mailuPredOdhlasenim + 1,
             $this->pocetMailuOUvolnenemMiste($nazev),
-            'Po uvolnění mužského místa v gender-plné aktivitě má sledujícímu přijít mail o uvolněném místě',
+            'Po uvolnění mužského místa v gender-plné aktivitě má sledujícímu muži přijít mail o uvolněném místě',
+        );
+    }
+
+    public function testMailNedostaneSledujiciOpacnehoPohlaviNezSeUvolnilo(): void
+    {
+        // uvolní se mužské místo → sledující žena (pro kterou bylo volno už předtím) mail nedostane
+        $nazev = 'Sledovaná jen ženská ' . self::unikatniCislo();
+        $aktivita = $this->genderoveRozdelenaAktivita(kapacitaMuzu: 1, kapacitaZen: 5, nazev: $nazev);
+
+        $muzNaMiste = $this->prihlasenyUzivatelNaGc(Pohlavi::MUZ_KOD);
+        $aktivita->prihlas($muzNaMiste, $muzNaMiste, Aktivita::UKAZAT_DETAILY_CHYBY);
+        self::assertSame(VolnoProEnum::JEN_ZENY, $aktivita->volnoPro());
+
+        $sledujiciZena = $this->prihlasenyUzivatelNaGc(Pohlavi::ZENA_KOD);
+        $aktivita->prihlasSledujiciho($sledujiciZena, $sledujiciZena);
+
+        $mailuPredOdhlasenim = $this->pocetMailuOUvolnenemMiste($nazev);
+        $aktivita->odhlas($muzNaMiste, $muzNaMiste, 'test');
+
+        self::assertSame(
+            $mailuPredOdhlasenim,
+            $this->pocetMailuOUvolnenemMiste($nazev),
+            'Uvolnilo se mužské místo, sledující ženě (pro kterou volno bylo i předtím) mail chodit nemá',
+        );
+    }
+
+    public function testUvolneneUniverzalniMistoPosleMailSledujicimObouPohlavi(): void
+    {
+        // univerzální (unisex) místo → po odhlášení muže je volno pro obě pohlaví,
+        // takže mail má dostat i sledující žena, nejen muž
+        $nazev = 'Sledovaná unisex ' . self::unikatniCislo();
+        $aktivita = $this->genderoveRozdelenaAktivita(kapacitaMuzu: 0, kapacitaZen: 0, kapacitaUnisex: 1, nazev: $nazev);
+
+        $muzNaMiste = $this->prihlasenyUzivatelNaGc(Pohlavi::MUZ_KOD);
+        $aktivita->prihlas($muzNaMiste, $muzNaMiste, Aktivita::UKAZAT_DETAILY_CHYBY);
+        self::assertSame(VolnoProEnum::PLNO, $aktivita->volnoPro());
+
+        $sledujiciMuz = $this->prihlasenyUzivatelNaGc(Pohlavi::MUZ_KOD);
+        $sledujiciZena = $this->prihlasenyUzivatelNaGc(Pohlavi::ZENA_KOD);
+        $aktivita->prihlasSledujiciho($sledujiciMuz, $sledujiciMuz);
+        $aktivita->prihlasSledujiciho($sledujiciZena, $sledujiciZena);
+
+        $mailuPredOdhlasenim = $this->pocetMailuOUvolnenemMiste($nazev);
+        $aktivita->odhlas($muzNaMiste, $muzNaMiste, 'test');
+
+        self::assertSame(
+            $mailuPredOdhlasenim + 2,
+            $this->pocetMailuOUvolnenemMiste($nazev),
+            'Uvolněné univerzální místo je pro obě pohlaví, mail mají dostat oba sledující',
+        );
+    }
+
+    public function testUvolneneUniverzalniMistoPoOdhlaseniZenyPosleMailObemaPohlavim(): void
+    {
+        // stejné jako výše, ale odhlašuje se žena – příjemci se řídí volným místem, ne pohlavím odhlašovaného
+        $nazev = 'Sledovaná unisex žena ' . self::unikatniCislo();
+        $aktivita = $this->genderoveRozdelenaAktivita(kapacitaMuzu: 0, kapacitaZen: 0, kapacitaUnisex: 1, nazev: $nazev);
+
+        $zenaNaMiste = $this->prihlasenyUzivatelNaGc(Pohlavi::ZENA_KOD);
+        $aktivita->prihlas($zenaNaMiste, $zenaNaMiste, Aktivita::UKAZAT_DETAILY_CHYBY);
+        self::assertSame(VolnoProEnum::PLNO, $aktivita->volnoPro());
+
+        $sledujiciMuz = $this->prihlasenyUzivatelNaGc(Pohlavi::MUZ_KOD);
+        $sledujiciZena = $this->prihlasenyUzivatelNaGc(Pohlavi::ZENA_KOD);
+        $aktivita->prihlasSledujiciho($sledujiciMuz, $sledujiciMuz);
+        $aktivita->prihlasSledujiciho($sledujiciZena, $sledujiciZena);
+
+        $mailuPredOdhlasenim = $this->pocetMailuOUvolnenemMiste($nazev);
+        $aktivita->odhlas($zenaNaMiste, $zenaNaMiste, 'test');
+
+        self::assertSame(
+            $mailuPredOdhlasenim + 2,
+            $this->pocetMailuOUvolnenemMiste($nazev),
+            'Po odhlášení ženy z univerzálního místa je volno pro obě pohlaví, mail mají dostat oba sledující',
         );
     }
 
     public function testUvolneneMistoUUplnePlneAktivityPosleMailSledujicimu(): void
     {
-        // kontrola, že oprava nerozbila původní chování u „beznadějně plné" aktivity (volno() === 'x')
+        // kontrola, že oprava nerozbila původní chování u „beznadějně plné" aktivity (volnoPro() === PLNO)
         $nazev = 'Sledovaná úplně plná ' . self::unikatniCislo();
         $aktivita = $this->genderoveRozdelenaAktivita(kapacitaMuzu: 1, kapacitaZen: 0, nazev: $nazev);
 
         $muzNaMiste = $this->prihlasenyUzivatelNaGc(Pohlavi::MUZ_KOD);
         $aktivita->prihlas($muzNaMiste, $muzNaMiste, Aktivita::UKAZAT_DETAILY_CHYBY);
-        self::assertSame('x', $aktivita->volno());
+        self::assertSame(VolnoProEnum::PLNO, $aktivita->volnoPro());
 
         $sledujici = $this->prihlasenyUzivatelNaGc(Pohlavi::MUZ_KOD);
         $aktivita->prihlasSledujiciho($sledujici, $sledujici);
@@ -137,6 +212,7 @@ class SledovaniGenderoveRozdeleneAktivityTest extends AbstractTestDb
     private function genderoveRozdelenaAktivita(
         int $kapacitaMuzu,
         int $kapacitaZen,
+        int $kapacitaUnisex = 0,
         string $nazev = 'Genderově rozdělená aktivita',
     ): Aktivita {
         dbInsert(AktivitaSql::AKCE_SEZNAM_TABULKA, [
@@ -146,7 +222,7 @@ class SledovaniGenderoveRozdeleneAktivityTest extends AbstractTestDb
             AktivitaSql::STAV       => StavAktivity::AKTIVOVANA,
             AktivitaSql::ZACATEK    => ROCNIK . '-07-16 10:00:00',
             AktivitaSql::KONEC      => ROCNIK . '-07-16 13:00:00',
-            AktivitaSql::KAPACITA   => 0,
+            AktivitaSql::KAPACITA   => $kapacitaUnisex,
             AktivitaSql::KAPACITA_M => $kapacitaMuzu,
             AktivitaSql::KAPACITA_F => $kapacitaZen,
             AktivitaSql::CENA       => 0,
@@ -162,7 +238,7 @@ class SledovaniGenderoveRozdeleneAktivityTest extends AbstractTestDb
             $muz = $this->prihlasenyUzivatelNaGc(Pohlavi::MUZ_KOD);
             $aktivita->prihlas($muz, $muz, Aktivita::UKAZAT_DETAILY_CHYBY);
         }
-        self::assertSame('f', $aktivita->volno(), 'Muži měli vyžrat všechna mužská místa');
+        self::assertSame(VolnoProEnum::JEN_ZENY, $aktivita->volnoPro(), 'Muži měli vyžrat všechna mužská místa');
     }
 
     private function prihlasenyUzivatelNaGc(string $pohlavi): \Uzivatel
