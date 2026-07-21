@@ -10,6 +10,7 @@ use Gamecon\Aktivita\Aktivita;
 use Gamecon\Aktivita\SqlStruktura\AkceSeznamSqlStruktura as AktivitaSql;
 use Gamecon\Aktivita\StavAktivity;
 use Gamecon\Aktivita\TypAktivity;
+use Gamecon\Kanaly\MailLogger;
 use Gamecon\Role\Role;
 use Gamecon\SystemoveNastaveni\SystemoveNastaveni;
 use Gamecon\Tests\Db\AbstractTestDb;
@@ -80,10 +81,66 @@ class SledovaniGenderoveRozdeleneAktivityTest extends AbstractTestDb
         self::assertStringContainsString('sledovat', $out);
     }
 
-    private function genderoveRozdelenaAktivita(int $kapacitaMuzu, int $kapacitaZen): Aktivita
+    public function testUvolneneMistoUGenderovePlneAktivityPosleMailSledujicimu(): void
     {
+        $nazev = 'Sledovaná gender-plná ' . self::unikatniCislo();
+        $aktivita = $this->genderoveRozdelenaAktivita(kapacitaMuzu: 1, kapacitaZen: 1, nazev: $nazev);
+
+        $muzNaMiste = $this->prihlasenyUzivatelNaGc(Pohlavi::MUZ_KOD);
+        $aktivita->prihlas($muzNaMiste, $muzNaMiste, Aktivita::UKAZAT_DETAILY_CHYBY);
+        // Pro muže je aktivita plná (zbývá jen ženské místo), ale volno() vrací 'f', ne 'x'
+        self::assertSame('f', $aktivita->volno());
+
+        $sledujici = $this->prihlasenyUzivatelNaGc(Pohlavi::MUZ_KOD);
+        $aktivita->prihlasSledujiciho($sledujici, $sledujici);
+
+        $mailuPredOdhlasenim = $this->pocetMailuOUvolnenemMiste($nazev);
+        $aktivita->odhlas($muzNaMiste, $muzNaMiste, 'test');
+
+        self::assertSame(
+            $mailuPredOdhlasenim + 1,
+            $this->pocetMailuOUvolnenemMiste($nazev),
+            'Po uvolnění mužského místa v gender-plné aktivitě má sledujícímu přijít mail o uvolněném místě',
+        );
+    }
+
+    public function testUvolneneMistoUUplnePlneAktivityPosleMailSledujicimu(): void
+    {
+        // kontrola, že oprava nerozbila původní chování u „beznadějně plné" aktivity (volno() === 'x')
+        $nazev = 'Sledovaná úplně plná ' . self::unikatniCislo();
+        $aktivita = $this->genderoveRozdelenaAktivita(kapacitaMuzu: 1, kapacitaZen: 0, nazev: $nazev);
+
+        $muzNaMiste = $this->prihlasenyUzivatelNaGc(Pohlavi::MUZ_KOD);
+        $aktivita->prihlas($muzNaMiste, $muzNaMiste, Aktivita::UKAZAT_DETAILY_CHYBY);
+        self::assertSame('x', $aktivita->volno());
+
+        $sledujici = $this->prihlasenyUzivatelNaGc(Pohlavi::MUZ_KOD);
+        $aktivita->prihlasSledujiciho($sledujici, $sledujici);
+
+        $mailuPredOdhlasenim = $this->pocetMailuOUvolnenemMiste($nazev);
+        $aktivita->odhlas($muzNaMiste, $muzNaMiste, 'test');
+
+        self::assertSame(
+            $mailuPredOdhlasenim + 1,
+            $this->pocetMailuOUvolnenemMiste($nazev),
+            'Po uvolnění místa v úplně plné aktivitě má sledujícímu přijít mail o uvolněném místě',
+        );
+    }
+
+    private function pocetMailuOUvolnenemMiste(string $nazevAktivity): int
+    {
+        // GcMail loguje každé odeslání do LOGY/maily.sqlite; předmět je unikátní podle názvu aktivity
+        return (new MailLogger(LOGY . '/maily.sqlite'))
+            ->spocitej('Volné místo na aktivitě ' . $nazevAktivity);
+    }
+
+    private function genderoveRozdelenaAktivita(
+        int $kapacitaMuzu,
+        int $kapacitaZen,
+        string $nazev = 'Genderově rozdělená aktivita',
+    ): Aktivita {
         dbInsert(AktivitaSql::AKCE_SEZNAM_TABULKA, [
-            AktivitaSql::NAZEV_AKCE => 'Genderově rozdělená aktivita',
+            AktivitaSql::NAZEV_AKCE => $nazev,
             AktivitaSql::TYP        => TypAktivity::LARP,
             AktivitaSql::ROK        => ROCNIK,
             AktivitaSql::STAV       => StavAktivity::AKTIVOVANA,

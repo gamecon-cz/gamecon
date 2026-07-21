@@ -2037,8 +2037,14 @@ SQL,
         if ($this->tymova()) {
             AktivitaTym::odhlasUzivateleOdTymu($idUzivatele, $idAktivity);
         }
-        // Poslání mailu lidem na watchlistu
-        if ($this->volno() === "x" && !($params & self::NEPOSILAT_MAILY_SLEDUJICIM)) { // Před odhlášením byla aktivita plná
+        // Poslání mailu lidem na watchlistu.
+        // volno() zde ještě odráží stav před odhlášením (DELETE výše neinvaliduje cache přihlášených).
+        // Sledovat lze i genderově plnou aktivitu, kde volno() vrací 'f'/'m' (plno jen pro jedno pohlaví),
+        // ne jen beznadějně plnou 'x' — mail proto posíláme, kdykoli byla aktivita před odhlášením
+        // plná alespoň pro jedno pohlaví.
+        $volnoPredOdhlasenim = $this->volno();
+        $bylaPlna            = in_array($volnoPredOdhlasenim, ['x', 'f', 'm'], true);
+        if ($bylaPlna && !($params & self::NEPOSILAT_MAILY_SLEDUJICIM)) {
             $this->poslatMailSledujicim();
         }
         $this->refresh();
