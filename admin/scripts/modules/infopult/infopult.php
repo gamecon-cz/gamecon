@@ -223,6 +223,17 @@ if ($uPracovni) {
         $x->assign('jidloHtml', $shop->jidloHtml(true));
         if ($shop->objednalNejakeJidlo()) {
             $x->assign('urlStravenky', URL_ADMIN . '/reporty/stravenky?format=html&id_uzivatele=' . $uPracovni->id());
+            foreach ($shop->objednanaJidlaDleDnu() as $denData) {
+                $x->assign('denStravenky', $denData['den']);
+                foreach ($denData['jidla'] as $jidloData) {
+                    $x->assign([
+                        'jidloStravenkyNazev' => $jidloData['nazev'],
+                        'jidloStravenkyDruh'  => $jidloData['druh'],
+                    ]);
+                    $x->parse('infopult.uzivatel.jidlo.odkazStravenky.den.jidlo');
+                }
+                $x->parse('infopult.uzivatel.jidlo.odkazStravenky.den');
+            }
             $x->parse('infopult.uzivatel.jidlo.odkazStravenky');
         }
         $x->parse('infopult.uzivatel.jidlo');

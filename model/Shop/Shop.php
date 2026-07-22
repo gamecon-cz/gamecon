@@ -553,6 +553,32 @@ SQL,
         return false;
     }
 
+    /**
+     * Objednaná jídla seskupená po dnech (středa … neděle) v pořadí.
+     * Slouží pro výběr dnů a konkrétních jídel při tisku stravenek na infopultu.
+     * Klíč `jidla` obsahuje `nazev` (plný název včetně dne, např. „Oběd středa“ – shodný
+     * s predmety.nazev a tedy použitelný jako filtr reportu) a `druh` (druh jídla bez dne, např. „Oběd“).
+     * @return array<int, array{den: string, jidla: array<int, array{nazev: string, druh: string}>}>
+     */
+    public function objednanaJidlaDleDnu(): array
+    {
+        $dny = [];
+        foreach ($this->jidlo['jidla'] ?? [] as $den => $druhyVDen) {
+            $jidlaVDen = [];
+            foreach ($druhyVDen as $druh => $jidloVDen) {
+                if (($jidloVDen['kusu_uzivatele'] ?? 0) > 0) {
+                    $jidlaVDen[] = ['nazev' => $jidloVDen['nazev'], 'druh' => $druh];
+                }
+            }
+            if ($jidlaVDen) {
+                $dny[$den] = ['den' => self::denNazev($den), 'jidla' => $jidlaVDen];
+            }
+        }
+        ksort($dny);
+
+        return array_values($dny);
+    }
+
     public function trickaObjednatelnaDoHtml(): string
     {
         return $this->systemoveNastaveni->prodejTricekDo()->format('j. n.');
