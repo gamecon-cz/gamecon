@@ -21,6 +21,22 @@ $idUzivatele              = (int)get('id_uzivatele')
 $uzivatelFiltrSql         = $idUzivatele
     ? "AND uzivatele.id_uzivatele = {$idUzivatele}"
     : '';
+// Volitelný filtr dnů (např. dny=středa,čtvrtek) – den je slovo za názvem jídla v predmety.nazev.
+$dnyFiltr                 = array_values(array_filter(array_map(
+    'trim',
+    explode(',', (string)get('dny')),
+)));
+$dnyFiltrSql              = $dnyFiltr
+    ? "AND SUBSTRING(TRIM(predmety.nazev), POSITION(' ' IN TRIM(predmety.nazev)) + 1) IN ($1)"
+    : '';
+// Volitelný filtr konkrétních jídel (např. jidla=Oběd středa,Večeře středa) – plný název predmety.nazev.
+$jidlaFiltr               = array_values(array_filter(array_map(
+    'trim',
+    explode(',', (string)get('jidla')),
+)));
+$jidlaFiltrSql            = $jidlaFiltr
+    ? "AND TRIM(predmety.nazev) IN ($2)"
+    : '';
 $typUbytovani             = Shop::UBYTOVANI;
 $o                        = dbQuery(<<<SQL
     SELECT
@@ -35,6 +51,8 @@ $o                        = dbQuery(<<<SQL
     JOIN shop_predmety AS predmety
         ON predmety.id_predmetu = nakupy.id_predmetu AND predmety.typ = {$typJidlo}
     WHERE TRUE {$uzivatelFiltrSql}
+      {$dnyFiltrSql}
+      {$jidlaFiltrSql}
       AND NOT (
         TRIM(predmety.nazev) LIKE 'Snídaně%'
         AND EXISTS (
@@ -55,7 +73,7 @@ $o                        = dbQuery(<<<SQL
              poradi_dne DESC,
              poradi_jidla DESC
 SQL,
-    [0 => PodtypPredmetu::HOTEL],
+    [0 => PodtypPredmetu::HOTEL, 1 => $dnyFiltr, 2 => $jidlaFiltr],
 );
 
 $res = [];
