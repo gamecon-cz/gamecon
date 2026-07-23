@@ -25,8 +25,8 @@ usort($aktivity, static function (Aktivita $nejakaAktivita, Aktivita $dalsiAktiv
     $i = $nejakaAktivita->zacatek() <=> $dalsiAktivita->zacatek();
     if ($i == 0)
     {
-        $zaplnenost1 = $nejakaAktivita->pocetPrihlasenych() / $nejakaAktivita->kapacita();
-        $zaplnenost2 = $dalsiAktivita->pocetPrihlasenych() / $dalsiAktivita->kapacita();
+        $zaplnenost1 = $nejakaAktivita->pocetPrihlasenych() / ($nejakaAktivita->kapacita() == 0 ? 1000 : $nejakaAktivita->kapacita());
+        $zaplnenost2 = $dalsiAktivita->pocetPrihlasenych() / ($dalsiAktivita->kapacita() == 0 ? 1000 : $dalsiAktivita->kapacita());
         return -($zaplnenost1 <=> $zaplnenost2);
     }
     return $i;
