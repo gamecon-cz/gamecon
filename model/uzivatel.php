@@ -2340,7 +2340,7 @@ SQL,
             $status[] = '<span style="color:rgba(0,0,255,0.57)">Vypravěčská skupina</span>';
         }
         if ($this->maRoli(Role::CESTNY_ORGANIZATOR)) {
-            $status[] = '<span style="color:#a80f84">Čestný organizátor' . $ka . '</span>';
+            $status[] = '<span style="color:#783fd4">Čestný organizátor' . $ka . '</span>';
         }
         if ($this->jePartner()) {
             $status[] = '<span style="color:darkslateblue">Partner' . $ka . '</span>';
