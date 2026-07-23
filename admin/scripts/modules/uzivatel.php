@@ -79,6 +79,17 @@ if ($uPracovni && $uPracovni->gcPrihlasen()) {
     $x->assign('jidloHtml', $shop->jidloHtml(true));
     if ($shop->objednalNejakeJidlo()) {
         $x->assign('urlStravenky', URL_ADMIN . '/reporty/stravenky?format=html&id_uzivatele=' . $uPracovni->id());
+        foreach ($shop->objednanaJidlaDleDnu() as $denData) {
+            $x->assign('denStravenky', $denData['den']);
+            foreach ($denData['jidla'] as $jidloData) {
+                $x->assign([
+                    'jidloStravenkyNazev' => $jidloData['nazev'],
+                    'jidloStravenkyDruh'  => $jidloData['druh'],
+                ]);
+                $x->parse('uzivatel.jidlo.odkazStravenky.den.jidlo');
+            }
+            $x->parse('uzivatel.jidlo.odkazStravenky.den');
+        }
         $x->parse('uzivatel.jidlo.odkazStravenky');
     }
     $x->parse('uzivatel.ubytovani');

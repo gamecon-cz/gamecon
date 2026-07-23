@@ -25,6 +25,133 @@
     .tooltip_obsah {
         display: none;
     }
+
+    .infopult-modal[hidden] {
+        display: none;
+    }
+
+    .infopult-modal {
+        position: fixed;
+        inset: 0;
+        z-index: 2000;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 4px;
+        background: rgba(17, 24, 39, 0.5);
+    }
+
+    .infopult-modal__obsah {
+        width: min(430px, 100%);
+        max-height: 90vh;
+        overflow: auto;
+        padding: 8px;
+        border-radius: 10px;
+        border: 1px solid #c9d3de;
+        background: #ffffff;
+        box-shadow: 0 16px 40px rgba(17, 24, 39, 0.25);
+        text-align: left;
+    }
+
+    .infopult-modal__hlavicka {
+        position: relative;
+        display: flex;
+        align-items: center;
+        justify-content: flex-start;
+        gap: 12px;
+        min-height: 30px;
+        padding-right: 38px;
+        margin-bottom: 12px;
+    }
+
+    .infopult-modal__hlavicka h3 {
+        width: min(360px, 100%);
+        margin: 0 auto;
+    }
+
+    .infopult-modal__hlavicka h3:first-child {
+        margin-top: 0;
+        position: static;
+        padding: 0;
+        background: transparent;
+    }
+
+    .infopult-modal__zavrit {
+        position: absolute;
+        top: 50%;
+        right: 0;
+        transform: translateY(-50%);
+        width: 30px;
+        height: 30px;
+        border: 1px solid #c8d2dd;
+        border-radius: 999px;
+        background: #f4f7fa;
+        color: #334155;
+        font-size: 20px;
+        line-height: 1;
+        cursor: pointer;
+    }
+
+    body.infopult-modal-je-otevreny {
+        overflow: hidden;
+    }
+
+    .stravenky-modal__uvod {
+        margin: 0 0 12px;
+        color: #4f5b67;
+    }
+
+    .stravenky-modal__dny {
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+        margin-bottom: 16px;
+    }
+
+    .stravenky-modal__den-skupina {
+        margin: 0;
+        padding: 8px 10px;
+        border: 1px solid #d7dde4;
+        border-radius: 8px;
+    }
+
+    .stravenky-modal__den {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        font-weight: 700;
+        cursor: pointer;
+        text-transform: capitalize;
+    }
+
+    .stravenky-modal__jidla {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 6px 16px;
+        margin: 8px 0 0 24px;
+    }
+
+    .stravenky-modal__jidlo {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        cursor: pointer;
+    }
+
+    .stravenky-modal__den input,
+    .stravenky-modal__jidlo input {
+        margin: 0;
+    }
+
+    .stravenky-modal__akce {
+        display: flex;
+        justify-content: flex-end;
+    }
+
+    .stravenky-modal__akce .submit-btn {
+        float: none;
+        margin: 0;
+    }
 </style>
 
 <div class="uzivatel-grid--container">
@@ -55,7 +182,122 @@
       <input type="submit" name="zpracujJidlo" value="Uložit" class="submit-btn">
     </form>
     <!-- begin:odkazStravenky -->
-    <a href="{urlStravenky}" target="_blank">Tisk stravenek</a>
+    <button type="button" id="otevritStravenky" class="submit-btn" style="margin-top: 8px;">Tisk stravenek</button>
+
+    <div id="modalStravenky" class="infopult-modal" role="dialog" aria-modal="true" aria-labelledby="modalStravenkyNadpis" hidden>
+      <div class="infopult-modal__obsah">
+        <div class="infopult-modal__hlavicka">
+          <h3 id="modalStravenkyNadpis">Tisk stravenek</h3>
+          <button type="button" class="infopult-modal__zavrit" aria-label="Zavřít modální okno s tiskem stravenek" data-zavrit-stravenky-modal>&times;</button>
+        </div>
+        <p class="stravenky-modal__uvod">Vyber dny a jídla, pro která se stravenky vytisknou.</p>
+        <div class="stravenky-modal__dny">
+          <!-- begin:den -->
+          <fieldset class="stravenky-modal__den-skupina">
+            <label class="stravenky-modal__den">
+              <input type="checkbox" class="stravenky-modal__den-vse" checked>
+              <span>{denStravenky}</span>
+            </label>
+            <div class="stravenky-modal__jidla">
+              <!-- begin:jidlo -->
+              <label class="stravenky-modal__jidlo">
+                <input type="checkbox" name="stravenkyJidlo" value="{jidloStravenkyNazev}" checked>
+                <span>{jidloStravenkyDruh}</span>
+              </label>
+              <!-- end:jidlo -->
+            </div>
+          </fieldset>
+          <!-- end:den -->
+        </div>
+        <div class="stravenky-modal__akce">
+          <button type="button" id="tisknoutStravenky" class="submit-btn" data-url-stravenky="{urlStravenky}">Tisk</button>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      (function () {
+        var modal = document.getElementById('modalStravenky');
+        var tlacitkoOtevrit = document.getElementById('otevritStravenky');
+        var tlacitkoTisk = document.getElementById('tisknoutStravenky');
+        var tlacitkoZavrit = modal ? modal.querySelector('[data-zavrit-stravenky-modal]') : null;
+        var posledniAktivniElement = null;
+
+        if (!modal || !tlacitkoOtevrit || !tlacitkoTisk || !tlacitkoZavrit) {
+          return;
+        }
+
+        var zavriModal = function () {
+          modal.hidden = true;
+          document.body.classList.remove('infopult-modal-je-otevreny');
+          if (posledniAktivniElement && typeof posledniAktivniElement.focus === 'function') {
+            posledniAktivniElement.focus();
+          }
+        };
+
+        var otevriModal = function () {
+          posledniAktivniElement = document.activeElement;
+          modal.hidden = false;
+          document.body.classList.add('infopult-modal-je-otevreny');
+          tlacitkoZavrit.focus();
+        };
+
+        tlacitkoOtevrit.addEventListener('click', otevriModal);
+        tlacitkoZavrit.addEventListener('click', zavriModal);
+
+        // Zaškrtávátko dne přepíná všechna jídla daného dne; stav dne odráží stav jídel.
+        Array.prototype.forEach.call(modal.querySelectorAll('.stravenky-modal__den-skupina'), function (skupina) {
+          var denVse = skupina.querySelector('.stravenky-modal__den-vse');
+          var jidla = skupina.querySelectorAll('input[name="stravenkyJidlo"]');
+          if (!denVse || !jidla.length) {
+            return;
+          }
+          var aktualizujStavDne = function () {
+            var zaskrtnutych = 0;
+            Array.prototype.forEach.call(jidla, function (jidlo) {
+              if (jidlo.checked) {
+                zaskrtnutych++;
+              }
+            });
+            denVse.checked = zaskrtnutych === jidla.length;
+            denVse.indeterminate = zaskrtnutych > 0 && zaskrtnutych < jidla.length;
+          };
+          denVse.addEventListener('change', function () {
+            Array.prototype.forEach.call(jidla, function (jidlo) {
+              jidlo.checked = denVse.checked;
+            });
+            denVse.indeterminate = false;
+          });
+          Array.prototype.forEach.call(jidla, function (jidlo) {
+            jidlo.addEventListener('change', aktualizujStavDne);
+          });
+        });
+
+        tlacitkoTisk.addEventListener('click', function () {
+          var zaskrtnute = modal.querySelectorAll('input[name="stravenkyJidlo"]:checked');
+          var jidla = Array.prototype.map.call(zaskrtnute, function (el) { return el.value; });
+          if (!jidla.length) {
+            alert('Vyber alespoň jedno jídlo.');
+            return;
+          }
+          var url = tlacitkoTisk.getAttribute('data-url-stravenky') + '&jidla=' + encodeURIComponent(jidla.join(','));
+          window.open(url, '_blank');
+          zavriModal();
+        });
+
+        modal.addEventListener('click', function (event) {
+          if (event.target === modal) {
+            zavriModal();
+          }
+        });
+
+        document.addEventListener('keydown', function (event) {
+          if (event.key === 'Escape' && !modal.hidden) {
+            zavriModal();
+          }
+        });
+      })();
+    </script>
     <!-- end:odkazStravenky -->
     <!-- end:jidlo -->
     {status}
