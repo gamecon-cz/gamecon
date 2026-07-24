@@ -2020,6 +2020,7 @@ SQL
         $this->dejPrezenci()->zalogujOdhlaseni($u, $odhlasujici, $zdrojOdhlaseni);
         if ($this->systemoveNastaveni->kontrolovatPokutuZaOdhlaseni()
             && !($params & self::BEZ_POKUT)
+            && $this->cenaZaklad() > 0 // aktivita zdarma nemá storno – a bez záznamu POZDE_ZRUSIL nezůstane zablokovaná v programu (jde se znovu přihlásit)
             && (
                 $this->zbyvaHodinDoZacatku() < $this->systemoveNastaveni->kolikHodinPredAktivitouUzJePokutaZaOdhlaseni()
                 && $this->nestihlRychleOdhlaseniBezPokuty($prihlasenOd, $this->systemoveNastaveni)
