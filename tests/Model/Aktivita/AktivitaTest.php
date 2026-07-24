@@ -210,8 +210,13 @@ SQL,
         // přihlášení posuneme do minulosti, aby nešlo o „rychlé odhlášení bez pokuty“
         dbUpdate(
             'akce_prihlaseni_log',
-            ['kdy' => self::ted()->modify('-' . (self::KOLIK_MINUT_JE_ODHLASENI_BEZ_POKUTY + 1) . ' minutes')],
-            ['id_uzivatele' => $uzivatel->id(), 'id_akce' => $aktivita->id()],
+            [
+                'kdy' => self::ted()->modify('-' . (self::KOLIK_MINUT_JE_ODHLASENI_BEZ_POKUTY + 1) . ' minutes'),
+            ],
+            [
+                'id_uzivatele' => $uzivatel->id(),
+                'id_akce'      => $aktivita->id(),
+            ],
         );
 
         $aktivita = Aktivita::zId(id: 1, systemoveNastaveni: $this->systemoveNastaveniProStorno()); // reload
