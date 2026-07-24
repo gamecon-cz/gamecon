@@ -565,8 +565,9 @@ SQL, [Pravo::PORADANI_AKTIVIT],
 
         // finální odebrání role "registrován na GC"
         $this->odeberRoli(Role::PRIHLASEN_NA_LETOSNI_GC, $odhlasujici);
-        // zrušení nákupů (až po použití dejShop a ubytovani)
-        $this->shop()->zrusVsechnyLetosniObjedavky($zdrojOdhlaseni);
+        // zrušení nákupů (až po použití dejShop a ubytovani).
+        // Jídlo a ubytování po jejich uzávěrce už zrušit nelze – zůstávají naúčtované.
+        $this->shop()->zrusZrusitelneLetosniObjednavky($zdrojOdhlaseni);
 
         try {
             $this->informujOOdhlaseni($odhlasujici, $zaznamnik, $odeslatMailPokudSeNeodhlasilSam);
@@ -593,13 +594,13 @@ SQL, [Pravo::PORADANI_AKTIVIT],
                 $mailOdhlasilAlePlatil->odeslat();
             }
         }
-        if ($dnyUbytovani = array_keys($this->shop()->ubytovani()->veKterychDnechJeUbytovan())) {
-            $mailMelUbytovani = $this->mailZeBylOdhlasenAMelUbytovani($dnyUbytovani, $odhlasujici);
+        if ($prehledObjednavek = $this->shop()->prehledObjednavekProInfopult()) {
+            $mailMelObjednavky = $this->mailZeBylOdhlasenAMelObjednavky($prehledObjednavek, $odhlasujici);
             if ($zaznamnik) {
-                $zaznamnik->uchovejZEmailu($mailMelUbytovani);
+                $zaznamnik->uchovejZEmailu($mailMelObjednavky);
             } else {
                 if ($this->systemoveNastaveni->poslatMailZeBylOdhlasenAMelUbytovani()) {
-                    $mailMelUbytovani->odeslat();
+                    $mailMelObjednavky->odeslat();
                 }
             }
         }
@@ -633,8 +634,11 @@ SQL, [Pravo::PORADANI_AKTIVIT],
             );
     }
 
-    private function mailZeBylOdhlasenAMelUbytovani(
-        array $dnyUbytovani,
+    /**
+     * @param string[] $prehledObjednavek řádky souhrnu objednávek (ubytování, jídlo, trička…)
+     */
+    private function mailZeBylOdhlasenAMelObjednavky(
+        array $prehledObjednavek,
         self $odhlasujici,
     ): GcMail {
         $odhlasen = $this->id() === $odhlasujici->id()
@@ -643,15 +647,15 @@ SQL, [Pravo::PORADANI_AKTIVIT],
 
         return (new GcMail($this->systemoveNastaveni))
             ->adresat('info@gamecon.cz')
-            ->predmet("Uživatel {$odhlasen} a měl ubytování")
+            ->predmet("Uživatel {$odhlasen} a měl objednávky")
             ->text(
                 hlaskaMail(
-                    'odhlasilMelUbytovani',
+                    'odhlasilMelObjednavky',
                     $this->jmenoNick(),
                     $this->id(),
                     $odhlasen,
                     $this->systemoveNastaveni->rocnik(),
-                    implode(', ', $dnyUbytovani),
+                    implode('<br>', $prehledObjednavek),
                 ),
             );
     }

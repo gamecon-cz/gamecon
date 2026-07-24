@@ -934,6 +934,24 @@ SQL,
         return count($this->veKterychDnechJeUbytovan()) > 0;
     }
 
+    /**
+     * Názvy objednaného ubytování (typ + den), pro souhrn objednávek na infopult.
+     * @return string[]
+     */
+    public function objednaneUbytovaniNazvy(): array
+    {
+        $nazvy = [];
+        foreach ($this->ubytovanPoDnech() as $typyADetaily) {
+            foreach ($typyADetaily as $detail) {
+                if (($detail['kusu_uzivatele'] ?? 0) > 0) {
+                    $nazvy[] = $detail['nazev'];
+                }
+            }
+        }
+
+        return $nazvy;
+    }
+
     public function maHoteloveUbytovaniVDen(int $den): bool
     {
         if (!isset($this->ubytovanPoDnech[$den])) {

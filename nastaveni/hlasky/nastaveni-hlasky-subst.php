@@ -6,7 +6,7 @@ use Gamecon\Hlaska\Hlaska;
 
 return [
     'odhlasilPlatil'       => 'Uživatel %1 (ID %2) %3 z GameConu, ale v aktuálním roce (%4) si poslal %5 Kč. Bude vhodné to prověřit popř. smazat platby z připsaných a dát do zůstatku v seznamu uživatelů, aby mu peníze nepropadly',
-    'odhlasilMelUbytovani' => 'Uživatel %1 (ID %2) %3 z GameConu a v aktuálním roce (%4) měl ubytování ve dnech %5. Uvolnilo se tak místo.',
+    'odhlasilMelObjednavky' => 'Uživatel %1 (ID %2) %3 z GameConu a v aktuálním roce (%4) měl tyto objednávky:<br><br>%5<br><br>Uvolnila se tak místa / položky.',
     'uvolneneMisto'        => 'Na aktivitě %1, která se koná v %2, se uvolnilo místo. Tento e-mail dostáváš, protože máš nastavené sledování uvedené aktivity. Přihlaš se na aktivitu přes <a href="https://gamecon.cz/program">program</a> (pospěš si, ať ti místo nezabere někdo jiný).',
     'chybaClenaTymu'       => 'Nepodařilo se přihlásit tým. Při přihlašování uživatele %1 (id %2) se u něj objevila chyba: %3',
     'zapomenuteHeslo'      => 'Ahoj,
