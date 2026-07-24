@@ -140,6 +140,7 @@ SQL,
             [
                 Sql::ZACATEK => new DateTimeImmutableStrict(),
                 Sql::TYP     => TypAktivity::DESKOHERNA,
+                Sql::CENA    => 100, // aktivita musí být placená – storno se u aktivit zdarma nepočítá
             ],
             [
                 Sql::ID_AKCE => 1,
@@ -181,6 +182,56 @@ SQL,
             $maPLatitStorno,
             StavPrihlaseni::platiStorno($aktivita->stavPrihlaseni($uzivatel)),
             'Očekávali jsme jiný výsledek zda má platit storno za zrušení aktivity',
+        );
+    }
+
+    /**
+     * @test
+     */
+    public function aktivitaZdarmaNemaPoPozdnimOdhlaseniStornoAniBlokaciProgramu(): void
+    {
+        dbUpdate(
+            Sql::AKCE_SEZNAM_TABULKA,
+            [
+                Sql::ZACATEK => new DateTimeImmutableStrict(), // začíná „teď“ → odhlášení je pozdní
+                Sql::TYP     => TypAktivity::DESKOHERNA,
+                Sql::CENA    => 0, // aktivita zdarma
+            ],
+            [
+                Sql::ID_AKCE => 1,
+            ],
+        );
+
+        $uzivatel = \Uzivatel::zId(1);
+        $uzivatel->gcPrihlas($uzivatel);
+
+        $aktivita = Aktivita::zId(id: 1);
+        $aktivita->prihlas($uzivatel, $uzivatel, 0b111111111111);
+        // přihlášení posuneme do minulosti, aby nešlo o „rychlé odhlášení bez pokuty“
+        dbUpdate(
+            'akce_prihlaseni_log',
+            [
+                'kdy' => self::ted()->modify('-' . (self::KOLIK_MINUT_JE_ODHLASENI_BEZ_POKUTY + 1) . ' minutes'),
+            ],
+            [
+                'id_uzivatele' => $uzivatel->id(),
+                'id_akce'      => $aktivita->id(),
+            ],
+        );
+
+        $aktivita = Aktivita::zId(id: 1, systemoveNastaveni: $this->systemoveNastaveniProStorno()); // reload
+        $aktivita->odhlas($uzivatel, $uzivatel, 'testy');
+
+        $aktivita = Aktivita::zId(id: 1); // reload
+        self::assertFalse($aktivita->prihlasen($uzivatel), 'Měl by být odhlášen');
+        self::assertFalse(
+            StavPrihlaseni::platiStorno($aktivita->stavPrihlaseni($uzivatel)),
+            'Aktivita zdarma nesmí mít storno za pozdní odhlášení',
+        );
+        self::assertSame(
+            StavPrihlaseni::NEPRIHLASEN,
+            $aktivita->stavPrihlaseni($uzivatel),
+            'Bez záznamu o pozdním zrušení se uživatel může na aktivitu zdarma znovu přihlásit (program není zablokovaný)',
         );
     }
 

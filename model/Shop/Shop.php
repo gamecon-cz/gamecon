@@ -514,6 +514,61 @@ SQL,
         return $this->koupilNejakyPredmet() || $this->koupilNejakeTricko();
     }
 
+    /**
+     * Textový souhrn všech objednávek zákazníka (ubytování, jídlo, trička,
+     * mikiny, předměty) pro notifikaci infopultu při odhlášení z GC.
+     * @return string[] pole řádků; prázdné, pokud nic neobjednal
+     */
+    public function prehledObjednavekProInfopult(): array
+    {
+        $radky = [];
+
+        if ($ubytovani = $this->ubytovani()->objednaneUbytovaniNazvy()) {
+            $radky[] = 'Ubytování: ' . implode(', ', $ubytovani);
+        }
+
+        $jidla = [];
+        foreach ($this->objednanaJidlaDleDnu() as $den) {
+            foreach ($den['jidla'] as $jidlo) {
+                $jidla[] = $jidlo['nazev'];
+            }
+        }
+        if ($jidla) {
+            $radky[] = 'Jídlo: ' . implode(', ', $jidla);
+        }
+
+        if ($tricka = $this->nazvyObjednanychVeci($this->tricka)) {
+            $radky[] = 'Trička: ' . implode(', ', $tricka);
+        }
+        if ($mikiny = $this->nazvyObjednanychVeci($this->mikiny)) {
+            $radky[] = 'Mikiny: ' . implode(', ', $mikiny);
+        }
+        if ($predmety = $this->nazvyObjednanychVeci($this->predmety)) {
+            $radky[] = 'Předměty: ' . implode(', ', $predmety);
+        }
+
+        return $radky;
+    }
+
+    /**
+     * @param array $veci fronta předmětů ze Shopu (trička / mikiny / předměty)
+     * @return string[] názvy těch, které si zákazník objednal (s počtem kusů, je-li > 1)
+     */
+    private function nazvyObjednanychVeci(array $veci): array
+    {
+        $nazvy = [];
+        foreach ($veci as $vec) {
+            $pocet = (int)($vec['kusu_uzivatele'] ?? 0);
+            if ($pocet > 0) {
+                $nazvy[] = $pocet > 1
+                    ? "{$vec['nazev']} ({$pocet}×)"
+                    : $vec['nazev'];
+            }
+        }
+
+        return $nazvy;
+    }
+
     public function koupilNejakyPredmet(): bool
     {
         foreach ($this->predmety as $predmet) {
@@ -1269,19 +1324,47 @@ SQL
         return dbAffectedOrNumRows($deleteResult);
     }
 
-    public function zrusVsechnyLetosniObjedavky(string $zdrojZruseni): int
+    /**
+     * Zruší letošní objednávky zákazníka (při odhlášení z GC) – ale jen ty, které
+     * ještě lze zrušit. Po uzávěrce jídla / ubytování už je GameCon objednal
+     * u dodavatele (catering, ubytovatel) a nedostane za ně zpět peníze, takže
+     * tyto položky se NEruší a zůstávají zákazníkovi naúčtované.
+     * @return int počet skutečně zrušených nákupů
+     */
+    public function zrusZrusitelneLetosniObjednavky(string $zdrojZruseni): int
     {
+        // typy předmětů, které se po své uzávěrce už neruší (zůstávají naúčtované)
+        $typyKZachovani = [];
+        if ($this->systemoveNastaveni->prodejJidlaUkoncen()) {
+            $typyKZachovani[] = self::JIDLO;
+        }
+        if ($this->systemoveNastaveni->prodejUbytovaniUkoncen()) {
+            $typyKZachovani[] = self::UBYTOVANI;
+        }
+        // pozn.: prázdné pole neřešíme přes NOT IN (NULL) – to by (kvůli SQL NULL) vyloučilo
+        // úplně všechno; místo toho podmínku vůbec nepřidáváme.
+        $podminkaZachovani = $typyKZachovani
+            ? 'AND shop_nakupy.id_predmetu NOT IN (
+                    SELECT id_predmetu FROM shop_predmety WHERE typ IN (' . implode(', ', array_map('intval', $typyKZachovani)) . ')
+                )'
+            : '';
+
+        $rocnik      = $this->systemoveNastaveni->rocnik();
+        $idZakaznika = $this->zakaznik->id();
+
         dbQuery(<<<SQL
             INSERT INTO shop_nakupy_zrusene(id_nakupu, id_uzivatele, id_predmetu, rocnik, cena_nakupni, datum_nakupu, datum_zruseni, zdroj_zruseni)
             SELECT id_nakupu, id_uzivatele, id_predmetu, rok, cena_nakupni, datum, $0, $1
             FROM shop_nakupy
-            WHERE shop_nakupy.rok = {$this->systemoveNastaveni->rocnik()} AND shop_nakupy.id_uzivatele = {$this->zakaznik->id()}
+            WHERE shop_nakupy.rok = {$rocnik} AND shop_nakupy.id_uzivatele = {$idZakaznika}
+            {$podminkaZachovani}
             SQL,
             [0 => $this->systemoveNastaveni->ted()->format(DateTimeCz::FORMAT_DB), $zdrojZruseni],
         );
         $result = dbQuery(<<<SQL
             DELETE FROM shop_nakupy
-            WHERE rok = {$this->systemoveNastaveni->rocnik()} AND id_uzivatele = {$this->zakaznik->id()}
+            WHERE shop_nakupy.rok = {$rocnik} AND shop_nakupy.id_uzivatele = {$idZakaznika}
+            {$podminkaZachovani}
             SQL,
         );
 
