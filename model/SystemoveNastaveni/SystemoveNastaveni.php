@@ -815,7 +815,9 @@ SQL;
 
     public function prodejUbytovaniDo(): DateTimeImmutableStrict
     {
-        return (new DateTimeImmutableStrict(UBYTOVANI_LZE_OBJEDNAT_A_MENIT_DO_DNE))
+        // přes dejHodnotu (ne bare konstantu) – konstanta nemusí být definovaná
+        // v dávkových tocích (např. hromadné odhlašování neplatičů)
+        return (new DateTimeImmutableStrict($this->dejHodnotu(Klic::UBYTOVANI_LZE_OBJEDNAT_A_MENIT_DO_DNE)))
             ->setTime(23, 59, 59);
     }
 
@@ -826,7 +828,8 @@ SQL;
 
     public function prodejJidlaDo(): DateTimeImmutableStrict
     {
-        return (new DateTimeImmutableStrict(JIDLO_LZE_OBJEDNAT_A_MENIT_DO_DNE))
+        // viz prodejUbytovaniDo() – dejHodnotu kvůli nedefinované konstantě v dávkových tocích
+        return (new DateTimeImmutableStrict($this->dejHodnotu(Klic::JIDLO_LZE_OBJEDNAT_A_MENIT_DO_DNE)))
             ->setTime(23, 59, 59);
     }
 
