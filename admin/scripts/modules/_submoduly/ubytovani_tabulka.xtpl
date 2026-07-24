@@ -23,7 +23,7 @@
   }
 
   .shopUbytovani_radek {
-    height: 1.25rem;
+    min-height: 1.25rem;
     margin: 1px;
   }
 
