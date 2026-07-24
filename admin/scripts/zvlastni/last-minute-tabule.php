@@ -34,11 +34,11 @@ usort($aktivity, static function (Aktivita $nejakaAktivita, Aktivita $dalsiAktiv
 
     return $i;
 });
-foreach ($aktivity as $a) {
-    if (! $a->prihlasovatelna() || $a->jeToDalsiKolo()) {
+foreach ($aktivity as $aktivita) {
+    if (! $aktivita->prihlasovatelna() || $aktivita->jeToDalsiKolo()) {
         continue;
     }
-    if ($denPredchozihoBloku !== null && $denPredchozihoBloku !== $a->zacatek()->format('z')) {
+    if ($denPredchozihoBloku !== null && $denPredchozihoBloku !== $aktivita->zacatek()->format('z')) {
         // den se změnil → uzavřít předchozí blok s jeho vlastním nadpisem
         $xtpl->assign('cas', $zacatekPrvniAktivityBloku);
         $xtpl->assign('zitra', $zitraBloku);
@@ -46,16 +46,23 @@ foreach ($aktivity as $a) {
         $zacatekPrvniAktivityBloku = null;
     }
     if ($zacatekPrvniAktivityBloku === null) {
-        $zacatekPrvniAktivityBloku = $a->zacatek()->format('G:i');
-        $zitraBloku = $a->zacatek()->rozdilDni($od);
+        $zacatekPrvniAktivityBloku = $aktivita->zacatek()->format('G:i');
+        $zitraBloku = $aktivita->zacatek()->rozdilDni($od);
     }
+    $kapacita = $aktivita->kapacita();
+    $zbyva = $kapacita - $aktivita->pocetPrihlasenych();
+    $skoroPlno = $kapacita > 0 && ($zbyva <= 2 || $aktivita->pocetPrihlasenych() / $kapacita >= 0.9);
     $xtpl->assign([
-        'nazev'      => $a->nazev(),
-        'obsazenost' => $a->obsazenostHtml(),
-        'zacatek'    => $a->zacatek()->format('G:i'),
+        'nazev'       => $aktivita->nazev(),
+        'obsazenost'  => str_replace(['(', ')'], '', $aktivita->obsazenostHtml()),
+        'zacatek'     => $aktivita->zacatek()->format('G:i'),
+        'plnostTrida' => $skoroPlno ? 'aktivita--skoroPlno' : '',
+        'stitek'      => $skoroPlno
+            ? '<span class="stitek">' . ($zbyva === 1 ? 'poslední místo' : 'poslední místa') . '</span>'
+            : '',
     ]);
     $xtpl->parse('tabule.blok.aktivita');
-    $denPredchozihoBloku = $a->zacatek()->format('z');
+    $denPredchozihoBloku = $aktivita->zacatek()->format('z');
 }
 if ($denPredchozihoBloku === null) {
     $xtpl->assign('cas', DateTimeCz::createFromInterface($od)->zaokrouhlitNaHodinyNahoru()->format('G:i'));
@@ -72,6 +79,7 @@ $xtpl->assign('lupa', $zoom);
 $xtpl->assign('lupaPlus', $zoom + 10);
 $xtpl->assign('lupaMinus', $zoom - 10);
 
-$xtpl->assign('programCss', '');
+$xtpl->assign('urlWebu', rtrim(URL_WEBU, '/'));
+$xtpl->assign('ted', $datum->format('G:i'));
 $xtpl->parse('tabule');
 $xtpl->out('tabule');
