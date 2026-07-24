@@ -1,54 +1,233 @@
 <!-- begin:tabule -->
 <!DOCTYPE html>
-<html xmlns="http://www.w3.org/1999/xhtml" lang="cs">
+<html lang="cs">
   <head>
-    <title>Nejbližší aktivity</title>
-    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-    {programCss}
-    <style>
-      body {
-        font-family: tahoma, sans;
-        font-size: 24px;
-        text-align: center;
-        background-color: #f0f0f0;
-      }
-      table.program { min-width: 0; zoom: {lupa}%; margin-bottom: 30px; }
-      table.program:last-child { margin-bottom: 0; }
-      table.program td,th { width: auto; min-width: 400px; padding: 4px 20px; border-width: 2px; }
-      table.program th { font-size: 130%; padding: 6px 20px; }
-      table.program td { color: #000; }
-      table.program td .m { color: #0ad; }
-      .lupa { display: block; width: 48px; height: 48px; position: absolute; background-size: 100%; opacity: 0.2; }
-      .lupa.plus { background-image: url('files/design/lupa-plus.png'); }
-      .lupa.minus { background-image: url('files/design/lupa-minus.png'); }
-      .lupa:hover { opacity:1.0; }
-    </style>
+    <title>Nejbližší volné aktivity</title>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta http-equiv="refresh" content="30">
+    <link rel="preload" href="{urlWebu}/soubory/blackarrow/_spolecne/fonty/Gilroy-Medium.woff2" as="font" type="font/woff2" crossorigin>
+    <link rel="preload" href="{urlWebu}/soubory/blackarrow/_spolecne/fonty/Gilroy-Bold.woff2" as="font" type="font/woff2" crossorigin>
+    <link rel="preload" href="{urlWebu}/soubory/blackarrow/_spolecne/fonty/Gilroy-Extrabold.woff2" as="font" type="font/woff2" crossorigin>
+    <style>
+      @font-face {
+        font-family: 'Gilroy';
+        src:
+          url('{urlWebu}/soubory/blackarrow/_spolecne/fonty/Gilroy-Medium.woff2') format('woff2'),
+          url('{urlWebu}/soubory/blackarrow/_spolecne/fonty/Gilroy-Medium.woff') format('woff');
+      }
+      @font-face {
+        font-family: 'Gilroy';
+        font-weight: bold;
+        src:
+          url('{urlWebu}/soubory/blackarrow/_spolecne/fonty/Gilroy-Bold.woff2') format('woff2'),
+          url('{urlWebu}/soubory/blackarrow/_spolecne/fonty/Gilroy-Bold.woff') format('woff');
+      }
+      @font-face {
+        font-family: 'Gilroy';
+        font-weight: 800;
+        src:
+          url('{urlWebu}/soubory/blackarrow/_spolecne/fonty/Gilroy-Extrabold.woff2') format('woff2'),
+          url('{urlWebu}/soubory/blackarrow/_spolecne/fonty/Gilroy-Extrabold.woff') format('woff');
+      }
+
+      * { box-sizing: border-box; }
+
+      body {
+        margin: 0;
+        padding: 56px 24px 32px;
+        font-family: Gilroy, 'Open Sans', tahoma, sans-serif;
+        background-color: #F6F1EA;
+        color: #10111A;
+        min-height: 100vh;
+      }
+
+      .tabule {
+        max-width: 1200px;
+        margin: 0 auto;
+        zoom: {lupa}%;
+      }
+
+      .blok { margin: 0 auto 64px; }
+      .blok:last-child { margin-bottom: 24px; }
+
+      .blok__nadpis {
+        margin: 0 0 26px;
+        text-align: center;
+        font-size: 46px;
+        font-weight: 800;
+        letter-spacing: -0.5px;
+      }
+
+      /* broskvový „tah štětcem" za nadpisem, jako čmáranice na webu GC */
+      .blok__nadpis span {
+        position: relative;
+        display: inline-block;
+        padding: 8px 30px 10px;
+      }
+      .blok__nadpis span::before {
+        content: '';
+        position: absolute;
+        inset: 16% -8px 6% -14px;
+        background: #FDC689;
+        border-radius: 58% 42% 60% 40% / 55% 65% 35% 45%;
+        transform: rotate(-1.3deg);
+        z-index: -1;
+      }
+
+      .blok__seznam {
+        background: #fff;
+        border-radius: 20px;
+        box-shadow: 0 12px 34px rgba(16, 17, 26, 0.09);
+        overflow: hidden;
+      }
+
+      .aktivita {
+        display: flex;
+        align-items: center;
+        gap: 24px;
+        padding: 17px 32px;
+        font-size: 28px;
+        border-top: 1px solid rgba(16, 17, 26, 0.07);
+      }
+      .aktivita:first-child { border-top: 0; }
+
+      .aktivita__zacatek {
+        min-width: 3em;
+        font-weight: 800;
+        font-variant-numeric: tabular-nums;
+        color: #E22630;
+      }
+
+      .aktivita__nazev {
+        flex: 1;
+        font-weight: bold;
+        text-align: left;
+      }
+
+      .aktivita__obsazenost {
+        display: flex;
+        align-items: center;
+        gap: 14px;
+        white-space: nowrap;
+        font-variant-numeric: tabular-nums;
+        color: rgba(16, 17, 26, 0.55);
+      }
+      .aktivita--skoroPlno .aktivita__obsazenost { color: #E22630; font-weight: bold; }
+
+      .aktivita__obsazenost .f { color: #D6408B; }
+      .aktivita__obsazenost .m { color: #0A7CD8; }
+      .aktivita__obsazenost .f::before { content: '♀ '; }
+      .aktivita__obsazenost .m::before { content: '♂ '; }
+
+      .stitek {
+        background: #E22630;
+        color: #fff;
+        font-size: 17px;
+        font-weight: 800;
+        letter-spacing: 0.06em;
+        text-transform: uppercase;
+        padding: 6px 14px 5px;
+        border-radius: 999px;
+      }
+
+      .aktivita--nic {
+        justify-content: center;
+        color: rgba(16, 17, 26, 0.55);
+        padding: 34px;
+      }
+
+      .paticka {
+        margin-top: 48px;
+        text-align: center;
+        font-size: 16px;
+        color: rgba(16, 17, 26, 0.4);
+      }
+
+      /* čmáranice z ročníkového vizuálu */
+      .doodle {
+        position: fixed;
+        font-weight: 800;
+        pointer-events: none;
+        user-select: none;
+      }
+      .doodle--krizky {
+        top: 26px;
+        right: 40px;
+        color: #E22630;
+        font-size: 26px;
+        line-height: 1.35;
+        letter-spacing: 0.55em;
+      }
+      .doodle--carky {
+        bottom: 30px;
+        left: 44px;
+        font-size: 34px;
+        letter-spacing: 0.12em;
+        transform: rotate(8deg);
+      }
+
+      .lupa {
+        position: fixed;
+        top: 20px;
+        left: 20px;
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+        opacity: 0.25;
+      }
+      .lupa:hover { opacity: 1; }
+      .lupa a {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 44px;
+        height: 44px;
+        border: 2px solid rgba(16, 17, 26, 0.4);
+        border-radius: 50%;
+        color: rgba(16, 17, 26, 0.6);
+        font-size: 26px;
+        font-weight: bold;
+        text-decoration: none;
+        line-height: 1;
+      }
+      .lupa a:hover {
+        border-color: #E22630;
+        color: #E22630;
+      }
+    </style>
   </head>
   <body>
 
-  <a href="?zoom={lupaPlus}" class="lupa plus" style="top:0;left:0"></a>
-  <a href="?zoom={lupaMinus}" class="lupa minus" style="top:48px;left:0"></a>
+  <nav class="lupa">
+    <a href="?zoom={lupaPlus}" title="Zvětšit">+</a>
+    <a href="?zoom={lupaMinus}" title="Zmenšit">&minus;</a>
+  </nav>
 
-  <div>
+  <div class="doodle doodle--krizky" aria-hidden="true">× ×<br>× ×<br>× ×</div>
+  <div class="doodle doodle--carky" aria-hidden="true">///</div>
+
+  <main class="tabule">
     <!-- begin:blok -->
-    <table class="program">
-      <tr>
-        <th>Volná místa {zitra} od {cas}</th>
-      </tr>
-      <!-- begin:aktivita -->
-      <tr>
-        <td>{nazev} {obsazenost} <small>{zacatek}</small></td>
-      </tr>
-      <!-- end:aktivita -->
-      <!-- begin:nic -->
-      <tr>
-        <td>(žádná)</td>
-      </tr>
-      <!-- end:nic -->
-    </table>
+    <section class="blok">
+      <h2 class="blok__nadpis"><span>Volná místa {zitra} od {cas}</span></h2>
+      <div class="blok__seznam">
+        <!-- begin:aktivita -->
+        <article class="aktivita {plnostTrida}">
+          <span class="aktivita__zacatek">{zacatek}</span>
+          <span class="aktivita__nazev">{nazev}</span>
+          <span class="aktivita__obsazenost">{obsazenost}{stitek}</span>
+        </article>
+        <!-- end:aktivita -->
+        <!-- begin:nic -->
+        <div class="aktivita aktivita--nic">Právě teď není nikde volno — zkus to za chvíli.</div>
+        <!-- end:nic -->
+      </div>
+    </section>
     <!-- end:blok -->
-  </div>
+  </main>
+
+  <footer class="paticka">Teď {ted} &middot; tabule se sama obnovuje každou půlminutu</footer>
 
   </body>
 </html>
