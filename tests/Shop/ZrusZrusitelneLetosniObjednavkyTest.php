@@ -88,7 +88,11 @@ INSERT INTO shop_nakupy SET
     cena_nakupni = (SELECT cena_aktualni FROM shop_predmety WHERE id_predmetu = $1),
     datum = NOW()
 SQL,
-            [0 => $idUzivatele, 1 => $idPredmetu, 2 => ROCNIK],
+            [
+                0 => $idUzivatele,
+                1 => $idPredmetu,
+                2 => ROCNIK,
+            ],
         );
     }
 
@@ -96,7 +100,11 @@ SQL,
     {
         return (int) dbOneCol(
             'SELECT COUNT(*) FROM shop_nakupy WHERE id_uzivatele = $0 AND id_predmetu = $1 AND rok = $2',
-            [0 => $idUzivatele, 1 => $idPredmetu, 2 => ROCNIK],
+            [
+                0 => $idUzivatele,
+                1 => $idPredmetu,
+                2 => ROCNIK,
+            ],
         ) > 0;
     }
 
@@ -139,15 +147,15 @@ SQL,
         $uzivatel = $this->vytvorUzivatele();
 
         $idUbytovani = $this->vytvorPredmet('Spacak', TypPredmetu::UBYTOVANI, DateTimeGamecon::PORADI_HERNIHO_DNE_CTVRTEK);
-        $idJidlo     = $this->vytvorPredmet('Obed', TypPredmetu::JIDLO, DateTimeGamecon::PORADI_HERNIHO_DNE_PATEK);
-        $idMerch     = $this->vytvorPredmet('Predmet', TypPredmetu::PREDMET);
+        $idJidlo = $this->vytvorPredmet('Obed', TypPredmetu::JIDLO, DateTimeGamecon::PORADI_HERNIHO_DNE_PATEK);
+        $idMerch = $this->vytvorPredmet('Predmet', TypPredmetu::PREDMET);
 
         $this->objednejPredmet($uzivatel->id(), $idUbytovani);
         $this->objednejPredmet($uzivatel->id(), $idJidlo);
         $this->objednejPredmet($uzivatel->id(), $idMerch);
 
         $nastaveni = $this->nastaveni(jidloUkonceno: true, ubytovaniUkonceno: true);
-        $zruseno   = (new Shop($uzivatel, $uzivatel, $nastaveni))
+        $zruseno = (new Shop($uzivatel, $uzivatel, $nastaveni))
             ->zrusZrusitelneLetosniObjednavky('test');
 
         self::assertSame(1, $zruseno, 'Zrušit se měl jen merch');
@@ -164,15 +172,15 @@ SQL,
         $uzivatel = $this->vytvorUzivatele();
 
         $idUbytovani = $this->vytvorPredmet('Spacak', TypPredmetu::UBYTOVANI, DateTimeGamecon::PORADI_HERNIHO_DNE_CTVRTEK);
-        $idJidlo     = $this->vytvorPredmet('Obed', TypPredmetu::JIDLO, DateTimeGamecon::PORADI_HERNIHO_DNE_PATEK);
-        $idMerch     = $this->vytvorPredmet('Predmet', TypPredmetu::PREDMET);
+        $idJidlo = $this->vytvorPredmet('Obed', TypPredmetu::JIDLO, DateTimeGamecon::PORADI_HERNIHO_DNE_PATEK);
+        $idMerch = $this->vytvorPredmet('Predmet', TypPredmetu::PREDMET);
 
         $this->objednejPredmet($uzivatel->id(), $idUbytovani);
         $this->objednejPredmet($uzivatel->id(), $idJidlo);
         $this->objednejPredmet($uzivatel->id(), $idMerch);
 
         $nastaveni = $this->nastaveni(jidloUkonceno: false, ubytovaniUkonceno: false);
-        $zruseno   = (new Shop($uzivatel, $uzivatel, $nastaveni))
+        $zruseno = (new Shop($uzivatel, $uzivatel, $nastaveni))
             ->zrusZrusitelneLetosniObjednavky('test');
 
         self::assertSame(3, $zruseno, 'Před uzávěrkou se zruší vše');
