@@ -56,6 +56,39 @@ class Uzivatel extends DbObject
     public const UZIVATEL_PRACOVNI = 'uzivatel_pracovni';
     public const UZIVATEL = 'uzivatel';
 
+    /**
+     * Sloupce tabulky uzivatele_hodnoty, jejichž změny se auditují do
+     * uzivatele_hodnoty_log (viz zalogujZmenuOsobnichUdaju). Vědomě sem NEpatří:
+     * - finanční / systémové / cache sloupce (zustatek, random, registrovan,
+     *   nechce_maily, mrtvy_mail, forum_razeni, z_rychloregistrace, …),
+     * - op (číslo dokladu) – šifruje se nedeterministicky, loguje se zvlášť
+     *   přes zalogujZmenuOp() s porovnáním dešifrovaného plaintextu.
+     */
+    public const LOGOVANE_OSOBNI_SLOUPCE = [
+        Sql::LOGIN_UZIVATELE,
+        Sql::JMENO_UZIVATELE,
+        Sql::PRIJMENI_UZIVATELE,
+        Sql::EMAIL1_UZIVATELE,
+        Sql::TELEFON_UZIVATELE,
+        Sql::DATUM_NAROZENI,
+        Sql::POHLAVI,
+        Sql::ULICE_A_CP_UZIVATELE,
+        Sql::MESTO_UZIVATELE,
+        Sql::PSC_UZIVATELE,
+        Sql::STAT_UZIVATELE,
+        Sql::STATNI_OBCANSTVI,
+        Sql::TYP_DOKLADU_TOTOZNOSTI,
+        Sql::HESLO_MD5,
+        Sql::UBYTOVAN_S,
+        Sql::NECHCE_UBYTOVANI,
+        Sql::POZNAMKA,
+        Sql::INFOPULT_POZNAMKA,
+        Sql::POMOC_TYP,
+        Sql::POMOC_VICE,
+        Sql::ZPUSOB_ZOBRAZENI_NA_WEBU,
+        Sql::POTVRZENI_ZAKONNEHO_ZASTUPCE,
+    ];
+
     public const FAKE = 0x01;  // modifikátor "fake uživatel"
     public const SYSTEM = 1;     // id uživatele reprezentujícího systém (např. "operaci provedl systém")
     public const SYSTEM_LOGIN = 'SYSTEM';
@@ -294,6 +327,7 @@ SQL, [Pravo::PORADANI_AKTIVIT],
     public function cisloOp(?string $op = null)
     {
         if ($op !== null) {
+            self::zalogujZmenuOp($this->id(), (string) ($this->r['op'] ?? ''), $op);
             dbQuery('
         UPDATE uzivatele_hodnoty
         SET op=$1
@@ -319,6 +353,11 @@ SQL, [Pravo::PORADANI_AKTIVIT],
     public function typDokladuTotoznosti(?string $typDokladu = null): string
     {
         if ($typDokladu !== null) {
+            self::zalogujZmenuOsobnichUdaju(
+                $this->id(),
+                [Sql::TYP_DOKLADU_TOTOZNOSTI => $typDokladu],
+                [Sql::TYP_DOKLADU_TOTOZNOSTI => $this->r[Sql::TYP_DOKLADU_TOTOZNOSTI] ?? null],
+            );
             dbQuery('
         UPDATE uzivatele_hodnoty
         SET typ_dokladu_totoznosti=$0
@@ -341,6 +380,11 @@ SQL, [Pravo::PORADANI_AKTIVIT],
     {
         if ($statniObcanstvi !== null) {
             $statniObcanstvi = trim($statniObcanstvi);
+            self::zalogujZmenuOsobnichUdaju(
+                $this->id(),
+                [Sql::STATNI_OBCANSTVI => $statniObcanstvi],
+                [Sql::STATNI_OBCANSTVI => $this->r[Sql::STATNI_OBCANSTVI] ?? null],
+            );
             dbQuery(
                 'UPDATE uzivatele_hodnoty SET statni_obcanstvi = $0 WHERE id_uzivatele = ' . $this->r[Sql::ID_UZIVATELE],
                 [0 => $statniObcanstvi],
@@ -935,6 +979,11 @@ SQL,
             throw new Chyba('Heslo nemůže být kvůli technikým omezením delší než 72 znaků');
         }
         $novyHash = password_hash($noveHeslo, PASSWORD_DEFAULT);
+        self::zalogujZmenuOsobnichUdaju(
+            $this->id(),
+            [Sql::HESLO_MD5 => $novyHash],
+            [Sql::HESLO_MD5 => $this->r[Sql::HESLO_MD5] ?? null],
+        );
         dbQuery('UPDATE uzivatele_hodnoty SET heslo_md5 = $1 WHERE id_uzivatele = $2', [$novyHash, $this->id()]);
     }
 
@@ -1683,6 +1732,11 @@ SQL,
     public function poznamka($poznamka = null)
     {
         if (isset($poznamka)) {
+            self::zalogujZmenuOsobnichUdaju(
+                $this->id(),
+                [Sql::POZNAMKA => $poznamka],
+                [Sql::POZNAMKA => $this->r[Sql::POZNAMKA] ?? null],
+            );
             dbQueryS('UPDATE uzivatele_hodnoty SET poznamka = $1 WHERE id_uzivatele = $2', [$poznamka, $this->id()]);
             $this->otoc();
 
@@ -2153,6 +2207,8 @@ SQL,
         unset($dbTab['heslo']);
         unset($dbTab['heslo_kontrola']);
 
+        // op se loguje zvlášť (zašifrovaně), proto plaintext zachytíme před šifrováním
+        $opPlaintextProLog = $dbTab[Sql::OP] ?? null;
         if (isset($dbTab[Sql::OP])) {
             $dbTab[Sql::OP] = Sifrovatko::zasifruj($dbTab[Sql::OP]);
         }
@@ -2160,6 +2216,16 @@ SQL,
         // uložení
         if ($u) {
             $zmeniloSeJmenoNaWebu = self::zmeniloSeJmenoNaWebu($u, $dbTab);
+            self::zalogujZmenuOsobnichUdaju($u->id(), $dbTab, $u->r, null, 'web');
+            if ($opPlaintextProLog !== null) {
+                self::zalogujZmenuOp(
+                    $u->id(),
+                    (string) ($u->r[Sql::OP] ?? ''),
+                    (string) $opPlaintextProLog,
+                    null,
+                    'web',
+                );
+            }
             dbUpdate(Sql::UZIVATELE_HODNOTY_TABULKA, $dbTab, [
                 Sql::ID_UZIVATELE => $u->id(),
             ]);
@@ -2521,6 +2587,150 @@ SQL,
         );
         (new RolePodleRocniku($this->systemoveNastaveni))
             ->prepocitejHistoriiRoliProRocnik($this->systemoveNastaveni->rocnik(), $this->id());
+    }
+
+    /**
+     * Zaznamená do uzivatele_hodnoty_log změny osobních údajů uživatele.
+     *
+     * Porovná nové hodnoty se starými (po sloupcích) a pro každý reálně změněný
+     * sloupec z whitelistu LOGOVANE_OSOBNI_SLOUPCE založí jeden řádek auditu.
+     *
+     * @param int        $idUzivatele  u koho se změna stala
+     * @param array      $noveHodnoty  sloupec => nová hodnota (tak, jak jde do DB)
+     * @param array|null $stareHodnoty sloupec => stará hodnota; když null, načtou
+     *                                 se aktuální hodnoty z DB (volej PŘED zápisem)
+     * @param int|null   $idZmenil     kdo změnu provedl; když null, zjistí se z
+     *                                 přihlášeného uživatele v session (NULL = systém)
+     * @param string     $zdroj        odkud změna přišla (např. 'web', 'infopult')
+     */
+    public static function zalogujZmenuOsobnichUdaju(
+        int $idUzivatele,
+        array $noveHodnoty,
+        ?array $stareHodnoty = null,
+        ?int $idZmenil = null,
+        string $zdroj = '',
+    ): void {
+        $sledovane = array_intersect_key(
+            $noveHodnoty,
+            array_flip(self::LOGOVANE_OSOBNI_SLOUPCE),
+        );
+        if ($sledovane === []) {
+            return;
+        }
+
+        if ($stareHodnoty === null) {
+            $stareHodnoty = dbOneLine(
+                'SELECT ' . implode(', ', array_keys($sledovane))
+                . ' FROM uzivatele_hodnoty WHERE id_uzivatele = $0',
+                [$idUzivatele],
+            ) ?: [];
+        }
+
+        $zmeny = [];
+        foreach ($sledovane as $sloupec => $nova) {
+            $stara = $stareHodnoty[$sloupec] ?? null;
+            if (self::naNormalizovanyText($stara) === self::naNormalizovanyText($nova)) {
+                continue;
+            }
+            $zmeny[] = [$sloupec, $stara, $nova];
+        }
+
+        self::zapisDoLoguZmenHodnot($idUzivatele, $zmeny, $idZmenil, $zdroj);
+    }
+
+    /**
+     * Zvlášť loguje změnu čísla dokladu (op). Sloupec op se šifruje
+     * nedeterministicky (Defuse Crypto), takže porovnání zašifrovaných řetězců by
+     * hlásilo změnu i beze změny – porovnáváme proto dešifrovaný plaintext.
+     * Do logu se ukládají ZAŠIFROVANÉ hodnoty (v logu tedy op nikdy není v plaintextu).
+     *
+     * @param string $staraZasifrovana stará hodnota op z DB (zašifrovaná nebo prázdná)
+     * @param string $novyPlaintext    nové číslo dokladu v plaintextu (prázdné = smazání)
+     */
+    public static function zalogujZmenuOp(
+        int $idUzivatele,
+        string $staraZasifrovana,
+        string $novyPlaintext,
+        ?int $idZmenil = null,
+        string $zdroj = '',
+    ): void {
+        $staryPlaintext = $staraZasifrovana !== ''
+            ? Sifrovatko::desifruj($staraZasifrovana)
+            : '';
+        if (self::naNormalizovanyText($staryPlaintext) === self::naNormalizovanyText($novyPlaintext)) {
+            return;
+        }
+        $novaZasifrovana = $novyPlaintext !== ''
+            ? Sifrovatko::zasifruj($novyPlaintext)
+            : '';
+        self::zapisDoLoguZmenHodnot(
+            $idUzivatele,
+            [[Sql::OP, $staraZasifrovana, $novaZasifrovana]],
+            $idZmenil,
+            $zdroj,
+        );
+    }
+
+    /**
+     * Vlastní zápis diffů do uzivatele_hodnoty_log. Logování nesmí nikdy shodit
+     * primární operaci (uložení profilu), případnou chybu proto jen zaznamenáme.
+     *
+     * @param array $zmeny pole trojic [sloupec, stara, nova]
+     */
+    private static function zapisDoLoguZmenHodnot(
+        int $idUzivatele,
+        array $zmeny,
+        ?int $idZmenil,
+        string $zdroj,
+    ): void {
+        if ($zmeny === []) {
+            return;
+        }
+        $idZmenil ??= self::aktualniEditorIdZeSession();
+        try {
+            foreach ($zmeny as [$sloupec, $stara, $nova]) {
+                dbQuery(<<<SQL
+INSERT INTO uzivatele_hodnoty_log(id_uzivatele, id_zmenil, sloupec, stara_hodnota, nova_hodnota, zdroj_zmeny, kdy)
+VALUES ($0, $1, $2, $3, $4, $5, NOW())
+SQL,
+                    [
+                        $idUzivatele,
+                        $idZmenil,
+                        $sloupec,
+                        $stara === null ? null : (string) $stara,
+                        $nova === null ? null : (string) $nova,
+                        $zdroj !== '' ? $zdroj : null,
+                    ],
+                );
+            }
+        } catch (\Throwable $e) {
+            error_log('Nepodařilo se zalogovat změnu osobních údajů: ' . $e->getMessage());
+        }
+    }
+
+    /**
+     * Id přihlášeného uživatele ze session (kdo právě edituje), nebo null,
+     * pokud session neběží / nikdo přihlášen není (CLI, cron, systémové akce).
+     * Session zde záměrně nespouštíme – jen čteme, pokud už běží.
+     */
+    private static function aktualniEditorIdZeSession(): ?int
+    {
+        if (PHP_SAPI === 'cli' || session_status() !== PHP_SESSION_ACTIVE) {
+            return null;
+        }
+        $id = $_SESSION[self::UZIVATEL]['id_uzivatele'] ?? null;
+
+        return $id ? (int) $id : null;
+    }
+
+    /**
+     * Normalizace hodnoty pro porovnání „změnilo se to?". null i '' bereme jako
+     * prázdno, ostatní jako trimovaný string – aby whitespace/typové rozdíly
+     * nezaváděly falešné záznamy v auditu.
+     */
+    private static function naNormalizovanyText($hodnota): string
+    {
+        return $hodnota === null ? '' : trim((string) $hodnota);
     }
 
     // getters, setters

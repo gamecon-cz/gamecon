@@ -65,10 +65,21 @@ class Pomoc
             $p['typ']    = null;
             $p['detail'] = null;
         }
-        dbUpdate(Sql::UZIVATELE_HODNOTY_TABULKA, [
+        $novePomoc = [
             Sql::POMOC_TYP  => $p['typ'] ?? '',
             Sql::POMOC_VICE => $p['detail'] ?? '',
-        ], [
+        ];
+        \Uzivatel::zalogujZmenuOsobnichUdaju(
+            $this->u->id(),
+            $novePomoc,
+            [
+                Sql::POMOC_TYP  => $this->u->r[Sql::POMOC_TYP] ?? null,
+                Sql::POMOC_VICE => $this->u->r[Sql::POMOC_VICE] ?? null,
+            ],
+            null,
+            'web',
+        );
+        dbUpdate(Sql::UZIVATELE_HODNOTY_TABULKA, $novePomoc, [
             Sql::ID_UZIVATELE => $this->u->id(),
         ]);
     }
