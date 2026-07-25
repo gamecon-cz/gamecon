@@ -182,6 +182,13 @@ SQL,
         if ($ucastnik->ubytovanS() === $ubytovanS) {
             return 0;
         }
+        Uzivatel::zalogujZmenuOsobnichUdaju(
+            $ucastnik->id(),
+            [UzivatelSql::UBYTOVAN_S => trim($ubytovanS)],
+            [UzivatelSql::UBYTOVAN_S => $ucastnik->ubytovanS()],
+            null,
+            'ubytovani',
+        );
         $ucastnik->ubytovanS($ubytovanS);
         $mysqliResult = dbQueryS('UPDATE uzivatele_hodnoty SET ubytovan_s=$0 WHERE id_uzivatele=' . $ucastnik->id(), [trim($ubytovanS)]);
 

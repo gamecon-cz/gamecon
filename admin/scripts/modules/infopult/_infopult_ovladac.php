@@ -133,6 +133,13 @@ if (!empty($_POST['rychloregistrace'])) {
 
 // TODO: nevyužité, smazat nebo dodělat editaci na infompult
 if (!empty($_POST['telefon']) && $uPracovni) {
+    Uzivatel::zalogujZmenuOsobnichUdaju(
+        $uPracovni->id(),
+        ['telefon_uzivatele' => $_POST['telefon']],
+        ['telefon_uzivatele' => $uPracovni->r['telefon_uzivatele'] ?? null],
+        null,
+        'infopult',
+    );
     dbQueryS('UPDATE uzivatele_hodnoty SET telefon_uzivatele=$0 WHERE id_uzivatele=' . $uPracovni->id(), [$_POST['telefon']]);
     $uPracovni->otoc();
     back();
@@ -142,6 +149,7 @@ if (!empty($_POST['telefon']) && $uPracovni) {
 function updateUzivatelHodnoty(array $udaje, int $uPracovniId, Vyjimkovac $vyjimkovac): int
 {
     try {
+        Uzivatel::zalogujZmenuOsobnichUdaju($uPracovniId, $udaje, null, null, 'infopult');
         $result = dbUpdate('uzivatele_hodnoty', $udaje, ['id_uzivatele' => $uPracovniId]);
         return dbAffectedOrNumRows($result);
     } catch (Exception $e) {

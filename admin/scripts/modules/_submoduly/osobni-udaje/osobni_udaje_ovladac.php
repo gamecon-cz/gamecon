@@ -28,6 +28,13 @@ if (post('zmenitUdaj') && $uPracovni) {
     $udajeBylyUlozeny = false;
     try {
         if ($udaje !== []) {
+            Uzivatel::zalogujZmenuOsobnichUdaju(
+                $uPracovni->id(),
+                $udaje,
+                $uPracovni->r,
+                $u?->id(),
+                'admin-osobni-udaje',
+            );
             dbUpdate('uzivatele_hodnoty', $udaje, ['id_uzivatele' => $uPracovni->id()]);
             $udajeBylyUlozeny = true;
         }
