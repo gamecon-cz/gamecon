@@ -31,7 +31,9 @@ SQL,
         return \Uzivatel::zIdUrcite(dbInsertId());
     }
 
-    /** @return array<int, array<string, mixed>> */
+    /**
+     * @return array<int, array<string, mixed>>
+     */
     private function logProUzivatele(int $idUzivatele): array
     {
         return dbFetchAll(
@@ -47,8 +49,12 @@ SQL,
 
         \Uzivatel::zalogujZmenuOsobnichUdaju(
             $uzivatel->id(),
-            [Sql::JMENO_UZIVATELE => 'Nové jméno'],
-            [Sql::JMENO_UZIVATELE => 'Test'],
+            [
+                Sql::JMENO_UZIVATELE => 'Nové jméno',
+            ],
+            [
+                Sql::JMENO_UZIVATELE => 'Test',
+            ],
             123,
             'test',
         );
@@ -68,8 +74,12 @@ SQL,
 
         \Uzivatel::zalogujZmenuOsobnichUdaju(
             $uzivatel->id(),
-            [Sql::JMENO_UZIVATELE => 'Test'],
-            [Sql::JMENO_UZIVATELE => 'Test'],
+            [
+                Sql::JMENO_UZIVATELE => 'Test',
+            ],
+            [
+                Sql::JMENO_UZIVATELE => 'Test',
+            ],
             123,
             'test',
         );
@@ -83,8 +93,14 @@ SQL,
 
         \Uzivatel::zalogujZmenuOsobnichUdaju(
             $uzivatel->id(),
-            [Sql::ZUSTATEK => '999', Sql::JMENO_UZIVATELE => 'Jiné'],
-            [Sql::ZUSTATEK => '0', Sql::JMENO_UZIVATELE => 'Test'],
+            [
+                Sql::ZUSTATEK        => '999',
+                Sql::JMENO_UZIVATELE => 'Jiné',
+            ],
+            [
+                Sql::ZUSTATEK        => '0',
+                Sql::JMENO_UZIVATELE => 'Test',
+            ],
             123,
             'test',
         );
@@ -100,7 +116,9 @@ SQL,
 
         \Uzivatel::zalogujZmenuOsobnichUdaju(
             $uzivatel->id(),
-            [Sql::JMENO_UZIVATELE => 'Přejmenováno'],
+            [
+                Sql::JMENO_UZIVATELE => 'Přejmenováno',
+            ],
             null, // stará hodnota se má načíst z DB
             123,
             'test',
