@@ -73,8 +73,8 @@ class Pomoc
             $this->u->id(),
             $novePomoc,
             [
-                Sql::POMOC_TYP  => $this->u->r[Sql::POMOC_TYP] ?? null,
-                Sql::POMOC_VICE => $this->u->r[Sql::POMOC_VICE] ?? null,
+                Sql::POMOC_TYP  => $this->u->rawDb()[Sql::POMOC_TYP] ?? null,
+                Sql::POMOC_VICE => $this->u->rawDb()[Sql::POMOC_VICE] ?? null,
             ],
             null,
             'web',

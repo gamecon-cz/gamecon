@@ -13,6 +13,11 @@ use Gamecon\Uzivatel\SqlStruktura\UzivateleHodnotySqlStruktura as Sql;
  */
 class ZalogujZmenuOsobnichUdajuTest extends AbstractTestDb
 {
+    // vytvorUzivatele() vkládá do uzivatele_hodnoty jen pár sloupců; ostatní NOT NULL
+    // sloupce (ulice_a_cp_uzivatele, …) nemají default → bez tohoto by STRICT_TRANS_TABLES
+    // shodil INSERT na "Field '…' doesn't have a default value".
+    protected static bool $disableStrictTransTables = true;
+
     private function vytvorUzivatele(string $suffix): \Uzivatel
     {
         dbQuery(<<<SQL

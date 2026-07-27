@@ -136,7 +136,7 @@ if (!empty($_POST['telefon']) && $uPracovni) {
     Uzivatel::zalogujZmenuOsobnichUdaju(
         $uPracovni->id(),
         ['telefon_uzivatele' => $_POST['telefon']],
-        ['telefon_uzivatele' => $uPracovni->r['telefon_uzivatele'] ?? null],
+        ['telefon_uzivatele' => $uPracovni->rawDb()['telefon_uzivatele'] ?? null],
         null,
         'infopult',
     );
