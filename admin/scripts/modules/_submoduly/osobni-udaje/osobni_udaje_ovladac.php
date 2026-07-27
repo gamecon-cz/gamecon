@@ -31,7 +31,7 @@ if (post('zmenitUdaj') && $uPracovni) {
             Uzivatel::zalogujZmenuOsobnichUdaju(
                 $uPracovni->id(),
                 $udaje,
-                $uPracovni->r,
+                $uPracovni->rawDb(),
                 $u?->id(),
                 'admin-osobni-udaje',
             );
