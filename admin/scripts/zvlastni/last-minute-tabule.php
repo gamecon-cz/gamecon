@@ -3,6 +3,7 @@
 declare(strict_types=1);
 
 use Gamecon\Aktivita\Aktivita;
+use Gamecon\Aktivita\VolnoProEnum;
 use Gamecon\Cas\DateTimeCz;
 use Gamecon\XTemplate\XTemplate;
 
@@ -53,11 +54,16 @@ foreach ($aktivity as $aktivita) {
     $zbyva = $kapacita - $aktivita->pocetPrihlasenych();
     $skoroPlno = $kapacita > 0 && ($zbyva <= 2 || $aktivita->pocetPrihlasenych() / $kapacita >= 0.9);
     $xtpl->assign([
-        'nazev'       => $aktivita->nazev(),
-        'obsazenost'  => str_replace(['(', ')'], '', $aktivita->obsazenostHtml()),
-        'zacatek'     => $aktivita->zacatek()->format('G:i'),
-        'plnostTrida' => $skoroPlno ? 'aktivita--skoroPlno' : '',
-        'stitek'      => $skoroPlno
+        'nazev'         => $aktivita->nazev(),
+        'obsazenost'    => str_replace(['(', ')'], '', $aktivita->obsazenostHtml()),
+        'zacatek'       => $aktivita->zacatek()->format('G:i'),
+        'plnostTrida'   => $skoroPlno ? 'aktivita--skoroPlno' : '',
+        'obsazenoTrida' => match ($aktivita->volnoPro()) {
+            VolnoProEnum::JEN_ZENY => 'aktivita__obsazenost--jenZeny',
+            VolnoProEnum::JEN_MUZI => 'aktivita__obsazenost--jenMuzi',
+            default                => '',
+        },
+        'stitek' => $skoroPlno
             ? '<span class="stitek">' . ($zbyva === 1 ? 'poslední místo' : 'poslední místa') . '</span>'
             : '',
     ]);
@@ -73,11 +79,6 @@ if ($denPredchozihoBloku === null) {
     $xtpl->assign('zitra', $zitraBloku);
 }
 $xtpl->parse('tabule.blok');
-
-$zoom = empty($_GET['zoom']) ? 100 : (int) $_GET['zoom'];
-$xtpl->assign('lupa', $zoom);
-$xtpl->assign('lupaPlus', $zoom + 10);
-$xtpl->assign('lupaMinus', $zoom - 10);
 
 $xtpl->assign('urlWebu', rtrim(URL_WEBU, '/'));
 $xtpl->assign('ted', $datum->format('G:i'));
