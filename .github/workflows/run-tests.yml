@@ -2,16 +2,15 @@ name: Run tests
 
 # yamllint disable-line rule:truthy
 on:
-    push:
-        branches:
-            # Filtr s negacemi musí mít aspoň jeden pozitivní vzor, jinak
-            # nematchuje NIC (GitHub Actions): bez '**' se testy na push do
-            # feature větví vůbec nespouští.
-            - '**'
-            # beta a main si pouští testy samy, před deployem,
-            # viz deploy-beta.yml a deploy-ostra.yml
-            - '!beta'
-            - '!main'
+    # Jen pull_request, žádný push. Kdyby testy spouštěly oba triggery,
+    # vznikly by na jednom commitu dva checky stejného jména „Run tests job“.
+    # Zrušit ten druhý přes concurrency nestačí: zrušený běh se v required
+    # status checks počítá jako selhání, takže PR zůstane blokovaný i s
+    # zelenými testy. Který z běhů zrušení potká je navíc závod, takže se to
+    # nedá obejít ani nastavením branch protection na konkrétní trigger.
+    #
+    # beta a main si pouští testy samy, před deployem,
+    # viz deploy-beta.yml a deploy-ostra.yml
     workflow_dispatch:
         inputs:
             branch:
@@ -27,13 +26,12 @@ on:
             - reopened
             - ready_for_review
 
-# Feature větve spouští testy přes oba triggery (push i pull_request),
-# takže po otevření PR by stejný commit běžel dvakrát. Klíčujeme na SHA
-# hlavičkového commitu – ten je u push i u odpovídajícího pull_request běhu
-# totožný (na PR je github.sha merge commit, proto bereme head.sha), takže
-# druhý běh ten první zruší a testy proběhnou jen jednou.
+# Nové pushnutí do PR ruší předchozí, ještě běžící testy téže větve –
+# na starší commit už stejně nikdo nečeká. Klíčujeme na větev, ne na SHA:
+# zrušen tak může být jen běh nad commitem, který byl mezitím přepsán, a
+# nikdy ne druhý běh nad tím samým commitem.
 concurrency:
-    group: run-tests-${{ github.event.pull_request.head.sha || github.sha }}
+    group: run-tests-${{ github.event.pull_request.number || github.ref }}
     cancel-in-progress: true
 
 jobs:
