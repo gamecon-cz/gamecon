@@ -55,6 +55,7 @@ foreach ($aktivity as $aktivita) {
     $skoroPlno = $kapacita > 0 && ($zbyva <= 2 || $aktivita->pocetPrihlasenych() / $kapacita >= 0.9);
     $xtpl->assign([
         'nazev'         => $aktivita->nazev(),
+        'typ'           => $aktivita->typ()->nazevJednotnehoCisla(),
         'obsazenost'    => str_replace(['(', ')'], '', $aktivita->obsazenostHtml()),
         'zacatek'       => $aktivita->zacatek()->format('G:i'),
         'plnostTrida'   => $skoroPlno ? 'aktivita--skoroPlno' : '',
