@@ -13,7 +13,7 @@ export const volnoTypZObsazenost = (obsazenost: ApiObsazenost) => {
   const kc = ku + km + kf;
 
   if (kt) {
-    return "t";
+    return (t ?? 0) >= kt ? "x" : "t";
   }
   if (kc <= 0) {
     return "u"; //aktivita bez omezení
