@@ -703,26 +703,19 @@ HTML;
     ): ImportStepResult {
         if (!empty($activityValues[ExportAktivitSloupce::KRATKA_ANOTACE])) {
             $kratkaAnotace = $activityValues[ExportAktivitSloupce::KRATKA_ANOTACE];
-            if (mb_strlen($kratkaAnotace) > Aktivita::LIMIT_POPIS_KRATKY) {
-                return ImportStepResult::error(sprintf(
-                    "Krátká anotace překračuje maximální povolenou délku %d znaků: '%s...'",
-                    Aktivita::LIMIT_POPIS_KRATKY,
-                    mb_substr($kratkaAnotace, 0, 50)
-                ));
-            }
-            return ImportStepResult::success($kratkaAnotace);
-        }
-        $sourceActivity = $this->getSourceActivity($originalActivity, $parentActivity);
+        } else {
+            $sourceActivity = $this->getSourceActivity($originalActivity, $parentActivity);
 
-        $kratkaAnotace = $sourceActivity
-            ? $sourceActivity->kratkyPopis()
-            : '';
+            $kratkaAnotace = $sourceActivity
+                ? $sourceActivity->kratkyPopis()
+                : '';
+        }
 
         if (mb_strlen($kratkaAnotace) > Aktivita::LIMIT_POPIS_KRATKY) {
             return ImportStepResult::error(sprintf(
                 "Krátká anotace překračuje maximální povolenou délku %d znaků: '%s...'",
                 Aktivita::LIMIT_POPIS_KRATKY,
-                mb_substr($kratkaAnotace, 0, 50)
+                mb_substr($kratkaAnotace, 0, 50),
             ));
         }
 
