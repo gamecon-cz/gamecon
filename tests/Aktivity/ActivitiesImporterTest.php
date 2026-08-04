@@ -187,12 +187,7 @@ class ActivitiesImporterTest extends AbstractTestDb
             ['', 'Deskoherna', 'Aktivita Reimport 3', 'url-reimport-3', 'Popis', '', '', 'Pátek', '16:00', '18:00', '', '', '10', '', '', '', '', '', '', '', '0', '', '', '1', ''],
         ]);
 
-        // Import odmítá editovat aktivitu, která už začala. Aktivity vzniklé z „Pátek“ spadnou
-        // na pevné datum letošního GameConu, takže po jeho skončení by druhý (aktualizační)
-        // import selhal. Čas proto ukotvíme před začátek ročníku, ať test nezávisí na dnešku.
-        $predZacatkemGameconu = $this->predZacatkemGameconu();
-
-        $importer = $this->createImporter($mockData, $predZacatkemGameconu);
+        $importer = $this->createImporter($mockData);
         $result1 = $importer->importActivities('fake-spreadsheet-id');
         self::assertSame(3, $result1->getImportedCount());
 
@@ -218,9 +213,9 @@ class ActivitiesImporterTest extends AbstractTestDb
             [(string) $aktivita3->id(), 'Deskoherna', 'Aktivita Reimport 3', 'url-reimport-3', 'Popis', '', '', 'Pátek', '16:00', '18:00', '', '', '10', '', '', '', '', '', '', '', '0', '', '', '1', ''],
         ]);
 
-        $importer2 = $this->createImporter($mockDataUpdate, $predZacatkemGameconu);
+        $importer2 = $this->createImporter($mockDataUpdate);
         $result2 = $importer2->importActivities('fake-spreadsheet-id');
-        self::assertSame(3, $result2->getImportedCount(), 'Opakovaný import měl projít, chyby: ' . print_r($result2->getErrorMessages(), true));
+        self::assertSame(3, $result2->getImportedCount());
 
         // Reload activities
         $aktivita1 = Aktivita::zId($aktivita1->id());
@@ -287,20 +282,9 @@ class ActivitiesImporterTest extends AbstractTestDb
     }
 
     /**
-     * Den před začátkem letošního GameConu. Importer si z předaného času bere i ročník,
-     * takže musí zůstat uvnitř ROCNIK — proto se odvozuje ze začátku ročníku, ne z „dneška“.
-     */
-    private function predZacatkemGameconu(): \DateTimeImmutable
-    {
-        $zacatek = SystemoveNastaveni::zGlobals()->spocitanyZacatekLetosnihoGameconu();
-
-        return (new \DateTimeImmutable($zacatek->format('Y-m-d H:i:s')))->modify('-1 day');
-    }
-
-    /**
      * Helper method to create ActivitiesImporter with mocked dependencies
      */
-    private function createImporter(array $mockSheetData, ?\DateTimeImmutable $now = null): ActivitiesImporter
+    private function createImporter(array $mockSheetData): ActivitiesImporter
     {
         // Create mocks
         $mockGoogleSheets = $this->createMock(GoogleSheetsService::class);
@@ -325,7 +309,7 @@ class ActivitiesImporterTest extends AbstractTestDb
             googleDriveService: $mockGoogleDrive,
             googleSheetsService: $mockGoogleSheets,
             editActivityUrlSkeleton: '/admin/aktivity/upravit?id=%d',
-            now: $now ?? new \DateTimeImmutable(),
+            now: new \DateTimeImmutable(),
             storytellersPermissionsUrl: '/permissions',
             logovac: $mockLogovac,
             mutexPattern: $mockMutex,
