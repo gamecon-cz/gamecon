@@ -1921,6 +1921,14 @@ SQL
         if (!$kapacitaCelkova) {
             return '';
         }
+        if ($this->tymova() && $this->tymovaKapacita() !== null) {
+            // Týmová aktivita se plní po týmech, ne po hlavách - stejně jako obsazenostObj() pro program.
+            $obsazenostTymu = $this->pocetPrihlasenychTymu() . '/' . $this->tymovaKapacita();
+
+            return !$this->prihlasovatelna() && !$this->probehnuta()
+                ? " <span class=\"neprihlasovatelna\">($obsazenostTymu)</span>"
+                : " ($obsazenostTymu)";
+        }
         if (!$this->prihlasovatelna() && !$this->probehnuta()) { // u proběhnutých aktivit se zobrazí čísla. Možno měnit.
             return " <span class=\"neprihlasovatelna\">($prihlasenoCelkem/$kapacitaCelkova)</span>";
         }

@@ -39,6 +39,12 @@ foreach ($aktivity as $aktivita) {
     if (! $aktivita->prihlasovatelna() || $aktivita->jeToDalsiKolo()) {
         continue;
     }
+    // Týmovku plnou týmů nelze obsadit, i když podle hlav ještě volno vychází - Aktivita::JEN_VOLNE
+    // počítá jen hlavy, takže by ji tabule nabízela jako volnou.
+    $tymovaKapacita = $aktivita->tymovaKapacita();
+    if ($aktivita->tymova() && $tymovaKapacita !== null && $aktivita->pocetPrihlasenychTymu() >= $tymovaKapacita) {
+        continue;
+    }
     if ($denPredchozihoBloku !== null && $denPredchozihoBloku !== $aktivita->zacatek()->format('z')) {
         // den se změnil → uzavřít předchozí blok s jeho vlastním nadpisem
         $xtpl->assign('cas', $zacatekPrvniAktivityBloku);
