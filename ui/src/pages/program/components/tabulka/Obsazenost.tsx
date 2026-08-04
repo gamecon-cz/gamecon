@@ -31,10 +31,17 @@ export const Obsazenost: FunctionComponent<TObsazenostProps> = (props) => {
     );
   }
 
+  if (kt) {
+    // Týmová aktivita počítá týmy, ne hlavy — a to i když je zaplněná.
+    return (
+      <>
+        <span class="program_obsazenost_tym">{`${t ?? 0}/${kt}`}</span>
+        {` `}
+      </>
+    );
+  }
+
   switch (volnoTyp) {
-    case "t":
-      aktivitaObsazenost = <>{`${t ?? 0}/${kt ?? ""}`}</>;
-      break;
     case "u":
     case "x":
       aktivitaObsazenost = <>{`${celkem}/${kapacitaCelkem}`}</>;
@@ -59,7 +66,7 @@ export const Obsazenost: FunctionComponent<TObsazenostProps> = (props) => {
 
   aktivitaObsazenost = (
     <>
-      <span class={!kt ? "program_obsazenost" : "program_obsazenost_tym"}>{aktivitaObsazenost}</span>
+      <span class="program_obsazenost">{aktivitaObsazenost}</span>
       {` `}
     </>
   );
