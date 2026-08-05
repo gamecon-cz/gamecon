@@ -1478,6 +1478,7 @@ Radio musí být ve tvaru:
   align-items: start;
   grid-template-areas:
   "udaje"
+  "historie-účasti"
   "slevy"
   "jídlo"
   "objednavky"
@@ -1514,6 +1515,10 @@ Radio musí být ve tvaru:
   grid-area: ubytování;
 }
 
+.uzivatel-grid--item-historie-ucasti {
+  grid-area: historie-účasti;
+}
+
 
 /* Extra small devices (phones, 600px and down) */
 @media only screen and (max-width: 600px) {
@@ -1539,6 +1544,7 @@ Radio musí být ve tvaru:
     grid-template-areas:
       "udaje slevy"
       "udaje jídlo"
+      "historie-účasti jídlo"
       "prodej jídlo"
       "pokoje jídlo"
       "ubytování ubytování"
@@ -1553,6 +1559,7 @@ Radio musí být ve tvaru:
     grid-template-areas:
       "udaje slevy objednavky"
       "udaje jídlo objednavky"
+      "historie-účasti jídlo objednavky"
       "prodej jídlo objednavky"
       "pokoje jídlo objednavky"
       "ubytování ubytování objednavky";
