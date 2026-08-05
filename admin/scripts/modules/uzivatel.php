@@ -8,6 +8,9 @@
  */
 
 use Gamecon\Accounting;
+use Gamecon\Dev\DeploymentsReader;
+use Gamecon\Dev\OdkazDoArchivnihoAdmina;
+use Gamecon\Dev\SsoParovaciCookie;
 use Gamecon\Shop\Shop;
 use Gamecon\XTemplate\XTemplate;
 
@@ -161,13 +164,30 @@ if ($uPracovni) {
     $roky = $uPracovni->historiePrihlaseni();
     sort($roky);
     if ($roky) {
+        $reader   = new DeploymentsReader();
+        $archivy  = $reader->unavailableReason() === null ? $reader->readArchives() : [];
+        $ssoNonce = null;
+        if ($u && $u->id() > 0 && defined('GAMECON_SSO_SECRET') && GAMECON_SSO_SECRET !== '') {
+            // Nonce se podepíše do tokenu a zároveň uloží do párovací cookie, takže
+            // odkaz přihlásí jen ten prohlížeč, který na něj klikl.
+            $ssoNonce = bin2hex(random_bytes(16));
+            SsoParovaciCookie::nastav($ssoNonce);
+        }
+        $odkazNaArchiv = new OdkazDoArchivnihoAdmina(
+            $archivy,
+            defined('GAMECON_SSO_SECRET') ? GAMECON_SSO_SECRET : '',
+            defined('ARCHIVE_GATE_SECRET') ? ARCHIVE_GATE_SECRET : '',
+            $ssoNonce,
+        );
+
         $odkazy = [];
         foreach ($roky as $rok) {
-            if ((int)$rok === $systemoveNastaveni->rocnik()) {
-                $odkazy[] = (string)$rok;
-            } else {
-                $odkazy[] = "<a href=\"https://admin.{$rok}.gamecon.cz/uzivatel?pracovni_uzivatel={$uPracovni->id()}\" target=\"_blank\">{$rok}</a>";
-            }
+            $url = (int)$rok === $systemoveNastaveni->rocnik()
+                ? null
+                : $odkazNaArchiv->proUzivatele((int)$rok, $uPracovni->id());
+            $odkazy[] = $url === null
+                ? (string)$rok
+                : '<a href="' . htmlspecialchars($url) . '" target="_blank" rel="noopener">' . $rok . '</a>';
         }
         $x->assign('historieUcastiHtml', implode(', ', $odkazy));
     } else {
