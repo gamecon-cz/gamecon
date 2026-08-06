@@ -59,13 +59,13 @@ Seznam uživatelů na této roli:
 <!-- begin:posad -->
 <form>
   <input type="hidden" name="posad" value="{id_role}">
-  <input type="submit" value="Posadit aktuálního uživatele na roli">
+  <input type="submit" value="Dát uživateli {pracovniUzivatel} roli {nazevRoleProTlacitko}">
 </form>
 <!-- end:posad -->
 <!-- begin:sesad -->
 <form>
   <input type="hidden" name="sesad" value="{id_role}">
-  <input type="submit" value="Sesadit aktuálního uživatele z role">
+  <input type="submit" value="Odebrat uživateli {pracovniUzivatel} roli {nazevRoleProTlacitko}">
 </form>
 <!-- end:sesad -->
 <!-- end:akceUzivatel -->
