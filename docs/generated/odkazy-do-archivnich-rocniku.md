@@ -16,6 +16,8 @@ https://2023.gamecon.cz/admin/uzivatel?pracovni_uzivatel=102&gcsso=<token>&gate=
 |----------|--------|----------------|---------------|
 | `?gate=` | Caddy brána před archivy chce basic auth; vložené `user:heslo@host` prohlížeč při kliknutí zahodí. Gate-validator token vymění za session cookie. | `GateLink::podepis()`, `ARCHIVE_GATE_SECRET` | URL zůstane čistá → basic-auth dialog |
 | `?gcsso=` | Magické přihlášení do archivu. Token nese **číselné `id_uzivatele`** (stabilní napříč snapshoty; e-mail se může časem přiřadit jinému člověku). Párovací cookie `.gamecon.cz` zajistí, že *sdílený* odkaz nikoho nepřihlásí. | `CrossSiteLogin::podepis()` klíčem **odvozeným pro ročník** `hash_hmac('sha256', rok, GAMECON_SSO_SECRET)` | Nepřipojí se → přihlašovací obrazovka |
+
+⚠️ **Dvě různé identity na jedné URL.** `gcsso` nese id **operátora** (přihlášeného admina, který klikl — `$u`), `pracovni_uzivatel` nese id **prohlíženého** uživatele (`$uPracovni`). Záměna admina přihlásí do cizího účtu — reálně se to stalo, protože oba údaje šly do jedné metody jako jeden parametr. Regresní test: `testSsoPrihlasujeOperatoraNePracovnihoUzivatele`.
 | akční parametr | Až tenhle něco udělá (`?pracovni_uzivatel=` otevře uživatele) | — | — |
 
 Master `GAMECON_SSO_SECRET` žije **jen na ostré**; archiv dostane přes deploy jen svůj odvozený `GAMECON_SSO_KEY`. Popadnutý archiv tak umí podvrhnout přihlášení jen do sebe. Viz `docs/` + ansible role `year_archive_deployer`.
