@@ -83,16 +83,8 @@ foreach (Uzivatel::zRole($role) as $uz) {
     $t->parse('pravaJedneRole.uzivatel');
 }
 
-if ($u->maPravoNaPrirazeniRole((int)$role)) {
-// posazování
-    if ($uPracovni && !$uPracovni->maRoli($role)) {
-        $t->parse('pravaJedneRole.akceUzivatel.posad');
-    } elseif ($uPracovni) {
-        $t->parse('pravaJedneRole.akceUzivatel.sesad');
-    }
-    $t->parse('pravaJedneRole.akceUzivatel');
-}
-
+// Musí být před parse() tlačítek níž — XTemplate dosazuje hodnoty v okamžiku
+// parse, takže později přiřazený nazev_role by v nich zůstal nevyplněný.
 $detailyRole = dbFetchRow(<<<SQL
         SELECT nazev_role, IF(popis_role != '', popis_role, nazev_role) AS popis_role
         FROM role_seznam
@@ -101,6 +93,27 @@ $detailyRole = dbFetchRow(<<<SQL
     [$role]
 );
 $t->assign($detailyRole);
+
+if ($u->maPravoNaPrirazeniRole((int)$role)) {
+// posazování
+    if ($uPracovni) {
+        // Jméno i název role na tlačítku, ať je při práci s víc rolemi jasné,
+        // koho a čeho se týká. Escapujeme kvůli value="…" — obojí je uživatelský
+        // vstup a uvozovka v něm by atribut rozbila. Vlastní klíč pro název role,
+        // protože {nazev_role} se jinde na stránce vypisuje neescapovaný.
+        $t->assign('pracovniUzivatel', htmlspecialchars($uPracovni->jmenoNick(), ENT_QUOTES | ENT_HTML5));
+        $t->assign(
+            'nazevRoleProTlacitko',
+            htmlspecialchars((string)($detailyRole['nazev_role'] ?? ''), ENT_QUOTES | ENT_HTML5),
+        );
+    }
+    if ($uPracovni && !$uPracovni->maRoli($role)) {
+        $t->parse('pravaJedneRole.akceUzivatel.posad');
+    } elseif ($uPracovni) {
+        $t->parse('pravaJedneRole.akceUzivatel.sesad');
+    }
+    $t->parse('pravaJedneRole.akceUzivatel');
+}
 
 $t->parse('pravaJedneRole');
 $t->out('pravaJedneRole');
