@@ -15,6 +15,7 @@ class OdkazDoArchivnihoAdminaTest extends TestCase
     private const GATE_SECRET = 'test-gate-do-not-use-in-prod';
     private const NONCE = 'nonce-abc';
     private const ID_UZIVATELE = 102;
+    private const ID_OPERATORA = 4032;
 
     /**
      * @param list<int> $roky
@@ -24,6 +25,7 @@ class OdkazDoArchivnihoAdminaTest extends TestCase
         string $ssoMaster = self::SSO_MASTER,
         string $gateSecret = self::GATE_SECRET,
         ?string $nonce = self::NONCE,
+        int $idOperatora = self::ID_OPERATORA,
     ): OdkazDoArchivnihoAdmina {
         $archivy = [];
         foreach ($roky as $rok) {
@@ -36,7 +38,7 @@ class OdkazDoArchivnihoAdminaTest extends TestCase
             );
         }
 
-        return new OdkazDoArchivnihoAdmina($archivy, $ssoMaster, $gateSecret, $nonce);
+        return new OdkazDoArchivnihoAdmina($archivy, $idOperatora, $ssoMaster, $gateSecret, $nonce);
     }
 
     public function testOdkazVedeNaCestuAdminNeNaSubdomenu(): void
@@ -66,8 +68,33 @@ class OdkazDoArchivnihoAdminaTest extends TestCase
         $overene = CrossSiteLogin::over((string) $query['gcsso'], $klicRocniku);
 
         self::assertNotNull($overene, 'token musí projít ověřením klíčem odvozeným pro ročník');
-        self::assertSame(self::ID_UZIVATELE, $overene->idUzivatele);
         self::assertSame(self::NONCE, $overene->nonce);
+    }
+
+    public function testSsoPrihlasujeOperatoraNePracovnihoUzivatele(): void
+    {
+        // Dvě různé identity na jedné URL: gcsso = přihlášený admin, pracovni_uzivatel
+        // = kdo se má otevřít. Záměna přihlásí admina do cizího účtu.
+        $url = $this->odkaz()->proUzivatele(2023, self::ID_UZIVATELE);
+
+        parse_str((string) parse_url((string) $url, PHP_URL_QUERY), $query);
+        $klicRocniku = hash_hmac('sha256', '2023', self::SSO_MASTER);
+        $overene = CrossSiteLogin::over((string) $query['gcsso'], $klicRocniku);
+
+        self::assertNotNull($overene);
+        self::assertSame(self::ID_OPERATORA, $overene->idUzivatele, 'token musí nést operátora');
+        self::assertNotSame(self::ID_UZIVATELE, $overene->idUzivatele);
+        self::assertSame((string) self::ID_UZIVATELE, $query['pracovni_uzivatel']);
+    }
+
+    public function testBezOperatoraSeSsoNepripoji(): void
+    {
+        // Nepřihlášený operátor (id 0) → nemáme koho přihlásit, token nedává smysl.
+        $url = $this->odkaz(idOperatora: 0)->proUzivatele(2023, self::ID_UZIVATELE);
+
+        self::assertNotNull($url);
+        self::assertStringNotContainsString('gcsso=', $url);
+        self::assertStringContainsString('pracovni_uzivatel=', $url);
     }
 
     public function testTokenJednohoRocnikuNeprojdeVJinemRocniku(): void

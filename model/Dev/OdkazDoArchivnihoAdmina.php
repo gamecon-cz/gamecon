@@ -21,6 +21,11 @@ namespace Gamecon\Dev;
  *                             zajistí, že sdílený odkaz nikoho nepřihlásí.
  *   3. `?pracovni_uzivatel=` — až tohle v archivu otevře konkrétního uživatele.
  *
+ * Pozor, jsou v tom **dvě různé identity** a splést je znamená přihlásit admina do
+ * cizího účtu: `gcsso` nese id **operátora** (přihlášeného admina, který klikl),
+ * kdežto `pracovni_uzivatel` nese id **prohlíženého** uživatele. Archiv tě přihlásí
+ * jako operátora a teprve pak ti otevře pracovního uživatele — stejně jako na ostré.
+ *
  * Pořadí zpracování v archivu: `admin/scripts/prihlaseni.php` vyřídí nejdřív
  * `gcsso` a přesměruje `back(getCurrentUrlWithQuery(['gcsso' => null]))`, což
  * ostatní parametry v query zachová — `pracovni_uzivatel` tedy přežije do druhého
@@ -61,13 +66,18 @@ final class OdkazDoArchivnihoAdmina
     private readonly array $urlPodleRocniku;
 
     /**
-     * @param list<Archive> $archivy    nasazené archivní ročníky
-     * @param string        $ssoMaster  master tajemství pro magické přihlášení; prázdné = SSO se nepřipojí
-     * @param string        $gateSecret tajemství pro bránu; prázdné = odkaz zůstane na čisté URL
-     * @param string|null   $ssoNonce   nonce spárovaný s cookie; null = SSO se nepřipojí
+     * @param list<Archive> $archivy     nasazené archivní ročníky
+     * @param int           $idOperatora id PŘIHLÁŠENÉHO admina, který na odkaz klikne — NE
+     *                                   pracovního uživatele, kterého odkaz otevírá. Magické
+     *                                   přihlášení přihlašuje operátora do jeho vlastního účtu;
+     *                                   koho si pak v archivu otevře, řeší `pracovni_uzivatel`.
+     * @param string        $ssoMaster   master tajemství pro magické přihlášení; prázdné = SSO se nepřipojí
+     * @param string        $gateSecret  tajemství pro bránu; prázdné = odkaz zůstane na čisté URL
+     * @param string|null   $ssoNonce    nonce spárovaný s cookie; null = SSO se nepřipojí
      */
     public function __construct(
         array $archivy,
+        private readonly int $idOperatora = 0,
         private readonly string $ssoMaster = '',
         private readonly string $gateSecret = '',
         private readonly ?string $ssoNonce = null,
@@ -89,7 +99,7 @@ final class OdkazDoArchivnihoAdmina
      *   2014–2021   do adminu, přihlášeného             (`gcsso`)
      *   2011–2013   do adminu na přihlašovací obrazovku (jen brána)
      */
-    public function proUzivatele(int $rocnik, int $idUzivatele): ?string
+    public function proUzivatele(int $rocnik, int $idPracovnihoUzivatele): ?string
     {
         if ($rocnik < self::PRVNI_ROCNIK_SE_ZIVYM_ADMINEM) {
             return null;
@@ -101,18 +111,18 @@ final class OdkazDoArchivnihoAdmina
 
         $url = rtrim($urlArchivu, '/') . '/admin';
         if ($rocnik >= self::PRVNI_ROCNIK_S_PRACOVNIM_UZIVATELEM) {
-            $url .= '/uzivatel?pracovni_uzivatel=' . $idUzivatele;
+            $url .= '/uzivatel?pracovni_uzivatel=' . $idPracovnihoUzivatele;
         }
 
         if ($rocnik >= self::PRVNI_ROCNIK_SE_SSO
             && $this->ssoNonce !== null
             && $this->ssoMaster !== ''
-            && $idUzivatele > 0
+            && $this->idOperatora > 0
         ) {
             // Klíč odvozený pro ročník — archiv nikdy nedostane master, takže
             // z popadnutého archivu nejde podvrhnout přihlášení do jiných ročníků.
             $klicRocniku = hash_hmac('sha256', (string) $rocnik, $this->ssoMaster);
-            $gcsso = CrossSiteLogin::podepis($idUzivatele, $this->ssoNonce, $klicRocniku);
+            $gcsso = CrossSiteLogin::podepis($this->idOperatora, $this->ssoNonce, $klicRocniku);
             if ($gcsso !== '') {
                 $oddelovac = str_contains($url, '?') ? '&' : '?';
                 $url .= $oddelovac . 'gcsso=' . $gcsso;

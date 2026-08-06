@@ -175,6 +175,8 @@ if ($uPracovni) {
         }
         $odkazNaArchiv = new OdkazDoArchivnihoAdmina(
             $archivy,
+            // Magické přihlášení patří přihlášenému adminovi, ne prohlíženému uživateli.
+            $u?->id() ?? 0,
             defined('GAMECON_SSO_SECRET') ? GAMECON_SSO_SECRET : '',
             defined('ARCHIVE_GATE_SECRET') ? ARCHIVE_GATE_SECRET : '',
             $ssoNonce,
