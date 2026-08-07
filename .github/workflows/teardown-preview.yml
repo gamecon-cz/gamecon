@@ -1,0 +1,129 @@
+name: Tear down preview environment
+
+# yamllint disable-line rule:truthy
+on:
+    pull_request:
+        types:
+            - closed
+    # Branch deleted → tear down its preview. Covers the gap that
+    # `pull_request: closed` misses: a branch that got a preview (via push)
+    # but was deleted WITHOUT ever opening/closing a PR — no close event
+    # ever fires, so its container would otherwise run forever. Also a
+    # belt-and-suspenders for merged PRs (the branch delete that usually
+    # follows a merge re-triggers teardown idempotently).
+    delete:
+    # Manual teardown. The automatic triggers only fire on PR-close and
+    # branch-delete, so a preview left behind by any other route — a deploy
+    # that died half-way, an experiment on a branch still in use — had no
+    # way to be removed except SSHing to the host. `branch` (not `slug`) so
+    # the input matches the deploy workflow; the slug is derived from it by
+    # the exact same slugification, which is what keeps the two in step.
+    workflow_dispatch:
+        inputs:
+            branch:
+                description: 'Branch whose preview should be torn down'
+                required: true
+
+permissions:
+    contents: read
+
+# MUST stay byte-identical to the group in deploy-preview.yml — concurrency
+# groups are repo-global, so the deploy and the teardown of one branch only
+# serialize while both resolve to the SAME string. If they drift apart the
+# two run in parallel on separate runners and race on the host: a teardown
+# landing before a still-running deploy leaves a zombie preview that nothing
+# will ever clean up (the teardown event has already fired). That race is
+# the whole reason this block exists — see the long note in
+# deploy-preview.yml before touching either copy.
+#
+# `github.event.ref` is deliberately NOT in the list: on a push it is the
+# FULL ref (`refs/heads/foo`) while the PR event carries the short
+# `head.ref` (`foo`), so including it would put the two events in different
+# groups. `github.ref_name` already covers delete / workflow_dispatch with
+# the short name.
+concurrency:
+    group: deploy-preview-${{ github.event.pull_request.head.ref || github.event.inputs.branch || github.ref_name }}
+    cancel-in-progress: false
+
+jobs:
+    # Tear down the preview when its PR closes (merged or abandoned), when
+    # the branch is deleted, or on demand. The first two overlap for the
+    # common merge-then-delete flow — teardown is idempotent, `--remove` of
+    # an already-gone preview is a no-op — and between them they close the
+    # gap where a branch is deleted without a PR ever being opened.
+    # Skip the `delete` of a tag (only branches get previews).
+    teardown:
+        if: >-
+            (github.event_name == 'pull_request' && github.event.action == 'closed') ||
+            (github.event_name == 'delete' && github.event.ref_type == 'branch') ||
+            github.event_name == 'workflow_dispatch'
+        runs-on: ubuntu-24.04
+        steps:
+            -   name: Derive slug from branch name
+                id: slug
+                # pull_request: branch is head.ref; delete: branch is
+                # event.ref; workflow_dispatch: the typed-in branch input.
+                # Slugification is IDENTICAL to deploy-preview.yml — the two
+                # must agree or a teardown targets a different slug than the
+                # deploy created and silently removes nothing.
+                #
+                # The branch name reaches the shell via env, NOT string
+                # interpolation: a ref is attacker-controllable, and
+                # `${{ ... }}` is substituted before bash parses the script,
+                # so a crafted branch name could inject shell commands into
+                # the runner. Quoted "$RAW_REF" is inert.
+                env:
+                    RAW_REF: ${{ github.event.pull_request.head.ref || github.event.inputs.branch || github.event.ref }}
+                    PR_HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+                run: |
+                    raw="$RAW_REF"
+                    slug=$(echo -n "$raw" \
+                        | iconv -f UTF-8 -t ASCII//TRANSLIT//IGNORE \
+                        | tr '[:upper:]' '[:lower:]' \
+                        | sed -E 's/[^a-z0-9]+/-/g; s/^-+//; s/-+$//' \
+                        | cut -c1-30 \
+                        | sed -E 's/-+$//')
+                    # Empty slug = branch name was all special chars. On a
+                    # closed PR we can reconstruct the same sha-fallback the
+                    # deploy used; on a delete event there is no SHA to
+                    # reconstruct from, so leave it empty and skip teardown
+                    # (nothing reliable to target).
+                    if [ -z "$slug" ]; then
+                        sha="$PR_HEAD_SHA"
+                        if [ -n "$sha" ]; then
+                            slug="sha-${sha}"
+                            slug="${slug:0:12}"
+                        fi
+                    fi
+                    echo "slug=$slug" >> "$GITHUB_OUTPUT"
+                    echo "Tearing down: ${slug:-(none — skipping)}"
+
+            -   name: Set up SSH
+                if: steps.slug.outputs.slug != ''
+                env:
+                    SSH_KEY: ${{ secrets.GAMECON_DEPLOY_SSH_KEY }}
+                    SSH_KNOWN_HOSTS: ${{ secrets.GAMECON_KNOWN_HOSTS }}
+                run: |
+                    mkdir -p ~/.ssh
+                    echo "$SSH_KEY" > ~/.ssh/id_ed25519
+                    chmod 0600 ~/.ssh/id_ed25519
+                    echo "$SSH_KNOWN_HOSTS" > ~/.ssh/known_hosts
+                    chmod 0644 ~/.ssh/known_hosts
+
+            -   name: Tear down preview on gamecon.cz
+                # Skip when slug is empty (delete event for an all-special-char
+                # branch name — no reliable target). Normal slugs always run.
+                # `--remove` drops the container, the Caddy block, the
+                # deployment record, AND the per-slug DB + DB user.
+                #
+                # Slug via env rather than interpolation: it is already
+                # sanitised to ^[a-z0-9-]+$ by the step above (and the host
+                # wrapper re-validates), but keeping refs out of `run:`
+                # string-substitution means no future edit to the
+                # slugification can reopen an injection path.
+                if: steps.slug.outputs.slug != ''
+                env:
+                    SLUG: ${{ steps.slug.outputs.slug }}
+                run: |
+                    ssh -o StrictHostKeyChecking=yes root@gamecon.cz \
+                        "/usr/local/sbin/deploy-preview-branch.sh --remove '$SLUG'"
