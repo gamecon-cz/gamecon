@@ -41,7 +41,7 @@
               data-bs-toggle="tooltip"
               title="Je to sledující. Pokud sháníš náhradníka, tenhle bude mít zájem."
         >
-      <span class="flipped-icon">👀</span>
+      👀
     </span>
         <span class="spici display-none"
               id="ucastnik-{u.id}-je-spici-na-aktivite-{a.id}"

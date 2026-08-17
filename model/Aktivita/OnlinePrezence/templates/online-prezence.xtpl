@@ -122,7 +122,7 @@
                                 </li>
                                 <li>
                                     Volná místa nabídni náhradníkům {FILE "./_nahradnik.xtpl"}.
-                                    Sledující <span class="flipped-icon"><span class="bg-dark">👀</span></span> můžeš
+                                    Sledující <span class="bg-dark">👀</span> můžeš
                                     oslovit první.
                                 </li>
                                 <li>Náhradníky přidej na prezenčku.</li>
@@ -224,7 +224,7 @@
                     id="skoncila-{idAktivity}"
                     class="alert-info text-skoncila display-none skryt-pokud-aktivitu-nelze-editovat"
             >
-              ✋ <em>Aktivita už skončila, pozor na úpravy</em> <span class="flipped-icon">✋</span>
+              ✋ <em>Aktivita už skončila, pozor na úpravy</em> 🤚
             </span>
             <span class="alert-info text-skoncila display-none zobrazit-pokud-aktivitu-nelze-editovat">
               <em>🧊 Už ji nelze editovat ani zpětně 🧊</em>
@@ -274,7 +274,7 @@
                             💤 Zrušený náhradník
                           </div>
                           <hr>
-                          <div><span class='flipped-icon'>👀</span> Sledující. Pokud sháníš náhradníka, tenhle bude mít zájem.</div>
+                          <div>👀 Sledující. Pokud sháníš náhradníka, tenhle bude mít zájem.</div>
                           <hr>
                           <div>
                             <i class='mladsi-osmnacti-let fa-solid fa-baby'></i>
