@@ -30,11 +30,6 @@ input:not([disabled])[type=checkbox] {
   -moz-transition: background 0.1s linear;
 }
 
-.flipped-icon {
-  transform: scale(-1, 1);
-  display: inline-block;
-}
-
 .tlacitko-testu {
   width: 100%;
   z-index: 1;
