@@ -152,3 +152,43 @@ input[disabled]::placeholder {
     font-size: smaller;
   }
 }
+
+/*
+ * Zamčené kontakty: skutečná hodnota se do HTML vůbec nedostane, rozmazaná
+ * atrapa je jen zástupný text. Rozmazává se tedy atrapa, ne pravý kontakt –
+ * vypnutí CSS nic neodhalí.
+ */
+.kontakt-atrapa {
+  display: inline-block;
+  filter: blur(3px);
+  opacity: 0.6;
+  user-select: none;
+  letter-spacing: 1px;
+}
+
+/*
+ * Odlišené od atrapy schválně: atrapa slibuje "po potvrzení uvidíš", tohle
+ * říká "tady se nic neukáže ani po potvrzení". Splynout by nesměly, jinak
+ * uživatel odklikne souhlas kvůli kontaktu, který stejně nedostane.
+ *
+ * Proto zákazová ikona, ne přeškrtnuté oko: "skryto" platí pro oba stavy,
+ * kdežto "nepřístupné" jen pro tenhle. A na rozdíl od rozmazané atrapy je
+ * ikona ostrá – liší se i texturou, nejen tvarem.
+ */
+.kontakt-nedostupny {
+  color: #b0453b;
+  opacity: 0.5;
+  cursor: help;
+}
+
+.kontakty-zamcene-pruh {
+  color: #6c757d;
+}
+
+.kontakty-zamcene-pruh .fa-lock {
+  margin-right: 0.35em;
+}
+
+.kontakty-zamcene-pruh .odemknout-kontakty {
+  margin-left: 0.75em;
+}

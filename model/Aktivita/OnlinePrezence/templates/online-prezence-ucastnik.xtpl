@@ -67,11 +67,27 @@
         <!-- end:checkbox -->
     </td>
     <td>{u.jmenoVolitelnyNick}</td>
-    <td class="text-center"><a href="mailto:{u.mail}" title="{u.mail}"><i class="far fa-envelope"></i></a></td>
-    <td>
+    <td class="text-center kontakt">
+        <!-- begin:email -->
+        <a href="mailto:{u.mail}" title="{u.mail}"><i class="far fa-envelope"></i></a>
+        <!-- end:email -->
+        <!-- begin:emailZamceny -->
+        <span class="kontakt-atrapa" data-bs-toggle="tooltip" data-bs-placement="top"
+              title="E-mail se zobrazí po potvrzení podmínek použití kontaktů.">••••</span>
+        <!-- end:emailZamceny -->
+    </td>
+    <td class="kontakt">
         <!-- begin:telefon -->
         <a href="tel:{telefonRaw}" class="text-nowrap"><i class="fas fa-phone"></i> {telefonHtml}</a>
         <!-- end:telefon -->
+        <!-- begin:telefonZamceny -->
+        <span class="kontakt-atrapa" data-bs-toggle="tooltip" data-bs-placement="top"
+              title="Telefon se zobrazí po potvrzení podmínek použití kontaktů.">••• ••• •••</span>
+        <!-- end:telefonZamceny -->
+        <!-- begin:telefonNedostupny -->
+        <span class="kontakt-nedostupny" data-bs-toggle="tooltip" data-bs-placement="top"
+              title="{duvodSkrytiTelefonu}"><i class="fa-solid fa-ban"></i></span>
+        <!-- end:telefonNedostupny -->
     </td>
 </tr>
 <!-- end:ucastnik -->

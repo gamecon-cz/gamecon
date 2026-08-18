@@ -5,8 +5,10 @@ declare(strict_types=1);
 namespace Gamecon\Tests\Aktivity;
 
 use Gamecon\Aktivita\OnlinePrezence\OnlinePrezenceUcastnikHtml;
+use Gamecon\Aktivita\OnlinePrezence\PotvrzeniZobrazeniKontaktu;
 use Gamecon\Cas\DateTimeGamecon;
 use Gamecon\Cas\DateTimeImmutableStrict;
+use Gamecon\Logger\LogUdalosti;
 use Gamecon\SystemoveNastaveni\SystemoveNastaveni;
 use Gamecon\Tests\Db\AbstractUzivatelTestDb;
 
@@ -43,7 +45,10 @@ class OnlinePrezenceUcastnikTelefonTest extends AbstractUzivatelTestDb
         string $ted,
         bool $ocekavanoBezi,
     ): void {
-        $ucastnikHtml = new OnlinePrezenceUcastnikHtml($this->nastaveniSCasem($ted));
+        $ucastnikHtml = new OnlinePrezenceUcastnikHtml(
+            $this->nastaveniSCasem($ted),
+            $this->potvrzeniKontaktu(),
+        );
 
         $metoda = new \ReflectionMethod($ucastnikHtml, 'gcBeziPodleInjektovanehoCasu');
         $metoda->setAccessible(true);
@@ -75,7 +80,10 @@ class OnlinePrezenceUcastnikTelefonTest extends AbstractUzivatelTestDb
         bool $ocekavanaViditelnost,
     ): void {
         $ted = $gcBezi ? '2099-06-20 12:00:00' : '2099-06-01 12:00:00';
-        $ucastnikHtml = new OnlinePrezenceUcastnikHtml($this->nastaveniSCasem($ted));
+        $ucastnikHtml = new OnlinePrezenceUcastnikHtml(
+            $this->nastaveniSCasem($ted),
+            $this->potvrzeniKontaktu(),
+        );
 
         $vypravec = $this->createMock(\Uzivatel::class);
         $vypravec->method('jeOrganizator')->willReturn($divakJeOrganizator);
@@ -87,6 +95,11 @@ class OnlinePrezenceUcastnikTelefonTest extends AbstractUzivatelTestDb
             $ocekavanaViditelnost,
             $metoda->invoke($ucastnikHtml, $vypravec),
         );
+    }
+
+    private function potvrzeniKontaktu(): PotvrzeniZobrazeniKontaktu
+    {
+        return new PotvrzeniZobrazeniKontaktu(new LogUdalosti());
     }
 
     private function nastaveniSCasem(string $ted): SystemoveNastaveni

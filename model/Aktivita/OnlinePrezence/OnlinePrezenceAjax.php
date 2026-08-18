@@ -1,4 +1,6 @@
-<?php declare(strict_types=1);
+<?php
+
+declare(strict_types=1);
 
 namespace Gamecon\Aktivita\OnlinePrezence;
 
@@ -8,49 +10,60 @@ use Gamecon\Aktivita\RazitkoPosledniZmenyPrihlaseni;
 use Gamecon\Aktivita\StavPrihlaseni;
 use Gamecon\Aktivita\ZmenaPrihlaseni;
 use Gamecon\Aktivita\ZmenaStavuAktivity;
+use Gamecon\Logger\LogUdalosti;
 use Gamecon\SystemoveNastaveni\SystemoveNastaveni;
 use Symfony\Component\Filesystem\Filesystem;
 
 class OnlinePrezenceAjax
 {
-    public const AJAX           = 'ajax';
-    public const KEEP_ALIVE     = 'keep-alive';
+    public const AJAX = 'ajax';
+    public const KEEP_ALIVE = 'keep-alive';
     public const POSLEDNI_ZMENY = 'posledni-zmeny';
     public const POCATECNI_STAV = 'pocatecni-stav';
+    public const ODEMKNOUT_KONTAKTY = 'odemknout-kontakty';
 
-    public const POSLEDNI_LOGY_AKTIVIT_AJAX_KLIC    = 'posledni_logy_aktivit_ajax_klic';
-    public const POSLEDNI_LOGY_UCASTNIKU_AJAX_KLIC  = 'posledni_logy_ucastniku_ajax_klic';
-    public const ID_AKTIVITY                        = 'id_aktivity';
-    public const ID_UZIVATELE                       = 'id_uzivatele';
-    public const ID_LOGU                            = 'id_logu';
-    public const CAS_ZMENY                          = 'cas_zmeny';
-    public const STAV_AKTIVITY                      = 'stav_aktivity';
-    public const STAV_PRIHLASENI                    = 'stav_prihlaseni';
-    public const HTML_UCASTNIKA                     = 'html_ucastnika';
-    public const ZMENY_STAVU_AKTIVIT                = 'zmeny_stavu_aktivit';
-    public const ZMENY_PRIHLASENI                   = 'zmeny_prihlaseni';
-    public const RAZITKO_POSLEDNI_ZMENY             = 'razitko_posledni_zmeny';
-    public const UCASTNICI_PRIDATELNI_DO_TIMESTAMP  = 'ucastnici_pridatelni_do_timestamp';
+    public const POSLEDNI_LOGY_AKTIVIT_AJAX_KLIC = 'posledni_logy_aktivit_ajax_klic';
+    public const POSLEDNI_LOGY_UCASTNIKU_AJAX_KLIC = 'posledni_logy_ucastniku_ajax_klic';
+    public const ID_AKTIVITY = 'id_aktivity';
+    public const ID_UZIVATELE = 'id_uzivatele';
+    public const ID_LOGU = 'id_logu';
+    public const CAS_ZMENY = 'cas_zmeny';
+    public const STAV_AKTIVITY = 'stav_aktivity';
+    public const STAV_PRIHLASENI = 'stav_prihlaseni';
+    public const HTML_UCASTNIKA = 'html_ucastnika';
+    public const ZMENY_STAVU_AKTIVIT = 'zmeny_stavu_aktivit';
+    public const ZMENY_PRIHLASENI = 'zmeny_prihlaseni';
+    public const RAZITKO_POSLEDNI_ZMENY = 'razitko_posledni_zmeny';
+    public const UCASTNICI_PRIDATELNI_DO_TIMESTAMP = 'ucastnici_pridatelni_do_timestamp';
     public const UCASTNICI_ODEBRATELNI_DO_TIMESTAMP = 'ucastnici_odebratelni_do_timestamp';
-    public const ERRORS                             = 'errors';
-    public const PRIHLASEN                          = 'prihlasen';
-    public const CAS_POSLEDNI_ZMENY_PRIHLASENI      = 'cas_posledni_zmeny_prihlaseni';
-    public const AKTIVITA                           = 'aktivita';
-    public const DORAZILI                           = 'dorazili';
+    public const ERRORS = 'errors';
+    public const PRIHLASEN = 'prihlasen';
+    public const CAS_POSLEDNI_ZMENY_PRIHLASENI = 'cas_posledni_zmeny_prihlaseni';
+    public const AKTIVITA = 'aktivita';
+    public const DORAZILI = 'dorazili';
 
     public static function dejUrlAkcePosledniZmeny(): string
     {
-        return getCurrentUrlWithQuery([self::AJAX => 1, 'akce' => self::POSLEDNI_ZMENY]);
+        return getCurrentUrlWithQuery([
+            self::AJAX => 1,
+            'akce'     => self::POSLEDNI_ZMENY,
+        ]);
     }
 
     public static function dejUrlAkceKeepAlive(): string
     {
-        return getCurrentUrlWithQuery([self::AJAX => 1, 'akce' => self::KEEP_ALIVE]);
+        return getCurrentUrlWithQuery([
+            self::AJAX => 1,
+            'akce'     => self::KEEP_ALIVE,
+        ]);
     }
 
     public static function dejUrlAkcePocatecniStav(): string
     {
-        return getCurrentUrlWithQuery([self::AJAX => 1, 'akce' => self::POCATECNI_STAV]);
+        return getCurrentUrlWithQuery([
+            self::AJAX => 1,
+            'akce'     => self::POCATECNI_STAV,
+        ]);
     }
 
     /**
@@ -72,110 +85,151 @@ class OnlinePrezenceAjax
 
     public function __construct(
         OnlinePrezenceHtml $onlinePrezenceHtml,
-        Filesystem         $filesystem,
+        Filesystem $filesystem,
         SystemoveNastaveni $systemoveNastaveni,
-        bool               $testujeme,
-    )
-    {
+        bool $testujeme,
+    ) {
         $this->onlinePrezenceHtml = $onlinePrezenceHtml;
-        $this->filesystem         = $filesystem;
+        $this->filesystem = $filesystem;
         $this->systemoveNastaveni = $systemoveNastaveni;
-        $this->testujeme          = $testujeme;
+        $this->testujeme = $testujeme;
     }
 
     public function odbavAjax(\Uzivatel $vypravec)
     {
-        if (!post(self::AJAX) && !get(self::AJAX)) {
+        if (! post(self::AJAX) && ! get(self::AJAX)) {
             return false;
         }
 
         if (get('akce') === self::KEEP_ALIVE) {
             $this->echoJson([]);
+
             return true;
         }
 
         if (get('akce') === self::POCATECNI_STAV) {
             $this->ajaxDejPocatecniStav($vypravec);
+
             return true;
         }
 
         if (get('akce') === self::POSLEDNI_ZMENY) {
             $this->ajaxDejPosledniZmeny(
-                (array)post(self::POSLEDNI_LOGY_AKTIVIT_AJAX_KLIC),
-                (array)post(self::POSLEDNI_LOGY_UCASTNIKU_AJAX_KLIC),
+                (array) post(self::POSLEDNI_LOGY_AKTIVIT_AJAX_KLIC),
+                (array) post(self::POSLEDNI_LOGY_UCASTNIKU_AJAX_KLIC),
                 $vypravec,
             );
+
+            return true;
+        }
+
+        if (post('akce') === self::ODEMKNOUT_KONTAKTY) {
+            $this->ajaxOdemknoutKontakty($vypravec, (int) post('idAktivity'));
+
             return true;
         }
 
         if (post('akce') === 'uzavrit') {
-            $this->ajaxUzavritAktivitu((int)post('id'), $vypravec);
+            $this->ajaxUzavritAktivitu((int) post('id'), $vypravec);
+
             return true;
         }
 
         if (post('akce') === 'zmenitPritomnostUcastnika') {
             $zdaDorazil = post('dorazil');
             if ($zdaDorazil !== null) {
-                $zdaDorazil = (bool)$zdaDorazil;
+                $zdaDorazil = (bool) $zdaDorazil;
             }
             $this->ajaxZmenitPritomnostUcastnika(
                 $vypravec,
-                (int)post('idUcastnika'),
-                (int)post('idAktivity'),
+                (int) post('idUcastnika'),
+                (int) post('idAktivity'),
                 $zdaDorazil,
             );
+
             return true;
         }
 
         if (post('prezenceAktivity')) {
             $this->ajaxUlozPrezenci(
-                (int)post('prezenceAktivity'),
+                (int) post('prezenceAktivity'),
                 array_keys(post('zdaDorazil') ?: []),
                 $vypravec,
             );
+
             return true;
         }
 
         if (get('omnibox')) {
             $this->ajaxOmnibox(
                 $vypravec,
-                (int)get('idAktivity'),
-                (string)get('term') ?: '',
-                (array)get('dataVOdpovedi') ?: [],
+                (int) get('idAktivity'),
+                (string) get('term') ?: '',
+                (array) get('dataVOdpovedi') ?: [],
                 get('labelSlozenZ'),
             );
+
             return true;
         }
 
         $this->echoErrorJson('Neznámý AJAX požadavek');
+
         return true;
+    }
+
+    private function ajaxOdemknoutKontakty(\Uzivatel $vypravec, int $idAktivity): void
+    {
+        $aktivita = Aktivita::zId($idAktivity, true);
+        if (! $aktivita) {
+            $this->echoErrorJson('Aktivita neexistuje');
+
+            return;
+        }
+
+        // Bez této kontroly by stačilo poslat cizí ID aktivity a odemknout si
+        // kontakty na akci, se kterou nemám nic společného.
+        if (! $aktivita->maOrganizatora($vypravec) && ! $vypravec->jeOrganizator()) {
+            $this->echoErrorJson('Nemáš oprávnění zobrazit kontakty této aktivity');
+
+            return;
+        }
+
+        $this->dejPotvrzeniZobrazeniKontaktu()->potvrd($vypravec, $idAktivity);
+        $this->echoJson([
+            self::ID_AKTIVITY => $idAktivity,
+        ]);
+    }
+
+    private function dejPotvrzeniZobrazeniKontaktu(): PotvrzeniZobrazeniKontaktu
+    {
+        return new PotvrzeniZobrazeniKontaktu(new LogUdalosti());
     }
 
     private function ajaxDejPocatecniStav(\Uzivatel $vypravec): void
     {
-        $idAktivit = (array)post('id_aktivit');
+        $idAktivit = (array) post('id_aktivit');
 
         $aktivitProJson = [];
         foreach ($idAktivit as $idAktivity) {
-            $aktivita = Aktivita::zId((int)$idAktivity, true);
-            if (!$aktivita) {
+            $aktivita = Aktivita::zId((int) $idAktivity, true);
+            if (! $aktivita) {
                 continue;
             }
 
-            $konec                  = $aktivita->konec();
-            $zmenaStavuAktivity     = $aktivita->posledniZmenaStavuAktivity();
+            $konec = $aktivita->konec();
+            $zmenaStavuAktivity = $aktivita->posledniZmenaStavuAktivity();
             $editovatelnaOdTimestamp = $this->dejEditovatelnaOdTimestamp($aktivita);
 
-            $ucastniciHtml  = [];
-            $emaily         = [];
-            $prihlaseni     = $aktivita->prihlaseni();
-            $sledujici      = $aktivita->seznamSledujicich();
+            $ucastniciHtml = [];
+            $emaily = [];
+            $prihlaseni = $aktivita->prihlaseni();
+            $sledujici = $aktivita->seznamSledujicich();
             $vsichniUcastnici = array_merge($prihlaseni, $sledujici);
 
             foreach ($vsichniUcastnici as $ucastnik) {
                 $ucastniciHtml[] = [
-                    self::ID_UZIVATELE    => (int)$ucastnik->id(),
-                    self::HTML_UCASTNIKA  => $this->onlinePrezenceHtml->sestavHmlUcastnikaAktivity(
+                    self::ID_UZIVATELE   => (int) $ucastnik->id(),
+                    self::HTML_UCASTNIKA => $this->onlinePrezenceHtml->sestavHmlUcastnikaAktivity(
                         $ucastnik,
                         $aktivita,
                         $vypravec,
@@ -185,15 +239,17 @@ class OnlinePrezenceAjax
                 ];
             }
 
-            foreach ($prihlaseni as $ucastnik) {
-                $email = trim((string)$ucastnik->mail());
-                if ($email !== '') {
-                    $emaily[] = $email;
+            if ($this->dejPotvrzeniZobrazeniKontaktu()->jePotvrzeno((int) $idAktivity)) {
+                foreach ($prihlaseni as $ucastnik) {
+                    $email = trim((string) $ucastnik->mail());
+                    if ($email !== '') {
+                        $emaily[] = $email;
+                    }
                 }
             }
 
             $aktivitProJson[] = [
-                self::ID_AKTIVITY                        => (int)$idAktivity,
+                self::ID_AKTIVITY                        => (int) $idAktivity,
                 'editovatelna_od_timestamp'              => $editovatelnaOdTimestamp,
                 'konec_aktivity_v_timestamp'             => $konec ? $konec->getTimestamp() : null,
                 self::UCASTNICI_PRIDATELNI_DO_TIMESTAMP  => $this->ucastniciPridatelniDoTimestamp($vypravec, $aktivita),
@@ -208,7 +264,7 @@ class OnlinePrezenceAjax
 
         $organizovaneAktivity = array_filter(
             array_map(
-                static fn($idAktivity) => Aktivita::zId((int)$idAktivity, true),
+                static fn ($idAktivity) => Aktivita::zId((int) $idAktivity, true),
                 $idAktivit,
             ),
         );
@@ -233,38 +289,37 @@ class OnlinePrezenceAjax
     private function dejStavPrihlaseniProJs(Aktivita $aktivita, \Uzivatel $ucastnik): string
     {
         $zmenaPrihlaseni = $aktivita->dejPrezenci()->posledniZmenaPrihlaseni($ucastnik);
+
         return $zmenaPrihlaseni ? $zmenaPrihlaseni->typPrezenceProJs() : '';
     }
 
     private function dejEditovatelnaOdTimestamp(Aktivita $aktivita): int
     {
         $zacatek = $aktivita->zacatek();
-        if (!$zacatek) {
+        if (! $zacatek) {
             return 0;
         }
         $hnedEditovatelnaSeZacatkemDo = (clone $zacatek)
             ->modify("-{$this->systemoveNastaveni->aktivitaEditovatelnaXMinutPredJejimZacatkem()} minutes");
+
         return $hnedEditovatelnaSeZacatkemDo <= $this->systemoveNastaveni->ted()
             ? 0
             : time() + ($hnedEditovatelnaSeZacatkemDo->getTimestamp() - $this->systemoveNastaveni->ted()->getTimestamp());
     }
 
     /**
-     * @param string[] $posledniZnameStavyAktivit
+     * @param string[]     $posledniZnameStavyAktivit
      * @param string[][][] $idsPoslednichZnamychLoguUcastniku
-     * @param \Uzivatel $vypravec
-     * @return void
      */
     private function ajaxDejPosledniZmeny(
-        array     $posledniZnameStavyAktivit,
-        array     $idsPoslednichZnamychLoguUcastniku,
+        array $posledniZnameStavyAktivit,
+        array $idsPoslednichZnamychLoguUcastniku,
         \Uzivatel $vypravec,
-    )
-    {
-        $zmenyStavuAktivitProJson    = [];
+    ) {
+        $zmenyStavuAktivitProJson = [];
         $nejnovejsiZmenyStavuAktivit = Aktivita::dejPosledniZmenyStavuAktivit($posledniZnameStavyAktivit);
         foreach ($nejnovejsiZmenyStavuAktivit->zmenyStavuAktivit() as $zmenaStavuAktivity) {
-            $aktivita                   = Aktivita::zId($zmenaStavuAktivity->idAktivity(), true);
+            $aktivita = Aktivita::zId($zmenaStavuAktivity->idAktivity(), true);
             $zmenyStavuAktivitProJson[] = [
                 self::ID_AKTIVITY                        => $zmenaStavuAktivity->idAktivity(),
                 self::ID_LOGU                            => $zmenaStavuAktivity->idLogu(),
@@ -275,12 +330,12 @@ class OnlinePrezenceAjax
             ];
         }
 
-        $zmenyPrihlaseniProJson    = [];
+        $zmenyPrihlaseniProJson = [];
         $nejnovejsiZmenyPrihlaseni = AktivitaPrezence::dejPosledniZmenyPrezence($idsPoslednichZnamychLoguUcastniku);
         foreach ($nejnovejsiZmenyPrihlaseni->zmenyPrihlaseni() as $zmenaPrihlaseni) {
             $aktivita = Aktivita::zId($zmenaPrihlaseni->idAktivity(), true);
-            if (!$aktivita) { // Stává se na betě, když se natvrdo odebírají aktivity
-                if (!defined('TESTING') || !TESTING) {
+            if (! $aktivita) { // Stává se na betě, když se natvrdo odebírají aktivity
+                if (! defined('TESTING') || ! TESTING) {
                     trigger_error(
                         "Nelze načíst aktivitu s ID {$zmenaPrihlaseni->idAktivity()}: " . var_export($zmenaPrihlaseni, true),
                         E_USER_WARNING,
@@ -318,8 +373,9 @@ class OnlinePrezenceAjax
     private function ajaxUzavritAktivitu(int $idAktivity, \Uzivatel $vypravec)
     {
         $aktivita = Aktivita::zId($idAktivity, true, $this->systemoveNastaveni);
-        if (!$aktivita) {
+        if (! $aktivita) {
             $this->echoErrorJson('Chybné ID aktivity ' . $idAktivity);
+
             return;
         }
         $aktivita->zamkni();
@@ -347,8 +403,10 @@ class OnlinePrezenceAjax
 
     private function echoErrorJson(string $error): void
     {
-        header("HTTP/1.1 400 Bad Request");
-        $this->echoJson([self::ERRORS => [$error]]);
+        header('HTTP/1.1 400 Bad Request');
+        $this->echoJson([
+            self::ERRORS => [$error],
+        ]);
     }
 
     private function echoJson(array $data): void
@@ -358,33 +416,30 @@ class OnlinePrezenceAjax
     }
 
     /**
-     * @param \Uzivatel $vypravec
-     * @param int $idUcastnika
-     * @param int $idAktivity
-     * @param bool|null $dorazil
-     * @return void
      * @throws \JsonException
      */
     private function ajaxZmenitPritomnostUcastnika(
         \Uzivatel $vypravec,
-        int       $idUcastnika,
-        int       $idAktivity,
-        ?bool     $dorazil,
-    )
-    {
+        int $idUcastnika,
+        int $idAktivity,
+        ?bool $dorazil,
+    ) {
         $ucastnik = \Uzivatel::zId($idUcastnika);
-        if (!$ucastnik) {
+        if (! $ucastnik) {
             $this->echoErrorJson('Chybné ID účastníka');
+
             return;
         }
         $aktivita = Aktivita::zId($idAktivity, true);
-        if (!$aktivita) {
+        if (! $aktivita) {
             $this->echoErrorJson('Chybné ID aktivity');
+
             return;
         }
 
         if ($dorazil === null) {
             $this->echoErrorJson('Chybějící příznak zda dorazil');
+
             return;
         }
         $vypravec = $this->dejVypravecePodleTestu($aktivita, $vypravec);
@@ -405,6 +460,7 @@ class OnlinePrezenceAjax
                 );
             } catch (\Chyba $chyba) {
                 $this->echoErrorJson($chyba->getMessage());
+
                 return;
             }
             $posledniZmenaPrihlaseni = $prezence->ulozZeDorazil($ucastnik, $vypravec);
@@ -414,11 +470,12 @@ class OnlinePrezenceAjax
                 $posledniZmenaPrihlaseni = $prezence->zrusZeDorazil($ucastnik, $vypravec);
             } catch (\Chyba $chyba) {
                 $this->echoErrorJson($chyba->getMessage());
+
                 return;
             }
         }
 
-        if (!$posledniZmenaPrihlaseni) {
+        if (! $posledniZmenaPrihlaseni) {
             $posledniZmenaPrihlaseni = $prezence->posledniZmenaPrihlaseni($ucastnik);
         }
 
@@ -439,12 +496,11 @@ class OnlinePrezenceAjax
     }
 
     private function dejPotvrzeneRazitkoPosledniZmeny(
-        \Uzivatel           $vypravec,
+        \Uzivatel $vypravec,
         ?ZmenaStavuAktivity $posledniZmenaStavuAktivity,
-        ?ZmenaPrihlaseni    $posledniZmenaPrihlaseni,
-        bool                $prepsatStare,
-    ): string
-    {
+        ?ZmenaPrihlaseni $posledniZmenaPrihlaseni,
+        bool $prepsatStare,
+    ): string {
         return (new RazitkoPosledniZmenyPrihlaseni(
             $vypravec,
             $posledniZmenaStavuAktivity,
@@ -456,10 +512,11 @@ class OnlinePrezenceAjax
 
     public function dejVypravecePodleTestu(Aktivita $aktivita, \Uzivatel $vypravec): \Uzivatel
     {
-        if (!$this->testujeme) {
+        if (! $this->testujeme) {
             return $vypravec;
         }
         $organizatori = $aktivita->organizatori();
+
         return count($organizatori) > 0
             ? reset($organizatori) // první organizátor co padne pod ruku
             : $vypravec;
@@ -468,27 +525,31 @@ class OnlinePrezenceAjax
     private function ajaxUlozPrezenci(int $idAktivity, array $idDorazivsich, \Uzivatel $vypravec)
     {
         $aktivita = Aktivita::zId($idAktivity, true);
-        if (!$aktivita) {
+        if (! $aktivita) {
             $this->echoErrorJson('Chybné ID aktivity' . $idAktivity);
+
             return;
         }
         $dorazili = \Uzivatel::zIds($idDorazivsich);
         $aktivita->dejPrezenci()->uloz($dorazili, $vypravec);
 
-        $this->echoJson([self::AKTIVITA => $aktivita->rawDb(), self::DORAZILI => $dorazili]);
+        $this->echoJson([
+            self::AKTIVITA => $aktivita->rawDb(),
+            self::DORAZILI => $dorazili,
+        ]);
     }
 
     private function ajaxOmnibox(
         \Uzivatel $vypravec,
-        int       $idAktivity,
-        string    $term,
-        array     $dataVOdpovedi,
-        ?array    $labelSlozenZ,
-    )
-    {
+        int $idAktivity,
+        string $term,
+        array $dataVOdpovedi,
+        ?array $labelSlozenZ,
+    ) {
         $aktivita = Aktivita::zId($idAktivity, true);
-        if (!$aktivita) {
+        if (! $aktivita) {
             $this->echoErrorJson('Chybné ID aktivity ' . $idAktivity);
+
             return;
         }
         $omniboxData = omnibox(
@@ -498,7 +559,7 @@ class OnlinePrezenceAjax
             $labelSlozenZ,
             array_map(
                 static function (\Uzivatel $prihlaseny) {
-                    return (int)$prihlaseny->id();
+                    return (int) $prihlaseny->id();
                 }, $aktivita->prihlaseni(),
             ),
             true,
@@ -506,10 +567,10 @@ class OnlinePrezenceAjax
         );
         foreach ($omniboxData as &$prihlasenyUzivatelOmnibox) {
             $prihlasenyUzivatel = \Uzivatel::zId($prihlasenyUzivatelOmnibox['value']);
-            if (!$prihlasenyUzivatel) {
+            if (! $prihlasenyUzivatel) {
                 continue;
             }
-            $ucastnikHtml                      = $this->onlinePrezenceHtml->sestavHmlUcastnikaAktivity(
+            $ucastnikHtml = $this->onlinePrezenceHtml->sestavHmlUcastnikaAktivity(
                 $prihlasenyUzivatel,
                 $aktivita,
                 $vypravec,

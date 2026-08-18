@@ -1,14 +1,17 @@
-<?php declare(strict_types=1);
+<?php
+
+declare(strict_types=1);
 
 namespace Gamecon\Aktivita\OnlinePrezence;
 
 use Gamecon\Aktivita\Aktivita;
 use Gamecon\Aktivita\AktivitaPrezence;
 use Gamecon\Aktivita\RazitkoPosledniZmenyPrihlaseni;
+use Gamecon\Logger\LogUdalosti;
 use Gamecon\SystemoveNastaveni\SystemoveNastaveni;
 use Gamecon\Web\Info;
-use Symfony\Component\Filesystem\Filesystem;
 use Gamecon\XTemplate\XTemplate;
+use Symfony\Component\Filesystem\Filesystem;
 
 class OnlinePrezenceHtml
 {
@@ -17,34 +20,37 @@ class OnlinePrezenceHtml
         return implode(' – ', array_filter([$aktivita->nazev(), $aktivita->orgJmena(), $aktivita->popisLokaci()]));
     }
 
-    private ?XTemplate                  $onlinePrezenceTemplate     = null;
+    private ?XTemplate $onlinePrezenceTemplate = null;
     private ?OnlinePrezenceUcastnikHtml $onlinePrezenceUcastnikHtml = null;
-    private bool                        $testujeme;
+    private ?PotvrzeniZobrazeniKontaktu $potvrzeniZobrazeniKontaktu = null;
+    private bool $testujeme;
 
     public function __construct(
-        private readonly string             $jsVyjimkovac,
+        private readonly string $jsVyjimkovac,
         private readonly SystemoveNastaveni $systemoveNastaveni,
-        private readonly Filesystem         $filesystem,
-        private readonly bool               $muzemeTestovat = false,
-        bool                                $testujeme = false,
-    )
-    {
+        private readonly Filesystem $filesystem,
+        private readonly bool $muzemeTestovat = false,
+        bool $testujeme = false,
+    ) {
         $this->testujeme = $muzemeTestovat && $testujeme;
     }
 
     public function dejHtmlOnlinePrezence(
         \Uzivatel $editujici,
-        array     $organizovaneAktivity,
-    ): string
-    {
+        array $organizovaneAktivity,
+    ): string {
         $template = $this->dejOnlinePrezenceTemplate();
 
         if ($this->muzemeTestovat) {
             if ($this->testujeme) {
-                $template->assign('urlBezTestu', getCurrentUrlWithQuery(['test' => 0]));
+                $template->assign('urlBezTestu', getCurrentUrlWithQuery([
+                    'test' => 0,
+                ]));
                 $template->parse('onlinePrezence.test.odkazBezTestu');
             } else {
-                $template->assign('urlTest', getCurrentUrlWithQuery(['test' => 1]));
+                $template->assign('urlTest', getCurrentUrlWithQuery([
+                    'test' => 1,
+                ]));
                 $template->parse('onlinePrezence.test.odkazNaTest');
             }
             $template->parse('onlinePrezence.test');
@@ -68,6 +74,7 @@ class OnlinePrezenceHtml
         }
 
         $template->parse('onlinePrezence');
+
         return $template->text('onlinePrezence');
     }
 
@@ -80,7 +87,7 @@ class OnlinePrezenceHtml
                 __DIR__ . '/../../../admin/files/design/online-prezence.css',
             ],
             'javascripts' => [
-                'text'   => [
+                'text' => [
                     __DIR__ . '/../../../admin/files/omnibox-1.1.4.js',
                     __DIR__ . '/../../../admin/files/zablikej-1.0.js',
                     __DIR__ . '/../../../admin/files/online-prezence/online-prezence-heat-colors.js',
@@ -88,6 +95,7 @@ class OnlinePrezenceHtml
                     __DIR__ . '/../../../admin/files/online-prezence/online-prezence-prepinani-viditelnosti.js',
                     __DIR__ . '/../../../admin/files/online-prezence/online-prezence-ukazatele-zaplnenosti.js',
                     __DIR__ . '/../../../admin/files/online-prezence/online-prezence-potvrzovaci-modal.js',
+                    __DIR__ . '/../../../admin/files/online-prezence/online-prezence-odemknuti-kontaktu.js',
                     __DIR__ . '/../../../admin/files/online-prezence/online-prezence-keep-alive.js',
                 ],
                 /*
@@ -130,28 +138,29 @@ class OnlinePrezenceHtml
                 (new Info($this->systemoveNastaveni))->pridejPrefixPodleVyvoje('Online prezence'),
             );
         }
+
         return $this->onlinePrezenceTemplate;
     }
 
     /**
-     * @param XTemplate $template
-     * @param \Uzivatel $vypravec
      * @param Aktivita[] $organizovaneAktivity
-     * @return void
      */
     private function sestavHtmlOnlinePrezence(
         XTemplate $template,
         \Uzivatel $vypravec,
-        array     $organizovaneAktivity,
-    )
-    {
+        array $organizovaneAktivity,
+    ) {
         foreach ($organizovaneAktivity as $aktivita) {
             $template->assign(
                 'omniboxUrl',
-                getCurrentUrlWithQuery(['ajax' => 1, 'omnibox' => 1, 'idAktivity' => $aktivita->id()]),
+                getCurrentUrlWithQuery([
+                    'ajax'       => 1,
+                    'omnibox'    => 1,
+                    'idAktivity' => $aktivita->id(),
+                ]),
             );
             $template->assign('minutNaPosledniChvili', $this->systemoveNastaveni->prihlaseniNaPosledniChviliXMinutPredZacatkemAktivity());
-            $template->assign('kapacita', (int)$aktivita->kapacita());
+            $template->assign('kapacita', (int) $aktivita->kapacita());
             $template->assign('idAktivity', $aktivita->id());
             $template->assign('urlAktivity', $aktivita->url());
             $template->parse('onlinePrezence.aktivity.aktivita.form.pridatUcastnika');
@@ -162,7 +171,13 @@ class OnlinePrezenceHtml
 
             $jePrezenceRozbalena = $this->jePrezenceRozbalena($aktivita);
             $template->assign('showMinimize', $this->cssZobrazitKdyz($jePrezenceRozbalena));
-            $template->assign('showMaximize', $this->cssZobrazitKdyz(!$jePrezenceRozbalena));
+            $template->assign('showMaximize', $this->cssZobrazitKdyz(! $jePrezenceRozbalena));
+
+            if ($this->dejPotvrzeniZobrazeniKontaktu()->jePotvrzeno((int) $aktivita->id())) {
+                $template->parse('onlinePrezence.aktivity.aktivita.hromadnyMail');
+            } else {
+                $template->parse('onlinePrezence.aktivity.aktivita.kontaktyZamcene');
+            }
 
             $template->parse('onlinePrezence.aktivity.aktivita.form');
 
@@ -192,7 +207,7 @@ class OnlinePrezenceHtml
     private function jePrezenceRozbalena(Aktivita $aktivita): bool
     {
         return $aktivita->cenaZaklad() > 0 // u aktivit zadarmo nás prezence tolik nezajímá a ještě k tomu mívají strašně moc účastníků, přednášky třeba
-            || !$aktivita->uzavrena();
+            || ! $aktivita->uzavrena();
     }
 
     private function cssZobrazitKdyz(bool $zobrazit): string
@@ -205,11 +220,12 @@ class OnlinePrezenceHtml
     private function dejEditovatelnaOdTimestamp(Aktivita $aktivita): int
     {
         $zacatek = $aktivita->zacatek();
-        if (!$zacatek) {
+        if (! $zacatek) {
             return 0;
         }
         $hnedEditovatelnaSeZacatkemDo = (clone $zacatek)
             ->modify("-{$this->systemoveNastaveni->aktivitaEditovatelnaXMinutPredJejimZacatkem()} minutes");
+
         return $hnedEditovatelnaSeZacatkemDo <= $this->systemoveNastaveni->ted()
             ? 0
             : time() + ($hnedEditovatelnaSeZacatkemDo->getTimestamp() - $this->systemoveNastaveni->ted()->getTimestamp());
@@ -218,6 +234,7 @@ class OnlinePrezenceHtml
     private function ucastniciOdebratelniDoTimestamp(\Uzivatel $odhlasujici, Aktivita $aktivita): int
     {
         $ucastniciOdebratelniDo = $aktivita->ucastniciOdebratelniDo($odhlasujici);
+
         return $ucastniciOdebratelniDo <= $this->systemoveNastaveni->ted()
             ? 0
             : $ucastniciOdebratelniDo->getTimestamp();
@@ -226,6 +243,7 @@ class OnlinePrezenceHtml
     private function ucastniciPridatelniDoTimestamp(\Uzivatel $prihlasujici, Aktivita $aktivita): int
     {
         $ucastniciPridatelniDo = $aktivita->ucastniciPridatelniDo($prihlasujici);
+
         return $ucastniciPridatelniDo <= $this->systemoveNastaveni->ted()
             ? 0
             : $ucastniciPridatelniDo->getTimestamp();
@@ -233,25 +251,37 @@ class OnlinePrezenceHtml
 
     private function dejOnlinePrezenceUcastnikHtml(): OnlinePrezenceUcastnikHtml
     {
-        if (!$this->onlinePrezenceUcastnikHtml) {
-            $this->onlinePrezenceUcastnikHtml = new OnlinePrezenceUcastnikHtml($this->systemoveNastaveni);
+        if (! $this->onlinePrezenceUcastnikHtml) {
+            $this->onlinePrezenceUcastnikHtml = new OnlinePrezenceUcastnikHtml(
+                $this->systemoveNastaveni,
+                $this->dejPotvrzeniZobrazeniKontaktu(),
+            );
         }
+
         return $this->onlinePrezenceUcastnikHtml;
+    }
+
+    private function dejPotvrzeniZobrazeniKontaktu(): PotvrzeniZobrazeniKontaktu
+    {
+        if (! $this->potvrzeniZobrazeniKontaktu) {
+            $this->potvrzeniZobrazeniKontaktu = new PotvrzeniZobrazeniKontaktu(new LogUdalosti());
+        }
+
+        return $this->potvrzeniZobrazeniKontaktu;
     }
 
     public function sestavHmlUcastnikaAktivity(
         \Uzivatel $ucastnik,
-        Aktivita  $aktivita,
+        Aktivita $aktivita,
         \Uzivatel $vypravec,
-        int       $stavPrihlaseni,
-    ): string
-    {
+        int $stavPrihlaseni,
+    ): string {
         // i při "Testovat" (bool $this->testujeme) tohle vrací skutečný čas namísto potřebného testovacího, takže to často vrátí zablokvaný checkbox
-        $editovatelnaOdTimestamp         = $this->dejEditovatelnaOdTimestamp($aktivita);
-        $ucastniciPridatelniDoTimestamp  = $this->ucastniciPridatelniDoTimestamp($vypravec, $aktivita);
+        $editovatelnaOdTimestamp = $this->dejEditovatelnaOdTimestamp($aktivita);
+        $ucastniciPridatelniDoTimestamp = $this->ucastniciPridatelniDoTimestamp($vypravec, $aktivita);
         $ucastniciOdebratelniDoTimestamp = $this->ucastniciOdebratelniDoTimestamp($vypravec, $aktivita);
-        $pridatelnyHned                  = $editovatelnaOdTimestamp <= 0 && $ucastniciPridatelniDoTimestamp > 0;
-        $odebratelnyHned                 = $editovatelnaOdTimestamp <= 0 && $ucastniciOdebratelniDoTimestamp > 0;
+        $pridatelnyHned = $editovatelnaOdTimestamp <= 0 && $ucastniciPridatelniDoTimestamp > 0;
+        $odebratelnyHned = $editovatelnaOdTimestamp <= 0 && $ucastniciOdebratelniDoTimestamp > 0;
 
         return $this->dejOnlinePrezenceUcastnikHtml()
             ->sestavHmlUcastnikaAktivity($ucastnik, $aktivita, $vypravec, $stavPrihlaseni, $pridatelnyHned, $odebratelnyHned);

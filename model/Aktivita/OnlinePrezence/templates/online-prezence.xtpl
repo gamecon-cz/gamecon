@@ -236,6 +236,7 @@
           </span>
                     </div>
 
+                    <!-- begin:hromadnyMail -->
                     <div id="emaily-{idAktivity}" style="padding: 0.5em 0" class="row">
                         <div class="col-xl col-md col-sm text-sm-center text-md-start align-self-center">
                             <i class="far fa-envelope hinted" data-bs-toggle="tooltip" data-bs-placement="top"
@@ -243,6 +244,23 @@
                             <a href="mailto:"></a>
                         </div>
                     </div>
+                    <!-- end:hromadnyMail -->
+
+                    <!-- begin:kontaktyZamcene -->
+                    <div class="row kontakty-zamcene-pruh" id="kontakty-zamcene-{idAktivity}" style="padding: 0.5em 0">
+                        <div class="col-xl col-md col-sm text-sm-center text-md-start align-self-center">
+                            <i class="fas fa-lock"></i>
+                            Kontakty účastníků jsou skryté.
+                            <button type="button"
+                                    class="btn btn-sm btn-outline-secondary odemknout-kontakty"
+                                    data-bs-toggle="modal"
+                                    data-bs-target="#modalOdemknoutKontakty"
+                                    data-id-aktivity="{idAktivity}"
+                            >Zobrazit kontakty
+                            </button>
+                        </div>
+                    </div>
+                    <!-- end:kontaktyZamcene -->
 
                     <!-- begin:form -->
                     <form class="formAktivita">
@@ -388,6 +406,47 @@
                         </button>
                         <button type="button" class="btn btn-primary" onclick="potvrdModal()">
                             Uzavřít aktivitu
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="modal fade" id="modalOdemknoutKontakty" tabindex="-1" aria-labelledby="odemknoutKontaktyNadpis"
+             aria-hidden="true">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="odemknoutKontaktyNadpis">
+                            <i class="fas fa-lock"></i> Kontakty jsou jen pro organizaci GameConu
+                        </h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body">
+                        <p>
+                            E-maily a telefony účastníků slouží <strong>výhradně</strong> ke komunikaci ohledně této
+                            aktivity na GameConu – domluvě času, změnám v programu, řešení účasti.
+                        </p>
+                        <p>
+                            Nesmí se použít k rozesílání pozvánek na jiné akce, k reklamě, k nabídkám ani k ničemu
+                            dalšímu, co s GameConem nesouvisí – a to ani jednorázově, ani „jen pár lidem“.
+                            Předávat je dál někomu dalšímu nelze vůbec.
+                        </p>
+                        <p class="text-muted">
+                            Zobrazení kontaktů se zaznamenává.
+                        </p>
+                        <div>
+                            <input type="checkbox" name="souhlasSPodminkamiKontaktu" id="souhlasSPodminkamiKontaktu">
+                            <label for="souhlasSPodminkamiKontaktu" class="d-inline">
+                                Beru na vědomí a zavazuji se kontakty použít jen pro potřeby této aktivity na
+                                GameConu.
+                            </label>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Zpět</button>
+                        <button type="button" class="btn btn-primary" id="potvrditOdemceniKontaktu" disabled>
+                            Zobrazit kontakty
                         </button>
                     </div>
                 </div>
