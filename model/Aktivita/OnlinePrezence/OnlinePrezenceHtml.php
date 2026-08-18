@@ -173,9 +173,11 @@ class OnlinePrezenceHtml
             $template->assign('showMinimize', $this->cssZobrazitKdyz($jePrezenceRozbalena));
             $template->assign('showMaximize', $this->cssZobrazitKdyz(! $jePrezenceRozbalena));
 
-            if ($this->dejPotvrzeniZobrazeniKontaktu()->jePotvrzeno((int) $aktivita->id())) {
-                $template->parse('onlinePrezence.aktivity.aktivita.hromadnyMail');
-            } else {
+            $kontaktyOdemcene = $this->dejPotvrzeniZobrazeniKontaktu()->jePotvrzeno((int) $aktivita->id());
+            // Blok zůstává v HTML i zamčený (odkaz je prázdný, žádný kontakt
+            // neuniká), jen skrytý – aby ho po potvrzení stačilo odkrýt bez reloadu.
+            $template->assign('cssTridaHromadnyMail', $this->cssZobrazitKdyz($kontaktyOdemcene));
+            if (! $kontaktyOdemcene) {
                 $template->parse('onlinePrezence.aktivity.aktivita.kontaktyZamcene');
             }
 
