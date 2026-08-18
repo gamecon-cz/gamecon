@@ -422,22 +422,14 @@
                     </div>
                     <div class="modal-body">
                         <p>
-                            E-maily a telefony účastníků slouží <strong>výhradně</strong> ke komunikaci ohledně této
-                            aktivity na GameConu – domluvě času, změnám v programu, řešení účasti.
-                        </p>
-                        <p>
-                            Nesmí se použít k rozesílání pozvánek na jiné akce, k reklamě, k nabídkám ani k ničemu
-                            dalšímu, co s GameConem nesouvisí – a to ani jednorázově, ani „jen pár lidem“.
-                            Předávat je dál někomu dalšímu nelze vůbec.
-                        </p>
-                        <p class="text-muted">
-                            Zobrazení kontaktů se zaznamenává.
+                            Kontakty slouží výhradně k organizaci této aktivity na GameConu. Nesmí být použity
+                            k rozesílání pozvánek na jiné akce, reklamy ani k jiným účelům nesouvisejícím
+                            s GameConem. Je zakázáno kontakty komukoliv předávat.
                         </p>
                         <div>
                             <input type="checkbox" name="souhlasSPodminkamiKontaktu" id="souhlasSPodminkamiKontaktu">
                             <label for="souhlasSPodminkamiKontaktu" class="d-inline">
-                                Beru na vědomí a zavazuji se kontakty použít jen pro potřeby této aktivity na
-                                GameConu.
+                                Beru na vědomí a zavazuji se tyto podmínky dodržovat.
                             </label>
                         </div>
                     </div>
