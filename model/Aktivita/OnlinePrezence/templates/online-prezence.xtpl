@@ -122,7 +122,7 @@
                                 </li>
                                 <li>
                                     Volná místa nabídni náhradníkům {FILE "./_nahradnik.xtpl"}.
-                                    Sledující <i class="fa-solid fa-eye"></i> můžeš
+                                    Sledující <span class="bg-dark">👀</span> můžeš
                                     oslovit první.
                                 </li>
                                 <li>Náhradníky přidej na prezenčku.</li>
@@ -274,7 +274,7 @@
                             💤 Zrušený náhradník
                           </div>
                           <hr>
-                          <div><i class='fa-solid fa-eye'></i> Sledující. Pokud sháníš náhradníka, tenhle bude mít zájem.</div>
+                          <div>Sledující. Pokud sháníš náhradníka, tenhle bude mít zájem. 👀</div>
                           <hr>
                           <div>
                             <i class='mladsi-osmnacti-let fa-solid fa-baby'></i>

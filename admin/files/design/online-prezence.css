@@ -30,15 +30,6 @@ input:not([disabled])[type=checkbox] {
   -moz-transition: background 0.1s linear;
 }
 
-/*
- * Marker sledujícího sedí na .bg-dark, takže musí mít explicitně světlou
- * barvu – zděděná výchozí by na tmavém podkladu splynula. (Dřív tu bylo
- * barevné emoji, které barvu textu ignoruje, takže to nikdo neřešil.)
- */
-.sledujici .fa-eye {
-  color: #fff;
-}
-
 .tlacitko-testu {
   width: 100%;
   z-index: 1;
