@@ -1,4 +1,6 @@
-<?php declare(strict_types=1);
+<?php
+
+declare(strict_types=1);
 
 namespace Gamecon\Aktivita\OnlinePrezence;
 
@@ -6,27 +8,27 @@ use Gamecon\Aktivita\Aktivita;
 use Gamecon\Aktivita\StavPrihlaseni;
 use Gamecon\SystemoveNastaveni\SystemoveNastaveni;
 use Gamecon\XTemplate\XTemplate;
-use Uzivatel;
 
 class OnlinePrezenceUcastnikHtml
 {
     private ?XTemplate $onlinePrezenceUcastnikTemplate = null;
-    private int        $naPosledniChviliXMinutPredZacatkem;
+    private int $naPosledniChviliXMinutPredZacatkem;
 
-    public function __construct(private readonly SystemoveNastaveni $systemoveNastaveni)
-    {
+    public function __construct(
+        private readonly SystemoveNastaveni $systemoveNastaveni,
+        private readonly PotvrzeniZobrazeniKontaktu $potvrzeniZobrazeniKontaktu,
+    ) {
         $this->naPosledniChviliXMinutPredZacatkem = $systemoveNastaveni->prihlaseniNaPosledniChviliXMinutPredZacatkemAktivity();
     }
 
     public function sestavHmlUcastnikaAktivity(
-        Uzivatel $ucastnik,
+        \Uzivatel $ucastnik,
         Aktivita $aktivita,
-        Uzivatel $vypravec,
-        int      $stavPrihlaseni,
-        bool     $ucastnikMuzeBytPridan,
-        bool     $ucastnikMuzeBytOdebran,
-    ): string
-    {
+        \Uzivatel $vypravec,
+        int $stavPrihlaseni,
+        bool $ucastnikMuzeBytPridan,
+        bool $ucastnikMuzeBytOdebran,
+    ): string {
         $ucastnikTemplate = $this->dejOnlinePrezenceUcastnikTemplate();
 
         $ucastnikTemplate->assign('u', $ucastnik);
@@ -36,7 +38,7 @@ class OnlinePrezenceUcastnikHtml
         $ucastnikTemplate->assign('checkedUcastnik', $dorazil ? 'checked' : '');
         $ucastnikTemplate->assign(
             'disabledUcastnik',
-            ($dorazil && !$ucastnikMuzeBytOdebran) || (!$dorazil && !$ucastnikMuzeBytPridan)
+            ($dorazil && ! $ucastnikMuzeBytOdebran) || (! $dorazil && ! $ucastnikMuzeBytPridan)
                 ? 'disabled'
                 : '',
         );
@@ -48,10 +50,39 @@ class OnlinePrezenceUcastnikHtml
             $ucastnikTemplate->parse('ucastnik.nepritomen');
         }
 
-        if ($ucastnik->telefon() && $this->smiZobrazitTelefon($vypravec)) {
+        $kontaktyOdemcene = $this->potvrzeniZobrazeniKontaktu->jePotvrzeno((int) $aktivita->id());
+
+        if ($kontaktyOdemcene) {
+            $ucastnikTemplate->parse('ucastnik.email');
+        } else {
+            $ucastnikTemplate->parse('ucastnik.emailZamceny');
+        }
+
+        /*
+         * Telefon má nad rámec souhlasu ještě vlastní GDPR bránu, takže na něj
+         * nestačí dvoustavové "zamčeno/odemčeno": kdyby se neorganizátorovi mimo
+         * běh GC ukázala rozmazaná atrapa, slibovala by mu něco, co po odsouhlasení
+         * stejně neuvidí – a on by souhlas odklikl zbytečně. Proto se rozlišuje
+         * "po potvrzení uvidíš" od "tady se nic neukáže, a proto".
+         */
+        $maTelefon = (bool) $ucastnik->telefon();
+        $smiVidetTelefon = $this->smiZobrazitTelefon($vypravec);
+
+        if ($kontaktyOdemcene && $maTelefon && $smiVidetTelefon) {
             $ucastnikTemplate->assign('telefonHtml', $ucastnik->telefon(true));
             $ucastnikTemplate->assign('telefonRaw', $ucastnik->telefon(false));
             $ucastnikTemplate->parse('ucastnik.telefon');
+        } elseif (! $maTelefon) {
+            $ucastnikTemplate->assign('duvodSkrytiTelefonu', 'Účastník nemá vyplněný telefon.');
+            $ucastnikTemplate->parse('ucastnik.telefonNedostupny');
+        } elseif (! $smiVidetTelefon) {
+            $ucastnikTemplate->assign(
+                'duvodSkrytiTelefonu',
+                'Telefony účastníků jsou mimo konání GameConu viditelné jen organizátorům.',
+            );
+            $ucastnikTemplate->parse('ucastnik.telefonNedostupny');
+        } else {
+            $ucastnikTemplate->parse('ucastnik.telefonZamceny');
         }
 
         if ($this->jeToNaPosledniChvili($ucastnik, $aktivita)) {
@@ -71,9 +102,13 @@ class OnlinePrezenceUcastnikHtml
         $ucastnikTemplate->assign('casPosledniZmenyPrihlaseni', $zmenaPrihlaseni ? $zmenaPrihlaseni->casZmenyProJs() : '');
         $ucastnikTemplate->assign('stavPrihlaseni', $zmenaPrihlaseni ? $zmenaPrihlaseni->typPrezenceProJs() : '');
         $ucastnikTemplate->assign('idPoslednihoLogu', $zmenaPrihlaseni ? $zmenaPrihlaseni->idLogu() : 0);
-        $ucastnikTemplate->assign('email', $ucastnik->mail());
+        // Prázdné do potvrzení: z tohohle atributu skládá online-prezence.js
+        // hromadný "mailto:?bcc=" na všechny účastníky, což je přesně ta cesta,
+        // kterou se dají kontakty vytěžit jedním kliknutím.
+        $ucastnikTemplate->assign('email', $kontaktyOdemcene ? $ucastnik->mail() : '');
 
         $ucastnikTemplate->parse('ucastnik');
+
         return $ucastnikTemplate->text('ucastnik');
     }
 
@@ -84,7 +119,7 @@ class OnlinePrezenceUcastnikHtml
      * bez organizátorské role) jen po dobu běhu GameConu – ochrana osobních
      * údajů, aby se čísla nedala hromadně vytáhnout před akcí ani po ní.
      */
-    private function smiZobrazitTelefon(Uzivatel $vypravec): bool
+    private function smiZobrazitTelefon(\Uzivatel $vypravec): bool
     {
         return $vypravec->jeOrganizator()
             || $this->gcBeziPodleInjektovanehoCasu();
@@ -101,6 +136,7 @@ class OnlinePrezenceUcastnikHtml
     private function gcBeziPodleInjektovanehoCasu(): bool
     {
         $ted = $this->systemoveNastaveni->ted()->getTimestamp();
+
         return $this->systemoveNastaveni->gcBeziOd()->getTimestamp() <= $ted
             && $ted <= $this->systemoveNastaveni->gcBeziDo()->getTimestamp();
     }
@@ -112,19 +148,21 @@ class OnlinePrezenceUcastnikHtml
             : 'display-none';
     }
 
-    private function jeToNaPosledniChvili(Uzivatel $ucastnik, Aktivita $aktivita): bool
+    private function jeToNaPosledniChvili(\Uzivatel $ucastnik, Aktivita $aktivita): bool
     {
-        $prihlasenOd               = $aktivita->prihlasenOd($ucastnik);
+        $prihlasenOd = $aktivita->prihlasenOd($ucastnik);
         $odKdyJeToNaPosledniChvili = $this->odKdyJeToNaPosledniChvili($aktivita);
+
         return $prihlasenOd && $odKdyJeToNaPosledniChvili && $prihlasenOd >= $odKdyJeToNaPosledniChvili;
     }
 
     private function odKdyJeToNaPosledniChvili(Aktivita $aktivita): ?\DateTimeInterface
     {
         $zacatek = $aktivita->zacatek();
-        if (!$zacatek) {
+        if (! $zacatek) {
             return null;
         }
+
         return (clone $zacatek)->modify('-' . $this->naPosledniChviliXMinutPredZacatkem . ' minutes');
     }
 
@@ -133,6 +171,7 @@ class OnlinePrezenceUcastnikHtml
         if ($this->onlinePrezenceUcastnikTemplate === null) {
             $this->onlinePrezenceUcastnikTemplate = new XTemplate(__DIR__ . '/templates/online-prezence-ucastnik.xtpl');
         }
+
         return $this->onlinePrezenceUcastnikTemplate;
     }
 }
