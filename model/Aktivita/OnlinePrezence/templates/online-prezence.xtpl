@@ -236,15 +236,13 @@
           </span>
                     </div>
 
-                    <!-- begin:hromadnyMail -->
-                    <div id="emaily-{idAktivity}" style="padding: 0.5em 0" class="row">
+                    <div id="emaily-{idAktivity}" style="padding: 0.5em 0" class="row {cssTridaHromadnyMail}">
                         <div class="col-xl col-md col-sm text-sm-center text-md-start align-self-center">
                             <i class="far fa-envelope hinted" data-bs-toggle="tooltip" data-bs-placement="top"
                                title="Emaily přihlášených (ne sledujících)"></i>
                             <a href="mailto:"></a>
                         </div>
                     </div>
-                    <!-- end:hromadnyMail -->
 
                     <!-- begin:kontaktyZamcene -->
                     <div class="row kontakty-zamcene-pruh" id="kontakty-zamcene-{idAktivity}" style="padding: 0.5em 0">

@@ -195,8 +195,36 @@ class OnlinePrezenceAjax
         }
 
         $this->dejPotvrzeniZobrazeniKontaktu()->potvrd($vypravec, $idAktivity);
+
+        // Řádky se překreslují až tady, po potvrzení – v týž request už session
+        // příznak platí, takže vzniknou rovnou s odemčenými kontakty a klient
+        // je jen vymění. Kdyby se posílaly jen "ok", musel by se reload.
+        $prihlaseni = $aktivita->prihlaseni();
+        $ucastniciHtml = [];
+        foreach (array_merge($prihlaseni, $aktivita->seznamSledujicich()) as $ucastnik) {
+            $ucastniciHtml[] = [
+                self::ID_UZIVATELE   => (int) $ucastnik->id(),
+                self::HTML_UCASTNIKA => $this->onlinePrezenceHtml->sestavHmlUcastnikaAktivity(
+                    $ucastnik,
+                    $aktivita,
+                    $vypravec,
+                    $aktivita->stavPrihlaseni($ucastnik),
+                ),
+            ];
+        }
+
+        $emaily = [];
+        foreach ($prihlaseni as $ucastnik) {
+            $email = trim((string) $ucastnik->mail());
+            if ($email !== '') {
+                $emaily[] = $email;
+            }
+        }
+
         $this->echoJson([
             self::ID_AKTIVITY => $idAktivity,
+            'ucastnici'       => $ucastniciHtml,
+            'emaily'          => $emaily,
         ]);
     }
 
