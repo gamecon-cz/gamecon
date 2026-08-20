@@ -45,7 +45,7 @@ $googleApiClient = new GoogleApiClient(
 );
 
 if (!empty($_GET['flush-authorization'])) {
-    $googleApiClient->odeberPristup();
+    $googleApiClient->revokeAccess();
     oznameni('Přístup Gameconu k tvému Google účtu byl odebrán', false);
     // redirect to remove the parameter from URL and avoid repeated revoking on page reload
     back(parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH));
