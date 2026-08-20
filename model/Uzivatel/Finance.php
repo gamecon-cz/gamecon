@@ -805,14 +805,13 @@ SQL;
             if ($r[PredmetSql::TYP] == TypPredmetu::UBYTOVANI) {
                 $this->cenaUbytovani += $cena;
             } elseif ($r[PredmetSql::TYP] == TypPredmetu::VSTUPNE) {
+                // dobrovolné vstupné může být koupené vícekrát, když účastník přispěl opakovaně
                 if (Predmet::jeToVstupnePozde((int)$r[PredmetSql::TYP], $r[PredmetSql::KOD_PREDMETU])) {
-                    assert($this->cenaVstupnePozde === 0.0);
-                    $this->cenaVstupnePozde = $cena;
+                    $this->cenaVstupnePozde += $cena;
                 } else {
-                    assert($this->cenaVstupne === 0.0);
-                    $this->cenaVstupne = $cena;
+                    $this->cenaVstupne += $cena;
                 }
-                $this->dobrovolneVstupnePrehled = $this->formatujProLog(
+                $this->dobrovolneVstupnePrehled[] = $this->formatujProLog(
                     nazev: "{$r[PredmetSql::NAZEV]} $cena.-",
                     castka: $cena,
                     kategorie: (int)$r[PredmetSql::TYP],
