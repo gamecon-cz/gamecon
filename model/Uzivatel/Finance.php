@@ -805,7 +805,9 @@ SQL;
             if ($r[PredmetSql::TYP] == TypPredmetu::UBYTOVANI) {
                 $this->cenaUbytovani += $cena;
             } elseif ($r[PredmetSql::TYP] == TypPredmetu::VSTUPNE) {
-                // dobrovolné vstupné může být koupené vícekrát, když účastník přispěl opakovaně
+                /* Přihláška umí mít jen jedno vstupné (jeden slider s absolutní částkou), takže
+                   víc řádků je anomálie dat — nejspíš souběh dvou odeslání formuláře. Sčítáme je,
+                   aby výpočet zůstatku nespadl a nezahodil část zaplacené částky. */
                 if (Predmet::jeToVstupnePozde((int)$r[PredmetSql::TYP], $r[PredmetSql::KOD_PREDMETU])) {
                     $this->cenaVstupnePozde += $cena;
                 } else {
