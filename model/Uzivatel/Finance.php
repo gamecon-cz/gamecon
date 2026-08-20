@@ -798,22 +798,32 @@ SQL;
     ', [$this->u->id(), $this->systemoveNastaveni->rocnik()]);
 
         $soucty = [];
+        /* Přihláška umí mít jen jedno vstupné (jeden slider s absolutní částkou), takže víc řádků
+           téhož vstupného je anomálie dat — nejspíš souběh dvou odeslání formuláře. Je to jeden a
+           týž příspěvek zapsaný vícekrát, ne víc příspěvků, takže se nesmí sečíst ani dvakrát
+           vypsat; přebytečné řádky zahazujeme rovnou. Po souběhu jsou obě částky stejné, takže je
+           jedno která projde; tady je to ta nejnižší, protože řádky chodí seřazené vzestupně podle
+           ceny (kvůli slevám na trička). */
+        $zpracovaneVstupne = [];
         foreach ($o as $r) {
+            if ($r[PredmetSql::TYP] == TypPredmetu::VSTUPNE) {
+                if (isset($zpracovaneVstupne[$r[PredmetSql::ID_PREDMETU]])) {
+                    continue;
+                }
+                $zpracovaneVstupne[$r[PredmetSql::ID_PREDMETU]] = true;
+            }
             $priceAfterDiscountDto = $this->cenik()->cena($r);
             $cena                  = $priceAfterDiscountDto->finalPrice;
             // započtení ceny
             if ($r[PredmetSql::TYP] == TypPredmetu::UBYTOVANI) {
                 $this->cenaUbytovani += $cena;
             } elseif ($r[PredmetSql::TYP] == TypPredmetu::VSTUPNE) {
-                /* Přihláška umí mít jen jedno vstupné (jeden slider s absolutní částkou), takže
-                   víc řádků je anomálie dat — nejspíš souběh dvou odeslání formuláře. Sčítáme je,
-                   aby výpočet zůstatku nespadl a nezahodil část zaplacené částky. */
                 if (Predmet::jeToVstupnePozde((int)$r[PredmetSql::TYP], $r[PredmetSql::KOD_PREDMETU])) {
-                    $this->cenaVstupnePozde += $cena;
+                    $this->cenaVstupnePozde = $cena;
                 } else {
-                    $this->cenaVstupne += $cena;
+                    $this->cenaVstupne = $cena;
                 }
-                $this->dobrovolneVstupnePrehled[] = $this->formatujProLog(
+                $this->dobrovolneVstupnePrehled = $this->formatujProLog(
                     nazev: "{$r[PredmetSql::NAZEV]} $cena.-",
                     castka: $cena,
                     kategorie: (int)$r[PredmetSql::TYP],

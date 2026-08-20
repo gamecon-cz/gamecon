@@ -385,30 +385,60 @@ SQL,
     }
 
     /**
+     * Dvojí vstupné je anomálie dat (souběh dvou odeslání přihlášky), ne dva příspěvky —
+     * jde o jeden a týž příspěvek zapsaný dvakrát, takže se počítá jen jednou.
+     *
      * @test
      */
-    public function testDvojiVstupneVcasSeSecte(): void
+    public function testDvojiVstupneVcasSePocitaJenJednou(): void
     {
         $this->vlozNakup(44409, 117);
         $this->vlozNakup(44409, 117);
         $finance = $this->dejFinanci();
 
-        self::assertSame(234.0, $finance->cenaVstupne());
-        self::assertSame(234.0, $this->sumaCastekBfgr($finance->dejPolozkyProBfgr(), TypPredmetu::VSTUPNE));
-        self::assertSame(234.0, $this->sumaCastekStrukturovany($finance->dejStrukturovanyPrehled(), TypPredmetu::VSTUPNE));
+        self::assertSame(117.0, $finance->cenaVstupne());
+        self::assertSame(117.0, $this->sumaCastekBfgr($finance->dejPolozkyProBfgr(), TypPredmetu::VSTUPNE));
+        self::assertSame(117.0, $this->sumaCastekStrukturovany($finance->dejStrukturovanyPrehled(), TypPredmetu::VSTUPNE));
     }
 
     /**
      * @test
      */
-    public function testDvojiVstupnePozdeSeSecte(): void
+    public function testDvojiVstupnePozdeSePocitaJenJednou(): void
     {
         $this->vlozNakup(44410, 100);
         $this->vlozNakup(44410, 100);
         $finance = $this->dejFinanci();
 
-        self::assertSame(200.0, $finance->cenaVstupnePozde());
-        self::assertSame(200.0, $this->sumaCastekBfgr($finance->dejPolozkyProBfgr(), TypPredmetu::VSTUPNE));
+        self::assertSame(100.0, $finance->cenaVstupnePozde());
+        self::assertSame(100.0, $this->sumaCastekBfgr($finance->dejPolozkyProBfgr(), TypPredmetu::VSTUPNE));
+    }
+
+    /**
+     * Po souběhu dvou odeslání jsou obě částky stejné, takže je jedno která projde. Kdyby se přesto
+     * lišily (ruční zásah do DB), počítá se jedna z nich — nikdy ne součet.
+     *
+     * @test
+     */
+    public function testRuznaDvojiVstupneSeNesecte(): void
+    {
+        $this->vlozNakup(44409, 117);
+        $this->vlozNakup(44409, 300);
+
+        self::assertContains($this->dejFinanci()->cenaVstupne(), [117.0, 300.0]);
+    }
+
+    /**
+     * @test
+     */
+    public function testDvojiVstupneJeVeVypisuJenJednou(): void
+    {
+        $this->vlozNakup(44409, 117);
+        $this->vlozNakup(44409, 117);
+        $finance = $this->dejFinanci();
+
+        self::assertCount(1, $finance->dejPolozkyProBfgr());
+        self::assertCount(1, $finance->dejStrukturovanyPrehled());
     }
 
     /**
@@ -419,7 +449,7 @@ SQL,
         $this->vlozNakup(44409, 117);
         $this->vlozNakup(44409, 117);
 
-        self::assertSame(-234.0, $this->dejFinanci()->stav());
+        self::assertSame(-117.0, $this->dejFinanci()->stav());
     }
 
     /**
