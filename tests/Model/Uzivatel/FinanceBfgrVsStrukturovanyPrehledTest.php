@@ -387,6 +387,44 @@ SQL,
     /**
      * @test
      */
+    public function testDvojiVstupneVcasSeSecte(): void
+    {
+        $this->vlozNakup(44409, 117);
+        $this->vlozNakup(44409, 117);
+        $finance = $this->dejFinanci();
+
+        self::assertSame(234.0, $finance->cenaVstupne());
+        self::assertSame(234.0, $this->sumaCastekBfgr($finance->dejPolozkyProBfgr(), TypPredmetu::VSTUPNE));
+        self::assertSame(234.0, $this->sumaCastekStrukturovany($finance->dejStrukturovanyPrehled(), TypPredmetu::VSTUPNE));
+    }
+
+    /**
+     * @test
+     */
+    public function testDvojiVstupnePozdeSeSecte(): void
+    {
+        $this->vlozNakup(44410, 100);
+        $this->vlozNakup(44410, 100);
+        $finance = $this->dejFinanci();
+
+        self::assertSame(200.0, $finance->cenaVstupnePozde());
+        self::assertSame(200.0, $this->sumaCastekBfgr($finance->dejPolozkyProBfgr(), TypPredmetu::VSTUPNE));
+    }
+
+    /**
+     * @test
+     */
+    public function testDvojiVstupneNeshodiVypocetZustatku(): void
+    {
+        $this->vlozNakup(44409, 117);
+        $this->vlozNakup(44409, 117);
+
+        self::assertSame(-234.0, $this->dejFinanci()->stav());
+    }
+
+    /**
+     * @test
+     */
     public function testProplaceniBonusuJenVBfgr(): void
     {
         $this->vlozNakup(44412, 500);
