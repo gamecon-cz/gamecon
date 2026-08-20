@@ -37,7 +37,7 @@ class GoogleApiClientTest extends AbstractTestDb
             $prihlasenyUzivatelId,
         );
 
-        $googleApiClient->odeberPristup();
+        $googleApiClient->revokeAccess();
 
         self::assertFalse(
             $tokenStorage->hasTokensFor($prihlasenyUzivatelId),
