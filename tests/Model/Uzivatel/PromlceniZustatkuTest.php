@@ -181,7 +181,7 @@ SQL;
     {
         $systemoveNastaveni = $this->createMock(SystemoveNastaveni::class);
         $systemoveNastaveni->method('rocnik')->willReturn(2025);
-        $systemoveNastaveni->method('poPrihlasovaniUcastniku')->willReturn(false);
+        $systemoveNastaveni->method('jePoPrihlasovaniUcastniku')->willReturn(false);
 
         $jobResultLogger = $this->createMock(JobResultLoggerInterface::class);
 
@@ -198,7 +198,7 @@ SQL;
     {
         $systemoveNastaveni = $this->createMock(SystemoveNastaveni::class);
         $systemoveNastaveni->method('rocnik')->willReturn(2025);
-        $systemoveNastaveni->method('poPrihlasovaniUcastniku')->willReturn(false);
+        $systemoveNastaveni->method('jePoPrihlasovaniUcastniku')->willReturn(false);
 
         $jobResultLogger = $this->createMock(JobResultLoggerInterface::class);
 
@@ -246,7 +246,7 @@ SQL;
     {
         $systemoveNastaveni = $this->createMock(SystemoveNastaveni::class);
         $systemoveNastaveni->method('rocnik')->willReturn(2025);
-        $systemoveNastaveni->method('poPrihlasovaniUcastniku')->willReturn(false);
+        $systemoveNastaveni->method('jePoPrihlasovaniUcastniku')->willReturn(false);
 
         $jobResultLogger = $this->createMock(JobResultLoggerInterface::class);
 
