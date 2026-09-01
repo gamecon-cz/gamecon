@@ -238,6 +238,12 @@ trait DateTimeCzTrait
         return parent::format(self::FORMAT_DATUM_DB);
     }
 
+    /** Vrací datum bez roku - tvar d. m. */
+    public function formatDatumLetos(): string
+    {
+        return parent::format(self::FORMAT_DATUM_LETOS);
+    }
+
     /**
      * Vrací běžně používaný formát data - tvar d. m. yyyy
      *

@@ -721,10 +721,11 @@ SQL;
             $uzivatelSystemId = \Uzivatel::SYSTEM;
             $result           = dbQuery(<<<SQL
                 SELECT
+                    NULLIF(COALESCE(pripsano_na_ucet_banky, provedeno), '0000-00-00 00:00:00') as datum,
                     IF(provedl=$uzivatelSystemId,
-                      CONCAT(DATE_FORMAT(COALESCE(pripsano_na_ucet_banky, provedeno),'%e.%c.'),' Platba na účet'),
-                      CONCAT(DATE_FORMAT(COALESCE(pripsano_na_ucet_banky, provedeno),'%e.%c.'),' ',IFNULL(poznamka,'(bez poznámky)'))
-                      ) as nazev,
+                      'Platba na účet',
+                      IFNULL(poznamka,'(bez poznámky)')
+                      ) as popis,
                     castka as cena
                 FROM platby
                 WHERE id_uzivatele = {$this->u->id()} AND rok = $rocnik
@@ -733,14 +734,20 @@ SQL;
             $sumaPlateb       = 0.0;
             while ($row = mysqli_fetch_assoc($result)) {
                 $sumaPlateb += (float)$row['cena'];
+                // Nulové datum ('0000-00-00') je v DB možné (sql_mode nemá NO_ZERO_DATE) a PHP
+                // by ho přeložilo na uvěřitelné „30. 11.“ místo aby bylo vidět, že datum chybí.
+                $datum = $row['datum'] !== null
+                    ? DateTimeCz::createFromMysql($row['datum'])->formatDatumLetos() . ' '
+                    : '';
+                $nazev = $datum . $row['popis'];
                 $this->log(
-                    nazev: $row['nazev'],
+                    nazev: $nazev,
                     castka: $row['cena'],
                     kategorie: self::PLATBA,
                     idPolozky: null,
                 );
                 $this->logPolozkaProBfgr(
-                    nazev: $row['nazev'],
+                    nazev: $nazev,
                     pocet: 1,
                     priceAfterDiscountDto: new PriceAfterDiscountDto(
                         finalPrice: -(float)$row['cena'],
