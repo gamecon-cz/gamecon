@@ -95,16 +95,21 @@ SQL,
         ],
     ];
 
-    private function vlozPlatbu(float $castka, string $poznamka = 'Test platba'): void
-    {
+    private function vlozPlatbu(
+        float $castka,
+        string $poznamka = 'Test platba',
+        ?string $provedeno = null,
+        ?int $provedl = null,
+    ): void {
         dbQuery(
-            'INSERT INTO platby(id_uzivatele, castka, rok, provedeno, poznamka, provedl) VALUES($0, $1, $2, NOW(), $3, $4)',
+            'INSERT INTO platby(id_uzivatele, castka, rok, provedeno, poznamka, provedl) VALUES($0, $1, $2, COALESCE($3, NOW()), $4, $5)',
             [
                 0 => 555,
                 1 => $castka,
                 2 => ROCNIK,
-                3 => $poznamka,
-                4 => 555,
+                3 => $provedeno,
+                4 => $poznamka,
+                5 => $provedl ?? 555,
             ],
         );
     }
@@ -825,4 +830,65 @@ SQL,
             'FK ON DELETE CASCADE musí smazat generované slevy zaniklého uživatele',
         );
     }
+
+    /**
+     * @test
+     */
+    public function testDatumPlatbyMaMeziDnemAMesicemMezeru(): void
+    {
+        $this->vlozPlatbu(
+            castka: 337,
+            provedeno: ROCNIK . '-07-19 10:00:00',
+            provedl: \Uzivatel::SYSTEM,
+        );
+
+        $html = Accounting::getPersonalFinance($this->dejUzivatele(), showDiscounts: false)->formatForHtml();
+
+        self::assertStringContainsString('19. 7. Platba na účet', $html);
+    }
+
+    /**
+     * @test
+     */
+    public function testDatumPlatbySPoznamkouMaMeziDnemAMesicemMezeru(): void
+    {
+        $this->vlozPlatbu(
+            castka: 215,
+            poznamka: 'srovnání nějakého loňského bordelu',
+            provedeno: ROCNIK . '-07-19 10:00:00',
+        );
+
+        $html = Accounting::getPersonalFinance($this->dejUzivatele(), showDiscounts: false)->formatForHtml();
+
+        self::assertStringContainsString('19. 7. srovnání nějakého loňského bordelu', $html);
+    }
+
+    /**
+     * @test
+     */
+    public function testNuloveDatumPlatbySeNezobraziJakoSmyslneDatum(): void
+    {
+        // sql_mode nemá NO_ZERO_DATE, takže '0000-00-00' v DB být může.
+        dbQuery(
+            "INSERT INTO platby(id_uzivatele, castka, rok, provedeno, pripsano_na_ucet_banky, poznamka, provedl)
+             VALUES($0, $1, $2, NOW(), '0000-00-00 00:00:00', $3, $4)",
+            [
+                0 => 555,
+                1 => 100,
+                2 => ROCNIK,
+                3 => 'platba bez data',
+                4 => 555,
+            ],
+        );
+
+        $html = Accounting::getPersonalFinance($this->dejUzivatele(), showDiscounts: false)->formatForHtml();
+
+        self::assertStringContainsString('platba bez data', $html);
+        self::assertStringNotContainsString(
+            '30. 11. platba bez data',
+            $html,
+            'Chybějící datum se nesmí zobrazit jako uvěřitelné datum (PHP překládá nulové datum na 30. 11. roku -0001)',
+        );
+    }
+
 }
