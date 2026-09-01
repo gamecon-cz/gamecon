@@ -86,6 +86,10 @@ if (!$zaplaceno) {
             width: 20px;
         }
 
+        .tabVeci table .objednavky--polozka td:first-child {
+            padding-left: 1em;
+        }
+
         .payment-methods {
             display: grid;
             gap: 24px;
