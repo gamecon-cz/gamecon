@@ -1591,6 +1591,10 @@ Radio musí být ve tvaru:
   color: inherit;
 }
 
+.objednavky .objednavky--polozka td:first-child {
+  padding-left: 1em;
+}
+
 @media (min-width: 1100px) {
   .vyber-casu {
     position: absolute;

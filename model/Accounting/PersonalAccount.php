@@ -87,7 +87,7 @@ readonly class PersonalAccount
             if ($groupedSplit['count'] > 1) {
                 $description .= ' ' . $groupedSplit['count'] . '×';
             }
-            $result = $result . '<tr><td>' . $description . '</td><td>'
+            $result = $result . '<tr class="objednavky--polozka"><td>' . $description . '</td><td>'
                 . ($negatePrice ? -1 : 1) * $groupedSplit['amount']
                 . '</td></tr>';
         }

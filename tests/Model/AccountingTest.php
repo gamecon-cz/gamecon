@@ -585,8 +585,8 @@ SQL,
         $html = $account->formatForHtml(positivePrices: true);
 
         self::assertStringContainsString('<tr><td><b>Aktivity</b></td><td><b>250</b></td></tr>', $html);
-        self::assertStringContainsString('<tr><td>Vodní bitva</td><td>100</td></tr>', $html);
-        self::assertStringContainsString('<tr><td>Kubb</td><td>150</td></tr>', $html);
+        self::assertStringContainsString('<tr class="objednavky--polozka"><td>Vodní bitva</td><td>100</td></tr>', $html);
+        self::assertStringContainsString('<tr class="objednavky--polozka"><td>Kubb</td><td>150</td></tr>', $html);
     }
 
     /**
@@ -891,4 +891,24 @@ SQL,
         );
     }
 
+    /**
+     * @test
+     */
+    public function testPolozkyPrehleduMajiVlastniTriduKvuliOdsazeni(): void
+    {
+        $this->vlozAktivitu(idAktivity: 55613, nazev: 'Krycí jména', cena: 220);
+
+        $html = Accounting::getPersonalFinance($this->dejUzivatele(), showDiscounts: false)->formatForHtml();
+
+        self::assertStringContainsString(
+            '<tr class="objednavky--polozka"><td>Krycí jména</td>',
+            $html,
+            'Řádky jednotlivých položek musí mít třídu, podle které se odsadí od souhrnných řádků kategorií',
+        );
+        self::assertStringNotContainsString(
+            '<tr class="objednavky--polozka"><td><b>',
+            $html,
+            'Souhrnné řádky kategorií se odsazovat nemají',
+        );
+    }
 }
