@@ -1,3 +1,11 @@
+# Where docker-compose.yml mounts the sources inside the container. The image
+# bakes the same path in (APACHE_DOCUMENT_ROOT and WORKDIR in .docker/Dockerfile,
+# DocumentRoot in the apache config), so it does not depend on the host directory
+# name — and must not. Deriving it from the project basename broke every git
+# worktree whose directory is not named "gamecon": the wrappers then failed with
+# "chdir to cwd ... failed".
+GAMECON_CONTAINER_DIR="/var/www/html/gamecon"
+
 if [ -t 0 ] && [ -t 1 ]; then
 	DC_INTERACTIVITY=""
 else
