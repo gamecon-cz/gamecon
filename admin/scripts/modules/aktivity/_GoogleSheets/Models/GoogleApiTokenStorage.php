@@ -128,21 +128,4 @@ SQL
         }
     }
 
-    public function deleteAllTokens() {
-        try {
-            dbQuery(<<<SQL
-DELETE FROM google_api_user_tokens
-WHERE google_client_id = $1
-SQL
-                , [$this->googleClientId]
-            );
-        } catch (\DbException $exception) {
-            throw new GoogleSheetsException(
-                "Can not delete Google API tokens: {$exception->getMessage()}",
-                $exception->getCode(),
-                $exception
-            );
-        }
-    }
-
 }
