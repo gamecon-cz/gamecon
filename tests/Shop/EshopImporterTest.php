@@ -129,6 +129,41 @@ SQL,
     /**
      * @test
      */
+    public function importDaNovePolozceVychoziVariantu(): void
+    {
+        $soubor = $this->createXlsxSoubor([
+            $this->defaultniRadek([
+                'kod_predmetu'  => 'POLOZKA_S_VARIANTOU',
+                'nazev'         => 'Předmět s variantou',
+                'kusu_vyrobeno' => 7,
+            ]),
+        ]);
+
+        $importer = new EshopImporter($soubor);
+        $importer->importuj();
+
+        // Bez varianty je předmět pro košík neviditelný — nejde ho do něj vložit.
+        $varianta = dbOneLine(<<<SQL
+SELECT product_variant.name, product_variant.code, product_variant.price, product_variant.remaining_quantity
+FROM product_variant
+JOIN shop_predmety ON shop_predmety.id_predmetu = product_variant.product_id
+WHERE shop_predmety.kod_predmetu = $0
+SQL,
+            [
+                0 => 'POLOZKA_S_VARIANTOU',
+            ],
+        );
+
+        self::assertNotNull($varianta, 'Nová položka musí dostat výchozí variantu.');
+        self::assertSame('Předmět s variantou', $varianta['name']);
+        self::assertSame('POLOZKA_S_VARIANTOU', $varianta['code']);
+        self::assertNull($varianta['price'], 'Cena se dědí z předmětu, aby ji jeho změna dál ovlivňovala.');
+        self::assertSame(7, (int) $varianta['remaining_quantity']);
+    }
+
+    /**
+     * @test
+     */
     public function importAktualizujeExistujiciPolozky(): void
     {
         $uniqueId = uniqid();
