@@ -209,6 +209,46 @@ SQL,
             );
             $pocetNovych = dbAffectedOrNumRows($mysqliResult);
 
+            // Every product is addressable by the cart through a variant, so a product without one
+            // is invisible to it. Give each imported product the default variant mirroring itself,
+            // the same shape the backfill migration created for legacy rows. Restricted to the
+            // imported codes, so a product whose variants were deliberately removed elsewhere does
+            // not get one resurrected here.
+            dbQuery(<<<SQL
+INSERT INTO product_variant (product_id, name, code, price, remaining_quantity, reserved_for_organizers, accommodation_day, position)
+SELECT shop_predmety.id_predmetu,
+       shop_predmety.nazev,
+       shop_predmety.kod_predmetu,
+       NULL,
+       shop_predmety.kusu_vyrobeno,
+       NULL,
+       shop_predmety.ubytovani_den,
+       0
+FROM shop_predmety
+JOIN `$temporaryTable` AS import ON import.kod_predmetu = shop_predmety.kod_predmetu
+WHERE NOT EXISTS (
+    SELECT 1 FROM product_variant WHERE product_variant.product_id = shop_predmety.id_predmetu
+)
+  AND NOT EXISTS (
+    -- code is UNIQUE across all variants; colliding would abort the whole import
+    SELECT 1 FROM product_variant AS jine WHERE jine.code = shop_predmety.kod_predmetu
+)
+SQL,
+            );
+
+            // A re-import may rename a product or change its stock; the default variant mirrors it,
+            // so it has to follow, otherwise the cart keeps showing (and snapshotting) the old label.
+            dbQuery(<<<SQL
+UPDATE product_variant
+JOIN shop_predmety ON shop_predmety.id_predmetu = product_variant.product_id
+JOIN `$temporaryTable` AS import ON import.kod_predmetu = shop_predmety.kod_predmetu
+SET product_variant.name = shop_predmety.nazev,
+    product_variant.remaining_quantity = shop_predmety.kusu_vyrobeno,
+    product_variant.accommodation_day = shop_predmety.ubytovani_den
+WHERE product_variant.code = shop_predmety.kod_predmetu
+SQL,
+            );
+
             // Sync tags for all imported products (new and updated)
             foreach ($tagsByKodPredmetu as $kodPredmetu => $tagCode) {
                 $idPredmetu = dbOneCol(
