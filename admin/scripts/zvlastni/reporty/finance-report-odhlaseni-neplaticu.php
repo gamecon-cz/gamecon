@@ -50,7 +50,7 @@ $data = dbFetchAll(<<<SQL
             shop_nakupy_zrusene.datum_zruseni    AS zruseno_kdy,
             shop_nakupy_zrusene.zdroj_zruseni    AS zdroj
         FROM shop_nakupy_zrusene
-        JOIN shop_predmety ON shop_predmety.id_predmetu = shop_nakupy_zrusene.id_predmetu
+        JOIN shop_predmety_s_typem AS shop_predmety ON shop_predmety.id_predmetu = shop_nakupy_zrusene.id_predmetu
         WHERE shop_nakupy_zrusene.zdroj_zruseni = 'rucne-hromadne'
            OR shop_nakupy_zrusene.zdroj_zruseni LIKE 'automaticky-%'
 

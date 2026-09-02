@@ -7,7 +7,8 @@
 -- (e.g. for the prodejMikinDo() deadline). Without this tag + view change,
 -- there is no way for the view to report a product as a hoodie.
 
-INSERT INTO product_tag (code, name, description, created_at)
+-- May already exist: the podtyp-to-hotel-tag migration creates it when it has legacy rows to carry over.
+INSERT IGNORE INTO product_tag (code, name, description, created_at)
 VALUES ('mikina', 'Mikina', NULL, NOW());
 
 CREATE OR REPLACE VIEW shop_predmety_s_typem AS
