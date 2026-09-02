@@ -13,12 +13,16 @@ use ApiPlatform\OpenApi\Model\Operation;
 use App\Dto\Cart\AddToCartInputDto;
 use App\Dto\Cart\CartOutputDto;
 use App\Dto\Cart\CheckoutInputDto;
+use App\Dto\Cart\EntryFeeOutputDto;
 use App\Dto\Cart\MealProductOutputDto;
+use App\Dto\Cart\SetEntryFeeInputDto;
 use App\State\Cart\AddToCartProcessor;
 use App\State\Cart\CartProvider;
 use App\State\Cart\CheckoutProcessor;
+use App\State\Cart\EntryFeeProvider;
 use App\State\Cart\MealProductsProvider;
 use App\State\Cart\RemoveFromCartProcessor;
+use App\State\Cart\SetEntryFeeProcessor;
 
 #[ApiResource(
     operations: [
@@ -30,6 +34,27 @@ use App\State\Cart\RemoveFromCartProcessor;
             openapi: new Operation(
                 summary: 'List available meals',
                 description: 'Returns flat list of meal products with variant info for the meal matrix UI.',
+            ),
+        ),
+        new Get(
+            uriTemplate: '/cart/entry-fee',
+            output: EntryFeeOutputDto::class,
+            provider: EntryFeeProvider::class,
+            security: "is_granted('ROLE_USER')",
+            openapi: new Operation(
+                summary: 'Current voluntary entry fee',
+                description: 'Returns the amount the customer has chosen, plus the slider parameters needed to render it.',
+            ),
+        ),
+        new Post(
+            uriTemplate: '/cart/entry-fee',
+            input: SetEntryFeeInputDto::class,
+            output: EntryFeeOutputDto::class,
+            processor: SetEntryFeeProcessor::class,
+            security: "is_granted('ROLE_USER')",
+            openapi: new Operation(
+                summary: 'Set the voluntary entry fee',
+                description: 'Sets the donated amount for the current year; replaces any previous amount.',
             ),
         ),
         new Get(

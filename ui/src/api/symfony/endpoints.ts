@@ -1,6 +1,7 @@
 import { symfonyFetch } from "./fetch";
 import {
   ApiCart,
+  ApiEntryFee,
   ApiHydraCollection,
   ApiMealProduct,
   ApiProduct,
@@ -126,4 +127,28 @@ export const deleteProduct = async (id: number): Promise<void> => {
     method: "DELETE",
   });
   if (!res.ok) throw new Error(`Failed to delete product: ${res.status}`);
+};
+
+/**
+ * Fetch the voluntary entry fee and the parameters its slider needs
+ */
+export const fetchEntryFee = async (): Promise<ApiEntryFee> => {
+  const res = await symfonyFetch("cart/entry-fee");
+  if (!res.ok) throw new Error(`Failed to fetch entry fee: ${res.status}`);
+  return await res.json() as ApiEntryFee;
+};
+
+/**
+ * Set the voluntary entry fee for the current year
+ */
+export const setEntryFee = async (amount: number): Promise<ApiEntryFee> => {
+  const res = await symfonyFetch("cart/entry-fee", {
+    method: "POST",
+    body: JSON.stringify({ amount }),
+  });
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({}));
+    throw new Error(err.detail ?? `Failed to set entry fee: ${res.status}`);
+  }
+  return await res.json() as ApiEntryFee;
 };
