@@ -1,6 +1,8 @@
 <?php
 
-/** @var \Godric\DbMigrations\Migration $this */
+declare(strict_types=1);
+
+/** @var Godric\DbMigrations\Migration $this */
 
 // Add breakfast_included column: boolean attribute on accommodation products
 // that signals "price already includes breakfast" (hotel rooms).
@@ -33,6 +35,24 @@ if ($podtypColumnExists) {
 UPDATE shop_predmety
 SET breakfast_included = 1
 WHERE podtyp = 'hotel'
+SQL,
+    );
+
+    // podtyp='mikina' has no attribute to move to — it becomes the 'mikina' tag, which the
+    // later view migration translates back into podtyp='mikina'. Both the tag and the rows
+    // carrying it must be created here, before the column that holds them is dropped.
+    $this->q(<<<SQL
+INSERT IGNORE INTO product_tag (code, name, description, created_at)
+VALUES ('mikina', 'Mikina', NULL, NOW())
+SQL,
+    );
+
+    $this->q(<<<SQL
+INSERT IGNORE INTO product_product_tag (product_id, tag_id)
+SELECT shop_predmety.id_predmetu, product_tag.id
+FROM shop_predmety
+JOIN product_tag ON product_tag.code = 'mikina'
+WHERE shop_predmety.podtyp = 'mikina'
 SQL,
     );
 
