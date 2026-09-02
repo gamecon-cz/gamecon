@@ -6,7 +6,9 @@ This document describes the new e-shop system implementation that removes `model
 
 **Date:** 2026-01-31
 **Author:** Claude Code
-**Status:** Implemented (needs testing & deployment)
+**Status:** Backend implemented and tested. The customer-facing storefront still runs on the
+legacy `Gamecon\Shop\Shop` class — see "What is still missing" in
+`docs/ESHOP_IMPLEMENTATION_SUMMARY.md` for the gap against `NEW_ESHOP.md`.
 
 ---
 
@@ -205,17 +207,18 @@ class Order {
 
 ### Migration Files
 
-Located in `migrace/2026-01-31-new-eshop-*.sql`:
+Ten migrations under `migrace/2026-09-02-1000*` and
+`symfony/migrations/structures/2026-09-02-1000*`, applied by the normal runner:
 
-1. `01-remove-model-rok.sql` - Drop old columns, add new ones
-2. `02-create-product-tags.sql` - Create product_tag table
-3. `03-create-product-bundles.sql` - Create bundle tables
-4. `04-create-product-discounts.sql` - Create discounts table
-5. `05-add-orderitem-snapshot.sql` - Add snapshot to shop_nakupy
-6. `06-migrate-typ-to-tags.sql` - Migrate data from typ → tags
-7. `07-create-orders-table.sql` - Optional Order table
+```bash
+./bin-docker/php ./bin/console migrations:continue
+```
 
-**IMPORTANT:** See `migrace/2026-01-31-new-eshop-README.md` for detailed migration instructions!
+They were renamed during the September 2026 rebase so they sort after the migrations `main`
+gained during the festival; earlier drafts of this document named them `2026-01-31-new-eshop-NN-*.sql`.
+
+**IMPORTANT:** See `docs/2026-01-31_00-new-eshop-README.md` for the per-file table, the
+`shop_predmety_s_typem` compatibility view, and the verification queries.
 
 ### Key Schema Changes
 
@@ -465,13 +468,13 @@ vendor/bin/phpunit --coverage-html coverage/
 ## Support & Questions
 
 For technical questions or issues:
-1. Check migration README: `migrace/2026-01-31-new-eshop-README.md`
+1. Check migration README: `docs/2026-01-31_00-new-eshop-README.md`
 2. Review entity PHPDoc comments
 3. Check test examples for usage patterns
 4. Contact development team
 
 ---
 
-**Last Updated:** 2026-01-31
-**Version:** 1.0
+**Last Updated:** 2026-09-02
+**Version:** 1.1
 **Requires:** PHP 8.2+, MariaDB 10.6+, Doctrine ORM
