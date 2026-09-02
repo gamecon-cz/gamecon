@@ -137,6 +137,7 @@ const GAMECON_KONSTANTY_DEFAULT: GameconKonstanty = {
   JE_ADMIN: false,
   URL_PROGRAM_CACHE: "/cache/public/program",
   programManifest: null,
+  IS_DEV_SERVER: false,
   PROGRAM_VYCHOZI_NASTAVENI: {},
   PROGRAM_VYCHOZI_VYBER: null,
   PROGRAM_MISTNOSTI: [],
