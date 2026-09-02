@@ -10,7 +10,7 @@ use Symfony\Component\Filesystem\Filesystem;
 
 class BackupsTest extends KernelTestCase
 {
-    private \mysqli $connection;
+    private \PDO $connection;
     private string $backupDir;
 
     protected function setUp(): void
