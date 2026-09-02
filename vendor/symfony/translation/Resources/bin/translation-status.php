@@ -87,8 +87,8 @@ foreach ($config['original_files'] as $originalFilePath) {
     $translationFilePaths = findTranslationFiles($originalFilePath, $config['locale_to_analyze']);
     $translationStatus = calculateTranslationStatus($originalFilePath, $translationFilePaths);
 
-    $totalMissingTranslations += array_sum(array_map(fn ($translation) => count($translation['missingKeys']), array_values($translationStatus)));
-    $totalTranslationMismatches += array_sum(array_map(fn ($translation) => count($translation['mismatches']), array_values($translationStatus)));
+    $totalMissingTranslations += array_sum(array_map(static fn ($translation) => count($translation['missingKeys']), array_values($translationStatus)));
+    $totalTranslationMismatches += array_sum(array_map(static fn ($translation) => count($translation['mismatches']), array_values($translationStatus)));
 
     printTranslationStatus($originalFilePath, $translationStatus, $config['verbose_output'], $config['include_completed_languages']);
 }
@@ -218,7 +218,7 @@ function printTable($translations, $verboseOutput, bool $includeCompletedLanguag
 
         if ($translation['translated'] > $translation['total']) {
             textColorRed();
-        } elseif (count($translation['mismatches']) > 0) {
+        } elseif ($translation['mismatches']) {
             textColorRed();
         } elseif ($translation['is_completed']) {
             textColorGreen();
@@ -235,7 +235,7 @@ function printTable($translations, $verboseOutput, bool $includeCompletedLanguag
         textColorNormal();
 
         $shouldBeClosed = false;
-        if (true === $verboseOutput && count($translation['missingKeys']) > 0) {
+        if ($verboseOutput && $translation['missingKeys']) {
             echo '|    Missing Translations:'.\PHP_EOL;
 
             foreach ($translation['missingKeys'] as $id => $content) {
@@ -243,7 +243,7 @@ function printTable($translations, $verboseOutput, bool $includeCompletedLanguag
             }
             $shouldBeClosed = true;
         }
-        if (true === $verboseOutput && count($translation['mismatches']) > 0) {
+        if ($verboseOutput && $translation['mismatches']) {
             echo '|    Mismatches between trans-unit id and source:'.\PHP_EOL;
 
             foreach ($translation['mismatches'] as $id => $content) {
