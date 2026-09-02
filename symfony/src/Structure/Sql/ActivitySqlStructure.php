@@ -67,6 +67,11 @@ class ActivitySqlStructure
     public const nedava_bonus = 'nedava_bonus';
 
     /**
+     * @see Activity::$turnajKolo
+     */
+    public const turnaj_kolo = 'turnaj_kolo';
+
+    /**
      * @see Activity::$rok
      */
     public const rok = 'rok';
@@ -92,14 +97,14 @@ class ActivitySqlStructure
     public const team_kapacita = 'team_kapacita';
 
     /**
-     * @see Activity::$teamNazev
+     * @see Activity::$tymSmazatPoExpiraci
      */
-    public const team_nazev = 'team_nazev';
+    public const tym_smazat_po_expiraci = 'tym_smazat_po_expiraci';
 
     /**
-     * @see Activity::$forTeamLockedAt
+     * @see Activity::$description
      */
-    public const zamcel_cas = 'zamcel_cas';
+    public const popis = 'popis';
 
     /**
      * @see Activity::$shortDescription
@@ -132,17 +137,12 @@ class ActivitySqlStructure
     public const typ = 'typ';
 
     /**
+     * @see Activity::$tournament
+     */
+    public const id_turnaje = 'id_turnaje';
+
+    /**
      * @see Activity::$status
      */
     public const stav = 'stav';
-
-    /**
-     * @see Activity::$description
-     */
-    public const popis = 'popis';
-
-    /**
-     * @see Activity::$forTeamLockedBy
-     */
-    public const zamcel = 'zamcel';
 }
