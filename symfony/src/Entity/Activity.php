@@ -126,18 +126,6 @@ class Activity
     ])]
     private bool $tymSmazatPoExpiraci = true;
 
-    #[ORM\ManyToOne(targetEntity: User::class)]
-    #[ORM\JoinColumn(name: 'zamcel', referencedColumnName: 'id_uzivatele', nullable: true, onDelete: 'SET NULL', options: [
-        'comment'  => 'případně kdo zamčel aktivitu pro svůj team',
-        'onUpdate' => 'CASCADE',
-    ])]
-    private ?User $forTeamLockedBy = null;
-
-    #[ORM\Column(name: 'zamcel_cas', type: Types::DATETIME_MUTABLE, nullable: true, options: [
-        'comment' => 'případně kdy zamčel aktivitu',
-    ])]
-    private ?\DateTime $forTeamLockedAt = null;
-
     #[ORM\Column(name: 'popis', type: Types::TEXT, nullable: false, options: [
         'comment' => 'markdown',
     ])]
