@@ -90,3 +90,13 @@ export type ApiHydraCollection<T> = {
   "hydra:totalItems"?: number;
   "totalItems"?: number;
 };
+
+export type ApiEntryFee = {
+  amount: string;
+  lastYearAveragePercent: number;
+  lastYear: number;
+  gammaCorrection: number;
+  minimum: number;
+  maximum: number;
+  maximumAmount: number;
+};
