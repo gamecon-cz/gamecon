@@ -38,7 +38,7 @@ FROM akce_seznam
 WHERE dite IS NOT NULL
   AND dite != ''
 SQL,
-)->fetch_all(MYSQLI_ASSOC);
+)->fetchAll(PDO::FETCH_ASSOC);
 
 // Sestavíme graf rodič -> děti a dítě -> rodiče
 $detiPodleRodice   = []; // int ID -> int[] IDs dětí
@@ -69,7 +69,7 @@ SELECT id_akce, nazev_akce, rok
 FROM akce_seznam
 WHERE id_akce IN ($chybejiciIdsCsv)
 SQL,
-    )->fetch_all(MYSQLI_ASSOC);
+    )->fetchAll(PDO::FETCH_ASSOC);
     foreach ($chybejiciAktivity as $aktivita) {
         $id                  = (int)$aktivita['id_akce'];
         $nazevPodleId[$id]   = $aktivita['nazev_akce'];
@@ -141,7 +141,7 @@ foreach ($turnaje as $idTempTurnaje => $aktivityVTurnaji) {
 
     // Název turnaje = nazev_akce prvního kořene, rok = rok prvního kořene
     $korenProNazev    = $koreny[0];
-    $nazevTurnaje     = $this->connection->real_escape_string($nazevPodleId[$korenProNazev] ?? '');
+    $nazevTurnaje     = substr($this->connection->quote($nazevPodleId[$korenProNazev] ?? ''), 1, -1);
     $rokTurnaje       = (int)($rokPodleId[$korenProNazev] ?? 0);
 
     $this->q(<<<SQL
@@ -150,7 +150,7 @@ VALUES ('{$nazevTurnaje}', {$rokTurnaje})
 SQL,
     );
 
-    $dbIdTurnaje = (int)$this->connection->insert_id;
+    $dbIdTurnaje = (int)$this->connection->lastInsertId();
 
     // UPDATE aktivit v tomto turnaji
     foreach ($aktivityVTurnaji as $aktivitaId) {

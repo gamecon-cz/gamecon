@@ -237,7 +237,7 @@ $renameIndex('reporty_log_pouziti', 'id_reportu_2', 'IDX_id_reportu_id_uzivatele
 
 // akce_seznam: add column + FK before renames
 if (!$columnExists('akce_seznam', 'id_hlavni_lokace')) {
-    $this->q("ALTER TABLE akce_seznam ADD id_hlavni_lokace BIGINT UNSIGNED DEFAULT NULL, CHANGE team_limit team_limit INT DEFAULT NULL COMMENT 'uživatelem (vedoucím týmu) nastavený limit kapacity menší roven team_max, ale větší roven team_min. Prostřednictvím on update triggeru kontrolována tato vlastnost a je-li non-null, tak je tato kapacita nastavena do sloupce `kapacita`'");
+    $this->q("ALTER TABLE akce_seznam ADD id_hlavni_lokace BIGINT UNSIGNED DEFAULT NULL");
     if (!$fkExists('akce_seznam', 'FK_2EE8EBF09E0F2899')) {
         $this->q("ALTER TABLE akce_seznam ADD CONSTRAINT FK_2EE8EBF09E0F2899 FOREIGN KEY (id_hlavni_lokace) REFERENCES lokace (id_lokace) ON DELETE SET NULL");
     }
@@ -252,8 +252,11 @@ SET id_hlavni_lokace = (SELECT akce_lokace.id_lokace
                           AND akce_lokace.je_hlavni = 1
                         LIMIT 1)
 SQL);
-} else {
-    // Column exists but team_limit comment may need updating
+}
+
+// team_limit moved to akce_tym in the meantime (2026-03-23 migration), so this comment sync only applies
+// to databases that still carry the column
+if ($columnExists('akce_seznam', 'team_limit')) {
     $this->q("ALTER TABLE akce_seznam CHANGE team_limit team_limit INT DEFAULT NULL COMMENT 'uživatelem (vedoucím týmu) nastavený limit kapacity menší roven team_max, ale větší roven team_min. Prostřednictvím on update triggeru kontrolována tato vlastnost a je-li non-null, tak je tato kapacita nastavena do sloupce `kapacita`'");
 }
 
