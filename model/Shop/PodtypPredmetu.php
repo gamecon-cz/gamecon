@@ -6,7 +6,7 @@ namespace Gamecon\Shop;
 
 /**
  * Legacy constants for the `podtyp` column (dropped in migration
- * 2026-03-24-161200-podtyp-to-hotel-tag.php).
+ * 2026-09-02-100005_podtyp-to-hotel-tag.php).
  *
  * The `podtyp` string is still emitted virtually by the
  * `shop_predmety_s_typem` view via
