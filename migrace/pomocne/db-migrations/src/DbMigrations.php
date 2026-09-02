@@ -94,7 +94,16 @@ class DbMigrations
                     return $migration->getRelativePath();
                 }, $migrations);
 
-                $this->connection->query("CREATE TEMPORARY TABLE known_migration_paths_tmp (migration_path VARCHAR(256) PRIMARY KEY)");
+                // The join below compares this column with migrations.migration_path, so it must share
+                // its collation; the database default (e.g. utf8mb4_general_ci) is not guaranteed to.
+                $migrationPathCollation = $this->connection->query(
+                    "SELECT COLLATION_NAME FROM information_schema.COLUMNS
+                     WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'migrations' AND COLUMN_NAME = 'migration_path'",
+                )->fetchColumn();
+                $this->connection->query(
+                    "CREATE TEMPORARY TABLE known_migration_paths_tmp (migration_path VARCHAR(256) PRIMARY KEY)"
+                    . ($migrationPathCollation ? " COLLATE " . $migrationPathCollation : ''),
+                );
                 $migrationPathsSql = implode(
                     ',',
                     array_map(
