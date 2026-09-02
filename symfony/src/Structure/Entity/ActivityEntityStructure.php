@@ -65,6 +65,11 @@ class ActivityEntityStructure
     public const nedavaBonus = 'nedavaBonus';
 
     /**
+     * @see Activity::$turnajKolo
+     */
+    public const turnajKolo = 'turnajKolo';
+
+    /**
      * @see Activity::$rok
      */
     public const rok = 'rok';
@@ -90,9 +95,9 @@ class ActivityEntityStructure
     public const teamKapacita = 'teamKapacita';
 
     /**
-     * @see Activity::$teamNazev
+     * @see Activity::$tymSmazatPoExpiraci
      */
-    public const teamNazev = 'teamNazev';
+    public const tymSmazatPoExpiraci = 'tymSmazatPoExpiraci';
 
     /**
      * @see Activity::$description
@@ -108,11 +113,6 @@ class ActivityEntityStructure
      * @see Activity::$vybaveni
      */
     public const vybaveni = 'vybaveni';
-
-    /**
-     * @see Activity::$teamLimit
-     */
-    public const teamLimit = 'teamLimit';
 
     /**
      * @see Activity::$probehlaKorekce
@@ -138,6 +138,11 @@ class ActivityEntityStructure
      * @see Activity::$type
      */
     public const type = 'type';
+
+    /**
+     * @see Activity::$tournament
+     */
+    public const tournament = 'tournament';
 
     /**
      * @see Activity::$status

@@ -1340,7 +1340,7 @@ SQL
         // úplně všechno; místo toho podmínku vůbec nepřidáváme.
         $podminkaZachovani = $typyKZachovani
             ? 'AND shop_nakupy.id_predmetu NOT IN (
-                    SELECT id_predmetu FROM shop_predmety WHERE typ IN (' . implode(', ', array_map('intval', $typyKZachovani)) . ')
+                    SELECT id_predmetu FROM shop_predmety_s_typem WHERE typ IN (' . implode(', ', array_map('intval', $typyKZachovani)) . ')
                 )'
             : '';
 
