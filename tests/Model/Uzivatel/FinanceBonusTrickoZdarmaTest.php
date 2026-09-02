@@ -6,7 +6,6 @@ namespace Gamecon\Tests\Model\Uzivatel;
 
 use Gamecon\Cas\DateTimeImmutableStrict;
 use Gamecon\Pravo;
-use Gamecon\Shop\TypPredmetu;
 use Gamecon\SystemoveNastaveni\SystemoveNastaveni;
 use Gamecon\Tests\Db\AbstractTestDb;
 use Gamecon\Uzivatel\Finance;
@@ -55,31 +54,31 @@ SQL,
         // jeden předmět + dvě NEmodrá trička s různou cenou
         [
             <<<SQL
-INSERT INTO shop_predmety SET id_predmetu = 33420, nazev = 'nějaký předmět', model_rok = $0, kod_predmetu = CONCAT('bonus_predmet_', $0), cena_aktualni = 200, stav = 1, nabizet_do = NOW(), kusu_vyrobeno = 100, typ = $1
+INSERT INTO shop_predmety SET id_predmetu = 33420, nazev = 'nějaký předmět', kod_predmetu = CONCAT('bonus_predmet_', $0), cena_aktualni = 200, stav = 1, nabizet_do = NOW(), kusu_vyrobeno = 100
 SQL,
             [
                 0 => ROCNIK,
-                1 => TypPredmetu::PREDMET,
             ],
         ],
+        "INSERT INTO product_product_tag (product_id, tag_id) SELECT 33420, id FROM product_tag WHERE code = 'predmet'",
         [
             <<<SQL
-INSERT INTO shop_predmety SET id_predmetu = 33421, nazev = 'zelené tričko', model_rok = $0, kod_predmetu = CONCAT('bonus_zelene_tricko_', $0), cena_aktualni = 300, stav = 1, nabizet_do = NOW(), kusu_vyrobeno = 100, typ = $1
+INSERT INTO shop_predmety SET id_predmetu = 33421, nazev = 'zelené tričko', kod_predmetu = CONCAT('bonus_zelene_tricko_', $0), cena_aktualni = 300, stav = 1, nabizet_do = NOW(), kusu_vyrobeno = 100
 SQL,
             [
                 0 => ROCNIK,
-                1 => TypPredmetu::TRICKO,
             ],
         ],
+        "INSERT INTO product_product_tag (product_id, tag_id) SELECT 33421, id FROM product_tag WHERE code = 'tricko'",
         [
             <<<SQL
-INSERT INTO shop_predmety SET id_predmetu = 33422, nazev = 'žluté tričko', model_rok = $0, kod_predmetu = CONCAT('bonus_zlute_tricko_', $0), cena_aktualni = 500, stav = 1, nabizet_do = NOW(), kusu_vyrobeno = 100, typ = $1
+INSERT INTO shop_predmety SET id_predmetu = 33422, nazev = 'žluté tričko', kod_predmetu = CONCAT('bonus_zlute_tricko_', $0), cena_aktualni = 500, stav = 1, nabizet_do = NOW(), kusu_vyrobeno = 100
 SQL,
             [
                 0 => ROCNIK,
-                1 => TypPredmetu::TRICKO,
             ],
         ],
+        "INSERT INTO product_product_tag (product_id, tag_id) SELECT 33422, id FROM product_tag WHERE code = 'tricko'",
         [
             <<<SQL
 INSERT INTO shop_nakupy(id_uzivatele, id_predmetu, rok, cena_nakupni)

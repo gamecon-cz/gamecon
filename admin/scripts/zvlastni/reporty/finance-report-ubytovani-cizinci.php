@@ -49,7 +49,7 @@ SQL,
 );
 
 $vystup = [];
-while ($r = mysqli_fetch_assoc($o)) {
+while ($r = $o->fetch(PDO::FETCH_ASSOC)) {
     // České občanství ve všech variantách (ČR/CZ/České/…) vyfiltrujeme až tady, ať je logika
     // jednotná s Uzivatel::jeCizinec() a nedrifuje oproti SQL. Šetří to i instancování Uzivatele.
     if (Uzivatel::jeCeskeObcanstvi($r['statni_obcanstvi'])) {

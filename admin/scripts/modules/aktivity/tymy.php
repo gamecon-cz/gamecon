@@ -45,7 +45,7 @@ $aktivity = dbQuery(<<<SQL
     [0 => ROCNIK],
 );
 
-while ($aktivitaRow = mysqli_fetch_assoc($aktivity)) {
+while ($aktivitaRow = $aktivity->fetch(PDO::FETCH_ASSOC)) {
     $idAkce = (int)$aktivitaRow['id_akce'];
 
     $vsechnyTymyAktivity = AktivitaTym::vsechnyTymyAktivity($idAkce);
