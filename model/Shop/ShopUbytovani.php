@@ -108,7 +108,7 @@ SQL,
         $nalezene    = dbFetchAll(<<<SQL
 SELECT id_predmetu, ubytovani_den
 FROM shop_predmety_s_typem
-WHERE LEFT(kod_predmetu, CHAR_LENGTH(kod_predmetu) - 3) = $0 COLLATE utf8_czech_ci
+WHERE LEFT(kod_predmetu, CHAR_LENGTH(kod_predmetu) - 3) = $0 COLLATE utf8mb4_czech_ci
   AND typ = $1
   AND model_rok = $2
   AND ubytovani_den IN ($3)
