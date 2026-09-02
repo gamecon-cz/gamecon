@@ -94,6 +94,8 @@ class DbMigrations
                     return $migration->getRelativePath();
                 }, $migrations);
 
+                // Declaring the column would give it the database default; copying it from
+                // `migrations` carries its collation over, which the join below compares against.
                 $this->connection->query("CREATE TEMPORARY TABLE known_migration_paths_tmp (PRIMARY KEY (migration_path)) SELECT migration_path FROM migrations LIMIT 0");
                 $migrationPathsSql = implode(
                     ',',
