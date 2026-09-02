@@ -1,7 +1,13 @@
 # E-shop Implementation Summary
 
-**Date:** 2026-01-31
-**Implementation Status:** ✅ Core Complete (optional API features pending)
+**Date:** 2026-01-31, revised 2026-09-02
+**Implementation Status:** data model and APIs built; the customer-facing storefront is still the legacy one
+
+> Scope note: "complete" below means the backend building blocks exist, not that the e-shop is
+> rewritten. `web/moduly/prihlaska/prihlaska.php` still renders accommodation, merchandise,
+> t-shirts, hoodies and entry fees through the legacy `Gamecon\Shop\Shop` class; only the meal
+> matrix runs on the new stack (with the legacy HTML kept as a `<noscript>` fallback).
+> See "What is still missing" at the end for the gap against `NEW_ESHOP.md`.
 
 ---
 
@@ -34,20 +40,31 @@
 - ✅ **OrderItemCreatedListener** - Capacity reduction for accommodation
 - ✅ **UserRoleChangedListener** - Discount recalculation on role change
 
-#### 5. Database Migrations (7 SQL files)
-- ✅ `01-remove-model-rok.sql` - Remove old fields, add new ones
-- ✅ `02-create-product-tags.sql` - Create tags table
-- ✅ `03-create-product-bundles.sql` - Create bundle tables
-- ✅ `04-create-product-discounts.sql` - Create discounts table
-- ✅ `05-add-orderitem-snapshot.sql` - Add snapshot fields
-- ✅ `06-migrate-typ-to-tags.sql` - Migrate existing data
-- ✅ `07-create-orders-table.sql` - Optional Order table
-- ✅ Migration execution guide with safety checks
+#### 5. Database Migrations (10 files)
 
-#### 6. Tests (3 test suites)
-- ✅ **ProductTest** - Entity functionality tests
-- ✅ **DiscountCalculatorTest** - Discount calculation tests
-- ✅ **CapacityManagerTest** - Capacity management tests
+Renamed during the September 2026 rebase to sort after the migrations `main` gained during the
+festival. They run through `./bin-docker/php ./bin/console migrations:continue`, not by hand —
+the per-file list and the verification queries live in `docs/2026-01-31_00-new-eshop-README.md`.
+
+- ✅ `2026-09-02-100000_convert-utf8mb3-to-utf8mb4.php`
+- ✅ `2026-09-02-100001_new-eshop.php` — new tables, `typ` → tags, drops the old columns, creates the `shop_predmety_s_typem` compatibility view
+- ✅ `2026-09-02-100002_singleton-in-table-name.php`
+- ✅ `2026-09-02-100003_activity-locations-to-many-to-many.php`
+- ✅ `2026-09-02-100004_group-historical-order-items.php`
+- ✅ `2026-09-02-100005_podtyp-to-hotel-tag.php` — `hotel` → `breakfast_included`, `mikina` → tag
+- ✅ `2026-09-02-100006_remaining-quantity.sql`
+- ✅ `2026-09-02-100007_product-variant.sql`
+- ✅ `2026-09-02-100008_bundle-variants.sql`
+- ✅ `2026-09-02-100009_mikina-product-tag.sql`
+
+#### 6. Tests (32 test files under `symfony/tests/`)
+- ✅ Entities — `ProductTest`, `ProductTagTest`, `ProductVariantTest`, `CancelledOrderItemTest`, `ProductListSerializationTest`
+- ✅ Services — `DiscountCalculatorTest`, `CapacityManagerTest`, `CartServiceTest`, `BulkCancelServiceTest`, `UserRoleServiceTest`
+- ✅ Cart/checkout state — `AddToCartProcessorTest`, `RemoveFromCartProcessorTest`, `CartProviderTest`, `CheckoutProcessorTest`
+- ✅ KFC grid sale — grid provider/processor, products provider, sale processor and deserialization
+- ✅ API — `ProductApiTest`, `ApiSecurityTest`, `CartResourceTest`
+
+Plus the legacy-side suite under `tests/`, which covers the shop through the compatibility view.
 
 #### 7. Documentation
 - ✅ **NEW_ESHOP_IMPLEMENTATION.md** - Complete implementation guide
@@ -56,28 +73,19 @@
 
 ---
 
-## What Was NOT Implemented (Optional)
+## What has been built since
 
-### 🔲 Pending (Enhancement Features)
+The API Platform work listed here as pending was done afterwards:
 
-#### API Platform Integration
-- ⏸️ **Task #20**: API Platform Product resource configuration
-- ⏸️ **Task #21**: XLSX import controller (Symfony)
-- ⏸️ **Task #22**: ProductImportProcessor service
-- ⏸️ **Task #26**: Product API integration tests
-- ⏸️ **Task #27**: ProductImport tests
+- ✅ **API Platform** installed and configured under `/symfony/api`, with JWT authentication
+- ✅ **Product / ProductTag / ProductVariant** exposed as API resources (admin CRUD)
+- ✅ **Cart and checkout** — `/cart`, `/cart/items`, `/cart/items/{itemId}`, `/cart/checkout`, `/cart/meals`, writing real `Order`/`OrderItem` rows
+- ✅ **KFC grid sale** — `/kfc/grids`, `/kfc/products`, `/kfc/sale`
+- ✅ **Admin bulk cancel** — `/admin/bulk-cancel`
+- ✅ **Admin product editor** — Preact app mounted at `preact-předměty` in the finance module
 
-**Why Not Implemented:**
-- Core functionality works without API
-- Existing XLSX import can continue to work via legacy code
-- API Platform can be added later as enhancement
-- Does not block deployment of core features
-
-**If Needed:**
-- Implement API Platform resource decorators on Product entity
-- Create admin controller for XLSX upload
-- Extract import logic from `admin/scripts/modules/_import-eshopu.php`
-- Add API tests for REST endpoints
+The XLSX import still runs through the legacy code path (`model/Shop/EshopImporter.php`); it was
+never ported, and nothing depends on porting it.
 
 ---
 
@@ -120,25 +128,16 @@ symfony/src/EventListener/
 └── UserRoleChangedListener.php
 ```
 
-### Migrations (7 SQL files + README)
+### Migrations
 ```
-migrace/
-├── 2026-01-31-new-eshop-01-remove-model-rok.sql
-├── 2026-01-31-new-eshop-02-create-product-tags.sql
-├── 2026-01-31-new-eshop-03-create-product-bundles.sql
-├── 2026-01-31-new-eshop-04-create-product-discounts.sql
-├── 2026-01-31-new-eshop-05-add-orderitem-snapshot.sql
-├── 2026-01-31-new-eshop-06-migrate-typ-to-tags.sql
-├── 2026-01-31-new-eshop-07-create-orders-table.sql
-└── 2026-01-31-new-eshop-README.md
+migrace/2026-09-02-1000{00,04}_*.php
+symfony/migrations/structures/2026-09-02-1000{01,02,03,05,06,07,08,09}_*
+docs/2026-01-31_00-new-eshop-README.md   # how to run and verify them
 ```
 
-### Tests (3 files)
+### Tests
 ```
-symfony/tests/
-├── Entity/ProductTest.php
-├── Service/DiscountCalculatorTest.php
-└── Service/CapacityManagerTest.php
+symfony/tests/   # 32 files: Entity/, Service/, State/{Cart,Kfc,Admin}/, Api/, ApiResource/, Dto/, Validator/
 ```
 
 ### Documentation (2 files)
@@ -147,10 +146,6 @@ docs/
 ├── NEW_ESHOP_IMPLEMENTATION.md
 └── ESHOP_IMPLEMENTATION_SUMMARY.md (this file)
 ```
-
-**Total:** 29 files created
-
----
 
 ## Key Architecture Decisions
 
@@ -341,22 +336,42 @@ The new e-shop implementation is **READY FOR TESTING AND DEPLOYMENT**.
 - ✅ Core functionality tests
 - ✅ Comprehensive documentation
 
-**What's Optional:**
-- ⏸️ API Platform integration (can add later)
-- ⏸️ Symfony XLSX import (legacy works)
-- ⏸️ API tests (not needed without API)
-
 **Recommendation:**
-1. **Stage 1:** Deploy core (entities, services, migrations) - READY NOW
-2. **Stage 2:** Add API Platform if needed - IMPLEMENT LATER
-3. **Stage 3:** Build admin UI for discounts/bundles - AS NEEDED
+1. **Stage 1:** the data model, migrations and APIs — done, and the migration is proven against a production dump
+2. **Stage 2:** rewrite the storefront onto the new stack — the main remaining work, see below
+3. **Stage 3:** the plan's untouched areas (images, translations, order-management admin, transactional e-mails)
 
-The core implementation fulfills all CFO requirements and removes the `model_rok` complexity as specified in the analysis plan.
+---
+
+## What is still missing
+
+Measured against `NEW_ESHOP.md`, the decision document, which commits to 82 features
+(and explicitly rejects 118 more). Roughly 45 of the 82 exist. The gaps:
+
+### The storefront is still legacy
+
+`web/moduly/prihlaska/prihlaska.php` calls `Gamecon\Shop\Shop` for accommodation,
+merchandise, t-shirts, hoodies and entry fees; `model/Shop/` is still ~2,500 lines of live
+code. Only the meal matrix was moved to the new stack. Since the card is "Přepsat e-shop",
+this is the largest outstanding piece.
+
+### Not started
+
+- **Product images** — no image handling on `Product` or anywhere in the services
+- **Multi-language** — the whole "Podpora více jazyků" section, including translatable attributes
+- **Customer accounts on the new stack** — e-mail verification, password reset, account editing
+- **Order-management admin** — order timeline, search/filtering, notes and comments
+- **Transactional e-mails** — order confirmation, payment confirmation
+
+### Built but not yet reachable from the UI
+
+`ProductBundle` and `ProductDiscount` are modelled, wired into `CartService` and covered by
+tests, but there is no admin screen to create bundles or discounts; they have to be inserted
+by hand.
 
 ---
 
 **Implementation by:** Claude Code
 **Review required by:** Development team
-**Estimated deployment effort:** 2-4 hours (including migration)
-**Risk level:** Medium (due to schema changes)
-**Rollback capability:** Full (via database backup)
+**Risk level:** Medium (schema changes; the compatibility view is what keeps legacy code alive)
+**Rollback capability:** via the runner's pre-migration dump — the column drops are destructive
