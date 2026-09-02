@@ -3,7 +3,7 @@
 use Gamecon\Prostredi\Prostredi;
 
 if (!empty($_COOKIE['unit_tests']) || ($_ENV['APP_ENV'] ?? '') === 'test') {
-    include __DIR__ . '/verejne-nastaveni-tests.php';
+    include_once __DIR__ . '/verejne-nastaveni-tests.php';
 }
 
 if (file_exists(__DIR__ . '/nastaveni-server.php')) {

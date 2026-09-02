@@ -58,24 +58,36 @@ SQL,
 INSERT INTO shop_predmety SET
     nazev = $0,
     kod_predmetu = $1,
-    model_rok = $2,
     cena_aktualni = 100,
-    stav = $3,
+    stav = $2,
     kusu_vyrobeno = NULL,
-    typ = $4,
-    ubytovani_den = $5
+    ubytovani_den = $3
 SQL,
             [
-                0 => $nazev,
+                0 => $nazev . ' ' . $uniqueId,
                 1 => strtoupper(str_replace(' ', '_', $nazev)) . '_' . $uniqueId,
-                2 => ROCNIK,
-                3 => StavPredmetu::VEREJNY,
-                4 => $typ,
-                5 => $den,
+                2 => StavPredmetu::VEREJNY,
+                3 => $den,
+            ],
+        );
+        $idPredmetu = dbInsertId();
+        $tagCode = match ($typ) {
+            TypPredmetu::PREDMET   => 'predmet',
+            TypPredmetu::UBYTOVANI => 'ubytovani',
+            TypPredmetu::TRICKO    => 'tricko',
+            TypPredmetu::JIDLO     => 'jidlo',
+            TypPredmetu::VSTUPNE   => 'vstupne',
+            TypPredmetu::PARCON    => 'parcon',
+        };
+        dbQuery(
+            'INSERT INTO product_product_tag (product_id, tag_id) SELECT $0, id FROM product_tag WHERE code = $1',
+            [
+                0 => $idPredmetu,
+                1 => $tagCode,
             ],
         );
 
-        return dbInsertId();
+        return $idPredmetu;
     }
 
     private function objednejPredmet(int $idUzivatele, int $idPredmetu): void
