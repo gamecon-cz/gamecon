@@ -797,6 +797,51 @@ SQL,
         self::assertStringContainsString('data-snidane-dny="2"', $zadneInput[0]);
     }
 
+    /**
+     * @test
+     */
+    public function dohledaIdsUbytovaniPodleKoduTypuADnu(): void
+    {
+        $unique = uniqid('', false);
+        $ctvrtek = DateTimeGamecon::PORADI_HERNIHO_DNE_CTVRTEK;
+        $patek = DateTimeGamecon::PORADI_HERNIHO_DNE_PATEK;
+        $idPatek = $this->vytvorUbytovaniSKodem('spacak' . $unique . '_pa', $patek);
+        $idCtvrtek = $this->vytvorUbytovaniSKodem('spacak' . $unique . '_ct', $ctvrtek);
+
+        self::assertSame(
+            [$idCtvrtek, $idPatek],
+            ShopUbytovani::dejIdsPredmetuUbytovaniPodleKoduTypu('spacak' . $unique, [$patek, $ctvrtek]),
+        );
+    }
+
+    private function vytvorUbytovaniSKodem(string $kodPredmetu, int $ubytovaniDen): int
+    {
+        dbQuery(<<<SQL
+INSERT INTO shop_predmety SET
+    nazev = $0,
+    kod_predmetu = $0,
+    cena_aktualni = 500,
+    stav = $1,
+    kusu_vyrobeno = 10,
+    ubytovani_den = $2
+SQL,
+            [
+                0 => $kodPredmetu,
+                1 => StavPredmetu::VEREJNY,
+                2 => $ubytovaniDen,
+            ],
+        );
+        $idPredmetu = dbInsertId();
+        dbQuery(
+            "INSERT INTO product_product_tag (product_id, tag_id) SELECT $0, id FROM product_tag WHERE code = 'ubytovani'",
+            [
+                0 => $idPredmetu,
+            ],
+        );
+
+        return $idPredmetu;
+    }
+
     private function pripravXTemplateCache(): void
     {
         $cacheDir = XTemplate::cache() ?: XTPL_CACHE_DIR;
