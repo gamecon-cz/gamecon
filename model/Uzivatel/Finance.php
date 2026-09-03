@@ -4,17 +4,11 @@ namespace Gamecon\Uzivatel;
 
 use Endroid\QrCode\Writer\Result\ResultInterface;
 use Gamecon\Aktivita\Aktivita;
-use Gamecon\Aktivita\SqlStruktura\AkcePrihlaseniSpecSqlStruktura;
-use Gamecon\Aktivita\SqlStruktura\AkcePrihlaseniSqlStruktura;
-use Gamecon\Aktivita\SqlStruktura\AkcePrihlaseniStavySqlStruktura;
-use Gamecon\Aktivita\SqlStruktura\AkceSeznamSqlStruktura;
 use Gamecon\Aktivita\StavPrihlaseni;
 use Gamecon\Aktivita\TypAktivity;
-use Gamecon\Cache\DataSourcesCollector;
 use Gamecon\Cas\DateTimeCz;
 use Gamecon\Exceptions\NeznamyTypPredmetu;
 use Gamecon\Finance\QrPlatba;
-use Gamecon\Finance\SqlStruktura\DiscountsGeneratedSqlStruktura;
 use Gamecon\Finance\SqlStruktura\SlevySqlStruktura;
 use Gamecon\Objekt\ObnoveniVychozichHodnotTrait;
 use Gamecon\Pravo;
@@ -401,11 +395,6 @@ SQL,
         return $this->stav() . $mezera . 'Kč';
     }
 
-    public static function slevaAktivityDSC(?DataSourcesCollector $dataSourcesCollector): void
-    {
-        self::soucinitelCenyAktivitDSC($dataSourcesCollector);
-    }
-
     public function slevaZaAktivityVProcentech(): float
     {
         return 100 - ($this->soucinitelCenyAktivit() * 100);
@@ -508,18 +497,15 @@ SQL,
      * zdarma a 1.0 pro aktivity za plnou cenu.
      */
     public function soucinitelCenyAktivit(
-        ?DataSourcesCollector $dataSourcesCollector = null,
     ): float {
-        self::soucinitelCenyAktivitDSC($dataSourcesCollector);
-
         if ($this->soucinitelCenyAktivit === null) {
             // pomocné proměnné
             $sleva = 0; // v procentech
             // výpočet pravidel
-            if ($this->u->maPravo(Pravo::AKTIVITY_ZDARMA, $dataSourcesCollector)) {
+            if ($this->u->maPravo(Pravo::AKTIVITY_ZDARMA)) {
                 $sleva                   += self::PLNA_SLEVA_PROCENT;
                 $this->slevyNaAktivity[] = 'aktivity zdarma';
-            } elseif ($this->u->maPravo(Pravo::CASTECNA_SLEVA_NA_AKTIVITY, $dataSourcesCollector)) {
+            } elseif ($this->u->maPravo(Pravo::CASTECNA_SLEVA_NA_AKTIVITY)) {
                 $sleva                   += self::CASTECNA_SLEVA_PROCENT;
                 $this->slevyNaAktivity[] = 'aktivity se slevou ' . $sleva . ' %';
             }
@@ -533,12 +519,6 @@ SQL,
         }
 
         return $this->soucinitelCenyAktivit;
-    }
-
-    private static function soucinitelCenyAktivitDSC(
-        ?DataSourcesCollector $dataSourcesCollector,
-    ): void {
-        \Uzivatel::maPravoDSC($dataSourcesCollector);
     }
 
     public function cenaVstupne(): float
@@ -644,16 +624,7 @@ LEFT JOIN discounts_generated
 WHERE aktivita.rok = $rok
 SQL;
 
-        $result = $this->systemoveNastaveni->db()->dbFetchAll(
-            [
-                AkceSeznamSqlStruktura::AKCE_SEZNAM_TABULKA,
-                AkcePrihlaseniSqlStruktura::AKCE_PRIHLASENI_TABULKA,
-                AkcePrihlaseniSpecSqlStruktura::AKCE_PRIHLASENI_SPEC_TABULKA,
-                AkcePrihlaseniStavySqlStruktura::AKCE_PRIHLASENI_STAVY_TABULKA,
-                DiscountsGeneratedSqlStruktura::DISCOUNTS_GENERATED_TABULKA
-            ],
-            $sql,
-        );
+        $result = dbFetchAll($sql);
 
         $a = $this->u->koncovkaDlePohlavi();
         foreach ($result as $r) {

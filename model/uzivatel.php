@@ -6,7 +6,6 @@ use Gamecon\Aktivita\Aktivita;
 use Gamecon\Aktivita\FiltrAktivity;
 use Gamecon\Aktivita\SqlStruktura\AkceSeznamSqlStruktura;
 use Gamecon\Aktivita\StavPrihlaseni;
-use Gamecon\Cache\DataSourcesCollector;
 use Gamecon\Cache\ProgramStaticFileGenerator;
 use Gamecon\Cache\ProgramStaticFileType;
 use Gamecon\Cas\DateTimeCz;
@@ -24,8 +23,6 @@ use Gamecon\Uzivatel\Exceptions\DuplicitniLogin;
 use Gamecon\Uzivatel\Finance;
 use Gamecon\Uzivatel\Medailonek;
 use Gamecon\Uzivatel\Pohlavi;
-use Gamecon\Uzivatel\SqlStruktura\PlatneRoleUzivateluSqlStruktura;
-use Gamecon\Uzivatel\SqlStruktura\PravaRoleSqlStruktura;
 use Gamecon\Uzivatel\SqlStruktura\UzivateleHodnotySqlStruktura as Sql;
 use Gamecon\Uzivatel\UserController;
 use Gamecon\Uzivatel\UserRepository;
@@ -910,25 +907,17 @@ SQL,
     /**
      * Je uživatel přihlášen na aktuální GC?
      */
-    public function gcPrihlasen(?DataSourcesCollector $dataSourcesCollector = null): bool
+    public function gcPrihlasen(): bool
     {
-        self::gcPrihlasenDSC($dataSourcesCollector);
-
         return $this->maRoli(Role::PRIHLASEN_NA_LETOSNI_GC);
     }
 
     public function zkontrolujGcPrihlasen(
-        bool $hlaskyVeTretiOsobe = false,
-        ?DataSourcesCollector $dataSourcesCollector = null)
+        bool $hlaskyVeTretiOsobe = false)
     {
-        if (! $this->gcPrihlasen($dataSourcesCollector)) {
+        if (! $this->gcPrihlasen()) {
             throw new Chyba(($hlaskyVeTretiOsobe ? 'Uživatel ' . $this->jmenoVolitelnyNick() . ' ' : '') . hlaska($hlaskyVeTretiOsobe ? 'neniPrihlasenNaGc' : 'nejsiPrihlasenNaGc'));
         }
-    }
-
-    public static function gcPrihlasenDSC(?DataSourcesCollector $dataSourcesCollector)
-    {
-        $dataSourcesCollector?->addDataSource(Sql::UZIVATELE_HODNOTY_TABULKA);
     }
 
     /**
@@ -1204,15 +1193,8 @@ SQL,
 
     public function maPravo(
         $pravo,
-        ?DataSourcesCollector $dataSourcesCollector = null,
     ): bool {
-        return in_array($pravo, $this->prava($dataSourcesCollector), true);
-    }
-
-    public static function maPravoDSC(
-        ?DataSourcesCollector $dataSourcesCollector,
-    ): void {
-        self::pravaDSC($dataSourcesCollector);
+        return in_array($pravo, $this->prava(), true);
     }
 
     public function maPravoNaPrirazeniRole(int $idRole): bool
@@ -1502,24 +1484,19 @@ SQL,
      * Ručně načte práva - neoptimalizovaná varianta, přijatelné pouze pro prasečí
      * řešení, kde si to můžeme dovolit (=reporty)
      */
-    public function nactiPrava(?DataSourcesCollector $dataSourcesCollector = null): void
+    public function nactiPrava(): void
     {
         if (isset($this->r['prava'])) {
             return;
         }
         // načtení uživatelských práv
-        $idckaPrav = $this->systemoveNastaveni->db()->dbFetchAll(
-            [
-                PravaRoleSqlStruktura::PRAVA_ROLE_TABULKA,
-                PlatneRoleUzivateluSqlStruktura::PLATNE_ROLE_UZIVATELU_TABULKA,
-            ],
+        $idckaPrav = dbFetchAll(
             <<<SQL
             SELECT prava_role.id_prava
             FROM platne_role_uzivatelu
             LEFT JOIN prava_role USING(id_role)
             WHERE platne_role_uzivatelu.id_uzivatele={$this->id()}
             SQL,
-            $dataSourcesCollector,
         );
         $prava = []; // inicializace nutná, aby nepadala výjimka pro uživatele bez práv
         foreach ($idckaPrav as $r) {
@@ -1528,30 +1505,15 @@ SQL,
         $this->r['prava'] = $prava;
     }
 
-    public static function nactiPravaDSC(?DataSourcesCollector $dataSourcesCollector): void
+    public function prava(): array
     {
-        $dataSourcesCollector?->addDataSources([
-            PravaRoleSqlStruktura::PRAVA_ROLE_TABULKA,
-            PlatneRoleUzivateluSqlStruktura::PLATNE_ROLE_UZIVATELU_TABULKA,
-        ]);
-    }
-
-    public function prava(?DataSourcesCollector $dataSourcesCollector = null): array
-    {
-        self::pravaDSC($dataSourcesCollector);
-
         if (! isset($this->r['prava'])) {
-            $this->nactiPrava($dataSourcesCollector);
+            $this->nactiPrava();
         } elseif (is_string($this->r['prava'])) {
             $this->r['prava'] = array_map('intval', explode(',', $this->r['prava']));
         }
 
         return $this->r['prava'];
-    }
-
-    public static function pravaDSC(?DataSourcesCollector $dataSourcesCollector): void
-    {
-        self::nactiPravaDSC($dataSourcesCollector);
     }
 
     public function potvrzeniZakonnehoZastupceOd(): ?DateTimeImmutable
@@ -2891,17 +2853,8 @@ SQL,
     public static function zIds(
         string|array $ids,
         bool $zCache = false,
-        ?DataSourcesCollector $dataSourcesCollector = null,
     ): array {
-        self::zIdsDSC($dataSourcesCollector);
-
         return parent::zIds($ids, $zCache);
-    }
-
-    public static function zIdsDSC(
-        ?DataSourcesCollector $dataSourcesCollector = null,
-    ): void {
-        self::nactiUzivateleDSC($dataSourcesCollector);
     }
 
     /**
@@ -3096,10 +3049,7 @@ SQL,
 
     protected static function dotaz(
         $where,
-        ?DataSourcesCollector $dataSourcesCollector = null,
     ): string {
-        self::dotazDSC($dataSourcesCollector);
-
         return <<<SQL
 SELECT
     u.*,
@@ -3112,14 +3062,6 @@ LEFT JOIN uzivatele_url ON u.id_uzivatele = uzivatele_url.id_uzivatele
 {$where}
 GROUP BY u.id_uzivatele
 SQL;
-    }
-
-    protected static function dotazDSC(?DataSourcesCollector $dataSourcesCollector = null): void
-    {
-        $dataSourcesCollector?->addDataSource('uzivatele_url');
-        $dataSourcesCollector?->addDataSource('uzivatele_hodnoty');
-        $dataSourcesCollector?->addDataSource('platne_role_uzivatelu');
-        $dataSourcesCollector?->addDataSource('prava_role');
     }
 
     /**
@@ -3151,9 +3093,8 @@ SQL;
      */
     protected static function nactiUzivatele(
         string $where,
-        ?DataSourcesCollector $dataSourcesCollector = null,
     ): array {
-        $query = self::dotaz(where: $where, dataSourcesCollector: $dataSourcesCollector);
+        $query = self::dotaz(where: $where);
         $o = dbQuery($query);
         $uzivatele = [];
         while ($r = mysqli_fetch_assoc($o)) {
@@ -3163,11 +3104,6 @@ SQL;
         }
 
         return $uzivatele;
-    }
-
-    protected static function nactiUzivateleDSC(?DataSourcesCollector $dataSourcesCollector): void
-    {
-        self::dotazDSC($dataSourcesCollector);
     }
 
     public function shop(): Shop

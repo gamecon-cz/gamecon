@@ -799,7 +799,7 @@ function dbQuery(
     if ($param) {
         return dbQueryS($q, (array)$param, $mysqli);
     }
-    global $dbQueries, $dbLastQ, $dbNumQ, $dbExecTime, $systemoveNastaveni;
+    global $dbQueries, $dbLastQ, $dbNumQ, $dbExecTime;
     $dbQueries ??= [];
     $mysqli    ??= dbConnect();
     $dbLastQ   = $q;
@@ -819,9 +819,6 @@ function dbQuery(
     $dbQueries[$q]['count']++;
     $dbNumQ++;
     $dbExecTime += $end - $start;
-    if ($wasDataAffecting && $GLOBALS['dbAffectedRows'] > 0) {
-        $systemoveNastaveni?->db()->clearPrefetchedDataVersions();
-    }
 
     return $r;
 }

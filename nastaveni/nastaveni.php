@@ -135,6 +135,5 @@ if (!defined('UBYTOVANI_POUZE_SPACAKY')) define('UBYTOVANI_POUZE_SPACAKY', false
 
 if (!defined('VAROVAT_O_ZASEKLE_SYNCHRONIZACI_PLATEB')) define('VAROVAT_O_ZASEKLE_SYNCHRONIZACI_PLATEB', true);
 
-if (!defined('CACHOVAT_SQL_DOTAZY')) define('CACHOVAT_SQL_DOTAZY', true);
 if (!defined('CACHOVAT_API_ODPOVEDI')) define('CACHOVAT_API_ODPOVEDI', true);
 if (!defined('SERVER_NAME')) define('SERVER_NAME', $_SERVER['SERVER_NAME'] ?? 'localhost');
