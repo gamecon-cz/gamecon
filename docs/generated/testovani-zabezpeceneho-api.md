@@ -14,6 +14,8 @@ Týká se testů nad novým Symfony/API Platform stackem, ne legacy testů v `te
 - `symfony/src/Service/JwtService::generateJwtToken()` / `extractUserData()` — podepisování tokenu.
 - `symfony/config/packages/security.yaml` — firewall `api` (stateless, `custom_authenticators`), `access_control` (`^/symfony/api` → `ROLE_USER`, `^/symfony/api/public` → `PUBLIC_ACCESS`).
 - `symfony/src/Entity/User::getRoles()` — odvozuje `ROLE_ADMIN` z kódů rolí `organizator/admin/infopult/cfo`.
+- `symfony/tests/AbstractDatabaseKernelTestCase` — transakční obal pro Symfony testy zapisující do DB.
+- `symfony/tests/Db/DatabaseCleanupTest.php` — regresní pojistka, že po Symfony testech nezůstávají řádky; čte **legacy** spojením (mimo Doctrine transakci), jinak by na tu chybu neviděla.
 
 ## Jak se dnes autentizuje v testu
 
@@ -24,7 +26,8 @@ Admin se v testu **vytváří**, nedohledává: fixtury nikomu nepřidělují ro
 ## Gotchas
 
 - **`ApiTestCase` / `createClient()` nejde použít.** Třída sice existuje (`vendor/api-platform/core/src/Symfony/Bundle/Test/ApiTestCase.php`), ale její `Client` vyžaduje `symfony/browser-kit`, `symfony/http-client` a `symfony/dom-crawler` — **žádný z nich není nainstalovaný**. Tohle je jediný důvod, proč se requesty skládají ručně, a zároveň hlavní blokátor převzetí vzorů z PiercingApp (viz níže).
-- **Symfony testy nejsou obalené transakcí.** Dědí ze `symfony`ho `KernelTestCase`, ne z `Gamecon\Tests\Db\AbstractTestDb`, takže je míjí legacy transakční obal. Co zapíšou, v DB zůstane po zbytek běhu. Napříč běhy to nevadí (bootstrap testovací DB pokaždé zahodí a postaví znovu), ale v rámci jednoho běhu leží ty řádky ve stejné DB jako ~900 legacy testů.
+- **Symfony testy, které píšou do DB, musí dědit z `App\Tests\AbstractDatabaseKernelTestCase`** — ta obaluje každou metodu transakcí na **Doctrine** spojení a odroluje ji. Legacy `Gamecon\Tests\Db\AbstractTestDb` to nezvládne: jede na jiném spojení (ověřeno `SELECT CONNECTION_ID()` na obou) a míchání legacy fixtur s Doctrine čtením týchž řádků deadlockuje.
+- **‼️ V testu nad `AbstractDatabaseKernelTestCase` nikdy nevolej `bootKernel()`.** Bázová třída kernel bootuje v `setUp()`; opakovaný `bootKernel()` uvnitř testu nejdřív provede `ensureKernelShutdown()`, **čímž zahodí spojení držící transakci** — zápisy pak commitnou na novém spojení a v DB zůstanou. Přesně tohle bylo příčinou, proč `ProductApiTest` po zavedení obalu pořád nechával 9 řádků. Hlídá to `symfony/tests/Db/DatabaseCleanupTest.php`.
 - **`product_tag.created_at` je `NOT NULL` bez defaultu a entita `ProductTag` ho nemapuje** — tag vytvořený přes Doctrine databáze odmítne. Migrace i testy ho proto vkládají SQL. Sesterské tabulky (`product_bundle`, `product_discount`) default mají, tahle ne.
 - **Kolekce má klíč `member`, ne `hydra:member`.** API Platform 4 (`^4.2`, reálně 4.3.x) má `hydra_prefix` defaultně `false` a projekt to nikde nepřepisuje.
 - **PHPStan testy neanalyzuje** — `phpstan.dist.neon` má v `paths:` jen `symfony/config/` a `symfony/src/`. Jediná kontrola nad testy je, že procházejí.
@@ -60,7 +63,7 @@ Při ověřování mutací vyšlo najevo, na čem ty dva testy reálně visí: *
 
 ### Zajímavé, ale ne pro nás
 
-- **DAMA\DoctrineTestBundle** místo ručních transakcí — obalí každý test transakcí a odroluje ji. Vyřešilo by to náš problém s neuklízenými Symfony testy elegantně, jenže by se to muselo srovnat s legacy `AbstractTestDb`, který si transakce řídí sám na druhém spojení. Netriviální.
+- **DAMA\DoctrineTestBundle** místo ručních transakcí — obalí každý test transakcí a odroluje ji, navíc drží statické spojení. My to řešíme vlastní bázovou třídou (viz Gotchas), což pro dva testovací soubory stačí a nepřidává závislost. Kdyby Symfony testů zapisujících do DB bylo výrazně víc, DAMA je robustnější — hlavně proto, že díky statickému spojení nezáleží na tom, kolikrát se kernel rebootuje.
 - **Foundry `ResetDatabase` je u nich zakázaný** (i přes `conflict` v `composer.json`), protože při paralelním běhu závodí s jejich migračním resetem. Dobré vědět, kdyby nás někdy napadlo ho zapnout.
 - **Odvozování cesty a resource třídy z názvu testu** (`App\Tests\Entity\Store\StoreTest` → `App\Entity\Store\Store` → `/api/stores`). Funguje jen proto, že jejich `tests/` zrcadlí `src/`. U nás to tak není.
 - `ResetSequencesExtension` — PostgreSQL sekvence nejsou transakční, takže je po každém testu resetují reflexí nad DAMA spojením. My jsme na MariaDB, netýká se.
@@ -80,4 +83,3 @@ Tři věci, na kterých to stojí a které se snadno rozbijí při úpravě:
 ## Otevřené otázky
 
 - Stojí `symfony/browser-kit` + `symfony/http-client` (dev dependencies) za to, aby šlo použít `ApiTestCase`? Odemklo by to většinu výše zmíněného. Nikdo o tom zatím nerozhodoval.
-- Neuklízející Symfony testy: nechat, nebo systémově vyřešit (transakční obal i pro `KernelTestCase`, nebo DAMA)?
