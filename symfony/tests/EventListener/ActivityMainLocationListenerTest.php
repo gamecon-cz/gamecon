@@ -8,8 +8,8 @@ use App\Entity\Activity;
 use App\Entity\ActivityStatus;
 use App\Entity\ActivityType;
 use App\Entity\Location;
+use App\Tests\AbstractDatabaseKernelTestCase;
 use Doctrine\ORM\EntityManagerInterface;
-use Symfony\Bundle\FrameworkBundle\Test\KernelTestCase;
 
 /**
  * Tests for ActivityMainLocationListener
@@ -17,21 +17,14 @@ use Symfony\Bundle\FrameworkBundle\Test\KernelTestCase;
  * Verifies that the listener automatically sets main location from first location
  * when no main location is explicitly set.
  */
-class ActivityMainLocationListenerTest extends KernelTestCase
+class ActivityMainLocationListenerTest extends AbstractDatabaseKernelTestCase
 {
     private EntityManagerInterface $entityManager;
 
     protected function setUp(): void
     {
         parent::setUp();
-        self::bootKernel();
-        $this->entityManager = self::getContainer()->get(EntityManagerInterface::class);
-    }
-
-    protected function tearDown(): void
-    {
-        parent::tearDown();
-        $this->entityManager->close();
+        $this->entityManager = $this->entityManager();
     }
 
     private function createLocation(string $name): Location

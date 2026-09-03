@@ -9,10 +9,10 @@ use App\Entity\ProductTag;
 use App\Entity\User;
 use App\Service\JwtService;
 use App\Structure\Entity\UserEntityStructure;
+use App\Tests\AbstractDatabaseKernelTestCase;
 use Doctrine\DBAL\Connection;
 use Doctrine\ORM\EntityManagerInterface;
 use Gamecon\Tests\Factory\UserFactory;
-use Symfony\Bundle\FrameworkBundle\Test\KernelTestCase;
 
 /**
  * Tests for the Symfony Product API endpoint.
@@ -20,19 +20,12 @@ use Symfony\Bundle\FrameworkBundle\Test\KernelTestCase;
  * These are kernel-level tests that verify the API layer logic
  * without making real HTTP requests.
  */
-class ProductApiTest extends KernelTestCase
+class ProductApiTest extends AbstractDatabaseKernelTestCase
 {
     protected static function getKernelClass(): string
     {
         return \App\Kernel::class;
     }
-
-    /**
-     * One admin per class, not per test method: PHPUnit builds a fresh instance
-     * for every method, and these tests are not transaction-wrapped, so a
-     * per-method admin would leave four permanent role grants behind per run.
-     */
-    private static ?string $adminToken = null;
 
     /**
      * Every Product operation requires ROLE_ADMIN, and the /symfony/api firewall
@@ -47,13 +40,6 @@ class ProductApiTest extends KernelTestCase
      */
     private function authenticatedRequestHeaders(): array
     {
-        if (self::$adminToken !== null) {
-            return [
-                'HTTP_ACCEPT'        => 'application/ld+json',
-                'HTTP_AUTHORIZATION' => 'Bearer ' . self::$adminToken,
-            ];
-        }
-
         $container = static::getContainer();
 
         /** @var Connection $connection */
@@ -88,11 +74,10 @@ class ProductApiTest extends KernelTestCase
 
         /** @var JwtService $jwtService */
         $jwtService = $container->get(JwtService::class);
-        self::$adminToken = $jwtService->generateJwtToken($jwtService->extractUserData($user));
 
         return [
             'HTTP_ACCEPT'        => 'application/ld+json',
-            'HTTP_AUTHORIZATION' => 'Bearer ' . self::$adminToken,
+            'HTTP_AUTHORIZATION' => 'Bearer ' . $jwtService->generateJwtToken($jwtService->extractUserData($user)),
         ];
     }
 
@@ -119,7 +104,6 @@ class ProductApiTest extends KernelTestCase
      */
     public function testAnonymousRequestIsRejected(): void
     {
-        self::bootKernel();
         $kernel = static::getContainer()->get('kernel');
 
         $request = \Symfony\Component\HttpFoundation\Request::create(
@@ -138,7 +122,6 @@ class ProductApiTest extends KernelTestCase
 
     public function testNonAdminIsForbidden(): void
     {
-        self::bootKernel();
         $container = static::getContainer();
 
         /** @var User $user */
@@ -170,7 +153,6 @@ class ProductApiTest extends KernelTestCase
 
     public function testProductApiReturnsJsonContentType(): void
     {
-        self::bootKernel();
         $container = static::getContainer();
 
         /** @var \Symfony\Component\HttpKernel\HttpKernelInterface $kernel */
@@ -195,7 +177,6 @@ class ProductApiTest extends KernelTestCase
 
     public function testProductApiFilterByTag(): void
     {
-        self::bootKernel();
         $container = static::getContainer();
 
         /** @var EntityManagerInterface $em */
@@ -266,7 +247,6 @@ class ProductApiTest extends KernelTestCase
 
     public function testProductApiReturnsTagsWithCodeAndName(): void
     {
-        self::bootKernel();
         $container = static::getContainer();
 
         /** @var EntityManagerInterface $em */
@@ -315,7 +295,6 @@ class ProductApiTest extends KernelTestCase
 
     public function testApiErrorReturnsJsonNotHtml(): void
     {
-        self::bootKernel();
         $container = static::getContainer();
 
         /** @var \Symfony\Component\HttpKernel\HttpKernelInterface $kernel */
