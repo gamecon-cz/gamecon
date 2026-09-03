@@ -98,6 +98,26 @@ One MariaDB instance on the `gamecon.cz` host serves production, beta, and every
 - Timezone: Europe/Prague
 - Currency handling for Czech crowns
 
+### Code language: English in the new stack
+
+**All code under `symfony/` — and anything Symfony, Doctrine or API Platform related —
+must be entirely in English: comments, docblocks, class/method/property names, variable
+names, constants, test names.** The same goes for the new frontend in `ui/src/`, which
+talks to that API. No exceptions for "just a short note".
+
+The only Czech that belongs there is text that is *data*, not code: user-facing strings
+rendered in the UI, error messages shown to participants, CSS class names shared with the
+legacy templates (`shopVstupne_castka`), database identifiers (`shop_predmety`,
+`cena_nakupni`), and domain terms quoted inside an English sentence — writing
+`the voluntary entry fee ("dobrovolné vstupné")` is right, because the Czech term is what
+the rest of the system calls it.
+
+**Legacy code stays as it is.** `model/`, `web/`, `admin/` and `migrace/` are Czech
+throughout; a lone English comment there is the odd one out, so match the surrounding file.
+The dividing line is the stack, not the date — a new function added to
+`web/moduly/prihlaska/prihlaska.php` is legacy code and stays Czech, even when it is part
+of new-stack work.
+
 ## Testing Notes
 - Tests use temporary database setup
 - Database migrations run automatically
