@@ -108,6 +108,66 @@ class ProductApiTest extends KernelTestCase
         return $product;
     }
 
+    /**
+     * 401 and 403 are distinct outcomes and both are worth pinning; a test that
+     * only exercised the happy path would stay green if either broke.
+     *
+     * Both are decided by the operation's own is_granted('ROLE_ADMIN'), not by
+     * the access_control line: relaxing that line to PUBLIC_ACCESS leaves both
+     * responses unchanged, while relaxing the operation to ROLE_USER turns the
+     * 403 into a 200. So it is the resource guard these two pin down.
+     */
+    public function testAnonymousRequestIsRejected(): void
+    {
+        self::bootKernel();
+        $kernel = static::getContainer()->get('kernel');
+
+        $request = \Symfony\Component\HttpFoundation\Request::create(
+            '/symfony/api/products',
+            'GET',
+            [],
+            [],
+            [],
+            [
+                'HTTP_ACCEPT' => 'application/ld+json',
+            ],
+        );
+
+        $this->assertSame(401, $kernel->handle($request)->getStatusCode());
+    }
+
+    public function testNonAdminIsForbidden(): void
+    {
+        self::bootKernel();
+        $container = static::getContainer();
+
+        /** @var User $user */
+        $user = UserFactory::createOne([
+            UserEntityStructure::login => 'api_test_plain_' . uniqid(),
+            UserEntityStructure::email => 'api.test.plain.' . uniqid() . '@example.invalid',
+            UserEntityStructure::jmeno => 'API Test Participant',
+        ])->_save()->_real();
+
+        /** @var JwtService $jwtService */
+        $jwtService = $container->get(JwtService::class);
+        $token = $jwtService->generateJwtToken($jwtService->extractUserData($user));
+
+        $kernel = $container->get('kernel');
+        $request = \Symfony\Component\HttpFoundation\Request::create(
+            '/symfony/api/products',
+            'GET',
+            [],
+            [],
+            [],
+            [
+                'HTTP_ACCEPT'        => 'application/ld+json',
+                'HTTP_AUTHORIZATION' => 'Bearer ' . $token,
+            ],
+        );
+
+        $this->assertSame(403, $kernel->handle($request)->getStatusCode());
+    }
+
     public function testProductApiReturnsJsonContentType(): void
     {
         self::bootKernel();
