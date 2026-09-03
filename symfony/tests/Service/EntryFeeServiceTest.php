@@ -59,7 +59,7 @@ class EntryFeeServiceTest extends TestCase
             $yearProvider,
         );
 
-        // Chybějící nastavení není průměr 0 Kč — značka se nemá kreslit vlevo, ale vůbec.
+        // A missing setting is not an average of 0 Kč: the marker must not be drawn at all.
         self::assertSame(EntryFeeService::AVERAGE_UNKNOWN, $service->lastYearAveragePercent());
     }
 
