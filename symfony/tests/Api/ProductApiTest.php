@@ -38,8 +38,22 @@ class ProductApiTest extends KernelTestCase
      *
      * @return array<string, string> server parameters for Request::create()
      */
+    /**
+     * One admin per class, not per test method: PHPUnit builds a fresh instance
+     * for every method, and these tests are not transaction-wrapped, so a
+     * per-method admin would leave four permanent role grants behind per run.
+     */
+    private static ?string $adminToken = null;
+
     private function authenticatedRequestHeaders(): array
     {
+        if (self::$adminToken !== null) {
+            return [
+                'HTTP_ACCEPT'        => 'application/ld+json',
+                'HTTP_AUTHORIZATION' => 'Bearer ' . self::$adminToken,
+            ];
+        }
+
         $container = static::getContainer();
 
         /** @var Connection $connection */
@@ -74,12 +88,24 @@ class ProductApiTest extends KernelTestCase
 
         /** @var JwtService $jwtService */
         $jwtService = $container->get(JwtService::class);
-        $token = $jwtService->generateJwtToken($jwtService->extractUserData($user));
+        self::$adminToken = $jwtService->generateJwtToken($jwtService->extractUserData($user));
 
         return [
             'HTTP_ACCEPT'        => 'application/ld+json',
-            'HTTP_AUTHORIZATION' => 'Bearer ' . $token,
+            'HTTP_AUTHORIZATION' => 'Bearer ' . self::$adminToken,
         ];
+    }
+
+    private function createProduct(): Product
+    {
+        $product = new Product();
+        $product->setName('API test product ' . uniqid());
+        $product->setCode('API-TEST-' . strtoupper(uniqid()));
+        $product->setCurrentPrice('1.00');
+        $product->setState(1);
+        $product->setDescription('');
+
+        return $product;
     }
 
     public function testProductApiReturnsJsonContentType(): void
@@ -115,19 +141,39 @@ class ProductApiTest extends KernelTestCase
         /** @var EntityManagerInterface $em */
         $em = $container->get('doctrine.orm.entity_manager');
 
-        // Check if jidlo tag exists
+        // Both products are created here: filtering can only be proven by a
+        // collection that has something to leave out, and the fixtures carry
+        // no product_product_tag rows at all.
+        $tagCode = 'api-test-filter-' . uniqid();
+        // Inserted as SQL, not through the entity: product_tag.created_at is
+        // NOT NULL without a default and ProductTag does not map it, so a tag
+        // persisted through Doctrine is rejected by the database.
+        /** @var Connection $connection */
+        $connection = $container->get(Connection::class);
+        $connection->executeStatement(
+            'INSERT INTO product_tag (code, name, created_at) VALUES (?, ?, NOW())',
+            [$tagCode, 'API filter test tag'],
+        );
         $tag = $em->getRepository(ProductTag::class)->findOneBy([
-            'code' => 'jidlo',
+            'code' => $tagCode,
         ]);
-        if ($tag === null) {
-            $this->markTestSkipped('No jidlo tag in database');
-        }
+
+        $tagged = $this->createProduct();
+        $tagged->addTag($tag);
+        $em->persist($tagged);
+
+        $untagged = $this->createProduct();
+        $em->persist($untagged);
+        $em->flush();
+
+        $taggedId = $tagged->getId();
+        $untaggedId = $untagged->getId();
 
         /** @var \Symfony\Component\HttpKernel\HttpKernelInterface $kernel */
         $kernel = $container->get('kernel');
 
         $request = \Symfony\Component\HttpFoundation\Request::create(
-            '/symfony/api/products?tags.code=jidlo',
+            '/symfony/api/products?tags.code=' . $tagCode,
             'GET',
             [],
             [],
@@ -142,13 +188,19 @@ class ProductApiTest extends KernelTestCase
         $data = json_decode($response->getContent(), true);
         $this->assertIsArray($data);
         // API Platform 3 renames hydra:member to member in the JSON-LD output.
-        $members = $data['member'] ?? $data['hydra:member'] ?? null;
-        $this->assertIsArray($members, 'Collection response must carry members, got: ' . implode(', ', array_keys($data)));
+        $this->assertArrayHasKey(
+            'member',
+            $data,
+            'Collection response must carry members, got: ' . implode(', ', array_keys($data)),
+        );
 
-        // All returned products should have the jidlo tag
-        foreach ($members as $product) {
+        $returnedIds = array_column($data['member'], 'id');
+        $this->assertContains($taggedId, $returnedIds, 'Filtered collection must contain the product carrying the tag');
+        $this->assertNotContains($untaggedId, $returnedIds, 'Filtered collection must exclude a product without the tag');
+
+        foreach ($data['member'] as $product) {
             $tagCodes = array_column($product['tags'] ?? [], 'code');
-            $this->assertContains('jidlo', $tagCodes, 'Product ' . ($product['name'] ?? '?') . ' should have jidlo tag');
+            $this->assertContains($tagCode, $tagCodes, 'Product ' . ($product['name'] ?? '?') . ' should carry the filtered tag');
         }
     }
 
@@ -170,12 +222,7 @@ class ProductApiTest extends KernelTestCase
             $em->persist($tag);
         }
 
-        $product = new Product();
-        $product->setName('API test product ' . uniqid());
-        $product->setCode('API-TEST-' . strtoupper(uniqid()));
-        $product->setCurrentPrice('1.00');
-        $product->setState(1);
-        $product->setDescription('');
+        $product = $this->createProduct();
         $product->addTag($tag);
         $em->persist($product);
         $em->flush();
