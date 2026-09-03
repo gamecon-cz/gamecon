@@ -28,6 +28,13 @@ class ProductApiTest extends KernelTestCase
     }
 
     /**
+     * One admin per class, not per test method: PHPUnit builds a fresh instance
+     * for every method, and these tests are not transaction-wrapped, so a
+     * per-method admin would leave four permanent role grants behind per run.
+     */
+    private static ?string $adminToken = null;
+
+    /**
      * Every Product operation requires ROLE_ADMIN, and the /symfony/api firewall
      * requires an authenticated user at all, so an anonymous request is answered
      * 401 and a plain participant 403 — neither ever reaches the resource.
@@ -38,13 +45,6 @@ class ProductApiTest extends KernelTestCase
      *
      * @return array<string, string> server parameters for Request::create()
      */
-    /**
-     * One admin per class, not per test method: PHPUnit builds a fresh instance
-     * for every method, and these tests are not transaction-wrapped, so a
-     * per-method admin would leave four permanent role grants behind per run.
-     */
-    private static ?string $adminToken = null;
-
     private function authenticatedRequestHeaders(): array
     {
         if (self::$adminToken !== null) {
