@@ -26,7 +26,8 @@ use Symfony\Component\HttpKernel\Exception\ConflictHttpException;
 readonly class EntryFeeService
 {
     /**
-     * Odlišuje dnes už nepoužívaný předmět pro pozdní platbu od toho běžného.
+     * Tells the no-longer-offered late-payment product apart from the ordinary one; both are
+     * tagged 'vstupne' and only the name distinguishes them.
      */
     private const LATE_NAME_MARKER = 'pozdě';
 
@@ -50,7 +51,8 @@ readonly class EntryFeeService
     public const MAXIMUM_AMOUNT = 9999;
 
     /**
-     * Loňský průměr není spočítaný — značku na posuvníku nemáme kam umístit.
+     * Last year's average has not been computed, so there is nowhere to put the slider marker.
+     * Distinct from 0, which would legitimately draw it at the far left.
      */
     public const AVERAGE_UNKNOWN = -1;
 
