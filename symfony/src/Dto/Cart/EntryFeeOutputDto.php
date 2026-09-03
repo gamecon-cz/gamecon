@@ -32,7 +32,8 @@ class EntryFeeOutputDto
     public int $maximum;
 
     /**
-     * Nejvyšší uložitelná částka, kterou smí uživatel zadat do pole.
+     * Higher than $maximum: the slider tops out at 1000 Kč, but the text field accepts more.
+     * Capped because cena_nakupni is NUMERIC(6,2), which silently truncates above 9999.99.
      */
     public int $maximumAmount;
 
