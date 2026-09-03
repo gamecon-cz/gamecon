@@ -33,15 +33,12 @@ class ProgramStaticFileGenerator implements ResetInterface
     {
         $activities = $this->loadActivities($rok);
 
-        $dataSourcesCollector = new DataSourcesCollector();
-        Aktivita::organizatoriDSC($dataSourcesCollector);
-
         $aktivityNeprihlasen = [];
         foreach ($activities as $activity) {
             if (! $activity->zacatek() || ! $activity->konec() || ! $activity->viditelnaPro(null)) {
                 continue;
             }
-            $aktivityNeprihlasen[] = self::aktivitaDoPole($activity, $dataSourcesCollector);
+            $aktivityNeprihlasen[] = self::aktivitaDoPole($activity);
         }
 
         return $this->writeJsonFile('aktivity', $rok, $aktivityNeprihlasen);
@@ -62,14 +59,13 @@ class ProgramStaticFileGenerator implements ResetInterface
      */
     public static function aktivitaDoPole(
         Aktivita $activity,
-        ?DataSourcesCollector $dataSourcesCollector = null,
     ): array {
         $zacatekAktivity = $activity->zacatek();
         $konecAktivity = $activity->konec();
 
         $vypraveci = array_map(
             fn (\Uzivatel $organizator) => $organizator->jmenoNaWebu(),
-            $activity->organizatori(dataSourcesCollector: $dataSourcesCollector),
+            $activity->organizatori(),
         );
 
         $aktivitaRes = [
@@ -118,7 +114,7 @@ class ProgramStaticFileGenerator implements ResetInterface
 
     public function generateStitky(int $rok): string
     {
-        $editorTagu = new EditorTagu($this->systemoveNastaveni->db());
+        $editorTagu = new EditorTagu();
         $tagy = $editorTagu->getTagy();
 
         $tagyProJson = array_map(
@@ -141,14 +137,11 @@ class ProgramStaticFileGenerator implements ResetInterface
     {
         $aktivity = $this->loadActivities($rok);
 
-        $dataSourcesCollector = new DataSourcesCollector();
-        Aktivita::obsazenostObjDSC($dataSourcesCollector);
-
         $aktivityObsazenost = [];
         foreach ($aktivity as $aktivita) {
             $aktivityObsazenost[] = [
                 'idAktivity' => $aktivita->id(),
-                'obsazenost' => $aktivita->obsazenostObj($dataSourcesCollector),
+                'obsazenost' => $aktivita->obsazenostObj(),
             ];
         }
 

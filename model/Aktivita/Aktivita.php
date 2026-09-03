@@ -11,17 +11,7 @@ use Gamecon\Admin\Modules\Aktivity\Import\Activities\ImportValuesDescriber;
 use Gamecon\Aktivita\OnlinePrezence\OnlinePrezenceHtml;
 use Gamecon\Aktivita\AktivitaTym;
 use Gamecon\Aktivita\SqlStruktura\AkceLokaceSqlStruktura;
-use Gamecon\Aktivita\SqlStruktura\AkceOrganizatoriSqlStruktura;
-use Gamecon\Aktivita\SqlStruktura\AkcePrihlaseniLogSqlStruktura;
-use Gamecon\Aktivita\SqlStruktura\AkcePrihlaseniSpecSqlStruktura;
-use Gamecon\Aktivita\SqlStruktura\AkcePrihlaseniSqlStruktura;
-use Gamecon\Aktivita\SqlStruktura\AkceTymSqlStruktura;
-use Gamecon\Aktivita\SqlStruktura\AkceSeznamSqlStruktura;
 use Gamecon\Aktivita\SqlStruktura\AkceSeznamSqlStruktura as Sql;
-use Gamecon\Aktivita\SqlStruktura\AkceSjednoceneTagySqlStruktura;
-use Gamecon\Aktivita\SqlStruktura\KategorieSjednocenychTaguSqlStruktura;
-use Gamecon\Aktivita\SqlStruktura\SjednoceneTagySqlStruktura;
-use Gamecon\Cache\DataSourcesCollector;
 use Gamecon\Cache\ProgramStaticFileGenerator;
 use Gamecon\Cache\ProgramStaticFileType;
 use Gamecon\Cas\DateTimeCz;
@@ -31,9 +21,7 @@ use Gamecon\Kanaly\GcMail;
 use Gamecon\Pravo;
 use Gamecon\PrednacitaniTrait;
 use Gamecon\SystemoveNastaveni\SystemoveNastaveni;
-use Gamecon\Uzivatel\Finance;
 use Gamecon\Uzivatel\Pohlavi;
-use Gamecon\Uzivatel\SqlStruktura\UzivateleHodnotySqlStruktura;
 use Gamecon\Vyjimkovac\Vyjimkovac;
 use Gamecon\Web\Urls;
 use Gamecon\XTemplate\XTemplate;
@@ -309,19 +297,10 @@ SQL
 
     public function soucinitelCenyAktivity(
         \Uzivatel             $u,
-        ?DataSourcesCollector $dataSourcesCollector = null,
     ): float {
-        self::soucinitelCenyAktivityDSC($dataSourcesCollector);
-
-        return (!$this->a[Sql::BEZ_SLEVY] && $u && $u->gcPrihlasen($dataSourcesCollector))
-            ? $u->finance()->soucinitelCenyAktivit($dataSourcesCollector)
+        return (!$this->a[Sql::BEZ_SLEVY] && $u && $u->gcPrihlasen())
+            ? $u->finance()->soucinitelCenyAktivit()
             : 1.;
-    }
-
-    public static function soucinitelCenyAktivityDSC(?DataSourcesCollector $dataSourcesCollector)
-    {
-        Finance::slevaAktivityDSC($dataSourcesCollector);
-        Uzivatel::gcPrihlasenDSC($dataSourcesCollector);
     }
 
     /**
@@ -487,7 +466,7 @@ SQL
         ?Aktivita          $a = null,
     ) {
         return self::vytvorEditorAktivity(
-            editorTagu: new EditorTagu($systemoveNastaveni->db()),
+            editorTagu: new EditorTagu(),
             aktivita: $a,
             systemoveNastaveni: $systemoveNastaveni,
         );
@@ -1753,19 +1732,16 @@ SQL
     /**
      * @return array<int, Uzivatel[]>
      */
-    private function seznamUcastniku(?DataSourcesCollector $dataSourcesCollector = null): array
+    private function seznamUcastniku(): array
     {
-        self::seznamUcastnikuDSC($dataSourcesCollector);
-
         if (!isset($this->seznamUcastniku)) {
             if ($this->prednacitat) {
                 if (!array_key_exists($this->id(), self::$seznamUcastnikuCache)) {
                     // pouze pokud je někdo na aktivitu přihlášen, jinak nemá cenu zkoušet načítat její účastníky
-                    if ($this->prihlaseniRaw($dataSourcesCollector) !== '') {
+                    if ($this->prihlaseniRaw() !== '') {
                         // array + array přidá nové záznamy s novými klíči, ale nepřepíše původní
                         self::$seznamUcastnikuCache += self::seznamUcastnikuAktivit(
                             Sql::AKCE_SEZNAM_TABULKA . '.' . Sql::ROK . '=' . $this->systemoveNastaveni->rocnik(),
-                            $dataSourcesCollector,
                         );
                     }
                 }
@@ -1774,7 +1750,6 @@ SQL
             } else {
                 $this->seznamUcastniku = self::seznamUcastnikuAktivit(
                     'zdroj.id_akce=' . $this->id(),
-                    $dataSourcesCollector,
                 )[$this->id()] ?? [];
             }
         }
@@ -1782,18 +1757,9 @@ SQL
         return $this->seznamUcastniku;
     }
 
-    private static function seznamUcastnikuDSC(?DataSourcesCollector $dataSourcesCollector): void
-    {
-        self::prihlaseniRawDSC($dataSourcesCollector);
-        self::seznamUcastnikuAktivitDSC($dataSourcesCollector);
-    }
-
     private static function seznamUcastnikuAktivit(
         string                $where = 'TRUE',
-        ?DataSourcesCollector $dataSourcesCollector = null,
     ): array {
-        self::seznamUcastnikuAktivitDSC($dataSourcesCollector);
-
         $data = dbFetchAll(
             <<<SQL
                 SELECT zdroj.id_akce, zdroj.id_uzivatele, zdroj.id_stavu_prihlaseni
@@ -1823,17 +1789,6 @@ SQL
         }
 
         return $seznamUcastniku;
-    }
-
-    private static function seznamUcastnikuAktivitDSC(
-        ?DataSourcesCollector $dataSourcesCollector,
-    ): void {
-        $dataSourcesCollector?->addDataSources([
-            Sql::AKCE_SEZNAM_TABULKA,
-            AkcePrihlaseniSqlStruktura::AKCE_PRIHLASENI_TABULKA,
-            AkcePrihlaseniSpecSqlStruktura::AKCE_PRIHLASENI_SPEC_TABULKA,
-        ]);
-        Uzivatel::zIdsDSC($dataSourcesCollector);
     }
 
     public function nazev(): string
@@ -1945,12 +1900,10 @@ SQL
     /**
      * ApiObsazenost
      */
-    public function obsazenostObj(?DataSourcesCollector $dataSourcesCollector = null)
+    public function obsazenostObj()
     {
-        self::obsazenostObjDSC($dataSourcesCollector);
-
-        $prihlasenoMuzu = $this->pocetPrihlasenychMuzu($dataSourcesCollector); // počty
-        $prihlasenoZen = $this->pocetPrihlasenychZen($dataSourcesCollector);
+        $prihlasenoMuzu = $this->pocetPrihlasenychMuzu(); // počty
+        $prihlasenoZen = $this->pocetPrihlasenychZen();
         $kapacitaMuzi = (int)$this->a[Sql::KAPACITA_M]; // kapacity
         $kapacitaZeny = (int)$this->a[Sql::KAPACITA_F];
         $kapacitaUniverzalni = (int)$this->a[Sql::KAPACITA];
@@ -1971,12 +1924,6 @@ SQL
         }
 
         return $res;
-    }
-
-    public static function obsazenostObjDSC(?DataSourcesCollector $dataSourcesCollector)
-    {
-        self::prihlaseniRawDSC($dataSourcesCollector);
-        $dataSourcesCollector?->addDataSource(AkceTymSqlStruktura::AKCE_TYM_TABULKA);
     }
 
     /**
@@ -2167,9 +2114,7 @@ SQL,
      */
     public function organizatori(
         array                 $ids = null,
-        ?DataSourcesCollector $dataSourcesCollector = null,
     ) {
-        self::organizatoriDSC($dataSourcesCollector);
 
         if ($ids !== null) {
             if ($ids) {
@@ -2199,11 +2144,6 @@ SQL,
         }
 
         return $this->organizatori;
-    }
-
-    public static function organizatoriDSC(?DataSourcesCollector $dataSourcesCollector)
-    {
-        Uzivatel::zIdsDSC($dataSourcesCollector);
     }
 
     /**
@@ -2797,9 +2737,9 @@ SQL
      * @return array<int, array{id: int, pohlavi: string|null, stav: int|null}>
      * @see prihlaseniRaw
      */
-    public function prihlaseniRawArray(?DataSourcesCollector $dataSourcesCollector = null): array
+    public function prihlaseniRawArray(): array
     {
-        $prihlaseniRaw = trim($this->prihlaseniRaw($dataSourcesCollector), ',');
+        $prihlaseniRaw = trim($this->prihlaseniRaw(), ',');
         if (!isset(self::$prihlaseniRawArrayCache[$prihlaseniRaw])) {
             $prihlaseniArray = explode(',', trim($prihlaseniRaw, ','));
             $prihlaseni = [];
@@ -2840,14 +2780,11 @@ SQL
      * uživatelů, písmena pohlaví a čísla z pohlavím stav přihlášení.
      * @see ucastnici
      */
-    private function prihlaseniRaw(?DataSourcesCollector $dataSourcesCollector = null): string
+    private function prihlaseniRaw(): string
     {
-        self::prihlaseniRawDSC($dataSourcesCollector);
-
         if (!array_key_exists('prihlaseniRaw', $this->a)) {
             if ($this->prednacitat) {
                 if (!array_key_exists($this->id(), self::$prihlaseniRawCache)) {
-                    $dataSourcesCollector?->addDataSource(Sql::AKCE_SEZNAM_TABULKA);
                     // array + array přidá nové záznamy s novými klíči, ale nepřepíše původní
                     self::$prihlaseniRawCache += self::nactiPrihlaseniNaAktivityRaw(
                         Sql::AKCE_SEZNAM_TABULKA . '.' . Sql::ROK . '=' . $this->rok(),
@@ -2863,12 +2800,6 @@ SQL
         return (string)$this->a['prihlaseniRaw'];
     }
 
-    private static function prihlaseniRawDSC(?DataSourcesCollector $dataSourcesCollector): void
-    {
-        self::nactiPrihlaseniNaAktivityRawDSC($dataSourcesCollector);
-        self::nactiPrihlaseniRawDSC($dataSourcesCollector);
-    }
-
     private function organizatoriRaw(): string
     {
         return (string)$this->a['organizatori'];
@@ -2876,10 +2807,7 @@ SQL
 
     private static function nactiPrihlaseniNaAktivityRaw(
         string                $where = 'TRUE',
-        ?DataSourcesCollector $dataSourcesCollector = null,
     ): array {
-        self::nactiPrihlaseniNaAktivityRawDSC($dataSourcesCollector);
-
         return dbFetchPairs(<<<SQL
             SELECT akce_seznam.id_akce,
                    CONCAT(
@@ -2910,33 +2838,14 @@ SQL
         );
     }
 
-    private static function nactiPrihlaseniNaAktivityRawDSC(
-        ?DataSourcesCollector $dataSourcesCollector = null,
-    ): void {
-        $dataSourcesCollector?->addDataSources([
-            Sql::AKCE_SEZNAM_TABULKA,
-            AkcePrihlaseniSqlStruktura::AKCE_PRIHLASENI_TABULKA,
-            UzivateleHodnotySqlStruktura::UZIVATELE_HODNOTY_TABULKA,
-            AkcePrihlaseniLogSqlStruktura::AKCE_PRIHLASENI_LOG_TABULKA,
-        ]);
-    }
-
-    private function nactiPrihlaseniRaw(?DataSourcesCollector $dataSourcesCollector = null): string
+    private function nactiPrihlaseniRaw(): string
     {
-        $dataSourcesCollector?->addDataSource(Sql::AKCE_SEZNAM_TABULKA);
-
         return (string)(
             self::nactiPrihlaseniNaAktivityRaw(
                 Sql::AKCE_SEZNAM_TABULKA . '.' . Sql::ID_AKCE . "={$this->id()}",
-                $dataSourcesCollector,
             )[$this->id()]
             ?? ''
         );
-    }
-
-    private static function nactiPrihlaseniRawDSC(?DataSourcesCollector $dataSourcesCollector): void
-    {
-        self::nactiPrihlaseniNaAktivityRawDSC($dataSourcesCollector);
     }
 
     public function pocetPrihlasenych(): int
@@ -2964,21 +2873,20 @@ SQL
         return count(AktivitaTym::vsechnyTymyAktivity($this->id()));
     }
 
-    protected function pocetPrihlasenychMuzu(?DataSourcesCollector $dataSourcesCollector = null): int
+    protected function pocetPrihlasenychMuzu(): int
     {
-        return $this->pocetPrihlasenehoPohlavi(Pohlavi::MUZ_KOD, $dataSourcesCollector);
+        return $this->pocetPrihlasenehoPohlavi(Pohlavi::MUZ_KOD);
     }
 
     private function pocetPrihlasenehoPohlavi(
         string                $pocitanePohlavi,
-        ?DataSourcesCollector $dataSourcesCollector = null,
     ): int {
         return count(
             array_filter(
                 array_map(static fn(
                     array $prihlaseny,
                 ) => $prihlaseny['pohlavi'],
-                    $this->prihlaseniRawArray($dataSourcesCollector),
+                    $this->prihlaseniRawArray(),
                 ),
                 static fn(
                     $pohlavi,
@@ -2987,9 +2895,9 @@ SQL
         );
     }
 
-    protected function pocetPrihlasenychZen(?DataSourcesCollector $dataSourcesCollector = null): int
+    protected function pocetPrihlasenychZen(): int
     {
-        return $this->pocetPrihlasenehoPohlavi(Pohlavi::ZENA_KOD, $dataSourcesCollector);
+        return $this->pocetPrihlasenehoPohlavi(Pohlavi::ZENA_KOD);
     }
 
     /**
@@ -2999,15 +2907,14 @@ SQL
      */
     public function stavPrihlaseni(
         Uzivatel              $u,
-        ?DataSourcesCollector $dataSourcesCollector = null,
     ): int {
-        $prihlaseniRawArray = $this->prihlaseniRawArray($dataSourcesCollector);
+        $prihlaseniRawArray = $this->prihlaseniRawArray();
         $uzivatelPrihlaseni = $prihlaseniRawArray[$u->id()] ?? null;
         if ($uzivatelPrihlaseni !== null && $uzivatelPrihlaseni['stav'] !== null) {
             return $uzivatelPrihlaseni['stav'];
         }
 
-        foreach ($this->seznamUcastniku($dataSourcesCollector) as $idStavuPrihlaseni => $ucastniciAktivity) {
+        foreach ($this->seznamUcastniku() as $idStavuPrihlaseni => $ucastniciAktivity) {
             foreach ($ucastniciAktivity as $ucastnikAktivity) {
                 if ($ucastnikAktivity->id() === $u->id()) {
                     return $idStavuPrihlaseni;
@@ -3016,13 +2923,6 @@ SQL
         }
 
         return StavPrihlaseni::NEPRIHLASEN;
-    }
-
-    public static function stavPrihlaseniDSC(
-        ?DataSourcesCollector $dataSourcesCollector,
-    ) {
-        self::prihlaseniRawDSC($dataSourcesCollector);
-        self::seznamUcastnikuDSC($dataSourcesCollector);
     }
 
     /**
@@ -3645,9 +3545,9 @@ SQL,
      * Vrátí pole s přihlášenými účastníky, včetně náhradníků
      * @return Uzivatel[]
      */
-    public function prihlaseni(?DataSourcesCollector $dataSourcesCollector = null): array
+    public function prihlaseni(): array
     {
-        $ids = array_keys($this->prihlaseniRawArray($dataSourcesCollector));
+        $ids = array_keys($this->prihlaseniRawArray());
         $uzivatele = Uzivatel::zIds($ids);
         usort($uzivatele, static function (
             Uzivatel $nejakyUzivatel,
@@ -3722,7 +3622,7 @@ SQL,
     }
 
     /** Vrátí, jestli aktivita bude aktivována v další vlně */
-    public function vDalsiVlne(?DataSourcesCollector $dataSourcesCollector = null): bool
+    public function vDalsiVlne(): bool
     {
         return $this->a[Sql::STAV] == StavAktivity::PRIPRAVENA
                || (!$this->systemoveNastaveni->probihaRegistraceAktivit()
@@ -3731,10 +3631,10 @@ SQL,
     }
 
     /** Vrátí typ volných míst na aktivitě */
-    public function volnoPro(?DataSourcesCollector $dataSourcesCollector = null): VolnoProEnum
+    public function volnoPro(): VolnoProEnum
     {
-        $prihlasenoMuzu = $this->pocetPrihlasenychMuzu($dataSourcesCollector);
-        $prihlasenoZen = $this->pocetPrihlasenychZen($dataSourcesCollector);
+        $prihlasenoMuzu = $this->pocetPrihlasenychMuzu();
+        $prihlasenoZen = $this->pocetPrihlasenychZen();
         $unisexKapacita = $this->a[Sql::KAPACITA];
         $kapacitaMuzu = $this->a[Sql::KAPACITA_M];
         $kapacitaZen = $this->a[Sql::KAPACITA_F];
@@ -3774,7 +3674,6 @@ SQL,
      * Jestli má uživatel aktivitu vidět (případně jestli má být vidět veřejně,
      * pokud $u == null).
      */
-    // todo: přidat DSC
     public function viditelnaPro(
         ?Uzivatel $uzivatel,
     ) {
@@ -3782,7 +3681,6 @@ SQL,
             (in_array($this->a[Sql::STAV], StavAktivity::bezneViditelneStavy(), false) // podle stavu je aktivita viditelná
             && !(TypAktivity::jeInterniDleId($this->a[Sql::TYP]) && $this->probehnuta()) // ale skrýt technické a brigádnické proběhnuté
             )
-            // todo: přidat DSC
             || ($uzivatel && ($this->prihlasen($uzivatel) || $this->organizuje($uzivatel) || $uzivatel->jeOrganizator()))
             // prezenční admin vidí skryté (NOVA) technické/brigádnické aktivity, aby na ně
             // mohl posadit účastníky – shodné zúžení jako enrollment guard v procNeniPrihlasovatelna().
@@ -4083,9 +3981,7 @@ SQL,
         array                 $razeni = [],
         ?int                  $limit = null,
         bool                  $prednacitat = false,
-        ?DataSourcesCollector $dataSourcesCollector = null,
     ): array {
-        $dalsiPouziteSqlTabulky = [];
         // sestavení filtrů
         $wheres1 = [];
         if (!empty($filtr[FiltrAktivity::ROK])) {
@@ -4098,7 +3994,6 @@ SQL,
             $wheres1[] = 'a.typ = ' . (int)$filtr[FiltrAktivity::TYP];
         }
         if (!empty($filtr[FiltrAktivity::ORGANIZATOR])) {
-            $dalsiPouziteSqlTabulky[] = AkceOrganizatoriSqlStruktura::AKCE_ORGANIZATORI_TABULKA;
             $wheres1[] = 'a.id_akce IN (SELECT id_akce FROM akce_organizatori WHERE id_uzivatele = ' . (int)$filtr[FiltrAktivity::ORGANIZATOR] . ')';
         }
         if (!empty($filtr[FiltrAktivity::JEN_VIDITELNE])) {
@@ -4112,13 +4007,10 @@ SQL,
             $wheres1[] = 'a.stav != ' . StavAktivity::UZAVRENA;
         }
         if (!empty($filtr[FiltrAktivity::JEN_NEVYPLNENE])) { // byli tam přihlášení nějací hráči a nikdo nedorazil
-            $dalsiPouziteSqlTabulky[] = AkcePrihlaseniSqlStruktura::AKCE_PRIHLASENI_TABULKA;
-            $dalsiPouziteSqlTabulky[] = AkcePrihlaseniSpecSqlStruktura::AKCE_PRIHLASENI_SPEC_TABULKA;
             $wheres1[] = 'NOT EXISTS(SELECT 1 FROM akce_prihlaseni ap WHERE ap.id_akce = a.id_akce AND ap.id_stavu_prihlaseni IN (' . StavPrihlaseni::PRIHLASEN_A_DORAZIL . ', ' . StavPrihlaseni::DORAZIL_JAKO_NAHRADNIK . '))';
             $wheres1[] = 'EXISTS(SELECT 1 FROM akce_prihlaseni_spec aps WHERE aps.id_akce = a.id_akce AND aps.id_stavu_prihlaseni = ' . StavPrihlaseni::PRIHLASEN_ALE_NEDORAZIL . ')';
         }
         if (!empty($filtr[FiltrAktivity::JEN_BEZ_PRIHLASENYCH])) {
-            $dalsiPouziteSqlTabulky[] = AkcePrihlaseniSqlStruktura::AKCE_PRIHLASENI_TABULKA;
             $wheres1[] = 'NOT EXISTS(SELECT 1 FROM akce_prihlaseni WHERE akce_prihlaseni.id_akce = a.id_akce)';
         }
         if (!empty($filtr[FiltrAktivity::OD])) {
@@ -4134,7 +4026,6 @@ SQL,
             $wheres1[] = 'NOT (a.typ IN (' . TypAktivity::DRD . ',' . TypAktivity::LKD . ') AND cena = 0)';
         }
         if (!empty($filtr[FiltrAktivity::PRIHLASENI])) {
-            $dalsiPouziteSqlTabulky[] = AkcePrihlaseniSqlStruktura::AKCE_PRIHLASENI_TABULKA;
             $wheres1[] = 'EXISTS (SELECT 1 FROM akce_prihlaseni AS p WHERE p.id_akce = a.id_akce AND p.id_uzivatele IN (' . dbQa((array)$filtr[FiltrAktivity::PRIHLASENI]) . '))';
         }
         $where1 = implode(' AND ', $wheres1)
@@ -4163,15 +4054,12 @@ SQL,
         // select
         $aktivity = self::zWhere(
             systemoveNastaveni: $systemoveNastaveni,
-            dalsiPouziteSqlTabulky: $dalsiPouziteSqlTabulky,
             where1: 'WHERE ' . $where1,
             order: $order,
             limit: $limit,
             prednacitat: $prednacitat,
-            dataSourcesCollector: $dataSourcesCollector,
         );
 
-        // todo: tady je další podmíňené dsc ale netýká se to programu
         // řazení v php
         if (!empty($phpRazeni['organizatori'])) { // prozatím podporujeme jen řazení dle orga
             if ($phpRazeni['organizatori'] === 'DESC') {
@@ -4180,15 +4068,12 @@ SQL,
                     static function (
                         Aktivita $a,
                         Aktivita $b,
-                    ) use
-                    (
-                        $dataSourcesCollector,
                     ) {
-                        $jmenoA = $a->organizatori($dataSourcesCollector)
-                            ? current($a->organizatori($dataSourcesCollector))->jmenoNick()
+                        $jmenoA = $a->organizatori()
+                            ? current($a->organizatori())->jmenoNick()
                             : '';
-                        $jmenoB = $b->organizatori($dataSourcesCollector)
-                            ? current($b->organizatori($dataSourcesCollector))->jmenoNick()
+                        $jmenoB = $b->organizatori()
+                            ? current($b->organizatori())->jmenoNick()
                             : '';
 
                         return strcmp($jmenoB, $jmenoA);
@@ -4200,15 +4085,12 @@ SQL,
                     static function (
                         Aktivita $a,
                         Aktivita $b,
-                    ) use
-                    (
-                        $dataSourcesCollector,
                     ) {
-                        $jmenoA = $a->organizatori($dataSourcesCollector)
-                            ? current($a->organizatori($dataSourcesCollector))->jmenoNick()
+                        $jmenoA = $a->organizatori()
+                            ? current($a->organizatori())->jmenoNick()
                             : '';
-                        $jmenoB = $b->organizatori($dataSourcesCollector)
-                            ? current($b->organizatori($dataSourcesCollector))->jmenoNick()
+                        $jmenoB = $b->organizatori()
+                            ? current($b->organizatori())->jmenoNick()
                             : '';
 
                         return strcmp($jmenoA, $jmenoB);
@@ -4245,7 +4127,6 @@ SQL,
         $systemoveNastaveni ??= SystemoveNastaveni::zGlobals();
         $aktivita = current(self::zWhere(
             systemoveNastaveni: $systemoveNastaveni,
-            dalsiPouziteSqlTabulky: [],
             where1: 'WHERE a.id_akce=' . $id,
         ));
         if (!$aktivita) {
@@ -4285,7 +4166,6 @@ SQL,
 
         return self::zWhere(
             systemoveNastaveni: $systemoveNastaveni ?? SystemoveNastaveni::zGlobals(),
-            dalsiPouziteSqlTabulky: [],
             where1: 'WHERE a.id_akce IN(' . dbQa($ids) . ')',
             prednacitat: $prednacitat,
         );
@@ -4295,7 +4175,6 @@ SQL,
     {
         $aktivity = self::zWhere(
             systemoveNastaveni: $systemoveNastaveni,
-            dalsiPouziteSqlTabulky: [],
         );
         foreach ($aktivity as $aktivita) {
             self::$objekty['ids'][$aktivita->id()] = $aktivita;
@@ -4322,7 +4201,6 @@ SQL,
 
         return self::zWhere(
             systemoveNastaveni: $systemoveNastaveni,
-            dalsiPouziteSqlTabulky: [AkceOrganizatoriSqlStruktura::AKCE_ORGANIZATORI_TABULKA],
             where1: "WHERE EXISTS (SELECT * FROM akce_organizatori ao WHERE ao.id_akce = a.id_akce AND ao.id_uzivatele = {$u->id()}) AND a.rok = {$systemoveNastaveni->rocnik()}",
         );
     }
@@ -4402,14 +4280,12 @@ SQL,
      */
     protected static function zWhere(
         SystemoveNastaveni    $systemoveNastaveni,
-        array                 $dalsiPouziteSqlTabulky,
         ?string               $select = null,
         string                $where1 = '',
         ?array                $args = null,
         ?string               $order = null,
         ?int                  $limit = null,
         bool                  $prednacitat = false,
-        ?DataSourcesCollector $dataSourcesCollector = null,
     ): array {
         $select ??= 'NULL AS _';
         $limitSql = $limit !== null
@@ -4439,21 +4315,7 @@ SQL,
             SQL,
             pole: $args ?? [],
         );
-        $db = $systemoveNastaveni->db();
-        $result = $db->dbFetchAll(
-            relatedTables: [
-                ...[
-                    AkceSjednoceneTagySqlStruktura::AKCE_SJEDNOCENE_TAGY_TABULKA,
-                    SjednoceneTagySqlStruktura::SJEDNOCENE_TAGY_TABULKA,
-                    KategorieSjednocenychTaguSqlStruktura::KATEGORIE_SJEDNOCENYCH_TAGU_TABULKA,
-                    AkceOrganizatoriSqlStruktura::AKCE_ORGANIZATORI_TABULKA,
-                    AkceSeznamSqlStruktura::AKCE_SEZNAM_TABULKA,
-                ],
-                ...$dalsiPouziteSqlTabulky,
-            ],
-            sql: $plainSql,
-            dataSourcesCollector: $dataSourcesCollector,
-        );
+        $result = dbFetchAll($plainSql);
 
         $kolekce = []; // pomocný sdílený seznam aktivit pro přednačítání
 

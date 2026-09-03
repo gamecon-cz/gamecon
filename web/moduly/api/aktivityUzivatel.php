@@ -2,7 +2,6 @@
 
 use Gamecon\Aktivita\Aktivita;
 use Gamecon\Aktivita\StavPrihlaseni;
-use Gamecon\Cache\DataSourcesCollector;
 use Gamecon\Aktivita\FiltrAktivity;
 use Gamecon\Aktivita\Lokace;
 use Gamecon\Cache\ProgramStaticFileGenerator;
@@ -26,13 +25,10 @@ $rok = array_key_exists('rok', $_GET)
 
 $requestHash = $_GET['hash'] ?? '';
 
-$dataSourcesCollector = new DataSourcesCollector();
-
 $aktivity = Aktivita::zFiltru(
     systemoveNastaveni: $systemoveNastaveni,
     filtr: [FiltrAktivity::ROK => $rok],
     prednacitat: true,
-    dataSourcesCollector: $dataSourcesCollector,
 );
 
 // User-specific activity data
@@ -40,9 +36,6 @@ $aktivityUzivatelData = [];
 $aktivitySkryteData = [];
 
 if ($ucastnik) {
-    Aktivita::stavPrihlaseniDSC($dataSourcesCollector);
-    Aktivita::soucinitelCenyAktivityDSC($dataSourcesCollector);
-
     foreach ($aktivity as $aktivita) {
         $zacatekAktivity = $aktivita->zacatek();
         $konecAktivity = $aktivita->konec();
@@ -64,11 +57,11 @@ if ($ucastnik) {
         $aktivityUzivatelData[] = [
             'id'             => $aktivita->id(),
             'stavPrihlaseni' => StavPrihlaseni::frontendKod(
-                $aktivita->stavPrihlaseni($ucastnik, $dataSourcesCollector),
+                $aktivita->stavPrihlaseni($ucastnik),
             ),
             'prihlasovatelna' => $aktivita->prihlasovatelnaProPrihlasujiciho($operator ?? $ucastnik),
             // slevaNasobic: 0 = 100% sleva, 1 = bez slevy. NEsmí být stripnuto.
-            'slevaNasobic'   => $aktivita->soucinitelCenyAktivity($ucastnik, $dataSourcesCollector),
+            'slevaNasobic'   => $aktivita->soucinitelCenyAktivity($ucastnik),
             // mistnost je orgovská vlastnost — null pro neorgany nebo pokud
             // aktivita nemá nastavenou hlavní lokaci.
             'mistnosti'       => !empty($seznamLokaci) ? $seznamLokaci : null,
@@ -82,8 +75,7 @@ if ($ucastnik) {
         // je se statickými soubory. Proto používáme sdílený helper, aby se obě
         // cesty nemohly rozejít.
         if ($interni) {
-            Aktivita::organizatoriDSC($dataSourcesCollector);
-            $aktivitySkryteData[] = ProgramStaticFileGenerator::aktivitaDoPole($aktivita, $dataSourcesCollector);
+            $aktivitySkryteData[] = ProgramStaticFileGenerator::aktivitaDoPole($aktivita);
         }
     }
 }

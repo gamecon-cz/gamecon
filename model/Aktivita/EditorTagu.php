@@ -2,9 +2,6 @@
 
 namespace Gamecon\Aktivita;
 
-use Gamecon\Aktivita\SqlStruktura\KategorieSjednocenychTaguSqlStruktura;
-use Gamecon\Aktivita\SqlStruktura\SjednoceneTagySqlStruktura;
-use Gamecon\Cache\DbInterface;
 use Gamecon\XTemplate\XTemplate;
 
 class EditorTagu
@@ -16,10 +13,6 @@ class EditorTagu
     private const KATEGORIE_TAGU_KLIC = 'aEditKategorieTagu';       // název proměnné, v které jsou kategorie tagů
     private const NAZEV_TAGU_KLIC     = 'aEditNazevTagu';       // název proměnné, v které je název tagu
     private const POZNAMKA_TAGU_KLIC  = 'aEditPoznamkaTagu';       // název proměnné, v které je poznámka k tagu
-
-    public function __construct(private readonly DbInterface $db)
-    {
-    }
 
     public function getEditorTaguHtml()
     {
@@ -185,12 +178,8 @@ WHERE sjednocene_tagy.id = $1',
 
     public function getTagy(): array
     {
-        $result     = $this->db->dbFetchAll(
-            relatedTables: [
-                SjednoceneTagySqlStruktura::SJEDNOCENE_TAGY_TABULKA,
-                KategorieSjednocenychTaguSqlStruktura::KATEGORIE_SJEDNOCENYCH_TAGU_TABULKA,
-            ],
-            sql: 'SELECT sjednocene_tagy.id, sjednocene_tagy.nazev, sjednocene_tagy.poznamka,
+        $result     = dbFetchAll(
+            'SELECT sjednocene_tagy.id, sjednocene_tagy.nazev, sjednocene_tagy.poznamka,
        kategorie_sjednocenych_tagu.nazev AS nazev_kategorie,
        IF (kategorie_sjednocenych_tagu.id_hlavni_kategorie IS NULL, kategorie_sjednocenych_tagu.nazev, (SELECT hlavni_kategorie.nazev FROM kategorie_sjednocenych_tagu AS hlavni_kategorie WHERE hlavni_kategorie.id = kategorie_sjednocenych_tagu.id_hlavni_kategorie)) AS nazev_hlavni_kategorie,
        sjednocene_tagy.id_kategorie_tagu
