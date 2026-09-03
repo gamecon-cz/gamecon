@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Tests\Entity;
 
 use App\Entity\Product;
+use App\Entity\ProductTag;
 use PHPUnit\Framework\TestCase;
 
 class ProductTest extends TestCase
@@ -21,6 +22,14 @@ class ProductTest extends TestCase
         $this->product->setDescription('Test description');
     }
 
+    private function tag(string $code): ProductTag
+    {
+        $tag = new ProductTag();
+        $tag->setCode($code);
+
+        return $tag;
+    }
+
     public function testProductCreation(): void
     {
         $this->assertNull($this->product->getId());
@@ -33,24 +42,27 @@ class ProductTest extends TestCase
 
     public function testTagManagement(): void
     {
+        $kostka = $this->tag('kostka');
+        $predmet = $this->tag('predmet');
+
         $this->assertFalse($this->product->hasTag('kostka'));
 
-        $this->product->addTag('kostka');
+        $this->product->addTag($kostka);
 
         $this->assertTrue($this->product->hasTag('kostka'));
         $this->assertCount(1, $this->product->getTags());
 
         // Adding same tag again should not duplicate
-        $this->product->addTag('kostka');
+        $this->product->addTag($kostka);
         $this->assertCount(1, $this->product->getTags());
 
         // Add another tag
-        $this->product->addTag('predmet');
+        $this->product->addTag($predmet);
         $this->assertCount(2, $this->product->getTags());
         $this->assertTrue($this->product->hasTag('predmet'));
 
         // Remove tag
-        $this->product->removeTag('kostka');
+        $this->product->removeTag($kostka);
         $this->assertFalse($this->product->hasTag('kostka'));
         $this->assertTrue($this->product->hasTag('predmet'));
         $this->assertCount(1, $this->product->getTags());
@@ -58,8 +70,8 @@ class ProductTest extends TestCase
 
     public function testGetTagNames(): void
     {
-        $this->product->addTag('kostka');
-        $this->product->addTag('predmet');
+        $this->product->addTag($this->tag('kostka'));
+        $this->product->addTag($this->tag('predmet'));
 
         $tagNames = $this->product->getTagNames();
 
@@ -73,7 +85,7 @@ class ProductTest extends TestCase
     {
         $this->assertFalse($this->product->isAccommodation());
 
-        $this->product->addTag('ubytovani');
+        $this->product->addTag($this->tag('ubytovani'));
 
         $this->assertTrue($this->product->isAccommodation());
     }
@@ -121,7 +133,7 @@ class ProductTest extends TestCase
         $this->assertFalse($this->product->isPublic());
 
         $this->product->setState(1);
-        $this->product->setArchivedAt (new \DateTimeImmutable);
+        $this->product->setArchivedAt(new \DateTimeImmutable());
         $this->assertFalse($this->product->isPublic());
     }
 
