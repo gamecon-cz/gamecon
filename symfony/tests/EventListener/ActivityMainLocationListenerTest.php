@@ -5,6 +5,8 @@ declare(strict_types=1);
 namespace App\Tests\EventListener;
 
 use App\Entity\Activity;
+use App\Entity\ActivityStatus;
+use App\Entity\ActivityType;
 use App\Entity\Location;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Test\KernelTestCase;
@@ -32,26 +34,62 @@ class ActivityMainLocationListenerTest extends KernelTestCase
         $this->entityManager->close();
     }
 
+    private function createLocation(string $name): Location
+    {
+        $location = new Location();
+        $location->setNazev($name);
+        $location->setRok(2026);
+        // dvere, poznamka and poradi are NOT NULL without a DB default.
+        $location->setDvere('');
+        $location->setPoznamka('');
+        $location->setPoradi(0);
+
+        return $location;
+    }
+
+    /**
+     * akce_seznam has no DB defaults, so every NOT NULL column must be set explicitly
+     * even though this test only cares about the location relation.
+     */
+    private function createActivity(): Activity
+    {
+        $activity = new Activity();
+        $activity->setType($this->entityManager->getReference(ActivityType::class, 1));
+        $activity->setStatus($this->entityManager->getReference(ActivityStatus::class, 1));
+        $activity->setNazevAkce('Test Activity');
+        $activity->setKapacita(0);
+        $activity->setKapacitaF(0);
+        $activity->setKapacitaM(0);
+        $activity->setCena(0);
+        $activity->setBezSlevy(false);
+        $activity->setNedavaBonus(false);
+        $activity->setRok(2026);
+        $activity->setTeamova(false);
+        $activity->setTymSmazatPoExpiraci(false);
+        $activity->setDescription('');
+        $activity->setShortDescription('');
+        $activity->setVybaveni('');
+        $activity->setProbehlaKorekce(false);
+
+        return $activity;
+    }
+
     /**
      * Test that listener sets main location on 'persist' when null and locations exist
      */
     public function testListenerSetsMainLocationOnPersistWhenNullAndLocationsExist(): void
     {
         // Create locations
-        $location1 = new Location();
-        $location1->setNazev('Location 1');
-        $location1->setRok(2026);
+        $location1 = $this->createLocation('Location 1');
 
-        $location2 = new Location();
-        $location2->setNazev('Location 2');
-        $location2->setRok(2026);
+        $location2 = $this->createLocation('Location 2');
 
         $this->entityManager->persist($location1);
         $this->entityManager->persist($location2);
         $this->entityManager->flush();
 
         // Create activity with locations but no main location
-        $activity = new Activity();
+        $activity = $this->createActivity();
         $activity->addLocation($location1);
         $activity->addLocation($location2);
 
@@ -73,20 +111,16 @@ class ActivityMainLocationListenerTest extends KernelTestCase
     public function testListenerSetsMainLocationOnUpdateWhenNullAndLocationsExist(): void
     {
         // Create location
-        $location1 = new Location();
-        $location1->setNazev('Initial Location');
-        $location1->setRok(2026);
+        $location1 = $this->createLocation('Initial Location');
 
-        $location2 = new Location();
-        $location2->setNazev('New Location');
-        $location2->setRok(2026);
+        $location2 = $this->createLocation('New Location');
 
         $this->entityManager->persist($location1);
         $this->entityManager->persist($location2);
         $this->entityManager->flush();
 
         // Create activity with main location set
-        $activity = new Activity();
+        $activity = $this->createActivity();
         $activity->addLocation($location1);
         $activity->setMainLocation($location1);
 
@@ -111,20 +145,16 @@ class ActivityMainLocationListenerTest extends KernelTestCase
     public function testListenerDoesNotOverrideExistingMainLocation(): void
     {
         // Create locations
-        $location1 = new Location();
-        $location1->setNazev('First Location');
-        $location1->setRok(2026);
+        $location1 = $this->createLocation('First Location');
 
-        $location2 = new Location();
-        $location2->setNazev('Main Location');
-        $location2->setRok(2026);
+        $location2 = $this->createLocation('Main Location');
 
         $this->entityManager->persist($location1);
         $this->entityManager->persist($location2);
         $this->entityManager->flush();
 
         // Create activity with explicit main location (second location)
-        $activity = new Activity();
+        $activity = $this->createActivity();
         $activity->addLocation($location1);
         $activity->addLocation($location2);
         $activity->setMainLocation($location2); // Explicitly set to second location
@@ -145,7 +175,7 @@ class ActivityMainLocationListenerTest extends KernelTestCase
     public function testListenerHandlesEmptyLocationsGracefully(): void
     {
         // Create activity with no locations
-        $activity = new Activity();
+        $activity = $this->createActivity();
 
         // Verify no locations and no main location
         $this->assertCount(0, $activity->getLocations());
@@ -165,17 +195,11 @@ class ActivityMainLocationListenerTest extends KernelTestCase
     public function testListenerSetsFirstLocationWhenMultipleLocationsExist(): void
     {
         // Create three locations
-        $location1 = new Location();
-        $location1->setNazev('First');
-        $location1->setRok(2026);
+        $location1 = $this->createLocation('First');
 
-        $location2 = new Location();
-        $location2->setNazev('Second');
-        $location2->setRok(2026);
+        $location2 = $this->createLocation('Second');
 
-        $location3 = new Location();
-        $location3->setNazev('Third');
-        $location3->setRok(2026);
+        $location3 = $this->createLocation('Third');
 
         $this->entityManager->persist($location1);
         $this->entityManager->persist($location2);
@@ -183,7 +207,7 @@ class ActivityMainLocationListenerTest extends KernelTestCase
         $this->entityManager->flush();
 
         // Create activity and add locations in specific order
-        $activity = new Activity();
+        $activity = $this->createActivity();
         $activity->addLocation($location1);
         $activity->addLocation($location2);
         $activity->addLocation($location3);
@@ -203,20 +227,16 @@ class ActivityMainLocationListenerTest extends KernelTestCase
     public function testListenerWorksAfterRemovingMainLocationFromCollection(): void
     {
         // Create two locations
-        $location1 = new Location();
-        $location1->setNazev('To Remove');
-        $location1->setRok(2026);
+        $location1 = $this->createLocation('To Remove');
 
-        $location2 = new Location();
-        $location2->setNazev('To Keep');
-        $location2->setRok(2026);
+        $location2 = $this->createLocation('To Keep');
 
         $this->entityManager->persist($location1);
         $this->entityManager->persist($location2);
         $this->entityManager->flush();
 
         // Create activity with two locations, second as main
-        $activity = new Activity();
+        $activity = $this->createActivity();
         $activity->addLocation($location1);
         $activity->addLocation($location2);
         $activity->setMainLocation($location2);
@@ -243,15 +263,13 @@ class ActivityMainLocationListenerTest extends KernelTestCase
     public function testListenerRespectsExplicitNullMainLocation(): void
     {
         // Create location
-        $location = new Location();
-        $location->setNazev('Test Location');
-        $location->setRok(2026);
+        $location = $this->createLocation('Test Location');
 
         $this->entityManager->persist($location);
         $this->entityManager->flush();
 
         // Create activity with location
-        $activity = new Activity();
+        $activity = $this->createActivity();
         $activity->addLocation($location);
 
         // Persist - main location should be auto-set
@@ -275,15 +293,13 @@ class ActivityMainLocationListenerTest extends KernelTestCase
     public function testAddingNewLocationDoesNotChangeExistingMainLocation(): void
     {
         // Create initial location
-        $initialLocation = new Location();
-        $initialLocation->setNazev('Initial');
-        $initialLocation->setRok(2026);
+        $initialLocation = $this->createLocation('Initial');
 
         $this->entityManager->persist($initialLocation);
         $this->entityManager->flush();
 
         // Create activity with initial location
-        $activity = new Activity();
+        $activity = $this->createActivity();
         $activity->addLocation($initialLocation);
 
         $this->entityManager->persist($activity);
@@ -293,9 +309,7 @@ class ActivityMainLocationListenerTest extends KernelTestCase
         $this->assertSame($initialLocation, $activity->getMainLocation());
 
         // Add new location
-        $newLocation = new Location();
-        $newLocation->setNazev('New');
-        $newLocation->setRok(2026);
+        $newLocation = $this->createLocation('New');
 
         $this->entityManager->persist($newLocation);
         $this->entityManager->flush();
