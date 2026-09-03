@@ -475,6 +475,15 @@
             'aliases' => array(),
             'dev_requirement' => false,
         ),
+        'masterminds/html5' => array(
+            'pretty_version' => '2.11.0',
+            'version' => '2.11.0.0',
+            'reference' => 'a1e7a2f88ee13635d86fc61cfbdf2306a76ddfc7',
+            'type' => 'library',
+            'install_path' => __DIR__ . '/../masterminds/html5',
+            'aliases' => array(),
+            'dev_requirement' => true,
+        ),
         'michelf/php-markdown' => array(
             'pretty_version' => '1.9.1',
             'version' => '1.9.1.0',
@@ -564,6 +573,18 @@
             'install_path' => __DIR__ . '/../phar-io/version',
             'aliases' => array(),
             'dev_requirement' => true,
+        ),
+        'php-http/async-client-implementation' => array(
+            'dev_requirement' => true,
+            'provided' => array(
+                0 => '*',
+            ),
+        ),
+        'php-http/client-implementation' => array(
+            'dev_requirement' => true,
+            'provided' => array(
+                0 => '*',
+            ),
         ),
         'phpdocumentor/reflection-common' => array(
             'pretty_version' => '2.2.0',
@@ -1060,6 +1081,15 @@
             'aliases' => array(),
             'dev_requirement' => false,
         ),
+        'symfony/browser-kit' => array(
+            'pretty_version' => 'v7.4.17',
+            'version' => '7.4.17.0',
+            'reference' => '7aff5c4b17a7b04ea6a8390773a93148d15a40b7',
+            'type' => 'library',
+            'install_path' => __DIR__ . '/../symfony/browser-kit',
+            'aliases' => array(),
+            'dev_requirement' => true,
+        ),
         'symfony/cache' => array(
             'pretty_version' => 'v7.4.14',
             'version' => '7.4.14.0',
@@ -1137,6 +1167,15 @@
             'install_path' => __DIR__ . '/../symfony/doctrine-bridge',
             'aliases' => array(),
             'dev_requirement' => false,
+        ),
+        'symfony/dom-crawler' => array(
+            'pretty_version' => 'v7.4.17',
+            'version' => '7.4.17.0',
+            'reference' => '6b037d62595666cf65de867073c9a1f00184be0c',
+            'type' => 'library',
+            'install_path' => __DIR__ . '/../symfony/dom-crawler',
+            'aliases' => array(),
+            'dev_requirement' => true,
         ),
         'symfony/dotenv' => array(
             'pretty_version' => 'v7.4.14',
@@ -1224,6 +1263,30 @@
             'install_path' => __DIR__ . '/../symfony/framework-bundle',
             'aliases' => array(),
             'dev_requirement' => false,
+        ),
+        'symfony/http-client' => array(
+            'pretty_version' => 'v7.4.18',
+            'version' => '7.4.18.0',
+            'reference' => '68d81f78d127984ff2e741f0e0d9cb1078f8f3ea',
+            'type' => 'library',
+            'install_path' => __DIR__ . '/../symfony/http-client',
+            'aliases' => array(),
+            'dev_requirement' => true,
+        ),
+        'symfony/http-client-contracts' => array(
+            'pretty_version' => 'v3.7.3',
+            'version' => '3.7.3.0',
+            'reference' => '35be0019e2c2c9fba80f9dc033290a5240f7b44f',
+            'type' => 'library',
+            'install_path' => __DIR__ . '/../symfony/http-client-contracts',
+            'aliases' => array(),
+            'dev_requirement' => true,
+        ),
+        'symfony/http-client-implementation' => array(
+            'dev_requirement' => true,
+            'provided' => array(
+                0 => '3.0',
+            ),
         ),
         'symfony/http-foundation' => array(
             'pretty_version' => 'v7.4.14',
