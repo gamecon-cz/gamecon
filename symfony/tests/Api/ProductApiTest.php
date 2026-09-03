@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Tests\Api;
 
+use ApiPlatform\Symfony\Bundle\Test\Client;
 use App\Entity\Product;
 use App\Entity\ProductTag;
 use App\Entity\User;
@@ -16,9 +17,6 @@ use Gamecon\Tests\Factory\UserFactory;
 
 /**
  * Tests for the Symfony Product API endpoint.
- *
- * These are kernel-level tests that verify the API layer logic
- * without making real HTTP requests.
  */
 class ProductApiTest extends AbstractDatabaseKernelTestCase
 {
@@ -35,10 +33,8 @@ class ProductApiTest extends AbstractDatabaseKernelTestCase
      * The admin is created here rather than looked up: User::getRoles() derives
      * ROLE_ADMIN from the organizator/admin/infopult/cfo role codes, and the test
      * fixtures grant none of them to anybody.
-     *
-     * @return array<string, string> server parameters for Request::create()
      */
-    private function authenticatedRequestHeaders(): array
+    private function adminClient(): Client
     {
         $container = static::getContainer();
 
@@ -54,31 +50,42 @@ class ProductApiTest extends AbstractDatabaseKernelTestCase
             $this->markTestSkipped('No admin-granting role in role_seznam');
         }
 
-        /** @var User $user */
-        $user = UserFactory::createOne([
-            UserEntityStructure::login => 'api_test_admin_' . uniqid(),
-            UserEntityStructure::email => 'api.test.admin.' . uniqid() . '@example.invalid',
-            UserEntityStructure::jmeno => 'API Test Admin',
-        ])->_save()->_real();
-        $userId = $user->getId();
+        $userId = $this->createUser('api_test_admin_')->getId();
 
         $connection->executeStatement(
             'INSERT INTO uzivatele_role (id_uzivatele, id_role, posazen) VALUES (?, ?, NOW())',
             [$userId, $adminRoleId],
         );
 
-        /** @var EntityManagerInterface $entityManager */
-        $entityManager = $container->get('doctrine.orm.entity_manager');
-        $entityManager->clear();
-        $user = $entityManager->getRepository(User::class)->find($userId);
+        // The role was granted with SQL, so the already-loaded User knows nothing
+        // about it and getRoles() would still report a plain participant.
+        $this->entityManager()->clear();
 
+        return $this->clientForUser(
+            $this->entityManager()->getRepository(User::class)->find($userId),
+        );
+    }
+
+    private function createUser(string $loginPrefix): User
+    {
+        /** @var User $user */
+        $user = UserFactory::createOne([
+            UserEntityStructure::login => $loginPrefix . uniqid(),
+            UserEntityStructure::email => $loginPrefix . uniqid() . '@example.invalid',
+            UserEntityStructure::jmeno => 'API Test User',
+        ])->_save()->_real();
+
+        return $user;
+    }
+
+    private function clientForUser(User $user): Client
+    {
         /** @var JwtService $jwtService */
-        $jwtService = $container->get(JwtService::class);
+        $jwtService = static::getContainer()->get(JwtService::class);
 
-        return [
-            'HTTP_ACCEPT'        => 'application/ld+json',
-            'HTTP_AUTHORIZATION' => 'Bearer ' . $jwtService->generateJwtToken($jwtService->extractUserData($user)),
-        ];
+        return $this->jsonLdClient([
+            'Authorization' => 'Bearer ' . $jwtService->generateJwtToken($jwtService->extractUserData($user)),
+        ]);
     }
 
     private function createProduct(): Product
@@ -104,73 +111,24 @@ class ProductApiTest extends AbstractDatabaseKernelTestCase
      */
     public function testAnonymousRequestIsRejected(): void
     {
-        $kernel = static::getContainer()->get('kernel');
+        $response = $this->jsonLdClient()->request('GET', '/symfony/api/products');
 
-        $request = \Symfony\Component\HttpFoundation\Request::create(
-            '/symfony/api/products',
-            'GET',
-            [],
-            [],
-            [],
-            [
-                'HTTP_ACCEPT' => 'application/ld+json',
-            ],
-        );
-
-        $this->assertSame(401, $kernel->handle($request)->getStatusCode());
+        $this->assertSame(401, $response->getStatusCode());
     }
 
     public function testNonAdminIsForbidden(): void
     {
-        $container = static::getContainer();
+        $client = $this->clientForUser($this->createUser('api_test_plain_'));
 
-        /** @var User $user */
-        $user = UserFactory::createOne([
-            UserEntityStructure::login => 'api_test_plain_' . uniqid(),
-            UserEntityStructure::email => 'api.test.plain.' . uniqid() . '@example.invalid',
-            UserEntityStructure::jmeno => 'API Test Participant',
-        ])->_save()->_real();
-
-        /** @var JwtService $jwtService */
-        $jwtService = $container->get(JwtService::class);
-        $token = $jwtService->generateJwtToken($jwtService->extractUserData($user));
-
-        $kernel = $container->get('kernel');
-        $request = \Symfony\Component\HttpFoundation\Request::create(
-            '/symfony/api/products',
-            'GET',
-            [],
-            [],
-            [],
-            [
-                'HTTP_ACCEPT'        => 'application/ld+json',
-                'HTTP_AUTHORIZATION' => 'Bearer ' . $token,
-            ],
-        );
-
-        $this->assertSame(403, $kernel->handle($request)->getStatusCode());
+        $this->assertSame(403, $client->request('GET', '/symfony/api/products')->getStatusCode());
     }
 
     public function testProductApiReturnsJsonContentType(): void
     {
-        $container = static::getContainer();
-
-        /** @var \Symfony\Component\HttpKernel\HttpKernelInterface $kernel */
-        $kernel = $container->get('kernel');
-
-        $request = \Symfony\Component\HttpFoundation\Request::create(
-            '/symfony/api/products',
-            'GET',
-            [],
-            [],
-            [],
-            $this->authenticatedRequestHeaders(),
-        );
-
-        $response = $kernel->handle($request);
+        $response = $this->adminClient()->request('GET', '/symfony/api/products');
 
         // API should return JSON, not HTML error pages
-        $contentType = $response->headers->get('Content-Type', '');
+        $contentType = $response->getHeaders(false)['content-type'][0] ?? '';
         $this->assertStringContainsString('json', $contentType, 'API must return JSON content type, got: ' . $contentType);
         $this->assertStringNotContainsString('text/html', $contentType, 'API must not return HTML');
     }
@@ -210,25 +168,13 @@ class ProductApiTest extends AbstractDatabaseKernelTestCase
         $taggedId = $tagged->getId();
         $untaggedId = $untagged->getId();
 
-        /** @var \Symfony\Component\HttpKernel\HttpKernelInterface $kernel */
-        $kernel = $container->get('kernel');
+        $response = $this->adminClient()->request('GET', '/symfony/api/products?tags.code=' . $tagCode);
 
-        $request = \Symfony\Component\HttpFoundation\Request::create(
-            '/symfony/api/products?tags.code=' . $tagCode,
-            'GET',
-            [],
-            [],
-            [],
-            $this->authenticatedRequestHeaders(),
-        );
+        $this->assertSame(200, $response->getStatusCode());
 
-        $response = $kernel->handle($request);
-
-        $this->assertSame(200, $response->getStatusCode(), 'Response: ' . $response->getContent());
-
-        $data = json_decode($response->getContent(), true);
-        $this->assertIsArray($data);
-        // API Platform 3 renames hydra:member to member in the JSON-LD output.
+        $data = $response->toArray();
+        // API Platform 4 emits member, not hydra:member — hydra_prefix defaults
+        // to false and the project overrides nothing.
         $this->assertArrayHasKey(
             'member',
             $data,
@@ -256,10 +202,14 @@ class ProductApiTest extends AbstractDatabaseKernelTestCase
         // fixtures carry no product_product_tag rows, so a lookup only ever skips.
         $tag = $em->getRepository(ProductTag::class)->findOneBy([]);
         if ($tag === null) {
-            $tag = new ProductTag();
-            $tag->setCode('api-test-tag');
-            $tag->setName('API test tag');
-            $em->persist($tag);
+            /** @var Connection $connection */
+            $connection = $container->get(Connection::class);
+            $connection->executeStatement(
+                "INSERT INTO product_tag (code, name, created_at) VALUES ('api-test-tag', 'API test tag', NOW())",
+            );
+            $tag = $em->getRepository(ProductTag::class)->findOneBy([
+                'code' => 'api-test-tag',
+            ]);
         }
 
         $product = $this->createProduct();
@@ -267,25 +217,11 @@ class ProductApiTest extends AbstractDatabaseKernelTestCase
         $em->persist($product);
         $em->flush();
 
-        $productId = $product->getId();
-
-        /** @var \Symfony\Component\HttpKernel\HttpKernelInterface $kernel */
-        $kernel = $container->get('kernel');
-
-        $request = \Symfony\Component\HttpFoundation\Request::create(
-            '/symfony/api/products/' . $productId,
-            'GET',
-            [],
-            [],
-            [],
-            $this->authenticatedRequestHeaders(),
-        );
-
-        $response = $kernel->handle($request);
+        $response = $this->adminClient()->request('GET', '/symfony/api/products/' . $product->getId());
 
         $this->assertSame(200, $response->getStatusCode());
 
-        $data = json_decode($response->getContent(), true);
+        $data = $response->toArray();
         $this->assertNotEmpty($data['tags'], 'Product should have tags');
 
         $firstTag = $data['tags'][0];
@@ -295,26 +231,12 @@ class ProductApiTest extends AbstractDatabaseKernelTestCase
 
     public function testApiErrorReturnsJsonNotHtml(): void
     {
-        $container = static::getContainer();
-
-        /** @var \Symfony\Component\HttpKernel\HttpKernelInterface $kernel */
-        $kernel = $container->get('kernel');
-
         // Request a non-existent product — should return 404 in JSON format
-        $request = \Symfony\Component\HttpFoundation\Request::create(
-            '/symfony/api/products/999999',
-            'GET',
-            [],
-            [],
-            [],
-            $this->authenticatedRequestHeaders(),
-        );
-
-        $response = $kernel->handle($request);
+        $response = $this->adminClient()->request('GET', '/symfony/api/products/999999');
 
         $this->assertSame(404, $response->getStatusCode());
 
-        $contentType = $response->headers->get('Content-Type', '');
+        $contentType = $response->getHeaders(false)['content-type'][0] ?? '';
         $this->assertStringContainsString('json', $contentType, 'Error responses must be JSON, got: ' . $contentType);
     }
 }
