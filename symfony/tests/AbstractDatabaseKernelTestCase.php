@@ -4,9 +4,10 @@ declare(strict_types=1);
 
 namespace App\Tests;
 
+use ApiPlatform\Symfony\Bundle\Test\ApiTestCase;
+use ApiPlatform\Symfony\Bundle\Test\Client;
 use Doctrine\DBAL\Connection;
 use Doctrine\ORM\EntityManagerInterface;
-use Symfony\Bundle\FrameworkBundle\Test\KernelTestCase;
 
 /**
  * Base class for Symfony-stack tests that write to the database.
@@ -20,9 +21,21 @@ use Symfony\Bundle\FrameworkBundle\Test\KernelTestCase;
  * cover Doctrine writes, and mixing legacy fixtures with Doctrine reads of the
  * same rows deadlocks on row locks (documented in CLAUDE.md). Hence a separate
  * wrapper here rather than reusing that one.
+ *
+ * Extends ApiTestCase so subclasses can use createClient(); a test that needs
+ * no HTTP request simply never calls it.
  */
-abstract class AbstractDatabaseKernelTestCase extends KernelTestCase
+abstract class AbstractDatabaseKernelTestCase extends ApiTestCase
 {
+    /**
+     * Booting a kernel shuts down the previous one, which would discard the
+     * connection holding this test's transaction. The kernel is booted once in
+     * setUp() below, so createClient() must reuse it rather than boot its own.
+     * (This is also the API Platform 5.0 default, so setting it silences the
+     * deprecation notice.)
+     */
+    protected static ?bool $alwaysBootKernel = false;
+
     protected function setUp(): void
     {
         parent::setUp();
@@ -52,5 +65,17 @@ abstract class AbstractDatabaseKernelTestCase extends KernelTestCase
     protected function connection(): Connection
     {
         return $this->entityManager()->getConnection();
+    }
+
+    /**
+     * @param array<string, mixed> $headers extra headers, merged over the JSON-LD Accept
+     */
+    protected function jsonLdClient(array $headers = []): Client
+    {
+        return static::createClient([], [
+            'headers' => [
+                'Accept' => 'application/ld+json',
+            ] + $headers,
+        ]);
     }
 }
