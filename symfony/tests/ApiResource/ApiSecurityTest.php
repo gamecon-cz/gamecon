@@ -56,11 +56,11 @@ class ApiSecurityTest extends TestCase
     {
         return [
             'GetCollection' => [GetCollection::class],
-            'Get' => [Get::class],
-            'Post' => [Post::class],
-            'Put' => [Put::class],
-            'Patch' => [Patch::class],
-            'Delete' => [Delete::class],
+            'Get'           => [Get::class],
+            'Post'          => [Post::class],
+            'Put'           => [Put::class],
+            'Patch'         => [Patch::class],
+            'Delete'        => [Delete::class],
         ];
     }
 
@@ -94,11 +94,11 @@ class ApiSecurityTest extends TestCase
     public static function cartOperationUris(): array
     {
         return [
-            'GET /cart' => ['/cart'],
-            'GET /cart/meals' => ['/cart/meals'],
-            'POST /cart/items' => ['/cart/items'],
+            'GET /cart'                   => ['/cart'],
+            'GET /cart/meals'             => ['/cart/meals'],
+            'POST /cart/items'            => ['/cart/items'],
             'DELETE /cart/items/{itemId}' => ['/cart/items/{itemId}'],
-            'POST /cart/checkout' => ['/cart/checkout'],
+            'POST /cart/checkout'         => ['/cart/checkout'],
         ];
     }
 
@@ -152,49 +152,93 @@ class ApiSecurityTest extends TestCase
     {
         return [
             'GET /kfc/products' => ['/kfc/products'],
-            'GET /kfc/grids' => ['/kfc/grids'],
-            'POST /kfc/grids' => ['/kfc/grids'],
-            'POST /kfc/sale' => ['/kfc/sale'],
+            'GET /kfc/grids'    => ['/kfc/grids'],
+            'POST /kfc/grids'   => ['/kfc/grids'],
+            'POST /kfc/sale'    => ['/kfc/sale'],
         ];
     }
 
     /**
-     * No entity with #[ApiResource] should have PUBLIC_ACCESS on any operation.
-     * Public data must be served via DTOs.
+     * An entity is never reachable through the public API — public data is served
+     * by DTOs on ApiResource classes. So every operation on an entity must be
+     * guarded, and an operation with no security at all is a bug, not a default:
+     * API Platform leaves an unguarded operation open to whoever the firewall
+     * lets through.
+     *
+     * Checking for the absence of PUBLIC_ACCESS alone would not catch that,
+     * because the dangerous case declares nothing rather than declaring the
+     * wrong thing.
+     *
+     * @dataProvider entityApiResourceOperations
      */
-    public function testNoEntityExposesPublicAccess(): void
+    public function testEveryEntityOperationIsGuarded(
+        string $className,
+        string $operationName,
+        ?string $security,
+    ): void {
+        $this->assertNotNull(
+            $security,
+            sprintf(
+                'Entity %s operation %s declares no security — entities must never be publicly reachable, use a DTO for public data',
+                $className,
+                $operationName,
+            ),
+        );
+        $this->assertStringNotContainsString(
+            'PUBLIC_ACCESS',
+            $security,
+            sprintf(
+                'Entity %s operation %s must not use PUBLIC_ACCESS — use DTOs for public endpoints',
+                $className,
+                $operationName,
+            ),
+        );
+    }
+
+    /**
+     * @return iterable<string, array{string, string, string|null}>
+     */
+    public static function entityApiResourceOperations(): iterable
     {
         $entityDir = dirname(__DIR__, 2) . '/src/Entity';
-        $entityFiles = glob($entityDir . '/*.php');
+        $entityFiles = new \RecursiveIteratorIterator(
+            new \RecursiveDirectoryIterator($entityDir, \FilesystemIterator::SKIP_DOTS),
+        );
 
+        $found = false;
         foreach ($entityFiles as $entityFile) {
-            $className = 'App\\Entity\\' . basename($entityFile, '.php');
-            if (!class_exists($className)) {
+            if ($entityFile->getExtension() !== 'php') {
+                continue;
+            }
+            $relativePath = substr($entityFile->getPathname(), strlen($entityDir) + 1);
+            $className = 'App\\Entity\\' . str_replace('/', '\\', substr($relativePath, 0, -4));
+            if (! class_exists($className)) {
                 continue;
             }
 
             $reflection = new \ReflectionClass($className);
             $apiResourceAttrs = $reflection->getAttributes(ApiResource::class);
-            if (empty($apiResourceAttrs)) {
+            if ($apiResourceAttrs === []) {
                 continue;
             }
 
             $apiResource = $apiResourceAttrs[0]->newInstance();
-            $operations = $apiResource->getOperations() ?? [];
+            // An operation inherits the class-level security only once API Platform
+            // has merged the metadata; the raw attribute reports null for it.
+            $classSecurity = $apiResource->getSecurity();
 
-            foreach ($operations as $operation) {
-                $security = $operation->getSecurity() ?? '';
-                $this->assertStringNotContainsString(
-                    'PUBLIC_ACCESS',
-                    $security,
-                    sprintf(
-                        'Entity %s operation %s must not use PUBLIC_ACCESS — use DTOs for public endpoints',
-                        $className,
-                        $operation->getUriTemplate() ?? get_class($operation),
-                    ),
-                );
+            foreach ($apiResource->getOperations() ?? [] as $operation) {
+                $found = true;
+                $operationName = $operation->getUriTemplate() ?? $operation::class;
+                yield $className . '::' . $operationName => [
+                    $className,
+                    $operationName,
+                    $operation->getSecurity() ?? $classSecurity,
+                ];
             }
         }
+
+        self::assertTrue($found, 'No entity with #[ApiResource] found — the guard below would pass vacuously');
     }
 
     /**
