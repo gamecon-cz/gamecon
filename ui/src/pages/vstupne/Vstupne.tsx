@@ -5,7 +5,7 @@ import { ApiEntryFee } from "../../api/symfony/types";
 import { GAMECON_KONSTANTY } from "../../env";
 
 /** Smileys shown inside the amount field, from the most generous down. */
-const SMAJLÍKY: [number, string][] = [
+const SMILEYS: [number, string][] = [
   [1000, "6.png"],
   [600, "5.png"],
   [250, "4.png"],
@@ -14,94 +14,94 @@ const SMAJLÍKY: [number, string][] = [
   [0, "1.png"],
 ];
 
-const smajlíkProČástku = (částka: number): string => {
-  const [, soubor] = SMAJLÍKY.find(([od]) => částka >= od) ?? SMAJLÍKY[SMAJLÍKY.length - 1];
-  return `url(${GAMECON_KONSTANTY.BASE_PATH_PAGE}soubory/blackarrow/shop/vstupne-smajliky/${soubor})`;
+const smileyForAmount = (amount: number): string => {
+  const [, file] = SMILEYS.find(([from]) => amount >= from) ?? SMILEYS[SMILEYS.length - 1];
+  return `url(${GAMECON_KONSTANTY.BASE_PATH_PAGE}soubory/blackarrow/shop/vstupne-smajliky/${file})`;
 };
 
-const omez = (číslo: number, min: number, max: number) => Math.min(Math.max(číslo, min), max);
+const clamp = (value: number, min: number, max: number) => Math.min(Math.max(value, min), max);
 
 /**
- * Odeslání se odkládá, aby tažení posuvníkem neposílalo request na každý pixel.
+ * Saving is deferred so that dragging the slider does not fire a request per pixel.
  */
-const PRODLEVA_ULOŽENÍ_MS = 500;
+const SAVE_DELAY_MS = 500;
 
 export const Vstupne: FunctionComponent = () => {
-  const [stav, setStav] = useState<ApiEntryFee | null>(null);
-  const [částka, setČástka] = useState(0);
-  const [chyba, setChyba] = useState<string | null>(null);
-  const odloženéUložení = useRef<number | undefined>(undefined);
-  const čekajícíČástka = useRef<number | null>(null);
-  const posledníPožadavek = useRef(0);
+  const [state, setState] = useState<ApiEntryFee | null>(null);
+  const [amount, setAmount] = useState(0);
+  const [error, setError] = useState<string | null>(null);
+  const deferredSave = useRef<number | undefined>(undefined);
+  const pendingAmount = useRef<number | null>(null);
+  const lastRequest = useRef(0);
 
   useEffect(() => {
-    let platné = true;
+    let valid = true;
     fetchEntryFee()
       .then((entryFee) => {
-        if (!platné) return;
-        setStav(entryFee);
-        setČástka(Math.round(Number(entryFee.amount)));
+        if (!valid) return;
+        setState(entryFee);
+        setAmount(Math.round(Number(entryFee.amount)));
       })
       .catch((error: unknown) => {
-        if (!platné) return;
-        setChyba(error instanceof Error ? error.message : "Vstupné se nepodařilo načíst");
+        if (!valid) return;
+        setError(error instanceof Error ? error.message : "Vstupné se nepodařilo načíst");
       });
     return () => {
-      platné = false;
+      valid = false;
     };
   }, []);
 
-  const odešli = useCallback((nováČástka: number) => {
-    čekajícíČástka.current = null;
-    const pořadí = ++posledníPožadavek.current;
-    setEntryFee(nováČástka)
+  const send = useCallback((newAmount: number) => {
+    pendingAmount.current = null;
+    const sequence = ++lastRequest.current;
+    setEntryFee(newAmount)
       .then((entryFee) => {
-        // Starší odpověď smí přepsat stav jen tehdy, když mezitím nepřišel novější požadavek —
-        // jinak by se zobrazila už neplatná částka.
-        if (pořadí !== posledníPožadavek.current) return;
-        setStav(entryFee);
-        setChyba(null);
+        // An older response may overwrite the state only if no newer request has been sent
+        // meanwhile, otherwise an already invalid amount would be displayed.
+        if (sequence !== lastRequest.current) return;
+        setState(entryFee);
+        setError(null);
       })
       .catch((error: unknown) => {
-        if (pořadí !== posledníPožadavek.current) return;
-        setChyba(error instanceof Error ? error.message : "Vstupné se nepodařilo uložit");
+        if (sequence !== lastRequest.current) return;
+        setError(error instanceof Error ? error.message : "Vstupné se nepodařilo uložit");
       });
   }, []);
 
-  const ulož = useCallback((nováČástka: number) => {
-    čekajícíČástka.current = nováČástka;
-    window.clearTimeout(odloženéUložení.current);
-    odloženéUložení.current = window.setTimeout(() => odešli(nováČástka), PRODLEVA_ULOŽENÍ_MS);
-  }, [odešli]);
+  const save = useCallback((newAmount: number) => {
+    pendingAmount.current = newAmount;
+    window.clearTimeout(deferredSave.current);
+    deferredSave.current = window.setTimeout(() => send(newAmount), SAVE_DELAY_MS);
+  }, [send]);
 
-  // Formulář přihlášky se odesílá hned vedle, takže odchod ze stránky spadne běžně do prodlevy;
-  // rozepsanou částku proto při odmountování ještě odešleme, místo abychom ji zahodili.
+  // The registration form is submitted right next to this, so leaving the page routinely falls
+  // within the delay; flush a half-typed amount on unmount instead of discarding it.
   useEffect(() => () => {
-    window.clearTimeout(odloženéUložení.current);
-    if (čekajícíČástka.current !== null) {
-      void odešli(čekajícíČástka.current);
+    window.clearTimeout(deferredSave.current);
+    if (pendingAmount.current !== null) {
+      void send(pendingAmount.current);
     }
-  }, [odešli]);
+  }, [send]);
 
-  const změňČástku = useCallback((nováČástka: number) => {
-    setČástka(nováČástka);
-    ulož(nováČástka);
-  }, [ulož]);
+  const changeAmount = useCallback((newAmount: number) => {
+    setAmount(newAmount);
+    save(newAmount);
+  }, [save]);
 
-  const poměr = useMemo(() => {
-    if (!stav) return 0;
-    return omez(částka / stav.maximum, 0, 1) ** stav.gammaCorrection;
-  }, [částka, stav]);
+  const ratio = useMemo(() => {
+    if (!state) return 0;
+    return clamp(amount / state.maximum, 0, 1) ** state.gammaCorrection;
+  }, [amount, state]);
 
-  if (chyba && !stav) {
-    return <p class="shopVstupne_chyba">{chyba}</p>;
+  if (error && !state) {
+    return <p class="shopVstupne_chyba">{error}</p>;
   }
 
-  if (!stav) {
+  if (!state) {
     return <p>Načítá se …</p>;
   }
 
-  const procento = Math.round(poměr * 100);
+  const percent = Math.round(ratio * 100);
 
   return (
     <>
@@ -110,11 +110,11 @@ export const Vstupne: FunctionComponent = () => {
         <input
           type="text"
           class="shopVstupne_stav"
-          value={částka}
-          style={{ backgroundImage: smajlíkProČástku(částka) }}
+          value={amount}
+          style={{ backgroundImage: smileyForAmount(amount) }}
           onChange={(event) => {
-            const zadané = Number.parseInt(event.currentTarget.value, 10);
-            změňČástku(omez(Number.isNaN(zadané) ? 0 : zadané, stav.minimum, stav.maximumAmount));
+            const entered = Number.parseInt(event.currentTarget.value, 10);
+            changeAmount(clamp(Number.isNaN(entered) ? 0 : entered, state.minimum, state.maximumAmount));
           }}
         />
         <div class="shopVstupne_kc">Kč</div>
@@ -125,11 +125,11 @@ export const Vstupne: FunctionComponent = () => {
           class="shopVstupne_kostkaPosuv"
           style={{
             background:
-              `linear-gradient(to right, #E22630, #E22630 ${procento}%, #737373 ${procento}%)`,
+              `linear-gradient(to right, #E22630, #E22630 ${percent}%, #737373 ${percent}%)`,
           }}
         />
-        {stav.lastYearAveragePercent >= 0 && (
-          <div class="shopVstupne_kostka" style={{ left: `${stav.lastYearAveragePercent}%` }} />
+        {state.lastYearAveragePercent >= 0 && (
+          <div class="shopVstupne_kostka" style={{ left: `${state.lastYearAveragePercent}%` }} />
         )}
       </div>
 
@@ -139,10 +139,10 @@ export const Vstupne: FunctionComponent = () => {
         min={0}
         max={1}
         step="any"
-        value={poměr}
+        value={ratio}
         onInput={(event) => {
-          const novýPoměr = omez(Number(event.currentTarget.value), 0, 1);
-          změňČástku(Math.round(novýPoměr ** (1 / stav.gammaCorrection) * stav.maximum));
+          const newRatio = clamp(Number(event.currentTarget.value), 0, 1);
+          changeAmount(Math.round(newRatio ** (1 / state.gammaCorrection) * state.maximum));
         }}
       />
 
@@ -158,13 +158,13 @@ export const Vstupne: FunctionComponent = () => {
         <div class="shopVstupne_skalaHodnota">1000&thinsp;Kč</div>
       </div>
 
-      {stav.lastYearAveragePercent >= 0 && (
+      {state.lastYearAveragePercent >= 0 && (
         <div class="shopVstupne_kostkaLegenda">
-          průměrný příspěvek z roku {stav.lastYear}
+          průměrný příspěvek z roku {state.lastYear}
         </div>
       )}
 
-      {chyba && <p class="shopVstupne_chyba">{chyba}</p>}
+      {error && <p class="shopVstupne_chyba">{error}</p>}
     </>
   );
 };
