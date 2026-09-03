@@ -9,7 +9,7 @@ Týká se testů nad novým Symfony/API Platform stackem, ne legacy testů v `te
 ## Vstupní body v kódu
 
 - `symfony/tests/Api/ProductApiTest.php` — jediný test, který volá API přes HTTP vrstvu; obsahuje helper `authenticatedRequestHeaders()` (vytvoří admina, podepíše JWT).
-- `symfony/tests/ApiResource/ApiSecurityTest.php` — testuje **deklarované metadata** operací (reflexí nad `#[ApiResource]`), ne runtime chování. Nebootuje kernel, je to čistý `TestCase`.
+- `symfony/tests/ApiResource/ApiSecurityTest.php` — testuje **deklarované metadata** operací (reflexí nad `#[ApiResource]`), ne runtime chování. Nebootuje kernel, je to čistý `TestCase`. Viz Invariant níž.
 - `symfony/src/Security/JwtAuthenticator` — čte `Authorization: Bearer`, dekóduje přes `JwtService`, načte uživatele.
 - `symfony/src/Service/JwtService::generateJwtToken()` / `extractUserData()` — podepisování tokenu.
 - `symfony/config/packages/security.yaml` — firewall `api` (stateless, `custom_authenticators`), `access_control` (`^/symfony/api` → `ROLE_USER`, `^/symfony/api/public` → `PUBLIC_ACCESS`).
@@ -65,8 +65,19 @@ Při ověřování mutací vyšlo najevo, na čem ty dva testy reálně visí: *
 - **Odvozování cesty a resource třídy z názvu testu** (`App\Tests\Entity\Store\StoreTest` → `App\Entity\Store\Store` → `/api/stores`). Funguje jen proto, že jejich `tests/` zrcadlí `src/`. U nás to tak není.
 - `ResetSequencesExtension` — PostgreSQL sekvence nejsou transakční, takže je po každém testu resetují reflexí nad DAMA spojením. My jsme na MariaDB, netýká se.
 
+## Invariant: entita nikdy není veřejně dostupná
+
+**Přes veřejné API se nikdy nechodí na entitu, jen na DTO.** Každá operace entity proto musí být zabezpečená; operace **bez** `security:` je chyba, ne výchozí stav — API Platform ji nechá otevřenou komukoli, koho pustí firewall. (záměr)
+
+Hlídá to `ApiSecurityTest::testEveryEntityOperationIsGuarded()`, jeden dataset na operaci. Kontroluje obojí: že `security:` vůbec existuje, a že to není `PUBLIC_ACCESS`.
+
+Tři věci, na kterých to stojí a které se snadno rozbijí při úpravě:
+
+- **Class-level `security:` se do operace nepropíše, dokud metadata nesloučí API Platform.** Čtení syrového atributu vrátí na operaci `null`, i když třída zabezpečení deklaruje — proto se dělá fallback `$operation->getSecurity() ?? $classSecurity`. Bez něj by test padal na platném zápisu.
+- Adresář se prochází **rekurzivně** (`RecursiveDirectoryIterator`). Původní `glob('*.php')` míjel `src/Entity/Enum/` a `src/Entity/Partials/` — dnes tam žádná ApiResource entita není, ale slepé místo to bylo.
+- Data provider **asertuje, že nějaká entita byla nalezena**, jinak by celý test prošel naprázdno, kdyby se entity přesunuly jinam.
+
 ## Otevřené otázky
 
 - Stojí `symfony/browser-kit` + `symfony/http-client` (dev dependencies) za to, aby šlo použít `ApiTestCase`? Odemklo by to většinu výše zmíněného. Nikdo o tom zatím nerozhodoval.
-- `ApiSecurityTest::testNoEntityExposesPublicAccess()` kontroluje jen, že operace **nemá** `PUBLIC_ACCESS`. Entita úplně **bez** `security:` projde — a to je nebezpečnější případ. Dnes latentní (všechny ApiResource entity nějaké `security:` mají), ale jako regresní pojistka to nefunguje.
 - Neuklízející Symfony testy: nechat, nebo systémově vyřešit (transakční obal i pro `KernelTestCase`, nebo DAMA)?
