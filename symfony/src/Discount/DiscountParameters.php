@@ -42,6 +42,11 @@ final readonly class DiscountParameters
          */
         public ?int $maxQuantity,
         /**
+         * System setting to read the discount amount from, instead of freezing today's
+         * number into the rule.
+         */
+        public ?string $amountSetting,
+        /**
          * System setting whose value the user's bonus must reach, e.g.
          * MODRE_TRICKO_ZDARMA_OD. Resolved at calculation time so an admin changing
          * the setting changes the rule, and the resolved number is recorded in the
@@ -64,13 +69,14 @@ final readonly class DiscountParameters
             ?? throw new \InvalidArgumentException(sprintf('Neznámý efekt slevy "%s"', (string) ($parameters['effect'] ?? '')));
 
         $required = [...$scope->requiredParameters(), ...$effect->requiredParameters()];
-        foreach ($required as $name) {
-            if (! isset($parameters[$name])) {
-                throw new \InvalidArgumentException(sprintf('Sleva typu %s/%s vyžaduje parametr "%s"', $scope->value, $effect->value, $name));
+        foreach ($required as $alternatives) {
+            $present = array_filter($alternatives, static fn (string $name): bool => isset($parameters[$name]));
+            if ($present === []) {
+                throw new \InvalidArgumentException(sprintf('Sleva typu %s/%s vyžaduje parametr "%s"', $scope->value, $effect->value, implode('" nebo "', $alternatives)));
             }
         }
 
-        $known = [...$required, 'scope', 'effect', 'maxQuantity', 'thresholdSetting'];
+        $known = [...array_merge(...$required), 'scope', 'effect', 'maxQuantity', 'thresholdSetting'];
         $unknown = array_diff(array_keys($parameters), $known);
         if ($unknown !== []) {
             // A typo in a parameter name would otherwise be silently ignored and the
@@ -92,6 +98,7 @@ final readonly class DiscountParameters
             amount: isset($parameters['amount'])
                 ? (float) $parameters['amount']
                 : (isset($parameters['percent']) ? (float) $parameters['percent'] : null),
+            amountSetting: isset($parameters['amountSetting']) ? (string) $parameters['amountSetting'] : null,
             maxQuantity: isset($parameters['maxQuantity']) ? (int) $parameters['maxQuantity'] : null,
             thresholdSetting: isset($parameters['thresholdSetting']) ? (string) $parameters['thresholdSetting'] : null,
         );
@@ -109,6 +116,7 @@ final readonly class DiscountParameters
             'tag'                                                            => $this->tag,
             'day'                                                            => $this->day,
             $this->effect === DiscountEffect::PERCENT ? 'percent' : 'amount' => $this->amount,
+            'amountSetting'                                                  => $this->amountSetting,
             'maxQuantity'                                                    => $this->maxQuantity,
             'thresholdSetting'                                               => $this->thresholdSetting,
         ], static fn ($value): bool => $value !== null);
