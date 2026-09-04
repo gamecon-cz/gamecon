@@ -343,6 +343,20 @@ class ProductService
 }
 ```
 
+## Migrace obsahují jen holé hodnoty
+
+**Migrace nesmí volat aplikační kód.** Žádné `Pravo::KOSTKA_ZDARMA`, žádné enumy, žádné `use App\...`, žádná validace přes servisní třídu — jen literály a SQL. Co migrace potřebuje vědět, musí mít napsané v sobě.
+
+**Proč:** migrace je *historický zápis* — „v tomhle okamžiku dej do DB tyhle řádky". Jenže se přehrává na každé čerstvé databázi, tedy při každém běhu testů, a to i za rok. Když se odkazuje na živý kód, není fixní: přejmenuje se konstanta nebo se zpřísní validátor a **historická migrace začne padat**, přestože data, která chtěla vložit, jsou v pořádku. Selže něco, co se dávno stalo, kvůli změně někde jinde.
+
+Konkrétně (stalo se v `2026-09-04-100013_seed-discount-rules.php`, obojí opraveno): `Pravo::KOSTKA_ZDARMA` místo `1003` znamená, že po případné změně hodnoty konstanty se stará migrace přehraje s *novým* číslem — tiše přepíše historii. A `DiscountParameters::fromArray()` uvnitř migrace znamenalo, že překlep v nesouvisejícím enumu shodil build celé testovací databáze.
+
+**Pozor na svůdný argument:** „ale díky té validaci se chyba pozná hned" je právě ten příznak, ne přínos — migrace, kterou rozbije editace jiného enumu, je na ten enum navázaná a neměla by být.
+
+**Jak to dělat:** vlož číslo/string přímo a do komentáře napiš, co znamená (`1003 = Pravo::KOSTKA_ZDARMA`). Když se hodnota časem rozejde s konstantou, je to správně — historický řádek si drží, co platilo tehdy. Validace patří tam, kde data píše člověk (admin formulář), ne tam, kde se přehrává historie.
+
+**Výjimka:** pomocné funkce definované přímo v souboru migrace (`$columnExists = fn (...) => ...`) jsou v pořádku — nejsou to závislosti na kódu venku.
+
 ## SQL Coding Style
 
 ### Table Naming Convention
