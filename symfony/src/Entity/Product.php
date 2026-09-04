@@ -40,7 +40,6 @@ use Symfony\Component\Validator\Constraints as Assert;
 #[ORM\Entity(repositoryClass: ProductRepository::class)]
 #[ORM\Table(name: 'shop_predmety')]
 #[ORM\UniqueConstraint(name: 'UNIQ_kod_predmetu', columns: ['kod_predmetu'])]
-#[ORM\UniqueConstraint(name: 'UNIQ_nazev', columns: ['nazev'])]
 #[ApiResource(
     operations: [
         new GetCollection(

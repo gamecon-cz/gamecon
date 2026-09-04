@@ -1,55 +1,56 @@
 <?php
 
-/** @var \Godric\DbMigrations\Migration $this */
+declare(strict_types=1);
 
-$dbName = $this->q("SELECT DATABASE()")->fetchColumn();
+/** @var Godric\DbMigrations\Migration $this */
+$dbName = $this->q('SELECT DATABASE()')->fetchColumn();
 
 // Helper: check if a column exists
 $columnExists = function (string $table, string $column) use ($dbName): bool {
     $result = $this->q(
-        "SELECT COUNT(*) AS cnt FROM information_schema.COLUMNS WHERE TABLE_SCHEMA = '$dbName' AND TABLE_NAME = '$table' AND COLUMN_NAME = '$column'",
+        "SELECT COUNT(*) AS cnt FROM information_schema.COLUMNS WHERE TABLE_SCHEMA = '{$dbName}' AND TABLE_NAME = '{$table}' AND COLUMN_NAME = '{$column}'",
     );
 
-    return (int) $result->fetch(\PDO::FETCH_ASSOC)['cnt'] > 0;
+    return (int) $result->fetch(PDO::FETCH_ASSOC)['cnt'] > 0;
 };
 
 // Helper: check if a table exists
 $tableExists = function (string $table) use ($dbName): bool {
     $result = $this->q(
-        "SELECT COUNT(*) AS cnt FROM information_schema.TABLES WHERE TABLE_SCHEMA = '$dbName' AND TABLE_NAME = '$table'",
+        "SELECT COUNT(*) AS cnt FROM information_schema.TABLES WHERE TABLE_SCHEMA = '{$dbName}' AND TABLE_NAME = '{$table}'",
     );
 
-    return (int) $result->fetch(\PDO::FETCH_ASSOC)['cnt'] > 0;
+    return (int) $result->fetch(PDO::FETCH_ASSOC)['cnt'] > 0;
 };
 
 // Helper: check if an index exists on a table
 $indexExists = function (string $table, string $indexName) use ($dbName): bool {
     $result = $this->q(
-        "SELECT COUNT(*) AS cnt FROM information_schema.STATISTICS WHERE TABLE_SCHEMA = '$dbName' AND TABLE_NAME = '$table' AND INDEX_NAME = '$indexName'",
+        "SELECT COUNT(*) AS cnt FROM information_schema.STATISTICS WHERE TABLE_SCHEMA = '{$dbName}' AND TABLE_NAME = '{$table}' AND INDEX_NAME = '{$indexName}'",
     );
 
-    return (int) $result->fetch(\PDO::FETCH_ASSOC)['cnt'] > 0;
+    return (int) $result->fetch(PDO::FETCH_ASSOC)['cnt'] > 0;
 };
 
 // Helper: rename index only if old name exists and new name does not
 $renameIndex = function (string $table, string $oldName, string $newName) use ($indexExists): void {
-    if ($indexExists($table, $oldName) && !$indexExists($table, $newName)) {
-        $this->q("ALTER TABLE `$table` RENAME INDEX `$oldName` TO `$newName`");
+    if ($indexExists($table, $oldName) && ! $indexExists($table, $newName)) {
+        $this->q("ALTER TABLE `{$table}` RENAME INDEX `{$oldName}` TO `{$newName}`");
     }
 };
 
 // Helper: check if a FK constraint exists
 $fkExists = function (string $table, string $constraintName) use ($dbName): bool {
     $result = $this->q(
-        "SELECT COUNT(*) AS cnt FROM information_schema.TABLE_CONSTRAINTS WHERE TABLE_SCHEMA = '$dbName' AND TABLE_NAME = '$table' AND CONSTRAINT_NAME = '$constraintName' AND CONSTRAINT_TYPE = 'FOREIGN KEY'",
+        "SELECT COUNT(*) AS cnt FROM information_schema.TABLE_CONSTRAINTS WHERE TABLE_SCHEMA = '{$dbName}' AND TABLE_NAME = '{$table}' AND CONSTRAINT_NAME = '{$constraintName}' AND CONSTRAINT_TYPE = 'FOREIGN KEY'",
     );
 
-    return (int) $result->fetch(\PDO::FETCH_ASSOC)['cnt'] > 0;
+    return (int) $result->fetch(PDO::FETCH_ASSOC)['cnt'] > 0;
 };
 
 // ── Step 1: Create new tables ─────────────────────────────────────────────────
 
-if (!$tableExists('product_tag')) {
+if (! $tableExists('product_tag')) {
     $this->q(<<<'SQL'
 CREATE TABLE product_tag
 (
@@ -66,7 +67,7 @@ CREATE TABLE product_tag
 SQL);
 }
 
-if (!$tableExists('product_product_tag')) {
+if (! $tableExists('product_product_tag')) {
     $this->q(<<<'SQL'
 CREATE TABLE product_product_tag
 (
@@ -81,7 +82,7 @@ CREATE TABLE product_product_tag
 SQL);
 }
 
-if (!$tableExists('shop_order')) {
+if (! $tableExists('shop_order')) {
     $this->q(<<<'SQL'
 CREATE TABLE shop_order
 (
@@ -100,7 +101,7 @@ CREATE TABLE shop_order
 SQL);
 }
 
-if (!$tableExists('product_bundle')) {
+if (! $tableExists('product_bundle')) {
     $this->q(<<<'SQL'
 CREATE TABLE product_bundle
 (
@@ -117,7 +118,7 @@ CREATE TABLE product_bundle
 SQL);
 }
 
-if (!$tableExists('product_bundle_items')) {
+if (! $tableExists('product_bundle_items')) {
     $this->q(<<<'SQL'
 CREATE TABLE product_bundle_items
 (
@@ -132,7 +133,7 @@ CREATE TABLE product_bundle_items
 SQL);
 }
 
-if (!$tableExists('product_discount')) {
+if (! $tableExists('product_discount')) {
     $this->q(<<<'SQL'
 CREATE TABLE product_discount
 (
@@ -152,7 +153,7 @@ CREATE TABLE product_discount
 SQL);
 }
 
-if (!$tableExists('newsletter_prihlaseni_log')) {
+if (! $tableExists('newsletter_prihlaseni_log')) {
     $this->q(<<<'SQL'
 CREATE TABLE newsletter_prihlaseni_log
 (
@@ -168,7 +169,7 @@ CREATE TABLE newsletter_prihlaseni_log
 SQL);
 }
 
-if (!$tableExists('newsletter_prihlaseni')) {
+if (! $tableExists('newsletter_prihlaseni')) {
     $this->q(<<<'SQL'
 CREATE TABLE newsletter_prihlaseni
 (
@@ -187,44 +188,44 @@ SQL);
 // The anonymized dump has shop_predmety.id_predmetu as INT(11) but new FKs
 // reference it as BIGINT UNSIGNED. Must match exactly for FK creation.
 $idPredmetuType = $this->q(
-    "SELECT COLUMN_TYPE FROM information_schema.COLUMNS WHERE TABLE_SCHEMA = '$dbName' AND TABLE_NAME = 'shop_predmety' AND COLUMN_NAME = 'id_predmetu'",
+    "SELECT COLUMN_TYPE FROM information_schema.COLUMNS WHERE TABLE_SCHEMA = '{$dbName}' AND TABLE_NAME = 'shop_predmety' AND COLUMN_NAME = 'id_predmetu'",
 )->fetchColumn();
-if ($idPredmetuType && !str_contains($idPredmetuType, 'bigint')) {
-    $this->q("SET FOREIGN_KEY_CHECKS = 0");
-    $this->q("ALTER TABLE shop_predmety MODIFY id_predmetu BIGINT UNSIGNED NOT NULL AUTO_INCREMENT");
-    $this->q("SET FOREIGN_KEY_CHECKS = 1");
+if ($idPredmetuType && ! str_contains($idPredmetuType, 'bigint')) {
+    $this->q('SET FOREIGN_KEY_CHECKS = 0');
+    $this->q('ALTER TABLE shop_predmety MODIFY id_predmetu BIGINT UNSIGNED NOT NULL AUTO_INCREMENT');
+    $this->q('SET FOREIGN_KEY_CHECKS = 1');
 }
 
 // Also uzivatele_hodnoty.id_uzivatele (referenced by shop_order.customer_id)
 $idUzivateleType = $this->q(
-    "SELECT COLUMN_TYPE FROM information_schema.COLUMNS WHERE TABLE_SCHEMA = '$dbName' AND TABLE_NAME = 'uzivatele_hodnoty' AND COLUMN_NAME = 'id_uzivatele'",
+    "SELECT COLUMN_TYPE FROM information_schema.COLUMNS WHERE TABLE_SCHEMA = '{$dbName}' AND TABLE_NAME = 'uzivatele_hodnoty' AND COLUMN_NAME = 'id_uzivatele'",
 )->fetchColumn();
-if ($idUzivateleType && !str_contains($idUzivateleType, 'bigint')) {
+if ($idUzivateleType && ! str_contains($idUzivateleType, 'bigint')) {
     // Must disable FK checks — many tables reference id_uzivatele
-    $this->q("SET FOREIGN_KEY_CHECKS = 0");
-    $this->q("ALTER TABLE uzivatele_hodnoty MODIFY id_uzivatele BIGINT UNSIGNED NOT NULL AUTO_INCREMENT");
-    $this->q("SET FOREIGN_KEY_CHECKS = 1");
+    $this->q('SET FOREIGN_KEY_CHECKS = 0');
+    $this->q('ALTER TABLE uzivatele_hodnoty MODIFY id_uzivatele BIGINT UNSIGNED NOT NULL AUTO_INCREMENT');
+    $this->q('SET FOREIGN_KEY_CHECKS = 1');
 }
 
 // ── Step 2: Add foreign keys (idempotent) ─────────────────────────────────────
 
-if (!$fkExists('product_product_tag', 'FK_4F897D834584665A')) {
-    $this->q("ALTER TABLE product_product_tag ADD CONSTRAINT FK_4F897D834584665A FOREIGN KEY (product_id) REFERENCES shop_predmety (id_predmetu) ON DELETE CASCADE");
+if (! $fkExists('product_product_tag', 'FK_4F897D834584665A')) {
+    $this->q('ALTER TABLE product_product_tag ADD CONSTRAINT FK_4F897D834584665A FOREIGN KEY (product_id) REFERENCES shop_predmety (id_predmetu) ON DELETE CASCADE');
 }
-if (!$fkExists('product_product_tag', 'FK_4F897D83BAD26311')) {
-    $this->q("ALTER TABLE product_product_tag ADD CONSTRAINT FK_4F897D83BAD26311 FOREIGN KEY (tag_id) REFERENCES product_tag (id) ON DELETE CASCADE");
+if (! $fkExists('product_product_tag', 'FK_4F897D83BAD26311')) {
+    $this->q('ALTER TABLE product_product_tag ADD CONSTRAINT FK_4F897D83BAD26311 FOREIGN KEY (tag_id) REFERENCES product_tag (id) ON DELETE CASCADE');
 }
-if (!$fkExists('shop_order', 'FK_608DDB6C9395C3F3')) {
-    $this->q("ALTER TABLE shop_order ADD CONSTRAINT FK_608DDB6C9395C3F3 FOREIGN KEY (customer_id) REFERENCES uzivatele_hodnoty (id_uzivatele) ON DELETE CASCADE");
+if (! $fkExists('shop_order', 'FK_608DDB6C9395C3F3')) {
+    $this->q('ALTER TABLE shop_order ADD CONSTRAINT FK_608DDB6C9395C3F3 FOREIGN KEY (customer_id) REFERENCES uzivatele_hodnoty (id_uzivatele) ON DELETE CASCADE');
 }
-if (!$fkExists('product_bundle_items', 'FK_F7E27E8DF1FAD9D3')) {
-    $this->q("ALTER TABLE product_bundle_items ADD CONSTRAINT FK_F7E27E8DF1FAD9D3 FOREIGN KEY (bundle_id) REFERENCES product_bundle (id) ON DELETE CASCADE");
+if (! $fkExists('product_bundle_items', 'FK_F7E27E8DF1FAD9D3')) {
+    $this->q('ALTER TABLE product_bundle_items ADD CONSTRAINT FK_F7E27E8DF1FAD9D3 FOREIGN KEY (bundle_id) REFERENCES product_bundle (id) ON DELETE CASCADE');
 }
-if (!$fkExists('product_bundle_items', 'FK_F7E27E8D4584665A')) {
-    $this->q("ALTER TABLE product_bundle_items ADD CONSTRAINT FK_F7E27E8D4584665A FOREIGN KEY (product_id) REFERENCES shop_predmety (id_predmetu) ON DELETE CASCADE");
+if (! $fkExists('product_bundle_items', 'FK_F7E27E8D4584665A')) {
+    $this->q('ALTER TABLE product_bundle_items ADD CONSTRAINT FK_F7E27E8D4584665A FOREIGN KEY (product_id) REFERENCES shop_predmety (id_predmetu) ON DELETE CASCADE');
 }
-if (!$fkExists('product_discount', 'FK_92F7B4354584665A')) {
-    $this->q("ALTER TABLE product_discount ADD CONSTRAINT FK_92F7B4354584665A FOREIGN KEY (product_id) REFERENCES shop_predmety (id_predmetu) ON DELETE CASCADE");
+if (! $fkExists('product_discount', 'FK_92F7B4354584665A')) {
+    $this->q('ALTER TABLE product_discount ADD CONSTRAINT FK_92F7B4354584665A FOREIGN KEY (product_id) REFERENCES shop_predmety (id_predmetu) ON DELETE CASCADE');
 }
 
 // ── Step 3: Rename indexes (idempotent — skip if old name gone or new name already exists) ──
@@ -236,13 +237,13 @@ $renameIndex('reporty_log_pouziti', 'id_uzivatele', 'IDX_FEAC86E4D84E9520');
 $renameIndex('reporty_log_pouziti', 'id_reportu_2', 'IDX_id_reportu_id_uzivatele');
 
 // akce_seznam: add column + FK before renames
-if (!$columnExists('akce_seznam', 'id_hlavni_lokace')) {
-    $this->q("ALTER TABLE akce_seznam ADD id_hlavni_lokace BIGINT UNSIGNED DEFAULT NULL");
-    if (!$fkExists('akce_seznam', 'FK_2EE8EBF09E0F2899')) {
-        $this->q("ALTER TABLE akce_seznam ADD CONSTRAINT FK_2EE8EBF09E0F2899 FOREIGN KEY (id_hlavni_lokace) REFERENCES lokace (id_lokace) ON DELETE SET NULL");
+if (! $columnExists('akce_seznam', 'id_hlavni_lokace')) {
+    $this->q('ALTER TABLE akce_seznam ADD id_hlavni_lokace BIGINT UNSIGNED DEFAULT NULL');
+    if (! $fkExists('akce_seznam', 'FK_2EE8EBF09E0F2899')) {
+        $this->q('ALTER TABLE akce_seznam ADD CONSTRAINT FK_2EE8EBF09E0F2899 FOREIGN KEY (id_hlavni_lokace) REFERENCES lokace (id_lokace) ON DELETE SET NULL');
     }
-    if (!$indexExists('akce_seznam', 'IDX_2EE8EBF09E0F2899')) {
-        $this->q("CREATE INDEX IDX_2EE8EBF09E0F2899 ON akce_seznam (id_hlavni_lokace)");
+    if (! $indexExists('akce_seznam', 'IDX_2EE8EBF09E0F2899')) {
+        $this->q('CREATE INDEX IDX_2EE8EBF09E0F2899 ON akce_seznam (id_hlavni_lokace)');
     }
     $this->q(<<<'SQL'
 UPDATE akce_seznam
@@ -317,7 +318,7 @@ $renameIndex('akce_prihlaseni', 'id_stavu_prihlaseni', 'IDX_7B7E722B55D06BC9');
 $renameIndex('akce_prihlaseni', 'id_akce', 'UNIQ_id_akce_id_uzivatele');
 
 // shop_nakupy_zrusene column changes
-$this->q("ALTER TABLE shop_nakupy_zrusene CHANGE cena_nakupni cena_nakupni NUMERIC(6, 2) NOT NULL, CHANGE datum_nakupu datum_nakupu DATETIME NOT NULL");
+$this->q('ALTER TABLE shop_nakupy_zrusene CHANGE cena_nakupni cena_nakupni NUMERIC(6, 2) NOT NULL, CHANGE datum_nakupu datum_nakupu DATETIME NOT NULL');
 $renameIndex('shop_nakupy_zrusene', 'id_uzivatele', 'IDX_id_uzivatele');
 $renameIndex('shop_nakupy_zrusene', 'id_predmetu', 'IDX_id_predmetu');
 $renameIndex('shop_nakupy_zrusene', 'datum_zruseni', 'IDX_datum_zruseni');
@@ -346,7 +347,7 @@ $renameIndex('obchod_bunky', 'mrizka_id', 'IDX_2DA00FBEE5BF0939');
 
 $this->dropForeignKeysIfExist(['shop_nakupy_ibfk_1'], 'shop_nakupy');
 
-if (!$columnExists('shop_nakupy', 'order_id')) {
+if (! $columnExists('shop_nakupy', 'order_id')) {
     $this->q(<<<'SQL'
 ALTER TABLE shop_nakupy
     ADD order_id            BIGINT UNSIGNED DEFAULT NULL,
@@ -365,14 +366,14 @@ SQL);
     $this->q("ALTER TABLE shop_nakupy CHANGE id_predmetu id_predmetu BIGINT UNSIGNED DEFAULT NULL, CHANGE cena_nakupni cena_nakupni NUMERIC(6, 2) NOT NULL COMMENT 'Final purchase price (after discounts)'");
 }
 
-if (!$fkExists('shop_nakupy', 'FK_1A37DD218D9F6D38')) {
-    $this->q("ALTER TABLE shop_nakupy ADD CONSTRAINT FK_1A37DD218D9F6D38 FOREIGN KEY (order_id) REFERENCES shop_order (id) ON DELETE SET NULL");
+if (! $fkExists('shop_nakupy', 'FK_1A37DD218D9F6D38')) {
+    $this->q('ALTER TABLE shop_nakupy ADD CONSTRAINT FK_1A37DD218D9F6D38 FOREIGN KEY (order_id) REFERENCES shop_order (id) ON DELETE SET NULL');
 }
-if (!$fkExists('shop_nakupy', 'FK_1A37DD213AB9335E')) {
-    $this->q("ALTER TABLE shop_nakupy ADD CONSTRAINT FK_1A37DD213AB9335E FOREIGN KEY (id_predmetu) REFERENCES shop_predmety (id_predmetu) ON DELETE SET NULL");
+if (! $fkExists('shop_nakupy', 'FK_1A37DD213AB9335E')) {
+    $this->q('ALTER TABLE shop_nakupy ADD CONSTRAINT FK_1A37DD213AB9335E FOREIGN KEY (id_predmetu) REFERENCES shop_predmety (id_predmetu) ON DELETE SET NULL');
 }
-if (!$indexExists('shop_nakupy', 'IDX_1A37DD218D9F6D38')) {
-    $this->q("CREATE INDEX IDX_1A37DD218D9F6D38 ON shop_nakupy (order_id)");
+if (! $indexExists('shop_nakupy', 'IDX_1A37DD218D9F6D38')) {
+    $this->q('CREATE INDEX IDX_1A37DD218D9F6D38 ON shop_nakupy (order_id)');
 }
 $renameIndex('shop_nakupy', 'id_uzivatele', 'IDX_1A37DD21D84E9520');
 $renameIndex('shop_nakupy', 'id_objednatele', 'IDX_1A37DD218369B810');
@@ -381,7 +382,7 @@ $renameIndex('shop_nakupy', 'rok', 'IDX_rok_id_uzivatele');
 
 // ── Step 5: Seed product_tag data ─────────────────────────────────────────────
 
-$existingTagCount = (int) $this->q("SELECT COUNT(*) FROM product_tag")->fetchColumn();
+$existingTagCount = (int) $this->q('SELECT COUNT(*) FROM product_tag')->fetchColumn();
 if ($existingTagCount === 0) {
     $this->q(<<<'SQL'
 INSERT INTO product_tag (code, name, description, created_at)
@@ -397,7 +398,7 @@ SQL);
 
 // ── Step 6: shop_predmety — add new columns, migrate data, drop old columns ──
 
-if (!$columnExists('shop_predmety', 'archived_at')) {
+if (! $columnExists('shop_predmety', 'archived_at')) {
     $this->q(<<<'SQL'
 ALTER TABLE shop_predmety
     ADD archived_at         DATETIME DEFAULT NULL COMMENT '(DC2Type:datetime_immutable)',
@@ -443,24 +444,24 @@ SQL);
 $oldIndexesToDrop = ['nazev', 'UNIQ_nazev_model_rok', 'kod_predmetu', 'UNIQ_kod_predmetu_model_rok'];
 foreach ($oldIndexesToDrop as $oldIndex) {
     if ($indexExists('shop_predmety', $oldIndex)) {
-        $this->q("DROP INDEX `$oldIndex` ON shop_predmety");
+        $this->q("DROP INDEX `{$oldIndex}` ON shop_predmety");
     }
 }
 
 // Drop old columns
 if ($columnExists('shop_predmety', 'model_rok')) {
-    $this->q("ALTER TABLE shop_predmety DROP COLUMN model_rok");
+    $this->q('ALTER TABLE shop_predmety DROP COLUMN model_rok');
 }
 if ($columnExists('shop_predmety', 'typ')) {
-    $this->q("ALTER TABLE shop_predmety DROP COLUMN typ");
+    $this->q('ALTER TABLE shop_predmety DROP COLUMN typ');
 }
 if ($columnExists('shop_predmety', 'je_letosni_hlavni')) {
-    $this->q("ALTER TABLE shop_predmety DROP COLUMN je_letosni_hlavni");
+    $this->q('ALTER TABLE shop_predmety DROP COLUMN je_letosni_hlavni');
 }
 
-// Deduplicate kod_predmetu and nazev for archived products before creating unique indexes.
-// Production has per-year duplicates (e.g. same kod_predmetu across different model_rok years).
-// Keep the newest (highest id) and rename older duplicates by appending _ID.
+// Deduplicate kod_predmetu for archived products before creating the unique index.
+// Production has per-year duplicates (the same kod_predmetu across different model_rok
+// years). Keep the newest (highest id) and rename older duplicates by appending _ID.
 $this->q(<<<'SQL'
 UPDATE shop_predmety AS duplicated
 INNER JOIN (
@@ -472,24 +473,24 @@ INNER JOIN (
 SET duplicated.kod_predmetu = CONCAT(duplicated.kod_predmetu, '_', duplicated.id_predmetu)
 SQL);
 
-$this->q(<<<'SQL'
-UPDATE shop_predmety AS duplicated
-INNER JOIN (
-    SELECT nazev, MAX(id_predmetu) AS keep_id
-    FROM shop_predmety
-    GROUP BY nazev
-    HAVING COUNT(*) > 1
-) AS keeper ON duplicated.nazev = keeper.nazev AND duplicated.id_predmetu != keeper.keep_id
-SET duplicated.nazev = CONCAT(duplicated.nazev, ' (#', duplicated.id_predmetu, ')')
-SQL);
+// Only the code is an identifier. The name is a label shown to customers and the
+// same shirt legitimately recurs every year ("Tričko červené" in 2025 and 2026 are
+// different products), so a unique name would force meaningless suffixes onto 785
+// of 1135 products. The year is already carried by kod_predmetu and archived_at.
+if (! $indexExists('shop_predmety', 'UNIQ_kod_predmetu')) {
+    $this->q('CREATE UNIQUE INDEX UNIQ_kod_predmetu ON shop_predmety (kod_predmetu)');
+}
+if ($indexExists('shop_predmety', 'UNIQ_nazev')) {
+    $this->q('DROP INDEX UNIQ_nazev ON shop_predmety');
+}
 
-// Create new unique indexes
-if (!$indexExists('shop_predmety', 'UNIQ_kod_predmetu')) {
-    $this->q("CREATE UNIQUE INDEX UNIQ_kod_predmetu ON shop_predmety (kod_predmetu)");
-}
-if (!$indexExists('shop_predmety', 'UNIQ_nazev')) {
-    $this->q("CREATE UNIQUE INDEX UNIQ_nazev ON shop_predmety (nazev)");
-}
+// Undo the suffixes an earlier version of this migration appended to make names
+// unique; a database migrated by that version still carries them.
+$this->q(<<<'SQL'
+UPDATE shop_predmety
+SET nazev = TRIM(REGEXP_REPLACE(nazev, '\\s*\\(#[0-9]+\\)$', ''))
+WHERE nazev REGEXP '\\(#[0-9]+\\)$'
+SQL);
 
 // ── Step 7: Backfill product snapshots in shop_nakupy ─────────────────────────
 
@@ -528,7 +529,7 @@ $renameIndex('akce_organizatori', 'id_uzivatele', 'IDX_F44FC74ED84E9520');
 
 // ── Step 9: product_tag — add updated_at column ──────────────────────────────
 
-if (!$columnExists('product_tag', 'updated_at')) {
+if (! $columnExists('product_tag', 'updated_at')) {
     $this->q("ALTER TABLE product_tag ADD updated_at DATETIME NOT NULL COMMENT '(DC2Type:datetime_immutable)', CHANGE created_at created_at DATETIME NOT NULL COMMENT '(DC2Type:datetime_immutable)'");
 }
 
