@@ -30,8 +30,7 @@ enum DiscountScope: string
     }
 
     /**
-     * Names of the parameters this scope requires, so validation and the admin form
-     * can both be driven from one place.
+     * Parameters this scope cannot do without, for validation.
      *
      * Each entry is a set of alternatives, of which at least one must be present.
      *
@@ -43,6 +42,27 @@ enum DiscountScope: string
             self::CODE_CONTAINS => [['codeFragment']],
             self::TAG, self::TAG_CHEAPEST => [['tag']],
             self::TAG_AND_DAY => [['tag'], ['day']],
+        };
+    }
+
+    /**
+     * Of those, the ones an admin may change.
+     *
+     * Deliberately narrower than requiredParameters(): the numbers are policy an admin
+     * tunes, the rest is what the rule *is*. Switching a rule's tag from jidlo to
+     * tricko does not adjust "free meals", it turns it into free shirts while the name
+     * and description still say meals — a different rule wearing the old one's label.
+     * Same for the scope and effect themselves.
+     *
+     * The admin form shows everything, but only these as inputs.
+     *
+     * @return string[]
+     */
+    public function editableParameters(): array
+    {
+        return match ($this) {
+            self::CODE_CONTAINS, self::TAG, self::TAG_CHEAPEST => [],
+            self::TAG_AND_DAY => ['day'],
         };
     }
 
