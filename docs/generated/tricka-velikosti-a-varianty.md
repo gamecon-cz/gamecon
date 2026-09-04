@@ -4,7 +4,7 @@ TL;DR: velikost trička je v legacy modelu **samostatný produkt**, ne varianta 
 
 ## Rozsah
 
-Tagy `tricko` a `mikina`. Netýká se ubytování (to má vlastní logiku dní) ani jídla.
+Produkty, které mají v legacy **jednu variantní dimenzi** rozepsanou do samostatných řádků: tagy `tricko`, `mikina` a ponožky (tag `predmet`). Ubytování má dimenze tři a nejde převést — viz níž.
 
 ## Vstupní body v kódu
 
@@ -26,6 +26,7 @@ mikina_2026_verne_xs                       velikost malými písmeny
 - Podle názvu by jich bylo jen 132 — **název je nespolehlivý, kód je signál**.
 - Seskupení musí být podle `<base kód> + ročník`, ne jen podle base kódu: bez ročníku splynou všechny roky dohromady (`tricko_panske_organizatorske` by mělo 82 „velikostí"). Se správným klíčem vznikne **112 skupin po 6–7 velikostech**, žádná osamocená, žádná se dvěma cenami.
 - Velikosti v datech: S, M, L, XL, XXL, XXXL, jedno `xs`.
+- **Ponožky mají velikost taky, ale jinou konvencí**: `ponozky_2021_vel_38_39` / `ponozky_2021_vel_42_45`, tedy `_vel_<od>_<do>`. Dvě velikosti × 6 ročníků = **12 produktů, 6 skupin, 475 nákupů**. Regex psaný na `_L_`/`_XXL_` je tiše minul — při hledání variantních produktů se nedá spolehnout na jednu konvenci.
 - **Identifikátor je `kod_predmetu`, ne `nazev`.** `kod_predmetu` je UNIQUE a nese ročník; `nazev` je jen štítek pro zákazníka a **smí se opakovat napříč ročníky** — „Tričko červené pánské L" existuje pro 2016–2025 a jsou to různé produkty.
 - Migrace `100001` původně zaváděla i `UNIQUE(nazev)`, což si vynutilo umělé suffixy `(#1464)` u **785 z 1135 produktů**. Constraint i suffixy jsou pryč (nic na jedinečnosti názvu nestálo: `ProductRepository` má jen `findByCode()`, importér páruje přes `kod_predmetu`, `Predmet::jeToModre()` dělá substring match, reporty grupují per uživatel a ročník).
 
@@ -46,6 +47,16 @@ Okna se **nepřekrývají ani o den**. Bezvelikostní řádek je skrytý z e-sho
 
 Takových bezvelikostních řádků je celkem **9** (`tricko_tilko_*`, `tricko_stare*`). Do rozpadu na velikosti nevstupují a zůstávají jednovariantní.
 
+## Ubytování potřebuje options, ne varianty
+
+Ubytování je taky variantní, ale má **tři nezávislé dimenze**: den (St–Ne), kapacita pokoje (1L/2L/3L) a typ ubytování (kolej / hotel / hotel deluxe / dvojbuňka, se snídaní nebo bez). Kód to nese celé: `Hd-2L-pa` = hotel deluxe, dvoulůžák, pátek.
+
+Data jsou dokonale pravidelná — každý ročník je „počet druhů × 5 dní" bez děr, letos 8 × 5 = 40 produktů, a takhle to jde zpátky až do 2009.
+
+**Nový model to zatím neumí.** `product_variant` má natvrdo sloupec `accommodation_day` (SMALLINT 0–4) — jednu pojmenovanou dimenzi, ne obecný mechanismus. Tabulka pro options/atributy neexistuje. Přitom `NEW_ESHOP.md` má „**Produktové možnosti s více hodnotami** — konfigurovatelné vlastnosti produktů (barva, velikost atd.)" označené ✅, takže je to jedna z odsouhlasených, ale nepostavených věcí. Sloupec `accommodation_day` je vlastně důkaz té mezery — vznikl jako výjimka, protože obecná cesta chyběla.
+
+**Rozhodnutí:** teď se převádějí jen jednodimenzionální varianty (trička, mikiny, ponožky). Ubytování zůstává, jak je, a převede se, až bude option systém — ten by pak měl `accommodation_day` nahradit běžnou option, ne ho konzervovat. (záměr — sděleno uživatelem)
+
 ## Gotchas
 
 - **Cena i kapacita jsou per-varianta.** `product_variant.price` je `DECIMAL(6,2) NULL`; `NULL` = dědí z produktu. Ověřeno: varianta s `price = NULL` vrátí cenu produktu, sourozenec s vlastní cenou vrátí svou. `OrderItem` si při nákupu ukládá `getEffectivePrice()` do `original_price`, takže se do historie zamrazí cena varianty.
@@ -57,3 +68,4 @@ Takových bezvelikostních řádků je celkem **9** (`tricko_tilko_*`, `tricko_s
 
 - Sloučit sized + bezvelikostní řádek do jednoho produktu, až bude merch storefront na nové vrstvě? (viz výše — směr je jasný, načasování ne)
 - Kde v adminu se velikosti zakládají a jestli to po rozpadu na varianty potřebuje jiné UI.
+- Option systém pro ubytování (viz sekce výše) — schéma navíc (`product_option`, `product_option_value`, join na variantu), ne datová migrace.
