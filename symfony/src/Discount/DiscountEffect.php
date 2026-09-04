@@ -26,14 +26,18 @@ enum DiscountEffect: string
     }
 
     /**
-     * @return string[]
+     * One of these must be present. FIXED_AMOUNT accepts either a literal amount or
+     * the name of a system setting to read it from, so the organizer meal discount can
+     * follow SLEVA_ORGU_NA_JIDLO_CASTKA instead of freezing today's value.
+     *
+     * @return string[][]
      */
     public function requiredParameters(): array
     {
         return match ($this) {
             self::FREE         => [],
-            self::FIXED_AMOUNT => ['amount'],
-            self::PERCENT      => ['percent'],
+            self::FIXED_AMOUNT => [['amount', 'amountSetting']],
+            self::PERCENT      => [['percent']],
         };
     }
 
