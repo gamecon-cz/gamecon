@@ -55,7 +55,9 @@ Data jsou dokonale pravidelná — každý ročník je „počet druhů × 5 dn�
 
 **Nový model to zatím neumí.** `product_variant` má natvrdo sloupec `accommodation_day` (SMALLINT 0–4) — jednu pojmenovanou dimenzi, ne obecný mechanismus. Tabulka pro options/atributy neexistuje. Přitom `NEW_ESHOP.md` má „**Produktové možnosti s více hodnotami** — konfigurovatelné vlastnosti produktů (barva, velikost atd.)" označené ✅, takže je to jedna z odsouhlasených, ale nepostavených věcí. Sloupec `accommodation_day` je vlastně důkaz té mezery — vznikl jako výjimka, protože obecná cesta chyběla.
 
-**Rozhodnutí:** teď se převádějí jen jednodimenzionální varianty (trička, mikiny, ponožky). Ubytování zůstává, jak je, a převede se, až bude option systém — ten by pak měl `accommodation_day` nahradit běžnou option, ne ho konzervovat. (záměr — sděleno uživatelem)
+Pozor na svůdnou zkratku: **kapacita (1L/2L/3L) není „velikost" pokoje.** Matice není pravoúhlá (kolej má 1L/2L/3L, hotely 1L/2L, dvojbuňka jen 1L), ceny se nerozkládají (1L→2L je −500 na koleji, ale −400 v hotelu) a sklad je per dvojice ubytování×kapacita a řádově jiný (kolej 1L = 131 lůžek, hotel deluxe 1L = 3). Jsou to různá fyzická místa, ne velikosti jednoho produktu. Jediná čistě separovatelná dimenze je **den** — v rámci jednoho druhu pokoje mají všech 5 dní totožnou cenu i kapacitu.
+
+**Rozhodnutí:** teď se převádějí jen jednodimenzionální varianty (trička, mikiny, ponožky). Ubytování se převede najednou na multi-options, ne po částech — dělat teď zvlášť „den jako varianta" by byl polovičatý krok, který se stejně zahodí. (záměr — sděleno uživatelem)
 
 ## Gotchas
 
