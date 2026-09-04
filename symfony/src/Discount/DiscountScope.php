@@ -33,14 +33,16 @@ enum DiscountScope: string
      * Names of the parameters this scope requires, so validation and the admin form
      * can both be driven from one place.
      *
-     * @return string[]
+     * Each entry is a set of alternatives, of which at least one must be present.
+     *
+     * @return string[][]
      */
     public function requiredParameters(): array
     {
         return match ($this) {
-            self::CODE_CONTAINS => ['codeFragment'],
-            self::TAG, self::TAG_CHEAPEST => ['tag'],
-            self::TAG_AND_DAY => ['tag', 'day'],
+            self::CODE_CONTAINS => [['codeFragment']],
+            self::TAG, self::TAG_CHEAPEST => [['tag']],
+            self::TAG_AND_DAY => [['tag'], ['day']],
         };
     }
 

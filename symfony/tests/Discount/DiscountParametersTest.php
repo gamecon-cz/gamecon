@@ -108,6 +108,33 @@ class DiscountParametersTest extends TestCase
         $this->assertSame($original, DiscountParameters::fromArray($original)->toArray());
     }
 
+    public function testFixedAmountAcceptsASettingInsteadOfANumber(): void
+    {
+        // The meal discount follows SLEVA_ORGU_NA_JIDLO_CASTKA rather than freezing
+        // today's value, so an admin changing the setting changes the rule.
+        $parameters = DiscountParameters::fromArray([
+            'scope'         => 'tag',
+            'effect'        => 'fixed_amount',
+            'tag'           => 'jidlo',
+            'amountSetting' => 'SLEVA_ORGU_NA_JIDLO_CASTKA',
+        ]);
+
+        $this->assertSame('SLEVA_ORGU_NA_JIDLO_CASTKA', $parameters->amountSetting);
+        $this->assertNull($parameters->amount);
+    }
+
+    public function testFixedAmountNeedsEitherAnAmountOrASetting(): void
+    {
+        $this->expectException(\InvalidArgumentException::class);
+        $this->expectExceptionMessage('vyžaduje parametr "amount" nebo "amountSetting"');
+
+        DiscountParameters::fromArray([
+            'scope'  => 'tag',
+            'effect' => 'fixed_amount',
+            'tag'    => 'jidlo',
+        ]);
+    }
+
     public function testEffectNeverDiscountsMoreThanThePrice(): void
     {
         // A 30 Kč discount on a 20 Kč item must not produce a negative price.
