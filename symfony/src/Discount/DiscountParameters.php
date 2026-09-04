@@ -42,17 +42,17 @@ final readonly class DiscountParameters
          */
         public ?int $maxQuantity,
         /**
-         * System setting to read the discount amount from, instead of freezing today's
-         * number into the rule.
+         * Setting to read the discount amount from, instead of freezing today's number
+         * into the rule.
          */
-        public ?string $amountSetting,
+        public ?DiscountSetting $amountSetting,
         /**
-         * System setting whose value the user's bonus must reach, e.g.
-         * MODRE_TRICKO_ZDARMA_OD. Resolved at calculation time so an admin changing
-         * the setting changes the rule, and the resolved number is recorded in the
-         * snapshot on the purchase.
+         * Setting whose value the user's bonus must reach. Resolved at calculation
+         * time, so an admin changing the setting changes the rule; the resolved number
+         * goes into the snapshot on the purchase, so history stays truthful when the
+         * setting later changes.
          */
-        public ?string $thresholdSetting,
+        public ?DiscountSetting $thresholdSetting,
     ) {
     }
 
@@ -98,10 +98,20 @@ final readonly class DiscountParameters
             amount: isset($parameters['amount'])
                 ? (float) $parameters['amount']
                 : (isset($parameters['percent']) ? (float) $parameters['percent'] : null),
-            amountSetting: isset($parameters['amountSetting']) ? (string) $parameters['amountSetting'] : null,
+            amountSetting: isset($parameters['amountSetting'])
+                ? self::setting((string) $parameters['amountSetting'], 'amountSetting')
+                : null,
             maxQuantity: isset($parameters['maxQuantity']) ? (int) $parameters['maxQuantity'] : null,
-            thresholdSetting: isset($parameters['thresholdSetting']) ? (string) $parameters['thresholdSetting'] : null,
+            thresholdSetting: isset($parameters['thresholdSetting'])
+                ? self::setting((string) $parameters['thresholdSetting'], 'thresholdSetting')
+                : null,
         );
+    }
+
+    private static function setting(string $value, string $parameterName): DiscountSetting
+    {
+        return DiscountSetting::tryFrom($value)
+            ?? throw new \InvalidArgumentException(sprintf('Neznámé nastavení "%s" v parametru %s. Povolené: %s', $value, $parameterName, implode(', ', array_column(DiscountSetting::cases(), 'value'))));
     }
 
     /**
@@ -116,9 +126,9 @@ final readonly class DiscountParameters
             'tag'                                                            => $this->tag,
             'day'                                                            => $this->day,
             $this->effect === DiscountEffect::PERCENT ? 'percent' : 'amount' => $this->amount,
-            'amountSetting'                                                  => $this->amountSetting,
+            'amountSetting'                                                  => $this->amountSetting?->value,
             'maxQuantity'                                                    => $this->maxQuantity,
-            'thresholdSetting'                                               => $this->thresholdSetting,
+            'thresholdSetting'                                               => $this->thresholdSetting?->value,
         ], static fn ($value): bool => $value !== null);
     }
 }
