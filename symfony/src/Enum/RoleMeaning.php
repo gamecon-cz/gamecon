@@ -28,6 +28,8 @@ enum RoleMeaning: string
     case SEF_PROGRAMU = 'SEF_PROGRAMU';
     case KOREKTOR = 'KOREKTOR';
     case SPRAVCE_PARTNERU = 'SPRAVCE_PARTNERU';
+    case PAUZUJICI_FULL_ORG = 'PAUZUJICI_FULL_ORG';
+    case DEV = 'DEV';
 
     // Year-specific roles
     case BRIGADNIK = 'BRIGADNIK';
@@ -42,6 +44,8 @@ enum RoleMeaning: string
     case NEDELNI_NOC_ZDARMA = 'NEDELNI_NOC_ZDARMA';
     case VYPRAVEC = 'VYPRAVEC';
     case ZAZEMI = 'ZAZEMI';
+    case PREPINANI_NA_UZIVATELE = 'PREPINANI_NA_UZIVATELE';
+    case JEDNA_AKTIVITA_ZDARMA = 'JEDNA_AKTIVITA_ZDARMA';
 
     // Verification
     case ZKONTROLOVANE_UDAJE = 'ZKONTROLOVANE_UDAJE';
@@ -52,7 +56,10 @@ enum RoleMeaning: string
     case ODJEL = 'ODJEL';
 
     /**
-     * Does this role grant access to organizer-reserved stock?
+     * Does this role grant access to organizer-reserved stock? That is its only
+     * effect: ProductVariant::getAvailableQuantity() and CapacityManager::purchase()
+     * subtract reserved_for_organizers for everyone else. Discounts do not go through
+     * here — DiscountCalculator matches product_discount.role directly.
      */
     public function isOrganizer(): bool
     {
@@ -60,7 +67,7 @@ enum RoleMeaning: string
     }
 
     /**
-     * All role meanings that grant organizer-level access (reserved stock, org discounts)
+     * All role meanings that grant access to organizer-reserved stock
      *
      * @return self[]
      */
@@ -72,6 +79,7 @@ enum RoleMeaning: string
             self::PUL_ORG_TRICKO,
             self::MINI_ORG,
             self::CESTNY_ORGANIZATOR,
+            self::PAUZUJICI_FULL_ORG,
             self::CFO,
             self::ADMIN,
             self::VYPRAVECSKA_SKUPINA,
@@ -103,35 +111,39 @@ enum RoleMeaning: string
     public function label(): string
     {
         return match ($this) {
-            self::ORGANIZATOR_ZDARMA   => 'Organizátor (zdarma)',
-            self::PUL_ORG_UBYTKO       => 'Půl-org (ubytko)',
-            self::PUL_ORG_TRICKO       => 'Půl-org (tričko)',
-            self::MINI_ORG             => 'Mini-org',
-            self::CESTNY_ORGANIZATOR   => 'Čestný organizátor',
-            self::CFO                  => 'CFO',
-            self::ADMIN                => 'Admin',
-            self::VYPRAVECSKA_SKUPINA  => 'Vypravěčská skupina',
-            self::CLEN_RADY            => 'Člen rady',
-            self::SEF_INFOPULTU        => 'Šéf infopultu',
-            self::SEF_PROGRAMU         => 'Šéf programu',
-            self::KOREKTOR             => 'Korektor',
-            self::SPRAVCE_PARTNERU     => 'Správce partnerů',
-            self::BRIGADNIK            => 'Brigádník',
-            self::HERMAN               => 'Heřman',
-            self::INFOPULT             => 'Infopult',
-            self::NEODHLASOVAT         => 'Neodhlašovat',
-            self::PARTNER              => 'Partner',
-            self::STREDECNI_NOC_ZDARMA => 'Středeční noc zdarma',
-            self::CTVRTECNI_NOC_ZDARMA => 'Čtvrteční noc zdarma',
-            self::PATECNI_NOC_ZDARMA   => 'Páteční noc zdarma',
-            self::SOBOTNI_NOC_ZDARMA   => 'Sobotní noc zdarma',
-            self::NEDELNI_NOC_ZDARMA   => 'Nedělní noc zdarma',
-            self::VYPRAVEC             => 'Vypravěč',
-            self::ZAZEMI               => 'Zázemí',
-            self::ZKONTROLOVANE_UDAJE  => 'Zkontrolované údaje',
-            self::PRIHLASEN            => 'Přihlášen',
-            self::PRITOMEN             => 'Přítomen',
-            self::ODJEL                => 'Odjel',
+            self::ORGANIZATOR_ZDARMA     => 'Organizátor (zdarma)',
+            self::PUL_ORG_UBYTKO         => 'Půl-org (ubytko)',
+            self::PUL_ORG_TRICKO         => 'Půl-org (tričko)',
+            self::MINI_ORG               => 'Mini-org',
+            self::CESTNY_ORGANIZATOR     => 'Čestný organizátor',
+            self::CFO                    => 'CFO',
+            self::ADMIN                  => 'Admin',
+            self::VYPRAVECSKA_SKUPINA    => 'Vypravěčská skupina',
+            self::CLEN_RADY              => 'Člen rady',
+            self::SEF_INFOPULTU          => 'Šéf infopultu',
+            self::SEF_PROGRAMU           => 'Šéf programu',
+            self::KOREKTOR               => 'Korektor',
+            self::SPRAVCE_PARTNERU       => 'Správce partnerů',
+            self::PAUZUJICI_FULL_ORG     => 'Pauzující Full-org',
+            self::DEV                    => 'Dev',
+            self::BRIGADNIK              => 'Brigádník',
+            self::HERMAN                 => 'Heřman',
+            self::INFOPULT               => 'Infopult',
+            self::NEODHLASOVAT           => 'Neodhlašovat',
+            self::PARTNER                => 'Partner',
+            self::STREDECNI_NOC_ZDARMA   => 'Středeční noc zdarma',
+            self::CTVRTECNI_NOC_ZDARMA   => 'Čtvrteční noc zdarma',
+            self::PATECNI_NOC_ZDARMA     => 'Páteční noc zdarma',
+            self::SOBOTNI_NOC_ZDARMA     => 'Sobotní noc zdarma',
+            self::NEDELNI_NOC_ZDARMA     => 'Nedělní noc zdarma',
+            self::VYPRAVEC               => 'Vypravěč',
+            self::ZAZEMI                 => 'Zázemí',
+            self::PREPINANI_NA_UZIVATELE => 'Přepínání na uživatele',
+            self::JEDNA_AKTIVITA_ZDARMA  => 'Jedna aktivita zdarma',
+            self::ZKONTROLOVANE_UDAJE    => 'Zkontrolované údaje',
+            self::PRIHLASEN              => 'Přihlášen',
+            self::PRITOMEN               => 'Přítomen',
+            self::ODJEL                  => 'Odjel',
         };
     }
 }
