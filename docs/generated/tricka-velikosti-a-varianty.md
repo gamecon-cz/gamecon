@@ -18,7 +18,7 @@ Velikost je v `kod_predmetu`, ne spolehlivě v názvu:
 
 ```
 tricko_panske_organizatorske_L_2026        <base>_<SIZE>_<rok>
-tricko_panske_ucastnicke_XXL_2024_1467     <base>_<SIZE>_<rok>_<id>   (id = rozlišovač, viz níž)
+tricko_panske_ucastnicke_XXL_2024_1467     <base>_<SIZE>_<rok>_<id>   (id rozlišuje duplicitní kódy)
 mikina_2026_verne_xs                       velikost malými písmeny
 ```
 
@@ -26,7 +26,8 @@ mikina_2026_verne_xs                       velikost malými písmeny
 - Podle názvu by jich bylo jen 132 — **název je nespolehlivý, kód je signál**.
 - Seskupení musí být podle `<base kód> + ročník`, ne jen podle base kódu: bez ročníku splynou všechny roky dohromady (`tricko_panske_organizatorske` by mělo 82 „velikostí"). Se správným klíčem vznikne **112 skupin po 6–7 velikostech**, žádná osamocená, žádná se dvěma cenami.
 - Velikosti v datech: S, M, L, XL, XXL, XXXL, jedno `xs`.
-- `nazev` i `kod_predmetu` jsou nově UNIQUE, proto mají historické řádky suffix `_<id>`.
+- **Identifikátor je `kod_predmetu`, ne `nazev`.** `kod_predmetu` je UNIQUE a nese ročník; `nazev` je jen štítek pro zákazníka a **smí se opakovat napříč ročníky** — „Tričko červené pánské L" existuje pro 2016–2025 a jsou to různé produkty.
+- Migrace `100001` původně zaváděla i `UNIQUE(nazev)`, což si vynutilo umělé suffixy `(#1464)` u **785 z 1135 produktů**. Constraint i suffixy jsou pryč (nic na jedinečnosti názvu nestálo: `ProductRepository` má jen `findByCode()`, importér páruje přes `kod_predmetu`, `Predmet::jeToModre()` dělá substring match, reporty grupují per uživatel a ročník).
 
 ## Dva prodejní kanály téhož trička
 
