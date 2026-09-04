@@ -120,6 +120,22 @@ final readonly class DiscountParameters
     }
 
     /**
+     * Parameter names the admin form may offer as inputs, everything else being shown
+     * read-only. maxQuantity is here regardless of scope and effect — how many items a
+     * rule covers is policy, not shape.
+     *
+     * @return string[]
+     */
+    public function editableParameters(): array
+    {
+        return [
+            ...$this->scope->editableParameters(),
+            ...$this->effect->editableParameters(),
+            'maxQuantity',
+        ];
+    }
+
+    /**
      * @return array<string, mixed>
      */
     public function toArray(): array
