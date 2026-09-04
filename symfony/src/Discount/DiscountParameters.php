@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace App\Discount;
 
+use App\Enum\ProductTagCode;
+
 /**
  * The varying part of a discount rule, stored as JSON on discount_rule.parameters.
  *
@@ -26,9 +28,9 @@ final readonly class DiscountParameters
          */
         public ?string $codeFragment,
         /**
-         * Product tag code, for the TAG scopes.
+         * Product tag, for the TAG scopes.
          */
-        public ?string $tag,
+        public ?ProductTagCode $tag,
         /**
          * Accommodation day 0–4 (Wed–Sun), for TAG_AND_DAY.
          */
@@ -93,7 +95,10 @@ final readonly class DiscountParameters
             scope: $scope,
             effect: $effect,
             codeFragment: isset($parameters['codeFragment']) ? (string) $parameters['codeFragment'] : null,
-            tag: isset($parameters['tag']) ? (string) $parameters['tag'] : null,
+            tag: isset($parameters['tag'])
+                ? (ProductTagCode::tryFrom((string) $parameters['tag'])
+                    ?? throw new \InvalidArgumentException(sprintf('Neznámý tag "%s". Povolené: %s', (string) $parameters['tag'], implode(', ', array_column(ProductTagCode::cases(), 'value')))))
+                : null,
             day: $day,
             amount: isset($parameters['amount'])
                 ? (float) $parameters['amount']
@@ -123,7 +128,7 @@ final readonly class DiscountParameters
             'scope'                                                          => $this->scope->value,
             'effect'                                                         => $this->effect->value,
             'codeFragment'                                                   => $this->codeFragment,
-            'tag'                                                            => $this->tag,
+            'tag'                                                            => $this->tag?->value,
             'day'                                                            => $this->day,
             $this->effect === DiscountEffect::PERCENT ? 'percent' : 'amount' => $this->amount,
             'amountSetting'                                                  => $this->amountSetting?->value,

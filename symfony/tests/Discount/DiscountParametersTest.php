@@ -8,6 +8,7 @@ use App\Discount\DiscountEffect;
 use App\Discount\DiscountParameters;
 use App\Discount\DiscountScope;
 use App\Discount\DiscountSetting;
+use App\Enum\ProductTagCode;
 use PHPUnit\Framework\TestCase;
 
 class DiscountParametersTest extends TestCase
@@ -36,6 +37,7 @@ class DiscountParametersTest extends TestCase
             'amount' => 30,
         ]);
 
+        $this->assertSame(ProductTagCode::JIDLO, $parameters->tag);
         $this->assertSame(30.0, $parameters->amount);
         $this->assertNull($parameters->maxQuantity, 'Sleva na jídlo platí na každé jídlo');
     }
@@ -150,6 +152,34 @@ class DiscountParametersTest extends TestCase
             'tag'           => 'jidlo',
             'amountSetting' => 'SLEVA_ORGU_NA_JIDLO_CASTKA',
         ]);
+    }
+
+    public function testUnknownTagIsRejected(): void
+    {
+        // A typo matches no product, so the rule would validate, store, and then
+        // silently never apply — free meals that quietly stop being free.
+        $this->expectException(\InvalidArgumentException::class);
+        $this->expectExceptionMessage('Neznámý tag "jidla"');
+
+        DiscountParameters::fromArray([
+            'scope'  => 'tag',
+            'effect' => 'free',
+            'tag'    => 'jidla',
+        ]);
+    }
+
+    public function testTagSurvivesTheRoundTripAsItsCode(): void
+    {
+        // The JSON stores the tag code, not the case name, because that is what
+        // product_tag.code holds and what any SQL against it has to match.
+        $parameters = DiscountParameters::fromArray([
+            'scope'  => 'tag',
+            'effect' => 'free',
+            'tag'    => 'ubytovani',
+        ]);
+
+        $this->assertSame(ProductTagCode::UBYTOVANI, $parameters->tag);
+        $this->assertSame('ubytovani', $parameters->toArray()['tag']);
     }
 
     public function testEffectNeverDiscountsMoreThanThePrice(): void
