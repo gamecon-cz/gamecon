@@ -7,6 +7,7 @@ namespace App\Tests\Discount;
 use App\Discount\DiscountEffect;
 use App\Discount\DiscountParameters;
 use App\Discount\DiscountScope;
+use App\Discount\DiscountSetting;
 use PHPUnit\Framework\TestCase;
 
 class DiscountParametersTest extends TestCase
@@ -102,7 +103,7 @@ class DiscountParametersTest extends TestCase
             'effect'           => 'free',
             'tag'              => 'tricko',
             'maxQuantity'      => 1,
-            'thresholdSetting' => 'MODRE_TRICKO_ZDARMA_OD',
+            'thresholdSetting' => 'freeShirtBonusThreshold',
         ];
 
         $this->assertSame($original, DiscountParameters::fromArray($original)->toArray());
@@ -116,10 +117,10 @@ class DiscountParametersTest extends TestCase
             'scope'         => 'tag',
             'effect'        => 'fixed_amount',
             'tag'           => 'jidlo',
-            'amountSetting' => 'SLEVA_ORGU_NA_JIDLO_CASTKA',
+            'amountSetting' => 'organizerMealDiscount',
         ]);
 
-        $this->assertSame('SLEVA_ORGU_NA_JIDLO_CASTKA', $parameters->amountSetting);
+        $this->assertSame(DiscountSetting::OrganizerMealDiscount, $parameters->amountSetting);
         $this->assertNull($parameters->amount);
     }
 
@@ -132,6 +133,22 @@ class DiscountParametersTest extends TestCase
             'scope'  => 'tag',
             'effect' => 'fixed_amount',
             'tag'    => 'jidlo',
+        ]);
+    }
+
+    public function testUnknownSettingNameIsRejected(): void
+    {
+        // A settings key written straight into the JSON is exactly what the enum
+        // exists to prevent — it would resolve to nothing and the rule would quietly
+        // stop discounting.
+        $this->expectException(\InvalidArgumentException::class);
+        $this->expectExceptionMessage('Neznámé nastavení "SLEVA_ORGU_NA_JIDLO_CASTKA"');
+
+        DiscountParameters::fromArray([
+            'scope'         => 'tag',
+            'effect'        => 'fixed_amount',
+            'tag'           => 'jidlo',
+            'amountSetting' => 'SLEVA_ORGU_NA_JIDLO_CASTKA',
         ]);
     }
 

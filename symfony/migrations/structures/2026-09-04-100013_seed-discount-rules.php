@@ -8,14 +8,13 @@ declare(strict_types=1);
 //
 // Two things are deliberately NOT copied into the rules:
 //
-// The meal discount amount stays in systemove_nastaveni (SLEVA_ORGU_NA_JIDLO_CASTKA)
-// rather than being duplicated here, and so does the bonus threshold
-// (MODRE_TRICKO_ZDARMA_OD, itself derived as 3 × BONUS_ZA_STANDARDNI_3H_AZ_5H_AKTIVITU).
-// Copying today's numbers would silently freeze them: an admin changing the setting
-// would change the legacy price and not the rule. The rule names the setting, and the
-// value is resolved when the discount is calculated — the resolved number then goes
-// into the snapshot on the purchase, so history stays truthful even when the setting
-// later changes.
+// The meal discount amount and the bonus threshold stay in systemove_nastaveni rather
+// than being duplicated here. Copying today's numbers would silently freeze them: an
+// admin changing the setting would change the legacy price and not the rule. The rule
+// refers to the setting through DiscountSetting, so the settings key lives in exactly
+// one place the compiler can see, and the value is resolved when the discount is
+// calculated — the resolved number then goes into the snapshot on the purchase, so
+// history stays truthful even when the setting later changes.
 //
 // Rights, not roles: Cenik checks Pravo throughout, so a role gaining or losing a
 // right keeps working with no change here.
@@ -58,7 +57,7 @@ $rules = [
             'effect'           => 'free',
             'tag'              => 'tricko',
             'maxQuantity'      => 1,
-            'thresholdSetting' => 'MODRE_TRICKO_ZDARMA_OD',
+            'thresholdSetting' => App\Discount\DiscountSetting::FreeShirtBonusThreshold->value,
         ],
     ],
     [
@@ -116,7 +115,7 @@ $rules = [
             'scope'         => 'tag',
             'effect'        => 'fixed_amount',
             'tag'           => 'jidlo',
-            'amountSetting' => 'SLEVA_ORGU_NA_JIDLO_CASTKA',
+            'amountSetting' => App\Discount\DiscountSetting::OrganizerMealDiscount->value,
         ],
     ],
 ];
