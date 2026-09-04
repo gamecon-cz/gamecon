@@ -182,6 +182,45 @@ class DiscountParametersTest extends TestCase
         $this->assertSame('ubytovani', $parameters->toArray()['tag']);
     }
 
+    public function testStructuralParametersAreNeverEditable(): void
+    {
+        // Changing a rule's tag, scope or effect does not tune it — it turns "free
+        // meals" into free shirts while the name and description still say meals.
+        // Those are what the rule is, not knobs on it.
+        $structural = ['scope', 'effect', 'tag', 'codeFragment', 'amountSetting', 'thresholdSetting'];
+
+        foreach (DiscountScope::cases() as $scope) {
+            foreach (DiscountEffect::cases() as $effect) {
+                $editable = [...$scope->editableParameters(), ...$effect->editableParameters()];
+
+                $this->assertSame(
+                    [],
+                    array_values(array_intersect($editable, $structural)),
+                    sprintf('%s/%s nabízí k editaci strukturální parametr', $scope->value, $effect->value),
+                );
+            }
+        }
+    }
+
+    public function testEditableParametersAreASubsetOfWhatTheRuleHas(): void
+    {
+        // The form must not offer a field the rule does not carry.
+        $parameters = DiscountParameters::fromArray([
+            'scope'       => 'tag_and_day',
+            'effect'      => 'free',
+            'tag'         => 'ubytovani',
+            'day'         => 0,
+            'maxQuantity' => 1,
+        ]);
+
+        $this->assertSame(['day', 'maxQuantity'], $parameters->editableParameters());
+
+        $stored = array_keys($parameters->toArray());
+        foreach ($parameters->editableParameters() as $name) {
+            $this->assertContains($name, $stored, sprintf('Editovatelný parametr %s v pravidle není', $name));
+        }
+    }
+
     public function testEffectNeverDiscountsMoreThanThePrice(): void
     {
         // A 30 Kč discount on a 20 Kč item must not produce a negative price.
