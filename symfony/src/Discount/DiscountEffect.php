@@ -42,6 +42,23 @@ enum DiscountEffect: string
     }
 
     /**
+     * Of those, the ones an admin may change — the numbers, not the shape.
+     *
+     * amountSetting is not among them: which setting a rule follows is a wiring
+     * decision, and the number itself is already editable on the settings page.
+     *
+     * @return string[]
+     */
+    public function editableParameters(): array
+    {
+        return match ($this) {
+            self::FREE         => [],
+            self::FIXED_AMOUNT => ['amount'],
+            self::PERCENT      => ['percent'],
+        };
+    }
+
+    /**
      * @param float $price     the price before this rule
      * @param float $parameter amount in Kč, or percent, depending on the effect
      *
