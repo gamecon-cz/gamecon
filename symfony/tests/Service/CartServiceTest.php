@@ -121,10 +121,10 @@ class CartServiceTest extends TestCase
 
         $this->discountCalculator->method('calculateDiscount')
             ->willReturn([
-                'discount' => null,
+                'discount'       => null,
                 'discountAmount' => '0.00',
-                'finalPrice' => '250.00',
-                'reason' => null,
+                'finalPrice'     => '250.00',
+                'reason'         => null,
             ]);
 
         $this->capacityManager->expects($this->once())
@@ -158,10 +158,10 @@ class CartServiceTest extends TestCase
 
         $this->discountCalculator->method('calculateDiscount')
             ->willReturn([
-                'discount' => $this->createMock(\App\Entity\ProductDiscount::class),
+                'discount'       => $this->createMock(\App\Entity\ProductDiscount::class),
                 'discountAmount' => '250.00',
-                'finalPrice' => '0.00',
-                'reason' => 'Organizátor (zdarma): 100% sleva',
+                'finalPrice'     => '0.00',
+                'reason'         => 'Organizátor (zdarma): 100% sleva',
             ]);
 
         $roleMeanings = [RoleMeaning::ORGANIZATOR_ZDARMA];
@@ -272,10 +272,10 @@ class CartServiceTest extends TestCase
 
         $this->discountCalculator->method('calculateDiscount')
             ->willReturn([
-                'discount' => null,
+                'discount'       => null,
                 'discountAmount' => '0.00',
-                'finalPrice' => '250.00',
-                'reason' => null,
+                'finalPrice'     => '250.00',
+                'reason'         => null,
             ]);
 
         $this->cartService->addItem($order, $variant);
@@ -319,10 +319,10 @@ class CartServiceTest extends TestCase
 
         $this->discountCalculator->method('calculateDiscount')
             ->willReturn([
-                'discount' => null,
+                'discount'       => null,
                 'discountAmount' => '0.00',
-                'finalPrice' => '250.00',
-                'reason' => null,
+                'finalPrice'     => '250.00',
+                'reason'         => null,
             ]);
 
         $item = $this->cartService->addItem($order, $variant, [RoleMeaning::ORGANIZATOR_ZDARMA]);
@@ -351,10 +351,10 @@ class CartServiceTest extends TestCase
 
         $this->discountCalculator->method('calculateDiscount')
             ->willReturn([
-                'discount' => null,
+                'discount'       => null,
                 'discountAmount' => '0.00',
-                'finalPrice' => '250.00',
-                'reason' => null,
+                'finalPrice'     => '250.00',
+                'reason'         => null,
             ]);
 
         $items = $this->cartService->addBundle($order, $bundle, [RoleMeaning::PRIHLASEN]);
@@ -382,16 +382,16 @@ class CartServiceTest extends TestCase
 
         $this->discountCalculator->method('calculateDiscount')
             ->willReturn([
-                'discount' => null,
+                'discount'       => null,
                 'discountAmount' => '0.00',
-                'finalPrice' => '250.00',
-                'reason' => null,
+                'finalPrice'     => '250.00',
+                'reason'         => null,
             ]);
 
         $callCount = 0;
         $this->capacityManager->method('purchase')
             ->willReturnCallback(function () use (&$callCount): void {
-                $callCount++;
+                ++$callCount;
                 if ($callCount === 2) {
                     throw new \RuntimeException('Nedostatečná kapacita');
                 }
