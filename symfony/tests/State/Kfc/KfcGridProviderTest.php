@@ -29,14 +29,44 @@ class KfcGridProviderTest extends TestCase
             ->willReturnOnConsecutiveCalls(
                 // grids
                 [
-                    ['id' => '1', 'text' => 'Úvod'],
-                    ['id' => '2', 'text' => 'Trička'],
+                    [
+                        'id'   => '1',
+                        'text' => 'Úvod',
+                    ],
+                    [
+                        'id'   => '2',
+                        'text' => 'Trička',
+                    ],
                 ],
                 // cells
                 [
-                    ['id' => '10', 'typ' => '0', 'text' => null, 'barva' => '#f4bb57', 'barva_text' => '#000', 'cil_id' => '42', 'mrizka_id' => '1'],
-                    ['id' => '11', 'typ' => '1', 'text' => 'Trička', 'barva' => '#ff0000', 'barva_text' => null, 'cil_id' => '2', 'mrizka_id' => '1'],
-                    ['id' => '12', 'typ' => '2', 'text' => 'Zpět', 'barva' => null, 'barva_text' => null, 'cil_id' => null, 'mrizka_id' => '2'],
+                    [
+                        'id'         => '10',
+                        'typ'        => '0',
+                        'text'       => null,
+                        'barva'      => '#f4bb57',
+                        'barva_text' => '#000',
+                        'cil_id'     => '42',
+                        'mrizka_id'  => '1',
+                    ],
+                    [
+                        'id'         => '11',
+                        'typ'        => '1',
+                        'text'       => 'Trička',
+                        'barva'      => '#ff0000',
+                        'barva_text' => null,
+                        'cil_id'     => '2',
+                        'mrizka_id'  => '1',
+                    ],
+                    [
+                        'id'         => '12',
+                        'typ'        => '2',
+                        'text'       => 'Zpět',
+                        'barva'      => null,
+                        'barva_text' => null,
+                        'cil_id'     => null,
+                        'mrizka_id'  => '2',
+                    ],
                 ],
             );
 
@@ -70,7 +100,10 @@ class KfcGridProviderTest extends TestCase
     {
         $this->connection->method('fetchAllAssociative')
             ->willReturnOnConsecutiveCalls(
-                [['id' => '1', 'text' => 'Empty grid']],
+                [[
+                    'id'   => '1',
+                    'text' => 'Empty grid',
+                ]],
                 [], // no cells
             );
 

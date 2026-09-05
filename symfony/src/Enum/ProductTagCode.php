@@ -51,6 +51,25 @@ enum ProductTagCode: string
         return in_array($this, self::categories(), true);
     }
 
+    /**
+     * The legacy shop_predmety.typ this category replaced, as the compatibility view
+     * still reports it. Legacy rows carry the number, not the tag, so anything reading
+     * them has to translate — see TypPredmetu.
+     */
+    public static function fromLegacyTyp(int $typ): ?self
+    {
+        return match ($typ) {
+            1       => self::PREDMET,
+            2       => self::UBYTOVANI,
+            3       => self::TRICKO,
+            4       => self::JIDLO,
+            5       => self::VSTUPNE,
+            6       => self::PARCON,
+            7       => self::PROPLACENI_BONUSU,
+            default => null,
+        };
+    }
+
     public function label(): string
     {
         return match ($this) {

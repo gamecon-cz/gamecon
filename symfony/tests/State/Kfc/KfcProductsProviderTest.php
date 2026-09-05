@@ -27,8 +27,18 @@ class KfcProductsProviderTest extends TestCase
     {
         $this->connection->method('fetchAllAssociative')
             ->willReturn([
-                ['id' => '42', 'nazev' => 'Tričko modré 2026', 'cena' => '250', 'zbyva' => '15'],
-                ['id' => '43', 'nazev' => 'Kostka 2026', 'cena' => '50', 'zbyva' => null],
+                [
+                    'id'    => '42',
+                    'nazev' => 'Tričko modré 2026',
+                    'cena'  => '250',
+                    'zbyva' => '15',
+                ],
+                [
+                    'id'    => '43',
+                    'nazev' => 'Kostka 2026',
+                    'cena'  => '50',
+                    'zbyva' => null,
+                ],
             ]);
 
         $result = $this->provider->provide(new GetCollection());

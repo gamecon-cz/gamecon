@@ -45,8 +45,8 @@ class BulkCancelProcessorTest extends TestCase
 
         $this->entityManager->method('find')
             ->willReturnCallback(fn (string $class, int $id) => match ($id) {
-                1 => $user1,
-                2 => $user2,
+                1       => $user1,
+                2       => $user2,
                 default => null,
             });
 
