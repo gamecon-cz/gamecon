@@ -36,11 +36,11 @@ class ProductListSerializationTest extends TestCase
     public static function productFieldsRequiredInList(): array
     {
         return [
-            'id' => ['id'],
-            'name' => ['name'],
-            'code' => ['code'],
+            'id'           => ['id'],
+            'name'         => ['name'],
+            'code'         => ['code'],
             'currentPrice' => ['currentPrice'],
-            'state' => ['state'],
+            'state'        => ['state'],
         ];
     }
 
@@ -58,6 +58,7 @@ class ProductListSerializationTest extends TestCase
 
         if (empty($attributes)) {
             $this->assertTrue(true); // no groups at all = not in list
+
             return;
         }
 
@@ -69,8 +70,8 @@ class ProductListSerializationTest extends TestCase
     {
         return [
             'accommodationDay' => ['accommodationDay'],
-            'tags' => ['tags'],
-            'variants' => ['variants'],
+            'tags'             => ['tags'],
+            'variants'         => ['variants'],
         ];
     }
 
