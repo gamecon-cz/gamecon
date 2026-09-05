@@ -37,7 +37,11 @@ class KfcSaleProcessorTest extends TestCase
     public function testSuccessfulSale(): void
     {
         $this->connection->method('fetchAssociative')
-            ->willReturn(['cena_aktualni' => '250.00', 'kusu_vyrobeno' => '100', 'nazev' => 'Tričko']);
+            ->willReturn([
+                'cena_aktualni' => '250.00',
+                'kusu_vyrobeno' => '100',
+                'nazev'         => 'Tričko',
+            ]);
 
         $this->connection->method('fetchOne')
             ->willReturn('10'); // 10 already sold
@@ -79,7 +83,11 @@ class KfcSaleProcessorTest extends TestCase
     public function testSaleThrowsWhenInsufficientStock(): void
     {
         $this->connection->method('fetchAssociative')
-            ->willReturn(['cena_aktualni' => '100.00', 'kusu_vyrobeno' => '10', 'nazev' => 'Kostka']);
+            ->willReturn([
+                'cena_aktualni' => '100.00',
+                'kusu_vyrobeno' => '10',
+                'nazev'         => 'Kostka',
+            ]);
 
         $this->connection->method('fetchOne')
             ->willReturn('9'); // 9 sold, only 1 remaining
@@ -99,7 +107,11 @@ class KfcSaleProcessorTest extends TestCase
     public function testSaleWithUnlimitedStock(): void
     {
         $this->connection->method('fetchAssociative')
-            ->willReturn(['cena_aktualni' => '50.00', 'kusu_vyrobeno' => null, 'nazev' => 'Vstupné']);
+            ->willReturn([
+                'cena_aktualni' => '50.00',
+                'kusu_vyrobeno' => null,
+                'nazev'         => 'Vstupné',
+            ]);
 
         // fetchOne should NOT be called (no stock check for unlimited)
         $this->connection->expects($this->never())
@@ -125,10 +137,19 @@ class KfcSaleProcessorTest extends TestCase
         $callCount = 0;
         $this->connection->method('fetchAssociative')
             ->willReturnCallback(function () use (&$callCount) {
-                $callCount++;
+                ++$callCount;
+
                 return match ($callCount) {
-                    1 => ['cena_aktualni' => '250.00', 'kusu_vyrobeno' => null, 'nazev' => 'Tričko'],
-                    2 => ['cena_aktualni' => '100.00', 'kusu_vyrobeno' => null, 'nazev' => 'Kostka'],
+                    1 => [
+                        'cena_aktualni' => '250.00',
+                        'kusu_vyrobeno' => null,
+                        'nazev'         => 'Tričko',
+                    ],
+                    2 => [
+                        'cena_aktualni' => '100.00',
+                        'kusu_vyrobeno' => null,
+                        'nazev'         => 'Kostka',
+                    ],
                     default => false,
                 };
             });
