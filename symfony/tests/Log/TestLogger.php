@@ -12,7 +12,9 @@ use Psr\Log\AbstractLogger;
  */
 class TestLogger extends AbstractLogger
 {
-    /** @var list<array{level: string, message: string, context: array<string, mixed>}> */
+    /**
+     * @var list<array{level: string, message: string, context: array<string, mixed>}>
+     */
     public array $records = [];
 
     public function log($level, string|\Stringable $message, array $context = []): void
