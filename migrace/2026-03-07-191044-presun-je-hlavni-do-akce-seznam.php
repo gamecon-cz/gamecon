@@ -11,7 +11,7 @@ $columnExists = $this->q(<<<SQL
         AND TABLE_NAME = 'akce_seznam'
         AND COLUMN_NAME = 'id_hlavni_lokace'
     SQL,
-)->fetch_assoc()['cnt'];
+)->fetch(PDO::FETCH_ASSOC)['cnt'];
 
 if ($columnExists == 0) {
     $this->q("ALTER TABLE akce_seznam ADD COLUMN id_hlavni_lokace BIGINT UNSIGNED DEFAULT NULL AFTER probehla_korekce");
@@ -27,7 +27,7 @@ $jeHlavniExists = $this->q(<<<SQL
         AND TABLE_NAME = 'akce_lokace'
         AND COLUMN_NAME = 'je_hlavni'
     SQL,
-)->fetch_assoc()['cnt'];
+)->fetch(PDO::FETCH_ASSOC)['cnt'];
 
 if ($jeHlavniExists > 0) {
     $this->q(<<<SQL
@@ -66,10 +66,10 @@ $fksResult = $this->q(<<<SQL
 );
 
 $fkRows = [];
-while ($row = $fksResult->fetch_assoc()) {
+while ($row = $fksResult->fetch(PDO::FETCH_ASSOC)) {
     $fkRows[] = $row;
 }
-$fksResult->free();
+$fksResult->closeCursor();
 
 $expectedNames = [
     'id_akce' => 'FK_49CCDE681E74DA0A',
@@ -105,7 +105,7 @@ $indexExists = $this->q(<<<SQL
         AND TABLE_NAME = 'akce_lokace'
         AND INDEX_NAME = 'fk_akce_lokace_lokace'
     SQL,
-)->fetch_assoc()['cnt'];
+)->fetch(PDO::FETCH_ASSOC)['cnt'];
 
 if ($indexExists > 0) {
     $this->q("ALTER TABLE akce_lokace RENAME INDEX fk_akce_lokace_lokace TO IDX_49CCDE68259B4755");

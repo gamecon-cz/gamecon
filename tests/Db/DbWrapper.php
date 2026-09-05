@@ -66,7 +66,7 @@ class DbWrapper
         // příprava databáze
         $connection = dbConnectTemporary(false);
         dbQuery(sprintf('DROP DATABASE IF EXISTS `%s`', DB_NAME), [], $connection);
-        dbQuery(sprintf('CREATE DATABASE IF NOT EXISTS `%s` COLLATE "utf8_czech_ci"', DB_NAME), [], $connection);
+        dbQuery(sprintf('CREATE DATABASE IF NOT EXISTS `%s` DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_czech_ci', DB_NAME), [], $connection);
         dbQuery(sprintf('USE `%s`', DB_NAME), [], $connection);
 
         /*$testDumps = scandir(__DIR__ . '/data', SCANDIR_SORT_DESCENDING);

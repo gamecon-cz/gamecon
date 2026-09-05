@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Service;
 
+use App\Entity\User;
 use App\Service\Exception\JwtTokenException;
 use Firebase\JWT\JWT;
 use Firebase\JWT\Key;
@@ -46,13 +47,13 @@ readonly class JwtService
             $decoded = JWT::decode($token, new Key($this->secret, $this->algorithm));
 
             return (array) $decoded;
-        } catch (\Exception $e) {
+        } catch (\Exception) {
             return null;
         }
     }
 
     /**
-     * Extract minimal user data for sharing
+     * Extract minimal user data for sharing (from legacy Uzivatel)
      *
      * @return array{
      *     id: int|null,
@@ -62,8 +63,19 @@ readonly class JwtService
      *     logged_at: int,
      * }
      */
-    public function extractUserData(\Uzivatel $uzivatel): array
+    public function extractUserData(\Uzivatel|User $uzivatel): array
     {
+        if ($uzivatel instanceof User) {
+            return [
+                'id'        => $uzivatel->getId(),
+                'login'     => $uzivatel->getLogin(),
+                'jmeno'     => $uzivatel->getName(),
+                'email'     => $uzivatel->getEmail(),
+                'logged_at' => time(),
+            ];
+        }
+
+        // Legacy Uzivatel
         return [
             'id'        => $uzivatel->id(),
             'login'     => $uzivatel->login(),
@@ -110,10 +122,8 @@ readonly class JwtService
     public function deleteToken(int $userId): void
     {
         $tokenFile = $this->getTokenFilePath($userId);
-        if (file_exists($tokenFile)) {
-            if (! unlink($tokenFile) && file_exists($tokenFile)) {
-                throw new JwtTokenException(sprintf('Can not delete JWT token file %s', var_export($tokenFile, true)));
-            }
+        if (file_exists($tokenFile) && (! unlink($tokenFile) && file_exists($tokenFile))) {
+            throw new JwtTokenException(sprintf('Can not delete JWT token file %s', var_export($tokenFile, true)));
         }
     }
 
@@ -132,11 +142,10 @@ readonly class JwtService
         if ($tokenFiles === false) {
             throw new JwtTokenException(sprintf('Can not read JWT files by pattern %s', var_export($glob, true)));
         }
+
         foreach ($tokenFiles as $tokenFile) {
-            if (time() - filemtime($tokenFile) > $this->expirationInSeconds) {
-                if (! unlink($tokenFile) && file_exists($tokenFile)) {
-                    throw new JwtTokenException(sprintf('Can not delete JWT token file %s', var_export($tokenFile, true)));
-                }
+            if (time() - filemtime($tokenFile) > $this->expirationInSeconds && (! unlink($tokenFile) && file_exists($tokenFile))) {
+                throw new JwtTokenException(sprintf('Can not delete JWT token file %s', var_export($tokenFile, true)));
             }
         }
     }
@@ -146,7 +155,7 @@ readonly class JwtService
         $tokenDir = $this->getTokenDirectory();
         (new Filesystem())->mkdir($tokenDir, 0700);
 
-        return $tokenDir . "/jwt_{$userId}.token";
+        return $tokenDir . sprintf('/jwt_%d.token', $userId);
     }
 
     private function getTokenDirectory(): string

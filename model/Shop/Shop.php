@@ -89,7 +89,7 @@ class Shop
         dbQuery(<<<SQL
 DELETE sn
 FROM shop_nakupy sn
-JOIN shop_predmety sp ON sp.id_predmetu = sn.id_predmetu AND sp.typ = $0
+JOIN shop_predmety_s_typem sp ON sp.id_predmetu = sn.id_predmetu AND sp.typ = $0
 WHERE sn.id_uzivatele IN ($1) AND sn.rok = $2
 SQL,
             [0 => $typ, 1 => $ids, 2 => ROCNIK],
@@ -113,7 +113,7 @@ SQL,
         ?array $idckaPolozek = null,
     ): array {
         $polozkyData = dbFetchAll(<<<SQL
-SELECT id_predmetu,nazev,cena_aktualni,suma,model_rok,naposledy_koupeno_kdy,prodano_kusu,kusu_vyrobeno,typ,podtyp,je_letosni_hlavni,nabizet_do,stav
+SELECT id_predmetu,nazev,cena_aktualni,suma,model_rok,naposledy_koupeno_kdy,prodano_kusu,kusu_vyrobeno,typ,podtyp,nabizet_do,stav
 FROM (
     SELECT predmety.id_predmetu,
            TRIM(predmety.nazev) AS nazev,
@@ -125,11 +125,10 @@ FROM (
            predmety.kusu_vyrobeno,
            predmety.typ,
            predmety.podtyp,
-           predmety.je_letosni_hlavni,
            predmety.nabizet_do,
            predmety.ubytovani_den,
            predmety.stav
-    FROM shop_predmety AS predmety
+    FROM shop_predmety_s_typem AS predmety
     LEFT JOIN shop_nakupy AS nakupy
         ON predmety.id_predmetu = nakupy.id_predmetu
             AND nakupy.rok = $0
@@ -162,7 +161,7 @@ SQL,
 
         $idckaPredmetu = dbFetchColumn(<<<SQL
 SELECT id_predmetu
-FROM shop_predmety
+FROM shop_predmety_s_typem
 WHERE model_rok = {$systemoveNastaveni->rocnik()}
     AND nabizet_do IS NOT NULL
     AND typ IN ($typJidlo, $typPredmet, $typTricko)
@@ -241,7 +240,7 @@ SQL,
                     COUNT(IF(nakupy.id_uzivatele = {$zakaznikId} AND nakupy.rok = {$rocnik}, 1, NULL)) AS kusu_uzivatele,
                     SUM(IF(nakupy.id_uzivatele = {$zakaznikId} AND nakupy.rok = {$rocnik}, nakupy.cena_nakupni, 0)) AS sum_cena_nakupni,
                     MAX(nakupy.cena_nakupni) AS cena_nakupni
-                  FROM shop_predmety predmety
+                  FROM shop_predmety_s_typem predmety
                   LEFT JOIN shop_nakupy AS nakupy
                     ON predmety.id_predmetu = nakupy.id_predmetu
                     AND nakupy.rok = {$rocnik}
@@ -408,6 +407,7 @@ SQL,
         // vykreslení
         $t = new XTemplate(__DIR__ . '/templates/shop-jidlo.xtpl');
         if (!$this->systemoveNastaveni->jeProdejJidlaPozastaven()) {
+            $vec = '';
             foreach (array_keys($druhy) as $druh) {
                 $jidloProCenu = null;
                 $jeSnidane = Jidlo::jeToSnidane($druh);
@@ -1044,8 +1044,8 @@ SQL,
             sort($nove);
             // pole s předměty, které už má objednané dříve (bez ubytování)
             $stare = [];
-            $o = dbQuery('SELECT id_predmetu FROM shop_nakupy JOIN shop_predmety USING(id_predmetu) WHERE id_uzivatele=' . $this->zakaznik->id() . ' AND rok=' . ROCNIK . ' AND typ IN(' . self::PREDMET . ',' . self::TRICKO . ') ORDER BY id_predmetu');
-            while ($r = mysqli_fetch_assoc($o)) {
+            $o = dbQuery('SELECT id_predmetu FROM shop_nakupy JOIN shop_predmety_s_typem USING(id_predmetu) WHERE id_uzivatele=' . $this->zakaznik->id() . ' AND rok=' . ROCNIK . ' AND typ IN(' . self::PREDMET . ',' . self::TRICKO . ') ORDER BY id_predmetu');
+            while ($r = $o->fetch(\PDO::FETCH_ASSOC)) {
                 $stare[] = (int)$r['id_predmetu'];
             }
             // určení rozdílů polí (note: array_diff ignoruje vícenásobné výskyty hodnot a nedá se použít)
@@ -1254,7 +1254,7 @@ SQL,
         }
         $idPredmetuPrevodBonsuNaPenize = dbOneCol(<<<SQL
 SELECT id_predmetu
-FROM shop_predmety
+FROM shop_predmety_s_typem
 WHERE typ = $1
 ORDER BY model_rok DESC
 LIMIT 1
@@ -1292,7 +1292,7 @@ SQL
             INSERT INTO shop_nakupy_zrusene(id_nakupu, id_uzivatele, id_predmetu, rocnik, cena_nakupni, datum_nakupu, datum_zruseni, zdroj_zruseni)
             SELECT nakupy.id_nakupu, nakupy.id_uzivatele, nakupy.id_predmetu, nakupy.rok, nakupy.cena_nakupni, nakupy.datum, $0, $1
             FROM shop_nakupy AS nakupy
-            JOIN shop_predmety AS predmety ON nakupy.id_predmetu = predmety.id_predmetu
+            JOIN shop_predmety_s_typem AS predmety ON nakupy.id_predmetu = predmety.id_predmetu
             WHERE nakupy.rok = {$this->systemoveNastaveni->rocnik()}
               AND nakupy.id_uzivatele = {$this->zakaznik->id()}
               AND predmety.typ = {$typPredetu}
@@ -1309,7 +1309,7 @@ SQL
         $deleteResult = dbQuery(<<<SQL
             DELETE nakupy.*
             FROM shop_nakupy AS nakupy
-            JOIN shop_predmety AS predmety ON nakupy.id_predmetu = predmety.id_predmetu
+            JOIN shop_predmety_s_typem AS predmety ON nakupy.id_predmetu = predmety.id_predmetu
             WHERE nakupy.rok = {$this->systemoveNastaveni->rocnik()}
               AND nakupy.id_uzivatele = {$this->zakaznik->id()}
               AND predmety.typ = {$typPredetu}
@@ -1340,7 +1340,7 @@ SQL
         // úplně všechno; místo toho podmínku vůbec nepřidáváme.
         $podminkaZachovani = $typyKZachovani
             ? 'AND shop_nakupy.id_predmetu NOT IN (
-                    SELECT id_predmetu FROM shop_predmety WHERE typ IN (' . implode(', ', array_map('intval', $typyKZachovani)) . ')
+                    SELECT id_predmetu FROM shop_predmety_s_typem WHERE typ IN (' . implode(', ', array_map('intval', $typyKZachovani)) . ')
                 )'
             : '';
 
@@ -1453,7 +1453,17 @@ SQL
     ) {
         dbBegin();
         try {
-            $predmet = dbOneLine("SELECT cena_aktualni, kusu_vyrobeno, nazev, model_rok FROM shop_predmety WHERE id_predmetu=$0 FOR UPDATE", [0 => $idPredmetu]);
+            // Lock the base-table row first; model_rok is then read from the view (virtual column derived from archived_at).
+            $predmet = dbOneLine(
+                "SELECT cena_aktualni, kusu_vyrobeno, nazev FROM shop_predmety WHERE id_predmetu = $0 FOR UPDATE",
+                [0 => $idPredmetu],
+            );
+            if ($predmet) {
+                $predmet['model_rok'] = dbOneCol(
+                    "SELECT model_rok FROM shop_predmety_s_typem WHERE id_predmetu = $0",
+                    [0 => $idPredmetu],
+                );
+            }
             if (!$predmet) {
                 throw new \Chyba("Předmět s ID {$idPredmetu} neexistuje.");
             }

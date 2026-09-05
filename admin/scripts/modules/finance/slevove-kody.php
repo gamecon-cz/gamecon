@@ -108,7 +108,7 @@ $celkem = 0;
 $volnych = 0;
 $pouzitych = 0;
 
-while ($r = mysqli_fetch_assoc($kody)) {
+while ($r = $kody->fetch(PDO::FETCH_ASSOC)) {
     ++$celkem;
 
     $vytvoril = Uzivatel::jmenoNickZjisti([

@@ -85,12 +85,7 @@ final class ReorderAttributeArgumentsRector extends AbstractRector
                     continue;
                 }
 
-                $orderedArgs = [];
-
-                // keep positional args first
-                foreach ($positionalArgs as $positional) {
-                    $orderedArgs[] = $positional;
-                }
+                $orderedArgs = $positionalArgs;
 
                 // then reorder named args based on constructor
                 foreach ($paramOrder as $paramName) {
@@ -127,6 +122,7 @@ final class ReorderAttributeArgumentsRector extends AbstractRector
         if (count($a) !== count($b)) {
             return false;
         }
+
         foreach ($a as $i => $arg) {
             if ($arg !== $b[$i]) {
                 return false;

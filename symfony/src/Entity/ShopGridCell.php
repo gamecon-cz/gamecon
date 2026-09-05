@@ -18,8 +18,11 @@ use Doctrine\ORM\Mapping as ORM;
 class ShopGridCell
 {
     public const TYPE_ITEM = 0;
+
     public const TYPE_PAGE = 1;
+
     public const TYPE_BACK = 2;
+
     public const TYPE_SUMMARY = 3;
 
     #[ORM\Id]

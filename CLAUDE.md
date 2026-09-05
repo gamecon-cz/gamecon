@@ -21,7 +21,10 @@ GameCon is a Czech PHP web application for managing the largest Czechoslovak non
                   Migration files should be prefixed with `date +"%Y-%m-%d-%H%M%S"` (e.g., `2026-03-07-161642_some-description.php`)
 /nastaveni/     - Configuration files
 /vendor/        - Composer dependencies
+/symfony/var/   - Symfony cache, logs, temporary files (NOT /var/)
 ```
+
+**Important:** This project does NOT have a `/var/` directory. Use `/symfony/var/` for temporary scripts and files.
 
 ## Key Model Components
 - `Uzivatel/` - User management, roles, payments
@@ -39,6 +42,12 @@ vendor/bin/phpunit
 
 # Database access (use dbal:run-sql to ensure correct DB)
 ./bin-docker/php ./bin/console dbal:run-sql 'SELECT 1'  # Execute SQL query in current DB
+
+# Symfony console (from project root)
+bin/console <command>                    # Run Symfony console commands
+bin/console doctrine:mapping:info        # Check entity mappings
+bin/console doctrine:schema:validate     # Validate database schema
+bin/console cache:clear                  # Clear cache
 
 # Access points
 # http://localhost/web - Public site
@@ -88,6 +97,26 @@ One MariaDB instance on the `gamecon.cz` host serves production, beta, and every
 - Czech banking integration (QR payments)
 - Timezone: Europe/Prague
 - Currency handling for Czech crowns
+
+### Code language: English in the new stack
+
+**All code under `symfony/` — and anything Symfony, Doctrine or API Platform related —
+must be entirely in English: comments, docblocks, class/method/property names, variable
+names, constants, test names.** The same goes for the new frontend in `ui/src/`, which
+talks to that API. No exceptions for "just a short note".
+
+The only Czech that belongs there is text that is *data*, not code: user-facing strings
+rendered in the UI, error messages shown to participants, CSS class names shared with the
+legacy templates (`shopVstupne_castka`), database identifiers (`shop_predmety`,
+`cena_nakupni`), and domain terms quoted inside an English sentence — writing
+`the voluntary entry fee ("dobrovolné vstupné")` is right, because the Czech term is what
+the rest of the system calls it.
+
+**Legacy code stays as it is.** `model/`, `web/`, `admin/` and `migrace/` are Czech
+throughout; a lone English comment there is the odd one out, so match the surrounding file.
+The dividing line is the stack, not the date — a new function added to
+`web/moduly/prihlaska/prihlaska.php` is legacy code and stays Czech, even when it is part
+of new-stack work.
 
 ## Testing Notes
 - Tests use temporary database setup
@@ -192,11 +221,169 @@ outage). In that case a direct push to `main` is acceptable to get the
 fix live immediately; open a follow-up PR / note afterwards for the
 record. Outside that narrow case — even for a "tiny" or "obviously
 safe" change — use a PR.
+## API Platform: Entities vs DTOs
+
+**Rule: Bare entities with `#[ApiResource]` are for admin CRUD only.** All other API endpoints — public listings, specialized admin endpoints (e.g. online prezence), user-facing features (e.g. meal matrix, cart) — must use dedicated **DTOs** with custom providers/processors.
+
+**Why:** Serialization groups on entities create cascading complexity (public vs admin vs edge cases). DTOs are explicit about what data they expose and decouple the API contract from the entity structure.
+
+**Pattern:**
+```php
+// ✅ GOOD: Entity has only admin CRUD operations
+#[ApiResource(
+    operations: [
+        new GetCollection(security: "is_granted('ROLE_ADMIN')"),
+        new Get(security: "is_granted('ROLE_ADMIN')"),
+        new Post(security: "is_granted('ROLE_ADMIN')"),
+        // ...
+    ],
+)]
+class Product { }
+
+// ✅ GOOD: Public/specialized endpoints use DTOs + providers
+#[ApiResource(
+    operations: [
+        new GetCollection(
+            uriTemplate: '/cart/meals',
+            output: MealProductOutputDto::class,
+            provider: MealProductsProvider::class,
+            security: "is_granted('PUBLIC_ACCESS')",
+        ),
+    ],
+)]
+class CartResource { }
+
+// ❌ BAD: Entity exposed publicly with serialization groups
+#[ApiResource(
+    operations: [
+        new GetCollection(security: "is_granted('PUBLIC_ACCESS')"),
+    ],
+    normalizationContext: ['groups' => ['product:list']],
+)]
+class Product { }
+```
+
+## Doctrine Entity Guidelines
+
+### Timestamp Columns
+- **New timestamp columns** (created_at, updated_at, etc.) should ALWAYS use `DateTimeImmutable`
+- **Legacy timestamp columns** may use `DateTime` for backward compatibility, but new code should prefer `DateTimeImmutable`
+- **Rationale**: `DateTimeImmutable` prevents accidental mutations and is safer for value objects
+
+**Example:**
+```php
+// ✅ GOOD: New timestamp columns
+#[ORM\Column(name: 'created_at', type: Types::DATETIME_IMMUTABLE, nullable: false)]
+private \DateTimeImmutable $createdAt;
+
+#[ORM\Column(name: 'updated_at', type: Types::DATETIME_IMMUTABLE, nullable: true)]
+private ?\DateTimeImmutable $updatedAt = null;
+
+public function __construct()
+{
+    $this->createdAt = new \DateTimeImmutable();
+}
+
+// ❌ BAD: Using mutable DateTime for new columns
+#[ORM\Column(name: 'created_at', type: Types::DATETIME_MUTABLE)]
+private \DateTime $createdAt;
+```
+
+### Timestamp Injection (Testability)
+- **Entities MUST NOT create timestamps internally** in business logic methods (except constructors for auto-set fields like `created_at`)
+- **Always accept timestamps as parameters** from outside (e.g., from Clock service, application service, or controller)
+- **Rationale**: Internal timestamp creation (`new \DateTimeImmutable()`) makes testing difficult because you can't control the time
+- **Exception**: Constructors MAY auto-set `created_at` timestamps since they represent object creation time
+
+**Examples:**
+```php
+// ✅ GOOD: Accept timestamp from outside
+public function archive(\DateTimeImmutable $archivedAt): self
+{
+    $this->archivedAt = $archivedAt;
+    return $this;
+}
+
+// Usage with Clock service
+$product->archive($clock->now());
+
+// Testing is easy - inject any timestamp
+$product->archive(new \DateTimeImmutable('2024-01-15 10:00:00'));
+
+// ❌ BAD: Creating timestamp inside entity method
+public function archive(): self
+{
+    $this->archivedAt = new \DateTimeImmutable(); // Hard to test!
+    return $this;
+}
+
+// ✅ GOOD: Constructor auto-set for creation timestamp
+public function __construct()
+{
+    $this->createdAt = new \DateTimeImmutable(); // OK - represents object creation
+}
+```
+
+**Clock Service Pattern:**
+Use Symfony's Clock component for timestamp generation in services:
+```php
+use Symfony\Component\Clock\ClockInterface;
+
+class ProductService
+{
+    public function __construct(
+        private ClockInterface $clock,
+    ) {}
+
+    public function archiveProduct(Product $product): void
+    {
+        $product->archive($this->clock->now());
+        // ... persist
+    }
+}
+```
+
+## Migrace obsahují jen holé hodnoty
+
+**Migrace nesmí volat aplikační kód.** Žádné `Pravo::KOSTKA_ZDARMA`, žádné enumy, žádné `use App\...`, žádná validace přes servisní třídu — jen literály a SQL. Co migrace potřebuje vědět, musí mít napsané v sobě.
+
+**Proč:** migrace je *historický zápis* — „v tomhle okamžiku dej do DB tyhle řádky". Jenže se přehrává na každé čerstvé databázi, tedy při každém běhu testů, a to i za rok. Když se odkazuje na živý kód, není fixní: přejmenuje se konstanta nebo se zpřísní validátor a **historická migrace začne padat**, přestože data, která chtěla vložit, jsou v pořádku. Selže něco, co se dávno stalo, kvůli změně někde jinde.
+
+Konkrétně (stalo se v `2026-09-04-100013_seed-discount-rules.php`, obojí opraveno): `Pravo::KOSTKA_ZDARMA` místo `1003` znamená, že po případné změně hodnoty konstanty se stará migrace přehraje s *novým* číslem — tiše přepíše historii. A `DiscountParameters::fromArray()` uvnitř migrace znamenalo, že překlep v nesouvisejícím enumu shodil build celé testovací databáze.
+
+**Pozor na svůdný argument:** „ale díky té validaci se chyba pozná hned" je právě ten příznak, ne přínos — migrace, kterou rozbije editace jiného enumu, je na ten enum navázaná a neměla by být.
+
+**Jak to dělat:** vlož číslo/string přímo a do komentáře napiš, co znamená (`1003 = Pravo::KOSTKA_ZDARMA`). Když se hodnota časem rozejde s konstantou, je to správně — historický řádek si drží, co platilo tehdy. Validace patří tam, kde data píše člověk (admin formulář), ne tam, kde se přehrává historie.
+
+**Výjimka:** pomocné funkce definované přímo v souboru migrace (`$columnExists = fn (...) => ...`) jsou v pořádku — nejsou to závislosti na kódu venku.
 
 ## SQL Coding Style
+
+### Table Naming Convention
+- **New tables use SINGULAR names**: `product_tag`, `product_discount`, `shop_order` (NOT plurals)
+- **Legacy tables may use plural/Czech names**: `shop_predmety`, `uzivatele_hodnoty`, `akce_seznam` (keep as-is for backward compatibility)
+- **Rationale**: Singular names are clearer, match entity class names better, and avoid confusion about what "one row" represents
+- **Examples**:
+  ```sql
+  -- ✅ GOOD: New tables with singular English names
+  CREATE TABLE product_tag (...)
+  CREATE TABLE product_discount (...)
+  CREATE TABLE shop_order (...)
+
+  -- ❌ BAD: New tables with plural English names
+  CREATE TABLE product_tags (...)      -- NO
+  CREATE TABLE product_discount (...) -- NO
+  CREATE TABLE shop_order (...)       -- NO
+
+  -- ✅ ACCEPTABLE: Legacy tables (don't rename)
+  shop_predmety, uzivatele_hodnoty, akce_seznam
+  ```
+
+### Query Style
 - **No table aliases**: Use full table names in queries whenever possible
 - **No single-letter aliases**: Avoid cryptic aliases like `t`, `n`, `a`
 - **Descriptive names**: If aliases are necessary, use descriptive human-readable names
+- **Applies to both raw SQL AND Doctrine DQL/QueryBuilder** — use `product`, `tag`, `variant` instead of `p`, `t`, `v`
 - **Example**:
   ```sql
   -- ❌ BAD: Single-letter aliases
@@ -204,6 +391,13 @@ safe" change — use a PR.
 
   -- ✅ GOOD: Full table names or descriptive aliases
   UPDATE `novinky` LEFT JOIN `texty` ON texty.`id` = novinky.`text` SET novinky.`text_md` = texty.`text`;
+  ```
+  ```php
+  // ❌ BAD: Doctrine QueryBuilder
+  $this->createQueryBuilder('p')->innerJoin('p.tags', 't')->where('t.code = :tag')
+
+  // ✅ GOOD: Doctrine QueryBuilder
+  $this->createQueryBuilder('product')->innerJoin('product.tags', 'tag')->where('tag.code = :tag')
   ```
 
 ## SQL Query Parameter Preprocessing

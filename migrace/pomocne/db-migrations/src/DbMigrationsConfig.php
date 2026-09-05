@@ -13,7 +13,7 @@ readonly class DbMigrationsConfig
      * attributes.
      */
     public function __construct(
-        private \mysqli $connection,
+        private \PDO $connection,
         private string  $migrationsDirectory,
         private string  $tableName = 'db_migrations',
         private bool    $doBackups = true,
@@ -29,7 +29,7 @@ readonly class DbMigrationsConfig
         }
     }
 
-    public function getConnection(): \mysqli
+    public function getConnection(): \PDO
     {
         return $this->connection;
     }

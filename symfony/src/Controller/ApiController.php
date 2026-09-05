@@ -11,11 +11,9 @@ use Symfony\Component\HttpFoundation\Response;
 
 class ApiController extends AbstractController
 {
-    private LegacySessionService $legacySession;
-
-    public function __construct(LegacySessionService $legacySession)
-    {
-        $this->legacySession = $legacySession;
+    public function __construct(
+        private readonly LegacySessionService $legacySession,
+    ) {
     }
 
     public function handle(string $endpoint): Response
@@ -27,18 +25,15 @@ class ApiController extends AbstractController
         }
 
         // Handle specific API endpoints in Symfony
-        switch ($endpoint) {
-            case 'test':
-                return new JsonResponse([
-                    'message'  => 'Symfony API working',
-                    'endpoint' => $endpoint,
-                ]);
-
-            default:
-                // For now, return not found - later we'll delegate to legacy
-                return new JsonResponse([
-                    'error' => 'API endpoint not found in Symfony',
-                ], 404);
-        }
+        return match ($endpoint) {
+            'test' => new JsonResponse([
+                'message'  => 'Symfony API working',
+                'endpoint' => $endpoint,
+            ]),
+            // For now, return not found - later we'll delegate to legacy
+            default => new JsonResponse([
+                'error' => 'API endpoint not found in Symfony',
+            ], 404),
+        };
     }
 }

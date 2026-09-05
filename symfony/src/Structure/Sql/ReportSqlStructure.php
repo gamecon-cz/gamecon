@@ -9,9 +9,6 @@ namespace App\Structure\Sql;
  */
 class ReportSqlStructure
 {
-    /**
-     * @see Report
-     */
     public const _table = 'reporty';
 
     /**

@@ -9,9 +9,6 @@ namespace App\Structure\Sql;
  */
 class RolePermissionSqlStructure
 {
-    /**
-     * @see RolePermission
-     */
     public const _table = 'prava_role';
 
     /**

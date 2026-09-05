@@ -9,9 +9,6 @@ namespace App\Structure\Sql;
  */
 class AccommodationSqlStructure
 {
-    /**
-     * @see Accommodation
-     */
     public const _table = 'ubytovani';
 
     /**

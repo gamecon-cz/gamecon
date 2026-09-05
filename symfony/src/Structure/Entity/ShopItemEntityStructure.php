@@ -25,11 +25,6 @@ class ShopItemEntityStructure
     public const kodPredmetu = 'kodPredmetu';
 
     /**
-     * @see ShopItem::$modelRok
-     */
-    public const modelRok = 'modelRok';
-
-    /**
      * @see ShopItem::$cenaAktualni
      */
     public const cenaAktualni = 'cenaAktualni';
@@ -50,11 +45,6 @@ class ShopItemEntityStructure
     public const kusuVyrobeno = 'kusuVyrobeno';
 
     /**
-     * @see ShopItem::$typ
-     */
-    public const typ = 'typ';
-
-    /**
      * @see ShopItem::$ubytovaniDen
      */
     public const ubytovaniDen = 'ubytovaniDen';
@@ -65,9 +55,14 @@ class ShopItemEntityStructure
     public const popis = 'popis';
 
     /**
-     * @see ShopItem::$jeLetosniHlavni
+     * @see ShopItem::$archivedAt
      */
-    public const jeLetosniHlavni = 'jeLetosniHlavni';
+    public const archivedAt = 'archivedAt';
+
+    /**
+     * @see ShopItem::$reservedForOrganizers
+     */
+    public const reservedForOrganizers = 'reservedForOrganizers';
 
     /**
      * @see ShopItem::$vedlejsi

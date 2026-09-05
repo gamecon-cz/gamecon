@@ -1,0 +1,87 @@
+<?php
+
+/*
+ * This file is part of the API Platform project.
+ *
+ * (c) Kévin Dunglas <dunglas@gmail.com>
+ *
+ * For the full copyright and license information, please view the LICENSE
+ * file that was distributed with this source code.
+ */
+
+declare(strict_types=1);
+
+namespace ApiPlatform\JsonLd\Serializer;
+
+use ApiPlatform\JsonLd\AnonymousContextBuilderInterface;
+use ApiPlatform\JsonLd\ContextBuilder;
+use ApiPlatform\JsonLd\ContextBuilderInterface;
+use ApiPlatform\JsonLd\OperationContextBuilderInterface;
+use ApiPlatform\Metadata\HttpOperation;
+
+/**
+ * Creates and manipulates the Serializer context.
+ *
+ * @author Kévin Dunglas <dunglas@gmail.com>
+ *
+ * @internal
+ */
+trait JsonLdContextTrait
+{
+    /**
+     * Updates the given JSON-LD document to add its @context key.
+     */
+    private function addJsonLdContext(ContextBuilderInterface $contextBuilder, string $resourceClass, array &$context, array $data = []): array
+    {
+        if (isset($context['jsonld_has_context'])) {
+            return $data;
+        }
+
+        $context['jsonld_has_context'] = true;
+
+        $operation = $context['operation'] ?? null;
+        $useOperationAware = $operation instanceof HttpOperation && $contextBuilder instanceof OperationContextBuilderInterface;
+
+        if (isset($context['jsonld_embed_context'])) {
+            $data['@context'] = $useOperationAware
+                ? $contextBuilder->getResourceContextFromOperation($operation, $resourceClass)
+                : $contextBuilder->getResourceContext($resourceClass);
+
+            return $data;
+        }
+
+        $data['@context'] = $useOperationAware
+            ? $contextBuilder->getResourceContextUriFromOperation($operation)
+            : $contextBuilder->getResourceContextUri($resourceClass);
+
+        return $data;
+    }
+
+    private function createJsonLdContext(AnonymousContextBuilderInterface $contextBuilder, object $object, array &$context): array
+    {
+        $anonymousContext = ($context['output'] ?? []) + [
+            'api_resource' => $context['api_resource'] ?? null,
+        ];
+
+        if (isset($context['item_uri_template'])) {
+            $anonymousContext['item_uri_template'] = $context['item_uri_template'];
+        }
+
+        if (isset($context['types'])) {
+            $anonymousContext['types'] = $context['types'];
+        }
+
+        if (isset($context[ContextBuilder::HYDRA_CONTEXT_HAS_PREFIX])) {
+            $anonymousContext[ContextBuilder::HYDRA_CONTEXT_HAS_PREFIX] = $context[ContextBuilder::HYDRA_CONTEXT_HAS_PREFIX];
+        }
+
+        // We're in a collection, don't add the @context part
+        if (isset($context['jsonld_has_context'])) {
+            return $contextBuilder->getAnonymousResourceContext($object, ['has_context' => true] + $anonymousContext);
+        }
+
+        $context['jsonld_has_context'] = true;
+
+        return $contextBuilder->getAnonymousResourceContext($object, $anonymousContext);
+    }
+}

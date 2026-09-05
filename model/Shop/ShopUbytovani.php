@@ -69,8 +69,8 @@ class ShopUbytovani
     ): array {
         $idsPredmetuUbytovani = array_map('intval', dbOneArray(<<<SQL
 SELECT id_predmetu
-FROM shop_predmety
-WHERE TRIM(nazev) IN ($0 COLLATE utf8_czech_ci)
+FROM shop_predmety_s_typem
+WHERE TRIM(nazev) IN ($0 COLLATE utf8mb4_czech_ci)
 AND model_rok = $rok
 SQL,
             [$nazvyUbytovani],
@@ -107,8 +107,8 @@ SQL,
         $dny         = array_values(array_unique(array_map('intval', $dny)));
         $nalezene    = dbFetchAll(<<<SQL
 SELECT id_predmetu, ubytovani_den
-FROM shop_predmety
-WHERE LEFT(kod_predmetu, CHAR_LENGTH(kod_predmetu) - 3) = $0 COLLATE utf8_czech_ci
+FROM shop_predmety_s_typem
+WHERE LEFT(kod_predmetu, CHAR_LENGTH(kod_predmetu) - 3) = $0 COLLATE utf8mb4_czech_ci
   AND typ = $1
   AND model_rok = $2
   AND ubytovani_den IN ($3)
@@ -221,7 +221,7 @@ SQL,
         $mysqliResult = dbQuery(<<<SQL
 DELETE nakupy.*
 FROM shop_nakupy AS nakupy
-    JOIN shop_predmety AS predmety USING(id_predmetu)
+    JOIN shop_predmety_s_typem AS predmety USING(id_predmetu)
 WHERE nakupy.id_uzivatele=$0
   AND predmety.typ=$1
   AND nakupy.rok=$2
@@ -242,7 +242,7 @@ SQL,
         $mysqliResult = dbQuery(<<<SQL
 DELETE shop_nakupy_snidane.*
 FROM shop_nakupy AS shop_nakupy_snidane
-JOIN shop_predmety AS predmety_snidane
+JOIN shop_predmety_s_typem AS predmety_snidane
     ON predmety_snidane.id_predmetu = shop_nakupy_snidane.id_predmetu
     AND predmety_snidane.typ = {$typJidlo}
     AND TRIM(predmety_snidane.nazev) LIKE 'Snídaně%'
@@ -253,7 +253,7 @@ WHERE shop_nakupy_snidane.id_uzivatele = $0
         SELECT dny_hotelu.ubytovani_den + 1 FROM (
             SELECT predmety_ubytovani.ubytovani_den
             FROM shop_nakupy AS nakupy_ubytovani
-            JOIN shop_predmety AS predmety_ubytovani
+            JOIN shop_predmety_s_typem AS predmety_ubytovani
                 ON predmety_ubytovani.id_predmetu = nakupy_ubytovani.id_predmetu
                 AND predmety_ubytovani.typ = {$typUbytovani}
                 AND predmety_ubytovani.podtyp = $2
@@ -317,7 +317,7 @@ SQL,
         if ($idsPredmetuVstupu) {
             $povolenePredmety = dbFetchAll(<<<SQL
 SELECT id_predmetu, ubytovani_den
-FROM shop_predmety
+FROM shop_predmety_s_typem
 WHERE id_predmetu IN ($1)
   AND model_rok = $2
   AND typ = $3
@@ -384,11 +384,11 @@ SQL,
         $mysqliResult = dbQuery(<<<SQL
 DELETE shop_nakupy.*
 FROM shop_nakupy
-JOIN shop_predmety on shop_predmety.id_predmetu = shop_nakupy.id_predmetu
+JOIN shop_predmety_s_typem ON shop_predmety_s_typem.id_predmetu = shop_nakupy.id_predmetu
 WHERE shop_nakupy.id_uzivatele = {$ucastnik->id()}
     AND shop_nakupy.rok = $rok
     AND shop_nakupy.id_predmetu NOT IN ($0) -- není to hodnota kterou chceme mít uloženu
-    AND shop_predmety.typ = $1
+    AND shop_predmety_s_typem.typ = $1
 SQL,
             [$idsPredmetuUbytovaniInt, TypPredmetu::UBYTOVANI],
         );
@@ -713,7 +713,7 @@ SQL,
                         ? $this->mozneDny[$den][$typ]['id_predmetu']
                         : null,
                     'podtyp'        => isset($this->mozneDny[$den][$typ])
-                        ? ($this->mozneDny[$den][$typ][Sql::PODTYP] ?? '')
+                        ? ($this->mozneDny[$den][$typ]['podtyp'] ?? '')
                         : '',
                     'checked'       => $checked,
                     'disabled'      => $this->totoUbytovaniVyrazeno(
@@ -965,7 +965,7 @@ SQL,
             return false;
         }
         foreach ($this->ubytovanPoDnech[$den] as $detail) {
-            if ($detail['kusu_uzivatele'] > 0 && ($detail[Sql::PODTYP] ?? null) === PodtypPredmetu::HOTEL) {
+            if ($detail['kusu_uzivatele'] > 0 && ($detail['podtyp'] ?? null) === PodtypPredmetu::HOTEL) {
                 return true;
             }
         }
@@ -1021,7 +1021,7 @@ SQL,
       FROM uzivatele_hodnoty
       WHERE jmeno_uzivatele != '' AND prijmeni_uzivatele != '' AND id_uzivatele != $1
     ", [$this->ubytovany->id()]);
-        while ($u = mysqli_fetch_row($o)) {
+        while ($u = $o->fetch(\PDO::FETCH_NUM)) {
             $a[] = $u[0];
         }
 

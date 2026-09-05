@@ -48,6 +48,70 @@ function nahledPredmetu(string $cestaKObrazku): string
         ->url();
 }
 
+/**
+ * Vykreslí kořen pro Preact sekci e-shopu. Když se nepodaří sestavit JWT pro Symfony API,
+ * vrátí původní HTML z legacy shopu, aby sekce nezmizela.
+ */
+function prihlaskaPreactSekceHtml(
+    string $idKorene,
+    string $legacyHtml,
+    Uzivatel $u,
+    \Gamecon\SystemoveNastaveni\SystemoveNastaveni $systemoveNastaveni,
+): string {
+
+    try {
+        $kernel = $systemoveNastaveni->kernel();
+        $container = $kernel->getContainer();
+        /** @var \App\Service\JwtService $jwtService */
+        $jwtService = $container->get(\App\Service\JwtService::class);
+        $userEntity = $container->get('doctrine.orm.entity_manager')->find(\App\Entity\User::class, $u->id());
+        if ($userEntity === null) {
+            return $legacyHtml;
+        }
+        $jwt = $jwtService->generateJwtToken($jwtService->extractUserData($userEntity));
+    } catch (\Throwable) {
+        return $legacyHtml;
+    }
+
+    // URL_WEBU = http://localhost:85/web — strip /web to get site root for Symfony API
+    $siteRoot = preg_replace('#/web$#', '', URL_WEBU);
+    $symfonyApiBase = $siteRoot . '/symfony/api/';
+    $bundleUrl = URL_WEBU . '/soubory/ui/bundle.js';
+    $styleUrl = URL_WEBU . '/soubory/ui/style.css';
+
+    // Bundle i styl jsou pro všechny sekce společné; podruhé už je nevkládáme, jinak by se
+    // Preact načetl a namountoval dvakrát.
+    static $sdilenaAktivaVlozena = false;
+    $sdilenaAktiva = '';
+    if (!$sdilenaAktivaVlozena) {
+        $sdilenaAktivaVlozena = true;
+        // Do JS kontextu vždy přes json_encode, ať formát tokenu nebo URL nemůže rozbít skript.
+        $jwtJs = json_encode($jwt, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE);
+        $symfonyApiBaseJs = json_encode($symfonyApiBase, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE);
+        $sdilenaAktiva = <<<HTML
+            <link rel="stylesheet" href="{$styleUrl}">
+            <script>
+                window.GAMECON_KONSTANTY = window.GAMECON_KONSTANTY || {};
+                window.GAMECON_KONSTANTY.JWT = {$jwtJs};
+                window.GAMECON_KONSTANTY.BASE_PATH_SYMFONY_API = {$symfonyApiBaseJs};
+            </script>
+            <script type="module" src="{$bundleUrl}"></script>
+        HTML;
+    }
+
+    // Bez JS zůstává vidět původní podoba sekce, ale jen ke čtení: zápis přes legacy POST by
+    // obcházel invarianty nové vrstvy (snapshoty položky, jedna částka místo součtu).
+    return <<<HTML
+        <div id="{$idKorene}">
+            <noscript>
+                <fieldset disabled class="prihlaska_bezJs">{$legacyHtml}</fieldset>
+                <p>Pro úpravu této sekce je potřeba zapnutý JavaScript.</p>
+            </noscript>
+        </div>
+        {$sdilenaAktiva}
+    HTML;
+}
+
 if (post('pridatPotvrzeniRodicu')) {
     if (!$u->zpracujPotvrzeniRodicu()) {
         chyba('Nejdříve vlož potvrzení.');
@@ -241,7 +305,7 @@ if (is_dir($adresarKObrazkuPredmetu)) {
 
 $t->assign([
     'a'                               => $u->koncovkaDlePohlavi(),
-    'jidlo'                           => $shop->jidloHtml(),
+    'jidlo'                           => prihlaskaPreactSekceHtml('preact-jidlo', $shop->jidloHtml(), $u, $systemoveNastaveni),
     'jidloObjednatelneDo'             => $shop->jidloObjednatelneDoHtml(),
     'predmety'                        => $shop->predmetyHtml(),
     'mikinyObjednatelnaDo'            => $shop->mikinyObjednatelnaDoHtml(),
@@ -253,7 +317,7 @@ $t->assign([
     'ulozitNeboPrihlasit'             => $u->gcPrihlasen()
         ? 'Uložit změny'
         : 'Přihlásit na GameCon',
-    'vstupne'                         => $shop->vstupneHtml(),
+    'vstupne'                         => prihlaskaPreactSekceHtml('preact-vstupne', $shop->vstupneHtml(), $u, $systemoveNastaveni),
     'pomoc'                           => $pomoc->html(),
     'zaplatitNejpozdejiDo'            => $systemoveNastaveni->nejpozdejiZaplatitDo()->format(DateTimeCz::FORMAT_DATUM_LETOS),
 ]);

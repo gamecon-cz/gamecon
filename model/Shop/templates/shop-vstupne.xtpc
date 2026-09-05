@@ -1,0 +1,80 @@
+<?php
+  class Shopvstupne672510Tpl {
+    public $context = array();
+    public $dependencies = array("");
+    protected $buffer = array();
+    protected $current = "";        // currently buffered block
+    
+    function vstupne() {
+      if($this->current == "vstupne") {
+        if(!empty($this->buffer["vstupne"])) {
+          $out = $this->buffer["vstupne"] . ob_get_clean();
+          $this->buffer["vstupne"] = "";
+        } else {
+          $out = ob_get_clean();
+        }
+        $this->current = "";
+        return $out;
+      } else {
+        $out = $this->buffer["vstupne"] ?? "";
+        $this->buffer["vstupne"] = "";
+        return $out;
+      }
+    }
+
+    function parse_vstupne() {
+      if($this->current != "vstupne") {
+        if($this->current) {
+          $this->buffer[$this->current] = ($this->buffer[$this->current] ?? "") . ob_get_clean();
+        }
+        ob_start();
+        $this->current = "vstupne";
+      }
+      ?>
+
+<script src="<?=isset($this->context["jsSlider"])?$this->context["jsSlider"]:''?>"></script>
+
+<div class="shopVstupne_castkaRadek">
+    <div class="shopVstupne_castka">ČÁSTKA:</div>
+    <input type="text" class="shopVstupne_stav" name="<?=isset($this->context["postname"])?$this->context["postname"]:''?>" value="<?=isset($this->context["stav"])?$this->context["stav"]:''?>">
+    <div class="shopVstupne_kc">Kč</div>
+</div>
+
+<div class="shopVstupne_kostkaObal">
+    <div class="shopVstupne_kostkaPosuv"></div>
+    <div class="shopVstupne_kostka" style="left: <?=isset($this->context["lonskyPrumerVstupneho"])?$this->context["lonskyPrumerVstupneho"]:''?>%"></div>
+</div>
+
+<input type="range" class="shopVstupne_range" min="0" max="1" step="any" id="vstupneGamaKorekce" data-vstupne-gama-korekce="<?=isset($this->context["vstupneGamaKorekce"])?$this->context["vstupneGamaKorekce"]:''?>">
+
+<div class="shopVstupne_skala">
+    <div class="shopVstupne_skalaHodnota">0&thinsp;Kč</div>
+    <div class="shopVstupne_skalaDelic"></div>
+    <div class="shopVstupne_skalaHodnota">60&thinsp;Kč</div>
+    <div class="shopVstupne_skalaDelic"></div>
+    <div class="shopVstupne_skalaHodnota">250&thinsp;Kč</div>
+    <div class="shopVstupne_skalaDelic"></div>
+    <div class="shopVstupne_skalaHodnota">600&thinsp;Kč</div>
+    <div class="shopVstupne_skalaDelic"></div>
+    <div class="shopVstupne_skalaHodnota">1000&thinsp;Kč</div>
+</div>
+
+<div class="shopVstupne_kostkaLegenda">
+    průměrný příspěvek z roku <?=isset($this->context["lonskyRok"])?$this->context["lonskyRok"]:''?>
+</div>
+
+<script>
+    shopVstupne(
+        document.querySelector('.shopVstupne_stav'),
+        document.querySelector('.shopVstupne_range'),
+        document.querySelector('.shopVstupne_kostkaPosuv'),
+        <?=isset($this->context["min"])?$this->context["min"]:''?>,
+        <?=isset($this->context["smajliky"])?$this->context["smajliky"]:''?>
+    )
+</script>
+
+<?php
+    }
+  
+  }
+  

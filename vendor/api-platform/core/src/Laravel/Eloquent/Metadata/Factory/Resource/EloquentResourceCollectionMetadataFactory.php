@@ -1,0 +1,190 @@
+<?php
+
+/*
+ * This file is part of the API Platform project.
+ *
+ * (c) Kévin Dunglas <dunglas@gmail.com>
+ *
+ * For the full copyright and license information, please view the LICENSE
+ * file that was distributed with this source code.
+ */
+
+declare(strict_types=1);
+
+namespace ApiPlatform\Laravel\Eloquent\Metadata\Factory\Resource;
+
+use ApiPlatform\Laravel\Eloquent\State\CollectionProvider;
+use ApiPlatform\Laravel\Eloquent\State\ItemProvider;
+use ApiPlatform\Laravel\Eloquent\State\Options;
+use ApiPlatform\Laravel\Eloquent\State\PersistProcessor;
+use ApiPlatform\Laravel\Eloquent\State\RemoveProcessor;
+use ApiPlatform\Metadata\CollectionOperationInterface;
+use ApiPlatform\Metadata\Delete;
+use ApiPlatform\Metadata\DeleteOperationInterface;
+use ApiPlatform\Metadata\Get;
+use ApiPlatform\Metadata\GetCollection;
+use ApiPlatform\Metadata\GraphQl\DeleteMutation;
+use ApiPlatform\Metadata\GraphQl\Mutation;
+use ApiPlatform\Metadata\GraphQl\Query;
+use ApiPlatform\Metadata\GraphQl\QueryCollection;
+use ApiPlatform\Metadata\GraphQl\Subscription;
+use ApiPlatform\Metadata\Patch;
+use ApiPlatform\Metadata\Post;
+use ApiPlatform\Metadata\Put;
+use ApiPlatform\Metadata\Resource\Factory\ResourceMetadataCollectionFactoryInterface;
+use ApiPlatform\Metadata\Resource\ResourceMetadataCollection;
+use ApiPlatform\State\Util\StateOptionsTrait;
+use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Facades\Gate;
+
+final class EloquentResourceCollectionMetadataFactory implements ResourceMetadataCollectionFactoryInterface
+{
+    use StateOptionsTrait;
+
+    private const POLICY_METHODS = [
+        Put::class => 'update',
+        Post::class => 'create',
+        Get::class => 'view',
+        GetCollection::class => 'viewAny',
+        Delete::class => 'delete',
+        Patch::class => 'update',
+
+        Query::class => 'view',
+        QueryCollection::class => 'viewAny',
+        Mutation::class => 'update',
+        DeleteMutation::class => 'delete',
+        Subscription::class => 'viewAny',
+    ];
+
+    public function __construct(
+        private readonly ResourceMetadataCollectionFactoryInterface $decorated,
+        private readonly bool $partialPatchValidation = false,
+    ) {
+    }
+
+    /**
+     * @param class-string $resourceClass
+     */
+    public function create(string $resourceClass): ResourceMetadataCollection
+    {
+        $resourceMetadataCollection = $this->decorated->create($resourceClass);
+
+        try {
+            $refl = new \ReflectionClass($resourceClass);
+            if ($refl->isEnum()) {
+                return $resourceMetadataCollection;
+            }
+            $model = $refl->newInstanceWithoutConstructor();
+        } catch (\ReflectionException) {
+            return $resourceMetadataCollection;
+        }
+
+        $isModel = $model instanceof Model;
+
+        foreach ($resourceMetadataCollection as $i => $resourceMetadata) {
+            $operations = $resourceMetadata->getOperations();
+            foreach ($operations ?? [] as $operationName => $operation) {
+                // Check if this operation uses Eloquent via stateOptions
+                $modelClass = $this->getStateOptionsClass($operation, $resourceClass, Options::class);
+                $usesEloquent = $isModel || ($modelClass !== $resourceClass);
+
+                if (!$usesEloquent) {
+                    continue;
+                }
+
+                if (!$operation->getProvider()) {
+                    $operation = $operation->withProvider($operation instanceof CollectionOperationInterface ? CollectionProvider::class : ItemProvider::class);
+                }
+
+                if ($isModel && !$operation->getPolicy() && ($policy = Gate::getPolicyFor($model))) {
+                    $policyMethod = self::POLICY_METHODS[$operation::class] ?? null;
+                    if ($operation instanceof Put && $operation->getAllowCreate()) {
+                        $policyMethod = self::POLICY_METHODS[Post::class];
+                    }
+
+                    if ($policyMethod && method_exists($policy, $policyMethod)) {
+                        $operation = $operation->withPolicy($policyMethod);
+                    }
+                }
+
+                if (!$operation->getProcessor()) {
+                    $operation = $operation->withProcessor($operation instanceof DeleteOperationInterface ? RemoveProcessor::class : PersistProcessor::class);
+                }
+
+                if ($this->partialPatchValidation && $operation instanceof Patch) {
+                    $rules = $operation->getRules();
+                    if (\is_array($rules)) {
+                        $stringKeyedRules = [];
+                        foreach ($rules as $field => $fieldRules) {
+                            if (\is_string($field)) {
+                                $stringKeyedRules[$field] = $fieldRules;
+                            }
+                        }
+                        $operation = $operation->withRules($this->replaceRequiredWithSometimes($stringKeyedRules));
+                    }
+                }
+
+                $operations->add($operationName, $operation);
+            }
+
+            $resourceMetadataCollection[$i] = $resourceMetadata->withOperations($operations);
+
+            $graphQlOperations = $resourceMetadata->getGraphQlOperations();
+            foreach ($graphQlOperations ?? [] as $operationName => $graphQlOperation) {
+                // Check if this operation uses Eloquent via stateOptions
+                $modelClass = $this->getStateOptionsClass($graphQlOperation, $resourceClass, Options::class);
+                $usesEloquent = $isModel || ($modelClass !== $resourceClass);
+
+                if (!$usesEloquent) {
+                    continue;
+                }
+
+                if ($isModel && !$graphQlOperation->getPolicy() && ($policy = Gate::getPolicyFor($model))) {
+                    if (($policyMethod = self::POLICY_METHODS[$graphQlOperation::class] ?? null) && method_exists($policy, $policyMethod)) {
+                        $graphQlOperation = $graphQlOperation->withPolicy($policyMethod);
+                    }
+                }
+
+                if (!$graphQlOperation->getProvider()) {
+                    $graphQlOperation = $graphQlOperation->withProvider($graphQlOperation instanceof CollectionOperationInterface ? CollectionProvider::class : ItemProvider::class);
+                }
+
+                if (!$graphQlOperation->getProcessor()) {
+                    $graphQlOperation = $graphQlOperation->withProcessor($graphQlOperation instanceof DeleteOperationInterface ? RemoveProcessor::class : PersistProcessor::class);
+                }
+
+                $graphQlOperations[$operationName] = $graphQlOperation;
+            }
+
+            if ($graphQlOperations) {
+                $resourceMetadata = $resourceMetadata->withGraphQlOperations($graphQlOperations);
+            }
+
+            $resourceMetadataCollection[$i] = $resourceMetadata;
+        }
+
+        return $resourceMetadataCollection;
+    }
+
+    /**
+     * Replaces 'required' with 'sometimes' in validation rules for partial updates.
+     *
+     * @param array<string, mixed> $rules
+     *
+     * @return array<string, mixed>
+     */
+    private function replaceRequiredWithSometimes(array $rules): array
+    {
+        foreach ($rules as $field => $fieldRules) {
+            if (\is_string($fieldRules)) {
+                $parts = explode('|', $fieldRules);
+                $parts = array_map(static fn (string $rule): string => 'required' === $rule ? 'sometimes' : $rule, $parts);
+                $rules[$field] = implode('|', $parts);
+            } elseif (\is_array($fieldRules)) {
+                $rules[$field] = array_map(static fn (mixed $rule): mixed => 'required' === $rule ? 'sometimes' : $rule, $fieldRules);
+            }
+        }
+
+        return $rules;
+    }
+}
