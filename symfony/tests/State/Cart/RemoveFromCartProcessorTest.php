@@ -8,9 +8,7 @@ use ApiPlatform\Metadata\Delete;
 use App\Dto\Cart\CartOutputDto;
 use App\Entity\Order;
 use App\Entity\OrderItem;
-use App\Entity\Product;
 use App\Entity\ProductBundle;
-use App\Entity\ProductVariant;
 use App\Entity\User;
 use App\Enum\RoleMeaning;
 use App\Service\CartService;
@@ -46,7 +44,7 @@ class RemoveFromCartProcessorTest extends TestCase
     public function testRemoveItemFromCart(): void
     {
         $user = $this->createConfiguredMock(User::class, [
-            'getId' => 1,
+            'getId'           => 1,
             'getRoleMeanings' => [],
         ]);
         $this->security->method('getUser')->willReturn($user);
@@ -73,7 +71,9 @@ class RemoveFromCartProcessorTest extends TestCase
             ->method('removeItem')
             ->with($order, $item, []);
 
-        $result = $this->processor->process(null, new Delete(), ['itemId' => 77]);
+        $result = $this->processor->process(null, new Delete(), [
+            'itemId' => 77,
+        ]);
 
         $this->assertInstanceOf(CartOutputDto::class, $result);
     }
@@ -81,7 +81,7 @@ class RemoveFromCartProcessorTest extends TestCase
     public function testRemoveBundleItemRemovesWholeBundleForParticipant(): void
     {
         $user = $this->createConfiguredMock(User::class, [
-            'getId' => 1,
+            'getId'           => 1,
             'getRoleMeanings' => [RoleMeaning::PRIHLASEN],
         ]);
         $this->security->method('getUser')->willReturn($user);
@@ -117,7 +117,9 @@ class RemoveFromCartProcessorTest extends TestCase
         $this->cartService->expects($this->never())
             ->method('removeItem');
 
-        $result = $this->processor->process(null, new Delete(), ['itemId' => 88]);
+        $result = $this->processor->process(null, new Delete(), [
+            'itemId' => 88,
+        ]);
 
         $this->assertInstanceOf(CartOutputDto::class, $result);
     }
@@ -125,7 +127,7 @@ class RemoveFromCartProcessorTest extends TestCase
     public function testThrowsWhenItemNotFound(): void
     {
         $user = $this->createConfiguredMock(User::class, [
-            'getId' => 1,
+            'getId'           => 1,
             'getRoleMeanings' => [],
         ]);
         $this->security->method('getUser')->willReturn($user);
@@ -134,13 +136,19 @@ class RemoveFromCartProcessorTest extends TestCase
 
         $this->expectException(\Symfony\Component\HttpKernel\Exception\NotFoundHttpException::class);
 
-        $this->processor->process(null, new Delete(), ['itemId' => 999]);
+        $this->processor->process(null, new Delete(), [
+            'itemId' => 999,
+        ]);
     }
 
     public function testThrowsWhenItemBelongsToOtherUser(): void
     {
-        $currentUser = $this->createConfiguredMock(User::class, ['getId' => 1]);
-        $otherUser = $this->createConfiguredMock(User::class, ['getId' => 2]);
+        $currentUser = $this->createConfiguredMock(User::class, [
+            'getId' => 1,
+        ]);
+        $otherUser = $this->createConfiguredMock(User::class, [
+            'getId' => 2,
+        ]);
         $this->security->method('getUser')->willReturn($currentUser);
 
         $item = new OrderItem();
@@ -157,6 +165,8 @@ class RemoveFromCartProcessorTest extends TestCase
 
         $this->expectException(\Symfony\Component\HttpKernel\Exception\AccessDeniedHttpException::class);
 
-        $this->processor->process(null, new Delete(), ['itemId' => 55]);
+        $this->processor->process(null, new Delete(), [
+            'itemId' => 55,
+        ]);
     }
 }
