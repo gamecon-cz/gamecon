@@ -43,7 +43,11 @@ class KfcGridProcessorTest extends TestCase
         $executedStatements = [];
         $this->connection->method('executeStatement')
             ->willReturnCallback(function (string $sql, array $params) use (&$executedStatements) {
-                $executedStatements[] = ['sql' => $sql, 'params' => $params];
+                $executedStatements[] = [
+                    'sql'    => $sql,
+                    'params' => $params,
+                ];
+
                 return 1;
             });
 
@@ -68,7 +72,11 @@ class KfcGridProcessorTest extends TestCase
         $executedStatements = [];
         $this->connection->method('executeStatement')
             ->willReturnCallback(function (string $sql, array $params) use (&$executedStatements) {
-                $executedStatements[] = ['sql' => $sql, 'params' => $params];
+                $executedStatements[] = [
+                    'sql'    => $sql,
+                    'params' => $params,
+                ];
+
                 return 1;
             });
         $this->connection->method('lastInsertId')->willReturn('99');
@@ -92,7 +100,11 @@ class KfcGridProcessorTest extends TestCase
         $executedStatements = [];
         $this->connection->method('executeStatement')
             ->willReturnCallback(function (string $sql, array $params) use (&$executedStatements) {
-                $executedStatements[] = ['sql' => $sql, 'params' => $params];
+                $executedStatements[] = [
+                    'sql'    => $sql,
+                    'params' => $params,
+                ];
+
                 return 1;
             });
 
@@ -126,7 +138,8 @@ class KfcGridProcessorTest extends TestCase
         $callCount = 0;
         $this->connection->method('executeStatement')
             ->willReturnCallback(function () use (&$callCount) {
-                $callCount++;
+                ++$callCount;
+
                 return 1;
             });
         $this->connection->method('lastInsertId')->willReturn('77');
@@ -157,6 +170,7 @@ class KfcGridProcessorTest extends TestCase
                 if (str_contains($sql, 'INSERT INTO obchod_bunky')) {
                     $insertedCellParams = $params;
                 }
+
                 return 1;
             });
 
