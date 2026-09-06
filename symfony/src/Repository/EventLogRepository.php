@@ -22,22 +22,4 @@ class EventLogRepository extends ServiceEntityRepository
     {
         parent::__construct($registry, EventLog::class);
     }
-
-    public function save(EventLog $entity, bool $flush = false): void
-    {
-        $this->getEntityManager()->persist($entity);
-
-        if ($flush) {
-            $this->getEntityManager()->flush();
-        }
-    }
-
-    public function remove(EventLog $entity, bool $flush = false): void
-    {
-        $this->getEntityManager()->remove($entity);
-
-        if ($flush) {
-            $this->getEntityManager()->flush();
-        }
-    }
 }

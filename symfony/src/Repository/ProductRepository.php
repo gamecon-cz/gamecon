@@ -24,24 +24,6 @@ class ProductRepository extends ServiceEntityRepository
         parent::__construct($registry, Product::class);
     }
 
-    public function save(Product $entity, bool $flush = false): void
-    {
-        $this->getEntityManager()->persist($entity);
-
-        if ($flush) {
-            $this->getEntityManager()->flush();
-        }
-    }
-
-    public function remove(Product $entity, bool $flush = false): void
-    {
-        $this->getEntityManager()->remove($entity);
-
-        if ($flush) {
-            $this->getEntityManager()->flush();
-        }
-    }
-
     /**
      * Find all active (non-archived) products
      *
@@ -71,32 +53,6 @@ class ProductRepository extends ServiceEntityRepository
             ->orderBy('product.name', 'ASC')
             ->getQuery()
             ->getResult();
-    }
-
-    /**
-     * Find products that have ALL specified tags
-     *
-     * @param ProductTagCode[] $tags
-     *
-     * @return Product[]
-     */
-    public function findByTags(array $tags): array
-    {
-        if ($tags === []) {
-            return [];
-        }
-
-        $qb = $this->createQueryBuilder('product')
-            ->innerJoin('product.tags', 'tag')
-            ->where('tag.code IN (:tagCodes)')
-            ->andWhere('product.archivedAt IS NULL')
-            ->setParameter('tagCodes', array_column($tags, 'value'))
-            ->groupBy('product.id')
-            ->having('COUNT(DISTINCT tag.code) = :tagCount')
-            ->setParameter('tagCount', count($tags))
-            ->orderBy('product.name', 'ASC');
-
-        return $qb->getQuery()->getResult();
     }
 
     /**
@@ -159,19 +115,6 @@ class ProductRepository extends ServiceEntityRepository
     }
 
     /**
-     * Find product by code
-     */
-    public function findByCode(string $code): ?Product
-    {
-        return $this->createQueryBuilder('product')
-            ->where('product.code = :code')
-            ->andWhere('product.archivedAt IS NULL')
-            ->setParameter('code', $code)
-            ->getQuery()
-            ->getOneOrNullResult();
-    }
-
-    /**
      * Find archived products
      *
      * @return Product[]
@@ -228,45 +171,5 @@ class ProductRepository extends ServiceEntityRepository
             ->setParameter('ids', $ids)
             ->getQuery()
             ->execute();
-    }
-
-    /**
-     * Find products with expiring availability (within next N days)
-     *
-     * @return Product[]
-     */
-    public function findExpiringSoon(int $days = 7): array
-    {
-        $now = new \DateTime();
-        $future = (new \DateTime())->modify(sprintf('+%d days', $days));
-
-        return $this->createQueryBuilder('product')
-            ->where('product.availableUntil IS NOT NULL')
-            ->andWhere('product.availableUntil BETWEEN :now AND :future')
-            ->andWhere('product.archivedAt IS NULL')
-            ->setParameter('now', $now)
-            ->setParameter('future', $future)
-            ->orderBy('product.availableUntil', 'ASC')
-            ->getQuery()
-            ->getResult();
-    }
-
-    /**
-     * Find products that have at least one variant with low remaining stock
-     *
-     * @return Product[]
-     */
-    public function findWithLowStockVariants(int $threshold = 10): array
-    {
-        return $this->createQueryBuilder('product')
-            ->innerJoin('product.variants', 'variant')
-            ->where('variant.remainingQuantity IS NOT NULL')
-            ->andWhere('variant.remainingQuantity <= :threshold')
-            ->andWhere('variant.remainingQuantity > 0')
-            ->andWhere('product.archivedAt IS NULL')
-            ->setParameter('threshold', $threshold)
-            ->groupBy('product.id')
-            ->getQuery()
-            ->getResult();
     }
 }

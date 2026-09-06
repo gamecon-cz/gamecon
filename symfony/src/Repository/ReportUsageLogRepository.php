@@ -22,22 +22,4 @@ class ReportUsageLogRepository extends ServiceEntityRepository
     {
         parent::__construct($registry, ReportUsageLog::class);
     }
-
-    public function save(ReportUsageLog $entity, bool $flush = false): void
-    {
-        $this->getEntityManager()->persist($entity);
-
-        if ($flush) {
-            $this->getEntityManager()->flush();
-        }
-    }
-
-    public function remove(ReportUsageLog $entity, bool $flush = false): void
-    {
-        $this->getEntityManager()->remove($entity);
-
-        if ($flush) {
-            $this->getEntityManager()->flush();
-        }
-    }
 }
