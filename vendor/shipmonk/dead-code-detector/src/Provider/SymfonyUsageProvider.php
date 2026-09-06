@@ -1,0 +1,2004 @@
+<?php declare(strict_types = 1);
+
+namespace ShipMonk\PHPStan\DeadCode\Provider;
+
+use Composer\InstalledVersions;
+use FilesystemIterator;
+use LogicException;
+use PhpParser\Node;
+use PhpParser\Node\Arg;
+use PhpParser\Node\Expr\MethodCall;
+use PhpParser\Node\Identifier;
+use PhpParser\Node\Stmt\Return_;
+use PHPStan\Analyser\Scope;
+use PHPStan\BetterReflection\Reflection\Adapter\ReflectionClass;
+use PHPStan\BetterReflection\Reflection\Adapter\ReflectionEnum;
+use PHPStan\BetterReflection\Reflection\Adapter\ReflectionMethod;
+use PHPStan\BetterReflection\Reflection\Adapter\ReflectionProperty;
+use PHPStan\BetterReflection\Reflector\Exception\IdentifierNotFound;
+use PHPStan\DependencyInjection\Container;
+use PHPStan\DependencyInjection\ParameterNotFoundException;
+use PHPStan\Node\InClassMethodNode;
+use PHPStan\Node\InClassNode;
+use PHPStan\Reflection\ClassReflection;
+use PHPStan\Reflection\ExtendedMethodReflection;
+use PHPStan\Reflection\MethodReflection;
+use PHPStan\Reflection\ReflectionProvider;
+use PHPStan\TrinaryLogic;
+use PHPStan\Type\Constant\ConstantStringType;
+use PHPStan\Type\Type;
+use PHPStan\Type\TypeCombinator;
+use RecursiveDirectoryIterator;
+use RecursiveIteratorIterator;
+use ReflectionAttribute;
+use ReflectionException;
+use ReflectionNamedType;
+use Reflector;
+use ShipMonk\PHPStan\DeadCode\Composer\ComposerIntrospector;
+use ShipMonk\PHPStan\DeadCode\Enum\AccessType;
+use ShipMonk\PHPStan\DeadCode\Graph\ClassConstantRef;
+use ShipMonk\PHPStan\DeadCode\Graph\ClassConstantUsage;
+use ShipMonk\PHPStan\DeadCode\Graph\ClassMemberUsage;
+use ShipMonk\PHPStan\DeadCode\Graph\ClassMethodRef;
+use ShipMonk\PHPStan\DeadCode\Graph\ClassMethodUsage;
+use ShipMonk\PHPStan\DeadCode\Graph\ClassPropertyRef;
+use ShipMonk\PHPStan\DeadCode\Graph\ClassPropertyUsage;
+use ShipMonk\PHPStan\DeadCode\Graph\UsageOrigin;
+use ShipMonk\PHPStan\DeadCode\Naming\CaseInsensitiveName;
+use SimpleXMLElement;
+use SplFileInfo;
+use Symfony\UX\TwigComponent\Attribute\FromMethod;
+use UnexpectedValueException;
+use function array_key_first;
+use function count;
+use function explode;
+use function extension_loaded;
+use function file_get_contents;
+use function in_array;
+use function is_array;
+use function is_dir;
+use function is_string;
+use function preg_match_all;
+use function simplexml_load_string;
+use function sprintf;
+use function str_ends_with;
+use function str_starts_with;
+use function strlen;
+use function substr;
+use function trim;
+
+final class SymfonyUsageProvider implements MemberUsageProvider
+{
+
+    private readonly ReflectionProvider $reflectionProvider;
+
+    private readonly ComposerIntrospector $composerIntrospector;
+
+    private readonly TemplateViewDataTraverser $traverser;
+
+    private readonly bool $enabled;
+
+    private readonly ?string $configDir;
+
+    /**
+     * class => [method => true]
+     *
+     * @var array<string, array<string, true>>
+     */
+    private array $dicCalls = [];
+
+    /**
+     * tag => list of class names
+     *
+     * @var array<string, list<string>>
+     */
+    private array $dicTaggedClasses = [];
+
+    /**
+     * class => [constant => config file]
+     *
+     * @var array<string, array<string, string>>
+     */
+    private array $dicConstants = [];
+
+    /**
+     * class => [enumCase => config file]
+     *
+     * @var array<string, array<string, string>>
+     */
+    private array $dicEnumCases = [];
+
+    /**
+     * @param list<string> $containerXmlPaths
+     */
+    public function __construct(
+        Container $container,
+        ReflectionProvider $reflectionProvider,
+        ComposerIntrospector $composerIntrospector,
+        TemplateViewDataTraverser $traverser,
+        ?bool $enabled,
+        ?string $configDir,
+        array $containerXmlPaths,
+    )
+    {
+        $this->reflectionProvider = $reflectionProvider;
+        $this->composerIntrospector = $composerIntrospector;
+        $this->traverser = $traverser;
+        $this->enabled = $enabled ?? $this->isSymfonyInstalled();
+        $this->configDir = $configDir ?? $this->autodetectConfigDir();
+
+        if ($containerXmlPaths === []) {
+            $containerXmlPath = $this->getContainerXmlPath($container);
+
+            if ($containerXmlPath !== null) {
+                $containerXmlPaths = [$containerXmlPath];
+            }
+        }
+
+        if ($this->enabled) {
+            foreach ($containerXmlPaths as $containerXmlPath) {
+                $this->fillDicClasses($containerXmlPath);
+            }
+        }
+
+        if ($this->enabled && $this->configDir !== null) {
+            $this->fillDicConstants($this->configDir);
+        }
+    }
+
+    public function getUsages(
+        Node $node,
+        Scope $scope,
+    ): array
+    {
+        if (!$this->enabled) {
+            return [];
+        }
+
+        $usages = [];
+
+        if ($node instanceof InClassNode) { // @phpstan-ignore phpstanApi.instanceofAssumption
+            $usages = [
+                ...$usages,
+                ...$this->getUniqueEntityUsages($node),
+                ...$this->getMethodUsagesFromReflection($node),
+                ...$this->getPropertyUsagesFromReflection($node),
+                ...$this->getConstantUsages($node->getClassReflection()),
+                ...$this->getInvokableCommandEnumUsages($node),
+                ...$this->getTwigComponentTemplateUsages($node),
+            ];
+        }
+
+        if ($node instanceof InClassMethodNode) { // @phpstan-ignore phpstanApi.instanceofAssumption
+            $usages = [
+                ...$usages,
+                ...$this->getMethodUsagesFromAttributeReflection($node, $scope),
+                ...$this->getMapInputUsages($node),
+                ...$this->getMapPayloadUsages($node),
+            ];
+        }
+
+        if ($node instanceof MethodCall) {
+            $usages = [
+                ...$usages,
+                ...$this->getFormDataClassUsages($node, $scope),
+            ];
+        }
+
+        if ($node instanceof Return_) {
+            $usages = [
+                ...$usages,
+                ...$this->getUsagesOfEventSubscriber($node, $scope),
+            ];
+        }
+
+        return $usages;
+    }
+
+    /**
+     * @return list<ClassMethodUsage>
+     */
+    private function getUniqueEntityUsages(InClassNode $node): array
+    {
+        $repositoryClass = null;
+        $repositoryMethods = [];
+
+        foreach ($node->getClassReflection()->getNativeReflection()->getAttributes() as $attribute) {
+            if ($attribute->getName() === 'Symfony\Bridge\Doctrine\Validator\Constraints\UniqueEntity') { // repeatable attribute, each can hold own repositoryMethod
+                $arguments = $attribute->getArguments();
+
+                if (isset($arguments['repositoryMethod']) && is_string($arguments['repositoryMethod'])) {
+                    $repositoryMethods[] = $arguments['repositoryMethod'];
+                }
+            }
+
+            if ($attribute->getName() === 'Doctrine\ORM\Mapping\Entity') {
+                $arguments = $attribute->getArguments();
+
+                if (isset($arguments['repositoryClass']) && is_string($arguments['repositoryClass'])) {
+                    $repositoryClass = $arguments['repositoryClass'];
+                }
+            }
+        }
+
+        if ($repositoryClass === null) {
+            return [];
+        }
+
+        $usages = [];
+
+        foreach ($repositoryMethods as $repositoryMethod) {
+            $usages[] = new ClassMethodUsage(
+                UsageOrigin::createVirtual($this, VirtualUsageData::withNote('Used in #[UniqueEntity] attribute')),
+                new ClassMethodRef(
+                    $repositoryClass,
+                    $repositoryMethod,
+                    possibleDescendant: false,
+                ),
+            );
+        }
+
+        return $usages;
+    }
+
+    /**
+     * @return list<ClassMethodUsage>
+     */
+    private function getUsagesOfEventSubscriber(
+        Return_ $node,
+        Scope $scope,
+    ): array
+    {
+        if ($node->expr === null) {
+            return [];
+        }
+
+        if (!$scope->isInClass()) {
+            return [];
+        }
+
+        if (!$scope->getFunction() instanceof MethodReflection) {
+            return [];
+        }
+
+        if (!CaseInsensitiveName::equals($scope->getFunction()->getName(), 'getSubscribedEvents')) {
+            return [];
+        }
+
+        if (!$scope->getClassReflection()->implementsInterface('Symfony\Component\EventDispatcher\EventSubscriberInterface')) {
+            return [];
+        }
+
+        $className = $scope->getClassReflection()->getName();
+
+        $usages = [];
+        $usageOrigin = UsageOrigin::createRegular($node, $scope);
+
+        // phpcs:disable Squiz.PHP.CommentedOutCode.Found
+        foreach ($scope->getType($node->expr)->getConstantArrays() as $rootArray) {
+            foreach ($rootArray->getValuesArray()->getValueTypes() as $eventConfig) {
+                // ['eventName' => 'methodName']
+                foreach ($eventConfig->getConstantStrings() as $subscriberMethodString) {
+                    $usages[] = new ClassMethodUsage(
+                        $usageOrigin,
+                        new ClassMethodRef(
+                            $className,
+                            $subscriberMethodString->getValue(),
+                            possibleDescendant: true,
+                        ),
+                    );
+                }
+
+                // ['eventName' => ['methodName', $priority]]
+                foreach ($eventConfig->getConstantArrays() as $subscriberMethodArray) {
+                    foreach ($subscriberMethodArray->getFirstIterableValueType()->getConstantStrings() as $subscriberMethodString) {
+                        $usages[] = new ClassMethodUsage(
+                            $usageOrigin,
+                            new ClassMethodRef(
+                                $className,
+                                $subscriberMethodString->getValue(),
+                                possibleDescendant: true,
+                            ),
+                        );
+                    }
+                }
+
+                // ['eventName' => [['methodName', $priority], ['methodName', $priority]]]
+                foreach ($eventConfig->getConstantArrays() as $subscriberMethodArray) {
+                    foreach ($subscriberMethodArray->getIterableValueType()->getConstantArrays() as $innerArray) {
+                        foreach ($innerArray->getFirstIterableValueType()->getConstantStrings() as $subscriberMethodString) {
+                            $usages[] = new ClassMethodUsage(
+                                $usageOrigin,
+                                new ClassMethodRef(
+                                    $className,
+                                    $subscriberMethodString->getValue(),
+                                    possibleDescendant: true,
+                                ),
+                            );
+                        }
+                    }
+                }
+            }
+        }
+
+        // phpcs:disable Squiz.PHP.CommentedOutCode.Found
+
+        return $usages;
+    }
+
+    /**
+     * @return list<ClassMethodUsage>
+     */
+    private function getMethodUsagesFromReflection(InClassNode $node): array
+    {
+        $classReflection = $node->getClassReflection();
+        $nativeReflection = $classReflection->getNativeReflection();
+        $className = $classReflection->getName();
+
+        $usages = [];
+
+        foreach ($nativeReflection->getMethods() as $method) {
+            if (isset($this->dicCalls[$className][$method->getName()])) {
+                $usages[] = $this->createUsage($classReflection->getNativeMethod($method->getName()), 'Called via DIC');
+            }
+
+            if ($method->getDeclaringClass()->getName() !== $nativeReflection->getName()) {
+                continue;
+            }
+
+            $note = $this->shouldMarkAsUsed($method);
+
+            if ($note !== null) {
+                $usages[] = $this->createUsage($classReflection->getNativeMethod($method->getName()), $note);
+            }
+        }
+
+        foreach ($nativeReflection->getAttributes('Symfony\Component\DependencyInjection\Attribute\Autoconfigure') as $attribute) {
+            $arguments = $attribute->getArguments();
+
+            $constructor = $arguments['constructor'] ?? null;
+
+            if (is_string($constructor) && $classReflection->hasNativeMethod($constructor)) {
+                $usages[] = $this->createUsage($classReflection->getNativeMethod($constructor), 'Named constructor via #[Autoconfigure] attribute');
+            }
+
+            $calls = $arguments['calls'] ?? null;
+
+            if (is_array($calls)) {
+                foreach ($calls as $call) {
+                    if (!is_array($call)) {
+                        continue;
+                    }
+
+                    // ['setLogger'] or ['setLogger' => ['@logger']]
+                    $methodName = $call[0] ?? array_key_first($call);
+
+                    if (is_string($methodName) && $classReflection->hasNativeMethod($methodName)) {
+                        $usages[] = $this->createUsage($classReflection->getNativeMethod($methodName), 'Called via #[Autoconfigure(calls)] attribute');
+                    }
+                }
+            }
+        }
+
+        foreach ($nativeReflection->getProperties() as $property) {
+            if ($property->getDeclaringClass()->getName() !== $nativeReflection->getName()) {
+                continue;
+            }
+
+            foreach ($property->getAttributes('Symfony\UX\LiveComponent\Attribute\LiveProp') as $livePropAttribute) {
+                $livePropArguments = $livePropAttribute->getArguments();
+
+                $hydrateWith = $livePropArguments['hydrateWith'] ?? null;
+
+                if (is_string($hydrateWith)) {
+                    $hydrateMethodName = trim($hydrateWith, '()');
+
+                    if ($classReflection->hasNativeMethod($hydrateMethodName)) {
+                        $usages[] = $this->createUsage($classReflection->getNativeMethod($hydrateMethodName), 'Called via #[LiveProp(hydrateWith)] attribute');
+                    }
+                }
+
+                $dehydrateWith = $livePropArguments['dehydrateWith'] ?? null;
+
+                if (is_string($dehydrateWith)) {
+                    $dehydrateMethodName = trim($dehydrateWith, '()');
+
+                    if ($classReflection->hasNativeMethod($dehydrateMethodName)) {
+                        $usages[] = $this->createUsage($classReflection->getNativeMethod($dehydrateMethodName), 'Called via #[LiveProp(dehydrateWith)] attribute');
+                    }
+                }
+
+                $onUpdated = $livePropArguments['onUpdated'] ?? null;
+
+                if (is_string($onUpdated) && $classReflection->hasNativeMethod($onUpdated)) {
+                    $usages[] = $this->createUsage($classReflection->getNativeMethod($onUpdated), 'Called via #[LiveProp(onUpdated)] attribute');
+                } elseif (is_array($onUpdated)) {
+                    foreach ($onUpdated as $onUpdatedMethod) {
+                        if (is_string($onUpdatedMethod) && $classReflection->hasNativeMethod($onUpdatedMethod)) {
+                            $usages[] = $this->createUsage($classReflection->getNativeMethod($onUpdatedMethod), 'Called via #[LiveProp(onUpdated)] attribute');
+                        }
+                    }
+                }
+
+                $modifier = $livePropArguments['modifier'] ?? null;
+
+                if (is_string($modifier) && $classReflection->hasNativeMethod($modifier)) {
+                    $usages[] = $this->createUsage($classReflection->getNativeMethod($modifier), 'Called via #[LiveProp(modifier)] attribute');
+                }
+
+                $fieldName = $livePropArguments['fieldName'] ?? null;
+
+                if (is_string($fieldName) && str_ends_with($fieldName, '()')) {
+                    $fieldMethodName = trim($fieldName, '()');
+
+                    if ($classReflection->hasNativeMethod($fieldMethodName)) {
+                        $usages[] = $this->createUsage($classReflection->getNativeMethod($fieldMethodName), 'Called via #[LiveProp(fieldName)] attribute');
+                    }
+                }
+            }
+
+            foreach ($property->getAttributes('Symfony\UX\TwigComponent\Attribute\ExposeInTemplate') as $exposeAttribute) {
+                $exposeArguments = $exposeAttribute->getArguments();
+                $getter = $exposeArguments['getter'] ?? $exposeArguments[1] ?? null;
+
+                if (is_string($getter) && $classReflection->hasNativeMethod($getter)) {
+                    $usages[] = $this->createUsage($classReflection->getNativeMethod($getter), 'Called via #[ExposeInTemplate(getter)] attribute');
+                }
+            }
+        }
+
+        foreach ($nativeReflection->getAttributes('Symfony\UX\LiveComponent\Attribute\AsLiveComponent') as $liveComponentAttribute) {
+            $liveComponentArguments = $liveComponentAttribute->getArguments();
+            $defaultAction = $liveComponentArguments['defaultAction'] ?? null;
+
+            if (is_string($defaultAction) && $classReflection->hasNativeMethod($defaultAction)) {
+                $usages[] = $this->createUsage($classReflection->getNativeMethod($defaultAction), 'Default action method via #[AsLiveComponent(defaultAction)] attribute');
+            }
+        }
+
+        foreach (['Symfony\UX\TwigComponent\Attribute\AsTwigComponent', 'Symfony\UX\LiveComponent\Attribute\AsLiveComponent'] as $twigComponentAttributeClass) {
+            foreach ($nativeReflection->getAttributes($twigComponentAttributeClass) as $twigComponentAttribute) {
+                $twigComponentArguments = $twigComponentAttribute->getArguments();
+                $template = $twigComponentArguments['template'] ?? $twigComponentArguments[1] ?? null;
+
+                if ($template instanceof FromMethod) {
+                    $templateMethodName = $template->method;
+
+                    if ($classReflection->hasNativeMethod($templateMethodName)) {
+                        $usages[] = $this->createUsage($classReflection->getNativeMethod($templateMethodName), 'Twig component template method via FromMethod');
+                    }
+                }
+            }
+        }
+
+        return $usages;
+    }
+
+    /**
+     * @return list<ClassPropertyUsage>
+     */
+    private function getPropertyUsagesFromReflection(InClassNode $node): array
+    {
+        $nativeReflection = $node->getClassReflection()->getNativeReflection();
+        $usages = [];
+
+        foreach ($nativeReflection->getProperties() as $property) {
+            if ($property->getDeclaringClass()->getName() !== $nativeReflection->getName()) {
+                continue;
+            }
+
+            if ($this->hasAttribute($property, 'Symfony\Contracts\Service\Attribute\Required')) {
+                $usages[] = $this->createPropertyUsage($property, 'Autowired with #[Required] (set by DIC)', AccessType::WRITE);
+            }
+
+            if ($this->hasAttribute($property, 'Symfony\UX\LiveComponent\Attribute\LiveProp')) {
+                $usages[] = $this->createPropertyUsage($property, 'Stateful property via #[LiveProp] (hydrated/dehydrated by framework)', AccessType::READ);
+                $usages[] = $this->createPropertyUsage($property, 'Stateful property via #[LiveProp] (hydrated/dehydrated by framework)', AccessType::WRITE);
+            }
+
+            if ($this->hasAttribute($property, 'Symfony\UX\TwigComponent\Attribute\ExposeInTemplate')) {
+                $usages[] = $this->createPropertyUsage($property, 'Exposed in template via #[ExposeInTemplate]', AccessType::READ);
+            }
+        }
+
+        return $usages;
+    }
+
+    /**
+     * @return list<ClassMemberUsage>
+     */
+    private function getTwigComponentTemplateUsages(InClassNode $node): array
+    {
+        $classReflection = $node->getClassReflection();
+        $nativeReflection = $classReflection->getNativeReflection();
+
+        if (!$this->hasAttribute($nativeReflection, 'Symfony\UX\TwigComponent\Attribute\AsTwigComponent', ReflectionAttribute::IS_INSTANCEOF)) {
+            return [];
+        }
+
+        $className = $classReflection->getName();
+        $rootContext = "Public members of #[AsTwigComponent] {$className} exposed in template";
+
+        return $this->traverser->getUsages([$className], $rootContext, $this);
+    }
+
+    private function createPropertyUsage(
+        ReflectionProperty $propertyReflection,
+        string $note,
+        AccessType $accessType,
+    ): ClassPropertyUsage
+    {
+        return new ClassPropertyUsage(
+            UsageOrigin::createVirtual($this, VirtualUsageData::withNote($note)),
+            new ClassPropertyRef(
+                $propertyReflection->getDeclaringClass()->getName(),
+                $propertyReflection->getName(),
+                possibleDescendant: false,
+            ),
+            $accessType,
+        );
+    }
+
+    /**
+     * @return list<ClassMethodUsage>
+     */
+    private function getMethodUsagesFromAttributeReflection(
+        InClassMethodNode $node,
+        Scope $scope,
+    ): array
+    {
+        $usages = [];
+        $usageOrigin = UsageOrigin::createRegular($node, $scope);
+
+        foreach ($node->getMethodReflection()->getParameters() as $parameter) {
+            foreach ($parameter->getAttributes() as $attributeReflection) {
+                if ($attributeReflection->getName() === 'Symfony\Component\DependencyInjection\Attribute\AutowireLocator') {
+                    $arguments = $attributeReflection->getArgumentTypes();
+
+                    if (!isset($arguments['services']) || (!isset($arguments['defaultIndexMethod']) && !isset($arguments['defaultPriorityMethod']))) {
+                        continue;
+                    }
+
+                    if ($arguments['services']->isArray()->yes()) {
+                        $resolvedClassNames = [];
+
+                        foreach ($arguments['services']->getIterableValueType()->getConstantStrings() as $className) {
+                            $resolvedClassNames[] = $className->getValue();
+                        }
+                    } else {
+                        $resolvedClassNames = $this->resolveTaggedClassNames($arguments['services']->getConstantStrings());
+                    }
+
+                    if ($resolvedClassNames === []) {
+                        continue;
+                    }
+
+                    foreach (['defaultIndexMethod', 'defaultPriorityMethod'] as $methodName) {
+                        if (!isset($arguments[$methodName])) {
+                            continue;
+                        }
+
+                        $method = $arguments[$methodName]->getConstantStrings();
+
+                        if (!isset($method[0])) {
+                            continue;
+                        }
+
+                        foreach ($resolvedClassNames as $className) {
+                            $usages[] = new ClassMethodUsage(
+                                $usageOrigin,
+                                new ClassMethodRef(
+                                    $className,
+                                    $method[0]->getValue(),
+                                    possibleDescendant: true,
+                                ),
+                            );
+                        }
+                    }
+                } elseif (
+                    $attributeReflection->getName() === 'Symfony\Component\DependencyInjection\Attribute\AutowireIterator'
+                    || $attributeReflection->getName() === 'Symfony\Component\DependencyInjection\Attribute\TaggedIterator'
+                    || $attributeReflection->getName() === 'Symfony\Component\DependencyInjection\Attribute\TaggedLocator'
+                ) {
+                    $arguments = $attributeReflection->getArgumentTypes();
+
+                    if (!isset($arguments['tag']) || (!isset($arguments['defaultIndexMethod']) && !isset($arguments['defaultPriorityMethod']))) {
+                        continue;
+                    }
+
+                    $tagValues = $arguments['tag']->getConstantStrings();
+
+                    if ($tagValues === []) {
+                        continue;
+                    }
+
+                    $classNames = $this->resolveTaggedClassNames($tagValues);
+
+                    if ($classNames === []) {
+                        continue;
+                    }
+
+                    foreach (['defaultIndexMethod', 'defaultPriorityMethod'] as $methodName) {
+                        if (!isset($arguments[$methodName])) {
+                            continue;
+                        }
+
+                        $method = $arguments[$methodName]->getConstantStrings();
+
+                        if (!isset($method[0])) {
+                            continue;
+                        }
+
+                        foreach ($classNames as $className) {
+                            $usages[] = new ClassMethodUsage(
+                                $usageOrigin,
+                                new ClassMethodRef(
+                                    $className,
+                                    $method[0]->getValue(),
+                                    possibleDescendant: true,
+                                ),
+                            );
+                        }
+                    }
+                } elseif ($attributeReflection->getName() === 'Symfony\Component\DependencyInjection\Attribute\AutowireCallable') {
+                    $arguments = $attributeReflection->getArgumentTypes();
+
+                    if (!isset($arguments['service'])) {
+                        continue;
+                    }
+
+                    $serviceClasses = $arguments['service']->getConstantStrings();
+
+                    if ($serviceClasses === []) {
+                        continue;
+                    }
+
+                    $methodName = '__invoke';
+
+                    if (isset($arguments['method'])) {
+                        $methods = $arguments['method']->getConstantStrings();
+
+                        if (isset($methods[0])) {
+                            $methodName = $methods[0]->getValue();
+                        }
+                    }
+
+                    foreach ($serviceClasses as $serviceClass) {
+                        $usages[] = new ClassMethodUsage(
+                            $usageOrigin,
+                            new ClassMethodRef(
+                                $serviceClass->getValue(),
+                                $methodName,
+                                possibleDescendant: true,
+                            ),
+                        );
+                    }
+                }
+            }
+        }
+
+        return $usages;
+    }
+
+    /**
+     * @return list<ClassMethodUsage|ClassPropertyUsage>
+     */
+    private function getMapInputUsages(InClassMethodNode $node): array
+    {
+        if (!CaseInsensitiveName::equals($node->getMethodReflection()->getName(), '__invoke')) {
+            return [];
+        }
+
+        $nativeReflection = $node->getClassReflection()->getNativeReflection();
+
+        $isCommand = $this->hasAttribute($nativeReflection, 'Symfony\Component\Console\Attribute\AsCommand')
+            || $nativeReflection->isSubclassOf('Symfony\Component\Console\Command\Command');
+
+        if (!$isCommand) {
+            return [];
+        }
+
+        $usages = [];
+
+        foreach ($node->getMethodReflection()->getParameters() as $parameter) {
+            $isMapInput = false;
+
+            foreach ($parameter->getAttributes() as $attributeReflection) {
+                if ($attributeReflection->getName() === 'Symfony\Component\Console\Attribute\MapInput') {
+                    $isMapInput = true;
+                    break;
+                }
+            }
+
+            if (!$isMapInput) {
+                continue;
+            }
+
+            $parameterType = $parameter->getType();
+
+            if (!$parameterType->isObject()->yes()) {
+                continue;
+            }
+
+            foreach ($parameterType->getObjectClassNames() as $dtoClassName) {
+                $usages = [...$usages, ...$this->collectMapInputDtoUsages($dtoClassName)];
+            }
+        }
+
+        return $usages;
+    }
+
+    /**
+     * @param array<string, true> $visited
+     * @return list<ClassMethodUsage|ClassPropertyUsage>
+     */
+    private function collectMapInputDtoUsages(
+        string $dtoClassName,
+        array &$visited = [],
+    ): array
+    {
+        if (isset($visited[$dtoClassName])) {
+            return [];
+        }
+
+        $visited[$dtoClassName] = true;
+
+        if (!$this->reflectionProvider->hasClass($dtoClassName)) {
+            return [];
+        }
+
+        $dtoReflection = $this->reflectionProvider->getClass($dtoClassName);
+        $nativeReflection = $dtoReflection->getNativeReflection();
+        $note = 'Console input DTO via #[MapInput]';
+        $usages = [];
+
+        // MapInput::tryFrom() iterates getProperties()/getMethods(), so inherited members are mapped too
+        foreach ($nativeReflection->getProperties() as $property) {
+            $isInputProperty = $this->hasAttribute($property, 'Symfony\Component\Console\Attribute\Argument')
+                || $this->hasAttribute($property, 'Symfony\Component\Console\Attribute\Option');
+            $nestedMapInput = $this->hasAttribute($property, 'Symfony\Component\Console\Attribute\MapInput');
+
+            if (!$isInputProperty && !$nestedMapInput) {
+                continue;
+            }
+
+            $usages[] = $this->createPropertyUsage($property, $note, AccessType::WRITE);
+            $usages[] = $this->createPropertyUsage($property, $note, AccessType::READ);
+
+            if (!$nestedMapInput) {
+                continue;
+            }
+
+            $propertyType = $property->getType();
+
+            if (!$propertyType instanceof ReflectionNamedType || $propertyType->isBuiltin()) {
+                continue;
+            }
+
+            $usages = [...$usages, ...$this->collectMapInputDtoUsages($propertyType->getName(), $visited)];
+        }
+
+        foreach ($nativeReflection->getMethods() as $dtoMethod) {
+            if ($this->hasAttribute($dtoMethod, 'Symfony\Component\Console\Attribute\Interact')) {
+                $usages[] = new ClassMethodUsage(
+                    UsageOrigin::createVirtual($this, VirtualUsageData::withNote($note)),
+                    new ClassMethodRef($dtoMethod->getDeclaringClass()->getName(), $dtoMethod->getName(), possibleDescendant: false),
+                );
+            }
+        }
+
+        return $usages;
+    }
+
+    private function isMapPayloadAttribute(string $attributeClassName): bool
+    {
+        if (!$this->reflectionProvider->hasClass($attributeClassName)) {
+            return false;
+        }
+
+        $attributeReflection = $this->reflectionProvider->getClass($attributeClassName);
+
+        return $attributeReflection->is('Symfony\Component\HttpKernel\Attribute\MapRequestPayload')
+            || $attributeReflection->is('Symfony\Component\HttpKernel\Attribute\MapQueryString');
+    }
+
+    /**
+     * Mirrors what ReflectionExtractor::getWriteInfo() (used by PropertyAccessor) treats as a mutator:
+     * a set* method, or a pair of add* and remove* methods where both exist.
+     *
+     * @param ReflectionClass|ReflectionEnum $classReflection
+     */
+    private function isPayloadMutator(
+        Reflector $classReflection,
+        ReflectionMethod $method,
+    ): bool
+    {
+        if (!$this->isAccessibleMutatorMethod($method)) {
+            return false;
+        }
+
+        $methodName = $method->getName();
+
+        if (str_starts_with($methodName, 'set') && strlen($methodName) > 3) {
+            return true;
+        }
+
+        foreach ([['add', 'remove'], ['remove', 'add']] as [$prefix, $counterpartPrefix]) {
+            if (str_starts_with($methodName, $prefix) && strlen($methodName) > strlen($prefix)) {
+                $counterpartName = $counterpartPrefix . substr($methodName, strlen($prefix));
+
+                try {
+                    return $this->isAccessibleMutatorMethod($classReflection->getMethod($counterpartName));
+                } catch (ReflectionException $e) {
+                    return false;
+                }
+            }
+        }
+
+        return false;
+    }
+
+    /**
+     * Mirrors ReflectionExtractor::isMethodAccessible() used by PropertyAccessor
+     */
+    private function isAccessibleMutatorMethod(ReflectionMethod $method): bool
+    {
+        return $method->isPublic()
+            && $method->getNumberOfRequiredParameters() <= 1
+            && $method->getNumberOfParameters() >= 1;
+    }
+
+    /**
+     * @return list<ClassMethodUsage|ClassPropertyUsage>
+     */
+    private function getMapPayloadUsages(InClassMethodNode $node): array
+    {
+        $usages = [];
+
+        foreach ($node->getMethodReflection()->getParameters() as $parameter) {
+            $dtoClassNames = [];
+
+            foreach ($parameter->getAttributes() as $attributeReflection) {
+                if (!$this->isMapPayloadAttribute($attributeReflection->getName())) {
+                    continue;
+                }
+
+                $parameterType = TypeCombinator::removeNull($parameter->getType());
+                $dtoClassNames = $parameterType->getObjectClassNames();
+
+                // #[MapRequestPayload(type: ItemDto::class)] denormalizes an array parameter to ItemDto[]
+                $typeArgument = $attributeReflection->getArgumentTypes()['type'] ?? null;
+
+                if ($typeArgument !== null) {
+                    foreach ($typeArgument->getConstantStrings() as $typeConstantString) {
+                        $dtoClassNames[] = $typeConstantString->getValue();
+                    }
+                }
+
+                break;
+            }
+
+            $visited = [];
+
+            foreach ($dtoClassNames as $dtoClassName) {
+                $usages = [...$usages, ...$this->collectPayloadDtoUsages($dtoClassName, $visited)];
+            }
+        }
+
+        return $usages;
+    }
+
+    /**
+     * @param array<string, true> $visited
+     * @return list<ClassMethodUsage|ClassPropertyUsage>
+     */
+    private function collectPayloadDtoUsages(
+        string $dtoClassName,
+        array &$visited,
+    ): array
+    {
+        if (isset($visited[$dtoClassName])) {
+            return [];
+        }
+
+        $visited[$dtoClassName] = true;
+
+        if (!$this->reflectionProvider->hasClass($dtoClassName)) {
+            return [];
+        }
+
+        $dtoReflection = $this->reflectionProvider->getClass($dtoClassName);
+        $nativeReflection = $dtoReflection->getNativeReflection();
+        $origin = UsageOrigin::createVirtual($this, VirtualUsageData::withNote('DTO used via #[MapRequestPayload] or #[MapQueryString]'));
+        $usages = [];
+
+        // Mark constructor as used (serializer instantiates the DTO) and recurse into its parameters
+        if ($dtoReflection->hasConstructor()) {
+            $usages[] = new ClassMethodUsage(
+                $origin,
+                new ClassMethodRef($dtoClassName, '__construct', possibleDescendant: false),
+            );
+
+            foreach ($dtoReflection->getConstructor()->getVariants() as $constructorVariant) {
+                foreach ($constructorVariant->getParameters() as $constructorParameter) {
+                    $usages = [...$usages, ...$this->collectNestedPayloadDtoUsages($constructorParameter->getType(), $visited)];
+                }
+            }
+        }
+
+        // Mark properties as written (serializer populates them), including ones inherited from project-level parents
+        foreach ($nativeReflection->getProperties() as $property) {
+            // PropertyAccessor writes only public non-static non-readonly properties; others get populated via constructor or mutators
+            if (!$property->isPublic() || $property->isStatic() || $property->isReadOnly()) {
+                continue;
+            }
+
+            $usages[] = new ClassPropertyUsage(
+                $origin,
+                new ClassPropertyRef($property->getDeclaringClass()->getName(), $property->getName(), possibleDescendant: false),
+                AccessType::WRITE,
+            );
+
+            if ($dtoReflection->hasNativeProperty($property->getName())) {
+                $usages = [...$usages, ...$this->collectNestedPayloadDtoUsages($dtoReflection->getNativeProperty($property->getName())->getWritableType(), $visited)];
+            }
+        }
+
+        // Mark mutator methods as used (ObjectNormalizer calls them via PropertyAccessor), including inherited ones
+        foreach ($nativeReflection->getMethods() as $dtoMethod) {
+            if (!$this->isPayloadMutator($nativeReflection, $dtoMethod)) {
+                continue;
+            }
+
+            $usages[] = new ClassMethodUsage(
+                $origin,
+                new ClassMethodRef($dtoMethod->getDeclaringClass()->getName(), $dtoMethod->getName(), possibleDescendant: false),
+            );
+
+            if ($dtoReflection->hasNativeMethod($dtoMethod->getName())) {
+                foreach ($dtoReflection->getNativeMethod($dtoMethod->getName())->getVariants() as $mutatorVariant) {
+                    foreach ($mutatorVariant->getParameters() as $mutatorParameter) {
+                        $usages = [...$usages, ...$this->collectNestedPayloadDtoUsages($mutatorParameter->getType(), $visited)];
+                    }
+                }
+            }
+        }
+
+        return $usages;
+    }
+
+    /**
+     * Nested DTOs are denormalized recursively, so their members are used the same way as the root DTO's.
+     * Collections declared via PhpDoc (e.g. list<ItemDto>) are denormalized element-by-element,
+     * the vendor reads those types via PropertyInfo's PhpDocExtractor.
+     *
+     * @param array<string, true> $visited
+     * @return list<ClassMethodUsage|ClassPropertyUsage>
+     */
+    private function collectNestedPayloadDtoUsages(
+        Type $type,
+        array &$visited,
+    ): array
+    {
+        $type = TypeCombinator::removeNull($type);
+        $usages = [];
+
+        foreach ($type->getObjectClassNames() as $nestedClassName) {
+            $usages = [...$usages, ...$this->collectPayloadDtoUsages($nestedClassName, $visited)];
+        }
+
+        if ($type->isIterable()->yes()) {
+            $usages = [...$usages, ...$this->collectNestedPayloadDtoUsages($type->getIterableValueType(), $visited)];
+        }
+
+        return $usages;
+    }
+
+    private function shouldMarkAsUsed(ReflectionMethod $method): ?string
+    {
+        if ($this->isBundleConstructor($method)) {
+            return 'Bundle constructor (created by Kernel)';
+        }
+
+        if ($this->isEventListenerMethodWithAsEventListenerAttribute($method)) {
+            return 'Event listener method via #[AsEventListener] attribute';
+        }
+
+        if ($this->isConstructorOfAnEventListenerClass($method)) {
+            return 'Constructor of an event listener class (required by DIC to invoke the listener)';
+        }
+
+        if ($this->isMessageHandlerMethodWithAsMessageHandlerAttribute($method)) {
+            return 'Message handler method via #[AsMessageHandler] attribute';
+        }
+
+        if ($this->isWorkflowEventListenerMethod($method)) {
+            return 'Workflow event listener method via workflow attribute';
+        }
+
+        if ($this->isAutowiredWithRequiredAttribute($method)) {
+            return 'Autowired with #[Required] (called by DIC)';
+        }
+
+        if ($this->isConstructorWithAsCommandAttribute($method)) {
+            return 'Class has #[AsCommand] attribute';
+        }
+
+        if ($this->isConstructorWithAsControllerAttribute($method)) {
+            return 'Class has #[AsController] attribute';
+        }
+
+        if ($this->isConstructorWithSchedulerAttribute($method)) {
+            return 'Class has scheduler attribute';
+        }
+
+        if ($this->isSchedulerTaskMethod($method)) {
+            return 'Scheduler task method via scheduler attribute';
+        }
+
+        if ($this->isMethodWithRouteAttribute($method)) {
+            return 'Route method via #[Route] attribute';
+        }
+
+        if ($this->isMethodWithCallbackConstraintAttribute($method)) {
+            return 'Callback constraint method via #[Assert\Callback] attribute';
+        }
+
+        if ($this->isMethodWithInteractAttribute($method)) {
+            return 'Interact method via #[Interact] attribute';
+        }
+
+        if ($this->isProbablySymfonyListener($method)) {
+            return 'Probable listener method';
+        }
+
+        if ($this->isConstructorOrMountOnTwigComponent($method)) {
+            return 'Class has #[AsTwigComponent] or #[AsLiveComponent] attribute';
+        }
+
+        if ($this->isTwigComponentHookMethod($method)) {
+            return 'Twig component lifecycle hook';
+        }
+
+        if ($this->isExposedInTemplateMethod($method)) {
+            return 'Exposed in template via #[ExposeInTemplate] attribute';
+        }
+
+        if ($this->isLiveComponentActionMethod($method)) {
+            return 'Live component action/listener method via attribute';
+        }
+
+        if ($this->isLiveComponentLifecycleMethod($method)) {
+            return 'Live component lifecycle hook';
+        }
+
+        return null;
+    }
+
+    /**
+     * @return list<ClassMethodUsage|ClassPropertyUsage>
+     */
+    private function getFormDataClassUsages(
+        MethodCall $node,
+        Scope $scope,
+    ): array
+    {
+        if (!$node->name instanceof Identifier) {
+            return [];
+        }
+
+        $methodName = $node->name->toString();
+        $args = $node->getArgs();
+
+        $dataClassName = $this->extractFormDataClassFromOptionsResolver($methodName, $node, $args, $scope)
+            ?? $this->extractFormDataClassFromFormFactory($methodName, $node, $args, $scope);
+
+        if ($dataClassName === null || !$this->reflectionProvider->hasClass($dataClassName)) {
+            return [];
+        }
+
+        return $this->emitPropertyAccessorUsages($node, $scope, $dataClassName);
+    }
+
+    /**
+     * Detects data_class from OptionsResolver::setDefaults() and OptionsResolver::setDefault()
+     *
+     * @param array<int|string, Arg> $args
+     */
+    private function extractFormDataClassFromOptionsResolver(
+        string $methodName,
+        MethodCall $node,
+        array $args,
+        Scope $scope,
+    ): ?string
+    {
+        if (CaseInsensitiveName::equals($methodName, 'setDefaults') && isset($args[0])) {
+            if (!$this->isOptionsResolverType($scope->getType($node->var))) {
+                return null;
+            }
+
+            return $this->extractDataClassFromArray($scope->getType($args[0]->value));
+        }
+
+        if (CaseInsensitiveName::equals($methodName, 'setDefault') && isset($args[0], $args[1])) {
+            if (!$this->isOptionsResolverType($scope->getType($node->var))) {
+                return null;
+            }
+
+            foreach ($scope->getType($args[0]->value)->getConstantStrings() as $constantString) {
+                if ($constantString->getValue() === 'data_class') {
+                    foreach ($scope->getType($args[1]->value)->getConstantStrings() as $valueString) {
+                        return $valueString->getValue();
+                    }
+                }
+            }
+        }
+
+        return null;
+    }
+
+    /**
+     * Detects data_class from FormFactory/Controller methods:
+     * - createForm($type, $data, ['data_class' => X]) or createForm($type, $data) where $data is typed
+     * - createNamed($name, $type, $data, ['data_class' => X]) or with typed $data
+     * - create($type, $data, ['data_class' => X]) or with typed $data
+     * - createFormBuilder($data, ['data_class' => X]) or with typed $data
+     * - createBuilder($type, $data, ['data_class' => X]) or with typed $data
+     * - createNamedBuilder($name, $type, $data, ['data_class' => X]) or with typed $data
+     *
+     * @param array<int|string, Arg> $args
+     */
+    private function extractFormDataClassFromFormFactory(
+        string $methodName,
+        MethodCall $node,
+        array $args,
+        Scope $scope,
+    ): ?string
+    {
+        $callerType = $scope->getType($node->var);
+
+        // AbstractController::createForm($type, $data, $options) — data at [1], options at [2]
+        // AbstractController::createFormBuilder($data, $options) — data at [0], options at [1]
+        // FormFactoryInterface::create($type, $data, $options) — data at [1], options at [2]
+        // FormFactoryInterface::createNamed($name, $type, $data, $options) — data at [2], options at [3]
+        // FormFactoryInterface::createBuilder($type, $data, $options) — data at [1], options at [2]
+        // FormFactoryInterface::createNamedBuilder($name, $type, $data, $options) — data at [2], options at [3]
+
+        $dataArgIndex = null;
+        $optionsArgIndex = null;
+
+        if (CaseInsensitiveName::equals($methodName, 'createFormBuilder') && $this->isAbstractControllerType($callerType)) {
+            $dataArgIndex = 0;
+            $optionsArgIndex = 1;
+        } elseif (CaseInsensitiveName::equals($methodName, 'createForm') && $this->isAbstractControllerType($callerType)) {
+            $dataArgIndex = 1;
+            $optionsArgIndex = 2;
+        } elseif (CaseInsensitiveName::isOneOf($methodName, ['create', 'createBuilder']) && $this->isFormFactoryType($callerType)) {
+            $dataArgIndex = 1;
+            $optionsArgIndex = 2;
+        } elseif (CaseInsensitiveName::isOneOf($methodName, ['createNamed', 'createNamedBuilder']) && $this->isFormFactoryType($callerType)) {
+            $dataArgIndex = 2;
+            $optionsArgIndex = 3;
+        } else {
+            return null;
+        }
+
+        // First, check explicit data_class in options array
+        if (isset($args[$optionsArgIndex])) {
+            $dataClassName = $this->extractDataClassFromArray($scope->getType($args[$optionsArgIndex]->value));
+
+            if ($dataClassName !== null) {
+                return $dataClassName;
+            }
+        }
+
+        // Then, infer from the data object type
+        if (isset($args[$dataArgIndex])) {
+            $dataType = $scope->getType($args[$dataArgIndex]->value);
+            $classNames = $dataType->getObjectClassNames();
+
+            if (count($classNames) === 1) {
+                return $classNames[0];
+            }
+        }
+
+        return null;
+    }
+
+    private function extractDataClassFromArray(Type $arrayType): ?string
+    {
+        foreach ($arrayType->getConstantArrays() as $constantArray) {
+            $keyTypes = $constantArray->getKeyTypes();
+            $valueTypes = $constantArray->getValueTypes();
+
+            foreach ($keyTypes as $index => $keyType) {
+                foreach ($keyType->getConstantStrings() as $keyString) {
+                    if ($keyString->getValue() === 'data_class') {
+                        foreach ($valueTypes[$index]->getConstantStrings() as $valueString) { // @phpstan-ignore offsetAccess.notFound
+                            return $valueString->getValue();
+                        }
+                    }
+                }
+            }
+        }
+
+        return null;
+    }
+
+    /**
+     * @return list<ClassMethodUsage|ClassPropertyUsage>
+     */
+    private function emitPropertyAccessorUsages(
+        Node $node,
+        Scope $scope,
+        string $dataClassName,
+    ): array
+    {
+        $classReflection = $this->reflectionProvider->getClass($dataClassName);
+        $usages = [];
+        $origin = UsageOrigin::createVirtual($this, VirtualUsageData::withNote('Accessed by Symfony PropertyAccessor via form data_class'));
+
+        foreach ($classReflection->getNativeReflection()->getMethods() as $method) {
+            if ($method->isStatic()) {
+                continue;
+            }
+
+            if (!$method->isPublic()) {
+                continue;
+            }
+
+            $name = $method->getName();
+
+            if ($this->isPropertyAccessorMethod($name)) {
+                $usages[] = new ClassMethodUsage(
+                    $origin,
+                    new ClassMethodRef(
+                        $method->getDeclaringClass()->getName(),
+                        $name,
+                        possibleDescendant: false,
+                    ),
+                );
+            }
+        }
+
+        foreach ($classReflection->getNativeReflection()->getProperties() as $property) {
+            if ($property->isStatic()) {
+                continue;
+            }
+
+            if (!$property->isPublic()) {
+                continue;
+            }
+
+            $propertyClassName = $property->getDeclaringClass()->getName();
+            $propertyName = $property->getName();
+
+            $usages[] = new ClassPropertyUsage(
+                $origin,
+                new ClassPropertyRef($propertyClassName, $propertyName, possibleDescendant: false),
+                AccessType::READ,
+            );
+
+            $usages[] = new ClassPropertyUsage(
+                $origin,
+                new ClassPropertyRef($propertyClassName, $propertyName, possibleDescendant: false),
+                AccessType::WRITE,
+            );
+        }
+
+        if ($classReflection->hasNativeMethod('__construct')) {
+            $constructorDeclaringClass = $classReflection->getNativeMethod('__construct')->getDeclaringClass()->getName();
+
+            $usages[] = new ClassMethodUsage(
+                $origin,
+                new ClassMethodRef(
+                    $constructorDeclaringClass,
+                    '__construct',
+                    possibleDescendant: false,
+                ),
+            );
+        }
+
+        return $usages;
+    }
+
+    private function isOptionsResolverType(Type $type): bool
+    {
+        foreach ($type->getObjectClassNames() as $className) {
+            if ($className === 'Symfony\Component\OptionsResolver\OptionsResolver') {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    private function isAbstractControllerType(Type $type): bool
+    {
+        foreach ($type->getObjectClassReflections() as $reflection) {
+            if (
+                $reflection->getName() === 'Symfony\Bundle\FrameworkBundle\Controller\AbstractController'
+                || $reflection->isSubclassOf('Symfony\Bundle\FrameworkBundle\Controller\AbstractController')
+            ) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    private function isFormFactoryType(Type $type): bool
+    {
+        foreach ($type->getObjectClassReflections() as $reflection) {
+            if (
+                $reflection->getName() === 'Symfony\Component\Form\FormFactoryInterface'
+                || $reflection->implementsInterface('Symfony\Component\Form\FormFactoryInterface')
+            ) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    private function isPropertyAccessorMethod(string $methodName): bool
+    {
+        foreach (['get', 'set', 'is', 'has', 'can', 'add', 'remove'] as $prefix) {
+            if (CaseInsensitiveName::startsWith($methodName, $prefix) && isset($methodName[strlen($prefix)]) && $methodName[strlen($prefix)] >= 'A' && $methodName[strlen($prefix)] <= 'Z') {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    private function fillDicClasses(string $containerXmlPath): void
+    {
+        $fileContents = file_get_contents($containerXmlPath);
+
+        if ($fileContents === false) {
+            throw new LogicException(sprintf('Container %s does not exist', $containerXmlPath));
+        }
+
+        if (!extension_loaded('simplexml')) { // should never happen as phpstan-doctrine requires that
+            throw new LogicException('Extension simplexml is required to parse DIC xml');
+        }
+
+        $xml = @simplexml_load_string($fileContents);
+
+        if ($xml === false) {
+            throw new LogicException(sprintf('Container %s cannot be parsed', $containerXmlPath));
+        }
+
+        if (!isset($xml->services->service)) {
+            throw new LogicException(sprintf('XML %s does not contain container.services.service structure', $containerXmlPath));
+        }
+
+        $serviceMap = $this->buildXmlServiceMap($xml->services->service);
+
+        foreach ($xml->services->service as $serviceDefinition) {
+            /** @var SimpleXMLElement $serviceAttributes */
+            $serviceAttributes = $serviceDefinition->attributes();
+
+            if ($this->isServiceNotInstantiatedByContainer($serviceDefinition, $serviceAttributes)) {
+                continue;
+            }
+
+            $class = isset($serviceAttributes->class) ? (string) $serviceAttributes->class : null;
+            $constructor = isset($serviceAttributes->constructor) ? (string) $serviceAttributes->constructor : '__construct';
+
+            if ($class !== null) {
+                $this->dicCalls[$class][$constructor] = true;
+
+                foreach ($serviceDefinition->call ?? [] as $callDefinition) {
+                    /** @var SimpleXMLElement $callAttributes */
+                    $callAttributes = $callDefinition->attributes();
+                    $method = $callAttributes->method !== null ? (string) $callAttributes->method : null;
+
+                    if ($method === null) {
+                        continue;
+                    }
+
+                    $this->dicCalls[$class][$method] = true;
+                }
+
+                foreach ($serviceDefinition->tag ?? [] as $tagDefinition) {
+                    /** @var SimpleXMLElement $tagAttributes */
+                    $tagAttributes = $tagDefinition->attributes();
+                    $tagName = $tagAttributes->name !== null ? (string) $tagAttributes->name : null;
+
+                    if ($tagName !== null) {
+                        $this->dicTaggedClasses[$tagName][] = $class;
+                    }
+                }
+            }
+
+            foreach ($serviceDefinition->factory ?? [] as $factoryDefinition) {
+                /** @var SimpleXMLElement $factoryAttributes */
+                $factoryAttributes = $factoryDefinition->attributes();
+                $factoryClass = $factoryAttributes->class !== null ? (string) $factoryAttributes->class : null;
+                $factoryService = $factoryAttributes->service !== null ? (string) $factoryAttributes->service : null;
+                $factoryMethod = $factoryAttributes->method !== null ? (string) $factoryAttributes->method : null;
+
+                if ($factoryClass !== null && $factoryMethod !== null) {
+                    $this->dicCalls[$factoryClass][$factoryMethod] = true;
+                }
+
+                if ($factoryService !== null && $factoryMethod !== null && isset($serviceMap[$factoryService])) {
+                    $factoryServiceClass = $serviceMap[$factoryService];
+                    $this->dicCalls[$factoryServiceClass][$factoryMethod] = true;
+                }
+            }
+        }
+    }
+
+    private function isServiceNotInstantiatedByContainer(
+        SimpleXMLElement $serviceDefinition,
+        SimpleXMLElement $serviceAttributes,
+    ): bool
+    {
+        if (isset($serviceAttributes->abstract) && (string) $serviceAttributes->abstract === 'true') {
+            return true;
+        }
+
+        if (isset($serviceAttributes->synthetic) && (string) $serviceAttributes->synthetic === 'true') {
+            return true;
+        }
+
+        foreach ($serviceDefinition->tag ?? [] as $tagDefinition) {
+            /** @var SimpleXMLElement $tagAttributes */
+            $tagAttributes = $tagDefinition->attributes();
+            $tagName = $tagAttributes->name !== null ? (string) $tagAttributes->name : null;
+
+            if ($tagName === 'container.error' || $tagName === 'container.excluded') {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    /**
+     * @return array<string, string>
+     */
+    private function buildXmlServiceMap(SimpleXMLElement $serviceDefinitions): array
+    {
+        $serviceMap = [];
+
+        foreach ($serviceDefinitions as $serviceDefinition) {
+            /** @var SimpleXMLElement $serviceAttributes */
+            $serviceAttributes = $serviceDefinition->attributes();
+            $id = isset($serviceAttributes->id) ? (string) $serviceAttributes->id : null;
+            $class = isset($serviceAttributes->class) ? (string) $serviceAttributes->class : null;
+
+            if ($id === null || $class === null) {
+                continue;
+            }
+
+            $serviceMap[$id] = $class;
+        }
+
+        return $serviceMap;
+    }
+
+    /**
+     * @param list<ConstantStringType> $tagValues
+     * @return list<string>
+     */
+    private function resolveTaggedClassNames(array $tagValues): array
+    {
+        $classNames = [];
+
+        foreach ($tagValues as $tagValue) {
+            $value = $tagValue->getValue();
+
+            if (isset($this->dicTaggedClasses[$value])) {
+                foreach ($this->dicTaggedClasses[$value] as $class) {
+                    $classNames[] = $class;
+                }
+            } else {
+                $classNames[] = $value;
+            }
+        }
+
+        return $classNames;
+    }
+
+    private function isBundleConstructor(ReflectionMethod $method): bool
+    {
+        return $method->isConstructor() && $method->getDeclaringClass()->isSubclassOf('Symfony\Component\HttpKernel\Bundle\Bundle');
+    }
+
+    private function isAutowiredWithRequiredAttribute(ReflectionMethod $method): bool
+    {
+        return $this->hasAttribute($method, 'Symfony\Contracts\Service\Attribute\Required');
+    }
+
+    private function isEventListenerMethodWithAsEventListenerAttribute(ReflectionMethod $method): bool
+    {
+        $class = $method->getDeclaringClass();
+
+        return $this->hasAttribute($class, 'Symfony\Component\EventDispatcher\Attribute\AsEventListener')
+            || $this->hasAttribute($method, 'Symfony\Component\EventDispatcher\Attribute\AsEventListener');
+    }
+
+    private function isConstructorOfAnEventListenerClass(ReflectionMethod $method): bool
+    {
+        if (!$method->isConstructor()) {
+            return false;
+        }
+
+        $class = $method->getDeclaringClass();
+
+        if ($this->hasAttribute($class, 'Symfony\Component\EventDispatcher\Attribute\AsEventListener')) {
+            return true;
+        }
+
+        foreach ($class->getMethods() as $classMethod) {
+            if ($this->hasAttribute($classMethod, 'Symfony\Component\EventDispatcher\Attribute\AsEventListener')) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    private function isMessageHandlerMethodWithAsMessageHandlerAttribute(ReflectionMethod $method): bool
+    {
+        $class = $method->getDeclaringClass();
+        $methodName = $method->getName();
+
+        // Check if this method has the attribute directly (fallback to method name itself if no target specified)
+        foreach ($method->getAttributes('Symfony\Component\Messenger\Attribute\AsMessageHandler') as $attribute) {
+            $arguments = $attribute->getArguments();
+            $targetMethod = $arguments['method'] ?? $arguments[3] ?? $methodName;
+
+            if (is_string($targetMethod) && CaseInsensitiveName::equals($targetMethod, $methodName)) {
+                return true;
+            }
+        }
+
+        // Check class-level attributes (fallback to __invoke if no target specified)
+        foreach ($class->getAttributes('Symfony\Component\Messenger\Attribute\AsMessageHandler') as $attribute) {
+            $arguments = $attribute->getArguments();
+            $targetMethod = $arguments['method'] ?? $arguments[3] ?? '__invoke';
+
+            if (is_string($targetMethod) && CaseInsensitiveName::equals($targetMethod, $methodName)) {
+                return true;
+            }
+        }
+
+        // Check if any other method points to this method (only if explicitly specified)
+        foreach ($class->getMethods() as $otherMethod) {
+            if (CaseInsensitiveName::equals($otherMethod->getName(), $methodName)) {
+                continue;
+            }
+
+            foreach ($otherMethod->getAttributes('Symfony\Component\Messenger\Attribute\AsMessageHandler') as $attribute) {
+                $arguments = $attribute->getArguments();
+                $targetMethod = $arguments['method'] ?? $arguments[3] ?? null;
+                if (is_string($targetMethod) && CaseInsensitiveName::equals($methodName, $targetMethod)) {
+                    return true;
+                }
+            }
+        }
+
+        return false;
+    }
+
+    private function isWorkflowEventListenerMethod(ReflectionMethod $method): bool
+    {
+        return $this->hasAttribute($method, 'Symfony\Component\Workflow\Attribute\AsAnnounceListener')
+            || $this->hasAttribute($method, 'Symfony\Component\Workflow\Attribute\AsCompletedListener')
+            || $this->hasAttribute($method, 'Symfony\Component\Workflow\Attribute\AsEnterListener')
+            || $this->hasAttribute($method, 'Symfony\Component\Workflow\Attribute\AsEnteredListener')
+            || $this->hasAttribute($method, 'Symfony\Component\Workflow\Attribute\AsGuardListener')
+            || $this->hasAttribute($method, 'Symfony\Component\Workflow\Attribute\AsLeaveListener')
+            || $this->hasAttribute($method, 'Symfony\Component\Workflow\Attribute\AsTransitionListener');
+    }
+
+    private function isConstructorWithAsCommandAttribute(ReflectionMethod $method): bool
+    {
+        $class = $method->getDeclaringClass();
+        return $method->isConstructor() && $this->hasAttribute($class, 'Symfony\Component\Console\Attribute\AsCommand');
+    }
+
+    private function isConstructorWithAsControllerAttribute(ReflectionMethod $method): bool
+    {
+        $class = $method->getDeclaringClass();
+        return $method->isConstructor() && $this->hasAttribute($class, 'Symfony\Component\HttpKernel\Attribute\AsController');
+    }
+
+    private function isMethodWithRouteAttribute(ReflectionMethod $method): bool
+    {
+        return $this->hasAttribute($method, 'Symfony\Component\Routing\Attribute\Route', ReflectionAttribute::IS_INSTANCEOF)
+            || $this->hasAttribute($method, 'Symfony\Component\Routing\Annotation\Route', ReflectionAttribute::IS_INSTANCEOF);
+    }
+
+    private function isMethodWithInteractAttribute(ReflectionMethod $method): bool
+    {
+        $class = $method->getDeclaringClass();
+
+        // Symfony scans for #[Interact] any invokable command, even without #[AsCommand]
+        return $this->hasAttribute($method, 'Symfony\Component\Console\Attribute\Interact')
+            && (
+                $this->hasAttribute($class, 'Symfony\Component\Console\Attribute\AsCommand')
+                || $class->isSubclassOf('Symfony\Component\Console\Command\Command')
+            );
+    }
+
+    private function isMethodWithCallbackConstraintAttribute(ReflectionMethod $method): bool
+    {
+        $declaringClassName = $method->getDeclaringClass()->getName();
+
+        if ($this->reflectionProvider->hasClass($declaringClassName)) {
+            foreach ($this->reflectionProvider->getClass($declaringClassName)->getAttributes() as $attribute) {
+                if ($attribute->getName() !== 'Symfony\Component\Validator\Constraints\Callback') {
+                    continue;
+                }
+
+                // Type-level access never compiles argument values, so closure callbacks (PHP 8.5+) cause no error
+                $callbackType = $attribute->getArgumentTypes()['callback'] ?? null;
+
+                if ($callbackType === null) {
+                    continue;
+                }
+
+                foreach ($callbackType->getConstantStrings() as $constantString) {
+                    if (CaseInsensitiveName::equals($constantString->getValue(), $method->getName())) {
+                        return true;
+                    }
+                }
+            }
+        }
+
+        return $this->hasAttribute($method, 'Symfony\Component\Validator\Constraints\Callback');
+    }
+
+    /**
+     * Ideally, we would need to parse DIC xml to know this for sure just like phpstan-symfony does.
+     */
+    private function isConstructorWithSchedulerAttribute(ReflectionMethod $method): bool
+    {
+        if (!$method->isConstructor()) {
+            return false;
+        }
+
+        $class = $method->getDeclaringClass();
+
+        return $this->hasAttribute($class, 'Symfony\Component\Scheduler\Attribute\AsSchedule')
+            || $this->hasAttribute($class, 'Symfony\Component\Scheduler\Attribute\AsCronTask')
+            || $this->hasAttribute($class, 'Symfony\Component\Scheduler\Attribute\AsPeriodicTask');
+    }
+
+    private function isSchedulerTaskMethod(ReflectionMethod $method): bool
+    {
+        $class = $method->getDeclaringClass();
+        $methodName = $method->getName();
+
+        foreach (['Symfony\Component\Scheduler\Attribute\AsCronTask', 'Symfony\Component\Scheduler\Attribute\AsPeriodicTask'] as $attributeClass) {
+            // Method-level attribute
+            if ($this->hasAttribute($method, $attributeClass)) {
+                return true;
+            }
+
+            // Class-level attribute with method parameter
+            foreach ($class->getAttributes($attributeClass) as $attribute) {
+                $arguments = $attribute->getArguments();
+                $targetMethod = $arguments['method'] ?? null;
+
+                if (is_string($targetMethod) && CaseInsensitiveName::equals($targetMethod, $methodName)) {
+                    return true;
+                }
+
+                if ($targetMethod === null && CaseInsensitiveName::equals($methodName, '__invoke')) {
+                    return true;
+                }
+            }
+        }
+
+        return false;
+    }
+
+    private function isConstructorOrMountOnTwigComponent(ReflectionMethod $method): bool
+    {
+        if (!$method->isConstructor() && !CaseInsensitiveName::equals($method->getName(), 'mount')) {
+            return false;
+        }
+
+        return $this->hasAttribute($method->getDeclaringClass(), 'Symfony\UX\TwigComponent\Attribute\AsTwigComponent', ReflectionAttribute::IS_INSTANCEOF);
+    }
+
+    private function isTwigComponentHookMethod(ReflectionMethod $method): bool
+    {
+        return $this->hasAttribute($method, 'Symfony\UX\TwigComponent\Attribute\PreMount')
+            || $this->hasAttribute($method, 'Symfony\UX\TwigComponent\Attribute\PostMount');
+    }
+
+    private function isExposedInTemplateMethod(ReflectionMethod $method): bool
+    {
+        return $this->hasAttribute($method, 'Symfony\UX\TwigComponent\Attribute\ExposeInTemplate');
+    }
+
+    private function isLiveComponentActionMethod(ReflectionMethod $method): bool
+    {
+        return $this->hasAttribute($method, 'Symfony\UX\LiveComponent\Attribute\LiveAction', ReflectionAttribute::IS_INSTANCEOF);
+    }
+
+    private function isLiveComponentLifecycleMethod(ReflectionMethod $method): bool
+    {
+        return $this->hasAttribute($method, 'Symfony\UX\LiveComponent\Attribute\PostHydrate')
+            || $this->hasAttribute($method, 'Symfony\UX\LiveComponent\Attribute\PreDehydrate')
+            || $this->hasAttribute($method, 'Symfony\UX\LiveComponent\Attribute\PreReRender');
+    }
+
+    private function isProbablySymfonyListener(ReflectionMethod $method): bool
+    {
+        $methodName = $method->getName();
+
+        return CaseInsensitiveName::isOneOf($methodName, [ // conventional method names for all KernelEvents and ConsoleEvents
+            'onKernelRequest',
+            'onKernelException',
+            'onKernelController',
+            'onKernelControllerArguments',
+            'onKernelView',
+            'onKernelResponse',
+            'onKernelFinishRequest',
+            'onKernelTerminate',
+            'onConsoleError',
+            'onConsoleCommand',
+            'onConsoleSignal',
+            'onConsoleTerminate',
+        ]);
+    }
+
+    /**
+     * @param ReflectionClass|ReflectionMethod|ReflectionProperty|ReflectionEnum $classOrMethod
+     * @param ReflectionAttribute::IS_*|0 $flags
+     */
+    private function hasAttribute(
+        Reflector $classOrMethod,
+        string $attributeClass,
+        int $flags = 0,
+    ): bool
+    {
+        if ($classOrMethod->getAttributes($attributeClass) !== []) {
+            return true;
+        }
+
+        try {
+            /** @throws IdentifierNotFound */
+            return $classOrMethod->getAttributes($attributeClass, $flags) !== [];
+        } catch (IdentifierNotFound $e) {
+            return false; // prevent https://github.com/phpstan/phpstan/issues/9618
+        }
+    }
+
+    private function isSymfonyInstalled(): bool
+    {
+        foreach (InstalledVersions::getInstalledPackages() as $package) {
+            if (str_starts_with($package, 'symfony/')) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    private function createUsage(
+        ExtendedMethodReflection $methodReflection,
+        string $reason,
+    ): ClassMethodUsage
+    {
+        return new ClassMethodUsage(
+            UsageOrigin::createVirtual($this, VirtualUsageData::withNote($reason)),
+            new ClassMethodRef(
+                $methodReflection->getDeclaringClass()->getName(),
+                $methodReflection->getName(),
+                possibleDescendant: false,
+            ),
+        );
+    }
+
+    private function autodetectConfigDir(): ?string
+    {
+        $vendorDir = $this->composerIntrospector->autodetectVendorDir();
+
+        if ($vendorDir === null) {
+            return null;
+        }
+
+        $configDir = $vendorDir . '/../config';
+
+        if (is_dir($configDir)) {
+            return $configDir;
+        }
+
+        return null;
+    }
+
+    private function fillDicConstants(string $configDir): void
+    {
+        try {
+            $iterator = new RecursiveIteratorIterator(
+                new RecursiveDirectoryIterator($configDir, FilesystemIterator::SKIP_DOTS),
+            );
+        } catch (UnexpectedValueException $e) {
+            throw new LogicException("Provided config path '$configDir' is not a directory", 0, $e);
+        }
+
+        /** @var SplFileInfo $file */
+        foreach ($iterator as $file) {
+            if (
+                $file->isFile()
+                && in_array($file->getExtension(), ['yaml', 'yml'], true)
+                && $file->getRealPath() !== false
+            ) {
+                $this->extractYamlConstants($file->getRealPath());
+            }
+        }
+    }
+
+    private function extractYamlConstants(string $yamlFile): void
+    {
+        $dicFileContents = file_get_contents($yamlFile);
+
+        if ($dicFileContents === false) {
+            return;
+        }
+
+        $nameRegex = '[a-zA-Z_\x80-\xff][a-zA-Z0-9_\x80-\xff]*'; // https://www.php.net/manual/en/language.oop5.basic.php
+
+        preg_match_all(
+            "~!php/const ($nameRegex(?:\\\\$nameRegex)+::$nameRegex)~",
+            $dicFileContents,
+            $matches,
+        );
+
+        foreach ($matches[1] as $usedConstants) {
+            [$className, $constantName] = explode('::', $usedConstants); // @phpstan-ignore offsetAccess.notFound
+            $this->dicConstants[$className][$constantName] = $yamlFile;
+        }
+
+        preg_match_all(
+            "~!php/enum ($nameRegex(?:\\\\$nameRegex)+::$nameRegex)~",
+            $dicFileContents,
+            $enumMatches,
+        );
+
+        foreach ($enumMatches[1] as $usedEnumCase) {
+            [$className, $caseName] = explode('::', $usedEnumCase); // @phpstan-ignore offsetAccess.notFound
+            $this->dicEnumCases[$className][$caseName] = $yamlFile;
+        }
+    }
+
+    /**
+     * @return list<ClassConstantUsage>
+     */
+    private function getConstantUsages(ClassReflection $classReflection): array
+    {
+        $usages = [];
+
+        foreach ($this->dicConstants[$classReflection->getName()] ?? [] as $constantName => $configFile) {
+            if (!$classReflection->hasConstant($constantName)) {
+                continue;
+            }
+
+            $usages[] = new ClassConstantUsage(
+                UsageOrigin::createVirtual($this, VirtualUsageData::withNote('Referenced in config in ' . $configFile)),
+                new ClassConstantRef(
+                    $classReflection->getName(),
+                    $constantName,
+                    possibleDescendant: false,
+                    isEnumCase: TrinaryLogic::createNo(),
+                ),
+            );
+        }
+
+        foreach ($this->dicEnumCases[$classReflection->getName()] ?? [] as $caseName => $configFile) {
+            if (!$classReflection->hasConstant($caseName)) {
+                continue;
+            }
+
+            $usages[] = new ClassConstantUsage(
+                UsageOrigin::createVirtual($this, VirtualUsageData::withNote('Referenced in config in ' . $configFile)),
+                new ClassConstantRef(
+                    $classReflection->getName(),
+                    $caseName,
+                    possibleDescendant: false,
+                    isEnumCase: TrinaryLogic::createYes(),
+                ),
+            );
+        }
+
+        return $usages;
+    }
+
+    /**
+     * @return list<ClassConstantUsage>
+     */
+    private function getInvokableCommandEnumUsages(InClassNode $node): array
+    {
+        $classReflection = $node->getClassReflection();
+        $nativeReflection = $classReflection->getNativeReflection();
+
+        if ($nativeReflection instanceof ReflectionEnum) {
+            return [];
+        }
+
+        $isCommand = $this->hasAttribute($nativeReflection, 'Symfony\Component\Console\Attribute\AsCommand')
+            || $nativeReflection->isSubclassOf('Symfony\Component\Console\Command\Command');
+
+        if (!$isCommand) {
+            return [];
+        }
+
+        $invokeMethod = null;
+
+        foreach ($nativeReflection->getMethods() as $method) {
+            if (CaseInsensitiveName::equals($method->getName(), '__invoke')) {
+                $invokeMethod = $method;
+                break;
+            }
+        }
+
+        if ($invokeMethod === null) {
+            return [];
+        }
+
+        $usages = [];
+
+        foreach ($invokeMethod->getParameters() as $parameter) {
+            $type = $parameter->getType();
+
+            if (!$type instanceof ReflectionNamedType || $type->isBuiltin()) {
+                continue;
+            }
+
+            $typeName = $type->getName();
+
+            if (!$this->reflectionProvider->hasClass($typeName)) {
+                continue;
+            }
+
+            $enumReflection = $this->reflectionProvider->getClass($typeName);
+
+            if (!$enumReflection->isBackedEnum()) {
+                continue;
+            }
+
+            $nativeEnumReflection = $enumReflection->getNativeReflection();
+
+            if (!$nativeEnumReflection instanceof ReflectionEnum) {
+                continue;
+            }
+
+            foreach ($nativeEnumReflection->getCases() as $case) {
+                $usages[] = new ClassConstantUsage(
+                    UsageOrigin::createVirtual($this, VirtualUsageData::withNote('Invokable command parameter in ' . $nativeReflection->getShortName())),
+                    new ClassConstantRef(
+                        $typeName,
+                        $case->getName(),
+                        possibleDescendant: false,
+                        isEnumCase: TrinaryLogic::createYes(),
+                    ),
+                );
+            }
+        }
+
+        return $usages;
+    }
+
+    private function getContainerXmlPath(Container $container): ?string
+    {
+        try {
+            /** @var array{containerXmlPath: string|null} $symfonyConfig */
+            $symfonyConfig = $container->getParameter('symfony');
+
+            return $symfonyConfig['containerXmlPath'];
+        } catch (ParameterNotFoundException $e) {
+            return null;
+        }
+    }
+
+}
