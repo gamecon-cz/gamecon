@@ -356,6 +356,18 @@ class ProductService
 }
 ```
 
+## ECS spouštěj bez cesty
+
+**`bin/ecs.sh --fix` bez argumentů.** Cesta jako argument **přebije `withPaths()`** v `ecs.php` a vtáhne do formátování soubory, které tam schválně nejsou.
+
+`ecs.php` má povolený seznam: `symfony/src`, `symfony/config`, `tests` a tři podadresáře `model/`. Zbytek `model/`, `web/` a `admin/` je mimo — je to legacy, které se ještě nepřevedlo. **66 souborů v `model/` nemá `declare(strict_types=1)`** a nesnese ho: sada `strict: true` ho dopíše a soubor, který stál na volném porovnávání, začne padat.
+
+Konkrétně (stalo se dvakrát): `./bin-docker/docker-bash bin/ecs.sh --fix model/SystemoveNastaveni/` přeformátovalo 15 souborů, z toho 13 nedotčených, a `--fix model/Uzivatel/Finance.php` mu dopsalo `strict_types`. Výsledek byl **70 padajících testů** s `NeznamyTypPredmetu` — chyba, která vypadá jako vada vlastní logiky, ne jako formátování. Podruhé to stálo dvacet minut hledání.
+
+**Když je potřeba doformátovat soubor mimo povolený seznam** (typicky vlastní editace v legacy), udělej to ručně podle okolního kódu. Ne přes ECS.
+
+**Jak poznat, že se to stalo:** `git status` po formátování ukáže víc změněných souborů, než kolik jsi jich editoval. To je signál okamžitě revertovat (`git checkout -- <soubory>`) a editaci nanést znovu — ne to zkoumat přes testy.
+
 ## Migrace obsahují jen holé hodnoty
 
 **Migrace nesmí volat aplikační kód.** Žádné `Pravo::KOSTKA_ZDARMA`, žádné enumy, žádné `use App\...`, žádná validace přes servisní třídu — jen literály a SQL. Co migrace potřebuje vědět, musí mít napsané v sobě.
