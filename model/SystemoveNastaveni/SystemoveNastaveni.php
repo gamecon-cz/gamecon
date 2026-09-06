@@ -992,6 +992,31 @@ SQL;
         return po($this->prihlasovaniUcastnikuDo($rocnik));
     }
 
+    public function pocetKostekZdarma(): int
+    {
+        return (int)$this->dejHodnotu(Klic::SLEVA_KOSTEK_ZDARMA_POCET);
+    }
+
+    public function pocetPlacekZdarma(): int
+    {
+        return (int)$this->dejHodnotu(Klic::SLEVA_PLACEK_ZDARMA_POCET);
+    }
+
+    public function pocetTricekZdarma(): int
+    {
+        return (int)$this->dejHodnotu(Klic::SLEVA_TRICEK_ZDARMA_POCET);
+    }
+
+    public function pocetDvouTricekZdarma(): int
+    {
+        return (int)$this->dejHodnotu(Klic::SLEVA_DVOU_TRICEK_ZDARMA_POCET);
+    }
+
+    public function pocetBonusovychTricekZdarma(): int
+    {
+        return (int)$this->dejHodnotu(Klic::SLEVA_BONUSOVYCH_TRICEK_ZDARMA_POCET);
+    }
+
     public function slevaOrguNaJidloCastka(): float
     {
         return defined('SLEVA_ORGU_NA_JIDLO_CASTKA')
