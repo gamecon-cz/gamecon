@@ -17,8 +17,8 @@ use Gamecon\Uzivatel\Dto\PriceAfterDiscountDto;
  */
 class Cenik
 {
-    private int $zbyvajicichMoznychKostekZdarma = 1;
-    private int $zbyvajicichMoznychPlacekZdarma = 1;
+    private ?int $zbyvajicichMoznychKostekZdarma = null;
+    private ?int $zbyvajicichMoznychPlacekZdarma = null;
     private ?int $jakychkoliTricekZdarma = null;
     private ?int $bonusovychTricekZdarma = null;
     private array $textySlevExtra = [];
@@ -131,6 +131,7 @@ class Cenik
         $cena,
         bool $omezPocet = true,
     ): int {
+        $this->zbyvajicichMoznychKostekZdarma ??= $this->systemoveNastaveni->pocetKostekZdarma();
         if ($omezPocet && $this->zbyvajicichMoznychKostekZdarma <= 0) {
             return 0;
         }
@@ -165,6 +166,7 @@ class Cenik
         $cena,
         bool $omezPocet = true,
     ): int {
+        $this->zbyvajicichMoznychPlacekZdarma ??= $this->systemoveNastaveni->pocetPlacekZdarma();
         if ($omezPocet && $this->zbyvajicichMoznychPlacekZdarma <= 0) {
             return 0;
         }
@@ -337,8 +339,8 @@ class Cenik
             ->rulesForYear($this->systemoveNastaveni->rocnik());
 
         $zbyva = [
-            'kostka_zdarma'       => $this->zbyvajicichMoznychKostekZdarma,
-            'placka_zdarma'       => $this->zbyvajicichMoznychPlacekZdarma,
+            'kostka_zdarma'       => $this->zbyvajicichMoznychKostekZdarma ??= $this->systemoveNastaveni->pocetKostekZdarma(),
+            'placka_zdarma'       => $this->zbyvajicichMoznychPlacekZdarma ??= $this->systemoveNastaveni->pocetPlacekZdarma(),
             'tricko_za_bonus'     => $this->bonusovychTricekZdarma(),
             'jedno_tricko_zdarma' => $this->jakychkolivTricekZdarma(),
             'dve_tricka_zdarma'   => $this->jakychkolivTricekZdarma(),
@@ -395,9 +397,9 @@ class Cenik
         } elseif ($this->jakychkoliTricekZdarma === null) {
             $this->jakychkoliTricekZdarma = 0;
             if ($this->u->maPravo(Pravo::DVE_JAKAKOLI_TRICKA_ZDARMA)) {
-                $this->jakychkoliTricekZdarma = 2;
+                $this->jakychkoliTricekZdarma = $this->systemoveNastaveni->pocetDvouTricekZdarma();
             } elseif ($this->u->maPravo(Pravo::JAKEKOLIV_TRICKO_ZDARMA)) {
-                $this->jakychkoliTricekZdarma = 1;
+                $this->jakychkoliTricekZdarma = $this->systemoveNastaveni->pocetTricekZdarma();
             }
         }
 
