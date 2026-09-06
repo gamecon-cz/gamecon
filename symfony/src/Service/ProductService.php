@@ -7,6 +7,7 @@ namespace App\Service;
 use App\Entity\Product;
 use App\Entity\ProductVariant;
 use App\Entity\User;
+use App\Enum\ProductTagCode;
 use App\Enum\RoleMeaning;
 use App\Repository\ProductRepository;
 use App\Repository\ProductTagRepository;
@@ -228,7 +229,7 @@ class ProductService
      * Find products by multiple criteria
      *
      * @param array{
-     *     tags?: string[],
+     *     tags?: ProductTagCode[],
      *     state?: int,
      *     archived?: bool,
      *     search?: string
