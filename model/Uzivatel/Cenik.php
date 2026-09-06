@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Gamecon\Uzivatel;
 
 use Gamecon\Cas\DateTimeGamecon;
@@ -7,24 +9,35 @@ use Gamecon\Pravo;
 use Gamecon\Shop\Predmet;
 use Gamecon\Shop\SqlStruktura\NakupySqlStruktura as NakupySql;
 use Gamecon\Shop\SqlStruktura\PredmetSqlStruktura as PredmetySql;
-use Gamecon\Shop\TypPredmetu;
 use Gamecon\SystemoveNastaveni\SystemoveNastaveni;
 use Gamecon\Uzivatel\Dto\PriceAfterDiscountDto;
-use Uzivatel;
 
 /**
  * Třída zodpovědná za stanovení / prezentaci cen a slev věcí
  */
 class Cenik
 {
-    private int   $zbyvajicichMoznychKostekZdarma = 1;
-    private int   $zbyvajicichMoznychPlacekZdarma = 1;
-    private ?int  $jakychkoliTricekZdarma         = null;
-    private ?int  $bonusovychTricekZdarma         = null;
-    private array $textySlevExtra                 = [];
+    private int $zbyvajicichMoznychKostekZdarma = 1;
+    private int $zbyvajicichMoznychPlacekZdarma = 1;
+    private ?int $jakychkoliTricekZdarma = null;
+    private ?int $bonusovychTricekZdarma = null;
+    private array $textySlevExtra = [];
+    /**
+     * @var \App\Discount\DiscountRule[]|null
+     */
+    private ?array $pravidla = null;
+    /**
+     * @var int[]|null
+     */
+    private ?array $prava = null;
+    /**
+     * @var array<string, float>|null
+     */
+    private ?array $nastaveniSlev = null;
 
     /**
      * Sníží $cena o částku $sleva až do nuly. Změnu odečte i z $sleva.
+     *
      * @return array{cena: float, sleva: float} aktualizované hodnoty
      */
     public static function aplikujSlevu(
@@ -32,22 +45,28 @@ class Cenik
         &$sleva,
     ): array {
         if ($sleva <= 0) { // nedělat nic
-            return ['cena' => $cena, 'sleva' => $sleva];
+            return [
+                'cena'  => $cena,
+                'sleva' => $sleva,
+            ];
         }
         if ($sleva <= $cena) {
-            $cena  -= $sleva;
+            $cena -= $sleva;
             $sleva = 0;
         } else { // $sleva > $cena
             $sleva -= $cena;
-            $cena  = 0;
+            $cena = 0;
         }
 
-        return ['cena' => (float)$cena, 'sleva' => (float)$sleva];
+        return [
+            'cena'  => (float) $cena,
+            'sleva' => (float) $sleva,
+        ];
     }
 
     public static function maUbytovaniZdarmaProDen(
-        Uzivatel $ucastnik,
-        int      $denUbytovani,
+        \Uzivatel $ucastnik,
+        int $denUbytovani,
     ): bool {
         if ($ucastnik->maPravoNaUbytovaniZdarma()) {
             return true;
@@ -65,12 +84,12 @@ class Cenik
 
     /**
      * Konstruktor
-     * @param Uzivatel $u pro kterého uživatele se cena počítá
-     * @param int|float|callable<int|float> $sleva celková sleva získaná za pořádané aktivity
+     *
+     * @param \Uzivatel $u pro kterého uživatele se cena počítá
      */
     public function __construct(
-        private readonly Uzivatel           $u,
-        private readonly Finance            $finance,
+        private readonly \Uzivatel $u,
+        private readonly Finance $finance,
         private readonly SystemoveNastaveni $systemoveNastaveni,
     ) {
     }
@@ -81,7 +100,7 @@ class Cenik
          * Zobrazitelné texty k právům (jen statické). Nestatické texty nutno řešit
          * ručně. V polích se případně udává, které právo daný index „přebíjí“.
          */
-        $texty                             = [
+        $texty = [
             Pravo::KOSTKA_ZDARMA                     => 'kostka zdarma',
             Pravo::PLACKA_ZDARMA                     => 'placka zdarma',
             Pravo::UBYTOVANI_ZDARMA                  => 'ubytování zdarma',
@@ -94,7 +113,7 @@ class Cenik
             Pravo::UBYTOVANI_MUZE_OBJEDNAT_JEDNU_NOC => 'můžeš si objednat ubytování i pro jedinou noc',
             Pravo::MODRE_TRICKO_ZDARMA               => 'tričko zdarma za dosažení bonusu %d',
         ];
-        $bonus                             = $this->systemoveNastaveni->modreTrickoZdarmaOd();
+        $bonus = $this->systemoveNastaveni->modreTrickoZdarmaOd();
         $texty[Pravo::MODRE_TRICKO_ZDARMA] = sprintf(
             $texty[Pravo::MODRE_TRICKO_ZDARMA],
             $bonus,
@@ -105,7 +124,7 @@ class Cenik
 
     public function cenaKostky(array $r): int
     {
-        $cena          = (int)$r[PredmetySql::CENA_AKTUALNI];
+        $cena = (int) $r[PredmetySql::CENA_AKTUALNI];
         $slevaNaKostku = $this->slevaNaKostku($r, $cena, false);
 
         return $cena - $slevaNaKostku;
@@ -113,23 +132,23 @@ class Cenik
 
     private function slevaNaKostku(
         array $r,
-              $cena,
-        bool  $omezPocet = true,
+        $cena,
+        bool $omezPocet = true,
     ): int {
         if ($omezPocet && $this->zbyvajicichMoznychKostekZdarma <= 0) {
             return 0;
         }
-        if (!$this->u->maPravoNaKostkuZdarma()) {
+        if (! $this->u->maPravoNaKostkuZdarma()) {
             return 0;
         }
-        if (!$this->maObjednanouKostku($r)) {
+        if (! $this->maObjednanouKostku($r)) {
             return 0;
         }
         if ($omezPocet) {
-            $this->zbyvajicichMoznychKostekZdarma--;
+            --$this->zbyvajicichMoznychKostekZdarma;
         }
 
-        return (int)$cena;
+        return (int) $cena;
     }
 
     private function maObjednanouKostku(array $r): bool
@@ -139,7 +158,7 @@ class Cenik
 
     public function cenaPlacky(array $r): int
     {
-        $cena          = (int)$r[PredmetySql::CENA_AKTUALNI];
+        $cena = (int) $r[PredmetySql::CENA_AKTUALNI];
         $slevaNaPlacku = $this->slevaNaPlacku($r, $cena, false);
 
         return $cena - $slevaNaPlacku;
@@ -147,23 +166,23 @@ class Cenik
 
     private function slevaNaPlacku(
         array $r,
-              $cena,
-        bool  $omezPocet = true,
+        $cena,
+        bool $omezPocet = true,
     ): int {
         if ($omezPocet && $this->zbyvajicichMoznychPlacekZdarma <= 0) {
             return 0;
         }
-        if (!$this->u->maPravoNaPlackuZdarma()) {
+        if (! $this->u->maPravoNaPlackuZdarma()) {
             return 0;
         }
-        if (!$this->maObjednanouPlacku($r)) {
+        if (! $this->maObjednanouPlacku($r)) {
             return 0;
         }
         if ($omezPocet) {
-            $this->zbyvajicichMoznychPlacekZdarma--;
+            --$this->zbyvajicichMoznychPlacekZdarma;
         }
 
-        return (int)$cena;
+        return (int) $cena;
     }
 
     private function maObjednanouPlacku(array $r): bool
@@ -174,6 +193,7 @@ class Cenik
     /**
      * Vrátí pole s popisy obecných slev uživatele (typicky procentuálních na
      * aktivity)
+     *
      * @todo možnost (zvážit) použití objektu Sleva, který by se uměl aplikovat
      */
     public function slevyObecne()
@@ -184,12 +204,14 @@ class Cenik
     /**
      * Vrátí pole s popisy speciálních slev a extra možností uživatele (typicky
      * vypravěčských, věci se slevami nebo zdarma apod.)
+     *
      * @todo vypravěčská sleva s číslem apod. (migrovat z financí)
+     *
      * @return array<string>
      */
     public function slevySpecialni(): array
     {
-        $u     = $this->u;
+        $u = $this->u;
         $slevy = [];
         $texty = $this->getTextySlev();
 
@@ -219,92 +241,137 @@ class Cenik
     public function puvodniCena(array $r): float
     {
         if (isset($r[NakupySql::CENA_NAKUPNI])) {
-            return (float)$r[NakupySql::CENA_NAKUPNI];
+            return (float) $r[NakupySql::CENA_NAKUPNI];
         }
         if (isset($r[PredmetySql::CENA_AKTUALNI])) {
-            return (float)$r[PredmetySql::CENA_AKTUALNI];
+            return (float) $r[PredmetySql::CENA_AKTUALNI];
         }
         throw new \RuntimeException('Nelze načíst cenu předmětu s ID ' . ($r[PredmetySql::ID_PREDMETU] ?? 'neznámé'));
     }
 
     /**
-     * @param array $r
      * @return PriceAfterDiscountDto cena věci v e-shopu pro daného uživatele
      */
     public function cena(array $r): PriceAfterDiscountDto
     {
         $cena = $this->puvodniCena($r);
-        if (!($typ = $r[PredmetySql::TYP])) {
+        if (! ($typ = $r[PredmetySql::TYP])) {
             throw new \RuntimeException('Nenačten typ předmetu');
         }
 
-        // aplikace možných slev
-        if ($typ == TypPredmetu::PREDMET) {
-            // hack podle názvu
-            if (Predmet::jeToKostka($r[PredmetySql::KOD_PREDMETU])) {
-                $slevaKostky = $this->slevaNaKostku($r, $cena);
-
-                $cenaSeSlevou = self::aplikujSlevu($cena, $slevaKostky);
-
-                return new PriceAfterDiscountDto(
-                    finalPrice: $cenaSeSlevou['cena'],
-                    discount: $cenaSeSlevou['sleva'],
-                );
-            } elseif (Predmet::jeToPlacka($r[PredmetySql::KOD_PREDMETU])) {
-                $slevaPlacky = $this->slevaNaPlacku($r, $cena);
-
-                $cenaSeSlevou = self::aplikujSlevu($cena, $slevaPlacky);
-
-                return new PriceAfterDiscountDto(
-                    finalPrice: $cenaSeSlevou['cena'],
-                    discount: $cenaSeSlevou['sleva'],
-                );
-            }
-        } elseif ($typ == TypPredmetu::TRICKO && $this->bonusovychTricekZdarma() > 0) {
-            // Za dosažení bonusu je zdarma libovolné tričko. Nákupy se cení od
-            // nejlevnějšího (viz ORDER BY v Finance::zapoctiShop), takže sleva
-            // vždy dopadne na nejlevnější tričko v košíku. Pokud v košíku žádné
-            // tričko není, čítač se nevyčerpá a bonus se neuplatní.
-            $this->bonusovychTricekZdarma($this->bonusovychTricekZdarma() - 1);
-
-            return new PriceAfterDiscountDto(
-                finalPrice: 0.0,
-                discount: $cena,
-            );
-        } elseif ($typ == TypPredmetu::TRICKO && $this->jakychkolivTricekZdarma() > 0) {
-            $this->jakychkolivTricekZdarma($this->jakychkolivTricekZdarma() - 1);
-
-            return new PriceAfterDiscountDto(
-                finalPrice: 0.0,
-                discount: $cena,
-            );
-        } elseif ($typ == TypPredmetu::UBYTOVANI) {
-            if (self::maUbytovaniZdarmaProDen($this->u, (int) $r[PredmetySql::UBYTOVANI_DEN])) {
-                return new PriceAfterDiscountDto(
-                    finalPrice: 0.0,
-                    discount: $cena,
-                );
-            }
-        } elseif ($typ == TypPredmetu::JIDLO) {
-            if ($this->u->maPravoNaJidloZdarma()) {
-                return new PriceAfterDiscountDto(
-                    finalPrice: 0.0,
-                    discount: $cena,
-                );
-            } elseif ($this->u->maPravo(Pravo::JIDLO_SE_SLEVOU)) {
-                $sleva = $this->systemoveNastaveni->slevaOrguNaJidloCastka();
-
-                return new PriceAfterDiscountDto(
-                    finalPrice: $cena - $sleva,
-                    discount: $sleva,
-                );
-            }
+        $polozka = $this->polozkaProSlevy($r, $typ, $cena);
+        if ($polozka === null) {
+            return new PriceAfterDiscountDto(finalPrice: $cena, discount: 0.0);
         }
 
+        // Jedna položka na volání, protože takové je rozhraní téhle metody. Pravidlo
+        // "nejlevnější tričko v košíku" tím pádem nemá košík, ve kterém by hledalo —
+        // vychází jen proto, že Finance::zapoctiShop posílá nákupy od nejlevnějšího
+        // (ORDER BY nakupy.cena_nakupni), takže první tričko, které sem přijde, je to
+        // nejlevnější. Až se storefront překlopí a přestane volat cena() po jedné,
+        // předá se celý košík najednou a tahle závislost na pořadí zmizí.
+        $slevy = (new \App\Discount\DiscountCalculation(
+            $this->dostupnaPravidla(),
+            $this->pravaUzivatele(),
+            $this->hodnotyNastaveni(),
+            (float) $this->finance->bonusZaVedeniAktivit(),
+        ))->apply([$polozka]);
+
+        $sleva = $slevy[$polozka->key] ?? null;
+        if ($sleva === null) {
+            return new PriceAfterDiscountDto(finalPrice: $cena, discount: 0.0);
+        }
+
+        $this->zapoctiVycerpani($sleva->ruleCode);
+
         return new PriceAfterDiscountDto(
-            finalPrice: $cena,
-            discount: 0.0,
+            finalPrice: $sleva->finalPrice,
+            discount: $sleva->discountAmount,
         );
+    }
+
+    /**
+     * Převede legacy řádek na položku, se kterou umí pracovat výpočet slev.
+     *
+     * Vrací null pro typy, na které žádné pravidlo nemíří — ušetří to načítání
+     * pravidel u vstupného a proplácení bonusů.
+     */
+    private function polozkaProSlevy(array $r, $typ, float $cena): ?\App\Discount\DiscountableItem
+    {
+        $tag = \App\Enum\ProductTagCode::fromLegacyTyp((int) $typ);
+        if ($tag === null) {
+            return null;
+        }
+
+        $den = $r[PredmetySql::UBYTOVANI_DEN] ?? null;
+
+        return new \App\Discount\DiscountableItem(
+            key: (int) ($r[PredmetySql::ID_PREDMETU] ?? 0),
+            productCode: (string) $r[PredmetySql::KOD_PREDMETU],
+            price: $cena,
+            tags: [$tag],
+            accommodationDay: $den === null ? null : (int) $den,
+        );
+    }
+
+    /**
+     * Čítače zůstávají tady, protože výpočet slev je bezstavový a dostává vždy jednu
+     * položku — nemá tedy jak si pamatovat, že tenhle kupující už kostku zdarma měl.
+     */
+    private function zapoctiVycerpani(string $kodPravidla): void
+    {
+        match ($kodPravidla) {
+            'kostka_zdarma'   => $this->zbyvajicichMoznychKostekZdarma--,
+            'placka_zdarma'   => $this->zbyvajicichMoznychPlacekZdarma--,
+            'tricko_za_bonus' => $this->bonusovychTricekZdarma($this->bonusovychTricekZdarma() - 1),
+            'jedno_tricko_zdarma', 'dve_tricka_zdarma' => $this->jakychkolivTricekZdarma($this->jakychkolivTricekZdarma() - 1),
+            default => null,
+        };
+    }
+
+    /**
+     * Pravidla, na která kupujícímu ještě zbývá nárok. Vyčerpané se sem nedostanou,
+     * takže výpočet je nemusí řešit.
+     *
+     * @return \App\Discount\DiscountRule[]
+     */
+    private function dostupnaPravidla(): array
+    {
+        $this->pravidla ??= (new \App\Discount\DiscountRuleLoader('dbFetchAll'))
+            ->rulesForYear($this->systemoveNastaveni->rocnik());
+
+        $zbyva = [
+            'kostka_zdarma'       => $this->zbyvajicichMoznychKostekZdarma,
+            'placka_zdarma'       => $this->zbyvajicichMoznychPlacekZdarma,
+            'tricko_za_bonus'     => $this->bonusovychTricekZdarma(),
+            'jedno_tricko_zdarma' => $this->jakychkolivTricekZdarma(),
+            'dve_tricka_zdarma'   => $this->jakychkolivTricekZdarma(),
+        ];
+
+        return array_values(array_filter(
+            $this->pravidla,
+            static fn (\App\Discount\DiscountRule $pravidlo): bool => ($zbyva[$pravidlo->code] ?? 1) > 0,
+        ));
+    }
+
+    /**
+     * @return int[]
+     */
+    private function pravaUzivatele(): array
+    {
+        return $this->prava ??= (new \App\Discount\DiscountRuleLoader('dbFetchAll'))
+            ->rightsOfUser($this->u->id());
+    }
+
+    /**
+     * @return array<string, float>
+     */
+    private function hodnotyNastaveni(): array
+    {
+        return $this->nastaveniSlev ??= [
+            \App\Discount\DiscountSetting::OrganizerMealDiscount->value   => (float) $this->systemoveNastaveni->slevaOrguNaJidloCastka(),
+            \App\Discount\DiscountSetting::FreeShirtBonusThreshold->value => (float) $this->systemoveNastaveni->modreTrickoZdarmaOd(),
+        ];
     }
 
     private function jakychkolivTricekZdarma(?int $jakychkoliTricekZdarma = null): int
