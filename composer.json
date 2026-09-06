@@ -86,6 +86,7 @@
         "phpunit/phpunit": "^10.0",
         "rector/rector": "^2.1",
         "roave/security-advisories": "dev-latest",
+        "shipmonk/dead-code-detector": "^1.4",
         "symfony/browser-kit": "^7.4",
         "symfony/http-client": "^7.4",
         "symfony/maker-bundle": "^1.64",

@@ -382,6 +382,28 @@ Konkrétně (stalo se v `2026-09-04-100013_seed-discount-rules.php`, obojí opra
 
 **Výjimka:** pomocné funkce definované přímo v souboru migrace (`$columnExists = fn (...) => ...`) jsou v pořádku — nejsou to závislosti na kódu venku.
 
+## Detekce mrtvého kódu (PHPStan)
+
+`phpstan.dist.neon` zapíná `shipmonk/dead-code-detector`. Hlásí nevolané metody,
+nečtené property, nepoužité konstanty a case enumů v `symfony/src/`. Běží v CI jako
+součást `bin/phpstan.sh`, takže **nový mrtvý kód shodí build**.
+
+**Grep na „volá tohle někdo?" nestačí.** Metoda může být volaná přes DI, atribut,
+Twig, routing nebo reflexi, kde její jméno v kódu vůbec není. Detektor staví graf
+z compilnutého Symfony containeru (`symfony/var/cache/dev/App_KernelDevDebugContainer.xml`),
+takže vidí i tyhle cesty. Když se ptáš „je tohle mrtvé?", zeptej se jeho, ne grepu.
+
+**Baseline se smí jen zmenšovat.** `phpstan-baseline.neon` drží 268 nálezů, které
+existovaly, když se detektor zapínal — je to seznam dluhu, ne konfigurace. Nikdy do něj
+nepřidávej nový nález regenerací baseline, abys „opravil" červené CI. Buď kód smaž, nebo
+(když je volaný způsobem, který detektor nevidí) přidej cílený `ignoreErrors`
+s komentářem *proč*. Regenerace celého baseline je legitimní jen po hromadném úklidu,
+kdy počet klesne.
+
+Potlačení, která tam už jsou (každé má v `phpstan.dist.neon` napsaný důvod): generované
+`Structure/`, property odpovědních DTO (čte je serializer API Platform přes reflexi),
+accessory entit a akce controllerů routované z `routes.yaml`.
+
 ## SQL Coding Style
 
 ### Table Naming Convention
