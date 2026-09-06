@@ -393,7 +393,7 @@ Twig, routing nebo reflexi, kde její jméno v kódu vůbec není. Detektor stav
 z compilnutého Symfony containeru (`symfony/var/cache/dev/App_KernelDevDebugContainer.xml`),
 takže vidí i tyhle cesty. Když se ptáš „je tohle mrtvé?", zeptej se jeho, ne grepu.
 
-**Baseline se smí jen zmenšovat.** `phpstan-baseline.neon` drží 268 nálezů, které
+**Baseline se smí jen zmenšovat.** `phpstan-baseline.neon` drží 289 nálezů, které
 existovaly, když se detektor zapínal — je to seznam dluhu, ne konfigurace. Nikdy do něj
 nepřidávej nový nález regenerací baseline, abys „opravil" červené CI. Buď kód smaž, nebo
 (když je volaný způsobem, který detektor nevidí) přidej cílený `ignoreErrors`
@@ -403,6 +403,12 @@ kdy počet klesne.
 Potlačení, která tam už jsou (každé má v `phpstan.dist.neon` napsaný důvod): generované
 `Structure/`, property odpovědních DTO (čte je serializer API Platform přes reflexi),
 accessory entit a akce controllerů routované z `routes.yaml`.
+
+**Pozor na hranici legacy ↔ Symfony.** PHPStan analyzuje jen `symfony/`, takže volání
+z `model/`, `web/` nebo `admin/` detektor nevidí. Symfony třída volaná jen z legacy se
+proto tváří jako mrtvá (`Cenik` v `model/` volá `App\Discount\DiscountCalculation` —
+pro detektor neexistuje). **Než něco smažeš na základě nálezu, ověř grepem i legacy
+strom.** Opačně to neplatí: co detektor označí za živé, živé je.
 
 ## SQL Coding Style
 
