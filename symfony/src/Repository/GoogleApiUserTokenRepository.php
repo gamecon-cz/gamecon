@@ -22,22 +22,4 @@ class GoogleApiUserTokenRepository extends ServiceEntityRepository
     {
         parent::__construct($registry, GoogleApiUserToken::class);
     }
-
-    public function save(GoogleApiUserToken $entity, bool $flush = false): void
-    {
-        $this->getEntityManager()->persist($entity);
-
-        if ($flush) {
-            $this->getEntityManager()->flush();
-        }
-    }
-
-    public function remove(GoogleApiUserToken $entity, bool $flush = false): void
-    {
-        $this->getEntityManager()->remove($entity);
-
-        if ($flush) {
-            $this->getEntityManager()->flush();
-        }
-    }
 }
