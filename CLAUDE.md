@@ -3,6 +3,19 @@
 ## Project Overview
 GameCon is a Czech PHP web application for managing the largest Czechoslovak non-computer games festival. It's a comprehensive event management system with both public web interface and admin panel.
 
+## Směr: postupný přechod na Symfony
+
+**Dlouhodobý cíl je přepsat celou aplikaci do Symfony.** Legacy custom MVC v `model/`, `web/` a `admin/` je dočasný stav, ne cílový — nový kód patří do `symfony/`.
+
+**Karta 1274 (přepis e-shopu) ale nepřepisuje všechno.** Její rozsah je **e-shop, objednávky a finance** — tedy `Shop`, `shop_predmety`, `shop_nakupy`, `Cenik`, `Finance` a to, co na nich visí. Aktivity, přihlášky, program, role ani admin obecně do ní nepatří, i když se jich přepis dotkne přes sdílené tabulky nebo pohledy.
+
+**Co z toho plyne pro rozhodování:**
+
+- Když nová vrstva potřebuje něco z legacy (práva uživatele, bonus za aktivity, systémové nastavení), **není správné to hned přepisovat** — je to mimo rozsah. Vezmi to z legacy a nech to tam.
+- Dočasná vazba nového kódu na legacy je v pořádku, pokud je **jednosměrná a zdokumentovaná** (nový kód čte z legacy, ne naopak). Typicky: `DiscountCalculation` dostává práva zvenčí, místo aby si je uměla načíst sama.
+- Duplikovat logiku, aby se člověk vyhnul volání do legacy, je **horší** než to volání — dvě implementace téhož se rozejdou.
+- Naopak přepis něčeho, co s e-shopem nesouvisí, „když už jsem u toho", rozšiřuje rozsah karty a zdržuje ji. Zapiš to jako nález a nech to být.
+
 ## Technology Stack
 - **Language**: PHP 8.2+ with strict typing
 - **Database**: MariaDB 10.11
