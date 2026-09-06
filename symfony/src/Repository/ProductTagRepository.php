@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace App\Repository;
 
 use App\Entity\ProductTag;
-use App\Enum\ProductTagCode;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\Persistence\ManagerRegistry;
 
@@ -49,21 +48,6 @@ class ProductTagRepository extends ServiceEntityRepository
     }
 
     /**
-     * Get all type tags (predmet, ubytovani, tricko, etc.)
-     *
-     * @return ProductTag[]
-     */
-    public function findTypeTags(): array
-    {
-        return $this->createQueryBuilder('t')
-            ->where('t.name IN (:types)')
-            ->setParameter('types', array_column(ProductTagCode::categories(), 'value'))
-            ->orderBy('t.name', 'ASC')
-            ->getQuery()
-            ->getResult();
-    }
-
-    /**
      * Replace all tags for a product
      *
      * @param string[] $tagNames
@@ -81,22 +65,5 @@ class ProductTagRepository extends ServiceEntityRepository
         }
 
         $this->getEntityManager()->flush();
-    }
-
-    /**
-     * Get tags with product counts
-     *
-     * @return array<array{tag: ProductTag, productCount: int}>
-     */
-    public function findWithProductCounts(): array
-    {
-        return $this->createQueryBuilder('t')
-            ->select('t', 'COUNT(p.id) as productCount')
-            ->leftJoin('t.products', 'p')
-            ->groupBy('t.id')
-            ->orderBy('productCount', 'DESC')
-            ->addOrderBy('t.name', 'ASC')
-            ->getQuery()
-            ->getResult();
     }
 }

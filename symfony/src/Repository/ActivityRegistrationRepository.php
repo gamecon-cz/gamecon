@@ -22,22 +22,4 @@ class ActivityRegistrationRepository extends ServiceEntityRepository
     {
         parent::__construct($registry, ActivityRegistration::class);
     }
-
-    public function save(ActivityRegistration $entity, bool $flush = false): void
-    {
-        $this->getEntityManager()->persist($entity);
-
-        if ($flush) {
-            $this->getEntityManager()->flush();
-        }
-    }
-
-    public function remove(ActivityRegistration $entity, bool $flush = false): void
-    {
-        $this->getEntityManager()->remove($entity);
-
-        if ($flush) {
-            $this->getEntityManager()->flush();
-        }
-    }
 }
