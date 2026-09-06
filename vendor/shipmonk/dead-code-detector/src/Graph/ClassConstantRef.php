@@ -1,0 +1,93 @@
+<?php declare(strict_types = 1);
+
+namespace ShipMonk\PHPStan\DeadCode\Graph;
+
+use LogicException;
+use PHPStan\TrinaryLogic;
+use ShipMonk\PHPStan\DeadCode\Enum\AccessType;
+use ShipMonk\PHPStan\DeadCode\Enum\MemberType;
+
+/**
+ * @template-covariant C of string|null
+ * @template-covariant M of string|null
+ * @template-extends ClassMemberRef<C, M>
+ */
+final class ClassConstantRef extends ClassMemberRef
+{
+
+    private readonly TrinaryLogic $isEnumCase;
+
+    /**
+     * @param C $className
+     * @param M $constantName
+     */
+    public function __construct(
+        ?string $className,
+        ?string $constantName,
+        bool $possibleDescendant,
+        TrinaryLogic $isEnumCase,
+    )
+    {
+        parent::__construct($className, $constantName, $possibleDescendant);
+        $this->isEnumCase = $isEnumCase;
+    }
+
+    protected function getKeyPrefixes(AccessType $accessType): array
+    {
+        if ($accessType !== AccessType::READ) {
+            throw new LogicException('Constants can only be read.');
+        }
+
+        if ($this->isEnumCase->maybe()) {
+            return ['c', 'e'];
+        } elseif ($this->isEnumCase->yes()) {
+            return ['e'];
+        } else {
+            return ['c'];
+        }
+    }
+
+    public function getMemberType(): MemberType
+    {
+        return MemberType::CONSTANT;
+    }
+
+    public function isEnumCase(): TrinaryLogic
+    {
+        return $this->isEnumCase;
+    }
+
+    public function withKnownNames(
+        string $className,
+        string $memberName,
+    ): self
+    {
+        return new self(
+            $className,
+            $memberName,
+            $this->isPossibleDescendant(),
+            $this->isEnumCase,
+        );
+    }
+
+    public function withKnownClass(string $className): self
+    {
+        return new self(
+            $className,
+            $this->getMemberName(),
+            $this->isPossibleDescendant(),
+            $this->isEnumCase,
+        );
+    }
+
+    public function withKnownMember(string $memberName): self
+    {
+        return new self(
+            $this->getClassName(),
+            $memberName,
+            $this->isPossibleDescendant(),
+            $this->isEnumCase,
+        );
+    }
+
+}
