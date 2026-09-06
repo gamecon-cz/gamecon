@@ -11,6 +11,7 @@ use App\Entity\ProductVariant;
 use App\Entity\Role;
 use App\Entity\User;
 use App\Entity\UserRole;
+use App\Enum\ProductTagCode;
 use App\Enum\RoleMeaning;
 use App\Repository\OrderRepository;
 use App\Repository\ProductBundleRepository;
@@ -492,7 +493,7 @@ class EshopIntegrationTest extends AbstractTestDb
         $productRepo = $this->em->getRepository(Product::class);
 
         // Our test product has 'tricko' tag (set in getBeforeClassInitCallbacks)
-        $trickoProducts = $productRepo->findByTag('tricko');
+        $trickoProducts = $productRepo->findByTag(ProductTagCode::TRICKO);
 
         $this->assertNotEmpty($trickoProducts, 'Should find products with tricko tag');
         $found = false;
@@ -504,8 +505,10 @@ class EshopIntegrationTest extends AbstractTestDb
         }
         $this->assertTrue($found, 'Test product should be in tricko results');
 
-        // Non-existent tag returns empty
-        $noResults = $productRepo->findByTag('nonexistent-tag');
+        // Dřív tu byl test na neexistující tag. Teď ho nejde ani zapsat — findByTag()
+        // bere ProductTagCode, takže překlep neprojde přes typ. Zůstává případ, kdy
+        // tag existuje, ale žádný produkt ho nemá.
+        $noResults = $productRepo->findByTag(ProductTagCode::PROPLACENI_BONUSU);
         $this->assertEmpty($noResults);
     }
 
@@ -514,7 +517,7 @@ class EshopIntegrationTest extends AbstractTestDb
         /** @var \App\Repository\ProductRepository $productRepo */
         $productRepo = $this->em->getRepository(Product::class);
 
-        $products = $productRepo->findByAnyTag(['tricko', 'nonexistent']);
+        $products = $productRepo->findByAnyTag([ProductTagCode::TRICKO, ProductTagCode::PROPLACENI_BONUSU]);
 
         $found = false;
         foreach ($products as $product) {
