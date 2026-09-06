@@ -1,0 +1,1609 @@
+parameters:
+    ignoreErrors:
+        -
+            message: '#^Unused Symfony\\Component\\DependencyInjection\\Loader\\Configurator\\App\:\:config$#'
+            identifier: shipmonk.deadMethod
+            count: 1
+            path: symfony/config/reference.php
+
+        -
+            message: '#^Unused Symfony\\Component\\Routing\\Loader\\Configurator\\Routes\:\:config$#'
+            identifier: shipmonk.deadMethod
+            count: 1
+            path: symfony/config/reference.php
+
+        -
+            message: '#^Property App\\Discount\\AppliedDiscount\:\:\$discountAmount is never read$#'
+            identifier: shipmonk.deadProperty.neverRead
+            count: 1
+            path: symfony/src/Discount/AppliedDiscount.php
+
+        -
+            message: '#^Property App\\Discount\\AppliedDiscount\:\:\$finalPrice is never read$#'
+            identifier: shipmonk.deadProperty.neverRead
+            count: 1
+            path: symfony/src/Discount/AppliedDiscount.php
+
+        -
+            message: '#^Property App\\Discount\\AppliedDiscount\:\:\$itemKey is never read$#'
+            identifier: shipmonk.deadProperty.neverRead
+            count: 1
+            path: symfony/src/Discount/AppliedDiscount.php
+
+        -
+            message: '#^Property App\\Discount\\AppliedDiscount\:\:\$originalPrice is never read$#'
+            identifier: shipmonk.deadProperty.neverRead
+            count: 1
+            path: symfony/src/Discount/AppliedDiscount.php
+
+        -
+            message: '#^Property App\\Discount\\AppliedDiscount\:\:\$ruleCode is never read$#'
+            identifier: shipmonk.deadProperty.neverRead
+            count: 1
+            path: symfony/src/Discount/AppliedDiscount.php
+
+        -
+            message: '#^Property App\\Discount\\AppliedDiscount\:\:\$ruleName is never read$#'
+            identifier: shipmonk.deadProperty.neverRead
+            count: 1
+            path: symfony/src/Discount/AppliedDiscount.php
+
+        -
+            message: '#^Property App\\Discount\\AppliedDiscount\:\:\$snapshot is never read$#'
+            identifier: shipmonk.deadProperty.neverRead
+            count: 1
+            path: symfony/src/Discount/AppliedDiscount.php
+
+        -
+            message: '#^Unused App\\Discount\\DiscountCalculation\:\:apply$#'
+            identifier: shipmonk.deadMethod
+            count: 1
+            path: symfony/src/Discount/DiscountCalculation.php
+
+        -
+            message: '#^Unused App\\Discount\\DiscountEffect\:\:label$#'
+            identifier: shipmonk.deadMethod
+            count: 1
+            path: symfony/src/Discount/DiscountEffect.php
+
+        -
+            message: '#^Unused App\\Discount\\DiscountParameters\:\:editableParameters$#'
+            identifier: shipmonk.deadMethod
+            count: 1
+            path: symfony/src/Discount/DiscountParameters.php
+
+        -
+            message: '#^Unused App\\Discount\\DiscountRuleLoader\:\:rightsOfUser$#'
+            identifier: shipmonk.deadMethod
+            count: 1
+            path: symfony/src/Discount/DiscountRuleLoader.php
+
+        -
+            message: '#^Unused App\\Discount\\DiscountRuleLoader\:\:rulesForYear$#'
+            identifier: shipmonk.deadMethod
+            count: 1
+            path: symfony/src/Discount/DiscountRuleLoader.php
+
+        -
+            message: '#^Unused App\\Discount\\DiscountScope\:\:label$#'
+            identifier: shipmonk.deadMethod
+            count: 1
+            path: symfony/src/Discount/DiscountScope.php
+
+        -
+            message: '#^Unused App\\Discount\\DiscountSetting\:\:label$#'
+            identifier: shipmonk.deadMethod
+            count: 1
+            path: symfony/src/Discount/DiscountSetting.php
+
+        -
+            message: '#^Unused App\\Entity\\Enum\\GenderEnum\:\:listForSelect$#'
+            identifier: shipmonk.deadMethod
+            count: 1
+            path: symfony/src/Entity/Enum/GenderEnum.php
+
+        -
+            message: '#^Unused App\\Entity\\News\:\:TYPE_BLOG$#'
+            identifier: shipmonk.deadConstant
+            count: 1
+            path: symfony/src/Entity/News.php
+
+        -
+            message: '#^Unused App\\Entity\\OrderItem\:\:wasFree$#'
+            identifier: shipmonk.deadMethod
+            count: 1
+            path: symfony/src/Entity/OrderItem.php
+
+        -
+            message: '#^Unused App\\Entity\\Product\:\:archive$#'
+            identifier: shipmonk.deadMethod
+            count: 1
+            path: symfony/src/Entity/Product.php
+
+        -
+            message: '#^Unused App\\Entity\\Product\:\:restore$#'
+            identifier: shipmonk.deadMethod
+            count: 1
+            path: symfony/src/Entity/Product.php
+
+        -
+            message: '#^Unused App\\Entity\\ProductBundle\:\:containsVariant$#'
+            identifier: shipmonk.deadMethod
+            count: 1
+            path: symfony/src/Entity/ProductBundle.php
+
+        -
+            message: '#^Unused App\\Entity\\ShopGridCell\:\:TYPE_BACK$#'
+            identifier: shipmonk.deadConstant
+            count: 1
+            path: symfony/src/Entity/ShopGridCell.php
+
+        -
+            message: '#^Unused App\\Entity\\ShopGridCell\:\:TYPE_ITEM$#'
+            identifier: shipmonk.deadConstant
+            count: 1
+            path: symfony/src/Entity/ShopGridCell.php
+
+        -
+            message: '#^Unused App\\Entity\\ShopGridCell\:\:TYPE_PAGE$#'
+            identifier: shipmonk.deadConstant
+            count: 1
+            path: symfony/src/Entity/ShopGridCell.php
+
+        -
+            message: '#^Unused App\\Entity\\ShopGridCell\:\:TYPE_SUMMARY$#'
+            identifier: shipmonk.deadConstant
+            count: 1
+            path: symfony/src/Entity/ShopGridCell.php
+
+        -
+            message: '#^Unused App\\Entity\\Tag\:\:MALOVANI$#'
+            identifier: shipmonk.deadConstant
+            count: 1
+            path: symfony/src/Entity/Tag.php
+
+        -
+            message: '#^Unused App\\Entity\\Tag\:\:UNIKOVKA$#'
+            identifier: shipmonk.deadConstant
+            count: 1
+            path: symfony/src/Entity/Tag.php
+
+        -
+            message: '#^Unused App\\Enum\\ProductTagCode\:\:fromLegacyTyp$#'
+            identifier: shipmonk.deadMethod
+            count: 1
+            path: symfony/src/Enum/ProductTagCode.php
+
+        -
+            message: '#^Unused App\\Enum\\ProductTagCode\:\:isCategory$#'
+            identifier: shipmonk.deadMethod
+            count: 1
+            path: symfony/src/Enum/ProductTagCode.php
+
+        -
+            message: '#^Unused App\\Enum\\ProductTagCode\:\:label$#'
+            identifier: shipmonk.deadMethod
+            count: 1
+            path: symfony/src/Enum/ProductTagCode.php
+
+        -
+            message: '#^Unused App\\EventListener\\UserRoleChangedListener\:\:forceRecalculateCompletedOrder$#'
+            identifier: shipmonk.deadMethod
+            count: 1
+            path: symfony/src/EventListener/UserRoleChangedListener.php
+
+        -
+            message: '#^Unused App\\Rector\\ReorderAttributeArgumentsRector\:\:getRuleDefinition$#'
+            identifier: shipmonk.deadMethod
+            count: 1
+            path: symfony/src/Rector/ReorderAttributeArgumentsRector.php
+
+        -
+            message: '#^Unused App\\Repository\\AccommodationRepository\:\:findByPokoj$#'
+            identifier: shipmonk.deadMethod
+            count: 1
+            path: symfony/src/Repository/AccommodationRepository.php
+
+        -
+            message: '#^Unused App\\Repository\\AccommodationRepository\:\:findByRok$#'
+            identifier: shipmonk.deadMethod
+            count: 1
+            path: symfony/src/Repository/AccommodationRepository.php
+
+        -
+            message: '#^Unused App\\Repository\\AccommodationRepository\:\:findByUzivatel$#'
+            identifier: shipmonk.deadMethod
+            count: 1
+            path: symfony/src/Repository/AccommodationRepository.php
+
+        -
+            message: '#^Unused App\\Repository\\AccommodationRepository\:\:remove$#'
+            identifier: shipmonk.deadMethod
+            count: 1
+            path: symfony/src/Repository/AccommodationRepository.php
+
+        -
+            message: '#^Unused App\\Repository\\AccommodationRepository\:\:save$#'
+            identifier: shipmonk.deadMethod
+            count: 1
+            path: symfony/src/Repository/AccommodationRepository.php
+
+        -
+            message: '#^Unused App\\Repository\\ActivityImportRepository\:\:remove$#'
+            identifier: shipmonk.deadMethod
+            count: 1
+            path: symfony/src/Repository/ActivityImportRepository.php
+
+        -
+            message: '#^Unused App\\Repository\\ActivityImportRepository\:\:save$#'
+            identifier: shipmonk.deadMethod
+            count: 1
+            path: symfony/src/Repository/ActivityImportRepository.php
+
+        -
+            message: '#^Unused App\\Repository\\ActivityInstanceRepository\:\:remove$#'
+            identifier: shipmonk.deadMethod
+            count: 1
+            path: symfony/src/Repository/ActivityInstanceRepository.php
+
+        -
+            message: '#^Unused App\\Repository\\ActivityInstanceRepository\:\:save$#'
+            identifier: shipmonk.deadMethod
+            count: 1
+            path: symfony/src/Repository/ActivityInstanceRepository.php
+
+        -
+            message: '#^Unused App\\Repository\\ActivityOrganizerRepository\:\:remove$#'
+            identifier: shipmonk.deadMethod
+            count: 1
+            path: symfony/src/Repository/ActivityOrganizerRepository.php
+
+        -
+            message: '#^Unused App\\Repository\\ActivityOrganizerRepository\:\:save$#'
+            identifier: shipmonk.deadMethod
+            count: 1
+            path: symfony/src/Repository/ActivityOrganizerRepository.php
+
+        -
+            message: '#^Unused App\\Repository\\ActivityRegistrationLogRepository\:\:remove$#'
+            identifier: shipmonk.deadMethod
+            count: 1
+            path: symfony/src/Repository/ActivityRegistrationLogRepository.php
+
+        -
+            message: '#^Unused App\\Repository\\ActivityRegistrationLogRepository\:\:save$#'
+            identifier: shipmonk.deadMethod
+            count: 1
+            path: symfony/src/Repository/ActivityRegistrationLogRepository.php
+
+        -
+            message: '#^Unused App\\Repository\\ActivityRegistrationRepository\:\:remove$#'
+            identifier: shipmonk.deadMethod
+            count: 1
+            path: symfony/src/Repository/ActivityRegistrationRepository.php
+
+        -
+            message: '#^Unused App\\Repository\\ActivityRegistrationRepository\:\:save$#'
+            identifier: shipmonk.deadMethod
+            count: 1
+            path: symfony/src/Repository/ActivityRegistrationRepository.php
+
+        -
+            message: '#^Unused App\\Repository\\ActivityRegistrationSpecRepository\:\:remove$#'
+            identifier: shipmonk.deadMethod
+            count: 1
+            path: symfony/src/Repository/ActivityRegistrationSpecRepository.php
+
+        -
+            message: '#^Unused App\\Repository\\ActivityRegistrationSpecRepository\:\:save$#'
+            identifier: shipmonk.deadMethod
+            count: 1
+            path: symfony/src/Repository/ActivityRegistrationSpecRepository.php
+
+        -
+            message: '#^Unused App\\Repository\\ActivityRegistrationStateRepository\:\:findByName$#'
+            identifier: shipmonk.deadMethod
+            count: 1
+            path: symfony/src/Repository/ActivityRegistrationStateRepository.php
+
+        -
+            message: '#^Unused App\\Repository\\ActivityRegistrationStateRepository\:\:remove$#'
+            identifier: shipmonk.deadMethod
+            count: 1
+            path: symfony/src/Repository/ActivityRegistrationStateRepository.php
+
+        -
+            message: '#^Unused App\\Repository\\ActivityRegistrationStateRepository\:\:save$#'
+            identifier: shipmonk.deadMethod
+            count: 1
+            path: symfony/src/Repository/ActivityRegistrationStateRepository.php
+
+        -
+            message: '#^Unused App\\Repository\\ActivityRepository\:\:remove$#'
+            identifier: shipmonk.deadMethod
+            count: 1
+            path: symfony/src/Repository/ActivityRepository.php
+
+        -
+            message: '#^Unused App\\Repository\\ActivityRepository\:\:save$#'
+            identifier: shipmonk.deadMethod
+            count: 1
+            path: symfony/src/Repository/ActivityRepository.php
+
+        -
+            message: '#^Unused App\\Repository\\ActivityStatusRepository\:\:findByName$#'
+            identifier: shipmonk.deadMethod
+            count: 1
+            path: symfony/src/Repository/ActivityStatusRepository.php
+
+        -
+            message: '#^Unused App\\Repository\\ActivityStatusRepository\:\:remove$#'
+            identifier: shipmonk.deadMethod
+            count: 1
+            path: symfony/src/Repository/ActivityStatusRepository.php
+
+        -
+            message: '#^Unused App\\Repository\\ActivityStatusRepository\:\:save$#'
+            identifier: shipmonk.deadMethod
+            count: 1
+            path: symfony/src/Repository/ActivityStatusRepository.php
+
+        -
+            message: '#^Unused App\\Repository\\ActivityTagRepository\:\:remove$#'
+            identifier: shipmonk.deadMethod
+            count: 1
+            path: symfony/src/Repository/ActivityTagRepository.php
+
+        -
+            message: '#^Unused App\\Repository\\ActivityTagRepository\:\:save$#'
+            identifier: shipmonk.deadMethod
+            count: 1
+            path: symfony/src/Repository/ActivityTagRepository.php
+
+        -
+            message: '#^Unused App\\Repository\\ActivityTypeRepository\:\:findActive$#'
+            identifier: shipmonk.deadMethod
+            count: 1
+            path: symfony/src/Repository/ActivityTypeRepository.php
+
+        -
+            message: '#^Unused App\\Repository\\ActivityTypeRepository\:\:findByUrl$#'
+            identifier: shipmonk.deadMethod
+            count: 1
+            path: symfony/src/Repository/ActivityTypeRepository.php
+
+        -
+            message: '#^Unused App\\Repository\\ActivityTypeRepository\:\:findVisibleInMenu$#'
+            identifier: shipmonk.deadMethod
+            count: 1
+            path: symfony/src/Repository/ActivityTypeRepository.php
+
+        -
+            message: '#^Unused App\\Repository\\ActivityTypeRepository\:\:remove$#'
+            identifier: shipmonk.deadMethod
+            count: 1
+            path: symfony/src/Repository/ActivityTypeRepository.php
+
+        -
+            message: '#^Unused App\\Repository\\ActivityTypeRepository\:\:save$#'
+            identifier: shipmonk.deadMethod
+            count: 1
+            path: symfony/src/Repository/ActivityTypeRepository.php
+
+        -
+            message: '#^Unused App\\Repository\\BadgeRepository\:\:remove$#'
+            identifier: shipmonk.deadMethod
+            count: 1
+            path: symfony/src/Repository/BadgeRepository.php
+
+        -
+            message: '#^Unused App\\Repository\\BadgeRepository\:\:save$#'
+            identifier: shipmonk.deadMethod
+            count: 1
+            path: symfony/src/Repository/BadgeRepository.php
+
+        -
+            message: '#^Unused App\\Repository\\BulkActivityLogRepository\:\:remove$#'
+            identifier: shipmonk.deadMethod
+            count: 1
+            path: symfony/src/Repository/BulkActivityLogRepository.php
+
+        -
+            message: '#^Unused App\\Repository\\BulkActivityLogRepository\:\:save$#'
+            identifier: shipmonk.deadMethod
+            count: 1
+            path: symfony/src/Repository/BulkActivityLogRepository.php
+
+        -
+            message: '#^Unused App\\Repository\\CancelledOrderItemRepository\:\:countByProductAndYear$#'
+            identifier: shipmonk.deadMethod
+            count: 1
+            path: symfony/src/Repository/CancelledOrderItemRepository.php
+
+        -
+            message: '#^Unused App\\Repository\\CancelledOrderItemRepository\:\:findByCancellationReason$#'
+            identifier: shipmonk.deadMethod
+            count: 1
+            path: symfony/src/Repository/CancelledOrderItemRepository.php
+
+        -
+            message: '#^Unused App\\Repository\\CancelledOrderItemRepository\:\:findByCustomerAndYear$#'
+            identifier: shipmonk.deadMethod
+            count: 1
+            path: symfony/src/Repository/CancelledOrderItemRepository.php
+
+        -
+            message: '#^Unused App\\Repository\\CancelledOrderItemRepository\:\:getTotalCancelledRevenueByYear$#'
+            identifier: shipmonk.deadMethod
+            count: 1
+            path: symfony/src/Repository/CancelledOrderItemRepository.php
+
+        -
+            message: '#^Unused App\\Repository\\CategoryTagRepository\:\:findAllOrdered$#'
+            identifier: shipmonk.deadMethod
+            count: 1
+            path: symfony/src/Repository/CategoryTagRepository.php
+
+        -
+            message: '#^Unused App\\Repository\\CategoryTagRepository\:\:findAllWithTagsHierarchical$#'
+            identifier: shipmonk.deadMethod
+            count: 1
+            path: symfony/src/Repository/CategoryTagRepository.php
+
+        -
+            message: '#^Unused App\\Repository\\CategoryTagRepository\:\:findByNazev$#'
+            identifier: shipmonk.deadMethod
+            count: 1
+            path: symfony/src/Repository/CategoryTagRepository.php
+
+        -
+            message: '#^Unused App\\Repository\\CategoryTagRepository\:\:findMainCategories$#'
+            identifier: shipmonk.deadMethod
+            count: 1
+            path: symfony/src/Repository/CategoryTagRepository.php
+
+        -
+            message: '#^Unused App\\Repository\\CategoryTagRepository\:\:findSubcategories$#'
+            identifier: shipmonk.deadMethod
+            count: 1
+            path: symfony/src/Repository/CategoryTagRepository.php
+
+        -
+            message: '#^Unused App\\Repository\\CategoryTagRepository\:\:remove$#'
+            identifier: shipmonk.deadMethod
+            count: 1
+            path: symfony/src/Repository/CategoryTagRepository.php
+
+        -
+            message: '#^Unused App\\Repository\\CategoryTagRepository\:\:save$#'
+            identifier: shipmonk.deadMethod
+            count: 1
+            path: symfony/src/Repository/CategoryTagRepository.php
+
+        -
+            message: '#^Unused App\\Repository\\DiscountRepository\:\:remove$#'
+            identifier: shipmonk.deadMethod
+            count: 1
+            path: symfony/src/Repository/DiscountRepository.php
+
+        -
+            message: '#^Unused App\\Repository\\DiscountRepository\:\:save$#'
+            identifier: shipmonk.deadMethod
+            count: 1
+            path: symfony/src/Repository/DiscountRepository.php
+
+        -
+            message: '#^Unused App\\Repository\\EventLogRepository\:\:remove$#'
+            identifier: shipmonk.deadMethod
+            count: 1
+            path: symfony/src/Repository/EventLogRepository.php
+
+        -
+            message: '#^Unused App\\Repository\\EventLogRepository\:\:save$#'
+            identifier: shipmonk.deadMethod
+            count: 1
+            path: symfony/src/Repository/EventLogRepository.php
+
+        -
+            message: '#^Unused App\\Repository\\GoogleApiUserTokenRepository\:\:remove$#'
+            identifier: shipmonk.deadMethod
+            count: 1
+            path: symfony/src/Repository/GoogleApiUserTokenRepository.php
+
+        -
+            message: '#^Unused App\\Repository\\GoogleApiUserTokenRepository\:\:save$#'
+            identifier: shipmonk.deadMethod
+            count: 1
+            path: symfony/src/Repository/GoogleApiUserTokenRepository.php
+
+        -
+            message: '#^Unused App\\Repository\\GoogleDriveDirRepository\:\:remove$#'
+            identifier: shipmonk.deadMethod
+            count: 1
+            path: symfony/src/Repository/GoogleDriveDirRepository.php
+
+        -
+            message: '#^Unused App\\Repository\\GoogleDriveDirRepository\:\:save$#'
+            identifier: shipmonk.deadMethod
+            count: 1
+            path: symfony/src/Repository/GoogleDriveDirRepository.php
+
+        -
+            message: '#^Unused App\\Repository\\LocationRepository\:\:remove$#'
+            identifier: shipmonk.deadMethod
+            count: 1
+            path: symfony/src/Repository/LocationRepository.php
+
+        -
+            message: '#^Unused App\\Repository\\LocationRepository\:\:save$#'
+            identifier: shipmonk.deadMethod
+            count: 1
+            path: symfony/src/Repository/LocationRepository.php
+
+        -
+            message: '#^Unused App\\Repository\\NewsRepository\:\:remove$#'
+            identifier: shipmonk.deadMethod
+            count: 1
+            path: symfony/src/Repository/NewsRepository.php
+
+        -
+            message: '#^Unused App\\Repository\\NewsRepository\:\:save$#'
+            identifier: shipmonk.deadMethod
+            count: 1
+            path: symfony/src/Repository/NewsRepository.php
+
+        -
+            message: '#^Unused App\\Repository\\NewsletterSubscriptionLogRepository\:\:remove$#'
+            identifier: shipmonk.deadMethod
+            count: 1
+            path: symfony/src/Repository/NewsletterSubscriptionLogRepository.php
+
+        -
+            message: '#^Unused App\\Repository\\NewsletterSubscriptionLogRepository\:\:save$#'
+            identifier: shipmonk.deadMethod
+            count: 1
+            path: symfony/src/Repository/NewsletterSubscriptionLogRepository.php
+
+        -
+            message: '#^Unused App\\Repository\\NewsletterSubscriptionRepository\:\:findByEmail$#'
+            identifier: shipmonk.deadMethod
+            count: 1
+            path: symfony/src/Repository/NewsletterSubscriptionRepository.php
+
+        -
+            message: '#^Unused App\\Repository\\NewsletterSubscriptionRepository\:\:remove$#'
+            identifier: shipmonk.deadMethod
+            count: 1
+            path: symfony/src/Repository/NewsletterSubscriptionRepository.php
+
+        -
+            message: '#^Unused App\\Repository\\NewsletterSubscriptionRepository\:\:save$#'
+            identifier: shipmonk.deadMethod
+            count: 1
+            path: symfony/src/Repository/NewsletterSubscriptionRepository.php
+
+        -
+            message: '#^Unused App\\Repository\\OrderItemRepository\:\:countByProductAndYear$#'
+            identifier: shipmonk.deadMethod
+            count: 1
+            path: symfony/src/Repository/OrderItemRepository.php
+
+        -
+            message: '#^Unused App\\Repository\\OrderItemRepository\:\:findByProductAndYear$#'
+            identifier: shipmonk.deadMethod
+            count: 1
+            path: symfony/src/Repository/OrderItemRepository.php
+
+        -
+            message: '#^Unused App\\Repository\\OrderItemRepository\:\:findDiscountedItemsForYear$#'
+            identifier: shipmonk.deadMethod
+            count: 1
+            path: symfony/src/Repository/OrderItemRepository.php
+
+        -
+            message: '#^Unused App\\Repository\\OrderItemRepository\:\:findOrphaned$#'
+            identifier: shipmonk.deadMethod
+            count: 1
+            path: symfony/src/Repository/OrderItemRepository.php
+
+        -
+            message: '#^Unused App\\Repository\\OrderItemRepository\:\:getCustomerSpendingForYear$#'
+            identifier: shipmonk.deadMethod
+            count: 1
+            path: symfony/src/Repository/OrderItemRepository.php
+
+        -
+            message: '#^Unused App\\Repository\\OrderItemRepository\:\:getSalesStatsForYear$#'
+            identifier: shipmonk.deadMethod
+            count: 1
+            path: symfony/src/Repository/OrderItemRepository.php
+
+        -
+            message: '#^Unused App\\Repository\\OrderItemRepository\:\:getTotalRevenueByProductAndYear$#'
+            identifier: shipmonk.deadMethod
+            count: 1
+            path: symfony/src/Repository/OrderItemRepository.php
+
+        -
+            message: '#^Unused App\\Repository\\OrderItemRepository\:\:hasCustomerPurchased$#'
+            identifier: shipmonk.deadMethod
+            count: 1
+            path: symfony/src/Repository/OrderItemRepository.php
+
+        -
+            message: '#^Unused App\\Repository\\OrderItemRepository\:\:remove$#'
+            identifier: shipmonk.deadMethod
+            count: 1
+            path: symfony/src/Repository/OrderItemRepository.php
+
+        -
+            message: '#^Unused App\\Repository\\OrderItemRepository\:\:save$#'
+            identifier: shipmonk.deadMethod
+            count: 1
+            path: symfony/src/Repository/OrderItemRepository.php
+
+        -
+            message: '#^Unused App\\Repository\\OrderRepository\:\:findByStatus$#'
+            identifier: shipmonk.deadMethod
+            count: 1
+            path: symfony/src/Repository/OrderRepository.php
+
+        -
+            message: '#^Unused App\\Repository\\OrderRepository\:\:findCompletedForCustomer$#'
+            identifier: shipmonk.deadMethod
+            count: 1
+            path: symfony/src/Repository/OrderRepository.php
+
+        -
+            message: '#^Unused App\\Repository\\OrderRepository\:\:getTotalRevenueForYear$#'
+            identifier: shipmonk.deadMethod
+            count: 1
+            path: symfony/src/Repository/OrderRepository.php
+
+        -
+            message: '#^Unused App\\Repository\\OrderRepository\:\:remove$#'
+            identifier: shipmonk.deadMethod
+            count: 1
+            path: symfony/src/Repository/OrderRepository.php
+
+        -
+            message: '#^Unused App\\Repository\\OrderRepository\:\:save$#'
+            identifier: shipmonk.deadMethod
+            count: 1
+            path: symfony/src/Repository/OrderRepository.php
+
+        -
+            message: '#^Unused App\\Repository\\PageRepository\:\:countActiveUsers$#'
+            identifier: shipmonk.deadMethod
+            count: 1
+            path: symfony/src/Repository/PageRepository.php
+
+        -
+            message: '#^Unused App\\Repository\\PageRepository\:\:findByEmail$#'
+            identifier: shipmonk.deadMethod
+            count: 1
+            path: symfony/src/Repository/PageRepository.php
+
+        -
+            message: '#^Unused App\\Repository\\PageRepository\:\:findByLogin$#'
+            identifier: shipmonk.deadMethod
+            count: 1
+            path: symfony/src/Repository/PageRepository.php
+
+        -
+            message: '#^Unused App\\Repository\\PageRepository\:\:findByPartialName$#'
+            identifier: shipmonk.deadMethod
+            count: 1
+            path: symfony/src/Repository/PageRepository.php
+
+        -
+            message: '#^Unused App\\Repository\\PageRepository\:\:findRegisteredThisYear$#'
+            identifier: shipmonk.deadMethod
+            count: 1
+            path: symfony/src/Repository/PageRepository.php
+
+        -
+            message: '#^Unused App\\Repository\\PageRepository\:\:remove$#'
+            identifier: shipmonk.deadMethod
+            count: 1
+            path: symfony/src/Repository/PageRepository.php
+
+        -
+            message: '#^Unused App\\Repository\\PageRepository\:\:save$#'
+            identifier: shipmonk.deadMethod
+            count: 1
+            path: symfony/src/Repository/PageRepository.php
+
+        -
+            message: '#^Unused App\\Repository\\PaymentRepository\:\:remove$#'
+            identifier: shipmonk.deadMethod
+            count: 1
+            path: symfony/src/Repository/PaymentRepository.php
+
+        -
+            message: '#^Unused App\\Repository\\PaymentRepository\:\:save$#'
+            identifier: shipmonk.deadMethod
+            count: 1
+            path: symfony/src/Repository/PaymentRepository.php
+
+        -
+            message: '#^Unused App\\Repository\\PermissionRepository\:\:findByJmenoPrava$#'
+            identifier: shipmonk.deadMethod
+            count: 1
+            path: symfony/src/Repository/PermissionRepository.php
+
+        -
+            message: '#^Unused App\\Repository\\PermissionRepository\:\:remove$#'
+            identifier: shipmonk.deadMethod
+            count: 1
+            path: symfony/src/Repository/PermissionRepository.php
+
+        -
+            message: '#^Unused App\\Repository\\PermissionRepository\:\:save$#'
+            identifier: shipmonk.deadMethod
+            count: 1
+            path: symfony/src/Repository/PermissionRepository.php
+
+        -
+            message: '#^Unused App\\Repository\\ProductBundleRepository\:\:findByRole$#'
+            identifier: shipmonk.deadMethod
+            count: 1
+            path: symfony/src/Repository/ProductBundleRepository.php
+
+        -
+            message: '#^Unused App\\Repository\\ProductBundleRepository\:\:findByVariant$#'
+            identifier: shipmonk.deadMethod
+            count: 1
+            path: symfony/src/Repository/ProductBundleRepository.php
+
+        -
+            message: '#^Unused App\\Repository\\ProductBundleRepository\:\:findForced$#'
+            identifier: shipmonk.deadMethod
+            count: 1
+            path: symfony/src/Repository/ProductBundleRepository.php
+
+        -
+            message: '#^Unused App\\Repository\\ProductBundleRepository\:\:findForcedByRole$#'
+            identifier: shipmonk.deadMethod
+            count: 1
+            path: symfony/src/Repository/ProductBundleRepository.php
+
+        -
+            message: '#^Unused App\\Repository\\ProductBundleRepository\:\:findForcedByVariant$#'
+            identifier: shipmonk.deadMethod
+            count: 1
+            path: symfony/src/Repository/ProductBundleRepository.php
+
+        -
+            message: '#^Unused App\\Repository\\ProductBundleRepository\:\:findMandatoryBundlesForUser$#'
+            identifier: shipmonk.deadMethod
+            count: 1
+            path: symfony/src/Repository/ProductBundleRepository.php
+
+        -
+            message: '#^Unused App\\Repository\\ProductBundleRepository\:\:isVariantInForcedBundleForRole$#'
+            identifier: shipmonk.deadMethod
+            count: 1
+            path: symfony/src/Repository/ProductBundleRepository.php
+
+        -
+            message: '#^Unused App\\Repository\\ProductBundleRepository\:\:remove$#'
+            identifier: shipmonk.deadMethod
+            count: 1
+            path: symfony/src/Repository/ProductBundleRepository.php
+
+        -
+            message: '#^Unused App\\Repository\\ProductBundleRepository\:\:save$#'
+            identifier: shipmonk.deadMethod
+            count: 1
+            path: symfony/src/Repository/ProductBundleRepository.php
+
+        -
+            message: '#^Unused App\\Repository\\ProductDiscountRepository\:\:deleteByProduct$#'
+            identifier: shipmonk.deadMethod
+            count: 1
+            path: symfony/src/Repository/ProductDiscountRepository.php
+
+        -
+            message: '#^Unused App\\Repository\\ProductDiscountRepository\:\:findByProduct$#'
+            identifier: shipmonk.deadMethod
+            count: 1
+            path: symfony/src/Repository/ProductDiscountRepository.php
+
+        -
+            message: '#^Unused App\\Repository\\ProductDiscountRepository\:\:findByProductAndRole$#'
+            identifier: shipmonk.deadMethod
+            count: 1
+            path: symfony/src/Repository/ProductDiscountRepository.php
+
+        -
+            message: '#^Unused App\\Repository\\ProductDiscountRepository\:\:findByRole$#'
+            identifier: shipmonk.deadMethod
+            count: 1
+            path: symfony/src/Repository/ProductDiscountRepository.php
+
+        -
+            message: '#^Unused App\\Repository\\ProductDiscountRepository\:\:findFreeProductsForRole$#'
+            identifier: shipmonk.deadMethod
+            count: 1
+            path: symfony/src/Repository/ProductDiscountRepository.php
+
+        -
+            message: '#^Unused App\\Repository\\ProductDiscountRepository\:\:findProductsWithDiscountForRole$#'
+            identifier: shipmonk.deadMethod
+            count: 1
+            path: symfony/src/Repository/ProductDiscountRepository.php
+
+        -
+            message: '#^Unused App\\Repository\\ProductDiscountRepository\:\:hasDiscountForRole$#'
+            identifier: shipmonk.deadMethod
+            count: 1
+            path: symfony/src/Repository/ProductDiscountRepository.php
+
+        -
+            message: '#^Unused App\\Repository\\ProductDiscountRepository\:\:remove$#'
+            identifier: shipmonk.deadMethod
+            count: 1
+            path: symfony/src/Repository/ProductDiscountRepository.php
+
+        -
+            message: '#^Unused App\\Repository\\ProductDiscountRepository\:\:save$#'
+            identifier: shipmonk.deadMethod
+            count: 1
+            path: symfony/src/Repository/ProductDiscountRepository.php
+
+        -
+            message: '#^Unused App\\Repository\\ProductRepository\:\:findByCode$#'
+            identifier: shipmonk.deadMethod
+            count: 1
+            path: symfony/src/Repository/ProductRepository.php
+
+        -
+            message: '#^Unused App\\Repository\\ProductRepository\:\:findByTags$#'
+            identifier: shipmonk.deadMethod
+            count: 1
+            path: symfony/src/Repository/ProductRepository.php
+
+        -
+            message: '#^Unused App\\Repository\\ProductRepository\:\:findExpiringSoon$#'
+            identifier: shipmonk.deadMethod
+            count: 1
+            path: symfony/src/Repository/ProductRepository.php
+
+        -
+            message: '#^Unused App\\Repository\\ProductRepository\:\:findWithLowStockVariants$#'
+            identifier: shipmonk.deadMethod
+            count: 1
+            path: symfony/src/Repository/ProductRepository.php
+
+        -
+            message: '#^Unused App\\Repository\\ProductRepository\:\:remove$#'
+            identifier: shipmonk.deadMethod
+            count: 1
+            path: symfony/src/Repository/ProductRepository.php
+
+        -
+            message: '#^Unused App\\Repository\\ProductRepository\:\:save$#'
+            identifier: shipmonk.deadMethod
+            count: 1
+            path: symfony/src/Repository/ProductRepository.php
+
+        -
+            message: '#^Unused App\\Repository\\ProductTagRepository\:\:findTypeTags$#'
+            identifier: shipmonk.deadMethod
+            count: 1
+            path: symfony/src/Repository/ProductTagRepository.php
+
+        -
+            message: '#^Unused App\\Repository\\ProductTagRepository\:\:findWithProductCounts$#'
+            identifier: shipmonk.deadMethod
+            count: 1
+            path: symfony/src/Repository/ProductTagRepository.php
+
+        -
+            message: '#^Unused App\\Repository\\ProductVariantRepository\:\:findByCode$#'
+            identifier: shipmonk.deadMethod
+            count: 1
+            path: symfony/src/Repository/ProductVariantRepository.php
+
+        -
+            message: '#^Unused App\\Repository\\ProductVariantRepository\:\:findByProduct$#'
+            identifier: shipmonk.deadMethod
+            count: 1
+            path: symfony/src/Repository/ProductVariantRepository.php
+
+        -
+            message: '#^Unused App\\Repository\\QuickReportRepository\:\:remove$#'
+            identifier: shipmonk.deadMethod
+            count: 1
+            path: symfony/src/Repository/QuickReportRepository.php
+
+        -
+            message: '#^Unused App\\Repository\\QuickReportRepository\:\:save$#'
+            identifier: shipmonk.deadMethod
+            count: 1
+            path: symfony/src/Repository/QuickReportRepository.php
+
+        -
+            message: '#^Unused App\\Repository\\ReportRepository\:\:remove$#'
+            identifier: shipmonk.deadMethod
+            count: 1
+            path: symfony/src/Repository/ReportRepository.php
+
+        -
+            message: '#^Unused App\\Repository\\ReportRepository\:\:save$#'
+            identifier: shipmonk.deadMethod
+            count: 1
+            path: symfony/src/Repository/ReportRepository.php
+
+        -
+            message: '#^Unused App\\Repository\\ReportUsageLogRepository\:\:remove$#'
+            identifier: shipmonk.deadMethod
+            count: 1
+            path: symfony/src/Repository/ReportUsageLogRepository.php
+
+        -
+            message: '#^Unused App\\Repository\\ReportUsageLogRepository\:\:save$#'
+            identifier: shipmonk.deadMethod
+            count: 1
+            path: symfony/src/Repository/ReportUsageLogRepository.php
+
+        -
+            message: '#^Unused App\\Repository\\RolePermissionRepository\:\:remove$#'
+            identifier: shipmonk.deadMethod
+            count: 1
+            path: symfony/src/Repository/RolePermissionRepository.php
+
+        -
+            message: '#^Unused App\\Repository\\RolePermissionRepository\:\:save$#'
+            identifier: shipmonk.deadMethod
+            count: 1
+            path: symfony/src/Repository/RolePermissionRepository.php
+
+        -
+            message: '#^Unused App\\Repository\\RoleRepository\:\:findByKodRole$#'
+            identifier: shipmonk.deadMethod
+            count: 1
+            path: symfony/src/Repository/RoleRepository.php
+
+        -
+            message: '#^Unused App\\Repository\\RoleRepository\:\:findByRocnik$#'
+            identifier: shipmonk.deadMethod
+            count: 1
+            path: symfony/src/Repository/RoleRepository.php
+
+        -
+            message: '#^Unused App\\Repository\\RoleRepository\:\:findByTyp$#'
+            identifier: shipmonk.deadMethod
+            count: 1
+            path: symfony/src/Repository/RoleRepository.php
+
+        -
+            message: '#^Unused App\\Repository\\RoleRepository\:\:findByVyznam$#'
+            identifier: shipmonk.deadMethod
+            count: 1
+            path: symfony/src/Repository/RoleRepository.php
+
+        -
+            message: '#^Unused App\\Repository\\RoleRepository\:\:remove$#'
+            identifier: shipmonk.deadMethod
+            count: 1
+            path: symfony/src/Repository/RoleRepository.php
+
+        -
+            message: '#^Unused App\\Repository\\RoleRepository\:\:save$#'
+            identifier: shipmonk.deadMethod
+            count: 1
+            path: symfony/src/Repository/RoleRepository.php
+
+        -
+            message: '#^Unused App\\Repository\\ShopGridCellRepository\:\:remove$#'
+            identifier: shipmonk.deadMethod
+            count: 1
+            path: symfony/src/Repository/ShopGridCellRepository.php
+
+        -
+            message: '#^Unused App\\Repository\\ShopGridCellRepository\:\:save$#'
+            identifier: shipmonk.deadMethod
+            count: 1
+            path: symfony/src/Repository/ShopGridCellRepository.php
+
+        -
+            message: '#^Unused App\\Repository\\ShopGridRepository\:\:remove$#'
+            identifier: shipmonk.deadMethod
+            count: 1
+            path: symfony/src/Repository/ShopGridRepository.php
+
+        -
+            message: '#^Unused App\\Repository\\ShopGridRepository\:\:save$#'
+            identifier: shipmonk.deadMethod
+            count: 1
+            path: symfony/src/Repository/ShopGridRepository.php
+
+        -
+            message: '#^Unused App\\Repository\\SystemSettingLogRepository\:\:remove$#'
+            identifier: shipmonk.deadMethod
+            count: 1
+            path: symfony/src/Repository/SystemSettingLogRepository.php
+
+        -
+            message: '#^Unused App\\Repository\\SystemSettingLogRepository\:\:save$#'
+            identifier: shipmonk.deadMethod
+            count: 1
+            path: symfony/src/Repository/SystemSettingLogRepository.php
+
+        -
+            message: '#^Unused App\\Repository\\SystemSettingRepository\:\:remove$#'
+            identifier: shipmonk.deadMethod
+            count: 1
+            path: symfony/src/Repository/SystemSettingRepository.php
+
+        -
+            message: '#^Unused App\\Repository\\SystemSettingRepository\:\:save$#'
+            identifier: shipmonk.deadMethod
+            count: 1
+            path: symfony/src/Repository/SystemSettingRepository.php
+
+        -
+            message: '#^Unused App\\Repository\\TagRepository\:\:findAllWithCategories$#'
+            identifier: shipmonk.deadMethod
+            count: 1
+            path: symfony/src/Repository/TagRepository.php
+
+        -
+            message: '#^Unused App\\Repository\\TagRepository\:\:findByKategorie$#'
+            identifier: shipmonk.deadMethod
+            count: 1
+            path: symfony/src/Repository/TagRepository.php
+
+        -
+            message: '#^Unused App\\Repository\\TagRepository\:\:findByNazev$#'
+            identifier: shipmonk.deadMethod
+            count: 1
+            path: symfony/src/Repository/TagRepository.php
+
+        -
+            message: '#^Unused App\\Repository\\TagRepository\:\:findByPartialName$#'
+            identifier: shipmonk.deadMethod
+            count: 1
+            path: symfony/src/Repository/TagRepository.php
+
+        -
+            message: '#^Unused App\\Repository\\TagRepository\:\:remove$#'
+            identifier: shipmonk.deadMethod
+            count: 1
+            path: symfony/src/Repository/TagRepository.php
+
+        -
+            message: '#^Unused App\\Repository\\TagRepository\:\:save$#'
+            identifier: shipmonk.deadMethod
+            count: 1
+            path: symfony/src/Repository/TagRepository.php
+
+        -
+            message: '#^Unused App\\Repository\\TeamMemberRegistrationRepository\:\:remove$#'
+            identifier: shipmonk.deadMethod
+            count: 1
+            path: symfony/src/Repository/TeamMemberRegistrationRepository.php
+
+        -
+            message: '#^Unused App\\Repository\\TeamMemberRegistrationRepository\:\:save$#'
+            identifier: shipmonk.deadMethod
+            count: 1
+            path: symfony/src/Repository/TeamMemberRegistrationRepository.php
+
+        -
+            message: '#^Unused App\\Repository\\TeamRepository\:\:findByKodNaAktivite$#'
+            identifier: shipmonk.deadMethod
+            count: 1
+            path: symfony/src/Repository/TeamRepository.php
+
+        -
+            message: '#^Unused App\\Repository\\TeamRepository\:\:findVerejneByAktivita$#'
+            identifier: shipmonk.deadMethod
+            count: 1
+            path: symfony/src/Repository/TeamRepository.php
+
+        -
+            message: '#^Unused App\\Repository\\TeamRepository\:\:remove$#'
+            identifier: shipmonk.deadMethod
+            count: 1
+            path: symfony/src/Repository/TeamRepository.php
+
+        -
+            message: '#^Unused App\\Repository\\TeamRepository\:\:save$#'
+            identifier: shipmonk.deadMethod
+            count: 1
+            path: symfony/src/Repository/TeamRepository.php
+
+        -
+            message: '#^Unused App\\Repository\\TournamentRepository\:\:findByRok$#'
+            identifier: shipmonk.deadMethod
+            count: 1
+            path: symfony/src/Repository/TournamentRepository.php
+
+        -
+            message: '#^Unused App\\Repository\\TournamentRepository\:\:remove$#'
+            identifier: shipmonk.deadMethod
+            count: 1
+            path: symfony/src/Repository/TournamentRepository.php
+
+        -
+            message: '#^Unused App\\Repository\\TournamentRepository\:\:save$#'
+            identifier: shipmonk.deadMethod
+            count: 1
+            path: symfony/src/Repository/TournamentRepository.php
+
+        -
+            message: '#^Unused App\\Repository\\UserMergeLogRepository\:\:remove$#'
+            identifier: shipmonk.deadMethod
+            count: 1
+            path: symfony/src/Repository/UserMergeLogRepository.php
+
+        -
+            message: '#^Unused App\\Repository\\UserMergeLogRepository\:\:save$#'
+            identifier: shipmonk.deadMethod
+            count: 1
+            path: symfony/src/Repository/UserMergeLogRepository.php
+
+        -
+            message: '#^Unused App\\Repository\\UserRepository\:\:countActiveUsers$#'
+            identifier: shipmonk.deadMethod
+            count: 1
+            path: symfony/src/Repository/UserRepository.php
+
+        -
+            message: '#^Unused App\\Repository\\UserRepository\:\:findByEmail$#'
+            identifier: shipmonk.deadMethod
+            count: 1
+            path: symfony/src/Repository/UserRepository.php
+
+        -
+            message: '#^Unused App\\Repository\\UserRepository\:\:findByLogin$#'
+            identifier: shipmonk.deadMethod
+            count: 1
+            path: symfony/src/Repository/UserRepository.php
+
+        -
+            message: '#^Unused App\\Repository\\UserRepository\:\:findByPartialName$#'
+            identifier: shipmonk.deadMethod
+            count: 1
+            path: symfony/src/Repository/UserRepository.php
+
+        -
+            message: '#^Unused App\\Repository\\UserRepository\:\:findRegisteredThisYear$#'
+            identifier: shipmonk.deadMethod
+            count: 1
+            path: symfony/src/Repository/UserRepository.php
+
+        -
+            message: '#^Unused App\\Repository\\UserRepository\:\:remove$#'
+            identifier: shipmonk.deadMethod
+            count: 1
+            path: symfony/src/Repository/UserRepository.php
+
+        -
+            message: '#^Unused App\\Repository\\UserRepository\:\:save$#'
+            identifier: shipmonk.deadMethod
+            count: 1
+            path: symfony/src/Repository/UserRepository.php
+
+        -
+            message: '#^Unused App\\Repository\\UserRoleByYearRepository\:\:remove$#'
+            identifier: shipmonk.deadMethod
+            count: 1
+            path: symfony/src/Repository/UserRoleByYearRepository.php
+
+        -
+            message: '#^Unused App\\Repository\\UserRoleByYearRepository\:\:save$#'
+            identifier: shipmonk.deadMethod
+            count: 1
+            path: symfony/src/Repository/UserRoleByYearRepository.php
+
+        -
+            message: '#^Unused App\\Repository\\UserRoleLogRepository\:\:remove$#'
+            identifier: shipmonk.deadMethod
+            count: 1
+            path: symfony/src/Repository/UserRoleLogRepository.php
+
+        -
+            message: '#^Unused App\\Repository\\UserRoleLogRepository\:\:save$#'
+            identifier: shipmonk.deadMethod
+            count: 1
+            path: symfony/src/Repository/UserRoleLogRepository.php
+
+        -
+            message: '#^Unused App\\Repository\\UserRoleRepository\:\:remove$#'
+            identifier: shipmonk.deadMethod
+            count: 1
+            path: symfony/src/Repository/UserRoleRepository.php
+
+        -
+            message: '#^Unused App\\Repository\\UserRoleRepository\:\:save$#'
+            identifier: shipmonk.deadMethod
+            count: 1
+            path: symfony/src/Repository/UserRoleRepository.php
+
+        -
+            message: '#^Unused App\\Repository\\UserRoleTextRepository\:\:remove$#'
+            identifier: shipmonk.deadMethod
+            count: 1
+            path: symfony/src/Repository/UserRoleTextRepository.php
+
+        -
+            message: '#^Unused App\\Repository\\UserRoleTextRepository\:\:save$#'
+            identifier: shipmonk.deadMethod
+            count: 1
+            path: symfony/src/Repository/UserRoleTextRepository.php
+
+        -
+            message: '#^Unused App\\Repository\\UserUrlRepository\:\:remove$#'
+            identifier: shipmonk.deadMethod
+            count: 1
+            path: symfony/src/Repository/UserUrlRepository.php
+
+        -
+            message: '#^Unused App\\Repository\\UserUrlRepository\:\:save$#'
+            identifier: shipmonk.deadMethod
+            count: 1
+            path: symfony/src/Repository/UserUrlRepository.php
+
+        -
+            message: '#^Unused App\\Service\\AktivitaTymService\:\:casExpiraceMs$#'
+            identifier: shipmonk.deadMethod
+            count: 1
+            path: symfony/src/Service/AktivitaTymService.php
+
+        -
+            message: '#^Unused App\\Service\\AktivitaTymService\:\:casZalozeniMs$#'
+            identifier: shipmonk.deadMethod
+            count: 1
+            path: symfony/src/Service/AktivitaTymService.php
+
+        -
+            message: '#^Unused App\\Service\\AktivitaTymService\:\:casZalozeniTymuUzivatele$#'
+            identifier: shipmonk.deadMethod
+            count: 1
+            path: symfony/src/Service/AktivitaTymService.php
+
+        -
+            message: '#^Unused App\\Service\\AktivitaTymService\:\:clenoveTymu$#'
+            identifier: shipmonk.deadMethod
+            count: 1
+            path: symfony/src/Service/AktivitaTymService.php
+
+        -
+            message: '#^Unused App\\Service\\AktivitaTymService\:\:expirovaneTymy$#'
+            identifier: shipmonk.deadMethod
+            count: 1
+            path: symfony/src/Service/AktivitaTymService.php
+
+        -
+            message: '#^Unused App\\Service\\AktivitaTymService\:\:hraciNeprihlaseniNaAktivityTymu$#'
+            identifier: shipmonk.deadMethod
+            count: 1
+            path: symfony/src/Service/AktivitaTymService.php
+
+        -
+            message: '#^Unused App\\Service\\AktivitaTymService\:\:hraciSPatnymTymem$#'
+            identifier: shipmonk.deadMethod
+            count: 1
+            path: symfony/src/Service/AktivitaTymService.php
+
+        -
+            message: '#^Unused App\\Service\\AktivitaTymService\:\:idDalsichAktivitTymu$#'
+            identifier: shipmonk.deadMethod
+            count: 1
+            path: symfony/src/Service/AktivitaTymService.php
+
+        -
+            message: '#^Unused App\\Service\\AktivitaTymService\:\:idKapitanaTymu$#'
+            identifier: shipmonk.deadMethod
+            count: 1
+            path: symfony/src/Service/AktivitaTymService.php
+
+        -
+            message: '#^Unused App\\Service\\AktivitaTymService\:\:infoOTymuUzivatele$#'
+            identifier: shipmonk.deadMethod
+            count: 1
+            path: symfony/src/Service/AktivitaTymService.php
+
+        -
+            message: '#^Unused App\\Service\\AktivitaTymService\:\:jeKapitanem$#'
+            identifier: shipmonk.deadMethod
+            count: 1
+            path: symfony/src/Service/AktivitaTymService.php
+
+        -
+            message: '#^Unused App\\Service\\AktivitaTymService\:\:jeRozpracovany$#'
+            identifier: shipmonk.deadMethod
+            count: 1
+            path: symfony/src/Service/AktivitaTymService.php
+
+        -
+            message: '#^Unused App\\Service\\AktivitaTymService\:\:limitTymu$#'
+            identifier: shipmonk.deadMethod
+            count: 1
+            path: symfony/src/Service/AktivitaTymService.php
+
+        -
+            message: '#^Unused App\\Service\\AktivitaTymService\:\:maAktivitaTym$#'
+            identifier: shipmonk.deadMethod
+            count: 1
+            path: symfony/src/Service/AktivitaTymService.php
+
+        -
+            message: '#^Unused App\\Service\\AktivitaTymService\:\:maPrirazeneVsechnaKolaTurnaje$#'
+            identifier: shipmonk.deadMethod
+            count: 1
+            path: symfony/src/Service/AktivitaTymService.php
+
+        -
+            message: '#^Unused App\\Service\\AktivitaTymService\:\:nastavKapitana$#'
+            identifier: shipmonk.deadMethod
+            count: 1
+            path: symfony/src/Service/AktivitaTymService.php
+
+        -
+            message: '#^Unused App\\Service\\AktivitaTymService\:\:nastavLimitTymu$#'
+            identifier: shipmonk.deadMethod
+            count: 1
+            path: symfony/src/Service/AktivitaTymService.php
+
+        -
+            message: '#^Unused App\\Service\\AktivitaTymService\:\:nastavNazevTymu$#'
+            identifier: shipmonk.deadMethod
+            count: 1
+            path: symfony/src/Service/AktivitaTymService.php
+
+        -
+            message: '#^Unused App\\Service\\AktivitaTymService\:\:nastavVerejnostTymu$#'
+            identifier: shipmonk.deadMethod
+            count: 1
+            path: symfony/src/Service/AktivitaTymService.php
+
+        -
+            message: '#^Unused App\\Service\\AktivitaTymService\:\:nastavZamceniTymu$#'
+            identifier: shipmonk.deadMethod
+            count: 1
+            path: symfony/src/Service/AktivitaTymService.php
+
+        -
+            message: '#^Unused App\\Service\\AktivitaTymService\:\:odhlasUzivateleOdTymu$#'
+            identifier: shipmonk.deadMethod
+            count: 1
+            path: symfony/src/Service/AktivitaTymService.php
+
+        -
+            message: '#^Unused App\\Service\\AktivitaTymService\:\:pregenerujKodTymu$#'
+            identifier: shipmonk.deadMethod
+            count: 1
+            path: symfony/src/Service/AktivitaTymService.php
+
+        -
+            message: '#^Unused App\\Service\\AktivitaTymService\:\:pridejTymNaAktivitu$#'
+            identifier: shipmonk.deadMethod
+            count: 1
+            path: symfony/src/Service/AktivitaTymService.php
+
+        -
+            message: '#^Unused App\\Service\\AktivitaTymService\:\:prihlasUzivateleDoTymu$#'
+            identifier: shipmonk.deadMethod
+            count: 1
+            path: symfony/src/Service/AktivitaTymService.php
+
+        -
+            message: '#^Unused App\\Service\\AktivitaTymService\:\:pripraveneTymyBezKapitana$#'
+            identifier: shipmonk.deadMethod
+            count: 1
+            path: symfony/src/Service/AktivitaTymService.php
+
+        -
+            message: '#^Unused App\\Service\\AktivitaTymService\:\:rozpracovaneTymyIds$#'
+            identifier: shipmonk.deadMethod
+            count: 1
+            path: symfony/src/Service/AktivitaTymService.php
+
+        -
+            message: '#^Unused App\\Service\\AktivitaTymService\:\:smazRozpracovaneTymy$#'
+            identifier: shipmonk.deadMethod
+            count: 1
+            path: symfony/src/Service/AktivitaTymService.php
+
+        -
+            message: '#^Unused App\\Service\\AktivitaTymService\:\:smazat$#'
+            identifier: shipmonk.deadMethod
+            count: 1
+            path: symfony/src/Service/AktivitaTymService.php
+
+        -
+            message: '#^Unused App\\Service\\AktivitaTymService\:\:tymKapitanaNaAktivite$#'
+            identifier: shipmonk.deadMethod
+            count: 1
+            path: symfony/src/Service/AktivitaTymService.php
+
+        -
+            message: '#^Unused App\\Service\\AktivitaTymService\:\:tymUzivateleNaAktivite$#'
+            identifier: shipmonk.deadMethod
+            count: 1
+            path: symfony/src/Service/AktivitaTymService.php
+
+        -
+            message: '#^Unused App\\Service\\AktivitaTymService\:\:tymyBezAktivity$#'
+            identifier: shipmonk.deadMethod
+            count: 1
+            path: symfony/src/Service/AktivitaTymService.php
+
+        -
+            message: '#^Unused App\\Service\\AktivitaTymService\:\:tymySPatnymKolemTurnaje$#'
+            identifier: shipmonk.deadMethod
+            count: 1
+            path: symfony/src/Service/AktivitaTymService.php
+
+        -
+            message: '#^Unused App\\Service\\AktivitaTymService\:\:verejnostTymu$#'
+            identifier: shipmonk.deadMethod
+            count: 1
+            path: symfony/src/Service/AktivitaTymService.php
+
+        -
+            message: '#^Unused App\\Service\\AktivitaTymService\:\:vsechnyTymyAktivity$#'
+            identifier: shipmonk.deadMethod
+            count: 1
+            path: symfony/src/Service/AktivitaTymService.php
+
+        -
+            message: '#^Unused App\\Service\\AktivitaTymService\:\:zkontrolujZeJeKapitan$#'
+            identifier: shipmonk.deadMethod
+            count: 1
+            path: symfony/src/Service/AktivitaTymService.php
+
+        -
+            message: '#^Unused App\\Service\\BulkCancelService\:\:cancelOrder$#'
+            identifier: shipmonk.deadMethod
+            count: 1
+            path: symfony/src/Service/BulkCancelService.php
+
+        -
+            message: '#^Unused App\\Service\\CapacityManager\:\:isLowStock$#'
+            identifier: shipmonk.deadMethod
+            count: 1
+            path: symfony/src/Service/CapacityManager.php
+
+        -
+            message: '#^Unused App\\Service\\CapacityManager\:\:isSoldOut$#'
+            identifier: shipmonk.deadMethod
+            count: 1
+            path: symfony/src/Service/CapacityManager.php
+
+        -
+            message: '#^Unused App\\Service\\DiscountCalculator\:\:calculateDiscountsForProducts$#'
+            identifier: shipmonk.deadMethod
+            count: 1
+            path: symfony/src/Service/DiscountCalculator.php
+
+        -
+            message: '#^Unused App\\Service\\DiscountCalculator\:\:getRemainingQuota$#'
+            identifier: shipmonk.deadMethod
+            count: 1
+            path: symfony/src/Service/DiscountCalculator.php
+
+        -
+            message: '#^Unused App\\Service\\DiscountCalculator\:\:isEligibleForDiscount$#'
+            identifier: shipmonk.deadMethod
+            count: 1
+            path: symfony/src/Service/DiscountCalculator.php
+
+        -
+            message: '#^Unused App\\Service\\JwtService\:\:cleanupExpiredTokens$#'
+            identifier: shipmonk.deadMethod
+            count: 1
+            path: symfony/src/Service/JwtService.php
+
+        -
+            message: '#^Unused App\\Service\\JwtService\:\:getToken$#'
+            identifier: shipmonk.deadMethod
+            count: 1
+            path: symfony/src/Service/JwtService.php
+
+        -
+            message: '#^Unused App\\Service\\ProductService\:\:addTag$#'
+            identifier: shipmonk.deadMethod
+            count: 1
+            path: symfony/src/Service/ProductService.php
+
+        -
+            message: '#^Unused App\\Service\\ProductService\:\:archiveProduct$#'
+            identifier: shipmonk.deadMethod
+            count: 1
+            path: symfony/src/Service/ProductService.php
+
+        -
+            message: '#^Unused App\\Service\\ProductService\:\:bulkArchive$#'
+            identifier: shipmonk.deadMethod
+            count: 1
+            path: symfony/src/Service/ProductService.php
+
+        -
+            message: '#^Unused App\\Service\\ProductService\:\:bulkRestore$#'
+            identifier: shipmonk.deadMethod
+            count: 1
+            path: symfony/src/Service/ProductService.php
+
+        -
+            message: '#^Unused App\\Service\\ProductService\:\:canPurchase$#'
+            identifier: shipmonk.deadMethod
+            count: 1
+            path: symfony/src/Service/ProductService.php
+
+        -
+            message: '#^Unused App\\Service\\ProductService\:\:createProduct$#'
+            identifier: shipmonk.deadMethod
+            count: 1
+            path: symfony/src/Service/ProductService.php
+
+        -
+            message: '#^Unused App\\Service\\ProductService\:\:deleteProduct$#'
+            identifier: shipmonk.deadMethod
+            count: 1
+            path: symfony/src/Service/ProductService.php
+
+        -
+            message: '#^Unused App\\Service\\ProductService\:\:findProducts$#'
+            identifier: shipmonk.deadMethod
+            count: 1
+            path: symfony/src/Service/ProductService.php
+
+        -
+            message: '#^Unused App\\Service\\ProductService\:\:getAvailabilityInfo$#'
+            identifier: shipmonk.deadMethod
+            count: 1
+            path: symfony/src/Service/ProductService.php
+
+        -
+            message: '#^Unused App\\Service\\ProductService\:\:getProductsWithPrices$#'
+            identifier: shipmonk.deadMethod
+            count: 1
+            path: symfony/src/Service/ProductService.php
+
+        -
+            message: '#^Unused App\\Service\\ProductService\:\:getPublicProducts$#'
+            identifier: shipmonk.deadMethod
+            count: 1
+            path: symfony/src/Service/ProductService.php
+
+        -
+            message: '#^Unused App\\Service\\ProductService\:\:removeTag$#'
+            identifier: shipmonk.deadMethod
+            count: 1
+            path: symfony/src/Service/ProductService.php
+
+        -
+            message: '#^Unused App\\Service\\ProductService\:\:replaceTags$#'
+            identifier: shipmonk.deadMethod
+            count: 1
+            path: symfony/src/Service/ProductService.php
+
+        -
+            message: '#^Unused App\\Service\\ProductService\:\:restoreProduct$#'
+            identifier: shipmonk.deadMethod
+            count: 1
+            path: symfony/src/Service/ProductService.php
+
+        -
+            message: '#^Unused App\\Service\\ProductService\:\:updateProduct$#'
+            identifier: shipmonk.deadMethod
+            count: 1
+            path: symfony/src/Service/ProductService.php
+
+        -
+            message: '#^Unused App\\Service\\UserRoleService\:\:assignRole$#'
+            identifier: shipmonk.deadMethod
+            count: 1
+            path: symfony/src/Service/UserRoleService.php
+
+        -
+            message: '#^Unused App\\Service\\UserRoleService\:\:removeRole$#'
+            identifier: shipmonk.deadMethod
+            count: 1
+            path: symfony/src/Service/UserRoleService.php

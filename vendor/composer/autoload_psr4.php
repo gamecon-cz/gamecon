@@ -75,6 +75,7 @@ return array(
     'Symfony\\Bundle\\FrameworkBundle\\' => array($vendorDir . '/symfony/framework-bundle'),
     'Symfony\\Bridge\\Twig\\' => array($vendorDir . '/symfony/twig-bridge'),
     'Symfony\\Bridge\\Doctrine\\' => array($vendorDir . '/symfony/doctrine-bridge'),
+    'ShipMonk\\PHPStan\\DeadCode\\' => array($vendorDir . '/shipmonk/dead-code-detector/src'),
     'SepaQr\\' => array($vendorDir . '/smhg/sepa-qr-data/src'),
     'Rikudou\\QrPayment\\' => array($vendorDir . '/rikudou/qr-payment-interface/src'),
     'Rikudou\\QrPaymentQrCodeProvider\\' => array($vendorDir . '/rikudou/qr-payment-qr-code-provider/src'),
