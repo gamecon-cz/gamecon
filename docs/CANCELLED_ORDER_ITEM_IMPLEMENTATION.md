@@ -17,10 +17,12 @@ Successfully implemented the `CancelledOrderItem` Doctrine entity to map the `sh
 
 ### 2. Repository
 **File**: `symfony/src/Repository/CancelledOrderItemRepository.php`
-- `findByCustomerAndYear()` - Get all cancelled items for customer/year
-- `findByCancellationReason()` - Get cancelled items by reason (for legacy compatibility)
-- `countByProductAndYear()` - Count cancelled items for a product
-- `getTotalCancelledRevenueByYear()` - Calculate total revenue lost to cancellations
+
+Bound as the entity's `repositoryClass`, so Doctrine's inherited `find()`, `findBy()`
+and `findAll()` are available. It carries no custom methods: the finders originally
+sketched here (`findByCustomerAndYear()`, `findByCancellationReason()`,
+`countByProductAndYear()`, `getTotalCancelledRevenueByYear()`) were written ahead of any
+caller and never used, so they were removed. Add them back with the code that needs them.
 
 ### 3. Structure Classes (Legacy Compatibility)
 **File**: `symfony/src/Structure/Entity/CancelledOrderItemEntityStructure.php`
@@ -117,7 +119,7 @@ When migrating cancellation logic to Doctrine:
 1. Use the repository methods for querying cancelled items
 2. Create new service class for cancellation logic
 3. Migrate INSERT operations from `Shop.php` to use Doctrine entity
-4. Update calls to `dejNazvyZrusenychNakupu()` to use `findByCancellationReason()`
+4. Update calls to `dejNazvyZrusenychNakupu()` to use a repository finder filtering on the cancellation reason
 
 ## Notes
 

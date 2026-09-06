@@ -28,7 +28,7 @@ mikina_2026_verne_xs                       velikost malými písmeny
 - Velikosti v datech: S, M, L, XL, XXL, XXXL, jedno `xs`.
 - **Ponožky mají velikost taky, ale jinou konvencí**: `ponozky_2021_vel_38_39` / `ponozky_2021_vel_42_45`, tedy `_vel_<od>_<do>`. Dvě velikosti × 6 ročníků = **12 produktů, 6 skupin, 475 nákupů**. Regex psaný na `_L_`/`_XXL_` je tiše minul — při hledání variantních produktů se nedá spolehnout na jednu konvenci.
 - **Identifikátor je `kod_predmetu`, ne `nazev`.** `kod_predmetu` je UNIQUE a nese ročník; `nazev` je jen štítek pro zákazníka a **smí se opakovat napříč ročníky** — „Tričko červené pánské L" existuje pro 2016–2025 a jsou to různé produkty.
-- Migrace `100001` původně zaváděla i `UNIQUE(nazev)`, což si vynutilo umělé suffixy `(#1464)` u **785 z 1135 produktů**. Constraint i suffixy jsou pryč (nic na jedinečnosti názvu nestálo: `ProductRepository` má jen `findByCode()`, importér páruje přes `kod_predmetu`, `Predmet::jeToModre()` dělá substring match, reporty grupují per uživatel a ročník).
+- Migrace `100001` původně zaváděla i `UNIQUE(nazev)`, což si vynutilo umělé suffixy `(#1464)` u **785 z 1135 produktů**. Constraint i suffixy jsou pryč (nic na jedinečnosti názvu nestálo: `ProductRepository` nemá žádný lookup podle názvu, importér páruje přes `kod_predmetu`, `Predmet::jeToModre()` dělá substring match, reporty grupují per uživatel a ročník).
 
 ## Dva prodejní kanály téhož trička
 
