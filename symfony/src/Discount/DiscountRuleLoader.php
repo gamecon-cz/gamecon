@@ -33,10 +33,12 @@ final class DiscountRuleLoader
     public function rulesForYear(int $year): array
     {
         $rows = ($this->fetchAll)(
+            // Priority, not code: which rule wins when two match the same item is an
+            // explicit decision, not whatever the alphabet happens to produce.
             'SELECT code, name, required_right, parameters
              FROM discount_rule
              WHERE year = $0 AND active = 1
-             ORDER BY code',
+             ORDER BY priority, code',
             [
                 0 => $year,
             ],
@@ -49,20 +51,29 @@ final class DiscountRuleLoader
     }
 
     /**
-     * @return int[] id_prava the user holds
+     * @return int[] id_prava the user holds for that year
      */
-    public function rightsOfUser(int $userId): array
+    public function rightsOfUser(int $userId, int $year): array
     {
-        // uzivatele_role, not the platne_role_uzivatelu view: that view is defined
-        // against the `gamecon` database by name, so under the test database it would
+        // Reads the base tables rather than the platne_role_uzivatelu view: that view
+        // names the `gamecon` database explicitly, so under the test database it would
         // report the developer's roles instead of the fixtures'.
+        //
+        // The year predicate has to be repeated here, because filtering by year is the
+        // whole point of that view. A role scoped to a past ročník must not still grant
+        // its rights, or last year's organizer keeps their free dice and free meals
+        // forever. Only rocnik_role = -1 (year-independent) and typ_role = 'ucast'
+        // outlive their year.
         $rows = ($this->fetchAll)(
-            'SELECT DISTINCT prava_role.id_prava
+            "SELECT DISTINCT prava_role.id_prava
              FROM uzivatele_role
+             JOIN role_seznam ON role_seznam.id_role = uzivatele_role.id_role
              JOIN prava_role ON prava_role.id_role = uzivatele_role.id_role
-             WHERE uzivatele_role.id_uzivatele = $0',
+             WHERE uzivatele_role.id_uzivatele = \$0
+               AND (role_seznam.rocnik_role IN (\$1, -1) OR role_seznam.typ_role = 'ucast')",
             [
                 0 => $userId,
+                1 => $year,
             ],
         );
 
