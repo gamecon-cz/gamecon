@@ -16,6 +16,7 @@ use ApiPlatform\Metadata\GetCollection;
 use ApiPlatform\Metadata\Patch;
 use ApiPlatform\Metadata\Post;
 use ApiPlatform\Metadata\Put;
+use App\Enum\ProductTagCode;
 use App\Repository\ProductRepository;
 use App\Validator as AppAssert;
 use Doctrine\Common\Collections\ArrayCollection;
@@ -491,7 +492,7 @@ class Product
      */
     public function isAccommodation(): bool
     {
-        return $this->hasTag('ubytovani');
+        return $this->hasTag(ProductTagCode::UBYTOVANI->value);
     }
 
     /**

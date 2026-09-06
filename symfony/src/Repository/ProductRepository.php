@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Repository;
 
 use App\Entity\Product;
+use App\Enum\ProductTagCode;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\Persistence\ManagerRegistry;
 
@@ -60,13 +61,13 @@ class ProductRepository extends ServiceEntityRepository
      *
      * @return Product[]
      */
-    public function findByTag(string $tagCode): array
+    public function findByTag(ProductTagCode $tag): array
     {
         return $this->createQueryBuilder('product')
             ->innerJoin('product.tags', 'tag')
             ->where('tag.code = :tagCode')
             ->andWhere('product.archivedAt IS NULL')
-            ->setParameter('tagCode', $tagCode)
+            ->setParameter('tagCode', $tag->value)
             ->orderBy('product.name', 'ASC')
             ->getQuery()
             ->getResult();
@@ -75,13 +76,13 @@ class ProductRepository extends ServiceEntityRepository
     /**
      * Find products that have ALL specified tags
      *
-     * @param string[] $tagCodes
+     * @param ProductTagCode[] $tags
      *
      * @return Product[]
      */
-    public function findByTags(array $tagCodes): array
+    public function findByTags(array $tags): array
     {
-        if ($tagCodes === []) {
+        if ($tags === []) {
             return [];
         }
 
@@ -89,10 +90,10 @@ class ProductRepository extends ServiceEntityRepository
             ->innerJoin('product.tags', 'tag')
             ->where('tag.code IN (:tagCodes)')
             ->andWhere('product.archivedAt IS NULL')
-            ->setParameter('tagCodes', $tagCodes)
+            ->setParameter('tagCodes', array_column($tags, 'value'))
             ->groupBy('product.id')
             ->having('COUNT(DISTINCT tag.code) = :tagCount')
-            ->setParameter('tagCount', count($tagCodes))
+            ->setParameter('tagCount', count($tags))
             ->orderBy('product.name', 'ASC');
 
         return $qb->getQuery()->getResult();
@@ -101,13 +102,13 @@ class ProductRepository extends ServiceEntityRepository
     /**
      * Find products that have ANY of the specified tags
      *
-     * @param string[] $tagCodes
+     * @param ProductTagCode[] $tags
      *
      * @return Product[]
      */
-    public function findByAnyTag(array $tagCodes): array
+    public function findByAnyTag(array $tags): array
     {
-        if ($tagCodes === []) {
+        if ($tags === []) {
             return [];
         }
 
@@ -115,7 +116,7 @@ class ProductRepository extends ServiceEntityRepository
             ->innerJoin('product.tags', 'tag')
             ->where('tag.code IN (:tagCodes)')
             ->andWhere('product.archivedAt IS NULL')
-            ->setParameter('tagCodes', $tagCodes)
+            ->setParameter('tagCodes', array_column($tags, 'value'))
             ->groupBy('product.id')
             ->orderBy('product.name', 'ASC')
             ->getQuery()
