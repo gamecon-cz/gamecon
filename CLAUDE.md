@@ -356,59 +356,61 @@ class ProductService
 }
 ```
 
-## ECS spouštěj bez cesty
+## Run ECS without a path
 
-**`bin/ecs.sh --fix` bez argumentů.** Cesta jako argument **přebije `withPaths()`** v `ecs.php` a vtáhne do formátování soubory, které tam schválně nejsou.
+**`bin/ecs.sh --fix` with no arguments.** A path as an argument **overrides `withPaths()`** in `ecs.php` and pulls files into formatting that are deliberately kept out of it.
 
-`ecs.php` má povolený seznam: `symfony/src`, `symfony/config`, `tests` a tři podadresáře `model/`. Zbytek `model/`, `web/` a `admin/` je mimo — je to legacy, které se ještě nepřevedlo. **66 souborů v `model/` nemá `declare(strict_types=1)`** a nesnese ho: sada `strict: true` ho dopíše a soubor, který stál na volném porovnávání, začne padat.
+`ecs.php` holds an allow-list: `symfony/src`, `symfony/config`, `tests` and three subdirectories of `model/`. The rest of `model/`, plus `web/` and `admin/`, is out — that is legacy that has not been converted yet. **66 files in `model/` have no `declare(strict_types=1)`** and cannot take one: the `strict: true` set adds it, and a file that relied on loose comparison starts failing.
 
-Konkrétně (stalo se dvakrát): `./bin-docker/docker-bash bin/ecs.sh --fix model/SystemoveNastaveni/` přeformátovalo 15 souborů, z toho 13 nedotčených, a `--fix model/Uzivatel/Finance.php` mu dopsalo `strict_types`. Výsledek byl **70 padajících testů** s `NeznamyTypPredmetu` — chyba, která vypadá jako vada vlastní logiky, ne jako formátování. Podruhé to stálo dvacet minut hledání.
+Concretely (this happened twice): `./bin-docker/docker-bash bin/ecs.sh --fix model/SystemoveNastaveni/` reformatted 15 files, 13 of them untouched by me, and `--fix model/Uzivatel/Finance.php` added `strict_types` to it. The result was **70 failing tests** with `NeznamyTypPredmetu` — an error that looks like a logic defect, not a formatting one. The second time it cost twenty minutes of searching.
 
-**Když je potřeba doformátovat soubor mimo povolený seznam** (typicky vlastní editace v legacy), udělej to ručně podle okolního kódu. Ne přes ECS.
+**When a file outside the allow-list needs formatting** (typically your own edit in legacy), do it by hand following the surrounding code. Not through ECS.
 
-**Jak poznat, že se to stalo:** `git status` po formátování ukáže víc změněných souborů, než kolik jsi jich editoval. To je signál okamžitě revertovat (`git checkout -- <soubory>`) a editaci nanést znovu — ne to zkoumat přes testy.
+**How to spot that it happened:** after formatting, `git status` shows more changed files than you edited. That is the signal to revert immediately (`git checkout -- <files>`) and reapply the edit — not to investigate it through the tests.
 
-## Migrace obsahují jen holé hodnoty
+## Migrations contain only plain values
 
-**Migrace nesmí volat aplikační kód.** Žádné `Pravo::KOSTKA_ZDARMA`, žádné enumy, žádné `use App\...`, žádná validace přes servisní třídu — jen literály a SQL. Co migrace potřebuje vědět, musí mít napsané v sobě.
+**A migration must not call application code.** No `Pravo::KOSTKA_ZDARMA`, no enums, no `use App\...`, no validation through a service class — only literals and SQL. Whatever the migration needs to know has to be written inside it.
 
-**Proč:** migrace je *historický zápis* — „v tomhle okamžiku dej do DB tyhle řádky". Jenže se přehrává na každé čerstvé databázi, tedy při každém běhu testů, a to i za rok. Když se odkazuje na živý kód, není fixní: přejmenuje se konstanta nebo se zpřísní validátor a **historická migrace začne padat**, přestože data, která chtěla vložit, jsou v pořádku. Selže něco, co se dávno stalo, kvůli změně někde jinde.
+**Why:** a migration is a *historical record* — "at this moment, put these rows in the database". But it replays on every fresh database, so on every test run, and still will in a year. If it references live code it is not fixed: rename a constant or tighten a validator and **a historical migration starts failing**, even though the data it wanted to insert is fine. Something that happened long ago breaks because of a change somewhere else.
 
-Konkrétně (stalo se v `2026-09-04-100013_seed-discount-rules.php`, obojí opraveno): `Pravo::KOSTKA_ZDARMA` místo `1003` znamená, že po případné změně hodnoty konstanty se stará migrace přehraje s *novým* číslem — tiše přepíše historii. A `DiscountParameters::fromArray()` uvnitř migrace znamenalo, že překlep v nesouvisejícím enumu shodil build celé testovací databáze.
+Concretely (this happened in `2026-09-04-100013_seed-discount-rules.php`, both fixed): `Pravo::KOSTKA_ZDARMA` instead of `1003` means that if the constant's value ever changes, the old migration replays with the *new* number — silently rewriting history. And `DiscountParameters::fromArray()` inside the migration meant a typo in an unrelated enum brought down the build of the entire test database.
 
-**Pozor na svůdný argument:** „ale díky té validaci se chyba pozná hned" je právě ten příznak, ne přínos — migrace, kterou rozbije editace jiného enumu, je na ten enum navázaná a neměla by být.
+**Watch out for the tempting argument:** "but that validation catches the error immediately" is the symptom, not the benefit — a migration that an edit to some other enum can break is coupled to that enum and should not be.
 
-**Jak to dělat:** vlož číslo/string přímo a do komentáře napiš, co znamená (`1003 = Pravo::KOSTKA_ZDARMA`). Když se hodnota časem rozejde s konstantou, je to správně — historický řádek si drží, co platilo tehdy. Validace patří tam, kde data píše člověk (admin formulář), ne tam, kde se přehrává historie.
+**How to do it:** insert the number or string directly and say in a comment what it means (`1003 = Pravo::KOSTKA_ZDARMA`). If the value later diverges from the constant, that is correct — a historical row keeps what was true then. Validation belongs where a human writes data (an admin form), not where history is replayed.
 
-**Výjimka:** pomocné funkce definované přímo v souboru migrace (`$columnExists = fn (...) => ...`) jsou v pořádku — nejsou to závislosti na kódu venku.
+**Exception:** helper functions defined inside the migration file itself (`$columnExists = fn (...) => ...`) are fine — they are not dependencies on outside code.
 
-## Detekce mrtvého kódu (PHPStan)
+## Dead code detection (PHPStan)
 
-`phpstan.dist.neon` zapíná `shipmonk/dead-code-detector`. Hlásí nevolané metody,
-nečtené property, nepoužité konstanty a case enumů v `symfony/src/`. Běží v CI jako
-součást `bin/phpstan.sh`, takže **nový mrtvý kód shodí build**.
+`phpstan.dist.neon` enables `shipmonk/dead-code-detector`. It reports uncalled methods,
+unread properties, unused constants and enum cases in `symfony/src/`. It runs in CI as
+part of `bin/phpstan.sh`, so **new dead code fails the build**.
 
-**Grep na „volá tohle někdo?" nestačí.** Metoda může být volaná přes DI, atribut,
-Twig, routing nebo reflexi, kde její jméno v kódu vůbec není. Detektor staví graf
-z compilnutého Symfony containeru (`symfony/var/cache/dev/App_KernelDevDebugContainer.xml`),
-takže vidí i tyhle cesty. Když se ptáš „je tohle mrtvé?", zeptej se jeho, ne grepu.
+**Grep cannot answer "does anything call this?".** A method may be reached through DI, an
+attribute, Twig, routing or reflection, where its name appears nowhere in the code. The
+detector builds its graph from the compiled Symfony container
+(`symfony/var/cache/dev/App_KernelDevDebugContainer.xml`), so it sees those paths too.
+When asking "is this dead?", ask it, not grep.
 
-**Baseline se smí jen zmenšovat.** `phpstan-baseline.neon` drží 289 nálezů, které
-existovaly, když se detektor zapínal — je to seznam dluhu, ne konfigurace. Nikdy do něj
-nepřidávej nový nález regenerací baseline, abys „opravil" červené CI. Buď kód smaž, nebo
-(když je volaný způsobem, který detektor nevidí) přidej cílený `ignoreErrors`
-s komentářem *proč*. Regenerace celého baseline je legitimní jen po hromadném úklidu,
-kdy počet klesne.
+**The baseline may only shrink.** `phpstan-baseline.neon` holds 289 findings that existed
+when the detector was switched on — it is a list of debt, not configuration. Never add a
+new finding to it by regenerating the baseline to "fix" a red CI. Either delete the code,
+or (when it is called in a way the detector cannot see) add a targeted `ignoreErrors`
+entry with a comment saying *why*. Regenerating the whole baseline is legitimate only
+after a bulk cleanup, when the count drops.
 
-Potlačení, která tam už jsou (každé má v `phpstan.dist.neon` napsaný důvod): generované
-`Structure/`, property odpovědních DTO (čte je serializer API Platform přes reflexi),
-accessory entit a akce controllerů routované z `routes.yaml`.
+Suppressions already in place (each with its reason written in `phpstan.dist.neon`):
+generated `Structure/`, response DTO properties (read by the API Platform serializer
+through reflection), entity accessors, and controller actions routed from `routes.yaml`.
 
-**Pozor na hranici legacy ↔ Symfony.** PHPStan analyzuje jen `symfony/`, takže volání
-z `model/`, `web/` nebo `admin/` detektor nevidí. Symfony třída volaná jen z legacy se
-proto tváří jako mrtvá (`Cenik` v `model/` volá `App\Discount\DiscountCalculation` —
-pro detektor neexistuje). **Než něco smažeš na základě nálezu, ověř grepem i legacy
-strom.** Opačně to neplatí: co detektor označí za živé, živé je.
+**Mind the legacy ↔ Symfony boundary.** PHPStan analyses only `symfony/`, so the detector
+cannot see calls from `model/`, `web/` or `admin/`. A Symfony class called only from
+legacy therefore looks dead (`Cenik` in `model/` calls `App\Discount\DiscountCalculation`
+— which does not exist as far as the detector is concerned). **Before deleting anything on
+the strength of a finding, check the legacy tree with grep too.** The reverse does not
+apply: what the detector calls alive is alive.
 
 ## SQL Coding Style
 
