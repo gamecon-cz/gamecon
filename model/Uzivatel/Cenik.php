@@ -27,10 +27,6 @@ class Cenik
      */
     private ?array $pravidla = null;
     /**
-     * @var int[]|null
-     */
-    private ?array $prava = null;
-    /**
      * @var array<string, float>|null
      */
     private ?array $nastaveniSlev = null;
@@ -369,12 +365,16 @@ class Cenik
     }
 
     /**
+     * Práva bere z Uzivatele, ne vlastním dotazem: má je už načtená a nacachovaná a
+     * hlavně je odfiltrované na aktuální ročník (viz pohled platne_role_uzivatelu).
+     * Vlastní dotaz by ten filtr musel opakovat — a přesně jeho vypuštění by znamenalo,
+     * že loňskému orgovi zůstane kostka a jídlo zdarma napořád.
+     *
      * @return int[]
      */
     private function pravaUzivatele(): array
     {
-        return $this->prava ??= (new \App\Discount\DiscountRuleLoader('dbFetchAll'))
-            ->rightsOfUser($this->u->id(), $this->systemoveNastaveni->rocnik());
+        return $this->u->prava();
     }
 
     /**
