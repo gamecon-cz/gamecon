@@ -322,7 +322,7 @@ Turnajové
   - [X] UI toggle v `NastaveniTymuView.tsx`
 - [X] Seznam veřejných týmů zobrazený v UI
   - [X] API vrací `vsechnyTymy` s info o veřejných týmech
-  - [X] `AktivitaTymService::findVerejneByAktivita()` existuje
+  - [X] Veřejnost týmu nese `Team::isVerejny()`, seznam vrací `AktivitaTymService::vsechnyTymyAktivity()`
 - [X] Přihlášení do veřejného týmu bez kódu
   - [X] Backend logika existuje (kód není nutný pokud tým veřejný?)
   - [X] Ověřit UI flow — kliknutí na veřejný tým → přihlášení bez zadání kódu
