@@ -350,7 +350,21 @@ class Cenik
 
         return array_values(array_filter(
             $this->pravidla,
-            static fn (\App\Discount\DiscountRule $pravidlo): bool => ($zbyva[$pravidlo->code] ?? 1) > 0,
+            static function (\App\Discount\DiscountRule $pravidlo) use ($zbyva): bool {
+                if (isset($zbyva[$pravidlo->code])) {
+                    return $zbyva[$pravidlo->code] > 0;
+                }
+
+                // Pravidla jsou editovatelná data, ale čítače jsou tady v kódu. Nové
+                // omezené pravidlo by se bez svého čítače uplatnilo na každou položku
+                // znovu — tiše, bez chyby, prostě by se sleva rozdala vícekrát. Radši
+                // spadnout, než účtovat špatně.
+                if ($pravidlo->parameters->maxQuantity !== null) {
+                    throw new \RuntimeException(sprintf('Pravidlo "%s" má omezený počet, ale Cenik pro něj nemá čítač. Doplň ho do dostupnaPravidla() a zapoctiVycerpani().', $pravidlo->code));
+                }
+
+                return true;
+            },
         ));
     }
 
@@ -360,7 +374,7 @@ class Cenik
     private function pravaUzivatele(): array
     {
         return $this->prava ??= (new \App\Discount\DiscountRuleLoader('dbFetchAll'))
-            ->rightsOfUser($this->u->id());
+            ->rightsOfUser($this->u->id(), $this->systemoveNastaveni->rocnik());
     }
 
     /**

@@ -331,6 +331,44 @@ SQL,
     /**
      * @test
      */
+    public function jidloZdarmaPrebijeJidloSeSlevou(): void
+    {
+        // Kdo má obě práva, má jídlo zdarma — ne se slevou. Ve staré větvi to
+        // zajišťovalo pořadí if/elseif; po převodu na data to musí zajistit priorita
+        // pravidla, jinak by se účtovalo 125 místo 0.
+        $this->udelPravo(Pravo::JIDLO_ZDARMA);
+        $this->udelPravo(Pravo::JIDLO_SE_SLEVOU);
+        $cenik = $this->cenik();
+
+        self::assertSame(0.0, $cenik->cena($this->radek(self::ID_JIDLO))->finalPrice);
+    }
+
+    /**
+     * @test
+     */
+    public function bonusoveTrickoSeCerpaPredJakymkolivTrickem(): void
+    {
+        // Obě slevy dají tričko zdarma, takže na ceně jednoho trička není rozdíl vidět.
+        // Rozdíl je v tom, který nárok se spotřebuje: kdo má obojí, musí po prvním
+        // tričku pořád mít nárok na to druhé.
+        $this->udelPravo(Pravo::MODRE_TRICKO_ZDARMA);
+        $this->udelPravo(Pravo::JAKEKOLIV_TRICKO_ZDARMA);
+        \dbQuery(
+            "UPDATE systemove_nastaveni SET hodnota = '0' WHERE klic = 'BONUS_ZA_STANDARDNI_3H_AZ_5H_AKTIVITU'",
+        );
+        $cenik = $this->cenik();
+
+        self::assertSame(0.0, $cenik->cena($this->radek(self::ID_TRICKO_LEVNE))->finalPrice);
+        self::assertSame(
+            0.0,
+            $cenik->cena($this->radek(self::ID_TRICKO_DRAHE))->finalPrice,
+            'Druhé tričko kryje ten druhý nárok — kdyby se první spotřeboval špatně, platilo by se',
+        );
+    }
+
+    /**
+     * @test
+     */
     public function puvodniCenaPreferujeNakupniCenuPredKatalogovou(): void
     {
         $cenik = $this->cenik();
