@@ -7,6 +7,7 @@ namespace App\Service;
 use App\Entity\OrderItem;
 use App\Entity\Product;
 use App\Entity\User;
+use App\Enum\ProductTagCode;
 use App\Repository\OrderItemRepository;
 use App\Repository\ProductRepository;
 use Doctrine\ORM\EntityManagerInterface;
@@ -158,7 +159,7 @@ readonly class EntryFeeService
      */
     private function entryFeeProduct(): Product
     {
-        foreach ($this->productRepository->findByTag('vstupne') as $product) {
+        foreach ($this->productRepository->findByTag(ProductTagCode::VSTUPNE) as $product) {
             if ($product->getArchivedAt() === null && ! str_contains($product->getName(), self::LATE_NAME_MARKER)) {
                 return $product;
             }
