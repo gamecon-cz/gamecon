@@ -71,7 +71,7 @@ class DiscountRuleLoaderTest extends TestCase
             ];
         });
 
-        $rights = $loader->rightsOfUser(335);
+        $rights = $loader->rightsOfUser(335, 2026);
 
         [$sql, $params] = $captured;
         // platne_role_uzivatelu is a view defined against the `gamecon` database by
@@ -79,8 +79,13 @@ class DiscountRuleLoaderTest extends TestCase
         // uzivatele_role directly is what makes this correct under test.
         $this->assertStringContainsString('uzivatele_role', $sql);
         $this->assertStringNotContainsString('platne_role_uzivatelu', $sql);
+        // Dropping the year predicate would let a role from a past ročník keep granting
+        // its rights — last year's organizer with free meals forever.
+        $this->assertStringContainsString('rocnik_role', $sql);
+        $this->assertStringContainsString("typ_role = 'ucast'", $sql);
         $this->assertSame([
             0 => 335,
+            1 => 2026,
         ], $params);
         $this->assertSame([1003, 1012], $rights);
     }
