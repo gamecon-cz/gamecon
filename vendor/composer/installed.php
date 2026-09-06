@@ -1072,6 +1072,15 @@
             'aliases' => array(),
             'dev_requirement' => false,
         ),
+        'shipmonk/dead-code-detector' => array(
+            'pretty_version' => '1.4.0',
+            'version' => '1.4.0.0',
+            'reference' => '05054d486526ef35c7f7c5148545a5f922cfea42',
+            'type' => 'phpstan-extension',
+            'install_path' => __DIR__ . '/../shipmonk/dead-code-detector',
+            'aliases' => array(),
+            'dev_requirement' => true,
+        ),
         'smhg/sepa-qr-data' => array(
             'pretty_version' => 'v1.2.0',
             'version' => '1.2.0.0',
