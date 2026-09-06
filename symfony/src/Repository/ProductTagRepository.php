@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Repository;
 
 use App\Entity\ProductTag;
+use App\Enum\ProductTagCode;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\Persistence\ManagerRegistry;
 
@@ -56,15 +57,7 @@ class ProductTagRepository extends ServiceEntityRepository
     {
         return $this->createQueryBuilder('t')
             ->where('t.name IN (:types)')
-            ->setParameter('types', [
-                'predmet',
-                'ubytovani',
-                'tricko',
-                'jidlo',
-                'vstupne',
-                'parcon',
-                'proplaceni-bonusu',
-            ])
+            ->setParameter('types', array_column(ProductTagCode::categories(), 'value'))
             ->orderBy('t.name', 'ASC')
             ->getQuery()
             ->getResult();
