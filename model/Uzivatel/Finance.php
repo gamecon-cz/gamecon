@@ -465,10 +465,10 @@ SQL,
     public function maximalniPocetLibovolnychTricekZdarmaBezBonusovych(): int
     {
         return $this->u->maPravo(Pravo::DVE_JAKAKOLI_TRICKA_ZDARMA)
-            ? 2
+            ? $this->systemoveNastaveni->pocetDvouTricekZdarma()
             : (
             $this->u->maPravo(Pravo::JAKEKOLIV_TRICKO_ZDARMA)
-                ? 1
+                ? $this->systemoveNastaveni->pocetTricekZdarma()
                 : 0
             );
     }
@@ -479,7 +479,7 @@ SQL,
     public function maximalniPocetBonusovychTricekZdarma(): int
     {
         return $this->u->maPravo(Pravo::MODRE_TRICKO_ZDARMA) && $this->bonusZaVedeniAktivit() >= $this->systemoveNastaveni->modreTrickoZdarmaOd()
-            ? 1
+            ? $this->systemoveNastaveni->pocetBonusovychTricekZdarma()
             : 0;
     }
 
