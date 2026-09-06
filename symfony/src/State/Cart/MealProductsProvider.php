@@ -7,6 +7,7 @@ namespace App\State\Cart;
 use ApiPlatform\Metadata\Operation;
 use ApiPlatform\State\ProviderInterface;
 use App\Dto\Cart\MealProductOutputDto;
+use App\Enum\ProductTagCode;
 use App\Repository\ProductRepository;
 
 /**
@@ -24,7 +25,7 @@ readonly class MealProductsProvider implements ProviderInterface
      */
     public function provide(Operation $operation, array $uriVariables = [], array $context = []): array
     {
-        $products = $this->productRepository->findByTag('jidlo');
+        $products = $this->productRepository->findByTag(ProductTagCode::JIDLO);
         $meals = [];
 
         foreach ($products as $product) {
