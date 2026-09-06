@@ -22,22 +22,4 @@ class ShopGridRepository extends ServiceEntityRepository
     {
         parent::__construct($registry, ShopGrid::class);
     }
-
-    public function save(ShopGrid $entity, bool $flush = false): void
-    {
-        $this->getEntityManager()->persist($entity);
-
-        if ($flush) {
-            $this->getEntityManager()->flush();
-        }
-    }
-
-    public function remove(ShopGrid $entity, bool $flush = false): void
-    {
-        $this->getEntityManager()->remove($entity);
-
-        if ($flush) {
-            $this->getEntityManager()->flush();
-        }
-    }
 }
