@@ -22,22 +22,4 @@ class DiscountRepository extends ServiceEntityRepository
     {
         parent::__construct($registry, Discount::class);
     }
-
-    public function save(Discount $entity, bool $flush = false): void
-    {
-        $this->getEntityManager()->persist($entity);
-
-        if ($flush) {
-            $this->getEntityManager()->flush();
-        }
-    }
-
-    public function remove(Discount $entity, bool $flush = false): void
-    {
-        $this->getEntityManager()->remove($entity);
-
-        if ($flush) {
-            $this->getEntityManager()->flush();
-        }
-    }
 }
