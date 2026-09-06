@@ -55,15 +55,14 @@ final class DiscountRuleLoader
      */
     public function rightsOfUser(int $userId, int $year): array
     {
-        // Reads the base tables rather than the platne_role_uzivatelu view: that view
-        // names the `gamecon` database explicitly, so under the test database it would
-        // report the developer's roles instead of the fixtures'.
+        // For callers that have no Uzivatel. Anything holding one should pass
+        // Uzivatel::prava() instead — it is already loaded, cached, and filtered.
         //
-        // The year predicate has to be repeated here, because filtering by year is the
-        // whole point of that view. A role scoped to a past ročník must not still grant
-        // its rights, or last year's organizer keeps their free dice and free meals
-        // forever. Only rocnik_role = -1 (year-independent) and typ_role = 'ucast'
-        // outlive their year.
+        // The year predicate is spelled out rather than delegated to the
+        // platne_role_uzivatelu view, so that review can see it. Losing it is not a
+        // subtle bug: a role scoped to a past ročník would keep granting its rights,
+        // and last year's organizer would have free dice and free meals forever. Only
+        // rocnik_role = -1 (year-independent) and typ_role = 'ucast' outlive a year.
         $rows = ($this->fetchAll)(
             "SELECT DISTINCT prava_role.id_prava
              FROM uzivatele_role
