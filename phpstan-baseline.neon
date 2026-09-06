@@ -97,6 +97,36 @@ parameters:
             path: symfony/src/Discount/DiscountSetting.php
 
         -
+            message: '#^Property App\\Dto\\Cart\\CheckoutInputDto\:\:\$note is never read$#'
+            identifier: shipmonk.deadProperty.neverRead
+            count: 1
+            path: symfony/src/Dto/Cart/CheckoutInputDto.php
+
+        -
+            message: '#^Unused App\\Entity\\Activity\:\:isTymSmazatPoExpiraci$#'
+            identifier: shipmonk.deadMethod
+            count: 1
+            path: symfony/src/Entity/Activity.php
+
+        -
+            message: '#^Unused App\\Entity\\ActivityType\:\:isAktivni$#'
+            identifier: shipmonk.deadMethod
+            count: 1
+            path: symfony/src/Entity/ActivityType.php
+
+        -
+            message: '#^Unused App\\Entity\\ActivityType\:\:isMailNeucast$#'
+            identifier: shipmonk.deadMethod
+            count: 1
+            path: symfony/src/Entity/ActivityType.php
+
+        -
+            message: '#^Unused App\\Entity\\ActivityType\:\:isZobrazitVMenu$#'
+            identifier: shipmonk.deadMethod
+            count: 1
+            path: symfony/src/Entity/ActivityType.php
+
+        -
             message: '#^Unused App\\Entity\\Enum\\GenderEnum\:\:listForSelect$#'
             identifier: shipmonk.deadMethod
             count: 1
@@ -109,13 +139,49 @@ parameters:
             path: symfony/src/Entity/News.php
 
         -
+            message: '#^Unused App\\Entity\\Order\:\:isCancelled$#'
+            identifier: shipmonk.deadMethod
+            count: 1
+            path: symfony/src/Entity/Order.php
+
+        -
+            message: '#^Unused App\\Entity\\OrderItem\:\:isProductDeleted$#'
+            identifier: shipmonk.deadMethod
+            count: 1
+            path: symfony/src/Entity/OrderItem.php
+
+        -
             message: '#^Unused App\\Entity\\OrderItem\:\:wasFree$#'
             identifier: shipmonk.deadMethod
             count: 1
             path: symfony/src/Entity/OrderItem.php
 
         -
+            message: '#^Unused App\\Entity\\Page\:\:isRedirect$#'
+            identifier: shipmonk.deadMethod
+            count: 1
+            path: symfony/src/Entity/Page.php
+
+        -
             message: '#^Unused App\\Entity\\Product\:\:archive$#'
+            identifier: shipmonk.deadMethod
+            count: 1
+            path: symfony/src/Entity/Product.php
+
+        -
+            message: '#^Unused App\\Entity\\Product\:\:hasVariants$#'
+            identifier: shipmonk.deadMethod
+            count: 1
+            path: symfony/src/Entity/Product.php
+
+        -
+            message: '#^Unused App\\Entity\\Product\:\:isAccommodation$#'
+            identifier: shipmonk.deadMethod
+            count: 1
+            path: symfony/src/Entity/Product.php
+
+        -
+            message: '#^Unused App\\Entity\\Product\:\:isPublic$#'
             identifier: shipmonk.deadMethod
             count: 1
             path: symfony/src/Entity/Product.php
@@ -131,6 +197,30 @@ parameters:
             identifier: shipmonk.deadMethod
             count: 1
             path: symfony/src/Entity/ProductBundle.php
+
+        -
+            message: '#^Unused App\\Entity\\ProductBundle\:\:isForced$#'
+            identifier: shipmonk.deadMethod
+            count: 1
+            path: symfony/src/Entity/ProductBundle.php
+
+        -
+            message: '#^Unused App\\Entity\\ProductDiscount\:\:isFree$#'
+            identifier: shipmonk.deadMethod
+            count: 1
+            path: symfony/src/Entity/ProductDiscount.php
+
+        -
+            message: '#^Unused App\\Entity\\ProductVariant\:\:hasLimitedCapacity$#'
+            identifier: shipmonk.deadMethod
+            count: 1
+            path: symfony/src/Entity/ProductVariant.php
+
+        -
+            message: '#^Unused App\\Entity\\Role\:\:isSkryta$#'
+            identifier: shipmonk.deadMethod
+            count: 1
+            path: symfony/src/Entity/Role.php
 
         -
             message: '#^Unused App\\Entity\\ShopGridCell\:\:TYPE_BACK$#'
@@ -157,6 +247,12 @@ parameters:
             path: symfony/src/Entity/ShopGridCell.php
 
         -
+            message: '#^Unused App\\Entity\\ShopItem\:\:isVedlejsi$#'
+            identifier: shipmonk.deadMethod
+            count: 1
+            path: symfony/src/Entity/ShopItem.php
+
+        -
             message: '#^Unused App\\Entity\\Tag\:\:MALOVANI$#'
             identifier: shipmonk.deadConstant
             count: 1
@@ -167,6 +263,36 @@ parameters:
             identifier: shipmonk.deadConstant
             count: 1
             path: symfony/src/Entity/Tag.php
+
+        -
+            message: '#^Unused App\\Entity\\Team\:\:isZamceny$#'
+            identifier: shipmonk.deadMethod
+            count: 1
+            path: symfony/src/Entity/Team.php
+
+        -
+            message: '#^Unused App\\Entity\\User\:\:isMrtvyMail$#'
+            identifier: shipmonk.deadMethod
+            count: 1
+            path: symfony/src/Entity/User.php
+
+        -
+            message: '#^Unused App\\Entity\\User\:\:isNechceUbytovani$#'
+            identifier: shipmonk.deadMethod
+            count: 1
+            path: symfony/src/Entity/User.php
+
+        -
+            message: '#^Unused App\\Entity\\User\:\:isOrganizer$#'
+            identifier: shipmonk.deadMethod
+            count: 1
+            path: symfony/src/Entity/User.php
+
+        -
+            message: '#^Unused App\\Entity\\User\:\:isZRychloregistrace$#'
+            identifier: shipmonk.deadMethod
+            count: 1
+            path: symfony/src/Entity/User.php
 
         -
             message: '#^Unused App\\Enum\\ProductTagCode\:\:fromLegacyTyp$#'

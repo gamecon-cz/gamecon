@@ -25,25 +25,36 @@ parameters:
         # serializer through reflection, never by PHP code. The detector cannot see that,
         # so every field of every response looks unread — and deleting one would drop a
         # field from the API.
+        #
+        # Only *OutputDto: an input DTO is read by ordinary PHP in its processor, so the
+        # detector sees those reads and an unread input field is a genuine finding.
         -
             identifier: shipmonk.deadProperty.neverRead
-            path: symfony/src/Dto/*
+            path: symfony/src/Dto/*/*OutputDto.php
 
         # Entity accessors are written as a complete set when the entity is mapped, before
         # anything reads them, and Doctrine itself hydrates through the property, not the
         # getter. Reporting them would mean ~700 findings that say "this column has no
         # caller yet" — true, but not a defect, and it would fire again on every new
-        # entity. Entity methods that are not accessors are still checked.
+        # entity.
+        #
+        # is*/has* stay checked on purpose. They read like accessors but are usually
+        # domain rules with real branching (Product::hasTag walks the tag collection,
+        # ProductBundle::isMandatoryForUser weighs role meanings), and an orphaned
+        # business rule is exactly what this tool is for.
         -
             identifier: shipmonk.deadMethod
             path: symfony/src/Entity/*
-            message: '#::(get|set|is|has|add|remove)[A-Z]#'
+            message: '#::(get|set|add|remove)[A-Z]#'
 
-        # Controller actions here are routed from symfony/config/routes.yaml rather than
-        # by #[Route], and the detector reads DI service definitions, not routing, so a
-        # YAML-routed action has no visible caller. These five are live URLs.
+        # These five actions are routed from symfony/config/routes.yaml rather than by
+        # #[Route], and the detector reads DI service definitions, not routing, so they
+        # have no visible caller. Listed by name on purpose: a blanket Controller/* rule
+        # would also silence the #[Route] actions, which the detector resolves by itself,
+        # and every controller method added later.
         -
             identifier: shipmonk.deadMethod
+            message: '#^Unused App\\Controller\\(AdminController\:\:(dashboard|users|activities)|ApiController\:\:handle|TestController\:\:index)$#'
             path: symfony/src/Controller/*
 
     shipmonkDeadCode:
