@@ -22,31 +22,4 @@ class PermissionRepository extends ServiceEntityRepository
     {
         parent::__construct($registry, Permission::class);
     }
-
-    public function save(Permission $entity, bool $flush = false): void
-    {
-        $this->getEntityManager()->persist($entity);
-
-        if ($flush) {
-            $this->getEntityManager()->flush();
-        }
-    }
-
-    public function remove(Permission $entity, bool $flush = false): void
-    {
-        $this->getEntityManager()->remove($entity);
-
-        if ($flush) {
-            $this->getEntityManager()->flush();
-        }
-    }
-
-    public function findByJmenoPrava(string $jmenoPrava): ?Permission
-    {
-        return $this->createQueryBuilder('p')
-            ->andWhere('p.jmenoPrava = :jmenoPrava')
-            ->setParameter('jmenoPrava', $jmenoPrava)
-            ->getQuery()
-            ->getOneOrNullResult();
-    }
 }
