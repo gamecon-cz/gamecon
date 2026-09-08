@@ -16,6 +16,7 @@ use ApiPlatform\Metadata\GetCollection;
 use ApiPlatform\Metadata\Patch;
 use ApiPlatform\Metadata\Post;
 use ApiPlatform\Metadata\Put;
+use App\Enum\ProductStateEnum;
 use App\Enum\ProductTagCode;
 use App\Repository\ProductRepository;
 use App\Validator as AppAssert;
@@ -504,34 +505,24 @@ class Product
             return false;
         }
 
-        // State: 0=MIMO, 1=VEŘEJNÝ, 2=PODPULTOVÝ, 3=POZASTAVENÝ
-        if ($this->state === 0) {
+        if ($this->getStateEnum() === ProductStateEnum::RETIRED) {
             return false;
         }
 
-        // Check time-based availability
         return ! ($this->availableUntil instanceof \DateTimeImmutable && $this->availableUntil < new \DateTime());
     }
 
-    /**
-     * Check if product is publicly available (state=1)
-     */
     public function isPublic(): bool
     {
-        return $this->isAvailable() && $this->state === 1;
+        return $this->isAvailable() && $this->getStateEnum() === ProductStateEnum::PUBLIC;
     }
 
     /**
-     * Get human-readable state name
+     * Null rather than an exception: `stav` is a plain int column with no foreign key, so
+     * a value outside the four known states is bad data to report, not a crash.
      */
-    public function getStateName(): string
+    public function getStateEnum(): ?ProductStateEnum
     {
-        return match ($this->state) {
-            0       => 'Mimo',
-            1       => 'Veřejný',
-            2       => 'Podpultový',
-            3       => 'Pozastavený',
-            default => 'Neznámý',
-        };
+        return ProductStateEnum::tryFrom($this->state);
     }
 }
