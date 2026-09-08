@@ -10,6 +10,7 @@ use ApiPlatform\Metadata\Get;
 use ApiPlatform\Metadata\GetCollection;
 use ApiPlatform\Metadata\Post;
 use ApiPlatform\OpenApi\Model\Operation;
+use App\Dto\Cart\AccommodationOutputDto;
 use App\Dto\Cart\AddToCartInputDto;
 use App\Dto\Cart\CartOutputDto;
 use App\Dto\Cart\CheckoutInputDto;
@@ -17,6 +18,7 @@ use App\Dto\Cart\EntryFeeOutputDto;
 use App\Dto\Cart\MealProductOutputDto;
 use App\Dto\Cart\MerchProductOutputDto;
 use App\Dto\Cart\SetEntryFeeInputDto;
+use App\State\Cart\AccommodationProvider;
 use App\State\Cart\AddToCartProcessor;
 use App\State\Cart\CartProvider;
 use App\State\Cart\CheckoutProcessor;
@@ -36,6 +38,16 @@ use App\State\Cart\SetEntryFeeProcessor;
             openapi: new Operation(
                 summary: 'List available meals',
                 description: 'Returns flat list of meal products with variant info for the meal matrix UI.',
+            ),
+        ),
+        new Get(
+            uriTemplate: '/cart/accommodation',
+            output: AccommodationOutputDto::class,
+            provider: AccommodationProvider::class,
+            security: "is_granted('ROLE_USER')",
+            openapi: new Operation(
+                summary: 'Accommodation grid',
+                description: 'Nights by room type, with what the customer already holds. One payload: the nights of a booking must be consecutive, so they are chosen as a set.',
             ),
         ),
         new GetCollection(

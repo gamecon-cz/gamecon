@@ -6,6 +6,43 @@ export type ApiMealProduct = {
   remainingQuantity: number | null;
 };
 
+export type ApiAccommodationCell = {
+  variantId: number;
+  selected: boolean;
+  /** Null = unlimited; dorm beds are effectively uncapped. */
+  remaining: number | null;
+  soldOut: boolean;
+  /** Cannot be ticked. An already-booked night is never locked, so it can be dropped. */
+  locked: boolean;
+};
+
+export type ApiAccommodationType = {
+  productId: number;
+  name: string;
+  description: string;
+  price: string;
+  discountedPrice: string;
+  /** Keyed by day index; a day this type is not offered on has no entry. */
+  nights: Record<number, ApiAccommodationCell>;
+};
+
+export type ApiAccommodationDay = {
+  /** 0 = Wednesday … 4 = Sunday. */
+  day: number;
+  name: string;
+};
+
+export type ApiAccommodation = {
+  days: ApiAccommodationDay[];
+  types: ApiAccommodationType[];
+  selectedVariantIds: number[];
+  /** Fewer nights than this is refused, unless the customer may book a single night. */
+  minimumNights: number;
+  saleClosed: boolean;
+  roommate: string | null;
+  declined: boolean;
+};
+
 export type ApiMerchProduct = {
   name: string;
   description: string;

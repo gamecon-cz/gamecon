@@ -58,4 +58,40 @@ class OrderItemRepository extends ServiceEntityRepository
             ->getQuery()
             ->getSingleScalarResult();
     }
+
+    /**
+     * How many of each variant were sold this year, keyed by variant id.
+     *
+     * Needed because `product_variant.remaining_quantity` is only decremented by
+     * CapacityManager, i.e. by the new cart. Anything the legacy form still sells —
+     * accommodation, for now — writes shop_nakupy directly and leaves that column at its
+     * original capacity, so reading it would report a fully booked room as empty.
+     *
+     * @param int[] $variantIds
+     *
+     * @return array<int, int>
+     */
+    public function countSoldByVariant(array $variantIds, int $year): array
+    {
+        if ($variantIds === []) {
+            return [];
+        }
+
+        $rows = $this->createQueryBuilder('oi')
+            ->select('IDENTITY(oi.variant) AS variantId', 'COUNT(oi.id) AS sold')
+            ->where('oi.variant IN (:variantIds)')
+            ->andWhere('oi.year = :year')
+            ->groupBy('oi.variant')
+            ->setParameter('variantIds', $variantIds)
+            ->setParameter('year', $year)
+            ->getQuery()
+            ->getArrayResult();
+
+        $prodano = [];
+        foreach ($rows as $row) {
+            $prodano[(int) $row['variantId']] = (int) $row['sold'];
+        }
+
+        return $prodano;
+    }
 }
