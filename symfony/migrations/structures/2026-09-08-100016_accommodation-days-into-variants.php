@@ -37,6 +37,9 @@ SQL;
 // are gone from this table — the tag replaced the first, archived_at the second.
 $jeAktualniUbytovani = <<<SQL
 shop_predmety.archived_at IS NULL
+-- A code with no separator has no day segment to strip, so LEFT() would yield '' and
+-- every such type would collapse into one group. Skip them rather than merge them.
+AND shop_predmety.kod_predmetu REGEXP '[-_]'
 AND EXISTS (
     SELECT 1
     FROM product_product_tag
@@ -48,19 +51,28 @@ SQL;
 
 $this->q(<<<SQL
 CREATE TEMPORARY TABLE tmp_accommodation_groups (
-    product_id BIGINT UNSIGNED NOT NULL PRIMARY KEY,
-    owner_id   BIGINT UNSIGNED NOT NULL,
-    den        SMALLINT        NOT NULL,
+    kod_varianty VARCHAR(255)    NOT NULL PRIMARY KEY,
+    owner_id     BIGINT UNSIGNED NOT NULL,
+    den          SMALLINT        NOT NULL,
     INDEX (owner_id)
 ) ENGINE=InnoDB
 SQL);
 
-// Owner of each type: the lowest product id, so a rerun picks the same one.
+// Keyed on the variant code, which never changes, and the day is read out of that code
+// rather than out of the product row. Both matter for a rerun: after the first pass the
+// variants sit on the owner, so joining on product_id would hand every variant the
+// OWNER's day (Sunday, the lowest id) and flatten all five nights into one.
 $this->q(<<<SQL
-INSERT INTO tmp_accommodation_groups (product_id, owner_id, den)
-SELECT shop_predmety.id_predmetu,
+INSERT INTO tmp_accommodation_groups (kod_varianty, owner_id, den)
+SELECT shop_predmety.kod_predmetu,
        owners.owner_id,
-       shop_predmety.ubytovani_den
+       CASE {$kodDne}
+           WHEN 'st' THEN 0
+           WHEN 'ct' THEN 1
+           WHEN 'pa' THEN 2
+           WHEN 'so' THEN 3
+           WHEN 'ne' THEN 4
+       END
 FROM shop_predmety
 JOIN (
     SELECT {$kodTypu} AS kod_typu, MIN(shop_predmety.id_predmetu) AS owner_id
@@ -69,7 +81,7 @@ JOIN (
     GROUP BY kod_typu
 ) AS owners ON owners.kod_typu = {$kodTypu}
 WHERE {$jeAktualniUbytovani}
-  AND shop_predmety.ubytovani_den IS NOT NULL
+  AND {$kodDne} IN ('st', 'ct', 'pa', 'so', 'ne')
 SQL);
 
 // Move each night's variant onto its type's owner. Variant ids do not change, so the
@@ -77,7 +89,7 @@ SQL);
 // The variant already carries this night's own remaining_quantity, set by 100010.
 $this->q(<<<SQL
 UPDATE product_variant
-JOIN tmp_accommodation_groups ON tmp_accommodation_groups.product_id = product_variant.product_id
+JOIN tmp_accommodation_groups ON tmp_accommodation_groups.kod_varianty = product_variant.code
 SET product_variant.product_id        = tmp_accommodation_groups.owner_id,
     product_variant.name              = ELT(tmp_accommodation_groups.den + 1,
                                             'středa', 'čtvrtek', 'pátek', 'sobota', 'neděle'),
@@ -92,8 +104,8 @@ SQL);
 // name lands in the same type bucket there as a suffixed one.
 $this->q(<<<SQL
 UPDATE shop_predmety
-JOIN tmp_accommodation_groups ON tmp_accommodation_groups.product_id = shop_predmety.id_predmetu
-    AND tmp_accommodation_groups.owner_id = shop_predmety.id_predmetu
+JOIN tmp_accommodation_groups ON tmp_accommodation_groups.owner_id = shop_predmety.id_predmetu
+    AND tmp_accommodation_groups.kod_varianty = shop_predmety.kod_predmetu
 SET shop_predmety.nazev = TRIM(REGEXP_REPLACE(
         shop_predmety.nazev,
         ' ?(pondělí|úterý|středa|čtvrtek|pátek|sobota|neděle)\$',

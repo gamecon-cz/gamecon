@@ -1,0 +1,99 @@
+.ubytovani-mrizka {
+  margin: 1em 0;
+
+  &--tabulka {
+    border-collapse: collapse;
+    width: 100%;
+
+    th,
+    td {
+      border: 1px solid #ddd;
+      padding: 8px 12px;
+      text-align: center;
+    }
+
+    th {
+      background-color: #f5f5f5;
+      font-weight: bold;
+    }
+  }
+
+  &--typ {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    text-align: left !important;
+  }
+
+  &--nazev {
+    font-weight: bold;
+  }
+
+  &--popis {
+    color: #777;
+    font-size: 0.85em;
+  }
+
+  &--cena {
+    font-weight: bold;
+  }
+
+  &--cena-puvodni {
+    margin-right: 6px;
+    color: #999;
+    font-weight: normal;
+    text-decoration: line-through;
+  }
+
+  &--bunka {
+    label,
+    input {
+      cursor: default;
+    }
+  }
+
+  &--zbyva {
+    display: block;
+    color: #777;
+    font-size: 0.75em;
+  }
+
+  &--vybrano {
+    background-color: #e8f5e9;
+  }
+
+  &--vyprodano,
+  &--zamceno {
+    background-color: #fafafa;
+    color: #aaa;
+  }
+
+  // A night this room type is not sold on at all — rendered blank, not disabled.
+  &--nenabizeno {
+    background-color: #f5f5f5;
+  }
+
+  &--uzavreno,
+  &--pravidlo {
+    color: #777;
+    font-size: 0.9em;
+  }
+
+  &--error {
+    margin-bottom: 1em;
+    padding: 8px 12px;
+    border-radius: 4px;
+    background-color: #fdecea;
+    color: #b3261e;
+  }
+
+  &--loading,
+  &--empty {
+    color: #777;
+  }
+
+  &--spolubydlici,
+  &--nechci {
+    margin-top: 0.5em;
+  }
+}
