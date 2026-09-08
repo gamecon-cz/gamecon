@@ -17,6 +17,7 @@ use App\Service\CurrentYearProviderInterface;
 use Doctrine\ORM\EntityManagerInterface;
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
+use App\Enum\ProductStateEnum;
 
 class BulkCancelServiceTest extends TestCase
 {
@@ -274,7 +275,7 @@ class BulkCancelServiceTest extends TestCase
         $product->setName('Test');
         $product->setCode('TEST');
         $product->setCurrentPrice('250.00');
-        $product->setState(1);
+        $product->setState(ProductStateEnum::PUBLIC);
         $product->setDescription('');
 
         return $product;

@@ -11,6 +11,7 @@ use App\Entity\ProductBundle;
 use App\Entity\ProductVariant;
 use App\Entity\User;
 use PHPUnit\Framework\TestCase;
+use App\Enum\ProductStateEnum;
 
 class CartItemOutputDtoTest extends TestCase
 {
@@ -20,7 +21,7 @@ class CartItemOutputDtoTest extends TestCase
         $product->setName('Oběd pátek');
         $product->setCode('obed-patek');
         $product->setCurrentPrice('150.00');
-        $product->setState(1);
+        $product->setState(ProductStateEnum::PUBLIC);
         $product->setDescription('');
 
         $variant = new ProductVariant();
@@ -54,7 +55,7 @@ class CartItemOutputDtoTest extends TestCase
         $product->setName('Test');
         $product->setCode('TEST');
         $product->setCurrentPrice('100.00');
-        $product->setState(1);
+        $product->setState(ProductStateEnum::PUBLIC);
         $product->setDescription('');
 
         $item = new OrderItem();
@@ -85,7 +86,7 @@ class CartItemOutputDtoTest extends TestCase
         $product->setName('Test');
         $product->setCode('TEST');
         $product->setCurrentPrice('100.00');
-        $product->setState(1);
+        $product->setState(ProductStateEnum::PUBLIC);
         $product->setDescription('');
 
         $item = new OrderItem();

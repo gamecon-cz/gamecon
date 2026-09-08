@@ -11,6 +11,7 @@ use App\Entity\ProductVariant;
 use App\Entity\Role;
 use App\Entity\User;
 use App\Entity\UserRole;
+use App\Enum\ProductStateEnum;
 use App\Enum\ProductTagCode;
 use App\Enum\RoleMeaning;
 use App\Repository\OrderRepository;
@@ -70,7 +71,7 @@ class EshopIntegrationTest extends AbstractTestDb
                 $product->setName('Tričko modré');
                 $product->setCode('eshoptest-tricko-modre');
                 $product->setCurrentPrice('250.00');
-                $product->setState(1);
+                $product->setState(ProductStateEnum::PUBLIC);
                 $product->setDescription('Modré tričko');
                 $product->setAvailableUntil(new \DateTimeImmutable('+1 year'));
                 $product->setReservedForOrganizers(2);
