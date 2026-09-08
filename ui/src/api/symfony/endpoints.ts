@@ -1,5 +1,6 @@
 import { symfonyFetch } from "./fetch";
 import {
+  ApiAccommodation,
   ApiCart,
   ApiEntryFee,
   ApiHydraCollection,
@@ -18,6 +19,16 @@ export const fetchMeals = async (): Promise<ApiMealProduct[]> => {
   if (!res.ok) throw new Error(`Failed to fetch meals: ${res.status}`);
   const data = await res.json() as ApiHydraCollection<ApiMealProduct>;
   return data["hydra:member"] ?? data["member"] ?? [];
+};
+
+/**
+ * Fetch the accommodation section. One payload rather than a list: the nights of a
+ * booking must be consecutive, so they are chosen as a set.
+ */
+export const fetchAccommodation = async (): Promise<ApiAccommodation> => {
+  const res = await symfonyFetch("cart/accommodation");
+  if (!res.ok) throw new Error(`Failed to fetch accommodation: ${res.status}`);
+  return await res.json() as ApiAccommodation;
 };
 
 /**
