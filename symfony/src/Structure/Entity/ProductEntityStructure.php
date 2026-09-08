@@ -70,6 +70,11 @@ class ProductEntityStructure
     public const reservedForOrganizers = 'reservedForOrganizers';
 
     /**
+     * @see Product::$secondary
+     */
+    public const secondary = 'secondary';
+
+    /**
      * @see Product::$tags
      */
     public const tags = 'tags';
