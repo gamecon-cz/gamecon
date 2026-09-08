@@ -7,6 +7,7 @@ namespace App\Service;
 use App\Entity\Product;
 use App\Entity\ProductVariant;
 use App\Entity\User;
+use App\Enum\ProductStateEnum;
 use App\Enum\ProductTagCode;
 use App\Enum\RoleMeaning;
 use App\Repository\ProductRepository;
@@ -44,7 +45,7 @@ class ProductService
         string $name,
         string $code,
         string $price,
-        int $state,
+        ProductStateEnum $state,
         array $tags = [],
         ?string $description = null,
     ): Product {
@@ -230,7 +231,7 @@ class ProductService
      *
      * @param array{
      *     tags?: ProductTagCode[],
-     *     state?: int,
+     *     state?: ProductStateEnum,
      *     archived?: bool,
      *     search?: string
      * } $criteria
