@@ -253,6 +253,13 @@ SQL,
 
             // A re-import may rename a product or change its stock; the default variant mirrors it,
             // so it has to follow, otherwise the cart keeps showing (and snapshotting) the old label.
+            //
+            // Only a product whose single variant IS that default may be synced. A product
+            // with real variants (t-shirt sizes, accommodation nights) has variants that
+            // carry their own name and stock, and one of them still matches the parent's
+            // code — for accommodation that is the night the owner was picked from, so this
+            // would rename "neděle" to the whole type and overwrite its per-night stock
+            // with the type total.
             dbQuery(<<<SQL
 UPDATE product_variant
 JOIN shop_predmety ON shop_predmety.id_predmetu = product_variant.product_id
@@ -261,6 +268,10 @@ SET product_variant.name = shop_predmety.nazev,
     product_variant.remaining_quantity = shop_predmety.kusu_vyrobeno,
     product_variant.accommodation_day = shop_predmety.ubytovani_den
 WHERE product_variant.code = shop_predmety.kod_predmetu
+  AND (
+      SELECT COUNT(*) FROM product_variant AS sourozenci
+      WHERE sourozenci.product_id = shop_predmety.id_predmetu
+  ) = 1
 SQL,
             );
 
