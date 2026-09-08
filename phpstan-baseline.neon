@@ -181,12 +181,6 @@ parameters:
             path: symfony/src/Entity/Product.php
 
         -
-            message: '#^Unused App\\Entity\\Product\:\:isPublic$#'
-            identifier: shipmonk.deadMethod
-            count: 1
-            path: symfony/src/Entity/Product.php
-
-        -
             message: '#^Unused App\\Entity\\Product\:\:restore$#'
             identifier: shipmonk.deadMethod
             count: 1
