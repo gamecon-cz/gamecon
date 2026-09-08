@@ -322,6 +322,31 @@ SQL,
     }
 
     /**
+     * Doctrine hydrates stav with from(), so a value outside the enum would make every
+     * later read of that product throw rather than just look odd.
+     *
+     * @test
+     */
+    public function importChybaKdyzJeStavMimoRozsah(): void
+    {
+        // '' and 'abc' would cast to 0 and import as RETIRED if the check used (int).
+        foreach ([9, -1, '', 'abc', '1.9'] as $neplatnyStav) {
+            $soubor = $this->createXlsxSoubor([
+                $this->defaultniRadek([
+                    'stav' => $neplatnyStav,
+                ]),
+            ]);
+
+            try {
+                (new EshopImporter($soubor))->importuj();
+                self::fail(sprintf('Stav %s měl být odmítnut', var_export($neplatnyStav, true)));
+            } catch (\Chyba $chyba) {
+                self::assertMatchesRegularExpression('/řádku 2.*stav/s', $chyba->getMessage());
+            }
+        }
+    }
+
+    /**
      * @test
      */
     public function importZpracujeNullHodnoty(): void

@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Gamecon\Shop;
 
+use App\Enum\ProductStateEnum;
 use OpenSpout\Reader\XLSX\Reader as XLSXReader;
 
 class EshopImporter
@@ -114,11 +115,25 @@ class EshopImporter
                 }
                 $tagsByKodPredmetu[$kodPredmetu] = $tag;
 
+                $stav = (string) ($radek[$indexStav] ?? '');
+                // Checked as a string, not cast: (int) would turn an empty cell or "abc"
+                // into 0 and silently import the product as RETIRED.
+                if (!ctype_digit($stav) || ProductStateEnum::tryFrom((int) $stav) === null) {
+                    $chyby[] = sprintf(
+                        'Na řádku %d je neplatný stav "%s" v %d. sloupci, povolené jsou %s',
+                        $poradiRadku,
+                        $stav,
+                        $indexStav + 1,
+                        implode(', ', array_column(ProductStateEnum::cases(), 'value')),
+                    );
+                    continue;
+                }
+
                 $sqlValuesArray[] = '(' . dbQa([
                         $radek[$indexNazev],
                         $kodPredmetu,
                         $radek[$indexCenaAktualni],
-                        $radek[$indexStav],
+                        (int) $stav,
                         $radek[$indexNabizetDo],
                         $cisloNeboNull($radek[$indexKusuVyrobeno]),
                         $cisloNeboNull($radek[$indexUbytovaniDen]),
