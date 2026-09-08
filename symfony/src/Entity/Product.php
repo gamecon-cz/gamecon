@@ -148,6 +148,16 @@ class Product
     private ?int $reservedForOrganizers = null;
 
     /**
+     * Secondary merch is offered in a collapsed "Další merch" disclosure rather than
+     * the main grid.
+     */
+    #[ORM\Column(name: 'vedlejsi', type: Types::BOOLEAN, nullable: false, options: [
+        'default' => false,
+    ])]
+    #[Groups(['product:list', 'product:read', 'product:write'])]
+    private bool $secondary = false;
+
+    /**
      * @var Collection<int, ProductTag>
      */
     #[ORM\ManyToMany(targetEntity: ProductTag::class, inversedBy: 'products')]
@@ -329,6 +339,18 @@ class Product
     public function setReservedForOrganizers(?int $reservedForOrganizers): self
     {
         $this->reservedForOrganizers = $reservedForOrganizers;
+
+        return $this;
+    }
+
+    public function isSecondary(): bool
+    {
+        return $this->secondary;
+    }
+
+    public function setSecondary(bool $secondary): self
+    {
+        $this->secondary = $secondary;
 
         return $this;
     }

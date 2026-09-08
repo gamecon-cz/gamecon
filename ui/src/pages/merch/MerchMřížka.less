@@ -1,0 +1,101 @@
+// Sizes and greys mirror web/soubory/blackarrow/shop/shop-predmety.less so the migrated
+// grid stays visually identical to the sections still rendered by the legacy template.
+.merch-mrizka {
+  margin: 1em 0;
+
+  &--predmet {
+    display: flex;
+    align-items: center;
+    padding: 6px 0;
+  }
+
+  &--popis {
+    flex: 1;
+  }
+
+  &--popisek {
+    font-size: 0.85em;
+    color: #777;
+  }
+
+  &--cena {
+    font-weight: bold;
+  }
+
+  &--cena-puvodni {
+    margin-right: 6px;
+    color: #999;
+    font-weight: normal;
+    text-decoration: line-through;
+  }
+
+  &--pocet {
+    display: flex;
+    margin-left: auto;
+  }
+
+  &--plus,
+  &--minus,
+  &--kusu {
+    display: block;
+    border: solid 1px #dbdbdb;
+    background: none;
+    height: 40px;
+    width: 40px;
+    font-size: 18px;
+    font-weight: bold;
+    line-height: 43px;
+    text-align: center;
+  }
+
+  &--plus,
+  &--minus {
+    color: #dbdbdb;
+    cursor: pointer;
+    font-size: 32px;
+    font-weight: normal;
+
+    &:hover:not(:disabled) {
+      color: #bbb;
+    }
+
+    &:disabled {
+      cursor: default;
+      opacity: 0.4;
+    }
+  }
+
+  &--minus {
+    border-radius: 4px 0 0 4px;
+    border-right: 0;
+  }
+
+  &--plus {
+    border-radius: 0 4px 4px 0;
+    border-left: 0;
+  }
+
+  &--nedostupne {
+    align-self: center;
+    margin-left: 8px;
+    color: #999;
+    font-size: 0.85em;
+  }
+
+  &--error {
+    margin-bottom: 1em;
+    padding: 8px 12px;
+    border-radius: 4px;
+    background-color: #fdecea;
+    color: #b3261e;
+  }
+
+  &--dalsi {
+    margin-top: 1em;
+
+    summary {
+      cursor: pointer;
+      font-weight: bold;
+    }
+  }
+}

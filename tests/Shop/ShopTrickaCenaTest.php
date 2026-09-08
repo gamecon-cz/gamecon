@@ -162,7 +162,7 @@ SQL,
         $this->objednejPredmet($uzivatel, $idCervenehoTricka);
 
         $shop = new Shop($uzivatel, $uzivatel, $this->systemoveNastaveniProShop());
-        $html = $shop->predmetyHtml();
+        $html = $shop->svrskyHtml();
 
         self::assertMatchesRegularExpression(
             '~<div class="shop_popisCena">200&thinsp;Kč</div>.*<option value="' . $idCervenehoTricka . '" data-cena="200&thinsp;Kč" selected>Tričko červené pánské L</option>~s',
@@ -196,7 +196,7 @@ SQL,
         );
 
         $shop = new Shop($uzivatel, $uzivatel, $this->systemoveNastaveniProShop());
-        $html = $shop->predmetyHtml();
+        $html = $shop->svrskyHtml();
 
         self::assertStringContainsString('data-vychozi-cena="200-400&thinsp;Kč"', $html);
         self::assertStringContainsString('value="' . $idUcastnickehoTricka . '" data-cena="400&thinsp;Kč"', $html);

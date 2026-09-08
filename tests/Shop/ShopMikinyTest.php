@@ -138,14 +138,14 @@ SQL,
         $this->vytvorPredmet('Placka drak', 'placka_drak_' . $suffix, TypPredmetu::PREDMET, null, 50);
 
         $shopBezMikin = new Shop($uzivatel, $uzivatel, $this->systemoveNastaveniProShop());
-        $htmlBezMikin = $shopBezMikin->predmetyHtml();
+        $htmlBezMikin = $shopBezMikin->svrskyHtml();
         self::assertStringNotContainsString('Mikina GameCon', $htmlBezMikin);
 
         $this->vytvorPredmet('Mikina černá S', 'mikina_cerna_s_' . $suffix, TypPredmetu::PREDMET, PodtypPredmetu::MIKINA, 900);
         $this->vytvorPredmet('Mikina černá M', 'mikina_cerna_m_' . $suffix, TypPredmetu::PREDMET, PodtypPredmetu::MIKINA, 900);
 
         $shopSMikinami = new Shop($uzivatel, $uzivatel, $this->systemoveNastaveniProShop());
-        $htmlSMikinami = $shopSMikinami->predmetyHtml();
+        $htmlSMikinami = $shopSMikinami->svrskyHtml();
 
         self::assertStringContainsString('Mikina GameCon ' . ROCNIK, $htmlSMikinami);
         self::assertStringContainsString('name="shopM[0]"', $htmlSMikinami);

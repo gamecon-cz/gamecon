@@ -15,12 +15,14 @@ use App\Dto\Cart\CartOutputDto;
 use App\Dto\Cart\CheckoutInputDto;
 use App\Dto\Cart\EntryFeeOutputDto;
 use App\Dto\Cart\MealProductOutputDto;
+use App\Dto\Cart\MerchProductOutputDto;
 use App\Dto\Cart\SetEntryFeeInputDto;
 use App\State\Cart\AddToCartProcessor;
 use App\State\Cart\CartProvider;
 use App\State\Cart\CheckoutProcessor;
 use App\State\Cart\EntryFeeProvider;
 use App\State\Cart\MealProductsProvider;
+use App\State\Cart\MerchProductsProvider;
 use App\State\Cart\RemoveFromCartProcessor;
 use App\State\Cart\SetEntryFeeProcessor;
 
@@ -34,6 +36,16 @@ use App\State\Cart\SetEntryFeeProcessor;
             openapi: new Operation(
                 summary: 'List available meals',
                 description: 'Returns flat list of meal products with variant info for the meal matrix UI.',
+            ),
+        ),
+        new GetCollection(
+            uriTemplate: '/cart/merch',
+            output: MerchProductOutputDto::class,
+            provider: MerchProductsProvider::class,
+            security: "is_granted('ROLE_USER')",
+            openapi: new Operation(
+                summary: 'List merch products',
+                description: 'Returns the merch grid: price after any role discount, what the customer already owns and how many more they may buy.',
             ),
         ),
         new Get(
