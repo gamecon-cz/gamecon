@@ -6,6 +6,7 @@ namespace App\Tests\Entity;
 
 use App\Entity\Product;
 use App\Entity\ProductTag;
+use App\Enum\ProductStateEnum;
 use PHPUnit\Framework\TestCase;
 
 class ProductTest extends TestCase
@@ -137,18 +138,24 @@ class ProductTest extends TestCase
         $this->assertFalse($this->product->isPublic());
     }
 
-    public function testGetStateName(): void
+    public function testGetStateEnum(): void
     {
         $this->product->setState(0);
-        $this->assertSame('Mimo', $this->product->getStateName());
+        $this->assertSame(ProductStateEnum::RETIRED, $this->product->getStateEnum());
 
         $this->product->setState(1);
-        $this->assertSame('Veřejný', $this->product->getStateName());
+        $this->assertSame(ProductStateEnum::PUBLIC, $this->product->getStateEnum());
 
         $this->product->setState(2);
-        $this->assertSame('Podpultový', $this->product->getStateName());
+        $this->assertSame(ProductStateEnum::RESTRICTED, $this->product->getStateEnum());
 
         $this->product->setState(3);
-        $this->assertSame('Pozastavený', $this->product->getStateName());
+        $this->assertSame(ProductStateEnum::SUSPENDED, $this->product->getStateEnum());
+    }
+
+    public function testGetStateEnumIsNullForAValueOutsideTheKnownStates(): void
+    {
+        $this->product->setState(9);
+        $this->assertNull($this->product->getStateEnum());
     }
 }
