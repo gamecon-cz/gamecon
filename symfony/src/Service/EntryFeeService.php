@@ -20,7 +20,7 @@ use Symfony\Component\HttpKernel\Exception\ConflictHttpException;
  * prices come from the product.
  *
  * A second product for payments made late ("pozdě" in the name) is no longer offered — it sits at
- * StavPredmetu::MIMO and was last charged in 2022 — so nothing here writes to it, the same as for
+ * ProductStateEnum::RETIRED and was last charged in 2022 — so nothing here writes to it, the same as for
  * any other discontinued product. Purchases people already made keep their values and keep counting
  * towards their total; only this year's product is ever written.
  */
