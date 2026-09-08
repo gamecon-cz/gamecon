@@ -64,13 +64,15 @@ use Symfony\Component\Validator\Constraints as Assert;
         ),
     ],
     normalizationContext: [
-        'groups' => ['product_tag:read'],
+        'groups' => [self::READ],
     ],
     paginationEnabled: false,
 )]
 class ProductTag implements WithTimestampsInterface
 {
     use WithTimestampsTrait;
+
+    public const READ = 'product_tag:read';
 
     #[ORM\Id]
     #[ORM\GeneratedValue]
@@ -86,15 +88,15 @@ class ProductTag implements WithTimestampsInterface
         pattern: '/^[a-z0-9\-]+$/',
         message: 'Kód tagu může obsahovat pouze malá písmena, číslice a pomlčky'
     )]
-    #[Groups(['product:read', 'product:list', 'product_tag:read'])]
+    #[Groups([Product::READ, Product::LIST, self::READ])]
     private string $code;
 
     #[ORM\Column(type: Types::STRING, nullable: true)]
-    #[Groups(['product:read', 'product:list', 'product_tag:read'])]
+    #[Groups([Product::READ, Product::LIST, self::READ])]
     private ?string $name;
 
     #[ORM\Column(type: Types::STRING, nullable: true)]
-    #[Groups(['product_tag:read'])]
+    #[Groups([self::READ])]
     private ?string $description = null;
 
     /**
