@@ -9,10 +9,12 @@ use App\Entity\OrderItem;
 use App\Entity\ProductBundle;
 use App\Entity\ProductVariant;
 use App\Entity\User;
+use App\Enum\ProductTagCode;
 use App\Enum\RoleMeaning;
 use App\Repository\OrderRepository;
 use App\Repository\ProductBundleRepository;
 use Doctrine\ORM\EntityManagerInterface;
+use Gamecon\SystemoveNastaveni\SystemoveNastaveni;
 
 /**
  * CartService — business logic for the shopping cart.
@@ -198,6 +200,16 @@ class CartService
 
         if (! $product->isAvailable()) {
             throw new \RuntimeException(sprintf('Produkt "%s" není dostupný.', $product->getName()));
+        }
+
+        // Merch has a section-wide deadline on top of the per-product state, so a page
+        // left open past it — or a direct POST — must not still buy.
+        if (
+            $product->hasTag(ProductTagCode::PREDMET->value)
+            && ! $product->hasTag(ProductTagCode::MIKINA->value)
+            && SystemoveNastaveni::zGlobals()->prodejPredmetuBezTricekUkoncen()
+        ) {
+            throw new \RuntimeException(sprintf('Prodej předmětu "%s" už skončil.', $product->getName()));
         }
 
         $this->capacityManager->purchase($variant, 1, $roleMeanings);

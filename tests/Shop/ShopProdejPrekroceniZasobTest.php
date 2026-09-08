@@ -124,8 +124,10 @@ SQL,
             ShopItemEntityStructure::kusuVyrobeno => 2,
         ])->_save()->_real();
         // typ is a virtual column from the shop_predmety_s_typem view, derived from the product tag.
+        // Hoodie, not plain merch: plain merch is bought through the API now, so the form's
+        // stock guard no longer sees it. Hoodies still go through zpracujPredmety().
         dbQuery(
-            "INSERT INTO product_product_tag (product_id, tag_id) SELECT $0, id FROM product_tag WHERE code = 'predmet'",
+            "INSERT INTO product_product_tag (product_id, tag_id) SELECT $0, id FROM product_tag WHERE code IN ('predmet', 'mikina')",
             [
                 0 => $shopItem->getId(),
             ],
@@ -138,8 +140,10 @@ SQL,
         $puvodniPost = $_POST;
         try {
             $_POST = [
-                'shopP' => [
-                    $shopItem->getId() => 3,
+                'shopM' => [
+                    $shopItem->getId(),
+                    $shopItem->getId(),
+                    $shopItem->getId(),
                 ],
             ];
 
