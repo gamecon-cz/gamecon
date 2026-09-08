@@ -19,7 +19,7 @@ class ProductTest extends TestCase
         $this->product->setName('Test Product');
         $this->product->setCode('TEST-001');
         $this->product->setCurrentPrice('100.00');
-        $this->product->setState(1);
+        $this->product->setState(ProductStateEnum::PUBLIC);
         $this->product->setDescription('Test description');
     }
 
@@ -37,7 +37,7 @@ class ProductTest extends TestCase
         $this->assertSame('Test Product', $this->product->getName());
         $this->assertSame('TEST-001', $this->product->getCode());
         $this->assertSame('100.00', $this->product->getCurrentPrice());
-        $this->assertSame(1, $this->product->getState());
+        $this->assertSame(ProductStateEnum::PUBLIC, $this->product->getState());
         $this->assertSame('Test description', $this->product->getDescription());
     }
 
@@ -102,16 +102,14 @@ class ProductTest extends TestCase
 
     public function testIsAvailable(): void
     {
-        // State 1 = VEŘEJNÝ (public)
-        $this->product->setState(1);
+        $this->product->setState(ProductStateEnum::PUBLIC);
         $this->assertTrue($this->product->isAvailable());
 
-        // State 0 = MIMO (not available)
-        $this->product->setState(0);
+        $this->product->setState(ProductStateEnum::RETIRED);
         $this->assertFalse($this->product->isAvailable());
 
         // Archived product
-        $this->product->setState(1);
+        $this->product->setState(ProductStateEnum::PUBLIC);
         $this->product->setArchivedAt(new \DateTimeImmutable());
         $this->assertFalse($this->product->isAvailable());
 
@@ -127,35 +125,35 @@ class ProductTest extends TestCase
 
     public function testIsPublic(): void
     {
-        $this->product->setState(1); // VEŘEJNÝ
+        $this->product->setState(ProductStateEnum::PUBLIC);
         $this->assertTrue($this->product->isPublic());
 
-        $this->product->setState(2); // PODPULTOVÝ
+        $this->product->setState(ProductStateEnum::RESTRICTED);
         $this->assertFalse($this->product->isPublic());
 
-        $this->product->setState(1);
+        $this->product->setState(ProductStateEnum::PUBLIC);
         $this->product->setArchivedAt(new \DateTimeImmutable());
         $this->assertFalse($this->product->isPublic());
     }
 
-    public function testGetStateEnum(): void
+    public function testGetState(): void
     {
-        $this->product->setState(0);
-        $this->assertSame(ProductStateEnum::RETIRED, $this->product->getStateEnum());
-
-        $this->product->setState(1);
-        $this->assertSame(ProductStateEnum::PUBLIC, $this->product->getStateEnum());
-
-        $this->product->setState(2);
-        $this->assertSame(ProductStateEnum::RESTRICTED, $this->product->getStateEnum());
-
-        $this->product->setState(3);
-        $this->assertSame(ProductStateEnum::SUSPENDED, $this->product->getStateEnum());
+        foreach (ProductStateEnum::cases() as $state) {
+            $this->product->setState($state);
+            $this->assertSame($state, $this->product->getState());
+        }
     }
 
-    public function testGetStateEnumIsNullForAValueOutsideTheKnownStates(): void
+    /**
+     * The backing values are what `shop_predmety`.`stav` already holds, and
+     * Gamecon\Shop\StavPredmetu re-exports them for legacy comparisons against the raw
+     * int. Renumbering a case would silently change the meaning of every stored row.
+     */
+    public function testBackingValuesMatchTheStoredColumn(): void
     {
-        $this->product->setState(9);
-        $this->assertNull($this->product->getStateEnum());
+        $this->assertSame(0, ProductStateEnum::RETIRED->value);
+        $this->assertSame(1, ProductStateEnum::PUBLIC->value);
+        $this->assertSame(2, ProductStateEnum::RESTRICTED->value);
+        $this->assertSame(3, ProductStateEnum::SUSPENDED->value);
     }
 }
