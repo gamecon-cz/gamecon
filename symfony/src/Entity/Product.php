@@ -487,13 +487,6 @@ class Product
     }
 
     /**
-     * Get all tag names as simple array
-     *
-     * @return string[]
-     */
-    /**
-     * Get all tag names as simple array
-     *
      * @return string[]
      */
     public function getTagNames(): array
