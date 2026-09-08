@@ -10,6 +10,7 @@ use App\Entity\ProductTag;
 use App\Entity\ProductVariant;
 use PHPUnit\Framework\TestCase;
 use Symfony\Component\Serializer\Annotation\Groups;
+use App\Enum\ProductStateEnum;
 
 /**
  * Verifies serialization groups for product listing and
@@ -103,7 +104,7 @@ class ProductListSerializationTest extends TestCase
         $product->setName('Oběd — pátek');
         $product->setCode('obed-patek');
         $product->setCurrentPrice('120.00');
-        $product->setState(1);
+        $product->setState(ProductStateEnum::PUBLIC);
         $product->setDescription('');
         $product->setAccommodationDay(2);
 
@@ -132,7 +133,7 @@ class ProductListSerializationTest extends TestCase
         $product->setName('Test');
         $product->setCode('TEST');
         $product->setCurrentPrice('100.00');
-        $product->setState(1);
+        $product->setState(ProductStateEnum::PUBLIC);
         $product->setDescription('');
         $product->setAccommodationDay(1);
 

@@ -15,6 +15,7 @@ use App\Repository\ProductDiscountRepository;
 use App\Service\DiscountCalculator;
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
+use App\Enum\ProductStateEnum;
 
 class DiscountCalculatorTest extends TestCase
 {
@@ -219,7 +220,7 @@ class DiscountCalculatorTest extends TestCase
         $product->setName('Test Product');
         $product->setCode('TEST-001');
         $product->setCurrentPrice($price);
-        $product->setState(1);
+        $product->setState(ProductStateEnum::PUBLIC);
 
         return $product;
     }

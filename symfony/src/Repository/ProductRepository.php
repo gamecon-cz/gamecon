@@ -85,7 +85,7 @@ class ProductRepository extends ServiceEntityRepository
      *
      * @return Product[]
      */
-    public function findByState(int $state): array
+    public function findByState(ProductStateEnum $state): array
     {
         return $this->createQueryBuilder('product')
             ->where('product.state = :state')
@@ -109,7 +109,7 @@ class ProductRepository extends ServiceEntityRepository
             ->where('product.state = :publicState')
             ->andWhere('product.archivedAt IS NULL')
             ->andWhere('product.availableUntil IS NULL OR product.availableUntil > :now')
-            ->setParameter('publicState', ProductStateEnum::PUBLIC->value)
+            ->setParameter('publicState', ProductStateEnum::PUBLIC)
             ->setParameter('now', $now)
             ->orderBy('product.name', 'ASC')
             ->getQuery()

@@ -18,6 +18,7 @@ use Doctrine\ORM\EntityManagerInterface;
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
 use Symfony\Bundle\SecurityBundle\Security;
+use App\Enum\ProductStateEnum;
 
 class AddToCartProcessorTest extends TestCase
 {
@@ -122,7 +123,7 @@ class AddToCartProcessorTest extends TestCase
         $product->setName('Test');
         $product->setCode('TEST');
         $product->setCurrentPrice('100.00');
-        $product->setState(1);
+        $product->setState(ProductStateEnum::PUBLIC);
         $product->setDescription('');
 
         $variant = new ProductVariant();
