@@ -70,4 +70,9 @@ class ProductSqlStructure
      * @see Product::$reservedForOrganizers
      */
     public const reserved_for_organizers = 'reserved_for_organizers';
+
+    /**
+     * @see Product::$secondary
+     */
+    public const vedlejsi = 'vedlejsi';
 }
