@@ -14,6 +14,7 @@ use App\Tests\AbstractDatabaseKernelTestCase;
 use Doctrine\DBAL\Connection;
 use Doctrine\ORM\EntityManagerInterface;
 use Gamecon\Tests\Factory\UserFactory;
+use App\Enum\ProductStateEnum;
 
 /**
  * Tests for the Symfony Product API endpoint.
@@ -94,7 +95,7 @@ class ProductApiTest extends AbstractDatabaseKernelTestCase
         $product->setName('API test product ' . uniqid());
         $product->setCode('API-TEST-' . strtoupper(uniqid()));
         $product->setCurrentPrice('1.00');
-        $product->setState(1);
+        $product->setState(ProductStateEnum::PUBLIC);
         $product->setDescription('');
 
         return $product;
