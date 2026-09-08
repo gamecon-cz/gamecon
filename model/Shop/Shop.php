@@ -645,8 +645,9 @@ SQL,
     }
 
     /**
-     * Vrátí html kód formuláře s předměty, mikinami a tričky (bez form značek
-     * kvůli integraci více věcí naráz).
+     * Jen merch (hlavní + „Další merch"), bez form značek. Trička a mikiny mají vlastní
+     * {@see svrskyHtml()}, protože merch se vykresluje Preactem a zbytek zatím ne.
+     *
      * @todo vyprodání věcí
      */
     public function predmetyHtml()
@@ -684,6 +685,18 @@ SQL,
         if ($maVedlejsiPredmety) {
             $t->parse('predmety.dalsiMerch');
         }
+
+        $t->parse('predmety');
+
+        return $t->text('predmety');
+    }
+
+    /**
+     * Trička a mikiny — samostatně, viz {@see predmetyHtml()}.
+     */
+    public function svrskyHtml(): string
+    {
+        $t = new XTemplate(__DIR__ . '/templates/shop-predmety.xtpl');
 
         // MIKINY
         if ($this->mikiny) {
@@ -729,6 +742,7 @@ SQL,
 
         $t->assign('shopSvrskyJs', URL_WEBU . '/soubory/blackarrow/shop/shop-svrsky.js?version='
             . md5_file(WWW . '/soubory/blackarrow/shop/shop-svrsky.js'));
+        $t->parse('predmety.skripty');
 
         $t->parse('predmety');
 
@@ -856,13 +870,13 @@ SQL,
             'postName'       => $this->klicP . '[' . $predmet['id_predmetu'] . ']',
         ]);
 
-        if ($predmet['nabizet'] && !$predmetyZamceny) {
-            $t->parse($templateBlock . '.nakup');
-            $t->parse($templateBlock);
-            return true;
-        } elseif ($predmet['kusu_uzivatele']) {
+        // Vždy jen počet, nikdy nakupovací plus/minus: merch se kupuje přes API a
+        // zpracujPredmety() už shopP nečte, takže editovatelné pole by tiše zahodilo
+        // změnu. Tenhle výstup je noscript fallback a záloha při nedostupném API.
+        if ($predmet['nabizet'] && !$predmetyZamceny || $predmet['kusu_uzivatele']) {
             $t->parse($templateBlock . '.fixniPocet');
             $t->parse($templateBlock);
+
             return true;
         }
 
@@ -1002,49 +1016,44 @@ SQL,
     }
 
     /**
-     * Zpracuje část formuláře s předměty, mikinami a tričky.
+     * Zpracuje část formuláře s mikinami a tričky.
+     *
+     * Merch už formulář neposílá — kupuje se přes API po jednotlivých kliknutích — takže
+     * ho nesmí vidět ani diff níž: prázdný `$nove` by znamenal „uživatel nic nechce"
+     * a smazal by, co si koupil.
+     *
      * Čáry máry s ručním počítáním diference (místo smazání a náhrady) jsou nut-
      * né kvůli zachování původní nákupní ceny (aktuální cena se totiž mohla od
      * nákupu změnit).
      */
     public function zpracujPredmety()
     {
-        if (isset($_POST[$this->klicP]) || isset($_POST[$this->klicT]) || isset($_POST[$this->klicM])) {
-            $povolenaIdPredmetuAMikinATricek = array_map(
+        if (isset($_POST[$this->klicT]) || isset($_POST[$this->klicM])) {
+            $povolenaIdMikinATricek = array_map(
                 'intval',
                 array_merge(
-                    array_column($this->predmety, 'id_predmetu'),
                     array_column($this->tricka, 'id_predmetu'),
                     array_column($this->mikiny, 'id_predmetu'),
                 ),
             );
-            // pole s předměty, které jsou vyplněné ve formuláři
             $nove = [];
-            foreach (($_POST[$this->klicP] ?? []) as $idPredmetu => $pocet) {
-                $idPredmetu = (int)$idPredmetu;
-                if (!in_array($idPredmetu, $povolenaIdPredmetuAMikinATricek, true)) {
-                    continue;
-                }
-                for ($i = 0; $i < $pocet; $i++) {
-                    $nove[] = $idPredmetu;
-                }
-            }
             foreach (($_POST[$this->klicT] ?? []) as $idTricka) { // připojení triček
                 $idTricka = (int)$idTricka;
-                if ($idTricka && in_array($idTricka, $povolenaIdPredmetuAMikinATricek, true)) { // odstranění výběrů „žádné tričko“
+                if ($idTricka && in_array($idTricka, $povolenaIdMikinATricek, true)) { // odstranění výběrů „žádné tričko“
                     $nove[] = $idTricka;
                 }
             }
             foreach (($_POST[$this->klicM] ?? []) as $idMikiny) { // připojení mikin
                 $idMikiny = (int)$idMikiny;
-                if ($idMikiny && in_array($idMikiny, $povolenaIdPredmetuAMikinATricek, true)) { // odstranění výběrů „žádná mikina“
+                if ($idMikiny && in_array($idMikiny, $povolenaIdMikinATricek, true)) { // odstranění výběrů „žádná mikina“
                     $nove[] = $idMikiny;
                 }
             }
             sort($nove);
-            // pole s předměty, které už má objednané dříve (bez ubytování)
+            // Jen to, co formulář posílá: trička (typ) a mikiny (podtyp typu PREDMET).
+            // Ostatní merch je typ PREDMET taky, ale řeší ho API, takže do diffu nesmí.
             $stare = [];
-            $o = dbQuery('SELECT id_predmetu FROM shop_nakupy JOIN shop_predmety_s_typem USING(id_predmetu) WHERE id_uzivatele=' . $this->zakaznik->id() . ' AND rok=' . ROCNIK . ' AND typ IN(' . self::PREDMET . ',' . self::TRICKO . ') ORDER BY id_predmetu');
+            $o = dbQuery('SELECT id_predmetu FROM shop_nakupy JOIN shop_predmety_s_typem USING(id_predmetu) WHERE id_uzivatele=' . $this->zakaznik->id() . ' AND rok=' . ROCNIK . ' AND (typ = ' . self::TRICKO . ' OR (typ = ' . self::PREDMET . ' AND podtyp = ' . dbQv(PodtypPredmetu::MIKINA) . ')) ORDER BY id_predmetu');
             while ($r = $o->fetch(\PDO::FETCH_ASSOC)) {
                 $stare[] = (int)$r['id_predmetu'];
             }

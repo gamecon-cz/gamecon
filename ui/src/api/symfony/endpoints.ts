@@ -4,6 +4,7 @@ import {
   ApiEntryFee,
   ApiHydraCollection,
   ApiMealProduct,
+  ApiMerchProduct,
   ApiProduct,
   ApiProductTag,
   ApiProductWrite,
@@ -16,6 +17,16 @@ export const fetchMeals = async (): Promise<ApiMealProduct[]> => {
   const res = await symfonyFetch("cart/meals");
   if (!res.ok) throw new Error(`Failed to fetch meals: ${res.status}`);
   const data = await res.json() as ApiHydraCollection<ApiMealProduct>;
+  return data["hydra:member"] ?? data["member"] ?? [];
+};
+
+/**
+ * Fetch merch products (flat DTOs for the merch grid)
+ */
+export const fetchMerch = async (): Promise<ApiMerchProduct[]> => {
+  const res = await symfonyFetch("cart/merch");
+  if (!res.ok) throw new Error(`Failed to fetch merch: ${res.status}`);
+  const data = await res.json() as ApiHydraCollection<ApiMerchProduct>;
   return data["hydra:member"] ?? data["member"] ?? [];
 };
 
@@ -53,7 +64,10 @@ export const removeFromCart = async (itemId: number): Promise<void> => {
   const res = await symfonyFetch(`cart/items/${itemId}`, {
     method: "DELETE",
   });
-  if (!res.ok) throw new Error(`Failed to remove from cart: ${res.status}`);
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({}));
+    throw new Error(err.detail ?? `Failed to remove from cart: ${res.status}`);
+  }
 };
 
 // ==================== Admin: Products + Variants ====================

@@ -6,6 +6,20 @@ export type ApiMealProduct = {
   remainingQuantity: number | null;
 };
 
+export type ApiMerchProduct = {
+  name: string;
+  description: string;
+  variantId: number;
+  price: string;
+  discountedPrice: string;
+  purchasedQuantity: number;
+  /** Null when the product has unlimited stock. */
+  maxQuantity: number | null;
+  /** Belongs in the collapsed "Další merch" section rather than the main grid. */
+  secondary: boolean;
+  available: boolean;
+};
+
 export type ApiProduct = {
   "@id": string;
   id: number;
