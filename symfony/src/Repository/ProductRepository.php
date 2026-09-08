@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Repository;
 
 use App\Entity\Product;
+use App\Enum\ProductStateEnum;
 use App\Enum\ProductTagCode;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\Persistence\ManagerRegistry;
@@ -105,9 +106,10 @@ class ProductRepository extends ServiceEntityRepository
         $now = new \DateTime();
 
         return $this->createQueryBuilder('product')
-            ->where('product.state = 1')
+            ->where('product.state = :publicState')
             ->andWhere('product.archivedAt IS NULL')
             ->andWhere('product.availableUntil IS NULL OR product.availableUntil > :now')
+            ->setParameter('publicState', ProductStateEnum::PUBLIC->value)
             ->setParameter('now', $now)
             ->orderBy('product.name', 'ASC')
             ->getQuery()
