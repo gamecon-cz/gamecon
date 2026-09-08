@@ -8,6 +8,7 @@ use App\Entity\Product;
 use App\Entity\ProductVariant;
 use App\Enum\RoleMeaning;
 use PHPUnit\Framework\TestCase;
+use App\Enum\ProductStateEnum;
 
 class ProductVariantTest extends TestCase
 {
@@ -19,7 +20,7 @@ class ProductVariantTest extends TestCase
         $this->product->setName('Tričko modré');
         $this->product->setCode('TRICKO-MODRE');
         $this->product->setCurrentPrice('250.00');
-        $this->product->setState(1);
+        $this->product->setState(ProductStateEnum::PUBLIC);
         $this->product->setReservedForOrganizers(5);
     }
 
