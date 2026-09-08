@@ -64,10 +64,10 @@ use Symfony\Component\Validator\Constraints as Assert;
         ),
     ],
     normalizationContext: [
-        'groups' => ['product:read'],
+        'groups' => [self::READ],
     ],
     denormalizationContext: [
-        'groups' => ['product:write'],
+        'groups' => [self::WRITE],
     ],
     paginationItemsPerPage: 30,
 )]
@@ -82,69 +82,75 @@ use Symfony\Component\Validator\Constraints as Assert;
 #[AppAssert\BreakfastIncludedRequiresAccommodation]
 class Product
 {
+    public const LIST = 'product:list';
+
+    public const READ = 'product:read';
+
+    public const WRITE = 'product:write';
+
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column(name: 'id_predmetu', type: Types::BIGINT, options: [
         'unsigned' => true,
     ])]
-    #[Groups(['product:list', 'product:read'])]
+    #[Groups([self::LIST, self::READ])]
     #[ApiProperty(identifier: true)]
     private ?int $id = null;
 
     #[ORM\Column(name: 'nazev', type: Types::STRING, length: 255, nullable: false)]
     #[Assert\NotBlank(message: 'Název produktu nesmí být prázdný')]
     #[Assert\Length(max: 255, maxMessage: 'Název může mít maximálně {{ limit }} znaků')]
-    #[Groups(['product:list', 'product:read', 'product:write'])]
+    #[Groups([self::LIST, self::READ, self::WRITE])]
     private string $name;
 
     #[ORM\Column(name: 'kod_predmetu', type: Types::STRING, length: 255, nullable: false)]
     #[Assert\NotBlank(message: 'Kód produktu nesmí být prázdný')]
     #[Assert\Length(max: 255, maxMessage: 'Kód může mít maximálně {{ limit }} znaků')]
-    #[Groups(['product:list', 'product:read', 'product:write'])]
+    #[Groups([self::LIST, self::READ, self::WRITE])]
     private string $code;
 
     #[ORM\Column(name: 'cena_aktualni', type: Types::DECIMAL, precision: 6, scale: 2, nullable: false)]
     #[Assert\NotBlank(message: 'Cena musí být vyplněna')]
     #[Assert\PositiveOrZero(message: 'Cena musí být kladné číslo nebo nula')]
-    #[Groups(['product:list', 'product:read', 'product:write'])]
+    #[Groups([self::LIST, self::READ, self::WRITE])]
     private string $currentPrice;
 
     #[ORM\Column(name: 'stav', type: Types::SMALLINT, nullable: false, enumType: ProductStateEnum::class)]
-    #[Groups(['product:list', 'product:read', 'product:write'])]
+    #[Groups([self::LIST, self::READ, self::WRITE])]
     private ProductStateEnum $state;
 
     #[ORM\Column(name: 'nabizet_do', type: Types::DATETIME_IMMUTABLE, nullable: true)]
-    #[Groups(['product:read', 'product:write'])]
+    #[Groups([self::READ, self::WRITE])]
     private ?\DateTimeImmutable $availableUntil = null;
 
     #[ORM\Column(name: 'kusu_vyrobeno', type: Types::SMALLINT, nullable: true)]
     #[Assert\PositiveOrZero(message: 'Počet vyrobených kusů musí být kladné číslo nebo nula')]
-    #[Groups(['product:list', 'product:read', 'product:write'])]
+    #[Groups([self::LIST, self::READ, self::WRITE])]
     private ?int $producedQuantity = null;
 
     #[ORM\Column(name: 'ubytovani_den', type: Types::SMALLINT, nullable: true)]
     #[Assert\Range(notInRangeMessage: 'Den ubytování musí být 0-4 (St-Ne)', min: 0, max: 4)]
-    #[Groups(['product:read', 'product:write'])]
+    #[Groups([self::READ, self::WRITE])]
     private ?int $accommodationDay = null;
 
     #[ORM\Column(name: 'breakfast_included', type: Types::BOOLEAN, nullable: false, options: [
         'default' => false,
     ])]
-    #[Groups(['product:list', 'product:read', 'product:write'])]
+    #[Groups([self::LIST, self::READ, self::WRITE])]
     private bool $breakfastIncluded = false;
 
     #[ORM\Column(name: 'popis', type: Types::STRING, length: 2000, nullable: false)]
     #[Assert\Length(max: 2000, maxMessage: 'Popis může mít maximálně {{ limit }} znaků')]
-    #[Groups(['product:read', 'product:write'])]
+    #[Groups([self::READ, self::WRITE])]
     private string $description = '';
 
     #[ORM\Column(name: 'archived_at', type: Types::DATETIME_IMMUTABLE, nullable: true)]
-    #[Groups(['product:read'])]
+    #[Groups([self::READ])]
     private ?\DateTimeImmutable $archivedAt = null;
 
     #[ORM\Column(name: 'reserved_for_organizers', type: Types::INTEGER, nullable: true)]
     #[Assert\PositiveOrZero(message: 'Rezervace pro organizátory musí být kladné číslo nebo nula')]
-    #[Groups(['product:read', 'product:write'])]
+    #[Groups([self::READ, self::WRITE])]
     private ?int $reservedForOrganizers = null;
 
     /**
@@ -154,7 +160,7 @@ class Product
     #[ORM\Column(name: 'vedlejsi', type: Types::BOOLEAN, nullable: false, options: [
         'default' => false,
     ])]
-    #[Groups(['product:list', 'product:read', 'product:write'])]
+    #[Groups([self::LIST, self::READ, self::WRITE])]
     private bool $secondary = false;
 
     /**
@@ -164,7 +170,7 @@ class Product
     #[ORM\JoinTable(name: 'product_product_tag')]
     #[ORM\JoinColumn(name: 'product_id', referencedColumnName: 'id_predmetu')]
     #[ORM\InverseJoinColumn(name: 'tag_id', referencedColumnName: 'id')]
-    #[Groups(['product:read', 'product:write'])]
+    #[Groups([self::READ, self::WRITE])]
     private Collection $tags;
 
     /**
@@ -174,7 +180,7 @@ class Product
     #[ORM\OrderBy([
         'position' => 'ASC',
     ])]
-    #[Groups(['product:read', 'product:write'])]
+    #[Groups([self::READ, self::WRITE])]
     private Collection $variants;
 
     /**
