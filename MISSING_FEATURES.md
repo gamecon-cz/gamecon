@@ -2,6 +2,11 @@
 
 Tento dokument obsahuje **funkce ze současného e-shopu (OLD_ESHOP.md), které nejsou zmíněny v plánu nového e-shopu (NEW_ESHOP.md)**.
 
+> **Stav ověřen proti kódu 2026-09-08.** Dokument vznikl jako seznam otázek „co s tím",
+> ne jako plán, takže původně bylo ❌ i to, co je dnes hotové. Značky níž jsou ověřené:
+> ✅ hotové (u každého je uvedeno čím), 🟡 rozpracované, ❌ neřešené.
+> Otázky „Rozhodnutí potřeba" u hotových položek zůstávají jako záznam, jak se rozhodlo.
+
 ---
 
 ## ⚠️ KRITICKÉ FUNKCE - Musí být v novém e-shopu
@@ -10,7 +15,12 @@ Tento dokument obsahuje **funkce ze současného e-shopu (OLD_ESHOP.md), které 
 
 Současný e-shop má **7 speciálních typů položek** (`TypPredmetu`), které nejsou pokryty v NEW_ESHOP.md:
 
-#### ❌ **UBYTOVÁNÍ (typ 2)**
+#### 🟡 **UBYTOVÁNÍ (typ 2)**
+> **Rozpracováno.** Rozhodnuto: varianty normálního produktu. Migrace
+> `2026-09-08-100016_accommodation-days-into-variants.php` sloučila 40 řádků na
+> 8 produktů × 5 nočních variant (`ProductVariant.accommodationDay`, zásoba po nocích).
+> Zbývá storefront (čtecí endpoint + mřížka) a zápisová cesta; spolubydlící a
+> „nechci ubytování" se mají přesunout z účtu na objednávku.
 **Co to je:**
 - Ubytování po dnech (St, Čt, Pá, So, Ne)
 - Každý den je samostatná položka
@@ -29,7 +39,9 @@ Současný e-shop má **7 speciálních typů položek** (`TypPredmetu`), které
 
 ---
 
-#### ❌ **JIDLO (typ 4)**
+#### ✅ **JIDLO (typ 4)**
+> **Hotovo.** Tag `jidlo` + varianty; `MealProductsProvider`, `GET /cart/meals`,
+> matice `ui/src/pages/jidlo/JídloMatice.tsx`.
 **Co to je:**
 - Jídla po dnech a typech (snídaně, oběd, večeře)
 - Matrixový výběr (dny × typy jídel)
@@ -45,7 +57,9 @@ Současný e-shop má **7 speciálních typů položek** (`TypPredmetu`), které
 
 ---
 
-#### ❌ **VSTUPNE (typ 5) - Dobrovolné vstupné**
+#### ✅ **VSTUPNE (typ 5) - Dobrovolné vstupné**
+> **Hotovo.** `EntryFeeService`, `GET`/`POST /cart/entry-fee`,
+> `ui/src/pages/vstupne/Vstupne.tsx`.
 **Co to je:**
 - Pay-what-you-want - zákazník si zvolí částku (0-∞)
 - Dvě varianty: "včas" a "pozdě" (podle data platby)
@@ -63,7 +77,8 @@ Současný e-shop má **7 speciálních typů položek** (`TypPredmetu`), které
 
 ---
 
-#### ❌ **PARCON (typ 6)**
+#### ✅ **PARCON (typ 6)**
+> **Hotovo jako tag.** `ProductTagCode::PARCON` — normální produkt, ne speciální typ.
 **Co to je:**
 - ParCon mini-akce
 - Samostatný typ produktu
@@ -72,7 +87,8 @@ Současný e-shop má **7 speciálních typů položek** (`TypPredmetu`), které
 
 ---
 
-#### ❌ **PROPLACENI_BONUSU (typ 7)**
+#### ✅ **PROPLACENI_BONUSU (typ 7)**
+> **Hotovo jako tag.** `ProductTagCode::PROPLACENI_BONUSU`.
 **Co to je:**
 - Virtuální "produkt" pro převod organizátorského bonusu na peníze
 - **Ne pro přímý prodej**
@@ -89,7 +105,9 @@ Současný e-shop má **7 speciálních typů položek** (`TypPredmetu`), které
 
 ### 2. Multi-year produktové modely
 
-#### ❌ **Pole `model_rok` - Verze produktů napříč roky**
+#### ✅ **Pole `model_rok` - Verze produktů napříč roky**
+> **Vyřešeno zrušením.** Sloupec v DB ani v entitě není; ročník nese `archived_at`
+> (NULL = aktuální). Produkt existuje trvale, nezakládá se každý rok znovu.
 **Co to je:**
 - Každý produkt má pole `model_rok` (např. 2023, 2024, 2025)
 - Stejná položka (např. "Kostka GameCon") existuje ve více ročnících
@@ -109,7 +127,8 @@ Současný e-shop má **7 speciálních typů položek** (`TypPredmetu`), které
 
 ---
 
-#### ❌ **Pole `je_letosni_hlavni` - Označení hlavní verze roku**
+#### ✅ **Pole `je_letosni_hlavni` - Označení hlavní verze roku**
+> **Vyřešeno zrušením.** Bez multi-year verzí produktu nemá co označovat.
 **Co to je:**
 - Boolean flag označující "hlavní" verzi produktu v daném roce
 - Používá se při výběru, která verze se má zobrazit/použít
@@ -120,7 +139,9 @@ Současný e-shop má **7 speciálních typů položek** (`TypPredmetu`), které
 
 ### 3. Časově omezená dostupnost
 
-#### ❌ **Pole `nabizet_do` - Automatické pozastavení prodeje**
+#### ✅ **Pole `nabizet_do` - Automatické pozastavení prodeje**
+> **Hotovo.** `Product::$availableUntil`; `isAvailable()` po uplynutí data vrací false
+> a `ProductRepository::findPublic()` takový produkt nevrací.
 **Co to je:**
 - Datum a čas, do kdy se produkt nabízí
 - Po vypršení se stav automaticky změní na `POZASTAVENY`
@@ -144,7 +165,9 @@ if ($r['nabizet_do'] && strtotime($r['nabizet_do']) < time()) {
 
 ### 4. Speciální slevy podle položky
 
-#### ❌ **Slevy na konkrétní produkty podle kódu**
+#### ✅ **Slevy na konkrétní produkty podle kódu**
+> **Hotovo.** `DiscountCalculator` + tabulka `discount_rule` (pravidla podle role,
+> s limitem počtu kusů) místo natvrdo psaných větví v `Cenik`.
 **Současný systém:**
 - Kostka zdarma (1 na uživatele)
 - Placka zdarma (1 na uživatele)
@@ -183,7 +206,9 @@ if (Predmet::jeToKostka($r['kod_predmetu'])) {
 
 ### 5. Admin funkce - Prodej
 
-#### ❌ **Mřížkové prodejní rozhraní (KFC)**
+#### ✅ **Mřížkové prodejní rozhraní (KFC)**
+> **Hotovo.** `KfcGridProvider`, `KfcGridProcessor`, `KfcSaleProcessor`,
+> `ui/src/pages/obchod/`.
 **Co to je:**
 - Speciální admin rozhraní pro prodej na místě
 - Rychlý prodej bez plného checkoutu
@@ -199,7 +224,9 @@ if (Predmet::jeToKostka($r['kod_predmetu'])) {
 
 ---
 
-#### ❌ **Import položek e-shopu z externích zdrojů**
+#### ✅ **Import položek e-shopu z externích zdrojů**
+> **Hotovo (zůstalo v legacy).** `EshopImporter` čte XLSX; validuje tag i `stav`
+> (hodnota mimo `ProductStateEnum` řádek odmítne).
 **Co to je:**
 - Možnost importovat produkty z externího souboru/API
 - Soubor: `admin/scripts/modules/finance/_import-eshopu.php`
@@ -279,7 +306,9 @@ if (Predmet::jeToKostka($r['kod_predmetu'])) {
 
 ### 8. Hromadné operace - Bulk actions
 
-#### ❌ **Hromadné zrušení objednávek**
+#### ✅ **Hromadné zrušení objednávek**
+> **Hotovo.** `BulkCancelService` + `BulkCancelProcessor`; vrací zásobu přes
+> `CapacityManager`.
 **Současné metody:**
 - `Shop::zrusObjednavkyPro($uzivatele, $typ)` - zruší objednávky daného typu pro více uživatelů
 - `Shop::zrusLetosniObjednaneUbytovani($zdrojZruseni)` - zruší ubytování
@@ -296,7 +325,9 @@ if (Predmet::jeToKostka($r['kod_predmetu'])) {
 
 ---
 
-#### ❌ **Archiv zrušených nákupů s důvodem**
+#### ✅ **Archiv zrušených nákupů s důvodem**
+> **Hotovo.** Entita `CancelledOrderItem` nad `shop_nakupy_zrusene` — nese cenu,
+> datum nákupu i zrušení a `cancellationReason`.
 **Co to je:**
 - Tabulka `shop_nakupy_zrusene`
 - Ukládá důvod zrušení (`zdroj_zruseni`)
@@ -311,7 +342,8 @@ if (Predmet::jeToKostka($r['kod_predmetu'])) {
 
 ### 9. Admin prodej za jiného uživatele
 
-#### ❌ **Rozlišení zákazníka a objednatele**
+#### ✅ **Rozlišení zákazníka a objednatele**
+> **Hotovo.** `OrderItem` mapuje `id_objednatele` zvlášť od `id_uzivatele`.
 **Co to je:**
 - Pole `id_uzivatele` (zákazník - komu patří nákup)
 - Pole `id_objednatele` (objednatel - kdo provedl nákup, může být admin)
@@ -359,7 +391,8 @@ $chceNove = array_diff($nove, $stare); // co přidat
 
 ### 11. Speciální UI komponenty
 
-#### ❌ **Matrixový výběr jídel**
+#### ✅ **Matrixový výběr jídel**
+> **Hotovo.** `JídloMatice.tsx` — každé kliknutí ukládá přes API.
 **Co to je:**
 - Tabulka s dny v sloupcích a typy jídel v řádcích
 - Checkboxy pro výběr (např. "Oběd v pátek")
@@ -370,7 +403,9 @@ $chceNove = array_diff($nove, $stare); // co přidat
 
 ---
 
-#### ❌ **Dynamické přidávání triček**
+#### 🟡 **Dynamické přidávání triček**
+> **Rozpracováno.** Velikosti jsou varianty (migrace `100011`), ale výběr triček a
+> mikin zatím jede přes legacy formulář — nová mřížka pokrývá jen ostatní merch.
 **Co to je:**
 - Dropdown s tričky
 - JavaScript pro přidání dalšího dropdownu
@@ -383,7 +418,8 @@ $chceNove = array_diff($nove, $stare); // co přidat
 
 ---
 
-#### ❌ **Posuvník pro dobrovolné vstupné s gama korekcí**
+#### ✅ **Posuvník pro dobrovolné vstupné s gama korekcí**
+> **Hotovo.** `ui/src/pages/vstupne/Vstupne.tsx`.
 **Co to je:**
 - Nelineární posuvník (gama korekce 0.5)
 - Dynamické smajlíky podle částky
@@ -399,29 +435,37 @@ $chceNove = array_diff($nove, $stare); // co přidat
 
 ### 12. Pole v databázi
 
-#### ❌ **`shop_nakupy.id_objednatele`**
+#### ✅ **`shop_nakupy.id_objednatele`**
+> **Zachováno**, mapováno na `OrderItem`.
 - ID uživatele, který provedl objednávku (může být jiný než zákazník)
 
-#### ❌ **`shop_predmety.kod_predmetu`**
+#### ✅ **`shop_predmety.kod_predmetu`**
+> **Zachováno.** `Product::$code`, UNIQUE; nese i strukturu variant
+> (`Hs-2L-ct` = typ + noc), takže se z něj dá číst bez parsování názvu.
 - SKU/kód produktu
 - Používá se pro detekci typu (kostka, placka...)
 - Unikátní omezení s `model_rok`
 
-#### ❌ **`shop_predmety.model_rok`**
+#### ✅ **`shop_predmety.model_rok`**
+> **Zrušeno**, viz výš.
 - Rok verze produktu
 - Multi-year produkty
 
-#### ❌ **`shop_predmety.nabizet_do`**
+#### ✅ **`shop_predmety.nabizet_do`**
+> **Zachováno** jako `Product::$availableUntil`.
 - Časově omezená dostupnost
 
-#### ❌ **`shop_predmety.je_letosni_hlavni`**
+#### ✅ **`shop_predmety.je_letosni_hlavni`**
+> **Zrušeno**, viz výš.
 - Boolean flag pro hlavní verzi roku
 
-#### ❌ **`shop_predmety.ubytovani_den`**
+#### ✅ **`shop_predmety.ubytovani_den`**
+> **Zachováno** a nově i na variantě (`ProductVariant::$accommodationDay`).
 - Den ubytování (0-4 pro St-Ne)
 - Používá se jen pro typ UBYTOVANI
 
-#### ❌ **`shop_nakupy.rok`**
+#### ✅ **`shop_nakupy.rok`**
+> **Zachováno.** `OrderItem::$year` (`rok`), včetně indexu `IDX_rok_id_uzivatele`.
 - Rok nákupu (např. 2025)
 - Pro multi-year management
 
@@ -506,12 +550,31 @@ $chceNove = array_diff($nove, $stare); // co přidat
 
 ## Doporučení
 
-1. **OKAMŽITĚ** rozhodnout o speciálních typech produktů (UBYTOVANI, JIDLO, VSTUPNE...)
-2. **OKAMŽITĚ** rozhodnout o multi-year produktech
-3. Detailně specifikovat **integraci s Finance** systémem
-4. Rozhodnout o **admin prodejním rozhraní** (KFC)
-5. Rozhodnout o **hromadných operacích** pro automatické skripty
+Body 1, 2, 4 a 5 z původního seznamu jsou rozhodnuté a hotové — speciální typy produktů
+nahradily tagy plus varianty, multi-year verze se zrušily ve prospěch `archived_at`,
+KFC mřížka i hromadné rušení objednávek existují. Zbývá:
+
+1. **Integrace s `Finance`** — dosud jediná velká nedořešená vazba; nový e-shop počítá
+   ceny a slevy, ale zůstatek a platby drží legacy `Finance`.
+2. **QR platby a reporty BFSR/BFGR** — zůstávají v legacy. Rozhodnout, jestli se
+   překlápějí, nebo tam zůstanou natrvalo.
+3. **Dokončit ubytování** — čtecí endpoint a mřížka, pak zápis; spolubydlící a
+   „nechci ubytování" přesunout z účtu na objednávku.
+4. **Odstranit legacy formulář přihlášky** — až budou všechny sekce na novém e-shopu.
+   Merch už z něj vypadl, trička a mikiny v něm zatím zůstávají.
+
+### Nice to have: převést i starší ročníky na varianty
+
+Migrace na varianty (velikosti `100011`, ubytování `100016`) záměrně řeší jen aktuální
+ročník. Starší ročníky používají jinou konvenci kódů i názvů (`Dvojlůžák středa` bez
+strukturovaného `kod_predmetu`), takže by každý potřeboval vlastní čtení — proto jim
+zůstala jedna výchozí varianta na produkt.
+
+Nespěchá to: staré produkty se už neprodávají, jen se z nich čtou reporty, a ty jedou
+přes `shop_nakupy` se snapshotem názvu, ne přes strukturu produktu. Kdyby se to někdy
+dělalo, dává smysl jeden ročník po druhém a s ověřením proti reportům daného roku, ne
+jedna migrace na všechno.
 
 ---
 
-**Poznámka:** Tento dokument by měl být probrán na meetingu a každé rozhodnutí označeno.
+**Poznámka:** Stav položek výš je ověřený proti kódu (2026-09-08), ne odhad.
