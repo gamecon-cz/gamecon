@@ -109,13 +109,9 @@ class Product
     #[Groups(['product:list', 'product:read', 'product:write'])]
     private string $currentPrice;
 
-    #[ORM\Column(name: 'stav', type: Types::SMALLINT, nullable: false)]
-    #[Assert\Choice(
-        choices: [0, 1, 2, 3],
-        message: 'Neplatný stav (0=MIMO, 1=VEŘEJNÝ, 2=PODPULTOVÝ, 3=POZASTAVENÝ)'
-    )]
+    #[ORM\Column(name: 'stav', type: Types::SMALLINT, nullable: false, enumType: ProductStateEnum::class)]
     #[Groups(['product:list', 'product:read', 'product:write'])]
-    private int $state;
+    private ProductStateEnum $state;
 
     #[ORM\Column(name: 'nabizet_do', type: Types::DATETIME_IMMUTABLE, nullable: true)]
     #[Groups(['product:read', 'product:write'])]
@@ -241,12 +237,12 @@ class Product
         return $this;
     }
 
-    public function getState(): int
+    public function getState(): ProductStateEnum
     {
         return $this->state;
     }
 
-    public function setState(int $state): self
+    public function setState(ProductStateEnum $state): self
     {
         $this->state = $state;
 
@@ -496,16 +492,13 @@ class Product
         return $this->hasTag(ProductTagCode::UBYTOVANI->value);
     }
 
-    /**
-     * Check if product is available (not archived, state is public/private)
-     */
     public function isAvailable(): bool
     {
         if ($this->isArchived()) {
             return false;
         }
 
-        if ($this->getStateEnum() === ProductStateEnum::RETIRED) {
+        if ($this->state === ProductStateEnum::RETIRED) {
             return false;
         }
 
@@ -514,15 +507,6 @@ class Product
 
     public function isPublic(): bool
     {
-        return $this->isAvailable() && $this->getStateEnum() === ProductStateEnum::PUBLIC;
-    }
-
-    /**
-     * Null rather than an exception: `stav` is a plain int column with no foreign key, so
-     * a value outside the four known states is bad data to report, not a crash.
-     */
-    public function getStateEnum(): ?ProductStateEnum
-    {
-        return ProductStateEnum::tryFrom($this->state);
+        return $this->isAvailable() && $this->state === ProductStateEnum::PUBLIC;
     }
 }

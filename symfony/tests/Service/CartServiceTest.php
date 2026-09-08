@@ -20,6 +20,7 @@ use App\Service\DiscountCalculator;
 use Doctrine\ORM\EntityManagerInterface;
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
+use App\Enum\ProductStateEnum;
 
 class CartServiceTest extends TestCase
 {
@@ -176,7 +177,7 @@ class CartServiceTest extends TestCase
     public function testAddItemThrowsWhenProductUnavailable(): void
     {
         $product = $this->createProduct();
-        $product->setState(0); // MIMO
+        $product->setState(ProductStateEnum::RETIRED);
 
         $variant = $this->createVariant($product, 'M', 'TRICKO-M', 10);
         $order = new Order();
@@ -492,7 +493,7 @@ class CartServiceTest extends TestCase
         $product->setName('Tričko');
         $product->setCode('TRICKO');
         $product->setCurrentPrice('250.00');
-        $product->setState(1);
+        $product->setState(ProductStateEnum::PUBLIC);
         $product->setDescription('');
 
         return $product;
