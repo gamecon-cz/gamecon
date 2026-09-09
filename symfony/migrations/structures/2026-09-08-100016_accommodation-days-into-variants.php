@@ -4,23 +4,10 @@ declare(strict_types=1);
 
 /** @var Godric\DbMigrations\Migration $this */
 
-// Legacy has no concept of an accommodation type: each night of each room type is its own
-// product row, and the type is recovered by regex-stripping the Czech day name off the
-// product name (Shop::bezDne). The new model expresses that as one product per type with
-// a variant per night, which is what lets the storefront render a day grid instead of a
-// list of forty products.
-//
-// The structure is already machine-readable in kod_predmetu: `Hs-2L-ct` is type `Hs-2L`,
-// day `ct`. The suffix agrees with ubytovani_den on every current row, so the grouping
-// keys on the code and never reads the name.
-//
-// Only current (non-archived) products are converted. Older seasons use a different
-// convention entirely ("Dvojlůžák středa", no structured code) and each would need its
-// own reading; they are never sold again, only read by reports, so they keep the single
-// default variant migration 100010 gave them.
-//
-// Product names keep their day suffix on purpose: Shop::bezDne still parses them for the
-// legacy registration form, which stays until that form is removed.
+// Groups one product per night into one product per room type with a variant per night.
+// Keys on kod_predmetu (`Hs-2L-ct` = type `Hs-2L`, day `ct`), never on the name: older
+// seasons use an unstructured convention and are left with their single default variant.
+// Absorbed rows keep their day suffix, which Shop::bezDne still parses for the legacy form.
 
 // The day is the last code segment after "-" or "_"; both separators occur
 // (`1L_st` vs `Hs-2L-ct`).
@@ -78,6 +65,11 @@ JOIN (
     SELECT {$kodTypu} AS kod_typu, MIN(shop_predmety.id_predmetu) AS owner_id
     FROM shop_predmety
     WHERE {$jeAktualniUbytovani}
+      -- The same day filter as the outer query. Without it a row whose last segment is
+      -- not a day could win MIN(id) and become the owner, and would then never be
+      -- renamed or given a day — it is filtered out of this table — while every real
+      -- night of the type got reparented onto it.
+      AND {$kodDne} IN ('st', 'ct', 'pa', 'so', 'ne')
     GROUP BY kod_typu
 ) AS owners ON owners.kod_typu = {$kodTypu}
 WHERE {$jeAktualniUbytovani}
