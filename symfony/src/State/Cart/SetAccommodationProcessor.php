@@ -59,6 +59,8 @@ readonly class SetAccommodationProcessor implements ProcessorInterface
                 array_map('intval', $data->variantIds),
                 $this->currentYearProvider->getCurrentYear(),
                 $legacyUzivatel->maPravo(Pravo::UBYTOVANI_MUZE_OBJEDNAT_JEDNU_NOC),
+                $data->roommate,
+                $data->declined,
             );
         } catch (\RuntimeException $chyba) {
             throw new BadRequestHttpException($chyba->getMessage(), $chyba);

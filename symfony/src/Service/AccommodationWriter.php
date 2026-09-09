@@ -35,8 +35,14 @@ readonly class AccommodationWriter
      *
      * @throws \RuntimeException when the nights break a rule or a bed is gone
      */
-    public function save(User $customer, array $variantIds, int $year, bool $muzeJednuNoc): void
-    {
+    public function save(
+        User $customer,
+        array $variantIds,
+        int $year,
+        bool $muzeJednuNoc,
+        ?string $spolubydlici = null,
+        bool $nechceUbytovani = false,
+    ): void {
         $varianty = $this->nactiVarianty($variantIds);
         $this->overNoci(array_map(
             static fn (ProductVariant $variant): int => (int) $variant->getAccommodationDay(),
@@ -51,6 +57,7 @@ readonly class AccommodationWriter
                     $this->pridejNoc($customer, $variant, $year);
                 }
             }
+            $this->ulozUdajeOUbytovani($customer, $year, $spolubydlici, $nechceUbytovani && $varianty === []);
             $this->connection->commit();
         } catch (\Throwable $chyba) {
             $this->connection->rollBack();
@@ -59,6 +66,30 @@ readonly class AccommodationWriter
         }
 
         $this->entityManager->clear();
+    }
+
+    /**
+     * Written to the order, where the answer belongs to its year, and to the account columns
+     * as well, because the legacy form still reads those. The second write goes when it does.
+     */
+    private function ulozUdajeOUbytovani(User $customer, int $year, ?string $spolubydlici, bool $nechce): void
+    {
+        $spolubydlici = $spolubydlici === null ? null : (trim($spolubydlici) ?: null);
+
+        $order = $this->cartService->getOrCreateCart($customer);
+        $order->setRoommate($spolubydlici);
+        $order->setAccommodationDeclined($nechce);
+        $this->entityManager->flush();
+
+        $this->connection->executeStatement(
+            'UPDATE uzivatele_hodnoty SET ubytovan_s = :spolubydlici, nechce_ubytovani = :nechce
+             WHERE id_uzivatele = :customer',
+            [
+                'spolubydlici' => $spolubydlici ?? '',
+                'nechce'       => (int) $nechce,
+                'customer'     => $customer->getId(),
+            ],
+        );
     }
 
     /**

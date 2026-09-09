@@ -213,6 +213,53 @@ class AccommodationWriterTest extends AbstractDatabaseKernelTestCase
         $this->writer()->save($this->ucastnik(), [999999999], self::ROK, true);
     }
 
+    public function testRoommateAndDeclineGoOntoTheOrderAndTheAccount(): void
+    {
+        $this->pripravUbytovani();
+        $customer = $this->ucastnik();
+
+        $this->writer()->save($customer, [], self::ROK, false, ' Karel Novák ', true);
+
+        $order = $this->connection()->fetchAssociative(
+            'SELECT roommate, accommodation_declined FROM shop_order WHERE customer_id = :customer AND year = :year',
+            [
+                'customer' => $customer->getId(),
+                'year'     => self::ROK,
+            ],
+        );
+        self::assertSame('Karel Novák', $order['roommate'], 'stored trimmed');
+        self::assertSame(1, (int) $order['accommodation_declined']);
+
+        // Dual-written while the legacy form still reads the account columns.
+        $ucet = $this->connection()->fetchAssociative(
+            'SELECT ubytovan_s, nechce_ubytovani FROM uzivatele_hodnoty WHERE id_uzivatele = :customer',
+            [
+                'customer' => $customer->getId(),
+            ],
+        );
+        self::assertSame('Karel Novák', $ucet['ubytovan_s']);
+        self::assertSame(1, (int) $ucet['nechce_ubytovani']);
+    }
+
+    public function testBookingNightsClearsTheDecline(): void
+    {
+        $this->pripravUbytovani();
+        $customer = $this->ucastnik();
+        $this->writer()->save($customer, [], self::ROK, false, null, true);
+
+        // "I want none" cannot stand next to booked nights, so booking answers the question.
+        $this->writer()->save($customer, $this->idNoci(0, 1), self::ROK, false, null, true);
+
+        $declined = $this->connection()->fetchOne(
+            'SELECT accommodation_declined FROM shop_order WHERE customer_id = :customer AND year = :year',
+            [
+                'customer' => $customer->getId(),
+                'year'     => self::ROK,
+            ],
+        );
+        self::assertSame(0, (int) $declined);
+    }
+
     /**
      * The guard the whole design turns on: remaining_quantity is stale for accommodation,
      * so a full night has to be recognised from the sold count instead.
