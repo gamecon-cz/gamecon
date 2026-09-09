@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Service;
 
+use App\Entity\OrderItem;
 use App\Entity\User;
 use App\Enum\ProductTagCode;
 use Doctrine\DBAL\ArrayParameterType;
@@ -88,10 +89,37 @@ class BreakfastCanceller
     }
 
     /**
-     * Only ever taken at cancellation time — nothing records a plain breakfast purchase, so a
-     * selection changed in the meals section afterwards is not reflected until a night
-     * cancels breakfasts again.
-     *
+     * Keeps the remembered selection current when the customer buys a breakfast, so a later
+     * cancellation offers back what they actually hold rather than a stale set.
+     */
+    public function refreshSnapshot(OrderItem $orderItem): void
+    {
+        $customer = $orderItem->getCustomer();
+        $variant = $orderItem->getVariant();
+        if ($customer === null || $variant === null || $variant->getAccommodationDay() === null) {
+            return;
+        }
+
+        // Asked of the database, not the loaded entity: the tag collection may not be
+        // hydrated on an entity that was just persisted.
+        if (! in_array((int) $variant->getId(), array_values($this->drzeneSnidane($customer, $orderItem->getYear())), true)) {
+            return;
+        }
+
+        // Only worth keeping current once something was cancelled; without a snapshot there
+        // is nothing to offer back and no reason to start remembering now.
+        if ($this->snapshot($customer, $orderItem->getYear()) === []) {
+            return;
+        }
+
+        $this->ulozSnapshot(
+            $customer,
+            $orderItem->getYear(),
+            array_values($this->drzeneSnidane($customer, $orderItem->getYear())),
+        );
+    }
+
+    /**
      * @param int[] $variantIds
      */
     public function ulozSnapshot(User $customer, int $year, array $variantIds): void
