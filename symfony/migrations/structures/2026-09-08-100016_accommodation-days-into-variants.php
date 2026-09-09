@@ -38,7 +38,10 @@ SQL;
 
 $this->q(<<<SQL
 CREATE TEMPORARY TABLE tmp_accommodation_groups (
-    kod_varianty VARCHAR(255)    NOT NULL PRIMARY KEY,
+    -- Collation pinned to match shop_predmety.kod_predmetu / product_variant.code, which
+    -- are utf8mb4_czech_ci while the database default is utf8mb4_general_ci — the join
+    -- below is an "illegal mix of collations" error without it.
+    kod_varianty VARCHAR(255) COLLATE utf8mb4_czech_ci NOT NULL PRIMARY KEY,
     owner_id     BIGINT UNSIGNED NOT NULL,
     den          SMALLINT        NOT NULL,
     INDEX (owner_id)
