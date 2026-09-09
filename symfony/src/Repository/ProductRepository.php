@@ -176,13 +176,13 @@ class ProductRepository extends ServiceEntityRepository
     }
 
     /**
-     * The accommodation migration leaves each night's own shop_predmety row alone, so
-     * kusu_vyrobeno matched by variant code is still that night's capacity — and unlike
-     * remaining_quantity no sale ever touches it.
+     * The accommodation migration leaves each night's own shop_predmety row alone, so that
+     * row — matched by variant code — still carries the night's real capacity and whether it
+     * is on offer. The variant's parent is one arbitrary night and answers for none of them.
      *
      * @param string[] $codes
      *
-     * @return array<string, int|null> null means unlimited
+     * @return array<string, array{vyrobeno: int|null, nabizeno: bool}> vyrobeno null = unlimited
      */
     public function producedQuantityByVariantCode(array $codes): array
     {
@@ -191,7 +191,8 @@ class ProductRepository extends ServiceEntityRepository
         }
 
         $rows = $this->getEntityManager()->getConnection()->fetchAllAssociative(
-            'SELECT kod_predmetu, kusu_vyrobeno FROM shop_predmety WHERE kod_predmetu IN (:codes)',
+            'SELECT kod_predmetu, kusu_vyrobeno, stav, nabizet_do, archived_at
+             FROM shop_predmety WHERE kod_predmetu IN (:codes)',
             [
                 'codes' => $codes,
             ],
@@ -200,13 +201,18 @@ class ProductRepository extends ServiceEntityRepository
             ],
         );
 
-        $vyrobeno = [];
+        $ted = new \DateTimeImmutable();
+        $nalezene = [];
         foreach ($rows as $row) {
-            $vyrobeno[(string) $row['kod_predmetu']] = $row['kusu_vyrobeno'] === null
-                ? null
-                : (int) $row['kusu_vyrobeno'];
+            $nabizetDo = $row['nabizet_do'] === null ? null : new \DateTimeImmutable((string) $row['nabizet_do']);
+            $nalezene[(string) $row['kod_predmetu']] = [
+                'vyrobeno' => $row['kusu_vyrobeno'] === null ? null : (int) $row['kusu_vyrobeno'],
+                'nabizeno' => $row['archived_at'] === null
+                    && (int) $row['stav'] === ProductStateEnum::PUBLIC->value
+                    && ($nabizetDo === null || $nabizetDo >= $ted),
+            ];
         }
 
-        return $vyrobeno;
+        return $nalezene;
     }
 }
