@@ -15,6 +15,7 @@ use App\Entity\User;
 use App\Enum\ProductTagCode;
 use App\Repository\OrderItemRepository;
 use App\Repository\ProductRepository;
+use App\Service\CartService;
 use App\Service\CurrentYearProviderInterface;
 use App\Service\DiscountCalculator;
 use App\Service\LegacySessionService;
@@ -43,6 +44,7 @@ readonly class AccommodationProvider implements ProviderInterface
         private DiscountCalculator $discountCalculator,
         private CurrentYearProviderInterface $currentYearProvider,
         private LegacySessionService $legacySession,
+        private CartService $cartService,
         private Security $security,
     ) {
     }
@@ -72,8 +74,14 @@ readonly class AccommodationProvider implements ProviderInterface
         $dto = new AccommodationOutputDto();
         $dto->saleClosed = $prodejUkoncen;
         $dto->minimumNights = $muzeJednuNoc ? 1 : 2;
-        $dto->roommate = $legacyUzivatel->ubytovanS() ?: null;
-        $dto->declined = (bool) $legacyUzivatel->nechceUbytovani();
+        // Read off this year's order, so a decline or a roommate from an earlier year does
+        // not leak into this one. Falls back to the account while orders predating the move
+        // still carry nothing.
+        $order = $this->cartService->getCart($user);
+        $dto->roommate = $order?->getRoommate() ?? ($legacyUzivatel->ubytovanS() ?: null);
+        $dto->declined = $order !== null
+            ? $order->isAccommodationDeclined()
+            : (bool) $legacyUzivatel->nechceUbytovani();
 
         foreach (self::NAZVY_DNU as $den => $nazev) {
             if ($den === self::DEN_NEDELE && ! $muzeNedeli) {
