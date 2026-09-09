@@ -6,10 +6,7 @@ namespace Gamecon\Tests\Rector\Rules;
 
 use PhpParser\Node;
 use PhpParser\Node\Arg;
-use PhpParser\Node\Stmt\ClassConst;
-use PhpParser\Node\Stmt\ClassLike;
-use PhpParser\Node\Stmt\ClassMethod;
-use PhpParser\Node\Stmt\Property;
+use PhpParser\Node\Attribute;
 use Rector\Rector\AbstractRector;
 use Symplify\RuleDocGenerator\Exception\PoorDocumentationException;
 use Symplify\RuleDocGenerator\ValueObject\RuleDefinition;
@@ -27,93 +24,89 @@ final class ReorderAttributeArgumentsRector extends AbstractRector
         );
     }
 
+    /**
+     * Attribute itself, not the declarations that carry it: attributes on
+     * parameters and enum cases hang off nodes that a per-declaration list
+     * would have to enumerate, and silently miss whichever it forgets.
+     */
     public function getNodeTypes(): array
     {
-        return [ClassLike::class, Property::class, ClassMethod::class, ClassConst::class];
+        return [Attribute::class];
     }
 
     public function refactor(Node $node): ?Node
     {
-        if (! $node instanceof ClassLike && ! $node instanceof Property && ! $node instanceof ClassMethod && ! $node instanceof ClassConst) {
+        if (! $node instanceof Attribute) {
             return null;
         }
 
-        $hasChanged = false;
+        $attributeName = $this->getName($node->name);
+        if ($attributeName === null) {
+            return null;
+        }
 
-        foreach ($node->attrGroups as $attrGroup) {
-            foreach ($attrGroup->attrs as $attribute) {
-                // skip if no args
-                if ($attribute->args === []) {
-                    continue;
-                }
+        $fqcn = $this->nodeNameResolver->getName($node->name);
+        if (! class_exists($fqcn)) {
+            return null;
+        }
 
-                // resolve fully qualified class name of attribute
-                $fqcn = $this->nodeNameResolver->getName($attribute->name);
-                if ($fqcn === '') {
-                    continue;
-                }
+        $reflection = new \ReflectionClass($fqcn);
+        $constructor = $reflection->getConstructor();
+        if ($constructor === null) {
+            return null;
+        }
 
-                if (! class_exists($fqcn)) {
-                    continue;
-                }
+        $paramOrder = [];
+        foreach ($constructor->getParameters() as $param) {
+            $paramOrder[] = $param->getName();
+        }
 
-                $reflection = new \ReflectionClass($fqcn);
+        if ($node->args === []) {
+            return null;
+        }
 
-                $constructor = $reflection->getConstructor();
-                if ($constructor === null) {
-                    continue;
-                }
+        $namedArgs = [];
+        $positionalArgs = [];
 
-                $paramOrder = [];
-                foreach ($constructor->getParameters() as $param) {
-                    $paramOrder[] = $param->getName();
-                }
-
-                $namedArgs = [];
-                $positionalArgs = [];
-
-                foreach ($attribute->args as $arg) {
-                    if ($arg->name !== null) {
-                        $namedArgs[$arg->name->toString()] = $arg;
-                    } else {
-                        $positionalArgs[] = $arg;
-                    }
-                }
-
-                // only reorder if we have named args
-                if ($namedArgs === []) {
-                    continue;
-                }
-
-                $orderedArgs = [];
-
-                // keep positional args first
-                foreach ($positionalArgs as $positional) {
-                    $orderedArgs[] = $positional;
-                }
-
-                // then reorder named args based on constructor
-                foreach ($paramOrder as $paramName) {
-                    if (isset($namedArgs[$paramName])) {
-                        $orderedArgs[] = $namedArgs[$paramName];
-                        unset($namedArgs[$paramName]);
-                    }
-                }
-
-                // add leftover named args (unknown ones)
-                foreach ($namedArgs as $arg) {
-                    $orderedArgs[] = $arg;
-                }
-
-                // only replace if order changed
-                if (! $this->argsEqual($attribute->args, $orderedArgs)) {
-                    $attribute->args = $orderedArgs;
-                    $hasChanged = true;
-                }
+        foreach ($node->args as $arg) {
+            if ($arg->name !== null) {
+                $namedArgs[$arg->name->toString()] = $arg;
+            } else {
+                $positionalArgs[] = $arg;
             }
         }
 
-        return $hasChanged ? $node : null;
+        if ($namedArgs === []) {
+            return null;
+        }
+
+        $orderedArgs = [];
+
+        // Positional args must stay first; only the named tail is sorted.
+        foreach ($positionalArgs as $positional) {
+            $orderedArgs[] = $positional;
+        }
+
+        foreach ($paramOrder as $paramName) {
+            if (isset($namedArgs[$paramName])) {
+                $orderedArgs[] = $namedArgs[$paramName];
+                unset($namedArgs[$paramName]);
+            }
+        }
+
+        // Args naming a parameter the constructor does not have (renamed or
+        // typo'd) keep their relative order rather than being dropped.
+        foreach ($namedArgs as $arg) {
+            $orderedArgs[] = $arg;
+        }
+
+        if ($this->argsEqual($node->args, $orderedArgs)) {
+            return null;
+        }
+
+        $node->args = $orderedArgs;
+
+        return $node;
     }
 
     /**
