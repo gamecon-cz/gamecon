@@ -1,0 +1,157 @@
+name: Prune old GHCR images
+
+# Safety net for whatever the per-teardown cleanup in teardown-preview.yml
+# misses: images from previews torn down before that existed, and superseded
+# archive builds (a year archive is never torn down, so nothing else ever
+# removes its old sha-tagged versions).
+#
+# yamllint disable-line rule:truthy
+on:
+    schedule:
+        # Sundays 05:30 UTC — after the host's own weekly image prune, and
+        # well clear of the working week so a bug here is noticed on a
+        # deploy, not in the middle of one.
+        -   cron: '30 5 * * 0'
+    workflow_dispatch:
+        inputs:
+            dry_run:
+                description: 'List what would be deleted without deleting'
+                type: boolean
+                default: true
+
+permissions:
+    contents: read
+    packages: write
+
+concurrency:
+    group: prune-ghcr-images
+    cancel-in-progress: false
+
+jobs:
+    prune:
+        runs-on: ubuntu-24.04
+        steps:
+                # Keeps, for every distinct preview slug / archive year, the
+                # KEEP_PER_STREAM newest versions and deletes older ones. Age
+                # alone is the wrong axis: an archive year that has not been
+                # rebuilt since June is still live on the host, and deleting
+                # its only image would break a redeploy.
+                #
+                # A version is a candidate only when ALL its tags belong to
+                # one stream — deleting a version drops every tag it carries,
+                # so one shared with another stream must be left alone. The
+                # rolling `preview-<slug>` / `archive-<year>` tag (no sha) is
+                # never a candidate: it is what the host pulls by default.
+            -   name: Set up SSH
+                env:
+                    SSH_KEY: ${{ secrets.GAMECON_DEPLOY_SSH_KEY }}
+                    SSH_KNOWN_HOSTS: ${{ secrets.GAMECON_KNOWN_HOSTS }}
+                run: |
+                    mkdir -p ~/.ssh
+                    echo "$SSH_KEY" > ~/.ssh/id_ed25519
+                    chmod 0600 ~/.ssh/id_ed25519
+                    echo "$SSH_KNOWN_HOSTS" > ~/.ssh/known_hosts
+                    chmod 0644 ~/.ssh/known_hosts
+
+            -   name: Prune superseded versions
+                env:
+                    GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+                    OWNER: ${{ github.repository_owner }}
+                    KEEP_PER_STREAM: '2'
+                    DRY_RUN: ${{ github.event.inputs.dry_run || 'false' }}
+                run: |
+                    # `jq -s add` merges the pages: --paginate emits one JSON
+                    # array per page on some gh versions and a single merged
+                    # array on others, and the runner's version is not ours to
+                    # pin. Slurping is correct either way; without it the
+                    # keep-N-per-stream below would silently apply per page.
+                    gh api --paginate \
+                        "/orgs/$OWNER/packages/container/gamecon/versions?per_page=100" \
+                        | jq -s 'add // []' > all-versions.json
+                    total=$(jq 'length' all-versions.json)
+                    echo "Total versions: $total"
+
+                    # Tags of everything currently deployed, from the host's
+                    # own records rather than inferred from tag shape: a slug
+                    # may end in something shaped like a sha (`sha-1a2b3c4d` is
+                    # a real fallback slug in deploy-preview.yml), so
+                    # `preview-slevy-abcdef1` reads equally as a stale build of
+                    # `slevy` and as a live preview's rolling tag. Fail closed —
+                    # without the records we cannot tell them apart.
+                    if ! ssh -o StrictHostKeyChecking=yes root@gamecon.cz \
+                        "cat /var/lib/gamecon/deployments/previews/*.json \
+                             /var/lib/gamecon/deployments/archives/*.json \
+                             2>/dev/null || true" > live-records.json; then
+                        echo "Could not read deployment records — aborting." >&2
+                        exit 1
+                    fi
+                    jq -rs '[.[] | .image | sub("^[^:]+:"; "")] | unique' \
+                        < live-records.json > live-tags.json
+                    echo "Live image tags: $(jq -r 'length' live-tags.json)"
+
+                    jq -r --argjson keep "$KEEP_PER_STREAM" \
+                          --slurpfile live live-tags.json '
+                        ($live[0]) as $liveTags
+                        | [ .[]
+                            | { id, created: .created_at,
+                                tags: (.metadata.container.tags // []) }
+                            # Never touch a version any deployment still points
+                            # at, whatever its tag looks like.
+                            | select([.tags[] | IN($liveTags[])] | any | not)
+                            | . + { streams: [
+                                  .tags[]
+                                  | capture("^(?<stream>(preview|archive)-.+)-[0-9a-f]{7,40}$")
+                                  | .stream
+                              ] }
+                            # Every tag must resolve to one stream: deleting a
+                            # version drops all of its tags at once. A version
+                            # carrying a bare rolling tag resolves to none and
+                            # is skipped, so what the host pulls is never a
+                            # candidate.
+                            | select((.tags | length) > 0
+                                     and (.streams | length) == (.tags | length)
+                                     and (.streams | unique | length) == 1)
+                            | . + { stream: .streams[0] }
+                          ]
+                        | group_by(.stream)
+                        | map(sort_by(.created) | reverse | .[$keep:])
+                        | flatten
+                        | .[]
+                        | "\(.id)\t\(.stream)\t\(.created)"
+                    ' all-versions.json > prunable.tsv
+
+                    # Untagged versions are the manifests orphaned when a
+                    # rebuild moves a rolling tag off them, and they are the
+                    # bulk of the storage. Nothing references them by name, so
+                    # age is the only safe axis — a very recent one may belong
+                    # to a build still being tagged.
+                    jq -r --arg cutoff "$(date -u -d '30 days ago' +%Y-%m-%dT%H:%M:%SZ)" '
+                        .[]
+                        | select((.metadata.container.tags // []) | length == 0)
+                        | select(.created_at < $cutoff)
+                        | "\(.id)\tuntagged\t\(.created_at)"
+                    ' all-versions.json >> prunable.tsv
+
+                    count=$(grep -c . prunable.tsv || true)
+                    echo "Prunable (keeping $KEEP_PER_STREAM newest per stream): $count"
+                    cat prunable.tsv
+
+                    # A filter bug that marks everything prunable must not be
+                    # able to empty the package on an unattended run.
+                    if [ "$total" -gt 0 ] && [ "$count" -gt $((total * 3 / 4)) ]; then
+                        echo "Refusing: $count of $total versions marked prunable." >&2
+                        echo "That is more than expected — check the filter." >&2
+                        exit 1
+                    fi
+
+                    if [ "$DRY_RUN" = "true" ]; then
+                        echo "Dry run — nothing deleted."
+                        exit 0
+                    fi
+
+                    cut -f1 prunable.tsv | while read -r version_id; do
+                        gh api -X DELETE \
+                            "/orgs/$OWNER/packages/container/gamecon/versions/$version_id" \
+                            && echo "deleted $version_id" \
+                            || echo "failed $version_id (continuing)"
+                    done

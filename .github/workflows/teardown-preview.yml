@@ -26,6 +26,8 @@ on:
 
 permissions:
     contents: read
+    # Delete this branch's images from GHCR when its preview is torn down.
+    packages: write
 
 # MUST stay byte-identical to the group in deploy-preview.yml — concurrency
 # groups are repo-global, so the deploy and the teardown of one branch only
@@ -127,3 +129,87 @@ jobs:
                 run: |
                     ssh -o StrictHostKeyChecking=yes root@gamecon.cz \
                         "/usr/local/sbin/deploy-preview-branch.sh --remove '$SLUG'"
+
+            -   name: Delete this preview's images from GHCR
+                # The host container is gone, so its images are dead weight in
+                # the registry — nothing else ever removes them, and each build
+                # is ~2 GB against the org's packages quota. Deletes the two
+                # tags deploy-preview.yml pushes: the rolling `preview-<slug>`
+                # and every immutable `preview-<slug>-<sha>`.
+                #
+                # A version is deleted only when EVERY one of its tags belongs
+                # to this slug — deleting a version drops all its tags at once,
+                # so a shared one would take an unrelated tag with it.
+                #
+                # `preview-<slug>-<sha>` is matched only when the tag is not
+                # itself another preview's rolling tag: a slug may end in
+                # something shaped like a sha (`sha-1a2b3c4d` is a real
+                # fallback slug above), so tearing down `slevy` must not delete
+                # the live rolling tag of a separate preview `slevy-abcdef1`.
+                #
+                # Best-effort: a registry hiccup must not fail a teardown whose
+                # real work (removing the running preview) already succeeded.
+                if: steps.slug.outputs.slug != ''
+                continue-on-error: true
+                env:
+                    GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+                    SLUG: ${{ steps.slug.outputs.slug }}
+                    OWNER: ${{ github.repository_owner }}
+                run: |
+                    # `jq -s add` merges the pages: --paginate emits one array
+                    # per page on some gh versions and a single merged array on
+                    # others, and the runner's version is not ours to pin.
+                    gh api --paginate \
+                        "/orgs/$OWNER/packages/container/gamecon/versions?per_page=100" \
+                        | jq -s 'add // []' > all-versions.json
+
+                    # Tags belonging to previews that are still deployed. A tag
+                    # cannot be classified by shape alone: `preview-slevy-abcdef1`
+                    # reads equally as a stale build of `slevy` and as the live
+                    # rolling tag of a separate preview `slevy-abcdef1` (a slug
+                    # ending in hex is legal, and `sha-1a2b3c4d` is a real
+                    # fallback slug above). The host's deployment records say
+                    # which slugs actually exist, so ask it rather than guess.
+                    # Fail closed: if the host cannot be read we cannot tell a
+                    # stale build from a live preview's rolling tag, so delete
+                    # nothing rather than guess. The teardown itself already
+                    # succeeded; the weekly prune will catch these later.
+                    if ! ssh -o StrictHostKeyChecking=yes root@gamecon.cz \
+                        "cat /var/lib/gamecon/deployments/previews/*.json 2>/dev/null || true" \
+                        > live-records.json; then
+                        echo "Could not read deployment records — skipping GHCR cleanup." >&2
+                        exit 0
+                    fi
+                    jq -rs '[.[] | "preview-" + .slug] | unique' \
+                        < live-records.json > live-tags.json
+                    echo "Live preview tags: $(jq -r 'length' live-tags.json)"
+
+                    jq -r --slurpfile live live-tags.json "
+                        (\$live[0]) as \$liveTags
+                        | (\"preview-\" + \$ENV.SLUG) as \$mine
+                        | .[]
+                        | select(
+                            (.metadata.container.tags | length) > 0
+                            and (
+                                [.metadata.container.tags[]
+                                 | . as \$tag
+                                 | \$tag == \$mine
+                                   or (
+                                       (\$tag | startswith(\$mine + \"-\"))
+                                       and (\$tag[(\$mine | length) + 1:]
+                                            | test(\"^[0-9a-f]{7,40}\$\"))
+                                       # not a still-deployed preview's own tag
+                                       and ([\$liveTags[] | select(. == \$tag)]
+                                            | length) == 0
+                                   )]
+                                | all
+                            )
+                          )
+                        | .id
+                    " all-versions.json \
+                    | while read -r version_id; do
+                        echo "Deleting version $version_id"
+                        gh api -X DELETE \
+                            "/orgs/$OWNER/packages/container/gamecon/versions/$version_id" \
+                            || echo "  (delete failed, continuing)"
+                      done
