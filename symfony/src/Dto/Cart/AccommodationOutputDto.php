@@ -19,14 +19,15 @@ class AccommodationOutputDto
     public array $days = [];
 
     /**
-     * Room types offered, in the order the legacy grid used (dorms before hotel).
+     * Room types offered, ordered by name.
      *
      * @var AccommodationTypeOutputDto[]
      */
     public array $types = [];
 
     /**
-     * Chosen nights per type, keyed by variant id — what the grid renders as ticked.
+     * Variant ids of every night already booked, flattened across types — what the grid
+     * renders as ticked.
      *
      * @var int[]
      */
