@@ -43,5 +43,24 @@ logy/*
 node_modules
 ui/node_modules
 
+# Dev-only vendor packages. vendor/ is committed, so COPY drags all of it
+# in and `composer install --no-dev` then deletes these — but in a later
+# layer, which reclaims nothing. Keeping them out of the context instead
+# is what actually shrinks the image; the resulting vendor/ tree is
+# identical either way. Sorted by size; regenerate by diffing the repo's
+# vendor/ against a built image's.
+vendor/symplify
+vendor/rector
+vendor/phpstan
+vendor/phpunit
+vendor/fakerphp
+vendor/nikic
+vendor/zenstruck
+vendor/sebastian
+vendor/phar-io
+vendor/myclabs
+vendor/cweagans
+vendor/theseer
+
 # Symfony runtime artefacts (rebuilt on first request)
 symfony/var
