@@ -42,6 +42,16 @@ class OrderSqlStructure
     public const completed_at = 'completed_at';
 
     /**
+     * @see Order::$roommate
+     */
+    public const roommate = 'roommate';
+
+    /**
+     * @see Order::$accommodationDeclined
+     */
+    public const accommodation_declined = 'accommodation_declined';
+
+    /**
      * @see Order::$customer
      */
     public const customer_id = 'customer_id';
