@@ -49,6 +49,7 @@ export type ApiAccommodationWrite = {
   variantIds: number[];
   roommate?: string | null;
   declined?: boolean;
+  restoreBreakfasts?: boolean;
 };
 
 export type ApiMerchProduct = {

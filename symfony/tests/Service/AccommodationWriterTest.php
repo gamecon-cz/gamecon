@@ -191,7 +191,7 @@ class AccommodationWriterTest extends AbstractDatabaseKernelTestCase
         $snidane = new ProductVariant();
         $snidane->setProduct($snidaneProdukt);
         $snidane->setName('snídaně');
-        $snidane->setCode($snidaneProdukt->getCode() . '-r');
+        $snidane->setCode($snidaneProdukt->getCode());
         $snidane->setAccommodationDay($den + 1);
         $snidane->setPosition(0);
         $snidaneProdukt->addVariant($snidane);
@@ -476,7 +476,7 @@ class AccommodationWriterTest extends AbstractDatabaseKernelTestCase
 
         self::assertSame(
             [$nazev],
-            $this->breakfastCanceller()->restorable($customer, self::ROK),
+            array_values($this->breakfastCanceller()->restorable($customer, self::ROK)),
         );
     }
 
@@ -507,7 +507,7 @@ class AccommodationWriterTest extends AbstractDatabaseKernelTestCase
 
         self::assertSame(
             [$jinyNazev],
-            $this->breakfastCanceller()->restorable($customer, self::ROK),
+            array_values($this->breakfastCanceller()->restorable($customer, self::ROK)),
         );
     }
 
@@ -529,7 +529,7 @@ class AccommodationWriterTest extends AbstractDatabaseKernelTestCase
 
         self::assertSame(
             [$jinyNazev],
-            $this->breakfastCanceller()->restorable($customer, self::ROK),
+            array_values($this->breakfastCanceller()->restorable($customer, self::ROK)),
         );
     }
 
@@ -546,6 +546,30 @@ class AccommodationWriterTest extends AbstractDatabaseKernelTestCase
                 'year'     => self::ROK,
             ],
         );
+    }
+
+    public function testRestorePutsTheCancelledBreakfastsBack(): void
+    {
+        $customer = $this->ucastnik();
+        [$noc, $snidane, $nazev] = $this->pripravHotelSeSnidani(1);
+        $this->koupSnidani($customer, $snidane);
+        $this->writer()->save($customer, [$noc], self::ROK, true);
+        $this->writer()->save($customer, [], self::ROK, true);
+
+        $vraceno = $this->breakfastCanceller()->restore($customer, self::ROK);
+
+        self::assertSame([$nazev], $vraceno);
+        self::assertSame(1, $this->pocetNakupu($customer, $snidane), 'breakfast is bought again');
+        // Nothing left to offer once it is back.
+        self::assertSame([], $this->breakfastCanceller()->restorable($customer, self::ROK));
+    }
+
+    public function testRestoreDoesNothingWhenNothingWasCancelled(): void
+    {
+        $customer = $this->ucastnik();
+        $this->pripravHotelSeSnidani(1);
+
+        self::assertSame([], $this->breakfastCanceller()->restore($customer, self::ROK));
     }
 
     /**
