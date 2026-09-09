@@ -45,10 +45,16 @@ readonly class AccommodationWriter
         bool $nechceUbytovani = false,
     ): void {
         $varianty = $this->nactiVarianty($variantIds);
-        $this->overNoci(array_map(
-            static fn (ProductVariant $variant): int => (int) $variant->getAccommodationDay(),
-            $varianty,
-        ), $muzeJednuNoc);
+
+        // Only judge the nights when they actually change. The legacy admin screens can book a
+        // set these rules would reject, and re-validating an untouched booking would leave
+        // such a customer unable to save even their roommate.
+        if ($this->zmenaNoci($customer, $year, array_keys($varianty))) {
+            $this->overNoci(array_map(
+                static fn (ProductVariant $variant): int => (int) $variant->getAccommodationDay(),
+                $varianty,
+            ), $muzeJednuNoc);
+        }
 
         $this->connection->beginTransaction();
         try {
@@ -92,6 +98,46 @@ readonly class AccommodationWriter
                 'customer'     => $customer->getId(),
             ],
         );
+    }
+
+    /**
+     * @return int[] accommodation variant ids this customer holds for the year
+     */
+    private function drzeneNoci(User $customer, int $year): array
+    {
+        $drzene = $this->connection->fetchFirstColumn(
+            'SELECT DISTINCT shop_nakupy.variant_id
+             FROM shop_nakupy
+             JOIN product_variant ON product_variant.id = shop_nakupy.variant_id
+             WHERE shop_nakupy.id_uzivatele = :customer
+               AND shop_nakupy.rok = :year
+               AND product_variant.accommodation_day IS NOT NULL
+               AND EXISTS (
+                   SELECT 1 FROM product_product_tag
+                   JOIN product_tag ON product_tag.id = product_product_tag.tag_id
+                   WHERE product_product_tag.product_id = product_variant.product_id
+                     AND product_tag.code = :tag
+               )',
+            [
+                'customer' => $customer->getId(),
+                'year'     => $year,
+                'tag'      => ProductTagCode::UBYTOVANI->value,
+            ],
+        );
+
+        return array_map('intval', $drzene);
+    }
+
+    /**
+     * @param int[] $variantIds
+     */
+    private function zmenaNoci(User $customer, int $year, array $variantIds): bool
+    {
+        $drzene = $this->drzeneNoci($customer, $year);
+        sort($drzene);
+        sort($variantIds);
+
+        return $drzene !== $variantIds;
     }
 
     /**
@@ -154,26 +200,7 @@ readonly class AccommodationWriter
      */
     private function smazNevybraneNoci(User $customer, int $year, array $ponechatVariantIds): array
     {
-        $drzene = $this->connection->fetchFirstColumn(
-            'SELECT DISTINCT shop_nakupy.variant_id
-             FROM shop_nakupy
-             JOIN product_variant ON product_variant.id = shop_nakupy.variant_id
-             WHERE shop_nakupy.id_uzivatele = :customer
-               AND shop_nakupy.rok = :year
-               AND product_variant.accommodation_day IS NOT NULL
-               AND EXISTS (
-                   SELECT 1 FROM product_product_tag
-                   JOIN product_tag ON product_tag.id = product_product_tag.tag_id
-                   WHERE product_product_tag.product_id = product_variant.product_id
-                     AND product_tag.code = :tag
-               )',
-            [
-                'customer' => $customer->getId(),
-                'year'     => $year,
-                'tag'      => ProductTagCode::UBYTOVANI->value,
-            ],
-        );
-        $drzene = array_map('intval', $drzene);
+        $drzene = $this->drzeneNoci($customer, $year);
 
         $kSmazani = array_diff($drzene, $ponechatVariantIds);
         if ($kSmazani !== []) {
@@ -195,10 +222,10 @@ readonly class AccommodationWriter
     }
 
     /**
-     * The guard sits in the INSERT's WHERE, so two people racing for the last bed cannot both
-     * win. It counts shop_nakupy instead of decrementing remaining_quantity because the admin
-     * and infopult screens still sell without touching that column; this becomes
-     * CapacityManager::purchase() once they are ported.
+     * Capacity is counted from shop_nakupy because remaining_quantity is stale while the admin
+     * and infopult screens still sell without touching it. id_predmetu is the night's own
+     * legacy row, not the variant's parent — the day-variant migration reparented variants
+     * onto one owner, and every legacy consumer reads ubytovani_den off id_predmetu.
      */
     private function pridejNoc(User $customer, ProductVariant $variant, int $year): void
     {
@@ -206,11 +233,22 @@ readonly class AccommodationWriter
         $sleva = $this->discountCalculator->calculateDiscount($product, $customer, $year);
         $order = $this->cartService->getOrCreateCart($customer);
 
+        // The count below reads a snapshot, so two writers would both see the last bed free.
+        // Locking the night's capacity row first makes them queue instead.
+        $this->connection->executeQuery(
+            'SELECT kusu_vyrobeno FROM shop_predmety WHERE kod_predmetu = :variantCode FOR UPDATE',
+            [
+                'variantCode' => $variant->getCode(),
+            ],
+        );
+
         $vlozeno = $this->connection->executeStatement(
             'INSERT INTO shop_nakupy
                 (id_uzivatele, id_predmetu, variant_id, order_id, rok, cena_nakupni, datum,
                  product_name, product_code, product_tags, variant_name, variant_code)
-             SELECT :customer, :product, :variant, :order, :year, :price, NOW(),
+             SELECT :customer,
+                    (SELECT id_predmetu FROM shop_predmety WHERE kod_predmetu = :variantCode),
+                    :variant, :order, :year, :price, NOW(),
                     :productName, :productCode, :productTags, :variantName, :variantCode
              FROM DUAL
              WHERE (
@@ -224,7 +262,6 @@ readonly class AccommodationWriter
              )',
             [
                 'customer'    => $customer->getId(),
-                'product'     => $product->getId(),
                 'variant'     => $variant->getId(),
                 'order'       => $order->getId(),
                 'year'        => $year,
