@@ -21,12 +21,6 @@ services:
             - '../src/Kernel.php'
             - '../src/Entity/'
             - '../src/DependencyInjection/'
-            # Dev-only tooling whose base class lives in rector/rector, which
-            # --no-dev strips from the deployed image: reflecting it there is
-            # a fatal that never reproduces locally or in tests. Rector also
-            # ships its own unprefixed php-parser, which corrupts the compiled
-            # container if it is autoloaded while the container is built.
-            - '../src/Rector/'
 
     # Legacy integration services
     legacy.session:
