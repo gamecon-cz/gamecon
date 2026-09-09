@@ -63,7 +63,7 @@ class BreakfastCanceller
      * Breakfasts the customer could put back: the last selection, minus whatever they hold
      * now and minus anything a still-booked night would only cancel again.
      *
-     * @return string[] product names
+     * @return array<int, string> product name per breakfast variant id
      */
     public function restorable(User $customer, int $year): array
     {
@@ -81,11 +81,49 @@ class BreakfastCanceller
                 && ! isset($drzene[$den])
                 && ! in_array($den, $kryteRana, true)
             ) {
-                $nabidnout[] = $snidane['nazev'];
+                $nabidnout[$snidane['id']] = $snidane['nazev'];
             }
         }
 
         return $nabidnout;
+    }
+
+    /**
+     * Puts the offered breakfasts back. Re-checked rather than trusting the caller: the offer
+     * was rendered from a payload that may since have gone stale.
+     *
+     * @return string[] names actually restored
+     */
+    public function restore(User $customer, int $year): array
+    {
+        $nabidnute = $this->restorable($customer, $year);
+        if ($nabidnute === []) {
+            return [];
+        }
+
+        foreach (array_keys($nabidnute) as $variantId) {
+            $this->connection->executeStatement(
+                'INSERT INTO shop_nakupy
+                    (id_uzivatele, id_predmetu, variant_id, rok, cena_nakupni, datum,
+                     product_name, product_code, variant_name, variant_code)
+                 SELECT :customer, snidane.id_predmetu, product_variant.id, :year,
+                        snidane.cena_aktualni, NOW(),
+                        snidane.nazev, snidane.kod_predmetu, product_variant.name, product_variant.code
+                 FROM product_variant
+                 JOIN shop_predmety AS snidane ON snidane.kod_predmetu = product_variant.code
+                 WHERE product_variant.id = :variant',
+                [
+                    'customer' => $customer->getId(),
+                    'variant'  => $variantId,
+                    'year'     => $year,
+                ],
+            );
+        }
+
+        // What they now hold is the selection worth remembering.
+        $this->ulozSnapshot($customer, $year, array_values($this->drzeneSnidane($customer, $year)));
+
+        return array_values($nabidnute);
     }
 
     /**
