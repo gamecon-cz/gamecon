@@ -80,6 +80,7 @@ use Symfony\Component\Validator\Constraints as Assert;
 #[ApiFilter(OrderFilter::class, properties: ['id', 'name', 'currentPrice', 'state'])]
 #[ApiFilter(RangeFilter::class, properties: ['currentPrice', 'producedQuantity'])]
 #[AppAssert\BreakfastIncludedRequiresAccommodation]
+#[AppAssert\TagCombinationIsAllowed]
 class Product
 {
     public const LIST = 'product:list';
