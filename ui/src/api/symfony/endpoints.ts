@@ -1,6 +1,7 @@
 import { symfonyFetch } from "./fetch";
 import {
   ApiAccommodation,
+  ApiAccommodationWrite,
   ApiCart,
   ApiEntryFee,
   ApiHydraCollection,
@@ -28,6 +29,23 @@ export const fetchMeals = async (): Promise<ApiMealProduct[]> => {
 export const fetchAccommodation = async (): Promise<ApiAccommodation> => {
   const res = await symfonyFetch("cart/accommodation");
   if (!res.ok) throw new Error(`Failed to fetch accommodation: ${res.status}`);
+  return await res.json() as ApiAccommodation;
+};
+
+/**
+ * Save the accommodation booking. Sends the whole set of nights the customer should end up
+ * with, and returns the section as GET would, so the caller can render the result directly.
+ */
+export const saveAccommodation = async (data: ApiAccommodationWrite): Promise<ApiAccommodation> => {
+  const res = await symfonyFetch("cart/accommodation", {
+    method: "POST",
+    headers: { "Content-Type": "application/ld+json" },
+    body: JSON.stringify(data),
+  });
+  if (!res.ok) {
+    const chyba = await res.json().catch(() => null) as { "hydra:description"?: string; detail?: string } | null;
+    throw new Error(chyba?.["hydra:description"] ?? chyba?.detail ?? `Uložení ubytování selhalo: ${res.status}`);
+  }
   return await res.json() as ApiAccommodation;
 };
 
