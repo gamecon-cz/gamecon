@@ -246,20 +246,17 @@ readonly class AccommodationWriter
             'INSERT INTO shop_nakupy
                 (id_uzivatele, id_predmetu, variant_id, order_id, rok, cena_nakupni, datum,
                  product_name, product_code, product_tags, variant_name, variant_code)
-             SELECT :customer,
-                    (SELECT id_predmetu FROM shop_predmety WHERE kod_predmetu = :variantCode),
-                    :variant, :order, :year, :price, NOW(),
+             SELECT :customer, noc.id_predmetu, :variant, :order, :year, :price, NOW(),
                     :productName, :productCode, :productTags, :variantName, :variantCode
-             FROM DUAL
-             WHERE (
-                 SELECT kusu_vyrobeno FROM shop_predmety WHERE kod_predmetu = :variantCode
-             ) IS NULL
-             OR (
-                 SELECT kusu_vyrobeno FROM shop_predmety WHERE kod_predmetu = :variantCode
-             ) > (
-                 SELECT COUNT(*) FROM shop_nakupy AS prodane
-                 WHERE prodane.variant_id = :variant AND prodane.rok = :year
-             )',
+             FROM shop_predmety AS noc
+             WHERE noc.kod_predmetu = :variantCode
+               AND (
+                   noc.kusu_vyrobeno IS NULL
+                   OR noc.kusu_vyrobeno > (
+                       SELECT COUNT(*) FROM shop_nakupy AS prodane
+                       WHERE prodane.variant_id = :variant AND prodane.rok = :year
+                   )
+               )',
             [
                 'customer'    => $customer->getId(),
                 'variant'     => $variant->getId(),
