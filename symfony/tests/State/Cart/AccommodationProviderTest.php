@@ -5,7 +5,9 @@ declare(strict_types=1);
 namespace App\Tests\State\Cart;
 
 use ApiPlatform\Metadata\Get;
+use App\Entity\OrderItem;
 use App\Entity\Product;
+use App\Entity\ProductTag;
 use App\Entity\ProductVariant;
 use App\Entity\User;
 use App\Enum\ProductStateEnum;
@@ -16,6 +18,8 @@ use App\Service\CurrentYearProviderInterface;
 use App\Service\DiscountCalculator;
 use App\Service\LegacySessionService;
 use App\State\Cart\AccommodationProvider;
+use Gamecon\Cas\DateTimeImmutableStrict;
+use Gamecon\SystemoveNastaveni\SystemoveNastaveni;
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
 use Symfony\Bundle\SecurityBundle\Security;
@@ -39,8 +43,12 @@ class AccommodationProviderTest extends TestCase
 
     private AccommodationProvider $provider;
 
+    private ?SystemoveNastaveni $puvodniNastaveni = null;
+
     protected function setUp(): void
     {
+        $this->puvodniNastaveni = $GLOBALS['systemoveNastaveni'] ?? null;
+
         $this->productRepository = $this->createMock(ProductRepository::class);
         $this->orderItemRepository = $this->createMock(OrderItemRepository::class);
         $this->legacySession = $this->createMock(LegacySessionService::class);
@@ -65,6 +73,45 @@ class AccommodationProviderTest extends TestCase
             $this->legacySession,
             $this->security,
         );
+    }
+
+    protected function tearDown(): void
+    {
+        $GLOBALS['systemoveNastaveni'] = $this->puvodniNastaveni;
+    }
+
+    public function testSaleClosedAfterTheDeadline(): void
+    {
+        $this->prepareUser();
+        $this->prepareGrid(remainingQuantity: 10, produced: 10, sold: 0, held: 0);
+        $this->posunCas('2099-01-01 00:00:00');
+
+        $this->assertTrue($this->provider->provide(new Get())->saleClosed);
+    }
+
+    public function testFreeNightIsLockedAfterTheDeadline(): void
+    {
+        $this->prepareUser();
+        $this->prepareGrid(remainingQuantity: 10, produced: 10, sold: 0, held: 0);
+        $this->posunCas('2099-01-01 00:00:00');
+
+        $cell = $this->provider->provide(new Get())->types[0]->nights[self::DEN_CTVRTEK];
+
+        $this->assertTrue($cell->locked);
+        $this->assertFalse($cell->soldOut);
+    }
+
+    public function testOwnBookedNightStaysUnlockedAfterTheDeadline(): void
+    {
+        $this->prepareUser();
+        $this->prepareGrid(remainingQuantity: 10, produced: 10, sold: 1, held: 1, koupeno: true);
+        $this->posunCas('2099-01-01 00:00:00');
+
+        $cell = $this->provider->provide(new Get())->types[0]->nights[self::DEN_CTVRTEK];
+
+        // Otherwise the customer could no longer cancel a night they already hold.
+        $this->assertTrue($cell->selected);
+        $this->assertFalse($cell->locked);
     }
 
     public function testMissingLegacySessionIsRefused(): void
@@ -177,6 +224,14 @@ class AccommodationProviderTest extends TestCase
         $this->assertSame([], $this->provider->provide(new Get())->types);
     }
 
+    private function posunCas(string $cas): void
+    {
+        $GLOBALS['systemoveNastaveni'] = SystemoveNastaveni::zGlobals(
+            \ROCNIK,
+            new DateTimeImmutableStrict($cas),
+        );
+    }
+
     private function prepareUser(): void
     {
         $this->security->method('getUser')->willReturn($this->createMock(User::class));
@@ -200,6 +255,7 @@ class AccommodationProviderTest extends TestCase
         int $sold,
         int $held,
         ?string $kodJinehoRadku = null,
+        bool $koupeno = false,
     ): ProductVariant {
         $product = $this->createProduct(1, 'Hotel');
 
@@ -225,7 +281,20 @@ class AccommodationProviderTest extends TestCase
             ->willReturn([
                 ($kodJinehoRadku ?? 'Hd-2L-ct') => $produced,
             ]);
-        $this->orderItemRepository->method('findByCustomerAndYear')->willReturn([]);
+        $koupeneItems = [];
+        if ($koupeno) {
+            // koupeneNoci() reads the tag off the product, because meals carry
+            // accommodation_day too and would otherwise count as booked nights.
+            $tag = new ProductTag();
+            $tag->setCode(ProductTagCode::UBYTOVANI->value);
+            $product->addTag($tag);
+
+            $item = new OrderItem();
+            $item->setVariant($variant);
+            $item->setProduct($product);
+            $koupeneItems[] = $item;
+        }
+        $this->orderItemRepository->method('findByCustomerAndYear')->willReturn($koupeneItems);
 
         return $variant;
     }
