@@ -17,4 +17,15 @@ class SetAccommodationInputDto
     #[Assert\NotNull(message: 'Seznam nocí musí být vyplněn')]
     #[Assert\All([new Assert\Type(type: 'integer', message: 'Noc musí být číslo varianty')])]
     public array $variantIds = [];
+
+    /**
+     * Who the customer wants to share a room with, as they typed it.
+     */
+    #[Assert\Length(max: 255, maxMessage: 'Jméno spolubydlícího může mít nejvýše {{ limit }} znaků')]
+    public ?string $roommate = null;
+
+    /**
+     * Only meaningful with no nights selected: it is the answer "I want none", not "not yet".
+     */
+    public bool $declined = false;
 }

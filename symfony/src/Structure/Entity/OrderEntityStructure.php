@@ -40,6 +40,16 @@ class OrderEntityStructure
     public const completedAt = 'completedAt';
 
     /**
+     * @see Order::$roommate
+     */
+    public const roommate = 'roommate';
+
+    /**
+     * @see Order::$accommodationDeclined
+     */
+    public const accommodationDeclined = 'accommodationDeclined';
+
+    /**
      * @see Order::$customer
      */
     public const customer = 'customer';
