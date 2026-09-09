@@ -10,6 +10,7 @@ use App\Dto\Cart\AccommodationOutputDto;
 use App\Dto\Cart\SetAccommodationInputDto;
 use App\Entity\User;
 use App\Service\AccommodationWriter;
+use App\Service\BreakfastCanceller;
 use App\Service\CurrentYearProviderInterface;
 use App\Service\LegacySessionService;
 use Gamecon\Pravo;
@@ -25,6 +26,7 @@ readonly class SetAccommodationProcessor implements ProcessorInterface
 {
     public function __construct(
         private AccommodationWriter $accommodationWriter,
+        private BreakfastCanceller $breakfastCanceller,
         private AccommodationProvider $accommodationProvider,
         private CurrentYearProviderInterface $currentYearProvider,
         private LegacySessionService $legacySession,
@@ -64,6 +66,12 @@ readonly class SetAccommodationProcessor implements ProcessorInterface
             );
         } catch (\RuntimeException $chyba) {
             throw new BadRequestHttpException($chyba->getMessage(), $chyba);
+        }
+
+        // After the nights, so a night booked in the same request cancels again what it
+        // covers instead of the restore silently undoing it.
+        if ($data->restoreBreakfasts) {
+            $this->breakfastCanceller->restore($user, $this->currentYearProvider->getCurrentYear());
         }
 
         return $this->accommodationProvider->provide($operation, $uriVariables, $context);
