@@ -15,6 +15,7 @@ use App\Entity\User;
 use App\Enum\ProductTagCode;
 use App\Repository\OrderItemRepository;
 use App\Repository\ProductRepository;
+use App\Service\BreakfastCanceller;
 use App\Service\CartService;
 use App\Service\CurrentYearProviderInterface;
 use App\Service\DiscountCalculator;
@@ -45,6 +46,7 @@ readonly class AccommodationProvider implements ProviderInterface
         private CurrentYearProviderInterface $currentYearProvider,
         private LegacySessionService $legacySession,
         private CartService $cartService,
+        private BreakfastCanceller $breakfastCanceller,
         private Security $security,
     ) {
     }
@@ -79,6 +81,7 @@ readonly class AccommodationProvider implements ProviderInterface
         // still carry nothing.
         $order = $this->cartService->getCart($user);
         $dto->roommate = $order?->getRoommate() ?? ($legacyUzivatel->ubytovanS() ?: null);
+        $dto->restorableBreakfastVariantIds = $this->breakfastCanceller->restorable($user, $year);
         $dto->declined = $order !== null
             ? $order->isAccommodationDeclined()
             : (bool) $legacyUzivatel->nechceUbytovani();

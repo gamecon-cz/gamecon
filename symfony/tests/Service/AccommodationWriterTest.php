@@ -10,6 +10,7 @@ use App\Entity\User;
 use App\Enum\ProductStateEnum;
 use App\Enum\ProductTagCode;
 use App\Service\AccommodationWriter;
+use App\Service\BreakfastCanceller;
 use App\Structure\Entity\UserEntityStructure;
 use App\Tests\AbstractDatabaseKernelTestCase;
 use Gamecon\Tests\Factory\UserFactory;
@@ -103,6 +104,94 @@ class AccommodationWriterTest extends AbstractDatabaseKernelTestCase
 
             $this->noci[$den] = $variant;
         }
+    }
+
+    /**
+     * A night whose price includes breakfast, and a separately bought breakfast for the
+     * morning after it.
+     *
+     * @return array{0: int, 1: int} accommodation variant id, breakfast variant id
+     */
+    private function pripravHotelSeSnidani(int $den): array
+    {
+        $connection = $this->connection();
+        $kod = 'hotel-' . uniqid();
+
+        $hotel = new Product();
+        $hotel->setName('Hotel se snídaní');
+        $hotel->setCode($kod);
+        $hotel->setCurrentPrice('500.00');
+        $hotel->setDescription('');
+        $hotel->setState(ProductStateEnum::PUBLIC);
+        $hotel->setProducedQuantity(5);
+        $hotel->setBreakfastIncluded(true);
+        $this->entityManager()->persist($hotel);
+        $this->entityManager()->flush();
+
+        $noc = new ProductVariant();
+        $noc->setProduct($hotel);
+        $noc->setName('noc');
+        $noc->setCode($kod . '-' . $den);
+        $noc->setAccommodationDay($den);
+        $noc->setRemainingQuantity(5);
+        $noc->setPosition($den);
+        $hotel->addVariant($noc);
+        $this->entityManager()->persist($noc);
+        $this->entityManager()->flush();
+
+        $connection->executeStatement(
+            'INSERT INTO product_product_tag (product_id, tag_id)
+             SELECT :product, id FROM product_tag WHERE code = :code',
+            [
+                'product' => $hotel->getId(),
+                'code'    => ProductTagCode::UBYTOVANI->value,
+            ],
+        );
+        $connection->executeStatement(
+            'INSERT INTO shop_predmety (nazev, kod_predmetu, kusu_vyrobeno, cena_aktualni, stav, ubytovani_den)
+             VALUES (:nazev, :kod, 5, 500, :stav, :den)',
+            [
+                'nazev' => 'Hotel se snídaní',
+                'kod'   => $noc->getCode(),
+                'stav'  => ProductStateEnum::PUBLIC->value,
+                'den'   => $den,
+            ],
+        );
+
+        // The breakfast this night covers: night N covers the morning of day N+1.
+        $snidaneProdukt = new Product();
+        $snidaneProdukt->setName('Snídaně testovací');
+        $snidaneProdukt->setCode('snidane-' . uniqid());
+        $snidaneProdukt->setCurrentPrice('50.00');
+        $snidaneProdukt->setDescription('');
+        $snidaneProdukt->setState(ProductStateEnum::PUBLIC);
+        $this->entityManager()->persist($snidaneProdukt);
+        $this->entityManager()->flush();
+
+        $snidane = new ProductVariant();
+        $snidane->setProduct($snidaneProdukt);
+        $snidane->setName('snídaně');
+        $snidane->setCode($snidaneProdukt->getCode() . '-r');
+        $snidane->setAccommodationDay($den + 1);
+        $snidane->setPosition(0);
+        $snidaneProdukt->addVariant($snidane);
+        $this->entityManager()->persist($snidane);
+        $this->entityManager()->flush();
+
+        return [(int) $noc->getId(), (int) $snidane->getId()];
+    }
+
+    private function koupSnidani(User $customer, int $snidaneVariantId): void
+    {
+        $this->connection()->executeStatement(
+            'INSERT INTO shop_nakupy (id_uzivatele, id_predmetu, variant_id, rok, cena_nakupni, datum)
+             SELECT :customer, product_id, id, :year, 50, NOW() FROM product_variant WHERE id = :variant',
+            [
+                'customer' => $customer->getId(),
+                'variant'  => $snidaneVariantId,
+                'year'     => self::ROK,
+            ],
+        );
     }
 
     private function ucastnik(): User
@@ -300,5 +389,78 @@ class AccommodationWriterTest extends AbstractDatabaseKernelTestCase
                 ],
             );
         }
+    }
+
+    public function testBookingAHotelNightCancelsTheBreakfastItCovers(): void
+    {
+        $customer = $this->ucastnik();
+        [$noc, $snidane] = $this->pripravHotelSeSnidani(1);
+        $this->koupSnidani($customer, $snidane);
+
+        $this->writer()->save($customer, [$noc], self::ROK, true);
+
+        self::assertSame(0, $this->pocetNakupu($customer, $snidane), 'breakfast should be cancelled');
+    }
+
+    public function testCancelledBreakfastIsOfferedBackOnceTheNightIsDropped(): void
+    {
+        $customer = $this->ucastnik();
+        [$noc, $snidane] = $this->pripravHotelSeSnidani(1);
+        $this->koupSnidani($customer, $snidane);
+        $this->writer()->save($customer, [$noc], self::ROK, true);
+
+        $this->writer()->save($customer, [], self::ROK, true);
+
+        self::assertSame(
+            [$snidane],
+            $this->breakfastCanceller()->restorable($customer, self::ROK),
+        );
+    }
+
+    public function testStillBookedNightIsNotOfferedBack(): void
+    {
+        $customer = $this->ucastnik();
+        [$noc, $snidane] = $this->pripravHotelSeSnidani(1);
+        $this->koupSnidani($customer, $snidane);
+        $this->writer()->save($customer, [$noc], self::ROK, true);
+
+        // The night still covers it, so putting it back would only cancel it again.
+        self::assertSame([], $this->breakfastCanceller()->restorable($customer, self::ROK));
+    }
+
+    public function testReorderingBreakfastsRewritesTheSnapshot(): void
+    {
+        $customer = $this->ucastnik();
+        [$noc, $snidane] = $this->pripravHotelSeSnidani(1);
+        [, $jinaSnidane] = $this->pripravHotelSeSnidani(2);
+
+        $this->koupSnidani($customer, $snidane);
+        $this->writer()->save($customer, [$noc], self::ROK, true);
+        $this->writer()->save($customer, [], self::ROK, true);
+
+        // A newer selection replaces the remembered one, so only the latest is offered back.
+        $this->breakfastCanceller()->ulozSnapshot($customer, self::ROK, [$jinaSnidane]);
+
+        self::assertSame(
+            [$jinaSnidane],
+            $this->breakfastCanceller()->restorable($customer, self::ROK),
+        );
+    }
+
+    private function breakfastCanceller(): BreakfastCanceller
+    {
+        return static::getContainer()->get(BreakfastCanceller::class);
+    }
+
+    private function pocetNakupu(User $customer, int $variantId): int
+    {
+        return (int) $this->connection()->fetchOne(
+            'SELECT COUNT(*) FROM shop_nakupy WHERE id_uzivatele = :customer AND variant_id = :variant AND rok = :year',
+            [
+                'customer' => $customer->getId(),
+                'variant'  => $variantId,
+                'year'     => self::ROK,
+            ],
+        );
     }
 }

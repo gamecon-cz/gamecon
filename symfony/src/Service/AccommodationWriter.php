@@ -27,6 +27,7 @@ readonly class AccommodationWriter
         private ProductRepository $productRepository,
         private CartService $cartService,
         private DiscountCalculator $discountCalculator,
+        private BreakfastCanceller $breakfastCanceller,
     ) {
     }
 
@@ -58,6 +59,7 @@ readonly class AccommodationWriter
                 }
             }
             $this->ulozUdajeOUbytovani($customer, $year, $spolubydlici, $nechceUbytovani && $varianty === []);
+            $this->breakfastCanceller->cancelCovered($customer, $year);
             $this->connection->commit();
         } catch (\Throwable $chyba) {
             $this->connection->rollBack();
