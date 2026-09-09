@@ -110,7 +110,7 @@ class AccommodationWriterTest extends AbstractDatabaseKernelTestCase
      * A night whose price includes breakfast, and a separately bought breakfast for the
      * morning after it.
      *
-     * @return array{0: int, 1: int} accommodation variant id, breakfast variant id
+     * @return array{0: int, 1: int, 2: string} night variant id, breakfast variant id, its name
      */
     private function pripravHotelSeSnidani(int $den): array
     {
@@ -160,13 +160,32 @@ class AccommodationWriterTest extends AbstractDatabaseKernelTestCase
 
         // The breakfast this night covers: night N covers the morning of day N+1.
         $snidaneProdukt = new Product();
-        $snidaneProdukt->setName('Snídaně testovací');
+        $snidaneNazev = 'Snídaně testovací ' . ($den + 1);
+        $snidaneProdukt->setName($snidaneNazev);
         $snidaneProdukt->setCode('snidane-' . uniqid());
         $snidaneProdukt->setCurrentPrice('50.00');
         $snidaneProdukt->setDescription('');
         $snidaneProdukt->setState(ProductStateEnum::PUBLIC);
         $this->entityManager()->persist($snidaneProdukt);
         $this->entityManager()->flush();
+
+        // Tagged as food, which is what tells a breakfast apart from anything else whose
+        // name happens to start with "Snídaně".
+        $connection->executeStatement(
+            'INSERT IGNORE INTO product_tag (code, name, created_at) VALUES (:code, :name, NOW())',
+            [
+                'code' => ProductTagCode::JIDLO->value,
+                'name' => 'Jídlo',
+            ],
+        );
+        $connection->executeStatement(
+            'INSERT INTO product_product_tag (product_id, tag_id)
+             SELECT :product, id FROM product_tag WHERE code = :code',
+            [
+                'product' => $snidaneProdukt->getId(),
+                'code'    => ProductTagCode::JIDLO->value,
+            ],
+        );
 
         $snidane = new ProductVariant();
         $snidane->setProduct($snidaneProdukt);
@@ -178,7 +197,7 @@ class AccommodationWriterTest extends AbstractDatabaseKernelTestCase
         $this->entityManager()->persist($snidane);
         $this->entityManager()->flush();
 
-        return [(int) $noc->getId(), (int) $snidane->getId()];
+        return [(int) $noc->getId(), (int) $snidane->getId(), $snidaneNazev];
     }
 
     private function koupSnidani(User $customer, int $snidaneVariantId): void
@@ -238,6 +257,33 @@ class AccommodationWriterTest extends AbstractDatabaseKernelTestCase
         self::assertSame(1, $this->pocetNoci($customer, 1));
     }
 
+    /**
+     * The day-variant migration reparented every night's variant onto one owner product whose
+     * own day is Sunday, but legacy reads ubytovani_den off shop_nakupy.id_predmetu — so
+     * storing the parent would price and count every night as Sunday.
+     */
+    public function testPurchaseRecordsTheNightsOwnLegacyRow(): void
+    {
+        $this->pripravUbytovani();
+        $customer = $this->ucastnik();
+
+        $this->writer()->save($customer, $this->idNoci(0, 1), self::ROK, false);
+
+        $dny = $this->connection()->fetchFirstColumn(
+            'SELECT shop_predmety.ubytovani_den
+             FROM shop_nakupy
+             JOIN shop_predmety ON shop_predmety.id_predmetu = shop_nakupy.id_predmetu
+             WHERE shop_nakupy.id_uzivatele = :customer AND shop_nakupy.rok = :year
+             ORDER BY shop_predmety.ubytovani_den',
+            [
+                'customer' => $customer->getId(),
+                'year'     => self::ROK,
+            ],
+        );
+
+        self::assertSame([0, 1], array_map('intval', $dny));
+    }
+
     public function testEmptySetCancelsTheBooking(): void
     {
         $this->pripravUbytovani();
@@ -281,6 +327,22 @@ class AccommodationWriterTest extends AbstractDatabaseKernelTestCase
         $this->expectExceptionMessage(AccommodationWriter::CHYBA_MINIMALNE_DVE_NOCI);
 
         $this->writer()->save($customer, $this->idNoci(0), self::ROK, false);
+    }
+
+    /**
+     * The legacy admin screens can book a set these rules reject, and re-sending it unchanged
+     * (to edit only the roommate) must not lock the customer out of saving.
+     */
+    public function testUnchangedNightsAreNotRevalidated(): void
+    {
+        $this->pripravUbytovani();
+        $customer = $this->ucastnik();
+        $this->writer()->save($customer, $this->idNoci(0), self::ROK, true);
+
+        // Wednesday alone would fail the two-night rule if it were judged again.
+        $this->writer()->save($customer, $this->idNoci(0), self::ROK, false, 'Karel');
+
+        self::assertSame(1, $this->pocetNoci($customer, 0));
     }
 
     public function testSingleNightIsAllowedWithThePermission(): void
@@ -405,14 +467,14 @@ class AccommodationWriterTest extends AbstractDatabaseKernelTestCase
     public function testCancelledBreakfastIsOfferedBackOnceTheNightIsDropped(): void
     {
         $customer = $this->ucastnik();
-        [$noc, $snidane] = $this->pripravHotelSeSnidani(1);
+        [$noc, $snidane, $nazev] = $this->pripravHotelSeSnidani(1);
         $this->koupSnidani($customer, $snidane);
         $this->writer()->save($customer, [$noc], self::ROK, true);
 
         $this->writer()->save($customer, [], self::ROK, true);
 
         self::assertSame(
-            [$snidane],
+            [$nazev],
             $this->breakfastCanceller()->restorable($customer, self::ROK),
         );
     }
@@ -428,21 +490,22 @@ class AccommodationWriterTest extends AbstractDatabaseKernelTestCase
         self::assertSame([], $this->breakfastCanceller()->restorable($customer, self::ROK));
     }
 
-    public function testReorderingBreakfastsRewritesTheSnapshot(): void
+    public function testCancellingAgainReplacesTheRememberedSelection(): void
     {
         $customer = $this->ucastnik();
         [$noc, $snidane] = $this->pripravHotelSeSnidani(1);
-        [, $jinaSnidane] = $this->pripravHotelSeSnidani(2);
+        [$jinaNoc, $jinaSnidane, $jinyNazev] = $this->pripravHotelSeSnidani(2);
 
         $this->koupSnidani($customer, $snidane);
         $this->writer()->save($customer, [$noc], self::ROK, true);
+
+        // A later cancellation overwrites the row, so only the newest selection is offered.
+        $this->koupSnidani($customer, $jinaSnidane);
+        $this->writer()->save($customer, [$jinaNoc], self::ROK, true);
         $this->writer()->save($customer, [], self::ROK, true);
 
-        // A newer selection replaces the remembered one, so only the latest is offered back.
-        $this->breakfastCanceller()->ulozSnapshot($customer, self::ROK, [$jinaSnidane]);
-
         self::assertSame(
-            [$jinaSnidane],
+            [$jinyNazev],
             $this->breakfastCanceller()->restorable($customer, self::ROK),
         );
     }
