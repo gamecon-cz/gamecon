@@ -78,6 +78,19 @@ class Order
     #[ORM\Column(type: Types::DATETIME_MUTABLE, nullable: true)]
     private ?\DateTimeInterface $completedAt = null;
 
+    /**
+     * Who the customer asked to share a room with, as they typed it.
+     */
+    #[ORM\Column(type: Types::STRING, length: 255, nullable: true)]
+    private ?string $roommate = null;
+
+    /**
+     * Set when the customer said they want no accommodation, which is different from simply
+     * having booked none yet — it is an answer, so the form stops asking.
+     */
+    #[ORM\Column(type: Types::BOOLEAN, nullable: false)]
+    private bool $accommodationDeclined = false;
+
     public function __construct()
     {
         $this->items = new ArrayCollection();
@@ -278,5 +291,29 @@ class Order
         }
 
         return $total;
+    }
+
+    public function getRoommate(): ?string
+    {
+        return $this->roommate;
+    }
+
+    public function setRoommate(?string $roommate): self
+    {
+        $this->roommate = $roommate === null ? null : (trim($roommate) ?: null);
+
+        return $this;
+    }
+
+    public function isAccommodationDeclined(): bool
+    {
+        return $this->accommodationDeclined;
+    }
+
+    public function setAccommodationDeclined(bool $accommodationDeclined): self
+    {
+        $this->accommodationDeclined = $accommodationDeclined;
+
+        return $this;
     }
 }
