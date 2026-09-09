@@ -5,8 +5,8 @@ declare(strict_types=1);
 /** @var Godric\DbMigrations\Migration $this */
 
 // Deliberately not shop_nakupy_zrusene: that is an append-only audit log of real
-// cancellations, and this row is overwritten every time a hotel night cancels breakfasts
-// again, so only the most recent selection is offered back.
+// cancellations, while this row is overwritten on every new breakfast selection so that only
+// the most recent one is ever offered back.
 
 $this->q(<<<SQL
 CREATE TABLE IF NOT EXISTS shop_snidane_snapshot (

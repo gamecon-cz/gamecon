@@ -11,6 +11,7 @@ use App\Enum\ProductStateEnum;
 use App\Enum\ProductTagCode;
 use App\Service\AccommodationWriter;
 use App\Service\BreakfastCanceller;
+use App\Service\CartService;
 use App\Structure\Entity\UserEntityStructure;
 use App\Tests\AbstractDatabaseKernelTestCase;
 use Gamecon\Tests\Factory\UserFactory;
@@ -508,6 +509,55 @@ class AccommodationWriterTest extends AbstractDatabaseKernelTestCase
             [$jinyNazev],
             $this->breakfastCanceller()->restorable($customer, self::ROK),
         );
+    }
+
+    public function testBuyingABreakfastUpdatesWhatWouldBeOfferedBack(): void
+    {
+        $customer = $this->ucastnik();
+        [$noc, $snidane] = $this->pripravHotelSeSnidani(1);
+        [, $jinaSnidane, $jinyNazev] = $this->pripravHotelSeSnidani(2);
+
+        // Cancelled once, so a snapshot exists naming the first breakfast.
+        $this->koupSnidani($customer, $snidane);
+        $this->writer()->save($customer, [$noc], self::ROK, true);
+        $this->writer()->save($customer, [], self::ROK, true);
+
+        // Buying a different one has to move the snapshot with it. Nothing else writes it
+        // here — no further accommodation change happens — so only the purchase can.
+        $this->koupSnidaniPresKosik($customer, $jinaSnidane);
+        $this->smazSnidani($customer, $jinaSnidane);
+
+        self::assertSame(
+            [$jinyNazev],
+            $this->breakfastCanceller()->restorable($customer, self::ROK),
+        );
+    }
+
+    /**
+     * Drops the purchase without touching accommodation, so only the snapshot remains.
+     */
+    private function smazSnidani(User $customer, int $variantId): void
+    {
+        $this->connection()->executeStatement(
+            'DELETE FROM shop_nakupy WHERE id_uzivatele = :customer AND variant_id = :variant AND rok = :year',
+            [
+                'customer' => $customer->getId(),
+                'variant'  => $variantId,
+                'year'     => self::ROK,
+            ],
+        );
+    }
+
+    /**
+     * Through the cart, so the OrderItem lifecycle listener fires as it does in production.
+     */
+    private function koupSnidaniPresKosik(User $customer, int $snidaneVariantId): void
+    {
+        $variant = $this->entityManager()->getRepository(ProductVariant::class)->find($snidaneVariantId);
+        self::assertNotNull($variant);
+
+        $cart = static::getContainer()->get(CartService::class)->getOrCreateCart($customer);
+        static::getContainer()->get(CartService::class)->addItem($cart, $variant);
     }
 
     private function breakfastCanceller(): BreakfastCanceller
