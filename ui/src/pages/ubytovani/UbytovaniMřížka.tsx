@@ -43,7 +43,10 @@ export function UbytovaniMřížka() {
       });
   }, []);
 
-  const uloz = async (variantIds: number[], zmena: Partial<ApiAccommodation> = {}) => {
+  const uloz = async (
+    variantIds: number[],
+    zmena: Partial<ApiAccommodation> & { restoreBreakfasts?: boolean } = {},
+  ) => {
     if (!ubytovani) return;
     setUkladani(true);
     setError(null);
@@ -52,6 +55,7 @@ export function UbytovaniMřížka() {
         variantIds,
         roommate: zmena.roommate !== undefined ? zmena.roommate : ubytovani.roommate,
         declined: zmena.declined !== undefined ? zmena.declined : ubytovani.declined,
+        restoreBreakfasts: zmena.restoreBreakfasts ?? false,
       }));
     } catch (chyba: unknown) {
       setError(chyba instanceof Error ? chyba.message : "Uložení se nepodařilo");
@@ -160,8 +164,14 @@ export function UbytovaniMřížka() {
 
       {restorableBreakfasts.length > 0 && (
         <p class="ubytovani-mrizka--snidane">
-          Hotelový pokoj zrušil tyto snídaně: {restorableBreakfasts.join(", ")}. V sekci jídlo
-          si je můžeš objednat znovu.
+          Hotelový pokoj zrušil tyto snídaně: {restorableBreakfasts.join(", ")}.{" "}
+          <button
+            type="button"
+            disabled={ukladani || rozpojeno}
+            onClick={() => void uloz(selectedVariantIds, { restoreBreakfasts: true })}
+          >
+            Objednat je znovu
+          </button>
         </p>
       )}
 
