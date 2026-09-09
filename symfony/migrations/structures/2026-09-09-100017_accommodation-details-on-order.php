@@ -3,23 +3,34 @@
 declare(strict_types=1);
 
 /** @var Godric\DbMigrations\Migration $this */
+$dbName = $this->q('SELECT DATABASE()')->fetchColumn();
 
-// Who you share a room with, and whether you want a room at all, are answers to a given
-// year's registration — but legacy keeps both on the user account, so declining once marks
-// the customer forever and last year's roommate silently carries over. Moving them onto the
-// order scopes them to their year. The legacy columns stay: the old form still reads them,
-// and the new endpoint writes both until it is gone.
+$columnExists = function (string $table, string $column) use ($dbName): bool {
+    $result = $this->q(
+        "SELECT COUNT(*) AS cnt FROM information_schema.COLUMNS WHERE TABLE_SCHEMA = '{$dbName}' AND TABLE_NAME = '{$table}' AND COLUMN_NAME = '{$column}'",
+    );
 
-$this->q(<<<SQL
+    return (int) $result->fetch(PDO::FETCH_ASSOC)['cnt'] > 0;
+};
+
+// Both answers belong to a year's registration, but legacy keeps them on the account, so
+// declining once marked the customer forever. The legacy columns stay while the old form
+// still reads them.
+
+if (! $columnExists('shop_order', 'roommate')) {
+    $this->q(<<<SQL
 ALTER TABLE shop_order
     ADD roommate VARCHAR(255) DEFAULT NULL,
     ADD accommodation_declined TINYINT(1) DEFAULT NULL
 SQL);
+}
+
+// This runner's q() goes through PDO::query(), which binds nothing, so the year is
+// interpolated — it is an integer constant, not input.
+$rocnik = ROCNIK;
 
 // Backfill only the current year's orders: the account columns hold a single value with no
 // year, so attributing it to any older order would be a guess.
-$rocnik = ROCNIK;
-
 $this->q(<<<SQL
 UPDATE shop_order
 JOIN uzivatele_hodnoty ON uzivatele_hodnoty.id_uzivatele = shop_order.customer_id
