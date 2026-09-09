@@ -1,7 +1,7 @@
 <?php
 
 use Rector\Config\RectorConfig;
-use App\Rector\ReorderAttributeArgumentsRector;
+use Gamecon\Tests\Rector\Rules\ReorderAttributeArgumentsRector;
 use Rector\Php83\Rector\ClassConst\AddTypeToConstRector;
 
 /* @link https://github.com/rectorphp/rector-symfony */
