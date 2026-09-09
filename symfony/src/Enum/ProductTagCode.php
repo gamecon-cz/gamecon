@@ -52,6 +52,25 @@ enum ProductTagCode: string
     }
 
     /**
+     * Sub-tags qualify a category instead of being one, and each only makes sense on the
+     * category it qualifies — a hoodie is a kind of merch, so `mikina` on anything but
+     * `predmet` describes a product that cannot exist.
+     *
+     * @return array<string, self> sub-tag value => the category it requires
+     */
+    public static function subTagCategories(): array
+    {
+        return [
+            self::MIKINA->value => self::PREDMET,
+        ];
+    }
+
+    public function requiredCategory(): ?self
+    {
+        return self::subTagCategories()[$this->value] ?? null;
+    }
+
+    /**
      * The legacy shop_predmety.typ this category replaced, as the compatibility view
      * still reports it. Legacy rows carry the number, not the tag, so anything reading
      * them has to translate — see TypPredmetu.
