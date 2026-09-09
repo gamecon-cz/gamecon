@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace App\Dto\Cart;
 
-/** One row of the accommodation grid: a room type, with a cell per night. */
 class AccommodationTypeOutputDto
 {
     public int $productId;
@@ -16,7 +15,7 @@ class AccommodationTypeOutputDto
     public string $price;
 
     /**
-     * Room types differ in price only, so the whole row shares one figure.
+     * One figure for the whole row: the discount applies to the type, not to a single night.
      */
     public string $discountedPrice;
 

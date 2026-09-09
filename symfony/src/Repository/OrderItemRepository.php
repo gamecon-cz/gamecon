@@ -60,12 +60,9 @@ class OrderItemRepository extends ServiceEntityRepository
     }
 
     /**
-     * How many of each variant were sold this year, keyed by variant id.
-     *
-     * Needed because `product_variant.remaining_quantity` is only decremented by
-     * CapacityManager, i.e. by the new cart. Anything the legacy form still sells —
-     * accommodation, for now — writes shop_nakupy directly and leaves that column at its
-     * original capacity, so reading it would report a fully booked room as empty.
+     * Counts both sale paths, since OrderItem maps to shop_nakupy. Pair it only with
+     * {@see ProductRepository::producedQuantityByVariantCode()}, never with
+     * remaining_quantity — CapacityManager already decrements that for new-cart sales.
      *
      * @param int[] $variantIds
      *
@@ -93,5 +90,39 @@ class OrderItemRepository extends ServiceEntityRepository
         }
 
         return $prodano;
+    }
+
+    /**
+     * Added back into the remaining count, as legacy does, so the last bed still reads as
+     * available once it is yours instead of sold out under its own ticked checkbox.
+     *
+     * @param int[] $variantIds
+     *
+     * @return array<int, int>
+     */
+    public function countHeldByCustomer(array $variantIds, User $customer, int $year): array
+    {
+        if ($variantIds === []) {
+            return [];
+        }
+
+        $rows = $this->createQueryBuilder('oi')
+            ->select('IDENTITY(oi.variant) AS variantId', 'COUNT(oi.id) AS held')
+            ->where('oi.variant IN (:variantIds)')
+            ->andWhere('oi.year = :year')
+            ->andWhere('oi.customer = :customer')
+            ->groupBy('oi.variant')
+            ->setParameter('variantIds', $variantIds)
+            ->setParameter('year', $year)
+            ->setParameter('customer', $customer)
+            ->getQuery()
+            ->getArrayResult();
+
+        $drzeno = [];
+        foreach ($rows as $row) {
+            $drzeno[(int) $row['variantId']] = (int) $row['held'];
+        }
+
+        return $drzeno;
     }
 }
