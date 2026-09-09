@@ -295,12 +295,6 @@ parameters:
             path: symfony/src/Enum/ProductTagCode.php
 
         -
-            message: '#^Unused App\\Enum\\ProductTagCode\:\:isCategory$#'
-            identifier: shipmonk.deadMethod
-            count: 1
-            path: symfony/src/Enum/ProductTagCode.php
-
-        -
             message: '#^Unused App\\Enum\\ProductTagCode\:\:label$#'
             identifier: shipmonk.deadMethod
             count: 1
