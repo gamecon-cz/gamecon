@@ -11,7 +11,6 @@ use App\Dto\Cart\AccommodationDayOutputDto;
 use App\Dto\Cart\AccommodationOutputDto;
 use App\Dto\Cart\AccommodationTypeOutputDto;
 use App\Entity\Product;
-use App\Entity\ProductVariant;
 use App\Entity\User;
 use App\Enum\ProductTagCode;
 use App\Repository\OrderItemRepository;
@@ -58,22 +57,23 @@ readonly class AccommodationProvider implements ProviderInterface
         $year = $this->currentYearProvider->getCurrentYear();
         $nastaveni = SystemoveNastaveni::zGlobals();
         $prodejUkoncen = $nastaveni->prodejUbytovaniUkoncen();
+        // Every accommodation right lives in the legacy permission system. Failing beats
+        // degrading to "no rights", which would drop an organizer's Sunday night with a 200.
         $legacyUzivatel = $this->legacySession->getCurrentUser();
+        if ($legacyUzivatel === null) {
+            throw new AccessDeniedHttpException('Ubytování vyžaduje přihlášení na webu GameConu.');
+        }
 
-        $muzeNedeli = $legacyUzivatel !== null && (
-            $legacyUzivatel->maPravo(Pravo::UBYTOVANI_NEDELNI_NOC_NABIZET)
+        $muzeNedeli = $legacyUzivatel->maPravo(Pravo::UBYTOVANI_NEDELNI_NOC_NABIZET)
             || $legacyUzivatel->maPravo(Pravo::UBYTOVANI_NEDELNI_NOC_ZDARMA)
-            || $legacyUzivatel->jeOrganizator()
-        );
-        $muzeJednuNoc = $legacyUzivatel !== null
-            && $legacyUzivatel->maPravo(Pravo::UBYTOVANI_MUZE_OBJEDNAT_JEDNU_NOC);
-        $jeOrganizator = $legacyUzivatel !== null && $legacyUzivatel->jeOrganizator();
+            || $legacyUzivatel->jeOrganizator();
+        $muzeJednuNoc = $legacyUzivatel->maPravo(Pravo::UBYTOVANI_MUZE_OBJEDNAT_JEDNU_NOC);
 
         $dto = new AccommodationOutputDto();
         $dto->saleClosed = $prodejUkoncen;
         $dto->minimumNights = $muzeJednuNoc ? 1 : 2;
-        $dto->roommate = $legacyUzivatel?->ubytovanS() ?: null;
-        $dto->declined = (bool) $legacyUzivatel?->nechceUbytovani();
+        $dto->roommate = $legacyUzivatel->ubytovanS() ?: null;
+        $dto->declined = (bool) $legacyUzivatel->nechceUbytovani();
 
         foreach (self::NAZVY_DNU as $den => $nazev) {
             if ($den === self::DEN_NEDELE && ! $muzeNedeli) {
@@ -99,11 +99,11 @@ readonly class AccommodationProvider implements ProviderInterface
         }
 
         $viditelneDny = array_column($dto->days, 'day');
-        $prodano = $this->prodanoPoVariantach($year);
+        [$prodano, $drzeno, $kapacity] = $this->obsazenostVariant($user, $year);
 
         foreach ($this->productRepository->findByTag(ProductTagCode::UBYTOVANI) as $product) {
             $typDto = $this->toTypeDto(
-                $product, $user, $year, $viditelneDny, $prodejUkoncen, $koupeneVarianty, $prodano, $jeOrganizator,
+                $product, $user, $year, $viditelneDny, $prodejUkoncen, $koupeneVarianty, $prodano, $drzeno, $kapacity,
             );
             if ($typDto !== null) {
                 $dto->types[] = $typDto;
@@ -114,9 +114,11 @@ readonly class AccommodationProvider implements ProviderInterface
     }
 
     /**
-     * @param int[]          $viditelneDny
-     * @param int[]          $koupeneVarianty
-     * @param array<int,int> $prodano         sold count per variant id
+     * @param int[]                  $viditelneDny
+     * @param int[]                  $koupeneVarianty
+     * @param array<int,int>         $prodano         sold count per variant id
+     * @param array<int,int>         $drzeno          count this customer holds, per variant id
+     * @param array<string,int|null> $kapacity        produced count per variant code
      */
     private function toTypeDto(
         Product $product,
@@ -126,7 +128,8 @@ readonly class AccommodationProvider implements ProviderInterface
         bool $prodejUkoncen,
         array $koupeneVarianty,
         array $prodano,
-        bool $jeOrganizator,
+        array $drzeno,
+        array $kapacity,
     ): ?AccommodationTypeOutputDto {
         // The nights absorbed by the day-variant migration are still products in their own
         // right — the legacy form reads them — but they carry no variants and must not
@@ -156,12 +159,14 @@ readonly class AccommodationProvider implements ProviderInterface
                 continue;
             }
 
-            // remaining_quantity still holds the produced count for anything the legacy
-            // form sells, so derive what is left the way legacy does.
-            $kapacita = $variant->getRemainingQuantity();
-            $zbyva = $kapacita === null
+            // Legacy's own arithmetic. remaining_quantity is deliberately not used:
+            // CapacityManager decrements it for sales shop_nakupy already counts.
+            $vyrobeno = $kapacity[(string) $variant->getCode()] ?? null;
+            $zbyva = $vyrobeno === null
                 ? null
-                : max(0, $kapacita - ($prodano[$variant->getId()] ?? 0) - $this->rezervovanoProOrganizatory($variant, $jeOrganizator));
+                : max(0, $vyrobeno
+                    - ($prodano[$variant->getId()] ?? 0)
+                    + ($drzeno[$variant->getId()] ?? 0));
             $vyprodano = $zbyva !== null && $zbyva <= 0;
 
             $koupeno = in_array($variant->getId(), $koupeneVarianty, true);
@@ -182,29 +187,30 @@ readonly class AccommodationProvider implements ProviderInterface
     }
 
     /**
-     * Organizer-reserved places are not on offer to anyone else, mirroring what
-     * CapacityManager::purchase() enforces on the write path.
+     * Gathered in one pass, so the grid costs three queries rather than three per night.
+     *
+     * @return array{0: array<int,int>, 1: array<int,int>, 2: array<string,int|null>}
+     *                                                                                sold per variant id, held by this customer per variant id, produced per variant code
      */
-    private function rezervovanoProOrganizatory(ProductVariant $variant, bool $jeOrganizator): int
-    {
-        return $jeOrganizator ? 0 : ($variant->getEffectiveReservedForOrganizers() ?? 0);
-    }
-
-    /**
-     * @return array<int, int> sold count per accommodation variant id
-     */
-    private function prodanoPoVariantach(int $year): array
+    private function obsazenostVariant(User $user, int $year): array
     {
         $variantIds = [];
+        $kody = [];
         foreach ($this->productRepository->findByTag(ProductTagCode::UBYTOVANI) as $product) {
             foreach ($product->getVariants() as $variant) {
-                if ($variant->getId() !== null) {
-                    $variantIds[] = $variant->getId();
+                if ($variant->getId() === null) {
+                    continue;
                 }
+                $variantIds[] = $variant->getId();
+                $kody[] = (string) $variant->getCode();
             }
         }
 
-        return $this->orderItemRepository->countSoldByVariant($variantIds, $year);
+        return [
+            $this->orderItemRepository->countSoldByVariant($variantIds, $year),
+            $this->orderItemRepository->countHeldByCustomer($variantIds, $user, $year),
+            $this->productRepository->producedQuantityByVariantCode($kody),
+        ];
     }
 
     /**

@@ -174,4 +174,39 @@ class ProductRepository extends ServiceEntityRepository
             ->getQuery()
             ->execute();
     }
+
+    /**
+     * The accommodation migration leaves each night's own shop_predmety row alone, so
+     * kusu_vyrobeno matched by variant code is still that night's capacity — and unlike
+     * remaining_quantity no sale ever touches it.
+     *
+     * @param string[] $codes
+     *
+     * @return array<string, int|null> null means unlimited
+     */
+    public function producedQuantityByVariantCode(array $codes): array
+    {
+        if ($codes === []) {
+            return [];
+        }
+
+        $rows = $this->getEntityManager()->getConnection()->fetchAllAssociative(
+            'SELECT kod_predmetu, kusu_vyrobeno FROM shop_predmety WHERE kod_predmetu IN (:codes)',
+            [
+                'codes' => $codes,
+            ],
+            [
+                'codes' => \Doctrine\DBAL\ArrayParameterType::STRING,
+            ],
+        );
+
+        $vyrobeno = [];
+        foreach ($rows as $row) {
+            $vyrobeno[(string) $row['kod_predmetu']] = $row['kusu_vyrobeno'] === null
+                ? null
+                : (int) $row['kusu_vyrobeno'];
+        }
+
+        return $vyrobeno;
+    }
 }
