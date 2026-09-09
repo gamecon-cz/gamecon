@@ -14,6 +14,7 @@ use App\Enum\ProductStateEnum;
 use App\Enum\ProductTagCode;
 use App\Repository\OrderItemRepository;
 use App\Repository\ProductRepository;
+use App\Service\CartService;
 use App\Service\CurrentYearProviderInterface;
 use App\Service\DiscountCalculator;
 use App\Service\LegacySessionService;
@@ -41,6 +42,8 @@ class AccommodationProviderTest extends TestCase
 
     private MockObject $security;
 
+    private MockObject $cartService;
+
     private AccommodationProvider $provider;
 
     private ?SystemoveNastaveni $puvodniNastaveni = null;
@@ -65,12 +68,15 @@ class AccommodationProviderTest extends TestCase
         $currentYearProvider = $this->createMock(CurrentYearProviderInterface::class);
         $currentYearProvider->method('getCurrentYear')->willReturn(self::ROK);
 
+        $this->cartService = $this->createMock(CartService::class);
+
         $this->provider = new AccommodationProvider(
             $this->productRepository,
             $this->orderItemRepository,
             $discountCalculator,
             $currentYearProvider,
             $this->legacySession,
+            $this->cartService,
             $this->security,
         );
     }
