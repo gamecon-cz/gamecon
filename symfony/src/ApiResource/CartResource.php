@@ -17,6 +17,7 @@ use App\Dto\Cart\CheckoutInputDto;
 use App\Dto\Cart\EntryFeeOutputDto;
 use App\Dto\Cart\MealProductOutputDto;
 use App\Dto\Cart\MerchProductOutputDto;
+use App\Dto\Cart\SetAccommodationInputDto;
 use App\Dto\Cart\SetEntryFeeInputDto;
 use App\State\Cart\AccommodationProvider;
 use App\State\Cart\AddToCartProcessor;
@@ -26,6 +27,7 @@ use App\State\Cart\EntryFeeProvider;
 use App\State\Cart\MealProductsProvider;
 use App\State\Cart\MerchProductsProvider;
 use App\State\Cart\RemoveFromCartProcessor;
+use App\State\Cart\SetAccommodationProcessor;
 use App\State\Cart\SetEntryFeeProcessor;
 
 #[ApiResource(
@@ -48,6 +50,17 @@ use App\State\Cart\SetEntryFeeProcessor;
             openapi: new Operation(
                 summary: 'Accommodation grid',
                 description: 'Nights by room type, with what the customer already holds. One payload: the nights of a booking must be consecutive, so they are chosen as a set.',
+            ),
+        ),
+        new Post(
+            uriTemplate: '/cart/accommodation',
+            input: SetAccommodationInputDto::class,
+            output: AccommodationOutputDto::class,
+            processor: SetAccommodationProcessor::class,
+            security: "is_granted('ROLE_USER')",
+            openapi: new Operation(
+                summary: 'Set the accommodation booking',
+                description: 'Replaces the customer\'s nights with exactly the ones sent; an empty list cancels the booking. Returns the same payload as GET.',
             ),
         ),
         new GetCollection(
