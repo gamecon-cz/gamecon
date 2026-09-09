@@ -14,6 +14,7 @@ use App\Enum\ProductStateEnum;
 use App\Enum\ProductTagCode;
 use App\Repository\OrderItemRepository;
 use App\Repository\ProductRepository;
+use App\Service\BreakfastCanceller;
 use App\Service\CartService;
 use App\Service\CurrentYearProviderInterface;
 use App\Service\DiscountCalculator;
@@ -44,6 +45,8 @@ class AccommodationProviderTest extends TestCase
 
     private MockObject $cartService;
 
+    private MockObject $breakfastCanceller;
+
     private AccommodationProvider $provider;
 
     private ?SystemoveNastaveni $puvodniNastaveni = null;
@@ -69,6 +72,8 @@ class AccommodationProviderTest extends TestCase
         $currentYearProvider->method('getCurrentYear')->willReturn(self::ROK);
 
         $this->cartService = $this->createMock(CartService::class);
+        $this->breakfastCanceller = $this->createMock(BreakfastCanceller::class);
+        $this->breakfastCanceller->method('restorable')->willReturn([]);
 
         $this->provider = new AccommodationProvider(
             $this->productRepository,
@@ -77,6 +82,7 @@ class AccommodationProviderTest extends TestCase
             $currentYearProvider,
             $this->legacySession,
             $this->cartService,
+            $this->breakfastCanceller,
             $this->security,
         );
     }
