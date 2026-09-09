@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace App\Dto\Cart;
 
-/** One night of one room type. */
 class AccommodationCellOutputDto
 {
     public int $variantId;

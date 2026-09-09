@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace App\Dto\Cart;
 
-/** A column header of the accommodation grid: one night. */
 class AccommodationDayOutputDto
 {
     /**
