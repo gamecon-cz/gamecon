@@ -291,7 +291,10 @@ class AccommodationProviderTest extends TestCase
         ]);
         $this->productRepository->method('producedQuantityByVariantCode')
             ->willReturn([
-                ($kodJinehoRadku ?? 'Hd-2L-ct') => $produced,
+                ($kodJinehoRadku ?? 'Hd-2L-ct') => [
+                    'vyrobeno' => $produced,
+                    'nabizeno' => true,
+                ],
             ]);
         $koupeneItems = [];
         if ($koupeno) {
