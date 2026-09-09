@@ -313,7 +313,7 @@ $t->assign([
     'trickaObjednatelnaDo'            => $shop->trickaObjednatelnaDoHtml(),
     'predmetyBezTricekObjednatelneDo' => $shop->predmetyBezTricekObjednatelneDoHtml(),
     'rok'                             => ROCNIK,
-    'ubytovani'                       => $shop->ubytovaniHtml(),
+    'ubytovani'                       => prihlaskaPreactSekceHtml('preact-ubytovani', $shop->ubytovaniHtml(), $u, $systemoveNastaveni),
     'ubytovaniObjednatelneDo'         => $shop->ubytovaniObjednatelneDoHtml(),
     'ulozitNeboPrihlasit'             => $u->gcPrihlasen()
         ? 'Uložit změny'
