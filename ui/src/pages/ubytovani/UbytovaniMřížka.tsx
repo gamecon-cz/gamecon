@@ -29,6 +29,7 @@ export function UbytovaniMřížka() {
   const [loading, setLoading] = useState(true);
   const [ukladani, setUkladani] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [rozpojeno, setRozpojeno] = useState(false);
 
   useEffect(() => {
     fetchAccommodation()
@@ -59,7 +60,9 @@ export function UbytovaniMřížka() {
       try {
         setUbytovani(await fetchAccommodation());
       } catch {
-        // The error above already says what happened; a failed reload adds nothing.
+        // Now the grid cannot be trusted to match the server, so leave it disabled rather
+        // than invite a click that would save against a state we no longer know.
+        setRozpojeno(true);
       }
     } finally {
       setUkladani(false);
@@ -133,7 +136,7 @@ export function UbytovaniMřížka() {
                     <input
                       type="checkbox"
                       checked={cell.selected}
-                      disabled={cell.locked || ukladani}
+                      disabled={cell.locked || ukladani || rozpojeno}
                       onChange={() => prepniNoc(cell)}
                     />
                     {cell.remaining !== null && (
@@ -167,7 +170,7 @@ export function UbytovaniMřížka() {
         <input
           type="text"
           value={roommate ?? ""}
-          disabled={saleClosed || ukladani}
+          disabled={saleClosed || ukladani || rozpojeno}
           onChange={(udalost) =>
             void uloz(selectedVariantIds, {
               roommate: (udalost.target as HTMLInputElement).value,
@@ -180,7 +183,7 @@ export function UbytovaniMřížka() {
         <input
           type="checkbox"
           checked={declined}
-          disabled={saleClosed || ukladani || selectedVariantIds.length > 0}
+          disabled={saleClosed || ukladani || rozpojeno || selectedVariantIds.length > 0}
           onChange={(udalost) =>
             void uloz([], { declined: (udalost.target as HTMLInputElement).checked })
           }
