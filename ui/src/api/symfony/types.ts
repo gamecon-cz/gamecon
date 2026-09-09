@@ -41,6 +41,14 @@ export type ApiAccommodation = {
   saleClosed: boolean;
   roommate: string | null;
   declined: boolean;
+  /** Names of breakfasts a hotel night cancelled, which no night covers any more. */
+  restorableBreakfasts: string[];
+};
+
+export type ApiAccommodationWrite = {
+  variantIds: number[];
+  roommate?: string | null;
+  declined?: boolean;
 };
 
 export type ApiMerchProduct = {

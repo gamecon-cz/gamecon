@@ -44,12 +44,12 @@ class AccommodationOutputDto
     public bool $saleClosed = false;
 
     /**
-     * Breakfasts a booked hotel night cancelled and the customer could put back, now that no
-     * night covers them any more. Empty unless there is something to offer.
+     * Names of breakfasts a hotel night cancelled which no night covers any more, so the
+     * customer can be told what to re-order. Empty unless there is something to offer.
      *
-     * @var int[]
+     * @var string[]
      */
-    public array $restorableBreakfastVariantIds = [];
+    public array $restorableBreakfasts = [];
 
     public ?string $roommate = null;
 

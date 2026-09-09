@@ -1,6 +1,6 @@
 import { h } from "preact";
 import { useEffect, useState } from "preact/hooks";
-import { fetchAccommodation } from "../../api/symfony/endpoints";
+import { fetchAccommodation, saveAccommodation } from "../../api/symfony/endpoints";
 import { ApiAccommodation, ApiAccommodationCell } from "../../api/symfony/types";
 import "./UbytovaniMřížka.less";
 
@@ -20,13 +20,14 @@ function stavBuňky(cell: ApiAccommodationCell): string {
 }
 
 /**
- * Read-only for now: the write path saves the whole selection at once, because the nights
- * of a booking must be consecutive and a per-click save cannot express that. Until then
- * the legacy form below still does the saving.
+ * Every change sends the whole selection, not the one night that moved: the nights of a
+ * booking have to be consecutive, so the server judges the set as a whole and refuses it
+ * as a whole.
  */
 export function UbytovaniMřížka() {
   const [ubytovani, setUbytovani] = useState<ApiAccommodation | null>(null);
   const [loading, setLoading] = useState(true);
+  const [ukladani, setUkladani] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
@@ -41,19 +42,61 @@ export function UbytovaniMřížka() {
       });
   }, []);
 
+  const uloz = async (variantIds: number[], zmena: Partial<ApiAccommodation> = {}) => {
+    if (!ubytovani) return;
+    setUkladani(true);
+    setError(null);
+    try {
+      setUbytovani(await saveAccommodation({
+        variantIds,
+        roommate: zmena.roommate !== undefined ? zmena.roommate : ubytovani.roommate,
+        declined: zmena.declined !== undefined ? zmena.declined : ubytovani.declined,
+      }));
+    } catch (chyba: unknown) {
+      setError(chyba instanceof Error ? chyba.message : "Uložení se nepodařilo");
+      // The whole set was refused, so nothing was saved — reload rather than leave the grid
+      // showing a pick the server does not have.
+      try {
+        setUbytovani(await fetchAccommodation());
+      } catch {
+        // The error above already says what happened; a failed reload adds nothing.
+      }
+    } finally {
+      setUkladani(false);
+    }
+  };
+
   if (loading) return <div class="ubytovani-mrizka--loading">Načítám ubytování…</div>;
-  if (error) return <div class="ubytovani-mrizka--error">{error}</div>;
+  if (error && !ubytovani) return <div class="ubytovani-mrizka--error">{error}</div>;
   if (!ubytovani || ubytovani.types.length === 0) {
     return <div class="ubytovani-mrizka--empty">Žádné ubytování k dispozici.</div>;
   }
 
-  const { days, types, minimumNights, saleClosed, roommate, declined } = ubytovani;
+  const {
+    days,
+    types,
+    minimumNights,
+    saleClosed,
+    roommate,
+    declined,
+    selectedVariantIds,
+    restorableBreakfasts,
+  } = ubytovani;
+
+  const prepniNoc = (cell: ApiAccommodationCell) => {
+    void uloz(
+      cell.selected
+        ? selectedVariantIds.filter((variantId) => variantId !== cell.variantId)
+        : [...selectedVariantIds, cell.variantId],
+    );
+  };
 
   return (
     <div class="ubytovani-mrizka">
       {saleClosed && (
         <p class="ubytovani-mrizka--uzavreno">Možnost objednání ubytování už skončila.</p>
       )}
+      {error && <div class="ubytovani-mrizka--error">{error}</div>}
 
       <table class="ubytovani-mrizka--tabulka">
         <thead>
@@ -87,7 +130,12 @@ export function UbytovaniMřížka() {
 
                 return (
                   <td key={den.day} class={`ubytovani-mrizka--bunka ${stavBuňky(cell)}`}>
-                    <input type="checkbox" checked={cell.selected} disabled />
+                    <input
+                      type="checkbox"
+                      checked={cell.selected}
+                      disabled={cell.locked || ukladani}
+                      onChange={() => prepniNoc(cell)}
+                    />
                     {cell.remaining !== null && (
                       <span class="ubytovani-mrizka--zbyva">
                         {cell.soldOut ? "vyprodáno" : `zbývá ${cell.remaining}`}
@@ -107,14 +155,38 @@ export function UbytovaniMřížka() {
           : "Noci musí na sebe navazovat."}
       </p>
 
-      {roommate && (
-        <p class="ubytovani-mrizka--spolubydlici">
-          Na pokoji s: <strong>{roommate}</strong>
+      {restorableBreakfasts.length > 0 && (
+        <p class="ubytovani-mrizka--snidane">
+          Hotelový pokoj zrušil tyto snídaně: {restorableBreakfasts.join(", ")}. V sekci jídlo
+          si je můžeš objednat znovu.
         </p>
       )}
-      {declined && (
-        <p class="ubytovani-mrizka--nechci">Ubytování nechceš.</p>
-      )}
+
+      <label class="ubytovani-mrizka--spolubydlici">
+        Na pokoji s:{" "}
+        <input
+          type="text"
+          value={roommate ?? ""}
+          disabled={saleClosed || ukladani}
+          onChange={(udalost) =>
+            void uloz(selectedVariantIds, {
+              roommate: (udalost.target as HTMLInputElement).value,
+            })
+          }
+        />
+      </label>
+
+      <label class="ubytovani-mrizka--nechci">
+        <input
+          type="checkbox"
+          checked={declined}
+          disabled={saleClosed || ukladani || selectedVariantIds.length > 0}
+          onChange={(udalost) =>
+            void uloz([], { declined: (udalost.target as HTMLInputElement).checked })
+          }
+        />{" "}
+        Ubytování nechci
+      </label>
     </div>
   );
 }

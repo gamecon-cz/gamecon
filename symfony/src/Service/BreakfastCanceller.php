@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Service;
 
 use App\Entity\User;
+use App\Enum\ProductTagCode;
 use Doctrine\DBAL\ArrayParameterType;
 use Doctrine\DBAL\Connection;
 
@@ -21,8 +22,7 @@ class BreakfastCanceller
     }
 
     /**
-     * Cancels the breakfasts the customer's booked nights already cover, and remembers the
-     * selection they had before it happened.
+     * Remembers the selection before cancelling, so it can be offered back.
      *
      * @return int[] variant ids that were cancelled
      */
@@ -62,7 +62,7 @@ class BreakfastCanceller
      * Breakfasts the customer could put back: the last selection, minus whatever they hold
      * now and minus anything a still-booked night would only cancel again.
      *
-     * @return int[] variant ids
+     * @return string[] product names
      */
     public function restorable(User $customer, int $year): array
     {
@@ -75,12 +75,12 @@ class BreakfastCanceller
         $kryteRana = $this->kryteRana($customer, $year);
 
         $nabidnout = [];
-        foreach ($this->snidaneVarianty() as $den => $variantId) {
-            if (in_array($variantId, $snapshot, true)
+        foreach ($this->snidaneVarianty() as $den => $snidane) {
+            if (in_array($snidane['id'], $snapshot, true)
                 && ! isset($drzene[$den])
                 && ! in_array($den, $kryteRana, true)
             ) {
-                $nabidnout[] = $variantId;
+                $nabidnout[] = $snidane['nazev'];
             }
         }
 
@@ -88,6 +88,10 @@ class BreakfastCanceller
     }
 
     /**
+     * Only ever taken at cancellation time — nothing records a plain breakfast purchase, so a
+     * selection changed in the meals section afterwards is not reflected until a night
+     * cancels breakfasts again.
+     *
      * @param int[] $variantIds
      */
     public function ulozSnapshot(User $customer, int $year, array $variantIds): void
@@ -127,6 +131,9 @@ class BreakfastCanceller
     }
 
     /**
+     * No archived_at filter, unlike the offer side: a breakfast already bought has to be
+     * cancellable even once the product is archived.
+     *
      * @return array<int, int> breakfast variant id per morning the customer holds
      */
     private function drzeneSnidane(User $customer, int $year): array
@@ -138,11 +145,18 @@ class BreakfastCanceller
              JOIN shop_predmety ON shop_predmety.id_predmetu = product_variant.product_id
              WHERE shop_nakupy.id_uzivatele = :customer
                AND shop_nakupy.rok = :year
-               AND TRIM(shop_predmety.nazev) LIKE :snidane',
+               AND TRIM(shop_predmety.nazev) LIKE :snidane
+               AND EXISTS (
+                   SELECT 1 FROM product_product_tag
+                   JOIN product_tag ON product_tag.id = product_product_tag.tag_id
+                   WHERE product_product_tag.product_id = shop_predmety.id_predmetu
+                     AND product_tag.code = :jidlo
+               )',
             [
                 'customer' => $customer->getId(),
                 'year'     => $year,
                 'snidane'  => 'Snídaně%',
+                'jidlo'    => ProductTagCode::JIDLO->value,
             ],
         );
 
@@ -181,25 +195,35 @@ class BreakfastCanceller
     }
 
     /**
-     * @return array<int, int> breakfast variant id per morning
+     * @return array<int, array{id: int, nazev: string}> per morning
      */
     private function snidaneVarianty(): array
     {
         $rows = $this->connection->fetchAllAssociative(
-            'SELECT product_variant.accommodation_day AS den, product_variant.id
+            'SELECT product_variant.accommodation_day AS den, product_variant.id, shop_predmety.nazev
              FROM product_variant
              JOIN shop_predmety ON shop_predmety.id_predmetu = product_variant.product_id
              WHERE TRIM(shop_predmety.nazev) LIKE :snidane
                AND shop_predmety.archived_at IS NULL
-               AND product_variant.accommodation_day IS NOT NULL',
+               AND product_variant.accommodation_day IS NOT NULL
+               AND EXISTS (
+                   SELECT 1 FROM product_product_tag
+                   JOIN product_tag ON product_tag.id = product_product_tag.tag_id
+                   WHERE product_product_tag.product_id = shop_predmety.id_predmetu
+                     AND product_tag.code = :jidlo
+               )',
             [
                 'snidane' => 'Snídaně%',
+                'jidlo'   => ProductTagCode::JIDLO->value,
             ],
         );
 
         $varianty = [];
         foreach ($rows as $row) {
-            $varianty[(int) $row['den']] = (int) $row['id'];
+            $varianty[(int) $row['den']] = [
+                'id'    => (int) $row['id'],
+                'nazev' => (string) $row['nazev'],
+            ];
         }
 
         return $varianty;
