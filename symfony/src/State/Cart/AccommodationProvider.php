@@ -125,11 +125,11 @@ readonly class AccommodationProvider implements ProviderInterface
     }
 
     /**
-     * @param int[]                  $viditelneDny
-     * @param int[]                  $koupeneVarianty
-     * @param array<int,int>         $prodano         sold count per variant id
-     * @param array<int,int>         $drzeno          count this customer holds, per variant id
-     * @param array<string,int|null> $kapacity        produced count per variant code
+     * @param int[]                                                   $viditelneDny
+     * @param int[]                                                   $koupeneVarianty
+     * @param array<int,int>                                          $prodano         sold count per variant id
+     * @param array<int,int>                                          $drzeno          count this customer holds, per variant id
+     * @param array<string,array{vyrobeno: int|null, nabizeno: bool}> $kapacity        per variant code
      */
     private function toTypeDto(
         Product $product,
@@ -150,11 +150,6 @@ readonly class AccommodationProvider implements ProviderInterface
             return null;
         }
 
-        // Legacy offers a night only when the product is VEREJNY and still within
-        // nabizet_do; isPublic() covers both. A RESTRICTED type stays visible so an
-        // existing booking can be seen, but no new night can be ticked.
-        $nabizeno = $product->isPublic();
-
         $discount = $this->discountCalculator->calculateDiscount($product, $user, $year);
 
         $typDto = new AccommodationTypeOutputDto();
@@ -172,7 +167,11 @@ readonly class AccommodationProvider implements ProviderInterface
 
             // Legacy's own arithmetic. remaining_quantity is deliberately not used:
             // CapacityManager decrements it for sales shop_nakupy already counts.
-            $vyrobeno = $kapacity[(string) $variant->getCode()] ?? null;
+            $noc = $kapacity[(string) $variant->getCode()] ?? null;
+            $vyrobeno = $noc['vyrobeno'] ?? null;
+            // Read per night: the variant's parent is one arbitrary night (Sunday, which is
+            // permission-gated), so asking it would report every night as not on offer.
+            $nabizeno = $noc['nabizeno'] ?? false;
             $zbyva = $vyrobeno === null
                 ? null
                 : max(0, $vyrobeno
@@ -200,8 +199,8 @@ readonly class AccommodationProvider implements ProviderInterface
     /**
      * Gathered in one pass, so the grid costs three queries rather than three per night.
      *
-     * @return array{0: array<int,int>, 1: array<int,int>, 2: array<string,int|null>}
-     *                                                                                sold per variant id, held by this customer per variant id, produced per variant code
+     * @return array{0: array<int,int>, 1: array<int,int>, 2: array<string,array{vyrobeno: int|null, nabizeno: bool}>}
+     *                                                                                                                 sold per variant id, held by this customer per variant id, produced per variant code
      */
     private function obsazenostVariant(User $user, int $year): array
     {
