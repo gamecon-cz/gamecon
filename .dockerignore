@@ -49,18 +49,22 @@ node_modules
 ui/node_modules
 
 # Dev-only vendor packages. vendor/ is committed, so COPY drags all of it
-# in; the Dockerfile regenerates the autoloader without them, which is
-# what makes dropping them safe — the committed autoloader eagerly
-# requires bootstrap.php from several of these and would fatal on every
-# request otherwise. Regenerate by diffing composer.lock's packages-dev
-# vendor dirs against packages.
+# in, and nothing here runs composer install to strip them.
+#
+# vendor/zenstruck is deliberately NOT listed: the archive boots the
+# kernel with an empty APP_ENV, which config/bundles.php reads as dev and
+# so registers ZenstruckFoundryBundle. Deleting the files makes every
+# kernel-booting page 500, and no autoloader dump can undo that. Before
+# adding a dir here, check that nothing in bundles.php comes from it.
+#
+# Regenerate by diffing composer.lock's packages-dev vendor dirs against
+# packages, minus anything bundles.php registers.
 vendor/symplify
 vendor/rector
 vendor/phpstan
 vendor/phpunit
 vendor/fakerphp
 vendor/nikic
-vendor/zenstruck
 vendor/sebastian
 vendor/phar-io
 vendor/myclabs
