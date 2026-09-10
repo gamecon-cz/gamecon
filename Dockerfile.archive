@@ -51,7 +51,13 @@ RUN rm -rf \
 # image fatals on every request. `dump-autoload` resolves nothing and
 # fetches nothing — it is not the `composer install` the header rules out.
 USER www-data
-RUN composer dump-autoload --no-dev --optimize --no-interaction
+# NOT --no-dev: the archive boots the kernel with an empty APP_ENV, which
+# bundles.php reads as dev and so registers MakerBundle. That one lives
+# under vendor/symfony, shared with production and therefore still on
+# disk — --no-dev drops its autoload entry anyway and every kernel-booting
+# page 500s while the homepage, which boots no kernel, stays fine. A plain
+# dump maps what is present and omits what .dockerignore removed.
+RUN composer dump-autoload --optimize --no-interaction
 USER root
 
 # Make cache/ and logy/ writable by Apache. cache/public stays (assets
