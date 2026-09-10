@@ -50,6 +50,17 @@ class PriceIncreaseNotifierTest extends TestCase
 
             public bool $selhat = false;
 
+            public bool $selhatPriSestaveni = false;
+
+            protected function dejZustatek(User $customer): string
+            {
+                if ($this->selhatPriSestaveni) {
+                    throw new \RuntimeException('Legacy Finance selhalo');
+                }
+
+                return '0.00 Kč';
+            }
+
             protected function odesli(string $email, string $predmet, string $zprava): void
             {
                 if ($this->selhat) {
@@ -123,6 +134,30 @@ class PriceIncreaseNotifierTest extends TestCase
 
         $notifier = $this->notifier();
         $notifier->selhat = true;
+
+        $notifier->oznamZdrazeni($this->zakaznik(), 2026, [
+            7 => [
+                'nazev' => 'Tričko',
+                'pred'  => '0.00',
+                'po'    => '250.00',
+            ],
+        ]);
+
+        self::assertSame([], $this->odeslane);
+    }
+
+    /**
+     * The balance comes from a full legacy Finance recompute, which runs on another
+     * connection inside the still-open transaction.
+     */
+    public function testFailedBalanceLookupDoesNotEscape(): void
+    {
+        $this->userRepository->method('findByRoleMeaning')
+            ->willReturn([$this->cfo('cfo@example.invalid')]);
+        $this->logger->expects(self::once())->method('error');
+
+        $notifier = $this->notifier();
+        $notifier->selhatPriSestaveni = true;
 
         $notifier->oznamZdrazeni($this->zakaznik(), 2026, [
             7 => [
