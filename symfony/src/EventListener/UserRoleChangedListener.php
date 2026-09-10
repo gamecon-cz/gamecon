@@ -11,6 +11,7 @@ use App\Entity\ProductDiscount;
 use App\Entity\User;
 use App\Repository\OrderRepository;
 use App\Service\DiscountCalculator;
+use App\Service\PriceIncreaseNotifier;
 use Doctrine\ORM\EntityManagerInterface;
 use Psr\Log\LoggerInterface;
 
@@ -34,6 +35,7 @@ readonly class UserRoleChangedListener
         private EntityManagerInterface $entityManager,
         private OrderRepository $orderRepository,
         private DiscountCalculator $discountCalculator,
+        private PriceIncreaseNotifier $priceIncreaseNotifier,
         private LoggerInterface $logger,
     ) {
     }
@@ -65,6 +67,7 @@ readonly class UserRoleChangedListener
     private function recalculateOrderDiscounts(Order $order, User $user, int $year): void
     {
         $hasChanges = false;
+        $zdrazeni = [];
 
         foreach ($order->getItems() as $orderItem) {
             $product = $orderItem->getProduct();
@@ -75,10 +78,19 @@ readonly class UserRoleChangedListener
 
             // Calculate new discount based on current role
             $discountInfo = $this->discountCalculator->calculateDiscount($product, $user, $year);
+            $puvodniCena = $orderItem->getPurchasePrice();
 
             // Update order item with new pricing
             if ($this->updateOrderItemPricing($orderItem, $discountInfo)) {
                 $hasChanges = true;
+
+                if ((float) $discountInfo['finalPrice'] > (float) $puvodniCena) {
+                    $zdrazeni[(int) $orderItem->getId()] = [
+                        'nazev' => $product->getName(),
+                        'pred'  => $puvodniCena,
+                        'po'    => $discountInfo['finalPrice'],
+                    ];
+                }
             }
         }
 
@@ -87,6 +99,8 @@ readonly class UserRoleChangedListener
             $order->recalculateTotal();
 
             $this->entityManager->flush();
+
+            $this->priceIncreaseNotifier->oznamZdrazeni($user, $year, $zdrazeni);
 
             $this->logger->info('Order discounts recalculated', [
                 'order_id'  => $order->getId(),
@@ -123,7 +137,10 @@ readonly class UserRoleChangedListener
         }
 
         // Update pricing
-        $orderItem->setOriginalPrice($product->getCurrentPrice());
+        $variant = $orderItem->getVariant();
+        $orderItem->setOriginalPrice(
+            $variant !== null ? $variant->getEffectivePrice() : $product->getCurrentPrice(),
+        );
         $orderItem->setPurchasePrice($newPurchasePrice);
         $orderItem->setDiscountAmount($newDiscountAmount);
         $orderItem->setDiscountReason($newDiscountReason);
@@ -140,10 +157,8 @@ readonly class UserRoleChangedListener
     }
 
     /**
-     * Force recalculation for completed orders (COULD requirement - násilná rekalkulace)
-     *
-     * This overrides the frozen prices in completed orders
-     * Use with caution - only for admin-initiated corrections
+     * Overrides the frozen prices of a completed order — admin-initiated corrections only.
+     * Every price that goes up mails the CFOs, so a batch of these is a batch of mails.
      */
     public function forceRecalculateCompletedOrder(Order $order, User $user, int $year): void
     {
