@@ -40,11 +40,6 @@ final class ReorderAttributeArgumentsRector extends AbstractRector
             return null;
         }
 
-        $attributeName = $this->getName($node->name);
-        if ($attributeName === null) {
-            return null;
-        }
-
         $fqcn = $this->nodeNameResolver->getName($node->name);
         if (! class_exists($fqcn)) {
             return null;
