@@ -5,10 +5,12 @@ declare(strict_types=1);
 namespace App\Service;
 
 use App\Entity\OrderItem;
+use App\Entity\ProductVariant;
 use App\Entity\User;
 use App\Enum\ProductTagCode;
 use Doctrine\DBAL\ArrayParameterType;
 use Doctrine\DBAL\Connection;
+use Doctrine\ORM\EntityManagerInterface;
 
 /**
  * A night whose price already includes breakfast makes a separately bought breakfast for the
@@ -19,6 +21,8 @@ class BreakfastCanceller
 {
     public function __construct(
         private readonly Connection $connection,
+        private readonly EntityManagerInterface $entityManager,
+        private readonly CartService $cartService,
     ) {
     }
 
@@ -101,27 +105,16 @@ class BreakfastCanceller
             return [];
         }
 
+        // Bought through the cart, not an INSERT of our own: that is what applies the
+        // customer's discount and writes the tag snapshot a later bulk cancel filters on.
+        $cart = $this->cartService->getOrCreateCart($customer);
         foreach (array_keys($nabidnute) as $variantId) {
-            $this->connection->executeStatement(
-                'INSERT INTO shop_nakupy
-                    (id_uzivatele, id_predmetu, variant_id, rok, cena_nakupni, datum,
-                     product_name, product_code, variant_name, variant_code)
-                 SELECT :customer, snidane.id_predmetu, product_variant.id, :year,
-                        snidane.cena_aktualni, NOW(),
-                        snidane.nazev, snidane.kod_predmetu, product_variant.name, product_variant.code
-                 FROM product_variant
-                 JOIN shop_predmety AS snidane ON snidane.kod_predmetu = product_variant.code
-                 WHERE product_variant.id = :variant',
-                [
-                    'customer' => $customer->getId(),
-                    'variant'  => $variantId,
-                    'year'     => $year,
-                ],
-            );
+            $variant = $this->entityManager->find(ProductVariant::class, $variantId);
+            if ($variant === null) {
+                continue;
+            }
+            $this->cartService->addItem($cart, $variant, $customer->getRoleMeanings());
         }
-
-        // What they now hold is the selection worth remembering.
-        $this->ulozSnapshot($customer, $year, array_values($this->drzeneSnidane($customer, $year)));
 
         return array_values($nabidnute);
     }

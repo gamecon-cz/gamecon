@@ -562,6 +562,24 @@ class AccommodationWriterTest extends AbstractDatabaseKernelTestCase
         self::assertSame(1, $this->pocetNakupu($customer, $snidane), 'breakfast is bought again');
         // Nothing left to offer once it is back.
         self::assertSame([], $this->breakfastCanceller()->restorable($customer, self::ROK));
+
+        // The row has to look like any other purchase: a bulk cancel filters on the tag
+        // snapshot, and an order-less line is invisible to the cart.
+        $radek = $this->connection()->fetchAssociative(
+            'SELECT product_tags, order_id, cena_nakupni FROM shop_nakupy
+             WHERE id_uzivatele = :customer AND variant_id = :variant AND rok = :year',
+            [
+                'customer' => $customer->getId(),
+                'variant'  => $snidane,
+                'year'     => self::ROK,
+            ],
+        );
+        self::assertIsArray($radek);
+        self::assertContains(
+            ProductTagCode::JIDLO->value,
+            json_decode((string) $radek['product_tags'], true, 512, JSON_THROW_ON_ERROR),
+        );
+        self::assertNotNull($radek['order_id']);
     }
 
     public function testRestoreDoesNothingWhenNothingWasCancelled(): void
