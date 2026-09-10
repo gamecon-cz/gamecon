@@ -120,7 +120,9 @@ abstract class AbstractTestPrihlaska extends AbstractTestDb
     ): bool {
         // Termíny konce prodeje jsou konstanty, které testovací bootstrap nedefinuje,
         // a jejich výchozí hodnoty leží uprostřed ročníku — bez posunutí „teď“ na
-        // začátek roku by vykreslení hlásilo ukončený prodej.
+        // začátek roku by vykreslení hlásilo ukončený prodej. Pozor, posunuté „teď“
+        // řídí jen tyhle termíny; `nabizet_do` se porovnává s reálným časem, takže
+        // fixture s datem blízko dneška se bude chovat jinak, než by čekal.
         $systemoveNastaveni = SystemoveNastaveni::zGlobals(
             rocnik: ROCNIK,
             ted: new DateTimeImmutableStrict(ROCNIK . '-01-01 00:00:00'),
