@@ -45,13 +45,20 @@ $devOnly = array_filter(
 
 $excluded = [];
 foreach (file($root . '/.dockerignore', FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES) as $line) {
-    if (str_starts_with(trim($line), 'vendor/')) {
-        $excluded[] = substr(trim($line), strlen('vendor/'));
+    $line = trim($line);
+    if (str_starts_with($line, 'vendor/')) {
+        // Docker treats `vendor/rector` and `vendor/rector/` alike, so accept
+        // both rather than reporting the slashed form as missing.
+        $excluded[] = rtrim(substr($line, strlen('vendor/')), '/');
     }
 }
 
 $missing = array_diff($devOnly, $excluded);
 $overreaching = array_intersect($excluded, $production);
+// An entry that is neither dev-only nor production no longer exists: a
+// removed package, or a typo. Either way the author believes something is
+// excluded that isn't, which is the silent size regression this guards.
+$unknown = array_diff($excluded, $devOnly, $production);
 
 $exitCode = 0;
 
@@ -66,6 +73,14 @@ if ($overreaching !== []) {
 if ($missing !== []) {
     fwrite(STDERR, "Dev-only packages missing from .dockerignore (preview image grows needlessly):\n");
     foreach ($missing as $dir) {
+        fwrite(STDERR, "  vendor/{$dir}\n");
+    }
+    $exitCode = 1;
+}
+
+if ($unknown !== []) {
+    fwrite(STDERR, ".dockerignore excludes packages that composer.lock does not know (removed, or a typo):\n");
+    foreach ($unknown as $dir) {
         fwrite(STDERR, "  vendor/{$dir}\n");
     }
     $exitCode = 1;
