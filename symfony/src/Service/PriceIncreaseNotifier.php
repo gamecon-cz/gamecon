@@ -33,6 +33,24 @@ class PriceIncreaseNotifier
             return;
         }
 
+        // Doctrine fires postPersist before the commit, so anything escaping from here would
+        // roll back the role change that triggered it. Failing to report must never undo the
+        // thing being reported.
+        try {
+            $this->oznam($customer, $year, $zdrazeni);
+        } catch (\Throwable $chyba) {
+            $this->logger->error('Oznámení o zdražení selhalo.', [
+                'user_id'   => $customer->getId(),
+                'exception' => $chyba,
+            ]);
+        }
+    }
+
+    /**
+     * @param array<int, array{nazev: string, pred: string, po: string}> $zdrazeni
+     */
+    private function oznam(User $customer, int $year, array $zdrazeni): void
+    {
         $prijemci = $this->dejCfoMaily();
         if ($prijemci === []) {
             // Nobody to tell is itself worth recording — the price still went up.
@@ -47,9 +65,6 @@ class PriceIncreaseNotifier
         $zprava = $this->sestavZpravu($customer, $year, $zdrazeni);
         $predmet = sprintf('Zdražení objednávky po změně rolí: %s', $customer->getJmeno());
         foreach ($prijemci as $email) {
-            // Doctrine fires postPersist before the commit, so an unreachable SMTP would
-            // otherwise roll back the role change itself. One bad address must also not
-            // stop the remaining CFOs from being told.
             try {
                 $this->odesli($email, $predmet, $zprava);
             } catch (\Throwable $chyba) {
@@ -122,7 +137,10 @@ class PriceIncreaseNotifier
         );
     }
 
-    private function dejZustatek(User $customer): string
+    /**
+     * Overridden in tests: a real call runs a full legacy Finance recompute.
+     */
+    protected function dejZustatek(User $customer): string
     {
         $legacy = \Uzivatel::zId((int) $customer->getId());
         if ($legacy === null) {
