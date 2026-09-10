@@ -10,7 +10,6 @@ declare(strict_types=1);
  * only visible if someone re-measures. This compares the list against
  * composer.lock so CI catches the drift instead.
  */
-
 $root = dirname(__DIR__);
 $lock = json_decode((string) file_get_contents($root . '/composer.lock'), true, 512, JSON_THROW_ON_ERROR);
 
@@ -28,6 +27,15 @@ $development = $vendorDirsOf($lock['packages-dev'] ?? []);
 
 // A vendor dir shared with a production package can never be excluded.
 $devOnly = array_diff($development, $production);
+
+// The metapackage filter below reads vendor/, so without it every package
+// would look like a metapackage and the check would pass having verified
+// nothing.
+if (! is_dir($root . '/vendor')) {
+    fwrite(STDERR, "vendor/ is missing — run composer install before this check.\n");
+
+    exit(1);
+}
 
 // Metapackages install no files, so there is nothing to exclude for them.
 $devOnly = array_filter(
@@ -50,7 +58,7 @@ $exitCode = 0;
 if ($overreaching !== []) {
     fwrite(STDERR, "Production packages must not be excluded from the build context:\n");
     foreach ($overreaching as $dir) {
-        fwrite(STDERR, "  vendor/$dir\n");
+        fwrite(STDERR, "  vendor/{$dir}\n");
     }
     $exitCode = 1;
 }
@@ -58,13 +66,13 @@ if ($overreaching !== []) {
 if ($missing !== []) {
     fwrite(STDERR, "Dev-only packages missing from .dockerignore (preview image grows needlessly):\n");
     foreach ($missing as $dir) {
-        fwrite(STDERR, "  vendor/$dir\n");
+        fwrite(STDERR, "  vendor/{$dir}\n");
     }
     $exitCode = 1;
 }
 
 if ($exitCode === 0) {
-    echo "✓ .dockerignore matches composer.lock (" . count($devOnly) . " dev-only vendor dirs excluded)\n";
+    echo '✓ .dockerignore matches composer.lock (' . count($devOnly) . " dev-only vendor dirs excluded)\n";
 }
 
 exit($exitCode);
