@@ -251,8 +251,11 @@ class CartService
         $item->snapshotProduct($product, $variant);
         $item->setProductTags($product->getTagNames());
 
+        // snapshotProduct() above already stored originalPrice from the variant's effective
+        // price, which the product-level one would silently override.
+        $item->setDiscountAmount($discountInfo['discountAmount']);
+
         if ($discountInfo['discount'] !== null) {
-            $item->setDiscountAmount($discountInfo['discountAmount']);
             $item->setDiscountReason($discountInfo['reason']);
         }
 
