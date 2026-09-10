@@ -43,8 +43,9 @@ readonly class AccommodationWriter
         bool $muzeJednuNoc,
         ?string $spolubydlici = null,
         bool $nechceUbytovani = false,
+        bool $jenSpacaky = false,
     ): void {
-        $varianty = $this->nactiVarianty($variantIds);
+        $varianty = $this->nactiVarianty($variantIds, $jenSpacaky);
 
         // Only judge the nights when they actually change. The legacy admin screens can book a
         // set these rules would reject, and re-validating an untouched booking would leave
@@ -145,7 +146,7 @@ readonly class AccommodationWriter
      *
      * @return array<int, ProductVariant> keyed by variant id
      */
-    private function nactiVarianty(array $variantIds): array
+    private function nactiVarianty(array $variantIds, bool $jenSpacaky): array
     {
         if ($variantIds === []) {
             return [];
@@ -153,6 +154,11 @@ readonly class AccommodationWriter
 
         $varianty = [];
         foreach ($this->productRepository->findByTag(ProductTagCode::UBYTOVANI) as $product) {
+            // The grid hides room types under this restriction, so accepting one here would
+            // let a hand-made request book what the customer cannot see.
+            if ($jenSpacaky && ! $product->hasTag(ProductTagCode::SPACAK->value)) {
+                continue;
+            }
             foreach ($product->getVariants() as $variant) {
                 $id = $variant->getId();
                 if ($id !== null && in_array($id, $variantIds, true) && $variant->getAccommodationDay() !== null) {

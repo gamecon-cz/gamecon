@@ -15,6 +15,7 @@ use App\Entity\User;
 use App\Enum\ProductTagCode;
 use App\Repository\OrderItemRepository;
 use App\Repository\ProductRepository;
+use App\Service\AccommodationRules;
 use App\Service\BreakfastCanceller;
 use App\Service\CartService;
 use App\Service\CurrentYearProviderInterface;
@@ -47,6 +48,7 @@ readonly class AccommodationProvider implements ProviderInterface
         private LegacySessionService $legacySession,
         private CartService $cartService,
         private BreakfastCanceller $breakfastCanceller,
+        private AccommodationRules $accommodationRules,
         private Security $security,
     ) {
     }
@@ -112,7 +114,20 @@ readonly class AccommodationProvider implements ProviderInterface
         $viditelneDny = array_column($dto->days, 'day');
         [$prodano, $drzeno, $kapacity] = $this->obsazenostVariant($user, $year);
 
-        foreach ($this->productRepository->findByTag(ProductTagCode::UBYTOVANI) as $product) {
+        $jenSpacaky = $this->accommodationRules->jenSpacaky($legacyUzivatel);
+        $ubytovani = $this->productRepository->findByTag(ProductTagCode::UBYTOVANI);
+
+        // Turning the restriction on with nothing tagged would hide accommodation entirely
+        // instead of narrowing it, and it would look like the section is simply broken.
+        if ($jenSpacaky && ! $this->existujeSpacak($ubytovani)) {
+            throw new \RuntimeException('Ubytování je omezené na spacáky, ale žádný spacák není v nabídce (produkt se značkou "' . ProductTagCode::SPACAK->value . '").');
+        }
+
+        foreach ($ubytovani as $product) {
+            if ($jenSpacaky && ! $product->hasTag(ProductTagCode::SPACAK->value)) {
+                continue;
+            }
+
             $typDto = $this->toTypeDto(
                 $product, $user, $year, $viditelneDny, $prodejUkoncen, $koupeneVarianty, $prodano, $drzeno, $kapacity,
             );
@@ -194,6 +209,20 @@ readonly class AccommodationProvider implements ProviderInterface
         }
 
         return $typDto->nights === [] ? null : $typDto;
+    }
+
+    /**
+     * @param Product[] $ubytovani
+     */
+    private function existujeSpacak(array $ubytovani): bool
+    {
+        foreach ($ubytovani as $product) {
+            if ($product->hasTag(ProductTagCode::SPACAK->value)) {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     /**
