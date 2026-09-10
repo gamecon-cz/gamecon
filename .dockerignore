@@ -1,0 +1,66 @@
+# Dockerfile.archive COPYs the entire context into the image. Exclude
+# things that bloat the layer, contain secrets, or come from local dev
+# state that shouldn't end up in a published image.
+#
+# A later RUN cannot shrink an earlier layer, so anything deleted after
+# the COPY stays paid for — it has to be kept out of the context instead.
+
+# VCS
+.git
+.gitignore
+.gitattributes
+
+# CI / GitHub
+.github
+
+# Editor / IDE
+.idea
+.vscode
+.envrc
+.mcp.json
+
+# PHP test/static-analysis artefacts
+phpunit_log
+phpunit.xml
+phpstan.neon
+.phpunit.result.cache
+.phpunit.cache
+test-results
+
+# Local dev only — bind-mounted in dev compose, never needed in image
+.docker
+
+# Tests and the deployment ledger: an archived year never runs its tests
+# from the image and is not re-deployed through that mechanism.
+tests
+.htdeployment
+
+# Runtime state — must NOT bake stale logs / cache / uploads into image
+cache/private/*
+!cache/private/.htaccess
+cache/public/*
+!cache/public/.htaccess
+logy/*
+!logy/.htaccess
+
+# UI build state
+node_modules
+ui/node_modules
+
+# Dev-only vendor packages for THIS year — the list differs per archive
+# branch and must come from its own composer.lock, never from main's:
+# 2022 has doctrine/instantiator as dev-only while 2025 needs Doctrine
+# in production. Dropping these is safe only because the Dockerfile
+# regenerates the autoloader; the committed one eagerly requires
+# bootstrap.php from several of them and would fatal on every request.
+vendor/cweagans
+vendor/myclabs
+vendor/nikic
+vendor/phar-io
+vendor/phpunit
+vendor/sebastian
+vendor/symplify
+vendor/theseer
+
+# Symfony runtime artefacts (rebuilt on first request)
+symfony/var
