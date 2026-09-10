@@ -191,7 +191,7 @@ class ProductRepository extends ServiceEntityRepository
         }
 
         $rows = $this->getEntityManager()->getConnection()->fetchAllAssociative(
-            'SELECT kod_predmetu, kusu_vyrobeno, stav, nabizet_do, archived_at
+            'SELECT kod_predmetu, kusu_vyrobeno, stav, archived_at
              FROM shop_predmety WHERE kod_predmetu IN (:codes)',
             [
                 'codes' => $codes,
@@ -201,15 +201,15 @@ class ProductRepository extends ServiceEntityRepository
             ],
         );
 
-        $ted = new \DateTimeImmutable();
         $nalezene = [];
         foreach ($rows as $row) {
-            $nabizetDo = $row['nabizet_do'] === null ? null : new \DateTimeImmutable((string) $row['nabizet_do']);
             $nalezene[(string) $row['kod_predmetu']] = [
                 'vyrobeno' => $row['kusu_vyrobeno'] === null ? null : (int) $row['kusu_vyrobeno'],
+                // Only stav, deliberately: legacy exempts accommodation from nabizet_do
+                // (Shop::nactiPredmety) and gates a night on POZASTAVENY alone, so honouring
+                // that column here would lock nights the legacy form still sells.
                 'nabizeno' => $row['archived_at'] === null
-                    && (int) $row['stav'] === ProductStateEnum::PUBLIC->value
-                    && ($nabizetDo === null || $nabizetDo >= $ted),
+                    && (int) $row['stav'] === ProductStateEnum::PUBLIC->value,
             ];
         }
 
