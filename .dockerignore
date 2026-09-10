@@ -51,11 +51,16 @@ ui/node_modules
 # Dev-only vendor packages. vendor/ is committed, so COPY drags all of it
 # in, and nothing here runs composer install to strip them.
 #
-# vendor/zenstruck is deliberately NOT listed: the archive boots the
-# kernel with an empty APP_ENV, which config/bundles.php reads as dev and
-# so registers ZenstruckFoundryBundle. Deleting the files makes every
-# kernel-booting page 500, and no autoloader dump can undo that. Before
-# adding a dir here, check that nothing in bundles.php comes from it.
+# The archive boots the kernel with an empty APP_ENV, which
+# config/bundles.php reads as dev, so it loads MakerBundle and
+# ZenstruckFoundryBundle. Anything those need — transitively — must stay:
+# zenstruck, fakerphp (Foundry uses Faker\Factory) and nikic. Deleting
+# any of them makes every kernel-booting page 500, and no autoloader dump
+# can undo a missing file.
+#
+# Do not hand-maintain this: bin/check-archive-dockerignore.php derives
+# the kernel's transitive closure from composer.lock and fails if the list
+# below overlaps it.
 #
 # Regenerate by diffing composer.lock's packages-dev vendor dirs against
 # packages, minus anything bundles.php registers.
@@ -63,8 +68,6 @@ vendor/symplify
 vendor/rector
 vendor/phpstan
 vendor/phpunit
-vendor/fakerphp
-vendor/nikic
 vendor/sebastian
 vendor/phar-io
 vendor/myclabs
