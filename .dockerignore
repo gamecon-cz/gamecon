@@ -1,0 +1,71 @@
+# Dockerfile.archive COPYs the entire context into the image. Exclude
+# things that bloat the layer, contain secrets, or come from local dev
+# state that shouldn't end up in a published image.
+#
+# The Dockerfile used to delete several of these again, but a later RUN
+# cannot shrink an earlier layer — they stay paid for unless they never
+# enter the context at all.
+
+# VCS
+.git
+.gitignore
+.gitattributes
+
+# CI / GitHub
+.github
+
+# Editor / IDE
+.idea
+.vscode
+.envrc
+.mcp.json
+
+# PHP test/static-analysis artefacts
+phpunit_log
+phpunit.xml
+phpstan.neon
+.phpunit.result.cache
+.phpunit.cache
+test-results
+
+# Local dev only — bind-mounted in dev compose, never needed in image
+.docker
+
+# Tests and the deployment ledger: an archived year never runs its tests
+# from the image and is not re-deployed through that mechanism.
+tests
+.htdeployment
+
+# Runtime state — must NOT bake stale logs / cache / uploads into image
+cache/private/*
+!cache/private/.htaccess
+cache/public/*
+!cache/public/.htaccess
+logy/*
+!logy/.htaccess
+
+# UI build state
+node_modules
+ui/node_modules
+
+# Dev-only vendor packages. vendor/ is committed, so COPY drags all of it
+# in; the Dockerfile regenerates the autoloader without them, which is
+# what makes dropping them safe — the committed autoloader eagerly
+# requires bootstrap.php from several of these and would fatal on every
+# request otherwise. Regenerate by diffing composer.lock's packages-dev
+# vendor dirs against packages.
+vendor/symplify
+vendor/rector
+vendor/phpstan
+vendor/phpunit
+vendor/fakerphp
+vendor/nikic
+vendor/zenstruck
+vendor/sebastian
+vendor/phar-io
+vendor/myclabs
+vendor/cweagans
+vendor/theseer
+
+# Symfony runtime artefacts (rebuilt on first request)
+symfony/var
