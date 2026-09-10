@@ -11,7 +11,9 @@
 #      already (see .htdeployment artifacts in the 2024 on-disk
 #      snapshot). Skipping these saves ~3 min of build time per year
 #      and avoids depending on whichever Composer/Node version happened
-#      to be installed in the archived branch's base image.
+#      to be installed in the archived branch's base image. The one
+#      exception is `composer dump-autoload`, which resolves nothing and
+#      fetches nothing — see the note further down for why it is needed.
 #   2. NO migration / cache-refresh hooks at deploy time. Archives are
 #      read-only-ish — the DB is a frozen point in time, code is frozen
 #      at the branch tip. Nothing to migrate.
@@ -34,22 +36,23 @@ COPY --chown=www-data:www-data . /var/www/html/gamecon
 
 WORKDIR /var/www/html/gamecon
 
-# Strip dev / runtime junk that snuck in via COPY .. cache/private gets
-# rebuilt on demand, no point baking historical entries into the image.
-# .git is ~tens of MB and never read at runtime. .htdeployment is the
-# deployment ledger; archived branches won't be re-deployed via that
-# mechanism so its presence is just dead weight (~120 KB but pointless).
+# .dockerignore keeps .git, tests, node_modules and the dev vendor dirs
+# out of the context. Deleting them here instead did remove them from the
+# image, but they stayed paid for in the COPY layer above — a later layer
+# cannot shrink an earlier one. What is left needs a glob, or has to be
+# recreated empty right below.
 RUN rm -rf \
-    /var/www/html/gamecon/.git \
-    /var/www/html/gamecon/.github \
-    /var/www/html/gamecon/.docker \
-    /var/www/html/gamecon/.htdeployment \
-    /var/www/html/gamecon/node_modules \
-    /var/www/html/gamecon/ui/node_modules \
-    /var/www/html/gamecon/tests \
     /var/www/html/gamecon/phpunit*.* \
     /var/www/html/gamecon/phpstan*.* \
     /var/www/html/gamecon/cache/private
+
+# The committed autoloader's `files` list eagerly requires bootstrap.php
+# from the dev packages .dockerignore now drops, so without this the
+# image fatals on every request. `dump-autoload` resolves nothing and
+# fetches nothing — it is not the `composer install` the header rules out.
+USER www-data
+RUN composer dump-autoload --no-dev --optimize --no-interaction
+USER root
 
 # Make cache/ and logy/ writable by Apache. cache/public stays (assets
 # committed at archive time); only cache/private was stripped above
