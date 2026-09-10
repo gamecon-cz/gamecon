@@ -9,6 +9,7 @@ use ApiPlatform\State\ProcessorInterface;
 use App\Dto\Cart\AccommodationOutputDto;
 use App\Dto\Cart\SetAccommodationInputDto;
 use App\Entity\User;
+use App\Service\AccommodationRules;
 use App\Service\AccommodationWriter;
 use App\Service\BreakfastCanceller;
 use App\Service\CurrentYearProviderInterface;
@@ -27,6 +28,7 @@ readonly class SetAccommodationProcessor implements ProcessorInterface
     public function __construct(
         private AccommodationWriter $accommodationWriter,
         private BreakfastCanceller $breakfastCanceller,
+        private AccommodationRules $accommodationRules,
         private AccommodationProvider $accommodationProvider,
         private CurrentYearProviderInterface $currentYearProvider,
         private LegacySessionService $legacySession,
@@ -63,6 +65,7 @@ readonly class SetAccommodationProcessor implements ProcessorInterface
                 $legacyUzivatel->maPravo(Pravo::UBYTOVANI_MUZE_OBJEDNAT_JEDNU_NOC),
                 $data->roommate,
                 $data->declined,
+                $this->accommodationRules->jenSpacaky($legacyUzivatel),
             );
         } catch (\RuntimeException $chyba) {
             throw new BadRequestHttpException($chyba->getMessage(), $chyba);
