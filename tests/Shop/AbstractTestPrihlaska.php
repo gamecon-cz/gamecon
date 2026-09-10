@@ -107,9 +107,12 @@ abstract class AbstractTestPrihlaska extends AbstractTestDb
     }
 
     /**
-     * Nabízí formulář přihlášky předmět ke koupi? Čte vykreslené HTML, tedy
-     * to, co účastník opravdu vidí — hledá políčko `shopP[<id>]`, které se
-     * pro nenabízené předměty nevykreslí.
+     * Nabízí formulář přihlášky předmět ke koupi? Čte vykreslené HTML, tedy to,
+     * co účastník opravdu vidí.
+     *
+     * Samotné `shopP[<id>]` nestačí: nenabízený předmět, který už má účastník
+     * koupený, se vykreslí s pevným počtem kusů a stejným názvem pole. Rozlišuje
+     * je až `data-max`, které nese jen nákupní varianta.
      */
     protected function jeNabizenKProdeji(
         \Uzivatel $uzivatel,
@@ -139,7 +142,10 @@ abstract class AbstractTestPrihlaska extends AbstractTestDb
         $uzivatel = \Uzivatel::zIdUrcite($uzivatel->id());
         $shop = new Shop($uzivatel, $uzivatel, $systemoveNastaveni);
 
-        return str_contains($shop->predmetyHtml(), 'name="shopP[' . $idPredmetu . ']"');
+        return (bool) preg_match(
+            '~name="shopP\[' . $idPredmetu . '\]"[^>]*\sdata-max=~',
+            $shop->predmetyHtml(),
+        );
     }
 
     protected function vytvorBeznehoUzivatele(): \Uzivatel
@@ -234,6 +240,23 @@ SQL,
         );
     }
 
+    /**
+     * Nákupy předmětu bez ohledu na ročník — aby šlo odhalit i nákup zapsaný
+     * pod cizím rokem, který by ročníkově filtrovaný dotaz neviděl.
+     */
+    protected function pocetNakupuVeVsechRocnicich(
+        \Uzivatel $uzivatel,
+        int $idPredmetu,
+    ): int {
+        return (int) dbOneCol(
+            'SELECT COUNT(*) FROM shop_nakupy WHERE id_uzivatele = $0 AND id_predmetu = $1',
+            [
+                0 => $uzivatel->id(),
+                1 => $idPredmetu,
+            ],
+        );
+    }
+
     protected function pocetVsechNakupu(\Uzivatel $uzivatel): int
     {
         return (int) dbOneCol(
@@ -251,12 +274,17 @@ SQL,
      */
     protected function zbyvajiciKusy(int $idPredmetu): ?int
     {
-        $kusuVyrobeno = dbOneCol(
+        $predmet = dbOneLine(
             'SELECT kusu_vyrobeno FROM shop_predmety WHERE id_predmetu = $0',
             [
                 0 => $idPredmetu,
             ],
         );
+        // Bez tohohle by neexistující předmět vypadal jako předmět s neomezenou
+        // zásobou — obojí totiž vrací null.
+        self::assertNotSame([], $predmet, "Předmět {$idPredmetu} v databázi není");
+
+        $kusuVyrobeno = $predmet['kusu_vyrobeno'];
         if ($kusuVyrobeno === null) {
             return null;
         }
