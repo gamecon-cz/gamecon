@@ -48,11 +48,18 @@ RUN rm -rf \
 
 # The committed autoloader's `files` list eagerly requires bootstrap.php
 # from phpstan, rector, symplify and friends, so an image without those
-# fatals on every request until the autoloader is rebuilt without them.
-# `dump-autoload` needs no network and no package resolution — this is
-# still not the `composer install` the header rules out.
+# fatals on every request until the autoloader is rebuilt. `dump-autoload`
+# needs no network and no package resolution — this is still not the
+# `composer install` the header rules out.
+#
+# NOT --no-dev: the archive boots the kernel with an empty APP_ENV, which
+# bundles.php reads as dev and so registers MakerBundle. That one lives
+# under vendor/symfony, shared with production and therefore still on
+# disk — --no-dev drops its autoload entry anyway and every kernel-booting
+# page 500s while the homepage, which boots no kernel, stays fine. A plain
+# dump maps what is present and omits what .dockerignore removed.
 USER www-data
-RUN composer dump-autoload --no-dev --optimize --no-interaction
+RUN composer dump-autoload --optimize --no-interaction
 USER root
 
 # Make cache/ and logy/ writable by Apache. cache/public stays (assets
