@@ -12,9 +12,8 @@ namespace App\Enum;
  * — 'tricka' for 'tricko', or a Czech diacritic — matches nothing and fails silently:
  * no error, no failing test, the feature simply never applies.
  *
- * Seven of them are categories, one per product, mirroring the old typ 1–7. MIKINA is
- * different: it is a sub-tag carried in addition to PREDMET, replacing the old
- * podtyp='mikina'.
+ * Seven of them are categories, one per product, mirroring the old typ 1–7. MIKINA and
+ * SPACAK are different: they are sub-tags carried in addition to a category.
  */
 enum ProductTagCode: string
 {
@@ -27,6 +26,8 @@ enum ProductTagCode: string
     case PROPLACENI_BONUSU = 'proplaceni-bonusu';
 
     case MIKINA = 'mikina';
+
+    case SPACAK = 'spacak';
 
     /**
      * The category tags — exactly one of these per product, the successor of typ 1–7.
@@ -62,6 +63,7 @@ enum ProductTagCode: string
     {
         return [
             self::MIKINA->value => self::PREDMET,
+            self::SPACAK->value => self::UBYTOVANI,
         ];
     }
 
@@ -100,6 +102,7 @@ enum ProductTagCode: string
             self::PARCON            => 'ParCon mini-akce',
             self::PROPLACENI_BONUSU => 'Výplata bonusu (interní)',
             self::MIKINA            => 'Mikina',
+            self::SPACAK            => 'Spacák',
         };
     }
 }
