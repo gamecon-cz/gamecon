@@ -92,7 +92,11 @@ class PrihlaskaVyprodanoTest extends AbstractTestPrihlaska
     {
         $uzivatel = $this->vytvorBeznehoUzivatele();
         $idPredmetu = $this->vytvorPredmet('Stažená placka', stav: StavPredmetu::POZASTAVENY);
+        // Kdyby byl nenabízený předmět jediný, zamkla by se celá sekce předmětů
+        // a test by procházel, i kdyby se na jednotlivé předměty vůbec nehledělo.
+        $idVerejneho = $this->vytvorPredmet('Veřejná placka');
 
+        self::assertTrue($this->jeNabizenKProdeji($uzivatel, $idVerejneho));
         self::assertFalse(
             $this->jeNabizenKProdeji($uzivatel, $idPredmetu),
             'Pozastavený předmět se nesmí nabízet k prodeji',
@@ -106,7 +110,9 @@ class PrihlaskaVyprodanoTest extends AbstractTestPrihlaska
     {
         $uzivatel = $this->vytvorBeznehoUzivatele();
         $idPredmetu = $this->vytvorPredmet('Prošlá placka', nabizetDo: '2000-01-01 00:00:00');
+        $idVerejneho = $this->vytvorPredmet('Veřejná placka');
 
+        self::assertTrue($this->jeNabizenKProdeji($uzivatel, $idVerejneho));
         self::assertFalse(
             $this->jeNabizenKProdeji($uzivatel, $idPredmetu),
             'Předmět po uplynutí nabizet_do se nesmí nabízet k prodeji',
@@ -170,8 +176,8 @@ class PrihlaskaVyprodanoTest extends AbstractTestPrihlaska
 
         self::assertSame(
             0,
-            $this->pocetNakupu($uzivatel, $idPredmetu),
-            'Předmět z jiného ročníku se nesmí uložit',
+            $this->pocetNakupuVeVsechRocnicich($uzivatel, $idPredmetu),
+            'Předmět z jiného ročníku se nesmí uložit — ani pod svým vlastním rokem',
         );
         self::assertNull($chyba, 'Předmět mimo ročník se z formuláře tiše zahodí, není to chyba účastníka');
     }
@@ -240,27 +246,32 @@ class PrihlaskaVyprodanoTest extends AbstractTestPrihlaska
         $uzivatel = $this->vytvorBeznehoUzivatele();
         $jinyUcastnik = $this->vytvorBeznehoUzivatele();
 
-        $idVyprodaneho = $this->vytvorPredmet('Poslední placka', kusuVyrobeno: 1);
+        // Jídlo se zpracovává až po ubytování, takže vyprodané jídlo shodí
+        // přihlášku ve chvíli, kdy jsou noci ubytování už zapsané. Vyprodaný
+        // předmět by se sem nehodil — ten padá dřív, než se stihne uložit cokoli.
+        $idVyprodanehoJidla = $this->vytvorJidlo('oběd', den: self::DEN_PATEK, kusuVyrobeno: 1);
         $this->odesliPrihlasku($jinyUcastnik, [
-            'shopP' => [
-                $idVyprodaneho => 1,
+            'cShopJidloZmen' => '1',
+            'cShopJidlo'     => [
+                $idVyprodanehoJidla => '1',
             ],
         ]);
 
         $idsNoci = $this->vytvorUbytovaniNaDvouNocich();
 
         $chyba = $this->odesliPrihlaskuAZachytChybu($uzivatel, [
-            'shopP' => [
-                $idVyprodaneho => 1,
-            ],
             'shopUbytovaniDny' => $idsNoci,
+            'cShopJidloZmen'   => '1',
+            'cShopJidlo'       => [
+                $idVyprodanehoJidla => '1',
+            ],
         ]);
 
         self::assertNotNull($chyba);
         self::assertSame(
             0,
             $this->pocetVsechNakupu($uzivatel),
-            'Ubytování se nesmí uložit, když ve stejné přihlášce selhal předmět',
+            'Ubytování se nesmí uložit, když v téže přihlášce selhalo později zpracované jídlo',
         );
     }
 }
