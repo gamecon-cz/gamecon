@@ -14,6 +14,7 @@ use App\Enum\ProductStateEnum;
 use App\Enum\ProductTagCode;
 use App\Repository\OrderItemRepository;
 use App\Repository\ProductRepository;
+use App\Service\AccommodationRules;
 use App\Service\BreakfastCanceller;
 use App\Service\CartService;
 use App\Service\CurrentYearProviderInterface;
@@ -47,6 +48,10 @@ class AccommodationProviderTest extends TestCase
 
     private MockObject $breakfastCanceller;
 
+    private MockObject $accommodationRules;
+
+    private bool $jenSpacaky = false;
+
     private AccommodationProvider $provider;
 
     private ?SystemoveNastaveni $puvodniNastaveni = null;
@@ -74,6 +79,9 @@ class AccommodationProviderTest extends TestCase
         $this->cartService = $this->createMock(CartService::class);
         $this->breakfastCanceller = $this->createMock(BreakfastCanceller::class);
         $this->breakfastCanceller->method('restorable')->willReturn([]);
+        $this->accommodationRules = $this->createMock(AccommodationRules::class);
+        $this->accommodationRules->method('jenSpacaky')
+            ->willReturnCallback(fn (): bool => $this->jenSpacaky);
 
         $this->provider = new AccommodationProvider(
             $this->productRepository,
@@ -83,6 +91,7 @@ class AccommodationProviderTest extends TestCase
             $this->legacySession,
             $this->cartService,
             $this->breakfastCanceller,
+            $this->accommodationRules,
             $this->security,
         );
     }
@@ -268,6 +277,7 @@ class AccommodationProviderTest extends TestCase
         int $held,
         ?string $kodJinehoRadku = null,
         bool $koupeno = false,
+        ?Product $dalsiProdukt = null,
     ): ProductVariant {
         $product = $this->createProduct(1, 'Hotel');
 
@@ -282,7 +292,7 @@ class AccommodationProviderTest extends TestCase
 
         $this->productRepository->method('findByTag')
             ->with(ProductTagCode::UBYTOVANI)
-            ->willReturn([$product]);
+            ->willReturn($dalsiProdukt === null ? [$product] : [$product, $dalsiProdukt]);
         $this->orderItemRepository->method('countSoldByVariant')->willReturn([
             50 => $sold,
         ]);
@@ -293,6 +303,10 @@ class AccommodationProviderTest extends TestCase
             ->willReturn([
                 ($kodJinehoRadku ?? 'Hd-2L-ct') => [
                     'vyrobeno' => $produced,
+                    'nabizeno' => true,
+                ],
+                'spacak-ct' => [
+                    'vyrobeno' => 10,
                     'nabizeno' => true,
                 ],
             ]);
@@ -312,6 +326,57 @@ class AccommodationProviderTest extends TestCase
         $this->orderItemRepository->method('findByCustomerAndYear')->willReturn($koupeneItems);
 
         return $variant;
+    }
+
+    public function testSleepingBagRestrictionWithNothingTaggedIsRefused(): void
+    {
+        $this->prepareUser();
+        $this->prepareGrid(remainingQuantity: 10, produced: 10, sold: 0, held: 0);
+        $this->jenSpacaky = true;
+
+        // Hiding everything would read as a broken section rather than a restriction.
+        $this->expectExceptionMessage('žádný spacák není v nabídce');
+
+        $this->provider->provide(new Get());
+    }
+
+    public function testSleepingBagRestrictionHidesRoomTypes(): void
+    {
+        $this->prepareUser();
+        $spacak = $this->vytvorSpacak();
+        $pokoj = $this->prepareGrid(
+            remainingQuantity: 10, produced: 10, sold: 0, held: 0, dalsiProdukt: $spacak,
+        );
+        $this->jenSpacaky = true;
+
+        $typy = $this->provider->provide(new Get())->types;
+
+        // Legacy skips a non-sleeping-bag type entirely rather than showing it disabled.
+        self::assertCount(1, $typy);
+        self::assertSame((int) $spacak->getId(), $typy[0]->productId);
+        self::assertNotSame((int) $pokoj->getProduct()->getId(), $typy[0]->productId);
+    }
+
+    /**
+     * A sleeping-bag product to pass into prepareGrid() as an extra offered type.
+     */
+    private function vytvorSpacak(): Product
+    {
+        $spacak = $this->createProduct(2, 'Spacák');
+        $tag = new ProductTag();
+        $tag->setCode(ProductTagCode::SPACAK->value);
+        $spacak->addTag($tag);
+
+        $variant = new ProductVariant();
+        $variant->setProduct($spacak);
+        $variant->setCode('spacak-ct');
+        $variant->setName('čtvrtek');
+        $variant->setAccommodationDay(self::DEN_CTVRTEK);
+        $variant->setRemainingQuantity(10);
+        $this->setId($variant, 60);
+        $spacak->addVariant($variant);
+
+        return $spacak;
     }
 
     private function createProduct(int $id, string $name): Product
