@@ -146,8 +146,8 @@ class Finance
             (float)dbOneCol(<<<SQL
 SELECT SUM(cena_nakupni) / COUNT(*)
 FROM shop_nakupy
-JOIN shop_predmety ON shop_nakupy.id_predmetu = shop_predmety.id_predmetu
-WHERE shop_predmety.typ = {$typVstupne}
+JOIN shop_predmety_s_typem ON shop_nakupy.id_predmetu = shop_predmety_s_typem.id_predmetu
+WHERE shop_predmety_s_typem.typ = {$typVstupne}
     AND shop_nakupy.rok = {$rocnik}
     AND shop_nakupy.cena_nakupni > 0
 SQL,
@@ -465,10 +465,10 @@ SQL,
     public function maximalniPocetLibovolnychTricekZdarmaBezBonusovych(): int
     {
         return $this->u->maPravo(Pravo::DVE_JAKAKOLI_TRICKA_ZDARMA)
-            ? 2
+            ? $this->systemoveNastaveni->pocetDvouTricekZdarma()
             : (
             $this->u->maPravo(Pravo::JAKEKOLIV_TRICKO_ZDARMA)
-                ? 1
+                ? $this->systemoveNastaveni->pocetTricekZdarma()
                 : 0
             );
     }
@@ -479,7 +479,7 @@ SQL,
     public function maximalniPocetBonusovychTricekZdarma(): int
     {
         return $this->u->maPravo(Pravo::MODRE_TRICKO_ZDARMA) && $this->bonusZaVedeniAktivit() >= $this->systemoveNastaveni->modreTrickoZdarmaOd()
-            ? 1
+            ? $this->systemoveNastaveni->pocetBonusovychTricekZdarma()
             : 0;
     }
 
@@ -703,7 +703,7 @@ SQL;
                 SQL,
             );
             $sumaPlateb       = 0.0;
-            while ($row = mysqli_fetch_assoc($result)) {
+            while ($row = $result->fetch(\PDO::FETCH_ASSOC)) {
                 $sumaPlateb += (float)$row['cena'];
                 // Nulové datum ('0000-00-00') je v DB možné (sql_mode nemá NO_ZERO_DATE) a PHP
                 // by ho přeložilo na uvěřitelné „30. 11.“ místo aby bylo vidět, že datum chybí.
@@ -770,7 +770,7 @@ SQL;
         $o = dbQuery('
       SELECT predmety.id_predmetu, predmety.nazev, nakupy.cena_nakupni, predmety.typ, predmety.ubytovani_den, predmety.model_rok, predmety.kod_predmetu
       FROM shop_nakupy AS nakupy
-      JOIN shop_predmety AS predmety ON nakupy.id_predmetu = predmety.id_predmetu
+      JOIN shop_predmety_s_typem AS predmety ON nakupy.id_predmetu = predmety.id_predmetu
       WHERE nakupy.id_uzivatele = $0 AND nakupy.rok = $1
       ORDER BY nakupy.cena_nakupni -- od nejlevnějších kvůli aplikaci slev na trička
     ', [$this->u->id(), $this->systemoveNastaveni->rocnik()]);

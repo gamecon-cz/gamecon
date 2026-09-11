@@ -20,7 +20,7 @@ $resultRoli        = $this->q(<<<SQL
 
 $chybejiciRocnikoveRole = $rocnikoveRole;
 if ($resultRoli) {
-    while ($idExistujiciRole = $resultRoli->fetch_column()) {
+    while ($idExistujiciRole = $resultRoli->fetchColumn()) {
         unset($chybejiciRocnikoveRole[(int)$idExistujiciRole]);
     }
 }
@@ -37,8 +37,8 @@ SQL,
         $idRolePredchozihoRocniku = null;
         $idPravaZobrazovatVeStatistikach = Pravo::ZOBRAZOVAT_VE_STATISTIKACH_V_TABULCE_UCASTI;
         if ($result) {
-            [$idRolePredchozihoRocniku, $rocnikRolePredchozihoRocniku] = $result->fetch_row();
-            $result->close();
+            [$idRolePredchozihoRocniku, $rocnikRolePredchozihoRocniku] = $result->fetch(PDO::FETCH_NUM);
+            $result->closeCursor();
             if ($idRolePredchozihoRocniku) {
                 $prefixProRoliPredchozihoRocniku = Role::prefixRocniku($rocnikRolePredchozihoRocniku);
                 $this->q(<<<SQL

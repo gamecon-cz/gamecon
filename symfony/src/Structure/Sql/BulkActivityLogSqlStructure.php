@@ -9,9 +9,6 @@ namespace App\Structure\Sql;
  */
 class BulkActivityLogSqlStructure
 {
-    /**
-     * @see BulkActivityLog
-     */
     public const _table = 'hromadne_akce_log';
 
     /**

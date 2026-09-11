@@ -9,9 +9,6 @@ namespace App\Structure\Sql;
  */
 class PageSqlStructure
 {
-    /**
-     * @see Page
-     */
     public const _table = 'stranky';
 
     /**
@@ -28,6 +25,11 @@ class PageSqlStructure
      * @see Page::$obsah
      */
     public const obsah = 'obsah';
+
+    /**
+     * @see Page::$redirect
+     */
+    public const redirect = 'redirect';
 
     /**
      * @see Page::$poradi

@@ -1,0 +1,44 @@
+security:
+    # Password hasher for User entity - uses standard PHP password_hash/password_verify
+    # Compatible with legacy \Uzivatel::heslo() which also uses PASSWORD_DEFAULT
+    password_hashers:
+        App\Entity\User:
+            algorithm: auto
+            migrate_from:
+                - bcrypt # Support old hashes
+                - md5    # Support very old hashes (if any remain)
+
+    # User provider - load users from database
+    providers:
+        app_user_provider:
+            entity:
+                class: App\Entity\User
+                property: login
+
+    # Firewalls
+    firewalls:
+        dev:
+            pattern: ^/(_(profiler|wdt)|css|images|js)/
+            security: false
+
+        # API authentication with JWT
+        api:
+            pattern: ^/symfony/api
+            stateless: true
+            custom_authenticators:
+                - App\Security\JwtAuthenticator
+
+        # Main firewall (for admin/web)
+        main:
+            lazy: true
+            provider: app_user_provider
+
+    # Access control — only broad patterns here.
+    # Per-operation authorization is handled by security: "is_granted(...)" on #[ApiResource] operations.
+    access_control:
+        - { path: ^/symfony/api/public, roles: PUBLIC_ACCESS }
+        - { path: ^/symfony/api, roles: ROLE_USER }
+
+    # Role hierarchy
+    role_hierarchy:
+        ROLE_ADMIN: [ROLE_USER]

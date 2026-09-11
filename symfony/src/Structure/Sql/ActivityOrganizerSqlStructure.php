@@ -9,9 +9,6 @@ namespace App\Structure\Sql;
  */
 class ActivityOrganizerSqlStructure
 {
-    /**
-     * @see ActivityOrganizer
-     */
     public const _table = 'akce_organizatori';
 
     /**

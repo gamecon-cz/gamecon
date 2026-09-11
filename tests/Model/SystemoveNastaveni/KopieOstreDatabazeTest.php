@@ -49,15 +49,22 @@ class KopieOstreDatabazeTest extends TestCase
             assert($testDumps !== false, 'Nepodařilo se načíst testovací SQL');
             $latestDump = __DIR__ . '/../../Db/data/' . reset($testDumps);
 
-            (new \MySQLImport($docasneSpojeniSoucasna))
-                ->load($latestDump);
+            // MySQLImport requires a mysqli connection — build one targeting the isolated DBs.
+            $mysqliSoucasna = $this->mysqliProDocasnouDb(
+                $this->systemoveNastaveni->prihlasovaciUdajeSoucasneDatabaze(),
+            );
+            (new \MySQLImport($mysqliSoucasna))->load($latestDump);
+            mysqli_close($mysqliSoucasna);
             // potřebujeme co největší rozdíl SQL migrací abychom vyzkoušeli že nějaká co není na betě a pustí se to nerozbije (stalo se)
             (new SqlMigrace($this->systemoveNastaveni))->migruj(false);
 
             $docasneSpojeniOstra = $this->docasneSpojeniOstra($this->systemoveNastaveni, true);
             // naplníme "jakoby ostrou" staršími daty, abychom vyzkoušeli nejen zkopírování, ale i migrace
-            (new \MySQLImport($docasneSpojeniOstra))
-                ->load($latestDump);
+            $mysqliOstra = $this->mysqliProDocasnouDb(
+                $this->systemoveNastaveni->prihlasovaciUdajeOstreDatabaze(),
+            );
+            (new \MySQLImport($mysqliOstra))->load($latestDump);
+            mysqli_close($mysqliOstra);
         } catch (\Throwable $throwable) {
             $this->setUpError = $throwable;
         }
@@ -86,7 +93,7 @@ class KopieOstreDatabazeTest extends TestCase
     private function docasneSpojeniSoucasna(
         SystemoveNastaveni $systemoveNastaveni,
         bool $resetDatabaze,
-    ): \mysqli {
+    ): \PDO {
         [
             'DBM_USER' => $dbmUser,
             'DBM_PASS' => $dbmPass,
@@ -109,7 +116,7 @@ class KopieOstreDatabazeTest extends TestCase
     private function docasneSpojeniOstra(
         SystemoveNastaveni $systemoveNastaveni,
         bool $resetDatabaze,
-    ): \mysqli {
+    ): \PDO {
         [
             'DBM_USER' => $dbmUser,
             'DBM_PASS' => $dbmPass,
@@ -126,6 +133,20 @@ class KopieOstreDatabazeTest extends TestCase
             $dbName,
             $systemoveNastaveni->rocnik(),
             $resetDatabaze,
+        );
+    }
+
+    /**
+     * @param array{DBM_USER:string, DBM_PASS:string, DB_NAME:string, DB_SERV:string, DB_PORT:int|string|null} $prihlasovaciUdaje
+     */
+    private function mysqliProDocasnouDb(array $prihlasovaciUdaje): \mysqli
+    {
+        return dbConnectMysqli(
+            $prihlasovaciUdaje['DB_SERV'],
+            $prihlasovaciUdaje['DBM_USER'],
+            $prihlasovaciUdaje['DBM_PASS'],
+            $prihlasovaciUdaje['DB_PORT'] !== null ? (int) $prihlasovaciUdaje['DB_PORT'] : null,
+            $prihlasovaciUdaje['DB_NAME'],
         );
     }
 
@@ -163,14 +184,14 @@ class KopieOstreDatabazeTest extends TestCase
         $systemoveNastaveni = $this->vytvorSystemoveNastaveni();
 
         $spojeniSoucasna = $this->docasneSpojeniSoucasna($systemoveNastaveni, false);
-        $tablesBefore = dbQuery('SHOW TABLES', $spojeniSoucasna)->fetch_all();
+        $tablesBefore = dbQuery('SHOW TABLES', $spojeniSoucasna)->fetchAll();
 
         $nastrojeDatabaze = new NastrojeDatabaze($systemoveNastaveni);
         $kopieOstreDatabaze = new KopieOstreDatabaze($nastrojeDatabaze, $systemoveNastaveni, Vyjimkovac::vytvorZGlobals());
         $nastaveniOstre = $systemoveNastaveni->prihlasovaciUdajeOstreDatabaze();
         $kopieOstreDatabaze->zkopirujDatabazi($nastaveniOstre['DB_NAME']);
 
-        $tablesAfter = dbQuery('SHOW TABLES', $spojeniSoucasna)->fetch_all();
+        $tablesAfter = dbQuery('SHOW TABLES', $spojeniSoucasna)->fetchAll();
         self::assertGreaterThan(count($tablesBefore), $tablesAfter, 'Nějaké tabulky měly přibýt migracemi');
     }
 

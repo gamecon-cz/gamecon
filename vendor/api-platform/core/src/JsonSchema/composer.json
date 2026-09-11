@@ -1,0 +1,77 @@
+{
+    "name": "api-platform/json-schema",
+    "description": "Generate a JSON Schema from a PHP class",
+    "type": "library",
+    "keywords": [
+        "REST",
+        "JSON",
+        "API",
+        "Json Schema",
+        "OpenAPI",
+        "Swagger"
+    ],
+    "homepage": "https://api-platform.com",
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "Kévin Dunglas",
+            "email": "kevin@dunglas.fr",
+            "homepage": "https://dunglas.fr"
+        },
+        {
+            "name": "API Platform Community",
+            "homepage": "https://api-platform.com/community/contributors"
+        }
+    ],
+    "require": {
+        "php": ">=8.2",
+        "api-platform/metadata": "^4.3",
+        "symfony/console": "^6.4 || ^7.0 || ^8.0",
+        "symfony/property-info": "^6.4 || ^7.1 || ^8.0",
+        "symfony/serializer": "^6.4 || ^7.0 || ^8.0",
+        "symfony/type-info": "^7.3 || ^8.0",
+        "symfony/uid": "^6.4 || ^7.0 || ^8.0"
+    },
+    "require-dev": {
+        "phpspec/prophecy-phpunit": "^2.2",
+        "phpunit/phpunit": "^11.5 || ^12.2"
+    },
+    "autoload": {
+        "psr-4": {
+            "ApiPlatform\\JsonSchema\\": ""
+        },
+        "exclude-from-classmap": [
+            "/Tests/"
+        ]
+    },
+    "config": {
+        "preferred-install": {
+            "*": "dist"
+        },
+        "sort-packages": true,
+        "allow-plugins": {
+            "composer/package-versions-deprecated": true,
+            "phpstan/extension-installer": true
+        }
+    },
+    "extra": {
+        "branch-alias": {
+            "dev-main": "4.4.x-dev",
+            "dev-4.2": "4.2.x-dev",
+            "dev-3.4": "3.4.x-dev",
+            "dev-4.1": "4.1.x-dev"
+        },
+        "symfony": {
+            "require": "^6.4 || ^7.0 || ^8.0"
+        },
+        "thanks": {
+            "name": "api-platform/api-platform",
+            "url": "https://github.com/api-platform/api-platform"
+        }
+    },
+    "scripts": {
+        "test": "./vendor/bin/phpunit"
+    },
+    "minimum-stability": "beta",
+    "prefer-stable": true
+}

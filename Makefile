@@ -1,4 +1,4 @@
-.PHONY: init start-docker-foreground run cache bash phpstan ecs fix static ci tests migrations-run migrations-diff
+.PHONY: init run cache bash phpstan ecs fix static ci tests phpunit symfony-lint doctrine-lint composer-lint migrations-run migrations-diff yarn
 
 MAKEFLAGS += --no-print-directory # to disable "make: Entering directory ..." messages
 
@@ -17,6 +17,9 @@ init:
 	direnv exec bin-docker/yarn build
 	@make cache
 	@echo 'Gamecon initialized ✅'
+
+yarn:
+	yarn --cwd=ui install --frozen-lockfile && yarn --cwd=ui build
 
 run: init
 	@PORT=$$(docker compose port web 80 2>/dev/null | cut -d: -f2); \
@@ -37,7 +40,9 @@ bash:
 
 ci: init static tests
 
-tests:
+tests: phpunit
+
+phpunit:
 	./bin-docker/docker-bash bin/phpunit.sh
 
 phpstan:
@@ -50,7 +55,16 @@ fix:
 	./bin-docker/php vendor/bin/rector process --config rector-ci.php
 	./bin-docker/docker-bash bin/ecs.sh --fix
 
-static: fix phpstan
+static: fix phpstan symfony-lint doctrine-lint composer-lint
+
+symfony-lint:
+	./bin-docker/docker-bash bin/symfony-lint.sh
+
+doctrine-lint:
+	./bin-docker/docker-bash bin/doctrine-lint.sh
+
+composer-lint:
+	./bin-docker/composer validate --no-check-lock
 
 migrations-run:
 	./bin-docker/php ./bin/console migrations:continue
@@ -60,7 +74,7 @@ migrations-run:
 	./bin-docker/php ./bin/console doctrine:cache:clear-result
 
 migrations-diff:
-	./bin-docker/php ./bin/console --env=test migrations:continue
+	./bin-docker/php ./bin/console --env=test migrations:reset
 	./bin-docker/php ./bin/console --env=test migrations:create structures rename-me
 	@find ./symfony/migrations/structures -type f -name '*-rename-me.sql' -empty -exec echo NO CHANGES, removing empty {} \;
 	@find ./symfony/migrations/structures -type f -name '*-rename-me.sql' -empty -exec rm {} \;

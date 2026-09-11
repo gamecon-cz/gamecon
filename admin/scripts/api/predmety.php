@@ -43,14 +43,14 @@ $o = dbQuery('
     kusu_vyrobeno - COUNT(n.id_predmetu) as zbyva,
     p.id_predmetu,
     ROUND(p.cena_aktualni) as cena
-  FROM shop_predmety p
+  FROM shop_predmety_s_typem p
   LEFT JOIN shop_nakupy n ON(n.id_predmetu=p.id_predmetu AND n.rok = ' . $rocnik . ')
   WHERE p.stav > 0
     AND p.model_rok = ' . $rocnik . '
   GROUP BY p.id_predmetu
   ORDER BY nazev');
 
-while ($r = mysqli_fetch_assoc($o)) {
+while ($r = $o->fetch(PDO::FETCH_ASSOC)) {
     $res[] = [
         'nazev' => $r['nazev'],
         'zbyva' => intvalOrNull($r['zbyva']),

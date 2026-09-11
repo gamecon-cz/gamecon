@@ -335,7 +335,7 @@ $o = dbQuery(
     kusu_vyrobeno-count(n.id_predmetu) as zbyva,
     p.id_predmetu,
     ROUND(p.cena_aktualni) as cena
-  FROM shop_predmety p
+  FROM shop_predmety_s_typem p
   LEFT JOIN shop_nakupy n ON(n.id_predmetu=p.id_predmetu AND n.rok = {$rocnik})
   WHERE p.stav > 0
     AND p.model_rok = {$rocnik}
@@ -344,7 +344,7 @@ $o = dbQuery(
 SQL,
 );
 $moznosti = '<option value="">(vyber)</option>';
-while ($r = mysqli_fetch_assoc($o)) {
+while ($r = $o->fetch(PDO::FETCH_ASSOC)) {
     $zbyva = $r['zbyva'] === null ? '&infin;' : $r['zbyva'];
     $moznosti .= '<option value="' . $r['id_predmetu'] . '"' . ($r['zbyva'] > 0 || $r['zbyva'] === null ? '' : ' disabled') . '>' . $r['nazev'] . ' (' . $zbyva . ') ' . $r['cena'] . '&thinsp;Kč</option>';
 }

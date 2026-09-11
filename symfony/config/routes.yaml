@@ -4,6 +4,12 @@ controllers:
         namespace: App\Controller
     type: attribute
 
+# API Platform Routes
+api_platform:
+    resource: .
+    type: api_platform
+    prefix: /symfony/api
+
 # Admin Routes (paths relative to admin directory)
 admin_dashboard:
     path: /dashboard

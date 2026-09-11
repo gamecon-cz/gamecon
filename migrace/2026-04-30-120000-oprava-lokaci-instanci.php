@@ -10,10 +10,10 @@ $columnExists = function (string $tableName, string $columnName): bool {
           AND COLUMN_NAME = '{$columnName}'
         SQL,
     );
-    if (!$result instanceof mysqli_result) {
+    if (!$result instanceof PDOStatement) {
         return false;
     }
-    $row = $result->fetch_assoc();
+    $row = $result->fetch(PDO::FETCH_ASSOC);
     if (!is_array($row) || !array_key_exists('cnt', $row)) {
         return false;
     }
