@@ -30,7 +30,7 @@ use Symfony\Component\Validator\Constraints as Assert;
  * - 'jidlo' (food)
  * - 'vstupne' (entrance fee)
  * - 'parcon' (ParCon mini-event)
- * - 'proplaceni-bonusu' (bonus payout - internal)
+ * - 'proplaceni_bonusu' (bonus payout - internal)
  *
  * Product-specific tags (from old kod_predmetu detection):
  * - 'kostka' (dice)

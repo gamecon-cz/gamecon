@@ -82,7 +82,7 @@ SQL,
             TypPredmetu::JIDLO             => 'jidlo',
             TypPredmetu::VSTUPNE           => 'vstupne',
             TypPredmetu::PARCON            => 'parcon',
-            TypPredmetu::PROPLACENI_BONUSU => 'proplaceni-bonusu',
+            TypPredmetu::PROPLACENI_BONUSU => 'proplaceni_bonusu',
         };
         dbQuery(
             'INSERT INTO product_product_tag (product_id, tag_id) SELECT $0, id FROM product_tag WHERE code = $1',

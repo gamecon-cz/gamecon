@@ -91,7 +91,7 @@ SQL,
                 0 => ROCNIK,
             ],
         ],
-        "INSERT INTO product_product_tag (product_id, tag_id) SELECT 55507, id FROM product_tag WHERE code = 'proplaceni-bonusu'",
+        "INSERT INTO product_product_tag (product_id, tag_id) SELECT 55507, id FROM product_tag WHERE code = 'proplaceni_bonusu'",
     ];
 
     private function vlozPlatbu(
