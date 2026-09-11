@@ -34,9 +34,17 @@ WORKDIR /var/www/html/gamecon
 # install --no-dev` mostly just regenerates the optimized autoloader
 # (no network round-trips). UI build (`yarn build`) compiles the
 # preact bundles into web/soubory/ui/ and admin/files/ui/.
+# Caches and node_modules go in THIS layer, not a later one — a file
+# removed by a later RUN still occupies space in the layer that created
+# it, which is why the rm -rf below never shrank anything. Both tools
+# clear their own global cache, which leaves corepack's pinned yarn
+# release alone; deleting that by path makes yarn re-download itself.
 USER www-data
 RUN composer install --no-dev --optimize-autoloader --no-interaction --prefer-dist \
-    && cd ui && yarn install --frozen-lockfile && yarn build
+    && cd ui && yarn install --frozen-lockfile && yarn build \
+    && yarn cache clean \
+    && composer clear-cache \
+    && rm -rf node_modules
 
 USER root
 
@@ -46,8 +54,6 @@ RUN rm -rf \
     /var/www/html/gamecon/.git \
     /var/www/html/gamecon/.github \
     /var/www/html/gamecon/.docker \
-    /var/www/html/gamecon/node_modules \
-    /var/www/html/gamecon/ui/node_modules \
     /var/www/html/gamecon/tests \
     /var/www/html/gamecon/phpunit*.* \
     /var/www/html/gamecon/phpstan*.* \

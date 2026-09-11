@@ -49,6 +49,32 @@ $typRoleUcast = Role::TYP_UCAST;
 $idTaguUnikovka = Tag::UNIKOVKA;
 $idTaguMalovani = Tag::MALOVANI;
 
+$maPravoUzivatele = static fn (string $sloupecUzivatele, int $pravo): string => <<<SQL
+    EXISTS(SELECT 1
+           FROM platne_role_uzivatelu
+             JOIN prava_role ON prava_role.id_role = platne_role_uzivatelu.id_role
+           WHERE platne_role_uzivatelu.id_uzivatele = {$sloupecUzivatele}
+             AND prava_role.id_prava = {$pravo})
+    SQL;
+
+$delkaAktivityJakoNasobekStandardni = <<<SQL
+    CASE HOUR(TIMEDIFF(akce_seznam.konec, akce_seznam.zacatek))
+        WHEN 1 THEN 0.25
+        WHEN 2 THEN 0.5
+        WHEN 3 THEN 1
+        WHEN 4 THEN 1
+        WHEN 5 THEN 1
+        WHEN 6 THEN 1.5
+        WHEN 7 THEN 1.5
+        WHEN 8 THEN 2
+        WHEN 9 THEN 2
+        WHEN 10 THEN 2.5
+        WHEN 11 THEN 2.5
+        WHEN 12 THEN 3
+        WHEN 13 THEN 3
+    END
+    SQL;
+
 $report = Report::zSql(<<<SQL
 SELECT export_data.kod AS kod, export_data.popis AS popis, export_data.data AS data
 FROM (SELECT MAX(data_rows.poradi) AS poradi, data_rows.kod, MAX(data_rows.nazev) AS popis, MAX(data_rows.data) AS data
@@ -123,17 +149,17 @@ FROM (SELECT MAX(data_rows.poradi) AS poradi, data_rows.kod, MAX(data_rows.nazev
                                        '3L_so',
                                        '3L_ne')
                AND (NOT (
-                 maPravo(shop_nakupy.id_uzivatele, $maUbytovaniZdarma) -- právo ubytování zdarma
+                 {$maPravoUzivatele('shop_nakupy.id_uzivatele', $maUbytovaniZdarma)} -- právo ubytování zdarma
                      OR
-                 (maPravo(shop_nakupy.id_uzivatele, $maStredecniNocZdarma) AND shop_predmety.ubytovani_den = 0) -- ubytování zdarma středa
+                 ({$maPravoUzivatele('shop_nakupy.id_uzivatele', $maStredecniNocZdarma)} AND shop_predmety.ubytovani_den = 0) -- ubytování zdarma středa
                      OR
-                 (maPravo(shop_nakupy.id_uzivatele, $maCtvrtecniNocZdarma) AND shop_predmety.ubytovani_den = 1) -- ubytování zdarma čtvrtek
+                 ({$maPravoUzivatele('shop_nakupy.id_uzivatele', $maCtvrtecniNocZdarma)} AND shop_predmety.ubytovani_den = 1) -- ubytování zdarma čtvrtek
                      OR
-                 (maPravo(shop_nakupy.id_uzivatele, $maPatecniNocZdarma) AND shop_predmety.ubytovani_den = 2) -- ubytování zdarma pátek
+                 ({$maPravoUzivatele('shop_nakupy.id_uzivatele', $maPatecniNocZdarma)} AND shop_predmety.ubytovani_den = 2) -- ubytování zdarma pátek
                      OR
-                 (maPravo(shop_nakupy.id_uzivatele, $maSobotniNocZdarma) AND shop_predmety.ubytovani_den = 3) -- ubytování zdarma sobota
+                 ({$maPravoUzivatele('shop_nakupy.id_uzivatele', $maSobotniNocZdarma)} AND shop_predmety.ubytovani_den = 3) -- ubytování zdarma sobota
                      OR
-                 (maPravo(shop_nakupy.id_uzivatele, $maNedelniNocZdarma) AND shop_predmety.ubytovani_den = 4) -- ubytování zdarma neděle
+                 ({$maPravoUzivatele('shop_nakupy.id_uzivatele', $maNedelniNocZdarma)} AND shop_predmety.ubytovani_den = 4) -- ubytování zdarma neděle
                  ))
 
              UNION
@@ -152,17 +178,17 @@ FROM (SELECT MAX(data_rows.poradi) AS poradi, data_rows.kod, MAX(data_rows.nazev
                                        '2L_so',
                                        '2L_ne')
                AND (NOT (
-                 maPravo(shop_nakupy.id_uzivatele, $maUbytovaniZdarma) -- právo ubytování zdarma
+                 {$maPravoUzivatele('shop_nakupy.id_uzivatele', $maUbytovaniZdarma)} -- právo ubytování zdarma
                      OR
-                 (maPravo(shop_nakupy.id_uzivatele, $maStredecniNocZdarma) AND shop_predmety.ubytovani_den = 0) -- ubytování zdarma středa
+                 ({$maPravoUzivatele('shop_nakupy.id_uzivatele', $maStredecniNocZdarma)} AND shop_predmety.ubytovani_den = 0) -- ubytování zdarma středa
                      OR
-                 (maPravo(shop_nakupy.id_uzivatele, $maCtvrtecniNocZdarma) AND shop_predmety.ubytovani_den = 1) -- ubytování zdarma čtvrtek
+                 ({$maPravoUzivatele('shop_nakupy.id_uzivatele', $maCtvrtecniNocZdarma)} AND shop_predmety.ubytovani_den = 1) -- ubytování zdarma čtvrtek
                      OR
-                 (maPravo(shop_nakupy.id_uzivatele, $maPatecniNocZdarma) AND shop_predmety.ubytovani_den = 2) -- ubytování zdarma pátek
+                 ({$maPravoUzivatele('shop_nakupy.id_uzivatele', $maPatecniNocZdarma)} AND shop_predmety.ubytovani_den = 2) -- ubytování zdarma pátek
                      OR
-                 (maPravo(shop_nakupy.id_uzivatele, $maSobotniNocZdarma) AND shop_predmety.ubytovani_den = 3) -- ubytování zdarma sobota
+                 ({$maPravoUzivatele('shop_nakupy.id_uzivatele', $maSobotniNocZdarma)} AND shop_predmety.ubytovani_den = 3) -- ubytování zdarma sobota
                      OR
-                 (maPravo(shop_nakupy.id_uzivatele, $maNedelniNocZdarma) AND shop_predmety.ubytovani_den = 4) -- ubytování zdarma neděle
+                 ({$maPravoUzivatele('shop_nakupy.id_uzivatele', $maNedelniNocZdarma)} AND shop_predmety.ubytovani_den = 4) -- ubytování zdarma neděle
                  ))
 
              UNION
@@ -181,17 +207,17 @@ FROM (SELECT MAX(data_rows.poradi) AS poradi, data_rows.kod, MAX(data_rows.nazev
                                        '1L_so',
                                        '1L_ne')
                AND (NOT (
-                 maPravo(shop_nakupy.id_uzivatele, $maUbytovaniZdarma) -- právo ubytování zdarma
+                 {$maPravoUzivatele('shop_nakupy.id_uzivatele', $maUbytovaniZdarma)} -- právo ubytování zdarma
                      OR
-                 (maPravo(shop_nakupy.id_uzivatele, $maStredecniNocZdarma) AND shop_predmety.ubytovani_den = 0) -- ubytování zdarma středa
+                 ({$maPravoUzivatele('shop_nakupy.id_uzivatele', $maStredecniNocZdarma)} AND shop_predmety.ubytovani_den = 0) -- ubytování zdarma středa
                      OR
-                 (maPravo(shop_nakupy.id_uzivatele, $maCtvrtecniNocZdarma) AND shop_predmety.ubytovani_den = 1) -- ubytování zdarma čtvrtek
+                 ({$maPravoUzivatele('shop_nakupy.id_uzivatele', $maCtvrtecniNocZdarma)} AND shop_predmety.ubytovani_den = 1) -- ubytování zdarma čtvrtek
                      OR
-                 (maPravo(shop_nakupy.id_uzivatele, $maPatecniNocZdarma) AND shop_predmety.ubytovani_den = 2) -- ubytování zdarma pátek
+                 ({$maPravoUzivatele('shop_nakupy.id_uzivatele', $maPatecniNocZdarma)} AND shop_predmety.ubytovani_den = 2) -- ubytování zdarma pátek
                      OR
-                 (maPravo(shop_nakupy.id_uzivatele, $maSobotniNocZdarma) AND shop_predmety.ubytovani_den = 3) -- ubytování zdarma sobota
+                 ({$maPravoUzivatele('shop_nakupy.id_uzivatele', $maSobotniNocZdarma)} AND shop_predmety.ubytovani_den = 3) -- ubytování zdarma sobota
                      OR
-                 (maPravo(shop_nakupy.id_uzivatele, $maNedelniNocZdarma) AND shop_predmety.ubytovani_den = 4) -- ubytování zdarma neděle
+                 ({$maPravoUzivatele('shop_nakupy.id_uzivatele', $maNedelniNocZdarma)} AND shop_predmety.ubytovani_den = 4) -- ubytování zdarma neděle
                  ))
 
              UNION
@@ -210,17 +236,17 @@ FROM (SELECT MAX(data_rows.poradi) AS poradi, data_rows.kod, MAX(data_rows.nazev
                                        'spacak_so',
                                        'spacak_ne')
                AND (NOT (
-                 maPravo(shop_nakupy.id_uzivatele, $maUbytovaniZdarma) -- právo ubytování zdarma
+                 {$maPravoUzivatele('shop_nakupy.id_uzivatele', $maUbytovaniZdarma)} -- právo ubytování zdarma
                      OR
-                 (maPravo(shop_nakupy.id_uzivatele, $maStredecniNocZdarma) AND shop_predmety.ubytovani_den = 0) -- ubytování zdarma středa
+                 ({$maPravoUzivatele('shop_nakupy.id_uzivatele', $maStredecniNocZdarma)} AND shop_predmety.ubytovani_den = 0) -- ubytování zdarma středa
                      OR
-                 (maPravo(shop_nakupy.id_uzivatele, $maCtvrtecniNocZdarma) AND shop_predmety.ubytovani_den = 1) -- ubytování zdarma čtvrtek
+                 ({$maPravoUzivatele('shop_nakupy.id_uzivatele', $maCtvrtecniNocZdarma)} AND shop_predmety.ubytovani_den = 1) -- ubytování zdarma čtvrtek
                      OR
-                 (maPravo(shop_nakupy.id_uzivatele, $maPatecniNocZdarma) AND shop_predmety.ubytovani_den = 2) -- ubytování zdarma pátek
+                 ({$maPravoUzivatele('shop_nakupy.id_uzivatele', $maPatecniNocZdarma)} AND shop_predmety.ubytovani_den = 2) -- ubytování zdarma pátek
                      OR
-                 (maPravo(shop_nakupy.id_uzivatele, $maSobotniNocZdarma) AND shop_predmety.ubytovani_den = 3) -- ubytování zdarma sobota
+                 ({$maPravoUzivatele('shop_nakupy.id_uzivatele', $maSobotniNocZdarma)} AND shop_predmety.ubytovani_den = 3) -- ubytování zdarma sobota
                      OR
-                 (maPravo(shop_nakupy.id_uzivatele, $maNedelniNocZdarma) AND shop_predmety.ubytovani_den = 4) -- ubytování zdarma neděle
+                 ({$maPravoUzivatele('shop_nakupy.id_uzivatele', $maNedelniNocZdarma)} AND shop_predmety.ubytovani_den = 4) -- ubytování zdarma neděle
                  ))
 
              UNION
@@ -244,7 +270,7 @@ FROM (SELECT MAX(data_rows.poradi) AS poradi, data_rows.kod, MAX(data_rows.nazev
                             JOIN akce_typy ON akce_seznam.typ = akce_typy.id_typu
                    WHERE akce_seznam.rok = $rocnik
                      AND akce_seznam.bez_slevy = 0
-                     AND (maPravo(ap.id_uzivatele, $maAktivityZdarma)) -- právo Plná sleva na aktivity
+                     AND ({$maPravoUzivatele('ap.id_uzivatele', $maAktivityZdarma)}) -- právo Plná sleva na aktivity
                      AND akce_typy.kod_typu IS NOT NULL) activity_data
              GROUP BY activity_data.kod
 
@@ -268,7 +294,7 @@ FROM (SELECT MAX(data_rows.poradi) AS poradi, data_rows.kod, MAX(data_rows.nazev
                             JOIN akce_prihlaseni_spec ap ON akce_seznam.id_akce = ap.id_akce
                             JOIN akce_typy ON akce_seznam.typ = akce_typy.id_typu
                    WHERE akce_seznam.rok = $rocnik
-                     AND (akce_seznam.bez_slevy = 1 OR (NOT maPravo(ap.id_uzivatele, $maAktivityZdarma))) -- není zdarma
+                     AND (akce_seznam.bez_slevy = 1 OR (NOT {$maPravoUzivatele('ap.id_uzivatele', $maAktivityZdarma)})) -- není zdarma
                      AND ap.id_stavu_prihlaseni = 4                                               -- storno
                      AND akce_typy.kod_typu IS NOT NULL) activity_data
              GROUP BY activity_data.kod
@@ -288,7 +314,7 @@ FROM (SELECT MAX(data_rows.poradi) AS poradi, data_rows.kod, MAX(data_rows.nazev
                                                              AND ast.id_tagu = $idTaguUnikovka), 'AHEsc', 'AHry'),
                                                  akce_typy.kod_typu)))             AS kod,
                           'Počet aktivit přepočtený na standardní aktivitu' AS nazev,
-                          delkaAktivityJakoNasobekStandardni(akce_seznam.id_akce) AS data
+                          {$delkaAktivityJakoNasobekStandardni} AS data
                    FROM akce_seznam
                             JOIN akce_typy ON akce_seznam.typ = akce_typy.id_typu
                    WHERE akce_seznam.rok = $rocnik
@@ -316,7 +342,7 @@ FROM (SELECT MAX(data_rows.poradi) AS poradi, data_rows.kod, MAX(data_rows.nazev
                                                       akce_typy.kod_typu)))                                        AS kod,
                           'Průměrná kapacita aktivity, vážený průměr podle přepočtu na standardní aktivitu' AS nazev,
                           IF(akce_seznam.teamova = 0, akce_seznam.kapacita + akce_seznam.kapacita_f + akce_seznam.kapacita_m, akce_seznam.team_max) AS kapacita,
-                          delkaAktivityJakoNasobekStandardni(akce_seznam.id_akce) AS dajns
+                          {$delkaAktivityJakoNasobekStandardni} AS dajns
                    FROM akce_seznam
                             JOIN akce_typy ON akce_seznam.typ = akce_typy.id_typu
                    WHERE akce_seznam.rok = $rocnik
@@ -347,7 +373,7 @@ FROM (SELECT MAX(data_rows.poradi) AS poradi, data_rows.kod, MAX(data_rows.nazev
                           (SELECT COUNT(*)
                            FROM akce_organizatori
                            WHERE akce_organizatori.id_akce = akce_seznam.id_akce)                                                        AS vypraveci,
-                          delkaAktivityJakoNasobekStandardni(akce_seznam.id_akce) AS dajns
+                          {$delkaAktivityJakoNasobekStandardni} AS dajns
                    FROM akce_seznam
                             JOIN akce_typy ON akce_seznam.typ = akce_typy.id_typu
                    WHERE akce_seznam.rok = $rocnik
@@ -373,7 +399,7 @@ FROM (SELECT MAX(data_rows.poradi) AS poradi, data_rows.kod, MAX(data_rows.nazev
                                                               'AHry'),
                                                            akce_typy.kod_typu)))                                                AS kod,
                           'Vypravěčobloky (přepočtené standardní aktivity * počet lidí) vedené Vypravěči nebo Half-orgy' AS nazev,
-                          delkaAktivityJakoNasobekStandardni(akce_seznam.id_akce) AS data
+                          {$delkaAktivityJakoNasobekStandardni} AS data
                    FROM akce_organizatori
                             JOIN akce_seznam ON akce_seznam.id_akce = akce_organizatori.id_akce
                             JOIN akce_typy ON akce_seznam.typ = akce_typy.id_typu
@@ -404,7 +430,7 @@ FROM (SELECT MAX(data_rows.poradi) AS poradi, data_rows.kod, MAX(data_rows.nazev
                                                               'AHry'),
                                                            akce_typy.kod_typu)))                            AS kod,
                           'Vypravěčobloky (přepočtené standardní aktivity * počet lidí) vedené Orgy' AS nazev,
-                          delkaAktivityJakoNasobekStandardni(akce_seznam.id_akce)                                                                    AS data
+                          {$delkaAktivityJakoNasobekStandardni}                                                                    AS data
                    FROM akce_organizatori
                             JOIN akce_seznam ON akce_seznam.id_akce = akce_organizatori.id_akce
                             JOIN akce_typy ON akce_seznam.typ = akce_typy.id_typu
@@ -433,12 +459,12 @@ FROM (SELECT MAX(data_rows.poradi) AS poradi, data_rows.kod, MAX(data_rows.nazev
                                                                 AND ast.id_tagu = $idTaguUnikovka), 'AHEsc', 'AHry'),
                                                     akce_typy.kod_typu)))                                        AS kod,
                           'Suma bonusů za vedení aktivit u lidí bez práva "bez bonusu za vedení aktivit"' AS nazev,
-                          delkaAktivityJakoNasobekStandardni(akce_seznam.id_akce) * $bonusZa3hAz5hAktivitu AS data
+                          {$delkaAktivityJakoNasobekStandardni} * $bonusZa3hAz5hAktivitu AS data
                    FROM akce_organizatori
                             JOIN akce_seznam ON akce_seznam.id_akce = akce_organizatori.id_akce
                             JOIN akce_typy ON akce_seznam.typ = akce_typy.id_typu
                    WHERE akce_seznam.rok = $rocnik
-                     AND NOT maPravo(akce_organizatori.id_uzivatele, $bezBonusuZaVedeniAktivit)
+                     AND NOT {$maPravoUzivatele('akce_organizatori.id_uzivatele', $bezBonusuZaVedeniAktivit)}
                      AND akce_typy.kod_typu IS NOT NULL) activity_data
              GROUP BY activity_data.kod
 
@@ -457,7 +483,7 @@ FROM (SELECT MAX(data_rows.poradi) AS poradi, data_rows.kod, MAX(data_rows.nazev
                                                                AND ast.id_tagu = $idTaguUnikovka), 'AHEsc', 'AHry'),
                                                    akce_typy.kod_typu)))                                                               AS kod,
                           'Počet herních bloků zabraný hráči přepočtený na standardní aktivitu (bez ohledu na kategorii hráče)' AS nazev,
-                          delkaAktivityJakoNasobekStandardni(akce_seznam.id_akce) AS data
+                          {$delkaAktivityJakoNasobekStandardni} AS data
                    FROM akce_prihlaseni
                             JOIN akce_seznam ON akce_prihlaseni.id_akce = akce_seznam.id_akce
                             JOIN akce_typy ON akce_seznam.typ = akce_typy.id_typu
@@ -487,7 +513,7 @@ FROM (SELECT MAX(data_rows.poradi) AS poradi, data_rows.kod, MAX(data_rows.nazev
                             JOIN akce_seznam ON ap.id_akce = akce_seznam.id_akce
                             JOIN akce_typy ON akce_seznam.typ = akce_typy.id_typu
                    WHERE akce_seznam.rok = $rocnik
-                     AND NOT maPravo(ap.id_uzivatele, $maAktivityZdarma) -- plná sleva na aktivity
+                     AND NOT {$maPravoUzivatele('ap.id_uzivatele', $maAktivityZdarma)} -- plná sleva na aktivity
                      AND akce_typy.kod_typu IS NOT NULL) activity_data
              GROUP BY activity_data.kod
 
@@ -517,7 +543,7 @@ FROM (SELECT MAX(data_rows.poradi) AS poradi, data_rows.kod, MAX(data_rows.nazev
                             JOIN shop_predmety ON shop_nakupy.id_predmetu = shop_predmety.id_predmetu
                    WHERE shop_nakupy.rok = $rocnik
                      AND shop_predmety.kod_predmetu LIKE '%kostk%'
-                     AND maPravo(shop_nakupy.id_uzivatele, $maKostkuZdarma) -- kostka zdarma
+                     AND {$maPravoUzivatele('shop_nakupy.id_uzivatele', $maKostkuZdarma)} -- kostka zdarma
                    GROUP BY shop_nakupy.id_uzivatele) activity_data
 
              UNION
@@ -539,7 +565,7 @@ FROM (SELECT MAX(data_rows.poradi) AS poradi, data_rows.kod, MAX(data_rows.nazev
                             JOIN shop_predmety ON shop_nakupy.id_predmetu = shop_predmety.id_predmetu
                    WHERE shop_nakupy.rok = $rocnik
                      AND shop_predmety.kod_predmetu LIKE '%plack%'
-                     AND maPravo(shop_nakupy.id_uzivatele, $plackaZdarma) -- placka zdarma
+                     AND {$maPravoUzivatele('shop_nakupy.id_uzivatele', $plackaZdarma)} -- placka zdarma
                    GROUP BY shop_nakupy.id_uzivatele) activity_data
 
              UNION
@@ -581,7 +607,7 @@ FROM (SELECT MAX(data_rows.poradi) AS poradi, data_rows.kod, MAX(data_rows.nazev
                       JOIN shop_predmety ON shop_nakupy.id_predmetu = shop_predmety.id_predmetu
              WHERE shop_nakupy.rok = $rocnik
                AND shop_predmety.kod_predmetu LIKE '%snidane%'
-               AND NOT maPravo(shop_nakupy.id_uzivatele, $jidloZdarma) -- jidlo zdarma
+               AND NOT {$maPravoUzivatele('shop_nakupy.id_uzivatele', $jidloZdarma)} -- jidlo zdarma
 
              UNION
 
@@ -590,7 +616,7 @@ FROM (SELECT MAX(data_rows.poradi) AS poradi, data_rows.kod, MAX(data_rows.nazev
                       JOIN shop_predmety ON shop_nakupy.id_predmetu = shop_predmety.id_predmetu
              WHERE shop_nakupy.rok = $rocnik
                AND (shop_predmety.kod_predmetu LIKE '%obed%' OR shop_predmety.kod_predmetu LIKE '%vecere%')
-               AND NOT maPravo(shop_nakupy.id_uzivatele, $jidloZdarma) -- jidlo zdarma
+               AND NOT {$maPravoUzivatele('shop_nakupy.id_uzivatele', $jidloZdarma)} -- jidlo zdarma
 
              UNION
 
@@ -602,7 +628,7 @@ FROM (SELECT MAX(data_rows.poradi) AS poradi, data_rows.kod, MAX(data_rows.nazev
                       JOIN shop_predmety ON shop_nakupy.id_predmetu = shop_predmety.id_predmetu
              WHERE shop_nakupy.rok = $rocnik
                AND shop_predmety.kod_predmetu LIKE '%snidane%'
-               AND maPravo(shop_nakupy.id_uzivatele, $jidloZdarma) -- jidlo zdarma
+               AND {$maPravoUzivatele('shop_nakupy.id_uzivatele', $jidloZdarma)} -- jidlo zdarma
 
              UNION
 
@@ -614,7 +640,7 @@ FROM (SELECT MAX(data_rows.poradi) AS poradi, data_rows.kod, MAX(data_rows.nazev
                       JOIN shop_predmety ON shop_nakupy.id_predmetu = shop_predmety.id_predmetu
              WHERE shop_nakupy.rok = $rocnik
                AND (shop_predmety.kod_predmetu LIKE '%obed%' OR shop_predmety.kod_predmetu LIKE '%vecere%')
-               AND maPravo(shop_nakupy.id_uzivatele, $jidloZdarma) -- jidlo zdarma
+               AND {$maPravoUzivatele('shop_nakupy.id_uzivatele', $jidloZdarma)} -- jidlo zdarma
 
              UNION
 
@@ -626,8 +652,8 @@ FROM (SELECT MAX(data_rows.poradi) AS poradi, data_rows.kod, MAX(data_rows.nazev
                       JOIN shop_predmety ON shop_nakupy.id_predmetu = shop_predmety.id_predmetu
              WHERE shop_nakupy.rok = $rocnik
                AND shop_predmety.kod_predmetu LIKE '%snidane%'
-               AND NOT maPravo(shop_nakupy.id_uzivatele, $jidloZdarma) -- jidlo zdarma
-               AND maPravo(shop_nakupy.id_uzivatele, $jidloSeSlevou)   -- jidlo se slevou
+               AND NOT {$maPravoUzivatele('shop_nakupy.id_uzivatele', $jidloZdarma)} -- jidlo zdarma
+               AND {$maPravoUzivatele('shop_nakupy.id_uzivatele', $jidloSeSlevou)}   -- jidlo se slevou
 
              UNION
 
@@ -639,8 +665,8 @@ FROM (SELECT MAX(data_rows.poradi) AS poradi, data_rows.kod, MAX(data_rows.nazev
                       JOIN shop_predmety ON shop_nakupy.id_predmetu = shop_predmety.id_predmetu
              WHERE shop_nakupy.rok = $rocnik
                AND (shop_predmety.kod_predmetu LIKE '%obed%' OR shop_predmety.kod_predmetu LIKE '%vecere%')
-               AND NOT maPravo(shop_nakupy.id_uzivatele, $jidloZdarma) -- jidlo zdarma
-               AND maPravo(shop_nakupy.id_uzivatele, $jidloSeSlevou) -- jidlo se slevou
+               AND NOT {$maPravoUzivatele('shop_nakupy.id_uzivatele', $jidloZdarma)} -- jidlo zdarma
+               AND {$maPravoUzivatele('shop_nakupy.id_uzivatele', $jidloSeSlevou)} -- jidlo se slevou
             )
             UNION ALL
             (SELECT 1 AS poradi, 'Ir-Timestamp' AS kod, NULL AS nazev, NULL AS data

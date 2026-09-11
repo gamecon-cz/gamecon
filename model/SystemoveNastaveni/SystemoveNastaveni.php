@@ -5,12 +5,8 @@ declare(strict_types=1);
 namespace Gamecon\SystemoveNastaveni;
 
 use Composer\Autoload\ClassLoader;
-use Gamecon\Cache\CachedDb;
-use Gamecon\Cache\DbInterface;
 use Gamecon\Cache\ProgramStaticFileGenerator;
 use Gamecon\Cache\ProgramStaticFileType;
-use Gamecon\Cache\QueryCache;
-use Gamecon\Cache\RawDb;
 use Gamecon\Cas\DateTimeCz;
 use Gamecon\Cas\DateTimeGamecon;
 use Gamecon\Cas\DateTimeImmutableStrict;
@@ -114,8 +110,6 @@ class SystemoveNastaveni implements ZdrojRocniku, ZdrojVlnAktivit, ZdrojTed, Zdr
     private ?array                       $vsechnyZaznamyNastaveni     = null;
     private ?array                       $odvozeneHodnoty             = null;
     private ?array                       $vychoziHodnoty              = null;
-    private ?DbInterface                 $db                          = null;
-    private ?QueryCache                  $queryCache                  = null;
 
     public function __construct(
         private readonly int                     $rocnik,
@@ -1057,11 +1051,6 @@ SQL;
         return $this->publicCacheDir;
     }
 
-    public function databaseDataDependentCacheDir(): string
-    {
-        return $this->privateCacheDir . '/database/' . DB_NAME;
-    }
-
 
     public function prihlasovaciUdajeOstreDatabaze(): array
     {
@@ -1147,12 +1136,6 @@ SQL;
         return (bool)UBYTOVANI_POUZE_SPACAKY;
     }
 
-    public function jeZapnuteCachovaniSqlDotazu(): bool
-    {
-        // may not yet be defined during SQL migrations
-        return (bool)try_constant('CACHOVAT_SQL_DOTAZY');
-    }
-
     public function jeProdejJidlaPozastaven(): bool
     {
         return (bool)PRODEJ_JIDLA_POZASTAVEN;
@@ -1161,26 +1144,6 @@ SQL;
     public function jeZapnuteCachovaniApiOdpovedi(): bool
     {
         return (bool)CACHOVAT_API_ODPOVEDI;
-    }
-
-    public function db(): DbInterface
-    {
-        if (!$this->db) {
-            $this->db = $this->jeZapnuteCachovaniSqlDotazu()
-                ? new CachedDb($this->queryCache())
-                : new RawDb();
-        }
-
-        return $this->db;
-    }
-
-    public function queryCache(): QueryCache
-    {
-        if (!$this->queryCache) {
-            $this->queryCache = new QueryCache($this->databaseDataDependentCacheDir());
-        }
-
-        return $this->queryCache;
     }
 
     public function kernel(): Kernel

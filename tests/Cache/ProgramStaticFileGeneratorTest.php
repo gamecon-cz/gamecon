@@ -554,9 +554,6 @@ class ProgramStaticFileGeneratorTest extends AbstractTestDb
         // Worker deletes the new flag and regenerates
         $generator->deleteDirtyFlag(ProgramStaticFileType::AKTIVITY);
 
-        // Clear prefetched table versions so the next SQL fetch picks up DB changes
-        // even when the worker stays alive in the same process.
-        $systemoveNastaveni->db()->clearPrefetchedDataVersions();
         $generator->reset();
 
         $filenameV2 = $generator->generateActivities(self::ROK);
@@ -632,7 +629,6 @@ class ProgramStaticFileGeneratorTest extends AbstractTestDb
 
         // === Iterace 2 workeru ve STEJNÉM procesu ===
         // Přesně co dělá _program-static-files-worker.php na začátku iterace.
-        $systemoveNastaveni->db()->clearPrefetchedDataVersions();
         $generator->reset();
 
         $filenameV2 = $generator->generateObsazenosti(self::ROK);
@@ -775,9 +771,7 @@ class ProgramStaticFileGeneratorTest extends AbstractTestDb
         self::assertNotNull($zJsonu);
 
         $aktivita = \Gamecon\Aktivita\Aktivita::zId(id: $idAktivity);
-        $collector = new \Gamecon\Cache\DataSourcesCollector();
-        \Gamecon\Aktivita\Aktivita::organizatoriDSC($collector);
-        $zHelperu = ProgramStaticFileGenerator::aktivitaDoPole($aktivita, $collector);
+        $zHelperu = ProgramStaticFileGenerator::aktivitaDoPole($aktivita);
 
         self::assertSame(
             array_keys($zJsonu),

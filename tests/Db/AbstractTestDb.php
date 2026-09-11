@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace Gamecon\Tests\Db;
 
 use Gamecon\Aktivita\Aktivita;
-use Gamecon\SystemoveNastaveni\SystemoveNastaveni;
 use Symfony\Bundle\FrameworkBundle\Test\KernelTestCase;
 
 abstract class AbstractTestDb extends KernelTestCase
@@ -101,9 +100,6 @@ abstract class AbstractTestDb extends KernelTestCase
         }
         Aktivita::smazCache();
         \Uzivatel::smazCache();
-        $systemoveNastaveni = SystemoveNastaveni::zGlobals();
-        $systemoveNastaveni->queryCache()->clear();
-        $systemoveNastaveni->db()->clearPrefetchedDataVersions();
     }
 
     protected static function keepTestClassDbChangesInTransaction(): bool
@@ -157,8 +153,6 @@ abstract class AbstractTestDb extends KernelTestCase
         }
         Aktivita::smazCache();
         \Uzivatel::smazCache();
-        SystemoveNastaveni::zGlobals()->queryCache()->clear();
-        SystemoveNastaveni::zGlobals()->db()->clearPrefetchedDataVersions();
     }
 
     // například pro vypnutí kontroly "Field 'cena' doesn't have a default value"

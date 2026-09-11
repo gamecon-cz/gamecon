@@ -108,12 +108,12 @@ function kvs(
     string $key,
     string $value = null,
 ): ?string {
-    // Ensure LOGY directory exists
-    static $logyDirCreated = false;
+    // LOGY drží zámek, SPEC samotnou SQLite databázi – obojí musí existovat.
+    static $adresareVytvoreny = false;
 
-    if (!$logyDirCreated) {
-        (new Filesystem())->mkdir(LOGY);
-        $logyDirCreated = true;
+    if (!$adresareVytvoreny) {
+        (new Filesystem())->mkdir([LOGY, SPEC]);
+        $adresareVytvoreny = true;
     }
 
     // Acquire file lock to prevent parallel access issues

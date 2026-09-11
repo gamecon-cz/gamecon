@@ -5,12 +5,17 @@ declare(strict_types=1);
 namespace Gamecon\Tests\Rector\Rules;
 
 use PhpParser\Node;
+use PhpParser\Node\Arg;
 use PhpParser\Node\Attribute;
 use Rector\Rector\AbstractRector;
+use Symplify\RuleDocGenerator\Exception\PoorDocumentationException;
 use Symplify\RuleDocGenerator\ValueObject\RuleDefinition;
 
 final class ReorderAttributeArgumentsRector extends AbstractRector
 {
+    /**
+     * @throws PoorDocumentationException
+     */
     public function getRuleDefinition(): RuleDefinition
     {
         return new RuleDefinition(
@@ -19,6 +24,11 @@ final class ReorderAttributeArgumentsRector extends AbstractRector
         );
     }
 
+    /**
+     * Attribute itself, not the declarations that carry it: attributes on
+     * parameters and enum cases hang off nodes that a per-declaration list
+     * would have to enumerate, and silently miss whichever it forgets.
+     */
     public function getNodeTypes(): array
     {
         return [Attribute::class];
@@ -30,12 +40,6 @@ final class ReorderAttributeArgumentsRector extends AbstractRector
             return null;
         }
 
-        $attributeName = $this->getName($node->name);
-        if ($attributeName === null) {
-            return null;
-        }
-
-        // resolve fully qualified class name of attribute
         $fqcn = $this->nodeNameResolver->getName($node->name);
         if (! class_exists($fqcn)) {
             return null;
@@ -52,7 +56,6 @@ final class ReorderAttributeArgumentsRector extends AbstractRector
             $paramOrder[] = $param->getName();
         }
 
-        // skip if no named args
         if ($node->args === []) {
             return null;
         }
@@ -68,19 +71,17 @@ final class ReorderAttributeArgumentsRector extends AbstractRector
             }
         }
 
-        // only reorder named args
         if ($namedArgs === []) {
             return null;
         }
 
         $orderedArgs = [];
 
-        // keep positional args first
+        // Positional args must stay first; only the named tail is sorted.
         foreach ($positionalArgs as $positional) {
             $orderedArgs[] = $positional;
         }
 
-        // then reorder named args based on constructor
         foreach ($paramOrder as $paramName) {
             if (isset($namedArgs[$paramName])) {
                 $orderedArgs[] = $namedArgs[$paramName];
@@ -88,12 +89,12 @@ final class ReorderAttributeArgumentsRector extends AbstractRector
             }
         }
 
-        // add leftover named args (unknown ones)
+        // Args naming a parameter the constructor does not have (renamed or
+        // typo'd) keep their relative order rather than being dropped.
         foreach ($namedArgs as $arg) {
             $orderedArgs[] = $arg;
         }
 
-        // only replace if order changed
         if ($this->argsEqual($node->args, $orderedArgs)) {
             return null;
         }
@@ -103,6 +104,10 @@ final class ReorderAttributeArgumentsRector extends AbstractRector
         return $node;
     }
 
+    /**
+     * @param array<Arg> $a
+     * @param array<Arg> $b
+     */
     private function argsEqual(
         array $a,
         array $b,

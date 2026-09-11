@@ -8,7 +8,6 @@ use Gamecon\Aktivita\TypAktivity;
 use Gamecon\Cas\DateTimeCz;
 use Gamecon\Jidlo;
 use Gamecon\Pravo;
-use Gamecon\Shop\SqlStruktura\NakupySqlStruktura;
 use Gamecon\Shop\SqlStruktura\PredmetSqlStruktura as Sql;
 use Gamecon\SystemoveNastaveni\SystemoveNastaveni;
 use Gamecon\Uzivatel\Cenik;
@@ -230,11 +229,7 @@ SQL,
         $zakaznikId = $this->zakaznik->id();
 
         // vybrat všechny předměty pro tento rok + předměty v nabídce + předměty, které si koupil
-        $results = $this->systemoveNastaveni->db()->dbFetchAll(
-            [
-                Sql::SHOP_PREDMETY_TABULKA,
-                NakupySqlStruktura::SHOP_NAKUPY_TABULKA,
-            ],
+        $results = dbFetchAll(
             <<<SQL
             SELECT *
             FROM (

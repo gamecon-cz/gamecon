@@ -18,7 +18,7 @@ use Gamecon\Aktivita\EditorTagu;
 use Gamecon\Cache\ProgramStaticFileGenerator;
 use Gamecon\Cache\ProgramStaticFileType;
 
-$editorTagu = new EditorTagu($systemoveNastaveni->db());
+$editorTagu = new EditorTagu();
 
 $zpracovanyTag = $editorTagu->pridejNovyTag();
 if (!$zpracovanyTag) {

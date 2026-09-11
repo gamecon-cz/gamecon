@@ -59,7 +59,6 @@ class AktivitaTymovePrihlasovaniTest extends AbstractUzivatelTestDb
             dbQuery('DELETE FROM akce_tym');
 
             $this->systemoveNastaveni = self::vytvorSystemoveNastaveni();
-            $this->systemoveNastaveni->queryCache()->clear();
             $this->ctvrtfinale = Aktivita::zId(1, false, $this->systemoveNastaveni);
             $this->semifinaleA = Aktivita::zId(2, false, $this->systemoveNastaveni);
             $this->semifinaleB = Aktivita::zId(3, false, $this->systemoveNastaveni);
