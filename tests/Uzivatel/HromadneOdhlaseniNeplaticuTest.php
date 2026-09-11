@@ -165,7 +165,7 @@ class HromadneOdhlaseniNeplaticuTest extends AbstractTestDb
             TypPredmetu::JIDLO             => 'jidlo',
             TypPredmetu::VSTUPNE           => 'vstupne',
             TypPredmetu::PARCON            => 'parcon',
-            TypPredmetu::PROPLACENI_BONUSU => 'proplaceni-bonusu',
+            TypPredmetu::PROPLACENI_BONUSU => 'proplaceni_bonusu',
         };
 
         return [
