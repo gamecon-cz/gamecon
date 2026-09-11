@@ -12,6 +12,7 @@ use App\Entity\User;
 use App\Repository\OrderRepository;
 use App\Service\DiscountCalculator;
 use App\Service\PriceIncreaseNotifier;
+use App\Service\RestrictedProductRules;
 use Doctrine\ORM\EntityManagerInterface;
 use Psr\Log\LoggerInterface;
 
@@ -36,6 +37,7 @@ readonly class UserRoleChangedListener
         private OrderRepository $orderRepository,
         private DiscountCalculator $discountCalculator,
         private PriceIncreaseNotifier $priceIncreaseNotifier,
+        private RestrictedProductRules $restrictedProductRules,
         private LoggerInterface $logger,
     ) {
     }
@@ -68,11 +70,27 @@ readonly class UserRoleChangedListener
     {
         $hasChanges = false;
         $zdrazeni = [];
+        // Resolved once for the whole order; permissions cannot change mid-request.
+        $legacyUzivatel = $this->restrictedProductRules->dejLegacyUzivatele($user);
 
         foreach ($order->getItems() as $orderItem) {
             $product = $orderItem->getProduct();
 
             if ($product === null) {
+                continue;
+            }
+
+            // They ordered it while entitled; losing the right to order it again must not
+            // silently reprice what they already have. Without the legacy user the permission
+            // is unknowable, and silently freezing prices would hide that.
+            if ($legacyUzivatel === null) {
+                $this->logger->error('Přecenění objednávky bez legacy uživatele — práva nelze ověřit.', [
+                    'user_id' => $user->getId(),
+                ]);
+
+                return;
+            }
+            if (! $this->restrictedProductRules->smiObjednat($product, $legacyUzivatel)) {
                 continue;
             }
 
