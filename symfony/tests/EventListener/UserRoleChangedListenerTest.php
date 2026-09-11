@@ -12,6 +12,7 @@ use App\EventListener\UserRoleChangedListener;
 use App\Repository\OrderRepository;
 use App\Service\DiscountCalculator;
 use App\Service\PriceIncreaseNotifier;
+use App\Service\RestrictedProductRules;
 use Doctrine\ORM\EntityManagerInterface;
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
@@ -28,6 +29,8 @@ class UserRoleChangedListenerTest extends TestCase
     private MockObject $priceIncreaseNotifier;
 
     private MockObject $orderRepository;
+
+    private bool $smiObjednat = true;
 
     protected function setUp(): void
     {
@@ -64,6 +67,10 @@ class UserRoleChangedListenerTest extends TestCase
         $discountCalculator = $this->discountCalculator;
         /** @var PriceIncreaseNotifier $notifier */
         $notifier = $this->priceIncreaseNotifier;
+        $restrictedProductRules = $this->createMock(RestrictedProductRules::class);
+        $restrictedProductRules->method('smiObjednat')->willReturn($this->smiObjednat);
+        $restrictedProductRules->method('dejLegacyUzivatele')
+            ->willReturn($this->createMock(\Uzivatel::class));
         /** @var EntityManagerInterface $entityManager */
         $entityManager = $this->createMock(EntityManagerInterface::class);
         /** @var LoggerInterface $logger */
@@ -74,6 +81,7 @@ class UserRoleChangedListenerTest extends TestCase
             $orderRepository,
             $discountCalculator,
             $notifier,
+            $restrictedProductRules,
             $logger,
         ))->onUserRoleChanged($user, 2026);
     }
@@ -85,6 +93,15 @@ class UserRoleChangedListenerTest extends TestCase
             ->with(self::anything(), 2026, self::callback(
                 static fn (array $zdrazeni): bool => count($zdrazeni) === 1,
             ));
+
+        $this->spustProCenu('0.00', '250.00');
+    }
+
+    public function testItemTheCustomerMayNoLongerOrderKeepsItsPrice(): void
+    {
+        // They ordered the red t-shirt while entitled; losing the right must not reprice it.
+        $this->smiObjednat = false;
+        $this->priceIncreaseNotifier->expects(self::never())->method('oznamZdrazeni');
 
         $this->spustProCenu('0.00', '250.00');
     }

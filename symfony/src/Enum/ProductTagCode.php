@@ -12,8 +12,8 @@ namespace App\Enum;
  * — 'tricka' for 'tricko', or a Czech diacritic — matches nothing and fails silently:
  * no error, no failing test, the feature simply never applies.
  *
- * Seven of them are categories, one per product, mirroring the old typ 1–7. MIKINA and
- * SPACAK are different: they are sub-tags carried in addition to a category.
+ * Seven of them are categories, one per product, mirroring the old typ 1–7. The rest are
+ * sub-tags carried in addition to a category, each declaring which category it belongs on.
  */
 enum ProductTagCode: string
 {
@@ -28,6 +28,10 @@ enum ProductTagCode: string
     case MIKINA = 'mikina';
 
     case SPACAK = 'spacak';
+
+    case TRICKO_MODRE = 'tricko-modre';
+
+    case TRICKO_CERVENE = 'tricko-cervene';
 
     /**
      * The category tags — exactly one of these per product, the successor of typ 1–7.
@@ -62,8 +66,10 @@ enum ProductTagCode: string
     public static function subTagCategories(): array
     {
         return [
-            self::MIKINA->value => self::PREDMET,
-            self::SPACAK->value => self::UBYTOVANI,
+            self::MIKINA->value         => self::PREDMET,
+            self::SPACAK->value         => self::UBYTOVANI,
+            self::TRICKO_MODRE->value   => self::TRICKO,
+            self::TRICKO_CERVENE->value => self::TRICKO,
         ];
     }
 
@@ -103,6 +109,8 @@ enum ProductTagCode: string
             self::PROPLACENI_BONUSU => 'Výplata bonusu (interní)',
             self::MIKINA            => 'Mikina',
             self::SPACAK            => 'Spacák',
+            self::TRICKO_MODRE      => 'Modré tričko',
+            self::TRICKO_CERVENE    => 'Červené tričko',
         };
     }
 }
