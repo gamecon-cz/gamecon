@@ -136,7 +136,7 @@ SQL,
                 0 => ROCNIK,
             ],
         ],
-        "INSERT INTO product_product_tag (product_id, tag_id) SELECT 44412, id FROM product_tag WHERE code = 'proplaceni-bonusu'",
+        "INSERT INTO product_product_tag (product_id, tag_id) SELECT 44412, id FROM product_tag WHERE code = 'proplaceni_bonusu'",
         // PREDMET stary rok (id 44413) - archived (was model_rok = ROCNIK - 1)
         [
             <<<SQL
