@@ -57,6 +57,11 @@ class Predmet extends \DbObject
         return self::jeToDleCasti($kodPredmetu, 'taska');
     }
 
+    public static function jeToMikina(string $kodPredmetu): bool
+    {
+        return self::jeToDleCasti($kodPredmetu, 'mikina');
+    }
+
     public static function jeToSnidane(string $kodPredmetu): bool
     {
         return self::jeToDleCasti($kodPredmetu, 'snidane');

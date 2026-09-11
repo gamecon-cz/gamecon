@@ -15,6 +15,7 @@ use Gamecon\Shop\TypPredmetu;
 use Gamecon\SystemoveNastaveni\SystemoveNastaveni;
 use Gamecon\SystemoveNastaveni\SystemoveNastaveniKlice;
 use Gamecon\Uzivatel\Dto\PolozkaProBfgr;
+use Gamecon\Uzivatel\Finance;
 use Report;
 use Uzivatel;
 use Webmozart\Assert\Assert;
@@ -22,6 +23,36 @@ use Webmozart\Assert\Assert;
 // takzvaný BFSR (Big f**king Sirien report)
 class BfsrReport
 {
+    /**
+     * Druh ubytování -> [předpona kódu předmětu, popis do reportu].
+     * `Hdb-` musí zůstat před `Hd-`, jinak se dvojbuňky schovají do deluxe.
+     */
+    private const DRUHY_UBYTOVANI = [
+        'spac'            => ['spacak_', 'spacáky'],
+        'vlastni-stan'    => ['vlastni_stan_', 'vlastní stany'],
+        'chata-richor'    => ['4L_chataRichor_', 'chata Richor'],
+        'penzion-witch'   => ['2_4L_penzionWitch_', 'penzion Witch'],
+        'hotel-deluxe-2b' => ['Hdb-', 'hotel deluxe dvojbuňka'],
+        'hotel-deluxe'    => ['Hd-', 'hotel deluxe'],
+        'hotel-snidane'   => ['Hs-', 'hotel se snídaní'],
+        '3L'              => ['3L_', '3L'],
+        '2L'              => ['2L_', '2L'],
+        '1L'              => ['1L_', '1L'],
+    ];
+
+    /**
+     * Účetní řádky Infopultu, které Finance vydává společně s nákupy v shopu.
+     * Nejsou to předměty, mají prázdný kód a report je nevykazuje.
+     */
+    private const UCETNI_TYPY_MIMO_SHOP = [
+        Finance::AKTIVITY,
+        Finance::PRIPSANE_SLEVY,
+        Finance::ZUSTATEK_Z_PREDCHOZICH_LET,
+        Finance::ORGSLEVA,
+        Finance::BRIGADNICKA_ODMENA,
+        Finance::PLATBA,
+    ];
+
     private ?float $missedPriceCoefficient          = null;
     private ?float $tooLateCanceledPriceCoefficient = null;
 
@@ -56,14 +87,8 @@ SQL,
 
         // Inicializace počítadel
         $vstupneSum                  = 0.0;
-        $placeneUbytovani3L          = 0;
-        $placeneUbytovani2L          = 0;
-        $placeneUbytovani1L          = 0;
-        $placeneUbytovaniSpacak      = 0;
-        $zdarmaUbytovani3L           = 0;
-        $zdarmaUbytovani2L           = 0;
-        $zdarmaUbytovani1L           = 0;
-        $zdarmaUbytovaniSpacak       = 0;
+        $placeneNoci                 = array_fill_keys(array_keys(self::DRUHY_UBYTOVANI), 0);
+        $zdarmaNoci                  = array_fill_keys(array_keys(self::DRUHY_UBYTOVANI), 0);
         $trickaOrgovskaZdarma        = 0;
         $trickaVypravecskaZdarma     = 0;
         $trickaUcastnickaZdarma      = 0;
@@ -98,6 +123,9 @@ SQL,
         $taskyCelkem                 = [];
         $taskyZdarma                 = 0;
         $taskyPlacene                = 0;
+        $mikinyCelkem                = [];
+        $mikinyZdarma                = 0;
+        $mikinyPlacene               = 0;
         $jidlaSnidaneCelkem          = [];
         $jidlaSnidaneZdarma          = 0;
         $jidlaSnidaneSeSlevou        = 0;
@@ -162,35 +190,16 @@ SQL,
             $polozky = $navstevnik->finance()->dejPolozkyProBfgr();
 
             foreach ($polozky as $polozka) {
+                if (self::jeUcetniRadekMimoShop($polozka)) {
+                    continue;
+                }
+
                 // Ubytování - placené i zdarma
                 if ($polozka->typ === TypPredmetu::UBYTOVANI) {
                     $isPaid = $polozka->castka > 0.0;
 
-                    if (str_starts_with($polozka->kodPredmetu, 'spacak_')) {
-                        if ($isPaid) {
-                            $placeneUbytovaniSpacak++;
-                        } else {
-                            $zdarmaUbytovaniSpacak++;
-                        }
-                    } elseif (str_starts_with($polozka->kodPredmetu, '3L_')) {
-                        if ($isPaid) {
-                            $placeneUbytovani3L++;
-                        } else {
-                            $zdarmaUbytovani3L++;
-                        }
-                    } elseif (str_starts_with($polozka->kodPredmetu, '2L_')) {
-                        if ($isPaid) {
-                            $placeneUbytovani2L++;
-                        } else {
-                            $zdarmaUbytovani2L++;
-                        }
-                    } elseif (str_starts_with($polozka->kodPredmetu, '1L_')) {
-                        if ($isPaid) {
-                            $placeneUbytovani1L++;
-                        } else {
-                            $zdarmaUbytovani1L++;
-                        }
-                    } else {
+                    $druhUbytovani = self::druhUbytovaniPodleKodu($polozka->kodPredmetu);
+                    if ($druhUbytovani === null) {
                         throw new \Chyba(
                             sprintf(
                                 "Neznámý kód předmětu typu ubytování %s (název '%s')",
@@ -198,6 +207,12 @@ SQL,
                                 $polozka->nazev,
                             ),
                         );
+                    }
+
+                    if ($isPaid) {
+                        $placeneNoci[$druhUbytovani]++;
+                    } else {
+                        $zdarmaNoci[$druhUbytovani]++;
                     }
                     continue;
                 }
@@ -350,6 +365,20 @@ SQL,
                     continue;
                 }
 
+                // Mikiny
+                if (Predmet::jeToMikina($polozka->kodPredmetu)) {
+                    $mikinyCelkemKod                = 'Vr-Mikiny-' . $polozka->kodPredmetu;
+                    $mikinyCelkem[$mikinyCelkemKod] ??= 0;
+                    $mikinyCelkem[$mikinyCelkemKod]++;
+
+                    if ($polozka->castka === 0.0) {
+                        $mikinyZdarma++;
+                    } else {
+                        $mikinyPlacene++;
+                    }
+                    continue;
+                }
+
                 // Jídla - snídaně
                 if (Predmet::jeToSnidane($polozka->kodPredmetu)) {
                     $jidlaSnidaneCelkemKod                      = 'Xr-Jidla-Snidane';
@@ -443,14 +472,7 @@ SQL,
         $data = [
             ['Ir-Timestamp', 'Timestamp reportu', $this->systemoveNastaveni->ted()->format('Y-m-d H:i:s')],
             ['Vr-Vstupne', 'Dobrovolné vstupné (sum CZK)', $vstupneSum],
-            ['Vr-Ubytovani-3L', 'Prodané noci 3L (počet)', $placeneUbytovani3L],
-            ['Vr-Ubytovani-2L', 'Prodané noci 2L (počet)', $placeneUbytovani2L],
-            ['Vr-Ubytovani-1L', 'Prodané noci 1L (počet)', $placeneUbytovani1L],
-            ['Vr-Ubytovani-spac', 'Prodané noci spacáky (počet)', $placeneUbytovaniSpacak],
-            ['Nr-UbytovaniZdarma-3L', 'Noci 3L zdarma (počet)', $zdarmaUbytovani3L],
-            ['Nr-UbytovaniZdarma-2L', 'Noci 2L zdarma (počet)', $zdarmaUbytovani2L],
-            ['Nr-UbytovaniZdarma-1L', 'Noci 1L zdarma (počet)', $zdarmaUbytovani1L],
-            ['Nr-UbytovaniZdarma-spac', 'Noci spacáky zdarma (počet)', $zdarmaUbytovaniSpacak],
+            ...self::radkyUbytovani($placeneNoci, $zdarmaNoci),
             ['Ir-Ucast-Ucastnici', 'Počet letos přihlášených normálních účastníků (nespadajících do žádného z dalších Ir-Ucast-)', $participantStats['Ir-Ucast-Ucastnici'] ?? 0],
             ['Ir-Ucast-Org0', 'Počet letos přihlášených úplných orgů', $participantStats['Ir-Ucast-Org0'] ?? 0],
             ['Ir-Ucast-OrgU', 'Počet letos přihlášených orgů s ubytováním', $participantStats['Ir-Ucast-OrgU'] ?? 0],
@@ -610,6 +632,14 @@ SQL,
         }
 
         Assert::same(
+            array_sum($mikinyCelkem), $mikinyZdarma + $mikinyPlacene,
+            'Součet mikin zdarma a placených musí odpovídat celkovému počtu mikin',
+        );
+        foreach ($mikinyCelkem as $code => $value) {
+            $data[] = [$code, 'mikiny prodeje - včetně zdarma - kusy', $value];
+        }
+
+        Assert::same(
             array_sum($jidlaSnidaneCelkem), $jidlaSnidaneZdarma + $jidlaSnidaneSeSlevou + $jidlaSnidanePlnePlacene,
             'Součet snídaní zdarma, se slevou a placených musí odpovídat celkovému počtu snídaní',
         );
@@ -657,6 +687,42 @@ SQL,
         $data[] = ['Nr-Slevy-Manualni', 'Manuální slevy (Připsaná sleva přes admin) (sum CZK)', $manualniSlevyCelkem];
 
         Report::zPoli(['kod', 'popis', 'data'], $data)->tFormat($format);
+    }
+
+    public static function jeUcetniRadekMimoShop(PolozkaProBfgr $polozka): bool
+    {
+        return in_array($polozka->typ, self::UCETNI_TYPY_MIMO_SHOP, true);
+    }
+
+    private static function druhUbytovaniPodleKodu(string $kodPredmetu): ?string
+    {
+        foreach (self::DRUHY_UBYTOVANI as $druh => [$predpona]) {
+            if (str_starts_with($kodPredmetu, $predpona)) {
+                return $druh;
+            }
+        }
+
+        return null;
+    }
+
+    /**
+     * @param array<string, int> $placeneNoci
+     * @param array<string, int> $zdarmaNoci
+     * @return list<array{string, string, int}>
+     */
+    private static function radkyUbytovani(
+        array $placeneNoci,
+        array $zdarmaNoci,
+    ): array {
+        $radky = [];
+        foreach (self::DRUHY_UBYTOVANI as $druh => [, $popis]) {
+            $radky[] = ["Vr-Ubytovani-{$druh}", "Prodané noci {$popis} (počet)", $placeneNoci[$druh]];
+        }
+        foreach (self::DRUHY_UBYTOVANI as $druh => [, $popis]) {
+            $radky[] = ["Nr-UbytovaniZdarma-{$druh}", "Noci {$popis} zdarma (počet)", $zdarmaNoci[$druh]];
+        }
+
+        return $radky;
     }
 
     /**
