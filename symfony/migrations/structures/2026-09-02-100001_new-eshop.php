@@ -392,7 +392,7 @@ VALUES ('predmet', 'Předmět', 'Merch (kostky, odznaky, zápisníky)', NOW()),
        ('jidlo', 'Jídlo', NULL, NOW()),
        ('vstupne', 'Vstupné', NULL, NOW()),
        ('parcon', 'ParCon mini-akce', NULL, NOW()),
-       ('proplaceni-bonusu', 'Výplata bonusu (interní)', NULL, NOW())
+       ('proplaceni_bonusu', 'Výplata bonusu (interní)', NULL, NOW())
 SQL);
 }
 
@@ -421,7 +421,7 @@ JOIN product_tag ON product_tag.code = CASE shop_predmety.typ
     WHEN 4 THEN 'jidlo'
     WHEN 5 THEN 'vstupne'
     WHEN 6 THEN 'parcon'
-    WHEN 7 THEN 'proplaceni-bonusu'
+    WHEN 7 THEN 'proplaceni_bonusu'
 END
 WHERE shop_predmety.typ IS NOT NULL
 ON DUPLICATE KEY UPDATE product_id = product_id
@@ -547,12 +547,12 @@ SELECT
         WHEN 'jidlo' THEN 4
         WHEN 'vstupne' THEN 5
         WHEN 'parcon' THEN 6
-        WHEN 'proplaceni-bonusu' THEN 7
+        WHEN 'proplaceni_bonusu' THEN 7
     END
     FROM product_product_tag
     JOIN product_tag ON product_product_tag.tag_id = product_tag.id
     WHERE product_product_tag.product_id = shop_predmety.id_predmetu
-      AND product_tag.code IN ('predmet','ubytovani','tricko','jidlo','vstupne','parcon','proplaceni-bonusu')
+      AND product_tag.code IN ('predmet','ubytovani','tricko','jidlo','vstupne','parcon','proplaceni_bonusu')
     LIMIT 1) AS typ,
     CASE WHEN shop_predmety.archived_at IS NULL
          THEN (SELECT CAST(hodnota AS UNSIGNED) FROM systemove_nastaveni WHERE klic = 'ROCNIK' LIMIT 1)

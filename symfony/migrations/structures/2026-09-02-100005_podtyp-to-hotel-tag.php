@@ -8,7 +8,7 @@ declare(strict_types=1);
 // that signals "price already includes breakfast" (hotel rooms).
 // Replaces the earlier design that modelled this as a ProductTag 'hotel' —
 // a tag would have been inconsistent with the other category tags
-// (predmet/ubytovani/tricko/jidlo/vstupne/parcon/proplaceni-bonusu), all of
+// (predmet/ubytovani/tricko/jidlo/vstupne/parcon/proplaceni_bonusu), all of
 // which are mutually-exclusive categories, whereas hotel-ness is an attribute
 // that only ever coexists with the ubytovani category.
 $this->q(<<<SQL
