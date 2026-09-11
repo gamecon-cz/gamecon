@@ -142,7 +142,44 @@ Get the custom repository via `->getRepository(SomeEntity::class)` (returns the 
 - **Hashing**: Always use the complete result of a hashing function — never truncate it (e.g. `substr(md5(...), 0, 12)`) as this increases collision risk
 - **Cache directories**: Use `SPEC` constant for private cache files and `CACHE` constant for public cache files (web-accessible)
 
-## Git Branch Naming from Trello Cards
+## Kam patří úkol: GitHub issues vs. Trello
+
+Projekt má dva trackery a **rozhoduje publikum, ne velikost úkolu**:
+
+- **Čistě technické věci → [GitHub issue](https://github.com/gamecon-cz/gamecon/issues)**
+  a přidat je do projektu [@Gamecon](https://github.com/orgs/gamecon-cz/projects/2).
+  Typicky: upgrady závislostí, refaktoring, CI, build, statická analýza, technický dluh,
+  výkon, věci okolo infrastruktury. Tedy všechno, co dává smysl jen tomu, kdo čte kód.
+- **Všechno ostatní → Trello board 5C: Web & IT.** Featury, bugy hlášené uživateli,
+  cokoli, co řeší pořadatelé nebo účastníci.
+
+**Proč:** Trello čtou i nevývojáři (produkťáci, pořadatelé, business owneři). Karta typu
+„upgradovat vite na v8" je pro ně šum, ve kterém se ztrácí to, co je zajímá. Držíme proto
+Trello srozumitelné pro netechnické publikum a technický dluh vedeme v issues vedle kódu,
+kde k němu jde rovnou linkovat PR a commity.
+
+**Nové issue v projektu zakládej se stavem `Ready`** (ne `Backlog`) — projekt má sloupce
+`Backlog` / `Ready` / `In progress` / `In review` / `Done`.
+
+```bash
+gh issue create --title "..." --body-file <soubor> --label <label>
+
+PROJECT=$(gh project view 2 --owner gamecon-cz --format json --jq .id)
+STATUS=$(gh project field-list 2 --owner gamecon-cz --format json \
+  --jq '.fields[] | select(.name=="Status") | .id')
+READY=$(gh project field-list 2 --owner gamecon-cz --format json \
+  --jq '.fields[] | select(.name=="Status") | .options[] | select(.name=="Ready") | .id')
+ITEM=$(gh project item-add 2 --owner gamecon-cz --url <URL issue> --format json --jq .id)
+gh project item-edit --id "$ITEM" --project-id "$PROJECT" \
+  --field-id "$STATUS" --single-select-option-id "$READY"
+```
+
+`item-add` vrací ID *položky v projektu*, ne ID issue — přesně to chce `item-edit --id`.
+
+Když se úkol založí na špatném místě, přesuň ho a na původním nech odkaz, ať se nedělá
+dvojí evidence.
+
+## Git Branch Naming from Trello Cards / GitHub Issues
 
 When given a Trello card URL, the branch name is exactly the slug
 that already lives in the URL after the card ID — **no extra
@@ -179,6 +216,18 @@ This overrides the global YouTrack-style naming rule from
 `~/.claude/CLAUDE.md` — that one targets a different tracker (YouTrack
 ticket IDs like `PCA-682` aren't unique without the project prefix;
 Trello card numbers are).
+
+**U GitHub issue je to stejné, jen s prefixem `gh-`:** `gh-<číslo>-<slug>`,
+tedy `gh-1090-upgradovat-vite-na-v8` pro
+[issue #1090](https://github.com/gamecon-cz/gamecon/issues/1090). Slug si
+odvoď z názvu issue (malá písmena, oddělovač `-`).
+
+Prefix tu potřebujeme, protože Trello karty a GitHub issues číslují každý
+zvlášť a obě řady jsou už teď ve stejném rozsahu — `1444-neco` je karta,
+`gh-1090-neco` je issue. Bez prefixu by z názvu větve nešlo poznat, kam se
+jde podívat, a časem by na sebe čísla narazila.
+
+V PR pak piš `Fixes #1090` (u issue), aby se zavřelo mergnutím.
 
 ## Merging to `main`
 
