@@ -307,12 +307,6 @@ parameters:
             path: symfony/src/EventListener/UserRoleChangedListener.php
 
         -
-            message: '#^Unused App\\Rector\\ReorderAttributeArgumentsRector\:\:getRuleDefinition$#'
-            identifier: shipmonk.deadMethod
-            count: 1
-            path: symfony/src/Rector/ReorderAttributeArgumentsRector.php
-
-        -
             message: '#^Unused App\\Repository\\TeamRepository\:\:findByKodNaAktivite$#'
             identifier: shipmonk.deadMethod
             count: 1
