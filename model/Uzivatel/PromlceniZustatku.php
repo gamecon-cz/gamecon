@@ -19,27 +19,28 @@ class PromlceniZustatku
 {
     use LogHomadnychAkciTrait;
 
-    private const ROK_NEPLATNOST    = 3; // Počet let bez účasti, po kterých se zůstatek promlčí
+    private const ROK_NEPLATNOST = 3; // Počet let bez účasti, po kterých se zůstatek promlčí
     private const SKUPINA_PROMLCENI = 'promlceni-zustatku';
 
     public function __construct(
-        private readonly SystemoveNastaveni       $systemoveNastaveni,
+        private readonly SystemoveNastaveni $systemoveNastaveni,
         private readonly JobResultLoggerInterface $jobResultLogger,
     ) {
     }
 
     /**
      * Najde uživatele, jejichž zůstatek má být promlčen
-     * (pozitivní zůstatek + neúčast na GC po dobu ROK_NEPLATNOST let)
+     * (pozitivní zůstatek + neúčast na GC po dobu ROK_NEPLATNOST let
+     * + žádný pohyb na účtu za stejnou dobu)
      *
      * @return UzivatelKPromlceni[] Pole uživatelů určených k promlčení
      */
     public function najdiUzivateleKPromlceni(): array
     {
         $aktualniRocnik = $this->systemoveNastaveni->rocnik();
-        $ucastDoRoku    = $aktualniRocnik - self::ROK_NEPLATNOST;
+        $ucastDoRoku = $aktualniRocnik - self::ROK_NEPLATNOST;
 
-        $ucast     = Role::TYP_UCAST;
+        $ucast = Role::TYP_UCAST;
         $prihlasen = Role::VYZNAM_PRIHLASEN;
 
         $result = dbQuery(<<<SQL
@@ -56,7 +57,7 @@ LEFT JOIN (
     COUNT(*) AS pocet
     FROM platne_role_uzivatelu
     JOIN role_seznam AS role ON platne_role_uzivatelu.id_role = role.id_role
-    WHERE role.typ_role = '$ucast' AND role.vyznam_role = '$prihlasen'
+    WHERE role.typ_role = '{$ucast}' AND role.vyznam_role = '{$prihlasen}'
     GROUP BY id_uzivatele
 ) AS prihlaseni ON prihlaseni.id_uzivatele = uzivatele_hodnoty.id_uzivatele
 LEFT JOIN (
@@ -77,37 +78,43 @@ WHERE
             FROM platne_role_uzivatelu
             JOIN role_seznam AS role ON platne_role_uzivatelu.id_role = role.id_role
             WHERE platne_role_uzivatelu.id_uzivatele = uzivatele_hodnoty.id_uzivatele
-                AND role.typ_role = '$ucast'
-                AND role.vyznam_role = '$prihlasen'
-            HAVING MAX(role.rocnik_role) <= $ucastDoRoku
+                AND role.typ_role = '{$ucast}'
+                AND role.vyznam_role = '{$prihlasen}'
+            HAVING MAX(role.rocnik_role) <= {$ucastDoRoku}
     )
         OR NOT EXISTS (
             SELECT 1
             FROM platne_role_uzivatelu
             JOIN role_seznam AS role ON platne_role_uzivatelu.id_role = role.id_role
             WHERE platne_role_uzivatelu.id_uzivatele = uzivatele_hodnoty.id_uzivatele
-                AND role.typ_role = '$ucast'
-                AND role.vyznam_role = '$prihlasen'
+                AND role.typ_role = '{$ucast}'
+                AND role.vyznam_role = '{$prihlasen}'
         )
+    )
+    AND NOT EXISTS (
+        SELECT 1
+        FROM platby
+        WHERE platby.id_uzivatele = uzivatele_hodnoty.id_uzivatele
+            AND YEAR(platby.provedeno) > {$ucastDoRoku}
     )
 SQL,
         );
 
         $uzivatele = [];
         while ($r = mysqli_fetch_assoc($result)) {
-            $uzivatel = Uzivatel::zId($r['id_uzivatele']);
+            $uzivatel = \Uzivatel::zId($r['id_uzivatele']);
 
             $uzivatele[] = new UzivatelKPromlceni(
                 uzivatel: $uzivatel,
                 prihlaseniNaRocniky: $r['prihlaseniNaRocniky'] ?? '',
                 rokPosledniPlatby: isset($r['rokPosledniPlatby'])
-                    ? (int)$r['rokPosledniPlatby']
+                    ? (int) $r['rokPosledniPlatby']
                     : null,
                 mesicPosledniPlatby: isset($r['mesicPosledniPlatby'])
-                    ? (int)$r['mesicPosledniPlatby']
+                    ? (int) $r['mesicPosledniPlatby']
                     : null,
                 denPosledniPlatby: isset($r['denPosledniPlatby'])
-                    ? (int)$r['denPosledniPlatby']
+                    ? (int) $r['denPosledniPlatby']
                     : null,
             );
         }
@@ -119,15 +126,16 @@ SQL,
      * Promlčí zůstatky pro zadané ID uživatelů
      *
      * @param int[] $idsUzivatelu
-     * @param int $idAdmina ID administrátora provádějícího promlčení (nebo Uzivatel::SYSTEM pro automatické)
+     * @param int   $idAdmina     ID administrátora provádějícího promlčení (nebo Uzivatel::SYSTEM pro automatické)
+     *
      * @return array ['pocet' => int, 'suma' => float] Počet promlčených uživatelů a celková suma
      */
     public function promlcZustatky(
         array $idsUzivatelu,
-        int   $idAdmina,
+        int $idAdmina,
     ): array {
         $pocet = 0;
-        $suma  = 0;
+        $suma = 0;
 
         foreach ($idsUzivatelu as $id) {
             $odpoved = dbOneLine('
@@ -136,69 +144,73 @@ SQL,
                 WHERE id_uzivatele = $0
             ', [$id]);
 
-            if (!$odpoved) {
+            if (! $odpoved) {
                 continue;
             }
 
             $zustatek = $odpoved['zustatek'];
-            $suma     += $zustatek;
+            $suma += $zustatek;
 
             dbQuery('UPDATE uzivatele_hodnoty SET zustatek = 0 WHERE id_uzivatele = $0', [$id]);
 
             // Logování
             $soubor = LOGY . '/promlceni-' . date('Y-m-d_H-i-s') . '.log';
-            $cas    = date('Y-m-d H:i:s');
-            $zprava = "Promlčení provedl admin s id:          $idAdmina";
-            file_put_contents($soubor, "$cas $zprava\n", FILE_APPEND);
-            $zprava = "Promlčení zůstatku pro uživatele s id: $id";
-            file_put_contents($soubor, "$cas $zprava\n", FILE_APPEND);
-            $zprava = "Promlčená částka:                      $zustatek Kč" . "\n";
-            file_put_contents($soubor, "$cas $zprava\n", FILE_APPEND);
+            $cas = date('Y-m-d H:i:s');
+            $zprava = "Promlčení provedl admin s id:          {$idAdmina}";
+            file_put_contents($soubor, "{$cas} {$zprava}\n", FILE_APPEND);
+            $zprava = "Promlčení zůstatku pro uživatele s id: {$id}";
+            file_put_contents($soubor, "{$cas} {$zprava}\n", FILE_APPEND);
+            $zprava = "Promlčená částka:                      {$zustatek} Kč\n";
+            file_put_contents($soubor, "{$cas} {$zprava}\n", FILE_APPEND);
 
-            $pocet++;
+            ++$pocet;
         }
 
-        return ['pocet' => $pocet, 'suma' => $suma];
+        return [
+            'pocet' => $pocet,
+            'suma'  => $suma,
+        ];
     }
 
     /**
      * Vytvoří data pro CFO report s informacemi o promlčených zůstatcích
      *
      * @param UzivatelKPromlceni[] $uzivatele Pole uživatelů určených k promlčení
+     *
      * @return array[] Data připravená pro Report::zPole()
      */
     public function vytvorCfoReport(array $uzivatele): array
     {
         $aktualniRocnik = $this->systemoveNastaveni->rocnik();
-        $maxRok         = $this->systemoveNastaveni->poPrihlasovaniUcastniku($aktualniRocnik)
+        $maxRok = $this->systemoveNastaveni->poPrihlasovaniUcastniku($aktualniRocnik)
             ? $aktualniRocnik
             : $aktualniRocnik - 1;
 
         $ucastPodleRoku = [];
-        for ($rokUcasti = 2009; $rokUcasti <= $maxRok; $rokUcasti++) {
+        for ($rokUcasti = 2009; $rokUcasti <= $maxRok; ++$rokUcasti) {
             $ucastPodleRoku[Role::pritomenNaRocniku($rokUcasti)] = 'účast ' . $rokUcasti;
         }
 
         $obsah = [];
         foreach ($uzivatele as $uzivatelKPromlceni) {
-            $ucastiHistorie   = [];
+            $ucastiHistorie = [];
             $idsRoliUcastnika = $uzivatelKPromlceni->prihlaseniNaRocniky
                 ? explode(';', $uzivatelKPromlceni->prihlaseniNaRocniky)
                 : [];
 
             foreach ($ucastPodleRoku as $nazevUcasti) {
-                $rocnik                       = (int)str_replace('účast ', '', $nazevUcasti);
-                $ucastiHistorie[$nazevUcasti] = in_array((string)$rocnik, $idsRoliUcastnika, true)
+                $rocnik = (int) str_replace('účast ', '', $nazevUcasti);
+                $ucastiHistorie[$nazevUcasti] = in_array((string) $rocnik, $idsRoliUcastnika, true)
                     ? 'ano'
                     : 'ne';
             }
 
             $obsah[] = [
-                'id_uzivatele'          => $uzivatelKPromlceni->uzivatel->id(),
-                'nick'                  => $uzivatelKPromlceni->uzivatel->login(),
-                'jmeno'                 => $uzivatelKPromlceni->uzivatel->krestniJmeno(),
-                'prijmeni'              => $uzivatelKPromlceni->uzivatel->prijmeni(),
-                'email'                 => $uzivatelKPromlceni->uzivatel->mail(),
+                'id_uzivatele' => $uzivatelKPromlceni->uzivatel->id(),
+                'nick'         => $uzivatelKPromlceni->uzivatel->login(),
+                'jmeno'        => $uzivatelKPromlceni->uzivatel->krestniJmeno(),
+                'prijmeni'     => $uzivatelKPromlceni->uzivatel->prijmeni(),
+                'email'        => $uzivatelKPromlceni->uzivatel->mail(),
                 ...$ucastiHistorie,
                 'rok_posledni_platby'   => $uzivatelKPromlceni->rokPosledniPlatby,
                 'mesic_posledni_platby' => $uzivatelKPromlceni->mesicPosledniPlatby,
@@ -208,6 +220,27 @@ SQL,
         }
 
         return $obsah;
+    }
+
+    /**
+     * Vytvoří data pro CFO report se zůstatky všech uživatelů v databázi.
+     * Posílá se před i po promlčení, aby šly oba snímky porovnat.
+     *
+     * @return array[] Data připravená pro Report::zPole()
+     */
+    public function vytvorCfoReportVsechZustatku(): array
+    {
+        return dbFetchAll(<<<SQL
+SELECT
+    uzivatele_hodnoty.id_uzivatele,
+    uzivatele_hodnoty.login_uzivatele AS nick,
+    uzivatele_hodnoty.jmeno_uzivatele,
+    uzivatele_hodnoty.prijmeni_uzivatele,
+    uzivatele_hodnoty.email1_uzivatele AS email,
+    uzivatele_hodnoty.zustatek AS aktualni_zustatek
+FROM uzivatele_hodnoty
+SQL,
+        );
     }
 
     /**
@@ -240,7 +273,7 @@ SQL,
             self::SKUPINA_PROMLCENI,
             $this->nazevAkceVarovaniMesic($rocnik),
             $pocetEmailu,
-            Uzivatel::zId(Uzivatel::SYSTEM, true),
+            \Uzivatel::zId(\Uzivatel::SYSTEM, true),
         );
     }
 
@@ -255,7 +288,7 @@ SQL,
             self::SKUPINA_PROMLCENI,
             $this->nazevAkceVarovaniTyden($rocnik),
             $pocetEmailu,
-            Uzivatel::zId(Uzivatel::SYSTEM, true),
+            \Uzivatel::zId(\Uzivatel::SYSTEM, true),
         );
     }
 
@@ -263,15 +296,15 @@ SQL,
      * Zaloguje provedení automatického promlčení
      */
     public function zalogujAutomatickePromlceni(
-        int   $rocnik,
-        int   $pocetUzivatelu,
+        int $rocnik,
+        int $pocetUzivatelu,
         float $celkovaSuma,
     ): void {
         $this->zalogujHromadnouAkci(
             self::SKUPINA_PROMLCENI,
             $this->nazevAkceAutomatickePromlceni($rocnik),
-            "$pocetUzivatelu uživatelů, $celkovaSuma Kč",
-            Uzivatel::zId(Uzivatel::SYSTEM, true),
+            "{$pocetUzivatelu} uživatelů, {$celkovaSuma} Kč",
+            \Uzivatel::zId(\Uzivatel::SYSTEM, true),
         );
     }
 
@@ -279,24 +312,25 @@ SQL,
      * Odešle varovné e-maily uživatelům o promlčení zůstatků
      *
      * @param TypVarovaniPromlceni $typVarovani Typ varovného e-mailu (měsíc/týden před registrací)
-     * @param bool $znovu Zda má být varovný e-mail odeslán znovu i když už byl odeslán
+     * @param bool                 $znovu       Zda má být varovný e-mail odeslán znovu i když už byl odeslán
+     *
      * @return int Počet odeslaných e-mailů, nebo -1 pokud se odeslání nespustilo
      */
     public function odesliVarovneEmaily(
         TypVarovaniPromlceni $typVarovani,
-        bool                 $znovu = false,
+        bool $znovu = false,
     ): int {
-        $rocnik  = $this->systemoveNastaveni->rocnik();
+        $rocnik = $this->systemoveNastaveni->rocnik();
         $regGcOd = $this->systemoveNastaveni->prihlasovaniUcastnikuOd($rocnik);
 
         // Zkontroluj, jestli je správný čas
-        $casovyOffset       = match ($typVarovani) {
+        $casovyOffset = match ($typVarovani) {
             TypVarovaniPromlceni::MESIC => '-1 month',
             TypVarovaniPromlceni::TYDEN => '-1 week',
         };
-        $ocekavanyTermin    = (clone $regGcOd)->modify($casovyOffset);
+        $ocekavanyTermin = (clone $regGcOd)->modify($casovyOffset);
         $ocekavanyTerminMax = (clone $ocekavanyTermin)->modify('+23 hours');
-        $ted                = $this->systemoveNastaveni->ted();
+        $ted = $this->systemoveNastaveni->ted();
 
         // Spustit pouze pokud jsme v rozmezí (s tolerancí 23 hodin)
         if ($ted < $ocekavanyTermin || $ted > $ocekavanyTerminMax) {
@@ -314,9 +348,9 @@ SQL,
             return -1;
         }
 
-        if (!$znovu && $this->jizOdeslano($typVarovani, $rocnik)) {
+        if (! $znovu && $this->jizOdeslano($typVarovani, $rocnik)) {
             $nazev = $this->dejNazevVarovani($typVarovani);
-            $this->jobResultLogger->logs("Varovné e-maily o promlčení ($nazev): E-maily už byly odeslány pro rocnik $rocnik");
+            $this->jobResultLogger->logs("Varovné e-maily o promlčení ({$nazev}): E-maily už byly odeslány pro rocnik {$rocnik}");
 
             return -1;
         }
@@ -325,25 +359,25 @@ SQL,
 
         if (count($uzivatele) === 0) {
             $nazev = $this->dejNazevVarovani($typVarovani);
-            $this->jobResultLogger->logs("Varovné e-maily o promlčení ($nazev): Žádní uživatelé k varování");
+            $this->jobResultLogger->logs("Varovné e-maily o promlčení ({$nazev}): Žádní uživatelé k varování");
 
             return -1;
         }
 
-        $pocetLet              = self::ROK_NEPLATNOST;
+        $pocetLet = self::ROK_NEPLATNOST;
         $pocetOdeslanychEmailu = 0;
 
         foreach ($uzivatele as $uzivatelKPromlceni) {
             $uzivatel = $uzivatelKPromlceni->uzivatel;
-            if (!$uzivatel->mail()) {
+            if (! $uzivatel->mail()) {
                 continue;
             }
 
-            $zustatek = (int)$uzivatel->finance()->stav();
-            $jmeno    = $uzivatel->jmenoNick();
+            $zustatek = (int) $uzivatel->finance()->stav();
+            $jmeno = $uzivatel->jmenoNick();
 
             $predmet = $this->dejEmailPredmet($typVarovani, $rocnik, $zustatek);
-            $zprava  = $this->dejEmailZpravu($typVarovani, $rocnik, $jmeno, $zustatek, $pocetLet, $regGcOd, $uzivatel);
+            $zprava = $this->dejEmailZpravu($typVarovani, $rocnik, $jmeno, $zustatek, $pocetLet, $regGcOd, $uzivatel);
 
             (new GcMail($this->systemoveNastaveni))
                 ->adresat($uzivatel->mail())
@@ -351,7 +385,7 @@ SQL,
                 ->text($zprava)
                 ->odeslat(GcMail::FORMAT_TEXT);
 
-            $pocetOdeslanychEmailu++;
+            ++$pocetOdeslanychEmailu;
             set_time_limit(10); // Prodloužit timeout pro každý e-mail
         }
 
@@ -365,7 +399,7 @@ SQL,
         $this->odesliInfoCfo($typVarovani, $rocnik, $pocetOdeslanychEmailu, $pocetLet, $regGcOd);
 
         $nazev = $this->dejNazevVarovani($typVarovani);
-        $this->jobResultLogger->logs("Varovné e-maily o promlčení ($nazev): Odesláno $pocetOdeslanychEmailu e-mailů");
+        $this->jobResultLogger->logs("Varovné e-maily o promlčení ({$nazev}): Odesláno {$pocetOdeslanychEmailu} e-mailů");
 
         return $pocetOdeslanychEmailu;
     }
@@ -380,73 +414,75 @@ SQL,
 
     private function dejEmailPredmet(
         TypVarovaniPromlceni $typVarovani,
-        int                  $rocnik,
-        int                  $zustatek,
+        int $rocnik,
+        int $zustatek,
     ): string {
         return match ($typVarovani) {
-            TypVarovaniPromlceni::MESIC => "GameCon $rocnik - Tvůj zůstatek {$zustatek} Kč bude promlčen",
-            TypVarovaniPromlceni::TYDEN => "PŘIPOMÍNKA: GameCon $rocnik - Tvůj zůstatek {$zustatek} Kč bude promlčen",
+            TypVarovaniPromlceni::MESIC => "GameCon {$rocnik} - Tvůj zůstatek {$zustatek} Kč bude promlčen",
+            TypVarovaniPromlceni::TYDEN => "PŘIPOMÍNKA: GameCon {$rocnik} - Tvůj zůstatek {$zustatek} Kč bude promlčen",
         };
     }
 
     private function dejEmailZpravu(
         TypVarovaniPromlceni $typVarovani,
-        int                  $rocnik,
-        string               $jmeno,
-        int                  $zustatek,
-        int                  $pocetLet,
-        \DateTimeInterface   $regGcOd,
-        \Uzivatel            $uzivatel,
+        int $rocnik,
+        string $jmeno,
+        int $zustatek,
+        int $pocetLet,
+        \DateTimeInterface $regGcOd,
+        \Uzivatel $uzivatel,
     ): string {
         // Formátování počtu let
-        $pattern      = <<<ICU
+        $pattern = <<<ICU
         {pocetLet, plural,
             one {poslední # rok}
             few {poslední # roky}
             other {posledních # let}
         }
         ICU;
-        $formatter    = new \MessageFormatter('cs_CZ', $pattern);
-        $posledniRoky = trim($formatter->format(['pocetLet' => $pocetLet]));
-        $a            = $uzivatel->koncovkaDlePohlavi();
+        $formatter = new \MessageFormatter('cs_CZ', $pattern);
+        $posledniRoky = trim($formatter->format([
+            'pocetLet' => $pocetLet,
+        ]));
+        $a = $uzivatel->koncovkaDlePohlavi();
 
         return match ($typVarovani) {
             TypVarovaniPromlceni::MESIC => <<<TEXT
-Ahoj $jmeno,
+Ahoj {$jmeno},
 
-máš na GameCon účtu zůstatek $zustatek Kč, ale {$posledniRoky} jsi se GameConu nezúčastnil{$a}.
+máš na GameCon účtu zůstatek {$zustatek} Kč, ale {$posledniRoky} jsi se GameConu nezúčastnil{$a}.
 
 Hrozí promlčení zůstatku na Tvém GameCon účtu kvůli tvé neaktivitě.
 
-Zůstatek bude promlčen krátce po skončení letošního GameConu $rocnik.
+Zůstatek bude promlčen krátce po skončení letošního GameConu {$rocnik}.
 
 Co můžeš proti tomu udělat:
-- Registrovat se na letošní GameCon $rocnik (registrace začnou {$regGcOd->format('d.m.Y')})
+- Registrovat se na letošní GameCon {$rocnik} (registrace začnou {$regGcOd->format('d.m.Y')})
 - Kontaktovat nás na info@gamecon.cz a domluvit se, kam chceš zůstatek vrátit
 
-Tvůj zůstatek: $zustatek Kč
+Tvůj zůstatek: {$zustatek} Kč
 
 Děkujeme za pochopení!
 Tvůj
 organizační tým GameConu
 TEXT,
             TypVarovaniPromlceni::TYDEN => <<<TEXT
-Ahoj $jmeno,
+Ahoj {$jmeno},
 
 toto je připomínka našeho předchozího e-mailu.
 
-Máš na GameCon účtu zůstatek $zustatek Kč, ale {$posledniRoky} jsi se GameConu nezúčastnil{$a}.
+Máš na GameCon účtu zůstatek {$zustatek} Kč, ale {$posledniRoky} jsi se GameConu nezúčastnil{$a}.
 
 REGISTRACE UŽ ZA TÝDEN!
-Registrace na GameCon $rocnik začínají {$regGcOd->formatCasZacatekUdalosti()}.
+Registrace na GameCon {$rocnik} začínají {$regGcOd->formatCasZacatekUdalosti()}.
 
 Pokud se nezaregistruješ a nezúčastníš se letošního GameConu, tvůj zůstatek bude promlčen krátce po skončení akce.
 
 Co můžeš udělat:
-- Registrovat se na letošní GameCon $rocnik
+- Registrovat se na letošní GameCon {$rocnik}
 - Kontaktovat nás na info@gamecon.cz, pokud máš dotazy
 
-Tvůj zůstatek: $zustatek Kč
+Tvůj zůstatek: {$zustatek} Kč
 
 Děkujeme!
 Tvůj
@@ -457,16 +493,16 @@ TEXT,
 
     private function odesliInfoCfo(
         TypVarovaniPromlceni $typVarovani,
-        int                  $rocnik,
-        int                  $pocetEmailu,
-        int                  $pocetLet,
-        \DateTimeInterface   $regGcOd,
+        int $rocnik,
+        int $pocetEmailu,
+        int $pocetLet,
+        \DateTimeInterface $regGcOd,
     ): void {
-        $cfosEmaily = Uzivatel::cfosEmaily();
+        $cfosEmaily = \Uzivatel::cfosEmaily();
 
         $predmet = match ($typVarovani) {
-            TypVarovaniPromlceni::MESIC => "Varovné e-maily o promlčení zůstatků: odesláno $pocetEmailu e-mailů",
-            TypVarovaniPromlceni::TYDEN => "Připomínka promlčení zůstatků: odesláno $pocetEmailu e-mailů",
+            TypVarovaniPromlceni::MESIC => "Varovné e-maily o promlčení zůstatků: odesláno {$pocetEmailu} e-mailů",
+            TypVarovaniPromlceni::TYDEN => "Připomínka promlčení zůstatků: odesláno {$pocetEmailu} e-mailů",
         };
 
         $typTextu = match ($typVarovani) {
@@ -477,13 +513,13 @@ TEXT,
         $nazev = $this->dejNazevVarovani($typVarovani);
 
         $zprava = <<<TEXT
-$typTextu e-maily o promlčení zůstatků ($nazev před otevřením registrací) byly odeslány.
+{$typTextu} e-maily o promlčení zůstatků ({$nazev} před otevřením registrací) byly odeslány.
 
-Počet uživatelů: $pocetEmailu
+Počet uživatelů: {$pocetEmailu}
 Registrace začínají: {$regGcOd->format('d.m.Y H:i')}
-Počet let neúčasti: $pocetLet
+Počet let neúčasti: {$pocetLet}
 
-Uživatelé byli {$this->varovani($typVarovani)}, že jejich zůstatky budou promlčeny po skončení GameConu $rocnik, pokud se nezúčastní.
+Uživatelé byli {$this->varovani($typVarovani)}, že jejich zůstatky budou promlčeny po skončení GameConu {$rocnik}, pokud se nezúčastní.
 TEXT;
 
         (new GcMail($this->systemoveNastaveni))
@@ -510,7 +546,6 @@ TEXT;
         } !== null;
     }
 
-
     /**
      * Zjistí, zda už bylo pro daný ročník odesláno varovné upozornění (1 měsíc před)
      */
@@ -535,17 +570,16 @@ TEXT;
 
     private function nazevAkceVarovaniMesic(int $rocnik): string
     {
-        return "varovani-mesic-$rocnik";
+        return "varovani-mesic-{$rocnik}";
     }
 
     private function nazevAkceVarovaniTyden(int $rocnik): string
     {
-        return "varovani-tyden-$rocnik";
+        return "varovani-tyden-{$rocnik}";
     }
 
     private function nazevAkceAutomatickePromlceni(int $rocnik): string
     {
-        return "automaticke-promlceni-$rocnik";
+        return "automaticke-promlceni-{$rocnik}";
     }
-
 }

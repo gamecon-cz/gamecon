@@ -31,6 +31,9 @@ class PromlceniZustatkuTest extends AbstractTestDb
     private const ID_ZAPORNY_ZUSTATEK = 1004;
     private const ID_KLADNY_ZUSTATEK_NIKDY_NEMEL_UCAST = 1005;
     private const ID_KLADNY_ZUSTATEK_STARA_UCAST_2 = 1006;
+    private const ID_STARA_UCAST_NEDAVNA_PLATBA = 1007;
+    private const ID_STARA_UCAST_NEDAVNA_ZAPORNA_PLATBA = 1008;
+    private const ID_STARA_UCAST_NEDAVNY_NULOVY_POHYB = 1009;
 
     protected static bool $disableStrictTransTables = true;
 
@@ -90,7 +93,7 @@ class PromlceniZustatkuTest extends AbstractTestDb
             'Neúčastnil',
             250.0,
         );
-        $queries[] = self::platbaQuery(self::ID_KLADNY_ZUSTATEK_NIKDY_NEMEL_UCAST, 250.0, $rocnik - 2);
+        $queries[] = self::platbaQuery(self::ID_KLADNY_ZUSTATEK_NIKDY_NEMEL_UCAST, 250.0, $staryRocnik);
 
         // Druhý uživatel k promlčení pro testování více uživatelů najednou
         $queries[] = self::uzivatelQuery(
@@ -101,6 +104,37 @@ class PromlceniZustatkuTest extends AbstractTestDb
         );
         $queries[] = self::prihlasenNaRocnikQuery(self::ID_KLADNY_ZUSTATEK_STARA_UCAST_2, $staryRocnik);
         $queries[] = self::platbaQuery(self::ID_KLADNY_ZUSTATEK_STARA_UCAST_2, 100.0, $staryRocnik, 3, 15);
+
+        // Stará účast, ale poslal peníze v době promlčecí lhůty - NESMÍ být promlčen
+        $queries[] = self::uzivatelQuery(
+            self::ID_STARA_UCAST_NEDAVNA_PLATBA,
+            'Stará',
+            'Účast Nedávná Platba',
+            400.0,
+        );
+        $queries[] = self::prihlasenNaRocnikQuery(self::ID_STARA_UCAST_NEDAVNA_PLATBA, $staryRocnik);
+        $queries[] = self::platbaQuery(self::ID_STARA_UCAST_NEDAVNA_PLATBA, 400.0, $rocnik - 1);
+
+        // Stará účast a v promlčecí lhůtě jen záporný pohyb (vratka) - NESMÍ být promlčen,
+        // účet není nečinný
+        $queries[] = self::uzivatelQuery(
+            self::ID_STARA_UCAST_NEDAVNA_ZAPORNA_PLATBA,
+            'Stará',
+            'Účast Záporná Platba',
+            350.0,
+        );
+        $queries[] = self::prihlasenNaRocnikQuery(self::ID_STARA_UCAST_NEDAVNA_ZAPORNA_PLATBA, $staryRocnik);
+        $queries[] = self::platbaQuery(self::ID_STARA_UCAST_NEDAVNA_ZAPORNA_PLATBA, -50.0, $rocnik - 1);
+
+        // Stará účast a v promlčecí lhůtě jen nulový pohyb - NESMÍ být promlčen
+        $queries[] = self::uzivatelQuery(
+            self::ID_STARA_UCAST_NEDAVNY_NULOVY_POHYB,
+            'Stará',
+            'Účast Nulový Pohyb',
+            320.0,
+        );
+        $queries[] = self::prihlasenNaRocnikQuery(self::ID_STARA_UCAST_NEDAVNY_NULOVY_POHYB, $staryRocnik);
+        $queries[] = self::platbaQuery(self::ID_STARA_UCAST_NEDAVNY_NULOVY_POHYB, 0.0, $rocnik - 1);
 
         return $queries;
     }
@@ -337,6 +371,69 @@ SQL;
     /**
      * @test
      */
+    public function nenajdeUzivateleSNedavnouKladnouPlatbou()
+    {
+        $promlceniZustatku = $this->dejPromlceniZustatku();
+        $uzivatele = $promlceniZustatku->najdiUzivateleKPromlceni();
+
+        $idsUzivatelu = array_map(
+            fn (UzivatelKPromlceni $u) => $u->uzivatel->id(),
+            $uzivatele,
+        );
+
+        self::assertNotContains(
+            self::ID_STARA_UCAST_NEDAVNA_PLATBA,
+            $idsUzivatelu,
+            'Uživatel, který v promlčecí lhůtě poslal peníze, NESMÍ být nalezen k promlčení,'
+            . ' i když na GC dlouho nebyl',
+        );
+    }
+
+    /**
+     * @test
+     */
+    public function nenajdeUzivateleSNedavnymNulovymPohybem()
+    {
+        $promlceniZustatku = $this->dejPromlceniZustatku();
+        $uzivatele = $promlceniZustatku->najdiUzivateleKPromlceni();
+
+        $idsUzivatelu = array_map(
+            fn (UzivatelKPromlceni $u) => $u->uzivatel->id(),
+            $uzivatele,
+        );
+
+        self::assertNotContains(
+            self::ID_STARA_UCAST_NEDAVNY_NULOVY_POHYB,
+            $idsUzivatelu,
+            'Uživatel s nulovým pohybem v promlčecí lhůtě NESMÍ být nalezen k promlčení -'
+            . ' na účtu se něco dělo',
+        );
+    }
+
+    /**
+     * @test
+     */
+    public function nenajdeUzivateleSNedavnouZapornouPlatbou()
+    {
+        $promlceniZustatku = $this->dejPromlceniZustatku();
+        $uzivatele = $promlceniZustatku->najdiUzivateleKPromlceni();
+
+        $idsUzivatelu = array_map(
+            fn (UzivatelKPromlceni $u) => $u->uzivatel->id(),
+            $uzivatele,
+        );
+
+        self::assertNotContains(
+            self::ID_STARA_UCAST_NEDAVNA_ZAPORNA_PLATBA,
+            $idsUzivatelu,
+            'Uživatel se záporným pohybem (vratkou) v promlčecí lhůtě NESMÍ být nalezen'
+            . ' k promlčení - účet není nečinný',
+        );
+    }
+
+    /**
+     * @test
+     */
     public function nenajdeUzivateleSNedavnouUcasti()
     {
         $promlceniZustatku = $this->dejPromlceniZustatku();
@@ -421,6 +518,72 @@ SQL;
 
         // Zkontrolujeme informaci o účasti
         self::assertStringContainsString((string) $staryRocnik, $uzivatelDto->prihlaseniNaRocniky);
+    }
+
+    /**
+     * @test
+     */
+    public function reportVsechZustatkuObsahujeIUzivateleKteriSeNepromlcuji()
+    {
+        $promlceniZustatku = $this->dejPromlceniZustatku();
+        $report = $promlceniZustatku->vytvorCfoReportVsechZustatku();
+
+        $idsVReportu = array_column($report, 'id_uzivatele');
+        $idsVReportu = array_map('intval', $idsVReportu);
+
+        self::assertContains(
+            self::ID_KLADNY_ZUSTATEK_STARA_UCAST,
+            $idsVReportu,
+            'Report všech zůstatků musí obsahovat i uživatele určené k promlčení',
+        );
+        self::assertContains(
+            self::ID_KLADNY_ZUSTATEK_NEDAVNA_UCAST,
+            $idsVReportu,
+            'Report všech zůstatků musí obsahovat i uživatele s nedávnou účastí',
+        );
+        self::assertContains(
+            self::ID_NULOVY_ZUSTATEK,
+            $idsVReportu,
+            'Report všech zůstatků musí obsahovat i uživatele s nulovým zůstatkem',
+        );
+        self::assertContains(
+            self::ID_ZAPORNY_ZUSTATEK,
+            $idsVReportu,
+            'Report všech zůstatků musí obsahovat i dlužníky',
+        );
+
+        $pocetUzivateluKPromlceni = count($promlceniZustatku->najdiUzivateleKPromlceni());
+        self::assertGreaterThan(
+            $pocetUzivateluKPromlceni,
+            count($report),
+            'Report všech zůstatků musí být širší než seznam uživatelů k promlčení',
+        );
+    }
+
+    /**
+     * @test
+     */
+    public function reportVsechZustatkuObsahujeOcekavaneSloupce()
+    {
+        $promlceniZustatku = $this->dejPromlceniZustatku();
+        $report = $promlceniZustatku->vytvorCfoReportVsechZustatku();
+
+        self::assertNotEmpty($report);
+
+        $radekTestovacihoUzivatele = null;
+        foreach ($report as $radek) {
+            if ((int) $radek['id_uzivatele'] === self::ID_KLADNY_ZUSTATEK_STARA_UCAST) {
+                $radekTestovacihoUzivatele = $radek;
+                break;
+            }
+        }
+
+        self::assertNotNull($radekTestovacihoUzivatele);
+        self::assertSame(
+            ['id_uzivatele', 'nick', 'jmeno_uzivatele', 'prijmeni_uzivatele', 'email', 'aktualni_zustatek'],
+            array_keys($radekTestovacihoUzivatele),
+        );
+        self::assertSame(500.0, (float) $radekTestovacihoUzivatele['aktualni_zustatek']);
     }
 
     /**
