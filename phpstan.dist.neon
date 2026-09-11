@@ -47,6 +47,20 @@ parameters:
             path: symfony/src/Entity/*
             message: '#::(get|set|add|remove)[A-Z]#'
 
+        # Analysis covers only symfony/, so a constructor called from the legacy tree has no
+        # visible caller: Cenik.php builds all three Discount classes, and the entities are
+        # instantiated from model/, tests/ and symfony/tests/. Entities are also excluded
+        # from DI in services.yaml, so the container cannot vouch for them either.
+        #
+        # Temporary: drop it once model/ is in paths:, which removes the cause rather than
+        # the symptom. See docs/generated/phpstan-scope-legacy-tree.md.
+        -
+            identifier: shipmonk.deadMethod
+            message: '#^Unused App\\(Discount\\(DiscountCalculation|DiscountRuleLoader|DiscountableItem)|Entity\\(Activity|CategoryTag|ProductBundle|ProductDiscount|ProductVariant|Tournament|User))\:\:__construct$#'
+            paths:
+                - symfony/src/Entity/*
+                - symfony/src/Discount/*
+
         # These five actions are routed from symfony/config/routes.yaml rather than by
         # #[Route], and the detector reads DI service definitions, not routing, so they
         # have no visible caller. Listed by name on purpose: a blanket Controller/* rule
