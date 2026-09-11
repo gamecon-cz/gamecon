@@ -123,7 +123,7 @@ SQL,
                     0, 2, $budouci, null);
 
                 // PROPLACENI_BONUSU — should be skipped by constructor
-                self::vlozProdukt(77720, 'Proplacení bonusu', "bonus_{$rocnik}", 'proplaceni-bonusu',
+                self::vlozProdukt(77720, 'Proplacení bonusu', "bonus_{$rocnik}", 'proplaceni_bonusu',
                     0, 1, $budouci, null);
 
                 // Product from previous year — archived (for letosniPolozky year filter test)
