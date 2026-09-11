@@ -50,6 +50,8 @@ class PriceIncreaseNotifierTest extends TestCase
 
             public bool $selhat = false;
 
+            public bool $drainPriOdeslani = false;
+
             public bool $selhatPriSestaveni = false;
 
             protected function dejZustatek(User $customer): string
@@ -65,6 +67,10 @@ class PriceIncreaseNotifierTest extends TestCase
             {
                 if ($this->selhat) {
                     throw new \RuntimeException('SMTP je nedostupné');
+                }
+                if ($this->drainPriOdeslani) {
+                    $this->drainPriOdeslani = false;
+                    $this->odesliFrontu();
                 }
                 $this->odeslane[] = [
                     'email'   => $email,
@@ -96,7 +102,9 @@ class PriceIncreaseNotifierTest extends TestCase
     {
         $this->userRepository->expects(self::never())->method('findByRoleMeaning');
 
-        $this->notifier()->oznamZdrazeni($this->zakaznik(), 2026, []);
+        $notifier = $this->notifier();
+        $notifier->oznamZdrazeni($this->zakaznik(), 2026, []);
+        $notifier->odesliFrontu();
 
         self::assertSame([], $this->odeslane);
     }
@@ -107,13 +115,15 @@ class PriceIncreaseNotifierTest extends TestCase
             ->with(RoleMeaning::CFO)
             ->willReturn([$this->cfo('cfo1@example.invalid'), $this->cfo('cfo2@example.invalid')]);
 
-        $this->notifier()->oznamZdrazeni($this->zakaznik(), 2026, [
+        $notifier = $this->notifier();
+        $notifier->oznamZdrazeni($this->zakaznik(), 2026, [
             7 => [
                 'nazev' => 'Tričko',
                 'pred'  => '0.00',
                 'po'    => '250.00',
             ],
         ]);
+        $notifier->odesliFrontu();
 
         self::assertCount(2, $this->odeslane);
         self::assertSame('cfo1@example.invalid', $this->odeslane[0]['email']);
@@ -142,6 +152,7 @@ class PriceIncreaseNotifierTest extends TestCase
                 'po'    => '250.00',
             ],
         ]);
+        $notifier->odesliFrontu();
 
         self::assertSame([], $this->odeslane);
     }
@@ -166,6 +177,69 @@ class PriceIncreaseNotifierTest extends TestCase
                 'po'    => '250.00',
             ],
         ]);
+        $notifier->odesliFrontu();
+
+        self::assertSame([], $this->odeslane);
+    }
+
+    public function testQueuingAloneSendsNothing(): void
+    {
+        $this->userRepository->method('findByRoleMeaning')
+            ->willReturn([$this->cfo('cfo@example.invalid')]);
+
+        $notifier = $this->notifier();
+        // No drain: in production this is the still-open transaction, where a mail must not
+        // go out yet — the price change may still roll back.
+        $notifier->oznamZdrazeni($this->zakaznik(), 2026, [
+            7 => [
+                'nazev' => 'Tričko',
+                'pred'  => '0.00',
+                'po'    => '250.00',
+            ],
+        ]);
+
+        self::assertSame([], $this->odeslane);
+    }
+
+    public function testReentrantDrainDoesNotSendTheSameBatchTwice(): void
+    {
+        $this->userRepository->method('findByRoleMeaning')
+            ->willReturn([$this->cfo('cfo@example.invalid')]);
+
+        $notifier = $this->notifier();
+        // Sending can flush (logging, legacy reads), which re-enters odesliFrontu().
+        $notifier->drainPriOdeslani = true;
+        $notifier->oznamZdrazeni($this->zakaznik(), 2026, [
+            7 => [
+                'nazev' => 'Tričko',
+                'pred'  => '0.00',
+                'po'    => '250.00',
+            ],
+        ]);
+        $notifier->odesliFrontu();
+
+        self::assertCount(1, $this->odeslane);
+    }
+
+    public function testAFailedBatchIsNotResentOnTheNextFlush(): void
+    {
+        $this->userRepository->method('findByRoleMeaning')
+            ->willReturn([$this->cfo('cfo@example.invalid')]);
+
+        $notifier = $this->notifier();
+        $notifier->selhat = true;
+        $notifier->oznamZdrazeni($this->zakaznik(), 2026, [
+            7 => [
+                'nazev' => 'Tričko',
+                'pred'  => '0.00',
+                'po'    => '250.00',
+            ],
+        ]);
+        $notifier->odesliFrontu();
+
+        // An unrelated later flush must not resurrect the failed batch.
+        $notifier->selhat = false;
+        $notifier->odesliFrontu();
 
         self::assertSame([], $this->odeslane);
     }
@@ -175,13 +249,15 @@ class PriceIncreaseNotifierTest extends TestCase
         $this->userRepository->method('findByRoleMeaning')->willReturn([]);
         $this->logger->expects(self::once())->method('error');
 
-        $this->notifier()->oznamZdrazeni($this->zakaznik(), 2026, [
+        $notifier = $this->notifier();
+        $notifier->oznamZdrazeni($this->zakaznik(), 2026, [
             7 => [
                 'nazev' => 'Tričko',
                 'pred'  => '0.00',
                 'po'    => '250.00',
             ],
         ]);
+        $notifier->odesliFrontu();
 
         self::assertSame([], $this->odeslane);
     }
