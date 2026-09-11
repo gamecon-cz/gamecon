@@ -21,12 +21,12 @@ SELECT
         WHEN 'jidlo' THEN 4
         WHEN 'vstupne' THEN 5
         WHEN 'parcon' THEN 6
-        WHEN 'proplaceni-bonusu' THEN 7
+        WHEN 'proplaceni_bonusu' THEN 7
     END
     FROM product_product_tag
     JOIN product_tag ON product_product_tag.tag_id = product_tag.id
     WHERE product_product_tag.product_id = shop_predmety.id_predmetu
-      AND product_tag.code IN ('predmet','ubytovani','tricko','jidlo','vstupne','parcon','proplaceni-bonusu')
+      AND product_tag.code IN ('predmet','ubytovani','tricko','jidlo','vstupne','parcon','proplaceni_bonusu')
     LIMIT 1) AS typ,
     CASE
         WHEN shop_predmety.breakfast_included THEN _utf8mb4'hotel' COLLATE utf8mb4_czech_ci

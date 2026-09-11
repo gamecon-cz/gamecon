@@ -14,6 +14,10 @@ namespace App\Enum;
  *
  * Seven of them are categories, one per product, mirroring the old typ 1–7. The rest are
  * sub-tags carried in addition to a category, each declaring which category it belongs on.
+ *
+ * Codes separate words with an underscore, never a dash: a tag names one concept, and the
+ * underscore reads as the space in that name. (Product codes are a different namespace —
+ * there a dash does separate parts, as in `Hd-2L-ct` = type `Hd-2L`, night `ct`.)
  */
 enum ProductTagCode: string
 {
@@ -23,15 +27,15 @@ enum ProductTagCode: string
     case JIDLO = 'jidlo';
     case VSTUPNE = 'vstupne';
     case PARCON = 'parcon';
-    case PROPLACENI_BONUSU = 'proplaceni-bonusu';
+    case PROPLACENI_BONUSU = 'proplaceni_bonusu';
 
     case MIKINA = 'mikina';
 
     case SPACAK = 'spacak';
 
-    case TRICKO_MODRE = 'tricko-modre';
+    case TRICKO_MODRE = 'tricko_modre';
 
-    case TRICKO_CERVENE = 'tricko-cervene';
+    case TRICKO_CERVENE = 'tricko_cervene';
 
     /**
      * The category tags — exactly one of these per product, the successor of typ 1–7.
