@@ -11,8 +11,8 @@ use App\Enum\ProductStateEnum;
 
 $this->q(<<<SQL
 INSERT IGNORE INTO product_tag (code, name, created_at)
-VALUES ('tricko-modre', 'Modré tričko', NOW()),
-       ('tricko-cervene', 'Červené tričko', NOW())
+VALUES ('tricko_modre', 'Modré tričko', NOW()),
+       ('tricko_cervene', 'Červené tričko', NOW())
 SQL);
 
 // Keyed on kod_predmetu, not on the name. The code says who the shirt is for
@@ -23,8 +23,8 @@ SQL);
 $stavOmezeny = ProductStateEnum::RESTRICTED->value;
 
 foreach ([
-    'tricko-modre'   => 'vypravecske',
-    'tricko-cervene' => 'organizatorske',
+    'tricko_modre'   => 'vypravecske',
+    'tricko_cervene' => 'organizatorske',
 ] as $kodTagu => $kodProKoho) {
     $this->q(<<<SQL
 INSERT IGNORE INTO product_product_tag (product_id, tag_id)
