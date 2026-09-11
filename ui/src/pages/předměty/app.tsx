@@ -23,7 +23,7 @@ const KATEGORIE_TAG_KODY = [
   "jidlo",
   "vstupne",
   "parcon",
-  "proplaceni-bonusu",
+  "proplaceni_bonusu",
 ] as const;
 
 const ACCOMMODATION_TAG_CODE = "ubytovani";
