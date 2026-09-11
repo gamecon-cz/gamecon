@@ -18,6 +18,11 @@ use Psr\Log\LoggerInterface;
  */
 class PriceIncreaseNotifier
 {
+    /**
+     * @var array<int, array{customer: User, year: int, zdrazeni: array<int, array{nazev: string, pred: string, po: string}>}>
+     */
+    private array $fronta = [];
+
     public function __construct(
         private readonly UserRepository $userRepository,
         private readonly LoggerInterface $logger,
@@ -25,6 +30,9 @@ class PriceIncreaseNotifier
     }
 
     /**
+     * Only queued here, never sent: the caller runs in postPersist, which Doctrine fires
+     * before the commit. Sending is left to {@see odesliFrontu()} after it.
+     *
      * @param array<int, array{nazev: string, pred: string, po: string}> $zdrazeni keyed by order item id
      */
     public function oznamZdrazeni(User $customer, int $year, array $zdrazeni): void
@@ -33,16 +41,33 @@ class PriceIncreaseNotifier
             return;
         }
 
-        // Doctrine fires postPersist before the commit, so anything escaping from here would
-        // roll back the role change that triggered it. Failing to report must never undo the
-        // thing being reported.
-        try {
-            $this->oznam($customer, $year, $zdrazeni);
-        } catch (\Throwable $chyba) {
-            $this->logger->error('Oznámení o zdražení selhalo.', [
-                'user_id'   => $customer->getId(),
-                'exception' => $chyba,
-            ]);
+        $this->fronta[] = [
+            'customer' => $customer,
+            'year'     => $year,
+            'zdrazeni' => $zdrazeni,
+        ];
+    }
+
+    /**
+     * Drains what postPersist queued. Runs after the commit, so a failure here cannot undo
+     * the price change being reported — and a rolled-back change never reaches this at all.
+     */
+    public function odesliFrontu(): void
+    {
+        $fronta = $this->fronta;
+        // Taken before sending, so a nested flush triggered while sending cannot see the
+        // same batch and send it twice.
+        $this->fronta = [];
+
+        foreach ($fronta as $polozka) {
+            try {
+                $this->oznam($polozka['customer'], $polozka['year'], $polozka['zdrazeni']);
+            } catch (\Throwable $chyba) {
+                $this->logger->error('Oznámení o zdražení selhalo.', [
+                    'user_id'   => $polozka['customer']->getId(),
+                    'exception' => $chyba,
+                ]);
+            }
         }
     }
 
