@@ -58,7 +58,7 @@ class Order
     )]
     private string $status = self::STATUS_PENDING;
 
-    #[ORM\Column(type: Types::DECIMAL, precision: 8, scale: 2, nullable: false, options: [
+    #[ORM\Column(type: Types::DECIMAL, precision: 10, scale: 2, nullable: false, options: [
         'default' => '0.00',
     ])]
     #[Assert\PositiveOrZero(message: 'Celková cena musí být kladné číslo nebo nula')]
