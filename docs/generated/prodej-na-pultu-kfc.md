@@ -42,15 +42,16 @@ potřeba, protože dokument jinde tvrdí, že obě cesty mají psát srovnateln�
 | | legacy `prodat()` | pult přes `CartService` |
 |---|---|---|
 | cena | vždy syrová `cena_aktualni` | prochází slevovým enginem podle rolí kupujícího |
-| kapacita | jen `kusu_vyrobeno` vs `COUNT(*)` | `CapacityManager`, tedy i `reserved_for_organizers` |
+| kapacita | jen `kusu_vyrobeno` vs `COUNT(*)` | `CapacityManager`; rezervaci pro organizátory pult obejde, celkovou zásobu ne |
 | termín prodeje merche | neřešil vůbec | platí, po termínu jen přes obejití (logované) |
 
 Slevy dnes nic nespustí — `SYSTEM` nemá žádnou roli a `product_discount` je prázdná —
 ale jakmile by roli dostal, prodával by pult anonymnímu zákazníkovi se slevou. Vlastní
 anonymní účet bez rolí to řeší konstrukcí, ne výjimkou.
 
-Rezervace pro organizátory naopak pult **zužuje**: kusy odložené organizátorům nesmí
-prodat, i když fyzicky leží na pultu. Legacy tenhle pojem neznalo.
+Rezervaci pro organizátory pult **obchází záměrně** (`GUARD_ORGANIZER_STOCK`): komu kus
+vydá, rozhoduje obsluha, a legacy tenhle pojem stejně neznalo. Celkovou zásobu obejít
+nejde — prodat neexistující kus nesmí nikdo.
 
 ## Co se ví a zatím neudělalo
 

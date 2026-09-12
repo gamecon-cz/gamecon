@@ -341,6 +341,65 @@ class KfcSaleProcessorTest extends AbstractDatabaseKernelTestCase
     }
 
     /**
+     * Kusy odložené organizátorům smí pult prodat komukoli — komu je vydá, rozhoduje obsluha.
+     * Legacy prodej rezervace vůbec neznal, takže bez tohohle by pult uměl míň než dřív.
+     *
+     * @test
+     */
+    public function pultProdaIKusyRezervovanaProOrganizatory(): void
+    {
+        $this->prihlasOperatora();
+        $predmet = $this->vytvorPredmet(kusuVyrobeno: 3);
+
+        // Všechny tři kusy jsou odložené organizátorům — účastníkovi by nezbylo nic.
+        $this->connection()->executeStatement(
+            'UPDATE product_variant SET reserved_for_organizers = 3 WHERE product_id = :id',
+            [
+                'id' => $predmet->getId(),
+            ],
+        );
+        // Jen osvěžit variantu, ne clear(): ten by odpojil i přihlášeného operátora a Doctrine
+        // by ho při zápisu považovala za novou entitu.
+        $this->entityManager()->refresh($predmet->getVariants()->first());
+
+        $vysledek = $this->zpracuj($this->prodej($predmet));
+
+        self::assertSame(1, $vysledek->soldItems, 'Pult musí prodat i z rezervovaných kusů');
+        self::assertSame(
+            2,
+            (int) $this->connection()->fetchOne(
+                'SELECT remaining_quantity FROM product_variant WHERE product_id = :id',
+                [
+                    'id' => $predmet->getId(),
+                ],
+            ),
+        );
+    }
+
+    /**
+     * @test
+     */
+    public function pultNeprodaVicNezJeCelkemNaSklade(): void
+    {
+        $this->prihlasOperatora();
+        $predmet = $this->vytvorPredmet(kusuVyrobeno: 0);
+
+        $this->connection()->executeStatement(
+            'UPDATE product_variant SET reserved_for_organizers = 5 WHERE product_id = :id',
+            [
+                'id' => $predmet->getId(),
+            ],
+        );
+        $this->entityManager()->refresh($predmet->getVariants()->first());
+
+        // Rezervaci pult obejít smí, celkovou zásobu ne — prodat neexistující kus nelze.
+        $this->expectException(\RuntimeException::class);
+        $this->expectExceptionMessageMatches('~kapacita~');
+
+        $this->zpracuj($this->prodej($predmet));
+    }
+
+    /**
      * @test
      */
     public function prodejOdecteKusZeZasoby(): void
