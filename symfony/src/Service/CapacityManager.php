@@ -45,13 +45,16 @@ class CapacityManager
      *
      * @throws \RuntimeException if not enough stock
      */
-    public function purchase(ProductVariant $variant, int $quantity = 1, array $roleMeanings = []): void
+    public function purchase(ProductVariant $variant, int $quantity = 1, array $roleMeanings = [], ?OperatorOverride $override = null): void
     {
         if ($variant->getRemainingQuantity() === null) {
             return; // unlimited capacity, nothing to decrement
         }
 
-        $isOrganizer = RoleMeaning::anyIsOrganizer($roleMeanings);
+        // Prodej na pultu sahá i na kusy odložené organizátorům — komu je vydá, je věc
+        // obsluhy. Celková zásoba se tím neobchází, jen ta rezervovaná část.
+        $isOrganizer = RoleMeaning::anyIsOrganizer($roleMeanings)
+            || $override?->allows(OperatorOverride::GUARD_ORGANIZER_STOCK) === true;
 
         if ($isOrganizer) {
             $affectedRows = $this->connection->executeStatement(

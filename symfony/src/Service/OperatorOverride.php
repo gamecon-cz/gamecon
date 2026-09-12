@@ -16,6 +16,8 @@ final readonly class OperatorOverride
 {
     public const GUARD_DEADLINE = 'deadline';
 
+    public const GUARD_ORGANIZER_STOCK = 'organizer_stock';
+
     public const SOURCE_KFC = 'kfc';
 
     /**
@@ -29,14 +31,13 @@ final readonly class OperatorOverride
     }
 
     /**
-     * The KFC till. Past the deadline is fine — after the merch cut-off every counter sale is
-     * a bypass, so the log needs the source to stay readable. Stock is deliberately absent:
-     * the legacy Shop::prodat() never consulted a date gate but always counted stock, and
-     * nothing may oversell. Add a guard here only once CartService actually honours it.
+     * The KFC till. Past the deadline is fine, and so is stock set aside for organizers —
+     * whoever stands at the counter decides who gets it. Total stock is NOT bypassable:
+     * nothing may sell a piece that does not exist.
      */
     public static function deskSale(User $operator): self
     {
-        return new self($operator, [self::GUARD_DEADLINE], self::SOURCE_KFC);
+        return new self($operator, [self::GUARD_DEADLINE, self::GUARD_ORGANIZER_STOCK], self::SOURCE_KFC);
     }
 
     public function allows(string $guard): bool
