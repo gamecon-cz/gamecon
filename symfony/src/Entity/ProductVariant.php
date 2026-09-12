@@ -96,7 +96,7 @@ class ProductVariant
     #[Groups([Product::READ, self::READ, self::WRITE])]
     private string $code;
 
-    #[ORM\Column(type: Types::DECIMAL, precision: 6, scale: 2, nullable: true)]
+    #[ORM\Column(type: Types::DECIMAL, precision: 10, scale: 2, nullable: true)]
     #[Assert\PositiveOrZero(message: 'Cena musí být kladné číslo nebo nula')]
     #[Groups([Product::READ, self::READ, self::WRITE])]
     private ?string $price = null;
