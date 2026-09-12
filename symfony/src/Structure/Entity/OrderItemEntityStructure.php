@@ -40,6 +40,11 @@ class OrderItemEntityStructure
     public const productTags = 'productTags';
 
     /**
+     * @see OrderItem::$overrideLog
+     */
+    public const overrideLog = 'overrideLog';
+
+    /**
      * @see OrderItem::$variantName
      */
     public const variantName = 'variantName';
