@@ -219,7 +219,7 @@ class CartService
             $bypassed[] = OperatorOverride::GUARD_DEADLINE;
         }
 
-        $this->capacityManager->purchase($variant, 1, $roleMeanings);
+        $this->capacityManager->purchase($variant, 1, $roleMeanings, $override);
 
         $item = $this->buildOrderItem($order, $variant, $bundle, $roleMeanings);
 
