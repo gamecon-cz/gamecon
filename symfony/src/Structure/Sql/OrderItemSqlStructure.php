@@ -42,6 +42,11 @@ class OrderItemSqlStructure
     public const product_tags = 'product_tags';
 
     /**
+     * @see OrderItem::$overrideLog
+     */
+    public const override_log = 'override_log';
+
+    /**
      * @see OrderItem::$variantName
      */
     public const variant_name = 'variant_name';
