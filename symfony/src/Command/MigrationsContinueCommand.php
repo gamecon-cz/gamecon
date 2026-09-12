@@ -52,6 +52,8 @@ class MigrationsContinueCommand extends Command
         // Run migrations silently
         $dbMigrations = new DbMigrations($migrationsConfig);
 
+        $puvodniRezim = $this->zapniPrisnyRezim($connection);
+
         try {
             $dbMigrations->run(silent: true);
             $io->success('All migrations have been applied successfully');
@@ -62,6 +64,23 @@ class MigrationsContinueCommand extends Command
             $io->writeln($throwable->getTraceAsString());
 
             return Command::FAILURE;
+        } finally {
+            dbQuery('SET SESSION sql_mode = $0', [$puvodniRezim], $connection);
         }
+    }
+
+    /**
+     * Bez striktního režimu je zúžení sloupce jen varování: `DECIMAL(10,2)` na `DECIMAL(4,2)`
+     * uřízne 12345.67 na 99.99, migrace projde a data jsou pryč. Se `STRICT_ALL_TABLES` to
+     * skončí chybou 1264 a hodnoty zůstanou.
+     *
+     * @return string původní režim, který volající musí vrátit zpátky
+     */
+    private function zapniPrisnyRezim(\PDO $connection): string
+    {
+        $puvodniRezim = (string) dbOneCol('SELECT @@SESSION.sql_mode', null, $connection);
+        dbQuery('SET SESSION sql_mode = $0', [$puvodniRezim . ',STRICT_ALL_TABLES'], $connection);
+
+        return $puvodniRezim;
     }
 }
