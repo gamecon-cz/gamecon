@@ -10,6 +10,7 @@ use App\Entity\Product;
 use App\Entity\ProductBundle;
 use App\Entity\ProductVariant;
 use App\Entity\User;
+use App\Enum\ProductStateEnum;
 use App\Enum\RoleMeaning;
 use App\Repository\OrderRepository;
 use App\Repository\ProductBundleRepository;
@@ -20,7 +21,7 @@ use App\Service\DiscountCalculator;
 use Doctrine\ORM\EntityManagerInterface;
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
-use App\Enum\ProductStateEnum;
+use Symfony\Component\Clock\MockClock;
 
 class CartServiceTest extends TestCase
 {
@@ -55,6 +56,7 @@ class CartServiceTest extends TestCase
             $this->capacityManager,
             $this->discountCalculator,
             $this->yearProvider,
+            new MockClock('2026-09-12 10:00:00'),
         );
     }
 
