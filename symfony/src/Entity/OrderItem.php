@@ -110,12 +110,12 @@ class OrderItem
     #[Assert\PositiveOrZero(message: 'Cena musí být kladné číslo nebo nula')]
     private string $purchasePrice;
 
-    #[ORM\Column(name: 'original_price', type: Types::DECIMAL, precision: 6, scale: 2, nullable: true, options: [
+    #[ORM\Column(name: 'original_price', type: Types::DECIMAL, precision: 10, scale: 2, nullable: true, options: [
         'comment' => 'Original price before discounts',
     ])]
     private ?string $originalPrice = null;
 
-    #[ORM\Column(name: 'discount_amount', type: Types::DECIMAL, precision: 6, scale: 2, nullable: true, options: [
+    #[ORM\Column(name: 'discount_amount', type: Types::DECIMAL, precision: 10, scale: 2, nullable: true, options: [
         'comment' => 'Discount amount in CZK',
     ])]
     private ?string $discountAmount = null;
