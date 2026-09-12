@@ -18,6 +18,7 @@ Pravidla **kdy** konzultovat / vytvořit dokument jsou v kořenovém `CLAUDE.md`
 - [tricka-velikosti-a-varianty](tricka-velikosti-a-varianty.md) — velikost trička je v legacy samostatný produkt (477 z 486 má velikost v `kod_predmetu`, ne spolehlivě v názvu); jak seskupovat (base kód + ročník = 112 skupin), že cena i kapacita jsou per-varianta, a proč vedle sized produktů existuje bezvelikostní řádek pro interní prodej na festivalu
 - [phpstan-scope-legacy-tree](phpstan-scope-legacy-tree.md) — PHPStan analyzuje jen `symfony/`, takže konstruktory volané z `model/` (Cenik → Discount\*) a z testů hlásí jako mrtvé; dočasné potlačení `__construct` nálezů a úkol přidat `model/` do `paths:` než e-shop dojede do `main`; proč se nálezy objevily až po rebase (Rectorův autoloader je maskoval, a neexistující baseline cesta shodila celý běh před analýzou)
 - [sql-mode-strict](sql-mode-strict.md) — cíl zapnout `STRICT_TRANS_TABLES`: dnes server běží nestriktně, takže zúžení sloupce i běžný zápis **tiše ořezávají data a hlásí úspěch** (ověřeno: `12345.67` → `99.99`); migrace si striktní režim už zapínají samy, aplikace zatím ne, protože padají testy
+- [prodej-na-pultu-kfc](prodej-na-pultu-kfc.md) — pokladna na infopultu: proč je kupujícím `SYSTEM` (id 1) a ne NULL, že se anonymní prodej musí připsat do `platby`, jinak SYSTEM narůstá fiktivní dluh, a že `poznamka` „anonymní prodej" je jen popisek řádku ve finančním přehledu, ne příznak — plus proč se příznak zavede až pro obě zapisující cesty naráz
 
 ## Povinné minimum dokumentu
 

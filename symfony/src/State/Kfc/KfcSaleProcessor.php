@@ -8,83 +8,133 @@ use ApiPlatform\Metadata\Operation;
 use ApiPlatform\State\ProcessorInterface;
 use App\Dto\Kfc\KfcSaleInputDto;
 use App\Dto\Kfc\KfcSaleOutputDto;
+use App\Entity\Payment;
+use App\Entity\Product;
+use App\Entity\ProductVariant;
+use App\Entity\User;
+use App\Service\CartService;
 use App\Service\CurrentYearProviderInterface;
-use Doctrine\DBAL\Connection;
+use App\Service\OperatorOverride;
+use Doctrine\ORM\EntityManagerInterface;
+use Psr\Clock\ClockInterface;
+use Symfony\Bundle\SecurityBundle\Security;
 
 /**
  * Processes KFC point-of-sale purchases.
- * Inserts purchase rows into shop_nakupy (one per unit, matching legacy behavior).
  *
  * @implements ProcessorInterface<KfcSaleInputDto, KfcSaleOutputDto>
  */
 readonly class KfcSaleProcessor implements ProcessorInterface
 {
+    /**
+     * A walk-up buyer has no account, so the purchase is booked on the SYSTEM user. NULL was
+     * tried and caused problems; see docs/generated/prodej-na-pultu-kfc.md.
+     */
+    private const ID_SYSTEMOVEHO_UZIVATELE = 1;
+
     public function __construct(
-        private Connection $connection,
+        private EntityManagerInterface $entityManager,
+        private CartService $cartService,
         private CurrentYearProviderInterface $yearProvider,
+        private Security $security,
+        private ClockInterface $clock,
     ) {
     }
 
     public function process(mixed $data, Operation $operation, array $uriVariables = [], array $context = []): KfcSaleOutputDto
     {
-        $year = $this->yearProvider->getCurrentYear();
-        $soldItems = 0;
-        $totalPrice = 0;
+        $operator = $this->security->getUser();
+        if (! $operator instanceof User) {
+            throw new \RuntimeException('Prodej na pultu musí provádět přihlášený uživatel.');
+        }
 
+        $kupujici = $this->entityManager->find(User::class, self::ID_SYSTEMOVEHO_UZIVATELE);
+        if ($kupujici === null) {
+            throw new \RuntimeException('Systémový uživatel neexistuje, nelze zaúčtovat anonymní prodej.');
+        }
+
+        $rok = $this->yearProvider->getCurrentYear();
+        $override = OperatorOverride::deskSale($operator);
+        $prodanoKusu = 0;
+        $celkem = '0.00';
+
+        // Předměty se hledají před transakcí: výjimka uvnitř wrapInTransaction zavře
+        // EntityManager, takže by se z „neznámý produkt" stala nesrozumitelná chyba 500.
+        $kZaplaceni = [];
         foreach ($data->items as $saleItem) {
-            $productId = $saleItem->productId;
-            $quantity = $saleItem->quantity;
+            $kZaplaceni[] = [$this->dejVariantu($saleItem->productId), $saleItem->quantity];
+        }
 
-            // Fetch product price and stock
-            $product = $this->connection->fetchAssociative(
-                'SELECT cena_aktualni, kusu_vyrobeno, nazev FROM shop_predmety WHERE id_predmetu = :id',
-                [
-                    'id' => $productId,
-                ],
-            );
+        $this->entityManager->wrapInTransaction(function () use ($kZaplaceni, $kupujici, $operator, $override, $rok, &$prodanoKusu, &$celkem): void {
+            $kosik = $this->cartService->getOrCreateCart($kupujici);
 
-            if ($product === false) {
-                throw new \RuntimeException(sprintf('Produkt s ID %d nebyl nalezen.', $productId));
-            }
-
-            $price = (int) round((float) $product['cena_aktualni']);
-
-            // Check remaining stock if limited
-            if ($product['kusu_vyrobeno'] !== null) {
-                $sold = (int) $this->connection->fetchOne(
-                    'SELECT COUNT(*) FROM shop_nakupy WHERE id_predmetu = :id AND rok = :year',
-                    [
-                        'id'   => $productId,
-                        'year' => $year,
-                    ],
-                );
-                $remaining = (int) $product['kusu_vyrobeno'] - $sold;
-
-                if ($remaining < $quantity) {
-                    throw new \RuntimeException(sprintf('Nedostatek kusů produktu "%s". Zbývá: %d, požadováno: %d.', $product['nazev'], $remaining, $quantity));
+            foreach ($kZaplaceni as [$varianta, $pocetKusu]) {
+                // Řádek na kus, stejně jako legacy prodej — každý kus je vlastní nákup.
+                for ($kus = 0; $kus < $pocetKusu; ++$kus) {
+                    $polozka = $this->cartService->addItem($kosik, $varianta, override: $override);
+                    $celkem = bcadd($celkem, $polozka->getPurchasePrice(), 2);
+                    ++$prodanoKusu;
                 }
             }
 
-            // Insert one row per unit (legacy behavior — each piece is a separate purchase record)
-            for ($unit = 0; $unit < $quantity; ++$unit) {
-                $this->connection->executeStatement(
-                    'INSERT INTO shop_nakupy (id_uzivatele, id_predmetu, rok, cena_nakupni, datum)
-                     VALUES (1, :productId, :year, :price, NOW())',
-                    [
-                        'productId' => $productId,
-                        'year'      => $year,
-                        'price'     => $product['cena_aktualni'],
-                    ],
-                );
+            // Bez připsání zůstane v shop_nakupy pohledávka za SYSTEM, kterou nikdo nezaplatil,
+            // a jeho dluh roste s každým dalším prodejem na pultu.
+            if ($prodanoKusu > 0) {
+                $this->entityManager->persist($this->zaplaceno($kupujici, $operator, $this->kZaplaceni($celkem), $rok));
             }
-
-            $soldItems += $quantity;
-            $totalPrice += $price * $quantity;
-        }
+        });
 
         return new KfcSaleOutputDto(
-            soldItems: $soldItems,
-            totalPrice: (string) $totalPrice,
+            soldItems: $prodanoKusu,
+            totalPrice: $this->kZaplaceni($celkem),
         );
+    }
+
+    /**
+     * Na pultu se platí v celých korunách — drobné se tam nevydávají. Připsaná platba musí
+     * sedět na tutéž částku, jinak by se pokladna a účetnictví rozešly o haléře, jakmile
+     * se objeví procentní sleva. Zaokrouhluje se nahoru od poloviny, ne ořezává: ořez by
+     * u 42,99 účtoval 42.
+     */
+    private function kZaplaceni(string $celkem): string
+    {
+        return bcadd($celkem, '0.5', 0);
+    }
+
+    /**
+     * Prodejní jednotkou je v novém schématu varianta; běžný předmět z pultu má právě jednu.
+     */
+    private function dejVariantu(int $idPredmetu): ProductVariant
+    {
+        $predmet = $this->entityManager->find(Product::class, $idPredmetu);
+        if ($predmet === null) {
+            throw new \RuntimeException(sprintf('Produkt s ID %d nebyl nalezen.', $idPredmetu));
+        }
+
+        $varianty = $predmet->getVariants();
+        if ($varianty->isEmpty()) {
+            throw new \RuntimeException(sprintf('Produkt "%s" nemá žádnou variantu k prodeji.', $predmet->getName()));
+        }
+        // Pult umí prodat jen jednoznačný předmět. U víc variant (velikosti, noci) by výběr
+        // té první znamenal tiše prodat něco jiného, než si zákazník vzal z pultu.
+        if ($varianty->count() > 1) {
+            throw new \RuntimeException(sprintf('Produkt "%s" má víc variant, vyber konkrétní.', $predmet->getName()));
+        }
+
+        return $varianty->first();
+    }
+
+    private function zaplaceno(User $kupujici, User $operator, string $castka, int $rok): Payment
+    {
+        $platba = new Payment();
+        $platba->setBeneficiary($kupujici);
+        $platba->setMadeBy($operator);
+        $platba->setCastka($castka);
+        $platba->setRok($rok);
+        $platba->setProvedeno(\DateTime::createFromImmutable($this->clock->now()));
+        // Stejný text jako legacy prodej, aby obě cesty psaly srovnatelný řádek.
+        $platba->setPoznamka('anonymní prodej');
+
+        return $platba;
     }
 }

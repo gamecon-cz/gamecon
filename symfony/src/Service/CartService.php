@@ -15,6 +15,7 @@ use App\Repository\OrderRepository;
 use App\Repository\ProductBundleRepository;
 use Doctrine\ORM\EntityManagerInterface;
 use Gamecon\SystemoveNastaveni\SystemoveNastaveni;
+use Symfony\Component\Clock\ClockInterface;
 
 /**
  * CartService — business logic for the shopping cart.
@@ -31,6 +32,7 @@ class CartService
         private readonly CapacityManager $capacityManager,
         private readonly DiscountCalculator $discountCalculator,
         private readonly CurrentYearProviderInterface $currentYearProvider,
+        private readonly ClockInterface $clock,
     ) {
     }
 
@@ -74,7 +76,7 @@ class CartService
      *
      * @throws \RuntimeException if product unavailable, sold out, or in a forced bundle
      */
-    public function addItem(Order $order, ProductVariant $variant, array $roleMeanings = []): OrderItem
+    public function addItem(Order $order, ProductVariant $variant, array $roleMeanings = [], ?OperatorOverride $override = null): OrderItem
     {
         // Guard: reject if variant is in a forced bundle for this user
         $mandatoryBundle = $this->bundleRepository->findMandatoryBundleForVariant($variant, $roleMeanings);
@@ -82,7 +84,7 @@ class CartService
             throw new \RuntimeException(sprintf('Varianta "%s" je součástí povinného balíčku "%s". Použijte nákup celého balíčku.', $variant->getFullName(), $mandatoryBundle->getName()));
         }
 
-        return $this->createOrderItem($order, $variant, null, $roleMeanings);
+        return $this->createOrderItem($order, $variant, null, $roleMeanings, $override);
     }
 
     /**
@@ -194,13 +196,15 @@ class CartService
      *
      * @param RoleMeaning[] $roleMeanings
      */
-    private function createOrderItem(Order $order, ProductVariant $variant, ?ProductBundle $bundle, array $roleMeanings): OrderItem
+    private function createOrderItem(Order $order, ProductVariant $variant, ?ProductBundle $bundle, array $roleMeanings, ?OperatorOverride $override = null): OrderItem
     {
         $product = $variant->getProduct();
 
         if (! $product->isAvailable()) {
             throw new \RuntimeException(sprintf('Produkt "%s" není dostupný.', $product->getName()));
         }
+
+        $bypassed = [];
 
         // Merch has a section-wide deadline on top of the per-product state, so a page
         // left open past it — or a direct POST — must not still buy.
@@ -209,12 +213,24 @@ class CartService
             && ! $product->hasTag(ProductTagCode::MIKINA->value)
             && SystemoveNastaveni::zGlobals()->prodejPredmetuBezTricekUkoncen()
         ) {
-            throw new \RuntimeException(sprintf('Prodej předmětu "%s" už skončil.', $product->getName()));
+            if ($override?->allows(OperatorOverride::GUARD_DEADLINE) !== true) {
+                throw new \RuntimeException(sprintf('Prodej předmětu "%s" už skončil.', $product->getName()));
+            }
+            $bypassed[] = OperatorOverride::GUARD_DEADLINE;
         }
 
         $this->capacityManager->purchase($variant, 1, $roleMeanings);
 
         $item = $this->buildOrderItem($order, $variant, $bundle, $roleMeanings);
+
+        if ($override !== null) {
+            $item->setOrderer($override->operator);
+            // Jen pravidla, o která nákup opravdu zakopl — log má říkat, co se obešlo, ne
+            // co všechno operátor obejít směl.
+            foreach ($bypassed as $guard) {
+                $item->recordOverride($guard, $override->source, $override->operator, $this->clock->now());
+            }
+        }
 
         $order->addItem($item);
         $order->recalculateTotal();

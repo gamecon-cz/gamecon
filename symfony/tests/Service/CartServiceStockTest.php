@@ -13,6 +13,7 @@ use App\Enum\ProductStateEnum;
 use App\Enum\ProductTagCode;
 use App\Service\CapacityManager;
 use App\Service\CartService;
+use App\Service\OperatorOverride;
 use App\Structure\Entity\UserEntityStructure;
 use App\Tests\AbstractDatabaseKernelTestCase;
 use Gamecon\Cas\DateTimeImmutableStrict;
@@ -301,6 +302,95 @@ class CartServiceStockTest extends AbstractDatabaseKernelTestCase
         $this->expectExceptionMessageMatches('~skončil~');
 
         $this->cartService()->addItem($kosik, $variant);
+    }
+
+    /**
+     * Prodej na pultu po termínu projde jen s oprávněním operátora — a musí po sobě nechat
+     * stopu, kdo a co obešel.
+     *
+     * @test
+     */
+    public function prodejPoTerminuSOpravnenimProjdeAZaznamenaSe(): void
+    {
+        $zakaznik = $this->vytvorZakaznika();
+        $operator = $this->vytvorZakaznika();
+        $variant = $this->vytvorPredmet(kusuVyrobeno: 10);
+        $kosik = $this->cartService()->getOrCreateCart($zakaznik);
+
+        $GLOBALS['systemoveNastaveni'] = SystemoveNastaveni::zGlobals(
+            rocnik: ROCNIK,
+            ted: new DateTimeImmutableStrict(ROCNIK . '-12-31 23:59:59'),
+        );
+
+        $polozka = $this->cartService()->addItem(
+            $kosik,
+            $variant,
+            override: OperatorOverride::deskSale($operator),
+        );
+        $this->entityManager()->flush();
+
+        self::assertSame(
+            (int) $operator->getId(),
+            (int) $polozka->getOrderer()?->getId(),
+            'U prodeje na pultu musí zůstat, kdo ho provedl',
+        );
+
+        $najdeno = (int) $this->connection()->fetchOne(
+            'SELECT COUNT(*) FROM shop_nakupy
+             WHERE id_nakupu = :id AND JSON_CONTAINS(override_log, :hledane)',
+            [
+                'id'      => $polozka->getId(),
+                'hledane' => '{"guard":"deadline"}',
+            ],
+        );
+        self::assertSame(1, $najdeno, 'Obejití termínu musí jít najít filtrem nad JSON sloupcem');
+    }
+
+    /**
+     * Kapacita platí i pro pult: žádné oprávnění ji neotvírá, protože přeprodat se nesmí.
+     *
+     * @test
+     */
+    public function opravneniNaTerminNepovoliPrekroceniZasoby(): void
+    {
+        $zakaznik = $this->vytvorZakaznika();
+        $operator = $this->vytvorZakaznika();
+        $variant = $this->vytvorPredmet(kusuVyrobeno: 0);
+        $kosik = $this->cartService()->getOrCreateCart($zakaznik);
+
+        $this->expectException(\RuntimeException::class);
+        $this->expectExceptionMessageMatches('~kapacita~');
+
+        $this->cartService()->addItem(
+            $kosik,
+            $variant,
+            override: OperatorOverride::deskSale($operator),
+        );
+    }
+
+    /**
+     * @test
+     */
+    public function beznyNakupNemaZadneObejiti(): void
+    {
+        $zakaznik = $this->vytvorZakaznika();
+        $variant = $this->vytvorPredmet(kusuVyrobeno: 10);
+        $kosik = $this->cartService()->getOrCreateCart($zakaznik);
+
+        $polozka = $this->cartService()->addItem($kosik, $variant);
+        $this->entityManager()->flush();
+
+        // NULL, ne prázdné pole: „nic se neobcházelo" se musí dát odlišit od „obcházelo,
+        // ale seznam je prázdný", jinak by historie vypadala jako samé obejití.
+        self::assertNull(
+            $this->connection()->fetchOne(
+                'SELECT override_log FROM shop_nakupy WHERE id_nakupu = :id',
+                [
+                    'id' => $polozka->getId(),
+                ],
+            ),
+            'Samoobslužný nákup nesmí mít v override_log nic',
+        );
     }
 
     /**

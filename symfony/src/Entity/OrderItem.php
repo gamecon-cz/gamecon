@@ -87,6 +87,16 @@ class OrderItem
     ])]
     private array $productTags = [];
 
+    /**
+     * Rules deliberately bypassed for this purchase — a desk sale past the deadline or over
+     * capacity. NULL, not an empty array, means nothing was bypassed: that is every
+     * historical row and every self-service purchase.
+     *
+     * @var list<array{guard: string, source: string, by: int, at: string}>|null
+     */
+    #[ORM\Column(name: 'override_log', type: Types::JSON, nullable: true)]
+    private ?array $overrideLog = null;
+
     #[ORM\Column(name: 'variant_name', type: Types::STRING, length: 255, nullable: true)]
     private ?string $variantName = null;
 
@@ -138,6 +148,31 @@ class OrderItem
     public function setCustomer(?User $customer): self
     {
         $this->customer = $customer;
+
+        return $this;
+    }
+
+    /**
+     * @return list<array{guard: string, source: string, by: int, at: string}>|null
+     */
+    public function getOverrideLog(): ?array
+    {
+        return $this->overrideLog;
+    }
+
+    /**
+     * Appends rather than replaces: one action at the desk can bypass the deadline and the
+     * capacity check at once.
+     */
+    public function recordOverride(string $guard, string $source, User $operator, \DateTimeImmutable $at): self
+    {
+        $this->overrideLog ??= [];
+        $this->overrideLog[] = [
+            'guard'  => $guard,
+            'source' => $source,
+            'by'     => (int) $operator->getId(),
+            'at'     => $at->format(\DateTimeInterface::ATOM),
+        ];
 
         return $this;
     }

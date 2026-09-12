@@ -26,6 +26,7 @@ use App\Service\UserRoleService;
 use Doctrine\DBAL\Connection;
 use Doctrine\ORM\EntityManagerInterface;
 use Gamecon\Tests\Db\AbstractTestDb;
+use Symfony\Component\Clock\NativeClock;
 
 /**
  * Integration tests with real database for the new e-shop services.
@@ -607,6 +608,7 @@ class EshopIntegrationTest extends AbstractTestDb
             $capacityManager,
             $discountCalculator,
             $yearProvider,
+            new NativeClock(),
         );
     }
 
