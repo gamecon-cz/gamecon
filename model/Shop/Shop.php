@@ -1493,16 +1493,36 @@ SQL
                 }
             }
 
+            // Vlastní objednávka na každý prodej — drží pohromadě řádky nákupu a jejich
+            // protizápis v platbách. Bez ní by nové nákupy zůstaly bez order_id, které
+            // historické řádky mají z migrace.
+            dbQuery(
+                'INSERT INTO shop_order (customer_id, year, status, total_price, created_at, completed_at, accommodation_declined)
+                 VALUES ($0, $1, $2, $3, NOW(), NOW(), 0)',
+                [
+                    0 => $this->zakaznik->id(),
+                    1 => $aktualniRocnik,
+                    2 => 'completed',
+                    3 => ((float)$cenaAktualni) * $kusu,
+                ],
+            );
+            $idObjednavky = dbInsertId();
+
             for ($i = 1; $i <= $kusu; $i++) {
                 dbQuery(<<<SQL
-INSERT INTO shop_nakupy(id_uzivatele,id_objednatele,id_predmetu,rok,cena_nakupni,datum)
-VALUES ({$this->zakaznik->id()},{$this->objednatel->id()},{$idPredmetu},{$aktualniRocnik},{$cenaAktualni},NOW())
+INSERT INTO shop_nakupy(id_uzivatele,id_objednatele,id_predmetu,rok,cena_nakupni,datum,order_id)
+VALUES ({$this->zakaznik->id()},{$this->objednatel->id()},{$idPredmetu},{$aktualniRocnik},{$cenaAktualni},NOW(),{$idObjednavky})
 SQL,
                 );
             }
 
-            if ($this->zakaznik->id() === Uzivatel::SYSTEM) {
-                $this->zakaznik->finance()->pripis(((float)$cenaAktualni) * $kusu, $this->objednatel, 'anonymní prodej');
+            if ($this->zakaznik->id() === Uzivatel::ANONYM) {
+                $this->zakaznik->finance()->pripis(
+                    ((float)$cenaAktualni) * $kusu,
+                    $this->objednatel,
+                    'anonymní prodej',
+                    idObjednavky: $idObjednavky,
+                );
             }
             dbCommit();
         } catch (\Throwable $throwable) {

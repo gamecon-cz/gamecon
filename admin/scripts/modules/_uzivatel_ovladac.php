@@ -53,7 +53,7 @@ if (!empty($_POST['prodej'])) {
     $prodej = $_POST['prodej'];
     unset($prodej['odeslano']);
     $shop = new Shop(
-        zakaznik: $uPracovni ?? Uzivatel::zId(Uzivatel::SYSTEM),
+        zakaznik: $uPracovni ?? Uzivatel::zId(Uzivatel::ANONYM),
         objednatel: $u,
         systemoveNastaveni: $systemoveNastaveni,
         nastaveni: $nastaveni
