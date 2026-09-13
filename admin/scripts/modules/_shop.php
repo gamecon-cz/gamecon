@@ -23,10 +23,9 @@ function zabalAdminSoubor(string $cestaKSouboru): string
 if (!empty($_POST['prodej-mrizka'])) {
     $prodeje             = $_POST['prodej-mrizka'];
     $rocnik              = $systemoveNastaveni->rocnik();
-    $prodejIdUzivatele   = $uPracovni ? $uPracovni->id() : Uzivatel::SYSTEM;
     $prodejIdObjednatele = $u->id();
     $shop                = new Shop(
-        zakaznik: $uPracovni ?? Uzivatel::zId(Uzivatel::SYSTEM),
+        zakaznik: $uPracovni ?? Uzivatel::zId(Uzivatel::ANONYM),
         objednatel: $u,
         systemoveNastaveni: $systemoveNastaveni
     );

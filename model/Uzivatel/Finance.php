@@ -325,6 +325,7 @@ SQL,
         ?string              $poznamka = null,
         string | int | null  $idFioPlatby = null,
         ?\DateTimeInterface  $kdy = null,
+        ?int                 $idObjednavky = null,
     ): void {
         $rok = $kdy?->format('Y') ?? $this->systemoveNastaveni->rocnik();
         dbInsert(
@@ -339,6 +340,7 @@ SQL,
                 PlatbySqlStruktura::POZNAMKA     => $poznamka
                     ?: null,
                 PlatbySqlStruktura::PROVEDENO    => ($kdy ?? $this->systemoveNastaveni->ted())->format(DateTimeCz::FORMAT_DB),
+                'order_id'                       => $idObjednavky,
             ],
         );
     }
