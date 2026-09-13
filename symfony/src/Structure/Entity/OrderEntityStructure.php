@@ -58,4 +58,9 @@ class OrderEntityStructure
      * @see Order::$items
      */
     public const items = 'items';
+
+    /**
+     * @see Order::$payments
+     */
+    public const payments = 'payments';
 }
