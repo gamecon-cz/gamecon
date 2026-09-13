@@ -80,6 +80,26 @@ class KfcSaleProcessorTest extends AbstractDatabaseKernelTestCase
         return $kupujici;
     }
 
+    private function pocetObjednavek(): int
+    {
+        return (int) $this->connection()->fetchOne(
+            'SELECT COUNT(*) FROM shop_order WHERE customer_id = :kupujici',
+            [
+                'kupujici' => $this->anonymniKupujici()->getId(),
+            ],
+        );
+    }
+
+    private function pocetOtevrenychObjednavek(): int
+    {
+        return (int) $this->connection()->fetchOne(
+            "SELECT COUNT(*) FROM shop_order WHERE customer_id = :kupujici AND status = 'pending'",
+            [
+                'kupujici' => $this->anonymniKupujici()->getId(),
+            ],
+        );
+    }
+
     private function processor(): KfcSaleProcessor
     {
         return static::getContainer()->get(KfcSaleProcessor::class);
@@ -288,8 +308,10 @@ class KfcSaleProcessorTest extends AbstractDatabaseKernelTestCase
         $vysledek = $this->zpracuj($this->prodej($predmet));
 
         $pripsano = $this->connection()->fetchOne(
+            // Podle id, ne podle provedeno: to má rozlišení na sekundy, takže dva prodeje
+            // v jedné vteřině by se seřadily nahodile.
             'SELECT castka FROM platby WHERE id_uzivatele = :system AND poznamka = :poznamka
-             ORDER BY provedeno DESC LIMIT 1',
+             ORDER BY id DESC LIMIT 1',
             [
                 'system'   => $this->anonymniKupujici()->getId(),
                 'poznamka' => 'anonymní prodej',
@@ -430,13 +452,22 @@ class KfcSaleProcessorTest extends AbstractDatabaseKernelTestCase
 
         $this->zpracuj($this->prodej($predmet));
 
+        // Objednávka tohohle prodeje, ať je s čím platbu porovnat — na obnoveném dumpu má
+        // anonymní účet objednávky i platby už z migrace, takže „nějaká platba se najde"
+        // by prošlo, i kdyby vazbu nikdo nenastavil.
+        $idObjednavky = (int) $this->connection()->fetchOne(
+            'SELECT id FROM shop_order WHERE customer_id = :kupujici ORDER BY id DESC LIMIT 1',
+            [
+                'kupujici' => $this->anonymniKupujici()->getId(),
+            ],
+        );
+
         $vazba = $this->connection()->fetchAssociative(
             'SELECT platby.order_id, shop_order.customer_id
              FROM platby JOIN shop_order ON shop_order.id = platby.order_id
-             WHERE platby.id_uzivatele = :kupujici AND platby.poznamka = :poznamka',
+             WHERE platby.order_id = :objednavka',
             [
-                'kupujici' => $this->anonymniKupujici()->getId(),
-                'poznamka' => 'anonymní prodej',
+                'objednavka' => $idObjednavky,
             ],
         );
 
@@ -509,6 +540,193 @@ class KfcSaleProcessorTest extends AbstractDatabaseKernelTestCase
 
         $nactena = $this->entityManager()->getRepository(Order::class)->find($objednavka->getId());
         self::assertCount(2, $nactena->getPayments(), 'Objednávka musí unést víc plateb');
+    }
+
+    /**
+     * Každý prodej má vlastní uzavřenou objednávku. Se sdíleným košíkem by se do jedné
+     * nasčítal celý festival a platby by nešlo přiřadit ke konkrétnímu prodeji.
+     *
+     * @test
+     */
+    public function kazdyProdejMaVlastniUzavrenouObjednavku(): void
+    {
+        $this->prihlasOperatora();
+        $predmet = $this->vytvorPredmet(kusuVyrobeno: 10);
+
+        // Počítá se přírůstek, ne absolutní počet: na obnoveném dumpu má anonymní účet
+        // objednávky už z migrace a absolutní číslo by test shodilo bez zavinění kódu.
+        $pred = $this->pocetObjednavek();
+        $predOtevrenych = $this->pocetOtevrenychObjednavek();
+
+        $this->zpracuj($this->prodej($predmet));
+        $this->zpracuj($this->prodej($predmet));
+
+        self::assertSame(2, $this->pocetObjednavek() - $pred, 'Dva prodeje = dvě objednávky');
+        self::assertSame(
+            0,
+            $this->pocetOtevrenychObjednavek() - $predOtevrenych,
+            'Prodej na pultu nesmí nechat otevřený košík',
+        );
+    }
+
+    /**
+     * Pult účtuje celé koruny, takže i zapsaný nákup musí být v celých korunách — jinak by
+     * po každém prodeji zůstal na účtu haléřový nedoplatek, který nikdo nezaplatí.
+     *
+     * @test
+     */
+    public function haleroveCenySeUctujiVCelychKorunach(): void
+    {
+        $this->prihlasOperatora();
+        $predmet = $this->vytvorPredmet(kusuVyrobeno: 10, cena: '42.40');
+
+        $vysledek = $this->zpracuj($this->prodej($predmet));
+
+        // Čte se objednávka tohohle prodeje, ne celá historie účtu: na obnoveném dumpu má
+        // anonymní účet nákupy z migrace i osiřelou platbu, takže by se součty rozešly bez
+        // zavinění kódu. A assertuje se rovnou 42, ne jen shoda obou stran.
+        $radek = $this->connection()->fetchAssociative(
+            'SELECT (SELECT SUM(cena_nakupni) FROM shop_nakupy WHERE order_id = shop_order.id) AS nakupy,
+                    (SELECT SUM(castka) FROM platby WHERE order_id = shop_order.id) AS platba
+             FROM shop_order WHERE shop_order.customer_id = :kupujici
+             ORDER BY shop_order.id DESC LIMIT 1',
+            [
+                'kupujici' => $this->anonymniKupujici()->getId(),
+            ],
+        );
+
+        self::assertSame('42', $vysledek->totalPrice);
+        self::assertSame(42.0, (float) $radek['nakupy'], 'Nákup se účtuje v celých korunách');
+        self::assertSame(
+            42.0,
+            (float) $radek['platba'],
+            'Nakoupeno a zaplaceno musí sedět, jinak na účtu roste nedoplatek',
+        );
+    }
+
+    /**
+     * Objednávka, její řádky a platba musí říkat tutéž částku. Součet si `addItem()` počítá
+     * ještě z ceny s haléři, takže bez přepočtu po zaokrouhlení sedí jen dvě ze tří.
+     *
+     * @test
+     */
+    public function objednavkaSediSVlastnimiRadkyIPlatbou(): void
+    {
+        $this->prihlasOperatora();
+        $predmet = $this->vytvorPredmet(kusuVyrobeno: 10, cena: '42.40');
+
+        $this->zpracuj($this->prodej($predmet));
+
+        $radek = $this->connection()->fetchAssociative(
+            'SELECT shop_order.total_price,
+                    (SELECT SUM(cena_nakupni) FROM shop_nakupy WHERE order_id = shop_order.id) AS nakupy,
+                    (SELECT SUM(castka) FROM platby WHERE order_id = shop_order.id) AS platba
+             FROM shop_order WHERE shop_order.customer_id = :kupujici
+             ORDER BY shop_order.id DESC LIMIT 1',
+            [
+                'kupujici' => $this->anonymniKupujici()->getId(),
+            ],
+        );
+
+        self::assertSame(42.0, (float) $radek['nakupy'], 'Nákupy se účtují v celých korunách');
+        self::assertSame(42.0, (float) $radek['platba'], 'Platba musí sedět na nákupy');
+        self::assertSame(
+            42.0,
+            (float) $radek['total_price'],
+            'Součet objednávky musí sedět na její vlastní řádky, ne na cenu před zaokrouhlením',
+        );
+    }
+
+    /**
+     * Prodej bez položek nesmí nechat otevřenou objednávku: dvě takové stačí, aby hledání
+     * košíku (`findPendingForCustomer`) skončilo výjimkou.
+     *
+     * @test
+     */
+    public function prazdnyProdejNenechaOtevrenouObjednavku(): void
+    {
+        $this->prihlasOperatora();
+
+        // Počítá se přírůstek, ne absolutní počet: na obnoveném dumpu má anonymní účet
+        // objednávky už z migrace a absolutní číslo by test shodilo bez zavinění kódu.
+        $pred = $this->pocetObjednavek();
+
+        $this->zpracuj(new KfcSaleInputDto());
+        $this->zpracuj(new KfcSaleInputDto());
+
+        self::assertSame(
+            0,
+            $this->pocetObjednavek() - $pred,
+            'Bez prodaných kusů nemá vzniknout žádná objednávka',
+        );
+    }
+
+    /**
+     * Zaokrouhluje se každý kus, ne až součet — jinak by řádky nákupu nesouhlasily
+     * s platbou. U víc kusů se to na celkové částce pozná.
+     *
+     * @test
+     */
+    public function vicKusuSHaleriSediNaPlatbu(): void
+    {
+        $this->prihlasOperatora();
+        $predmet = $this->vytvorPredmet(kusuVyrobeno: 10, cena: '42.40');
+
+        $vstup = new KfcSaleInputDto();
+        $polozka = new KfcSaleItemInputDto();
+        $polozka->productId = (int) $predmet->getId();
+        $polozka->quantity = 2;
+        $vstup->items[] = $polozka;
+
+        $vysledek = $this->zpracuj($vstup);
+
+        self::assertSame(2, $vysledek->soldItems);
+        self::assertSame('84', $vysledek->totalPrice, 'Dva kusy po 42 Kč, ne 85 ze zaokrouhleného součtu');
+
+        $radek = $this->connection()->fetchAssociative(
+            'SELECT shop_order.total_price,
+                    (SELECT SUM(cena_nakupni) FROM shop_nakupy WHERE order_id = shop_order.id) AS nakupy,
+                    (SELECT SUM(castka) FROM platby WHERE order_id = shop_order.id) AS platba
+             FROM shop_order WHERE shop_order.customer_id = :kupujici
+             ORDER BY shop_order.id DESC LIMIT 1',
+            [
+                'kupujici' => $this->anonymniKupujici()->getId(),
+            ],
+        );
+        self::assertSame(84.0, (float) $radek['nakupy']);
+        self::assertSame(84.0, (float) $radek['platba']);
+        self::assertSame(84.0, (float) $radek['total_price']);
+    }
+
+    /**
+     * Dva různé předměty v jednom prodeji, oba s haléři a každý na jinou stranu: 42,40 dolů
+     * na 42, 17,60 nahoru na 18. Objednávka, její řádky i platba musí říkat 60.
+     *
+     * @test
+     */
+    public function vicRuznychPredmetuSediNaPlatbu(): void
+    {
+        $this->prihlasOperatora();
+        $prvni = $this->vytvorPredmet(kusuVyrobeno: 10, cena: '42.40');
+        $druhy = $this->vytvorPredmet(kusuVyrobeno: 10, cena: '17.60');
+
+        $vysledek = $this->zpracuj($this->prodej($prvni, $druhy));
+
+        self::assertSame('60', $vysledek->totalPrice);
+
+        $radek = $this->connection()->fetchAssociative(
+            'SELECT shop_order.total_price,
+                    (SELECT SUM(cena_nakupni) FROM shop_nakupy WHERE order_id = shop_order.id) AS nakupy,
+                    (SELECT SUM(castka) FROM platby WHERE order_id = shop_order.id) AS platba
+             FROM shop_order WHERE shop_order.customer_id = :kupujici
+             ORDER BY shop_order.id DESC LIMIT 1',
+            [
+                'kupujici' => $this->anonymniKupujici()->getId(),
+            ],
+        );
+        self::assertSame(60.0, (float) $radek['nakupy']);
+        self::assertSame(60.0, (float) $radek['platba']);
+        self::assertSame(60.0, (float) $radek['total_price']);
     }
 
     /**
