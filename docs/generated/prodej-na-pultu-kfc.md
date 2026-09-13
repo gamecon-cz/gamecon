@@ -69,7 +69,8 @@ nedá se dotazovat jinak než `LIKE`, nejde přeložit, uklepnutí se nepozná. 
 sloupec na `platby` (druh platby) a `sumaPlateb()` z něj vyrábět popisek, jako už dnes
 zvlášť řeší `provedl = SYSTEM`.
 
-Vědomě to **není** součástí přechodu KFC na `CartService`: dokud píšou obě cesty (legacy
-`prodat()` i KFC), musí produkovat **stejný řádek**. Kdyby příznak dostala jen jedna,
+Obě cesty už píšou **stejný tvar**: legacy `prodat()` i pokladna KFC zakládají vlastní
+objednávku na každý prodej, zapisují nákup na `Uzivatel::ANONYM` a platbu s vazbou na tu
+objednávku. Zavedení příznaku proto musí pokrýt obě naráz. Kdyby příznak dostala jen jedna,
 vznikly by dva popisky pro tutéž událost. Až se zavede, má pokrýt oba zapisovatele naráz
 a `NULL` musí dál znamenat „jako dosud" kvůli historii.
