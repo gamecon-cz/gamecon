@@ -1,6 +1,6 @@
 # Prodej na pultu (KFC) — anonymní nákup a jeho zaúčtování
 
-TL;DR: KFC je pokladna na infopultu (`/kfc/*`, jen `ROLE_ADMIN`). Kdo přijde bez účtu, nakupuje na uživatele `SYSTEM` (id 1) a hotovost se mu musí **připsat** do `platby`, jinak SYSTEM narůstá fiktivní dluh. Tenhle dokument drží pravidla, která z kódu nejsou vidět.
+TL;DR: KFC je pokladna na infopultu (`/kfc/*`, jen `ROLE_ADMIN`). Kdo přijde bez účtu, nakupuje na sdílený účet `ANONYM` a hotovost se mu musí **připsat** do `platby`, jinak na něm narůstá fiktivní dluh. Tenhle dokument drží pravidla, která z kódu nejsou vidět.
 
 ## Vstupní body
 
@@ -12,10 +12,19 @@ TL;DR: KFC je pokladna na infopultu (`/kfc/*`, jen `ROLE_ADMIN`). Kdo přijde be
 
 ## Pravidla
 
-**`id_uzivatele = Uzivatel::SYSTEM` (1) je záměr, ne chyba** (záměr). Návštěvník bez účtu
-koupí na pultu tričko a nemá se to k čemu přiřadit. NULL se zkoušelo a dělalo problémy,
-takže kupujícím je SYSTEM. KFC dnes neumí prodat na konkrétního účastníka — DTO nese jen
+**Kupujícím je sdílený účet `ANONYM`, ne `SYSTEM`** (záměr). Návštěvník bez účtu koupí na
+pultu tričko a nemá se to k čemu přiřadit; NULL se zkoušelo a dělalo problémy. Dřív se
+používal `SYSTEM`, jenže ten je jinde v aplikaci *vykonavatelem* operací (import plateb,
+promlčení), takže se mu ve finančním přehledu míchaly dvě role — a kdyby dostal roli,
+pult by anonymnímu zákazníkovi tiše počítal slevu. `ANONYM` je proto **bez rolí** a
+sdílený přes všechny ročníky. KFC neumí prodat na konkrétního účastníka — DTO nese jen
 `items[]` — a zatím to tak má zůstat.
+
+**Platba zná svou objednávku** (`platby.order_id`). Bez té vazby držel protizápis
+u prodeje jen shodný čas a částka: v datech je z toho jedna osiřelá platba (400 Kč,
+2026-07-23), kterou po sobě nechal prodej přepnutý na konkrétního účastníka o 52 vteřin
+později. Zrušení ani změna prodeje se do platby dřív nepromítly vůbec. `ON DELETE SET NULL`,
+ne kaskáda — mazat finanční řádek kvůli smazané objednávce by bylo příliš tiché.
 
 **Anonymní prodej se musí připsat do `platby`.** Legacy to dělá hned za zápisem nákupu:
 
