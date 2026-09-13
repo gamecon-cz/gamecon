@@ -25,19 +25,26 @@ class BfsrReport
 {
     /**
      * Druh ubytování -> [předpona kódu předmětu, popis do reportu].
-     * `Hdb-` musí zůstat před `Hd-`, jinak se dvojbuňky schovají do deluxe.
+     * Delší předpona musí předcházet kratší, protože se bere první shoda:
+     * `Hdb-` před `Hd-`, a u hotelu i třída pokoje (`Hd-1L-`) před holým `Hd-`.
      */
     private const DRUHY_UBYTOVANI = [
-        'spac'            => ['spacak_', 'spacáky'],
-        'vlastni-stan'    => ['vlastni_stan_', 'vlastní stany'],
-        'chata-richor'    => ['4L_chataRichor_', 'chata Richor'],
-        'penzion-witch'   => ['2_4L_penzionWitch_', 'penzion Witch'],
-        'hotel-deluxe-2b' => ['Hdb-', 'hotel deluxe dvojbuňka'],
-        'hotel-deluxe'    => ['Hd-', 'hotel deluxe'],
-        'hotel-snidane'   => ['Hs-', 'hotel se snídaní'],
-        '3L'              => ['3L_', '3L'],
-        '2L'              => ['2L_', '2L'],
-        '1L'              => ['1L_', '1L'],
+        'spac'               => ['spacak_', 'spacáky'],
+        'vlastni-stan'       => ['vlastni_stan_', 'vlastní stany'],
+        'chata-richor'       => ['4L_chataRichor_', 'chata Richor'],
+        'penzion-witch'      => ['2_4L_penzionWitch_', 'penzion Witch'],
+        'hotel-deluxe-2b-1L' => ['Hdb-1L-', 'hotel deluxe dvojbuňka 1L'],
+        'hotel-deluxe-2b-2L' => ['Hdb-2L-', 'hotel deluxe dvojbuňka 2L'],
+        'hotel-deluxe-2b'    => ['Hdb-', 'hotel deluxe dvojbuňka'],
+        'hotel-deluxe-1L'    => ['Hd-1L-', 'hotel deluxe 1L'],
+        'hotel-deluxe-2L'    => ['Hd-2L-', 'hotel deluxe 2L'],
+        'hotel-deluxe'       => ['Hd-', 'hotel deluxe'],
+        'hotel-snidane-1L'   => ['Hs-1L-', 'hotel se snídaní 1L'],
+        'hotel-snidane-2L'   => ['Hs-2L-', 'hotel se snídaní 2L'],
+        'hotel-snidane'      => ['Hs-', 'hotel se snídaní'],
+        '3L'                 => ['3L_', '3L'],
+        '2L'                 => ['2L_', '2L'],
+        '1L'                 => ['1L_', '1L'],
     ];
 
     /**
@@ -930,15 +937,17 @@ SQL,
     {
         $countOfActivitiesAsStandardActivity = [];
         foreach ($activities as $activity) {
-            if ($activity->jeToDalsiKolo()) {
-                // not the first round of an activity with rounds
-                continue;
-            }
             $length = $activity->delka();
             $code   = 'Ir-Std-' . $this->getActivityGroupCode($activity);
 
             $countOfActivitiesAsStandardActivity[$code] ??= 0;
-            $countOfActivitiesAsStandardActivity[$code] += $this->getActivityStandardLengthCoefficient($length);
+            $countOfActivitiesAsStandardActivity[$code] += $this->getActivityStandardLengthCoefficient($length)
+                * self::pocetOdehranychStolu(
+                    $activity->pocetPrihlasenych(),
+                    $activity->jeTeamova()
+                        ? $activity->tymovaKapacita()
+                        : null,
+                );
         }
 
         return $countOfActivitiesAsStandardActivity;
@@ -952,11 +961,12 @@ SQL,
     {
         $capacityOfActivitiesAsStandardActivity = [];
         foreach ($activities as $activity) {
-            if ($activity->jeToDalsiKolo()) {
-                // not the first round of an activity with rounds
-                continue;
-            }
-            $capacity       = $activity->kapacita();
+            $capacity       = self::kapacitaVJednotkachVykazu(
+                (int)$activity->kapacita(),
+                $activity->jeTeamova()
+                    ? $activity->tymovaKapacita()
+                    : null,
+            );
             $standardLength = $this->getActivityStandardLengthCoefficient($activity->delka());
             $code           = 'Ir-Kapacita-' . $this->getActivityGroupCode($activity);
 
@@ -983,17 +993,21 @@ SQL,
     {
         $countOfNarratorsOfActivitiesAsStandardActivity = [];
         foreach ($activities as $activity) {
-            if ($activity->jeToDalsiKolo()) {
-                // not the first round of an activity with rounds
-                continue;
-            }
             $countOfNarrators = count($activity->dejOrganizatoriIds());
             $standardLength   = $this->getActivityStandardLengthCoefficient($activity->delka());
+            // Váží se stoly, ne řádky programu - u týmovky sedí vypravěč u každého
+            // stolu, takže průměr na aktivitu by ho násobil počtem stolů.
+            $stolu            = self::pocetOdehranychStolu(
+                $activity->pocetPrihlasenych(),
+                $activity->jeTeamova()
+                    ? $activity->tymovaKapacita()
+                    : null,
+            );
             $code             = 'Ir-PrumPocVyp-' . $this->getActivityGroupCode($activity);
 
             $countOfNarratorsOfActivitiesAsStandardActivity[$code]           ??= ['value' => 0.0, 'weight' => 0.0];
             $countOfNarratorsOfActivitiesAsStandardActivity[$code]['value']  += $countOfNarrators * $standardLength;
-            $countOfNarratorsOfActivitiesAsStandardActivity[$code]['weight'] += $standardLength;
+            $countOfNarratorsOfActivitiesAsStandardActivity[$code]['weight'] += $standardLength * $stolu;
         }
 
         return $this->getWithWeightenedAverage($countOfNarratorsOfActivitiesAsStandardActivity);
@@ -1183,10 +1197,6 @@ SQL,
     {
         $countOfPlayBlocksAsStandardActivity = [];
         foreach ($activities as $activity) {
-            if ($activity->jeToDalsiKolo()) {
-                // not the first round of an activity with rounds
-                continue;
-            }
             $length = $activity->delka();
             $code   = 'Ir-Ucast-' . $this->getActivityGroupCode($activity);
 
@@ -1280,10 +1290,6 @@ SQL,
     ): array {
         $countOfOrgsOfActivitiesAsStandardActivity = [];
         foreach ($activities as $activity) {
-            if ($activity->jeToDalsiKolo()) {
-                // not the first round of an activity with rounds
-                continue;
-            }
             $countOfFilteredOrgs = count(array_filter($activity->organizatori(), $callback));
             $standardLength      = $this->getActivityStandardLengthCoefficient($activity->delka());
             $code                = $codePrefix . $this->getActivityGroupCode($activity);
@@ -1317,6 +1323,37 @@ SQL,
     private function getActivityStandardLengthCoefficient(float $length): float
     {
         return SystemoveNastaveni::getActivityStandardLengthCoefficient($length);
+    }
+
+    /**
+     * Kolik her se u aktivity reálně odehraje. Týmová aktivita běží u víc stolů
+     * najednou a rozpočet platí za stůl, ne za řádek v programu; netýmová je
+     * jedna hra. Neúplný tým u stolu sedí taky, proto zaokrouhlení nahoru.
+     *
+     * @param int|null $tymovaKapacita počet týmů, které se na aktivitu vejdou; null u netýmové
+     */
+    public static function pocetOdehranychStolu(
+        int  $pocetPrihlasenych,
+        ?int $tymovaKapacita,
+    ): int {
+        if ($tymovaKapacita === null || $tymovaKapacita <= 0) {
+            return 1;
+        }
+
+        return (int)ceil($pocetPrihlasenych / $tymovaKapacita);
+    }
+
+    /**
+     * Kapacita týmové aktivity se v rozpočtu měří v týmech, ne v hlavách -
+     * u turnaje o pěti týmech po pěti lidech je kapacita pět stolů, ne dvacet pět míst.
+     *
+     * @param int|null $tymovaKapacita počet týmů, které se na aktivitu vejdou; null u netýmové
+     */
+    public static function kapacitaVJednotkachVykazu(
+        int  $kapacita,
+        ?int $tymovaKapacita,
+    ): int {
+        return $tymovaKapacita ?? $kapacita;
     }
 
     private function getActivityGroupCode(Aktivita $aktivita): string
