@@ -30,7 +30,7 @@ use Symfony\Component\Security\Http\Authenticator\Token\PostAuthenticationToken;
  */
 class KfcSaleProcessorTest extends AbstractDatabaseKernelTestCase
 {
-    private const ID_SYSTEMOVEHO_UZIVATELE = 1;
+    private const LOGIN_ANONYMNIHO_KUPUJICIHO = 'ANONYM';
 
     private ?SystemoveNastaveni $puvodniNastaveni = null;
 
@@ -64,6 +64,18 @@ class KfcSaleProcessorTest extends AbstractDatabaseKernelTestCase
         $GLOBALS['systemoveNastaveni'] = $this->puvodniNastaveni;
 
         parent::tearDown();
+    }
+
+    private function anonymniKupujici(): User
+    {
+        $kupujici = $this->entityManager()
+            ->getRepository(User::class)
+            ->findOneBy([
+                'login' => self::LOGIN_ANONYMNIHO_KUPUJICIHO,
+            ]);
+        self::assertNotNull($kupujici, 'Anonymní kupující musí existovat z migrace');
+
+        return $kupujici;
     }
 
     private function processor(): KfcSaleProcessor
@@ -168,7 +180,11 @@ class KfcSaleProcessorTest extends AbstractDatabaseKernelTestCase
                 'id' => $predmet->getId(),
             ],
         );
-        self::assertSame(self::ID_SYSTEMOVEHO_UZIVATELE, (int) $nakup['id_uzivatele'], 'Kupujícím zůstává SYSTEM');
+        self::assertSame(
+            (int) $this->anonymniKupujici()->getId(),
+            (int) $nakup['id_uzivatele'],
+            'Kupujícím je anonymní účet, ne SYSTEM',
+        );
         self::assertSame(
             (int) $operator->getId(),
             (int) $nakup['id_objednatele'],
@@ -193,7 +209,7 @@ class KfcSaleProcessorTest extends AbstractDatabaseKernelTestCase
             'SELECT castka, provedl, poznamka FROM platby
              WHERE id_uzivatele = :system AND provedl = :operator',
             [
-                'system'   => self::ID_SYSTEMOVEHO_UZIVATELE,
+                'system'   => $this->anonymniKupujici()->getId(),
                 'operator' => $operator->getId(),
             ],
         );
@@ -273,7 +289,7 @@ class KfcSaleProcessorTest extends AbstractDatabaseKernelTestCase
             'SELECT castka FROM platby WHERE id_uzivatele = :system AND poznamka = :poznamka
              ORDER BY provedeno DESC LIMIT 1',
             [
-                'system'   => self::ID_SYSTEMOVEHO_UZIVATELE,
+                'system'   => $this->anonymniKupujici()->getId(),
                 'poznamka' => 'anonymní prodej',
             ],
         );
@@ -397,6 +413,55 @@ class KfcSaleProcessorTest extends AbstractDatabaseKernelTestCase
         $this->expectExceptionMessageMatches('~kapacita~');
 
         $this->zpracuj($this->prodej($predmet));
+    }
+
+    /**
+     * Platba musí vědět, ke které objednávce patří. Bez té vazby po nedokončeném prodeji
+     * zůstala viset osiřelá platba a nikdo se to nedozvěděl — v datech jedna taková je.
+     *
+     * @test
+     */
+    public function platbaZnaSvouObjednavku(): void
+    {
+        $this->prihlasOperatora();
+        $predmet = $this->vytvorPredmet(kusuVyrobeno: 10);
+
+        $this->zpracuj($this->prodej($predmet));
+
+        $vazba = $this->connection()->fetchAssociative(
+            'SELECT platby.order_id, shop_order.customer_id
+             FROM platby JOIN shop_order ON shop_order.id = platby.order_id
+             WHERE platby.id_uzivatele = :kupujici AND platby.poznamka = :poznamka',
+            [
+                'kupujici' => $this->anonymniKupujici()->getId(),
+                'poznamka' => 'anonymní prodej',
+            ],
+        );
+
+        self::assertNotFalse($vazba, 'Platba za prodej na pultu musí odkazovat na objednávku');
+        self::assertSame(
+            (int) $this->anonymniKupujici()->getId(),
+            (int) $vazba['customer_id'],
+            'A ta objednávka musí patřit témuž kupujícímu',
+        );
+    }
+
+    /**
+     * @test
+     */
+    public function anonymniKupujiciNemaZadneRole(): void
+    {
+        // Bez rolí neprojde slevový engine — anonymní zákazník na pultu nesmí dostat slevu,
+        // kterou by účet zdědil jen tím, že mu někdo roli přidělí.
+        self::assertSame(
+            0,
+            (int) $this->connection()->fetchOne(
+                'SELECT COUNT(*) FROM uzivatele_role WHERE id_uzivatele = :id',
+                [
+                    'id' => $this->anonymniKupujici()->getId(),
+                ],
+            ),
+        );
     }
 
     /**

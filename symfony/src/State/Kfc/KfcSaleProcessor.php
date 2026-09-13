@@ -8,6 +8,7 @@ use ApiPlatform\Metadata\Operation;
 use ApiPlatform\State\ProcessorInterface;
 use App\Dto\Kfc\KfcSaleInputDto;
 use App\Dto\Kfc\KfcSaleOutputDto;
+use App\Entity\Order;
 use App\Entity\Payment;
 use App\Entity\Product;
 use App\Entity\ProductVariant;
@@ -27,10 +28,10 @@ use Symfony\Bundle\SecurityBundle\Security;
 readonly class KfcSaleProcessor implements ProcessorInterface
 {
     /**
-     * A walk-up buyer has no account, so the purchase is booked on the SYSTEM user. NULL was
-     * tried and caused problems; see docs/generated/prodej-na-pultu-kfc.md.
+     * A walk-up buyer has no account of their own, so the sale is booked on a shared account
+     * that deliberately carries no roles — see docs/generated/prodej-na-pultu-kfc.md.
      */
-    private const ID_SYSTEMOVEHO_UZIVATELE = 1;
+    private const LOGIN_ANONYMNIHO_KUPUJICIHO = 'ANONYM';
 
     public function __construct(
         private EntityManagerInterface $entityManager,
@@ -48,9 +49,12 @@ readonly class KfcSaleProcessor implements ProcessorInterface
             throw new \RuntimeException('Prodej na pultu musí provádět přihlášený uživatel.');
         }
 
-        $kupujici = $this->entityManager->find(User::class, self::ID_SYSTEMOVEHO_UZIVATELE);
+        $kupujici = $this->entityManager->getRepository(User::class)
+            ->findOneBy([
+                'login' => self::LOGIN_ANONYMNIHO_KUPUJICIHO,
+            ]);
         if ($kupujici === null) {
-            throw new \RuntimeException('Systémový uživatel neexistuje, nelze zaúčtovat anonymní prodej.');
+            throw new \RuntimeException('Anonymní kupující neexistuje, nelze zaúčtovat prodej na pultu.');
         }
 
         $rok = $this->yearProvider->getCurrentYear();
@@ -80,7 +84,9 @@ readonly class KfcSaleProcessor implements ProcessorInterface
             // Bez připsání zůstane v shop_nakupy pohledávka za SYSTEM, kterou nikdo nezaplatil,
             // a jeho dluh roste s každým dalším prodejem na pultu.
             if ($prodanoKusu > 0) {
-                $this->entityManager->persist($this->zaplaceno($kupujici, $operator, $this->kZaplaceni($celkem), $rok));
+                $this->entityManager->persist(
+                    $this->zaplaceno($kupujici, $operator, $this->kZaplaceni($celkem), $rok, $kosik),
+                );
             }
         });
 
@@ -124,9 +130,12 @@ readonly class KfcSaleProcessor implements ProcessorInterface
         return $varianty->first();
     }
 
-    private function zaplaceno(User $kupujici, User $operator, string $castka, int $rok): Payment
+    private function zaplaceno(User $kupujici, User $operator, string $castka, int $rok, Order $objednavka): Payment
     {
         $platba = new Payment();
+        // Vazba na objednávku: bez ní po nedokončeném prodeji zůstane platba viset a nikdo
+        // se to nedozví, protože ji s prodejem nic nespojuje.
+        $platba->setOrder($objednavka);
         $platba->setBeneficiary($kupujici);
         $platba->setMadeBy($operator);
         $platba->setCastka($castka);
