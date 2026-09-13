@@ -70,6 +70,19 @@ class Order
     #[ORM\OneToMany(targetEntity: OrderItem::class, mappedBy: 'order', cascade: ['persist', 'remove'], orphanRemoval: true)]
     private Collection $items;
 
+    /**
+     * Protizápisy k prodeji na pultu. Víc plateb na objednávku je v pořádku: historické
+     * objednávky sdružují celý den prodeje, takže k nim sedí platba za každý jednotlivý
+     * prodej — objednávka 9 jich má deset.
+     *
+     * Bez kaskády a bez orphanRemoval: smazat finanční řádek kvůli objednávce má být
+     * vědomý krok, proto má i cizí klíč ON DELETE SET NULL.
+     *
+     * @var Collection<int, Payment>
+     */
+    #[ORM\OneToMany(targetEntity: Payment::class, mappedBy: 'order')]
+    private Collection $payments;
+
     #[ORM\Column(type: Types::DATETIME_MUTABLE, nullable: false, options: [
         'default' => 'CURRENT_TIMESTAMP',
     ])]
@@ -94,6 +107,7 @@ class Order
     public function __construct()
     {
         $this->items = new ArrayCollection();
+        $this->payments = new ArrayCollection();
         $this->createdAt = new \DateTime();
     }
 
@@ -158,6 +172,33 @@ class Order
     public function getItems(): Collection
     {
         return $this->items;
+    }
+
+    /**
+     * @return Collection<int, Payment>
+     */
+    public function getPayments(): Collection
+    {
+        return $this->payments;
+    }
+
+    public function addPayment(Payment $payment): self
+    {
+        if (! $this->payments->contains($payment)) {
+            $this->payments->add($payment);
+            $payment->setOrder($this);
+        }
+
+        return $this;
+    }
+
+    public function removePayment(Payment $payment): self
+    {
+        if ($this->payments->removeElement($payment) && $payment->getOrder() === $this) {
+            $payment->setOrder(null);
+        }
+
+        return $this;
     }
 
     public function addItem(OrderItem $item): self
