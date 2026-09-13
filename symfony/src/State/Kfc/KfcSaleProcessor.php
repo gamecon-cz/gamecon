@@ -70,41 +70,63 @@ readonly class KfcSaleProcessor implements ProcessorInterface
         }
 
         $this->entityManager->wrapInTransaction(function () use ($kZaplaceni, $kupujici, $operator, $override, $rok, &$prodanoKusu, &$celkem): void {
-            $kosik = $this->cartService->getOrCreateCart($kupujici);
+            // Vlastní objednávka na každý prodej, hned uzavřená. getOrCreateCart() vrací
+            // *otevřený* košík, takže by se do jednoho nasčítal celý festival: každá platba
+            // by pak ukazovala na tutéž objednávku a nešlo by poznat, ke kterému prodeji patří.
+            //
+            // Zakládá se až u prvního kusu: prázdný prodej by jinak po sobě nechal otevřenou
+            // objednávku bez řádků, a stačí dvě takové, aby hledání košíku skončilo výjimkou.
+            $kosik = null;
 
             foreach ($kZaplaceni as [$varianta, $pocetKusu]) {
                 // Řádek na kus, stejně jako legacy prodej — každý kus je vlastní nákup.
                 for ($kus = 0; $kus < $pocetKusu; ++$kus) {
+                    if ($kosik === null) {
+                        $kosik = new Order();
+                        $kosik->setCustomer($kupujici);
+                        $kosik->setYear($rok);
+                        $this->entityManager->persist($kosik);
+                    }
+
                     $polozka = $this->cartService->addItem($kosik, $varianta, override: $override);
+
+                    // Zaokrouhlí se rovnou účtovaná cena, ne až součet: pult bere celé
+                    // koruny, a kdyby si nákup nechal haléře, zůstal by po každém prodeji
+                    // na účtu nedoplatek, který nikdo nikdy nezaplatí.
+                    $polozka->setPurchasePrice($this->naCeleKoruny($polozka->getPurchasePrice()));
                     $celkem = bcadd($celkem, $polozka->getPurchasePrice(), 2);
                     ++$prodanoKusu;
                 }
             }
 
-            // Bez připsání zůstane v shop_nakupy pohledávka za SYSTEM, kterou nikdo nezaplatil,
-            // a jeho dluh roste s každým dalším prodejem na pultu.
-            if ($prodanoKusu > 0) {
+            // Bez připsání zůstane v shop_nakupy pohledávka, kterou nikdo nezaplatil, a dluh
+            // anonymního účtu roste s každým dalším prodejem na pultu.
+            if ($kosik !== null) {
+                // Až po zaokrouhlení: addItem() si součet spočítal z původní ceny s haléři,
+                // takže bez tohohle by objednávka nesouhlasila s vlastními řádky ani s platbou.
+                $kosik->recalculateTotal();
+                $kosik->complete();
                 $this->entityManager->persist(
-                    $this->zaplaceno($kupujici, $operator, $this->kZaplaceni($celkem), $rok, $kosik),
+                    $this->zaplaceno($kupujici, $operator, $celkem, $rok, $kosik),
                 );
             }
         });
 
         return new KfcSaleOutputDto(
             soldItems: $prodanoKusu,
-            totalPrice: $this->kZaplaceni($celkem),
+            // bcadd(…, 0) ořezává, ne zaokrouhluje — spoléhá na to, že každá položka už je
+            // v celých korunách. Kdyby sem někdy přitekla nezaokrouhlená částka, pokladna
+            // ukáže až o korunu míň, než kolik se připsalo.
+            totalPrice: bcadd($celkem, '0', 0),
         );
     }
 
     /**
-     * Na pultu se platí v celých korunách — drobné se tam nevydávají. Připsaná platba musí
-     * sedět na tutéž částku, jinak by se pokladna a účetnictví rozešly o haléře, jakmile
-     * se objeví procentní sleva. Zaokrouhluje se nahoru od poloviny, ne ořezává: ořez by
-     * u 42,99 účtoval 42.
+     * Zaokrouhluje nahoru od poloviny, ne ořezává: ořez by u 42,99 účtoval 42.
      */
-    private function kZaplaceni(string $celkem): string
+    private function naCeleKoruny(string $castka): string
     {
-        return bcadd($celkem, '0.5', 0);
+        return bcadd($castka, '0.5', 0);
     }
 
     /**
@@ -118,6 +140,7 @@ readonly class KfcSaleProcessor implements ProcessorInterface
         }
 
         $varianty = $predmet->getVariants();
+        // isEmpty() se na nenačtené kolekci zodpoví COUNTem, first() by ji celou zhydratoval.
         if ($varianty->isEmpty()) {
             throw new \RuntimeException(sprintf('Produkt "%s" nemá žádnou variantu k prodeji.', $predmet->getName()));
         }
@@ -127,6 +150,7 @@ readonly class KfcSaleProcessor implements ProcessorInterface
             throw new \RuntimeException(sprintf('Produkt "%s" má víc variant, vyber konkrétní.', $predmet->getName()));
         }
 
+        // PHPStan z isEmpty() výše odvodí, že tady už false přijít nemůže.
         return $varianty->first();
     }
 
