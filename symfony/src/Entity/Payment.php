@@ -82,7 +82,7 @@ class Payment
      * jen srovnává s pohledávkou. NULL u všeho ostatního: bankovní pohyby ani ruční zápisy
      * k žádné objednávce nepatří.
      */
-    #[ORM\ManyToOne(targetEntity: Order::class)]
+    #[ORM\ManyToOne(targetEntity: Order::class, inversedBy: 'payments')]
     #[ORM\JoinColumn(name: 'order_id', referencedColumnName: 'id', nullable: true, onDelete: 'SET NULL')]
     private ?Order $order = null;
 

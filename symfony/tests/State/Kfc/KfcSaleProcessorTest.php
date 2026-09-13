@@ -8,6 +8,8 @@ use ApiPlatform\Metadata\Post;
 use App\Dto\Kfc\KfcSaleInputDto;
 use App\Dto\Kfc\KfcSaleItemInputDto;
 use App\Dto\Kfc\KfcSaleOutputDto;
+use App\Entity\Order;
+use App\Entity\Payment;
 use App\Entity\Product;
 use App\Entity\ProductTag;
 use App\Entity\ProductVariant;
@@ -462,6 +464,51 @@ class KfcSaleProcessorTest extends AbstractDatabaseKernelTestCase
                 ],
             ),
         );
+    }
+
+    /**
+     * Objednávka unese víc plateb — historické objednávky sdružují celý den prodeje, takže
+     * k nim patří platba za každý jednotlivý prodej.
+     *
+     * @test
+     */
+    public function objednavkaUneseVicPlateb(): void
+    {
+        $this->prihlasOperatora();
+        $predmet = $this->vytvorPredmet(kusuVyrobeno: 10);
+
+        $this->zpracuj($this->prodej($predmet));
+
+        // Platbu zakládá procesor, takže kolekce už načtené objednávky o ní neví — číst se
+        // musí až po clear(), jinak test měří identity map, ne databázi.
+        $this->entityManager()->clear();
+
+        $objednavka = $this->entityManager()
+            ->getRepository(Order::class)
+            ->findOneBy([
+                'customer' => $this->anonymniKupujici(),
+            ], [
+                'id' => 'DESC',
+            ]);
+        self::assertNotNull($objednavka);
+        self::assertCount(1, $objednavka->getPayments(), 'Prodej založí jednu platbu');
+
+        // Druhý protizápis na tutéž objednávku: mapování ho musí unést, ne přepsat ten první.
+        $dalsi = new Payment();
+        $dalsi->setBeneficiary($this->anonymniKupujici());
+        $dalsi->setMadeBy($this->anonymniKupujici());
+        $dalsi->setCastka('10.00');
+        $dalsi->setRok(ROCNIK);
+        $dalsi->setProvedeno(new \DateTime());
+        // Vazba se nastavuje jen přes addPayment(), ne setOrder() — projde tedy obousměrným
+        // mapováním, a bez `inversedBy` by se druhá platba k objednávce nepřipojila.
+        $objednavka->addPayment($dalsi);
+        $this->entityManager()->persist($dalsi);
+        $this->entityManager()->flush();
+        $this->entityManager()->clear();
+
+        $nactena = $this->entityManager()->getRepository(Order::class)->find($objednavka->getId());
+        self::assertCount(2, $nactena->getPayments(), 'Objednávka musí unést víc plateb');
     }
 
     /**
