@@ -541,23 +541,23 @@ SQL,
         $bonusForStandardActivity = (int)$this->systemoveNastaveni->dejHodnotu(SystemoveNastaveniKlice::BONUS_ZA_STANDARDNI_3H_AZ_5H_AKTIVITU);
 
         foreach ($this->getCountOfActivitiesAsStandardActivity($activities) as $code => $value) {
-            $data[] = [$code, 'Počet aktivit přepočtený na standardní aktivitu (kromě dalších kol LKD a mDrD)', $value];
+            $data[] = [$code, 'Počet aktivit přepočtený na standardní aktivitu (včetně dalších kol turnajů)', $value];
         }
 
         foreach ($this->getWeightedAverageCapacityOfActivitiesAsStandardActivity($activities) as $code => $value) {
-            $data[] = [$code, 'Průměrná kapacita aktivity, vážený průměr podle přepočtu na standardní aktivitu (kromě dalších kol LKD a mDrD)', $value];
+            $data[] = [$code, 'Průměrná kapacita aktivity, vážený průměr podle přepočtu na standardní aktivitu (včetně dalších kol turnajů)', $value];
         }
 
         foreach ($this->getWeightedAverageCountActivityNarratorsAsStandardActivity($activities) as $code => $value) {
-            $data[] = [$code, 'Průměrný počet vypravěčů 1 aktivity, vážený průměr podle přepočtu na standardní aktivitu (kromě dalších kol LKD a mDrD)', $value];
+            $data[] = [$code, 'Průměrný počet vypravěčů 1 aktivity, vážený průměr podle přepočtu na standardní aktivitu (včetně dalších kol turnajů)', $value];
         }
 
         foreach ($this->getCountOfNonFullOrgsAsStandardActivity($activities) as $code => $value) {
-            $data[] = [$code, 'Vypravěčobloky (přepočtené standardní aktivity * počet lidí) vedené Vypravěči nebo Half-orgy (kromě dalších kol LKD a mDrD)', $value];
+            $data[] = [$code, 'Vypravěčobloky (přepočtené standardní aktivity * počet lidí) vedené Vypravěči nebo Half-orgy (včetně dalších kol turnajů)', $value];
         }
 
         foreach ($this->getCountOfFullOrgsAsStandardActivity($activities) as $code => $value) {
-            $data[] = [$code, 'Vypravěčobloky (přepočtené standardní aktivity * počet lidí) vedené Orgy (kromě dalších kol LKD a mDrD)', $value];
+            $data[] = [$code, 'Vypravěčobloky (přepočtené standardní aktivity * počet lidí) vedené Orgy (včetně dalších kol turnajů)', $value];
         }
 
         $sumOfOrgBonuses = $this->getSumOfOrgBonusesAsStandardActivity($activities, $bonusForStandardActivity);
@@ -578,7 +578,7 @@ SQL,
         }
 
         foreach ($this->getCountOfPlayBlocksAsStandardActivity($activities) as $code => $value) {
-            $data[] = [$code, 'Počet herních bloků zabraný hráči přepočtený na standardní aktivitu (bez ohledu na kategorii hráče) (kromě dalších kol LKD a mDrD)', $value];
+            $data[] = [$code, 'Počet herních bloků zabraný hráči přepočtený na standardní aktivitu (bez ohledu na kategorii hráče) (včetně dalších kol turnajů)', $value];
         }
 
         foreach ($this->getSumOfEarnings($activities) as $code => $value) {
@@ -945,7 +945,7 @@ SQL,
                 * self::pocetOdehranychStolu(
                     $activity->pocetPrihlasenych(),
                     $activity->jeTeamova()
-                        ? $activity->tymovaKapacita()
+                        ? $activity->tymMaxKapacita()
                         : null,
                 );
         }
@@ -1000,7 +1000,7 @@ SQL,
             $stolu            = self::pocetOdehranychStolu(
                 $activity->pocetPrihlasenych(),
                 $activity->jeTeamova()
-                    ? $activity->tymovaKapacita()
+                    ? $activity->tymMaxKapacita()
                     : null,
             );
             $code             = 'Ir-PrumPocVyp-' . $this->getActivityGroupCode($activity);
@@ -1330,17 +1330,20 @@ SQL,
      * najednou a rozpočet platí za stůl, ne za řádek v programu; netýmová je
      * jedna hra. Neúplný tým u stolu sedí taky, proto zaokrouhlení nahoru.
      *
-     * @param int|null $tymovaKapacita počet týmů, které se na aktivitu vejdou; null u netýmové
+     * Dělí se velikostí týmu (`team_max`), ne počtem týmů (`team_kapacita`) -
+     * z hlav na stoly vede jen velikost týmu.
+     *
+     * @param int|null $velikostTymu počet lidí u jednoho stolu; null u netýmové aktivity
      */
     public static function pocetOdehranychStolu(
         int  $pocetPrihlasenych,
-        ?int $tymovaKapacita,
+        ?int $velikostTymu,
     ): int {
-        if ($tymovaKapacita === null || $tymovaKapacita <= 0) {
+        if ($velikostTymu === null || $velikostTymu <= 0) {
             return 1;
         }
 
-        return (int)ceil($pocetPrihlasenych / $tymovaKapacita);
+        return (int)ceil($pocetPrihlasenych / $velikostTymu);
     }
 
     /**
