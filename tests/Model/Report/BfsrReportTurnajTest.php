@@ -25,11 +25,11 @@ class BfsrReportTurnajTest extends AbstractTestDb
     {
         // Přihlášení v jednotlivých kolech GC2026: 1. běh 13/13/12, 2. běh 21/21/21.
         $prihlasenychPoKolech = [13, 13, 12, 21, 21, 21];
-        $tymovaKapacita = 5;
+        $velikostTymu = 5;
 
         $stoluCelkem = 0;
         foreach ($prihlasenychPoKolech as $prihlasenych) {
-            $stoluCelkem += BfsrReport::pocetOdehranychStolu($prihlasenych, $tymovaKapacita);
+            $stoluCelkem += BfsrReport::pocetOdehranychStolu($prihlasenych, $velikostTymu);
         }
 
         self::assertSame(
@@ -48,12 +48,12 @@ class BfsrReportTurnajTest extends AbstractTestDb
      */
     public function neuplnyTymSePocitaJakoCelyStul(
         int $prihlasenych,
-        int $tymovaKapacita,
+        int $velikostTymu,
         int $ocekavanoStolu,
     ): void {
         self::assertSame(
             $ocekavanoStolu,
-            BfsrReport::pocetOdehranychStolu($prihlasenych, $tymovaKapacita),
+            BfsrReport::pocetOdehranychStolu($prihlasenych, $velikostTymu),
         );
     }
 
@@ -81,6 +81,26 @@ class BfsrReportTurnajTest extends AbstractTestDb
     {
         self::assertSame(1, BfsrReport::pocetOdehranychStolu(30, null));
         self::assertSame(1, BfsrReport::pocetOdehranychStolu(0, null));
+    }
+
+    /**
+     * Na stoly se dělí velikostí týmu (`team_max`), ne počtem týmů
+     * (`team_kapacita`). U turnaje GC2026 jsou obě hodnoty shodou okolností 5,
+     * takže záměna tam nic nerozbije - tenhle případ je má rozdílné.
+     *
+     * @test
+     */
+    public function stolySePocitajiZVelikostiTymuNeZPoctuTymu(): void
+    {
+        $velikostTymu = 4;
+        $poctuTymu = 10;
+
+        self::assertSame(6, BfsrReport::pocetOdehranychStolu(21, $velikostTymu));
+        self::assertNotSame(
+            BfsrReport::pocetOdehranychStolu(21, $poctuTymu),
+            BfsrReport::pocetOdehranychStolu(21, $velikostTymu),
+            'Počet stolů vyšel stejně pro velikost týmu i počet týmů, test by záměnu neodhalil',
+        );
     }
 
     /**
@@ -138,13 +158,13 @@ class BfsrReportTurnajTest extends AbstractTestDb
                 'vypravecu'    => 5,
             ],
         ];
-        $tymovaKapacita = 5;
+        $velikostTymu = 5;
 
         $vypravecuCelkem = 0;
         $stoluCelkem = 0;
         foreach ($kola as $kolo) {
             $vypravecuCelkem += $kolo['vypravecu'];
-            $stoluCelkem += BfsrReport::pocetOdehranychStolu($kolo['prihlasenych'], $tymovaKapacita);
+            $stoluCelkem += BfsrReport::pocetOdehranychStolu($kolo['prihlasenych'], $velikostTymu);
         }
 
         self::assertEqualsWithDelta(
