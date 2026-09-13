@@ -85,4 +85,9 @@ class PaymentSqlStructure
      * @see Payment::$madeBy
      */
     public const provedl = 'provedl';
+
+    /**
+     * @see Payment::$order
+     */
+    public const order_id = 'order_id';
 }
