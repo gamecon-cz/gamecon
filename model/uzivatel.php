@@ -90,6 +90,11 @@ class Uzivatel extends DbObject
     public const SYSTEM = 1;     // id uživatele reprezentujícího systém (např. "operaci provedl systém")
     public const SYSTEM_LOGIN = 'SYSTEM';
 
+    // Kupující bez účtu — prodej na pultu. Oddělený od SYSTEMu, který je *vykonavatelem*
+    // operací; účet nemá žádné role, takže na něj nemůže spadnout sleva.
+    public const ANONYM = 0;
+    public const ANONYM_LOGIN = 'ANONYM';
+
     public const TYPY_DOKLADU = [
         self::TYP_DOKLADU_OP,
         self::TYP_DOKLADU_PAS,
