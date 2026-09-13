@@ -62,6 +62,36 @@ Rezervaci pro organizátory pult **obchází záměrně** (`GUARD_ORGANIZER_STOC
 vydá, rozhoduje obsluha, a legacy tenhle pojem stejně neznalo. Celkovou zásobu obejít
 nejde — prodat neexistující kus nesmí nikdo.
 
+## Zaokrouhlování na celé koruny
+
+Pult bere celé koruny, takže se zaokrouhluje **každý kus**, ne až součet — jinak by řádky
+nákupu nesouhlasily s připsanou platbou a na účtu by po každém prodeji zůstal haléřový
+nedoplatek. Důsledek, který je potřeba znát: `42,40 × 2` je **84**, ne 85 ze zaokrouhleného
+součtu. Dnes to nic nespustí (žádný produkt nemá haléře), spustí to až procentní sleva.
+
+**Nulová cena je v pořádku, ale nesmí se počítat mezi ubytování zdarma pro orgy** (záměr).
+`BfsrReport` dělí noci na placené a zdarma jen podle ceny (`$polozka->castka > 0.0`,
+`model/Report/BfsrReport.php:199`), takže noc zaokrouhlená na nulu by spadla do
+`$zdarmaNoci` — mezi noci *poskytnuté* zdarma, se kterými nemá nic společného. Trička to
+mají odolnější: `jeZdarma()` vedle nulové ceny vyžaduje i nenulovou slevu, takže „nula
+protože zaokrouhleno" se u nich od „nula protože zdarma" pozná.
+
+Dnes to nehrozí — nejlevnější ubytování nabízené pro ročník 2026 stojí 400 Kč, žádný
+produkt nemá cenu pod 0,50 Kč a v roce 2026 není ani jeden nákup ubytování za nulu. Muselo
+by to spustit sleva, po které cena klesne pod 0,50 Kč — u nejlevnějšího ubytování (400 Kč)
+je to přes 99,875 %, u levnějšího zboží stačí sleva menší. Kdyby k tomu někdy došlo, oprava patří do `BfsrReport`:
+rozlišit podle slevy (jako u triček) nebo podle role, ne podle výsledné ceny.
+
+Dvě známé nedotažené věci (obojí zatím bez následku):
+
+- `original_price` a `discount_amount` na nákupu popisují cenu **před** zaokrouhlením, takže
+  `OrderItem::getSavings()` a `Order::getTotalSavings()` se o ten rozdíl rozejdou. Ani jeden
+  getter dnes nemá volajícího.
+- **Legacy `Shop::prodat()` nezaokrouhluje.** Tentýž předmět za 42,40 se přes admin mřížku
+  zaúčtuje za 42,40 a přes pult za 42. Každá cesta je sama v sobě vyrovnaná, ale liší se —
+  a zrovna zaokrouhlení je poslední osa, ve které si obě cesty neodpovídají. (Legacy mřížka
+  navíc už dnes *zobrazuje* `round($cena)`, zatímco účtuje nezaokrouhleno.)
+
 ## Co se ví a zatím neudělalo
 
 **Příznak místo `poznamka`** (záměr): klasifikovat „prodej na pultu" textem je křehké —
