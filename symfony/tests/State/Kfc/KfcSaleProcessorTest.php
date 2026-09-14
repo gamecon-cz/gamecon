@@ -327,6 +327,22 @@ class KfcSaleProcessorTest extends AbstractDatabaseKernelTestCase
     }
 
     /**
+     * Druhá strana půlky: pod ní se dolů. Teprve tenhle případ odliší běžné zaokrouhlení
+     * od „vždy nahoru" — 42,50 nahoru by samo o sobě sedělo i na obojí.
+     *
+     * @test
+     */
+    public function podPulkouKorunySeZaokrouhliDolu(): void
+    {
+        $this->prihlasOperatora();
+        $predmet = $this->vytvorPredmet(kusuVyrobeno: 10, cena: '42.49');
+
+        $vysledek = $this->zpracuj($this->prodej($predmet));
+
+        self::assertSame('42', $vysledek->totalPrice, '42,49 je 42, ne 43');
+    }
+
+    /**
      * @test
      */
     public function predmetSVicVariantamiNejdeProdatNaslepo(): void
