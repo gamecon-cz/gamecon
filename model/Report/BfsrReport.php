@@ -951,6 +951,7 @@ SQL,
      */
     private function getCountOfActivitiesAsStandardActivity(array $activities): array
     {
+        $prvniKola = self::prvniKolaTurnaju($activities);
         $countOfActivitiesAsStandardActivity = [];
         foreach ($activities as $activity) {
             $length = $activity->delka();
@@ -960,9 +961,7 @@ SQL,
             $countOfActivitiesAsStandardActivity[$code] += $this->getActivityStandardLengthCoefficient($length)
                 * self::pocetOdehranychStolu(
                     $activity->pocetPrihlasenych(),
-                    $activity->jeTeamova()
-                        ? $activity->tymMaxKapacita()
-                        : null,
+                    self::velikostTymu($activity, $prvniKola),
                 );
         }
 
@@ -975,13 +974,12 @@ SQL,
      */
     private function getWeightedAverageCapacityOfActivitiesAsStandardActivity(array $activities): array
     {
+        $prvniKola = self::prvniKolaTurnaju($activities);
         $capacityOfActivitiesAsStandardActivity = [];
         foreach ($activities as $activity) {
             $capacity       = self::kapacitaVJednotkachVykazu(
-                (int)$activity->kapacita(),
-                $activity->jeTeamova()
-                    ? $activity->tymovaKapacita()
-                    : null,
+                self::kapacitaAktivity($activity, $prvniKola),
+                self::pocetTymu($activity, $prvniKola),
             );
             $standardLength = $this->getActivityStandardLengthCoefficient($activity->delka());
             $code           = 'Ir-Kapacita-' . $this->getActivityGroupCode($activity);
@@ -1007,6 +1005,7 @@ SQL,
      */
     private function getWeightedAverageCountActivityNarratorsAsStandardActivity(array $activities): array
     {
+        $prvniKola = self::prvniKolaTurnaju($activities);
         $countOfNarratorsOfActivitiesAsStandardActivity = [];
         foreach ($activities as $activity) {
             $countOfNarrators = count($activity->dejOrganizatoriIds());
@@ -1015,9 +1014,7 @@ SQL,
             // stolu, takže průměr na aktivitu by ho násobil počtem stolů.
             $stolu            = self::pocetOdehranychStolu(
                 $activity->pocetPrihlasenych(),
-                $activity->jeTeamova()
-                    ? $activity->tymMaxKapacita()
-                    : null,
+                self::velikostTymu($activity, $prvniKola),
             );
             $code             = 'Ir-PrumPocVyp-' . $this->getActivityGroupCode($activity);
 
@@ -1359,7 +1356,7 @@ SQL,
             return 1;
         }
 
-        return (int)ceil($pocetPrihlasenych / $velikostTymu);
+        return (int) ceil($pocetPrihlasenych / $velikostTymu);
     }
 
     /**
@@ -1389,6 +1386,138 @@ SQL,
         }
 
         return $aktivita->typ()->nazev();
+    }
+
+    /**
+     * Další kolo turnaje se zakládá bez kapacity - postupuje do něj celá sestava
+     * z prvního kola, takže se nic nezadává znovu a kapacita platí dál.
+     */
+    public static function kapacitaDalsihoKola(
+        int $kapacitaKola,
+        int $kapacitaPrvnihoKola,
+    ): int {
+        return $kapacitaKola > 0
+            ? $kapacitaKola
+            : $kapacitaPrvnihoKola;
+    }
+
+    /**
+     * Velikost týmu se v dalším kole taky nezadává - bez ní by ale nešel spočítat
+     * počet stolů, takže se přebírá z prvního kola téhož turnaje.
+     */
+    public static function velikostTymuDalsihoKola(
+        ?int $velikostTymuKola,
+        ?int $velikostTymuPrvnihoKola,
+    ): ?int {
+        if ($velikostTymuKola !== null && $velikostTymuKola > 0) {
+            return $velikostTymuKola;
+        }
+
+        return $velikostTymuPrvnihoKola > 0
+            ? $velikostTymuPrvnihoKola
+            : null;
+    }
+
+    /**
+     * Hodnoty prvních kol turnajů podle `id_turnaje`, ze kterých další kola
+     * přebírají kapacitu a velikost týmu.
+     *
+     * Turnaj může mít víc prvních kol naráz (LKD hraje několik stolů současně)
+     * a nemusí mít všechna stejnou kapacitu. Bere se proto maximum, ať výsledek
+     * nezávisí na pořadí aktivit.
+     *
+     * @param array<int, Aktivita> $activities
+     * @return array<int, array{kapacita: int, velikostTymu: int, pocetTymu: int}>
+     */
+    private static function prvniKolaTurnaju(array $activities): array
+    {
+        $prvniKola = [];
+        foreach ($activities as $activity) {
+            $idTurnaje = $activity->idTurnaje();
+            if ($idTurnaje === null || $activity->turnajKolo() !== 1) {
+                continue;
+            }
+            $prvniKola[$idTurnaje] ??= ['kapacita' => 0, 'velikostTymu' => 0, 'pocetTymu' => 0];
+            $prvniKola[$idTurnaje] = [
+                'kapacita'     => max($prvniKola[$idTurnaje]['kapacita'], (int)$activity->kapacita()),
+                'velikostTymu' => max($prvniKola[$idTurnaje]['velikostTymu'], (int)($activity->tymMaxKapacita() ?? 0)),
+                'pocetTymu'    => max($prvniKola[$idTurnaje]['pocetTymu'], (int)($activity->tymovaKapacita() ?? 0)),
+            ];
+        }
+
+        return $prvniKola;
+    }
+
+    /**
+     * Velikost týmu aktivity; u dalšího kola turnaje převzatá z prvního kola.
+     *
+     * @param array<int, array{kapacita: int, velikostTymu: int, pocetTymu: int}> $prvniKola
+     */
+    private static function velikostTymu(
+        Aktivita $activity,
+        array $prvniKola,
+    ): ?int {
+        if (!$activity->jeTeamova()) {
+            return null;
+        }
+
+        return self::velikostTymuDalsihoKola(
+            $activity->tymMaxKapacita(),
+            self::hodnotaPrvnihoKola($activity, $prvniKola, 'velikostTymu'),
+        );
+    }
+
+    /**
+     * Hodnota k převzetí z prvního kola téhož turnaje. Přebírá jen další kolo -
+     * první kolo ani aktivita mimo turnaj nemá od koho, takže si nesmí sáhnout
+     * ani na hodnoty svých souběžných prvních kol.
+     *
+     * @param array<int, array{kapacita: int, velikostTymu: int, pocetTymu: int}> $prvniKola
+     */
+    private static function hodnotaPrvnihoKola(
+        Aktivita $activity,
+        array $prvniKola,
+        string $klic,
+    ): int {
+        if (!$activity->jeToDalsiKolo()) {
+            return 0;
+        }
+
+        return $prvniKola[$activity->idTurnaje()][$klic] ?? 0;
+    }
+
+    /**
+     * Kapacita aktivity; u dalšího kola turnaje převzatá z prvního kola.
+     *
+     * @param array<int, array{kapacita: int, velikostTymu: int, pocetTymu: int}> $prvniKola
+     */
+    private static function kapacitaAktivity(
+        Aktivita $activity,
+        array $prvniKola,
+    ): int {
+        return self::kapacitaDalsihoKola(
+            (int)$activity->kapacita(),
+            self::hodnotaPrvnihoKola($activity, $prvniKola, 'kapacita'),
+        );
+    }
+
+    /**
+     * Počet týmů na aktivitě; u dalšího kola turnaje převzatý z prvního kola.
+     *
+     * @param array<int, array{kapacita: int, velikostTymu: int, pocetTymu: int}> $prvniKola
+     */
+    private static function pocetTymu(
+        Aktivita $activity,
+        array $prvniKola,
+    ): ?int {
+        if (!$activity->jeTeamova()) {
+            return null;
+        }
+
+        return self::kapacitaDalsihoKola(
+            $activity->tymovaKapacita() ?? 0,
+            self::hodnotaPrvnihoKola($activity, $prvniKola, 'pocetTymu'),
+        );
     }
 
     /**
