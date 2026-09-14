@@ -51,7 +51,6 @@ ui/node_modules
 # vendor/ against a built image's.
 vendor/symplify
 vendor/rector
-vendor/phpstan
 vendor/phpunit
 vendor/fakerphp
 vendor/nikic
@@ -61,6 +60,8 @@ vendor/phar-io
 vendor/myclabs
 vendor/cweagans
 vendor/theseer
+vendor/masterminds
+vendor/shipmonk
 
 # Symfony runtime artefacts (rebuilt on first request)
 symfony/var
