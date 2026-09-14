@@ -78,25 +78,22 @@ class Predmet extends \DbObject
     }
 
     /**
-     * Pozor, název, ne kód předmětu
+     * Reporty nechtějí barvu, ale hodnost — kolik odznaků které úrovně se rozdalo
+     * (výstupní klíče `Nr-TrickaVypravecskaZdarma` apod.). Barva je jen historická
+     * náhražka: v roce 2009 a 2010 byla orgovská trička oranžová, takže hledání
+     * „červen" v názvu je 14 kusů počítalo jako účastnická.
      */
-    public static function jeToModre(string|PolozkaProBfgr $nazev): bool
+    public static function jeToVypravecske(PolozkaProBfgr $polozka): bool
     {
-        if ($nazev instanceof PolozkaProBfgr) {
-            $nazev = $nazev->nazev;
-        }
-        return self::jeToDleCasti($nazev, 'modr');
+        return self::jeToDleCasti($polozka->kodPredmetu, 'vypravecske');
     }
 
     /**
-     * Pozor, název, ne kód předmětu
+     * Viz {@see jeToVypravecske()} — hodnost z kódu, ne barva z názvu.
      */
-    public static function jeToCervene(string|PolozkaProBfgr $nazev): bool
+    public static function jeToOrganizatorske(PolozkaProBfgr $polozka): bool
     {
-        if ($nazev instanceof PolozkaProBfgr) {
-            $nazev = $nazev->nazev;
-        }
-        return self::jeToDleCasti($nazev, 'červen');
+        return self::jeToDleCasti($polozka->kodPredmetu, 'organizatorske');
     }
 
     public static function jeToTricko(

@@ -241,17 +241,15 @@ SQL,
 
                     switch (self::kategorieSvrsku($polozka)) {
                         case self::SVRSEK_ZDARMA:
-                            // Rozpad volných triček podle BARVY položky (ne podle důvodu slevy).
-                            // Vypravěčský bonus dává zdarma libovolné (nejlevnější) tričko, ne
-                            // nutně modré (viz Cenik::cena), takže z barvy už nejde odvodit důvod.
-                            // Historické kódy Orgovska/Vypravecska/Ucastnicka jsou zachovány kvůli
-                            // exportu, ale významově jde o červená / modrá / ostatní.
-                            if (Predmet::jeToCervene($polozka)) {
-                                $trickaOrgovskaZdarma++; // červená
-                            } elseif (Predmet::jeToModre($polozka)) {
-                                $trickaVypravecskaZdarma++; // modrá
+                            // Rozpad volných triček podle HODNOSTI, pro kterou je tričko určené
+                            // (ne podle důvodu slevy): vypravěčský bonus dává zdarma libovolné
+                            // nejlevnější tričko, viz Cenik::cena.
+                            if (Predmet::jeToOrganizatorske($polozka)) {
+                                $trickaOrgovskaZdarma++;
+                            } elseif (Predmet::jeToVypravecske($polozka)) {
+                                $trickaVypravecskaZdarma++;
                             } else {
-                                $trickaUcastnickaZdarma++; // ostatní
+                                $trickaUcastnickaZdarma++;
                             }
                             break;
                         case self::SVRSEK_SE_SLEVOU:
@@ -272,14 +270,13 @@ SQL,
 
                     switch (self::kategorieSvrsku($polozka)) {
                         case self::SVRSEK_ZDARMA:
-                            // Rozpad volných tílek podle BARVY (stejná logika jako u triček výše):
-                            // historické kódy Orgovska/Vypravecska/Ucastnicka = červená / modrá / ostatní.
-                            if (Predmet::jeToCervene($polozka)) {
-                                $tilkaOrgovskaZdarma++; // červená
-                            } elseif (Predmet::jeToModre($polozka)) {
-                                $tilkaVypravecskaZdarma++; // modrá
+                            // Rozpad volných tílek podle hodnosti, stejně jako u triček výše.
+                            if (Predmet::jeToOrganizatorske($polozka)) {
+                                $tilkaOrgovskaZdarma++;
+                            } elseif (Predmet::jeToVypravecske($polozka)) {
+                                $tilkaVypravecskaZdarma++;
                             } else {
-                                $tilkaUcastnickaZdarma++; // ostatní
+                                $tilkaUcastnickaZdarma++;
                             }
                             break;
                         case self::SVRSEK_SE_SLEVOU:
@@ -1595,7 +1592,7 @@ SQL,
                            Predmet::jeToTricko($polozka->kodPredmetu, $polozka->typ)
                            || Predmet::jeToTilko($polozka->kodPredmetu, $polozka->typ)
                        )
-                       && (Predmet::jeToModre($polozka->nazev) || Predmet::jeToCervene($polozka->nazev))
+                       && (Predmet::jeToVypravecske($polozka) || Predmet::jeToOrganizatorske($polozka))
                    )
                );
     }
