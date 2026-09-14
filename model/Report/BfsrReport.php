@@ -23,6 +23,10 @@ use Webmozart\Assert\Assert;
 // takzvaný BFSR (Big f**king Sirien report)
 class BfsrReport
 {
+    public const SVRSEK_ZDARMA = 'zdarma';
+    public const SVRSEK_SE_SLEVOU = 'sleva';
+    public const SVRSEK_PLACENY = 'placeny';
+
     /**
      * Druh ubytování -> [předpona kódu předmětu, popis do reportu].
      * Delší předpona musí předcházet kratší, protože se bere první shoda:
@@ -101,6 +105,7 @@ SQL,
         $trickaUcastnickaZdarma      = 0;
         $trickaSeSlevou              = 0;
         $trickaPlacena               = 0;
+        $svrskuCelkem                = 0;
         $trickaVynosyCelkem          = 0.0;
         $trickaSlevyCelkem           = 0.0;
         $tilkaOrgovskaZdarma         = 0;
@@ -229,25 +234,28 @@ SQL,
                     // Započítání výnosů a slev z triček
                     $trickaVynosyCelkem += $polozka->castka;
                     $trickaSlevyCelkem  += $polozka->sleva;
+                    $svrskuCelkem++;
 
-                    if ($this->jeZdarma($polozka)) {
-                        // Rozpad volných triček podle BARVY položky (ne podle důvodu slevy).
-                        // Vypravěčský bonus dává zdarma libovolné (nejlevnější) tričko, ne
-                        // nutně modré (viz Cenik::cena), takže z barvy už nejde odvodit důvod.
-                        // Historické kódy Orgovska/Vypravecska/Ucastnicka jsou zachovány kvůli
-                        // exportu, ale významově jde o červená / modrá / ostatní.
-                        if (Predmet::jeToCervene($polozka)) {
-                            $trickaOrgovskaZdarma++; // červená
-                            continue;
-                        }
-                        if (Predmet::jeToModre($polozka)) {
-                            $trickaVypravecskaZdarma++; // modrá
-                            continue;
-                        }
-                        $trickaUcastnickaZdarma++; // ostatní
-                    } elseif ($this->jeSeSlevou($polozka)) {
-                        $trickaSeSlevou++;
-                        continue;
+                    switch (self::kategorieSvrsku($polozka)) {
+                        case self::SVRSEK_ZDARMA:
+                            // Rozpad volných triček podle BARVY položky (ne podle důvodu slevy).
+                            // Vypravěčský bonus dává zdarma libovolné (nejlevnější) tričko, ne
+                            // nutně modré (viz Cenik::cena), takže z barvy už nejde odvodit důvod.
+                            // Historické kódy Orgovska/Vypravecska/Ucastnicka jsou zachovány kvůli
+                            // exportu, ale významově jde o červená / modrá / ostatní.
+                            if (Predmet::jeToCervene($polozka)) {
+                                $trickaOrgovskaZdarma++; // červená
+                            } elseif (Predmet::jeToModre($polozka)) {
+                                $trickaVypravecskaZdarma++; // modrá
+                            } else {
+                                $trickaUcastnickaZdarma++; // ostatní
+                            }
+                            break;
+                        case self::SVRSEK_SE_SLEVOU:
+                            $trickaSeSlevou++;
+                            break;
+                        default:
+                            $trickaPlacena++;
                     }
                     continue;
                 }
@@ -257,24 +265,26 @@ SQL,
                     // Započítání výnosů a slev z tílek
                     $tilkaVynosyCelkem += $polozka->castka;
                     $tilkaSlevyCelkem  += $polozka->sleva;
+                    $svrskuCelkem++;
 
-                    if ($this->jeZdarma($polozka)) {
-                        // Rozpad volných tílek podle BARVY (stejná logika jako u triček výše):
-                        // historické kódy Orgovska/Vypravecska/Ucastnicka = červená / modrá / ostatní.
-                        if (Predmet::jeToCervene($polozka)) {
-                            $tilkaOrgovskaZdarma++; // červená
-                            continue;
-                        }
-                        if (Predmet::jeToModre($polozka)) {
-                            $tilkaVypravecskaZdarma++; // modrá
-                            continue;
-                        }
-                        $tilkaUcastnickaZdarma++; // ostatní
-                    } elseif ($this->jeSeSlevou($polozka)) {
-                        $tilkaSeSlevou++;
-                        continue;
+                    switch (self::kategorieSvrsku($polozka)) {
+                        case self::SVRSEK_ZDARMA:
+                            // Rozpad volných tílek podle BARVY (stejná logika jako u triček výše):
+                            // historické kódy Orgovska/Vypravecska/Ucastnicka = červená / modrá / ostatní.
+                            if (Predmet::jeToCervene($polozka)) {
+                                $tilkaOrgovskaZdarma++; // červená
+                            } elseif (Predmet::jeToModre($polozka)) {
+                                $tilkaVypravecskaZdarma++; // modrá
+                            } else {
+                                $tilkaUcastnickaZdarma++; // ostatní
+                            }
+                            break;
+                        case self::SVRSEK_SE_SLEVOU:
+                            $tilkaSeSlevou++;
+                            break;
+                        default:
+                            $tilkaPlacena++;
                     }
-                    $tilkaPlacena++;
                     continue;
                 }
 
@@ -475,6 +485,12 @@ SQL,
         $plackyPlacene = $plackyLetosniPlacene + $plackyStarePlacene;
         $tilkaZdarma   = $tilkaOrgovskaZdarma + $tilkaVypravecskaZdarma + $tilkaUcastnickaZdarma;
         $trickaZdarma  = $trickaOrgovskaZdarma + $trickaVypravecskaZdarma + $trickaUcastnickaZdarma;
+
+        Assert::same(
+            $svrskuCelkem,
+            $trickaZdarma + $trickaSeSlevou + $trickaPlacena + $tilkaZdarma + $tilkaSeSlevou + $tilkaPlacena,
+            'Součet svršků zdarma, se slevou a placených musí odpovídat celkovému počtu svršků',
+        );
 
         $data = [
             ['Ir-Timestamp', 'Timestamp reportu', $this->systemoveNastaveni->ted()->format('Y-m-d H:i:s')],
@@ -1375,13 +1391,29 @@ SQL,
         return $aktivita->typ()->nazev();
     }
 
-    private function jeZdarma(
-        PolozkaProBfgr $polozka,
-    ): bool {
-        return $polozka->castka === 0.0 && $polozka->sleva > 0.0;
+    /**
+     * Do které kategorie výkazu svršek patří. Kategorie jsou vzájemně výlučné,
+     * takže se jejich počty sečtou na celkový počet prodaných svršků.
+     *
+     * @return self::SVRSEK_*
+     */
+    public static function kategorieSvrsku(PolozkaProBfgr $polozka): string
+    {
+        if ($polozka->castka === 0.0 && $polozka->sleva > 0.0) {
+            return self::SVRSEK_ZDARMA;
+        }
+        if (self::jeSeSlevou($polozka)) {
+            return self::SVRSEK_SE_SLEVOU;
+        }
+
+        return self::SVRSEK_PLACENY;
     }
 
-    private function jeSeSlevou(
+    /**
+     * Svršek v orgovské či vypravěčské barvě je zlevněný i bez zapsané slevy -
+     * jeho ceníková cena je už ta snížená.
+     */
+    private static function jeSeSlevou(
         PolozkaProBfgr $polozka,
     ): bool {
         return $polozka->castka > 0.0
