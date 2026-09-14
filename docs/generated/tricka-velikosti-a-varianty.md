@@ -28,7 +28,7 @@ mikina_2026_verne_xs                       velikost malými písmeny
 - Velikosti v datech: S, M, L, XL, XXL, XXXL, jedno `xs`.
 - **Ponožky mají velikost taky, ale jinou konvencí**: `ponozky_2021_vel_38_39` / `ponozky_2021_vel_42_45`, tedy `_vel_<od>_<do>`. Dvě velikosti × 6 ročníků = **12 produktů, 6 skupin, 475 nákupů**. Regex psaný na `_L_`/`_XXL_` je tiše minul — při hledání variantních produktů se nedá spolehnout na jednu konvenci.
 - **Identifikátor je `kod_predmetu`, ne `nazev`.** `kod_predmetu` je UNIQUE a nese ročník; `nazev` je jen štítek pro zákazníka a **smí se opakovat napříč ročníky** — „Tričko červené pánské L" existuje pro 2016–2025 a jsou to různé produkty.
-- Migrace `100001` původně zaváděla i `UNIQUE(nazev)`, což si vynutilo umělé suffixy `(#1464)` u **785 z 1135 produktů**. Constraint i suffixy jsou pryč (nic na jedinečnosti názvu nestálo: `ProductRepository` nemá žádný lookup podle názvu, importér páruje přes `kod_predmetu`, `Predmet::jeToModre()` dělá substring match, reporty grupují per uživatel a ročník).
+- Migrace `100001` původně zaváděla i `UNIQUE(nazev)`, což si vynutilo umělé suffixy `(#1464)` u **785 z 1135 produktů**. Constraint i suffixy jsou pryč (nic na jedinečnosti názvu nestálo: `ProductRepository` nemá žádný lookup podle názvu, importér páruje přes `kod_predmetu`, `Predmet::jeToVypravecske()` matchuje kód, reporty grupují per uživatel a ročník).
 
 ## Dva prodejní kanály téhož trička
 
@@ -61,26 +61,27 @@ Pozor na svůdnou zkratku: **kapacita (1L/2L/3L) není „velikost" pokoje.** Ma
 
 ## Barva je náhražka za hodnost, ne údaj o vzhledu
 
-Dvě cesty odvozují totéž a míří proti sobě:
+Reporty nechtějí barvu, chtějí **hodnost** — kolik odznaků které úrovně se rozdalo.
+Výstupní klíče to říkají natvrdo: `Nr-TrickaOrgovskaZdarma`, `Nr-TrickaVypravecskaZdarma`,
+`Nr-TrickaUcastnickaZdarma` (`model/Report/BfsrReport.php`). Barva je v nich jen lidský
+popisek sloupce.
+
+Hodnost se bere **z `kod_predmetu`** (`organizatorske` / `vypravecske`), stejně jako ji
+bere migrace `100020`, která z ní odvozuje tagy `tricko_cervene` / `tricko_modre`:
 
 | | směr | podle čeho |
 |---|---|---|
-| tagy `tricko_modre` / `tricko_cervene` (migrace `100020`) | účel → barva | `kod_predmetu LIKE '%vypravecske%'` / `'%organizatorske%'` |
-| `Predmet::jeToModre()` / `jeToCervene()` | barva → účel | substring „modr" / „červen" v `nazev` |
+| `Predmet::jeToOrganizatorske()` / `jeToVypravecske()` | kód → hodnost | `kod_predmetu LIKE '%organizatorske%'` / `'%vypravecske%'` |
+| tagy `tricko_modre` / `tricko_cervene` (migrace `100020`) | kód → barva → právo | totéž, jen pro `RestrictedProductRules` |
 
-**Reporty nechtějí barvu, chtějí hodnost.** Výstupní klíče to říkají natvrdo:
-`Nr-TrickaOrgovskaZdarma`, `Nr-TrickaVypravecskaZdarma`, `Nr-TrickaUcastnickaZdarma`
-(`model/Report/BfsrReport.php:510`) — org / vypravěč / účastník. Barva je v nich jen
-lidský popisek, protože jinak se hodnost z dat vytáhnout nedá. Čtenáře BFGR nezajímá,
-jakou barvu tričko mělo, ale kolik odznaků které hodnosti se rozdalo.
+**Dřív to šlo obráceně** a bylo to chybně: `jeToCervene()` / `jeToModre()` hledaly
+v `nazev` podřetězce „červen" / „modr". Barva ale hodnost nedrží spolehlivě — **v roce
+2009 a 2010 byla orgovská trička oranžová**, takže 14 kusů report počítal mezi
+účastnická. Navíc to viselo na volném textu v češtině a na diakritice
+(`utf8mb4_czech_ci` skládá é→e, ale ne č→c).
 
-Tagy jdou správným směrem (účel je primární, barva z něj plyne), ale **dnes je čte jen
-`RestrictedProductRules`**, tedy „smí si to objednat?", ne reporty. Ty pořád parsují
-`nazev`, což je podle tohohle dokumentu ten nespolehlivý údaj — a navíc přes českou
-diakritiku (`utf8mb4_czech_ci` skládá é→e, ale ne č→c).
-
-Důsledek pro fixtury: test, který chce, aby se tričko započítalo jako orgovské, musí mít
-v `nazev` slovo „červené". Samotný tag `tricko_cervene` na to dnes nestačí.
+Pro fixtury to znamená: tričko se pozná podle kódu, název je jen štítek. Test
+`BfsrReportTrickaTest::orgovskeTrickoSePoznaIKdyzNeniCervene()` ten případ drží.
 
 ## Gotchas
 
