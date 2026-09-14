@@ -6,11 +6,13 @@ namespace Gamecon\Tests\Shop;
 
 use App\Enum\ProductTagCode;
 use Gamecon\Cas\DateTimeGamecon;
+use Gamecon\Cas\DateTimeImmutableStrict;
 use Gamecon\Shop\Shop;
 use Gamecon\Shop\StavPredmetu;
 use Gamecon\Shop\TypPredmetu;
 use Gamecon\SystemoveNastaveni\SystemoveNastaveni;
 use Gamecon\Tests\Db\AbstractTestDb;
+use Gamecon\XTemplate\XTemplate;
 
 /**
  * Společné zázemí pro testy veřejné přihlášky (web/moduly/prihlaska/prihlaska.php).
@@ -191,6 +193,66 @@ SQL,
                 0 => $uzivatel->id(),
                 1 => ROCNIK,
             ],
+        );
+    }
+
+    protected function pocetRoliUzivatele(
+        \Uzivatel $uzivatel,
+        int $idRole,
+    ): int {
+        return (int) dbOneCol(
+            'SELECT COUNT(*) FROM uzivatele_role WHERE id_uzivatele = $0 AND id_role = $1',
+            [
+                0 => $uzivatel->id(),
+                1 => $idRole,
+            ],
+        );
+    }
+
+    /**
+     * Je předmět vidět ve vykreslené nabídce? `Shop::predmetyHtml()` je pořád volaný
+     * z `web/moduly/prihlaska/prihlaska.php`, i když se merch kupuje přes košíkové API.
+     *
+     * **Neptá se „smí se koupit"**: `renderPredmet()` vykreslí i nenabízený předmět,
+     * který už účastník má koupený (`|| $predmet['kusu_uzivatele']`), a to úplně stejným
+     * markupem. Volající proto nesmí nic koupit, jinak dostane falešné „ano".
+     *
+     * Termíny konce prodeje jsou konstanty, které testovací bootstrap nedefinuje, a jejich
+     * výchozí hodnoty leží uprostřed ročníku — bez posunutí „teď" na začátek roku by
+     * vykreslení hlásilo ukončený prodej. Posunuté „teď" ale řídí jen tyhle termíny;
+     * `nabizet_do` se porovnává s reálným časem.
+     */
+    protected function jeVidetVNabidce(
+        \Uzivatel $uzivatel,
+        int $idPredmetu,
+    ): bool {
+        $systemoveNastaveni = SystemoveNastaveni::zGlobals(
+            rocnik: ROCNIK,
+            ted: new DateTimeImmutableStrict(ROCNIK . '-01-01 00:00:00'),
+        );
+        foreach ([
+            'PREDMETY_BEZ_TRICEK_LZE_OBJEDNAT_A_MENIT_DO_DNE',
+            'TRICKA_LZE_OBJEDNAT_A_MENIT_DO_DNE',
+            'MIKINY_LZE_OBJEDNAT_A_MENIT_DO_DNE',
+        ] as $klic) {
+            try_define($klic, $systemoveNastaveni->dejVychoziHodnotu($klic));
+        }
+
+        // Bez nastavené cache si XTemplate odkládá zkompilovanou šablonu vedle zdroje,
+        // tedy do gitem sledovaného stromu.
+        $cacheDir = XTemplate::cache() ?: XTPL_CACHE_DIR;
+        pripravCache($cacheDir);
+        XTemplate::cache($cacheDir);
+
+        $uzivatel = \Uzivatel::zIdUrcite($uzivatel->id());
+        $shop = new Shop($uzivatel, $uzivatel, $systemoveNastaveni);
+
+        // Merch se kupuje přes API, takže nabídka vykresluje jen `fixniPocet` — skrytý
+        // input bez `data-max`. Hledat `data-max` (tedy starý editovatelný blok `nakup`)
+        // by od přechodu na košík nenašlo nikdy nic.
+        return (bool) preg_match(
+            '~name="shopP\[' . $idPredmetu . '\]"~',
+            $shop->predmetyHtml(),
         );
     }
 
