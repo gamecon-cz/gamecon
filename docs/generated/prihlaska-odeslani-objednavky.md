@@ -52,7 +52,10 @@ Příznak `nabizet` (počítaný v konstruktoru `Shop` ze `stav` a `nabizet_do`)
 
 Důsledek: předmět stažený z nabídky zmizí z formuláře, ale ručně poskládaný POST ho koupí. Totéž platí pro termíny `*_LZE_OBJEDNAT_A_MENIT_DO_DNE` — konzultují se jen při vykreslování, zpracování je ignoruje.
 
-Chování je zafixované testem `PrihlaskaVyprodanoTest::pozastavenyPredmetJdeKoupitRucnePoskladanymPostem`; až se to opraví, ten test musí spadnout.
+**Žádný test tohle nehlídá.** `pozastavenyPredmetJdeKoupitRucnePoskladanymPostem` se smazal
+s merchovými testy, protože posílal `shopP`. Formulářem už se merch nekupuje, takže tudy
+se díra nejspíš nedá využít — ale `zpracujPredmety()` je pořád na svém místě a nikdo to
+neověřuje.
 
 ## Gotchas při psaní testů
 
@@ -62,33 +65,20 @@ Chování je zafixované testem `PrihlaskaVyprodanoTest::pozastavenyPredmetJdeKo
 - **XTemplate bez nastavené cache** si odkládá zkompilovanou šablonu vedle zdroje, tedy do gitem sledovaného stromu. Před voláním kteréhokoli `*Html()` je potřeba nastavit `XTemplate::cache()`.
 - **Testovací DB je prázdná** — migrace `shop_predmety` neplní, takže v ní jsou jen předměty, které si test sám vloží. Dvě pasti z toho plynoucí:
   - Když jsou *všechny* předměty pozastavené, `predmetyHtml()` zamkne celou sekci. Test s jediným staženým předmětem tedy projde, i kdyby se na jednotlivé předměty vůbec nehledělo — je potřeba vedle něj vytvořit i nabízený předmět.
-  - Nenabízený předmět, který už má účastník koupený, se stejně vykreslí (blok `fixniPocet`) se stejným `name="shopP[<id>]"`. Nabídku odliší až `data-max`, které nese jen nákupní varianta.
+  - Nenabízený předmět, který už má účastník koupený, se stejně vykreslí (`|| $predmet['kusu_uzivatele']`
+    v `renderPredmet()`) a **markupem se od nabízeného nijak neliší** — `data-max` nese jen blok
+    `nakup`, který se od přechodu na košík nerenderuje vůbec. Test, který se ptá na nabídku,
+    proto nesmí nic koupit; helper se jmenuje `jeVidetVNabidce()`, ne „jde koupit".
 - **Rollback celé přihlášky se dá otestovat jen selháním, které přijde po nějakém zápisu.** Vyprodaný *předmět* padá jako první, takže se do té doby nic neuložilo a test by prošel i bez rollbacku; vyprodané *jídlo* se zpracovává až po ubytování, takže shodí přihlášku s už zapsanými nocemi.
 
-## Chybějící pokrytí (nice to have)
+## Co pokrývají testy nabídky
 
-Při přechodu merche na košíkové API zmizely s `shopP` testy i tři věci, které s merchem
-nesouvisí. Nejsou nahrazené jinde — stojí za to je vrátit, až na ně bude čas.
+`Shop::predmetyHtml()` je pořád volaný z `web/moduly/prihlaska/prihlaska.php`, i když se
+merch kupuje přes košíkové API — `PrihlaskaNabidkaPredmetuTest` proto hlídá, že nabídka
+nevykreslí pozastavený předmět ani předmět po `nabizet_do`. Každý test k tomu zakládá
+i běžný předmět: kdyby byl ten nenabízený jediný, zamkla by se celá sekce a test by prošel
+naprázdno.
 
-| Co | Kde to bylo | Proč to stojí za návrat |
-|---|---|---|
-| Přihlášení na GC | `PrihlaskaBeznyPripadTest::beznyUzivatelSePrihlasiNaGc` | ověřovalo `gcPrihlasen()` a že se role `PRIHLASEN_NA_LETOSNI_GC` zapíše **právě jednou**; `odesliPrihlasku()` tuhle cestu pořád projde při každém odeslání |
-| Dvojí odeslání nezduplikuje | `PrihlaskaBeznyPripadTest::opakovaneOdeslaniPrihlaskySeStejnymObsahemNicNezdvoji` | hlídalo ubytování (4 řádky, ne 2) — tedy přesně tu cestu, kterou tahle větev přepisuje |
-| Vykreslení nabídky | `PrihlaskaVyprodanoTest::nabidkaNeobsahujePozastavenyPredmet` + `…PoUplynutiNabizetDo` + `…ObsahujeBeznyPredmet` | `Shop::predmetyHtml()` je pořád volaný z `web/moduly/prihlaska/prihlaska.php:310`, ale od smazání `jeNabizenKProdeji()` ho nerenderuje žádný test; třetí test tam byl schválně, aby první dva nemohly projít naprázdno, když se zamkne celá sekce |
-
-Vyprodanost a překročení zásoby pokryté zůstávají (`ShopProdejPrekroceniZasobTest`,
-`CartServiceStockTest`), tady jde jen o výše uvedené.
-
-**Pozor na `PREDMETY_BEZ_TRICEK_LZE_OBJEDNAT_A_MENIT_DO_DNE` a spol.** Testovací bootstrap
-je nedefinuje, ale `SystemoveNastaveni::prodejPredmetuBezTricekDo()` je čte natvrdo, takže
-každá cesta, která dojde na merch, spadne na „Undefined constant". Smazaný helper
-`jeNabizenKProdeji()` je proto `try_define`oval — kdo bude pokrytí vracet, musí to udělat taky.
-
-### Pozastavený předmět koupitelný ručním POSTem
-
-Níže popsaný rozpor (formulář pozastavený předmět skryje, ale ručně poskládaný POST ho
-koupí) hlídal charakterizační test `pozastavenyPredmetJdeKoupitRucnePoskladanymPostem`.
-Ten je smazaný spolu s `shopP` — a protože `zpracujPredmety()` `shopP` už vůbec nečte,
-**touhle cestou už díra nejspíš není dosažitelná**. Neověřeno: než se to potvrdí, ber
-popis níže jako možná neaktuální. Ekvivalentní kontrola na straně košíku (`stav` =
-pozastavený → `addItem()` musí odmítnout) zatím nikde není.
+Helper `jeVidetVNabidce()` hledá `name="shopP[<id>]"` a schválně **ne** `data-max` — viz
+gotcha výše: `data-max` nese jen blok `nakup`, který se nerenderuje, takže matcher psaný
+na něj by nenašel nikdy nic.
