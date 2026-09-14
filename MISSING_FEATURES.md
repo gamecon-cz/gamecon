@@ -193,8 +193,8 @@ if (Predmet::jeToKostka($r['kod_predmetu'])) {
 - `jeToVecere()` - obsahuje 'vecere'
 - `jeToTricko()` - typ = TRICKO a obsahuje 'tricko'
 - `jeToTilko()` - typ = TRICKO a obsahuje 'tilko'
-- `jeToModre()` - název obsahuje 'modr'
-- `jeToCervene()` - název obsahuje 'červen'
+- `jeToVypravecske()` - kód obsahuje 'vypravecske'
+- `jeToOrganizatorske()` - kód obsahuje 'organizatorske'
 
 **V NEW_ESHOP.md:**
 - ✅ Procentuální slevy podle zákaznických skupin
@@ -284,8 +284,8 @@ if (Predmet::jeToKostka($r['kod_predmetu'])) {
 #### ❌ **BFSR Report - Black Friday Shirt Report**
 **Co to je:**
 - Report o prodeji triček se slevami
-- Zahrnuje speciální počítání slev na modrá/červená trička
-- Metoda: `Predmet::jeToModre()`, `Predmet::jeToCervene()`
+- Zahrnuje speciální počítání slev na orgovská/vypravěčská trička
+- Metoda: `Predmet::jeToOrganizatorske()`, `Predmet::jeToVypravecske()`
 
 **Soubor:** `model/Report/BfsrReport.php`
 
