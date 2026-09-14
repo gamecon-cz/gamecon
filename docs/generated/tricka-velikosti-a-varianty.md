@@ -59,6 +59,29 @@ Pozor na svůdnou zkratku: **kapacita (1L/2L/3L) není „velikost" pokoje.** Ma
 
 **Rozhodnutí:** teď se převádějí jen jednodimenzionální varianty (trička, mikiny, ponožky). Ubytování se převede najednou na multi-options, ne po částech — dělat teď zvlášť „den jako varianta" by byl polovičatý krok, který se stejně zahodí. (záměr — sděleno uživatelem)
 
+## Barva je náhražka za hodnost, ne údaj o vzhledu
+
+Dvě cesty odvozují totéž a míří proti sobě:
+
+| | směr | podle čeho |
+|---|---|---|
+| tagy `tricko_modre` / `tricko_cervene` (migrace `100020`) | účel → barva | `kod_predmetu LIKE '%vypravecske%'` / `'%organizatorske%'` |
+| `Predmet::jeToModre()` / `jeToCervene()` | barva → účel | substring „modr" / „červen" v `nazev` |
+
+**Reporty nechtějí barvu, chtějí hodnost.** Výstupní klíče to říkají natvrdo:
+`Nr-TrickaOrgovskaZdarma`, `Nr-TrickaVypravecskaZdarma`, `Nr-TrickaUcastnickaZdarma`
+(`model/Report/BfsrReport.php:510`) — org / vypravěč / účastník. Barva je v nich jen
+lidský popisek, protože jinak se hodnost z dat vytáhnout nedá. Čtenáře BFGR nezajímá,
+jakou barvu tričko mělo, ale kolik odznaků které hodnosti se rozdalo.
+
+Tagy jdou správným směrem (účel je primární, barva z něj plyne), ale **dnes je čte jen
+`RestrictedProductRules`**, tedy „smí si to objednat?", ne reporty. Ty pořád parsují
+`nazev`, což je podle tohohle dokumentu ten nespolehlivý údaj — a navíc přes českou
+diakritiku (`utf8mb4_czech_ci` skládá é→e, ale ne č→c).
+
+Důsledek pro fixtury: test, který chce, aby se tričko započítalo jako orgovské, musí mít
+v `nazev` slovo „červené". Samotný tag `tricko_cervene` na to dnes nestačí.
+
 ## Gotchas
 
 - **Cena i kapacita jsou per-varianta.** `product_variant.price` je `DECIMAL(6,2) NULL`; `NULL` = dědí z produktu. Ověřeno: varianta s `price = NULL` vrátí cenu produktu, sourozenec s vlastní cenou vrátí svou. `OrderItem` si při nákupu ukládá `getEffectivePrice()` do `original_price`, takže se do historie zamrazí cena varianty.
