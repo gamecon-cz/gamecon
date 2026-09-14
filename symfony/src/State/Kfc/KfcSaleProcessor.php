@@ -177,7 +177,8 @@ readonly class KfcSaleProcessor implements ProcessorInterface
     }
 
     /**
-     * Zaokrouhluje nahoru od poloviny, ne ořezává: ořez by u 42,99 účtoval 42.
+     * Běžné zaokrouhlení (42,49 → 42, 42,50 → 43), ne ořez — ten by u 42,99 účtoval 42.
+     * Týká se jen hotovosti na pultu; e-shop platí převodem a haléře si nechává.
      */
     private function naCeleKoruny(string $castka): string
     {
