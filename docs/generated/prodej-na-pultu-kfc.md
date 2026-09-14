@@ -86,11 +86,34 @@ Dvě známé nedotažené věci (obojí zatím bez následku):
 
 - `original_price` a `discount_amount` na nákupu popisují cenu **před** zaokrouhlením, takže
   `OrderItem::getSavings()` a `Order::getTotalSavings()` se o ten rozdíl rozejdou. Ani jeden
-  getter dnes nemá volajícího.
+  getter dnes nemá volajícího. Zaokrouhluje se nahoru od poloviny, takže u 42,60 pult účtuje
+  43 — tedy **víc** než cena na pultu a `getSavings()` vyjde záporně. Kdyby to někdy vadilo,
+  je to rozhodnutí o ceníku (účtovat vždy max. cenu z pultu), ne o zaokrouhlovací funkci.
 - **Legacy `Shop::prodat()` nezaokrouhluje.** Tentýž předmět za 42,40 se přes admin mřížku
   zaúčtuje za 42,40 a přes pult za 42. Každá cesta je sama v sobě vyrovnaná, ale liší se —
   a zrovna zaokrouhlení je poslední osa, ve které si obě cesty neodpovídají. (Legacy mřížka
   navíc už dnes *zobrazuje* `round($cena)`, zatímco účtuje nezaokrouhleno.)
+
+## Neúspěšný prodej musí nechat pult použitelný
+
+Obchodní chyba (vyprodáno, po termínu) není výjimečný stav — na pultu nastane běžně a
+obsluha na ni musí dostat hlášku, ne chybu 500. `EntityManager::wrapInTransaction()` to
+neumí: na jakékoli výjimce volá `close()` (`vendor/doctrine/orm/src/EntityManager.php:195`),
+takže se prodej řídí ručně a rollbackuje sám.
+
+**`clear()` v rollbacku je past.** Odpojí totiž i přihlášeného operátora, kterého drží
+bezpečnostní token — a *další* prodej pak spadne na `A new entity was found through
+OrderItem#orderer`. Zahazuje se proto jen rozepsaný prodej (`getScheduledEntityInsertions()`
+a `getScheduledEntityUpdates()`), ne celá identity mapa.
+
+**Rollback nevrátí, co si Doctrine mezitím načetlo.** `CapacityManager::purchase()` odepíše
+kus syrovým SQL a hned si variantu `refresh()`ne, takže je v identity mapě čistá a v žádném
+seznamu rozepsaných změn. Po rollbacku pak databáze hlásí původní zásobu, ale varianta
+v paměti tu sníženou — proto se dotčené varianty na konci ještě jednou refreshnou.
+
+Pozor na to při psaní testů: `isOpen() === true` tuhle chybu **nechytí**, protože manager
+otevřený je, a assert přes syrové SQL taky ne, protože databáze je po rollbacku v pořádku.
+Prokáže ji až čtení přes entitu a další prodej ve stejném testu.
 
 ## Co se ví a zatím neudělalo
 

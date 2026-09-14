@@ -352,12 +352,12 @@ class KfcSaleProcessorTest extends AbstractDatabaseKernelTestCase
     }
 
     /**
-     * Chyba v prodeji nesmí zavřít EntityManager — jinak z ní místo srozumitelné hlášky
-     * spadne celý request.
+     * Neznámý produkt se pozná ještě před transakcí, takže tenhle test sám o sobě o jejím
+     * chování nic neříká — od toho je chybaUvnitrTransakceNezavreEntityManager().
      *
      * @test
      */
-    public function chybaProdejeNezavreEntityManager(): void
+    public function neznamyProduktNezavreEntityManager(): void
     {
         $this->prihlasOperatora();
 
@@ -652,13 +652,15 @@ class KfcSaleProcessorTest extends AbstractDatabaseKernelTestCase
         $pred = $this->pocetObjednavek();
 
         $this->zpracuj(new KfcSaleInputDto());
-        $this->zpracuj(new KfcSaleInputDto());
+        $vysledek = $this->zpracuj(new KfcSaleInputDto());
 
         self::assertSame(
             0,
             $this->pocetObjednavek() - $pred,
             'Bez prodaných kusů nemá vzniknout žádná objednávka',
         );
+        self::assertSame(0, $vysledek->soldItems);
+        self::assertSame('0', $vysledek->totalPrice);
     }
 
     /**
@@ -763,6 +765,83 @@ class KfcSaleProcessorTest extends AbstractDatabaseKernelTestCase
         $this->expectExceptionMessageMatches('~kapacita~');
 
         $this->zpracuj($this->prodej($predmet));
+    }
+
+    /**
+     * Vyprodáno se pozná až uvnitř transakce, na rozdíl od neznámého produktu. Právě tahle
+     * cesta zavírá EntityManager, takže obsluha místo hlášky „nedostatečná kapacita" uvidí 500.
+     *
+     * @test
+     */
+    public function chybaUvnitrTransakceNezavreEntityManager(): void
+    {
+        $this->prihlasOperatora();
+        $predmet = $this->vytvorPredmet(kusuVyrobeno: 0);
+
+        try {
+            $this->zpracuj($this->prodej($predmet));
+            self::fail('Vyprodaný předmět musí skončit chybou');
+        } catch (\RuntimeException) {
+            // očekávané
+        }
+
+        self::assertTrue(
+            $this->entityManager()->isOpen(),
+            'Po chybě uvnitř transakce musí jít EntityManager dál používat',
+        );
+
+        // isOpen() sám o sobě nestačí — po clear() v rollbacku musí projít i další zápis,
+        // jinak by se detachované entity projevily až u dalšího prodeje.
+        $dalsiPredmet = $this->vytvorPredmet(kusuVyrobeno: 5);
+        $vysledek = $this->zpracuj($this->prodej($dalsiPredmet));
+
+        self::assertSame(1, $vysledek->soldItems, 'Po neúspěšném prodeji musí jít prodat dál');
+    }
+
+    /**
+     * Neúspěšný prodej nesmí nechat v databázi ani řádek — rollback musí vzít i kusy
+     * odepsané ze zásoby dřív, než se narazilo na vyprodaný předmět.
+     *
+     * @test
+     */
+    public function neuspesnyProdejNezanechaStopu(): void
+    {
+        $this->prihlasOperatora();
+        $dostupny = $this->vytvorPredmet(kusuVyrobeno: 5);
+        $vyprodany = $this->vytvorPredmet(kusuVyrobeno: 0);
+
+        $predObjednavek = $this->pocetObjednavek();
+
+        try {
+            $this->zpracuj($this->prodej($dostupny, $vyprodany));
+            self::fail('Vyprodaný předmět musí prodej shodit');
+        } catch (\RuntimeException) {
+            // očekávané
+        }
+
+        self::assertSame(
+            0,
+            $this->pocetObjednavek() - $predObjednavek,
+            'Po rollbacku nesmí zůstat objednávka',
+        );
+        self::assertSame(
+            5,
+            (int) $this->connection()->fetchOne(
+                'SELECT remaining_quantity FROM product_variant WHERE id = :varianta',
+                [
+                    'varianta' => $dostupny->getVariants()->first()->getId(),
+                ],
+            ),
+            'Zásoba prvního předmětu se musí vrátit',
+        );
+
+        // Bez refreshe, schválně: CapacityManager si variantu během prodeje načetl se
+        // sníženou zásobou a rollback o tom neví. Tak ji uvidí i zbytek requestu.
+        self::assertSame(
+            5,
+            $dostupny->getVariants()->first()->getRemainingQuantity(),
+            'Varianta v paměti nesmí po rollbacku držet odepsaný kus',
+        );
     }
 
     /**
