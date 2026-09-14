@@ -64,10 +64,19 @@ nejde — prodat neexistující kus nesmí nikdo.
 
 ## Zaokrouhlování na celé koruny
 
-Pult bere celé koruny, takže se zaokrouhluje **každý kus**, ne až součet — jinak by řádky
-nákupu nesouhlasily s připsanou platbou a na účtu by po každém prodeji zůstal haléřový
-nedoplatek. Důsledek, který je potřeba znát: `42,40 × 2` je **84**, ne 85 ze zaokrouhleného
-součtu. Dnes to nic nespustí (žádný produkt nemá haléře), spustí to až procentní sleva.
+**Zaokrouhluje se jen hotovost na pultu, ne e-shop** (záměr). Obsluha inkasuje mince, takže
+haléře nemá jak vybrat; online platba je převodem a haléře si nechává. V novém stacku proto
+existuje jediné místo, které zaokrouhluje na koruny — `KfcSaleProcessor::naCeleKoruny()`.
+Slevový engine (`AppliedDiscount`) počítá na dvě desetinná místa a tam to tak má zůstat.
+
+Zaokrouhluje se **běžně, od poloviny nahoru**: 42,49 je 42 a 42,50 je 43. `bcadd($x,'0.5',0)`
+odpovídá `round($x, 0, PHP_ROUND_HALF_UP)` — ověřeno na hraničních hodnotách. Nejde tedy
+o ořez (ten by u 42,99 účtoval 42) ani o „vždy nahoru".
+
+Zaokrouhluje se **každý kus**, ne až součet — jinak by řádky nákupu nesouhlasily s připsanou
+platbou a na účtu by po každém prodeji zůstal haléřový nedoplatek. Důsledek, který je potřeba
+znát: `42,40 × 2` je **84**, ne 85 ze zaokrouhleného součtu. Dnes to nic nespustí (žádný
+produkt nemá haléře), spustí to až procentní sleva.
 
 **Nulová cena je v pořádku, ale nesmí se počítat mezi ubytování zdarma pro orgy** (záměr).
 `BfsrReport` dělí noci na placené a zdarma jen podle ceny (`$polozka->castka > 0.0`,
@@ -85,14 +94,17 @@ rozlišit podle slevy (jako u triček) nebo podle role, ne podle výsledné ceny
 Dvě známé nedotažené věci (obojí zatím bez následku):
 
 - `original_price` a `discount_amount` na nákupu popisují cenu **před** zaokrouhlením, takže
-  `OrderItem::getSavings()` a `Order::getTotalSavings()` se o ten rozdíl rozejdou. Ani jeden
-  getter dnes nemá volajícího. Zaokrouhluje se nahoru od poloviny, takže u 42,60 pult účtuje
-  43 — tedy **víc** než cena na pultu a `getSavings()` vyjde záporně. Kdyby to někdy vadilo,
-  je to rozhodnutí o ceníku (účtovat vždy max. cenu z pultu), ne o zaokrouhlovací funkci.
-- **Legacy `Shop::prodat()` nezaokrouhluje.** Tentýž předmět za 42,40 se přes admin mřížku
-  zaúčtuje za 42,40 a přes pult za 42. Každá cesta je sama v sobě vyrovnaná, ale liší se —
-  a zrovna zaokrouhlení je poslední osa, ve které si obě cesty neodpovídají. (Legacy mřížka
-  navíc už dnes *zobrazuje* `round($cena)`, zatímco účtuje nezaokrouhleno.)
+  `OrderItem::getSavings()` je o ten rozdíl vedle: když se zaokrouhluje nahoru (haléřová
+  část 0,50 a víc, tedy 42,60 → 43), vyjde „úspora" záporně. Rozhoduje haléřová část, ne
+  výše ceny — 42,40 i 99,10 dají úsporu kladnou. `Order::getTotalSavings()` tímhle netrpí,
+  sčítá `discount_amount` a `purchase_price` vůbec nečte. Ani jeden getter nemá volajícího.
+- **Legacy `Shop::prodat()` nezaokrouhluje, i když je to taky prodej za hotové.** Admin
+  mřížka inkasuje mince stejně jako KFC, takže by podle pravidla výše zaokrouhlovat měla —
+  `model/Shop/Shop.php:1513` ale zapisuje `cena_aktualni` syrovou. Navíc už dnes
+  *zobrazuje* `round($cena)` (`renderPredmet()`, `model/Shop/Shop.php:855`), zatímco účtuje
+  nezaokrouhleno, takže obsluha vidí jinou částku, než jaká padne na účet. Dnes to nic
+  nespustí — žádný předmět nemá v ceně haléře — spustí to až procentní sleva. Až se to bude
+  narovnávat, patří sem `naCeleKoruny()` ekvivalent, ne úprava zobrazení.
 
 ## Neúspěšný prodej musí nechat pult použitelný
 
