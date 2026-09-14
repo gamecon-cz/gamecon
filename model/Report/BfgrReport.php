@@ -406,7 +406,7 @@ SQL,
             if (!Predmet::jeToTricko($polozka->kodPredmetu, $polozka->typ)) {
                 continue;
             }
-            if (!Predmet::jeToModre($polozka->nazev) && !Predmet::jeToCervene($polozka->nazev)) {
+            if (!Predmet::jeToVypravecske($polozka) && !Predmet::jeToOrganizatorske($polozka)) {
                 continue;
             }
 
@@ -435,7 +435,7 @@ SQL,
                 continue;
             }
 
-            if (!Predmet::jeToModre($polozka->nazev) && !Predmet::jeToCervene($polozka->nazev)) {
+            if (!Predmet::jeToVypravecske($polozka) && !Predmet::jeToOrganizatorske($polozka)) {
                 continue;
             }
 
@@ -453,7 +453,7 @@ SQL,
         $pocet = 0;
 
         foreach ($polozky as $polozka) {
-            if (!Predmet::jeToTricko($polozka->kodPredmetu, $polozka->typ) || Predmet::jeToModre($polozka->nazev)) {
+            if (!Predmet::jeToTricko($polozka->kodPredmetu, $polozka->typ) || Predmet::jeToVypravecske($polozka)) {
                 continue;
             }
 
@@ -471,7 +471,7 @@ SQL,
         $pocet = 0;
 
         foreach ($polozky as $polozka) {
-            if (!Predmet::jeToTilko($polozka->kodPredmetu, $polozka->typ) || Predmet::jeToModre($polozka->nazev)) {
+            if (!Predmet::jeToTilko($polozka->kodPredmetu, $polozka->typ) || Predmet::jeToVypravecske($polozka)) {
                 continue;
             }
 

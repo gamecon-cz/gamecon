@@ -103,9 +103,8 @@ SQL,
                 0 => ROCNIK,
             ],
         ],
-        // Typ je nově tag. Názvy ale musí dál obsahovat „červen" / „modr": report z nich
-        // zpětně odvozuje hodnost (Nr-TrickaOrgovskaZdarma je org, ne barva), protože
-        // `Predmet::jeToCervene()` čte `nazev`, ne tag tricko_cervene.
+        // Typ je nově tag. Hodnost report bere z `kod_predmetu` (`organizatorske` /
+        // `vypravecske`), ne z barvy v názvu — názvy tu jsou jen štítek.
         [
             <<<SQL
 INSERT INTO product_product_tag (product_id, tag_id)

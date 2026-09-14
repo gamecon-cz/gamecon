@@ -57,6 +57,23 @@ class BfsrReportTrickaTest extends TestCase
     }
 
     /**
+     * Hodnost se bere z kódu, ne z barvy v názvu. V roce 2009 a 2010 byla orgovská
+     * trička oranžová — v datech je jich 14 a podle názvu by spadla mezi účastnická.
+     *
+     * @test
+     */
+    public function orgovskeTrickoSePoznaIKdyzNeniCervene(): void
+    {
+        $oranzoveOrgovske = self::svrsek('Tričko oranžové pánské', 'tricko_panske_organizatorske_L_2009', 0.0, 250.0);
+
+        self::assertTrue(
+            \Gamecon\Shop\Predmet::jeToOrganizatorske($oranzoveOrgovske),
+            'Orgovské tričko se musí poznat podle kódu, i když se barvou vymyká',
+        );
+        self::assertSame(BfsrReport::SVRSEK_ZDARMA, BfsrReport::kategorieSvrsku($oranzoveOrgovske));
+    }
+
+    /**
      * Tohle je ta chyba: tričko zdarma v jiné barvě než červené či modré
      * se započítalo do zdarma a pak propadlo i mezi placená.
      *
