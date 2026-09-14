@@ -339,7 +339,7 @@ SQL,
                 PlatbySqlStruktura::POZNAMKA     => $poznamka
                     ?: null,
                 PlatbySqlStruktura::PROVEDENO    => ($kdy ?? $this->systemoveNastaveni->ted())->format(DateTimeCz::FORMAT_DB),
-                'order_id'                       => $idObjednavky,
+                PlatbySqlStruktura::ORDER_ID     => $idObjednavky,
             ],
         );
     }
