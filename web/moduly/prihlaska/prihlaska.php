@@ -204,7 +204,6 @@ if (post('prihlasitNeboUpravit')) {
         if ($prihlasovani) {
             $u->gcPrihlas($u);
         }
-        $shop->zpracujPredmety();
         $shop->zpracujUbytovani(ulozitNechceUbytovani: true);
         $shop->zpracujJidlo();
         $shop->zpracujVstupne();
@@ -308,7 +307,7 @@ $t->assign([
     'jidlo'                           => prihlaskaPreactSekceHtml('preact-jidlo', $shop->jidloHtml(), $u, $systemoveNastaveni),
     'jidloObjednatelneDo'             => $shop->jidloObjednatelneDoHtml(),
     'predmety'                        => prihlaskaPreactSekceHtml('preact-merch', $shop->predmetyHtml(), $u, $systemoveNastaveni),
-    'svrsky'                          => $shop->svrskyHtml(),
+    'svrsky'                          => prihlaskaPreactSekceHtml('preact-svrsky', $shop->svrskyHtml(), $u, $systemoveNastaveni),
     'mikinyObjednatelnaDo'            => $shop->mikinyObjednatelnaDoHtml(),
     'trickaObjednatelnaDo'            => $shop->trickaObjednatelnaDoHtml(),
     'predmetyBezTricekObjednatelneDo' => $shop->predmetyBezTricekObjednatelneDoHtml(),
