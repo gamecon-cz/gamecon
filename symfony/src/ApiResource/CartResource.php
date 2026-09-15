@@ -29,6 +29,7 @@ use App\State\Cart\MerchProductsProvider;
 use App\State\Cart\RemoveFromCartProcessor;
 use App\State\Cart\SetAccommodationProcessor;
 use App\State\Cart\SetEntryFeeProcessor;
+use App\State\Cart\ShirtProductsProvider;
 
 #[ApiResource(
     operations: [
@@ -71,6 +72,16 @@ use App\State\Cart\SetEntryFeeProcessor;
             openapi: new Operation(
                 summary: 'List merch products',
                 description: 'Returns the merch grid: price after any role discount, what the customer already owns and how many more they may buy.',
+            ),
+        ),
+        new GetCollection(
+            uriTemplate: '/cart/shirts',
+            output: MerchProductOutputDto::class,
+            provider: ShirtProductsProvider::class,
+            security: "is_granted('ROLE_USER')",
+            openapi: new Operation(
+                summary: 'List shirts and hoodies',
+                description: 'Same payload as the merch grid. Separate endpoint because shirts and hoodies each have their own sale deadline, and organizer-only shirts are hidden from customers without the permission.',
             ),
         ),
         new Get(

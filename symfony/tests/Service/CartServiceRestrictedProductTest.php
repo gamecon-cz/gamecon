@@ -16,6 +16,8 @@ use App\Service\CartService;
 use App\Service\OperatorOverride;
 use App\Structure\Entity\UserEntityStructure;
 use App\Tests\AbstractDatabaseKernelTestCase;
+use Gamecon\Cas\DateTimeImmutableStrict;
+use Gamecon\SystemoveNastaveni\SystemoveNastaveni;
 use Gamecon\Tests\Factory\UserFactory;
 
 /**
@@ -25,6 +27,40 @@ use Gamecon\Tests\Factory\UserFactory;
  */
 class CartServiceRestrictedProductTest extends AbstractDatabaseKernelTestCase
 {
+    private ?SystemoveNastaveni $puvodniNastaveni = null;
+
+    /**
+     * Termíny prodeje jsou konstanty, které testovací bootstrap nedefinuje, a leží uprostřed
+     * ročníku — bez posunutí „teď" na jeho začátek by se trička odmítla jako po termínu
+     * dřív, než se vůbec dojde na kontrolu práva.
+     */
+    protected function setUp(): void
+    {
+        parent::setUp();
+
+        $vychozi = SystemoveNastaveni::zGlobals();
+        foreach ([
+            'PREDMETY_BEZ_TRICEK_LZE_OBJEDNAT_A_MENIT_DO_DNE',
+            'TRICKA_LZE_OBJEDNAT_A_MENIT_DO_DNE',
+            'MIKINY_LZE_OBJEDNAT_A_MENIT_DO_DNE',
+        ] as $klic) {
+            try_define($klic, $vychozi->dejVychoziHodnotu($klic));
+        }
+
+        $this->puvodniNastaveni = $GLOBALS['systemoveNastaveni'] ?? null;
+        $GLOBALS['systemoveNastaveni'] = SystemoveNastaveni::zGlobals(
+            rocnik: ROCNIK,
+            ted: new DateTimeImmutableStrict(ROCNIK . '-01-01 00:00:00'),
+        );
+    }
+
+    protected function tearDown(): void
+    {
+        $GLOBALS['systemoveNastaveni'] = $this->puvodniNastaveni;
+
+        parent::tearDown();
+    }
+
     private function cartService(): CartService
     {
         return static::getContainer()->get(CartService::class);
