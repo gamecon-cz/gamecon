@@ -206,7 +206,6 @@ if (post('prihlasitNeboUpravit')) {
         }
         $shop->zpracujUbytovani(ulozitNechceUbytovani: true);
         $shop->zpracujJidlo();
-        $shop->zpracujVstupne();
         $pomoc->zpracuj();
         $u->finance()->obnovUdaje();
         dbCommit();

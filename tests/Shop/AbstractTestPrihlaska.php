@@ -74,7 +74,6 @@ abstract class AbstractTestPrihlaska extends AbstractTestDb
                 }
                 $shop->zpracujUbytovani(ulozitNechceUbytovani: true);
                 $shop->zpracujJidlo();
-                $shop->zpracujVstupne();
                 $pomoc->zpracuj();
                 $uzivatel->finance()->obnovUdaje();
                 dbCommit();
