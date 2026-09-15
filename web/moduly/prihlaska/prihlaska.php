@@ -204,8 +204,6 @@ if (post('prihlasitNeboUpravit')) {
         if ($prihlasovani) {
             $u->gcPrihlas($u);
         }
-        $shop->zpracujUbytovani(ulozitNechceUbytovani: true);
-        $shop->zpracujJidlo();
         $pomoc->zpracuj();
         $u->finance()->obnovUdaje();
         dbCommit();
