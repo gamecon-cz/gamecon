@@ -1,0 +1,917 @@
+<?php
+
+declare(strict_types=1);
+
+namespace App\Tests\State\Kfc;
+
+use ApiPlatform\Metadata\Post;
+use App\Dto\Kfc\KfcSaleInputDto;
+use App\Dto\Kfc\KfcSaleItemInputDto;
+use App\Dto\Kfc\KfcSaleOutputDto;
+use App\Entity\Order;
+use App\Entity\Payment;
+use App\Entity\Product;
+use App\Entity\ProductTag;
+use App\Entity\ProductVariant;
+use App\Entity\User;
+use App\Enum\ProductStateEnum;
+use App\Enum\ProductTagCode;
+use App\State\Kfc\KfcSaleProcessor;
+use App\Structure\Entity\UserEntityStructure;
+use App\Tests\AbstractDatabaseKernelTestCase;
+use Gamecon\Cas\DateTimeImmutableStrict;
+use Gamecon\SystemoveNastaveni\SystemoveNastaveni;
+use Gamecon\Tests\Factory\UserFactory;
+use Symfony\Component\Security\Http\Authenticator\Token\PostAuthenticationToken;
+
+/**
+ * Prodej na pultu proti skutečné databázi.
+ *
+ * Předchozí verze mockovala Connection, takže ověřovala tvar SQL, ne jeho účinek — a právě
+ * proto jí uniklo, že se anonymní prodej nikdy nepřipsal do plateb.
+ */
+class KfcSaleProcessorTest extends AbstractDatabaseKernelTestCase
+{
+    private const LOGIN_ANONYMNIHO_KUPUJICIHO = 'ANONYM';
+
+    private ?SystemoveNastaveni $puvodniNastaveni = null;
+
+    /**
+     * `SystemoveNastaveni::prodejPredmetuBezTricekDo()` čte tyhle konstanty natvrdo a testovací
+     * bootstrap je nedefinuje. Zároveň leží uprostřed ročníku, takže „teď" musí na začátek
+     * roku — jinak by pult prodával jen přes obejití a testy by neměřily, co mají.
+     */
+    protected function setUp(): void
+    {
+        parent::setUp();
+
+        $systemoveNastaveni = SystemoveNastaveni::zGlobals();
+        foreach ([
+            'PREDMETY_BEZ_TRICEK_LZE_OBJEDNAT_A_MENIT_DO_DNE',
+            'TRICKA_LZE_OBJEDNAT_A_MENIT_DO_DNE',
+            'MIKINY_LZE_OBJEDNAT_A_MENIT_DO_DNE',
+        ] as $klic) {
+            try_define($klic, $systemoveNastaveni->dejVychoziHodnotu($klic));
+        }
+
+        $this->puvodniNastaveni = $GLOBALS['systemoveNastaveni'] ?? null;
+        $GLOBALS['systemoveNastaveni'] = SystemoveNastaveni::zGlobals(
+            rocnik: ROCNIK,
+            ted: new DateTimeImmutableStrict(ROCNIK . '-01-01 00:00:00'),
+        );
+    }
+
+    protected function tearDown(): void
+    {
+        $GLOBALS['systemoveNastaveni'] = $this->puvodniNastaveni;
+
+        parent::tearDown();
+    }
+
+    private function anonymniKupujici(): User
+    {
+        $kupujici = $this->entityManager()
+            ->getRepository(User::class)
+            ->findOneBy([
+                'login' => self::LOGIN_ANONYMNIHO_KUPUJICIHO,
+            ]);
+        self::assertNotNull($kupujici, 'Anonymní kupující musí existovat z migrace');
+
+        return $kupujici;
+    }
+
+    private function pocetObjednavek(): int
+    {
+        return (int) $this->connection()->fetchOne(
+            'SELECT COUNT(*) FROM shop_order WHERE customer_id = :kupujici',
+            [
+                'kupujici' => $this->anonymniKupujici()->getId(),
+            ],
+        );
+    }
+
+    private function pocetOtevrenychObjednavek(): int
+    {
+        return (int) $this->connection()->fetchOne(
+            "SELECT COUNT(*) FROM shop_order WHERE customer_id = :kupujici AND status = 'pending'",
+            [
+                'kupujici' => $this->anonymniKupujici()->getId(),
+            ],
+        );
+    }
+
+    private function processor(): KfcSaleProcessor
+    {
+        return static::getContainer()->get(KfcSaleProcessor::class);
+    }
+
+    private function prihlasOperatora(): User
+    {
+        /** @var User $operator */
+        $operator = UserFactory::createOne([
+            UserEntityStructure::login => 'kfc_operator_' . uniqid(),
+            UserEntityStructure::email => 'kfc_operator_' . uniqid() . '@example.invalid',
+        ])->_save()->_real();
+
+        static::getContainer()->get('security.token_storage')->setToken(
+            new PostAuthenticationToken($operator, 'main', ['ROLE_ADMIN']),
+        );
+
+        return $operator;
+    }
+
+    private function vytvorPredmet(?int $kusuVyrobeno, string $cena = '50.00'): Product
+    {
+        // product_tag.created_at je NOT NULL bez defaultu a na entitě není namapované, takže
+        // tag jde založit jen v SQL — a musí se načíst zpět jako spravovaná entita, jinak
+        // by ho produkt přes addTag() nespároval.
+        $this->connection()->executeStatement(
+            'INSERT IGNORE INTO product_tag (code, name, created_at) VALUES (:code, :name, NOW())',
+            [
+                'code' => ProductTagCode::PREDMET->value,
+                'name' => 'Předmět',
+            ],
+        );
+        $tag = $this->entityManager()
+            ->getRepository(ProductTag::class)
+            ->findOneBy([
+                'code' => ProductTagCode::PREDMET->value,
+            ]);
+        self::assertNotNull($tag);
+
+        $kod = 'kfc-' . uniqid();
+
+        $predmet = new Product();
+        $predmet->setName('Pultové tričko');
+        $predmet->setCode($kod);
+        $predmet->setCurrentPrice($cena);
+        $predmet->setDescription('');
+        $predmet->setState(ProductStateEnum::PUBLIC);
+        $predmet->setProducedQuantity($kusuVyrobeno);
+        $predmet->addTag($tag);
+        $this->entityManager()->persist($predmet);
+
+        $varianta = new ProductVariant();
+        $varianta->setProduct($predmet);
+        $varianta->setName('jedna velikost');
+        $varianta->setCode($kod . '-1');
+        $varianta->setPrice($cena);
+        $varianta->setRemainingQuantity($kusuVyrobeno);
+        $varianta->setPosition(0);
+        $predmet->addVariant($varianta);
+        $this->entityManager()->persist($varianta);
+        $this->entityManager()->flush();
+
+        return $predmet;
+    }
+
+    private function prodej(Product ...$predmety): KfcSaleInputDto
+    {
+        $vstup = new KfcSaleInputDto();
+        foreach ($predmety as $predmet) {
+            $polozka = new KfcSaleItemInputDto();
+            $polozka->productId = (int) $predmet->getId();
+            $polozka->quantity = 1;
+            $vstup->items[] = $polozka;
+        }
+
+        return $vstup;
+    }
+
+    private function zpracuj(KfcSaleInputDto $vstup): KfcSaleOutputDto
+    {
+        return $this->processor()->process($vstup, new Post());
+    }
+
+    /**
+     * @test
+     */
+    public function prodejZapiseNakupNaSystemovehoUzivatele(): void
+    {
+        $operator = $this->prihlasOperatora();
+        $predmet = $this->vytvorPredmet(kusuVyrobeno: 10);
+
+        $vysledek = $this->zpracuj($this->prodej($predmet));
+
+        self::assertSame(1, $vysledek->soldItems);
+        self::assertSame('50', $vysledek->totalPrice, 'Pokladna počítá v celých korunách');
+
+        $nakup = $this->connection()->fetchAssociative(
+            'SELECT id_uzivatele, id_objednatele, product_name FROM shop_nakupy WHERE id_predmetu = :id',
+            [
+                'id' => $predmet->getId(),
+            ],
+        );
+        self::assertSame(
+            (int) $this->anonymniKupujici()->getId(),
+            (int) $nakup['id_uzivatele'],
+            'Kupujícím je anonymní účet, ne SYSTEM',
+        );
+        self::assertSame(
+            (int) $operator->getId(),
+            (int) $nakup['id_objednatele'],
+            'Musí být vidět, kdo prodej na pultu provedl',
+        );
+        self::assertSame('Pultové tričko', $nakup['product_name'], 'Nákup si musí nést snapshot produktu');
+    }
+
+    /**
+     * @test
+     */
+    public function anonymniProdejSePripiseDoPlateb(): void
+    {
+        $operator = $this->prihlasOperatora();
+        $predmet = $this->vytvorPredmet(kusuVyrobeno: 10, cena: '50.00');
+
+        $this->zpracuj($this->prodej($predmet));
+
+        $platba = $this->connection()->fetchAssociative(
+            // Filtruje se na tohohle operátora (login je uniqid), ne jen na SYSTEM — jinak
+            // by test mohl číst platbu z jiného případu.
+            'SELECT castka, provedl, poznamka FROM platby
+             WHERE id_uzivatele = :system AND provedl = :operator',
+            [
+                'system'   => $this->anonymniKupujici()->getId(),
+                'operator' => $operator->getId(),
+            ],
+        );
+        self::assertNotFalse($platba, 'Anonymní prodej se musí připsat, jinak SYSTEMu roste fiktivní dluh');
+        self::assertSame('50.00', $platba['castka']);
+        self::assertSame((int) $operator->getId(), (int) $platba['provedl']);
+    }
+
+    /**
+     * Po termínu prodeje merche je obejitím každý pultový prodej, takže v logu musí být vidět,
+     * že jde o KFC — jinak by se v něm nedalo nic rozlišit.
+     *
+     * @test
+     */
+    public function prodejPoTerminuJeVLoguOznacenyJakoKfc(): void
+    {
+        $operator = $this->prihlasOperatora();
+        $predmet = $this->vytvorPredmet(kusuVyrobeno: 10);
+
+        $GLOBALS['systemoveNastaveni'] = SystemoveNastaveni::zGlobals(
+            rocnik: ROCNIK,
+            ted: new DateTimeImmutableStrict(ROCNIK . '-12-31 23:59:59'),
+        );
+
+        $this->zpracuj($this->prodej($predmet));
+
+        $log = $this->connection()->fetchOne(
+            'SELECT override_log FROM shop_nakupy WHERE id_predmetu = :id',
+            [
+                'id' => $predmet->getId(),
+            ],
+        );
+        self::assertNotNull($log, 'Prodej po termínu je obejití a musí se zaznamenat');
+
+        $zaznamy = json_decode((string) $log, true, flags: JSON_THROW_ON_ERROR);
+        self::assertCount(1, $zaznamy);
+        self::assertSame('deadline', $zaznamy[0]['guard']);
+        self::assertSame('kfc', $zaznamy[0]['source'], 'Z logu musí být poznat, že prodej přišel z pultu');
+        self::assertSame((int) $operator->getId(), $zaznamy[0]['by']);
+    }
+
+    /**
+     * @test
+     */
+    public function prodejVTerminuNemaZadneObejiti(): void
+    {
+        $this->prihlasOperatora();
+        $predmet = $this->vytvorPredmet(kusuVyrobeno: 10);
+
+        $this->zpracuj($this->prodej($predmet));
+
+        self::assertNull(
+            $this->connection()->fetchOne(
+                'SELECT override_log FROM shop_nakupy WHERE id_predmetu = :id',
+                [
+                    'id' => $predmet->getId(),
+                ],
+            ),
+            'Dokud prodej běží, není co obcházet — log musí zůstat prázdný',
+        );
+    }
+
+    /**
+     * Pokladna účtuje celé koruny, takže připsaná platba musí sedět na tutéž částku. Jinak
+     * by se s první procentní slevou rozešla kasa s účetnictvím o haléře.
+     *
+     * @test
+     */
+    public function pokladnaAUcetnictviSediNaStejnouCastku(): void
+    {
+        $this->prihlasOperatora();
+        $predmet = $this->vytvorPredmet(kusuVyrobeno: 10, cena: '42.50');
+
+        $vysledek = $this->zpracuj($this->prodej($predmet));
+
+        $pripsano = $this->connection()->fetchOne(
+            // Podle id, ne podle provedeno: to má rozlišení na sekundy, takže dva prodeje
+            // v jedné vteřině by se seřadily nahodile.
+            'SELECT castka FROM platby WHERE id_uzivatele = :system AND poznamka = :poznamka
+             ORDER BY id DESC LIMIT 1',
+            [
+                'system'   => $this->anonymniKupujici()->getId(),
+                'poznamka' => 'anonymní prodej',
+            ],
+        );
+
+        self::assertSame('43', $vysledek->totalPrice, 'Pokladna zaokrouhluje na celé koruny');
+        self::assertSame(
+            43.0,
+            (float) $pripsano,
+            'Připsat se musí přesně to, co zákazník zaplatil, ne nezaokrouhlená cena',
+        );
+    }
+
+    /**
+     * Druhá strana půlky: pod ní se dolů. Teprve tenhle případ odliší běžné zaokrouhlení
+     * od „vždy nahoru" — 42,50 nahoru by samo o sobě sedělo i na obojí.
+     *
+     * @test
+     */
+    public function podPulkouKorunySeZaokrouhliDolu(): void
+    {
+        $this->prihlasOperatora();
+        $predmet = $this->vytvorPredmet(kusuVyrobeno: 10, cena: '42.49');
+
+        $vysledek = $this->zpracuj($this->prodej($predmet));
+
+        self::assertSame('42', $vysledek->totalPrice, '42,49 je 42, ne 43');
+    }
+
+    /**
+     * @test
+     */
+    public function predmetSVicVariantamiNejdeProdatNaslepo(): void
+    {
+        $this->prihlasOperatora();
+        $predmet = $this->vytvorPredmet(kusuVyrobeno: 10);
+
+        $druhaVarianta = new ProductVariant();
+        $druhaVarianta->setProduct($predmet);
+        $druhaVarianta->setName('druhá velikost');
+        $druhaVarianta->setCode($predmet->getCode() . '-2');
+        $druhaVarianta->setPrice('50.00');
+        $druhaVarianta->setRemainingQuantity(10);
+        $druhaVarianta->setPosition(1);
+        $predmet->addVariant($druhaVarianta);
+        $this->entityManager()->persist($druhaVarianta);
+        $this->entityManager()->flush();
+
+        $this->expectException(\RuntimeException::class);
+        $this->expectExceptionMessageMatches('~víc variant~');
+
+        $this->zpracuj($this->prodej($predmet));
+    }
+
+    /**
+     * Neznámý produkt se pozná ještě před transakcí, takže tenhle test sám o sobě o jejím
+     * chování nic neříká — od toho je chybaUvnitrTransakceNezavreEntityManager().
+     *
+     * @test
+     */
+    public function neznamyProduktNezavreEntityManager(): void
+    {
+        $this->prihlasOperatora();
+
+        $vstup = new KfcSaleInputDto();
+        $polozka = new KfcSaleItemInputDto();
+        $polozka->productId = 999999;
+        $polozka->quantity = 1;
+        $vstup->items[] = $polozka;
+
+        try {
+            $this->zpracuj($vstup);
+            self::fail('Neznámý produkt musí skončit chybou');
+        } catch (\RuntimeException) {
+            // očekávané
+        }
+
+        self::assertTrue(
+            $this->entityManager()->isOpen(),
+            'Po neúspěšném prodeji musí jít EntityManager dál používat',
+        );
+    }
+
+    /**
+     * Kusy odložené organizátorům smí pult prodat komukoli — komu je vydá, rozhoduje obsluha.
+     * Legacy prodej rezervace vůbec neznal, takže bez tohohle by pult uměl míň než dřív.
+     *
+     * @test
+     */
+    public function pultProdaIKusyRezervovanaProOrganizatory(): void
+    {
+        $this->prihlasOperatora();
+        $predmet = $this->vytvorPredmet(kusuVyrobeno: 3);
+
+        // Všechny tři kusy jsou odložené organizátorům — účastníkovi by nezbylo nic.
+        $this->connection()->executeStatement(
+            'UPDATE product_variant SET reserved_for_organizers = 3 WHERE product_id = :id',
+            [
+                'id' => $predmet->getId(),
+            ],
+        );
+        // Jen osvěžit variantu, ne clear(): ten by odpojil i přihlášeného operátora a Doctrine
+        // by ho při zápisu považovala za novou entitu.
+        $this->entityManager()->refresh($predmet->getVariants()->first());
+
+        $vysledek = $this->zpracuj($this->prodej($predmet));
+
+        self::assertSame(1, $vysledek->soldItems, 'Pult musí prodat i z rezervovaných kusů');
+        self::assertSame(
+            2,
+            (int) $this->connection()->fetchOne(
+                'SELECT remaining_quantity FROM product_variant WHERE product_id = :id',
+                [
+                    'id' => $predmet->getId(),
+                ],
+            ),
+        );
+    }
+
+    /**
+     * @test
+     */
+    public function pultNeprodaVicNezJeCelkemNaSklade(): void
+    {
+        $this->prihlasOperatora();
+        $predmet = $this->vytvorPredmet(kusuVyrobeno: 0);
+
+        $this->connection()->executeStatement(
+            'UPDATE product_variant SET reserved_for_organizers = 5 WHERE product_id = :id',
+            [
+                'id' => $predmet->getId(),
+            ],
+        );
+        $this->entityManager()->refresh($predmet->getVariants()->first());
+
+        // Rezervaci pult obejít smí, celkovou zásobu ne — prodat neexistující kus nelze.
+        $this->expectException(\RuntimeException::class);
+        $this->expectExceptionMessageMatches('~kapacita~');
+
+        $this->zpracuj($this->prodej($predmet));
+    }
+
+    /**
+     * Platba musí vědět, ke které objednávce patří. Bez té vazby po nedokončeném prodeji
+     * zůstala viset osiřelá platba a nikdo se to nedozvěděl — v datech jedna taková je.
+     *
+     * @test
+     */
+    public function platbaZnaSvouObjednavku(): void
+    {
+        $this->prihlasOperatora();
+        $predmet = $this->vytvorPredmet(kusuVyrobeno: 10);
+
+        $this->zpracuj($this->prodej($predmet));
+
+        // Objednávka tohohle prodeje, ať je s čím platbu porovnat — na obnoveném dumpu má
+        // anonymní účet objednávky i platby už z migrace, takže „nějaká platba se najde"
+        // by prošlo, i kdyby vazbu nikdo nenastavil.
+        $idObjednavky = (int) $this->connection()->fetchOne(
+            'SELECT id FROM shop_order WHERE customer_id = :kupujici ORDER BY id DESC LIMIT 1',
+            [
+                'kupujici' => $this->anonymniKupujici()->getId(),
+            ],
+        );
+
+        $vazba = $this->connection()->fetchAssociative(
+            'SELECT platby.order_id, shop_order.customer_id
+             FROM platby JOIN shop_order ON shop_order.id = platby.order_id
+             WHERE platby.order_id = :objednavka',
+            [
+                'objednavka' => $idObjednavky,
+            ],
+        );
+
+        self::assertNotFalse($vazba, 'Platba za prodej na pultu musí odkazovat na objednávku');
+        self::assertSame(
+            (int) $this->anonymniKupujici()->getId(),
+            (int) $vazba['customer_id'],
+            'A ta objednávka musí patřit témuž kupujícímu',
+        );
+    }
+
+    /**
+     * @test
+     */
+    public function anonymniKupujiciNemaZadneRole(): void
+    {
+        // Bez rolí neprojde slevový engine — anonymní zákazník na pultu nesmí dostat slevu,
+        // kterou by účet zdědil jen tím, že mu někdo roli přidělí.
+        self::assertSame(
+            0,
+            (int) $this->connection()->fetchOne(
+                'SELECT COUNT(*) FROM uzivatele_role WHERE id_uzivatele = :id',
+                [
+                    'id' => $this->anonymniKupujici()->getId(),
+                ],
+            ),
+        );
+    }
+
+    /**
+     * Objednávka unese víc plateb — historické objednávky sdružují celý den prodeje, takže
+     * k nim patří platba za každý jednotlivý prodej.
+     *
+     * @test
+     */
+    public function objednavkaUneseVicPlateb(): void
+    {
+        $this->prihlasOperatora();
+        $predmet = $this->vytvorPredmet(kusuVyrobeno: 10);
+
+        $this->zpracuj($this->prodej($predmet));
+
+        // Platbu zakládá procesor, takže kolekce už načtené objednávky o ní neví — číst se
+        // musí až po clear(), jinak test měří identity map, ne databázi.
+        $this->entityManager()->clear();
+
+        $objednavka = $this->entityManager()
+            ->getRepository(Order::class)
+            ->findOneBy([
+                'customer' => $this->anonymniKupujici(),
+            ], [
+                'id' => 'DESC',
+            ]);
+        self::assertNotNull($objednavka);
+        self::assertCount(1, $objednavka->getPayments(), 'Prodej založí jednu platbu');
+
+        // Druhý protizápis na tutéž objednávku: mapování ho musí unést, ne přepsat ten první.
+        $dalsi = new Payment();
+        $dalsi->setBeneficiary($this->anonymniKupujici());
+        $dalsi->setMadeBy($this->anonymniKupujici());
+        $dalsi->setCastka('10.00');
+        $dalsi->setRok(ROCNIK);
+        $dalsi->setProvedeno(new \DateTime());
+        // Vazba se nastavuje jen přes addPayment(), ne setOrder() — projde tedy obousměrným
+        // mapováním, a bez `inversedBy` by se druhá platba k objednávce nepřipojila.
+        $objednavka->addPayment($dalsi);
+        $this->entityManager()->persist($dalsi);
+        $this->entityManager()->flush();
+        $this->entityManager()->clear();
+
+        $nactena = $this->entityManager()->getRepository(Order::class)->find($objednavka->getId());
+        self::assertCount(2, $nactena->getPayments(), 'Objednávka musí unést víc plateb');
+    }
+
+    /**
+     * Každý prodej má vlastní uzavřenou objednávku. Se sdíleným košíkem by se do jedné
+     * nasčítal celý festival a platby by nešlo přiřadit ke konkrétnímu prodeji.
+     *
+     * @test
+     */
+    public function kazdyProdejMaVlastniUzavrenouObjednavku(): void
+    {
+        $this->prihlasOperatora();
+        $predmet = $this->vytvorPredmet(kusuVyrobeno: 10);
+
+        // Počítá se přírůstek, ne absolutní počet: na obnoveném dumpu má anonymní účet
+        // objednávky už z migrace a absolutní číslo by test shodilo bez zavinění kódu.
+        $pred = $this->pocetObjednavek();
+        $predOtevrenych = $this->pocetOtevrenychObjednavek();
+
+        $this->zpracuj($this->prodej($predmet));
+        $this->zpracuj($this->prodej($predmet));
+
+        self::assertSame(2, $this->pocetObjednavek() - $pred, 'Dva prodeje = dvě objednávky');
+        self::assertSame(
+            0,
+            $this->pocetOtevrenychObjednavek() - $predOtevrenych,
+            'Prodej na pultu nesmí nechat otevřený košík',
+        );
+    }
+
+    /**
+     * Pult účtuje celé koruny, takže i zapsaný nákup musí být v celých korunách — jinak by
+     * po každém prodeji zůstal na účtu haléřový nedoplatek, který nikdo nezaplatí.
+     *
+     * @test
+     */
+    public function haleroveCenySeUctujiVCelychKorunach(): void
+    {
+        $this->prihlasOperatora();
+        $predmet = $this->vytvorPredmet(kusuVyrobeno: 10, cena: '42.40');
+
+        $vysledek = $this->zpracuj($this->prodej($predmet));
+
+        // Čte se objednávka tohohle prodeje, ne celá historie účtu: na obnoveném dumpu má
+        // anonymní účet nákupy z migrace i osiřelou platbu, takže by se součty rozešly bez
+        // zavinění kódu. A assertuje se rovnou 42, ne jen shoda obou stran.
+        $radek = $this->connection()->fetchAssociative(
+            'SELECT (SELECT SUM(cena_nakupni) FROM shop_nakupy WHERE order_id = shop_order.id) AS nakupy,
+                    (SELECT SUM(castka) FROM platby WHERE order_id = shop_order.id) AS platba
+             FROM shop_order WHERE shop_order.customer_id = :kupujici
+             ORDER BY shop_order.id DESC LIMIT 1',
+            [
+                'kupujici' => $this->anonymniKupujici()->getId(),
+            ],
+        );
+
+        self::assertSame('42', $vysledek->totalPrice);
+        self::assertSame(42.0, (float) $radek['nakupy'], 'Nákup se účtuje v celých korunách');
+        self::assertSame(
+            42.0,
+            (float) $radek['platba'],
+            'Nakoupeno a zaplaceno musí sedět, jinak na účtu roste nedoplatek',
+        );
+    }
+
+    /**
+     * Objednávka, její řádky a platba musí říkat tutéž částku. Součet si `addItem()` počítá
+     * ještě z ceny s haléři, takže bez přepočtu po zaokrouhlení sedí jen dvě ze tří.
+     *
+     * @test
+     */
+    public function objednavkaSediSVlastnimiRadkyIPlatbou(): void
+    {
+        $this->prihlasOperatora();
+        $predmet = $this->vytvorPredmet(kusuVyrobeno: 10, cena: '42.40');
+
+        $this->zpracuj($this->prodej($predmet));
+
+        $radek = $this->connection()->fetchAssociative(
+            'SELECT shop_order.total_price,
+                    (SELECT SUM(cena_nakupni) FROM shop_nakupy WHERE order_id = shop_order.id) AS nakupy,
+                    (SELECT SUM(castka) FROM platby WHERE order_id = shop_order.id) AS platba
+             FROM shop_order WHERE shop_order.customer_id = :kupujici
+             ORDER BY shop_order.id DESC LIMIT 1',
+            [
+                'kupujici' => $this->anonymniKupujici()->getId(),
+            ],
+        );
+
+        self::assertSame(42.0, (float) $radek['nakupy'], 'Nákupy se účtují v celých korunách');
+        self::assertSame(42.0, (float) $radek['platba'], 'Platba musí sedět na nákupy');
+        self::assertSame(
+            42.0,
+            (float) $radek['total_price'],
+            'Součet objednávky musí sedět na její vlastní řádky, ne na cenu před zaokrouhlením',
+        );
+    }
+
+    /**
+     * Prodej bez položek nesmí nechat otevřenou objednávku: dvě takové stačí, aby hledání
+     * košíku (`findPendingForCustomer`) skončilo výjimkou.
+     *
+     * @test
+     */
+    public function prazdnyProdejNenechaOtevrenouObjednavku(): void
+    {
+        $this->prihlasOperatora();
+
+        // Počítá se přírůstek, ne absolutní počet: na obnoveném dumpu má anonymní účet
+        // objednávky už z migrace a absolutní číslo by test shodilo bez zavinění kódu.
+        $pred = $this->pocetObjednavek();
+
+        $this->zpracuj(new KfcSaleInputDto());
+        $vysledek = $this->zpracuj(new KfcSaleInputDto());
+
+        self::assertSame(
+            0,
+            $this->pocetObjednavek() - $pred,
+            'Bez prodaných kusů nemá vzniknout žádná objednávka',
+        );
+        self::assertSame(0, $vysledek->soldItems);
+        self::assertSame('0', $vysledek->totalPrice);
+    }
+
+    /**
+     * Zaokrouhluje se každý kus, ne až součet — jinak by řádky nákupu nesouhlasily
+     * s platbou. U víc kusů se to na celkové částce pozná.
+     *
+     * @test
+     */
+    public function vicKusuSHaleriSediNaPlatbu(): void
+    {
+        $this->prihlasOperatora();
+        $predmet = $this->vytvorPredmet(kusuVyrobeno: 10, cena: '42.40');
+
+        $vstup = new KfcSaleInputDto();
+        $polozka = new KfcSaleItemInputDto();
+        $polozka->productId = (int) $predmet->getId();
+        $polozka->quantity = 2;
+        $vstup->items[] = $polozka;
+
+        $vysledek = $this->zpracuj($vstup);
+
+        self::assertSame(2, $vysledek->soldItems);
+        self::assertSame('84', $vysledek->totalPrice, 'Dva kusy po 42 Kč, ne 85 ze zaokrouhleného součtu');
+
+        $radek = $this->connection()->fetchAssociative(
+            'SELECT shop_order.total_price,
+                    (SELECT SUM(cena_nakupni) FROM shop_nakupy WHERE order_id = shop_order.id) AS nakupy,
+                    (SELECT SUM(castka) FROM platby WHERE order_id = shop_order.id) AS platba
+             FROM shop_order WHERE shop_order.customer_id = :kupujici
+             ORDER BY shop_order.id DESC LIMIT 1',
+            [
+                'kupujici' => $this->anonymniKupujici()->getId(),
+            ],
+        );
+        self::assertSame(84.0, (float) $radek['nakupy']);
+        self::assertSame(84.0, (float) $radek['platba']);
+        self::assertSame(84.0, (float) $radek['total_price']);
+    }
+
+    /**
+     * Dva různé předměty v jednom prodeji, oba s haléři a každý na jinou stranu: 42,40 dolů
+     * na 42, 17,60 nahoru na 18. Objednávka, její řádky i platba musí říkat 60.
+     *
+     * @test
+     */
+    public function vicRuznychPredmetuSediNaPlatbu(): void
+    {
+        $this->prihlasOperatora();
+        $prvni = $this->vytvorPredmet(kusuVyrobeno: 10, cena: '42.40');
+        $druhy = $this->vytvorPredmet(kusuVyrobeno: 10, cena: '17.60');
+
+        $vysledek = $this->zpracuj($this->prodej($prvni, $druhy));
+
+        self::assertSame('60', $vysledek->totalPrice);
+
+        $radek = $this->connection()->fetchAssociative(
+            'SELECT shop_order.total_price,
+                    (SELECT SUM(cena_nakupni) FROM shop_nakupy WHERE order_id = shop_order.id) AS nakupy,
+                    (SELECT SUM(castka) FROM platby WHERE order_id = shop_order.id) AS platba
+             FROM shop_order WHERE shop_order.customer_id = :kupujici
+             ORDER BY shop_order.id DESC LIMIT 1',
+            [
+                'kupujici' => $this->anonymniKupujici()->getId(),
+            ],
+        );
+        self::assertSame(60.0, (float) $radek['nakupy']);
+        self::assertSame(60.0, (float) $radek['platba']);
+        self::assertSame(60.0, (float) $radek['total_price']);
+    }
+
+    /**
+     * @test
+     */
+    public function prodejOdecteKusZeZasoby(): void
+    {
+        $this->prihlasOperatora();
+        $predmet = $this->vytvorPredmet(kusuVyrobeno: 10);
+
+        $this->zpracuj($this->prodej($predmet));
+
+        self::assertSame(
+            9,
+            (int) $this->connection()->fetchOne(
+                'SELECT remaining_quantity FROM product_variant WHERE product_id = :id',
+                [
+                    'id' => $predmet->getId(),
+                ],
+            ),
+            'Zásoba se musí snížit přes CapacityManager, ne dopočítávat z počtu nákupů',
+        );
+    }
+
+    /**
+     * @test
+     */
+    public function vyprodanyPredmetNejdeProdat(): void
+    {
+        $this->prihlasOperatora();
+        $predmet = $this->vytvorPredmet(kusuVyrobeno: 0);
+
+        $this->expectException(\RuntimeException::class);
+        $this->expectExceptionMessageMatches('~kapacita~');
+
+        $this->zpracuj($this->prodej($predmet));
+    }
+
+    /**
+     * Vyprodáno se pozná až uvnitř transakce, na rozdíl od neznámého produktu. Právě tahle
+     * cesta zavírá EntityManager, takže obsluha místo hlášky „nedostatečná kapacita" uvidí 500.
+     *
+     * @test
+     */
+    public function chybaUvnitrTransakceNezavreEntityManager(): void
+    {
+        $this->prihlasOperatora();
+        $predmet = $this->vytvorPredmet(kusuVyrobeno: 0);
+
+        try {
+            $this->zpracuj($this->prodej($predmet));
+            self::fail('Vyprodaný předmět musí skončit chybou');
+        } catch (\RuntimeException) {
+            // očekávané
+        }
+
+        self::assertTrue(
+            $this->entityManager()->isOpen(),
+            'Po chybě uvnitř transakce musí jít EntityManager dál používat',
+        );
+
+        // isOpen() sám o sobě nestačí — po clear() v rollbacku musí projít i další zápis,
+        // jinak by se detachované entity projevily až u dalšího prodeje.
+        $dalsiPredmet = $this->vytvorPredmet(kusuVyrobeno: 5);
+        $vysledek = $this->zpracuj($this->prodej($dalsiPredmet));
+
+        self::assertSame(1, $vysledek->soldItems, 'Po neúspěšném prodeji musí jít prodat dál');
+    }
+
+    /**
+     * Neúspěšný prodej nesmí nechat v databázi ani řádek — rollback musí vzít i kusy
+     * odepsané ze zásoby dřív, než se narazilo na vyprodaný předmět.
+     *
+     * @test
+     */
+    public function neuspesnyProdejNezanechaStopu(): void
+    {
+        $this->prihlasOperatora();
+        $dostupny = $this->vytvorPredmet(kusuVyrobeno: 5);
+        $vyprodany = $this->vytvorPredmet(kusuVyrobeno: 0);
+
+        $predObjednavek = $this->pocetObjednavek();
+
+        try {
+            $this->zpracuj($this->prodej($dostupny, $vyprodany));
+            self::fail('Vyprodaný předmět musí prodej shodit');
+        } catch (\RuntimeException) {
+            // očekávané
+        }
+
+        self::assertSame(
+            0,
+            $this->pocetObjednavek() - $predObjednavek,
+            'Po rollbacku nesmí zůstat objednávka',
+        );
+        self::assertSame(
+            5,
+            (int) $this->connection()->fetchOne(
+                'SELECT remaining_quantity FROM product_variant WHERE id = :varianta',
+                [
+                    'varianta' => $dostupny->getVariants()->first()->getId(),
+                ],
+            ),
+            'Zásoba prvního předmětu se musí vrátit',
+        );
+
+        // Bez refreshe, schválně: CapacityManager si variantu během prodeje načetl se
+        // sníženou zásobou a rollback o tom neví. Tak ji uvidí i zbytek requestu.
+        self::assertSame(
+            5,
+            $dostupny->getVariants()->first()->getRemainingQuantity(),
+            'Varianta v paměti nesmí po rollbacku držet odepsaný kus',
+        );
+    }
+
+    /**
+     * @test
+     */
+    public function neznamyPredmetSkonciChybou(): void
+    {
+        $this->prihlasOperatora();
+
+        $vstup = new KfcSaleInputDto();
+        $polozka = new KfcSaleItemInputDto();
+        $polozka->productId = 999999;
+        $polozka->quantity = 1;
+        $vstup->items[] = $polozka;
+
+        $this->expectException(\RuntimeException::class);
+        $this->expectExceptionMessageMatches('~nebyl nalezen~');
+
+        $this->zpracuj($vstup);
+    }
+
+    /**
+     * @test
+     */
+    public function neomezenaZasobaSeNevycerpa(): void
+    {
+        $this->prihlasOperatora();
+        $predmet = $this->vytvorPredmet(kusuVyrobeno: null);
+
+        $vysledek = $this->zpracuj($this->prodej($predmet));
+
+        self::assertSame(1, $vysledek->soldItems);
+        self::assertNull(
+            $this->connection()->fetchOne(
+                'SELECT remaining_quantity FROM product_variant WHERE product_id = :id',
+                [
+                    'id' => $predmet->getId(),
+                ],
+            ),
+        );
+    }
+
+    /**
+     * @test
+     */
+    public function prodejVicPolozekNaraz(): void
+    {
+        $this->prihlasOperatora();
+        $prvni = $this->vytvorPredmet(kusuVyrobeno: 10, cena: '50.00');
+        $druhy = $this->vytvorPredmet(kusuVyrobeno: 10, cena: '30.00');
+
+        $vysledek = $this->zpracuj($this->prodej($prvni, $druhy));
+
+        self::assertSame(2, $vysledek->soldItems);
+        self::assertSame('80', $vysledek->totalPrice);
+    }
+}

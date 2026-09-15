@@ -9,9 +9,6 @@ namespace App\Structure\Sql;
  */
 class ShopPurchaseSqlStructure
 {
-    /**
-     * @see ShopPurchase
-     */
     public const _table = 'shop_nakupy';
 
     /**
@@ -28,6 +25,16 @@ class ShopPurchaseSqlStructure
      * @see ShopPurchase::$cenaNakupni
      */
     public const cena_nakupni = 'cena_nakupni';
+
+    /**
+     * @see ShopPurchase::$poplatek
+     */
+    public const poplatek = 'poplatek';
+
+    /**
+     * @see ShopPurchase::$puvodniCena
+     */
+    public const puvodni_cena = 'puvodni_cena';
 
     /**
      * @see ShopPurchase::$datum

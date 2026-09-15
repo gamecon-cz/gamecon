@@ -115,6 +115,7 @@
 </details>
 <!-- end: dalsiMerch -->
 
+<!-- begin: skripty -->
 <script type="text/javascript" src="{shopSvrskyJs}"></script>
 
 <script>
@@ -165,4 +166,5 @@
         }
     }
 </script>
+<!-- end: skripty -->
 <!-- end: predmety -->

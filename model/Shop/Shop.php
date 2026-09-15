@@ -89,7 +89,7 @@ class Shop
         dbQuery(<<<SQL
 DELETE sn
 FROM shop_nakupy sn
-JOIN shop_predmety sp ON sp.id_predmetu = sn.id_predmetu AND sp.typ = $0
+JOIN shop_predmety_s_typem sp ON sp.id_predmetu = sn.id_predmetu AND sp.typ = $0
 WHERE sn.id_uzivatele IN ($1) AND sn.rok = $2
 SQL,
             [0 => $typ, 1 => $ids, 2 => ROCNIK],
@@ -113,7 +113,7 @@ SQL,
         ?array $idckaPolozek = null,
     ): array {
         $polozkyData = dbFetchAll(<<<SQL
-SELECT id_predmetu,nazev,cena_aktualni,suma,model_rok,naposledy_koupeno_kdy,prodano_kusu,kusu_vyrobeno,typ,podtyp,je_letosni_hlavni,nabizet_do,stav
+SELECT id_predmetu,nazev,cena_aktualni,suma,model_rok,naposledy_koupeno_kdy,prodano_kusu,kusu_vyrobeno,typ,podtyp,nabizet_do,stav
 FROM (
     SELECT predmety.id_predmetu,
            TRIM(predmety.nazev) AS nazev,
@@ -125,11 +125,10 @@ FROM (
            predmety.kusu_vyrobeno,
            predmety.typ,
            predmety.podtyp,
-           predmety.je_letosni_hlavni,
            predmety.nabizet_do,
            predmety.ubytovani_den,
            predmety.stav
-    FROM shop_predmety AS predmety
+    FROM shop_predmety_s_typem AS predmety
     LEFT JOIN shop_nakupy AS nakupy
         ON predmety.id_predmetu = nakupy.id_predmetu
             AND nakupy.rok = $0
@@ -162,7 +161,7 @@ SQL,
 
         $idckaPredmetu = dbFetchColumn(<<<SQL
 SELECT id_predmetu
-FROM shop_predmety
+FROM shop_predmety_s_typem
 WHERE model_rok = {$systemoveNastaveni->rocnik()}
     AND nabizet_do IS NOT NULL
     AND typ IN ($typJidlo, $typPredmet, $typTricko)
@@ -241,7 +240,7 @@ SQL,
                     COUNT(IF(nakupy.id_uzivatele = {$zakaznikId} AND nakupy.rok = {$rocnik}, 1, NULL)) AS kusu_uzivatele,
                     SUM(IF(nakupy.id_uzivatele = {$zakaznikId} AND nakupy.rok = {$rocnik}, nakupy.cena_nakupni, 0)) AS sum_cena_nakupni,
                     MAX(nakupy.cena_nakupni) AS cena_nakupni
-                  FROM shop_predmety predmety
+                  FROM shop_predmety_s_typem predmety
                   LEFT JOIN shop_nakupy AS nakupy
                     ON predmety.id_predmetu = nakupy.id_predmetu
                     AND nakupy.rok = {$rocnik}
@@ -408,6 +407,7 @@ SQL,
         // vykreslení
         $t = new XTemplate(__DIR__ . '/templates/shop-jidlo.xtpl');
         if (!$this->systemoveNastaveni->jeProdejJidlaPozastaven()) {
+            $vec = '';
             foreach (array_keys($druhy) as $druh) {
                 $jidloProCenu = null;
                 $jeSnidane = Jidlo::jeToSnidane($druh);
@@ -645,8 +645,9 @@ SQL,
     }
 
     /**
-     * Vrátí html kód formuláře s předměty, mikinami a tričky (bez form značek
-     * kvůli integraci více věcí naráz).
+     * Jen merch (hlavní + „Další merch"), bez form značek. Trička a mikiny mají vlastní
+     * {@see svrskyHtml()}, protože merch se vykresluje Preactem a zbytek zatím ne.
+     *
      * @todo vyprodání věcí
      */
     public function predmetyHtml()
@@ -684,6 +685,18 @@ SQL,
         if ($maVedlejsiPredmety) {
             $t->parse('predmety.dalsiMerch');
         }
+
+        $t->parse('predmety');
+
+        return $t->text('predmety');
+    }
+
+    /**
+     * Trička a mikiny — samostatně, viz {@see predmetyHtml()}.
+     */
+    public function svrskyHtml(): string
+    {
+        $t = new XTemplate(__DIR__ . '/templates/shop-predmety.xtpl');
 
         // MIKINY
         if ($this->mikiny) {
@@ -729,6 +742,7 @@ SQL,
 
         $t->assign('shopSvrskyJs', URL_WEBU . '/soubory/blackarrow/shop/shop-svrsky.js?version='
             . md5_file(WWW . '/soubory/blackarrow/shop/shop-svrsky.js'));
+        $t->parse('predmety.skripty');
 
         $t->parse('predmety');
 
@@ -856,13 +870,13 @@ SQL,
             'postName'       => $this->klicP . '[' . $predmet['id_predmetu'] . ']',
         ]);
 
-        if ($predmet['nabizet'] && !$predmetyZamceny) {
-            $t->parse($templateBlock . '.nakup');
-            $t->parse($templateBlock);
-            return true;
-        } elseif ($predmet['kusu_uzivatele']) {
+        // Vždy jen počet, nikdy nakupovací plus/minus: merch se kupuje přes API a
+        // formulář se už nezpracovává, takže editovatelné pole by tiše zahodilo změnu.
+        // Tenhle výstup je noscript fallback a záloha při nedostupném API.
+        if ($predmet['nabizet'] && !$predmetyZamceny || $predmet['kusu_uzivatele']) {
             $t->parse($templateBlock . '.fixniPocet');
             $t->parse($templateBlock);
+
             return true;
         }
 
@@ -1001,90 +1015,6 @@ SQL,
         }
     }
 
-    /**
-     * Zpracuje část formuláře s předměty, mikinami a tričky.
-     * Čáry máry s ručním počítáním diference (místo smazání a náhrady) jsou nut-
-     * né kvůli zachování původní nákupní ceny (aktuální cena se totiž mohla od
-     * nákupu změnit).
-     */
-    public function zpracujPredmety()
-    {
-        if (isset($_POST[$this->klicP]) || isset($_POST[$this->klicT]) || isset($_POST[$this->klicM])) {
-            $povolenaIdPredmetuAMikinATricek = array_map(
-                'intval',
-                array_merge(
-                    array_column($this->predmety, 'id_predmetu'),
-                    array_column($this->tricka, 'id_predmetu'),
-                    array_column($this->mikiny, 'id_predmetu'),
-                ),
-            );
-            // pole s předměty, které jsou vyplněné ve formuláři
-            $nove = [];
-            foreach (($_POST[$this->klicP] ?? []) as $idPredmetu => $pocet) {
-                $idPredmetu = (int)$idPredmetu;
-                if (!in_array($idPredmetu, $povolenaIdPredmetuAMikinATricek, true)) {
-                    continue;
-                }
-                for ($i = 0; $i < $pocet; $i++) {
-                    $nove[] = $idPredmetu;
-                }
-            }
-            foreach (($_POST[$this->klicT] ?? []) as $idTricka) { // připojení triček
-                $idTricka = (int)$idTricka;
-                if ($idTricka && in_array($idTricka, $povolenaIdPredmetuAMikinATricek, true)) { // odstranění výběrů „žádné tričko“
-                    $nove[] = $idTricka;
-                }
-            }
-            foreach (($_POST[$this->klicM] ?? []) as $idMikiny) { // připojení mikin
-                $idMikiny = (int)$idMikiny;
-                if ($idMikiny && in_array($idMikiny, $povolenaIdPredmetuAMikinATricek, true)) { // odstranění výběrů „žádná mikina“
-                    $nove[] = $idMikiny;
-                }
-            }
-            sort($nove);
-            // pole s předměty, které už má objednané dříve (bez ubytování)
-            $stare = [];
-            $o = dbQuery('SELECT id_predmetu FROM shop_nakupy JOIN shop_predmety USING(id_predmetu) WHERE id_uzivatele=' . $this->zakaznik->id() . ' AND rok=' . ROCNIK . ' AND typ IN(' . self::PREDMET . ',' . self::TRICKO . ') ORDER BY id_predmetu');
-            while ($r = mysqli_fetch_assoc($o)) {
-                $stare[] = (int)$r['id_predmetu'];
-            }
-            // určení rozdílů polí (note: array_diff ignoruje vícenásobné výskyty hodnot a nedá se použít)
-            $i = $j = 0;
-            $odstranit = []; //čísla (kvůli nutností více delete dotazů s limitem)
-            $pridat = [];
-            while (!empty($nove[$i]) || !empty($stare[$j])) {
-                if (empty($stare[$j]) || (!empty($nove[$i]) && $nove[$i] < $stare[$j]))
-                    // tento prvek není v staré objednávce
-                    // zapíšeme si ho pro přidání a přeskočíme na další
-                    $pridat[] = (int)$nove[$i++];
-                elseif (empty($nove[$i]) || $stare[$j] < $nove[$i])
-                    // tento prvek ze staré objednávky není v nové objednávce
-                    // zapíšeme si ho, že má být odstraněn, a skočíme na další
-                    $odstranit[] = $stare[$j++];
-                else
-                    // prvky jsou shodné, skočíme o jedna v obou seznamech a neděláme nic
-                    $i++ == $j++;
-            } //porovnání bez efektu
-            if ($odstranit || $pridat) {
-                dbBegin();
-                try {
-                    // odstranění předmětů, které z objednávky oproti DB zmizely
-                    foreach ($odstranit as $idPredmetuProOdstraneni) {
-                        $this->zrusNakupPredmetu($idPredmetuProOdstraneni, 1 /* jen jeden, necheme zlikvidovat všechny ojednávky toho předmětu */);
-                    }
-                    // přidání předmětů, které doposud objednané nemá
-                    foreach (array_count_values($pridat) as $idPredmetuProPridani => $pocet) {
-                        $this->prodat((int)$idPredmetuProPridani, $pocet, false);
-                    }
-                    dbCommit();
-                } catch (\Throwable $throwable) {
-                    dbRollback();
-                    throw $throwable;
-                }
-            }
-        }
-    }
-
     public function zrusNakupPredmetu(
         $idPredmetu,
         int $pocet,
@@ -1118,50 +1048,6 @@ SQL,
         bool $ulozitNechceUbytovani = false,
     ): bool {
         return $this->ubytovani->zpracuj($vcetneSpolubydliciho, $hlidatKapacituUbytovani, $ulozitNechceUbytovani);
-    }
-
-    /**
-     * Zpracuje část formuláře s vstupným
-     */
-    public function zpracujVstupne()
-    {
-        $castka = post($this->klicV);
-        if ($castka === null) {
-            return;
-        }
-        // rušíme rozdělení zadané částky na "včas" a "pozdě", vše bude včas
-        $vstupneVcas = $castka;
-        $vstupnePozde = 0;
-        // funkce pro provedení změn
-        $zmeny = function (
-            $radek,
-            $cena,
-        ) {
-            if ($radek['kusu_uzivatele'] == 0) {
-                dbInsert('shop_nakupy', [
-                    'cena_nakupni'   => $cena,
-                    'id_uzivatele'   => $this->zakaznik->id(),
-                    'id_objednatele' => $this->objednatel->id(),
-                    'id_predmetu'    => $radek['id_predmetu'],
-                    'rok'            => ROCNIK,
-                ]);
-            } else {
-                dbUpdate('shop_nakupy', [
-                    'cena_nakupni' => $cena,
-                ], [
-                    'id_uzivatele' => $this->zakaznik->id(),
-                    'id_predmetu'  => $radek['id_predmetu'],
-                    'rok'          => ROCNIK,
-                ]);
-            }
-        };
-        // zpracování změn
-        if ($vstupneVcas != $this->vstupne['sum_cena_nakupni']) {
-            $zmeny($this->vstupne, $vstupneVcas);
-        }
-        if ($vstupnePozde != $this->vstupnePozde['sum_cena_nakupni']) {
-            $zmeny($this->vstupnePozde, $vstupnePozde);
-        }
     }
 
     /** Zpracuje formulář s jídlem */
@@ -1242,38 +1128,6 @@ SQL,
         return round($cena) . '&thinsp;Kč';
     }
 
-    /**
-     * @return float Hodnota prevedeneho bonusu prevedena na penize
-     * @throws \DbException
-     */
-    public function kupPrevodBonusuNaPenize(): float
-    {
-        $nevyuzityBonusZaAktivity = $this->zakaznik->finance()->nevyuzityBonusZaAktivity();
-        if (!$nevyuzityBonusZaAktivity) {
-            return 0.0;
-        }
-        $idPredmetuPrevodBonsuNaPenize = dbOneCol(<<<SQL
-SELECT id_predmetu
-FROM shop_predmety
-WHERE typ = $1
-ORDER BY model_rok DESC
-LIMIT 1
-SQL
-            , [self::PROPLACENI_BONUSU],
-        );
-        if (!$idPredmetuPrevodBonsuNaPenize) {
-            throw new \RuntimeException(sprintf('Chybi virtualni "predmet" pro prevod bonusu na penize s typem %d', self::PROPLACENI_BONUSU));
-        }
-        dbQuery(<<<SQL
-INSERT INTO shop_nakupy(id_uzivatele, id_predmetu, rok, cena_nakupni, datum)
-    VALUES ($1, $2, $3, $4, NOW())
-SQL
-            , [$this->zakaznik->id(), $idPredmetuPrevodBonsuNaPenize, ROCNIK, $nevyuzityBonusZaAktivity],
-        );
-
-        return $nevyuzityBonusZaAktivity;
-    }
-
     public function dejPopisUbytovani(): string
     {
         return $this->ubytovani->kratkyPopis();
@@ -1292,7 +1146,7 @@ SQL
             INSERT INTO shop_nakupy_zrusene(id_nakupu, id_uzivatele, id_predmetu, rocnik, cena_nakupni, datum_nakupu, datum_zruseni, zdroj_zruseni)
             SELECT nakupy.id_nakupu, nakupy.id_uzivatele, nakupy.id_predmetu, nakupy.rok, nakupy.cena_nakupni, nakupy.datum, $0, $1
             FROM shop_nakupy AS nakupy
-            JOIN shop_predmety AS predmety ON nakupy.id_predmetu = predmety.id_predmetu
+            JOIN shop_predmety_s_typem AS predmety ON nakupy.id_predmetu = predmety.id_predmetu
             WHERE nakupy.rok = {$this->systemoveNastaveni->rocnik()}
               AND nakupy.id_uzivatele = {$this->zakaznik->id()}
               AND predmety.typ = {$typPredetu}
@@ -1309,7 +1163,7 @@ SQL
         $deleteResult = dbQuery(<<<SQL
             DELETE nakupy.*
             FROM shop_nakupy AS nakupy
-            JOIN shop_predmety AS predmety ON nakupy.id_predmetu = predmety.id_predmetu
+            JOIN shop_predmety_s_typem AS predmety ON nakupy.id_predmetu = predmety.id_predmetu
             WHERE nakupy.rok = {$this->systemoveNastaveni->rocnik()}
               AND nakupy.id_uzivatele = {$this->zakaznik->id()}
               AND predmety.typ = {$typPredetu}
@@ -1340,7 +1194,7 @@ SQL
         // úplně všechno; místo toho podmínku vůbec nepřidáváme.
         $podminkaZachovani = $typyKZachovani
             ? 'AND shop_nakupy.id_predmetu NOT IN (
-                    SELECT id_predmetu FROM shop_predmety WHERE typ IN (' . implode(', ', array_map('intval', $typyKZachovani)) . ')
+                    SELECT id_predmetu FROM shop_predmety_s_typem WHERE typ IN (' . implode(', ', array_map('intval', $typyKZachovani)) . ')
                 )'
             : '';
 
@@ -1453,7 +1307,17 @@ SQL
     ) {
         dbBegin();
         try {
-            $predmet = dbOneLine("SELECT cena_aktualni, kusu_vyrobeno, nazev, model_rok FROM shop_predmety WHERE id_predmetu=$0 FOR UPDATE", [0 => $idPredmetu]);
+            // Lock the base-table row first; model_rok is then read from the view (virtual column derived from archived_at).
+            $predmet = dbOneLine(
+                "SELECT cena_aktualni, kusu_vyrobeno, nazev FROM shop_predmety WHERE id_predmetu = $0 FOR UPDATE",
+                [0 => $idPredmetu],
+            );
+            if ($predmet) {
+                $predmet['model_rok'] = dbOneCol(
+                    "SELECT model_rok FROM shop_predmety_s_typem WHERE id_predmetu = $0",
+                    [0 => $idPredmetu],
+                );
+            }
             if (!$predmet) {
                 throw new \Chyba("Předmět s ID {$idPredmetu} neexistuje.");
             }
@@ -1474,16 +1338,36 @@ SQL
                 }
             }
 
+            // Vlastní objednávka na každý prodej — drží pohromadě řádky nákupu a jejich
+            // protizápis v platbách. Bez ní by nové nákupy zůstaly bez order_id, které
+            // historické řádky mají z migrace.
+            dbQuery(
+                'INSERT INTO shop_order (customer_id, year, status, total_price, created_at, completed_at, accommodation_declined)
+                 VALUES ($0, $1, $2, $3, NOW(), NOW(), 0)',
+                [
+                    0 => $this->zakaznik->id(),
+                    1 => $aktualniRocnik,
+                    2 => 'completed',
+                    3 => ((float)$cenaAktualni) * $kusu,
+                ],
+            );
+            $idObjednavky = dbInsertId();
+
             for ($i = 1; $i <= $kusu; $i++) {
                 dbQuery(<<<SQL
-INSERT INTO shop_nakupy(id_uzivatele,id_objednatele,id_predmetu,rok,cena_nakupni,datum)
-VALUES ({$this->zakaznik->id()},{$this->objednatel->id()},{$idPredmetu},{$aktualniRocnik},{$cenaAktualni},NOW())
+INSERT INTO shop_nakupy(id_uzivatele,id_objednatele,id_predmetu,rok,cena_nakupni,datum,order_id)
+VALUES ({$this->zakaznik->id()},{$this->objednatel->id()},{$idPredmetu},{$aktualniRocnik},{$cenaAktualni},NOW(),{$idObjednavky})
 SQL,
                 );
             }
 
-            if ($this->zakaznik->id() === Uzivatel::SYSTEM) {
-                $this->zakaznik->finance()->pripis(((float)$cenaAktualni) * $kusu, $this->objednatel, 'anonymní prodej');
+            if ($this->zakaznik->id() === Uzivatel::ANONYM) {
+                $this->zakaznik->finance()->pripis(
+                    ((float)$cenaAktualni) * $kusu,
+                    $this->objednatel,
+                    'anonymní prodej',
+                    idObjednavky: $idObjednavky,
+                );
             }
             dbCommit();
         } catch (\Throwable $throwable) {

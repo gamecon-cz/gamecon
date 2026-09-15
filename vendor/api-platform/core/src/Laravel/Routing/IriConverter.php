@@ -1,0 +1,246 @@
+<?php
+
+/*
+ * This file is part of the API Platform project.
+ *
+ * (c) Kévin Dunglas <dunglas@gmail.com>
+ *
+ * For the full copyright and license information, please view the LICENSE
+ * file that was distributed with this source code.
+ */
+
+declare(strict_types=1);
+
+namespace ApiPlatform\Laravel\Routing;
+
+use ApiPlatform\Metadata\CollectionOperationInterface;
+use ApiPlatform\Metadata\Exception\InvalidArgumentException;
+use ApiPlatform\Metadata\Exception\ItemNotFoundException;
+use ApiPlatform\Metadata\Exception\OperationNotFoundException;
+use ApiPlatform\Metadata\Exception\RuntimeException;
+use ApiPlatform\Metadata\Get;
+use ApiPlatform\Metadata\GetCollection;
+use ApiPlatform\Metadata\GraphQl\Operation as GraphQlOperation;
+use ApiPlatform\Metadata\HttpOperation;
+use ApiPlatform\Metadata\IdentifiersExtractorInterface;
+use ApiPlatform\Metadata\IriConverterInterface;
+use ApiPlatform\Metadata\Operation;
+use ApiPlatform\Metadata\Operation\Factory\OperationMetadataFactoryInterface;
+use ApiPlatform\Metadata\Resource\Factory\ResourceMetadataCollectionFactoryInterface;
+use ApiPlatform\Metadata\ResourceClassResolverInterface;
+use ApiPlatform\Metadata\UrlGeneratorInterface;
+use ApiPlatform\Metadata\Util\ClassInfoTrait;
+use ApiPlatform\Metadata\Util\ResourceClassInfoTrait;
+use ApiPlatform\Serializer\OperationResourceClassResolverInterface;
+use ApiPlatform\State\ProviderInterface;
+use Illuminate\Database\Eloquent\Relations\Relation;
+// use Illuminate\Routing\Router;
+use Symfony\Component\Routing\Exception\ExceptionInterface as RoutingExceptionInterface;
+use Symfony\Component\Routing\RouterInterface;
+
+class IriConverter implements IriConverterInterface
+{
+    use ClassInfoTrait;
+    use ResourceClassInfoTrait;
+    // use UriVariablesResolverTrait;
+
+    /**
+     * @var array<string, Operation>
+     */
+    private array $localOperationCache = [];
+
+    /**
+     * @var array<string, Operation>
+     */
+    private array $localIdentifiersExtractorOperationCache = [];
+
+    // , UriVariablesConverterInterface $uriVariablesConverter = null TODO
+    /**
+     * @param ProviderInterface<object> $provider
+     */
+    public function __construct(private readonly ProviderInterface $provider, private readonly OperationMetadataFactoryInterface $operationMetadataFactory, private readonly RouterInterface $router, private readonly IdentifiersExtractorInterface $identifiersExtractor, ResourceClassResolverInterface $resourceClassResolver, private readonly ResourceMetadataCollectionFactoryInterface $resourceMetadataCollectionFactory, private readonly ?IriConverterInterface $decorated = null, private readonly ?OperationResourceClassResolverInterface $operationResourceResolver = null)
+    {
+        $this->resourceClassResolver = $resourceClassResolver;
+    }
+
+    /**
+     * @param array<string, mixed> $context
+     */
+    public function getResourceFromIri(string $iri, array $context = [], ?Operation $operation = null): object
+    {
+        $parameters = $this->router->match($iri);
+        if (!isset($parameters['_api_resource_class'], $parameters['_api_operation_name'], $parameters['uri_variables'])) {
+            throw new InvalidArgumentException(\sprintf('No resource associated to "%s".', $iri));
+        }
+
+        $routeOperation = $this->resourceMetadataCollectionFactory->create($parameters['_api_resource_class'])->getOperation($parameters['_api_operation_name']);
+
+        if ($routeOperation instanceof CollectionOperationInterface) {
+            throw new InvalidArgumentException(\sprintf('The iri "%s" references a collection not an item.', $iri));
+        }
+
+        if (!$routeOperation instanceof HttpOperation) {
+            throw new RuntimeException(\sprintf('The iri "%s" does not reference an HTTP operation.', $iri));
+        }
+
+        $dispatchOperation = ($operation instanceof GraphQlOperation && null !== $operation->getProvider())
+            ? $operation
+            : $routeOperation;
+
+        if ($item = $this->provider->provide($dispatchOperation, $parameters['uri_variables'], $context)) {
+            return $item; // @phpstan-ignore-line
+        }
+
+        throw new ItemNotFoundException(\sprintf('Item not found for "%s".', $iri));
+    }
+
+    /**
+     * @param array<string, mixed> $context
+     */
+    public function getIriFromResource(object|string $resource, int $referenceType = UrlGeneratorInterface::ABS_PATH, ?Operation $operation = null, array $context = []): ?string
+    {
+        $resourceClass = $this->getResourceClassForIri($resource, $context);
+        if ($resource instanceof Relation) {
+            $resourceClass = $this->getObjectClass($resource->getRelated());
+        }
+
+        if (isset($context['item_uri_template'])) {
+            $operation = $this->operationMetadataFactory->create($context['item_uri_template']);
+        }
+
+        $localOperationCacheKey = ($operation?->getName() ?? '').$resourceClass.(\is_string($resource) ? '_s' : '_o').($operation instanceof CollectionOperationInterface ? '_c' : '_i');
+        if ($operation && isset($this->localOperationCache[$localOperationCacheKey])) {
+            return $this->generateRoute($resource, $referenceType, $this->localOperationCache[$localOperationCacheKey], $context, $this->localIdentifiersExtractorOperationCache[$localOperationCacheKey] ?? null);
+        }
+
+        if (!$this->resourceClassResolver->isResourceClass($resourceClass)) {
+            return $this->generateSkolemIri($resource, $referenceType, $operation, $context, $resourceClass);
+        }
+
+        // This is only for when a class (that is not a resource) extends another one that is a resource, we should remove this behavior
+        // Skip this if getResourceClassForIri already determined the class via operation stateOptions
+        if (!\is_string($resource) && $resourceClass === $this->getObjectClass($resource)) {
+            $resourceClass = $this->getResourceClass($resource, true) ?? $resourceClass;
+        }
+
+        if (!$operation) {
+            $operation = (new Get())->withClass($resourceClass); // @phpstan-ignore-line
+        }
+
+        if ($operation instanceof HttpOperation && 301 === $operation->getStatus()) {
+            /** @var class-string $operationClass */
+            $operationClass = $operation->getClass() ?? $resourceClass;
+            $operation = ($operation instanceof CollectionOperationInterface ? new GetCollection() : new Get())->withClass($operationClass);
+            unset($context['uri_variables']);
+        }
+
+        $identifiersExtractorOperation = $operation;
+        // In symfony the operation name is the route name, try to find one if none provided
+        if (
+            !$operation->getName()
+            || ($operation instanceof HttpOperation && 'POST' === $operation->getMethod())
+        ) {
+            $forceCollection = $operation instanceof CollectionOperationInterface;
+            try {
+                $operation = $this->resourceMetadataCollectionFactory->create($resourceClass)->getOperation(null, $forceCollection, true);
+                $identifiersExtractorOperation = $operation;
+            } catch (OperationNotFoundException) {
+            }
+        }
+
+        if (!$operation->getName() || ($operation instanceof HttpOperation && $operation->getUriTemplate() && str_starts_with($operation->getUriTemplate(), SkolemIriConverter::SKOLEM_URI_TEMPLATE))) {
+            return $this->generateSkolemIri($resource, $referenceType, $operation, $context, $resourceClass);
+        }
+
+        $this->localOperationCache[$localOperationCacheKey] = $operation;
+        $this->localIdentifiersExtractorOperationCache[$localOperationCacheKey] = $identifiersExtractorOperation;
+
+        return $this->generateRoute($resource, $referenceType, $operation, $context, $identifiersExtractorOperation);
+    }
+
+    /**
+     * @param array<string,mixed> $context
+     */
+    private function generateRoute(object|string $resource, int $referenceType = UrlGeneratorInterface::ABS_PATH, ?Operation $operation = null, array $context = [], ?Operation $identifiersExtractorOperation = null): string
+    {
+        $identifiers = $context['uri_variables'] ?? [];
+
+        if (\is_object($resource)) {
+            try {
+                $identifiers = $this->identifiersExtractor->getIdentifiersFromItem($resource, $identifiersExtractorOperation, $context);
+            } catch (RuntimeException $e) {
+                // We can try using context uri variables if any
+                if (!$identifiers) {
+                    throw new InvalidArgumentException(\sprintf('Unable to generate an IRI for the item of type "%s"', $operation->getClass()), $e->getCode(), $e);
+                }
+            }
+        }
+
+        try {
+            $routeName = $operation instanceof HttpOperation ? ($operation->getRouteName() ?? $operation->getName()) : $operation->getName();
+
+            return $this->router->generate($routeName, $identifiers, $operation->getUrlGenerationStrategy() ?? $referenceType);
+        } catch (RoutingExceptionInterface $e) {
+            throw new InvalidArgumentException(\sprintf('Unable to generate an IRI for the item of type "%s"', $operation->getClass()), $e->getCode(), $e);
+        }
+    }
+
+    /**
+     * @param object|class-string  $resource
+     * @param array<string, mixed> $context
+     */
+    private function generateSkolemIri(object|string $resource, int $referenceType = UrlGeneratorInterface::ABS_PATH, ?Operation $operation = null, array $context = [], ?string $resourceClass = null): string
+    {
+        if (!$this->decorated) {
+            throw new InvalidArgumentException(\sprintf('Unable to generate an IRI for the item of type "%s"', $resourceClass));
+        }
+
+        // Use a skolem iri, the route is defined in genid.xml
+        return $this->decorated->getIriFromResource($resource, $referenceType, $operation, $context);
+    }
+
+    /**
+     * Determines which resource class to use for IRI generation.
+     *
+     * When an operation has stateOptions (entity/model class), this validates
+     * that the object being normalized matches the expected backing class before
+     * treating it as the resource class.
+     *
+     * This prevents context leakage where unrelated objects are incorrectly
+     * treated as resources for IRI generation.
+     *
+     * @param array<string, mixed> $context
+     */
+    private function getResourceClassForIri(object|string $resource, array $context): string
+    {
+        if (\is_string($resource)) {
+            return $resource;
+        }
+
+        // force_resource_class is set when operation has stateOptions with entity/model class
+        if (isset($context['force_resource_class'])) {
+            return $context['force_resource_class'];
+        }
+
+        // Explicit resource_class in context takes precedence
+        if (isset($context['resource_class'])) {
+            return $context['resource_class'];
+        }
+
+        // When item_uri_template is present, operation will be created from it in getIriFromResource,
+        // so we can't use operationResourceResolver here. Return object class and let the operation
+        // resolution happen after the operation is created from the template.
+        if (isset($context['item_uri_template'])) {
+            return $this->getObjectClass($resource);
+        }
+
+        // Use the service to resolve resource class when operation is available
+        $operation = $context['operation'] ?? $context['root_operation'] ?? null;
+        if ($operation && $this->operationResourceResolver) {
+            return $this->operationResourceResolver->resolve($resource, $operation);
+        }
+
+        // Fallback to object's actual class
+        return $this->getObjectClass($resource);
+    }
+}

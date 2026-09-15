@@ -1,0 +1,35 @@
+<?php
+
+/*
+ * This file is part of the API Platform project.
+ *
+ * (c) Kévin Dunglas <dunglas@gmail.com>
+ *
+ * For the full copyright and license information, please view the LICENSE
+ * file that was distributed with this source code.
+ */
+
+declare(strict_types=1);
+
+namespace ApiPlatform\Serializer\Filter;
+
+use ApiPlatform\Metadata\FilterInterface as BaseFilterInterface;
+use Symfony\Component\HttpFoundation\Request;
+
+/**
+ * Symfony serializer context builder filter interface.
+ *
+ * @author Baptiste Meyer <baptiste.meyer@gmail.com>
+ */
+interface FilterInterface extends BaseFilterInterface
+{
+    /**
+     * Apply a filter to the serializer context.
+     *
+     * @param array<string, mixed> $attributes
+     * @param array<string, mixed> $context
+     *
+     * @param-out array<string, mixed> $context
+     */
+    public function apply(Request $request, bool $normalization, array $attributes, array &$context): void;
+}

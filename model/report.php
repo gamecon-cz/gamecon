@@ -16,7 +16,7 @@ class Report
 {
     private         $sql;                     // text dotazu, z kterého se report generuje
     private         $sqlParametry;            // parametry dotazu, z kterého se report generuje
-    private ?mysqli $mysqli       = null;
+    private ?PDO    $pdo          = null;
     private         $o;                       // odpověď dotazu
     private ?array  $hlavicky     = null;  // hlavičky (názvy sloupců) výsledku
     private ?array  $poleObsah    = null; // obsah ve formě pole
@@ -185,16 +185,27 @@ class Report
     /**
      * Vytiskne report jako CSV
      */
-    public function tCsv(string $nazevReportu = null)
+    public function tCsv(string $nazevReportu = null, ?KonfiguraceReportu $konfiguraceReportu = null)
     {
-        $fileName = $this->nazevSouboru('csv', $nazevReportu);
-        header('Content-type: application/csv; charset=utf-8');
-        header('Content-Disposition: attachment; filename="' . $fileName . '"');
-        echo(chr(0xEF) . chr(0xBB) . chr(0xBF)); //BOM bajty pro nastavení UTF-8 ve výsledném souboru
-        $out = fopen('php://output', 'wb'); //získáme filedescriptor výstupu stránky pro použití v fputcsv
+        $destinationFile = $konfiguraceReportu?->getDestinationFile();
+
+        if ($destinationFile) {
+            $out = fopen($destinationFile, 'wb');
+        } else {
+            $fileName = $this->nazevSouboru('csv', $nazevReportu);
+            header('Content-type: application/csv; charset=utf-8');
+            header('Content-Disposition: attachment; filename="' . $fileName . '"');
+            $out = fopen('php://output', 'wb');
+        }
+
+        fwrite($out, chr(0xEF) . chr(0xBB) . chr(0xBF)); //BOM bajty pro nastavení UTF-8 ve výsledném souboru
         $this->zapisCsvRadek($out, $this->hlavicky());
         while ($radek = $this->radek()) {
             $this->zapisCsvRadek($out, $radek);
+        }
+
+        if ($destinationFile) {
+            fclose($out);
         }
     }
 
@@ -223,7 +234,7 @@ class Report
         if (!$format || $format === 'xlsx') {
             $this->tXlsx($nazev, $konfiguraceReportu);
         } elseif ($format === 'csv') {
-            $this->tCsv($nazev);
+            $this->tCsv($nazev, $konfiguraceReportu);
         } elseif ($format === 'html') {
             $this->tHtml();
         } else {
@@ -342,12 +353,12 @@ HTML;
     public static function zSql(
         string  $dotaz,
         array   $dotazParametry = null,
-        ?mysqli $mysqli = null,
+        ?PDO $pdo = null,
     ): self {
         $report               = new static();
         $report->sql          = $dotaz;
         $report->sqlParametry = $dotazParametry;
-        $report->mysqli       = $mysqli;
+        $report->pdo          = $pdo;
 
         return $report;
     }
@@ -425,12 +436,12 @@ HTML;
             return $this->hlavicky;
         }
         if (!$this->o) {
-            $this->o = dbQuery($this->sql, $this->sqlParametry, $this->mysqli);
+            $this->o = dbQuery($this->sql, $this->sqlParametry, $this->pdo);
         }
         $this->hlavicky = [];
-        for ($i = 0, $sloupcu = mysqli_num_fields($this->o); $i < $sloupcu; $i++) {
-            $field_info       = mysqli_fetch_field($this->o);
-            $this->hlavicky[] = $field_info->name;
+        for ($i = 0, $sloupcu = $this->o->columnCount(); $i < $sloupcu; $i++) {
+            $meta             = $this->o->getColumnMeta($i);
+            $this->hlavicky[] = $meta['name'];
         }
 
         return $this->hlavicky;
@@ -448,7 +459,7 @@ HTML;
             $this->o = dbQuery($this->sql, $this->sqlParametry);
         }
 
-        return mysqli_fetch_row($this->o);
+        return $this->o->fetch(\PDO::FETCH_NUM);
     }
 
 }

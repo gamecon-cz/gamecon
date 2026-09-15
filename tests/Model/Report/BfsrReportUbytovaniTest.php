@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Gamecon\Tests\Model\Report;
 
+use App\Enum\ProductTagCode;
 use Gamecon\Report\BfsrReport;
 use Gamecon\Shop\Predmet;
 use Gamecon\Shop\SqlStruktura\PredmetSqlStruktura as PredmetSql;
@@ -47,12 +48,30 @@ class BfsrReportUbytovaniTest extends AbstractTestDb
                     dbInsert(PredmetSql::SHOP_PREDMETY_TABULKA, [
                         PredmetSql::NAZEV         => $kodPredmetu,
                         PredmetSql::KOD_PREDMETU  => $kodPredmetu,
-                        PredmetSql::MODEL_ROK     => 2026,
                         PredmetSql::CENA_AKTUALNI => 100,
                         PredmetSql::STAV          => 1,
-                        PredmetSql::TYP           => $typ,
                         PredmetSql::POPIS         => '',
                     ]);
+
+                    // Typ je nově tag a ročník se odvozuje z archived_at (NULL = letošní),
+                    // takže ani jedno už nejde vložit jako sloupec.
+                    $kodTagu = ProductTagCode::fromLegacyTyp($typ);
+                    if ($kodTagu === null) {
+                        throw new \LogicException('Pro typ předmětu ' . $typ . ' neexistuje tag');
+                    }
+                    $vlozeni = dbQuery(
+                        'INSERT INTO product_product_tag (product_id, tag_id)
+                         SELECT $0, id FROM product_tag WHERE code = $1',
+                        [
+                            0 => dbInsertId(),
+                            1 => $kodTagu->value,
+                        ],
+                    );
+                    // Bez tagu v databázi vloží INSERT ... SELECT tiše nula řádků a předmět
+                    // pak z pohledu vyjde s typ = NULL — spadne až vzdálená assertion.
+                    if (dbAffectedOrNumRows($vlozeni) !== 1) {
+                        throw new \LogicException('Tag ' . $kodTagu->value . ' v databázi není');
+                    }
                 }
             },
         ];
@@ -68,7 +87,7 @@ class BfsrReportUbytovaniTest extends AbstractTestDb
     {
         $kodyUbytovani = dbOneArray(<<<SQL
             SELECT DISTINCT kod_predmetu
-            FROM shop_predmety
+            FROM shop_predmety_s_typem
             WHERE typ = $0
             SQL,
             [
@@ -178,7 +197,7 @@ class BfsrReportUbytovaniTest extends AbstractTestDb
     {
         $predmety = dbFetchAll(<<<SQL
             SELECT kod_predmetu, typ
-            FROM shop_predmety
+            FROM shop_predmety_s_typem
             WHERE typ = $0
             SQL,
             [

@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Gamecon\Tests\Model\Report;
 
+use App\Enum\ProductTagCode;
 use Gamecon\Pravo;
 use Gamecon\Report\BfsrReport;
 use Gamecon\Shop\Predmet;
@@ -69,29 +70,26 @@ SQL,
         ],
         [
             <<<SQL
-INSERT INTO shop_predmety SET id_predmetu = 46610, nazev = 'Tričko červené L', model_rok = $0, kod_predmetu = CONCAT('tricko_panske_organizatorske_L_', $0), cena_aktualni = 400, stav = 1, nabizet_do = NOW(), kusu_vyrobeno = 100, typ = $1
+INSERT INTO shop_predmety SET id_predmetu = 46610, nazev = 'Tričko červené L', kod_predmetu = CONCAT('tricko_panske_organizatorske_L_', $0), cena_aktualni = 400, stav = 1, nabizet_do = NOW(), kusu_vyrobeno = 100
 SQL,
             [
                 0 => ROCNIK,
-                1 => TypPredmetu::TRICKO,
             ],
         ],
         [
             <<<SQL
-INSERT INTO shop_predmety SET id_predmetu = 46611, nazev = 'Tričko modré L', model_rok = $0, kod_predmetu = CONCAT('tricko_panske_vypravecske_L_', $0), cena_aktualni = 350, stav = 1, nabizet_do = NOW(), kusu_vyrobeno = 100, typ = $1
+INSERT INTO shop_predmety SET id_predmetu = 46611, nazev = 'Tričko modré L', kod_predmetu = CONCAT('tricko_panske_vypravecske_L_', $0), cena_aktualni = 350, stav = 1, nabizet_do = NOW(), kusu_vyrobeno = 100
 SQL,
             [
                 0 => ROCNIK,
-                1 => TypPredmetu::TRICKO,
             ],
         ],
         [
             <<<SQL
-INSERT INTO shop_predmety SET id_predmetu = 46612, nazev = 'Tričko účastnické L', model_rok = $0, kod_predmetu = CONCAT('tricko_panske_ucastnicke_L_', $0), cena_aktualni = 250, stav = 1, nabizet_do = NOW(), kusu_vyrobeno = 100, typ = $1
+INSERT INTO shop_predmety SET id_predmetu = 46612, nazev = 'Tričko účastnické L', kod_predmetu = CONCAT('tricko_panske_ucastnicke_L_', $0), cena_aktualni = 250, stav = 1, nabizet_do = NOW(), kusu_vyrobeno = 100
 SQL,
             [
                 0 => ROCNIK,
-                1 => TypPredmetu::TRICKO,
             ],
         ],
         // Zelené tričko je jediné, co není červené ani modré a zároveň ho
@@ -99,11 +97,24 @@ SQL,
         // kategorie "placené" vůbec vyjít nenulově.
         [
             <<<SQL
-INSERT INTO shop_predmety SET id_predmetu = 46613, nazev = 'Tričko zelené L', model_rok = $0, kod_predmetu = CONCAT('tricko_panske_zelene_L_', $0), cena_aktualni = 450, stav = 1, nabizet_do = NOW(), kusu_vyrobeno = 100, typ = $1
+INSERT INTO shop_predmety SET id_predmetu = 46613, nazev = 'Tričko zelené L', kod_predmetu = CONCAT('tricko_panske_zelene_L_', $0), cena_aktualni = 450, stav = 1, nabizet_do = NOW(), kusu_vyrobeno = 100
 SQL,
             [
                 0 => ROCNIK,
-                1 => TypPredmetu::TRICKO,
+            ],
+        ],
+        // Typ je nově tag. Hodnost report bere z `kod_predmetu` (`organizatorske` /
+        // `vypravecske`), ne z barvy v názvu — názvy tu jsou jen štítek.
+        [
+            <<<SQL
+INSERT INTO product_product_tag (product_id, tag_id)
+SELECT shop_predmety.id_predmetu, product_tag.id
+FROM shop_predmety
+JOIN product_tag ON product_tag.code = $0
+WHERE shop_predmety.id_predmetu BETWEEN 46610 AND 46613
+SQL,
+            [
+                0 => ProductTagCode::TRICKO->value,
             ],
         ],
         [
@@ -175,8 +186,8 @@ SQL,
         $vDatabazi = (int) dbOneCol(<<<SQL
             SELECT COUNT(*)
             FROM shop_nakupy
-            JOIN shop_predmety ON shop_predmety.id_predmetu = shop_nakupy.id_predmetu
-            WHERE shop_nakupy.id_uzivatele = $0 AND shop_nakupy.rok = $1 AND shop_predmety.typ = $2
+            JOIN shop_predmety_s_typem ON shop_predmety_s_typem.id_predmetu = shop_nakupy.id_predmetu
+            WHERE shop_nakupy.id_uzivatele = $0 AND shop_nakupy.rok = $1 AND shop_predmety_s_typem.typ = $2
             SQL,
             [
                 0 => self::ID_UZIVATELE,
