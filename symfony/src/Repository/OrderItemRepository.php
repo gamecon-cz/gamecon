@@ -6,6 +6,7 @@ namespace App\Repository;
 
 use App\Entity\OrderItem;
 use App\Entity\Product;
+use App\Entity\ProductVariant;
 use App\Entity\User;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\Persistence\ManagerRegistry;
@@ -43,20 +44,26 @@ class OrderItemRepository extends ServiceEntityRepository
     }
 
     /**
-     * Count how many times customer purchased product in year
+     * S variantou počítá jen tu jednu velikost — zásoba se doprodává per varianta, takže
+     * mřížka potřebuje obojí: součet za produkt i počet za konkrétní velikost.
      */
-    public function countCustomerPurchases(User $customer, Product $product, int $year): int
+    public function countCustomerPurchases(User $customer, Product $product, int $year, ?ProductVariant $variant = null): int
     {
-        return (int) $this->createQueryBuilder('oi')
+        $dotaz = $this->createQueryBuilder('oi')
             ->select('COUNT(oi.id)')
             ->where('oi.customer = :customer')
             ->andWhere('oi.product = :product')
             ->andWhere('oi.year = :year')
             ->setParameter('customer', $customer)
             ->setParameter('product', $product)
-            ->setParameter('year', $year)
-            ->getQuery()
-            ->getSingleScalarResult();
+            ->setParameter('year', $year);
+
+        if ($variant !== null) {
+            $dotaz->andWhere('oi.variant = :variant')
+                ->setParameter('variant', $variant);
+        }
+
+        return (int) $dotaz->getQuery()->getSingleScalarResult();
     }
 
     /**
