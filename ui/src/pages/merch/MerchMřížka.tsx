@@ -1,7 +1,7 @@
 import { h } from "preact";
 import { useCallback, useEffect, useRef, useState } from "preact/hooks";
 import { addToCart, fetchCart, fetchMerch, removeFromCart } from "../../api/symfony/endpoints";
-import { ApiCart, ApiCartItem, ApiMerchProduct } from "../../api/symfony/types";
+import { ApiCart, ApiCartItem, ApiMerchProduct, ApiMerchVariant } from "../../api/symfony/types";
 
 /** Format price string for Czech locale: "120.00" → "120 Kč", "80.50" → "80,50 Kč" */
 function formatCena(price: string): string {
@@ -19,19 +19,32 @@ function cartItemsForVariant(cart: ApiCart | null, variantId: number): ApiCartIt
 type MerchŘádekProps = {
   product: ApiMerchProduct;
   cart: ApiCart | null;
-  busy: boolean;
-  onAdd: (product: ApiMerchProduct) => Promise<void>;
-  onRemove: (product: ApiMerchProduct, item: ApiCartItem) => Promise<void>;
+  busy: (variantId: number) => boolean;
+  onAdd: (product: ApiMerchProduct, variant: ApiMerchVariant) => Promise<void>;
+  onRemove: (product: ApiMerchProduct, variant: ApiMerchVariant, item: ApiCartItem) => Promise<void>;
 };
 
+/** První velikost, která je ještě na skladě — jinak ta první. */
+function vychoziVarianta(variants: ApiMerchVariant[]): ApiMerchVariant {
+  return variants.find((v) => v.maxQuantity === null || v.maxQuantity > 0) ?? variants[0];
+}
+
 function MerchŘádek({ product, cart, busy, onAdd, onRemove }: MerchŘádekProps) {
-  // purchasedQuantity counts every OrderItem of the year, cart included, so it is the
-  // total the customer owns. Only what is still in the cart can be taken back out.
-  const vKosiku = cartItemsForVariant(cart, product.variantId);
-  const quantity = product.purchasedQuantity;
+  // Velikost si drží řádek, ne rodič: přepnutí jedné velikosti nesmí překreslit celou mřížku.
+  // Vyprodaná velikost by se jako výchozí tvářila, že se produkt nedá koupit, i když jiná
+  // velikost na skladě je.
+  const [vybranaId, setVybranaId] = useState<number>(() => vychoziVarianta(product.variants).id);
+  const vybrana = product.variants.find((v) => v.id === vybranaId) ?? vychoziVarianta(product.variants);
+
+  // purchasedQuantity počítá všechny letošní položky včetně košíku, takže je to celkový
+  // počet. Odebrat jde jen to, co je pořád v košíku.
+  const vKosiku = cartItemsForVariant(cart, vybrana.id);
+  const quantity = vybrana.purchasedQuantity;
   const zlevneno = product.discountedPrice !== product.price;
-  const naMaximu = product.maxQuantity !== null && quantity >= product.maxQuantity;
-  const vyprodano = product.maxQuantity !== null && product.maxQuantity <= 0;
+  const naMaximu = vybrana.maxQuantity !== null && quantity >= vybrana.maxQuantity;
+  const vyprodano = vybrana.maxQuantity !== null && vybrana.maxQuantity <= 0;
+  const maVyber = product.variants.length > 1;
+  const zaneprazdneno = busy(vybrana.id);
 
   return (
     <div class="merch-mrizka--predmet">
@@ -46,18 +59,45 @@ function MerchŘádek({ product, cart, busy, onAdd, onRemove }: MerchŘádekProp
           )}
           {formatCena(product.discountedPrice)}
         </div>
+        {/* Počet u tlačítek je za vybranou velikost, takže kdo má víc velikostí, by jinak
+            viděl „1" u produktu, kterého má dva. */}
+        {maVyber && product.purchasedQuantity > quantity && (
+          <div class="merch-mrizka--celkem">
+            Celkem objednáno: {product.purchasedQuantity}
+          </div>
+        )}
       </div>
+
+      {/* Select schválně bez `disabled`: přepnout na jinou velikost je bezpečné i během
+          požadavku, a zrovna tehdy si to člověk rozmyslí nejčastěji. */}
+      {maVyber && (
+        <select
+          class="merch-mrizka--velikost"
+          value={String(vybrana.id)}
+          aria-label={`Velikost – ${product.name}`}
+          onChange={(event) => {
+            setVybranaId(Number((event.currentTarget as HTMLSelectElement).value));
+          }}
+        >
+          {product.variants.map((varianta) => (
+            <option key={varianta.id} value={String(varianta.id)}>
+              {varianta.name}
+              {varianta.maxQuantity !== null && varianta.maxQuantity <= 0 ? " (vyprodáno)" : ""}
+            </option>
+          ))}
+        </select>
+      )}
 
       {product.available && !vyprodano ? (
         <div class="merch-mrizka--pocet">
           <button
             type="button"
             class="merch-mrizka--minus"
-            disabled={busy || vKosiku.length === 0}
+            disabled={zaneprazdneno || vKosiku.length === 0}
             aria-label={`Odebrat ${product.name}`}
             onClick={() => {
               const posledni = vKosiku[vKosiku.length - 1];
-              if (posledni) void onRemove(product, posledni);
+              if (posledni) void onRemove(product, vybrana, posledni);
             }}
           >
             −
@@ -66,9 +106,9 @@ function MerchŘádek({ product, cart, busy, onAdd, onRemove }: MerchŘádekProp
           <button
             type="button"
             class="merch-mrizka--plus"
-            disabled={busy || naMaximu}
+            disabled={zaneprazdneno || naMaximu}
             aria-label={`Přidat ${product.name}`}
-            onClick={() => void onAdd(product)}
+            onClick={() => void onAdd(product, vybrana)}
           >
             +
           </button>
@@ -137,24 +177,24 @@ export function MerchMřížka() {
     if (cerstvyKosik) setCart(cerstvyKosik);
   }, []);
 
-  const pridat = useCallback(async (product: ApiMerchProduct) => {
-    if (probihajici.current.has(product.variantId)) return;
-    markBusy(product.variantId, true);
+  const pridat = useCallback(async (product: ApiMerchProduct, variant: ApiMerchVariant) => {
+    if (probihajici.current.has(variant.id)) return;
+    markBusy(variant.id, true);
     setError(null);
     try {
-      await addToCart(product.variantId);
+      await addToCart(variant.id);
     } catch (chyba: unknown) {
       // CapacityManager rejects an oversell, so this is also the sold-out signal.
       setError(chyba instanceof Error ? chyba.message : `Nepodařilo se přidat ${product.name}`);
     } finally {
       await obnovit();
-      markBusy(product.variantId, false);
+      markBusy(variant.id, false);
     }
   }, [markBusy, obnovit]);
 
-  const odebrat = useCallback(async (product: ApiMerchProduct, item: ApiCartItem) => {
-    if (probihajici.current.has(product.variantId)) return;
-    markBusy(product.variantId, true);
+  const odebrat = useCallback(async (product: ApiMerchProduct, variant: ApiMerchVariant, item: ApiCartItem) => {
+    if (probihajici.current.has(variant.id)) return;
+    markBusy(variant.id, true);
     setError(null);
     try {
       await removeFromCart(item.id);
@@ -162,7 +202,7 @@ export function MerchMřížka() {
       setError(chyba instanceof Error ? chyba.message : `Nepodařilo se odebrat ${product.name}`);
     } finally {
       await obnovit();
-      markBusy(product.variantId, false);
+      markBusy(variant.id, false);
     }
   }, [markBusy, obnovit]);
 
@@ -176,10 +216,10 @@ export function MerchMřížka() {
 
   const řádek = (product: ApiMerchProduct) => (
     <MerchŘádek
-      key={product.variantId}
+      key={product.code}
       product={product}
       cart={cart}
-      busy={busy.has(product.variantId)}
+      busy={(variantId: number) => busy.has(variantId)}
       onAdd={pridat}
       onRemove={odebrat}
     />

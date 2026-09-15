@@ -22,11 +22,27 @@
     font-weight: bold;
   }
 
+  &--celkem {
+    font-size: 0.85em;
+    color: #777;
+  }
+
   &--cena-puvodni {
     margin-right: 6px;
     color: #999;
     font-weight: normal;
     text-decoration: line-through;
+  }
+
+  // Přepínač velikosti se ukáže jen u produktu s víc variantami. `margin-left: auto` ho
+  // odsune doprava k počtu, ale počet si svoje auto drží taky, takže zůstanou vedle sebe.
+  &--velikost {
+    margin-left: auto;
+    margin-right: 8px;
+    border: solid 1px #dbdbdb;
+    background: none;
+    height: 40px;
+    padding: 0 6px;
   }
 
   &--pocet {

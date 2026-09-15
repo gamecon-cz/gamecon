@@ -7,7 +7,9 @@ namespace App\State\Cart;
 use ApiPlatform\Metadata\Operation;
 use ApiPlatform\State\ProviderInterface;
 use App\Dto\Cart\MerchProductOutputDto;
+use App\Dto\Cart\MerchVariantOutputDto;
 use App\Entity\Product;
+use App\Entity\ProductVariant;
 use App\Entity\User;
 use App\Enum\ProductTagCode;
 use App\Enum\RoleMeaning;
@@ -70,11 +72,6 @@ readonly class MerchProductsProvider implements ProviderInterface
      */
     private function toDto(Product $product, User $user, int $year, bool $prodejUkoncen, array $roleMeanings): ?MerchProductOutputDto
     {
-        $variant = $product->getVariants()->first();
-        if ($variant === false || $variant->getId() === null) {
-            return null;
-        }
-
         $purchasedQuantity = $this->orderItemRepository->countCustomerPurchases($user, $product, $year);
         // isPublic() also covers an expired nabizet_do, which the legacy shop treats as
         // a suspended product rather than a public one.
@@ -88,18 +85,50 @@ readonly class MerchProductsProvider implements ProviderInterface
 
         $discount = $this->discountCalculator->calculateDiscount($product, $user, $year);
 
+        $variants = $this->variantDtos($product, $user, $year, $roleMeanings);
+        if ($variants === []) {
+            return null;
+        }
+
         $dto = new MerchProductOutputDto();
         $dto->name = $product->getName();
+        $dto->code = $product->getCode();
         $dto->description = $product->getDescription();
-        $dto->variantId = $variant->getId();
+        $dto->variants = $variants;
         $dto->price = $product->getCurrentPrice();
         $dto->discountedPrice = $discount['finalPrice'];
         $dto->purchasedQuantity = $purchasedQuantity;
-        $dto->maxQuantity = $this->maxQuantity($product, $purchasedQuantity, $roleMeanings);
         $dto->secondary = $product->isSecondary();
         $dto->available = $available;
 
         return $dto;
+    }
+
+    /**
+     * @param RoleMeaning[] $roleMeanings
+     *
+     * @return MerchVariantOutputDto[]
+     */
+    private function variantDtos(Product $product, User $user, int $year, array $roleMeanings): array
+    {
+        $variants = [];
+        foreach ($product->getVariants() as $variant) {
+            $id = $variant->getId();
+            if ($id === null) {
+                continue;
+            }
+
+            $purchased = $this->orderItemRepository->countCustomerPurchases($user, $product, $year, $variant);
+
+            $dto = new MerchVariantOutputDto();
+            $dto->id = $id;
+            $dto->name = $variant->getName();
+            $dto->purchasedQuantity = $purchased;
+            $dto->maxQuantity = $this->maxQuantity($variant, $purchased, $roleMeanings);
+            $variants[] = $dto;
+        }
+
+        return $variants;
     }
 
     /**
@@ -109,13 +138,8 @@ readonly class MerchProductsProvider implements ProviderInterface
      *
      * @param RoleMeaning[] $roleMeanings
      */
-    private function maxQuantity(Product $product, int $purchasedQuantity, array $roleMeanings): ?int
+    private function maxQuantity(ProductVariant $variant, int $purchasedQuantity, array $roleMeanings): ?int
     {
-        $variant = $product->getVariants()->first();
-        if ($variant === false) {
-            return null;
-        }
-
         $remaining = $variant->getRemainingQuantity();
         if ($remaining === null) {
             return null;

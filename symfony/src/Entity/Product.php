@@ -178,8 +178,12 @@ class Product
      * @var Collection<int, ProductVariant>
      */
     #[ORM\OneToMany(targetEntity: ProductVariant::class, mappedBy: 'product', cascade: ['persist', 'remove'], orphanRemoval: true)]
+    // Podle `position` samotné to nestačí: velikosti jedné položky ji mají často shodnou
+    // (ponožky 2026 obě 0), a remíza by nechala pořadí na databázi — přepínač velikostí by
+    // se pak mezi načteními přeházel.
     #[ORM\OrderBy([
         'position' => 'ASC',
+        'id'       => 'ASC',
     ])]
     #[Groups([self::READ, self::WRITE])]
     private Collection $variants;
