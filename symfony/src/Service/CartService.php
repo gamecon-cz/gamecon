@@ -6,6 +6,7 @@ namespace App\Service;
 
 use App\Entity\Order;
 use App\Entity\OrderItem;
+use App\Entity\Product;
 use App\Entity\ProductBundle;
 use App\Entity\ProductVariant;
 use App\Entity\User;
@@ -86,6 +87,28 @@ class CartService
         }
 
         return $this->createOrderItem($order, $variant, null, $roleMeanings, $override);
+    }
+
+    /**
+     * Mikiny, trička a zbylý merch mají každé svůj termín — jedna společná kontrola by
+     * dvě ze tří sekcí zavřela ve špatný den.
+     */
+    private function prodejSekceUkoncen(Product $product): bool
+    {
+        $nastaveni = SystemoveNastaveni::zGlobals();
+
+        if ($product->hasTag(ProductTagCode::MIKINA->value)) {
+            return $nastaveni->prodejMikinUkoncen();
+        }
+        if ($product->hasTag(ProductTagCode::TRICKO->value)) {
+            return $nastaveni->prodejTricekUkoncen();
+        }
+        if ($product->hasTag(ProductTagCode::PREDMET->value)) {
+            return $nastaveni->prodejPredmetuBezTricekUkoncen();
+        }
+
+        // Ubytování, jídlo a vstupné si termín hlídají jinde, na vlastních cestách.
+        return false;
     }
 
     /**
@@ -241,13 +264,9 @@ class CartService
 
         $bypassed = [];
 
-        // Merch has a section-wide deadline on top of the per-product state, so a page
-        // left open past it — or a direct POST — must not still buy.
-        if (
-            $product->hasTag(ProductTagCode::PREDMET->value)
-            && ! $product->hasTag(ProductTagCode::MIKINA->value)
-            && SystemoveNastaveni::zGlobals()->prodejPredmetuBezTricekUkoncen()
-        ) {
+        // Sekce mají termín nad rámec stavu produktu, takže stránka nechaná otevřená přes
+        // něj — nebo přímý POST — nesmí koupit. Každá sekce má termín vlastní.
+        if ($this->prodejSekceUkoncen($product)) {
             if ($override?->allows(OperatorOverride::GUARD_DEADLINE) !== true) {
                 throw new \RuntimeException(sprintf('Prodej předmětu "%s" už skončil.', $product->getName()));
             }

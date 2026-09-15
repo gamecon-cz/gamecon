@@ -15,6 +15,7 @@ use App\Repository\OrderItemRepository;
 use App\Repository\ProductRepository;
 use App\Service\CurrentYearProviderInterface;
 use App\Service\DiscountCalculator;
+use App\Service\ProductVariantsForGrid;
 use App\State\Cart\MerchProductsProvider;
 use Gamecon\Cas\DateTimeImmutableStrict;
 use Gamecon\SystemoveNastaveni\SystemoveNastaveni;
@@ -84,6 +85,7 @@ class MerchProductsProviderTest extends TestCase
             $this->orderItemRepository,
             $discountCalculator,
             $currentYearProvider,
+            new ProductVariantsForGrid($this->orderItemRepository),
             $this->security,
         );
     }
