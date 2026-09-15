@@ -498,7 +498,7 @@ SQL,
         $data = [
             ['Ir-Timestamp', 'Timestamp reportu', $this->systemoveNastaveni->ted()->format('Y-m-d H:i:s')],
             ['Vr-Vstupne', 'Dobrovolné vstupné (sum CZK)', $vstupneSum],
-            ...self::radkyUbytovani($placeneNoci, $zdarmaNoci),
+            ...self::radkyUbytovani($placeneNoci, $zdarmaNoci, self::letosniDruhyUbytovani($rocnik)),
             ['Ir-Ucast-Ucastnici', 'Počet letos přihlášených normálních účastníků (nespadajících do žádného z dalších Ir-Ucast-)', $participantStats['Ir-Ucast-Ucastnici'] ?? 0],
             ['Ir-Ucast-Org0', 'Počet letos přihlášených úplných orgů', $participantStats['Ir-Ucast-Org0'] ?? 0],
             ['Ir-Ucast-OrgU', 'Počet letos přihlášených orgů s ubytováním', $participantStats['Ir-Ucast-OrgU'] ?? 0],
@@ -744,16 +744,72 @@ SQL,
     private static function radkyUbytovani(
         array $placeneNoci,
         array $zdarmaNoci,
+        array $letosniDruhy,
     ): array {
-        $radky = [];
-        foreach (self::DRUHY_UBYTOVANI as $druh => [, $popis]) {
-            $radky[] = ["Vr-Ubytovani-{$druh}", "Prodané noci {$popis} (počet)", $placeneNoci[$druh]];
+        // Nevypsaný druh musí mít nulu, jinak by noci z reportu tiše zmizely.
+        // Čítače jdou z nákupů, vypisované druhy ze sortimentu ročníku - kdyby
+        // se ty dva zdroje rozešly, je to chyba dat, ne důvod výsledek zahodit.
+        foreach (array_diff(array_keys(self::DRUHY_UBYTOVANI), $letosniDruhy) as $nevypsanyDruh) {
+            Assert::same(
+                0,
+                $placeneNoci[$nevypsanyDruh] + $zdarmaNoci[$nevypsanyDruh],
+                "Druh ubytování '{$nevypsanyDruh}' se letos nenabízel, ale má prodané noci",
+            );
         }
-        foreach (self::DRUHY_UBYTOVANI as $druh => [, $popis]) {
-            $radky[] = ["Nr-UbytovaniZdarma-{$druh}", "Noci {$popis} zdarma (počet)", $zdarmaNoci[$druh]];
+
+        $radky = [];
+        foreach ($letosniDruhy as $druh) {
+            [, $popis] = self::DRUHY_UBYTOVANI[$druh];
+            $radky[]   = ["Vr-Ubytovani-{$druh}", "Prodané noci {$popis} (počet)", $placeneNoci[$druh]];
+        }
+        foreach ($letosniDruhy as $druh) {
+            [, $popis] = self::DRUHY_UBYTOVANI[$druh];
+            $radky[]   = ["Nr-UbytovaniZdarma-{$druh}", "Noci {$popis} zdarma (počet)", $zdarmaNoci[$druh]];
         }
 
         return $radky;
+    }
+
+    /**
+     * Druhy ubytování nabízené v daném ročníku, ve kterých se mají vypsat řádky.
+     *
+     * @return list<string>
+     */
+    private static function letosniDruhyUbytovani(int $rocnik): array
+    {
+        return self::druhyUbytovaniPodleKodu(
+            dbOneArray(
+                'SELECT DISTINCT kod_predmetu FROM shop_predmety WHERE typ = $0 AND model_rok = $1',
+                [0 => TypPredmetu::UBYTOVANI, 1 => $rocnik],
+            ),
+        );
+    }
+
+    /**
+     * Druhy ubytování, kterým odpovídá aspoň jeden z daných kódů předmětů -
+     * tedy to, co se ten ročník opravdu nabízelo. Konstanta zná i dávno zrušené
+     * druhy, aby report na jejich kódech nespadl u starších ročníků, ale
+     * vypisovat se mají jen letošní.
+     *
+     * Pořadí se drží podle konstanty, ať se řádky mezi ročníky nepřeskupují.
+     *
+     * @param array<int, string> $kodyPredmetu
+     * @return list<string>
+     */
+    private static function druhyUbytovaniPodleKodu(array $kodyPredmetu): array
+    {
+        $letosni = [];
+        foreach ($kodyPredmetu as $kodPredmetu) {
+            $druh = self::druhUbytovaniPodleKodu((string)$kodPredmetu);
+            if ($druh !== null) {
+                $letosni[$druh] = true;
+            }
+        }
+
+        return array_values(array_filter(
+            array_keys(self::DRUHY_UBYTOVANI),
+            static fn (string $druh): bool => isset($letosni[$druh]),
+        ));
     }
 
     /**
