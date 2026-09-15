@@ -127,15 +127,17 @@ class Predmet extends \DbObject
         if (! array_key_exists($klicCache, self::$letosniPredmety)) {
             $typPredmet = TypPredmetu::PREDMET;
             $castKoduSql = dbQRaw($castKodu);
+            // Čte z kompatibilního pohledu: `typ`, `model_rok` ani `je_letosni_hlavni` už
+            // nejsou sloupce `shop_predmety`, pohled je dopočítává z tagů a `archived_at`.
             $letosniPredmetId = dbFetchSingle(<<<SQL
-SELECT id_predmetu
-FROM shop_predmety_s_typem
+SELECT predmety.id_predmetu
+FROM shop_predmety_s_typem AS predmety
 WHERE
     -- letošní je ten, která má nejnovější model a v dřívějších letech si ho nikdo neobjednal
-    NOT EXISTS(SELECT * FROM shop_nakupy WHERE shop_nakupy.id_predmetu = shop_predmety.id_predmetu AND shop_nakupy.rok < {$rocnik})
-    AND typ = {$typPredmet}
-    AND kod_predmetu COLLATE utf8mb4_czech_ci LIKE '%{$castKoduSql}%'
-ORDER BY model_rok DESC, je_letosni_hlavni DESC, cena_aktualni DESC, id_predmetu /* dříve nahraný má přednost */
+    NOT EXISTS(SELECT 1 FROM shop_nakupy WHERE shop_nakupy.id_predmetu = predmety.id_predmetu AND shop_nakupy.rok < {$rocnik})
+    AND predmety.typ = {$typPredmet}
+    AND predmety.kod_predmetu COLLATE utf8mb4_czech_ci LIKE '%{$castKoduSql}%'
+ORDER BY predmety.model_rok DESC, predmety.je_letosni_hlavni DESC, predmety.cena_aktualni DESC, predmety.id_predmetu /* dříve nahraný má přednost */
 LIMIT 1 -- pro jistotu
 SQL,
             );
