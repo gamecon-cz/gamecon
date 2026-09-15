@@ -117,6 +117,11 @@ class Predmet extends \DbObject
         return mb_stripos($cele, $cast) !== false;
     }
 
+    /**
+     * Heuristika, ne údaj: o vítězi mezi letos nabízenými designy rozhoduje fakticky
+     * pořadí nahrání. Chceme ji nahradit příznakem na produktu —
+     * viz docs/generated/letosni-model-predmetu.md.
+     */
     private static function letosniPredmet(
         string $castKodu,
         int    $rocnik,
