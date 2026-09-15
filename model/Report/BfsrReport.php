@@ -34,24 +34,28 @@ class BfsrReport
      * Druh ubytování -> [předpona kódu předmětu, popis do reportu].
      * Delší předpona musí předcházet kratší, protože se bere první shoda:
      * `Hdb-` před `Hd-`, a u hotelu i třída pokoje (`Hd-1L-`) před holým `Hd-`.
+     *
+     * Druhy `-ostatni` jsou zbytkový koš pro hotelovou třídu pokoje, kterou
+     * report ještě nezná - bez nich by na jejím kódu spadl. Řádek `-ostatni`
+     * ve výkazu je signál doplnit sem novou třídu.
      */
     private const DRUHY_UBYTOVANI = [
-        'spac'               => ['spacak_', 'spacáky'],
-        'vlastni-stan'       => ['vlastni_stan_', 'vlastní stany'],
-        'chata-richor'       => ['4L_chataRichor_', 'chata Richor'],
-        'penzion-witch'      => ['2_4L_penzionWitch_', 'penzion Witch'],
-        'hotel-deluxe-2b-1L' => ['Hdb-1L-', 'hotel deluxe dvojbuňka 1L'],
-        'hotel-deluxe-2b-2L' => ['Hdb-2L-', 'hotel deluxe dvojbuňka 2L'],
-        'hotel-deluxe-2b'    => ['Hdb-', 'hotel deluxe dvojbuňka'],
-        'hotel-deluxe-1L'    => ['Hd-1L-', 'hotel deluxe 1L'],
-        'hotel-deluxe-2L'    => ['Hd-2L-', 'hotel deluxe 2L'],
-        'hotel-deluxe'       => ['Hd-', 'hotel deluxe'],
-        'hotel-snidane-1L'   => ['Hs-1L-', 'hotel se snídaní 1L'],
-        'hotel-snidane-2L'   => ['Hs-2L-', 'hotel se snídaní 2L'],
-        'hotel-snidane'      => ['Hs-', 'hotel se snídaní'],
-        '3L'                 => ['3L_', '3L'],
-        '2L'                 => ['2L_', '2L'],
-        '1L'                 => ['1L_', '1L'],
+        'spac'                    => ['spacak_', 'spacáky'],
+        'vlastni-stan'            => ['vlastni_stan_', 'vlastní stany'],
+        'chata-richor'            => ['4L_chataRichor_', 'chata Richor'],
+        'penzion-witch'           => ['2_4L_penzionWitch_', 'penzion Witch'],
+        'hotel-deluxe-2b-1L'      => ['Hdb-1L-', 'hotel deluxe dvojbuňka 1L'],
+        'hotel-deluxe-2b-2L'      => ['Hdb-2L-', 'hotel deluxe dvojbuňka 2L'],
+        'hotel-deluxe-2b-ostatni' => ['Hdb-', 'hotel deluxe dvojbuňka ostatní'],
+        'hotel-deluxe-1L'         => ['Hd-1L-', 'hotel deluxe 1L'],
+        'hotel-deluxe-2L'         => ['Hd-2L-', 'hotel deluxe 2L'],
+        'hotel-deluxe-ostatni'    => ['Hd-', 'hotel deluxe ostatní'],
+        'hotel-snidane-1L'        => ['Hs-1L-', 'hotel se snídaní 1L'],
+        'hotel-snidane-2L'        => ['Hs-2L-', 'hotel se snídaní 2L'],
+        'hotel-snidane-ostatni'   => ['Hs-', 'hotel se snídaní ostatní'],
+        '3L'                      => ['3L_', '3L'],
+        '2L'                      => ['2L_', '2L'],
+        '1L'                      => ['1L_', '1L'],
     ];
 
     /**
