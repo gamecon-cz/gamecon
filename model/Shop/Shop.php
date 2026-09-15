@@ -1050,50 +1050,6 @@ SQL,
         return $this->ubytovani->zpracuj($vcetneSpolubydliciho, $hlidatKapacituUbytovani, $ulozitNechceUbytovani);
     }
 
-    /**
-     * Zpracuje část formuláře s vstupným
-     */
-    public function zpracujVstupne()
-    {
-        $castka = post($this->klicV);
-        if ($castka === null) {
-            return;
-        }
-        // rušíme rozdělení zadané částky na "včas" a "pozdě", vše bude včas
-        $vstupneVcas = $castka;
-        $vstupnePozde = 0;
-        // funkce pro provedení změn
-        $zmeny = function (
-            $radek,
-            $cena,
-        ) {
-            if ($radek['kusu_uzivatele'] == 0) {
-                dbInsert('shop_nakupy', [
-                    'cena_nakupni'   => $cena,
-                    'id_uzivatele'   => $this->zakaznik->id(),
-                    'id_objednatele' => $this->objednatel->id(),
-                    'id_predmetu'    => $radek['id_predmetu'],
-                    'rok'            => ROCNIK,
-                ]);
-            } else {
-                dbUpdate('shop_nakupy', [
-                    'cena_nakupni' => $cena,
-                ], [
-                    'id_uzivatele' => $this->zakaznik->id(),
-                    'id_predmetu'  => $radek['id_predmetu'],
-                    'rok'          => ROCNIK,
-                ]);
-            }
-        };
-        // zpracování změn
-        if ($vstupneVcas != $this->vstupne['sum_cena_nakupni']) {
-            $zmeny($this->vstupne, $vstupneVcas);
-        }
-        if ($vstupnePozde != $this->vstupnePozde['sum_cena_nakupni']) {
-            $zmeny($this->vstupnePozde, $vstupnePozde);
-        }
-    }
-
     /** Zpracuje formulář s jídlem */
     public function zpracujJidlo(): void
     {
