@@ -52,15 +52,26 @@ export type ApiAccommodationWrite = {
   restoreBreakfasts?: boolean;
 };
 
+export type ApiMerchVariant = {
+  id: number;
+  /** Size label for the picker; hidden when the product has a single variant. */
+  name: string;
+  purchasedQuantity: number;
+  /** Null when the variant has unlimited stock. */
+  maxQuantity: number | null;
+};
+
 export type ApiMerchProduct = {
   name: string;
+  /** Stable product identity; used as the React key. */
+  code: string;
   description: string;
-  variantId: number;
+  /** Always at least one. Stock and cap are per variant, not per product. */
+  variants: ApiMerchVariant[];
   price: string;
   discountedPrice: string;
+  /** Summed across variants. */
   purchasedQuantity: number;
-  /** Null when the product has unlimited stock. */
-  maxQuantity: number | null;
   /** Belongs in the collapsed "Další merch" section rather than the main grid. */
   secondary: boolean;
   available: boolean;
