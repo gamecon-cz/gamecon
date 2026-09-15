@@ -127,6 +127,10 @@ SQL,
         $plackyLetosniPlacene        = 0;
         $plackyStareZdarma           = 0;
         $plackyStarePlacene          = 0;
+        $letosniPlacka = Predmet::letosniPlacka($rocnik);
+        $idLetosniPlacky = $letosniPlacka === null
+            ? null
+            : (int) $letosniPlacka->id();
         $kostkyCelkem                = [];
         $kostkyZdarma                = 0;
         $kostkyPlacene               = 0;
@@ -301,7 +305,7 @@ SQL,
                     $plackyCelkem[$plackyCelkemKod] ??= 0;
                     $plackyCelkem[$plackyCelkemKod]++;
 
-                    $isOldBadge = $polozka->modelRok !== null && $polozka->modelRok < $rocnik;
+                    $isOldBadge = self::jeToStaraPlacka($polozka->idPredmetu, $idLetosniPlacky);
 
                     if ($polozka->castka === 0.0) {
                         if ($isOldBadge) {
@@ -1454,6 +1458,20 @@ SQL,
         }
 
         return $aktivita->typ()->nazev();
+    }
+
+    /**
+     * Staré kolekce placek se každý rok přeregistrují na aktuální `model_rok`,
+     * aby se daly doprodat - podle ročníku modelu je proto letošní úplně všechno.
+     * Letošní je jen ta jedna placka, kterou vrací {@see Predmet::letosniPlacka()},
+     * tedy stejná definice, jakou používá sleva na placku zdarma v Ceníku.
+     */
+    public static function jeToStaraPlacka(
+        string $idPredmetu,
+        ?int $idLetosniPlacky,
+    ): bool {
+        return $idLetosniPlacky === null
+            || (int) $idPredmetu !== $idLetosniPlacky;
     }
 
     /**
