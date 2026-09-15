@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace Gamecon\Tests\Shop;
 
 use App\Enum\ProductTagCode;
-use Gamecon\Cas\DateTimeGamecon;
 use Gamecon\Cas\DateTimeImmutableStrict;
 use Gamecon\Shop\Shop;
 use Gamecon\Shop\StavPredmetu;
@@ -23,10 +22,6 @@ use Gamecon\XTemplate\XTemplate;
  */
 abstract class AbstractTestPrihlaska extends AbstractTestDb
 {
-    protected const DEN_CTVRTEK = DateTimeGamecon::PORADI_HERNIHO_DNE_CTVRTEK;
-    protected const DEN_PATEK = DateTimeGamecon::PORADI_HERNIHO_DNE_PATEK;
-    protected const DEN_SOBOTA = DateTimeGamecon::PORADI_HERNIHO_DNE_SOBOTA;
-
     /**
      * Přihláška si uvnitř otevírá vlastní transakci a commituje ji, takže
      * obalující transakce testu by se commitla s ní. Místo toho resetujeme
@@ -48,11 +43,9 @@ abstract class AbstractTestPrihlaska extends AbstractTestDb
     }
 
     /**
-     * Odešle přihlášku se zadaným obsahem formuláře.
-     *
      * Kopíruje sekvenci z web/moduly/prihlaska/prihlaska.php pro POST
-     * „prihlasitNeboUpravit“ — včetně pořadí, které je významné: ubytování
-     * se zpracovává před jídlem, protože ruší snídaně v ceně hotelu.
+     * „prihlasitNeboUpravit“. Po přechodu na košík z ní zbylo jen přihlášení na GC —
+     * objednávky formulář nezapisuje, obsah `$formular` proto ovlivní jen vykreslení.
      *
      * @param array<string, mixed> $formular
      */
@@ -64,7 +57,6 @@ abstract class AbstractTestPrihlaska extends AbstractTestDb
         $_POST = $formular;
         try {
             $uzivatel = \Uzivatel::zIdUrcite($uzivatel->id());
-            $shop = new Shop($uzivatel, $uzivatel, SystemoveNastaveni::zGlobals());
             $pomoc = new \Pomoc($uzivatel);
 
             dbBegin();
@@ -72,8 +64,6 @@ abstract class AbstractTestPrihlaska extends AbstractTestDb
                 if (! $uzivatel->gcPrihlasen()) {
                     $uzivatel->gcPrihlas($uzivatel);
                 }
-                $shop->zpracujUbytovani(ulozitNechceUbytovani: true);
-                $shop->zpracujJidlo();
                 $pomoc->zpracuj();
                 $uzivatel->finance()->obnovUdaje();
                 dbCommit();
@@ -85,24 +75,6 @@ abstract class AbstractTestPrihlaska extends AbstractTestDb
             $_POST = $puvodniPost;
             \Uzivatel::smazCache();
         }
-    }
-
-    /**
-     * Odešle přihlášku a vrátí chybu, kterou vyhodila — nebo null, když prošla.
-     *
-     * @param array<string, mixed> $formular
-     */
-    protected function odesliPrihlaskuAZachytChybu(
-        \Uzivatel $uzivatel,
-        array $formular,
-    ): ?\Chyba {
-        try {
-            $this->odesliPrihlasku($uzivatel, $formular);
-        } catch (\Chyba $chyba) {
-            return $chyba;
-        }
-
-        return null;
     }
 
     protected function vytvorBeznehoUzivatele(): \Uzivatel
@@ -143,55 +115,6 @@ SQL,
         ?string $nabizetDo = null,
     ): int {
         return $this->vlozPredmet($nazev, TypPredmetu::TRICKO, $kusuVyrobeno, $cena, $stav, $nabizetDo, ROCNIK);
-    }
-
-    protected function vytvorJidlo(
-        string $nazev,
-        int $den,
-        ?int $kusuVyrobeno = 10,
-        float $cena = 120.0,
-        int $stav = StavPredmetu::VEREJNY,
-        ?string $nabizetDo = null,
-    ): int {
-        return $this->vlozPredmet($nazev, TypPredmetu::JIDLO, $kusuVyrobeno, $cena, $stav, $nabizetDo, ROCNIK, $den);
-    }
-
-    protected function vytvorUbytovani(
-        string $nazev,
-        int $den,
-        ?int $kusuVyrobeno = 10,
-        float $cena = 300.0,
-        int $stav = StavPredmetu::VEREJNY,
-        int $modelRok = ROCNIK,
-    ): int {
-        return $this->vlozPredmet($nazev, TypPredmetu::UBYTOVANI, $kusuVyrobeno, $cena, $stav, null, $modelRok, $den);
-    }
-
-    /**
-     * Ubytování se objednává minimálně na dvě navazující noci, jedna noc projde
-     * jen s právem UBYTOVANI_MUZE_OBJEDNAT_JEDNU_NOC.
-     *
-     * @return array<int, int> ids předmětů dvou navazujících nocí
-     */
-    protected function vytvorUbytovaniNaDvouNocich(
-        ?int $kusuVyrobeno = 10,
-        float $cena = 300.0,
-    ): array {
-        return [
-            $this->vytvorUbytovani('Ubytování čtvrtek', self::DEN_CTVRTEK, $kusuVyrobeno, $cena),
-            $this->vytvorUbytovani('Ubytování pátek', self::DEN_PATEK, $kusuVyrobeno, $cena),
-        ];
-    }
-
-    protected function pocetVsechNakupu(\Uzivatel $uzivatel): int
-    {
-        return (int) dbOneCol(
-            'SELECT COUNT(*) FROM shop_nakupy WHERE id_uzivatele = $0 AND rok = $1',
-            [
-                0 => $uzivatel->id(),
-                1 => ROCNIK,
-            ],
-        );
     }
 
     protected function pocetRoliUzivatele(
@@ -262,7 +185,6 @@ SQL,
         int $stav,
         ?string $nabizetDo,
         int $modelRok,
-        ?int $ubytovaniDen = null,
     ): int {
         // Ročník už není sloupec: pohled shop_predmety_s_typem ho odvozuje z archived_at,
         // kde NULL znamená letošní a jinak rozhoduje rok archivace.
@@ -277,9 +199,8 @@ INSERT INTO shop_predmety SET
     cena_aktualni = $2,
     stav = $3,
     kusu_vyrobeno = $4,
-    ubytovani_den = $5,
-    nabizet_do = $6,
-    archived_at = $7
+    nabizet_do = $5,
+    archived_at = $6
 SQL,
             [
                 0 => $nazev,
@@ -287,9 +208,8 @@ SQL,
                 2 => $cena,
                 3 => $stav,
                 4 => $kusuVyrobeno,
-                5 => $ubytovaniDen,
-                6 => $nabizetDo,
-                7 => $archivovanoV,
+                5 => $nabizetDo,
+                6 => $archivovanoV,
             ],
         );
 
