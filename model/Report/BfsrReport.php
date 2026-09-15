@@ -27,6 +27,9 @@ class BfsrReport
     public const SVRSEK_SE_SLEVOU = 'sleva';
     public const SVRSEK_PLACENY = 'placeny';
 
+    private const STORNO_100_PREFIX = 'Vr-Storna-100-';
+    private const STORNO_50_PREFIX = 'Vr-Storna-50-';
+
     /**
      * Druh ubytování -> [předpona kódu předmětu, popis do reportu].
      * Delší předpona musí předcházet kratší, protože se bere první shoda:
@@ -540,6 +543,11 @@ SQL,
             $data[] = [$code, 'Cena za účast orgů zdarma na programu (s právem "Plná sleva na aktivity" na akci, která není "bez slev") (sum CZK)', $value];
         }
 
+        [$missedActivityFees, $tooLateCanceledActivityFees] = self::doplnChybejiciStorna(
+            $missedActivityFees,
+            $tooLateCanceledActivityFees,
+        );
+
         foreach ($missedActivityFees as $code => $value) {
             $data[] = [$code, '100% storno za nedoražení', $value];
         }
@@ -886,7 +894,7 @@ SQL,
                 continue;
             }
             $missedActivityFees[] = [
-                'code'  => 'Vr-Storna-100-' . $this->getActivityGroupCode($activity),
+                'code'  => self::STORNO_100_PREFIX . $this->getActivityGroupCode($activity),
                 'value' => ($activity->bezSlevy()
                         ? $activity->cenaZaklad()
                         : $activity->cenaZaklad() * $activityPriceCoefficient) * $missedPriceCoefficient,
@@ -915,7 +923,7 @@ SQL,
                 continue;
             }
             $tooLateCanceledActivityFees[] = [
-                'code'  => 'Vr-Storna-50-' . $this->getActivityGroupCode($aktivita),
+                'code'  => self::STORNO_50_PREFIX . $this->getActivityGroupCode($aktivita),
                 'value' => ($aktivita->bezSlevy()
                         ? $aktivita->cenaZaklad()
                         : $aktivita->cenaZaklad() * $activityPriceCoefficient) * $tooLateCanceledPriceCoefficient,
@@ -1386,6 +1394,40 @@ SQL,
         }
 
         return $aktivita->typ()->nazev();
+    }
+
+    /**
+     * Storna se vykazují po sekcích ve dvou řádcích - 100 % za nedoražení
+     * a 50 % za pozdní odhlášení. Každý druh se ale počítá zvlášť, takže sekce,
+     * kde jeden z nich nikdo nedostal, by ten řádek v tabulce neměla vůbec
+     * a nešlo by je porovnat vedle sebe. Chybějící řádky se proto doplní nulou.
+     *
+     * @param array<string, float> $storna100
+     * @param array<string, float> $storna50
+     * @return array{array<string, float>, array<string, float>}
+     */
+    public static function doplnChybejiciStorna(
+        array $storna100,
+        array $storna50,
+    ): array {
+        $sekce = [];
+        foreach (array_keys($storna100) as $kod) {
+            $sekce[(string) substr((string) $kod, strlen(self::STORNO_100_PREFIX))] = true;
+        }
+        foreach (array_keys($storna50) as $kod) {
+            $sekce[(string) substr((string) $kod, strlen(self::STORNO_50_PREFIX))] = true;
+        }
+        // Obě sady se skládají ve stejném pořadí, ať jdou řádky porovnat vedle sebe.
+        ksort($sekce);
+
+        $doplnene100 = [];
+        $doplnene50 = [];
+        foreach (array_keys($sekce) as $nazevSekce) {
+            $doplnene100[self::STORNO_100_PREFIX . $nazevSekce] = $storna100[self::STORNO_100_PREFIX . $nazevSekce] ?? 0.0;
+            $doplnene50[self::STORNO_50_PREFIX . $nazevSekce] = $storna50[self::STORNO_50_PREFIX . $nazevSekce] ?? 0.0;
+        }
+
+        return [$doplnene100, $doplnene50];
     }
 
     /**
