@@ -83,6 +83,25 @@ v `nazev` podřetězce „červen" / „modr". Barva ale hodnost nedrží spoleh
 Pro fixtury to znamená: tričko se pozná podle kódu, název je jen štítek. Test
 `BfsrReportTrickaTest::orgovskeTrickoSePoznaIKdyzNeniCervene()` ten případ drží.
 
+## Kdo hlídá omezená trička
+
+Orgovská a vypravěčská trička (tagy `tricko_cervene` / `tricko_modre`, 34 produktů) smí
+objednat jen ten, kdo má příslušné právo. Kontrola je **jen na zápisové straně**:
+`CartService::buildOrderItem()` volá `guardRestrictedProduct()`, tedy oba zápisy
+(`addItem()` i `addBundle()`) jí projdou.
+
+Na čtecí straně kontrola **není a nemusí být**: `MerchProductsProvider` servíruje jen tag
+`predmet` (bez `mikina`), kdežto omezená trička nesou `tricko`. Ověřeno v datech — žádný
+z těch 34 produktů nemá zároveň tag `predmet`, takže se do výpisu strukturálně nedostane.
+Trička zatím API neservíruje vůbec.
+
+**Až se trička převedou do košíkového API, musí jejich provider kontrolu doplnit** — jinak
+se omezené tričko sice neprodá, ale bude vidět v nabídce a nákup skončí chybou místo toho,
+aby se nenabízelo.
+
+Pult (`OperatorOverride::GUARD_RESTRICTED_PRODUCT`) omezení obejít smí a zapíše to do
+`shop_nakupy.override_log` — komu tričko vydá, rozhoduje obsluha.
+
 ## Gotchas
 
 - **Cena i kapacita jsou per-varianta.** `product_variant.price` je `DECIMAL(6,2) NULL`; `NULL` = dědí z produktu. Ověřeno: varianta s `price = NULL` vrátí cenu produktu, sourozenec s vlastní cenou vrátí svou. `OrderItem` si při nákupu ukládá `getEffectivePrice()` do `original_price`, takže se do historie zamrazí cena varianty.
