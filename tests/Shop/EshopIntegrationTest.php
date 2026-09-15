@@ -26,6 +26,8 @@ use App\Service\RoleHistoryRecalculator;
 use App\Service\UserRoleService;
 use Doctrine\DBAL\Connection;
 use Doctrine\ORM\EntityManagerInterface;
+use Gamecon\Cas\DateTimeImmutableStrict;
+use Gamecon\SystemoveNastaveni\SystemoveNastaveni;
 use Gamecon\Tests\Db\AbstractTestDb;
 use Symfony\Component\Clock\NativeClock;
 
@@ -42,6 +44,7 @@ class EshopIntegrationTest extends AbstractTestDb
     private EntityManagerInterface $em;
     private Connection $connection;
     private static ?Product $product = null;
+    private ?SystemoveNastaveni $puvodniNastaveni = null;
     private static ?ProductVariant $variantM = null;
     private static ?ProductVariant $variantL = null;
 
@@ -124,6 +127,31 @@ class EshopIntegrationTest extends AbstractTestDb
         $this->em = self::getContainer()->get('doctrine.orm.entity_manager');
         $this->connection = self::getContainer()->get(Connection::class);
         $this->em->clear();
+
+        // Termíny prodeje jsou konstanty, které testovací bootstrap nedefinuje, a leží
+        // uprostřed ročníku. `CartService` je hlídá na zápisu, takže se musí jednak
+        // definovat, jednak posunout „teď" na začátek roku.
+        $vychozi = SystemoveNastaveni::zGlobals();
+        foreach ([
+            'PREDMETY_BEZ_TRICEK_LZE_OBJEDNAT_A_MENIT_DO_DNE',
+            'TRICKA_LZE_OBJEDNAT_A_MENIT_DO_DNE',
+            'MIKINY_LZE_OBJEDNAT_A_MENIT_DO_DNE',
+        ] as $klic) {
+            try_define($klic, $vychozi->dejVychoziHodnotu($klic));
+        }
+
+        $this->puvodniNastaveni = $GLOBALS['systemoveNastaveni'] ?? null;
+        $GLOBALS['systemoveNastaveni'] = SystemoveNastaveni::zGlobals(
+            rocnik: ROCNIK,
+            ted: new DateTimeImmutableStrict(ROCNIK . '-01-01 00:00:00'),
+        );
+    }
+
+    protected function tearDown(): void
+    {
+        $GLOBALS['systemoveNastaveni'] = $this->puvodniNastaveni;
+
+        parent::tearDown();
     }
 
     // ==================== 1. CurrentYearProvider ====================
