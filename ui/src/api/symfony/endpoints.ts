@@ -59,6 +59,14 @@ export const fetchMerch = async (): Promise<ApiMerchProduct[]> => {
   return data["hydra:member"] ?? data["member"] ?? [];
 };
 
+/** Shirts and hoodies: same payload as merch, own endpoint because of their own deadlines. */
+export const fetchShirts = async (): Promise<ApiMerchProduct[]> => {
+  const res = await symfonyFetch("cart/shirts");
+  if (!res.ok) throw new Error(`Failed to fetch shirts: ${res.status}`);
+  const data = await res.json() as ApiHydraCollection<ApiMerchProduct>;
+  return data["hydra:member"] ?? data["member"] ?? [];
+};
+
 /**
  * Fetch current cart
  */

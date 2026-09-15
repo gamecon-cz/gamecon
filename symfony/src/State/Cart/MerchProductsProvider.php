@@ -7,9 +7,7 @@ namespace App\State\Cart;
 use ApiPlatform\Metadata\Operation;
 use ApiPlatform\State\ProviderInterface;
 use App\Dto\Cart\MerchProductOutputDto;
-use App\Dto\Cart\MerchVariantOutputDto;
 use App\Entity\Product;
-use App\Entity\ProductVariant;
 use App\Entity\User;
 use App\Enum\ProductTagCode;
 use App\Enum\RoleMeaning;
@@ -17,6 +15,7 @@ use App\Repository\OrderItemRepository;
 use App\Repository\ProductRepository;
 use App\Service\CurrentYearProviderInterface;
 use App\Service\DiscountCalculator;
+use App\Service\ProductVariantsForGrid;
 use Gamecon\SystemoveNastaveni\SystemoveNastaveni;
 use Symfony\Bundle\SecurityBundle\Security;
 use Symfony\Component\HttpKernel\Exception\AccessDeniedHttpException;
@@ -31,6 +30,7 @@ readonly class MerchProductsProvider implements ProviderInterface
         private OrderItemRepository $orderItemRepository,
         private DiscountCalculator $discountCalculator,
         private CurrentYearProviderInterface $currentYearProvider,
+        private ProductVariantsForGrid $variantsForGrid,
         private Security $security,
     ) {
     }
@@ -52,8 +52,8 @@ readonly class MerchProductsProvider implements ProviderInterface
         $merch = [];
 
         foreach ($this->productRepository->findByTag(ProductTagCode::PREDMET) as $product) {
-            // Hoodies carry PREDMET *and* MIKINA, and are still sold by the legacy form.
-            // Offering them here too would let the form's diff delete what the grid added.
+            // Mikiny nesou PREDMET i MIKINA, ale prodávají se se svršky — mají vlastní
+            // termín prodeje, který tenhle provider nezná. Viz ShirtProductsProvider.
             if ($product->hasTag(ProductTagCode::MIKINA->value)) {
                 continue;
             }
@@ -85,7 +85,7 @@ readonly class MerchProductsProvider implements ProviderInterface
 
         $discount = $this->discountCalculator->calculateDiscount($product, $user, $year);
 
-        $variants = $this->variantDtos($product, $user, $year, $roleMeanings);
+        $variants = $this->variantsForGrid->pro($product, $user, $year, $roleMeanings);
         if ($variants === []) {
             return null;
         }
@@ -102,53 +102,5 @@ readonly class MerchProductsProvider implements ProviderInterface
         $dto->available = $available;
 
         return $dto;
-    }
-
-    /**
-     * @param RoleMeaning[] $roleMeanings
-     *
-     * @return MerchVariantOutputDto[]
-     */
-    private function variantDtos(Product $product, User $user, int $year, array $roleMeanings): array
-    {
-        $variants = [];
-        foreach ($product->getVariants() as $variant) {
-            $id = $variant->getId();
-            if ($id === null) {
-                continue;
-            }
-
-            $purchased = $this->orderItemRepository->countCustomerPurchases($user, $product, $year, $variant);
-
-            $dto = new MerchVariantOutputDto();
-            $dto->id = $id;
-            $dto->name = $variant->getName();
-            $dto->purchasedQuantity = $purchased;
-            $dto->maxQuantity = $this->maxQuantity($variant, $purchased, $roleMeanings);
-            $variants[] = $dto;
-        }
-
-        return $variants;
-    }
-
-    /**
-     * Mirrors what CapacityManager::purchase() will actually allow, so the grid does not
-     * offer a piece the next click would be rejected for. Their own pieces count as sold
-     * already, hence adding them back.
-     *
-     * @param RoleMeaning[] $roleMeanings
-     */
-    private function maxQuantity(ProductVariant $variant, int $purchasedQuantity, array $roleMeanings): ?int
-    {
-        $remaining = $variant->getRemainingQuantity();
-        if ($remaining === null) {
-            return null;
-        }
-
-        if (! RoleMeaning::anyIsOrganizer($roleMeanings)) {
-            $remaining -= $variant->getEffectiveReservedForOrganizers() ?? 0;
-        }
-
-        return max(0, $remaining) + $purchasedQuantity;
     }
 }

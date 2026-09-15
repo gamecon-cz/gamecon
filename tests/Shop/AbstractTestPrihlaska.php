@@ -72,7 +72,6 @@ abstract class AbstractTestPrihlaska extends AbstractTestDb
                 if (! $uzivatel->gcPrihlasen()) {
                     $uzivatel->gcPrihlas($uzivatel);
                 }
-                $shop->zpracujPredmety();
                 $shop->zpracujUbytovani(ulozitNechceUbytovani: true);
                 $shop->zpracujJidlo();
                 $shop->zpracujVstupne();

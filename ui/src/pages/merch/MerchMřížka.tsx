@@ -1,6 +1,6 @@
 import { h } from "preact";
 import { useCallback, useEffect, useRef, useState } from "preact/hooks";
-import { addToCart, fetchCart, fetchMerch, removeFromCart } from "../../api/symfony/endpoints";
+import { addToCart, fetchCart, fetchMerch, fetchShirts, removeFromCart } from "../../api/symfony/endpoints";
 import { ApiCart, ApiCartItem, ApiMerchProduct, ApiMerchVariant } from "../../api/symfony/types";
 
 /** Format price string for Czech locale: "120.00" → "120 Kč", "80.50" → "80,50 Kč" */
@@ -125,7 +125,13 @@ function MerchŘádek({ product, cart, busy, onAdd, onRemove }: MerchŘádekProp
   );
 }
 
-export function MerchMřížka() {
+type MřížkaProps = {
+  /** Odkud se berou položky — merch a svršky mají každý svůj endpoint. */
+  nacti: () => Promise<ApiMerchProduct[]>;
+  prazdno: string;
+};
+
+function Mřížka({ nacti, prazdno }: MřížkaProps) {
   const [products, setProducts] = useState<ApiMerchProduct[]>([]);
   const [cart, setCart] = useState<ApiCart | null>(null);
   const [loading, setLoading] = useState(true);
@@ -135,17 +141,17 @@ export function MerchMřížka() {
 
   useEffect(() => {
     Promise.all([
-      fetchMerch(),
+      nacti(),
       fetchCart(),
     ]).then(([merch, currentCart]) => {
       setProducts(merch);
       setCart(currentCart);
       setLoading(false);
     }).catch((chyba: unknown) => {
-      setError(chyba instanceof Error ? chyba.message : "Nepodařilo se načíst merch");
+      setError(chyba instanceof Error ? chyba.message : "Nepodařilo se načíst nabídku");
       setLoading(false);
     });
-  }, []);
+  }, [nacti]);
 
   const markBusy = useCallback((variantId: number, running: boolean) => {
     if (running) {
@@ -170,12 +176,12 @@ export function MerchMřížka() {
    */
   const obnovit = useCallback(async () => {
     const [cerstvyMerch, cerstvyKosik] = await Promise.all([
-      fetchMerch().catch(() => null),
+      nacti().catch(() => null),
       fetchCart().catch(() => null),
     ]);
     if (cerstvyMerch) setProducts(cerstvyMerch);
     if (cerstvyKosik) setCart(cerstvyKosik);
-  }, []);
+  }, [nacti]);
 
   const pridat = useCallback(async (product: ApiMerchProduct, variant: ApiMerchVariant) => {
     if (probihajici.current.has(variant.id)) return;
@@ -208,7 +214,7 @@ export function MerchMřížka() {
 
   if (loading) return <div class="merch-mrizka--loading">Načítám předměty…</div>;
   if (products.length === 0) {
-    return <div class="merch-mrizka--empty">Žádné předměty k dispozici.</div>;
+    return <div class="merch-mrizka--empty">{prazdno}</div>;
   }
 
   const hlavni = products.filter((product) => !product.secondary);
@@ -241,4 +247,13 @@ export function MerchMřížka() {
       )}
     </div>
   );
+}
+
+export function MerchMřížka() {
+  return <Mřížka nacti={fetchMerch} prazdno="Žádné předměty k dispozici." />;
+}
+
+/** Trička a mikiny. Stejná mřížka, jiný endpoint — svršky mají vlastní termíny prodeje. */
+export function SvrškyMřížka() {
+  return <Mřížka nacti={fetchShirts} prazdno="Žádná trička k dispozici." />;
 }
