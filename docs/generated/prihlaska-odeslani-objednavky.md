@@ -1,48 +1,51 @@
 # Přihláška — odeslání objednávky
 
-TL;DR: co se stane po odeslání veřejné přihlášky (`/prihlaska`) — pořadí zpracování, názvy POST polí, kde se hlídá vyprodání a kde ne. Pokrývá zápis objednávky, ne vykreslení formuláře.
+TL;DR: **veřejná přihláška (`/prihlaska`) už žádnou objednávku nezapisuje** — všechno jde
+přes košíkové API. Zbylo z ní jen přihlášení na GC. Dokument drží, co se tam děje dnes, kde
+zůstal legacy zápis (admin) a jaké pasti po převodu zbyly.
 
 ## Vstupní body v kódu
 
 - `web/moduly/prihlaska/prihlaska.php` — modul; větev `post('prihlasitNeboUpravit')` je vlastní zpracování
-- `model/Shop/Shop.php::zpracujUbytovani`, `::zpracujJidlo`, `::prodat`
-- `model/Shop/ShopUbytovani.php::zpracuj`, `::ulozObjednaneUbytovaniUcastnika`, `::validujVybraneNociUbytovani`
+- `symfony/src/Service/AccommodationWriter.php`, `CartService.php`, `EntryFeeService.php` — kam se zápis přesunul
+- `model/Shop/Shop.php::zpracujUbytovani`, `::zpracujJidlo`, `::prodat` — legacy zápis, dnes už **jen z adminu**
+- `admin/scripts/modules/_uzivatel_ovladac.php`, `admin/scripts/modules/infopult/_infopult_ovladac.php` — jeho volající
 - `tests/Shop/AbstractTestPrihlaska.php` — testy jedou stejnou sekvenci jako modul
 
-## Pořadí zpracování je významné
+## Co po odeslání zbylo
 
-Modul volá v tomhle pořadí a celé to obaluje jednou transakcí:
+Modul dělá v transakci tohle a nic víc:
 
 ```
-gcPrihlas → zpracujUbytovani → zpracujJidlo → Pomoc::zpracuj → finance()->obnovUdaje
+gcPrihlas → Pomoc::zpracuj → finance()->obnovUdaje
 ```
 
-Ubytování musí předcházet jídlu: `zpracujJidlo()` se ptá `ubytovani->dnyHotelovychPokoju()`, aby vyhodilo snídaně, které jsou v ceně hotelu. Při přehození by snídaně u hotelových pokojů prošly.
+**Žádná sekce se ze `$_POST` nezapisuje.** Všechny — předměty, trička, mikiny, vstupné,
+ubytování i jídlo — chodí přes košíkové API (`/cart/*`, `/cart/entry-fee`). Sekce se sice
+pořád vykreslují jako noscript fallback, ale `prihlaskaPreactSekceHtml()` je balí do
+`<fieldset disabled>`, a zakázaná pole prohlížeč neodesílá.
 
-Jakákoli `Chyba` uvnitř shodí `dbRollback()` a celá přihláška se zahodí — účastník neskončí s uloženým ubytováním a neuloženým předmětem.
+Tím zmizely dvě vlastnosti, na které se dřív dalo spolehnout:
 
-## Sekce formuláře jsou nezávislé
+- **Pořadí už nic neřeší.** Dřív muselo ubytování předcházet jídlu, protože `zpracujJidlo()`
+  ruší snídaně v ceně hotelu. Dnes to řeší `AccommodationWriter` sám při zápisu nocí.
+- **Není transakce přes celou přihlášku.** Košík zapisuje po requestech, takže neexistuje
+  stav „ubytování uloženo, jídlo selhalo, zahoď obojí". Každá sekce stojí sama za sebe.
 
-Každá sekce se zpracuje, jen když v POSTu je její klíč; jinak zůstane beze změny (ne prázdná). Klíče:
-
-| Sekce | POST klíč | Tvar |
-|---|---|---|
-| Jídlo | `cShopJidlo[<id>]` + **`cShopJidloZmen`** | bez `cShopJidloZmen` se jídlo vůbec nezpracuje |
-| Ubytování | `shopUbytovaniDny[<den>]` | hodnota = id předmětu, `''` = žádné |
-| Nechci ubytování | `shopUbytovaniNechci` | přítomnost |
-
-Předměty, trička, mikiny a vstupné už formulářem nechodí vůbec — kupují se košíkovým API
-(`/cart/*`, `/cart/entry-fee`). Jejich sekce se sice pořád vykreslují jako noscript
-fallback, ale `prihlaskaPreactSekceHtml()` je balí do `<fieldset disabled>`, a zakázaná
-pole prohlížeč neodesílá. Zpracování na straně přihlášky proto neexistuje.
+**Pozor na degradovanou větev.** `prihlaskaPreactSekceHtml()` má dvě místa, kde vrací
+`$legacyHtml` holý — když uživatel není v Doctrine a když selže příprava Symfony kontextu
+(kernel, kontejner, Doctrine i JWT, všechno pod jedním `catch (\Throwable)`). Tam se sekce
+vykreslí **zapnutá** a zároveň se nenačte Preact bundle, takže uživatel dostane formulář,
+který vypadá editovatelně, nemá za sebou košík a jehož POST nikdo nezpracuje. Tiše se
+neuloží nic. Past je to hlavně pro toho, kdo by sem zápis vracel zpátky.
 
 Počet kusů = **počet řádků** v `shop_nakupy`; tabulka nemá unique přes (uživatel, předmět, rok). Proto se objednávka aktualizuje diffem starých a nových řádků, ne přepsáním.
 
 ## Kde se hlídá vyprodání — a kde ne
 
-Z přihlášky volá `Shop::prodat()` už jen jídlo (přes `zmenObjednavku()`). Mimo přihlášku ji
-používá ještě ruční prodej v adminu — `admin/scripts/modules/_shop.php` a
-`_uzivatel_ovladac.php`. Zamyká řádek (`FOR UPDATE`) a odmítne:
+`Shop::prodat()` už z přihlášky nevolá nic — zbyl jen ruční prodej v adminu
+(`admin/scripts/modules/_shop.php`, `_uzivatel_ovladac.php`) a jídlo přes
+`zmenObjednavku()`, které tamtéž volá `zpracujJidlo()`. Zamyká řádek (`FOR UPDATE`) a odmítne:
 
 - předmět z jiného ročníku (`model_rok != rocnik`)
 - objednávku přes zásobu, když `kusu_vyrobeno IS NOT NULL` (`kusu_vyrobeno` = NULL znamená neomezeně)
@@ -55,14 +58,13 @@ Ubytování jde **mimo `prodat()`** — vlastní cestou v `ShopUbytovani::ulozOb
 vykreslí; `prodat()` `stav` ani `nabizet_do` nekontroluje. Totéž platí pro termíny
 `*_LZE_OBJEDNAT_A_MENIT_DO_DNE`.
 
-Dřív z toho plynula díra — ručně poskládaný POST koupil i stažený předmět. Ta je pryč
-spolu se `zpracujPredmety()`: sekce, které by se daly takhle podstrčit, už žádný zápis
-nemají. Jídlo, které jako jediné `prodat()` ještě používá, si termín ani stav samo
-nehlídá, takže **na něj se to pořád vztahuje**.
+Dřív z toho na přihlášce plynula díra — ručně poskládaný POST koupil i stažený předmět.
+Ta je pryč s posledním formulářovým zápisem. **V adminu se to ale pořád vztahuje na jídlo
+i ruční prodej**, které `prodat()` volají dál a termín ani stav si samy nehlídají.
 
 ## Gotchas při psaní testů
 
-- **Vlastní transakce.** Přihláška si otevírá a commituje vlastní transakci, takže obalující transakce testu by se commitla s ní. Testy proto vypínají `keepTestClassDbChangesInTransaction()` i `keepSingleTestMethodDbChangesInTransaction()` a nechávají resetovat DB po každé metodě.
+- **Vlastní transakce.** Přihláška si pořád otevírá a commituje vlastní transakci (kvůli `gcPrihlas`), takže obalující transakce testu by se commitla s ní. Testy proto vypínají `keepTestClassDbChangesInTransaction()` i `keepSingleTestMethodDbChangesInTransaction()` a nechávají resetovat DB po každé metodě.
 - **`Uzivatel` je staticky cachovaný.** Po zápisu je potřeba `\Uzivatel::smazCache()`, jinak další čtení vrátí starý objekt.
 - **Vykreslení předmětů potřebuje konstanty termínů**, které testovací bootstrap nedefinuje (`PREDMETY_BEZ_TRICEK_LZE_OBJEDNAT_A_MENIT_DO_DNE` a spol.) — doplní se přes `try_define()` + `dejVychoziHodnotu()`. A protože jejich výchozí hodnoty leží uprostřed ročníku, je potřeba posunout „teď“ na začátek roku, jinak vykreslení hlásí ukončený prodej.
 - **XTemplate bez nastavené cache** si odkládá zkompilovanou šablonu vedle zdroje, tedy do gitem sledovaného stromu. Před voláním kteréhokoli `*Html()` je potřeba nastavit `XTemplate::cache()`.
@@ -72,7 +74,9 @@ nehlídá, takže **na něj se to pořád vztahuje**.
     v `renderPredmet()`) a **markupem se od nabízeného nijak neliší** — `data-max` nese jen blok
     `nakup`, který se od přechodu na košík nerenderuje vůbec. Test, který se ptá na nabídku,
     proto nesmí nic koupit; helper se jmenuje `jeVidetVNabidce()`, ne „jde koupit".
-- **Rollback celé přihlášky se dá otestovat jen selháním, které přijde po nějakém zápisu.** Vyprodaný *předmět* padá jako první, takže se do té doby nic neuložilo a test by prošel i bez rollbacku; vyprodané *jídlo* se zpracovává až po ubytování, takže shodí přihlášku s už zapsanými nocemi.
+- **Rollback celé přihlášky se testovat nedá, protože už neexistuje.** Košík zapisuje po
+  requestech. Test, který takovou atomicitu ověřoval, se proto smazal bez náhrady — kdyby
+  ji někdo chtěl zpátky, musela by se nejdřív zavést na straně košíku.
 
 ## Co pokrývají testy nabídky
 
