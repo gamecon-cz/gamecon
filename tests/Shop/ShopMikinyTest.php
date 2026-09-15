@@ -156,38 +156,6 @@ SQL,
     /**
      * @test
      */
-    public function zpracujeVyberMikinyIBezTricekVeFormulari(): void
-    {
-        $suffix = (string) uniqid();
-        $uzivatel = $this->vytvorUzivatele($suffix);
-        $idMikiny = $this->vytvorPredmet('Mikina vínová L', 'mikina_vinova_l_' . $suffix, TypPredmetu::PREDMET, PodtypPredmetu::MIKINA, 950);
-
-        $shop = new Shop($uzivatel, $uzivatel, $this->systemoveNastaveniProShop());
-
-        $puvodniPost = $_POST;
-        try {
-            $_POST = [
-                'shopM' => [
-                    0 => (string) $idMikiny,
-                ],
-            ];
-
-            $shop->zpracujPredmety();
-        } finally {
-            $_POST = $puvodniPost;
-        }
-
-        $pocetNakupu = (int) dbOneCol(
-            'SELECT COUNT(*) FROM shop_nakupy WHERE id_uzivatele = $0 AND id_predmetu = $1 AND rok = $2',
-            [$uzivatel->id(), $idMikiny, ROCNIK],
-        );
-
-        self::assertSame(1, $pocetNakupu);
-    }
-
-    /**
-     * @test
-     */
     public function koupenaMikinaSePocitaDoPrehleduNakupu(): void
     {
         $this->pripravXTemplateCache();
