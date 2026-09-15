@@ -20,12 +20,13 @@ use Symfony\Component\HttpKernel\Exception\AccessDeniedHttpException;
 use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
 
 /**
- * Covers who may call this and whose booking it becomes. The writer is readonly and cannot be
- * doubled, so a successful booking is not exercised here — the rules it applies are covered in
- * AccommodationWriterTest.
+ * Covers who may call this, whose booking it becomes, and what is handed to the writer. The
+ * rules the writer then applies are covered in AccommodationWriterTest.
  */
 class SetCustomerAccommodationProcessorTest extends AbstractDatabaseKernelTestCase
 {
+    private MockObject $accommodationWriter;
+
     private MockObject $entityManager;
 
     private MockObject $legacySession;
@@ -36,13 +37,14 @@ class SetCustomerAccommodationProcessorTest extends AbstractDatabaseKernelTestCa
     {
         parent::setUp();
 
+        $this->accommodationWriter = $this->createMock(AccommodationWriter::class);
         $this->entityManager = $this->createMock(EntityManagerInterface::class);
         $this->legacySession = $this->createMock(LegacySessionService::class);
 
         $container = static::getContainer();
 
         $this->processor = new SetCustomerAccommodationProcessor(
-            $container->get(AccommodationWriter::class),
+            $this->accommodationWriter,
             $container->get(AccommodationRules::class),
             $container->get(CurrentYearProviderInterface::class),
             $this->legacySession,
@@ -70,6 +72,124 @@ class SetCustomerAccommodationProcessorTest extends AbstractDatabaseKernelTestCa
         $input->customerId = $customerId;
 
         return $input;
+    }
+
+    private function zakaznik(int $id = 4242): MockObject
+    {
+        $customer = $this->createMock(User::class);
+        $customer->method('getId')->willReturn($id);
+        $this->legacySession->method('getCurrentUser')->willReturn($this->operator());
+        $this->entityManager->method('find')->willReturn($customer);
+
+        return $customer;
+    }
+
+    private function legacyZakaznik(string $ubytovanS = '', bool $smiJednuNoc = false): MockObject
+    {
+        $legacyCustomer = $this->createMock(\Uzivatel::class);
+        $legacyCustomer->method('ubytovanS')->willReturn($ubytovanS);
+        $legacyCustomer->method('maPravo')->willReturn($smiJednuNoc);
+        $this->legacySession->method('getUserById')->willReturn($legacyCustomer);
+
+        return $legacyCustomer;
+    }
+
+    public function testNightsAreSavedForTheCustomer(): void
+    {
+        $customer = $this->zakaznik();
+        $this->legacyZakaznik();
+
+        $this->accommodationWriter
+            ->expects(self::once())
+            ->method('save')
+            ->with(
+                self::identicalTo($customer),
+                self::identicalTo([11, 12]),
+                self::anything(),
+                self::anything(),
+                self::anything(),
+                self::identicalTo(false),
+                self::anything(),
+            );
+
+        $input = $this->vstup();
+        $input->variantIds = [11, 12];
+
+        $this->processor->process($input, new Post());
+    }
+
+    /**
+     * The infopult screen sends no roommate at all, and the writer would read that as "clear
+     * it" — so an omitted one has to arrive as whatever the participant already has.
+     */
+    public function testOmittedRoommateKeepsTheStoredOne(): void
+    {
+        $this->zakaznik();
+        $this->legacyZakaznik(ubytovanS: 'Už tam bydlí');
+
+        $this->accommodationWriter
+            ->expects(self::once())
+            ->method('save')
+            ->with(
+                self::anything(),
+                self::anything(),
+                self::anything(),
+                self::anything(),
+                self::identicalTo('Už tam bydlí'),
+                self::anything(),
+                self::anything(),
+            );
+
+        $this->processor->process($this->vstup(), new Post());
+    }
+
+    public function testSentRoommateReplacesTheStoredOne(): void
+    {
+        $this->zakaznik();
+        $this->legacyZakaznik(ubytovanS: 'Už tam bydlí');
+
+        $this->accommodationWriter
+            ->expects(self::once())
+            ->method('save')
+            ->with(
+                self::anything(),
+                self::anything(),
+                self::anything(),
+                self::anything(),
+                self::identicalTo('Někdo jiný'),
+                self::anything(),
+                self::anything(),
+            );
+
+        $input = $this->vstup();
+        $input->roommate = 'Někdo jiný';
+
+        $this->processor->process($input, new Post());
+    }
+
+    /**
+     * The single-night permission belongs to the customer; reading it off the operator would
+     * let anyone book one night just because the person at the desk may.
+     */
+    public function testSingleNightPermissionComesFromTheCustomer(): void
+    {
+        $this->zakaznik();
+        $this->legacyZakaznik(smiJednuNoc: true);
+
+        $this->accommodationWriter
+            ->expects(self::once())
+            ->method('save')
+            ->with(
+                self::anything(),
+                self::anything(),
+                self::anything(),
+                self::identicalTo(true),
+                self::anything(),
+                self::anything(),
+                self::anything(),
+            );
+
+        $this->processor->process($this->vstup(), new Post());
     }
 
     public function testSignedOutCallerIsRefused(): void

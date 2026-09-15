@@ -15,7 +15,7 @@ use Doctrine\ORM\EntityManagerInterface;
  * Saves a customer's accommodation as a set: the nights they end up with are exactly the
  * ones passed in, so the write mirrors the grid the read endpoint serves.
  */
-readonly class AccommodationWriter
+class AccommodationWriter
 {
     public const CHYBA_MINIMALNE_DVE_NOCI = 'Ubytování je možné objednat nejméně na dvě noci.';
 
