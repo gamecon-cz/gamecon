@@ -21,6 +21,7 @@ use App\Service\CapacityManager;
 use App\Service\CartService;
 use App\Service\CurrentYearProvider;
 use App\Service\DiscountCalculator;
+use App\Service\RestrictedProductRules;
 use App\Service\RoleHistoryRecalculator;
 use App\Service\UserRoleService;
 use Doctrine\DBAL\Connection;
@@ -609,6 +610,7 @@ class EshopIntegrationTest extends AbstractTestDb
             $discountCalculator,
             $yearProvider,
             new NativeClock(),
+            new RestrictedProductRules(),
         );
     }
 

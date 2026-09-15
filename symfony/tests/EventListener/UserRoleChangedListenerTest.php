@@ -30,7 +30,7 @@ class UserRoleChangedListenerTest extends TestCase
 
     private MockObject $orderRepository;
 
-    private bool $smiObjednat = true;
+    private bool $mayOrder = true;
 
     protected function setUp(): void
     {
@@ -68,8 +68,8 @@ class UserRoleChangedListenerTest extends TestCase
         /** @var PriceIncreaseNotifier $notifier */
         $notifier = $this->priceIncreaseNotifier;
         $restrictedProductRules = $this->createMock(RestrictedProductRules::class);
-        $restrictedProductRules->method('smiObjednat')->willReturn($this->smiObjednat);
-        $restrictedProductRules->method('dejLegacyUzivatele')
+        $restrictedProductRules->method('mayOrder')->willReturn($this->mayOrder);
+        $restrictedProductRules->method('legacyUserFor')
             ->willReturn($this->createMock(\Uzivatel::class));
         /** @var EntityManagerInterface $entityManager */
         $entityManager = $this->createMock(EntityManagerInterface::class);
@@ -100,7 +100,7 @@ class UserRoleChangedListenerTest extends TestCase
     public function testItemTheCustomerMayNoLongerOrderKeepsItsPrice(): void
     {
         // They ordered the red t-shirt while entitled; losing the right must not reprice it.
-        $this->smiObjednat = false;
+        $this->mayOrder = false;
         $this->priceIncreaseNotifier->expects(self::never())->method('oznamZdrazeni');
 
         $this->spustProCenu('0.00', '250.00');

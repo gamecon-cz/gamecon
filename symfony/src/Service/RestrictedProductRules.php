@@ -14,7 +14,7 @@ class RestrictedProductRules
     /**
      * Sub-tag => the legacy permission that allows ordering it.
      */
-    private const PRAVO_PODLE_TAGU = [
+    private const PERMISSION_BY_TAG = [
         ProductTagCode::TRICKO_MODRE->value   => Pravo::MUZE_OBJEDNAVAT_MODRA_TRICKA,
         ProductTagCode::TRICKO_CERVENE->value => Pravo::MUZE_OBJEDNAVAT_CERVENA_TRICKA,
     ];
@@ -26,26 +26,34 @@ class RestrictedProductRules
      * The legacy user is a parameter rather than looked up here, so a caller iterating an
      * order resolves it once instead of per item.
      */
-    public function smiObjednat(Product $product, \Uzivatel $customer): bool
+    public function mayOrder(Product $product, \Uzivatel $customer): bool
     {
-        $pravo = $this->pravoProProdukt($product);
+        $permission = $this->permissionFor($product);
 
-        return $pravo === null || $customer->maPravo($pravo);
+        return $permission === null || $customer->maPravo($permission);
     }
 
     /**
      * Loaded once per request: the permission set lives only on the legacy user.
      */
-    public function dejLegacyUzivatele(User $customer): ?\Uzivatel
+    public function legacyUserFor(User $customer): ?\Uzivatel
     {
         return \Uzivatel::zId((int) $customer->getId(), true);
     }
 
-    private function pravoProProdukt(Product $product): ?int
+    /**
+     * Omezený produkt vyžaduje právo; ostatní si smí koupit kdokoli.
+     */
+    public function isRestricted(Product $product): bool
     {
-        foreach (self::PRAVO_PODLE_TAGU as $kodTagu => $pravo) {
-            if ($product->hasTag($kodTagu)) {
-                return $pravo;
+        return $this->permissionFor($product) !== null;
+    }
+
+    private function permissionFor(Product $product): ?int
+    {
+        foreach (self::PERMISSION_BY_TAG as $tagCode => $permission) {
+            if ($product->hasTag($tagCode)) {
+                return $permission;
             }
         }
 

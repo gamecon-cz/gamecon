@@ -33,6 +33,7 @@ class CartService
         private readonly DiscountCalculator $discountCalculator,
         private readonly CurrentYearProviderInterface $currentYearProvider,
         private readonly ClockInterface $clock,
+        private readonly RestrictedProductRules $restrictedProductRules,
     ) {
     }
 
@@ -85,6 +86,40 @@ class CartService
         }
 
         return $this->createOrderItem($order, $variant, null, $roleMeanings, $override);
+    }
+
+    /**
+     * Orgovská a vypravěčská trička drží právo, ne cena. Kontrola dřív žila jen na čtecí
+     * straně, takže produkt se jen nenabídl — ručně sestavený požadavek ho koupil.
+     *
+     * Sedí ve `buildOrderItem()`, protože tudy vede každý zápis; v `addItem()` by ji
+     * `addBundle()` obešel.
+     *
+     * @return bool jestli pult kontrolu obešel (pro override_log)
+     */
+    private function guardRestrictedProduct(Order $order, ProductVariant $variant, ?OperatorOverride $override): bool
+    {
+        $product = $variant->getProduct();
+        if (! $this->restrictedProductRules->isRestricted($product)) {
+            return false;
+        }
+
+        // Komu pult omezené tričko vydá, rozhoduje obsluha — stejně jako u zásoby pro orgy.
+        if ($override?->allows(OperatorOverride::GUARD_RESTRICTED_PRODUCT) === true) {
+            return true;
+        }
+
+        // Všechno dál se musí zlomit do „nesmí": chybějící zákazník ani nenačtený legacy
+        // uživatel nesmí být důvod, proč omezené tričko projde.
+        $customer = $order->getCustomer();
+        $legacyCustomer = $customer === null
+            ? null
+            : $this->restrictedProductRules->legacyUserFor($customer);
+        if ($legacyCustomer === null || ! $this->restrictedProductRules->mayOrder($product, $legacyCustomer)) {
+            throw new \RuntimeException(sprintf('Na produkt "%s" nemáš nárok.', $product->getName()));
+        }
+
+        return false;
     }
 
     /**
@@ -221,7 +256,7 @@ class CartService
 
         $this->capacityManager->purchase($variant, 1, $roleMeanings, $override);
 
-        $item = $this->buildOrderItem($order, $variant, $bundle, $roleMeanings);
+        $item = $this->buildOrderItem($order, $variant, $bundle, $roleMeanings, $override, $bypassed);
 
         if ($override !== null) {
             $item->setOrderer($override->operator);
@@ -244,10 +279,21 @@ class CartService
     /**
      * Build an OrderItem entity (without persisting or adding to order).
      *
-     * @param RoleMeaning[] $roleMeanings
+     * @param RoleMeaning[]                        $roleMeanings
+     * @param list<OperatorOverride::GUARD_*>|null $bypassed     doplní se o obejitá pravidla
      */
-    private function buildOrderItem(Order $order, ProductVariant $variant, ?ProductBundle $bundle, array $roleMeanings): OrderItem
-    {
+    private function buildOrderItem(
+        Order $order,
+        ProductVariant $variant,
+        ?ProductBundle $bundle,
+        array $roleMeanings,
+        ?OperatorOverride $override = null,
+        ?array &$bypassed = null,
+    ): OrderItem {
+        if ($this->guardRestrictedProduct($order, $variant, $override)) {
+            $bypassed[] = OperatorOverride::GUARD_RESTRICTED_PRODUCT;
+        }
+
         $product = $variant->getProduct();
 
         $discountInfo = $this->discountCalculator->calculateDiscount(
