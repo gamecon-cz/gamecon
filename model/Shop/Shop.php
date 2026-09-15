@@ -1128,38 +1128,6 @@ SQL,
         return round($cena) . '&thinsp;Kč';
     }
 
-    /**
-     * @return float Hodnota prevedeneho bonusu prevedena na penize
-     * @throws \DbException
-     */
-    public function kupPrevodBonusuNaPenize(): float
-    {
-        $nevyuzityBonusZaAktivity = $this->zakaznik->finance()->nevyuzityBonusZaAktivity();
-        if (!$nevyuzityBonusZaAktivity) {
-            return 0.0;
-        }
-        $idPredmetuPrevodBonsuNaPenize = dbOneCol(<<<SQL
-SELECT id_predmetu
-FROM shop_predmety_s_typem
-WHERE typ = $1
-ORDER BY model_rok DESC
-LIMIT 1
-SQL
-            , [self::PROPLACENI_BONUSU],
-        );
-        if (!$idPredmetuPrevodBonsuNaPenize) {
-            throw new \RuntimeException(sprintf('Chybi virtualni "predmet" pro prevod bonusu na penize s typem %d', self::PROPLACENI_BONUSU));
-        }
-        dbQuery(<<<SQL
-INSERT INTO shop_nakupy(id_uzivatele, id_predmetu, rok, cena_nakupni, datum)
-    VALUES ($1, $2, $3, $4, NOW())
-SQL
-            , [$this->zakaznik->id(), $idPredmetuPrevodBonsuNaPenize, ROCNIK, $nevyuzityBonusZaAktivity],
-        );
-
-        return $nevyuzityBonusZaAktivity;
-    }
-
     public function dejPopisUbytovani(): string
     {
         return $this->ubytovani->kratkyPopis();

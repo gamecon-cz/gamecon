@@ -23,10 +23,6 @@ require __DIR__ . '/../penize/_postUzivatelProPripsaniSlevy.php';
 
 require __DIR__ . '/../penize/_postPrepocetPoukazu.php';
 
-require __DIR__ . '/../penize/_postUzivatelKVyplaceniAktivity.php';
-
-require __DIR__ . '/../penize/_ajaxGetUzivatelKVyplaceniAktivity.php';
-
 // Token se podepíše až po kliknutí: platí 5 minut a spárovací cookie sdílí i odkazy do preview a archivů,
 // takže podpis při každém zobrazení stránky by po chvíli nefungoval a přepisoval by jim ji.
 $vsevedaSecret = defined('VSEVEDA_SSO_SECRET') ? VSEVEDA_SSO_SECRET : '';
