@@ -5,7 +5,7 @@ TL;DR: co se stane po odeslání veřejné přihlášky (`/prihlaska`) — pořa
 ## Vstupní body v kódu
 
 - `web/moduly/prihlaska/prihlaska.php` — modul; větev `post('prihlasitNeboUpravit')` je vlastní zpracování
-- `model/Shop/Shop.php::zpracujPredmety`, `::zpracujUbytovani`, `::zpracujJidlo`, `::zpracujVstupne`, `::prodat`
+- `model/Shop/Shop.php::zpracujUbytovani`, `::zpracujJidlo`, `::prodat`
 - `model/Shop/ShopUbytovani.php::zpracuj`, `::ulozObjednaneUbytovaniUcastnika`, `::validujVybraneNociUbytovani`
 - `tests/Shop/AbstractTestPrihlaska.php` — testy jedou stejnou sekvenci jako modul
 
@@ -14,7 +14,7 @@ TL;DR: co se stane po odeslání veřejné přihlášky (`/prihlaska`) — pořa
 Modul volá v tomhle pořadí a celé to obaluje jednou transakcí:
 
 ```
-gcPrihlas → zpracujPredmety → zpracujUbytovani → zpracujJidlo → zpracujVstupne → Pomoc::zpracuj → finance()->obnovUdaje
+gcPrihlas → zpracujUbytovani → zpracujJidlo → Pomoc::zpracuj → finance()->obnovUdaje
 ```
 
 Ubytování musí předcházet jídlu: `zpracujJidlo()` se ptá `ubytovani->dnyHotelovychPokoju()`, aby vyhodilo snídaně, které jsou v ceně hotelu. Při přehození by snídaně u hotelových pokojů prošly.
@@ -27,35 +27,38 @@ Každá sekce se zpracuje, jen když v POSTu je její klíč; jinak zůstane bez
 
 | Sekce | POST klíč | Tvar |
 |---|---|---|
-| Předměty | `shopP[<id>]` | počet kusů |
-| Trička | `shopT[<i>]` | hodnota = id předmětu, `0` = žádné |
-| Mikiny | `shopM[<i>]` | hodnota = id předmětu, `0` = žádná |
 | Jídlo | `cShopJidlo[<id>]` + **`cShopJidloZmen`** | bez `cShopJidloZmen` se jídlo vůbec nezpracuje |
 | Ubytování | `shopUbytovaniDny[<den>]` | hodnota = id předmětu, `''` = žádné |
 | Nechci ubytování | `shopUbytovaniNechci` | přítomnost |
-| Vstupné | `shopV` | částka |
+
+Předměty, trička, mikiny a vstupné už formulářem nechodí vůbec — kupují se košíkovým API
+(`/cart/*`, `/cart/entry-fee`). Jejich sekce se sice pořád vykreslují jako noscript
+fallback, ale `prihlaskaPreactSekceHtml()` je balí do `<fieldset disabled>`, a zakázaná
+pole prohlížeč neodesílá. Zpracování na straně přihlášky proto neexistuje.
 
 Počet kusů = **počet řádků** v `shop_nakupy`; tabulka nemá unique přes (uživatel, předmět, rok). Proto se objednávka aktualizuje diffem starých a nových řádků, ne přepsáním.
 
 ## Kde se hlídá vyprodání — a kde ne
 
-`Shop::prodat()` je jediná cesta zápisu předmětů, triček, mikin a jídla. Zamyká řádek (`FOR UPDATE`) a odmítne:
+Z přihlášky volá `Shop::prodat()` už jen jídlo (přes `zmenObjednavku()`). Mimo přihlášku ji
+používá ještě ruční prodej v adminu — `admin/scripts/modules/_shop.php` a
+`_uzivatel_ovladac.php`. Zamyká řádek (`FOR UPDATE`) a odmítne:
 
 - předmět z jiného ročníku (`model_rok != rocnik`)
 - objednávku přes zásobu, když `kusu_vyrobeno IS NOT NULL` (`kusu_vyrobeno` = NULL znamená neomezeně)
 
 Ubytování jde **mimo `prodat()`** — vlastní cestou v `ShopUbytovani::ulozObjednaneUbytovaniUcastnika()`, která hlídá ročník + typ, kapacitu, a navíc: minimálně dvě noci (pokud uživatel nemá `Pravo::UBYTOVANI_MUZE_OBJEDNAT_JEDNU_NOC`) a noci na sebe musí navazovat.
 
-### Rozpor: pozastavený předmět lze koupit ručním POSTem
+### Příznak `nabizet` řídí jen vykreslení
 
-Příznak `nabizet` (počítaný v konstruktoru `Shop` ze `stav` a `nabizet_do`) řídí **jen vykreslení**. Whitelist v `zpracujPredmety()` staví na všech předmětech ročníku se `stav > MIMO`, tedy včetně `PODPULTOVY` a `POZASTAVENY`, a `prodat()` `stav` ani `nabizet_do` nekontroluje.
+`nabizet` (počítaný v konstruktoru `Shop` ze `stav` a `nabizet_do`) rozhoduje o tom, co se
+vykreslí; `prodat()` `stav` ani `nabizet_do` nekontroluje. Totéž platí pro termíny
+`*_LZE_OBJEDNAT_A_MENIT_DO_DNE`.
 
-Důsledek: předmět stažený z nabídky zmizí z formuláře, ale ručně poskládaný POST ho koupí. Totéž platí pro termíny `*_LZE_OBJEDNAT_A_MENIT_DO_DNE` — konzultují se jen při vykreslování, zpracování je ignoruje.
-
-**Žádný test tohle nehlídá.** `pozastavenyPredmetJdeKoupitRucnePoskladanymPostem` se smazal
-s merchovými testy, protože posílal `shopP`. Formulářem už se merch nekupuje, takže tudy
-se díra nejspíš nedá využít — ale `zpracujPredmety()` je pořád na svém místě a nikdo to
-neověřuje.
+Dřív z toho plynula díra — ručně poskládaný POST koupil i stažený předmět. Ta je pryč
+spolu se `zpracujPredmety()`: sekce, které by se daly takhle podstrčit, už žádný zápis
+nemají. Jídlo, které jako jediné `prodat()` ještě používá, si termín ani stav samo
+nehlídá, takže **na něj se to pořád vztahuje**.
 
 ## Gotchas při psaní testů
 
