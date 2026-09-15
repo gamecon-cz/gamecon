@@ -21,10 +21,6 @@ require __DIR__ . '/../penize/_postUzivatelProPripsaniSlevy.php';
 
 require __DIR__ . '/../penize/_postPrepocetPoukazu.php';
 
-require __DIR__ . '/../penize/_postUzivatelKVyplaceniAktivity.php';
-
-require __DIR__ . '/../penize/_ajaxGetUzivatelKVyplaceniAktivity.php';
-
 $x = new XTemplate(__DIR__ . '/finance.xtpl');
 
 if (isset($_GET['minimum'])) {
