@@ -134,7 +134,10 @@ class Predmet extends \DbObject
         string $castKodu,
         int    $rocnik,
     ): ?static {
-        if (!array_key_exists($castKodu, self::$letosniPredmety)) {
+        // Dotaz filtruje podle ročníku, takže ho musí nést i klíč cache - jinak
+        // by druhý ročník v témže procesu dostal výsledek toho prvního.
+        $klicCache = $castKodu . '-' . $rocnik;
+        if (! array_key_exists($klicCache, self::$letosniPredmety)) {
             $typPredmet = TypPredmetu::PREDMET;
             $castKoduSql = dbQRaw($castKodu);
             $letosniPredmetId = dbFetchSingle(<<<SQL
@@ -152,10 +155,10 @@ SQL,
             $letosniPredmet = $letosniPredmetId
                 ? static::zId((int)$letosniPredmetId, true)
                 : null;
-            self::$letosniPredmety[$castKodu] = $letosniPredmet;
+            self::$letosniPredmety[$klicCache] = $letosniPredmet;
         }
 
-        return self::$letosniPredmety[$castKodu];
+        return self::$letosniPredmety[$klicCache];
     }
 
     public function kusuVyrobeno(?int $kusuVyrobeno = null, bool $nastavit = false): ?int

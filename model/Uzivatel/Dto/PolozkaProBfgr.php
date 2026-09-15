@@ -14,7 +14,6 @@ readonly class PolozkaProBfgr
         public int $typ,
         public string $kodPredmetu,
         public string $idPredmetu,
-        public ?int $modelRok = null,
     ) {
     }
 }
