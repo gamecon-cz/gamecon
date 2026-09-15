@@ -871,8 +871,8 @@ SQL,
         ]);
 
         // Vždy jen počet, nikdy nakupovací plus/minus: merch se kupuje přes API a
-        // zpracujPredmety() už shopP nečte, takže editovatelné pole by tiše zahodilo
-        // změnu. Tenhle výstup je noscript fallback a záloha při nedostupném API.
+        // formulář se už nezpracovává, takže editovatelné pole by tiše zahodilo změnu.
+        // Tenhle výstup je noscript fallback a záloha při nedostupném API.
         if ($predmet['nabizet'] && !$predmetyZamceny || $predmet['kusu_uzivatele']) {
             $t->parse($templateBlock . '.fixniPocet');
             $t->parse($templateBlock);
@@ -1012,85 +1012,6 @@ SQL,
                 'DELETE FROM shop_nakupy WHERE id_uzivatele = $1 AND rok = $2 AND id_predmetu IN($3)',
                 [$this->zakaznik->id(), $this->systemoveNastaveni->rocnik(), $nechce],
             );
-        }
-    }
-
-    /**
-     * Zpracuje část formuláře s mikinami a tričky.
-     *
-     * Merch už formulář neposílá — kupuje se přes API po jednotlivých kliknutích — takže
-     * ho nesmí vidět ani diff níž: prázdný `$nove` by znamenal „uživatel nic nechce"
-     * a smazal by, co si koupil.
-     *
-     * Čáry máry s ručním počítáním diference (místo smazání a náhrady) jsou nut-
-     * né kvůli zachování původní nákupní ceny (aktuální cena se totiž mohla od
-     * nákupu změnit).
-     */
-    public function zpracujPredmety()
-    {
-        if (isset($_POST[$this->klicT]) || isset($_POST[$this->klicM])) {
-            $povolenaIdMikinATricek = array_map(
-                'intval',
-                array_merge(
-                    array_column($this->tricka, 'id_predmetu'),
-                    array_column($this->mikiny, 'id_predmetu'),
-                ),
-            );
-            $nove = [];
-            foreach (($_POST[$this->klicT] ?? []) as $idTricka) { // připojení triček
-                $idTricka = (int)$idTricka;
-                if ($idTricka && in_array($idTricka, $povolenaIdMikinATricek, true)) { // odstranění výběrů „žádné tričko“
-                    $nove[] = $idTricka;
-                }
-            }
-            foreach (($_POST[$this->klicM] ?? []) as $idMikiny) { // připojení mikin
-                $idMikiny = (int)$idMikiny;
-                if ($idMikiny && in_array($idMikiny, $povolenaIdMikinATricek, true)) { // odstranění výběrů „žádná mikina“
-                    $nove[] = $idMikiny;
-                }
-            }
-            sort($nove);
-            // Jen to, co formulář posílá: trička (typ) a mikiny (podtyp typu PREDMET).
-            // Ostatní merch je typ PREDMET taky, ale řeší ho API, takže do diffu nesmí.
-            $stare = [];
-            $o = dbQuery('SELECT id_predmetu FROM shop_nakupy JOIN shop_predmety_s_typem USING(id_predmetu) WHERE id_uzivatele=' . $this->zakaznik->id() . ' AND rok=' . ROCNIK . ' AND (typ = ' . self::TRICKO . ' OR (typ = ' . self::PREDMET . ' AND podtyp = ' . dbQv(PodtypPredmetu::MIKINA) . ')) ORDER BY id_predmetu');
-            while ($r = $o->fetch(\PDO::FETCH_ASSOC)) {
-                $stare[] = (int)$r['id_predmetu'];
-            }
-            // určení rozdílů polí (note: array_diff ignoruje vícenásobné výskyty hodnot a nedá se použít)
-            $i = $j = 0;
-            $odstranit = []; //čísla (kvůli nutností více delete dotazů s limitem)
-            $pridat = [];
-            while (!empty($nove[$i]) || !empty($stare[$j])) {
-                if (empty($stare[$j]) || (!empty($nove[$i]) && $nove[$i] < $stare[$j]))
-                    // tento prvek není v staré objednávce
-                    // zapíšeme si ho pro přidání a přeskočíme na další
-                    $pridat[] = (int)$nove[$i++];
-                elseif (empty($nove[$i]) || $stare[$j] < $nove[$i])
-                    // tento prvek ze staré objednávky není v nové objednávce
-                    // zapíšeme si ho, že má být odstraněn, a skočíme na další
-                    $odstranit[] = $stare[$j++];
-                else
-                    // prvky jsou shodné, skočíme o jedna v obou seznamech a neděláme nic
-                    $i++ == $j++;
-            } //porovnání bez efektu
-            if ($odstranit || $pridat) {
-                dbBegin();
-                try {
-                    // odstranění předmětů, které z objednávky oproti DB zmizely
-                    foreach ($odstranit as $idPredmetuProOdstraneni) {
-                        $this->zrusNakupPredmetu($idPredmetuProOdstraneni, 1 /* jen jeden, necheme zlikvidovat všechny ojednávky toho předmětu */);
-                    }
-                    // přidání předmětů, které doposud objednané nemá
-                    foreach (array_count_values($pridat) as $idPredmetuProPridani => $pocet) {
-                        $this->prodat((int)$idPredmetuProPridani, $pocet, false);
-                    }
-                    dbCommit();
-                } catch (\Throwable $throwable) {
-                    dbRollback();
-                    throw $throwable;
-                }
-            }
         }
     }
 
