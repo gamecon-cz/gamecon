@@ -31,7 +31,7 @@ class RestrictedProductRulesTest extends TestCase
         $customer->expects(self::never())->method('maPravo');
 
         self::assertTrue(
-            (new RestrictedProductRules())->smiObjednat($this->product(ProductTagCode::TRICKO), $customer),
+            (new RestrictedProductRules())->mayOrder($this->product(ProductTagCode::TRICKO), $customer),
         );
     }
 
@@ -43,7 +43,7 @@ class RestrictedProductRulesTest extends TestCase
             ->willReturn(false);
 
         self::assertFalse(
-            (new RestrictedProductRules())->smiObjednat($this->product(ProductTagCode::TRICKO_CERVENE), $customer),
+            (new RestrictedProductRules())->mayOrder($this->product(ProductTagCode::TRICKO_CERVENE), $customer),
         );
     }
 
@@ -53,7 +53,7 @@ class RestrictedProductRulesTest extends TestCase
         $customer->method('maPravo')->willReturn(true);
 
         self::assertTrue(
-            (new RestrictedProductRules())->smiObjednat($this->product(ProductTagCode::TRICKO_MODRE), $customer),
+            (new RestrictedProductRules())->mayOrder($this->product(ProductTagCode::TRICKO_MODRE), $customer),
         );
     }
 }

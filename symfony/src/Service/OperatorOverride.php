@@ -18,6 +18,8 @@ final readonly class OperatorOverride
 
     public const GUARD_ORGANIZER_STOCK = 'organizer_stock';
 
+    public const GUARD_RESTRICTED_PRODUCT = 'restricted_product';
+
     public const SOURCE_KFC = 'kfc';
 
     /**
@@ -31,13 +33,17 @@ final readonly class OperatorOverride
     }
 
     /**
-     * The KFC till. Past the deadline is fine, and so is stock set aside for organizers —
-     * whoever stands at the counter decides who gets it. Total stock is NOT bypassable:
-     * nothing may sell a piece that does not exist.
+     * The KFC till. Past the deadline is fine, so is stock set aside for organizers, and so
+     * is an organizer-only shirt — whoever stands at the counter decides who gets it. Total
+     * stock is NOT bypassable: nothing may sell a piece that does not exist.
      */
     public static function deskSale(User $operator): self
     {
-        return new self($operator, [self::GUARD_DEADLINE, self::GUARD_ORGANIZER_STOCK], self::SOURCE_KFC);
+        return new self(
+            $operator,
+            [self::GUARD_DEADLINE, self::GUARD_ORGANIZER_STOCK, self::GUARD_RESTRICTED_PRODUCT],
+            self::SOURCE_KFC,
+        );
     }
 
     public function allows(string $guard): bool
