@@ -16,6 +16,7 @@ use App\Repository\OrderRepository;
 use App\Repository\ProductBundleRepository;
 use App\Service\CapacityManager;
 use App\Service\CartService;
+use App\Service\RestrictedProductRules;
 use App\Service\CurrentYearProviderInterface;
 use App\Service\DiscountCalculator;
 use Doctrine\ORM\EntityManagerInterface;
@@ -37,6 +38,8 @@ class CartServiceTest extends TestCase
 
     private MockObject $yearProvider;
 
+    private MockObject $restrictedProductRules;
+
     private CartService $cartService;
 
     protected function setUp(): void
@@ -48,6 +51,7 @@ class CartServiceTest extends TestCase
         $this->discountCalculator = $this->createMock(DiscountCalculator::class);
         $this->yearProvider = $this->createMock(CurrentYearProviderInterface::class);
         $this->yearProvider->method('getCurrentYear')->willReturn(2026);
+        $this->restrictedProductRules = $this->createMock(RestrictedProductRules::class);
 
         $this->cartService = new CartService(
             $this->entityManager,
@@ -57,6 +61,7 @@ class CartServiceTest extends TestCase
             $this->discountCalculator,
             $this->yearProvider,
             new MockClock('2026-09-12 10:00:00'),
+            $this->restrictedProductRules,
         );
     }
 
