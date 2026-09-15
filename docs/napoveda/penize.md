@@ -1,33 +1,9 @@
 # Peníze
 
 Kartička **Peníze** slouží k drobným finančním operacím nad účty účastníků:
-vyplácení bonusů vypravěčům, ruční připsání slevy a stažení reportů ubytování.
+ruční připsání slevy a stažení reportů ubytování.
 Pod stejnou kartičkou najdeš i podstránky **Info věci před GC** (nástroje pro
 infopult před začátkem festivalu) a **Rušení storna**.
-
-## Převést bonus za vedení aktivity na peníze
-
-Vypravěči za vedení aktivit vzniká bonus (v přehledu financí ho vidí jako
-*Slevy za organizované aktivity*). Když si ho vypravěč nechce nechat na útratu,
-tady mu ho převedeš na peníze:
-
-1. V poli **Uživatel** vyber vypravěče. Nabídka se chvíli načítá a obsahuje jen
-   **vypravěče s letošní účastí na GC**, kteří mají nějaký nevyužitý bonus —
-   u každého rovnou vidíš částku, např. „Jan Novák - bonus k vyplacení 500 Kč".
-2. **Poznámka** je předvyplněná textem „Převedení bonusu", můžeš ji upravit.
-3. Pole **Převedl/a** je jen pro kontrolu — automaticky obsahuje tvoje jméno.
-4. Klikni na **Převést**.
-
-Po úspěchu se zobrazí hláška **„Bonus … Kč vyplacen uživateli …"**. Převádí se
-vždy **celý** zbývající bonus najednou, částku nelze zvolit.
-
-Pozor na nápovědu u tlačítka: *„Jde pouze o převod bonusu (Slevy za
-organizované aktivity) na pohyb na účtu (připsání). Samotné fyzické vyplacení
-je potřeba provést ručně."* — tzn. hotovost nebo převod na bankovní účet musíš
-zařídit mimo systém.
-
-Možné chybové hlášky: „Uživatel … není přihlášen na GameCon." a „Uživatel …
-nemá žádný bonus k převodu."
 
 ## Připsat slevu
 
@@ -91,19 +67,8 @@ aktivit**. Před spuštěním se zobrazí potvrzení: *„Opravdu přepočítat 
 kupóny „jedna aktivita zdarma"? Přepíše to jejich hodnotu u všech držitelů."*
 Výsledek: „Přepočítáno kupónů „jedna aktivita zdarma": …".
 
-## Typický postup: vypravěč si přišel pro bonus
-
-1. Otevři kartičku **Peníze** a počkej, až se načte seznam v poli **Uživatel**.
-2. Najdi vypravěče a zkontroluj s ním částku „bonus k vyplacení" u jeho jména.
-3. Doplň případně poznámku a klikni na **Převést**.
-4. Vyplať mu peníze **ručně** (hotovost / převod) — systém udělal jen zápis na
-   jeho účet v GameConu.
-
 ## Na co si dát pozor
 
-- **Převod bonusu je nevratný a bez potvrzovacího dotazu** — po kliknutí na
-  **Převést** se okamžitě převede celý zbývající bonus. Částku i vypravěče si
-  zkontroluj předem.
 - **Připsání slevy** se také provede hned bez dalšího potvrzení; překlep v ID
   připíše slevu jinému účastníkovi. Sleva jde vidět (i s tvou poznámkou a
   jménem) v přehledu financí účastníka.
