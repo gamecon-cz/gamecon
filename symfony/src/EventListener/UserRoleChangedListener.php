@@ -71,7 +71,7 @@ readonly class UserRoleChangedListener
         $hasChanges = false;
         $zdrazeni = [];
         // Resolved once for the whole order; permissions cannot change mid-request.
-        $legacyUzivatel = $this->restrictedProductRules->dejLegacyUzivatele($user);
+        $legacyUzivatel = $this->restrictedProductRules->legacyUserFor($user);
 
         foreach ($order->getItems() as $orderItem) {
             $product = $orderItem->getProduct();
@@ -90,7 +90,7 @@ readonly class UserRoleChangedListener
 
                 return;
             }
-            if (! $this->restrictedProductRules->smiObjednat($product, $legacyUzivatel)) {
+            if (! $this->restrictedProductRules->mayOrder($product, $legacyUzivatel)) {
                 continue;
             }
 
