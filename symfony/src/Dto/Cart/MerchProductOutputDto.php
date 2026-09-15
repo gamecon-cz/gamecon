@@ -7,8 +7,21 @@ namespace App\Dto\Cart;
 class MerchProductOutputDto
 {
     public string $name;
+
+    /**
+     * Stabilní identita produktu (UNIQUE v databázi). Mřížka ji používá jako React key —
+     * odvozovat klíč z varianty nejde, jejich pořadí není napevno dané.
+     */
+    public string $code;
     public string $description;
-    public int $variantId;
+
+    /**
+     * Velikosti (nebo jiné varianty) k výběru. Vždy aspoň jedna — produkt bez varianty se
+     * do mřížky nedostane. Zásoba i strop jsou per varianta, ne per produkt.
+     *
+     * @var MerchVariantOutputDto[]
+     */
+    public array $variants = [];
 
     /**
      * List price before any role discount, so the UI can strike it through when
@@ -18,15 +31,9 @@ class MerchProductOutputDto
     public string $discountedPrice;
 
     /**
-     * How many the customer already owns this year — the grid pre-fills its input with it.
+     * Součet přes všechny varianty — kolik kusů produktu zákazník letos má.
      */
     public int $purchasedQuantity;
-
-    /**
-     * Highest quantity the customer may end up owning, already including what they
-     * bought, or null when the product has unlimited stock.
-     */
-    public ?int $maxQuantity;
     public bool $secondary;
     public bool $available;
 }
