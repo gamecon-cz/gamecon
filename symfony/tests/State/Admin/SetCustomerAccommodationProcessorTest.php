@@ -88,7 +88,11 @@ class SetCustomerAccommodationProcessorTest extends AbstractDatabaseKernelTestCa
     {
         $legacyCustomer = $this->createMock(\Uzivatel::class);
         $legacyCustomer->method('ubytovanS')->willReturn($ubytovanS);
-        $legacyCustomer->method('maPravo')->willReturn($smiJednuNoc);
+        // Answers for one right only: a blanket stub would pass even if the processor read
+        // some other permission off the customer.
+        $legacyCustomer->method('maPravo')->willReturnCallback(
+            static fn (int $pravo): bool => $smiJednuNoc && $pravo === Pravo::UBYTOVANI_MUZE_OBJEDNAT_JEDNU_NOC,
+        );
         $this->legacySession->method('getUserById')->willReturn($legacyCustomer);
 
         return $legacyCustomer;
