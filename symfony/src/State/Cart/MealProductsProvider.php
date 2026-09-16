@@ -52,7 +52,12 @@ readonly class MealProductsProvider implements ProviderInterface
 
             // Sleva orga na jídlo visí na právu, takže ceníková cena nestačí — v matici
             // musí být, co účastník reálně zaplatí, stejně jako u merche a ubytování.
-            if ($user instanceof User) {
+            //
+            // Sleva se počítá z ceny produktu, kdežto DTO vychází z ceny varianty. Dnes
+            // se shodují (žádná varianta jídla vlastní cenu nemá), ale kdyby ji dostala,
+            // odečetlo by se od jiného základu — proto se přepisuje jen tehdy, když jsou
+            // stejné, a jinak zůstane cena varianty.
+            if ($user instanceof User && $variant->getEffectivePrice() === $product->getCurrentPrice()) {
                 $dto->price = $this->discountCalculator->calculateDiscount($product, $user, $year)['finalPrice'];
             }
 
