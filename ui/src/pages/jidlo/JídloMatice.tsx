@@ -1,5 +1,5 @@
 import { h } from "preact";
-import { useCallback, useEffect, useState } from "preact/hooks";
+import { useCallback, useEffect, useRef, useState } from "preact/hooks";
 import {
   addToCart,
   fetchCart,
@@ -84,6 +84,10 @@ export function JídloMatice({ customerId }: MountProps) {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState<Set<number>>(new Set());
+  // The saves read and advance the selection outside render, so they need a value that is
+  // current at send time rather than the one captured when the handler was created.
+  const vybranoRef = useRef<number[]>([]);
+  const odesílání = useRef<Promise<void>>(Promise.resolve());
 
   useEffect(() => {
     Promise.all([
@@ -94,6 +98,7 @@ export function JídloMatice({ customerId }: MountProps) {
       if (customerId === undefined) {
         setCart(vlastnene as ApiCart | null);
       } else {
+        vybranoRef.current = vlastnene as number[];
         setVybrano(vlastnene as number[]);
       }
       setLoading(false);
@@ -119,11 +124,21 @@ export function JídloMatice({ customerId }: MountProps) {
     setBusy((busyVariants) => new Set(busyVariants).add(variantId));
     try {
       if (customerId !== undefined) {
-        const zmeneno = vybrano.includes(variantId)
-          ? vybrano.filter((id) => id !== variantId)
-          : [...vybrano, variantId];
-        await saveCustomerMeals(customerId, zmeneno);
-        setVybrano(zmeneno);
+        // Every save sends the whole grid, so two in flight would be computed from the same
+        // selection and the later would undo the earlier. The answer is the server's result,
+        // not what was sent: it cancels a breakfast the hotel already covers.
+        const tenhleSave = odesílání.current.then(async () => {
+          const zmeneno = vybranoRef.current.includes(variantId)
+            ? vybranoRef.current.filter((id) => id !== variantId)
+            : [...vybranoRef.current, variantId];
+          const uložené = await saveCustomerMeals(customerId, zmeneno);
+          vybranoRef.current = uložené;
+          setVybrano(uložené);
+        });
+        // The queue must survive a failed save; without swallowing it here, the rejection
+        // stays in the chain and every later click rethrows it.
+        odesílání.current = tenhleSave.catch(() => undefined);
+        await tenhleSave;
       } else if (cartItem) {
         await removeFromCart(cartItem.id);
         // Optimistic update — remove item from local cart state
@@ -151,7 +166,7 @@ export function JídloMatice({ customerId }: MountProps) {
         return updated;
       });
     }
-  }, [busy, customerId, vybrano]);
+  }, [busy, customerId]);
 
   if (loading) return <div class="jidlo-matice--loading">Načítám jídla…</div>;
   if (error) return <div class="jidlo-matice--error">Chyba: {error}</div>;

@@ -17,7 +17,6 @@ use Gamecon\Accounting;
 use Gamecon\Cas\Exceptions\InvalidDateTimeFormat;
 use Gamecon\Pravo;
 use Gamecon\Role\Role;
-use Gamecon\Shop\Shop;
 use Gamecon\Uzivatel\Finance;
 use Gamecon\Uzivatel\Exceptions\DuplicitniEmail;
 use Gamecon\Uzivatel\Exceptions\DuplicitniLogin;
@@ -27,16 +26,6 @@ use Gamecon\Vyjimkovac\Vyjimkovac;
 use Gamecon\Finance\FioPlatba;
 
 $nastaveni ??= [];
-
-$obnovPracovnihoUzivateleAShop = static function () use (&$uPracovni, $u, $systemoveNastaveni, $nastaveni): ?Shop {
-    $uPracovni = $uPracovni
-        ? Uzivatel::zId($uPracovni->id())
-        : null;
-
-    return $uPracovni
-        ? new Shop($uPracovni, $u, $systemoveNastaveni, $nastaveni)
-        : null;
-};
 
 if (!empty($_POST['prijelADatMaterialy']) && $uPracovni && $uPracovni->gcPrihlasen()) {
     $uPracovni->pridejRoli(Role::PRITOMEN_NA_LETOSNIM_GC, $u);
@@ -181,7 +170,6 @@ if ($uPracovni && ($udaje = (array)post('udaje'))) {
     oznameni("Změněno $zmenenoZaznamu záznamů");
     back();
 }
-
 
 if (post('pridelitPokoj') && $uPracovni) {
     $pokojPost = post('pokoj');

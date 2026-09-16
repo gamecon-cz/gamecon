@@ -13,9 +13,6 @@ import {
 } from "./types";
 
 /**
- * Fetch meal products (flat DTOs for the meal matrix)
- */
-/**
  * Which meals a participant holds, for the admin desk. The catalogue is the same for everyone
  * and comes from fetchMeals(); only the selection differs, and the desk has no cart to read it
  * from the way the participant's own matrix does.
@@ -28,9 +25,11 @@ export const fetchCustomerMeals = async (customerId: number): Promise<number[]> 
 };
 
 /**
- * Save a participant's whole meal selection at once, as the desk submits it.
+ * Save a participant's whole meal selection at once, as the desk submits it. Answers with what
+ * the customer ends up holding, which is not always what was sent: a breakfast the hotel covers
+ * is cancelled server-side right after it is ordered.
  */
-export const saveCustomerMeals = async (customerId: number, variantIds: number[]): Promise<void> => {
+export const saveCustomerMeals = async (customerId: number, variantIds: number[]): Promise<number[]> => {
   const res = await symfonyFetch("admin/customer-meals", {
     method: "POST",
     headers: { "Content-Type": "application/ld+json" },
@@ -40,6 +39,8 @@ export const saveCustomerMeals = async (customerId: number, variantIds: number[]
     const chyba = await res.json().catch(() => null) as { "hydra:description"?: string; detail?: string } | null;
     throw new Error(chyba?.["hydra:description"] ?? chyba?.detail ?? `Uložení jídla selhalo: ${res.status}`);
   }
+  const data = await res.json() as { variantIds?: number[] };
+  return data.variantIds ?? [];
 };
 
 export const fetchMeals = async (): Promise<ApiMealProduct[]> => {
