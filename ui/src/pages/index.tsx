@@ -8,6 +8,7 @@ import { MerchMřížka, SvrškyMřížka } from "./merch/MerchMřížka";
 import { UbytovaniMřížka } from "./ubytovani/UbytovaniMřížka";
 import { Vstupne } from "./vstupne/Vstupne";
 import { FunctionComponent, render } from "preact";
+import { MountProps } from "./mountProps";
 
 import "./index.less";
 import "./jidlo/JídloMatice.less";
@@ -15,13 +16,21 @@ import "./merch/MerchMřížka.less";
 
 const renderComponent = (
   rootId: string,
-  Component: FunctionComponent
+  Component: FunctionComponent<MountProps>
 ) => {
   const root = document.getElementById(rootId);
   if (!root) return;
 
+  // Parse the same shape the server accepts: plain digits only. Number() would turn "1e3"
+  // into 1000 and round anything past MAX_SAFE_INTEGER, so the page and the API would
+  // disagree about which participant was asked for.
+  const raw = root.dataset.customerId ?? "";
+  const props: MountProps = /^[1-9][0-9]*$/.test(raw) && Number.isSafeInteger(Number(raw))
+    ? { customerId: Number(raw) }
+    : {};
+
   root.innerHTML = "";
-  render(<Component />, root);
+  render(<Component {...props} />, root);
 };
 
 export const renderPages = () => {
