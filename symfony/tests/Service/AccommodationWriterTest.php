@@ -607,6 +607,45 @@ class AccommodationWriterTest extends AbstractDatabaseKernelTestCase
         return static::getContainer()->get(BreakfastCanceller::class);
     }
 
+    /**
+     * The desk seats someone on a night the grid shows as full. Until now nothing on the
+     * server enforced who may do that — the legacy button only unhid the night client-side.
+     */
+    public function testFullNightIsAllowedWithTheOverride(): void
+    {
+        $this->pripravUbytovani(kusuVyrobeno: 2);
+        $customer = $this->ucastnik();
+        $this->zaplnNoc(0, 2);
+        $this->zaplnNoc(1, 2);
+
+        $this->writer()->save(
+            $customer,
+            $this->idNoci(0, 1),
+            self::ROK,
+            false,
+            smiPresKapacitu: true,
+        );
+
+        self::assertSame(1, $this->pocetNoci($customer, 0));
+        self::assertSame(1, $this->pocetNoci($customer, 1));
+    }
+
+    public function testOverrideDoesNotRelaxTheOtherRules(): void
+    {
+        $this->pripravUbytovani();
+        $customer = $this->ucastnik();
+
+        $this->expectExceptionMessage(AccommodationWriter::CHYBA_NAVAZUJICI_NOCI);
+
+        $this->writer()->save(
+            $customer,
+            $this->idNoci(0, 2),
+            self::ROK,
+            false,
+            smiPresKapacitu: true,
+        );
+    }
+
     private function pocetNakupu(User $customer, int $variantId): int
     {
         return (int) $this->connection()->fetchOne(
