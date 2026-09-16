@@ -44,6 +44,7 @@ class AccommodationWriter
         ?string $spolubydlici = null,
         bool $nechceUbytovani = false,
         bool $jenSpacaky = false,
+        bool $smiPresKapacitu = false,
     ): void {
         $varianty = $this->nactiVarianty($variantIds, $jenSpacaky);
 
@@ -62,7 +63,7 @@ class AccommodationWriter
             $ponechane = $this->smazNevybraneNoci($customer, $year, array_keys($varianty));
             foreach ($varianty as $variantId => $variant) {
                 if (! in_array($variantId, $ponechane, true)) {
-                    $this->pridejNoc($customer, $variant, $year);
+                    $this->pridejNoc($customer, $variant, $year, $smiPresKapacitu);
                 }
             }
             $this->ulozUdajeOUbytovani($customer, $year, $spolubydlici, $nechceUbytovani && $varianty === []);
@@ -233,8 +234,12 @@ class AccommodationWriter
      * legacy row, not the variant's parent — the day-variant migration reparented variants
      * onto one owner, and every legacy consumer reads ubytovani_den off id_predmetu.
      */
-    private function pridejNoc(User $customer, ProductVariant $variant, int $year): void
-    {
+    private function pridejNoc(
+        User $customer,
+        ProductVariant $variant,
+        int $year,
+        bool $smiPresKapacitu = false,
+    ): void {
         $product = $variant->getProduct();
         $sleva = $this->discountCalculator->calculateDiscount($product, $customer, $year);
         $order = $this->cartService->getOrCreateCart($customer);
@@ -257,23 +262,25 @@ class AccommodationWriter
              FROM shop_predmety AS noc
              WHERE noc.kod_predmetu = :variantCode
                AND (
-                   noc.kusu_vyrobeno IS NULL
+                   :presKapacitu = 1
+                   OR noc.kusu_vyrobeno IS NULL
                    OR noc.kusu_vyrobeno > (
                        SELECT COUNT(*) FROM shop_nakupy AS prodane
                        WHERE prodane.variant_id = :variant AND prodane.rok = :year
                    )
                )',
             [
-                'customer'    => $customer->getId(),
-                'variant'     => $variant->getId(),
-                'order'       => $order->getId(),
-                'year'        => $year,
-                'price'       => $sleva['finalPrice'],
-                'productName' => $product->getName(),
-                'productCode' => $product->getCode(),
-                'productTags' => json_encode($product->getTagNames(), JSON_THROW_ON_ERROR),
-                'variantName' => $variant->getName(),
-                'variantCode' => $variant->getCode(),
+                'customer'     => $customer->getId(),
+                'variant'      => $variant->getId(),
+                'order'        => $order->getId(),
+                'year'         => $year,
+                'price'        => $sleva['finalPrice'],
+                'productName'  => $product->getName(),
+                'productCode'  => $product->getCode(),
+                'productTags'  => json_encode($product->getTagNames(), JSON_THROW_ON_ERROR),
+                'variantName'  => $variant->getName(),
+                'variantCode'  => $variant->getCode(),
+                'presKapacitu' => (int) $smiPresKapacitu,
             ],
         );
 
