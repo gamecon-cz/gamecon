@@ -36,12 +36,6 @@ if (post('pridelitPokoj') && post('uid')) {
 }
 
 if ($shop !== null) {
-    if (post('zpracujUbytovani')) {
-        $shop->zpracujUbytovani(true, false);
-        $shop = $obnovPracovnihoUzivateleAShop();
-        oznameni('Ubytování uloženo');
-    }
-
     if (post('zpracujJidlo')) {
         $shop->zpracujJidlo();
         $shop = $obnovPracovnihoUzivateleAShop();

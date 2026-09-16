@@ -12,6 +12,7 @@ use Gamecon\Dev\DeploymentsReader;
 use Gamecon\Dev\OdkazDoArchivnihoAdmina;
 use Gamecon\Dev\SsoParovaciCookie;
 use Gamecon\Shop\Shop;
+use Gamecon\Web\VerzeSouboru;
 use Gamecon\XTemplate\XTemplate;
 
 require_once __DIR__ . '/_submoduly/osobni-udaje/osobni_udaje.php';
@@ -37,7 +38,6 @@ include __DIR__ . '/_uzivatel_ovladac.php';
 $x = new XTemplate(__DIR__ . '/uzivatel.xtpl');
 
 $x->assign(['ok' => $ok, 'err' => $err, 'rok' => ROCNIK]);
-$x->assign('nechceUbytovani', '');
 if ($uPracovni) {
     $x->assign([
         'a'  => $uPracovni->koncovkaDlePohlavi(),
@@ -72,13 +72,9 @@ if (get('pokoj')) {
 }
 
 if ($uPracovni && $uPracovni->gcPrihlasen()) {
-    $x->assign(
-        'ubytovaniHtml',
-        $shop->ubytovaniHtml(
-            muzeEditovatUkoncenyProdej: true,
-            muzeUbytovatPresKapacitu: $u->jeSefInfopultu(),
-        ),
-    );
+    // Which participant the grid is for. The API cannot learn it on its own: the working user
+    // lives in a session key of its own, and the token names the operator.
+    $x->assign('idUbytovanehoUzivatele', $uPracovni->id());
     $x->assign('jidloHtml', $shop->jidloHtml(true));
     if ($shop->objednalNejakeJidlo()) {
         $x->assign('urlStravenky', URL_ADMIN . '/reporty/stravenky?format=html&id_uzivatele=' . $uPracovni->id());
@@ -122,14 +118,12 @@ if (!$uPracovni) {
 if ($uPracovni) {
     $up           = $uPracovni;
     $a            = $up->koncovkaDlePohlavi();
-    $maObjednaneUbytovani = $up->shop()->ubytovani()->maObjednaneUbytovani();
     $pokoj        = Pokoj::zUzivatele($up);
     $spolubydlici = $pokoj
         ? $pokoj->ubytovani()
         : [];
     $x->assign([
         'prehled'       => Accounting::getPersonalFinance($up, showDiscounts: false)->formatForHtml(),
-        'nechceUbytovani' => $up->nechceUbytovani() ? 'ano' : 'ne',
         'slevyAktivity' => ($akt = $up->finance()->slevyNaAktivity())
             ?
             '<li>' . implode('<li>', $akt)
@@ -141,9 +135,6 @@ if ($uPracovni) {
             :
             '(žádné)',
     ]);
-    if (!$maObjednaneUbytovani) {
-        $x->parse('uzivatel.nechceUbytovaniInfo');
-    }
     $datumNarozeni = DateTimeImmutable::createFromMutable($up->datumNarozeni());
 
     $x->parse('uzivatel.slevy');
@@ -224,6 +215,18 @@ while ($r = $o->fetch(PDO::FETCH_ASSOC)) {
     $moznosti .= "<option value='{$r['id_predmetu']}'>{$r['nazev']} ($zbyva) {$r['cena']}&thinsp;Kč</option>";
 }
 $x->assign('predmety', $moznosti);
+
+require_once __DIR__ . '/_jwt-konstanty.php';
+$x->assign([
+    'rocnik'                => ROCNIK,
+    // VerzeSouboru, not zabalAdminSoubor(): that one is declared inside _shop.php, which only
+    // infopult requires, so calling it from here is a fatal. KFC mounts its grid the same way.
+    'ubytovaniCssVersions'  => new VerzeSouboru(ADMIN . '/files/ui', 'css'),
+    'ubytovaniJsVersions'   => new VerzeSouboru(ADMIN . '/files/ui', 'js'),
+    'ubytovaniBasePathApi'  => URL_ADMIN . '/api/',
+    'ubytovaniJwtKonstanty' => jwtKonstantyJs($u, $systemoveNastaveni),
+]);
+$x->parse('uzivatel.preactUbytovani');
 
 $x->parse('uzivatel');
 $x->out('uzivatel');
