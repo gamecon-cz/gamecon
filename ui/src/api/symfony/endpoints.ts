@@ -26,8 +26,12 @@ export const fetchMeals = async (): Promise<ApiMealProduct[]> => {
  * Fetch the accommodation section. One payload rather than a list: the nights of a
  * booking must be consecutive, so they are chosen as a set.
  */
-export const fetchAccommodation = async (): Promise<ApiAccommodation> => {
-  const res = await symfonyFetch("cart/accommodation");
+export const fetchAccommodation = async (customerId?: number): Promise<ApiAccommodation> => {
+  const res = await symfonyFetch(
+    customerId === undefined
+      ? "cart/accommodation"
+      : `admin/customer-accommodation?customerId=${customerId}`,
+  );
   if (!res.ok) throw new Error(`Failed to fetch accommodation: ${res.status}`);
   return await res.json() as ApiAccommodation;
 };
@@ -36,12 +40,19 @@ export const fetchAccommodation = async (): Promise<ApiAccommodation> => {
  * Save the accommodation booking. Sends the whole set of nights the customer should end up
  * with, and returns the section as GET would, so the caller can render the result directly.
  */
-export const saveAccommodation = async (data: ApiAccommodationWrite): Promise<ApiAccommodation> => {
-  const res = await symfonyFetch("cart/accommodation", {
-    method: "POST",
-    headers: { "Content-Type": "application/ld+json" },
-    body: JSON.stringify(data),
-  });
+export const saveAccommodation = async (
+  data: ApiAccommodationWrite,
+  customerId?: number,
+): Promise<ApiAccommodation> => {
+  const res = await symfonyFetch(
+    customerId === undefined ? "cart/accommodation" : "admin/customer-accommodation",
+    {
+      method: "POST",
+      headers: { "Content-Type": "application/ld+json" },
+      // The desk names the customer; the participant's own endpoint takes it from the session.
+      body: JSON.stringify(customerId === undefined ? data : { ...data, customerId }),
+    },
+  );
   if (!res.ok) {
     const chyba = await res.json().catch(() => null) as { "hydra:description"?: string; detail?: string } | null;
     throw new Error(chyba?.["hydra:description"] ?? chyba?.detail ?? `Uložení ubytování selhalo: ${res.status}`);
