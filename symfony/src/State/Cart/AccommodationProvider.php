@@ -34,7 +34,7 @@ use Symfony\Component\HttpKernel\Exception\AccessDeniedHttpException;
  *
  * @implements ProviderInterface<AccommodationOutputDto>
  */
-readonly class AccommodationProvider implements ProviderInterface
+readonly class AccommodationProvider implements ProviderInterface, AccommodationGridInterface
 {
     private const NAZVY_DNU = ['středa', 'čtvrtek', 'pátek', 'sobota', 'neděle'];
 
@@ -60,9 +60,6 @@ readonly class AccommodationProvider implements ProviderInterface
             throw new AccessDeniedHttpException('Pro zobrazení ubytování je nutné přihlášení.');
         }
 
-        $year = $this->currentYearProvider->getCurrentYear();
-        $nastaveni = SystemoveNastaveni::zGlobals();
-        $prodejUkoncen = $nastaveni->prodejUbytovaniUkoncen();
         // Every accommodation right lives in the legacy permission system. Failing beats
         // degrading to "no rights", which would drop an organizer's Sunday night with a 200.
         $legacyUzivatel = $this->legacySession->getCurrentUser();
@@ -70,10 +67,24 @@ readonly class AccommodationProvider implements ProviderInterface
             throw new AccessDeniedHttpException('Ubytování vyžaduje přihlášení na webu GameConu.');
         }
 
-        $muzeNedeli = $legacyUzivatel->maPravo(Pravo::UBYTOVANI_NEDELNI_NOC_NABIZET)
-            || $legacyUzivatel->maPravo(Pravo::UBYTOVANI_NEDELNI_NOC_ZDARMA)
-            || $legacyUzivatel->jeOrganizator();
-        $muzeJednuNoc = $legacyUzivatel->maPravo(Pravo::UBYTOVANI_MUZE_OBJEDNAT_JEDNU_NOC);
+        return $this->forCustomer($user, $legacyUzivatel);
+    }
+
+    /**
+     * The grid for a named customer, whoever is asking. Split out so the admin desk can read
+     * a participant's nights: there the rights below belong to that participant, while the
+     * request is sent by an operator, so neither may come from the session.
+     */
+    public function forCustomer(User $user, \Uzivatel $legacyUser): AccommodationOutputDto
+    {
+        $year = $this->currentYearProvider->getCurrentYear();
+        $nastaveni = SystemoveNastaveni::zGlobals();
+        $prodejUkoncen = $nastaveni->prodejUbytovaniUkoncen();
+
+        $muzeNedeli = $legacyUser->maPravo(Pravo::UBYTOVANI_NEDELNI_NOC_NABIZET)
+            || $legacyUser->maPravo(Pravo::UBYTOVANI_NEDELNI_NOC_ZDARMA)
+            || $legacyUser->jeOrganizator();
+        $muzeJednuNoc = $legacyUser->maPravo(Pravo::UBYTOVANI_MUZE_OBJEDNAT_JEDNU_NOC);
 
         $dto = new AccommodationOutputDto();
         $dto->saleClosed = $prodejUkoncen;
@@ -82,11 +93,11 @@ readonly class AccommodationProvider implements ProviderInterface
         // not leak into this one. Falls back to the account while orders predating the move
         // still carry nothing.
         $order = $this->cartService->getCart($user);
-        $dto->roommate = $order?->getRoommate() ?? ($legacyUzivatel->ubytovanS() ?: null);
+        $dto->roommate = $order?->getRoommate() ?? ($legacyUser->ubytovanS() ?: null);
         $dto->restorableBreakfasts = array_values($this->breakfastCanceller->restorable($user, $year));
         $dto->declined = $order !== null
             ? $order->isAccommodationDeclined()
-            : (bool) $legacyUzivatel->nechceUbytovani();
+            : (bool) $legacyUser->nechceUbytovani();
 
         foreach (self::NAZVY_DNU as $den => $nazev) {
             if ($den === self::DEN_NEDELE && ! $muzeNedeli) {
@@ -114,7 +125,7 @@ readonly class AccommodationProvider implements ProviderInterface
         $viditelneDny = array_column($dto->days, 'day');
         [$prodano, $drzeno, $kapacity] = $this->obsazenostVariant($user, $year);
 
-        $sleepingBagsOnly = $this->accommodationRules->sleepingBagsOnly($legacyUzivatel);
+        $sleepingBagsOnly = $this->accommodationRules->sleepingBagsOnly($legacyUser);
         $ubytovani = $this->productRepository->findByTag(ProductTagCode::UBYTOVANI);
 
         // Turning the restriction on with nothing tagged would hide accommodation entirely

@@ -6,12 +6,15 @@ namespace App\Tests\State\Admin;
 
 use ApiPlatform\Metadata\Post;
 use App\Dto\Admin\SetCustomerAccommodationInputDto;
+use App\Dto\Cart\AccommodationOutputDto;
 use App\Entity\User;
+use App\Service\AccommodationDeskRights;
 use App\Service\AccommodationRules;
 use App\Service\AccommodationWriter;
 use App\Service\CurrentYearProviderInterface;
 use App\Service\LegacySessionService;
 use App\State\Admin\SetCustomerAccommodationProcessor;
+use App\State\Cart\AccommodationGridInterface;
 use App\Tests\AbstractDatabaseKernelTestCase;
 use Doctrine\ORM\EntityManagerInterface;
 use Gamecon\Pravo;
@@ -25,6 +28,8 @@ use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
  */
 class SetCustomerAccommodationProcessorTest extends AbstractDatabaseKernelTestCase
 {
+    private MockObject $accommodationGrid;
+
     private MockObject $accommodationWriter;
 
     private MockObject $entityManager;
@@ -37,6 +42,7 @@ class SetCustomerAccommodationProcessorTest extends AbstractDatabaseKernelTestCa
     {
         parent::setUp();
 
+        $this->accommodationGrid = $this->createMock(AccommodationGridInterface::class);
         $this->accommodationWriter = $this->createMock(AccommodationWriter::class);
         $this->entityManager = $this->createMock(EntityManagerInterface::class);
         $this->legacySession = $this->createMock(LegacySessionService::class);
@@ -47,7 +53,11 @@ class SetCustomerAccommodationProcessorTest extends AbstractDatabaseKernelTestCa
             $this->accommodationWriter,
             $container->get(AccommodationRules::class),
             $container->get(CurrentYearProviderInterface::class),
+            // Real rights over the mocked session, so the tests exercise the actual rule
+            // rather than a stub of it.
+            new AccommodationDeskRights($this->legacySession),
             $this->legacySession,
+            $this->accommodationGrid,
             $this->entityManager,
         );
     }
@@ -255,6 +265,43 @@ class SetCustomerAccommodationProcessorTest extends AbstractDatabaseKernelTestCa
             );
 
         $this->processor->process($this->input(), new Post());
+    }
+
+    /**
+     * save() clears the entity manager, so the customer resolved before the write is detached
+     * by the time the grid is read. Reading it off that object would query a stale entity.
+     */
+    public function testCustomerIsResolvedAgainBeforeTheGridIsRead(): void
+    {
+        $customer = $this->createMock(User::class);
+        $customer->method('getId')->willReturn(4242);
+        $this->signInOperator();
+        $this->legacyCustomer();
+
+        // Once before the write, once after it — a single lookup means a detached entity.
+        $this->entityManager
+            ->expects(self::exactly(2))
+            ->method('find')
+            ->willReturn($customer);
+
+        $this->accommodationGrid
+            ->expects(self::once())
+            ->method('forCustomer')
+            ->with(self::identicalTo($customer), self::anything());
+
+        $this->processor->process($this->input(), new Post());
+    }
+
+    public function testTheSavedGridIsReturned(): void
+    {
+        $this->signInOperator();
+        $this->customer();
+        $this->legacyCustomer();
+
+        $grid = new AccommodationOutputDto();
+        $this->accommodationGrid->method('forCustomer')->willReturn($grid);
+
+        self::assertSame($grid, $this->processor->process($this->input(), new Post()));
     }
 
     public function testSignedOutCallerIsRefused(): void
