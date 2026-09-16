@@ -15,16 +15,6 @@ use Gamecon\Shop\Shop;
 
 $nastaveni ??= [];
 
-$obnovPracovnihoUzivateleAShop = static function () use (&$uPracovni, $u, $systemoveNastaveni, $nastaveni): ?Shop {
-    $uPracovni = $uPracovni
-        ? Uzivatel::zId($uPracovni->id())
-        : null;
-
-    return $uPracovni
-        ? new Shop($uPracovni, $u, $systemoveNastaveni, $nastaveni)
-        : null;
-};
-
 if (post('pridelitPokoj') && post('uid')) {
     $uzivatelProUbytovani = Uzivatel::zId(post('uid'));
     if ($uzivatelProUbytovani) {
@@ -33,9 +23,6 @@ if (post('pridelitPokoj') && post('uid')) {
     } else {
         chyba("Neznámé ID uživatele " . post('uid'));
     }
-}
-
-if ($shop !== null) {
 }
 
 if (!empty($_POST['prodej'])) {
