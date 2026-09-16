@@ -8,7 +8,7 @@ use ApiPlatform\Metadata\Operation;
 use ApiPlatform\State\ProviderInterface;
 use App\Dto\Cart\AccommodationOutputDto;
 use App\Entity\User;
-use App\Service\AccommodationDeskRights;
+use App\Service\CustomerDeskRights;
 use App\Service\LegacySessionService;
 use App\State\Cart\AccommodationGridInterface;
 use Doctrine\ORM\EntityManagerInterface;
@@ -25,7 +25,7 @@ readonly class CustomerAccommodationProvider implements ProviderInterface
 {
     public function __construct(
         private AccommodationGridInterface $accommodationGrid,
-        private AccommodationDeskRights $deskRights,
+        private CustomerDeskRights $deskRights,
         private LegacySessionService $legacySession,
         private EntityManagerInterface $entityManager,
     ) {
