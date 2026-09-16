@@ -119,9 +119,12 @@ class MealWriter
     }
 
     /**
+     * Public because the desk reads the selection separately from writing it: the catalogue
+     * endpoint is customer-agnostic, and the participant's own matrix reads this off their cart.
+     *
      * @return int[] variant ids of meals the customer holds this year
      */
-    private function heldMeals(User $customer, int $year): array
+    public function heldMeals(User $customer, int $year): array
     {
         return array_map('intval', $this->connection->fetchFirstColumn(
             "SELECT DISTINCT nakupy.variant_id
