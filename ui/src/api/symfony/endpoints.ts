@@ -15,6 +15,33 @@ import {
 /**
  * Fetch meal products (flat DTOs for the meal matrix)
  */
+/**
+ * Which meals a participant holds, for the admin desk. The catalogue is the same for everyone
+ * and comes from fetchMeals(); only the selection differs, and the desk has no cart to read it
+ * from the way the participant's own matrix does.
+ */
+export const fetchCustomerMeals = async (customerId: number): Promise<number[]> => {
+  const res = await symfonyFetch(`admin/customer-meals?customerId=${customerId}`);
+  if (!res.ok) throw new Error(`Failed to fetch customer meals: ${res.status}`);
+  const data = await res.json() as { variantIds?: number[] };
+  return data.variantIds ?? [];
+};
+
+/**
+ * Save a participant's whole meal selection at once, as the desk submits it.
+ */
+export const saveCustomerMeals = async (customerId: number, variantIds: number[]): Promise<void> => {
+  const res = await symfonyFetch("admin/customer-meals", {
+    method: "POST",
+    headers: { "Content-Type": "application/ld+json" },
+    body: JSON.stringify({ customerId, variantIds }),
+  });
+  if (!res.ok) {
+    const chyba = await res.json().catch(() => null) as { "hydra:description"?: string; detail?: string } | null;
+    throw new Error(chyba?.["hydra:description"] ?? chyba?.detail ?? `Uložení jídla selhalo: ${res.status}`);
+  }
+};
+
 export const fetchMeals = async (): Promise<ApiMealProduct[]> => {
   const res = await symfonyFetch("cart/meals");
   if (!res.ok) throw new Error(`Failed to fetch meals: ${res.status}`);

@@ -1,6 +1,14 @@
 import { h } from "preact";
 import { useCallback, useEffect, useState } from "preact/hooks";
-import { addToCart, fetchCart, fetchMeals, removeFromCart } from "../../api/symfony/endpoints";
+import {
+  addToCart,
+  fetchCart,
+  fetchCustomerMeals,
+  fetchMeals,
+  removeFromCart,
+  saveCustomerMeals,
+} from "../../api/symfony/endpoints";
+import { MountProps } from "../mountProps";
 import { ApiCart, ApiCartItem, ApiMealProduct } from "../../api/symfony/types";
 
 /** Format price string for Czech locale: "120.00" → "120 Kč", "80.50" → "80,50 Kč" */
@@ -67,9 +75,12 @@ function findCartItem(cart: ApiCart | null, variantId: number): ApiCartItem | un
   return cart.items.find((item) => item.variantId === variantId);
 }
 
-export function JídloMatice() {
+export function JídloMatice({ customerId }: MountProps) {
   const [meals, setMeals] = useState<ApiMealProduct[]>([]);
   const [cart, setCart] = useState<ApiCart | null>(null);
+  // At the desk the selection cannot come from a cart — that is the participant's own. It is
+  // read and written as a whole set instead, which is also how the admin form always worked.
+  const [vybrano, setVybrano] = useState<number[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState<Set<number>>(new Set());
@@ -77,16 +88,20 @@ export function JídloMatice() {
   useEffect(() => {
     Promise.all([
       fetchMeals(),
-      fetchCart(),
-    ]).then(([m, c]) => {
-      setMeals(m);
-      setCart(c);
+      customerId === undefined ? fetchCart() : fetchCustomerMeals(customerId),
+    ]).then(([nabidka, vlastnene]) => {
+      setMeals(nabidka);
+      if (customerId === undefined) {
+        setCart(vlastnene as ApiCart | null);
+      } else {
+        setVybrano(vlastnene as number[]);
+      }
       setLoading(false);
     }).catch((e) => {
       setError(e.message);
       setLoading(false);
     });
-  }, []);
+  }, [customerId]);
 
   const matrix = buildMatrix(meals);
 
@@ -103,7 +118,13 @@ export function JídloMatice() {
 
     setBusy((busyVariants) => new Set(busyVariants).add(variantId));
     try {
-      if (cartItem) {
+      if (customerId !== undefined) {
+        const zmeneno = vybrano.includes(variantId)
+          ? vybrano.filter((id) => id !== variantId)
+          : [...vybrano, variantId];
+        await saveCustomerMeals(customerId, zmeneno);
+        setVybrano(zmeneno);
+      } else if (cartItem) {
         await removeFromCart(cartItem.id);
         // Optimistic update — remove item from local cart state
         setCart((currentCart) => {
@@ -130,7 +151,7 @@ export function JídloMatice() {
         return updated;
       });
     }
-  }, [busy]);
+  }, [busy, customerId, vybrano]);
 
   if (loading) return <div class="jidlo-matice--loading">Načítám jídla…</div>;
   if (error) return <div class="jidlo-matice--error">Chyba: {error}</div>;
@@ -160,7 +181,9 @@ export function JídloMatice() {
                   if (!cell) return <td key={day} class="jidlo-matice--empty-cell"></td>;
 
                   const cartItem = findCartItem(cart, cell.meal.variantId);
-                  const checked = !!cartItem;
+                  const checked = customerId === undefined
+                    ? !!cartItem
+                    : vybrano.includes(cell.meal.variantId);
                   const isBusy = busy.has(cell.meal.variantId);
 
                   return (
