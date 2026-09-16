@@ -7,7 +7,7 @@ namespace App\Tests\State\Admin;
 use ApiPlatform\Metadata\Get;
 use App\Dto\Cart\AccommodationOutputDto;
 use App\Entity\User;
-use App\Service\AccommodationDeskRights;
+use App\Service\CustomerDeskRights;
 use App\Service\LegacySessionService;
 use App\State\Admin\CustomerAccommodationProvider;
 use App\State\Cart\AccommodationGridInterface;
@@ -40,7 +40,7 @@ class CustomerAccommodationProviderTest extends TestCase
 
         $this->provider = new CustomerAccommodationProvider(
             $this->accommodationGrid,
-            new AccommodationDeskRights($this->legacySession),
+            new CustomerDeskRights($this->legacySession),
             $this->legacySession,
             $this->entityManager,
         );
