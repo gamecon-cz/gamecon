@@ -9,10 +9,10 @@ use ApiPlatform\State\ProcessorInterface;
 use App\Dto\Admin\SetCustomerAccommodationInputDto;
 use App\Dto\Cart\AccommodationOutputDto;
 use App\Entity\User;
-use App\Service\AccommodationDeskRights;
 use App\Service\AccommodationRules;
 use App\Service\AccommodationWriter;
 use App\Service\CurrentYearProviderInterface;
+use App\Service\CustomerDeskRights;
 use App\Service\LegacySessionService;
 use App\State\Cart\AccommodationGridInterface;
 use Doctrine\ORM\EntityManagerInterface;
@@ -37,7 +37,7 @@ readonly class SetCustomerAccommodationProcessor implements ProcessorInterface
         private AccommodationWriter $accommodationWriter,
         private AccommodationRules $accommodationRules,
         private CurrentYearProviderInterface $currentYearProvider,
-        private AccommodationDeskRights $deskRights,
+        private CustomerDeskRights $deskRights,
         private LegacySessionService $legacySession,
         private AccommodationGridInterface $accommodationGrid,
         private EntityManagerInterface $entityManager,

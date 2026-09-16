@@ -8,10 +8,10 @@ use ApiPlatform\Metadata\Post;
 use App\Dto\Admin\SetCustomerAccommodationInputDto;
 use App\Dto\Cart\AccommodationOutputDto;
 use App\Entity\User;
-use App\Service\AccommodationDeskRights;
 use App\Service\AccommodationRules;
 use App\Service\AccommodationWriter;
 use App\Service\CurrentYearProviderInterface;
+use App\Service\CustomerDeskRights;
 use App\Service\LegacySessionService;
 use App\State\Admin\SetCustomerAccommodationProcessor;
 use App\State\Cart\AccommodationGridInterface;
@@ -55,7 +55,7 @@ class SetCustomerAccommodationProcessorTest extends AbstractDatabaseKernelTestCa
             $container->get(CurrentYearProviderInterface::class),
             // Real rights over the mocked session, so the tests exercise the actual rule
             // rather than a stub of it.
-            new AccommodationDeskRights($this->legacySession),
+            new CustomerDeskRights($this->legacySession),
             $this->legacySession,
             $this->accommodationGrid,
             $this->entityManager,
