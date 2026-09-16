@@ -21,6 +21,8 @@ class AccommodationWriter
 
     public const CHYBA_NAVAZUJICI_NOCI = 'Objednané noci musí na sebe navazovat.';
 
+    public const CHYBA_PLNA_NOC_BEZ_PRAVA = 'Ubytování „%s" na %s je plné; přeplnit ho smí jen šéf infopultu.';
+
     public function __construct(
         private Connection $connection,
         private EntityManagerInterface $entityManager,
@@ -238,7 +240,7 @@ class AccommodationWriter
         User $customer,
         ProductVariant $variant,
         int $year,
-        bool $smiPresKapacitu = false,
+        bool $smiPresKapacitu,
     ): void {
         $product = $variant->getProduct();
         $sleva = $this->discountCalculator->calculateDiscount($product, $customer, $year);
@@ -285,7 +287,10 @@ class AccommodationWriter
         );
 
         if ($vlozeno === 0) {
-            throw new \RuntimeException(sprintf('Ubytování „%s" na %s je bohužel obsazené.', $product->getName(), $variant->getName()));
+            // The override makes the capacity test always pass, so getting here at all means
+            // the caller did not have it. Telling the desk the night is "obsazené" when the
+            // real answer is "you may not overbook" sends them hunting for a bed that exists.
+            throw new \RuntimeException(sprintf(self::CHYBA_PLNA_NOC_BEZ_PRAVA, $product->getName(), $variant->getName()));
         }
     }
 }
