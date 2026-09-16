@@ -646,6 +646,164 @@ class AccommodationWriterTest extends AbstractDatabaseKernelTestCase
         );
     }
 
+    private function mealWriter(): \App\Service\MealWriter
+    {
+        return static::getContainer()->get(\App\Service\MealWriter::class);
+    }
+
+    /**
+     * @return int[] meal variant ids the customer holds
+     */
+    private function drzenaJidla(User $customer): array
+    {
+        return array_map('intval', $this->connection()->fetchFirstColumn(
+            "SELECT DISTINCT nakupy.variant_id
+             FROM shop_nakupy AS nakupy
+             JOIN product_variant AS varianty ON varianty.id = nakupy.variant_id
+             JOIN product_product_tag AS vazba ON vazba.product_id = varianty.product_id
+             JOIN product_tag AS tag ON tag.id = vazba.tag_id
+             WHERE nakupy.id_uzivatele = :customer AND nakupy.rok = :year AND tag.code = 'jidlo'",
+            [
+                'customer' => $customer->getId(),
+                'year'     => self::ROK,
+            ],
+        ));
+    }
+
+    public function testMealsAreSavedAsASet(): void
+    {
+        [, $snidaneId] = $this->pripravHotelSeSnidani(0);
+        $customer = $this->ucastnik();
+
+        $this->mealWriter()->save($customer, [$snidaneId], self::ROK);
+
+        self::assertSame([$snidaneId], $this->drzenaJidla($customer));
+    }
+
+    public function testMealsNotSentAreDropped(): void
+    {
+        [, $snidaneId] = $this->pripravHotelSeSnidani(0);
+        $customer = $this->ucastnik();
+        $this->koupSnidani($customer, $snidaneId);
+
+        $this->mealWriter()->save($customer, [], self::ROK);
+
+        self::assertSame([], $this->drzenaJidla($customer));
+    }
+
+    public function testUnknownMealIsRefused(): void
+    {
+        $customer = $this->ucastnik();
+
+        $this->expectExceptionMessage('není v nabídce');
+
+        $this->mealWriter()->save($customer, [999999999], self::ROK);
+    }
+
+    /**
+     * Legacy filtered hotel-covered breakfasts out of the request before writing. Here the
+     * canceller decides afterwards, so ordering one the room already covers still drops it.
+     */
+    public function testBreakfastCoveredByAHotelNightIsDroppedAgain(): void
+    {
+        [$nocId, $snidaneId] = $this->pripravHotelSeSnidani(0);
+        $customer = $this->ucastnik();
+        $this->writer()->save($customer, [$nocId], self::ROK, true);
+
+        $this->mealWriter()->save($customer, [$snidaneId], self::ROK);
+
+        self::assertSame([], $this->drzenaJidla($customer));
+    }
+
+    /**
+     * Meals carry stock like anything else — 11 of the 12 meals in 2025 had a limit, even
+     * though this year's are all unlimited. Legacy refused to sell past it and so must this.
+     */
+    public function testSoldOutMealIsRefused(): void
+    {
+        [, $snidaneId] = $this->pripravHotelSeSnidani(0);
+        $customer = $this->ucastnik();
+
+        $this->connection()->executeStatement(
+            'UPDATE shop_predmety SET kusu_vyrobeno = 1
+             WHERE kod_predmetu = (SELECT code FROM product_variant WHERE id = :variant)',
+            [
+                'variant' => $snidaneId,
+            ],
+        );
+        $this->koupSnidani($this->ucastnik(), $snidaneId);
+
+        $this->expectExceptionMessage('vyprodané');
+
+        $this->mealWriter()->save($customer, [$snidaneId], self::ROK);
+    }
+
+    /**
+     * Deliberate difference from legacy, which filtered such a breakfast out and so never
+     * remembered it. The desk did order it, so once the covering night goes away it comes back.
+     */
+    public function testBreakfastOrderedOntoACoveredMorningIsOfferedBackLater(): void
+    {
+        [$nocId, $snidaneId] = $this->pripravHotelSeSnidani(0);
+        $customer = $this->ucastnik();
+        $this->writer()->save($customer, [$nocId], self::ROK, true);
+        $this->mealWriter()->save($customer, [$snidaneId], self::ROK);
+
+        $this->writer()->save($customer, [], self::ROK, true);
+
+        self::assertArrayHasKey(
+            $snidaneId,
+            static::getContainer()->get(BreakfastCanceller::class)->restorable($customer, self::ROK),
+        );
+    }
+
+    public function testLastPortionIsStillSellable(): void
+    {
+        [, $snidaneId] = $this->pripravHotelSeSnidani(0);
+        $customer = $this->ucastnik();
+
+        $this->connection()->executeStatement(
+            'UPDATE shop_predmety SET kusu_vyrobeno = 2
+             WHERE kod_predmetu = (SELECT code FROM product_variant WHERE id = :variant)',
+            [
+                'variant' => $snidaneId,
+            ],
+        );
+        $this->koupSnidani($this->ucastnik(), $snidaneId);
+
+        $this->mealWriter()->save($customer, [$snidaneId], self::ROK);
+
+        self::assertSame([$snidaneId], $this->drzenaJidla($customer));
+    }
+
+    /**
+     * Every meal this year has an unlimited stock, so this is the branch production actually
+     * takes — and the one an off-by-one in the capacity test would leave unnoticed.
+     */
+    public function testUnlimitedMealSellsWhateverIsAsked(): void
+    {
+        [, $snidaneId] = $this->pripravHotelSeSnidani(0);
+        $customer = $this->ucastnik();
+        foreach (range(1, 3) as $ignored) {
+            $this->koupSnidani($this->ucastnik(), $snidaneId);
+        }
+
+        $this->mealWriter()->save($customer, [$snidaneId], self::ROK);
+
+        self::assertSame([$snidaneId], $this->drzenaJidla($customer));
+    }
+
+    public function testSavingTheSameMealsTwiceDoesNotDuplicateThem(): void
+    {
+        [, $snidaneId] = $this->pripravHotelSeSnidani(0);
+        $customer = $this->ucastnik();
+
+        $this->mealWriter()->save($customer, [$snidaneId], self::ROK);
+        $this->mealWriter()->save($customer, [$snidaneId], self::ROK);
+
+        self::assertSame(1, $this->pocetNakupu($customer, $snidaneId));
+    }
+
     private function pocetNakupu(User $customer, int $variantId): int
     {
         return (int) $this->connection()->fetchOne(
