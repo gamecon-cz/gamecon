@@ -59,3 +59,7 @@
 /symfony/config/secrets/prod/prod.decrypt.private.php
 /symfony/public/bundles/
 ###< symfony/framework-bundle ###
+
+# Zkompilované XTemplate šablony — XTemplate je odkládá vedle zdroje, když není
+# nastavená cache (typicky v testech), a nepatří do repozitáře.
+*.xtpc
