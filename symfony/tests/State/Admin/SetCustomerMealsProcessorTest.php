@@ -126,6 +126,26 @@ class SetCustomerMealsProcessorTest extends AbstractDatabaseKernelTestCase
     }
 
     /**
+     * The desk ticks a box and hands over a physical voucher, so the answer has to be what the
+     * customer really holds. The writer cancels a breakfast the hotel covers right after it is
+     * ordered, so echoing the payload back would leave the box ticked for a meal nobody has.
+     */
+    public function testAnswerIsWhatTheCustomerHoldsAfterTheSave(): void
+    {
+        $customer = $this->createMock(User::class);
+        $this->signInOperator();
+        $this->entityManager->method('find')->willReturn($customer);
+        $this->mealWriter->method('heldMeals')->willReturn([11]);
+
+        $input = $this->input();
+        $input->variantIds = [11, 12];
+
+        $result = $this->processor->process($input, new Post());
+
+        self::assertSame([11], $result->variantIds);
+    }
+
+    /**
      * A sold-out meal has to reach the desk as its message, not as a 500 with nothing useful.
      */
     public function testRefusedMealBecomesBadRequest(): void
