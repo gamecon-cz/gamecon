@@ -22,6 +22,7 @@ use App\Service\DiscountCalculator;
 use App\Service\LegacySessionService;
 use App\State\Cart\AccommodationProvider;
 use Gamecon\Cas\DateTimeImmutableStrict;
+use Gamecon\Pravo;
 use Gamecon\SystemoveNastaveni\SystemoveNastaveni;
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
@@ -253,12 +254,15 @@ class AccommodationProviderTest extends TestCase
         );
     }
 
-    private function prepareUser(): void
+    private function prepareUser(bool $smiJednuNoc = false): void
     {
         $this->security->method('getUser')->willReturn($this->createMock(User::class));
 
         $legacyUzivatel = $this->createMock(\Uzivatel::class);
-        $legacyUzivatel->method('maPravo')->willReturn(false);
+        $legacyUzivatel->method('maPravo')->willReturnCallback(
+            static fn (int $pravo): bool => $smiJednuNoc
+                && $pravo === Pravo::UBYTOVANI_MUZE_OBJEDNAT_JEDNU_NOC,
+        );
         $legacyUzivatel->method('jeOrganizator')->willReturn(false);
         $legacyUzivatel->method('ubytovanS')->willReturn('');
         $legacyUzivatel->method('nechceUbytovani')->willReturn(false);
@@ -395,5 +399,29 @@ class AccommodationProviderTest extends TestCase
     {
         $reflection = new \ReflectionProperty($entity, 'id');
         $reflection->setValue($entity, $id);
+    }
+
+    /**
+     * Dvě noci jsou minimum pro běžného účastníka; mřížka podle toho blokuje osamocenou noc.
+     *
+     * @test
+     */
+    public function beznyUcastnikMusiObjednatDveNoci(): void
+    {
+        $this->prepareUser();
+        $this->prepareGrid(10, 10, 0, 0);
+
+        self::assertSame(2, $this->provider->provide(new Get())->minimumNights);
+    }
+
+    /**
+     * @test
+     */
+    public function pravoNaJednuNocSnizujeMinimum(): void
+    {
+        $this->prepareUser(smiJednuNoc: true);
+        $this->prepareGrid(10, 10, 0, 0);
+
+        self::assertSame(1, $this->provider->provide(new Get())->minimumNights);
     }
 }

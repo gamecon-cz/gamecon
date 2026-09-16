@@ -48,30 +48,22 @@ function nahledPredmetu(string $cestaKObrazku): string
         ->url();
 }
 
-/**
- * Vykreslí kořen pro Preact sekci e-shopu. Když se nepodaří sestavit JWT pro Symfony API,
- * vrátí původní HTML z legacy shopu, aby sekce nezmizela.
- */
 function prihlaskaPreactSekceHtml(
     string $idKorene,
-    string $legacyHtml,
     Uzivatel $u,
     \Gamecon\SystemoveNastaveni\SystemoveNastaveni $systemoveNastaveni,
 ): string {
 
-    try {
-        $kernel = $systemoveNastaveni->kernel();
-        $container = $kernel->getContainer();
-        /** @var \App\Service\JwtService $jwtService */
-        $jwtService = $container->get(\App\Service\JwtService::class);
-        $userEntity = $container->get('doctrine.orm.entity_manager')->find(\App\Entity\User::class, $u->id());
-        if ($userEntity === null) {
-            return $legacyHtml;
-        }
-        $jwt = $jwtService->generateJwtToken($jwtService->extractUserData($userEntity));
-    } catch (\Throwable) {
-        return $legacyHtml;
+    $container = $systemoveNastaveni->kernel()->getContainer();
+    /** @var \App\Service\JwtService $jwtService */
+    $jwtService = $container->get(\App\Service\JwtService::class);
+    // Token se razí z User entity, ne z legacy Uzivatele: jmenoNick() vrací jméno s přezdívkou
+    // („Jakub „Elden“ Jandák“), kdežto entita samotné jméno — a to je to, co GUI zobrazuje.
+    $userEntity = $container->get('doctrine.orm.entity_manager')->find(\App\Entity\User::class, $u->id());
+    if ($userEntity === null) {
+        throw new \RuntimeException(sprintf('Uživatel %d nemá protějšek v nové vrstvě.', $u->id()));
     }
+    $jwt = $jwtService->generateJwtToken($jwtService->extractUserData($userEntity));
 
     // URL_WEBU = http://localhost:85/web — strip /web to get site root for Symfony API
     $siteRoot = preg_replace('#/web$#', '', URL_WEBU);
@@ -99,15 +91,8 @@ function prihlaskaPreactSekceHtml(
         HTML;
     }
 
-    // Bez JS zůstává vidět původní podoba sekce, ale jen ke čtení: zápis přes legacy POST by
-    // obcházel invarianty nové vrstvy (snapshoty položky, jedna částka místo součtu).
     return <<<HTML
-        <div id="{$idKorene}">
-            <noscript>
-                <fieldset disabled class="prihlaska_bezJs">{$legacyHtml}</fieldset>
-                <p>Pro úpravu této sekce je potřeba zapnutý JavaScript.</p>
-            </noscript>
-        </div>
+        <div id="{$idKorene}"></div>
         {$sdilenaAktiva}
     HTML;
 }
@@ -301,20 +286,20 @@ if (is_dir($adresarKObrazkuPredmetu)) {
 
 $t->assign([
     'a'                               => $u->koncovkaDlePohlavi(),
-    'jidlo'                           => prihlaskaPreactSekceHtml('preact-jidlo', $shop->jidloHtml(), $u, $systemoveNastaveni),
+    'jidlo'                           => prihlaskaPreactSekceHtml('preact-jidlo', $u, $systemoveNastaveni),
     'jidloObjednatelneDo'             => $shop->jidloObjednatelneDoHtml(),
-    'predmety'                        => prihlaskaPreactSekceHtml('preact-merch', $shop->predmetyHtml(), $u, $systemoveNastaveni),
-    'svrsky'                          => prihlaskaPreactSekceHtml('preact-svrsky', $shop->svrskyHtml(), $u, $systemoveNastaveni),
+    'predmety'                        => prihlaskaPreactSekceHtml('preact-merch', $u, $systemoveNastaveni),
+    'svrsky'                          => prihlaskaPreactSekceHtml('preact-svrsky', $u, $systemoveNastaveni),
     'mikinyObjednatelnaDo'            => $shop->mikinyObjednatelnaDoHtml(),
     'trickaObjednatelnaDo'            => $shop->trickaObjednatelnaDoHtml(),
     'predmetyBezTricekObjednatelneDo' => $shop->predmetyBezTricekObjednatelneDoHtml(),
     'rok'                             => ROCNIK,
-    'ubytovani'                       => prihlaskaPreactSekceHtml('preact-ubytovani', $shop->ubytovaniHtml(), $u, $systemoveNastaveni),
+    'ubytovani'                       => prihlaskaPreactSekceHtml('preact-ubytovani', $u, $systemoveNastaveni),
     'ubytovaniObjednatelneDo'         => $shop->ubytovaniObjednatelneDoHtml(),
     'ulozitNeboPrihlasit'             => $u->gcPrihlasen()
         ? 'Uložit změny'
         : 'Přihlásit na GameCon',
-    'vstupne'                         => prihlaskaPreactSekceHtml('preact-vstupne', $shop->vstupneHtml(), $u, $systemoveNastaveni),
+    'vstupne'                         => prihlaskaPreactSekceHtml('preact-vstupne', $u, $systemoveNastaveni),
     'pomoc'                           => $pomoc->html(),
     'zaplatitNejpozdejiDo'            => $systemoveNastaveni->nejpozdejiZaplatitDo()->format(DateTimeCz::FORMAT_DATUM_LETOS),
 ]);
