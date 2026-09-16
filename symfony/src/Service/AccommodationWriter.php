@@ -17,11 +17,11 @@ use Doctrine\ORM\EntityManagerInterface;
  */
 class AccommodationWriter
 {
-    public const CHYBA_MINIMALNE_DVE_NOCI = 'Ubytování je možné objednat nejméně na dvě noci.';
+    public const ERROR_AT_LEAST_TWO_NIGHTS = 'Ubytování je možné objednat nejméně na dvě noci.';
 
-    public const CHYBA_NAVAZUJICI_NOCI = 'Objednané noci musí na sebe navazovat.';
+    public const ERROR_CONSECUTIVE_NIGHTS = 'Objednané noci musí na sebe navazovat.';
 
-    public const CHYBA_PLNA_NOC_BEZ_PRAVA = 'Ubytování „%s" na %s je plné; přeplnit ho smí jen šéf infopultu.';
+    public const ERROR_OVERBOOKING_NOT_PERMITTED = 'Ubytování „%s" na %s je plné; přeplnit ho smí jen šéf infopultu.';
 
     public function __construct(
         private Connection $connection,
@@ -42,39 +42,39 @@ class AccommodationWriter
         User $customer,
         array $variantIds,
         int $year,
-        bool $muzeJednuNoc,
-        ?string $spolubydlici = null,
-        bool $nechceUbytovani = false,
-        bool $jenSpacaky = false,
-        bool $smiPresKapacitu = false,
+        bool $maySingleNight,
+        ?string $roommate = null,
+        bool $declined = false,
+        bool $sleepingBagsOnly = false,
+        bool $mayOverbook = false,
     ): void {
-        $varianty = $this->nactiVarianty($variantIds, $jenSpacaky);
+        $variants = $this->loadVariants($variantIds, $sleepingBagsOnly);
 
         // Only judge the nights when they actually change. The legacy admin screens can book a
         // set these rules would reject, and re-validating an untouched booking would leave
         // such a customer unable to save even their roommate.
-        if ($this->zmenaNoci($customer, $year, array_keys($varianty))) {
-            $this->overNoci(array_map(
+        if ($this->nightsChanged($customer, $year, array_keys($variants))) {
+            $this->validateNights(array_map(
                 static fn (ProductVariant $variant): int => (int) $variant->getAccommodationDay(),
-                $varianty,
-            ), $muzeJednuNoc);
+                $variants,
+            ), $maySingleNight);
         }
 
         $this->connection->beginTransaction();
         try {
-            $ponechane = $this->smazNevybraneNoci($customer, $year, array_keys($varianty));
-            foreach ($varianty as $variantId => $variant) {
-                if (! in_array($variantId, $ponechane, true)) {
-                    $this->pridejNoc($customer, $variant, $year, $smiPresKapacitu);
+            $kept = $this->removeUnselectedNights($customer, $year, array_keys($variants));
+            foreach ($variants as $variantId => $variant) {
+                if (! in_array($variantId, $kept, true)) {
+                    $this->addNight($customer, $variant, $year, $mayOverbook);
                 }
             }
-            $this->ulozUdajeOUbytovani($customer, $year, $spolubydlici, $nechceUbytovani && $varianty === []);
+            $this->saveAccommodationDetails($customer, $year, $roommate, $declined && $variants === []);
             $this->breakfastCanceller->cancelCovered($customer, $year);
             $this->connection->commit();
-        } catch (\Throwable $chyba) {
+        } catch (\Throwable $error) {
             $this->connection->rollBack();
 
-            throw $chyba;
+            throw $error;
         }
 
         $this->entityManager->clear();
@@ -84,21 +84,21 @@ class AccommodationWriter
      * Written to the order, where the answer belongs to its year, and to the account columns
      * as well, because the legacy form still reads those. The second write goes when it does.
      */
-    private function ulozUdajeOUbytovani(User $customer, int $year, ?string $spolubydlici, bool $nechce): void
+    private function saveAccommodationDetails(User $customer, int $year, ?string $roommate, bool $declined): void
     {
-        $spolubydlici = $spolubydlici === null ? null : (trim($spolubydlici) ?: null);
+        $roommate = $roommate === null ? null : (trim($roommate) ?: null);
 
         $order = $this->cartService->getOrCreateCart($customer);
-        $order->setRoommate($spolubydlici);
-        $order->setAccommodationDeclined($nechce);
+        $order->setRoommate($roommate);
+        $order->setAccommodationDeclined($declined);
         $this->entityManager->flush();
 
         $this->connection->executeStatement(
             'UPDATE uzivatele_hodnoty SET ubytovan_s = :spolubydlici, nechce_ubytovani = :nechce
              WHERE id_uzivatele = :customer',
             [
-                'spolubydlici' => $spolubydlici ?? '',
-                'nechce'       => (int) $nechce,
+                'spolubydlici' => $roommate ?? '',
+                'nechce'       => (int) $declined,
                 'customer'     => $customer->getId(),
             ],
         );
@@ -107,9 +107,9 @@ class AccommodationWriter
     /**
      * @return int[] accommodation variant ids this customer holds for the year
      */
-    private function drzeneNoci(User $customer, int $year): array
+    private function heldNights(User $customer, int $year): array
     {
-        $drzene = $this->connection->fetchFirstColumn(
+        $held = $this->connection->fetchFirstColumn(
             'SELECT DISTINCT shop_nakupy.variant_id
              FROM shop_nakupy
              JOIN product_variant ON product_variant.id = shop_nakupy.variant_id
@@ -129,19 +129,19 @@ class AccommodationWriter
             ],
         );
 
-        return array_map('intval', $drzene);
+        return array_map('intval', $held);
     }
 
     /**
      * @param int[] $variantIds
      */
-    private function zmenaNoci(User $customer, int $year, array $variantIds): bool
+    private function nightsChanged(User $customer, int $year, array $variantIds): bool
     {
-        $drzene = $this->drzeneNoci($customer, $year);
-        sort($drzene);
+        $held = $this->heldNights($customer, $year);
+        sort($held);
         sort($variantIds);
 
-        return $drzene !== $variantIds;
+        return $held !== $variantIds;
     }
 
     /**
@@ -149,77 +149,77 @@ class AccommodationWriter
      *
      * @return array<int, ProductVariant> keyed by variant id
      */
-    private function nactiVarianty(array $variantIds, bool $jenSpacaky): array
+    private function loadVariants(array $variantIds, bool $sleepingBagsOnly): array
     {
         if ($variantIds === []) {
             return [];
         }
 
-        $varianty = [];
+        $variants = [];
         foreach ($this->productRepository->findByTag(ProductTagCode::UBYTOVANI) as $product) {
             // The grid hides room types under this restriction, so accepting one here would
             // let a hand-made request book what the customer cannot see.
-            if ($jenSpacaky && ! $product->hasTag(ProductTagCode::SPACAK->value)) {
+            if ($sleepingBagsOnly && ! $product->hasTag(ProductTagCode::SPACAK->value)) {
                 continue;
             }
             foreach ($product->getVariants() as $variant) {
                 $id = $variant->getId();
                 if ($id !== null && in_array($id, $variantIds, true) && $variant->getAccommodationDay() !== null) {
-                    $varianty[$id] = $variant;
+                    $variants[$id] = $variant;
                 }
             }
         }
 
         foreach ($variantIds as $variantId) {
-            if (! isset($varianty[$variantId])) {
+            if (! isset($variants[$variantId])) {
                 throw new \RuntimeException(sprintf('Noc %d není nabízeným ubytováním.', $variantId));
             }
         }
 
-        return $varianty;
+        return $variants;
     }
 
     /**
-     * @param int[] $dny
+     * @param int[] $days
      */
-    private function overNoci(array $dny, bool $muzeJednuNoc): void
+    private function validateNights(array $days, bool $maySingleNight): void
     {
-        $dny = array_values(array_unique($dny));
-        sort($dny, SORT_NUMERIC);
+        $days = array_values(array_unique($days));
+        sort($days, SORT_NUMERIC);
 
-        if ($dny === []) {
+        if ($days === []) {
             return;
         }
 
-        if (! $muzeJednuNoc && count($dny) < 2) {
-            throw new \RuntimeException(self::CHYBA_MINIMALNE_DVE_NOCI);
+        if (! $maySingleNight && count($days) < 2) {
+            throw new \RuntimeException(self::ERROR_AT_LEAST_TWO_NIGHTS);
         }
 
-        for ($i = 1, $pocet = count($dny); $i < $pocet; ++$i) {
-            if ($dny[$i] !== $dny[$i - 1] + 1) {
-                throw new \RuntimeException(self::CHYBA_NAVAZUJICI_NOCI);
+        for ($i = 1, $count = count($days); $i < $count; ++$i) {
+            if ($days[$i] !== $days[$i - 1] + 1) {
+                throw new \RuntimeException(self::ERROR_CONSECUTIVE_NIGHTS);
             }
         }
     }
 
     /**
-     * @param int[] $ponechatVariantIds
+     * @param int[] $keepVariantIds
      *
      * @return int[] variant ids the customer already had and keeps
      */
-    private function smazNevybraneNoci(User $customer, int $year, array $ponechatVariantIds): array
+    private function removeUnselectedNights(User $customer, int $year, array $keepVariantIds): array
     {
-        $drzene = $this->drzeneNoci($customer, $year);
+        $held = $this->heldNights($customer, $year);
 
-        $kSmazani = array_diff($drzene, $ponechatVariantIds);
-        if ($kSmazani !== []) {
+        $toRemove = array_diff($held, $keepVariantIds);
+        if ($toRemove !== []) {
             $this->connection->executeStatement(
                 'DELETE FROM shop_nakupy
                  WHERE id_uzivatele = :customer AND rok = :year AND variant_id IN (:variantIds)',
                 [
                     'customer'   => $customer->getId(),
                     'year'       => $year,
-                    'variantIds' => array_values($kSmazani),
+                    'variantIds' => array_values($toRemove),
                 ],
                 [
                     'variantIds' => \Doctrine\DBAL\ArrayParameterType::INTEGER,
@@ -227,7 +227,7 @@ class AccommodationWriter
             );
         }
 
-        return array_values(array_intersect($drzene, $ponechatVariantIds));
+        return array_values(array_intersect($held, $keepVariantIds));
     }
 
     /**
@@ -236,14 +236,14 @@ class AccommodationWriter
      * legacy row, not the variant's parent — the day-variant migration reparented variants
      * onto one owner, and every legacy consumer reads ubytovani_den off id_predmetu.
      */
-    private function pridejNoc(
+    private function addNight(
         User $customer,
         ProductVariant $variant,
         int $year,
-        bool $smiPresKapacitu,
+        bool $mayOverbook,
     ): void {
         $product = $variant->getProduct();
-        $sleva = $this->discountCalculator->calculateDiscount($product, $customer, $year);
+        $discount = $this->discountCalculator->calculateDiscount($product, $customer, $year);
         $order = $this->cartService->getOrCreateCart($customer);
 
         // The count below reads a snapshot, so two writers would both see the last bed free.
@@ -276,13 +276,13 @@ class AccommodationWriter
                 'variant'      => $variant->getId(),
                 'order'        => $order->getId(),
                 'year'         => $year,
-                'price'        => $sleva['finalPrice'],
+                'price'        => $discount['finalPrice'],
                 'productName'  => $product->getName(),
                 'productCode'  => $product->getCode(),
                 'productTags'  => json_encode($product->getTagNames(), JSON_THROW_ON_ERROR),
                 'variantName'  => $variant->getName(),
                 'variantCode'  => $variant->getCode(),
-                'presKapacitu' => (int) $smiPresKapacitu,
+                'presKapacitu' => (int) $mayOverbook,
             ],
         );
 
@@ -290,7 +290,7 @@ class AccommodationWriter
             // The override makes the capacity test always pass, so getting here at all means
             // the caller did not have it. Telling the desk the night is "obsazené" when the
             // real answer is "you may not overbook" sends them hunting for a bed that exists.
-            throw new \RuntimeException(sprintf(self::CHYBA_PLNA_NOC_BEZ_PRAVA, $product->getName(), $variant->getName()));
+            throw new \RuntimeException(sprintf(self::ERROR_OVERBOOKING_NOT_PERMITTED, $product->getName(), $variant->getName()));
         }
     }
 }

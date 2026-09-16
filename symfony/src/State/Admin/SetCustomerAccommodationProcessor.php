@@ -45,7 +45,7 @@ readonly class SetCustomerAccommodationProcessor implements ProcessorInterface
      */
     public function process(mixed $data, Operation $operation, array $uriVariables = [], array $context = []): null
     {
-        $operator = $this->overOperatora();
+        $operator = $this->verifyOperator();
 
         $customer = $this->entityManager->find(User::class, $data->customerId);
         if ($customer === null) {
@@ -69,10 +69,10 @@ readonly class SetCustomerAccommodationProcessor implements ProcessorInterface
                 $legacyCustomer->maPravo(Pravo::UBYTOVANI_MUZE_OBJEDNAT_JEDNU_NOC),
                 $roommate,
                 $data->declined,
-                $this->accommodationRules->jenSpacaky($legacyCustomer),
+                $this->accommodationRules->sleepingBagsOnly($legacyCustomer),
                 // Legacy offered this button to the infopult chief but never checked on write,
                 // so a hand-made request overbooked for anyone. Now the server decides.
-                smiPresKapacitu: $operator->jeSefInfopultu(),
+                mayOverbook: $operator->jeSefInfopultu(),
             );
         } catch (\RuntimeException $chyba) {
             throw new BadRequestHttpException($chyba->getMessage(), $chyba);
@@ -86,7 +86,7 @@ readonly class SetCustomerAccommodationProcessor implements ProcessorInterface
      * ROLE_ADMIN cannot stand in for them: it is granted by role code, and the codes that
      * carry these rights are per-year (`gc2026_infopult`), so it matches neither reliably.
      */
-    private function overOperatora(): \Uzivatel
+    private function verifyOperator(): \Uzivatel
     {
         $operator = $this->legacySession->getCurrentUser();
         if ($operator === null) {
