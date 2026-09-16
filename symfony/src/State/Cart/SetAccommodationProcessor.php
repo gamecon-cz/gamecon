@@ -65,7 +65,7 @@ readonly class SetAccommodationProcessor implements ProcessorInterface
                 $legacyUzivatel->maPravo(Pravo::UBYTOVANI_MUZE_OBJEDNAT_JEDNU_NOC),
                 $data->roommate,
                 $data->declined,
-                $this->accommodationRules->jenSpacaky($legacyUzivatel),
+                $this->accommodationRules->sleepingBagsOnly($legacyUzivatel),
             );
         } catch (\RuntimeException $chyba) {
             throw new BadRequestHttpException($chyba->getMessage(), $chyba);
