@@ -9,9 +9,11 @@ use ApiPlatform\Metadata\Get;
 use ApiPlatform\Metadata\Post;
 use ApiPlatform\OpenApi\Model\Operation;
 use App\Dto\Admin\SetCustomerAccommodationInputDto;
+use App\Dto\Admin\CustomerMealsOutputDto;
 use App\Dto\Admin\SetCustomerMealsInputDto;
 use App\Dto\Cart\AccommodationOutputDto;
 use App\State\Admin\CustomerAccommodationProvider;
+use App\State\Admin\CustomerMealsProvider;
 use App\State\Admin\SetCustomerAccommodationProcessor;
 use App\State\Admin\SetCustomerMealsProcessor;
 
@@ -47,6 +49,17 @@ use App\State\Admin\SetCustomerMealsProcessor;
             openapi: new Operation(
                 summary: 'Set a participant\'s accommodation',
                 description: 'Replaces the named customer\'s nights with exactly the ones sent; an empty list cancels the booking. Returns the same payload as GET.',
+            ),
+        ),
+        new Get(
+            uriTemplate: '/admin/customer-meals',
+            output: CustomerMealsOutputDto::class,
+            provider: CustomerMealsProvider::class,
+            // The operator's right is checked in the provider, for the same reason as above.
+            security: "is_granted('ROLE_USER')",
+            openapi: new Operation(
+                summary: 'Read a participant\'s meals',
+                description: 'The variant ids the customer named in ?customerId currently holds. The catalogue comes from /cart/meals.',
             ),
         ),
         new Post(
