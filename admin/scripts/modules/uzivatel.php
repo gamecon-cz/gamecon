@@ -75,7 +75,6 @@ if ($uPracovni && $uPracovni->gcPrihlasen()) {
     // Which participant the grid is for. The API cannot learn it on its own: the working user
     // lives in a session key of its own, and the token names the operator.
     $x->assign('idUbytovanehoUzivatele', $uPracovni->id());
-    $x->assign('jidloHtml', $shop->jidloHtml(true));
     if ($shop->objednalNejakeJidlo()) {
         $x->assign('urlStravenky', URL_ADMIN . '/reporty/stravenky?format=html&id_uzivatele=' . $uPracovni->id());
         foreach ($shop->objednanaJidlaDleDnu() as $denData) {
