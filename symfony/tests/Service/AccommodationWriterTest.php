@@ -315,7 +315,7 @@ class AccommodationWriterTest extends AbstractDatabaseKernelTestCase
         $this->pripravUbytovani();
         $customer = $this->ucastnik();
 
-        $this->expectExceptionMessage(AccommodationWriter::CHYBA_NAVAZUJICI_NOCI);
+        $this->expectExceptionMessage(AccommodationWriter::ERROR_CONSECUTIVE_NIGHTS);
 
         $this->writer()->save($customer, $this->idNoci(0, 2), self::ROK, false);
     }
@@ -325,7 +325,7 @@ class AccommodationWriterTest extends AbstractDatabaseKernelTestCase
         $this->pripravUbytovani();
         $customer = $this->ucastnik();
 
-        $this->expectExceptionMessage(AccommodationWriter::CHYBA_MINIMALNE_DVE_NOCI);
+        $this->expectExceptionMessage(AccommodationWriter::ERROR_AT_LEAST_TWO_NIGHTS);
 
         $this->writer()->save($customer, $this->idNoci(0), self::ROK, false);
     }
@@ -623,7 +623,7 @@ class AccommodationWriterTest extends AbstractDatabaseKernelTestCase
             $this->idNoci(0, 1),
             self::ROK,
             false,
-            smiPresKapacitu: true,
+            mayOverbook: true,
         );
 
         self::assertSame(1, $this->pocetNoci($customer, 0));
@@ -635,14 +635,14 @@ class AccommodationWriterTest extends AbstractDatabaseKernelTestCase
         $this->pripravUbytovani();
         $customer = $this->ucastnik();
 
-        $this->expectExceptionMessage(AccommodationWriter::CHYBA_NAVAZUJICI_NOCI);
+        $this->expectExceptionMessage(AccommodationWriter::ERROR_CONSECUTIVE_NIGHTS);
 
         $this->writer()->save(
             $customer,
             $this->idNoci(0, 2),
             self::ROK,
             false,
-            smiPresKapacitu: true,
+            mayOverbook: true,
         );
     }
 
