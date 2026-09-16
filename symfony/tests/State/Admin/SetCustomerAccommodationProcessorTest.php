@@ -52,13 +52,13 @@ class SetCustomerAccommodationProcessorTest extends AbstractDatabaseKernelTestCa
         );
     }
 
-    private function operator(bool $smiObjednavat = true, bool $jeSefInfopultu = false): MockObject
+    private function operator(bool $mayOrder = true, bool $isInfopultChief = false): MockObject
     {
         $operator = $this->createMock(\Uzivatel::class);
-        $operator->method('jeSefInfopultu')->willReturn($jeSefInfopultu);
+        $operator->method('jeSefInfopultu')->willReturn($isInfopultChief);
         $operator->method('maPravo')->willReturnCallback(
-            static fn (int $pravo): bool => $smiObjednavat && in_array(
-                $pravo,
+            static fn (int $permission): bool => $mayOrder && in_array(
+                $permission,
                 [Pravo::ADMINISTRACE_UBYTOVANI, Pravo::ADMINISTRACE_INFOPULT],
                 true,
             ),
@@ -67,7 +67,7 @@ class SetCustomerAccommodationProcessorTest extends AbstractDatabaseKernelTestCa
         return $operator;
     }
 
-    private function vstup(int $customerId = 4242): SetCustomerAccommodationInputDto
+    private function input(int $customerId = 4242): SetCustomerAccommodationInputDto
     {
         $input = new SetCustomerAccommodationInputDto();
         $input->customerId = $customerId;
@@ -75,14 +75,14 @@ class SetCustomerAccommodationProcessorTest extends AbstractDatabaseKernelTestCa
         return $input;
     }
 
-    private function prihlasOperatora(bool $jeSefInfopultu = false): void
+    private function signInOperator(bool $isInfopultChief = false): void
     {
         $this->legacySession->method('getCurrentUser')->willReturn(
-            $this->operator(jeSefInfopultu: $jeSefInfopultu),
+            $this->operator(isInfopultChief: $isInfopultChief),
         );
     }
 
-    private function zakaznik(int $id = 4242): MockObject
+    private function customer(int $id = 4242): MockObject
     {
         $customer = $this->createMock(User::class);
         $customer->method('getId')->willReturn($id);
@@ -91,14 +91,14 @@ class SetCustomerAccommodationProcessorTest extends AbstractDatabaseKernelTestCa
         return $customer;
     }
 
-    private function legacyZakaznik(string $ubytovanS = '', bool $smiJednuNoc = false): MockObject
+    private function legacyCustomer(string $roommate = '', bool $maySingleNight = false): MockObject
     {
         $legacyCustomer = $this->createMock(\Uzivatel::class);
-        $legacyCustomer->method('ubytovanS')->willReturn($ubytovanS);
+        $legacyCustomer->method('ubytovanS')->willReturn($roommate);
         // Answers for one right only: a blanket stub would pass even if the processor read
         // some other permission off the customer.
         $legacyCustomer->method('maPravo')->willReturnCallback(
-            static fn (int $pravo): bool => $smiJednuNoc && $pravo === Pravo::UBYTOVANI_MUZE_OBJEDNAT_JEDNU_NOC,
+            static fn (int $permission): bool => $maySingleNight && $permission === Pravo::UBYTOVANI_MUZE_OBJEDNAT_JEDNU_NOC,
         );
         $this->legacySession->method('getUserById')->willReturn($legacyCustomer);
 
@@ -107,9 +107,9 @@ class SetCustomerAccommodationProcessorTest extends AbstractDatabaseKernelTestCa
 
     public function testNightsAreSavedForTheCustomer(): void
     {
-        $this->prihlasOperatora();
-        $customer = $this->zakaznik();
-        $this->legacyZakaznik();
+        $this->signInOperator();
+        $customer = $this->customer();
+        $this->legacyCustomer();
 
         $this->accommodationWriter
             ->expects(self::once())
@@ -124,7 +124,7 @@ class SetCustomerAccommodationProcessorTest extends AbstractDatabaseKernelTestCa
                 self::anything(),
             );
 
-        $input = $this->vstup();
+        $input = $this->input();
         $input->variantIds = [11, 12];
 
         $this->processor->process($input, new Post());
@@ -136,9 +136,9 @@ class SetCustomerAccommodationProcessorTest extends AbstractDatabaseKernelTestCa
      */
     public function testOmittedRoommateKeepsTheStoredOne(): void
     {
-        $this->prihlasOperatora();
-        $this->zakaznik();
-        $this->legacyZakaznik(ubytovanS: 'Už tam bydlí');
+        $this->signInOperator();
+        $this->customer();
+        $this->legacyCustomer(roommate: 'Už tam bydlí');
 
         $this->accommodationWriter
             ->expects(self::once())
@@ -153,14 +153,14 @@ class SetCustomerAccommodationProcessorTest extends AbstractDatabaseKernelTestCa
                 self::anything(),
             );
 
-        $this->processor->process($this->vstup(), new Post());
+        $this->processor->process($this->input(), new Post());
     }
 
     public function testSentRoommateReplacesTheStoredOne(): void
     {
-        $this->prihlasOperatora();
-        $this->zakaznik();
-        $this->legacyZakaznik(ubytovanS: 'Už tam bydlí');
+        $this->signInOperator();
+        $this->customer();
+        $this->legacyCustomer(roommate: 'Už tam bydlí');
 
         $this->accommodationWriter
             ->expects(self::once())
@@ -175,7 +175,7 @@ class SetCustomerAccommodationProcessorTest extends AbstractDatabaseKernelTestCa
                 self::anything(),
             );
 
-        $input = $this->vstup();
+        $input = $this->input();
         $input->roommate = 'Někdo jiný';
 
         $this->processor->process($input, new Post());
@@ -187,9 +187,9 @@ class SetCustomerAccommodationProcessorTest extends AbstractDatabaseKernelTestCa
      */
     public function testSingleNightPermissionComesFromTheCustomer(): void
     {
-        $this->prihlasOperatora();
-        $this->zakaznik();
-        $this->legacyZakaznik(smiJednuNoc: true);
+        $this->signInOperator();
+        $this->customer();
+        $this->legacyCustomer(maySingleNight: true);
 
         $this->accommodationWriter
             ->expects(self::once())
@@ -204,7 +204,7 @@ class SetCustomerAccommodationProcessorTest extends AbstractDatabaseKernelTestCa
                 self::anything(),
             );
 
-        $this->processor->process($this->vstup(), new Post());
+        $this->processor->process($this->input(), new Post());
     }
 
     /**
@@ -213,9 +213,9 @@ class SetCustomerAccommodationProcessorTest extends AbstractDatabaseKernelTestCa
      */
     public function testOnlyTheInfopultChiefMayOverbook(): void
     {
-        $this->prihlasOperatora(jeSefInfopultu: true);
-        $this->zakaznik();
-        $this->legacyZakaznik();
+        $this->signInOperator(isInfopultChief: true);
+        $this->customer();
+        $this->legacyCustomer();
 
         $this->accommodationWriter
             ->expects(self::once())
@@ -231,14 +231,14 @@ class SetCustomerAccommodationProcessorTest extends AbstractDatabaseKernelTestCa
                 self::identicalTo(true),
             );
 
-        $this->processor->process($this->vstup(), new Post());
+        $this->processor->process($this->input(), new Post());
     }
 
     public function testOrdinaryOperatorMayNotOverbook(): void
     {
-        $this->prihlasOperatora();
-        $this->zakaznik();
-        $this->legacyZakaznik();
+        $this->signInOperator();
+        $this->customer();
+        $this->legacyCustomer();
 
         $this->accommodationWriter
             ->expects(self::once())
@@ -254,7 +254,7 @@ class SetCustomerAccommodationProcessorTest extends AbstractDatabaseKernelTestCa
                 self::identicalTo(false),
             );
 
-        $this->processor->process($this->vstup(), new Post());
+        $this->processor->process($this->input(), new Post());
     }
 
     public function testSignedOutCallerIsRefused(): void
@@ -264,7 +264,7 @@ class SetCustomerAccommodationProcessorTest extends AbstractDatabaseKernelTestCa
 
         $this->expectException(AccessDeniedHttpException::class);
 
-        $this->processor->process($this->vstup(), new Post());
+        $this->processor->process($this->input(), new Post());
     }
 
     /**
@@ -273,12 +273,12 @@ class SetCustomerAccommodationProcessorTest extends AbstractDatabaseKernelTestCa
      */
     public function testOperatorWithoutTheRightIsRefused(): void
     {
-        $this->legacySession->method('getCurrentUser')->willReturn($this->operator(smiObjednavat: false));
+        $this->legacySession->method('getCurrentUser')->willReturn($this->operator(mayOrder: false));
         $this->entityManager->expects(self::never())->method('find');
 
         $this->expectException(AccessDeniedHttpException::class);
 
-        $this->processor->process($this->vstup(), new Post());
+        $this->processor->process($this->input(), new Post());
     }
 
     public function testUnknownCustomerIsRefused(): void
@@ -290,7 +290,7 @@ class SetCustomerAccommodationProcessorTest extends AbstractDatabaseKernelTestCa
         $this->expectException(BadRequestHttpException::class);
         $this->expectExceptionMessageMatches('~123456789~');
 
-        $this->processor->process($this->vstup(123456789), new Post());
+        $this->processor->process($this->input(123456789), new Post());
     }
 
     /**
@@ -308,7 +308,7 @@ class SetCustomerAccommodationProcessorTest extends AbstractDatabaseKernelTestCa
 
         $this->expectException(BadRequestHttpException::class);
 
-        $this->processor->process($this->vstup(), new Post());
+        $this->processor->process($this->input(), new Post());
     }
 
     /**
@@ -330,6 +330,6 @@ class SetCustomerAccommodationProcessorTest extends AbstractDatabaseKernelTestCa
 
         $this->expectException(BadRequestHttpException::class);
 
-        $this->processor->process($this->vstup(), new Post());
+        $this->processor->process($this->input(), new Post());
     }
 }
