@@ -22,6 +22,11 @@ services:
             - '../src/Entity/'
             - '../src/DependencyInjection/'
 
+    # Pravidla slev se čtou legacy funkcí dbFetchAll — callable se nedá autowirovat.
+    App\Discount\DiscountRuleLoader:
+        arguments:
+            $fetchAll: 'dbFetchAll'
+
     # Legacy integration services
     legacy.session:
         class: 'App\Service\LegacySessionService'
