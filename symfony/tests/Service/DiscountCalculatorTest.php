@@ -4,248 +4,141 @@ declare(strict_types=1);
 
 namespace App\Tests\Service;
 
+use App\Discount\DiscountRuleLoader;
 use App\Entity\Product;
-use App\Entity\ProductDiscount;
-use App\Entity\Role;
+use App\Entity\ProductTag;
 use App\Entity\User;
-use App\Entity\UserRole;
-use App\Enum\RoleMeaning;
-use App\Repository\OrderItemRepository;
-use App\Repository\ProductDiscountRepository;
+use App\Enum\ProductTagCode;
 use App\Service\DiscountCalculator;
-use PHPUnit\Framework\MockObject\MockObject;
+use Gamecon\SystemoveNastaveni\SystemoveNastaveni;
 use PHPUnit\Framework\TestCase;
-use App\Enum\ProductStateEnum;
 
+/**
+ * Slevy ve storefrontu se musí počítat ze stejných pravidel jako v legacy Ceniku — jinak
+ * účastník vidí v e-shopu jinou cenu, než jakou mu spočítají finance.
+ *
+ * Testuje se proti skutečnému motoru (DiscountCalculation), ne proti mocku repozitáře:
+ * předchozí verze četla jinou, prázdnou tabulku a sada testů nad mockem to nezachytila.
+ */
 class DiscountCalculatorTest extends TestCase
 {
-    private MockObject $discountRepository;
+    private const ROK = 2026;
 
-    private MockObject $orderItemRepository;
+    private const PRAVO_SLEVA_NA_JIDLO = 1004;
 
-    private DiscountCalculator $calculator;
+    private const PRAVO_UBYTOVANI_ZDARMA = 1008;
 
-    protected function setUp(): void
+    private const PRAVIDLO_JIDLO = [
+        'code'           => 'jidlo_se_slevou',
+        'name'           => 'Sleva orga na jídlo',
+        'required_right' => self::PRAVO_SLEVA_NA_JIDLO,
+        'parameters'     => '{"scope":"tag","effect":"fixed_amount","tag":"jidlo","amountSetting":"organizerMealDiscount"}',
+    ];
+
+    /**
+     * @param array<int, array<string, mixed>> $pravidla
+     * @param int[]                            $prava
+     */
+    private function kalkulator(array $pravidla, array $prava): DiscountCalculator
     {
-        $this->discountRepository = $this->createMock(ProductDiscountRepository::class);
-        $this->orderItemRepository = $this->createMock(OrderItemRepository::class);
-        $this->calculator = new DiscountCalculator(
-            $this->discountRepository,
-            $this->orderItemRepository,
-        );
+        $fetchAll = static function (string $sql) use ($pravidla, $prava): array {
+            if (str_contains($sql, 'discount_rule')) {
+                return $pravidla;
+            }
+
+            return array_map(static fn (int $pravo): array => [
+                'id_prava' => $pravo,
+            ], $prava);
+        };
+
+        $systemoveNastaveni = $this->createMock(SystemoveNastaveni::class);
+        $systemoveNastaveni->method('slevaOrguNaJidloCastka')->willReturn(30.0);
+        $systemoveNastaveni->method('modreTrickoZdarmaOd')->willReturn(1000.0);
+
+        return new DiscountCalculator(new DiscountRuleLoader($fetchAll), $systemoveNastaveni);
     }
 
-    public function testCalculateDiscountWithNoUserRoles(): void
-    {
-        $product = $this->createProduct('100.00');
-        $user = new User();
-
-        $result = $this->calculator->calculateDiscount($product, $user, 2025);
-
-        $this->assertNull($result['discount']);
-        $this->assertSame('0.00', $result['discountAmount']);
-        $this->assertSame('100.00', $result['finalPrice']);
-        $this->assertNull($result['reason']);
-    }
-
-    public function testCalculateDiscountWithNoDiscount(): void
-    {
-        $product = $this->createProduct('100.00');
-        $user = $this->createUserWithRoles([RoleMeaning::ORGANIZATOR_ZDARMA]);
-
-        $this->discountRepository
-            ->expects($this->once())
-            ->method('findBestDiscountForProduct')
-            ->willReturn(null);
-
-        $result = $this->calculator->calculateDiscount($product, $user, 2025);
-
-        $this->assertNull($result['discount']);
-        $this->assertSame('0.00', $result['discountAmount']);
-        $this->assertSame('100.00', $result['finalPrice']);
-    }
-
-    public function testIsEligibleForDiscount(): void
-    {
-        $product = $this->createProduct('100.00');
-        $user = new User();
-
-        $eligible = $this->calculator->isEligibleForDiscount($product, $user, 2025);
-        $this->assertFalse($eligible);
-    }
-
-    public function testCalculateDiscountWithPercentageDiscount(): void
-    {
-        $product = $this->createProduct('100.00');
-        $user = $this->createUserWithRoles([RoleMeaning::VYPRAVEC]);
-
-        $discount = new ProductDiscount();
-        $discount->setProduct($product);
-        $discount->setRole(RoleMeaning::VYPRAVEC);
-        $discount->setDiscountPercent('20.00');
-
-        $this->discountRepository
-            ->expects($this->once())
-            ->method('findBestDiscountForProduct')
-            ->willReturn($discount);
-
-        $result = $this->calculator->calculateDiscount($product, $user, 2025);
-
-        $this->assertSame($discount, $result['discount']);
-        $this->assertSame('20.00', $result['discountAmount']);
-        $this->assertSame('80.00', $result['finalPrice']);
-        $this->assertStringContainsString('20', $result['reason']);
-    }
-
-    public function testCalculateDiscountWithMultipleRoles(): void
-    {
-        $product = $this->createProduct('100.00');
-        $user = $this->createUserWithRoles([RoleMeaning::ORGANIZATOR_ZDARMA, RoleMeaning::VYPRAVEC]);
-
-        $discount = new ProductDiscount();
-        $discount->setProduct($product);
-        $discount->setRole(RoleMeaning::ORGANIZATOR_ZDARMA);
-        $discount->setDiscountPercent('30.00');
-
-        $this->discountRepository
-            ->expects($this->once())
-            ->method('findBestDiscountForProduct')
-            ->willReturn($discount);
-
-        $result = $this->calculator->calculateDiscount($product, $user, 2025);
-
-        $this->assertSame($discount, $result['discount']);
-        $this->assertSame('30.00', $result['discountAmount']);
-        $this->assertSame('70.00', $result['finalPrice']);
-    }
-
-    public function testCalculateDiscountWithQuantityLimit(): void
-    {
-        $product = $this->createProduct('100.00');
-        $user = $this->createUserWithRoles([RoleMeaning::ORGANIZATOR_ZDARMA]);
-
-        $discount = new ProductDiscount();
-        $discount->setProduct($product);
-        $discount->setRole(RoleMeaning::ORGANIZATOR_ZDARMA);
-        $discount->setDiscountPercent('25.00');
-        $discount->setMaxQuantity(2);
-
-        $this->discountRepository
-            ->expects($this->once())
-            ->method('findBestDiscountForProduct')
-            ->willReturn($discount);
-
-        $this->orderItemRepository
-            ->expects($this->once())
-            ->method('countCustomerPurchases')
-            ->with($user, $product, 2025)
-            ->willReturn(0);
-
-        $result = $this->calculator->calculateDiscount($product, $user, 2025);
-
-        $this->assertSame($discount, $result['discount']);
-        $this->assertSame('25.00', $result['discountAmount']);
-    }
-
-    public function testCalculateDiscountWithExceededQuantityLimit(): void
-    {
-        $product = $this->createProduct('100.00');
-        $user = $this->createUserWithRoles([RoleMeaning::ORGANIZATOR_ZDARMA]);
-
-        $discount = new ProductDiscount();
-        $discount->setProduct($product);
-        $discount->setRole(RoleMeaning::ORGANIZATOR_ZDARMA);
-        $discount->setDiscountPercent('25.00');
-        $discount->setMaxQuantity(2);
-
-        $this->discountRepository
-            ->expects($this->once())
-            ->method('findBestDiscountForProduct')
-            ->willReturn($discount);
-
-        $this->orderItemRepository
-            ->expects($this->once())
-            ->method('countCustomerPurchases')
-            ->with($user, $product, 2025)
-            ->willReturn(2);
-
-        $result = $this->calculator->calculateDiscount($product, $user, 2025);
-
-        $this->assertNull($result['discount']);
-        $this->assertSame('0.00', $result['discountAmount']);
-        $this->assertSame('100.00', $result['finalPrice']);
-        $this->assertSame('Limit slevy vyčerpán', $result['reason']);
-    }
-
-    public function testGetRemainingQuota(): void
-    {
-        $product = $this->createProduct('100.00');
-        $user = $this->createUserWithRoles([RoleMeaning::ORGANIZATOR_ZDARMA]);
-
-        $discount = new ProductDiscount();
-        $discount->setProduct($product);
-        $discount->setRole(RoleMeaning::ORGANIZATOR_ZDARMA);
-        $discount->setDiscountPercent('25.00');
-        $discount->setMaxQuantity(3);
-
-        $this->discountRepository
-            ->expects($this->once())
-            ->method('findBestDiscountForProduct')
-            ->willReturn($discount);
-
-        $this->orderItemRepository
-            ->expects($this->once())
-            ->method('countCustomerPurchases')
-            ->with($user, $product, 2025)
-            ->willReturn(1);
-
-        $remaining = $this->calculator->getRemainingQuota($product, $user, 2025);
-
-        $this->assertSame(2, $remaining);
-    }
-
-    public function testGetRemainingQuotaWithNoRoles(): void
-    {
-        $product = $this->createProduct('100.00');
-        $user = new User();
-
-        $remaining = $this->calculator->getRemainingQuota($product, $user, 2025);
-
-        $this->assertNull($remaining);
-    }
-
-    private function createProduct(string $price): Product
+    private function produkt(string $nazev, string $cena, ?ProductTagCode $tag): Product
     {
         $product = new Product();
-        $product->setName('Test Product');
-        $product->setCode('TEST-001');
-        $product->setCurrentPrice($price);
-        $product->setState(ProductStateEnum::PUBLIC);
+        $product->setName($nazev);
+        $product->setCode(mb_strtolower($nazev));
+        $product->setCurrentPrice($cena);
+        $product->setDescription('');
+
+        if ($tag !== null) {
+            $productTag = new ProductTag();
+            $productTag->setCode($tag->value);
+            $productTag->setName($tag->value);
+            $product->addTag($productTag);
+        }
+
+        $reflexe = new \ReflectionProperty(Product::class, 'id');
+        $reflexe->setValue($product, 42);
 
         return $product;
     }
 
-    /**
-     * @param RoleMeaning[] $meanings
-     */
-    private function createUserWithRoles(array $meanings): User
+    private function uzivatel(): User
     {
-        $user = new User();
-
-        foreach ($meanings as $meaning) {
-            $role = new Role();
-            $role->setKodRole($meaning->value);
-            $role->setNazevRole($meaning->value);
-            $role->setPopisRole('');
-            $role->setRocnikRole(-1);
-            $role->setTypRole('trvala');
-            $role->setVyznamRole($meaning);
-
-            $userRole = new UserRole();
-            $userRole->setUser($user);
-            $userRole->setRole($role);
-        }
+        $user = $this->createMock(User::class);
+        $user->method('getId')->willReturn(6474);
 
         return $user;
+    }
+
+    public function testPravoNaSlevuJidloZlevni(): void
+    {
+        $vysledek = $this->kalkulator([self::PRAVIDLO_JIDLO], [self::PRAVO_SLEVA_NA_JIDLO])
+            ->calculateDiscount($this->produkt('Oběd čtvrtek', '140.00', ProductTagCode::JIDLO), $this->uzivatel(), self::ROK);
+
+        self::assertSame('110.00', $vysledek['finalPrice']);
+        self::assertSame('30.00', $vysledek['discountAmount']);
+        self::assertSame('Sleva orga na jídlo', $vysledek['reason']);
+    }
+
+    public function testBezPravaPlnaCena(): void
+    {
+        $vysledek = $this->kalkulator([self::PRAVIDLO_JIDLO], [self::PRAVO_UBYTOVANI_ZDARMA])
+            ->calculateDiscount($this->produkt('Oběd čtvrtek', '140.00', ProductTagCode::JIDLO), $this->uzivatel(), self::ROK);
+
+        self::assertSame('140.00', $vysledek['finalPrice']);
+        self::assertSame('0.00', $vysledek['discountAmount']);
+        self::assertNull($vysledek['reason']);
+    }
+
+    /**
+     * Pravidlo míří na tag `jidlo`; merch se ho nesmí chytit, i když kupující právo má.
+     */
+    public function testPravidloSeNevztahujeNaJinyTag(): void
+    {
+        $vysledek = $this->kalkulator([self::PRAVIDLO_JIDLO], [self::PRAVO_SLEVA_NA_JIDLO])
+            ->calculateDiscount($this->produkt('Placka', '40.00', ProductTagCode::PREDMET), $this->uzivatel(), self::ROK);
+
+        self::assertSame('40.00', $vysledek['finalPrice']);
+    }
+
+    public function testUbytovaniZdarmaJeZdarma(): void
+    {
+        $vysledek = $this->kalkulator([
+            [
+                'code'           => 'ubytovani_zdarma',
+                'name'           => 'Ubytování zdarma',
+                'required_right' => self::PRAVO_UBYTOVANI_ZDARMA,
+                'parameters'     => '{"scope":"tag","effect":"free","tag":"ubytovani"}',
+            ],
+        ], [self::PRAVO_UBYTOVANI_ZDARMA])
+            ->calculateDiscount($this->produkt('Postel na 2L koleji', '500.00', ProductTagCode::UBYTOVANI), $this->uzivatel(), self::ROK);
+
+        self::assertSame('0.00', $vysledek['finalPrice']);
+        self::assertSame('500.00', $vysledek['discountAmount']);
+    }
+
+    public function testProduktBezTaguNemaSlevu(): void
+    {
+        $vysledek = $this->kalkulator([self::PRAVIDLO_JIDLO], [self::PRAVO_SLEVA_NA_JIDLO])
+            ->calculateDiscount($this->produkt('Vstupné', '250.00', null), $this->uzivatel(), self::ROK);
+
+        self::assertSame('250.00', $vysledek['finalPrice']);
     }
 }
