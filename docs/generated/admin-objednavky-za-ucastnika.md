@@ -102,6 +102,35 @@ doputovat z PHP do stránky a odtud do API. A protože `renderComponent()` montu
 **bez props**, znamená to zásah do sdíleného montážního helperu (data-atribut nebo další pole
 v `GAMECON_KONSTANTY`), ne lokální změnu mřížky.
 
+#### Proč pracovní uživatel nepatří do JWT
+
+Nabízí se dát `$uPracovni` rovnou do tokenu a mít klid. Na PiercingApp se to tak dělá — token
+tam nese `store` (`JwtService::getAdditionalPayload()`), takže otázka „proč ne u nás" přijde
+znovu. Rozdíl je v tom, co se do tokenu dává:
+
+- **`homeStore` je vlastnost uživatele.** Je uložená na entitě (`AdminUser::$homeStore`), měnit
+  ji smí jen admin nebo area manager (`OnlyAdminOrAreaManagerCanChangeIt`) a změna má vlastní
+  validaci. Je to údaj **o člověku**, stejně jako jeho id nebo role.
+- **`$uPracovni` je okamžitý výběr v UI.** Obsluha ho mění i několikrát za minutu psaním do
+  omniboxu, nikde se neukládá a nikdo ho neschvaluje.
+
+Dělicí čára tedy nevede mezi „identita a kontext", ale mezi **pomalu se měnícím faktem, který
+někdo spravuje**, a **výběrem, který si držitel tokenu mění sám**. To první do tokenu patří,
+druhé ne.
+
+U nás to má konkrétní důsledek: token platí **hodinu a nejde odvolat** (`JwtService`, žádné
+`jti` ani blocklist). Token vydaný nad účastníkem A by tak hodinu zůstal platný i poté, co
+obsluha přepnula na B — buď by se musel razit znovu při každém přepnutí, nebo by zápisy končily
+u špatného člověka. A stálý token se zapečeným účastníkem je navíc hodinu použitelná oprávnění
+k úpravě jeho objednávky. S `customerId` v payloadu tohle nehrozí: server si práva obsluhy ověří
+při každém requestu a zákazník je ten, kterého říká **tenhle** request.
+
+(Kdyby token byl krátkodobý a razil se pro jednu akci, zúžení na jednoho účastníka by naopak
+dávalo smysl — to je ale opak dnešního stavu.)
+
+Co z PiercingApp stojí za převzetí, je tvar `getAdditionalPayload()` jako rozšiřovacího bodu;
+gamecon má dnes ve `JwtService::extractUserData()` čtyři napevno zadrátovaná pole a žádný šev.
+
 ### 6. Snídaně: admin je umí zrušit, ale ne vrátit
 
 `AccommodationWriter::save()` volá `breakfastCanceller->cancelCovered()` pro **všechny** volající,
