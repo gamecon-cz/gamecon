@@ -430,7 +430,7 @@ class AccommodationWriterTest extends AbstractDatabaseKernelTestCase
             ],
         );
 
-        $this->expectExceptionMessage('obsazené');
+        $this->expectExceptionMessage('přeplnit ho smí jen šéf infopultu');
 
         $this->writer()->save($customer, $this->idNoci(0), self::ROK, true);
     }
