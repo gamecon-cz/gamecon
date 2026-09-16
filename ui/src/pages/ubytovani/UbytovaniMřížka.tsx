@@ -1,6 +1,7 @@
 import { h } from "preact";
 import { useEffect, useState } from "preact/hooks";
 import { fetchAccommodation, saveAccommodation } from "../../api/symfony/endpoints";
+import { MountProps } from "../mountProps";
 import { ApiAccommodation, ApiAccommodationCell } from "../../api/symfony/types";
 import "./UbytovaniMřížka.less";
 
@@ -24,7 +25,7 @@ function stavBuňky(cell: ApiAccommodationCell): string {
  * booking have to be consecutive, so the server judges the set as a whole and refuses it
  * as a whole.
  */
-export function UbytovaniMřížka() {
+export function UbytovaniMřížka({ customerId }: MountProps) {
   const [ubytovani, setUbytovani] = useState<ApiAccommodation | null>(null);
   const [loading, setLoading] = useState(true);
   const [ukladani, setUkladani] = useState(false);
@@ -32,7 +33,7 @@ export function UbytovaniMřížka() {
   const [rozpojeno, setRozpojeno] = useState(false);
 
   useEffect(() => {
-    fetchAccommodation()
+    fetchAccommodation(customerId)
       .then((data) => {
         setUbytovani(data);
         setLoading(false);
@@ -41,7 +42,7 @@ export function UbytovaniMřížka() {
         setError(chyba instanceof Error ? chyba.message : "Nepodařilo se načíst ubytování");
         setLoading(false);
       });
-  }, []);
+  }, [customerId]);
 
   const uloz = async (
     variantIds: number[],
@@ -56,13 +57,13 @@ export function UbytovaniMřížka() {
         roommate: zmena.roommate !== undefined ? zmena.roommate : ubytovani.roommate,
         declined: zmena.declined !== undefined ? zmena.declined : ubytovani.declined,
         restoreBreakfasts: zmena.restoreBreakfasts ?? false,
-      }));
+      }, customerId));
     } catch (chyba: unknown) {
       setError(chyba instanceof Error ? chyba.message : "Uložení se nepodařilo");
       // The whole set was refused, so nothing was saved — reload rather than leave the grid
       // showing a pick the server does not have.
       try {
-        setUbytovani(await fetchAccommodation());
+        setUbytovani(await fetchAccommodation(customerId));
       } catch {
         // Now the grid cannot be trusted to match the server, so leave it disabled rather
         // than invite a click that would save against a state we no longer know.
@@ -162,7 +163,9 @@ export function UbytovaniMřížka() {
           : "Noci musí na sebe navazovat."}
       </p>
 
-      {restorableBreakfasts.length > 0 && (
+      {/* Only the participant can put breakfasts back: the admin endpoint has no such field,
+          so offering the button at the desk would look like it worked and do nothing. */}
+      {restorableBreakfasts.length > 0 && customerId === undefined && (
         <p class="ubytovani-mrizka--snidane">
           Hotelový pokoj zrušil tyto snídaně: {restorableBreakfasts.join(", ")}.{" "}
           <button
