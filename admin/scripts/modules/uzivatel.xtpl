@@ -158,15 +158,8 @@
 
   <div class="uzivatel-grid--item uzivatel-grid--item-ubytování aBox">
     <h3>Ubytování uživatele</h3>
-    <!-- begin:nechceUbytovaniInfo -->
-    <div><strong>Nechce ubytování:</strong> {nechceUbytovani}</div>
-    <br>
-    <!-- end:nechceUbytovaniInfo -->
     <!-- begin:ubytovani -->
-    <form method="post" class="clearfix">
-      {ubytovaniHtml}<br>
-      <input type="submit" name="zpracujUbytovani" value="Uložit" class="submit-btn">
-    </form>
+    <div id="preact-ubytovani" data-customer-id="{idUbytovanehoUzivatele}">Ubytování se načítá ...</div>
     <!-- end:ubytovani -->
     {status}
   </div>
@@ -414,5 +407,17 @@
   </div>
 
 </div>
+
+<!-- begin:preactUbytovani -->
+<link rel="stylesheet" href="files/ui/style.css?version={ubytovaniCssVersions.style}">
+<script>
+  window.GAMECON_KONSTANTY = {
+    BASE_PATH_API: "{ubytovaniBasePathApi}",
+    ROCNIK: {rocnik},
+    {ubytovaniJwtKonstanty}
+  }
+</script>
+<script type="module" src="files/ui/bundle.js?version={ubytovaniJsVersions.bundle}"></script>
+<!-- end:preactUbytovani -->
 
 <!-- end:uzivatel -->
