@@ -648,40 +648,26 @@
 
   <div class="infopult-grid--item infopult-grid--item-ubytování aBox">
     <h3>Ubytování</h3>
-    <form method="post" class="clearfix">
-      <table>
-        <tr>
-          <td>Pokoj:</td>
-          <td> {pokoj}</td>
-        </tr>
-        <tr>
-          <td>Spolubydlící:</td>
-          <td>
-            {spolubydlici}
-          </td>
-        </tr>
-        <tr>
-          <td>Ubytování:</td>
-          <td>{ubytovani}</td>
-        </tr>
-        <!-- begin:nechceUbytovaniInfo -->
-        <tr>
-          <td>Nechce ubytování:</td>
-          <td>{nechceUbytovani}</td>
-        </tr>
-        <!-- end:nechceUbytovaniInfo -->
-        <tr>
-          <td colspan="2">
-            Zrušit jiné ubytování než neděli může pouze šéf Infa.
-          </td>
-        </tr>
-        <tr>
-          <td colspan="2">{ubytovaniTabulka}</td>
-        </tr>
-      </table>
+    <table>
+      <tr>
+        <td>Pokoj:</td>
+        <td> {pokoj}</td>
+      </tr>
+      <tr>
+        <td>Spolubydlící:</td>
+        <td>
+          {spolubydlici}
+        </td>
+      </tr>
+      <tr>
+        <td>Ubytování:</td>
+        <td>{ubytovani}</td>
+      </tr>
+    </table>
 
-      <input type="submit" name="zpracujUbytovani" value="Uložit" class="submit-btn">
-    </form>
+    <!-- begin:ubytovaniMrizka -->
+    <div id="preact-ubytovani" data-customer-id="{idUbytovanehoUzivatele}">Ubytování se načítá ...</div>
+    <!-- end:ubytovaniMrizka -->
 
     {status}
   </div>
