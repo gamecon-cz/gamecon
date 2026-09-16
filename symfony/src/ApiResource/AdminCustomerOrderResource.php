@@ -8,8 +8,8 @@ use ApiPlatform\Metadata\ApiResource;
 use ApiPlatform\Metadata\Get;
 use ApiPlatform\Metadata\Post;
 use ApiPlatform\OpenApi\Model\Operation;
-use App\Dto\Admin\SetCustomerAccommodationInputDto;
 use App\Dto\Admin\CustomerMealsOutputDto;
+use App\Dto\Admin\SetCustomerAccommodationInputDto;
 use App\Dto\Admin\SetCustomerMealsInputDto;
 use App\Dto\Cart\AccommodationOutputDto;
 use App\State\Admin\CustomerAccommodationProvider;
@@ -65,13 +65,13 @@ use App\State\Admin\SetCustomerMealsProcessor;
         new Post(
             uriTemplate: '/admin/customer-meals',
             input: SetCustomerMealsInputDto::class,
-            output: false,
+            output: CustomerMealsOutputDto::class,
             processor: SetCustomerMealsProcessor::class,
             // The operator's right is checked in the processor, for the same reason as above.
             security: "is_granted('ROLE_USER')",
             openapi: new Operation(
                 summary: 'Set a participant\'s meals',
-                description: 'Replaces the named customer\'s meals with exactly the ones sent; an empty list cancels them all.',
+                description: 'Replaces the named customer\'s meals with exactly the ones sent; an empty list cancels them all. Answers with what the customer ends up holding, which drops a breakfast the hotel covers.',
             ),
         ),
     ],
