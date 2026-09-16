@@ -209,4 +209,71 @@ class MerchProductsProviderTest extends TestCase
         self::assertCount(1, $merch[0]->variants);
         self::assertSame('jedna velikost', $merch[0]->variants[0]->name);
     }
+
+    /**
+     * @test
+     */
+    public function pozastavenyProduktSeNenabizi(): void
+    {
+        $this->pripravProdukt([
+            'jedna velikost' => 10,
+        ])->setState(ProductStateEnum::SUSPENDED);
+
+        self::assertSame([], $this->provider->provide(new Get()));
+    }
+
+    /**
+     * @test
+     */
+    public function produktPoUplynutiNabizetDoSeNenabizi(): void
+    {
+        $this->pripravProdukt([
+            'jedna velikost' => 10,
+        ])->setAvailableUntil(new \DateTimeImmutable('2000-01-01 00:00:00'));
+
+        self::assertSame([], $this->provider->provide(new Get()));
+    }
+
+    /**
+     * Stažený produkt musí zůstat vidět tomu, kdo si ho už koupil — jinak by mu zmizel
+     * z přehledu nákupu.
+     *
+     * @test
+     */
+    public function pozastavenyProduktZustaneVidetKdyzHoUzZakaznikMa(): void
+    {
+        $this->pripravProdukt([
+            'jedna velikost' => 10,
+        ])->setState(ProductStateEnum::SUSPENDED);
+
+        $merch = $this->providerSNakoupenymiKusy(1)->provide(new Get());
+
+        self::assertCount(1, $merch);
+    }
+
+    private function providerSNakoupenymiKusy(int $kusu): MerchProductsProvider
+    {
+        $orderItemRepository = $this->createMock(OrderItemRepository::class);
+        $orderItemRepository->method('countCustomerPurchases')->willReturn($kusu);
+
+        $discountCalculator = $this->createMock(DiscountCalculator::class);
+        $discountCalculator->method('calculateDiscount')->willReturn([
+            'finalPrice'     => '100.00',
+            'discount'       => null,
+            'discountAmount' => null,
+            'reason'         => null,
+        ]);
+
+        $currentYearProvider = $this->createMock(CurrentYearProviderInterface::class);
+        $currentYearProvider->method('getCurrentYear')->willReturn(self::ROK);
+
+        return new MerchProductsProvider(
+            $this->productRepository,
+            $orderItemRepository,
+            $discountCalculator,
+            $currentYearProvider,
+            new ProductVariantsForGrid($orderItemRepository),
+            $this->security,
+        );
+    }
 }
