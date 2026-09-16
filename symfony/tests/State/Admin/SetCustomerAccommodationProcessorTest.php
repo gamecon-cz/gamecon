@@ -52,9 +52,10 @@ class SetCustomerAccommodationProcessorTest extends AbstractDatabaseKernelTestCa
         );
     }
 
-    private function operator(bool $smiObjednavat = true): MockObject
+    private function operator(bool $smiObjednavat = true, bool $jeSefInfopultu = false): MockObject
     {
         $operator = $this->createMock(\Uzivatel::class);
+        $operator->method('jeSefInfopultu')->willReturn($jeSefInfopultu);
         $operator->method('maPravo')->willReturnCallback(
             static fn (int $pravo): bool => $smiObjednavat && in_array(
                 $pravo,
@@ -74,11 +75,13 @@ class SetCustomerAccommodationProcessorTest extends AbstractDatabaseKernelTestCa
         return $input;
     }
 
-    private function zakaznik(int $id = 4242): MockObject
+    private function zakaznik(int $id = 4242, bool $jeSefInfopultu = false): MockObject
     {
         $customer = $this->createMock(User::class);
         $customer->method('getId')->willReturn($id);
-        $this->legacySession->method('getCurrentUser')->willReturn($this->operator());
+        $this->legacySession->method('getCurrentUser')->willReturn(
+            $this->operator(jeSefInfopultu: $jeSefInfopultu),
+        );
         $this->entityManager->method('find')->willReturn($customer);
 
         return $customer;
@@ -191,6 +194,54 @@ class SetCustomerAccommodationProcessorTest extends AbstractDatabaseKernelTestCa
                 self::anything(),
                 self::anything(),
                 self::anything(),
+            );
+
+        $this->processor->process($this->vstup(), new Post());
+    }
+
+    /**
+     * Legacy showed the "over capacity" button to the infopult chief but never checked it on
+     * write, so anyone reaching the screen could overbook. The server decides now.
+     */
+    public function testOnlyTheInfopultChiefMayOverbook(): void
+    {
+        $this->zakaznik(jeSefInfopultu: true);
+        $this->legacyZakaznik();
+
+        $this->accommodationWriter
+            ->expects(self::once())
+            ->method('save')
+            ->with(
+                self::anything(),
+                self::anything(),
+                self::anything(),
+                self::anything(),
+                self::anything(),
+                self::anything(),
+                self::anything(),
+                self::identicalTo(true),
+            );
+
+        $this->processor->process($this->vstup(), new Post());
+    }
+
+    public function testOrdinaryOperatorMayNotOverbook(): void
+    {
+        $this->zakaznik();
+        $this->legacyZakaznik();
+
+        $this->accommodationWriter
+            ->expects(self::once())
+            ->method('save')
+            ->with(
+                self::anything(),
+                self::anything(),
+                self::anything(),
+                self::anything(),
+                self::anything(),
+                self::anything(),
+                self::anything(),
+                self::identicalTo(false),
             );
 
         $this->processor->process($this->vstup(), new Post());
