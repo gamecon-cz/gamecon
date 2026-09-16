@@ -46,6 +46,11 @@ services:
     App\Service\CurrentYearProviderInterface:
         class: App\Service\CurrentYearProvider
 
+    # Reading the accommodation grid for a named customer, so the admin desk does not depend
+    # on the API Platform provider contract (which always answers for the signed-in user).
+    App\State\Cart\AccommodationGridInterface:
+        alias: App\State\Cart\AccommodationProvider
+
     # JWT service for cross-app authentication
     App\Service\JwtService:
         public: true

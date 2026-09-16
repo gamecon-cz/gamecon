@@ -5,9 +5,12 @@ declare(strict_types=1);
 namespace App\ApiResource;
 
 use ApiPlatform\Metadata\ApiResource;
+use ApiPlatform\Metadata\Get;
 use ApiPlatform\Metadata\Post;
 use ApiPlatform\OpenApi\Model\Operation;
 use App\Dto\Admin\SetCustomerAccommodationInputDto;
+use App\Dto\Cart\AccommodationOutputDto;
+use App\State\Admin\CustomerAccommodationProvider;
 use App\State\Admin\SetCustomerAccommodationProcessor;
 
 /**
@@ -20,17 +23,28 @@ use App\State\Admin\SetCustomerAccommodationProcessor;
  */
 #[ApiResource(
     operations: [
+        new Get(
+            uriTemplate: '/admin/customer-accommodation',
+            output: AccommodationOutputDto::class,
+            provider: CustomerAccommodationProvider::class,
+            // The operator's right is checked in the provider, for the same reason as below.
+            security: "is_granted('ROLE_USER')",
+            openapi: new Operation(
+                summary: 'Read a participant\'s accommodation',
+                description: 'The same payload the participant sees for themselves, for the customer named in ?customerId.',
+            ),
+        ),
         new Post(
             uriTemplate: '/admin/customer-accommodation',
             input: SetCustomerAccommodationInputDto::class,
-            output: false,
+            output: AccommodationOutputDto::class,
             processor: SetCustomerAccommodationProcessor::class,
             // The operator's right is checked in the processor: ROLE_ADMIN is granted by role
             // code, and the codes carrying these rights are per-year, so it matches neither.
             security: "is_granted('ROLE_USER')",
             openapi: new Operation(
                 summary: 'Set a participant\'s accommodation',
-                description: 'Replaces the named customer\'s nights with exactly the ones sent; an empty list cancels the booking.',
+                description: 'Replaces the named customer\'s nights with exactly the ones sent; an empty list cancels the booking. Returns the same payload as GET.',
             ),
         ),
     ],
