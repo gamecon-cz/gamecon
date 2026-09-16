@@ -211,7 +211,6 @@ if ($uPracovni) {
         // user lives in a session key of its own, and the token names the operator.
         $x->assign('idUbytovanehoUzivatele', $uPracovni->id());
         $x->parse('infopult.uzivatel.ubytovaniMrizka');
-        $x->assign('jidloHtml', $shop->jidloHtml(true));
         if ($shop->objednalNejakeJidlo()) {
             $x->assign('urlStravenky', URL_ADMIN . '/reporty/stravenky?format=html&id_uzivatele=' . $uPracovni->id());
             foreach ($shop->objednanaJidlaDleDnu() as $denData) {

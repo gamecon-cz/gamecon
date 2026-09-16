@@ -36,11 +36,6 @@ if (post('pridelitPokoj') && post('uid')) {
 }
 
 if ($shop !== null) {
-    if (post('zpracujJidlo')) {
-        $shop->zpracujJidlo();
-        $shop = $obnovPracovnihoUzivateleAShop();
-        oznameni('Jídlo uloženo');
-    }
 }
 
 if (!empty($_POST['prodej'])) {

@@ -170,10 +170,7 @@
     <!-- begin:jidlo -->
     Zrušit jídlo je možné jenom oproti vrácené stravence. Při objednání jídla je naopak potřeba předat stravenku (a
     zkontrolovat stav financí). Snídaně nabízíme jen organizátorům a vypravěčům.<br><br>
-    <form method="post" class="clearfix">
-      {jidloHtml}
-      <input type="submit" name="zpracujJidlo" value="Uložit" class="submit-btn">
-    </form>
+    <div id="preact-jidlo" data-customer-id="{idUbytovanehoUzivatele}">Jídlo se načítá ...</div>
     <!-- begin:odkazStravenky -->
     <button type="button" id="otevritStravenky" class="submit-btn" style="margin-top: 8px;">Tisk stravenek</button>
 

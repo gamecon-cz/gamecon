@@ -182,10 +182,6 @@ if ($uPracovni && ($udaje = (array)post('udaje'))) {
     back();
 }
 
-if (post('zpracujJidlo')) {
-    $shop->zpracujJidlo();
-    oznameni('Jídlo uloženo');
-}
 
 if (post('pridelitPokoj') && $uPracovni) {
     $pokojPost = post('pokoj');
