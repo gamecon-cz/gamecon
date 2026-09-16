@@ -20,6 +20,11 @@ zbytek ne. Dokument drží, co ještě chybí a proč to není jen „namontovat
 obsluhu. Oprávnění obsluhy se kontroluje na `ADMINISTRACE_UBYTOVANI` / `ADMINISTRACE_INFOPULT`,
 tedy na stejná práva, jaká si obě obrazovky deklarují v hlavičce modulu.
 
+**Termín prodeje se na admin cestě záměrně nekontroluje** *(záměr)*. Odvozeno z toho, že obě
+legacy obrazovky posílají `muzeEditovatUkoncenyProdej: true` a `ubytovaniBezZamku`, ne
+z explicitního zadání. Je to nejvýraznější rozdíl proti účastnické cestě a nejspíš první věc,
+kterou někdo „opraví" jako chybějící kontrolu.
+
 `ROLE_ADMIN` pro to použít nejde: `User::getRoles()` ho přiděluje podle **přesné shody** kódu
 role, jenže reálné kódy jsou ročníkové (`gc2026_infopult`). Fakticky ho tak dostanou jen role
 `ADMIN` (16) a `CFO` (20) — a ani jedna nemá právo 100 ani 101.
@@ -46,8 +51,16 @@ server nemá (`UbytovaniMřížka.tsx:63-70`). Bez payloadu tahle logika nefungu
 | | Uživatel | Infopult |
 |---|---|---|
 | vykreslení | `Shop::ubytovaniHtml()` | `UbytovaniTabulka` (vlastní, 105 ř.) |
-| spolubydlící | ukládá | **neukládá** (`vcetneSpolubydliciho: false`) |
+| spolubydlící | edituje (1. argument `true`) | **jen zobrazuje** seznam lidí na pokoji, needituje |
+| „nechce ubytování" | jen zobrazuje `ano`/`ne` | jen zobrazuje `ano`/`ne` |
 | přes kapacitu | tlačítko jen pro `jeSefInfopultu()` | nenabízí |
+
+Pozor na dvě místa, kde by převod **tiše přidal schopnost**, ne ji zachoval. Preact mřížka
+nabízí editovatelné pole spolubydlícího i zaškrtávátko „nechci ubytování". Infopult ale
+spolubydlícího jen vypisuje — a jde o něco jiného než u účastníka: je to **soupis lidí reálně na
+pokoji** (jméno, id, telefon, odvozeno z `$pokoj`), ne volný text „s kým chci bydlet". Nasadit
+tam mřížku beze změny by soupis pokoje proměnilo v editovatelné textové pole. U „nechce
+ubytování" je to totéž v menším: obě obrazovky ho jen ukazují.
 
 Rozdíl u spolubydlícího je past, ne kosmetika: `AccommodationWriter` bere `null` jako „smaž ho".
 Naivní převod infopultu by tedy mazal spolubydlící, které si účastníci vyplnili sami. Zápisové
@@ -55,14 +68,49 @@ DTO to už řeší (`null` = nesahat, `''` = smazat), ale UI to musí respektova
 
 ### 4. Přeprodej kapacity
 
-Zápis kapacitu nehlídá u žádné z obrazovek (`hlidatKapacituUbytovani: false`), ale **nabídne** ji
-jen šéfovi infopultu (`shop-ubytovani.xtpl:77`). Fakticky tedy o přeprodeji rozhoduje UI, ne
-zápis. Nová vrstva nic takového nemá a `AccommodationWriter` plnou noc odmítne vždycky.
+V legacy o přeprodeji fakticky rozhoduje **UI, ne zápis**: obě obrazovky volají
+`zpracujUbytovani()` s druhým argumentem `false` (`_uzivatel_ovladac.php:40`,
+`_infopult_ovladac.php:186`), takže `ShopUbytovani::ulozObjednaneUbytovaniUcastnika()` kapacitu
+nekontroluje nikomu — tlačítko se přitom nabízí jen šéfovi infopultu. Ručně poskládaný POST tedy
+přeplnil noc komukoliv; legacy si toho je vědomo (`// není zabezpečeno`).
+
+**To je už opravené na straně serveru:** `AccommodationWriter::save()` bere `$smiPresKapacitu` a
+`SetCustomerAccommodationProcessor` ho dává jen šéfovi infopultu. Invariant se tím obrátil —
+rozhoduje server, UI je jen nápověda. Zbývá dotáhnout to do UI a srovnat s legacy obrazovkami,
+které pořád jedou volně.
 
 Souvisí s [issue #1114](https://github.com/gamecon-cz/gamecon/issues/1114): ubytování ignoruje
 `reserved_for_organizers`. Je pravděpodobné *(nejisté)*, že přeprodej je náhražka právě za to —
 kdyby šlo část postelí podržet pro interní potřebu, obcházení kapacity by nebylo potřeba.
 Než se to rozhodne, převod musí přeprodej zachovat, jinak obsluha přijde o schopnost, kterou dnes má.
+
+### 5. Jak se mřížka v adminu autentizuje a koho vlastně edituje
+
+Dvě věci, bez kterých UI napojit nejde, a ani jedna není o mřížce samotné.
+
+**JWT.** Preact bundle se autentizuje tokenem z `GAMECON_KONSTANTY.JWT`; API firewall je
+`stateless`, cookie cesta do něj nevede vůbec. Recept v adminu existuje —
+`admin/scripts/modules/penize/_kfcMrizkovyProdej.php` přes `jwtKonstantyJs()`. Dvě věci
+k zapamatování: token se razí pro **obsluhu** (což je správně, zákazník jde v payloadu), a
+`jwtKonstantyJs()` polyká `\Throwable` a vrací prázdný řetězec — selhání ražby je tedy neviditelné,
+projeví se až jako 401 na každém volání.
+
+**Identita účastníka.** Admin pracuje nad `$uPracovni`, což je **jiný klíč v session**
+(`Uzivatel::UZIVATEL_PRACOVNI`), kdežto `LegacySessionService::getCurrentUser()` čte klíč výchozí,
+tedy obsluhu. Nová vrstva se tak o pracovním uživateli nemá jak dozvědět: `customerId` musí
+doputovat z PHP do stránky a odtud do API. A protože `renderComponent()` montuje komponenty
+**bez props**, znamená to zásah do sdíleného montážního helperu (data-atribut nebo další pole
+v `GAMECON_KONSTANTY`), ne lokální změnu mřížky.
+
+### 6. Snídaně: admin je umí zrušit, ale ne vrátit
+
+`AccommodationWriter::save()` volá `breakfastCanceller->cancelCovered()` pro **všechny** volající,
+admin nevyjímaje. Vrátit je ale umí jen účastnický endpoint (`restoreBreakfasts`); admin DTO nic
+takového nemá.
+
+Obsluha, která účastníkovi objedná hotelovou noc, mu tedy **tiše zruší zaplacené snídaně** a
+vrátit je jde pouze z účastnického storefrontu. Čtecí payload přitom `restorableBreakfasts` nese,
+takže admin mřížka postavená nad ním vykreslí tlačítko, které nemá co zavolat.
 
 ## Jídlo je pozadu za ubytováním
 
@@ -75,13 +123,42 @@ jestli vznikne set-based endpoint jako u ubytování, nebo se bude diffovat na k
 
 ## Doporučené pořadí
 
-1. Čtecí endpoint + payload na POST (1 a 2 výše) — bez toho UI nejde napojit.
-2. Parametrizovat `UbytovaniMřížka` volitelným `customerId`, stejně jako se dělilo
-   `MerchMřížka`/`SvrškyMřížka`.
-3. Napojit obrazovku Uživatel, ověřit klikáním, teprve pak Infopult (má vlastní renderer
-   a jiné chování u spolubydlícího).
-4. Rozhodnout přeprodej — zachovat jako dnes, nebo vyřešit přes `reserved_for_organizers`.
+1. Čtecí endpoint + payload na POST — bez toho UI nejde napojit. Payload musí nést i oprávnění
+   obsluhy k přeprodeji.
+2. Snídaně: dát admin cestě možnost je vrátit, ne jen zrušit.
+3. Parametrizovat `UbytovaniMřížka` volitelným `customerId` — včetně zásahu do montážního
+   helperu, protože ten dnes props nepředává vůbec.
+4. Napojit obrazovku Uživatel (JWT jako v KFC), ověřit klikáním, teprve pak Infopult — má vlastní
+   renderer a spolubydlícího jen zobrazuje.
 5. Teprve potom jídlo, které začíná návrhem zápisové cesty.
 
 Každý krok je samostatný PR. Kroky 3 a dál mění živé obrazovky obsluhy, takže je potřeba
 ruční ověření, ne jen zelené testy.
+
+**Proč přeprodej (4) před napojením UI (3):** mřížka musí umět tři stavy buňky — volno, plno a
+odmítnuto, plno ale tahle obsluha smí. Ten třetí existuje teprve ve chvíli, kdy má názor server.
+Kdyby se UI napojilo dřív, postavilo by se na `locked` počítaném podle pravidel účastníka a pak
+by se muselo rozplétat. Z toho plyne i požadavek na krok 1: **čtecí payload musí nést oprávnění
+obsluhy k přeprodeji**, protože `jeSefInfopultu()` si klient spočítat nemůže.
+
+## Co se po převodu nedá smazat
+
+`UbytovaniTabulka` je jen pro infopult, ta odejde s ním. `Shop::ubytovaniHtml()` ale volá i
+účastnický storefront (`web/moduly/prihlaska/prihlaska.php`), takže ta zůstává.
+
+Chování infopultové tabulky navíc hlídá test
+`ShopUbytovaniRocnikAFiltraceTest::adminUbytovaniTabulkaPredavaDataProHoteloveSnidane()` — ověřuje,
+že tabulka předává do JS data o hotelových snídaních. Než se tabulka smaže, potřebuje ten test
+náhradu, ne odstranění; kryje totiž přesně tu snídaňovou logiku z bodu 6.
+
+## Proč netřeba migrace dat
+
+`AccommodationWriter::ulozUdajeOUbytovani()` zapisuje dvojmo — do Doctrine objednávky i do
+`uzivatele_hodnoty.ubytovan_s` / `nechce_ubytovani`. Legacy čtení tedy zůstávají platná po celou
+dobu převodu. Je to záměr, ne shoda okolností, a proto v plánu žádný backfill není.
+
+## Co ověřit ručně
+
+Sekce ubytování se v obou obrazovkách vykreslí jen pro účastníka s `gcPrihlasen()`. Tester tedy
+potřebuje: obsluhu s právem 100 nebo 101, vybraného pracovního uživatele přes omnibox a účastníka
+přihlášeného na letošní ročník. Bez toho sekce prostě není vidět a nález zní „mřížka chybí".
