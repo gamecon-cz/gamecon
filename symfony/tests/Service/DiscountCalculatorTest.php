@@ -134,6 +134,28 @@ class DiscountCalculatorTest extends TestCase
         self::assertSame('500.00', $vysledek['discountAmount']);
     }
 
+    /**
+     * Metoda počítá jednu položku, takže nároky s omezeným počtem neumí odpočítávat.
+     * Kdyby je uplatňovala, bylo by každé tričko zdarma — a to i při zápisu do košíku.
+     */
+    public function testPravidloSOmezenymPoctemSeNeuplatni(): void
+    {
+        $kalkulator = $this->kalkulator([
+            [
+                'code'           => 'jedno_tricko_zdarma',
+                'name'           => 'Jedno tričko zdarma',
+                'required_right' => self::PRAVO_UBYTOVANI_ZDARMA,
+                'parameters'     => '{"scope":"tag","effect":"free","tag":"tricko","maxQuantity":1}',
+            ],
+        ], [self::PRAVO_UBYTOVANI_ZDARMA]);
+
+        $prvni = $kalkulator->calculateDiscount($this->produkt('Tričko A', '400.00', ProductTagCode::TRICKO), $this->uzivatel(), self::ROK);
+        $druhe = $kalkulator->calculateDiscount($this->produkt('Tričko B', '400.00', ProductTagCode::TRICKO), $this->uzivatel(), self::ROK);
+
+        self::assertSame('400.00', $prvni['finalPrice']);
+        self::assertSame('400.00', $druhe['finalPrice'], 'Druhé tričko nesmí být zdarma jen proto, že se počítá zvlášť');
+    }
+
     public function testProduktBezTaguNemaSlevu(): void
     {
         $vysledek = $this->kalkulator([self::PRAVIDLO_JIDLO], [self::PRAVO_SLEVA_NA_JIDLO])

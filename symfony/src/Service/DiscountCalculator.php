@@ -22,11 +22,6 @@ use Gamecon\SystemoveNastaveni\SystemoveNastaveni;
  */
 class DiscountCalculator
 {
-    /**
-     * @var array<string, int[]> práva kupujícího, klíčem "uživatel-ročník"
-     */
-    private array $prava = [];
-
     public function __construct(
         private readonly DiscountRuleLoader $ruleLoader,
         // SystemoveNastaveni se nevstřikuje: je vázané na request (ročník, „teď") a zbytek
@@ -51,12 +46,9 @@ class DiscountCalculator
             return $this->bezSlevy($puvodniCena);
         }
 
-        // Jedna položka na volání, protože takové je rozhraní téhle metody — stejné omezení
-        // jako v legacy Ceniku. Pravidla s maxQuantity (tričko zdarma) proto v mřížce zlevní
-        // každé tričko; kolik jich účastník reálně dostane zdarma, rozhodne až košík.
         $slevy = (new DiscountCalculation(
-            $this->ruleLoader->rulesForYear($year),
-            $this->pravaUzivatele($idUzivatele, $year),
+            $this->neomezenaPravidla($year),
+            $this->ruleLoader->rightsOfUser($idUzivatele, $year),
             $this->hodnotyNastaveni(),
             // Bonus za vedení aktivit rozhoduje jen o prahu u trička zdarma. Storefront
             // ho zatím nemá po ruce, takže se pravidlo s prahem neuplatní; slev držených
@@ -93,6 +85,25 @@ class DiscountCalculator
     }
 
     /**
+     * Pravidla bez omezeného počtu.
+     *
+     * Metoda počítá cenu jedné položky, takže nemá jak vědět, kolik nároků už kupující
+     * vyčerpal na ostatních. Pravidlo s maxQuantity by se proto uplatnilo na každou
+     * položku znovu — tričko zdarma by bylo zdarma každé, a to i při zápisu do košíku,
+     * protože CartService počítá cenu touž cestou. Radši nenabídnout slevu, na kterou
+     * možná nárok je, než rozdat tu, na kterou není. Legacy Cenik si čítače drží sám.
+     *
+     * @return \App\Discount\DiscountRule[]
+     */
+    private function neomezenaPravidla(int $rocnik): array
+    {
+        return array_values(array_filter(
+            $this->ruleLoader->rulesForYear($rocnik),
+            static fn (\App\Discount\DiscountRule $pravidlo): bool => $pravidlo->parameters->maxQuantity === null,
+        ));
+    }
+
+    /**
      * Vrací null pro položku, na kterou žádné pravidlo nemůže mířit — pravidla se
      * vztahují na tagy, takže produkt bez tagu nemá s čím porovnávat.
      */
@@ -117,14 +128,6 @@ class DiscountCalculator
             tags: $tagy,
             accommodationDay: $product->getAccommodationDay(),
         );
-    }
-
-    /**
-     * @return int[]
-     */
-    private function pravaUzivatele(int $idUzivatele, int $rocnik): array
-    {
-        return $this->prava[$idUzivatele . '-' . $rocnik] ??= $this->ruleLoader->rightsOfUser($idUzivatele, $rocnik);
     }
 
     /**
