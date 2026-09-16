@@ -56,10 +56,18 @@ parameters:
         # the symptom. See docs/generated/phpstan-scope-legacy-tree.md.
         -
             identifier: shipmonk.deadMethod
-            message: '#^Unused App\\(Discount\\(DiscountCalculation|DiscountRuleLoader|DiscountableItem)|Entity\\(Activity|CategoryTag|ProductBundle|ProductDiscount|ProductVariant|Tournament|User))\:\:__construct$#'
+            message: '#^Unused App\\Entity\\(Activity|CategoryTag|ProductBundle|ProductDiscount|ProductVariant|Tournament|User)\:\:__construct$#'
             paths:
                 - symfony/src/Entity/*
-                - symfony/src/Discount/*
+
+        # ProductDiscount byl první pokus o slevy (procenta na dvojici produkt+role).
+        # Nahradila ho pravidla v discount_rule, která umí i pevnou částku. Entita tu
+        # zůstává jen kvůli mapování v Product; smazat ji znamená migraci, takže vlastní PR.
+        -
+            identifier: shipmonk.deadMethod
+            message: '#^Unused App\\Entity\\ProductDiscount\:\:#'
+            paths:
+                - symfony/src/Entity/ProductDiscount.php
 
         # These five actions are routed from symfony/config/routes.yaml rather than by
         # #[Route], and the detector reads DI service definitions, not routing, so they

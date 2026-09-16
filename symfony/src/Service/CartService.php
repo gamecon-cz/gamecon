@@ -336,7 +336,7 @@ class CartService
         // price, which the product-level one would silently override.
         $item->setDiscountAmount($discountInfo['discountAmount']);
 
-        if ($discountInfo['discount'] !== null) {
+        if ($discountInfo['reason'] !== null) {
             $item->setDiscountReason($discountInfo['reason']);
         }
 
