@@ -1,18 +1,18 @@
 # Admin: objednávání ubytování a jídla za účastníka
 
-TL;DR: poslední legacy zápisová cesta e-shopu jsou dvě admin obrazovky, kde obsluha objednává
-**za účastníka**. Zápisová půlka ubytování je hotová (`POST /admin/customer-accommodation`),
-zbytek ne. Dokument drží, co ještě chybí a proč to není jen „namontovat existující Preact".
+TL;DR: dvě admin obrazovky, kde obsluha objednává **za účastníka**. **Ubytování je hotové** —
+obě obrazovky jedou na mřížce přes `/admin/customer-accommodation`. Zbývá **jídlo**, které
+v nové vrstvě nemá zápisovou cestu vůbec. Dokument drží, co bylo potřeba vyřešit a proč to
+nebylo jen „namontovat existující Preact".
 
 ## Vstupní body v kódu
 
-- `admin/scripts/modules/_uzivatel_ovladac.php:39` a `admin/scripts/modules/uzivatel.php:76` — obrazovka Uživatel
-- `admin/scripts/modules/infopult/_infopult_ovladac.php:185` a `infopult.php:215` — obrazovka Infopult
-- `admin/scripts/modules/_submoduly/ubytovani_tabulka.php` — vlastní renderer infopultu (105 řádků)
-- `symfony/src/State/Admin/SetCustomerAccommodationProcessor.php` — hotová zápisová cesta
-- `symfony/src/State/Cart/AccommodationProvider.php:58,68` — čtecí cesta, zatím vázaná na session
-- `ui/src/pages/ubytovani/UbytovaniMřížka.tsx` — Preact mřížka (205 řádků), psaná pro účastníka
-- `ui/src/pages/index.tsx:35` — montáž podle `id` elementu, bez props
+- `admin/scripts/modules/uzivatel.php`, `infopult/infopult.php` — obě obrazovky, obě už na mřížce
+- `symfony/src/State/Admin/SetCustomerAccommodationProcessor.php`, `CustomerAccommodationProvider.php` — zápis a čtení za účastníka
+- `symfony/src/State/Cart/AccommodationProvider.php::forCustomer()` — společné jádro mřížky
+- `ui/src/pages/ubytovani/UbytovaniMřížka.tsx` — mřížka, bere volitelné `customerId`
+- `ui/src/pages/index.tsx` — montáž, předává props z `data-customer-id`
+- `admin/scripts/modules/_submoduly/ubytovani_tabulka.php` — legacy renderer infopultu, **už se nikde nevykresluje**
 
 ## Co už hotové je
 
@@ -29,7 +29,10 @@ kterou někdo „opraví" jako chybějící kontrolu.
 role, jenže reálné kódy jsou ročníkové (`gc2026_infopult`). Fakticky ho tak dostanou jen role
 `ADMIN` (16) a `CFO` (20) — a ani jedna nemá právo 100 ani 101.
 
-## Co chybí, a proč to není triviální
+## Co bylo potřeba vyřešit
+
+Zbylo z toho jen 6 (snídaně). Ostatní je hotové a drží se tu proto, že to jsou pasti, na které
+narazí každý, kdo bude dělat totéž pro jídlo.
 
 ### 1. Čtecí endpoint
 
@@ -68,16 +71,19 @@ DTO to už řeší (`null` = nesahat, `''` = smazat), ale UI to musí respektova
 
 ### 4. Přeprodej kapacity
 
-V legacy o přeprodeji fakticky rozhoduje **UI, ne zápis**: obě obrazovky volají
-`zpracujUbytovani()` s druhým argumentem `false` (`_uzivatel_ovladac.php:40`,
-`_infopult_ovladac.php:186`), takže `ShopUbytovani::ulozObjednaneUbytovaniUcastnika()` kapacitu
-nekontroluje nikomu — tlačítko se přitom nabízí jen šéfovi infopultu. Ručně poskládaný POST tedy
-přeplnil noc komukoliv; legacy si toho je vědomo (`// není zabezpečeno`).
+V legacy o přeprodeji fakticky rozhodovalo **UI, ne zápis**: obě obrazovky volaly
+`zpracujUbytovani()` s vypnutou kontrolou kapacity, takže `ulozObjednaneUbytovaniUcastnika()` ji
+nehlídala nikomu — tlačítko se přitom nabízelo jen šéfovi infopultu. Ručně poskládaný POST tedy
+přeplnil noc komukoliv; legacy si toho bylo vědomo (`// není zabezpečeno`).
 
-**To je už opravené na straně serveru:** `AccommodationWriter::save()` bere `$smiPresKapacitu` a
-`SetCustomerAccommodationProcessor` ho dává jen šéfovi infopultu. Invariant se tím obrátil —
-rozhoduje server, UI je jen nápověda. Zbývá dotáhnout to do UI a srovnat s legacy obrazovkami,
-které pořád jedou volně.
+**Vyřešeno:** `AccommodationWriter::save()` bere `$mayOverbook` a `SetCustomerAccommodationProcessor`
+ho dává jen šéfovi infopultu. Invariant se obrátil — rozhoduje server, UI je jen nápověda.
+
+Pozor, nesouvisející nález: nápověda `docs/napoveda/infopult.md` tvrdí, že „zrušit jiné ubytování
+než neděli může pouze šéf Infa". Takové pravidlo **v kódu nikdy nebylo** — ani v legacy zápisové
+cestě, ani nikde jinde; všechna nedělní pravidla se týkají nabízení, ne rušení. Buď je ta věta
+k smazání, nebo je to nenaimplementovaný záměr *(nejisté)* — chce to rozhodnutí vlastníka
+produktu, ne odhad.
 
 Souvisí s [issue #1114](https://github.com/gamecon-cz/gamecon/issues/1114): ubytování ignoruje
 `reserved_for_organizers`. Je pravděpodobné *(nejisté)*, že přeprodej je náhražka právě za to —
@@ -150,25 +156,32 @@ vrstvě**: `/cart/meals` je jen `GetCollection` a matice jídel nakupuje přes o
 Admin formulář přitom odesílá celou mřížku naráz. Převod jídla tedy nejdřív potřebuje rozhodnout,
 jestli vznikne set-based endpoint jako u ubytování, nebo se bude diffovat na klientovi.
 
-## Doporučené pořadí
+## Stav a co zbývá
 
-1. Čtecí endpoint + payload na POST — bez toho UI nejde napojit. Payload musí nést i oprávnění
-   obsluhy k přeprodeji.
-2. Snídaně: dát admin cestě možnost je vrátit, ne jen zrušit.
-3. Parametrizovat `UbytovaniMřížka` volitelným `customerId` — včetně zásahu do montážního
-   helperu, protože ten dnes props nepředává vůbec.
-4. Napojit obrazovku Uživatel (JWT jako v KFC), ověřit klikáním, teprve pak Infopult — má vlastní
-   renderer a spolubydlícího jen zobrazuje.
-5. Teprve potom jídlo, které začíná návrhem zápisové cesty.
+Ubytování je hotové, v tomhle pořadí:
 
-Každý krok je samostatný PR. Kroky 3 a dál mění živé obrazovky obsluhy, takže je potřeba
-ruční ověření, ne jen zelené testy.
+1. ✅ čtecí endpoint + payload na POST
+2. ✅ parametrizace `UbytovaniMřížka` volitelným `customerId` (včetně montážního helperu, který
+   dosud props nepředával vůbec)
+3. ✅ obrazovka Uživatel
+4. ✅ obrazovka Infopult — tam se vyměnila **jen editovatelná tabulka**; číslo pokoje, soupis
+   spolubydlících s telefony a souhrn ubytování zůstaly, protože je mřížka nemá
 
-**Proč přeprodej (4) před napojením UI (3):** mřížka musí umět tři stavy buňky — volno, plno a
+Otevřené:
+
+- **Snídaně.** Admin cesta je umí zrušit, ale ne vrátit — `restoreBreakfasts` má jen účastnické
+  DTO. Mřížka proto obsluze to tlačítko vůbec nenabízí, aby nevypadalo funkčně a nedělalo nic.
+- **Jídlo.** `/cart/meals` je jen čtecí a matice nakupuje přes obecné `/cart/items` kus po kuse,
+  kdežto admin formulář posílá celou mřížku naráz. Převod tedy začíná návrhem zápisové cesty,
+  ne napojením.
+
+Kroky, které měnily živé obrazovky obsluhy, si vyžádaly ruční ověření — zelené testy na to
+nestačí, viz [[eshop-diferencni-overeni]].
+
+**Proč přeprodej musel předcházet UI:** mřížka musí umět tři stavy buňky — volno, plno a
 odmítnuto, plno ale tahle obsluha smí. Ten třetí existuje teprve ve chvíli, kdy má názor server.
 Kdyby se UI napojilo dřív, postavilo by se na `locked` počítaném podle pravidel účastníka a pak
-by se muselo rozplétat. Z toho plyne i požadavek na krok 1: **čtecí payload musí nést oprávnění
-obsluhy k přeprodeji**, protože `jeSefInfopultu()` si klient spočítat nemůže.
+by se muselo rozplétat.
 
 ## Co se po převodu nedá smazat
 

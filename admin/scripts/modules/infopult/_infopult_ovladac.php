@@ -182,12 +182,6 @@ if ($uPracovni && ($udaje = (array)post('udaje'))) {
     back();
 }
 
-if (post('zpracujUbytovani')) {
-    $shop->zpracujUbytovani(false, false);
-    $shop = $obnovPracovnihoUzivateleAShop();
-    oznameni('Ubytování uloženo');
-}
-
 if (post('zpracujJidlo')) {
     $shop->zpracujJidlo();
     oznameni('Jídlo uloženo');
