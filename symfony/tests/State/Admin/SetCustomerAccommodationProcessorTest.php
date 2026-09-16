@@ -75,13 +75,17 @@ class SetCustomerAccommodationProcessorTest extends AbstractDatabaseKernelTestCa
         return $input;
     }
 
-    private function zakaznik(int $id = 4242, bool $jeSefInfopultu = false): MockObject
+    private function prihlasOperatora(bool $jeSefInfopultu = false): void
     {
-        $customer = $this->createMock(User::class);
-        $customer->method('getId')->willReturn($id);
         $this->legacySession->method('getCurrentUser')->willReturn(
             $this->operator(jeSefInfopultu: $jeSefInfopultu),
         );
+    }
+
+    private function zakaznik(int $id = 4242): MockObject
+    {
+        $customer = $this->createMock(User::class);
+        $customer->method('getId')->willReturn($id);
         $this->entityManager->method('find')->willReturn($customer);
 
         return $customer;
@@ -103,6 +107,7 @@ class SetCustomerAccommodationProcessorTest extends AbstractDatabaseKernelTestCa
 
     public function testNightsAreSavedForTheCustomer(): void
     {
+        $this->prihlasOperatora();
         $customer = $this->zakaznik();
         $this->legacyZakaznik();
 
@@ -131,6 +136,7 @@ class SetCustomerAccommodationProcessorTest extends AbstractDatabaseKernelTestCa
      */
     public function testOmittedRoommateKeepsTheStoredOne(): void
     {
+        $this->prihlasOperatora();
         $this->zakaznik();
         $this->legacyZakaznik(ubytovanS: 'Už tam bydlí');
 
@@ -152,6 +158,7 @@ class SetCustomerAccommodationProcessorTest extends AbstractDatabaseKernelTestCa
 
     public function testSentRoommateReplacesTheStoredOne(): void
     {
+        $this->prihlasOperatora();
         $this->zakaznik();
         $this->legacyZakaznik(ubytovanS: 'Už tam bydlí');
 
@@ -180,6 +187,7 @@ class SetCustomerAccommodationProcessorTest extends AbstractDatabaseKernelTestCa
      */
     public function testSingleNightPermissionComesFromTheCustomer(): void
     {
+        $this->prihlasOperatora();
         $this->zakaznik();
         $this->legacyZakaznik(smiJednuNoc: true);
 
@@ -205,7 +213,8 @@ class SetCustomerAccommodationProcessorTest extends AbstractDatabaseKernelTestCa
      */
     public function testOnlyTheInfopultChiefMayOverbook(): void
     {
-        $this->zakaznik(jeSefInfopultu: true);
+        $this->prihlasOperatora(jeSefInfopultu: true);
+        $this->zakaznik();
         $this->legacyZakaznik();
 
         $this->accommodationWriter
@@ -227,6 +236,7 @@ class SetCustomerAccommodationProcessorTest extends AbstractDatabaseKernelTestCa
 
     public function testOrdinaryOperatorMayNotOverbook(): void
     {
+        $this->prihlasOperatora();
         $this->zakaznik();
         $this->legacyZakaznik();
 
