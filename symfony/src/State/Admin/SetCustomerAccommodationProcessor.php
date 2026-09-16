@@ -7,14 +7,16 @@ namespace App\State\Admin;
 use ApiPlatform\Metadata\Operation;
 use ApiPlatform\State\ProcessorInterface;
 use App\Dto\Admin\SetCustomerAccommodationInputDto;
+use App\Dto\Cart\AccommodationOutputDto;
 use App\Entity\User;
+use App\Service\AccommodationDeskRights;
 use App\Service\AccommodationRules;
 use App\Service\AccommodationWriter;
 use App\Service\CurrentYearProviderInterface;
 use App\Service\LegacySessionService;
+use App\State\Cart\AccommodationGridInterface;
 use Doctrine\ORM\EntityManagerInterface;
 use Gamecon\Pravo;
-use Symfony\Component\HttpKernel\Exception\AccessDeniedHttpException;
 use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
 
 /**
@@ -27,7 +29,7 @@ use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
  * The sale deadline is deliberately not checked: the desk books people in after it has
  * passed, which is most of what it is for.
  *
- * @implements ProcessorInterface<SetCustomerAccommodationInputDto, null>
+ * @implements ProcessorInterface<SetCustomerAccommodationInputDto, AccommodationOutputDto>
  */
 readonly class SetCustomerAccommodationProcessor implements ProcessorInterface
 {
@@ -35,7 +37,9 @@ readonly class SetCustomerAccommodationProcessor implements ProcessorInterface
         private AccommodationWriter $accommodationWriter,
         private AccommodationRules $accommodationRules,
         private CurrentYearProviderInterface $currentYearProvider,
+        private AccommodationDeskRights $deskRights,
         private LegacySessionService $legacySession,
+        private AccommodationGridInterface $accommodationGrid,
         private EntityManagerInterface $entityManager,
     ) {
     }
@@ -43,9 +47,9 @@ readonly class SetCustomerAccommodationProcessor implements ProcessorInterface
     /**
      * @param SetCustomerAccommodationInputDto $data
      */
-    public function process(mixed $data, Operation $operation, array $uriVariables = [], array $context = []): null
+    public function process(mixed $data, Operation $operation, array $uriVariables = [], array $context = []): AccommodationOutputDto
     {
-        $operator = $this->verifyOperator();
+        $operator = $this->deskRights->verifyOperator('Objednávání za účastníka');
 
         $customer = $this->entityManager->find(User::class, $data->customerId);
         if ($customer === null) {
@@ -78,27 +82,16 @@ readonly class SetCustomerAccommodationProcessor implements ProcessorInterface
             throw new BadRequestHttpException($chyba->getMessage(), $chyba);
         }
 
-        return null;
-    }
-
-    /**
-     * The same rights the two admin screens declare in their module headers (100 and 101).
-     * ROLE_ADMIN cannot stand in for them: it is granted by role code, and the codes that
-     * carry these rights are per-year (`gc2026_infopult`), so it matches neither reliably.
-     */
-    private function verifyOperator(): \Uzivatel
-    {
-        $operator = $this->legacySession->getCurrentUser();
-        if ($operator === null) {
-            throw new AccessDeniedHttpException('Objednávání za účastníka vyžaduje přihlášení do adminu.');
+        // Both are stale after the write, for different reasons: save() clears the entity
+        // manager, and it updates uzivatele_hodnoty by raw SQL, which the legacy object in
+        // memory never sees. Resolve both again rather than reason about which still holds.
+        $customer = $this->entityManager->find(User::class, $data->customerId);
+        $legacyCustomer = $this->legacySession->getUserById($data->customerId);
+        if ($customer === null || $legacyCustomer === null) {
+            throw new BadRequestHttpException(sprintf('Uživatel s ID %d nebyl nalezen.', $data->customerId));
         }
 
-        if (! $operator->maPravo(Pravo::ADMINISTRACE_UBYTOVANI)
-            && ! $operator->maPravo(Pravo::ADMINISTRACE_INFOPULT)
-        ) {
-            throw new AccessDeniedHttpException('Na objednávání ubytování za účastníka nemáš právo.');
-        }
-
-        return $operator;
+        // The grid redraws from what came back, so it cannot drift from what was stored.
+        return $this->accommodationGrid->forCustomer($customer, $legacyCustomer);
     }
 }
