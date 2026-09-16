@@ -13,19 +13,19 @@ class AccommodationRules
      * handful of roles keep a real bed anyway. Read by both the grid and the write path, so
      * a hand-made request cannot book what the grid hides.
      */
-    public function jenSpacaky(\Uzivatel $legacyUzivatel): bool
+    public function sleepingBagsOnly(\Uzivatel $legacyUser): bool
     {
         return SystemoveNastaveni::zGlobals()->jeOmezeniUbytovaniPouzeNaSpacaky()
-            && ! $this->maPravoNaPostel($legacyUzivatel);
+            && ! $this->isEntitledToBed($legacyUser);
     }
 
-    private function maPravoNaPostel(\Uzivatel $legacyUzivatel): bool
+    private function isEntitledToBed(\Uzivatel $legacyUser): bool
     {
-        return $legacyUzivatel->jeVypravec()
-            || $legacyUzivatel->jeOrganizator()
-            || $legacyUzivatel->jeHerman()
-            || $legacyUzivatel->jePartner()
-            || $legacyUzivatel->jeInfopultak()
-            || $legacyUzivatel->jeZazemi();
+        return $legacyUser->jeVypravec()
+            || $legacyUser->jeOrganizator()
+            || $legacyUser->jeHerman()
+            || $legacyUser->jePartner()
+            || $legacyUser->jeInfopultak()
+            || $legacyUser->jeZazemi();
     }
 }

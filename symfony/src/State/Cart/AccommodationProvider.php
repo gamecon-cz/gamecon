@@ -114,17 +114,17 @@ readonly class AccommodationProvider implements ProviderInterface
         $viditelneDny = array_column($dto->days, 'day');
         [$prodano, $drzeno, $kapacity] = $this->obsazenostVariant($user, $year);
 
-        $jenSpacaky = $this->accommodationRules->jenSpacaky($legacyUzivatel);
+        $sleepingBagsOnly = $this->accommodationRules->sleepingBagsOnly($legacyUzivatel);
         $ubytovani = $this->productRepository->findByTag(ProductTagCode::UBYTOVANI);
 
         // Turning the restriction on with nothing tagged would hide accommodation entirely
         // instead of narrowing it, and it would look like the section is simply broken.
-        if ($jenSpacaky && ! $this->existujeSpacak($ubytovani)) {
+        if ($sleepingBagsOnly && ! $this->existujeSpacak($ubytovani)) {
             throw new \RuntimeException('Ubytování je omezené na spacáky, ale žádný spacák není v nabídce (produkt se značkou "' . ProductTagCode::SPACAK->value . '").');
         }
 
         foreach ($ubytovani as $product) {
-            if ($jenSpacaky && ! $product->hasTag(ProductTagCode::SPACAK->value)) {
+            if ($sleepingBagsOnly && ! $product->hasTag(ProductTagCode::SPACAK->value)) {
                 continue;
             }
 
