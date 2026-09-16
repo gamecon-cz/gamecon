@@ -50,7 +50,7 @@ class AccommodationProviderTest extends TestCase
 
     private MockObject $accommodationRules;
 
-    private bool $jenSpacaky = false;
+    private bool $sleepingBagsOnly = false;
 
     private AccommodationProvider $provider;
 
@@ -80,8 +80,8 @@ class AccommodationProviderTest extends TestCase
         $this->breakfastCanceller = $this->createMock(BreakfastCanceller::class);
         $this->breakfastCanceller->method('restorable')->willReturn([]);
         $this->accommodationRules = $this->createMock(AccommodationRules::class);
-        $this->accommodationRules->method('jenSpacaky')
-            ->willReturnCallback(fn (): bool => $this->jenSpacaky);
+        $this->accommodationRules->method('sleepingBagsOnly')
+            ->willReturnCallback(fn (): bool => $this->sleepingBagsOnly);
 
         $this->provider = new AccommodationProvider(
             $this->productRepository,
@@ -332,7 +332,7 @@ class AccommodationProviderTest extends TestCase
     {
         $this->prepareUser();
         $this->prepareGrid(remainingQuantity: 10, produced: 10, sold: 0, held: 0);
-        $this->jenSpacaky = true;
+        $this->sleepingBagsOnly = true;
 
         // Hiding everything would read as a broken section rather than a restriction.
         $this->expectExceptionMessage('žádný spacák není v nabídce');
@@ -347,7 +347,7 @@ class AccommodationProviderTest extends TestCase
         $pokoj = $this->prepareGrid(
             remainingQuantity: 10, produced: 10, sold: 0, held: 0, dalsiProdukt: $spacak,
         );
-        $this->jenSpacaky = true;
+        $this->sleepingBagsOnly = true;
 
         $typy = $this->provider->provide(new Get())->types;
 
