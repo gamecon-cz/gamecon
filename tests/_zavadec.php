@@ -43,15 +43,30 @@ register_shutdown_function(static function () {
     }
 
     dbQuery(sprintf('DROP DATABASE IF EXISTS `%s`', DB_NAME), null, $connection);
+    dbQuery(sprintf('DROP DATABASE IF EXISTS `%s`', DB_ANONYM_NAME), null, $connection);
+
+    // Zbytky po bězích, které nedoběhly. Poznají se podle PID v názvu: když ten proces už
+    // neběží, databáze nikomu nepatří. Dokud běží, je to cizí rozjetý běh — smazat mu ji
+    // pod rukama znamená rozstřílet ho zevnitř (`MySQL server has gone away` a desítky
+    // nesouvisejících chyb, které vypadají jako flaky testy).
     $dbTestPrefix = DB_TEST_PREFIX;
     $oldTestDatabasesWrapped = dbFetchAll("SHOW DATABASES LIKE '{$dbTestPrefix}%'", [], $connection);
     foreach ($oldTestDatabasesWrapped as $oldTestDatabaseWrapped) {
-        dbQuery(sprintf('DROP DATABASE IF EXISTS `%s`', reset($oldTestDatabaseWrapped)), null, $connection);
+        $dbName = reset($oldTestDatabaseWrapped);
+        if (! Db\TestDbPid::jeOpustena($dbName)) {
+            continue;
+        }
+        dbQuery(sprintf('DROP DATABASE IF EXISTS `%s`', $dbName), null, $connection);
     }
 
-    $rootCacheDir = SPEC;
-    if (preg_match('~/[0-9]+$~', $rootCacheDir)) {
-        $rootCacheDir = dirname($rootCacheDir);
+    // Cache stejně jako databáze: svůj adresář a k tomu zbytky po mrtvých procesech.
+    // Mazat rovnou rodiče (tak to bylo dřív) vezme cache i běhu, který zrovna běží —
+    // a nechat po sobě jen svůj znamená, že adresáře Apache workerů, které žádný
+    // shutdown handler nemají, se nesmažou nikdy.
+    shell_exec('rm -rf ' . escapeshellarg(SPEC));
+    foreach ((array) glob(dirname(SPEC) . '/*', GLOB_ONLYDIR) as $cizíCacheDir) {
+        if (Db\TestDbPid::jeOpustenyAdresar($cizíCacheDir)) {
+            shell_exec('rm -rf ' . escapeshellarg($cizíCacheDir));
+        }
     }
-    shell_exec('rm -rf ' . escapeshellarg($rootCacheDir));
 });

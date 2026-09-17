@@ -4,8 +4,12 @@ ini_set('zend.exception_string_param_max_len', '999'); // loguj argumenty až do
 
 define('DB_SERV', 'sql.gamecon.tests');
 define('DB_TEST_PREFIX', 'gamecon_test_');
-define('DB_NAME', $_COOKIE['gamecon_test_db'] ?? uniqid(DB_TEST_PREFIX, true));
-define('DB_ANONYM_NAME', $_COOKIE['gamecon_test_anonym_db'] ?? uniqid(DB_TEST_PREFIX . 'anonym_', true));
+// Jméno končí PID běhu, který databázi vytvořil, aby úklid poznal zbytky po spadlých
+// bězích od databází, které někdo právě používá. `uniqid()` zůstává kvůli jedinečnosti:
+// PID se po havárii recykluje a nový běh by jinak zdědil cizí zbytek.
+// Web requesty dostanou jméno cookie z `AbstractTestWeb`, takže míří do téže databáze.
+define('DB_NAME', $_COOKIE['gamecon_test_db'] ?? uniqid(DB_TEST_PREFIX, true) . '_' . getmypid());
+define('DB_ANONYM_NAME', $_COOKIE['gamecon_test_anonym_db'] ?? uniqid(DB_TEST_PREFIX . 'anonym_', true) . '_' . getmypid());
 if (!defined('SPEC')) define('SPEC', __DIR__ . '/../cache/private/tests/' . getmypid());
 define('TESTS_LOG_DIR', __DIR__ . '/../logy/tests');
 define('LOGY', TESTS_LOG_DIR . '/' . getmypid());
