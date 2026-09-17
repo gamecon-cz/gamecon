@@ -152,6 +152,12 @@ final readonly class DiscountCalculation
             if (! $this->isEligible($rule) || ! $item->matches($rule->parameters)) {
                 continue;
             }
+            // TAG_CHEAPEST dá nárok nejlevnější položce v košíku, jenže žebřík počítá
+            // jeden produkt a žádný košík nevidí. Slíbil by nulu i u dražšího trička,
+            // které se nakonec zaplatí — radši o pravidle mlčet, než lhát o ceně.
+            if ($rule->parameters->scope === DiscountScope::TAG_CHEAPEST) {
+                continue;
+            }
             if (isset($remaining[$rule->code]) && $remaining[$rule->code] <= 0) {
                 continue;
             }
