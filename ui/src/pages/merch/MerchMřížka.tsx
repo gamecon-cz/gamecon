@@ -40,7 +40,7 @@ function MerchŘádek({ product, cart, busy, onAdd, onRemove }: MerchŘádekProp
   // Žebřík ze serveru už počítá s tím, co zákazník má — první stupeň je cena kusu, který
   // si teprve koupí. Odečítat purchasedQuantity znovu by nárok spotřebovalo dvakrát.
   const popis = popisSchodu(schody);
-  const cenaDalsiho = cenaDalsihoKusu(schody, 0);
+  const cenaDalsiho = cenaDalsihoKusu(schody);
   const naMaximu = vybrana.maxQuantity !== null && quantity >= vybrana.maxQuantity;
   const vyprodano = vybrana.maxQuantity !== null && vybrana.maxQuantity <= 0;
   const maVyber = product.variants.length > 1;

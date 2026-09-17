@@ -156,6 +156,53 @@ class DiscountCalculatorTest extends TestCase
         self::assertSame('400.00', $druhe['finalPrice'], 'Druhé tričko nesmí být zdarma jen proto, že se počítá zvlášť');
     }
 
+    /**
+     * Co mřížka slíbí, to musí košík naúčtovat. Dřív mřížka ukazovala „0 Kč / 400 Kč
+     * (první zdarma)" a košík účtoval 400 — nárok s omezeným počtem se do ceny jedné
+     * položky nevešel, kdežto do žebříku ano.
+     */
+    public function testCenaDalsihoKusuSediSPrvnimStupnemZebriku(): void
+    {
+        $pravidlo = [
+            'code'           => 'jedno_tricko_zdarma',
+            'name'           => 'Jedno tričko zdarma',
+            'required_right' => self::PRAVO_UBYTOVANI_ZDARMA,
+            'parameters'     => '{"scope":"tag","effect":"free","tag":"tricko","maxQuantity":1}',
+        ];
+        $kalkulator = $this->kalkulator([$pravidlo], [self::PRAVO_UBYTOVANI_ZDARMA]);
+        $tricko = $this->produkt('Tričko', '400.00', ProductTagCode::TRICKO);
+
+        foreach ([0, 1, 2] as $jizKoupeno) {
+            $zebrik = $kalkulator->priceSteps($tricko, $this->uzivatel(), self::ROK, $jizKoupeno);
+            $ucet = $kalkulator->priceForNextPiece($tricko, $this->uzivatel(), self::ROK, $jizKoupeno);
+
+            self::assertSame(
+                $zebrik[0]['price'],
+                $ucet['finalPrice'],
+                sprintf('Po %d koupených se cena v mřížce a v košíku rozešla', $jizKoupeno),
+            );
+        }
+    }
+
+    /**
+     * První kus zdarma, druhý už za své — to je celý smysl nároku s omezeným počtem.
+     */
+    public function testPrvniKusZdarmaDruhyZaPlnou(): void
+    {
+        $kalkulator = $this->kalkulator([
+            [
+                'code'           => 'jedno_tricko_zdarma',
+                'name'           => 'Jedno tričko zdarma',
+                'required_right' => self::PRAVO_UBYTOVANI_ZDARMA,
+                'parameters'     => '{"scope":"tag","effect":"free","tag":"tricko","maxQuantity":1}',
+            ],
+        ], [self::PRAVO_UBYTOVANI_ZDARMA]);
+        $tricko = $this->produkt('Tričko', '400.00', ProductTagCode::TRICKO);
+
+        self::assertSame('0.00', $kalkulator->priceForNextPiece($tricko, $this->uzivatel(), self::ROK, 0)['finalPrice']);
+        self::assertSame('400.00', $kalkulator->priceForNextPiece($tricko, $this->uzivatel(), self::ROK, 1)['finalPrice']);
+    }
+
     public function testProduktBezTaguNemaSlevu(): void
     {
         $vysledek = $this->kalkulator([self::PRAVIDLO_JIDLO], [self::PRAVO_SLEVA_NA_JIDLO])
