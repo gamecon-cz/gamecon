@@ -59,6 +59,7 @@ readonly class MealProductsProvider implements ProviderInterface
             // stejné, a jinak zůstane cena varianty.
             if ($user instanceof User && $variant->getEffectivePrice() === $product->getCurrentPrice()) {
                 $dto->price = $this->discountCalculator->calculateDiscount($product, $user, $year)['finalPrice'];
+                $dto->priceSteps = $this->discountCalculator->priceSteps($product, $user, $year);
             }
 
             $meals[] = $dto;
