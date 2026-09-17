@@ -7,6 +7,7 @@ namespace App\Tests\Discount;
 use App\Discount\DiscountableItem;
 use App\Discount\DiscountCalculation;
 use App\Discount\DiscountRule;
+use App\Discount\SpotrebovanaKvota;
 use App\Enum\ProductTagCode;
 use PHPUnit\Framework\TestCase;
 
@@ -26,6 +27,11 @@ class PriceStepsTest extends TestCase
             'required_right' => $pravo,
             'parameters'     => $parameters,
         ]);
+    }
+
+    private function kostka(string $kod, float $cena): DiscountableItem
+    {
+        return new DiscountableItem(key: $kod, productCode: $kod, price: $cena, tags: []);
     }
 
     private function tricko(float $cena = 400.0): DiscountableItem
@@ -390,5 +396,60 @@ class PriceStepsTest extends TestCase
         self::assertCount(1, $steps);
         self::assertSame(400.0, $steps[0]->price);
         self::assertNull($steps[0]->ruleCode);
+    }
+
+    /**
+     * „Jedna kostka zdarma" je jeden nárok na všechny kostky dohromady, ne na každou zvlášť.
+     * Žebřík počítá jeden produkt, takže mu musí někdo říct, kolik z kvóty už padlo jinde —
+     * jinak slíbí nulu u každé ze sedmi kostek a košík je podé té ceny i naúčtuje.
+     */
+    public function testSpotrebovanaKvotaZJinehoProduktuPlatiITady(): void
+    {
+        $vypocet = $this->vypocet([
+            $this->pravidlo('kostka_zdarma', 'Kostka zdarma', 1003, '{"scope":"code_contains","effect":"free","codeFragment":"kostka","maxQuantity":1}'),
+        ], [1003]);
+
+        $prvni = $vypocet->priceSteps($this->kostka('fate_kostka', 30.0));
+        self::assertSame(0.0, $prvni[0]->price, 'Dokud zákazník žádnou nemá, je první zdarma');
+
+        // Zákazník mezitím koupil JINOU kostku — nárok je pryč, i když tenhle produkt
+        // nikdy nekoupil.
+        $druha = $vypocet->priceSteps($this->kostka('draci_kostka', 60.0), spotrebovano: ['kostka_zdarma' => 1]);
+
+        self::assertSame(60.0, $druha[0]->price, 'Druhá kostka už zdarma není');
+        self::assertNull($druha[0]->label);
+    }
+
+    /**
+     * Kvóta se počítá per pravidlo, ne per produkt — co se spotřebovalo na jedno pravidlo,
+     * nesmí ubrat z druhého.
+     */
+    public function testSpotrebaJednohoPravidlaNeubiraDruhemu(): void
+    {
+        $steps = $this->vypocet([
+            $this->pravidlo('kostka_zdarma', 'Kostka zdarma', 1003, '{"scope":"code_contains","effect":"free","codeFragment":"kostka","maxQuantity":1}'),
+            $this->pravidlo('placka_zdarma', 'Placka zdarma', 1002, '{"scope":"code_contains","effect":"free","codeFragment":"placka","maxQuantity":1}'),
+        ], [1002, 1003])->priceSteps($this->kostka('fate_kostka', 30.0), spotrebovano: ['placka_zdarma' => 1]);
+
+        self::assertSame(0.0, $steps[0]->price, 'Spotřebovaná placka nesmí sebrat kostku zdarma');
+    }
+
+    /**
+     * Kvóta spotřebovaná jinde už zahrnuje i kusy TOHOHLE produktu, takže se nesmí
+     * odečíst podruhé přes $jizKoupeno. Kdo má dvě trička zdarma a jedno koupil, má
+     * druhé pořád zdarma — dvojí odečet mu ho naúčtoval plnou cenou.
+     */
+    public function testKvotaSeNeodecitaDvakrat(): void
+    {
+        $pravidla = [
+            $this->pravidlo('dve_tricka', 'Dvě trička zdarma', 1020, '{"scope":"tag","effect":"free","tag":"tricko","maxQuantity":2}'),
+        ];
+        $tricko = $this->tricko();
+        $spotrebovano = SpotrebovanaKvota::zNakupu($pravidla, [$tricko]);
+
+        $steps = $this->vypocet($pravidla, [1020])->priceSteps($tricko, 1, $spotrebovano);
+
+        self::assertSame(0.0, $steps[0]->price, 'Druhé tričko z nároku na dvě je pořád zdarma');
+        self::assertSame(400.0, $steps[1]->price);
     }
 }
