@@ -160,6 +160,27 @@ class PriceStepsTest extends TestCase
         return $cena;
     }
 
+    /**
+     * Nárok „nejlevnější tričko zdarma" dostane v košíku ta nejlevnější položka. Žebřík
+     * ale počítá jeden produkt bez košíku, takže by nulu slíbil i u dražšího trička —
+     * a to by se nakonec zaplatilo. Proto se takové pravidlo do žebříku nedostane.
+     */
+    public function testNejlevnejsiZdarmaSeDoZebrikuNedostane(): void
+    {
+        $pravidlo = $this->pravidlo(
+            'tricko_za_bonus',
+            'Tričko za bonus',
+            1012,
+            '{"scope":"tag_cheapest","effect":"free","tag":"tricko","maxQuantity":1}',
+        );
+
+        $steps = $this->vypocet([$pravidlo], [1012])->priceSteps($this->tricko(600.0));
+
+        self::assertCount(1, $steps);
+        self::assertSame(600.0, $steps[0]->price, 'Dražší tričko nesmí hlásit nulu');
+        self::assertNull($steps[0]->ruleCode);
+    }
+
     public function testVsechnyNarokyVycerpaneZbydePlnaCena(): void
     {
         $steps = $this->vypocet([
