@@ -31,6 +31,14 @@ class MerchProductOutputDto
     public string $discountedPrice;
 
     /**
+     * Cena podle pořadí kusu — „první zdarma, druhý za polovinu, další za plnou".
+     * Frontend si po přidání do košíku dopočítá cenu dalšího kusu sám, bez dotazu.
+     *
+     * @var array<int, array{fromQuantity: int, price: string, discountAmount: string, ruleCode: string|null, ruleName: string|null}>
+     */
+    public array $priceSteps = [];
+
+    /**
      * Součet přes všechny varianty — kolik kusů produktu zákazník letos má.
      */
     public int $purchasedQuantity;

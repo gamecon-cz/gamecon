@@ -98,6 +98,7 @@ readonly class MerchProductsProvider implements ProviderInterface
         $dto->price = $product->getCurrentPrice();
         $dto->discountedPrice = $discount['finalPrice'];
         $dto->purchasedQuantity = $purchasedQuantity;
+        $dto->priceSteps = $this->discountCalculator->priceSteps($product, $user, $year, $purchasedQuantity);
         $dto->secondary = $product->isSecondary();
         $dto->available = $available;
 
