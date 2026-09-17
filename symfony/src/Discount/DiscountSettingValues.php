@@ -12,18 +12,18 @@ use Gamecon\SystemoveNastaveni\SystemoveNastaveni;
  * Sdílí je cenový žebřík i výpočet spotřebované kvóty — obojí musí vidět tytéž částky,
  * jinak by se rozešlo, co sleva stála, s tím, kolik nároku spotřebovala.
  */
-final readonly class HodnotyNastaveniSlev
+final readonly class DiscountSettingValues
 {
     /**
      * @return array<string, float>
      */
-    public static function z(?SystemoveNastaveni $systemoveNastaveni = null): array
+    public static function from(?SystemoveNastaveni $systemoveNastaveni = null): array
     {
-        $nastaveni = $systemoveNastaveni ?? SystemoveNastaveni::zGlobals();
+        $settings = $systemoveNastaveni ?? SystemoveNastaveni::zGlobals();
 
         return [
-            DiscountSetting::OrganizerMealDiscount->value   => (float) $nastaveni->slevaOrguNaJidloCastka(),
-            DiscountSetting::FreeShirtBonusThreshold->value => (float) $nastaveni->modreTrickoZdarmaOd(),
+            DiscountSetting::OrganizerMealDiscount->value   => (float) $settings->slevaOrguNaJidloCastka(),
+            DiscountSetting::FreeShirtBonusThreshold->value => (float) $settings->modreTrickoZdarmaOd(),
         ];
     }
 }
