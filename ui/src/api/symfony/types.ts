@@ -2,6 +2,8 @@ export type ApiMealProduct = {
   name: string;
   day: number;
   price: string;
+  /** Cena podle pořadí kusu; vždy aspoň jeden stupeň. */
+  priceSteps: ApiPriceStep[];
   variantId: number;
   remainingQuantity: number | null;
 };
@@ -61,6 +63,21 @@ export type ApiMerchVariant = {
   maxQuantity: number | null;
 };
 
+/**
+ * Cena podle pořadí kusu. Nárok se vyčerpává — „první zdarma, další za plnou" je proto
+ * posloupnost, ne jedno číslo. Přichází celá, aby po přidání do košíku šlo ukázat cenu
+ * dalšího kusu bez dalšího dotazu na server.
+ */
+export type ApiPriceStep = {
+  /** Od kolikátého kusu (1 = první) tahle cena platí. */
+  fromQuantity: number;
+  price: string;
+  discountAmount: string;
+  /** null u stupně bez slevy. */
+  ruleCode: string | null;
+  ruleName: string | null;
+};
+
 export type ApiMerchProduct = {
   name: string;
   /** Stable product identity; used as the React key. */
@@ -70,6 +87,8 @@ export type ApiMerchProduct = {
   variants: ApiMerchVariant[];
   price: string;
   discountedPrice: string;
+  /** Cena podle pořadí kusu; vždy aspoň jeden stupeň. */
+  priceSteps: ApiPriceStep[];
   /** Summed across variants. */
   purchasedQuantity: number;
   /** Belongs in the collapsed "Další merch" section rather than the main grid. */
