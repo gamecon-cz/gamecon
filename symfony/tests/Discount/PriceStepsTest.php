@@ -181,6 +181,51 @@ class PriceStepsTest extends TestCase
         self::assertNull($steps[0]->ruleCode);
     }
 
+    /**
+     * Strop v cyklu počítá průchody, ne stupně — a už koupené kusy je taky spotřebují.
+     * U velkého nároku a hodně koupených kusů cyklus doběhl dřív, než stihl cokoli
+     * vydat, a fallback pak tvrdil „plná cena", přestože nárok pořád zbýval.
+     */
+    public function testVelkyNarokSMnohaKoupenymiPoradNabizeSlevu(): void
+    {
+        $steps = $this->vypocet([
+            $this->pravidlo('sto_zdarma', 'Sto zdarma', 1035, '{"scope":"tag","effect":"free","tag":"tricko","maxQuantity":100}'),
+        ], [1035])->priceSteps($this->tricko(), jizKoupeno: 60);
+
+        self::assertSame(0.0, $steps[0]->price, '61. kus má být pořád zdarma — nárok je 100');
+        self::assertSame('sto_zdarma', $steps[0]->ruleCode);
+    }
+
+    /**
+     * Pravidlo, které nakonec nic neubere (nastavená částka 0), není sleva. apply() ho
+     * zahodí, žebřík ho hlásil jako stupeň — a u produktu za nulu vyrobil „0 Kč / 0 Kč".
+     */
+    public function testPravidloSNulovouSlevouNeniStupen(): void
+    {
+        $steps = $this->vypocet([
+            $this->pravidlo('nic_neubere', 'Nic neubere', 1035, '{"scope":"tag","effect":"fixed_amount","tag":"tricko","amount":0}'),
+        ], [1035])->priceSteps($this->tricko());
+
+        self::assertCount(1, $steps);
+        self::assertNull($steps[0]->ruleCode, 'Nulová sleva se nemá tvářit jako nárok');
+        self::assertSame(400.0, $steps[0]->price);
+    }
+
+    /**
+     * Produkt zdarma pro všechny: „zdarma" na něm nic neubere, takže žebřík má mít
+     * jediný stupeň, ne dva stejné.
+     */
+    public function testProduktZaNuluMaJedinyStupen(): void
+    {
+        $steps = $this->vypocet([
+            $this->pravidlo('jedno_tricko_zdarma', 'Jedno tričko zdarma', 1035, '{"scope":"tag","effect":"free","tag":"tricko","maxQuantity":1}'),
+        ], [1035])->priceSteps($this->tricko(0.0));
+
+        self::assertCount(1, $steps);
+        self::assertSame(0.0, $steps[0]->price);
+        self::assertNull($steps[0]->ruleCode);
+    }
+
     public function testVsechnyNarokyVycerpaneZbydePlnaCena(): void
     {
         $steps = $this->vypocet([
