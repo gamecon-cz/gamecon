@@ -2,14 +2,7 @@ import { h } from "preact";
 import { useCallback, useEffect, useRef, useState } from "preact/hooks";
 import { addToCart, fetchCart, fetchMerch, fetchShirts, removeFromCart } from "../../api/symfony/endpoints";
 import { ApiCart, ApiCartItem, ApiMerchProduct, ApiMerchVariant } from "../../api/symfony/types";
-
-/** Format price string for Czech locale: "120.00" → "120 Kč", "80.50" → "80,50 Kč" */
-function formatCena(price: string): string {
-  const castka = parseFloat(price);
-  if (isNaN(castka)) return `${price}\u2009Kč`;
-  if (Number.isInteger(castka)) return `${castka}\u2009Kč`;
-  return `${castka.toFixed(2).replace(".", ",")}\u2009Kč`;
-}
+import { cenaDalsihoKusu, formatCena, popisSchodu } from "../../api/symfony/cenovySchod";
 
 function cartItemsForVariant(cart: ApiCart | null, variantId: number): ApiCartItem[] {
   if (!cart) return [];
@@ -41,6 +34,13 @@ function MerchŘádek({ product, cart, busy, onAdd, onRemove }: MerchŘádekProp
   const vKosiku = cartItemsForVariant(cart, vybrana.id);
   const quantity = vybrana.purchasedQuantity;
   const zlevneno = product.discountedPrice !== product.price;
+  // Nárok s omezeným počtem se do jedné ceny nevejde, tak se ukáže celý žebřík. Server
+  // ho posílá celý, takže po přidání do košíku stačí přečíst další stupeň — bez dotazu.
+  const schody = product.priceSteps ?? [];
+  // Žebřík ze serveru už počítá s tím, co zákazník má — první stupeň je cena kusu, který
+  // si teprve koupí. Odečítat purchasedQuantity znovu by nárok spotřebovalo dvakrát.
+  const popis = popisSchodu(schody);
+  const cenaDalsiho = cenaDalsihoKusu(schody, 0);
   const naMaximu = vybrana.maxQuantity !== null && quantity >= vybrana.maxQuantity;
   const vyprodano = vybrana.maxQuantity !== null && vybrana.maxQuantity <= 0;
   const maVyber = product.variants.length > 1;
@@ -54,10 +54,14 @@ function MerchŘádek({ product, cart, busy, onAdd, onRemove }: MerchŘádekProp
           <div class="merch-mrizka--popisek">{product.description}</div>
         )}
         <div class="merch-mrizka--cena">
-          {zlevneno && (
-            <span class="merch-mrizka--cena-puvodni">{formatCena(product.price)}</span>
+          {popis ?? (
+            <>
+              {zlevneno && (
+                <span class="merch-mrizka--cena-puvodni">{formatCena(product.price)}</span>
+              )}
+              {formatCena(cenaDalsiho ?? product.discountedPrice)}
+            </>
           )}
-          {formatCena(product.discountedPrice)}
         </div>
         {/* Počet u tlačítek je za vybranou velikost, takže kdo má víc velikostí, by jinak
             viděl „1" u produktu, kterého má dva. */}
