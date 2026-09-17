@@ -16,7 +16,7 @@ use App\Repository\ProductRepository;
 use App\Service\CurrentYearProviderInterface;
 use App\Service\DiscountCalculator;
 use App\Service\ProductVariantsForGrid;
-use App\Service\SpotrebovanaKvotaProvider;
+use App\Service\SpentQuotaProvider;
 use Gamecon\SystemoveNastaveni\SystemoveNastaveni;
 use Symfony\Bundle\SecurityBundle\Security;
 use Symfony\Component\HttpKernel\Exception\AccessDeniedHttpException;
@@ -32,7 +32,7 @@ readonly class MerchProductsProvider implements ProviderInterface
         private DiscountCalculator $discountCalculator,
         private CurrentYearProviderInterface $currentYearProvider,
         private ProductVariantsForGrid $variantsForGrid,
-        private SpotrebovanaKvotaProvider $spotrebovanaKvota,
+        private SpentQuotaProvider $spentQuota,
         private Security $security,
     ) {
     }
@@ -52,7 +52,7 @@ readonly class MerchProductsProvider implements ProviderInterface
         $prodejUkoncen = SystemoveNastaveni::zGlobals()->prodejPredmetuBezTricekUkoncen();
         $roleMeanings = $user->getRoleMeanings();
         // Jednou za request: mřížka mezi produkty nezapisuje, takže se spotřeba nemění.
-        $spotrebovanaKvota = $this->spotrebovanaKvota->pro($user, $year);
+        $spentQuota = $this->spentQuota->forUser($user, $year);
         $merch = [];
 
         foreach ($this->productRepository->findByTag(ProductTagCode::PREDMET) as $product) {
@@ -62,7 +62,7 @@ readonly class MerchProductsProvider implements ProviderInterface
                 continue;
             }
 
-            $dto = $this->toDto($product, $user, $year, $prodejUkoncen, $roleMeanings, $spotrebovanaKvota);
+            $dto = $this->toDto($product, $user, $year, $prodejUkoncen, $roleMeanings, $spentQuota);
             if ($dto !== null) {
                 $merch[] = $dto;
             }
@@ -73,7 +73,7 @@ readonly class MerchProductsProvider implements ProviderInterface
 
     /**
      * @param RoleMeaning[]      $roleMeanings
-     * @param array<string, int> $spotrebovanaKvota
+     * @param array<string, int> $spentQuota
      */
     private function toDto(
         Product $product,
@@ -81,7 +81,7 @@ readonly class MerchProductsProvider implements ProviderInterface
         int $year,
         bool $prodejUkoncen,
         array $roleMeanings,
-        array $spotrebovanaKvota,
+        array $spentQuota,
     ): ?MerchProductOutputDto {
         $purchasedQuantity = $this->orderItemRepository->countCustomerPurchases($user, $product, $year);
         // isPublic() also covers an expired nabizet_do, which the legacy shop treats as
@@ -114,7 +114,7 @@ readonly class MerchProductsProvider implements ProviderInterface
             $user,
             $year,
             $purchasedQuantity,
-            $spotrebovanaKvota,
+            $spentQuota,
         );
         $dto->secondary = $product->isSecondary();
         $dto->available = $available;
