@@ -16,6 +16,7 @@ use App\Repository\ProductRepository;
 use App\Service\CurrentYearProviderInterface;
 use App\Service\DiscountCalculator;
 use App\Service\ProductVariantsForGrid;
+use App\Service\SpotrebovanaKvotaProvider;
 use App\Service\RestrictedProductRules;
 use App\State\Cart\ShirtProductsProvider;
 use Gamecon\Cas\DateTimeImmutableStrict;
@@ -96,6 +97,7 @@ class ShirtProductsProviderTest extends TestCase
             $currentYearProvider,
             $this->restrictedProductRules,
             new ProductVariantsForGrid($orderItemRepository),
+            $this->createMock(SpotrebovanaKvotaProvider::class),
             $security,
         );
     }

@@ -37,6 +37,7 @@ class CartService
         private readonly ClockInterface $clock,
         private readonly RestrictedProductRules $restrictedProductRules,
         private readonly OrderItemRepository $orderItemRepository,
+        private readonly SpotrebovanaKvotaProvider $spotrebovanaKvota,
     ) {
     }
 
@@ -325,11 +326,14 @@ class CartService
             $order->getYear(),
         );
 
+        // Nárok sdílený přes víc produktů („jedna kostka zdarma", a kostek je v nabídce
+        // 45) se vyčerpá koupí kterékoli z nich. Bez toho by se za každou naúčtovala nula.
         $discountInfo = $this->discountCalculator->priceForNextPiece(
             $product,
             $order->getCustomer(),
             $order->getYear(),
             $jizKoupeno,
+            $this->spotrebovanaKvota->pro($order->getCustomer(), $order->getYear()),
         );
 
         $item = new OrderItem();

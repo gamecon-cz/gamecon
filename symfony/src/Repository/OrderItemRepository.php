@@ -4,10 +4,12 @@ declare(strict_types=1);
 
 namespace App\Repository;
 
+use App\Discount\DiscountableItem;
 use App\Entity\OrderItem;
 use App\Entity\Product;
 use App\Entity\ProductVariant;
 use App\Entity\User;
+use App\Enum\ProductTagCode;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\Persistence\ManagerRegistry;
 
@@ -64,6 +66,53 @@ class OrderItemRepository extends ServiceEntityRepository
         }
 
         return (int) $dotaz->getQuery()->getSingleScalarResult();
+    }
+
+    /**
+     * Letošní nákupy zákazníka v podobě, v jaké je pravidla umí spárovat.
+     *
+     * Čte se ze snapshotu na položce, ne z produktu: nákup zachycuje kód a tagy, jaké měl
+     * produkt v době koupě, takže pozdější přeštítkování nezmění, co se tehdy spotřebovalo.
+     *
+     * `accommodationDay` zůstává null — nároky na konkrétní noc se nespotřebovávají
+     * (`DiscountScope::isConsumable()`), takže se do kvóty nepočítají a den je jim jedno.
+     *
+     * @return DiscountableItem[]
+     */
+    public function discountableCustomerPurchases(User $customer, int $year): array
+    {
+        $rows = $this->createQueryBuilder('orderItem')
+            ->select('orderItem.id', 'orderItem.productCode', 'orderItem.productTags', 'orderItem.originalPrice', 'orderItem.purchasePrice')
+            ->where('orderItem.customer = :customer')
+            ->andWhere('orderItem.year = :year')
+            ->setParameter('customer', $customer)
+            ->setParameter('year', $year)
+            ->getQuery()
+            ->getArrayResult();
+
+        $polozky = [];
+        foreach ($rows as $row) {
+            $tagy = [];
+            // Sloupec je nullable a getArrayResult() vrací syrovou hodnotu, takže se
+            // výchozí `= []` z entity neuplatní; produkt bez tagů by shodil mřížku.
+            foreach ($row['productTags'] ?? [] as $kod) {
+                $tag = ProductTagCode::tryFrom($kod);
+                if ($tag !== null) {
+                    $tagy[] = $tag;
+                }
+            }
+
+            // Řadí se podle ceny PŘED slevou — pořadí musí odpovídat tomu, v jakém se
+            // nároky rozdávaly, a zlevněná položka by se jinak tvářila jako nejlevnější.
+            $polozky[] = new DiscountableItem(
+                key: $row['id'],
+                productCode: $row['productCode'] ?? '',
+                price: (float) ($row['originalPrice'] ?? $row['purchasePrice']),
+                tags: $tagy,
+            );
+        }
+
+        return $polozky;
     }
 
     /**

@@ -25,12 +25,6 @@ parameters:
             path: symfony/src/Discount/AppliedDiscount.php
 
         -
-            message: '#^Property App\\Discount\\AppliedDiscount\:\:\$ruleCode is never read$#'
-            identifier: shipmonk.deadProperty.neverRead
-            count: 1
-            path: symfony/src/Discount/AppliedDiscount.php
-
-        -
             message: '#^Property App\\Discount\\AppliedDiscount\:\:\$snapshot is never read$#'
             identifier: shipmonk.deadProperty.neverRead
             count: 1

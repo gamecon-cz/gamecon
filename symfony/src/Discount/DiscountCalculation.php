@@ -88,23 +88,36 @@ final readonly class DiscountCalculation
      * trička zdarma a k tomu jedno navíc, platí 0, 0, 0 a pak plnou cenu. Frontend takhle
      * dostane celou posloupnost dopředu a po přidání do košíku nemusí čekat na server.
      *
-     * Žebřík platí pro JEDEN produkt. Nárok sdílený přes víc produktů (jedna kostka
-     * zdarma, ale kostek je v nabídce sedm) se tím pádem ukáže u každé z nich — dokud
-     * zákazník žádnou nemá, je to u každé pravda, ale zdarma dostane jen první koupenou.
-     * Přesné číslo řekne až košík, který vidí všechny položky najednou.
+     * Žebřík platí pro JEDEN produkt, ale nárok bývá sdílený přes víc produktů — jedna
+     * kostka zdarma, a kostek je v nabídce sedm. Co se z kvóty spotřebovalo jinde proto
+     * musí přijít zvenčí v `$spotrebovano`; bez toho slíbí nulu u každé ze sedmi kostek.
      *
-     * @param int $jizKoupeno kolik kusů už zákazník letos má — jejich nároky jsou pryč
+     * @param int                     $jizKoupeno   kolik kusů TOHOHLE produktu zákazník letos
+     *                                              má; použije se, jen když spotřeba nepřijde
+     * @param array<string, int>|null $spotrebovano kolik z kvóty každého pravidla padlo za
+     *                                              celý ročník; null = volající to neví
      *
      * @return PriceStep[] vždy aspoň jeden stupeň, seřazené od prvního kusu
      */
-    public function priceSteps(DiscountableItem $item, int $jizKoupeno = 0): array
+    public function priceSteps(DiscountableItem $item, int $jizKoupeno = 0, ?array $spotrebovano = null): array
     {
         $remaining = $this->initialQuantities();
+
+        foreach ($spotrebovano ?? [] as $kodPravidla => $pocet) {
+            if (isset($remaining[$kodPravidla])) {
+                $remaining[$kodPravidla] = max(0, $remaining[$kodPravidla] - $pocet);
+            }
+        }
+
+        // Mapa spotřeby je úplná — počítá se ze VŠECH letošních nákupů, tedy i z kusů
+        // tohohle produktu. Odečíst k tomu ještě $jizKoupeno by je sebralo dvakrát a druhé
+        // tričko z nároku na dvě by vyšlo na plnou cenu. Bez mapy se odečítá postaru.
+        $jizZapocteno = $spotrebovano === null ? $jizKoupeno : 0;
 
         // Nároky spotřebované tím, co zákazník už má. Odbýt se to musí zvlášť, ne uvnitř
         // cyklu pod stropem — jinak by velký nárok a hodně koupených kusů strop vyčerpaly
         // dřív, než se vydá první stupeň, a vyšlo by z toho „plná cena".
-        for ($kus = 1; $kus <= $jizKoupeno; ++$kus) {
+        for ($kus = 1; $kus <= $jizZapocteno; ++$kus) {
             $rule = $this->firstMatching($item, $remaining);
             if ($rule === null || ! isset($remaining[$rule->code])) {
                 break;
