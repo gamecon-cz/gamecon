@@ -18,41 +18,41 @@ namespace App\Discount;
  * rozešla, spotřebuje kvótu jiné pravidlo, než které slevu doopravdy zaplatilo, a nárok
  * se rozdá podruhé.
  */
-final readonly class SpotrebovanaKvota
+final readonly class SpentQuota
 {
     /**
      * @param DiscountRule[]       $rules
-     * @param DiscountableItem[]   $jizKoupene co zákazník letos koupil
-     * @param int[]                $prava      id_prava, která kupující drží
-     * @param array<string, float> $nastaveni  hodnoty DiscountSetting
+     * @param DiscountableItem[]   $alreadyBoughtItems co zákazník letos koupil
+     * @param int[]                $rights             id_prava, která kupující drží
+     * @param array<string, float> $settings           hodnoty DiscountSetting
      *
      * @return array<string, int> kód pravidla → kolik kusů kvóty padlo
      */
-    public static function zNakupu(
+    public static function fromPurchases(
         array $rules,
-        array $jizKoupene,
-        array $prava = [],
-        array $nastaveni = [],
+        array $alreadyBoughtItems,
+        array $rights = [],
+        array $settings = [],
         float $earnedBonus = 0.0,
     ): array {
-        if ($jizKoupene === []) {
+        if ($alreadyBoughtItems === []) {
             return [];
         }
 
-        $spotrebovano = [];
-        foreach ((new DiscountCalculation($rules, $prava, $nastaveni, $earnedBonus))->apply($jizKoupene) as $sleva) {
-            $spotrebovano[$sleva->ruleCode] = ($spotrebovano[$sleva->ruleCode] ?? 0) + 1;
+        $spentQuota = [];
+        foreach ((new DiscountCalculation($rules, $rights, $settings, $earnedBonus))->apply($alreadyBoughtItems) as $discount) {
+            $spentQuota[$discount->ruleCode] = ($spentQuota[$discount->ruleCode] ?? 0) + 1;
         }
 
         // Pravidla bez omezeného počtu se nevyčerpávají, takže do kvóty nepatří — nemají
         // co ubrat a žebřík je nabídne na každý kus znovu.
-        $omezena = [];
+        $consumable = [];
         foreach ($rules as $rule) {
             if ($rule->parameters->maxQuantity !== null && $rule->parameters->scope->isConsumable()) {
-                $omezena[$rule->code] = true;
+                $consumable[$rule->code] = true;
             }
         }
 
-        return array_intersect_key($spotrebovano, $omezena);
+        return array_intersect_key($spentQuota, $consumable);
     }
 }

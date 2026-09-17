@@ -7,7 +7,7 @@ namespace App\Service;
 use App\Discount\DiscountableItem;
 use App\Discount\DiscountCalculation;
 use App\Discount\DiscountRuleLoader;
-use App\Discount\HodnotyNastaveniSlev;
+use App\Discount\DiscountSettingValues;
 use App\Discount\PriceStep;
 use App\Entity\Product;
 use App\Entity\User;
@@ -77,8 +77,8 @@ class DiscountCalculator
      * kolikátý kus to je. Košík musí účtovat právě tohle, jinak by mřížka slibovala
      * nulu za tričko zdarma a zaplatila by se plná cena.
      *
-     * @param array<string, int>|null $spotrebovanaKvota kolik z kvóty každého pravidla padlo
-     *                                                   za celý ročník — viz SpotrebovanaKvota
+     * @param array<string, int>|null $spentQuota kolik z kvóty každého pravidla padlo
+     *                                            za celý ročník — viz SpentQuota
      *
      * @return array{discount: null, discountAmount: string, finalPrice: string, reason: string|null}
      */
@@ -86,10 +86,10 @@ class DiscountCalculator
         Product $product,
         User $user,
         int $year,
-        int $jizKoupeno,
-        ?array $spotrebovanaKvota = null,
+        int $alreadyBought,
+        ?array $spentQuota = null,
     ): array {
-        $steps = $this->priceSteps($product, $user, $year, $jizKoupeno, $spotrebovanaKvota);
+        $steps = $this->priceSteps($product, $user, $year, $alreadyBought, $spentQuota);
         $prvni = $steps[0] ?? null;
         if ($prvni === null) {
             return $this->bezSlevy($product->getCurrentPrice());
@@ -110,9 +110,9 @@ class DiscountCalculator
      * viz `neomezenaPravidla()`. Tady se naopak počítají všechna pravidla, protože žebřík
      * o pořadí kusů ví, a frontend díky němu ukáže cenu dalšího kusu bez dotazu na server.
      *
-     * @param int                     $jizKoupeno        kolik kusů TOHOHLE produktu zákazník letos má
-     * @param array<string, int>|null $spotrebovanaKvota kolik z kvóty každého pravidla padlo
-     *                                                   za celý ročník — viz SpotrebovanaKvota
+     * @param int                     $alreadyBought kolik kusů TOHOHLE produktu zákazník letos má
+     * @param array<string, int>|null $spentQuota    kolik z kvóty každého pravidla padlo
+     *                                               za celý ročník — viz SpentQuota
      *
      * @return array<int, array{fromQuantity: int, price: string, discountAmount: string, ruleCode: string|null, ruleName: string|null, label: string|null}>
      */
@@ -120,8 +120,8 @@ class DiscountCalculator
         Product $product,
         User $user,
         int $year,
-        int $jizKoupeno = 0,
-        ?array $spotrebovanaKvota = null,
+        int $alreadyBought = 0,
+        ?array $spentQuota = null,
     ): array {
         $idUzivatele = $user->getId();
         $polozka = $this->polozkaZProduktu($product);
@@ -134,7 +134,7 @@ class DiscountCalculator
             $this->ruleLoader->rightsOfUser($idUzivatele, $year),
             $this->hodnotyNastaveni(),
             0.0,
-        ))->priceSteps($polozka, $jizKoupeno, $spotrebovanaKvota);
+        ))->priceSteps($polozka, $alreadyBought, $spentQuota);
 
         return array_map(static fn (PriceStep $step): array => $step->toArray(), $steps);
     }
@@ -205,7 +205,7 @@ class DiscountCalculator
      */
     private function hodnotyNastaveni(): array
     {
-        return HodnotyNastaveniSlev::z($this->systemoveNastaveni);
+        return DiscountSettingValues::from($this->systemoveNastaveni);
     }
 
     /**

@@ -37,7 +37,7 @@ class CartService
         private readonly ClockInterface $clock,
         private readonly RestrictedProductRules $restrictedProductRules,
         private readonly OrderItemRepository $orderItemRepository,
-        private readonly SpotrebovanaKvotaProvider $spotrebovanaKvota,
+        private readonly SpentQuotaProvider $spentQuota,
     ) {
     }
 
@@ -320,7 +320,7 @@ class CartService
 
         // Kolikátý kus to je, rozhoduje o ceně: nárok „jedno tričko zdarma" platí jen na
         // první. Bez toho by se naúčtovala plná cena i tam, kde mřížka slibuje nulu.
-        $jizKoupeno = $this->orderItemRepository->countCustomerPurchases(
+        $alreadyBought = $this->orderItemRepository->countCustomerPurchases(
             $order->getCustomer(),
             $product,
             $order->getYear(),
@@ -332,8 +332,8 @@ class CartService
             $product,
             $order->getCustomer(),
             $order->getYear(),
-            $jizKoupeno,
-            $this->spotrebovanaKvota->pro($order->getCustomer(), $order->getYear()),
+            $alreadyBought,
+            $this->spentQuota->forUser($order->getCustomer(), $order->getYear()),
         );
 
         $item = new OrderItem();

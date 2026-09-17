@@ -7,7 +7,7 @@ namespace App\Tests\Discount;
 use App\Discount\DiscountableItem;
 use App\Discount\DiscountCalculation;
 use App\Discount\DiscountRule;
-use App\Discount\SpotrebovanaKvota;
+use App\Discount\SpentQuota;
 use App\Enum\ProductTagCode;
 use PHPUnit\Framework\TestCase;
 
@@ -113,7 +113,7 @@ class PriceStepsTest extends TestCase
             $this->pravidlo('dve_tricka_zdarma', 'Dvě trička zdarma', 1020, '{"scope":"tag","effect":"free","tag":"tricko","maxQuantity":2}'),
         ];
 
-        $steps = $this->vypocet($pravidla, [1020])->priceSteps($this->tricko(), jizKoupeno: 1);
+        $steps = $this->vypocet($pravidla, [1020])->priceSteps($this->tricko(), alreadyBought: 1);
 
         self::assertSame(0.0, $steps[0]->price, 'Druhý kus má být pořád zdarma');
         self::assertSame(400.0, $steps[1]->price, 'Třetí kus už za plnou cenu');
@@ -196,7 +196,7 @@ class PriceStepsTest extends TestCase
     {
         $steps = $this->vypocet([
             $this->pravidlo('sto_zdarma', 'Sto zdarma', 1035, '{"scope":"tag","effect":"free","tag":"tricko","maxQuantity":100}'),
-        ], [1035])->priceSteps($this->tricko(), jizKoupeno: 60);
+        ], [1035])->priceSteps($this->tricko(), alreadyBought: 60);
 
         self::assertSame(0.0, $steps[0]->price, '61. kus má být pořád zdarma — nárok je 100');
         self::assertSame('sto_zdarma', $steps[0]->ruleCode);
@@ -391,7 +391,7 @@ class PriceStepsTest extends TestCase
     {
         $steps = $this->vypocet([
             $this->pravidlo('jedno_tricko_zdarma', 'Jedno tričko zdarma', 1035, '{"scope":"tag","effect":"free","tag":"tricko","maxQuantity":1}'),
-        ], [1035])->priceSteps($this->tricko(), jizKoupeno: 1);
+        ], [1035])->priceSteps($this->tricko(), alreadyBought: 1);
 
         self::assertCount(1, $steps);
         self::assertSame(400.0, $steps[0]->price);
@@ -403,7 +403,7 @@ class PriceStepsTest extends TestCase
      * Žebřík počítá jeden produkt, takže mu musí někdo říct, kolik z kvóty už padlo jinde —
      * jinak slíbí nulu u každé ze sedmi kostek a košík je podé té ceny i naúčtuje.
      */
-    public function testSpotrebovanaKvotaZJinehoProduktuPlatiITady(): void
+    public function testSpentQuotaZJinehoProduktuPlatiITady(): void
     {
         $vypocet = $this->vypocet([
             $this->pravidlo('kostka_zdarma', 'Kostka zdarma', 1003, '{"scope":"code_contains","effect":"free","codeFragment":"kostka","maxQuantity":1}'),
@@ -414,7 +414,7 @@ class PriceStepsTest extends TestCase
 
         // Zákazník mezitím koupil JINOU kostku — nárok je pryč, i když tenhle produkt
         // nikdy nekoupil.
-        $druha = $vypocet->priceSteps($this->kostka('draci_kostka', 60.0), spotrebovano: ['kostka_zdarma' => 1]);
+        $druha = $vypocet->priceSteps($this->kostka('draci_kostka', 60.0), spentQuota: ['kostka_zdarma' => 1]);
 
         self::assertSame(60.0, $druha[0]->price, 'Druhá kostka už zdarma není');
         self::assertNull($druha[0]->label);
@@ -429,14 +429,14 @@ class PriceStepsTest extends TestCase
         $steps = $this->vypocet([
             $this->pravidlo('kostka_zdarma', 'Kostka zdarma', 1003, '{"scope":"code_contains","effect":"free","codeFragment":"kostka","maxQuantity":1}'),
             $this->pravidlo('placka_zdarma', 'Placka zdarma', 1002, '{"scope":"code_contains","effect":"free","codeFragment":"placka","maxQuantity":1}'),
-        ], [1002, 1003])->priceSteps($this->kostka('fate_kostka', 30.0), spotrebovano: ['placka_zdarma' => 1]);
+        ], [1002, 1003])->priceSteps($this->kostka('fate_kostka', 30.0), spentQuota: ['placka_zdarma' => 1]);
 
         self::assertSame(0.0, $steps[0]->price, 'Spotřebovaná placka nesmí sebrat kostku zdarma');
     }
 
     /**
      * Kvóta spotřebovaná jinde už zahrnuje i kusy TOHOHLE produktu, takže se nesmí
-     * odečíst podruhé přes $jizKoupeno. Kdo má dvě trička zdarma a jedno koupil, má
+     * odečíst podruhé přes $alreadyBought. Kdo má dvě trička zdarma a jedno koupil, má
      * druhé pořád zdarma — dvojí odečet mu ho naúčtoval plnou cenou.
      */
     public function testKvotaSeNeodecitaDvakrat(): void
@@ -445,9 +445,9 @@ class PriceStepsTest extends TestCase
             $this->pravidlo('dve_tricka', 'Dvě trička zdarma', 1020, '{"scope":"tag","effect":"free","tag":"tricko","maxQuantity":2}'),
         ];
         $tricko = $this->tricko();
-        $spotrebovano = SpotrebovanaKvota::zNakupu($pravidla, [$tricko]);
+        $spentQuota = SpentQuota::fromPurchases($pravidla, [$tricko]);
 
-        $steps = $this->vypocet($pravidla, [1020])->priceSteps($tricko, 1, $spotrebovano);
+        $steps = $this->vypocet($pravidla, [1020])->priceSteps($tricko, 1, $spentQuota);
 
         self::assertSame(0.0, $steps[0]->price, 'Druhé tričko z nároku na dvě je pořád zdarma');
         self::assertSame(400.0, $steps[1]->price);
