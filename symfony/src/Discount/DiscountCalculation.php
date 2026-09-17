@@ -115,11 +115,13 @@ final readonly class DiscountCalculation
         $steps = [];
         $poradi = 1;
 
-        // Strop omezuje počet STUPŇŮ, ne kusů: každý průchod buď stupeň přidá, nebo
-        // zvedne pořadí u stávajícího, takže víc než tolik různých cen nevznikne.
-        $strop = 50;
+        // Průchod, který jen zvedne pořadí u stávajícího stupně, stupeň nepřidá — u nároku
+        // na milion kusů by cyklus běžel milionkrát, a maxQuantity je editovatelné
+        // v adminu. Po vyčerpání stropu se vydá jen to, co se stihlo; k tolikátému kusu
+        // se zákazník stejně nedostane a účtuje se podle pořadí, ne ze žebříku.
+        $strop = 1000;
 
-        while (count($steps) < $strop) {
+        for ($pruchod = 0; $pruchod < $strop && count($steps) < 50; ++$pruchod) {
             $rule = $this->firstMatching($item, $remaining);
 
             if ($rule === null) {
