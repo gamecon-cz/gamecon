@@ -18,7 +18,7 @@ use App\Service\CurrentYearProviderInterface;
 use App\Service\DiscountCalculator;
 use App\Service\ProductVariantsForGrid;
 use App\Service\RestrictedProductRules;
-use App\Service\SpotrebovanaKvotaProvider;
+use App\Service\SpentQuotaProvider;
 use Gamecon\SystemoveNastaveni\SystemoveNastaveni;
 use Symfony\Bundle\SecurityBundle\Security;
 use Symfony\Component\HttpKernel\Exception\AccessDeniedHttpException;
@@ -38,7 +38,7 @@ readonly class ShirtProductsProvider implements ProviderInterface
         private CurrentYearProviderInterface $currentYearProvider,
         private RestrictedProductRules $restrictedProductRules,
         private ProductVariantsForGrid $variantsForGrid,
-        private SpotrebovanaKvotaProvider $spotrebovanaKvota,
+        private SpentQuotaProvider $spentQuota,
         private Security $security,
     ) {
     }
@@ -60,7 +60,7 @@ readonly class ShirtProductsProvider implements ProviderInterface
         // není za co platit. Načte se proto až u prvního, a pak se drží.
         $legacyUser = false;
         // Jednou za request: mřížka mezi produkty nezapisuje, takže se spotřeba nemění.
-        $spotrebovanaKvota = $this->spotrebovanaKvota->pro($user, $year);
+        $spentQuota = $this->spentQuota->forUser($user, $year);
 
         $svrsky = [];
         foreach ($this->svrsky() as $product) {
@@ -79,7 +79,7 @@ readonly class ShirtProductsProvider implements ProviderInterface
                 $year,
                 $prodejUkoncen,
                 $roleMeanings,
-                $spotrebovanaKvota,
+                $spentQuota,
             );
             if ($dto !== null) {
                 $svrsky[] = $dto;
@@ -109,7 +109,7 @@ readonly class ShirtProductsProvider implements ProviderInterface
 
     /**
      * @param RoleMeaning[]      $roleMeanings
-     * @param array<string, int> $spotrebovanaKvota
+     * @param array<string, int> $spentQuota
      */
     private function toDto(
         Product $product,
@@ -118,7 +118,7 @@ readonly class ShirtProductsProvider implements ProviderInterface
         int $year,
         bool $prodejUkoncen,
         array $roleMeanings,
-        array $spotrebovanaKvota,
+        array $spentQuota,
     ): ?MerchProductOutputDto {
         // Omezené tričko se bez práva vůbec nenabízí — jinak by zákazník klikl a dostal
         // chybu z `CartService`, místo aby ho neviděl.
@@ -163,7 +163,7 @@ readonly class ShirtProductsProvider implements ProviderInterface
             $user,
             $year,
             $purchasedQuantity,
-            $spotrebovanaKvota,
+            $spentQuota,
         );
         $dto->secondary = $product->isSecondary();
         $dto->available = $available;

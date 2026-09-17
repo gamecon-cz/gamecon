@@ -5,8 +5,8 @@ declare(strict_types=1);
 namespace App\Service;
 
 use App\Discount\DiscountRuleLoader;
-use App\Discount\HodnotyNastaveniSlev;
-use App\Discount\SpotrebovanaKvota;
+use App\Discount\DiscountSettingValues;
+use App\Discount\SpentQuota;
 use App\Entity\User;
 use App\Repository\OrderItemRepository;
 
@@ -20,7 +20,7 @@ use App\Repository\OrderItemRepository;
  * Mřížka se ptá jednou za produkt, takže ji to stojí dotaz navíc na produkt. Cachovat
  * půjde až s invalidací vázanou na zápis do košíku.
  */
-class SpotrebovanaKvotaProvider
+class SpentQuotaProvider
 {
     public function __construct(
         private readonly OrderItemRepository $orderItemRepository,
@@ -31,18 +31,18 @@ class SpotrebovanaKvotaProvider
     /**
      * @return array<string, int> kód pravidla → kolik kusů kvóty padlo
      */
-    public function pro(User $user, int $year): array
+    public function forUser(User $user, int $year): array
     {
-        $idUzivatele = $user->getId();
-        if ($idUzivatele === null) {
+        $userId = $user->getId();
+        if ($userId === null) {
             return [];
         }
 
-        return SpotrebovanaKvota::zNakupu(
+        return SpentQuota::fromPurchases(
             $this->ruleLoader->rulesForYear($year),
             $this->orderItemRepository->discountableCustomerPurchases($user, $year),
-            $this->ruleLoader->rightsOfUser($idUzivatele, $year),
-            HodnotyNastaveniSlev::z(),
+            $this->ruleLoader->rightsOfUser($userId, $year),
+            DiscountSettingValues::from(),
         );
     }
 }

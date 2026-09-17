@@ -707,7 +707,7 @@ class EshopIntegrationTest extends AbstractTestDb
             new NativeClock(),
             new RestrictedProductRules(),
             $orderItemRepo,
-            new \App\Service\SpotrebovanaKvotaProvider(
+            new \App\Service\SpentQuotaProvider(
                 $orderItemRepo,
                 self::getContainer()->get(\App\Discount\DiscountRuleLoader::class),
             ),
