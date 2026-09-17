@@ -30,8 +30,10 @@ class KopieOstreDatabazeTest extends TestCase
     public static function setUpBeforeClass(): void
     {
         parent::setUpBeforeClass();
-        self::$soucasnaDbName = uniqid(DB_TEST_PREFIX . 'soucasna_', true);
-        self::$ostraDbName = uniqid(DB_TEST_PREFIX . 'ostra_', true);
+        // PID na konci, aby úklid v `_zavadec.php` poznal zbytek po spadlém běhu od
+        // databáze, kterou zrovna někdo používá. Viz \Gamecon\Tests\Db\TestDbPid.
+        self::$soucasnaDbName = uniqid(DB_TEST_PREFIX . 'soucasna_', true) . '_' . getmypid();
+        self::$ostraDbName = uniqid(DB_TEST_PREFIX . 'ostra_', true) . '_' . getmypid();
     }
 
     protected function setUp(): void

@@ -36,7 +36,9 @@ class AnonymizovanaDatabazeTest extends AbstractTestDb
     {
         parent::setUpBeforeClass();
 
-        self::$anonymniDatabaze = DB_NAME . '_anonym';
+        // PID musí zůstat na konci jména, jinak ho úklid v `_zavadec.php` nepozná
+        // a cizí běh tuhle databázi smaže, i když ji tenhle test právě používá.
+        self::$anonymniDatabaze = DB_NAME . '_anonym_' . getmypid();
 
         dbQuery("INSERT INTO uzivatele_hodnoty SET
             id_uzivatele = 100,
