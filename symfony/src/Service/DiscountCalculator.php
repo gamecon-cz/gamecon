@@ -104,7 +104,7 @@ class DiscountCalculator
      *
      * @param int $jizKoupeno kolik kusů zákazník letos má; jejich nároky jsou spotřebované
      *
-     * @return array<int, array{fromQuantity: int, price: string, discountAmount: string, ruleCode: string|null, ruleName: string|null}>
+     * @return array<int, array{fromQuantity: int, price: string, discountAmount: string, ruleCode: string|null, ruleName: string|null, label: string|null}>
      */
     public function priceSteps(Product $product, User $user, int $year, int $jizKoupeno = 0): array
     {
