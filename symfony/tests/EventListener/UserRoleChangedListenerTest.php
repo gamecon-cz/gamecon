@@ -52,14 +52,29 @@ class UserRoleChangedListenerTest extends TestCase
         $order = new Order();
         $order->addItem($item);
 
-        $user = $this->createMock(User::class);
-        $this->orderRepository->method('findPendingForCustomer')->willReturn($order);
-        $this->discountCalculator->method('calculateDiscount')->willReturn([
+        $this->discountCalculator->method('priceForNextPiece')->willReturn([
             'discount'       => null,
             'discountAmount' => '0.00',
             'finalPrice'     => $nova,
             'reason'         => null,
         ]);
+
+        $this->spustNadObjednavkou($order);
+    }
+
+    private function produkt(): Product
+    {
+        $product = new Product();
+        $product->setName('Tričko');
+        $product->setCurrentPrice('250.00');
+
+        return $product;
+    }
+
+    private function spustNadObjednavkou(Order $order): void
+    {
+        $user = $this->createMock(User::class);
+        $this->orderRepository->method('findPendingForCustomer')->willReturn($order);
 
         /** @var OrderRepository $orderRepository */
         $orderRepository = $this->orderRepository;
@@ -84,6 +99,34 @@ class UserRoleChangedListenerTest extends TestCase
             $restrictedProductRules,
             $logger,
         ))->onUserRoleChanged($user, 2026);
+    }
+
+    /**
+     * Přecenění musí počítat ceny stejně jako košík — tedy podle pořadí kusu. Jinak by
+     * tričko koupené zdarma po libovolné změně role tiše zdražilo na plnou cenu.
+     */
+    public function testPreceneniPocitaPodlePoradiKusu(): void
+    {
+        $this->discountCalculator->expects(self::atLeastOnce())
+            ->method('priceForNextPiece')
+            ->willReturn([
+                'discount'       => null,
+                'discountAmount' => '400.00',
+                'finalPrice'     => '0.00',
+                'reason'         => 'Jedno tričko zdarma',
+            ]);
+        $this->discountCalculator->expects(self::never())->method('calculateDiscount');
+
+        $item = new OrderItem();
+        $item->setProduct($this->produkt());
+        $item->setPurchasePrice('0.00');
+
+        $order = new Order();
+        $order->addItem($item);
+
+        $this->spustNadObjednavkou($order);
+
+        self::assertSame('0.00', $item->getPurchasePrice(), 'Tričko zdarma nesmí po změně role zdražit');
     }
 
     public function testDearerOrderNotifiesTheCfo(): void
