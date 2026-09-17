@@ -18,6 +18,7 @@ use App\Service\CurrentYearProviderInterface;
 use App\Service\DiscountCalculator;
 use App\Service\ProductVariantsForGrid;
 use App\Service\RestrictedProductRules;
+use App\Service\SpotrebovanaKvotaProvider;
 use Gamecon\SystemoveNastaveni\SystemoveNastaveni;
 use Symfony\Bundle\SecurityBundle\Security;
 use Symfony\Component\HttpKernel\Exception\AccessDeniedHttpException;
@@ -37,6 +38,7 @@ readonly class ShirtProductsProvider implements ProviderInterface
         private CurrentYearProviderInterface $currentYearProvider,
         private RestrictedProductRules $restrictedProductRules,
         private ProductVariantsForGrid $variantsForGrid,
+        private SpotrebovanaKvotaProvider $spotrebovanaKvota,
         private Security $security,
     ) {
     }
@@ -57,6 +59,8 @@ readonly class ShirtProductsProvider implements ProviderInterface
         // Legacy uživatel stojí dotaz navíc, a když v nabídce žádné omezené tričko není,
         // není za co platit. Načte se proto až u prvního, a pak se drží.
         $legacyUser = false;
+        // Jednou za request: mřížka mezi produkty nezapisuje, takže se spotřeba nemění.
+        $spotrebovanaKvota = $this->spotrebovanaKvota->pro($user, $year);
 
         $svrsky = [];
         foreach ($this->svrsky() as $product) {
@@ -75,6 +79,7 @@ readonly class ShirtProductsProvider implements ProviderInterface
                 $year,
                 $prodejUkoncen,
                 $roleMeanings,
+                $spotrebovanaKvota,
             );
             if ($dto !== null) {
                 $svrsky[] = $dto;
@@ -103,7 +108,8 @@ readonly class ShirtProductsProvider implements ProviderInterface
     }
 
     /**
-     * @param RoleMeaning[] $roleMeanings
+     * @param RoleMeaning[]      $roleMeanings
+     * @param array<string, int> $spotrebovanaKvota
      */
     private function toDto(
         Product $product,
@@ -112,6 +118,7 @@ readonly class ShirtProductsProvider implements ProviderInterface
         int $year,
         bool $prodejUkoncen,
         array $roleMeanings,
+        array $spotrebovanaKvota,
     ): ?MerchProductOutputDto {
         // Omezené tričko se bez práva vůbec nenabízí — jinak by zákazník klikl a dostal
         // chybu z `CartService`, místo aby ho neviděl.
@@ -151,7 +158,13 @@ readonly class ShirtProductsProvider implements ProviderInterface
         $dto->price = $product->getCurrentPrice();
         $dto->discountedPrice = $discount['finalPrice'];
         $dto->purchasedQuantity = $purchasedQuantity;
-        $dto->priceSteps = $this->discountCalculator->priceSteps($product, $user, $year, $purchasedQuantity);
+        $dto->priceSteps = $this->discountCalculator->priceSteps(
+            $product,
+            $user,
+            $year,
+            $purchasedQuantity,
+            $spotrebovanaKvota,
+        );
         $dto->secondary = $product->isSecondary();
         $dto->available = $available;
 

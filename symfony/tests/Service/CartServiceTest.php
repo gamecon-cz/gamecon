@@ -13,6 +13,7 @@ use App\Entity\User;
 use App\Enum\ProductStateEnum;
 use App\Enum\RoleMeaning;
 use App\Repository\OrderItemRepository;
+use App\Service\SpotrebovanaKvotaProvider;
 use App\Repository\OrderRepository;
 use App\Repository\ProductBundleRepository;
 use App\Service\CapacityManager;
@@ -67,6 +68,7 @@ class CartServiceTest extends TestCase
             new MockClock('2026-09-12 10:00:00'),
             $this->restrictedProductRules,
             $this->orderItemRepository,
+            $this->createMock(SpotrebovanaKvotaProvider::class),
         );
     }
 

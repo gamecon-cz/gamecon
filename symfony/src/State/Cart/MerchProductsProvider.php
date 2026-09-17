@@ -16,6 +16,7 @@ use App\Repository\ProductRepository;
 use App\Service\CurrentYearProviderInterface;
 use App\Service\DiscountCalculator;
 use App\Service\ProductVariantsForGrid;
+use App\Service\SpotrebovanaKvotaProvider;
 use Gamecon\SystemoveNastaveni\SystemoveNastaveni;
 use Symfony\Bundle\SecurityBundle\Security;
 use Symfony\Component\HttpKernel\Exception\AccessDeniedHttpException;
@@ -31,6 +32,7 @@ readonly class MerchProductsProvider implements ProviderInterface
         private DiscountCalculator $discountCalculator,
         private CurrentYearProviderInterface $currentYearProvider,
         private ProductVariantsForGrid $variantsForGrid,
+        private SpotrebovanaKvotaProvider $spotrebovanaKvota,
         private Security $security,
     ) {
     }
@@ -49,6 +51,8 @@ readonly class MerchProductsProvider implements ProviderInterface
         // The whole section locks on a date, independent of any single product's state.
         $prodejUkoncen = SystemoveNastaveni::zGlobals()->prodejPredmetuBezTricekUkoncen();
         $roleMeanings = $user->getRoleMeanings();
+        // Jednou za request: mřížka mezi produkty nezapisuje, takže se spotřeba nemění.
+        $spotrebovanaKvota = $this->spotrebovanaKvota->pro($user, $year);
         $merch = [];
 
         foreach ($this->productRepository->findByTag(ProductTagCode::PREDMET) as $product) {
@@ -58,7 +62,7 @@ readonly class MerchProductsProvider implements ProviderInterface
                 continue;
             }
 
-            $dto = $this->toDto($product, $user, $year, $prodejUkoncen, $roleMeanings);
+            $dto = $this->toDto($product, $user, $year, $prodejUkoncen, $roleMeanings, $spotrebovanaKvota);
             if ($dto !== null) {
                 $merch[] = $dto;
             }
@@ -68,10 +72,17 @@ readonly class MerchProductsProvider implements ProviderInterface
     }
 
     /**
-     * @param RoleMeaning[] $roleMeanings
+     * @param RoleMeaning[]      $roleMeanings
+     * @param array<string, int> $spotrebovanaKvota
      */
-    private function toDto(Product $product, User $user, int $year, bool $prodejUkoncen, array $roleMeanings): ?MerchProductOutputDto
-    {
+    private function toDto(
+        Product $product,
+        User $user,
+        int $year,
+        bool $prodejUkoncen,
+        array $roleMeanings,
+        array $spotrebovanaKvota,
+    ): ?MerchProductOutputDto {
         $purchasedQuantity = $this->orderItemRepository->countCustomerPurchases($user, $product, $year);
         // isPublic() also covers an expired nabizet_do, which the legacy shop treats as
         // a suspended product rather than a public one.
@@ -98,7 +109,13 @@ readonly class MerchProductsProvider implements ProviderInterface
         $dto->price = $product->getCurrentPrice();
         $dto->discountedPrice = $discount['finalPrice'];
         $dto->purchasedQuantity = $purchasedQuantity;
-        $dto->priceSteps = $this->discountCalculator->priceSteps($product, $user, $year, $purchasedQuantity);
+        $dto->priceSteps = $this->discountCalculator->priceSteps(
+            $product,
+            $user,
+            $year,
+            $purchasedQuantity,
+            $spotrebovanaKvota,
+        );
         $dto->secondary = $product->isSecondary();
         $dto->available = $available;
 
