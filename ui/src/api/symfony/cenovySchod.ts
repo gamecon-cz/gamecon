@@ -20,31 +20,24 @@ export function cenaDalsihoKusu(steps: ApiPriceStep[]): string | null {
 
 /**
  * Popis žebříku: „0 Kč / 30 Kč (první zdarma)", u víc zvýhodněných stupňů
- * „0 Kč / 200 Kč / 400 Kč (první tři se slevou)".
+ * „0 Kč / 0 Kč / 400 Kč (první tři zdarma)".
+ *
+ * Text závorky skládá backend (PriceStep::label). Popisy jsou kumulativní — každý shrnuje
+ * žebřík od prvního kusu — takže stačí vzít ten poslední, který nějaký nese.
  *
  * Vrací null u jediného stupně — tam není co vysvětlovat a stačí holá cena.
  */
 export function popisSchodu(steps: ApiPriceStep[]): string | null {
   if (steps.length < 2) return null;
 
-  const posledni = steps[steps.length - 1];
-  // Kolik kusů je zvýhodněných: poslední stupeň je ten bez slevy, takže nároky končí
-  // těsně před ním. Bez toho by třístupňový žebřík (2 + 1 zdarma) hlásil jen dva.
-  const zvyhodnenych = posledni.fromQuantity - 1;
-  if (zvyhodnenych <= 0) return null;
-
-  const vsechnyZdarma = steps
-    .slice(0, -1)
-    .every((krok) => parseFloat(krok.price) === 0);
-
-  const poradi =
-    zvyhodnenych === 1
-      ? "první"
-      : zvyhodnenych === 2
-        ? "první dva"
-        : `první ${zvyhodnenych}`;
+  // Pozpátku ručně, ne findLast — build cílí na es6 a esbuild převádí syntaxi, ne metody.
+  let popis: string | null = null;
+  for (let index = steps.length - 1; index >= 0 && popis === null; index--) {
+    popis = steps[index].label;
+  }
+  if (popis === null) return null;
 
   const ceny = steps.map((krok) => formatCena(krok.price)).join(" / ");
 
-  return `${ceny} (${poradi} ${vsechnyZdarma ? "zdarma" : "se slevou"})`;
+  return `${ceny} (${popis})`;
 }
