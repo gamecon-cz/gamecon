@@ -16,7 +16,7 @@ use App\Repository\ProductRepository;
 use App\Service\CurrentYearProviderInterface;
 use App\Service\DiscountCalculator;
 use App\Service\ProductVariantsForGrid;
-use App\Service\SpotrebovanaKvotaProvider;
+use App\Service\SpentQuotaProvider;
 use App\State\Cart\MerchProductsProvider;
 use Gamecon\Cas\DateTimeImmutableStrict;
 use Gamecon\SystemoveNastaveni\SystemoveNastaveni;
@@ -87,7 +87,7 @@ class MerchProductsProviderTest extends TestCase
             $discountCalculator,
             $currentYearProvider,
             new ProductVariantsForGrid($this->orderItemRepository),
-            $this->createMock(SpotrebovanaKvotaProvider::class),
+            $this->createMock(SpentQuotaProvider::class),
             $this->security,
         );
     }
@@ -275,7 +275,7 @@ class MerchProductsProviderTest extends TestCase
             $discountCalculator,
             $currentYearProvider,
             new ProductVariantsForGrid($orderItemRepository),
-            $this->createMock(SpotrebovanaKvotaProvider::class),
+            $this->createMock(SpentQuotaProvider::class),
             $this->security,
         );
     }

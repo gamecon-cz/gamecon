@@ -90,34 +90,34 @@ final readonly class DiscountCalculation
      *
      * Žebřík platí pro JEDEN produkt, ale nárok bývá sdílený přes víc produktů — jedna
      * kostka zdarma, a kostek je v nabídce sedm. Co se z kvóty spotřebovalo jinde proto
-     * musí přijít zvenčí v `$spotrebovano`; bez toho slíbí nulu u každé ze sedmi kostek.
+     * musí přijít zvenčí v `$spentQuota`; bez toho slíbí nulu u každé ze sedmi kostek.
      *
-     * @param int                     $jizKoupeno   kolik kusů TOHOHLE produktu zákazník letos
-     *                                              má; použije se, jen když spotřeba nepřijde
-     * @param array<string, int>|null $spotrebovano kolik z kvóty každého pravidla padlo za
-     *                                              celý ročník; null = volající to neví
+     * @param int                     $alreadyBought kolik kusů TOHOHLE produktu zákazník letos
+     *                                               má; použije se, jen když spotřeba nepřijde
+     * @param array<string, int>|null $spentQuota    kolik z kvóty každého pravidla padlo za
+     *                                               celý ročník; null = volající to neví
      *
      * @return PriceStep[] vždy aspoň jeden stupeň, seřazené od prvního kusu
      */
-    public function priceSteps(DiscountableItem $item, int $jizKoupeno = 0, ?array $spotrebovano = null): array
+    public function priceSteps(DiscountableItem $item, int $alreadyBought = 0, ?array $spentQuota = null): array
     {
         $remaining = $this->initialQuantities();
 
-        foreach ($spotrebovano ?? [] as $kodPravidla => $pocet) {
-            if (isset($remaining[$kodPravidla])) {
-                $remaining[$kodPravidla] = max(0, $remaining[$kodPravidla] - $pocet);
+        foreach ($spentQuota ?? [] as $ruleCode => $count) {
+            if (isset($remaining[$ruleCode])) {
+                $remaining[$ruleCode] = max(0, $remaining[$ruleCode] - $count);
             }
         }
 
         // Mapa spotřeby je úplná — počítá se ze VŠECH letošních nákupů, tedy i z kusů
-        // tohohle produktu. Odečíst k tomu ještě $jizKoupeno by je sebralo dvakrát a druhé
+        // tohohle produktu. Odečíst k tomu ještě $alreadyBought by je sebralo dvakrát a druhé
         // tričko z nároku na dvě by vyšlo na plnou cenu. Bez mapy se odečítá postaru.
-        $jizZapocteno = $spotrebovano === null ? $jizKoupeno : 0;
+        $alreadyCounted = $spentQuota === null ? $alreadyBought : 0;
 
         // Nároky spotřebované tím, co zákazník už má. Odbýt se to musí zvlášť, ne uvnitř
         // cyklu pod stropem — jinak by velký nárok a hodně koupených kusů strop vyčerpaly
         // dřív, než se vydá první stupeň, a vyšlo by z toho „plná cena".
-        for ($kus = 1; $kus <= $jizZapocteno; ++$kus) {
+        for ($piece = 1; $piece <= $alreadyCounted; ++$piece) {
             $rule = $this->firstMatching($item, $remaining);
             if ($rule === null || ! isset($remaining[$rule->code])) {
                 break;
@@ -126,19 +126,19 @@ final readonly class DiscountCalculation
         }
 
         $steps = [];
-        $poradi = 1;
+        $ordinal = 1;
 
         // Průchod, který jen zvedne pořadí u stávajícího stupně, stupeň nepřidá — u nároku
         // na milion kusů by cyklus běžel milionkrát, a maxQuantity je editovatelné
         // v adminu. Po vyčerpání stropu se vydá jen to, co se stihlo; k tolikátému kusu
         // se zákazník stejně nedostane a účtuje se podle pořadí, ne ze žebříku.
-        $strop = 1000;
+        $maxIterations = 1000;
 
-        for ($pruchod = 0; $pruchod < $strop && count($steps) < 50; ++$pruchod) {
+        for ($iteration = 0; $iteration < $maxIterations && count($steps) < 50; ++$iteration) {
             $rule = $this->firstMatching($item, $remaining);
 
             if ($rule === null) {
-                $steps[] = new PriceStep($poradi, $item->price, 0.0, null, null);
+                $steps[] = new PriceStep($ordinal, $item->price, 0.0, null, null);
 
                 break;
             }
@@ -150,15 +150,15 @@ final readonly class DiscountCalculation
                 --$remaining[$rule->code];
             }
 
-            $predchozi = $steps === [] ? null : $steps[count($steps) - 1];
-            if ($predchozi !== null && $predchozi->ruleCode === $rule->code) {
-                ++$poradi;
+            $previous = $steps === [] ? null : $steps[count($steps) - 1];
+            if ($previous !== null && $previous->ruleCode === $rule->code) {
+                ++$ordinal;
 
                 continue;
             }
 
-            $steps[] = new PriceStep($poradi, $item->price - $discount, $discount, $rule->code, $rule->name);
-            ++$poradi;
+            $steps[] = new PriceStep($ordinal, $item->price - $discount, $discount, $rule->code, $rule->name);
+            ++$ordinal;
 
             // Neomezené pravidlo se nevyčerpá, takže platí pro všechny další kusy —
             // další stupeň už nepřijde a cyklus by se jinak točil donekonečna.
@@ -184,18 +184,18 @@ final readonly class DiscountCalculation
     private function sPopisy(array $steps): array
     {
         $vseZdarma = true;
-        $predchozi = null;
+        $previous = null;
 
         foreach ($steps as $index => $step) {
             $vseZdarma = $vseZdarma && $step->price <= 0.0;
-            $dalsi = $steps[$index + 1] ?? null;
+            $next = $steps[$index + 1] ?? null;
 
             $steps[$index] = $step->sPopisem(
-                $dalsi === null ? null : $dalsi->fromQuantity - 1,
+                $next === null ? null : $next->fromQuantity - 1,
                 $vseZdarma,
-                $predchozi,
+                $previous,
             );
-            $predchozi = $steps[$index]->label;
+            $previous = $steps[$index]->label;
         }
 
         return $steps;

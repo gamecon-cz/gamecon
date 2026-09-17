@@ -90,29 +90,29 @@ class OrderItemRepository extends ServiceEntityRepository
             ->getQuery()
             ->getArrayResult();
 
-        $polozky = [];
+        $items = [];
         foreach ($rows as $row) {
-            $tagy = [];
+            $tags = [];
             // Sloupec je nullable a getArrayResult() vrací syrovou hodnotu, takže se
             // výchozí `= []` z entity neuplatní; produkt bez tagů by shodil mřížku.
-            foreach ($row['productTags'] ?? [] as $kod) {
-                $tag = ProductTagCode::tryFrom($kod);
+            foreach ($row['productTags'] ?? [] as $code) {
+                $tag = ProductTagCode::tryFrom($code);
                 if ($tag !== null) {
-                    $tagy[] = $tag;
+                    $tags[] = $tag;
                 }
             }
 
             // Řadí se podle ceny PŘED slevou — pořadí musí odpovídat tomu, v jakém se
             // nároky rozdávaly, a zlevněná položka by se jinak tvářila jako nejlevnější.
-            $polozky[] = new DiscountableItem(
+            $items[] = new DiscountableItem(
                 key: $row['id'],
                 productCode: $row['productCode'] ?? '',
                 price: (float) ($row['originalPrice'] ?? $row['purchasePrice']),
-                tags: $tagy,
+                tags: $tags,
             );
         }
 
-        return $polozky;
+        return $items;
     }
 
     /**
