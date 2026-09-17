@@ -172,14 +172,14 @@ class DiscountCalculatorTest extends TestCase
         $kalkulator = $this->kalkulator([$pravidlo], [self::PRAVO_UBYTOVANI_ZDARMA]);
         $tricko = $this->produkt('Tričko', '400.00', ProductTagCode::TRICKO);
 
-        foreach ([0, 1, 2] as $jizKoupeno) {
-            $zebrik = $kalkulator->priceSteps($tricko, $this->uzivatel(), self::ROK, $jizKoupeno);
-            $ucet = $kalkulator->priceForNextPiece($tricko, $this->uzivatel(), self::ROK, $jizKoupeno);
+        foreach ([0, 1, 2] as $alreadyBought) {
+            $zebrik = $kalkulator->priceSteps($tricko, $this->uzivatel(), self::ROK, $alreadyBought);
+            $ucet = $kalkulator->priceForNextPiece($tricko, $this->uzivatel(), self::ROK, $alreadyBought);
 
             self::assertSame(
                 $zebrik[0]['price'],
                 $ucet['finalPrice'],
-                sprintf('Po %d koupených se cena v mřížce a v košíku rozešla', $jizKoupeno),
+                sprintf('Po %d koupených se cena v mřížce a v košíku rozešla', $alreadyBought),
             );
         }
     }

@@ -6,7 +6,7 @@ namespace App\Tests\Discount;
 
 use App\Discount\DiscountableItem;
 use App\Discount\DiscountRule;
-use App\Discount\SpotrebovanaKvota;
+use App\Discount\SpentQuota;
 use App\Enum\ProductTagCode;
 use PHPUnit\Framework\TestCase;
 
@@ -15,7 +15,7 @@ use PHPUnit\Framework\TestCase;
  * z něj padlo, se pozná jen přehráním nákupů — žebřík počítá jeden produkt a sám o
  * ostatních neví.
  */
-class SpotrebovanaKvotaTest extends TestCase
+class SpentQuotaTest extends TestCase
 {
     private function pravidlo(string $code, string $parameters, int $pravo = 1003): DiscountRule
     {
@@ -39,18 +39,18 @@ class SpotrebovanaKvotaTest extends TestCase
 
     public function testBezNakupuNicSpotrebovanoNeni(): void
     {
-        self::assertSame([], SpotrebovanaKvota::zNakupu([$this->kostkaZdarma()], []));
+        self::assertSame([], SpentQuota::fromPurchases([$this->kostkaZdarma()], []));
     }
 
     public function testKoupenaKostkaSpotrebujeNarok(): void
     {
-        $spotrebovano = SpotrebovanaKvota::zNakupu(
+        $spentQuota = SpentQuota::fromPurchases(
             [$this->kostkaZdarma()],
             [$this->kostka('fate_kostka', 30.0)],
-            prava: [1003],
+            rights: [1003],
         );
 
-        self::assertSame(['kostka_zdarma' => 1], $spotrebovano);
+        self::assertSame(['kostka_zdarma' => 1], $spentQuota);
     }
 
     /**
@@ -59,27 +59,27 @@ class SpotrebovanaKvotaTest extends TestCase
      */
     public function testSpotrebaNepresahneKvotu(): void
     {
-        $spotrebovano = SpotrebovanaKvota::zNakupu([$this->kostkaZdarma()], [
+        $spentQuota = SpentQuota::fromPurchases([$this->kostkaZdarma()], [
             $this->kostka('fate_kostka', 30.0),
             $this->kostka('draci_kostka', 60.0),
             $this->kostka('duna_kostka', 25.0),
-        ], prava: [1003]);
+        ], rights: [1003]);
 
-        self::assertSame(['kostka_zdarma' => 1], $spotrebovano);
+        self::assertSame(['kostka_zdarma' => 1], $spentQuota);
     }
 
     public function testNarokNaDvaKusySeSpotrebujeDvakrat(): void
     {
-        $spotrebovano = SpotrebovanaKvota::zNakupu(
+        $spentQuota = SpentQuota::fromPurchases(
             [$this->pravidlo('dve_tricka', '{"scope":"tag","effect":"free","tag":"tricko","maxQuantity":2}')],
             [
                 new DiscountableItem(key: 'a', productCode: 'tricko_a', price: 400.0, tags: [ProductTagCode::TRICKO]),
                 new DiscountableItem(key: 'b', productCode: 'tricko_b', price: 400.0, tags: [ProductTagCode::TRICKO]),
             ],
-            prava: [1003],
+            rights: [1003],
         );
 
-        self::assertSame(['dve_tricka' => 2], $spotrebovano);
+        self::assertSame(['dve_tricka' => 2], $spentQuota);
     }
 
     /**
@@ -88,12 +88,12 @@ class SpotrebovanaKvotaTest extends TestCase
      */
     public function testNeomezenePravidloSeNepocita(): void
     {
-        $spotrebovano = SpotrebovanaKvota::zNakupu(
+        $spentQuota = SpentQuota::fromPurchases(
             [$this->pravidlo('ubytovani_zdarma', '{"scope":"tag","effect":"free","tag":"ubytovani"}')],
             [new DiscountableItem(key: 'a', productCode: 'postel', price: 500.0, tags: [ProductTagCode::UBYTOVANI])],
         );
 
-        self::assertSame([], $spotrebovano);
+        self::assertSame([], $spentQuota);
     }
 
     /**
@@ -101,12 +101,12 @@ class SpotrebovanaKvotaTest extends TestCase
      */
     public function testNarokNaNocSeNespotrebovava(): void
     {
-        $spotrebovano = SpotrebovanaKvota::zNakupu(
+        $spentQuota = SpentQuota::fromPurchases(
             [$this->pravidlo('streda_zdarma', '{"scope":"tag_and_day","effect":"free","tag":"ubytovani","day":0,"maxQuantity":1}')],
             [new DiscountableItem(key: 'a', productCode: 'postel', price: 500.0, tags: [ProductTagCode::UBYTOVANI], accommodationDay: 0)],
         );
 
-        self::assertSame([], $spotrebovano);
+        self::assertSame([], $spentQuota);
     }
 
     /**
@@ -115,12 +115,12 @@ class SpotrebovanaKvotaTest extends TestCase
      */
     public function testJednaPolozkaSpotrebujeJenJedenNarok(): void
     {
-        $spotrebovano = SpotrebovanaKvota::zNakupu([
+        $spentQuota = SpentQuota::fromPurchases([
             $this->kostkaZdarma(),
             $this->pravidlo('kostka_levneji', '{"scope":"code_contains","effect":"percent","codeFragment":"kostka","percent":50,"maxQuantity":1}'),
-        ], [$this->kostka('fate_kostka', 30.0)], prava: [1003]);
+        ], [$this->kostka('fate_kostka', 30.0)], rights: [1003]);
 
-        self::assertSame(['kostka_zdarma' => 1], $spotrebovano);
+        self::assertSame(['kostka_zdarma' => 1], $spentQuota);
     }
 
     /**
@@ -128,12 +128,12 @@ class SpotrebovanaKvotaTest extends TestCase
      */
     public function testNesouvisejiciNakupNicNespotrebuje(): void
     {
-        $spotrebovano = SpotrebovanaKvota::zNakupu(
+        $spentQuota = SpentQuota::fromPurchases(
             [$this->kostkaZdarma()],
             [new DiscountableItem(key: 'a', productCode: 'blok', price: 120.0, tags: [])],
         );
 
-        self::assertSame([], $spotrebovano);
+        self::assertSame([], $spentQuota);
     }
 
     /**
@@ -148,9 +148,9 @@ class SpotrebovanaKvotaTest extends TestCase
         ];
         $tricko = new DiscountableItem(key: 't', productCode: 'tricko_a', price: 400.0, tags: [ProductTagCode::TRICKO]);
 
-        $spotrebovano = SpotrebovanaKvota::zNakupu($pravidla, [$tricko], prava: [1035]);
+        $spentQuota = SpentQuota::fromPurchases($pravidla, [$tricko], rights: [1035]);
 
-        self::assertSame(['jedno_tricko_zdarma' => 1], $spotrebovano);
+        self::assertSame(['jedno_tricko_zdarma' => 1], $spentQuota);
     }
 
     /**
@@ -168,9 +168,9 @@ class SpotrebovanaKvotaTest extends TestCase
         ];
         $tricko = new DiscountableItem(key: 't', productCode: 'tricko_a', price: 400.0, tags: [ProductTagCode::TRICKO]);
 
-        $spotrebovano = SpotrebovanaKvota::zNakupu($pravidla, [$tricko], prava: [1012, 1035]);
+        $spentQuota = SpentQuota::fromPurchases($pravidla, [$tricko], rights: [1012, 1035]);
 
-        self::assertSame(['tricko_za_bonus' => 1], $spotrebovano);
+        self::assertSame(['tricko_za_bonus' => 1], $spentQuota);
     }
 
     /**
@@ -186,11 +186,11 @@ class SpotrebovanaKvotaTest extends TestCase
         $tricko = new DiscountableItem(key: 't', productCode: 'tricko_a', price: 400.0, tags: [ProductTagCode::TRICKO]);
         $prava = [1035];
 
-        $spotrebovano = SpotrebovanaKvota::zNakupu($pravidla, [$tricko], prava: $prava);
-        self::assertSame(['jedno_tricko_zdarma' => 1], $spotrebovano);
+        $spentQuota = SpentQuota::fromPurchases($pravidla, [$tricko], rights: $prava);
+        self::assertSame(['jedno_tricko_zdarma' => 1], $spentQuota);
 
         $steps = (new \App\Discount\DiscountCalculation($pravidla, $prava, [], 0.0))
-            ->priceSteps($tricko, 1, $spotrebovano);
+            ->priceSteps($tricko, 1, $spentQuota);
         self::assertSame(400.0, $steps[0]->price, 'Druhé tričko na jeden nárok zdarma není');
     }
 
@@ -200,12 +200,12 @@ class SpotrebovanaKvotaTest extends TestCase
      */
     public function testNakupBezRealneSlevyKvotuNespotrebuje(): void
     {
-        $spotrebovano = SpotrebovanaKvota::zNakupu(
+        $spentQuota = SpentQuota::fromPurchases(
             [$this->kostkaZdarma()],
             [$this->kostka('fate_kostka', 0.0)],
-            prava: [1003],
+            rights: [1003],
         );
 
-        self::assertSame([], $spotrebovano);
+        self::assertSame([], $spentQuota);
     }
 }
