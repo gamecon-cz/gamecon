@@ -272,6 +272,71 @@ class EshopIntegrationTest extends AbstractTestDb
         $this->assertTrue($cart->isEmpty());
     }
 
+    /**
+     * „Jedna kostka zdarma" je jeden nárok na všechny kostky, ne na každou zvlášť — a kostek
+     * je v nabídce 45. Když se kvóta počítá per produkt, má každá vlastní nulu a zákazník
+     * odejde se 45 kostkami zdarma. Jede přes celý košík, protože právě ten účtuje.
+     */
+    public function testSdilenyNarokPlatiJenNaPrvniKostku(): void
+    {
+        // Vlastní uživatel, ne sdílený 89901: testy, které ruší všechny jeho nákupy,
+        // by jinak počítaly i tyhle kostky.
+        $this->connection->executeStatement("INSERT IGNORE INTO uzivatele_hodnoty SET
+            id_uzivatele = 89903, login_uzivatele = 'kostkar',
+            jmeno_uzivatele = 'Kostkar', prijmeni_uzivatele = 'Testovaci',
+            email1_uzivatele = 'kostkar@test.cz', pohlavi = 'm',
+            datum_narozeni = '1990-01-01'");
+        $this->connection->executeStatement(
+            'INSERT IGNORE INTO uzivatele_role SET id_uzivatele = 89903, id_role = 2',
+        );
+
+        $kostkaTag = $this->em->getRepository(\App\Entity\ProductTag::class)->findOneBy([
+            'code' => 'predmet',
+        ]);
+
+        $varianty = [];
+        foreach ([['fate', '30.00'], ['draci', '60.00']] as [$jmeno, $cena]) {
+            $produkt = new Product();
+            $produkt->setName('Kostka ' . $jmeno);
+            $produkt->setCode('eshoptest-' . $jmeno . '-kostka');
+            $produkt->setCurrentPrice($cena);
+            $produkt->setState(ProductStateEnum::PUBLIC);
+            $produkt->setDescription('');
+            $produkt->setAvailableUntil(new \DateTimeImmutable('+1 year'));
+            if ($kostkaTag !== null) {
+                $produkt->addTag($kostkaTag);
+            }
+            $this->em->persist($produkt);
+
+            $varianta = new ProductVariant();
+            $varianta->setProduct($produkt);
+            $varianta->setName('jedna');
+            $varianta->setCode('eshoptest-' . $jmeno . '-kostka-v');
+            $varianta->setRemainingQuantity(5);
+            $varianta->setPosition(0);
+            $produkt->addVariant($varianta);
+            $this->em->persist($varianta);
+
+            $varianty[] = $varianta;
+        }
+        $this->em->flush();
+
+        $cartService = $this->createCartService();
+        $user = $this->em->find(User::class, 89903);
+        $this->assertNotNull($user);
+        $cart = $cartService->getOrCreateCart($user);
+
+        $prvni = $cartService->addItem($cart, $varianty[0]);
+        $druha = $cartService->addItem($cart, $varianty[1]);
+
+        $this->assertSame('0.00', $prvni->getPurchasePrice(), 'První kostka je zdarma');
+        $this->assertSame(
+            '60.00',
+            $druha->getPurchasePrice(),
+            'Druhá kostka už zdarma není — nárok padl na první',
+        );
+    }
+
     // ==================== 4. ProductBundle with RoleMeaning ====================
 
     public function testProductBundleAppliesToRoleMeaning(): void
@@ -642,6 +707,10 @@ class EshopIntegrationTest extends AbstractTestDb
             new NativeClock(),
             new RestrictedProductRules(),
             $orderItemRepo,
+            new \App\Service\SpotrebovanaKvotaProvider(
+                $orderItemRepo,
+                self::getContainer()->get(\App\Discount\DiscountRuleLoader::class),
+            ),
         );
     }
 
