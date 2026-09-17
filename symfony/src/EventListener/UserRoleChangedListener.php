@@ -70,6 +70,9 @@ readonly class UserRoleChangedListener
     {
         $hasChanges = false;
         $zdrazeni = [];
+        // Kolikátý kus téhož produktu právě přeceňujeme — u nároku s omezeným počtem
+        // je druhé tričko v objednávce už za plnou cenu.
+        $jizZapocteno = [];
         // Resolved once for the whole order; permissions cannot change mid-request.
         $legacyUzivatel = $this->restrictedProductRules->legacyUserFor($user);
 
@@ -94,8 +97,18 @@ readonly class UserRoleChangedListener
                 continue;
             }
 
-            // Calculate new discount based on current role
-            $discountInfo = $this->discountCalculator->calculateDiscount($product, $user, $year);
+            // Stejnou cestou jako košík, tedy podle pořadí kusu. Přes calculateDiscount()
+            // by se nároky s omezeným počtem ztratily a tričko koupené zdarma by po
+            // změně role tiše zdražilo na plnou cenu.
+            $discountInfo = $this->discountCalculator->priceForNextPiece(
+                $product,
+                $user,
+                $year,
+                // Přeceňuje se kus, který zákazník už má — nárok na něj tedy ještě
+                // nebyl spotřebovaný.
+                $jizZapocteno[$product->getId()] ?? 0,
+            );
+            $jizZapocteno[$product->getId()] = ($jizZapocteno[$product->getId()] ?? 0) + 1;
             $puvodniCena = $orderItem->getPurchasePrice();
 
             // Update order item with new pricing
