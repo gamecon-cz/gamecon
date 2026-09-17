@@ -8,6 +8,7 @@ use App\Discount\DiscountableItem;
 use App\Discount\DiscountCalculation;
 use App\Discount\DiscountRuleLoader;
 use App\Discount\DiscountSetting;
+use App\Discount\PriceStep;
 use App\Entity\Product;
 use App\Entity\User;
 use App\Enum\ProductTagCode;
@@ -67,6 +68,35 @@ class DiscountCalculator
             'finalPrice'     => number_format($sleva->finalPrice, 2, '.', ''),
             'reason'         => $sleva->ruleName,
         ];
+    }
+
+    /**
+     * Cenový žebřík: kolikátý kus produktu stojí kolik.
+     *
+     * Nároky s omezeným počtem (tričko zdarma) se v ceně jedné položky uplatnit nedají —
+     * viz `neomezenaPravidla()`. Tady se naopak počítají všechna pravidla, protože žebřík
+     * o pořadí kusů ví, a frontend díky němu ukáže cenu dalšího kusu bez dotazu na server.
+     *
+     * @param int $jizKoupeno kolik kusů zákazník letos má; jejich nároky jsou spotřebované
+     *
+     * @return array<int, array{fromQuantity: int, price: string, discountAmount: string, ruleCode: string|null, ruleName: string|null}>
+     */
+    public function priceSteps(Product $product, User $user, int $year, int $jizKoupeno = 0): array
+    {
+        $idUzivatele = $user->getId();
+        $polozka = $this->polozkaZProduktu($product);
+        if ($idUzivatele === null || $polozka === null) {
+            return [(new PriceStep(1, (float) $product->getCurrentPrice(), 0.0, null, null))->toArray()];
+        }
+
+        $steps = (new DiscountCalculation(
+            $this->ruleLoader->rulesForYear($year),
+            $this->ruleLoader->rightsOfUser($idUzivatele, $year),
+            $this->hodnotyNastaveni(),
+            0.0,
+        ))->priceSteps($polozka, $jizKoupeno);
+
+        return array_map(static fn (PriceStep $step): array => $step->toArray(), $steps);
     }
 
     /**
