@@ -82,6 +82,90 @@ final readonly class DiscountCalculation
     }
 
     /**
+     * Cenový žebřík pro jednu položku: kolikátý kus stojí kolik.
+     *
+     * Nároky se vyčerpávají v pořadí priorit, takže cena není jedno číslo — kdo má dvě
+     * trička zdarma a k tomu jedno navíc, platí 0, 0, 0 a pak plnou cenu. Frontend takhle
+     * dostane celou posloupnost dopředu a po přidání do košíku nemusí čekat na server.
+     *
+     * Žebřík platí pro JEDEN produkt. Nárok sdílený přes víc produktů (jedna kostka
+     * zdarma, ale kostek je v nabídce sedm) se tím pádem ukáže u každé z nich — dokud
+     * zákazník žádnou nemá, je to u každé pravda, ale zdarma dostane jen první koupenou.
+     * Přesné číslo řekne až košík, který vidí všechny položky najednou.
+     *
+     * @param int $jizKoupeno kolik kusů už zákazník letos má — jejich nároky jsou pryč
+     *
+     * @return PriceStep[] vždy aspoň jeden stupeň, seřazené od prvního kusu
+     */
+    public function priceSteps(DiscountableItem $item, int $jizKoupeno = 0): array
+    {
+        $remaining = $this->initialQuantities();
+        $steps = [];
+        $poradi = 1;
+
+        // Strop je pojistka proti pravidlu s nesmyslně velkým maxQuantity: žebřík je pro
+        // zobrazení, ne pro výpočet košíku, a víc stupňů by stejně nikdo neukázal.
+        $strop = 50;
+
+        for ($kus = 1; $kus <= $strop; ++$kus) {
+            $rule = $this->firstMatching($item, $remaining);
+
+            if ($rule === null) {
+                $steps[] = new PriceStep($poradi, $item->price, 0.0, null, null);
+
+                break;
+            }
+
+            $amount = $this->amountFor($rule);
+            $discount = $amount === null ? 0.0 : $rule->parameters->effect->discountFrom($item->price, $amount);
+
+            if (isset($remaining[$rule->code])) {
+                --$remaining[$rule->code];
+            }
+
+            // Kusy, které zákazník už má, nárok spotřebovaly — do žebříku patří až to,
+            // co si teprve může koupit.
+            if ($kus <= $jizKoupeno) {
+                continue;
+            }
+
+            $predchozi = $steps === [] ? null : $steps[count($steps) - 1];
+            if ($predchozi !== null && $predchozi->ruleCode === $rule->code) {
+                ++$poradi;
+
+                continue;
+            }
+
+            $steps[] = new PriceStep($poradi, $item->price - $discount, $discount, $rule->code, $rule->name);
+            ++$poradi;
+        }
+
+        return $steps === [] ? [new PriceStep(1, $item->price, 0.0, null, null)] : $steps;
+    }
+
+    /**
+     * @param array<string, int> $remaining
+     */
+    private function firstMatching(DiscountableItem $item, array $remaining): ?DiscountRule
+    {
+        foreach ($this->rules as $rule) {
+            if (! $this->isEligible($rule) || ! $item->matches($rule->parameters)) {
+                continue;
+            }
+            if (isset($remaining[$rule->code]) && $remaining[$rule->code] <= 0) {
+                continue;
+            }
+            if ($this->amountFor($rule) === null) {
+                continue;
+            }
+
+            return $rule;
+        }
+
+        return null;
+    }
+
+    /**
      * @return array<string, int> remaining uses per rule code; rules without a limit are absent
      */
     private function initialQuantities(): array
