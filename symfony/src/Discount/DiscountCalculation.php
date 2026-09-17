@@ -100,14 +100,26 @@ final readonly class DiscountCalculation
     public function priceSteps(DiscountableItem $item, int $jizKoupeno = 0): array
     {
         $remaining = $this->initialQuantities();
+
+        // Nároky spotřebované tím, co zákazník už má. Odbýt se to musí zvlášť, ne uvnitř
+        // cyklu pod stropem — jinak by velký nárok a hodně koupených kusů strop vyčerpaly
+        // dřív, než se vydá první stupeň, a vyšlo by z toho „plná cena".
+        for ($kus = 1; $kus <= $jizKoupeno; ++$kus) {
+            $rule = $this->firstMatching($item, $remaining);
+            if ($rule === null || ! isset($remaining[$rule->code])) {
+                break;
+            }
+            --$remaining[$rule->code];
+        }
+
         $steps = [];
         $poradi = 1;
 
-        // Strop je pojistka proti pravidlu s nesmyslně velkým maxQuantity: žebřík je pro
-        // zobrazení, ne pro výpočet košíku, a víc stupňů by stejně nikdo neukázal.
+        // Strop omezuje počet STUPŇŮ, ne kusů: každý průchod buď stupeň přidá, nebo
+        // zvedne pořadí u stávajícího, takže víc než tolik různých cen nevznikne.
         $strop = 50;
 
-        for ($kus = 1; $kus <= $strop; ++$kus) {
+        while (count($steps) < $strop) {
             $rule = $this->firstMatching($item, $remaining);
 
             if ($rule === null) {
@@ -123,12 +135,6 @@ final readonly class DiscountCalculation
                 --$remaining[$rule->code];
             }
 
-            // Kusy, které zákazník už má, nárok spotřebovaly — do žebříku patří až to,
-            // co si teprve může koupit.
-            if ($kus <= $jizKoupeno) {
-                continue;
-            }
-
             $predchozi = $steps === [] ? null : $steps[count($steps) - 1];
             if ($predchozi !== null && $predchozi->ruleCode === $rule->code) {
                 ++$poradi;
@@ -138,9 +144,15 @@ final readonly class DiscountCalculation
 
             $steps[] = new PriceStep($poradi, $item->price - $discount, $discount, $rule->code, $rule->name);
             ++$poradi;
+
+            // Neomezené pravidlo se nevyčerpá, takže platí pro všechny další kusy —
+            // další stupeň už nepřijde a cyklus by se jinak točil donekonečna.
+            if (! isset($remaining[$rule->code])) {
+                break;
+            }
         }
 
-        return $steps === [] ? [new PriceStep(1, $item->price, 0.0, null, null)] : $steps;
+        return $steps;
     }
 
     /**
@@ -161,7 +173,14 @@ final readonly class DiscountCalculation
             if (isset($remaining[$rule->code]) && $remaining[$rule->code] <= 0) {
                 continue;
             }
-            if ($this->amountFor($rule) === null) {
+            $amount = $this->amountFor($rule);
+            if ($amount === null) {
+                continue;
+            }
+            // Pravidlo, které nakonec nic neubere (nastavená částka 0, nebo „zdarma" na
+            // produktu za nulu), není sleva — apply() ho zahodí na témže místě. Kdyby
+            // sem prošlo, neomezené by se navíc vybíralo donekonečna.
+            if ($rule->parameters->effect->discountFrom($item->price, $amount) <= 0.0) {
                 continue;
             }
 
