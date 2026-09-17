@@ -23,7 +23,7 @@ class MealProductOutputDto
      * Cena podle pořadí kusu; vždy aspoň jeden stupeň. U jídla dnes žádné pravidlo
      * s omezeným počtem není, takže je stupeň jeden — ale tvar je stejný jako u merche.
      *
-     * @var array<int, array{fromQuantity: int, price: string, discountAmount: string, ruleCode: string|null, ruleName: string|null}>
+     * @var array<int, array{fromQuantity: int, price: string, discountAmount: string, ruleCode: string|null, ruleName: string|null, label: string|null}>
      */
     public array $priceSteps = [];
 

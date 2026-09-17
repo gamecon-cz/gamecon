@@ -260,6 +260,127 @@ class PriceStepsTest extends TestCase
         }
     }
 
+    /**
+     * Popis zvýhodnění skládá backend, ne frontend — až se hlášky budou překládat, je to
+     * jedno místo místo rozsypané češtiny v TypeScriptu.
+     */
+    public function testStupenNeseCeskyPopisZvyhodneni(): void
+    {
+        $steps = $this->vypocet([
+            $this->pravidlo('jedno_tricko_zdarma', 'Jedno tričko zdarma', 1035, '{"scope":"tag","effect":"free","tag":"tricko","maxQuantity":1}'),
+        ], [1035])->priceSteps($this->tricko());
+
+        self::assertSame('první zdarma', $steps[0]->label);
+        self::assertNull($steps[1]->label, 'Stupeň bez slevy nemá co vysvětlovat');
+    }
+
+    public function testPopisRozliseniPoctuAJestliJeZdarma(): void
+    {
+        $dveZdarma = $this->vypocet([
+            $this->pravidlo('dve_tricka_zdarma', 'Dvě trička zdarma', 1020, '{"scope":"tag","effect":"free","tag":"tricko","maxQuantity":2}'),
+        ], [1020])->priceSteps($this->tricko());
+        self::assertSame('první dva zdarma', $dveZdarma[0]->label);
+
+        $sleva = $this->vypocet([
+            $this->pravidlo('tricko_levneji', 'Tričko levněji', 1035, '{"scope":"tag","effect":"percent","tag":"tricko","percent":50,"maxQuantity":3}'),
+        ], [1035])->priceSteps($this->tricko());
+        self::assertSame('první tři se slevou', $sleva[0]->label);
+    }
+
+    /**
+     * Dva řetězené nároky dávají dva zvýhodněné stupně. Popis musí u každého mluvit
+     * o rozsahu od začátku — „první dva" a pak „první tři", ne „první dva" a „první",
+     * protože druhý stupeň zákazník čte jako pokračování prvního, ne jako nový počet.
+     */
+    public function testPopisRetezenychNarokuPocitaOdZacatku(): void
+    {
+        $steps = $this->vypocet([
+            $this->pravidlo('dve_tricka_zdarma', 'Dvě trička zdarma', 1020, '{"scope":"tag","effect":"free","tag":"tricko","maxQuantity":2}'),
+            $this->pravidlo('tricko_levneji', 'Tričko levněji', 1035, '{"scope":"tag","effect":"percent","tag":"tricko","percent":50,"maxQuantity":1}'),
+        ], [1020, 1035])->priceSteps($this->tricko());
+
+        self::assertSame('první dva zdarma', $steps[0]->label);
+        self::assertSame('první tři se slevou', $steps[1]->label);
+        self::assertNull($steps[2]->label);
+    }
+
+    /**
+     * Česky se od pěti mění pád — „první čtyři“, ale „prvních 5“. Číslovky se píší slovem jen
+     * do čtyř, dál už číslicí; obojí musí sedět, nároky na pět kusů v adminu nastavit jdou.
+     */
+    public function testCiselovkaMeniPadOdPeti(): void
+    {
+        $ctyri = $this->vypocet([
+            $this->pravidlo('ctyri_zdarma', 'Čtyři zdarma', 1020, '{"scope":"tag","effect":"free","tag":"tricko","maxQuantity":4}'),
+        ], [1020])->priceSteps($this->tricko());
+        self::assertSame('první čtyři zdarma', $ctyri[0]->label);
+
+        $pet = $this->vypocet([
+            $this->pravidlo('pet_zdarma', 'Pět zdarma', 1020, '{"scope":"tag","effect":"free","tag":"tricko","maxQuantity":5}'),
+        ], [1020])->priceSteps($this->tricko());
+        self::assertSame('prvních 5 zdarma', $pet[0]->label);
+    }
+
+    /**
+     * Neomezená sleva platí i na všechny další kusy, takže poslední stupeň žádný konec nemá.
+     * Bez popisu by věta skončila u „první zdarma“ a zbytek žebříku by vypadal na plnou cenu.
+     */
+    public function testNeomezenaSlevaNaKonciZebrikuMaPopis(): void
+    {
+        $steps = $this->vypocet([
+            $this->pravidlo('tricko_zdarma', 'Tričko zdarma', 1020, '{"scope":"tag","effect":"free","tag":"tricko","maxQuantity":1}'),
+            $this->pravidlo('tricko_levneji', 'Tričko levněji', 1035, '{"scope":"tag","effect":"percent","tag":"tricko","percent":25}'),
+        ], [1020, 1035])->priceSteps($this->tricko());
+
+        self::assertCount(2, $steps);
+        self::assertSame('první zdarma', $steps[0]->label);
+        self::assertSame('první zdarma, další se slevou', $steps[1]->label);
+    }
+
+    /**
+     * Když ocas nabízí totéž co začátek, opakovat to slovo zní krkolomně — „první tři se
+     * slevou, další se slevou". Stačí říct, že to platí i dál.
+     */
+    public function testStejneZvyhodneniNaKonciSeNeopakuje(): void
+    {
+        $steps = $this->vypocet([
+            $this->pravidlo('dve_zdarma', 'Dvě zdarma', 1020, '{"scope":"tag","effect":"free","tag":"tricko","maxQuantity":2}'),
+            $this->pravidlo('tricko_levneji', 'Tričko levněji', 1035, '{"scope":"tag","effect":"percent","tag":"tricko","percent":50,"maxQuantity":1}'),
+            $this->pravidlo('vzdy_levneji', 'Vždy levněji', 1004, '{"scope":"tag","effect":"percent","tag":"tricko","percent":10}'),
+        ], [1020, 1035, 1004])->priceSteps($this->tricko());
+
+        self::assertSame('první tři se slevou i další', $steps[2]->label);
+    }
+
+    /**
+     * Žebřík, kde je jeden kus zlevněný a další zdarma, souhrnně „zdarma" není — první kus
+     * se platí. „Se slevou" pokrývá obojí, takže radši obecnější slovo než nepravda; přesné
+     * znění by muselo popisovat každý stupeň zvlášť a přestalo by shrnovat celý žebřík.
+     */
+    public function testSmisenyZebrikMluviObecneOSleve(): void
+    {
+        $steps = $this->vypocet([
+            $this->pravidlo('tricko_levneji', 'Tričko levněji', 1035, '{"scope":"tag","effect":"percent","tag":"tricko","percent":50,"maxQuantity":1}'),
+            $this->pravidlo('tricko_zdarma', 'Tričko zdarma', 1020, '{"scope":"tag","effect":"free","tag":"tricko","maxQuantity":1}'),
+        ], [1020, 1035])->priceSteps($this->tricko());
+
+        self::assertSame(200.0, $steps[0]->price);
+        self::assertSame(0.0, $steps[1]->price);
+        self::assertSame('první dva se slevou', $steps[1]->label);
+    }
+
+    /**
+     * Stupeň za plnou cenu zůstává bez popisu — není co vysvětlovat.
+     */
+    public function testStupenBezSlevyNaKonciPopisNema(): void
+    {
+        $steps = $this->vypocet([
+            $this->pravidlo('tricko_zdarma', 'Tričko zdarma', 1020, '{"scope":"tag","effect":"free","tag":"tricko","maxQuantity":1}'),
+        ], [1020])->priceSteps($this->tricko());
+
+        self::assertNull($steps[1]->label);
+    }
+
     public function testVsechnyNarokyVycerpaneZbydePlnaCena(): void
     {
         $steps = $this->vypocet([

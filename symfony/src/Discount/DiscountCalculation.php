@@ -154,6 +154,37 @@ final readonly class DiscountCalculation
             }
         }
 
+        return $this->sPopisy($steps);
+    }
+
+    /**
+     * Kam až stupeň sahá ví až jeho následník, takže popisy se dopisují nakonec.
+     *
+     * Popisy jsou kumulativní — každý shrnuje žebřík od prvního kusu, takže odběrateli
+     * stačí přečíst ten poslední. U řetězených nároků to i odpovídá tomu, jak zákazník
+     * text čte: druhý stupeň je pokračování prvního („první dva", pak „první tři").
+     *
+     * @param PriceStep[] $steps
+     *
+     * @return PriceStep[]
+     */
+    private function sPopisy(array $steps): array
+    {
+        $vseZdarma = true;
+        $predchozi = null;
+
+        foreach ($steps as $index => $step) {
+            $vseZdarma = $vseZdarma && $step->price <= 0.0;
+            $dalsi = $steps[$index + 1] ?? null;
+
+            $steps[$index] = $step->sPopisem(
+                $dalsi === null ? null : $dalsi->fromQuantity - 1,
+                $vseZdarma,
+                $predchozi,
+            );
+            $predchozi = $steps[$index]->label;
+        }
+
         return $steps;
     }
 

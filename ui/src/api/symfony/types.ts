@@ -76,6 +76,8 @@ export type ApiPriceStep = {
   /** null u stupně bez slevy. */
   ruleCode: string | null;
   ruleName: string | null;
+  /** Lidsky, co zvýhodnění znamená: „první dva zdarma". null u stupně bez slevy. */
+  label: string | null;
 };
 
 export type ApiMerchProduct = {
