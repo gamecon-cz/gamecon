@@ -11,45 +11,40 @@ export function formatCena(price: string): string {
 /**
  * Cena kusu, který by si zákazník přidal jako další.
  *
- * Stupně přicházejí seřazené a platí „od N. kusu", takže se bere poslední, na který už
- * dosáhl. Díky tomu se po přidání do košíku přepočítá cena bez dotazu na server.
+ * Server posílá žebřík už posunutý o to, co zákazník má, takže první stupeň je právě
+ * tenhle kus. Košík účtuje totéž číslo — viz DiscountCalculator::priceForNextPiece().
  */
-export function cenaDalsihoKusu(steps: ApiPriceStep[], jizMa: number): string | null {
-  if (steps.length === 0) return null;
-
-  let aktualni = steps[0];
-  for (const step of steps) {
-    if (step.fromQuantity <= jizMa + 1) aktualni = step;
-  }
-
-  return aktualni.price;
+export function cenaDalsihoKusu(steps: ApiPriceStep[]): string | null {
+  return steps[0]?.price ?? null;
 }
 
 /**
- * Popis žebříku pro zobrazení: „0 Kč / 30 Kč (první zdarma)".
+ * Popis žebříku: „0 Kč / 30 Kč (první zdarma)", u víc zvýhodněných stupňů
+ * „0 Kč / 200 Kč / 400 Kč (první tři se slevou)".
  *
- * Vrací null, když zvýhodnění nezbývá — po vyčerpání nároku i u položky bez něj stačí
- * holá cena a vysvětlovat není co.
+ * Vrací null u jediného stupně — tam není co vysvětlovat a stačí holá cena.
  */
-export function popisSchodu(steps: ApiPriceStep[], jizMa = 0): string | null {
+export function popisSchodu(steps: ApiPriceStep[]): string | null {
   if (steps.length < 2) return null;
 
-  const [prvni, dalsi] = steps;
-  const zvyhodnenych = dalsi.fromQuantity - 1;
-  const zbyva = zvyhodnenych - jizMa;
-  if (zbyva <= 0) return null;
+  const posledni = steps[steps.length - 1];
+  // Kolik kusů je zvýhodněných: poslední stupeň je ten bez slevy, takže nároky končí
+  // těsně před ním. Bez toho by třístupňový žebřík (2 + 1 zdarma) hlásil jen dva.
+  const zvyhodnenych = posledni.fromQuantity - 1;
+  if (zvyhodnenych <= 0) return null;
 
-  const zdarma = parseFloat(prvni.price) === 0;
+  const vsechnyZdarma = steps
+    .slice(0, -1)
+    .every((krok) => parseFloat(krok.price) === 0);
+
   const poradi =
-    jizMa > 0
-      ? zbyva === 1
-        ? "ještě jeden"
-        : `ještě ${zbyva}`
-      : zvyhodnenych === 1
-        ? "první"
-        : zvyhodnenych === 2
-          ? "první dva"
-          : `prvních ${zvyhodnenych}`;
+    zvyhodnenych === 1
+      ? "první"
+      : zvyhodnenych === 2
+        ? "první dva"
+        : `první ${zvyhodnenych}`;
 
-  return `${formatCena(prvni.price)} / ${formatCena(dalsi.price)} (${poradi} ${zdarma ? "zdarma" : "se slevou"})`;
+  const ceny = steps.map((krok) => formatCena(krok.price)).join(" / ");
+
+  return `${ceny} (${poradi} ${vsechnyZdarma ? "zdarma" : "se slevou"})`;
 }

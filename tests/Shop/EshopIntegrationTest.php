@@ -629,6 +629,8 @@ class EshopIntegrationTest extends AbstractTestDb
         $capacityManager = new CapacityManager($this->connection, $this->em);
         $discountCalculator = self::getContainer()->get(DiscountCalculator::class);
         $yearProvider = new CurrentYearProvider();
+        /** @var \App\Repository\OrderItemRepository $orderItemRepo */
+        $orderItemRepo = $this->em->getRepository(\App\Entity\OrderItem::class);
 
         return new CartService(
             $this->em,
@@ -639,6 +641,7 @@ class EshopIntegrationTest extends AbstractTestDb
             $yearProvider,
             new NativeClock(),
             new RestrictedProductRules(),
+            $orderItemRepo,
         );
     }
 

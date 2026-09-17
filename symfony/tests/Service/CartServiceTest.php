@@ -12,13 +12,14 @@ use App\Entity\ProductVariant;
 use App\Entity\User;
 use App\Enum\ProductStateEnum;
 use App\Enum\RoleMeaning;
+use App\Repository\OrderItemRepository;
 use App\Repository\OrderRepository;
 use App\Repository\ProductBundleRepository;
 use App\Service\CapacityManager;
 use App\Service\CartService;
-use App\Service\RestrictedProductRules;
 use App\Service\CurrentYearProviderInterface;
 use App\Service\DiscountCalculator;
+use App\Service\RestrictedProductRules;
 use Doctrine\ORM\EntityManagerInterface;
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
@@ -40,6 +41,8 @@ class CartServiceTest extends TestCase
 
     private MockObject $restrictedProductRules;
 
+    private MockObject $orderItemRepository;
+
     private CartService $cartService;
 
     protected function setUp(): void
@@ -52,6 +55,7 @@ class CartServiceTest extends TestCase
         $this->yearProvider = $this->createMock(CurrentYearProviderInterface::class);
         $this->yearProvider->method('getCurrentYear')->willReturn(2026);
         $this->restrictedProductRules = $this->createMock(RestrictedProductRules::class);
+        $this->orderItemRepository = $this->createMock(OrderItemRepository::class);
 
         $this->cartService = new CartService(
             $this->entityManager,
@@ -62,6 +66,7 @@ class CartServiceTest extends TestCase
             $this->yearProvider,
             new MockClock('2026-09-12 10:00:00'),
             $this->restrictedProductRules,
+            $this->orderItemRepository,
         );
     }
 
@@ -127,7 +132,7 @@ class CartServiceTest extends TestCase
         $order->setCustomer($user);
         $order->setYear(2026);
 
-        $this->discountCalculator->method('calculateDiscount')
+        $this->discountCalculator->method('priceForNextPiece')
             ->willReturn([
                 'discount'       => null,
                 'discountAmount' => '0.00',
@@ -164,7 +169,7 @@ class CartServiceTest extends TestCase
         $order->setCustomer($user);
         $order->setYear(2026);
 
-        $this->discountCalculator->method('calculateDiscount')
+        $this->discountCalculator->method('priceForNextPiece')
             ->willReturn([
                 'discount'       => $this->createMock(\App\Entity\ProductDiscount::class),
                 'discountAmount' => '250.00',
@@ -278,7 +283,7 @@ class CartServiceTest extends TestCase
         $order->setCustomer($user);
         $order->setYear(2026);
 
-        $this->discountCalculator->method('calculateDiscount')
+        $this->discountCalculator->method('priceForNextPiece')
             ->willReturn([
                 'discount'       => null,
                 'discountAmount' => '0.00',
@@ -325,7 +330,7 @@ class CartServiceTest extends TestCase
         $this->bundleRepository->method('findMandatoryBundleForVariant')
             ->willReturn(null);
 
-        $this->discountCalculator->method('calculateDiscount')
+        $this->discountCalculator->method('priceForNextPiece')
             ->willReturn([
                 'discount'       => null,
                 'discountAmount' => '0.00',
@@ -357,7 +362,7 @@ class CartServiceTest extends TestCase
         $this->capacityManager->expects($this->exactly(3))
             ->method('purchase');
 
-        $this->discountCalculator->method('calculateDiscount')
+        $this->discountCalculator->method('priceForNextPiece')
             ->willReturn([
                 'discount'       => null,
                 'discountAmount' => '0.00',
@@ -388,7 +393,7 @@ class CartServiceTest extends TestCase
         $order->setCustomer($this->createMock(User::class));
         $order->setYear(2026);
 
-        $this->discountCalculator->method('calculateDiscount')
+        $this->discountCalculator->method('priceForNextPiece')
             ->willReturn([
                 'discount'       => null,
                 'discountAmount' => '0.00',

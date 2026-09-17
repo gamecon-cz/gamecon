@@ -71,6 +71,31 @@ class DiscountCalculator
     }
 
     /**
+     * Cena kusu, který si zákazník přidává jako další.
+     *
+     * Na rozdíl od `calculateDiscount()` počítá i nároky s omezeným počtem — ví totiž,
+     * kolikátý kus to je. Košík musí účtovat právě tohle, jinak by mřížka slibovala
+     * nulu za tričko zdarma a zaplatila by se plná cena.
+     *
+     * @return array{discount: null, discountAmount: string, finalPrice: string, reason: string|null}
+     */
+    public function priceForNextPiece(Product $product, User $user, int $year, int $jizKoupeno): array
+    {
+        $steps = $this->priceSteps($product, $user, $year, $jizKoupeno);
+        $prvni = $steps[0] ?? null;
+        if ($prvni === null) {
+            return $this->bezSlevy($product->getCurrentPrice());
+        }
+
+        return [
+            'discount'       => null,
+            'discountAmount' => $prvni['discountAmount'],
+            'finalPrice'     => $prvni['price'],
+            'reason'         => $prvni['ruleName'],
+        ];
+    }
+
+    /**
      * Cenový žebřík: kolikátý kus produktu stojí kolik.
      *
      * Nároky s omezeným počtem (tričko zdarma) se v ceně jedné položky uplatnit nedají —
