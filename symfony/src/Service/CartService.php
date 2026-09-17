@@ -12,6 +12,7 @@ use App\Entity\ProductVariant;
 use App\Entity\User;
 use App\Enum\ProductTagCode;
 use App\Enum\RoleMeaning;
+use App\Repository\OrderItemRepository;
 use App\Repository\OrderRepository;
 use App\Repository\ProductBundleRepository;
 use Doctrine\ORM\EntityManagerInterface;
@@ -35,6 +36,7 @@ class CartService
         private readonly CurrentYearProviderInterface $currentYearProvider,
         private readonly ClockInterface $clock,
         private readonly RestrictedProductRules $restrictedProductRules,
+        private readonly OrderItemRepository $orderItemRepository,
     ) {
     }
 
@@ -315,10 +317,19 @@ class CartService
 
         $product = $variant->getProduct();
 
-        $discountInfo = $this->discountCalculator->calculateDiscount(
+        // Kolikátý kus to je, rozhoduje o ceně: nárok „jedno tričko zdarma" platí jen na
+        // první. Bez toho by se naúčtovala plná cena i tam, kde mřížka slibuje nulu.
+        $jizKoupeno = $this->orderItemRepository->countCustomerPurchases(
+            $order->getCustomer(),
+            $product,
+            $order->getYear(),
+        );
+
+        $discountInfo = $this->discountCalculator->priceForNextPiece(
             $product,
             $order->getCustomer(),
             $order->getYear(),
+            $jizKoupeno,
         );
 
         $item = new OrderItem();
