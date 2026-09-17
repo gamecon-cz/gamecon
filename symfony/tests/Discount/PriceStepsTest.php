@@ -226,6 +226,40 @@ class PriceStepsTest extends TestCase
         self::assertNull($steps[0]->ruleCode);
     }
 
+    /**
+     * Omezený nárok vyčerpá a dál platí neomezená sleva. Neomezené pravidlo žebřík
+     * ukončuje, takže tohle je tvar, kde by se ukončení nejspíš rozešlo s účtováním.
+     */
+    public function testOmezenyNarokPakNeomezenaSlevaSediSMotorem(): void
+    {
+        $pravidla = [
+            $this->pravidlo('jedno_tricko_zdarma', 'Jedno tričko zdarma', 1035, '{"scope":"tag","effect":"free","tag":"tricko","maxQuantity":1}'),
+            $this->pravidlo('ctvrtina', 'Čtvrtina dolů', 1004, '{"scope":"tag","effect":"percent","tag":"tricko","percent":25}'),
+        ];
+        $vypocet = $this->vypocet($pravidla, [1035, 1004]);
+
+        $polozky = [];
+        for ($i = 0; $i < 4; ++$i) {
+            $polozky[] = new DiscountableItem(
+                key: $i,
+                productCode: 'tricko_ucastnicke',
+                price: 400.0,
+                tags: [ProductTagCode::TRICKO],
+            );
+        }
+
+        $slevy = $vypocet->apply($polozky);
+        $zebrik = $vypocet->priceSteps($this->tricko());
+
+        foreach (range(1, 4) as $poradi) {
+            self::assertSame(
+                isset($slevy[$poradi - 1]) ? $slevy[$poradi - 1]->finalPrice : 400.0,
+                $this->cenaZeZebriku($zebrik, $poradi),
+                sprintf('%d. kus', $poradi),
+            );
+        }
+    }
+
     public function testVsechnyNarokyVycerpaneZbydePlnaCena(): void
     {
         $steps = $this->vypocet([
