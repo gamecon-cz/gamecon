@@ -20,6 +20,15 @@ class MealProductOutputDto
     public ?int $remainingQuantity;
 
     /**
+     * Po termínu `JIDLO_LZE_OBJEDNAT_A_MENIT_DO_DNE` nejde jídlo objednat **ani zrušit** —
+     * počty už jsou nahlášené v jídelně, takže zrušené jídlo by se stejně zaplatilo.
+     * Proto se zamyká i to, co účastník má; u ubytování je to naopak.
+     *
+     * Pro pult zůstává odemčené: doobjednat po termínu je smysl admin obrazovek.
+     */
+    public bool $locked = false;
+
+    /**
      * Cena podle pořadí kusu; vždy aspoň jeden stupeň. U jídla dnes žádné pravidlo
      * s omezeným počtem není, takže je stupeň jeden — ale tvar je stejný jako u merche.
      *

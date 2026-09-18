@@ -6,13 +6,13 @@ namespace App\Tests\Service;
 
 use App\Entity\Product;
 use App\Entity\ProductVariant;
+use App\Enum\ProductStateEnum;
 use App\Enum\RoleMeaning;
 use App\Service\CapacityManager;
 use Doctrine\DBAL\Connection;
 use Doctrine\ORM\EntityManagerInterface;
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
-use App\Enum\ProductStateEnum;
 
 class CapacityManagerTest extends TestCase
 {

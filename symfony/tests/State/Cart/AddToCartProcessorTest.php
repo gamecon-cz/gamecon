@@ -12,13 +12,13 @@ use App\Entity\Product;
 use App\Entity\ProductBundle;
 use App\Entity\ProductVariant;
 use App\Entity\User;
+use App\Enum\ProductStateEnum;
 use App\Service\CartService;
 use App\State\Cart\AddToCartProcessor;
 use Doctrine\ORM\EntityManagerInterface;
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
 use Symfony\Bundle\SecurityBundle\Security;
-use App\Enum\ProductStateEnum;
 
 class AddToCartProcessorTest extends TestCase
 {
