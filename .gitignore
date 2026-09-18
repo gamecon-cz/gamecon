@@ -63,3 +63,8 @@
 # Zkompilované XTemplate šablony — XTemplate je odkládá vedle zdroje, když není
 # nastavená cache (typicky v testech), a nepatří do repozitáře.
 *.xtpc
+
+# Diferenční harness pro porovnání s legacy — nástroje sezení, ne kód aplikace.
+# Ta .ini navíc přepisuje termíny přes auto_prepend_file, takže nesmí nikam odejít.
+/bin-diff/
+/.docker/php/conf.d/diff-cestovani.ini

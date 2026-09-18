@@ -103,37 +103,37 @@ class ProductTest extends TestCase
     public function testIsAvailable(): void
     {
         $this->product->setState(ProductStateEnum::PUBLIC);
-        $this->assertTrue($this->product->isAvailable());
+        $this->assertTrue($this->product->isAvailable(new \DateTimeImmutable()));
 
         $this->product->setState(ProductStateEnum::RETIRED);
-        $this->assertFalse($this->product->isAvailable());
+        $this->assertFalse($this->product->isAvailable(new \DateTimeImmutable()));
 
         // Archived product
         $this->product->setState(ProductStateEnum::PUBLIC);
         $this->product->setArchivedAt(new \DateTimeImmutable());
-        $this->assertFalse($this->product->isAvailable());
+        $this->assertFalse($this->product->isAvailable(new \DateTimeImmutable()));
 
         // Expired availability
         $this->product->restore();
         $this->product->setAvailableUntil(new \DateTimeImmutable('-1 day'));
-        $this->assertFalse($this->product->isAvailable());
+        $this->assertFalse($this->product->isAvailable(new \DateTimeImmutable()));
 
         // Future availability
         $this->product->setAvailableUntil(new \DateTimeImmutable('+1 day'));
-        $this->assertTrue($this->product->isAvailable());
+        $this->assertTrue($this->product->isAvailable(new \DateTimeImmutable()));
     }
 
     public function testIsPublic(): void
     {
         $this->product->setState(ProductStateEnum::PUBLIC);
-        $this->assertTrue($this->product->isPublic());
+        $this->assertTrue($this->product->isPublic(new \DateTimeImmutable()));
 
         $this->product->setState(ProductStateEnum::RESTRICTED);
-        $this->assertFalse($this->product->isPublic());
+        $this->assertFalse($this->product->isPublic(new \DateTimeImmutable()));
 
         $this->product->setState(ProductStateEnum::PUBLIC);
         $this->product->setArchivedAt(new \DateTimeImmutable());
-        $this->assertFalse($this->product->isPublic());
+        $this->assertFalse($this->product->isPublic(new \DateTimeImmutable()));
     }
 
     public function testGetState(): void
