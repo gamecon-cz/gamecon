@@ -24,6 +24,7 @@ use Gamecon\SystemoveNastaveni\SystemoveNastaveni;
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
 use Symfony\Bundle\SecurityBundle\Security;
+use Symfony\Component\Clock\NativeClock;
 
 /**
  * Svršky mají tři vlastnosti, které merch nemá: vlastní termín prodeje pro trička a jiný
@@ -99,6 +100,7 @@ class ShirtProductsProviderTest extends TestCase
             new ProductVariantsForGrid($orderItemRepository),
             $this->createMock(SpentQuotaProvider::class),
             $security,
+            new NativeClock(),
         );
     }
 
