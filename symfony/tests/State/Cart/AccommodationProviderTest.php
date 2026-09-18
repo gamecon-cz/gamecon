@@ -14,6 +14,7 @@ use App\Enum\ProductStateEnum;
 use App\Enum\ProductTagCode;
 use App\Repository\OrderItemRepository;
 use App\Repository\ProductRepository;
+use App\Service\AccommodationAvailability;
 use App\Service\AccommodationRules;
 use App\Service\BreakfastCanceller;
 use App\Service\CartService;
@@ -94,6 +95,9 @@ class AccommodationProviderTest extends TestCase
             $this->breakfastCanceller,
             $this->accommodationRules,
             $this->security,
+            // Staví se nad týmiž mocky repozitářů jako provider, aby test procházel
+            // skutečným výpočtem, ne nastrčenou odpovědí.
+            new AccommodationAvailability($this->productRepository, $this->orderItemRepository),
         );
     }
 
