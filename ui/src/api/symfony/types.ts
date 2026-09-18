@@ -1,4 +1,6 @@
 export type ApiMealProduct = {
+  /** Po termínu objednávek jídla; pult zamčený nemá. */
+  locked: boolean;
   name: string;
   day: number;
   price: string;

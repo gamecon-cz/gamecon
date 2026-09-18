@@ -10,6 +10,7 @@ use App\Entity\OrderItem;
 use App\Entity\Product;
 use App\Entity\ProductVariant;
 use App\Entity\User;
+use App\Enum\ProductStateEnum;
 use App\Repository\OrderItemRepository;
 use App\Service\BulkCancelService;
 use App\Service\CapacityManager;
@@ -17,7 +18,6 @@ use App\Service\CurrentYearProviderInterface;
 use Doctrine\ORM\EntityManagerInterface;
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
-use App\Enum\ProductStateEnum;
 
 class BulkCancelServiceTest extends TestCase
 {

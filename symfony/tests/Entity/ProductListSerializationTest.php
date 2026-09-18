@@ -8,9 +8,9 @@ use App\Dto\Cart\MealProductOutputDto;
 use App\Entity\Product;
 use App\Entity\ProductTag;
 use App\Entity\ProductVariant;
+use App\Enum\ProductStateEnum;
 use PHPUnit\Framework\TestCase;
 use Symfony\Component\Serializer\Annotation\Groups;
-use App\Enum\ProductStateEnum;
 
 /**
  * Verifies serialization groups for product listing and

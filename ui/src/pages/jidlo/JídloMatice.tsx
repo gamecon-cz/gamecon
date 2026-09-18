@@ -35,6 +35,8 @@ type MealCell = {
   meal: ApiMealProduct;
   mealType: string;
   soldOut: boolean;
+  /** Po termínu: nejde přidat ANI zrušit — počty už jsou nahlášené v jídelně. */
+  locked: boolean;
 };
 
 /** Group meal products into a matrix: mealType → day → cell */
@@ -63,6 +65,7 @@ function buildMatrix(meals: ApiMealProduct[]): Map<string, Map<number, MealCell>
       meal,
       mealType,
       soldOut: meal.remainingQuantity !== null && meal.remainingQuantity <= 0,
+      locked: meal.locked,
     });
   }
 
@@ -91,7 +94,7 @@ export function JídloMatice({ customerId }: MountProps) {
 
   useEffect(() => {
     Promise.all([
-      fetchMeals(),
+      fetchMeals(customerId),
       customerId === undefined ? fetchCart() : fetchCustomerMeals(customerId),
     ]).then(([nabidka, vlastnene]) => {
       setMeals(nabidka);
@@ -204,13 +207,13 @@ export function JídloMatice({ customerId }: MountProps) {
                   return (
                     <td
                       key={day}
-                      class={`jidlo-matice--cell ${checked ? "jidlo-matice--selected" : ""} ${cell.soldOut && !checked ? "jidlo-matice--sold-out" : ""} ${isBusy ? "jidlo-matice--busy" : ""}`}
+                      class={`jidlo-matice--cell ${checked ? "jidlo-matice--selected" : ""} ${cell.soldOut && !checked ? "jidlo-matice--sold-out" : ""} ${cell.locked ? "jidlo-matice--zamceno" : ""} ${isBusy ? "jidlo-matice--busy" : ""}`}
                     >
                       <label>
                         <input
                           type="checkbox"
                           checked={checked}
-                          disabled={isBusy || (cell.soldOut && !checked)}
+                          disabled={isBusy || cell.locked || (cell.soldOut && !checked)}
                           onChange={() => toggleMeal(cell.meal.variantId, cartItem)}
                         />
                         <span class="jidlo-matice--price">{formatCena(cell.meal.price)}</span>
