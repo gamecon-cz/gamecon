@@ -8,6 +8,7 @@ use ApiPlatform\Metadata\Operation;
 use ApiPlatform\State\ProviderInterface;
 use App\Dto\Cart\MealProductOutputDto;
 use App\Entity\User;
+use App\Enum\ProductStateEnum;
 use App\Enum\ProductTagCode;
 use App\Repository\ProductRepository;
 use App\Service\CurrentYearProviderInterface;
@@ -56,7 +57,7 @@ readonly class MealProductsProvider implements ProviderInterface
         $year = $this->currentYearProvider->getCurrentYear();
         // Zamyká se jen účastníkovi; pult po termínu doobjednat smí a chodí mimo košík,
         // přes `MealWriter`. Zámek je jen nápověda pro matici — vynucuje ho `CartService`.
-        $zamceno = ! $zPultu && SystemoveNastaveni::zGlobals()->prodejJidlaUkoncen();
+        $poTerminuKategorie = ! $zPultu && SystemoveNastaveni::zGlobals()->prodejJidlaUkoncen();
         $meals = [];
 
         foreach ($products as $product) {
@@ -84,7 +85,14 @@ readonly class MealProductsProvider implements ProviderInterface
                 $dto->priceSteps = $this->discountCalculator->priceSteps($product, $user, $year);
             }
 
-            $dto->locked = $zamceno;
+            // Stažený produkt neprodá nikdo, ani pult. Propadlé `nabizet_do` je proti tomu
+            // jen konec samoobsluhy — legacy ho pultu povoluje přes `jidloBezZamku`, které
+            // si obě admin obrazovky zapínají, takže se tady chová stejně jako termín
+            // kategorie. Stav RESTRICTED/SUSPENDED řeší varianty, ne tenhle zámek.
+            $stazeno = $product->isArchived() || $product->getState() === ProductStateEnum::RETIRED;
+            $dto->locked = $stazeno
+                || $poTerminuKategorie
+                || (! $zPultu && ! $product->isAvailable());
             $meals[] = $dto;
         }
 
