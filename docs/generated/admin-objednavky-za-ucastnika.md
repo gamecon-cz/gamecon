@@ -12,7 +12,6 @@ nebylo jen „namontovat existující Preact".
 - `symfony/src/State/Cart/AccommodationProvider.php::forCustomer()` — společné jádro mřížky
 - `ui/src/pages/ubytovani/UbytovaniMřížka.tsx` — mřížka, bere volitelné `customerId`
 - `ui/src/pages/index.tsx` — montáž, předává props z `data-customer-id`
-- `admin/scripts/modules/_submoduly/ubytovani_tabulka.php` — legacy renderer infopultu, **už se nikde nevykresluje**
 
 ## Co už hotové je
 
@@ -53,7 +52,7 @@ server nemá (`UbytovaniMřížka.tsx:63-70`). Bez payloadu tahle logika nefungu
 
 | | Uživatel | Infopult |
 |---|---|---|
-| vykreslení | `Shop::ubytovaniHtml()` | `UbytovaniTabulka` (vlastní, 105 ř.) |
+| vykreslení | `Shop::ubytovaniHtml()` | mřížka (`UbytovaniMřížka.tsx`); legacy renderer smazán |
 | spolubydlící | edituje (1. argument `true`) | **jen zobrazuje** seznam lidí na pokoji, needituje |
 | „nechce ubytování" | jen zobrazuje `ano`/`ne` | jen zobrazuje `ano`/`ne` |
 | přes kapacitu | tlačítko jen pro `jeSefInfopultu()` | nenabízí |
@@ -185,13 +184,17 @@ by se muselo rozplétat.
 
 ## Co se po převodu nedá smazat
 
-`UbytovaniTabulka` je jen pro infopult, ta odejde s ním. `Shop::ubytovaniHtml()` ale volá i
+`UbytovaniTabulka` **smazána** — nikdo ji nevykresloval. `Shop::ubytovaniHtml()` ale volá i
 účastnický storefront (`web/moduly/prihlaska/prihlaska.php`), takže ta zůstává.
 
-Chování infopultové tabulky navíc hlídá test
-`ShopUbytovaniRocnikAFiltraceTest::adminUbytovaniTabulkaPredavaDataProHoteloveSnidane()` — ověřuje,
-že tabulka předává do JS data o hotelových snídaních. Než se tabulka smaže, potřebuje ten test
-náhradu, ne odstranění; kryje totiž přesně tu snídaňovou logiku z bodu 6.
+Její snídaňový test nebyl zrušen, ale přepsán na novou cestu:
+`AccommodationWriterTest::testHotelNightCancelsTheNextMorningNotItsOwn()` tvrdí totéž
+pravidlo (noc kryje ráno následujícího dne) přes `BreakfastCanceller`, ne přes HTML atribut
+smazané šablony.
+
+**Zůstává k dořešení:** `web/soubory/blackarrow/shop/shop-jidlo.js` čte `data-snidane-dny`,
+které teď nikdo negeneruje. Funguje dál díky vlastnímu fallbacku (`name` + 1), ale je to
+mrtvá větev čekající na úklid.
 
 ## Proč netřeba migrace dat
 
