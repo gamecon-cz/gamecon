@@ -436,6 +436,53 @@ class AccommodationWriterTest extends AbstractDatabaseKernelTestCase
     }
 
     /**
+     * Zásoba na variantě je sice pro rozhodování o kapacitě zastaralá, ale pořád ji čte
+     * účastnický košík. Když ji admin prodejem nesníží, e-shop pak nabízí postele, které
+     * na pultu někdo právě prodal.
+     */
+    public function testAdminSaleDecrementsTheVariantStock(): void
+    {
+        $this->pripravUbytovani(kusuVyrobeno: 5);
+        $customer = $this->ucastnik();
+
+        $this->writer()->save($customer, $this->idNoci(0), self::ROK, true);
+
+        self::assertSame(4, $this->zbyvaNaVarianteId($this->noci[0]->getId()), 'Prodej přes admin musí snížit zásobu');
+    }
+
+    /**
+     * Admin smí prodat i nad kapacitu, takže zásoba musí umět jít do mínusu — jinak by se
+     * zastavila na nule a přestala odpovídat tomu, kolik postelí je reálně rozprodáno.
+     */
+    public function testAdminOverbookingDrivesTheStockNegative(): void
+    {
+        $this->pripravUbytovani(kusuVyrobeno: 1);
+        $customer = $this->ucastnik();
+        $this->connection()->executeStatement(
+            'UPDATE product_variant SET remaining_quantity = 0 WHERE id = :variant',
+            ['variant' => $this->noci[0]->getId()],
+        );
+
+        $this->writer()->save($customer, $this->idNoci(0), self::ROK, true, mayOverbook: true);
+
+        self::assertSame(-1, $this->zbyvaNaVarianteId($this->noci[0]->getId()), 'Přeplnění musí jít do mínusu');
+    }
+
+    /**
+     * Zrušení noci přes admin musí zásobu vrátit, jinak by se jednosměrně propadala.
+     */
+    public function testAdminCancellationReturnsTheStock(): void
+    {
+        $this->pripravUbytovani(kusuVyrobeno: 5);
+        $customer = $this->ucastnik();
+        $this->writer()->save($customer, $this->idNoci(0), self::ROK, true);
+
+        $this->writer()->save($customer, [], self::ROK, true);
+
+        self::assertSame(5, $this->zbyvaNaVarianteId($this->noci[0]->getId()), 'Zrušení musí zásobu vrátit');
+    }
+
+    /**
      * shop_nakupy.id_uzivatele is a foreign key, so the beds have to be taken by real users.
      */
     private function zaplnNoc(int $den, int $kusu): void
@@ -713,6 +760,118 @@ class AccommodationWriterTest extends AbstractDatabaseKernelTestCase
         $this->mealWriter()->save($customer, [$snidaneId], self::ROK);
 
         self::assertSame([], $this->drzenaJidla($customer));
+    }
+
+    /**
+     * Totéž co u ubytování: zásoba na variantě je sice pro rozhodování o kapacitě
+     * zastaralá, ale účastnický košík ji čte, takže ji prodej na pultu musí snížit.
+     */
+    public function testAdminMealSaleDecrementsTheVariantStock(): void
+    {
+        [, $snidaneId] = $this->pripravHotelSeSnidani(0);
+        $customer = $this->ucastnik();
+        $this->connection()->executeStatement(
+            'UPDATE product_variant SET remaining_quantity = 3 WHERE id = :variant',
+            ['variant' => $snidaneId],
+        );
+
+        $this->mealWriter()->save($customer, [$snidaneId], self::ROK);
+
+        self::assertSame(2, $this->zbyvaNaVarianteId($snidaneId));
+    }
+
+    public function testAdminMealCancellationReturnsTheStock(): void
+    {
+        [, $snidaneId] = $this->pripravHotelSeSnidani(0);
+        $customer = $this->ucastnik();
+        $this->connection()->executeStatement(
+            'UPDATE product_variant SET remaining_quantity = 3 WHERE id = :variant',
+            ['variant' => $snidaneId],
+        );
+        $this->mealWriter()->save($customer, [$snidaneId], self::ROK);
+
+        $this->mealWriter()->save($customer, [], self::ROK);
+
+        self::assertSame(3, $this->zbyvaNaVarianteId($snidaneId));
+    }
+
+    /**
+     * Snídani krytou hotelovou nocí `BreakfastCanceller` smaže hned po zápisu. Zásoba se
+     * proto musí vrátit — jinak každý takový zápis jeden kus tiše ztratí.
+     */
+    public function testBreakfastCancelledAsCoveredReturnsItsStock(): void
+    {
+        [$nocId, $snidaneId] = $this->pripravHotelSeSnidani(0);
+        $customer = $this->ucastnik();
+        $this->connection()->executeStatement(
+            'UPDATE product_variant SET remaining_quantity = 3 WHERE id = :variant',
+            ['variant' => $snidaneId],
+        );
+        $this->writer()->save($customer, [$nocId], self::ROK, true);
+
+        $this->mealWriter()->save($customer, [$snidaneId], self::ROK);
+
+        self::assertSame([], $this->mealWriter()->heldMeals($customer, self::ROK), 'Krytá snídaně se ruší');
+        self::assertSame(3, $this->zbyvaNaVarianteId($snidaneId), 'Zrušená snídaně musí zásobu vrátit');
+    }
+
+    /**
+     * Zákazník může mít na jednu variantu víc řádků (v produkci 1554 případů). DELETE
+     * smaže všechny, takže se musí vrátit tolik kusů, kolik jich zmizelo — ne jeden.
+     */
+    public function testCancellingReturnsAsManyPiecesAsRowsRemoved(): void
+    {
+        $this->pripravUbytovani(kusuVyrobeno: 9);
+        $customer = $this->ucastnik();
+        $this->writer()->save($customer, $this->idNoci(0), self::ROK, true);
+        // Druhý řádek na tutéž noc, jak ho umí vyrobit legacy i košík. `zaplnNoc()` míří
+        // na rodičovský produkt, kdežto writer zapisuje noc samotnou — tady je potřeba
+        // duplikovat přesně ten řádek, který writer vytvořil.
+        $this->connection()->executeStatement(
+            'INSERT INTO shop_nakupy (id_uzivatele, id_predmetu, variant_id, rok, cena_nakupni, datum)
+             SELECT id_uzivatele, id_predmetu, variant_id, rok, cena_nakupni, NOW()
+             FROM shop_nakupy
+             WHERE id_uzivatele = :c AND rok = :y AND variant_id = :v LIMIT 1',
+            ['c' => $customer->getId(), 'y' => self::ROK, 'v' => $this->noci[0]->getId()],
+        );
+        $this->connection()->executeStatement(
+            'UPDATE product_variant SET remaining_quantity = 7 WHERE id = :variant',
+            ['variant' => $this->noci[0]->getId()],
+        );
+
+        self::assertSame(2, (int) $this->connection()->fetchOne(
+            'SELECT COUNT(*) FROM shop_nakupy WHERE id_uzivatele = :c AND rok = :y AND variant_id = :v',
+            ['c' => $customer->getId(), 'y' => self::ROK, 'v' => $this->noci[0]->getId()],
+        ), 'Kontrola předpokladu: dva řádky na jednu noc');
+
+        $this->writer()->save($customer, [], self::ROK, true);
+
+        self::assertSame(9, $this->zbyvaNaVarianteId($this->noci[0]->getId()), 'Dva smazané řádky musí vrátit dva kusy');
+    }
+
+    /**
+     * `null` znamená neomezeno; úprava zásoby to nesmí přepsat na číslo.
+     */
+    public function testUnlimitedStockStaysUnlimited(): void
+    {
+        [, $snidaneId] = $this->pripravHotelSeSnidani(0);
+        $customer = $this->ucastnik();
+
+        $this->mealWriter()->save($customer, [$snidaneId], self::ROK);
+        $this->mealWriter()->save($customer, [], self::ROK);
+
+        self::assertNull($this->connection()->fetchOne(
+            'SELECT remaining_quantity FROM product_variant WHERE id = :variant',
+            ['variant' => $snidaneId],
+        ));
+    }
+
+    private function zbyvaNaVarianteId(int $variantId): int
+    {
+        return (int) $this->connection()->fetchOne(
+            'SELECT remaining_quantity FROM product_variant WHERE id = :variant',
+            ['variant' => $variantId],
+        );
     }
 
     /**
