@@ -77,6 +77,9 @@ readonly class SetCustomerAccommodationProcessor implements ProcessorInterface
                 // Legacy offered this button to the infopult chief but never checked on write,
                 // so a hand-made request overbooked for anyone. Now the server decides.
                 mayOverbook: $operator->jeSefInfopultu(),
+                // Rezervace patří zákazníkovi, ne obsluze: pult objednává za něj, takže
+                // rozhoduje, jestli je organizátor on. Okruh rolí je tentýž jako u merche.
+                jeOrganizator: $customer->isOrganizer(),
             );
         } catch (\RuntimeException $chyba) {
             throw new BadRequestHttpException($chyba->getMessage(), $chyba);
