@@ -97,14 +97,33 @@ takže by mimochodem zavřel i `RESTRICTED` a `SUSPENDED` jídla. Proto se testu
 
 ### Dvě věci, které tím opravené NEJSOU
 
-- **`nabizet_do` se porovnává se skutečným časem** (`Product::isAvailable()` volá
-  `new \DateTime()`), ne se `SystemoveNastaveni`. Posunutý čas z `bin-diff/cas.sh` na něj
-  tedy nesahá — v diferenčním běhu může legacy noc/porci zamknout a nová vrstva ne, aniž by
-  s tím měl testovaný kód cokoli společného. Platilo to už pro merch, tahle změna to jen
-  rozšiřuje na jídlo.
-- **Zápisová cesta pultu je nehlídaná.** `MealWriter::addMeal()` píše do `shop_nakupy`
-  přímo SQL a stav ani dostupnost neřeší, takže `RETIRED` jídlo jde přes admin endpoint
-  pořád koupit. Pro účastníka to hlídá `CartService::createOrderItem()`.
+### Obojí doplněno
+
+**Čas jde z hodin.** `Product::isAvailable()` / `isPublic()` braly `new \DateTime()`, takže
+je nešlo v testu ovlivnit. Entitu staví Doctrine, ne kontejner, takže hodiny do ní podat
+nejde — čas proto předává volající, a **povinně**: s výchozí hodnotou by se dal potichu
+obejít a datum by se zase řídilo skutečným časem. `MealProductsProviderTest` díky tomu jede
+na `MockClock` a testuje den před termínem a den po něm, ne „rok 2000, aby do toho skutečný
+čas nemluvil".
+
+Pozor: **`cas.sh` neposouvá ani hodiny, ani `SystemoveNastaveni`** — jen předefinuje
+konstanty s termíny. Ověřeno měřením všech tří zdrojů času se zapnutým harness. Diferenční
+běh tedy porovnává dvě vrstvy, které mají „teď" shodné a liší se jen termíny; produktové
+`nabizet_do` se v něm posunout nedá vůbec.
+
+**Zápis pultu hlídá stažení.** `MealWriter` odmítne `RETIRED` produkt — ale jen při
+**skutečném přidání**, ne u položky, kterou zákazník už má. Pult posílá celý výběr, takže
+kdyby se soudilo i držené jídlo, stažení produktu po nákupu by u toho zákazníka zablokovalo
+každé další uložení — a odškrtnout ho nejde, buňka je zamčená. Legacy drží totéž pravidlo
+v dotazu: `stav > mimo OR nakupy.rok = rocnik` (`Shop.php:245`), tedy koupené se nabízí dál.
+`AccommodationWriter` tu past řeší stejně a má na ni komentář.
+
+Propadlé `nabizet_do` se u zápisu nekontroluje schválně — pult přes něj doprodává.
+
+**Zbývá:** `AccommodationWriter` a `EntryFeeService` mají tutéž `findByTag()` cestu bez
+kontroly stavu. U vstupného je to nejspíš mrtvé (produkt je `RETIRED` a nic do něj nepíše),
+u ubytování ne — ale musí se to napsat rovnou jen na přidávané noci, jinak vznikne přesně
+ta past popsaná výš.
 
 ## N6 — reprodukce (scénář 6, po termínu prodeje)
 

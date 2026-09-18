@@ -15,6 +15,7 @@ use App\Service\CurrentYearProviderInterface;
 use App\Service\CustomerDeskRights;
 use App\Service\DiscountCalculator;
 use Gamecon\SystemoveNastaveni\SystemoveNastaveni;
+use Psr\Clock\ClockInterface;
 use Symfony\Bundle\SecurityBundle\Security;
 
 /**
@@ -28,6 +29,7 @@ readonly class MealProductsProvider implements ProviderInterface
         private CurrentYearProviderInterface $currentYearProvider,
         private Security $security,
         private CustomerDeskRights $deskRights,
+        private ClockInterface $clock,
     ) {
     }
 
@@ -92,7 +94,7 @@ readonly class MealProductsProvider implements ProviderInterface
             $stazeno = $product->isArchived() || $product->getState() === ProductStateEnum::RETIRED;
             $dto->locked = $stazeno
                 || $poTerminuKategorie
-                || (! $zPultu && ! $product->isAvailable());
+                || (! $zPultu && ! $product->isAvailable($this->clock->now()));
             $meals[] = $dto;
         }
 

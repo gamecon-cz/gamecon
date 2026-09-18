@@ -23,6 +23,7 @@ use Gamecon\SystemoveNastaveni\SystemoveNastaveni;
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
 use Symfony\Bundle\SecurityBundle\Security;
+use Symfony\Component\Clock\NativeClock;
 
 /**
  * Produkt s víc variantami je v datech běžný — ponožky mají dvě velikosti a v roce 2026
@@ -89,6 +90,7 @@ class MerchProductsProviderTest extends TestCase
             new ProductVariantsForGrid($this->orderItemRepository),
             $this->createMock(SpentQuotaProvider::class),
             $this->security,
+            new NativeClock(),
         );
     }
 
@@ -277,6 +279,7 @@ class MerchProductsProviderTest extends TestCase
             new ProductVariantsForGrid($orderItemRepository),
             $this->createMock(SpentQuotaProvider::class),
             $this->security,
+            new NativeClock(),
         );
     }
 }
