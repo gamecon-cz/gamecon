@@ -30,6 +30,7 @@ class AccommodationWriter
         private CartService $cartService,
         private DiscountCalculator $discountCalculator,
         private BreakfastCanceller $breakfastCanceller,
+        private CapacityManager $capacityManager,
     ) {
     }
 
@@ -203,6 +204,35 @@ class AccommodationWriter
     }
 
     /**
+     * Kolik řádků zákazník na každou variantu má — DELETE maže všechny, takže se vrací
+     * tolik kusů, kolik jich zmizí.
+     *
+     * @param int[] $variantIds
+     *
+     * @return array<int, int> variant_id => počet řádků
+     */
+    private function pocetKusu(User $customer, int $year, array $variantIds): array
+    {
+        if ($variantIds === []) {
+            return [];
+        }
+
+        return array_map('intval', $this->connection->fetchAllKeyValue(
+            'SELECT variant_id, COUNT(*) FROM shop_nakupy
+             WHERE id_uzivatele = :customer AND rok = :year AND variant_id IN (:variantIds)
+             GROUP BY variant_id',
+            [
+                'customer'   => $customer->getId(),
+                'year'       => $year,
+                'variantIds' => $variantIds,
+            ],
+            [
+                'variantIds' => \Doctrine\DBAL\ArrayParameterType::INTEGER,
+            ],
+        ));
+    }
+
+    /**
      * @param int[] $keepVariantIds
      *
      * @return int[] variant ids the customer already had and keeps
@@ -213,6 +243,7 @@ class AccommodationWriter
 
         $toRemove = array_diff($held, $keepVariantIds);
         if ($toRemove !== []) {
+            $kusu = $this->pocetKusu($customer, $year, array_values($toRemove));
             $this->connection->executeStatement(
                 'DELETE FROM shop_nakupy
                  WHERE id_uzivatele = :customer AND rok = :year AND variant_id IN (:variantIds)',
@@ -225,6 +256,8 @@ class AccommodationWriter
                     'variantIds' => \Doctrine\DBAL\ArrayParameterType::INTEGER,
                 ],
             );
+
+            $this->capacityManager->adjustStock($kusu, +1);
         }
 
         return array_values(array_intersect($held, $keepVariantIds));
@@ -292,5 +325,9 @@ class AccommodationWriter
             // real answer is "you may not overbook" sends them hunting for a bed that exists.
             throw new \RuntimeException(sprintf(self::ERROR_OVERBOOKING_NOT_PERMITTED, $product->getName(), $variant->getName()));
         }
+
+        $this->capacityManager->adjustStock([
+            (int) $variant->getId() => 1,
+        ], -1);
     }
 }
