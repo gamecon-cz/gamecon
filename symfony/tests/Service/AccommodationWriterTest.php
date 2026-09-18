@@ -14,6 +14,8 @@ use App\Service\BreakfastCanceller;
 use App\Service\CartService;
 use App\Structure\Entity\UserEntityStructure;
 use App\Tests\AbstractDatabaseKernelTestCase;
+use Gamecon\Cas\DateTimeImmutableStrict;
+use Gamecon\SystemoveNastaveni\SystemoveNastaveni;
 use Gamecon\Tests\Factory\UserFactory;
 
 /**
@@ -28,6 +30,33 @@ class AccommodationWriterTest extends AbstractDatabaseKernelTestCase
      * @var array<int, ProductVariant> keyed by day
      */
     private array $noci = [];
+
+    private ?SystemoveNastaveni $puvodniNastaveni = null;
+
+    /**
+     * Snídaně se kupují košíkem, který drží termín prodeje jídla. Ten leží uprostřed
+     * ročníku, takže bez pevného „teď" by testy začaly padat dnem, kdy uplyne.
+     */
+    protected function setUp(): void
+    {
+        parent::setUp();
+
+        $vychozi = SystemoveNastaveni::zGlobals();
+        try_define('JIDLO_LZE_OBJEDNAT_A_MENIT_DO_DNE', $vychozi->dejVychoziHodnotu('JIDLO_LZE_OBJEDNAT_A_MENIT_DO_DNE'));
+
+        $this->puvodniNastaveni = $GLOBALS['systemoveNastaveni'] ?? null;
+        $GLOBALS['systemoveNastaveni'] = SystemoveNastaveni::zGlobals(
+            rocnik: ROCNIK,
+            ted: new DateTimeImmutableStrict(ROCNIK . '-01-01 00:00:00'),
+        );
+    }
+
+    protected function tearDown(): void
+    {
+        $GLOBALS['systemoveNastaveni'] = $this->puvodniNastaveni;
+
+        parent::tearDown();
+    }
 
     private function writer(): AccommodationWriter
     {
@@ -460,7 +489,9 @@ class AccommodationWriterTest extends AbstractDatabaseKernelTestCase
         $customer = $this->ucastnik();
         $this->connection()->executeStatement(
             'UPDATE product_variant SET remaining_quantity = 0 WHERE id = :variant',
-            ['variant' => $this->noci[0]->getId()],
+            [
+                'variant' => $this->noci[0]->getId(),
+            ],
         );
 
         $this->writer()->save($customer, $this->idNoci(0), self::ROK, true, mayOverbook: true);
@@ -772,7 +803,9 @@ class AccommodationWriterTest extends AbstractDatabaseKernelTestCase
         $customer = $this->ucastnik();
         $this->connection()->executeStatement(
             'UPDATE product_variant SET remaining_quantity = 3 WHERE id = :variant',
-            ['variant' => $snidaneId],
+            [
+                'variant' => $snidaneId,
+            ],
         );
 
         $this->mealWriter()->save($customer, [$snidaneId], self::ROK);
@@ -786,7 +819,9 @@ class AccommodationWriterTest extends AbstractDatabaseKernelTestCase
         $customer = $this->ucastnik();
         $this->connection()->executeStatement(
             'UPDATE product_variant SET remaining_quantity = 3 WHERE id = :variant',
-            ['variant' => $snidaneId],
+            [
+                'variant' => $snidaneId,
+            ],
         );
         $this->mealWriter()->save($customer, [$snidaneId], self::ROK);
 
@@ -805,7 +840,9 @@ class AccommodationWriterTest extends AbstractDatabaseKernelTestCase
         $customer = $this->ucastnik();
         $this->connection()->executeStatement(
             'UPDATE product_variant SET remaining_quantity = 3 WHERE id = :variant',
-            ['variant' => $snidaneId],
+            [
+                'variant' => $snidaneId,
+            ],
         );
         $this->writer()->save($customer, [$nocId], self::ROK, true);
 
@@ -832,16 +869,26 @@ class AccommodationWriterTest extends AbstractDatabaseKernelTestCase
              SELECT id_uzivatele, id_predmetu, variant_id, rok, cena_nakupni, NOW()
              FROM shop_nakupy
              WHERE id_uzivatele = :c AND rok = :y AND variant_id = :v LIMIT 1',
-            ['c' => $customer->getId(), 'y' => self::ROK, 'v' => $this->noci[0]->getId()],
+            [
+                'c' => $customer->getId(),
+                'y' => self::ROK,
+                'v' => $this->noci[0]->getId(),
+            ],
         );
         $this->connection()->executeStatement(
             'UPDATE product_variant SET remaining_quantity = 7 WHERE id = :variant',
-            ['variant' => $this->noci[0]->getId()],
+            [
+                'variant' => $this->noci[0]->getId(),
+            ],
         );
 
         self::assertSame(2, (int) $this->connection()->fetchOne(
             'SELECT COUNT(*) FROM shop_nakupy WHERE id_uzivatele = :c AND rok = :y AND variant_id = :v',
-            ['c' => $customer->getId(), 'y' => self::ROK, 'v' => $this->noci[0]->getId()],
+            [
+                'c' => $customer->getId(),
+                'y' => self::ROK,
+                'v' => $this->noci[0]->getId(),
+            ],
         ), 'Kontrola předpokladu: dva řádky na jednu noc');
 
         $this->writer()->save($customer, [], self::ROK, true);
@@ -862,7 +909,9 @@ class AccommodationWriterTest extends AbstractDatabaseKernelTestCase
 
         self::assertNull($this->connection()->fetchOne(
             'SELECT remaining_quantity FROM product_variant WHERE id = :variant',
-            ['variant' => $snidaneId],
+            [
+                'variant' => $snidaneId,
+            ],
         ));
     }
 
@@ -877,7 +926,9 @@ class AccommodationWriterTest extends AbstractDatabaseKernelTestCase
         $this->connection()->executeStatement(
             'UPDATE shop_predmety SET reserved_for_organizers = 2
              WHERE kod_predmetu = (SELECT code FROM product_variant WHERE id = :variant)',
-            ['variant' => $this->noci[0]->getId()],
+            [
+                'variant' => $this->noci[0]->getId(),
+            ],
         );
         $this->zaplnNoc(0, 1);
 
@@ -895,7 +946,9 @@ class AccommodationWriterTest extends AbstractDatabaseKernelTestCase
         $this->connection()->executeStatement(
             'UPDATE shop_predmety SET reserved_for_organizers = 2
              WHERE kod_predmetu = (SELECT code FROM product_variant WHERE id = :variant)',
-            ['variant' => $this->noci[0]->getId()],
+            [
+                'variant' => $this->noci[0]->getId(),
+            ],
         );
         $this->zaplnNoc(0, 1);
 
@@ -903,7 +956,10 @@ class AccommodationWriterTest extends AbstractDatabaseKernelTestCase
 
         self::assertSame(2, (int) $this->connection()->fetchOne(
             'SELECT COUNT(*) FROM shop_nakupy WHERE rok = :y AND variant_id = :v',
-            ['y' => self::ROK, 'v' => $this->noci[0]->getId()],
+            [
+                'y' => self::ROK,
+                'v' => $this->noci[0]->getId(),
+            ],
         ), 'K zaplněné veřejné části přibyla noc z rezervy');
     }
 
@@ -911,7 +967,9 @@ class AccommodationWriterTest extends AbstractDatabaseKernelTestCase
     {
         return (int) $this->connection()->fetchOne(
             'SELECT remaining_quantity FROM product_variant WHERE id = :variant',
-            ['variant' => $variantId],
+            [
+                'variant' => $variantId,
+            ],
         );
     }
 
