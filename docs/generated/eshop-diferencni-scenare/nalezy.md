@@ -100,7 +100,7 @@ Legacy sem účastníka vůbec nepustí (checkbox není klikatelný), takže tah
 **Toto je přesně [issue #1118](https://github.com/gamecon-cz/gamecon/issues/1118)** —
 teď s reprodukcí a konkrétním dopadem na účastníka, ne jen jako poznámka z review.
 
-## N8 — brigádník přišel o slevu na jídlo
+## N8 — uzavřeno: sleva funguje, měření bylo špatné
 
 Scénář 5, „dnes" 2026-06-01, uživatel s rolí `GC2026_BRIGADNIK`:
 
@@ -124,6 +124,38 @@ nic nerozbije.
 **Ověřit i ostatní role:** vypravěč, partner a organizátor měly ceny shodné, ale brigádník
 ukazuje, že přiznávání slev není samozřejmé. Stojí za samostatnou kontrolu každé role,
 která má na jídlo slevu mít.
+
+### Neplatí — ověřeno nad reálnou databází
+
+Sleva se přiznává správně v obou vrstvách. Brigádník (`GC2026_BRIGADNIK`, práva
+`1004,1008,1016,1025,1028,1037`) platí za snídani **150 místo 180**, tedy přesně o
+`SLEVA_ORGU_NA_JIDLO_CASTKA` míň:
+
+```
+--- GC2026_BRIGADNIK (uzivatel 1134) ---
+  1004 jidlo se slevou: ANO   1005 jidlo zdarma: ne
+  Snídaně čtvrtek   plna 180.00 ->  150.00  (sleva 30.00)
+--- GC2026_VYPRAVEC (uzivatel 61) ---
+  1004 jidlo se slevou: ne
+  Snídaně čtvrtek   plna 180.00 ->  180.00  (sleva  0.00)
+```
+
+**Rozejít se ani nemůžou:** `Cenik::cena()` i `DiscountCalculator::calculateDiscount()`
+počítají týmž `DiscountCalculation` nad pravidly z `discount_rule` a nad týmiž právy
+uživatele. Legacy nemá vlastní cestu, kterou by slevu přiznalo navíc.
+
+Storefront pravidla filtruje (`neomezenaPravidla()` nechá jen ta bez `maxQuantity`), ale
+`jidlo_se_slevou` žádný `maxQuantity` nemá, takže filtrem projde. `DiscountCalculatorBrigadnikTest`
+hlídá **data** — že pravidlo `maxQuantity` nemá; kdyby ho dostalo, zmizí sleva ze
+storefrontu, zatímco legacy ji dál přiznává. Samotný filtr je privátní a test na něj
+nesahá.
+
+Původní měření tedy porovnávalo něco jiného — pravděpodobně jiného uživatele nebo jiný
+ročník. **Poučení: než z rozdílu udělám nález, ověřit, že obě strany měří touž roli** —
+`GC2026_PRIHLASEN`, `PRITOMEN` a `ZKONTROLOVANE_UDAJE` má každý účastník, takže samy o
+sobě o roli nic neříkají.
+
+Vypravěč právo 1004 **nemá** a slevu tedy dostat nemá — to není chyba.
 
 ## N9 — „Nicknack" chybí
 
