@@ -141,6 +141,10 @@ readonly class AccommodationProvider implements ProviderInterface, Accommodation
 
             $typDto = $this->toTypeDto(
                 $product, $user, $year, $viditelneDny, $prodejUkoncen, $koupeneVarianty, $prodano, $drzeno, $kapacity,
+                // Rezervace pro orgy jede na `User::isOrganizer()` — tentýž okruh rolí
+                // jako merch (`RoleMeaning::anyIsOrganizer`). Legacy `jeOrganizator()` zná
+                // jen 5 rolí z 15, takže vypravěč by dosáhl na tričko, ale ne na postel.
+                $user->isOrganizer(),
             );
             if ($typDto !== null) {
                 $dto->types[] = $typDto;
@@ -151,11 +155,11 @@ readonly class AccommodationProvider implements ProviderInterface, Accommodation
     }
 
     /**
-     * @param int[]                                                   $viditelneDny
-     * @param int[]                                                   $koupeneVarianty
-     * @param array<int,int>                                          $prodano         sold count per variant id
-     * @param array<int,int>                                          $drzeno          count this customer holds, per variant id
-     * @param array<string,array{vyrobeno: int|null, nabizeno: bool}> $kapacity        per variant code
+     * @param int[]                                                                          $viditelneDny
+     * @param int[]                                                                          $koupeneVarianty
+     * @param array<int,int>                                                                 $prodano         sold count per variant id
+     * @param array<int,int>                                                                 $drzeno          count this customer holds, per variant id
+     * @param array<string,array{vyrobeno: int|null, nabizeno: bool, rezervovano: int|null}> $kapacity        per variant code
      */
     private function toTypeDto(
         Product $product,
@@ -167,6 +171,7 @@ readonly class AccommodationProvider implements ProviderInterface, Accommodation
         array $prodano,
         array $drzeno,
         array $kapacity,
+        bool $jeOrganizator,
     ): ?AccommodationTypeOutputDto {
         // The nights absorbed by the day-variant migration are still products in their own
         // right — the legacy form reads them — but they carry no variants and must not
@@ -198,10 +203,15 @@ readonly class AccommodationProvider implements ProviderInterface, Accommodation
             // Read per night: the variant's parent is one arbitrary night (Sunday, which is
             // permission-gated), so asking it would report every night as not on offer.
             $nabizeno = $noc['nabizeno'] ?? false;
+            // Odložené postele účastník nevidí, organizátor ano — stejné pravidlo jako
+            // u merche v `CapacityManager::purchase()`. Vlastní už koupené noci se
+            // přičítají zpátky, jinak by si je zákazník nemohl odškrtnout.
+            $rezervovano = $noc['rezervovano'] ?? null;
             $zbyva = $vyrobeno === null
                 ? null
                 : max(0, $vyrobeno
                     - ($prodano[$variant->getId()] ?? 0)
+                    - ($jeOrganizator ? 0 : ($rezervovano ?? 0))
                     + ($drzeno[$variant->getId()] ?? 0));
             $vyprodano = $zbyva !== null && $zbyva <= 0;
 
@@ -212,6 +222,9 @@ readonly class AccommodationProvider implements ProviderInterface, Accommodation
             $cell->selected = $koupeno;
             $cell->remaining = $zbyva;
             $cell->soldOut = $vyprodano;
+            // Jen když rezerva NENÍ uvnitř `remaining`. Organizátorovi se neodečítá, takže
+            // poslat ji i zvlášť by znamenalo „zbývá 5 (+5 org)" u pěti postelí.
+            $cell->reservedForOrganizers = $jeOrganizator ? null : $rezervovano;
             // A night already booked stays selectable, otherwise the customer could not
             // drop it — the same reason the legacy grid never disables a ticked box.
             $cell->locked = ! $koupeno && ($prodejUkoncen || $vyprodano || ! $nabizeno);
@@ -239,8 +252,8 @@ readonly class AccommodationProvider implements ProviderInterface, Accommodation
     /**
      * Gathered in one pass, so the grid costs three queries rather than three per night.
      *
-     * @return array{0: array<int,int>, 1: array<int,int>, 2: array<string,array{vyrobeno: int|null, nabizeno: bool}>}
-     *                                                                                                                 sold per variant id, held by this customer per variant id, produced per variant code
+     * @return array{0: array<int,int>, 1: array<int,int>, 2: array<string,array{vyrobeno: int|null, nabizeno: bool, rezervovano: int|null}>}
+     *                                                                                                                                        sold per variant id, held by this customer per variant id, produced per variant code
      */
     private function obsazenostVariant(User $user, int $year): array
     {

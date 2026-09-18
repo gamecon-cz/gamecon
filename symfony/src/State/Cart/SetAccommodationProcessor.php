@@ -66,6 +66,7 @@ readonly class SetAccommodationProcessor implements ProcessorInterface
                 $data->roommate,
                 $data->declined,
                 $this->accommodationRules->sleepingBagsOnly($legacyUzivatel),
+                jeOrganizator: $user->isOrganizer(),
             );
         } catch (\RuntimeException $chyba) {
             throw new BadRequestHttpException($chyba->getMessage(), $chyba);

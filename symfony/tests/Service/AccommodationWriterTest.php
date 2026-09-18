@@ -866,6 +866,47 @@ class AccommodationWriterTest extends AbstractDatabaseKernelTestCase
         ));
     }
 
+    /**
+     * Rezervace drží postele pro orgy: účastníkovi se prodá jen veřejná část, obsluha na
+     * rezervu dosáhne. Zápis to musí hlídat stejně jako mřížka, jinak by mřížka postel
+     * schovala a writer ji přesto prodal.
+     */
+    public function testParticipantCannotBookIntoTheOrganizerReserve(): void
+    {
+        $this->pripravUbytovani(kusuVyrobeno: 3);
+        $this->connection()->executeStatement(
+            'UPDATE shop_predmety SET reserved_for_organizers = 2
+             WHERE kod_predmetu = (SELECT code FROM product_variant WHERE id = :variant)',
+            ['variant' => $this->noci[0]->getId()],
+        );
+        $this->zaplnNoc(0, 1);
+
+        $this->expectExceptionMessage('je plné');
+
+        $this->writer()->save($this->ucastnik(), $this->idNoci(0), self::ROK, true);
+    }
+
+    /**
+     * Organizátor na rezervu dosáhne — to je celý její smysl.
+     */
+    public function testOrganizerReachesTheReserve(): void
+    {
+        $this->pripravUbytovani(kusuVyrobeno: 3);
+        $this->connection()->executeStatement(
+            'UPDATE shop_predmety SET reserved_for_organizers = 2
+             WHERE kod_predmetu = (SELECT code FROM product_variant WHERE id = :variant)',
+            ['variant' => $this->noci[0]->getId()],
+        );
+        $this->zaplnNoc(0, 1);
+
+        $this->writer()->save($this->ucastnik(), $this->idNoci(0), self::ROK, true, jeOrganizator: true);
+
+        self::assertSame(2, (int) $this->connection()->fetchOne(
+            'SELECT COUNT(*) FROM shop_nakupy WHERE rok = :y AND variant_id = :v',
+            ['y' => self::ROK, 'v' => $this->noci[0]->getId()],
+        ), 'K zaplněné veřejné části přibyla noc z rezervy');
+    }
+
     private function zbyvaNaVarianteId(int $variantId): int
     {
         return (int) $this->connection()->fetchOne(

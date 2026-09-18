@@ -14,6 +14,11 @@ export type ApiAccommodationCell = {
   /** Null = unlimited; dorm beds are effectively uncapped. */
   remaining: number | null;
   soldOut: boolean;
+  /**
+   * Kolik postelí je odložených pro organizátory, null bez rezervace. Do `remaining` se
+   * nepočítá — je to údaj pro obsluhu pultu, ne pro účastníka.
+   */
+  reservedForOrganizers: number | null;
   /** Cannot be ticked. An already-booked night is never locked, so it can be dropped. */
   locked: boolean;
 };
