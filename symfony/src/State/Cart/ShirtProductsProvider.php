@@ -20,6 +20,7 @@ use App\Service\ProductVariantsForGrid;
 use App\Service\RestrictedProductRules;
 use App\Service\SpentQuotaProvider;
 use Gamecon\SystemoveNastaveni\SystemoveNastaveni;
+use Psr\Clock\ClockInterface;
 use Symfony\Bundle\SecurityBundle\Security;
 use Symfony\Component\HttpKernel\Exception\AccessDeniedHttpException;
 
@@ -40,6 +41,7 @@ readonly class ShirtProductsProvider implements ProviderInterface
         private ProductVariantsForGrid $variantsForGrid,
         private SpentQuotaProvider $spentQuota,
         private Security $security,
+        private ClockInterface $clock,
     ) {
     }
 
@@ -134,7 +136,7 @@ readonly class ShirtProductsProvider implements ProviderInterface
         // nabídnout ani tomu, kdo na barvu právo má.
         $stav = $product->getState();
         $available = ! $prodejUkoncen
-            && $product->isAvailable()
+            && $product->isAvailable($this->clock->now())
             && ($stav === ProductStateEnum::PUBLIC || $stav === ProductStateEnum::RESTRICTED);
 
         // Vyprodaný nebo stažený svršek musí zůstat vidět, jakmile ho zákazník má —
