@@ -68,8 +68,43 @@ U ubytování je to záměr — legacy noc zamyká jen stavem POZASTAVENY (viz
 `ProductRepository:208` + `ProductRepositoryNabizetDoTest`). Že stejná výjimka platí i pro
 **jídlo**, vyplývá ze sdíleného dotazu, ne z rozhodnutí.
 
-**Zařazení: nezjištěno** — otázka na produkt: má se jídlo po vlastním `nabizet_do` pořád
-nabízet (jako ubytování), nebo ne (jako merch)?
+**Zodpovězeno legacy kódem: jídlo se po vlastním `nabizet_do` účastníkovi nenabízí.**
+`Shop.php:160` bere do `nabizet_do` skupiny `jídlo, předmět, tričko`; ubytování v ní není,
+a `Shop.php:264` ho z kontroly výslovně vynechává. Jídlo tedy patří k merchi, ne k ubytování.
+
+### Opraveno — ale ne ve `findByTag()`
+
+Filtr do `findByTag()` nepatří: metoda slibuje „produkty s tímhle tagem", ne „…a zrovna
+prodejné". A hlavně by to rozbilo zápis — `MealWriter`, `AccommodationWriter` a
+`EntryFeeService` si přes ni zjišťují, **co zákazník má**. Kdyby po termínu produkt
+nenašly, diff nad celým výběrem to přečte jako „odeber to". Tichá ztráta dat.
+
+Rozhodnutí proto padlo v `MealProductsProvider`, kde termíny stejně bydlí:
+
+```php
+$stazeno = $product->isArchived() || $product->getState() === ProductStateEnum::RETIRED;
+$dto->locked = $stazeno || $poTerminuKategorie || (! $zPultu && ! $product->isAvailable());
+```
+
+**Pult smí doprodat i po produktovém termínu.** Nejdřív jsem ho zamkl taky — legacy ale
+dělá opak: propadlé `nabizet_do` se promítne do `POZASTAVENY` a `Shop.php:289` ho pultu
+odemyká přes `jidloBezZamku`, které si `infopult.php` i `uzivatel.php` zapínají. Stažený
+produkt (archivovaný, `RETIRED`) je něco jiného a zamčený zůstává pro všechny.
+
+**`isPublic()` by zamkl víc, než je záměr** — je to `isAvailable() && stav == PUBLIC`,
+takže by mimochodem zavřel i `RESTRICTED` a `SUSPENDED` jídla. Proto se testuje
+`isAvailable()` a stažení zvlášť. (`ShirtProductsProvider` má na tutéž past komentář.)
+
+### Dvě věci, které tím opravené NEJSOU
+
+- **`nabizet_do` se porovnává se skutečným časem** (`Product::isAvailable()` volá
+  `new \DateTime()`), ne se `SystemoveNastaveni`. Posunutý čas z `bin-diff/cas.sh` na něj
+  tedy nesahá — v diferenčním běhu může legacy noc/porci zamknout a nová vrstva ne, aniž by
+  s tím měl testovaný kód cokoli společného. Platilo to už pro merch, tahle změna to jen
+  rozšiřuje na jídlo.
+- **Zápisová cesta pultu je nehlídaná.** `MealWriter::addMeal()` píše do `shop_nakupy`
+  přímo SQL a stav ani dostupnost neřeší, takže `RETIRED` jídlo jde přes admin endpoint
+  pořád koupit. Pro účastníka to hlídá `CartService::createOrderItem()`.
 
 ## N6 — reprodukce (scénář 6, po termínu prodeje)
 
