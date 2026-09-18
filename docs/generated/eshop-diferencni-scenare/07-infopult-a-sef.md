@@ -33,13 +33,13 @@ proto sedí uvnitř v `CustomerDeskRights` na právech 100/101. Ověřit, že to
 
 | # | krok | A | B |
 |---|---|---|---|
-| 7.1 | najít účastníka, otevřít jeho ubytování | | |
-| 7.2 | objednat noc **po termínu prodeje** — musí jít | | |
-| 7.3 | zrušit noc | | |
-| 7.4 | objednat jídlo (matice) | | |
+| 7.1 | najít účastníka, otevřít jeho ubytování | ✓ | ✓ |
+| 7.2 | objednat noc **po termínu prodeje** — musí jít | n/a | ✓ (prohlížeč) |
+| 7.3 | zrušit noc | n/a | ✓ (prohlížeč) |
+| 7.4 | objednat jídlo (matice) | n/a | ✓ (prohlížeč) |
 | 7.5 | **snídaně krytá hotelovou nocí** — zaškrtnout | n/a | ✓ (kód) |
 | 7.6 | dvě rychlá kliknutí na různá jídla | n/a | ✓ (prohlížeč) |
-| 7.7 | přiřadit spolubydlícího | | |
+| 7.7 | přiřadit spolubydlícího | n/a | ✓ (prohlížeč) |
 
 ### Infopult (`/admin/infopult`)
 
@@ -172,3 +172,32 @@ Dvě jídla, každé jednou — `1113` se poslalo dvakrát a nevznikl z toho dup
 ### Zbývá proklikat
 
 7.1–7.4 (najít účastníka, objednat/zrušit noc, matice jídel) a 7.7 (spolubydlící).
+
+---
+
+## 7.1–7.4 a 7.7 proklikané (2026-09-18)
+
+„Teď" 2026-07-22: prodej ubytování i jídla **po termínu**, GC ještě neběží (`gcBezi=false`),
+takže přihláška není zamčená přes `GC_BEZI_DO`. Přesně to okno, ve kterém má pult prodávat
+a účastník ne. Účastník Youda (65) — letos přihlášený, bez orgovských rolí.
+
+| krok | výsledek |
+|---|---|
+| 7.1 | obě větve zobrazí jeho stránku, jméno i ubytování |
+| 7.2 | 3 noci → **4**, po termínu, bez chyby |
+| 7.3 | 4 → **3**, zpět na výchozí |
+| 7.4 | 0 jídel → **1**, 11 buněk klikatelných |
+| 7.7 | pole „Na pokoji s:" jde vyplnit a hodnota přežije reload |
+
+Databáze po 7.2+7.3 souhlasí s GUI: **3 noci**, tedy přidání i zrušení opravdu dojelo do
+`shop_nakupy`, ne jen do obrazovky. Žádné HTTP ≥ 400.
+
+### Dvě pasti na měření
+
+- **Počítat checkboxy napříč větvemi nejde.** Nová větev jich má na stránce 45, legacy 15 —
+  ne proto, že by něco chybělo, ale protože nová kreslí mřížku noc×pokoj, kdežto legacy
+  řádek na typ pokoje. Legacy navíc zobrazuje 4 zaškrtnuté boxy, které **nejsou v žádném
+  formuláři a nemají `name`** — jsou jen dekorace. Porovnávat se musí to, co má zákazník
+  v `shop_nakupy`, ne DOM.
+- **Selektor podle `name` spolubydlícího nenajde.** Je to `<input type="text">` bez `name`
+  uvnitř `.ubytovani-mrizka--spolubydlici`; „pole tam není" byl artefakt selektoru, ne nález.
