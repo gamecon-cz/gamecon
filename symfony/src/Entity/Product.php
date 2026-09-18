@@ -518,7 +518,12 @@ class Product
         return $this->hasTag(ProductTagCode::UBYTOVANI->value);
     }
 
-    public function isAvailable(): bool
+    /**
+     * Entita si čas nebere z hodin sama — staví ji Doctrine, ne kontejner, takže jí je
+     * nemá kdo podat. Předává ho proto volající, a povinně: s výchozí hodnotou by šlo
+     * hodiny potichu obejít a datum by se zase řídilo skutečným časem.
+     */
+    public function isAvailable(\DateTimeImmutable $ted): bool
     {
         if ($this->isArchived()) {
             return false;
@@ -528,11 +533,12 @@ class Product
             return false;
         }
 
-        return ! ($this->availableUntil instanceof \DateTimeImmutable && $this->availableUntil < new \DateTime());
+        return ! ($this->availableUntil instanceof \DateTimeImmutable
+            && $this->availableUntil < $ted);
     }
 
-    public function isPublic(): bool
+    public function isPublic(\DateTimeImmutable $ted): bool
     {
-        return $this->isAvailable() && $this->state === ProductStateEnum::PUBLIC;
+        return $this->isAvailable($ted) && $this->state === ProductStateEnum::PUBLIC;
     }
 }

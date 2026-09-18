@@ -6,6 +6,7 @@ namespace App\Service;
 
 use App\Entity\ProductVariant;
 use App\Entity\User;
+use App\Enum\ProductStateEnum;
 use App\Enum\ProductTagCode;
 use App\Repository\ProductRepository;
 use Doctrine\DBAL\ArrayParameterType;
@@ -181,6 +182,16 @@ class MealWriter
      */
     private function addMeal(User $customer, ProductVariant $variant, int $year): void
     {
+        // Additions only: the desk submits the whole selection, so a meal the customer
+        // already holds never reaches this. Judging those too would leave a withdrawn meal
+        // blocking every later save, with no way to untick it — the cell is locked.
+        // An expired `nabizet_do` is deliberately not checked; the desk still sells past it.
+        // Archived products never come out of findByTag(), so RETIRED is the whole test.
+        $withdrawn = $variant->getProduct();
+        if ($withdrawn->getState() === ProductStateEnum::RETIRED) {
+            throw new \RuntimeException(sprintf('Jídlo „%s" už není v prodeji.', $withdrawn->getName()));
+        }
+
         $product = $variant->getProduct();
         $discount = $this->discountCalculator->calculateDiscount($product, $customer, $year);
         $order = $this->cartService->getOrCreateCart($customer);
