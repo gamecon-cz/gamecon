@@ -157,11 +157,49 @@ sobě o roli nic neříkají.
 
 Vypravěč právo 1004 **nemá** a slevu tedy dostat nemá — to není chyba.
 
-## N9 — „Nicknack" chybí
+## N9 — uzavřeno: nejde o Nicknack, ale o termín prodeje merche
 
 Předmět za 80 Kč, který legacy nabízí u **všech** pěti testovaných rolí a nová větev
-u žádné. Může jít o záměrné stažení z prodeje (tag, archivace), ale stejně tak o propadlý
-produkt. Ověřit dřív, než to zjistí účastník.
+u žádné. Vypadalo to na propadlý produkt.
+
+### Data jsou v pořádku
+
+Oba letošní Nicknacky existují a nechybí jim nic, co mají fungující kostky:
+
+```
+id     kod_predmetu         stav  archived_at  tagy     variant
+1849   nicknack_2019        1     (null)       predmet  1
+1848   nicknack_vyrocni30   1     (null)       predmet  1
+1842   kostka_2026_verne    1     (null)       predmet  1   ← kontrola
+```
+
+`findByTag(PREDMET)` je **oba vrací**. Produkt tedy nikam nepropadl a `Product` stejně
+mapuje na tutéž `shop_predmety`, ze které čte legacy — samostatný „nový model", ze kterého
+by mohl vypadnout, neexistuje.
+
+### Co se doopravdy dělo
+
+`MerchProductsProvider::toDto()` položku **vypustí ze seznamu**, když je po termínu a
+zákazník ji nemá koupenou:
+
+```php
+$available = ! $prodejUkoncen && $product->isPublic();
+if (! $available && $purchasedQuantity === 0) {
+    return null;
+}
+```
+
+`prodejPredmetuBezTricekUkoncen()` je po 15. 7. `true`, takže takhle zmizí **všech 28
+předmětů**, ne jenom Nicknack. Ten byl v porovnání jen náhodně pojmenovaný.
+
+Legacy dělá totéž, jen jinou cestou — `Shop.php:264` označí propadlý `nabizet_do` jako
+`POZASTAVENY` a `nabizet` pak platí jen pro `VEREJNY`. Výsledek se shoduje, mechanismus ne:
+**legacy jede podle `nabizet_do` produktu, nová vrstva podle termínu kategorie.** Dokud si
+obě hodnoty odpovídají, nikdo rozdíl nepozná; když se rozejdou, rozejdou se i vrstvy — a to
+je přesně [N5](#n5--findbytag-nefiltruje-nabizet_do).
+
+**Nedoměřeno:** původní porovnání běželo na jiném simulovaném datu, takže netvrdím, že se
+vrstvy shodovaly i tehdy. Tvrdím, co dělají teď a proč.
 
 ## Metodická chyba, na kterou jsem narazil (a co z ní plyne)
 
