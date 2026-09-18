@@ -18,6 +18,7 @@ use App\Service\DiscountCalculator;
 use App\Service\ProductVariantsForGrid;
 use App\Service\SpentQuotaProvider;
 use Gamecon\SystemoveNastaveni\SystemoveNastaveni;
+use Psr\Clock\ClockInterface;
 use Symfony\Bundle\SecurityBundle\Security;
 use Symfony\Component\HttpKernel\Exception\AccessDeniedHttpException;
 
@@ -34,6 +35,7 @@ readonly class MerchProductsProvider implements ProviderInterface
         private ProductVariantsForGrid $variantsForGrid,
         private SpentQuotaProvider $spentQuota,
         private Security $security,
+        private ClockInterface $clock,
     ) {
     }
 
@@ -86,7 +88,7 @@ readonly class MerchProductsProvider implements ProviderInterface
         $purchasedQuantity = $this->orderItemRepository->countCustomerPurchases($user, $product, $year);
         // isPublic() also covers an expired nabizet_do, which the legacy shop treats as
         // a suspended product rather than a public one.
-        $available = ! $prodejUkoncen && $product->isPublic();
+        $available = ! $prodejUkoncen && $product->isPublic($this->clock->now());
 
         // A sold-out or withdrawn product still has to appear once the customer owns one,
         // otherwise their basket silently loses it.

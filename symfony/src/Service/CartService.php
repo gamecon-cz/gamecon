@@ -174,7 +174,7 @@ class CartService
             foreach ($variants as $variant) {
                 $product = $variant->getProduct();
 
-                if (! $product->isAvailable()) {
+                if (! $product->isAvailable($this->clock->now())) {
                     throw new \RuntimeException(sprintf('Produkt "%s" není dostupný.', $product->getName()));
                 }
 
@@ -292,7 +292,7 @@ class CartService
     {
         $product = $variant->getProduct();
 
-        if (! $product->isAvailable()) {
+        if (! $product->isAvailable($this->clock->now())) {
             throw new \RuntimeException(sprintf('Produkt "%s" není dostupný.', $product->getName()));
         }
 

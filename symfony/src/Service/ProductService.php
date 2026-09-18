@@ -181,7 +181,7 @@ class ProductService
      */
     public function canPurchase(Product $product, ProductVariant $variant, array $roleMeanings = []): bool
     {
-        if (! $product->isAvailable()) {
+        if (! $product->isAvailable($this->clock->now())) {
             return false;
         }
 
@@ -201,7 +201,7 @@ class ProductService
      */
     public function getAvailabilityInfo(Product $product, ProductVariant $variant, array $roleMeanings = []): array
     {
-        if (! $product->isAvailable()) {
+        if (! $product->isAvailable($this->clock->now())) {
             return [
                 'available' => false,
                 'reason'    => 'Produkt není dostupný',
