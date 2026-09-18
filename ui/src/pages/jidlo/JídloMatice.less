@@ -49,6 +49,17 @@
     }
   }
 
+  // Zamčené se musí lišit od vyprodaného: vyprodané jídlo si nikdo nekoupí, zamčené už
+  // koupené mít může — a pak zůstává zaškrtnuté, jen s ním nejde hnout.
+  &--zamceno {
+    cursor: not-allowed;
+    opacity: 0.6;
+
+    label {
+      cursor: not-allowed;
+    }
+  }
+
   &--busy {
     opacity: 0.5;
   }

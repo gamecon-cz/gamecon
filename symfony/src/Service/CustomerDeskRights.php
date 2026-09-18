@@ -27,6 +27,19 @@ readonly class CustomerDeskRights
     }
 
     /**
+     * Totéž co `verifyOperator()`, jen se ptá místo aby vyhazovalo — pro případy, kdy je
+     * obsluha jen jiný pohled na tentýž katalog, ne přístup navíc.
+     */
+    public function jeObsluhaPultu(): bool
+    {
+        $operator = $this->legacySession->getCurrentUser();
+
+        return $operator !== null
+            && ($operator->maPravo(Pravo::ADMINISTRACE_UBYTOVANI)
+                || $operator->maPravo(Pravo::ADMINISTRACE_INFOPULT));
+    }
+
+    /**
      * @throws AccessDeniedHttpException when nobody is signed in, or they may not do this
      */
     public function verifyOperator(string $action): \Uzivatel

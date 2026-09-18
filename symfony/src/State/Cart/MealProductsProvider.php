@@ -11,7 +11,9 @@ use App\Entity\User;
 use App\Enum\ProductTagCode;
 use App\Repository\ProductRepository;
 use App\Service\CurrentYearProviderInterface;
+use App\Service\CustomerDeskRights;
 use App\Service\DiscountCalculator;
+use Gamecon\SystemoveNastaveni\SystemoveNastaveni;
 use Symfony\Bundle\SecurityBundle\Security;
 
 /**
@@ -24,6 +26,7 @@ readonly class MealProductsProvider implements ProviderInterface
         private DiscountCalculator $discountCalculator,
         private CurrentYearProviderInterface $currentYearProvider,
         private Security $security,
+        private CustomerDeskRights $deskRights,
     ) {
     }
 
@@ -32,9 +35,28 @@ readonly class MealProductsProvider implements ProviderInterface
      */
     public function provide(Operation $operation, array $uriVariables = [], array $context = []): array
     {
+        // Katalog je pro všechny stejný, takže pult chodí na týž endpoint. Liší se jen tím,
+        // že smí objednávat po termínu — pozná se podle `?customerId`, které posílá jen
+        // matice v adminu. Samotný parametr nestačí, jinak by si ho účastník dopsal do URL.
+        $zPultu = ($context['filters']['customerId'] ?? null) !== null
+            && $this->deskRights->jeObsluhaPultu();
+
+        return $this->proZakaznika($zPultu);
+    }
+
+    /**
+     * @param bool $zPultu volá to obsluha za účastníka — pak termín prodeje neplatí
+     *
+     * @return MealProductOutputDto[]
+     */
+    private function proZakaznika(bool $zPultu): array
+    {
         $products = $this->productRepository->findByTag(ProductTagCode::JIDLO);
         $user = $this->security->getUser();
         $year = $this->currentYearProvider->getCurrentYear();
+        // Zamyká se jen účastníkovi; pult po termínu doobjednat smí a chodí mimo košík,
+        // přes `MealWriter`. Zámek je jen nápověda pro matici — vynucuje ho `CartService`.
+        $zamceno = ! $zPultu && SystemoveNastaveni::zGlobals()->prodejJidlaUkoncen();
         $meals = [];
 
         foreach ($products as $product) {
@@ -62,6 +84,7 @@ readonly class MealProductsProvider implements ProviderInterface
                 $dto->priceSteps = $this->discountCalculator->priceSteps($product, $user, $year);
             }
 
+            $dto->locked = $zamceno;
             $meals[] = $dto;
         }
 

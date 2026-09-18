@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace App\Tests\Service;
 
-use App\Entity\Product;
 use App\Entity\Order;
+use App\Entity\Product;
 use App\Entity\ProductBundle;
 use App\Entity\ProductTag;
 use App\Entity\ProductVariant;
