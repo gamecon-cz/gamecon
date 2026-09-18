@@ -34,10 +34,10 @@ class MealProductOutputDto
         $dto->day = $variant->getAccommodationDay() ?? $product->getAccommodationDay() ?? 0;
         $dto->price = $variant->getEffectivePrice();
         $dto->variantId = $variant->getId();
-        // Zásoba smí být záporná (admin prodává i nad kapacitu), ale „zbývá −2" nemá ve
-        // frontendu význam. Mřížka merche clampuje stejně, viz ProductVariantsForGrid.
-        $zbyva = $variant->getRemainingQuantity();
-        $dto->remainingQuantity = $zbyva === null ? null : max(0, $zbyva);
+        // Záporná zásoba se posílá tak, jak je. Znamená, že se na pultu prodalo víc, než
+        // bylo na skladě, a obsluha to má vidět — je to podnět ke kontrole, ne chyba
+        // zobrazení. `soldOut` v matici jede na `<= 0`, takže mínus se chová jako nula.
+        $dto->remainingQuantity = $variant->getRemainingQuantity();
 
         return $dto;
     }
