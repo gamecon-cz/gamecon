@@ -414,7 +414,9 @@ class PriceStepsTest extends TestCase
 
         // Zákazník mezitím koupil JINOU kostku — nárok je pryč, i když tenhle produkt
         // nikdy nekoupil.
-        $druha = $vypocet->priceSteps($this->kostka('draci_kostka', 60.0), spentQuota: ['kostka_zdarma' => 1]);
+        $druha = $vypocet->priceSteps($this->kostka('draci_kostka', 60.0), spentQuota: [
+            'kostka_zdarma' => 1,
+        ]);
 
         self::assertSame(60.0, $druha[0]->price, 'Druhá kostka už zdarma není');
         self::assertNull($druha[0]->label);
@@ -429,7 +431,9 @@ class PriceStepsTest extends TestCase
         $steps = $this->vypocet([
             $this->pravidlo('kostka_zdarma', 'Kostka zdarma', 1003, '{"scope":"code_contains","effect":"free","codeFragment":"kostka","maxQuantity":1}'),
             $this->pravidlo('placka_zdarma', 'Placka zdarma', 1002, '{"scope":"code_contains","effect":"free","codeFragment":"placka","maxQuantity":1}'),
-        ], [1002, 1003])->priceSteps($this->kostka('fate_kostka', 30.0), spentQuota: ['placka_zdarma' => 1]);
+        ], [1002, 1003])->priceSteps($this->kostka('fate_kostka', 30.0), spentQuota: [
+            'placka_zdarma' => 1,
+        ]);
 
         self::assertSame(0.0, $steps[0]->price, 'Spotřebovaná placka nesmí sebrat kostku zdarma');
     }

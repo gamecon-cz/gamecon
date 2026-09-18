@@ -43,8 +43,12 @@ export const saveCustomerMeals = async (customerId: number, variantIds: number[]
   return data.variantIds ?? [];
 };
 
-export const fetchMeals = async (): Promise<ApiMealProduct[]> => {
-  const res = await symfonyFetch("cart/meals");
+export const fetchMeals = async (customerId?: number): Promise<ApiMealProduct[]> => {
+  // `customerId` říká serveru, že se ptá pult — ten smí objednávat i po termínu.
+  // Právo obsluhy si server ověří sám, parametr sám o sobě nic neodemyká.
+  const res = await symfonyFetch(
+    customerId === undefined ? "cart/meals" : `cart/meals?customerId=${customerId}`,
+  );
   if (!res.ok) throw new Error(`Failed to fetch meals: ${res.status}`);
   const data = await res.json() as ApiHydraCollection<ApiMealProduct>;
   return data["hydra:member"] ?? data["member"] ?? [];

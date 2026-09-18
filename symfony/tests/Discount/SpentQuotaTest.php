@@ -50,7 +50,9 @@ class SpentQuotaTest extends TestCase
             rights: [1003],
         );
 
-        self::assertSame(['kostka_zdarma' => 1], $spentQuota);
+        self::assertSame([
+            'kostka_zdarma' => 1,
+        ], $spentQuota);
     }
 
     /**
@@ -65,7 +67,9 @@ class SpentQuotaTest extends TestCase
             $this->kostka('duna_kostka', 25.0),
         ], rights: [1003]);
 
-        self::assertSame(['kostka_zdarma' => 1], $spentQuota);
+        self::assertSame([
+            'kostka_zdarma' => 1,
+        ], $spentQuota);
     }
 
     public function testNarokNaDvaKusySeSpotrebujeDvakrat(): void
@@ -79,7 +83,9 @@ class SpentQuotaTest extends TestCase
             rights: [1003],
         );
 
-        self::assertSame(['dve_tricka' => 2], $spentQuota);
+        self::assertSame([
+            'dve_tricka' => 2,
+        ], $spentQuota);
     }
 
     /**
@@ -120,7 +126,9 @@ class SpentQuotaTest extends TestCase
             $this->pravidlo('kostka_levneji', '{"scope":"code_contains","effect":"percent","codeFragment":"kostka","percent":50,"maxQuantity":1}'),
         ], [$this->kostka('fate_kostka', 30.0)], rights: [1003]);
 
-        self::assertSame(['kostka_zdarma' => 1], $spentQuota);
+        self::assertSame([
+            'kostka_zdarma' => 1,
+        ], $spentQuota);
     }
 
     /**
@@ -150,7 +158,9 @@ class SpentQuotaTest extends TestCase
 
         $spentQuota = SpentQuota::fromPurchases($pravidla, [$tricko], rights: [1035]);
 
-        self::assertSame(['jedno_tricko_zdarma' => 1], $spentQuota);
+        self::assertSame([
+            'jedno_tricko_zdarma' => 1,
+        ], $spentQuota);
     }
 
     /**
@@ -170,7 +180,9 @@ class SpentQuotaTest extends TestCase
 
         $spentQuota = SpentQuota::fromPurchases($pravidla, [$tricko], rights: [1012, 1035]);
 
-        self::assertSame(['tricko_za_bonus' => 1], $spentQuota);
+        self::assertSame([
+            'tricko_za_bonus' => 1,
+        ], $spentQuota);
     }
 
     /**
@@ -187,7 +199,9 @@ class SpentQuotaTest extends TestCase
         $prava = [1035];
 
         $spentQuota = SpentQuota::fromPurchases($pravidla, [$tricko], rights: $prava);
-        self::assertSame(['jedno_tricko_zdarma' => 1], $spentQuota);
+        self::assertSame([
+            'jedno_tricko_zdarma' => 1,
+        ], $spentQuota);
 
         $steps = (new \App\Discount\DiscountCalculation($pravidla, $prava, [], 0.0))
             ->priceSteps($tricko, 1, $spentQuota);
