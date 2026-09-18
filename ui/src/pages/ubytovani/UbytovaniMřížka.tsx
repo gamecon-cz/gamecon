@@ -99,12 +99,28 @@ export function UbytovaniMřížka({ customerId }: MountProps) {
     );
   };
 
+  // Jen pro obsluhu pultu: veřejná část došla, ale postele fyzicky jsou — drží se pro
+  // orgy. Je to podnět ke kontrole, ne chyba.
+  const seSahaDoRezervy =
+    customerId !== undefined &&
+    types.some((typ) =>
+      Object.values(typ.nights).some(
+        (cell) => cell.soldOut && (cell.reservedForOrganizers ?? 0) > 0,
+      ),
+    );
+
   return (
     <div class="ubytovani-mrizka">
       {saleClosed && (
         <p class="ubytovani-mrizka--uzavreno">Možnost objednání ubytování už skončila.</p>
       )}
       {error && <div class="ubytovani-mrizka--error">{error}</div>}
+      {seSahaDoRezervy && (
+        <p class="ubytovani-mrizka--rezerva-varovani">
+          ⚠ U některých nocí je veřejná část vyprodaná — prodáváš už z rezervy pro
+          organizátory.
+        </p>
+      )}
 
       <table class="ubytovani-mrizka--tabulka">
         <thead>
@@ -147,6 +163,13 @@ export function UbytovaniMřížka({ customerId }: MountProps) {
                     {cell.remaining !== null && (
                       <span class="ubytovani-mrizka--zbyva">
                         {cell.soldOut ? "vyprodáno" : `zbývá ${cell.remaining}`}
+                        {/* Rezervu vidí jen obsluha pultu — účastníkovi by číslo, na
+                            které nedosáhne, jen mátlo. */}
+                        {customerId !== undefined && cell.reservedForOrganizers ? (
+                          <span class="ubytovani-mrizka--rezerva">
+                            {` (+${cell.reservedForOrganizers} org)`}
+                          </span>
+                        ) : null}
                       </span>
                     )}
                   </td>

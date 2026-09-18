@@ -167,6 +167,86 @@ class AccommodationProviderTest extends TestCase
         $this->assertSame($variant->getId(), $cell->variantId);
     }
 
+    /**
+     * Rezervace drží část postelí stranou: účastník je nevidí, organizátor ano. Merch to
+     * umí přes `CapacityManager`, ubytování jde jinou cestou a dosud to míjelo — vyplněná
+     * rezervace u noci neznamenala nic a postele se rozprodaly do posledního kusu.
+     */
+    public function testReservedBedsAreHiddenFromAParticipant(): void
+    {
+        $this->prepareUser();
+        $this->prepareGrid(remainingQuantity: 10, produced: 10, sold: 3, held: 0, rezervovanoProOrgy: 5);
+
+        $cell = $this->provider->provide(new Get())->types[0]->nights[self::DEN_CTVRTEK];
+
+        $this->assertSame(2, $cell->remaining, 'Účastník vidí 10 − 3 prodaných − 5 odložených');
+        $this->assertSame(5, $cell->reservedForOrganizers, 'Obsluha musí vidět, kolik je stranou');
+    }
+
+    /**
+     * Když veřejná část dojde, účastníkovi je vyprodáno, i když postele fyzicky jsou —
+     * drží se pro orgy.
+     */
+    public function testParticipantIsSoldOutOnceOnlyTheReserveIsLeft(): void
+    {
+        $this->prepareUser();
+        $this->prepareGrid(remainingQuantity: 10, produced: 10, sold: 5, held: 0, rezervovanoProOrgy: 5);
+
+        $cell = $this->provider->provide(new Get())->types[0]->nights[self::DEN_CTVRTEK];
+
+        $this->assertSame(0, $cell->remaining);
+        $this->assertTrue($cell->soldOut);
+        $this->assertSame(5, $cell->reservedForOrganizers);
+    }
+
+    /**
+     * Bez rezervace se nesmí nic ubrat — a `reservedForOrganizers` má být null, aby
+     * mřížka neukazovala „(+0 org)" u každé noci.
+     */
+    public function testNightWithoutReservationIsUnaffected(): void
+    {
+        $this->prepareUser();
+        $this->prepareGrid(remainingQuantity: 10, produced: 10, sold: 3, held: 0);
+
+        $cell = $this->provider->provide(new Get())->types[0]->nights[self::DEN_CTVRTEK];
+
+        $this->assertSame(7, $cell->remaining);
+        $this->assertNull($cell->reservedForOrganizers);
+    }
+
+    /**
+     * Překlep obsluhy (rezervováno víc, než je vyrobeno) nesmí dát záporné číslo ani
+     * spadnout — účastníkovi prostě nezbývá nic.
+     */
+    public function testReservationLargerThanCapacityLeavesNothingPublic(): void
+    {
+        $this->prepareUser();
+        $this->prepareGrid(remainingQuantity: 2, produced: 2, sold: 0, held: 0, rezervovanoProOrgy: 5);
+
+        $cell = $this->provider->provide(new Get())->types[0]->nights[self::DEN_CTVRTEK];
+
+        $this->assertSame(0, $cell->remaining);
+        $this->assertTrue($cell->soldOut);
+    }
+
+    /**
+     * Organizátor rezervaci neodečítá — vidí celou kapacitu, protože na odložené postele
+     * dosáhne. To je druhá půlka pravidla; bez ní by se mu noc jevila jako vyprodaná.
+     */
+    public function testOrganizerSeesTheReservedBeds(): void
+    {
+        $this->prepareUser(jeOrganizator: true);
+        $this->prepareGrid(remainingQuantity: 10, produced: 10, sold: 5, held: 0, rezervovanoProOrgy: 5);
+
+        $cell = $this->provider->provide(new Get())->types[0]->nights[self::DEN_CTVRTEK];
+
+        $this->assertSame(5, $cell->remaining, 'Organizátorovi se rezervace neodečítá');
+        $this->assertFalse($cell->soldOut);
+        // Rezerva už je uvnitř `remaining`; kdyby se poslala i zvlášť, pult by u téhle
+        // noci četl „zbývá 5 (+5 org)" a myslel si, že postelí je deset.
+        $this->assertNull($cell->reservedForOrganizers, 'Nesmí se počítat dvakrát');
+    }
+
     public function testFullyBookedNightIsSoldOut(): void
     {
         $this->prepareUser();
@@ -254,16 +334,20 @@ class AccommodationProviderTest extends TestCase
         );
     }
 
-    private function prepareUser(bool $smiJednuNoc = false): void
+    private function prepareUser(bool $smiJednuNoc = false, bool $jeOrganizator = false): void
     {
-        $this->security->method('getUser')->willReturn($this->createMock(User::class));
+        $user = $this->createMock(User::class);
+        // Rezervace pro orgy jede na `User::isOrganizer()` — tentýž okruh rolí jako merch.
+        // Legacy `jeOrganizator()` níž rozhoduje o něčem jiném (nedělní noc).
+        $user->method('isOrganizer')->willReturn($jeOrganizator);
+        $this->security->method('getUser')->willReturn($user);
 
         $legacyUzivatel = $this->createMock(\Uzivatel::class);
         $legacyUzivatel->method('maPravo')->willReturnCallback(
             static fn (int $pravo): bool => $smiJednuNoc
                 && $pravo === Pravo::UBYTOVANI_MUZE_OBJEDNAT_JEDNU_NOC,
         );
-        $legacyUzivatel->method('jeOrganizator')->willReturn(false);
+        $legacyUzivatel->method('jeOrganizator')->willReturn($jeOrganizator);
         $legacyUzivatel->method('ubytovanS')->willReturn('');
         $legacyUzivatel->method('nechceUbytovani')->willReturn(false);
 
@@ -282,6 +366,7 @@ class AccommodationProviderTest extends TestCase
         ?string $kodJinehoRadku = null,
         bool $koupeno = false,
         ?Product $dalsiProdukt = null,
+        ?int $rezervovanoProOrgy = null,
     ): ProductVariant {
         $product = $this->createProduct(1, 'Hotel');
 
@@ -306,12 +391,14 @@ class AccommodationProviderTest extends TestCase
         $this->productRepository->method('producedQuantityByVariantCode')
             ->willReturn([
                 ($kodJinehoRadku ?? 'Hd-2L-ct') => [
-                    'vyrobeno' => $produced,
-                    'nabizeno' => true,
+                    'vyrobeno'    => $produced,
+                    'nabizeno'    => true,
+                    'rezervovano' => $rezervovanoProOrgy,
                 ],
                 'spacak-ct' => [
-                    'vyrobeno' => 10,
-                    'nabizeno' => true,
+                    'vyrobeno'    => 10,
+                    'nabizeno'    => true,
+                    'rezervovano' => null,
                 ],
             ]);
         $koupeneItems = [];

@@ -229,12 +229,6 @@ parameters:
             path: symfony/src/Entity/User.php
 
         -
-            message: '#^Unused App\\Entity\\User\:\:isOrganizer$#'
-            identifier: shipmonk.deadMethod
-            count: 1
-            path: symfony/src/Entity/User.php
-
-        -
             message: '#^Unused App\\Entity\\User\:\:isZRychloregistrace$#'
             identifier: shipmonk.deadMethod
             count: 1

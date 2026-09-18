@@ -48,6 +48,7 @@ class AccommodationWriter
         bool $declined = false,
         bool $sleepingBagsOnly = false,
         bool $mayOverbook = false,
+        bool $jeOrganizator = false,
     ): void {
         $variants = $this->loadVariants($variantIds, $sleepingBagsOnly);
 
@@ -66,7 +67,7 @@ class AccommodationWriter
             $kept = $this->removeUnselectedNights($customer, $year, array_keys($variants));
             foreach ($variants as $variantId => $variant) {
                 if (! in_array($variantId, $kept, true)) {
-                    $this->addNight($customer, $variant, $year, $mayOverbook);
+                    $this->addNight($customer, $variant, $year, $mayOverbook, $jeOrganizator);
                 }
             }
             $this->saveAccommodationDetails($customer, $year, $roommate, $declined && $variants === []);
@@ -274,6 +275,7 @@ class AccommodationWriter
         ProductVariant $variant,
         int $year,
         bool $mayOverbook,
+        bool $jeOrganizator,
     ): void {
         $product = $variant->getProduct();
         $discount = $this->discountCalculator->calculateDiscount($product, $customer, $year);
@@ -299,7 +301,7 @@ class AccommodationWriter
                AND (
                    :presKapacitu = 1
                    OR noc.kusu_vyrobeno IS NULL
-                   OR noc.kusu_vyrobeno > (
+                   OR noc.kusu_vyrobeno - :rezervovanoStranou > (
                        SELECT COUNT(*) FROM shop_nakupy AS prodane
                        WHERE prodane.variant_id = :variant AND prodane.rok = :year
                    )
@@ -316,6 +318,16 @@ class AccommodationWriter
                 'variantName'  => $variant->getName(),
                 'variantCode'  => $variant->getCode(),
                 'presKapacitu' => (int) $mayOverbook,
+                // Účastník nesmí do odložených postelí, organizátor ano — stejné pravidlo
+                // jako u merche v `CapacityManager::purchase()`.
+                'rezervovanoStranou' => $jeOrganizator
+                    ? 0
+                    : (int) ($this->connection->fetchOne(
+                        'SELECT reserved_for_organizers FROM shop_predmety WHERE kod_predmetu = :kod',
+                        [
+                            'kod' => $variant->getCode(),
+                        ],
+                    ) ?: 0),
             ],
         );
 
