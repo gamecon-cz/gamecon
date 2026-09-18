@@ -557,19 +557,9 @@ SQL,
         return $this->ubytovanPoDnech;
     }
 
-    public function postnameDen(): string
-    {
-        return $this->pnDny;
-    }
-
     public function uzivatel(): Uzivatel
     {
         return $this->ubytovany;
-    }
-
-    public function snidaneDnyProJs(int $den): string
-    {
-        return (string)($den + 1);
     }
 
     private function totoUbytovaniVyrazeno(
@@ -691,21 +681,6 @@ SQL,
         }
 
         return max(0, (int)$ub['kusu_vyrobeno']);
-    }
-
-    /** Vrátí počet obsazených míst pro daný den a typu ubytování */
-    public function obsazenoMist(
-        $den,
-        $typ,
-    ) {
-        if (!isset($this->mozneDny[$den][$typ])) {
-            return 0;
-        }
-        if ($this->maNeomezenouKapacitu($den, $typ)) {
-            return (int)$this->mozneDny[$den][$typ]['kusu_prodano'];
-        }
-
-        return $this->kapacita($den, $typ) - $this->zbyvaMist($den, $typ);
     }
 
     /** Vrátí, jestli je v daný den a typ ubytování plno */

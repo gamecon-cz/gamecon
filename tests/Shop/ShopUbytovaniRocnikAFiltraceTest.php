@@ -214,7 +214,6 @@ SQL,
         $ubytovani = $shop->ubytovani();
 
         self::assertSame('∞', $ubytovani->kapacita($den, 'Dvoulůžák'));
-        self::assertSame(1, $ubytovani->obsazenoMist($den, 'Dvoulůžák'));
         self::assertFalse($ubytovani->plno($den, 'Dvoulůžák'));
         self::assertFalse(ShopUbytovani::ubytovaniPresKapacitu($idPredmetu, $ubytovani->mozneDny()));
     }
@@ -646,49 +645,6 @@ SQL,
         }
 
         self::assertSame([$idPredmetuUbytovani], $this->idsUlozenehoUbytovani($uzivatel));
-    }
-
-    /**
-     * @test
-     */
-    public function adminUbytovaniTabulkaPredavaDataProHoteloveSnidane(): void
-    {
-        require_once __DIR__ . '/../../admin/scripts/modules/_submoduly/ubytovani_tabulka.php';
-        $this->pripravXTemplateCache();
-
-        $uzivatel = $this->vytvorUzivatele((string) uniqid());
-        $typHoteluCtvrtek = 'Hotelový jednolůžák standard admin snidane ctvrtek ' . uniqid();
-
-        $idHotelCtvrtek = $this->vytvorPredmetUbytovani(
-            $typHoteluCtvrtek . ' čtvrtek',
-            ROCNIK,
-            10,
-            DateTimeGamecon::PORADI_HERNIHO_DNE_CTVRTEK,
-            PodtypPredmetu::HOTEL,
-        );
-
-        $html = \UbytovaniTabulka::ubytovaniTabulkaZ(
-            (new Shop($uzivatel, $uzivatel, SystemoveNastaveni::zGlobals()))->ubytovani(),
-            SystemoveNastaveni::zGlobals(),
-            true,
-        );
-
-        preg_match(
-            '~<input[^>]*class="shopUbytovani_radio"[^>]*value="' . preg_quote((string) $idHotelCtvrtek, '~') . '"[^>]*>~u',
-            $html,
-            $hotelCtvrtekInput,
-        );
-        preg_match(
-            '~<input[^>]*name="shopUbytovaniDny\[1]"[^>]*value=""[^>]*data-typ="Žádné"[^>]*>~u',
-            $html,
-            $zadneInput,
-        );
-
-        self::assertNotEmpty($hotelCtvrtekInput, 'V HTML adminího ubytování chybí input pro čtvrteční hotel.');
-        self::assertStringContainsString('data-podtyp="hotel"', $hotelCtvrtekInput[0]);
-        self::assertStringContainsString('data-snidane-dny="2"', $hotelCtvrtekInput[0]);
-        self::assertNotEmpty($zadneInput, 'V HTML adminího ubytování chybí input pro žádné ubytování.');
-        self::assertStringContainsString('data-snidane-dny="2"', $zadneInput[0]);
     }
 
     /**

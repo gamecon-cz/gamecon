@@ -532,6 +532,25 @@ class AccommodationWriterTest extends AbstractDatabaseKernelTestCase
         }
     }
 
+    /**
+     * Noc kryje ráno NÁSLEDUJÍCÍHO dne, ne svého vlastního — čtvrteční hotel ruší páteční
+     * snídani a té čtvrteční se nedotkne. Dřív to hlídala admin tabulka přes atribut
+     * `data-snidane-dny`; ta je pryč, pravidlo zůstává.
+     */
+    public function testHotelNightCancelsTheNextMorningNotItsOwn(): void
+    {
+        $customer = $this->ucastnik();
+        [$ctvrtecniNoc, $patecniSnidane] = $this->pripravHotelSeSnidani(1);
+        [, $ctvrtecniSnidane] = $this->pripravHotelSeSnidani(0);
+        $this->koupSnidani($customer, $patecniSnidane);
+        $this->koupSnidani($customer, $ctvrtecniSnidane);
+
+        $this->writer()->save($customer, [$ctvrtecniNoc], self::ROK, true);
+
+        self::assertSame(0, $this->pocetNakupu($customer, $patecniSnidane), 'Čtvrteční noc ruší páteční snídani');
+        self::assertSame(1, $this->pocetNakupu($customer, $ctvrtecniSnidane), 'Čtvrteční snídaně zůstává, tu noc nekryje');
+    }
+
     public function testBookingAHotelNightCancelsTheBreakfastItCovers(): void
     {
         $customer = $this->ucastnik();

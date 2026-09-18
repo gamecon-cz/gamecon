@@ -15,6 +15,7 @@ use App\Entity\User;
 use App\Enum\ProductTagCode;
 use App\Repository\OrderItemRepository;
 use App\Repository\ProductRepository;
+use App\Service\AccommodationAvailability;
 use App\Service\AccommodationRules;
 use App\Service\BreakfastCanceller;
 use App\Service\CartService;
@@ -50,6 +51,7 @@ readonly class AccommodationProvider implements ProviderInterface, Accommodation
         private BreakfastCanceller $breakfastCanceller,
         private AccommodationRules $accommodationRules,
         private Security $security,
+        private AccommodationAvailability $availability,
     ) {
     }
 
@@ -129,7 +131,11 @@ readonly class AccommodationProvider implements ProviderInterface, Accommodation
         }
 
         $viditelneDny = array_column($dto->days, 'day');
-        [$prodano, $drzeno, $kapacity] = $this->obsazenostVariant($user, $year);
+        // Rezervace pro orgy jede na `User::isOrganizer()` — tentýž okruh rolí jako merch
+        // (`RoleMeaning::anyIsOrganizer`). Legacy `jeOrganizator()` zná jen 5 rolí z 15,
+        // takže vypravěč by dosáhl na tričko, ale ne na postel.
+        $jeOrganizator = $user->isOrganizer();
+        $dostupnost = $this->availability->proZakaznika($user, $year, $jeOrganizator);
 
         $sleepingBagsOnly = $this->accommodationRules->sleepingBagsOnly($legacyUser);
         $ubytovani = $this->productRepository->findByTag(ProductTagCode::UBYTOVANI);
@@ -146,11 +152,8 @@ readonly class AccommodationProvider implements ProviderInterface, Accommodation
             }
 
             $typDto = $this->toTypeDto(
-                $product, $user, $year, $viditelneDny, $prodejUkoncen, $koupeneVarianty, $prodano, $drzeno, $kapacity,
-                // Rezervace pro orgy jede na `User::isOrganizer()` — tentýž okruh rolí
-                // jako merch (`RoleMeaning::anyIsOrganizer`). Legacy `jeOrganizator()` zná
-                // jen 5 rolí z 15, takže vypravěč by dosáhl na tričko, ale ne na postel.
-                $user->isOrganizer(),
+                $product, $user, $year, $viditelneDny, $prodejUkoncen, $koupeneVarianty,
+                $dostupnost, $jeOrganizator,
             );
             if ($typDto !== null) {
                 $dto->types[] = $typDto;
@@ -161,11 +164,9 @@ readonly class AccommodationProvider implements ProviderInterface, Accommodation
     }
 
     /**
-     * @param int[]                                                                          $viditelneDny
-     * @param int[]                                                                          $koupeneVarianty
-     * @param array<int,int>                                                                 $prodano         sold count per variant id
-     * @param array<int,int>                                                                 $drzeno          count this customer holds, per variant id
-     * @param array<string,array{vyrobeno: int|null, nabizeno: bool, rezervovano: int|null}> $kapacity        per variant code
+     * @param int[]                                                     $viditelneDny
+     * @param int[]                                                     $koupeneVarianty
+     * @param array<string,\App\Service\AccommodationNightAvailability> $dostupnost      volno per kód varianty
      */
     private function toTypeDto(
         Product $product,
@@ -174,9 +175,7 @@ readonly class AccommodationProvider implements ProviderInterface, Accommodation
         array $viditelneDny,
         bool $prodejUkoncen,
         array $koupeneVarianty,
-        array $prodano,
-        array $drzeno,
-        array $kapacity,
+        array $dostupnost,
         bool $jeOrganizator,
     ): ?AccommodationTypeOutputDto {
         // The nights absorbed by the day-variant migration are still products in their own
@@ -202,24 +201,11 @@ readonly class AccommodationProvider implements ProviderInterface, Accommodation
                 continue;
             }
 
-            // Legacy's own arithmetic. remaining_quantity is deliberately not used:
-            // CapacityManager decrements it for sales shop_nakupy already counts.
-            $noc = $kapacity[(string) $variant->getCode()] ?? null;
-            $vyrobeno = $noc['vyrobeno'] ?? null;
-            // Read per night: the variant's parent is one arbitrary night (Sunday, which is
-            // permission-gated), so asking it would report every night as not on offer.
-            $nabizeno = $noc['nabizeno'] ?? false;
-            // Odložené postele účastník nevidí, organizátor ano — stejné pravidlo jako
-            // u merche v `CapacityManager::purchase()`. Vlastní už koupené noci se
-            // přičítají zpátky, jinak by si je zákazník nemohl odškrtnout.
-            $rezervovano = $noc['rezervovano'] ?? null;
-            $zbyva = $vyrobeno === null
-                ? null
-                : max(0, $vyrobeno
-                    - ($prodano[$variant->getId()] ?? 0)
-                    - ($jeOrganizator ? 0 : ($rezervovano ?? 0))
-                    + ($drzeno[$variant->getId()] ?? 0));
-            $vyprodano = $zbyva !== null && $zbyva <= 0;
+            $noc = $dostupnost[(string) $variant->getCode()] ?? null;
+            $zbyva = $noc?->remaining;
+            $vyprodano = $noc !== null && $noc->soldOut();
+            $nabizeno = $noc !== null && $noc->offered;
+            $rezervovano = $noc?->reservedForOrganizers;
 
             $koupeno = in_array($variant->getId(), $koupeneVarianty, true);
 
@@ -253,33 +239,6 @@ readonly class AccommodationProvider implements ProviderInterface, Accommodation
         }
 
         return false;
-    }
-
-    /**
-     * Gathered in one pass, so the grid costs three queries rather than three per night.
-     *
-     * @return array{0: array<int,int>, 1: array<int,int>, 2: array<string,array{vyrobeno: int|null, nabizeno: bool, rezervovano: int|null}>}
-     *                                                                                                                                        sold per variant id, held by this customer per variant id, produced per variant code
-     */
-    private function obsazenostVariant(User $user, int $year): array
-    {
-        $variantIds = [];
-        $kody = [];
-        foreach ($this->productRepository->findByTag(ProductTagCode::UBYTOVANI) as $product) {
-            foreach ($product->getVariants() as $variant) {
-                if ($variant->getId() === null) {
-                    continue;
-                }
-                $variantIds[] = $variant->getId();
-                $kody[] = (string) $variant->getCode();
-            }
-        }
-
-        return [
-            $this->orderItemRepository->countSoldByVariant($variantIds, $year),
-            $this->orderItemRepository->countHeldByCustomer($variantIds, $user, $year),
-            $this->productRepository->producedQuantityByVariantCode($kody),
-        ];
     }
 
     /**
