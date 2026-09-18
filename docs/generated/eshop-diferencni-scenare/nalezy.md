@@ -106,10 +106,20 @@ obejít a datum by se zase řídilo skutečným časem. `MealProductsProviderTes
 na `MockClock` a testuje den před termínem a den po něm, ne „rok 2000, aby do toho skutečný
 čas nemluvil".
 
-Pozor: **`cas.sh` neposouvá ani hodiny, ani `SystemoveNastaveni`** — jen předefinuje
-konstanty s termíny. Ověřeno měřením všech tří zdrojů času se zapnutým harness. Diferenční
-běh tedy porovnává dvě vrstvy, které mají „teď" shodné a liší se jen termíny; produktové
-`nabizet_do` se v něm posunout nedá vůbec.
+Pozor na to, co `cas.sh` ve skutečnosti dělá: **„teď" neposouvá** — ani hodiny, ani
+`SystemoveNastaveni` (ověřeno měřením všech tří zdrojů času se zapnutým harness). Posouvá
+**termíny** proti pevné přítomnosti, takže se aplikace chová, jako by bylo cílové datum.
+
+Dvěma cestami, protože termíny nejsou na jednom místě:
+
+| kde termín leží | jak se posune |
+|---|---|
+| PHP konstanty (`JIDLO_LZE_OBJEDNAT…`, `GC_BEZI_OD`, …) | předefinují se přes `auto_prepend_file` dřív než aplikace |
+| `shop_predmety.nabizet_do` | `UPDATE` o tentýž počet dní, se zálohou v `shop_predmety_nabizet_do_zaloha` |
+
+Ověřeno obousměrně: posun na 2026-07-10 (70 dní zpět) přidal `nabizet_do` 70 dní, takže
+`obed_ct` vyšel na 2026-09-27 — proti pevnému „teď" tedy ještě 9 dní do termínu, přesně jak
+by to vypadalo 10. 7. `--vrat` vrátí původní hodnoty.
 
 **Zápis pultu hlídá stažení.** `MealWriter` odmítne `RETIRED` produkt — ale jen při
 **skutečném přidání**, ne u položky, kterou zákazník už má. Pult posílá celý výběr, takže
