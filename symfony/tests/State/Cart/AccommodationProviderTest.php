@@ -123,6 +123,28 @@ class AccommodationProviderTest extends TestCase
         $this->assertFalse($cell->soldOut);
     }
 
+    /**
+     * Doobjednat ubytování po termínu je hlavní důvod, proč admin obrazovky existují —
+     * zapisovač to schválně nekontroluje. Mřížka pultu to proto nesmí zamknout, jinak
+     * objednávku prostě nejde odeslat. Legacy pult to po termínu umí.
+     */
+    public function testDeskIsNotLockedOutAfterTheDeadline(): void
+    {
+        $this->prepareUser();
+        $this->prepareGrid(remainingQuantity: 10, produced: 10, sold: 0, held: 0);
+        $this->posunCas('2099-01-01 00:00:00');
+
+        $dto = $this->provider->forCustomer(
+            $this->security->getUser(),
+            $this->legacySession->getCurrentUser(),
+            zPultu: true,
+        );
+        $cell = $dto->types[0]->nights[self::DEN_CTVRTEK];
+
+        self::assertFalse($cell->locked, 'Pult musí po termínu objednat');
+        self::assertFalse($dto->saleClosed, 'A nesmí tvrdit, že je zavřeno');
+    }
+
     public function testOwnBookedNightStaysUnlockedAfterTheDeadline(): void
     {
         $this->prepareUser();

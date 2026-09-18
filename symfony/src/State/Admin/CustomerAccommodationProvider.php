@@ -53,6 +53,6 @@ readonly class CustomerAccommodationProvider implements ProviderInterface
             throw new BadRequestHttpException(sprintf('Uživatel s ID %d nebyl nalezen.', $customerId));
         }
 
-        return $this->accommodationGrid->forCustomer($customer, $legacyCustomer);
+        return $this->accommodationGrid->forCustomer($customer, $legacyCustomer, zPultu: true);
     }
 }
