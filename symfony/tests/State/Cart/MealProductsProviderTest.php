@@ -21,6 +21,7 @@ use Gamecon\SystemoveNastaveni\SystemoveNastaveni;
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
 use Symfony\Bundle\SecurityBundle\Security;
+use Symfony\Component\Clock\MockClock;
 
 /**
  * `JIDLO_LZE_OBJEDNAT_A_MENIT_DO_DNE` znamená „objednat **a měnit**": po termínu GameCon
@@ -39,6 +40,8 @@ class MealProductsProviderTest extends TestCase
 
     private MealProductsProvider $provider;
 
+    private MockClock $clock;
+
     private mixed $puvodniNastaveni = null;
 
     protected function setUp(): void
@@ -46,6 +49,9 @@ class MealProductsProviderTest extends TestCase
         parent::setUp();
         $this->puvodniNastaveni = $GLOBALS['systemoveNastaveni'] ?? null;
 
+        // Vlastní `nabizet_do` produktu se porovnává s hodinami, ne se `SystemoveNastaveni`,
+        // takže „teď" musí jít nastavit i pro ně.
+        $this->clock = new MockClock('2026-01-01 00:00:00');
         $this->productRepository = $this->createMock(ProductRepository::class);
         $this->security = $this->createMock(Security::class);
 
@@ -70,6 +76,7 @@ class MealProductsProviderTest extends TestCase
             $yearProvider,
             $this->security,
             new CustomerDeskRights($this->legacySession),
+            $this->clock,
         );
     }
 
@@ -112,6 +119,7 @@ class MealProductsProviderTest extends TestCase
             \ROCNIK,
             new DateTimeImmutableStrict($ted),
         );
+        $this->clock->modify($ted);
     }
 
     /**
@@ -197,14 +205,13 @@ class MealProductsProviderTest extends TestCase
      * Jídlo má vedle termínu kategorie i vlastní `nabizet_do`, editovatelné ve správě
      * předmětů. Účastníkovi po něm porci nenabízíme.
      *
-     * Termín kategorie je schválně v roce 2000, aby zamykat mohlo jedině produktové datum;
-     * bez toho by test prošel i s prázdným `nabizet_do` a netvrdil by nic. Produktové datum
-     * se navíc porovnává se skutečným časem, ne s posunutým `SystemoveNastaveni`.
+     * Termín kategorie je schválně hluboko v minulosti, aby zamykat mohlo jedině produktové
+     * datum; bez toho by test prošel i s prázdným `nabizet_do` a netvrdil by nic.
      */
     public function testMealPastItsOwnDateIsLockedForCustomer(): void
     {
-        $this->pripravJidlo(nabizetDo: '1999-01-01 00:00:00');
-        $this->posunCas('2000-01-01 00:00:00');
+        $this->pripravJidlo(nabizetDo: '2000-06-01 00:00:00');
+        $this->posunCas('2000-06-02 00:00:00');
 
         self::assertTrue(
             $this->provider->provide(new Get())[0]->locked,
@@ -233,8 +240,8 @@ class MealProductsProviderTest extends TestCase
      */
     public function testDeskSellsAMealPastItsOwnDate(): void
     {
-        $this->pripravJidlo(nabizetDo: '1999-01-01 00:00:00');
-        $this->posunCas('2000-01-01 00:00:00');
+        $this->pripravJidlo(nabizetDo: '2000-06-01 00:00:00');
+        $this->posunCas('2000-06-02 00:00:00');
         $operator = $this->createMock(\Uzivatel::class);
         $operator->method('maPravo')->willReturn(true);
         $this->legacySession->method('getCurrentUser')->willReturn($operator);
