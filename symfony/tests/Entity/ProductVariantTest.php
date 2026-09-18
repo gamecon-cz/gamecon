@@ -6,9 +6,9 @@ namespace App\Tests\Entity;
 
 use App\Entity\Product;
 use App\Entity\ProductVariant;
+use App\Enum\ProductStateEnum;
 use App\Enum\RoleMeaning;
 use PHPUnit\Framework\TestCase;
-use App\Enum\ProductStateEnum;
 
 class ProductVariantTest extends TestCase
 {

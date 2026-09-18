@@ -81,7 +81,7 @@ class CartService
      *
      * @throws \RuntimeException if product unavailable, sold out, or in a forced bundle
      */
-    public function addItem(Order $order, ProductVariant $variant, array $roleMeanings = [], ?OperatorOverride $override = null): OrderItem
+    public function addItem(Order $order, ProductVariant $variant, array $roleMeanings = [], ?OperatorOverride $override = null, bool $vraceniZruseneSnidane = false): OrderItem
     {
         // Guard: reject if variant is in a forced bundle for this user
         $mandatoryBundle = $this->bundleRepository->findMandatoryBundleForVariant($variant, $roleMeanings);
@@ -89,12 +89,11 @@ class CartService
             throw new \RuntimeException(sprintf('Varianta "%s" je součástí povinného balíčku "%s". Použijte nákup celého balíčku.', $variant->getFullName(), $mandatoryBundle->getName()));
         }
 
-        return $this->createOrderItem($order, $variant, null, $roleMeanings, $override);
+        return $this->createOrderItem($order, $variant, null, $roleMeanings, $override, $vraceniZruseneSnidane);
     }
 
     /**
-     * Mikiny, trička a zbylý merch mají každé svůj termín — jedna společná kontrola by
-     * dvě ze tří sekcí zavřela ve špatný den.
+     * Každá sekce má svůj termín — jedna společná kontrola by ostatní zavřela ve špatný den.
      */
     private function prodejSekceUkoncen(Product $product): bool
     {
@@ -109,8 +108,13 @@ class CartService
         if ($product->hasTag(ProductTagCode::PREDMET->value)) {
             return $nastaveni->prodejPredmetuBezTricekUkoncen();
         }
+        if ($product->hasTag(ProductTagCode::JIDLO->value)) {
+            // Po termínu ani nezrušit: počty jsou nahlášené v jídelně, zrušené jídlo by se
+            // stejně zaplatilo. Odebrání hlídá `overRuseni()`.
+            return $nastaveni->prodejJidlaUkoncen();
+        }
 
-        // Ubytování, jídlo a vstupné si termín hlídají jinde, na vlastních cestách.
+        // Ubytování a vstupné si termín hlídají jinde, na vlastních cestách.
         return false;
     }
 
@@ -203,7 +207,28 @@ class CartService
      * Remove a single item from the cart. Returns stock to the variant.
      *
      * Rejects removing items that belong to a forced bundle for the user's roles.
+     */
+    /**
+     * Jídlo se po termínu neruší: počty jsou nahlášené v jídelně, takže zrušená porce se
+     * stejně uvaří a zaplatí. Merch se ruší dál — u něj zatím nikdo dodavateli nezaplatil,
+     * a `Shop::zrusZrusitelneLetosniObjednavky()` ho ze stejného důvodu taky nezachovává.
      *
+     * @throws \RuntimeException když je položka po svém termínu nezrušitelná
+     */
+    private function overRuseni(OrderItem $item): void
+    {
+        $product = $item->getVariant()?->getProduct();
+
+        if ($product === null || ! $product->hasTag(ProductTagCode::JIDLO->value)) {
+            return;
+        }
+
+        if (SystemoveNastaveni::zGlobals()->prodejJidlaUkoncen()) {
+            throw new \RuntimeException(sprintf('Prodej předmětu "%s" už skončil, položku nejde odebrat.', $product->getName()));
+        }
+    }
+
+    /**
      * @param RoleMeaning[] $roleMeanings
      */
     public function removeItem(Order $order, OrderItem $item, array $roleMeanings = []): void
@@ -212,6 +237,8 @@ class CartService
         if ($bundle !== null && $bundle->isMandatoryForUser($roleMeanings)) {
             throw new \RuntimeException(sprintf('Položka je součástí povinného balíčku "%s". Odeberte celý balíček.', $bundle->getName()));
         }
+
+        $this->overRuseni($item);
 
         $variant = $item->getVariant();
 
@@ -239,6 +266,10 @@ class CartService
         }
 
         foreach ($bundleItems as $item) {
+            $this->overRuseni($item);
+        }
+
+        foreach ($bundleItems as $item) {
             $variant = $item->getVariant();
             if ($variant !== null) {
                 $this->capacityManager->cancelPurchase($variant);
@@ -257,7 +288,7 @@ class CartService
      *
      * @param RoleMeaning[] $roleMeanings
      */
-    private function createOrderItem(Order $order, ProductVariant $variant, ?ProductBundle $bundle, array $roleMeanings, ?OperatorOverride $override = null): OrderItem
+    private function createOrderItem(Order $order, ProductVariant $variant, ?ProductBundle $bundle, array $roleMeanings, ?OperatorOverride $override = null, bool $vraceniZruseneSnidane = false): OrderItem
     {
         $product = $variant->getProduct();
 
@@ -270,7 +301,10 @@ class CartService
         // Sekce mají termín nad rámec stavu produktu, takže stránka nechaná otevřená přes
         // něj — nebo přímý POST — nesmí koupit. Každá sekce má termín vlastní.
         if ($this->prodejSekceUkoncen($product)) {
-            if ($override?->allows(OperatorOverride::GUARD_DEADLINE) !== true) {
+            // Vrácení snídaně, kterou zrušil systém sám, není nový prodej — odmítnout ho po
+            // termínu by účastníka připravilo o položku objednanou včas. Zapisuje se stejně
+            // jako obejití obsluhou, aby obejitý termín nebyl nikdy neviditelný.
+            if (! $vraceniZruseneSnidane && $override?->allows(OperatorOverride::GUARD_DEADLINE) !== true) {
                 throw new \RuntimeException(sprintf('Prodej předmětu "%s" už skončil.', $product->getName()));
             }
             $bypassed[] = OperatorOverride::GUARD_DEADLINE;

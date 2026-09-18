@@ -132,7 +132,7 @@ class BreakfastCanceller
             if ($variant === null) {
                 continue;
             }
-            $this->cartService->addItem($cart, $variant, $customer->getRoleMeanings());
+            $this->cartService->addItem($cart, $variant, $customer->getRoleMeanings(), vraceniZruseneSnidane: true);
         }
 
         return array_values($nabidnute);
