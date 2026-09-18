@@ -19,6 +19,13 @@ class AccommodationCellOutputDto
     public bool $soldOut = false;
 
     /**
+     * Kolik kusů je odložených pro organizátory, nebo null bez rezervace. Do `remaining`
+     * se nepočítá (účastník je nevidí) — je to údaj pro obsluhu, aby věděla, že po
+     * vyprodání veřejné části pořád fyzicky postele zbývají.
+     */
+    public ?int $reservedForOrganizers = null;
+
+    /**
      * Cannot be ticked: sold out, past the deadline, or a night this customer may not
      * order (Sunday needs its own right). Already-booked nights stay selectable so the
      * customer can drop them.
