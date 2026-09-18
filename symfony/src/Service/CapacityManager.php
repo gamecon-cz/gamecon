@@ -94,6 +94,40 @@ class CapacityManager
     }
 
     /**
+     * Posune zásobu o daný krok, bez ohledu na kapacitu.
+     *
+     * Pro cesty, které zapisují do `shop_nakupy` přímo a o kapacitě rozhodují podle
+     * `kusu_vyrobeno` (admin, infopult). Zásoba na variantě je pro ně sice zastaralá, ale
+     * čte ji účastnický e-shop, takže se musí hýbat s nimi.
+     *
+     * Smí jít do mínusu: admin prodává i nad kapacitu a zastavit se na nule by znamenalo
+     * tvrdit, že je volno, když není. `IS NOT NULL` drží význam „null = neomezeno".
+     *
+     * Zákazník může mít na jednu variantu víc řádků (v produkci 1554 případů), takže se
+     * posouvá o počet kusů, ne o jedničku na variantu.
+     *
+     * @param array<int, int> $kusuNaVariantu variant_id => počet kusů
+     */
+    public function adjustStock(array $kusuNaVariantu, int $smer): void
+    {
+        foreach ($kusuNaVariantu as $variantId => $kusu) {
+            if ($kusu === 0) {
+                continue;
+            }
+
+            $this->connection->executeStatement(
+                'UPDATE product_variant
+                 SET remaining_quantity = remaining_quantity + :zmena
+                 WHERE id = :variantId AND remaining_quantity IS NOT NULL',
+                [
+                    'zmena'     => $smer * $kusu,
+                    'variantId' => $variantId,
+                ],
+            );
+        }
+    }
+
+    /**
      * Atomically return stock when a purchase is cancelled.
      */
     public function cancelPurchase(ProductVariant $variant, int $quantity = 1): void
