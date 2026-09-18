@@ -158,7 +158,8 @@ class CustomerAccommodationProviderTest extends TestCase
         $this->accommodationGrid
             ->expects(self::once())
             ->method('forCustomer')
-            ->with(self::identicalTo($customer), self::identicalTo($legacyCustomer))
+            // `zPultu: true` je to, co pultu dovolí objednat po termínu prodeje.
+            ->with(self::identicalTo($customer), self::identicalTo($legacyCustomer), self::isTrue())
             ->willReturn($grid);
 
         self::assertSame($grid, $this->read([

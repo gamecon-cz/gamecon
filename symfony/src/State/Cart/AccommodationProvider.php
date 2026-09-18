@@ -75,11 +75,17 @@ readonly class AccommodationProvider implements ProviderInterface, Accommodation
      * a participant's nights: there the rights below belong to that participant, while the
      * request is sent by an operator, so neither may come from the session.
      */
-    public function forCustomer(User $user, \Uzivatel $legacyUser): AccommodationOutputDto
+    /**
+     * @param bool $zPultu volá to obsluha za účastníka, ne účastník sám — pak termín
+     *                     prodeje neplatí, protože doobjednat po termínu je hlavní důvod,
+     *                     proč admin obrazovky existují (`SetCustomerAccommodationProcessor`
+     *                     ho z téhož důvodu nekontroluje ani při zápisu)
+     */
+    public function forCustomer(User $user, \Uzivatel $legacyUser, bool $zPultu = false): AccommodationOutputDto
     {
         $year = $this->currentYearProvider->getCurrentYear();
         $nastaveni = SystemoveNastaveni::zGlobals();
-        $prodejUkoncen = $nastaveni->prodejUbytovaniUkoncen();
+        $prodejUkoncen = ! $zPultu && $nastaveni->prodejUbytovaniUkoncen();
 
         $muzeNedeli = $legacyUser->maPravo(Pravo::UBYTOVANI_NEDELNI_NOC_NABIZET)
             || $legacyUser->maPravo(Pravo::UBYTOVANI_NEDELNI_NOC_ZDARMA)
