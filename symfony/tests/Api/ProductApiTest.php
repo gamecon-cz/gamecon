@@ -8,13 +8,13 @@ use ApiPlatform\Symfony\Bundle\Test\Client;
 use App\Entity\Product;
 use App\Entity\ProductTag;
 use App\Entity\User;
+use App\Enum\ProductStateEnum;
 use App\Service\JwtService;
 use App\Structure\Entity\UserEntityStructure;
 use App\Tests\AbstractDatabaseKernelTestCase;
 use Doctrine\DBAL\Connection;
 use Doctrine\ORM\EntityManagerInterface;
 use Gamecon\Tests\Factory\UserFactory;
-use App\Enum\ProductStateEnum;
 
 /**
  * Tests for the Symfony Product API endpoint.

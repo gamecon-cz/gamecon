@@ -10,8 +10,8 @@ use App\Entity\Product;
 use App\Entity\ProductBundle;
 use App\Entity\ProductVariant;
 use App\Entity\User;
-use PHPUnit\Framework\TestCase;
 use App\Enum\ProductStateEnum;
+use PHPUnit\Framework\TestCase;
 
 class CartItemOutputDtoTest extends TestCase
 {
