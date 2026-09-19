@@ -195,25 +195,6 @@ SQL,
         return dbAffectedOrNumRows($mysqliResult);
     }
 
-    public static function ulozNechceUbytovani(
-        bool     $nechceUbytovani,
-        Uzivatel $ucastnik,
-    ): int {
-        if ($ucastnik->nechceUbytovani() === $nechceUbytovani) {
-            return 0;
-        }
-        $ucastnik->nechceUbytovani($nechceUbytovani);
-        $mysqliResult = dbQueryS(
-            'UPDATE uzivatele_hodnoty SET '
-            . UzivatelSql::NECHCE_UBYTOVANI
-            . '=$0 WHERE id_uzivatele='
-            . $ucastnik->id(),
-            [(int)$nechceUbytovani],
-        );
-
-        return dbAffectedOrNumRows($mysqliResult);
-    }
-
     private static function smazLetosniNakupyUbytovaniUcastnika(
         Uzivatel $ucastnik,
         int      $rok = ROCNIK,
@@ -456,9 +437,6 @@ SQL,
     private            $mozneDny        = []; // pouze ubytování, které si může uživatel koupit
     private            $mozneTypy       = []; // asoc. pole [typ] => předmět sloužící jako vzor daného typu
     private            $ubytovanPoDnech = []; // všechna ubytování
-    private            $pnDny           = 'shopUbytovaniDny';
-    private            $pnPokoj         = 'shopUbytovaniPokoj';
-    private            $pnNechci        = 'shopUbytovaniNechci';
 
     public function __construct(
         array                               $predmety,
@@ -584,61 +562,6 @@ SQL,
         $poradiDneVTydnu = DateTimeGamecon::poradiDneVTydnuPodleIndexuOdZacatkuGameconu($indexDneKZacatkuGc);
 
         return DateTimeCz::poradiDneVTydnuNaPrelomDnuVeZkratkach($poradiDneVTydnu, true);
-    }
-
-    public function zpracuj(
-        bool $vcetneSpolubydliciho = true,
-        bool $hlidatKapacituUbytovani = true,
-        bool $ulozitNechceUbytovani = false,
-    ): bool {
-        if (!isset($_POST[$this->pnDny])) {
-            return false;
-        }
-
-        $dny = $_POST[$this->pnDny];
-
-        self::ulozObjednaneUbytovaniUcastnika(
-            $dny,
-            $this->ubytovany,
-            $hlidatKapacituUbytovani,
-            povolitJednuNoc: $this->muzeObjednatJednuNoc(),
-        );
-
-        $this->aktualizujUbytovanPoDnech(array_filter($dny));
-
-        self::zrusSnidaneProHotelovePokoje($this->ubytovany);
-
-        if ($ulozitNechceUbytovani) {
-            $nechceUbytovani = isset($_POST[$this->pnNechci])
-                && !$this->maObjednaneUbytovani();
-            self::ulozNechceUbytovani($nechceUbytovani, $this->ubytovany);
-        }
-
-        if ($vcetneSpolubydliciho) {
-            // uložit s kým chce být na pokoji
-            self::ulozSKymChceBytNaPokoji($_POST[$this->pnPokoj] ?? '', $this->ubytovany);
-        }
-
-        $this->registrace->ulozZmeny(); // povinné údaje pro ubytování
-
-        return true;
-    }
-
-    private function aktualizujUbytovanPoDnech(array $ulozeneIdsPredmetu): void
-    {
-        $ulozeneIdsPredmetu = array_map('intval', $ulozeneIdsPredmetu);
-        foreach ($this->ubytovanPoDnech as $den => $typy) {
-            foreach ($typy as $typ => $detail) {
-                $this->ubytovanPoDnech[$den][$typ]['kusu_uzivatele'] =
-                    in_array((int)$detail['id_predmetu'], $ulozeneIdsPredmetu, true) ? 1 : 0;
-            }
-        }
-    }
-
-    private function muzeObjednatJednuNoc(): bool
-    {
-        return $this->ubytovany->maPravo(Pravo::UBYTOVANI_MUZE_OBJEDNAT_JEDNU_NOC)
-               || $this->objednatel->maPravo(Pravo::UBYTOVANI_MUZE_OBJEDNAT_JEDNU_NOC);
     }
 
     private function maPravoZobrazitUbytovani(int $poradiHernihoDne): bool
@@ -800,26 +723,6 @@ SQL,
     {
         return isset($this->mozneDny[$den][$typ])
                && $this->mozneDny[$den][$typ]['kusu_vyrobeno'] === null;
-    }
-
-    /**
-     * TODO: dotahuje pouze data z tabulky uživatele, nemá v téhle třídě co dělat, má být součástí uživatele
-     * Vrátí seznam uživatelů ve formátu Jméno Příjmení (Login) tak aby byl zpra-
-     * covatelný neajaxovým našeptávátkem (čili ["položka","položka",...])
-     */
-    public function mozniUzivatele()
-    {
-        $a = [];
-        $o = dbQuery("
-      SELECT CONCAT(jmeno_uzivatele,' ',prijmeni_uzivatele,' (',login_uzivatele,')')
-      FROM uzivatele_hodnoty
-      WHERE jmeno_uzivatele != '' AND prijmeni_uzivatele != '' AND id_uzivatele != $1
-    ", [$this->ubytovany->id()]);
-        while ($u = $o->fetch(\PDO::FETCH_NUM)) {
-            $a[] = $u[0];
-        }
-
-        return json_encode($a);
     }
 
     public function kratkyPopis(string $oddelovacDalsihoRadku = '<br>'): string
