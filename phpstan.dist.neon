@@ -60,6 +60,15 @@ parameters:
             paths:
                 - symfony/src/Entity/*
 
+        # Volá ji import ubytování z Excelu, tedy legacy admin skript mimo `paths:`.
+        # Stejná příčina jako u konstruktorů entit výš — ne mrtvý kód, jen neviditelný
+        # volající. Odpadne, až se do `paths:` dostane i admin/.
+        -
+            identifier: shipmonk.deadMethod
+            message: '#^Unused App\\Service\\AccommodationImport\:\:#'
+            paths:
+                - symfony/src/Service/AccommodationImport.php
+
         # ProductDiscount byl první pokus o slevy (procenta na dvojici produkt+role).
         # Nahradila ho pravidla v discount_rule, která umí i pevnou částku. Entita tu
         # zůstává jen kvůli mapování v Product; smazat ji znamená migraci, takže vlastní PR.
