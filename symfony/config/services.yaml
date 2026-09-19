@@ -41,6 +41,10 @@ services:
     App\Service\AktivitaTymService:
         public: true
 
+    # Volá ji import ubytování z Excelu, což je pořád legacy admin skript
+    App\Service\AccommodationImport:
+        public: true
+
     App\Repository\TeamRepository:
         public: true
     # UserRoleService - accessed from legacy code via container
