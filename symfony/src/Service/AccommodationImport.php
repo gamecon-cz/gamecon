@@ -27,7 +27,8 @@ readonly class AccommodationImport
     /**
      * @param int[] $idsPredmetuUbytovani id z `shop_predmety`, tak jak je dohledal import
      *
-     * @return bool jestli se něco opravdu změnilo — import podle toho počítá dotčené řádky
+     * @return int kolik datových řádků se změnilo — tutéž veličinu hlásily legacy metody
+     *             přes `dbAffectedOrNumRows()`, takže import počítá dál stejně
      *
      * @throws \RuntimeException když noci neprojdou validací; import si to překládá na `Chyba`
      */
@@ -37,16 +38,13 @@ readonly class AccommodationImport
         int $rok,
         bool $povolitJednuNoc,
         ?string $spolubydlici = null,
-    ): bool {
+    ): int {
         $zakaznik = $this->entityManager->find(User::class, $idUzivatele);
         if ($zakaznik === null) {
             throw new \RuntimeException(sprintf('Účastník %d neexistuje.', $idUzivatele));
         }
 
-        $pred = $this->drzeneNoci($idUzivatele, $rok);
-        $spolubydliciPred = $this->spolubydlici($idUzivatele);
-
-        $this->accommodationWriter->save(
+        return $this->accommodationWriter->save(
             $zakaznik,
             $this->idsVariant($idsPredmetuUbytovani),
             $rok,
@@ -58,42 +56,6 @@ readonly class AccommodationImport
             // Pult smí posadit i na plnou noc — import je jeho nástroj a data v souboru už
             // jsou rozhodnutá, jen se zapisují.
             mayOverbook: true,
-        );
-
-        return $pred !== $this->drzeneNoci($idUzivatele, $rok)
-            || ($spolubydlici !== null && $spolubydliciPred !== trim($spolubydlici));
-    }
-
-    /**
-     * @return int[] seřazená id variant, aby šla dvě volání porovnat
-     */
-    private function drzeneNoci(int $idUzivatele, int $rok): array
-    {
-        $noci = $this->entityManager->getConnection()->fetchFirstColumn(
-            'SELECT DISTINCT shop_nakupy.variant_id
-             FROM shop_nakupy
-             JOIN product_variant ON product_variant.id = shop_nakupy.variant_id
-             WHERE shop_nakupy.id_uzivatele = :u
-               AND shop_nakupy.rok = :rok
-               AND product_variant.accommodation_day IS NOT NULL',
-            [
-                'u'   => $idUzivatele,
-                'rok' => $rok,
-            ],
-        );
-        $noci = array_map('intval', $noci);
-        sort($noci);
-
-        return $noci;
-    }
-
-    private function spolubydlici(int $idUzivatele): string
-    {
-        return (string) $this->entityManager->getConnection()->fetchOne(
-            'SELECT ubytovan_s FROM uzivatele_hodnoty WHERE id_uzivatele = :u',
-            [
-                'u' => $idUzivatele,
-            ],
         );
     }
 

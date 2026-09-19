@@ -166,7 +166,7 @@ while ($rowIterator->valid()) {
             // `RuntimeException`, kdežto tahle smyčka chytá `Chyba`, aby se vadný řádek
             // přeskočil — bez překladu by jeden špatný řádek shodil celý import.
             try {
-                $zmeneno = $ubytovaniImport->ulozNociUcastnika(
+                $zapsanoZmenVTransakci += $ubytovaniImport->ulozNociUcastnika(
                     $ucastnik->id(),
                     $idsUbytovani,
                     ROCNIK,
@@ -177,9 +177,6 @@ while ($rowIterator->valid()) {
                 );
             } catch (\RuntimeException $vyjimka) {
                 throw new Chyba($vyjimka->getMessage(), 0, $vyjimka);
-            }
-            if ($zmeneno) {
-                $zapsanoZmenVTransakci++;
             }
             if ($indexCisloDokladu !== null) {
                 $cisloDokladu   = trim((string)$radek[$indexCisloDokladu]);
