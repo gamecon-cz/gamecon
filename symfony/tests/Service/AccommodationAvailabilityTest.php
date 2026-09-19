@@ -182,6 +182,30 @@ class AccommodationAvailabilityTest extends AbstractDatabaseKernelTestCase
     }
 
     /**
+     * Import e-shopu zapisuje rezervace na varianty, ne na řádek noci. Mřížka je musí
+     * číst odtamtud taky — jinak nabídne postele, které zapisovač odmítne prodat.
+     *
+     * @test
+     */
+    public function rezervaceZapsanaNaVariantuSeTakyúucastnikoviOdecte(): void
+    {
+        $zakaznik = $this->zakaznik();
+        $noc = $this->vytvorNoc(kapacita: 5);
+        $this->connection()->executeStatement(
+            'UPDATE product_variant SET reserved_for_organizers = 2 WHERE id = :varianta',
+            [
+                'varianta' => $noc->getId(),
+            ],
+        );
+
+        $ucastnik = $this->availability()->proZakaznika($zakaznik, self::ROK, jeOrganizator: false);
+        $organizator = $this->availability()->proZakaznika($zakaznik, self::ROK, jeOrganizator: true);
+
+        self::assertSame(3, $ucastnik[$noc->getCode()]->remaining, 'Účastník rezervu nevidí');
+        self::assertSame(5, $organizator[$noc->getCode()]->remaining, 'Organizátor na rezervu dosáhne');
+    }
+
+    /**
      * @test
      */
     public function neomezenaKapacitaNemaZbytek(): void
