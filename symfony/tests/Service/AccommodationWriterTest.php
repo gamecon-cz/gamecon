@@ -14,6 +14,7 @@ use App\Service\BreakfastCanceller;
 use App\Service\CartService;
 use App\Structure\Entity\UserEntityStructure;
 use App\Tests\AbstractDatabaseKernelTestCase;
+use Doctrine\DBAL\ArrayParameterType;
 use Gamecon\Cas\DateTimeImmutableStrict;
 use Gamecon\SystemoveNastaveni\SystemoveNastaveni;
 use Gamecon\Tests\Factory\UserFactory;
@@ -456,6 +457,110 @@ class AccommodationWriterTest extends AbstractDatabaseKernelTestCase
         $this->writer()->save($customer, $this->idNoci(0, 1), self::ROK, false, 'Pepa z Depa');
 
         self::assertCount(1, $this->logOsobnichUdaju($customer));
+    }
+
+    /**
+     * Odložené postele si organizátoři drží na variantě té noci — tam je zapisuje import
+     * e-shopu a odtud je čte `CapacityManager` u merche. Zapisovač ubytování je musel
+     * číst taky, jinak by účastník odložené lůžko koupil.
+     */
+    public function testAParticipantCannotTakeABedReservedOnTheVariant(): void
+    {
+        $this->pripravUbytovani(kusuVyrobeno: 2);
+        $customer = $this->ucastnik();
+        $this->connection()->executeStatement(
+            'UPDATE product_variant SET reserved_for_organizers = 2 WHERE id IN (:varianty)',
+            [
+                'varianty' => $this->idNoci(0, 1),
+            ],
+            [
+                'varianty' => ArrayParameterType::INTEGER,
+            ],
+        );
+
+        $this->expectExceptionMessage('přeplnit ho smí jen šéf infopultu');
+
+        $this->writer()->save($customer, $this->idNoci(0, 1), self::ROK, false);
+    }
+
+    /**
+     * Varianta přebíjí řádek noci, ne naopak — na řádku může zůstat stará hodnota
+     * a platit má ta, kterou zapsal import.
+     */
+    public function testTheVariantOverridesTheNightRow(): void
+    {
+        $this->pripravUbytovani(kusuVyrobeno: 2);
+        $customer = $this->ucastnik();
+        // Na řádku noci zbyla rezervace celé kapacity, na variantě už není žádná.
+        $this->connection()->executeStatement(
+            "UPDATE shop_predmety SET reserved_for_organizers = 2
+             WHERE kod_predmetu IN (SELECT code FROM product_variant WHERE id IN (:varianty))",
+            [
+                'varianty' => $this->idNoci(0, 1),
+            ],
+            [
+                'varianty' => ArrayParameterType::INTEGER,
+            ],
+        );
+        $this->connection()->executeStatement(
+            'UPDATE product_variant SET reserved_for_organizers = 0 WHERE id IN (:varianty)',
+            [
+                'varianty' => $this->idNoci(0, 1),
+            ],
+            [
+                'varianty' => ArrayParameterType::INTEGER,
+            ],
+        );
+
+        $this->writer()->save($customer, $this->idNoci(0, 1), self::ROK, false);
+
+        self::assertSame(1, $this->pocetNoci($customer, 0), 'Rozhoduje nula na variantě');
+    }
+
+    /**
+     * Když na variantě nic není, platí hodnota z řádku té noci — tak to držela stará
+     * cesta a data ji tak pořád můžou mít.
+     */
+    public function testAReservationOnTheNightRowStillCounts(): void
+    {
+        $this->pripravUbytovani(kusuVyrobeno: 2);
+        $customer = $this->ucastnik();
+        $this->connection()->executeStatement(
+            "UPDATE shop_predmety SET reserved_for_organizers = 2
+             WHERE kod_predmetu IN (SELECT code FROM product_variant WHERE id IN (:varianty))",
+            [
+                'varianty' => $this->idNoci(0, 1),
+            ],
+            [
+                'varianty' => ArrayParameterType::INTEGER,
+            ],
+        );
+
+        $this->expectExceptionMessage('přeplnit ho smí jen šéf infopultu');
+
+        $this->writer()->save($customer, $this->idNoci(0, 1), self::ROK, false);
+    }
+
+    /**
+     * Organizátor si pro ně odložené lůžko vzít smí — to je smysl té rezervace.
+     */
+    public function testAnOrganiserMayTakeAReservedBed(): void
+    {
+        $this->pripravUbytovani(kusuVyrobeno: 2);
+        $customer = $this->ucastnik();
+        $this->connection()->executeStatement(
+            'UPDATE product_variant SET reserved_for_organizers = 2 WHERE id IN (:varianty)',
+            [
+                'varianty' => $this->idNoci(0, 1),
+            ],
+            [
+                'varianty' => ArrayParameterType::INTEGER,
+            ],
+        );
+
+        $this->writer()->save($customer, $this->idNoci(0, 1), self::ROK, false, jeOrganizator: true);
+
+        self::assertSame(1, $this->pocetNoci($customer, 0));
     }
 
     /**
