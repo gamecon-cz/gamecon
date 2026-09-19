@@ -32,9 +32,12 @@ class DiscountCalculator
     }
 
     /**
+     * @param int|null $accommodationDay noc, které se sleva týká; u ubytování ji nese varianta,
+     *                                   ne typ pokoje, takže bez ní nároky na konkrétní noc nesednou
+     *
      * @return array{discount: null, discountAmount: string, finalPrice: string, reason: string|null}
      */
-    public function calculateDiscount(Product $product, User $user, int $year): array
+    public function calculateDiscount(Product $product, User $user, int $year, ?int $accommodationDay = null): array
     {
         $puvodniCena = $product->getCurrentPrice();
         $idUzivatele = $user->getId();
@@ -42,7 +45,7 @@ class DiscountCalculator
             return $this->bezSlevy($puvodniCena);
         }
 
-        $polozka = $this->polozkaZProduktu($product);
+        $polozka = $this->polozkaZProduktu($product, $accommodationDay);
         if ($polozka === null) {
             return $this->bezSlevy($puvodniCena);
         }
@@ -177,7 +180,7 @@ class DiscountCalculator
      * Vrací null pro položku, na kterou žádné pravidlo nemůže mířit — pravidla se
      * vztahují na tagy, takže produkt bez tagu nemá s čím porovnávat.
      */
-    private function polozkaZProduktu(Product $product): ?DiscountableItem
+    private function polozkaZProduktu(Product $product, ?int $accommodationDay = null): ?DiscountableItem
     {
         $tagy = [];
         foreach ($product->getTagNames() as $kod) {
@@ -196,7 +199,7 @@ class DiscountCalculator
             productCode: $product->getCode(),
             price: (float) $product->getCurrentPrice(),
             tags: $tagy,
-            accommodationDay: $product->getAccommodationDay(),
+            accommodationDay: $accommodationDay ?? $product->getAccommodationDay(),
         );
     }
 

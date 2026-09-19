@@ -135,6 +135,29 @@ class DiscountCalculatorTest extends TestCase
     }
 
     /**
+     * Noc zdarma se váže na den, jenže den nese varianta — typ pokoje žádný nemá. Bez
+     * předaného dne by nárok na konkrétní noc nikdy nesedl a účastník by ji zaplatil.
+     */
+    public function testNightSpecificDiscountUsesTheGivenDay(): void
+    {
+        $kalkulator = $this->kalkulator([
+            [
+                'code'           => 'ubytovani_patecni_noc_zdarma',
+                'name'           => 'Ubytování páteční noc zdarma',
+                'required_right' => self::PRAVO_UBYTOVANI_ZDARMA,
+                'parameters'     => '{"scope":"tag_and_day","effect":"free","tag":"ubytovani","day":2}',
+            ],
+        ], [self::PRAVO_UBYTOVANI_ZDARMA]);
+        $typPokoje = $this->produkt('Postel na 2L koleji', '500.00', ProductTagCode::UBYTOVANI);
+
+        $patek = $kalkulator->calculateDiscount($typPokoje, $this->uzivatel(), self::ROK, accommodationDay: 2);
+        $ctvrtek = $kalkulator->calculateDiscount($typPokoje, $this->uzivatel(), self::ROK, accommodationDay: 1);
+
+        self::assertSame('0.00', $patek['finalPrice'], 'Na páteční noc nárok platí');
+        self::assertSame('500.00', $ctvrtek['finalPrice'], 'Na čtvrteční ne');
+    }
+
+    /**
      * Metoda počítá jednu položku, takže nároky s omezeným počtem neumí odpočítávat.
      * Kdyby je uplatňovala, bylo by každé tričko zdarma — a to i při zápisu do košíku.
      */
