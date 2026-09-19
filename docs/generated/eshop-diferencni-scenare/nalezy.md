@@ -357,15 +357,19 @@ LogicException: Nelze rozpoznat kontext zobrazení podle URL: http://localhost:1
 model/Shop/KontextZobrazeni.php:30
 ```
 
-`KontextZobrazeni::dej()` porovnává URL requestu proti `URL_WEBU`, a ta je
-`http://localhost/web` — **bez portu**. Diferenční sestava běží na `:18020` a `:18040`,
-takže se nikdy netrefí.
+**Původní diagnóza byla špatně** (chybějící port v `URL_WEBU`) — `URL_WEBU` port má,
+ověřeno za běhu: `http://localhost:18020/web`.
 
-**Není to vada produktu.** Na ostré je URL bez portu a porovnání sedí. Stránka se i tak
-vykreslí správně, jen to plní log chyb.
+Skutečná příčina je prozaická: **`/prihlaska` není pod `/web`**. `vytvorZGlobals()` dělá
+`str_starts_with($requestUrl, URL_WEBU)`, takže `http://localhost:18020/prihlaska` proti
+`http://localhost:18020/web` neprojde a spadne to do výjimky.
 
-Za pozornost stojí jen to, že se kontext hledá porovnáváním řetězců URL — takže jakákoli
-odchylka (port, jiná doména, proxy) ho rozbije. Na řešení mimo tenhle přepis.
+**Správná URL storefrontu je `/web/prihlaska`.** Pod ní se stránka vykreslí celá a bez
+chyby: 18 klikatelných nocí, 11 jídel, objednání noci projde (3 → 4). Zkráceného
+`/prihlaska` se při ověřování držet nedá.
+
+Za pozornost pořád stojí, že se kontext hledá porovnáváním řetězců URL — jakákoli odchylka
+(jiná doména, proxy, chybějící prefix) ho rozbije. Na řešení mimo tenhle přepis.
 
 ## Jak se k admin obrazovce vůbec dostat (stálo to pět pokusů)
 
