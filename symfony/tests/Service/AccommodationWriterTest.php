@@ -458,6 +458,48 @@ class AccommodationWriterTest extends AbstractDatabaseKernelTestCase
         self::assertCount(1, $this->logOsobnichUdaju($customer));
     }
 
+    /**
+     * Rezervace pro organizátory se čte z varianty, a teprve když tam není, z rodiče. Dokud
+     * byl rodič sám nocí, přetekla hodnota určená neděli na všech pět nocí.
+     */
+    public function testAReservationOnOneNightDoesNotApplyToTheOthers(): void
+    {
+        $this->pripravUbytovani();
+        $ctvrtek = $this->noci[1];
+        $this->connection()->executeStatement(
+            'UPDATE product_variant SET reserved_for_organizers = 5 WHERE id = :varianta',
+            [
+                'varianta' => $ctvrtek->getId(),
+            ],
+        );
+
+        $rezervovano = $this->connection()->fetchAllKeyValue(
+            'SELECT product_variant.accommodation_day,
+                    COALESCE(
+                        product_variant.reserved_for_organizers,
+                        (SELECT reserved_for_organizers FROM shop_predmety
+                         WHERE id_predmetu = product_variant.product_id),
+                        0
+                    )
+             FROM product_variant
+             WHERE product_variant.product_id = :produkt
+             ORDER BY product_variant.accommodation_day',
+            [
+                'produkt' => $ctvrtek->getProduct()?->getId(),
+            ],
+        );
+
+        $rezervovano = array_map('intval', $rezervovano);
+
+        self::assertSame(5, $rezervovano[1], 'Čtvrtek má rezervaci');
+        unset($rezervovano[1]);
+        self::assertSame(
+            [0],
+            array_values(array_unique($rezervovano)),
+            'Ostatní noci nesmí zdědit rezervaci čtvrtka',
+        );
+    }
+
     public function testUnknownVariantIsRefused(): void
     {
         $this->pripravUbytovani();

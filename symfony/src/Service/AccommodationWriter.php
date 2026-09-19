@@ -331,7 +331,14 @@ class AccommodationWriter
         bool $jeOrganizator,
     ): int {
         $product = $variant->getProduct();
-        $discount = $this->discountCalculator->calculateDiscount($product, $customer, $year);
+        // Den nese varianta: typ pokoje žádný nemá, takže bez něj by nárok na konkrétní noc
+        // zdarma nikdy nesedl.
+        $discount = $this->discountCalculator->calculateDiscount(
+            $product,
+            $customer,
+            $year,
+            $variant->getAccommodationDay(),
+        );
         $order = $this->cartService->getOrCreateCart($customer);
 
         // The count below reads a snapshot, so two writers would both see the last bed free.
