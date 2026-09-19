@@ -1,7 +1,6 @@
 <?php
 
 use Gamecon\Pravo;
-use Gamecon\Shop\ShopUbytovani;
 use Gamecon\SystemoveNastaveni\SystemoveNastaveni;
 use Gamecon\XTemplate\XTemplate;
 use OpenSpout\Reader\XLSX\Reader as XlsxReader;
@@ -149,18 +148,34 @@ while ($rowIterator->valid()) {
             continue;
         }
 
+        $idsUbytovani = []; // prázdný seznam = smazat všechny letošní noci účastníka
+        if (($prvniNoc ?? $posledniNoc) !== null && count($typy) === 1) {
+            // "typ" z reportu je kód předmětu bez poslední 3znakové přípony dne
+            // (viz finance-report-ubytovani.php); dohledáme podle něj + dnů, nezávisle
+            // na názvu předmětu.
+            try {
+                $idsUbytovani = $ubytovaniImport->dejIdsNociPodleTypu(
+                    (string)reset($typy),
+                    range($prvniNoc, $posledniNoc),
+                    ROCNIK,
+                );
+            } catch (\RuntimeException $vyjimka) {
+                $chyby[] = sprintf(
+                    'Účastník %s z řádku %d: %s',
+                    $ucastnik->jmenoNick(),
+                    $poradiRadku,
+                    $vyjimka->getMessage(),
+                );
+                continue;
+            }
+        }
+
+        // Transakci i oba zápisy drží `AccommodationImport`, aby celý řádek jel po jednom
+        // spojení; proč to tak musí být, viz jeho docblock.
         $zapsanoZmenVTransakci = 0;
         try {
-            dbBegin();
-            $zapsanoZmenVTransakci += ShopUbytovani::ulozPokojUzivatele($pokoj, $prvniNoc, $posledniNoc, $ucastnik);
-            $idsUbytovani          = []; // když je sezam pokojů prázdný, tak to smaže všechny letošní objednávky pokojů účastníka
-            if (($prvniNoc ?? $posledniNoc) !== null && count($typy) === 1) {
-                $dny          = range($prvniNoc, $posledniNoc);
-                $jedinyTyp    = reset($typy);
-                // "typ" z reportu je kód předmětu bez poslední 3znakové přípony dne (viz finance-report-ubytovani.php);
-                // dohledáme podle něj + dnů, nezávisle na názvu předmětu.
-                $idsUbytovani = ShopUbytovani::dejIdsPredmetuUbytovaniPodleKoduTypu($jedinyTyp, $dny);
-            }
+            $ubytovaniImport->zacniTransakci();
+            $zapsanoZmenVTransakci += $ubytovaniImport->ulozPokoj($ucastnik->id(), $pokoj, $prvniNoc, $posledniNoc, ROCNIK);
             // Noci i spolubydlícího zapisuje Symfony (`AccommodationImport`), aby platila
             // tatáž pravidla jako v mřížce. Výjimku je nutné přeložit: zapisovač hází
             // `RuntimeException`, kdežto tahle smyčka chytá `Chyba`, aby se vadný řádek
@@ -178,6 +193,12 @@ while ($rowIterator->valid()) {
             } catch (\RuntimeException $vyjimka) {
                 throw new Chyba($vyjimka->getMessage(), 0, $vyjimka);
             }
+            // Zápis osobních údajů musí jít přes tutéž službu jako noci; legacy settery na
+            // `Uzivatel` píšou po vlastním spojení a uvízly by na zámku řádku účastníka.
+            $noveCisloDokladu   = null;
+            $novyTypDokladu     = null;
+            $noveStatniObcanstvi = null;
+
             if ($indexCisloDokladu !== null) {
                 $cisloDokladu   = trim((string)$radek[$indexCisloDokladu]);
                 $zasifrovaneOp  = $ucastnik->rawDb()[UzivatelSql::OP] ?? '';
@@ -188,9 +209,8 @@ while ($rowIterator->valid()) {
                     // prázdná buňka = případné smazání existujícího dokladu (jen s explicitním povolením)
                     if ($soucasneCislo !== '') {
                         if ($povolitPrepisOsobnichUdaju) {
-                            $ucastnik->cisloOp('');
-                            $ucastnik->typDokladuTotoznosti('');
-                            $zapsanoZmenVTransakci++;
+                            $noveCisloDokladu = '';
+                            $novyTypDokladu   = '';
                         } else {
                             $a          = $u->koncovkaDlePohlavi();
                             $varovani[] = "Účastník {$ucastnik->jmenoNick()} z řádku {$poradiRadku} má prázdné 'cislo_dokladu' ale přepis/mazání osobních údajů jsi nepovolil{$a}";
@@ -202,8 +222,7 @@ while ($rowIterator->valid()) {
                         $a          = $u->koncovkaDlePohlavi();
                         $varovani[] = "Účastník {$ucastnik->jmenoNick()} z řádku {$poradiRadku} už má vyplněné číslo dokladu, ale přepis osobních údajů jsi nepovolil{$a}";
                     } else {
-                        $ucastnik->cisloOp($cisloDokladu);
-                        $zapsanoZmenVTransakci++;
+                        $noveCisloDokladu = $cisloDokladu;
                     }
                 }
             }
@@ -217,17 +236,24 @@ while ($rowIterator->valid()) {
                         $a          = $u->koncovkaDlePohlavi();
                         $varovani[] = "Účastník {$ucastnik->jmenoNick()} z řádku {$poradiRadku} už má vyplněné občanství, ale přepis osobních údajů jsi nepovolil{$a}";
                     } else {
-                        $ucastnik->statniObcanstvi($statniObcanstvi);
-                        $zapsanoZmenVTransakci++;
+                        $noveStatniObcanstvi = $statniObcanstvi;
                     }
                 }
             }
-            dbCommit();
+            if ($noveCisloDokladu !== null || $noveStatniObcanstvi !== null) {
+                $zapsanoZmenVTransakci += $ubytovaniImport->ulozOsobniUdaje(
+                    $ucastnik->id(),
+                    $noveStatniObcanstvi,
+                    $noveCisloDokladu,
+                    $novyTypDokladu,
+                );
+            }
+            $ubytovaniImport->potvrdTransakci();
             if ($zapsanoZmenVTransakci > 0) {
                 $zapsanoZmenPerUcastnik++;
             }
         } catch (Chyba $chyba) {
-            dbRollback();
+            $ubytovaniImport->vratTransakci();
             $chyby[] = sprintf(
                 "Účastník %s z řádku %d: %s",
                 $ucastnik->jmenoNick(),
@@ -236,7 +262,7 @@ while ($rowIterator->valid()) {
             );
             continue;
         } catch (\Throwable $throwable) {
-            dbRollback();
+            $ubytovaniImport->vratTransakci();
             throw $throwable;
         }
     }
