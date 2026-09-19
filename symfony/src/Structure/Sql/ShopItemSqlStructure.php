@@ -9,9 +9,6 @@ namespace App\Structure\Sql;
  */
 class ShopItemSqlStructure
 {
-    /**
-     * @see ShopItem
-     */
     public const _table = 'shop_predmety';
 
     /**
@@ -28,11 +25,6 @@ class ShopItemSqlStructure
      * @see ShopItem::$kodPredmetu
      */
     public const kod_predmetu = 'kod_predmetu';
-
-    /**
-     * @see ShopItem::$modelRok
-     */
-    public const model_rok = 'model_rok';
 
     /**
      * @see ShopItem::$cenaAktualni
@@ -55,11 +47,6 @@ class ShopItemSqlStructure
     public const kusu_vyrobeno = 'kusu_vyrobeno';
 
     /**
-     * @see ShopItem::$typ
-     */
-    public const typ = 'typ';
-
-    /**
      * @see ShopItem::$ubytovaniDen
      */
     public const ubytovani_den = 'ubytovani_den';
@@ -70,7 +57,17 @@ class ShopItemSqlStructure
     public const popis = 'popis';
 
     /**
-     * @see ShopItem::$jeLetosniHlavni
+     * @see ShopItem::$archivedAt
      */
-    public const je_letosni_hlavni = 'je_letosni_hlavni';
+    public const archived_at = 'archived_at';
+
+    /**
+     * @see ShopItem::$reservedForOrganizers
+     */
+    public const reserved_for_organizers = 'reserved_for_organizers';
+
+    /**
+     * @see ShopItem::$vedlejsi
+     */
+    public const vedlejsi = 'vedlejsi';
 }

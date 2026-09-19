@@ -22,22 +22,4 @@ class UserUrlRepository extends ServiceEntityRepository
     {
         parent::__construct($registry, UserUrl::class);
     }
-
-    public function save(UserUrl $entity, bool $flush = false): void
-    {
-        $this->getEntityManager()->persist($entity);
-
-        if ($flush) {
-            $this->getEntityManager()->flush();
-        }
-    }
-
-    public function remove(UserUrl $entity, bool $flush = false): void
-    {
-        $this->getEntityManager()->remove($entity);
-
-        if ($flush) {
-            $this->getEntityManager()->flush();
-        }
-    }
 }

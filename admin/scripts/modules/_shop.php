@@ -23,10 +23,9 @@ function zabalAdminSoubor(string $cestaKSouboru): string
 if (!empty($_POST['prodej-mrizka'])) {
     $prodeje             = $_POST['prodej-mrizka'];
     $rocnik              = $systemoveNastaveni->rocnik();
-    $prodejIdUzivatele   = $uPracovni ? $uPracovni->id() : Uzivatel::SYSTEM;
     $prodejIdObjednatele = $u->id();
     $shop                = new Shop(
-        zakaznik: $uPracovni ?? Uzivatel::zId(Uzivatel::SYSTEM),
+        zakaznik: $uPracovni ?? Uzivatel::zId(Uzivatel::ANONYM),
         objednatel: $u,
         systemoveNastaveni: $systemoveNastaveni
     );
@@ -48,11 +47,12 @@ if (!empty($_POST['prodej-mrizka'])) {
 
 <div id="preact-obchod">Obchod se načítá ...</div>
 
+<?php require_once __DIR__ . '/_jwt-konstanty.php'; ?>
 <script>
-    // Konstanty předáváné do Preactu (env.ts)
     window.GAMECON_KONSTANTY = {
         BASE_PATH_API: "<?= URL_ADMIN . "/api/" ?>",
         ROCNIK: <?= ROCNIK ?>,
+        <?= jwtKonstantyJs($u, $systemoveNastaveni) ?>
     }
 </script>
 

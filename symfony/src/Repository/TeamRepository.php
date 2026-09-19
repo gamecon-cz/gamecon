@@ -23,24 +23,6 @@ class TeamRepository extends ServiceEntityRepository
         parent::__construct($registry, Team::class);
     }
 
-    public function save(Team $entity, bool $flush = false): void
-    {
-        $this->getEntityManager()->persist($entity);
-
-        if ($flush) {
-            $this->getEntityManager()->flush();
-        }
-    }
-
-    public function remove(Team $entity, bool $flush = false): void
-    {
-        $this->getEntityManager()->remove($entity);
-
-        if ($flush) {
-            $this->getEntityManager()->flush();
-        }
-    }
-
     public function findByKodNaAktivite(int $idAktivity, int $kod): ?Team
     {
         return $this->createQueryBuilder('team')
@@ -61,20 +43,6 @@ class TeamRepository extends ServiceEntityRepository
         return $this->createQueryBuilder('team')
             ->join('team.aktivity', 'aktivita')
             ->andWhere('aktivita.id = :idAktivity')
-            ->setParameter('idAktivity', $idAktivity)
-            ->getQuery()
-            ->getResult();
-    }
-
-    /**
-     * @return Team[]
-     */
-    public function findVerejneByAktivita(int $idAktivity): array
-    {
-        return $this->createQueryBuilder('team')
-            ->join('team.aktivity', 'aktivita')
-            ->andWhere('aktivita.id = :idAktivity')
-            ->andWhere('team.verejny = true')
             ->setParameter('idAktivity', $idAktivity)
             ->getQuery()
             ->getResult();

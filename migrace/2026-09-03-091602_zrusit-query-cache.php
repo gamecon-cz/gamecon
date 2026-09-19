@@ -20,10 +20,10 @@ FROM information_schema.triggers
 WHERE trigger_schema = DATABASE()
   AND action_statement LIKE '%\\_table\\_data\\_versions%'
 SQL,
-)->fetch_all();
+)->fetchAll(PDO::FETCH_NUM);
 
 foreach ($triggerNames as [$triggerName]) {
-    $triggerNameEscaped = $this->connection->real_escape_string($triggerName);
+    $triggerNameEscaped = substr($this->connection->quote($triggerName), 1, -1);
     $this->q(<<<SQL
 DROP TRIGGER IF EXISTS `{$triggerNameEscaped}`
 SQL,

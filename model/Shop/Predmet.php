@@ -13,9 +13,9 @@ use Gamecon\Uzivatel\Dto\PolozkaProBfgr;
  */
 class Predmet extends \DbObject
 {
-    protected static $tabulka = Sql::SHOP_PREDMETY_TABULKA;
+    // Read from the view so that virtual columns (model_rok, typ, podtyp, je_letosni_hlavni) are populated.
+    protected static $tabulka = Sql::SHOP_PREDMETY_S_TYPEM_TABULKA;
     protected static $pk = Sql::ID_PREDMETU;
-    protected static $letosniPredmety = [];
 
     public static function jeToVstupneVcas(int $typPredmetu, string $kodPredmetu): bool
     {
@@ -78,25 +78,22 @@ class Predmet extends \DbObject
     }
 
     /**
-     * Pozor, název, ne kód předmětu
+     * Reporty nechtějí barvu, ale hodnost — kolik odznaků které úrovně se rozdalo
+     * (výstupní klíče `Nr-TrickaVypravecskaZdarma` apod.). Barva je jen historická
+     * náhražka: v roce 2009 a 2010 byla orgovská trička oranžová, takže hledání
+     * „červen" v názvu je 14 kusů počítalo jako účastnická.
      */
-    public static function jeToModre(string|PolozkaProBfgr $nazev): bool
+    public static function jeToVypravecske(PolozkaProBfgr $polozka): bool
     {
-        if ($nazev instanceof PolozkaProBfgr) {
-            $nazev = $nazev->nazev;
-        }
-        return self::jeToDleCasti($nazev, 'modr');
+        return self::jeToDleCasti($polozka->kodPredmetu, 'vypravecske');
     }
 
     /**
-     * Pozor, název, ne kód předmětu
+     * Viz {@see jeToVypravecske()} — hodnost z kódu, ne barva z názvu.
      */
-    public static function jeToCervene(string|PolozkaProBfgr $nazev): bool
+    public static function jeToOrganizatorske(PolozkaProBfgr $polozka): bool
     {
-        if ($nazev instanceof PolozkaProBfgr) {
-            $nazev = $nazev->nazev;
-        }
-        return self::jeToDleCasti($nazev, 'červen');
+        return self::jeToDleCasti($polozka->kodPredmetu, 'organizatorske');
     }
 
     public static function jeToTricko(
@@ -113,16 +110,6 @@ class Predmet extends \DbObject
         return $typ === TypPredmetu::TRICKO && self::jeToDleCasti($kodPredmetu, 'tilko');
     }
 
-    public static function letosniKostka(int $rocnik): ?static
-    {
-        return self::letosniPredmet('kostka', $rocnik);
-    }
-
-    public static function letosniPlacka(int $rocnik): ?static
-    {
-        return self::letosniPredmet('placka', $rocnik);
-    }
-
     private static function jeToDleCasti(
         string $cele,
         string $cast,
@@ -130,6 +117,11 @@ class Predmet extends \DbObject
         return mb_stripos($cele, $cast) !== false;
     }
 
+    /**
+     * Heuristika, ne údaj: o vítězi mezi letos nabízenými designy rozhoduje fakticky
+     * pořadí nahrání. Chceme ji nahradit příznakem na produktu —
+     * viz docs/generated/letosni-model-predmetu.md.
+     */
     private static function letosniPredmet(
         string $castKodu,
         int    $rocnik,
@@ -140,15 +132,17 @@ class Predmet extends \DbObject
         if (! array_key_exists($klicCache, self::$letosniPredmety)) {
             $typPredmet = TypPredmetu::PREDMET;
             $castKoduSql = dbQRaw($castKodu);
+            // Čte z kompatibilního pohledu: `typ`, `model_rok` ani `je_letosni_hlavni` už
+            // nejsou sloupce `shop_predmety`, pohled je dopočítává z tagů a `archived_at`.
             $letosniPredmetId = dbFetchSingle(<<<SQL
-SELECT id_predmetu
-FROM shop_predmety
+SELECT predmety.id_predmetu
+FROM shop_predmety_s_typem AS predmety
 WHERE
     -- letošní je ten, která má nejnovější model a v dřívějších letech si ho nikdo neobjednal
-    NOT EXISTS(SELECT * FROM shop_nakupy WHERE shop_nakupy.id_predmetu = shop_predmety.id_predmetu AND shop_nakupy.rok < {$rocnik})
-    AND typ = {$typPredmet}
-    AND kod_predmetu COLLATE utf8_czech_ci LIKE '%{$castKoduSql}%'
-ORDER BY model_rok DESC, je_letosni_hlavni DESC, cena_aktualni DESC, id_predmetu /* dříve nahraný má přednost */
+    NOT EXISTS(SELECT 1 FROM shop_nakupy WHERE shop_nakupy.id_predmetu = predmety.id_predmetu AND shop_nakupy.rok < {$rocnik})
+    AND predmety.typ = {$typPredmet}
+    AND predmety.kod_predmetu COLLATE utf8mb4_czech_ci LIKE '%{$castKoduSql}%'
+ORDER BY predmety.model_rok DESC, predmety.je_letosni_hlavni DESC, predmety.cena_aktualni DESC, predmety.id_predmetu /* dříve nahraný má přednost */
 LIMIT 1 -- pro jistotu
 SQL,
             );
@@ -173,11 +167,6 @@ SQL,
     public function nazev(): string
     {
         return (string)$this->r[Sql::NAZEV];
-    }
-
-    public function cenaAktualni(): float
-    {
-        return (float)$this->r[Sql::CENA_AKTUALNI];
     }
 
     public function stav(int $stav = null): int

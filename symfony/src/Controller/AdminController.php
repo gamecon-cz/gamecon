@@ -11,11 +11,9 @@ use Symfony\Component\HttpFoundation\Response;
 
 class AdminController extends AbstractController
 {
-    private LegacySessionService $legacySession;
-
-    public function __construct(LegacySessionService $legacySession)
-    {
-        $this->legacySession = $legacySession;
+    public function __construct(
+        private readonly LegacySessionService $legacySession,
+    ) {
     }
 
     public function dashboard(): Response

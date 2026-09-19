@@ -1,0 +1,269 @@
+<?php
+
+declare(strict_types=1);
+
+namespace App\State\Cart;
+
+use ApiPlatform\Metadata\Operation;
+use ApiPlatform\State\ProviderInterface;
+use App\Dto\Cart\AccommodationCellOutputDto;
+use App\Dto\Cart\AccommodationDayOutputDto;
+use App\Dto\Cart\AccommodationOutputDto;
+use App\Dto\Cart\AccommodationTypeOutputDto;
+use App\Entity\Product;
+use App\Entity\User;
+use App\Enum\ProductTagCode;
+use App\Repository\OrderItemRepository;
+use App\Repository\ProductRepository;
+use App\Service\AccommodationAvailability;
+use App\Service\AccommodationRules;
+use App\Service\BreakfastCanceller;
+use App\Service\CartService;
+use App\Service\CurrentYearProviderInterface;
+use App\Service\DiscountCalculator;
+use App\Service\LegacySessionService;
+use Gamecon\Pravo;
+use Gamecon\SystemoveNastaveni\SystemoveNastaveni;
+use Symfony\Bundle\SecurityBundle\Security;
+use Symfony\Component\HttpKernel\Exception\AccessDeniedHttpException;
+
+/**
+ * Serves the logged-in customer's own grid. Legacy tells the occupant apart from the
+ * orderer (an infopult worker books for someone else and their own organizer status then
+ * unlocks Sunday); this endpoint has no such parameter, so ordering on behalf of another
+ * person stays on the legacy form for now.
+ *
+ * @implements ProviderInterface<AccommodationOutputDto>
+ */
+readonly class AccommodationProvider implements ProviderInterface, AccommodationGridInterface
+{
+    private const NAZVY_DNU = ['středa', 'čtvrtek', 'pátek', 'sobota', 'neděle'];
+
+    private const DEN_NEDELE = 4;
+
+    public function __construct(
+        private ProductRepository $productRepository,
+        private OrderItemRepository $orderItemRepository,
+        private DiscountCalculator $discountCalculator,
+        private CurrentYearProviderInterface $currentYearProvider,
+        private LegacySessionService $legacySession,
+        private CartService $cartService,
+        private BreakfastCanceller $breakfastCanceller,
+        private AccommodationRules $accommodationRules,
+        private Security $security,
+        private AccommodationAvailability $availability,
+    ) {
+    }
+
+    public function provide(Operation $operation, array $uriVariables = [], array $context = []): AccommodationOutputDto
+    {
+        $user = $this->security->getUser();
+        if (! $user instanceof User) {
+            throw new AccessDeniedHttpException('Pro zobrazení ubytování je nutné přihlášení.');
+        }
+
+        // Every accommodation right lives in the legacy permission system. Failing beats
+        // degrading to "no rights", which would drop an organizer's Sunday night with a 200.
+        $legacyUzivatel = $this->legacySession->getCurrentUser();
+        if ($legacyUzivatel === null) {
+            throw new AccessDeniedHttpException('Ubytování vyžaduje přihlášení na webu GameConu.');
+        }
+
+        return $this->forCustomer($user, $legacyUzivatel);
+    }
+
+    /**
+     * The grid for a named customer, whoever is asking. Split out so the admin desk can read
+     * a participant's nights: there the rights below belong to that participant, while the
+     * request is sent by an operator, so neither may come from the session.
+     */
+    /**
+     * @param bool $zPultu volá to obsluha za účastníka, ne účastník sám — pak termín
+     *                     prodeje neplatí, protože doobjednat po termínu je hlavní důvod,
+     *                     proč admin obrazovky existují (`SetCustomerAccommodationProcessor`
+     *                     ho z téhož důvodu nekontroluje ani při zápisu)
+     */
+    public function forCustomer(User $user, \Uzivatel $legacyUser, bool $zPultu = false): AccommodationOutputDto
+    {
+        $year = $this->currentYearProvider->getCurrentYear();
+        $nastaveni = SystemoveNastaveni::zGlobals();
+        $prodejUkoncen = ! $zPultu && $nastaveni->prodejUbytovaniUkoncen();
+
+        $muzeNedeli = $legacyUser->maPravo(Pravo::UBYTOVANI_NEDELNI_NOC_NABIZET)
+            || $legacyUser->maPravo(Pravo::UBYTOVANI_NEDELNI_NOC_ZDARMA)
+            || $legacyUser->jeOrganizator();
+        $muzeJednuNoc = $legacyUser->maPravo(Pravo::UBYTOVANI_MUZE_OBJEDNAT_JEDNU_NOC);
+
+        $dto = new AccommodationOutputDto();
+        $dto->saleClosed = $prodejUkoncen;
+        $dto->minimumNights = $muzeJednuNoc ? 1 : 2;
+        // Read off this year's order, so a decline or a roommate from an earlier year does
+        // not leak into this one. Falls back to the account while orders predating the move
+        // still carry nothing.
+        $order = $this->cartService->getCart($user);
+        $dto->roommate = $order?->getRoommate() ?? ($legacyUser->ubytovanS() ?: null);
+        $dto->restorableBreakfasts = array_values($this->breakfastCanceller->restorable($user, $year));
+        $dto->declined = $order !== null
+            ? $order->isAccommodationDeclined()
+            : (bool) $legacyUser->nechceUbytovani();
+
+        foreach (self::NAZVY_DNU as $den => $nazev) {
+            if ($den === self::DEN_NEDELE && ! $muzeNedeli) {
+                continue;
+            }
+            $denDto = new AccommodationDayOutputDto();
+            $denDto->day = $den;
+            $denDto->name = $nazev;
+            $dto->days[] = $denDto;
+        }
+
+        [$koupeneVarianty, $koupeneDny] = $this->koupeneNoci($user, $year);
+        $dto->selectedVariantIds = array_values($koupeneVarianty);
+
+        // A night the customer already holds always gets a cell, even on a day they could
+        // not newly order — otherwise the booking they own is invisible and the write path
+        // would drop it, leaving the rest non-consecutive.
+        if (! $muzeNedeli && in_array(self::DEN_NEDELE, $koupeneDny, true)) {
+            $denDto = new AccommodationDayOutputDto();
+            $denDto->day = self::DEN_NEDELE;
+            $denDto->name = self::NAZVY_DNU[self::DEN_NEDELE];
+            $dto->days[] = $denDto;
+        }
+
+        $viditelneDny = array_column($dto->days, 'day');
+        // Rezervace pro orgy jede na `User::isOrganizer()` — tentýž okruh rolí jako merch
+        // (`RoleMeaning::anyIsOrganizer`). Legacy `jeOrganizator()` zná jen 5 rolí z 15,
+        // takže vypravěč by dosáhl na tričko, ale ne na postel.
+        $jeOrganizator = $user->isOrganizer();
+        $dostupnost = $this->availability->proZakaznika($user, $year, $jeOrganizator);
+
+        $sleepingBagsOnly = $this->accommodationRules->sleepingBagsOnly($legacyUser);
+        $ubytovani = $this->productRepository->findByTag(ProductTagCode::UBYTOVANI);
+
+        // Turning the restriction on with nothing tagged would hide accommodation entirely
+        // instead of narrowing it, and it would look like the section is simply broken.
+        if ($sleepingBagsOnly && ! $this->existujeSpacak($ubytovani)) {
+            throw new \RuntimeException('Ubytování je omezené na spacáky, ale žádný spacák není v nabídce (produkt se značkou "' . ProductTagCode::SPACAK->value . '").');
+        }
+
+        foreach ($ubytovani as $product) {
+            if ($sleepingBagsOnly && ! $product->hasTag(ProductTagCode::SPACAK->value)) {
+                continue;
+            }
+
+            $typDto = $this->toTypeDto(
+                $product, $user, $year, $viditelneDny, $prodejUkoncen, $koupeneVarianty,
+                $dostupnost, $jeOrganizator,
+            );
+            if ($typDto !== null) {
+                $dto->types[] = $typDto;
+            }
+        }
+
+        return $dto;
+    }
+
+    /**
+     * @param int[]                                                     $viditelneDny
+     * @param int[]                                                     $koupeneVarianty
+     * @param array<string,\App\Service\AccommodationNightAvailability> $dostupnost      volno per kód varianty
+     */
+    private function toTypeDto(
+        Product $product,
+        User $user,
+        int $year,
+        array $viditelneDny,
+        bool $prodejUkoncen,
+        array $koupeneVarianty,
+        array $dostupnost,
+        bool $jeOrganizator,
+    ): ?AccommodationTypeOutputDto {
+        // The nights absorbed by the day-variant migration are still products in their own
+        // right — the legacy form reads them — but they carry no variants and must not
+        // appear as rows of their own here.
+        $variants = $product->getVariants();
+        if ($variants->isEmpty()) {
+            return null;
+        }
+
+        $discount = $this->discountCalculator->calculateDiscount($product, $user, $year);
+
+        $typDto = new AccommodationTypeOutputDto();
+        $typDto->productId = (int) $product->getId();
+        $typDto->name = $product->getName();
+        $typDto->description = $product->getDescription();
+        $typDto->price = $product->getCurrentPrice();
+        $typDto->discountedPrice = $discount['finalPrice'];
+
+        foreach ($variants as $variant) {
+            $den = $variant->getAccommodationDay();
+            if ($den === null || ! in_array($den, $viditelneDny, true) || $variant->getId() === null) {
+                continue;
+            }
+
+            $noc = $dostupnost[(string) $variant->getCode()] ?? null;
+            $zbyva = $noc?->remaining;
+            $vyprodano = $noc !== null && $noc->soldOut();
+            $nabizeno = $noc !== null && $noc->offered;
+            $rezervovano = $noc?->reservedForOrganizers;
+
+            $koupeno = in_array($variant->getId(), $koupeneVarianty, true);
+
+            $cell = new AccommodationCellOutputDto();
+            $cell->variantId = $variant->getId();
+            $cell->selected = $koupeno;
+            $cell->remaining = $zbyva;
+            $cell->soldOut = $vyprodano;
+            // Jen když rezerva NENÍ uvnitř `remaining`. Organizátorovi se neodečítá, takže
+            // poslat ji i zvlášť by znamenalo „zbývá 5 (+5 org)" u pěti postelí.
+            $cell->reservedForOrganizers = $jeOrganizator ? null : $rezervovano;
+            // A night already booked stays selectable, otherwise the customer could not
+            // drop it — the same reason the legacy grid never disables a ticked box.
+            $cell->locked = ! $koupeno && ($prodejUkoncen || $vyprodano || ! $nabizeno);
+
+            $typDto->nights[$den] = $cell;
+        }
+
+        return $typDto->nights === [] ? null : $typDto;
+    }
+
+    /**
+     * @param Product[] $ubytovani
+     */
+    private function existujeSpacak(array $ubytovani): bool
+    {
+        foreach ($ubytovani as $product) {
+            if ($product->hasTag(ProductTagCode::SPACAK->value)) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    /**
+     * @return array{0: int[], 1: int[]} variant ids and day indexes of this year's
+     *                                   accommodation the customer already holds
+     */
+    private function koupeneNoci(User $user, int $year): array
+    {
+        $varianty = [];
+        $dny = [];
+        foreach ($this->orderItemRepository->findByCustomerAndYear($user, $year) as $item) {
+            $variant = $item->getVariant();
+            if ($variant === null || $variant->getAccommodationDay() === null) {
+                continue;
+            }
+            // The tag check is what actually selects accommodation: meals carry
+            // accommodation_day too (it doubles as "which festival day"), so filtering on
+            // that alone would count a bought breakfast as a booked night.
+            if (! $variant->getProduct()->hasTag(ProductTagCode::UBYTOVANI->value)) {
+                continue;
+            }
+            $varianty[] = (int) $variant->getId();
+            $dny[] = (int) $variant->getAccommodationDay();
+        }
+
+        return [$varianty, array_unique($dny)];
+    }
+}

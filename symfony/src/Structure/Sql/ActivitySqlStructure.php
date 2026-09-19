@@ -9,9 +9,6 @@ namespace App\Structure\Sql;
  */
 class ActivitySqlStructure
 {
-    /**
-     * @see Activity
-     */
     public const _table = 'akce_seznam';
 
     /**
@@ -70,6 +67,11 @@ class ActivitySqlStructure
     public const nedava_bonus = 'nedava_bonus';
 
     /**
+     * @see Activity::$turnajKolo
+     */
+    public const turnaj_kolo = 'turnaj_kolo';
+
+    /**
      * @see Activity::$rok
      */
     public const rok = 'rok';
@@ -95,6 +97,16 @@ class ActivitySqlStructure
     public const team_kapacita = 'team_kapacita';
 
     /**
+     * @see Activity::$tymSmazatPoExpiraci
+     */
+    public const tym_smazat_po_expiraci = 'tym_smazat_po_expiraci';
+
+    /**
+     * @see Activity::$description
+     */
+    public const popis = 'popis';
+
+    /**
      * @see Activity::$shortDescription
      */
     public const popis_kratky = 'popis_kratky';
@@ -115,9 +127,9 @@ class ActivitySqlStructure
     public const patri_pod = 'patri_pod';
 
     /**
-     * @see Activity::$location
+     * @see Activity::$mainLocation
      */
-    public const lokace = 'lokace';
+    public const id_hlavni_lokace = 'id_hlavni_lokace';
 
     /**
      * @see Activity::$type
@@ -125,12 +137,12 @@ class ActivitySqlStructure
     public const typ = 'typ';
 
     /**
+     * @see Activity::$tournament
+     */
+    public const id_turnaje = 'id_turnaje';
+
+    /**
      * @see Activity::$status
      */
     public const stav = 'stav';
-
-    /**
-     * @see Activity::$description
-     */
-    public const popis = 'popis';
 }

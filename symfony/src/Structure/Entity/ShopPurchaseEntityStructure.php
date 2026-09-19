@@ -25,6 +25,16 @@ class ShopPurchaseEntityStructure
     public const cenaNakupni = 'cenaNakupni';
 
     /**
+     * @see ShopPurchase::$poplatek
+     */
+    public const poplatek = 'poplatek';
+
+    /**
+     * @see ShopPurchase::$puvodniCena
+     */
+    public const puvodniCena = 'puvodniCena';
+
+    /**
      * @see ShopPurchase::$datum
      */
     public const datum = 'datum';

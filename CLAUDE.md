@@ -3,6 +3,19 @@
 ## Project Overview
 GameCon is a Czech PHP web application for managing the largest Czechoslovak non-computer games festival. It's a comprehensive event management system with both public web interface and admin panel.
 
+## Směr: postupný přechod na Symfony
+
+**Dlouhodobý cíl je přepsat celou aplikaci do Symfony.** Legacy custom MVC v `model/`, `web/` a `admin/` je dočasný stav, ne cílový — nový kód patří do `symfony/`.
+
+**Karta 1274 (přepis e-shopu) ale nepřepisuje všechno.** Její rozsah je **e-shop, objednávky a finance** — tedy `Shop`, `shop_predmety`, `shop_nakupy`, `Cenik`, `Finance` a to, co na nich visí. Aktivity, přihlášky, program, role ani admin obecně do ní nepatří, i když se jich přepis dotkne přes sdílené tabulky nebo pohledy.
+
+**Co z toho plyne pro rozhodování:**
+
+- Když nová vrstva potřebuje něco z legacy (práva uživatele, bonus za aktivity, systémové nastavení), **není správné to hned přepisovat** — je to mimo rozsah. Vezmi to z legacy a nech to tam.
+- Dočasná vazba nového kódu na legacy je v pořádku, pokud je **jednosměrná a zdokumentovaná** (nový kód čte z legacy, ne naopak). Typicky: `DiscountCalculation` dostává práva zvenčí, místo aby si je uměla načíst sama.
+- Duplikovat logiku, aby se člověk vyhnul volání do legacy, je **horší** než to volání — dvě implementace téhož se rozejdou.
+- Naopak přepis něčeho, co s e-shopem nesouvisí, „když už jsem u toho", rozšiřuje rozsah karty a zdržuje ji. Zapiš to jako nález a nech to být.
+
 ## Technology Stack
 - **Language**: PHP 8.2+ with strict typing
 - **Database**: MariaDB 10.11
@@ -21,7 +34,10 @@ GameCon is a Czech PHP web application for managing the largest Czechoslovak non
                   Migration files should be prefixed with `date +"%Y-%m-%d-%H%M%S"` (e.g., `2026-03-07-161642_some-description.php`)
 /nastaveni/     - Configuration files
 /vendor/        - Composer dependencies
+/symfony/var/   - Symfony cache, logs, temporary files (NOT /var/)
 ```
+
+**Important:** This project does NOT have a `/var/` directory. Use `/symfony/var/` for temporary scripts and files.
 
 ## Key Model Components
 - `Uzivatel/` - User management, roles, payments
@@ -39,6 +55,12 @@ vendor/bin/phpunit
 
 # Database access (use dbal:run-sql to ensure correct DB)
 ./bin-docker/php ./bin/console dbal:run-sql 'SELECT 1'  # Execute SQL query in current DB
+
+# Symfony console (from project root)
+bin/console <command>                    # Run Symfony console commands
+bin/console doctrine:mapping:info        # Check entity mappings
+bin/console doctrine:schema:validate     # Validate database schema
+bin/console cache:clear                  # Clear cache
 
 # Access points
 # http://localhost/web - Public site
@@ -88,6 +110,26 @@ One MariaDB instance on the `gamecon.cz` host serves production, beta, and every
 - Czech banking integration (QR payments)
 - Timezone: Europe/Prague
 - Currency handling for Czech crowns
+
+### Code language: English in the new stack
+
+**All code under `symfony/` — and anything Symfony, Doctrine or API Platform related —
+must be entirely in English: comments, docblocks, class/method/property names, variable
+names, constants, test names.** The same goes for the new frontend in `ui/src/`, which
+talks to that API. No exceptions for "just a short note".
+
+The only Czech that belongs there is text that is *data*, not code: user-facing strings
+rendered in the UI, error messages shown to participants, CSS class names shared with the
+legacy templates (`shopVstupne_castka`), database identifiers (`shop_predmety`,
+`cena_nakupni`), and domain terms quoted inside an English sentence — writing
+`the voluntary entry fee ("dobrovolné vstupné")` is right, because the Czech term is what
+the rest of the system calls it.
+
+**Legacy code stays as it is.** `model/`, `web/`, `admin/` and `migrace/` are Czech
+throughout; a lone English comment there is the odd one out, so match the surrounding file.
+The dividing line is the stack, not the date — a new function added to
+`web/moduly/prihlaska/prihlaska.php` is legacy code and stays Czech, even when it is part
+of new-stack work.
 
 ## Testing Notes
 - Tests use temporary database setup
@@ -241,11 +283,211 @@ outage). In that case a direct push to `main` is acceptable to get the
 fix live immediately; open a follow-up PR / note afterwards for the
 record. Outside that narrow case — even for a "tiny" or "obviously
 safe" change — use a PR.
+## API Platform: Entities vs DTOs
+
+**Rule: Bare entities with `#[ApiResource]` are for admin CRUD only.** All other API endpoints — public listings, specialized admin endpoints (e.g. online prezence), user-facing features (e.g. meal matrix, cart) — must use dedicated **DTOs** with custom providers/processors.
+
+**Why:** Serialization groups on entities create cascading complexity (public vs admin vs edge cases). DTOs are explicit about what data they expose and decouple the API contract from the entity structure.
+
+**Pattern:**
+```php
+// ✅ GOOD: Entity has only admin CRUD operations
+#[ApiResource(
+    operations: [
+        new GetCollection(security: "is_granted('ROLE_ADMIN')"),
+        new Get(security: "is_granted('ROLE_ADMIN')"),
+        new Post(security: "is_granted('ROLE_ADMIN')"),
+        // ...
+    ],
+)]
+class Product { }
+
+// ✅ GOOD: Public/specialized endpoints use DTOs + providers
+#[ApiResource(
+    operations: [
+        new GetCollection(
+            uriTemplate: '/cart/meals',
+            output: MealProductOutputDto::class,
+            provider: MealProductsProvider::class,
+            security: "is_granted('PUBLIC_ACCESS')",
+        ),
+    ],
+)]
+class CartResource { }
+
+// ❌ BAD: Entity exposed publicly with serialization groups
+#[ApiResource(
+    operations: [
+        new GetCollection(security: "is_granted('PUBLIC_ACCESS')"),
+    ],
+    normalizationContext: ['groups' => ['product:list']],
+)]
+class Product { }
+```
+
+## Doctrine Entity Guidelines
+
+### Timestamp Columns
+- **New timestamp columns** (created_at, updated_at, etc.) should ALWAYS use `DateTimeImmutable`
+- **Legacy timestamp columns** may use `DateTime` for backward compatibility, but new code should prefer `DateTimeImmutable`
+- **Rationale**: `DateTimeImmutable` prevents accidental mutations and is safer for value objects
+
+**Example:**
+```php
+// ✅ GOOD: New timestamp columns
+#[ORM\Column(name: 'created_at', type: Types::DATETIME_IMMUTABLE, nullable: false)]
+private \DateTimeImmutable $createdAt;
+
+#[ORM\Column(name: 'updated_at', type: Types::DATETIME_IMMUTABLE, nullable: true)]
+private ?\DateTimeImmutable $updatedAt = null;
+
+public function __construct()
+{
+    $this->createdAt = new \DateTimeImmutable();
+}
+
+// ❌ BAD: Using mutable DateTime for new columns
+#[ORM\Column(name: 'created_at', type: Types::DATETIME_MUTABLE)]
+private \DateTime $createdAt;
+```
+
+### Timestamp Injection (Testability)
+- **Entities MUST NOT create timestamps internally** in business logic methods (except constructors for auto-set fields like `created_at`)
+- **Always accept timestamps as parameters** from outside (e.g., from Clock service, application service, or controller)
+- **Rationale**: Internal timestamp creation (`new \DateTimeImmutable()`) makes testing difficult because you can't control the time
+- **Exception**: Constructors MAY auto-set `created_at` timestamps since they represent object creation time
+
+**Examples:**
+```php
+// ✅ GOOD: Accept timestamp from outside
+public function archive(\DateTimeImmutable $archivedAt): self
+{
+    $this->archivedAt = $archivedAt;
+    return $this;
+}
+
+// Usage with Clock service
+$product->archive($clock->now());
+
+// Testing is easy - inject any timestamp
+$product->archive(new \DateTimeImmutable('2024-01-15 10:00:00'));
+
+// ❌ BAD: Creating timestamp inside entity method
+public function archive(): self
+{
+    $this->archivedAt = new \DateTimeImmutable(); // Hard to test!
+    return $this;
+}
+
+// ✅ GOOD: Constructor auto-set for creation timestamp
+public function __construct()
+{
+    $this->createdAt = new \DateTimeImmutable(); // OK - represents object creation
+}
+```
+
+**Clock Service Pattern:**
+Use Symfony's Clock component for timestamp generation in services:
+```php
+use Symfony\Component\Clock\ClockInterface;
+
+class ProductService
+{
+    public function __construct(
+        private ClockInterface $clock,
+    ) {}
+
+    public function archiveProduct(Product $product): void
+    {
+        $product->archive($this->clock->now());
+        // ... persist
+    }
+}
+```
+
+## Run ECS without a path
+
+**`bin/ecs.sh --fix` with no arguments.** A path as an argument **overrides `withPaths()`** in `ecs.php` and pulls files into formatting that are deliberately kept out of it.
+
+`ecs.php` holds an allow-list: `symfony/src`, `symfony/config`, `tests` and three subdirectories of `model/`. The rest of `model/`, plus `web/` and `admin/`, is out — that is legacy that has not been converted yet. **66 files in `model/` have no `declare(strict_types=1)`** and cannot take one: the `strict: true` set adds it, and a file that relied on loose comparison starts failing.
+
+Concretely (this happened twice): `./bin-docker/docker-bash bin/ecs.sh --fix model/SystemoveNastaveni/` reformatted 15 files, 13 of them untouched by me, and `--fix model/Uzivatel/Finance.php` added `strict_types` to it. The result was **70 failing tests** with `NeznamyTypPredmetu` — an error that looks like a logic defect, not a formatting one. The second time it cost twenty minutes of searching.
+
+**When a file outside the allow-list needs formatting** (typically your own edit in legacy), do it by hand following the surrounding code. Not through ECS.
+
+**How to spot that it happened:** after formatting, `git status` shows more changed files than you edited. That is the signal to revert immediately (`git checkout -- <files>`) and reapply the edit — not to investigate it through the tests.
+
+## Migrations contain only plain values
+
+**A migration must not call application code.** No `Pravo::KOSTKA_ZDARMA`, no enums, no `use App\...`, no validation through a service class — only literals and SQL. Whatever the migration needs to know has to be written inside it.
+
+**Why:** a migration is a *historical record* — "at this moment, put these rows in the database". But it replays on every fresh database, so on every test run, and still will in a year. If it references live code it is not fixed: rename a constant or tighten a validator and **a historical migration starts failing**, even though the data it wanted to insert is fine. Something that happened long ago breaks because of a change somewhere else.
+
+Concretely (this happened in `2026-09-04-100013_seed-discount-rules.php`, both fixed): `Pravo::KOSTKA_ZDARMA` instead of `1003` means that if the constant's value ever changes, the old migration replays with the *new* number — silently rewriting history. And `DiscountParameters::fromArray()` inside the migration meant a typo in an unrelated enum brought down the build of the entire test database.
+
+**Watch out for the tempting argument:** "but that validation catches the error immediately" is the symptom, not the benefit — a migration that an edit to some other enum can break is coupled to that enum and should not be.
+
+**How to do it:** insert the number or string directly and say in a comment what it means (`1003 = Pravo::KOSTKA_ZDARMA`). If the value later diverges from the constant, that is correct — a historical row keeps what was true then. Validation belongs where a human writes data (an admin form), not where history is replayed.
+
+**Exception:** helper functions defined inside the migration file itself (`$columnExists = fn (...) => ...`) are fine — they are not dependencies on outside code.
+
+## Dead code detection (PHPStan)
+
+`phpstan.dist.neon` enables `shipmonk/dead-code-detector`. It reports uncalled methods,
+unread properties, unused constants and enum cases in `symfony/src/`. It runs in CI as
+part of `bin/phpstan.sh`, so **new dead code fails the build**.
+
+**Grep cannot answer "does anything call this?".** A method may be reached through DI, an
+attribute, Twig, routing or reflection, where its name appears nowhere in the code. The
+detector builds its graph from the compiled Symfony container
+(`symfony/var/cache/dev/App_KernelDevDebugContainer.xml`), so it sees those paths too.
+When asking "is this dead?", ask it, not grep.
+
+**The baseline may only shrink.** `phpstan-baseline.neon` holds 289 findings that existed
+when the detector was switched on — it is a list of debt, not configuration. Never add a
+new finding to it by regenerating the baseline to "fix" a red CI. Either delete the code,
+or (when it is called in a way the detector cannot see) add a targeted `ignoreErrors`
+entry with a comment saying *why*. Regenerating the whole baseline is legitimate only
+after a bulk cleanup, when the count drops.
+
+Suppressions already in place (each with its reason written in `phpstan.dist.neon`):
+generated `Structure/`, response DTO properties (read by the API Platform serializer
+through reflection), entity accessors, and controller actions routed from `routes.yaml`.
+
+**Mind the legacy ↔ Symfony boundary.** PHPStan analyses only `symfony/`, so the detector
+cannot see calls from `model/`, `web/` or `admin/`. A Symfony class called only from
+legacy therefore looks dead (`Cenik` in `model/` calls `App\Discount\DiscountCalculation`
+— which does not exist as far as the detector is concerned). **Before deleting anything on
+the strength of a finding, check the legacy tree with grep too.** The reverse does not
+apply: what the detector calls alive is alive.
 
 ## SQL Coding Style
+
+### Table Naming Convention
+- **New tables use SINGULAR names**: `product_tag`, `product_discount`, `shop_order` (NOT plurals)
+- **Legacy tables may use plural/Czech names**: `shop_predmety`, `uzivatele_hodnoty`, `akce_seznam` (keep as-is for backward compatibility)
+- **Rationale**: Singular names are clearer, match entity class names better, and avoid confusion about what "one row" represents
+- **Examples**:
+  ```sql
+  -- ✅ GOOD: New tables with singular English names
+  CREATE TABLE product_tag (...)
+  CREATE TABLE product_discount (...)
+  CREATE TABLE shop_order (...)
+
+  -- ❌ BAD: New tables with plural English names
+  CREATE TABLE product_tags (...)      -- NO
+  CREATE TABLE product_discount (...) -- NO
+  CREATE TABLE shop_order (...)       -- NO
+
+  -- ✅ ACCEPTABLE: Legacy tables (don't rename)
+  shop_predmety, uzivatele_hodnoty, akce_seznam
+  ```
+
+### Query Style
 - **No table aliases**: Use full table names in queries whenever possible
 - **No single-letter aliases**: Avoid cryptic aliases like `t`, `n`, `a`
 - **Descriptive names**: If aliases are necessary, use descriptive human-readable names
+- **Applies to both raw SQL AND Doctrine DQL/QueryBuilder** — use `product`, `tag`, `variant` instead of `p`, `t`, `v`
 - **Example**:
   ```sql
   -- ❌ BAD: Single-letter aliases
@@ -253,6 +495,13 @@ safe" change — use a PR.
 
   -- ✅ GOOD: Full table names or descriptive aliases
   UPDATE `novinky` LEFT JOIN `texty` ON texty.`id` = novinky.`text` SET novinky.`text_md` = texty.`text`;
+  ```
+  ```php
+  // ❌ BAD: Doctrine QueryBuilder
+  $this->createQueryBuilder('p')->innerJoin('p.tags', 't')->where('t.code = :tag')
+
+  // ✅ GOOD: Doctrine QueryBuilder
+  $this->createQueryBuilder('product')->innerJoin('product.tags', 'tag')->where('tag.code = :tag')
   ```
 
 ## SQL Query Parameter Preprocessing

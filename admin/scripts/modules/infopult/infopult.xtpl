@@ -648,40 +648,26 @@
 
   <div class="infopult-grid--item infopult-grid--item-ubytování aBox">
     <h3>Ubytování</h3>
-    <form method="post" class="clearfix">
-      <table>
-        <tr>
-          <td>Pokoj:</td>
-          <td> {pokoj}</td>
-        </tr>
-        <tr>
-          <td>Spolubydlící:</td>
-          <td>
-            {spolubydlici}
-          </td>
-        </tr>
-        <tr>
-          <td>Ubytování:</td>
-          <td>{ubytovani}</td>
-        </tr>
-        <!-- begin:nechceUbytovaniInfo -->
-        <tr>
-          <td>Nechce ubytování:</td>
-          <td>{nechceUbytovani}</td>
-        </tr>
-        <!-- end:nechceUbytovaniInfo -->
-        <tr>
-          <td colspan="2">
-            Zrušit jiné ubytování než neděli může pouze šéf Infa.
-          </td>
-        </tr>
-        <tr>
-          <td colspan="2">{ubytovaniTabulka}</td>
-        </tr>
-      </table>
+    <table>
+      <tr>
+        <td>Pokoj:</td>
+        <td> {pokoj}</td>
+      </tr>
+      <tr>
+        <td>Spolubydlící:</td>
+        <td>
+          {spolubydlici}
+        </td>
+      </tr>
+      <tr>
+        <td>Ubytování:</td>
+        <td>{ubytovani}</td>
+      </tr>
+    </table>
 
-      <input type="submit" name="zpracujUbytovani" value="Uložit" class="submit-btn">
-    </form>
+    <!-- begin:ubytovaniMrizka -->
+    <div id="preact-ubytovani" data-customer-id="{idUbytovanehoUzivatele}">Ubytování se načítá ...</div>
+    <!-- end:ubytovaniMrizka -->
 
     {status}
   </div>
@@ -727,10 +713,7 @@
     <h3>Jídlo uživatele</h3>
     Zrušit jídlo je možné jenom oproti vrácené stravence. Při objednání jídla je naopak potřeba předat stravenku (a
     zkontrolovat stav financí). Snídaně nabízíme jen organizátorům a vypravěčům.<br><br>
-    <form method="post" class="clearfix">
-      {jidloHtml}
-      <input type="submit" name="zpracujJidlo" value="Uložit" class="submit-btn">
-    </form>
+    <div id="preact-jidlo" data-customer-id="{idUbytovanehoUzivatele}">Jídlo se načítá ...</div>
     <!-- begin:odkazStravenky -->
     <button type="button" id="otevritStravenky" class="submit-btn" style="margin-top: 8px;">Tisk stravenek</button>
 
