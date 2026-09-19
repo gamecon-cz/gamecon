@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace Gamecon\Accounting;
 
+use Gamecon\Uzivatel\Finance;
+
 readonly class PersonalAccount
 {
     /**
@@ -25,9 +27,11 @@ readonly class PersonalAccount
     /**
      * Returns total monetary sum of all transactions.
      */
-    public function getTotal(): int
+    public function getTotal(): float
     {
-        return array_sum(array_map(fn (Transaction $transaction) => $transaction->getTotalAmount(), $this->transactions));
+        return Finance::zaokouhli(
+            array_sum(array_map(fn (Transaction $transaction) => $transaction->getTotalAmount(), $this->transactions)),
+        );
     }
 
     /**
@@ -64,7 +68,7 @@ readonly class PersonalAccount
         return $result . '</table>';
     }
 
-    private function transactionSumReducer(int $carry, Transaction $item): int
+    private function transactionSumReducer(float $carry, Transaction $item): float
     {
         foreach ($item->getSplits() as $split) {
             $carry += $split->getAmount();
@@ -79,7 +83,7 @@ readonly class PersonalAccount
         $categoryTotal = $this->totalForCategory($account, $category);
 
         $result = '<tr><td><b>' . $categoryName . '</b></td><td><b>'
-            . ($negatePrice ? -1 : 1) * $categoryTotal
+            . self::castkaProVypis(($negatePrice ? -1 : 1) * $categoryTotal)
             . '</b></td></tr>';
 
         foreach ($groupedSplits as $groupedSplit) {
@@ -88,14 +92,25 @@ readonly class PersonalAccount
                 $description .= ' ' . $groupedSplit['count'] . '×';
             }
             $result = $result . '<tr class="objednavky--polozka"><td>' . $description . '</td><td>'
-                . ($negatePrice ? -1 : 1) * $groupedSplit['amount']
+                . self::castkaProVypis(($negatePrice ? -1 : 1) * $groupedSplit['amount'])
                 . '</td></tr>';
         }
 
         return $result;
     }
 
-    private function totalForCategory(self $account, TransactionCategoryEnum $category): int
+    /**
+     * Záporná nula se v PHP vypíše jako „-0", takže prázdná kategorie nesmí jít do výstupu
+     * přímo — vznikne z ní násobením -1.
+     */
+    private static function castkaProVypis(float $castka): string
+    {
+        $zaokrouhlena = Finance::zaokouhli($castka);
+
+        return (string) ($zaokrouhlena === 0.0 ? 0 : $zaokrouhlena);
+    }
+
+    private function totalForCategory(self $account, TransactionCategoryEnum $category): float
     {
         $total = 0;
         foreach ($account->getTransactions() as $transaction) {
@@ -111,7 +126,7 @@ readonly class PersonalAccount
     }
 
     /**
-     * @return array<int, array{description: string, amount: int, count: int}>
+     * @return array<int, array{description: string, amount: float, count: int}>
      */
     private function groupedSplitsByCategory(self $account, TransactionCategoryEnum $category, string $categoryName): array
     {
@@ -125,7 +140,7 @@ readonly class PersonalAccount
                 if ($split->getDescription() === $categoryName) {
                     continue;
                 }
-                $key = $split->getDescription() . "\0" . $split->getAmount();
+                $key = $split->getDescription() . "\0" . self::castkaProVypis($split->getAmount());
                 if (! isset($groupedSplits[$key])) {
                     $groupedSplits[$key] = [
                         'description' => $split->getDescription(),
