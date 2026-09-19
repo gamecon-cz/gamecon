@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace Gamecon\Tests\Shop;
 
 use Gamecon\Cas\DateTimeGamecon;
-use Gamecon\Pravo;
 use Gamecon\Shop\PodtypPredmetu;
 use Gamecon\Shop\Shop;
 use Gamecon\Shop\ShopUbytovani;
