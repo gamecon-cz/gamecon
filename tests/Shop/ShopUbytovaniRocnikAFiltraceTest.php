@@ -9,7 +9,6 @@ use Gamecon\Shop\PodtypPredmetu;
 use Gamecon\Shop\Shop;
 use Gamecon\Shop\ShopUbytovani;
 use Gamecon\Shop\StavPredmetu;
-use Gamecon\Shop\TypPredmetu;
 use Gamecon\SystemoveNastaveni\SystemoveNastaveni;
 use Gamecon\Tests\Db\AbstractTestDb;
 use Gamecon\XTemplate\XTemplate;
@@ -107,72 +106,6 @@ INSERT INTO shop_nakupy SET
     datum = NOW()
 SQL,
             [$uzivatel->id(), $idPredmetu, ROCNIK],
-        );
-    }
-
-    private function pridelPravo(\Uzivatel $uzivatel, int $idPrava): \Uzivatel
-    {
-        $unique = uniqid('', false);
-        $idRole = -random_int(100000, 999999);
-        dbQuery(<<<SQL
-INSERT IGNORE INTO r_prava_soupis(id_prava, jmeno_prava, popis_prava)
-VALUES ($0, $1, 'test')
-SQL,
-            [
-                0 => $idPrava,
-                1 => 'test_pravo_' . $idPrava,
-            ],
-        );
-        dbQuery(<<<SQL
-INSERT INTO role_seznam(id_role, kod_role, nazev_role, popis_role, rocnik_role, typ_role, vyznam_role)
-VALUES ($0, $1, $2, '', -1, 'trvala', '')
-SQL,
-            [
-                0 => $idRole,
-                1 => 'TEST_UBYTOVANI_' . $idPrava . '_' . $unique,
-                2 => 'Test role ' . $unique,
-            ],
-        );
-        dbQuery(
-            'INSERT INTO prava_role(id_role, id_prava) VALUES ($0, $1)',
-            [$idRole, $idPrava],
-        );
-        dbQuery(
-            'INSERT INTO uzivatele_role(id_uzivatele, id_role, posadil) VALUES ($0, $1, $0)',
-            [$uzivatel->id(), $idRole],
-        );
-
-        \Uzivatel::smazCache();
-
-        return \Uzivatel::zIdUrcite($uzivatel->id());
-    }
-
-    /**
-     * @return int[]
-     */
-    private function idsUlozenehoUbytovani(\Uzivatel $uzivatel): array
-    {
-        return array_map('intval', dbOneArray(<<<SQL
-SELECT shop_nakupy.id_predmetu
-FROM shop_nakupy
-JOIN shop_predmety_s_typem ON shop_predmety_s_typem.id_predmetu = shop_nakupy.id_predmetu
-WHERE shop_nakupy.id_uzivatele = $0
-  AND shop_nakupy.rok = $1
-  AND shop_predmety_s_typem.typ = $2
-ORDER BY shop_predmety_s_typem.ubytovani_den
-SQL,
-            [$uzivatel->id(), ROCNIK, TypPredmetu::UBYTOVANI],
-        ));
-    }
-
-    private function uzivatelNechceUbytovani(\Uzivatel $uzivatel): bool
-    {
-        return (bool) dbOneCol(<<<SQL
-SELECT nechce_ubytovani
-FROM uzivatele_hodnoty
-WHERE id_uzivatele = $0
-SQL,
-            [$uzivatel->id()],
         );
     }
 
