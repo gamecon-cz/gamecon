@@ -211,12 +211,12 @@ class AccommodationImportTest extends AbstractDatabaseKernelTestCase
     }
 
     /**
-     * Import hlásí „Změněno N záznamů" — musí tedy poznat, že podruhé už se nic nezměnilo.
-     * Legacy to vracelo jako počet zapsaných řádků, tady stačí ano/ne.
+     * Import hlásí „Změněno N záznamů" a sčítá k tomu návratové hodnoty zápisů — počítají
+     * se **datové** řádky, ne logy. Podruhé už není co měnit, takže nula.
      *
      * @test
      */
-    public function opakovanyZapisTychzNociNehlasiZmenu(): void
+    public function vratiPocetZmenenychRadku(): void
     {
         $ucastnik = $this->ucastnik();
         [$prvni] = $this->vytvorNoc(0);
@@ -225,8 +225,34 @@ class AccommodationImportTest extends AbstractDatabaseKernelTestCase
         $poprve = $this->import()->ulozNociUcastnika($ucastnik->getId(), [$prvni, $druha], self::ROK, false);
         $podruhe = $this->import()->ulozNociUcastnika($ucastnik->getId(), [$prvni, $druha], self::ROK, false);
 
-        self::assertTrue($poprve, 'První zápis mění stav');
-        self::assertFalse($podruhe, 'Druhý zápis už nemá co měnit');
+        // Tři: dvě noci a řádek `uzivatele_hodnoty`, kde se u čerstvého účastníka mění
+        // `ubytovan_s` z NULL na prázdný řetězec. Podruhé už se nemění nic.
+        self::assertSame(3, $poprve);
+        self::assertSame(0, $podruhe, 'Podruhé se nemění nic');
+    }
+
+    /**
+     * Spolubydlící je taky datový řádek (`uzivatele_hodnoty`), ale log změny osobních údajů
+     * se do počtu nepočítá.
+     *
+     * @test
+     */
+    public function zmenaSpolubydlicihoSePocitaJakoJedenRadek(): void
+    {
+        $ucastnik = $this->ucastnik();
+        [$prvni] = $this->vytvorNoc(0);
+        [$druha] = $this->vytvorNoc(1);
+        $this->import()->ulozNociUcastnika($ucastnik->getId(), [$prvni, $druha], self::ROK, false);
+
+        $zmen = $this->import()->ulozNociUcastnika(
+            $ucastnik->getId(),
+            [$prvni, $druha],
+            self::ROK,
+            false,
+            'Pepa z Depa',
+        );
+
+        self::assertSame(1, $zmen, 'Noci beze změny, mění se jen spolubydlící');
     }
 
     /**
