@@ -385,6 +385,79 @@ class AccommodationWriterTest extends AbstractDatabaseKernelTestCase
         self::assertSame(1, $this->pocetNoci($customer, 0));
     }
 
+    /**
+     * Tovární účastník má `ubytovan_s` i `nechce_ubytovani` vyplněné náhodně. Test tvrdí,
+     * co přesně se zapsalo do logu, takže potřebuje známý výchozí stav obou sloupců.
+     */
+    private function vychoziUbytovaniUcastnika(User $customer): void
+    {
+        $this->connection()->executeStatement(
+            "UPDATE uzivatele_hodnoty SET ubytovan_s = 'Karel Starý', nechce_ubytovani = 0
+             WHERE id_uzivatele = :customer",
+            [
+                'customer' => $customer->getId(),
+            ],
+        );
+    }
+
+    /**
+     * @return list<array{sloupec: string, stara_hodnota: ?string, nova_hodnota: ?string}>
+     */
+    private function logOsobnichUdaju(User $customer): array
+    {
+        // Čte se přes legacy spojení, protože tam log zapisuje `Uzivatel` — z Doctrine
+        // spojení by nepotvrzené řádky nebyly vidět.
+        /** @var list<array{sloupec: string, stara_hodnota: ?string, nova_hodnota: ?string}> $radky */
+        $radky = dbFetchAll(
+            'SELECT sloupec, stara_hodnota, nova_hodnota
+             FROM uzivatele_hodnoty_log
+             WHERE id_uzivatele = $0
+             ORDER BY sloupec',
+            [$customer->getId()],
+        );
+
+        return $radky;
+    }
+
+    /**
+     * Spolubydlící je osobní údaj a jeho změna patří do auditu — na tom stojí dohledávání,
+     * kdo komu co přepsal.
+     */
+    public function testRoommateChangeIsLogged(): void
+    {
+        $this->pripravUbytovani();
+        $customer = $this->ucastnik();
+        $this->vychoziUbytovaniUcastnika($customer);
+
+        $this->writer()->save($customer, $this->idNoci(0, 1), self::ROK, false, 'Pepa z Depa');
+
+        self::assertSame(
+            [
+                [
+                    'sloupec'       => 'ubytovan_s',
+                    'stara_hodnota' => 'Karel Starý',
+                    'nova_hodnota'  => 'Pepa z Depa',
+                ],
+            ],
+            $this->logOsobnichUdaju($customer),
+        );
+    }
+
+    /**
+     * Zápis beze změny hodnoty není změna, takže se nelogují ani „změny", které nenastaly.
+     */
+    public function testUnchangedRoommateIsNotLogged(): void
+    {
+        $this->pripravUbytovani();
+        $customer = $this->ucastnik();
+        $this->vychoziUbytovaniUcastnika($customer);
+        $this->writer()->save($customer, $this->idNoci(0, 1), self::ROK, false, 'Pepa z Depa');
+
+        $this->writer()->save($customer, $this->idNoci(0, 1), self::ROK, false, 'Pepa z Depa');
+
+        self::assertCount(1, $this->logOsobnichUdaju($customer));
+    }
+
     public function testUnknownVariantIsRefused(): void
     {
         $this->pripravUbytovani();
