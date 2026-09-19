@@ -4,23 +4,34 @@ Jeden řádek na rozdíl. **Rozdíl není automaticky chyba** — ale nezařazen
 
 Klasifikace: **záměrné** (víme a chceme) · **chyba** (na opravu) · **nezjištěno** (dořešit)
 
+**Žádný nález už není `nezjištěno`.** Co z nich zbývá udělat, se sleduje v issues, ne tady:
+
+| issue | z nálezu | co |
+|---|---|---|
+| [#1118](https://github.com/gamecon-cz/gamecon/issues/1118) | N6 | obecná výjimka a stack trace putují klientovi jako HTTP 500 |
+| [#1138](https://github.com/gamecon-cz/gamecon/issues/1138) | N10 | infopult padá na 500 u účastníka s nenulovým zůstatkem (vada legacy) |
+| [#1150](https://github.com/gamecon-cz/gamecon/issues/1150) | N5 | zápis ubytování a vstupného nekontroluje stažený produkt |
+| [#1151](https://github.com/gamecon-cz/gamecon/issues/1151) | N13 | zamčená matice jídla neřekne proč |
+| [#1152](https://github.com/gamecon-cz/gamecon/issues/1152) | N13 | zrušená snídaně nejde vrátit při různých termínech |
+| [#1153](https://github.com/gamecon-cz/gamecon/issues/1153) | M1 | `TRETI_VLNA_KDY` je na rok 2024 |
+
 | # | scénář | co se liší | A (legacy) | B (nový) | klasifikace |
 |---|---|---|---|---|---|
 | N1 | setup | anonymní nákupy přeřazené z uživatele | `id_uzivatele = 1` (SYSTEM), 24 řádků | `id_uzivatele = 0` (ANONYM) | **záměrné** — migrace `anonymous-buyer`; `porovnej.sh` to srovnává |
 | N2 | setup | uživatel ANONYM (id 0) | není | je | **záměrné** — tatáž migrace |
 | N3 | 1 | den před otevřením registrace | „Přihlašování bude spuštěno 17. 9. 2026 v 20:26." | totéž, znak po znaku | **shoda** — účastník se dozví, kdy se vrátit |
-| N4 | 2 | mřížka ubytování: legacy 0 buněk, nový 32 | nevykreslí | vykreslí | **nezjištěno** — `ubytovani_den` je prázdný už v původním dumpu, migrace za to nemůže; viz rozbor |
+| N4 | 2 | mřížka ubytování: legacy 0 buněk, nový 32 | nevykreslí | vykreslí | **uzavřeno** — ani chyba, ani migrace; proč legacy nevykreslila, zůstává bez hypotézy (viz rozbor) |
 | N6 | 6 | nákup jídla po termínu vrací **HTTP 500 se stack trace** | klik vůbec nenabídne | klik projde, server odpoví 500 | **chyba** — logika je správná, doručení ne; viz [issue #1118](https://github.com/gamecon-cz/gamecon/issues/1118) |
-| N7 | 6 | po termínu zůstávají v e-shopu aktivní ovládací prvky | jen „nechci ubytování" | 2 checkboxy ubytování + 6 jídla | **nezjištěno** — souvisí s N6, ale je to otázka na GUI |
-| N8 | 5 | **brigádník platí za jídlo plnou cenu** | Oběd/Večeře 110, Snídaně 150 | 140 / 180 — jako člověk bez role | **chyba** — chybí sleva 30 Kč (`SLEVA_ORGU_NA_JIDLO_CASTKA`) |
-| N9 | 5 | předmět „Nicknack" (80 Kč) nová větev vůbec nenabízí | nabízí u všech rolí | chybí u všech rolí | **nezjištěno** — ověřit, zda je to záměr |
-| N5 | 2 | `findByTag()` neaplikuje `nabizet_do` | — | ubytování i jídlo se nabízí i po termínu produktu | **nezjištěno** — u ubytování záměr, u jídla k potvrzení |
+| N7 | 6 | po termínu zůstávají v e-shopu aktivní ovládací prvky | jen „nechci ubytování" | 2 checkboxy ubytování + 6 jídla | **opraveno** — zámek doplněn spolu s N13 (`CartService::prodejSekceUkoncen()`) |
+| N8 | 5 | **brigádník platí za jídlo plnou cenu** | Oběd/Večeře 110, Snídaně 150 | 140 / 180 — jako člověk bez role | **neplatí** — sleva funguje, chyba měření (viz rozbor) |
+| N9 | 5 | předmět „Nicknack" (80 Kč) nová větev vůbec nenabízí | nabízí u všech rolí | chybí u všech rolí | **neplatí** — termín kategorie merche, netýká se konkrétního předmětu |
+| N5 | 2 | `findByTag()` neaplikuje `nabizet_do` | — | ubytování i jídlo se nabízí i po termínu produktu | **částečně opraveno** — jídlo vyřešeno v `MealProductsProvider`; zbytek [issue #1150](https://github.com/gamecon-cz/gamecon/issues/1150) |
 
 ## Mimo e-shop, ale zjištěno cestou
 
 | # | co | detail | co s tím |
 |---|---|---|---|
-| M1 | `TRETI_VLNA_KDY` je `2024-07-01 20:24` | ostatní vlny mají 2026; třetí vlna je o dva ročníky pozadu | **nezjištěno** — netýká se e-shopu, ale vypadá jako zapomenuté nastavení. Ověřit s pořadateli, případně karta na Trello |
+| M1 | `TRETI_VLNA_KDY` je `2024-07-01 20:24` | ostatní vlny mají 2026; třetí vlna je o dva ročníky pozadu | **k rozhodnutí pořadatelů** — [issue #1153](https://github.com/gamecon-cz/gamecon/issues/1153) |
 
 ## Poznámky k metodice
 
@@ -537,7 +548,7 @@ uzávěrce je zboží objednané u dodavatele a nevrací se.
 sám zrušil (krytou hotelem). To není nový prodej, takže termín neplatí — jinak by účastník
 po termínu přišel o položku objednanou včas.
 
-Hláška `objednavkyZmrazeny` zatím nepřenesena — matice je zamčená, ale neřekne proč.
+Hláška `objednavkyZmrazeny` zatím nepřenesena — matice je zamčená, ale neřekne proč: [issue #1151](https://github.com/gamecon-cz/gamecon/issues/1151).
 
 **Code review našel dvě díry, obě potvrzené proti kódu a opravené:**
 
@@ -552,6 +563,8 @@ Hláška `objednavkyZmrazeny` zatím nepřenesena — matice je zamčená, ale n
 Obě opravy mají test, který na původním kódu padá (ověřeno mutací zpět).
 
 ### Otevřené, nesouvisí s touto opravou
+
+Sledováno v [issue #1152](https://github.com/gamecon-cz/gamecon/issues/1152).
 
 Když se `UBYTOVANI_LZE_OBJEDNAT_A_MENIT_DO_DNE` nastaví dřív než termín jídla, stane se
 snídaně zrušená `cancelCovered()` na pultu **nevratnou** — `BreakfastCanceller::restore()`
