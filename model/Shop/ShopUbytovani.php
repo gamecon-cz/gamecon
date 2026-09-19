@@ -7,7 +7,6 @@ use Gamecon\Cas\DateTimeGamecon;
 use Gamecon\SystemoveNastaveni\SystemoveNastaveni;
 use Chyba;
 use Gamecon\Pravo;
-use Gamecon\Uzivatel\Registrace;
 use Uzivatel;
 use Gamecon\XTemplate\XTemplate;
 use Gamecon\Shop\SqlStruktura\PredmetSqlStruktura as Sql;
@@ -433,7 +432,6 @@ SQL,
         }
     }
 
-    private Registrace $registrace;
     private            $mozneDny        = []; // pouze ubytování, které si může uživatel koupit
     private            $mozneTypy       = []; // asoc. pole [typ] => předmět sloužící jako vzor daného typu
     private            $ubytovanPoDnech = []; // všechna ubytování
@@ -459,7 +457,6 @@ SQL,
             // else z neděle na pondělí už není veřejně nabízené ubytování https://trello.com/c/rP47BsUD/940-%C3%BApravy-p%C5%99ihl%C3%A1%C5%A1ky-mastercard-2023
         }
         $this->seradTypyUbytovani();
-        $this->registrace = new Registrace($this->systemoveNastaveni, $ubytovany);
     }
 
     private function seradTypyUbytovani(): void
