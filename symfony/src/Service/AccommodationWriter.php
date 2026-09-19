@@ -45,7 +45,7 @@ class AccommodationWriter
         int $year,
         bool $maySingleNight,
         ?string $roommate = null,
-        bool $declined = false,
+        ?bool $declined = false,
         bool $sleepingBagsOnly = false,
         bool $mayOverbook = false,
         bool $jeOrganizator = false,
@@ -75,7 +75,12 @@ class AccommodationWriter
                     $zmenenychRadku += $this->addNight($customer, $variant, $year, $mayOverbook, $jeOrganizator);
                 }
             }
-            $zmenenychRadku += $this->saveAccommodationDetails($customer, $year, $roommate, $declined && $variants === []);
+            $zmenenychRadku += $this->saveAccommodationDetails(
+                $customer,
+                $year,
+                $roommate,
+                $declined === null ? null : ($declined && $variants === []),
+            );
             $zmenenychRadku += count($this->breakfastCanceller->cancelCovered($customer, $year));
             $this->connection->commit();
         } catch (\Throwable $error) {
@@ -93,27 +98,59 @@ class AccommodationWriter
      * Written to the order, where the answer belongs to its year, and to the account columns
      * as well, because the legacy form still reads those. The second write goes when it does.
      *
+     * @param bool|null $declined `null` = volající o téhle volbě nic neví a nechává ji být
+     *
      * @return int kolik řádků `uzivatele_hodnoty` se opravdu změnilo — MySQL vrací 0, když
      *             je hodnota stejná, což je přesně „nic se nezměnilo"
      */
-    private function saveAccommodationDetails(User $customer, int $year, ?string $roommate, bool $declined): int
+    private function saveAccommodationDetails(User $customer, int $year, ?string $roommate, ?bool $declined): int
     {
         $roommate = $roommate === null ? null : (trim($roommate) ?: null);
 
         $order = $this->cartService->getOrCreateCart($customer);
         $order->setRoommate($roommate);
-        $order->setAccommodationDeclined($declined);
+        if ($declined !== null) {
+            $order->setAccommodationDeclined($declined);
+        }
         $this->entityManager->flush();
 
-        return (int) $this->connection->executeStatement(
-            'UPDATE uzivatele_hodnoty SET ubytovan_s = :spolubydlici, nechce_ubytovani = :nechce
-             WHERE id_uzivatele = :customer',
+        $puvodni = $this->connection->fetchAssociative(
+            'SELECT ubytovan_s, nechce_ubytovani FROM uzivatele_hodnoty WHERE id_uzivatele = :customer',
             [
-                'spolubydlici' => $roommate ?? '',
-                'nechce'       => (int) $declined,
-                'customer'     => $customer->getId(),
+                'customer' => $customer->getId(),
+            ],
+        ) ?: [];
+
+        $noveHodnoty = [
+            'ubytovan_s' => $roommate ?? '',
+        ];
+        if ($declined !== null) {
+            $noveHodnoty['nechce_ubytovani'] = (int) $declined;
+        }
+
+        $nastaveni = implode(', ', array_map(
+            static fn (string $sloupec): string => $sloupec . ' = :' . $sloupec,
+            array_keys($noveHodnoty),
+        ));
+        $zmenenychRadku = (int) $this->connection->executeStatement(
+            'UPDATE uzivatele_hodnoty SET ' . $nastaveni . ' WHERE id_uzivatele = :customer',
+            $noveHodnoty + [
+                'customer' => $customer->getId(),
             ],
         );
+
+        // Spolubydlící i „nechci ubytování" jsou osobní údaje, takže jejich změna patří do
+        // auditu. Loguje je legacy `Uzivatel`, aby do `uzivatele_hodnoty_log` pořád zapisovalo
+        // jediné místo; vlastní tabulka nemá cizí klíč, takže druhé spojení tu nepřekáží.
+        \Uzivatel::zalogujZmenuOsobnichUdaju(
+            $customer->getId(),
+            $noveHodnoty,
+            $puvodni,
+            null,
+            'ubytovani',
+        );
+
+        return $zmenenychRadku;
     }
 
     /**
