@@ -49,7 +49,7 @@ class AccommodationWriter
         bool $sleepingBagsOnly = false,
         bool $mayOverbook = false,
         bool $jeOrganizator = false,
-    ): void {
+    ): int {
         $variants = $this->loadVariants($variantIds, $sleepingBagsOnly);
 
         // Only judge the nights when they actually change. The legacy admin screens can book a
@@ -64,14 +64,19 @@ class AccommodationWriter
 
         $this->connection->beginTransaction();
         try {
-            $kept = $this->removeUnselectedNights($customer, $year, array_keys($variants));
+            // Počítají se jen datové řádky. Snapshot zrušených snídaní ani log změn osobních
+            // údajů se nezapočítává — volající hlásí „změněno N záznamů" a evidence o změně
+            // není změna.
+            $zmenenychRadku = 0;
+            [$kept, $smazano] = $this->removeUnselectedNights($customer, $year, array_keys($variants));
+            $zmenenychRadku += $smazano;
             foreach ($variants as $variantId => $variant) {
                 if (! in_array($variantId, $kept, true)) {
-                    $this->addNight($customer, $variant, $year, $mayOverbook, $jeOrganizator);
+                    $zmenenychRadku += $this->addNight($customer, $variant, $year, $mayOverbook, $jeOrganizator);
                 }
             }
-            $this->saveAccommodationDetails($customer, $year, $roommate, $declined && $variants === []);
-            $this->breakfastCanceller->cancelCovered($customer, $year);
+            $zmenenychRadku += $this->saveAccommodationDetails($customer, $year, $roommate, $declined && $variants === []);
+            $zmenenychRadku += count($this->breakfastCanceller->cancelCovered($customer, $year));
             $this->connection->commit();
         } catch (\Throwable $error) {
             $this->connection->rollBack();
@@ -80,13 +85,18 @@ class AccommodationWriter
         }
 
         $this->entityManager->clear();
+
+        return $zmenenychRadku;
     }
 
     /**
      * Written to the order, where the answer belongs to its year, and to the account columns
      * as well, because the legacy form still reads those. The second write goes when it does.
+     *
+     * @return int kolik řádků `uzivatele_hodnoty` se opravdu změnilo — MySQL vrací 0, když
+     *             je hodnota stejná, což je přesně „nic se nezměnilo"
      */
-    private function saveAccommodationDetails(User $customer, int $year, ?string $roommate, bool $declined): void
+    private function saveAccommodationDetails(User $customer, int $year, ?string $roommate, bool $declined): int
     {
         $roommate = $roommate === null ? null : (trim($roommate) ?: null);
 
@@ -95,7 +105,7 @@ class AccommodationWriter
         $order->setAccommodationDeclined($declined);
         $this->entityManager->flush();
 
-        $this->connection->executeStatement(
+        return (int) $this->connection->executeStatement(
             'UPDATE uzivatele_hodnoty SET ubytovan_s = :spolubydlici, nechce_ubytovani = :nechce
              WHERE id_uzivatele = :customer',
             [
@@ -238,14 +248,20 @@ class AccommodationWriter
      *
      * @return int[] variant ids the customer already had and keeps
      */
+    /**
+     * @param int[] $keepVariantIds
+     *
+     * @return array{0: int[], 1: int} ponechané varianty a počet smazaných řádků
+     */
     private function removeUnselectedNights(User $customer, int $year, array $keepVariantIds): array
     {
         $held = $this->heldNights($customer, $year);
 
+        $smazano = 0;
         $toRemove = array_diff($held, $keepVariantIds);
         if ($toRemove !== []) {
             $kusu = $this->pocetKusu($customer, $year, array_values($toRemove));
-            $this->connection->executeStatement(
+            $smazano = (int) $this->connection->executeStatement(
                 'DELETE FROM shop_nakupy
                  WHERE id_uzivatele = :customer AND rok = :year AND variant_id IN (:variantIds)',
                 [
@@ -261,7 +277,7 @@ class AccommodationWriter
             $this->capacityManager->adjustStock($kusu, +1);
         }
 
-        return array_values(array_intersect($held, $keepVariantIds));
+        return [array_values(array_intersect($held, $keepVariantIds)), $smazano];
     }
 
     /**
@@ -276,7 +292,7 @@ class AccommodationWriter
         int $year,
         bool $mayOverbook,
         bool $jeOrganizator,
-    ): void {
+    ): int {
         $product = $variant->getProduct();
         $discount = $this->discountCalculator->calculateDiscount($product, $customer, $year);
         $order = $this->cartService->getOrCreateCart($customer);
@@ -341,5 +357,7 @@ class AccommodationWriter
         $this->capacityManager->adjustStock([
             (int) $variant->getId() => 1,
         ], -1);
+
+        return $vlozeno;
     }
 }
