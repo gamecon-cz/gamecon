@@ -7,18 +7,19 @@ namespace Gamecon\Accounting;
 class TransactionSplit
 {
     /**
-     * Positive amount means INCREASE in USER's balance, negative decrease
+     * Positive amount means INCREASE in USER's balance, negative decrease.
+     * Float, because payments arrive from the bank in hellers.
      */
-    private int $amount;
+    private float $amount;
     private string $description;
 
-    public function __construct(int $amount, string $description)
+    public function __construct(float $amount, string $description)
     {
         $this->amount = $amount;
         $this->description = $description;
     }
 
-    public function getAmount(): int
+    public function getAmount(): float
     {
         return $this->amount;
     }
