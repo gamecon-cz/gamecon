@@ -167,6 +167,35 @@ SQL,
     }
 
     /**
+     * Import chytá `Chyba` zvlášť: takový řádek se odroluje, zapíše se do chyb a **jede se
+     * dál**. Cokoli jiného spadne do `catch (\Throwable)`, které výjimku přehodí a zabije
+     * celý import. Převod na `AccommodationWriter` (ten hází `RuntimeException`) proto musí
+     * typ výjimky přeložit, jinak jeden špatný řádek shodí celý soubor.
+     *
+     * @test
+     */
+    public function chybaValidaceNociJeChybaNeRuntimeException(): void
+    {
+        $ucastnik = $this->ucastnik();
+        $kodTypu = 'JEDNANOC' . strtoupper(substr(uniqid('', false), -6));
+        $ctvrtek = $this->vytvorNoc($kodTypu, DateTimeGamecon::PORADI_HERNIHO_DNE_CTVRTEK);
+
+        $zachycena = null;
+        try {
+            // Jedna noc bez práva na výjimku — legacy pravidlo „nejméně dvě noci".
+            ShopUbytovani::ulozObjednaneUbytovaniUcastnika([$ctvrtek], $ucastnik, false);
+        } catch (\Throwable $throwable) {
+            $zachycena = $throwable;
+        }
+
+        self::assertInstanceOf(
+            \Chyba::class,
+            $zachycena,
+            'Import spoléhá na to, že validace hází Chyba — jinak se nepřeskočí řádek, ale spadne celý import',
+        );
+    }
+
+    /**
      * @test
      */
     public function idsPredmetuSeDohledajiPodleKoduTypuADnu(): void
