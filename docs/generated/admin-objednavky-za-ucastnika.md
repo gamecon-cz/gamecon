@@ -52,7 +52,7 @@ server nemá (`UbytovaniMřížka.tsx:63-70`). Bez payloadu tahle logika nefungu
 
 | | Uživatel | Infopult |
 |---|---|---|
-| vykreslení | `Shop::ubytovaniHtml()` | mřížka (`UbytovaniMřížka.tsx`); legacy renderer smazán |
+| vykreslení | mřížka (`UbytovaniMřížka.tsx`) | mřížka (`UbytovaniMřížka.tsx`) — legacy renderery obou stran smazány |
 | spolubydlící | edituje (1. argument `true`) | **jen zobrazuje** seznam lidí na pokoji, needituje |
 | „nechce ubytování" | jen zobrazuje `ano`/`ne` | jen zobrazuje `ano`/`ne` |
 | přes kapacitu | tlačítko jen pro `jeSefInfopultu()` | nenabízí |
@@ -184,17 +184,27 @@ by se muselo rozplétat.
 
 ## Co se po převodu nedá smazat
 
-`UbytovaniTabulka` **smazána** — nikdo ji nevykresloval. `Shop::ubytovaniHtml()` ale volá i
-účastnický storefront (`web/moduly/prihlaska/prihlaska.php`), takže ta zůstává.
+`UbytovaniTabulka` **smazána** — nikdo ji nevykresloval. `Shop::ubytovaniHtml()` už
+neexistuje vůbec, odešla s legacy storefrontem; účastnická přihláška dnes vykresluje
+mřížku (`prihlaska.php` → `prihlaskaPreactSekceHtml('preact-ubytovani', …)`).
 
 Její snídaňový test nebyl zrušen, ale přepsán na novou cestu:
 `AccommodationWriterTest::testHotelNightCancelsTheNextMorningNotItsOwn()` tvrdí totéž
 pravidlo (noc kryje ráno následujícího dne) přes `BreakfastCanceller`, ne přes HTML atribut
 smazané šablony.
 
-**Zůstává k dořešení:** `web/soubory/blackarrow/shop/shop-jidlo.js` čte `data-snidane-dny`,
-které teď nikdo negeneruje. Funguje dál díky vlastnímu fallbacku (`name` + 1), ale je to
-mrtvá větev čekající na úklid.
+Legacy shopové JS (`shop-jidlo.js`, `shop-ubytovani.js`, `shop-svrsky.js`,
+`shop-vstupne.js`) je **smazané** — obsluhovalo formuláře, které zmizely se storefrontem.
+
+**`.less` soubory ve stejném adresáři ale smazat nejde**, i když stylují mrtvé třídy:
+`web/index.php:96` je bere globem `perfectcache('soubory/blackarrow/*/*.less')`, takže se
+do stylopisu kompiluje **každý** soubor v adresáři, aniž by ho kdokoli jmenoval. Grep proto
+u stylů nic nedokazuje. Totéž platí pro obrázky vedle nich (`checkbox.svg`, `kostka.png`,
+`radio*.svg`) — odkazuje je zkompilovaný `.less`, ne smazané JS.
+
+Rozdíl proti JS je v tom, jak se načítá: skripty se registrují ručně přes
+`Modul::pridejJsSoubor()` a v celém repu to dělá jediné místo
+(`web/moduly/aktivity.php` pro `zachovej-scroll.js`). Co se nezaregistruje, se nenačte.
 
 ## Proč netřeba migrace dat
 
