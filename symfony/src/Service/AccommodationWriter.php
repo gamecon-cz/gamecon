@@ -154,6 +154,29 @@ class AccommodationWriter
     }
 
     /**
+     * Varianta má přednost před předmětem, stejně jako u merche v `CapacityManager` —
+     * import e-shopu zapisuje rezervace právě na varianty.
+     *
+     * Ne přes `ProductVariant::getEffectiveReservedForOrganizers()`: ten se vrací k rodiči,
+     * kterým je u ubytování typ pokoje, ne ta noc.
+     */
+    private function rezervovanoProOrganizatory(ProductVariant $variant): int
+    {
+        return (int) ($this->connection->fetchOne(
+            'SELECT COALESCE(
+                    product_variant.reserved_for_organizers,
+                    (SELECT reserved_for_organizers FROM shop_predmety
+                     WHERE shop_predmety.kod_predmetu = product_variant.code),
+                    0
+                )
+             FROM product_variant WHERE product_variant.id = :varianta',
+            [
+                'varianta' => $variant->getId(),
+            ],
+        ) ?: 0);
+    }
+
+    /**
      * @return int[] accommodation variant ids this customer holds for the year
      */
     private function heldNights(User $customer, int $year): array
@@ -378,16 +401,10 @@ class AccommodationWriter
                 'variantName'  => $variant->getName(),
                 'variantCode'  => $variant->getCode(),
                 'presKapacitu' => (int) $mayOverbook,
-                // Účastník nesmí do odložených postelí, organizátor ano — stejné pravidlo
-                // jako u merche v `CapacityManager::purchase()`.
+                // Účastník nesmí do odložených postelí, organizátor ano.
                 'rezervovanoStranou' => $jeOrganizator
                     ? 0
-                    : (int) ($this->connection->fetchOne(
-                        'SELECT reserved_for_organizers FROM shop_predmety WHERE kod_predmetu = :kod',
-                        [
-                            'kod' => $variant->getCode(),
-                        ],
-                    ) ?: 0),
+                    : $this->rezervovanoProOrganizatory($variant),
             ],
         );
 

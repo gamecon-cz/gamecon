@@ -191,8 +191,13 @@ class ProductRepository extends ServiceEntityRepository
         }
 
         $rows = $this->getEntityManager()->getConnection()->fetchAllAssociative(
-            'SELECT kod_predmetu, kusu_vyrobeno, stav, archived_at, reserved_for_organizers
-             FROM shop_predmety WHERE kod_predmetu IN (:codes)',
+            'SELECT shop_predmety.kod_predmetu, shop_predmety.kusu_vyrobeno, shop_predmety.stav,
+                    shop_predmety.archived_at,
+                    COALESCE(product_variant.reserved_for_organizers,
+                             shop_predmety.reserved_for_organizers) AS reserved_for_organizers
+             FROM shop_predmety
+             LEFT JOIN product_variant ON product_variant.code = shop_predmety.kod_predmetu
+             WHERE shop_predmety.kod_predmetu IN (:codes)',
             [
                 'codes' => $codes,
             ],
@@ -210,10 +215,9 @@ class ProductRepository extends ServiceEntityRepository
                 // that column here would lock nights the legacy form still sells.
                 'nabizeno' => $row['archived_at'] === null
                     && (int) $row['stav'] === ProductStateEnum::PUBLIC->value,
-                // Čte se z řádku té noci, ne z rodičovského produktu varianty: migrace
-                // den-variant přeparentovala všechny noci na jednoho vlastníka, takže
-                // `ProductVariant::getEffectiveReservedForOrganizers()` by u ubytování
-                // vracelo rezervaci cizí noci.
+                // Varianta má přednost před řádkem noci, stejně jako v zapisovači — import
+                // e-shopu zapisuje rezervace na varianty. Rodičovský produkt se schválně
+                // nečte: u ubytování je to typ pokoje, ne ta noc.
                 'rezervovano' => $row['reserved_for_organizers'] === null
                     ? null
                     : (int) $row['reserved_for_organizers'],
