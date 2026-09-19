@@ -34,9 +34,6 @@ class Shop
     public const STAV_PODPULTOVY  = StavPredmetu::PODPULTOVY;
     public const STAV_POZASTAVENY = StavPredmetu::POZASTAVENY;
 
-    public const PN_JIDLO      = 'cShopJidlo';          // post proměnná pro jídlo
-    public const PN_JIDLO_ZMEN = 'cShopJidloZmen';      // post proměnná indikující, že se má jídlo aktualizovat
-
     /** https://cs.wikipedia.org/wiki/Gama_korekce pro nelineární rozsah vstupneho */
 
     private static $skoly = [
@@ -298,8 +295,6 @@ SQL,
                 $fronta = &$this->jidlo['jidla'][$den][$druh];
             } elseif ($typ == self::UBYTOVANI) {
                 $r['nabizet'] = true;
-                /** protože se to řeší v @see ShopUbytovani::totoUbytovaniVyrazeno
-                 */
                 $fronta = &$this->ubytovaniPole[];
             } elseif ($typ == self::TRICKO) {
                 $smiModre = $this->zakaznik->maPravo(Pravo::MUZE_OBJEDNAVAT_MODRA_TRICKA);
@@ -340,7 +335,6 @@ SQL,
             $this->zakaznik,
             $this->objednatel,
             KontextZobrazeni::vytvorZGlobals(),
-            $systemoveNastaveni,
         ); // náhrada reprezentace polem za objekt
     }
 
@@ -613,30 +607,6 @@ SQL,
         return $this->systemoveNastaveni->prodejUbytovaniDo()->format('j. n.');
     }
 
-    /**
-     * Upraví objednávku z pole id $stare na pole $nove
-     * @param array<int|string> $stare
-     * @param array<int|string> $nove
-     */
-    private function zmenObjednavku(
-        array $stare,
-        array $nove,
-    ): void {
-        $nechce = array_diff($stare, $nove);
-        $chceNove = array_diff($nove, $stare);
-        // přírustky
-        foreach ($chceNove as $noveId) {
-            $this->prodat((int)$noveId, 1, false);
-        }
-        // mazání
-        if ($nechce) {
-            dbQueryS(
-                'DELETE FROM shop_nakupy WHERE id_uzivatele = $1 AND rok = $2 AND id_predmetu IN($3)',
-                [$this->zakaznik->id(), $this->systemoveNastaveni->rocnik(), $nechce],
-            );
-        }
-    }
-
     public function zrusNakupPredmetu(
         $idPredmetu,
         int $pocet,
@@ -658,43 +628,6 @@ SQL,
         $mysqli = dbQuery($query);
 
         return dbAffectedOrNumRows($mysqli);
-    }
-
-    /** Zpracuje formulář s jídlem */
-    public function zpracujJidlo(): void
-    {
-        if (!isset($_POST[self::PN_JIDLO_ZMEN])) {
-            return;
-        }
-        $ma = array_keys($this->jidlo['jidloObednano'] ?? []);
-        $chce = array_keys(post(self::PN_JIDLO)
-            ?: []);
-
-        $dnyHotelovychPokoju = $this->ubytovani->dnyHotelovychPokoju();
-        if ($dnyHotelovychPokoju) {
-            // ubytování den N (noc) → snídaně den N+1 (ráno)
-            $dnySnidaniHotelu = array_map(fn(int $den) => $den + 1, $dnyHotelovychPokoju);
-            $chce = array_filter($chce, function ($idPredmetu) use ($dnySnidaniHotelu) {
-                $jidla = $this->jidlo['jidla'] ?? [];
-                foreach ($jidla as $den => $druhy) {
-                    foreach ($druhy as $druh => $jidlo) {
-                        if ((int)$jidlo['id_predmetu'] === (int)$idPredmetu
-                            && Jidlo::jeToSnidane($druh)
-                            && in_array((int)$den, $dnySnidaniHotelu, true)
-                        ) {
-                            return false;
-                        }
-                    }
-                }
-                return true;
-            });
-        }
-
-        $this->zmenObjednavku($ma, $chce);
-
-        // pojistka: smazat snídaně v ceně hotelu i po zpracování jídla,
-        // pro případ že by se nějaká proklouzla (JS selhání, obejití formuláře apod.)
-        ShopUbytovani::zrusSnidaneProHotelovePokoje($this->zakaznik);
     }
 
     private function cenaVybraneOpakovaneVybiranePolozky(array $polozky, int $idPredmetu): ?float
