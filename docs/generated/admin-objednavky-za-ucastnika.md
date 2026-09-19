@@ -70,9 +70,9 @@ DTO to už řeší (`null` = nesahat, `''` = smazat), ale UI to musí respektova
 
 ### 4. Přeprodej kapacity
 
-V legacy o přeprodeji fakticky rozhodovalo **UI, ne zápis**: obě obrazovky volaly
-`zpracujUbytovani()` s vypnutou kontrolou kapacity, takže `ulozObjednaneUbytovaniUcastnika()` ji
-nehlídala nikomu — tlačítko se přitom nabízelo jen šéfovi infopultu. Ručně poskládaný POST tedy
+V legacy o přeprodeji fakticky rozhodovalo **UI, ne zápis**: obě obrazovky volaly zápis
+s vypnutou kontrolou kapacity, takže ji nehlídal nikomu — tlačítko se přitom nabízelo jen
+šéfovi infopultu. (Ty legacy metody už neexistují, zápis dělá `AccommodationWriter`.) Ručně poskládaný POST tedy
 přeplnil noc komukoliv; legacy si toho bylo vědomo (`// není zabezpečeno`).
 
 **Vyřešeno:** `AccommodationWriter::save()` bere `$mayOverbook` a `SetCustomerAccommodationProcessor`
@@ -208,7 +208,7 @@ Rozdíl proti JS je v tom, jak se načítá: skripty se registrují ručně pře
 
 ## Proč netřeba migrace dat
 
-`AccommodationWriter::ulozUdajeOUbytovani()` zapisuje dvojmo — do Doctrine objednávky i do
+`AccommodationWriter::saveAccommodationDetails()` zapisuje dvojmo — do Doctrine objednávky i do
 `uzivatele_hodnoty.ubytovan_s` / `nechce_ubytovani`. Legacy čtení tedy zůstávají platná po celou
 dobu převodu. Je to záměr, ne shoda okolností, a proto v plánu žádný backfill není.
 
