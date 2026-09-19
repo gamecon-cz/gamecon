@@ -2,6 +2,7 @@
 
 use Gamecon\Pravo;
 use Gamecon\Shop\ShopUbytovani;
+use Gamecon\SystemoveNastaveni\SystemoveNastaveni;
 use Gamecon\XTemplate\XTemplate;
 use OpenSpout\Reader\XLSX\Reader as XlsxReader;
 use Gamecon\Uzivatel\SqlStruktura\UzivateleHodnotySqlStruktura as UzivatelSql;
@@ -32,6 +33,12 @@ if (!is_readable($vstupniSoubor)) {
 }
 
 $zapsanoZmenPerUcastnik = 0;
+
+/** @var \App\Service\AccommodationImport $ubytovaniImport */
+$ubytovaniImport = SystemoveNastaveni::zGlobals()
+    ->kernel()
+    ->getContainer()
+    ->get(\App\Service\AccommodationImport::class);
 
 // Report ubytování je vždy XLSX; použijeme přímo XLSX reader místo hádání podle MIME
 // (mime_content_type je nespolehlivý – u přeuloženého Excelu vrací i application/zip apod.
@@ -154,17 +161,25 @@ while ($rowIterator->valid()) {
                 // dohledáme podle něj + dnů, nezávisle na názvu předmětu.
                 $idsUbytovani = ShopUbytovani::dejIdsPredmetuUbytovaniPodleKoduTypu($jedinyTyp, $dny);
             }
-            $zapsanoZmenVTransakci += ShopUbytovani::ulozObjednaneUbytovaniUcastnika(
-                $idsUbytovani,
-                $ucastnik,
-                false,
-                povolitJednuNoc: $ucastnik->maPravo(Pravo::UBYTOVANI_MUZE_OBJEDNAT_JEDNU_NOC),
-            );
-            if ($indexUbytovanS !== null) {
-                $zapsanoZmenVTransakci += ShopUbytovani::ulozSKymChceBytNaPokoji(
-                    trim((string)$radek[$indexUbytovanS]),
-                    $ucastnik,
+            // Noci i spolubydlícího zapisuje Symfony (`AccommodationImport`), aby platila
+            // tatáž pravidla jako v mřížce. Výjimku je nutné přeložit: zapisovač hází
+            // `RuntimeException`, kdežto tahle smyčka chytá `Chyba`, aby se vadný řádek
+            // přeskočil — bez překladu by jeden špatný řádek shodil celý import.
+            try {
+                $zmeneno = $ubytovaniImport->ulozNociUcastnika(
+                    $ucastnik->id(),
+                    $idsUbytovani,
+                    ROCNIK,
+                    $ucastnik->maPravo(Pravo::UBYTOVANI_MUZE_OBJEDNAT_JEDNU_NOC),
+                    $indexUbytovanS !== null
+                        ? trim((string)$radek[$indexUbytovanS])
+                        : null,
                 );
+            } catch (\RuntimeException $vyjimka) {
+                throw new Chyba($vyjimka->getMessage(), 0, $vyjimka);
+            }
+            if ($zmeneno) {
+                $zapsanoZmenVTransakci++;
             }
             if ($indexCisloDokladu !== null) {
                 $cisloDokladu   = trim((string)$radek[$indexCisloDokladu]);
