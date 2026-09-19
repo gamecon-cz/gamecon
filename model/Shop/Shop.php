@@ -660,18 +660,6 @@ SQL,
         return dbAffectedOrNumRows($mysqli);
     }
 
-    /**
-     * Zpracuje část formuláře s ubytováním
-     * @return bool jestli došlo k zpracování dat
-     */
-    public function zpracujUbytovani(
-        bool $vcetneSpolubydliciho = true,
-        bool $hlidatKapacituUbytovani = true,
-        bool $ulozitNechceUbytovani = false,
-    ): bool {
-        return $this->ubytovani->zpracuj($vcetneSpolubydliciho, $hlidatKapacituUbytovani, $ulozitNechceUbytovani);
-    }
-
     /** Zpracuje formulář s jídlem */
     public function zpracujJidlo(): void
     {
