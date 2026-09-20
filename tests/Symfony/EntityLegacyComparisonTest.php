@@ -17,7 +17,8 @@ use App\Entity\Permission;
 use App\Entity\Role;
 use App\Entity\ShopGrid;
 use App\Entity\ShopGridCell;
-use App\Entity\ShopItem;
+use App\Entity\Product;
+use Gamecon\SystemoveNastaveni\SystemoveNastaveni;
 use App\Entity\Tag;
 use App\Entity\User;
 use App\Entity\UserBadge;
@@ -34,7 +35,6 @@ use App\Structure\Entity\PermissionEntityStructure;
 use App\Structure\Entity\RoleEntityStructure;
 use App\Structure\Entity\ShopGridCellEntityStructure;
 use App\Structure\Entity\ShopGridEntityStructure;
-use App\Structure\Entity\ShopItemEntityStructure;
 use App\Structure\Entity\TagEntityStructure;
 use App\Structure\Entity\UserBadgeEntityStructure;
 use App\Structure\Entity\UserEntityStructure;
@@ -62,7 +62,6 @@ use Gamecon\Tests\Factory\PermissionFactory;
 use Gamecon\Tests\Factory\RoleFactory;
 use Gamecon\Tests\Factory\ShopGridCellFactory;
 use Gamecon\Tests\Factory\ShopGridFactory;
-use Gamecon\Tests\Factory\ShopItemFactory;
 use Gamecon\Tests\Factory\TagFactory;
 use Gamecon\Tests\Factory\UserBadgeFactory;
 use Gamecon\Tests\Factory\UserFactory;
@@ -528,48 +527,55 @@ class EntityLegacyComparisonTest extends AbstractTestDb
         $this->assertEquals($symfonyAccommodation->getPokoj(), $legacyData['pokoj']);
     }
 
-    public function testShopItemEntityMatchesLegacyPredmet(): void
+    public function testProductEntityMatchesLegacyPredmet(): void
     {
-        // Create a Symfony entity using factory
-        /** @var ShopItem $symfonyShopItem */
-        $symfonyShopItem = ShopItemFactory::createOne([
-            ShopItemEntityStructure::nazev        => 'Test Předmět ' . uniqid(),
-            ShopItemEntityStructure::kodPredmetu  => 'TEST_KOD_' . strtoupper(uniqid()),
-            ShopItemEntityStructure::cenaAktualni => '199.50',
-            ShopItemEntityStructure::stav         => 1,
-            ShopItemEntityStructure::nabizetDo    => new \DateTime('2024-12-31 23:59:59'),
-            ShopItemEntityStructure::kusuVyrobeno => 100,
-            ShopItemEntityStructure::ubytovaniDen => null,
-            ShopItemEntityStructure::popis        => 'Testovací popis předmětu',
-        ])->_save()->_real();
+        // Produkt zakládáme legacy zápisem a čteme ho oběma vrstvami — právě o shodu těch
+        // dvou pohledů na tentýž řádek tady jde.
+        $nazev = 'Test Předmět ' . uniqid();
+        $kod   = 'TEST_KOD_' . strtoupper(uniqid());
+        dbQuery(
+            "INSERT INTO shop_predmety SET
+                nazev = $0,
+                kod_predmetu = $1,
+                cena_aktualni = '199.50',
+                stav = 1,
+                nabizet_do = '2024-12-31 23:59:59',
+                kusu_vyrobeno = 100,
+                ubytovani_den = NULL,
+                popis = $2",
+            [
+                0 => $nazev,
+                1 => $kod,
+                2 => 'Testovací popis předmětu',
+            ],
+        );
+        $idPredmetu = (int) dbInsertId();
 
-        $symfonyShopItemId = $symfonyShopItem->getId();
-        $this->assertNotNull($symfonyShopItemId);
+        $product = SystemoveNastaveni::zGlobals()->kernel()->getContainer()
+            ->get('doctrine.orm.entity_manager')
+            ->getRepository(Product::class)
+            ->find($idPredmetu);
+        $this->assertNotNull($product, 'Product entity should be found');
 
-        // Fetch the same entity using legacy Predmet
-        $legacyPredmet = Predmet::zId($symfonyShopItemId);
+        $legacyPredmet = Predmet::zId($idPredmetu);
         $this->assertNotNull($legacyPredmet, 'Legacy shop item (predmet) should be found');
 
-        // Compare values using getters and raw data
-        $this->assertEquals($symfonyShopItem->getId(), $legacyPredmet->id());
+        $this->assertEquals($product->getId(), $legacyPredmet->id());
 
-        // Test raw database values
         $legacyData = $legacyPredmet->raw();
-        $this->assertEquals($symfonyShopItem->getNazev(), $legacyData['nazev']);
-        $this->assertEquals($symfonyShopItem->getKodPredmetu(), $legacyData['kod_predmetu']);
-        $this->assertEquals($symfonyShopItem->getCenaAktualni(), $legacyData['cena_aktualni']);
-        $this->assertEquals($symfonyShopItem->getStav(), $legacyData['stav']);
-        $this->assertEquals($symfonyShopItem->getKusuVyrobeno(), $legacyData['kusu_vyrobeno']);
-        $this->assertEquals($symfonyShopItem->getUbytovaniDen(), $legacyData['ubytovani_den']);
-        $this->assertEquals($symfonyShopItem->getPopis(), $legacyData['popis']);
+        $this->assertEquals($product->getName(), $legacyData['nazev']);
+        $this->assertEquals($product->getCode(), $legacyData['kod_predmetu']);
+        $this->assertEquals($product->getCurrentPrice(), $legacyData['cena_aktualni']);
+        $this->assertEquals($product->getState()->value, $legacyData['stav']);
+        $this->assertEquals($product->getProducedQuantity(), $legacyData['kusu_vyrobeno']);
+        $this->assertEquals($product->getAccommodationDay(), $legacyData['ubytovani_den']);
+        $this->assertEquals($product->getDescription(), $legacyData['popis']);
 
-        // Test date field
-        if ($symfonyShopItem->getNabizetDo()) {
-            $this->assertEquals(
-                $symfonyShopItem->getNabizetDo()->format('Y-m-d H:i:s'),
-                $legacyData['nabizet_do'],
-            );
-        }
+        $this->assertNotNull($product->getAvailableUntil());
+        $this->assertEquals(
+            $product->getAvailableUntil()->format('Y-m-d H:i:s'),
+            $legacyData['nabizet_do'],
+        );
     }
 
     public function testLocationEntityMatchesLegacyLokace(): void
