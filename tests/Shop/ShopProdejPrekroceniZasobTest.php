@@ -4,15 +4,12 @@ declare(strict_types=1);
 
 namespace Gamecon\Tests\Shop;
 
-use App\Entity\ShopItem;
 use App\Entity\User;
-use App\Structure\Entity\ShopItemEntityStructure;
 use App\Structure\Entity\UserEntityStructure;
 use Gamecon\Shop\Shop;
 use Gamecon\Shop\StavPredmetu;
 use Gamecon\SystemoveNastaveni\SystemoveNastaveni;
 use Gamecon\Tests\Db\AbstractTestDb;
-use Gamecon\Tests\Factory\ShopItemFactory;
 use Gamecon\Tests\Factory\UserFactory;
 
 class ShopProdejPrekroceniZasobTest extends AbstractTestDb
@@ -22,8 +19,8 @@ class ShopProdejPrekroceniZasobTest extends AbstractTestDb
     // Foundry persists via a separate Doctrine connection; running the test-class init queries
     // inside an open legacy transaction blocks Doctrine's writes (innodb auto-inc lock on
     // uzivatele_hodnoty), so we let init writes auto-commit and reset the test DB at class teardown.
-    // Per-method transaction also conflicts: writes to product_product_tag via legacy PDO get rolled back
-    // while Foundry's Doctrine-side ShopItem insert is already committed, leaving items without a typ tag.
+    // Per-method transaction also conflicts: writes to product_product_tag via legacy PDO get
+    // rolled back while Foundry's Doctrine-side insert is already committed.
     protected static function keepTestClassDbChangesInTransaction(): bool
     {
         return false;
@@ -160,22 +157,34 @@ SQL,
             UserEntityStructure::prijmeni => 'Buyer',
         ])->_save()->_real();
 
-        /** @var ShopItem $shopItem */
-        $shopItem = ShopItemFactory::createOne([
-            ShopItemEntityStructure::nazev        => 'Historický předmět ' . $uniqueId,
-            ShopItemEntityStructure::kodPredmetu  => 'HISTORY_' . strtoupper($uniqueId),
-            ShopItemEntityStructure::cenaAktualni => '100',
-            ShopItemEntityStructure::stav         => StavPredmetu::VEREJNY,
-            ShopItemEntityStructure::nabizetDo    => new \DateTime('+1 day'),
-            ShopItemEntityStructure::kusuVyrobeno => 10,
-            // The shop_predmety_s_typem view derives model_rok from archivedAt
-            // (NULL → current ROCNIK, else YEAR(archived_at)).
-            ShopItemEntityStructure::archivedAt => new \DateTimeImmutable((ROCNIK - 1) . '-12-31 23:59:59'),
-        ])->_save()->_real();
+        // Stejnou cestou jako ostatní fixtures v téhle třídě: přes legacy zápis, aby se
+        // produkt zakládal tak, jak ho prodej opravdu čte.
+        // Pohled `shop_predmety_s_typem` odvozuje `model_rok` z `archived_at`
+        // (NULL → letošní ROCNIK, jinak YEAR(archived_at)), proto je tu loňský rok.
+        $archivovano = (ROCNIK - 1) . '-12-31 23:59:59';
+        $budouci     = date('Y-m-d H:i:s', strtotime('+1 day'));
+        dbQuery(
+            "INSERT INTO shop_predmety SET
+                nazev = $0,
+                kod_predmetu = $1,
+                cena_aktualni = 100,
+                stav = " . StavPredmetu::VEREJNY . ",
+                nabizet_do = $2,
+                kusu_vyrobeno = 10,
+                popis = '',
+                archived_at = $3",
+            [
+                0 => 'Historický předmět ' . $uniqueId,
+                1 => 'HISTORY_' . strtoupper($uniqueId),
+                2 => $budouci,
+                3 => $archivovano,
+            ],
+        );
+        $idPredmetu = (int) dbInsertId();
         dbQuery(
             "INSERT INTO product_product_tag (product_id, tag_id) SELECT $0, id FROM product_tag WHERE code = 'predmet'",
             [
-                0 => $shopItem->getId(),
+                0 => $idPredmetu,
             ],
         );
 
@@ -185,6 +194,6 @@ SQL,
         $this->expectException(\Chyba::class);
         $this->expectExceptionMessage('nelze ho prodávat');
 
-        $shop->prodat($shopItem->getId(), 1);
+        $shop->prodat($idPredmetu, 1);
     }
 }
