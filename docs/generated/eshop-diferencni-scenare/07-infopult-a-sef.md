@@ -132,7 +132,7 @@ neplatí.
 
 ## Průchod prohlížečem (2026-09-18)
 
-Poprvé pouštěno přes Playwright, viz `bin-diff/pw/README.md`.
+Poprvé pouštěno přes Playwright, viz `bin-diff/playwright/README.md`.
 
 ### 7.8 — obrazovka infopultu běží
 
