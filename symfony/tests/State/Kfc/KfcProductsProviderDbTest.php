@@ -16,6 +16,9 @@ use App\Tests\AbstractDatabaseKernelTestCase;
  * Číslo na pultu musí souhlasit s tím, kolik prodej doopravdy pustí. Vynucuje ho
  * `CapacityManager::purchase()` přes `product_variant.remaining_quantity`, takže se čte
  * odtamtud — dopočítávat ho z `kusu_vyrobeno` minus nákupy dávalo jiné číslo.
+ *
+ * Endpoint obsluhuje mřížku pultu i editor mřížek, takže vrací celý katalog: buňka
+ * odkazující na produkt, který by se odfiltroval, by zůstala bez názvu a ceny.
  */
 class KfcProductsProviderDbTest extends AbstractDatabaseKernelTestCase
 {
@@ -104,31 +107,53 @@ class KfcProductsProviderDbTest extends AbstractDatabaseKernelTestCase
         self::assertNull($polozka->remaining);
     }
 
-    public function testArchivniPredmetSeNenabizi(): void
+    public function testArchivniPredmetSeVratiOznaceny(): void
     {
+        // Na starších mřížkách je nakonfigurovaný, takže se posílá — jen označený, ať si
+        // ho editor i mřížka umí odlišit od letošní nabídky.
         $nazev = 'Placka loni ' . uniqid();
         $this->vytvorPredmet($nazev, zbyvaNaVariante: 3, kusuVyrobeno: 3, archivedAt: '2025-12-31 23:59:59');
 
-        self::assertNull($this->najdi($nazev));
+        $polozka = $this->najdi($nazev);
+
+        self::assertNotNull($polozka);
+        self::assertTrue($polozka->archived);
     }
 
-    public function testStazenyPredmetSeNenabizi(): void
+    public function testStazenyPredmetSeVratiTaky(): void
     {
+        // Na živých mřížkách velikostí je 34 buněk odkazujících na stažené produkty —
+        // bez nich by zůstaly bez názvu i ceny. Co je prodejné, rozhoduje prodej.
         $nazev = 'Stažené ' . uniqid();
         $this->vytvorPredmet($nazev, zbyvaNaVariante: 3, kusuVyrobeno: 3, stav: ProductStateEnum::RETIRED);
 
-        self::assertNull($this->najdi($nazev));
+        self::assertNotNull($this->najdi($nazev));
     }
 
-    /**
-     * Pult umí prodat jen jednoznačný předmět — u víc variant `KfcSaleProcessor` prodej
-     * odmítne, takže ho nemá smysl nabízet.
-     */
-    public function testPredmetSVicVariantamiSeNenabizi(): void
+    public function testPredmetSVicVariantamiNeseSveVarianty(): void
     {
         $nazev = 'Tričko ' . uniqid();
         $this->vytvorPredmet($nazev, zbyvaNaVariante: 5, kusuVyrobeno: 5, variant: 3);
 
-        self::assertNull($this->najdi($nazev));
+        $polozka = $this->najdi($nazev);
+
+        self::assertNotNull($polozka);
+        self::assertCount(3, $polozka->variants);
+        // Zásoba produktu nedává smysl, když ji drží každá varianta zvlášť.
+        self::assertNull($polozka->remaining);
+        self::assertSame(5, $polozka->variants[0]->remaining);
+    }
+
+    public function testJednovariantniPredmetNeseSvouVariantu(): void
+    {
+        $nazev = 'Kostka jedna ' . uniqid();
+        $this->vytvorPredmet($nazev, zbyvaNaVariante: 9, kusuVyrobeno: 9);
+
+        $polozka = $this->najdi($nazev);
+
+        self::assertNotNull($polozka);
+        self::assertCount(1, $polozka->variants);
+        self::assertSame(9, $polozka->remaining);
+        self::assertFalse($polozka->archived);
     }
 }

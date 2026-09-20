@@ -6,11 +6,21 @@ import { DefiniceObchod, DefiniceObchodMřížka, DefiniceObchodMřížkaBuňka,
 /**
  * API types matching Symfony KFC DTOs
  */
+type ApiKfcVariant = {
+  id: number,
+  name: string,
+  price: number,
+  // JSON-LD serializer prázdné hodnoty vynechává, takže tady `remaining` vůbec nemusí být.
+  remaining?: number | null,
+};
+
 type ApiKfcProduct = {
   id: number,
   name: string,
   price: number,
-  remaining: number | null,
+  remaining?: number | null,
+  variants?: ApiKfcVariant[],
+  archived?: boolean,
 };
 
 type ApiKfcGrid = {
@@ -98,7 +108,14 @@ export const fetchPředměty = async (): Promise<Předmět[] | null> => {
       název: product.name,
       cena: product.price,
       id: product.id,
-      zbývá: product.remaining,
+      zbývá: product.remaining ?? null,
+      varianty: (product.variants ?? []).map(variant => ({
+        id: variant.id,
+        název: variant.name,
+        cena: variant.price,
+        zbývá: variant.remaining ?? null,
+      })),
+      archivní: product.archived ?? false,
     } as Předmět));
   } catch (error) {
     console.error(error);
@@ -114,6 +131,8 @@ export const fetchProdej = async (objednávky: ObjednávkaPředmět[]): Promise<
   try {
     const items = objednávky.map(objednávka => ({
       productId: objednávka.předmět.id,
+      // U jediné varianty se dopočítá na serveru, u víc jich je povinná.
+      variantId: objednávka.varianta?.id,
       quantity: objednávka.množství,
     }));
 

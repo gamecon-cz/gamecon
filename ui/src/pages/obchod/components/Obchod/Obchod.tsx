@@ -17,8 +17,10 @@ import {
   DefiniceObchodMřížkaBuňka,
   ObjednávkaPředmět,
   Předmět,
+  Varianta,
 } from "../../../../api/obchod/types";
 import { PředmětyContext } from "../../App";
+import { VýběrVarianty } from "../VýběrVarianty/VýběrVarianty";
 import { fetchProdej } from "../../../../api/obchod/endpoints";
 
 /** Ruční optimalizace, nedoporučuju používat pokud neznáš dobře react! */
@@ -31,25 +33,33 @@ const usePředmětyObjednávka = () => {
 
   const předmětyVšechny = useContext(PředmětyContext);
 
-  const předmětPřidej = useFixed((předmětId: number) => {
+  const předmětPřidej = useFixed((předmětId: number, varianta?: Varianta) => {
     setPředmětyObjednávka((předměty) => {
-      const existing = předměty.find((item) => item.předmět.id === předmětId);
       const product = předmětyVšechny.find((product) => product.id === předmětId);
       if (!product) return předměty;
 
-      // Check stock limit (null = unlimited)
+      // Varianta se vybírá jen u předmětu, kde je z čeho — jinak se vezme ta jediná, aby
+      // se do objednávky dostalo to, co prodej odečte.
+      const zvolená = varianta ?? (product.varianty.length === 1 ? product.varianty[0] : undefined);
+
+      const existing = předměty.find(
+        (item) => item.předmět.id === předmětId && item.varianta?.id === zvolená?.id
+      );
+
+      // Zásoba drží varianta, když ji má; `null` znamená neomezeně.
+      const zbývá = zvolená ? zvolená.zbývá : product.zbývá;
       const currentQuantity = existing?.množství ?? 0;
-      if (product.zbývá !== null && currentQuantity >= product.zbývá) {
+      if (zbývá !== null && currentQuantity >= zbývá) {
         return předměty;
       }
 
       if (existing) {
         return předměty.map((item) =>
-          item.předmět.id === předmětId ? { ...item, množství: item.množství + 1 } : item
+          item === existing ? { ...item, množství: item.množství + 1 } : item
         );
       }
 
-      return předměty.concat([{ množství: 1, předmět: product }]);
+      return předměty.concat([{ množství: 1, předmět: product, varianta: zvolená }]);
     });
   });
   const předmětOdeber = useFixed((předmět: Předmět) => {
@@ -142,6 +152,9 @@ export const Obchod: FunctionComponent<TObchodProps> = (props) => {
   const { definice } = props;
 
   const [visible, setVisible] = useState(false);
+  // Předmět, u kterého se právě vybírá varianta; `null` = výběr neběží.
+  const [výběrVarianty, setVýběrVarianty] = useState<Předmět | null>(null);
+  const předmětyVšechny = useContext(PředmětyContext);
 
   const {
     předmětyObjednávka: předměty,
@@ -181,12 +194,19 @@ export const Obchod: FunctionComponent<TObchodProps> = (props) => {
         if (!setMřížka.zpět())
           setVisible(false);
         break;
-      case "předmět":
+      case "předmět": {
+        const předmět = předmětyVšechny.find((x) => x.id === buňka.cilId);
+        // U víc variant se nejdřív vybírá velikost nebo noc — prodej bez ní neprojde.
+        if (předmět && předmět.varianty.length > 1) {
+          setVýběrVarianty(předmět);
+          break;
+        }
         setMřížka.shrnutí();
         předmětPřidej(buňka.cilId);
         break;
+      }
     }
-  }, []);
+  }, [předmětyVšechny]);
 
   const onDalšíPředmět = useCallback(() => {
     setMřížka.výchozí();
@@ -231,7 +251,17 @@ export const Obchod: FunctionComponent<TObchodProps> = (props) => {
         <Overlay onClickOutside={() => setVisible(false)}>
           <div class="shop--container">
             <span class="shop--close" title='zavřít' aria-label='close' onClick={() => setVisible(false)}>&times;</span>
-            {mřížka ? (
+            {výběrVarianty ? (
+              <VýběrVarianty
+                předmět={výběrVarianty}
+                onVybráno={(varianta) => {
+                  setVýběrVarianty(null);
+                  setMřížka.shrnutí();
+                  předmětPřidej(výběrVarianty.id, varianta);
+                }}
+                onZpět={() => setVýběrVarianty(null)}
+              />
+            ) : mřížka ? (
               <ObchodMřížka {...{ mřížka, onBuňkaClicked }} />
             ) : (
               <ObchodShrnutí
