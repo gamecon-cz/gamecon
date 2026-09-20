@@ -14,14 +14,14 @@ use App\Entity\News;
 use App\Entity\Page;
 use App\Entity\Payment;
 use App\Entity\Permission;
+use App\Entity\Product;
 use App\Entity\Role;
 use App\Entity\ShopGrid;
 use App\Entity\ShopGridCell;
-use App\Entity\Product;
-use Gamecon\SystemoveNastaveni\SystemoveNastaveni;
 use App\Entity\Tag;
 use App\Entity\User;
 use App\Entity\UserBadge;
+use App\Enum\ProductStateEnum;
 use App\Structure\Entity\AccommodationEntityStructure;
 use App\Structure\Entity\ActivityRegistrationStateEntityStructure;
 use App\Structure\Entity\ActivityStatusEntityStructure;
@@ -59,6 +59,7 @@ use Gamecon\Tests\Factory\NewsFactory;
 use Gamecon\Tests\Factory\PageFactory;
 use Gamecon\Tests\Factory\PaymentFactory;
 use Gamecon\Tests\Factory\PermissionFactory;
+use Gamecon\Tests\Factory\ProductFactory;
 use Gamecon\Tests\Factory\RoleFactory;
 use Gamecon\Tests\Factory\ShopGridCellFactory;
 use Gamecon\Tests\Factory\ShopGridFactory;
@@ -529,33 +530,20 @@ class EntityLegacyComparisonTest extends AbstractTestDb
 
     public function testProductEntityMatchesLegacyPredmet(): void
     {
-        // Produkt zakládáme legacy zápisem a čteme ho oběma vrstvami — právě o shodu těch
-        // dvou pohledů na tentýž řádek tady jde.
-        $nazev = 'Test Předmět ' . uniqid();
-        $kod   = 'TEST_KOD_' . strtoupper(uniqid());
-        dbQuery(
-            "INSERT INTO shop_predmety SET
-                nazev = $0,
-                kod_predmetu = $1,
-                cena_aktualni = '199.50',
-                stav = 1,
-                nabizet_do = '2024-12-31 23:59:59',
-                kusu_vyrobeno = 100,
-                ubytovani_den = NULL,
-                popis = $2",
-            [
-                0 => $nazev,
-                1 => $kod,
-                2 => 'Testovací popis předmětu',
-            ],
-        );
-        $idPredmetu = (int) dbInsertId();
+        /** @var Product $product */
+        $product = ProductFactory::createOne([
+            'name'             => 'Test Předmět ' . uniqid(),
+            'code'             => 'TEST_KOD_' . strtoupper(uniqid()),
+            'currentPrice'     => '199.50',
+            'state'            => ProductStateEnum::from(1),
+            'availableUntil'   => new \DateTimeImmutable('2024-12-31 23:59:59'),
+            'producedQuantity' => 100,
+            'accommodationDay' => null,
+            'description'      => 'Testovací popis předmětu',
+        ])->_save()->_real();
 
-        $product = SystemoveNastaveni::zGlobals()->kernel()->getContainer()
-            ->get('doctrine.orm.entity_manager')
-            ->getRepository(Product::class)
-            ->find($idPredmetu);
-        $this->assertNotNull($product, 'Product entity should be found');
+        $idPredmetu = $product->getId();
+        $this->assertNotNull($idPredmetu);
 
         $legacyPredmet = Predmet::zId($idPredmetu);
         $this->assertNotNull($legacyPredmet, 'Legacy shop item (predmet) should be found');
