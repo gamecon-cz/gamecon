@@ -64,7 +64,7 @@
 # nastavená cache (typicky v testech), a nepatří do repozitáře.
 *.xtpc
 
-# Diferenční harness pro porovnání s legacy — nástroje sezení, ne kód aplikace.
-# Ta .ini navíc přepisuje termíny přes auto_prepend_file, takže nesmí nikam odejít.
-/bin-diff/
+# Tahle .ini přepisuje termíny přes auto_prepend_file pro KAŽDÝ běh PHP v kontejneru,
+# testy včetně — zapnutá mimo diferenční scénář vypadá jako rozbitá větev. Zakládá ji
+# `bin-diff/cas.sh` a sama o sobě je nečinná, dokud není nastavené GAMECON_DIFF_DATUM.
 /.docker/php/conf.d/diff-cestovani.ini
