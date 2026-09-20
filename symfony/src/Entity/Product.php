@@ -30,7 +30,7 @@ use Symfony\Component\Validator\Constraints as Assert;
 /**
  * Product entity for e-shop (new design without model_rok)
  *
- * Legacy: Previously known as ShopItem (@see \Gamecon\Shop\Predmet)
+ * Legacy: @see \Gamecon\Shop\Predmet
  *
  * Changes from legacy:
  * - Removed model_rok (products exist permanently, not recreated each year)
