@@ -10,6 +10,12 @@ services:
     #   0 * * * * www-data curl -s "http://localhost/admin/cron.php?key=..."
     volumes:
       - ./.docker/cron/gamecon:/.docker/cron/gamecon:ro
+      # Posun času pro diferenční scénáře (bin-diff/cas.sh). Bez tohohle mountu
+      # a proměnné níž se čas neposune a scénáře tiše běží na skutečném datu.
+      # Samotná .ini je nečinná, dokud není GAMECON_DIFF_DATUM nastavené.
+      - ./.docker/php/conf.d/diff-cestovani.ini:/usr/local/etc/php/conf.d/diff-cestovani.ini:ro
+    environment:
+      GAMECON_DIFF_DATUM: "${GAMECON_DIFF_DATUM:-}"
 
   sql.gamecon:
     restart: always
