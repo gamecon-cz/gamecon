@@ -55,15 +55,28 @@ export type DefiniceObchod = {
   mřížky: DefiniceObchodMřížka[]
 }
 
-export type Předmět = {
+export type Varianta = {
   id: number,
   název: string,
   cena: number,
   zbývá: number | null,
 };
 
+export type Předmět = {
+  id: number,
+  název: string,
+  cena: number,
+  /** `null` znamená neomezeně, pokud má předmět jedinou variantu; u víc variant drží počty varianty samy. */
+  zbývá: number | null,
+  varianty: Varianta[],
+  /** Z minulého ročníku — na starších mřížkách je nakonfigurovaný, ale prodat ho nejde. */
+  archivní: boolean,
+};
+
 export type ObjednávkaPředmět = {
   množství: number,
   předmět: Předmět,
+  /** U předmětu s víc variantami je povinná; jinak se dopočítá z té jediné. */
+  varianta?: Varianta,
 };
 
