@@ -193,12 +193,6 @@ parameters:
             path: symfony/src/Entity/ShopGridCell.php
 
         -
-            message: '#^Unused App\\Entity\\ShopItem\:\:isVedlejsi$#'
-            identifier: shipmonk.deadMethod
-            count: 1
-            path: symfony/src/Entity/ShopItem.php
-
-        -
             message: '#^Unused App\\Entity\\Tag\:\:MALOVANI$#'
             identifier: shipmonk.deadConstant
             count: 1
