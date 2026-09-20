@@ -7,7 +7,7 @@ use Gamecon\Shop\SqlStruktura\PredmetSqlStruktura as Sql;
 use Gamecon\Uzivatel\Dto\PolozkaProBfgr;
 
 /**
- * For Doctrine entity equivalent @see \App\Entity\ShopItem
+ * For Doctrine entity equivalent @see \App\Entity\Product
  *
  * @method static Predmet|null zId($id, bool $zCache = false)
  */
