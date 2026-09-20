@@ -162,13 +162,13 @@ SQL,
         // Pohled `shop_predmety_s_typem` odvozuje `model_rok` z `archived_at`
         // (NULL → letošní ROCNIK, jinak YEAR(archived_at)), proto je tu loňský rok.
         $archivovano = (ROCNIK - 1) . '-12-31 23:59:59';
-        $budouci     = date('Y-m-d H:i:s', strtotime('+1 day'));
+        $budouci = date('Y-m-d H:i:s', strtotime('+1 day'));
         dbQuery(
-            "INSERT INTO shop_predmety SET
+            'INSERT INTO shop_predmety SET
                 nazev = $0,
                 kod_predmetu = $1,
                 cena_aktualni = 100,
-                stav = " . StavPredmetu::VEREJNY . ",
+                stav = ' . StavPredmetu::VEREJNY . ",
                 nabizet_do = $2,
                 kusu_vyrobeno = 10,
                 popis = '',
