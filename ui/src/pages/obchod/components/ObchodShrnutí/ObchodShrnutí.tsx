@@ -31,7 +31,7 @@ export const ObchodShrnutí: FunctionComponent<TObchodShrnutíProps> = (props) =
         const atStockLimit = orderItem.předmět.zbývá !== null && orderItem.množství >= orderItem.předmět.zbývá;
         return (
           <div class="shop-summary-list--item" key={orderItem.předmět.id}>
-            <div class="shop-summary-list--item-text">{orderItem.předmět.název}</div>
+            <div class="shop-summary-list--item-text">{orderItem.předmět.název}{orderItem.varianta ? ` — ${orderItem.varianta.název}` : ""}</div>
             <div class="shop-summary-list--item-buttons">
               <button
                 class="shop-summary-list--item-buttons-remove"

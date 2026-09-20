@@ -64,7 +64,7 @@ readonly class KfcSaleProcessor implements ProcessorInterface
 
         $kZaplaceni = [];
         foreach ($data->items as $saleItem) {
-            $kZaplaceni[] = [$this->dejVariantu($saleItem->productId), $saleItem->quantity];
+            $kZaplaceni[] = [$this->dejVariantu($saleItem->productId, $saleItem->variantId), $saleItem->quantity];
         }
 
         $dotceneVarianty = array_column($kZaplaceni, 0);
@@ -188,7 +188,7 @@ readonly class KfcSaleProcessor implements ProcessorInterface
     /**
      * Prodejní jednotkou je v novém schématu varianta; běžný předmět z pultu má právě jednu.
      */
-    private function dejVariantu(int $idPredmetu): ProductVariant
+    private function dejVariantu(int $idPredmetu, ?int $idVarianty = null): ProductVariant
     {
         $predmet = $this->entityManager->find(Product::class, $idPredmetu);
         if ($predmet === null) {
@@ -200,8 +200,19 @@ readonly class KfcSaleProcessor implements ProcessorInterface
         if ($varianty->isEmpty()) {
             throw new \RuntimeException(sprintf('Produkt "%s" nemá žádnou variantu k prodeji.', $predmet->getName()));
         }
-        // Pult umí prodat jen jednoznačný předmět. U víc variant (velikosti, noci) by výběr
-        // té první znamenal tiše prodat něco jiného, než si zákazník vzal z pultu.
+        if ($idVarianty !== null) {
+            foreach ($varianty as $varianta) {
+                if ($varianta->getId() === $idVarianty) {
+                    return $varianta;
+                }
+            }
+
+            // Varianta z jiného produktu by prodala něco jiného, než obsluha vybrala.
+            throw new \RuntimeException(sprintf('Varianta %d nepatří k produktu "%s".', $idVarianty, $predmet->getName()));
+        }
+
+        // Bez zadané varianty jde prodat jen jednoznačný předmět. U víc variant (velikosti,
+        // noci) by výběr té první znamenal tiše prodat něco jiného, než si zákazník vzal.
         if ($varianty->count() > 1) {
             throw new \RuntimeException(sprintf('Produkt "%s" má víc variant, vyber konkrétní.', $predmet->getName()));
         }
