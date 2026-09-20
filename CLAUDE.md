@@ -229,6 +229,35 @@ jde podívat, a časem by na sebe čísla narazila.
 
 V PR pak piš `Fixes #1090` (u issue), aby se zavřelo mergnutím.
 
+### Prefix commitů plyne z názvu větve — nepiš ho ručně
+
+Prefix doplňuje hook `prepare-commit-msg`: vytáhne z názvu větve úvodní číslo
+i s případným písmenným prefixem a **převede ho na velká písmena**. Píšeš tedy
+holý předmět a hook ho doplní.
+
+| tracker | větev | předmět commitu |
+| --- | --- | --- |
+| Trello karta | `1274-prepsat-e-shop` | `1274 Commit the differential harness` |
+| GitHub issue | `gh-1090-upgradovat-vite-na-v8` | `GH-1090 Upgrade vite to v8` |
+
+Dvě věci, na které se dá naletět:
+
+- **`gh-` ve větvi je malými, v commitu velkými.** Větev `gh-1114-…` dává
+  `GH-1114 …`; `gh-1114 …` v historii neexistuje. Malá písmena drží větev
+  konzistentní s URL issue, velká odpovídají tomu, jak se ID píše v textu.
+- **Trello karta prefix `gh-` nedostane, ani když je číslo vysoké.** Řady se
+  překrývají, takže `gh-<číslo>` u karty ukazuje na issue, které neexistuje.
+  Když si nejsi jistý, kam číslo patří, ověř to — issues a PR sdílejí na GitHubu
+  jednu číselnou řadu, proto nestačí, že endpoint odpoví:
+
+  ```bash
+  gh api repos/gamecon-cz/gamecon/issues/<číslo> \
+      --jq 'if .pull_request then "PR" else "ISSUE" end'   # 404 = Trello karta
+  ```
+
+Hook se nikdy neobchází (`--no-verify`, `core.hooksPath`) — jen doplňuje text,
+takže není co obcházet, a commit bez prefixu znamená, že neběžel.
+
 ## Merging to `main`
 
 Pushing to `main` auto-deploys OSTRA (prod) via `deploy-ostra.yml`. So
