@@ -24,19 +24,29 @@ readonly class KfcProductsProvider implements ProviderInterface
      */
     public function provide(Operation $operation, array $uriVariables = [], array $context = []): array
     {
+        // Zásoba se čte z varianty, protože právě `remaining_quantity` vynucuje prodej
+        // (`CapacityManager::purchase()`). Dopočítávat ji z `kusu_vyrobeno` minus nákupy
+        // dávalo jiné číslo než to, které pultu prodej povolí — u letošní kostky 139
+        // proti 500. Ročník tu proto být nemusí; varianta ho nezná a nepotřebuje.
+        //
+        // Pult umí prodat jen jednoznačný předmět (viz `KfcSaleProcessor`), takže se
+        // nabízejí jen produkty s právě jednou variantou — u víc variant by prodej stejně
+        // skončil chybou. Archivní produkty do letošní nabídky nepatří.
         $rows = $this->connection->fetchAllAssociative(<<<'SQL'
             SELECT
                 shop_predmety.id_predmetu AS id,
-                CONCAT(shop_predmety.nazev, ' ', shop_predmety_s_typem.model_rok) AS nazev,
+                shop_predmety.nazev AS nazev,
                 ROUND(shop_predmety.cena_aktualni) AS cena,
-                shop_predmety.kusu_vyrobeno - (
-                    SELECT COUNT(*) FROM shop_nakupy
-                    WHERE shop_nakupy.id_predmetu = shop_predmety.id_predmetu
-                ) AS zbyva
+                product_variant.remaining_quantity AS zbyva
             FROM shop_predmety
-            JOIN shop_predmety_s_typem ON shop_predmety.id_predmetu = shop_predmety_s_typem.id_predmetu
+            JOIN product_variant ON product_variant.product_id = shop_predmety.id_predmetu
             WHERE shop_predmety.stav > 0
-            ORDER BY shop_predmety_s_typem.model_rok DESC, shop_predmety.nazev
+              AND shop_predmety.archived_at IS NULL
+              AND (
+                  SELECT COUNT(*) FROM product_variant AS vsechny
+                  WHERE vsechny.product_id = shop_predmety.id_predmetu
+              ) = 1
+            ORDER BY shop_predmety.nazev
             SQL,
         );
 
