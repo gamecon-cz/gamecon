@@ -109,7 +109,7 @@ diffnout obě větve) je rychlé a přesné na **výpočty** — ušetří spous
 nepřepíšou jedno druhé.
 
 **Každý scénář má nakonec projít i Playwrightem**, aby bylo jisté, že to jde ovládat a je to
-vidět v prohlížeči. Postup a pasti: `bin-diff/pw/README.md`.
+vidět v prohlížeči. Postup a pasti: `bin-diff/playwright/README.md`.
 
 První takový průchod (2026-09-18) potvrdil, že na nové větvi se na `/prihlaska` vykreslí
 **všech pět Preact sekcí** — merch, svršky, ubytování, jídlo, vstupné — s reálnými daty.
