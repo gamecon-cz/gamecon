@@ -528,7 +528,7 @@ FROM (SELECT MAX(data_rows.poradi) AS poradi, data_rows.kod, MAX(data_rows.nazev
                     'kostka prodeje - včetně zdarma - kusy' AS nazev,
                     COUNT(*)                                AS data -- BFSR ✅️
              FROM shop_nakupy
-                      JOIN shop_predmety ON shop_nakupy.id_predmetu = shop_predmety.id_predmetu
+                      JOIN shop_predmety_s_typem AS shop_predmety ON shop_nakupy.id_predmetu = shop_predmety.id_predmetu
              WHERE shop_nakupy.rok = $rocnik
                AND shop_predmety.kod_predmetu LIKE '%kostk%'
              GROUP BY shop_predmety.id_predmetu
@@ -540,7 +540,7 @@ FROM (SELECT MAX(data_rows.poradi) AS poradi, data_rows.kod, MAX(data_rows.nazev
                           'Kolik z prodaných kostek (všech typů) je zdarma - kusy' AS nazev,
                           1                                                        AS data
                    FROM shop_nakupy
-                            JOIN shop_predmety ON shop_nakupy.id_predmetu = shop_predmety.id_predmetu
+                            JOIN shop_predmety_s_typem AS shop_predmety ON shop_nakupy.id_predmetu = shop_predmety.id_predmetu
                    WHERE shop_nakupy.rok = $rocnik
                      AND shop_predmety.kod_predmetu LIKE '%kostk%'
                      AND {$maPravoUzivatele('shop_nakupy.id_uzivatele', $maKostkuZdarma)} -- kostka zdarma
@@ -553,7 +553,7 @@ FROM (SELECT MAX(data_rows.poradi) AS poradi, data_rows.kod, MAX(data_rows.nazev
                     'placky prodeje - včetně zdarma - kusy' AS nazev,
                     COUNT(*)                                AS data -- BFSR ✅️
              FROM shop_nakupy
-                      JOIN shop_predmety ON shop_nakupy.id_predmetu = shop_predmety.id_predmetu
+                      JOIN shop_predmety_s_typem AS shop_predmety ON shop_nakupy.id_predmetu = shop_predmety.id_predmetu
              WHERE shop_nakupy.rok = $rocnik
                AND shop_predmety.kod_predmetu LIKE '%plack%'
 
@@ -562,7 +562,7 @@ FROM (SELECT MAX(data_rows.poradi) AS poradi, data_rows.kod, MAX(data_rows.nazev
              SELECT 0 AS poradi, activity_data.kod, activity_data.nazev, COUNT(*) AS data -- BFSR ✅️
              FROM (SELECT 'Ir-Placky-Zdarma' AS kod, 'Kolik z prodaných placek je zdarma - kusy' AS nazev, 1 AS data
                    FROM shop_nakupy
-                            JOIN shop_predmety ON shop_nakupy.id_predmetu = shop_predmety.id_predmetu
+                            JOIN shop_predmety_s_typem AS shop_predmety ON shop_nakupy.id_predmetu = shop_predmety.id_predmetu
                    WHERE shop_nakupy.rok = $rocnik
                      AND shop_predmety.kod_predmetu LIKE '%plack%'
                      AND {$maPravoUzivatele('shop_nakupy.id_uzivatele', $plackaZdarma)} -- placka zdarma
@@ -572,7 +572,7 @@ FROM (SELECT MAX(data_rows.poradi) AS poradi, data_rows.kod, MAX(data_rows.nazev
 
              SELECT 0 AS poradi, CONCAT('Vr-Nicknacky') AS kod, 'nicknacky prodeje - kusy' AS nazev, COUNT(*) AS data -- BFSR ✅️
              FROM shop_nakupy
-                      JOIN shop_predmety ON shop_nakupy.id_predmetu = shop_predmety.id_predmetu
+                      JOIN shop_predmety_s_typem AS shop_predmety ON shop_nakupy.id_predmetu = shop_predmety.id_predmetu
              WHERE shop_nakupy.rok = $rocnik
                AND shop_predmety.kod_predmetu LIKE '%nicknack%'
 
@@ -580,7 +580,7 @@ FROM (SELECT MAX(data_rows.poradi) AS poradi, data_rows.kod, MAX(data_rows.nazev
 
              SELECT 0 AS poradi, CONCAT('Vr-Bloky') AS kod, 'bloky prodeje - kusy' AS nazev, COUNT(*) AS data -- BFSR ✅️
              FROM shop_nakupy
-                      JOIN shop_predmety ON shop_nakupy.id_predmetu = shop_predmety.id_predmetu
+                      JOIN shop_predmety_s_typem AS shop_predmety ON shop_nakupy.id_predmetu = shop_predmety.id_predmetu
              WHERE shop_nakupy.rok = $rocnik
                AND shop_predmety.kod_predmetu LIKE '%blok%'
 
@@ -588,7 +588,7 @@ FROM (SELECT MAX(data_rows.poradi) AS poradi, data_rows.kod, MAX(data_rows.nazev
 
              SELECT 0 AS poradi, CONCAT('Vr-Ponozky') AS kod, 'ponožky prodeje - kusy' AS nazev, COUNT(*) AS data -- BFSR ✅️
              FROM shop_nakupy
-                      JOIN shop_predmety ON shop_nakupy.id_predmetu = shop_predmety.id_predmetu
+                      JOIN shop_predmety_s_typem AS shop_predmety ON shop_nakupy.id_predmetu = shop_predmety.id_predmetu
              WHERE shop_nakupy.rok = $rocnik
                AND shop_predmety.kod_predmetu LIKE '%ponozk%'
 
@@ -596,7 +596,7 @@ FROM (SELECT MAX(data_rows.poradi) AS poradi, data_rows.kod, MAX(data_rows.nazev
 
              SELECT 0 AS poradi, CONCAT('Vr-Tasky') AS kod, 'tašky prodeje - kusy' AS nazev, COUNT(*) AS data -- BFSR ✅️
              FROM shop_nakupy
-                      JOIN shop_predmety ON shop_nakupy.id_predmetu = shop_predmety.id_predmetu
+                      JOIN shop_predmety_s_typem AS shop_predmety ON shop_nakupy.id_predmetu = shop_predmety.id_predmetu
              WHERE shop_nakupy.rok = $rocnik
                AND shop_predmety.kod_predmetu LIKE '%task%'
 
@@ -604,7 +604,7 @@ FROM (SELECT MAX(data_rows.poradi) AS poradi, data_rows.kod, MAX(data_rows.nazev
 
              SELECT 0 AS poradi, CONCAT('Xr-Jidla-Snidane') AS kod, 'snídaně placené - kusy' AS nazev, COUNT(*) AS data -- BFSR ✅️
              FROM shop_nakupy
-                      JOIN shop_predmety ON shop_nakupy.id_predmetu = shop_predmety.id_predmetu
+                      JOIN shop_predmety_s_typem AS shop_predmety ON shop_nakupy.id_predmetu = shop_predmety.id_predmetu
              WHERE shop_nakupy.rok = $rocnik
                AND shop_predmety.kod_predmetu LIKE '%snidane%'
                AND NOT {$maPravoUzivatele('shop_nakupy.id_uzivatele', $jidloZdarma)} -- jidlo zdarma
@@ -613,7 +613,7 @@ FROM (SELECT MAX(data_rows.poradi) AS poradi, data_rows.kod, MAX(data_rows.nazev
 
              SELECT 0 AS poradi, CONCAT('Xr-Jidla-Hlavni') AS kod, 'hl. jídla placené - kusy' AS nazev, COUNT(*) AS data -- BFSR ✅️
              FROM shop_nakupy
-                      JOIN shop_predmety ON shop_nakupy.id_predmetu = shop_predmety.id_predmetu
+                      JOIN shop_predmety_s_typem AS shop_predmety ON shop_nakupy.id_predmetu = shop_predmety.id_predmetu
              WHERE shop_nakupy.rok = $rocnik
                AND (shop_predmety.kod_predmetu LIKE '%obed%' OR shop_predmety.kod_predmetu LIKE '%vecere%')
                AND NOT {$maPravoUzivatele('shop_nakupy.id_uzivatele', $jidloZdarma)} -- jidlo zdarma
@@ -625,7 +625,7 @@ FROM (SELECT MAX(data_rows.poradi) AS poradi, data_rows.kod, MAX(data_rows.nazev
                     'snídaně zdarma - kusy'          AS nazev,
                     COUNT(*)                         AS data -- BFSR ✅️
              FROM shop_nakupy
-                      JOIN shop_predmety ON shop_nakupy.id_predmetu = shop_predmety.id_predmetu
+                      JOIN shop_predmety_s_typem AS shop_predmety ON shop_nakupy.id_predmetu = shop_predmety.id_predmetu
              WHERE shop_nakupy.rok = $rocnik
                AND shop_predmety.kod_predmetu LIKE '%snidane%'
                AND {$maPravoUzivatele('shop_nakupy.id_uzivatele', $jidloZdarma)} -- jidlo zdarma
@@ -637,7 +637,7 @@ FROM (SELECT MAX(data_rows.poradi) AS poradi, data_rows.kod, MAX(data_rows.nazev
                     'hl. jídla zdarma - kusy'       AS nazev,
                     COUNT(*)                        AS data -- BFSR ✅️
              FROM shop_nakupy
-                      JOIN shop_predmety ON shop_nakupy.id_predmetu = shop_predmety.id_predmetu
+                      JOIN shop_predmety_s_typem AS shop_predmety ON shop_nakupy.id_predmetu = shop_predmety.id_predmetu
              WHERE shop_nakupy.rok = $rocnik
                AND (shop_predmety.kod_predmetu LIKE '%obed%' OR shop_predmety.kod_predmetu LIKE '%vecere%')
                AND {$maPravoUzivatele('shop_nakupy.id_uzivatele', $jidloZdarma)} -- jidlo zdarma
@@ -649,7 +649,7 @@ FROM (SELECT MAX(data_rows.poradi) AS poradi, data_rows.kod, MAX(data_rows.nazev
                     'snídaně se slevou - kusy'      AS nazev,
                     COUNT(*)                        AS data -- BFSR ✅️
              FROM shop_nakupy
-                      JOIN shop_predmety ON shop_nakupy.id_predmetu = shop_predmety.id_predmetu
+                      JOIN shop_predmety_s_typem AS shop_predmety ON shop_nakupy.id_predmetu = shop_predmety.id_predmetu
              WHERE shop_nakupy.rok = $rocnik
                AND shop_predmety.kod_predmetu LIKE '%snidane%'
                AND NOT {$maPravoUzivatele('shop_nakupy.id_uzivatele', $jidloZdarma)} -- jidlo zdarma
@@ -662,7 +662,7 @@ FROM (SELECT MAX(data_rows.poradi) AS poradi, data_rows.kod, MAX(data_rows.nazev
                     'hl. jídla se slevou - kusy'   AS nazev,
                     COUNT(*)                       AS data -- BFSR ✅️
              FROM shop_nakupy
-                      JOIN shop_predmety ON shop_nakupy.id_predmetu = shop_predmety.id_predmetu
+                      JOIN shop_predmety_s_typem AS shop_predmety ON shop_nakupy.id_predmetu = shop_predmety.id_predmetu
              WHERE shop_nakupy.rok = $rocnik
                AND (shop_predmety.kod_predmetu LIKE '%obed%' OR shop_predmety.kod_predmetu LIKE '%vecere%')
                AND NOT {$maPravoUzivatele('shop_nakupy.id_uzivatele', $jidloZdarma)} -- jidlo zdarma
