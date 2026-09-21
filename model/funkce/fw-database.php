@@ -468,14 +468,18 @@ function _dbPdoQuery(
 ): bool | PDOStatement {
     $pdo ??= dbConnect();
     try {
-        // Determine if this is a data-affecting query (INSERT, UPDATE, DELETE, etc.)
+        // Listing writes rather than reads decides which way a misreading fails: an
+        // unrecognised statement now reads instead of losing its result set to exec(),
+        // which is how WITH disappeared. The reading branch handles a write anyway —
+        // query() returns a statement whose rowCount() gives the affected rows.
         $trimmed = ltrim($query);
-        $isSelect = stripos($trimmed, 'SELECT') === 0
-            || stripos($trimmed, 'SHOW') === 0
-            || stripos($trimmed, 'DESCRIBE') === 0
-            || stripos($trimmed, 'EXPLAIN') === 0;
+        $isDataAffecting = stripos($trimmed, 'INSERT') === 0
+            || stripos($trimmed, 'UPDATE') === 0
+            || stripos($trimmed, 'DELETE') === 0
+            || stripos($trimmed, 'REPLACE') === 0
+            || stripos($trimmed, 'TRUNCATE') === 0;
 
-        if ($isSelect) {
+        if (!$isDataAffecting) {
             $stmt = $pdo->query($query);
             if ($stmt === false) {
                 throw new DbException('Query failed: ' . $query);
