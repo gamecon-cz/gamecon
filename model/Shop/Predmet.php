@@ -17,6 +17,9 @@ class Predmet extends \DbObject
     protected static $tabulka = Sql::SHOP_PREDMETY_S_TYPEM_TABULKA;
     protected static $pk = Sql::ID_PREDMETU;
 
+    /** @var array<string, static|null> klíčem je část kódu a ročník */
+    protected static $letosniPredmety = [];
+
     public static function jeToVstupneVcas(int $typPredmetu, string $kodPredmetu): bool
     {
         return $typPredmetu === TypPredmetu::VSTUPNE && !self::jeToDleCasti($kodPredmetu, 'pozde');
@@ -115,6 +118,11 @@ class Predmet extends \DbObject
         string $cast,
     ): bool {
         return mb_stripos($cele, $cast) !== false;
+    }
+
+    public static function letosniPlacka(int $rocnik): ?static
+    {
+        return self::letosniPredmet('placka', $rocnik);
     }
 
     /**
