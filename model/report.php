@@ -218,7 +218,14 @@ class Report
 
     private function odstranTagyZPole(array $values): array
     {
-        return array_map('strip_tags', $values);
+        // Prázdná buňka je legitimní výsledek dotazu (LEFT JOIN, nevyplněný údaj), ale
+        // strip_tags(null) je od PHP 8.1 deprecated. Vyjimkovac z ní udělá výjimku, a
+        // protože hlavičky i část řádků už odešly, skončí chybová stránka uvnitř
+        // stahovaného CSV a zbytek reportu chybí.
+        return array_map(
+            static fn($hodnota): string => strip_tags((string) $hodnota),
+            $values,
+        );
     }
 
     /**
