@@ -784,7 +784,7 @@ SQL,
     {
         return self::druhyUbytovaniPodleKodu(
             dbOneArray(
-                'SELECT DISTINCT kod_predmetu FROM shop_predmety WHERE typ = $0 AND model_rok = $1',
+                'SELECT DISTINCT kod_predmetu FROM shop_predmety_s_typem WHERE typ = $0 AND model_rok = $1',
                 [0 => TypPredmetu::UBYTOVANI, 1 => $rocnik],
             ),
         );
