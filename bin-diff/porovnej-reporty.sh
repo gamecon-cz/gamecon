@@ -178,6 +178,9 @@ stahni() {
 # jméno bez uvozovek tedy projde. Než se výstup vloží do veřejného repozitáře, projdi ho
 # očima; skript na to sám upozorní.
 #
+# Pozor na kotvu `^`: maskuje se výstup `diff`, jehož řádky začínají `< ` nebo `> `,
+# takže pravidlo kotvené na začátek řádku na samotná data nikdy nesedne.
+#
 # Maskuje se podle tvaru hodnoty, ne podle pozice sloupce: každý report má jiné pořadí
 # sloupců, takže pravidlo „druhý a třetí sloupec je jméno“ platí jen u některých a jinde
 # mlčky propustí celý řádek i s e-maily a telefony.
@@ -193,9 +196,13 @@ maskuj() {
         -e 's/(pracovni_uzivatel|id_uzivatele)=[0-9]+/\1=<ID>/g' \
         -e 's/"[^";]*„[^"“]*“[^";]*"/"<UZIVATEL>"/g' \
         -e 's/"[^";]+"(;[^;]*)?;<MAIL>/"<UZIVATEL>"\1;<MAIL>/g' \
-        -e 's/^([0-9]+);[^;"]+;[[:upper:]][^;"]*;[[:upper:]][^;"]*;/\1;<LOGIN>;<JMENO>;<PRIJMENI>;/' \
+        -e 's/(^|[<>] )([0-9]+);[^;"]+;[[:upper:]][^;"]*;[[:upper:]][^;"]*;/\1\2;<LOGIN>;<JMENO>;<PRIJMENI>;/' \
         -e 's/(^|;)(\+420)?[0-9]{9}(;|$)/\1<TELEFON>\3/g' \
-        -e 's/(^|;)"[[:upper:]][^"; ]+ [[:upper:]][^"; ]+";/\1"<UZIVATEL>";/g'
+        -e 's/(^|;)"[[:upper:]][^"; ]+ [[:upper:]][^"; ]+";/\1"<UZIVATEL>";/g' \
+        -e 's/\$2y\$[0-9]+\$[A-Za-z0-9.\/]+/<HESLO>/g' \
+        -e 's/def50200[A-Fa-f0-9]+/<SIFROVANE>/g' \
+        -e 's/[0-9]{4}-[0-9]{2}-[0-9]{2}/<DATUM>/g' \
+        -e 's/"[^";]*[0-9]+\/[0-9]+"/"<ADRESA>"/g'
 }
 
 ocisti() {
