@@ -112,6 +112,18 @@ prihlas() {
 # Report, který skončí chybou nebo spadne na timeout, nesmí shodit celý běh — jinak se
 # porovnání zastaví na prvním problémovém reportu a o zbylých se nedozvíme nic. Selhání
 # se propíše prázdným souborem a ohlásí se u toho reportu.
+# Sloupec `reporty.skript` není kus URL. Quick reporty jsou v něm uložené jako `quick-100`,
+# ale administrace je servíruje na `reporty/quick?id=100` — na `reporty/quick-100` žádná
+# routa nesedí a admin místo reportu vrátí rozcestník se seznamem reportů. Ten se pak
+# „očistí“ na nula řádků a celé to vypadá, že report jen nevrátil data.
+urlReportu() {
+    local skript="$1"
+    case "$skript" in
+        quick-*) printf 'quick?id=%s&format=csv' "${skript#quick-}" ;;
+        *) printf '%s?format=csv' "$skript" ;;
+    esac
+}
+
 stahni() {
     local port="$1" jar="$2" skript="$3" kam="$4"
     local stav
@@ -120,7 +132,7 @@ stahni() {
     # Samotný `curl` bez toho vrací 0 i na 500, takže by se chybová stránka uložila
     # jako by to byl report.
     stav=$(curl -sS --max-time 180 -b "$jar" -c "$jar" -o "$kam" -w '%{http_code}' \
-        "http://localhost:$port/admin/reporty/$skript?format=csv" 2>/dev/null) || stav=000
+        "http://localhost:$port/admin/reporty/$(urlReportu "$skript")" 2>/dev/null) || stav=000
     case "$stav" in
         2*) return 0 ;;
         *) return 1 ;;
@@ -160,9 +172,11 @@ stahni() {
 # POZOR na hranice téhle ochrany: spolehlivě se maskuje e-mail, telefon v uvozovkách,
 # id v odkazu do administrace, přezdívka v uvozovkách a dvojice jméno/příjmení na
 # začátku řádku nebo vedle e-mailu. Osamocené jméno v uvozovkách uprostřed jinak
-# neosobního reportu (`kod;"Jan Novák";100`) projde — odlišit ho tvarem od legitimního
-# popisku („kostka prodeje - kusy“) nejde. Než se výstup vloží do veřejného repozitáře,
-# projdi ho očima; skript na to sám upozorní.
+# neosobního reportu se maskuje jen v úzkém tvaru „dvě slova, obě s velkým písmenem“
+# (`"Jan Novák"`), protože širší pravidlo sežere i názvy zboží — a `"Tričko účastnické
+# XXXL"` je přesně ten údaj, kvůli kterému se reporty porovnávají. Tříslovné jméno nebo
+# jméno bez uvozovek tedy projde. Než se výstup vloží do veřejného repozitáře, projdi ho
+# očima; skript na to sám upozorní.
 #
 # Maskuje se podle tvaru hodnoty, ne podle pozice sloupce: každý report má jiné pořadí
 # sloupců, takže pravidlo „druhý a třetí sloupec je jméno“ platí jen u některých a jinde
@@ -179,7 +193,9 @@ maskuj() {
         -e 's/(pracovni_uzivatel|id_uzivatele)=[0-9]+/\1=<ID>/g' \
         -e 's/"[^";]*„[^"“]*“[^";]*"/"<UZIVATEL>"/g' \
         -e 's/"[^";]+"(;[^;]*)?;<MAIL>/"<UZIVATEL>"\1;<MAIL>/g' \
-        -e 's/^([0-9]+);[^;"]+;[[:upper:]][^;"]*;[[:upper:]][^;"]*;/\1;<LOGIN>;<JMENO>;<PRIJMENI>;/'
+        -e 's/^([0-9]+);[^;"]+;[[:upper:]][^;"]*;[[:upper:]][^;"]*;/\1;<LOGIN>;<JMENO>;<PRIJMENI>;/' \
+        -e 's/(^|;)(\+420)?[0-9]{9}(;|$)/\1<TELEFON>\3/g' \
+        -e 's/(^|;)"[[:upper:]][^"; ]+ [[:upper:]][^"; ]+";/\1"<UZIVATEL>";/g'
 }
 
 ocisti() {
@@ -229,8 +245,10 @@ fi
 
 # Reporty, které při zobrazení něco vytvoří nebo změní, se porovnávat nedají: každé
 # zavolání vrátí něco jiného a navíc by běh harnessu sám měnil data, se kterými se pak
-# porovnává. `novy_slevovy_kod` vyrobí nový slevový kód a vrátí ho jako QR obrázek.
-VYNECHAT=('novy_slevovy_kod')
+# porovnává. `novy_slevovy_kod` vyrobí nový slevový kód a vrátí ho jako QR obrázek;
+# `quick-77` je „Log použití reportů“, do kterého se zapisuje každé stažení — tedy i ta,
+# která dělá tenhle skript, takže sám sobě mění porovnávaná data.
+VYNECHAT=('novy_slevovy_kod' 'quick-77')
 for vynechany in "${VYNECHAT[@]}"; do
     for i in "${!SKRIPTY[@]}"; do
         if [ "${SKRIPTY[$i]}" = "$vynechany" ]; then
@@ -278,8 +296,11 @@ for skript in "${SKRIPTY[@]}"; do
             duvod='generuje se na pozadí'
         elif grep -qi 'Nemáš právo\|Nemáš potřebné' "$OUT/n.csv"; then
             duvod='chybí právo'
-        elif grep -q '<form\|<select\|<input' "$OUT/n.csv"; then
-            duvod='čeká na parametr ve formuláři'
+        elif grep -q 'Univerzální reporty' "$OUT/n.csv"; then
+            # Rozcestník místo reportu znamená, že sestavená URL na nic nesedí — ne že
+            # report nemá data. Bez téhle větve to splyne s „bez dat“ a chyba v URL se
+            # tváří jako vlastnost reportu.
+            duvod='URL nesedí na žádný report (vrátil se rozcestník)'
         fi
         printf '  ?  %-52s %s\n' "$skript" "$duvod"
         PRAZDNE=$((PRAZDNE + 1))
