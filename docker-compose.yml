@@ -76,12 +76,12 @@ services:
       # set PHPMYADMIN_HOST_MAPPING_PORT variable in .env file for example
       - "${PHPMYADMIN_HOST_MAPPING_PORT:-8081}:80"
 
+  # Mailpit je nástupce archivovaného MailHogu - stejná role (SMTP past pro
+  # lokální vývoj), navíc umí HTML náhled a otevření příloh.
   mailhog.gamecon:
-    image: mailhog/mailhog:latest
+    image: axllent/mailpit:latest
     environment:
-      - MH_STORAGE=maildir
-    # volumes:
-    #   - ./docker/mailhog/maildir:/maildir:rw,delegated
+      - MP_MAX_MESSAGES=5000
     restart: "no"
     ports:
           # set MAILHOG_HOST_MAPPING_PORT variable in .env file for example
