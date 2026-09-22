@@ -997,6 +997,17 @@ SQL;
             : $this->dejHodnotu('NEPLATIC_CASTKA_VELKY_DLUH');
     }
 
+    /**
+     * Pod tímhle dluhem automatická upomínka nechodí. Ruční rozeslání z adminu
+     * práh nehlídá - tam o každém příjemci rozhoduje člověk.
+     */
+    public function upominkaMinimalniCastka(): float
+    {
+        return defined('UPOMINKA_MINIMALNI_CASTKA')
+            ? UPOMINKA_MINIMALNI_CASTKA
+            : $this->dejHodnotu('UPOMINKA_MINIMALNI_CASTKA');
+    }
+
     public function neplaticCastkaPoslalDost(): float
     {
         return defined('NEPLATIC_CASTKA_POSLAL_DOST')
