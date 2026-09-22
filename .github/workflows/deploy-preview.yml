@@ -164,9 +164,10 @@ jobs:
                     GHCR_TOKEN: ${{ secrets.GITHUB_TOKEN }}
                     # Raw git branch name, passed as the deploy's 3rd arg so the
                     # host stores it in the deployment record (the slug is a
-                    # lossy slugification; the admin links the PR by exact
-                    # branch). Via env (not string-interpolated into the script)
-                    # to avoid Actions expression injection from a hostile ref.
+                    # lossy slugification, so the exact ref cannot be recovered
+                    # from it). Via env (not string-interpolated into
+                    # the script) to avoid Actions expression injection from a
+                    # hostile ref.
                     BRANCH: ${{ github.event.inputs.branch || github.ref_name }}
                 run: |
                     # Reference the SHA-pinned tag (not the rolling slug

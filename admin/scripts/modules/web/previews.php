@@ -60,14 +60,6 @@ $adminUrlSeSso = static function (string $previewUrl) use ($ssoNonce, $ssoIdUziv
 
 $mailpitUrl = $gateUrl('https://webmail.preview.gamecon.cz/');
 
-// Odkaz do filtru PR listu podle větve. POZOR: slug NENÍ jméno větve — je to
-// jeho slugifikace (podtržítka→pomlčky, diakritika pryč, ořez na 30 znaků; viz
-// deploy-preview.yml). Pro odkaz na PR proto použijeme uloženou původní větev
-// (`$preview->branch`); když chybí (staré záznamy bez branch), spadneme na slug
-// jako dřív. `head:` v GitHub PR hledání matchuje prefix, takže to funguje pro
-// open i closed PR a nerozbije se, pokud větev neexistuje.
-$prListUrl = static fn (string $ref): string => 'https://github.com/gamecon-cz/gamecon/pulls?q='
-    . rawurlencode('is:pr head:' . $ref);
 ?>
 <h2>Preview prostředí</h2>
 
@@ -97,8 +89,7 @@ $prListUrl = static fn (string $ref): string => 'https://github.com/gamecon-cz/g
             <tr>
                 <th>URL</th>
                 <th>Admin</th>
-                <th>PR</th>
-                <th>Deployed</th>
+                <th>Poslední změna</th>
             </tr>
         </thead>
         <tbody>
@@ -111,12 +102,6 @@ $prListUrl = static fn (string $ref): string => 'https://github.com/gamecon-cz/g
                 </td>
                 <td>
                     <a href="<?php echo htmlspecialchars($adminUrlSeSso($preview->url)); ?>" target="_blank" rel="noopener">/admin</a>
-                </td>
-                <td>
-                    <?php $prRef = $preview->branch ?? $preview->slug; ?>
-                    <a href="<?php echo htmlspecialchars($prListUrl($prRef)); ?>" target="_blank" rel="noopener">
-                        <?php echo htmlspecialchars($prRef); ?>
-                    </a>
                 </td>
                 <td>
                     <?php echo $preview->deployedAt !== null
