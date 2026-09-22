@@ -13,6 +13,8 @@ use Gamecon\SystemoveNastaveni\SystemoveNastaveni;
 use Gamecon\Tests\Db\AbstractTestDb;
 use Gamecon\Uzivatel\Dto\Dluznik;
 use Gamecon\Uzivatel\Enum\TypUpominky;
+use Gamecon\Uzivatel\Enum\UcastNaGc;
+use Gamecon\Uzivatel\Pohlavi;
 use Gamecon\Uzivatel\UpominaniDluzniku;
 
 /**
@@ -28,6 +30,11 @@ class UpominaniDluznikuTest extends AbstractTestDb
     private const ID_KLADNY_ZUSTATEK = 2003;
     private const ID_NULOVY_ZUSTATEK = 2004;
     private const ID_DLUZNIK_BEZ_EMAILU = 2005;
+    private const ID_DLUZNIK_Z_MINULYCH_LET = 2006;
+    private const ID_DLUZNIK_PRITOMNY = 2007;
+    private const ID_DLUZNICE_NEDORAZILA = 2008;
+    private const ID_DLUZNIK_JEN_ZAPORNA_PLATBA = 2009;
+    private const ROK_POSLEDNI_UCASTI_STAREHO_DLUZNIKA = 2019;
 
     protected static bool $disableStrictTransTables = true;
 
@@ -35,6 +42,7 @@ class UpominaniDluznikuTest extends AbstractTestDb
     {
         $queries = [];
         $rocnik = ROCNIK;
+        $idVratkoveho = self::ID_DLUZNIK_JEN_ZAPORNA_PLATBA;
 
         // Dlužník s malým dluhem (-50 Kč)
         $queries[] = self::uzivatelQuery(
@@ -86,6 +94,58 @@ class UpominaniDluznikuTest extends AbstractTestDb
         );
         $queries[] = self::prihlasenNaLetosniGcQuery(self::ID_DLUZNIK_BEZ_EMAILU);
 
+        // Dlužník z minulých let - záporný zůstatek, letos ani přihlášený, ani přítomný.
+        // Upomínka mu jít má, ale textem, který mu netvrdí, že letos na GC byl.
+        $queries[] = self::uzivatelQuery(
+            self::ID_DLUZNIK_Z_MINULYCH_LET,
+            'Loňský',
+            'Dlužník',
+            -300.0,
+            'lonsky.dluznik@test.cz',
+        );
+        $queries[] = self::roleUcastiRocnikuQuery(self::ROK_POSLEDNI_UCASTI_STAREHO_DLUZNIKA);
+        $queries[] = self::pritomenNaRocnikuQuery(
+            self::ID_DLUZNIK_Z_MINULYCH_LET,
+            self::ROK_POSLEDNI_UCASTI_STAREHO_DLUZNIKA,
+        );
+
+        // Dlužník, který letos opravdu dorazil (prošel infopultem)
+        $queries[] = self::uzivatelQuery(
+            self::ID_DLUZNIK_PRITOMNY,
+            'Přítomný',
+            'Dlužník',
+            -80.0,
+            'pritomny.dluznik@test.cz',
+        );
+        $queries[] = self::prihlasenNaLetosniGcQuery(self::ID_DLUZNIK_PRITOMNY);
+        $queries[] = self::pritomenNaRocnikuQuery(self::ID_DLUZNIK_PRITOMNY, ROCNIK);
+
+        // Dlužnice přihlášená, ale nepřítomná - na ní se ověřuje skloňování textu
+        $queries[] = self::uzivatelQuery(
+            self::ID_DLUZNICE_NEDORAZILA,
+            'Nepřítomná',
+            'Dlužnice',
+            -120.0,
+            'nepritomna.dluznice@test.cz',
+            Stat::CZ_ID,
+            Pohlavi::ZENA_KOD,
+        );
+        $queries[] = self::prihlasenNaLetosniGcQuery(self::ID_DLUZNICE_NEDORAZILA);
+
+        // Dlužník bez letošní přihlášky i bez záporného sloupce zustatek - do mínusu
+        // ho dostane až záporná platba (vratka). Hlídá, že ho předfiltr nevynechá.
+        $queries[] = self::uzivatelQuery(
+            self::ID_DLUZNIK_JEN_ZAPORNA_PLATBA,
+            'Vratkový',
+            'Dlužník',
+            0.0,
+            'vratkovy.dluznik@test.cz',
+        );
+        $queries[] = <<<SQL
+INSERT INTO platby(id_uzivatele, castka, rok, provedeno, provedl)
+VALUES ({$idVratkoveho}, -140, {$rocnik}, NOW(), 1)
+SQL;
+
         return $queries;
     }
 
@@ -96,6 +156,7 @@ class UpominaniDluznikuTest extends AbstractTestDb
         float $zustatek,
         string $email,
         int $statUzivatele = Stat::CZ_ID,
+        string $pohlavi = Pohlavi::MUZ_KOD,
     ): string {
         $login = strtolower(str_replace(' ', '_', $jmeno . '_' . $prijmeni));
 
@@ -107,6 +168,7 @@ SET id_uzivatele = {$idUzivatele},
     prijmeni_uzivatele = '{$prijmeni}',
     email1_uzivatele = '{$email}',
     stat_uzivatele = {$statUzivatele},
+    pohlavi = '{$pohlavi}',
     zustatek = {$zustatek}
 SQL;
     }
@@ -118,6 +180,34 @@ SQL;
         return <<<SQL
 INSERT INTO platne_role_uzivatelu(id_uzivatele, id_role, posadil)
 VALUES ({$idUzivatele}, {$idRole}, 1)
+SQL;
+    }
+
+    private static function pritomenNaRocnikuQuery(
+        int $idUzivatele,
+        int $rocnik,
+    ): string {
+        $idRole = Role::pritomenNaRocniku($rocnik);
+
+        return <<<SQL
+INSERT INTO platne_role_uzivatelu(id_uzivatele, id_role, posadil)
+VALUES ({$idUzivatele}, {$idRole}, 1)
+SQL;
+    }
+
+    /**
+     * Migracemi postavená testovací DB zná jen role letošního ročníku, takže si
+     * roli staršího ročníku musí test založit sám.
+     */
+    private static function roleUcastiRocnikuQuery(int $rocnik): string
+    {
+        $idRole = Role::pritomenNaRocniku($rocnik);
+        $kod = "GC{$rocnik}_PRITOMEN";
+        $typ = Role::TYP_UCAST;
+
+        return <<<SQL
+INSERT IGNORE INTO role_seznam (id_role, kod_role, nazev_role, popis_role, rocnik_role, typ_role, vyznam_role)
+VALUES ({$idRole}, '{$kod}', '{$kod}', '{$kod}', {$rocnik}, '{$typ}', '')
 SQL;
     }
 
@@ -213,6 +303,136 @@ SQL;
             $idsDluzniku,
             'Uživatel s nulovým zůstatkem NESMÍ být mezi dlužníky',
         );
+    }
+
+    /**
+     * @test
+     */
+    public function najdeIDluznikaBezLetosniPrihlasky()
+    {
+        $upominaniDluzniku = $this->dejUpominaniDluzniku();
+        $dluznici = $upominaniDluzniku->najdiDluzniky();
+
+        $idsDluzniku = array_map(
+            fn (Dluznik $d) => $d->uzivatel->id(),
+            $dluznici,
+        );
+
+        self::assertContains(
+            self::ID_DLUZNIK_Z_MINULYCH_LET,
+            $idsDluzniku,
+            'Upomínka má jít každému dlužníkovi bez ohledu na letošní účast',
+        );
+    }
+
+    /**
+     * @test
+     */
+    public function dluznikNeseJakSeLetosZucastnil()
+    {
+        $upominaniDluzniku = $this->dejUpominaniDluzniku();
+        $podleId = [];
+        foreach ($upominaniDluzniku->najdiDluzniky() as $dluznik) {
+            $podleId[$dluznik->uzivatel->id()] = $dluznik;
+        }
+
+        self::assertSame(
+            UcastNaGc::JEN_PRIHLASEN,
+            $podleId[self::ID_DLUZNIK_MALY_DLUH]->ucastNaGc,
+            'Přihlášený, ale neodbavený na infopultu, letos nedorazil',
+        );
+        self::assertSame(
+            UcastNaGc::PRITOMEN,
+            $podleId[self::ID_DLUZNIK_PRITOMNY]->ucastNaGc,
+        );
+        self::assertSame(
+            UcastNaGc::NEDORAZIL,
+            $podleId[self::ID_DLUZNIK_Z_MINULYCH_LET]->ucastNaGc,
+            'Bez letošní přihlášky i účasti',
+        );
+    }
+
+    /**
+     * @test
+     */
+    public function dluznikNeseRokPosledniUcasti()
+    {
+        $upominaniDluzniku = $this->dejUpominaniDluzniku();
+        $podleId = [];
+        foreach ($upominaniDluzniku->najdiDluzniky() as $dluznik) {
+            $podleId[$dluznik->uzivatel->id()] = $dluznik;
+        }
+
+        self::assertSame(
+            self::ROK_POSLEDNI_UCASTI_STAREHO_DLUZNIKA,
+            $podleId[self::ID_DLUZNIK_Z_MINULYCH_LET]->rokPosledniUcasti,
+        );
+        self::assertSame(
+            ROCNIK,
+            $podleId[self::ID_DLUZNIK_PRITOMNY]->rokPosledniUcasti,
+        );
+        self::assertNull(
+            $podleId[self::ID_DLUZNIK_MALY_DLUH]->rokPosledniUcasti,
+            'Kdo na GC nikdy nebyl, nemá rok poslední účasti',
+        );
+    }
+
+    /**
+     * @test
+     */
+    public function dejDluznikaVraciTotezCoHromadneHledani()
+    {
+        $upominaniDluzniku = $this->dejUpominaniDluzniku();
+
+        $hromadne = [];
+        foreach ($upominaniDluzniku->najdiDluzniky() as $dluznik) {
+            $hromadne[$dluznik->uzivatel->id()] = $dluznik->dluh;
+        }
+
+        // najdiDluzniky() si kvůli rychlosti předfiltrovává, koho vůbec přepočítá.
+        // Kdyby filtr někoho vynechal, jednotlivý dotaz by ho našel a tenhle test padne.
+        foreach ([self::ID_DLUZNIK_VELKY_DLUH, self::ID_DLUZNIK_Z_MINULYCH_LET, self::ID_DLUZNICE_NEDORAZILA] as $idUzivatele) {
+            $jednotlive = $upominaniDluzniku->dejDluznika(\Uzivatel::zId($idUzivatele));
+
+            self::assertNotNull($jednotlive, "Uživatel {$idUzivatele} je dlužník");
+            self::assertSame(
+                $hromadne[$idUzivatele] ?? null,
+                $jednotlive->dluh,
+                "Hromadné hledání musí najít uživatele {$idUzivatele} se stejným dluhem",
+            );
+        }
+    }
+
+    /**
+     * @test
+     */
+    public function najdeDluznikaKterehoDoMinusuDostalaAzZapornaPlatba()
+    {
+        $upominaniDluzniku = $this->dejUpominaniDluzniku();
+
+        $idsDluzniku = array_map(
+            fn (Dluznik $dluznik) => $dluznik->uzivatel->id(),
+            $upominaniDluzniku->najdiDluzniky(),
+        );
+
+        // Nemá letošní přihlášku ani záporný sloupec zustatek, do mínusu ho
+        // dostane jen vratka - předfiltr ho proto nesmí vynechat.
+        self::assertContains(
+            self::ID_DLUZNIK_JEN_ZAPORNA_PLATBA,
+            $idsDluzniku,
+            'Dlužník vzniklý zápornou platbou musí být v seznamu',
+        );
+    }
+
+    /**
+     * @test
+     */
+    public function dejDluznikaVraciNullProNedluznika()
+    {
+        $upominaniDluzniku = $this->dejUpominaniDluzniku();
+
+        self::assertNull($upominaniDluzniku->dejDluznika(\Uzivatel::zId(self::ID_KLADNY_ZUSTATEK)));
+        self::assertNull($upominaniDluzniku->dejDluznika(\Uzivatel::zId(\Uzivatel::SYSTEM, true)));
     }
 
     // ==================== Tests for odesliUpominkyDluznikum() ====================
@@ -312,9 +532,75 @@ SQL;
         $vysledek1 = $upominaniDluzniku->odesliUpominkyDluznikum(TypUpominky::TYDEN);
         self::assertGreaterThanOrEqual(0, $vysledek1, 'První odeslání by mělo proběhnout');
 
-        // Druhé odeslání s parametrem znovu
+        // Druhé odeslání s parametrem znovu - musí obeslat stejné lidi jako první běh,
+        // jinak přeskakování už obeslaných celý parametr znovu umlčí.
         $vysledek2 = $upominaniDluzniku->odesliUpominkyDluznikum(TypUpominky::TYDEN, znovu: true);
-        self::assertGreaterThanOrEqual(0, $vysledek2, 'Druhé odeslání s parametrem znovu by mělo proběhnout');
+        self::assertSame(
+            $vysledek1,
+            $vysledek2,
+            'S parametrem znovu se musí obeslat i ti, kdo už upomínku dostali',
+        );
+    }
+
+    /**
+     * @test
+     */
+    public function automatikaPreskociDluhPodPrahem()
+    {
+        // Očekávání je napsané natvrdo podle fixtur (dluhy 500 a 300 Kč nad prahem
+        // 251, zbytek pod ním). Kdyby se očekávání dopočítávalo stejným výrazem
+        // jako v kódu, test by prošel i s prahem tiše spadlým na nulu.
+        self::assertSame(
+            251.0,
+            SystemoveNastaveni::zGlobals()->upominkaMinimalniCastka(),
+            'Test počítá s prahem 251 Kč z migrace',
+        );
+
+        $ted = $this->dejCasKonecGcPlus('1 week');
+        $upominaniDluzniku = $this->dejUpominaniDluznikuSCasem($ted);
+
+        self::assertSame(
+            2,
+            $upominaniDluzniku->odesliUpominkyDluznikum(TypUpominky::TYDEN),
+            'Odejít smí jen dlužníci s dluhem 500 a 300 Kč',
+        );
+
+        $obeslani = array_map(
+            'intval',
+            dbFetchColumn(
+                'SELECT id_uzivatele FROM upominka_dluznika_log WHERE rocnik = $0 ORDER BY id_uzivatele',
+                [
+                    0 => ROCNIK,
+                ],
+            ),
+        );
+
+        self::assertSame(
+            [self::ID_DLUZNIK_VELKY_DLUH, self::ID_DLUZNIK_Z_MINULYCH_LET],
+            $obeslani,
+            'Pod prahem nesmí upomínka odejít nikomu',
+        );
+    }
+
+    /**
+     * @test
+     */
+    public function prahSeBereZeSystemovehoNastaveni()
+    {
+        // Hodnota musí dojít až do accessoru - se `vlastni = 0` by se místo
+        // uložené hodnoty vzala výchozí a práh by tiše spadl na nulu.
+        $ulozenaHodnota = (float) dbFetchSingle(
+            'SELECT hodnota FROM systemove_nastaveni WHERE klic = $0',
+            [
+                0 => 'UPOMINKA_MINIMALNI_CASTKA',
+            ],
+        );
+
+        self::assertGreaterThan(0.0, $ulozenaHodnota, 'Migrace musí práh naplnit nenulovou hodnotou');
+        self::assertSame(
+            $ulozenaHodnota,
+            SystemoveNastaveni::zGlobals()->upominkaMinimalniCastka(),
+        );
     }
 
     // ==================== Tests for logging ====================
@@ -365,6 +651,337 @@ SQL,
 
         self::assertNotEmpty($zaznam, 'Záznam o upomínání by měl existovat');
         self::assertSame('10', $zaznam['vysledek']);
+    }
+
+    /**
+     * @test
+     *
+     * @dataProvider poskytniUcastiBezLetosniPritomnosti
+     */
+    public function textNetvrdiLetosniUcastTomuKdoNedorazil(UcastNaGc $ucastNaGc)
+    {
+        $upominaniDluzniku = $this->dejUpominaniDluzniku();
+
+        $zprava = $upominaniDluzniku->dejEmailZpravu(
+            TypUpominky::TYDEN,
+            250,
+            12345,
+            $ucastNaGc,
+            null,
+            '',
+        );
+
+        self::assertStringNotContainsString(
+            'letošní GameCon bavil',
+            $zprava,
+            'Kdo letos na GC nebyl, nesmí dostat text o tom, jak ho letošní GC bavil',
+        );
+        self::assertStringNotContainsString(
+            'dotazniky',
+            $zprava,
+            'Zpětnou vazbu na letošní GC má smysl chtít jen po tom, kdo tu byl',
+        );
+    }
+
+    public static function poskytniUcastiBezLetosniPritomnosti(): array
+    {
+        return [
+            'jen prihlasen' => [UcastNaGc::JEN_PRIHLASEN],
+            'nedorazil'     => [UcastNaGc::NEDORAZIL],
+        ];
+    }
+
+    /**
+     * @test
+     */
+    public function textNeslibujeDrivejsiUcastTomuKdoNaGcNikdyNebyl()
+    {
+        $upominaniDluzniku = $this->dejUpominaniDluzniku();
+
+        $nikdyNebyl = $upominaniDluzniku->dejEmailZpravu(
+            TypUpominky::TYDEN,
+            250,
+            12345,
+            UcastNaGc::NEDORAZIL,
+            null,
+            '',
+        );
+        // Závěrečné „snad se uvidíme na některém z dalších ročníků“ je v pořádku,
+        // hlídá se jen tvrzení, že dluh pochází z nějaké dřívější účasti.
+        self::assertStringNotContainsString(
+            'dřívějších ročníků',
+            $nikdyNebyl,
+            'Kdo na GC nikdy nebyl, nesmí dostat text o dluhu z dřívějšího ročníku',
+        );
+        self::assertStringNotContainsString(
+            'Z GameConu',
+            $nikdyNebyl,
+            'Bez známé účasti se nesmí tvrdit konkrétní ročník',
+        );
+
+        $bylDrive = $upominaniDluzniku->dejEmailZpravu(
+            TypUpominky::TYDEN,
+            250,
+            12345,
+            UcastNaGc::NEDORAZIL,
+            2019,
+            '',
+        );
+        self::assertStringContainsString(
+            'GameConu 2019',
+            $bylDrive,
+            'Kdo byl naposledy v roce 2019, má se dozvědět, odkud dluh je',
+        );
+    }
+
+    /**
+     * @test
+     */
+    public function textSeSklonujePodlePohlavi()
+    {
+        $upominaniDluzniku = $this->dejUpominaniDluzniku();
+
+        $zene = $upominaniDluzniku->dejEmailZpravu(
+            TypUpominky::TYDEN,
+            250,
+            12345,
+            UcastNaGc::JEN_PRIHLASEN,
+            null,
+            'a',
+        );
+        self::assertStringContainsString('nedostala.', $zene);
+
+        $muzi = $upominaniDluzniku->dejEmailZpravu(
+            TypUpominky::TYDEN,
+            250,
+            12345,
+            UcastNaGc::JEN_PRIHLASEN,
+            null,
+            '',
+        );
+        self::assertStringContainsString('nedostal.', $muzi);
+
+        self::assertStringNotContainsString(
+            'nedostal/a',
+            $zene . $muzi,
+            'Text se skloňuje podle pohlaví, nepoužívá se lomítková varianta',
+        );
+    }
+
+    /**
+     * @test
+     */
+    public function odeslanyMailZeneJeSklonovanyPodleJejihoPohlavi()
+    {
+        $upominaniDluzniku = $this->dejUpominaniDluzniku();
+
+        // Přes odesliUpominkuJednomu, aby se ověřilo i napojení na Uzivatel::pohlavi()
+        $gcMail = $upominaniDluzniku->odesliUpominkuJednomu(
+            \Uzivatel::zId(self::ID_DLUZNICE_NEDORAZILA),
+            TypUpominky::TYDEN,
+            120,
+            ROCNIK,
+            \Uzivatel::zId(\Uzivatel::SYSTEM, true),
+            UcastNaGc::JEN_PRIHLASEN,
+            null,
+        );
+
+        self::assertStringContainsString(
+            'nedostala.',
+            $gcMail->dejText(),
+            'Ženě musí dojít text skloňovaný podle jejího pohlaví',
+        );
+    }
+
+    /**
+     * @test
+     */
+    public function pritomnemuUcastnikoviZustavaPuvodniText()
+    {
+        $upominaniDluzniku = $this->dejUpominaniDluzniku();
+
+        $zprava = $upominaniDluzniku->dejEmailZpravu(
+            TypUpominky::TYDEN,
+            250,
+            12345,
+            UcastNaGc::PRITOMEN,
+            ROCNIK,
+            '',
+        );
+
+        self::assertStringContainsString('letošní GameCon bavil', $zprava);
+        self::assertStringContainsString('last moment aktivity', $zprava);
+    }
+
+    /**
+     * @test
+     */
+    public function systemovyUcetNedostaneUpominku()
+    {
+        $upominaniDluzniku = $this->dejUpominaniDluzniku();
+
+        $idsDluzniku = array_map(
+            fn (Dluznik $dluznik) => $dluznik->uzivatel->id(),
+            $upominaniDluzniku->najdiDluzniky(),
+        );
+
+        self::assertNotContains(
+            \Uzivatel::SYSTEM,
+            $idsDluzniku,
+            'Systémový účet není člověk a upomínku dostat nesmí',
+        );
+    }
+
+    /**
+     * @test
+     */
+    public function kazdaOdeslanaUpominkaSeZalogujeZvlast()
+    {
+        $ted = $this->dejCasKonecGcPlus('1 week');
+        $upominaniDluzniku = $this->dejUpominaniDluznikuSCasem($ted);
+
+        // Očekávaný počet se bere ze seznamu dlužníků, ne z návratové hodnoty běhu -
+        // jinak by test prošel i tehdy, kdyby se většina dlužníků omylem přeskočila.
+        $minimalniCastka = SystemoveNastaveni::zGlobals()->upominkaMinimalniCastka();
+        $dluzniciSMailem = array_filter(
+            $upominaniDluzniku->najdiDluzniky(),
+            static fn (Dluznik $dluznik) => $dluznik->uzivatel->mail()
+                && $dluznik->dluh >= $minimalniCastka,
+        );
+        self::assertNotEmpty($dluzniciSMailem, 'Test potřebuje aspoň jednoho dlužníka s e-mailem nad prahem');
+
+        $pocetOdeslanych = $upominaniDluzniku->odesliUpominkyDluznikum(TypUpominky::TYDEN);
+        self::assertSame(
+            count($dluzniciSMailem),
+            $pocetOdeslanych,
+            'Upomínka musí odejít každému dlužníkovi s e-mailem nad prahem',
+        );
+
+        $pocetZaznamu = (int) dbFetchSingle(<<<SQL
+SELECT COUNT(*)
+FROM upominka_dluznika_log
+WHERE rocnik = $0
+SQL,
+            [
+                0 => ROCNIK,
+            ],
+        );
+
+        self::assertSame(
+            count($dluzniciSMailem),
+            $pocetZaznamu,
+            'Každý odeslaný e-mail musí mít vlastní řádek v logu, ne jen souhrn za celý běh',
+        );
+    }
+
+    /**
+     * @test
+     */
+    public function jizUpomenutemuDluznikoviNeprijdeUpominkaPodruhe()
+    {
+        $ted = $this->dejCasKonecGcPlus('1 week');
+        $upominaniDluzniku = $this->dejUpominaniDluznikuSCasem($ted);
+
+        $prvniBeh = $upominaniDluzniku->odesliUpominkyDluznikum(TypUpominky::TYDEN);
+        self::assertGreaterThan(0, $prvniBeh, 'Test potřebuje aspoň jednu odeslanou upomínku');
+
+        // Pád uprostřed rozesílky: souhrnný záznam za celý běh nevznikl, takže
+        // další běh projde přes jizOdeslano() a smí doslat jen dosud neobeslané.
+        dbQuery(
+            "DELETE FROM hromadne_akce_log WHERE skupina = 'upominani-dluzniku'",
+        );
+
+        $druhyBeh = $upominaniDluzniku->odesliUpominkyDluznikum(TypUpominky::TYDEN);
+
+        self::assertSame(
+            0,
+            $druhyBeh,
+            'Už obeslaní dlužníci se musí přeskočit, jinak jim upomínka přijde podruhé',
+        );
+    }
+
+    /**
+     * @test
+     */
+    public function mesicniUpominkaDojdeIKomuUzPrislaTydenni()
+    {
+        $tyden = $this->dejUpominaniDluznikuSCasem($this->dejCasKonecGcPlus('1 week'));
+        $pocetTyden = $tyden->odesliUpominkyDluznikum(TypUpominky::TYDEN);
+        self::assertGreaterThan(0, $pocetTyden, 'Test potřebuje odeslanou týdenní upomínku');
+
+        // Měsíční upomínka je samostatný cron o tři týdny později a míří právě na ty,
+        // kdo po týdenní upomínce pořád dluží - nesmí je přeskočit jako „už obeslané“.
+        $mesic = $this->dejUpominaniDluznikuSCasem($this->dejCasKonecGcPlus('1 month'));
+        $pocetMesic = $mesic->odesliUpominkyDluznikum(TypUpominky::MESIC);
+
+        self::assertSame(
+            $pocetTyden,
+            $pocetMesic,
+            'Měsíční upomínka musí dojít všem, kdo dostali týdenní a stále dluží',
+        );
+    }
+
+    /**
+     * @test
+     */
+    public function rucniUpominkaSeZalogujeSOdesilatelemAJehoTypem()
+    {
+        $upominaniDluzniku = $this->dejUpominaniDluzniku();
+        $dluznik = \Uzivatel::zId(self::ID_DLUZNIK_MALY_DLUH);
+        $odesilatel = \Uzivatel::zId(\Uzivatel::SYSTEM, true);
+
+        $upominaniDluzniku->odesliUpominkuJednomu(
+            $dluznik,
+            TypUpominky::RUCNI,
+            123,
+            ROCNIK,
+            $odesilatel,
+            UcastNaGc::PRITOMEN,
+            ROCNIK,
+        );
+
+        $zaznam = dbOneLine(<<<SQL
+SELECT typ_upominky, dluh, odeslal
+FROM upominka_dluznika_log
+WHERE id_uzivatele = $0
+    AND rocnik = $1
+SQL,
+            [
+                0 => self::ID_DLUZNIK_MALY_DLUH,
+                1 => ROCNIK,
+            ],
+        );
+
+        self::assertNotEmpty($zaznam, 'Ruční upomínka se musí zalogovat');
+        self::assertSame(TypUpominky::RUCNI->value, $zaznam['typ_upominky']);
+        self::assertSame('123', $zaznam['dluh'], 'Log musí držet částku, která byla v e-mailu');
+        self::assertSame((string) $odesilatel->id(), $zaznam['odeslal']);
+    }
+
+    /**
+     * @test
+     */
+    public function rucniUpominkaPouzijeTextMesicniVarianty()
+    {
+        self::assertSame(
+            TypUpominky::MESIC,
+            TypUpominky::RUCNI->textovaVarianta(),
+            'Ruční upomínka nemá vlastní text, bere naléhavější měsíční variantu',
+        );
+        self::assertSame(TypUpominky::TYDEN, TypUpominky::TYDEN->textovaVarianta());
+        self::assertSame(TypUpominky::MESIC, TypUpominky::MESIC->textovaVarianta());
+    }
+
+    /**
+     * @test
+     */
+    public function rucniUpominkaSeNesmiRozesilatAutomatickouCestou()
+    {
+        $upominaniDluzniku = $this->dejUpominaniDluzniku();
+
+        $this->expectException(\LogicException::class);
+
+        $upominaniDluzniku->odesliUpominkyDluznikum(TypUpominky::RUCNI);
     }
 
     /**
