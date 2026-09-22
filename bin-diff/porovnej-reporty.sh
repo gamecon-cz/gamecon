@@ -158,6 +158,11 @@ stahni() {
 # Je to záměrná změna, kterou stejně normalizuje i `porovnej.sh` — bez toho hlásí rozdíl
 # každý report, který ukazuje kupujícího, a skutečné nálezy se v tom ztratí.
 #
+# Kromě přejmenování uvnitř řádku z toho vznikl i celý řádek navíc: anonymní kupující je
+# na nové větvi běžný účet, takže ho reporty nad uživateli vypisují a legacy ne. Takový
+# řádek se zahazuje na obou stranách — jinak hlásí rozdíl pět reportů, u kterých se pak
+# nepozná, jestli je v nich i něco skutečného.
+#
 # Některé reporty si do dat píšou čas svého vzniku. Obě větve se stahují po sobě, takže
 # se ten čas skoro vždy liší o vteřiny. Nahrazuje se proto jen na řádku, který ho nese
 # (`Ir-Timestamp`) — plošné maskování všech datumů s časem by umlčelo i skutečné údaje
@@ -210,6 +215,7 @@ ocisti() {
         | sed -E 's#https?://[^;\"]*localhost:[0-9]+#<HOST>#g' \
         | sed -E '/^Ir-Timestamp;/ s/[0-9]{4}-[0-9]{2}-[0-9]{2}[ T][0-9]{2}:[0-9]{2}(:[0-9]{2})?/<CAS>/g' \
         | sed -E 's/;(1;SYSTEM;SYSTEM|0;ANONYM;ANONYM);/;<ANONYM>;/g' \
+        | sed -E '/^(0;ANONYM|1;SYSTEM)/d' \
         | LC_ALL=C sort
 }
 
