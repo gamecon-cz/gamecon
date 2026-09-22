@@ -10,6 +10,7 @@
 const KURZ_EURO = 0; // SELECT hodnota FROM systemove_nastaveni WHERE klic = 'KURZ_EURO'
 
 const NEPLATIC_CASTKA_VELKY_DLUH                   = 0.0; // SELECT hodnota FROM systemove_nastaveni WHERE klic = 'NEPLATIC_CASTKA_VELKY_DLUH'
+const UPOMINKA_MINIMALNI_CASTKA                    = 0.0; // SELECT hodnota FROM systemove_nastaveni WHERE klic = 'UPOMINKA_MINIMALNI_CASTKA'
 const NEPLATIC_CASTKA_POSLAL_DOST                  = 0.0; // SELECT hodnota FROM systemove_nastaveni WHERE klic = 'NEPLATIC_CASTKA_POSLAL_DOST'
 const NEPLATIC_POCET_DNU_PRED_VLNOU_KDY_JE_CHRANEN = 0;   // SELECT hodnota FROM systemove_nastaveni WHERE klic = 'NEPLATIC_POCET_DNU_PRED_VLNOU_KDY_JE_CHRANEN'
 const TEXT_PRO_SPAROVANI_ODCHOZI_PLATBY            = '';
