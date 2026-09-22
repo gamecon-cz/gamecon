@@ -87,7 +87,7 @@ $mailpitUrl = $gateUrl('https://webmail.preview.gamecon.cz/');
     <table class="zvyraznovana" style="width: 100%">
         <thead>
             <tr>
-                <th>URL</th>
+                <th>Web</th>
                 <th>Admin</th>
                 <th>Poslední změna</th>
             </tr>
