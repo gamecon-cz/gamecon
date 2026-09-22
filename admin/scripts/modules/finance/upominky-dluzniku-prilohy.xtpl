@@ -1,0 +1,9 @@
+<!-- begin: prilohy -->
+<!-- begin: priloha -->
+<div style="display: inline-block; margin: 0 1em 1em 0; text-align: center; vertical-align: top">
+    <img src="{qrKodDataUri}" alt="{nazevPrilohy}" width="160" height="160"
+         style="border: 1px solid #ddd; background: #fff">
+    <div style="font-size: .9em; color: #555">{nazevPrilohy}</div>
+</div>
+<!-- end: priloha -->
+<!-- end: prilohy -->

@@ -1,0 +1,23 @@
+<!-- begin: nahled -->
+
+<div id="nahledUpominkyObsah">
+<p>
+    Příjemce: <strong>{jmenoNick}</strong> &lt;{mail}&gt;
+</p>
+
+<p>Předmět: <strong>{predmet}</strong></p>
+
+<pre style="white-space: pre-wrap; background: #f5f5f5; padding: 1em; border: 1px solid #ddd">{zprava}</pre>
+
+<!-- begin: priloha -->
+<div style="display: inline-block; margin: 0 1em 1em 0; text-align: center; vertical-align: top">
+    <img src="{qrKodDataUri}" alt="{nazevPrilohy}" width="160" height="160"
+         style="border: 1px solid #ddd; background: #fff">
+    <div style="font-size: .9em; color: #555">{nazevPrilohy}</div>
+</div>
+<!-- end: priloha -->
+
+<p><em>Tohle je jen náhled, nic se neodeslalo.</em></p>
+</div>
+
+<!-- end: nahled -->
