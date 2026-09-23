@@ -55,6 +55,12 @@ class CancelledOrderItem
     #[ORM\Column(name: 'zdroj_zruseni', type: Types::STRING, length: 255, nullable: true)]
     private ?string $cancellationReason = null;
 
+    #[ORM\Column(name: 'product_name', type: Types::STRING, length: 255, nullable: true)]
+    private ?string $productName = null;
+
+    #[ORM\Column(name: 'product_code', type: Types::STRING, length: 255, nullable: true)]
+    private ?string $productCode = null;
+
     public function __construct()
     {
         $this->cancelledAt = new \DateTime();
@@ -158,6 +164,30 @@ class CancelledOrderItem
         return $this;
     }
 
+    public function getProductName(): ?string
+    {
+        return $this->productName;
+    }
+
+    public function setProductName(?string $productName): self
+    {
+        $this->productName = $productName;
+
+        return $this;
+    }
+
+    public function getProductCode(): ?string
+    {
+        return $this->productCode;
+    }
+
+    public function setProductCode(?string $productCode): self
+    {
+        $this->productCode = $productCode;
+
+        return $this;
+    }
+
     // ==================== Helper Methods ====================
 
     /**
@@ -165,6 +195,10 @@ class CancelledOrderItem
      */
     public function getDisplayProductName(): string
     {
+        if ($this->productName !== null) {
+            return $this->productName;
+        }
+
         if ($this->product instanceof Product) {
             return $this->product->getName();
         }

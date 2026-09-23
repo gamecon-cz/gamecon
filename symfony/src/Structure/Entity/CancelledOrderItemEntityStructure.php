@@ -40,6 +40,16 @@ class CancelledOrderItemEntityStructure
     public const cancellationReason = 'cancellationReason';
 
     /**
+     * @see CancelledOrderItem::$productName
+     */
+    public const productName = 'productName';
+
+    /**
+     * @see CancelledOrderItem::$productCode
+     */
+    public const productCode = 'productCode';
+
+    /**
      * @see CancelledOrderItem::$customer
      */
     public const customer = 'customer';
