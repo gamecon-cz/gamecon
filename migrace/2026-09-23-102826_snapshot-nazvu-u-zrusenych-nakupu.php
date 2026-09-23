@@ -25,25 +25,20 @@ SQL);
 // Test na NULL je tu schválně, i když by IF prošlo i bez něj: přes LEFT JOIN varianta
 // nemusí existovat a NULL by se protáhl třemi porovnáními, než ho IF vyhodnotí jako
 // nepravdu. Tím by správný výsledek závisel na tříhodnotové logice místo na záměru.
-//
-// `COLLATE` je nutné: databáze sjednocená není. `product_variant` je utf8mb4_czech_ci,
-// ale `shop_predmety` a `shop_nakupy_zrusene` utf8mb4_general_ci, takže porovnání mezi
-// nimi skončí na „Illegal mix of collations". Cílová kolace je ta strany, do které se
-// zapisuje.
 $this->q(<<<'SQL'
 UPDATE shop_nakupy_zrusene
 JOIN shop_predmety ON shop_predmety.id_predmetu = shop_nakupy_zrusene.id_predmetu
 LEFT JOIN product_variant
-    ON product_variant.code COLLATE utf8mb4_general_ci = shop_predmety.kod_predmetu
+    ON product_variant.code = shop_predmety.kod_predmetu
 SET shop_nakupy_zrusene.product_name = IF(
         product_variant.name IS NOT NULL
             AND TRIM(product_variant.name) REGEXP '^(XS|S|M|L|XL|XXL|XXXL|[0-9]+-[0-9]+)$'
             AND shop_predmety.nazev NOT REGEXP CONCAT(
                 '[[:<:]]',
-                TRIM(product_variant.name) COLLATE utf8mb4_general_ci,
+                TRIM(product_variant.name),
                 '[[:>:]]'
             ),
-        CONCAT(shop_predmety.nazev, ' ', TRIM(product_variant.name) COLLATE utf8mb4_general_ci),
+        CONCAT(shop_predmety.nazev, ' ', TRIM(product_variant.name)),
         shop_predmety.nazev
     ),
     shop_nakupy_zrusene.product_code = shop_predmety.kod_predmetu
