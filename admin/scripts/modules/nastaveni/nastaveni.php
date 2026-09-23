@@ -16,6 +16,9 @@ use Gamecon\Vyjimkovac\Vyjimkovac;
  * @var Vyjimkovac $vyjimkovac
  */
 
+// Web a admin sdílí session, takže na dotaz na stav kopírování nestačí samotné přihlášení.
+$_SESSION[SystemoveNastaveniHtml::SMI_VIDET_STAV_KOPIE_SESSION_KLIC] = true;
+
 $nastaveniHtml = new SystemoveNastaveniHtml($systemoveNastaveni);
 $nastaveniAjax = new SystemoveNastaveniAjax($systemoveNastaveni, $nastaveniHtml, $u, $vyjimkovac);
 
