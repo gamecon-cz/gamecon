@@ -6,6 +6,8 @@
  */
 global $dbTransactionDepth;
 $dbTransactionDepth = 0;
+global $dbJenProCteni;
+$dbJenProCteni = false;
 
 /**
  * Load one column into array in $id => $value manner
@@ -98,11 +100,89 @@ function dbRollback()
     $GLOBALS['dbTransactionDepth']--;
 }
 
+/**
+ * MariaDB refuses any write on it (error 1792), except into an already existing temporary table.
+ * Never set this on the persistent connection: it serves the rest of the request, and
+ * unless mysqli resets it on reuse (a build option), the following requests too.
+ * @throws ConnectionException
+ * @throws DbException
+ */
+function dbConnectReadOnly(
+    bool $selectDb = true,
+    int  $rocnik = ROCNIK,
+): mysqli {
+    $spojeniJenProCteni = _dbConnect(
+        DB_SERV,
+        DB_USER,
+        DB_PASS,
+        defined('DB_PORT')
+            ? DB_PORT
+            : null,
+        $selectDb
+            ? DB_NAME
+            : null,
+        false,
+    );
+    try {
+        // without the systemove_nastaveni sync of _nastavRocnikDoSpojeni(), a write the persistent connection already did
+        dbQuery('SET @rocnik = $0', $rocnik, $spojeniJenProCteni);
+        dbQuery('SET SESSION TRANSACTION READ ONLY', null, $spojeniJenProCteni);
+    } catch (Throwable $throwable) {
+        mysqli_close($spojeniJenProCteni);
+        throw $throwable;
+    }
+
+    return $spojeniJenProCteni;
+}
+
+/**
+ * For the rest of the request, including any reconnect. The persistent connection is left untouched.
+ */
+function dbSwitchToReadOnlyConnection(): void
+{
+    global $spojeni, $dbJenProCteni, $dbTransactionDepth;
+    $dbJenProCteni      = true;
+    $spojeni            = null;
+    $dbTransactionDepth = 0;
+}
+
+/**
+ * The callback must run its queries itself; a lazily evaluated result (Report, generator)
+ * would run them after this, on the writable connection.
+ * @template T
+ * @param callable(): T $callback
+ * @return T
+ * @throws DbException
+ */
+function dbReadOnly(
+    callable $callback,
+): mixed {
+    global $spojeni, $dbJenProCteni, $dbTransactionDepth;
+    if ($dbJenProCteni) {
+        return $callback();
+    }
+    $puvodniSpojeni     = $spojeni;
+    $puvodniHloubka     = $dbTransactionDepth;
+    dbSwitchToReadOnlyConnection();
+    try {
+        return $callback();
+    } finally {
+        dbClose();
+        $spojeni            = $puvodniSpojeni;
+        $dbJenProCteni      = false;
+        $dbTransactionDepth = $puvodniHloubka;
+    }
+}
+
 function dbConnectTemporary(
     bool                  $selectDb = true,
     int                   $rocnik = ROCNIK,
     mysqli | null | false $stareSpojeni = null,
 ): \mysqli {
+    global $dbJenProCteni;
+    if ($dbJenProCteni) {
+        return dbConnectReadOnly($selectDb, $rocnik);
+    }
     $noveSpojeni = _dbConnect(
         DB_SERV,
         DB_USER,
@@ -137,9 +217,15 @@ function dbConnect(
         dbClose();
     }
 
-    global $spojeni;
+    global $spojeni, $dbJenProCteni;
 
     if ($spojeni instanceof mysqli) {
+        return $spojeni;
+    }
+
+    if ($dbJenProCteni) {
+        $spojeni = dbConnectReadOnly($selectDb, $rocnik);
+
         return $spojeni;
     }
 

@@ -63,3 +63,6 @@ SQL,
 } catch (DbException $exception) {
     trigger_error($exception->getMessage() . PHP_EOL . $GLOBALS['dbLastQ'] . PHP_EOL . $exception->getTraceAsString(), E_USER_WARNING);
 }
+
+// the usage log above is the last write a report may do
+dbSwitchToReadOnlyConnection();
