@@ -400,9 +400,9 @@ class SystemoveNastaveniHtml
     }
 
     /**
-     * AJAX endpoint pro zjištění stavu kopírování databáze
+     * Stav se čte jen ze SQLite, nikoli z MariaDB — ptáme se na něj i během importu, kdy tabulky chybějí.
      */
-    public function ajaxStavKopieDatabazeZOstre(): void
+    public static function ajaxStavKopieDatabazeZOstre(): void
     {
         header('Content-Type: application/json');
 
