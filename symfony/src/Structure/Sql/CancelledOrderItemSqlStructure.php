@@ -42,6 +42,16 @@ class CancelledOrderItemSqlStructure
     public const zdroj_zruseni = 'zdroj_zruseni';
 
     /**
+     * @see CancelledOrderItem::$productName
+     */
+    public const product_name = 'product_name';
+
+    /**
+     * @see CancelledOrderItem::$productCode
+     */
+    public const product_code = 'product_code';
+
+    /**
      * @see CancelledOrderItem::$customer
      */
     public const id_uzivatele = 'id_uzivatele';
