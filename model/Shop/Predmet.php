@@ -20,6 +20,12 @@ class Predmet extends \DbObject
     /** @var array<string, static|null> klíčem je část kódu a ročník */
     protected static $letosniPredmety = [];
 
+    public static function smazCache(): void
+    {
+        parent::smazCache();
+        self::$letosniPredmety = [];
+    }
+
     public static function jeToVstupneVcas(int $typPredmetu, string $kodPredmetu): bool
     {
         return $typPredmetu === TypPredmetu::VSTUPNE && !self::jeToDleCasti($kodPredmetu, 'pozde');
