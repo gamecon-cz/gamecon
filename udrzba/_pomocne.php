@@ -100,6 +100,11 @@ function nasad(
         nadpis("NASAZUJI '{$nastaveni['vetev']}'");
     }
 
+    foreach (['DB_READONLY_USER', 'DB_READONLY_PASS'] as $povinnaPromenna) {
+        if ((string)getenv($povinnaPromenna) === '') {
+            throw new \RuntimeException("Chybí $povinnaPromenna, bez něj by se reporty nepřipojily k databázi");
+        }
+    }
     vytvorSouborSkrytehoNastaveniPodleEnv($nastaveni['souborVerejnehoNastaveni']);
     vytvorSouborServerNastaveniPodleEnv($nastaveni['souborVerejnehoNastaveni']);
 

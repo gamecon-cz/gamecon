@@ -374,6 +374,7 @@ Pravdivý stav ke dni auditu (zdroj: `cat /usr/local/sbin/deploy-preview-branch.
 |---------|-----------------|-------------------|-------|
 | `DB_SERV`, `DB_PORT`, `DB_USER`, `DB_PASS`, `DB_NAME` | `docker run -e` | per-slug (DB `gc_preview_<slug>`, user stejně, heslo = HMAC slugu) | správně |
 | `DBM_USER`, `DBM_PASS` | `docker run -e` | totožné s `DB_USER`/`DB_PASS` (preview nepotřebuje oddělený migration user) | správně |
+| `DB_READONLY_USER`, `DB_READONLY_PASS` | `docker run -e` | per-slug `gc_preview_<slug>_ro`, jen `SELECT`, heslo = HMAC slugu | účet pro reporty. Ostra/beta: `r16779_gcostra`/`r16779_beta2` z ansible `secrets.yaml`, GitHub secrets `OSTRA_`/`BETA_DB_READONLY_*`. Dnešní archivy nic, jejich `archive/YYYY` tenhle kód nemá; archiv odvětvený z `main` (2026+) ho potřebuje doplnit do `year_archive_deployer`. Lokálně = `DB_USER`, v testech SELECT-only `reporty_ro` |
 | `MIGRACE_HESLO` | `docker run -e` | per-slug HMAC | správně |
 | `APP_ENV`, `APP_DEBUG`, `APP_SECRET` | `docker run -e` | `prod` / prázdné / per-slug HMAC | správně |
 | `MAILER_DSN` | `docker run -e` | `smtp://172.17.0.1:1025` (sdílený Mailpit, `webmail.preview.gamecon.cz`) | **úmyslně jiné než ostra** — nechceme posílat z preview reálné maily |

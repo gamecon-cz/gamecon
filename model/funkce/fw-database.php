@@ -101,7 +101,8 @@ function dbRollback()
 }
 
 /**
- * MariaDB refuses any write on it (error 1792), except into an already existing temporary table.
+ * Logs in as DB_READONLY_USER, SELECT only on ostra, beta, previews and in tests (writes fail with 1142);
+ * locally it is the full-rights user and the read-only session refuses writes instead (1792).
  * Never set this on the persistent connection: it serves the rest of the request, and
  * unless mysqli resets it on reuse (a build option), the following requests too.
  * @throws ConnectionException
@@ -113,8 +114,8 @@ function dbConnectReadOnly(
 ): mysqli {
     $spojeniJenProCteni = _dbConnect(
         DB_SERV,
-        DB_USER,
-        DB_PASS,
+        DB_READONLY_USER,
+        DB_READONLY_PASS,
         defined('DB_PORT')
             ? DB_PORT
             : null,
