@@ -1,5 +1,7 @@
 <?php
 
+use Gamecon\Report\QuickReportSqlGuard;
+
 /**
  * nazev: Přidat quick report
  * pravo: 104
@@ -10,18 +12,10 @@ function quickReportValidation(array $data)
     if (!$data['dotaz']) {
         throw new \LogicException('Chybi quick report dotaz');
     }
-    $dotazKeKontole = $data['dotaz'];
-    // bohuzel nam Wedos neumoznuje read-only uzivatele
-    if (!preg_match('~(^|\W)(SELECT|SHOW)\W~i', $dotazKeKontole)) {
-        throw new \LogicException('Quick report dotaz neobsahuje SELECT ani SHOW');
-    }
-    $dotazKeKontole = str_ireplace('SHOW CREATE', 'SHOW', $dotazKeKontole); // pro zjednoduseni kontroly, dotaz sam se nemeni
-    if (preg_match('~(^|\W)(INSERT|UPDATE|DELETE|DROP|CREATE|MODIFY|RENAME|SET)\W~i', $dotazKeKontole)) {
-        throw new \LogicException('Quick report dotaz muze obsahovat jen SELECT a SHOW: ' . $data['dotaz']);
-    }
     $data['dotaz'] = quickReportPlaceholderReplace($data['dotaz']);
     try {
-        dbQuery($data['dotaz']);
+        (new QuickReportSqlGuard())->assertSingleReadStatement($data['dotaz']);
+        dbReadOnly(static fn() => dbQuery($data['dotaz']));
     } catch (\Throwable $throwable) {
         throw new \LogicException(
             'Quick report dotaz je chybny: ' . $throwable->getMessage(),
