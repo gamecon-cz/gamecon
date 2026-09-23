@@ -90,11 +90,12 @@ $mailpitUrl = $gateUrl('https://webmail.preview.gamecon.cz/');
                 <th>URL</th>
                 <th>Admin</th>
                 <th>Poslední změna</th>
+                <th></th>
             </tr>
         </thead>
         <tbody>
         <?php foreach ($previews as $preview) { ?>
-            <tr>
+            <tr id="<?php echo htmlspecialchars($preview->slug); ?>">
                 <td>
                     <a href="<?php echo htmlspecialchars($gateUrl($preview->url)); ?>" target="_blank" rel="noopener">
                         <?php echo htmlspecialchars(preg_replace('/^https?:\/\/|\/$/', '', $preview->url)); ?>
@@ -108,8 +109,12 @@ $mailpitUrl = $gateUrl('https://webmail.preview.gamecon.cz/');
                         ? htmlspecialchars($preview->deployedAt->format('Y-m-d H:i'))
                         : '—'; ?>
                 </td>
+                <td style="width: 1%">
+                    <a href="web/previews#<?php echo htmlspecialchars($preview->slug); ?>" class="lokalni-odkaz">#</a>
+                </td>
             </tr>
         <?php } ?>
         </tbody>
     </table>
+    <script type="text/javascript" src="files/lokalni-odkazy.js?version=<?php echo md5_file(__DIR__ . '/../../../files/lokalni-odkazy.js'); ?>"></script>
 <?php } ?>
