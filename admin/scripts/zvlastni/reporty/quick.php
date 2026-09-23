@@ -1,5 +1,8 @@
 <?php
 
+use Gamecon\Report\Exceptions\QuickReportSqlNotAllowed;
+use Gamecon\Report\QuickReportSqlGuard;
+
 require __DIR__ . '/sdilene-hlavicky.php';
 
 $r = dbOneLine('SELECT * FROM reporty_quick WHERE id = $1', [get('id')]);
@@ -7,6 +10,7 @@ if ($r) {
     $sql = quickReportPlaceholderReplace($r['dotaz']);
     try {
         ob_start();
+        (new QuickReportSqlGuard())->assertSingleReadStatement($sql);
         $report            = Report::zSql($sql);
         $quickReportFormat = get('format');
         if ($quickReportFormat) {
@@ -16,8 +20,8 @@ if ($r) {
             $report->tHtml(Report::BEZ_STYLU);
         }
         ob_end_flush();
-    } catch (DbException $e) {
+    } catch (DbException | QuickReportSqlNotAllowed $exception) {
         ob_end_clean();
-        echo 'chyba: ' . $e->getMessage();
+        echo 'chyba: ' . $exception->getMessage();
     }
 }
