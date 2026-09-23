@@ -80,7 +80,7 @@ class SystemoveNastaveniHtml
             $souboruZalohOptions = implode('', array_map(
                 function (string $soubor): string {
                     $basename = basename($soubor);
-                    $datum = new DateTimeCz('@' . filemtime($soubor));
+                    $datum = DateTimeCz::zTimestampu(filemtime($soubor));
                     $popisek = $this->formatujDatumSeStarim($datum);
 
                     return "<option value=\"{$basename}\">{$popisek}</option>";
