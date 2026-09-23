@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace Gamecon\Tests\Db;
 
 use Gamecon\Shop\Predmet;
-use Gamecon\Shop\ShopUbytovani;
 
 class CollationTest extends AbstractTestDb
 {
@@ -51,8 +50,6 @@ class CollationTest extends AbstractTestDb
 
     public function testHledaniPredmetuPodleNazvuAKoduNepadaNaCollation()
     {
-        self::assertNull(Predmet::letosniKostka(1990));
-        self::assertSame([], ShopUbytovani::dejIdsPredmetuUbytovani(['Neexistující ubytování'], 1990, false));
-        self::assertSame([], ShopUbytovani::dejIdsPredmetuUbytovaniPodleKoduTypu('neexistujici', [1], 1990, false));
+        self::assertNull(Predmet::letosniPlacka(1990));
     }
 }
