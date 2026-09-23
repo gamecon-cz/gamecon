@@ -35,26 +35,9 @@ document.addEventListener('DOMContentLoaded', function () {
     })
   })
 
-  if (window.location.hash) {
-    const urlHash = window.location.hash
-    const idFromHash = urlHash.trim().replace('#', '').toUpperCase()
-    const elementProZvyrazneni = document.getElementById(idFromHash)
-    if (elementProZvyrazneni) {
-      elementProZvyrazneni.classList.add('zvyrazni')
-    }
-  }
-
-  // class pro zvýraznění může také přijít z PHP, viz \Gamecon\SystemoveNastaveni\SystemoveNastaveniHtml::vypisSkupinu
+  // zvýraznění podle #kotvy v URL řeší zablikej-1.1.js, tahle class přichází z PHP, viz \Gamecon\SystemoveNastaveni\SystemoveNastaveniHtml::vypisSkupinu
   Array.from(nastaveniElement.getElementsByClassName('zvyrazni')).forEach(function (zvyrazniElement) {
     zablikej(zvyrazniElement)
-  })
-
-  Array.from(document.getElementsByClassName('lokalni-odkaz')).forEach(function (element) {
-    element.addEventListener('click', function () {
-      window.location.hash=this.hash
-      zablikej(document.getElementById(this.hash.replace('#', '')))
-      event.preventDefault()
-    })
   })
 
 })

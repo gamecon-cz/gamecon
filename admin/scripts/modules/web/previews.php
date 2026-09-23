@@ -116,5 +116,4 @@ $mailpitUrl = $gateUrl('https://webmail.preview.gamecon.cz/');
         <?php } ?>
         </tbody>
     </table>
-    <script type="text/javascript" src="files/lokalni-odkazy.js?version=<?php echo md5_file(__DIR__ . '/../../../files/lokalni-odkazy.js'); ?>"></script>
 <?php } ?>
