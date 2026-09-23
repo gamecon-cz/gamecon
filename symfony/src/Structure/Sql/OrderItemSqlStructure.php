@@ -77,6 +77,11 @@ class OrderItemSqlStructure
     public const discount_reason = 'discount_reason';
 
     /**
+     * @see OrderItem::$discountSnapshot
+     */
+    public const discount_snapshot = 'discount_snapshot';
+
+    /**
      * @see OrderItem::$purchasedAt
      */
     public const datum = 'datum';

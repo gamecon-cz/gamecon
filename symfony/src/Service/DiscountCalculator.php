@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Service;
 
+use App\Discount\AppliedDiscount;
 use App\Discount\DiscountableItem;
 use App\Discount\DiscountCalculation;
 use App\Discount\DiscountRuleLoader;
@@ -35,7 +36,7 @@ class DiscountCalculator
      * @param int|null $accommodationDay noc, které se sleva týká; u ubytování ji nese varianta,
      *                                   ne typ pokoje, takže bez ní nároky na konkrétní noc nesednou
      *
-     * @return array{discount: null, discountAmount: string, finalPrice: string, reason: string|null}
+     * @return array{discount: null, discountAmount: string, finalPrice: string, reason: string|null, snapshot: array<string, mixed>|null}
      */
     public function calculateDiscount(Product $product, User $user, int $year, ?int $accommodationDay = null): array
     {
@@ -70,6 +71,7 @@ class DiscountCalculator
             'discountAmount' => number_format($sleva->discountAmount, 2, '.', ''),
             'finalPrice'     => number_format($sleva->finalPrice, 2, '.', ''),
             'reason'         => $sleva->ruleName,
+            'snapshot'       => $sleva->snapshot,
         ];
     }
 
@@ -83,7 +85,7 @@ class DiscountCalculator
      * @param array<string, int>|null $spentQuota kolik z kvóty každého pravidla padlo
      *                                            za celý ročník — viz SpentQuota
      *
-     * @return array{discount: null, discountAmount: string, finalPrice: string, reason: string|null}
+     * @return array{discount: null, discountAmount: string, finalPrice: string, reason: string|null, snapshot: array<string, mixed>|null}
      */
     public function priceForNextPiece(
         Product $product,
@@ -103,6 +105,7 @@ class DiscountCalculator
             'discountAmount' => $prvni['discountAmount'],
             'finalPrice'     => $prvni['price'],
             'reason'         => $prvni['ruleName'],
+            'snapshot'       => $this->slevaProDalsiKus($product, $user, $year, $alreadyBought, $spentQuota)?->snapshot,
         ];
     }
 
@@ -155,6 +158,30 @@ class DiscountCalculator
         }
 
         return $results;
+    }
+
+    /**
+     * @param array<string, int>|null $spentQuota
+     */
+    private function slevaProDalsiKus(
+        Product $product,
+        User $user,
+        int $year,
+        int $alreadyBought,
+        ?array $spentQuota,
+    ): ?AppliedDiscount {
+        $idUzivatele = $user->getId();
+        $polozka = $this->polozkaZProduktu($product);
+        if ($idUzivatele === null || $polozka === null) {
+            return null;
+        }
+
+        return (new DiscountCalculation(
+            $this->ruleLoader->rulesForYear($year),
+            $this->ruleLoader->rightsOfUser($idUzivatele, $year),
+            $this->hodnotyNastaveni(),
+            0.0,
+        ))->appliedForNextPiece($polozka, $alreadyBought, $spentQuota);
     }
 
     /**
@@ -212,7 +239,7 @@ class DiscountCalculator
     }
 
     /**
-     * @return array{discount: null, discountAmount: string, finalPrice: string, reason: null}
+     * @return array{discount: null, discountAmount: string, finalPrice: string, reason: null, snapshot: null}
      */
     private function bezSlevy(string $puvodniCena): array
     {
@@ -221,6 +248,7 @@ class DiscountCalculator
             'discountAmount' => '0.00',
             'finalPrice'     => $puvodniCena,
             'reason'         => null,
+            'snapshot'       => null,
         ];
     }
 }
