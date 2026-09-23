@@ -5,6 +5,7 @@ declare(strict_types=1);
 use Gamecon\Cas\DateTimeCz;
 use Gamecon\Pravo;
 use Gamecon\Role\Role;
+use Gamecon\SystemoveNastaveni\SystemoveNastaveniHtml;
 use Gamecon\Uzivatel\Platby;
 use Gamecon\Web\Info;
 use Gamecon\Web\VerzeSouboru;
@@ -17,6 +18,20 @@ require_once __DIR__ . '/scripts/admin-menu.php'; // třída administračního m
 
 if (HTTPS_ONLY) {
     httpsOnly();
+}
+
+// Během kopírování databáze chybí tabulky uživatelů, takže přihlášení z DB by selhalo.
+// Stav se proto vydá dřív a stačí k němu přihlášení v session.
+if (get('ajax') === SystemoveNastaveniHtml::AJAX_STAV_KOPIE_KLIC) {
+    if (session_status() !== PHP_SESSION_ACTIVE) {
+        session_start();
+    }
+    if (empty($_SESSION[Uzivatel::UZIVATEL]['id_uzivatele'])) {
+        http_response_code(403);
+        exit;
+    }
+    SystemoveNastaveniHtml::ajaxStavKopieDatabazeZOstre();
+    exit;
 }
 
 // nastaví uživatele $u a $uPracovni
