@@ -94,7 +94,7 @@ class NastrojeDatabaze
             $this->vytvorDsn($dbServer, $dbName),
             $dbUser,
             $dbPassword,
-            $mysqldumpSettings
+            $mysqldumpSettings + ['default-character-set' => Mysqldump::UTF8MB4],
         );
     }
 
