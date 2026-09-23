@@ -151,7 +151,7 @@ class KopieOstreDatabazeTest extends TestCase
 
         if ($resetDatabaze) {
             dbQuery(sprintf('DROP DATABASE IF EXISTS `%s`', $dbName), [], $spojeni);
-            dbQuery(sprintf('CREATE DATABASE IF NOT EXISTS `%s` COLLATE "utf8_czech_ci"', $dbName), [], $spojeni);
+            dbQuery(sprintf('CREATE DATABASE IF NOT EXISTS `%s` CHARACTER SET utf8mb4 COLLATE utf8mb4_czech_ci', $dbName), [], $spojeni);
         }
         dbQuery(sprintf('USE `%s`', $dbName), [], $spojeni);
 

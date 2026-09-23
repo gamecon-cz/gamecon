@@ -25,7 +25,7 @@ if (!defined('UNIT_TESTS') || !UNIT_TESTS) {
             $dbMigrations->getWebGui()?->writeMessage(sprintf("Vytvářím databázi '%s'...", DB_NAME), '');
             dbQuery(
                 sprintf(
-                    "CREATE DATABASE IF NOT EXISTS `%s` DEFAULT CHARACTER SET utf8 COLLATE utf8_czech_ci",
+                    "CREATE DATABASE IF NOT EXISTS `%s` DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_czech_ci",
                     DB_NAME,
                 ),
                 null,

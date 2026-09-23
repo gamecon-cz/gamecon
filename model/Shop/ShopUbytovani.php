@@ -70,7 +70,7 @@ class ShopUbytovani
         $idsPredmetuUbytovani = array_map('intval', dbOneArray(<<<SQL
 SELECT id_predmetu
 FROM shop_predmety
-WHERE TRIM(nazev) IN ($0 COLLATE utf8_czech_ci)
+WHERE TRIM(nazev) IN ($0)
 AND model_rok = $rok
 SQL,
             [$nazvyUbytovani],
@@ -108,7 +108,7 @@ SQL,
         $nalezene    = dbFetchAll(<<<SQL
 SELECT id_predmetu, ubytovani_den
 FROM shop_predmety
-WHERE LEFT(kod_predmetu, CHAR_LENGTH(kod_predmetu) - 3) = $0 COLLATE utf8_czech_ci
+WHERE LEFT(kod_predmetu, CHAR_LENGTH(kod_predmetu) - 3) = $0
   AND typ = $1
   AND model_rok = $2
   AND ubytovani_den IN ($3)

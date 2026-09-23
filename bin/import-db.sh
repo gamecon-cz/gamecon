@@ -45,7 +45,7 @@ echo "→ Zajišťuji běžící kontejner $DB_SERVICE"
 compose up -d "$DB_SERVICE"
 
 echo "→ Dropuji a znovu vytvářím DB \`$DB_NAME\`"
-mariadb -e "DROP DATABASE IF EXISTS \`$DB_NAME\`; CREATE DATABASE \`$DB_NAME\` CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci;"
+mariadb -e "DROP DATABASE IF EXISTS \`$DB_NAME\`; CREATE DATABASE \`$DB_NAME\` CHARACTER SET utf8mb4 COLLATE utf8mb4_czech_ci;"
 
 echo "→ Importuji $SQL_PATH do \`$DB_NAME\` (může chvíli trvat)"
 # Dump z produkce může obsahovat vlastní CREATE DATABASE / USE / DROP DATABASE

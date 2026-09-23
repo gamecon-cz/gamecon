@@ -195,7 +195,7 @@ SQL,
         mysqli_query(
             $dbConnectionAnonymDb,
             <<<SQL
-                CREATE DATABASE `{$this->anonymniDatabaze}` DEFAULT CHARACTER SET utf8 COLLATE utf8_czech_ci
+                CREATE DATABASE `{$this->anonymniDatabaze}` DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_czech_ci
             SQL,
         );
         mysqli_query(
