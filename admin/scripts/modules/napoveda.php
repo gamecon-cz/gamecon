@@ -157,7 +157,7 @@ if (!isset($dostupneKapitoly[$vybranaKapitola])) {
     <div class="napoveda__obsah">
         <?= markdownNoCache($dostupneKapitoly[$vybranaKapitola]['obsah']) ?>
         <p class="napoveda__paticka">
-            Našel<?= $u->koncovkaDlePohlavi() ?> jsi v nápovědě chybu nebo ti tu něco chybí?
+            Vidíš v nápovědě chybu nebo ti tu něco chybí?
             Kapitoly žijí v repozitáři ve složce <code>docs/napoveda/</code> —
             napiš správci webu, nebo rovnou navrhni úpravu.
         </p>
