@@ -100,12 +100,15 @@ function nasad(
         nadpis("NASAZUJI '{$nastaveni['vetev']}'");
     }
 
-    foreach (['DB_READONLY_USER', 'DB_READONLY_PASS'] as $povinnaPromenna) {
-        if ((string)getenv($povinnaPromenna) === '') {
-            throw new \RuntimeException("Chybí $povinnaPromenna, bez něj by se reporty nepřipojily k databázi");
+    vytvorSouborSkrytehoNastaveniPodleEnv($nastaveni['souborVerejnehoNastaveni']);
+    // the generator keeps an existing file, so check what will be uploaded, not the env
+    $souborSkrytehoNastaveni = souborSkrytehoNastaveniPodleVerejneho($nastaveni['souborVerejnehoNastaveni']);
+    $skryteNastaveni         = (string)file_get_contents($souborSkrytehoNastaveni);
+    foreach (['DB_READONLY_USER', 'DB_READONLY_PASS'] as $povinnaKonstanta) {
+        if (!preg_match("~define\\('$povinnaKonstanta', '[^']+'\\)~", $skryteNastaveni)) {
+            throw new \RuntimeException("$souborSkrytehoNastaveni nemá $povinnaKonstanta, bez něj by se reporty nepřipojily k databázi");
         }
     }
-    vytvorSouborSkrytehoNastaveniPodleEnv($nastaveni['souborVerejnehoNastaveni']);
     vytvorSouborServerNastaveniPodleEnv($nastaveni['souborVerejnehoNastaveni']);
 
     require_once $nastaveni['souborVerejnehoNastaveni'];
