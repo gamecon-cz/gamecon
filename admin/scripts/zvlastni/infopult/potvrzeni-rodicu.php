@@ -38,7 +38,7 @@ $changeTime = filectime($cestaKSouboruSPotvrzenimRodicu);
 if ($changeTime) {
     header(
         'Last-Modified: ' .
-        (new DateTimeImmutable('@' . $changeTime))->format(DateTimeInterface::RFC7231)
+        gmdate('D, d M Y H:i:s', $changeTime) . ' GMT'
     );
 }
 header('ETag: ' . md5_file($cestaKSouboruSPotvrzenimRodicu));
