@@ -66,3 +66,26 @@ function vyradZmenuBarvyPriHover(node) {
 function vratZmenuBarvyPriHover(node) {
   node.classList.remove('no-hover-style')
 }
+
+document.addEventListener('DOMContentLoaded', function () {
+  const zablikejCilKotvy = function (hash) {
+    const id = hash.trim().replace('#', '')
+    // klíče nastavení jsou velkými písmeny, ale sdílené odkazy na ně bývají přepsané malými
+    const cil = document.getElementById(id) ?? document.getElementById(id.toUpperCase())
+    if (cil) {
+      zablikej(cil)
+    }
+  }
+
+  if (window.location.hash) {
+    zablikejCilKotvy(window.location.hash)
+  }
+
+  Array.from(document.getElementsByClassName('lokalni-odkaz')).forEach(function (odkaz) {
+    odkaz.addEventListener('click', function (event) {
+      event.preventDefault()
+      window.location.hash = odkaz.hash
+      zablikejCilKotvy(odkaz.hash)
+    })
+  })
+})
