@@ -95,7 +95,7 @@ class AnonymizovanaDatabazeTest extends AbstractTestDb
 
         $connection = dbConnectionAnonymDb();
         mysqli_query($connection, sprintf('DROP DATABASE IF EXISTS `%s`', self::$anonymniDatabaze));
-        mysqli_query($connection, sprintf('CREATE DATABASE `%s` DEFAULT CHARACTER SET utf8 COLLATE utf8_czech_ci', self::$anonymniDatabaze));
+        mysqli_query($connection, sprintf('CREATE DATABASE `%s` DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_czech_ci', self::$anonymniDatabaze));
         mysqli_query($connection, sprintf('USE `%s`', self::$anonymniDatabaze));
 
         $anonymizovanaDatabaze->obnov($connection);

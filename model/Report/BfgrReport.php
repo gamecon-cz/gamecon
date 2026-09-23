@@ -668,7 +668,7 @@ SQL,
         return dbFetchPairs(<<<SQL
             SELECT id_predmetu, CONCAT_WS(' ', TRIM(nazev), model_rok)
             FROM shop_predmety
-            WHERE nazev LIKE '%placka%' COLLATE utf8_czech_ci
+            WHERE nazev LIKE '%placka%'
                 AND stav > $0
             SQL,
             [0 => StavPredmetu::MIMO],
@@ -693,7 +693,7 @@ SQL,
                 CONCAT_WS(' ', TRIM(nazev), model_rok)
             )
             FROM shop_predmety
-            WHERE nazev LIKE '%kostka%' COLLATE utf8_czech_ci
+            WHERE nazev LIKE '%kostka%'
                 AND stav > $0
                 AND typ = $1
             ORDER BY FIND_IN_SET(CONCAT_WS(' ', TRIM(nazev), model_rok), '{$poradiKostekSql}')
@@ -728,10 +728,10 @@ SQL,
             WHERE typ = $0
                 AND stav > $1
                 AND (
-                        nazev LIKE '%nicknack%' COLLATE utf8_czech_ci
-                        OR nazev LIKE '%ponožky%' COLLATE utf8_czech_ci
-                        OR nazev LIKE '%lok%' COLLATE utf8_czech_ci
-                        OR nazev LIKE '%taška%' COLLATE utf8_czech_ci
+                        nazev LIKE '%nicknack%'
+                        OR nazev LIKE '%ponožky%'
+                        OR nazev LIKE '%lok%'
+                        OR nazev LIKE '%taška%'
                     )
             ORDER BY TRIM(nazev)
             SQL,

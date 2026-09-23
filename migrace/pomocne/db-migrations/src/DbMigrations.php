@@ -94,7 +94,7 @@ class DbMigrations
                     return $migration->getRelativePath();
                 }, $migrations);
 
-                $this->connection->query("CREATE TEMPORARY TABLE known_migration_paths_tmp (migration_path VARCHAR(256) PRIMARY KEY)");
+                $this->connection->query("CREATE TEMPORARY TABLE known_migration_paths_tmp (migration_path VARCHAR(256) COLLATE utf8mb4_czech_ci PRIMARY KEY)");
                 $migrationPathsSql = implode(
                     ',',
                     array_map(

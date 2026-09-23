@@ -199,8 +199,8 @@ function dbConnectTemporary(
     if ($noveSpojeni && $stareSpojeni !== $noveSpojeni) {
         _nastavRocnikDoSpojeni($rocnik, $noveSpojeni, $selectDb);
     }
-    if (!$noveSpojeni->query('SET NAMES utf8 COLLATE utf8_czech_ci')) {
-        throw new DbException('Failed to set charset utf8 to db connection.');
+    if (!$noveSpojeni->query('SET NAMES utf8mb4 COLLATE utf8mb4_czech_ci')) {
+        throw new DbException('Failed to set charset utf8mb4 to db connection.');
     }
 
     return $noveSpojeni;
@@ -375,8 +375,8 @@ function _dbConnect(
     if (!$spojeni) {
         throw new ConnectionException('Failed to connect to the database, error: "' . mysqli_connect_error() . '".');
     }
-    if (!$spojeni->query('SET NAMES utf8 COLLATE utf8_czech_ci')) {
-        throw new DbException('Failed to set charset utf8 to db connection.');
+    if (!$spojeni->query('SET NAMES utf8mb4 COLLATE utf8mb4_czech_ci')) {
+        throw new DbException('Failed to set charset utf8mb4 to db connection.');
     }
     dbQuery('SET SESSION group_concat_max_len = 65536', null, $spojeni);
 
