@@ -15,6 +15,8 @@ function vytvorSouborSkrytehoNastaveniPodleEnv(
             ?: '3306';
         $DBM_USER = getenv('DBM_USER');
         $DBM_PASS = getenv('DBM_PASS');
+        $DB_READONLY_USER = getenv('DB_READONLY_USER');
+        $DB_READONLY_PASS = getenv('DB_READONLY_PASS');
         $DB_ANONYM_SERV = getenv('DB_ANONYM_SERV');
         $DB_ANONYM_USER = getenv('DB_ANONYM_USER');
         $DB_ANONYM_PASS = getenv('DB_ANONYM_PASS');
@@ -72,6 +74,10 @@ function vytvorSouborSkrytehoNastaveniPodleEnv(
             // uživatel s přístupem k změnám struktury
             define('DBM_USER', '{$DBM_USER}');
             define('DBM_PASS', '{$DBM_PASS}');
+
+            // uživatel jen s SELECT, pro reporty
+            define('DB_READONLY_USER', '{$DB_READONLY_USER}');
+            define('DB_READONLY_PASS', '{$DB_READONLY_PASS}');
             
             define('DB_ANONYM_SERV', '{$DB_ANONYM_SERV}');
             define('DB_ANONYM_USER', '{$DB_ANONYM_USER}');

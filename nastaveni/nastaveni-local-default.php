@@ -35,6 +35,16 @@ if (! defined('DBM_PASS')) {
         ?: DB_PASS);
 }
 
+// uživatel jen pro čtení, pro reporty; lokálně stačí běžný (read-only zajistí session)
+if (! defined('DB_READONLY_USER')) {
+    define('DB_READONLY_USER', getenv('DB_READONLY_USER')
+        ?: DB_USER);
+}
+if (! defined('DB_READONLY_PASS')) {
+    define('DB_READONLY_PASS', getenv('DB_READONLY_PASS')
+        ?: DB_PASS);
+}
+
 if (! defined('DB_ANONYM_SERV')) {
     define('DB_ANONYM_SERV', getenv('DB_ANONYM_SERV')
         ?: DB_SERV);

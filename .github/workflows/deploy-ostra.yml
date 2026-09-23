@@ -70,6 +70,8 @@ jobs:
                     DB_SERV: localhost
                     DBM_USER: ${{ secrets.OSTRA_DBM_USER }}
                     DBM_PASS: ${{ secrets.OSTRA_DBM_PASS }}
+                    DB_READONLY_USER: ${{ secrets.OSTRA_DB_READONLY_USER }}
+                    DB_READONLY_PASS: ${{ secrets.OSTRA_DB_READONLY_PASS }}
                     MIGRACE_HESLO: ${{ secrets.OSTRA_MIGRACE_HESLO }}
                     SECRET_CRYPTO_KEY: ${{ secrets.OSTRA_SECRET_CRYPTO_KEY }}
                     # pozor změnu CRON_KEY je nutné provést i

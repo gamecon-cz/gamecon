@@ -60,6 +60,8 @@ jobs:
                     DB_SERV: localhost
                     DBM_USER: ${{ secrets.BETA_DBM_USER }}
                     DBM_PASS: ${{ secrets.BETA_DBM_PASS }}
+                    DB_READONLY_USER: ${{ secrets.BETA_DB_READONLY_USER }}
+                    DB_READONLY_PASS: ${{ secrets.BETA_DB_READONLY_PASS }}
                     MIGRACE_HESLO: ${{ secrets.BETA_MIGRACE_HESLO }}
                     SECRET_CRYPTO_KEY: ${{ secrets.BETA_SECRET_CRYPTO_KEY }}
                     # pozor změnu CRON_KEY je nutné provést i
