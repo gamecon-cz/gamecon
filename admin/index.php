@@ -21,12 +21,14 @@ if (HTTPS_ONLY) {
 }
 
 // Během kopírování databáze chybí tabulky uživatelů, takže přihlášení z DB by selhalo.
-// Stav se proto vydá dřív a stačí k němu přihlášení v session.
+// Stav se proto vydá dřív a oprávnění se pozná podle značky, kterou do session dala stránka Nastavení.
 if (get('ajax') === SystemoveNastaveniHtml::AJAX_STAV_KOPIE_KLIC) {
     if (session_status() !== PHP_SESSION_ACTIVE) {
         session_start();
     }
-    if (empty($_SESSION[Uzivatel::UZIVATEL]['id_uzivatele'])) {
+    if (empty($_SESSION[Uzivatel::UZIVATEL]['id_uzivatele'])
+        || empty($_SESSION[SystemoveNastaveniHtml::SMI_VIDET_STAV_KOPIE_SESSION_KLIC])
+    ) {
         http_response_code(403);
         exit;
     }

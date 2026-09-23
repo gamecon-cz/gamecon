@@ -18,6 +18,7 @@ class SystemoveNastaveniHtml
     public const ZKOPIROVAT_ZE_ZALOHY_KLIC = 'zkopirovat_ze_zalohy';
     public const ZVYRAZNI = 'zvyrazni';
     public const AJAX_STAV_KOPIE_KLIC = 'stavKopieDatabazeZOstre';
+    public const SMI_VIDET_STAV_KOPIE_SESSION_KLIC = 'smiVidetStavKopieDatabaze';
 
     /**
      * @var SystemoveNastaveni
