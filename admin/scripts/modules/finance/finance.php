@@ -71,11 +71,6 @@ $x->assign('rok', $systemoveNastaveni->rocnik());
 $x->assign('bfgr', basename(__DIR__ . '/../../zvlastni/reporty/bfgr-report.php', '.php'));
 $x->parse('finance.reporty');
 
-$x->assign(
-    'financeJsVerze',
-    md5_file(__DIR__ . '/../../../files/finance.js'),
-);
-
 $x->parse('finance');
 $x->out('finance');
 
