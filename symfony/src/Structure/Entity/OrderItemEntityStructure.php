@@ -75,6 +75,11 @@ class OrderItemEntityStructure
     public const discountReason = 'discountReason';
 
     /**
+     * @see OrderItem::$discountSnapshot
+     */
+    public const discountSnapshot = 'discountSnapshot';
+
+    /**
      * @see OrderItem::$purchasedAt
      */
     public const purchasedAt = 'purchasedAt';

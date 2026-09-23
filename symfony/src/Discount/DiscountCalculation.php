@@ -99,8 +99,50 @@ final readonly class DiscountCalculation
      *
      * @return PriceStep[] vždy aspoň jeden stupeň, seřazené od prvního kusu
      */
-    public function priceSteps(DiscountableItem $item, int $alreadyBought = 0, ?array $spentQuota = null): array
-    {
+    /**
+     * Pravidlo, kterým se nacení právě kupovaný kus — tedy to, co určilo jeho cenu.
+     *
+     * Žebříkový `PriceStep` snapshot nenese schválně: putuje do prohlížeče ještě před
+     * nákupem. Dopočítat ho zvlášť přes `apply()` ale nejde, ta neví, kolikátý kus to je,
+     * a u vrstvených nároků by vrátila jiné pravidlo než žebřík.
+     *
+     * @param array<string, int>|null $spentQuota
+     */
+    public function appliedForNextPiece(
+        DiscountableItem $item,
+        int $alreadyBought = 0,
+        ?array $spentQuota = null,
+    ): ?AppliedDiscount {
+        $remaining = $this->remainingAfterSpent($item, $alreadyBought, $spentQuota);
+
+        $rule = $this->firstMatching($item, $remaining);
+        if ($rule === null) {
+            return null;
+        }
+
+        $amount = $this->amountFor($rule);
+        if ($amount === null) {
+            return null;
+        }
+
+        $discount = $rule->parameters->effect->discountFrom($item->price, $amount);
+        if ($discount <= 0.0) {
+            return null;
+        }
+
+        return AppliedDiscount::create($item, $rule, $discount, $this->resolvedFor($rule));
+    }
+
+    /**
+     * @param array<string, int>|null $spentQuota
+     *
+     * @return array<string, int>
+     */
+    private function remainingAfterSpent(
+        DiscountableItem $item,
+        int $alreadyBought,
+        ?array $spentQuota,
+    ): array {
         $remaining = $this->initialQuantities();
 
         foreach ($spentQuota ?? [] as $ruleCode => $count) {
@@ -124,6 +166,31 @@ final readonly class DiscountCalculation
             }
             --$remaining[$rule->code];
         }
+
+        return $remaining;
+    }
+
+    /**
+     * Cenový žebřík pro jednu položku: kolikátý kus stojí kolik.
+     *
+     * Nároky se vyčerpávají v pořadí priorit, takže cena není jedno číslo — kdo má dvě
+     * trička zdarma a k tomu jedno navíc, platí 0, 0, 0 a pak plnou cenu. Frontend takhle
+     * dostane celou posloupnost dopředu a po přidání do košíku nemusí čekat na server.
+     *
+     * Žebřík platí pro JEDEN produkt, ale nárok bývá sdílený přes víc produktů — jedna
+     * kostka zdarma, a kostek je v nabídce sedm. Co se z kvóty spotřebovalo jinde proto
+     * musí přijít zvenčí v `$spentQuota`; bez toho slíbí nulu u každé ze sedmi kostek.
+     *
+     * @param int                     $alreadyBought kolik kusů TOHOHLE produktu zákazník letos
+     *                                               má; použije se, jen když spotřeba nepřijde
+     * @param array<string, int>|null $spentQuota    kolik z kvóty každého pravidla padlo za
+     *                                               celý ročník; null = volající to neví
+     *
+     * @return PriceStep[] vždy aspoň jeden stupeň, seřazené od prvního kusu
+     */
+    public function priceSteps(DiscountableItem $item, int $alreadyBought = 0, ?array $spentQuota = null): array
+    {
+        $remaining = $this->remainingAfterSpent($item, $alreadyBought, $spentQuota);
 
         $steps = [];
         $ordinal = 1;

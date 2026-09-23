@@ -57,6 +57,7 @@ class UserRoleChangedListenerTest extends TestCase
             'discountAmount' => '0.00',
             'finalPrice'     => $nova,
             'reason'         => null,
+            'snapshot'       => null,
         ]);
 
         $this->spustNadObjednavkou($order);
@@ -114,6 +115,7 @@ class UserRoleChangedListenerTest extends TestCase
                 'discountAmount' => '400.00',
                 'finalPrice'     => '0.00',
                 'reason'         => 'Jedno tričko zdarma',
+                'snapshot'       => null,
             ]);
         $this->discountCalculator->expects(self::never())->method('calculateDiscount');
 
