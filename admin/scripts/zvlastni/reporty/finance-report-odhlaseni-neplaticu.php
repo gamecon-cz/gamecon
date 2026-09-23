@@ -42,7 +42,10 @@ $data = dbFetchAll(<<<SQL
         SELECT
             shop_nakupy_zrusene.rocnik           AS rocnik,
             shop_nakupy_zrusene.id_uzivatele     AS id_uzivatele,
-            shop_predmety.nazev                  AS nazev_polozky,
+            -- Název ze zrušeného nákupu, ne z produktu: report vypisuje i starší ročníky
+            -- a produkt se mezitím mohl přejmenovat. Typ snapshot nenese, ten zůstává
+            -- z produktu.
+            shop_nakupy_zrusene.product_name     AS nazev_polozky,
             shop_predmety.typ                    AS typ_shop,
             NULL                                 AS je_aktivita,
             shop_nakupy_zrusene.cena_nakupni     AS cena,
