@@ -686,13 +686,14 @@ SQL,
         string $zdrojZruseni,
     ): int {
         $insertResult = dbQuery(<<<SQL
-            INSERT INTO shop_nakupy_zrusene(id_nakupu, id_uzivatele, id_predmetu, rocnik, cena_nakupni, datum_nakupu, datum_zruseni, zdroj_zruseni)
-            SELECT nakupy.id_nakupu, nakupy.id_uzivatele, nakupy.id_predmetu, nakupy.rok, nakupy.cena_nakupni, nakupy.datum, $0, $1
-            FROM shop_nakupy AS nakupy
-            JOIN shop_predmety_s_typem AS predmety ON nakupy.id_predmetu = predmety.id_predmetu
-            WHERE nakupy.rok = {$this->systemoveNastaveni->rocnik()}
-              AND nakupy.id_uzivatele = {$this->zakaznik->id()}
-              AND predmety.typ = {$typPredetu}
+            INSERT INTO shop_nakupy_zrusene(id_nakupu, id_uzivatele, id_predmetu, rocnik, cena_nakupni, datum_nakupu, datum_zruseni, zdroj_zruseni, product_name, product_code)
+            SELECT shop_nakupy.id_nakupu, shop_nakupy.id_uzivatele, shop_nakupy.id_predmetu, shop_nakupy.rok, shop_nakupy.cena_nakupni, shop_nakupy.datum, $0, $1,
+                   COALESCE(shop_nakupy.product_name, shop_predmety_s_typem.nazev), COALESCE(shop_nakupy.product_code, shop_predmety_s_typem.kod_predmetu)
+            FROM shop_nakupy
+            JOIN shop_predmety_s_typem ON shop_nakupy.id_predmetu = shop_predmety_s_typem.id_predmetu
+            WHERE shop_nakupy.rok = {$this->systemoveNastaveni->rocnik()}
+              AND shop_nakupy.id_uzivatele = {$this->zakaznik->id()}
+              AND shop_predmety_s_typem.typ = {$typPredetu}
             SQL,
             [
                 0 => $this->systemoveNastaveni->ted()->format(DateTimeCz::FORMAT_DB),
@@ -745,9 +746,11 @@ SQL,
         $idZakaznika = $this->zakaznik->id();
 
         dbQuery(<<<SQL
-            INSERT INTO shop_nakupy_zrusene(id_nakupu, id_uzivatele, id_predmetu, rocnik, cena_nakupni, datum_nakupu, datum_zruseni, zdroj_zruseni)
-            SELECT id_nakupu, id_uzivatele, id_predmetu, rok, cena_nakupni, datum, $0, $1
+            INSERT INTO shop_nakupy_zrusene(id_nakupu, id_uzivatele, id_predmetu, rocnik, cena_nakupni, datum_nakupu, datum_zruseni, zdroj_zruseni, product_name, product_code)
+            SELECT shop_nakupy.id_nakupu, shop_nakupy.id_uzivatele, shop_nakupy.id_predmetu, shop_nakupy.rok, shop_nakupy.cena_nakupni, shop_nakupy.datum, $0, $1,
+                   COALESCE(shop_nakupy.product_name, shop_predmety.nazev), COALESCE(shop_nakupy.product_code, shop_predmety.kod_predmetu)
             FROM shop_nakupy
+            JOIN shop_predmety ON shop_predmety.id_predmetu = shop_nakupy.id_predmetu
             WHERE shop_nakupy.rok = {$rocnik} AND shop_nakupy.id_uzivatele = {$idZakaznika}
             {$podminkaZachovani}
             SQL,
