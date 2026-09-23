@@ -42,7 +42,7 @@
         <span class="hint">Viditelné pouze pro uživatele s právem <i>{nazev_prava}</i></span>
       </span>
       <!-- end: pravo -->
-      <a href="#{skript}" class="lokalni-odkaz float-right">#</a>
+      <a href="reporty#{skript}" class="lokalni-odkaz float-right">#</a>
     </td>
     <td>
       <span class="hinted">📊
@@ -71,7 +71,7 @@
   </tr>
   <!-- begin: quick -->
   <tr id="quick-{id}">
-    <td>{nazev} <a href="#quick-{id}" class="lokalni-odkaz float-right">#</a></td>
+    <td>{nazev} <a href="reporty#quick-{id}" class="lokalni-odkaz float-right">#</a></td>
     <td>
       <span class="hinted">📊
         <span class="hint">
