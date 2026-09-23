@@ -143,7 +143,7 @@ readonly class UserRoleChangedListener
     /**
      * Update order item pricing with new discount
      *
-     * @param array{discount: ProductDiscount|null, discountAmount: string, finalPrice: string, reason: string|null} $discountInfo
+     * @param array{discount: ProductDiscount|null, discountAmount: string, finalPrice: string, reason: string|null, snapshot: array<string, mixed>|null} $discountInfo
      *
      * @return bool True if changed
      */
@@ -175,6 +175,9 @@ readonly class UserRoleChangedListener
         $orderItem->setPurchasePrice($newPurchasePrice);
         $orderItem->setDiscountAmount($newDiscountAmount);
         $orderItem->setDiscountReason($newDiscountReason);
+        // Cena se právě přepsala, takže starý snapshot by popisoval pravidlo, podle
+        // kterého se už neúčtuje — a tvářil by se přitom jako záznam o tomhle nákupu.
+        $orderItem->setDiscountSnapshot($discountInfo['snapshot']);
 
         $this->logger->debug('OrderItem pricing updated', [
             'order_item_id'   => $orderItem->getId(),

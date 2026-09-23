@@ -140,6 +140,7 @@ class CartServiceTest extends TestCase
                 'discountAmount' => '0.00',
                 'finalPrice'     => '250.00',
                 'reason'         => null,
+                'snapshot'       => null,
             ]);
 
         $this->capacityManager->expects($this->once())
@@ -177,6 +178,7 @@ class CartServiceTest extends TestCase
                 'discountAmount' => '250.00',
                 'finalPrice'     => '0.00',
                 'reason'         => 'Organizátor (zdarma): 100% sleva',
+                'snapshot'       => null,
             ]);
 
         $roleMeanings = [RoleMeaning::ORGANIZATOR_ZDARMA];
@@ -291,6 +293,7 @@ class CartServiceTest extends TestCase
                 'discountAmount' => '0.00',
                 'finalPrice'     => '250.00',
                 'reason'         => null,
+                'snapshot'       => null,
             ]);
 
         $this->cartService->addItem($order, $variant);
@@ -338,6 +341,7 @@ class CartServiceTest extends TestCase
                 'discountAmount' => '0.00',
                 'finalPrice'     => '250.00',
                 'reason'         => null,
+                'snapshot'       => null,
             ]);
 
         $item = $this->cartService->addItem($order, $variant, [RoleMeaning::ORGANIZATOR_ZDARMA]);
@@ -370,6 +374,7 @@ class CartServiceTest extends TestCase
                 'discountAmount' => '0.00',
                 'finalPrice'     => '250.00',
                 'reason'         => null,
+                'snapshot'       => null,
             ]);
 
         $items = $this->cartService->addBundle($order, $bundle, [RoleMeaning::PRIHLASEN]);
@@ -401,6 +406,7 @@ class CartServiceTest extends TestCase
                 'discountAmount' => '0.00',
                 'finalPrice'     => '250.00',
                 'reason'         => null,
+                'snapshot'       => null,
             ]);
 
         $callCount = 0;

@@ -28,6 +28,24 @@ class DiscountCalculatorTest extends TestCase
 
     private const PRAVO_UBYTOVANI_ZDARMA = 1008;
 
+    private const PRAVO_JEDNO_TRICKO = 1035;
+
+    private const PRAVO_DVE_TRICKA = 1020;
+
+    private const PRAVIDLO_JEDNO_TRICKO = [
+        'code'           => 'jedno_tricko_zdarma',
+        'name'           => 'Jedno tričko zdarma',
+        'required_right' => self::PRAVO_JEDNO_TRICKO,
+        'parameters'     => '{"scope":"tag","effect":"free","tag":"tricko","maxQuantity":1}',
+    ];
+
+    private const PRAVIDLO_DVE_TRICKA = [
+        'code'           => 'dve_tricka_zdarma',
+        'name'           => 'Dvě trička zdarma',
+        'required_right' => self::PRAVO_DVE_TRICKA,
+        'parameters'     => '{"scope":"tag","effect":"free","tag":"tricko","maxQuantity":2}',
+    ];
+
     private const PRAVIDLO_JIDLO = [
         'code'           => 'jidlo_se_slevou',
         'name'           => 'Sleva orga na jídlo',
@@ -95,6 +113,60 @@ class DiscountCalculatorTest extends TestCase
         self::assertSame('110.00', $vysledek['finalPrice']);
         self::assertSame('30.00', $vysledek['discountAmount']);
         self::assertSame('Sleva orga na jídlo', $vysledek['reason']);
+    }
+
+    /**
+     * Snapshot je jediné, co po nákupu zbyde: `Cenik` slevu přepočítává při každém čtení,
+     * takže změna pravidla nebo role jinak historii tiše přepíše. Kalkulátor ho proto musí
+     * pustit dál, ne zahodit při plochání na cenu.
+     */
+    public function testSlevaNeseSnapshotPravidla(): void
+    {
+        $vysledek = $this->kalkulator([self::PRAVIDLO_JIDLO], [self::PRAVO_SLEVA_NA_JIDLO])
+            ->calculateDiscount($this->produkt('Oběd čtvrtek', '140.00', ProductTagCode::JIDLO), $this->uzivatel(), self::ROK);
+
+        self::assertSame('jidlo_se_slevou', $vysledek['snapshot']['ruleCode']);
+        self::assertSame(self::PRAVO_SLEVA_NA_JIDLO, $vysledek['snapshot']['requiredRight']);
+        self::assertSame(30.0, $vysledek['snapshot']['discountAmount']);
+    }
+
+    public function testBezSlevyZadnySnapshot(): void
+    {
+        $vysledek = $this->kalkulator([self::PRAVIDLO_JIDLO], [self::PRAVO_UBYTOVANI_ZDARMA])
+            ->calculateDiscount($this->produkt('Oběd čtvrtek', '140.00', ProductTagCode::JIDLO), $this->uzivatel(), self::ROK);
+
+        self::assertNull($vysledek['snapshot']);
+    }
+
+    /**
+     * Nároky se vrství: kdo má „dvě trička zdarma" i „jedno tričko zdarma", má první tři
+     * za nulu. Snapshot musí nést to pravidlo, podle kterého se kus opravdu naceňuje —
+     * u třetího kusu už je první nárok vyčerpaný a platí ten druhý.
+     *
+     * @test
+     */
+    public function snapshotSedeNaPravidloKtereCenuUrcilo(): void
+    {
+        $kalkulator = $this->kalkulator(
+            [self::PRAVIDLO_DVE_TRICKA, self::PRAVIDLO_JEDNO_TRICKO],
+            [self::PRAVO_DVE_TRICKA, self::PRAVO_JEDNO_TRICKO],
+        );
+        $tricko = $this->produkt('Tričko', '400.00', ProductTagCode::TRICKO);
+
+        foreach ([
+            0 => 'dve_tricka_zdarma',
+            1 => 'dve_tricka_zdarma',
+            2 => 'jedno_tricko_zdarma',
+        ] as $jizKoupeno => $ocekavanePravidlo) {
+            $vysledek = $kalkulator->priceForNextPiece($tricko, $this->uzivatel(), self::ROK, $jizKoupeno);
+
+            self::assertSame('0.00', $vysledek['finalPrice'], "Kus č. {$jizKoupeno} měl být zdarma");
+            self::assertSame(
+                $ocekavanePravidlo,
+                $vysledek['snapshot']['ruleCode'] ?? null,
+                "Kus č. {$jizKoupeno} nemá snapshot pravidla, podle kterého se nacenil",
+            );
+        }
     }
 
     public function testBezPravaPlnaCena(): void
