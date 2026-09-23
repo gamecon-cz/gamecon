@@ -61,6 +61,7 @@ services:
     ports: []
     volumes:
       - ./.docker/mysql:/etc/mysql/conf.d:ro
+      - ./.docker/mysql-tests-init:/docker-entrypoint-initdb.d:ro
 
   phpmyadmin:
     image: phpmyadmin/phpmyadmin
