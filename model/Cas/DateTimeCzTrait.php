@@ -135,6 +135,12 @@ trait DateTimeCzTrait
         return min($poradiDnu); // po neděli je pondělí, takže číslo 1
     }
 
+    public static function zTimestampu(int $timestamp): static
+    {
+        // new static('@…') would ignore the default timezone and stay in UTC
+        return (new static())->setTimestamp($timestamp);
+    }
+
     public static function createFromMysql(string $dateTime, \DateTimeZone $timeZone = null): static|false
     {
         try {

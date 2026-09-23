@@ -104,7 +104,7 @@ foreach ($o as $r) {
         $r['uzivatelu'] .= ' uživatelů';
     }
     // čas
-    $posledniJakoObjekt  = (new DateTimeCz('@' . $r['posledni']));
+    $posledniJakoObjekt  = DateTimeCz::zTimestampu((int)$r['posledni']);
     $r['posledni']       = $posledniJakoObjekt->relativni();
     $r['posledniPresne'] = $posledniJakoObjekt->formatCasStandard();
     // zvýraznění url

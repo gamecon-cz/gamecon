@@ -77,7 +77,7 @@ while ($aktivitaRow = mysqli_fetch_assoc($aktivity)) {
             $clenove    = $aktivitaTym->clenoveTymu();
             $obsazenost = count($clenove) . '/' . ($aktivitaTym->limitTymu() ?? '∞');
             $zalozen    = $aktivitaTym->casZalozeniMs()
-                ? (new DateTimeCz((new \DateTime('@' . floor($aktivitaTym->casZalozeniMs() / 1000)))->format('Y-m-d H:i:s')))->format('j.n. H:i')
+                ? DateTimeCz::zTimestampu(intdiv($aktivitaTym->casZalozeniMs(), 1000))->format('j.n. H:i')
                 : '–';
 
             $tpl->assign([
