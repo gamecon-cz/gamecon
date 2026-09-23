@@ -125,6 +125,16 @@ class OrderItem
     ])]
     private ?string $discountReason = null;
 
+    /**
+     * Pravidlo tak, jak bylo uplatněno, včetně prahu vyhodnoceného v tu chvíli. `Cenik`
+     * slevu přepočítává při každém čtení, takže bez tohohle záznamu změna pravidla nebo
+     * role tiše přepíše i to, co už někdo zaplatil.
+     *
+     * @var array<string, mixed>|null
+     */
+    #[ORM\Column(name: 'discount_snapshot', type: Types::JSON, nullable: true)]
+    private ?array $discountSnapshot = null;
+
     #[ORM\Column(name: 'datum', type: Types::DATETIME_MUTABLE, nullable: false, options: [
         'default' => 'CURRENT_TIMESTAMP',
     ])]
@@ -371,6 +381,24 @@ class OrderItem
     public function setDiscountReason(?string $discountReason): self
     {
         $this->discountReason = $discountReason;
+
+        return $this;
+    }
+
+    /**
+     * @return array<string, mixed>|null
+     */
+    public function getDiscountSnapshot(): ?array
+    {
+        return $this->discountSnapshot;
+    }
+
+    /**
+     * @param array<string, mixed>|null $discountSnapshot
+     */
+    public function setDiscountSnapshot(?array $discountSnapshot): self
+    {
+        $this->discountSnapshot = $discountSnapshot;
 
         return $this;
     }
