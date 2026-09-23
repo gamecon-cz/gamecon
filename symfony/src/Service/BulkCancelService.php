@@ -153,6 +153,11 @@ class BulkCancelService
         $cancelled->setPurchasedAt($item->getPurchasedAt());
         $cancelled->setCancelledAt($cancelledAt);
         $cancelled->setCancellationReason($reason);
+        // The name as sold, so a later rename or a merge of products with the same code
+        // cannot rewrite history. getDisplayName() keeps the variant, which is where the
+        // size lives.
+        $cancelled->setProductName($item->getDisplayName());
+        $cancelled->setProductCode($item->getDisplayCode());
 
         $this->entityManager->persist($cancelled);
     }
