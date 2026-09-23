@@ -37,10 +37,18 @@ class DbReadOnlyTest extends AbstractTestDb
             dbReadOnly(static fn () => dbQuery('INSERT INTO tmp_read_only_probe (id) VALUES (1)'));
             self::fail('Zápis v read-only režimu měl selhat');
         } catch (\DbException $exception) {
-            self::assertSame(1792, $exception->getCode(), $exception->getMessage());
+            self::assertSame(self::kodOdmitnutehoZapisu(), $exception->getCode(), $exception->getMessage());
         }
 
         self::assertSame(0, (int) dbOneCol('SELECT COUNT(*) FROM tmp_read_only_probe'));
+    }
+
+    public function testReadOnlySpojeniSePrihlasiJakoUzivatelJenProCteni(): void
+    {
+        self::assertSame(
+            DB_READONLY_USER,
+            dbReadOnly(static fn () => dbOneCol("SELECT SUBSTRING_INDEX(CURRENT_USER(), '@', 1)")),
+        );
     }
 
     public function testCteniUvnitrReadOnlyProjde(): void
@@ -94,8 +102,12 @@ class DbReadOnlyTest extends AbstractTestDb
 
             self::assertSame(1, (int) dbOneCol('SELECT @@tx_read_only'));
             self::assertSame(0, (int) dbOneCol('SELECT @@tx_read_only', null, $sdileneSpojeni));
-            $this->expectExceptionCode(1792);
-            dbQuery('INSERT INTO tmp_read_only_probe (id) VALUES (1)');
+            try {
+                dbQuery('INSERT INTO tmp_read_only_probe (id) VALUES (1)');
+                self::fail('Zápis po přepnutí na read-only spojení měl selhat');
+            } catch (\DbException $exception) {
+                self::assertSame(self::kodOdmitnutehoZapisu(), $exception->getCode(), $exception->getMessage());
+            }
         } finally {
             dbClose();
             $dbJenProCteni = false;
@@ -171,5 +183,16 @@ class DbReadOnlyTest extends AbstractTestDb
         }
 
         self::assertSame(2, $hloubkaPoReadOnly);
+    }
+
+    /**
+     * A SELECT-only account is refused on privileges (1142) before the read-only session is even consulted,
+     * so each environment has to expect the layer that is actually in effect.
+     */
+    private static function kodOdmitnutehoZapisu(): int
+    {
+        return DB_READONLY_USER === DB_USER
+            ? 1792
+            : 1142;
     }
 }
