@@ -32,6 +32,7 @@ class MealWriter
         private DiscountCalculator $discountCalculator,
         private BreakfastCanceller $breakfastCanceller,
         private CapacityManager $capacityManager,
+        private PriceIncreaseNotifier $priceIncreaseNotifier,
         private OrderItemRepository $orderItemRepository,
     ) {
     }
@@ -65,6 +66,10 @@ class MealWriter
 
             throw $error;
         }
+
+        // Fronta oznámení čeká na commit, a ten tu nevyvolá žádný další `postFlush`, který by
+        // ji vyprázdnil.
+        $this->priceIncreaseNotifier->odesliFrontu();
 
         $this->entityManager->clear();
     }
@@ -196,11 +201,8 @@ class MealWriter
         $discount = $this->discountCalculator->calculateDiscount($product, $customer, $year);
         $order = $this->cartService->getOrCreateCart($customer);
 
-        // Podmíněný UPDATE zásoby je sám o sobě atomický, takže dva souběžné zápisy poslední
-        // porce se nemůžou potkat a zámek navíc není potřeba. Vyprodáno se pozná tím, že
-        // neubral žádný řádek.
-        // Zásobu mohl mezitím změnit jiný zápis; `purchase()` ji čte z entity, takže by
-        // jinak rozhodoval podle hodnoty načtené na začátku requestu.
+        // `purchase()` čte zásobu z entity kvůli rozhodnutí „neomezeno"; hodnota načtená na
+        // začátku requestu už nemusí platit.
         $this->entityManager->refresh($variant);
 
         try {
