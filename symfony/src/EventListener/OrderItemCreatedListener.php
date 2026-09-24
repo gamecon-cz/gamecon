@@ -24,8 +24,8 @@ readonly class OrderItemCreatedListener
     public function postPersist(OrderItem $orderItem): void
     {
         // Buying a breakfast restates what the customer wants, so the selection a hotel night
-        // would later offer back has to follow it. Accommodation's own writer inserts in SQL
-        // and never reaches this, which keeps it to genuine meal purchases.
+        // would later offer back has to follow it. Nights themselves still go in as SQL and
+        // never reach this; refreshSnapshot() ignores anything without an accommodation day.
         $this->breakfastCanceller->refreshSnapshot($orderItem);
     }
 }
