@@ -105,6 +105,53 @@ class MealWriterAvailabilityTest extends AbstractDatabaseKernelTestCase
     }
 
     /**
+     * Kapacita se musí hlídat i na admin cestě, ne jen v košíku — pult jinak prodá porci,
+     * kterou kuchyně nemá.
+     *
+     * @test
+     */
+    public function vyprodaneJidloPultOdmitne(): void
+    {
+        $zakaznik = $this->zakaznik();
+        $varianta = $this->vytvorJidlo(ProductStateEnum::PUBLIC);
+        $this->vyprodej($varianta);
+
+        $chyba = null;
+
+        try {
+            $this->writer()->save($zakaznik, [$varianta->getId()], self::ROK);
+        } catch (\Throwable $zachycena) {
+            $chyba = $zachycena;
+        }
+
+        self::assertNotNull($chyba, 'Vyprodané jídlo nesmí projít');
+        self::assertSame(0, $this->pocetNakupu($zakaznik), 'Odmítnutý zápis nesmí nic zapsat');
+    }
+
+    /**
+     * Sníží zásobu na nulu v obou zdrojích, protože se dnes čtou oba: admin cesta počítá
+     * proti `kusu_vyrobeno`, košíková proti `remaining_quantity`.
+     */
+    private function vyprodej(ProductVariant $varianta): void
+    {
+        $this->connection()->executeStatement(
+            'UPDATE product_variant SET remaining_quantity = 0 WHERE id = :id',
+            [
+                'id' => $varianta->getId(),
+            ],
+        );
+        $this->connection()->executeStatement(
+            'UPDATE shop_predmety SET kusu_vyrobeno = 0 WHERE id_predmetu = :id',
+            [
+                'id' => $varianta->getProduct()->getId(),
+            ],
+        );
+        // Jen varianta a produkt: `clear()` by odpojil i zákazníka, kterého test drží.
+        $this->entityManager()->refresh($varianta);
+        $this->entityManager()->refresh($varianta->getProduct());
+    }
+
+    /**
      * @test
      */
     public function nabizeneJidloPultZapise(): void
