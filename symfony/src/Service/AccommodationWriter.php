@@ -7,6 +7,7 @@ namespace App\Service;
 use App\Entity\ProductVariant;
 use App\Entity\User;
 use App\Enum\ProductTagCode;
+use App\Repository\OrderItemRepository;
 use App\Repository\ProductRepository;
 use Doctrine\DBAL\Connection;
 use Doctrine\ORM\EntityManagerInterface;
@@ -31,6 +32,7 @@ class AccommodationWriter
         private DiscountCalculator $discountCalculator,
         private BreakfastCanceller $breakfastCanceller,
         private CapacityManager $capacityManager,
+        private OrderItemRepository $orderItemRepository,
     ) {
     }
 
@@ -321,18 +323,16 @@ class AccommodationWriter
         $toRemove = array_diff($held, $keepVariantIds);
         if ($toRemove !== []) {
             $kusu = $this->pocetKusu($customer, $year, array_values($toRemove));
-            $smazano = (int) $this->connection->executeStatement(
-                'DELETE FROM shop_nakupy
-                 WHERE id_uzivatele = :customer AND rok = :year AND variant_id IN (:variantIds)',
-                [
-                    'customer'   => $customer->getId(),
-                    'year'       => $year,
-                    'variantIds' => array_values($toRemove),
-                ],
-                [
-                    'variantIds' => \Doctrine\DBAL\ArrayParameterType::INTEGER,
-                ],
-            );
+            $keSmazani = $this->orderItemRepository->findBy([
+                'customer' => $customer->getId(),
+                'year'     => $year,
+                'variant'  => array_values($toRemove),
+            ]);
+            foreach ($keSmazani as $polozka) {
+                $this->entityManager->remove($polozka);
+            }
+            $this->entityManager->flush();
+            $smazano = count($keSmazani);
 
             $this->capacityManager->adjustStock($kusu, +1);
         }
