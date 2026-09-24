@@ -58,24 +58,36 @@ SQL,
 INSERT INTO shop_predmety SET
     nazev = $0,
     kod_predmetu = $1,
-    model_rok = $2,
     cena_aktualni = 100,
-    stav = $3,
+    stav = $2,
     kusu_vyrobeno = NULL,
-    typ = $4,
-    ubytovani_den = $5
+    ubytovani_den = $3
 SQL,
             [
-                0 => $nazev,
+                0 => $nazev . ' ' . $uniqueId,
                 1 => strtoupper(str_replace(' ', '_', $nazev)) . '_' . $uniqueId,
-                2 => ROCNIK,
-                3 => StavPredmetu::VEREJNY,
-                4 => $typ,
-                5 => $den,
+                2 => StavPredmetu::VEREJNY,
+                3 => $den,
+            ],
+        );
+        $idPredmetu = dbInsertId();
+        $tagCode = match ($typ) {
+            TypPredmetu::PREDMET   => 'predmet',
+            TypPredmetu::UBYTOVANI => 'ubytovani',
+            TypPredmetu::TRICKO    => 'tricko',
+            TypPredmetu::JIDLO     => 'jidlo',
+            TypPredmetu::VSTUPNE   => 'vstupne',
+            TypPredmetu::PARCON    => 'parcon',
+        };
+        dbQuery(
+            'INSERT INTO product_product_tag (product_id, tag_id) SELECT $0, id FROM product_tag WHERE code = $1',
+            [
+                0 => $idPredmetu,
+                1 => $tagCode,
             ],
         );
 
-        return dbInsertId();
+        return $idPredmetu;
     }
 
     private function objednejPredmet(int $idUzivatele, int $idPredmetu): void
@@ -137,6 +149,77 @@ SQL,
                 return $this->ubytovaniUkonceno;
             }
         };
+    }
+
+    /**
+     * Report odhlášených neplatičů čte název ze zrušeného nákupu, takže ho zrušení musí
+     * zapsat. Kdyby ho nechalo prázdný, report by místo starého názvu ukazoval nic —
+     * horší stav, než z jakého se vycházelo.
+     *
+     * @test
+     */
+    public function zruseniZapiseNazevAKodDoZrusenehoNakupu(): void
+    {
+        $uzivatel = $this->vytvorUzivatele();
+        $idMerch = $this->vytvorPredmet('Predmet', TypPredmetu::PREDMET);
+        $this->objednejPredmet($uzivatel->id(), $idMerch);
+
+        (new Shop($uzivatel, $uzivatel, $this->nastaveni(jidloUkonceno: false, ubytovaniUkonceno: false)))
+            ->zrusZrusitelneLetosniObjednavky('test');
+
+        $predmet = dbFetchAll(
+            'SELECT nazev, kod_predmetu FROM shop_predmety WHERE id_predmetu = $0',
+            [
+                0 => $idMerch,
+            ],
+        );
+        $zruseny = dbFetchAll(
+            'SELECT product_name, product_code FROM shop_nakupy_zrusene WHERE id_uzivatele = $0 AND id_predmetu = $1',
+            [
+                0 => $uzivatel->id(),
+                1 => $idMerch,
+            ],
+        );
+
+        self::assertCount(1, $zruseny);
+        self::assertSame($predmet[0]['nazev'], $zruseny[0]['product_name']);
+        self::assertSame($predmet[0]['kod_predmetu'], $zruseny[0]['product_code']);
+    }
+
+    /**
+     * Nákup si nese vlastní název z okamžiku prodeje. Ten má přednost před dnešním
+     * názvem produktu — jinak by přejmenování produktu přepsalo historii.
+     *
+     * @test
+     */
+    public function zruseniPrevezmeNazevZNakupu(): void
+    {
+        $uzivatel = $this->vytvorUzivatele();
+        $idMerch = $this->vytvorPredmet('Predmet', TypPredmetu::PREDMET);
+        $this->objednejPredmet($uzivatel->id(), $idMerch);
+        dbQuery(
+            'UPDATE shop_nakupy SET product_name = $0, product_code = $1 WHERE id_uzivatele = $2 AND id_predmetu = $3',
+            [
+                0 => 'Tricko ucastnicke XXXL',
+                1 => 'tricko_xxxl',
+                2 => $uzivatel->id(),
+                3 => $idMerch,
+            ],
+        );
+
+        (new Shop($uzivatel, $uzivatel, $this->nastaveni(jidloUkonceno: false, ubytovaniUkonceno: false)))
+            ->zrusZrusitelneLetosniObjednavky('test');
+
+        $zruseny = dbFetchAll(
+            'SELECT product_name, product_code FROM shop_nakupy_zrusene WHERE id_uzivatele = $0 AND id_predmetu = $1',
+            [
+                0 => $uzivatel->id(),
+                1 => $idMerch,
+            ],
+        );
+
+        self::assertSame('Tricko ucastnicke XXXL', $zruseny[0]['product_name']);
+        self::assertSame('tricko_xxxl', $zruseny[0]['product_code']);
     }
 
     /**

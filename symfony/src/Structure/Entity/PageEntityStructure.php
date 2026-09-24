@@ -25,6 +25,11 @@ class PageEntityStructure
     public const obsah = 'obsah';
 
     /**
+     * @see Page::$redirect
+     */
+    public const redirect = 'redirect';
+
+    /**
      * @see Page::$poradi
      */
     public const poradi = 'poradi';

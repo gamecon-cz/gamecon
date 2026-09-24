@@ -9,9 +9,6 @@ namespace App\Structure\Sql;
  */
 class UserRoleLogSqlStructure
 {
-    /**
-     * @see UserRoleLog
-     */
     public const _table = 'uzivatele_role_log';
 
     /**

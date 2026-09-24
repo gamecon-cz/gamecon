@@ -12,7 +12,6 @@ use Gamecon\Aktivita\TypAktivity;
 use Gamecon\Exceptions\NeznamyTypPredmetu;
 use Gamecon\Pravo;
 use Gamecon\Role\Role;
-use Gamecon\Shop\TypPredmetu;
 use Gamecon\SystemoveNastaveni\SystemoveNastaveni;
 use Gamecon\Tests\Db\AbstractTestDb;
 use Gamecon\Uzivatel\Finance;
@@ -26,73 +25,73 @@ SQL,
         // PREDMET (id 55501)
         [
             <<<SQL
-INSERT INTO shop_predmety SET id_predmetu = 55501, nazev = 'předmět', model_rok = $0, kod_predmetu = CONCAT('acc_predmet_', $0), cena_aktualni = 100, stav = 1, nabizet_do = NOW(), kusu_vyrobeno = 100, typ = $1
+INSERT INTO shop_predmety SET id_predmetu = 55501, nazev = 'předmět', kod_predmetu = CONCAT('acc_predmet_', $0), cena_aktualni = 100, stav = 1, nabizet_do = NOW(), kusu_vyrobeno = 100
 SQL,
             [
                 0 => ROCNIK,
-                1 => TypPredmetu::PREDMET,
             ],
         ],
+        "INSERT INTO product_product_tag (product_id, tag_id) SELECT 55501, id FROM product_tag WHERE code = 'predmet'",
         // UBYTOVANI (id 55502)
         [
             <<<SQL
-INSERT INTO shop_predmety SET id_predmetu = 55502, nazev = 'ubytování', model_rok = $0, kod_predmetu = CONCAT('acc_ubytovani_', $0), cena_aktualni = 200, stav = 1, nabizet_do = NOW(), kusu_vyrobeno = 100, typ = $1, ubytovani_den = 1
+INSERT INTO shop_predmety SET id_predmetu = 55502, nazev = 'ubytování', kod_predmetu = CONCAT('acc_ubytovani_', $0), cena_aktualni = 200, stav = 1, nabizet_do = NOW(), kusu_vyrobeno = 100, ubytovani_den = 1
 SQL,
             [
                 0 => ROCNIK,
-                1 => TypPredmetu::UBYTOVANI,
             ],
         ],
+        "INSERT INTO product_product_tag (product_id, tag_id) SELECT 55502, id FROM product_tag WHERE code = 'ubytovani'",
         // TRICKO (id 55503)
         [
             <<<SQL
-INSERT INTO shop_predmety SET id_predmetu = 55503, nazev = 'tričko', model_rok = $0, kod_predmetu = CONCAT('acc_tricko_', $0), cena_aktualni = 150, stav = 1, nabizet_do = NOW(), kusu_vyrobeno = 100, typ = $1
+INSERT INTO shop_predmety SET id_predmetu = 55503, nazev = 'tričko', kod_predmetu = CONCAT('acc_tricko_', $0), cena_aktualni = 150, stav = 1, nabizet_do = NOW(), kusu_vyrobeno = 100
 SQL,
             [
                 0 => ROCNIK,
-                1 => TypPredmetu::TRICKO,
             ],
         ],
+        "INSERT INTO product_product_tag (product_id, tag_id) SELECT 55503, id FROM product_tag WHERE code = 'tricko'",
         // JIDLO (id 55504)
         [
             <<<SQL
-INSERT INTO shop_predmety SET id_predmetu = 55504, nazev = 'jídlo', model_rok = $0, kod_predmetu = CONCAT('acc_jidlo_', $0), cena_aktualni = 80, stav = 1, nabizet_do = NOW(), kusu_vyrobeno = 100, typ = $1, ubytovani_den = 1
+INSERT INTO shop_predmety SET id_predmetu = 55504, nazev = 'jídlo', kod_predmetu = CONCAT('acc_jidlo_', $0), cena_aktualni = 80, stav = 1, nabizet_do = NOW(), kusu_vyrobeno = 100, ubytovani_den = 1
 SQL,
             [
                 0 => ROCNIK,
-                1 => TypPredmetu::JIDLO,
             ],
         ],
+        "INSERT INTO product_product_tag (product_id, tag_id) SELECT 55504, id FROM product_tag WHERE code = 'jidlo'",
         // VSTUPNE (id 55505)
         [
             <<<SQL
-INSERT INTO shop_predmety SET id_predmetu = 55505, nazev = 'vstupné', model_rok = $0, kod_predmetu = CONCAT('acc_vstupne_', $0), cena_aktualni = 300, stav = 1, nabizet_do = NOW(), kusu_vyrobeno = 100, typ = $1
+INSERT INTO shop_predmety SET id_predmetu = 55505, nazev = 'vstupné', kod_predmetu = CONCAT('acc_vstupne_', $0), cena_aktualni = 300, stav = 1, nabizet_do = NOW(), kusu_vyrobeno = 100
 SQL,
             [
                 0 => ROCNIK,
-                1 => TypPredmetu::VSTUPNE,
             ],
         ],
+        "INSERT INTO product_product_tag (product_id, tag_id) SELECT 55505, id FROM product_tag WHERE code = 'vstupne'",
         // PARCON (id 55506)
         [
             <<<SQL
-INSERT INTO shop_predmety SET id_predmetu = 55506, nazev = 'parcon', model_rok = $0, kod_predmetu = CONCAT('acc_parcon_', $0), cena_aktualni = 50, stav = 1, nabizet_do = NOW(), kusu_vyrobeno = 100, typ = $1
+INSERT INTO shop_predmety SET id_predmetu = 55506, nazev = 'parcon', kod_predmetu = CONCAT('acc_parcon_', $0), cena_aktualni = 50, stav = 1, nabizet_do = NOW(), kusu_vyrobeno = 100
 SQL,
             [
                 0 => ROCNIK,
-                1 => TypPredmetu::PARCON,
             ],
         ],
+        "INSERT INTO product_product_tag (product_id, tag_id) SELECT 55506, id FROM product_tag WHERE code = 'parcon'",
         // PROPLACENI_BONUSU (id 55507)
         [
             <<<SQL
-INSERT INTO shop_predmety SET id_predmetu = 55507, nazev = 'proplacení bonusu', model_rok = $0, kod_predmetu = CONCAT('acc_proplaceni_', $0), cena_aktualni = 500, stav = 1, nabizet_do = NOW(), kusu_vyrobeno = 100, typ = $1
+INSERT INTO shop_predmety SET id_predmetu = 55507, nazev = 'proplacení bonusu', kod_predmetu = CONCAT('acc_proplaceni_', $0), cena_aktualni = 500, stav = 1, nabizet_do = NOW(), kusu_vyrobeno = 100
 SQL,
             [
                 0 => ROCNIK,
-                1 => TypPredmetu::PROPLACENI_BONUSU,
             ],
         ],
+        "INSERT INTO product_product_tag (product_id, tag_id) SELECT 55507, id FROM product_tag WHERE code = 'proplaceni_bonusu'",
     ];
 
     private function vlozPlatbu(
@@ -290,7 +289,7 @@ SQL,
         $account = Accounting::getPersonalFinance($this->dejUzivatele(), showDiscounts: false);
 
         self::assertCount(0, $account->getTransactions());
-        self::assertSame(0, $account->getTotal());
+        self::assertSame(0.0, $account->getTotal());
     }
 
     /**
@@ -305,12 +304,70 @@ SQL,
 
         self::assertCount(1, $transactions);
         self::assertSame(TransactionCategoryEnum::SHOP_ITEMS, $transactions[0]->getCategory());
-        self::assertSame(-100, $transactions[0]->getTotalAmount());
+        self::assertSame(-100.0, $transactions[0]->getTotalAmount());
 
         $splits = $transactions[0]->getSplits();
         self::assertCount(1, $splits);
-        self::assertSame(-100, $splits[0]->getAmount());
+        self::assertSame(-100.0, $splits[0]->getAmount());
         self::assertSame('předmět', $splits[0]->getDescription());
+    }
+
+    /**
+     * Zaplacený účet musí vyjít na nulu. Sčítání desetinných částek nechává zbytek řádu
+     * 1e-15, a ten stačí na to, aby infopult hlásil nedoplatek účastníkovi, který zaplatil
+     * do haléře.
+     *
+     * @test
+     */
+    public function testZaplacenyUcetVyjdeNaNulu(): void
+    {
+        foreach (range(1, 100) as $ignored) {
+            $this->vlozNakup(55501, 0.07);
+        }
+        $this->vlozPlatbu(7.00);
+
+        $account = Accounting::getPersonalFinance($this->dejUzivatele(), showDiscounts: false);
+
+        self::assertSame(0.0, $account->getTotal());
+        self::assertGreaterThanOrEqual(0, $account->getTotal(), 'Zaplacený účet není nedoplatek');
+    }
+
+    /**
+     * Kategorie, ze které si účastník nic neobjednal, musí ukázat nulu. Záporné nule se
+     * PHP nebrání a vypíše ji jako „-0", takže se částka musí formátovat, ne jen vypsat.
+     *
+     * @test
+     */
+    public function testPrazdnaKategorieUkazujeNuluBezZnaminka(): void
+    {
+        $this->vlozNakup(55501, 100);
+
+        $html = Accounting::getPersonalFinance($this->dejUzivatele(), showDiscounts: false)
+            ->formatForHtml(positivePrices: true);
+
+        self::assertStringNotContainsString('-0</b>', $html, 'Prázdná kategorie nesmí ukazovat -0');
+        self::assertStringContainsString('<td><b>Aktivity</b></td><td><b>0</b></td>', $html);
+    }
+
+    /**
+     * Platby chodí z banky v haléřích, takže částka nemusí být celé číslo. Dokud ji rozpad
+     * transakce bral jako `int`, infopult na takovém účastníkovi spadl na 500 — a kdyby
+     * nespadl, uřízla by se desetinná část a zůstatek by seděl o pár korun vedle.
+     *
+     * @test
+     */
+    public function testDesetinnaCastkaSeNeuriznePriRozpaduTransakce(): void
+    {
+        $this->vlozNakup(55501, 1234.56);
+
+        $account = Accounting::getPersonalFinance($this->dejUzivatele(), showDiscounts: false);
+        $transactions = $account->getTransactions();
+
+        self::assertCount(1, $transactions);
+        $splits = $transactions[0]->getSplits();
+        self::assertCount(1, $splits);
+        self::assertEqualsWithDelta(-1234.56, $splits[0]->getAmount(), 0.001);
+        self::assertEqualsWithDelta(-1234.56, $transactions[0]->getTotalAmount(), 0.001);
     }
 
     /**
@@ -327,7 +384,7 @@ SQL,
         self::assertCount(1, $transactions);
         $splits = $transactions[0]->getSplits();
         self::assertCount(1, $splits);
-        self::assertSame(0, $splits[0]->getAmount());
+        self::assertSame(0.0, $splits[0]->getAmount());
         self::assertSame('ubytování', $splits[0]->getDescription());
     }
 
@@ -345,9 +402,9 @@ SQL,
         self::assertCount(1, $transactions);
         $splits = $transactions[0]->getSplits();
         self::assertCount(2, $splits);
-        self::assertSame(-200, $splits[0]->getAmount());
+        self::assertSame(-200.0, $splits[0]->getAmount());
         self::assertSame('ubytování', $splits[0]->getDescription());
-        self::assertSame(200, $splits[1]->getAmount());
+        self::assertSame(200.0, $splits[1]->getAmount());
         self::assertSame('Sleva z ubytování', $splits[1]->getDescription());
     }
 
@@ -364,7 +421,7 @@ SQL,
         self::assertCount(1, $transactions);
         $splits = $transactions[0]->getSplits();
         self::assertCount(1, $splits);
-        self::assertSame(-100, $splits[0]->getAmount());
+        self::assertSame(-100.0, $splits[0]->getAmount());
     }
 
     /**
@@ -461,7 +518,7 @@ SQL,
 
         self::assertNotEmpty($manualMovements, 'Připsaná platba musí být vidět v objednávkách a platbách');
         $total = array_sum(array_map(fn ($transaction) => $transaction->getTotalAmount(), $manualMovements));
-        self::assertSame(215, $total);
+        self::assertEqualsWithDelta(215, $total, 0.001);
     }
 
     /**
@@ -476,13 +533,13 @@ SQL,
         $accountNoDiscounts = Accounting::getPersonalFinance($this->dejUzivatele(), showDiscounts: false);
         $splitsNo = $accountNoDiscounts->getTransactions()[0]->getSplits();
         self::assertCount(1, $splitsNo);
-        self::assertSame(-(int) (80 - $sleva), $splitsNo[0]->getAmount());
+        self::assertEqualsWithDelta(-(80 - $sleva), $splitsNo[0]->getAmount(), 0.001);
 
         $accountWithDiscounts = Accounting::getPersonalFinance($this->dejUzivatele(), showDiscounts: true);
         $splitsWith = $accountWithDiscounts->getTransactions()[0]->getSplits();
         self::assertCount(2, $splitsWith);
-        self::assertSame(-80, $splitsWith[0]->getAmount());
-        self::assertSame((int) $sleva, $splitsWith[1]->getAmount());
+        self::assertSame(-80.0, $splitsWith[0]->getAmount());
+        self::assertEqualsWithDelta($sleva, $splitsWith[1]->getAmount(), 0.001);
         self::assertStringStartsWith('Sleva z ', $splitsWith[1]->getDescription());
     }
 
@@ -499,7 +556,7 @@ SQL,
         $transactions = $account->getTransactions();
 
         self::assertCount(3, $transactions);
-        self::assertSame(-400, $account->getTotal());
+        self::assertSame(-400.0, $account->getTotal());
     }
 
     /**
@@ -516,7 +573,7 @@ SQL,
         ));
 
         self::assertCount(1, $leftover, 'Zůstatek z minulých let musí být reprezentován jednou transakcí');
-        self::assertSame(123, $leftover[0]->getTotalAmount());
+        self::assertSame(123.0, $leftover[0]->getTotalAmount());
     }
 
     /**
@@ -528,7 +585,7 @@ SQL,
 
         $account = Accounting::getPersonalFinance($this->dejUzivatele(), showDiscounts: false);
 
-        self::assertSame(123, $account->getTotal());
+        self::assertSame(123.0, $account->getTotal());
         self::assertStringContainsString(
             '<tr><td><b>Zůstatek z minulých let</b></td><td><b>123</b></td></tr>',
             $account->formatForHtml(),
@@ -570,7 +627,7 @@ SQL,
         ));
 
         self::assertCount(1, $aktivity, 'Účast na aktivitě musí být reprezentována transakcí');
-        self::assertSame(-250, $aktivity[0]->getTotalAmount());
+        self::assertSame(-250.0, $aktivity[0]->getTotalAmount());
     }
 
     /**
@@ -604,7 +661,7 @@ SQL,
         ));
 
         self::assertCount(1, $manualMovements, 'Obecná sleva musí být reprezentována transakcí v MANUAL_MOVEMENTS');
-        self::assertSame(40, $manualMovements[0]->getTotalAmount());
+        self::assertSame(40.0, $manualMovements[0]->getTotalAmount());
     }
 
     /**
@@ -628,8 +685,8 @@ SQL,
         ));
 
         self::assertCount(1, $manualMovements, 'Vypravěčský bonus musí být reprezentován transakcí v MANUAL_MOVEMENTS');
-        self::assertSame($ocekavanyBonus, $manualMovements[0]->getTotalAmount());
-        self::assertSame($ocekavanyBonus, $account->getTotal());
+        self::assertEqualsWithDelta($ocekavanyBonus, $manualMovements[0]->getTotalAmount(), 0.001);
+        self::assertEqualsWithDelta($ocekavanyBonus, $account->getTotal(), 0.001);
 
         $htmlProFinance = Accounting::getPersonalFinance($this->dejUzivatele(), showDiscounts: true)
             ->formatForHtml(positivePrices: true);
@@ -666,10 +723,10 @@ SQL,
         ));
 
         self::assertCount(1, $manualMovements, 'Brigádnická odměna musí být reprezentována transakcí v MANUAL_MOVEMENTS');
-        self::assertSame(160, $manualMovements[0]->getTotalAmount());
+        self::assertSame(160.0, $manualMovements[0]->getTotalAmount());
         // Brigádnická aktivita je interní (cena účastníka 0), takže do zůstatku
         // přispívá jen samotná odměna.
-        self::assertSame(160, $account->getTotal(), 'Brigádnická odměna se musí projevit v zůstatku');
+        self::assertSame(160.0, $account->getTotal(), 'Brigádnická odměna se musí projevit v zůstatku');
 
         $html = Accounting::getPersonalFinance($this->dejUzivatele(), showDiscounts: true)
             ->formatForHtml(positivePrices: true);
@@ -687,7 +744,7 @@ SQL,
 
         $account = Accounting::getPersonalFinance($this->dejUzivatele(), showDiscounts: false);
 
-        self::assertSame(150, $account->getTotal(), 'Stav financí musí být součet všech transakcí: -250 (aktivita) -100 (předmět) +500 (platba)');
+        self::assertSame(150.0, $account->getTotal(), 'Stav financí musí být součet všech transakcí: -250 (aktivita) -100 (předmět) +500 (platba)');
     }
 
     /**
@@ -768,7 +825,7 @@ SQL,
         ));
 
         self::assertCount(1, $aktivity, 'Aktivita se nesmí kvůli join na cizí slevu zduplikovat');
-        self::assertSame(-250, $aktivity[0]->getTotalAmount(), 'Generovaná sleva jiného uživatele nesmí snížit cenu aktivity tohoto uživatele');
+        self::assertSame(-250.0, $aktivity[0]->getTotalAmount(), 'Generovaná sleva jiného uživatele nesmí snížit cenu aktivity tohoto uživatele');
     }
 
     /**

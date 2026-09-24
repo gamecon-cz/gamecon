@@ -15,16 +15,6 @@ use Gamecon\Shop\Shop;
 
 $nastaveni ??= [];
 
-$obnovPracovnihoUzivateleAShop = static function () use (&$uPracovni, $u, $systemoveNastaveni, $nastaveni): ?Shop {
-    $uPracovni = $uPracovni
-        ? Uzivatel::zId($uPracovni->id())
-        : null;
-
-    return $uPracovni
-        ? new Shop($uPracovni, $u, $systemoveNastaveni, $nastaveni)
-        : null;
-};
-
 if (post('pridelitPokoj') && post('uid')) {
     $uzivatelProUbytovani = Uzivatel::zId(post('uid'));
     if ($uzivatelProUbytovani) {
@@ -35,25 +25,11 @@ if (post('pridelitPokoj') && post('uid')) {
     }
 }
 
-if ($shop !== null) {
-    if (post('zpracujUbytovani')) {
-        $shop->zpracujUbytovani(true, false);
-        $shop = $obnovPracovnihoUzivateleAShop();
-        oznameni('Ubytování uloženo');
-    }
-
-    if (post('zpracujJidlo')) {
-        $shop->zpracujJidlo();
-        $shop = $obnovPracovnihoUzivateleAShop();
-        oznameni('Jídlo uloženo');
-    }
-}
-
 if (!empty($_POST['prodej'])) {
     $prodej = $_POST['prodej'];
     unset($prodej['odeslano']);
     $shop = new Shop(
-        zakaznik: $uPracovni ?? Uzivatel::zId(Uzivatel::SYSTEM),
+        zakaznik: $uPracovni ?? Uzivatel::zId(Uzivatel::ANONYM),
         objednatel: $u,
         systemoveNastaveni: $systemoveNastaveni,
         nastaveni: $nastaveni

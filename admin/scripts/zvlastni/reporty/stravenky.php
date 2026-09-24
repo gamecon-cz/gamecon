@@ -48,7 +48,7 @@ $o                        = dbQuery(<<<SQL
         ON role.id_uzivatele = uzivatele.id_uzivatele AND role.id_role = {$rolePrihlasenNaLetosniGc}
     JOIN shop_nakupy AS nakupy
         ON nakupy.id_uzivatele = uzivatele.id_uzivatele AND nakupy.rok = {$rocnik}
-    JOIN shop_predmety AS predmety
+    JOIN shop_predmety_s_typem AS predmety
         ON predmety.id_predmetu = nakupy.id_predmetu AND predmety.typ = {$typJidlo}
     WHERE TRUE {$uzivatelFiltrSql}
       {$dnyFiltrSql}
@@ -58,7 +58,7 @@ $o                        = dbQuery(<<<SQL
         AND EXISTS (
             SELECT 1
             FROM shop_nakupy AS nakupy_ubytovani
-            JOIN shop_predmety AS predmety_ubytovani
+            JOIN shop_predmety_s_typem AS predmety_ubytovani
                 ON predmety_ubytovani.id_predmetu = nakupy_ubytovani.id_predmetu
                 AND predmety_ubytovani.typ = {$typUbytovani}
                 AND predmety_ubytovani.podtyp = $0
@@ -78,7 +78,7 @@ SQL,
 
 $res = [];
 
-while ($r = mysqli_fetch_assoc($o)) {
+while ($r = $o->fetch(PDO::FETCH_ASSOC)) {
     $res[] = $r;
 }
 

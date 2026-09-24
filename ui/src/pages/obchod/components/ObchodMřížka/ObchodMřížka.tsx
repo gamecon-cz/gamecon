@@ -27,13 +27,40 @@ export const ObchodMřížka: FunctionComponent<TObchodMřížkaProps> = (props)
               : undefined;
 
           const text = !buňka.text && předmět ? předmět.název : buňka.text;
-          const cena = předmět?.cena ? `${předmět.cena}Kč` : "";
-          const kusů = předmět?.zbývá ? `(${předmět.zbývá})` : "";
+          const cena = předmět?.cena ? předmět.cena + "Kč" : "";
+
+          // U víc variant drží počty varianty, takže se sčítají; `zbývá` produktu je NULL
+          // a samo o sobě by znamenalo „neomezeně".
+          const máVarianty = (předmět?.varianty.length ?? 0) > 1;
+          const zbýváCelkem = máVarianty
+            ? předmět!.varianty.reduce<number | null>(
+              (součet, varianta) =>
+                součet === null || varianta.zbývá === null ? null : součet + varianta.zbývá,
+              0,
+            )
+            : předmět?.zbývá ?? null;
+
+          const vyprodáno = předmět !== undefined && zbýváCelkem !== null && zbýváCelkem <= 0;
+          // Prodává se vždycky varianta, takže předmět bez variant prodat nejde — na
+          // mřížkách je jich 28 z doby, kdy velikosti byly samostatné předměty. Archivní
+          // je na starší mřížce taky nakonfigurovaný a taky ho prodej odmítne; bez těchhle
+          // dvou by buňka šla kliknout a spadlo by to až na serveru.
+          // Jen buňka s předmětem; „shrnutí", „zpět" a odkaz na jinou mřížku nic
+          // neprodávají a zašednout nesmí.
+          const nelzeProdat = buňka.typ === "předmět" && (
+            předmět === undefined
+            || předmět.archivní
+            || předmět.varianty.length === 0
+            || vyprodáno
+          );
+          const kusů = zbýváCelkem != null
+            ? (vyprodáno ? "(vyprodáno)" : `(${zbýváCelkem})`)
+            : "";
 
           return (
             <div
-              onClick={() => onBuňkaClicked?.(buňka)}
-              class={`shop-grid--item shop-grid--item-${i}`}
+              onClick={() => !nelzeProdat && onBuňkaClicked?.(buňka)}
+              class={`shop-grid--item shop-grid--item-${i} ${nelzeProdat ? "shop-grid--item-sold-out" : ""}`}
               style={buňka.barvaPozadí ? { backgroundColor: buňka.barvaPozadí } : ""}
             >
               <div style={{color:buňka.barvaText ?? "#000000"}} class="shop-grid--item-text">

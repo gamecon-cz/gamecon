@@ -48,6 +48,55 @@ function nahledPredmetu(string $cestaKObrazku): string
         ->url();
 }
 
+function prihlaskaPreactSekceHtml(
+    string $idKorene,
+    Uzivatel $u,
+    \Gamecon\SystemoveNastaveni\SystemoveNastaveni $systemoveNastaveni,
+): string {
+
+    $container = $systemoveNastaveni->kernel()->getContainer();
+    /** @var \App\Service\JwtService $jwtService */
+    $jwtService = $container->get(\App\Service\JwtService::class);
+    // Token se razí z User entity, ne z legacy Uzivatele: jmenoNick() vrací jméno s přezdívkou
+    // („Jakub „Elden“ Jandák“), kdežto entita samotné jméno — a to je to, co GUI zobrazuje.
+    $userEntity = $container->get('doctrine.orm.entity_manager')->find(\App\Entity\User::class, $u->id());
+    if ($userEntity === null) {
+        throw new \RuntimeException(sprintf('Uživatel %d nemá protějšek v nové vrstvě.', $u->id()));
+    }
+    $jwt = $jwtService->generateJwtToken($jwtService->extractUserData($userEntity));
+
+    // URL_WEBU = http://localhost:85/web — strip /web to get site root for Symfony API
+    $siteRoot = preg_replace('#/web$#', '', URL_WEBU);
+    $symfonyApiBase = $siteRoot . '/symfony/api/';
+    $bundleUrl = URL_WEBU . '/soubory/ui/bundle.js';
+    $styleUrl = URL_WEBU . '/soubory/ui/style.css';
+
+    // Bundle i styl jsou pro všechny sekce společné; podruhé už je nevkládáme, jinak by se
+    // Preact načetl a namountoval dvakrát.
+    static $sdilenaAktivaVlozena = false;
+    $sdilenaAktiva = '';
+    if (!$sdilenaAktivaVlozena) {
+        $sdilenaAktivaVlozena = true;
+        // Do JS kontextu vždy přes json_encode, ať formát tokenu nebo URL nemůže rozbít skript.
+        $jwtJs = json_encode($jwt, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE);
+        $symfonyApiBaseJs = json_encode($symfonyApiBase, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE);
+        $sdilenaAktiva = <<<HTML
+            <link rel="stylesheet" href="{$styleUrl}">
+            <script>
+                window.GAMECON_KONSTANTY = window.GAMECON_KONSTANTY || {};
+                window.GAMECON_KONSTANTY.JWT = {$jwtJs};
+                window.GAMECON_KONSTANTY.BASE_PATH_SYMFONY_API = {$symfonyApiBaseJs};
+            </script>
+            <script type="module" src="{$bundleUrl}"></script>
+        HTML;
+    }
+
+    return <<<HTML
+        <div id="{$idKorene}"></div>
+        {$sdilenaAktiva}
+    HTML;
+}
+
 if (post('pridatPotvrzeniRodicu')) {
     if (!$u->zpracujPotvrzeniRodicu()) {
         chyba('Nejdříve vlož potvrzení.');
@@ -140,10 +189,6 @@ if (post('prihlasitNeboUpravit')) {
         if ($prihlasovani) {
             $u->gcPrihlas($u);
         }
-        $shop->zpracujPredmety();
-        $shop->zpracujUbytovani(ulozitNechceUbytovani: true);
-        $shop->zpracujJidlo();
-        $shop->zpracujVstupne();
         $pomoc->zpracuj();
         $u->finance()->obnovUdaje();
         dbCommit();
@@ -241,19 +286,20 @@ if (is_dir($adresarKObrazkuPredmetu)) {
 
 $t->assign([
     'a'                               => $u->koncovkaDlePohlavi(),
-    'jidlo'                           => $shop->jidloHtml(),
+    'jidlo'                           => prihlaskaPreactSekceHtml('preact-jidlo', $u, $systemoveNastaveni),
     'jidloObjednatelneDo'             => $shop->jidloObjednatelneDoHtml(),
-    'predmety'                        => $shop->predmetyHtml(),
+    'predmety'                        => prihlaskaPreactSekceHtml('preact-merch', $u, $systemoveNastaveni),
+    'svrsky'                          => prihlaskaPreactSekceHtml('preact-svrsky', $u, $systemoveNastaveni),
     'mikinyObjednatelnaDo'            => $shop->mikinyObjednatelnaDoHtml(),
     'trickaObjednatelnaDo'            => $shop->trickaObjednatelnaDoHtml(),
     'predmetyBezTricekObjednatelneDo' => $shop->predmetyBezTricekObjednatelneDoHtml(),
     'rok'                             => ROCNIK,
-    'ubytovani'                       => $shop->ubytovaniHtml(),
+    'ubytovani'                       => prihlaskaPreactSekceHtml('preact-ubytovani', $u, $systemoveNastaveni),
     'ubytovaniObjednatelneDo'         => $shop->ubytovaniObjednatelneDoHtml(),
     'ulozitNeboPrihlasit'             => $u->gcPrihlasen()
         ? 'Uložit změny'
         : 'Přihlásit na GameCon',
-    'vstupne'                         => $shop->vstupneHtml(),
+    'vstupne'                         => prihlaskaPreactSekceHtml('preact-vstupne', $u, $systemoveNastaveni),
     'pomoc'                           => $pomoc->html(),
     'zaplatitNejpozdejiDo'            => $systemoveNastaveni->nejpozdejiZaplatitDo()->format(DateTimeCz::FORMAT_DATUM_LETOS),
 ]);

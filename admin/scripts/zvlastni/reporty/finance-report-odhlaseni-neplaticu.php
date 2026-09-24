@@ -42,7 +42,10 @@ $data = dbFetchAll(<<<SQL
         SELECT
             shop_nakupy_zrusene.rocnik           AS rocnik,
             shop_nakupy_zrusene.id_uzivatele     AS id_uzivatele,
-            shop_predmety.nazev                  AS nazev_polozky,
+            -- Název ze zrušeného nákupu, ne z produktu: report vypisuje i starší ročníky
+            -- a produkt se mezitím mohl přejmenovat. Typ snapshot nenese, ten zůstává
+            -- z produktu.
+            shop_nakupy_zrusene.product_name     AS nazev_polozky,
             shop_predmety.typ                    AS typ_shop,
             NULL                                 AS je_aktivita,
             shop_nakupy_zrusene.cena_nakupni     AS cena,
@@ -50,7 +53,7 @@ $data = dbFetchAll(<<<SQL
             shop_nakupy_zrusene.datum_zruseni    AS zruseno_kdy,
             shop_nakupy_zrusene.zdroj_zruseni    AS zdroj
         FROM shop_nakupy_zrusene
-        JOIN shop_predmety ON shop_predmety.id_predmetu = shop_nakupy_zrusene.id_predmetu
+        JOIN shop_predmety_s_typem AS shop_predmety ON shop_predmety.id_predmetu = shop_nakupy_zrusene.id_predmetu
         WHERE shop_nakupy_zrusene.zdroj_zruseni = 'rucne-hromadne'
            OR shop_nakupy_zrusene.zdroj_zruseni LIKE 'automaticky-%'
 

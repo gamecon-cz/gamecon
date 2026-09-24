@@ -151,7 +151,7 @@ class DbReadOnlyTest extends AbstractTestDb
             try {
                 self::assertSame(1, (int) dbOneCol('SELECT @@tx_read_only', null, $docasneSpojeni));
             } finally {
-                mysqli_close($docasneSpojeni);
+                $docasneSpojeni = null;
             }
         });
     }

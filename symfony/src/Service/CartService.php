@@ -1,0 +1,395 @@
+<?php
+
+declare(strict_types=1);
+
+namespace App\Service;
+
+use App\Entity\Order;
+use App\Entity\OrderItem;
+use App\Entity\Product;
+use App\Entity\ProductBundle;
+use App\Entity\ProductVariant;
+use App\Entity\User;
+use App\Enum\ProductTagCode;
+use App\Enum\RoleMeaning;
+use App\Repository\OrderItemRepository;
+use App\Repository\OrderRepository;
+use App\Repository\ProductBundleRepository;
+use Doctrine\ORM\EntityManagerInterface;
+use Gamecon\SystemoveNastaveni\SystemoveNastaveni;
+use Symfony\Component\Clock\ClockInterface;
+
+/**
+ * CartService — business logic for the shopping cart.
+ *
+ * A "cart" is a pending Order for the current year.
+ * Each user has at most one pending order per year.
+ */
+class CartService
+{
+    public function __construct(
+        private readonly EntityManagerInterface $entityManager,
+        private readonly OrderRepository $orderRepository,
+        private readonly ProductBundleRepository $bundleRepository,
+        private readonly CapacityManager $capacityManager,
+        private readonly DiscountCalculator $discountCalculator,
+        private readonly CurrentYearProviderInterface $currentYearProvider,
+        private readonly ClockInterface $clock,
+        private readonly RestrictedProductRules $restrictedProductRules,
+        private readonly OrderItemRepository $orderItemRepository,
+        private readonly SpentQuotaProvider $spentQuota,
+    ) {
+    }
+
+    /**
+     * Get existing cart or create a new one.
+     */
+    public function getOrCreateCart(User $user): Order
+    {
+        $year = $this->currentYearProvider->getCurrentYear();
+        $cart = $this->orderRepository->findPendingForCustomer($user, $year);
+
+        if ($cart !== null) {
+            return $cart;
+        }
+
+        $cart = new Order();
+        $cart->setCustomer($user);
+        $cart->setYear($year);
+        $this->entityManager->persist($cart);
+        $this->entityManager->flush();
+
+        return $cart;
+    }
+
+    /**
+     * Get existing cart or null.
+     */
+    public function getCart(User $user): ?Order
+    {
+        $year = $this->currentYearProvider->getCurrentYear();
+
+        return $this->orderRepository->findPendingForCustomer($user, $year);
+    }
+
+    /**
+     * Add a single variant to the cart.
+     *
+     * Rejects variants that belong to a forced bundle for the user's roles.
+     *
+     * @param RoleMeaning[] $roleMeanings User's role meanings for capacity/discount checks
+     *
+     * @throws \RuntimeException if product unavailable, sold out, or in a forced bundle
+     */
+    public function addItem(Order $order, ProductVariant $variant, array $roleMeanings = [], ?OperatorOverride $override = null, bool $vraceniZruseneSnidane = false): OrderItem
+    {
+        // Guard: reject if variant is in a forced bundle for this user
+        $mandatoryBundle = $this->bundleRepository->findMandatoryBundleForVariant($variant, $roleMeanings);
+        if ($mandatoryBundle !== null) {
+            throw new \RuntimeException(sprintf('Varianta "%s" je součástí povinného balíčku "%s". Použijte nákup celého balíčku.', $variant->getFullName(), $mandatoryBundle->getName()));
+        }
+
+        return $this->createOrderItem($order, $variant, null, $roleMeanings, $override, $vraceniZruseneSnidane);
+    }
+
+    /**
+     * Každá sekce má svůj termín — jedna společná kontrola by ostatní zavřela ve špatný den.
+     */
+    private function prodejSekceUkoncen(Product $product): bool
+    {
+        $nastaveni = SystemoveNastaveni::zGlobals();
+
+        if ($product->hasTag(ProductTagCode::MIKINA->value)) {
+            return $nastaveni->prodejMikinUkoncen();
+        }
+        if ($product->hasTag(ProductTagCode::TRICKO->value)) {
+            return $nastaveni->prodejTricekUkoncen();
+        }
+        if ($product->hasTag(ProductTagCode::PREDMET->value)) {
+            return $nastaveni->prodejPredmetuBezTricekUkoncen();
+        }
+        if ($product->hasTag(ProductTagCode::JIDLO->value)) {
+            // Po termínu ani nezrušit: počty jsou nahlášené v jídelně, zrušené jídlo by se
+            // stejně zaplatilo. Odebrání hlídá `overRuseni()`.
+            return $nastaveni->prodejJidlaUkoncen();
+        }
+
+        // Ubytování a vstupné si termín hlídají jinde, na vlastních cestách.
+        return false;
+    }
+
+    /**
+     * Orgovská a vypravěčská trička drží právo, ne cena. Kontrola dřív žila jen na čtecí
+     * straně, takže produkt se jen nenabídl — ručně sestavený požadavek ho koupil.
+     *
+     * Sedí ve `buildOrderItem()`, protože tudy vede každý zápis; v `addItem()` by ji
+     * `addBundle()` obešel.
+     *
+     * @return bool jestli pult kontrolu obešel (pro override_log)
+     */
+    private function guardRestrictedProduct(Order $order, ProductVariant $variant, ?OperatorOverride $override): bool
+    {
+        $product = $variant->getProduct();
+        if (! $this->restrictedProductRules->isRestricted($product)) {
+            return false;
+        }
+
+        // Komu pult omezené tričko vydá, rozhoduje obsluha — stejně jako u zásoby pro orgy.
+        if ($override?->allows(OperatorOverride::GUARD_RESTRICTED_PRODUCT) === true) {
+            return true;
+        }
+
+        // Všechno dál se musí zlomit do „nesmí": chybějící zákazník ani nenačtený legacy
+        // uživatel nesmí být důvod, proč omezené tričko projde.
+        $customer = $order->getCustomer();
+        $legacyCustomer = $customer === null
+            ? null
+            : $this->restrictedProductRules->legacyUserFor($customer);
+        if ($legacyCustomer === null || ! $this->restrictedProductRules->mayOrder($product, $legacyCustomer)) {
+            throw new \RuntimeException(sprintf('Na produkt "%s" nemáš nárok.', $product->getName()));
+        }
+
+        return false;
+    }
+
+    /**
+     * Add all variants in a bundle to the cart atomically.
+     *
+     * If any variant fails (sold out), all previously purchased variants
+     * are rolled back and the exception is re-thrown.
+     *
+     * @param RoleMeaning[] $roleMeanings
+     *
+     * @return OrderItem[]
+     *
+     * @throws \RuntimeException if any variant is unavailable
+     */
+    public function addBundle(Order $order, ProductBundle $bundle, array $roleMeanings = []): array
+    {
+        $variants = $bundle->getVariants()->toArray();
+        $purchasedVariants = [];
+        $items = [];
+
+        try {
+            foreach ($variants as $variant) {
+                $product = $variant->getProduct();
+
+                if (! $product->isAvailable($this->clock->now())) {
+                    throw new \RuntimeException(sprintf('Produkt "%s" není dostupný.', $product->getName()));
+                }
+
+                $this->capacityManager->purchase($variant, 1, $roleMeanings);
+                $purchasedVariants[] = $variant;
+
+                $items[] = $this->buildOrderItem($order, $variant, $bundle, $roleMeanings);
+            }
+        } catch (\RuntimeException $e) {
+            // Roll back all already-purchased variants
+            foreach ($purchasedVariants as $purchased) {
+                $this->capacityManager->cancelPurchase($purchased);
+            }
+
+            throw $e;
+        }
+
+        foreach ($items as $item) {
+            $order->addItem($item);
+            $this->entityManager->persist($item);
+        }
+
+        $order->recalculateTotal();
+        $this->entityManager->flush();
+
+        return $items;
+    }
+
+    /**
+     * Remove a single item from the cart. Returns stock to the variant.
+     *
+     * Rejects removing items that belong to a forced bundle for the user's roles.
+     */
+    /**
+     * Jídlo se po termínu neruší: počty jsou nahlášené v jídelně, takže zrušená porce se
+     * stejně uvaří a zaplatí. Merch se ruší dál — u něj zatím nikdo dodavateli nezaplatil,
+     * a `Shop::zrusZrusitelneLetosniObjednavky()` ho ze stejného důvodu taky nezachovává.
+     *
+     * @throws \RuntimeException když je položka po svém termínu nezrušitelná
+     */
+    private function overRuseni(OrderItem $item): void
+    {
+        $product = $item->getVariant()?->getProduct();
+
+        if ($product === null || ! $product->hasTag(ProductTagCode::JIDLO->value)) {
+            return;
+        }
+
+        if (SystemoveNastaveni::zGlobals()->prodejJidlaUkoncen()) {
+            throw new \RuntimeException(sprintf('Prodej předmětu "%s" už skončil, položku nejde odebrat.', $product->getName()));
+        }
+    }
+
+    /**
+     * @param RoleMeaning[] $roleMeanings
+     */
+    public function removeItem(Order $order, OrderItem $item, array $roleMeanings = []): void
+    {
+        $bundle = $item->getBundle();
+        if ($bundle !== null && $bundle->isMandatoryForUser($roleMeanings)) {
+            throw new \RuntimeException(sprintf('Položka je součástí povinného balíčku "%s". Odeberte celý balíček.', $bundle->getName()));
+        }
+
+        $this->overRuseni($item);
+
+        $variant = $item->getVariant();
+
+        if ($variant !== null) {
+            $this->capacityManager->cancelPurchase($variant);
+        }
+
+        $order->removeItem($item);
+        $order->recalculateTotal();
+
+        $this->entityManager->remove($item);
+        $this->entityManager->flush();
+    }
+
+    /**
+     * Remove all items belonging to a bundle from the cart.
+     */
+    public function removeBundle(Order $order, ProductBundle $bundle): void
+    {
+        $bundleItems = [];
+        foreach ($order->getItems() as $item) {
+            if ($item->getBundle() === $bundle) {
+                $bundleItems[] = $item;
+            }
+        }
+
+        foreach ($bundleItems as $item) {
+            $this->overRuseni($item);
+        }
+
+        foreach ($bundleItems as $item) {
+            $variant = $item->getVariant();
+            if ($variant !== null) {
+                $this->capacityManager->cancelPurchase($variant);
+            }
+
+            $order->removeItem($item);
+            $this->entityManager->remove($item);
+        }
+
+        $order->recalculateTotal();
+        $this->entityManager->flush();
+    }
+
+    /**
+     * Create and persist a single order item (used by addItem).
+     *
+     * @param RoleMeaning[] $roleMeanings
+     */
+    private function createOrderItem(Order $order, ProductVariant $variant, ?ProductBundle $bundle, array $roleMeanings, ?OperatorOverride $override = null, bool $vraceniZruseneSnidane = false): OrderItem
+    {
+        $product = $variant->getProduct();
+
+        if (! $product->isAvailable($this->clock->now())) {
+            throw new \RuntimeException(sprintf('Produkt "%s" není dostupný.', $product->getName()));
+        }
+
+        $bypassed = [];
+
+        // Sekce mají termín nad rámec stavu produktu, takže stránka nechaná otevřená přes
+        // něj — nebo přímý POST — nesmí koupit. Každá sekce má termín vlastní.
+        if ($this->prodejSekceUkoncen($product)) {
+            // Vrácení snídaně, kterou zrušil systém sám, není nový prodej — odmítnout ho po
+            // termínu by účastníka připravilo o položku objednanou včas. Zapisuje se stejně
+            // jako obejití obsluhou, aby obejitý termín nebyl nikdy neviditelný.
+            if (! $vraceniZruseneSnidane && $override?->allows(OperatorOverride::GUARD_DEADLINE) !== true) {
+                throw new \RuntimeException(sprintf('Prodej předmětu "%s" už skončil.', $product->getName()));
+            }
+            $bypassed[] = OperatorOverride::GUARD_DEADLINE;
+        }
+
+        $this->capacityManager->purchase($variant, 1, $roleMeanings, $override);
+
+        $item = $this->buildOrderItem($order, $variant, $bundle, $roleMeanings, $override, $bypassed);
+
+        if ($override !== null) {
+            $item->setOrderer($override->operator);
+            // Jen pravidla, o která nákup opravdu zakopl — log má říkat, co se obešlo, ne
+            // co všechno operátor obejít směl.
+            foreach ($bypassed as $guard) {
+                $item->recordOverride($guard, $override->source, $override->operator, $this->clock->now());
+            }
+        }
+
+        $order->addItem($item);
+        $order->recalculateTotal();
+
+        $this->entityManager->persist($item);
+        $this->entityManager->flush();
+
+        return $item;
+    }
+
+    /**
+     * Build an OrderItem entity (without persisting or adding to order).
+     *
+     * @param RoleMeaning[]                        $roleMeanings
+     * @param list<OperatorOverride::GUARD_*>|null $bypassed     doplní se o obejitá pravidla
+     */
+    private function buildOrderItem(
+        Order $order,
+        ProductVariant $variant,
+        ?ProductBundle $bundle,
+        array $roleMeanings,
+        ?OperatorOverride $override = null,
+        ?array &$bypassed = null,
+    ): OrderItem {
+        if ($this->guardRestrictedProduct($order, $variant, $override)) {
+            $bypassed[] = OperatorOverride::GUARD_RESTRICTED_PRODUCT;
+        }
+
+        $product = $variant->getProduct();
+
+        // Kolikátý kus to je, rozhoduje o ceně: nárok „jedno tričko zdarma" platí jen na
+        // první. Bez toho by se naúčtovala plná cena i tam, kde mřížka slibuje nulu.
+        $alreadyBought = $this->orderItemRepository->countCustomerPurchases(
+            $order->getCustomer(),
+            $product,
+            $order->getYear(),
+        );
+
+        // Nárok sdílený přes víc produktů („jedna kostka zdarma", a kostek je v nabídce
+        // 45) se vyčerpá koupí kterékoli z nich. Bez toho by se za každou naúčtovala nula.
+        $discountInfo = $this->discountCalculator->priceForNextPiece(
+            $product,
+            $order->getCustomer(),
+            $order->getYear(),
+            $alreadyBought,
+            $this->spentQuota->forUser($order->getCustomer(), $order->getYear()),
+        );
+
+        $item = new OrderItem();
+        $item->setCustomer($order->getCustomer());
+        $item->setProduct($product);
+        $item->setVariant($variant);
+        $item->setBundle($bundle);
+        $item->setYear($order->getYear());
+        $item->setOrder($order);
+        $item->setPurchasePrice($discountInfo['finalPrice']);
+        $item->snapshotProduct($product, $variant);
+        $item->setProductTags($product->getTagNames());
+
+        // snapshotProduct() above already stored originalPrice from the variant's effective
+        // price, which the product-level one would silently override.
+        $item->setDiscountAmount($discountInfo['discountAmount']);
+        $item->setDiscountSnapshot($discountInfo['snapshot']);
+
+        if ($discountInfo['reason'] !== null) {
+            $item->setDiscountReason($discountInfo['reason']);
+        }
+
+        return $item;
+    }
+}
