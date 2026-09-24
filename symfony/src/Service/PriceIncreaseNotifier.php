@@ -7,6 +7,7 @@ namespace App\Service;
 use App\Entity\User;
 use App\Enum\RoleMeaning;
 use App\Repository\UserRepository;
+use Doctrine\DBAL\Connection;
 use Gamecon\Kanaly\GcMail;
 use Gamecon\SystemoveNastaveni\SystemoveNastaveni;
 use Psr\Log\LoggerInterface;
@@ -26,6 +27,7 @@ class PriceIncreaseNotifier
     public function __construct(
         private readonly UserRepository $userRepository,
         private readonly LoggerInterface $logger,
+        private readonly Connection $connection,
     ) {
     }
 
@@ -54,6 +56,14 @@ class PriceIncreaseNotifier
      */
     public function odesliFrontu(): void
     {
+        // Volající si může držet vlastní transakci a uvnitř ní flushovat víckrát; `postFlush`
+        // pak přijde ještě před commitem. Odeslat teď by znamenalo hlásit zdražení, které
+        // se po rollbacku nestalo — fronta proto počká na commit, který přijde s dalším
+        // `postFlush` zvenčí.
+        if ($this->connection->isTransactionActive()) {
+            return;
+        }
+
         $fronta = $this->fronta;
         // Taken before sending, so a nested flush triggered while sending cannot see the
         // same batch and send it twice.

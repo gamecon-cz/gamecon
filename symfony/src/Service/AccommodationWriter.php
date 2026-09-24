@@ -32,6 +32,7 @@ class AccommodationWriter
         private DiscountCalculator $discountCalculator,
         private BreakfastCanceller $breakfastCanceller,
         private CapacityManager $capacityManager,
+        private PriceIncreaseNotifier $priceIncreaseNotifier,
         private OrderItemRepository $orderItemRepository,
     ) {
     }
@@ -90,6 +91,10 @@ class AccommodationWriter
 
             throw $error;
         }
+
+        // Fronta oznámení čeká na commit, a ten tu nevyvolá žádný další `postFlush`, který by
+        // ji vyprázdnil.
+        $this->priceIncreaseNotifier->odesliFrontu();
 
         $this->entityManager->clear();
 
@@ -332,7 +337,8 @@ class AccommodationWriter
                 $this->entityManager->remove($polozka);
             }
             $this->entityManager->flush();
-            $smazano = count($keSmazani);
+            // Počet řádků, ne entit: zákazník může mít na jednu variantu víc nákupů.
+            $smazano = array_sum($kusu);
 
             $this->capacityManager->adjustStock($kusu, +1);
         }
