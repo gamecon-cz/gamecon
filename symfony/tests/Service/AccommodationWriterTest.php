@@ -1274,6 +1274,14 @@ class AccommodationWriterTest extends AbstractDatabaseKernelTestCase
         [, $snidaneId] = $this->pripravHotelSeSnidani(0);
         $customer = $this->ucastnik();
 
+        // Zásoba musí být i na variantě, jinak `null` znamená „neomezeno" a test by prošel
+        // i s vyřazenou kontrolou kapacity.
+        $this->connection()->executeStatement(
+            'UPDATE product_variant SET remaining_quantity = 2 WHERE id = :variant',
+            [
+                'variant' => $snidaneId,
+            ],
+        );
         $this->connection()->executeStatement(
             'UPDATE shop_predmety SET kusu_vyrobeno = 2
              WHERE kod_predmetu = (SELECT code FROM product_variant WHERE id = :variant)',
@@ -1286,6 +1294,7 @@ class AccommodationWriterTest extends AbstractDatabaseKernelTestCase
         $this->mealWriter()->save($customer, [$snidaneId], self::ROK);
 
         self::assertSame([$snidaneId], $this->drzenaJidla($customer));
+        self::assertSame(0, $this->zbyvaNaVarianteId($snidaneId), 'Poslední porce se měla prodat');
     }
 
     /**
