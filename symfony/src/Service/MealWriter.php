@@ -4,10 +4,12 @@ declare(strict_types=1);
 
 namespace App\Service;
 
+use App\Entity\OrderItem;
 use App\Entity\ProductVariant;
 use App\Entity\User;
 use App\Enum\ProductStateEnum;
 use App\Enum\ProductTagCode;
+use App\Repository\OrderItemRepository;
 use App\Repository\ProductRepository;
 use Doctrine\DBAL\ArrayParameterType;
 use Doctrine\DBAL\Connection;
@@ -30,6 +32,7 @@ class MealWriter
         private DiscountCalculator $discountCalculator,
         private BreakfastCanceller $breakfastCanceller,
         private CapacityManager $capacityManager,
+        private OrderItemRepository $orderItemRepository,
     ) {
     }
 
@@ -133,18 +136,15 @@ class MealWriter
         $toRemove = array_diff($held, $keepVariantIds);
         if ($toRemove !== []) {
             $kusu = $this->pocetKusu($customer, $year, array_values($toRemove));
-            $this->connection->executeStatement(
-                'DELETE FROM shop_nakupy
-                 WHERE id_uzivatele = :customer AND rok = :year AND variant_id IN (:variantIds)',
-                [
-                    'customer'   => $customer->getId(),
-                    'year'       => $year,
-                    'variantIds' => array_values($toRemove),
-                ],
-                [
-                    'variantIds' => ArrayParameterType::INTEGER,
-                ],
-            );
+
+            foreach ($this->orderItemRepository->findBy([
+                'customer' => $customer->getId(),
+                'year'     => $year,
+                'variant'  => array_values($toRemove),
+            ]) as $polozka) {
+                $this->entityManager->remove($polozka);
+            }
+            $this->entityManager->flush();
 
             $this->capacityManager->adjustStock($kusu, +1);
         }
@@ -196,51 +196,39 @@ class MealWriter
         $discount = $this->discountCalculator->calculateDiscount($product, $customer, $year);
         $order = $this->cartService->getOrCreateCart($customer);
 
-        // The count below reads a snapshot, so two writers would both see the last portion
-        // free. Locking the meal's stock row first makes them queue instead.
-        $this->connection->executeQuery(
-            'SELECT kusu_vyrobeno FROM shop_predmety WHERE kod_predmetu = :variantCode FOR UPDATE',
-            [
-                'variantCode' => $variant->getCode(),
-            ],
-        );
+        // Podmíněný UPDATE zásoby je sám o sobě atomický, takže dva souběžné zápisy poslední
+        // porce se nemůžou potkat a zámek navíc není potřeba. Vyprodáno se pozná tím, že
+        // neubral žádný řádek.
+        // Zásobu mohl mezitím změnit jiný zápis; `purchase()` ji čte z entity, takže by
+        // jinak rozhodoval podle hodnoty načtené na začátku requestu.
+        $this->entityManager->refresh($variant);
 
-        $inserted = $this->connection->executeStatement(
-            'INSERT INTO shop_nakupy
-                (id_uzivatele, id_predmetu, variant_id, order_id, rok, cena_nakupni, datum,
-                 product_name, product_code, product_tags, variant_name, variant_code)
-             SELECT :customer, :product, :variant, :order, :year, :price, NOW(),
-                    :productName, :productCode, :productTags, :variantName, :variantCode
-             FROM shop_predmety AS jidlo
-             WHERE jidlo.kod_predmetu = :variantCode
-               AND (
-                   jidlo.kusu_vyrobeno IS NULL
-                   OR jidlo.kusu_vyrobeno > (
-                       SELECT COUNT(*) FROM shop_nakupy AS prodane
-                       WHERE prodane.variant_id = :variant AND prodane.rok = :year
-                   )
-               )',
-            [
-                'customer'    => $customer->getId(),
-                'product'     => $product->getId(),
-                'variant'     => $variant->getId(),
-                'order'       => $order->getId(),
-                'year'        => $year,
-                'price'       => $discount['finalPrice'],
-                'productName' => $product->getName(),
-                'productCode' => $product->getCode(),
-                'productTags' => json_encode($product->getTagNames(), JSON_THROW_ON_ERROR),
-                'variantName' => $variant->getName(),
-                'variantCode' => $variant->getCode(),
-            ],
-        );
-
-        if ($inserted === 0) {
+        try {
+            $this->capacityManager->purchase($variant);
+        } catch (\RuntimeException) {
             throw new \RuntimeException(sprintf('Jídlo „%s" je bohužel vyprodané.', $product->getName()));
         }
 
-        $this->capacityManager->adjustStock([
-            (int) $variant->getId() => 1,
-        ], -1);
+        $item = new OrderItem();
+        // Volající může držet odpojenou entitu (admin si mezitím promazal identity map),
+        // a `persist()` by ji pak chtěl vložit znovu jako nového uživatele.
+        $item->setCustomer($this->entityManager->getReference(User::class, $customer->getId()));
+        $item->setProduct($product);
+        $item->setVariant($variant);
+        $item->setOrder($order);
+        $item->setYear($year);
+        $item->setPurchasePrice($discount['finalPrice']);
+        $item->setDiscountAmount($discount['discountAmount']);
+        $item->setDiscountSnapshot($discount['snapshot']);
+        $item->snapshotProduct($product, $variant);
+        $item->setProductTags($product->getTagNames());
+
+        if ($discount['reason'] !== null) {
+            $item->setDiscountReason($discount['reason']);
+        }
+
+        $order->addItem($item);
+        $this->entityManager->persist($item);
+        $this->entityManager->flush();
     }
 }
