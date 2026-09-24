@@ -8,6 +8,7 @@ use App\Entity\User;
 use App\Enum\RoleMeaning;
 use App\Repository\UserRepository;
 use App\Service\PriceIncreaseNotifier;
+use Doctrine\DBAL\Connection;
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
 use Psr\Log\LoggerInterface;
@@ -36,16 +37,22 @@ class PriceIncreaseNotifierTest extends TestCase
         /** @var LoggerInterface $logger */
         $logger = $this->logger;
 
-        return new class($repository, $logger, $this->odeslane) extends PriceIncreaseNotifier {
+        // Bez otevřené transakce: fronta se odesílá až po commitu, a tenhle test zkoumá
+        // samotné odeslání, ne to čekání.
+        $connection = $this->createMock(Connection::class);
+        $connection->method('isTransactionActive')->willReturn(false);
+
+        return new class($repository, $logger, $connection, $this->odeslane) extends PriceIncreaseNotifier {
             /**
              * @param array<int, array{email: string, predmet: string, zprava: string}> $odeslane
              */
             public function __construct(
                 UserRepository $userRepository,
                 LoggerInterface $logger,
+                Connection $connection,
                 public array &$odeslane,
             ) {
-                parent::__construct($userRepository, $logger);
+                parent::__construct($userRepository, $logger, $connection);
             }
 
             public bool $selhat = false;

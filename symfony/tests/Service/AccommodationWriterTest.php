@@ -242,6 +242,14 @@ class AccommodationWriterTest extends AbstractDatabaseKernelTestCase
                 'year'     => self::ROK,
             ],
         );
+        // Zápis mimo aplikaci musí zásobu ubrat sám, jinak varianta tvrdí, že má volno.
+        $this->connection()->executeStatement(
+            'UPDATE product_variant SET remaining_quantity = remaining_quantity - 1
+             WHERE id = :variant AND remaining_quantity IS NOT NULL',
+            [
+                'variant' => $snidaneVariantId,
+            ],
+        );
     }
 
     private function ucastnik(): User
@@ -493,8 +501,8 @@ class AccommodationWriterTest extends AbstractDatabaseKernelTestCase
         $customer = $this->ucastnik();
         // Na řádku noci zbyla rezervace celé kapacity, na variantě už není žádná.
         $this->connection()->executeStatement(
-            "UPDATE shop_predmety SET reserved_for_organizers = 2
-             WHERE kod_predmetu IN (SELECT code FROM product_variant WHERE id IN (:varianty))",
+            'UPDATE shop_predmety SET reserved_for_organizers = 2
+             WHERE kod_predmetu IN (SELECT code FROM product_variant WHERE id IN (:varianty))',
             [
                 'varianty' => $this->idNoci(0, 1),
             ],
@@ -526,8 +534,8 @@ class AccommodationWriterTest extends AbstractDatabaseKernelTestCase
         $this->pripravUbytovani(kusuVyrobeno: 2);
         $customer = $this->ucastnik();
         $this->connection()->executeStatement(
-            "UPDATE shop_predmety SET reserved_for_organizers = 2
-             WHERE kod_predmetu IN (SELECT code FROM product_variant WHERE id IN (:varianty))",
+            'UPDATE shop_predmety SET reserved_for_organizers = 2
+             WHERE kod_predmetu IN (SELECT code FROM product_variant WHERE id IN (:varianty))',
             [
                 'varianty' => $this->idNoci(0, 1),
             ],
@@ -1221,6 +1229,13 @@ class AccommodationWriterTest extends AbstractDatabaseKernelTestCase
         [, $snidaneId] = $this->pripravHotelSeSnidani(0);
         $customer = $this->ucastnik();
 
+        // Zásoba je na variantě, ne na legacy `kusu_vyrobeno` — tam se jen zrcadlí.
+        $this->connection()->executeStatement(
+            'UPDATE product_variant SET remaining_quantity = 1 WHERE id = :variant',
+            [
+                'variant' => $snidaneId,
+            ],
+        );
         $this->connection()->executeStatement(
             'UPDATE shop_predmety SET kusu_vyrobeno = 1
              WHERE kod_predmetu = (SELECT code FROM product_variant WHERE id = :variant)',
@@ -1259,6 +1274,14 @@ class AccommodationWriterTest extends AbstractDatabaseKernelTestCase
         [, $snidaneId] = $this->pripravHotelSeSnidani(0);
         $customer = $this->ucastnik();
 
+        // Zásoba musí být i na variantě, jinak `null` znamená „neomezeno" a test by prošel
+        // i s vyřazenou kontrolou kapacity.
+        $this->connection()->executeStatement(
+            'UPDATE product_variant SET remaining_quantity = 2 WHERE id = :variant',
+            [
+                'variant' => $snidaneId,
+            ],
+        );
         $this->connection()->executeStatement(
             'UPDATE shop_predmety SET kusu_vyrobeno = 2
              WHERE kod_predmetu = (SELECT code FROM product_variant WHERE id = :variant)',
@@ -1271,6 +1294,7 @@ class AccommodationWriterTest extends AbstractDatabaseKernelTestCase
         $this->mealWriter()->save($customer, [$snidaneId], self::ROK);
 
         self::assertSame([$snidaneId], $this->drzenaJidla($customer));
+        self::assertSame(0, $this->zbyvaNaVarianteId($snidaneId), 'Poslední porce se měla prodat');
     }
 
     /**
