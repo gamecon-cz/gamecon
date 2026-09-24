@@ -8,6 +8,7 @@ use App\Entity\OrderItem;
 use App\Entity\ProductVariant;
 use App\Entity\User;
 use App\Enum\ProductTagCode;
+use App\Repository\OrderItemRepository;
 use Doctrine\DBAL\ArrayParameterType;
 use Doctrine\DBAL\Connection;
 use Doctrine\ORM\EntityManagerInterface;
@@ -24,6 +25,7 @@ class BreakfastCanceller
         private readonly EntityManagerInterface $entityManager,
         private readonly CartService $cartService,
         private readonly CapacityManager $capacityManager,
+        private readonly OrderItemRepository $orderItemRepository,
     ) {
     }
 
@@ -62,18 +64,14 @@ class BreakfastCanceller
             ],
         ));
 
-        $this->connection->executeStatement(
-            'DELETE FROM shop_nakupy
-             WHERE id_uzivatele = :customer AND rok = :year AND variant_id IN (:variantIds)',
-            [
-                'customer'   => $customer->getId(),
-                'year'       => $year,
-                'variantIds' => $kryte,
-            ],
-            [
-                'variantIds' => ArrayParameterType::INTEGER,
-            ],
-        );
+        foreach ($this->orderItemRepository->findBy([
+            'customer' => $customer->getId(),
+            'year'     => $year,
+            'variant'  => $kryte,
+        ]) as $polozka) {
+            $this->entityManager->remove($polozka);
+        }
+        $this->entityManager->flush();
 
         // Zrušená snídaně se nikomu neprodala, takže se její kus musí vrátit do zásoby —
         // jinak by každý zápis snídaně kryté hotelovou nocí jeden kus tiše ztratil.
