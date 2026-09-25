@@ -17,7 +17,7 @@
             </select>
         </label>
         <a href="{urlModulu}?zneni" id="odkazNaZneni" style="margin-left: 1em; display: none">Upravit obsah vlastního znění</a>
-        <span id="zneniChybi" data-chybi="{zneniChybi}" style="margin-left: 1em; display: none; color: #a00">Vlastní znění zatím není vyplněné, odejde standardní text.</span>
+        <span id="zneniChybi" data-chybi="{zneniChybi}" style="margin-left: 1em; display: none; color: #a00">Vlastní znění není vyplněné, takže se s ním nedá odesílat.</span>
     </p>
 
     <style>
@@ -144,12 +144,18 @@
         const odkazNaZneni = document.getElementById('odkazNaZneni');
         const zneniChybi = document.getElementById('zneniChybi');
 
+        const odeslatUpominky = document.getElementById('odeslatUpominky');
+
         function srovnejViditelnostZneni() {
             const jeVlastni = vyberTextu.value === 'vlastni';
+            const nejdeOdeslat = jeVlastni && zneniChybi.dataset.chybi === 'ano';
+
             odkazNaZneni.style.display = jeVlastni ? 'inline' : 'none';
-            zneniChybi.style.display = jeVlastni && zneniChybi.dataset.chybi === 'ano'
-                ? 'inline'
-                : 'none';
+            zneniChybi.style.display = nejdeOdeslat ? 'inline' : 'none';
+            odeslatUpominky.disabled = nejdeOdeslat;
+            odeslatUpominky.title = nejdeOdeslat
+                ? 'Nejdřív vyplň předmět i text vlastního znění.'
+                : '';
         }
 
         vyberTextu.addEventListener('change', function () {
@@ -190,6 +196,16 @@
                 : (vyberTextu.value === 'vlastni' ? 'Vlastni' : 'Rucni');
             const predmet = odkaz.dataset['predmet' + varianta];
             const zprava = odkaz.dataset['zprava' + varianta];
+
+            // Podle serverového verdiktu, ne podle prázdného textu - vyplněné
+            // znění se po dosazení symbolů může vykreslit naprázdno (samotné {a}
+            // u muže), a to je platný mail, který se odešle.
+            if (varianta === 'Vlastni' && zneniChybi.dataset.chybi === 'ano') {
+                nahledObsah.textContent = 'Vlastní znění nemá vyplněný předmět nebo text,'
+                    + ' není co zobrazit.';
+                nahledDialog.showModal();
+                return;
+            }
 
             nahledObsah.innerHTML = '<p>Příjemce: <strong></strong> <span></span></p>'
                 + '<p>Předmět: <strong></strong></p>'
