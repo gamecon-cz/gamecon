@@ -11,9 +11,9 @@
         <label>
             Text e-mailu:
             <select name="typ" id="vyberTextu">
+                <option value="vlastni" {vybranoVlastni}>vlastní</option>
                 <option value="rucni" {vybranoRucni}>jako měsíční (naléhavější)</option>
                 <option value="tyden" {vybranoTyden}>jako týdenní (mírnější)</option>
-                <option value="vlastni" {vybranoVlastni}>vlastní</option>
             </select>
         </label>
         <a href="{urlModulu}?zneni" id="odkazNaZneni" style="margin-left: 1em; display: none">Upravit obsah vlastního znění</a>
