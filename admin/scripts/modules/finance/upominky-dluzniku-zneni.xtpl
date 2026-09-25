@@ -4,7 +4,7 @@
 
 <p>
     Použije se, když je u rozesílání vybrané <strong>vlastní</strong> znění.
-    Dokud je předmět nebo text prázdný, odejde místo něj standardní text.
+    Dokud je předmět nebo text prázdný, nedá se s vlastním zněním odesílat.
 </p>
 
 <form method="post">

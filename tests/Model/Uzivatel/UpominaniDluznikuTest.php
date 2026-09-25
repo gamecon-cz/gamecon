@@ -14,6 +14,7 @@ use Gamecon\Tests\Db\AbstractTestDb;
 use Gamecon\Uzivatel\Dto\Dluznik;
 use Gamecon\Uzivatel\Enum\TypUpominky;
 use Gamecon\Uzivatel\Enum\UcastNaGc;
+use Gamecon\Uzivatel\Exceptions\VlastniZneniNeniVyplnene;
 use Gamecon\Uzivatel\Pohlavi;
 use Gamecon\Uzivatel\UpominaniDluzniku;
 use Gamecon\Uzivatel\UpominkaVlastniZneni;
@@ -938,7 +939,7 @@ SQL,
      *
      * @dataProvider poskytniNevyplnenaZneni
      */
-    public function nevyplneneVlastniZneniPropadneNaStandardniText(
+    public function nevyplneneVlastniZneniNedovoliOdeslat(
         string $predmet,
         string $text,
     ) {
@@ -946,7 +947,41 @@ SQL,
 
         $upominaniDluzniku = $this->dejUpominaniDluzniku();
 
-        $zprava = $upominaniDluzniku->dejEmailZpravu(
+        $this->expectException(VlastniZneniNeniVyplnene::class);
+
+        $upominaniDluzniku->odesliUpominkuJednomu(
+            \Uzivatel::zId(self::ID_DLUZNICE_NEDORAZILA),
+            TypUpominky::VLASTNI,
+            120,
+            ROCNIK,
+            \Uzivatel::zId(\Uzivatel::SYSTEM, true),
+            UcastNaGc::JEN_PRIHLASEN,
+            null,
+        );
+    }
+
+    /**
+     * @test
+     *
+     * @dataProvider poskytniNevyplnenaZneni
+     */
+    public function nevyplneneVlastniZneniNevykresliAniPredmetAniText(
+        string $predmet,
+        string $text,
+    ) {
+        (new UpominkaVlastniZneni())->uloz(ROCNIK, $predmet, $text, \Uzivatel::SYSTEM);
+
+        $upominaniDluzniku = $this->dejUpominaniDluzniku();
+
+        try {
+            $upominaniDluzniku->dejEmailPredmet(TypUpominky::VLASTNI, ROCNIK);
+            self::fail('Předmět z nevyplněného znění se nesmí vůbec vyrobit');
+        } catch (VlastniZneniNeniVyplnene) {
+            // očekávané
+        }
+
+        $this->expectException(VlastniZneniNeniVyplnene::class);
+        $upominaniDluzniku->dejEmailZpravu(
             TypUpominky::VLASTNI,
             250,
             12345,
@@ -956,17 +991,18 @@ SQL,
             'Tester',
             ROCNIK,
         );
+    }
 
-        self::assertStringContainsString(
-            'krásné vzpomínky',
-            $zprava,
-            'Poloprázdné znění nesmí odeslat půlku mailu, musí propadnout na standardní text',
-        );
-        self::assertStringContainsString(
-            'PŘIPOMÍNKA nedoplatků',
-            $upominaniDluzniku->dejEmailPredmet(TypUpominky::VLASTNI, ROCNIK),
-            'Bez vlastního předmětu platí standardní měsíční předmět',
-        );
+    /**
+     * @test
+     */
+    public function zadneVlastniZneniNedovoliOdeslat()
+    {
+        $upominaniDluzniku = $this->dejUpominaniDluzniku();
+
+        $this->expectException(VlastniZneniNeniVyplnene::class);
+
+        $upominaniDluzniku->dejEmailPredmet(TypUpominky::VLASTNI, ROCNIK);
     }
 
     public static function poskytniNevyplnenaZneni(): array

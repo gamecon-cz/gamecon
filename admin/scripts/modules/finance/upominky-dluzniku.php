@@ -139,6 +139,14 @@ if ($idNahledu) {
         default                     => TypUpominky::RUCNI,
     };
 
+    // Bez $back: náhled si tahá i fetch z modálu, kterému by se přesměrování
+    // na seznam vykreslilo jako celá admin stránka v útržku.
+    if ($typNahledu->maVlastniZneni() && !$upominkaVlastniZneni->dejZneni($rocnik)?->jeVyplnene()) {
+        chyba('Vlastní znění nemá vyplněný předmět nebo text, není co zobrazit.', false);
+
+        return;
+    }
+
     $nahled = new XTemplate(__DIR__ . '/upominky-dluzniku-nahled.xtpl');
     $nahled->assign('jmenoNick', htmlspecialchars((string)$dluznik->uzivatel->jmenoNick(), ENT_QUOTES));
     $nahled->assign('mail', htmlspecialchars((string)$dluznik->uzivatel->mail(), ENT_QUOTES));
@@ -175,6 +183,8 @@ if ($idNahledu) {
     return;
 }
 
+$maVyplneneVlastniZneni = (bool) $upominkaVlastniZneni->dejZneni($rocnik)?->jeVyplnene();
+
 // Ruční rozesílání smí vyrobit jen ruční záznam - typy automatik by v logu
 // smazaly rozdíl mezi tím, co poslal cron, a co člověk.
 $zvolenyTyp  = post('typ') ?? get('typ');
@@ -185,6 +195,15 @@ $typUpominky = match ($zvolenyTyp) {
 };
 
 if (post('odeslat')) {
+    // Radši neodešleme nic, než abychom u části lidí zjistili až v půlce,
+    // že vlastní znění není čím vyplnit.
+    if ($typUpominky->maVlastniZneni() && !$maVyplneneVlastniZneni) {
+        oznameniPresmeruj(
+            'Vlastní znění nemá vyplněný předmět nebo text, upomínky neodešly.',
+            URL_ADMIN . '/finance/upominky-dluzniku?typ=' . $typUpominky->value,
+        );
+    }
+
     $idsKOdeslani = array_unique(array_map('intval', (array)post('id')));
 
     $odeslano = 0;
@@ -301,19 +320,25 @@ foreach ($dluznici as $dluznik) {
             (string)$dluznik->uzivatel->jmenoNick(),
             $rocnik,
         ), ENT_QUOTES),
-        'zpravaVlastni'      => htmlspecialchars($upominaniDluzniku->dejEmailZpravu(
-            TypUpominky::VLASTNI,
-            (int)round($dluznik->dluh),
-            $idUzivatele,
-            $dluznik->ucastNaGc,
-            $dluznik->rokPosledniUcasti,
-            $dluznik->uzivatel->koncovkaDlePohlavi(),
-            (string)$dluznik->uzivatel->jmenoNick(),
-            $rocnik,
-        ), ENT_QUOTES),
+        // Bez vyplněného znění se vlastní varianta nedá vyrobit, takže se
+        // nepředgeneruje a modál na ni ani nepustí.
+        'zpravaVlastni'      => $maVyplneneVlastniZneni
+            ? htmlspecialchars($upominaniDluzniku->dejEmailZpravu(
+                TypUpominky::VLASTNI,
+                (int)round($dluznik->dluh),
+                $idUzivatele,
+                $dluznik->ucastNaGc,
+                $dluznik->rokPosledniUcasti,
+                $dluznik->uzivatel->koncovkaDlePohlavi(),
+                (string)$dluznik->uzivatel->jmenoNick(),
+                $rocnik,
+            ), ENT_QUOTES)
+            : '',
         'predmetRucni'       => htmlspecialchars($upominaniDluzniku->dejEmailPredmet(TypUpominky::RUCNI, $rocnik), ENT_QUOTES),
         'predmetTyden'       => htmlspecialchars($upominaniDluzniku->dejEmailPredmet(TypUpominky::TYDEN, $rocnik), ENT_QUOTES),
-        'predmetVlastni'     => htmlspecialchars($upominaniDluzniku->dejEmailPredmet(TypUpominky::VLASTNI, $rocnik), ENT_QUOTES),
+        'predmetVlastni'     => $maVyplneneVlastniZneni
+            ? htmlspecialchars($upominaniDluzniku->dejEmailPredmet(TypUpominky::VLASTNI, $rocnik), ENT_QUOTES)
+            : '',
         'jmenoNick'          => htmlspecialchars((string)$dluznik->uzivatel->jmenoNick(), ENT_QUOTES),
         'mail'               => htmlspecialchars((string)($dluznik->uzivatel->mail() ?: '(bez e-mailu)'), ENT_QUOTES),
         'dluh'               => (int)round($dluznik->dluh),
@@ -356,8 +381,7 @@ $t->assign([
     'vybranoVlastni' => $typUpominky === TypUpominky::VLASTNI
         ? 'selected'
         : '',
-    // Prázdné znění tiše propadne na standardní text, takže na to upozorníme.
-    'zneniChybi'    => $upominkaVlastniZneni->dejZneni($rocnik)?->jeVyplnene()
+    'zneniChybi'    => $maVyplneneVlastniZneni
         ? 'ne'
         : 'ano',
 ]);
