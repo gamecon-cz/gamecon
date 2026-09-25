@@ -9,6 +9,7 @@ use Gamecon\Uzivatel\Enum\TypUpominky;
 use Gamecon\Uzivatel\Enum\UcastNaGc;
 use Gamecon\Uzivatel\UpominaniDluzniku;
 use Gamecon\Uzivatel\UpominkaDluznikaLog;
+use Gamecon\Uzivatel\UpominkaVlastniZneni;
 use Gamecon\XTemplate\XTemplate;
 
 /**
@@ -28,7 +29,7 @@ use Gamecon\XTemplate\XTemplate;
 // Právo 108 má i agenda mimo finance; rozesílání peněz vymáhajících mailů
 // patří jen CFO.
 if (!$u->maRoli(Role::CFO)) {
-    chyba('Ruční rozesílání upomínek je jen pro CFO.');
+    chyba('Upomínky dlužníkům jsou jen pro CFO.');
 
     return;
 }
@@ -36,12 +37,56 @@ if (!$u->maRoli(Role::CFO)) {
 $rocnik              = $systemoveNastaveni->rocnik();
 $upominkaDluznikaLog = new UpominkaDluznikaLog();
 $jobResultLogger     = new JobResultLogger();
-$upominaniDluzniku   = new UpominaniDluzniku(
+// Jedna instance pro celý request, aby se znění nečetlo znovu pro každého
+// z ~200 dlužníků a aby předmět s textem vycházely ze stejného řádku.
+$upominkaVlastniZneni = new UpominkaVlastniZneni();
+$upominaniDluzniku    = new UpominaniDluzniku(
     $systemoveNastaveni,
     $jobResultLogger,
     new FioStazeniNovychPlateb($systemoveNastaveni, $jobResultLogger),
     $upominkaDluznikaLog,
+    upominkaVlastniZneni: $upominkaVlastniZneni,
 );
+
+if (get('zneni') !== null) {
+    if (post('ulozit')) {
+        $upominkaVlastniZneni->uloz(
+            $rocnik,
+            trim((string) post('predmet')),
+            trim((string) post('text')),
+            $u->id(),
+        );
+        oznameniPresmeruj('Vlastní znění uloženo', URL_ADMIN . '/finance/upominky-dluzniku?zneni');
+    }
+
+    $zneni = $upominkaVlastniZneni->dejZneni($rocnik);
+
+    $editor = new XTemplate(__DIR__ . '/upominky-dluzniku-zneni.xtpl');
+    $editor->assign([
+        'rocnik'  => $rocnik,
+        'predmet' => htmlspecialchars($zneni?->predmet ?? '', ENT_QUOTES),
+        'text'    => htmlspecialchars($zneni?->text ?? '', ENT_QUOTES),
+        'zpetUrl' => 'finance/upominky-dluzniku',
+    ]);
+    foreach (UpominkaVlastniZneni::dejPopisSymbolu() as $symbol => $popis) {
+        $editor->assign('symbol', htmlspecialchars($symbol, ENT_QUOTES));
+        $editor->assign('popisSymbolu', htmlspecialchars($popis, ENT_QUOTES));
+        $editor->parse('zneni.symbol');
+    }
+    foreach (UpominkaVlastniZneni::POVOLENE_KONSTANTY as $nazevKonstanty) {
+        if (!defined($nazevKonstanty)) {
+            continue;
+        }
+
+        $editor->assign('symbol', htmlspecialchars("%$nazevKonstanty%", ENT_QUOTES));
+        $editor->assign('popisSymbolu', htmlspecialchars((string) constant($nazevKonstanty), ENT_QUOTES));
+        $editor->parse('zneni.symbol');
+    }
+    $editor->parse('zneni');
+    $editor->out('zneni');
+
+    return;
+}
 
 // Jen pro jednoho uživatele - náhled ani odeslání pár lidem nemá přepočítávat
 // finance všem v databázi (6000+ uživatelů, desítky sekund a desítky tisíc dotazů).
@@ -88,9 +133,11 @@ if ($idNahledu) {
         exit;
     }
 
-    $typNahledu = get('typ') === TypUpominky::TYDEN->value
-        ? TypUpominky::TYDEN
-        : TypUpominky::RUCNI;
+    $typNahledu = match (get('typ')) {
+        TypUpominky::TYDEN->value   => TypUpominky::TYDEN,
+        TypUpominky::VLASTNI->value => TypUpominky::VLASTNI,
+        default                     => TypUpominky::RUCNI,
+    };
 
     $nahled = new XTemplate(__DIR__ . '/upominky-dluzniku-nahled.xtpl');
     $nahled->assign('jmenoNick', htmlspecialchars((string)$dluznik->uzivatel->jmenoNick(), ENT_QUOTES));
@@ -103,6 +150,8 @@ if ($idNahledu) {
         $dluznik->ucastNaGc,
         $dluznik->rokPosledniUcasti,
         $dluznik->uzivatel->koncovkaDlePohlavi(),
+        (string)$dluznik->uzivatel->jmenoNick(),
+        $rocnik,
     ), ENT_QUOTES));
     // QR kódy rovnou jako data URI, ať je v náhledu vidět i to, co reálně
     // odejde v příloze, a ne jen její název.
@@ -129,9 +178,11 @@ if ($idNahledu) {
 // Ruční rozesílání smí vyrobit jen ruční záznam - typy automatik by v logu
 // smazaly rozdíl mezi tím, co poslal cron, a co člověk.
 $zvolenyTyp  = post('typ') ?? get('typ');
-$typUpominky = $zvolenyTyp === TypUpominky::TYDEN->value
-    ? TypUpominky::TYDEN
-    : TypUpominky::RUCNI;
+$typUpominky = match ($zvolenyTyp) {
+    TypUpominky::TYDEN->value   => TypUpominky::TYDEN,
+    TypUpominky::VLASTNI->value => TypUpominky::VLASTNI,
+    default                     => TypUpominky::RUCNI,
+};
 
 if (post('odeslat')) {
     $idsKOdeslani = array_unique(array_map('intval', (array)post('id')));
@@ -190,6 +241,11 @@ if (post('odeslat')) {
     );
 }
 
+// Texty upomínek i hláška o nevyplněném znění jsou předgenerované do stránky,
+// takže po úpravě znění v jiné záložce je celá stránka zastaralá. Bez tohohle
+// by CFO po tlačítku Zpět viděl a odeslal starý text.
+header('Cache-Control: no-store');
+
 $t = new XTemplate(__DIR__ . '/upominky-dluzniku.xtpl');
 
 // Přepočet financí všech uživatelů v DB je drahý na čas i na paměť.
@@ -232,6 +288,8 @@ foreach ($dluznici as $dluznik) {
             $dluznik->ucastNaGc,
             $dluznik->rokPosledniUcasti,
             $dluznik->uzivatel->koncovkaDlePohlavi(),
+            (string)$dluznik->uzivatel->jmenoNick(),
+            $rocnik,
         ), ENT_QUOTES),
         'zpravaTyden'        => htmlspecialchars($upominaniDluzniku->dejEmailZpravu(
             TypUpominky::TYDEN,
@@ -240,9 +298,22 @@ foreach ($dluznici as $dluznik) {
             $dluznik->ucastNaGc,
             $dluznik->rokPosledniUcasti,
             $dluznik->uzivatel->koncovkaDlePohlavi(),
+            (string)$dluznik->uzivatel->jmenoNick(),
+            $rocnik,
+        ), ENT_QUOTES),
+        'zpravaVlastni'      => htmlspecialchars($upominaniDluzniku->dejEmailZpravu(
+            TypUpominky::VLASTNI,
+            (int)round($dluznik->dluh),
+            $idUzivatele,
+            $dluznik->ucastNaGc,
+            $dluznik->rokPosledniUcasti,
+            $dluznik->uzivatel->koncovkaDlePohlavi(),
+            (string)$dluznik->uzivatel->jmenoNick(),
+            $rocnik,
         ), ENT_QUOTES),
         'predmetRucni'       => htmlspecialchars($upominaniDluzniku->dejEmailPredmet(TypUpominky::RUCNI, $rocnik), ENT_QUOTES),
         'predmetTyden'       => htmlspecialchars($upominaniDluzniku->dejEmailPredmet(TypUpominky::TYDEN, $rocnik), ENT_QUOTES),
+        'predmetVlastni'     => htmlspecialchars($upominaniDluzniku->dejEmailPredmet(TypUpominky::VLASTNI, $rocnik), ENT_QUOTES),
         'jmenoNick'          => htmlspecialchars((string)$dluznik->uzivatel->jmenoNick(), ENT_QUOTES),
         'mail'               => htmlspecialchars((string)($dluznik->uzivatel->mail() ?: '(bez e-mailu)'), ENT_QUOTES),
         'dluh'               => (int)round($dluznik->dluh),
@@ -282,6 +353,13 @@ $t->assign([
     'vybranoTyden'  => $typUpominky === TypUpominky::TYDEN
         ? 'selected'
         : '',
+    'vybranoVlastni' => $typUpominky === TypUpominky::VLASTNI
+        ? 'selected'
+        : '',
+    // Prázdné znění tiše propadne na standardní text, takže na to upozorníme.
+    'zneniChybi'    => $upominkaVlastniZneni->dejZneni($rocnik)?->jeVyplnene()
+        ? 'ne'
+        : 'ano',
 ]);
 $t->parse('upominky');
 $t->out('upominky');

@@ -12,6 +12,7 @@ enum TypUpominky: string
     case TYDEN = 'tyden';
     case MESIC = 'mesic';
     case RUCNI = 'rucni';
+    case VLASTNI = 'vlastni';
 
     /**
      * Ruční rozeslání nemá vlastní text - použije naléhavější měsíční variantu,
@@ -20,8 +21,14 @@ enum TypUpominky: string
      */
     public function textovaVarianta(): self
     {
-        return $this === self::RUCNI
-            ? self::MESIC
-            : $this;
+        return match ($this) {
+            self::RUCNI, self::VLASTNI => self::MESIC,
+            default                    => $this,
+        };
+    }
+
+    public function maVlastniZneni(): bool
+    {
+        return $this === self::VLASTNI;
     }
 }
