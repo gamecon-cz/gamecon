@@ -61,12 +61,60 @@ if (get('zneni') !== null) {
 
     $zneni = $upominkaVlastniZneni->dejZneni($rocnik);
 
+    // Náhled na sobě samém - CFO si chce ověřit, jak text vypadá po dosazení,
+    // a vlastní účet je jediný, u kterého má reálné jméno, VS i pohlaví.
+    if (get('nahled') !== null) {
+        // Náhled se dělá na tom, co je právě v editoru, ne na uloženém znění -
+        // jinak by nešlo zkusit text, než ho CFO uloží. Prázdné pole z editoru
+        // dorazí jako '', takže se na uložené znění spadne jen při GET bez těla.
+        $nahlizenyPredmet = trim((string) (post('predmet') ?? $zneni?->predmet ?? ''));
+        $nahlizenyText    = trim((string) (post('text') ?? $zneni?->text ?? ''));
+
+        $nahled = new XTemplate(__DIR__ . '/upominky-dluzniku-nahled.xtpl');
+        $nahled->assign('jmenoNick', htmlspecialchars((string) $u->jmenoNick(), ENT_QUOTES));
+        $nahled->assign('mail', htmlspecialchars((string) $u->mail(), ENT_QUOTES));
+
+        if ($nahlizenyPredmet === '' || $nahlizenyText === '') {
+            $nahled->assign('predmet', '(nevyplněno)');
+            $nahled->assign('zprava', 'Vyplň předmět i text, pak bude co ukázat.');
+        } else {
+            // Dluh je jediná hodnota, kterou si CFO nemůže vzít ze svého účtu -
+            // ukázkou je proto částka, od které se vůbec upomíná. QR kód se sem
+            // nedává: generuje se z reálného zůstatku, takže by u nezadluženého
+            // CFO ukazoval 0,10 Kč pod textem o téhle částce.
+            $ukazkovyDluh = (int) round($systemoveNastaveni->upominkaMinimalniCastka());
+
+            $nahled->assign('predmet', htmlspecialchars(
+                UpominkaVlastniZneni::dosadPovoleneKonstanty($nahlizenyPredmet),
+                ENT_QUOTES,
+            ));
+            $nahled->assign('zprava', htmlspecialchars(
+                $upominkaVlastniZneni->dosadSymboly(
+                    $nahlizenyText,
+                    (string) $u->jmenoNick(),
+                    $u->id(),
+                    $ukazkovyDluh,
+                    $u->koncovkaDlePohlavi(),
+                ),
+                ENT_QUOTES,
+            ));
+        }
+
+        $nahled->parse('nahled');
+        $nahled->out('nahled');
+
+        // exit, ne $BEZ_DEKORACE - útržek pro modál nesmí dostat ani patičku
+        // sekce Finance, kterou index.php přidává až za modulem.
+        exit;
+    }
+
     $editor = new XTemplate(__DIR__ . '/upominky-dluzniku-zneni.xtpl');
     $editor->assign([
-        'rocnik'  => $rocnik,
-        'predmet' => htmlspecialchars($zneni?->predmet ?? '', ENT_QUOTES),
-        'text'    => htmlspecialchars($zneni?->text ?? '', ENT_QUOTES),
-        'zpetUrl' => 'finance/upominky-dluzniku',
+        'rocnik'    => $rocnik,
+        'predmet'   => htmlspecialchars($zneni?->predmet ?? '', ENT_QUOTES),
+        'text'      => htmlspecialchars($zneni?->text ?? '', ENT_QUOTES),
+        'zpetUrl'   => 'finance/upominky-dluzniku',
+        'nahledUrl' => 'finance/upominky-dluzniku?zneni&amp;nahled',
     ]);
     foreach (UpominkaVlastniZneni::dejPopisSymbolu() as $symbol => $popis) {
         $editor->assign('symbol', htmlspecialchars($symbol, ENT_QUOTES));

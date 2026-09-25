@@ -17,7 +17,7 @@
             </select>
         </label>
         <a href="{urlModulu}?zneni" id="odkazNaZneni" style="margin-left: 1em; display: none">Upravit obsah vlastního znění</a>
-        <span id="zneniChybi" data-chybi="{zneniChybi}" style="margin-left: 1em; display: none; color: #a00">Vlastní znění není vyplněné, takže se s ním nedá odesílat.</span>
+        <span id="zneniChybi" data-chybi="{zneniChybi}" style="margin-left: 1em; display: none; color: #a00">⬅️ Vyplň Předmět a Text emailu</span>
     </p>
 
     <style>
