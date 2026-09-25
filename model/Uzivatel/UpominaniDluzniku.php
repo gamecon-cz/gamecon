@@ -13,7 +13,9 @@ use Gamecon\Stat;
 use Gamecon\SystemoveNastaveni\SystemoveNastaveni;
 use Gamecon\Uzivatel\Dto\Dluznik;
 use Gamecon\Uzivatel\Enum\TypUpominky;
+use Gamecon\Uzivatel\Dto\VlastniZneniUpominky;
 use Gamecon\Uzivatel\Enum\UcastNaGc;
+use Gamecon\Uzivatel\Exceptions\VlastniZneniNeniVyplnene;
 use Symfony\Component\Filesystem\Exception\IOException;
 use Symfony\Component\Filesystem\Filesystem;
 use Uzivatel;
@@ -430,15 +432,32 @@ SQL,
         };
     }
 
+    /**
+     * Nevyplněné znění nesmí tiše propadnout na standardní text - CFO by
+     * rozeslal něco jiného, než co vidí v editoru.
+     *
+     * @throws VlastniZneniNeniVyplnene
+     */
+    private function dejVyplneneVlastniZneni(int $rocnik): VlastniZneniUpominky
+    {
+        $zneni = $this->upominkaVlastniZneni->dejZneni($rocnik);
+        if ($zneni === null || !$zneni->jeVyplnene()) {
+            throw new VlastniZneniNeniVyplnene(
+                "Vlastní znění upomínky pro ročník $rocnik nemá vyplněný předmět nebo text.",
+            );
+        }
+
+        return $zneni;
+    }
+
     public function dejEmailPredmet(
         TypUpominky $typUpominky,
         int         $rocnik,
     ): string {
         if ($typUpominky->maVlastniZneni()) {
-            $zneni = $this->upominkaVlastniZneni->dejZneni($rocnik);
-            if ($zneni?->jeVyplnene()) {
-                return UpominkaVlastniZneni::dosadPovoleneKonstanty($zneni->predmet);
-            }
+            return UpominkaVlastniZneni::dosadPovoleneKonstanty(
+                $this->dejVyplneneVlastniZneni($rocnik)->predmet,
+            );
         }
 
         return match ($typUpominky->textovaVarianta()) {
@@ -458,16 +477,13 @@ SQL,
         int         $rocnik,
     ): string {
         if ($typUpominky->maVlastniZneni()) {
-            $zneni = $this->upominkaVlastniZneni->dejZneni($rocnik);
-            if ($zneni?->jeVyplnene()) {
-                return $this->upominkaVlastniZneni->dosadSymboly(
-                    $zneni->text,
-                    $jmenoNick,
-                    $variabilniSymbol,
-                    $dluh,
-                    $koncovkaDlePohlavi,
-                );
-            }
+            return $this->upominkaVlastniZneni->dosadSymboly(
+                $this->dejVyplneneVlastniZneni($rocnik)->text,
+                $jmenoNick,
+                $variabilniSymbol,
+                $dluh,
+                $koncovkaDlePohlavi,
+            );
         }
 
         $ucetCz = UCET_CZ;
