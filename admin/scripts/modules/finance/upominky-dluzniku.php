@@ -182,9 +182,9 @@ if ($idNahledu) {
     }
 
     $typNahledu = match (get('typ')) {
-        TypUpominky::TYDEN->value   => TypUpominky::TYDEN,
-        TypUpominky::VLASTNI->value => TypUpominky::VLASTNI,
-        default                     => TypUpominky::RUCNI,
+        TypUpominky::TYDEN->value => TypUpominky::TYDEN,
+        TypUpominky::RUCNI->value => TypUpominky::RUCNI,
+        default                   => TypUpominky::VLASTNI,
     };
 
     // Bez $back: náhled si tahá i fetch z modálu, kterému by se přesměrování
@@ -233,13 +233,13 @@ if ($idNahledu) {
 
 $maVyplneneVlastniZneni = (bool) $upominkaVlastniZneni->dejZneni($rocnik)?->jeVyplnene();
 
-// Ruční rozesílání smí vyrobit jen ruční záznam - typy automatik by v logu
-// smazaly rozdíl mezi tím, co poslal cron, a co člověk.
+// MESIC tu chybí schválně: ruční rozesílání smí vyrobit jen ruční záznam, typy
+// automatik by v logu smazaly rozdíl mezi tím, co poslal cron, a co člověk.
 $zvolenyTyp  = post('typ') ?? get('typ');
 $typUpominky = match ($zvolenyTyp) {
-    TypUpominky::TYDEN->value   => TypUpominky::TYDEN,
-    TypUpominky::VLASTNI->value => TypUpominky::VLASTNI,
-    default                     => TypUpominky::RUCNI,
+    TypUpominky::TYDEN->value => TypUpominky::TYDEN,
+    TypUpominky::RUCNI->value => TypUpominky::RUCNI,
+    default                   => TypUpominky::VLASTNI,
 };
 
 if (post('odeslat')) {
