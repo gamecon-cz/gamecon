@@ -1,0 +1,323 @@
+<!-- begin: upominky -->
+
+<h1>Upomínky dlužníkům</h1>
+
+<p>
+    Dlužníků za ročník {rocnik}: <strong>{pocetDluzniku}</strong>, celkem <strong>{celkovyDluh}&thinsp;Kč</strong>.
+</p>
+
+<form method="post" id="upominkyForm">
+    <p>
+        <label>
+            Text e-mailu:
+            <select name="typ" id="vyberTextu">
+                <option value="vlastni" {vybranoVlastni}>vlastní</option>
+                <option value="rucni" {vybranoRucni}>jako měsíční (naléhavější)</option>
+                <option value="tyden" {vybranoTyden}>jako týdenní (mírnější)</option>
+            </select>
+        </label>
+        <a href="{urlModulu}?zneni" id="odkazNaZneni" style="margin-left: 1em; display: none">Upravit obsah vlastního znění</a>
+        <span id="zneniChybi" data-chybi="{zneniChybi}" style="margin-left: 1em; display: none; color: #a00">⬅️ Vyplň Předmět a Text emailu</span>
+    </p>
+
+    <style>
+        /* Trojúhelníčky patří k názvu sloupce, ať se nezalomí na druhý řádek. */
+        .seznam thead th {
+            white-space: nowrap;
+        }
+    </style>
+
+    <table class="seznam">
+        <thead>
+        <tr>
+            <th><input type="checkbox" id="oznacitVse" checked title="označit / odznačit vše"></th>
+            <th>
+                <span class="hinted">ID<div class="hint">Trojúhelníčky slouží k řazení.</div></span>
+                <a href="#" class="radit" data-typ="cislo" data-smer="vzestupne">▲</a>
+                <a href="#" class="radit" data-typ="cislo" data-smer="sestupne">▼</a>
+            </th>
+            <th>
+                Jméno
+                <a href="#" class="radit" data-typ="text" data-smer="vzestupne">▲</a>
+                <a href="#" class="radit" data-typ="text" data-smer="sestupne">▼</a>
+            </th>
+            <th>
+                E-mail
+                <a href="#" class="radit" data-typ="text" data-smer="vzestupne">▲</a>
+                <a href="#" class="radit" data-typ="text" data-smer="sestupne">▼</a>
+            </th>
+            <th>
+                Dluh
+                <a href="#" class="radit" data-typ="cislo" data-smer="vzestupne">▲</a>
+                <a href="#" class="radit" data-typ="cislo" data-smer="sestupne">▼</a>
+            </th>
+            <th>
+                Letos
+                <a href="#" class="radit" data-typ="text" data-smer="vzestupne">▲</a>
+                <a href="#" class="radit" data-typ="text" data-smer="sestupne">▼</a>
+            </th>
+            <th>
+                Poslední účast
+                <a href="#" class="radit" data-typ="cislo" data-smer="vzestupne">▲</a>
+                <a href="#" class="radit" data-typ="cislo" data-smer="sestupne">▼</a>
+            </th>
+            <th>
+                Upomínek
+                <a href="#" class="radit" data-typ="cislo" data-smer="vzestupne">▲</a>
+                <a href="#" class="radit" data-typ="cislo" data-smer="sestupne">▼</a>
+            </th>
+            <th>
+                Naposledy
+                <a href="#" class="radit" data-typ="datum" data-smer="vzestupne">▲</a>
+                <a href="#" class="radit" data-typ="datum" data-smer="sestupne">▼</a>
+            </th>
+            <th>Náhled</th>
+        </tr>
+        </thead>
+        <tbody>
+        <!-- begin: dluznik -->
+        <tr>
+            <td><input type="checkbox" name="id[]" value="{id}" class="vyberDluznika" {zaskrtnuto} {lzeOdeslat}></td>
+            <td>{id}</td>
+            <td>{jmenoNick}</td>
+            <td>{mail}</td>
+            <td style="text-align: right">{dluh}&thinsp;Kč</td>
+            <td>{ucast}</td>
+            <td data-hodnota="{rokPosledniUcastiSeradit}">{rokPosledniUcasti}</td>
+            <td title="{typyUpominek}">{pocetUpominek}×</td>
+            <td data-hodnota="{posledniUpominkaSeradit}">{posledniUpominka}</td>
+            <td><a href="{urlModulu}?nahled={id}" class="nahled" title="náhled e-mailu"
+                   data-prijemce="{jmenoNick}" data-mail="{mail}"
+                   data-predmet-rucni="{predmetRucni}" data-predmet-tyden="{predmetTyden}"
+                   data-predmet-vlastni="{predmetVlastni}"
+                   data-zprava-rucni="{zpravaRucni}" data-zprava-tyden="{zpravaTyden}"
+                   data-zprava-vlastni="{zpravaVlastni}">🔍</a></td>
+        </tr>
+        <!-- end: dluznik -->
+        </tbody>
+    </table>
+
+    <p>
+        <input type="hidden" name="odeslat" value="1">
+        <input type="submit" value="Odeslat upomínky vybraným" id="odeslatUpominky">
+    </p>
+</form>
+
+<dialog id="nahledUpominky" style="max-width: 900px; width: 90%; position: relative">
+    <button type="button" class="zavritNahled" title="zavřít (Esc)" aria-label="Zavřít"
+            style="position: absolute; top: .4em; right: .5em; border: 0; background: none;
+                   font-size: 1.6em; line-height: 1; cursor: pointer; color: #666">&times;</button>
+    <div id="nahledObsah">Načítám…</div>
+</dialog>
+
+<dialog id="potvrzeniOdeslani">
+    <form method="dialog">
+        <h2>Opravdu odeslat?</h2>
+        <p id="potvrzeniShrnuti"></p>
+        <p><strong>E-maily odejdou okamžitě a nejde je vzít zpět.</strong></p>
+        <p>
+            <button value="zrusit">Zpět</button>
+            <button value="odeslat">Ano, odeslat</button>
+        </p>
+    </form>
+</dialog>
+
+<script>
+    (function () {
+        const form = document.getElementById('upominkyForm');
+        const oznacitVse = document.getElementById('oznacitVse');
+        const dialog = document.getElementById('potvrzeniOdeslani');
+        const shrnuti = document.getElementById('potvrzeniShrnuti');
+        const tabulka = form.querySelector('table');
+        const telo = tabulka.querySelector('tbody');
+        const vyberTextu = form.querySelector('select[name="typ"]');
+
+        // Náhled musí ukazovat tu variantu textu, která je zrovna vybraná.
+        function srovnejOdkazyNaNahled() {
+            tabulka.querySelectorAll('a.nahled').forEach(function (odkaz) {
+                const url = new URL(odkaz.href);
+                url.searchParams.set('typ', vyberTextu.value);
+                odkaz.href = url.toString();
+            });
+        }
+
+        const odkazNaZneni = document.getElementById('odkazNaZneni');
+        const zneniChybi = document.getElementById('zneniChybi');
+
+        const odeslatUpominky = document.getElementById('odeslatUpominky');
+
+        function srovnejViditelnostZneni() {
+            const jeVlastni = vyberTextu.value === 'vlastni';
+            const nejdeOdeslat = jeVlastni && zneniChybi.dataset.chybi === 'ano';
+
+            odkazNaZneni.style.display = jeVlastni ? 'inline' : 'none';
+            zneniChybi.style.display = nejdeOdeslat ? 'inline' : 'none';
+            odeslatUpominky.disabled = nejdeOdeslat;
+            odeslatUpominky.title = nejdeOdeslat
+                ? 'Nejdřív vyplň předmět i text vlastního znění.'
+                : '';
+        }
+
+        vyberTextu.addEventListener('change', function () {
+            srovnejOdkazyNaNahled();
+            srovnejViditelnostZneni();
+        });
+        srovnejOdkazyNaNahled();
+        srovnejViditelnostZneni();
+
+        const nahledDialog = document.getElementById('nahledUpominky');
+        const nahledObsah = document.getElementById('nahledObsah');
+
+        nahledDialog.querySelectorAll('.zavritNahled').forEach(function (tlacitko) {
+            tlacitko.addEventListener('click', function () {
+                nahledDialog.close();
+            });
+        });
+
+        // Kliknutí mimo obsah zavře náhled. <dialog> to sám neumí a kliknutí na
+        // ztmavené pozadí cílí na samotný <dialog>, ne na nic uvnitř.
+        nahledDialog.addEventListener('click', function (udalost) {
+            if (udalost.target === nahledDialog) {
+                nahledDialog.close();
+            }
+        });
+
+        tabulka.addEventListener('click', function (udalost) {
+            const odkaz = udalost.target.closest('a.nahled');
+            if (!odkaz) {
+                return;
+            }
+            udalost.preventDefault();
+
+            // Text je předgenerovaný ve stránce, takže se ukáže hned. Dotahují
+            // se jen QR kódy, jejichž generování je to jediné, co stojí čas.
+            const varianta = vyberTextu.value === 'tyden'
+                ? 'Tyden'
+                : (vyberTextu.value === 'vlastni' ? 'Vlastni' : 'Rucni');
+            const predmet = odkaz.dataset['predmet' + varianta];
+            const zprava = odkaz.dataset['zprava' + varianta];
+
+            // Podle serverového verdiktu, ne podle prázdného textu - vyplněné
+            // znění se po dosazení symbolů může vykreslit naprázdno (samotné {a}
+            // u muže), a to je platný mail, který se odešle.
+            if (varianta === 'Vlastni' && zneniChybi.dataset.chybi === 'ano') {
+                nahledObsah.textContent = 'Vlastní znění nemá vyplněný předmět nebo text,'
+                    + ' není co zobrazit.';
+                nahledDialog.showModal();
+                return;
+            }
+
+            nahledObsah.innerHTML = '<p>Příjemce: <strong></strong> <span></span></p>'
+                + '<p>Předmět: <strong></strong></p>'
+                + '<pre style="white-space: pre-wrap; background: #f5f5f5; padding: 1em; border: 1px solid #ddd"></pre>'
+                // Zástupné místo má přesně tvar výsledného bloku s QR (obrázek
+                // 160 + rámeček + popisek + spodní okraj), aby obsah nepoposkočil.
+                + '<div id="nahledPrilohy" style="min-height: 206px">'
+                + '<div style="display: inline-block; margin: 0 1em 1em 0; text-align: center;'
+                + ' vertical-align: top; color: #777">'
+                + '<div style="width: 162px; height: 162px; border: 1px dashed #ddd;'
+                + ' display: flex; align-items: center; justify-content: center;'
+                + ' box-sizing: border-box; font-size: .9em">QR…</div>'
+                + '<div style="font-size: .9em">&nbsp;</div>'
+                + '</div></div>'
+                + '<p><em>Tohle je jen náhled, nic se neodeslalo.</em></p>';
+            nahledObsah.querySelectorAll('strong')[0].textContent = odkaz.dataset.prijemce;
+            nahledObsah.querySelector('span').textContent = '<' + odkaz.dataset.mail + '>';
+            nahledObsah.querySelectorAll('strong')[1].textContent = predmet;
+            nahledObsah.querySelector('pre').textContent = zprava;
+            nahledDialog.showModal();
+
+            const prilohy = nahledObsah.querySelector('#nahledPrilohy');
+            fetch(odkaz.href + '&jenPrilohy=1', { credentials: 'same-origin' })
+                .then(function (odpoved) {
+                    if (!odpoved.ok) { throw new Error('HTTP ' + odpoved.status); }
+                    return odpoved.text();
+                })
+                .then(function (html) {
+                    prilohy.innerHTML = html;
+                })
+                .catch(function (chyba) {
+                    prilohy.textContent = 'QR kódy se nepodařilo načíst: ' + chyba.message;
+                });
+        });
+
+        oznacitVse.addEventListener('change', function () {
+            form.querySelectorAll('.vyberDluznika:not([disabled])').forEach(function (policko) {
+                policko.checked = oznacitVse.checked;
+            });
+        });
+
+        // Trojúhelníčky řadí stejně jako v přehledu aktivit, jen bez requestu -
+        // seznam není stránkovaný, takže stačí přeskládat řádky v prohlížeči.
+        function hodnotaBunky(radek, index, typ) {
+            const bunka = radek.cells[index];
+            const surova = bunka.dataset.hodnota !== undefined
+                ? bunka.dataset.hodnota
+                : bunka.textContent.trim();
+
+            if (typ === 'cislo' || typ === 'datum') {
+                const cislo = parseFloat(surova.replace(/[^\d.,-]/g, '').replace(',', '.'));
+                return isNaN(cislo) ? Number.NEGATIVE_INFINITY : cislo;
+            }
+            return surova.toLocaleLowerCase('cs');
+        }
+
+        tabulka.querySelectorAll('a.radit').forEach(function (odkaz) {
+            odkaz.addEventListener('click', function (udalost) {
+                udalost.preventDefault();
+
+                const hlavicka = odkaz.closest('th');
+                const index = Array.from(hlavicka.parentNode.children).indexOf(hlavicka);
+                const sestupne = odkaz.dataset.smer === 'sestupne';
+
+                const radky = Array.from(telo.rows);
+                radky.sort(function (prvni, druhy) {
+                    const a = hodnotaBunky(prvni, index, odkaz.dataset.typ);
+                    const b = hodnotaBunky(druhy, index, odkaz.dataset.typ);
+                    if (a < b) { return sestupne ? 1 : -1; }
+                    if (a > b) { return sestupne ? -1 : 1; }
+                    return 0;
+                });
+                radky.forEach(function (radek) { telo.appendChild(radek); });
+            });
+        });
+
+        form.addEventListener('submit', function (udalost) {
+            if (form.dataset.potvrzeno === 'ano') {
+                return;
+            }
+            udalost.preventDefault();
+
+            const vybrani = Array.from(form.querySelectorAll('.vyberDluznika:checked'));
+            if (vybrani.length === 0) {
+                alert('Není vybraný žádný dlužník.');
+                return;
+            }
+
+            const radky = vybrani.map(function (policko) {
+                return policko.closest('tr');
+            });
+            const celkem = radky.reduce(function (soucet, radek) {
+                return soucet + parseInt(radek.cells[4].textContent.replace(/\D/g, ''), 10);
+            }, 0);
+            const opakovane = radky.filter(function (radek) {
+                return parseInt(radek.cells[7].textContent, 10) > 0;
+            }).length;
+
+            shrnuti.textContent = 'Odeslat upomínku ' + vybrani.length + ' dlužníkům v celkové výši '
+                + celkem + ' Kč?'
+                + (opakovane > 0 ? ' Z toho ' + opakovane + ' už nějakou upomínku dostalo.' : '');
+
+            dialog.showModal();
+        });
+
+        dialog.addEventListener('close', function () {
+            if (dialog.returnValue === 'odeslat') {
+                form.dataset.potvrzeno = 'ano';
+                form.submit();
+            }
+        });
+    })();
+</script>
+
+<!-- end: upominky -->

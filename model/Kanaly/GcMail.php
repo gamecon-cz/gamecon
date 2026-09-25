@@ -7,6 +7,7 @@ namespace Gamecon\Kanaly;
 use Gamecon\Kanaly\Exceptions\ChybiEmailoveNastaveni;
 use Gamecon\SystemoveNastaveni\SystemoveNastaveni;
 use Symfony\Component\Mailer\Mailer;
+use Symfony\Component\Mime\MimeTypes;
 use Symfony\Component\Mailer\Transport;
 use Symfony\Component\Mime\Address;
 use Symfony\Component\Mime\Email;
@@ -108,8 +109,14 @@ class GcMail
                 if ($priloha['soubor'] === '') {
                     continue;
                 }
-                // do souboru přílohy dávat nebudeme
-                $mail->attachFromPath($priloha['soubor'], $priloha['nazev']);
+                // Dočasné soubory příloh nemají příponu, takže by typ vyšel jako
+                // octet-stream a klient by obrázek nenabídl k zobrazení. Bereme ho
+                // z názvu přílohy, který příponu má.
+                $mail->attachFromPath(
+                    $priloha['soubor'],
+                    $priloha['nazev'],
+                    self::typPrilohyPodleNazvu((string)$priloha['nazev']),
+                );
             }
             $mailer = new Mailer($this->mailerTransport());
             try {
@@ -287,6 +294,13 @@ class GcMail
         ];
 
         return $this;
+    }
+
+    private static function typPrilohyPodleNazvu(string $nazev): ?string
+    {
+        $pripona = strtolower(pathinfo($nazev, PATHINFO_EXTENSION));
+
+        return (new MimeTypes())->getMimeTypes($pripona)[0] ?? null;
     }
 
     public function prilohaSoubor(string $cesta): self

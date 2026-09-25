@@ -1,0 +1,111 @@
+<!-- begin: zneni -->
+
+<h2>Vlastní znění upomínky pro ročník {rocnik}</h2>
+
+<p>
+    Použije se, když je u rozesílání vybrané <strong>vlastní</strong> znění.
+    Dokud je předmět nebo text prázdný, nedá se s vlastním zněním odesílat.
+</p>
+
+<form method="post">
+    <p>
+        <label for="predmetZneni">Předmět e-mailu</label><br>
+        <input type="text" id="predmetZneni" name="predmet" value="{predmet}"
+               style="box-sizing: border-box; width: 100%">
+    </p>
+
+    <p>
+        <label for="textZneni">Text e-mailu</label><br>
+        <textarea id="textZneni" name="text" rows="18"
+                  style="box-sizing: border-box; width: 100%; font-family: monospace">{text}</textarea>
+    </p>
+
+    <p>
+        <input type="hidden" name="ulozit" value="1">
+        <input type="submit" value="Uložit znění">
+        <button type="button" id="nahledZneni" data-url="{nahledUrl}" title="náhled na vlastním účtu"
+                style="margin-left: 1em; border: 0; background: none; font-size: 1.2em;
+                       cursor: pointer">🔍</button>
+        <a href="{zpetUrl}" style="margin-left: 1em">↶ Zpět na seznam dlužníků</a>
+    </p>
+</form>
+
+<dialog id="nahledUpominky" style="max-width: 900px; width: 90%; position: relative">
+    <button type="button" class="zavritNahled" title="zavřít (Esc)" aria-label="Zavřít"
+            style="position: absolute; top: .4em; right: .5em; border: 0; background: none;
+                   font-size: 1.6em; line-height: 1; cursor: pointer; color: #666">&times;</button>
+    <div id="nahledObsah">Načítám…</div>
+</dialog>
+
+<script>
+    (function () {
+        const tlacitko = document.getElementById('nahledZneni');
+        const dialog = document.getElementById('nahledUpominky');
+        const obsah = document.getElementById('nahledObsah');
+
+        dialog.querySelector('.zavritNahled').addEventListener('click', function () {
+            dialog.close();
+        });
+
+        // Kliknutí na ztmavené pozadí cílí na samotný <dialog>, ne na nic uvnitř.
+        dialog.addEventListener('click', function (udalost) {
+            if (udalost.target === dialog) {
+                dialog.close();
+            }
+        });
+
+        tlacitko.addEventListener('click', function () {
+            obsah.textContent = 'Načítám…';
+            dialog.showModal();
+
+            const udaje = new FormData();
+            udaje.append('predmet', document.getElementById('predmetZneni').value);
+            udaje.append('text', document.getElementById('textZneni').value);
+
+            fetch(tlacitko.dataset.url, { method: 'POST', body: udaje, credentials: 'same-origin' })
+                .then(function (odpoved) {
+                    if (!odpoved.ok) { throw new Error('HTTP ' + odpoved.status); }
+                    return odpoved.text();
+                })
+                .then(function (html) {
+                    // Vypršelá session vrátí 200 s celou přihlašovací stránkou.
+                    // Vložit ji do modálu by znamenalo nabízet login formulář,
+                    // do kterého by CFO psal heslo, a přišel by o rozepsaný text.
+                    if (!html.includes('nahledUpominkyObsah')) {
+                        obsah.textContent = 'Náhled se nepodařilo načíst, nejspíš vypršelo'
+                            + ' přihlášení. Otevři admin v jiné záložce, přihlas se'
+                            + ' a zkus to znovu - rozepsaný text tu zůstává.';
+                        return;
+                    }
+
+                    obsah.innerHTML = html;
+                })
+                .catch(function (chyba) {
+                    obsah.textContent = 'Náhled se nepodařilo načíst: ' + chyba.message;
+                });
+        });
+    })();
+</script>
+
+<h3>Zástupné symboly</h3>
+
+<p>V textu fungují všechny, v předmětu jen <code>%KONSTANTY%</code>.</p>
+
+<table class="seznam">
+    <thead>
+    <tr>
+        <th>Symbol</th>
+        <th>Co doplní</th>
+    </tr>
+    </thead>
+    <tbody>
+    <!-- begin: symbol -->
+    <tr>
+        <td><code style="user-select: all">{symbol}</code></td>
+        <td>{popisSymbolu}</td>
+    </tr>
+    <!-- end: symbol -->
+    </tbody>
+</table>
+
+<!-- end: zneni -->
