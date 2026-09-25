@@ -33,6 +33,7 @@ class UpominaniDluzniku
         private readonly FioStazeniNovychPlateb    $fioStazeniNovychPlateb,
         private readonly UpominkaDluznikaLog       $upominkaDluznikaLog = new UpominkaDluznikaLog(),
         private readonly UcastNaGcPodleRoli        $ucastNaGcPodleRoli = new UcastNaGcPodleRoli(),
+        private readonly UpominkaVlastniZneni      $upominkaVlastniZneni = new UpominkaVlastniZneni(),
     ) {
     }
 
@@ -59,6 +60,8 @@ class UpominaniDluzniku
                 $ucastNaGc,
                 $rokPosledniUcasti,
                 $uzivatel->koncovkaDlePohlavi(),
+                (string) $uzivatel->jmenoNick(),
+                $rocnik,
             ));
 
         $docasneQrSoubory = [];
@@ -276,7 +279,7 @@ SQL,
         $casovyOffset       = match ($typUpominky) {
             TypUpominky::TYDEN => '+1 week',
             TypUpominky::MESIC => '+1 month',
-            TypUpominky::RUCNI => throw new \LogicException(
+            TypUpominky::RUCNI, TypUpominky::VLASTNI => throw new \LogicException(
                 'Ruční upomínka nemá časové okno, rozesílá se přes odesliUpominkuJednomu()',
             ),
         };
@@ -423,6 +426,7 @@ SQL,
             TypUpominky::TYDEN => '1 týden',
             TypUpominky::MESIC => '1 měsíc',
             TypUpominky::RUCNI => 'ruční rozeslání',
+            TypUpominky::VLASTNI => 'vlastní znění',
         };
     }
 
@@ -430,6 +434,13 @@ SQL,
         TypUpominky $typUpominky,
         int         $rocnik,
     ): string {
+        if ($typUpominky->maVlastniZneni()) {
+            $zneni = $this->upominkaVlastniZneni->dejZneni($rocnik);
+            if ($zneni?->jeVyplnene()) {
+                return UpominkaVlastniZneni::dosadPovoleneKonstanty($zneni->predmet);
+            }
+        }
+
         return match ($typUpominky->textovaVarianta()) {
             TypUpominky::TYDEN => "GameCon $rocnik - nedoplatky",
             TypUpominky::MESIC => "GameCon $rocnik - PŘIPOMÍNKA nedoplatků",
@@ -443,7 +454,22 @@ SQL,
         UcastNaGc   $ucastNaGc,
         ?int        $rokPosledniUcasti,
         string      $koncovkaDlePohlavi,
+        string      $jmenoNick,
+        int         $rocnik,
     ): string {
+        if ($typUpominky->maVlastniZneni()) {
+            $zneni = $this->upominkaVlastniZneni->dejZneni($rocnik);
+            if ($zneni?->jeVyplnene()) {
+                return $this->upominkaVlastniZneni->dosadSymboly(
+                    $zneni->text,
+                    $jmenoNick,
+                    $variabilniSymbol,
+                    $dluh,
+                    $koncovkaDlePohlavi,
+                );
+            }
+        }
+
         $ucetCz = UCET_CZ;
         $iban   = IBAN;
 
@@ -553,12 +579,14 @@ TEXT;
             TypUpominky::TYDEN => "Upomínky dlužníkům: odesláno $pocetEmailu e-mailů",
             TypUpominky::MESIC => "PŘIPOMÍNKA upomínek dlužníkům: odesláno $pocetEmailu e-mailů",
             TypUpominky::RUCNI => "Ručně rozeslané upomínky dlužníkům: odesláno $pocetEmailu e-mailů",
+            TypUpominky::VLASTNI => "Upomínky vlastním zněním: odesláno $pocetEmailu e-mailů",
         };
 
         $typTextu = match ($typUpominky) {
             TypUpominky::TYDEN => 'Upomínkové',
             TypUpominky::MESIC => 'Připomínkové',
             TypUpominky::RUCNI => 'Ručně rozeslané upomínkové',
+            TypUpominky::VLASTNI => 'Vlastním zněním rozeslané upomínkové',
         };
 
         $zprava = <<<TEXT
