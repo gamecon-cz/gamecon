@@ -1,0 +1,51 @@
+<!-- begin: zneni -->
+
+<h2>Vlastní znění upomínky pro ročník {rocnik}</h2>
+
+<p>
+    Použije se, když je u rozesílání vybrané <strong>vlastní</strong> znění.
+    Dokud je předmět nebo text prázdný, odejde místo něj standardní text.
+</p>
+
+<form method="post">
+    <p>
+        <label for="predmetZneni">Předmět e-mailu</label><br>
+        <input type="text" id="predmetZneni" name="predmet" value="{predmet}"
+               style="box-sizing: border-box; width: 100%">
+    </p>
+
+    <p>
+        <label for="textZneni">Text e-mailu</label><br>
+        <textarea id="textZneni" name="text" rows="18"
+                  style="box-sizing: border-box; width: 100%; font-family: monospace">{text}</textarea>
+    </p>
+
+    <p>
+        <input type="hidden" name="ulozit" value="1">
+        <input type="submit" value="Uložit znění">
+        <a href="{zpetUrl}" style="margin-left: 1em">Zpět na seznam dlužníků</a>
+    </p>
+</form>
+
+<h3>Zástupné symboly</h3>
+
+<p>Fungují v předmětu i v textu.</p>
+
+<table class="seznam">
+    <thead>
+    <tr>
+        <th>Symbol</th>
+        <th>Co doplní</th>
+    </tr>
+    </thead>
+    <tbody>
+    <!-- begin: symbol -->
+    <tr>
+        <td><code style="user-select: all">{symbol}</code></td>
+        <td>{popisSymbolu}</td>
+    </tr>
+    <!-- end: symbol -->
+    </tbody>
+</table>
+
+<!-- end: zneni -->

@@ -16,6 +16,7 @@ use Gamecon\Uzivatel\Enum\TypUpominky;
 use Gamecon\Uzivatel\Enum\UcastNaGc;
 use Gamecon\Uzivatel\Pohlavi;
 use Gamecon\Uzivatel\UpominaniDluzniku;
+use Gamecon\Uzivatel\UpominkaVlastniZneni;
 
 /**
  * Database integration tests for UpominaniDluzniku
@@ -669,6 +670,8 @@ SQL,
             $ucastNaGc,
             null,
             '',
+            'Tester',
+            ROCNIK,
         );
 
         self::assertStringNotContainsString(
@@ -705,6 +708,8 @@ SQL,
             UcastNaGc::NEDORAZIL,
             null,
             '',
+            'Tester',
+            ROCNIK,
         );
         // Závěrečné „snad se uvidíme na některém z dalších ročníků“ je v pořádku,
         // hlídá se jen tvrzení, že dluh pochází z nějaké dřívější účasti.
@@ -726,6 +731,8 @@ SQL,
             UcastNaGc::NEDORAZIL,
             2019,
             '',
+            'Tester',
+            ROCNIK,
         );
         self::assertStringContainsString(
             'GameConu 2019',
@@ -748,6 +755,8 @@ SQL,
             UcastNaGc::JEN_PRIHLASEN,
             null,
             'a',
+            'Tester',
+            ROCNIK,
         );
         self::assertStringContainsString('nedostala.', $zene);
 
@@ -758,6 +767,8 @@ SQL,
             UcastNaGc::JEN_PRIHLASEN,
             null,
             '',
+            'Tester',
+            ROCNIK,
         );
         self::assertStringContainsString('nedostal.', $muzi);
 
@@ -807,6 +818,8 @@ SQL,
             UcastNaGc::PRITOMEN,
             ROCNIK,
             '',
+            'Tester',
+            ROCNIK,
         );
 
         self::assertStringContainsString('letošní GameCon bavil', $zprava);
@@ -830,6 +843,172 @@ SQL,
             $idsDluzniku,
             'Systémový účet není člověk a upomínku dostat nesmí',
         );
+    }
+
+    /**
+     * @test
+     */
+    public function vlastniZneniNahradiStandardniTextIPredmet()
+    {
+        $upominkaVlastniZneni = new UpominkaVlastniZneni();
+        $upominkaVlastniZneni->uloz(
+            ROCNIK,
+            'Nedoplatek GameCon %ROCNIK%',
+            'Ahoj {jmeno}, dluh {dluh} Kč pošli na %UCET_CZ% pod VS {vs}. Nezapomněl{a} jsi?',
+            \Uzivatel::SYSTEM,
+        );
+
+        $upominaniDluzniku = $this->dejUpominaniDluzniku();
+
+        $zprava = $upominaniDluzniku->dejEmailZpravu(
+            TypUpominky::VLASTNI,
+            250,
+            12345,
+            UcastNaGc::PRITOMEN,
+            ROCNIK,
+            'a',
+            'Tester',
+            ROCNIK,
+        );
+
+        self::assertSame(
+            'Ahoj Tester, dluh 250 Kč pošli na ' . UCET_CZ . ' pod VS 12345. Nezapomněla jsi?',
+            $zprava,
+            'Vlastní znění musí projít dosazením {…} symbolů i %KONSTANT%',
+        );
+        self::assertStringNotContainsString(
+            'krásné vzpomínky',
+            $zprava,
+            'Vlastní znění nahrazuje standardní text, nepřidává se k němu',
+        );
+
+        self::assertSame(
+            'Nedoplatek GameCon ' . ROCNIK,
+            $upominaniDluzniku->dejEmailPredmet(TypUpominky::VLASTNI, ROCNIK),
+            'V předmětu se musí dosadit konstanty stejně jako v textu',
+        );
+    }
+
+    /**
+     * @test
+     */
+    public function vlastniZneniNedosadiTajneKonstanty()
+    {
+        self::assertTrue(
+            defined('FIO_TOKEN'),
+            'Test má smysl jen když je taková konstanta vůbec definovaná',
+        );
+
+        (new UpominkaVlastniZneni())->uloz(
+            ROCNIK,
+            'Nedoplatek %FIO_TOKEN%',
+            'Účet %UCET_CZ%, token %FIO_TOKEN%, heslo %DB_PASS%.',
+            \Uzivatel::SYSTEM,
+        );
+
+        $upominaniDluzniku = $this->dejUpominaniDluzniku();
+
+        $zprava = $upominaniDluzniku->dejEmailZpravu(
+            TypUpominky::VLASTNI,
+            250,
+            12345,
+            UcastNaGc::PRITOMEN,
+            ROCNIK,
+            '',
+            'Tester',
+            ROCNIK,
+        );
+        $predmet = $upominaniDluzniku->dejEmailPredmet(TypUpominky::VLASTNI, ROCNIK);
+
+        self::assertSame(
+            'Účet ' . UCET_CZ . ', token %FIO_TOKEN%, heslo %DB_PASS%.',
+            $zprava,
+            'Upomínka odchází lidem mimo organizaci, takže se smí dosadit jen konstanty z allowlistu',
+        );
+        self::assertSame(
+            'Nedoplatek %FIO_TOKEN%',
+            $predmet,
+            'Allowlist platí i pro předmět',
+        );
+        self::assertStringNotContainsString((string) FIO_TOKEN, $zprava . $predmet);
+    }
+
+    /**
+     * @test
+     *
+     * @dataProvider poskytniNevyplnenaZneni
+     */
+    public function nevyplneneVlastniZneniPropadneNaStandardniText(
+        string $predmet,
+        string $text,
+    ) {
+        (new UpominkaVlastniZneni())->uloz(ROCNIK, $predmet, $text, \Uzivatel::SYSTEM);
+
+        $upominaniDluzniku = $this->dejUpominaniDluzniku();
+
+        $zprava = $upominaniDluzniku->dejEmailZpravu(
+            TypUpominky::VLASTNI,
+            250,
+            12345,
+            UcastNaGc::PRITOMEN,
+            ROCNIK,
+            '',
+            'Tester',
+            ROCNIK,
+        );
+
+        self::assertStringContainsString(
+            'krásné vzpomínky',
+            $zprava,
+            'Poloprázdné znění nesmí odeslat půlku mailu, musí propadnout na standardní text',
+        );
+        self::assertStringContainsString(
+            'PŘIPOMÍNKA nedoplatků',
+            $upominaniDluzniku->dejEmailPredmet(TypUpominky::VLASTNI, ROCNIK),
+            'Bez vlastního předmětu platí standardní měsíční předmět',
+        );
+    }
+
+    public static function poskytniNevyplnenaZneni(): array
+    {
+        return [
+            'oboji prazdne'    => ['', ''],
+            'chybi text'       => ['Vlastní předmět', ''],
+            'chybi predmet'    => ['', 'Nějaký text'],
+            'text jen z mezer' => ['Vlastní předmět', "  \n  "],
+        ];
+    }
+
+    /**
+     * @test
+     */
+    public function vlastniZneniDojdeIRealneOdeslanymMailem()
+    {
+        (new UpominkaVlastniZneni())->uloz(
+            ROCNIK,
+            'Vlastní předmět',
+            'Ahoj {jmeno}, dluh {dluh} Kč pod VS {vs}.',
+            \Uzivatel::SYSTEM,
+        );
+
+        $upominaniDluzniku = $this->dejUpominaniDluzniku();
+
+        $gcMail = $upominaniDluzniku->odesliUpominkuJednomu(
+            \Uzivatel::zId(self::ID_DLUZNICE_NEDORAZILA),
+            TypUpominky::VLASTNI,
+            120,
+            ROCNIK,
+            \Uzivatel::zId(\Uzivatel::SYSTEM, true),
+            UcastNaGc::JEN_PRIHLASEN,
+            null,
+        );
+
+        self::assertStringContainsString(
+            'dluh 120 Kč',
+            $gcMail->dejText(),
+            'Reálně odeslaný mail musí mít dosazené vlastní znění, ne jen náhled',
+        );
+        self::assertSame('Vlastní předmět', $gcMail->dejPredmet());
     }
 
     /**

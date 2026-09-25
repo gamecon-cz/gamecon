@@ -10,11 +10,14 @@
     <p>
         <label>
             Text e-mailu:
-            <select name="typ">
+            <select name="typ" id="vyberTextu">
                 <option value="rucni" {vybranoRucni}>jako měsíční (naléhavější)</option>
                 <option value="tyden" {vybranoTyden}>jako týdenní (mírnější)</option>
+                <option value="vlastni" {vybranoVlastni}>vlastní</option>
             </select>
         </label>
+        <a href="{urlModulu}?zneni" id="odkazNaZneni" style="margin-left: 1em; display: none">Upravit obsah vlastního znění</a>
+        <span id="zneniChybi" data-chybi="{zneniChybi}" style="margin-left: 1em; display: none; color: #a00">Vlastní znění zatím není vyplněné, odejde standardní text.</span>
     </p>
 
     <style>
@@ -86,7 +89,9 @@
             <td><a href="{urlModulu}?nahled={id}" class="nahled" title="náhled e-mailu"
                    data-prijemce="{jmenoNick}" data-mail="{mail}"
                    data-predmet-rucni="{predmetRucni}" data-predmet-tyden="{predmetTyden}"
-                   data-zprava-rucni="{zpravaRucni}" data-zprava-tyden="{zpravaTyden}">🔍</a></td>
+                   data-predmet-vlastni="{predmetVlastni}"
+                   data-zprava-rucni="{zpravaRucni}" data-zprava-tyden="{zpravaTyden}"
+                   data-zprava-vlastni="{zpravaVlastni}">🔍</a></td>
         </tr>
         <!-- end: dluznik -->
         </tbody>
@@ -136,8 +141,23 @@
             });
         }
 
-        vyberTextu.addEventListener('change', srovnejOdkazyNaNahled);
+        const odkazNaZneni = document.getElementById('odkazNaZneni');
+        const zneniChybi = document.getElementById('zneniChybi');
+
+        function srovnejViditelnostZneni() {
+            const jeVlastni = vyberTextu.value === 'vlastni';
+            odkazNaZneni.style.display = jeVlastni ? 'inline' : 'none';
+            zneniChybi.style.display = jeVlastni && zneniChybi.dataset.chybi === 'ano'
+                ? 'inline'
+                : 'none';
+        }
+
+        vyberTextu.addEventListener('change', function () {
+            srovnejOdkazyNaNahled();
+            srovnejViditelnostZneni();
+        });
         srovnejOdkazyNaNahled();
+        srovnejViditelnostZneni();
 
         const nahledDialog = document.getElementById('nahledUpominky');
         const nahledObsah = document.getElementById('nahledObsah');
@@ -165,9 +185,11 @@
 
             // Text je předgenerovaný ve stránce, takže se ukáže hned. Dotahují
             // se jen QR kódy, jejichž generování je to jediné, co stojí čas.
-            const jeTyden = vyberTextu.value === 'tyden';
-            const predmet = jeTyden ? odkaz.dataset.predmetTyden : odkaz.dataset.predmetRucni;
-            const zprava = jeTyden ? odkaz.dataset.zpravaTyden : odkaz.dataset.zpravaRucni;
+            const varianta = vyberTextu.value === 'tyden'
+                ? 'Tyden'
+                : (vyberTextu.value === 'vlastni' ? 'Vlastni' : 'Rucni');
+            const predmet = odkaz.dataset['predmet' + varianta];
+            const zprava = odkaz.dataset['zprava' + varianta];
 
             nahledObsah.innerHTML = '<p>Příjemce: <strong></strong> <span></span></p>'
                 + '<p>Předmět: <strong></strong></p>'
