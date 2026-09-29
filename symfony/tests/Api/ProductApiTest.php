@@ -17,6 +17,7 @@ use App\Tests\AbstractDatabaseKernelTestCase;
 use Doctrine\DBAL\Connection;
 use Doctrine\ORM\EntityManagerInterface;
 use Gamecon\Tests\Factory\UserFactory;
+use Symfony\Contracts\HttpClient\ResponseInterface;
 
 /**
  * Tests for the Symfony Product API endpoint.
@@ -96,6 +97,119 @@ class ProductApiTest extends AbstractDatabaseKernelTestCase
         return $this->jsonLdClient([
             'Authorization' => 'Bearer ' . $jwtService->generateJwtToken($jwtService->extractUserData($user)),
         ] + $headers);
+    }
+
+    public function testEditorRejectsANegativeVariantCapacity(): void
+    {
+        [$product, $variant] = $this->produktSVariantou();
+
+        $response = $this->ulozVarianty($product, [$this->variantaJakoZEditoru($variant, capacity: -3)]);
+
+        self::assertSame(422, $response->getStatusCode(), $response->getContent(false));
+        self::assertSame(5, (int) $this->connection()->fetchOne('SELECT capacity FROM product_variant WHERE id = :id', [
+            'id' => $variant->getId(),
+        ]));
+    }
+
+    /**
+     * Deleting a sold variant would detach its purchases, which then drop out of its stock
+     * count and reports.
+     */
+    public function testEditorRefusesToRemoveASoldVariant(): void
+    {
+        [$product, $variant] = $this->produktSVariantou();
+        $this->connection()->executeStatement(
+            'INSERT INTO shop_nakupy (id_uzivatele, id_predmetu, variant_id, rok, cena_nakupni, datum)
+             VALUES (:customer, :product, :variant, :year, 1, NOW())',
+            [
+                'customer' => $this->createUser('api_test_buyer_')->getId(),
+                'product'  => $product->getId(),
+                'variant'  => $variant->getId(),
+                'year'     => ROCNIK - 1,
+            ],
+        );
+
+        $response = $this->ulozVarianty($product, []);
+
+        self::assertSame(422, $response->getStatusCode(), $response->getContent(false));
+        self::assertSame(1, (int) $this->connection()->fetchOne('SELECT COUNT(*) FROM product_variant WHERE id = :id', [
+            'id' => $variant->getId(),
+        ]));
+    }
+
+    public function testEditorRemovesAnUnsoldVariant(): void
+    {
+        [$product, $variant] = $this->produktSVariantou();
+
+        $response = $this->ulozVarianty($product, []);
+
+        self::assertSame(200, $response->getStatusCode(), $response->getContent(false));
+        self::assertSame(0, (int) $this->connection()->fetchOne('SELECT COUNT(*) FROM product_variant WHERE id = :id', [
+            'id' => $variant->getId(),
+        ]));
+    }
+
+    /**
+     * @return array{Product, ProductVariant}
+     */
+    private function produktSVariantou(): array
+    {
+        // product_tag.created_at is NOT NULL and unmapped, so the category row is created in SQL.
+        $this->connection()->executeStatement(
+            'INSERT IGNORE INTO product_tag (code, name, created_at) VALUES (:code, :name, NOW())',
+            [
+                'code' => ProductTagCode::PREDMET->value,
+                'name' => 'Předmět',
+            ],
+        );
+        $product = $this->createProduct();
+        $product->addTag($this->entityManager()->getRepository(ProductTag::class)->findOneBy([
+            'code' => ProductTagCode::PREDMET->value,
+        ]));
+        $variant = (new ProductVariant())->setName('M')->setCode($product->getCode() . '-M')->setCapacity(5)->setPosition(0);
+        $variant->setProduct($product);
+        $product->addVariant($variant);
+        $this->entityManager()->persist($product);
+        $this->entityManager()->persist($variant);
+        $this->entityManager()->flush();
+
+        return [$product, $variant];
+    }
+
+    /**
+     * @return array<string, mixed>
+     */
+    private function variantaJakoZEditoru(ProductVariant $variant, int $capacity): array
+    {
+        return [
+            '@id'                   => static::getContainer()->get('api_platform.iri_converter')->getIriFromResource($variant),
+            'id'                    => $variant->getId(),
+            'name'                  => $variant->getName(),
+            'code'                  => $variant->getCode(),
+            'price'                 => null,
+            'capacity'              => $capacity,
+            'reservedForOrganizers' => null,
+            'accommodationDay'      => null,
+            'position'              => 0,
+        ];
+    }
+
+    /**
+     * @param list<array<string, mixed>> $varianty
+     */
+    private function ulozVarianty(Product $product, array $varianty): ResponseInterface
+    {
+        // Request-level headers replace the client's, token included, so the patch type is a default.
+        $client = $this->adminClient([
+            'Content-Type' => 'application/merge-patch+json',
+        ]);
+
+        return $client->request('PATCH', '/symfony/api/products/' . $product->getId(), [
+            'body' => json_encode([
+                'name'     => $product->getName(),
+                'variants' => $varianty,
+            ], JSON_THROW_ON_ERROR),
+        ]);
     }
 
     private function createProduct(): Product
@@ -287,48 +401,10 @@ class ProductApiTest extends AbstractDatabaseKernelTestCase
      */
     public function testEditorSavesVariantCapacityOnTheExistingVariant(): void
     {
-        // product_tag.created_at is NOT NULL and unmapped, so the category row is created in SQL.
-        $this->connection()->executeStatement(
-            'INSERT IGNORE INTO product_tag (code, name, created_at) VALUES (:code, :name, NOW())',
-            [
-                'code' => ProductTagCode::PREDMET->value,
-                'name' => 'Předmět',
-            ],
-        );
-        $product = $this->createProduct();
-        $product->addTag($this->entityManager()->getRepository(ProductTag::class)->findOneBy([
-            'code' => ProductTagCode::PREDMET->value,
-        ]));
-        $variant = (new ProductVariant())->setName('M')->setCode($product->getCode() . '-M')->setCapacity(5)->setPosition(0);
-        $variant->setProduct($product);
-        $product->addVariant($variant);
-        $this->entityManager()->persist($product);
-        $this->entityManager()->persist($variant);
-        $this->entityManager()->flush();
+        [$product, $variant] = $this->produktSVariantou();
         $idVarianty = $variant->getId();
 
-        // Request-level headers replace the client's, token included, so the patch type is a default.
-        $client = $this->adminClient([
-            'Content-Type' => 'application/merge-patch+json',
-        ]);
-        $iriVarianty = static::getContainer()->get('api_platform.iri_converter')->getIriFromResource($variant);
-
-        $response = $client->request('PATCH', '/symfony/api/products/' . $product->getId(), [
-            'body' => json_encode([
-                'name'     => $product->getName(),
-                'variants' => [[
-                    '@id'                   => $iriVarianty,
-                    'id'                    => $idVarianty,
-                    'name'                  => 'M',
-                    'code'                  => $variant->getCode(),
-                    'price'                 => null,
-                    'capacity'              => 8,
-                    'reservedForOrganizers' => null,
-                    'accommodationDay'      => null,
-                    'position'              => 0,
-                ]],
-            ], JSON_THROW_ON_ERROR),
-        ]);
+        $response = $this->ulozVarianty($product, [$this->variantaJakoZEditoru($variant, capacity: 8)]);
 
         self::assertSame(200, $response->getStatusCode(), $response->getContent(false));
         self::assertSame(

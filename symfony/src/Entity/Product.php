@@ -87,6 +87,7 @@ use Symfony\Component\Validator\Constraints as Assert;
 #[ApiFilter(RangeFilter::class, properties: ['currentPrice'])]
 #[AppAssert\BreakfastIncludedRequiresAccommodation]
 #[AppAssert\TagCombinationIsAllowed]
+#[AppAssert\SoldVariantsAreKept]
 class Product
 {
     public const LIST = 'product:list';
@@ -187,6 +188,7 @@ class Product
         'id'       => 'ASC',
     ])]
     #[Groups([self::READ, self::WRITE])]
+    #[Assert\Valid]
     private Collection $variants;
 
     /**
