@@ -146,7 +146,7 @@ export const Předměty: FunctionComponent = () => {
                     <td>{produkt.name}</td>
                     <td>{produkt.currentPrice}.-</td>
                     <td>{kategorieTag?.name ?? "—"}</td>
-                    <td>{produkt.capacity ?? "∞"}</td>
+                    <td>{produkt.variants?.length ? (produkt.capacity ?? "∞") : "—"}</td>
                     <td>{STAV_NAZVY[produkt.state] ?? produkt.state}</td>
                     <td>{produkt.breakfastIncluded ? "ano" : ""}</td>
                     <td>{produkt.variants?.length ?? 0}</td>

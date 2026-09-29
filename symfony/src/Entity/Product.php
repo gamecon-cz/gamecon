@@ -58,6 +58,12 @@ use Symfony\Component\Validator\Constraints as Assert;
         ),
         new Patch(
             security: "is_granted('ROLE_ADMIN')",
+            // Deep populate hands a nested variant the whole collection to fill, so plain JSON
+            // never looks it up by its `id` and saves it as a new variant under the same code.
+            denormalizationContext: [
+                'groups'                  => [self::WRITE],
+                'deep_object_to_populate' => false,
+            ],
         ),
         new Delete(
             security: "is_granted('ROLE_ADMIN')",

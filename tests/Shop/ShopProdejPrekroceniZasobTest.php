@@ -7,6 +7,7 @@ namespace Gamecon\Tests\Shop;
 use App\Entity\User;
 use App\Service\CapacityManager;
 use App\Structure\Entity\UserEntityStructure;
+use Doctrine\DBAL\DriverManager;
 use Gamecon\Shop\Shop;
 use Gamecon\Shop\StavPredmetu;
 use Gamecon\SystemoveNastaveni\SystemoveNastaveni;
@@ -111,6 +112,19 @@ SQL,
                     SELECT 88814, id FROM product_tag WHERE code = 'predmet'");
                 dbQuery("INSERT INTO product_variant (product_id, name, code, price, capacity, position)
                     VALUES (88814, 'Předmět pro zrušení', 'zruseni_prodej_test', 100, 3, 0)");
+
+                dbQuery("INSERT INTO shop_predmety SET
+                    id_predmetu = 88815,
+                    nazev = 'Předmět pro souběh',
+                    kod_predmetu = 'soubeh_prodej_test',
+                    cena_aktualni = 100,
+                    stav = " . StavPredmetu::VEREJNY . ",
+                    nabizet_do = '{$budouci}',
+                    popis = ''");
+                dbQuery("INSERT INTO product_product_tag (product_id, tag_id)
+                    SELECT 88815, id FROM product_tag WHERE code = 'predmet'");
+                dbQuery("INSERT INTO product_variant (product_id, name, code, price, capacity, position)
+                    VALUES (88815, 'Předmět pro souběh', 'soubeh_prodej_test', 100, 5, 0)");
 
                 // Room type owning its nights: no variant carries the type's own code.
                 dbQuery("INSERT INTO shop_predmety SET
@@ -359,6 +373,34 @@ SQL,
         self::assertSame(0, (int) dbOneCol('SELECT COUNT(*) FROM shop_nakupy WHERE id_predmetu = $0', [
             0 => $idTypuPokoje,
         ]));
+    }
+
+    /**
+     * A cart sale holds the variant lock and then, inserting its purchase, a shared lock on the
+     * catalog row through the foreign key. Taking that row exclusively here would deadlock with it.
+     *
+     * @test
+     */
+    public function prodejNecekaNaSdilenyZamekPredmetuOdSoubeznehoNakupu(): void
+    {
+        $soubeznyNakup = DriverManager::getConnection(
+            static::getContainer()->get('doctrine.dbal.default_connection')->getParams(),
+        );
+        $soubeznyNakup->beginTransaction();
+        $soubeznyNakup->fetchOne('SELECT id_predmetu FROM shop_predmety WHERE id_predmetu = 88815 LOCK IN SHARE MODE');
+
+        $uzivatel = \Uzivatel::zIdUrcite(88801);
+        $shop = new Shop($uzivatel, $uzivatel, SystemoveNastaveni::zGlobals());
+        dbQuery('SET SESSION innodb_lock_wait_timeout = 1');
+        try {
+            $shop->prodat(88815, 1);
+        } finally {
+            dbQuery('SET SESSION innodb_lock_wait_timeout = DEFAULT');
+            $soubeznyNakup->rollBack();
+            $soubeznyNakup->close();
+        }
+
+        self::assertSame(4, $this->zbyva('soubeh_prodej_test'));
     }
 
     private function zbyva(string $kodVarianty): ?int

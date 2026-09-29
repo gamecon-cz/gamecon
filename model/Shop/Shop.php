@@ -966,16 +966,17 @@ SQL,
     ) {
         dbBegin();
         try {
-            // The variant row is the capacity lock every sale path takes. A locking read first,
-            // so the plain reads below take their snapshot only once the lock is held. Matched by
-            // code, not product_id: nights and sizes hang under another product.
-            $varianta = dbOneLine(
-                'SELECT product_variant.id, product_variant.capacity, product_variant.accommodation_day
-                 FROM product_variant
-                 INNER JOIN shop_predmety ON shop_predmety.kod_predmetu = product_variant.code
-                 WHERE shop_predmety.id_predmetu = $0
-                 FOR UPDATE',
+            // The variant row is the capacity lock every sale path takes. Locking reads first, so
+            // the plain reads below take their snapshot only once the lock is held. The catalog
+            // row only in share mode: a cart sale holding the variant takes it shared too, through
+            // the purchase's foreign key. Matched by code: nights and sizes hang under another product.
+            $kodPredmetu = dbOneCol(
+                'SELECT kod_predmetu FROM shop_predmety WHERE id_predmetu = $0 LOCK IN SHARE MODE',
                 [0 => $idPredmetu],
+            );
+            $varianta = dbOneLine(
+                'SELECT id, capacity, accommodation_day FROM product_variant WHERE code = $0 FOR UPDATE',
+                [0 => $kodPredmetu],
             );
             $predmet = dbOneLine(
                 'SELECT cena_aktualni, nazev, kod_predmetu, model_rok FROM shop_predmety_s_typem WHERE id_predmetu = $0',

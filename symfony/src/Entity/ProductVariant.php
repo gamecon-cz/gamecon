@@ -85,18 +85,18 @@ class ProductVariant
     #[ORM\Column(type: Types::STRING, length: 255, nullable: false)]
     #[Assert\NotBlank(message: 'Název varianty nesmí být prázdný')]
     #[Assert\Length(max: 255)]
-    #[Groups([Product::READ, self::READ, self::WRITE])]
+    #[Groups([Product::READ, Product::WRITE, self::READ, self::WRITE])]
     private string $name;
 
     #[ORM\Column(type: Types::STRING, length: 255, nullable: false)]
     #[Assert\NotBlank(message: 'Kód varianty nesmí být prázdný')]
     #[Assert\Length(max: 255)]
-    #[Groups([Product::READ, self::READ, self::WRITE])]
+    #[Groups([Product::READ, Product::WRITE, self::READ, self::WRITE])]
     private string $code;
 
     #[ORM\Column(type: Types::DECIMAL, precision: 10, scale: 2, nullable: true)]
     #[Assert\PositiveOrZero(message: 'Cena musí být kladné číslo nebo nula')]
-    #[Groups([Product::READ, self::READ, self::WRITE])]
+    #[Groups([Product::READ, Product::WRITE, self::READ, self::WRITE])]
     private ?string $price = null;
 
     /**
@@ -104,7 +104,7 @@ class ProductVariant
      */
     #[ORM\Column(type: Types::INTEGER, nullable: true)]
     #[Assert\PositiveOrZero(message: 'Kapacita musí být kladné číslo nebo nula')]
-    #[Groups([Product::READ, self::READ, self::WRITE])]
+    #[Groups([Product::READ, Product::WRITE, self::READ, self::WRITE])]
     private ?int $capacity = null;
 
     #[ORM\Column(name: 'reserved_for_organizers', type: Types::INTEGER, nullable: true)]
@@ -114,13 +114,13 @@ class ProductVariant
 
     #[ORM\Column(name: 'accommodation_day', type: Types::SMALLINT, nullable: true)]
     #[Assert\Range(notInRangeMessage: 'Den ubytování musí být 0-4 (St-Ne)', min: 0, max: 4)]
-    #[Groups([Product::READ, self::READ, self::WRITE])]
+    #[Groups([Product::READ, Product::WRITE, self::READ, self::WRITE])]
     private ?int $accommodationDay = null;
 
     #[ORM\Column(type: Types::SMALLINT, nullable: false, options: [
         'default' => 0,
     ])]
-    #[Groups([self::READ, self::WRITE])]
+    #[Groups([Product::READ, Product::WRITE, self::READ, self::WRITE])]
     private int $position = 0;
 
     /**

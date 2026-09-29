@@ -10,6 +10,7 @@ use App\Entity\ProductTag;
 use App\Entity\ProductVariant;
 use App\Entity\User;
 use App\Enum\ProductStateEnum;
+use App\Enum\ProductTagCode;
 use App\Service\JwtService;
 use App\Structure\Entity\UserEntityStructure;
 use App\Tests\AbstractDatabaseKernelTestCase;
@@ -36,7 +37,10 @@ class ProductApiTest extends AbstractDatabaseKernelTestCase
      * ROLE_ADMIN from the organizator/admin/infopult/cfo role codes, and the test
      * fixtures grant none of them to anybody.
      */
-    private function adminClient(): Client
+    /**
+     * @param array<string, string> $headers
+     */
+    private function adminClient(array $headers = []): Client
     {
         $container = static::getContainer();
 
@@ -65,6 +69,7 @@ class ProductApiTest extends AbstractDatabaseKernelTestCase
 
         return $this->clientForUser(
             $this->entityManager()->getRepository(User::class)->find($userId),
+            $headers,
         );
     }
 
@@ -80,14 +85,17 @@ class ProductApiTest extends AbstractDatabaseKernelTestCase
         return $user;
     }
 
-    private function clientForUser(User $user): Client
+    /**
+     * @param array<string, string> $headers
+     */
+    private function clientForUser(User $user, array $headers = []): Client
     {
         /** @var JwtService $jwtService */
         $jwtService = static::getContainer()->get(JwtService::class);
 
         return $this->jsonLdClient([
             'Authorization' => 'Bearer ' . $jwtService->generateJwtToken($jwtService->extractUserData($user)),
-        ]);
+        ] + $headers);
     }
 
     private function createProduct(): Product
@@ -271,6 +279,76 @@ class ProductApiTest extends AbstractDatabaseKernelTestCase
         self::assertArrayNotHasKey('capacity', $variants[$neomezena->getCode()]);
         self::assertNull($variants[$neomezena->getCode()]['remaining']);
         self::assertArrayNotHasKey('capacity', $data, 'One unlimited variant makes the product unlimited');
+    }
+
+    /**
+     * The editor sends the product with its variants as full objects — the same shape it
+     * read — so a changed capacity must be stored on the existing variant, not a new one.
+     */
+    public function testEditorSavesVariantCapacityOnTheExistingVariant(): void
+    {
+        // product_tag.created_at is NOT NULL and unmapped, so the category row is created in SQL.
+        $this->connection()->executeStatement(
+            'INSERT IGNORE INTO product_tag (code, name, created_at) VALUES (:code, :name, NOW())',
+            [
+                'code' => ProductTagCode::PREDMET->value,
+                'name' => 'Předmět',
+            ],
+        );
+        $product = $this->createProduct();
+        $product->addTag($this->entityManager()->getRepository(ProductTag::class)->findOneBy([
+            'code' => ProductTagCode::PREDMET->value,
+        ]));
+        $variant = (new ProductVariant())->setName('M')->setCode($product->getCode() . '-M')->setCapacity(5)->setPosition(0);
+        $variant->setProduct($product);
+        $product->addVariant($variant);
+        $this->entityManager()->persist($product);
+        $this->entityManager()->persist($variant);
+        $this->entityManager()->flush();
+        $idVarianty = $variant->getId();
+
+        // Request-level headers replace the client's, token included, so the patch type is a default.
+        $client = $this->adminClient([
+            'Content-Type' => 'application/merge-patch+json',
+        ]);
+        $iriVarianty = static::getContainer()->get('api_platform.iri_converter')->getIriFromResource($variant);
+
+        $response = $client->request('PATCH', '/symfony/api/products/' . $product->getId(), [
+            'body' => json_encode([
+                'name'     => $product->getName(),
+                'variants' => [[
+                    '@id'                   => $iriVarianty,
+                    'id'                    => $idVarianty,
+                    'name'                  => 'M',
+                    'code'                  => $variant->getCode(),
+                    'price'                 => null,
+                    'capacity'              => 8,
+                    'reservedForOrganizers' => null,
+                    'accommodationDay'      => null,
+                    'position'              => 0,
+                ]],
+            ], JSON_THROW_ON_ERROR),
+        ]);
+
+        self::assertSame(200, $response->getStatusCode(), $response->getContent(false));
+        self::assertSame(
+            [[
+                'id'       => $idVarianty,
+                'capacity' => 8,
+            ]],
+            array_map(
+                static fn (array $radek): array => [
+                    'id'       => (int) $radek['id'],
+                    'capacity' => (int) $radek['capacity'],
+                ],
+                $this->connection()->fetchAllAssociative(
+                    'SELECT id, capacity FROM product_variant WHERE product_id = :product',
+                    [
+                        'product' => $product->getId(),
+                    ],
+                ),
+            ),
+        );
     }
 
     public function testApiErrorReturnsJsonNotHtml(): void

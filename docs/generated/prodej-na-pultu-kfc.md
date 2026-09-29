@@ -51,7 +51,7 @@ potřeba, protože dokument jinde tvrdí, že obě cesty mají psát srovnateln�
 | | legacy `prodat()` | pult přes `CartService` |
 |---|---|---|
 | cena | vždy syrová `cena_aktualni` | prochází slevovým enginem podle rolí kupujícího |
-| kapacita | jen `kusu_vyrobeno` vs `COUNT(*)` | `CapacityManager`; rezervaci pro organizátory pult obejde, celkovou zásobu ne |
+| kapacita | jen `product_variant.capacity` vs `COUNT(*)` | `CapacityManager`; rezervaci pro organizátory pult obejde, celkovou zásobu ne |
 | termín prodeje merche | neřešil vůbec | platí, po termínu jen přes obejití (logované) |
 
 Slevy dnes nic nespustí — `SYSTEM` nemá žádnou roli a `product_discount` je prázdná —

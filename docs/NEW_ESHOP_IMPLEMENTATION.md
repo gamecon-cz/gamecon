@@ -63,7 +63,6 @@ class Product {
     private string $currentPrice;
     private int $state;                // 0=MIMO, 1=VEŘEJNÝ, 2=PODPULTOVÝ, 3=POZASTAVENÝ
     private ?\DateTimeInterface $availableUntil;
-    private ?int $producedQuantity;
     private ?int $accommodationDay;
     private string $description;
     private ?\DateTimeInterface $archivedAt;     // NEW
@@ -83,7 +82,7 @@ class Product {
 - `addTag($tag)` / `removeTag($tag)` / `hasTag($tag)` - tag management
 - `isAccommodation()` - checks for 'ubytovani' tag
 - `isAvailable()` - checks availability (not archived, state OK, not expired)
-- `getTotalCapacity()` - total capacity (organizers + participants or producedQuantity)
+- `getCapacity()` - sum of the variants' capacities; null when any of them is unlimited
 
 ### ProductTag (`symfony/src/Entity/ProductTag.php`)
 
