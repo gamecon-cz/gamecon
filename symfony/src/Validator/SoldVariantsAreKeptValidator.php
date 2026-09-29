@@ -33,16 +33,15 @@ class SoldVariantsAreKeptValidator extends ConstraintValidator
             throw new UnexpectedValueException($value, Product::class);
         }
 
-        $variants = $value->getVariants();
-        // A new product's collection is not tracked yet, and it has nothing sold to lose.
-        if (! $variants instanceof PersistentCollection) {
+        if ($value->getId() === null) {
             return;
         }
+        $variants = $value->getVariants();
+        if (! $variants instanceof PersistentCollection) {
+            throw new \LogicException(sprintf('Cannot tell which variants were removed from product %d: its variant collection was replaced.', $value->getId()));
+        }
 
-        $removed = array_filter(
-            $variants->getDeleteDiff(),
-            static fn (ProductVariant $variant): bool => $variant->getId() !== null,
-        );
+        $removed = $variants->getDeleteDiff();
         $soldIds = $this->orderItemRepository->soldVariantIds(array_map(
             static fn (ProductVariant $variant): int => (int) $variant->getId(),
             $removed,

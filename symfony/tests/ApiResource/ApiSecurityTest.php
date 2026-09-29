@@ -10,7 +10,6 @@ use ApiPlatform\Metadata\Get;
 use ApiPlatform\Metadata\GetCollection;
 use ApiPlatform\Metadata\Patch;
 use ApiPlatform\Metadata\Post;
-use ApiPlatform\Metadata\Put;
 use App\ApiResource\BulkCancelResource;
 use App\ApiResource\CartResource;
 use App\ApiResource\KfcResource;
@@ -58,7 +57,6 @@ class ApiSecurityTest extends TestCase
             'GetCollection' => [GetCollection::class],
             'Get'           => [Get::class],
             'Post'          => [Post::class],
-            'Put'           => [Put::class],
             'Patch'         => [Patch::class],
             'Delete'        => [Delete::class],
         ];

@@ -76,7 +76,6 @@ Added API Platform annotations to `symfony/src/Entity/Product.php`:
 - `GET /api/products` - List products (public access)
 - `GET /api/products/{id}` - Get product details (public access)
 - `POST /api/products` - Create product (admin only)
-- `PUT /api/products/{id}` - Update product (admin only)
 - `PATCH /api/products/{id}` - Partial update (admin only)
 - `DELETE /api/products/{id}` - Delete product (admin only)
 
@@ -98,7 +97,6 @@ Added API Platform annotations to `symfony/src/Entity/Product.php`:
 GET    /symfony/api/products.{_format}          - List all products
 GET    /symfony/api/products/{id}.{_format}     - Get single product
 POST   /symfony/api/products.{_format}          - Create new product
-PUT    /symfony/api/products/{id}.{_format}     - Update product (full)
 PATCH  /symfony/api/products/{id}.{_format}     - Update product (partial)
 DELETE /symfony/api/products/{id}.{_format}     - Delete product
 ```
