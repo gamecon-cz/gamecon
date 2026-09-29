@@ -97,7 +97,7 @@ class EshopImporterTest extends AbstractTestDb
             ]),
         ]);
 
-        $importer = new EshopImporter($soubor);
+        $importer = new EshopImporter($soubor, ROCNIK);
         $vysledek = $importer->importuj();
 
         self::assertSame(2, $vysledek->pocetNovych);
@@ -139,7 +139,7 @@ SQL,
             ]),
         ]);
 
-        $importer = new EshopImporter($soubor);
+        $importer = new EshopImporter($soubor, ROCNIK);
         $importer->importuj();
 
         // Bez varianty je předmět pro košík neviditelný — nejde ho do něj vložit.
@@ -187,7 +187,7 @@ SQL,
             ]),
         ]);
 
-        $importer = new EshopImporter($soubor);
+        $importer = new EshopImporter($soubor, ROCNIK);
         $vysledek = $importer->importuj();
 
         self::assertSame(0, $vysledek->pocetNovych);
@@ -236,7 +236,7 @@ SQL,
             ]),
         ]);
 
-        $importer = new EshopImporter($soubor);
+        $importer = new EshopImporter($soubor, ROCNIK);
         $importer->importuj();
 
         // The missing product should be archived
@@ -270,7 +270,7 @@ SQL,
             ]),
         ]);
 
-        $importer = new EshopImporter($soubor);
+        $importer = new EshopImporter($soubor, ROCNIK);
         $vysledek = $importer->importuj();
 
         self::assertSame(1, $vysledek->pocetNovych);
@@ -299,7 +299,7 @@ SQL,
         $this->expectException(\Chyba::class);
         $this->expectExceptionMessageMatches('/chybí sloupce/');
 
-        $importer = new EshopImporter($soubor);
+        $importer = new EshopImporter($soubor, ROCNIK);
         $importer->importuj();
     }
 
@@ -317,7 +317,7 @@ SQL,
         $this->expectException(\Chyba::class);
         $this->expectExceptionMessageMatches('/řádku 2/');
 
-        $importer = new EshopImporter($soubor);
+        $importer = new EshopImporter($soubor, ROCNIK);
         $importer->importuj();
     }
 
@@ -338,7 +338,7 @@ SQL,
             ]);
 
             try {
-                (new EshopImporter($soubor))->importuj();
+                (new EshopImporter($soubor, ROCNIK))->importuj();
                 self::fail(sprintf('Stav %s měl být odmítnut', var_export($neplatnyStav, true)));
             } catch (\Chyba $chyba) {
                 self::assertMatchesRegularExpression('/řádku 2.*stav/s', $chyba->getMessage());
@@ -358,7 +358,7 @@ SQL,
             ]),
         ]);
 
-        $importer = new EshopImporter($soubor);
+        $importer = new EshopImporter($soubor, ROCNIK);
         $vysledek = $importer->importuj();
 
         self::assertSame(1, $vysledek->pocetNovych);
@@ -388,12 +388,12 @@ SQL,
             ]),
         ]);
 
-        $importer = new EshopImporter($soubor);
+        $importer = new EshopImporter($soubor, ROCNIK);
         $vysledek1 = $importer->importuj();
 
         self::assertSame(2, $vysledek1->pocetNovych);
 
-        $importer2 = new EshopImporter($soubor);
+        $importer2 = new EshopImporter($soubor, ROCNIK);
         $vysledek2 = $importer2->importuj();
 
         self::assertSame(0, $vysledek2->pocetNovych);
@@ -405,5 +405,105 @@ SQL,
             ],
         );
         self::assertSame(2, $pocet);
+    }
+
+    /**
+     * @test
+     */
+    public function reimportNevratiZasobuProdanychKusu(): void
+    {
+        $soubor = $this->createXlsxSoubor([
+            $this->defaultniRadek([
+                'kod_predmetu'  => 'PRODANY',
+                'kusu_vyrobeno' => 5,
+            ]),
+        ]);
+        (new EshopImporter($soubor, ROCNIK))->importuj();
+        $this->nakupVarianty('PRODANY', kusu: 2);
+
+        (new EshopImporter($soubor, ROCNIK))->importuj();
+
+        self::assertSame(3, $this->zasobaVarianty('PRODANY'));
+    }
+
+    /**
+     * Nights and sizes hang under a shared owner, but each takes its capacity from its own row
+     * sharing its code. The import must move their stock, never rename them.
+     *
+     * @test
+     */
+    public function reimportPosuneZasobuVariantPodSpolecnymVlastnikem(): void
+    {
+        dbQuery(<<<SQL
+INSERT INTO shop_predmety (id_predmetu, nazev, kod_predmetu, cena_aktualni, stav, nabizet_do, kusu_vyrobeno, popis)
+VALUES (94201, 'Dvoulůžák', 'TYP_2L', 0, 1, NOW(), NULL, ''),
+       (94202, 'Dvoulůžák pátek', 'NOC_2L_PA', 300, 1, NOW(), 4, ''),
+       (94203, 'Dvoulůžák sobota', 'NOC_2L_SO', 300, 1, NOW(), 4, '')
+SQL);
+        dbQuery(<<<SQL
+INSERT INTO product_variant (product_id, name, code, price, remaining_quantity, position)
+VALUES (94201, 'pátek', 'NOC_2L_PA', 300, 4, 0),
+       (94201, 'sobota', 'NOC_2L_SO', 300, 4, 1)
+SQL);
+        $this->nakupVarianty('NOC_2L_PA', kusu: 1);
+
+        $soubor = $this->createXlsxSoubor([
+            $this->defaultniRadek([
+                'kod_predmetu'  => 'TYP_2L',
+                'nazev'         => 'Dvoulůžák',
+                'kusu_vyrobeno' => 'NULL',
+                'tag'           => 'ubytovani',
+            ]),
+            $this->defaultniRadek([
+                'kod_predmetu'  => 'NOC_2L_PA',
+                'nazev'         => 'Dvoulůžák pátek',
+                'kusu_vyrobeno' => 8,
+                'tag'           => 'ubytovani',
+            ]),
+            $this->defaultniRadek([
+                'kod_predmetu'  => 'NOC_2L_SO',
+                'nazev'         => 'Dvoulůžák sobota',
+                'kusu_vyrobeno' => 8,
+                'tag'           => 'ubytovani',
+            ]),
+        ]);
+        (new EshopImporter($soubor, ROCNIK))->importuj();
+
+        self::assertSame(7, $this->zasobaVarianty('NOC_2L_PA'));
+        self::assertSame(8, $this->zasobaVarianty('NOC_2L_SO'));
+        self::assertSame(
+            'pátek',
+            dbOneCol('SELECT name FROM product_variant WHERE code = $0', [
+                0 => 'NOC_2L_PA',
+            ]),
+        );
+    }
+
+    private function nakupVarianty(string $kod, int $kusu): void
+    {
+        for ($kus = 0; $kus < $kusu; ++$kus) {
+            dbQuery(<<<SQL
+INSERT INTO shop_nakupy (id_uzivatele, id_objednatele, id_predmetu, variant_id, rok, cena_nakupni, datum)
+SELECT $0, $0, shop_predmety.id_predmetu, product_variant.id, $1, 100, NOW()
+FROM product_variant
+JOIN shop_predmety ON shop_predmety.kod_predmetu = product_variant.code
+WHERE product_variant.code = $2
+SQL,
+                [
+                    0 => \Uzivatel::SYSTEM,
+                    1 => ROCNIK,
+                    2 => $kod,
+                ],
+            );
+        }
+    }
+
+    private function zasobaVarianty(string $kod): ?int
+    {
+        $zasoba = dbOneCol('SELECT remaining_quantity FROM product_variant WHERE code = $0', [
+            0 => $kod,
+        ]);
+
+        return $zasoba === null ? null : (int) $zasoba;
     }
 }
