@@ -64,6 +64,9 @@ readonly class ProductVariantsForGrid
      */
     private function maxQuantity(ProductVariant $variant, ?int $remaining, int $purchasedQuantity, array $roleMeanings): ?int
     {
+        if ($remaining === null) {
+            return null;
+        }
         $available = $this->capacityManager->availableQuantity($variant, $roleMeanings, $remaining);
 
         return $available === null ? null : $available + $purchasedQuantity;
