@@ -147,6 +147,25 @@ class OrderItemRepository extends ServiceEntityRepository
     }
 
     /**
+     * @param int[] $variantIds
+     *
+     * @return int[]
+     */
+    public function soldVariantIds(array $variantIds): array
+    {
+        if ($variantIds === []) {
+            return [];
+        }
+
+        return array_map('intval', $this->createQueryBuilder('oi')
+            ->select('DISTINCT IDENTITY(oi.variant)')
+            ->where('oi.variant IN (:variantIds)')
+            ->setParameter('variantIds', $variantIds)
+            ->getQuery()
+            ->getSingleColumnResult());
+    }
+
+    /**
      * Added back into the remaining count, as legacy does, so the last bed still reads as
      * available once it is yours instead of sold out under its own ticked checkbox.
      *
