@@ -80,8 +80,7 @@ SQL,
                 dbQuery("INSERT INTO product_product_tag (product_id, tag_id)
                     SELECT 88812, id FROM product_tag WHERE code = 'predmet'");
 
-                // Varianta ke každému prodejnému předmětu, jak to má produkce — zásoba
-                // se vede na ní, `kusu_vyrobeno` je její legacy zrcadlo.
+                // Varianta ke každému prodejnému předmětu, jak to má produkce.
                 dbQuery("INSERT INTO product_variant (product_id, name, code, price, position)
                     VALUES (88811, 'Limitovaný předmět', 'limit_prodej_test', 100, 0)");
                 dbQuery("INSERT INTO product_variant (product_id, name, code, price, position)
@@ -116,20 +115,6 @@ SQL,
                     SELECT 88814, id FROM product_tag WHERE code = 'predmet'");
                 dbQuery("INSERT INTO product_variant (product_id, name, code, price, position)
                     VALUES (88814, 'Předmět pro zrušení', 'zruseni_prodej_test', 100, 0)");
-
-                dbQuery("INSERT INTO shop_predmety SET
-                    id_predmetu = 88815,
-                    nazev = 'Předmět se starými nákupy',
-                    kod_predmetu = 'stare_nakupy_test',
-                    cena_aktualni = 100,
-                    stav = " . StavPredmetu::VEREJNY . ",
-                    nabizet_do = '{$budouci}',
-                    kusu_vyrobeno = 5,
-                    popis = ''");
-                dbQuery("INSERT INTO product_product_tag (product_id, tag_id)
-                    SELECT 88815, id FROM product_tag WHERE code = 'predmet'");
-                dbQuery("INSERT INTO product_variant (product_id, name, code, price, position)
-                    VALUES (88815, 'Předmět se starými nákupy', 'stare_nakupy_test', 100, 0)");
 
                 // Room type owning its nights: no variant carries the type's own code.
                 dbQuery("INSERT INTO shop_predmety SET
@@ -178,8 +163,8 @@ SQL,
     }
 
     /**
-     * Prodej z adminu musí zapsat variantu a ubrat z její zásoby — jinak vzniká nákup, který
-     * nová vrstva nevidí, a zásoba na variantě se rozejde s legacy `kusu_vyrobeno`.
+     * Prodej z adminu musí zapsat variantu, jinak vzniká nákup, který nová vrstva nevidí
+     * a do zásoby varianty se nezapočítá.
      *
      * @test
      */
@@ -203,8 +188,8 @@ SQL,
     }
 
     /**
-     * Zrušení nákupu musí kus vrátit do zásoby na variantě. Prodej ji ubírá, takže bez toho
-     * by každá oprava v adminu zásobu natrvalo snížila a obě čísla by se rozešla.
+     * Zrušení nákupu musí kus vrátit do zásoby, jinak by každá oprava v adminu zásobu
+     * natrvalo snížila.
      *
      * @test
      */
@@ -220,34 +205,6 @@ SQL,
         $shop->zrusNakupPredmetu(88814, 2);
 
         self::assertSame(3, $zbyva(), 'Zrušení mělo oba kusy vrátit');
-    }
-
-    /**
-     * Nákupy zapsané starou cestou `variant_id` nemají, takže z nich zásoba nikdy neubyla.
-     * Jejich zrušení ji proto nesmí přičíst — jinak by se kusy vyrobily z ničeho.
-     *
-     * @test
-     */
-    public function zruseniNakupuBezVariantyZasobuNemeni(): void
-    {
-        $uzivatel = \Uzivatel::zIdUrcite(88801);
-        $shop = new Shop($uzivatel, $uzivatel, SystemoveNastaveni::zGlobals());
-        $zbyva = fn (): ?int => $this->zbyva('stare_nakupy_test');
-
-        // Dva nákupy tak, jak je zapisovala legacy cesta: bez varianty, bez dotčení zásoby.
-        dbQuery(
-            'INSERT INTO shop_nakupy(id_uzivatele, id_objednatele, id_predmetu, rok, cena_nakupni, datum)
-             VALUES ($0, $0, 88815, $1, 100, NOW()), ($0, $0, 88815, $1, 100, NOW())',
-            [
-                0 => $uzivatel->id(),
-                1 => ROCNIK,
-            ],
-        );
-        $pred = $zbyva();
-
-        $shop->zrusNakupPredmetu(88815, 2);
-
-        self::assertSame($pred, $zbyva(), 'Zásoba se nesmí zvýšit za nákupy, které ji neubraly');
     }
 
     /**
