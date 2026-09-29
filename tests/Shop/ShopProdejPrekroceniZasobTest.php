@@ -129,6 +129,49 @@ SQL,
                     SELECT 88815, id FROM product_tag WHERE code = 'predmet'");
                 dbQuery("INSERT INTO product_variant (product_id, name, code, price, remaining_quantity, position)
                     VALUES (88815, 'Předmět se starými nákupy', 'stare_nakupy_test', 100, 5, 0)");
+
+                // Room type owning its nights: no variant carries the type's own code.
+                dbQuery("INSERT INTO shop_predmety SET
+                    id_predmetu = 88816,
+                    nazev = 'Postel na pokoji',
+                    kod_predmetu = 'pokoj_prodej_test-typ',
+                    cena_aktualni = 300,
+                    stav = " . StavPredmetu::POZASTAVENY . ",
+                    nabizet_do = '{$budouci}',
+                    kusu_vyrobeno = NULL,
+                    popis = ''");
+                dbQuery("INSERT INTO shop_predmety SET
+                    id_predmetu = 88817,
+                    nazev = 'Postel na pokoji pátek',
+                    kod_predmetu = 'pokoj_prodej_test-pa',
+                    cena_aktualni = 300,
+                    stav = " . StavPredmetu::VEREJNY . ",
+                    nabizet_do = '{$budouci}',
+                    kusu_vyrobeno = 3,
+                    ubytovani_den = 2,
+                    popis = ''");
+                dbQuery("INSERT INTO product_product_tag (product_id, tag_id)
+                    SELECT ubytovani.id_predmetu, product_tag.id
+                    FROM product_tag
+                    INNER JOIN (SELECT 88816 AS id_predmetu UNION SELECT 88817) AS ubytovani
+                    WHERE product_tag.code = 'ubytovani'");
+                dbQuery("INSERT INTO product_variant (product_id, name, code, price, remaining_quantity, accommodation_day, position)
+                    VALUES (88816, 'pátek', 'pokoj_prodej_test-pa', 300, 3, 2, 0)");
+
+                // Room type that got a default variant of its own, as a fresh import gives one.
+                dbQuery("INSERT INTO shop_predmety SET
+                    id_predmetu = 88818,
+                    nazev = 'Postel na jiném pokoji',
+                    kod_predmetu = 'pokoj_s_variantou_test-typ',
+                    cena_aktualni = 300,
+                    stav = " . StavPredmetu::POZASTAVENY . ",
+                    nabizet_do = '{$budouci}',
+                    kusu_vyrobeno = NULL,
+                    popis = ''");
+                dbQuery("INSERT INTO product_product_tag (product_id, tag_id)
+                    SELECT 88818, id FROM product_tag WHERE code = 'ubytovani'");
+                dbQuery("INSERT INTO product_variant (product_id, name, code, price, remaining_quantity, accommodation_day, position)
+                    VALUES (88818, 'Postel na jiném pokoji', 'pokoj_s_variantou_test-typ', 300, NULL, NULL, 0)");
             },
         ];
     }
@@ -323,5 +366,52 @@ SQL,
         $this->expectExceptionMessage('nelze ho prodávat');
 
         $shop->prodat($idPredmetu, 1);
+    }
+
+    /**
+     * A night hangs under its room type, so its variant is found by code, not by `product_id`.
+     *
+     * @test
+     */
+    public function prodejNociZapiseJejiVariantuAUbereZeZasoby(): void
+    {
+        $uzivatel = \Uzivatel::zIdUrcite(88801);
+        $shop = new Shop($uzivatel, $uzivatel, SystemoveNastaveni::zGlobals());
+
+        $shop->prodat(88817, 1);
+
+        self::assertSame(
+            (int) dbOneCol("SELECT id FROM product_variant WHERE code = 'pokoj_prodej_test-pa'"),
+            (int) dbOneCol('SELECT variant_id FROM shop_nakupy WHERE id_predmetu = 88817'),
+        );
+        self::assertSame(
+            2,
+            (int) dbOneCol("SELECT remaining_quantity FROM product_variant WHERE code = 'pokoj_prodej_test-pa'"),
+        );
+    }
+
+    /**
+     * A room type is not a bed on any night, so selling it would book nothing.
+     *
+     * @test
+     *
+     * @testWith [88816]
+     *           [88818]
+     */
+    public function typPokojeNejdeProdat(int $idTypuPokoje): void
+    {
+        $uzivatel = \Uzivatel::zIdUrcite(88801);
+        $shop = new Shop($uzivatel, $uzivatel, SystemoveNastaveni::zGlobals());
+
+        try {
+            $shop->prodat($idTypuPokoje, 1);
+            self::fail('A room type must not be sellable');
+        } catch (\Chyba $chyba) {
+            self::assertStringContainsString('konkrétní noc', $chyba->getMessage());
+        }
+
+        self::assertSame(0, (int) dbOneCol('SELECT COUNT(*) FROM shop_nakupy WHERE id_predmetu = $0', [
+            0 => $idTypuPokoje,
+        ]));
     }
 }
