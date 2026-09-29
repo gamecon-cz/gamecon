@@ -83,7 +83,7 @@ Added API Platform annotations to `symfony/src/Entity/Product.php`:
 **Filters:**
 - Search: code (exact), name (partial), state (exact)
 - Order: id, name, currentPrice, state
-- Range: currentPrice, producedQuantity
+- Range: currentPrice
 
 **Serialization Groups:**
 - `product:list` - Minimal data for collection
