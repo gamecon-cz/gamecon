@@ -106,7 +106,7 @@ class CartService
     private function vTransakci(callable $prodej): mixed
     {
         $connection = $this->entityManager->getConnection();
-        $connection->beginTransaction();
+        $this->capacityManager->beginSaleTransaction();
         try {
             $vysledek = $prodej();
             $connection->commit();

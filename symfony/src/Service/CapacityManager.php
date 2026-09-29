@@ -109,6 +109,19 @@ class CapacityManager
     }
 
     /**
+     * READ COMMITTED, because under REPEATABLE READ the stock count also locks index gaps and
+     * buyers of two different products then deadlock on each other's insert. `SET TRANSACTION`
+     * covers only the next transaction; a nested call joins the outer one.
+     */
+    public function beginSaleTransaction(): void
+    {
+        if (! $this->connection->isTransactionActive()) {
+            $this->connection->executeStatement('SET TRANSACTION ISOLATION LEVEL READ COMMITTED');
+        }
+        $this->connection->beginTransaction();
+    }
+
+    /**
      * Locks the variant's capacity row until the surrounding transaction ends, so the sale
      * must be written in that same transaction. The count is a locking read: a plain one would
      * reuse the caller's REPEATABLE READ snapshot and miss a purchase committed while it waited.

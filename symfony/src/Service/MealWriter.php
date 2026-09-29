@@ -45,7 +45,7 @@ class MealWriter
     {
         $variants = $this->loadVariants($variantIds);
 
-        $this->connection->beginTransaction();
+        $this->capacityManager->beginSaleTransaction();
         try {
             $kept = $this->removeUnselected($customer, $year, array_keys($variants));
             foreach ($variants as $variantId => $variant) {
