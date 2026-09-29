@@ -537,7 +537,6 @@ class EntityLegacyComparisonTest extends AbstractTestDb
             'currentPrice'     => '199.50',
             'state'            => ProductStateEnum::from(1),
             'availableUntil'   => new \DateTimeImmutable('2024-12-31 23:59:59'),
-            'producedQuantity' => 100,
             'accommodationDay' => null,
             'description'      => 'Testovací popis předmětu',
         ])->_save()->_real();
@@ -555,7 +554,6 @@ class EntityLegacyComparisonTest extends AbstractTestDb
         $this->assertEquals($product->getCode(), $legacyData['kod_predmetu']);
         $this->assertEquals($product->getCurrentPrice(), $legacyData['cena_aktualni']);
         $this->assertEquals($product->getState()->value, $legacyData['stav']);
-        $this->assertEquals($product->getProducedQuantity(), $legacyData['kusu_vyrobeno']);
         $this->assertEquals($product->getAccommodationDay(), $legacyData['ubytovani_den']);
         $this->assertEquals($product->getDescription(), $legacyData['popis']);
 

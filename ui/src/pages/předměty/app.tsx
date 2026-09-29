@@ -146,7 +146,7 @@ export const Předměty: FunctionComponent = () => {
                     <td>{produkt.name}</td>
                     <td>{produkt.currentPrice}.-</td>
                     <td>{kategorieTag?.name ?? "—"}</td>
-                    <td>{produkt.producedQuantity ?? "∞"}</td>
+                    <td>{produkt.capacity ?? "∞"}</td>
                     <td>{STAV_NAZVY[produkt.state] ?? produkt.state}</td>
                     <td>{produkt.breakfastIncluded ? "ano" : ""}</td>
                     <td>{produkt.variants?.length ?? 0}</td>
@@ -215,9 +215,6 @@ const EditorPředmětu: FunctionComponent<EditorProps> = ({
   const [currentPrice, setCurrentPrice] = useState(produkt?.currentPrice ?? "0.00");
   const [state, setState] = useState(produkt?.state ?? 1);
   const [availableUntil, setAvailableUntil] = useState(produkt?.availableUntil ?? "");
-  const [producedQuantity, setProducedQuantity] = useState<string>(
-    produkt?.producedQuantity?.toString() ?? "",
-  );
   const [accommodationDay, setAccommodationDay] = useState<string>(
     produkt?.accommodationDay?.toString() ?? "",
   );
@@ -252,6 +249,7 @@ const EditorPředmětu: FunctionComponent<EditorProps> = ({
         name: "",
         code: "",
         price: null,
+        capacity: null,
         reservedForOrganizers: null,
         accommodationDay: null,
         position: currentVariants.length,
@@ -291,14 +289,13 @@ const EditorPředmětu: FunctionComponent<EditorProps> = ({
       currentPrice,
       state: Number(state),
       availableUntil: availableUntil || null,
-      producedQuantity: producedQuantity === "" ? null : Number(producedQuantity),
       accommodationDay: accommodationDay === "" ? null : Number(accommodationDay),
       breakfastIncluded,
       description,
       reservedForOrganizers:
         reservedForOrganizers === "" ? null : Number(reservedForOrganizers),
       tags: [categoryTag["@id"]],
-      variants: variants.map((variant, position) => ({
+      variants: variants.map(({ remaining: _remaining, ...variant }, position) => ({
         ...variant,
         position,
       })),
@@ -322,7 +319,6 @@ const EditorPředmětu: FunctionComponent<EditorProps> = ({
     description,
     kategorieTagy,
     name,
-    producedQuantity,
     produkt,
     reservedForOrganizers,
     state,
@@ -420,15 +416,6 @@ const EditorPředmětu: FunctionComponent<EditorProps> = ({
       </label>
 
       <label className="produkty__field">
-        <span>Kusů vyrobeno</span>
-        <input
-          type="number"
-          value={producedQuantity}
-          onInput={(event) => setProducedQuantity((event.target as HTMLInputElement).value)}
-        />
-      </label>
-
-      <label className="produkty__field">
         <span>Ubytovací den (0–4)</span>
         <input
           type="number"
@@ -473,6 +460,8 @@ const EditorPředmětu: FunctionComponent<EditorProps> = ({
               <th>Název</th>
               <th>Kód</th>
               <th>Cena (prázdné = dědí)</th>
+              <th>Kapacita (prázdné = neomezeno)</th>
+              <th>Zbývá</th>
               <th>Den</th>
               <th></th>
             </tr>
@@ -512,6 +501,20 @@ const EditorPředmětu: FunctionComponent<EditorProps> = ({
                     }}
                   />
                 </td>
+                <td>
+                  <input
+                    type="number"
+                    min={0}
+                    value={variant.capacity ?? ""}
+                    onInput={(event) => {
+                      const rawValue = (event.target as HTMLInputElement).value;
+                      updateVariant(index, {
+                        capacity: rawValue === "" ? null : Number(rawValue),
+                      });
+                    }}
+                  />
+                </td>
+                <td>{variant.remaining === undefined ? "—" : variant.remaining ?? "∞"}</td>
                 <td>
                   <input
                     type="number"

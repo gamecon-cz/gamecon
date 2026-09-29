@@ -66,7 +66,7 @@ SQL,
         ],
         [
             <<<SQL
-INSERT INTO shop_predmety SET id_predmetu = 33500, nazev = 'Kostka testovací', kod_predmetu = CONCAT('kostka_test_', $0), cena_aktualni = 100, stav = 1, nabizet_do = NOW(), kusu_vyrobeno = 100
+INSERT INTO shop_predmety SET id_predmetu = 33500, nazev = 'Kostka testovací', kod_predmetu = CONCAT('kostka_test_', $0), cena_aktualni = 100, stav = 1, nabizet_do = NOW()
 SQL,
             [
                 0 => ROCNIK,
@@ -75,7 +75,7 @@ SQL,
         "INSERT INTO product_product_tag (product_id, tag_id) SELECT 33500, id FROM product_tag WHERE code = 'predmet'",
         [
             <<<SQL
-INSERT INTO shop_predmety SET id_predmetu = 33501, nazev = 'Placka testovací', kod_predmetu = CONCAT('placka_test_', $0), cena_aktualni = 50, stav = 1, nabizet_do = NOW(), kusu_vyrobeno = 100
+INSERT INTO shop_predmety SET id_predmetu = 33501, nazev = 'Placka testovací', kod_predmetu = CONCAT('placka_test_', $0), cena_aktualni = 50, stav = 1, nabizet_do = NOW()
 SQL,
             [
                 0 => ROCNIK,
@@ -84,7 +84,7 @@ SQL,
         "INSERT INTO product_product_tag (product_id, tag_id) SELECT 33501, id FROM product_tag WHERE code = 'predmet'",
         [
             <<<SQL
-INSERT INTO shop_predmety SET id_predmetu = 33502, nazev = 'Tričko levné testovací', kod_predmetu = CONCAT('tricko_levne_test_', $0), cena_aktualni = 300, stav = 1, nabizet_do = NOW(), kusu_vyrobeno = 100
+INSERT INTO shop_predmety SET id_predmetu = 33502, nazev = 'Tričko levné testovací', kod_predmetu = CONCAT('tricko_levne_test_', $0), cena_aktualni = 300, stav = 1, nabizet_do = NOW()
 SQL,
             [
                 0 => ROCNIK,
@@ -93,7 +93,7 @@ SQL,
         "INSERT INTO product_product_tag (product_id, tag_id) SELECT 33502, id FROM product_tag WHERE code = 'tricko'",
         [
             <<<SQL
-INSERT INTO shop_predmety SET id_predmetu = 33503, nazev = 'Tričko drahé testovací', kod_predmetu = CONCAT('tricko_drahe_test_', $0), cena_aktualni = 500, stav = 1, nabizet_do = NOW(), kusu_vyrobeno = 100
+INSERT INTO shop_predmety SET id_predmetu = 33503, nazev = 'Tričko drahé testovací', kod_predmetu = CONCAT('tricko_drahe_test_', $0), cena_aktualni = 500, stav = 1, nabizet_do = NOW()
 SQL,
             [
                 0 => ROCNIK,
@@ -102,7 +102,7 @@ SQL,
         "INSERT INTO product_product_tag (product_id, tag_id) SELECT 33503, id FROM product_tag WHERE code = 'tricko'",
         [
             <<<SQL
-INSERT INTO shop_predmety SET id_predmetu = 33504, nazev = 'Ubytování středa testovací', kod_predmetu = CONCAT('ubytovani_st_test_', $0), cena_aktualni = 400, stav = 1, nabizet_do = NOW(), kusu_vyrobeno = 100, ubytovani_den = 0
+INSERT INTO shop_predmety SET id_predmetu = 33504, nazev = 'Ubytování středa testovací', kod_predmetu = CONCAT('ubytovani_st_test_', $0), cena_aktualni = 400, stav = 1, nabizet_do = NOW(), ubytovani_den = 0
 SQL,
             [
                 0 => ROCNIK,
@@ -111,7 +111,7 @@ SQL,
         "INSERT INTO product_product_tag (product_id, tag_id) SELECT 33504, id FROM product_tag WHERE code = 'ubytovani'",
         [
             <<<SQL
-INSERT INTO shop_predmety SET id_predmetu = 33505, nazev = 'Ubytování čtvrtek testovací', kod_predmetu = CONCAT('ubytovani_ct_test_', $0), cena_aktualni = 400, stav = 1, nabizet_do = NOW(), kusu_vyrobeno = 100, ubytovani_den = 1
+INSERT INTO shop_predmety SET id_predmetu = 33505, nazev = 'Ubytování čtvrtek testovací', kod_predmetu = CONCAT('ubytovani_ct_test_', $0), cena_aktualni = 400, stav = 1, nabizet_do = NOW(), ubytovani_den = 1
 SQL,
             [
                 0 => ROCNIK,
@@ -120,7 +120,7 @@ SQL,
         "INSERT INTO product_product_tag (product_id, tag_id) SELECT 33505, id FROM product_tag WHERE code = 'ubytovani'",
         [
             <<<SQL
-INSERT INTO shop_predmety SET id_predmetu = 33506, nazev = 'Oběd testovací', kod_predmetu = CONCAT('obed_test_', $0), cena_aktualni = 150, stav = 1, nabizet_do = NOW(), kusu_vyrobeno = 100, ubytovani_den = 1
+INSERT INTO shop_predmety SET id_predmetu = 33506, nazev = 'Oběd testovací', kod_predmetu = CONCAT('obed_test_', $0), cena_aktualni = 150, stav = 1, nabizet_do = NOW(), ubytovani_den = 1
 SQL,
             [
                 0 => ROCNIK,
@@ -129,7 +129,7 @@ SQL,
         "INSERT INTO product_product_tag (product_id, tag_id) SELECT 33506, id FROM product_tag WHERE code = 'jidlo'",
         [
             <<<SQL
-INSERT INTO shop_predmety SET id_predmetu = 33507, nazev = 'Obyčejný předmět testovací', kod_predmetu = CONCAT('obycejny_test_', $0), cena_aktualni = 200, stav = 1, nabizet_do = NOW(), kusu_vyrobeno = 100
+INSERT INTO shop_predmety SET id_predmetu = 33507, nazev = 'Obyčejný předmět testovací', kod_predmetu = CONCAT('obycejny_test_', $0), cena_aktualni = 200, stav = 1, nabizet_do = NOW()
 SQL,
             [
                 0 => ROCNIK,

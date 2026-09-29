@@ -28,10 +28,10 @@ class PredmetLetosniPlackaTest extends AbstractTestDb
      */
     protected static array $initQueries = [
         <<<SQL
-INSERT INTO shop_predmety SET id_predmetu = 46620, nazev = 'Placka letošní', kod_predmetu = 'placka_letosni_46620', cena_aktualni = 40, stav = 1, nabizet_do = NOW(), kusu_vyrobeno = 100
+INSERT INTO shop_predmety SET id_predmetu = 46620, nazev = 'Placka letošní', kod_predmetu = 'placka_letosni_46620', cena_aktualni = 40, stav = 1, nabizet_do = NOW()
 SQL,
         <<<SQL
-INSERT INTO shop_predmety SET id_predmetu = 46621, nazev = 'Placka stará', kod_predmetu = 'placka_stara_46621', cena_aktualni = 40, stav = 1, nabizet_do = NOW(), kusu_vyrobeno = 100
+INSERT INTO shop_predmety SET id_predmetu = 46621, nazev = 'Placka stará', kod_predmetu = 'placka_stara_46621', cena_aktualni = 40, stav = 1, nabizet_do = NOW()
 SQL,
         [
             <<<SQL

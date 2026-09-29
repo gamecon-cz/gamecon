@@ -294,7 +294,7 @@ class AccommodationProviderTest extends TestCase
     {
         $this->prepareUser();
 
-        // Both write paths feed shop_nakupy and kusu_vyrobeno is admin-editable, so sold
+        // Both write paths feed shop_nakupy and capacity is admin-editable, so sold
         // can exceed produced. The grid must not offer "-2 beds".
         $this->prepareGrid(produced: 10, sold: 12, held: 0);
 
@@ -327,7 +327,7 @@ class AccommodationProviderTest extends TestCase
         $this->productRepository->method('findByTag')->willReturn([$product]);
         $this->orderItemRepository->method('countSoldByVariant')->willReturn([]);
         $this->orderItemRepository->method('countHeldByCustomer')->willReturn([]);
-        $this->productRepository->method('producedQuantityByVariantCode')->willReturn([]);
+        $this->productRepository->method('capacityByVariantCode')->willReturn([]);
         $this->orderItemRepository->method('findByCustomerAndYear')->willReturn([]);
 
         $this->assertSame([], $this->provider->provide(new Get())->types);
@@ -393,7 +393,7 @@ class AccommodationProviderTest extends TestCase
         $this->orderItemRepository->method('countHeldByCustomer')->willReturn([
             50 => $held,
         ]);
-        $this->productRepository->method('producedQuantityByVariantCode')
+        $this->productRepository->method('capacityByVariantCode')
             ->willReturn([
                 ($kodJinehoRadku ?? 'Hd-2L-ct') => [
                     'vyrobeno'    => $produced,
