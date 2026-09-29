@@ -11,6 +11,7 @@ class EshopImporter
 {
     public function __construct(
         private readonly string $souborCesta,
+        private readonly int $rocnik,
     ) {
     }
 
@@ -252,21 +253,16 @@ WHERE NOT EXISTS (
 SQL,
             );
 
-            // A re-import may rename a product or change its stock; the default variant mirrors it,
-            // so it has to follow, otherwise the cart keeps showing (and snapshotting) the old label.
+            // A re-import may rename a product; the default variant mirrors it, so it has to
+            // follow, otherwise the cart keeps showing (and snapshotting) the old label.
             //
-            // Only a product whose single variant IS that default may be synced. A product
-            // with real variants (t-shirt sizes, accommodation nights) has variants that
-            // carry their own name and stock, and one of them still matches the parent's
-            // code — for accommodation that is the night the owner was picked from, so this
-            // would rename "neděle" to the whole type and overwrite its per-night stock
-            // with the type total.
+            // Only a product whose single variant IS that default may be renamed. Real variants
+            // (t-shirt sizes, accommodation nights) carry their own name ("neděle", "XL").
             dbQuery(<<<SQL
 UPDATE product_variant
 JOIN shop_predmety ON shop_predmety.id_predmetu = product_variant.product_id
 JOIN `{$temporaryTable}` AS import ON import.kod_predmetu = shop_predmety.kod_predmetu
 SET product_variant.name = shop_predmety.nazev,
-    product_variant.remaining_quantity = shop_predmety.kusu_vyrobeno,
     product_variant.accommodation_day = shop_predmety.ubytovani_den
 WHERE product_variant.code = shop_predmety.kod_predmetu
   AND (
@@ -274,6 +270,24 @@ WHERE product_variant.code = shop_predmety.kod_predmetu
       WHERE sourozenci.product_id = shop_predmety.id_predmetu
   ) = 1
 SQL,
+            );
+
+            // Stock, unlike the name, belongs to every variant: its capacity is the row sharing
+            // its code, whoever owns it. What was already sold this year stays sold.
+            dbQuery(<<<SQL
+UPDATE product_variant
+JOIN shop_predmety ON shop_predmety.kod_predmetu = product_variant.code
+JOIN `{$temporaryTable}` AS import ON import.kod_predmetu = shop_predmety.kod_predmetu
+SET product_variant.remaining_quantity = shop_predmety.kusu_vyrobeno - (
+    SELECT COUNT(*)
+    FROM shop_nakupy
+    WHERE shop_nakupy.rok = $0
+      AND shop_nakupy.variant_id = product_variant.id
+)
+SQL,
+                [
+                    0 => $this->rocnik,
+                ],
             );
 
             // Sync tags for all imported products (new and updated)
