@@ -50,23 +50,6 @@ class EshopIntegrationTest extends AbstractTestDb
 
     protected static array $initQueries = [];
 
-    // CartService opens a Doctrine transaction of its own, which cannot start inside the
-    // legacy connection's raw BEGIN; reset the database after the class instead.
-    protected static function keepTestClassDbChangesInTransaction(): bool
-    {
-        return false;
-    }
-
-    protected static function keepSingleTestMethodDbChangesInTransaction(): bool
-    {
-        return false;
-    }
-
-    protected static function resetDbAfterClass(): bool
-    {
-        return true;
-    }
-
     protected static function getBeforeClassInitCallbacks(): array
     {
         return [

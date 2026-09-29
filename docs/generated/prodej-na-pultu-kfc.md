@@ -118,14 +118,12 @@ bezpečnostní token — a *další* prodej pak spadne na `A new entity was foun
 OrderItem#orderer`. Zahazuje se proto jen rozepsaný prodej (`getScheduledEntityInsertions()`
 a `getScheduledEntityUpdates()`), ne celá identity mapa.
 
-**Rollback nevrátí, co si Doctrine mezitím načetlo.** `CapacityManager::purchase()` odepíše
-kus syrovým SQL a hned si variantu `refresh()`ne, takže je v identity mapě čistá a v žádném
-seznamu rozepsaných změn. Po rollbacku pak databáze hlásí původní zásobu, ale varianta
-v paměti tu sníženou — proto se dotčené varianty na konci ještě jednou refreshnou.
+Pozor na to při psaní testů: `isOpen() === true` nechytí rozepsané entity, které po
+rollbacku zůstaly v identity mapě, protože manager otevřený je. Prokáže je až další prodej
+ve stejném testu.
 
-Pozor na to při psaní testů: `isOpen() === true` tuhle chybu **nechytí**, protože manager
-otevřený je, a assert přes syrové SQL taky ne, protože databáze je po rollbacku v pořádku.
-Prokáže ji až čtení přes entitu a další prodej ve stejném testu.
+**Zásoba se neukládá**, takže po rollbacku není co vracet: zbývá = kapacita − řádky
+v `shop_nakupy` a rollback ty řádky vzal s sebou.
 
 ## Co se ví a zatím neudělalo
 
