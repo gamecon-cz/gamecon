@@ -107,11 +107,11 @@ zrušit hotelovou noc   → drží 0 jídel, k obnově 1   (nabídne se zpět)
 Přesně to chování, které legacy nemá — ta snídani z requestu jen odfiltrovala. Nová vrstva
 si ji pamatuje a po zmizení krycí noci ji vrátí do nabídky.
 
-### Plnou noc udělá `kusu_vyrobeno`
+### Plnou noc udělá `product_variant.capacity`
 
-Zásoba se nikde neukládá: zbývá `shop_predmety.kusu_vyrobeno` řádku s kódem varianty minus
-letošní řádky v `shop_nakupy`. Plnou noc pro test přeplnění tedy udělá `UPDATE shop_predmety
-SET kusu_vyrobeno = 0 WHERE kod_predmetu = <kód varianty>`.
+Zásoba se nikde neukládá: zbývá `product_variant.capacity` minus letošní řádky v `shop_nakupy`
+té varianty. Plnou noc pro test přeplnění tedy udělá `UPDATE product_variant
+SET capacity = 0 WHERE code = <kód varianty>`.
 
 ### `SEF_INFOPULTU` sám o sobě do adminu nepustí
 

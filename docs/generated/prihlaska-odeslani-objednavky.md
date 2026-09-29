@@ -46,10 +46,10 @@ Počet kusů = **počet řádků** v `shop_nakupy`; tabulka nemá unique přes (
 
 `Shop::prodat()` už z přihlášky nevolá nic — zbyl jen ruční prodej v adminu
 (`admin/scripts/modules/_shop.php`, `_uzivatel_ovladac.php`); jídlo jde přes `MealWriter`.
-Zamyká řádek (`FOR UPDATE`) a odmítne:
+Zamyká řádek varianty (`FOR UPDATE`) a odmítne:
 
 - předmět z jiného ročníku (`model_rok != rocnik`)
-- objednávku přes zásobu, když `kusu_vyrobeno IS NOT NULL` (`kusu_vyrobeno` = NULL znamená neomezeně)
+- objednávku přes zásobu, když `product_variant.capacity IS NOT NULL` (NULL znamená neomezeně)
 
 Ubytování jde **mimo `prodat()`** — vlastní cestou v `AccommodationWriter::save()`, která hlídá kapacitu a navíc: minimálně dvě noci (pokud uživatel nemá `Pravo::UBYTOVANI_MUZE_OBJEDNAT_JEDNU_NOC`) a noci na sebe musí navazovat. Legacy `Shop` ubytování neobjednává — čte ho a při hromadném odhlášení neplatičů ho ruší (`zrusLetosniObjednaneUbytovani()`).
 
