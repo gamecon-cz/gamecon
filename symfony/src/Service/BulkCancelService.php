@@ -111,8 +111,6 @@ class BulkCancelService
     }
 
     /**
-     * Cancel a list of OrderItems: archive, remove.
-     *
      * @param OrderItem[]|iterable $items
      *
      * @return int number of cancelled items
