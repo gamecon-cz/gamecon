@@ -24,7 +24,6 @@
 - `GET /symfony/api/products.json` - List products (public)
 - `GET /symfony/api/products/{id}.json` - Get product (public)
 - `POST /symfony/api/products.json` - Create product (admin only)*
-- `PUT /symfony/api/products/{id}.json` - Update product (admin only)*
 - `PATCH /symfony/api/products/{id}.json` - Partial update (admin only)*
 - `DELETE /symfony/api/products/{id}.json` - Delete product (admin only)*
 
