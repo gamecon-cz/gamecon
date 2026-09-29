@@ -57,6 +57,9 @@ SQL,
                     popis = ""');
                 dbQuery('INSERT INTO product_product_tag (product_id, tag_id)
                     SELECT 88831, id FROM product_tag WHERE code = "predmet"');
+                // Varianta, jak to má produkce u každého prodejného předmětu.
+                dbQuery('INSERT INTO product_variant (product_id, name, code, price, remaining_quantity, position)
+                    VALUES (88831, "Pultové tričko", "pult_anonym_test", 150, 10, 0)');
             },
         ];
     }

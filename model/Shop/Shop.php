@@ -2,6 +2,7 @@
 
 namespace Gamecon\Shop;
 
+use App\Enum\ProductTagCode;
 use Gamecon\Aktivita\Aktivita;
 use Gamecon\Aktivita\FiltrAktivity;
 use Gamecon\Aktivita\TypAktivity;
@@ -626,8 +627,24 @@ SQL,
             SQL;
         }
         $mysqli = dbQuery($query);
+        $smazano = dbAffectedOrNumRows($mysqli);
 
-        return dbAffectedOrNumRows($mysqli);
+        // Kolik řádků opravdu zmizelo, ne kolik se chtělo smazat — `LIMIT` jich může smazat
+        // méně, a vrátit víc, než se prodalo, by zásobu nadhodnotilo.
+        if ($smazano > 0) {
+            $kodPredmetu = dbOneCol(
+                'SELECT kod_predmetu FROM shop_predmety WHERE id_predmetu = $0',
+                [0 => $idPredmetu],
+            );
+            if ($kodPredmetu !== null) {
+                $this->posunZasobuVarianty(
+                    $this->idVariantyPodleKodu((string) $kodPredmetu, $idPredmetu),
+                    $smazano,
+                );
+            }
+        }
+
+        return $smazano;
     }
 
     private function cenaVybraneOpakovaneVybiranePolozky(array $polozky, int $idPredmetu): ?float
@@ -704,6 +721,14 @@ SQL,
             return 0;
         }
 
+        $kusuNaVariantach = $this->kusuNaVariantach(
+            "shop_nakupy.rok = {$this->systemoveNastaveni->rocnik()}
+             AND shop_nakupy.id_uzivatele = {$this->zakaznik->id()}
+             AND shop_nakupy.id_predmetu IN (
+                 SELECT id_predmetu FROM shop_predmety_s_typem WHERE typ = {$typPredetu}
+             )",
+        );
+
         $deleteResult = dbQuery(<<<SQL
             DELETE nakupy.*
             FROM shop_nakupy AS nakupy
@@ -713,6 +738,8 @@ SQL,
               AND predmety.typ = {$typPredetu}
             SQL,
         );
+
+        $this->vratZasobuVariantam($kusuNaVariantach);
 
         return dbAffectedOrNumRows($deleteResult);
     }
@@ -756,12 +783,19 @@ SQL,
             SQL,
             [0 => $this->systemoveNastaveni->ted()->format(DateTimeCz::FORMAT_DB), $zdrojZruseni],
         );
+        $kusuNaVariantach = $this->kusuNaVariantach(
+            "shop_nakupy.rok = {$rocnik} AND shop_nakupy.id_uzivatele = {$idZakaznika}
+             {$podminkaZachovani}",
+        );
+
         $result = dbQuery(<<<SQL
             DELETE FROM shop_nakupy
             WHERE shop_nakupy.rok = {$rocnik} AND shop_nakupy.id_uzivatele = {$idZakaznika}
             {$podminkaZachovani}
             SQL,
         );
+
+        $this->vratZasobuVariantam($kusuNaVariantach);
 
         return dbAffectedOrNumRows($result);
     }
@@ -846,6 +880,90 @@ SQL,
         );
     }
 
+    /**
+     * Varianta prodávaného předmětu, nebo `null` u ubytování.
+     *
+     * U noci by se varianta našla správně, ale u vlastníka skupiny (typ pokoje) by jeho kód
+     * ukázal na jednu konkrétní noc — tedy tiše na špatnou. Proto celé ubytování zůstává na
+     * legacy cestě, dokud typ pokoje není vlastní úrovní modelu.
+     */
+    private function idVariantyPodleKodu(
+        string $kodPredmetu,
+        int    $idPredmetu,
+    ): ?int {
+        $jeUbytovani = (bool) dbOneCol(
+            'SELECT EXISTS(
+                SELECT 1 FROM product_product_tag
+                JOIN product_tag ON product_tag.id = product_product_tag.tag_id
+                WHERE product_product_tag.product_id = $0 AND product_tag.code = $1
+            )',
+            [0 => $idPredmetu, 1 => ProductTagCode::UBYTOVANI->value],
+        );
+        if ($jeUbytovani) {
+            return null;
+        }
+
+        $idVarianty = dbOneCol(
+            'SELECT id FROM product_variant WHERE code = $0',
+            [0 => $kodPredmetu],
+        );
+        if ($idVarianty === null) {
+            throw new \Chyba(sprintf(
+                'Předmět „%s" nemá variantu, nejde ho prodat. Chybí v novém modelu produktů.',
+                $kodPredmetu,
+            ));
+        }
+
+        return (int) $idVarianty;
+    }
+
+    /**
+     * Vrátí do zásoby kusy za nákupy, které se chystají zmizet — musí se spočítat PŘED
+     * smazáním, pak už tu informaci nikdo nemá.
+     *
+     * @return array<int, int> variant_id => počet kusů
+     */
+    private function kusuNaVariantach(string $podminka): array
+    {
+        return array_map('intval', dbFetchPairs(
+            "SELECT shop_nakupy.variant_id, COUNT(*)
+             FROM shop_nakupy
+             WHERE shop_nakupy.variant_id IS NOT NULL AND {$podminka}
+             GROUP BY shop_nakupy.variant_id",
+        ));
+    }
+
+    /**
+     * @param array<int, int> $kusuNaVariantach
+     */
+    private function vratZasobuVariantam(array $kusuNaVariantach): void
+    {
+        foreach ($kusuNaVariantach as $idVarianty => $kusu) {
+            $this->posunZasobuVarianty((int) $idVarianty, $kusu);
+        }
+    }
+
+    /**
+     * Zásobu vede varianta; legacy `kusu_vyrobeno` je její zrcadlo, které se tady nemění.
+     *
+     * Smí jít do mínusu, stejně jako `CapacityManager::adjustStock()`: admin prodává i nad
+     * kapacitu a zastavit se na nule by tvrdilo, že je volno, když není.
+     */
+    private function posunZasobuVarianty(
+        ?int $idVarianty,
+        int  $zmena,
+    ): void {
+        if ($idVarianty === null || $zmena === 0) {
+            return;
+        }
+
+        dbQuery(
+            'UPDATE product_variant SET remaining_quantity = remaining_quantity + $1
+             WHERE id = $0 AND remaining_quantity IS NOT NULL',
+            [0 => $idVarianty, 1 => $zmena],
+        );
+    }
+
     public function prodat(
         int  $idPredmetu,
         int  $kusu = 1,
@@ -855,7 +973,7 @@ SQL,
         try {
             // Lock the base-table row first; model_rok is then read from the view (virtual column derived from archived_at).
             $predmet = dbOneLine(
-                "SELECT cena_aktualni, kusu_vyrobeno, nazev FROM shop_predmety WHERE id_predmetu = $0 FOR UPDATE",
+                "SELECT cena_aktualni, kusu_vyrobeno, nazev, kod_predmetu FROM shop_predmety WHERE id_predmetu = $0 FOR UPDATE",
                 [0 => $idPredmetu],
             );
             if ($predmet) {
@@ -899,13 +1017,27 @@ SQL,
             );
             $idObjednavky = dbInsertId();
 
+            // Varianta se dohledává podle kódu, ne podle `product_id`: noci a velikosti se při
+            // migraci přerodičovaly pod jednoho vlastníka, takže `product_id` u nich nesedí.
+            $idVarianty = $this->idVariantyPodleKodu($predmet['kod_predmetu'], $idPredmetu);
+
             for ($i = 1; $i <= $kusu; $i++) {
-                dbQuery(<<<SQL
-INSERT INTO shop_nakupy(id_uzivatele,id_objednatele,id_predmetu,rok,cena_nakupni,datum,order_id)
-VALUES ({$this->zakaznik->id()},{$this->objednatel->id()},{$idPredmetu},{$aktualniRocnik},{$cenaAktualni},NOW(),{$idObjednavky})
-SQL,
+                dbQuery(
+                    'INSERT INTO shop_nakupy(id_uzivatele,id_objednatele,id_predmetu,variant_id,rok,cena_nakupni,datum,order_id)
+                     VALUES ($0,$1,$2,$3,$4,$5,NOW(),$6)',
+                    [
+                        0 => $this->zakaznik->id(),
+                        1 => $this->objednatel->id(),
+                        2 => $idPredmetu,
+                        3 => $idVarianty,
+                        4 => $aktualniRocnik,
+                        5 => $cenaAktualni,
+                        6 => $idObjednavky,
+                    ],
                 );
             }
+
+            $this->posunZasobuVarianty($idVarianty, -$kusu);
 
             if ($this->zakaznik->id() === Uzivatel::ANONYM) {
                 $this->zakaznik->finance()->pripis(

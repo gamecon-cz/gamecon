@@ -78,8 +78,92 @@ SQL,
                     popis = ''");
                 dbQuery("INSERT INTO product_product_tag (product_id, tag_id)
                     SELECT 88812, id FROM product_tag WHERE code = 'predmet'");
+
+                // Varianta ke každému prodejnému předmětu, jak to má produkce — zásoba
+                // se vede na ní, `kusu_vyrobeno` je její legacy zrcadlo.
+                dbQuery("INSERT INTO product_variant (product_id, name, code, price, remaining_quantity, position)
+                    VALUES (88811, 'Limitovaný předmět', 'limit_prodej_test', 100, 2, 0)");
+                dbQuery("INSERT INTO product_variant (product_id, name, code, price, remaining_quantity, position)
+                    VALUES (88812, 'Neomezený předmět', 'unlim_prodej_test', 100, NULL, 0)");
+
+                // Vlastní předmět pro test zápisu varianty: třída nemá rollback po metodě,
+                // takže prodej z jednoho testu by ubral zásobu tomu dalšímu.
+                dbQuery("INSERT INTO shop_predmety SET
+                    id_predmetu = 88813,
+                    nazev = 'Předmět pro variantu',
+                    kod_predmetu = 'varianta_prodej_test',
+                    cena_aktualni = 100,
+                    stav = " . StavPredmetu::VEREJNY . ",
+                    nabizet_do = '{$budouci}',
+                    kusu_vyrobeno = 2,
+                    popis = ''");
+                dbQuery("INSERT INTO product_product_tag (product_id, tag_id)
+                    SELECT 88813, id FROM product_tag WHERE code = 'predmet'");
+                dbQuery("INSERT INTO product_variant (product_id, name, code, price, remaining_quantity, position)
+                    VALUES (88813, 'Předmět pro variantu', 'varianta_prodej_test', 100, 2, 0)");
+
+                dbQuery("INSERT INTO shop_predmety SET
+                    id_predmetu = 88814,
+                    nazev = 'Předmět pro zrušení',
+                    kod_predmetu = 'zruseni_prodej_test',
+                    cena_aktualni = 100,
+                    stav = " . StavPredmetu::VEREJNY . ",
+                    nabizet_do = '{$budouci}',
+                    kusu_vyrobeno = 3,
+                    popis = ''");
+                dbQuery("INSERT INTO product_product_tag (product_id, tag_id)
+                    SELECT 88814, id FROM product_tag WHERE code = 'predmet'");
+                dbQuery("INSERT INTO product_variant (product_id, name, code, price, remaining_quantity, position)
+                    VALUES (88814, 'Předmět pro zrušení', 'zruseni_prodej_test', 100, 3, 0)");
             },
         ];
+    }
+
+    /**
+     * Prodej z adminu musí zapsat variantu a ubrat z její zásoby — jinak vzniká nákup, který
+     * nová vrstva nevidí, a zásoba na variantě se rozejde s legacy `kusu_vyrobeno`.
+     *
+     * @test
+     */
+    public function prodejZapiseVariantuAUbereZeZasoby(): void
+    {
+        $uzivatel = \Uzivatel::zIdUrcite(88801);
+        $shop = new Shop($uzivatel, $uzivatel, SystemoveNastaveni::zGlobals());
+
+        $shop->prodat(88813, 1);
+
+        self::assertSame(
+            1,
+            (int) dbOneCol('SELECT COUNT(*) FROM shop_nakupy WHERE id_predmetu = 88813 AND variant_id IS NOT NULL'),
+            'Nákup musí ukazovat na variantu',
+        );
+        self::assertSame(
+            1,
+            (int) dbOneCol("SELECT remaining_quantity FROM product_variant WHERE code = 'varianta_prodej_test'"),
+            'Ze zásoby na variantě se měl ubrat jeden kus',
+        );
+    }
+
+    /**
+     * Zrušení nákupu musí kus vrátit do zásoby na variantě. Prodej ji ubírá, takže bez toho
+     * by každá oprava v adminu zásobu natrvalo snížila a obě čísla by se rozešla.
+     *
+     * @test
+     */
+    public function zruseniNakupuVratiKusDoZasoby(): void
+    {
+        $uzivatel = \Uzivatel::zIdUrcite(88801);
+        $shop = new Shop($uzivatel, $uzivatel, SystemoveNastaveni::zGlobals());
+        $zbyva = static fn (): int => (int) dbOneCol(
+            "SELECT remaining_quantity FROM product_variant WHERE code = 'zruseni_prodej_test'",
+        );
+
+        $shop->prodat(88814, 2);
+        self::assertSame(1, $zbyva(), 'Prodej měl ubrat dva kusy');
+
+        $shop->zrusNakupPredmetu(88814, 2);
+
+        self::assertSame(3, $zbyva(), 'Zrušení mělo oba kusy vrátit');
     }
 
     /**
