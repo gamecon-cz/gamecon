@@ -347,8 +347,8 @@ class AccommodationWriter
     }
 
     /**
-     * Capacity is counted from shop_nakupy because remaining_quantity is stale while the admin
-     * and infopult screens still sell without touching it. id_predmetu is the night's own
+     * Capacity is counted from shop_nakupy, which every sale writes, not from remaining_quantity,
+     * a mirror that a reset or a write bypassing it leaves wrong. id_predmetu is the night's own
      * legacy row, not the variant's parent — the day-variant migration reparented variants
      * onto one owner, and every legacy consumer reads ubytovani_den off id_predmetu.
      */

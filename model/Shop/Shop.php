@@ -873,16 +873,17 @@ SQL,
     }
 
     /**
-     * Varianta prodávaného předmětu, nebo `null` u ubytování.
-     *
-     * U noci by se varianta našla správně, ale u vlastníka skupiny (typ pokoje) by jeho kód
-     * ukázal na jednu konkrétní noc — tedy tiše na špatnou. Proto celé ubytování zůstává na
-     * legacy cestě, dokud typ pokoje není vlastní úrovní modelu.
+     * Accommodation sells only a night. A room type owns its nights, and whether it has a
+     * variant of its own depends on how it was created, so the night itself is what is checked.
      */
     private function idVariantyPodleKodu(
         string $kodPredmetu,
         int    $idPredmetu,
-    ): ?int {
+    ): int {
+        $varianta = dbOneLine(
+            'SELECT id, accommodation_day FROM product_variant WHERE code = $0',
+            [0 => $kodPredmetu],
+        );
         $jeUbytovani = (bool) dbOneCol(
             'SELECT EXISTS(
                 SELECT 1 FROM product_product_tag
@@ -891,22 +892,20 @@ SQL,
             )',
             [0 => $idPredmetu, 1 => ProductTagCode::UBYTOVANI->value],
         );
-        if ($jeUbytovani) {
-            return null;
+        if ($jeUbytovani && ($varianta['accommodation_day'] ?? null) === null) {
+            throw new \Chyba(sprintf(
+                'Typ pokoje „%s" nejde prodat, vyber konkrétní noc.',
+                $kodPredmetu,
+            ));
         }
-
-        $idVarianty = dbOneCol(
-            'SELECT id FROM product_variant WHERE code = $0',
-            [0 => $kodPredmetu],
-        );
-        if ($idVarianty === null) {
+        if ($varianta === []) {
             throw new \Chyba(sprintf(
                 'Předmět „%s" nemá variantu, nejde ho prodat. Chybí v novém modelu produktů.',
                 $kodPredmetu,
             ));
         }
 
-        return (int) $idVarianty;
+        return (int) $varianta['id'];
     }
 
     /**
@@ -979,10 +978,10 @@ SQL,
      * kapacitu a zastavit se na nule by tvrdilo, že je volno, když není.
      */
     private function posunZasobuVarianty(
-        ?int $idVarianty,
-        int  $zmena,
+        int $idVarianty,
+        int $zmena,
     ): void {
-        if ($idVarianty === null || $zmena === 0) {
+        if ($zmena === 0) {
             return;
         }
 
