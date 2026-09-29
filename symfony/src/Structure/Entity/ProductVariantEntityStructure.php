@@ -30,11 +30,6 @@ class ProductVariantEntityStructure
     public const price = 'price';
 
     /**
-     * @see ProductVariant::$remainingQuantity
-     */
-    public const remainingQuantity = 'remainingQuantity';
-
-    /**
      * @see ProductVariant::$reservedForOrganizers
      */
     public const reservedForOrganizers = 'reservedForOrganizers';

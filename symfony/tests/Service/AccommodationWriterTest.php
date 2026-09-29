@@ -11,6 +11,7 @@ use App\Enum\ProductStateEnum;
 use App\Enum\ProductTagCode;
 use App\Service\AccommodationWriter;
 use App\Service\BreakfastCanceller;
+use App\Service\CapacityManager;
 use App\Service\CartService;
 use App\Structure\Entity\UserEntityStructure;
 use App\Tests\AbstractDatabaseKernelTestCase;
@@ -113,7 +114,6 @@ class AccommodationWriterTest extends AbstractDatabaseKernelTestCase
             $variant->setName($nazev);
             $variant->setCode($kod . '-' . $den);
             $variant->setAccommodationDay($den);
-            $variant->setRemainingQuantity($kusuVyrobeno);
             $variant->setPosition($den);
             $product->addVariant($variant);
             $this->entityManager()->persist($variant);
@@ -164,7 +164,6 @@ class AccommodationWriterTest extends AbstractDatabaseKernelTestCase
         $noc->setName('noc');
         $noc->setCode($kod . '-' . $den);
         $noc->setAccommodationDay($den);
-        $noc->setRemainingQuantity(5);
         $noc->setPosition($den);
         $hotel->addVariant($noc);
         $this->entityManager()->persist($noc);
@@ -240,14 +239,6 @@ class AccommodationWriterTest extends AbstractDatabaseKernelTestCase
                 'customer' => $customer->getId(),
                 'variant'  => $snidaneVariantId,
                 'year'     => self::ROK,
-            ],
-        );
-        // Zápis mimo aplikaci musí zásobu ubrat sám, jinak varianta tvrdí, že má volno.
-        $this->connection()->executeStatement(
-            'UPDATE product_variant SET remaining_quantity = remaining_quantity - 1
-             WHERE id = :variant AND remaining_quantity IS NOT NULL',
-            [
-                'variant' => $snidaneVariantId,
             ],
         );
     }
@@ -669,23 +660,11 @@ class AccommodationWriterTest extends AbstractDatabaseKernelTestCase
         self::assertSame(0, (int) $declined);
     }
 
-    /**
-     * The guard the whole design turns on: the sold count decides, so a counter that a reset
-     * or a bypassing write left too high still cannot oversell a night.
-     */
-    public function testFullNightIsRefusedEvenWhenRemainingQuantitySaysOtherwise(): void
+    public function testFullNightIsRefused(): void
     {
         $this->pripravUbytovani(kusuVyrobeno: 2);
         $customer = $this->ucastnik();
         $this->zaplnNoc(0, 2);
-
-        // Leave the column lying that beds are free, exactly as the legacy admin screens do.
-        $this->connection()->executeStatement(
-            'UPDATE product_variant SET remaining_quantity = 999 WHERE id = :variant',
-            [
-                'variant' => $this->noci[0]->getId(),
-            ],
-        );
 
         $this->expectExceptionMessage('přeplnit ho smí jen šéf infopultu');
 
@@ -693,9 +672,8 @@ class AccommodationWriterTest extends AbstractDatabaseKernelTestCase
     }
 
     /**
-     * Zásoba na variantě je sice pro rozhodování o kapacitě zastaralá, ale pořád ji čte
-     * účastnický košík. Když ji admin prodejem nesníží, e-shop pak nabízí postele, které
-     * na pultu někdo právě prodal.
+     * Prodej na pultu musí ubrat i zásobu, kterou vidí účastnický košík — jinak e-shop
+     * nabízí postele, které na pultu někdo právě prodal.
      */
     public function testAdminSaleDecrementsTheVariantStock(): void
     {
@@ -715,12 +693,7 @@ class AccommodationWriterTest extends AbstractDatabaseKernelTestCase
     {
         $this->pripravUbytovani(kusuVyrobeno: 1);
         $customer = $this->ucastnik();
-        $this->connection()->executeStatement(
-            'UPDATE product_variant SET remaining_quantity = 0 WHERE id = :variant',
-            [
-                'variant' => $this->noci[0]->getId(),
-            ],
-        );
+        $this->zaplnNoc(0, 1);
 
         $this->writer()->save($customer, $this->idNoci(0), self::ROK, true, mayOverbook: true);
 
@@ -1041,15 +1014,15 @@ class AccommodationWriterTest extends AbstractDatabaseKernelTestCase
     }
 
     /**
-     * Totéž co u ubytování: zásoba na variantě je sice pro rozhodování o kapacitě
-     * zastaralá, ale účastnický košík ji čte, takže ji prodej na pultu musí snížit.
+     * Totéž co u ubytování: prodej na pultu musí ubrat zásobu, kterou vidí účastnický košík.
      */
     public function testAdminMealSaleDecrementsTheVariantStock(): void
     {
         [, $snidaneId] = $this->pripravHotelSeSnidani(0);
         $customer = $this->ucastnik();
         $this->connection()->executeStatement(
-            'UPDATE product_variant SET remaining_quantity = 3 WHERE id = :variant',
+            'UPDATE shop_predmety SET kusu_vyrobeno = 3
+             WHERE kod_predmetu = (SELECT code FROM product_variant WHERE id = :variant)',
             [
                 'variant' => $snidaneId,
             ],
@@ -1065,7 +1038,8 @@ class AccommodationWriterTest extends AbstractDatabaseKernelTestCase
         [, $snidaneId] = $this->pripravHotelSeSnidani(0);
         $customer = $this->ucastnik();
         $this->connection()->executeStatement(
-            'UPDATE product_variant SET remaining_quantity = 3 WHERE id = :variant',
+            'UPDATE shop_predmety SET kusu_vyrobeno = 3
+             WHERE kod_predmetu = (SELECT code FROM product_variant WHERE id = :variant)',
             [
                 'variant' => $snidaneId,
             ],
@@ -1086,7 +1060,8 @@ class AccommodationWriterTest extends AbstractDatabaseKernelTestCase
         [$nocId, $snidaneId] = $this->pripravHotelSeSnidani(0);
         $customer = $this->ucastnik();
         $this->connection()->executeStatement(
-            'UPDATE product_variant SET remaining_quantity = 3 WHERE id = :variant',
+            'UPDATE shop_predmety SET kusu_vyrobeno = 3
+             WHERE kod_predmetu = (SELECT code FROM product_variant WHERE id = :variant)',
             [
                 'variant' => $snidaneId,
             ],
@@ -1122,13 +1097,6 @@ class AccommodationWriterTest extends AbstractDatabaseKernelTestCase
                 'v' => $this->noci[0]->getId(),
             ],
         );
-        $this->connection()->executeStatement(
-            'UPDATE product_variant SET remaining_quantity = 7 WHERE id = :variant',
-            [
-                'variant' => $this->noci[0]->getId(),
-            ],
-        );
-
         self::assertSame(2, (int) $this->connection()->fetchOne(
             'SELECT COUNT(*) FROM shop_nakupy WHERE id_uzivatele = :c AND rok = :y AND variant_id = :v',
             [
@@ -1144,7 +1112,7 @@ class AccommodationWriterTest extends AbstractDatabaseKernelTestCase
     }
 
     /**
-     * `null` znamená neomezeno; úprava zásoby to nesmí přepsat na číslo.
+     * `null` znamená neomezeno; prodej ani zrušení z toho nesmí udělat číslo.
      */
     public function testUnlimitedStockStaysUnlimited(): void
     {
@@ -1154,12 +1122,7 @@ class AccommodationWriterTest extends AbstractDatabaseKernelTestCase
         $this->mealWriter()->save($customer, [$snidaneId], self::ROK);
         $this->mealWriter()->save($customer, [], self::ROK);
 
-        self::assertNull($this->connection()->fetchOne(
-            'SELECT remaining_quantity FROM product_variant WHERE id = :variant',
-            [
-                'variant' => $snidaneId,
-            ],
-        ));
+        self::assertNull($this->zbyvaNaVarianteId($snidaneId));
     }
 
     /**
@@ -1210,14 +1173,9 @@ class AccommodationWriterTest extends AbstractDatabaseKernelTestCase
         ), 'K zaplněné veřejné části přibyla noc z rezervy');
     }
 
-    private function zbyvaNaVarianteId(int $variantId): int
+    private function zbyvaNaVarianteId(int $variantId): ?int
     {
-        return (int) $this->connection()->fetchOne(
-            'SELECT remaining_quantity FROM product_variant WHERE id = :variant',
-            [
-                'variant' => $variantId,
-            ],
-        );
+        return static::getContainer()->get(CapacityManager::class)->remainingByVariantId([$variantId])[$variantId] ?? null;
     }
 
     /**
@@ -1229,13 +1187,6 @@ class AccommodationWriterTest extends AbstractDatabaseKernelTestCase
         [, $snidaneId] = $this->pripravHotelSeSnidani(0);
         $customer = $this->ucastnik();
 
-        // Zásoba je na variantě, ne na legacy `kusu_vyrobeno` — tam se jen zrcadlí.
-        $this->connection()->executeStatement(
-            'UPDATE product_variant SET remaining_quantity = 1 WHERE id = :variant',
-            [
-                'variant' => $snidaneId,
-            ],
-        );
         $this->connection()->executeStatement(
             'UPDATE shop_predmety SET kusu_vyrobeno = 1
              WHERE kod_predmetu = (SELECT code FROM product_variant WHERE id = :variant)',
@@ -1274,14 +1225,6 @@ class AccommodationWriterTest extends AbstractDatabaseKernelTestCase
         [, $snidaneId] = $this->pripravHotelSeSnidani(0);
         $customer = $this->ucastnik();
 
-        // Zásoba musí být i na variantě, jinak `null` znamená „neomezeno" a test by prošel
-        // i s vyřazenou kontrolou kapacity.
-        $this->connection()->executeStatement(
-            'UPDATE product_variant SET remaining_quantity = 2 WHERE id = :variant',
-            [
-                'variant' => $snidaneId,
-            ],
-        );
         $this->connection()->executeStatement(
             'UPDATE shop_predmety SET kusu_vyrobeno = 2
              WHERE kod_predmetu = (SELECT code FROM product_variant WHERE id = :variant)',

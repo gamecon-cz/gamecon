@@ -11,6 +11,7 @@ use App\Entity\ProductVariant;
 use App\Entity\User;
 use App\Enum\ProductStateEnum;
 use App\Enum\ProductTagCode;
+use App\Service\CapacityManager;
 use App\Service\JwtService;
 use App\Structure\Entity\UserEntityStructure;
 use App\Tests\AbstractDatabaseKernelTestCase;
@@ -106,9 +107,9 @@ class KfcSaleApiTest extends AbstractDatabaseKernelTestCase
      * @param array<string, int|null> $velikostiSeZasobou název => zbývá
      */
     private function vytvorPredmet(
-        array            $velikostiSeZasobou,
+        array $velikostiSeZasobou,
         ProductStateEnum $stav = ProductStateEnum::PUBLIC,
-        ?string          $archivedAt = null,
+        ?string $archivedAt = null,
     ): Product {
         $this->connection()->executeStatement(
             'INSERT IGNORE INTO product_tag (code, name, created_at) VALUES (:code, :name, NOW())',
@@ -140,33 +141,32 @@ class KfcSaleApiTest extends AbstractDatabaseKernelTestCase
         $this->entityManager()->persist($predmet);
 
         $poradi = 0;
+        $zasobaVariant = [];
         foreach ($velikostiSeZasobou as $velikost => $zbyva) {
             $varianta = new ProductVariant();
             $varianta->setProduct($predmet);
             $varianta->setName((string) $velikost);
             $varianta->setCode($kod . '-' . $velikost);
             $varianta->setPrice('400.00');
-            $varianta->setRemainingQuantity($zbyva);
+            $zasobaVariant[] = [$varianta, $zbyva];
             $varianta->setPosition($poradi++);
             $predmet->addVariant($varianta);
             $this->entityManager()->persist($varianta);
         }
         $this->entityManager()->flush();
+        foreach ($zasobaVariant as [$varianta, $zbyva]) {
+            $this->kapacitaVarianty($varianta, $zbyva);
+        }
 
         return $predmet;
     }
 
-    /** Stav po požadavku se čte z databáze — `adminClient()` mezitím vyčistil EntityManager. */
+    /**
+     * Stav po požadavku se čte z databáze — `adminClient()` mezitím vyčistil EntityManager.
+     */
     private function zbyvaNaVariante(int $idVarianty): ?int
     {
-        $zbyva = $this->connection()->fetchOne(
-            'SELECT remaining_quantity FROM product_variant WHERE id = :id',
-            [
-                'id' => $idVarianty,
-            ],
-        );
-
-        return $zbyva === null ? null : (int) $zbyva;
+        return static::getContainer()->get(CapacityManager::class)->remainingByVariantId([$idVarianty])[$idVarianty] ?? null;
     }
 
     private function varianta(Product $predmet, string $nazev): ProductVariant

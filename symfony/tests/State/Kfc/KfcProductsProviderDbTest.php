@@ -13,9 +13,8 @@ use App\State\Kfc\KfcProductsProvider;
 use App\Tests\AbstractDatabaseKernelTestCase;
 
 /**
- * Číslo na pultu musí souhlasit s tím, kolik prodej doopravdy pustí. Vynucuje ho
- * `CapacityManager::purchase()` přes `product_variant.remaining_quantity`, takže se čte
- * odtamtud — dopočítávat ho z `kusu_vyrobeno` minus nákupy dávalo jiné číslo.
+ * Číslo na pultu musí souhlasit s tím, kolik prodej doopravdy pustí, takže se bere
+ * z `CapacityManager` — ze stejného místa, ze kterého prodej hlídá kapacitu.
  *
  * Endpoint obsluhuje mřížku pultu i editor mřížek, takže vrací celý katalog: buňka
  * odkazující na produkt, který by se odfiltroval, by zůstala bez názvu a ceny.
@@ -28,12 +27,12 @@ class KfcProductsProviderDbTest extends AbstractDatabaseKernelTestCase
     }
 
     private function vytvorPredmet(
-        string           $nazev,
-        ?int             $zbyvaNaVariante,
-        int              $kusuVyrobeno,
+        string $nazev,
+        ?int $zbyvaNaVariante,
+        int $kusuVyrobeno,
         ProductStateEnum $stav = ProductStateEnum::PUBLIC,
-        ?string          $archivedAt = null,
-        int              $variant = 1,
+        ?string $archivedAt = null,
+        int $variant = 1,
     ): Product {
         $kod = 'kfc-' . uniqid();
 
@@ -50,17 +49,19 @@ class KfcProductsProviderDbTest extends AbstractDatabaseKernelTestCase
         $this->entityManager()->persist($produkt);
         $this->entityManager()->flush();
 
-        for ($poradi = 0; $poradi < $variant; $poradi++) {
+        for ($poradi = 0; $poradi < $variant; ++$poradi) {
             $varianta = new ProductVariant();
             $varianta->setProduct($produkt);
             $varianta->setName('kus' . $poradi);
             $varianta->setCode($kod . '-' . $poradi);
             $varianta->setPosition($poradi);
-            $varianta->setRemainingQuantity($zbyvaNaVariante);
             $produkt->addVariant($varianta);
             $this->entityManager()->persist($varianta);
         }
         $this->entityManager()->flush();
+        foreach ($produkt->getVariants() as $varianta) {
+            $this->kapacitaVarianty($varianta, $zbyvaNaVariante);
+        }
 
         return $produkt;
     }
@@ -86,7 +87,7 @@ class KfcProductsProviderDbTest extends AbstractDatabaseKernelTestCase
 
     public function testZasobaOdpovidaVariante(): void
     {
-        // `kusu_vyrobeno` schválně jiné: kdyby se počítalo z něj, vyjde 500, ne 7.
+        // Vlastní řádek varianty má přednost před produktem: z produktu by vyšlo 500, ne 7.
         $nazev = 'Kostka ' . uniqid();
         $this->vytvorPredmet($nazev, zbyvaNaVariante: 7, kusuVyrobeno: 500);
 

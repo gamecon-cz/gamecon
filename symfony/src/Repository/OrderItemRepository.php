@@ -116,9 +116,7 @@ class OrderItemRepository extends ServiceEntityRepository
     }
 
     /**
-     * Counts both sale paths, since OrderItem maps to shop_nakupy. Pair it only with
-     * {@see ProductRepository::producedQuantityByVariantCode()}, never with
-     * remaining_quantity — CapacityManager already decrements that for new-cart sales.
+     * Counts both sale paths, since OrderItem maps to shop_nakupy.
      *
      * @param int[] $variantIds
      *

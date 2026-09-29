@@ -32,11 +32,6 @@ class ProductVariantSqlStructure
     public const price = 'price';
 
     /**
-     * @see ProductVariant::$remainingQuantity
-     */
-    public const remaining_quantity = 'remaining_quantity';
-
-    /**
      * @see ProductVariant::$reservedForOrganizers
      */
     public const reserved_for_organizers = 'reserved_for_organizers';

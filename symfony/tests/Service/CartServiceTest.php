@@ -128,7 +128,7 @@ class CartServiceTest extends TestCase
     {
         $user = $this->createMock(User::class);
         $product = $this->createProduct();
-        $variant = $this->createVariant($product, 'M', 'TRICKO-M', 10);
+        $variant = $this->createVariant($product, 'M', 'TRICKO-M');
 
         $order = new Order();
         $order->setCustomer($user);
@@ -144,7 +144,7 @@ class CartServiceTest extends TestCase
             ]);
 
         $this->capacityManager->expects($this->once())
-            ->method('purchase')
+            ->method('lockForSale')
             ->with($variant, 1, []);
 
         $this->entityManager->expects($this->once())
@@ -166,7 +166,7 @@ class CartServiceTest extends TestCase
     {
         $user = $this->createMock(User::class);
         $product = $this->createProduct();
-        $variant = $this->createVariant($product, 'M', 'TRICKO-M', 10);
+        $variant = $this->createVariant($product, 'M', 'TRICKO-M');
 
         $order = new Order();
         $order->setCustomer($user);
@@ -195,7 +195,7 @@ class CartServiceTest extends TestCase
         $product = $this->createProduct();
         $product->setState(ProductStateEnum::RETIRED);
 
-        $variant = $this->createVariant($product, 'M', 'TRICKO-M', 10);
+        $variant = $this->createVariant($product, 'M', 'TRICKO-M');
         $order = new Order();
         $order->setCustomer($this->createMock(User::class));
         $order->setYear(2026);
@@ -209,14 +209,14 @@ class CartServiceTest extends TestCase
     public function testAddItemThrowsWhenSoldOut(): void
     {
         $product = $this->createProduct();
-        $variant = $this->createVariant($product, 'M', 'TRICKO-M', 0);
+        $variant = $this->createVariant($product, 'M', 'TRICKO-M');
 
         $order = new Order();
         $order->setCustomer($this->createMock(User::class));
         $order->setYear(2026);
 
         $this->capacityManager->expects($this->once())
-            ->method('purchase')
+            ->method('lockForSale')
             ->willThrowException(new \RuntimeException('Nedostatečná kapacita'));
 
         $this->expectException(\RuntimeException::class);
@@ -225,10 +225,10 @@ class CartServiceTest extends TestCase
         $this->cartService->addItem($order, $variant);
     }
 
-    public function testRemoveItemReturnsStock(): void
+    public function testRemoveItemDeletesTheRow(): void
     {
         $product = $this->createProduct();
-        $variant = $this->createVariant($product, 'M', 'TRICKO-M', 5);
+        $variant = $this->createVariant($product, 'M', 'TRICKO-M');
 
         $item = new OrderItem();
         $item->setProduct($product);
@@ -243,10 +243,6 @@ class CartServiceTest extends TestCase
         $order->addItem($item);
         $item->setOrder($order);
 
-        $this->capacityManager->expects($this->once())
-            ->method('cancelPurchase')
-            ->with($variant, 1);
-
         $this->entityManager->expects($this->once())
             ->method('remove')
             ->with($item);
@@ -256,32 +252,11 @@ class CartServiceTest extends TestCase
         $this->assertTrue($order->isEmpty());
     }
 
-    public function testRemoveItemWithDeletedVariant(): void
-    {
-        $item = new OrderItem();
-        $item->setPurchasePrice('100.00');
-        $item->setYear(2026);
-        $item->setCustomer($this->createMock(User::class));
-        // variant is null (deleted)
-
-        $order = new Order();
-        $order->setCustomer($this->createMock(User::class));
-        $order->setYear(2026);
-        $order->addItem($item);
-        $item->setOrder($order);
-
-        // Should not call cancelPurchase when variant is null
-        $this->capacityManager->expects($this->never())
-            ->method('cancelPurchase');
-
-        $this->cartService->removeItem($order, $item);
-    }
-
     public function testAddItemRecalculatesOrderTotal(): void
     {
         $user = $this->createMock(User::class);
         $product = $this->createProduct();
-        $variant = $this->createVariant($product, 'M', 'TRICKO-M', 10);
+        $variant = $this->createVariant($product, 'M', 'TRICKO-M');
 
         $order = new Order();
         $order->setCustomer($user);
@@ -306,7 +281,7 @@ class CartServiceTest extends TestCase
     public function testAddItemRejectsVariantInForcedBundle(): void
     {
         $product = $this->createProduct();
-        $variant = $this->createVariant($product, 'Thu', 'ACCOM-THU', 10);
+        $variant = $this->createVariant($product, 'Thu', 'ACCOM-THU');
         $bundle = $this->createBundle('Víkendový balíček', true, [RoleMeaning::PRIHLASEN->value]);
 
         $order = new Order();
@@ -325,7 +300,7 @@ class CartServiceTest extends TestCase
     public function testAddItemAllowsVariantWhenBundleNotMandatory(): void
     {
         $product = $this->createProduct();
-        $variant = $this->createVariant($product, 'Thu', 'ACCOM-THU', 10);
+        $variant = $this->createVariant($product, 'Thu', 'ACCOM-THU');
 
         $order = new Order();
         $order->setCustomer($this->createMock(User::class));
@@ -352,9 +327,9 @@ class CartServiceTest extends TestCase
     public function testAddBundleAddsAllVariants(): void
     {
         $product = $this->createProduct();
-        $v1 = $this->createVariant($product, 'Thu', 'ACCOM-THU', 10);
-        $v2 = $this->createVariant($product, 'Fri', 'ACCOM-FRI', 10);
-        $v3 = $this->createVariant($product, 'Sat', 'ACCOM-SAT', 10);
+        $v1 = $this->createVariant($product, 'Thu', 'ACCOM-THU');
+        $v2 = $this->createVariant($product, 'Fri', 'ACCOM-FRI');
+        $v3 = $this->createVariant($product, 'Sat', 'ACCOM-SAT');
 
         $bundle = $this->createBundle('Víkend', true, [RoleMeaning::PRIHLASEN->value]);
         $bundle->addVariant($v1);
@@ -366,7 +341,7 @@ class CartServiceTest extends TestCase
         $order->setYear(2026);
 
         $this->capacityManager->expects($this->exactly(3))
-            ->method('purchase');
+            ->method('lockForSale');
 
         $this->discountCalculator->method('priceForNextPiece')
             ->willReturn([
@@ -386,11 +361,11 @@ class CartServiceTest extends TestCase
         }
     }
 
-    public function testAddBundleRollsBackOnFailure(): void
+    public function testAddBundleAddsNothingWhenOneVariantIsSoldOut(): void
     {
         $product = $this->createProduct();
-        $v1 = $this->createVariant($product, 'Thu', 'ACCOM-THU', 10);
-        $v2 = $this->createVariant($product, 'Fri', 'ACCOM-FRI', 0);
+        $v1 = $this->createVariant($product, 'Thu', 'ACCOM-THU');
+        $v2 = $this->createVariant($product, 'Fri', 'ACCOM-FRI');
 
         $bundle = $this->createBundle('Víkend', true, [RoleMeaning::PRIHLASEN->value]);
         $bundle->addVariant($v1);
@@ -410,7 +385,7 @@ class CartServiceTest extends TestCase
             ]);
 
         $callCount = 0;
-        $this->capacityManager->method('purchase')
+        $this->capacityManager->method('lockForSale')
             ->willReturnCallback(function () use (&$callCount): void {
                 ++$callCount;
                 if ($callCount === 2) {
@@ -418,10 +393,8 @@ class CartServiceTest extends TestCase
                 }
             });
 
-        // First variant should be rolled back
-        $this->capacityManager->expects($this->once())
-            ->method('cancelPurchase')
-            ->with($v1);
+        $this->entityManager->expects($this->never())
+            ->method('persist');
 
         $this->expectException(\RuntimeException::class);
         $this->expectExceptionMessage('Nedostatečná kapacita');
@@ -433,7 +406,7 @@ class CartServiceTest extends TestCase
     {
         $bundle = $this->createBundle('Víkend', true, [RoleMeaning::PRIHLASEN->value]);
         $product = $this->createProduct();
-        $variant = $this->createVariant($product, 'Thu', 'ACCOM-THU', 10);
+        $variant = $this->createVariant($product, 'Thu', 'ACCOM-THU');
 
         $item = new OrderItem();
         $item->setProduct($product);
@@ -459,8 +432,8 @@ class CartServiceTest extends TestCase
     {
         $bundle = $this->createBundle('Víkend', true, [RoleMeaning::PRIHLASEN->value]);
         $product = $this->createProduct();
-        $v1 = $this->createVariant($product, 'Thu', 'ACCOM-THU', 10);
-        $v2 = $this->createVariant($product, 'Fri', 'ACCOM-FRI', 10);
+        $v1 = $this->createVariant($product, 'Thu', 'ACCOM-THU');
+        $v2 = $this->createVariant($product, 'Fri', 'ACCOM-FRI');
 
         $item1 = new OrderItem();
         $item1->setProduct($product);
@@ -485,9 +458,6 @@ class CartServiceTest extends TestCase
         $order->addItem($item2);
         $item1->setOrder($order);
         $item2->setOrder($order);
-
-        $this->capacityManager->expects($this->exactly(2))
-            ->method('cancelPurchase');
 
         $this->entityManager->expects($this->exactly(2))
             ->method('remove');
@@ -519,13 +489,12 @@ class CartServiceTest extends TestCase
         return $product;
     }
 
-    private function createVariant(Product $product, string $name, string $code, ?int $remaining): ProductVariant
+    private function createVariant(Product $product, string $name, string $code): ProductVariant
     {
         $variant = new ProductVariant();
         $variant->setProduct($product);
         $variant->setName($name);
         $variant->setCode($code);
-        $variant->setRemainingQuantity($remaining);
         $product->addVariant($variant);
 
         return $variant;
