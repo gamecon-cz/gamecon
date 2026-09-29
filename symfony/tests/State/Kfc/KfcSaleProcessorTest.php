@@ -156,7 +156,6 @@ class KfcSaleProcessorTest extends AbstractDatabaseKernelTestCase
         $varianta->setName('jedna velikost');
         $varianta->setCode($kod . '-1');
         $varianta->setPrice($cena);
-        $varianta->setRemainingQuantity($kusuVyrobeno);
         $varianta->setPosition(0);
         $predmet->addVariant($varianta);
         $this->entityManager()->persist($varianta);
@@ -355,7 +354,6 @@ class KfcSaleProcessorTest extends AbstractDatabaseKernelTestCase
         $druhaVarianta->setName('druhá velikost');
         $druhaVarianta->setCode($predmet->getCode() . '-2');
         $druhaVarianta->setPrice('50.00');
-        $druhaVarianta->setRemainingQuantity(10);
         $druhaVarianta->setPosition(1);
         $predmet->addVariant($druhaVarianta);
         $this->entityManager()->persist($druhaVarianta);
@@ -423,12 +421,7 @@ class KfcSaleProcessorTest extends AbstractDatabaseKernelTestCase
         self::assertSame(1, $vysledek->soldItems, 'Pult musí prodat i z rezervovaných kusů');
         self::assertSame(
             2,
-            (int) $this->connection()->fetchOne(
-                'SELECT remaining_quantity FROM product_variant WHERE product_id = :id',
-                [
-                    'id' => $predmet->getId(),
-                ],
-            ),
+            $this->zbyva($predmet->getVariants()->first()),
         );
     }
 
@@ -759,13 +752,8 @@ class KfcSaleProcessorTest extends AbstractDatabaseKernelTestCase
 
         self::assertSame(
             9,
-            (int) $this->connection()->fetchOne(
-                'SELECT remaining_quantity FROM product_variant WHERE product_id = :id',
-                [
-                    'id' => $predmet->getId(),
-                ],
-            ),
-            'Zásoba se musí snížit přes CapacityManager, ne dopočítávat z počtu nákupů',
+            $this->zbyva($predmet->getVariants()->first()),
+            'Prodaný kus musí ubrat ze zásoby',
         );
     }
 
@@ -815,8 +803,8 @@ class KfcSaleProcessorTest extends AbstractDatabaseKernelTestCase
     }
 
     /**
-     * Neúspěšný prodej nesmí nechat v databázi ani řádek — rollback musí vzít i kusy
-     * odepsané ze zásoby dřív, než se narazilo na vyprodaný předmět.
+     * Neúspěšný prodej nesmí nechat v databázi ani řádek — ani kusy prodané dřív, než se
+     * narazilo na vyprodaný předmět.
      *
      * @test
      */
@@ -842,21 +830,8 @@ class KfcSaleProcessorTest extends AbstractDatabaseKernelTestCase
         );
         self::assertSame(
             5,
-            (int) $this->connection()->fetchOne(
-                'SELECT remaining_quantity FROM product_variant WHERE id = :varianta',
-                [
-                    'varianta' => $dostupny->getVariants()->first()->getId(),
-                ],
-            ),
+            $this->zbyva($dostupny->getVariants()->first()),
             'Zásoba prvního předmětu se musí vrátit',
-        );
-
-        // Bez refreshe, schválně: CapacityManager si variantu během prodeje načetl se
-        // sníženou zásobou a rollback o tom neví. Tak ji uvidí i zbytek requestu.
-        self::assertSame(
-            5,
-            $dostupny->getVariants()->first()->getRemainingQuantity(),
-            'Varianta v paměti nesmí po rollbacku držet odepsaný kus',
         );
     }
 
@@ -890,14 +865,7 @@ class KfcSaleProcessorTest extends AbstractDatabaseKernelTestCase
         $vysledek = $this->zpracuj($this->prodej($predmet));
 
         self::assertSame(1, $vysledek->soldItems);
-        self::assertNull(
-            $this->connection()->fetchOne(
-                'SELECT remaining_quantity FROM product_variant WHERE product_id = :id',
-                [
-                    'id' => $predmet->getId(),
-                ],
-            ),
-        );
+        self::assertNull($this->zbyva($predmet->getVariants()->first()));
     }
 
     /**

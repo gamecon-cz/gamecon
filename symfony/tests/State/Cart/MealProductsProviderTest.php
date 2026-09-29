@@ -16,6 +16,7 @@ use App\Service\CustomerDeskRights;
 use App\Service\DiscountCalculator;
 use App\Service\LegacySessionService;
 use App\State\Cart\MealProductsProvider;
+use App\Tests\Service\PevnaZasoba;
 use Gamecon\Cas\DateTimeImmutableStrict;
 use Gamecon\SystemoveNastaveni\SystemoveNastaveni;
 use PHPUnit\Framework\MockObject\MockObject;
@@ -77,6 +78,7 @@ class MealProductsProviderTest extends TestCase
             $this->security,
             new CustomerDeskRights($this->legacySession),
             $this->clock,
+            new PevnaZasoba(),
         );
     }
 

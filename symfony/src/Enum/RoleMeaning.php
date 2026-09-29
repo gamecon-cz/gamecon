@@ -57,8 +57,7 @@ enum RoleMeaning: string
 
     /**
      * Does this role grant access to organizer-reserved stock? That is its only
-     * effect: ProductVariant::getAvailableQuantity() and CapacityManager::purchase()
-     * subtract reserved_for_organizers for everyone else. Discounts do not go through
+     * effect: CapacityManager subtracts reserved_for_organizers for everyone else. Discounts do not go through
      * here — DiscountCalculator matches product_discount.role directly.
      */
     public function isOrganizer(): bool

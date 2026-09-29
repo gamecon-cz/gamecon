@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Gamecon\Tests\Shop;
 
 use App\Entity\User;
+use App\Service\CapacityManager;
 use App\Structure\Entity\UserEntityStructure;
 use Gamecon\Shop\Shop;
 use Gamecon\Shop\StavPredmetu;
@@ -81,10 +82,10 @@ SQL,
 
                 // Varianta ke každému prodejnému předmětu, jak to má produkce — zásoba
                 // se vede na ní, `kusu_vyrobeno` je její legacy zrcadlo.
-                dbQuery("INSERT INTO product_variant (product_id, name, code, price, remaining_quantity, position)
-                    VALUES (88811, 'Limitovaný předmět', 'limit_prodej_test', 100, 2, 0)");
-                dbQuery("INSERT INTO product_variant (product_id, name, code, price, remaining_quantity, position)
-                    VALUES (88812, 'Neomezený předmět', 'unlim_prodej_test', 100, NULL, 0)");
+                dbQuery("INSERT INTO product_variant (product_id, name, code, price, position)
+                    VALUES (88811, 'Limitovaný předmět', 'limit_prodej_test', 100, 0)");
+                dbQuery("INSERT INTO product_variant (product_id, name, code, price, position)
+                    VALUES (88812, 'Neomezený předmět', 'unlim_prodej_test', 100, 0)");
 
                 // Vlastní předmět pro test zápisu varianty: třída nemá rollback po metodě,
                 // takže prodej z jednoho testu by ubral zásobu tomu dalšímu.
@@ -99,8 +100,8 @@ SQL,
                     popis = ''");
                 dbQuery("INSERT INTO product_product_tag (product_id, tag_id)
                     SELECT 88813, id FROM product_tag WHERE code = 'predmet'");
-                dbQuery("INSERT INTO product_variant (product_id, name, code, price, remaining_quantity, position)
-                    VALUES (88813, 'Předmět pro variantu', 'varianta_prodej_test', 100, 2, 0)");
+                dbQuery("INSERT INTO product_variant (product_id, name, code, price, position)
+                    VALUES (88813, 'Předmět pro variantu', 'varianta_prodej_test', 100, 0)");
 
                 dbQuery("INSERT INTO shop_predmety SET
                     id_predmetu = 88814,
@@ -113,8 +114,8 @@ SQL,
                     popis = ''");
                 dbQuery("INSERT INTO product_product_tag (product_id, tag_id)
                     SELECT 88814, id FROM product_tag WHERE code = 'predmet'");
-                dbQuery("INSERT INTO product_variant (product_id, name, code, price, remaining_quantity, position)
-                    VALUES (88814, 'Předmět pro zrušení', 'zruseni_prodej_test', 100, 3, 0)");
+                dbQuery("INSERT INTO product_variant (product_id, name, code, price, position)
+                    VALUES (88814, 'Předmět pro zrušení', 'zruseni_prodej_test', 100, 0)");
 
                 dbQuery("INSERT INTO shop_predmety SET
                     id_predmetu = 88815,
@@ -127,8 +128,8 @@ SQL,
                     popis = ''");
                 dbQuery("INSERT INTO product_product_tag (product_id, tag_id)
                     SELECT 88815, id FROM product_tag WHERE code = 'predmet'");
-                dbQuery("INSERT INTO product_variant (product_id, name, code, price, remaining_quantity, position)
-                    VALUES (88815, 'Předmět se starými nákupy', 'stare_nakupy_test', 100, 5, 0)");
+                dbQuery("INSERT INTO product_variant (product_id, name, code, price, position)
+                    VALUES (88815, 'Předmět se starými nákupy', 'stare_nakupy_test', 100, 0)");
 
                 // Room type owning its nights: no variant carries the type's own code.
                 dbQuery("INSERT INTO shop_predmety SET
@@ -155,8 +156,8 @@ SQL,
                     FROM product_tag
                     INNER JOIN (SELECT 88816 AS id_predmetu UNION SELECT 88817) AS ubytovani
                     WHERE product_tag.code = 'ubytovani'");
-                dbQuery("INSERT INTO product_variant (product_id, name, code, price, remaining_quantity, accommodation_day, position)
-                    VALUES (88816, 'pátek', 'pokoj_prodej_test-pa', 300, 3, 2, 0)");
+                dbQuery("INSERT INTO product_variant (product_id, name, code, price, accommodation_day, position)
+                    VALUES (88816, 'pátek', 'pokoj_prodej_test-pa', 300, 2, 0)");
 
                 // Room type that got a default variant of its own, as a fresh import gives one.
                 dbQuery("INSERT INTO shop_predmety SET
@@ -170,8 +171,8 @@ SQL,
                     popis = ''");
                 dbQuery("INSERT INTO product_product_tag (product_id, tag_id)
                     SELECT 88818, id FROM product_tag WHERE code = 'ubytovani'");
-                dbQuery("INSERT INTO product_variant (product_id, name, code, price, remaining_quantity, accommodation_day, position)
-                    VALUES (88818, 'Postel na jiném pokoji', 'pokoj_s_variantou_test-typ', 300, NULL, NULL, 0)");
+                dbQuery("INSERT INTO product_variant (product_id, name, code, price, accommodation_day, position)
+                    VALUES (88818, 'Postel na jiném pokoji', 'pokoj_s_variantou_test-typ', 300, NULL, 0)");
             },
         ];
     }
@@ -196,7 +197,7 @@ SQL,
         );
         self::assertSame(
             1,
-            (int) dbOneCol("SELECT remaining_quantity FROM product_variant WHERE code = 'varianta_prodej_test'"),
+            $this->zbyva('varianta_prodej_test'),
             'Ze zásoby na variantě se měl ubrat jeden kus',
         );
     }
@@ -211,9 +212,7 @@ SQL,
     {
         $uzivatel = \Uzivatel::zIdUrcite(88801);
         $shop = new Shop($uzivatel, $uzivatel, SystemoveNastaveni::zGlobals());
-        $zbyva = static fn (): int => (int) dbOneCol(
-            "SELECT remaining_quantity FROM product_variant WHERE code = 'zruseni_prodej_test'",
-        );
+        $zbyva = fn (): ?int => $this->zbyva('zruseni_prodej_test');
 
         $shop->prodat(88814, 2);
         self::assertSame(1, $zbyva(), 'Prodej měl ubrat dva kusy');
@@ -233,9 +232,7 @@ SQL,
     {
         $uzivatel = \Uzivatel::zIdUrcite(88801);
         $shop = new Shop($uzivatel, $uzivatel, SystemoveNastaveni::zGlobals());
-        $zbyva = static fn (): int => (int) dbOneCol(
-            "SELECT remaining_quantity FROM product_variant WHERE code = 'stare_nakupy_test'",
-        );
+        $zbyva = fn (): ?int => $this->zbyva('stare_nakupy_test');
 
         // Dva nákupy tak, jak je zapisovala legacy cesta: bez varianty, bez dotčení zásoby.
         dbQuery(
@@ -386,7 +383,7 @@ SQL,
         );
         self::assertSame(
             2,
-            (int) dbOneCol("SELECT remaining_quantity FROM product_variant WHERE code = 'pokoj_prodej_test-pa'"),
+            $this->zbyva('pokoj_prodej_test-pa'),
         );
     }
 
@@ -413,5 +410,14 @@ SQL,
         self::assertSame(0, (int) dbOneCol('SELECT COUNT(*) FROM shop_nakupy WHERE id_predmetu = $0', [
             0 => $idTypuPokoje,
         ]));
+    }
+
+    private function zbyva(string $kodVarianty): ?int
+    {
+        $idVarianty = (int) dbOneCol('SELECT id FROM product_variant WHERE code = $0', [
+            0 => $kodVarianty,
+        ]);
+
+        return static::getContainer()->get(CapacityManager::class)->remainingByVariantId([$idVarianty])[$idVarianty] ?? null;
     }
 }
