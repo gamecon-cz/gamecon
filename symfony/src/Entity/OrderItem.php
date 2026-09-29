@@ -26,6 +26,7 @@ use Symfony\Component\Validator\Constraints as Assert;
 #[ORM\Entity(repositoryClass: OrderItemRepository::class)]
 #[ORM\Table(name: 'shop_nakupy')]
 #[ORM\Index(name: 'IDX_rok_id_uzivatele', columns: ['rok', 'id_uzivatele'])]
+#[ORM\Index(name: 'IDX_nakupy_rok_variant', columns: ['rok', 'variant_id'])]
 class OrderItem
 {
     #[ORM\Id]

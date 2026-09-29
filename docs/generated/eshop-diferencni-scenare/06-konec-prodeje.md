@@ -95,7 +95,7 @@ Komentář v kódu tedy nelže — termín se v admin cestě nekontroluje ani u 
 
 **Dvě věci, které to komplikují a nejsou chyba:**
 
-- **Všechny letošní varianty ubytování jsou vyprodané** (`remaining_quantity = 0` u všech
+- **Všechny letošní varianty ubytování jsou vyprodané** (kapacita vyčerpaná u všech
   16 aktivních). Admin na to má příznak `mayOverbook`, bez něj zápis neprojde. Test ho
   posílá — přesně jak by to udělal infopult.
 - **Kandidát se musí brát z `findByTag()`**, ne vlastním SQL. `loadVariants()` rozhoduje

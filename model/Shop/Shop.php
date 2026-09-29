@@ -626,17 +626,9 @@ SQL,
                 LIMIT $pocet
             SQL;
         }
-        // Počty se berou z rušených řádků, ne z počtu smazaných: nákupy zapsané starou cestou
-        // `variant_id` nemají, zásoba z nich nikdy neubyla, a přičíst za ně kus by ho vyrobil
-        // z ničeho. `LIMIT` navíc maže od začátku, takže se musí vybrat tytéž řádky.
-        $kusuNaVariantach = $this->kusuNaVariantachRusenychNakupu($idPredmetu, $pocet);
-
         $mysqli = dbQuery($query);
-        $smazano = dbAffectedOrNumRows($mysqli);
 
-        $this->vratZasobuVariantam($kusuNaVariantach);
-
-        return $smazano;
+        return dbAffectedOrNumRows($mysqli);
     }
 
     private function cenaVybraneOpakovaneVybiranePolozky(array $polozky, int $idPredmetu): ?float
@@ -713,14 +705,6 @@ SQL,
             return 0;
         }
 
-        $kusuNaVariantach = $this->kusuNaVariantach(
-            "shop_nakupy.rok = {$this->systemoveNastaveni->rocnik()}
-             AND shop_nakupy.id_uzivatele = {$this->zakaznik->id()}
-             AND shop_nakupy.id_predmetu IN (
-                 SELECT id_predmetu FROM shop_predmety_s_typem WHERE typ = {$typPredetu}
-             )",
-        );
-
         $deleteResult = dbQuery(<<<SQL
             DELETE nakupy.*
             FROM shop_nakupy AS nakupy
@@ -730,8 +714,6 @@ SQL,
               AND predmety.typ = {$typPredetu}
             SQL,
         );
-
-        $this->vratZasobuVariantam($kusuNaVariantach);
 
         return dbAffectedOrNumRows($deleteResult);
     }
@@ -775,19 +757,12 @@ SQL,
             SQL,
             [0 => $this->systemoveNastaveni->ted()->format(DateTimeCz::FORMAT_DB), $zdrojZruseni],
         );
-        $kusuNaVariantach = $this->kusuNaVariantach(
-            "shop_nakupy.rok = {$rocnik} AND shop_nakupy.id_uzivatele = {$idZakaznika}
-             {$podminkaZachovani}",
-        );
-
         $result = dbQuery(<<<SQL
             DELETE FROM shop_nakupy
             WHERE shop_nakupy.rok = {$rocnik} AND shop_nakupy.id_uzivatele = {$idZakaznika}
             {$podminkaZachovani}
             SQL,
         );
-
-        $this->vratZasobuVariantam($kusuNaVariantach);
 
         return dbAffectedOrNumRows($result);
     }
@@ -908,90 +883,6 @@ SQL,
         return (int) $varianta['id'];
     }
 
-    /**
-     * Varianty rušených nákupů jednoho předmětu, po kusech.
-     *
-     * `LIMIT` v mazacím dotazu bere řádky v témže pořadí, takže se musí vybrat stejně —
-     * seskupit až potom. Řádky bez varianty se nepočítají, zásoba z nich neubyla.
-     *
-     * @return array<int, int> variant_id => počet kusů
-     */
-    private function kusuNaVariantachRusenychNakupu(
-        int $idPredmetu,
-        int $pocet,
-    ): array {
-        $limit = $pocet > 0
-            ? 'LIMIT ' . $pocet
-            : '';
-
-        $varianty = dbOneArray(
-            <<<SQL
-            SELECT variant_id
-            FROM shop_nakupy
-            WHERE id_uzivatele = \$0 AND id_predmetu = \$1 AND rok = \$2
-            {$limit}
-            SQL,
-            [0 => $this->zakaznik->id(), 1 => $idPredmetu, 2 => ROCNIK],
-        );
-
-        $kusu = [];
-        foreach ($varianty as $idVarianty) {
-            if ($idVarianty === null) {
-                continue;
-            }
-            $kusu[(int) $idVarianty] = ($kusu[(int) $idVarianty] ?? 0) + 1;
-        }
-
-        return $kusu;
-    }
-
-    /**
-     * Vrátí do zásoby kusy za nákupy, které se chystají zmizet — musí se spočítat PŘED
-     * smazáním, pak už tu informaci nikdo nemá.
-     *
-     * @return array<int, int> variant_id => počet kusů
-     */
-    private function kusuNaVariantach(string $podminka): array
-    {
-        return array_map('intval', dbFetchPairs(
-            "SELECT shop_nakupy.variant_id, COUNT(*)
-             FROM shop_nakupy
-             WHERE shop_nakupy.variant_id IS NOT NULL AND {$podminka}
-             GROUP BY shop_nakupy.variant_id",
-        ));
-    }
-
-    /**
-     * @param array<int, int> $kusuNaVariantach
-     */
-    private function vratZasobuVariantam(array $kusuNaVariantach): void
-    {
-        foreach ($kusuNaVariantach as $idVarianty => $kusu) {
-            $this->posunZasobuVarianty((int) $idVarianty, $kusu);
-        }
-    }
-
-    /**
-     * Zásobu vede varianta; legacy `kusu_vyrobeno` je její zrcadlo, které se tady nemění.
-     *
-     * Smí jít do mínusu, stejně jako `CapacityManager::adjustStock()`: admin prodává i nad
-     * kapacitu a zastavit se na nule by tvrdilo, že je volno, když není.
-     */
-    private function posunZasobuVarianty(
-        int $idVarianty,
-        int $zmena,
-    ): void {
-        if ($zmena === 0) {
-            return;
-        }
-
-        dbQuery(
-            'UPDATE product_variant SET remaining_quantity = remaining_quantity + $1
-             WHERE id = $0 AND remaining_quantity IS NOT NULL',
-            [0 => $idVarianty, 1 => $zmena],
-        );
-    }
-
     public function prodat(
         int  $idPredmetu,
         int  $kusu = 1,
@@ -1064,8 +955,6 @@ SQL,
                     ],
                 );
             }
-
-            $this->posunZasobuVarianty($idVarianty, -$kusu);
 
             if ($this->zakaznik->id() === Uzivatel::ANONYM) {
                 $this->zakaznik->finance()->pripis(

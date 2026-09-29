@@ -36,7 +36,7 @@ class MealProductOutputDto
      */
     public array $priceSteps = [];
 
-    public static function fromProductAndVariant(Product $product, ProductVariant $variant): self
+    public static function fromProductAndVariant(Product $product, ProductVariant $variant, ?int $remainingQuantity): self
     {
         $dto = new self();
         $dto->name = $product->getName();
@@ -46,7 +46,7 @@ class MealProductOutputDto
         // Záporná zásoba se posílá tak, jak je. Znamená, že se na pultu prodalo víc, než
         // bylo na skladě, a obsluha to má vidět — je to podnět ke kontrole, ne chyba
         // zobrazení. `soldOut` v matici jede na `<= 0`, takže mínus se chová jako nula.
-        $dto->remainingQuantity = $variant->getRemainingQuantity();
+        $dto->remainingQuantity = $remainingQuantity;
 
         return $dto;
     }

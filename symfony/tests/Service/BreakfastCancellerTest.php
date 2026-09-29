@@ -66,10 +66,10 @@ class BreakfastCancellerTest extends AbstractDatabaseKernelTestCase
     }
 
     private function vytvorVariantu(
-        string         $nazev,
-        int            $den,
+        string $nazev,
+        int $den,
         ProductTagCode $kategorie,
-        bool           $snidaneVCene = false,
+        bool $snidaneVCene = false,
     ): ProductVariant {
         $kod = strtolower(str_replace(' ', '_', $nazev)) . '_' . uniqid();
 
@@ -93,7 +93,6 @@ class BreakfastCancellerTest extends AbstractDatabaseKernelTestCase
         $varianta->setAccommodationDay($den);
         $varianta->setPrice('500.00');
         $varianta->setPosition(0);
-        $varianta->setRemainingQuantity(10);
         $produkt->addVariant($varianta);
         $this->entityManager()->persist($varianta);
         $this->entityManager()->flush();

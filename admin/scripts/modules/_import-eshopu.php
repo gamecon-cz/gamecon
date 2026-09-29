@@ -26,7 +26,7 @@ if (!post($postName)) {
 
 $vstupniSoubor = $_FILES[$souborInputName]['tmp_name'] ?? '';
 
-$importer = new EshopImporter($vstupniSoubor, $systemoveNastaveni->rocnik());
+$importer = new EshopImporter($vstupniSoubor);
 $vysledek = $importer->importuj();
 
 oznameni("Import dokončen. Přidáno {$vysledek->pocetNovych} nových položek, upraveno {$vysledek->pocetZmenenych} stávajících, vyřazeno {$vysledek->pocetVyrazenych} starých.");

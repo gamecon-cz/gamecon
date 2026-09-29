@@ -10,10 +10,6 @@ use App\Enum\ProductTagCode;
 use App\Repository\OrderItemRepository;
 use App\Repository\ProductRepository;
 
-/**
- * Zásoba na variantě (`remaining_quantity`) se schválně nepoužívá: `CapacityManager` ji
- * snižuje za prodeje, které už jsou spočítané v `shop_nakupy`, takže by se odečetly dvakrát.
- */
 readonly class AccommodationAvailability
 {
     public function __construct(
@@ -71,7 +67,7 @@ readonly class AccommodationAvailability
 
     /**
      * Odložené postele účastník nevidí, organizátor ano — stejné pravidlo jako u merche
-     * v `CapacityManager::purchase()`. Vlastní už koupené noci se přičítají zpátky, jinak
+     * v `CapacityManager::lockForSale()`. Vlastní už koupené noci se přičítají zpátky, jinak
      * by si je zákazník nemohl odškrtnout.
      */
     private function noc(

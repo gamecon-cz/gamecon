@@ -31,7 +31,6 @@ class AccommodationWriter
         private CartService $cartService,
         private DiscountCalculator $discountCalculator,
         private BreakfastCanceller $breakfastCanceller,
-        private CapacityManager $capacityManager,
         private PriceIncreaseNotifier $priceIncreaseNotifier,
         private OrderItemRepository $orderItemRepository,
     ) {
@@ -339,18 +338,15 @@ class AccommodationWriter
             $this->entityManager->flush();
             // Počet řádků, ne entit: zákazník může mít na jednu variantu víc nákupů.
             $smazano = array_sum($kusu);
-
-            $this->capacityManager->adjustStock($kusu, +1);
         }
 
         return [array_values(array_intersect($held, $keepVariantIds)), $smazano];
     }
 
     /**
-     * Capacity is counted from shop_nakupy, which every sale writes, not from remaining_quantity,
-     * a mirror that a reset or a write bypassing it leaves wrong. id_predmetu is the night's own
-     * legacy row, not the variant's parent — the day-variant migration reparented variants
-     * onto one owner, and every legacy consumer reads ubytovani_den off id_predmetu.
+     * id_predmetu is the night's own legacy row, not the variant's parent — the day-variant
+     * migration reparented variants onto one owner, and every legacy consumer reads
+     * ubytovani_den off id_predmetu.
      */
     private function addNight(
         User $customer,
@@ -420,10 +416,6 @@ class AccommodationWriter
             // real answer is "you may not overbook" sends them hunting for a bed that exists.
             throw new \RuntimeException(sprintf(self::ERROR_OVERBOOKING_NOT_PERMITTED, $product->getName(), $variant->getName()));
         }
-
-        $this->capacityManager->adjustStock([
-            (int) $variant->getId() => 1,
-        ], -1);
 
         return $vlozeno;
     }

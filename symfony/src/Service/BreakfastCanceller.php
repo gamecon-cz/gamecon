@@ -9,7 +9,6 @@ use App\Entity\ProductVariant;
 use App\Entity\User;
 use App\Enum\ProductTagCode;
 use App\Repository\OrderItemRepository;
-use Doctrine\DBAL\ArrayParameterType;
 use Doctrine\DBAL\Connection;
 use Doctrine\ORM\EntityManagerInterface;
 
@@ -24,7 +23,6 @@ class BreakfastCanceller
         private readonly Connection $connection,
         private readonly EntityManagerInterface $entityManager,
         private readonly CartService $cartService,
-        private readonly CapacityManager $capacityManager,
         private readonly OrderItemRepository $orderItemRepository,
     ) {
     }
@@ -50,20 +48,6 @@ class BreakfastCanceller
         // putting back the breakfasts they had, and the untouched ones are still theirs.
         $this->ulozSnapshot($customer, $year, array_values($drzene));
 
-        $kusu = array_map('intval', $this->connection->fetchAllKeyValue(
-            'SELECT variant_id, COUNT(*) FROM shop_nakupy
-             WHERE id_uzivatele = :customer AND rok = :year AND variant_id IN (:variantIds)
-             GROUP BY variant_id',
-            [
-                'customer'   => $customer->getId(),
-                'year'       => $year,
-                'variantIds' => $kryte,
-            ],
-            [
-                'variantIds' => ArrayParameterType::INTEGER,
-            ],
-        ));
-
         foreach ($this->orderItemRepository->findBy([
             'customer' => $customer->getId(),
             'year'     => $year,
@@ -72,10 +56,6 @@ class BreakfastCanceller
             $this->entityManager->remove($polozka);
         }
         $this->entityManager->flush();
-
-        // Zrušená snídaně se nikomu neprodala, takže se její kus musí vrátit do zásoby —
-        // jinak by každý zápis snídaně kryté hotelovou nocí jeden kus tiše ztratil.
-        $this->capacityManager->adjustStock($kusu, +1);
 
         return $kryte;
     }

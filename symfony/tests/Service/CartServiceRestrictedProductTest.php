@@ -123,7 +123,6 @@ class CartServiceRestrictedProductTest extends AbstractDatabaseKernelTestCase
         $varianta->setName('L');
         $varianta->setCode($kod . '-l');
         $varianta->setPrice('200.00');
-        $varianta->setRemainingQuantity(10);
         $varianta->setPosition(0);
         $produkt->addVariant($varianta);
         $this->entityManager()->persist($varianta);

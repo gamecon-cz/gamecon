@@ -211,7 +211,7 @@ class ProductService
 
         $capacityInfo = $this->capacityManager->getCapacityInfo($variant);
 
-        if ($capacityInfo['remaining'] !== null && $variant->getAvailableQuantity($roleMeanings) <= 0) {
+        if ($capacityInfo['remaining'] !== null && $this->capacityManager->availableQuantity($variant, $roleMeanings, $capacityInfo['remaining']) <= 0) {
             return [
                 'available' => false,
                 'reason'    => 'Vyprodáno',

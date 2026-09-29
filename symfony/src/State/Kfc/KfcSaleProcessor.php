@@ -67,11 +67,9 @@ readonly class KfcSaleProcessor implements ProcessorInterface
             $kZaplaceni[] = [$this->dejVariantu($saleItem->productId, $saleItem->variantId), $saleItem->quantity];
         }
 
-        $dotceneVarianty = array_column($kZaplaceni, 0);
-
         // Transakce se řídí ručně, ne přes wrapInTransaction(): ten na jakékoli chybě zavře
         // EntityManager, takže by se z „nedostatečná kapacita" stala pro obsluhu chyba 500.
-        $this->vProdejniTransakci($dotceneVarianty, function () use ($kZaplaceni, $kupujici, $operator, $override, $rok, &$prodanoKusu, &$celkem): void {
+        $this->vProdejniTransakci(function () use ($kZaplaceni, $kupujici, $operator, $override, $rok, &$prodanoKusu, &$celkem): void {
             // Vlastní objednávka na každý prodej, hned uzavřená. getOrCreateCart() vrací
             // *otevřený* košík, takže by se do jednoho nasčítal celý festival: každá platba
             // by pak ukazovala na tutéž objednávku a nešlo by poznat, ke kterému prodeji patří.
@@ -130,10 +128,8 @@ readonly class KfcSaleProcessor implements ProcessorInterface
      *
      * Vnořuje se (test i CartService::addItem() flushují uvnitř), takže rollback spoléhá
      * na `use_savepoints: true` v config/packages/doctrine.yaml.
-     *
-     * @param ProductVariant[] $dotceneVarianty
      */
-    private function vProdejniTransakci(array $dotceneVarianty, callable $prodej): void
+    private function vProdejniTransakci(callable $prodej): void
     {
         $spojeni = $this->entityManager->getConnection();
         $spojeni->beginTransaction();
@@ -146,7 +142,7 @@ readonly class KfcSaleProcessor implements ProcessorInterface
             if ($spojeni->isTransactionActive()) {
                 $spojeni->rollBack();
             }
-            $this->zapomenNedokoncenyProdej($dotceneVarianty);
+            $this->zapomenNedokoncenyProdej();
 
             throw $chyba;
         }
@@ -154,25 +150,17 @@ readonly class KfcSaleProcessor implements ProcessorInterface
 
     /**
      * Rollback vrátil řádky, ale paměť o tom neví: rozepsané entity by spadly až při příštím
-     * flush() a varianty by držely zásobu sníženou o nedokončený prodej.
+     * flush().
      *
      * Detachuje se cíleně — clear() by odpojil i přihlášeného operátora, kterého drží
      * bezpečnostní token, a další prodej by spadl na „A new entity was found through
      * OrderItem#orderer".
-     *
-     * @param ProductVariant[] $dotceneVarianty
      */
-    private function zapomenNedokoncenyProdej(array $dotceneVarianty): void
+    private function zapomenNedokoncenyProdej(): void
     {
         $jednotkaPrace = $this->entityManager->getUnitOfWork();
         foreach ([...$jednotkaPrace->getScheduledEntityInsertions(), ...$jednotkaPrace->getScheduledEntityUpdates()] as $entita) {
             $this->entityManager->detach($entita);
-        }
-
-        foreach ($dotceneVarianty as $varianta) {
-            if ($this->entityManager->contains($varianta)) {
-                $this->entityManager->refresh($varianta);
-            }
         }
     }
 

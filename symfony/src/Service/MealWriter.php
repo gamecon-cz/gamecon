@@ -11,7 +11,6 @@ use App\Enum\ProductStateEnum;
 use App\Enum\ProductTagCode;
 use App\Repository\OrderItemRepository;
 use App\Repository\ProductRepository;
-use Doctrine\DBAL\ArrayParameterType;
 use Doctrine\DBAL\Connection;
 use Doctrine\ORM\EntityManagerInterface;
 
@@ -101,35 +100,6 @@ class MealWriter
     }
 
     /**
-     * Kolik řádků zákazník na každou variantu má — DELETE maže všechny, takže se vrací
-     * tolik kusů, kolik jich zmizí.
-     *
-     * @param int[] $variantIds
-     *
-     * @return array<int, int> variant_id => počet řádků
-     */
-    private function pocetKusu(User $customer, int $year, array $variantIds): array
-    {
-        if ($variantIds === []) {
-            return [];
-        }
-
-        return array_map('intval', $this->connection->fetchAllKeyValue(
-            'SELECT variant_id, COUNT(*) FROM shop_nakupy
-             WHERE id_uzivatele = :customer AND rok = :year AND variant_id IN (:variantIds)
-             GROUP BY variant_id',
-            [
-                'customer'   => $customer->getId(),
-                'year'       => $year,
-                'variantIds' => $variantIds,
-            ],
-            [
-                'variantIds' => ArrayParameterType::INTEGER,
-            ],
-        ));
-    }
-
-    /**
      * @param int[] $keepVariantIds
      *
      * @return int[] variant ids the customer already had and keeps
@@ -140,8 +110,6 @@ class MealWriter
 
         $toRemove = array_diff($held, $keepVariantIds);
         if ($toRemove !== []) {
-            $kusu = $this->pocetKusu($customer, $year, array_values($toRemove));
-
             foreach ($this->orderItemRepository->findBy([
                 'customer' => $customer->getId(),
                 'year'     => $year,
@@ -150,8 +118,6 @@ class MealWriter
                 $this->entityManager->remove($polozka);
             }
             $this->entityManager->flush();
-
-            $this->capacityManager->adjustStock($kusu, +1);
         }
 
         return array_values(array_intersect($held, $keepVariantIds));
@@ -201,12 +167,8 @@ class MealWriter
         $discount = $this->discountCalculator->calculateDiscount($product, $customer, $year);
         $order = $this->cartService->getOrCreateCart($customer);
 
-        // `purchase()` čte zásobu z entity kvůli rozhodnutí „neomezeno"; hodnota načtená na
-        // začátku requestu už nemusí platit.
-        $this->entityManager->refresh($variant);
-
         try {
-            $this->capacityManager->purchase($variant);
+            $this->capacityManager->lockForSale($variant);
         } catch (\RuntimeException) {
             throw new \RuntimeException(sprintf('Jídlo „%s" je bohužel vyprodané.', $product->getName()));
         }

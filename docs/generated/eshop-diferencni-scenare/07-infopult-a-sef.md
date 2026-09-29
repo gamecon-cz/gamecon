@@ -107,13 +107,11 @@ zrušit hotelovou noc   → drží 0 jídel, k obnově 1   (nabídne se zpět)
 Přesně to chování, které legacy nemá — ta snídani z requestu jen odfiltrovala. Nová vrstva
 si ji pamatuje a po zmizení krycí noci ji vrátí do nabídky.
 
-### Kapacitu hlídá `kusu_vyrobeno`, ne `remaining_quantity`
+### Plnou noc udělá `kusu_vyrobeno`
 
-Past při testování: `product_variant.remaining_quantity` vypadá jako zásoba, ale
-`AccommodationWriter::addNight()` porovnává **`shop_predmety.kusu_vyrobeno`** proti počtu
-řádků v `shop_nakupy`. Vynulovat `remaining_quantity` tedy noc neudělá plnou a test
-přeplnění tiše projde oběma stranami. Plnou noc udělá `UPDATE shop_predmety SET
-kusu_vyrobeno = 0 WHERE kod_predmetu = <kód varianty>`.
+Zásoba se nikde neukládá: zbývá `shop_predmety.kusu_vyrobeno` řádku s kódem varianty minus
+letošní řádky v `shop_nakupy`. Plnou noc pro test přeplnění tedy udělá `UPDATE shop_predmety
+SET kusu_vyrobeno = 0 WHERE kod_predmetu = <kód varianty>`.
 
 ### `SEF_INFOPULTU` sám o sobě do adminu nepustí
 

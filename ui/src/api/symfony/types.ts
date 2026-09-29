@@ -135,7 +135,6 @@ export type ApiProductVariant = {
   name: string;
   code: string;
   price: string | null;
-  remainingQuantity: number | null;
   reservedForOrganizers: number | null;
   accommodationDay: number | null;
   position: number;

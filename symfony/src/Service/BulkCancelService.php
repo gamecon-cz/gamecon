@@ -14,8 +14,8 @@ use Doctrine\ORM\EntityManagerInterface;
 /**
  * BulkCancelService — handles bulk cancellation of e-shop orders/items.
  *
- * Archives cancelled items to CancelledOrderItem (shop_nakupy_zrusene),
- * returns stock via CapacityManager, and tracks cancellation reason.
+ * Archives cancelled items to CancelledOrderItem (shop_nakupy_zrusene) and tracks the
+ * cancellation reason. Deleting the purchase row is what frees the stock.
  *
  * Use cases:
  * - Cancel all purchases for a non-paying user
@@ -28,7 +28,6 @@ class BulkCancelService
     public function __construct(
         private readonly EntityManagerInterface $entityManager,
         private readonly OrderItemRepository $orderItemRepository,
-        private readonly CapacityManager $capacityManager,
         private readonly CurrentYearProviderInterface $currentYearProvider,
     ) {
     }
@@ -112,7 +111,7 @@ class BulkCancelService
     }
 
     /**
-     * Cancel a list of OrderItems: archive, return stock, remove.
+     * Cancel a list of OrderItems: archive, remove.
      *
      * @param OrderItem[]|iterable $items
      *
@@ -124,7 +123,6 @@ class BulkCancelService
 
         foreach ($items as $item) {
             $this->archiveItem($item, $reason, $cancelledAt);
-            $this->returnStock($item);
             $this->removeFromOrder($item);
 
             $this->entityManager->remove($item);
@@ -160,15 +158,6 @@ class BulkCancelService
         $cancelled->setProductCode($item->getDisplayCode());
 
         $this->entityManager->persist($cancelled);
-    }
-
-    private function returnStock(OrderItem $item): void
-    {
-        $variant = $item->getVariant();
-
-        if ($variant !== null) {
-            $this->capacityManager->cancelPurchase($variant);
-        }
     }
 
     private function removeFromOrder(OrderItem $item): void

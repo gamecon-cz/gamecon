@@ -50,6 +50,23 @@ class EshopIntegrationTest extends AbstractTestDb
 
     protected static array $initQueries = [];
 
+    // CartService opens a Doctrine transaction of its own, which cannot start inside the
+    // legacy connection's raw BEGIN; reset the database after the class instead.
+    protected static function keepTestClassDbChangesInTransaction(): bool
+    {
+        return false;
+    }
+
+    protected static function keepSingleTestMethodDbChangesInTransaction(): bool
+    {
+        return false;
+    }
+
+    protected static function resetDbAfterClass(): bool
+    {
+        return true;
+    }
+
     protected static function getBeforeClassInitCallbacks(): array
     {
         return [
@@ -96,7 +113,6 @@ class EshopIntegrationTest extends AbstractTestDb
                 $variantM->setProduct($product);
                 $variantM->setName('M');
                 $variantM->setCode('eshoptest-tricko-modre-m');
-                $variantM->setRemainingQuantity(10);
                 $variantM->setPosition(0);
                 $product->addVariant($variantM);
                 $em->persist($variantM);
@@ -106,12 +122,24 @@ class EshopIntegrationTest extends AbstractTestDb
                 $variantL->setProduct($product);
                 $variantL->setName('L');
                 $variantL->setCode('eshoptest-tricko-modre-l');
-                $variantL->setRemainingQuantity(1);
                 $variantL->setPosition(1);
                 $product->addVariant($variantL);
                 $em->persist($variantL);
 
                 $em->flush();
+
+                // Each size carries its capacity on its own catalog row, as in production.
+                foreach ([[$variantM, 10], [$variantL, 1]] as [$velikost, $kusu]) {
+                    $conn->executeStatement(
+                        "INSERT INTO shop_predmety (nazev, kod_predmetu, cena_aktualni, stav, popis, kusu_vyrobeno)
+                         VALUES (:nazev, :kod, 0, 1, '', :kusu)",
+                        [
+                            'nazev' => $velikost->getName(),
+                            'kod'   => $velikost->getCode(),
+                            'kusu'  => $kusu,
+                        ],
+                    );
+                }
 
                 // Store IDs for later
                 self::$product = $product;
@@ -165,54 +193,23 @@ class EshopIntegrationTest extends AbstractTestDb
 
     // ==================== 2. CapacityManager with real DB ====================
 
-    public function testCapacityManagerAtomicPurchaseDecrementsStock(): void
+    public function testCapacityManagerRefusesMoreThanRemains(): void
     {
-        $capacityManager = new CapacityManager($this->connection, $this->em);
-        $variant = $this->em->find(ProductVariant::class, self::$variantM->getId());
-        $this->assertNotNull($variant);
-
-        $capacityManager->purchase($variant, 1);
-
-        $dbStock = (int) $this->connection->fetchOne(
-            'SELECT remaining_quantity FROM product_variant WHERE id = :id',
-            [
-                'id' => self::$variantM->getId(),
-            ],
-        );
-        $this->assertSame(9, $dbStock);
-        $this->assertSame(9, $variant->getRemainingQuantity());
-    }
-
-    public function testCapacityManagerPurchaseThrowsWhenSoldOut(): void
-    {
-        $capacityManager = new CapacityManager($this->connection, $this->em);
         $variant = $this->em->find(ProductVariant::class, self::$variantL->getId());
         $this->assertNotNull($variant);
 
-        $this->expectException(\RuntimeException::class);
-        $capacityManager->purchase($variant, 2); // want 2, only 1 available
-    }
-
-    public function testCapacityManagerCancelPurchaseIncrementsStock(): void
-    {
-        $capacityManager = new CapacityManager($this->connection, $this->em);
-        $variant = $this->em->find(ProductVariant::class, self::$variantM->getId());
-        $initialStock = $variant->getRemainingQuantity();
-
-        $capacityManager->cancelPurchase($variant, 1);
-
-        $dbStock = (int) $this->connection->fetchOne(
-            'SELECT remaining_quantity FROM product_variant WHERE id = :id',
-            [
-                'id' => self::$variantM->getId(),
-            ],
-        );
-        $this->assertSame($initialStock + 1, $dbStock);
+        $this->connection->beginTransaction();
+        try {
+            $this->expectException(\RuntimeException::class);
+            $this->capacityManager()->lockForSale($variant, 2); // want 2, only 1 available
+        } finally {
+            $this->connection->rollBack();
+        }
     }
 
     public function testCapacityManagerReservedForOrganizersInheritsFromProduct(): void
     {
-        $capacityManager = new CapacityManager($this->connection, $this->em);
+        $capacityManager = $this->capacityManager();
         $variant = $this->em->find(ProductVariant::class, self::$variantM->getId());
 
         $this->assertNull($variant->getReservedForOrganizers());
@@ -232,12 +229,7 @@ class EshopIntegrationTest extends AbstractTestDb
         $variant = $this->em->find(ProductVariant::class, self::$variantM->getId());
         $this->assertNotNull($variant);
 
-        $initialStock = (int) $this->connection->fetchOne(
-            'SELECT remaining_quantity FROM product_variant WHERE id = :id',
-            [
-                'id' => self::$variantM->getId(),
-            ],
-        );
+        $initialStock = $this->zbyva(self::$variantM->getId());
 
         // Create cart
         $cart = $cartService->getOrCreateCart($user);
@@ -250,24 +242,14 @@ class EshopIntegrationTest extends AbstractTestDb
         $this->assertSame('M', $item->getVariantName());
 
         // Stock decremented
-        $stockAfterAdd = (int) $this->connection->fetchOne(
-            'SELECT remaining_quantity FROM product_variant WHERE id = :id',
-            [
-                'id' => self::$variantM->getId(),
-            ],
-        );
+        $stockAfterAdd = $this->zbyva(self::$variantM->getId());
         $this->assertSame($initialStock - 1, $stockAfterAdd);
         $this->assertSame('250.00', $cart->getTotalPrice());
 
         // Remove item
         $cartService->removeItem($cart, $item);
 
-        $stockAfterRemove = (int) $this->connection->fetchOne(
-            'SELECT remaining_quantity FROM product_variant WHERE id = :id',
-            [
-                'id' => self::$variantM->getId(),
-            ],
-        );
+        $stockAfterRemove = $this->zbyva(self::$variantM->getId());
         $this->assertSame($initialStock, $stockAfterRemove);
         $this->assertTrue($cart->isEmpty());
     }
@@ -303,6 +285,7 @@ class EshopIntegrationTest extends AbstractTestDb
             $produkt->setState(ProductStateEnum::PUBLIC);
             $produkt->setDescription('');
             $produkt->setAvailableUntil(new \DateTimeImmutable('+1 year'));
+            $produkt->setProducedQuantity(5);
             if ($kostkaTag !== null) {
                 $produkt->addTag($kostkaTag);
             }
@@ -312,7 +295,6 @@ class EshopIntegrationTest extends AbstractTestDb
             $varianta->setProduct($produkt);
             $varianta->setName('jedna');
             $varianta->setCode('eshoptest-' . $jmeno . '-kostka-v');
-            $varianta->setRemainingQuantity(5);
             $varianta->setPosition(0);
             $produkt->addVariant($varianta);
             $this->em->persist($varianta);
@@ -437,12 +419,7 @@ class EshopIntegrationTest extends AbstractTestDb
         $user = $this->em->find(User::class, 89901);
         $variant = $this->em->find(ProductVariant::class, self::$variantM->getId());
 
-        $stockBefore = (int) $this->connection->fetchOne(
-            'SELECT remaining_quantity FROM product_variant WHERE id = :id',
-            [
-                'id' => self::$variantM->getId(),
-            ],
-        );
+        $stockBefore = $this->zbyva(self::$variantM->getId());
 
         // Add 2 items to cart
         $cart = $cartService->getOrCreateCart($user);
@@ -453,12 +430,7 @@ class EshopIntegrationTest extends AbstractTestDb
         $cart = $this->em->find(Order::class, $cart->getId());
         $item2 = $cartService->addItem($cart, $variant);
 
-        $stockAfterPurchase = (int) $this->connection->fetchOne(
-            'SELECT remaining_quantity FROM product_variant WHERE id = :id',
-            [
-                'id' => self::$variantM->getId(),
-            ],
-        );
+        $stockAfterPurchase = $this->zbyva(self::$variantM->getId());
         $this->assertSame($stockBefore - 2, $stockAfterPurchase);
 
         // Bulk cancel all
@@ -473,12 +445,7 @@ class EshopIntegrationTest extends AbstractTestDb
         $this->assertSame(2, $cancelled);
 
         // Stock restored
-        $stockAfterCancel = (int) $this->connection->fetchOne(
-            'SELECT remaining_quantity FROM product_variant WHERE id = :id',
-            [
-                'id' => self::$variantM->getId(),
-            ],
-        );
+        $stockAfterCancel = $this->zbyva(self::$variantM->getId());
         $this->assertSame($stockBefore, $stockAfterCancel);
 
         // Archive records exist
@@ -670,18 +637,25 @@ class EshopIntegrationTest extends AbstractTestDb
 
     // ==================== Helpers ====================
 
+    private function capacityManager(): CapacityManager
+    {
+        return new CapacityManager($this->connection, new CurrentYearProvider());
+    }
+
+    private function zbyva(int $variantId): ?int
+    {
+        return $this->capacityManager()->remainingByVariantId([$variantId])[$variantId] ?? null;
+    }
+
     private function createBulkCancelService(): BulkCancelService
     {
         /** @var \App\Repository\OrderItemRepository $orderItemRepo */
         $orderItemRepo = $this->em->getRepository(\App\Entity\OrderItem::class);
-        $capacityManager = new CapacityManager($this->connection, $this->em);
-        $yearProvider = new CurrentYearProvider();
 
         return new BulkCancelService(
             $this->em,
             $orderItemRepo,
-            $capacityManager,
-            $yearProvider,
+            new CurrentYearProvider(),
         );
     }
 
@@ -691,7 +665,7 @@ class EshopIntegrationTest extends AbstractTestDb
         $orderRepo = $this->em->getRepository(Order::class);
         /** @var ProductBundleRepository $bundleRepo */
         $bundleRepo = $this->em->getRepository(ProductBundle::class);
-        $capacityManager = new CapacityManager($this->connection, $this->em);
+        $capacityManager = $this->capacityManager();
         $discountCalculator = self::getContainer()->get(DiscountCalculator::class);
         $yearProvider = new CurrentYearProvider();
         /** @var \App\Repository\OrderItemRepository $orderItemRepo */

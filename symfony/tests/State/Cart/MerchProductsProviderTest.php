@@ -18,6 +18,7 @@ use App\Service\DiscountCalculator;
 use App\Service\ProductVariantsForGrid;
 use App\Service\SpentQuotaProvider;
 use App\State\Cart\MerchProductsProvider;
+use App\Tests\Service\PevnaZasoba;
 use Gamecon\Cas\DateTimeImmutableStrict;
 use Gamecon\SystemoveNastaveni\SystemoveNastaveni;
 use PHPUnit\Framework\MockObject\MockObject;
@@ -40,6 +41,8 @@ class MerchProductsProviderTest extends TestCase
     private MockObject $security;
 
     private MerchProductsProvider $provider;
+
+    private PevnaZasoba $zasoba;
 
     private ?SystemoveNastaveni $puvodniNastaveni = null;
 
@@ -65,6 +68,7 @@ class MerchProductsProviderTest extends TestCase
             ted: new DateTimeImmutableStrict(self::ROK . '-01-01 00:00:00'),
         );
 
+        $this->zasoba = new PevnaZasoba();
         $this->productRepository = $this->createMock(ProductRepository::class);
         $this->orderItemRepository = $this->createMock(OrderItemRepository::class);
         $this->orderItemRepository->method('countCustomerPurchases')->willReturn(0);
@@ -87,7 +91,7 @@ class MerchProductsProviderTest extends TestCase
             $this->orderItemRepository,
             $discountCalculator,
             $currentYearProvider,
-            new ProductVariantsForGrid($this->orderItemRepository),
+            new ProductVariantsForGrid($this->orderItemRepository, $this->zasoba),
             $this->createMock(SpentQuotaProvider::class),
             $this->security,
             new NativeClock(),
@@ -122,13 +126,13 @@ class MerchProductsProviderTest extends TestCase
             $variant->setProduct($product);
             $variant->setName($nazev);
             $variant->setCode('ponozky_2026_' . $nazev);
-            $variant->setRemainingQuantity($zasoba);
             // Reálná data mají u obou velikostí position = 0. Pořadí řeší až tiebreak
             // podle `id` v mapování; v paměti ho ArrayCollection stejně neaplikuje, takže
             // tenhle test ověřuje jen to, že se nabídnou obě velikosti.
             $variant->setPosition(0);
             // Varianta bez ID by z nabídky vypadla; v databázi ho má vždy.
             $reflexe = new \ReflectionProperty(ProductVariant::class, 'id');
+            $this->zasoba->nastav($id, $zasoba);
             $reflexe->setValue($variant, $id++);
             $product->addVariant($variant);
         }
@@ -276,7 +280,7 @@ class MerchProductsProviderTest extends TestCase
             $orderItemRepository,
             $discountCalculator,
             $currentYearProvider,
-            new ProductVariantsForGrid($orderItemRepository),
+            new ProductVariantsForGrid($orderItemRepository, $this->zasoba),
             $this->createMock(SpentQuotaProvider::class),
             $this->security,
             new NativeClock(),

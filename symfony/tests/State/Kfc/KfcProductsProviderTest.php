@@ -7,6 +7,7 @@ namespace App\Tests\State\Kfc;
 use ApiPlatform\Metadata\GetCollection;
 use App\Dto\Kfc\KfcProductOutputDto;
 use App\State\Kfc\KfcProductsProvider;
+use App\Tests\Service\PevnaZasoba;
 use Doctrine\DBAL\Connection;
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
@@ -20,7 +21,11 @@ class KfcProductsProviderTest extends TestCase
     protected function setUp(): void
     {
         $this->connection = $this->createMock(Connection::class);
-        $this->provider = new KfcProductsProvider($this->connection);
+        $this->provider = new KfcProductsProvider($this->connection, new PevnaZasoba([
+            901 => 15,
+            902 => 4,
+            903 => null,
+        ]));
     }
 
     public function testReturnsProductDtos(): void
@@ -36,7 +41,6 @@ class KfcProductsProviderTest extends TestCase
                     'varianta_id'    => '901',
                     'varianta_nazev' => 'S',
                     'varianta_cena'  => '250',
-                    'varianta_zbyva' => '15',
                 ],
                 [
                     'id'             => '42',
@@ -46,7 +50,6 @@ class KfcProductsProviderTest extends TestCase
                     'varianta_id'    => '902',
                     'varianta_nazev' => 'M',
                     'varianta_cena'  => '250',
-                    'varianta_zbyva' => '4',
                 ],
                 [
                     'id'             => '43',
@@ -56,7 +59,6 @@ class KfcProductsProviderTest extends TestCase
                     'varianta_id'    => '903',
                     'varianta_nazev' => 'kus',
                     'varianta_cena'  => '50',
-                    'varianta_zbyva' => null,
                 ],
             ]);
 

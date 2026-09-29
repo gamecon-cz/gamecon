@@ -7,7 +7,6 @@ namespace App\Tests\Entity;
 use App\Entity\Product;
 use App\Entity\ProductVariant;
 use App\Enum\ProductStateEnum;
-use App\Enum\RoleMeaning;
 use PHPUnit\Framework\TestCase;
 
 class ProductVariantTest extends TestCase
@@ -56,35 +55,6 @@ class ProductVariantTest extends TestCase
         $this->assertSame(2, $variant->getEffectiveReservedForOrganizers());
     }
 
-    public function testGetAvailableQuantityUnlimited(): void
-    {
-        $variant = $this->createVariant('M', 'TRICKO-MODRE-M');
-
-        $this->assertNull($variant->getAvailableQuantity([]));
-        $this->assertFalse($variant->hasLimitedCapacity());
-    }
-
-    public function testGetAvailableQuantityWithReservation(): void
-    {
-        $variant = $this->createVariant('M', 'TRICKO-MODRE-M');
-        $variant->setRemainingQuantity(20);
-        // reservedForOrganizers = null → inherits 5 from product
-
-        $this->assertSame(15, $variant->getAvailableQuantity([]));
-        $this->assertSame(20, $variant->getAvailableQuantity([RoleMeaning::ORGANIZATOR_ZDARMA]));
-        $this->assertSame(20, $variant->getAvailableQuantity([RoleMeaning::VYPRAVEC]));
-    }
-
-    public function testGetAvailableQuantityWithOwnReservation(): void
-    {
-        $variant = $this->createVariant('M', 'TRICKO-MODRE-M');
-        $variant->setRemainingQuantity(10);
-        $variant->setReservedForOrganizers(3); // overrides product's 5
-
-        $this->assertSame(7, $variant->getAvailableQuantity([]));
-        $this->assertSame(10, $variant->getAvailableQuantity([RoleMeaning::ORGANIZATOR_ZDARMA]));
-    }
-
     public function testGetFullName(): void
     {
         $variant = $this->createVariant('M', 'TRICKO-MODRE-M');
@@ -119,20 +89,6 @@ class ProductVariantTest extends TestCase
         $variant->setAccommodationDay(2);
 
         $this->assertSame(2, $variant->getAccommodationDay());
-    }
-
-    public function testMultipleOrgRolesCountAsOrganizer(): void
-    {
-        $variant = $this->createVariant('M', 'TRICKO-MODRE-M');
-        $variant->setRemainingQuantity(5);
-        $variant->setReservedForOrganizers(5);
-
-        // Multiple roles, one of which is organizer → full access
-        $roles = [RoleMeaning::PRIHLASEN, RoleMeaning::BRIGADNIK];
-        $this->assertSame(5, $variant->getAvailableQuantity($roles));
-
-        // No org role → 0
-        $this->assertSame(0, $variant->getAvailableQuantity([RoleMeaning::PRIHLASEN]));
     }
 
     private function createVariant(string $name, string $code): ProductVariant

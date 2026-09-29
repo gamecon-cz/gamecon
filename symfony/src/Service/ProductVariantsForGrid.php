@@ -14,7 +14,7 @@ use App\Repository\OrderItemRepository;
 /**
  * Varianty produktu pro mřížku — merch i svršky je počítají stejně.
  *
- * Sdílené schválně: strop musí odpovídat tomu, co pustí `CapacityManager::purchase()`
+ * Sdílené schválně: strop musí odpovídat tomu, co pustí `CapacityManager::lockForSale()`
  * (včetně odečtu zásoby držené pro orgy). Kdyby to byly dvě kopie, změna pravidla by se
  * musela promítnout na obou místech a ta zapomenutá by selhala tiše — mřížka by nabídla
  * kus, který další klik odmítne, nebo naopak skryla kus, který by prošel.
@@ -23,6 +23,7 @@ readonly class ProductVariantsForGrid
 {
     public function __construct(
         private OrderItemRepository $orderItemRepository,
+        private CapacityManager $capacityManager,
     ) {
     }
 
@@ -34,6 +35,7 @@ readonly class ProductVariantsForGrid
     public function pro(Product $product, User $customer, int $year, array $roleMeanings): array
     {
         $variants = [];
+        $remaining = $this->capacityManager->remainingByVariant($product->getVariants()->toArray());
         foreach ($product->getVariants() as $variant) {
             $id = $variant->getId();
             // Varianta bez id není uložená, takže si ji zákazník nemá jak koupit.
@@ -47,7 +49,7 @@ readonly class ProductVariantsForGrid
             $dto->id = $id;
             $dto->name = $variant->getName();
             $dto->purchasedQuantity = $purchased;
-            $dto->maxQuantity = $this->maxQuantity($variant, $purchased, $roleMeanings);
+            $dto->maxQuantity = $this->maxQuantity($variant, $remaining[$id] ?? null, $purchased, $roleMeanings);
             $variants[] = $dto;
         }
 
@@ -60,17 +62,10 @@ readonly class ProductVariantsForGrid
      *
      * @param RoleMeaning[] $roleMeanings
      */
-    private function maxQuantity(ProductVariant $variant, int $purchasedQuantity, array $roleMeanings): ?int
+    private function maxQuantity(ProductVariant $variant, ?int $remaining, int $purchasedQuantity, array $roleMeanings): ?int
     {
-        $remaining = $variant->getRemainingQuantity();
-        if ($remaining === null) {
-            return null;
-        }
+        $available = $this->capacityManager->availableQuantity($variant, $roleMeanings, $remaining);
 
-        if (! RoleMeaning::anyIsOrganizer($roleMeanings)) {
-            $remaining -= $variant->getEffectiveReservedForOrganizers() ?? 0;
-        }
-
-        return max(0, $remaining) + $purchasedQuantity;
+        return $available === null ? null : $available + $purchasedQuantity;
     }
 }

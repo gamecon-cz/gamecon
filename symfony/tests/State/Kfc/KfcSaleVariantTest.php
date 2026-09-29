@@ -10,15 +10,15 @@ use App\Dto\Kfc\KfcSaleItemInputDto;
 use App\Entity\Product;
 use App\Entity\ProductTag;
 use App\Entity\ProductVariant;
+use App\Entity\User;
 use App\Enum\ProductStateEnum;
 use App\Enum\ProductTagCode;
 use App\State\Kfc\KfcSaleProcessor;
-use App\Entity\User;
 use App\Structure\Entity\UserEntityStructure;
 use App\Tests\AbstractDatabaseKernelTestCase;
-use Gamecon\Tests\Factory\UserFactory;
 use Gamecon\Cas\DateTimeImmutableStrict;
 use Gamecon\SystemoveNastaveni\SystemoveNastaveni;
+use Gamecon\Tests\Factory\UserFactory;
 use Symfony\Component\Security\Http\Authenticator\Token\PostAuthenticationToken;
 
 /**
@@ -118,7 +118,6 @@ class KfcSaleVariantTest extends AbstractDatabaseKernelTestCase
             $varianta->setName($velikost);
             $varianta->setCode($kod . '-' . $velikost);
             $varianta->setPrice('400.00');
-            $varianta->setRemainingQuantity(10);
             $varianta->setPosition($poradi);
             $predmet->addVariant($varianta);
             $this->entityManager()->persist($varianta);
@@ -143,9 +142,7 @@ class KfcSaleVariantTest extends AbstractDatabaseKernelTestCase
 
     private function zbyvaNaVariante(ProductVariant $varianta): ?int
     {
-        $this->entityManager()->refresh($varianta);
-
-        return $varianta->getRemainingQuantity();
+        return $this->zbyva($varianta);
     }
 
     public function testProdaZvolenouVelikost(): void

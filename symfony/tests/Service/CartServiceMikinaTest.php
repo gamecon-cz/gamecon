@@ -120,7 +120,6 @@ class CartServiceMikinaTest extends AbstractDatabaseKernelTestCase
         $varianta->setName('L');
         $varianta->setCode($kod . '-l');
         $varianta->setPrice('600.00');
-        $varianta->setRemainingQuantity($kusuVyrobeno);
         $varianta->setPosition(0);
         $produkt->addVariant($varianta);
         $this->entityManager()->persist($varianta);
@@ -131,16 +130,7 @@ class CartServiceMikinaTest extends AbstractDatabaseKernelTestCase
 
     private function zbyvajiciKusy(ProductVariant $varianta): ?int
     {
-        $zbyva = $this->connection()->fetchOne(
-            'SELECT remaining_quantity FROM product_variant WHERE id = :id',
-            [
-                'id' => $varianta->getId(),
-            ],
-        );
-
-        return $zbyva === null || $zbyva === false
-            ? null
-            : (int) $zbyva;
+        return $this->zbyva($varianta);
     }
 
     /**

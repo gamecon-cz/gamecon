@@ -11,7 +11,6 @@ class EshopImporter
 {
     public function __construct(
         private readonly string $souborCesta,
-        private readonly int $rocnik,
     ) {
     }
 
@@ -232,12 +231,11 @@ SQL,
             // imported codes, so a product whose variants were deliberately removed elsewhere does
             // not get one resurrected here.
             dbQuery(<<<SQL
-INSERT INTO product_variant (product_id, name, code, price, remaining_quantity, reserved_for_organizers, accommodation_day, position)
+INSERT INTO product_variant (product_id, name, code, price, reserved_for_organizers, accommodation_day, position)
 SELECT shop_predmety.id_predmetu,
        shop_predmety.nazev,
        shop_predmety.kod_predmetu,
        NULL,
-       shop_predmety.kusu_vyrobeno,
        NULL,
        shop_predmety.ubytovani_den,
        0
@@ -270,24 +268,6 @@ WHERE product_variant.code = shop_predmety.kod_predmetu
       WHERE sourozenci.product_id = shop_predmety.id_predmetu
   ) = 1
 SQL,
-            );
-
-            // Stock, unlike the name, belongs to every variant: its capacity is the row sharing
-            // its code, whoever owns it. What was already sold this year stays sold.
-            dbQuery(<<<SQL
-UPDATE product_variant
-JOIN shop_predmety ON shop_predmety.kod_predmetu = product_variant.code
-JOIN `{$temporaryTable}` AS import ON import.kod_predmetu = shop_predmety.kod_predmetu
-SET product_variant.remaining_quantity = shop_predmety.kusu_vyrobeno - (
-    SELECT COUNT(*)
-    FROM shop_nakupy
-    WHERE shop_nakupy.rok = $0
-      AND shop_nakupy.variant_id = product_variant.id
-)
-SQL,
-                [
-                    0 => $this->rocnik,
-                ],
             );
 
             // Sync tags for all imported products (new and updated)

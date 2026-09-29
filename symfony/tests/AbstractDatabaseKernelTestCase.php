@@ -6,6 +6,9 @@ namespace App\Tests;
 
 use ApiPlatform\Symfony\Bundle\Test\ApiTestCase;
 use ApiPlatform\Symfony\Bundle\Test\Client;
+use App\Entity\ProductVariant;
+use App\Enum\ProductStateEnum;
+use App\Service\CapacityManager;
 use Doctrine\DBAL\Connection;
 use Doctrine\ORM\EntityManagerInterface;
 
@@ -65,6 +68,30 @@ abstract class AbstractDatabaseKernelTestCase extends ApiTestCase
     protected function connection(): Connection
     {
         return $this->entityManager()->getConnection();
+    }
+
+    /**
+     * Gives a variant its own catalog row, the way every size and night has one in
+     * production; without it the variant takes its product's capacity.
+     */
+    protected function kapacitaVarianty(ProductVariant $variant, ?int $kusu): void
+    {
+        $this->connection()->executeStatement(
+            'INSERT INTO shop_predmety (nazev, kod_predmetu, cena_aktualni, stav, popis, kusu_vyrobeno)
+             VALUES (:nazev, :kod, 0, :stav, \'\', :kusu)
+             ON DUPLICATE KEY UPDATE kusu_vyrobeno = VALUES(kusu_vyrobeno)',
+            [
+                'nazev' => $variant->getName(),
+                'kod'   => $variant->getCode(),
+                'stav'  => ProductStateEnum::PUBLIC->value,
+                'kusu'  => $kusu,
+            ],
+        );
+    }
+
+    protected function zbyva(ProductVariant $variant): ?int
+    {
+        return static::getContainer()->get(CapacityManager::class)->remaining($variant);
     }
 
     /**

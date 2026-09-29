@@ -89,7 +89,6 @@ class AccommodationImportTest extends AbstractDatabaseKernelTestCase
         $varianta->setAccommodationDay($den);
         $varianta->setPrice('400.00');
         $varianta->setPosition(0);
-        $varianta->setRemainingQuantity(10);
         $produkt->addVariant($varianta);
         $this->entityManager()->persist($varianta);
         $this->entityManager()->flush();

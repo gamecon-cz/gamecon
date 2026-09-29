@@ -24,8 +24,8 @@ use Gamecon\Tests\Factory\UserFactory;
  * Stock movement through the cart, against a real database.
  *
  * CartServiceTest covers the same service with a mocked CapacityManager, so it asserts
- * that the guard is called, never that it holds: the capacity check lives in the WHERE
- * clause of CapacityManager's UPDATE, which only real SQL can answer.
+ * that the guard is called, never that it holds: stock is counted from the purchase rows,
+ * which only a real database can answer.
  */
 class CartServiceStockTest extends AbstractDatabaseKernelTestCase
 {
@@ -136,7 +136,6 @@ class CartServiceStockTest extends AbstractDatabaseKernelTestCase
         $variant->setName('jedna velikost');
         $variant->setCode($kod . '-1');
         $variant->setPrice($cena);
-        $variant->setRemainingQuantity($kusuVyrobeno);
         $variant->setPosition(0);
         $product->addVariant($variant);
         $this->entityManager()->persist($variant);
@@ -147,14 +146,7 @@ class CartServiceStockTest extends AbstractDatabaseKernelTestCase
 
     private function zbyvajiciKusy(ProductVariant $variant): ?int
     {
-        $zbyva = $this->connection()->fetchOne(
-            'SELECT remaining_quantity FROM product_variant WHERE id = :id',
-            [
-                'id' => $variant->getId(),
-            ],
-        );
-
-        return $zbyva === null ? null : (int) $zbyva;
+        return $this->zbyva($variant);
     }
 
     private function ulozenaCena(OrderItem $polozka): string
@@ -234,32 +226,20 @@ class CartServiceStockTest extends AbstractDatabaseKernelTestCase
     }
 
     /**
-     * Objednávka většího počtu kusů, než zbývá, nesmí projít ani zčásti.
-     *
-     * Vede přes CapacityManager: addItem() kupuje vždy po jednom kusu, takže víckusovou
-     * cestu z něj není jak vyvolat. Podmínka je přímo ve WHERE toho UPDATE, tedy přesně to,
-     * co mockovaný test ověřit nedokáže.
+     * Víc kusů, než zbývá, neprojde ani zčásti. addItem() kupuje vždy po jednom, takže se
+     * víckusová cesta zkouší přímo na CapacityManageru.
      *
      * @test
      */
-    public function vicekusovyNakupNadZasobuNeodebereNic(): void
+    public function vicekusovyNakupNadZasobuNeprojde(): void
     {
         $variant = $this->vytvorPredmet(kusuVyrobeno: 2);
         $capacityManager = static::getContainer()->get(CapacityManager::class);
 
-        $chyba = null;
-        try {
-            $capacityManager->purchase($variant, 3);
-        } catch (\RuntimeException $zachycena) {
-            $chyba = $zachycena;
-        }
+        $this->expectException(\RuntimeException::class);
+        $this->expectExceptionMessageMatches('~kapacita~');
 
-        self::assertNotNull($chyba, 'Nákup 3 kusů při zásobě 2 musí skončit chybou');
-        self::assertSame(
-            2,
-            $this->zbyvajiciKusy($variant),
-            'Odmítnutý víckusový nákup nesmí odebrat ani jeden kus',
-        );
+        $capacityManager->lockForSale($variant, 3);
     }
 
     /**
@@ -407,9 +387,8 @@ class CartServiceStockTest extends AbstractDatabaseKernelTestCase
         }
         $this->entityManager()->flush();
 
-        // Both halves are needed: CapacityManager::purchase() early-returns for unlimited
-        // stock, so the NULL alone cannot change and would stay green even if the product
-        // had become unbuyable.
+        // Both halves are needed: an unlimited remaining stays NULL whatever is sold, so on
+        // its own it would stay green even if the product had become unbuyable.
         self::assertSame(
             3,
             $this->pocetNakupu($zakaznik, $variant),
