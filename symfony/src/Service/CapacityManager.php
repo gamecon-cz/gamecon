@@ -96,9 +96,8 @@ class CapacityManager
     /**
      * Posune zásobu o daný krok, bez ohledu na kapacitu.
      *
-     * Pro cesty, které zapisují do `shop_nakupy` přímo a o kapacitě rozhodují podle
-     * `kusu_vyrobeno` (admin, infopult). Zásoba na variantě je pro ně sice zastaralá, ale
-     * čte ji účastnický e-shop, takže se musí hýbat s nimi.
+     * Pro cesty, které zapisují do `shop_nakupy` přímo místo přes `purchase()` (ubytování,
+     * jídla, snídaně). Zásobu na variantě čte účastnický e-shop, takže se musí hýbat s nimi.
      *
      * Smí jít do mínusu: admin prodává i nad kapacitu a zastavit se na nule by znamenalo
      * tvrdit, že je volno, když není. `IS NOT NULL` drží význam „null = neomezeno".
