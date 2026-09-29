@@ -39,7 +39,7 @@ SQL);
     public function radekBezSnapshotuSeDoplniZProduktu(): void
     {
         dbQuery(<<<SQL
-INSERT INTO shop_predmety SET id_predmetu = 94010, nazev = 'Ponožky (vel. 42-45)', kod_predmetu = 'ponozky_94010', cena_aktualni = 120, stav = 1, nabizet_do = NOW(), kusu_vyrobeno = 10
+INSERT INTO shop_predmety SET id_predmetu = 94010, nazev = 'Ponožky (vel. 42-45)', kod_predmetu = 'ponozky_94010', cena_aktualni = 120, stav = 1, nabizet_do = NOW()
 SQL);
         dbQuery(<<<SQL
 INSERT INTO shop_nakupy_zrusene SET id_uzivatele = 1, id_predmetu = 94010, rocnik = 2024, cena_nakupni = 120, datum_nakupu = NOW(), datum_zruseni = NOW(), zdroj_zruseni = 'rucne-hromadne'

@@ -40,11 +40,6 @@ class ProductEntityStructure
     public const availableUntil = 'availableUntil';
 
     /**
-     * @see Product::$producedQuantity
-     */
-    public const producedQuantity = 'producedQuantity';
-
-    /**
      * @see Product::$accommodationDay
      */
     public const accommodationDay = 'accommodationDay';

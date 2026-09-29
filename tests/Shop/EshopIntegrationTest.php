@@ -96,6 +96,7 @@ class EshopIntegrationTest extends AbstractTestDb
                 $variantM->setProduct($product);
                 $variantM->setName('M');
                 $variantM->setCode('eshoptest-tricko-modre-m');
+                $variantM->setCapacity(10);
                 $variantM->setPosition(0);
                 $product->addVariant($variantM);
                 $em->persist($variantM);
@@ -105,24 +106,12 @@ class EshopIntegrationTest extends AbstractTestDb
                 $variantL->setProduct($product);
                 $variantL->setName('L');
                 $variantL->setCode('eshoptest-tricko-modre-l');
+                $variantL->setCapacity(1);
                 $variantL->setPosition(1);
                 $product->addVariant($variantL);
                 $em->persist($variantL);
 
                 $em->flush();
-
-                // Each size carries its capacity on its own catalog row, as in production.
-                foreach ([[$variantM, 10], [$variantL, 1]] as [$velikost, $kusu]) {
-                    $conn->executeStatement(
-                        "INSERT INTO shop_predmety (nazev, kod_predmetu, cena_aktualni, stav, popis, kusu_vyrobeno)
-                         VALUES (:nazev, :kod, 0, 1, '', :kusu)",
-                        [
-                            'nazev' => $velikost->getName(),
-                            'kod'   => $velikost->getCode(),
-                            'kusu'  => $kusu,
-                        ],
-                    );
-                }
 
                 // Store IDs for later
                 self::$product = $product;
@@ -268,7 +257,6 @@ class EshopIntegrationTest extends AbstractTestDb
             $produkt->setState(ProductStateEnum::PUBLIC);
             $produkt->setDescription('');
             $produkt->setAvailableUntil(new \DateTimeImmutable('+1 year'));
-            $produkt->setProducedQuantity(5);
             if ($kostkaTag !== null) {
                 $produkt->addTag($kostkaTag);
             }
@@ -278,6 +266,7 @@ class EshopIntegrationTest extends AbstractTestDb
             $varianta->setProduct($produkt);
             $varianta->setName('jedna');
             $varianta->setCode('eshoptest-' . $jmeno . '-kostka-v');
+            $varianta->setCapacity(5);
             $varianta->setPosition(0);
             $produkt->addVariant($varianta);
             $this->em->persist($varianta);

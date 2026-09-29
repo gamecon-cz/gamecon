@@ -930,14 +930,11 @@ SQL,
      * Accommodation sells only a night. A room type owns its nights, and whether it has a
      * variant of its own depends on how it was created, so the night itself is what is checked.
      */
-    private function idVariantyPodleKodu(
+    private function idProdejneVarianty(
+        array  $varianta,
         string $kodPredmetu,
         int    $idPredmetu,
     ): int {
-        $varianta = dbOneLine(
-            'SELECT id, accommodation_day FROM product_variant WHERE code = $0',
-            [0 => $kodPredmetu],
-        );
         $jeUbytovani = (bool) dbOneCol(
             'SELECT EXISTS(
                 SELECT 1 FROM product_product_tag
@@ -969,17 +966,21 @@ SQL,
     ) {
         dbBegin();
         try {
-            // Lock the base-table row first; model_rok is then read from the view (virtual column derived from archived_at).
-            $predmet = dbOneLine(
-                "SELECT cena_aktualni, kusu_vyrobeno, nazev, kod_predmetu FROM shop_predmety WHERE id_predmetu = $0 FOR UPDATE",
+            // The variant row is the capacity lock every sale path takes. A locking read first,
+            // so the plain reads below take their snapshot only once the lock is held. Matched by
+            // code, not product_id: nights and sizes hang under another product.
+            $varianta = dbOneLine(
+                'SELECT product_variant.id, product_variant.capacity, product_variant.accommodation_day
+                 FROM product_variant
+                 INNER JOIN shop_predmety ON shop_predmety.kod_predmetu = product_variant.code
+                 WHERE shop_predmety.id_predmetu = $0
+                 FOR UPDATE',
                 [0 => $idPredmetu],
             );
-            if ($predmet) {
-                $predmet['model_rok'] = dbOneCol(
-                    "SELECT model_rok FROM shop_predmety_s_typem WHERE id_predmetu = $0",
-                    [0 => $idPredmetu],
-                );
-            }
+            $predmet = dbOneLine(
+                'SELECT cena_aktualni, nazev, kod_predmetu, model_rok FROM shop_predmety_s_typem WHERE id_predmetu = $0',
+                [0 => $idPredmetu],
+            );
             if (!$predmet) {
                 throw new \Chyba("Předmět s ID {$idPredmetu} neexistuje.");
             }
@@ -988,13 +989,14 @@ SQL,
                 throw new \Chyba("Předmět '{$predmet['nazev']}' patří do ročníku {$predmet['model_rok']}, nelze ho prodávat v ročníku {$aktualniRocnik}.");
             }
             $cenaAktualni = $predmet['cena_aktualni'];
+            $idVarianty = $this->idProdejneVarianty($varianta, $predmet['kod_predmetu'], $idPredmetu);
 
-            if ($predmet['kusu_vyrobeno'] !== null) {
+            if ($varianta['capacity'] !== null) {
                 $prodanoKusu = (int) dbOneCol(
-                    "SELECT COUNT(*) FROM shop_nakupy WHERE id_predmetu = $0 AND rok = $1",
-                    [0 => $idPredmetu, 1 => $aktualniRocnik],
+                    'SELECT COUNT(*) FROM shop_nakupy WHERE variant_id = $0 AND rok = $1',
+                    [0 => $idVarianty, 1 => $aktualniRocnik],
                 );
-                $zbyvajiciKusu = max(0, (int) $predmet['kusu_vyrobeno'] - $prodanoKusu);
+                $zbyvajiciKusu = max(0, (int) $varianta['capacity'] - $prodanoKusu);
                 if ($kusu > $zbyvajiciKusu) {
                     throw new \Chyba("Předmět '{$predmet['nazev']}' už nejde objednat v požadovaném počtu. Zbývá dostupných kusů: {$zbyvajiciKusu}.");
                 }
@@ -1014,10 +1016,6 @@ SQL,
                 ],
             );
             $idObjednavky = dbInsertId();
-
-            // Varianta se dohledává podle kódu, ne podle `product_id`: noci a velikosti se při
-            // migraci přerodičovaly pod jednoho vlastníka, takže `product_id` u nich nesedí.
-            $idVarianty = $this->idVariantyPodleKodu($predmet['kod_predmetu'], $idPredmetu);
 
             for ($i = 1; $i <= $kusu; $i++) {
                 dbQuery(

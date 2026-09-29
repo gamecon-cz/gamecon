@@ -70,7 +70,7 @@ SQL,
         ],
         [
             <<<SQL
-INSERT INTO shop_predmety SET id_predmetu = 46610, nazev = 'Tričko červené L', kod_predmetu = CONCAT('tricko_panske_organizatorske_L_', $0), cena_aktualni = 400, stav = 1, nabizet_do = NOW(), kusu_vyrobeno = 100
+INSERT INTO shop_predmety SET id_predmetu = 46610, nazev = 'Tričko červené L', kod_predmetu = CONCAT('tricko_panske_organizatorske_L_', $0), cena_aktualni = 400, stav = 1, nabizet_do = NOW()
 SQL,
             [
                 0 => ROCNIK,
@@ -78,7 +78,7 @@ SQL,
         ],
         [
             <<<SQL
-INSERT INTO shop_predmety SET id_predmetu = 46611, nazev = 'Tričko modré L', kod_predmetu = CONCAT('tricko_panske_vypravecske_L_', $0), cena_aktualni = 350, stav = 1, nabizet_do = NOW(), kusu_vyrobeno = 100
+INSERT INTO shop_predmety SET id_predmetu = 46611, nazev = 'Tričko modré L', kod_predmetu = CONCAT('tricko_panske_vypravecske_L_', $0), cena_aktualni = 350, stav = 1, nabizet_do = NOW()
 SQL,
             [
                 0 => ROCNIK,
@@ -86,7 +86,7 @@ SQL,
         ],
         [
             <<<SQL
-INSERT INTO shop_predmety SET id_predmetu = 46612, nazev = 'Tričko účastnické L', kod_predmetu = CONCAT('tricko_panske_ucastnicke_L_', $0), cena_aktualni = 250, stav = 1, nabizet_do = NOW(), kusu_vyrobeno = 100
+INSERT INTO shop_predmety SET id_predmetu = 46612, nazev = 'Tričko účastnické L', kod_predmetu = CONCAT('tricko_panske_ucastnicke_L_', $0), cena_aktualni = 250, stav = 1, nabizet_do = NOW()
 SQL,
             [
                 0 => ROCNIK,
@@ -97,7 +97,7 @@ SQL,
         // kategorie "placené" vůbec vyjít nenulově.
         [
             <<<SQL
-INSERT INTO shop_predmety SET id_predmetu = 46613, nazev = 'Tričko zelené L', kod_predmetu = CONCAT('tricko_panske_zelene_L_', $0), cena_aktualni = 450, stav = 1, nabizet_do = NOW(), kusu_vyrobeno = 100
+INSERT INTO shop_predmety SET id_predmetu = 46613, nazev = 'Tričko zelené L', kod_predmetu = CONCAT('tricko_panske_zelene_L_', $0), cena_aktualni = 450, stav = 1, nabizet_do = NOW()
 SQL,
             [
                 0 => ROCNIK,

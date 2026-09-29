@@ -49,7 +49,7 @@ SQL,
         ],
         [
             <<<SQL
-INSERT INTO shop_predmety SET id_predmetu = 33700, nazev = 'Kostka nastaveni', kod_predmetu = CONCAT('kostka_nastaveni_', $0), cena_aktualni = 100, stav = 1, nabizet_do = NOW(), kusu_vyrobeno = 100
+INSERT INTO shop_predmety SET id_predmetu = 33700, nazev = 'Kostka nastaveni', kod_predmetu = CONCAT('kostka_nastaveni_', $0), cena_aktualni = 100, stav = 1, nabizet_do = NOW()
 SQL,
             [
                 0 => ROCNIK,
@@ -58,7 +58,7 @@ SQL,
         "INSERT INTO product_product_tag (product_id, tag_id) SELECT 33700, id FROM product_tag WHERE code = 'predmet'",
         [
             <<<SQL
-INSERT INTO shop_predmety SET id_predmetu = 33701, nazev = 'Tricko nastaveni', kod_predmetu = CONCAT('tricko_nastaveni_', $0), cena_aktualni = 300, stav = 1, nabizet_do = NOW(), kusu_vyrobeno = 100
+INSERT INTO shop_predmety SET id_predmetu = 33701, nazev = 'Tricko nastaveni', kod_predmetu = CONCAT('tricko_nastaveni_', $0), cena_aktualni = 300, stav = 1, nabizet_do = NOW()
 SQL,
             [
                 0 => ROCNIK,

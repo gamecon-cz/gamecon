@@ -78,7 +78,7 @@ use Symfony\Component\Validator\Constraints as Assert;
     'tags.code' => 'exact',
 ])]
 #[ApiFilter(OrderFilter::class, properties: ['id', 'name', 'currentPrice', 'state'])]
-#[ApiFilter(RangeFilter::class, properties: ['currentPrice', 'producedQuantity'])]
+#[ApiFilter(RangeFilter::class, properties: ['currentPrice'])]
 #[AppAssert\BreakfastIncludedRequiresAccommodation]
 #[AppAssert\TagCombinationIsAllowed]
 class Product
@@ -123,11 +123,6 @@ class Product
     #[ORM\Column(name: 'nabizet_do', type: Types::DATETIME_IMMUTABLE, nullable: true)]
     #[Groups([self::READ, self::WRITE])]
     private ?\DateTimeImmutable $availableUntil = null;
-
-    #[ORM\Column(name: 'kusu_vyrobeno', type: Types::SMALLINT, nullable: true)]
-    #[Assert\PositiveOrZero(message: 'Počet vyrobených kusů musí být kladné číslo nebo nula')]
-    #[Groups([self::LIST, self::READ, self::WRITE])]
-    private ?int $producedQuantity = null;
 
     #[ORM\Column(name: 'ubytovani_den', type: Types::SMALLINT, nullable: true)]
     #[Assert\Range(notInRangeMessage: 'Den ubytování musí být 0-4 (St-Ne)', min: 0, max: 4)]
@@ -282,16 +277,24 @@ class Product
         return $this;
     }
 
-    public function getProducedQuantity(): ?int
+    /**
+     * Sum over the variants; null when any of them is unlimited.
+     */
+    #[Groups([self::LIST, self::READ])]
+    public function getCapacity(): ?int
     {
-        return $this->producedQuantity;
-    }
+        if ($this->variants->isEmpty()) {
+            return null;
+        }
+        $capacity = 0;
+        foreach ($this->variants as $variant) {
+            if ($variant->getCapacity() === null) {
+                return null;
+            }
+            $capacity += $variant->getCapacity();
+        }
 
-    public function setProducedQuantity(?int $producedQuantity): self
-    {
-        $this->producedQuantity = $producedQuantity;
-
-        return $this;
+        return $capacity;
     }
 
     public function getAccommodationDay(): ?int
