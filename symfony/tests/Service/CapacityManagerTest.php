@@ -10,9 +10,11 @@ use App\Entity\User;
 use App\Enum\ProductStateEnum;
 use App\Enum\RoleMeaning;
 use App\Service\CapacityManager;
+use App\Service\CurrentYearProviderInterface;
 use App\Service\OperatorOverride;
 use App\Structure\Entity\UserEntityStructure;
 use App\Tests\AbstractDatabaseKernelTestCase;
+use Doctrine\DBAL\DriverManager;
 use Gamecon\Tests\Factory\UserFactory;
 
 class CapacityManagerTest extends AbstractDatabaseKernelTestCase
@@ -237,6 +239,55 @@ class CapacityManagerTest extends AbstractDatabaseKernelTestCase
         $this->expectException(\LogicException::class);
 
         $this->capacityManager()->lockForSale($variant);
+    }
+
+    /**
+     * Two buyers race for the last piece. The second has already read something in its
+     * transaction, so a plain COUNT would see its old snapshot and miss the first buyer's row.
+     * Needs committed data on two connections, so this test cleans up after itself.
+     */
+    public function testSecondBuyerSeesTheFirstBuyersCommittedPurchase(): void
+    {
+        $variant = $this->varianta(kusuVyrobeno: 1);
+        $idVarianty = (int) $variant->getId();
+        $idProduktu = (int) $variant->getProduct()->getId();
+        $this->connection()->commit();
+
+        $druheSpojeni = DriverManager::getConnection($this->connection()->getParams());
+        $druhyKupujici = new CapacityManager($druheSpojeni, static::getContainer()->get(CurrentYearProviderInterface::class));
+        try {
+            $druheSpojeni->beginTransaction();
+            $druheSpojeni->fetchOne('SELECT COUNT(*) FROM shop_nakupy');
+
+            $this->connection()->executeStatement(
+                'INSERT INTO shop_nakupy (id_uzivatele, id_predmetu, variant_id, rok, cena_nakupni, datum)
+                 VALUES (:customer, :product, :variant, :year, 50, NOW())',
+                [
+                    'customer' => \Uzivatel::SYSTEM,
+                    'product'  => $idProduktu,
+                    'variant'  => $idVarianty,
+                    'year'     => ROCNIK,
+                ],
+            );
+
+            $this->expectException(\RuntimeException::class);
+            $druhyKupujici->lockForSale($variant);
+        } finally {
+            if ($druheSpojeni->isTransactionActive()) {
+                $druheSpojeni->rollBack();
+            }
+            $druheSpojeni->close();
+            $this->connection()->executeStatement('DELETE FROM shop_nakupy WHERE variant_id = :id', [
+                'id' => $idVarianty,
+            ]);
+            $this->connection()->executeStatement('DELETE FROM product_variant WHERE id = :id', [
+                'id' => $idVarianty,
+            ]);
+            $this->connection()->executeStatement('DELETE FROM shop_predmety WHERE id_predmetu = :id', [
+                'id' => $idProduktu,
+            ]);
+            $this->connection()->beginTransaction();
+        }
     }
 
     public function testCapacityInfo(): void

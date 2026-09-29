@@ -109,9 +109,9 @@ class CapacityManager
     }
 
     /**
-     * Locks the variant's capacity row until the surrounding transaction ends, then checks
-     * the stock. The sale must be written in that same transaction: a concurrent buyer
-     * waits on the lock and then counts the row this one wrote.
+     * Locks the variant's capacity row until the surrounding transaction ends, so the sale
+     * must be written in that same transaction. The count is a locking read: a plain one would
+     * reuse the caller's REPEATABLE READ snapshot and miss a purchase committed while it waited.
      *
      * @param RoleMeaning[] $roleMeanings
      *
@@ -145,7 +145,7 @@ class CapacityManager
         }
 
         $sold = (int) $this->connection->fetchOne(
-            'SELECT COUNT(*) FROM shop_nakupy WHERE shop_nakupy.rok = :rok AND shop_nakupy.variant_id = :id',
+            'SELECT COUNT(*) FROM shop_nakupy WHERE shop_nakupy.rok = :rok AND shop_nakupy.variant_id = :id LOCK IN SHARE MODE',
             [
                 'rok' => $this->currentYearProvider->getCurrentYear(),
                 'id'  => $variant->getId(),
