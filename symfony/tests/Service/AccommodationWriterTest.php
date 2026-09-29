@@ -670,8 +670,8 @@ class AccommodationWriterTest extends AbstractDatabaseKernelTestCase
     }
 
     /**
-     * The guard the whole design turns on: remaining_quantity is stale for accommodation,
-     * so a full night has to be recognised from the sold count instead.
+     * The guard the whole design turns on: the sold count decides, so a counter that a reset
+     * or a bypassing write left too high still cannot oversell a night.
      */
     public function testFullNightIsRefusedEvenWhenRemainingQuantitySaysOtherwise(): void
     {
