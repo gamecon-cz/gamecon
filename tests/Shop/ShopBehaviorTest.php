@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace Gamecon\Tests\Shop;
 
 use Gamecon\Shop\Shop;
-use Gamecon\Shop\ShopUbytovani;
 use Gamecon\Shop\TypPredmetu;
 use Gamecon\SystemoveNastaveni\SystemoveNastaveni;
 use Gamecon\Tests\Db\AbstractTestDb;
@@ -182,12 +181,9 @@ SQL,
         // User bought JIDLO → should be detected
         self::assertTrue($shop->objednalNejakeJidlo(), 'Uživatel objednal jídlo');
 
-        // UBYTOVANI → ShopUbytovani instance exists
-        self::assertInstanceOf(ShopUbytovani::class, $shop->ubytovani());
-
         // User bought UBYTOVANI → should be detected
         self::assertTrue(
-            $shop->ubytovani()->maObjednaneUbytovani(),
+            $shop->maObjednaneUbytovani(),
             'Uživatel má objednané ubytování',
         );
 
@@ -261,13 +257,25 @@ SQL,
     /**
      * @test
      */
+    public function objednaneUbytovaniSePopiseProInfopult(): void
+    {
+        $shop = $this->dejShopProUzivatele(77701);
+
+        self::assertSame([1], $shop->veKterychDnechJeUbytovan());
+        self::assertSame('Spacák: pá', $shop->dejPopisUbytovani());
+        self::assertContains('Ubytování: Spacák pátek', $shop->prehledObjednavekProInfopult());
+    }
+
+    /**
+     * @test
+     */
     public function shopUzivatelBezNakupuNemaObjednaneUbytovani(): void
     {
         // User 77702 has predmet + jidlo but no ubytovani purchase
         $shop = $this->dejShopProUzivatele(77702);
 
         self::assertFalse(
-            $shop->ubytovani()->maObjednaneUbytovani(),
+            $shop->maObjednaneUbytovani(),
             'Uživatel bez nákupu ubytování nemá objednané ubytování',
         );
     }
@@ -433,7 +441,7 @@ SQL,
     {
         $uzivatel = \Uzivatel::zIdUrcite(77701);
 
-        // uprav() internally calls shop()->ubytovani()->maObjednaneUbytovani()
+        // uprav() internally calls shop()->maObjednaneUbytovani()
         // This must not crash even with shop data present
         $result = $uzivatel->uprav([
             'jmeno_uzivatele' => 'ShopUpravený',
