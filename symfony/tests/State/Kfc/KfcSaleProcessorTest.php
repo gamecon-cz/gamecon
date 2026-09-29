@@ -147,7 +147,6 @@ class KfcSaleProcessorTest extends AbstractDatabaseKernelTestCase
         $predmet->setCurrentPrice($cena);
         $predmet->setDescription('');
         $predmet->setState(ProductStateEnum::PUBLIC);
-        $predmet->setProducedQuantity($kusuVyrobeno);
         $predmet->addTag($tag);
         $this->entityManager()->persist($predmet);
 
@@ -155,6 +154,7 @@ class KfcSaleProcessorTest extends AbstractDatabaseKernelTestCase
         $varianta->setProduct($predmet);
         $varianta->setName('jedna velikost');
         $varianta->setCode($kod . '-1');
+        $varianta->setCapacity($kusuVyrobeno);
         $varianta->setPrice($cena);
         $varianta->setPosition(0);
         $predmet->addVariant($varianta);

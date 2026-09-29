@@ -18,7 +18,7 @@ class PredmetSmazCacheTest extends AbstractTestDb
 
     protected static array $initQueries = [
         <<<SQL
-INSERT INTO shop_predmety SET id_predmetu = 46630, nazev = 'Placka na smazani', kod_predmetu = 'placka_smazana_46630', cena_aktualni = 40, stav = 1, nabizet_do = NOW(), kusu_vyrobeno = 100
+INSERT INTO shop_predmety SET id_predmetu = 46630, nazev = 'Placka na smazani', kod_predmetu = 'placka_smazana_46630', cena_aktualni = 40, stav = 1, nabizet_do = NOW()
 SQL,
         [
             <<<SQL

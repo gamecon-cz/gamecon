@@ -80,7 +80,6 @@ class BreakfastCancellerTest extends AbstractDatabaseKernelTestCase
         $produkt->setDescription('');
         $produkt->setState(ProductStateEnum::PUBLIC);
         $produkt->setAccommodationDay($den);
-        $produkt->setProducedQuantity(10);
         $produkt->setBreakfastIncluded($snidaneVCene);
         $produkt->addTag($this->tag($kategorie));
         $this->entityManager()->persist($produkt);
@@ -90,6 +89,7 @@ class BreakfastCancellerTest extends AbstractDatabaseKernelTestCase
         $varianta->setProduct($produkt);
         $varianta->setName($nazev);
         $varianta->setCode($kod);
+        $varianta->setCapacity(10);
         $varianta->setAccommodationDay($den);
         $varianta->setPrice('500.00');
         $varianta->setPosition(0);

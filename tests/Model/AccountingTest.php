@@ -25,7 +25,7 @@ SQL,
         // PREDMET (id 55501)
         [
             <<<SQL
-INSERT INTO shop_predmety SET id_predmetu = 55501, nazev = 'předmět', kod_predmetu = CONCAT('acc_predmet_', $0), cena_aktualni = 100, stav = 1, nabizet_do = NOW(), kusu_vyrobeno = 100
+INSERT INTO shop_predmety SET id_predmetu = 55501, nazev = 'předmět', kod_predmetu = CONCAT('acc_predmet_', $0), cena_aktualni = 100, stav = 1, nabizet_do = NOW()
 SQL,
             [
                 0 => ROCNIK,
@@ -35,7 +35,7 @@ SQL,
         // UBYTOVANI (id 55502)
         [
             <<<SQL
-INSERT INTO shop_predmety SET id_predmetu = 55502, nazev = 'ubytování', kod_predmetu = CONCAT('acc_ubytovani_', $0), cena_aktualni = 200, stav = 1, nabizet_do = NOW(), kusu_vyrobeno = 100, ubytovani_den = 1
+INSERT INTO shop_predmety SET id_predmetu = 55502, nazev = 'ubytování', kod_predmetu = CONCAT('acc_ubytovani_', $0), cena_aktualni = 200, stav = 1, nabizet_do = NOW(), ubytovani_den = 1
 SQL,
             [
                 0 => ROCNIK,
@@ -45,7 +45,7 @@ SQL,
         // TRICKO (id 55503)
         [
             <<<SQL
-INSERT INTO shop_predmety SET id_predmetu = 55503, nazev = 'tričko', kod_predmetu = CONCAT('acc_tricko_', $0), cena_aktualni = 150, stav = 1, nabizet_do = NOW(), kusu_vyrobeno = 100
+INSERT INTO shop_predmety SET id_predmetu = 55503, nazev = 'tričko', kod_predmetu = CONCAT('acc_tricko_', $0), cena_aktualni = 150, stav = 1, nabizet_do = NOW()
 SQL,
             [
                 0 => ROCNIK,
@@ -55,7 +55,7 @@ SQL,
         // JIDLO (id 55504)
         [
             <<<SQL
-INSERT INTO shop_predmety SET id_predmetu = 55504, nazev = 'jídlo', kod_predmetu = CONCAT('acc_jidlo_', $0), cena_aktualni = 80, stav = 1, nabizet_do = NOW(), kusu_vyrobeno = 100, ubytovani_den = 1
+INSERT INTO shop_predmety SET id_predmetu = 55504, nazev = 'jídlo', kod_predmetu = CONCAT('acc_jidlo_', $0), cena_aktualni = 80, stav = 1, nabizet_do = NOW(), ubytovani_den = 1
 SQL,
             [
                 0 => ROCNIK,
@@ -65,7 +65,7 @@ SQL,
         // VSTUPNE (id 55505)
         [
             <<<SQL
-INSERT INTO shop_predmety SET id_predmetu = 55505, nazev = 'vstupné', kod_predmetu = CONCAT('acc_vstupne_', $0), cena_aktualni = 300, stav = 1, nabizet_do = NOW(), kusu_vyrobeno = 100
+INSERT INTO shop_predmety SET id_predmetu = 55505, nazev = 'vstupné', kod_predmetu = CONCAT('acc_vstupne_', $0), cena_aktualni = 300, stav = 1, nabizet_do = NOW()
 SQL,
             [
                 0 => ROCNIK,
@@ -75,7 +75,7 @@ SQL,
         // PARCON (id 55506)
         [
             <<<SQL
-INSERT INTO shop_predmety SET id_predmetu = 55506, nazev = 'parcon', kod_predmetu = CONCAT('acc_parcon_', $0), cena_aktualni = 50, stav = 1, nabizet_do = NOW(), kusu_vyrobeno = 100
+INSERT INTO shop_predmety SET id_predmetu = 55506, nazev = 'parcon', kod_predmetu = CONCAT('acc_parcon_', $0), cena_aktualni = 50, stav = 1, nabizet_do = NOW()
 SQL,
             [
                 0 => ROCNIK,
@@ -85,7 +85,7 @@ SQL,
         // PROPLACENI_BONUSU (id 55507)
         [
             <<<SQL
-INSERT INTO shop_predmety SET id_predmetu = 55507, nazev = 'proplacení bonusu', kod_predmetu = CONCAT('acc_proplaceni_', $0), cena_aktualni = 500, stav = 1, nabizet_do = NOW(), kusu_vyrobeno = 100
+INSERT INTO shop_predmety SET id_predmetu = 55507, nazev = 'proplacení bonusu', kod_predmetu = CONCAT('acc_proplaceni_', $0), cena_aktualni = 500, stav = 1, nabizet_do = NOW()
 SQL,
             [
                 0 => ROCNIK,

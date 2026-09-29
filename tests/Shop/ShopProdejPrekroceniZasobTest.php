@@ -62,12 +62,11 @@ SQL,
                     cena_aktualni = 100,
                     stav = " . StavPredmetu::VEREJNY . ",
                     nabizet_do = '{$budouci}',
-                    kusu_vyrobeno = 2,
                     popis = ''");
                 dbQuery("INSERT INTO product_product_tag (product_id, tag_id)
                     SELECT 88811, id FROM product_tag WHERE code = 'predmet'");
 
-                // Unlimited stock item (kusu_vyrobeno = NULL)
+                // Unlimited stock item (capacity NULL)
                 dbQuery("INSERT INTO shop_predmety SET
                     id_predmetu = 88812,
                     nazev = 'Neomezený předmět',
@@ -75,16 +74,15 @@ SQL,
                     cena_aktualni = 100,
                     stav = " . StavPredmetu::VEREJNY . ",
                     nabizet_do = '{$budouci}',
-                    kusu_vyrobeno = NULL,
                     popis = ''");
                 dbQuery("INSERT INTO product_product_tag (product_id, tag_id)
                     SELECT 88812, id FROM product_tag WHERE code = 'predmet'");
 
                 // Varianta ke každému prodejnému předmětu, jak to má produkce.
-                dbQuery("INSERT INTO product_variant (product_id, name, code, price, position)
-                    VALUES (88811, 'Limitovaný předmět', 'limit_prodej_test', 100, 0)");
-                dbQuery("INSERT INTO product_variant (product_id, name, code, price, position)
-                    VALUES (88812, 'Neomezený předmět', 'unlim_prodej_test', 100, 0)");
+                dbQuery("INSERT INTO product_variant (product_id, name, code, price, capacity, position)
+                    VALUES (88811, 'Limitovaný předmět', 'limit_prodej_test', 100, 2, 0)");
+                dbQuery("INSERT INTO product_variant (product_id, name, code, price, capacity, position)
+                    VALUES (88812, 'Neomezený předmět', 'unlim_prodej_test', 100, NULL, 0)");
 
                 // Vlastní předmět pro test zápisu varianty: třída nemá rollback po metodě,
                 // takže prodej z jednoho testu by ubral zásobu tomu dalšímu.
@@ -95,12 +93,11 @@ SQL,
                     cena_aktualni = 100,
                     stav = " . StavPredmetu::VEREJNY . ",
                     nabizet_do = '{$budouci}',
-                    kusu_vyrobeno = 2,
                     popis = ''");
                 dbQuery("INSERT INTO product_product_tag (product_id, tag_id)
                     SELECT 88813, id FROM product_tag WHERE code = 'predmet'");
-                dbQuery("INSERT INTO product_variant (product_id, name, code, price, position)
-                    VALUES (88813, 'Předmět pro variantu', 'varianta_prodej_test', 100, 0)");
+                dbQuery("INSERT INTO product_variant (product_id, name, code, price, capacity, position)
+                    VALUES (88813, 'Předmět pro variantu', 'varianta_prodej_test', 100, 2, 0)");
 
                 dbQuery("INSERT INTO shop_predmety SET
                     id_predmetu = 88814,
@@ -109,12 +106,11 @@ SQL,
                     cena_aktualni = 100,
                     stav = " . StavPredmetu::VEREJNY . ",
                     nabizet_do = '{$budouci}',
-                    kusu_vyrobeno = 3,
                     popis = ''");
                 dbQuery("INSERT INTO product_product_tag (product_id, tag_id)
                     SELECT 88814, id FROM product_tag WHERE code = 'predmet'");
-                dbQuery("INSERT INTO product_variant (product_id, name, code, price, position)
-                    VALUES (88814, 'Předmět pro zrušení', 'zruseni_prodej_test', 100, 0)");
+                dbQuery("INSERT INTO product_variant (product_id, name, code, price, capacity, position)
+                    VALUES (88814, 'Předmět pro zrušení', 'zruseni_prodej_test', 100, 3, 0)");
 
                 // Room type owning its nights: no variant carries the type's own code.
                 dbQuery("INSERT INTO shop_predmety SET
@@ -124,7 +120,6 @@ SQL,
                     cena_aktualni = 300,
                     stav = " . StavPredmetu::POZASTAVENY . ",
                     nabizet_do = '{$budouci}',
-                    kusu_vyrobeno = NULL,
                     popis = ''");
                 dbQuery("INSERT INTO shop_predmety SET
                     id_predmetu = 88817,
@@ -133,7 +128,6 @@ SQL,
                     cena_aktualni = 300,
                     stav = " . StavPredmetu::VEREJNY . ",
                     nabizet_do = '{$budouci}',
-                    kusu_vyrobeno = 3,
                     ubytovani_den = 2,
                     popis = ''");
                 dbQuery("INSERT INTO product_product_tag (product_id, tag_id)
@@ -141,8 +135,8 @@ SQL,
                     FROM product_tag
                     INNER JOIN (SELECT 88816 AS id_predmetu UNION SELECT 88817) AS ubytovani
                     WHERE product_tag.code = 'ubytovani'");
-                dbQuery("INSERT INTO product_variant (product_id, name, code, price, accommodation_day, position)
-                    VALUES (88816, 'pátek', 'pokoj_prodej_test-pa', 300, 2, 0)");
+                dbQuery("INSERT INTO product_variant (product_id, name, code, price, capacity, accommodation_day, position)
+                    VALUES (88816, 'pátek', 'pokoj_prodej_test-pa', 300, 3, 2, 0)");
 
                 // Room type that got a default variant of its own, as a fresh import gives one.
                 dbQuery("INSERT INTO shop_predmety SET
@@ -152,7 +146,6 @@ SQL,
                     cena_aktualni = 300,
                     stav = " . StavPredmetu::POZASTAVENY . ",
                     nabizet_do = '{$budouci}',
-                    kusu_vyrobeno = NULL,
                     popis = ''");
                 dbQuery("INSERT INTO product_product_tag (product_id, tag_id)
                     SELECT 88818, id FROM product_tag WHERE code = 'ubytovani'");
@@ -295,7 +288,6 @@ SQL,
                 cena_aktualni = 100,
                 stav = ' . StavPredmetu::VEREJNY . ",
                 nabizet_do = $2,
-                kusu_vyrobeno = 10,
                 popis = '',
                 archived_at = $3",
             [

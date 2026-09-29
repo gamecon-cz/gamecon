@@ -10,11 +10,8 @@ use Doctrine\DBAL\ArrayParameterType;
 use Doctrine\DBAL\Connection;
 
 /**
- * Remaining stock is capacity minus this year's purchase rows — nothing stores it, so no
- * write can leave it stale. Cancelling a purchase removes its row, which is the whole refund.
- *
- * A variant's capacity is `kusu_vyrobeno` of the catalog row sharing its code (nights and
- * sizes have their own); a variant without such a row takes its product's.
+ * Remaining stock is the variant's capacity minus this year's purchase rows — nothing stores it,
+ * so no write can leave it stale. Cancelling a purchase removes its row, which is the whole refund.
  */
 class CapacityManager
 {
@@ -62,7 +59,7 @@ class CapacityManager
 
         $rows = $this->connection->fetchAllAssociative(
             'SELECT product_variant.id,
-                    IF(vlastni_radek.id_predmetu IS NULL, vlastnik.kusu_vyrobeno, vlastni_radek.kusu_vyrobeno) AS kapacita,
+                    product_variant.capacity AS kapacita,
                     (
                         SELECT COUNT(*)
                         FROM shop_nakupy
@@ -70,8 +67,6 @@ class CapacityManager
                           AND shop_nakupy.variant_id = product_variant.id
                     ) AS prodano
              FROM product_variant
-             INNER JOIN shop_predmety AS vlastnik ON vlastnik.id_predmetu = product_variant.product_id
-             LEFT OUTER JOIN shop_predmety AS vlastni_radek ON vlastni_radek.kod_predmetu = product_variant.code
              WHERE product_variant.id IN (:ids)',
             [
                 'rok' => $this->currentYearProvider->getCurrentYear(),
@@ -137,20 +132,10 @@ class CapacityManager
             throw new \LogicException('Kapacitu jde hlídat jen v transakci, která nákup i zapíše.');
         }
 
-        $capacityRowId = $this->connection->fetchOne(
-            'SELECT IF(vlastni_radek.id_predmetu IS NULL, vlastnik.id_predmetu, vlastni_radek.id_predmetu)
-             FROM product_variant
-             INNER JOIN shop_predmety AS vlastnik ON vlastnik.id_predmetu = product_variant.product_id
-             LEFT OUTER JOIN shop_predmety AS vlastni_radek ON vlastni_radek.kod_predmetu = product_variant.code
-             WHERE product_variant.id = :id',
+        $capacity = $this->connection->fetchOne(
+            'SELECT capacity FROM product_variant WHERE id = :id FOR UPDATE',
             [
                 'id' => $variant->getId(),
-            ],
-        );
-        $capacity = $this->connection->fetchOne(
-            'SELECT kusu_vyrobeno FROM shop_predmety WHERE id_predmetu = :id FOR UPDATE',
-            [
-                'id' => $capacityRowId,
             ],
         );
         if ($capacity === null || $capacity === false) {

@@ -32,6 +32,11 @@ class ProductVariantSqlStructure
     public const price = 'price';
 
     /**
+     * @see ProductVariant::$capacity
+     */
+    public const capacity = 'capacity';
+
+    /**
      * @see ProductVariant::$reservedForOrganizers
      */
     public const reserved_for_organizers = 'reserved_for_organizers';

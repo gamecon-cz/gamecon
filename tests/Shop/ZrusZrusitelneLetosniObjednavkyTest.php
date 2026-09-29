@@ -60,7 +60,6 @@ INSERT INTO shop_predmety SET
     kod_predmetu = $1,
     cena_aktualni = 100,
     stav = $2,
-    kusu_vyrobeno = NULL,
     ubytovani_den = $3
 SQL,
             [

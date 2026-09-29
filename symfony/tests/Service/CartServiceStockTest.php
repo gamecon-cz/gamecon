@@ -123,7 +123,6 @@ class CartServiceStockTest extends AbstractDatabaseKernelTestCase
         $product->setCurrentPrice($cena);
         $product->setDescription('');
         $product->setState($stav);
-        $product->setProducedQuantity($kusuVyrobeno);
         // Through the entity, not SQL: CartService asks $product->hasTag(), which reads the
         // mapped collection. A join row inserted behind Doctrine leaves that collection
         // empty, and the merch guard it feeds then never runs.
@@ -135,6 +134,7 @@ class CartServiceStockTest extends AbstractDatabaseKernelTestCase
         $variant->setProduct($product);
         $variant->setName('jedna velikost');
         $variant->setCode($kod . '-1');
+        $variant->setCapacity($kusuVyrobeno);
         $variant->setPrice($cena);
         $variant->setPosition(0);
         $product->addVariant($variant);

@@ -54,7 +54,7 @@ SQL,
         // jeden předmět + dvě NEmodrá trička s různou cenou
         [
             <<<SQL
-INSERT INTO shop_predmety SET id_predmetu = 33420, nazev = 'nějaký předmět', kod_predmetu = CONCAT('bonus_predmet_', $0), cena_aktualni = 200, stav = 1, nabizet_do = NOW(), kusu_vyrobeno = 100
+INSERT INTO shop_predmety SET id_predmetu = 33420, nazev = 'nějaký předmět', kod_predmetu = CONCAT('bonus_predmet_', $0), cena_aktualni = 200, stav = 1, nabizet_do = NOW()
 SQL,
             [
                 0 => ROCNIK,
@@ -63,7 +63,7 @@ SQL,
         "INSERT INTO product_product_tag (product_id, tag_id) SELECT 33420, id FROM product_tag WHERE code = 'predmet'",
         [
             <<<SQL
-INSERT INTO shop_predmety SET id_predmetu = 33421, nazev = 'zelené tričko', kod_predmetu = CONCAT('bonus_zelene_tricko_', $0), cena_aktualni = 300, stav = 1, nabizet_do = NOW(), kusu_vyrobeno = 100
+INSERT INTO shop_predmety SET id_predmetu = 33421, nazev = 'zelené tričko', kod_predmetu = CONCAT('bonus_zelene_tricko_', $0), cena_aktualni = 300, stav = 1, nabizet_do = NOW()
 SQL,
             [
                 0 => ROCNIK,
@@ -72,7 +72,7 @@ SQL,
         "INSERT INTO product_product_tag (product_id, tag_id) SELECT 33421, id FROM product_tag WHERE code = 'tricko'",
         [
             <<<SQL
-INSERT INTO shop_predmety SET id_predmetu = 33422, nazev = 'žluté tričko', kod_predmetu = CONCAT('bonus_zlute_tricko_', $0), cena_aktualni = 500, stav = 1, nabizet_do = NOW(), kusu_vyrobeno = 100
+INSERT INTO shop_predmety SET id_predmetu = 33422, nazev = 'žluté tričko', kod_predmetu = CONCAT('bonus_zlute_tricko_', $0), cena_aktualni = 500, stav = 1, nabizet_do = NOW()
 SQL,
             [
                 0 => ROCNIK,
