@@ -30,6 +30,7 @@ readonly class AccommodationImport
     public function __construct(
         private EntityManagerInterface $entityManager,
         private AccommodationWriter $accommodationWriter,
+        private CapacityManager $capacityManager,
     ) {
     }
 
@@ -81,7 +82,7 @@ readonly class AccommodationImport
 
     public function zacniTransakci(): void
     {
-        $this->entityManager->getConnection()->beginTransaction();
+        $this->capacityManager->beginSaleTransaction();
     }
 
     public function potvrdTransakci(): void

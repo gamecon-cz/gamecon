@@ -31,6 +31,7 @@ class AccommodationWriter
         private CartService $cartService,
         private DiscountCalculator $discountCalculator,
         private BreakfastCanceller $breakfastCanceller,
+        private CapacityManager $capacityManager,
         private PriceIncreaseNotifier $priceIncreaseNotifier,
         private OrderItemRepository $orderItemRepository,
     ) {
@@ -64,7 +65,7 @@ class AccommodationWriter
             ), $maySingleNight);
         }
 
-        $this->connection->beginTransaction();
+        $this->capacityManager->beginSaleTransaction();
         try {
             // Počítají se jen datové řádky. Snapshot zrušených snídaní ani log změn osobních
             // údajů se nezapočítává — volající hlásí „změněno N záznamů" a evidence o změně
@@ -366,8 +367,8 @@ class AccommodationWriter
         );
         $order = $this->cartService->getOrCreateCart($customer);
 
-        // The count below reads a snapshot, so two writers would both see the last bed free.
-        // Locking the night's capacity row first makes them queue instead.
+        // Two writers would both count the last bed as free; locking the night's capacity row
+        // first makes them queue instead.
         $this->connection->executeQuery(
             'SELECT kusu_vyrobeno FROM shop_predmety WHERE kod_predmetu = :variantCode FOR UPDATE',
             [
