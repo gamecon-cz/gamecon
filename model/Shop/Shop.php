@@ -626,23 +626,15 @@ SQL,
                 LIMIT $pocet
             SQL;
         }
+        // Počty se berou z rušených řádků, ne z počtu smazaných: nákupy zapsané starou cestou
+        // `variant_id` nemají, zásoba z nich nikdy neubyla, a přičíst za ně kus by ho vyrobil
+        // z ničeho. `LIMIT` navíc maže od začátku, takže se musí vybrat tytéž řádky.
+        $kusuNaVariantach = $this->kusuNaVariantachRusenychNakupu($idPredmetu, $pocet);
+
         $mysqli = dbQuery($query);
         $smazano = dbAffectedOrNumRows($mysqli);
 
-        // Kolik řádků opravdu zmizelo, ne kolik se chtělo smazat — `LIMIT` jich může smazat
-        // méně, a vrátit víc, než se prodalo, by zásobu nadhodnotilo.
-        if ($smazano > 0) {
-            $kodPredmetu = dbOneCol(
-                'SELECT kod_predmetu FROM shop_predmety WHERE id_predmetu = $0',
-                [0 => $idPredmetu],
-            );
-            if ($kodPredmetu !== null) {
-                $this->posunZasobuVarianty(
-                    $this->idVariantyPodleKodu((string) $kodPredmetu, $idPredmetu),
-                    $smazano,
-                );
-            }
-        }
+        $this->vratZasobuVariantam($kusuNaVariantach);
 
         return $smazano;
     }
@@ -915,6 +907,43 @@ SQL,
         }
 
         return (int) $idVarianty;
+    }
+
+    /**
+     * Varianty rušených nákupů jednoho předmětu, po kusech.
+     *
+     * `LIMIT` v mazacím dotazu bere řádky v témže pořadí, takže se musí vybrat stejně —
+     * seskupit až potom. Řádky bez varianty se nepočítají, zásoba z nich neubyla.
+     *
+     * @return array<int, int> variant_id => počet kusů
+     */
+    private function kusuNaVariantachRusenychNakupu(
+        int $idPredmetu,
+        int $pocet,
+    ): array {
+        $limit = $pocet > 0
+            ? 'LIMIT ' . $pocet
+            : '';
+
+        $varianty = dbOneArray(
+            <<<SQL
+            SELECT variant_id
+            FROM shop_nakupy
+            WHERE id_uzivatele = \$0 AND id_predmetu = \$1 AND rok = \$2
+            {$limit}
+            SQL,
+            [0 => $this->zakaznik->id(), 1 => $idPredmetu, 2 => ROCNIK],
+        );
+
+        $kusu = [];
+        foreach ($varianty as $idVarianty) {
+            if ($idVarianty === null) {
+                continue;
+            }
+            $kusu[(int) $idVarianty] = ($kusu[(int) $idVarianty] ?? 0) + 1;
+        }
+
+        return $kusu;
     }
 
     /**
