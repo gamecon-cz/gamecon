@@ -212,7 +212,7 @@ SQL,
                 ],
                 [
                     'Celkové náklady' => [
-                        'Celkem dní' => $celkemDniUbytovani = count($shop->ubytovani()->veKterychDnechJeUbytovan()),
+                        'Celkem dní' => $celkemDniUbytovani = count($shop->veKterychDnechJeUbytovan()),
                         'Cena / den' => $celkemDniUbytovani
                             ? $finance->cenaUbytovani() / $celkemDniUbytovani
                             : 0,

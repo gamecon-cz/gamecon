@@ -51,7 +51,7 @@ Zamyká řádek (`FOR UPDATE`) a odmítne:
 - předmět z jiného ročníku (`model_rok != rocnik`)
 - objednávku přes zásobu, když `kusu_vyrobeno IS NOT NULL` (`kusu_vyrobeno` = NULL znamená neomezeně)
 
-Ubytování jde **mimo `prodat()`** — vlastní cestou v `AccommodationWriter::save()`, která hlídá kapacitu a navíc: minimálně dvě noci (pokud uživatel nemá `Pravo::UBYTOVANI_MUZE_OBJEDNAT_JEDNU_NOC`) a noci na sebe musí navazovat. Legacy `ShopUbytovani` už jen čte.
+Ubytování jde **mimo `prodat()`** — vlastní cestou v `AccommodationWriter::save()`, která hlídá kapacitu a navíc: minimálně dvě noci (pokud uživatel nemá `Pravo::UBYTOVANI_MUZE_OBJEDNAT_JEDNU_NOC`) a noci na sebe musí navazovat. Legacy `Shop` ubytování neobjednává — čte ho a při hromadném odhlášení neplatičů ho ruší (`zrusLetosniObjednaneUbytovani()`).
 
 ### Příznak `nabizet` řídí jen vykreslení
 

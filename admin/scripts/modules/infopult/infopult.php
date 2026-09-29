@@ -132,7 +132,7 @@ if ($uPracovni) {
                               ($u->maPravo(Pravo::MUZE_RUSIT_NAKUPY) && $t->getCategory() == TransactionCategoryEnum::VOLUNTARY_DONATION))))
     ]);
 
-    $maObjednaneUbytovani = $uPracovni->shop()->ubytovani()->maObjednaneUbytovani();
+    $maObjednaneUbytovani = $uPracovni->shop()->maObjednaneUbytovani();
     $chybejiciUdaje = $uPracovni->chybejiciUdaje(
         Uzivatel::povinneUdajeProRegistraci($maObjednaneUbytovani),
     );
@@ -290,7 +290,7 @@ if ($uPracovni) {
         }
     }
 
-    $maUbytovani = $uPracovni->shop()->ubytovani()->maObjednaneUbytovani();
+    $maUbytovani = $uPracovni->shop()->maObjednaneUbytovani();
     $x->assign(
         'udajeHtml',
         OsobniUdajeTabulka::osobniUdajeTabulkaZ($uPracovni, $maUbytovani),

@@ -33,7 +33,7 @@ Současný e-shop má **7 speciálních typů položek** (`TypPredmetu`), které
 - Možnost vynutit ubytování nad kapacitu (admin)
 - Automatické zrušení ubytování pro neplatící
 
-**Třída:** `ShopUbytovani`
+**Třída:** dříve `ShopUbytovani`; zápis dnes `App\Service\AccommodationWriter`, čtení pro infopult a reporty `Shop`
 
 **Rozhodnutí potřeba:** Potřebujeme toto jako speciální typ produktu nebo jako varianty normálního produktu "Ubytování"?
 

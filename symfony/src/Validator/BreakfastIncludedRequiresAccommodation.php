@@ -13,8 +13,7 @@ use Symfony\Component\Validator\Constraint;
  * breakfast_included is an attribute that means "price already includes
  * breakfast" and only makes sense for accommodation products (specifically
  * hotel rooms). Setting it on a non-accommodation product is nonsensical and
- * would confuse the meal-voucher / breakfast-cancellation logic in
- * ShopUbytovani and the stravenky report.
+ * would confuse BreakfastCanceller and the stravenky report.
  *
  * Applied as a class-level constraint on App\Entity\Product.
  */

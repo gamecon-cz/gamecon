@@ -62,7 +62,7 @@ $o                        = dbQuery(<<<SQL
                 ON predmety_ubytovani.id_predmetu = nakupy_ubytovani.id_predmetu
                 AND predmety_ubytovani.typ = {$typUbytovani}
                 AND predmety_ubytovani.podtyp = $0
-                /* ubytování den N (noc) → snídaně den N+1 (ráno), viz ShopUbytovani::zrusSnidaneProHotelovePokoje */
+                /* ubytování den N (noc) → snídaně den N+1 (ráno), viz BreakfastCanceller::cancelCovered() */
                 AND predmety_ubytovani.ubytovani_den + 1 = predmety.ubytovani_den
             WHERE nakupy_ubytovani.id_uzivatele = uzivatele.id_uzivatele
               AND nakupy_ubytovani.rok = {$rocnik}
