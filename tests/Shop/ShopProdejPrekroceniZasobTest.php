@@ -115,6 +115,20 @@ SQL,
                     SELECT 88814, id FROM product_tag WHERE code = 'predmet'");
                 dbQuery("INSERT INTO product_variant (product_id, name, code, price, remaining_quantity, position)
                     VALUES (88814, 'Předmět pro zrušení', 'zruseni_prodej_test', 100, 3, 0)");
+
+                dbQuery("INSERT INTO shop_predmety SET
+                    id_predmetu = 88815,
+                    nazev = 'Předmět se starými nákupy',
+                    kod_predmetu = 'stare_nakupy_test',
+                    cena_aktualni = 100,
+                    stav = " . StavPredmetu::VEREJNY . ",
+                    nabizet_do = '{$budouci}',
+                    kusu_vyrobeno = 5,
+                    popis = ''");
+                dbQuery("INSERT INTO product_product_tag (product_id, tag_id)
+                    SELECT 88815, id FROM product_tag WHERE code = 'predmet'");
+                dbQuery("INSERT INTO product_variant (product_id, name, code, price, remaining_quantity, position)
+                    VALUES (88815, 'Předmět se starými nákupy', 'stare_nakupy_test', 100, 5, 0)");
             },
         ];
     }
@@ -164,6 +178,36 @@ SQL,
         $shop->zrusNakupPredmetu(88814, 2);
 
         self::assertSame(3, $zbyva(), 'Zrušení mělo oba kusy vrátit');
+    }
+
+    /**
+     * Nákupy zapsané starou cestou `variant_id` nemají, takže z nich zásoba nikdy neubyla.
+     * Jejich zrušení ji proto nesmí přičíst — jinak by se kusy vyrobily z ničeho.
+     *
+     * @test
+     */
+    public function zruseniNakupuBezVariantyZasobuNemeni(): void
+    {
+        $uzivatel = \Uzivatel::zIdUrcite(88801);
+        $shop = new Shop($uzivatel, $uzivatel, SystemoveNastaveni::zGlobals());
+        $zbyva = static fn (): int => (int) dbOneCol(
+            "SELECT remaining_quantity FROM product_variant WHERE code = 'stare_nakupy_test'",
+        );
+
+        // Dva nákupy tak, jak je zapisovala legacy cesta: bez varianty, bez dotčení zásoby.
+        dbQuery(
+            'INSERT INTO shop_nakupy(id_uzivatele, id_objednatele, id_predmetu, rok, cena_nakupni, datum)
+             VALUES ($0, $0, 88815, $1, 100, NOW()), ($0, $0, 88815, $1, 100, NOW())',
+            [
+                0 => $uzivatel->id(),
+                1 => ROCNIK,
+            ],
+        );
+        $pred = $zbyva();
+
+        $shop->zrusNakupPredmetu(88815, 2);
+
+        self::assertSame($pred, $zbyva(), 'Zásoba se nesmí zvýšit za nákupy, které ji neubraly');
     }
 
     /**
