@@ -11,7 +11,6 @@ use ApiPlatform\Metadata\GetCollection;
 use ApiPlatform\Metadata\Patch;
 use ApiPlatform\Metadata\Post;
 use ApiPlatform\Metadata\Put;
-use App\Enum\RoleMeaning;
 use App\Repository\ProductVariantRepository;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
@@ -24,15 +23,14 @@ use Symfony\Component\Validator\Constraints as Assert;
  * ProductVariant - a specific variant of a Product (e.g. size M, Friday night)
  *
  * Price and reserved_for_organizers are nullable — null means "inherit from parent Product".
- * remaining_quantity is per-variant (each size has its own stock).
+ * Remaining stock is not stored; CapacityManager counts it from the purchases.
  *
  * Two write paths are exposed:
  * - Nested via Product: admins edit a product and all its variants as a
  *   single form, submitting PATCH /products/{id} with the whole nested body.
  *   Doctrine `cascade` + `orphanRemoval` handle create/update/delete.
  * - Direct CRUD: GET/POST/PUT/PATCH/DELETE on /product_variants, useful for
- *   future AJAX flows like inventory quick-edit that bump remainingQuantity
- *   without round-tripping the whole parent product.
+ *   future AJAX flows that edit one variant without round-tripping the whole parent product.
  */
 #[ORM\Entity(repositoryClass: ProductVariantRepository::class)]
 #[ORM\Table(name: 'product_variant')]
@@ -100,11 +98,6 @@ class ProductVariant
     #[Assert\PositiveOrZero(message: 'Cena musí být kladné číslo nebo nula')]
     #[Groups([Product::READ, self::READ, self::WRITE])]
     private ?string $price = null;
-
-    #[ORM\Column(name: 'remaining_quantity', type: Types::INTEGER, nullable: true)]
-    #[Assert\PositiveOrZero(message: 'Zbývající množství musí být kladné číslo nebo nula')]
-    #[Groups([Product::READ, self::READ, self::WRITE])]
-    private ?int $remainingQuantity = null;
 
     #[ORM\Column(name: 'reserved_for_organizers', type: Types::INTEGER, nullable: true)]
     #[Assert\PositiveOrZero(message: 'Rezervace pro organizátory musí být kladné číslo nebo nula')]
@@ -195,18 +188,6 @@ class ProductVariant
         return $this;
     }
 
-    public function getRemainingQuantity(): ?int
-    {
-        return $this->remainingQuantity;
-    }
-
-    public function setRemainingQuantity(?int $remainingQuantity): self
-    {
-        $this->remainingQuantity = $remainingQuantity;
-
-        return $this;
-    }
-
     public function getReservedForOrganizers(): ?int
     {
         return $this->reservedForOrganizers;
@@ -275,34 +256,6 @@ class ProductVariant
     public function getEffectiveReservedForOrganizers(): ?int
     {
         return $this->reservedForOrganizers ?? $this->product->getReservedForOrganizers();
-    }
-
-    /**
-     * Check if variant has limited capacity
-     */
-    public function hasLimitedCapacity(): bool
-    {
-        return $this->remainingQuantity !== null;
-    }
-
-    /**
-     * Get available quantity for given role meanings
-     *
-     * @param RoleMeaning[] $roleMeanings
-     */
-    public function getAvailableQuantity(array $roleMeanings = []): ?int
-    {
-        if ($this->remainingQuantity === null) {
-            return null; // unlimited
-        }
-
-        if (RoleMeaning::anyIsOrganizer($roleMeanings)) {
-            return $this->remainingQuantity;
-        }
-
-        $reserved = $this->getEffectiveReservedForOrganizers() ?? 0;
-
-        return max(0, $this->remainingQuantity - $reserved);
     }
 
     /**

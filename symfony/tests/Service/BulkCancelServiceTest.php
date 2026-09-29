@@ -13,7 +13,6 @@ use App\Entity\User;
 use App\Enum\ProductStateEnum;
 use App\Repository\OrderItemRepository;
 use App\Service\BulkCancelService;
-use App\Service\CapacityManager;
 use App\Service\CurrentYearProviderInterface;
 use Doctrine\ORM\EntityManagerInterface;
 use PHPUnit\Framework\MockObject\MockObject;
@@ -25,8 +24,6 @@ class BulkCancelServiceTest extends TestCase
 
     private MockObject $orderItemRepository;
 
-    private MockObject $capacityManager;
-
     private MockObject $yearProvider;
 
     private BulkCancelService $service;
@@ -35,14 +32,12 @@ class BulkCancelServiceTest extends TestCase
     {
         $this->entityManager = $this->createMock(EntityManagerInterface::class);
         $this->orderItemRepository = $this->createMock(OrderItemRepository::class);
-        $this->capacityManager = $this->createMock(CapacityManager::class);
         $this->yearProvider = $this->createMock(CurrentYearProviderInterface::class);
         $this->yearProvider->method('getCurrentYear')->willReturn(2026);
 
         $this->service = new BulkCancelService(
             $this->entityManager,
             $this->orderItemRepository,
-            $this->capacityManager,
             $this->yearProvider,
         );
     }
@@ -110,10 +105,6 @@ class BulkCancelServiceTest extends TestCase
             ->method('remove')
             ->with($ubytovaniItem);
 
-        $this->capacityManager->expects($this->once())
-            ->method('cancelPurchase')
-            ->with($variant);
-
         $count = $this->service->cancelByTagForUser(
             $user,
             'ubytovani',
@@ -178,38 +169,6 @@ class BulkCancelServiceTest extends TestCase
         $this->assertSame(2, $count);
         $this->assertTrue($order->isCancelled());
         $this->assertTrue($order->isEmpty());
-    }
-
-    public function testCancelReturnsStockForVariants(): void
-    {
-        $user = $this->createMock(User::class);
-        $product = $this->createProduct();
-        $variant = $this->createVariant($product);
-
-        $item = $this->createItemWithVariant($variant);
-
-        $this->orderItemRepository->method('findByCustomerAndYear')
-            ->willReturn([$item]);
-
-        $this->capacityManager->expects($this->once())
-            ->method('cancelPurchase')
-            ->with($variant);
-
-        $this->service->cancelAllForUser($user, 'test', new \DateTimeImmutable());
-    }
-
-    public function testCancelSkipsStockForDeletedVariants(): void
-    {
-        $user = $this->createMock(User::class);
-        $item = $this->createItem(); // no variant
-
-        $this->orderItemRepository->method('findByCustomerAndYear')
-            ->willReturn([$item]);
-
-        $this->capacityManager->expects($this->never())
-            ->method('cancelPurchase');
-
-        $this->service->cancelAllForUser($user, 'test', new \DateTimeImmutable());
     }
 
     public function testArchiveRecordHasCorrectData(): void
@@ -287,7 +246,6 @@ class BulkCancelServiceTest extends TestCase
         $variant->setProduct($product);
         $variant->setName('Default');
         $variant->setCode('TEST-V');
-        $variant->setRemainingQuantity(10);
         $product->addVariant($variant);
 
         return $variant;

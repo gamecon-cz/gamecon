@@ -89,7 +89,34 @@ class CartService
             throw new \RuntimeException(sprintf('Varianta "%s" je součástí povinného balíčku "%s". Použijte nákup celého balíčku.', $variant->getFullName(), $mandatoryBundle->getName()));
         }
 
-        return $this->createOrderItem($order, $variant, null, $roleMeanings, $override, $vraceniZruseneSnidane);
+        return $this->vTransakci(fn (): OrderItem => $this->createOrderItem($order, $variant, null, $roleMeanings, $override, $vraceniZruseneSnidane));
+    }
+
+    /**
+     * Holds the capacity lock from the stock check until the purchase row is written.
+     * Managed by hand, not via wrapInTransaction(): that closes the EntityManager on any
+     * exception, and "sold out" is an ordinary answer the caller goes on after.
+     *
+     * @template T
+     *
+     * @param callable(): T $prodej
+     *
+     * @return T
+     */
+    private function vTransakci(callable $prodej): mixed
+    {
+        $connection = $this->entityManager->getConnection();
+        $connection->beginTransaction();
+        try {
+            $vysledek = $prodej();
+            $connection->commit();
+
+            return $vysledek;
+        } catch (\Throwable $throwable) {
+            $connection->rollBack();
+
+            throw $throwable;
+        }
     }
 
     /**
@@ -153,10 +180,8 @@ class CartService
     }
 
     /**
-     * Add all variants in a bundle to the cart atomically.
-     *
-     * If any variant fails (sold out), all previously purchased variants
-     * are rolled back and the exception is re-thrown.
+     * Add all variants in a bundle to the cart atomically: one sold-out variant and none
+     * of them is added.
      *
      * @param RoleMeaning[] $roleMeanings
      *
@@ -166,30 +191,40 @@ class CartService
      */
     public function addBundle(Order $order, ProductBundle $bundle, array $roleMeanings = []): array
     {
+        return $this->vTransakci(fn (): array => $this->addBundleItems($order, $bundle, $roleMeanings));
+    }
+
+    /**
+     * @param RoleMeaning[] $roleMeanings
+     *
+     * @return OrderItem[]
+     */
+    private function addBundleItems(Order $order, ProductBundle $bundle, array $roleMeanings): array
+    {
         $variants = $bundle->getVariants()->toArray();
-        $purchasedVariants = [];
+
+        // The rows are written only after the loop, so a variant listed twice has to be
+        // checked for both pieces at once.
+        $kusuNaVariantu = [];
+        foreach ($variants as $variant) {
+            $product = $variant->getProduct();
+
+            if (! $product->isAvailable($this->clock->now())) {
+                throw new \RuntimeException(sprintf('Produkt "%s" není dostupný.', $product->getName()));
+            }
+
+            $kusuNaVariantu[spl_object_id($variant)] = [
+                'variant' => $variant,
+                'kusu'    => ($kusuNaVariantu[spl_object_id($variant)]['kusu'] ?? 0) + 1,
+            ];
+        }
+        foreach ($kusuNaVariantu as ['variant' => $variant, 'kusu' => $kusu]) {
+            $this->capacityManager->lockForSale($variant, $kusu, $roleMeanings);
+        }
+
         $items = [];
-
-        try {
-            foreach ($variants as $variant) {
-                $product = $variant->getProduct();
-
-                if (! $product->isAvailable($this->clock->now())) {
-                    throw new \RuntimeException(sprintf('Produkt "%s" není dostupný.', $product->getName()));
-                }
-
-                $this->capacityManager->purchase($variant, 1, $roleMeanings);
-                $purchasedVariants[] = $variant;
-
-                $items[] = $this->buildOrderItem($order, $variant, $bundle, $roleMeanings);
-            }
-        } catch (\RuntimeException $e) {
-            // Roll back all already-purchased variants
-            foreach ($purchasedVariants as $purchased) {
-                $this->capacityManager->cancelPurchase($purchased);
-            }
-
-            throw $e;
+        foreach ($variants as $variant) {
+            $items[] = $this->buildOrderItem($order, $variant, $bundle, $roleMeanings);
         }
 
         foreach ($items as $item) {
@@ -203,11 +238,6 @@ class CartService
         return $items;
     }
 
-    /**
-     * Remove a single item from the cart. Returns stock to the variant.
-     *
-     * Rejects removing items that belong to a forced bundle for the user's roles.
-     */
     /**
      * Jídlo se po termínu neruší: počty jsou nahlášené v jídelně, takže zrušená porce se
      * stejně uvaří a zaplatí. Merch se ruší dál — u něj zatím nikdo dodavateli nezaplatil,
@@ -229,6 +259,8 @@ class CartService
     }
 
     /**
+     * Rejects removing items that belong to a forced bundle for the user's roles.
+     *
      * @param RoleMeaning[] $roleMeanings
      */
     public function removeItem(Order $order, OrderItem $item, array $roleMeanings = []): void
@@ -239,12 +271,6 @@ class CartService
         }
 
         $this->overRuseni($item);
-
-        $variant = $item->getVariant();
-
-        if ($variant !== null) {
-            $this->capacityManager->cancelPurchase($variant);
-        }
 
         $order->removeItem($item);
         $order->recalculateTotal();
@@ -270,11 +296,6 @@ class CartService
         }
 
         foreach ($bundleItems as $item) {
-            $variant = $item->getVariant();
-            if ($variant !== null) {
-                $this->capacityManager->cancelPurchase($variant);
-            }
-
             $order->removeItem($item);
             $this->entityManager->remove($item);
         }
@@ -310,7 +331,7 @@ class CartService
             $bypassed[] = OperatorOverride::GUARD_DEADLINE;
         }
 
-        $this->capacityManager->purchase($variant, 1, $roleMeanings, $override);
+        $this->capacityManager->lockForSale($variant, 1, $roleMeanings, $override);
 
         $item = $this->buildOrderItem($order, $variant, $bundle, $roleMeanings, $override, $bypassed);
 

@@ -112,13 +112,12 @@ class ProductListSerializationTest extends TestCase
         $variant->setProduct($product);
         $variant->setName('Default');
         $variant->setCode('obed-patek-v');
-        $variant->setRemainingQuantity(50);
         $variant->setAccommodationDay(2);
 
         $ref = new \ReflectionProperty(ProductVariant::class, 'id');
         $ref->setValue($variant, 99);
 
-        $dto = MealProductOutputDto::fromProductAndVariant($product, $variant);
+        $dto = MealProductOutputDto::fromProductAndVariant($product, $variant, 50);
 
         $this->assertSame('Oběd — pátek', $dto->name);
         $this->assertSame(2, $dto->day);
@@ -146,7 +145,7 @@ class ProductListSerializationTest extends TestCase
         $ref = new \ReflectionProperty(ProductVariant::class, 'id');
         $ref->setValue($variant, 1);
 
-        $dto = MealProductOutputDto::fromProductAndVariant($product, $variant);
+        $dto = MealProductOutputDto::fromProductAndVariant($product, $variant, null);
 
         $this->assertSame(3, $dto->day, 'Should use variant accommodationDay over product');
     }
