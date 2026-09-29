@@ -176,22 +176,22 @@ class ProductRepository extends ServiceEntityRepository
     }
 
     /**
-     * The accommodation migration leaves each night's own shop_predmety row alone, so that
-     * row — matched by variant code — still carries the night's real capacity and whether it
-     * is on offer. The variant's parent is one arbitrary night and answers for none of them.
+     * Capacity is the variant's; whether a night is on offer still comes from its own
+     * shop_predmety row, matched by variant code. The variant's parent is the room type and
+     * answers for neither.
      *
      * @param string[] $codes
      *
      * @return array<string, array{vyrobeno: int|null, nabizeno: bool, rezervovano: int|null}> vyrobeno null = unlimited
      */
-    public function producedQuantityByVariantCode(array $codes): array
+    public function capacityByVariantCode(array $codes): array
     {
         if ($codes === []) {
             return [];
         }
 
         $rows = $this->getEntityManager()->getConnection()->fetchAllAssociative(
-            'SELECT shop_predmety.kod_predmetu, shop_predmety.kusu_vyrobeno, shop_predmety.stav,
+            'SELECT shop_predmety.kod_predmetu, product_variant.capacity, shop_predmety.stav,
                     shop_predmety.archived_at,
                     COALESCE(product_variant.reserved_for_organizers,
                              shop_predmety.reserved_for_organizers) AS reserved_for_organizers
@@ -209,7 +209,7 @@ class ProductRepository extends ServiceEntityRepository
         $nalezene = [];
         foreach ($rows as $row) {
             $nalezene[(string) $row['kod_predmetu']] = [
-                'vyrobeno' => $row['kusu_vyrobeno'] === null ? null : (int) $row['kusu_vyrobeno'],
+                'vyrobeno' => $row['capacity'] === null ? null : (int) $row['capacity'],
                 // Only stav, deliberately: legacy exempts accommodation from nabizet_do
                 // (Shop::nactiPredmety) and gates a night on POZASTAVENY alone, so honouring
                 // that column here would lock nights the legacy form still sells.

@@ -30,6 +30,11 @@ class ProductVariantEntityStructure
     public const price = 'price';
 
     /**
+     * @see ProductVariant::$capacity
+     */
+    public const capacity = 'capacity';
+
+    /**
      * @see ProductVariant::$reservedForOrganizers
      */
     public const reservedForOrganizers = 'reservedForOrganizers';

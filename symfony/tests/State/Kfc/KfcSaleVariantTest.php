@@ -108,7 +108,6 @@ class KfcSaleVariantTest extends AbstractDatabaseKernelTestCase
         $predmet->setCurrentPrice('400.00');
         $predmet->setDescription('');
         $predmet->setState(ProductStateEnum::PUBLIC);
-        $predmet->setProducedQuantity(10);
         $predmet->addTag($tag);
         $this->entityManager()->persist($predmet);
 
@@ -117,6 +116,7 @@ class KfcSaleVariantTest extends AbstractDatabaseKernelTestCase
             $varianta->setProduct($predmet);
             $varianta->setName($velikost);
             $varianta->setCode($kod . '-' . $velikost);
+            $varianta->setCapacity(10);
             $varianta->setPrice('400.00');
             $varianta->setPosition($poradi);
             $predmet->addVariant($varianta);

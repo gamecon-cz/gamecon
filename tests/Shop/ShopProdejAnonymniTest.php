@@ -53,13 +53,12 @@ SQL,
                     kod_predmetu = "pult_anonym_test",
                     cena_aktualni = 150,
                     stav = ' . StavPredmetu::VEREJNY . ',
-                    kusu_vyrobeno = 10,
                     popis = ""');
                 dbQuery('INSERT INTO product_product_tag (product_id, tag_id)
                     SELECT 88831, id FROM product_tag WHERE code = "predmet"');
                 // Varianta, jak to má produkce u každého prodejného předmětu.
-                dbQuery('INSERT INTO product_variant (product_id, name, code, price, position)
-                    VALUES (88831, "Pultové tričko", "pult_anonym_test", 150, 0)');
+                dbQuery('INSERT INTO product_variant (product_id, name, code, price, capacity, position)
+                    VALUES (88831, "Pultové tričko", "pult_anonym_test", 150, 10, 0)');
             },
         ];
     }

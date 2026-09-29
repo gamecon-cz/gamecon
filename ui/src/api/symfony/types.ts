@@ -113,11 +113,12 @@ export type ApiProduct = {
   currentPrice: string;
   state: number;
   availableUntil: string | null;
-  producedQuantity: number | null;
   accommodationDay: number | null;
   breakfastIncluded: boolean;
   description: string;
   reservedForOrganizers: number | null;
+  /** Read-only sum of the variants' capacities; null when any of them is unlimited. */
+  capacity: number | null;
   tags: ApiProductTag[];
   variants: ApiProductVariant[];
 };
@@ -135,6 +136,10 @@ export type ApiProductVariant = {
   name: string;
   code: string;
   price: string | null;
+  /** Null = unlimited. */
+  capacity: number | null;
+  /** Read-only, computed on the server: capacity minus this year's purchases. */
+  remaining?: number | null;
   reservedForOrganizers: number | null;
   accommodationDay: number | null;
   position: number;
@@ -151,7 +156,6 @@ export type ApiProductWrite = {
   currentPrice: string;
   state: number;
   availableUntil: string | null;
-  producedQuantity: number | null;
   accommodationDay: number | null;
   breakfastIncluded: boolean;
   description: string;

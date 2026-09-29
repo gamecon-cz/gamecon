@@ -89,7 +89,6 @@ class AccommodationWriterTest extends AbstractDatabaseKernelTestCase
         $product->setCurrentPrice('100.00');
         $product->setDescription('');
         $product->setState(ProductStateEnum::PUBLIC);
-        $product->setProducedQuantity($kusuVyrobeno);
         $this->entityManager()->persist($product);
         $this->entityManager()->flush();
 
@@ -113,21 +112,21 @@ class AccommodationWriterTest extends AbstractDatabaseKernelTestCase
             $variant->setProduct($product);
             $variant->setName($nazev);
             $variant->setCode($kod . '-' . $den);
+            $variant->setCapacity($kusuVyrobeno);
             $variant->setAccommodationDay($den);
             $variant->setPosition($den);
             $product->addVariant($variant);
             $this->entityManager()->persist($variant);
 
-            // The writer reads the produced count off the night's own legacy row, matched by
+            // The writer reads whether the night is on offer off its own legacy row, matched by
             // variant code — the row the migration leaves behind for each absorbed night.
             $this->entityManager()->flush();
             $connection->executeStatement(
-                'INSERT INTO shop_predmety (nazev, kod_predmetu, kusu_vyrobeno, cena_aktualni, stav, ubytovani_den)
-                 VALUES (:nazev, :kod, :kusu, 100, :stav, :den)',
+                'INSERT INTO shop_predmety (nazev, kod_predmetu, cena_aktualni, stav, ubytovani_den)
+                 VALUES (:nazev, :kod, 100, :stav, :den)',
                 [
                     'nazev' => 'Testovací pokoj ' . $nazev,
                     'kod'   => $variant->getCode(),
-                    'kusu'  => $kusuVyrobeno,
                     'stav'  => ProductStateEnum::PUBLIC->value,
                     'den'   => $den,
                 ],
@@ -154,7 +153,6 @@ class AccommodationWriterTest extends AbstractDatabaseKernelTestCase
         $hotel->setCurrentPrice('500.00');
         $hotel->setDescription('');
         $hotel->setState(ProductStateEnum::PUBLIC);
-        $hotel->setProducedQuantity(5);
         $hotel->setBreakfastIncluded(true);
         $this->entityManager()->persist($hotel);
         $this->entityManager()->flush();
@@ -163,6 +161,7 @@ class AccommodationWriterTest extends AbstractDatabaseKernelTestCase
         $noc->setProduct($hotel);
         $noc->setName('noc');
         $noc->setCode($kod . '-' . $den);
+        $noc->setCapacity(5);
         $noc->setAccommodationDay($den);
         $noc->setPosition($den);
         $hotel->addVariant($noc);
@@ -178,8 +177,8 @@ class AccommodationWriterTest extends AbstractDatabaseKernelTestCase
             ],
         );
         $connection->executeStatement(
-            'INSERT INTO shop_predmety (nazev, kod_predmetu, kusu_vyrobeno, cena_aktualni, stav, ubytovani_den)
-             VALUES (:nazev, :kod, 5, 500, :stav, :den)',
+            'INSERT INTO shop_predmety (nazev, kod_predmetu, cena_aktualni, stav, ubytovani_den)
+             VALUES (:nazev, :kod, 500, :stav, :den)',
             [
                 'nazev' => 'Hotel se snídaní',
                 'kod'   => $noc->getCode(),
@@ -1021,8 +1020,7 @@ class AccommodationWriterTest extends AbstractDatabaseKernelTestCase
         [, $snidaneId] = $this->pripravHotelSeSnidani(0);
         $customer = $this->ucastnik();
         $this->connection()->executeStatement(
-            'UPDATE shop_predmety SET kusu_vyrobeno = 3
-             WHERE kod_predmetu = (SELECT code FROM product_variant WHERE id = :variant)',
+            'UPDATE product_variant SET capacity = 3 WHERE id = :variant',
             [
                 'variant' => $snidaneId,
             ],
@@ -1038,8 +1036,7 @@ class AccommodationWriterTest extends AbstractDatabaseKernelTestCase
         [, $snidaneId] = $this->pripravHotelSeSnidani(0);
         $customer = $this->ucastnik();
         $this->connection()->executeStatement(
-            'UPDATE shop_predmety SET kusu_vyrobeno = 3
-             WHERE kod_predmetu = (SELECT code FROM product_variant WHERE id = :variant)',
+            'UPDATE product_variant SET capacity = 3 WHERE id = :variant',
             [
                 'variant' => $snidaneId,
             ],
@@ -1060,8 +1057,7 @@ class AccommodationWriterTest extends AbstractDatabaseKernelTestCase
         [$nocId, $snidaneId] = $this->pripravHotelSeSnidani(0);
         $customer = $this->ucastnik();
         $this->connection()->executeStatement(
-            'UPDATE shop_predmety SET kusu_vyrobeno = 3
-             WHERE kod_predmetu = (SELECT code FROM product_variant WHERE id = :variant)',
+            'UPDATE product_variant SET capacity = 3 WHERE id = :variant',
             [
                 'variant' => $snidaneId,
             ],
@@ -1188,8 +1184,7 @@ class AccommodationWriterTest extends AbstractDatabaseKernelTestCase
         $customer = $this->ucastnik();
 
         $this->connection()->executeStatement(
-            'UPDATE shop_predmety SET kusu_vyrobeno = 1
-             WHERE kod_predmetu = (SELECT code FROM product_variant WHERE id = :variant)',
+            'UPDATE product_variant SET capacity = 1 WHERE id = :variant',
             [
                 'variant' => $snidaneId,
             ],
@@ -1226,8 +1221,7 @@ class AccommodationWriterTest extends AbstractDatabaseKernelTestCase
         $customer = $this->ucastnik();
 
         $this->connection()->executeStatement(
-            'UPDATE shop_predmety SET kusu_vyrobeno = 2
-             WHERE kod_predmetu = (SELECT code FROM product_variant WHERE id = :variant)',
+            'UPDATE product_variant SET capacity = 2 WHERE id = :variant',
             [
                 'variant' => $snidaneId,
             ],

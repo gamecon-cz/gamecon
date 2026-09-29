@@ -29,7 +29,6 @@ class KfcProductsProviderDbTest extends AbstractDatabaseKernelTestCase
     private function vytvorPredmet(
         string $nazev,
         ?int $zbyvaNaVariante,
-        int $kusuVyrobeno,
         ProductStateEnum $stav = ProductStateEnum::PUBLIC,
         ?string $archivedAt = null,
         int $variant = 1,
@@ -42,7 +41,6 @@ class KfcProductsProviderDbTest extends AbstractDatabaseKernelTestCase
         $produkt->setCurrentPrice('100.00');
         $produkt->setDescription('');
         $produkt->setState($stav);
-        $produkt->setProducedQuantity($kusuVyrobeno);
         if ($archivedAt !== null) {
             $produkt->setArchivedAt(new \DateTimeImmutable($archivedAt));
         }
@@ -87,9 +85,8 @@ class KfcProductsProviderDbTest extends AbstractDatabaseKernelTestCase
 
     public function testZasobaOdpovidaVariante(): void
     {
-        // Vlastní řádek varianty má přednost před produktem: z produktu by vyšlo 500, ne 7.
         $nazev = 'Kostka ' . uniqid();
-        $this->vytvorPredmet($nazev, zbyvaNaVariante: 7, kusuVyrobeno: 500);
+        $this->vytvorPredmet($nazev, zbyvaNaVariante: 7);
 
         $polozka = $this->najdi($nazev);
 
@@ -100,7 +97,7 @@ class KfcProductsProviderDbTest extends AbstractDatabaseKernelTestCase
     public function testNeomezenaZasobaZustaneNeomezena(): void
     {
         $nazev = 'Vstupné ' . uniqid();
-        $this->vytvorPredmet($nazev, zbyvaNaVariante: null, kusuVyrobeno: 0);
+        $this->vytvorPredmet($nazev, zbyvaNaVariante: null);
 
         $polozka = $this->najdi($nazev);
 
@@ -113,7 +110,7 @@ class KfcProductsProviderDbTest extends AbstractDatabaseKernelTestCase
         // Na starších mřížkách je nakonfigurovaný, takže se posílá — jen označený, ať si
         // ho editor i mřížka umí odlišit od letošní nabídky.
         $nazev = 'Placka loni ' . uniqid();
-        $this->vytvorPredmet($nazev, zbyvaNaVariante: 3, kusuVyrobeno: 3, archivedAt: '2025-12-31 23:59:59');
+        $this->vytvorPredmet($nazev, zbyvaNaVariante: 3, archivedAt: '2025-12-31 23:59:59');
 
         $polozka = $this->najdi($nazev);
 
@@ -126,7 +123,7 @@ class KfcProductsProviderDbTest extends AbstractDatabaseKernelTestCase
         // Na živých mřížkách velikostí je 34 buněk odkazujících na stažené produkty —
         // bez nich by zůstaly bez názvu i ceny. Co je prodejné, rozhoduje prodej.
         $nazev = 'Stažené ' . uniqid();
-        $this->vytvorPredmet($nazev, zbyvaNaVariante: 3, kusuVyrobeno: 3, stav: ProductStateEnum::RETIRED);
+        $this->vytvorPredmet($nazev, zbyvaNaVariante: 3, stav: ProductStateEnum::RETIRED);
 
         self::assertNotNull($this->najdi($nazev));
     }
@@ -134,7 +131,7 @@ class KfcProductsProviderDbTest extends AbstractDatabaseKernelTestCase
     public function testPredmetSVicVariantamiNeseSveVarianty(): void
     {
         $nazev = 'Tričko ' . uniqid();
-        $this->vytvorPredmet($nazev, zbyvaNaVariante: 5, kusuVyrobeno: 5, variant: 3);
+        $this->vytvorPredmet($nazev, zbyvaNaVariante: 5, variant: 3);
 
         $polozka = $this->najdi($nazev);
 
@@ -148,7 +145,7 @@ class KfcProductsProviderDbTest extends AbstractDatabaseKernelTestCase
     public function testJednovariantniPredmetNeseSvouVariantu(): void
     {
         $nazev = 'Kostka jedna ' . uniqid();
-        $this->vytvorPredmet($nazev, zbyvaNaVariante: 9, kusuVyrobeno: 9);
+        $this->vytvorPredmet($nazev, zbyvaNaVariante: 9);
 
         $polozka = $this->najdi($nazev);
 

@@ -41,7 +41,7 @@ readonly class AccommodationAvailability
 
         $prodano = $this->orderItemRepository->countSoldByVariant($ids, $year);
         $drzeno = $this->orderItemRepository->countHeldByCustomer($ids, $customer, $year);
-        $kapacity = $this->productRepository->producedQuantityByVariantCode($kody);
+        $kapacity = $this->productRepository->capacityByVariantCode($kody);
 
         $dostupnost = [];
         foreach ($varianty as $variant) {

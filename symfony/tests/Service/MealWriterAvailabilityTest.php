@@ -71,7 +71,6 @@ class MealWriterAvailabilityTest extends AbstractDatabaseKernelTestCase
         $produkt->setDescription('');
         $produkt->setState($stav);
         $produkt->setAccommodationDay(1);
-        $produkt->setProducedQuantity(50);
         $produkt->addTag($this->tag(ProductTagCode::JIDLO));
         if ($nabizetDo !== null) {
             $produkt->setAvailableUntil(new \DateTimeImmutable($nabizetDo));
@@ -83,6 +82,7 @@ class MealWriterAvailabilityTest extends AbstractDatabaseKernelTestCase
         $varianta->setProduct($produkt);
         $varianta->setName('porce');
         $varianta->setCode($kod);
+        $varianta->setCapacity(50);
         $varianta->setPrice('140.00');
         $varianta->setPosition(0);
         $produkt->addVariant($varianta);
@@ -130,9 +130,9 @@ class MealWriterAvailabilityTest extends AbstractDatabaseKernelTestCase
     private function vyprodej(ProductVariant $varianta): void
     {
         $this->connection()->executeStatement(
-            'UPDATE shop_predmety SET kusu_vyrobeno = 0 WHERE id_predmetu = :id',
+            'UPDATE product_variant SET capacity = 0 WHERE id = :id',
             [
-                'id' => $varianta->getProduct()->getId(),
+                'id' => $varianta->getId(),
             ],
         );
         // Jen varianta a produkt: `clear()` by odpojil i zákazníka, kterého test drží.

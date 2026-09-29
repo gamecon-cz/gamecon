@@ -367,12 +367,12 @@ class AccommodationWriter
         );
         $order = $this->cartService->getOrCreateCart($customer);
 
-        // Two writers would both count the last bed as free; locking the night's capacity row
-        // first makes them queue instead.
+        // Two writers would both count the last bed as free; locking the night's variant row
+        // first makes them queue instead — the same row every other sale path locks.
         $this->connection->executeQuery(
-            'SELECT kusu_vyrobeno FROM shop_predmety WHERE kod_predmetu = :variantCode FOR UPDATE',
+            'SELECT capacity FROM product_variant WHERE id = :variant FOR UPDATE',
             [
-                'variantCode' => $variant->getCode(),
+                'variant' => $variant->getId(),
             ],
         );
 
@@ -383,11 +383,12 @@ class AccommodationWriter
              SELECT :customer, noc.id_predmetu, :variant, :order, :year, :price, NOW(),
                     :productName, :productCode, :productTags, :variantName, :variantCode
              FROM shop_predmety AS noc
+             INNER JOIN product_variant AS varianta ON varianta.id = :variant
              WHERE noc.kod_predmetu = :variantCode
                AND (
                    :presKapacitu = 1
-                   OR noc.kusu_vyrobeno IS NULL
-                   OR noc.kusu_vyrobeno - :rezervovanoStranou > (
+                   OR varianta.capacity IS NULL
+                   OR varianta.capacity - :rezervovanoStranou > (
                        SELECT COUNT(*) FROM shop_nakupy AS prodane
                        WHERE prodane.variant_id = :variant AND prodane.rok = :year
                    )

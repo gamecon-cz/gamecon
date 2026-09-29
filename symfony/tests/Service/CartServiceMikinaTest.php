@@ -109,7 +109,6 @@ class CartServiceMikinaTest extends AbstractDatabaseKernelTestCase
         $produkt->setCurrentPrice('600.00');
         $produkt->setDescription('');
         $produkt->setState(ProductStateEnum::PUBLIC);
-        $produkt->setProducedQuantity($kusuVyrobeno);
         $produkt->addTag($this->tag(ProductTagCode::PREDMET));
         $produkt->addTag($this->tag(ProductTagCode::MIKINA));
         $this->entityManager()->persist($produkt);
@@ -119,6 +118,7 @@ class CartServiceMikinaTest extends AbstractDatabaseKernelTestCase
         $varianta->setProduct($produkt);
         $varianta->setName('L');
         $varianta->setCode($kod . '-l');
+        $varianta->setCapacity($kusuVyrobeno);
         $varianta->setPrice('600.00');
         $varianta->setPosition(0);
         $produkt->addVariant($varianta);

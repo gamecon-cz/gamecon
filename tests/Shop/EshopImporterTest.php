@@ -365,7 +365,7 @@ SQL,
         self::assertSame(1, $vysledek->pocetNovych);
 
         $kusuVyrobeno = dbOneCol(
-            'SELECT kusu_vyrobeno FROM shop_predmety WHERE kod_predmetu = $0',
+            'SELECT kusu_vyrobeno FROM shop_predmety_s_typem WHERE kod_predmetu = $0',
             [
                 0 => 'NULL_TEST',
             ],
@@ -436,15 +436,15 @@ SQL,
     public function reimportPosuneZasobuVariantPodSpolecnymVlastnikem(): void
     {
         dbQuery(<<<SQL
-INSERT INTO shop_predmety (id_predmetu, nazev, kod_predmetu, cena_aktualni, stav, nabizet_do, kusu_vyrobeno, popis)
-VALUES (94201, 'Dvoulůžák', 'TYP_2L', 0, 1, NOW(), NULL, ''),
-       (94202, 'Dvoulůžák pátek', 'NOC_2L_PA', 300, 1, NOW(), 4, ''),
-       (94203, 'Dvoulůžák sobota', 'NOC_2L_SO', 300, 1, NOW(), 4, '')
+INSERT INTO shop_predmety (id_predmetu, nazev, kod_predmetu, cena_aktualni, stav, nabizet_do, popis)
+VALUES (94201, 'Dvoulůžák', 'TYP_2L', 0, 1, NOW(), ''),
+       (94202, 'Dvoulůžák pátek', 'NOC_2L_PA', 300, 1, NOW(), ''),
+       (94203, 'Dvoulůžák sobota', 'NOC_2L_SO', 300, 1, NOW(), '')
 SQL);
         dbQuery(<<<SQL
-INSERT INTO product_variant (product_id, name, code, price, position)
-VALUES (94201, 'pátek', 'NOC_2L_PA', 300, 0),
-       (94201, 'sobota', 'NOC_2L_SO', 300, 1)
+INSERT INTO product_variant (product_id, name, code, price, capacity, position)
+VALUES (94201, 'pátek', 'NOC_2L_PA', 300, 4, 0),
+       (94201, 'sobota', 'NOC_2L_SO', 300, 4, 1)
 SQL);
         $this->nakupVarianty('NOC_2L_PA', kusu: 1);
 

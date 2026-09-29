@@ -55,7 +55,7 @@ SQL,
         ],
         [
             <<<SQL
-INSERT INTO shop_predmety SET id_predmetu = 33600, nazev = 'Kostka zobrazovaci', kod_predmetu = CONCAT('kostka_zobraz_', $0), cena_aktualni = 100, stav = 1, nabizet_do = NOW(), kusu_vyrobeno = 100
+INSERT INTO shop_predmety SET id_predmetu = 33600, nazev = 'Kostka zobrazovaci', kod_predmetu = CONCAT('kostka_zobraz_', $0), cena_aktualni = 100, stav = 1, nabizet_do = NOW()
 SQL,
             [
                 0 => ROCNIK,
@@ -64,7 +64,7 @@ SQL,
         "INSERT INTO product_product_tag (product_id, tag_id) SELECT 33600, id FROM product_tag WHERE code = 'predmet'",
         [
             <<<SQL
-INSERT INTO shop_predmety SET id_predmetu = 33601, nazev = 'Placka zobrazovaci', kod_predmetu = CONCAT('placka_zobraz_', $0), cena_aktualni = 50, stav = 1, nabizet_do = NOW(), kusu_vyrobeno = 100
+INSERT INTO shop_predmety SET id_predmetu = 33601, nazev = 'Placka zobrazovaci', kod_predmetu = CONCAT('placka_zobraz_', $0), cena_aktualni = 50, stav = 1, nabizet_do = NOW()
 SQL,
             [
                 0 => ROCNIK,
@@ -73,7 +73,7 @@ SQL,
         "INSERT INTO product_product_tag (product_id, tag_id) SELECT 33601, id FROM product_tag WHERE code = 'predmet'",
         [
             <<<SQL
-INSERT INTO shop_predmety SET id_predmetu = 33602, nazev = 'Obed zobrazovaci', kod_predmetu = CONCAT('obed_zobraz_', $0), cena_aktualni = 150, stav = 1, nabizet_do = NOW(), kusu_vyrobeno = 100, ubytovani_den = 1
+INSERT INTO shop_predmety SET id_predmetu = 33602, nazev = 'Obed zobrazovaci', kod_predmetu = CONCAT('obed_zobraz_', $0), cena_aktualni = 150, stav = 1, nabizet_do = NOW(), ubytovani_den = 1
 SQL,
             [
                 0 => ROCNIK,

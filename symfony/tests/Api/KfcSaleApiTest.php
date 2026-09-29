@@ -133,7 +133,6 @@ class KfcSaleApiTest extends AbstractDatabaseKernelTestCase
         $predmet->setCurrentPrice('400.00');
         $predmet->setDescription('');
         $predmet->setState($stav);
-        $predmet->setProducedQuantity(10);
         $predmet->addTag($tag);
         if ($archivedAt !== null) {
             $predmet->setArchivedAt(new \DateTimeImmutable($archivedAt));

@@ -19,14 +19,23 @@ class ProductRepositoryNabizetDoTest extends AbstractDatabaseKernelTestCase
     {
         $this->connection()->executeStatement(
             'INSERT INTO shop_predmety
-                (nazev, kod_predmetu, cena_aktualni, stav, nabizet_do, kusu_vyrobeno, popis)
-             VALUES (:nazev, :kod, 0, :stav, :nabizetDo, 10, :popis)',
+                (nazev, kod_predmetu, cena_aktualni, stav, nabizet_do, popis)
+             VALUES (:nazev, :kod, 0, :stav, :nabizetDo, :popis)',
             [
                 'nazev'     => 'Test noc ' . $kod,
                 'kod'       => $kod,
                 'stav'      => $stav,
                 'nabizetDo' => $nabizetDo,
                 'popis'     => '',
+            ],
+        );
+        $this->connection()->executeStatement(
+            'INSERT INTO product_variant (product_id, name, code, capacity, position)
+             VALUES (:produkt, :nazev, :kod, 10, 0)',
+            [
+                'produkt' => $this->connection()->lastInsertId(),
+                'nazev'   => 'Test noc ' . $kod,
+                'kod'     => $kod,
             ],
         );
     }
@@ -41,7 +50,7 @@ class ProductRepositoryNabizetDoTest extends AbstractDatabaseKernelTestCase
         $kod = 'test-noc-prosla-' . uniqid();
         $this->vlozRadekNoci($kod, '2000-01-01 00:00:00');
 
-        $nalezene = $this->repository()->producedQuantityByVariantCode([$kod]);
+        $nalezene = $this->repository()->capacityByVariantCode([$kod]);
 
         self::assertTrue(
             $nalezene[$kod]['nabizeno'],
@@ -54,7 +63,7 @@ class ProductRepositoryNabizetDoTest extends AbstractDatabaseKernelTestCase
         $kod = 'test-noc-pozastavena-' . uniqid();
         $this->vlozRadekNoci($kod, null, ProductStateEnum::SUSPENDED->value);
 
-        $nalezene = $this->repository()->producedQuantityByVariantCode([$kod]);
+        $nalezene = $this->repository()->capacityByVariantCode([$kod]);
 
         self::assertFalse($nalezene[$kod]['nabizeno']);
     }
@@ -64,7 +73,7 @@ class ProductRepositoryNabizetDoTest extends AbstractDatabaseKernelTestCase
         $kod = 'test-noc-verejna-' . uniqid();
         $this->vlozRadekNoci($kod, null);
 
-        $nalezene = $this->repository()->producedQuantityByVariantCode([$kod]);
+        $nalezene = $this->repository()->capacityByVariantCode([$kod]);
 
         self::assertTrue($nalezene[$kod]['nabizeno']);
         self::assertSame(10, $nalezene[$kod]['vyrobeno']);

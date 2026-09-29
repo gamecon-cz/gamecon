@@ -16,9 +16,8 @@ use App\Tests\AbstractDatabaseKernelTestCase;
 use Gamecon\Tests\Factory\UserFactory;
 
 /**
- * Kapacita ubytování se nepočítá ze zásoby na variantě, ale z `kusu_vyrobeno` proti
- * `shop_nakupy` — legacy to tak dělá a legacy do `shop_nakupy` pořád zapisuje. Testy drží
- * tři pravidla, která se z toho čtou špatně: rezervace pro orgy se odečítá jen účastníkovi,
+ * Kapacita ubytování je kapacita varianty proti `shop_nakupy`. Testy drží tři pravidla,
+ * která se z toho čtou špatně: rezervace pro orgy se odečítá jen účastníkovi,
  * vlastní koupená noc se přičítá zpátky, a nabídku rozhoduje řádek té noci, ne rodiče.
  */
 class AccommodationAvailabilityTest extends AbstractDatabaseKernelTestCase
@@ -61,8 +60,8 @@ class AccommodationAvailabilityTest extends AbstractDatabaseKernelTestCase
     }
 
     /**
-     * Jedna noc jednoho typu pokoje. `kusu_vyrobeno` i `rezervovano` sedí na řádku té noci,
-     * protože právě odtud se čtou — rodič variant je jiná noc.
+     * Jedna noc jednoho typu pokoje. Kapacitu nese varianta, nabídku a rezervaci řádek té
+     * noci — rodič variant je typ pokoje.
      */
     private function vytvorNoc(?int $kapacita, ?int $rezervovano = null): ProductVariant
     {
@@ -75,7 +74,6 @@ class AccommodationAvailabilityTest extends AbstractDatabaseKernelTestCase
         $produkt->setDescription('');
         $produkt->setState(ProductStateEnum::PUBLIC);
         $produkt->setAccommodationDay(0);
-        $produkt->setProducedQuantity($kapacita);
         $produkt->addTag($this->tagUbytovani());
         $this->entityManager()->persist($produkt);
         $this->entityManager()->flush();
@@ -86,6 +84,7 @@ class AccommodationAvailabilityTest extends AbstractDatabaseKernelTestCase
         // Varianta ubytování nese tentýž kod_predmetu jako produkt — kapacita se dohledává
         // podle kódu varianty.
         $varianta->setCode($kod);
+        $varianta->setCapacity($kapacita);
         $varianta->setPrice('400.00');
         $varianta->setPosition(0);
         $produkt->addVariant($varianta);

@@ -23,7 +23,7 @@ INSERT INTO uzivatele_hodnoty SET id_uzivatele = 339, login_uzivatele = 'ProbeGu
 SQL,
         [
             <<<SQL
-INSERT INTO shop_predmety SET id_predmetu = 33900, nazev = 'Probe jidlo', kod_predmetu = CONCAT('probe_jidlo_', $0), cena_aktualni = 150, stav = 1, nabizet_do = NOW(), kusu_vyrobeno = 10, ubytovani_den = 1
+INSERT INTO shop_predmety SET id_predmetu = 33900, nazev = 'Probe jidlo', kod_predmetu = CONCAT('probe_jidlo_', $0), cena_aktualni = 150, stav = 1, nabizet_do = NOW(), ubytovani_den = 1
 SQL,
             [
                 0 => ROCNIK,

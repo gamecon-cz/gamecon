@@ -76,7 +76,6 @@ class AccommodationImportTest extends AbstractDatabaseKernelTestCase
         $produkt->setDescription('');
         $produkt->setState(ProductStateEnum::PUBLIC);
         $produkt->setAccommodationDay($den);
-        $produkt->setProducedQuantity(10);
         $produkt->addTag($this->tagUbytovani());
         $this->entityManager()->persist($produkt);
         $this->entityManager()->flush();
@@ -85,6 +84,7 @@ class AccommodationImportTest extends AbstractDatabaseKernelTestCase
         $varianta->setProduct($produkt);
         $varianta->setName('den ' . $den);
         $varianta->setCode($kod);
+        $varianta->setCapacity(10);
         // Den musí sedět i na variantě — zapisovač podle něj pozná, že je to noc.
         $varianta->setAccommodationDay($den);
         $varianta->setPrice('400.00');
@@ -108,7 +108,6 @@ class AccommodationImportTest extends AbstractDatabaseKernelTestCase
         $produkt->setDescription('');
         $produkt->setState(ProductStateEnum::PUBLIC);
         $produkt->setAccommodationDay($den);
-        $produkt->setProducedQuantity(10);
         $produkt->addTag($this->tagUbytovani());
         $this->entityManager()->persist($produkt);
         $this->entityManager()->flush();

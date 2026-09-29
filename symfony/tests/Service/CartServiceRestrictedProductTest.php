@@ -111,7 +111,6 @@ class CartServiceRestrictedProductTest extends AbstractDatabaseKernelTestCase
         $produkt->setCurrentPrice('200.00');
         $produkt->setDescription('');
         $produkt->setState(ProductStateEnum::PUBLIC);
-        $produkt->setProducedQuantity(10);
         foreach ($tagy as $tag) {
             $produkt->addTag($this->tag($tag));
         }
@@ -122,6 +121,7 @@ class CartServiceRestrictedProductTest extends AbstractDatabaseKernelTestCase
         $varianta->setProduct($produkt);
         $varianta->setName('L');
         $varianta->setCode($kod . '-l');
+        $varianta->setCapacity(10);
         $varianta->setPrice('200.00');
         $varianta->setPosition(0);
         $produkt->addVariant($varianta);

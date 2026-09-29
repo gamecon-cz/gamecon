@@ -137,7 +137,6 @@ class ShirtProductsProviderTest extends TestCase
         $product->setCurrentPrice('200.00');
         $product->setDescription('');
         $product->setState($stav);
-        $product->setProducedQuantity(10);
         foreach ($tagy as $tag) {
             $product->addTag($this->tag($tag));
         }

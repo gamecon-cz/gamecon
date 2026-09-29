@@ -23,7 +23,7 @@ use Symfony\Component\Validator\Constraints as Assert;
  * ProductVariant - a specific variant of a Product (e.g. size M, Friday night)
  *
  * Price and reserved_for_organizers are nullable — null means "inherit from parent Product".
- * Remaining stock is not stored; CapacityManager counts it from the purchases.
+ * Capacity lives here; remaining stock is not stored, CapacityManager counts it from the purchases.
  *
  * Two write paths are exposed:
  * - Nested via Product: admins edit a product and all its variants as a
@@ -98,6 +98,14 @@ class ProductVariant
     #[Assert\PositiveOrZero(message: 'Cena musí být kladné číslo nebo nula')]
     #[Groups([Product::READ, self::READ, self::WRITE])]
     private ?string $price = null;
+
+    /**
+     * Null = unlimited.
+     */
+    #[ORM\Column(type: Types::INTEGER, nullable: true)]
+    #[Assert\PositiveOrZero(message: 'Kapacita musí být kladné číslo nebo nula')]
+    #[Groups([Product::READ, self::READ, self::WRITE])]
+    private ?int $capacity = null;
 
     #[ORM\Column(name: 'reserved_for_organizers', type: Types::INTEGER, nullable: true)]
     #[Assert\PositiveOrZero(message: 'Rezervace pro organizátory musí být kladné číslo nebo nula')]
@@ -184,6 +192,18 @@ class ProductVariant
     public function setPrice(?string $price): self
     {
         $this->price = $price;
+
+        return $this;
+    }
+
+    public function getCapacity(): ?int
+    {
+        return $this->capacity;
+    }
+
+    public function setCapacity(?int $capacity): self
+    {
+        $this->capacity = $capacity;
 
         return $this;
     }

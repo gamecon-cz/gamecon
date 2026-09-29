@@ -7,6 +7,7 @@ namespace App\Tests\Api;
 use ApiPlatform\Symfony\Bundle\Test\Client;
 use App\Entity\Product;
 use App\Entity\ProductTag;
+use App\Entity\ProductVariant;
 use App\Entity\User;
 use App\Enum\ProductStateEnum;
 use App\Service\JwtService;
@@ -228,6 +229,48 @@ class ProductApiTest extends AbstractDatabaseKernelTestCase
         $firstTag = $data['tags'][0];
         $this->assertArrayHasKey('code', $firstTag, 'Tag must have code field');
         $this->assertArrayHasKey('name', $firstTag, 'Tag must have name field');
+    }
+
+    /**
+     * The admin editor shows each variant's capacity and what is left of it; the remaining
+     * count is computed, not stored, so this is the only place it reaches the admin.
+     */
+    public function testProductDetailShowsVariantCapacityAndRemaining(): void
+    {
+        $product = $this->createProduct();
+        $omezena = (new ProductVariant())->setName('M')->setCode($product->getCode() . '-M')->setCapacity(5)->setPosition(0);
+        $neomezena = (new ProductVariant())->setName('L')->setCode($product->getCode() . '-L')->setCapacity(null)->setPosition(1);
+        foreach ([$omezena, $neomezena] as $variant) {
+            $variant->setProduct($product);
+            $product->addVariant($variant);
+            $this->entityManager()->persist($variant);
+        }
+        $this->entityManager()->persist($product);
+        $this->entityManager()->flush();
+
+        $kupujici = $this->createUser('api_test_buyer_');
+        for ($kus = 0; $kus < 2; ++$kus) {
+            $this->connection()->executeStatement(
+                'INSERT INTO shop_nakupy (id_uzivatele, id_predmetu, variant_id, rok, cena_nakupni, datum)
+                 VALUES (:customer, :product, :variant, :year, 1, NOW())',
+                [
+                    'customer' => $kupujici->getId(),
+                    'product'  => $product->getId(),
+                    'variant'  => $omezena->getId(),
+                    'year'     => ROCNIK,
+                ],
+            );
+        }
+
+        $data = $this->adminClient()->request('GET', '/symfony/api/products/' . $product->getId())->toArray();
+        $variants = array_column($data['variants'], null, 'code');
+
+        self::assertSame(5, $variants[$omezena->getCode()]['capacity']);
+        self::assertSame(3, $variants[$omezena->getCode()]['remaining']);
+        // API Platform leaves null properties out of the payload.
+        self::assertArrayNotHasKey('capacity', $variants[$neomezena->getCode()]);
+        self::assertNull($variants[$neomezena->getCode()]['remaining']);
+        self::assertArrayNotHasKey('capacity', $data, 'One unlimited variant makes the product unlimited');
     }
 
     public function testApiErrorReturnsJsonNotHtml(): void

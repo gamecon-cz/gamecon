@@ -42,11 +42,6 @@ class ProductSqlStructure
     public const nabizet_do = 'nabizet_do';
 
     /**
-     * @see Product::$producedQuantity
-     */
-    public const kusu_vyrobeno = 'kusu_vyrobeno';
-
-    /**
      * @see Product::$accommodationDay
      */
     public const ubytovani_den = 'ubytovani_den';

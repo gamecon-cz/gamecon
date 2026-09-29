@@ -37,7 +37,6 @@ class CapacityManagerTest extends AbstractDatabaseKernelTestCase
         $product->setCurrentPrice('50.00');
         $product->setDescription('');
         $product->setState(ProductStateEnum::PUBLIC);
-        $product->setProducedQuantity($kusuVyrobeno);
         $product->setReservedForOrganizers($rezervaProduktu);
         $this->entityManager()->persist($product);
 
@@ -45,6 +44,7 @@ class CapacityManagerTest extends AbstractDatabaseKernelTestCase
         $variant->setProduct($product);
         $variant->setName('jedna velikost');
         $variant->setCode($kod);
+        $variant->setCapacity($kusuVyrobeno);
         $variant->setReservedForOrganizers($rezervaVarianty);
         $variant->setPosition(0);
         $product->addVariant($variant);
@@ -98,19 +98,6 @@ class CapacityManagerTest extends AbstractDatabaseKernelTestCase
         self::assertTrue($this->capacityManager()->hasAvailableCapacity($variant));
         self::assertFalse($this->capacityManager()->isSoldOut($variant));
         self::assertFalse($this->capacityManager()->isLowStock($variant, 10));
-    }
-
-    /**
-     * Sizes and nights hang under a shared owner but carry their capacity on their own row.
-     */
-    public function testOwnRowWinsOverTheProduct(): void
-    {
-        $variant = $this->varianta(kusuVyrobeno: 500);
-        $variant->setCode($variant->getCode() . '-xl');
-        $this->entityManager()->flush();
-        $this->kapacitaVarianty($variant, 4);
-
-        self::assertSame(4, $this->capacityManager()->remaining($variant));
     }
 
     public function testOversoldStockGoesNegative(): void

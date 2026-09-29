@@ -29,7 +29,6 @@ final class ProductFactory extends PersistentProxyObjectFactory
             'currentPrice'     => (string) self::faker()->randomFloat(2, 0, 9999),
             'state'            => ProductStateEnum::from(self::faker()->numberBetween(0, 3)),
             'availableUntil'   => null,
-            'producedQuantity' => self::faker()->numberBetween(0, 1000),
             'accommodationDay' => null,
             'description'      => self::faker()->text(200),
             'archivedAt'       => null,
