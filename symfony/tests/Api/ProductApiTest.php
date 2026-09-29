@@ -111,10 +111,6 @@ class ProductApiTest extends AbstractDatabaseKernelTestCase
         ]));
     }
 
-    /**
-     * Deleting a sold variant would detach its purchases, which then drop out of its stock
-     * count and reports.
-     */
     public function testEditorRefusesToRemoveASoldVariant(): void
     {
         [$product, $variant] = $this->produktSVariantou();
@@ -132,9 +128,35 @@ class ProductApiTest extends AbstractDatabaseKernelTestCase
         $response = $this->ulozVarianty($product, []);
 
         self::assertSame(422, $response->getStatusCode(), $response->getContent(false));
+        self::assertSame('variants', $response->toArray(false)['violations'][0]['propertyPath']);
         self::assertSame(1, (int) $this->connection()->fetchOne('SELECT COUNT(*) FROM product_variant WHERE id = :id', [
             'id' => $variant->getId(),
         ]));
+    }
+
+    /**
+     * A PUT replaces the product wholesale, so orphan removal would drop every variant it omits.
+     */
+    public function testProductCannotBeReplacedWholesale(): void
+    {
+        [$product, $variant] = $this->produktSVariantou();
+
+        $response = $this->adminClient([
+            'Content-Type' => 'application/ld+json',
+        ])->request('PUT', '/symfony/api/products/' . $product->getId(), [
+            'body' => json_encode([
+                'name'         => $product->getName(),
+                'code'         => $product->getCode(),
+                'currentPrice' => $product->getCurrentPrice(),
+                'state'        => $product->getState(),
+                'tags'         => ['/symfony/api/product_tags/' . $product->getTags()->first()->getId()],
+            ], JSON_THROW_ON_ERROR),
+        ]);
+
+        self::assertSame(1, (int) $this->connection()->fetchOne('SELECT COUNT(*) FROM product_variant WHERE id = :id', [
+            'id' => $variant->getId(),
+        ]), 'The variant must survive');
+        self::assertSame(405, $response->getStatusCode(), $response->getContent(false));
     }
 
     public function testEditorRemovesAnUnsoldVariant(): void
