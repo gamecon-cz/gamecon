@@ -6,230 +6,252 @@ namespace App\Tests\Service;
 
 use App\Entity\Product;
 use App\Entity\ProductVariant;
+use App\Entity\User;
 use App\Enum\ProductStateEnum;
 use App\Enum\RoleMeaning;
 use App\Service\CapacityManager;
-use Doctrine\DBAL\Connection;
-use Doctrine\ORM\EntityManagerInterface;
-use PHPUnit\Framework\MockObject\MockObject;
-use PHPUnit\Framework\TestCase;
+use App\Service\OperatorOverride;
+use App\Structure\Entity\UserEntityStructure;
+use App\Tests\AbstractDatabaseKernelTestCase;
+use Gamecon\Tests\Factory\UserFactory;
 
-class CapacityManagerTest extends TestCase
+class CapacityManagerTest extends AbstractDatabaseKernelTestCase
 {
-    private MockObject $connection;
+    private ?User $kupujici = null;
 
-    private MockObject $entityManager;
-
-    private CapacityManager $capacityManager;
-
-    protected function setUp(): void
+    private function capacityManager(): CapacityManager
     {
-        $this->connection = $this->createMock(Connection::class);
-        $this->entityManager = $this->createMock(EntityManagerInterface::class);
-        $this->capacityManager = new CapacityManager($this->connection, $this->entityManager);
+        return static::getContainer()->get(CapacityManager::class);
     }
 
-    public function testUnlimitedCapacityIsAlwaysAvailable(): void
+    private function varianta(?int $kusuVyrobeno, ?int $rezervaProduktu = null, ?int $rezervaVarianty = null): ProductVariant
     {
-        $variant = $this->createVariant(null);
+        $kod = 'kapacita-' . uniqid();
 
-        $this->assertTrue($this->capacityManager->hasAvailableCapacity($variant));
-        $this->assertFalse($this->capacityManager->isSoldOut($variant));
-        $this->assertFalse($this->capacityManager->isLowStock($variant, 10));
-    }
-
-    public function testHasAvailableCapacityWithStock(): void
-    {
-        $variant = $this->createVariant(10);
-
-        $this->assertTrue($this->capacityManager->hasAvailableCapacity($variant));
-    }
-
-    public function testSoldOutWhenRemainingIsZero(): void
-    {
-        $variant = $this->createVariant(0);
-
-        $this->assertFalse($this->capacityManager->hasAvailableCapacity($variant));
-        $this->assertTrue($this->capacityManager->isSoldOut($variant));
-    }
-
-    public function testLowStockDetection(): void
-    {
-        $variant = $this->createVariant(5);
-
-        $this->assertTrue($this->capacityManager->isLowStock($variant, 10));
-        $this->assertFalse($this->capacityManager->isLowStock($variant, 3));
-    }
-
-    public function testLowStockFalseWhenSoldOut(): void
-    {
-        $variant = $this->createVariant(0);
-
-        $this->assertFalse($this->capacityManager->isLowStock($variant, 10));
-    }
-
-    public function testOrganizerReservationReducesParticipantAvailability(): void
-    {
-        $variant = $this->createVariant(10, 3);
-
-        // Participant sees 10 - 3 = 7
-        $this->assertTrue($this->capacityManager->hasAvailableCapacity($variant));
-        $this->assertSame(7, $variant->getAvailableQuantity([]));
-
-        // Organizer sees all 10
-        $orgRoles = [RoleMeaning::ORGANIZATOR_ZDARMA];
-        $this->assertTrue($this->capacityManager->hasAvailableCapacity($variant, $orgRoles));
-        $this->assertSame(10, $variant->getAvailableQuantity($orgRoles));
-    }
-
-    public function testParticipantSoldOutWithReservation(): void
-    {
-        // 3 remaining, all reserved for organizers
-        $variant = $this->createVariant(3, 3);
-
-        $this->assertTrue($this->capacityManager->isSoldOut($variant, []));
-        $this->assertFalse($this->capacityManager->isSoldOut($variant, [RoleMeaning::VYPRAVEC]));
-    }
-
-    public function testPurchaseRefreshesEntity(): void
-    {
-        $variant = $this->createVariant(10);
-
-        $this->connection->expects($this->once())
-            ->method('executeStatement')
-            ->willReturn(1);
-
-        $this->entityManager->expects($this->once())
-            ->method('refresh')
-            ->with($variant);
-
-        $this->capacityManager->purchase($variant, 1);
-    }
-
-    public function testPurchaseSkipsForUnlimitedCapacity(): void
-    {
-        $variant = $this->createVariant(null);
-
-        $this->connection->expects($this->never())
-            ->method('executeStatement');
-
-        $this->capacityManager->purchase($variant, 1);
-    }
-
-    public function testPurchaseThrowsWhenSoldOut(): void
-    {
-        $variant = $this->createVariant(1);
-
-        $this->connection->expects($this->once())
-            ->method('executeStatement')
-            ->willReturn(0);
-
-        $this->expectException(\RuntimeException::class);
-        $this->expectExceptionMessage('Nedostatečná kapacita');
-
-        $this->capacityManager->purchase($variant, 2);
-    }
-
-    public function testCancelPurchaseRefreshesEntity(): void
-    {
-        $variant = $this->createVariant(5);
-
-        $this->connection->expects($this->once())
-            ->method('executeStatement')
-            ->willReturn(1);
-
-        $this->entityManager->expects($this->once())
-            ->method('refresh')
-            ->with($variant);
-
-        $this->capacityManager->cancelPurchase($variant, 1);
-    }
-
-    public function testCancelPurchaseSkipsForUnlimitedCapacity(): void
-    {
-        $variant = $this->createVariant(null);
-
-        $this->connection->expects($this->never())
-            ->method('executeStatement');
-
-        $this->capacityManager->cancelPurchase($variant, 1);
-    }
-
-    public function testGetCapacityInfo(): void
-    {
-        $variant = $this->createVariant(20, 5);
-
-        $info = $this->capacityManager->getCapacityInfo($variant);
-
-        $this->assertSame(20, $info['remaining']);
-        $this->assertSame(5, $info['reserved']);
-        $this->assertSame(15, $info['availableForParticipants']);
-        $this->assertFalse($info['unlimited']);
-    }
-
-    public function testGetCapacityInfoUnlimited(): void
-    {
-        $variant = $this->createVariant(null);
-
-        $info = $this->capacityManager->getCapacityInfo($variant);
-
-        $this->assertNull($info['remaining']);
-        $this->assertSame(0, $info['reserved']);
-        $this->assertNull($info['availableForParticipants']);
-        $this->assertTrue($info['unlimited']);
-    }
-
-    public function testVariousOrganizerRolesHaveAccess(): void
-    {
-        $variant = $this->createVariant(5, 5);
-
-        // All these should have organizer access
-        $this->assertFalse($this->capacityManager->isSoldOut($variant, [RoleMeaning::ORGANIZATOR_ZDARMA]));
-        $this->assertFalse($this->capacityManager->isSoldOut($variant, [RoleMeaning::VYPRAVEC]));
-        $this->assertFalse($this->capacityManager->isSoldOut($variant, [RoleMeaning::BRIGADNIK]));
-        $this->assertFalse($this->capacityManager->isSoldOut($variant, [RoleMeaning::ZAZEMI]));
-
-        // Participant (no org role) should be sold out
-        $this->assertTrue($this->capacityManager->isSoldOut($variant, []));
-        $this->assertTrue($this->capacityManager->isSoldOut($variant, [RoleMeaning::PRIHLASEN]));
-    }
-
-    public function testInheritsReservationFromProduct(): void
-    {
-        $product = $this->createProduct(10);
-        $variant = new ProductVariant();
-        $variant->setProduct($product);
-        $variant->setName('M');
-        $variant->setCode('V-M');
-        $variant->setRemainingQuantity(20);
-        // reservedForOrganizers = null → inherits 10 from product
-
-        $this->assertSame(10, $variant->getAvailableQuantity([]));
-        $this->assertSame(20, $variant->getAvailableQuantity([RoleMeaning::ORGANIZATOR_ZDARMA]));
-    }
-
-    private function createProduct(?int $reservedForOrganizers = null): Product
-    {
         $product = new Product();
-        $product->setName('Test Product');
-        $product->setCode('TEST-001');
-        $product->setCurrentPrice('100.00');
+        $product->setName('Placka');
+        $product->setCode($kod);
+        $product->setCurrentPrice('50.00');
+        $product->setDescription('');
         $product->setState(ProductStateEnum::PUBLIC);
-        $product->setReservedForOrganizers($reservedForOrganizers);
+        $product->setProducedQuantity($kusuVyrobeno);
+        $product->setReservedForOrganizers($rezervaProduktu);
+        $this->entityManager()->persist($product);
 
-        return $product;
-    }
-
-    private function createVariant(?int $remainingQuantity, ?int $reservedForOrganizers = null): ProductVariant
-    {
-        $product = $this->createProduct();
         $variant = new ProductVariant();
         $variant->setProduct($product);
-        $variant->setName('Test Variant');
-        $variant->setCode('TEST-VAR-001');
-        $variant->setRemainingQuantity($remainingQuantity);
-        $variant->setReservedForOrganizers($reservedForOrganizers);
+        $variant->setName('jedna velikost');
+        $variant->setCode($kod);
+        $variant->setReservedForOrganizers($rezervaVarianty);
+        $variant->setPosition(0);
+        $product->addVariant($variant);
+        $this->entityManager()->persist($variant);
+        $this->entityManager()->flush();
 
         return $variant;
+    }
+
+    private function uzivatel(): User
+    {
+        return UserFactory::createOne([
+            UserEntityStructure::login => 'kapacita_' . uniqid(),
+            UserEntityStructure::email => 'kapacita_' . uniqid() . '@example.invalid',
+        ])->_save()->_real();
+    }
+
+    private function prodej(ProductVariant $variant, int $kusu, int $rok = ROCNIK): void
+    {
+        $this->kupujici ??= $this->uzivatel();
+
+        for ($kus = 0; $kus < $kusu; ++$kus) {
+            $this->connection()->executeStatement(
+                'INSERT INTO shop_nakupy (id_uzivatele, id_predmetu, variant_id, rok, cena_nakupni, datum)
+                 VALUES (:customer, :product, :variant, :year, 50, NOW())',
+                [
+                    'customer' => $this->kupujici->getId(),
+                    'product'  => $variant->getProduct()->getId(),
+                    'variant'  => $variant->getId(),
+                    'year'     => $rok,
+                ],
+            );
+        }
+    }
+
+    public function testRemainingIsCapacityMinusThisYearsPurchases(): void
+    {
+        $variant = $this->varianta(kusuVyrobeno: 10);
+        $this->prodej($variant, 3);
+        $this->prodej($variant, 2, rok: ROCNIK - 1);
+
+        self::assertSame(7, $this->capacityManager()->remaining($variant));
+    }
+
+    public function testNoCapacityMeansUnlimited(): void
+    {
+        $variant = $this->varianta(kusuVyrobeno: null);
+        $this->prodej($variant, 3);
+
+        self::assertNull($this->capacityManager()->remaining($variant));
+        self::assertTrue($this->capacityManager()->hasAvailableCapacity($variant));
+        self::assertFalse($this->capacityManager()->isSoldOut($variant));
+        self::assertFalse($this->capacityManager()->isLowStock($variant, 10));
+    }
+
+    /**
+     * Sizes and nights hang under a shared owner but carry their capacity on their own row.
+     */
+    public function testOwnRowWinsOverTheProduct(): void
+    {
+        $variant = $this->varianta(kusuVyrobeno: 500);
+        $variant->setCode($variant->getCode() . '-xl');
+        $this->entityManager()->flush();
+        $this->kapacitaVarianty($variant, 4);
+
+        self::assertSame(4, $this->capacityManager()->remaining($variant));
+    }
+
+    public function testOversoldStockGoesNegative(): void
+    {
+        $variant = $this->varianta(kusuVyrobeno: 2);
+        $this->prodej($variant, 3);
+
+        self::assertSame(-1, $this->capacityManager()->remaining($variant));
+        self::assertSame(0, $this->capacityManager()->availableQuantity($variant), 'Available is never negative');
+        self::assertTrue($this->capacityManager()->isSoldOut($variant));
+    }
+
+    public function testRemainingForSeveralVariantsAtOnce(): void
+    {
+        $prodavana = $this->varianta(kusuVyrobeno: 5);
+        $neomezena = $this->varianta(kusuVyrobeno: null);
+        $this->prodej($prodavana, 1);
+
+        self::assertSame(
+            [
+                $prodavana->getId() => 4,
+                $neomezena->getId() => null,
+            ],
+            $this->capacityManager()->remainingByVariant([$prodavana, $neomezena]),
+        );
+    }
+
+    public function testLowStock(): void
+    {
+        $variant = $this->varianta(kusuVyrobeno: 5);
+
+        self::assertTrue($this->capacityManager()->isLowStock($variant, 10));
+        self::assertFalse($this->capacityManager()->isLowStock($variant, 3));
+
+        $this->prodej($variant, 5);
+        self::assertFalse($this->capacityManager()->isLowStock($variant, 10), 'Sold out is not low');
+    }
+
+    public function testOrganizerReserveIsHiddenFromParticipants(): void
+    {
+        $variant = $this->varianta(kusuVyrobeno: 10, rezervaVarianty: 3);
+
+        self::assertSame(7, $this->capacityManager()->availableQuantity($variant));
+        self::assertSame(10, $this->capacityManager()->availableQuantity($variant, [RoleMeaning::ORGANIZATOR_ZDARMA]));
+    }
+
+    public function testReserveIsInheritedFromTheProduct(): void
+    {
+        $variant = $this->varianta(kusuVyrobeno: 20, rezervaProduktu: 10);
+
+        self::assertSame(10, $this->capacityManager()->availableQuantity($variant));
+        self::assertSame(20, $this->capacityManager()->availableQuantity($variant, [RoleMeaning::VYPRAVEC]));
+    }
+
+    public function testAnyOrganizerRoleReachesTheReserve(): void
+    {
+        $variant = $this->varianta(kusuVyrobeno: 5, rezervaVarianty: 5);
+
+        foreach ([RoleMeaning::ORGANIZATOR_ZDARMA, RoleMeaning::VYPRAVEC, RoleMeaning::BRIGADNIK, RoleMeaning::ZAZEMI] as $role) {
+            self::assertFalse($this->capacityManager()->isSoldOut($variant, [$role]), $role->name);
+        }
+        self::assertFalse($this->capacityManager()->isSoldOut($variant, [RoleMeaning::PRIHLASEN, RoleMeaning::BRIGADNIK]));
+        self::assertTrue($this->capacityManager()->isSoldOut($variant));
+        self::assertTrue($this->capacityManager()->isSoldOut($variant, [RoleMeaning::PRIHLASEN]));
+    }
+
+    public function testLockForSaleLetsTheLastPieceGo(): void
+    {
+        $variant = $this->varianta(kusuVyrobeno: 2);
+        $this->prodej($variant, 1);
+
+        $this->capacityManager()->lockForSale($variant);
+
+        $this->addToAssertionCount(1);
+    }
+
+    public function testLockForSaleRefusesMoreThanRemains(): void
+    {
+        $variant = $this->varianta(kusuVyrobeno: 2);
+        $this->prodej($variant, 1);
+
+        $this->expectException(\RuntimeException::class);
+        $this->expectExceptionMessageMatches('~kapacita~');
+
+        $this->capacityManager()->lockForSale($variant, 2);
+    }
+
+    public function testParticipantCannotBuyIntoTheReserve(): void
+    {
+        $variant = $this->varianta(kusuVyrobeno: 3, rezervaVarianty: 2);
+        $this->prodej($variant, 1);
+
+        $this->expectException(\RuntimeException::class);
+
+        $this->capacityManager()->lockForSale($variant);
+    }
+
+    public function testOrganizerAndDeskOverrideReachTheReserve(): void
+    {
+        $variant = $this->varianta(kusuVyrobeno: 3, rezervaVarianty: 2);
+        $this->prodej($variant, 1);
+
+        $this->capacityManager()->lockForSale($variant, 2, [RoleMeaning::ORGANIZATOR_ZDARMA]);
+        $this->capacityManager()->lockForSale($variant, 2, override: OperatorOverride::deskSale($this->uzivatel()));
+
+        $this->addToAssertionCount(2);
+    }
+
+    public function testLockForSaleWithUnlimitedCapacityAlwaysPasses(): void
+    {
+        $variant = $this->varianta(kusuVyrobeno: null);
+
+        $this->capacityManager()->lockForSale($variant, 1000);
+
+        $this->addToAssertionCount(1);
+    }
+
+    /**
+     * Without a transaction the row lock ends with the SELECT, and two buyers could both
+     * count the last piece as free.
+     */
+    public function testLockForSaleOutsideATransactionIsAProgrammingError(): void
+    {
+        $variant = $this->varianta(kusuVyrobeno: 5);
+        $this->connection()->rollBack();
+
+        $this->expectException(\LogicException::class);
+
+        $this->capacityManager()->lockForSale($variant);
+    }
+
+    public function testCapacityInfo(): void
+    {
+        $variant = $this->varianta(kusuVyrobeno: 20, rezervaVarianty: 5);
+        $this->prodej($variant, 2);
+
+        self::assertSame(
+            [
+                'remaining'                => 18,
+                'reserved'                 => 5,
+                'availableForParticipants' => 13,
+                'unlimited'                => false,
+            ],
+            $this->capacityManager()->getCapacityInfo($variant),
+        );
     }
 }

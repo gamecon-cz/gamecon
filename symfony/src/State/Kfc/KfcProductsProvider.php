@@ -8,6 +8,7 @@ use ApiPlatform\Metadata\Operation;
 use ApiPlatform\State\ProviderInterface;
 use App\Dto\Kfc\KfcProductOutputDto;
 use App\Dto\Kfc\KfcProductVariantOutputDto;
+use App\Service\CapacityManager;
 use Doctrine\DBAL\Connection;
 
 /**
@@ -17,6 +18,7 @@ readonly class KfcProductsProvider implements ProviderInterface
 {
     public function __construct(
         private Connection $connection,
+        private CapacityManager $capacityManager,
     ) {
     }
 
@@ -43,13 +45,16 @@ readonly class KfcProductsProvider implements ProviderInterface
                 shop_predmety.archived_at IS NOT NULL AS archivni,
                 product_variant.id AS varianta_id,
                 product_variant.name AS varianta_nazev,
-                ROUND(COALESCE(product_variant.price, shop_predmety.cena_aktualni)) AS varianta_cena,
-                product_variant.remaining_quantity AS varianta_zbyva
+                ROUND(COALESCE(product_variant.price, shop_predmety.cena_aktualni)) AS varianta_cena
             FROM shop_predmety
             LEFT JOIN product_variant ON product_variant.product_id = shop_predmety.id_predmetu
             ORDER BY shop_predmety.nazev, product_variant.position, product_variant.id
             SQL,
         );
+
+        $zbyva = $this->capacityManager->remainingByVariantId(array_values(array_filter(
+            array_map(static fn (array $row): ?int => $row['varianta_id'] === null ? null : (int) $row['varianta_id'], $rows),
+        )));
 
         /** @var array<int, array{dto: array{id: int, name: string, price: int, archived: bool}, variants: KfcProductVariantOutputDto[]}> $podleProduktu */
         $podleProduktu = [];
@@ -75,7 +80,7 @@ readonly class KfcProductsProvider implements ProviderInterface
                 id: (int) $row['varianta_id'],
                 name: (string) $row['varianta_nazev'],
                 price: (int) $row['varianta_cena'],
-                remaining: $row['varianta_zbyva'] !== null ? (int) $row['varianta_zbyva'] : null,
+                remaining: $zbyva[(int) $row['varianta_id']] ?? null,
             );
         }
 

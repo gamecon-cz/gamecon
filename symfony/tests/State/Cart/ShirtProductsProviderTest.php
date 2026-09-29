@@ -19,6 +19,7 @@ use App\Service\ProductVariantsForGrid;
 use App\Service\RestrictedProductRules;
 use App\Service\SpentQuotaProvider;
 use App\State\Cart\ShirtProductsProvider;
+use App\Tests\Service\PevnaZasoba;
 use Gamecon\Cas\DateTimeImmutableStrict;
 use Gamecon\SystemoveNastaveni\SystemoveNastaveni;
 use PHPUnit\Framework\MockObject\MockObject;
@@ -97,7 +98,9 @@ class ShirtProductsProviderTest extends TestCase
             $discountCalculator,
             $currentYearProvider,
             $this->restrictedProductRules,
-            new ProductVariantsForGrid($orderItemRepository),
+            new ProductVariantsForGrid($orderItemRepository, new PevnaZasoba([
+                700 => 10,
+            ])),
             $this->createMock(SpentQuotaProvider::class),
             $security,
             new NativeClock(),
@@ -143,7 +146,6 @@ class ShirtProductsProviderTest extends TestCase
         $variant->setProduct($product);
         $variant->setName('L');
         $variant->setCode($product->getCode() . '-l');
-        $variant->setRemainingQuantity(10);
         $variant->setPosition(0);
         // Nenaperzistovaná varianta nemá id a provider ji přeskočí; v databázi ho má vždy.
         (new \ReflectionProperty(ProductVariant::class, 'id'))->setValue($variant, 700);

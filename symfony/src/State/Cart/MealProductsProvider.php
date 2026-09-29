@@ -7,10 +7,13 @@ namespace App\State\Cart;
 use ApiPlatform\Metadata\Operation;
 use ApiPlatform\State\ProviderInterface;
 use App\Dto\Cart\MealProductOutputDto;
+use App\Entity\Product;
+use App\Entity\ProductVariant;
 use App\Entity\User;
 use App\Enum\ProductStateEnum;
 use App\Enum\ProductTagCode;
 use App\Repository\ProductRepository;
+use App\Service\CapacityManager;
 use App\Service\CurrentYearProviderInterface;
 use App\Service\CustomerDeskRights;
 use App\Service\DiscountCalculator;
@@ -30,6 +33,7 @@ readonly class MealProductsProvider implements ProviderInterface
         private Security $security,
         private CustomerDeskRights $deskRights,
         private ClockInterface $clock,
+        private CapacityManager $capacityManager,
     ) {
     }
 
@@ -61,6 +65,10 @@ readonly class MealProductsProvider implements ProviderInterface
         // přes `MealWriter`. Zámek je jen nápověda pro matici — vynucuje ho `CartService`.
         $poTerminuKategorie = ! $zPultu && SystemoveNastaveni::zGlobals()->prodejJidlaUkoncen();
         $meals = [];
+        $remaining = $this->capacityManager->remainingByVariant(array_filter(array_map(
+            static fn (Product $product): ?ProductVariant => $product->getVariants()->first() ?: null,
+            $products,
+        )));
 
         foreach ($products as $product) {
             $variants = $product->getVariants();
@@ -73,7 +81,7 @@ readonly class MealProductsProvider implements ProviderInterface
                 continue;
             }
 
-            $dto = MealProductOutputDto::fromProductAndVariant($product, $variant);
+            $dto = MealProductOutputDto::fromProductAndVariant($product, $variant, $remaining[$variant->getId()] ?? null);
 
             // Sleva orga na jídlo visí na právu, takže ceníková cena nestačí — v matici
             // musí být, co účastník reálně zaplatí, stejně jako u merche a ubytování.

@@ -12,7 +12,7 @@ use PHPUnit\Framework\TestCase;
 
 class MealProductOutputDtoTest extends TestCase
 {
-    private function jidlo(?int $zbyva): ProductVariant
+    private function jidlo(): ProductVariant
     {
         $product = new Product();
         $product->setName('Oběd pátek');
@@ -25,7 +25,6 @@ class MealProductOutputDtoTest extends TestCase
         $variant->setProduct($product);
         $variant->setName('Standard');
         $variant->setCode('obed-patek-std');
-        $variant->setRemainingQuantity($zbyva);
         // DTO vyžaduje id; entita ho jinak dostane až z databáze.
         (new \ReflectionProperty(ProductVariant::class, 'id'))->setValue($variant, 42);
 
@@ -39,10 +38,8 @@ class MealProductOutputDtoTest extends TestCase
      */
     public function testNegativeStockIsReportedAsIs(): void
     {
-        $dto = MealProductOutputDto::fromProductAndVariant(
-            $this->jidlo(-2)->getProduct(),
-            $this->jidlo(-2),
-        );
+        $jidlo = $this->jidlo();
+        $dto = MealProductOutputDto::fromProductAndVariant($jidlo->getProduct(), $jidlo, -2);
 
         self::assertSame(-2, $dto->remainingQuantity);
     }
@@ -52,10 +49,8 @@ class MealProductOutputDtoTest extends TestCase
      */
     public function testUnlimitedStaysNull(): void
     {
-        $dto = MealProductOutputDto::fromProductAndVariant(
-            $this->jidlo(null)->getProduct(),
-            $this->jidlo(null),
-        );
+        $jidlo = $this->jidlo();
+        $dto = MealProductOutputDto::fromProductAndVariant($jidlo->getProduct(), $jidlo, null);
 
         self::assertNull($dto->remainingQuantity);
     }

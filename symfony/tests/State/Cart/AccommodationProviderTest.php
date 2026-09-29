@@ -109,7 +109,7 @@ class AccommodationProviderTest extends TestCase
     public function testSaleClosedAfterTheDeadline(): void
     {
         $this->prepareUser();
-        $this->prepareGrid(remainingQuantity: 10, produced: 10, sold: 0, held: 0);
+        $this->prepareGrid(produced: 10, sold: 0, held: 0);
         $this->posunCas('2099-01-01 00:00:00');
 
         $this->assertTrue($this->provider->provide(new Get())->saleClosed);
@@ -118,7 +118,7 @@ class AccommodationProviderTest extends TestCase
     public function testFreeNightIsLockedAfterTheDeadline(): void
     {
         $this->prepareUser();
-        $this->prepareGrid(remainingQuantity: 10, produced: 10, sold: 0, held: 0);
+        $this->prepareGrid(produced: 10, sold: 0, held: 0);
         $this->posunCas('2099-01-01 00:00:00');
 
         $cell = $this->provider->provide(new Get())->types[0]->nights[self::DEN_CTVRTEK];
@@ -135,7 +135,7 @@ class AccommodationProviderTest extends TestCase
     public function testDeskIsNotLockedOutAfterTheDeadline(): void
     {
         $this->prepareUser();
-        $this->prepareGrid(remainingQuantity: 10, produced: 10, sold: 0, held: 0);
+        $this->prepareGrid(produced: 10, sold: 0, held: 0);
         $this->posunCas('2099-01-01 00:00:00');
 
         $dto = $this->provider->forCustomer(
@@ -152,7 +152,7 @@ class AccommodationProviderTest extends TestCase
     public function testOwnBookedNightStaysUnlockedAfterTheDeadline(): void
     {
         $this->prepareUser();
-        $this->prepareGrid(remainingQuantity: 10, produced: 10, sold: 1, held: 1, koupeno: true);
+        $this->prepareGrid(produced: 10, sold: 1, held: 1, koupeno: true);
         $this->posunCas('2099-01-01 00:00:00');
 
         $cell = $this->provider->provide(new Get())->types[0]->nights[self::DEN_CTVRTEK];
@@ -175,25 +175,6 @@ class AccommodationProviderTest extends TestCase
     }
 
     /**
-     * The regression this pins: OrderItem maps to shop_nakupy, so the sold count already
-     * covers the new cart, whose sales CapacityManager has also taken off
-     * remaining_quantity. Deriving from remaining_quantity double-counts them.
-     */
-    public function testRemainingIsProducedMinusSoldRegardlessOfRemainingQuantity(): void
-    {
-        $this->prepareUser();
-
-        // remaining_quantity is deliberately absurd: reading it would show 999 free beds.
-        $variant = $this->prepareGrid(remainingQuantity: 999, produced: 10, sold: 3, held: 0);
-
-        $cell = $this->provider->provide(new Get())->types[0]->nights[self::DEN_CTVRTEK];
-
-        $this->assertSame(7, $cell->remaining);
-        $this->assertFalse($cell->soldOut);
-        $this->assertSame($variant->getId(), $cell->variantId);
-    }
-
-    /**
      * Rezervace drží část postelí stranou: účastník je nevidí, organizátor ano. Merch to
      * umí přes `CapacityManager`, ubytování jde jinou cestou a dosud to míjelo — vyplněná
      * rezervace u noci neznamenala nic a postele se rozprodaly do posledního kusu.
@@ -201,7 +182,7 @@ class AccommodationProviderTest extends TestCase
     public function testReservedBedsAreHiddenFromAParticipant(): void
     {
         $this->prepareUser();
-        $this->prepareGrid(remainingQuantity: 10, produced: 10, sold: 3, held: 0, rezervovanoProOrgy: 5);
+        $this->prepareGrid(produced: 10, sold: 3, held: 0, rezervovanoProOrgy: 5);
 
         $cell = $this->provider->provide(new Get())->types[0]->nights[self::DEN_CTVRTEK];
 
@@ -216,7 +197,7 @@ class AccommodationProviderTest extends TestCase
     public function testParticipantIsSoldOutOnceOnlyTheReserveIsLeft(): void
     {
         $this->prepareUser();
-        $this->prepareGrid(remainingQuantity: 10, produced: 10, sold: 5, held: 0, rezervovanoProOrgy: 5);
+        $this->prepareGrid(produced: 10, sold: 5, held: 0, rezervovanoProOrgy: 5);
 
         $cell = $this->provider->provide(new Get())->types[0]->nights[self::DEN_CTVRTEK];
 
@@ -232,7 +213,7 @@ class AccommodationProviderTest extends TestCase
     public function testNightWithoutReservationIsUnaffected(): void
     {
         $this->prepareUser();
-        $this->prepareGrid(remainingQuantity: 10, produced: 10, sold: 3, held: 0);
+        $this->prepareGrid(produced: 10, sold: 3, held: 0);
 
         $cell = $this->provider->provide(new Get())->types[0]->nights[self::DEN_CTVRTEK];
 
@@ -247,7 +228,7 @@ class AccommodationProviderTest extends TestCase
     public function testReservationLargerThanCapacityLeavesNothingPublic(): void
     {
         $this->prepareUser();
-        $this->prepareGrid(remainingQuantity: 2, produced: 2, sold: 0, held: 0, rezervovanoProOrgy: 5);
+        $this->prepareGrid(produced: 2, sold: 0, held: 0, rezervovanoProOrgy: 5);
 
         $cell = $this->provider->provide(new Get())->types[0]->nights[self::DEN_CTVRTEK];
 
@@ -262,7 +243,7 @@ class AccommodationProviderTest extends TestCase
     public function testOrganizerSeesTheReservedBeds(): void
     {
         $this->prepareUser(jeOrganizator: true);
-        $this->prepareGrid(remainingQuantity: 10, produced: 10, sold: 5, held: 0, rezervovanoProOrgy: 5);
+        $this->prepareGrid(produced: 10, sold: 5, held: 0, rezervovanoProOrgy: 5);
 
         $cell = $this->provider->provide(new Get())->types[0]->nights[self::DEN_CTVRTEK];
 
@@ -276,7 +257,7 @@ class AccommodationProviderTest extends TestCase
     public function testFullyBookedNightIsSoldOut(): void
     {
         $this->prepareUser();
-        $this->prepareGrid(remainingQuantity: 10, produced: 10, sold: 10, held: 0);
+        $this->prepareGrid(produced: 10, sold: 10, held: 0);
 
         $cell = $this->provider->provide(new Get())->types[0]->nights[self::DEN_CTVRTEK];
 
@@ -290,7 +271,7 @@ class AccommodationProviderTest extends TestCase
 
         // The last bed, taken by this very customer: legacy adds it back so the row does
         // not render sold out under its own ticked checkbox.
-        $this->prepareGrid(remainingQuantity: 0, produced: 10, sold: 10, held: 1);
+        $this->prepareGrid(produced: 10, sold: 10, held: 1);
 
         $cell = $this->provider->provide(new Get())->types[0]->nights[self::DEN_CTVRTEK];
 
@@ -301,7 +282,7 @@ class AccommodationProviderTest extends TestCase
     public function testUnlimitedNightHasNoRemainingCount(): void
     {
         $this->prepareUser();
-        $this->prepareGrid(remainingQuantity: null, produced: null, sold: 4, held: 0);
+        $this->prepareGrid(produced: null, sold: 4, held: 0);
 
         $cell = $this->provider->provide(new Get())->types[0]->nights[self::DEN_CTVRTEK];
 
@@ -315,7 +296,7 @@ class AccommodationProviderTest extends TestCase
 
         // Both write paths feed shop_nakupy and kusu_vyrobeno is admin-editable, so sold
         // can exceed produced. The grid must not offer "-2 beds".
-        $this->prepareGrid(remainingQuantity: 0, produced: 10, sold: 12, held: 0);
+        $this->prepareGrid(produced: 10, sold: 12, held: 0);
 
         $cell = $this->provider->provide(new Get())->types[0]->nights[self::DEN_CTVRTEK];
 
@@ -329,7 +310,7 @@ class AccommodationProviderTest extends TestCase
 
         // Sold and held are keyed by variant id but produced by variant code, so a variant
         // whose code has no shop_predmety row falls back to unlimited rather than to zero.
-        $this->prepareGrid(remainingQuantity: 5, produced: null, sold: 2, held: 0);
+        $this->prepareGrid(produced: null, sold: 2, held: 0);
 
         $cell = $this->provider->provide(new Get())->types[0]->nights[self::DEN_CTVRTEK];
 
@@ -385,7 +366,6 @@ class AccommodationProviderTest extends TestCase
      * remaining-count arithmetic reads.
      */
     private function prepareGrid(
-        ?int $remainingQuantity,
         ?int $produced,
         int $sold,
         int $held,
@@ -401,7 +381,6 @@ class AccommodationProviderTest extends TestCase
         $variant->setCode('Hd-2L-ct');
         $variant->setName('čtvrtek');
         $variant->setAccommodationDay(self::DEN_CTVRTEK);
-        $variant->setRemainingQuantity($remainingQuantity);
         $this->setId($variant, self::ID_VARIANTY);
         $product->addVariant($variant);
 
@@ -448,7 +427,7 @@ class AccommodationProviderTest extends TestCase
     public function testSleepingBagRestrictionWithNothingTaggedIsRefused(): void
     {
         $this->prepareUser();
-        $this->prepareGrid(remainingQuantity: 10, produced: 10, sold: 0, held: 0);
+        $this->prepareGrid(produced: 10, sold: 0, held: 0);
         $this->sleepingBagsOnly = true;
 
         // Hiding everything would read as a broken section rather than a restriction.
@@ -462,7 +441,7 @@ class AccommodationProviderTest extends TestCase
         $this->prepareUser();
         $spacak = $this->vytvorSpacak();
         $pokoj = $this->prepareGrid(
-            remainingQuantity: 10, produced: 10, sold: 0, held: 0, dalsiProdukt: $spacak,
+            produced: 10, sold: 0, held: 0, dalsiProdukt: $spacak,
         );
         $this->sleepingBagsOnly = true;
 
@@ -489,7 +468,6 @@ class AccommodationProviderTest extends TestCase
         $variant->setCode('spacak-ct');
         $variant->setName('čtvrtek');
         $variant->setAccommodationDay(self::DEN_CTVRTEK);
-        $variant->setRemainingQuantity(10);
         $this->setId($variant, 60);
         $spacak->addVariant($variant);
 
@@ -522,7 +500,7 @@ class AccommodationProviderTest extends TestCase
     public function beznyUcastnikMusiObjednatDveNoci(): void
     {
         $this->prepareUser();
-        $this->prepareGrid(10, 10, 0, 0);
+        $this->prepareGrid(10, 0, 0);
 
         self::assertSame(2, $this->provider->provide(new Get())->minimumNights);
     }
@@ -533,7 +511,7 @@ class AccommodationProviderTest extends TestCase
     public function pravoNaJednuNocSnizujeMinimum(): void
     {
         $this->prepareUser(smiJednuNoc: true);
-        $this->prepareGrid(10, 10, 0, 0);
+        $this->prepareGrid(10, 0, 0);
 
         self::assertSame(1, $this->provider->provide(new Get())->minimumNights);
     }

@@ -252,7 +252,6 @@ const EditorPředmětu: FunctionComponent<EditorProps> = ({
         name: "",
         code: "",
         price: null,
-        remainingQuantity: null,
         reservedForOrganizers: null,
         accommodationDay: null,
         position: currentVariants.length,
@@ -474,7 +473,6 @@ const EditorPředmětu: FunctionComponent<EditorProps> = ({
               <th>Název</th>
               <th>Kód</th>
               <th>Cena (prázdné = dědí)</th>
-              <th>Skladem</th>
               <th>Den</th>
               <th></th>
             </tr>
@@ -511,18 +509,6 @@ const EditorPředmětu: FunctionComponent<EditorProps> = ({
                     onInput={(event) => {
                       const nextPrice = (event.target as HTMLInputElement).value;
                       updateVariant(index, { price: nextPrice === "" ? null : nextPrice });
-                    }}
-                  />
-                </td>
-                <td>
-                  <input
-                    type="number"
-                    value={variant.remainingQuantity ?? ""}
-                    onInput={(event) => {
-                      const rawValue = (event.target as HTMLInputElement).value;
-                      updateVariant(index, {
-                        remainingQuantity: rawValue === "" ? null : Number(rawValue),
-                      });
                     }}
                   />
                 </td>

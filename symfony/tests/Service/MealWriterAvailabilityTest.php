@@ -85,7 +85,6 @@ class MealWriterAvailabilityTest extends AbstractDatabaseKernelTestCase
         $varianta->setCode($kod);
         $varianta->setPrice('140.00');
         $varianta->setPosition(0);
-        $varianta->setRemainingQuantity(50);
         $produkt->addVariant($varianta);
         $this->entityManager()->persist($varianta);
         $this->entityManager()->flush();
@@ -128,18 +127,8 @@ class MealWriterAvailabilityTest extends AbstractDatabaseKernelTestCase
         self::assertSame(0, $this->pocetNakupu($zakaznik), 'Odmítnutý zápis nesmí nic zapsat');
     }
 
-    /**
-     * Sníží zásobu na nulu v obou zdrojích, protože se dnes čtou oba: admin cesta počítá
-     * proti `kusu_vyrobeno`, košíková proti `remaining_quantity`.
-     */
     private function vyprodej(ProductVariant $varianta): void
     {
-        $this->connection()->executeStatement(
-            'UPDATE product_variant SET remaining_quantity = 0 WHERE id = :id',
-            [
-                'id' => $varianta->getId(),
-            ],
-        );
         $this->connection()->executeStatement(
             'UPDATE shop_predmety SET kusu_vyrobeno = 0 WHERE id_predmetu = :id',
             [

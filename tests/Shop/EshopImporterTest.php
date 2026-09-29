@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Gamecon\Tests\Shop;
 
+use App\Service\CapacityManager;
 use Gamecon\Shop\EshopImporter;
 use Gamecon\Shop\StavPredmetu;
 use Gamecon\Tests\Db\AbstractTestDb;
@@ -97,7 +98,7 @@ class EshopImporterTest extends AbstractTestDb
             ]),
         ]);
 
-        $importer = new EshopImporter($soubor, ROCNIK);
+        $importer = new EshopImporter($soubor);
         $vysledek = $importer->importuj();
 
         self::assertSame(2, $vysledek->pocetNovych);
@@ -139,12 +140,12 @@ SQL,
             ]),
         ]);
 
-        $importer = new EshopImporter($soubor, ROCNIK);
+        $importer = new EshopImporter($soubor);
         $importer->importuj();
 
         // Bez varianty je předmět pro košík neviditelný — nejde ho do něj vložit.
         $varianta = dbOneLine(<<<SQL
-SELECT product_variant.name, product_variant.code, product_variant.price, product_variant.remaining_quantity
+SELECT product_variant.name, product_variant.code, product_variant.price
 FROM product_variant
 JOIN shop_predmety ON shop_predmety.id_predmetu = product_variant.product_id
 WHERE shop_predmety.kod_predmetu = $0
@@ -158,7 +159,7 @@ SQL,
         self::assertSame('Předmět s variantou', $varianta['name']);
         self::assertSame('POLOZKA_S_VARIANTOU', $varianta['code']);
         self::assertNull($varianta['price'], 'Cena se dědí z předmětu, aby ji jeho změna dál ovlivňovala.');
-        self::assertSame(7, (int) $varianta['remaining_quantity']);
+        self::assertSame(7, $this->zasobaVarianty('POLOZKA_S_VARIANTOU'));
     }
 
     /**
@@ -187,7 +188,7 @@ SQL,
             ]),
         ]);
 
-        $importer = new EshopImporter($soubor, ROCNIK);
+        $importer = new EshopImporter($soubor);
         $vysledek = $importer->importuj();
 
         self::assertSame(0, $vysledek->pocetNovych);
@@ -236,7 +237,7 @@ SQL,
             ]),
         ]);
 
-        $importer = new EshopImporter($soubor, ROCNIK);
+        $importer = new EshopImporter($soubor);
         $importer->importuj();
 
         // The missing product should be archived
@@ -270,7 +271,7 @@ SQL,
             ]),
         ]);
 
-        $importer = new EshopImporter($soubor, ROCNIK);
+        $importer = new EshopImporter($soubor);
         $vysledek = $importer->importuj();
 
         self::assertSame(1, $vysledek->pocetNovych);
@@ -299,7 +300,7 @@ SQL,
         $this->expectException(\Chyba::class);
         $this->expectExceptionMessageMatches('/chybí sloupce/');
 
-        $importer = new EshopImporter($soubor, ROCNIK);
+        $importer = new EshopImporter($soubor);
         $importer->importuj();
     }
 
@@ -317,7 +318,7 @@ SQL,
         $this->expectException(\Chyba::class);
         $this->expectExceptionMessageMatches('/řádku 2/');
 
-        $importer = new EshopImporter($soubor, ROCNIK);
+        $importer = new EshopImporter($soubor);
         $importer->importuj();
     }
 
@@ -338,7 +339,7 @@ SQL,
             ]);
 
             try {
-                (new EshopImporter($soubor, ROCNIK))->importuj();
+                (new EshopImporter($soubor))->importuj();
                 self::fail(sprintf('Stav %s měl být odmítnut', var_export($neplatnyStav, true)));
             } catch (\Chyba $chyba) {
                 self::assertMatchesRegularExpression('/řádku 2.*stav/s', $chyba->getMessage());
@@ -358,7 +359,7 @@ SQL,
             ]),
         ]);
 
-        $importer = new EshopImporter($soubor, ROCNIK);
+        $importer = new EshopImporter($soubor);
         $vysledek = $importer->importuj();
 
         self::assertSame(1, $vysledek->pocetNovych);
@@ -388,12 +389,12 @@ SQL,
             ]),
         ]);
 
-        $importer = new EshopImporter($soubor, ROCNIK);
+        $importer = new EshopImporter($soubor);
         $vysledek1 = $importer->importuj();
 
         self::assertSame(2, $vysledek1->pocetNovych);
 
-        $importer2 = new EshopImporter($soubor, ROCNIK);
+        $importer2 = new EshopImporter($soubor);
         $vysledek2 = $importer2->importuj();
 
         self::assertSame(0, $vysledek2->pocetNovych);
@@ -418,10 +419,10 @@ SQL,
                 'kusu_vyrobeno' => 5,
             ]),
         ]);
-        (new EshopImporter($soubor, ROCNIK))->importuj();
+        (new EshopImporter($soubor))->importuj();
         $this->nakupVarianty('PRODANY', kusu: 2);
 
-        (new EshopImporter($soubor, ROCNIK))->importuj();
+        (new EshopImporter($soubor))->importuj();
 
         self::assertSame(3, $this->zasobaVarianty('PRODANY'));
     }
@@ -441,9 +442,9 @@ VALUES (94201, 'Dvoulůžák', 'TYP_2L', 0, 1, NOW(), NULL, ''),
        (94203, 'Dvoulůžák sobota', 'NOC_2L_SO', 300, 1, NOW(), 4, '')
 SQL);
         dbQuery(<<<SQL
-INSERT INTO product_variant (product_id, name, code, price, remaining_quantity, position)
-VALUES (94201, 'pátek', 'NOC_2L_PA', 300, 4, 0),
-       (94201, 'sobota', 'NOC_2L_SO', 300, 4, 1)
+INSERT INTO product_variant (product_id, name, code, price, position)
+VALUES (94201, 'pátek', 'NOC_2L_PA', 300, 0),
+       (94201, 'sobota', 'NOC_2L_SO', 300, 1)
 SQL);
         $this->nakupVarianty('NOC_2L_PA', kusu: 1);
 
@@ -467,7 +468,7 @@ SQL);
                 'tag'           => 'ubytovani',
             ]),
         ]);
-        (new EshopImporter($soubor, ROCNIK))->importuj();
+        (new EshopImporter($soubor))->importuj();
 
         self::assertSame(7, $this->zasobaVarianty('NOC_2L_PA'));
         self::assertSame(8, $this->zasobaVarianty('NOC_2L_SO'));
@@ -500,10 +501,10 @@ SQL,
 
     private function zasobaVarianty(string $kod): ?int
     {
-        $zasoba = dbOneCol('SELECT remaining_quantity FROM product_variant WHERE code = $0', [
+        $idVarianty = (int) dbOneCol('SELECT id FROM product_variant WHERE code = $0', [
             0 => $kod,
         ]);
 
-        return $zasoba === null ? null : (int) $zasoba;
+        return static::getContainer()->get(CapacityManager::class)->remainingByVariantId([$idVarianty])[$idVarianty] ?? null;
     }
 }
