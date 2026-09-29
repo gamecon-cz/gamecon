@@ -192,7 +192,6 @@ SET
     shop_predmety.cena_aktualni = import.cena_aktualni,
     shop_predmety.stav = import.stav,
     shop_predmety.nabizet_do = import.nabizet_do,
-    shop_predmety.kusu_vyrobeno = import.kusu_vyrobeno,
     shop_predmety.ubytovani_den = import.ubytovani_den,
     shop_predmety.popis = import.popis,
     shop_predmety.vedlejsi = import.vedlejsi,
@@ -205,14 +204,13 @@ SQL,
 
             // Insert new products
             $mysqliResult = dbQuery(<<<SQL
-INSERT INTO shop_predmety (`nazev`, `kod_predmetu`, `cena_aktualni`, `stav`,  `nabizet_do`, `kusu_vyrobeno`, `ubytovani_den`, `popis`, `vedlejsi`, `breakfast_included`)
+INSERT INTO shop_predmety (`nazev`, `kod_predmetu`, `cena_aktualni`, `stav`,  `nabizet_do`, `ubytovani_den`, `popis`, `vedlejsi`, `breakfast_included`)
 SELECT
     import.`nazev`,
     import.`kod_predmetu`,
     import.`cena_aktualni`,
     import.`stav`,
     import.`nabizet_do`,
-    import.`kusu_vyrobeno`,
     import.`ubytovani_den`,
     import.`popis`,
     import.`vedlejsi`,
@@ -248,6 +246,15 @@ WHERE NOT EXISTS (
     -- code is UNIQUE across all variants; colliding would abort the whole import
     SELECT 1 FROM product_variant AS jine WHERE jine.code = shop_predmety.kod_predmetu
 )
+SQL,
+            );
+
+            // The sheet's kusu_vyrobeno is the capacity of the variant with that code — sizes and
+            // nights have their own rows in it, so this covers them as well as default variants.
+            dbQuery(<<<SQL
+UPDATE product_variant
+INNER JOIN `{$temporaryTable}` AS import ON import.kod_predmetu = product_variant.code
+SET product_variant.capacity = import.kusu_vyrobeno
 SQL,
             );
 

@@ -169,15 +169,6 @@ SQL,
         return self::$letosniPredmety[$klicCache];
     }
 
-    public function kusuVyrobeno(?int $kusuVyrobeno = null, bool $nastavit = false): ?int
-    {
-        if ($kusuVyrobeno !== null || $nastavit) {
-            $this->r['kusu_vyrobeno'] = $kusuVyrobeno;
-        }
-
-        return $this->r['kusu_vyrobeno'] !== null ? (int)$this->r['kusu_vyrobeno'] : null;
-    }
-
     public function nazev(): string
     {
         return (string)$this->r[Sql::NAZEV];

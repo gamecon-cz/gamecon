@@ -140,6 +140,7 @@ SQL,
         $archivovanoV = $modelRok === ROCNIK
             ? null
             : $modelRok . '-01-01 00:00:00';
+        $kodPredmetu = strtoupper(preg_replace('~[^A-Za-z0-9]+~', '_', $nazev)) . '_' . strtoupper(uniqid());
 
         dbQuery(<<<SQL
 INSERT INTO shop_predmety SET
@@ -147,22 +148,30 @@ INSERT INTO shop_predmety SET
     kod_predmetu = $1,
     cena_aktualni = $2,
     stav = $3,
-    kusu_vyrobeno = $4,
-    nabizet_do = $5,
-    archived_at = $6
+    nabizet_do = $4,
+    archived_at = $5
 SQL,
             [
                 0 => $nazev,
-                1 => strtoupper(preg_replace('~[^A-Za-z0-9]+~', '_', $nazev)) . '_' . strtoupper(uniqid()),
+                1 => $kodPredmetu,
                 2 => $cena,
                 3 => $stav,
-                4 => $kusuVyrobeno,
-                5 => $nabizetDo,
-                6 => $archivovanoV,
+                4 => $nabizetDo,
+                5 => $archivovanoV,
             ],
         );
 
         $idPredmetu = dbInsertId();
+        // Capacity lives on the variant with the product's code, as every catalog row has one.
+        dbQuery(
+            'INSERT INTO product_variant (product_id, name, code, capacity, position) VALUES ($0, $1, $2, $3, 0)',
+            [
+                0 => $idPredmetu,
+                1 => $nazev,
+                2 => $kodPredmetu,
+                3 => $kusuVyrobeno,
+            ],
+        );
         $this->oznacTypem($idPredmetu, $typ);
 
         return $idPredmetu;
