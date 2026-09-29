@@ -2147,7 +2147,7 @@ SQL,
         }
 
         $povinneUdaje = self::povinneUdajeProRegistraci(
-            $u?->shop()->ubytovani()->maObjednaneUbytovani() ?? false,
+            $u?->shop()->maObjednaneUbytovani() ?? false,
         );
 
         foreach ($validace as $klic => $validator) {

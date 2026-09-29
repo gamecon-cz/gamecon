@@ -7,6 +7,7 @@ use Gamecon\Aktivita\Aktivita;
 use Gamecon\Aktivita\FiltrAktivity;
 use Gamecon\Aktivita\TypAktivity;
 use Gamecon\Cas\DateTimeCz;
+use Gamecon\Cas\DateTimeGamecon;
 use Gamecon\Jidlo;
 use Gamecon\Pravo;
 use Gamecon\Shop\SqlStruktura\PredmetSqlStruktura as Sql;
@@ -188,17 +189,17 @@ SQL,
         'ubytovaniBezZamku' => false,   // ignorovat pozastavení objednávek u ubytování
         'jidloBezZamku'     => false,       // ignorovat pozastavení objednávek u jídla
     ];
-    public array          $ubytovaniPole = [];
-    public ?ShopUbytovani $ubytovani     = null;
+    private array         $ubytovaniPole = [];
+    /** @var array<string, array> typ => předmět sloužící jako vzor typu */
+    private array         $mozneTypyUbytovani = [];
+    /** @var array<int|string, array<string, array>> den => typ => předmět */
+    private array         $ubytovaniPoDnech = [];
     private               $tricka           = [];
     private               $mikiny           = [];
     private               $predmety         = [];
     private               $predmetyHlavni   = [];
     private               $predmetyVedlejsi = [];
     private               $jidlo            = [];
-    private               $ubytovaniOd;
-    private               $ubytovaniDo;
-    private               $ubytovaniTypy = [];
     private               $vstupne       = ['sum_cena_nakupni' => 0., 'id_predmetu' => null /*Před začátkem prodejů musí být vstupné naimportováno (typ VSTUPNE)*/];                   // dobrovolné vstupné (složka zaplacená regurélně včas)
     private               $vstupnePozde  = ['sum_cena_nakupni' => 0.0, 'id_predmetu' => null/*Před začátkem prodejů musí být dobrovolné vstupné naimportováno (typ VSTUPNE, v názvu "pozdě")*/];                  // dobrovolné vstupné (složka zaplacená pozdě)
     private               $vstupneJeVcas;                                                // jestli se dobrovolné vstupné v tento okamžik chápe jako zaplacené včas
@@ -331,12 +332,7 @@ SQL,
             }
         }
 
-        $this->ubytovani = new ShopUbytovani(
-            $this->ubytovaniPole,
-            $this->zakaznik,
-            $this->objednatel,
-            KontextZobrazeni::vytvorZGlobals(),
-        ); // náhrada reprezentace polem za objekt
+        $this->roztridUbytovani(KontextZobrazeni::vytvorZGlobals());
     }
 
     private function cenik(): Cenik
@@ -372,9 +368,76 @@ SQL,
         return Jidlo::dejPoradiJidlaBehemDne($nejakyDruh) <=> Jidlo::dejPoradiJidlaBehemDne($jinyDruh);
     }
 
-    public function ubytovani(): ShopUbytovani
+    private function roztridUbytovani(KontextZobrazeni $kontextZobrazeni): void
     {
-        return $this->ubytovani;
+        foreach ($this->ubytovaniPole as $predmet) {
+            $nazev = self::bezDne($predmet[Sql::NAZEV]);
+            if (! isset($this->mozneTypyUbytovani[$nazev])
+                && $this->maPravoZobrazitUbytovani((int) $predmet[Sql::UBYTOVANI_DEN], $kontextZobrazeni)
+            ) {
+                $this->mozneTypyUbytovani[$nazev] = $predmet;
+            }
+            $this->ubytovaniPoDnech[$predmet[Sql::UBYTOVANI_DEN]][$nazev] = $predmet;
+        }
+        $this->mozneTypyUbytovani = (new RazeniTypuUbytovani())->serad($this->mozneTypyUbytovani);
+    }
+
+    private function maPravoZobrazitUbytovani(int $poradiHernihoDne, KontextZobrazeni $kontextZobrazeni): bool
+    {
+        return $poradiHernihoDne !== DateTimeGamecon::PORADI_HERNIHO_DNE_NEDELE
+               || $this->zakaznik->maPravo(Pravo::UBYTOVANI_NEDELNI_NOC_NABIZET)
+               || $this->zakaznik->maPravo(Pravo::UBYTOVANI_NEDELNI_NOC_ZDARMA)
+               || $this->objednatel->jeOrganizator()
+               || ($this->objednatel->jeInfopultak() && $kontextZobrazeni === KontextZobrazeni::ADMIN);
+    }
+
+    /**
+     * @param int|string $den číslo dne jak je v databázi
+     * @param int|string $typ název z DB bez posledního slova
+     */
+    private function jeUbytovan(int|string $den, int|string $typ): bool
+    {
+        return isset($this->ubytovaniPoDnech[$den][$typ])
+               && $this->ubytovaniPoDnech[$den][$typ]['kusu_uzivatele'] > 0;
+    }
+
+    /**
+     * @return array<int|string> čísla dnů, jedno za každou objednanou noc
+     */
+    public function veKterychDnechJeUbytovan(): array
+    {
+        $dnyUbytovani = [];
+        foreach ($this->ubytovaniPoDnech as $den => $typyADetaily) {
+            foreach ($typyADetaily as $detail) {
+                if ($detail['kusu_uzivatele'] > 0) {
+                    $dnyUbytovani[] = $den;
+                }
+            }
+        }
+
+        return $dnyUbytovani;
+    }
+
+    public function maObjednaneUbytovani(): bool
+    {
+        return $this->veKterychDnechJeUbytovan() !== [];
+    }
+
+    /**
+     * @return string[] typ + den
+     */
+    private function objednaneUbytovaniNazvy(): array
+    {
+        $nazvy = [];
+        foreach ($this->ubytovaniPoDnech as $typyADetaily) {
+            foreach ($typyADetaily as $detail) {
+                if (($detail['kusu_uzivatele'] ?? 0) > 0) {
+                    $nazvy[] = $detail['nazev'];
+                }
+            }
+        }
+
+        return $nazvy;
     }
 
     private static function denNazev($cislo)
@@ -427,7 +490,7 @@ SQL,
     {
         $radky = [];
 
-        if ($ubytovani = $this->ubytovani()->objednaneUbytovaniNazvy()) {
+        if ($ubytovani = $this->objednaneUbytovaniNazvy()) {
             $radky[] = 'Ubytování: ' . implode(', ', $ubytovani);
         }
 
@@ -674,7 +737,23 @@ SQL,
 
     public function dejPopisUbytovani(): string
     {
-        return $this->ubytovani->kratkyPopis();
+        $dnyPoTypech = [];
+        foreach ($this->ubytovaniPoDnech as $cisloDne => $typy) {
+            $typVzor = reset($typy);
+            foreach (array_keys($this->mozneTypyUbytovani) as $typ) {
+                if ($this->jeUbytovan($cisloDne, $typ)) {
+                    $poziceZaPosledniMezerou = strrpos($typVzor['nazev'], ' ') + 1;
+                    $nazevDne = mb_strtolower(substr($typVzor['nazev'], $poziceZaPosledniMezerou));
+                    $dnyPoTypech[$typ][] = mb_substr($nazevDne, 0, 2);
+                }
+            }
+        }
+        $typySeDny = [];
+        foreach ($dnyPoTypech as $typ => $dny) {
+            $typySeDny[] = "$typ: " . implode(',', $dny);
+        }
+
+        return implode('<br>', $typySeDny);
     }
 
     public function zrusLetosniObjednaneUbytovani(string $zdrojZruseni): int
