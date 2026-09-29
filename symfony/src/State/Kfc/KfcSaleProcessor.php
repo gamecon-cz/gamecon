@@ -13,6 +13,7 @@ use App\Entity\Payment;
 use App\Entity\Product;
 use App\Entity\ProductVariant;
 use App\Entity\User;
+use App\Service\CapacityManager;
 use App\Service\CartService;
 use App\Service\CurrentYearProviderInterface;
 use App\Service\OperatorOverride;
@@ -39,6 +40,7 @@ readonly class KfcSaleProcessor implements ProcessorInterface
         private CurrentYearProviderInterface $yearProvider,
         private Security $security,
         private ClockInterface $clock,
+        private CapacityManager $capacityManager,
     ) {
     }
 
@@ -132,7 +134,7 @@ readonly class KfcSaleProcessor implements ProcessorInterface
     private function vProdejniTransakci(callable $prodej): void
     {
         $spojeni = $this->entityManager->getConnection();
-        $spojeni->beginTransaction();
+        $this->capacityManager->beginSaleTransaction();
 
         try {
             $prodej();

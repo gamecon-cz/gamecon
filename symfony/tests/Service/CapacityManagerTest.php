@@ -14,6 +14,7 @@ use App\Service\CurrentYearProviderInterface;
 use App\Service\OperatorOverride;
 use App\Structure\Entity\UserEntityStructure;
 use App\Tests\AbstractDatabaseKernelTestCase;
+use Doctrine\DBAL\Connection;
 use Doctrine\DBAL\DriverManager;
 use Gamecon\Tests\Factory\UserFactory;
 
@@ -244,50 +245,100 @@ class CapacityManagerTest extends AbstractDatabaseKernelTestCase
     /**
      * Two buyers race for the last piece. The second has already read something in its
      * transaction, so a plain COUNT would see its old snapshot and miss the first buyer's row.
-     * Needs committed data on two connections, so this test cleans up after itself.
      */
     public function testSecondBuyerSeesTheFirstBuyersCommittedPurchase(): void
     {
-        $variant = $this->varianta(kusuVyrobeno: 1);
-        $idVarianty = (int) $variant->getId();
-        $idProduktu = (int) $variant->getProduct()->getId();
-        $this->connection()->commit();
-
-        $druheSpojeni = DriverManager::getConnection($this->connection()->getParams());
-        $druhyKupujici = new CapacityManager($druheSpojeni, static::getContainer()->get(CurrentYearProviderInterface::class));
-        try {
+        $this->sPotvrzenymiVariantami([1], function (array $varianty, callable $noveSpojeni): void {
+            [$druheSpojeni, $druhyKupujici] = $noveSpojeni();
             $druheSpojeni->beginTransaction();
             $druheSpojeni->fetchOne('SELECT COUNT(*) FROM shop_nakupy');
 
-            $this->connection()->executeStatement(
-                'INSERT INTO shop_nakupy (id_uzivatele, id_predmetu, variant_id, rok, cena_nakupni, datum)
-                 VALUES (:customer, :product, :variant, :year, 50, NOW())',
-                [
-                    'customer' => \Uzivatel::SYSTEM,
-                    'product'  => $idProduktu,
-                    'variant'  => $idVarianty,
-                    'year'     => ROCNIK,
-                ],
-            );
+            $this->nakupNa($this->connection(), $varianty[0]);
 
             $this->expectException(\RuntimeException::class);
-            $druhyKupujici->lockForSale($variant);
+            $druhyKupujici->lockForSale($varianty[0]);
+        });
+    }
+
+    /**
+     * Under REPEATABLE READ the stock count also locks the index gap, so two buyers of
+     * different products would each wait on the other's insert — a deadlock.
+     */
+    public function testBuyersOfDifferentProductsDoNotBlockEachOther(): void
+    {
+        $this->sPotvrzenymiVariantami([5, 5], function (array $varianty, callable $noveSpojeni): void {
+            [$spojeniA, $kupujiciA] = $noveSpojeni();
+            [$spojeniB, $kupujiciB] = $noveSpojeni();
+            // A throwaway connection; a lock wait would otherwise hang the test for 50 s.
+            $spojeniA->executeStatement('SET SESSION innodb_lock_wait_timeout = 2');
+
+            $kupujiciA->beginSaleTransaction();
+            $kupujiciB->beginSaleTransaction();
+            $kupujiciA->lockForSale($varianty[0]);
+            $kupujiciB->lockForSale($varianty[1]);
+            $this->nakupNa($spojeniA, $varianty[0]);
+            $this->nakupNa($spojeniB, $varianty[1]);
+            $spojeniA->commit();
+            $spojeniB->commit();
+
+            $this->addToAssertionCount(1);
+        });
+    }
+
+    /**
+     * Races need rows other connections can see, so the variants are committed and removed
+     * again afterwards.
+     *
+     * @param list<int|null>                                                                   $kapacity
+     * @param callable(ProductVariant[], callable(): array{Connection, CapacityManager}): void $scenar
+     */
+    private function sPotvrzenymiVariantami(array $kapacity, callable $scenar): void
+    {
+        $varianty = array_map(fn (?int $kusu): ProductVariant => $this->varianta(kusuVyrobeno: $kusu), $kapacity);
+        $this->connection()->commit();
+
+        $spojeni = [];
+        try {
+            $scenar($varianty, function () use (&$spojeni): array {
+                $dalsi = DriverManager::getConnection($this->connection()->getParams());
+                $spojeni[] = $dalsi;
+
+                return [$dalsi, new CapacityManager($dalsi, static::getContainer()->get(CurrentYearProviderInterface::class))];
+            });
         } finally {
-            if ($druheSpojeni->isTransactionActive()) {
-                $druheSpojeni->rollBack();
+            foreach ($spojeni as $dalsi) {
+                if ($dalsi->isTransactionActive()) {
+                    $dalsi->rollBack();
+                }
+                $dalsi->close();
             }
-            $druheSpojeni->close();
-            $this->connection()->executeStatement('DELETE FROM shop_nakupy WHERE variant_id = :id', [
-                'id' => $idVarianty,
-            ]);
-            $this->connection()->executeStatement('DELETE FROM product_variant WHERE id = :id', [
-                'id' => $idVarianty,
-            ]);
-            $this->connection()->executeStatement('DELETE FROM shop_predmety WHERE id_predmetu = :id', [
-                'id' => $idProduktu,
-            ]);
+            foreach ($varianty as $variant) {
+                $this->connection()->executeStatement('DELETE FROM shop_nakupy WHERE variant_id = :id', [
+                    'id' => $variant->getId(),
+                ]);
+                $this->connection()->executeStatement('DELETE FROM product_variant WHERE id = :id', [
+                    'id' => $variant->getId(),
+                ]);
+                $this->connection()->executeStatement('DELETE FROM shop_predmety WHERE id_predmetu = :id', [
+                    'id' => $variant->getProduct()->getId(),
+                ]);
+            }
             $this->connection()->beginTransaction();
         }
+    }
+
+    private function nakupNa(Connection $spojeni, ProductVariant $variant): void
+    {
+        $spojeni->executeStatement(
+            'INSERT INTO shop_nakupy (id_uzivatele, id_predmetu, variant_id, rok, cena_nakupni, datum)
+             VALUES (:customer, :product, :variant, :year, 50, NOW())',
+            [
+                'customer' => \Uzivatel::SYSTEM,
+                'product'  => $variant->getProduct()->getId(),
+                'variant'  => $variant->getId(),
+                'year'     => ROCNIK,
+            ],
+        );
     }
 
     public function testCapacityInfo(): void
