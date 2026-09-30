@@ -21,6 +21,15 @@ services:
             - '../src/Kernel.php'
             - '../src/Entity/'
             - '../src/DependencyInjection/'
+            - '../src/Doctrine/SharedConnection.php'
+
+    # Every container in the process gets the same connection, which legacy dbQuery() uses too.
+    app.doctrine.shared_connection:
+        class: App\Doctrine\SharedConnection
+        decorates: doctrine.dbal.default_connection
+        factory: ['App\Doctrine\SharedConnection', 'share']
+        arguments: ['@.inner']
+        public: true
 
     # Pravidla slev se čtou legacy funkcí dbFetchAll — callable se nedá autowirovat.
     App\Discount\DiscountRuleLoader:
