@@ -47,8 +47,9 @@ class MealWriter
 
         $this->capacityManager->beginSaleTransaction();
         try {
-            $this->capacityManager->lockInOrder([...$this->heldMeals($customer, $year), ...array_keys($variants)]);
-            $kept = $this->removeUnselected($customer, $year, array_keys($variants));
+            $held = $this->heldMeals($customer, $year);
+            $this->capacityManager->lockInOrder([...$held, ...array_keys($variants)]);
+            $kept = $this->removeUnselected($customer, $year, $held, array_keys($variants));
             foreach ($variants as $variantId => $variant) {
                 if (! in_array($variantId, $kept, true)) {
                     $this->addMeal($customer, $variant, $year);
@@ -101,14 +102,13 @@ class MealWriter
     }
 
     /**
+     * @param int[] $held           read once with the locks, so nothing unlocked is removed
      * @param int[] $keepVariantIds
      *
      * @return int[] variant ids the customer already had and keeps
      */
-    private function removeUnselected(User $customer, int $year, array $keepVariantIds): array
+    private function removeUnselected(User $customer, int $year, array $held, array $keepVariantIds): array
     {
-        $held = $this->heldMeals($customer, $year);
-
         $toRemove = array_diff($held, $keepVariantIds);
         if ($toRemove !== []) {
             foreach ($this->orderItemRepository->findBy([

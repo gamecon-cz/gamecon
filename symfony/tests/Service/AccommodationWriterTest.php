@@ -315,6 +315,85 @@ class AccommodationWriterTest extends AbstractDatabaseKernelTestCase
         }
     }
 
+    /**
+     * A hotel night cancels the breakfast it covers. The meal desk, saving the same participant,
+     * holds that breakfast, has deleted it and re-inserts it — which needs the participant's row
+     * this save has just updated; deleting the breakfast before locking it would close the cycle.
+     */
+    public function testCancellingACoveredBreakfastQueuesBehindTheMealDesk(): void
+    {
+        [$hotelovaNoc, $snidane] = $this->pripravHotelSeSnidani(1);
+        $ucastnik = $this->ucastnikVSql('ubytovani_snidane_');
+        $this->connection()->executeStatement(
+            'INSERT INTO shop_nakupy (id_uzivatele, id_predmetu, variant_id, rok, cena_nakupni, datum)
+             SELECT :customer, product_id, id, :year, 50, NOW() FROM product_variant WHERE id = :variant',
+            [
+                'customer' => $ucastnik,
+                'variant'  => $snidane,
+                'year'     => self::ROK,
+            ],
+        );
+        $drzenaSnidane = (int) $this->connection()->lastInsertId();
+        $this->connection()->commit();
+
+        try {
+            $souper = SoubeznaTransakce::spust($this->connection(), [
+                ['sql', "SELECT id FROM product_variant WHERE id = {$snidane} FOR UPDATE"],
+                ['sql', "DELETE FROM shop_nakupy WHERE id_nakupu = {$drzenaSnidane}"],
+                ['hlasim', 'drzi snidani'],
+                ['cekej', 700],
+                ['sql', "INSERT INTO shop_nakupy (id_uzivatele, id_predmetu, variant_id, rok, cena_nakupni, datum)
+                         SELECT {$ucastnik}, product_id, id, " . self::ROK . ", 50, NOW() FROM product_variant WHERE id = {$snidane}"],
+                ['cekej', 300],
+            ]);
+            $chybaZapisu = null;
+            try {
+                $this->writer()->save($this->entityManager()->find(User::class, $ucastnik), [$hotelovaNoc], self::ROK, true, 'Karel');
+            } catch (\Throwable $chyba) {
+                $chybaZapisu = $chyba;
+            }
+
+            self::assertSame('hotovo', $souper->dokonci());
+            self::assertNull($chybaZapisu, (string) $chybaZapisu?->getMessage());
+        } finally {
+            $this->smazPotvrzenyHotel($ucastnik, [$hotelovaNoc, $snidane]);
+            $this->connection()->beginTransaction();
+        }
+    }
+
+    /**
+     * @param int[] $idVariant
+     */
+    private function smazPotvrzenyHotel(int $idUzivatele, array $idVariant): void
+    {
+        $spojeni = $this->connection();
+        $uzivatel = [
+            'uzivatel' => $idUzivatele,
+        ];
+        $spojeni->executeStatement('DELETE FROM shop_nakupy WHERE id_uzivatele = :uzivatel', $uzivatel);
+        $spojeni->executeStatement('DELETE FROM shop_order WHERE customer_id = :uzivatel', $uzivatel);
+        $spojeni->executeStatement('DELETE FROM shop_snidane_snapshot WHERE id_uzivatele = :uzivatel', $uzivatel);
+        $spojeni->executeStatement('DELETE FROM uzivatele_hodnoty_log WHERE id_uzivatele = :uzivatel', $uzivatel);
+        foreach ($idVariant as $idVarianty) {
+            $varianta = $spojeni->fetchAssociative('SELECT product_id, code FROM product_variant WHERE id = :id', [
+                'id' => $idVarianty,
+            ]);
+            $spojeni->executeStatement('DELETE FROM product_variant WHERE id = :id', [
+                'id' => $idVarianty,
+            ]);
+            $spojeni->executeStatement('DELETE FROM product_product_tag WHERE product_id = :id', [
+                'id' => $varianta['product_id'],
+            ]);
+            $spojeni->executeStatement('DELETE FROM shop_predmety WHERE kod_predmetu = :kod', [
+                'kod' => $varianta['code'],
+            ]);
+            $spojeni->executeStatement('DELETE FROM shop_predmety WHERE id_predmetu = :id', [
+                'id' => $varianta['product_id'],
+            ]);
+        }
+        $spojeni->executeStatement('DELETE FROM uzivatele_hodnoty WHERE id_uzivatele = :uzivatel', $uzivatel);
+    }
+
     private function koupNoc(int $idUzivatele, int $den): int
     {
         $this->connection()->executeStatement(
