@@ -274,8 +274,8 @@ class EshopIntegrationTest extends AbstractTestDb
         }
         $this->em->flush();
 
-        // Letošní kostku jmenuje pravidlo. Legacy spojením, ze kterého čte i výpočet slev,
-        // takže změnu na konci testu vrátí rollback.
+        // Through the legacy connection, which the discount calculation reads from too, so
+        // the test's rollback undoes it.
         dbQuery(
             <<<SQL
 UPDATE discount_rule
