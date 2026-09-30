@@ -7,6 +7,7 @@ namespace Gamecon\Shop;
 use App\Discount\DiscountRule;
 use App\Discount\DiscountRuleLoader;
 use App\Discount\DiscountScope;
+use App\Enum\ProductStateEnum;
 
 /**
  * This year's free dice and badge: the product each year's rule names, set from the
@@ -101,9 +102,10 @@ class LetosniPredmetyZdarma
             return null;
         }
         $nazev = dbOneCol(
-            'SELECT nazev FROM shop_predmety WHERE kod_predmetu = $0 AND archived_at IS NULL',
+            'SELECT nazev FROM shop_predmety WHERE kod_predmetu = $0 AND archived_at IS NULL AND stav <> $1',
             [
                 0 => $kod,
+                1 => ProductStateEnum::RETIRED->value,
             ],
         );
 
