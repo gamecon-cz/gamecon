@@ -69,6 +69,14 @@ parameters:
             paths:
                 - symfony/src/Service/AccommodationImport.php
 
+        # Volá je jen legacy model/ (LetosniPredmetyZdarma, BfsrReport), tedy mimo `paths:` —
+        # stejná příčina jako výš. Odpadne, až se do `paths:` dostane model/.
+        -
+            identifier: shipmonk.deadMethod
+            message: '#^Unused App\\Discount\\(DiscountParameters\:\:withProductCode|DiscountRuleLoader\:\:namedItemCode)$#'
+            paths:
+                - symfony/src/Discount/*
+
         # ProductDiscount byl první pokus o slevy (procenta na dvojici produkt+role).
         # Nahradila ho pravidla v discount_rule, která umí i pevnou částku. Entita tu
         # zůstává jen kvůli mapování v Product; smazat ji znamená migraci, takže vlastní PR.
