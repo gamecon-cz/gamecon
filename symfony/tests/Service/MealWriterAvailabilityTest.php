@@ -264,6 +264,43 @@ class MealWriterAvailabilityTest extends AbstractDatabaseKernelTestCase
         }
     }
 
+    /**
+     * The participant's cart buys the meal while the desk saves the same selection. The desk
+     * waits for the cart's lock and must then see that meal as already held.
+     *
+     * @test
+     */
+    public function jidloKoupeneBehemCekaniNaZamekSeNekoupiZnovu(): void
+    {
+        $varianta = $this->vytvorJidlo(ProductStateEnum::PUBLIC);
+        $ucastnik = $this->ucastnikVSql('soubezne_jidlo_');
+        $this->connection()->commit();
+
+        try {
+            $souper = SoubeznaTransakce::spust($this->connection(), [
+                ['sql', 'SELECT id FROM product_variant WHERE id = ' . $varianta->getId() . ' FOR UPDATE'],
+                ['sql', 'INSERT INTO shop_nakupy (id_uzivatele, id_predmetu, variant_id, rok, cena_nakupni, datum)
+                         VALUES (' . $ucastnik . ', ' . $varianta->getProduct()->getId() . ', ' . $varianta->getId() . ', ' . self::ROK . ', 140, NOW())'],
+                ['hlasim', 'kupuje jidlo'],
+                ['cekej', 500],
+                ['potvrd', ''],
+            ]);
+            $this->writer()->save($this->entityManager()->find(User::class, $ucastnik), [$varianta->getId()], self::ROK);
+
+            self::assertSame('hotovo', $souper->dokonci());
+            self::assertSame(1, (int) $this->connection()->fetchOne(
+                'SELECT COUNT(*) FROM shop_nakupy WHERE id_uzivatele = :uzivatel AND variant_id = :varianta',
+                [
+                    'uzivatel' => $ucastnik,
+                    'varianta' => $varianta->getId(),
+                ],
+            ));
+        } finally {
+            $this->smazPotvrzeneJidlo([$ucastnik], [$varianta]);
+            $this->connection()->beginTransaction();
+        }
+    }
+
     private function nakup(int $idUzivatele, ProductVariant $varianta): int
     {
         $this->connection()->executeStatement(

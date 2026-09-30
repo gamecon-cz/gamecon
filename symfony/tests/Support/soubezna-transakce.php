@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 /*
  * The other side of a race, run as a separate process by SoubeznaTransakce: a deadlock needs
- * both transactions waiting at once, which one PHP thread cannot do. Everything it does is
- * rolled back at the end.
+ * both transactions waiting at once, which one PHP thread cannot do. Rolled back at the end
+ * unless a `potvrd` step committed it.
  */
 
 $zadani = json_decode($argv[1], true, 512, JSON_THROW_ON_ERROR);
@@ -23,10 +23,13 @@ try {
             'sql'    => $spojeni->query($hodnota)->fetchAll(),
             'cekej'  => usleep($hodnota * 1000),
             'hlasim' => print $hodnota . "\n",
+            'potvrd' => $spojeni->commit(),
         };
         fflush(STDOUT);
     }
-    $spojeni->rollBack();
+    if ($spojeni->inTransaction()) {
+        $spojeni->rollBack();
+    }
     echo "hotovo\n";
 } catch (PDOException $chyba) {
     echo 'chyba ' . ($chyba->errorInfo[1] ?? $chyba->getCode()) . ' ' . $chyba->getMessage() . "\n";

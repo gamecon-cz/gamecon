@@ -23,7 +23,7 @@ final class SoubeznaTransakce
     }
 
     /**
-     * @param list<array{0: 'sql'|'cekej'|'hlasim', 1: string|int}> $kroky
+     * @param list<array{0: 'sql'|'cekej'|'hlasim'|'potvrd', 1: string|int}> $kroky
      */
     public static function spust(Connection $spojeni, array $kroky): self
     {

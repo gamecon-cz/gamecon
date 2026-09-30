@@ -40,9 +40,12 @@ class BreakfastCanceller
     /**
      * Remembers the selection before cancelling, so it can be offered back.
      *
+     * @param int[]|null $lockedVariantIds cancel only these: a breakfast bought after the
+     *                                     caller took its locks stays until the next save
+     *
      * @return int[] variant ids that were cancelled
      */
-    public function cancelCovered(User $customer, int $year): array
+    public function cancelCovered(User $customer, int $year, ?array $lockedVariantIds = null): array
     {
         $drzene = $this->drzeneSnidane($customer, $year);
         if ($drzene === []) {
@@ -50,6 +53,9 @@ class BreakfastCanceller
         }
 
         $kryte = array_values(array_intersect_key($drzene, array_flip($this->kryteRana($customer, $year))));
+        if ($lockedVariantIds !== null) {
+            $kryte = array_values(array_intersect($kryte, $lockedVariantIds));
+        }
         if ($kryte === []) {
             return [];
         }
