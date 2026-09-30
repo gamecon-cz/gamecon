@@ -166,6 +166,25 @@ class EshopImporterTest extends AbstractTestDb
     }
 
     /**
+     * @test
+     */
+    public function oznacenyVyrazenyPredmetVaruje(): void
+    {
+        $vysledek = (new EshopImporter($this->souborSLetosnimi([
+            'kostka_test_vyrazena' => [
+                'je_letosni_hlavni' => 1,
+                'stav'              => 0,
+            ],
+            'placka_test_nova' => [
+                'je_letosni_hlavni' => 1,
+            ],
+        ])))->importuj();
+
+        self::assertSame('kostka_test_vyrazena', $this->kodVPravidle('kostka_zdarma'));
+        self::assertStringContainsString('kostka_test_vyrazena', implode("\n", $vysledek->varovani));
+    }
+
+    /**
      * A sheet without the column leaves the rules alone, but still says when the item a
      * rule names is no longer on offer, since nobody would then get it free.
      *
