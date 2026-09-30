@@ -11,6 +11,7 @@ class EshopImporter
 {
     public function __construct(
         private readonly string $souborCesta,
+        private readonly int $rocnik = ROCNIK,
     ) {
     }
 
@@ -50,6 +51,9 @@ class EshopImporter
         $indexPopis = $hlavicka['popis'];
         $indexVedlejsi = $hlavicka['vedlejsi'];
         $indexSnidaneVCene = $hlavicka['snidane_v_cene'];
+        // Optional: names this year's free dice and badge, see LetosniPredmetyZdarma.
+        $indexJeLetosniHlavni = $hlavicka['je_letosni_hlavni'] ?? null;
+        $oznaceneLetosni = [];
 
         $rowIterator->next();
 
@@ -115,6 +119,9 @@ class EshopImporter
                     continue;
                 }
                 $tagsByKodPredmetu[$kodPredmetu] = $tag;
+                if ($indexJeLetosniHlavni !== null && (int) ($radek[$indexJeLetosniHlavni] ?? 0) === 1) {
+                    $oznaceneLetosni[] = (string) $kodPredmetu;
+                }
 
                 $stav = (string) ($radek[$indexStav] ?? '');
                 // Checked as a string, not cast: (int) would turn an empty cell or "abc"
@@ -328,6 +335,10 @@ SQL,
             );
         }
 
-        return new EshopImportVysledek($pocetNovych, $pocetZmenenych, $pocetVyrazenych);
+        $varovani = (new LetosniPredmetyZdarma($this->rocnik))->nastavZImportu(
+            $indexJeLetosniHlavni === null ? null : $oznaceneLetosni,
+        );
+
+        return new EshopImportVysledek($pocetNovych, $pocetZmenenych, $pocetVyrazenych, $varovani);
     }
 }

@@ -51,6 +51,20 @@ final class DiscountRuleLoader
     }
 
     /**
+     * The product a year's rule names as this year's item of that kind (kostka, placka).
+     */
+    public function namedItemCode(int $year, string $codeFragment): ?string
+    {
+        foreach ($this->rulesForYear($year) as $rule) {
+            if ($rule->parameters->scope === DiscountScope::PRODUCT_CODE && $rule->parameters->codeFragment === $codeFragment) {
+                return $rule->parameters->productCode;
+            }
+        }
+
+        return null;
+    }
+
+    /**
      * @return int[] id_prava the user holds for that year
      */
     public function rightsOfUser(int $userId, int $year): array
