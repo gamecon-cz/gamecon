@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Tests\Discount;
 
+use App\Discount\DiscountableItem;
 use App\Discount\DiscountEffect;
 use App\Discount\DiscountParameters;
 use App\Discount\DiscountScope;
@@ -26,6 +27,66 @@ class DiscountParametersTest extends TestCase
         $this->assertSame(DiscountEffect::FREE, $parameters->effect);
         $this->assertSame('kostka', $parameters->codeFragment);
         $this->assertSame(1, $parameters->maxQuantity);
+    }
+
+    public function testThisYearsDiceIsNamedByExactCode(): void
+    {
+        $parameters = DiscountParameters::fromArray([
+            'scope'        => 'product_code',
+            'effect'       => 'free',
+            'codeFragment' => 'kostka',
+            'productCode'  => 'kostka_2026_verne',
+            'maxQuantity'  => 1,
+        ]);
+
+        $this->assertTrue((new DiscountableItem('letosni', 'kostka_2026_verne', 80.0, []))->matches($parameters));
+        $this->assertFalse(
+            (new DiscountableItem('stara', 'kostka_2022', 30.0, []))->matches($parameters),
+            'Stará kostka se jménem pravidla neshoduje, i když má „kostka" v kódu',
+        );
+    }
+
+    public function testRuleWithoutANamedItemMatchesNothing(): void
+    {
+        $parameters = DiscountParameters::fromArray([
+            'scope'        => 'product_code',
+            'effect'       => 'free',
+            'codeFragment' => 'kostka',
+            'maxQuantity'  => 1,
+        ]);
+
+        $this->assertNull($parameters->productCode);
+        $this->assertFalse((new DiscountableItem('letosni', 'kostka_2026_verne', 80.0, []))->matches($parameters));
+    }
+
+    public function testNamingTheItemKeepsTheRestOfTheRule(): void
+    {
+        $parameters = DiscountParameters::fromArray([
+            'scope'        => 'product_code',
+            'effect'       => 'free',
+            'codeFragment' => 'placka',
+            'maxQuantity'  => 1,
+        ])->withProductCode('placka_2026_verne');
+
+        $this->assertSame([
+            'scope'        => 'product_code',
+            'effect'       => 'free',
+            'codeFragment' => 'placka',
+            'productCode'  => 'placka_2026_verne',
+            'maxQuantity'  => 1,
+        ], $parameters->toArray());
+    }
+
+    public function testProductCodeIsRejectedOnOtherScopes(): void
+    {
+        $this->expectException(\InvalidArgumentException::class);
+
+        DiscountParameters::fromArray([
+            'scope'       => 'tag',
+            'effect'      => 'free',
+            'tag'         => 'tricko',
+            'productCode' => 'tricko_2026',
+        ]);
     }
 
     public function testMealDiscountKeepsItsAmount(): void
