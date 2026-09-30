@@ -4,12 +4,8 @@ declare(strict_types=1);
 
 /** @var Godric\DbMigrations\Migration $this */
 
-// Free dice and badge go to this year's item only, as legacy Cenik did, instead of any
-// item whose code contains "kostka"/"placka". The year's rule names it by exact code.
-//
-// 2026's items are the ones legacy picked: the dice was the one flagged je_letosni_hlavni
-// (a column dropped earlier on this branch), the badge the one its tie-break chose. Rules
-// of other years get no code, so they give nothing away until the e-shop import names one.
+// The year's rule names this year's free dice and badge by exact code. 2026's are the ones
+// legacy picked; other years get none, so they give nothing away until the import names one.
 
 $this->q(<<<'SQL'
 UPDATE discount_rule

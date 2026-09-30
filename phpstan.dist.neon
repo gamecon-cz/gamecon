@@ -69,8 +69,8 @@ parameters:
             paths:
                 - symfony/src/Service/AccommodationImport.php
 
-        # Volá je jen legacy model/ (LetosniPredmetyZdarma, BfsrReport), tedy mimo `paths:` —
-        # stejná příčina jako výš. Odpadne, až se do `paths:` dostane model/.
+        # Called only from legacy model/ (LetosniPredmetyZdarma, BfsrReport), outside `paths:`,
+        # like the entries above. Goes away once model/ is analysed.
         -
             identifier: shipmonk.deadMethod
             message: '#^Unused App\\Discount\\(DiscountParameters\:\:withProductCode|DiscountRuleLoader\:\:namedItemCode)$#'
