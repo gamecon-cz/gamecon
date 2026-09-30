@@ -1,76 +1,52 @@
 # Který předmět je „letošní model"
 
 TL;DR: placka a kostka mají každý rok nový design, ale festival zároveň doprodává staré.
-Report je musí rozlišit a dnes to dělá **heuristikou přes čtyři řadicí klíče**. Chceme to
-nahradit příznakem na produktu. Tenhle dokument drží, proč a jak.
+Zdarma pro organizátory (a v BFSR jako „letošní") je **právě jeden produkt na druh** a ten
+**jmenuje přesným kódem pravidlo slevy** daného ročníku. Kód do pravidla zapisuje import
+e-shopu ze sloupce `je_letosni_hlavni`. Žádná heuristika.
 
 ## Vstupní body
 
-- `model/Shop/Predmet.php::letosniPredmet()` — heuristika sama (`letosniKostka()`, `letosniPlacka()`)
-- `model/Report/BfsrReport.php` — dělí placky na `Ir-Placky-Letosni-*` a `Ir-Placky-Stare-*`
-- `model/Uzivatel/Cenik.php:140,182` — kostka/placka zdarma se vztahuje jen na letošní model
+- `discount_rule` — pravidla `kostka_zdarma` / `placka_zdarma`, rozsah `product_code`:
+  `codeFragment` říká druh (`kostka`, `placka`), `productCode` konkrétní předmět
+- `symfony/src/Discount/DiscountableItem.php::matches()` — `PRODUCT_CODE` se shoduje jen s tím kódem
+- `model/Shop/LetosniPredmetyZdarma.php` — stav pro stránku importu, zápis z importu, varování
+- `model/Shop/EshopImporter.php` — nepovinný sloupec `je_letosni_hlavni` (1 = letošní)
+- `model/Report/BfsrReport.php` — dělí placky na letošní a staré podle téhož pravidla
+- `admin/scripts/zvlastni/reporty/finance-report-eshop.php` — `je_letosni_hlavni` = 1 jen u jmenovaných
 
 ## Co „letošní" znamená
 
-**Právě jeden produkt na druh.** Ne „každý, co je letos v nabídce" — těch je víc, protože
-se doprodávají starší designy pod letošním ročníkem.
+Ne „každý, co je letos v nabídce" — těch je víc, protože se starší designy doprodávají pod
+letošním ročníkem. V 2026 jsou čtyři placky a devět kostek, zdarma je jen `placka_2026_verne`
+a `kostka_2026_verne`. Záměna není kosmetická: sleva padne na jiný předmět a účastník zaplatí
+jinou částku (tak vzniklo [issue #1172](https://github.com/gamecon-cz/gamecon/issues/1172)).
 
-Data pro placky v roce 2026:
+## Proč ne heuristika, proč ne příznak na produktu
 
-| id | název | model_rok | je_letosni_hlavni | cena |
-|---|---|---|---|---|
-| **1846** | **Placka 2026** | 2026 | 1 | 40 |
-| 1847 | Placka 2025 - Cesta časem | 2026 | 1 | 40 |
-| 1903 | Placka 2021 - Cthulhu | 2026 | 1 | 40 |
-| 1845 | Placka stará | 2026 | 1 | 20 |
+Legacy vybíral letošní předmět dotazem `NOT EXISTS(nákup v dřívějším roce)` + `ORDER BY
+model_rok DESC, je_letosni_hlavni DESC, cena_aktualni DESC, id_predmetu`. Příznak
+`je_letosni_hlavni` (karta 1338, 2025) nesla jen kostka; u placek o vítězi rozhodovalo
+**pořadí nahrání**. Eshopová migrace sloupec zrušila a pohled ho dopočítává jako
+`archived_at IS NULL` (1 pro všechno letošní), takže heuristika by na nových datech vybrala
+jinou kostku než legacy. Navíc `NOT EXISTS` zpětně měnil, co je „letošní" v minulém roce.
 
-Čtyři produkty, jeden z nich je letošní model. Rozdíl není kosmetický: záměna dělá
-**12 nákupů ze 128** rozdíl v tom, co report hlásí jako letošní.
+Pravidla slev jsou **per ročník**, takže přesný kód v pravidle řeší historii sám (každý
+ročník jmenuje svůj předmět) a sleva i BFSR čtou jeden zdroj. Příznak na produktu by potřeboval
+vlastní vazbu na ročník a admin UI navíc.
 
-## Proč je dnešní řešení křehké
+## Jak se to nastavuje a jak se pozná, že chybí
 
-```sql
-NOT EXISTS(… shop_nakupy … rok < :rocnik)   -- nikdo ho nekoupil dřív
-ORDER BY model_rok DESC, je_letosni_hlavni DESC, cena_aktualni DESC, id_predmetu
-```
+- **Import** (`Finance → Import e-shopu`): řádek s `je_letosni_hlavni = 1` jmenuje letošní
+  předmět svého druhu. Právě jeden na druh → zapíše se do pravidla; žádný nebo víc → varování
+  a pravidlo zůstane beze změny. List bez sloupce pravidla nemění.
+- **Stránka importu** vždy ukazuje, co pravidla jmenují, a varuje u chybějícího kódu nebo
+  předmětu, který v letošní nabídce není.
+- **Při výpočtu cen** pravidlo bez kódu nic nedá — nikdo nedostane předmět zdarma, místo aby
+  ho dostal ke špatnému předmětu. Chyba je vidět ve financích.
 
-Na datech výše **první tři klíče nerozhodnou nic** — všechny čtyři kandidáty mají shodný
-`model_rok` i `je_letosni_hlavni` a cena odliší jen tu dvacetikorunovou. O vítězi mezi
-`Placka 2026`, `Placka 2025 - Cesta časem` a `Placka 2021 - Cthulhu` tak rozhoduje
-**`id_predmetu`, tedy pořadí nahrání**.
+Migrace `2026-09-30-100027` jmenuje pro 2026 předměty, které vybral legacy; pravidla jiných
+ročníků zůstanou bez kódu, dokud je nenastaví import.
 
-Navíc `je_letosni_hlavni` už není sloupec — kompatibilní pohled ho dopočítává jako
-`archived_at IS NULL`, takže je `1` pro všech 103 letošních produktů. Jako řadicí klíč
-nenese žádnou informaci.
-
-Podmínka `NOT EXISTS` navíc znamená, že **produkt přestane být letošní v okamžiku, kdy si
-ho někdo koupí v příštím ročníku** — tedy retroaktivně mění, co report o minulém roce řekne.
-
-## Kam to chceme dotáhnout
-
-Příznak na produktu místo hádání. Databáze umí vynutit „jen jeden na druh" i bez
-filtrovaných indexů (MariaDB 10.11 je nemá):
-
-```sql
-ALTER TABLE shop_predmety
-    ADD novy_model TINYINT(1) NULL,
-    ADD UNIQUE KEY jeden_novy_model (druh_predmetu, novy_model);
-```
-
-**Funguje to proto, že NULL se v UNIQUE indexu neduplikuje**: starých designů může být
-kolik chce (`NULL`), ale `1` smí být na druh jen jedna. Ověřeno na MariaDB 10.11:
-pět řádků se dvěma druhy prošlo, druhý `('placka', 1)` skončil
-`Duplicate entry 'placka-1' for key 'jeden_novy'`.
-
-Co je potřeba rozmyslet, než se to udělá:
-
-- **Podle čeho se druh pozná.** Dnes `kod_predmetu LIKE '%placka%'`; s příznakem je potřeba
-  stabilní klíč — nabízí se tag (`placka`, `kostka`) místo podřetězce v kódu.
-- **Kdo příznak nastavuje.** Admin při zakládání nového modelu; migrace ho musí doplnit
-  zpětně podle dnešní heuristiky, ať se čísla v reportech nezmění.
-- **Historie.** Report se ptá i na minulé ročníky, takže příznak musí být per ročník, ne
-  jeden na produkt napříč lety — nebo se musí vázat na `archived_at`.
-
-Do té doby heuristika zůstává; je ověřená testy (`BfsrReportPlackyTest`) a po převodu na
-novou strukturu čte z pohledu `shop_predmety_s_typem`, protože `typ`, `model_rok` ani
-`je_letosni_hlavni` už sloupce nejsou.
+Pozor: export (`finance-report-eshop`) dnes nejde naimportovat beze změn — dává sloupec `typ`,
+import chce `tag`. List pro import se proto připravuje zvlášť.
