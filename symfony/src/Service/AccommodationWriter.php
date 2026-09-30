@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Service;
 
+use App\Entity\OrderItem;
 use App\Entity\ProductVariant;
 use App\Entity\User;
 use App\Enum\ProductTagCode;
@@ -371,58 +372,61 @@ class AccommodationWriter
         );
         $order = $this->cartService->getOrCreateCart($customer);
 
-        // Two writers would both count the last bed as free; locking the night's variant row
-        // first makes them queue instead — the same row every other sale path locks.
-        $this->connection->executeQuery(
+        // Already locked by save(); read under the lock so a bed taken meanwhile is counted.
+        $capacity = $this->connection->fetchOne(
             'SELECT capacity FROM product_variant WHERE id = :variant FOR UPDATE',
             [
                 'variant' => $variant->getId(),
             ],
         );
-
-        $vlozeno = $this->connection->executeStatement(
-            'INSERT INTO shop_nakupy
-                (id_uzivatele, id_predmetu, variant_id, order_id, rok, cena_nakupni, datum,
-                 product_name, product_code, product_tags, variant_name, variant_code)
-             SELECT :customer, noc.id_predmetu, :variant, :order, :year, :price, NOW(),
-                    :productName, :productCode, :productTags, :variantName, :variantCode
-             FROM shop_predmety AS noc
-             INNER JOIN product_variant AS varianta ON varianta.id = :variant
-             WHERE noc.kod_predmetu = :variantCode
-               AND (
-                   :presKapacitu = 1
-                   OR varianta.capacity IS NULL
-                   OR varianta.capacity - :rezervovanoStranou > (
-                       SELECT COUNT(*) FROM shop_nakupy AS prodane
-                       WHERE prodane.variant_id = :variant AND prodane.rok = :year
-                   )
-               )',
-            [
-                'customer'     => $customer->getId(),
-                'variant'      => $variant->getId(),
-                'order'        => $order->getId(),
-                'year'         => $year,
-                'price'        => $discount['finalPrice'],
-                'productName'  => $product->getName(),
-                'productCode'  => $product->getCode(),
-                'productTags'  => json_encode($product->getTagNames(), JSON_THROW_ON_ERROR),
-                'variantName'  => $variant->getName(),
-                'variantCode'  => $variant->getCode(),
-                'presKapacitu' => (int) $mayOverbook,
-                // Účastník nesmí do odložených postelí, organizátor ano.
-                'rezervovanoStranou' => $jeOrganizator
-                    ? 0
-                    : $this->rezervovanoProOrganizatory($variant),
-            ],
-        );
-
-        if ($vlozeno === 0) {
-            // The override makes the capacity test always pass, so getting here at all means
-            // the caller did not have it. Telling the desk the night is "obsazené" when the
-            // real answer is "you may not overbook" sends them hunting for a bed that exists.
-            throw new \RuntimeException(sprintf(self::ERROR_OVERBOOKING_NOT_PERMITTED, $product->getName(), $variant->getName()));
+        if (! $mayOverbook && $capacity !== null) {
+            // A locking read, as in CapacityManager::lockForSale(): a plain one relies on the
+            // caller's READ COMMITTED to see purchases committed while waiting for the lock.
+            $sold = (int) $this->connection->fetchOne(
+                'SELECT COUNT(*) FROM shop_nakupy WHERE variant_id = :variant AND rok = :year LOCK IN SHARE MODE',
+                [
+                    'variant' => $variant->getId(),
+                    'year'    => $year,
+                ],
+            );
+            // Beds held back for organizers are off limits to participants only.
+            $heldBack = $jeOrganizator ? 0 : $this->rezervovanoProOrganizatory($variant);
+            if ((int) $capacity - $heldBack <= $sold) {
+                // The override makes the capacity test always pass, so getting here at all means
+                // the caller did not have it. Telling the desk the night is "obsazené" when the
+                // real answer is "you may not overbook" sends them hunting for a bed that exists.
+                throw new \RuntimeException(sprintf(self::ERROR_OVERBOOKING_NOT_PERMITTED, $product->getName(), $variant->getName()));
+            }
         }
 
-        return $vlozeno;
+        $night = $this->productRepository->findOneBy([
+            'code' => $variant->getCode(),
+        ]);
+        if ($night === null) {
+            throw new \RuntimeException(sprintf('Noc „%s" nemá v katalogu vlastní řádek, nejde ji zapsat.', $variant->getCode()));
+        }
+
+        $item = new OrderItem();
+        // The caller may hold a detached user, which persist() would try to insert again.
+        $item->setCustomer($this->entityManager->getReference(User::class, $customer->getId()));
+        $item->setProduct($night);
+        $item->setVariant($variant);
+        $item->setOrder($order);
+        $item->setYear($year);
+        $item->setPurchasePrice($discount['finalPrice']);
+        $item->setDiscountAmount($discount['discountAmount']);
+        $item->setDiscountSnapshot($discount['snapshot']);
+        if ($discount['reason'] !== null) {
+            $item->setDiscountReason($discount['reason']);
+        }
+        // Named after the room type, as the night's variant is only a day of it.
+        $item->snapshotProduct($product, $variant);
+        $item->setProductTags($product->getTagNames());
+
+        $order->addItem($item);
+        $this->entityManager->persist($item);
+        $this->entityManager->flush();
+
+        return 1;
     }
 }
