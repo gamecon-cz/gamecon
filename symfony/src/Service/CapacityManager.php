@@ -117,6 +117,31 @@ class CapacityManager
     }
 
     /**
+     * Takes every capacity lock a sale will need before its first write, lowest id first: two
+     * sales taking the same rows in different orders, or one deleting a purchase the other then
+     * counts, deadlock. Include what the sale removes, not only what it adds.
+     *
+     * @param int[] $variantIds
+     *
+     * @throws \LogicException outside a transaction, where the locks would end at once
+     */
+    public function lockInOrder(array $variantIds): void
+    {
+        if (! $this->connection->isTransactionActive()) {
+            throw new \LogicException('Kapacitu jde zamknout jen v transakci, která nákup i zapíše.');
+        }
+
+        $variantIds = array_values(array_unique(array_map('intval', $variantIds)));
+        sort($variantIds);
+        // One row per statement: a single `IN (…)` leaves the lock order to the query plan.
+        foreach ($variantIds as $variantId) {
+            $this->connection->fetchOne('SELECT id FROM product_variant WHERE id = :id FOR UPDATE', [
+                'id' => $variantId,
+            ]);
+        }
+    }
+
+    /**
      * Locks the variant's capacity row until the surrounding transaction ends, so the sale
      * must be written in that same transaction. The count is a locking read: a plain one would
      * reuse the caller's REPEATABLE READ snapshot and miss a purchase committed while it waited.

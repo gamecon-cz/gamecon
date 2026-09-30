@@ -14,6 +14,7 @@ use App\Service\CurrentYearProviderInterface;
 use App\Service\OperatorOverride;
 use App\Structure\Entity\UserEntityStructure;
 use App\Tests\AbstractDatabaseKernelTestCase;
+use App\Tests\Support\SoubeznaTransakce;
 use Doctrine\DBAL\Connection;
 use Doctrine\DBAL\DriverManager;
 use Gamecon\Tests\Factory\UserFactory;
@@ -269,6 +270,32 @@ class CapacityManagerTest extends AbstractDatabaseKernelTestCase
             $spojeniB->commit();
 
             $this->addToAssertionCount(1);
+        });
+    }
+
+    /**
+     * The other buyer takes the lower variant, then the higher one. Asked for them the other way
+     * round, this one must wait for the lower first rather than take the higher and deadlock.
+     */
+    public function testLockInOrderQueuesBehindABuyerOfTheSameVariantsInReverse(): void
+    {
+        $this->sPotvrzenymiVariantami([5, 5], function (array $varianty): void {
+            $idVariant = array_map(static fn (ProductVariant $variant): int => (int) $variant->getId(), $varianty);
+            sort($idVariant);
+            [$nizsi, $vyssi] = $idVariant;
+            $souper = SoubeznaTransakce::spust($this->connection(), [
+                ['sql', "SELECT id FROM product_variant WHERE id = {$nizsi} FOR UPDATE"],
+                ['hlasim', 'drzi nizsi'],
+                ['cekej', 700],
+                ['sql', "SELECT id FROM product_variant WHERE id = {$vyssi} FOR UPDATE"],
+                ['cekej', 300],
+            ]);
+
+            $this->capacityManager()->beginSaleTransaction();
+            $this->capacityManager()->lockInOrder([$vyssi, $nizsi]);
+            $this->connection()->rollBack();
+
+            self::assertSame('hotovo', $souper->dokonci());
         });
     }
 
