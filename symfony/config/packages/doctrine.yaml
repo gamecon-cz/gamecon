@@ -10,6 +10,11 @@ doctrine:
                 user: '%gamecon.db.user%'
                 password: '%gamecon.db.password%'
                 charset: utf8mb4
+                # Legacy code shares this connection and was written against these session settings.
+                # PDO attributes by number, as YAML cannot name a constant in a key.
+                options:
+                    1002: 'SET NAMES utf8mb4 COLLATE utf8mb4_czech_ci, SESSION group_concat_max_len = 1048576' # MYSQL_ATTR_INIT_COMMAND
+                    17: true # ATTR_STRINGIFY_FETCHES
                 profiling_collect_backtrace: '%kernel.debug%'
                 use_savepoints: true
                 schema_filter: ~^(?!akce_lokace$)~ # Ignore akce_lokace (managed by legacy code)
