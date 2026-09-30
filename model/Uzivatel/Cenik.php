@@ -6,7 +6,6 @@ namespace Gamecon\Uzivatel;
 
 use Gamecon\Cas\DateTimeGamecon;
 use Gamecon\Pravo;
-use Gamecon\Shop\Predmet;
 use Gamecon\Shop\SqlStruktura\NakupySqlStruktura as NakupySql;
 use Gamecon\Shop\SqlStruktura\PredmetSqlStruktura as PredmetySql;
 use Gamecon\SystemoveNastaveni\SystemoveNastaveni;
@@ -116,76 +115,6 @@ class Cenik
         );
 
         return $texty;
-    }
-
-    public function cenaKostky(array $r): int
-    {
-        $cena = (int) $r[PredmetySql::CENA_AKTUALNI];
-        $slevaNaKostku = $this->slevaNaKostku($r, $cena, false);
-
-        return $cena - $slevaNaKostku;
-    }
-
-    private function slevaNaKostku(
-        array $r,
-        $cena,
-        bool $omezPocet = true,
-    ): int {
-        $this->zbyvajicichMoznychKostekZdarma ??= $this->systemoveNastaveni->pocetKostekZdarma();
-        if ($omezPocet && $this->zbyvajicichMoznychKostekZdarma <= 0) {
-            return 0;
-        }
-        if (! $this->u->maPravoNaKostkuZdarma()) {
-            return 0;
-        }
-        if (! $this->maObjednanouKostku($r)) {
-            return 0;
-        }
-        if ($omezPocet) {
-            --$this->zbyvajicichMoznychKostekZdarma;
-        }
-
-        return (int) $cena;
-    }
-
-    private function maObjednanouKostku(array $r): bool
-    {
-        return Predmet::jeToKostka($r[PredmetySql::KOD_PREDMETU]);
-    }
-
-    public function cenaPlacky(array $r): int
-    {
-        $cena = (int) $r[PredmetySql::CENA_AKTUALNI];
-        $slevaNaPlacku = $this->slevaNaPlacku($r, $cena, false);
-
-        return $cena - $slevaNaPlacku;
-    }
-
-    private function slevaNaPlacku(
-        array $r,
-        $cena,
-        bool $omezPocet = true,
-    ): int {
-        $this->zbyvajicichMoznychPlacekZdarma ??= $this->systemoveNastaveni->pocetPlacekZdarma();
-        if ($omezPocet && $this->zbyvajicichMoznychPlacekZdarma <= 0) {
-            return 0;
-        }
-        if (! $this->u->maPravoNaPlackuZdarma()) {
-            return 0;
-        }
-        if (! $this->maObjednanouPlacku($r)) {
-            return 0;
-        }
-        if ($omezPocet) {
-            --$this->zbyvajicichMoznychPlacekZdarma;
-        }
-
-        return (int) $cena;
-    }
-
-    private function maObjednanouPlacku(array $r): bool
-    {
-        return Predmet::jeToPlacka($r[PredmetySql::KOD_PREDMETU]);
     }
 
     /**

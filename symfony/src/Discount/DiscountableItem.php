@@ -45,6 +45,8 @@ final readonly class DiscountableItem
             DiscountScope::TAG_AND_DAY => $parameters->tag !== null
                 && $this->hasTag($parameters->tag)
                 && $this->accommodationDay === $parameters->day,
+            DiscountScope::PRODUCT_CODE => $parameters->productCode !== null
+                && mb_strtolower($this->productCode) === mb_strtolower($parameters->productCode),
         };
     }
 }

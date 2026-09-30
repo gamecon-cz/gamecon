@@ -28,6 +28,10 @@ final readonly class DiscountParameters
          */
         public ?string $codeFragment,
         /**
+         * Exact kod_predmetu, for PRODUCT_CODE; null until this year's item is named.
+         */
+        public ?string $productCode,
+        /**
          * Product tag, for the TAG scopes.
          */
         public ?ProductTagCode $tag,
@@ -78,7 +82,7 @@ final readonly class DiscountParameters
             }
         }
 
-        $known = [...array_merge(...$required), 'scope', 'effect', 'maxQuantity', 'thresholdSetting'];
+        $known = [...array_merge(...$required), ...$scope->optionalParameters(), 'scope', 'effect', 'maxQuantity', 'thresholdSetting'];
         $unknown = array_diff(array_keys($parameters), $known);
         if ($unknown !== []) {
             // A typo in a parameter name would otherwise be silently ignored and the
@@ -95,6 +99,9 @@ final readonly class DiscountParameters
             scope: $scope,
             effect: $effect,
             codeFragment: isset($parameters['codeFragment']) ? (string) $parameters['codeFragment'] : null,
+            productCode: isset($parameters['productCode']) && trim((string) $parameters['productCode']) !== ''
+                ? trim((string) $parameters['productCode'])
+                : null,
             tag: isset($parameters['tag'])
                 ? (ProductTagCode::tryFrom((string) $parameters['tag'])
                     ?? throw new \InvalidArgumentException(sprintf('Neznámý tag "%s". Povolené: %s', (string) $parameters['tag'], implode(', ', array_column(ProductTagCode::cases(), 'value')))))
@@ -111,6 +118,14 @@ final readonly class DiscountParameters
                 ? self::setting((string) $parameters['thresholdSetting'], 'thresholdSetting')
                 : null,
         );
+    }
+
+    public function withProductCode(?string $productCode): self
+    {
+        return self::fromArray([
+            ...$this->toArray(),
+            'productCode' => $productCode,
+        ]);
     }
 
     private static function setting(string $value, string $parameterName): DiscountSetting
@@ -144,6 +159,7 @@ final readonly class DiscountParameters
             'scope'                                                          => $this->scope->value,
             'effect'                                                         => $this->effect->value,
             'codeFragment'                                                   => $this->codeFragment,
+            'productCode'                                                    => $this->productCode,
             'tag'                                                            => $this->tag?->value,
             'day'                                                            => $this->day,
             $this->effect === DiscountEffect::PERCENT ? 'percent' : 'amount' => $this->amount,
