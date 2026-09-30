@@ -184,6 +184,27 @@ class ProductApiTest extends AbstractDatabaseKernelTestCase
         self::assertSame(1, $this->pocetRadku('product_variant', 'id', $variant->getId()));
     }
 
+    public function testProductWhoseVariantWasSoldUnderAnotherCatalogRowIsNotDeleted(): void
+    {
+        [$product, $variant] = $this->produktSVariantou();
+        [$jinyRadekKatalogu] = $this->produktSVariantou();
+        $this->connection()->executeStatement(
+            'INSERT INTO shop_nakupy (id_uzivatele, id_predmetu, variant_id, rok, cena_nakupni, datum)
+             VALUES (:customer, :catalogRow, :variant, :year, 1, NOW())',
+            [
+                'customer'   => $this->createUser('api_test_buyer_')->getId(),
+                'catalogRow' => $jinyRadekKatalogu->getId(),
+                'variant'    => $variant->getId(),
+                'year'       => ROCNIK - 1,
+            ],
+        );
+
+        $response = $this->adminClient()->request('DELETE', '/symfony/api/products/' . $product->getId());
+
+        self::assertSame(1, $this->pocetRadku('shop_nakupy', 'variant_id', $variant->getId()), 'The purchase must keep its variant');
+        self::assertSame(422, $response->getStatusCode(), $response->getContent(false));
+    }
+
     public function testProductWithOnlyACancelledPurchaseIsNotDeleted(): void
     {
         [$product] = $this->produktSVariantou();
