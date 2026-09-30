@@ -10,11 +10,8 @@ use PHPUnit\Framework\TestCase;
  * Guards the promise of AbstractDatabaseKernelTestCase: a Symfony-stack test
  * that writes to the database must leave nothing behind.
  *
- * Reads through the legacy connection on purpose — it sits outside any Doctrine
- * transaction, so it sees only rows that were actually committed. A probe using
- * the Doctrine connection would be blind to the failure it is meant to catch,
- * because inside the run it cannot see another test class's rolled-back rows
- * either way.
+ * A plain TestCase, so it runs with no test transaction open and sees only rows
+ * that were actually committed.
  */
 class DatabaseCleanupTest extends TestCase
 {
@@ -52,9 +49,8 @@ class DatabaseCleanupTest extends TestCase
             0,
             (int) \dbFetchSingle($countQuery),
             sprintf(
-                'Rows left in %s. A test wrote them outside its transaction — the usual cause is calling '
-                . 'bootKernel() inside a test extending AbstractDatabaseKernelTestCase, which shuts down the '
-                . 'kernel whose connection holds that transaction.',
+                'Rows left in %s. A test wrote them outside its transaction, or committed the transaction '
+                . 'that AbstractDatabaseKernelTestCase opened for it.',
                 $table,
             ),
         );

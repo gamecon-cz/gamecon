@@ -15,7 +15,7 @@ Týká se testů nad novým Symfony/API Platform stackem, ne legacy testů v `te
 - `symfony/config/packages/security.yaml` — firewall `api` (stateless, `custom_authenticators`), `access_control` (`^/symfony/api` → `ROLE_USER`, `^/symfony/api/public` → `PUBLIC_ACCESS`).
 - `symfony/src/Entity/User::getRoles()` — odvozuje `ROLE_ADMIN` z kódů rolí `organizator/admin/infopult/cfo`.
 - `symfony/tests/AbstractDatabaseKernelTestCase` — transakční obal pro Symfony testy zapisující do DB.
-- `symfony/tests/Db/DatabaseCleanupTest.php` — regresní pojistka, že po Symfony testech nezůstávají řádky; čte **legacy** spojením (mimo Doctrine transakci), jinak by na tu chybu neviděla.
+- `symfony/tests/Db/DatabaseCleanupTest.php` — regresní pojistka, že po Symfony testech nezůstávají řádky; běží jako obyčejný `TestCase`, když žádná testovací transakce není otevřená, takže vidí jen to, co se opravdu commitlo.
 
 ## Jak se dnes autentizuje v testu
 
@@ -32,9 +32,9 @@ Admin se v testu **vytváří**, nedohledává: fixtury nikomu nepřidělují ro
 
 ## Gotchas
 
-- **`createClient()` defaultně bootuje vlastní kernel.** `AbstractDatabaseKernelTestCase` proto nastavuje `$alwaysBootKernel = false`, aby klient použil kernel nabootovaný v `setUp()`. Bez toho by `createClient()` shodil ten předchozí — a s ním spojení držící transakci testu (stejná past jako `bootKernel()` níž). Je to zároveň default v API Platform 5.0, takže to umlčí deprecation.
-- **Symfony testy, které píšou do DB, musí dědit z `App\Tests\AbstractDatabaseKernelTestCase`** — ta obaluje každou metodu transakcí na **Doctrine** spojení a odroluje ji. Legacy `Gamecon\Tests\Db\AbstractTestDb` to nezvládne: jede na jiném spojení (ověřeno `SELECT CONNECTION_ID()` na obou) a míchání legacy fixtur s Doctrine čtením týchž řádků deadlockuje.
-- **‼️ V testu nad `AbstractDatabaseKernelTestCase` nikdy nevolej `bootKernel()`.** Bázová třída kernel bootuje v `setUp()`; opakovaný `bootKernel()` uvnitř testu nejdřív provede `ensureKernelShutdown()`, **čímž zahodí spojení držící transakci** — zápisy pak commitnou na novém spojení a v DB zůstanou. Přesně tohle bylo příčinou, proč `ProductApiTest` po zavedení obalu pořád nechával 9 řádků. Hlídá to `symfony/tests/Db/DatabaseCleanupTest.php`.
+- **`createClient()` defaultně bootuje vlastní kernel.** `AbstractDatabaseKernelTestCase` proto nastavuje `$alwaysBootKernel = false`, aby klient použil kernel nabootovaný v `setUp()`. Jinak by klient pracoval s jiným kontejnerem, než který test připravil (entity manager, služby). Je to zároveň default v API Platform 5.0, takže to umlčí deprecation.
+- **Symfony testy, které píšou do DB, musí dědit z `App\Tests\AbstractDatabaseKernelTestCase`** — ta obaluje každou metodu transakcí a odroluje ji. Legacy a Doctrine jedou na jednom spojení i v jedné transakci, takže legacy fixtury a Doctrine čtení týchž řádků se už nepřekážejí.
+- **`bootKernel()` uvnitř testu už transakci nezahodí.** Dřív `ensureKernelShutdown()` zavřel spojení držící transakci testu a zápisy se commitly na novém spojení (proto `ProductApiTest` nechával 9 řádků). Teď všechny kernely sdílí jedno spojení (`App\Doctrine\SharedConnection`) a to se během otevřené transakce nezavírá. Nový kernel ale znamená nový entity manager, takže entity načtené předtím jsou pro něj cizí. Hlídá to `symfony/tests/Db/DatabaseCleanupTest.php`.
 - **`product_tag.created_at` je `NOT NULL` bez defaultu a entita `ProductTag` ho nemapuje** — tag vytvořený přes Doctrine databáze odmítne. Migrace i testy ho proto vkládají SQL. Sesterské tabulky (`product_bundle`, `product_discount`) default mají, tahle ne.
 - **Kolekce má klíč `member`, ne `hydra:member`.** API Platform 4 (`^4.2`, reálně 4.3.x) má `hydra_prefix` defaultně `false` a projekt to nikde nepřepisuje.
 - **PHPStan testy neanalyzuje** — `phpstan.dist.neon` má v `paths:` jen `symfony/config/` a `symfony/src/`. Jediná kontrola nad testy je, že procházejí.
