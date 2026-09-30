@@ -41,6 +41,8 @@ class CenikCharakterizacniTest extends AbstractTestDb
     private const ID_UBYTOVANI_CTVRTEK = 33505;
     private const ID_JIDLO = 33506;
     private const ID_OBYCEJNY_PREDMET = 33507;
+    private const ID_KOSTKA_STARA = 33508;
+    private const ID_PLACKA_STARA = 33509;
 
     protected static array $initQueries = [
         <<<SQL
@@ -136,6 +138,45 @@ SQL,
             ],
         ],
         "INSERT INTO product_product_tag (product_id, tag_id) SELECT 33507, id FROM product_tag WHERE code = 'predmet'",
+        [
+            <<<SQL
+INSERT INTO shop_predmety SET id_predmetu = 33508, nazev = 'Kostka stará testovací', kod_predmetu = CONCAT('kostka_stara_test_', $0), cena_aktualni = 30, stav = 1, nabizet_do = NOW()
+SQL,
+            [
+                0 => ROCNIK,
+            ],
+        ],
+        "INSERT INTO product_product_tag (product_id, tag_id) SELECT 33508, id FROM product_tag WHERE code = 'predmet'",
+        [
+            <<<SQL
+INSERT INTO shop_predmety SET id_predmetu = 33509, nazev = 'Placka stará testovací', kod_predmetu = CONCAT('placka_stara_test_', $0), cena_aktualni = 20, stav = 1, nabizet_do = NOW()
+SQL,
+            [
+                0 => ROCNIK,
+            ],
+        ],
+        "INSERT INTO product_product_tag (product_id, tag_id) SELECT 33509, id FROM product_tag WHERE code = 'predmet'",
+        // This year's dice and badge are named by the year's rules, as the e-shop import sets them.
+        [
+            <<<SQL
+UPDATE discount_rule
+SET parameters = CONCAT('{"scope":"product_code","effect":"free","codeFragment":"kostka","productCode":"kostka_test_', $0, '","maxQuantity":1}')
+WHERE code = 'kostka_zdarma' AND year = $0
+SQL,
+            [
+                0 => ROCNIK,
+            ],
+        ],
+        [
+            <<<SQL
+UPDATE discount_rule
+SET parameters = CONCAT('{"scope":"product_code","effect":"free","codeFragment":"placka","productCode":"placka_test_', $0, '","maxQuantity":1}')
+WHERE code = 'placka_zdarma' AND year = $0
+SQL,
+            [
+                0 => ROCNIK,
+            ],
+        ],
     ];
 
     private function udelPravo(int $idPrava): void
@@ -219,18 +260,54 @@ SQL,
     }
 
     /**
+     * Only the dice the year's rule names is free. An older one bought alongside comes
+     * first, as Finance prices purchases cheapest first, and still pays full price.
+     *
      * @test
      */
-    public function cenaKostkyAPlackyNesnizujeCitac(): void
+    public function kostkaZdarmaJenNaLetosniKostku(): void
     {
         $this->udelPravo(Pravo::KOSTKA_ZDARMA);
         $cenik = $this->cenik();
 
-        // cenaKostky() se ptá "kolik by to stálo", ne "prodej mi to" — volá se
-        // s $omezPocet = false, takže vrací nulu opakovaně a nevyčerpá nárok.
-        self::assertSame(0, $cenik->cenaKostky($this->radek(self::ID_KOSTKA)));
-        self::assertSame(0, $cenik->cenaKostky($this->radek(self::ID_KOSTKA)));
+        self::assertSame(30.0, $cenik->cena($this->radek(self::ID_KOSTKA_STARA))->finalPrice);
         self::assertSame(0.0, $cenik->cena($this->radek(self::ID_KOSTKA))->finalPrice);
+    }
+
+    /**
+     * @test
+     */
+    public function plackaZdarmaJenNaLetosniPlacku(): void
+    {
+        $this->udelPravo(Pravo::PLACKA_ZDARMA);
+        $cenik = $this->cenik();
+
+        self::assertSame(20.0, $cenik->cena($this->radek(self::ID_PLACKA_STARA))->finalPrice);
+        self::assertSame(0.0, $cenik->cena($this->radek(self::ID_PLACKA))->finalPrice);
+    }
+
+    /**
+     * A rule without a named item gives nothing away, rather than guessing which dice.
+     *
+     * @test
+     */
+    public function bezOznaceneLetosniKostkyNeniZadnaZdarma(): void
+    {
+        \dbQuery(
+            <<<SQL
+UPDATE discount_rule
+SET parameters = '{"scope":"product_code","effect":"free","codeFragment":"kostka","maxQuantity":1}'
+WHERE code = 'kostka_zdarma' AND year = $0
+SQL,
+            [
+                0 => ROCNIK,
+            ],
+        );
+        $this->udelPravo(Pravo::KOSTKA_ZDARMA);
+        $cenik = $this->cenik();
+
+        self::assertSame(100.0, $cenik->cena($this->radek(self::ID_KOSTKA))->finalPrice);
+        self::assertSame(30.0, $cenik->cena($this->radek(self::ID_KOSTKA_STARA))->finalPrice);
     }
 
     /**
