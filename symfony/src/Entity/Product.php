@@ -63,6 +63,10 @@ use Symfony\Component\Validator\Constraints as Assert;
         ),
         new Delete(
             security: "is_granted('ROLE_ADMIN')",
+            validationContext: [
+                'groups' => [self::DELETE],
+            ],
+            validate: true,
         ),
     ],
     normalizationContext: [
@@ -84,6 +88,7 @@ use Symfony\Component\Validator\Constraints as Assert;
 #[AppAssert\BreakfastIncludedRequiresAccommodation]
 #[AppAssert\TagCombinationIsAllowed]
 #[AppAssert\SoldVariantsAreKept]
+#[AppAssert\PurchasedProductIsKept(groups: [self::DELETE])]
 class Product
 {
     public const LIST = 'product:list';
@@ -91,6 +96,8 @@ class Product
     public const READ = 'product:read';
 
     public const WRITE = 'product:write';
+
+    public const DELETE = 'product:delete';
 
     #[ORM\Id]
     #[ORM\GeneratedValue]

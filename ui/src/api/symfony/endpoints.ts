@@ -220,7 +220,10 @@ export const deleteProduct = async (id: number): Promise<void> => {
   const res = await symfonyFetch(`products/${id}`, {
     method: "DELETE",
   });
-  if (!res.ok) throw new Error(`Failed to delete product: ${res.status}`);
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({}));
+    throw new Error(err.detail ?? `Failed to delete product: ${res.status}`);
+  }
 };
 
 /**
