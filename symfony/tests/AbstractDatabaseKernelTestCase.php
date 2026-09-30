@@ -67,7 +67,7 @@ abstract class AbstractDatabaseKernelTestCase extends ApiTestCase
         $login = $prefix . uniqid();
         $this->connection()->executeStatement(
             "INSERT INTO uzivatele_hodnoty (login_uzivatele, jmeno_uzivatele, prijmeni_uzivatele, email1_uzivatele, pohlavi)
-             VALUES (:login, 'Test', 'Jídla', :email, 'f')",
+             VALUES (:login, 'Test', 'Souběh', :email, 'f')",
             [
                 'login' => $login,
                 'email' => $login . '@example.invalid',

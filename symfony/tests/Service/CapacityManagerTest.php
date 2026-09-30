@@ -291,11 +291,18 @@ class CapacityManagerTest extends AbstractDatabaseKernelTestCase
                 ['cekej', 300],
             ]);
 
+            $chybaZamku = null;
             $this->capacityManager()->beginSaleTransaction();
-            $this->capacityManager()->lockInOrder([$vyssi, $nizsi]);
-            $this->connection()->rollBack();
+            try {
+                $this->capacityManager()->lockInOrder([$vyssi, $nizsi]);
+            } catch (\Throwable $chyba) {
+                $chybaZamku = $chyba;
+            } finally {
+                $this->connection()->rollBack();
+            }
 
             self::assertSame('hotovo', $souper->dokonci());
+            self::assertNull($chybaZamku, (string) $chybaZamku?->getMessage());
         });
     }
 

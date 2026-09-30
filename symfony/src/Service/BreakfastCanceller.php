@@ -28,6 +28,16 @@ class BreakfastCanceller
     }
 
     /**
+     * What cancelCovered() may delete, so a caller can lock it first.
+     *
+     * @return int[] variant ids
+     */
+    public function heldBreakfasts(User $customer, int $year): array
+    {
+        return array_values($this->drzeneSnidane($customer, $year));
+    }
+
+    /**
      * Remembers the selection before cancelling, so it can be offered back.
      *
      * @return int[] variant ids that were cancelled
