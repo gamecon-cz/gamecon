@@ -12,6 +12,7 @@ use ApiPlatform\Metadata\Patch;
 use ApiPlatform\Metadata\Post;
 use ApiPlatform\Metadata\Put;
 use App\Repository\ProductVariantRepository;
+use App\Validator as AppAssert;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\DBAL\Types\Types;
@@ -54,6 +55,10 @@ use Symfony\Component\Validator\Constraints as Assert;
         ),
         new Delete(
             security: "is_granted('ROLE_ADMIN')",
+            validationContext: [
+                'groups' => [self::DELETE],
+            ],
+            validate: true,
         ),
     ],
     normalizationContext: [
@@ -63,11 +68,14 @@ use Symfony\Component\Validator\Constraints as Assert;
         'groups' => [self::WRITE],
     ],
 )]
+#[AppAssert\SoldVariantIsKept(groups: [self::DELETE])]
 class ProductVariant
 {
     public const READ = 'variant:read';
 
     public const WRITE = 'variant:write';
+
+    public const DELETE = 'variant:delete';
 
     #[ORM\Id]
     #[ORM\GeneratedValue]

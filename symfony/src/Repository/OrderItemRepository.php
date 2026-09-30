@@ -146,6 +146,17 @@ class OrderItemRepository extends ServiceEntityRepository
         return $prodano;
     }
 
+    public function hasPurchaseOf(Product $product): bool
+    {
+        return $this->createQueryBuilder('oi')
+            ->select('1')
+            ->where('oi.product = :product')
+            ->setParameter('product', $product)
+            ->setMaxResults(1)
+            ->getQuery()
+            ->getOneOrNullResult() !== null;
+    }
+
     /**
      * @param int[] $variantIds
      *
