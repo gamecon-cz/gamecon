@@ -143,32 +143,20 @@ of new-stack work.
   - LOGY constant in tests: `/var/www/html/gamecon/logy/tests/{PID}` (inside Docker)
   - These are NOT in `/tmp` - they're in the project's `logy/tests/` directory
 
-### Testing Doctrine repositories: beware the two-connection deadlock
+### Legacy and Doctrine share one connection and one transaction
 
-`AbstractTestDb` wraps each test in a transaction on the **legacy `dbQuery`/`mysqli` connection** (via `keepTestClassDbChangesInTransaction` / `keepSingleTestMethodDbChangesInTransaction`, which default to `true`). A Doctrine repository/EntityManager uses a **separate Doctrine DBAL connection**. The two connections do not share a transaction.
+Legacy `dbQuery()` runs on the PDO of Doctrine's `doctrine.dbal.default_connection`, and
+`dbBegin()`/`dbCommit()`/`dbRollback()` go through Doctrine's transaction API (nested levels
+are savepoints). So a test on `AbstractTestDb` can insert fixtures with legacy `dbQuery()` and
+read or write the same rows through a Doctrine repository inside the same test transaction.
 
-If a test inserts fixture rows with legacy `dbQuery(...)` (uncommitted, inside the legacy transaction) and then the repository under test runs a Doctrine query that reads or writes those same rows, the Doctrine connection blocks on the legacy connection's row locks → `SQLSTATE[HY000]: 1205 Lock wait timeout exceeded`. This is **not** a bug in the repository — it's two connections fighting over uncommitted rows.
-
-**Fix:** when testing a Doctrine repository, route **all** fixtures and assertions through the **Doctrine connection** so everything shares one connection, and opt out of the legacy transaction wrapping:
-
-```php
-class UserRoleRepositoryTest extends AbstractTestDb
-{
-    // Legacy per-test transaction wrapping would isolate fixtures from the
-    // Doctrine connection. Reset the DB after the class instead.
-    protected static function keepTestClassDbChangesInTransaction(): bool { return false; }
-    protected static function keepSingleTestMethodDbChangesInTransaction(): bool { return false; }
-    protected static function resetDbAfterClass(): bool { return true; }
-
-    private function connection(): \Doctrine\DBAL\Connection
-    {
-        return $this->getContainer()->get('doctrine.orm.entity_manager')->getConnection();
-    }
-    // ... use $this->connection()->executeStatement(...) / ->fetchOne(...) for fixtures + asserts
-}
-```
-
-Get the custom repository via `->getRepository(SomeEntity::class)` (returns the project's `ServiceEntityRepository`; repos aren't public services by default, so don't `->get()` them by class). Don't mix legacy `dbQuery` and Doctrine writes in the same test against the same tables.
+- Every kernel in the process gets the same connection instance (`App\Doctrine\SharedConnection`),
+  and a kernel shutting down does not close it while a transaction is open.
+- Doctrine's identity map does not see legacy writes: after writing rows with `dbQuery()`, call
+  `entityManager()->clear()` before reading them as entities.
+- Read-only mode (`dbReadOnly()`) is the exception: it uses its own SELECT-only connection.
+- DDL (`CREATE`/`ALTER`/`DROP` of a non-temporary table) implicitly commits, which leaves
+  Doctrine's transaction counter out of step with the server. Don't run it inside `dbBegin()`.
 
 ## Temporary Scripts for Research/Debugging
 - When running multi-step research or debugging inside Docker (grepping vendor files, reading multiple files, testing PHP snippets, etc.), use the `Write` tool to create a temporary script in `symfony/var/`, then execute it with `./bin-docker/php symfony/var/script.php` (or `bash symfony/var/script.sh`). Delete the script after use.

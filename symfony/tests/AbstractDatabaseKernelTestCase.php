@@ -30,9 +30,7 @@ use Doctrine\ORM\EntityManagerInterface;
 abstract class AbstractDatabaseKernelTestCase extends ApiTestCase
 {
     /**
-     * Booting a kernel shuts down the previous one, which would discard the
-     * connection holding this test's transaction. The kernel is booted once in
-     * setUp() below, so createClient() must reuse it rather than boot its own.
+     * createClient() must use the container setUp() prepared, not boot its own.
      * (This is also the API Platform 5.0 default, so setting it silences the
      * deprecation notice.)
      */
