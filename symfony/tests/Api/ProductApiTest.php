@@ -171,6 +171,92 @@ class ProductApiTest extends AbstractDatabaseKernelTestCase
         ]));
     }
 
+    public function testSoldProductIsNotDeleted(): void
+    {
+        [$product, $variant] = $this->produktSVariantou();
+        $this->prodej($product, $variant);
+
+        $response = $this->adminClient()->request('DELETE', '/symfony/api/products/' . $product->getId());
+
+        self::assertSame(422, $response->getStatusCode(), $response->getContent(false));
+        self::assertStringContainsString('nejde smazat', $response->toArray(false)['detail']);
+        self::assertSame(1, $this->pocetRadku('shop_predmety', 'id_predmetu', $product->getId()));
+        self::assertSame(1, $this->pocetRadku('product_variant', 'id', $variant->getId()));
+    }
+
+    public function testProductWithOnlyACancelledPurchaseIsNotDeleted(): void
+    {
+        [$product] = $this->produktSVariantou();
+        $this->connection()->executeStatement(
+            'INSERT INTO shop_nakupy_zrusene (id_nakupu, id_uzivatele, id_predmetu, rocnik, cena_nakupni, datum_nakupu)
+             VALUES (0, :customer, :product, :year, 1, NOW())',
+            [
+                'customer' => $this->createUser('api_test_buyer_')->getId(),
+                'product'  => $product->getId(),
+                'year'     => ROCNIK,
+            ],
+        );
+
+        $response = $this->adminClient()->request('DELETE', '/symfony/api/products/' . $product->getId());
+
+        self::assertSame(422, $response->getStatusCode(), $response->getContent(false));
+        self::assertSame(1, $this->pocetRadku('shop_predmety', 'id_predmetu', $product->getId()));
+    }
+
+    public function testUnsoldProductIsDeleted(): void
+    {
+        [$product, $variant] = $this->produktSVariantou();
+
+        $response = $this->adminClient()->request('DELETE', '/symfony/api/products/' . $product->getId());
+
+        self::assertSame(204, $response->getStatusCode(), $response->getContent(false));
+        self::assertSame(0, $this->pocetRadku('shop_predmety', 'id_predmetu', $product->getId()));
+        self::assertSame(0, $this->pocetRadku('product_variant', 'id', $variant->getId()));
+    }
+
+    public function testSoldVariantIsNotDeleted(): void
+    {
+        [$product, $variant] = $this->produktSVariantou();
+        $this->prodej($product, $variant);
+
+        $response = $this->adminClient()->request('DELETE', '/symfony/api/product_variants/' . $variant->getId());
+
+        self::assertSame(422, $response->getStatusCode(), $response->getContent(false));
+        self::assertSame(1, $this->pocetRadku('product_variant', 'id', $variant->getId()));
+        self::assertSame(1, $this->pocetRadku('shop_nakupy', 'variant_id', $variant->getId()));
+    }
+
+    public function testUnsoldVariantIsDeleted(): void
+    {
+        [, $variant] = $this->produktSVariantou();
+
+        $response = $this->adminClient()->request('DELETE', '/symfony/api/product_variants/' . $variant->getId());
+
+        self::assertSame(204, $response->getStatusCode(), $response->getContent(false));
+        self::assertSame(0, $this->pocetRadku('product_variant', 'id', $variant->getId()));
+    }
+
+    private function prodej(Product $product, ProductVariant $variant): void
+    {
+        $this->connection()->executeStatement(
+            'INSERT INTO shop_nakupy (id_uzivatele, id_predmetu, variant_id, rok, cena_nakupni, datum)
+             VALUES (:customer, :product, :variant, :year, 1, NOW())',
+            [
+                'customer' => $this->createUser('api_test_buyer_')->getId(),
+                'product'  => $product->getId(),
+                'variant'  => $variant->getId(),
+                'year'     => ROCNIK - 1,
+            ],
+        );
+    }
+
+    private function pocetRadku(string $tabulka, string $sloupec, ?int $hodnota): int
+    {
+        return (int) $this->connection()->fetchOne("SELECT COUNT(*) FROM {$tabulka} WHERE {$sloupec} = :hodnota", [
+            'hodnota' => $hodnota,
+        ]);
+    }
+
     /**
      * @return array{Product, ProductVariant}
      */
