@@ -18,14 +18,14 @@ SELECT
     -- typ ubytování odvozený z kódu předmětu bez posledních 3 znaků (přípona dne, např. "_st"/"-ct");
     -- např. "1L_ct" → "1L", "Hd-1L-ne" → "Hd-1L", "spacak_st" → "spacak".
     -- Nezávisí na názvu předmětu (ten byl 2026 přejmenován na "Postel na …"), a je jednoznačný pro import zpět.
-    GROUP_CONCAT(DISTINCT LEFT(predmety.kod_predmetu, CHAR_LENGTH(predmety.kod_predmetu) - 3)) as typ,
+    GROUP_CONCAT(DISTINCT LEFT(predmety.kod_predmetu, CHAR_LENGTH(predmety.kod_predmetu) - 3) ORDER BY LEFT(predmety.kod_predmetu, CHAR_LENGTH(predmety.kod_predmetu) - 3)) as typ,
     IF (COUNT(predmety.nazev) != (MAX(predmety.ubytovani_den) - MIN(predmety.ubytovani_den) +1 /* od 0 do 4, tedy 5 dní max */),
-        GROUP_CONCAT(predmety.nazev),
+        GROUP_CONCAT(predmety.nazev ORDER BY predmety.ubytovani_den),
         ''
     ) AS mezera_v_ubytovani,
     MIN(predmety.ubytovani_den) as prvni_noc,
     MAX(predmety.ubytovani_den) as posledni_noc,
-    GROUP_CONCAT(DISTINCT IF(ubytovani.pokoj = '', NULL, ubytovani.pokoj)) as pokoj,
+    GROUP_CONCAT(DISTINCT IF(ubytovani.pokoj = '', NULL, ubytovani.pokoj) ORDER BY ubytovani.pokoj) as pokoj,
     uzivatele.ubytovan_s,
     '' AS pozice, -- placeholder kvůli pořadí, hodnotu dáme později, viz PHP foreach dále
     '' AS datum_narozeni, -- placeholder
