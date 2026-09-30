@@ -80,13 +80,11 @@ class FunkceTest extends TestCase
     /**
      * @test
      */
-    public function muzuVyzadatNoveSqlPripojeni()
+    public function znovupripojeniZustaneNaSpojeniDoctrine()
     {
         $nejakeSpojeni = dbConnect();
-        self::assertInstanceOf(\PDO::class, $nejakeSpojeni);
-        $dalsiSpojeni = dbConnect(true, true);
-        self::assertInstanceOf(\PDO::class, $dalsiSpojeni);
-        self::assertNotSame($nejakeSpojeni, $dalsiSpojeni);
+        $dalsiSpojeni = dbConnect(reconnect: true);
+        self::assertSame($nejakeSpojeni, $dalsiSpojeni);
     }
 
     /**

@@ -4,6 +4,7 @@
  * Global variables used by certain functions
  * not all of them, see also dbConnect()
  */
+// Transactions on the read-only connection only; the shared one counts them in Doctrine.
 global $dbTransactionDepth;
 $dbTransactionDepth = 0;
 global $dbJenProCteni;
@@ -31,6 +32,11 @@ function dbArrayCol(
  */
 function dbBegin()
 {
+    if (! $GLOBALS['dbJenProCteni']) {
+        dbSdileneSpojeni()->beginTransaction();
+
+        return;
+    }
     if (!isset($GLOBALS['dbTransactionDepth']) || $GLOBALS['dbTransactionDepth'] < 0) {
         $GLOBALS['dbTransactionDepth'] = 0;
     }
@@ -47,6 +53,11 @@ function dbBegin()
  */
 function dbCommit()
 {
+    if (! $GLOBALS['dbJenProCteni']) {
+        dbSdileneSpojeni()->commit();
+
+        return;
+    }
     if (!isset($GLOBALS['dbTransactionDepth'])) {
         $GLOBALS['dbTransactionDepth'] = 0;
     }
@@ -76,6 +87,14 @@ function dbCommit()
  */
 function dbRollback()
 {
+    if (! $GLOBALS['dbJenProCteni']) {
+        $sdileneSpojeni = dbSdileneSpojeni();
+        if ($sdileneSpojeni->isTransactionActive()) {
+            $sdileneSpojeni->rollBack();
+        }
+
+        return;
+    }
     if (!isset($GLOBALS['dbTransactionDepth'])) {
         $GLOBALS['dbTransactionDepth'] = 0;
     }
@@ -103,8 +122,7 @@ function dbRollback()
 /**
  * Logs in as DB_READONLY_USER, SELECT only on ostra, beta, previews and in tests (writes fail with 1142);
  * locally it is the full-rights user and the read-only session refuses writes instead (1792).
- * Never set this on the persistent connection: it serves the rest of the request, and
- * a persistent handle is handed to the following requests too.
+ * Never set this on the shared connection: Doctrine and the rest of the request write through it.
  * @throws ConnectionException
  * @throws DbException
  */
@@ -124,7 +142,7 @@ function dbConnectReadOnly(
             : null,
         false,
     );
-    // without the systemove_nastaveni sync of _nastavRocnikDoSpojeni(), a write the persistent connection already did
+    // without the systemove_nastaveni sync of _nastavRocnikDoSpojeni(), a write the shared connection already did
     dbQuery('SET @rocnik = $0', $rocnik, $spojeniJenProCteni);
     dbQuery('SET SESSION TRANSACTION READ ONLY', null, $spojeniJenProCteni);
 
@@ -132,7 +150,7 @@ function dbConnectReadOnly(
 }
 
 /**
- * For the rest of the request, including any reconnect. The persistent connection is left untouched.
+ * For the rest of the request, including any reconnect. The shared connection is left untouched.
  */
 function dbSwitchToReadOnlyConnection(): void
 {
@@ -199,74 +217,48 @@ function dbConnectTemporary(
 }
 
 /**
+ * The PDO of the connection Doctrine uses, so both run in one transaction; in read-only mode its own connection.
  * @throws ConnectionException
  */
 function dbConnect(
-    $selectDb = true,
     bool $reconnect = false,
-    int $rocnik = ROCNIK,
 ): PDO {
+    global $spojeni, $dbJenProCteni;
+
     if ($reconnect) {
         dbClose();
     }
 
-    global $spojeni, $dbJenProCteni;
-
-    if ($spojeni instanceof PDO) {
-        return $spojeni;
-    }
-
     if ($dbJenProCteni) {
-        $spojeni = dbConnectReadOnly($selectDb, $rocnik);
-
-        return $spojeni;
+        return $spojeni ??= dbConnectReadOnly();
     }
 
-    // Doctrine's PDO would be the writable one, so it must not pre-empt the read-only switch above.
-    if (isset($GLOBALS['systemoveNastaveni'])) {
-        try {
-            $kernel = $GLOBALS['systemoveNastaveni']->kernel();
-            $container = $kernel->getContainer();
-            /** @var \Doctrine\DBAL\Connection $dbalConnection */
-            $dbalConnection = $container->get('doctrine.dbal.default_connection');
-            $nativePdo = $dbalConnection->getNativeConnection();
-            if ($nativePdo instanceof PDO) {
-                // Ensure legacy-compatible settings on Doctrine's PDO
-                $nativePdo->setAttribute(PDO::ATTR_STRINGIFY_FETCHES, true);
-                $nativePdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
-                $spojeni = $nativePdo;
-                _nastavRocnikDoSpojeni($rocnik, $spojeni, true);
-
-                return $spojeni;
-            }
-        } catch (\Throwable) {
-            // Kernel not available, fall through to standalone connection
-        }
-    }
-
-    $stareSpojeni = $spojeni;
     try {
-        $noveSpojeni = _dbConnect(
-            DB_SERV,
-            DB_USER,
-            DB_PASS,
-            defined('DB_PORT')
-                ? DB_PORT
-                : null,
-            $selectDb
-                ? DB_NAME
-                : null,
+        $pdo = dbSdileneSpojeni()->getNativeConnection();
+    } catch (\Doctrine\DBAL\Exception\ConnectionException $exception) {
+        throw new ConnectionException(
+            sprintf("Failed to connect to the database '%s', error: '%s'", DB_NAME, $exception->getMessage()),
+            (int)$exception->getCode(),
+            $exception,
         );
-    } catch (Throwable $throwable) {
-        $spojeni = null; // aby bylo možné zachytit exception a zkusit spojení znovu
-        throw $throwable;
     }
-    if ($noveSpojeni && $stareSpojeni !== $noveSpojeni) {
-        _nastavRocnikDoSpojeni($rocnik, $noveSpojeni, $selectDb);
+    // A connection closed outside a transaction reconnects as a new session, without @rocnik.
+    if ($spojeni !== $pdo) {
+        _nastavRocnikDoSpojeni(ROCNIK, $pdo, true);
+        $spojeni = $pdo;
     }
-    $spojeni = $noveSpojeni;
 
-    return $noveSpojeni;
+    return $pdo;
+}
+
+function dbSdileneSpojeni(): \Doctrine\DBAL\Connection
+{
+    static $sdileneSpojeni = null;
+
+    return $sdileneSpojeni ??= \Gamecon\SystemoveNastaveni\SystemoveNastaveni::zGlobals()
+        ->kernel()
+        ->getContainer()
+        ->get('doctrine.dbal.default_connection');
 }
 
 function _nastavRocnikDoSpojeni(
@@ -344,7 +336,7 @@ function _dbConnect(
     string  $dbPass,
     ?int    $dbPort,
     ?string $dbName,
-    bool    $persistent = true,
+    bool    $persistent = false,
 ): PDO {
     $dsn = 'mysql:host=' . $dbServer;
     if ($dbPort) {
