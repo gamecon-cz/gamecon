@@ -520,6 +520,63 @@ class AccommodationWriterTest extends AbstractDatabaseKernelTestCase
         );
     }
 
+    /**
+     * The price alone would say a free night cost nothing; the reason says why. Rights are read
+     * through the legacy connection, so the organizer's role is committed before the save.
+     */
+    public function testOrganizersFreeNightKeepsItsDiscountReason(): void
+    {
+        $this->pripravUbytovani();
+        $organizator = $this->ucastnikVSql('ubytovani_zdarma_');
+        $idRole = $this->connection()->fetchOne(
+            'SELECT prava_role.id_role
+             FROM prava_role
+             INNER JOIN role_seznam ON role_seznam.id_role = prava_role.id_role
+             WHERE prava_role.id_prava = :pravo AND role_seznam.rocnik_role IN (:rok, -1)
+             LIMIT 1',
+            [
+                'pravo' => \Gamecon\Pravo::UBYTOVANI_ZDARMA,
+                'rok'   => ROCNIK,
+            ],
+        );
+        self::assertNotFalse($idRole, 'Some role must grant free accommodation');
+        $this->connection()->executeStatement(
+            'INSERT INTO uzivatele_role (id_uzivatele, id_role) VALUES (:uzivatel, :role)',
+            [
+                'uzivatel' => $organizator,
+                'role'     => $idRole,
+            ],
+        );
+        $this->connection()->commit();
+        // The fixture links the category tag in SQL, which the product already in memory misses.
+        $this->entityManager()->clear();
+
+        try {
+            // The seeded discount rules belong to the running year, not to the class constant.
+            $this->writer()->save($this->entityManager()->find(User::class, $organizator), $this->idNoci(0), ROCNIK, true);
+
+            self::assertSame(
+                [
+                    'cena_nakupni'    => '0.00',
+                    'discount_amount' => '100.00',
+                    'discount_reason' => 'Ubytování zdarma',
+                ],
+                $this->connection()->fetchAssociative(
+                    'SELECT cena_nakupni, discount_amount, discount_reason FROM shop_nakupy WHERE id_uzivatele = :uzivatel',
+                    [
+                        'uzivatel' => $organizator,
+                    ],
+                ),
+            );
+        } finally {
+            $this->connection()->executeStatement('DELETE FROM uzivatele_role WHERE id_uzivatele = :uzivatel', [
+                'uzivatel' => $organizator,
+            ]);
+            $this->smazPotvrzeneUbytovani([$organizator]);
+            $this->connection()->beginTransaction();
+        }
+    }
+
     public function testSavesTwoConsecutiveNights(): void
     {
         $this->pripravUbytovani();
