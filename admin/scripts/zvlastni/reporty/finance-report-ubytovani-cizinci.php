@@ -22,10 +22,10 @@ SELECT
     uzivatele.typ_dokladu_totoznosti AS typ_dokladu,
     '' AS cislo_dokladu, -- placeholder
     IF(uzivatele.formular_cizince_od IS NOT NULL AND YEAR(uzivatele.formular_cizince_od) = $1, 'ano', 'ne') AS formular_cizince,
-    GROUP_CONCAT(DISTINCT LEFT(predmety.kod_predmetu, CHAR_LENGTH(predmety.kod_predmetu) - 3)) AS typ,
+    GROUP_CONCAT(DISTINCT LEFT(predmety.kod_predmetu, CHAR_LENGTH(predmety.kod_predmetu) - 3) ORDER BY LEFT(predmety.kod_predmetu, CHAR_LENGTH(predmety.kod_predmetu) - 3)) AS typ,
     MIN(predmety.ubytovani_den) as prvni_noc,
     MAX(predmety.ubytovani_den) as posledni_noc,
-    GROUP_CONCAT(DISTINCT IF(ubytovani.pokoj = '', NULL, ubytovani.pokoj)) as pokoj
+    GROUP_CONCAT(DISTINCT IF(ubytovani.pokoj = '', NULL, ubytovani.pokoj) ORDER BY ubytovani.pokoj) as pokoj
 FROM uzivatele_hodnoty uzivatele
 JOIN platne_role_uzivatelu
     ON uzivatele.id_uzivatele=platne_role_uzivatelu.id_uzivatele AND platne_role_uzivatelu.id_role=$0 -- přihlášení na gc
