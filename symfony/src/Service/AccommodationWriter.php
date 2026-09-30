@@ -67,12 +67,17 @@ class AccommodationWriter
 
         $this->capacityManager->beginSaleTransaction();
         try {
-            $this->capacityManager->lockInOrder([...$this->heldNights($customer, $year), ...array_keys($variants)]);
+            $held = $this->heldNights($customer, $year);
+            $this->capacityManager->lockInOrder([
+                ...$held,
+                ...array_keys($variants),
+                ...$this->breakfastCanceller->heldBreakfasts($customer, $year),
+            ]);
             // Počítají se jen datové řádky. Snapshot zrušených snídaní ani log změn osobních
             // údajů se nezapočítává — volající hlásí „změněno N záznamů" a evidence o změně
             // není změna.
             $zmenenychRadku = 0;
-            [$kept, $smazano] = $this->removeUnselectedNights($customer, $year, array_keys($variants));
+            [$kept, $smazano] = $this->removeUnselectedNights($customer, $year, $held, array_keys($variants));
             $zmenenychRadku += $smazano;
             foreach ($variants as $variantId => $variant) {
                 if (! in_array($variantId, $kept, true)) {
@@ -317,14 +322,13 @@ class AccommodationWriter
      * @return int[] variant ids the customer already had and keeps
      */
     /**
+     * @param int[] $held           read once with the locks, so nothing unlocked is removed
      * @param int[] $keepVariantIds
      *
      * @return array{0: int[], 1: int} ponechané varianty a počet smazaných řádků
      */
-    private function removeUnselectedNights(User $customer, int $year, array $keepVariantIds): array
+    private function removeUnselectedNights(User $customer, int $year, array $held, array $keepVariantIds): array
     {
-        $held = $this->heldNights($customer, $year);
-
         $smazano = 0;
         $toRemove = array_diff($held, $keepVariantIds);
         if ($toRemove !== []) {
