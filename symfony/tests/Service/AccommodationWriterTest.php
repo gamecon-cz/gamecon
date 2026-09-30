@@ -394,6 +394,42 @@ class AccommodationWriterTest extends AbstractDatabaseKernelTestCase
         $spojeni->executeStatement('DELETE FROM uzivatele_hodnoty WHERE id_uzivatele = :uzivatel', $uzivatel);
     }
 
+    /**
+     * See the meal writer's test of the same race: a night bought while this save waited for
+     * its lock must count as held, not be bought a second time.
+     */
+    public function testANightBoughtWhileWaitingForTheLockIsNotBoughtAgain(): void
+    {
+        $this->pripravUbytovani();
+        $ucastnik = $this->ucastnikVSql('ubytovani_soubezne_');
+        [$streda] = $this->idNoci(0);
+        $this->connection()->commit();
+
+        try {
+            $souper = SoubeznaTransakce::spust($this->connection(), [
+                ['sql', "SELECT id FROM product_variant WHERE id = {$streda} FOR UPDATE"],
+                ['sql', 'INSERT INTO shop_nakupy (id_uzivatele, id_predmetu, variant_id, rok, cena_nakupni, datum)
+                         SELECT ' . $ucastnik . ", id_predmetu, {$streda}, " . self::ROK . ", 100, NOW() FROM shop_predmety WHERE kod_predmetu = '" . $this->noci[0]->getCode() . "'"],
+                ['hlasim', 'kupuje noc'],
+                ['cekej', 500],
+                ['potvrd', ''],
+            ]);
+            $this->writer()->save($this->entityManager()->find(User::class, $ucastnik), [$streda], self::ROK, true);
+
+            self::assertSame('hotovo', $souper->dokonci());
+            self::assertSame(1, (int) $this->connection()->fetchOne(
+                'SELECT COUNT(*) FROM shop_nakupy WHERE id_uzivatele = :uzivatel AND variant_id = :noc',
+                [
+                    'uzivatel' => $ucastnik,
+                    'noc'      => $streda,
+                ],
+            ));
+        } finally {
+            $this->smazPotvrzeneUbytovani([$ucastnik]);
+            $this->connection()->beginTransaction();
+        }
+    }
+
     private function koupNoc(int $idUzivatele, int $den): int
     {
         $this->connection()->executeStatement(

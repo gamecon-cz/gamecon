@@ -143,6 +143,24 @@ class BreakfastCancellerTest extends AbstractDatabaseKernelTestCase
     }
 
     /**
+     * The caller locked the breakfasts it saw before the save; one bought after that is not
+     * cancelled unlocked, it waits for the next save.
+     */
+    public function testBreakfastOutsideTheLockedVariantsIsKept(): void
+    {
+        $ucastnik = $this->ucastnik();
+        $hotel = $this->vytvorVariantu('Dvojlůžák čtvrtek', self::CTVRTEK, ProductTagCode::UBYTOVANI, snidaneVCene: true);
+        $snidane = $this->vytvorVariantu('Snídaně pátek', self::PATEK, ProductTagCode::JIDLO);
+        $this->objednej($ucastnik, $hotel);
+        $this->objednej($ucastnik, $snidane);
+
+        $zrusene = $this->canceller()->cancelCovered($ucastnik, self::ROK, [(int) $hotel->getId()]);
+
+        self::assertSame([], $zrusene);
+        self::assertSame(1, $this->pocetNakupu($ucastnik, $snidane));
+    }
+
+    /**
      * Snídaně je v ceně jen u hotelu; spacák ani kolej ji nekryjí.
      */
     public function testBreakfastIsKeptForNonHotelAccommodation(): void
