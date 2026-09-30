@@ -67,17 +67,17 @@ class AccommodationWriter
 
         $this->capacityManager->beginSaleTransaction();
         try {
-            $held = $this->heldNights($customer, $year);
-            $this->capacityManager->lockInOrder([
-                ...$held,
+            $locked = [
+                ...$this->heldNights($customer, $year),
                 ...array_keys($variants),
                 ...$this->breakfastCanceller->heldBreakfasts($customer, $year),
-            ]);
+            ];
+            $this->capacityManager->lockInOrder($locked);
             // Počítají se jen datové řádky. Snapshot zrušených snídaní ani log změn osobních
             // údajů se nezapočítává — volající hlásí „změněno N záznamů" a evidence o změně
             // není změna.
             $zmenenychRadku = 0;
-            [$kept, $smazano] = $this->removeUnselectedNights($customer, $year, $held, array_keys($variants));
+            [$kept, $smazano] = $this->removeUnselectedNights($customer, $year, $locked, array_keys($variants));
             $zmenenychRadku += $smazano;
             foreach ($variants as $variantId => $variant) {
                 if (! in_array($variantId, $kept, true)) {
@@ -90,7 +90,7 @@ class AccommodationWriter
                 $roommate,
                 $declined === null ? null : ($declined && $variants === []),
             );
-            $zmenenychRadku += count($this->breakfastCanceller->cancelCovered($customer, $year));
+            $zmenenychRadku += count($this->breakfastCanceller->cancelCovered($customer, $year, $locked));
             $this->connection->commit();
         } catch (\Throwable $error) {
             $this->connection->rollBack();
@@ -317,20 +317,19 @@ class AccommodationWriter
     }
 
     /**
-     * @param int[] $keepVariantIds
+     * Held is read again after the locks, as in MealWriter::removeUnselected().
      *
-     * @return int[] variant ids the customer already had and keeps
-     */
-    /**
-     * @param int[] $held           read once with the locks, so nothing unlocked is removed
+     * @param int[] $locked
      * @param int[] $keepVariantIds
      *
      * @return array{0: int[], 1: int} ponechané varianty a počet smazaných řádků
      */
-    private function removeUnselectedNights(User $customer, int $year, array $held, array $keepVariantIds): array
+    private function removeUnselectedNights(User $customer, int $year, array $locked, array $keepVariantIds): array
     {
+        $held = $this->heldNights($customer, $year);
+
         $smazano = 0;
-        $toRemove = array_diff($held, $keepVariantIds);
+        $toRemove = array_intersect(array_diff($held, $keepVariantIds), $locked);
         if ($toRemove !== []) {
             $kusu = $this->pocetKusu($customer, $year, array_values($toRemove));
             $keSmazani = $this->orderItemRepository->findBy([

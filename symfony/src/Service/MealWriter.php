@@ -47,9 +47,9 @@ class MealWriter
 
         $this->capacityManager->beginSaleTransaction();
         try {
-            $held = $this->heldMeals($customer, $year);
-            $this->capacityManager->lockInOrder([...$held, ...array_keys($variants)]);
-            $kept = $this->removeUnselected($customer, $year, $held, array_keys($variants));
+            $locked = [...$this->heldMeals($customer, $year), ...array_keys($variants)];
+            $this->capacityManager->lockInOrder($locked);
+            $kept = $this->removeUnselected($customer, $year, $locked, array_keys($variants));
             foreach ($variants as $variantId => $variant) {
                 if (! in_array($variantId, $kept, true)) {
                     $this->addMeal($customer, $variant, $year);
@@ -60,7 +60,7 @@ class MealWriter
             // very request ordered it. Legacy filtered such breakfasts out instead, so it also
             // never remembered them; here the canceller snapshots one, and the participant is
             // offered it back if the covering night later goes away. That is deliberate.
-            $this->breakfastCanceller->cancelCovered($customer, $year);
+            $this->breakfastCanceller->cancelCovered($customer, $year, $locked);
             $this->connection->commit();
         } catch (\Throwable $error) {
             $this->connection->rollBack();
@@ -102,14 +102,19 @@ class MealWriter
     }
 
     /**
-     * @param int[] $held           read once with the locks, so nothing unlocked is removed
+     * Held is read again after the locks: a meal bought while this save waited for them must
+     * count as kept, not be bought twice. Only what was locked may be removed.
+     *
+     * @param int[] $locked
      * @param int[] $keepVariantIds
      *
      * @return int[] variant ids the customer already had and keeps
      */
-    private function removeUnselected(User $customer, int $year, array $held, array $keepVariantIds): array
+    private function removeUnselected(User $customer, int $year, array $locked, array $keepVariantIds): array
     {
-        $toRemove = array_diff($held, $keepVariantIds);
+        $held = $this->heldMeals($customer, $year);
+
+        $toRemove = array_intersect(array_diff($held, $keepVariantIds), $locked);
         if ($toRemove !== []) {
             foreach ($this->orderItemRepository->findBy([
                 'customer' => $customer->getId(),
