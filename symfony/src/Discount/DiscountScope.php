@@ -7,10 +7,10 @@ namespace App\Discount;
 /**
  * Which purchases a rule can apply to.
  *
- * The four shapes come from the rules that exist, not from a guess at what might be
- * useful: dice and badges are matched by a fragment of their code, t-shirts by their
- * tag, a free night by tag plus the day, and TAG_CHEAPEST covers the bonus t-shirt,
- * which applies once to whichever matching item is cheapest rather than to each.
+ * The shapes come from the rules that exist, not from a guess at what might be useful:
+ * this year's dice and badge are named by exact code, t-shirts matched by their tag, a
+ * free night by tag plus the day, and TAG_CHEAPEST covers the bonus t-shirt, which
+ * applies once to whichever matching item is cheapest rather than to each.
  */
 enum DiscountScope: string
 {
@@ -18,6 +18,11 @@ enum DiscountScope: string
     case TAG = 'tag';
     case TAG_AND_DAY = 'tag_and_day';
     case TAG_CHEAPEST = 'tag_cheapest';
+    /**
+     * One named product. The code fragment says what kind of item it is (kostka, placka),
+     * so the e-shop import knows which rule to name this year's item in.
+     */
+    case PRODUCT_CODE = 'product_code';
 
     public function label(): string
     {
@@ -26,6 +31,7 @@ enum DiscountScope: string
             self::TAG           => 'Předměty s tagem',
             self::TAG_AND_DAY   => 'Předměty s tagem, jen pro daný den',
             self::TAG_CHEAPEST  => 'Nejlevnější předmět s tagem v košíku',
+            self::PRODUCT_CODE  => 'Konkrétní předmět (letošní kostka, placka)',
         };
     }
 
@@ -39,9 +45,23 @@ enum DiscountScope: string
     public function requiredParameters(): array
     {
         return match ($this) {
-            self::CODE_CONTAINS => [['codeFragment']],
+            self::CODE_CONTAINS, self::PRODUCT_CODE => [['codeFragment']],
             self::TAG, self::TAG_CHEAPEST => [['tag']],
             self::TAG_AND_DAY => [['tag'], ['day']],
+        };
+    }
+
+    /**
+     * Parameters this scope accepts but can do without. A missing product code is a rule
+     * waiting for this year's item to be named, which gives nothing away until it is.
+     *
+     * @return string[]
+     */
+    public function optionalParameters(): array
+    {
+        return match ($this) {
+            self::PRODUCT_CODE => ['productCode'],
+            self::CODE_CONTAINS, self::TAG, self::TAG_CHEAPEST, self::TAG_AND_DAY => [],
         };
     }
 
@@ -62,7 +82,8 @@ enum DiscountScope: string
     {
         return match ($this) {
             self::CODE_CONTAINS, self::TAG, self::TAG_CHEAPEST => [],
-            self::TAG_AND_DAY => ['day'],
+            self::TAG_AND_DAY  => ['day'],
+            self::PRODUCT_CODE => ['productCode'],
         };
     }
 

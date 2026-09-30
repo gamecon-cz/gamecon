@@ -227,9 +227,8 @@ class EshopIntegrationTest extends AbstractTestDb
     }
 
     /**
-     * „Jedna kostka zdarma" je jeden nárok na všechny kostky, ne na každou zvlášť — a kostek
-     * je v nabídce 45. Když se kvóta počítá per produkt, má každá vlastní nulu a zákazník
-     * odejde se 45 kostkami zdarma. Jede přes celý košík, protože právě ten účtuje.
+     * „Jedna kostka zdarma" je jeden nárok na letošní kostku, ne na každý kus ani na každou
+     * kostku v nabídce. Jede přes celý košík, protože právě ten účtuje.
      */
     public function testSdilenyNarokPlatiJenNaPrvniKostku(): void
     {
@@ -275,19 +274,34 @@ class EshopIntegrationTest extends AbstractTestDb
         }
         $this->em->flush();
 
+        // Letošní kostku jmenuje pravidlo. Legacy spojením, ze kterého čte i výpočet slev,
+        // takže změnu na konci testu vrátí rollback.
+        dbQuery(
+            <<<SQL
+UPDATE discount_rule
+SET parameters = '{"scope":"product_code","effect":"free","codeFragment":"kostka","productCode":"eshoptest-draci-kostka","maxQuantity":1}'
+WHERE code = 'kostka_zdarma' AND year = $0
+SQL,
+            [
+                0 => ROCNIK,
+            ],
+        );
+
         $cartService = $this->createCartService();
         $user = $this->em->find(User::class, 89903);
         $this->assertNotNull($user);
         $cart = $cartService->getOrCreateCart($user);
 
-        $prvni = $cartService->addItem($cart, $varianty[0]);
-        $druha = $cartService->addItem($cart, $varianty[1]);
+        $jina = $cartService->addItem($cart, $varianty[0]);
+        $prvniLetosni = $cartService->addItem($cart, $varianty[1]);
+        $druhaLetosni = $cartService->addItem($cart, $varianty[1]);
 
-        $this->assertSame('0.00', $prvni->getPurchasePrice(), 'První kostka je zdarma');
+        $this->assertSame('30.00', $jina->getPurchasePrice(), 'Jiná než letošní kostka zdarma není');
+        $this->assertSame('0.00', $prvniLetosni->getPurchasePrice(), 'Letošní kostka je zdarma');
         $this->assertSame(
             '60.00',
-            $druha->getPurchasePrice(),
-            'Druhá kostka už zdarma není — nárok padl na první',
+            $druhaLetosni->getPurchasePrice(),
+            'Druhý kus už zdarma není — nárok padl na první',
         );
     }
 
