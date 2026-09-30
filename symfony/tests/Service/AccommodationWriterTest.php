@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Tests\Service;
 
+use App\Entity\OrderItem;
 use App\Entity\Product;
 use App\Entity\ProductVariant;
 use App\Entity\User;
@@ -17,6 +18,8 @@ use App\Structure\Entity\UserEntityStructure;
 use App\Tests\AbstractDatabaseKernelTestCase;
 use App\Tests\Support\SoubeznaTransakce;
 use Doctrine\DBAL\ArrayParameterType;
+use Doctrine\ORM\Event\PostPersistEventArgs;
+use Doctrine\ORM\Events;
 use Gamecon\Cas\DateTimeImmutableStrict;
 use Gamecon\SystemoveNastaveni\SystemoveNastaveni;
 use Gamecon\Tests\Factory\UserFactory;
@@ -476,6 +479,45 @@ class AccommodationWriterTest extends AbstractDatabaseKernelTestCase
             'id' => $idProduktu,
         ]);
         $spojeni->executeStatement('DELETE FROM uzivatele_hodnoty WHERE id_uzivatele IN (:uzivatele)', $uzivatele, $typ);
+    }
+
+    /**
+     * Listeners on OrderItem, and any audit built on Doctrine's unit of work, see only what
+     * goes through it; a night written past it would be missing without any sign.
+     */
+    public function testBookedNightsGoThroughDoctrine(): void
+    {
+        $this->pripravUbytovani();
+        $customer = $this->ucastnik();
+        $persisted = [];
+        $listener = new class($persisted) {
+            /**
+             * @param list<OrderItem> $persisted
+             */
+            public function __construct(
+                private array &$persisted,
+            ) {
+            }
+
+            public function postPersist(PostPersistEventArgs $args): void
+            {
+                if ($args->getObject() instanceof OrderItem) {
+                    $this->persisted[] = $args->getObject();
+                }
+            }
+        };
+        $eventManager = $this->entityManager()->getEventManager();
+        $eventManager->addEventListener([Events::postPersist], $listener);
+        try {
+            $this->writer()->save($customer, $this->idNoci(0, 1), self::ROK, false);
+        } finally {
+            $eventManager->removeEventListener([Events::postPersist], $listener);
+        }
+
+        self::assertEqualsCanonicalizing(
+            $this->idNoci(0, 1),
+            array_map(static fn (OrderItem $item): int => (int) $item->getVariant()?->getId(), $persisted),
+        );
     }
 
     public function testSavesTwoConsecutiveNights(): void
