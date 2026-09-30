@@ -15,6 +15,7 @@ use App\Service\CapacityManager;
 use App\Service\CartService;
 use App\Structure\Entity\UserEntityStructure;
 use App\Tests\AbstractDatabaseKernelTestCase;
+use App\Tests\Support\SoubeznaTransakce;
 use Doctrine\DBAL\ArrayParameterType;
 use Gamecon\Cas\DateTimeImmutableStrict;
 use Gamecon\SystemoveNastaveni\SystemoveNastaveni;
@@ -273,6 +274,93 @@ class AccommodationWriterTest extends AbstractDatabaseKernelTestCase
     private function idNoci(int ...$dny): array
     {
         return array_map(fn (int $den): int => (int) $this->noci[$den]->getId(), $dny);
+    }
+
+    /**
+     * Two desks swap two nights between two participants at the same moment; see the meal
+     * writer's test of the same race.
+     */
+    public function testSwappingNightsBetweenTwoParticipantsDoesNotDeadlock(): void
+    {
+        $this->pripravUbytovani();
+        $prvni = $this->ucastnikVSql('ubytovani_vymena_prvni_');
+        $druhy = $this->ucastnikVSql('ubytovani_vymena_druhy_');
+        $this->koupNoc($prvni, 0);
+        $nakupDruheho = $this->koupNoc($druhy, 1);
+        [$streda, $ctvrtek] = $this->idNoci(0, 1);
+        $this->connection()->commit();
+
+        try {
+            $souper = SoubeznaTransakce::spust($this->connection(), [
+                ['sql', "SELECT id FROM product_variant WHERE id = {$streda} FOR UPDATE"],
+                ['sql', "SELECT id FROM product_variant WHERE id = {$ctvrtek} FOR UPDATE"],
+                ['hlasim', 'drzi obe noci'],
+                ['cekej', 700],
+                ['sql', "DELETE FROM shop_nakupy WHERE id_nakupu = {$nakupDruheho}"],
+                ['sql', "SELECT COUNT(*) FROM shop_nakupy WHERE variant_id = {$streda} AND rok = " . self::ROK . ' LOCK IN SHARE MODE'],
+                ['cekej', 300],
+            ]);
+            $chybaZapisu = null;
+            try {
+                $this->writer()->save($this->entityManager()->find(User::class, $prvni), [$ctvrtek], self::ROK, true);
+            } catch (\Throwable $chyba) {
+                $chybaZapisu = $chyba;
+            }
+
+            self::assertSame('hotovo', $souper->dokonci());
+            self::assertNull($chybaZapisu, (string) $chybaZapisu?->getMessage());
+        } finally {
+            $this->smazPotvrzeneUbytovani([$prvni, $druhy]);
+            $this->connection()->beginTransaction();
+        }
+    }
+
+    private function koupNoc(int $idUzivatele, int $den): int
+    {
+        $this->connection()->executeStatement(
+            'INSERT INTO shop_nakupy (id_uzivatele, id_predmetu, variant_id, rok, cena_nakupni, datum)
+             SELECT :uzivatel, id_predmetu, :varianta, :rok, 100, NOW() FROM shop_predmety WHERE kod_predmetu = :kod',
+            [
+                'uzivatel' => $idUzivatele,
+                'varianta' => $this->noci[$den]->getId(),
+                'rok'      => self::ROK,
+                'kod'      => $this->noci[$den]->getCode(),
+            ],
+        );
+
+        return (int) $this->connection()->lastInsertId();
+    }
+
+    /**
+     * @param int[] $idUzivatelu
+     */
+    private function smazPotvrzeneUbytovani(array $idUzivatelu): void
+    {
+        $spojeni = $this->connection();
+        $uzivatele = [
+            'uzivatele' => $idUzivatelu,
+        ];
+        $typ = [
+            'uzivatele' => ArrayParameterType::INTEGER,
+        ];
+        $spojeni->executeStatement('DELETE FROM shop_nakupy WHERE id_uzivatele IN (:uzivatele)', $uzivatele, $typ);
+        $spojeni->executeStatement('DELETE FROM shop_order WHERE customer_id IN (:uzivatele)', $uzivatele, $typ);
+        $idProduktu = $this->noci[0]->getProduct()->getId();
+        foreach ($this->noci as $noc) {
+            $spojeni->executeStatement('DELETE FROM product_variant WHERE id = :id', [
+                'id' => $noc->getId(),
+            ]);
+            $spojeni->executeStatement('DELETE FROM shop_predmety WHERE kod_predmetu = :kod', [
+                'kod' => $noc->getCode(),
+            ]);
+        }
+        $spojeni->executeStatement('DELETE FROM product_product_tag WHERE product_id = :id', [
+            'id' => $idProduktu,
+        ]);
+        $spojeni->executeStatement('DELETE FROM shop_predmety WHERE id_predmetu = :id', [
+            'id' => $idProduktu,
+        ]);
+        $spojeni->executeStatement('DELETE FROM uzivatele_hodnoty WHERE id_uzivatele IN (:uzivatele)', $uzivatele, $typ);
     }
 
     public function testSavesTwoConsecutiveNights(): void

@@ -59,6 +59,24 @@ abstract class AbstractDatabaseKernelTestCase extends ApiTestCase
         parent::tearDown();
     }
 
+    /**
+     * In SQL, so that cleaning up after a committed race needs no Foundry bookkeeping.
+     */
+    protected function ucastnikVSql(string $prefix): int
+    {
+        $login = $prefix . uniqid();
+        $this->connection()->executeStatement(
+            "INSERT INTO uzivatele_hodnoty (login_uzivatele, jmeno_uzivatele, prijmeni_uzivatele, email1_uzivatele, pohlavi)
+             VALUES (:login, 'Test', 'Jídla', :email, 'f')",
+            [
+                'login' => $login,
+                'email' => $login . '@example.invalid',
+            ],
+        );
+
+        return (int) $this->connection()->lastInsertId();
+    }
+
     protected function entityManager(): EntityManagerInterface
     {
         return static::getContainer()->get('doctrine.orm.entity_manager');

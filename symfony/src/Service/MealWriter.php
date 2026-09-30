@@ -47,6 +47,7 @@ class MealWriter
 
         $this->capacityManager->beginSaleTransaction();
         try {
+            $this->capacityManager->lockInOrder([...$this->heldMeals($customer, $year), ...array_keys($variants)]);
             $kept = $this->removeUnselected($customer, $year, array_keys($variants));
             foreach ($variants as $variantId => $variant) {
                 if (! in_array($variantId, $kept, true)) {

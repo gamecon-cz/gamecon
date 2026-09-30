@@ -80,6 +80,10 @@ readonly class KfcSaleProcessor implements ProcessorInterface
             // objednávku bez řádků, a stačí dvě takové, aby hledání košíku skončilo výjimkou.
             $kosik = null;
 
+            $this->capacityManager->lockInOrder(array_map(
+                static fn (array $polozka): int => (int) $polozka[0]->getId(),
+                $kZaplaceni,
+            ));
             foreach ($kZaplaceni as [$varianta, $pocetKusu]) {
                 // Řádek na kus, stejně jako legacy prodej — každý kus je vlastní nákup.
                 for ($kus = 0; $kus < $pocetKusu; ++$kus) {

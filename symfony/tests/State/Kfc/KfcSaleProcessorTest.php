@@ -19,6 +19,8 @@ use App\Enum\ProductTagCode;
 use App\State\Kfc\KfcSaleProcessor;
 use App\Structure\Entity\UserEntityStructure;
 use App\Tests\AbstractDatabaseKernelTestCase;
+use App\Tests\Support\SoubeznaTransakce;
+use Doctrine\DBAL\ArrayParameterType;
 use Gamecon\Cas\DateTimeImmutableStrict;
 use Gamecon\SystemoveNastaveni\SystemoveNastaveni;
 use Gamecon\Tests\Factory\UserFactory;
@@ -881,5 +883,95 @@ class KfcSaleProcessorTest extends AbstractDatabaseKernelTestCase
 
         self::assertSame(2, $vysledek->soldItems);
         self::assertSame('80', $vysledek->totalPrice);
+    }
+
+    /**
+     * The other sale takes the lower variant, then the higher one; a sale listing them the
+     * other way round must wait for it, not take the higher one and deadlock.
+     *
+     * @test
+     */
+    public function prodejeVOpacnemPoradiSeNezablokuji(): void
+    {
+        $operator = $this->entityManager()->find(User::class, \Uzivatel::SYSTEM);
+        self::assertNotNull($operator);
+        static::getContainer()->get('security.token_storage')->setToken(
+            new PostAuthenticationToken($operator, 'main', ['ROLE_ADMIN']),
+        );
+        $predmety = [$this->vytvorPredmet(kusuVyrobeno: 10), $this->vytvorPredmet(kusuVyrobeno: 10)];
+        usort($predmety, static fn (Product $prvni, Product $druhy): int => $prvni->getVariants()->first()->getId() <=> $druhy->getVariants()->first()->getId());
+        [$nizsi, $vyssi] = array_map(static fn (Product $predmet): int => (int) $predmet->getVariants()->first()->getId(), $predmety);
+        $this->connection()->commit();
+
+        try {
+            $souper = SoubeznaTransakce::spust($this->connection(), [
+                ['sql', "SELECT id FROM product_variant WHERE id = {$nizsi} FOR UPDATE"],
+                ['hlasim', 'drzi nizsi'],
+                ['cekej', 700],
+                ['sql', "SELECT id FROM product_variant WHERE id = {$vyssi} FOR UPDATE"],
+                ['cekej', 300],
+            ]);
+            $chybaProdeje = null;
+            try {
+                $this->zpracuj($this->prodej($predmety[1], $predmety[0]));
+            } catch (\Throwable $chyba) {
+                $chybaProdeje = $chyba;
+            }
+
+            self::assertSame('hotovo', $souper->dokonci());
+            self::assertNull($chybaProdeje, (string) $chybaProdeje?->getMessage());
+        } finally {
+            $this->smazPotvrzenyProdej([$nizsi, $vyssi], $predmety);
+            $this->connection()->beginTransaction();
+        }
+    }
+
+    /**
+     * @param int[]     $idVariant
+     * @param Product[] $predmety
+     */
+    private function smazPotvrzenyProdej(array $idVariant, array $predmety): void
+    {
+        $spojeni = $this->connection();
+        $objednavky = $spojeni->fetchFirstColumn(
+            'SELECT DISTINCT order_id FROM shop_nakupy WHERE variant_id IN (:varianty) AND order_id IS NOT NULL',
+            [
+                'varianty' => $idVariant,
+            ],
+            [
+                'varianty' => ArrayParameterType::INTEGER,
+            ],
+        );
+        $spojeni->executeStatement('DELETE FROM shop_nakupy WHERE variant_id IN (:varianty)', [
+            'varianty' => $idVariant,
+        ], [
+            'varianty' => ArrayParameterType::INTEGER,
+        ]);
+        $spojeni->executeStatement('DELETE FROM platby WHERE order_id IN (:objednavky)', [
+            'objednavky' => $objednavky,
+        ], [
+            'objednavky' => ArrayParameterType::INTEGER,
+        ]);
+        $spojeni->executeStatement('DELETE FROM shop_order WHERE id IN (:objednavky)', [
+            'objednavky' => $objednavky,
+        ], [
+            'objednavky' => ArrayParameterType::INTEGER,
+        ]);
+        $spojeni->executeStatement('DELETE FROM product_variant WHERE id IN (:varianty)', [
+            'varianty' => $idVariant,
+        ], [
+            'varianty' => ArrayParameterType::INTEGER,
+        ]);
+        $idPredmetu = array_map(static fn (Product $predmet): int => (int) $predmet->getId(), $predmety);
+        $spojeni->executeStatement('DELETE FROM product_product_tag WHERE product_id IN (:predmety)', [
+            'predmety' => $idPredmetu,
+        ], [
+            'predmety' => ArrayParameterType::INTEGER,
+        ]);
+        $spojeni->executeStatement('DELETE FROM shop_predmety WHERE id_predmetu IN (:predmety)', [
+            'predmety' => $idPredmetu,
+        ], [
+            'predmety' => ArrayParameterType::INTEGER,
+        ]);
     }
 }

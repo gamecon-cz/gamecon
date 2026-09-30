@@ -67,6 +67,7 @@ class AccommodationWriter
 
         $this->capacityManager->beginSaleTransaction();
         try {
+            $this->capacityManager->lockInOrder([...$this->heldNights($customer, $year), ...array_keys($variants)]);
             // Počítají se jen datové řádky. Snapshot zrušených snídaní ani log změn osobních
             // údajů se nezapočítává — volající hlásí „změněno N záznamů" a evidence o změně
             // není změna.

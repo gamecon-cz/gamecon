@@ -218,6 +218,10 @@ class CartService
                 'kusu'    => ($kusuNaVariantu[spl_object_id($variant)]['kusu'] ?? 0) + 1,
             ];
         }
+        $this->capacityManager->lockInOrder(array_map(
+            static fn (ProductVariant $variant): int => (int) $variant->getId(),
+            $variants,
+        ));
         foreach ($kusuNaVariantu as ['variant' => $variant, 'kusu' => $kusu]) {
             $this->capacityManager->lockForSale($variant, $kusu, $roleMeanings);
         }

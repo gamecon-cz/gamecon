@@ -361,6 +361,49 @@ class CartServiceTest extends TestCase
         }
     }
 
+    public function testAddBundleLocksAllItsVariantsBeforeCheckingAny(): void
+    {
+        $product = $this->createProduct();
+        $bundle = $this->createBundle('Víkend', true, [RoleMeaning::PRIHLASEN->value]);
+        foreach ([
+            30 => 'ACCOM-SAT',
+            10 => 'ACCOM-THU',
+            20 => 'ACCOM-FRI',
+        ] as $id => $code) {
+            $variant = $this->createVariant($product, $code, $code);
+            (new \ReflectionProperty(ProductVariant::class, 'id'))->setValue($variant, $id);
+            $bundle->addVariant($variant);
+        }
+
+        $order = new Order();
+        $order->setCustomer($this->createMock(User::class));
+        $order->setYear(2026);
+
+        $this->discountCalculator->method('priceForNextPiece')
+            ->willReturn([
+                'discount'       => null,
+                'discountAmount' => '0.00',
+                'finalPrice'     => '250.00',
+                'reason'         => null,
+                'snapshot'       => null,
+            ]);
+
+        $calls = [];
+        $this->capacityManager->method('lockInOrder')
+            ->willReturnCallback(function (array $variantIds) use (&$calls): void {
+                $calls[] = ['lockInOrder', $variantIds];
+            });
+        $this->capacityManager->method('lockForSale')
+            ->willReturnCallback(function (ProductVariant $variant) use (&$calls): void {
+                $calls[] = ['lockForSale', $variant->getId()];
+            });
+
+        $this->cartService->addBundle($order, $bundle, [RoleMeaning::PRIHLASEN]);
+
+        $this->assertSame(['lockInOrder', [30, 10, 20]], $calls[0]);
+        $this->assertCount(4, $calls);
+    }
+
     public function testAddBundleAddsNothingWhenOneVariantIsSoldOut(): void
     {
         $product = $this->createProduct();
