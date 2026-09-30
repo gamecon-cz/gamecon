@@ -8,6 +8,17 @@
   <p>
     Jako zdrojový soubor slouží <a href="{baseUrl}/reporty/{eshopReport}"><em>Report e-shopu</em> ve formátu XLSX</a>.
   </p>
+  <!-- begin:letosni -->
+  <p>
+    Letošní předmět zdarma pro organizátory určuje sloupec <code>je_letosni_hlavni</code>
+    (1 = letošní kostka / placka). Teď platí:
+  </p>
+  <ul>
+    <!-- begin:radek -->
+    <li>{pravidlo}: {predmet}</li>
+    <!-- end:radek -->
+  </ul>
+  <!-- end:letosni -->
   <form method="post" enctype="multipart/form-data">
     <input type="file" name="{souborInputName}"> <input type="submit" name="{postName}" value="Nahrát">
     <span>⚠️ Položky, které nebudou v importním souboru, import skryje ⚠️</span>

@@ -10,5 +10,7 @@ class EshopImportVysledek
         public readonly int $pocetNovych,
         public readonly int $pocetZmenenych,
         public readonly int $pocetVyrazenych,
+        /** @var string[] */
+        public readonly array $varovani = [],
     ) {}
 }

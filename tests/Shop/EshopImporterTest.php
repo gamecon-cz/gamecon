@@ -49,18 +49,140 @@ class EshopImporterTest extends AbstractTestDb
         'snidane_v_cene',
     ];
 
-    private function createXlsxSoubor(array $radky): string
+    /**
+     * @param string[]|null $hlavicka
+     */
+    private function createXlsxSoubor(array $radky, ?array $hlavicka = null): string
     {
+        $hlavicka ??= self::$hlavicka;
         $soubor = tempnam(sys_get_temp_dir(), 'eshop_import_test_') . '.xlsx';
         $writer = new XLSXWriter();
         $writer->openToFile($soubor);
-        $writer->addRow(Row::fromValues(self::$hlavicka));
+        $writer->addRow(Row::fromValues($hlavicka));
         foreach ($radky as $radek) {
-            $writer->addRow(Row::fromValues($radek));
+            $writer->addRow(Row::fromValues(array_map(
+                static fn (string $sloupec) => $radek[$sloupec] ?? '',
+                $hlavicka,
+            )));
         }
         $writer->close();
 
         return $soubor;
+    }
+
+    /**
+     * @param array<string, array<string, mixed>> $radky kód předmětu => přepsané hodnoty
+     */
+    private function souborSLetosnimi(array $radky): string
+    {
+        return $this->createXlsxSoubor(
+            array_map(
+                fn (string $kod, array $hodnoty): array => $this->defaultniRadek([
+                    'kod_predmetu' => $kod,
+                    'nazev'        => $kod,
+                    ...$hodnoty,
+                ]),
+                array_keys($radky),
+                $radky,
+            ),
+            [...self::$hlavicka, 'je_letosni_hlavni'],
+        );
+    }
+
+    private function kodVPravidle(string $kodPravidla): ?string
+    {
+        $kod = dbOneCol(
+            "SELECT JSON_VALUE(parameters, '$.productCode') FROM discount_rule WHERE code = $0 AND year = $1",
+            [
+                0 => $kodPravidla,
+                1 => ROCNIK,
+            ],
+        );
+
+        return $kod === null || $kod === false ? null : (string) $kod;
+    }
+
+    /**
+     * @test
+     */
+    public function oznacenaLetosniKostkaAPlackaSeZapisouDoPravidel(): void
+    {
+        $vysledek = (new EshopImporter($this->souborSLetosnimi([
+            'kostka_test_stara' => [
+                'je_letosni_hlavni' => 0,
+            ],
+            'kostka_test_nova' => [
+                'je_letosni_hlavni' => 1,
+            ],
+            'placka_test_nova' => [
+                'je_letosni_hlavni' => 1,
+            ],
+        ])))->importuj();
+
+        self::assertSame('kostka_test_nova', $this->kodVPravidle('kostka_zdarma'));
+        self::assertSame('placka_test_nova', $this->kodVPravidle('placka_zdarma'));
+        self::assertSame([], $vysledek->varovani);
+    }
+
+    /**
+     * @test
+     */
+    public function dveOznaceneKostkyPravidloNezmeni(): void
+    {
+        $predtim = $this->kodVPravidle('kostka_zdarma');
+
+        $vysledek = (new EshopImporter($this->souborSLetosnimi([
+            'kostka_test_a' => [
+                'je_letosni_hlavni' => 1,
+            ],
+            'kostka_test_b' => [
+                'je_letosni_hlavni' => 1,
+            ],
+            'placka_test_nova' => [
+                'je_letosni_hlavni' => 1,
+            ],
+        ])))->importuj();
+
+        self::assertSame($predtim, $this->kodVPravidle('kostka_zdarma'));
+        self::assertStringContainsString('kostka_test_a, kostka_test_b', implode("\n", $vysledek->varovani));
+    }
+
+    /**
+     * @test
+     */
+    public function neoznacenaPlackaVaruje(): void
+    {
+        $vysledek = (new EshopImporter($this->souborSLetosnimi([
+            'kostka_test_nova' => [
+                'je_letosni_hlavni' => 1,
+            ],
+            'placka_test_nova' => [
+                'je_letosni_hlavni' => 0,
+            ],
+        ])))->importuj();
+
+        self::assertSame('kostka_test_nova', $this->kodVPravidle('kostka_zdarma'));
+        self::assertStringContainsString('Placka zdarma', implode("\n", $vysledek->varovani));
+    }
+
+    /**
+     * A sheet without the column leaves the rules alone, but still says when the item a
+     * rule names is no longer on offer, since nobody would then get it free.
+     *
+     * @test
+     */
+    public function bezSloupceSePravidlaNemeniAleVaruje(): void
+    {
+        $predtim = $this->kodVPravidle('kostka_zdarma');
+
+        $vysledek = (new EshopImporter($this->createXlsxSoubor([
+            $this->defaultniRadek([
+                'kod_predmetu' => 'POLOZKA_BEZ_SLOUPCE',
+            ]),
+        ])))->importuj();
+
+        self::assertSame($predtim, $this->kodVPravidle('kostka_zdarma'));
+        self::assertStringContainsString('Kostka zdarma', implode("\n", $vysledek->varovani));
     }
 
     private function defaultniRadek(array $prepisVrednosti = []): array
