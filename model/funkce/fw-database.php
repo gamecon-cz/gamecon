@@ -363,7 +363,6 @@ function _dbConnect(
             [
                 PDO::ATTR_ERRMODE                  => PDO::ERRMODE_EXCEPTION,
                 PDO::ATTR_PERSISTENT               => $persistent,
-                PDO::MYSQL_ATTR_FOUND_ROWS         => true,  // makes rowCount() work for SELECT
                 PDO::ATTR_STRINGIFY_FETCHES        => true,  // match mysqli behavior: all values as strings
                 PDO::MYSQL_ATTR_MULTI_STATEMENTS   => true,  // enables multi-statement queries (needed for migrations)
             ],
@@ -382,7 +381,7 @@ function _dbConnect(
         );
     }
     $pdo->exec('SET NAMES utf8mb4 COLLATE utf8mb4_czech_ci');
-    $pdo->exec('SET SESSION group_concat_max_len = 65536');
+    $pdo->exec('SET SESSION group_concat_max_len = 1048576');
 
     return $pdo;
 }

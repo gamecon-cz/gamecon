@@ -33,6 +33,16 @@ class FwDatabaseTest extends TestCase
         dbQuery('DROP TEMPORARY TABLE IF EXISTS tmp_fw_database_enum');
     }
 
+    public function testLegacyConnectionHoldsAMegabyteOfGroupConcat(): void
+    {
+        self::assertSame('1048576', dbOneCol('SELECT @@group_concat_max_len'));
+    }
+
+    public function testLegacyConnectionComparesStringsInCzech(): void
+    {
+        self::assertSame('utf8mb4_czech_ci', dbOneCol('SELECT @@collation_connection'));
+    }
+
     public function testEmptyArrayParameterEscapedAsNull()
     {
         self::assertSame('NULL', dbQv([]));
