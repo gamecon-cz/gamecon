@@ -454,11 +454,17 @@ class OrderItem
         $variantLabel = $this->variantName
             ?? ($this->variant instanceof ProductVariant ? $this->variant->getName() : null);
 
-        if ($variantLabel !== null) {
+        // A product sold in one variant names it after itself, and a night's own row names its day.
+        if ($variantLabel !== null && ! $this->namesWord($name, $variantLabel)) {
             return $name . ' — ' . $variantLabel;
         }
 
         return $name;
+    }
+
+    private function namesWord(string $name, string $word): bool
+    {
+        return preg_match('~(?<!\w)' . preg_quote($word, '~') . '(?!\w)~u', $name) === 1;
     }
 
     /**
