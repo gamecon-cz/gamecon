@@ -111,6 +111,55 @@ class BulkCancelService
     }
 
     /**
+     * @param int[] $purchaseIds
+     *
+     * @return int number of cancelled items
+     */
+    public function cancelPurchases(array $purchaseIds, string $reason, \DateTimeImmutable $cancelledAt): int
+    {
+        return $this->cancelItems($this->purchasesWithIds($purchaseIds), $reason, $cancelledAt);
+    }
+
+    /**
+     * Takes purchases back without recording them as cancelled — a correction, not a cancellation.
+     *
+     * @param int[] $purchaseIds
+     *
+     * @return int number of removed items
+     */
+    public function removePurchases(array $purchaseIds): int
+    {
+        $items = $this->purchasesWithIds($purchaseIds);
+        foreach ($items as $item) {
+            $this->removeFromOrder($item);
+            $this->entityManager->remove($item);
+        }
+        if ($items !== []) {
+            $this->entityManager->flush();
+        }
+
+        return count($items);
+    }
+
+    /**
+     * @param int[] $purchaseIds
+     *
+     * @return OrderItem[]
+     */
+    private function purchasesWithIds(array $purchaseIds): array
+    {
+        if ($purchaseIds === []) {
+            return [];
+        }
+
+        return $this->orderItemRepository->findBy([
+            'id' => array_map('intval', $purchaseIds),
+        ], [
+            'id' => 'ASC',
+        ]);
+    }
+
+    /**
      * @param OrderItem[]|iterable $items
      *
      * @return int number of cancelled items
