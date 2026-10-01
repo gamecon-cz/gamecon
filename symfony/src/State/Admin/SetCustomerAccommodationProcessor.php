@@ -18,6 +18,7 @@ use App\State\Cart\AccommodationGridInterface;
 use Doctrine\ORM\EntityManagerInterface;
 use Gamecon\Pravo;
 use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
+use Symfony\Contracts\Translation\TranslatorInterface;
 
 /**
  * Booking accommodation for someone else, from the admin desk.
@@ -41,6 +42,7 @@ readonly class SetCustomerAccommodationProcessor implements ProcessorInterface
         private LegacySessionService $legacySession,
         private AccommodationGridInterface $accommodationGrid,
         private EntityManagerInterface $entityManager,
+        private TranslatorInterface $translator,
     ) {
     }
 
@@ -49,16 +51,20 @@ readonly class SetCustomerAccommodationProcessor implements ProcessorInterface
      */
     public function process(mixed $data, Operation $operation, array $uriVariables = [], array $context = []): AccommodationOutputDto
     {
-        $operator = $this->deskRights->verifyOperator('Objednávání za účastníka');
+        $operator = $this->deskRights->verifyOperator('desk.action.order_accommodation');
 
         $customer = $this->entityManager->find(User::class, $data->customerId);
         if ($customer === null) {
-            throw new BadRequestHttpException(sprintf('Uživatel s ID %d nebyl nalezen.', $data->customerId));
+            throw new BadRequestHttpException($this->translator->trans('customer.not_found', [
+                '%id%' => $data->customerId,
+            ], 'errors'));
         }
 
         $legacyCustomer = $this->legacySession->getUserById((int) $customer->getId());
         if ($legacyCustomer === null) {
-            throw new BadRequestHttpException(sprintf('Uživatel s ID %d nebyl nalezen.', $data->customerId));
+            throw new BadRequestHttpException($this->translator->trans('customer.not_found', [
+                '%id%' => $data->customerId,
+            ], 'errors'));
         }
 
         // An omitted roommate keeps whatever is stored: the writer treats null as "clear it",
@@ -87,7 +93,9 @@ readonly class SetCustomerAccommodationProcessor implements ProcessorInterface
         $customer = $this->entityManager->find(User::class, $data->customerId);
         $legacyCustomer = $this->legacySession->getUserById($data->customerId);
         if ($customer === null || $legacyCustomer === null) {
-            throw new BadRequestHttpException(sprintf('Uživatel s ID %d nebyl nalezen.', $data->customerId));
+            throw new BadRequestHttpException($this->translator->trans('customer.not_found', [
+                '%id%' => $data->customerId,
+            ], 'errors'));
         }
 
         // The grid redraws from what came back, so it cannot drift from what was stored.

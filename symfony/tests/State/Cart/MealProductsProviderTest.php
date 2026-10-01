@@ -17,6 +17,7 @@ use App\Service\DiscountCalculator;
 use App\Service\LegacySessionService;
 use App\State\Cart\MealProductsProvider;
 use App\Tests\Service\PevnaZasoba;
+use App\Tests\Support\ChybovePreklady;
 use Gamecon\Cas\DateTimeImmutableStrict;
 use Gamecon\SystemoveNastaveni\SystemoveNastaveni;
 use PHPUnit\Framework\MockObject\MockObject;
@@ -76,7 +77,7 @@ class MealProductsProviderTest extends TestCase
             $discountCalculator,
             $yearProvider,
             $this->security,
-            new CustomerDeskRights($this->legacySession),
+            new CustomerDeskRights($this->legacySession, ChybovePreklady::translator()),
             $this->clock,
             new PevnaZasoba(),
         );

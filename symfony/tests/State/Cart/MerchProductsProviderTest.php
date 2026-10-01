@@ -19,6 +19,7 @@ use App\Service\ProductVariantsForGrid;
 use App\Service\SpentQuotaProvider;
 use App\State\Cart\MerchProductsProvider;
 use App\Tests\Service\PevnaZasoba;
+use App\Tests\Support\ChybovePreklady;
 use Gamecon\Cas\DateTimeImmutableStrict;
 use Gamecon\SystemoveNastaveni\SystemoveNastaveni;
 use PHPUnit\Framework\MockObject\MockObject;
@@ -95,6 +96,7 @@ class MerchProductsProviderTest extends TestCase
             $this->createMock(SpentQuotaProvider::class),
             $this->security,
             new NativeClock(),
+            ChybovePreklady::translator(),
         );
     }
 
@@ -284,6 +286,7 @@ class MerchProductsProviderTest extends TestCase
             $this->createMock(SpentQuotaProvider::class),
             $this->security,
             new NativeClock(),
+            ChybovePreklady::translator(),
         );
     }
 }

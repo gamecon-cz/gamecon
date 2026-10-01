@@ -12,6 +12,7 @@ use App\Repository\OrderItemRepository;
 use App\Repository\ProductRepository;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\HttpKernel\Exception\ConflictHttpException;
+use Symfony\Contracts\Translation\TranslatorInterface;
 
 /**
  * The voluntary entry fee ("dobrovolné vstupné") is a donation, not a normal purchase: the
@@ -62,6 +63,7 @@ readonly class EntryFeeService
         private OrderItemRepository $orderItemRepository,
         private EntityManagerInterface $entityManager,
         private CurrentYearProviderInterface $currentYearProvider,
+        private TranslatorInterface $translator,
     ) {
     }
 
@@ -165,6 +167,6 @@ readonly class EntryFeeService
             }
         }
 
-        throw new ConflictHttpException('Dobrovolné vstupné není pro letošní ročník naimportováno.');
+        throw new ConflictHttpException($this->translator->trans('entry_fee.not_imported', [], 'errors'));
     }
 }

@@ -24,6 +24,7 @@ use App\Service\CurrentYearProviderInterface;
 use App\Service\DiscountCalculator;
 use App\Service\RestrictedProductRules;
 use App\Service\SpentQuotaProvider;
+use App\Tests\Support\ChybovePreklady;
 use Doctrine\ORM\EntityManagerInterface;
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
@@ -72,6 +73,7 @@ class CartServiceTest extends TestCase
             $this->restrictedProductRules,
             $this->orderItemRepository,
             $this->createMock(SpentQuotaProvider::class),
+            ChybovePreklady::translator(),
         );
     }
 

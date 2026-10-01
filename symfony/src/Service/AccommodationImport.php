@@ -9,6 +9,7 @@ use App\Entity\User;
 use App\Exception\InvalidRequestException;
 use App\Exception\UserFacingException;
 use Doctrine\ORM\EntityManagerInterface;
+use Symfony\Contracts\Translation\TranslatorInterface;
 
 /**
  * Zápis jednoho řádku importu ubytování z Excelu do nové vrstvy.
@@ -33,6 +34,7 @@ readonly class AccommodationImport
         private EntityManagerInterface $entityManager,
         private AccommodationWriter $accommodationWriter,
         private CapacityManager $capacityManager,
+        private TranslatorInterface $translator,
     ) {
     }
 
@@ -76,7 +78,11 @@ readonly class AccommodationImport
 
         $ids = array_map('intval', $ids);
         if (count($ids) !== count($dny)) {
-            throw new InvalidRequestException(sprintf('Nepodařilo se jednoznačně dohledat ubytování typu "%s" pro %d %s. Nalezeno %d předmětů.', $kodTypu, count($dny), count($dny) === 1 ? 'den' : 'dnů', count($ids)));
+            throw new InvalidRequestException($this->translator->trans('accommodation_import.type_not_unique', [
+                '%type%' => $kodTypu, '%days%' => $this->translator->trans('accommodation_import.days', [
+                    '%count%' => count($dny),
+                ], 'errors'), '%found%' => count($ids),
+            ], 'errors'));
         }
 
         return $ids;
@@ -131,7 +137,9 @@ readonly class AccommodationImport
         }
 
         if ($prvniNoc === null || $posledniNoc === null) {
-            throw new InvalidRequestException(sprintf('První a poslední noc musí být buďto obě prázdné, nebo obě zadané: první noc %s, poslední noc %s', $prvniNoc ?? '', $posledniNoc ?? ''));
+            throw new InvalidRequestException($this->translator->trans('accommodation_import.incomplete_night_range', [
+                '%first%' => $prvniNoc ?? '', '%last%' => $posledniNoc ?? '',
+            ], 'errors'));
         }
 
         $dny = range($prvniNoc, $posledniNoc);
@@ -281,7 +289,9 @@ readonly class AccommodationImport
     ): int {
         $zakaznik = $this->entityManager->find(User::class, $idUzivatele);
         if ($zakaznik === null) {
-            throw new InvalidRequestException(sprintf('Účastník %d neexistuje.', $idUzivatele));
+            throw new InvalidRequestException($this->translator->trans('accommodation_import.participant_not_found', [
+                '%id%' => $idUzivatele,
+            ], 'errors'));
         }
 
         return $this->accommodationWriter->save(
@@ -335,7 +345,7 @@ readonly class AccommodationImport
         }
 
         if (count($ids) !== count($idsPredmetu)) {
-            throw new InvalidRequestException('Některou noc se nepodařilo dohledat mezi variantami ubytování.');
+            throw new InvalidRequestException($this->translator->trans('accommodation_import.night_not_found', [], 'errors'));
         }
 
         return $ids;

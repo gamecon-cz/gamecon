@@ -12,6 +12,7 @@ use App\Service\CurrentYearProviderInterface;
 use App\Service\EntryFeeService;
 use Symfony\Bundle\SecurityBundle\Security;
 use Symfony\Component\HttpKernel\Exception\AccessDeniedHttpException;
+use Symfony\Contracts\Translation\TranslatorInterface;
 
 /**
  * @implements ProviderInterface<EntryFeeOutputDto>
@@ -22,6 +23,7 @@ readonly class EntryFeeProvider implements ProviderInterface
         private EntryFeeService $entryFeeService,
         private CurrentYearProviderInterface $currentYearProvider,
         private Security $security,
+        private TranslatorInterface $translator,
     ) {
     }
 
@@ -29,7 +31,7 @@ readonly class EntryFeeProvider implements ProviderInterface
     {
         $user = $this->security->getUser();
         if (! $user instanceof User) {
-            throw new AccessDeniedHttpException('Pro zobrazení dobrovolného vstupného je nutné přihlášení.');
+            throw new AccessDeniedHttpException($this->translator->trans('entry_fee.login_required_to_view', [], 'errors'));
         }
 
         return EntryFeeOutputDto::fromAmount(

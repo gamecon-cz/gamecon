@@ -645,7 +645,7 @@ class AccommodationWriterTest extends AbstractDatabaseKernelTestCase
         $this->pripravUbytovani();
         $customer = $this->ucastnik();
 
-        $this->expectExceptionMessage(AccommodationWriter::ERROR_CONSECUTIVE_NIGHTS);
+        $this->expectExceptionMessage('Objednané noci musí na sebe navazovat.');
 
         $this->writer()->save($customer, $this->idNoci(0, 2), self::ROK, false);
     }
@@ -655,7 +655,7 @@ class AccommodationWriterTest extends AbstractDatabaseKernelTestCase
         $this->pripravUbytovani();
         $customer = $this->ucastnik();
 
-        $this->expectExceptionMessage(AccommodationWriter::ERROR_AT_LEAST_TWO_NIGHTS);
+        $this->expectExceptionMessage('Ubytování je možné objednat nejméně na dvě noci.');
 
         $this->writer()->save($customer, $this->idNoci(0), self::ROK, false);
     }
@@ -1234,7 +1234,7 @@ class AccommodationWriterTest extends AbstractDatabaseKernelTestCase
         $this->pripravUbytovani();
         $customer = $this->ucastnik();
 
-        $this->expectExceptionMessage(AccommodationWriter::ERROR_CONSECUTIVE_NIGHTS);
+        $this->expectExceptionMessage('Objednané noci musí na sebe navazovat.');
 
         $this->writer()->save(
             $customer,

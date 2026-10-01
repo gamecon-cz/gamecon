@@ -22,6 +22,7 @@ use App\Repository\ProductBundleRepository;
 use Doctrine\ORM\EntityManagerInterface;
 use Gamecon\SystemoveNastaveni\SystemoveNastaveni;
 use Symfony\Component\Clock\ClockInterface;
+use Symfony\Contracts\Translation\TranslatorInterface;
 
 /**
  * CartService — business logic for the shopping cart.
@@ -42,6 +43,7 @@ class CartService
         private readonly RestrictedProductRules $restrictedProductRules,
         private readonly OrderItemRepository $orderItemRepository,
         private readonly SpentQuotaProvider $spentQuota,
+        private readonly TranslatorInterface $translator,
     ) {
     }
 
@@ -90,7 +92,9 @@ class CartService
         // Guard: reject if variant is in a forced bundle for this user
         $mandatoryBundle = $this->bundleRepository->findMandatoryBundleForVariant($variant, $roleMeanings);
         if ($mandatoryBundle !== null) {
-            throw new InvalidRequestException(sprintf('Varianta "%s" je součástí povinného balíčku "%s". Použijte nákup celého balíčku.', $variant->getFullName(), $mandatoryBundle->getName()));
+            throw new InvalidRequestException($this->translator->trans('cart.variant_in_mandatory_bundle', [
+                '%variant%' => $variant->getFullName(), '%bundle%' => $mandatoryBundle->getName(),
+            ], 'errors'));
         }
 
         return $this->vTransakci(fn (): OrderItem => $this->createOrderItem($order, $variant, null, $roleMeanings, $override, $vraceniZruseneSnidane));
@@ -177,7 +181,9 @@ class CartService
             ? null
             : $this->restrictedProductRules->legacyUserFor($customer);
         if ($legacyCustomer === null || ! $this->restrictedProductRules->mayOrder($product, $legacyCustomer)) {
-            throw new InsufficientPermissionsException(sprintf('Na produkt "%s" nemáš nárok.', $product->getName()));
+            throw new InsufficientPermissionsException($this->translator->trans('cart.not_entitled', [
+                '%product%' => $product->getName(),
+            ], 'errors'));
         }
 
         return false;
@@ -214,7 +220,9 @@ class CartService
             $product = $variant->getProduct();
 
             if (! $product->isAvailable($this->clock->now())) {
-                throw new NoLongerAvailableException(sprintf('Produkt "%s" není dostupný.', $product->getName()));
+                throw new NoLongerAvailableException($this->translator->trans('cart.product_unavailable', [
+                    '%product%' => $product->getName(),
+                ], 'errors'));
             }
 
             $kusuNaVariantu[spl_object_id($variant)] = [
@@ -262,7 +270,9 @@ class CartService
         }
 
         if (SystemoveNastaveni::zGlobals()->prodejJidlaUkoncen()) {
-            throw new NoLongerAvailableException(sprintf('Prodej předmětu "%s" už skončil, položku nejde odebrat.', $product->getName()));
+            throw new NoLongerAvailableException($this->translator->trans('cart.sale_ended_cannot_remove', [
+                '%product%' => $product->getName(),
+            ], 'errors'));
         }
     }
 
@@ -275,7 +285,9 @@ class CartService
     {
         $bundle = $item->getBundle();
         if ($bundle !== null && $bundle->isMandatoryForUser($roleMeanings)) {
-            throw new InvalidRequestException(sprintf('Položka je součástí povinného balíčku "%s". Odeberte celý balíček.', $bundle->getName()));
+            throw new InvalidRequestException($this->translator->trans('cart.item_in_mandatory_bundle', [
+                '%bundle%' => $bundle->getName(),
+            ], 'errors'));
         }
 
         $this->overRuseni($item);
@@ -322,7 +334,9 @@ class CartService
         $product = $variant->getProduct();
 
         if (! $product->isAvailable($this->clock->now())) {
-            throw new NoLongerAvailableException(sprintf('Produkt "%s" není dostupný.', $product->getName()));
+            throw new NoLongerAvailableException($this->translator->trans('cart.product_unavailable', [
+                '%product%' => $product->getName(),
+            ], 'errors'));
         }
 
         $bypassed = [];
@@ -334,7 +348,9 @@ class CartService
             // termínu by účastníka připravilo o položku objednanou včas. Zapisuje se stejně
             // jako obejití obsluhou, aby obejitý termín nebyl nikdy neviditelný.
             if (! $vraceniZruseneSnidane && $override?->allows(OperatorOverride::GUARD_DEADLINE) !== true) {
-                throw new NoLongerAvailableException(sprintf('Prodej předmětu "%s" už skončil.', $product->getName()));
+                throw new NoLongerAvailableException($this->translator->trans('cart.sale_ended', [
+                    '%product%' => $product->getName(),
+                ], 'errors'));
             }
             $bypassed[] = OperatorOverride::GUARD_DEADLINE;
         }

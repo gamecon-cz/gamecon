@@ -13,6 +13,7 @@ use App\Entity\User;
 use App\Enum\RoleMeaning;
 use App\Service\CartService;
 use App\State\Cart\RemoveFromCartProcessor;
+use App\Tests\Support\ChybovePreklady;
 use Doctrine\ORM\EntityManagerInterface;
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
@@ -38,6 +39,7 @@ class RemoveFromCartProcessorTest extends TestCase
             $this->cartService,
             $this->entityManager,
             $this->security,
+            ChybovePreklady::translator(),
         );
     }
 

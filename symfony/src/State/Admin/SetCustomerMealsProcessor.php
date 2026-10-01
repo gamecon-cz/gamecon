@@ -14,6 +14,7 @@ use App\Service\CustomerDeskRights;
 use App\Service\MealWriter;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
+use Symfony\Contracts\Translation\TranslatorInterface;
 
 /**
  * Saving a participant's meals from the admin desk.
@@ -34,6 +35,7 @@ readonly class SetCustomerMealsProcessor implements ProcessorInterface
         private CustomerDeskRights $deskRights,
         private CurrentYearProviderInterface $currentYearProvider,
         private EntityManagerInterface $entityManager,
+        private TranslatorInterface $translator,
     ) {
     }
 
@@ -42,11 +44,13 @@ readonly class SetCustomerMealsProcessor implements ProcessorInterface
      */
     public function process(mixed $data, Operation $operation, array $uriVariables = [], array $context = []): CustomerMealsOutputDto
     {
-        $this->deskRights->verifyOperator('Objednávání jídla za účastníka');
+        $this->deskRights->verifyOperator('desk.action.order_meals');
 
         $customer = $this->entityManager->find(User::class, $data->customerId);
         if ($customer === null) {
-            throw new BadRequestHttpException(sprintf('Uživatel s ID %d nebyl nalezen.', $data->customerId));
+            throw new BadRequestHttpException($this->translator->trans('customer.not_found', [
+                '%id%' => $data->customerId,
+            ], 'errors'));
         }
 
         $year = $this->currentYearProvider->getCurrentYear();

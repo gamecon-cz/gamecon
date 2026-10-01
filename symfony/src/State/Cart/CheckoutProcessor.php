@@ -13,6 +13,7 @@ use App\Service\CartService;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\SecurityBundle\Security;
 use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
+use Symfony\Contracts\Translation\TranslatorInterface;
 
 /**
  * @implements ProcessorInterface<CheckoutInputDto, CartOutputDto>
@@ -23,6 +24,7 @@ readonly class CheckoutProcessor implements ProcessorInterface
         private CartService $cartService,
         private EntityManagerInterface $entityManager,
         private Security $security,
+        private TranslatorInterface $translator,
     ) {
     }
 
@@ -34,11 +36,11 @@ readonly class CheckoutProcessor implements ProcessorInterface
         $cart = $this->cartService->getCart($user);
 
         if ($cart === null || $cart->isEmpty()) {
-            throw new BadRequestHttpException('Košík je prázdný.');
+            throw new BadRequestHttpException($this->translator->trans('cart.empty', [], 'errors'));
         }
 
         if (! $cart->isPending()) {
-            throw new BadRequestHttpException('Objednávka již byla dokončena nebo zrušena.');
+            throw new BadRequestHttpException($this->translator->trans('cart.order_closed', [], 'errors'));
         }
 
         $cart->complete();

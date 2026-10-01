@@ -10,6 +10,7 @@ use App\Dto\Admin\BulkCancelOutputDto;
 use App\Entity\User;
 use App\Service\BulkCancelService;
 use App\State\Admin\BulkCancelProcessor;
+use App\Tests\Support\ChybovePreklady;
 use Doctrine\ORM\EntityManagerInterface;
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
@@ -35,6 +36,7 @@ class BulkCancelProcessorTest extends TestCase
             $this->bulkCancelService,
             $this->entityManager,
             $this->clock,
+            ChybovePreklady::translator(),
         );
     }
 

@@ -22,6 +22,7 @@ use App\Service\CurrentYearProviderInterface;
 use App\Service\DiscountCalculator;
 use App\Service\LegacySessionService;
 use App\State\Cart\AccommodationProvider;
+use App\Tests\Support\ChybovePreklady;
 use Gamecon\Cas\DateTimeImmutableStrict;
 use Gamecon\Pravo;
 use Gamecon\SystemoveNastaveni\SystemoveNastaveni;
@@ -98,6 +99,7 @@ class AccommodationProviderTest extends TestCase
             // Staví se nad týmiž mocky repozitářů jako provider, aby test procházel
             // skutečným výpočtem, ne nastrčenou odpovědí.
             new AccommodationAvailability($this->productRepository, $this->orderItemRepository),
+            ChybovePreklady::translator(),
         );
     }
 

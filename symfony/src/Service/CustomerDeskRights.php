@@ -6,6 +6,7 @@ namespace App\Service;
 
 use Gamecon\Pravo;
 use Symfony\Component\HttpKernel\Exception\AccessDeniedHttpException;
+use Symfony\Contracts\Translation\TranslatorInterface;
 
 /**
  * Who may order on a participant's behalf from the admin desk.
@@ -23,6 +24,7 @@ readonly class CustomerDeskRights
 {
     public function __construct(
         private LegacySessionService $legacySession,
+        private TranslatorInterface $translator,
     ) {
     }
 
@@ -40,19 +42,23 @@ readonly class CustomerDeskRights
     }
 
     /**
+     * @param string $actionKey translation key in the `errors` domain naming what the operator is doing
+     *
      * @throws AccessDeniedHttpException when nobody is signed in, or they may not do this
      */
-    public function verifyOperator(string $action): \Uzivatel
+    public function verifyOperator(string $actionKey): \Uzivatel
     {
         $operator = $this->legacySession->getCurrentUser();
         if ($operator === null) {
-            throw new AccessDeniedHttpException(sprintf('%s vyžaduje přihlášení do adminu.', $action));
+            throw new AccessDeniedHttpException($this->translator->trans('desk.admin_login_required', [
+                '%action%' => $this->translator->trans($actionKey, [], 'errors'),
+            ], 'errors'));
         }
 
         if (! $operator->maPravo(Pravo::ADMINISTRACE_UBYTOVANI)
             && ! $operator->maPravo(Pravo::ADMINISTRACE_INFOPULT)
         ) {
-            throw new AccessDeniedHttpException('Na objednávání za účastníky nemáš právo.');
+            throw new AccessDeniedHttpException($this->translator->trans('desk.no_right_to_order', [], 'errors'));
         }
 
         return $operator;

@@ -8,6 +8,7 @@ use App\Repository\OrderItemRepository;
 use App\Repository\ProductRepository;
 use App\Service\CurrentYearProviderInterface;
 use App\Service\EntryFeeService;
+use App\Tests\Support\ChybovePreklady;
 use Doctrine\DBAL\Connection;
 use Doctrine\ORM\EntityManagerInterface;
 use PHPUnit\Framework\TestCase;
@@ -57,6 +58,7 @@ class EntryFeeServiceTest extends TestCase
             $this->createMock(OrderItemRepository::class),
             $entityManager,
             $yearProvider,
+            ChybovePreklady::translator(),
         );
 
         // A missing setting is not an average of 0 Kč: the marker must not be drawn at all.
@@ -79,6 +81,7 @@ class EntryFeeServiceTest extends TestCase
             $this->createMock(OrderItemRepository::class),
             $entityManager,
             $yearProvider,
+            ChybovePreklady::translator(),
         );
     }
 }

@@ -14,6 +14,7 @@ use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\SecurityBundle\Security;
 use Symfony\Component\HttpKernel\Exception\AccessDeniedHttpException;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
+use Symfony\Contracts\Translation\TranslatorInterface;
 
 /**
  * @implements ProcessorInterface<mixed, CartOutputDto>
@@ -24,6 +25,7 @@ readonly class RemoveFromCartProcessor implements ProcessorInterface
         private CartService $cartService,
         private EntityManagerInterface $entityManager,
         private Security $security,
+        private TranslatorInterface $translator,
     ) {
     }
 
@@ -36,16 +38,18 @@ readonly class RemoveFromCartProcessor implements ProcessorInterface
         $item = $this->entityManager->find(OrderItem::class, $itemId);
 
         if ($item === null) {
-            throw new NotFoundHttpException(sprintf('Položka s ID %d nebyla nalezena.', $itemId));
+            throw new NotFoundHttpException($this->translator->trans('cart.item_not_found', [
+                '%id%' => $itemId,
+            ], 'errors'));
         }
 
         if ($item->getCustomer()?->getId() !== $user->getId()) {
-            throw new AccessDeniedHttpException('Nemáte oprávnění odebrat tuto položku.');
+            throw new AccessDeniedHttpException($this->translator->trans('cart.item_of_someone_else', [], 'errors'));
         }
 
         $cart = $item->getOrder();
         if ($cart === null) {
-            throw new NotFoundHttpException('Položka není součástí žádné objednávky.');
+            throw new NotFoundHttpException($this->translator->trans('cart.item_without_order', [], 'errors'));
         }
 
         $roleMeanings = $user->getRoleMeanings();
