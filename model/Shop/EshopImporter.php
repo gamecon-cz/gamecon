@@ -5,6 +5,8 @@ declare(strict_types=1);
 namespace Gamecon\Shop;
 
 use App\Enum\ProductStateEnum;
+use App\Service\VariantStateMirror;
+use Gamecon\SystemoveNastaveni\SystemoveNastaveni;
 use OpenSpout\Reader\XLSX\Reader as XLSXReader;
 
 class EshopImporter
@@ -257,13 +259,12 @@ WHERE NOT EXISTS (
 SQL,
             );
 
-            // The sheet has a row per size and night, so a row's kusu_vyrobeno and stav are those
-            // of the variant with its code, default variants included.
+            // The sheet's kusu_vyrobeno is the capacity of the variant with that code — sizes and
+            // nights have their own rows in it, so this covers them as well as default variants.
             dbQuery(<<<SQL
 UPDATE product_variant
 INNER JOIN `{$temporaryTable}` AS import ON import.kod_predmetu = product_variant.code
-SET product_variant.capacity = import.kusu_vyrobeno,
-    product_variant.state = import.stav
+SET product_variant.capacity = import.kusu_vyrobeno
 SQL,
             );
 
@@ -330,6 +331,8 @@ WHERE import.kod_predmetu IS NULL
 SQL,
             );
             $pocetVyrazenych = dbAffectedOrNumRows($mysqliResult);
+
+            SystemoveNastaveni::zGlobals()->kernel()->getContainer()->get(VariantStateMirror::class)->mirror();
 
             dbQuery(<<<SQL
 DROP TEMPORARY TABLE `{$temporaryTable}`
