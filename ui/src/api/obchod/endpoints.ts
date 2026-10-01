@@ -8,7 +8,8 @@ import { DefiniceObchod, DefiniceObchodMřížka, DefiniceObchodMřížkaBuňka,
  */
 type ApiKfcVariant = {
   id: number,
-  name: string,
+  // A product's only variant has no name; it is shown as the product.
+  name?: string | null,
   price: number,
   // JSON-LD serializer prázdné hodnoty vynechává, takže tady `remaining` vůbec nemusí být.
   remaining?: number | null,
@@ -111,7 +112,7 @@ export const fetchPředměty = async (): Promise<Předmět[] | null> => {
       zbývá: product.remaining ?? null,
       varianty: (product.variants ?? []).map(variant => ({
         id: variant.id,
-        název: variant.name,
+        název: variant.name ?? null,
         cena: variant.price,
         zbývá: variant.remaining ?? null,
       })),

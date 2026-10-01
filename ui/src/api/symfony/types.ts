@@ -63,8 +63,8 @@ export type ApiAccommodationWrite = {
 
 export type ApiMerchVariant = {
   id: number;
-  /** Size label for the picker; hidden when the product has a single variant. */
-  name: string;
+  /** Size label for the picker; absent for a product's only variant, which has none. */
+  name?: string | null;
   purchasedQuantity: number;
   /** Null when the variant has unlimited stock. */
   maxQuantity: number | null;
@@ -133,7 +133,8 @@ export type ApiProductTag = {
 export type ApiProductVariant = {
   "@id"?: string;
   id?: number;
-  name: string;
+  /** Absent for a product's only variant, which is shown as the product itself. */
+  name?: string | null;
   code: string;
   price: string | null;
   /** Null = unlimited. */
