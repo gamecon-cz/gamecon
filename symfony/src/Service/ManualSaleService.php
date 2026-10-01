@@ -50,8 +50,6 @@ class ManualSaleService
             $order = new Order();
             $order->setCustomer($customer);
             $order->setYear($year);
-            $this->entityManager->persist($order);
-
             for ($piece = 0; $piece < $pieces; ++$piece) {
                 $item = new OrderItem();
                 $item->setCustomer($customer);
@@ -65,11 +63,14 @@ class ManualSaleService
                 $item->setProductTags($product->getTagNames());
                 $item->setDiscountAmount('0.00');
                 $order->addItem($item);
-                $this->entityManager->persist($item);
             }
-
             $order->recalculateTotal();
             $order->complete();
+
+            $this->entityManager->persist($order);
+            foreach ($order->getItems() as $item) {
+                $this->entityManager->persist($item);
+            }
             $this->entityManager->flush();
             $connection->commit();
 
