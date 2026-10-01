@@ -246,7 +246,7 @@ const EditorPředmětu: FunctionComponent<EditorProps> = ({
     setVariants((currentVariants) => [
       ...currentVariants,
       {
-        name: "",
+        name: null,
         code: "",
         price: null,
         capacity: null,
@@ -472,10 +472,11 @@ const EditorPředmětu: FunctionComponent<EditorProps> = ({
                 <td>
                   <input
                     type="text"
-                    value={variant.name}
+                    value={variant.name ?? ""}
+                    placeholder={name}
                     onInput={(event) =>
                       updateVariant(index, {
-                        name: (event.target as HTMLInputElement).value,
+                        name: (event.target as HTMLInputElement).value || null,
                       })
                     }
                   />

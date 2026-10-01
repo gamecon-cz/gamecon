@@ -297,7 +297,7 @@ SQL,
         );
 
         self::assertNotNull($varianta, 'Nová položka musí dostat výchozí variantu.');
-        self::assertSame('Předmět s variantou', $varianta['name']);
+        self::assertNull($varianta['name'], 'Výchozí varianta nemá vlastní jméno, nese jméno produktu.');
         self::assertSame('POLOZKA_S_VARIANTOU', $varianta['code']);
         self::assertNull($varianta['price'], 'Cena se dědí z předmětu, aby ji jeho změna dál ovlivňovala.');
         self::assertSame(7, $this->zasobaVarianty('POLOZKA_S_VARIANTOU'));
