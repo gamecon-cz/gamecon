@@ -88,7 +88,7 @@ use Symfony\Component\Validator\Constraints as Assert;
 #[AppAssert\BreakfastIncludedRequiresAccommodation]
 #[AppAssert\TagCombinationIsAllowed]
 #[AppAssert\SoldVariantsAreKept]
-#[AppAssert\VariantsAreNamedWhenSeveral]
+#[AppAssert\VariantNamesAreDistinct]
 #[AppAssert\PurchasedProductIsKept(groups: [self::DELETE])]
 class Product
 {
