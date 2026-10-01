@@ -8,6 +8,7 @@ use App\Entity\User;
 use App\Enum\ProductTagCode;
 use App\Exception\CapacityExceededException;
 use App\Service\BulkCancelService;
+use App\Service\CapacityManager;
 use App\Service\ManualSaleService;
 use Doctrine\ORM\EntityManagerInterface;
 use Gamecon\Aktivita\Aktivita;
@@ -946,7 +947,7 @@ SQL,
         int  $kusu = 1,
         bool $vcetneOznamemi = false,
     ) {
-        dbBegin();
+        $this->sluzba(CapacityManager::class)->beginSaleTransaction();
         try {
             // The variant row is the capacity lock every sale path takes. Locking reads first, so
             // the plain reads below take their snapshot only once the lock is held. The catalog
@@ -974,18 +975,18 @@ SQL,
             $cenaAktualni = $predmet['cena_aktualni'];
             $idVarianty = $this->idProdejneVarianty($varianta, $predmet['kod_predmetu'], $idPredmetu);
 
-            /** @var EntityManagerInterface $entity */
-            $entity = $this->systemoveNastaveni->kernel()->getContainer()->get('doctrine.orm.entity_manager');
+            /** @var EntityManagerInterface $entityManager */
+            $entityManager = $this->systemoveNastaveni->kernel()->getContainer()->get('doctrine.orm.entity_manager');
             try {
                 // Vlastní objednávka na každý prodej drží pohromadě řádky nákupu a jejich
                 // protizápis v platbách.
                 // References, not find(): a sale needs only the ids, and hydrating a user fails on
                 // accounts that predate a value the entity requires.
                 $idObjednavky = $this->sluzba(ManualSaleService::class)->sell(
-                    $entity->getReference(User::class, $this->zakaznik->id()),
-                    $entity->getReference(User::class, $this->objednatel->id()),
-                    $entity->find(Product::class, $idPredmetu),
-                    $entity->find(ProductVariant::class, $idVarianty),
+                    $entityManager->getReference(User::class, $this->zakaznik->id()),
+                    $entityManager->getReference(User::class, $this->objednatel->id()),
+                    $entityManager->find(Product::class, $idPredmetu),
+                    $entityManager->find(ProductVariant::class, $idVarianty),
                     $kusu,
                     (string)$cenaAktualni,
                     $aktualniRocnik,
