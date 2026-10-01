@@ -15,6 +15,7 @@ use App\Repository\OrderItemRepository;
 use App\Repository\ProductRepository;
 use Doctrine\DBAL\Connection;
 use Doctrine\ORM\EntityManagerInterface;
+use Symfony\Contracts\Translation\TranslatorInterface;
 
 /**
  * Saves a customer's accommodation as a set: the nights they end up with are exactly the
@@ -22,12 +23,6 @@ use Doctrine\ORM\EntityManagerInterface;
  */
 class AccommodationWriter
 {
-    public const ERROR_AT_LEAST_TWO_NIGHTS = 'Ubytování je možné objednat nejméně na dvě noci.';
-
-    public const ERROR_CONSECUTIVE_NIGHTS = 'Objednané noci musí na sebe navazovat.';
-
-    public const ERROR_OVERBOOKING_NOT_PERMITTED = 'Ubytování „%s" na %s je plné; přeplnit ho smí jen šéf infopultu.';
-
     public function __construct(
         private Connection $connection,
         private EntityManagerInterface $entityManager,
@@ -38,6 +33,7 @@ class AccommodationWriter
         private CapacityManager $capacityManager,
         private PriceIncreaseNotifier $priceIncreaseNotifier,
         private OrderItemRepository $orderItemRepository,
+        private TranslatorInterface $translator,
     ) {
     }
 
@@ -261,7 +257,9 @@ class AccommodationWriter
 
         foreach ($variantIds as $variantId) {
             if (! isset($variants[$variantId])) {
-                throw new InvalidRequestException(sprintf('Noc %d není nabízeným ubytováním.', $variantId));
+                throw new InvalidRequestException($this->translator->trans('accommodation.night_not_offered', [
+                    '%id%' => $variantId,
+                ], 'errors'));
             }
         }
 
@@ -281,12 +279,12 @@ class AccommodationWriter
         }
 
         if (! $maySingleNight && count($days) < 2) {
-            throw new InvalidRequestException(self::ERROR_AT_LEAST_TWO_NIGHTS);
+            throw new InvalidRequestException($this->translator->trans('accommodation.at_least_two_nights', [], 'errors'));
         }
 
         for ($i = 1, $count = count($days); $i < $count; ++$i) {
             if ($days[$i] !== $days[$i - 1] + 1) {
-                throw new InvalidRequestException(self::ERROR_CONSECUTIVE_NIGHTS);
+                throw new InvalidRequestException($this->translator->trans('accommodation.consecutive_nights', [], 'errors'));
             }
         }
     }
@@ -398,7 +396,9 @@ class AccommodationWriter
                 // The override makes the capacity test always pass, so getting here at all means
                 // the caller did not have it. Telling the desk the night is "obsazené" when the
                 // real answer is "you may not overbook" sends them hunting for a bed that exists.
-                throw new InsufficientPermissionsException(sprintf(self::ERROR_OVERBOOKING_NOT_PERMITTED, $product->getName(), $variant->getName()));
+                throw new InsufficientPermissionsException($this->translator->trans('accommodation.overbooking_not_permitted', [
+                    '%product%' => $product->getName(), '%night%' => $variant->getName(),
+                ], 'errors'));
             }
         }
 

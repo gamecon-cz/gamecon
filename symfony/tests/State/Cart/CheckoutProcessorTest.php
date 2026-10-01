@@ -12,6 +12,7 @@ use App\Entity\OrderItem;
 use App\Entity\User;
 use App\Service\CartService;
 use App\State\Cart\CheckoutProcessor;
+use App\Tests\Support\ChybovePreklady;
 use Doctrine\ORM\EntityManagerInterface;
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
@@ -37,6 +38,7 @@ class CheckoutProcessorTest extends TestCase
             $this->cartService,
             $this->entityManager,
             $this->security,
+            ChybovePreklady::translator(),
         );
     }
 

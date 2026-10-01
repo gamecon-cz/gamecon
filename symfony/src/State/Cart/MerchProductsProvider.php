@@ -21,6 +21,7 @@ use Gamecon\SystemoveNastaveni\SystemoveNastaveni;
 use Psr\Clock\ClockInterface;
 use Symfony\Bundle\SecurityBundle\Security;
 use Symfony\Component\HttpKernel\Exception\AccessDeniedHttpException;
+use Symfony\Contracts\Translation\TranslatorInterface;
 
 /**
  * @implements ProviderInterface<MerchProductOutputDto>
@@ -36,6 +37,7 @@ readonly class MerchProductsProvider implements ProviderInterface
         private SpentQuotaProvider $spentQuota,
         private Security $security,
         private ClockInterface $clock,
+        private TranslatorInterface $translator,
     ) {
     }
 
@@ -46,7 +48,7 @@ readonly class MerchProductsProvider implements ProviderInterface
     {
         $user = $this->security->getUser();
         if (! $user instanceof User) {
-            throw new AccessDeniedHttpException('Pro zobrazení merche je nutné přihlášení.');
+            throw new AccessDeniedHttpException($this->translator->trans('merch.login_required_to_view', [], 'errors'));
         }
 
         $year = $this->currentYearProvider->getCurrentYear();

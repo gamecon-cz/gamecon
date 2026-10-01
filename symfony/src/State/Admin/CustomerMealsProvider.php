@@ -13,6 +13,7 @@ use App\Service\CustomerDeskRights;
 use App\Service\MealWriter;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
+use Symfony\Contracts\Translation\TranslatorInterface;
 
 /**
  * Which meals a participant holds, for the desk.
@@ -30,28 +31,31 @@ readonly class CustomerMealsProvider implements ProviderInterface
         private CustomerDeskRights $deskRights,
         private CurrentYearProviderInterface $currentYearProvider,
         private EntityManagerInterface $entityManager,
+        private TranslatorInterface $translator,
     ) {
     }
 
     public function provide(Operation $operation, array $uriVariables = [], array $context = []): CustomerMealsOutputDto
     {
-        $this->deskRights->verifyOperator('Zobrazení jídla účastníka');
+        $this->deskRights->verifyOperator('desk.action.view_meals');
 
         // Cast only what is already a number: a repeated ?customerId arrives as an array and
         // would cast to 1, quietly answering for whoever that is.
         $requested = $context['filters']['customerId'] ?? null;
         if (! is_string($requested) && ! is_int($requested)) {
-            throw new BadRequestHttpException('Musí být zadán právě jeden účastník.');
+            throw new BadRequestHttpException($this->translator->trans('customer.exactly_one_required', [], 'errors'));
         }
 
         $customerId = filter_var($requested, FILTER_VALIDATE_INT);
         if ($customerId === false || $customerId <= 0) {
-            throw new BadRequestHttpException('Musí být zadán účastník.');
+            throw new BadRequestHttpException($this->translator->trans('customer.required', [], 'errors'));
         }
 
         $customer = $this->entityManager->find(User::class, $customerId);
         if ($customer === null) {
-            throw new BadRequestHttpException(sprintf('Uživatel s ID %d nebyl nalezen.', $customerId));
+            throw new BadRequestHttpException($this->translator->trans('customer.not_found', [
+                '%id%' => $customerId,
+            ], 'errors'));
         }
 
         $dto = new CustomerMealsOutputDto();

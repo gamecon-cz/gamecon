@@ -24,6 +24,7 @@ use App\Service\DiscountCalculator;
 use App\Service\RestrictedProductRules;
 use App\Service\RoleHistoryRecalculator;
 use App\Service\UserRoleService;
+use App\Tests\Support\ChybovePreklady;
 use Doctrine\DBAL\Connection;
 use Doctrine\ORM\EntityManagerInterface;
 use Gamecon\Cas\DateTimeImmutableStrict;
@@ -625,7 +626,7 @@ SQL,
 
     private function capacityManager(): CapacityManager
     {
-        return new CapacityManager($this->connection, new CurrentYearProvider());
+        return new CapacityManager($this->connection, new CurrentYearProvider(), ChybovePreklady::translator());
     }
 
     private function zbyva(int $variantId): ?int
@@ -671,6 +672,7 @@ SQL,
                 $orderItemRepo,
                 self::getContainer()->get(\App\Discount\DiscountRuleLoader::class),
             ),
+            ChybovePreklady::translator(),
         );
     }
 

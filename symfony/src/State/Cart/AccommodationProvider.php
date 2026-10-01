@@ -26,6 +26,7 @@ use Gamecon\Pravo;
 use Gamecon\SystemoveNastaveni\SystemoveNastaveni;
 use Symfony\Bundle\SecurityBundle\Security;
 use Symfony\Component\HttpKernel\Exception\AccessDeniedHttpException;
+use Symfony\Contracts\Translation\TranslatorInterface;
 
 /**
  * Serves the logged-in customer's own grid. Legacy tells the occupant apart from the
@@ -52,6 +53,7 @@ readonly class AccommodationProvider implements ProviderInterface, Accommodation
         private AccommodationRules $accommodationRules,
         private Security $security,
         private AccommodationAvailability $availability,
+        private TranslatorInterface $translator,
     ) {
     }
 
@@ -59,14 +61,14 @@ readonly class AccommodationProvider implements ProviderInterface, Accommodation
     {
         $user = $this->security->getUser();
         if (! $user instanceof User) {
-            throw new AccessDeniedHttpException('Pro zobrazení ubytování je nutné přihlášení.');
+            throw new AccessDeniedHttpException($this->translator->trans('accommodation.login_required_to_view', [], 'errors'));
         }
 
         // Every accommodation right lives in the legacy permission system. Failing beats
         // degrading to "no rights", which would drop an organizer's Sunday night with a 200.
         $legacyUzivatel = $this->legacySession->getCurrentUser();
         if ($legacyUzivatel === null) {
-            throw new AccessDeniedHttpException('Ubytování vyžaduje přihlášení na webu GameConu.');
+            throw new AccessDeniedHttpException($this->translator->trans('accommodation.gamecon_registration_required', [], 'errors'));
         }
 
         return $this->forCustomer($user, $legacyUzivatel);

@@ -17,6 +17,7 @@ use App\Repository\OrderItemRepository;
 use App\Repository\ProductRepository;
 use Doctrine\DBAL\Connection;
 use Doctrine\ORM\EntityManagerInterface;
+use Symfony\Contracts\Translation\TranslatorInterface;
 
 /**
  * Saving a whole meal selection at once, the way the admin form does it.
@@ -37,6 +38,7 @@ class MealWriter
         private CapacityManager $capacityManager,
         private PriceIncreaseNotifier $priceIncreaseNotifier,
         private OrderItemRepository $orderItemRepository,
+        private TranslatorInterface $translator,
     ) {
     }
 
@@ -98,7 +100,9 @@ class MealWriter
 
         foreach ($variantIds as $variantId) {
             if (! isset($variants[$variantId])) {
-                throw new InvalidRequestException(sprintf('Jídlo %d není v nabídce.', $variantId));
+                throw new InvalidRequestException($this->translator->trans('meal.not_offered', [
+                    '%id%' => $variantId,
+                ], 'errors'));
             }
         }
 
@@ -170,7 +174,9 @@ class MealWriter
         // Archived products never come out of findByTag(), so RETIRED is the whole test.
         $withdrawn = $variant->getProduct();
         if ($withdrawn->getState() === ProductStateEnum::RETIRED) {
-            throw new NoLongerAvailableException(sprintf('Jídlo „%s" už není v prodeji.', $withdrawn->getName()));
+            throw new NoLongerAvailableException($this->translator->trans('meal.withdrawn', [
+                '%meal%' => $withdrawn->getName(),
+            ], 'errors'));
         }
 
         $product = $variant->getProduct();
@@ -180,7 +186,9 @@ class MealWriter
         try {
             $this->capacityManager->lockForSale($variant);
         } catch (CapacityExceededException) {
-            throw new CapacityExceededException(sprintf('Jídlo „%s" je bohužel vyprodané.', $product->getName()));
+            throw new CapacityExceededException($this->translator->trans('meal.sold_out', [
+                '%meal%' => $product->getName(),
+            ], 'errors'));
         }
 
         $item = new OrderItem();

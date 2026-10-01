@@ -11,6 +11,7 @@ use App\Service\CustomerDeskRights;
 use App\Service\LegacySessionService;
 use App\State\Admin\CustomerAccommodationProvider;
 use App\State\Cart\AccommodationGridInterface;
+use App\Tests\Support\ChybovePreklady;
 use Doctrine\ORM\EntityManagerInterface;
 use Gamecon\Pravo;
 use PHPUnit\Framework\MockObject\MockObject;
@@ -40,9 +41,10 @@ class CustomerAccommodationProviderTest extends TestCase
 
         $this->provider = new CustomerAccommodationProvider(
             $this->accommodationGrid,
-            new CustomerDeskRights($this->legacySession),
+            new CustomerDeskRights($this->legacySession, ChybovePreklady::translator()),
             $this->legacySession,
             $this->entityManager,
+            ChybovePreklady::translator(),
         );
     }
 

@@ -17,6 +17,7 @@ use App\Service\LegacySessionService;
 use App\State\Admin\SetCustomerAccommodationProcessor;
 use App\State\Cart\AccommodationGridInterface;
 use App\Tests\AbstractDatabaseKernelTestCase;
+use App\Tests\Support\ChybovePreklady;
 use Doctrine\ORM\EntityManagerInterface;
 use Gamecon\Pravo;
 use PHPUnit\Framework\MockObject\MockObject;
@@ -56,10 +57,11 @@ class SetCustomerAccommodationProcessorTest extends AbstractDatabaseKernelTestCa
             $container->get(CurrentYearProviderInterface::class),
             // Real rights over the mocked session, so the tests exercise the actual rule
             // rather than a stub of it.
-            new CustomerDeskRights($this->legacySession),
+            new CustomerDeskRights($this->legacySession, ChybovePreklady::translator()),
             $this->legacySession,
             $this->accommodationGrid,
             $this->entityManager,
+            ChybovePreklady::translator(),
         );
     }
 
