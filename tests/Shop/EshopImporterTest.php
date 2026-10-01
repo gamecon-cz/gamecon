@@ -304,6 +304,33 @@ SQL,
     }
 
     /**
+     * The sheet still has one row per night and size, so each row's state is its variant's.
+     *
+     * @test
+     */
+    public function importNastaviStavVarianty(): void
+    {
+        $importer = new EshopImporter($this->createXlsxSoubor([
+            $this->defaultniRadek([
+                'kod_predmetu' => 'POLOZKA_STAV',
+                'stav'         => StavPredmetu::VEREJNY,
+            ]),
+        ]));
+        $importer->importuj();
+        self::assertSame(StavPredmetu::VEREJNY, $this->stavVarianty('POLOZKA_STAV'));
+
+        $importer = new EshopImporter($this->createXlsxSoubor([
+            $this->defaultniRadek([
+                'kod_predmetu' => 'POLOZKA_STAV',
+                'stav'         => StavPredmetu::POZASTAVENY,
+            ]),
+        ]));
+        $importer->importuj();
+
+        self::assertSame(StavPredmetu::POZASTAVENY, $this->stavVarianty('POLOZKA_STAV'));
+    }
+
+    /**
      * @test
      */
     public function importAktualizujeExistujiciPolozky(): void
@@ -583,9 +610,9 @@ VALUES (94201, 'Dvoulůžák', 'TYP_2L', 0, 1, NOW(), ''),
        (94203, 'Dvoulůžák sobota', 'NOC_2L_SO', 300, 1, NOW(), '')
 SQL);
         dbQuery(<<<SQL
-INSERT INTO product_variant (product_id, name, code, price, capacity, position)
-VALUES (94201, 'pátek', 'NOC_2L_PA', 300, 4, 0),
-       (94201, 'sobota', 'NOC_2L_SO', 300, 4, 1)
+INSERT INTO product_variant (product_id, name, code, price, capacity, position, state)
+VALUES (94201, 'pátek', 'NOC_2L_PA', 300, 4, 0, 1),
+       (94201, 'sobota', 'NOC_2L_SO', 300, 4, 1, 1)
 SQL);
         $this->nakupVarianty('NOC_2L_PA', kusu: 1);
 
@@ -638,6 +665,15 @@ SQL,
                 ],
             );
         }
+    }
+
+    private function stavVarianty(string $kod): ?int
+    {
+        $stav = dbOneCol('SELECT state FROM product_variant WHERE code = $0', [
+            0 => $kod,
+        ]);
+
+        return $stav === null ? null : (int) $stav;
     }
 
     private function zasobaVarianty(string $kod): ?int
