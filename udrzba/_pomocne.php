@@ -94,6 +94,8 @@ function nasad(
     '
     preprocess = no
     allowDelete = yes
+    ; the uploaded code must not boot the previous release's container, legacy queries need it
+    purge = symfony/var/cache/prod
   ";
 
     if (!empty($nastaveni['vetev'])) {

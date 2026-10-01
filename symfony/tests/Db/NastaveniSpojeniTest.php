@@ -32,6 +32,13 @@ class NastaveniSpojeniTest extends AbstractDatabaseKernelTestCase
         ));
     }
 
+    public function testRefusesSeveralStatementsInOneQuery(): void
+    {
+        $this->expectException(\Doctrine\DBAL\Exception::class);
+
+        $this->connection()->executeStatement('SELECT 1; SELECT 2');
+    }
+
     public function testFetchesValuesAsStrings(): void
     {
         self::assertSame('1', $this->connection()->fetchOne('SELECT 1'));

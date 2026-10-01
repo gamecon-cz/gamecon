@@ -12,10 +12,11 @@ doctrine:
                 charset: utf8mb4
                 wrapper_class: App\Doctrine\SharedConnection
                 # Legacy code shares this connection and was written against these session settings.
-                # PDO attributes by number, as YAML cannot name a constant in a key.
                 options:
-                    1002: 'SET NAMES utf8mb4 COLLATE utf8mb4_czech_ci, SESSION group_concat_max_len = 1048576' # MYSQL_ATTR_INIT_COMMAND
-                    17: true # ATTR_STRINGIFY_FETCHES
+                    !php/const PDO::MYSQL_ATTR_INIT_COMMAND: 'SET NAMES utf8mb4 COLLATE utf8mb4_czech_ci, SESSION group_concat_max_len = 1048576'
+                    !php/const PDO::ATTR_STRINGIFY_FETCHES: true
+                    # pdo_mysql allows several statements in one query unless told otherwise
+                    !php/const PDO::MYSQL_ATTR_MULTI_STATEMENTS: false
                 profiling_collect_backtrace: '%kernel.debug%'
                 use_savepoints: true
                 schema_filter: ~^(?!akce_lokace$)~ # Ignore akce_lokace (managed by legacy code)
