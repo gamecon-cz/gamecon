@@ -19,6 +19,8 @@ doctrine:
                     !php/const PDO::MYSQL_ATTR_MULTI_STATEMENTS: false
                 profiling_collect_backtrace: '%kernel.debug%'
                 use_savepoints: true
+                # Doctrine's idle-connection listener would close it, though another kernel may hold a transaction on it
+                idle_connection_ttl: 0
                 schema_filter: ~^(?!akce_lokace$)~ # Ignore akce_lokace (managed by legacy code)
 
     orm:
