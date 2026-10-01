@@ -11,6 +11,7 @@ use App\Entity\ProductVariant;
 use App\Entity\User;
 use App\Enum\ProductStateEnum;
 use App\Enum\ProductTagCode;
+use App\Exception\NoLongerAvailableException;
 use App\Service\CartService;
 use App\Structure\Entity\UserEntityStructure;
 use App\Tests\AbstractDatabaseKernelTestCase;
@@ -181,7 +182,7 @@ class CartServiceJidloTest extends AbstractDatabaseKernelTestCase
 
         $this->poTerminu();
 
-        $this->expectException(\RuntimeException::class);
+        $this->expectException(NoLongerAvailableException::class);
         $this->expectExceptionMessageMatches('~skončil~');
 
         $this->cartService()->addItem($kosik, $varianta);
@@ -203,7 +204,7 @@ class CartServiceJidloTest extends AbstractDatabaseKernelTestCase
 
         $this->poTerminu();
 
-        $this->expectException(\RuntimeException::class);
+        $this->expectException(NoLongerAvailableException::class);
         $this->expectExceptionMessageMatches('~skončil~');
 
         $this->cartService()->removeItem($kosik, $polozka);
@@ -230,7 +231,7 @@ class CartServiceJidloTest extends AbstractDatabaseKernelTestCase
 
         $this->poTerminu();
 
-        $this->expectException(\RuntimeException::class);
+        $this->expectException(NoLongerAvailableException::class);
         $this->expectExceptionMessageMatches('~skončil~');
 
         $this->cartService()->removeBundle($kosik, $balicek);

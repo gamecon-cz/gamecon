@@ -12,6 +12,7 @@ use App\Entity\ProductVariant;
 use App\Entity\User;
 use App\Enum\ProductStateEnum;
 use App\Enum\ProductTagCode;
+use App\Exception\InsufficientPermissionsException;
 use App\Service\CartService;
 use App\Service\OperatorOverride;
 use App\Structure\Entity\UserEntityStructure;
@@ -140,7 +141,7 @@ class CartServiceRestrictedProductTest extends AbstractDatabaseKernelTestCase
         $varianta = $this->vytvorTricko(ProductTagCode::TRICKO, ProductTagCode::TRICKO_CERVENE);
         $kosik = $this->cartService()->getOrCreateCart($zakaznik);
 
-        $this->expectException(\RuntimeException::class);
+        $this->expectException(InsufficientPermissionsException::class);
         $this->expectExceptionMessageMatches('~nemáš nárok~');
 
         $this->cartService()->addItem($kosik, $varianta);
@@ -155,7 +156,7 @@ class CartServiceRestrictedProductTest extends AbstractDatabaseKernelTestCase
         $varianta = $this->vytvorTricko(ProductTagCode::TRICKO, ProductTagCode::TRICKO_MODRE);
         $kosik = $this->cartService()->getOrCreateCart($zakaznik);
 
-        $this->expectException(\RuntimeException::class);
+        $this->expectException(InsufficientPermissionsException::class);
         $this->expectExceptionMessageMatches('~nemáš nárok~');
 
         $this->cartService()->addItem($kosik, $varianta);
@@ -198,7 +199,7 @@ class CartServiceRestrictedProductTest extends AbstractDatabaseKernelTestCase
 
         $kosik = $this->cartService()->getOrCreateCart($zakaznik);
 
-        $this->expectException(\RuntimeException::class);
+        $this->expectException(InsufficientPermissionsException::class);
         $this->expectExceptionMessageMatches('~nemáš nárok~');
 
         $this->cartService()->addBundle($kosik, $balicek);
@@ -218,7 +219,7 @@ class CartServiceRestrictedProductTest extends AbstractDatabaseKernelTestCase
         $kosik = new Order();
         $kosik->setYear((int) ROCNIK);
 
-        $this->expectException(\RuntimeException::class);
+        $this->expectException(InsufficientPermissionsException::class);
         $this->expectExceptionMessageMatches('~nemáš nárok~');
 
         $this->cartService()->addItem($kosik, $varianta);
