@@ -132,7 +132,7 @@ class BfsrReportTrickaTest extends TestCase
             sleva: $sleva,
             typ: TypPredmetu::TRICKO,
             kodPredmetu: $kodPredmetu,
-            idPredmetu: '1',
+            idVarianty: '1',
         );
     }
 }
