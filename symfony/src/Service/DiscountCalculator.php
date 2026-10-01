@@ -213,7 +213,7 @@ class DiscountCalculator
      */
     /**
      * A night or size is priced as its variant: a purchase points at the room type or shirt
-     * model, and only the variant knows which day or code it is.
+     * model, and only the variant knows its day and price. Code rules name products, though.
      */
     private function polozkaZProduktu(Product $product, ?int $accommodationDay = null, ?ProductVariant $variant = null): ?DiscountableItem
     {
@@ -231,7 +231,7 @@ class DiscountCalculator
 
         return new DiscountableItem(
             key: $product->getId() ?? 0,
-            productCode: $variant?->getCode() ?? $product->getCode(),
+            productCode: $product->getCode(),
             price: (float) ($variant?->getEffectivePrice() ?? $product->getCurrentPrice()),
             tags: $tagy,
             accommodationDay: $accommodationDay ?? $variant?->getAccommodationDay() ?? $product->getAccommodationDay(),
