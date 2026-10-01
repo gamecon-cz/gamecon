@@ -183,17 +183,61 @@ class ProductApiTest extends AbstractDatabaseKernelTestCase
 
         $response = $this->ulozVarianty($product, [
             $this->variantaJakoZEditoru($variant, capacity: 5),
-            [
-                'code'                  => $product->getCode() . '-XL',
-                'price'                 => null,
-                'capacity'              => null,
-                'reservedForOrganizers' => null,
-                'accommodationDay'      => null,
-                'position'              => 1,
-            ],
+            $this->novaVarianta($product, name: null),
         ]);
 
-        self::assertSame(422, $response->getStatusCode(), $response->getContent(false));
+        $this->assertVariantyMusiBytPojmenovane($response);
+    }
+
+    public function testEditorAddsANamedVariant(): void
+    {
+        [$product, $variant] = $this->produktSVariantou();
+
+        $response = $this->ulozVarianty($product, [
+            $this->variantaJakoZEditoru($variant, capacity: 5),
+            $this->novaVarianta($product, name: 'XL'),
+        ]);
+
+        self::assertSame(200, $response->getStatusCode(), $response->getContent(false));
+    }
+
+    public function testUnnamedVariantCannotBeAddedBesideANamedOne(): void
+    {
+        [$product] = $this->produktSVariantou();
+
+        $this->assertVariantyMusiBytPojmenovane($this->pridejVariantu($product, name: null));
+    }
+
+    public function testNamedVariantCannotBeAddedBesideAnUnnamedDefault(): void
+    {
+        [$product] = $this->produktSVariantou(name: null);
+
+        $this->assertVariantyMusiBytPojmenovane($this->pridejVariantu($product, name: 'XL'));
+    }
+
+    public function testNamedVariantIsAddedBesideANamedOne(): void
+    {
+        [$product] = $this->produktSVariantou();
+
+        $response = $this->pridejVariantu($product, name: 'XL');
+
+        self::assertSame(201, $response->getStatusCode(), $response->getContent(false));
+    }
+
+    public function testVariantAmongSeveralCannotLoseItsName(): void
+    {
+        [$product, $variant] = $this->produktSVariantou();
+        self::assertSame(201, $this->pridejVariantu($product, name: 'XL')->getStatusCode());
+
+        $response = $this->adminClient([
+            'Content-Type' => 'application/merge-patch+json',
+        ])->request('PATCH', '/symfony/api/product_variants/' . $variant->getId(), [
+            'body' => json_encode([
+                'name' => null,
+            ], JSON_THROW_ON_ERROR),
+        ]);
+
+        $this->assertVariantyMusiBytPojmenovane($response);
     }
 
     public function testEditorRejectsANegativeVariantCapacity(): void
@@ -354,6 +398,18 @@ class ProductApiTest extends AbstractDatabaseKernelTestCase
         self::assertSame(0, $this->pocetRadku('product_variant', 'id', $variant->getId()));
     }
 
+    public function testUnsoldVariantIsDeletedBesideASoldOne(): void
+    {
+        [$product, $soldVariant] = $this->produktSVariantou();
+        $this->prodej($product, $soldVariant);
+        $unsoldIri = json_decode($this->pridejVariantu($product, name: 'XL')->getContent(), true, flags: JSON_THROW_ON_ERROR)['@id'];
+
+        $response = $this->adminClient()->request('DELETE', $unsoldIri);
+
+        self::assertSame(204, $response->getStatusCode(), $response->getContent(false));
+        self::assertSame(1, $this->pocetRadku('product_variant', 'product_id', $product->getId()));
+    }
+
     private function prodej(Product $product, ProductVariant $variant): void
     {
         $this->connection()->executeStatement(
@@ -378,7 +434,7 @@ class ProductApiTest extends AbstractDatabaseKernelTestCase
     /**
      * @return array{Product, ProductVariant}
      */
-    private function produktSVariantou(): array
+    private function produktSVariantou(?string $name = 'M'): array
     {
         // product_tag.created_at is NOT NULL and unmapped, so the category row is created in SQL.
         $this->connection()->executeStatement(
@@ -392,7 +448,7 @@ class ProductApiTest extends AbstractDatabaseKernelTestCase
         $product->addTag($this->entityManager()->getRepository(ProductTag::class)->findOneBy([
             'code' => ProductTagCode::PREDMET->value,
         ]));
-        $variant = (new ProductVariant())->setName('M')->setCode($product->getCode() . '-M')->setCapacity(5)->setPosition(0);
+        $variant = (new ProductVariant())->setName($name)->setCode($product->getCode() . '-M')->setCapacity(5)->setPosition(0);
         $variant->setProduct($product);
         $product->addVariant($variant);
         $this->entityManager()->persist($product);
@@ -418,6 +474,43 @@ class ProductApiTest extends AbstractDatabaseKernelTestCase
             'accommodationDay'      => null,
             'position'              => 0,
         ];
+    }
+
+    /**
+     * @return array<string, mixed>
+     */
+    private function novaVarianta(Product $product, ?string $name): array
+    {
+        return [
+            'name'                  => $name,
+            'code'                  => $product->getCode() . '-XL',
+            'price'                 => null,
+            'capacity'              => null,
+            'reservedForOrganizers' => null,
+            'accommodationDay'      => null,
+            'position'              => 1,
+        ];
+    }
+
+    private function pridejVariantu(Product $product, ?string $name): ResponseInterface
+    {
+        return $this->adminClient()->request('POST', '/symfony/api/product_variants', [
+            'json' => [
+                ...$this->novaVarianta($product, $name),
+                'product' => '/symfony/api/products/' . $product->getId(),
+            ],
+        ]);
+    }
+
+    private function assertVariantyMusiBytPojmenovane(ResponseInterface $response): void
+    {
+        self::assertSame(422, $response->getStatusCode(), $response->getContent(false));
+        $violations = json_decode($response->getContent(false), true, flags: JSON_THROW_ON_ERROR)['violations'] ?? [];
+        self::assertContains(
+            'Produkt s více variantami potřebuje u každé varianty název (velikost, noc…).',
+            array_column($violations, 'message'),
+            $response->getContent(false),
+        );
     }
 
     /**
