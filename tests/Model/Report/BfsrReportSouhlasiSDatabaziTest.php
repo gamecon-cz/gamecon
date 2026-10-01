@@ -117,10 +117,11 @@ SQL,
                 0 => ProductTagCode::TRICKO->value,
             ],
         ],
+        self::SQL_VYCHOZI_VARIANTY,
         [
             <<<SQL
-INSERT INTO shop_nakupy(id_uzivatele, id_predmetu, rok, cena_nakupni)
-SELECT $1, id_predmetu, $0, cena_aktualni FROM shop_predmety WHERE id_predmetu BETWEEN 46610 AND 46613
+INSERT INTO shop_nakupy(id_uzivatele, id_predmetu, variant_id, rok, cena_nakupni)
+SELECT $1, id_predmetu, (SELECT product_variant.id FROM product_variant WHERE product_variant.code = shop_predmety.kod_predmetu), $0, cena_aktualni FROM shop_predmety WHERE id_predmetu BETWEEN 46610 AND 46613
 SQL,
             [
                 0 => ROCNIK,

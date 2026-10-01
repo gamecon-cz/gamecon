@@ -177,6 +177,7 @@ SET id_predmetu = {$idPredmetu},
     cena_aktualni = 0.0 -- nemá na nic vliv, "nákup" řešíme přímým zápisem do DB včetně vlastní podejní ceny
 SQL,
             "INSERT INTO product_product_tag (product_id, tag_id) SELECT {$idPredmetu}, id FROM product_tag WHERE code = '{$tagCode}'",
+            self::SQL_VYCHOZI_VARIANTY,
         ];
     }
 
@@ -294,9 +295,11 @@ SQL;
         int $rok,
         float $cena,
     ): string {
+        $varianta = sprintf(self::SQL_VARIANTA_RADKU, $idPredmetuUbytovani);
+
         return <<<SQL
-INSERT INTO shop_nakupy(id_uzivatele, id_predmetu, rok, cena_nakupni)
-VALUES ({$idUzivatele}, {$idPredmetuUbytovani}, {$rok}, {$cena})
+INSERT INTO shop_nakupy(id_uzivatele, id_predmetu, variant_id, rok, cena_nakupni)
+VALUES ({$idUzivatele}, {$idPredmetuUbytovani}, {$varianta}, {$rok}, {$cena})
 SQL;
     }
 

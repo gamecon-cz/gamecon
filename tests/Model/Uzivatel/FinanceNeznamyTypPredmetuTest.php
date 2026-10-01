@@ -23,10 +23,11 @@ SQL,
             ],
         ],
         // No product_product_tag INSERT — product has no tag, so view returns typ=NULL
+        self::SQL_VYCHOZI_VARIANTY,
         [
             <<<SQL
-INSERT INTO shop_nakupy(id_uzivatele, id_predmetu, rok, cena_nakupni)
-SELECT 334, id_predmetu, $0, 0 FROM shop_predmety WHERE id_predmetu IN (33313)
+INSERT INTO shop_nakupy(id_uzivatele, id_predmetu, variant_id, rok, cena_nakupni)
+SELECT 334, id_predmetu, (SELECT product_variant.id FROM product_variant WHERE product_variant.code = shop_predmety.kod_predmetu), $0, 0 FROM shop_predmety WHERE id_predmetu IN (33313)
 SQL,
             [
                 0 => ROCNIK,
