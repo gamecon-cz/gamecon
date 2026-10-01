@@ -21,10 +21,11 @@ accommodation:
     at_least_two_nights: 'Ubytování je možné objednat nejméně na dvě noci.'
     consecutive_nights: 'Objednané noci musí na sebe navazovat.'
     overbooking_not_permitted: 'Ubytování „%product%" na %night% je plné; přeplnit ho smí jen šéf infopultu.'
+    night_full: 'Ubytování „%product%" na %night% je obsazené.'
 
 accommodation_import:
     type_not_unique: 'Nepodařilo se jednoznačně dohledat ubytování typu "%type%" pro %days%. Nalezeno %found% předmětů.'
-    days: '{1}%count% den|[2,4]%count% dny|[5,Inf[%count% dnů'
+    days: '{0}%count% dnů|{1}%count% den|[2,4]%count% dny|[5,Inf[%count% dnů'
     incomplete_night_range: 'První a poslední noc musí být buďto obě prázdné, nebo obě zadané: první noc %first%, poslední noc %last%'
     participant_not_found: 'Účastník %id% neexistuje.'
     night_not_found: 'Některou noc se nepodařilo dohledat mezi variantami ubytování.'
