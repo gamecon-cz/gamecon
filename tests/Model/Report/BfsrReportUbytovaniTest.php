@@ -135,7 +135,7 @@ class BfsrReportUbytovaniTest extends AbstractTestDb
             sleva: 0.0,
             typ: $typ,
             kodPredmetu: '',
-            idPredmetu: '',
+            idVarianty: '',
         );
 
         self::assertTrue(
@@ -173,7 +173,7 @@ class BfsrReportUbytovaniTest extends AbstractTestDb
             sleva: 0.0,
             typ: TypPredmetu::PREDMET,
             kodPredmetu: 'mikina_2026_verne_l',
-            idPredmetu: '1',
+            idVarianty: '1',
         );
 
         self::assertFalse(BfsrReport::jeUcetniRadekMimoShop($polozka));

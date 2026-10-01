@@ -678,14 +678,14 @@ SQL,
         return $this->systemoveNastaveni->prodejUbytovaniDo()->format('j. n.');
     }
 
-    public function zrusNakupPredmetu(
-        $idPredmetu,
+    public function zrusNakupVarianty(
+        int $idVarianty,
         int $pocet,
     ): int {
         $idsNakupu = dbOneArray(
-            'SELECT id_nakupu FROM shop_nakupy WHERE id_uzivatele = $0 AND id_predmetu = $1 AND rok = $2 ORDER BY id_nakupu'
+            'SELECT id_nakupu FROM shop_nakupy WHERE id_uzivatele = $0 AND variant_id = $1 AND rok = $2 ORDER BY id_nakupu'
             . ($pocet > 0 ? ' LIMIT ' . $pocet : ''),
-            [0 => $this->zakaznik->id(), 1 => (int)$idPredmetu, 2 => ROCNIK],
+            [0 => $this->zakaznik->id(), 1 => $idVarianty, 2 => ROCNIK],
         );
 
         return $this->sluzba(BulkCancelService::class)->removePurchases($idsNakupu);

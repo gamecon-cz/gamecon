@@ -497,9 +497,14 @@ SQL,
         $account = Accounting::getPersonalFinance($this->dejUzivatele(), showDiscounts: false);
         $transactions = $account->getTransactions();
 
-        self::assertMatchesRegularExpression('/^#U\[\d+]#P\[\d+]$/', $transactions[0]->getId());
+        self::assertMatchesRegularExpression('/^#U\[\d+]#V\[\d+]$/', $transactions[0]->getId());
         self::assertStringContainsString('#U[555]', $transactions[0]->getId());
-        self::assertStringContainsString('#P[55501]', $transactions[0]->getId());
+        self::assertStringContainsString(
+            '#V[' . dbOneCol('SELECT id FROM product_variant WHERE code = $0', [
+                0 => 'acc_predmet_' . ROCNIK,
+            ]) . ']',
+            $transactions[0]->getId(),
+        );
     }
 
     /**

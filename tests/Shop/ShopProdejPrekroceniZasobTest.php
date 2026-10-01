@@ -209,7 +209,7 @@ SQL,
         $shop->prodat(88814, 2);
         self::assertSame(1, $zbyva(), 'Prodej měl ubrat dva kusy');
 
-        $shop->zrusNakupPredmetu(88814, 2);
+        $shop->zrusNakupVarianty((int) dbOneCol("SELECT id FROM product_variant WHERE code = 'zruseni_prodej_test'"), 2);
 
         self::assertSame(3, $zbyva(), 'Zrušení mělo oba kusy vrátit');
     }
