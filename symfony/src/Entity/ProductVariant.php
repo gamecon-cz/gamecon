@@ -92,9 +92,14 @@ class ProductVariant
     #[Groups([Product::READ, self::READ])]
     private ?int $id = null;
 
+    /**
+     * Rules over a product's variants live on the product, so a variant saved on its own is checked there.
+     * Only on save: an ungrouped Valid cascades into every group, and deleting would then re-check the siblings.
+     */
     #[ORM\ManyToOne(targetEntity: Product::class, inversedBy: 'variants')]
     #[ORM\JoinColumn(name: 'product_id', referencedColumnName: 'id_predmetu', nullable: false, onDelete: 'CASCADE')]
     #[Groups([self::READ, self::WRITE])]
+    #[Assert\Valid(groups: ['Default'])]
     private Product $product;
 
     /**
@@ -182,6 +187,7 @@ class ProductVariant
     public function setProduct(Product $product): self
     {
         $this->product = $product;
+        $product->addVariant($this);
 
         return $this;
     }
