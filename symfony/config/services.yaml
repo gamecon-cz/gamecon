@@ -30,6 +30,8 @@ services:
         factory: ['App\Doctrine\SharedConnection', 'share']
         arguments: ['@.inner']
         public: true
+    App\Doctrine\SharedConnection:
+        alias: app.doctrine.shared_connection
 
     # Pravidla slev se čtou legacy funkcí dbFetchAll — callable se nedá autowirovat.
     App\Discount\DiscountRuleLoader:
