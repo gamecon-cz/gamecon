@@ -20,7 +20,7 @@ use Gamecon\XTemplate\XTemplate;
 final class QrOdkaz
 {
     private const VELIKOST_PX = 1000;
-    private const OKRAJ_PX    = 40;
+    private const OKRAJ_PX = 40;
 
     public function __construct(
         private readonly string $url,
