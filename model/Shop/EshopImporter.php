@@ -233,14 +233,13 @@ SQL,
             $pocetNovych = dbAffectedOrNumRows($mysqliResult);
 
             // Every product is addressable by the cart through a variant, so a product without one
-            // is invisible to it. Give each imported product the default variant mirroring itself,
-            // the same shape the backfill migration created for legacy rows. Restricted to the
-            // imported codes, so a product whose variants were deliberately removed elsewhere does
-            // not get one resurrected here.
+            // is invisible to it. Give each imported product its default variant, nameless because
+            // it is shown as the product itself. Restricted to the imported codes, so a product
+            // whose variants were deliberately removed elsewhere does not get one resurrected here.
             dbQuery(<<<SQL
 INSERT INTO product_variant (product_id, name, code, price, reserved_for_organizers, accommodation_day, position, state)
 SELECT shop_predmety.id_predmetu,
-       shop_predmety.nazev,
+       NULL,
        shop_predmety.kod_predmetu,
        NULL,
        NULL,
@@ -268,17 +267,12 @@ SET product_variant.capacity = import.kusu_vyrobeno
 SQL,
             );
 
-            // A re-import may rename a product; the default variant mirrors it, so it has to
-            // follow, otherwise the cart keeps showing (and snapshotting) the old label.
-            //
-            // Only a product whose single variant IS that default may be renamed. Real variants
-            // (t-shirt sizes, accommodation nights) carry their own name ("neděle", "XL").
+            // A default variant (a product's only one, with its code) keeps the product's day.
             dbQuery(<<<SQL
 UPDATE product_variant
 JOIN shop_predmety ON shop_predmety.id_predmetu = product_variant.product_id
 JOIN `{$temporaryTable}` AS import ON import.kod_predmetu = shop_predmety.kod_predmetu
-SET product_variant.name = shop_predmety.nazev,
-    product_variant.accommodation_day = shop_predmety.ubytovani_den
+SET product_variant.accommodation_day = shop_predmety.ubytovani_den
 WHERE product_variant.code = shop_predmety.kod_predmetu
   AND (
       SELECT COUNT(*) FROM product_variant AS sourozenci

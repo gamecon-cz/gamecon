@@ -17,7 +17,7 @@ abstract class AbstractTestDb extends KernelTestCase
      */
     protected const SQL_VYCHOZI_VARIANTY = <<<SQL
 INSERT INTO product_variant (product_id, name, code, position, state, accommodation_day)
-SELECT shop_predmety.id_predmetu, shop_predmety.nazev, shop_predmety.kod_predmetu, 0, shop_predmety.stav, shop_predmety.ubytovani_den
+SELECT shop_predmety.id_predmetu, NULL, shop_predmety.kod_predmetu, 0, shop_predmety.stav, shop_predmety.ubytovani_den
 FROM shop_predmety
 WHERE NOT EXISTS (SELECT 1 FROM product_variant WHERE product_variant.code = shop_predmety.kod_predmetu)
 SQL;
