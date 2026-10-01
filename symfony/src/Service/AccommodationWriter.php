@@ -8,6 +8,7 @@ use App\Entity\OrderItem;
 use App\Entity\ProductVariant;
 use App\Entity\User;
 use App\Enum\ProductTagCode;
+use App\Exception\CapacityExceededException;
 use App\Exception\InsufficientPermissionsException;
 use App\Exception\InvalidRequestException;
 use App\Exception\UserFacingException;
@@ -38,7 +39,8 @@ class AccommodationWriter
     }
 
     /**
-     * @param int[] $variantIds nights the customer wants to end up with
+     * @param int[]     $variantIds  nights the customer wants to end up with
+     * @param bool|null $mayOverbook null when the caller is not the desk, which alone is offered overbooking
      *
      * @throws UserFacingException when the nights break a rule or a bed is gone
      */
@@ -50,7 +52,7 @@ class AccommodationWriter
         ?string $roommate = null,
         ?bool $declined = false,
         bool $sleepingBagsOnly = false,
-        bool $mayOverbook = false,
+        ?bool $mayOverbook = null,
         bool $jeOrganizator = false,
     ): int {
         $variants = $this->loadVariants($variantIds, $sleepingBagsOnly);
@@ -359,7 +361,7 @@ class AccommodationWriter
         User $customer,
         ProductVariant $variant,
         int $year,
-        bool $mayOverbook,
+        ?bool $mayOverbook,
         bool $jeOrganizator,
     ): int {
         $product = $variant->getProduct();
@@ -380,7 +382,7 @@ class AccommodationWriter
                 'variant' => $variant->getId(),
             ],
         );
-        if (! $mayOverbook && $capacity !== null) {
+        if ($mayOverbook !== true && $capacity !== null) {
             // A locking read, as in CapacityManager::lockForSale(): a plain one relies on the
             // caller's READ COMMITTED to see purchases committed while waiting for the lock.
             $sold = (int) $this->connection->fetchOne(
@@ -393,12 +395,16 @@ class AccommodationWriter
             // Beds held back for organizers are off limits to participants only.
             $heldBack = $jeOrganizator ? 0 : $this->rezervovanoProOrganizatory($variant);
             if ((int) $capacity - $heldBack <= $sold) {
-                // The override makes the capacity test always pass, so getting here at all means
-                // the caller did not have it. Telling the desk the night is "obsazené" when the
-                // real answer is "you may not overbook" sends them hunting for a bed that exists.
-                throw new InsufficientPermissionsException($this->translator->trans('accommodation.overbooking_not_permitted', [
-                    '%product%' => $product->getName(), '%night%' => $variant->getName(),
-                ], 'errors'));
+                $parameters = [
+                    '%product%' => $product->getName(),
+                    '%night%'   => $variant->getName(),
+                ];
+                // Telling the desk the night is "obsazené" when the real answer is "you may not
+                // overbook" sends them hunting for a bed that exists.
+                if ($mayOverbook === false) {
+                    throw new InsufficientPermissionsException($this->translator->trans('accommodation.overbooking_not_permitted', $parameters, 'errors'));
+                }
+                throw new CapacityExceededException($this->translator->trans('accommodation.night_full', $parameters, 'errors'));
             }
         }
 
