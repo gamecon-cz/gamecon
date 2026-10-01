@@ -15,8 +15,12 @@ use App\Tests\AbstractDatabaseKernelTestCase;
  */
 class ProductRepositoryNabizetDoTest extends AbstractDatabaseKernelTestCase
 {
-    private function vlozRadekNoci(string $kod, ?string $nabizetDo, int $stav = ProductStateEnum::PUBLIC->value): void
-    {
+    private function vlozRadekNoci(
+        string $kod,
+        ?string $nabizetDo,
+        int $stav = ProductStateEnum::PUBLIC->value,
+        ?int $stavVarianty = null,
+    ): void {
         $this->connection()->executeStatement(
             'INSERT INTO shop_predmety
                 (nazev, kod_predmetu, cena_aktualni, stav, nabizet_do, popis)
@@ -30,12 +34,13 @@ class ProductRepositoryNabizetDoTest extends AbstractDatabaseKernelTestCase
             ],
         );
         $this->connection()->executeStatement(
-            'INSERT INTO product_variant (product_id, name, code, capacity, position)
-             VALUES (:produkt, :nazev, :kod, 10, 0)',
+            'INSERT INTO product_variant (product_id, name, code, capacity, position, state)
+             VALUES (:produkt, :nazev, :kod, 10, 0, :stav)',
             [
                 'produkt' => $this->connection()->lastInsertId(),
                 'nazev'   => 'Test noc ' . $kod,
                 'kod'     => $kod,
+                'stav'    => $stavVarianty ?? $stav,
             ],
         );
     }
@@ -77,5 +82,18 @@ class ProductRepositoryNabizetDoTest extends AbstractDatabaseKernelTestCase
 
         self::assertTrue($nalezene[$kod]['nabizeno']);
         self::assertSame(10, $nalezene[$kod]['vyrobeno']);
+    }
+
+    /**
+     * The night's own catalog row is a leftover of the legacy layout; the variant is the night.
+     */
+    public function testONabizeniRozhodujeStavVarianty(): void
+    {
+        $kod = 'test-noc-varianta-pozastavena-' . uniqid();
+        $this->vlozRadekNoci($kod, null, ProductStateEnum::PUBLIC->value, ProductStateEnum::SUSPENDED->value);
+
+        $nalezene = $this->repository()->capacityByVariantCode([$kod]);
+
+        self::assertFalse($nalezene[$kod]['nabizeno']);
     }
 }

@@ -50,6 +50,11 @@ class ProductVariantEntityStructure
     public const position = 'position';
 
     /**
+     * @see ProductVariant::$state
+     */
+    public const state = 'state';
+
+    /**
      * @see ProductVariant::$product
      */
     public const product = 'product';

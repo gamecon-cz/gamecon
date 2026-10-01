@@ -83,8 +83,8 @@ SQL,
             SELECT {$id}, id FROM product_tag WHERE code = '{$tagCode}'");
 
         // Capacity lives on the variant with the product's code, as every catalog row has one.
-        dbQuery("INSERT INTO product_variant (product_id, name, code, capacity, accommodation_day, position)
-            VALUES ({$id}, '{$nazev}', '{$kodPredmetu}', {$kusuVyrobenoSql}, {$ubytovaniDenSql}, 0)");
+        dbQuery("INSERT INTO product_variant (product_id, name, code, capacity, accommodation_day, position, state)
+            VALUES ({$id}, '{$nazev}', '{$kodPredmetu}', {$kusuVyrobenoSql}, {$ubytovaniDenSql}, 0, {$stav})");
     }
 
     protected static function getBeforeClassInitCallbacks(): array

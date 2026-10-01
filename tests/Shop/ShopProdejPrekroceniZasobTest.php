@@ -80,10 +80,10 @@ SQL,
                     SELECT 88812, id FROM product_tag WHERE code = 'predmet'");
 
                 // Varianta ke každému prodejnému předmětu, jak to má produkce.
-                dbQuery("INSERT INTO product_variant (product_id, name, code, price, capacity, position)
-                    VALUES (88811, 'Limitovaný předmět', 'limit_prodej_test', 100, 2, 0)");
-                dbQuery("INSERT INTO product_variant (product_id, name, code, price, capacity, position)
-                    VALUES (88812, 'Neomezený předmět', 'unlim_prodej_test', 100, NULL, 0)");
+                dbQuery("INSERT INTO product_variant (product_id, name, code, price, capacity, position, state)
+                    VALUES (88811, 'Limitovaný předmět', 'limit_prodej_test', 100, 2, 0, 1)");
+                dbQuery("INSERT INTO product_variant (product_id, name, code, price, capacity, position, state)
+                    VALUES (88812, 'Neomezený předmět', 'unlim_prodej_test', 100, NULL, 0, 1)");
 
                 // Vlastní předmět pro test zápisu varianty: třída nemá rollback po metodě,
                 // takže prodej z jednoho testu by ubral zásobu tomu dalšímu.
@@ -97,8 +97,8 @@ SQL,
                     popis = ''");
                 dbQuery("INSERT INTO product_product_tag (product_id, tag_id)
                     SELECT 88813, id FROM product_tag WHERE code = 'predmet'");
-                dbQuery("INSERT INTO product_variant (product_id, name, code, price, capacity, position)
-                    VALUES (88813, 'Předmět pro variantu', 'varianta_prodej_test', 100, 2, 0)");
+                dbQuery("INSERT INTO product_variant (product_id, name, code, price, capacity, position, state)
+                    VALUES (88813, 'Předmět pro variantu', 'varianta_prodej_test', 100, 2, 0, 1)");
 
                 dbQuery("INSERT INTO shop_predmety SET
                     id_predmetu = 88814,
@@ -110,8 +110,8 @@ SQL,
                     popis = ''");
                 dbQuery("INSERT INTO product_product_tag (product_id, tag_id)
                     SELECT 88814, id FROM product_tag WHERE code = 'predmet'");
-                dbQuery("INSERT INTO product_variant (product_id, name, code, price, capacity, position)
-                    VALUES (88814, 'Předmět pro zrušení', 'zruseni_prodej_test', 100, 3, 0)");
+                dbQuery("INSERT INTO product_variant (product_id, name, code, price, capacity, position, state)
+                    VALUES (88814, 'Předmět pro zrušení', 'zruseni_prodej_test', 100, 3, 0, 1)");
 
                 dbQuery("INSERT INTO shop_predmety SET
                     id_predmetu = 88815,
@@ -123,8 +123,8 @@ SQL,
                     popis = ''");
                 dbQuery("INSERT INTO product_product_tag (product_id, tag_id)
                     SELECT 88815, id FROM product_tag WHERE code = 'predmet'");
-                dbQuery("INSERT INTO product_variant (product_id, name, code, price, capacity, position)
-                    VALUES (88815, 'Předmět pro souběh', 'soubeh_prodej_test', 100, 5, 0)");
+                dbQuery("INSERT INTO product_variant (product_id, name, code, price, capacity, position, state)
+                    VALUES (88815, 'Předmět pro souběh', 'soubeh_prodej_test', 100, 5, 0, 1)");
 
                 // Room type owning its nights: no variant carries the type's own code.
                 dbQuery("INSERT INTO shop_predmety SET
@@ -149,8 +149,8 @@ SQL,
                     FROM product_tag
                     INNER JOIN (SELECT 88816 AS id_predmetu UNION SELECT 88817) AS ubytovani
                     WHERE product_tag.code = 'ubytovani'");
-                dbQuery("INSERT INTO product_variant (product_id, name, code, price, capacity, accommodation_day, position)
-                    VALUES (88816, 'pátek', 'pokoj_prodej_test-pa', 300, 3, 2, 0)");
+                dbQuery("INSERT INTO product_variant (product_id, name, code, price, capacity, accommodation_day, position, state)
+                    VALUES (88816, 'pátek', 'pokoj_prodej_test-pa', 300, 3, 2, 0, 1)");
 
                 // Room type that got a default variant of its own, as a fresh import gives one.
                 dbQuery("INSERT INTO shop_predmety SET
@@ -163,8 +163,8 @@ SQL,
                     popis = ''");
                 dbQuery("INSERT INTO product_product_tag (product_id, tag_id)
                     SELECT 88818, id FROM product_tag WHERE code = 'ubytovani'");
-                dbQuery("INSERT INTO product_variant (product_id, name, code, price, accommodation_day, position)
-                    VALUES (88818, 'Postel na jiném pokoji', 'pokoj_s_variantou_test-typ', 300, NULL, 0)");
+                dbQuery("INSERT INTO product_variant (product_id, name, code, price, accommodation_day, position, state)
+                    VALUES (88818, 'Postel na jiném pokoji', 'pokoj_s_variantou_test-typ', 300, NULL, 0, 3)");
             },
         ];
     }

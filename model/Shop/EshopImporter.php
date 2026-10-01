@@ -236,14 +236,15 @@ SQL,
             // imported codes, so a product whose variants were deliberately removed elsewhere does
             // not get one resurrected here.
             dbQuery(<<<SQL
-INSERT INTO product_variant (product_id, name, code, price, reserved_for_organizers, accommodation_day, position)
+INSERT INTO product_variant (product_id, name, code, price, reserved_for_organizers, accommodation_day, position, state)
 SELECT shop_predmety.id_predmetu,
        shop_predmety.nazev,
        shop_predmety.kod_predmetu,
        NULL,
        NULL,
        shop_predmety.ubytovani_den,
-       0
+       0,
+       shop_predmety.stav
 FROM shop_predmety
 JOIN `{$temporaryTable}` AS import ON import.kod_predmetu = shop_predmety.kod_predmetu
 WHERE NOT EXISTS (
@@ -256,12 +257,13 @@ WHERE NOT EXISTS (
 SQL,
             );
 
-            // The sheet's kusu_vyrobeno is the capacity of the variant with that code — sizes and
-            // nights have their own rows in it, so this covers them as well as default variants.
+            // The sheet has a row per size and night, so a row's kusu_vyrobeno and stav are those
+            // of the variant with its code, default variants included.
             dbQuery(<<<SQL
 UPDATE product_variant
 INNER JOIN `{$temporaryTable}` AS import ON import.kod_predmetu = product_variant.code
-SET product_variant.capacity = import.kusu_vyrobeno
+SET product_variant.capacity = import.kusu_vyrobeno,
+    product_variant.state = import.stav
 SQL,
             );
 

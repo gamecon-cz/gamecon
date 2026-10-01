@@ -52,6 +52,11 @@ class ProductVariantSqlStructure
     public const position = 'position';
 
     /**
+     * @see ProductVariant::$state
+     */
+    public const state = 'state';
+
+    /**
      * @see ProductVariant::$product
      */
     public const product_id = 'product_id';

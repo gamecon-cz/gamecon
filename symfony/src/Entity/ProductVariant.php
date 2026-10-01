@@ -11,6 +11,7 @@ use ApiPlatform\Metadata\GetCollection;
 use ApiPlatform\Metadata\Patch;
 use ApiPlatform\Metadata\Post;
 use ApiPlatform\Metadata\Put;
+use App\Enum\ProductStateEnum;
 use App\Repository\ProductVariantRepository;
 use App\Validator as AppAssert;
 use Doctrine\Common\Collections\ArrayCollection;
@@ -132,6 +133,14 @@ class ProductVariant
     private int $position = 0;
 
     /**
+     * Whether this night or size is on offer. Its own, not the product's: a room type nobody
+     * buys stays suspended while its nights are on sale.
+     */
+    #[ORM\Column(name: 'state', type: Types::SMALLINT, nullable: false, enumType: ProductStateEnum::class)]
+    #[Groups([Product::READ, Product::WRITE, self::READ, self::WRITE])]
+    private ProductStateEnum $state;
+
+    /**
      * @var Collection<int, OrderItem>
      */
     #[ORM\OneToMany(targetEntity: OrderItem::class, mappedBy: 'variant')]
@@ -161,9 +170,13 @@ class ProductVariant
         return $this->product;
     }
 
+    /**
+     * A new variant is offered as its product is, unless it was given a state of its own.
+     */
     public function setProduct(Product $product): self
     {
         $this->product = $product;
+        $this->state ??= $product->getState();
 
         return $this;
     }
@@ -236,6 +249,18 @@ class ProductVariant
     public function setAccommodationDay(?int $accommodationDay): self
     {
         $this->accommodationDay = $accommodationDay;
+
+        return $this;
+    }
+
+    public function getState(): ProductStateEnum
+    {
+        return $this->state;
+    }
+
+    public function setState(ProductStateEnum $state): self
+    {
+        $this->state = $state;
 
         return $this;
     }

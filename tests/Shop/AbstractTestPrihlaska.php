@@ -164,12 +164,13 @@ SQL,
         $idPredmetu = dbInsertId();
         // Capacity lives on the variant with the product's code, as every catalog row has one.
         dbQuery(
-            'INSERT INTO product_variant (product_id, name, code, capacity, position) VALUES ($0, $1, $2, $3, 0)',
+            'INSERT INTO product_variant (product_id, name, code, capacity, position, state) VALUES ($0, $1, $2, $3, 0, $4)',
             [
                 0 => $idPredmetu,
                 1 => $nazev,
                 2 => $kodPredmetu,
                 3 => $kusuVyrobeno,
+                4 => $stav,
             ],
         );
         $this->oznacTypem($idPredmetu, $typ);
