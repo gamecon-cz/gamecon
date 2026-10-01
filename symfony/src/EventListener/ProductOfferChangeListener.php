@@ -51,8 +51,12 @@ class ProductOfferChangeListener
         $this->changed = [];
 
         $entityManager = $args->getObjectManager();
-        foreach ($entityManager->getUnitOfWork()->getIdentityMap()[ProductVariant::class] ?? [] as $variant) {
+        $unitOfWork = $entityManager->getUnitOfWork();
+        foreach ($unitOfWork->getIdentityMap()[ProductVariant::class] ?? [] as $variant) {
             /** @var ProductVariant $variant */
+            if ($unitOfWork->isUninitializedObject($variant)) {
+                continue;
+            }
             if (isset($changed[(int) $variant->getProduct()->getId()]) || in_array($variant->getCode(), $changed, true)) {
                 $entityManager->refresh($variant);
             }
