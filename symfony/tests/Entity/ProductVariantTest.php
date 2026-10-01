@@ -91,6 +91,29 @@ class ProductVariantTest extends TestCase
         $this->assertSame(2, $variant->getAccommodationDay());
     }
 
+    public function testNewVariantIsOfferedLikeItsProduct(): void
+    {
+        $this->product->setState(ProductStateEnum::SUSPENDED);
+
+        $variant = $this->createVariant('M', 'TRICKO-MODRE-M');
+
+        $this->assertSame(ProductStateEnum::SUSPENDED, $variant->getState());
+    }
+
+    /**
+     * A night goes on sale while its room type, which nobody buys, stays suspended.
+     */
+    public function testVariantKeepsItsOwnState(): void
+    {
+        $this->product->setState(ProductStateEnum::SUSPENDED);
+        $variant = new ProductVariant();
+        $variant->setState(ProductStateEnum::PUBLIC);
+
+        $variant->setProduct($this->product);
+
+        $this->assertSame(ProductStateEnum::PUBLIC, $variant->getState());
+    }
+
     private function createVariant(string $name, string $code): ProductVariant
     {
         $variant = new ProductVariant();
