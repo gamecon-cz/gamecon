@@ -9,6 +9,7 @@ use App\Entity\ProductVariant;
 use App\Entity\User;
 use App\Enum\ProductStateEnum;
 use App\Enum\RoleMeaning;
+use App\Exception\CapacityExceededException;
 use App\Service\CapacityManager;
 use App\Service\CurrentYearProviderInterface;
 use App\Service\OperatorOverride;
@@ -180,7 +181,7 @@ class CapacityManagerTest extends AbstractDatabaseKernelTestCase
         $variant = $this->varianta(kusuVyrobeno: 2);
         $this->prodej($variant, 1);
 
-        $this->expectException(\RuntimeException::class);
+        $this->expectException(CapacityExceededException::class);
         $this->expectExceptionMessageMatches('~kapacita~');
 
         $this->capacityManager()->lockForSale($variant, 2);
@@ -191,7 +192,7 @@ class CapacityManagerTest extends AbstractDatabaseKernelTestCase
         $variant = $this->varianta(kusuVyrobeno: 3, rezervaVarianty: 2);
         $this->prodej($variant, 1);
 
-        $this->expectException(\RuntimeException::class);
+        $this->expectException(CapacityExceededException::class);
 
         $this->capacityManager()->lockForSale($variant);
     }
@@ -243,7 +244,7 @@ class CapacityManagerTest extends AbstractDatabaseKernelTestCase
 
             $this->nakupNa($this->connection(), $varianty[0]);
 
-            $this->expectException(\RuntimeException::class);
+            $this->expectException(CapacityExceededException::class);
             $druhyKupujici->lockForSale($varianty[0]);
         });
     }

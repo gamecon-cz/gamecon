@@ -6,6 +6,8 @@ namespace App\Service;
 
 use App\Entity\ProductVariant;
 use App\Entity\User;
+use App\Exception\InvalidRequestException;
+use App\Exception\UserFacingException;
 use Doctrine\ORM\EntityManagerInterface;
 
 /**
@@ -42,7 +44,7 @@ readonly class AccommodationImport
      *
      * @return int[] id předmětů, jedno pro každý žádaný den
      *
-     * @throws \RuntimeException když se pro některý den noc nenajde
+     * @throws InvalidRequestException když se pro některý den noc nenajde
      */
     public function dejIdsNociPodleTypu(string $kodTypu, array $dny, int $rok): array
     {
@@ -74,7 +76,7 @@ readonly class AccommodationImport
 
         $ids = array_map('intval', $ids);
         if (count($ids) !== count($dny)) {
-            throw new \RuntimeException(sprintf('Nepodařilo se jednoznačně dohledat ubytování typu "%s" pro %d %s. Nalezeno %d předmětů.', $kodTypu, count($dny), count($dny) === 1 ? 'den' : 'dnů', count($ids)));
+            throw new InvalidRequestException(sprintf('Nepodařilo se jednoznačně dohledat ubytování typu "%s" pro %d %s. Nalezeno %d předmětů.', $kodTypu, count($dny), count($dny) === 1 ? 'den' : 'dnů', count($ids)));
         }
 
         return $ids;
@@ -107,7 +109,7 @@ readonly class AccommodationImport
      *
      * @return int kolik datových řádků se změnilo
      *
-     * @throws \RuntimeException když je zadaná jen jedna mez rozsahu
+     * @throws InvalidRequestException když je zadaná jen jedna mez rozsahu
      */
     public function ulozPokoj(
         int $idUzivatele,
@@ -129,7 +131,7 @@ readonly class AccommodationImport
         }
 
         if ($prvniNoc === null || $posledniNoc === null) {
-            throw new \RuntimeException(sprintf('První a poslední noc musí být buďto obě prázdné, nebo obě zadané: první noc %s, poslední noc %s', $prvniNoc ?? '', $posledniNoc ?? ''));
+            throw new InvalidRequestException(sprintf('První a poslední noc musí být buďto obě prázdné, nebo obě zadané: první noc %s, poslední noc %s', $prvniNoc ?? '', $posledniNoc ?? ''));
         }
 
         $dny = range($prvniNoc, $posledniNoc);
@@ -268,7 +270,7 @@ readonly class AccommodationImport
      * @return int kolik datových řádků se změnilo — tutéž veličinu hlásily legacy metody
      *             přes `dbAffectedOrNumRows()`, takže import počítá dál stejně
      *
-     * @throws \RuntimeException když noci neprojdou validací; import si to překládá na `Chyba`
+     * @throws UserFacingException když noci neprojdou validací; import si to překládá na `Chyba`
      */
     public function ulozNociUcastnika(
         int $idUzivatele,
@@ -279,7 +281,7 @@ readonly class AccommodationImport
     ): int {
         $zakaznik = $this->entityManager->find(User::class, $idUzivatele);
         if ($zakaznik === null) {
-            throw new \RuntimeException(sprintf('Účastník %d neexistuje.', $idUzivatele));
+            throw new InvalidRequestException(sprintf('Účastník %d neexistuje.', $idUzivatele));
         }
 
         return $this->accommodationWriter->save(
@@ -333,7 +335,7 @@ readonly class AccommodationImport
         }
 
         if (count($ids) !== count($idsPredmetu)) {
-            throw new \RuntimeException('Některou noc se nepodařilo dohledat mezi variantami ubytování.');
+            throw new InvalidRequestException('Některou noc se nepodařilo dohledat mezi variantami ubytování.');
         }
 
         return $ids;

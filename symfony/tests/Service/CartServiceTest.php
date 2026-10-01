@@ -12,6 +12,9 @@ use App\Entity\ProductVariant;
 use App\Entity\User;
 use App\Enum\ProductStateEnum;
 use App\Enum\RoleMeaning;
+use App\Exception\CapacityExceededException;
+use App\Exception\InvalidRequestException;
+use App\Exception\NoLongerAvailableException;
 use App\Repository\OrderItemRepository;
 use App\Repository\OrderRepository;
 use App\Repository\ProductBundleRepository;
@@ -200,7 +203,7 @@ class CartServiceTest extends TestCase
         $order->setCustomer($this->createMock(User::class));
         $order->setYear(2026);
 
-        $this->expectException(\RuntimeException::class);
+        $this->expectException(NoLongerAvailableException::class);
         $this->expectExceptionMessage('není dostupný');
 
         $this->cartService->addItem($order, $variant);
@@ -217,9 +220,9 @@ class CartServiceTest extends TestCase
 
         $this->capacityManager->expects($this->once())
             ->method('lockForSale')
-            ->willThrowException(new \RuntimeException('Nedostatečná kapacita'));
+            ->willThrowException(new CapacityExceededException('Nedostatečná kapacita'));
 
-        $this->expectException(\RuntimeException::class);
+        $this->expectException(CapacityExceededException::class);
         $this->expectExceptionMessage('Nedostatečná kapacita');
 
         $this->cartService->addItem($order, $variant);
@@ -291,7 +294,7 @@ class CartServiceTest extends TestCase
         $this->bundleRepository->method('findMandatoryBundleForVariant')
             ->willReturn($bundle);
 
-        $this->expectException(\RuntimeException::class);
+        $this->expectException(InvalidRequestException::class);
         $this->expectExceptionMessage('povinného balíčku');
 
         $this->cartService->addItem($order, $variant, [RoleMeaning::PRIHLASEN]);
@@ -432,14 +435,14 @@ class CartServiceTest extends TestCase
             ->willReturnCallback(function () use (&$callCount): void {
                 ++$callCount;
                 if ($callCount === 2) {
-                    throw new \RuntimeException('Nedostatečná kapacita');
+                    throw new CapacityExceededException('Nedostatečná kapacita');
                 }
             });
 
         $this->entityManager->expects($this->never())
             ->method('persist');
 
-        $this->expectException(\RuntimeException::class);
+        $this->expectException(CapacityExceededException::class);
         $this->expectExceptionMessage('Nedostatečná kapacita');
 
         $this->cartService->addBundle($order, $bundle, [RoleMeaning::PRIHLASEN]);
@@ -465,7 +468,7 @@ class CartServiceTest extends TestCase
         $order->addItem($item);
         $item->setOrder($order);
 
-        $this->expectException(\RuntimeException::class);
+        $this->expectException(InvalidRequestException::class);
         $this->expectExceptionMessage('povinného balíčku');
 
         $this->cartService->removeItem($order, $item, [RoleMeaning::PRIHLASEN]);

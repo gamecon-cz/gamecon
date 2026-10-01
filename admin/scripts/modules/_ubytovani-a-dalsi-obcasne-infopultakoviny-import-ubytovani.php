@@ -159,7 +159,7 @@ while ($rowIterator->valid()) {
                     range($prvniNoc, $posledniNoc),
                     ROCNIK,
                 );
-            } catch (\RuntimeException $vyjimka) {
+            } catch (\App\Exception\UserFacingException $vyjimka) {
                 $chyby[] = sprintf(
                     'Účastník %s z řádku %d: %s',
                     $ucastnik->jmenoNick(),
@@ -177,9 +177,8 @@ while ($rowIterator->valid()) {
             $ubytovaniImport->zacniTransakci();
             $zapsanoZmenVTransakci += $ubytovaniImport->ulozPokoj($ucastnik->id(), $pokoj, $prvniNoc, $posledniNoc, ROCNIK);
             // Noci i spolubydlícího zapisuje Symfony (`AccommodationImport`), aby platila
-            // tatáž pravidla jako v mřížce. Výjimku je nutné přeložit: zapisovač hází
-            // `RuntimeException`, kdežto tahle smyčka chytá `Chyba`, aby se vadný řádek
-            // přeskočil — bez překladu by jeden špatný řádek shodil celý import.
+            // tatáž pravidla jako v mřížce. Odmítnutí je nutné přeložit na `Chyba`, kterou
+            // tahle smyčka chytá, aby se vadný řádek přeskočil; porucha má import shodit.
             try {
                 $zapsanoZmenVTransakci += $ubytovaniImport->ulozNociUcastnika(
                     $ucastnik->id(),
@@ -190,7 +189,7 @@ while ($rowIterator->valid()) {
                         ? trim((string)$radek[$indexUbytovanS])
                         : null,
                 );
-            } catch (\RuntimeException $vyjimka) {
+            } catch (\App\Exception\UserFacingException $vyjimka) {
                 throw new Chyba($vyjimka->getMessage(), 0, $vyjimka);
             }
             // Zápis osobních údajů musí jít přes tutéž službu jako noci; legacy settery na

@@ -65,25 +65,21 @@ readonly class SetCustomerAccommodationProcessor implements ProcessorInterface
         // and the infopult screen has no such field to send.
         $roommate = $data->roommate ?? $legacyCustomer->ubytovanS();
 
-        try {
-            $this->accommodationWriter->save(
-                $customer,
-                array_map('intval', $data->variantIds),
-                $this->currentYearProvider->getCurrentYear(),
-                $legacyCustomer->maPravo(Pravo::UBYTOVANI_MUZE_OBJEDNAT_JEDNU_NOC),
-                $roommate,
-                $data->declined,
-                $this->accommodationRules->sleepingBagsOnly($legacyCustomer),
-                // Legacy offered this button to the infopult chief but never checked on write,
-                // so a hand-made request overbooked for anyone. Now the server decides.
-                mayOverbook: $operator->jeSefInfopultu(),
-                // Rezervace patří zákazníkovi, ne obsluze: pult objednává za něj, takže
-                // rozhoduje, jestli je organizátor on. Okruh rolí je tentýž jako u merche.
-                jeOrganizator: $customer->isOrganizer(),
-            );
-        } catch (\RuntimeException $chyba) {
-            throw new BadRequestHttpException($chyba->getMessage(), $chyba);
-        }
+        $this->accommodationWriter->save(
+            $customer,
+            array_map('intval', $data->variantIds),
+            $this->currentYearProvider->getCurrentYear(),
+            $legacyCustomer->maPravo(Pravo::UBYTOVANI_MUZE_OBJEDNAT_JEDNU_NOC),
+            $roommate,
+            $data->declined,
+            $this->accommodationRules->sleepingBagsOnly($legacyCustomer),
+            // Legacy offered this button to the infopult chief but never checked on write,
+            // so a hand-made request overbooked for anyone. Now the server decides.
+            mayOverbook: $operator->jeSefInfopultu(),
+            // Rezervace patří zákazníkovi, ne obsluze: pult objednává za něj, takže
+            // rozhoduje, jestli je organizátor on. Okruh rolí je tentýž jako u merche.
+            jeOrganizator: $customer->isOrganizer(),
+        );
 
         // Both are stale after the write, for different reasons: save() clears the entity
         // manager, and it updates uzivatele_hodnoty by raw SQL, which the legacy object in
