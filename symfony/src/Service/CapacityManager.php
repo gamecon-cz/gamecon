@@ -9,6 +9,7 @@ use App\Enum\RoleMeaning;
 use App\Exception\CapacityExceededException;
 use Doctrine\DBAL\ArrayParameterType;
 use Doctrine\DBAL\Connection;
+use Symfony\Contracts\Translation\TranslatorInterface;
 
 /**
  * Remaining stock is the variant's capacity minus this year's purchase rows — nothing stores it,
@@ -19,6 +20,7 @@ class CapacityManager
     public function __construct(
         private readonly Connection $connection,
         private readonly CurrentYearProviderInterface $currentYearProvider,
+        private readonly TranslatorInterface $translator,
     ) {
     }
 
@@ -181,7 +183,9 @@ class CapacityManager
             : $this->heldBackFrom($variant, $roleMeanings);
 
         if ((int) $capacity - $heldBack - $sold < $quantity) {
-            throw new CapacityExceededException(sprintf('Nedostatečná kapacita pro produkt "%s". Požadované: %d', $variant->getFullName(), $quantity));
+            throw new CapacityExceededException($this->translator->trans('capacity.insufficient', [
+                '%product%' => $variant->getFullName(), '%quantity%' => $quantity,
+            ], 'errors'));
         }
     }
 

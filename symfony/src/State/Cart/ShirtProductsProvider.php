@@ -23,6 +23,7 @@ use Gamecon\SystemoveNastaveni\SystemoveNastaveni;
 use Psr\Clock\ClockInterface;
 use Symfony\Bundle\SecurityBundle\Security;
 use Symfony\Component\HttpKernel\Exception\AccessDeniedHttpException;
+use Symfony\Contracts\Translation\TranslatorInterface;
 
 /**
  * Trička a mikiny. Od merche se liší třemi věcmi, kvůli kterým nesdílí provider:
@@ -42,6 +43,7 @@ readonly class ShirtProductsProvider implements ProviderInterface
         private SpentQuotaProvider $spentQuota,
         private Security $security,
         private ClockInterface $clock,
+        private TranslatorInterface $translator,
     ) {
     }
 
@@ -52,7 +54,7 @@ readonly class ShirtProductsProvider implements ProviderInterface
     {
         $user = $this->security->getUser();
         if (! $user instanceof User) {
-            throw new AccessDeniedHttpException('Pro zobrazení triček je nutné přihlášení.');
+            throw new AccessDeniedHttpException($this->translator->trans('shirts.login_required_to_view', [], 'errors'));
         }
 
         $year = $this->currentYearProvider->getCurrentYear();

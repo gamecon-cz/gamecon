@@ -15,6 +15,7 @@ use App\Service\CurrentYearProviderInterface;
 use App\Service\OperatorOverride;
 use App\Structure\Entity\UserEntityStructure;
 use App\Tests\AbstractDatabaseKernelTestCase;
+use App\Tests\Support\ChybovePreklady;
 use App\Tests\Support\SoubeznaTransakce;
 use Doctrine\DBAL\Connection;
 use Doctrine\DBAL\DriverManager;
@@ -325,7 +326,7 @@ class CapacityManagerTest extends AbstractDatabaseKernelTestCase
                 $dalsi = DriverManager::getConnection($this->connection()->getParams());
                 $spojeni[] = $dalsi;
 
-                return [$dalsi, new CapacityManager($dalsi, static::getContainer()->get(CurrentYearProviderInterface::class))];
+                return [$dalsi, new CapacityManager($dalsi, static::getContainer()->get(CurrentYearProviderInterface::class), ChybovePreklady::translator())];
             });
         } finally {
             foreach ($spojeni as $dalsi) {

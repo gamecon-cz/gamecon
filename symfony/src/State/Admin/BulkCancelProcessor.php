@@ -13,6 +13,7 @@ use App\Service\BulkCancelService;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\Clock\ClockInterface;
 use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
+use Symfony\Contracts\Translation\TranslatorInterface;
 
 /**
  * @implements ProcessorInterface<BulkCancelInputDto, BulkCancelOutputDto>
@@ -23,6 +24,7 @@ readonly class BulkCancelProcessor implements ProcessorInterface
         private BulkCancelService $bulkCancelService,
         private EntityManagerInterface $entityManager,
         private ClockInterface $clock,
+        private TranslatorInterface $translator,
     ) {
     }
 
@@ -32,7 +34,9 @@ readonly class BulkCancelProcessor implements ProcessorInterface
         foreach ($data->userIds as $userId) {
             $user = $this->entityManager->find(User::class, $userId);
             if ($user === null) {
-                throw new BadRequestHttpException(sprintf('Uživatel s ID %d nebyl nalezen.', $userId));
+                throw new BadRequestHttpException($this->translator->trans('customer.not_found', [
+                    '%id%' => $userId,
+                ], 'errors'));
             }
             $users[] = $user;
         }
