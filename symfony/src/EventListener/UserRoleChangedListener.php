@@ -107,6 +107,7 @@ readonly class UserRoleChangedListener
                 // Přeceňuje se kus, který zákazník už má — nárok na něj tedy ještě
                 // nebyl spotřebovaný.
                 $alreadyCounted[$product->getId()] ?? 0,
+                variant: $orderItem->getVariant(),
             );
             $alreadyCounted[$product->getId()] = ($alreadyCounted[$product->getId()] ?? 0) + 1;
             $puvodniCena = $orderItem->getPurchasePrice();
