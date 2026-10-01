@@ -204,7 +204,9 @@ SQL,
     {
         $idObjednavky = $this->prodej(2);
 
-        $odebrano = $this->shop()->zrusNakupPredmetu(self::PREDMET, 1);
+        $odebrano = $this->shop()->zrusNakupVarianty((int) dbOneCol('SELECT id FROM product_variant WHERE code = $0', [
+            0 => 'zapis_nakupu_test',
+        ]), 1);
 
         self::assertSame(1, $odebrano);
         self::assertSame(1, (int) dbOneCol('SELECT COUNT(*) FROM shop_nakupy WHERE order_id = $0', [
