@@ -455,7 +455,7 @@ class OrderItem
             ?? ($this->variant instanceof ProductVariant ? $this->variant->getName() : null);
 
         // A product sold in one variant names it after itself, and a night's own row names its day.
-        if ($variantLabel !== null && ! $this->namesWord($name, $variantLabel)) {
+        if ($variantLabel !== null && ! $this->namesWord($name, trim($variantLabel))) {
             return $name . ' — ' . $variantLabel;
         }
 
