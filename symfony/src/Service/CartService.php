@@ -413,6 +413,7 @@ class CartService
             $order->getYear(),
             $alreadyBought,
             $this->spentQuota->forUser($order->getCustomer(), $order->getYear()),
+            $variant,
         );
 
         $item = new OrderItem();
