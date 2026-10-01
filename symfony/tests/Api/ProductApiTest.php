@@ -173,6 +173,29 @@ class ProductApiTest extends AbstractDatabaseKernelTestCase
         ));
     }
 
+    /**
+     * Only a product's single variant may go without a name; among several, a nameless one is
+     * a blank option in the size picker.
+     */
+    public function testEditorRejectsAnUnnamedVariantAmongSeveral(): void
+    {
+        [$product, $variant] = $this->produktSVariantou();
+
+        $response = $this->ulozVarianty($product, [
+            $this->variantaJakoZEditoru($variant, capacity: 5),
+            [
+                'code'                  => $product->getCode() . '-XL',
+                'price'                 => null,
+                'capacity'              => null,
+                'reservedForOrganizers' => null,
+                'accommodationDay'      => null,
+                'position'              => 1,
+            ],
+        ]);
+
+        self::assertSame(422, $response->getStatusCode(), $response->getContent(false));
+    }
+
     public function testEditorRejectsANegativeVariantCapacity(): void
     {
         [$product, $variant] = $this->produktSVariantou();
