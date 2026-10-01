@@ -462,7 +462,7 @@ SQL,
         $this->connection->executeStatement(
             "INSERT INTO shop_nakupy (id_uzivatele, id_predmetu, rok, cena_nakupni, datum, product_tags, variant_id)
              VALUES (89901, :productId, :rok, '100.00', NOW(), :tagsUbyt, :variantId),
-                    (89901, :productId, :rok, '50.00', NOW(), :tagsJidlo, NULL)",
+                    (89901, :productId, :rok, '50.00', NOW(), :tagsJidlo, :variantId)",
             [
                 'productId' => $product->getId(),
                 'rok'       => ROCNIK,

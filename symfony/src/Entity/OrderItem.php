@@ -60,7 +60,7 @@ class OrderItem
     private ?Product $product = null;
 
     #[ORM\ManyToOne(targetEntity: ProductVariant::class, inversedBy: 'orderItems')]
-    #[ORM\JoinColumn(name: 'variant_id', referencedColumnName: 'id', nullable: true, onDelete: 'SET NULL')]
+    #[ORM\JoinColumn(name: 'variant_id', referencedColumnName: 'id', nullable: false, onDelete: 'RESTRICT')]
     private ?ProductVariant $variant = null;
 
     #[ORM\ManyToOne(targetEntity: ProductBundle::class)]

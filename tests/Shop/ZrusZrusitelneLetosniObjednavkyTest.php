@@ -91,10 +91,13 @@ SQL,
 
     private function objednejPredmet(int $idUzivatele, int $idPredmetu): void
     {
+        dbQuery(self::SQL_VYCHOZI_VARIANTY);
+        $varianta = sprintf(self::SQL_VARIANTA_RADKU, '$1');
         dbQuery(<<<SQL
 INSERT INTO shop_nakupy SET
     id_uzivatele = $0,
     id_predmetu = $1,
+    variant_id = {$varianta},
     rok = $2,
     cena_nakupni = (SELECT cena_aktualni FROM shop_predmety WHERE id_predmetu = $1),
     datum = NOW()
@@ -197,7 +200,7 @@ SQL,
         $idMerch = $this->vytvorPredmet('Predmet', TypPredmetu::PREDMET);
         $this->objednejPredmet($uzivatel->id(), $idMerch);
         dbQuery(
-            'UPDATE shop_nakupy SET product_name = $0, product_code = $1 WHERE id_uzivatele = $2 AND id_predmetu = $3',
+            'UPDATE shop_nakupy SET product_name = $0, variant_name = $0, product_code = $1 WHERE id_uzivatele = $2 AND id_predmetu = $3',
             [
                 0 => 'Tricko ucastnicke XXXL',
                 1 => 'tricko_xxxl',

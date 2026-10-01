@@ -92,6 +92,7 @@ SQL,
             ],
         ],
         "INSERT INTO product_product_tag (product_id, tag_id) SELECT 55507, id FROM product_tag WHERE code = 'proplaceni_bonusu'",
+        self::SQL_VYCHOZI_VARIANTY,
     ];
 
     private function vlozPlatbu(
@@ -116,7 +117,7 @@ SQL,
     private function vlozNakup(int $idPredmetu, float $cenaNakupni): void
     {
         dbQuery(
-            'INSERT INTO shop_nakupy(id_uzivatele, id_predmetu, rok, cena_nakupni) VALUES($0, $1, $2, $3)',
+            'INSERT INTO shop_nakupy(id_uzivatele, id_predmetu, variant_id, rok, cena_nakupni) VALUES($0, $1, ' . sprintf(self::SQL_VARIANTA_RADKU, '$1') . ', $2, $3)',
             [
                 0 => 555,
                 1 => $idPredmetu,
