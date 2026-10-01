@@ -9,6 +9,10 @@ use App\Entity\ProductVariant;
 use App\Entity\User;
 use App\Enum\ProductStateEnum;
 use App\Enum\ProductTagCode;
+use App\Exception\CapacityExceededException;
+use App\Exception\InvalidRequestException;
+use App\Exception\NoLongerAvailableException;
+use App\Exception\UserFacingException;
 use App\Repository\OrderItemRepository;
 use App\Repository\ProductRepository;
 use Doctrine\DBAL\Connection;
@@ -39,7 +43,7 @@ class MealWriter
     /**
      * @param int[] $variantIds meals the customer should end up with
      *
-     * @throws \RuntimeException when a variant is not an offered meal
+     * @throws UserFacingException when a variant is not an offered meal
      */
     public function save(User $customer, array $variantIds, int $year): void
     {
@@ -94,7 +98,7 @@ class MealWriter
 
         foreach ($variantIds as $variantId) {
             if (! isset($variants[$variantId])) {
-                throw new \RuntimeException(sprintf('Jídlo %d není v nabídce.', $variantId));
+                throw new InvalidRequestException(sprintf('Jídlo %d není v nabídce.', $variantId));
             }
         }
 
@@ -166,7 +170,7 @@ class MealWriter
         // Archived products never come out of findByTag(), so RETIRED is the whole test.
         $withdrawn = $variant->getProduct();
         if ($withdrawn->getState() === ProductStateEnum::RETIRED) {
-            throw new \RuntimeException(sprintf('Jídlo „%s" už není v prodeji.', $withdrawn->getName()));
+            throw new NoLongerAvailableException(sprintf('Jídlo „%s" už není v prodeji.', $withdrawn->getName()));
         }
 
         $product = $variant->getProduct();
@@ -175,8 +179,8 @@ class MealWriter
 
         try {
             $this->capacityManager->lockForSale($variant);
-        } catch (\RuntimeException) {
-            throw new \RuntimeException(sprintf('Jídlo „%s" je bohužel vyprodané.', $product->getName()));
+        } catch (CapacityExceededException) {
+            throw new CapacityExceededException(sprintf('Jídlo „%s" je bohužel vyprodané.', $product->getName()));
         }
 
         $item = new OrderItem();

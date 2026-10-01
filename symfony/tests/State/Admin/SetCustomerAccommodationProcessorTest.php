@@ -8,6 +8,7 @@ use ApiPlatform\Metadata\Post;
 use App\Dto\Admin\SetCustomerAccommodationInputDto;
 use App\Dto\Cart\AccommodationOutputDto;
 use App\Entity\User;
+use App\Exception\InsufficientPermissionsException;
 use App\Service\AccommodationRules;
 use App\Service\AccommodationWriter;
 use App\Service\CurrentYearProviderInterface;
@@ -271,6 +272,39 @@ class SetCustomerAccommodationProcessorTest extends AbstractDatabaseKernelTestCa
      * save() clears the entity manager, so the customer resolved before the write is detached
      * by the time the grid is read. Reading it off that object would query a stale entity.
      */
+    public function testRefusalReachesTheClientAsItIs(): void
+    {
+        $refusal = new InsufficientPermissionsException('Ubytování je plné; přeplnit ho smí jen šéf infopultu.');
+
+        self::assertSame($refusal, $this->exceptionFromSaveThrowing($refusal));
+    }
+
+    /**
+     * Its message was not written for the desk, and turning it into a 400 would also keep it out of the log.
+     */
+    public function testFaultIsNotPassedOffAsARefusal(): void
+    {
+        $fault = new \RuntimeException('SQLSTATE[HY000]: General error');
+
+        self::assertSame($fault, $this->exceptionFromSaveThrowing($fault));
+    }
+
+    private function exceptionFromSaveThrowing(\Throwable $exception): \Throwable
+    {
+        $this->signInOperator();
+        $this->customer();
+        $this->legacyCustomer();
+        $this->accommodationWriter->method('save')->willThrowException($exception);
+
+        try {
+            $this->processor->process($this->input(), new Post());
+        } catch (\Throwable $caught) {
+            return $caught;
+        }
+
+        self::fail('The processor was expected to throw.');
+    }
+
     public function testCustomerIsResolvedAgainBeforeTheGridIsRead(): void
     {
         $customer = $this->createMock(User::class);

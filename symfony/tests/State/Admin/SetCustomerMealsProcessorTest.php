@@ -7,6 +7,7 @@ namespace App\Tests\State\Admin;
 use ApiPlatform\Metadata\Post;
 use App\Dto\Admin\SetCustomerMealsInputDto;
 use App\Entity\User;
+use App\Exception\CapacityExceededException;
 use App\Service\CurrentYearProviderInterface;
 use App\Service\CustomerDeskRights;
 use App\Service\LegacySessionService;
@@ -148,18 +149,35 @@ class SetCustomerMealsProcessorTest extends AbstractDatabaseKernelTestCase
     /**
      * A sold-out meal has to reach the desk as its message, not as a 500 with nothing useful.
      */
-    public function testRefusedMealBecomesBadRequest(): void
+    public function testRefusedMealReachesTheClientAsItIs(): void
     {
-        $customer = $this->createMock(User::class);
+        $refusal = new CapacityExceededException('Jídlo „Snídaně" je bohužel vyprodané.');
+
+        self::assertSame($refusal, $this->exceptionFromSaveThrowing($refusal));
+    }
+
+    /**
+     * Its message was not written for the desk, and turning it into a 400 would also keep it out of the log.
+     */
+    public function testFaultIsNotPassedOffAsARefusal(): void
+    {
+        $fault = new \RuntimeException('SQLSTATE[HY000]: General error');
+
+        self::assertSame($fault, $this->exceptionFromSaveThrowing($fault));
+    }
+
+    private function exceptionFromSaveThrowing(\Throwable $exception): \Throwable
+    {
         $this->signInOperator();
-        $this->entityManager->method('find')->willReturn($customer);
-        $this->mealWriter
-            ->method('save')
-            ->willThrowException(new \RuntimeException('Jídlo „Snídaně" je bohužel vyprodané.'));
+        $this->entityManager->method('find')->willReturn($this->createMock(User::class));
+        $this->mealWriter->method('save')->willThrowException($exception);
 
-        $this->expectException(BadRequestHttpException::class);
-        $this->expectExceptionMessage('vyprodané');
+        try {
+            $this->processor->process($this->input(), new Post());
+        } catch (\Throwable $caught) {
+            return $caught;
+        }
 
-        $this->processor->process($this->input(), new Post());
+        self::fail('The processor was expected to throw.');
     }
 }
