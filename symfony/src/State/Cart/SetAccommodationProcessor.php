@@ -19,6 +19,7 @@ use Gamecon\SystemoveNastaveni\SystemoveNastaveni;
 use Symfony\Bundle\SecurityBundle\Security;
 use Symfony\Component\HttpKernel\Exception\AccessDeniedHttpException;
 use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
+use Symfony\Contracts\Translation\TranslatorInterface;
 
 /**
  * @implements ProcessorInterface<SetAccommodationInputDto, AccommodationOutputDto>
@@ -33,6 +34,7 @@ readonly class SetAccommodationProcessor implements ProcessorInterface
         private CurrentYearProviderInterface $currentYearProvider,
         private LegacySessionService $legacySession,
         private Security $security,
+        private TranslatorInterface $translator,
     ) {
     }
 
@@ -43,18 +45,18 @@ readonly class SetAccommodationProcessor implements ProcessorInterface
     {
         $user = $this->security->getUser();
         if (! $user instanceof User) {
-            throw new AccessDeniedHttpException('Pro objednání ubytování je nutné přihlášení.');
+            throw new AccessDeniedHttpException($this->translator->trans('accommodation.login_required_to_order', [], 'errors'));
         }
 
         // The same reason the read endpoint refuses: every accommodation right lives in the
         // legacy permission system, so without that session an organizer silently loses one.
         $legacyUzivatel = $this->legacySession->getCurrentUser();
         if ($legacyUzivatel === null) {
-            throw new AccessDeniedHttpException('Ubytování vyžaduje přihlášení na webu GameConu.');
+            throw new AccessDeniedHttpException($this->translator->trans('accommodation.gamecon_registration_required', [], 'errors'));
         }
 
         if (SystemoveNastaveni::zGlobals()->prodejUbytovaniUkoncen()) {
-            throw new BadRequestHttpException('Prodej ubytování už skončil.');
+            throw new BadRequestHttpException($this->translator->trans('accommodation.sale_ended', [], 'errors'));
         }
 
         $this->accommodationWriter->save(

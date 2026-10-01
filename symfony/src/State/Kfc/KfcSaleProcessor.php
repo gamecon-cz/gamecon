@@ -21,6 +21,7 @@ use App\Service\OperatorOverride;
 use Doctrine\ORM\EntityManagerInterface;
 use Psr\Clock\ClockInterface;
 use Symfony\Bundle\SecurityBundle\Security;
+use Symfony\Contracts\Translation\TranslatorInterface;
 
 /**
  * Processes KFC point-of-sale purchases.
@@ -42,6 +43,7 @@ readonly class KfcSaleProcessor implements ProcessorInterface
         private Security $security,
         private ClockInterface $clock,
         private CapacityManager $capacityManager,
+        private TranslatorInterface $translator,
     ) {
     }
 
@@ -187,13 +189,17 @@ readonly class KfcSaleProcessor implements ProcessorInterface
     {
         $predmet = $this->entityManager->find(Product::class, $idPredmetu);
         if ($predmet === null) {
-            throw new InvalidRequestException(sprintf('Produkt s ID %d nebyl nalezen.', $idPredmetu));
+            throw new InvalidRequestException($this->translator->trans('kfc.product_not_found', [
+                '%id%' => $idPredmetu,
+            ], 'errors'));
         }
 
         $varianty = $predmet->getVariants();
         // isEmpty() se na nenačtené kolekci zodpoví COUNTem, first() by ji celou zhydratoval.
         if ($varianty->isEmpty()) {
-            throw new InvalidRequestException(sprintf('Produkt "%s" nemá žádnou variantu k prodeji.', $predmet->getName()));
+            throw new InvalidRequestException($this->translator->trans('kfc.product_without_variant', [
+                '%product%' => $predmet->getName(),
+            ], 'errors'));
         }
         if ($idVarianty !== null) {
             foreach ($varianty as $varianta) {
@@ -203,13 +209,17 @@ readonly class KfcSaleProcessor implements ProcessorInterface
             }
 
             // Varianta z jiného produktu by prodala něco jiného, než obsluha vybrala.
-            throw new InvalidRequestException(sprintf('Varianta %d nepatří k produktu "%s".', $idVarianty, $predmet->getName()));
+            throw new InvalidRequestException($this->translator->trans('kfc.variant_of_other_product', [
+                '%variant%' => $idVarianty, '%product%' => $predmet->getName(),
+            ], 'errors'));
         }
 
         // Bez zadané varianty jde prodat jen jednoznačný předmět. U víc variant (velikosti,
         // noci) by výběr té první znamenal tiše prodat něco jiného, než si zákazník vzal.
         if ($varianty->count() > 1) {
-            throw new InvalidRequestException(sprintf('Produkt "%s" má víc variant, vyber konkrétní.', $predmet->getName()));
+            throw new InvalidRequestException($this->translator->trans('kfc.choose_variant', [
+                '%product%' => $predmet->getName(),
+            ], 'errors'));
         }
 
         // PHPStan z isEmpty() výše odvodí, že tady už false přijít nemůže.

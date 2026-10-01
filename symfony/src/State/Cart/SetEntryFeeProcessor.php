@@ -14,6 +14,7 @@ use App\Service\EntryFeeService;
 use Symfony\Bundle\SecurityBundle\Security;
 use Symfony\Component\HttpKernel\Exception\AccessDeniedHttpException;
 use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
+use Symfony\Contracts\Translation\TranslatorInterface;
 
 /**
  * @implements ProcessorInterface<SetEntryFeeInputDto, EntryFeeOutputDto>
@@ -24,6 +25,7 @@ readonly class SetEntryFeeProcessor implements ProcessorInterface
         private EntryFeeService $entryFeeService,
         private CurrentYearProviderInterface $currentYearProvider,
         private Security $security,
+        private TranslatorInterface $translator,
     ) {
     }
 
@@ -34,11 +36,11 @@ readonly class SetEntryFeeProcessor implements ProcessorInterface
     {
         $user = $this->security->getUser();
         if (! $user instanceof User) {
-            throw new AccessDeniedHttpException('Pro uložení dobrovolného vstupného je nutné přihlášení.');
+            throw new AccessDeniedHttpException($this->translator->trans('entry_fee.login_required_to_save', [], 'errors'));
         }
 
         if ($data->amount === null) {
-            throw new BadRequestHttpException('Částka musí být vyplněna.');
+            throw new BadRequestHttpException($this->translator->trans('entry_fee.amount_required', [], 'errors'));
         }
 
         return EntryFeeOutputDto::fromAmount(

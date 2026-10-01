@@ -14,6 +14,7 @@ use App\Service\LegacySessionService;
 use App\Service\MealWriter;
 use App\State\Admin\SetCustomerMealsProcessor;
 use App\Tests\AbstractDatabaseKernelTestCase;
+use App\Tests\Support\ChybovePreklady;
 use Doctrine\ORM\EntityManagerInterface;
 use Gamecon\Pravo;
 use PHPUnit\Framework\MockObject\MockObject;
@@ -45,9 +46,10 @@ class SetCustomerMealsProcessorTest extends AbstractDatabaseKernelTestCase
         $this->processor = new SetCustomerMealsProcessor(
             $this->mealWriter,
             // Real rights over the mocked session, so the tests exercise the actual rule.
-            new CustomerDeskRights($this->legacySession),
+            new CustomerDeskRights($this->legacySession, ChybovePreklady::translator()),
             static::getContainer()->get(CurrentYearProviderInterface::class),
             $this->entityManager,
+            ChybovePreklady::translator(),
         );
     }
 
