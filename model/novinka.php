@@ -78,6 +78,14 @@ class Novinka extends DbObject
         return $this->r['url'];
     }
 
+    /** Absolutní URL na veřejném webu. Novinky nemají vlastní stránku, vedou na výpis novinek. */
+    function urlNaWebu(): string
+    {
+        return (int)$this->typ() === self::BLOG
+            ? URL_WEBU . '/blog/' . $this->url()
+            : URL_WEBU . '/novinky';
+    }
+
     function vydat()
     {
         if (empty($this->vydat)) {
