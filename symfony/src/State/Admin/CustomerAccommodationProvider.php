@@ -13,6 +13,7 @@ use App\Service\LegacySessionService;
 use App\State\Cart\AccommodationGridInterface;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
+use Symfony\Contracts\Translation\TranslatorInterface;
 
 /**
  * The accommodation grid for a participant the desk names, rather than for whoever is signed
@@ -28,29 +29,32 @@ readonly class CustomerAccommodationProvider implements ProviderInterface
         private CustomerDeskRights $deskRights,
         private LegacySessionService $legacySession,
         private EntityManagerInterface $entityManager,
+        private TranslatorInterface $translator,
     ) {
     }
 
     public function provide(Operation $operation, array $uriVariables = [], array $context = []): AccommodationOutputDto
     {
-        $this->deskRights->verifyOperator('Zobrazení ubytování účastníka');
+        $this->deskRights->verifyOperator('desk.action.view_accommodation');
 
         // Cast only what is already a number: a repeated ?customerId arrives as an array and
         // would cast to 1, quietly answering for whoever that is.
         $requested = $context['filters']['customerId'] ?? null;
         if (! is_string($requested) && ! is_int($requested)) {
-            throw new BadRequestHttpException('Musí být zadán právě jeden účastník.');
+            throw new BadRequestHttpException($this->translator->trans('customer.exactly_one_required', [], 'errors'));
         }
 
         $customerId = filter_var($requested, FILTER_VALIDATE_INT);
         if ($customerId === false || $customerId <= 0) {
-            throw new BadRequestHttpException('Musí být zadán účastník.');
+            throw new BadRequestHttpException($this->translator->trans('customer.required', [], 'errors'));
         }
 
         $customer = $this->entityManager->find(User::class, $customerId);
         $legacyCustomer = $this->legacySession->getUserById($customerId);
         if ($customer === null || $legacyCustomer === null) {
-            throw new BadRequestHttpException(sprintf('Uživatel s ID %d nebyl nalezen.', $customerId));
+            throw new BadRequestHttpException($this->translator->trans('customer.not_found', [
+                '%id%' => $customerId,
+            ], 'errors'));
         }
 
         return $this->accommodationGrid->forCustomer($customer, $legacyCustomer, zPultu: true);
