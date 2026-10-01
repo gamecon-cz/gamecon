@@ -170,7 +170,11 @@ abstract class AbstractTestDb extends KernelTestCase
             $kernely[] = static::$kernel;
         }
         foreach ($kernely as $kernel) {
-            $kernel->getContainer()->get('doctrine')->getManager()->clear();
+            $doctrine = $kernel->getContainer()->get('doctrine');
+            // A failed flush closes the manager, and clear() does not reopen it.
+            $doctrine->getManager()->isOpen()
+                ? $doctrine->getManager()->clear()
+                : $doctrine->resetManager();
         }
     }
 
