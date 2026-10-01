@@ -11,10 +11,17 @@ ALTER TABLE product_variant
     ADD state SMALLINT DEFAULT NULL
 SQL);
 
+// The rule App\Service\VariantStateMirror keeps applying: a row archived apart from its product
+// is a night or size taken off the offer.
 $this->q(<<<'SQL'
 UPDATE product_variant
     INNER JOIN shop_predmety AS vlastni_radek ON vlastni_radek.kod_predmetu = product_variant.code
-SET product_variant.state = vlastni_radek.stav
+    INNER JOIN shop_predmety AS produkt ON produkt.id_predmetu = product_variant.product_id
+SET product_variant.state = IF(
+        vlastni_radek.archived_at IS NOT NULL AND produkt.archived_at IS NULL,
+        0,
+        vlastni_radek.stav
+    )
 SQL);
 
 // A variant created in the new admin has no legacy row and is offered as its product is.

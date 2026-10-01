@@ -147,6 +147,33 @@ class ProductApiTest extends AbstractDatabaseKernelTestCase
         );
     }
 
+    /**
+     * The editor sends back each variant as it loaded it; the state may have changed since.
+     */
+    public function testEditorCannotOverwriteAVariantsState(): void
+    {
+        [$product, $variant] = $this->produktSVariantou();
+        $this->connection()->executeStatement('UPDATE product_variant SET state = :stav WHERE id = :id', [
+            'stav' => ProductStateEnum::SUSPENDED->value,
+            'id'   => $variant->getId(),
+        ]);
+
+        $response = $this->ulozVarianty($product, [
+            [
+                ...$this->variantaJakoZEditoru($variant, capacity: 5),
+                'state' => ProductStateEnum::PUBLIC->value,
+            ],
+        ]);
+
+        self::assertSame(200, $response->getStatusCode(), $response->getContent(false));
+        self::assertSame(ProductStateEnum::SUSPENDED->value, (int) $this->connection()->fetchOne(
+            'SELECT state FROM product_variant WHERE id = :id',
+            [
+                'id' => $variant->getId(),
+            ],
+        ));
+    }
+
     public function testEditorRejectsANegativeVariantCapacity(): void
     {
         [$product, $variant] = $this->produktSVariantou();
