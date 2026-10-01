@@ -10,6 +10,7 @@ use App\Entity\ProductVariant;
 use App\Entity\User;
 use App\Enum\ProductStateEnum;
 use App\Enum\ProductTagCode;
+use App\Exception\InvalidRequestException;
 use App\Service\AccommodationImport;
 use App\Structure\Entity\UserEntityStructure;
 use App\Tests\AbstractDatabaseKernelTestCase;
@@ -168,7 +169,7 @@ class AccommodationImportTest extends AbstractDatabaseKernelTestCase
         $ucastnik = $this->ucastnik();
         [$jedina] = $this->vytvorNoc(0);
 
-        $this->expectException(\RuntimeException::class);
+        $this->expectException(InvalidRequestException::class);
 
         $this->import()->ulozNociUcastnika($ucastnik->getId(), [$jedina], self::ROK, false);
     }
@@ -195,7 +196,7 @@ class AccommodationImportTest extends AbstractDatabaseKernelTestCase
         [$streda] = $this->vytvorNoc(0);
         [$sobota] = $this->vytvorNoc(3);
 
-        $this->expectException(\RuntimeException::class);
+        $this->expectException(InvalidRequestException::class);
 
         $this->import()->ulozNociUcastnika($ucastnik->getId(), [$streda, $sobota], self::ROK, false);
     }
@@ -300,7 +301,7 @@ class AccommodationImportTest extends AbstractDatabaseKernelTestCase
         $kod = 'TYP' . strtoupper(substr(uniqid('', false), -6));
         $this->vytvorNocSKodem($kod . '_st', 0);
 
-        $this->expectException(\RuntimeException::class);
+        $this->expectException(InvalidRequestException::class);
 
         $this->import()->dejIdsNociPodleTypu($kod, [0, 1], self::ROK);
     }
@@ -388,7 +389,7 @@ class AccommodationImportTest extends AbstractDatabaseKernelTestCase
     {
         $ucastnik = $this->ucastnik();
 
-        $this->expectException(\RuntimeException::class);
+        $this->expectException(InvalidRequestException::class);
 
         $this->import()->ulozPokoj($ucastnik->getId(), 'B301', 1, null, self::ROK);
     }
@@ -523,7 +524,7 @@ class AccommodationImportTest extends AbstractDatabaseKernelTestCase
      */
     public function neexistujiciUcastnikJeChyba(): void
     {
-        $this->expectException(\RuntimeException::class);
+        $this->expectException(InvalidRequestException::class);
 
         $this->import()->ulozNociUcastnika(-1, [], self::ROK, false);
     }

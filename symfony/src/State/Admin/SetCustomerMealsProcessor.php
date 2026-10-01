@@ -51,11 +51,7 @@ readonly class SetCustomerMealsProcessor implements ProcessorInterface
 
         $year = $this->currentYearProvider->getCurrentYear();
 
-        try {
-            $this->mealWriter->save($customer, array_map('intval', $data->variantIds), $year);
-        } catch (\RuntimeException $error) {
-            throw new BadRequestHttpException($error->getMessage(), $error);
-        }
+        $this->mealWriter->save($customer, array_map('intval', $data->variantIds), $year);
 
         $dto = new CustomerMealsOutputDto();
         $dto->variantIds = $this->mealWriter->heldMeals($customer, $year);
