@@ -77,6 +77,15 @@ parameters:
             paths:
                 - symfony/src/Discount/*
 
+        # Legacy Shop (model/Shop/Shop.php) writes its sales and cancellations through these.
+        # Same cause as above; goes away once model/ is analysed.
+        -
+            identifier: shipmonk.deadMethod
+            message: '#^Unused App\\Service\\(ManualSaleService\:\:sell|BulkCancelService\:\:(cancelPurchases|removePurchases))$#'
+            paths:
+                - symfony/src/Service/ManualSaleService.php
+                - symfony/src/Service/BulkCancelService.php
+
         # ProductDiscount byl první pokus o slevy (procenta na dvojici produkt+role).
         # Nahradila ho pravidla v discount_rule, která umí i pevnou částku. Entita tu
         # zůstává jen kvůli mapování v Product; smazat ji znamená migraci, takže vlastní PR.

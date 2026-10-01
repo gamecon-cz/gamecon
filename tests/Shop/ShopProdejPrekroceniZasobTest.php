@@ -348,6 +348,14 @@ SQL,
             2,
             $this->zbyva('pokoj_prodej_test-pa'),
         );
+        self::assertSame(
+            [
+                'product_name' => 'Postel na pokoji pátek',
+                'product_code' => 'pokoj_prodej_test-pa',
+            ],
+            dbOneLine('SELECT product_name, product_code FROM shop_nakupy WHERE id_predmetu = 88817'),
+            'Snímek noci je z jejího vlastního řádku, jako u historických nákupů a v archivu zrušených',
+        );
     }
 
     /**
