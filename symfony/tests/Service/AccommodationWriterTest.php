@@ -10,6 +10,8 @@ use App\Entity\ProductVariant;
 use App\Entity\User;
 use App\Enum\ProductStateEnum;
 use App\Enum\ProductTagCode;
+use App\Exception\CapacityExceededException;
+use App\Exception\InsufficientPermissionsException;
 use App\Service\AccommodationWriter;
 use App\Service\BreakfastCanceller;
 use App\Service\CapacityManager;
@@ -778,7 +780,8 @@ class AccommodationWriterTest extends AbstractDatabaseKernelTestCase
             ],
         );
 
-        $this->expectExceptionMessage('přeplnit ho smí jen šéf infopultu');
+        $this->expectException(CapacityExceededException::class);
+        $this->expectExceptionMessage('je obsazené');
 
         $this->writer()->save($customer, $this->idNoci(0, 1), self::ROK, false);
     }
@@ -836,7 +839,8 @@ class AccommodationWriterTest extends AbstractDatabaseKernelTestCase
             ],
         );
 
-        $this->expectExceptionMessage('přeplnit ho smí jen šéf infopultu');
+        $this->expectException(CapacityExceededException::class);
+        $this->expectExceptionMessage('je obsazené');
 
         $this->writer()->save($customer, $this->idNoci(0, 1), self::ROK, false);
     }
@@ -967,7 +971,8 @@ class AccommodationWriterTest extends AbstractDatabaseKernelTestCase
         $customer = $this->ucastnik();
         $this->zaplnNoc(0, 2);
 
-        $this->expectExceptionMessage('přeplnit ho smí jen šéf infopultu');
+        $this->expectException(CapacityExceededException::class);
+        $this->expectExceptionMessage('je obsazené');
 
         $this->writer()->save($customer, $this->idNoci(0), self::ROK, true);
     }
@@ -984,6 +989,21 @@ class AccommodationWriterTest extends AbstractDatabaseKernelTestCase
         $this->writer()->save($customer, $this->idNoci(0), self::ROK, true);
 
         self::assertSame(4, $this->zbyvaNaVarianteId($this->noci[0]->getId()), 'Prodej přes admin musí snížit zásobu');
+    }
+
+    /**
+     * Only the desk can be offered overbooking, so only there is "you may not" the real answer.
+     */
+    public function testDeskOperatorWithoutTheRightMayNotOverbook(): void
+    {
+        $this->pripravUbytovani(kusuVyrobeno: 2);
+        $customer = $this->ucastnik();
+        $this->zaplnNoc(0, 2);
+
+        $this->expectException(InsufficientPermissionsException::class);
+        $this->expectExceptionMessage('přeplnit ho smí jen šéf infopultu');
+
+        $this->writer()->save($customer, $this->idNoci(0), self::ROK, true, mayOverbook: false);
     }
 
     /**
@@ -1440,7 +1460,8 @@ class AccommodationWriterTest extends AbstractDatabaseKernelTestCase
         );
         $this->zaplnNoc(0, 1);
 
-        $this->expectExceptionMessage('je plné');
+        $this->expectException(CapacityExceededException::class);
+        $this->expectExceptionMessage('je obsazené');
 
         $this->writer()->save($this->ucastnik(), $this->idNoci(0), self::ROK, true);
     }

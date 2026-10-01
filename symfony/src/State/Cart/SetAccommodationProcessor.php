@@ -9,6 +9,7 @@ use ApiPlatform\State\ProcessorInterface;
 use App\Dto\Cart\AccommodationOutputDto;
 use App\Dto\Cart\SetAccommodationInputDto;
 use App\Entity\User;
+use App\Exception\NoLongerAvailableException;
 use App\Service\AccommodationRules;
 use App\Service\AccommodationWriter;
 use App\Service\BreakfastCanceller;
@@ -18,7 +19,6 @@ use Gamecon\Pravo;
 use Gamecon\SystemoveNastaveni\SystemoveNastaveni;
 use Symfony\Bundle\SecurityBundle\Security;
 use Symfony\Component\HttpKernel\Exception\AccessDeniedHttpException;
-use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
 use Symfony\Contracts\Translation\TranslatorInterface;
 
 /**
@@ -56,7 +56,7 @@ readonly class SetAccommodationProcessor implements ProcessorInterface
         }
 
         if (SystemoveNastaveni::zGlobals()->prodejUbytovaniUkoncen()) {
-            throw new BadRequestHttpException($this->translator->trans('accommodation.sale_ended', [], 'errors'));
+            throw new NoLongerAvailableException($this->translator->trans('accommodation.sale_ended', [], 'errors'));
         }
 
         $this->accommodationWriter->save(
