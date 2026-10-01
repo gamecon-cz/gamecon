@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Gamecon;
 
 use Gamecon\Accounting\PersonalAccount;
@@ -8,21 +10,19 @@ use Gamecon\Accounting\TransactionCategoryEnum;
 use Gamecon\Accounting\TransactionSplit;
 use Gamecon\Cas\DateTimeGamecon;
 use Gamecon\Exceptions\NeznamyTypPredmetu;
-use Gamecon\Shop\Predmet;
 use Gamecon\Shop\TypPredmetu;
 use Gamecon\Uzivatel\Finance;
-use Uzivatel;
 
 class Accounting
 {
-    public static function getPersonalFinance(Uzivatel $u, bool $showDiscounts): PersonalAccount
+    public static function getPersonalFinance(\Uzivatel $u, bool $showDiscounts): PersonalAccount
     {
         $transactions = [];
         foreach ($u->finance()->dejPolozkyProBfgr() as $polozkaProBfgr) {
             $splits = [];
             if ($showDiscounts) {
                 $splits[] = new TransactionSplit(-($polozkaProBfgr->castka + $polozkaProBfgr->sleva), $polozkaProBfgr->nazev);
-                if ($polozkaProBfgr->sleva != 0) {
+                if ($polozkaProBfgr->sleva !== 0) {
                     $splits[] = new TransactionSplit($polozkaProBfgr->sleva, 'Sleva z ' . $polozkaProBfgr->nazev);
                 }
             } else {
@@ -66,7 +66,7 @@ class Accounting
                 case Finance::PLATBY_NADPIS:
                     continue 2;
             }
-            if ($category == null) {
+            if ($category === null) {
                 continue;
             }
             $transactions[] = new Transaction(
@@ -74,14 +74,16 @@ class Accounting
                 date: DateTimeGamecon::zacatekGameconu(),
                 description: $polozkaProBfgr->nazev,
                 splits: $splits,
-                id: "#U[" . $u->id() . "]#P[" . $polozkaProBfgr->idPredmetu . "]");
+                id: '#U[' . $u->id() . ']#V[' . $polozkaProBfgr->idVarianty . ']');
         }
+
         return new PersonalAccount($transactions);
     }
 
     public static function cancelTransaction(string $transactionId): bool
     {
-        preg_match('/#U\[(\d+)]#P\[(\d+)]/', $transactionId, $matches);
-        return Uzivatel::zId(intval($matches[1]))->shop()->zrusNakupPredmetu(intval($matches[2]), 1) > 0;
+        preg_match('/#U\[(\d+)]#V\[(\d+)]/', $transactionId, $matches);
+
+        return \Uzivatel::zId(intval($matches[1]))->shop()->zrusNakupVarianty(intval($matches[2]), 1) > 0;
     }
 }
