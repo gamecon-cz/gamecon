@@ -13,6 +13,7 @@ use App\Entity\ProductVariant;
 use App\Entity\User;
 use App\Enum\ProductStateEnum;
 use App\Enum\ProductTagCode;
+use App\Exception\InvalidRequestException;
 use App\State\Kfc\KfcSaleProcessor;
 use App\Structure\Entity\UserEntityStructure;
 use App\Tests\AbstractDatabaseKernelTestCase;
@@ -167,7 +168,7 @@ class KfcSaleVariantTest extends AbstractDatabaseKernelTestCase
         $this->prihlasOperatora();
         $predmet = $this->vytvorPredmet(['S', 'M', 'L']);
 
-        $this->expectException(\RuntimeException::class);
+        $this->expectException(InvalidRequestException::class);
         $this->expectExceptionMessage('má víc variant');
 
         $this->processor()->process($this->prodej($predmet, null), new Post());
@@ -181,7 +182,7 @@ class KfcSaleVariantTest extends AbstractDatabaseKernelTestCase
         /** @var ProductVariant $cizivarianta */
         $cizivarianta = $cizi->getVariants()->get(0);
 
-        $this->expectException(\RuntimeException::class);
+        $this->expectException(InvalidRequestException::class);
         $this->expectExceptionMessage('nepatří k produktu');
 
         $this->processor()->process($this->prodej($predmet, (int) $cizivarianta->getId()), new Post());
@@ -205,7 +206,7 @@ class KfcSaleVariantTest extends AbstractDatabaseKernelTestCase
         $this->prihlasOperatora();
         $predmet = $this->vytvorPredmet([]);
 
-        $this->expectException(\RuntimeException::class);
+        $this->expectException(InvalidRequestException::class);
         $this->expectExceptionMessage('nemá žádnou variantu');
 
         $this->processor()->process($this->prodej($predmet, null), new Post());

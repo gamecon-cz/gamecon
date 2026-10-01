@@ -13,6 +13,7 @@ use App\Entity\Payment;
 use App\Entity\Product;
 use App\Entity\ProductVariant;
 use App\Entity\User;
+use App\Exception\InvalidRequestException;
 use App\Service\CapacityManager;
 use App\Service\CartService;
 use App\Service\CurrentYearProviderInterface;
@@ -186,13 +187,13 @@ readonly class KfcSaleProcessor implements ProcessorInterface
     {
         $predmet = $this->entityManager->find(Product::class, $idPredmetu);
         if ($predmet === null) {
-            throw new \RuntimeException(sprintf('Produkt s ID %d nebyl nalezen.', $idPredmetu));
+            throw new InvalidRequestException(sprintf('Produkt s ID %d nebyl nalezen.', $idPredmetu));
         }
 
         $varianty = $predmet->getVariants();
         // isEmpty() se na nenačtené kolekci zodpoví COUNTem, first() by ji celou zhydratoval.
         if ($varianty->isEmpty()) {
-            throw new \RuntimeException(sprintf('Produkt "%s" nemá žádnou variantu k prodeji.', $predmet->getName()));
+            throw new InvalidRequestException(sprintf('Produkt "%s" nemá žádnou variantu k prodeji.', $predmet->getName()));
         }
         if ($idVarianty !== null) {
             foreach ($varianty as $varianta) {
@@ -202,13 +203,13 @@ readonly class KfcSaleProcessor implements ProcessorInterface
             }
 
             // Varianta z jiného produktu by prodala něco jiného, než obsluha vybrala.
-            throw new \RuntimeException(sprintf('Varianta %d nepatří k produktu "%s".', $idVarianty, $predmet->getName()));
+            throw new InvalidRequestException(sprintf('Varianta %d nepatří k produktu "%s".', $idVarianty, $predmet->getName()));
         }
 
         // Bez zadané varianty jde prodat jen jednoznačný předmět. U víc variant (velikosti,
         // noci) by výběr té první znamenal tiše prodat něco jiného, než si zákazník vzal.
         if ($varianty->count() > 1) {
-            throw new \RuntimeException(sprintf('Produkt "%s" má víc variant, vyber konkrétní.', $predmet->getName()));
+            throw new InvalidRequestException(sprintf('Produkt "%s" má víc variant, vyber konkrétní.', $predmet->getName()));
         }
 
         // PHPStan z isEmpty() výše odvodí, že tady už false přijít nemůže.

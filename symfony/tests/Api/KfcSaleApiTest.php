@@ -232,7 +232,7 @@ class KfcSaleApiTest extends AbstractDatabaseKernelTestCase
 
         $odpoved = $this->prodej($this->adminClient(), $predmet, $this->varianta($predmet, 'S'));
 
-        self::assertNotSame(201, $odpoved['status']);
+        self::assertSame(409, $odpoved['status'], $odpoved['telo']);
         self::assertStringContainsString('není dostupný', $odpoved['telo']);
     }
 
@@ -244,7 +244,7 @@ class KfcSaleApiTest extends AbstractDatabaseKernelTestCase
 
         $odpoved = $this->prodej($this->adminClient(), $predmet, $this->varianta($predmet, 'S'));
 
-        self::assertNotSame(201, $odpoved['status']);
+        self::assertSame(409, $odpoved['status'], $odpoved['telo']);
         self::assertStringContainsString('není dostupný', $odpoved['telo']);
     }
 
@@ -259,7 +259,7 @@ class KfcSaleApiTest extends AbstractDatabaseKernelTestCase
 
         $odpoved = $this->prodej($this->adminClient(), $predmet, $this->varianta($cizi, 'XL'));
 
-        self::assertNotSame(201, $odpoved['status']);
+        self::assertSame(400, $odpoved['status'], $odpoved['telo']);
         self::assertStringContainsString('nepatří k produktu', $odpoved['telo']);
     }
 
@@ -278,7 +278,7 @@ class KfcSaleApiTest extends AbstractDatabaseKernelTestCase
 
         $odpoved = $this->prodej($this->adminClient(), $predmet, $emko, mnozstvi: 2);
 
-        self::assertNotSame(201, $odpoved['status'], $odpoved['telo']);
+        self::assertSame(409, $odpoved['status'], $odpoved['telo']);
 
         // Neúspěšný prodej nesmí zásobu ukousnout ani zčásti.
         self::assertSame(1, $this->zbyvaNaVariante($idEmka));
@@ -293,7 +293,7 @@ class KfcSaleApiTest extends AbstractDatabaseKernelTestCase
 
         $odpoved = $this->prodej($this->adminClient(), $predmet, null);
 
-        self::assertNotSame(201, $odpoved['status']);
+        self::assertSame(400, $odpoved['status'], $odpoved['telo']);
         self::assertStringContainsString('má víc variant', $odpoved['telo']);
     }
 }

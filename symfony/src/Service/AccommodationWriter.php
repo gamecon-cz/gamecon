@@ -8,6 +8,9 @@ use App\Entity\OrderItem;
 use App\Entity\ProductVariant;
 use App\Entity\User;
 use App\Enum\ProductTagCode;
+use App\Exception\InsufficientPermissionsException;
+use App\Exception\InvalidRequestException;
+use App\Exception\UserFacingException;
 use App\Repository\OrderItemRepository;
 use App\Repository\ProductRepository;
 use Doctrine\DBAL\Connection;
@@ -41,7 +44,7 @@ class AccommodationWriter
     /**
      * @param int[] $variantIds nights the customer wants to end up with
      *
-     * @throws \RuntimeException when the nights break a rule or a bed is gone
+     * @throws UserFacingException when the nights break a rule or a bed is gone
      */
     public function save(
         User $customer,
@@ -258,7 +261,7 @@ class AccommodationWriter
 
         foreach ($variantIds as $variantId) {
             if (! isset($variants[$variantId])) {
-                throw new \RuntimeException(sprintf('Noc %d není nabízeným ubytováním.', $variantId));
+                throw new InvalidRequestException(sprintf('Noc %d není nabízeným ubytováním.', $variantId));
             }
         }
 
@@ -278,12 +281,12 @@ class AccommodationWriter
         }
 
         if (! $maySingleNight && count($days) < 2) {
-            throw new \RuntimeException(self::ERROR_AT_LEAST_TWO_NIGHTS);
+            throw new InvalidRequestException(self::ERROR_AT_LEAST_TWO_NIGHTS);
         }
 
         for ($i = 1, $count = count($days); $i < $count; ++$i) {
             if ($days[$i] !== $days[$i - 1] + 1) {
-                throw new \RuntimeException(self::ERROR_CONSECUTIVE_NIGHTS);
+                throw new InvalidRequestException(self::ERROR_CONSECUTIVE_NIGHTS);
             }
         }
     }
@@ -395,7 +398,7 @@ class AccommodationWriter
                 // The override makes the capacity test always pass, so getting here at all means
                 // the caller did not have it. Telling the desk the night is "obsazené" when the
                 // real answer is "you may not overbook" sends them hunting for a bed that exists.
-                throw new \RuntimeException(sprintf(self::ERROR_OVERBOOKING_NOT_PERMITTED, $product->getName(), $variant->getName()));
+                throw new InsufficientPermissionsException(sprintf(self::ERROR_OVERBOOKING_NOT_PERMITTED, $product->getName(), $variant->getName()));
             }
         }
 

@@ -6,6 +6,7 @@ namespace App\Service;
 
 use App\Entity\ProductVariant;
 use App\Enum\RoleMeaning;
+use App\Exception\CapacityExceededException;
 use Doctrine\DBAL\ArrayParameterType;
 use Doctrine\DBAL\Connection;
 
@@ -148,8 +149,8 @@ class CapacityManager
      *
      * @param RoleMeaning[] $roleMeanings
      *
-     * @throws \RuntimeException if not enough stock
-     * @throws \LogicException   outside a transaction, where the lock would end at once
+     * @throws CapacityExceededException if not enough stock
+     * @throws \LogicException           outside a transaction, where the lock would end at once
      */
     public function lockForSale(ProductVariant $variant, int $quantity = 1, array $roleMeanings = [], ?OperatorOverride $override = null): void
     {
@@ -180,7 +181,7 @@ class CapacityManager
             : $this->heldBackFrom($variant, $roleMeanings);
 
         if ((int) $capacity - $heldBack - $sold < $quantity) {
-            throw new \RuntimeException(sprintf('Nedostatečná kapacita pro produkt "%s". Požadované: %d', $variant->getFullName(), $quantity));
+            throw new CapacityExceededException(sprintf('Nedostatečná kapacita pro produkt "%s". Požadované: %d', $variant->getFullName(), $quantity));
         }
     }
 

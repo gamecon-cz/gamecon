@@ -11,6 +11,8 @@ use App\Entity\ProductVariant;
 use App\Entity\User;
 use App\Enum\ProductStateEnum;
 use App\Enum\ProductTagCode;
+use App\Exception\CapacityExceededException;
+use App\Exception\NoLongerAvailableException;
 use App\Service\CapacityManager;
 use App\Service\CartService;
 use App\Service\OperatorOverride;
@@ -211,7 +213,7 @@ class CartServiceStockTest extends AbstractDatabaseKernelTestCase
         $chyba = null;
         try {
             $this->cartService()->addItem($kosik, $variant);
-        } catch (\RuntimeException $zachycena) {
+        } catch (CapacityExceededException $zachycena) {
             $chyba = $zachycena;
         }
 
@@ -236,7 +238,7 @@ class CartServiceStockTest extends AbstractDatabaseKernelTestCase
         $variant = $this->vytvorPredmet(kusuVyrobeno: 2);
         $capacityManager = static::getContainer()->get(CapacityManager::class);
 
-        $this->expectException(\RuntimeException::class);
+        $this->expectException(CapacityExceededException::class);
         $this->expectExceptionMessageMatches('~kapacita~');
 
         $capacityManager->lockForSale($variant, 3);
@@ -254,7 +256,7 @@ class CartServiceStockTest extends AbstractDatabaseKernelTestCase
         // The message matters: addItem() throws RuntimeException for a mandatory bundle, an
         // unavailable product and a passed deadline too, so a bare type assertion would pass
         // on any of them.
-        $this->expectException(\RuntimeException::class);
+        $this->expectException(CapacityExceededException::class);
         $this->expectExceptionMessageMatches('~kapacita~');
 
         $this->cartService()->addItem($kosik, $variant);
@@ -278,7 +280,7 @@ class CartServiceStockTest extends AbstractDatabaseKernelTestCase
             ted: new DateTimeImmutableStrict(ROCNIK . '-12-31 23:59:59'),
         );
 
-        $this->expectException(\RuntimeException::class);
+        $this->expectException(NoLongerAvailableException::class);
         $this->expectExceptionMessageMatches('~skončil~');
 
         $this->cartService()->addItem($kosik, $variant);
@@ -338,7 +340,7 @@ class CartServiceStockTest extends AbstractDatabaseKernelTestCase
         $variant = $this->vytvorPredmet(kusuVyrobeno: 0);
         $kosik = $this->cartService()->getOrCreateCart($zakaznik);
 
-        $this->expectException(\RuntimeException::class);
+        $this->expectException(CapacityExceededException::class);
         $this->expectExceptionMessageMatches('~kapacita~');
 
         $this->cartService()->addItem(

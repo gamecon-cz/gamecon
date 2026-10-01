@@ -12,6 +12,11 @@ framework:
         storage_factory_id: session.storage.factory.native
     http_method_override: false
 
+    # A refusal is expected behaviour, not an incident; faults keep the default critical level.
+    exceptions:
+        App\Exception\UserFacingException:
+            log_level: info
+
     #esi: true
     #fragments: true
 

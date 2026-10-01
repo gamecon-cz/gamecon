@@ -16,6 +16,8 @@ use App\Entity\ProductVariant;
 use App\Entity\User;
 use App\Enum\ProductStateEnum;
 use App\Enum\ProductTagCode;
+use App\Exception\CapacityExceededException;
+use App\Exception\InvalidRequestException;
 use App\State\Kfc\KfcSaleProcessor;
 use App\Structure\Entity\UserEntityStructure;
 use App\Tests\AbstractDatabaseKernelTestCase;
@@ -361,7 +363,7 @@ class KfcSaleProcessorTest extends AbstractDatabaseKernelTestCase
         $this->entityManager()->persist($druhaVarianta);
         $this->entityManager()->flush();
 
-        $this->expectException(\RuntimeException::class);
+        $this->expectException(InvalidRequestException::class);
         $this->expectExceptionMessageMatches('~víc variant~');
 
         $this->zpracuj($this->prodej($predmet));
@@ -444,7 +446,7 @@ class KfcSaleProcessorTest extends AbstractDatabaseKernelTestCase
         $this->entityManager()->refresh($predmet->getVariants()->first());
 
         // Rezervaci pult obejít smí, celkovou zásobu ne — prodat neexistující kus nelze.
-        $this->expectException(\RuntimeException::class);
+        $this->expectException(CapacityExceededException::class);
         $this->expectExceptionMessageMatches('~kapacita~');
 
         $this->zpracuj($this->prodej($predmet));
@@ -767,7 +769,7 @@ class KfcSaleProcessorTest extends AbstractDatabaseKernelTestCase
         $this->prihlasOperatora();
         $predmet = $this->vytvorPredmet(kusuVyrobeno: 0);
 
-        $this->expectException(\RuntimeException::class);
+        $this->expectException(CapacityExceededException::class);
         $this->expectExceptionMessageMatches('~kapacita~');
 
         $this->zpracuj($this->prodej($predmet));
@@ -850,7 +852,7 @@ class KfcSaleProcessorTest extends AbstractDatabaseKernelTestCase
         $polozka->quantity = 1;
         $vstup->items[] = $polozka;
 
-        $this->expectException(\RuntimeException::class);
+        $this->expectException(InvalidRequestException::class);
         $this->expectExceptionMessageMatches('~nebyl nalezen~');
 
         $this->zpracuj($vstup);

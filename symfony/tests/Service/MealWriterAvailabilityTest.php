@@ -10,6 +10,7 @@ use App\Entity\ProductVariant;
 use App\Entity\User;
 use App\Enum\ProductStateEnum;
 use App\Enum\ProductTagCode;
+use App\Exception\NoLongerAvailableException;
 use App\Service\MealWriter;
 use App\Structure\Entity\UserEntityStructure;
 use App\Tests\AbstractDatabaseKernelTestCase;
@@ -212,7 +213,7 @@ class MealWriterAvailabilityTest extends AbstractDatabaseKernelTestCase
         $chyba = null;
         try {
             $this->writer()->save($zakaznik, [$varianta->getId()], self::ROK);
-        } catch (\RuntimeException $zachycena) {
+        } catch (NoLongerAvailableException $zachycena) {
             $chyba = $zachycena;
         }
 
