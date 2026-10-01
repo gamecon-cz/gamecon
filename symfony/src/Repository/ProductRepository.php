@@ -176,9 +176,7 @@ class ProductRepository extends ServiceEntityRepository
     }
 
     /**
-     * Capacity is the variant's; whether a night is on offer still comes from its own
-     * shop_predmety row, matched by variant code. The variant's parent is the room type and
-     * answers for neither.
+     * Capacity and offer state are the variant's, not its room type's.
      *
      * @param string[] $codes
      *
@@ -191,7 +189,7 @@ class ProductRepository extends ServiceEntityRepository
         }
 
         $rows = $this->getEntityManager()->getConnection()->fetchAllAssociative(
-            'SELECT shop_predmety.kod_predmetu, product_variant.capacity, shop_predmety.stav,
+            'SELECT shop_predmety.kod_predmetu, product_variant.capacity, product_variant.state,
                     shop_predmety.archived_at,
                     COALESCE(product_variant.reserved_for_organizers,
                              shop_predmety.reserved_for_organizers) AS reserved_for_organizers
@@ -210,11 +208,11 @@ class ProductRepository extends ServiceEntityRepository
         foreach ($rows as $row) {
             $nalezene[(string) $row['kod_predmetu']] = [
                 'vyrobeno' => $row['capacity'] === null ? null : (int) $row['capacity'],
-                // Only stav, deliberately: legacy exempts accommodation from nabizet_do
+                // Only the state, deliberately: legacy exempts accommodation from nabizet_do
                 // (Shop::nactiPredmety) and gates a night on POZASTAVENY alone, so honouring
                 // that column here would lock nights the legacy form still sells.
                 'nabizeno' => $row['archived_at'] === null
-                    && (int) $row['stav'] === ProductStateEnum::PUBLIC->value,
+                    && (int) $row['state'] === ProductStateEnum::PUBLIC->value,
                 // Varianta má přednost před řádkem noci, stejně jako v zapisovači — import
                 // e-shopu zapisuje rezervace na varianty. Rodičovský produkt se schválně
                 // nečte: u ubytování je to typ pokoje, ne ta noc.
