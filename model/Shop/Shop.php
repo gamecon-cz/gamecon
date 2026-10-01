@@ -2,11 +2,17 @@
 
 namespace Gamecon\Shop;
 
+use App\Entity\Product;
+use App\Entity\ProductVariant;
+use App\Entity\User;
 use App\Enum\ProductTagCode;
+use App\Exception\CapacityExceededException;
+use App\Service\BulkCancelService;
+use App\Service\ManualSaleService;
+use Doctrine\ORM\EntityManagerInterface;
 use Gamecon\Aktivita\Aktivita;
 use Gamecon\Aktivita\FiltrAktivity;
 use Gamecon\Aktivita\TypAktivity;
-use Gamecon\Cas\DateTimeCz;
 use Gamecon\Cas\DateTimeGamecon;
 use Gamecon\Jidlo;
 use Gamecon\Pravo;
@@ -675,23 +681,13 @@ SQL,
         $idPredmetu,
         int $pocet,
     ): int {
-        $idPredmetu = (int)$idPredmetu;
-        $rok = ROCNIK;
-        $query = <<<SQL
-            DELETE FROM shop_nakupy
-            WHERE id_uzivatele={$this->zakaznik->id()}
-            AND id_predmetu = $idPredmetu
-            AND rok=$rok
-        SQL;
-        if ($pocet > 0) {
-            $query .= <<<SQL
-                -- pozor musi byt aspon jeden bily znak, treba novy radek
-                LIMIT $pocet
-            SQL;
-        }
-        $mysqli = dbQuery($query);
+        $idsNakupu = dbOneArray(
+            'SELECT id_nakupu FROM shop_nakupy WHERE id_uzivatele = $0 AND id_predmetu = $1 AND rok = $2 ORDER BY id_nakupu'
+            . ($pocet > 0 ? ' LIMIT ' . $pocet : ''),
+            [0 => $this->zakaznik->id(), 1 => (int)$idPredmetu, 2 => ROCNIK],
+        );
 
-        return dbAffectedOrNumRows($mysqli);
+        return $this->sluzba(BulkCancelService::class)->removePurchases($idsNakupu);
     }
 
     private function cenaVybraneOpakovaneVybiranePolozky(array $polozky, int $idPredmetu): ?float
@@ -765,36 +761,19 @@ SQL,
         int    $typPredetu,
         string $zdrojZruseni,
     ): int {
-        $insertResult = dbQuery(<<<SQL
-            INSERT INTO shop_nakupy_zrusene(id_nakupu, id_uzivatele, id_predmetu, rocnik, cena_nakupni, datum_nakupu, datum_zruseni, zdroj_zruseni, product_name, product_code)
-            SELECT shop_nakupy.id_nakupu, shop_nakupy.id_uzivatele, shop_nakupy.id_predmetu, shop_nakupy.rok, shop_nakupy.cena_nakupni, shop_nakupy.datum, $0, $1,
-                   COALESCE(shop_nakupy.product_name, shop_predmety_s_typem.nazev), COALESCE(shop_nakupy.product_code, shop_predmety_s_typem.kod_predmetu)
+        $idsNakupu = dbOneArray(<<<SQL
+            SELECT shop_nakupy.id_nakupu
             FROM shop_nakupy
-            JOIN shop_predmety_s_typem ON shop_nakupy.id_predmetu = shop_predmety_s_typem.id_predmetu
-            WHERE shop_nakupy.rok = {$this->systemoveNastaveni->rocnik()}
-              AND shop_nakupy.id_uzivatele = {$this->zakaznik->id()}
-              AND shop_predmety_s_typem.typ = {$typPredetu}
+            INNER JOIN shop_predmety_s_typem ON shop_nakupy.id_predmetu = shop_predmety_s_typem.id_predmetu
+            WHERE shop_nakupy.rok = $0
+              AND shop_nakupy.id_uzivatele = $1
+              AND shop_predmety_s_typem.typ = $2
             SQL,
-            [
-                0 => $this->systemoveNastaveni->ted()->format(DateTimeCz::FORMAT_DB),
-                1 => $zdrojZruseni,
-            ],
-        );
-        if (dbAffectedOrNumRows($insertResult) === 0) {
-            return 0;
-        }
-
-        $deleteResult = dbQuery(<<<SQL
-            DELETE nakupy.*
-            FROM shop_nakupy AS nakupy
-            JOIN shop_predmety_s_typem AS predmety ON nakupy.id_predmetu = predmety.id_predmetu
-            WHERE nakupy.rok = {$this->systemoveNastaveni->rocnik()}
-              AND nakupy.id_uzivatele = {$this->zakaznik->id()}
-              AND predmety.typ = {$typPredetu}
-            SQL,
+            [0 => $this->systemoveNastaveni->rocnik(), 1 => $this->zakaznik->id(), 2 => $typPredetu],
         );
 
-        return dbAffectedOrNumRows($deleteResult);
+        return $this->sluzba(BulkCancelService::class)
+            ->cancelPurchases($idsNakupu, $zdrojZruseni, $this->systemoveNastaveni->ted());
     }
 
     /**
@@ -825,25 +804,16 @@ SQL,
         $rocnik      = $this->systemoveNastaveni->rocnik();
         $idZakaznika = $this->zakaznik->id();
 
-        dbQuery(<<<SQL
-            INSERT INTO shop_nakupy_zrusene(id_nakupu, id_uzivatele, id_predmetu, rocnik, cena_nakupni, datum_nakupu, datum_zruseni, zdroj_zruseni, product_name, product_code)
-            SELECT shop_nakupy.id_nakupu, shop_nakupy.id_uzivatele, shop_nakupy.id_predmetu, shop_nakupy.rok, shop_nakupy.cena_nakupni, shop_nakupy.datum, $0, $1,
-                   COALESCE(shop_nakupy.product_name, shop_predmety.nazev), COALESCE(shop_nakupy.product_code, shop_predmety.kod_predmetu)
+        $idsNakupu = dbOneArray(<<<SQL
+            SELECT shop_nakupy.id_nakupu
             FROM shop_nakupy
-            JOIN shop_predmety ON shop_predmety.id_predmetu = shop_nakupy.id_predmetu
-            WHERE shop_nakupy.rok = {$rocnik} AND shop_nakupy.id_uzivatele = {$idZakaznika}
-            {$podminkaZachovani}
-            SQL,
-            [0 => $this->systemoveNastaveni->ted()->format(DateTimeCz::FORMAT_DB), $zdrojZruseni],
-        );
-        $result = dbQuery(<<<SQL
-            DELETE FROM shop_nakupy
             WHERE shop_nakupy.rok = {$rocnik} AND shop_nakupy.id_uzivatele = {$idZakaznika}
             {$podminkaZachovani}
             SQL,
         );
 
-        return dbAffectedOrNumRows($result);
+        return $this->sluzba(BulkCancelService::class)
+            ->cancelPurchases($idsNakupu, $zdrojZruseni, $this->systemoveNastaveni->ted());
     }
 
     public function zrusPrihlaseniNaLetosniLarpy(
@@ -959,6 +929,18 @@ SQL,
         return (int) $varianta['id'];
     }
 
+    /**
+     * @template T of object
+     *
+     * @param class-string<T> $trida
+     *
+     * @return T
+     */
+    private function sluzba(string $trida): object
+    {
+        return $this->systemoveNastaveni->kernel()->getContainer()->get($trida);
+    }
+
     public function prodat(
         int  $idPredmetu,
         int  $kusu = 1,
@@ -992,46 +974,28 @@ SQL,
             $cenaAktualni = $predmet['cena_aktualni'];
             $idVarianty = $this->idProdejneVarianty($varianta, $predmet['kod_predmetu'], $idPredmetu);
 
-            if ($varianta['capacity'] !== null) {
-                $prodanoKusu = (int) dbOneCol(
+            /** @var EntityManagerInterface $entity */
+            $entity = $this->systemoveNastaveni->kernel()->getContainer()->get('doctrine.orm.entity_manager');
+            try {
+                // Vlastní objednávka na každý prodej drží pohromadě řádky nákupu a jejich
+                // protizápis v platbách.
+                // References, not find(): a sale needs only the ids, and hydrating a user fails on
+                // accounts that predate a value the entity requires.
+                $idObjednavky = $this->sluzba(ManualSaleService::class)->sell(
+                    $entity->getReference(User::class, $this->zakaznik->id()),
+                    $entity->getReference(User::class, $this->objednatel->id()),
+                    $entity->find(Product::class, $idPredmetu),
+                    $entity->find(ProductVariant::class, $idVarianty),
+                    $kusu,
+                    (string)$cenaAktualni,
+                    $aktualniRocnik,
+                )->getId();
+            } catch (CapacityExceededException $vyprodano) {
+                $zbyvajiciKusu = max(0, (int)$varianta['capacity'] - (int)dbOneCol(
                     'SELECT COUNT(*) FROM shop_nakupy WHERE variant_id = $0 AND rok = $1',
                     [0 => $idVarianty, 1 => $aktualniRocnik],
-                );
-                $zbyvajiciKusu = max(0, (int) $varianta['capacity'] - $prodanoKusu);
-                if ($kusu > $zbyvajiciKusu) {
-                    throw new \Chyba("Předmět '{$predmet['nazev']}' už nejde objednat v požadovaném počtu. Zbývá dostupných kusů: {$zbyvajiciKusu}.");
-                }
-            }
-
-            // Vlastní objednávka na každý prodej — drží pohromadě řádky nákupu a jejich
-            // protizápis v platbách. Bez ní by nové nákupy zůstaly bez order_id, které
-            // historické řádky mají z migrace.
-            dbQuery(
-                'INSERT INTO shop_order (customer_id, year, status, total_price, created_at, completed_at, accommodation_declined)
-                 VALUES ($0, $1, $2, $3, NOW(), NOW(), 0)',
-                [
-                    0 => $this->zakaznik->id(),
-                    1 => $aktualniRocnik,
-                    2 => 'completed',
-                    3 => ((float)$cenaAktualni) * $kusu,
-                ],
-            );
-            $idObjednavky = dbInsertId();
-
-            for ($i = 1; $i <= $kusu; $i++) {
-                dbQuery(
-                    'INSERT INTO shop_nakupy(id_uzivatele,id_objednatele,id_predmetu,variant_id,rok,cena_nakupni,datum,order_id)
-                     VALUES ($0,$1,$2,$3,$4,$5,NOW(),$6)',
-                    [
-                        0 => $this->zakaznik->id(),
-                        1 => $this->objednatel->id(),
-                        2 => $idPredmetu,
-                        3 => $idVarianty,
-                        4 => $aktualniRocnik,
-                        5 => $cenaAktualni,
-                        6 => $idObjednavky,
-                    ],
-                );
+                ));
+                throw new \Chyba("Předmět '{$predmet['nazev']}' už nejde objednat v požadovaném počtu. Zbývá dostupných kusů: {$zbyvajiciKusu}.", 0, $vyprodano);
             }
 
             if ($this->zakaznik->id() === Uzivatel::ANONYM) {
