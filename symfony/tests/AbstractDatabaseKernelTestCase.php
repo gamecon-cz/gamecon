@@ -46,7 +46,8 @@ abstract class AbstractDatabaseKernelTestCase extends ApiTestCase
     protected function tearDown(): void
     {
         $connection = $this->connection();
-        if ($connection->isTransactionActive()) {
+        // A nested level the test left open would otherwise carry into the next test on the shared connection.
+        while ($connection->isTransactionActive()) {
             $connection->rollBack();
         }
 

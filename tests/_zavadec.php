@@ -41,6 +41,7 @@ register_shutdown_function(static function () {
             dbQuery(<<<SQL
             KILL {$testDbProcessId}
             SQL,
+                null,
                 $connection,
             );
         } catch (\DbConnectionKilledException|\MysqlServerHasGoneAwayException $dbExcetion) {

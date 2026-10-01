@@ -4,7 +4,9 @@ declare(strict_types=1);
 
 namespace Gamecon\Tests\Db;
 
+use App\Doctrine\SharedConnection;
 use App\Kernel;
+use App\Tests\Support\SoubeznaTransakce;
 use Doctrine\DBAL\Connection;
 use PHPUnit\Framework\TestCase;
 
@@ -88,7 +90,90 @@ class JednoSpojeniTest extends TestCase
         self::assertSame(0, (int) dbOneCol('SELECT COUNT(*) FROM tmp_jedno_spojeni'));
     }
 
-    private function doctrine(): Connection
+    public function testPoDeadlockuSeTransakceUzavreStejneJakoNaServeru(): void
+    {
+        [$prvni, $druhy] = array_map('intval', dbOneArray(
+            'SELECT id_nastaveni FROM systemove_nastaveni ORDER BY id_nastaveni LIMIT 2',
+        ));
+        dbBegin();
+        dbBegin();
+        dbQuery('SELECT id_nastaveni FROM systemove_nastaveni WHERE id_nastaveni = $0 FOR UPDATE', [$druhy]);
+        // The rival changes a row, so InnoDB picks this transaction, which changed none, as the victim.
+        $souper = SoubeznaTransakce::spust($this->doctrine(), [
+            ['sql', "UPDATE systemove_nastaveni SET hodnota = CONCAT(hodnota, 'x') WHERE id_nastaveni = {$prvni}"],
+            ['hlasim', 'drzi prvni'],
+            ['cekej', 700],
+            ['sql', "SELECT id_nastaveni FROM systemove_nastaveni WHERE id_nastaveni = {$druhy} FOR UPDATE"],
+        ]);
+
+        $deadlock = null;
+        try {
+            dbQuery('SELECT id_nastaveni FROM systemove_nastaveni WHERE id_nastaveni = $0 FOR UPDATE', [$prvni]);
+        } catch (\Throwable $chyba) {
+            $deadlock = $chyba;
+        }
+        dbRollback();
+        dbRollback();
+
+        self::assertNotNull($deadlock, 'Tahle transakce měla být obětí deadlocku');
+        self::assertSame('hotovo', $souper->dokonci());
+        self::assertFalse($this->doctrine()->isTransactionActive());
+        dbBegin();
+        self::assertSame(1, (int) dbOneCol('SELECT @@in_transaction'));
+        dbCommit();
+        self::assertSame(0, (int) dbOneCol('SELECT @@in_transaction'));
+    }
+
+    public function testZavreniMimoVypinaniKerneluTransakciOpravduZavre(): void
+    {
+        dbBegin();
+
+        $this->doctrine()->close();
+
+        self::assertFalse($this->doctrine()->isTransactionActive());
+    }
+
+    public function testPoCommituSeSpustiAzPoVnejsimCommitu(): void
+    {
+        $spusteno = 0;
+        dbBegin();
+        $this->doctrine()->transactional(function () use (&$spusteno) {
+            $this->doctrine()->afterCommit(static function () use (&$spusteno) {
+                ++$spusteno;
+            });
+        });
+
+        self::assertSame(0, $spusteno, 'Vnitřní commit je jen savepoint, data ještě nikdo jiný nevidí');
+        dbCommit();
+        self::assertSame(1, $spusteno);
+    }
+
+    public function testPoRollbackuSeNespustiNic(): void
+    {
+        $spusteno = false;
+        dbBegin();
+        $this->doctrine()->afterCommit(static function () use (&$spusteno) {
+            $spusteno = true;
+        });
+        dbRollback();
+        dbBegin();
+        dbCommit();
+
+        self::assertFalse($spusteno);
+    }
+
+    public function testBezTransakceSePoCommituSpustiHned(): void
+    {
+        $spusteno = false;
+
+        $this->doctrine()->afterCommit(static function () use (&$spusteno) {
+            $spusteno = true;
+        });
+
+        self::assertTrue($spusteno);
+    }
+
+    private function doctrine(): SharedConnection
     {
         return $GLOBALS['systemoveNastaveni']->kernel()->getContainer()->get('doctrine.dbal.default_connection');
     }
