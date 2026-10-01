@@ -79,6 +79,11 @@ class ProductVariant
 
     public const DELETE = 'variant:delete';
 
+    /**
+     * Night names by `accommodation_day`, Wednesday to Sunday.
+     */
+    public const NIGHT_NAMES = ['středa', 'čtvrtek', 'pátek', 'sobota', 'neděle'];
+
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column(type: Types::BIGINT, options: [
@@ -319,6 +324,14 @@ class ProductVariant
     public function getEffectiveReservedForOrganizers(): ?int
     {
         return $this->reservedForOrganizers ?? $this->product->getReservedForOrganizers();
+    }
+
+    /**
+     * An imported night is its own product with a nameless variant; its day still names it.
+     */
+    public function getNightName(): ?string
+    {
+        return $this->name ?? ($this->accommodationDay === null ? null : self::NIGHT_NAMES[$this->accommodationDay] ?? null);
     }
 
     public function getFullName(): string

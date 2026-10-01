@@ -397,7 +397,7 @@ class AccommodationWriter
             if ((int) $capacity - $heldBack <= $sold) {
                 $parameters = [
                     '%product%' => $product->getName(),
-                    '%night%'   => $variant->getName(),
+                    '%night%'   => $variant->getNightName(),
                 ];
                 // Telling the desk the night is "obsazené" when the real answer is "you may not
                 // overbook" sends them hunting for a bed that exists.

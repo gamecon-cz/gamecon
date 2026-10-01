@@ -473,7 +473,7 @@ const EditorPředmětu: FunctionComponent<EditorProps> = ({
                   <input
                     type="text"
                     value={variant.name ?? ""}
-                    placeholder={name}
+                    placeholder={variants.length === 1 ? name : ""}
                     onInput={(event) =>
                       updateVariant(index, {
                         name: (event.target as HTMLInputElement).value || null,

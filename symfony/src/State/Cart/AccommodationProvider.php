@@ -11,6 +11,7 @@ use App\Dto\Cart\AccommodationDayOutputDto;
 use App\Dto\Cart\AccommodationOutputDto;
 use App\Dto\Cart\AccommodationTypeOutputDto;
 use App\Entity\Product;
+use App\Entity\ProductVariant;
 use App\Entity\User;
 use App\Enum\ProductTagCode;
 use App\Repository\OrderItemRepository;
@@ -38,8 +39,6 @@ use Symfony\Contracts\Translation\TranslatorInterface;
  */
 readonly class AccommodationProvider implements ProviderInterface, AccommodationGridInterface
 {
-    private const NAZVY_DNU = ['středa', 'čtvrtek', 'pátek', 'sobota', 'neděle'];
-
     private const DEN_NEDELE = 4;
 
     public function __construct(
@@ -109,7 +108,7 @@ readonly class AccommodationProvider implements ProviderInterface, Accommodation
             ? $order->isAccommodationDeclined()
             : (bool) $legacyUser->nechceUbytovani();
 
-        foreach (self::NAZVY_DNU as $den => $nazev) {
+        foreach (ProductVariant::NIGHT_NAMES as $den => $nazev) {
             if ($den === self::DEN_NEDELE && ! $muzeNedeli) {
                 continue;
             }
@@ -128,7 +127,7 @@ readonly class AccommodationProvider implements ProviderInterface, Accommodation
         if (! $muzeNedeli && in_array(self::DEN_NEDELE, $koupeneDny, true)) {
             $denDto = new AccommodationDayOutputDto();
             $denDto->day = self::DEN_NEDELE;
-            $denDto->name = self::NAZVY_DNU[self::DEN_NEDELE];
+            $denDto->name = ProductVariant::NIGHT_NAMES[self::DEN_NEDELE];
             $dto->days[] = $denDto;
         }
 
