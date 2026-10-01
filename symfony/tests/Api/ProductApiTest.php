@@ -201,6 +201,59 @@ class ProductApiTest extends AbstractDatabaseKernelTestCase
         self::assertSame(200, $response->getStatusCode(), $response->getContent(false));
     }
 
+    /**
+     * Case and surrounding spaces do not make a name different.
+     */
+    public function testEditorRejectsTwoVariantsWithTheSameName(): void
+    {
+        [$product, $variant] = $this->produktSVariantou();
+
+        $response = $this->ulozVarianty($product, [
+            $this->variantaJakoZEditoru($variant, capacity: 5),
+            $this->novaVarianta($product, name: 'm '),
+        ]);
+
+        $this->assertNazevVariantySeOpakuje($response, 'm ');
+    }
+
+    /**
+     * Uniqueness is the validator's, not a database index's: the rows are updated one by one,
+     * so an index would refuse the swap halfway through.
+     */
+    public function testEditorSwapsTwoVariantNames(): void
+    {
+        [$product, $variantM] = $this->produktSVariantou();
+        $variantLId = json_decode($this->pridejVariantu($product, name: 'L')->getContent(), true, flags: JSON_THROW_ON_ERROR)['id'];
+        $variantL = $this->entityManager()->getRepository(ProductVariant::class)->find($variantLId);
+
+        $response = $this->ulozVarianty($product, [
+            [
+                ...$this->variantaJakoZEditoru($variantM, capacity: 5),
+                'name' => 'L',
+            ],
+            [
+                ...$this->variantaJakoZEditoru($variantL, capacity: 5),
+                'name'     => 'M',
+                'position' => 1,
+            ],
+        ]);
+
+        self::assertSame(200, $response->getStatusCode(), $response->getContent(false));
+        self::assertSame('L', $this->connection()->fetchOne('SELECT name FROM product_variant WHERE id = :id', [
+            'id' => $variantM->getId(),
+        ]));
+        self::assertSame('M', $this->connection()->fetchOne('SELECT name FROM product_variant WHERE id = :id', [
+            'id' => $variantLId,
+        ]));
+    }
+
+    public function testVariantCannotTakeASiblingsName(): void
+    {
+        [$product] = $this->produktSVariantou();
+
+        $this->assertNazevVariantySeOpakuje($this->pridejVariantu($product, name: 'M'), 'M');
+    }
+
     public function testUnnamedVariantCannotBeAddedBesideANamedOne(): void
     {
         [$product] = $this->produktSVariantou();
@@ -508,6 +561,17 @@ class ProductApiTest extends AbstractDatabaseKernelTestCase
         $violations = json_decode($response->getContent(false), true, flags: JSON_THROW_ON_ERROR)['violations'] ?? [];
         self::assertContains(
             'Produkt s více variantami potřebuje u každé varianty název (velikost, noc…).',
+            array_column($violations, 'message'),
+            $response->getContent(false),
+        );
+    }
+
+    private function assertNazevVariantySeOpakuje(ResponseInterface $response, string $name): void
+    {
+        self::assertSame(422, $response->getStatusCode(), $response->getContent(false));
+        $violations = json_decode($response->getContent(false), true, flags: JSON_THROW_ON_ERROR)['violations'] ?? [];
+        self::assertContains(
+            "Název varianty „{$name}\" už má jiná varianta tohoto produktu.",
             array_column($violations, 'message'),
             $response->getContent(false),
         );
