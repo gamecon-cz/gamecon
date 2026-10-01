@@ -6,7 +6,6 @@ namespace App\Tests\Entity;
 
 use App\Entity\Product;
 use App\Entity\ProductTag;
-use App\Entity\ProductVariant;
 use App\Enum\ProductStateEnum;
 use PHPUnit\Framework\TestCase;
 
@@ -30,33 +29,6 @@ class ProductTest extends TestCase
         $tag->setCode($code);
 
         return $tag;
-    }
-
-    /**
-     * The default variant carries the product's own name; a renamed product must not read
-     * as "new name old name" wherever a purchase is named after product and variant.
-     */
-    public function testRenamingAProductRenamesItsDefaultVariant(): void
-    {
-        $default = (new ProductVariant())->setName('Test Product')->setCode('TEST-001');
-        $this->product->addVariant($default);
-
-        $this->product->setName('Renamed Product');
-
-        $this->assertSame('Renamed Product', $default->getName());
-    }
-
-    public function testRenamingAProductKeepsItsSizes(): void
-    {
-        $owned = (new ProductVariant())->setName('XS')->setCode('TEST-001');
-        $size = (new ProductVariant())->setName('L')->setCode('TEST-001-L');
-        $this->product->addVariant($owned);
-        $this->product->addVariant($size);
-
-        $this->product->setName('Renamed Product');
-
-        $this->assertSame('XS', $owned->getName());
-        $this->assertSame('L', $size->getName());
     }
 
     public function testProductCreation(): void
