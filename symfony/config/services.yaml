@@ -56,6 +56,12 @@ services:
     App\Service\AccommodationImport:
         public: true
 
+    # Legacy Shop writes its purchases through these
+    App\Service\ManualSaleService:
+        public: true
+    App\Service\BulkCancelService:
+        public: true
+
     App\Repository\TeamRepository:
         public: true
     # UserRoleService - accessed from legacy code via container
