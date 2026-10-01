@@ -889,9 +889,8 @@ SQL,
         $rocnik ??= $this->systemoveNastaveni->rocnik();
 
         return dbFetchColumn(<<<SQL
-            SELECT shop_predmety.nazev
-            FROM shop_predmety_s_typem AS shop_predmety
-            JOIN shop_nakupy_zrusene ON shop_predmety.id_predmetu = shop_nakupy_zrusene.id_predmetu
+            SELECT shop_nakupy_zrusene.product_name
+            FROM shop_nakupy_zrusene
             WHERE shop_nakupy_zrusene.zdroj_zruseni = $0
                 AND shop_nakupy_zrusene.id_uzivatele = {$this->zakaznik->id()}
                 AND shop_nakupy_zrusene.rocnik = {$rocnik}
