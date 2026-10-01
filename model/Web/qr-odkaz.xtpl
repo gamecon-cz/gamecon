@@ -1,0 +1,18 @@
+<!-- begin:qrOdkaz -->
+<details style="margin: 1.5em 0">
+  <summary style="cursor: pointer; font-size: larger">QR kód s odkazem</summary>
+  <div style="display: flex; gap: 1.5em; align-items: flex-start; flex-wrap: wrap; margin-top: 1em">
+    <img src="{png}" alt="QR kód s odkazem na {url}" style="width: 200px; height: 200px; border: 1px solid #ddd">
+    <div>
+      <p>Odkaz: <a href="{url}" target="_blank" rel="noopener">{url}</a></p>
+      <!-- begin:poznamka -->
+      <p><i>{poznamka}</i></p>
+      <!-- end:poznamka -->
+      <p>
+        <a href="{png}" download="{nazevSouboru}.png" class="tlacitko">Stáhnout PNG</a>
+        <a href="{svg}" download="{nazevSouboru}.svg" class="tlacitko">Stáhnout SVG (pro tisk)</a>
+      </p>
+    </div>
+  </div>
+</details>
+<!-- end:qrOdkaz -->
