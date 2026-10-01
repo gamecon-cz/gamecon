@@ -15,7 +15,7 @@ class MerchVariantOutputDto
     /**
      * Popisek do přepínače („38-39", „XL"). U produktu s jedinou variantou ho UI skryje.
      */
-    public string $name;
+    public ?string $name;
 
     /**
      * Kolik kusů téhle varianty už zákazník letos má — mřížka tím předvyplní počet.

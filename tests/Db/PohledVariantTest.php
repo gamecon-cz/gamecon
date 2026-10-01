@@ -41,7 +41,7 @@ INSERT INTO product_variant (product_id, name, code, price, capacity, accommodat
 VALUES (88901, 'pátek', 'test_pokoj_pa', NULL, 5, 2, 0, 1),
        (88911, 'S', 'tricko_test_S_2026', NULL, 10, NULL, 0, 1),
        (88911, 'L', 'tricko_test_L_2026', 300, 8, NULL, 1, 3),
-       (88921, 'Kostka testovací', 'kostka_test', NULL, NULL, NULL, 0, 1)
+       (88921, NULL, 'kostka_test', NULL, NULL, NULL, 0, 1)
 SQL,
     ];
 
@@ -94,7 +94,7 @@ SQL,
     /**
      * @test
      */
-    public function jednovariantovyProduktSeNeopakujeVNazvu(): void
+    public function vychoziVariantaBezJmenaNeseJmenoProduktu(): void
     {
         self::assertSame(
             'Kostka testovací',

@@ -124,7 +124,6 @@ class ProductApiTest extends AbstractDatabaseKernelTestCase
                 'code'         => $code,
                 'currentPrice' => '10.00',
                 'variants'     => [[
-                    'name'                  => 'M',
                     'code'                  => $code . '-M',
                     'price'                 => null,
                     'capacity'              => null,

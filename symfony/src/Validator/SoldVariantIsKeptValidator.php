@@ -36,7 +36,7 @@ class SoldVariantIsKeptValidator extends ConstraintValidator
         }
 
         $this->context->buildViolation($constraint->message)
-            ->setParameter('{{ variant }}', $value->getName())
+            ->setParameter('{{ variant }}', $value->getFullName())
             ->addViolation();
     }
 }

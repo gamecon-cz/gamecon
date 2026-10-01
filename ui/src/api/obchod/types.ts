@@ -57,7 +57,8 @@ export type DefiniceObchod = {
 
 export type Varianta = {
   id: number,
-  název: string,
+  /** Null for a product's only variant, which is shown as the product itself. */
+  název: string | null,
   cena: number,
   zbývá: number | null,
 };
