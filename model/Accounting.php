@@ -22,7 +22,7 @@ class Accounting
             $splits = [];
             if ($showDiscounts) {
                 $splits[] = new TransactionSplit(-($polozkaProBfgr->castka + $polozkaProBfgr->sleva), $polozkaProBfgr->nazev);
-                if ($polozkaProBfgr->sleva !== 0) {
+                if ($polozkaProBfgr->sleva !== 0.0) {
                     $splits[] = new TransactionSplit($polozkaProBfgr->sleva, 'Sleva z ' . $polozkaProBfgr->nazev);
                 }
             } else {
