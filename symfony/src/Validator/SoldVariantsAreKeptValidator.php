@@ -50,7 +50,7 @@ class SoldVariantsAreKeptValidator extends ConstraintValidator
         foreach ($removed as $variant) {
             if (in_array($variant->getId(), $soldIds, true)) {
                 $this->context->buildViolation($constraint->message)
-                    ->setParameter('{{ variant }}', $variant->getName())
+                    ->setParameter('{{ variant }}', $variant->getFullName())
                     ->atPath('variants')
                     ->addViolation();
             }
