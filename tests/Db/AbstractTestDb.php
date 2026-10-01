@@ -6,6 +6,7 @@ namespace Gamecon\Tests\Db;
 
 use Gamecon\Aktivita\Aktivita;
 use Gamecon\Shop\Predmet;
+use Gamecon\SystemoveNastaveni\SystemoveNastaveni;
 use Symfony\Bundle\FrameworkBundle\Test\KernelTestCase;
 
 abstract class AbstractTestDb extends KernelTestCase
@@ -92,21 +93,11 @@ abstract class AbstractTestDb extends KernelTestCase
     {
         if (static::keepSingleTestMethodDbChangesInTransaction()) {
             self::$connection->rollback();
-            // Clear Doctrine identity map after rollback — entities may reference
-            // rolled-back data. Both legacy and Doctrine share the same PDO connection.
-            try {
-                static::getContainer()->get('doctrine')->getManager()->clear();
-            } catch (\Throwable) {
-                // Doctrine not booted yet
-            }
+            static::zapomenNacteneEntity();
         }
         if (static::resetDbAfterSingleTestMethod()) {
             self::$connection->resetTestDb();
-            // Clear Doctrine identity map after DB reset
-            try {
-                static::getContainer()->get('doctrine')->getManager()->clear();
-            } catch (\Throwable) {
-            }
+            static::zapomenNacteneEntity();
         }
         Aktivita::smazCache();
         \Uzivatel::smazCache();
@@ -159,12 +150,28 @@ abstract class AbstractTestDb extends KernelTestCase
         if (static::resetDbAfterClass()) {
             self::$connection->resetTestDb();
         }
+        static::zapomenNacteneEntity();
         if (static::$disableStrictTransTables) {
             static::disableStrictTransTables();
         }
         Aktivita::smazCache();
         \Uzivatel::smazCache();
         Predmet::smazCache();
+    }
+
+    /**
+     * Entities loaded before a rollback or reset describe rows that are gone, and a reset hands
+     * their ids to new rows. Legacy code writes through the global kernel, not the test one.
+     */
+    protected static function zapomenNacteneEntity(): void
+    {
+        $kernely = [SystemoveNastaveni::zGlobals()->kernel()];
+        if (static::$booted) {
+            $kernely[] = static::$kernel;
+        }
+        foreach ($kernely as $kernel) {
+            $kernel->getContainer()->get('doctrine')->getManager()->clear();
+        }
     }
 
     // například pro vypnutí kontroly "Field 'cena' doesn't have a default value"
