@@ -490,7 +490,7 @@ SQL, [Pravo::PORADANI_AKTIVIT],
             // Doctrine not available, fall through to legacy
         }
 
-        // Legacy fallback (e.g. in tests where Doctrine connection doesn't see uncommitted data)
+        // Legacy fallback when the kernel is not available
         return $this->pridejRoliLegacy($idRole, $posadil);
     }
 
