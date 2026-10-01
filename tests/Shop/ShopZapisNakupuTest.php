@@ -76,18 +76,7 @@ SQL,
                 dbQuery('INSERT INTO product_variant (product_id, name, code, price, capacity, position)
                     VALUES (' . self::PREDMET . ', "Zapisovaná placka", "zapis_nakupu_test", 150, 10, 0)');
 
-                dbQuery('INSERT INTO shop_predmety SET
-                    id_predmetu = ' . self::POSLEDNI_KUS . ',
-                    nazev = "Poslední placka",
-                    kod_predmetu = "posledni_kus_test",
-                    cena_aktualni = 150,
-                    stav = ' . StavPredmetu::VEREJNY . ',
-                    popis = ""');
-                dbQuery('INSERT INTO product_product_tag (product_id, tag_id)
-                    SELECT ' . self::POSLEDNI_KUS . ', id FROM product_tag WHERE code = "predmet"');
-                dbQuery('INSERT INTO product_variant (product_id, name, code, price, capacity, position)
-                    VALUES (' . self::POSLEDNI_KUS . ', "Poslední placka", "posledni_kus_test", 150, 1, 0)');
-
+                // Right after the first variant: no other test's rows may sit between them in the index.
                 dbQuery('INSERT INTO shop_predmety SET
                     id_predmetu = ' . self::VEDLEJSI_PREDMET . ',
                     nazev = "Vedlejší placka",
@@ -99,6 +88,18 @@ SQL,
                     SELECT ' . self::VEDLEJSI_PREDMET . ', id FROM product_tag WHERE code = "predmet"');
                 dbQuery('INSERT INTO product_variant (product_id, name, code, price, capacity, position)
                     VALUES (' . self::VEDLEJSI_PREDMET . ', "Vedlejší placka", "vedlejsi_predmet_test", 150, 10, 0)');
+
+                dbQuery('INSERT INTO shop_predmety SET
+                    id_predmetu = ' . self::POSLEDNI_KUS . ',
+                    nazev = "Poslední placka",
+                    kod_predmetu = "posledni_kus_test",
+                    cena_aktualni = 150,
+                    stav = ' . StavPredmetu::VEREJNY . ',
+                    popis = ""');
+                dbQuery('INSERT INTO product_product_tag (product_id, tag_id)
+                    SELECT ' . self::POSLEDNI_KUS . ', id FROM product_tag WHERE code = "predmet"');
+                dbQuery('INSERT INTO product_variant (product_id, name, code, price, capacity, position)
+                    VALUES (' . self::POSLEDNI_KUS . ', "Poslední placka", "posledni_kus_test", 150, 1, 0)');
             },
         ];
     }
