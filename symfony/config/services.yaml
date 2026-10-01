@@ -63,6 +63,9 @@ services:
         public: true
     App\Service\BulkCancelService:
         public: true
+    # The legacy e-shop import keeps variants following its catalog rows through this
+    App\Service\VariantStateMirror:
+        public: true
 
     App\Repository\TeamRepository:
         public: true
