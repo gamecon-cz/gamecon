@@ -142,6 +142,8 @@ export type ApiProductVariant = {
   remaining?: number | null;
   reservedForOrganizers: number | null;
   accommodationDay: number | null;
+  /** Offer state of this night or size. Omitted on a new variant, which starts as its product. */
+  state?: number;
   position: number;
 };
 
