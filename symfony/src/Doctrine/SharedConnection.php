@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Doctrine;
 
 use Doctrine\DBAL\Connection;
+use Doctrine\DBAL\Driver\Exception as DriverException;
 use Doctrine\DBAL\Exception;
 
 /**
@@ -71,7 +72,14 @@ class SharedConnection extends Connection
 
     public function commit(): bool
     {
-        $result = parent::commit();
+        try {
+            $result = parent::commit();
+        } catch (\Throwable $exception) {
+            if (! $this->isTransactionActive()) {
+                $this->afterCommit = [];
+            }
+            throw $exception;
+        }
         if (! $this->isTransactionActive()) {
             $callbacks = $this->afterCommit;
             $this->afterCommit = [];
@@ -90,20 +98,19 @@ class SharedConnection extends Connection
     public function rollBack(): bool
     {
         try {
-            $result = parent::rollBack();
-        } catch (Exception $exception) {
+            return parent::rollBack();
+        } catch (Exception|DriverException $exception) {
             if ($this->serverHasTransaction()) {
                 throw $exception;
             }
             $this->close();
 
             return true;
+        } finally {
+            if (! $this->isTransactionActive()) {
+                $this->afterCommit = [];
+            }
         }
-        if (! $this->isTransactionActive()) {
-            $this->afterCommit = [];
-        }
-
-        return $result;
     }
 
     private function serverHasTransaction(): bool
