@@ -116,6 +116,16 @@ class ProductVariantTest extends TestCase
         $this->assertSame(ProductStateEnum::PUBLIC, $variant->getState());
     }
 
+    public function testDefaultVariantIsNamedAfterItsProduct(): void
+    {
+        $variant = new ProductVariant();
+        $variant->setProduct($this->product);
+        $variant->setCode('TRICKO-MODRE');
+
+        $this->assertNull($variant->getName());
+        $this->assertSame('Tričko modré', $variant->getFullName());
+    }
+
     private function createVariant(string $name, string $code): ProductVariant
     {
         $variant = new ProductVariant();

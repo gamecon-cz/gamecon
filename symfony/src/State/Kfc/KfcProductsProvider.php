@@ -78,7 +78,7 @@ readonly class KfcProductsProvider implements ProviderInterface
 
             $podleProduktu[$idPredmetu]['variants'][] = new KfcProductVariantOutputDto(
                 id: (int) $row['varianta_id'],
-                name: (string) $row['varianta_nazev'],
+                name: $row['varianta_nazev'],
                 price: (int) $row['varianta_cena'],
                 remaining: $zbyva[(int) $row['varianta_id']] ?? null,
             );

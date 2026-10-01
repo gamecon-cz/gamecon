@@ -92,11 +92,13 @@ class ProductVariant
     #[Groups([self::READ, self::WRITE])]
     private Product $product;
 
-    #[ORM\Column(type: Types::STRING, length: 255, nullable: false)]
-    #[Assert\NotBlank(message: 'Název varianty nesmí být prázdný')]
+    /**
+     * Null for a product's only variant, which is shown as the product itself.
+     */
+    #[ORM\Column(type: Types::STRING, length: 255, nullable: true)]
     #[Assert\Length(max: 255)]
     #[Groups([Product::READ, Product::WRITE, self::READ, self::WRITE])]
-    private string $name;
+    private ?string $name = null;
 
     #[ORM\Column(type: Types::STRING, length: 255, nullable: false)]
     #[Assert\NotBlank(message: 'Kód varianty nesmí být prázdný')]
@@ -189,14 +191,14 @@ class ProductVariant
         $this->state ??= $this->product->getState();
     }
 
-    public function getName(): string
+    public function getName(): ?string
     {
         return $this->name;
     }
 
-    public function setName(string $name): self
+    public function setName(?string $name): self
     {
-        $this->name = $name;
+        $this->name = trim((string) $name) === '' ? null : $name;
 
         return $this;
     }
@@ -319,11 +321,10 @@ class ProductVariant
         return $this->reservedForOrganizers ?? $this->product->getReservedForOrganizers();
     }
 
-    /**
-     * Get full display name: "Product — Variant"
-     */
     public function getFullName(): string
     {
-        return $this->product->getName() . ' — ' . $this->name;
+        return $this->name === null
+            ? $this->product->getName()
+            : $this->product->getName() . ' — ' . $this->name;
     }
 }
