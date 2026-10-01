@@ -96,6 +96,7 @@ class ProductVariantTest extends TestCase
         $this->product->setState(ProductStateEnum::SUSPENDED);
 
         $variant = $this->createVariant('M', 'TRICKO-MODRE-M');
+        $variant->startOfferedAsProduct();
 
         $this->assertSame(ProductStateEnum::SUSPENDED, $variant->getState());
     }
@@ -110,6 +111,7 @@ class ProductVariantTest extends TestCase
         $variant->setState(ProductStateEnum::PUBLIC);
 
         $variant->setProduct($this->product);
+        $variant->startOfferedAsProduct();
 
         $this->assertSame(ProductStateEnum::PUBLIC, $variant->getState());
     }
