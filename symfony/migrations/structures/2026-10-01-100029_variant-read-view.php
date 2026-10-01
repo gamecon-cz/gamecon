@@ -5,7 +5,8 @@ declare(strict_types=1);
 /** @var Godric\DbMigrations\Migration $this */
 
 // What a purchase bought, one row per variant, for legacy readers moving off the purchase's
-// id_predmetu. Product-level columns come from shop_predmety_s_typem, which owns the tag rules.
+// id_predmetu. Product-level columns come from shop_predmety_s_typem, which owns the tag rules;
+// a night or size dropped from the catalogue is RETIRED in stav (App\Service\VariantStateMirror).
 $this->q(<<<'SQL'
 CREATE OR REPLACE VIEW shop_varianty_s_typem AS
 SELECT

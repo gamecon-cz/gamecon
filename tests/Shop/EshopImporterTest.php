@@ -667,6 +667,44 @@ SQL,
         }
     }
 
+    /**
+     * A night left out of the sheet is archived on its own row, while its room type stays.
+     *
+     * @test
+     */
+    public function nocVynechanaZImportuSeVyradi(): void
+    {
+        dbQuery(<<<SQL
+INSERT INTO shop_predmety (id_predmetu, nazev, kod_predmetu, cena_aktualni, stav, nabizet_do, popis)
+VALUES (94301, 'Trojlůžák', 'TYP_3L', 0, 3, NOW(), ''),
+       (94302, 'Trojlůžák pátek', 'NOC_3L_PA', 300, 1, NOW(), ''),
+       (94303, 'Trojlůžák sobota', 'NOC_3L_SO', 300, 1, NOW(), '')
+SQL);
+        dbQuery(<<<SQL
+INSERT INTO product_variant (product_id, name, code, price, capacity, position, state)
+VALUES (94301, 'pátek', 'NOC_3L_PA', 300, 4, 0, 1),
+       (94301, 'sobota', 'NOC_3L_SO', 300, 4, 1, 1)
+SQL);
+
+        (new EshopImporter($this->createXlsxSoubor([
+            $this->defaultniRadek([
+                'kod_predmetu' => 'TYP_3L',
+                'nazev'        => 'Trojlůžák',
+                'stav'         => StavPredmetu::POZASTAVENY,
+                'tag'          => 'ubytovani',
+            ]),
+            $this->defaultniRadek([
+                'kod_predmetu'  => 'NOC_3L_PA',
+                'nazev'         => 'Trojlůžák pátek',
+                'tag'           => 'ubytovani',
+                'ubytovani_den' => 2,
+            ]),
+        ])))->importuj();
+
+        self::assertSame(StavPredmetu::VEREJNY, $this->stavVarianty('NOC_3L_PA'));
+        self::assertSame(\App\Enum\ProductStateEnum::RETIRED->value, $this->stavVarianty('NOC_3L_SO'));
+    }
+
     private function stavVarianty(string $kod): ?int
     {
         $stav = dbOneCol('SELECT state FROM product_variant WHERE code = $0', [
