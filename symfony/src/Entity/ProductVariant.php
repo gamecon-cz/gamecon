@@ -135,10 +135,11 @@ class ProductVariant
 
     /**
      * Whether this night or size is on offer. Its own, not the product's: a room type nobody
-     * buys stays suspended while its nights are on sale.
+     * buys stays suspended while its nights are on sale. Read-only in the API, as it follows
+     * the variant's own catalog row (VariantStateMirror).
      */
     #[ORM\Column(name: 'state', type: Types::SMALLINT, nullable: false, enumType: ProductStateEnum::class)]
-    #[Groups([Product::READ, Product::WRITE, self::READ, self::WRITE])]
+    #[Groups([Product::READ, self::READ])]
     private ProductStateEnum $state;
 
     /**
