@@ -140,7 +140,7 @@ FROM (SELECT MAX(data_rows.poradi) AS poradi, data_rows.kod, MAX(data_rows.nazev
                     'Prodané noci 3L (počet)' AS nazev,
                     COUNT(shop_nakupy.id_nakupu)       AS data
              FROM shop_nakupy shop_nakupy
-                      JOIN shop_predmety_s_typem shop_predmety ON shop_predmety.id_predmetu = shop_nakupy.id_predmetu
+                      JOIN shop_varianty_s_typem shop_predmety ON shop_predmety.id_varianty = shop_nakupy.variant_id
              WHERE shop_predmety.typ = 2
                AND shop_nakupy.rok = $rocnik
                AND shop_predmety.kod_predmetu IN ('3L_st',
@@ -169,7 +169,7 @@ FROM (SELECT MAX(data_rows.poradi) AS poradi, data_rows.kod, MAX(data_rows.nazev
                     'Prodané noci 2L (počet)' AS nazev,
                     COUNT(shop_nakupy.id_nakupu)       AS data
              FROM shop_nakupy shop_nakupy
-                      JOIN shop_predmety_s_typem shop_predmety ON shop_predmety.id_predmetu = shop_nakupy.id_predmetu
+                      JOIN shop_varianty_s_typem shop_predmety ON shop_predmety.id_varianty = shop_nakupy.variant_id
              WHERE shop_predmety.typ = 2
                AND shop_nakupy.rok = $rocnik
                AND shop_predmety.kod_predmetu IN ('2L_st',
@@ -198,7 +198,7 @@ FROM (SELECT MAX(data_rows.poradi) AS poradi, data_rows.kod, MAX(data_rows.nazev
                     'Prodané noci 1L (počet)' AS nazev,
                     COUNT(shop_nakupy.id_nakupu)       AS data
              FROM shop_nakupy
-                      JOIN shop_predmety_s_typem AS shop_predmety ON shop_predmety.id_predmetu = shop_nakupy.id_predmetu
+                      JOIN shop_varianty_s_typem AS shop_predmety ON shop_predmety.id_varianty = shop_nakupy.variant_id
              WHERE shop_predmety.typ = 2
                AND shop_nakupy.rok = $rocnik
                AND shop_predmety.kod_predmetu IN ('1L_st',
@@ -227,7 +227,7 @@ FROM (SELECT MAX(data_rows.poradi) AS poradi, data_rows.kod, MAX(data_rows.nazev
                     'Prodané noci spacáky (počet)' AS nazev,
                     COUNT(shop_nakupy.id_nakupu)            AS data
              FROM shop_nakupy
-                      JOIN shop_predmety_s_typem AS shop_predmety ON shop_predmety.id_predmetu = shop_nakupy.id_predmetu
+                      JOIN shop_varianty_s_typem AS shop_predmety ON shop_predmety.id_varianty = shop_nakupy.variant_id
              WHERE shop_predmety.typ = 2
                AND shop_nakupy.rok = $rocnik
                AND shop_predmety.kod_predmetu IN ('spacak_st',

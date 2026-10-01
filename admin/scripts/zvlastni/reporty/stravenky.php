@@ -58,8 +58,8 @@ $o                        = dbQuery(<<<SQL
         AND EXISTS (
             SELECT 1
             FROM shop_nakupy AS nakupy_ubytovani
-            JOIN shop_predmety_s_typem AS predmety_ubytovani
-                ON predmety_ubytovani.id_predmetu = nakupy_ubytovani.id_predmetu
+            JOIN shop_varianty_s_typem AS predmety_ubytovani
+                ON predmety_ubytovani.id_varianty = nakupy_ubytovani.variant_id
                 AND predmety_ubytovani.typ = {$typUbytovani}
                 AND predmety_ubytovani.podtyp = $0
                 /* ubytování den N (noc) → snídaně den N+1 (ráno), viz BreakfastCanceller::cancelCovered() */
