@@ -11,6 +11,22 @@ use Symfony\Bundle\FrameworkBundle\Test\KernelTestCase;
 
 abstract class AbstractTestDb extends KernelTestCase
 {
+    /**
+     * Gives every catalog row without one the variant production has for it, so fixtures can
+     * insert legacy rows and still have purchases name what they bought.
+     */
+    protected const SQL_VYCHOZI_VARIANTY = <<<SQL
+INSERT INTO product_variant (product_id, name, code, position, state, accommodation_day)
+SELECT shop_predmety.id_predmetu, shop_predmety.nazev, shop_predmety.kod_predmetu, 0, shop_predmety.stav, shop_predmety.ubytovani_den
+FROM shop_predmety
+WHERE NOT EXISTS (SELECT 1 FROM product_variant WHERE product_variant.code = shop_predmety.kod_predmetu)
+SQL;
+
+    /**
+     * The variant of a catalog row, for a purchase inserted in SQL; `%s` is the row's id.
+     */
+    protected const SQL_VARIANTA_RADKU = '(SELECT product_variant.id FROM product_variant INNER JOIN shop_predmety AS radek ON radek.kod_predmetu = product_variant.code WHERE radek.id_predmetu = %s)';
+
     private static ?DbWrapper $connection = null;
     /**
      * @var string[]
