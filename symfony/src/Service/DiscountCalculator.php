@@ -11,6 +11,7 @@ use App\Discount\DiscountRuleLoader;
 use App\Discount\DiscountSettingValues;
 use App\Discount\PriceStep;
 use App\Entity\Product;
+use App\Entity\ProductVariant;
 use App\Entity\User;
 use App\Enum\ProductTagCode;
 use Gamecon\SystemoveNastaveni\SystemoveNastaveni;
@@ -93,8 +94,9 @@ class DiscountCalculator
         int $year,
         int $alreadyBought,
         ?array $spentQuota = null,
+        ?ProductVariant $variant = null,
     ): array {
-        $steps = $this->priceSteps($product, $user, $year, $alreadyBought, $spentQuota);
+        $steps = $this->priceSteps($product, $user, $year, $alreadyBought, $spentQuota, $variant);
         $prvni = $steps[0] ?? null;
         if ($prvni === null) {
             return $this->bezSlevy($product->getCurrentPrice());
@@ -105,7 +107,7 @@ class DiscountCalculator
             'discountAmount' => $prvni['discountAmount'],
             'finalPrice'     => $prvni['price'],
             'reason'         => $prvni['ruleName'],
-            'snapshot'       => $this->slevaProDalsiKus($product, $user, $year, $alreadyBought, $spentQuota)?->snapshot,
+            'snapshot'       => $this->slevaProDalsiKus($product, $user, $year, $alreadyBought, $spentQuota, $variant)?->snapshot,
         ];
     }
 
@@ -128,9 +130,10 @@ class DiscountCalculator
         int $year,
         int $alreadyBought = 0,
         ?array $spentQuota = null,
+        ?ProductVariant $variant = null,
     ): array {
         $idUzivatele = $user->getId();
-        $polozka = $this->polozkaZProduktu($product);
+        $polozka = $this->polozkaZProduktu($product, variant: $variant);
         if ($idUzivatele === null || $polozka === null) {
             return [(new PriceStep(1, (float) $product->getCurrentPrice(), 0.0, null, null))->toArray()];
         }
@@ -169,9 +172,10 @@ class DiscountCalculator
         int $year,
         int $alreadyBought,
         ?array $spentQuota,
+        ?ProductVariant $variant,
     ): ?AppliedDiscount {
         $idUzivatele = $user->getId();
-        $polozka = $this->polozkaZProduktu($product);
+        $polozka = $this->polozkaZProduktu($product, variant: $variant);
         if ($idUzivatele === null || $polozka === null) {
             return null;
         }
@@ -207,7 +211,11 @@ class DiscountCalculator
      * Vrací null pro položku, na kterou žádné pravidlo nemůže mířit — pravidla se
      * vztahují na tagy, takže produkt bez tagu nemá s čím porovnávat.
      */
-    private function polozkaZProduktu(Product $product, ?int $accommodationDay = null): ?DiscountableItem
+    /**
+     * A night or size is priced as its variant: a purchase points at the room type or shirt
+     * model, and only the variant knows which day or code it is.
+     */
+    private function polozkaZProduktu(Product $product, ?int $accommodationDay = null, ?ProductVariant $variant = null): ?DiscountableItem
     {
         $tagy = [];
         foreach ($product->getTagNames() as $kod) {
@@ -223,10 +231,10 @@ class DiscountCalculator
 
         return new DiscountableItem(
             key: $product->getId() ?? 0,
-            productCode: $product->getCode(),
-            price: (float) $product->getCurrentPrice(),
+            productCode: $variant?->getCode() ?? $product->getCode(),
+            price: (float) ($variant?->getEffectivePrice() ?? $product->getCurrentPrice()),
             tags: $tagy,
-            accommodationDay: $accommodationDay ?? $product->getAccommodationDay(),
+            accommodationDay: $accommodationDay ?? $variant?->getAccommodationDay() ?? $product->getAccommodationDay(),
         );
     }
 

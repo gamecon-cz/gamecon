@@ -7,6 +7,7 @@ namespace App\Tests\Service;
 use App\Discount\DiscountRuleLoader;
 use App\Entity\Product;
 use App\Entity\ProductTag;
+use App\Entity\ProductVariant;
 use App\Entity\User;
 use App\Enum\ProductTagCode;
 use App\Service\DiscountCalculator;
@@ -227,6 +228,28 @@ class DiscountCalculatorTest extends TestCase
 
         self::assertSame('0.00', $patek['finalPrice'], 'Na páteční noc nárok platí');
         self::assertSame('500.00', $ctvrtek['finalPrice'], 'Na čtvrteční ne');
+    }
+
+    /**
+     * A purchase points at the room type; which night it is, its variant says.
+     */
+    public function testNextPieceOfANightTakesTheDayFromItsVariant(): void
+    {
+        $kalkulator = $this->kalkulator([
+            [
+                'code'           => 'ubytovani_patecni_noc_zdarma',
+                'name'           => 'Ubytování páteční noc zdarma',
+                'required_right' => self::PRAVO_UBYTOVANI_ZDARMA,
+                'parameters'     => '{"scope":"tag_and_day","effect":"free","tag":"ubytovani","day":2}',
+            ],
+        ], [self::PRAVO_UBYTOVANI_ZDARMA]);
+        $typPokoje = $this->produkt('Postel na 2L koleji', '500.00', ProductTagCode::UBYTOVANI);
+        $patek = (new ProductVariant())->setName('pátek')->setCode('2L_pa')->setAccommodationDay(2);
+        $patek->setProduct($typPokoje);
+
+        $vysledek = $kalkulator->priceForNextPiece($typPokoje, $this->uzivatel(), self::ROK, 0, variant: $patek);
+
+        self::assertSame('0.00', $vysledek['finalPrice']);
     }
 
     /**
