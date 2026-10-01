@@ -19,7 +19,7 @@ class QrOdkazTest extends TestCase
         $dataUri = $qrOdkaz->pngDataUri();
         self::assertStringStartsWith('data:image/png;base64,', $dataUri);
 
-        $info = getimagesizefromstring(base64_decode(substr($dataUri, strlen('data:image/png;base64,'))));
+        $info = getimagesizefromstring(base64_decode(substr($dataUri, strlen('data:image/png;base64,')), true));
         self::assertNotFalse($info);
         self::assertSame(IMAGETYPE_PNG, $info[2]);
         self::assertGreaterThanOrEqual(1000, $info[0]);
@@ -35,7 +35,7 @@ class QrOdkazTest extends TestCase
         self::assertStringStartsWith('data:image/svg+xml;base64,', $dataUri);
         self::assertStringContainsString(
             '<svg',
-            base64_decode(substr($dataUri, strlen('data:image/svg+xml;base64,'))),
+            base64_decode(substr($dataUri, strlen('data:image/svg+xml;base64,')), true),
         );
     }
 
@@ -64,7 +64,10 @@ class QrOdkazTest extends TestCase
     private function novinka(int $typ, string $url): \Novinka
     {
         $novinka = (new \ReflectionClass(\Novinka::class))->newInstanceWithoutConstructor();
-        (new \ReflectionProperty(\Novinka::class, 'r'))->setValue($novinka, ['typ' => (string)$typ, 'url' => $url]);
+        (new \ReflectionProperty(\Novinka::class, 'r'))->setValue($novinka, [
+            'typ' => (string) $typ,
+            'url' => $url,
+        ]);
 
         return $novinka;
     }
