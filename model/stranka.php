@@ -80,6 +80,12 @@ class Stranka extends DbObject
         return $this->r['url_stranky'];
     }
 
+    /** Absolutní URL na veřejném webu */
+    public function urlNaWebu(): string
+    {
+        return URL_WEBU . '/' . $this->url();
+    }
+
     static function zUrl($url = null): ?Stranka
     {
         if (!$url) {
