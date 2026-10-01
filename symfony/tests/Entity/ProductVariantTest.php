@@ -126,6 +126,20 @@ class ProductVariantTest extends TestCase
         $this->assertSame('Tričko modré', $variant->getFullName());
     }
 
+    public function testNamelessNightIsCalledByItsDay(): void
+    {
+        $variant = (new ProductVariant())->setCode('SPACAK-PA')->setAccommodationDay(2);
+
+        $this->assertSame('pátek', $variant->getNightName());
+    }
+
+    public function testNamedNightKeepsItsName(): void
+    {
+        $variant = (new ProductVariant())->setName('pátek a sobota')->setCode('SPACAK-PA')->setAccommodationDay(2);
+
+        $this->assertSame('pátek a sobota', $variant->getNightName());
+    }
+
     private function createVariant(string $name, string $code): ProductVariant
     {
         $variant = new ProductVariant();
