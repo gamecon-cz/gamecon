@@ -57,6 +57,8 @@ services:
         public: true
 
     # Legacy Shop writes its purchases through these
+    App\Service\CapacityManager:
+        public: true
     App\Service\ManualSaleService:
         public: true
     App\Service\BulkCancelService:

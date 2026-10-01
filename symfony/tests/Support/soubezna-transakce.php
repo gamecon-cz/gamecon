@@ -14,7 +14,7 @@ $spojeni = new PDO($zadani['dsn'], $zadani['user'], $zadani['password'], [
     PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
 ]);
 $spojeni->exec('SET SESSION innodb_lock_wait_timeout = 5');
-$spojeni->exec('SET TRANSACTION ISOLATION LEVEL READ COMMITTED');
+$spojeni->exec('SET TRANSACTION ISOLATION LEVEL ' . $zadani['izolace']);
 $spojeni->beginTransaction();
 
 try {

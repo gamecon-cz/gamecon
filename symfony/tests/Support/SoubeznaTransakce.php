@@ -24,9 +24,13 @@ final class SoubeznaTransakce
 
     /**
      * @param list<array{0: 'sql'|'cekej'|'hlasim'|'potvrd', 1: string|int}> $kroky
+     * @param string                                                         $izolace REPEATABLE READ plays a sale that holds the gap locks of its stock count
      */
-    public static function spust(Connection $spojeni, array $kroky): self
+    public static function spust(Connection $spojeni, array $kroky, string $izolace = 'READ COMMITTED'): self
     {
+        if (! in_array($izolace, ['READ COMMITTED', 'REPEATABLE READ'], true)) {
+            throw new \InvalidArgumentException('Neznámá úroveň izolace: ' . $izolace);
+        }
         $parametry = $spojeni->getParams();
         $zadani = json_encode([
             'dsn' => sprintf(
@@ -38,6 +42,7 @@ final class SoubeznaTransakce
             'user'     => $parametry['user'] ?? '',
             'password' => $parametry['password'] ?? '',
             'kroky'    => $kroky,
+            'izolace'  => $izolace,
         ], JSON_THROW_ON_ERROR);
 
         $proces = proc_open(

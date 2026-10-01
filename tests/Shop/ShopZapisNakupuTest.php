@@ -20,6 +20,7 @@ class ShopZapisNakupuTest extends AbstractTestDb
     private const ZAKAZNIK = 88842;
     private const PREDMET = 88851;
     private const POSLEDNI_KUS = 88852;
+    private const VEDLEJSI_PREDMET = 88853;
 
     protected static bool $disableStrictTransTables = true;
 
@@ -86,6 +87,18 @@ SQL,
                     SELECT ' . self::POSLEDNI_KUS . ', id FROM product_tag WHERE code = "predmet"');
                 dbQuery('INSERT INTO product_variant (product_id, name, code, price, capacity, position)
                     VALUES (' . self::POSLEDNI_KUS . ', "Poslední placka", "posledni_kus_test", 150, 1, 0)');
+
+                dbQuery('INSERT INTO shop_predmety SET
+                    id_predmetu = ' . self::VEDLEJSI_PREDMET . ',
+                    nazev = "Vedlejší placka",
+                    kod_predmetu = "vedlejsi_predmet_test",
+                    cena_aktualni = 150,
+                    stav = ' . StavPredmetu::VEREJNY . ',
+                    popis = ""');
+                dbQuery('INSERT INTO product_product_tag (product_id, tag_id)
+                    SELECT ' . self::VEDLEJSI_PREDMET . ', id FROM product_tag WHERE code = "predmet"');
+                dbQuery('INSERT INTO product_variant (product_id, name, code, price, capacity, position)
+                    VALUES (' . self::VEDLEJSI_PREDMET . ', "Vedlejší placka", "vedlejsi_predmet_test", 150, 10, 0)');
             },
         ];
     }
@@ -243,5 +256,45 @@ SQL,
                 1 => $rocnik,
             ],
         ));
+    }
+
+    /**
+     * Neither product has a purchase this year, so both stock counts land in one index gap. A sale
+     * holding that gap shared would block the other's insert while waiting on its own: a deadlock.
+     *
+     * @test
+     */
+    public function prodejeRuznychPredmetuSiNestojiVCeste(): void
+    {
+        $rocnik = SystemoveNastaveni::zGlobals()->rocnik();
+        $idVedlejsiVarianty = (int) dbOneCol('SELECT id FROM product_variant WHERE code = $0', [
+            0 => 'vedlejsi_predmet_test',
+        ]);
+        $souper = SoubeznaTransakce::spust(
+            static::getContainer()->get('doctrine.dbal.default_connection'),
+            [
+                ['sql', "SELECT id FROM product_variant WHERE id = {$idVedlejsiVarianty} FOR UPDATE"],
+                ['sql', "SELECT COUNT(*) FROM shop_nakupy WHERE rok = {$rocnik} AND variant_id = {$idVedlejsiVarianty} LOCK IN SHARE MODE"],
+                ['hlasim', 'drzi mezeru'],
+                ['cekej', 700],
+                ['sql', 'INSERT INTO shop_nakupy (id_uzivatele, id_predmetu, variant_id, rok, cena_nakupni, datum)
+                         VALUES (' . self::OPERATOR . ', ' . self::VEDLEJSI_PREDMET . ", {$idVedlejsiVarianty}, {$rocnik}, 150, NOW())"],
+                ['potvrd', ''],
+            ],
+            'REPEATABLE READ',
+        );
+
+        dbQuery('SET SESSION innodb_lock_wait_timeout = 3');
+        try {
+            $this->prodej(1);
+        } finally {
+            dbQuery('SET SESSION innodb_lock_wait_timeout = DEFAULT');
+            $vysledekSoupere = $souper->dokonci();
+        }
+
+        self::assertSame('hotovo', $vysledekSoupere, 'Souběžný prodej jiného předmětu nesmí skončit deadlockem');
+        self::assertSame(1, (int) dbOneCol('SELECT COUNT(*) FROM shop_nakupy WHERE id_uzivatele = $0', [
+            0 => self::ZAKAZNIK,
+        ]));
     }
 }
