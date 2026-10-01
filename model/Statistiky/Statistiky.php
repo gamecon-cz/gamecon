@@ -197,9 +197,9 @@ FROM (
     ) AS ubytovani_sort_nazev,
     predmety.ubytovani_den
   FROM shop_nakupy AS nakupy
-  JOIN shop_predmety_s_typem AS predmety ON nakupy.id_predmetu = predmety.id_predmetu
+  JOIN shop_varianty_s_typem AS predmety ON predmety.id_varianty = nakupy.variant_id
   WHERE nakupy.rok = $0 AND predmety.typ = $1
-  GROUP BY nakupy.id_predmetu
+  GROUP BY predmety.id_varianty
 ) AS seskupeno
 ORDER BY ubytovani_sort_nazev, ubytovani_den
 SQL,
@@ -224,8 +224,8 @@ SELECT Den, Počet FROM (
         COUNT(nakupy.id_predmetu) AS Počet,
         predmety.ubytovani_den
     FROM shop_nakupy AS nakupy
-    JOIN shop_predmety_s_typem AS predmety
-        ON nakupy.id_predmetu=predmety.id_predmetu
+    JOIN shop_varianty_s_typem AS predmety
+        ON predmety.id_varianty=nakupy.variant_id
     WHERE nakupy.rok=$0
         AND predmety.typ=$1
     GROUP BY predmety.ubytovani_den
@@ -794,7 +794,7 @@ SELECT
     SUM(nazev LIKE 'chata%' AND ubytovani_den=3) AS '&emsp;sobota   ',
     SUM(nazev LIKE 'chata%' AND ubytovani_den=4) AS '&emsp;neděle   '
 FROM shop_nakupy
-JOIN shop_predmety_s_typem AS shop_predmety USING (id_predmetu)
+JOIN shop_varianty_s_typem AS shop_predmety ON shop_predmety.id_varianty = shop_nakupy.variant_id
 WHERE shop_predmety.typ = {$ubytovani}
 GROUP BY shop_nakupy.rok
 ORDER BY shop_nakupy.rok
