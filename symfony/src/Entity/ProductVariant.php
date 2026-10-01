@@ -36,6 +36,7 @@ use Symfony\Component\Validator\Constraints as Assert;
  */
 #[ORM\Entity(repositoryClass: ProductVariantRepository::class)]
 #[ORM\Table(name: 'product_variant')]
+#[ORM\HasLifecycleCallbacks]
 #[ORM\UniqueConstraint(name: 'UNIQ_variant_code', columns: ['code'])]
 #[ApiResource(
     operations: [
@@ -170,15 +171,21 @@ class ProductVariant
         return $this->product;
     }
 
-    /**
-     * A new variant is offered as its product is, unless it was given a state of its own.
-     */
     public function setProduct(Product $product): self
     {
         $this->product = $product;
-        $this->state ??= $product->getState();
 
         return $this;
+    }
+
+    /**
+     * A new variant is offered as its product is, unless it was given a state of its own. On
+     * persist, because an API client may send the variants before the product's state.
+     */
+    #[ORM\PrePersist]
+    public function startOfferedAsProduct(): void
+    {
+        $this->state ??= $this->product->getState();
     }
 
     public function getName(): string

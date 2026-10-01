@@ -99,6 +99,54 @@ class ProductApiTest extends AbstractDatabaseKernelTestCase
         ] + $headers);
     }
 
+    /**
+     * The serializer applies keys in the order sent, so a client may list variants first.
+     */
+    public function testNewVariantListedBeforeTheProductStateIsOfferedLikeTheProduct(): void
+    {
+        $this->connection()->executeStatement(
+            'INSERT IGNORE INTO product_tag (code, name, created_at) VALUES (:code, :name, NOW())',
+            [
+                'code' => ProductTagCode::PREDMET->value,
+                'name' => 'Předmět',
+            ],
+        );
+        $tag = $this->entityManager()->getRepository(ProductTag::class)->findOneBy([
+            'code' => ProductTagCode::PREDMET->value,
+        ]);
+        $code = 'API-POREDI-' . strtoupper(uniqid());
+
+        $response = $this->adminClient([
+            'Content-Type' => 'application/ld+json',
+        ])->request('POST', '/symfony/api/products', [
+            'body' => json_encode([
+                'name'         => 'Pořadí klíčů',
+                'code'         => $code,
+                'currentPrice' => '10.00',
+                'variants'     => [[
+                    'name'                  => 'M',
+                    'code'                  => $code . '-M',
+                    'price'                 => null,
+                    'capacity'              => null,
+                    'reservedForOrganizers' => null,
+                    'accommodationDay'      => null,
+                    'position'              => 0,
+                ]],
+                'state'       => ProductStateEnum::SUSPENDED->value,
+                'description' => '',
+                'tags'        => ['/symfony/api/product_tags/' . $tag->getId()],
+            ], JSON_THROW_ON_ERROR),
+        ]);
+
+        self::assertSame(201, $response->getStatusCode(), $response->getContent(false));
+        self::assertSame(
+            ProductStateEnum::SUSPENDED->value,
+            (int) $this->connection()->fetchOne('SELECT state FROM product_variant WHERE code = :code', [
+                'code' => $code . '-M',
+            ]),
+        );
+    }
+
     public function testEditorRejectsANegativeVariantCapacity(): void
     {
         [$product, $variant] = $this->produktSVariantou();
