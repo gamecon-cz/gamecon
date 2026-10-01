@@ -233,8 +233,17 @@ class Product
         return $this->name;
     }
 
+    /**
+     * The default variant (the product's own code, the product's name) follows a rename, as the
+     * e-shop import does; a size or night keeps its own name.
+     */
     public function setName(string $name): self
     {
+        foreach ($this->variants as $variant) {
+            if (isset($this->name, $this->code) && $variant->getCode() === $this->code && $variant->getName() === $this->name) {
+                $variant->setName($name);
+            }
+        }
         $this->name = $name;
 
         return $this;

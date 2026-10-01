@@ -210,10 +210,8 @@ class DiscountCalculator
     /**
      * Vrací null pro položku, na kterou žádné pravidlo nemůže mířit — pravidla se
      * vztahují na tagy, takže produkt bez tagu nemá s čím porovnávat.
-     */
-    /**
-     * A night or size is priced as its variant: a purchase points at the room type or shirt
-     * model, and only the variant knows its day and price. Code rules name products, though.
+     *
+     * A night takes its day from its variant: a purchase points at the room type, which has none.
      */
     private function polozkaZProduktu(Product $product, ?int $accommodationDay = null, ?ProductVariant $variant = null): ?DiscountableItem
     {
@@ -232,7 +230,7 @@ class DiscountCalculator
         return new DiscountableItem(
             key: $product->getId() ?? 0,
             productCode: $product->getCode(),
-            price: (float) ($variant?->getEffectivePrice() ?? $product->getCurrentPrice()),
+            price: (float) $product->getCurrentPrice(),
             tags: $tagy,
             accommodationDay: $accommodationDay ?? $variant?->getAccommodationDay() ?? $product->getAccommodationDay(),
         );

@@ -14,9 +14,10 @@ SET shop_nakupy.variant_id = product_variant.id
 WHERE shop_nakupy.variant_id IS NULL
 SQL);
 
+// IF EXISTS, so a run that failed on a purchase without a variant can simply be repeated.
 $this->q(<<<'SQL'
 ALTER TABLE shop_nakupy
-    DROP FOREIGN KEY FK_nakupy_variant
+    DROP FOREIGN KEY IF EXISTS FK_nakupy_variant
 SQL);
 
 $this->q(<<<'SQL'

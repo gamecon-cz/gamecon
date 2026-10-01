@@ -100,7 +100,7 @@ readonly class EntryFeeService
                 $item->setCustomer($user);
                 $item->setOrderer($user);
                 $item->setProduct($product);
-                $item->setVariant($product->getVariants()->first() ?: null);
+                $item->setVariant($product->getVariants()->first() ?: throw new \LogicException(sprintf('Vstupné „%s" nemá variantu, nákup by nešlo zapsat.', $product->getCode())));
                 $item->setYear($year);
                 $item->setProductTags($product->getTagNames());
                 // Same snapshot the cart writes, so entry-fee purchases are not the one kind of row
