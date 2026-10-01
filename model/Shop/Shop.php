@@ -246,8 +246,11 @@ SQL,
                     SUM(IF(nakupy.id_uzivatele = {$zakaznikId} AND nakupy.rok = {$rocnik}, nakupy.cena_nakupni, 0)) AS sum_cena_nakupni,
                     MAX(nakupy.cena_nakupni) AS cena_nakupni
                   FROM shop_predmety_s_typem predmety
+                  -- a night's or size's purchase points at its room type or model, so the row finds it through its variant
+                  LEFT JOIN product_variant AS varianta
+                    ON varianta.code = predmety.kod_predmetu
                   LEFT JOIN shop_nakupy AS nakupy
-                    ON predmety.id_predmetu = nakupy.id_predmetu
+                    ON nakupy.variant_id = varianta.id
                     AND nakupy.rok = {$rocnik}
                   WHERE predmety.model_rok = {$rocnik}
                     AND (predmety.stav > {$mimo} OR nakupy.rok = {$rocnik})

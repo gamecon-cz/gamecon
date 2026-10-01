@@ -39,10 +39,10 @@ class Pokoj
     {
         $pokoj = trim($cislo);
         $o     = dbQueryS('
-      SELECT ubytovani_den
-      FROM shop_nakupy n
-      JOIN shop_predmety_s_typem p USING(id_predmetu)
-      WHERE n.id_uzivatele = $0 AND n.rok = $1 AND p.typ = $2
+      SELECT noci.ubytovani_den
+      FROM shop_nakupy AS nakupy
+      JOIN shop_varianty_s_typem AS noci ON noci.id_varianty = nakupy.variant_id
+      WHERE nakupy.id_uzivatele = $0 AND nakupy.rok = $1 AND noci.typ = $2
     ', [0 => $u->id(), 1 => ROCNIK, 2 => \Gamecon\Shop\TypPredmetu::UBYTOVANI]);
         if ($o->rowCount() == 0) {
             throw new Chyba('Uživatel nemá ubytování nebo ubytování pro daný den neexistuje');
