@@ -162,6 +162,25 @@ class JednoSpojeniTest extends TestCase
         self::assertFalse($spusteno);
     }
 
+    public function testPoNepovedenemCommituSeNespustiNicAniPozdeji(): void
+    {
+        $spusteno = false;
+        dbBegin();
+        $this->doctrine()->afterCommit(static function () use (&$spusteno) {
+            $spusteno = true;
+        });
+        // what an implicit commit (DDL, LOCK TABLES) does behind Doctrine's back
+        dbConnect()->exec('COMMIT');
+        try {
+            dbCommit();
+        } catch (\Throwable) {
+        }
+        dbBegin();
+        dbCommit();
+
+        self::assertFalse($spusteno);
+    }
+
     public function testBezTransakceSePoCommituSpustiHned(): void
     {
         $spusteno = false;
