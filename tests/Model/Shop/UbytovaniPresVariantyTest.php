@@ -75,6 +75,29 @@ SQL,
     }
 
     /**
+     * The mail to a mass-unregistered non-payer lists what was cancelled.
+     *
+     * @test
+     */
+    public function zrusenaNocSeJmenujeSvouNoci(): void
+    {
+        dbQuery(
+            'INSERT INTO shop_nakupy_zrusene (id_nakupu, id_uzivatele, id_predmetu, rocnik, cena_nakupni, datum_nakupu, zdroj_zruseni, product_name, product_code)
+             VALUES (447001, $0, $1, $2, 100, NOW(), $3, $4, $5)',
+            [
+                0 => self::UZIVATEL,
+                1 => self::TYP_POKOJE,
+                2 => ROCNIK,
+                3 => 'test-neplatic',
+                4 => 'Spacák testovací pátek',
+                5 => 'spacak_varianty_pa',
+            ],
+        );
+
+        self::assertSame(['Spacák testovací pátek'], $this->shop()->dejNazvyZrusenychNakupu('test-neplatic'));
+    }
+
+    /**
      * @test
      */
     public function statistikyPocitajiKazdouNoc(): void
