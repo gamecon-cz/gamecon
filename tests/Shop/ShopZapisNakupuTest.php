@@ -129,7 +129,7 @@ SQL,
      */
     private function prodej(int $kusu): int
     {
-        $this->shop()->prodat(self::PREDMET, $kusu);
+        $this->shop()->prodat($this->idVarianty(self::PREDMET), $kusu);
 
         return (int) dbOneCol('SELECT MAX(id) FROM shop_order WHERE customer_id = $0', [
             0 => self::ZAKAZNIK,
@@ -244,7 +244,7 @@ SQL,
 
         $chyba = null;
         try {
-            $this->shop()->prodat(self::POSLEDNI_KUS, 1);
+            $this->shop()->prodat($this->idVarianty(self::POSLEDNI_KUS), 1);
         } catch (\Chyba $vyprodano) {
             $chyba = $vyprodano;
         }
@@ -299,5 +299,18 @@ SQL,
         self::assertSame(1, (int) dbOneCol('SELECT COUNT(*) FROM shop_nakupy WHERE id_uzivatele = $0', [
             0 => self::ZAKAZNIK,
         ]));
+    }
+
+    /**
+     * The variant a catalog row stands for, matched by code as every purchase was.
+     */
+    private function idVarianty(int $idPredmetu): int
+    {
+        return (int) dbOneCol(
+            'SELECT product_variant.id FROM product_variant INNER JOIN shop_predmety ON shop_predmety.kod_predmetu = product_variant.code WHERE shop_predmety.id_predmetu = $0',
+            [
+                0 => $idPredmetu,
+            ],
+        );
     }
 }

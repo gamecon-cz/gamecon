@@ -71,7 +71,7 @@ SQL,
         $operator = \Uzivatel::zIdUrcite(88821);
         $anonym = \Uzivatel::zIdUrcite(\Uzivatel::ANONYM);
 
-        (new Shop($anonym, $operator, SystemoveNastaveni::zGlobals()))->prodat(88831, $kusu);
+        (new Shop($anonym, $operator, SystemoveNastaveni::zGlobals()))->prodat($this->idVarianty(88831), $kusu);
 
         // Testovací třída neběží v transakci, takže řádky se mezi metodami kupí — assertiony
         // se proto vážou na objednávku tohohle prodeje, ne na obsah celé tabulky.
@@ -146,6 +146,19 @@ SQL,
                 0 => $idObjednavky,
             ]),
             'Platba musí ukazovat na tutéž objednávku jako nákup',
+        );
+    }
+
+    /**
+     * The variant a catalog row stands for, matched by code as every purchase was.
+     */
+    private function idVarianty(int $idPredmetu): int
+    {
+        return (int) dbOneCol(
+            'SELECT product_variant.id FROM product_variant INNER JOIN shop_predmety ON shop_predmety.kod_predmetu = product_variant.code WHERE shop_predmety.id_predmetu = $0',
+            [
+                0 => $idPredmetu,
+            ],
         );
     }
 }

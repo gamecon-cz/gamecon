@@ -4,7 +4,6 @@ namespace Gamecon\Shop;
 
 use App\Entity\ProductVariant;
 use App\Entity\User;
-use App\Enum\ProductTagCode;
 use App\Exception\CapacityExceededException;
 use App\Service\BulkCancelService;
 use App\Service\CapacityManager;
@@ -109,10 +108,10 @@ SQL,
     }
 
     /**
-     * Each offered night, size and item, with what is left of it; the infopult, the user page
-     * and the grid sale post the row's id back to `prodat()`.
+     * Each offered night, size and item, with what is left of it; the user page posts the
+     * variant's id back to `prodat()`.
      *
-     * @return list<array{nazev: string, zbyva: int|string|null, id_predmetu: int|string, cena: int|string}>
+     * @return list<array{nazev: string, zbyva: int|string|null, id_varianty: int|string, cena: int|string}>
      */
     public static function polozkyRychlehoProdeje(int $rocnik): array
     {
@@ -120,18 +119,16 @@ SQL,
 
         return dbFetchAll(<<<SQL
   SELECT
-    CONCAT(nazev,' ',model_rok) AS nazev,
-    kusu_vyrobeno-COUNT(n.id_nakupu) AS zbyva,
-    p.id_predmetu,
-    ROUND(p.cena_aktualni) AS cena
-  FROM shop_predmety_s_typem p
-  -- a size's or night's purchase points at its model or room type, so the row finds it through its variant
-  INNER JOIN product_variant AS varianta ON varianta.code = p.kod_predmetu
-  LEFT JOIN shop_nakupy n ON(n.variant_id = varianta.id AND n.rok = {$rocnik})
-  WHERE p.stav > 0
-    AND p.model_rok = {$rocnik}
-    AND (p.typ <> {$typUbytovani} OR p.ubytovani_den IS NOT NULL)
-  GROUP BY p.id_predmetu
+    CONCAT(varianty.nazev, ' ', varianty.model_rok) AS nazev,
+    varianty.kusu_vyrobeno - COUNT(nakupy.id_nakupu) AS zbyva,
+    varianty.id_varianty,
+    ROUND(varianty.cena_aktualni) AS cena
+  FROM shop_varianty_s_typem AS varianty
+  LEFT JOIN shop_nakupy AS nakupy ON nakupy.variant_id = varianty.id_varianty AND nakupy.rok = {$rocnik}
+  WHERE varianty.stav > 0
+    AND varianty.model_rok = {$rocnik}
+    AND (varianty.typ <> {$typUbytovani} OR varianty.ubytovani_den IS NOT NULL)
+  GROUP BY varianty.id_varianty
   ORDER BY nazev
 SQL);
     }
@@ -930,36 +927,19 @@ SQL,
     }
 
     /**
-     * Accommodation sells only a night. A room type owns its nights, and whether it has a
-     * variant of its own depends on how it was created, so the night itself is what is checked.
+     * Accommodation sells only a night: a room type that got a variant of its own (a fresh
+     * import gives one) books no bed on any night.
+     *
+     * @param array{typ: int|string, ubytovani_den: int|string|null, kod_predmetu: string} $varianta
      */
-    private function idProdejneVarianty(
-        array  $varianta,
-        string $kodPredmetu,
-        int    $idPredmetu,
-    ): int {
-        $jeUbytovani = (bool) dbOneCol(
-            'SELECT EXISTS(
-                SELECT 1 FROM product_product_tag
-                JOIN product_tag ON product_tag.id = product_product_tag.tag_id
-                WHERE product_product_tag.product_id = $0 AND product_tag.code = $1
-            )',
-            [0 => $idPredmetu, 1 => ProductTagCode::UBYTOVANI->value],
-        );
-        if ($jeUbytovani && ($varianta['accommodation_day'] ?? null) === null) {
+    private function odmitniTypPokoje(array $varianta): void
+    {
+        if ((int) $varianta['typ'] === TypPredmetu::UBYTOVANI && $varianta['ubytovani_den'] === null) {
             throw new \Chyba(sprintf(
                 'Typ pokoje „%s" nejde prodat, vyber konkrétní noc.',
-                $kodPredmetu,
+                $varianta['kod_predmetu'],
             ));
         }
-        if ($varianta === []) {
-            throw new \Chyba(sprintf(
-                'Předmět „%s" nemá variantu, nejde ho prodat. Chybí v novém modelu produktů.',
-                $kodPredmetu,
-            ));
-        }
-
-        return (int) $varianta['id'];
     }
 
     /**
@@ -975,37 +955,31 @@ SQL,
     }
 
     public function prodat(
-        int  $idPredmetu,
+        int  $idVarianty,
         int  $kusu = 1,
         bool $vcetneOznamemi = false,
     ) {
         $this->sluzba(CapacityManager::class)->beginSaleTransaction();
         try {
-            // The variant row is the capacity lock every sale path takes. Locking reads first, so
-            // the plain reads below take their snapshot only once the lock is held. The catalog
-            // row only in share mode: a cart sale holding the variant takes it shared too, through
-            // the purchase's foreign key. Matched by code: nights and sizes hang under another product.
-            $kodPredmetu = dbOneCol(
-                'SELECT kod_predmetu FROM shop_predmety WHERE id_predmetu = $0 LOCK IN SHARE MODE',
-                [0 => $idPredmetu],
-            );
+            // The variant row is the capacity lock every sale path takes. Locking read first, so
+            // the plain read below takes its snapshot only once the lock is held.
             $varianta = dbOneLine(
-                'SELECT id, capacity, accommodation_day FROM product_variant WHERE code = $0 FOR UPDATE',
-                [0 => $kodPredmetu],
+                'SELECT id, capacity FROM product_variant WHERE id = $0 FOR UPDATE',
+                [0 => $idVarianty],
             );
             $predmet = dbOneLine(
-                'SELECT cena_aktualni, nazev, kod_predmetu, model_rok FROM shop_predmety_s_typem WHERE id_predmetu = $0',
-                [0 => $idPredmetu],
+                'SELECT cena_aktualni, nazev, kod_predmetu, model_rok, typ, ubytovani_den FROM shop_varianty_s_typem WHERE id_varianty = $0',
+                [0 => $idVarianty],
             );
-            if (!$predmet) {
-                throw new \Chyba("Předmět s ID {$idPredmetu} neexistuje.");
+            if (!$varianta || !$predmet) {
+                throw new \Chyba("Varianta s ID {$idVarianty} neexistuje.");
             }
             $aktualniRocnik = $this->systemoveNastaveni->rocnik();
             if ((int)$predmet['model_rok'] !== $aktualniRocnik) {
                 throw new \Chyba("Předmět '{$predmet['nazev']}' patří do ročníku {$predmet['model_rok']}, nelze ho prodávat v ročníku {$aktualniRocnik}.");
             }
             $cenaAktualni = $predmet['cena_aktualni'];
-            $idVarianty = $this->idProdejneVarianty($varianta, $predmet['kod_predmetu'], $idPredmetu);
+            $this->odmitniTypPokoje($predmet);
 
             /** @var EntityManagerInterface $entityManager */
             $entityManager = $this->systemoveNastaveni->kernel()->getContainer()->get('doctrine.orm.entity_manager');

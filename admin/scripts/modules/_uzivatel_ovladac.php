@@ -35,7 +35,7 @@ if (!empty($_POST['prodej'])) {
         nastaveni: $nastaveni
     );
     $kusu = (int)($prodej['kusu'] ?? 1);
-    $shop->prodat((int)$prodej['id_predmetu'], $kusu, true);
+    $shop->prodat((int)$prodej['id_varianty'], $kusu, true);
 
     back();
 }
