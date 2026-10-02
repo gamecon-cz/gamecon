@@ -14,7 +14,6 @@ class PredmetSqlStruktura
     public const CENA_AKTUALNI      = 'cena_aktualni';
     public const STAV               = 'stav';
     public const NABIZET_DO         = 'nabizet_do';
-    public const KUSU_VYROBENO      = 'kusu_vyrobeno';
     public const UBYTOVANI_DEN      = 'ubytovani_den';
     public const POPIS              = 'popis';
     public const VEDLEJSI           = 'vedlejsi';
@@ -22,11 +21,9 @@ class PredmetSqlStruktura
     public const RESERVED_FOR_ORGANIZERS = 'reserved_for_organizers';
     public const BREAKFAST_INCLUDED = 'breakfast_included';
 
-    // Virtual columns from shop_predmety_s_typem view (not on the base table, but used by legacy code)
-    public const MODEL_ROK         = 'model_rok';
-    public const TYP               = 'typ';
-    public const PODTYP            = 'podtyp';
-    public const JE_LETOSNI_HLAVNI = 'je_letosni_hlavni';
-
-    public const SHOP_PREDMETY_S_TYPEM_TABULKA = 'shop_predmety_s_typem';
+    // Not on the table: legacy queries compute these from the product, its variants and tags
+    public const MODEL_ROK     = 'model_rok';
+    public const TYP           = 'typ';
+    public const PODTYP        = 'podtyp';
+    public const KUSU_VYROBENO = 'kusu_vyrobeno';
 }

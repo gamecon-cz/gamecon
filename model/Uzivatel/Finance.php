@@ -2,6 +2,7 @@
 
 namespace Gamecon\Uzivatel;
 
+use App\Enum\ProductTagCode;
 use Endroid\QrCode\Writer\Result\ResultInterface;
 use Gamecon\Aktivita\Aktivita;
 use Gamecon\Aktivita\StavPrihlaseni;
@@ -141,17 +142,17 @@ class Finance
 
     public static function prumerneVstupneRoku(int $rocnik): float
     {
-        $typVstupne = TypPredmetu::VSTUPNE;
-
         return round(
             (float)dbOneCol(<<<SQL
 SELECT SUM(cena_nakupni) / COUNT(*)
 FROM shop_nakupy
-JOIN shop_predmety_s_typem ON shop_nakupy.id_predmetu = shop_predmety_s_typem.id_predmetu
-WHERE shop_predmety_s_typem.typ = {$typVstupne}
-    AND shop_nakupy.rok = {$rocnik}
+INNER JOIN product_variant ON product_variant.id = shop_nakupy.variant_id
+INNER JOIN product_product_tag ON product_product_tag.product_id = product_variant.product_id
+INNER JOIN product_tag ON product_tag.id = product_product_tag.tag_id AND product_tag.code = $0
+WHERE shop_nakupy.rok = $1
     AND shop_nakupy.cena_nakupni > 0
 SQL,
+                [0 => ProductTagCode::VSTUPNE->value, 1 => $rocnik],
             ),
             2,
         );
@@ -771,12 +772,27 @@ SQL;
         $this->polozkyProBfgr                 ??= [];
 
         $o = dbQuery('
-      SELECT predmety.id_varianty, predmety.id_predmetu, predmety.nazev, nakupy.cena_nakupni, predmety.typ, predmety.ubytovani_den, predmety.model_rok, predmety.kod_predmetu
+      SELECT product_variant.id AS id_varianty,
+             produkt.id_predmetu,
+             CONCAT_WS(\' \', produkt.nazev, product_variant.name) AS nazev,
+             nakupy.cena_nakupni,
+             -- typ is the position of the category code in ProductTagCode::categories()
+             FIELD(kategorie.code, $2) AS typ,
+             product_variant.accommodation_day AS ubytovani_den,
+             -- an archived product belongs to the year it was archived, one still on offer to this year
+             COALESCE(YEAR(produkt.archived_at), $1) AS model_rok,
+             product_variant.code AS kod_predmetu
       FROM shop_nakupy AS nakupy
-      INNER JOIN shop_varianty_s_typem AS predmety ON predmety.id_varianty = nakupy.variant_id
+      INNER JOIN product_variant ON product_variant.id = nakupy.variant_id
+      INNER JOIN shop_predmety AS produkt ON produkt.id_predmetu = product_variant.product_id
+      -- a product missing its category keeps its row (typ NULL) instead of vanishing
+      LEFT JOIN (
+          product_product_tag AS stitek_kategorie
+          INNER JOIN product_tag AS kategorie ON kategorie.id = stitek_kategorie.tag_id AND kategorie.code IN ($2)
+      ) ON stitek_kategorie.product_id = produkt.id_predmetu
       WHERE nakupy.id_uzivatele = $0 AND nakupy.rok = $1
       ORDER BY nakupy.cena_nakupni -- od nejlevnějších kvůli aplikaci slev na trička
-    ', [$this->u->id(), $this->systemoveNastaveni->rocnik()]);
+    ', [$this->u->id(), $this->systemoveNastaveni->rocnik(), ProductTagCode::categoryCodes()]);
 
         $soucty = [];
         /* Přihláška umí mít jen jedno vstupné (jeden slider s absolutní částkou), takže víc řádků
