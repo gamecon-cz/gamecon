@@ -318,8 +318,8 @@ class EshopImporter
     }
 
     /**
-     * A variant moved to another product would leave its purchases under the old one, and a
-     * night's or size's own catalog row is not a product.
+     * A variant moved to another product would leave its purchases under the old one, and a code
+     * names one item, not a product and another product's variant.
      *
      * @param array<string, array<string, mixed>> $produkty
      */
@@ -352,7 +352,6 @@ class EshopImporter
                 $jinyRadek = $vlastnik === null
                     ? $this->idProduktu($kodVarianty)
                     : null;
-                // The row would turn into the new variant's own row, driving its state.
                 if ($jinyRadek !== null && $jinyRadek !== $idProduktu) {
                     $chyby[] = sprintf('kód varianty %s už má jiný řádek katalogu', $kodVarianty);
                 }
@@ -500,7 +499,6 @@ class EshopImporter
                 1 => ProductStateEnum::RETIRED->value,
             ],
         );
-        $this->srovnejZbyleRadky($idProduktu);
 
         return $zmeneno;
     }
@@ -539,41 +537,12 @@ class EshopImporter
     }
 
     /**
-     * Until the nights' and sizes' own catalog rows are gone, an admin edit mirrors each row's
-     * state onto its variant (VariantStateMirror); the rows must agree with what was imported.
-     */
-    private function srovnejZbyleRadky(int $idProduktu): void
-    {
-        dbQuery(
-            'UPDATE shop_predmety AS radek
-             INNER JOIN product_variant ON product_variant.code = radek.kod_predmetu
-             INNER JOIN shop_predmety AS produkt ON produkt.id_predmetu = product_variant.product_id
-             SET radek.stav = product_variant.state,
-                 radek.archived_at = IF(produkt.archived_at IS NULL AND product_variant.state <> $1, NULL, radek.archived_at)
-             WHERE product_variant.product_id = $0 AND radek.id_predmetu <> $0',
-            [
-                0 => $idProduktu,
-                1 => ProductStateEnum::RETIRED->value,
-            ],
-        );
-    }
-
-    /**
      * @param string[] $kodyProduktu
      */
     private function archivujChybejici(array $kodyProduktu): int
     {
-        // Only products: a night's or size's own row is not in the sheet, its variant is.
         return dbAffectedOrNumRows(dbQuery(
-            'UPDATE shop_predmety
-             SET archived_at = NOW()
-             WHERE archived_at IS NULL
-               AND kod_predmetu NOT IN ($0)
-               AND NOT EXISTS (
-                   SELECT 1 FROM product_variant
-                   WHERE product_variant.code = shop_predmety.kod_predmetu
-                     AND product_variant.product_id <> shop_predmety.id_predmetu
-               )',
+            'UPDATE shop_predmety SET archived_at = NOW() WHERE archived_at IS NULL AND kod_predmetu NOT IN ($0)',
             [
                 0 => $kodyProduktu,
             ],

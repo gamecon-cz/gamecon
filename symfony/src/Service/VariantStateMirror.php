@@ -4,14 +4,12 @@ declare(strict_types=1);
 
 namespace App\Service;
 
-use App\Enum\ProductStateEnum;
 use Doctrine\DBAL\ArrayParameterType;
 use Doctrine\DBAL\Connection;
 
 /**
- * Admins still change a night's or size's offer through its own legacy catalog row, while the cart
- * and the variant view read the variant; this keeps the variant following that row. The import
- * writes the variant and keeps the row agreeing with it. Goes away with those rows.
+ * A product's default variant (the one sharing its code) is the product as the cart and the
+ * variant view see it, so it follows the product's state. Other variants carry their own.
  */
 class VariantStateMirror
 {
@@ -21,7 +19,7 @@ class VariantStateMirror
     }
 
     /**
-     * @param int[]|null $productIds catalog rows that changed, null for all of them
+     * @param int[]|null $productIds products that changed, null for all of them
      */
     public function mirror(?array $productIds = null): void
     {
@@ -29,23 +27,16 @@ class VariantStateMirror
             return;
         }
 
-        // A row archived together with its product is a past year, not a night taken off the offer.
         $sql = <<<'SQL'
 UPDATE product_variant
-    INNER JOIN shop_predmety AS vlastni_radek ON vlastni_radek.kod_predmetu = product_variant.code
-    INNER JOIN shop_predmety AS produkt ON produkt.id_predmetu = product_variant.product_id
-SET product_variant.state = IF(
-        vlastni_radek.archived_at IS NOT NULL AND produkt.archived_at IS NULL,
-        :retired,
-        vlastni_radek.stav
-    )
+    INNER JOIN shop_predmety AS produkt
+        ON produkt.id_predmetu = product_variant.product_id AND produkt.kod_predmetu = product_variant.code
+SET product_variant.state = produkt.stav
 SQL;
-        $parameters = [
-            'retired' => ProductStateEnum::RETIRED->value,
-        ];
+        $parameters = [];
         $types = [];
         if ($productIds !== null) {
-            $sql .= "\nWHERE vlastni_radek.id_predmetu IN (:ids) OR produkt.id_predmetu IN (:ids)";
+            $sql .= "\nWHERE produkt.id_predmetu IN (:ids)";
             $parameters['ids'] = $productIds;
             $types['ids'] = ArrayParameterType::INTEGER;
         }

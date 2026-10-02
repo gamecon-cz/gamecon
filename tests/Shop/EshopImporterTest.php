@@ -557,17 +557,11 @@ SQL,
         self::assertSame(3, $this->zasobaVarianty('PRODANY'));
     }
 
-    /**
-     * Inserts a room type whose nights still have their own catalog rows, as the production
-     * data does until those rows are deleted.
-     */
     private function vlozTypPokojeSNocmi(): void
     {
         dbQuery(<<<SQL
 INSERT INTO shop_predmety (id_predmetu, nazev, kod_predmetu, cena_aktualni, stav, nabizet_do, popis)
-VALUES (94201, 'Dvoulůžák', 'TYP_2L', 0, 2, '2026-07-20 00:00:00', ''),
-       (94202, 'Dvoulůžák pátek', 'NOC_2L_PA', 300, 1, '2026-07-20 00:00:00', ''),
-       (94203, 'Dvoulůžák sobota', 'NOC_2L_SO', 300, 2, '2026-07-20 00:00:00', '')
+VALUES (94201, 'Dvoulůžák', 'TYP_2L', 0, 2, '2026-07-20 00:00:00', '')
 SQL);
         dbQuery("INSERT INTO product_product_tag (product_id, tag_id) SELECT 94201, id FROM product_tag WHERE code = 'ubytovani'");
         dbQuery(<<<SQL
@@ -749,7 +743,7 @@ SQL);
     }
 
     /**
-     * A night's leftover catalog row is not a product, so its code cannot name one.
+     * A code names one item, not a product and another product's night.
      *
      * @test
      */
@@ -802,8 +796,8 @@ SQL);
     }
 
     /**
-     * A catalog row whose code a new variant took would turn into that variant's own row, and
-     * the next import would then refuse its product.
+     * A code names one item: a new variant taking a product's code would make the next import
+     * refuse that product.
      *
      * @test
      */
@@ -903,7 +897,7 @@ SQL);
 
     /**
      * The export is the import's template: importing it back must change nothing, for this
-     * year's offer as for past years and for products whose sizes still have catalog rows.
+     * year's offer as for past years.
      *
      * @test
      */
@@ -912,8 +906,7 @@ SQL);
         $this->vlozTypPokojeSNocmi();
         dbQuery(<<<SQL
 INSERT INTO shop_predmety (id_predmetu, nazev, kod_predmetu, cena_aktualni, stav, nabizet_do, popis, vedlejsi, archived_at)
-VALUES (94401, 'Mikina', 'MIKINA_S', 600, 1, '2026-06-30 23:59:00', 'Hřejivá', 1, NULL),
-       (94402, 'Mikina M', 'MIKINA_M', 600, 0, '2026-06-30 23:59:00', 'Hřejivá', 1, NULL),
+VALUES (94401, 'Mikina', 'MIKINA', 600, 1, '2026-06-30 23:59:00', 'Hřejivá', 1, NULL),
        (94403, 'Loňská placka', 'PLACKA_LONI', 25.50, 1, NULL, '', 0, '2025-12-31 23:59:59')
 SQL);
         dbQuery("INSERT INTO product_product_tag (product_id, tag_id) SELECT 94401, id FROM product_tag WHERE code IN ('predmet', 'mikina')");
