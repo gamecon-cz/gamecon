@@ -11,6 +11,7 @@ use Gamecon\Aktivita\Tag;
 use Gamecon\Aktivita\TypAktivity;
 use Gamecon\Role\Role;
 use Gamecon\Shop\Predmet;
+use App\Enum\ProductTagCode;
 use Gamecon\Shop\TypPredmetu;
 use Gamecon\SystemoveNastaveni\SystemoveNastaveni;
 use Gamecon\SystemoveNastaveni\SystemoveNastaveniKlice;
@@ -781,8 +782,15 @@ SQL,
     {
         return self::druhyUbytovaniPodleKodu(
             dbOneArray(
-                'SELECT DISTINCT kod_predmetu FROM shop_predmety_s_typem WHERE typ = $0 AND model_rok = $1',
-                [0 => TypPredmetu::UBYTOVANI, 1 => $rocnik],
+                <<<SQL
+                SELECT DISTINCT shop_predmety.kod_predmetu
+                FROM shop_predmety
+                JOIN product_product_tag ON product_product_tag.product_id = shop_predmety.id_predmetu
+                JOIN product_tag ON product_tag.id = product_product_tag.tag_id AND product_tag.code = $0
+                -- an archived product belongs to the year it was archived, one still on offer to this year
+                WHERE COALESCE(YEAR(shop_predmety.archived_at), $1) = $1
+                SQL,
+                [0 => ProductTagCode::UBYTOVANI->value, 1 => $rocnik],
             ),
         );
     }
