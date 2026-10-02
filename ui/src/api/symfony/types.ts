@@ -143,7 +143,7 @@ export type ApiProductVariant = {
   remaining?: number | null;
   reservedForOrganizers: number | null;
   accommodationDay: number | null;
-  /** Read-only offer state of this night or size; follows its own catalog row. */
+  /** Offer state of this night or size; the variant sharing the product's code takes the product's. */
   state?: number;
   position: number;
 };
