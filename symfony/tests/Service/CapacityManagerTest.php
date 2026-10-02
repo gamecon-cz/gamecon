@@ -71,11 +71,10 @@ class CapacityManagerTest extends AbstractDatabaseKernelTestCase
 
         for ($kus = 0; $kus < $kusu; ++$kus) {
             $this->connection()->executeStatement(
-                'INSERT INTO shop_nakupy (id_uzivatele, id_predmetu, variant_id, rok, cena_nakupni, datum)
-                 VALUES (:customer, :product, :variant, :year, 50, NOW())',
+                'INSERT INTO shop_nakupy (id_uzivatele, variant_id, rok, cena_nakupni, datum)
+                 VALUES (:customer, :variant, :year, 50, NOW())',
                 [
                     'customer' => $this->kupujici->getId(),
-                    'product'  => $variant->getProduct()->getId(),
                     'variant'  => $variant->getId(),
                     'year'     => $rok,
                 ],
@@ -353,11 +352,10 @@ class CapacityManagerTest extends AbstractDatabaseKernelTestCase
     private function nakupNa(Connection $spojeni, ProductVariant $variant): void
     {
         $spojeni->executeStatement(
-            'INSERT INTO shop_nakupy (id_uzivatele, id_predmetu, variant_id, rok, cena_nakupni, datum)
-             VALUES (:customer, :product, :variant, :year, 50, NOW())',
+            'INSERT INTO shop_nakupy (id_uzivatele, variant_id, rok, cena_nakupni, datum)
+             VALUES (:customer, :variant, :year, 50, NOW())',
             [
                 'customer' => \Uzivatel::SYSTEM,
-                'product'  => $variant->getProduct()->getId(),
                 'variant'  => $variant->getId(),
                 'year'     => ROCNIK,
             ],

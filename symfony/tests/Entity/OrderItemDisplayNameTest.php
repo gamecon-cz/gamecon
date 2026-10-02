@@ -58,7 +58,6 @@ class OrderItemDisplayNameTest extends TestCase
     public function testCodeWithoutSnapshotIsTheVariants(): void
     {
         $item = new OrderItem();
-        $item->setProduct((new Product())->setCode('tricko_XXXL'));
         $item->setVariant((new ProductVariant())->setCode('tricko_S'));
 
         self::assertSame('tricko_S', $item->getDisplayCode());

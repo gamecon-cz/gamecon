@@ -298,8 +298,8 @@ SQL;
         $varianta = sprintf(self::SQL_VARIANTA_RADKU, $idPredmetuUbytovani);
 
         return <<<SQL
-INSERT INTO shop_nakupy(id_uzivatele, id_predmetu, variant_id, rok, cena_nakupni)
-VALUES ({$idUzivatele}, {$idPredmetuUbytovani}, {$varianta}, {$rok}, {$cena})
+INSERT INTO shop_nakupy(id_uzivatele, variant_id, rok, cena_nakupni)
+VALUES ({$idUzivatele}, {$varianta}, {$rok}, {$cena})
 SQL;
     }
 

@@ -100,11 +100,6 @@ class OrderItemEntityStructure
     public const order = 'order';
 
     /**
-     * @see OrderItem::$product
-     */
-    public const product = 'product';
-
-    /**
      * @see OrderItem::$variant
      */
     public const variant = 'variant';

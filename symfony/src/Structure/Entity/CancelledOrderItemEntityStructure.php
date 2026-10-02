@@ -55,11 +55,6 @@ class CancelledOrderItemEntityStructure
     public const customer = 'customer';
 
     /**
-     * @see CancelledOrderItem::$product
-     */
-    public const product = 'product';
-
-    /**
      * @see CancelledOrderItem::$variant
      */
     public const variant = 'variant';

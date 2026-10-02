@@ -50,7 +50,6 @@ class ManualSaleService
                 $item = new OrderItem();
                 $item->setCustomer($customer);
                 $item->setOrderer($orderer);
-                $item->setProduct($product);
                 $item->setVariant($variant);
                 $item->setYear($year);
                 $item->setOrder($order);

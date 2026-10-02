@@ -406,7 +406,6 @@ class AccommodationWriter
         $item = new OrderItem();
         // The caller may hold a detached user, which persist() would try to insert again.
         $item->setCustomer($this->entityManager->getReference(User::class, $customer->getId()));
-        $item->setProduct($product);
         $item->setVariant($variant);
         $item->setOrder($order);
         $item->setYear($year);

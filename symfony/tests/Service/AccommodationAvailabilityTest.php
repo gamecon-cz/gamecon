@@ -107,11 +107,10 @@ class AccommodationAvailabilityTest extends AbstractDatabaseKernelTestCase
     private function prodej(ProductVariant $varianta, User $komu): void
     {
         $this->connection()->executeStatement(
-            'INSERT INTO shop_nakupy (id_uzivatele, id_predmetu, variant_id, rok, cena_nakupni, datum)
-             VALUES (:u, :p, :v, :rok, 400, NOW())',
+            'INSERT INTO shop_nakupy (id_uzivatele, variant_id, rok, cena_nakupni, datum)
+             VALUES (:u, :v, :rok, 400, NOW())',
             [
                 'u'   => $komu->getId(),
-                'p'   => $varianta->getProduct()->getId(),
                 'v'   => $varianta->getId(),
                 'rok' => self::ROK,
             ],

@@ -234,8 +234,8 @@ SQL,
             static::getContainer()->get('doctrine.dbal.default_connection'),
             [
                 ['sql', "SELECT id FROM product_variant WHERE id = {$idVarianty} FOR UPDATE"],
-                ['sql', 'INSERT INTO shop_nakupy (id_uzivatele, id_predmetu, variant_id, rok, cena_nakupni, datum)
-                         VALUES (' . self::OPERATOR . ', ' . self::POSLEDNI_KUS . ", {$idVarianty}, {$rocnik}, 150, NOW())"],
+                ['sql', 'INSERT INTO shop_nakupy (id_uzivatele, variant_id, rok, cena_nakupni, datum)
+                         VALUES (' . self::OPERATOR . ", {$idVarianty}, {$rocnik}, 150, NOW())"],
                 ['hlasim', 'kupuje posledni kus'],
                 ['cekej', 500],
                 ['potvrd', ''],
@@ -280,8 +280,8 @@ SQL,
                 ['sql', "SELECT COUNT(*) FROM shop_nakupy WHERE rok = {$rocnik} AND variant_id = {$idVedlejsiVarianty} LOCK IN SHARE MODE"],
                 ['hlasim', 'drzi mezeru'],
                 ['cekej', 700],
-                ['sql', 'INSERT INTO shop_nakupy (id_uzivatele, id_predmetu, variant_id, rok, cena_nakupni, datum)
-                         VALUES (' . self::OPERATOR . ', ' . self::VEDLEJSI_PREDMET . ", {$idVedlejsiVarianty}, {$rocnik}, 150, NOW())"],
+                ['sql', 'INSERT INTO shop_nakupy (id_uzivatele, variant_id, rok, cena_nakupni, datum)
+                         VALUES (' . self::OPERATOR . ", {$idVedlejsiVarianty}, {$rocnik}, 150, NOW())"],
                 ['potvrd', ''],
             ],
             'REPEATABLE READ',
