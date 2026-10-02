@@ -7,6 +7,7 @@ namespace Gamecon\Tests\Model\Shop;
 use Gamecon\Shop\Polozka;
 use Gamecon\Shop\Shop;
 use Gamecon\Statistiky\Statistiky;
+use Gamecon\SystemoveNastaveni\SystemoveNastaveni;
 use Gamecon\SystemoveNastaveni\ZdrojRocniku;
 use Gamecon\Tests\Db\AbstractTestDb;
 
@@ -43,6 +44,36 @@ SQL,
     {
         parent::setUp();
         $this->kupXl(ROCNIK);
+    }
+
+    /**
+     * The infopult sells a size by its own catalog row, but the purchase points at the model and
+     * names the size through its variant, as the cart writes it.
+     *
+     * @test
+     */
+    public function prodejVelikostiZapiseModelAVariantu(): void
+    {
+        $uzivatel = \Uzivatel::zIdUrcite(self::UZIVATEL);
+
+        (new Shop($uzivatel, $uzivatel, SystemoveNastaveni::zGlobals()))->prodat(self::RADEK_XL);
+
+        self::assertSame(
+            [[
+                'id_predmetu' => (string) self::MODEL,
+                'code'        => 'tricko_velikosti_XL',
+            ]],
+            dbFetchAll(
+                'SELECT shop_nakupy.id_predmetu, product_variant.code
+                 FROM shop_nakupy
+                 JOIN product_variant ON product_variant.id = shop_nakupy.variant_id
+                 WHERE shop_nakupy.id_uzivatele = $0 AND shop_nakupy.rok = $1 AND shop_nakupy.order_id IS NOT NULL',
+                [
+                    0 => self::UZIVATEL,
+                    1 => ROCNIK,
+                ],
+            ),
+        );
     }
 
     /**
