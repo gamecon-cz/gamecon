@@ -687,12 +687,13 @@ SQL,
         $poradiKostekSql = implode(',', $poradiKostek);
 
         return dbFetchPairs(<<<SQL
-            SELECT id_predmetu, IF(
-                TRIM(nazev) LIKE CONCAT('% ', shop_predmety_s_typem.model_rok),
+            SELECT id_varianty, IF(
+                TRIM(nazev) LIKE CONCAT('% ', shop_varianty_s_typem.model_rok),
                 TRIM(nazev),
                 CONCAT_WS(' ', TRIM(nazev), model_rok)
             )
-            FROM shop_predmety_s_typem
+            -- named per variant, as Finance names each purchase
+            FROM shop_varianty_s_typem
             WHERE nazev LIKE '%kostka%'
                 AND stav > $0
                 AND typ = $1
@@ -719,12 +720,13 @@ SQL,
     private function letosniOstatniPredmety(): array
     {
         return dbFetchPairs(<<<SQL
-            SELECT id_predmetu,
+            SELECT id_varianty,
                    IF(model_rok != {$this->systemoveNastaveni->rocnik()},
                        CONCAT_WS(' ', TRIM(nazev), model_rok),
                        nazev
                    ) AS nazev
-            FROM shop_predmety_s_typem
+            -- named per variant, as Finance names each purchase
+            FROM shop_varianty_s_typem
             WHERE typ = $0
                 AND stav > $1
                 AND (
