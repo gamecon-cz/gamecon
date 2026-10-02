@@ -29,7 +29,8 @@ ALTER TABLE obchod_bunky
     DROP FOREIGN KEY IF EXISTS FK_obchod_bunky_variant
 SQL);
 
-// A deleted variant leaves the cell asking for the size at the sale, not broken.
+// A deleted variant unpins the cell rather than breaking it: the sale then asks for the size, or
+// sells the product's only one left.
 $this->q(<<<'SQL'
 ALTER TABLE obchod_bunky
     ADD CONSTRAINT FK_obchod_bunky_variant FOREIGN KEY (variant_id) REFERENCES product_variant (id) ON DELETE SET NULL

@@ -36,7 +36,8 @@ export const EditorBuňky: FunctionComponent<TEditorBuňkyProps> = (props) => {
             value={buňka.typ}
             onChange={(e) => {
               const typ = e.currentTarget.value as any;
-              setBuňka({ ...buňka, typ });
+              // `cilId` then names a grid, which a variant of the item before it cannot belong to.
+              setBuňka({ ...buňka, typ, variantId: undefined } as DefiniceObchodMřížkaBuňka);
             }}
           >
             {typy.map((x) => (
