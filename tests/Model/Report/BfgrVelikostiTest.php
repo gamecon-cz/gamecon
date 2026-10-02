@@ -52,9 +52,21 @@ SQL,
 
         (new BfgrReport(SystemoveNastaveni::zGlobals()))->exportuj('csv', true, $soubor, self::UZIVATEL);
 
-        $obsah = (string) file_get_contents($soubor);
+        $radky = array_map(
+            static fn (string $radek): array => str_getcsv($radek, ';'),
+            file($soubor, FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES),
+        );
         unlink($soubor);
-        self::assertStringContainsString('Ponožky testovací 42-45', $obsah);
-        self::assertStringContainsString('Ponožky testovací 38-39', $obsah);
+        $hlavicka = $radky[1];
+        $ucastnik = $radky[count($radky) - 1];
+        $sloupec = static function (string $nazev) use ($hlavicka): int {
+            $index = array_search($nazev, $hlavicka, true);
+            self::assertNotFalse($index, "Chybí sloupec {$nazev}");
+
+            return $index;
+        };
+
+        self::assertSame('1', $ucastnik[$sloupec('Ponožky testovací 42-45')]);
+        self::assertSame('0', $ucastnik[$sloupec('Ponožky testovací 38-39')]);
     }
 }
