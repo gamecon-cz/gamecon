@@ -5,6 +5,8 @@ declare(strict_types=1);
 namespace App\Tests\Entity;
 
 use App\Entity\OrderItem;
+use App\Entity\Product;
+use App\Entity\ProductVariant;
 use PHPUnit\Framework\TestCase;
 
 class OrderItemDisplayNameTest extends TestCase
@@ -38,6 +40,18 @@ class OrderItemDisplayNameTest extends TestCase
         $item->setVariantName('pátek');
 
         self::assertSame('Postel na pokoji pátek', $item->getDisplayName());
+    }
+
+    /**
+     * Without a code snapshot, the size or night bought is the variant; the product is only its model.
+     */
+    public function testCodeWithoutSnapshotIsTheVariants(): void
+    {
+        $item = new OrderItem();
+        $item->setProduct((new Product())->setCode('tricko_S'));
+        $item->setVariant((new ProductVariant())->setCode('tricko_XL'));
+
+        self::assertSame('tricko_XL', $item->getDisplayCode());
     }
 
     public function testVariantMatchingOnlyPartOfAWordIsShown(): void

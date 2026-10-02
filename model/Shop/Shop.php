@@ -110,6 +110,34 @@ SQL,
     }
 
     /**
+     * Each offered night, size and item, with what is left of it; the infopult, the user page
+     * and the grid sale post the row's id back to `prodat()`.
+     *
+     * @return list<array{nazev: string, zbyva: int|string|null, id_predmetu: int|string, cena: int|string}>
+     */
+    public static function polozkyRychlehoProdeje(int $rocnik): array
+    {
+        $typUbytovani = TypPredmetu::UBYTOVANI;
+
+        return dbFetchAll(<<<SQL
+  SELECT
+    CONCAT(nazev,' ',model_rok) AS nazev,
+    kusu_vyrobeno-COUNT(n.id_nakupu) AS zbyva,
+    p.id_predmetu,
+    ROUND(p.cena_aktualni) AS cena
+  FROM shop_predmety_s_typem p
+  -- a size's or night's purchase points at its model or room type, so the row finds it through its variant
+  INNER JOIN product_variant AS varianta ON varianta.code = p.kod_predmetu
+  LEFT JOIN shop_nakupy n ON(n.variant_id = varianta.id AND n.rok = {$rocnik})
+  WHERE p.stav > 0
+    AND p.model_rok = {$rocnik}
+    AND (p.typ <> {$typUbytovani} OR p.ubytovani_den IS NOT NULL)
+  GROUP BY p.id_predmetu
+  ORDER BY nazev
+SQL);
+    }
+
+    /**
      * @return Polozka[]
      * @throws \DbException
      */
@@ -126,7 +154,7 @@ FROM (
            SUM(nakupy.cena_nakupni) AS suma,
            predmety.model_rok,
            MAX(nakupy.datum) AS naposledy_koupeno_kdy,
-           COUNT(nakupy.id_predmetu) AS prodano_kusu,
+           COUNT(nakupy.id_nakupu) AS prodano_kusu,
            predmety.kusu_vyrobeno,
            predmety.typ,
            predmety.podtyp,
@@ -134,8 +162,11 @@ FROM (
            predmety.ubytovani_den,
            predmety.stav
     FROM shop_predmety_s_typem AS predmety
+    -- a size's or night's purchase points at its model or room type, so the row finds it through its variant
+    LEFT JOIN product_variant AS varianta
+        ON varianta.code = predmety.kod_predmetu
     LEFT JOIN shop_nakupy AS nakupy
-        ON predmety.id_predmetu = nakupy.id_predmetu
+        ON nakupy.variant_id = varianta.id
             AND nakupy.rok = $0
     WHERE model_rok = $0
         AND IF($3, TRUE, predmety.id_predmetu IN ($2))
