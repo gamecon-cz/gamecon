@@ -193,6 +193,7 @@ class BulkCancelService
 
         $cancelled->setCustomer($item->getCustomer());
         $cancelled->setProduct($item->getProduct());
+        $cancelled->setVariant($item->getVariant() ?? throw new \LogicException('Zrušený nákup nemá variantu.'));
         $cancelled->setYear($item->getYear());
         $cancelled->setPurchasePrice($item->getPurchasePrice());
         $cancelled->setPurchasedAt($item->getPurchasedAt());

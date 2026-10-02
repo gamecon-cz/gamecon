@@ -38,6 +38,13 @@ class CancelledOrderItem
     #[ORM\JoinColumn(name: 'id_predmetu', referencedColumnName: 'id_predmetu', nullable: false)]
     private ?Product $product = null;
 
+    /**
+     * The night or size that was bought; the product is only its room type or model.
+     */
+    #[ORM\ManyToOne(targetEntity: ProductVariant::class)]
+    #[ORM\JoinColumn(name: 'variant_id', referencedColumnName: 'id', nullable: false, onDelete: 'RESTRICT')]
+    private ?ProductVariant $variant = null;
+
     #[ORM\Column(name: 'rocnik', type: Types::SMALLINT, nullable: false)]
     private int $year;
 
@@ -100,6 +107,18 @@ class CancelledOrderItem
     public function setProduct(?Product $product): self
     {
         $this->product = $product;
+
+        return $this;
+    }
+
+    public function getVariant(): ?ProductVariant
+    {
+        return $this->variant;
+    }
+
+    public function setVariant(ProductVariant $variant): self
+    {
+        $this->variant = $variant;
 
         return $this;
     }

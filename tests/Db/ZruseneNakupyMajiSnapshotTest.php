@@ -42,7 +42,10 @@ SQL);
 INSERT INTO shop_predmety SET id_predmetu = 94010, nazev = 'Ponožky (vel. 42-45)', kod_predmetu = 'ponozky_94010', cena_aktualni = 120, stav = 1, nabizet_do = NOW()
 SQL);
         dbQuery(<<<SQL
-INSERT INTO shop_nakupy_zrusene SET id_uzivatele = 1, id_predmetu = 94010, rocnik = 2024, cena_nakupni = 120, datum_nakupu = NOW(), datum_zruseni = NOW(), zdroj_zruseni = 'rucne-hromadne'
+INSERT INTO product_variant (product_id, name, code, position, state) VALUES (94010, NULL, 'ponozky_94010', 0, 1)
+SQL);
+        dbQuery(<<<SQL
+INSERT INTO shop_nakupy_zrusene SET id_uzivatele = 1, id_predmetu = 94010, variant_id = (SELECT id FROM product_variant WHERE code = 'ponozky_94010'), rocnik = 2024, cena_nakupni = 120, datum_nakupu = NOW(), datum_zruseni = NOW(), zdroj_zruseni = 'rucne-hromadne'
 SQL);
 
         self::assertNull(
