@@ -29,8 +29,8 @@ class EshopExport
 SELECT
   produkt.nazev AS product_name,
   produkt.kod_predmetu AS product_code,
-  product_variant.code AS variant_code,
   product_variant.name AS variant_name,
+  product_variant.code AS variant_code,
   produkt.archived_at AS archivovano,
   (SELECT product_tag.code
    FROM product_product_tag
