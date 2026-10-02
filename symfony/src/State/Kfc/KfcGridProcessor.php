@@ -124,7 +124,9 @@ readonly class KfcGridProcessor implements ProcessorInterface
 
         foreach ($data->grids as $gridInput) {
             foreach ($gridInput->bunky as $cellInput) {
-                if ($cellInput->variantId !== null && ($productOfVariant[$cellInput->variantId] ?? null) !== $cellInput->cilId) {
+                if ($cellInput->variantId !== null
+                    && (! isset($productOfVariant[$cellInput->variantId]) || $productOfVariant[$cellInput->variantId] !== $cellInput->cilId)
+                ) {
                     throw new InvalidRequestException($this->translator->trans('kfc.variant_of_other_product', [
                         '%variant%' => $cellInput->variantId, '%product%' => $cellInput->cilId,
                     ], 'errors'));
