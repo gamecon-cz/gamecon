@@ -697,7 +697,9 @@ SQL,
             WHERE nazev LIKE '%kostka%'
                 AND stav > $0
                 AND typ = $1
-            ORDER BY FIND_IN_SET(CONCAT_WS(' ', TRIM(nazev), model_rok), '{$poradiKostekSql}')
+            ORDER BY FIND_IN_SET(CONCAT_WS(' ', TRIM(nazev), model_rok), '{$poradiKostekSql}'),
+                     model_rok DESC,
+                     id_predmetu
             SQL,
             [0 => StavPredmetu::MIMO, 1 => TypPredmetu::PREDMET],
         );
@@ -735,7 +737,7 @@ SQL,
                         OR nazev LIKE '%lok%'
                         OR nazev LIKE '%taška%'
                     )
-            ORDER BY TRIM(nazev)
+            ORDER BY TRIM(nazev), model_rok DESC, id_predmetu
             SQL,
             [0 => TypPredmetu::PREDMET, 1 => StavPredmetu::MIMO],
         );
