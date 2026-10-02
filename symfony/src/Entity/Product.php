@@ -270,9 +270,20 @@ class Product
         return $this->state;
     }
 
+    /**
+     * The variant sharing the product's code is the product as the cart sees it.
+     */
     public function setState(ProductStateEnum $state): self
     {
         $this->state = $state;
+        if (! isset($this->code)) {
+            return $this;
+        }
+        foreach ($this->variants as $variant) {
+            if ($variant->hasCode() && $variant->getCode() === $this->code) {
+                $variant->setState($state);
+            }
+        }
 
         return $this;
     }

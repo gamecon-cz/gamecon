@@ -147,8 +147,8 @@ class ProductVariant
     private int $position = 0;
 
     /**
-     * Whether this night or size is on offer. Its own, not the product's: a room type nobody
-     * buys stays suspended while its nights are on sale. A default variant follows its product
+     * Whether this night or size is on offer. Its own, not the product's: a room type is not on
+     * sale itself while its nights are. A default variant follows its product
      * (VariantStateMirror).
      */
     #[ORM\Column(name: 'state', type: Types::SMALLINT, nullable: false, enumType: ProductStateEnum::class)]
@@ -218,6 +218,11 @@ class ProductVariant
     public function getCode(): string
     {
         return $this->code;
+    }
+
+    public function hasCode(): bool
+    {
+        return isset($this->code);
     }
 
     public function setCode(string $code): self
