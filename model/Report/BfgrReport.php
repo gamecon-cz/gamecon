@@ -723,7 +723,7 @@ SQL,
             SELECT id_varianty,
                    IF(model_rok != {$this->systemoveNastaveni->rocnik()},
                        CONCAT_WS(' ', TRIM(nazev), model_rok),
-                       nazev
+                       TRIM(nazev)
                    ) AS nazev
             -- named per variant, as Finance names each purchase
             FROM shop_varianty_s_typem
