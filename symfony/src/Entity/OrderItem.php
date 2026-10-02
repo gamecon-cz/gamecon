@@ -467,8 +467,16 @@ class OrderItem
         return preg_match('~(?<!\w)' . preg_quote($word, '~') . '(?!\w)~u', $name) === 1;
     }
 
+    /**
+     * The size or night bought: the cart snapshots its model's code as the product code. Snapshots
+     * come before the catalog, so renaming an item does not rewrite a past purchase.
+     */
     public function getDisplayCode(): string
     {
+        if ($this->variantCode !== null) {
+            return $this->variantCode;
+        }
+
         if ($this->productCode !== null) {
             return $this->productCode;
         }
