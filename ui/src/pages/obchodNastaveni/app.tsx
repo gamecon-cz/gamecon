@@ -16,7 +16,8 @@ type TObchodNastaveniProps = {};
 
 /** kam se můžu prokliknout přes buňku */
 export type Cíle = {
-  předměty: { id: number; text: string }[];
+  /** Předmět s víc variantami jednou bez varianty (vybírá se při prodeji) a pak po variantách. */
+  předměty: { id: number; variantId?: number; text: string }[];
   mřížky: { id: number; text: string }[];
 };
 
@@ -68,7 +69,20 @@ export const ObchodNastaveni: FunctionComponent<TObchodNastaveniProps> = (
   }, []);
 
   const cíle: Cíle = {
-    předměty: předměty?.map((x) => ({ id: x.id, text: x.název })) ?? [],
+    předměty: předměty?.flatMap((předmět) => {
+      if (předmět.varianty.length <= 1) {
+        // Zbylý řádek velikosti nebo noci variantu nemá a prodat nejde.
+        return předmět.varianty.map((varianta) => ({ id: předmět.id, variantId: varianta.id, text: předmět.název }));
+      }
+      return [
+        { id: předmět.id, text: `${předmět.název} (vybrat při prodeji)` },
+        ...předmět.varianty.map((varianta) => ({
+          id: předmět.id,
+          variantId: varianta.id,
+          text: [předmět.název, varianta.název].filter(Boolean).join(" "),
+        })),
+      ];
+    }) ?? [],
     mřížky:
       definiceObchod?.mřížky?.map((x) => ({
         id: x.id,

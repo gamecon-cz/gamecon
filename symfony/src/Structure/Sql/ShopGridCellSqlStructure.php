@@ -42,6 +42,11 @@ class ShopGridCellSqlStructure
     public const cil_id = 'cil_id';
 
     /**
+     * @see ShopGridCell::$variant
+     */
+    public const variant_id = 'variant_id';
+
+    /**
      * @see ShopGridCell::$shopGrid
      */
     public const mrizka_id = 'mrizka_id';
