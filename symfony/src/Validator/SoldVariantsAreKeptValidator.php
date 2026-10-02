@@ -6,7 +6,7 @@ namespace App\Validator;
 
 use App\Entity\Product;
 use App\Entity\ProductVariant;
-use App\Repository\OrderItemRepository;
+use App\Service\PurchasedVariants;
 use Doctrine\ORM\PersistentCollection;
 use Symfony\Component\Validator\Constraint;
 use Symfony\Component\Validator\ConstraintValidator;
@@ -19,7 +19,7 @@ use Symfony\Component\Validator\Exception\UnexpectedValueException;
 class SoldVariantsAreKeptValidator extends ConstraintValidator
 {
     public function __construct(
-        private readonly OrderItemRepository $orderItemRepository,
+        private readonly PurchasedVariants $purchasedVariants,
     ) {
     }
 
@@ -42,7 +42,7 @@ class SoldVariantsAreKeptValidator extends ConstraintValidator
         }
 
         $removed = $variants->getDeleteDiff();
-        $soldIds = $this->orderItemRepository->soldVariantIds(array_map(
+        $soldIds = $this->purchasedVariants->among(array_map(
             static fn (ProductVariant $variant): int => (int) $variant->getId(),
             $removed,
         ));
