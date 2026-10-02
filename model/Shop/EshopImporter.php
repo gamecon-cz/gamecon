@@ -17,8 +17,8 @@ class EshopImporter
     public const SLOUPCE = [
         'product_name',
         'product_code',
-        'variant_code',
         'variant_name',
+        'variant_code',
         'archivovano',
         'tag',
         'cena_aktualni',

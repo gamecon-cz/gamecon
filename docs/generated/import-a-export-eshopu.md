@@ -15,7 +15,7 @@ zpátky (ověřeno nad produkčním dumpem, test `exportJdeBezeZmenyNaimportovat
 
 | produktu (musí se shodovat na všech řádcích produktu) | varianty |
 |---|---|
-| `product_name`, `product_code`, `archivovano`, `tag` (jen kategorie), `cena_aktualni`, `stav`, `nabizet_do`, `popis`, `vedlejsi`, `snidane_v_cene`, `je_letosni_hlavni` (nepovinný) | `variant_code`, `variant_name`, `cena_varianty` (prázdná = cena produktu), `stav_varianty` (prázdný = stav produktu), `kusu_vyrobeno`, `ubytovani_den` |
+| `product_name`, `product_code`, `archivovano`, `tag` (jen kategorie), `cena_aktualni`, `stav`, `nabizet_do`, `popis`, `vedlejsi`, `snidane_v_cene`, `je_letosni_hlavni` (nepovinný) | `variant_name`, `variant_code`, `cena_varianty` (prázdná = cena produktu), `stav_varianty` (prázdný = stav produktu), `kusu_vyrobeno`, `ubytovani_den` |
 
 ## Pravidla, která z kódu nejsou hned vidět
 
