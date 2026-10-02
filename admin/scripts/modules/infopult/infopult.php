@@ -316,14 +316,6 @@ if ($uPracovni) {
     $x->parse('infopult.neUzivatel');
 }
 
-// načtení předmětů a form s rychloprodejem předmětů, fixme
-$rocnik = $systemoveNastaveni->rocnik();
-$moznosti = '<option value="">(vyber)</option>';
-foreach (\Gamecon\Shop\Shop::polozkyRychlehoProdeje($rocnik) as $r) {
-    $zbyva = $r['zbyva'] === null ? '&infin;' : $r['zbyva'];
-    $moznosti .= '<option value="' . $r['id_predmetu'] . '"' . ($r['zbyva'] > 0 || $r['zbyva'] === null ? '' : ' disabled') . '>' . $r['nazev'] . ' (' . $zbyva . ') ' . $r['cena'] . '&thinsp;Kč</option>';
-}
-$x->assign('predmety', $moznosti);
 
 // rychloregistrace
 if (!$uPracovni) { // nechceme zobrazovat rychloregistraci (zakladani uctu), kdyz mame vybraneho uzivatele pro praci

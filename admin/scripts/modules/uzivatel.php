@@ -196,7 +196,7 @@ foreach (\Gamecon\Shop\Shop::polozkyRychlehoProdeje($rocnik) as $r) {
         ? '&infin;'
         : $r['zbyva'];
 
-    $moznosti .= "<option value='{$r['id_predmetu']}'>{$r['nazev']} ($zbyva) {$r['cena']}&thinsp;Kč</option>";
+    $moznosti .= "<option value='{$r['id_varianty']}'>{$r['nazev']} ($zbyva) {$r['cena']}&thinsp;Kč</option>";
 }
 $x->assign('predmety', $moznosti);
 
