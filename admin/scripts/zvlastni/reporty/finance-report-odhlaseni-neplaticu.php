@@ -47,7 +47,7 @@ $data = dbFetchAll(<<<SQL
             -- a produkt se mezitím mohl přejmenovat. Typ snapshot nenese, ten zůstává
             -- z produktu.
             shop_nakupy_zrusene.product_name     AS nazev_polozky,
-            product_tag.code                     AS kategorie_shop,
+            kategorie.code                       AS kategorie_shop,
             NULL                                 AS je_aktivita,
             shop_nakupy_zrusene.cena_nakupni     AS cena,
             shop_nakupy_zrusene.datum_nakupu     AS objednano_kdy,
@@ -55,8 +55,11 @@ $data = dbFetchAll(<<<SQL
             shop_nakupy_zrusene.zdroj_zruseni    AS zdroj
         FROM shop_nakupy_zrusene
         JOIN product_variant ON product_variant.id = shop_nakupy_zrusene.variant_id
-        JOIN product_product_tag ON product_product_tag.product_id = product_variant.product_id
-        JOIN product_tag ON product_tag.id = product_product_tag.tag_id AND product_tag.code IN ($0)
+        -- a product missing its category keeps its row (typ NULL) instead of vanishing
+        LEFT JOIN (
+            product_product_tag AS stitek_kategorie
+            INNER JOIN product_tag AS kategorie ON kategorie.id = stitek_kategorie.tag_id AND kategorie.code IN ($0)
+        ) ON stitek_kategorie.product_id = product_variant.product_id
         WHERE shop_nakupy_zrusene.zdroj_zruseni = 'rucne-hromadne'
            OR shop_nakupy_zrusene.zdroj_zruseni LIKE 'automaticky-%'
 
@@ -96,7 +99,7 @@ $radky = [];
 foreach ($data as $radek) {
     $typPolozky = $radek['je_aktivita']
         ? 'aktivita'
-        : TypPredmetu::nazevTypu(ProductTagCode::from($radek['kategorie_shop'])->legacyTyp());
+        : TypPredmetu::nazevTypu(ProductTagCode::tryFrom((string) $radek['kategorie_shop'])?->legacyTyp() ?? 0);
 
     $urlUzivatele = URL_ADMIN . '/uzivatel?pracovni_uzivatel=' . $radek['id_uzivatele'];
 

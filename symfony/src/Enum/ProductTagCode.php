@@ -38,7 +38,8 @@ enum ProductTagCode: string
     case TRICKO_CERVENE = 'tricko_cervene';
 
     /**
-     * The category tags — exactly one of these per product, the successor of typ 1–7.
+     * The category tags — exactly one of these per product, the successor of typ 1–7,
+     * listed in typ order: legacy SQL reads typ as the position of the code in this list.
      *
      * @return self[]
      */
@@ -53,6 +54,14 @@ enum ProductTagCode: string
             self::PARCON,
             self::PROPLACENI_BONUSU,
         ];
+    }
+
+    /**
+     * @return list<string> in typ order, see {@see categories()}
+     */
+    public static function categoryCodes(): array
+    {
+        return array_map(static fn (self $category): string => $category->value, self::categories());
     }
 
     public function isCategory(): bool
