@@ -12,14 +12,13 @@ use Gamecon\SystemoveNastaveni\ZdrojRocniku;
 use Gamecon\Tests\Db\AbstractTestDb;
 
 /**
- * A size is bought as a variant of its model: the purchase points at the model, whose own
- * catalog row is also its first size, and names the size through its variant.
+ * A size is bought as a variant of its model: the purchase points at the model and names the
+ * size through its variant. Sizes have no catalog rows of their own.
  */
 class VelikostiPresVariantyTest extends AbstractTestDb
 {
     private const UZIVATEL = 448;
     private const MODEL = 44801;
-    private const RADEK_XL = 44802;
     // A year no other fixture buys in, so the statistics count only this purchase.
     private const ROK_STATISTIK = 2098;
 
@@ -29,10 +28,9 @@ INSERT INTO uzivatele_hodnoty SET id_uzivatele = 448, login_uzivatele = 'TestVel
 SQL,
         <<<SQL
 INSERT INTO shop_predmety (id_predmetu, nazev, kod_predmetu, cena_aktualni, stav, popis)
-VALUES (44801, 'Tričko velikostní', 'tricko_velikosti_S', 250, 1, ''),
-       (44802, 'Tričko velikostní XL', 'tricko_velikosti_XL', 250, 1, '')
+VALUES (44801, 'Tričko velikostní', 'tricko_velikosti', 250, 1, '')
 SQL,
-        "INSERT INTO product_product_tag (product_id, tag_id) SELECT id_predmetu, (SELECT id FROM product_tag WHERE code = 'tricko') FROM shop_predmety WHERE id_predmetu IN (44801, 44802)",
+        "INSERT INTO product_product_tag (product_id, tag_id) SELECT id_predmetu, (SELECT id FROM product_tag WHERE code = 'tricko') FROM shop_predmety WHERE id_predmetu = 44801",
         <<<SQL
 INSERT INTO product_variant (product_id, name, code, capacity, position, state)
 VALUES (44801, 'S', 'tricko_velikosti_S', 10, 0, 1),
@@ -136,17 +134,16 @@ SQL,
     /**
      * @test
      */
-    public function letosniPolozkyPocitajiProdanouVelikost(): void
+    public function letosniPolozkyPocitajiProdaneVelikostiModelu(): void
     {
         $prodano = [];
-        foreach (Shop::letosniPolozky(ROCNIK, [self::MODEL, self::RADEK_XL]) as $polozka) {
+        foreach (Shop::letosniPolozky(ROCNIK, [self::MODEL]) as $polozka) {
             /** @var Polozka $polozka */
             $prodano[$polozka->idPredmetu()] = $polozka->prodanoKusu();
         }
 
         self::assertSame([
-            self::MODEL    => 0.0,
-            self::RADEK_XL => 1.0,
+            self::MODEL => 1.0,
         ], $prodano);
     }
 
