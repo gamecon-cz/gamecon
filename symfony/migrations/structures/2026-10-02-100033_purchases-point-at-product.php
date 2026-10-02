@@ -8,6 +8,18 @@ declare(strict_types=1);
 // bought through its variant. Every reader now takes the item from the variant, so a size's or
 // night's own catalog row no longer has to be what the purchase points at.
 
+// A purchase whose variant does not exist would keep its row and drop out of every reader. On a
+// non-strict server a missing variant became 0 when the column turned NOT NULL, and the foreign
+// key never checked existing rows, so stop on any such purchase rather than repoint around it.
+foreach (['shop_nakupy', 'shop_nakupy_zrusene'] as $tabulka) {
+    $bezVarianty = (int) $this->q(
+        "SELECT COUNT(*) FROM {$tabulka} LEFT JOIN product_variant ON product_variant.id = {$tabulka}.variant_id WHERE product_variant.id IS NULL",
+    )->fetchColumn();
+    if ($bezVarianty > 0) {
+        throw new \RuntimeException("Tabulka {$tabulka} má {$bezVarianty} nákupů s neexistující variantou — oprav jejich variant_id a migraci spusť znovu.");
+    }
+}
+
 $this->q(<<<'SQL'
 UPDATE shop_nakupy
     INNER JOIN product_variant ON product_variant.id = shop_nakupy.variant_id

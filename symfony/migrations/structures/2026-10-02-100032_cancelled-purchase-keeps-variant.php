@@ -20,6 +20,13 @@ SET shop_nakupy_zrusene.variant_id = product_variant.id
 WHERE shop_nakupy_zrusene.variant_id IS NULL
 SQL);
 
+// The deploy migrates without strict mode: NOT NULL would turn a missing variant into 0 and the
+// foreign key would not check it, so a cancelled purchase without a variant has to stop us here.
+$bezVarianty = (int) $this->q('SELECT COUNT(*) FROM shop_nakupy_zrusene WHERE variant_id IS NULL')->fetchColumn();
+if ($bezVarianty > 0) {
+    throw new \RuntimeException("Zrušených nákupů bez varianty: {$bezVarianty}. Jejich řádek katalogu nemá variantu se stejným kódem — doplň ji a migraci spusť znovu.");
+}
+
 // IF EXISTS, so a run that failed on a cancelled purchase without a variant can be repeated.
 $this->q(<<<'SQL'
 ALTER TABLE shop_nakupy_zrusene
