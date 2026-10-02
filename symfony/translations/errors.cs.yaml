@@ -28,7 +28,6 @@ accommodation_import:
     days: '{0}%count% dnů|{1}%count% den|[2,4]%count% dny|[5,Inf[%count% dnů'
     incomplete_night_range: 'První a poslední noc musí být buďto obě prázdné, nebo obě zadané: první noc %first%, poslední noc %last%'
     participant_not_found: 'Účastník %id% neexistuje.'
-    night_not_found: 'Některou noc se nepodařilo dohledat mezi variantami ubytování.'
 
 capacity:
     insufficient: 'Nedostatečná kapacita pro produkt "%product%". Požadované: %quantity%'

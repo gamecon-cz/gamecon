@@ -158,11 +158,8 @@ FROM (
            predmety.ubytovani_den,
            predmety.stav
     FROM shop_predmety_s_typem AS predmety
-    -- a size's or night's purchase points at its model or room type, so the row finds it through its variant
-    LEFT JOIN product_variant AS varianta
-        ON varianta.code = predmety.kod_predmetu
     LEFT JOIN shop_nakupy AS nakupy
-        ON nakupy.variant_id = varianta.id
+        ON nakupy.id_predmetu = predmety.id_predmetu
             AND nakupy.rok = $0
     WHERE model_rok = $0
         AND IF($3, TRUE, predmety.id_predmetu IN ($2))
