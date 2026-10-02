@@ -12,4 +12,8 @@ class KfcGridCellInputDto
     public ?string $barva = null;
     public ?string $barvaText = null;
     public ?int $cilId = null;
+    /**
+     * The size or night an item cell sells; it must belong to the product in `cilId`.
+     */
+    public ?int $variantId = null;
 }
