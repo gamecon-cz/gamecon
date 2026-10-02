@@ -160,11 +160,6 @@ class MealWriter
         ));
     }
 
-    /**
-     * id_predmetu is the parent product's, which is right only because a meal is one variant of
-     * one product. Accommodation had to read it off the night's own row, since its variants were
-     * reparented onto shared owner products — split meals the same way and this becomes wrong.
-     */
     private function addMeal(User $customer, ProductVariant $variant, int $year): void
     {
         // Additions only: the desk submits the whole selection, so a meal the customer
