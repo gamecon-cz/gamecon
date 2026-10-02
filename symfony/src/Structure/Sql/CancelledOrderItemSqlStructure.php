@@ -60,4 +60,9 @@ class CancelledOrderItemSqlStructure
      * @see CancelledOrderItem::$product
      */
     public const id_predmetu = 'id_predmetu';
+
+    /**
+     * @see CancelledOrderItem::$variant
+     */
+    public const variant_id = 'variant_id';
 }
