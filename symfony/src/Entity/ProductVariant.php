@@ -71,6 +71,7 @@ use Symfony\Component\Validator\Constraints as Assert;
     ],
 )]
 #[AppAssert\SoldVariantIsKept(groups: [self::DELETE])]
+#[AppAssert\DefaultVariantFollowsProduct]
 class ProductVariant
 {
     public const READ = 'variant:read';
@@ -147,11 +148,11 @@ class ProductVariant
 
     /**
      * Whether this night or size is on offer. Its own, not the product's: a room type nobody
-     * buys stays suspended while its nights are on sale. Read-only in the API: the import sets
-     * it, and a default variant follows its product (VariantStateMirror).
+     * buys stays suspended while its nights are on sale. A default variant follows its product
+     * (VariantStateMirror).
      */
     #[ORM\Column(name: 'state', type: Types::SMALLINT, nullable: false, enumType: ProductStateEnum::class)]
-    #[Groups([Product::READ, self::READ])]
+    #[Groups([Product::READ, Product::WRITE, self::READ, self::WRITE])]
     private ProductStateEnum $state;
 
     /**
@@ -277,6 +278,11 @@ class ProductVariant
     public function getState(): ProductStateEnum
     {
         return $this->state;
+    }
+
+    public function hasOwnState(): bool
+    {
+        return isset($this->state);
     }
 
     public function setState(ProductStateEnum $state): self

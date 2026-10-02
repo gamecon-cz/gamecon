@@ -147,30 +147,65 @@ class ProductApiTest extends AbstractDatabaseKernelTestCase
     }
 
     /**
-     * The editor sends back each variant as it loaded it; the state may have changed since.
+     * A night or a size is taken off the offer on its own, while the rest of the product sells.
      */
-    public function testEditorCannotOverwriteAVariantsState(): void
+    public function testEditorSavesAVariantsOwnState(): void
     {
         [$product, $variant] = $this->produktSVariantou();
-        $this->connection()->executeStatement('UPDATE product_variant SET state = :stav WHERE id = :id', [
-            'stav' => ProductStateEnum::SUSPENDED->value,
-            'id'   => $variant->getId(),
-        ]);
 
         $response = $this->ulozVarianty($product, [
             [
                 ...$this->variantaJakoZEditoru($variant, capacity: 5),
+                'state' => ProductStateEnum::SUSPENDED->value,
+            ],
+            [
+                ...$this->novaVarianta($product, 'XL'),
                 'state' => ProductStateEnum::PUBLIC->value,
             ],
         ]);
 
         self::assertSame(200, $response->getStatusCode(), $response->getContent(false));
-        self::assertSame(ProductStateEnum::SUSPENDED->value, (int) $this->connection()->fetchOne(
-            'SELECT state FROM product_variant WHERE id = :id',
+        self::assertSame(
             [
-                'id' => $variant->getId(),
+                $variant->getCode()         => ProductStateEnum::SUSPENDED->value,
+                $product->getCode() . '-XL' => ProductStateEnum::PUBLIC->value,
             ],
-        ));
+            array_map('intval', $this->connection()->fetchAllKeyValue(
+                'SELECT code, state FROM product_variant WHERE product_id = :id ORDER BY position',
+                [
+                    'id' => $product->getId(),
+                ],
+            )),
+        );
+    }
+
+    /**
+     * The variant sharing the product's code is the product as the cart sees it, and an admin
+     * edit of the product copies the product's state onto it.
+     */
+    public function testDefaultVariantCannotTakeAStateOfItsOwn(): void
+    {
+        [$product, $variant] = $this->produktSVariantou(null);
+        $this->connection()->executeStatement('UPDATE product_variant SET code = :code WHERE id = :id', [
+            'code' => $product->getCode(),
+            'id'   => $variant->getId(),
+        ]);
+        $this->entityManager()->refresh($variant);
+
+        $response = $this->ulozVarianty($product, [
+            [
+                ...$this->variantaJakoZEditoru($variant, capacity: 5),
+                'state' => ProductStateEnum::SUSPENDED->value,
+            ],
+        ]);
+
+        self::assertSame(422, $response->getStatusCode(), $response->getContent(false));
+        $violations = json_decode($response->getContent(false), true, flags: JSON_THROW_ON_ERROR)['violations'] ?? [];
+        self::assertContains(
+            'Varianta s kódem produktu má stav produktu; změň stav produktu.',
+            array_column($violations, 'message'),
+            $response->getContent(false),
+        );
     }
 
     /**
