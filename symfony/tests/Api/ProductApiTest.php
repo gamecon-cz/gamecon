@@ -470,7 +470,7 @@ class ProductApiTest extends AbstractDatabaseKernelTestCase
      * A size's own catalog row from the legacy layout has no variant of its own: the size is a
      * variant of its model, and its purchases point at the model.
      *
-     * @return array{Product, ProductVariant}
+     * @return array{Product, ProductVariant, Product} the leftover row, its size, the model
      */
     private function zbylyRadekProdaneVelikosti(): array
     {
