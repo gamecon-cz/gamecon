@@ -401,16 +401,8 @@ class ProductApiTest extends AbstractDatabaseKernelTestCase
 
     public function testProductWithOnlyACancelledPurchaseIsNotDeleted(): void
     {
-        [$product] = $this->produktSVariantou();
-        $this->connection()->executeStatement(
-            'INSERT INTO shop_nakupy_zrusene (id_nakupu, id_uzivatele, id_predmetu, rocnik, cena_nakupni, datum_nakupu)
-             VALUES (0, :customer, :product, :year, 1, NOW())',
-            [
-                'customer' => $this->createUser('api_test_buyer_')->getId(),
-                'product'  => $product->getId(),
-                'year'     => ROCNIK,
-            ],
-        );
+        [$product, $variant] = $this->produktSVariantou();
+        $this->zrusenyProdej($product, $variant);
 
         $response = $this->adminClient()->request('DELETE', '/symfony/api/products/' . $product->getId());
 
@@ -461,6 +453,72 @@ class ProductApiTest extends AbstractDatabaseKernelTestCase
 
         self::assertSame(204, $response->getStatusCode(), $response->getContent(false));
         self::assertSame(1, $this->pocetRadku('product_variant', 'product_id', $product->getId()));
+    }
+
+    public function testVariantWithOnlyACancelledPurchaseIsNotDeleted(): void
+    {
+        [$product, $variant] = $this->produktSVariantou();
+        $this->zrusenyProdej($product, $variant);
+
+        $response = $this->adminClient()->request('DELETE', '/symfony/api/product_variants/' . $variant->getId());
+
+        self::assertSame(422, $response->getStatusCode(), $response->getContent(false));
+        self::assertSame(1, $this->pocetRadku('product_variant', 'id', $variant->getId()));
+    }
+
+    /**
+     * A size's own catalog row from the legacy layout has no variant of its own: the size is a
+     * variant of its model, and its purchases point at the model.
+     *
+     * @return array{Product, ProductVariant}
+     */
+    private function zbylyRadekProdaneVelikosti(): array
+    {
+        [$model, $velikost] = $this->produktSVariantou();
+        $radek = $this->createProduct()->setCode($velikost->getCode() . '-RADEK');
+        $this->entityManager()->persist($radek);
+        $this->entityManager()->flush();
+        $this->connection()->executeStatement('UPDATE shop_predmety SET kod_predmetu = :code WHERE id_predmetu = :id', [
+            'code' => $velikost->getCode(),
+            'id'   => $radek->getId(),
+        ]);
+
+        return [$radek, $velikost, $model];
+    }
+
+    public function testLeftoverRowOfASoldSizeIsNotDeleted(): void
+    {
+        [$radek, $velikost, $model] = $this->zbylyRadekProdaneVelikosti();
+        $this->prodej($model, $velikost);
+
+        $response = $this->adminClient()->request('DELETE', '/symfony/api/products/' . $radek->getId());
+
+        self::assertSame(422, $response->getStatusCode(), $response->getContent(false));
+        self::assertSame(1, $this->pocetRadku('shop_predmety', 'id_predmetu', $radek->getId()));
+    }
+
+    public function testLeftoverRowOfACancelledSizeIsNotDeleted(): void
+    {
+        [$radek, $velikost, $model] = $this->zbylyRadekProdaneVelikosti();
+        $this->zrusenyProdej($model, $velikost);
+
+        $response = $this->adminClient()->request('DELETE', '/symfony/api/products/' . $radek->getId());
+
+        self::assertSame(422, $response->getStatusCode(), $response->getContent(false));
+    }
+
+    private function zrusenyProdej(Product $product, ProductVariant $variant): void
+    {
+        $this->connection()->executeStatement(
+            'INSERT INTO shop_nakupy_zrusene (id_nakupu, id_uzivatele, id_predmetu, variant_id, rocnik, cena_nakupni, datum_nakupu)
+             VALUES ((SELECT COALESCE(MAX(id_nakupu), 0) + 1 FROM shop_nakupy_zrusene AS existujici), :customer, :product, :variant, :year, 1, NOW())',
+            [
+                'customer' => $this->createUser('api_test_buyer_')->getId(),
+                'product'  => $product->getId(),
+                'variant'  => $variant->getId(),
+                'year'     => ROCNIK - 1,
+            ],
+        );
     }
 
     private function prodej(Product $product, ProductVariant $variant): void

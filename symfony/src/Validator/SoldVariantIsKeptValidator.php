@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace App\Validator;
 
 use App\Entity\ProductVariant;
-use App\Repository\OrderItemRepository;
+use App\Service\PurchasedVariants;
 use Symfony\Component\Validator\Constraint;
 use Symfony\Component\Validator\ConstraintValidator;
 use Symfony\Component\Validator\Exception\UnexpectedTypeException;
@@ -17,7 +17,7 @@ use Symfony\Component\Validator\Exception\UnexpectedValueException;
 class SoldVariantIsKeptValidator extends ConstraintValidator
 {
     public function __construct(
-        private readonly OrderItemRepository $orderItemRepository,
+        private readonly PurchasedVariants $purchasedVariants,
     ) {
     }
 
@@ -31,7 +31,7 @@ class SoldVariantIsKeptValidator extends ConstraintValidator
             throw new UnexpectedValueException($value, ProductVariant::class);
         }
 
-        if ($this->orderItemRepository->soldVariantIds([(int) $value->getId()]) === []) {
+        if ($this->purchasedVariants->among([(int) $value->getId()]) === []) {
             return;
         }
 
