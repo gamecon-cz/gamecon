@@ -8,7 +8,6 @@ use App\Enum\ProductTagCode;
 use Gamecon\Pravo;
 use Gamecon\Report\BfsrReport;
 use Gamecon\Shop\Predmet;
-use Gamecon\Shop\TypPredmetu;
 use Gamecon\Tests\Db\AbstractTestDb;
 use Gamecon\Uzivatel\Dto\PolozkaProBfgr;
 
@@ -187,13 +186,15 @@ SQL,
         $vDatabazi = (int) dbOneCol(<<<SQL
             SELECT COUNT(*)
             FROM shop_nakupy
-            JOIN shop_predmety_s_typem ON shop_predmety_s_typem.id_predmetu = shop_nakupy.id_predmetu
-            WHERE shop_nakupy.id_uzivatele = $0 AND shop_nakupy.rok = $1 AND shop_predmety_s_typem.typ = $2
+            INNER JOIN product_variant ON product_variant.id = shop_nakupy.variant_id
+            INNER JOIN product_product_tag ON product_product_tag.product_id = product_variant.product_id
+            INNER JOIN product_tag ON product_tag.id = product_product_tag.tag_id AND product_tag.code = $2
+            WHERE shop_nakupy.id_uzivatele = $0 AND shop_nakupy.rok = $1
             SQL,
             [
                 0 => self::ID_UZIVATELE,
                 1 => ROCNIK,
-                2 => TypPredmetu::TRICKO,
+                2 => ProductTagCode::TRICKO->value,
             ],
         );
 
