@@ -81,7 +81,11 @@ readonly class EntryFeeService
             // Locking the row up front keeps two concurrent saves — the slider debounce makes those
             // routine — from each deciding to insert their own, which would double the donation.
             $this->entityManager->getConnection()->executeQuery(
-                'SELECT id_nakupu FROM shop_nakupy WHERE id_uzivatele = :user AND rok = :year AND id_predmetu = :product FOR UPDATE',
+                'SELECT shop_nakupy.id_nakupu
+                 FROM shop_nakupy
+                 INNER JOIN product_variant ON product_variant.id = shop_nakupy.variant_id
+                 WHERE shop_nakupy.id_uzivatele = :user AND shop_nakupy.rok = :year AND product_variant.product_id = :product
+                 FOR UPDATE',
                 [
                     'user'    => $user->getId(),
                     'year'    => $year,
@@ -91,7 +95,7 @@ readonly class EntryFeeService
 
             $item = $this->orderItemRepository->findOneBy([
                 'customer' => $user,
-                'product'  => $product,
+                'variant'  => $product->getVariants()->toArray(),
                 'year'     => $year,
             ]);
 
@@ -99,7 +103,6 @@ readonly class EntryFeeService
                 $item = new OrderItem();
                 $item->setCustomer($user);
                 $item->setOrderer($user);
-                $item->setProduct($product);
                 $item->setVariant($product->getVariants()->first() ?: throw new \LogicException(sprintf('Vstupné „%s" nemá variantu, nákup by nešlo zapsat.', $product->getCode())));
                 $item->setYear($year);
                 $item->setProductTags($product->getTagNames());
@@ -144,7 +147,10 @@ readonly class EntryFeeService
     private function paidForProduct(User $user, Product $product): string
     {
         $sum = $this->entityManager->getConnection()->fetchOne(
-            'SELECT COALESCE(SUM(cena_nakupni), 0) FROM shop_nakupy WHERE id_uzivatele = :user AND id_predmetu = :product AND rok = :year',
+            'SELECT COALESCE(SUM(shop_nakupy.cena_nakupni), 0)
+             FROM shop_nakupy
+             INNER JOIN product_variant ON product_variant.id = shop_nakupy.variant_id
+             WHERE shop_nakupy.id_uzivatele = :user AND product_variant.product_id = :product AND shop_nakupy.rok = :year',
             [
                 'user'    => $user->getId(),
                 'product' => $product->getId(),

@@ -200,7 +200,7 @@ class CartServiceMikinaTest extends AbstractDatabaseKernelTestCase
         self::assertSame(
             2,
             (int) $this->connection()->fetchOne(
-                'SELECT COUNT(*) FROM shop_nakupy WHERE id_predmetu = :produkt',
+                'SELECT COUNT(*) FROM shop_nakupy INNER JOIN product_variant ON product_variant.id = shop_nakupy.variant_id WHERE product_variant.product_id = :produkt',
                 [
                     'produkt' => $varianta->getProduct()->getId(),
                 ],

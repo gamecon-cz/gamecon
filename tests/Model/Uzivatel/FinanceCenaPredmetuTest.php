@@ -89,8 +89,8 @@ SQL,
         self::SQL_VYCHOZI_VARIANTY,
         [
             <<<SQL
-INSERT INTO shop_nakupy(id_uzivatele, id_predmetu, variant_id, rok, cena_nakupni)
-SELECT 333, id_predmetu, (SELECT product_variant.id FROM product_variant WHERE product_variant.code = shop_predmety.kod_predmetu), $0, (id_predmetu / 100) AS cena_nakupni FROM shop_predmety WHERE id_predmetu BETWEEN 33311 AND 33318
+INSERT INTO shop_nakupy(id_uzivatele, variant_id, rok, cena_nakupni)
+SELECT 333, (SELECT product_variant.id FROM product_variant WHERE product_variant.code = shop_predmety.kod_predmetu), $0, (id_predmetu / 100) AS cena_nakupni FROM shop_predmety WHERE id_predmetu BETWEEN 33311 AND 33318
 SQL,
             [
                 0 => ROCNIK,

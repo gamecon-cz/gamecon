@@ -184,7 +184,7 @@ SQL,
 
         self::assertSame(
             1,
-            (int) dbOneCol('SELECT COUNT(*) FROM shop_nakupy WHERE id_predmetu = 88813 AND variant_id IS NOT NULL'),
+            (int) dbOneCol('SELECT COUNT(*) FROM shop_nakupy INNER JOIN product_variant ON product_variant.id = shop_nakupy.variant_id WHERE product_variant.product_id = 88813 AND variant_id IS NOT NULL'),
             'Nákup musí ukazovat na variantu',
         );
         self::assertSame(
@@ -241,7 +241,7 @@ SQL,
         $shop->prodat($this->idVarianty(88811), 2);
 
         $pocetNakupu = (int) dbOneCol(
-            'SELECT COUNT(*) FROM shop_nakupy WHERE id_predmetu = $0 AND rok = $1',
+            'SELECT COUNT(*) FROM shop_nakupy INNER JOIN product_variant ON product_variant.id = shop_nakupy.variant_id WHERE product_variant.product_id = $0 AND rok = $1',
             [
                 0 => 88811,
                 1 => ROCNIK,
@@ -264,7 +264,7 @@ SQL,
         $shop->prodat($this->idVarianty(88812), 100);
 
         $pocetNakupu = (int) dbOneCol(
-            'SELECT COUNT(*) FROM shop_nakupy WHERE id_predmetu = $0 AND rok = $1',
+            'SELECT COUNT(*) FROM shop_nakupy INNER JOIN product_variant ON product_variant.id = shop_nakupy.variant_id WHERE product_variant.product_id = $0 AND rok = $1',
             [
                 0 => 88812,
                 1 => ROCNIK,
@@ -356,7 +356,7 @@ SQL,
                 'variant_code' => 'pokoj_prodej_test-pa',
             ],
             dbOneLine(
-                "SELECT shop_nakupy.id_predmetu, shop_nakupy.product_name, shop_nakupy.variant_name, shop_nakupy.variant_code
+                "SELECT product_variant.product_id AS id_predmetu, shop_nakupy.product_name, shop_nakupy.variant_name, shop_nakupy.variant_code
                  FROM shop_nakupy
                  JOIN product_variant ON product_variant.id = shop_nakupy.variant_id
                  WHERE product_variant.code = 'pokoj_prodej_test-pa'",

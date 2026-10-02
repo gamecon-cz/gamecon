@@ -102,11 +102,6 @@ class OrderItemSqlStructure
     public const order_id = 'order_id';
 
     /**
-     * @see OrderItem::$product
-     */
-    public const id_predmetu = 'id_predmetu';
-
-    /**
      * @see OrderItem::$variant
      */
     public const variant_id = 'variant_id';
