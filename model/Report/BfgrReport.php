@@ -133,7 +133,6 @@ SQL,
             exit('V tabulce nejsou žádná data.');
         }
 
-        // $letosniPlackyKlice          = array_fill_keys($letosniPlacky, null);
         // $letosniKostkyKlice          = array_fill_keys($letosniKostky, null);
         // $letosniJidlaKlice           = array_fill_keys($letosniJidla, null);
         // $letosniOstatniPredmetyKlice = array_fill_keys($letosniOstatniPredmety, null);

@@ -1,6 +1,6 @@
 <?php
 
-use Gamecon\Shop\TypPredmetu;
+use App\Enum\ProductTagCode;
 
 /**
  * Počítáme s tím, že uživatel bydlí jen na jednom pokoji, jinak se to rozsype.
@@ -45,7 +45,7 @@ class Pokoj
       JOIN product_product_tag ON product_product_tag.product_id = noc.product_id
       JOIN product_tag ON product_tag.id = product_product_tag.tag_id AND product_tag.code = $2
       WHERE nakupy.id_uzivatele = $0 AND nakupy.rok = $1
-    ', [0 => $u->id(), 1 => ROCNIK, 2 => \App\Enum\ProductTagCode::UBYTOVANI->value]);
+    ', [0 => $u->id(), 1 => ROCNIK, 2 => ProductTagCode::UBYTOVANI->value]);
         if ($o->rowCount() == 0) {
             throw new Chyba('Uživatel nemá ubytování nebo ubytování pro daný den neexistuje');
         }
