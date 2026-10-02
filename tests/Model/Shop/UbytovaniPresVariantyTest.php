@@ -82,8 +82,8 @@ SQL,
     public function zrusenaNocSeJmenujeSvouNoci(): void
     {
         dbQuery(
-            'INSERT INTO shop_nakupy_zrusene (id_nakupu, id_uzivatele, id_predmetu, rocnik, cena_nakupni, datum_nakupu, zdroj_zruseni, product_name, product_code)
-             VALUES (447001, $0, $1, $2, 100, NOW(), $3, $4, $5)',
+            'INSERT INTO shop_nakupy_zrusene (id_nakupu, id_uzivatele, id_predmetu, variant_id, rocnik, cena_nakupni, datum_nakupu, zdroj_zruseni, product_name, product_code)
+             VALUES (447001, $0, $1, (SELECT id FROM product_variant WHERE code = $5), $2, 100, NOW(), $3, $4, $5)',
             [
                 0 => self::UZIVATEL,
                 1 => self::TYP_POKOJE,
