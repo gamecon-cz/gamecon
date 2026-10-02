@@ -418,7 +418,6 @@ class AccommodationProviderTest extends TestCase
 
             $item = new OrderItem();
             $item->setVariant($variant);
-            $item->setProduct($product);
             $koupeneItems[] = $item;
         }
         $this->orderItemRepository->method('findByCustomerAndYear')->willReturn($koupeneItems);

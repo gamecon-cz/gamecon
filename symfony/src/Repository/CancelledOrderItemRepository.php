@@ -42,7 +42,8 @@ class CancelledOrderItemRepository extends ServiceEntityRepository
     {
         return $this->createQueryBuilder('cancelled_item')
             ->select('1')
-            ->where('cancelled_item.product = :product')
+            ->innerJoin('cancelled_item.variant', 'zrusena_varianta')
+            ->where('zrusena_varianta.product = :product')
             ->setParameter('product', $product)
             ->setMaxResults(1)
             ->getQuery()

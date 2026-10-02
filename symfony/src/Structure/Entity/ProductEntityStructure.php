@@ -83,14 +83,4 @@ class ProductEntityStructure
      * @see Product::$discounts
      */
     public const discounts = 'discounts';
-
-    /**
-     * @see Product::$orderItems
-     */
-    public const orderItems = 'orderItems';
-
-    /**
-     * @see Product::$cancelledOrderItems
-     */
-    public const cancelledOrderItems = 'cancelledOrderItems';
 }

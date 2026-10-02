@@ -82,8 +82,8 @@ SQL,
     public function zrusenaNocSeJmenujeSvouNoci(): void
     {
         dbQuery(
-            'INSERT INTO shop_nakupy_zrusene (id_nakupu, id_uzivatele, id_predmetu, variant_id, rocnik, cena_nakupni, datum_nakupu, zdroj_zruseni, product_name, product_code)
-             VALUES (447001, $0, $1, (SELECT id FROM product_variant WHERE code = $5), $2, 100, NOW(), $3, $4, $5)',
+            'INSERT INTO shop_nakupy_zrusene (id_nakupu, id_uzivatele, variant_id, rocnik, cena_nakupni, datum_nakupu, zdroj_zruseni, product_name, product_code)
+             VALUES (447001, $0, (SELECT id FROM product_variant WHERE code = $5), $2, 100, NOW(), $3, $4, $5)',
             [
                 0 => self::UZIVATEL,
                 1 => self::TYP_POKOJE,
@@ -126,8 +126,8 @@ SQL,
     {
         foreach (['spacak_varianty_ct', 'spacak_varianty_pa'] as $kodNoci) {
             dbQuery(
-                'INSERT INTO shop_nakupy (id_uzivatele, id_predmetu, variant_id, rok, cena_nakupni)
-                 VALUES ($0, $1, (SELECT id FROM product_variant WHERE code = $2), $3, 100)',
+                'INSERT INTO shop_nakupy (id_uzivatele, variant_id, rok, cena_nakupni)
+                 VALUES ($0, (SELECT id FROM product_variant WHERE code = $2), $3, 100)',
                 [
                     0 => self::UZIVATEL,
                     1 => self::TYP_POKOJE,

@@ -21,7 +21,7 @@ use Symfony\Component\Validator\Constraints as Assert;
  * - Maps to same table (shop_nakupy)
  * - Adds snapshot fields: product_name, product_code, product_description
  * - Adds discount tracking: original_price, discount_amount, discount_reason
- * - product relation becomes nullable (product can be deleted)
+ * - no product relation: the product is the bought variant's
  */
 #[ORM\Entity(repositoryClass: OrderItemRepository::class)]
 #[ORM\Table(name: 'shop_nakupy')]
@@ -52,12 +52,6 @@ class OrderItem
     #[ORM\ManyToOne(targetEntity: Order::class, inversedBy: 'items')]
     #[ORM\JoinColumn(name: 'order_id', referencedColumnName: 'id', nullable: true, onDelete: 'SET NULL')]
     private ?Order $order = null;
-
-    #[ORM\ManyToOne(targetEntity: Product::class, inversedBy: 'orderItems')]
-    #[ORM\JoinColumn(name: 'id_predmetu', referencedColumnName: 'id_predmetu', nullable: true, onDelete: 'SET NULL', options: [
-        'ON UPDATE' => 'CASCADE',
-    ])]
-    private ?Product $product = null;
 
     #[ORM\ManyToOne(targetEntity: ProductVariant::class, inversedBy: 'orderItems')]
     #[ORM\JoinColumn(name: 'variant_id', referencedColumnName: 'id', nullable: false, onDelete: 'RESTRICT')]
@@ -214,14 +208,7 @@ class OrderItem
 
     public function getProduct(): ?Product
     {
-        return $this->product;
-    }
-
-    public function setProduct(?Product $product): self
-    {
-        $this->product = $product;
-
-        return $this;
+        return $this->variant?->getProduct();
     }
 
     public function getVariant(): ?ProductVariant
@@ -448,7 +435,7 @@ class OrderItem
     public function getDisplayName(): string
     {
         $name = $this->productName
-            ?? ($this->product instanceof Product ? $this->product->getName() : null)
+            ?? $this->getProduct()?->getName()
             ?? 'Neznámý produkt';
 
         $variantLabel = $this->variantName
@@ -485,10 +472,6 @@ class OrderItem
             return $this->variant->getCode();
         }
 
-        if ($this->product instanceof Product) {
-            return $this->product->getCode();
-        }
-
         return 'N/A';
     }
 
@@ -497,7 +480,7 @@ class OrderItem
      */
     public function isProductDeleted(): bool
     {
-        return ! $this->product instanceof Product && $this->productName !== null;
+        return $this->getProduct() === null && $this->productName !== null;
     }
 
     /**
