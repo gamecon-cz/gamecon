@@ -84,7 +84,7 @@ SQL,
 
         // Capacity lives on the variant with the product's code, as every catalog row has one.
         dbQuery("INSERT INTO product_variant (product_id, name, code, capacity, accommodation_day, position, state)
-            VALUES ({$id}, '{$nazev}', '{$kodPredmetu}', {$kusuVyrobenoSql}, {$ubytovaniDenSql}, 0, {$stav})");
+            VALUES ({$id}, NULL, '{$kodPredmetu}', {$kusuVyrobenoSql}, {$ubytovaniDenSql}, 0, {$stav})");
     }
 
     protected static function getBeforeClassInitCallbacks(): array
@@ -204,57 +204,6 @@ SQL,
 
         // The shop should work fine — PROPLACENI_BONUSU is silently skipped
         self::assertTrue($shop->koupilNejakyPredmet());
-    }
-
-    /**
-     * @test
-     */
-    public function shopRozdeliPredmetyNaHlavniAVedlejsi(): void
-    {
-        $shop = $this->dejShopProUzivatele(77701);
-
-        // Use reflection to check private arrays — the split by vedlejsi flag
-        $ref = new \ReflectionObject($shop);
-
-        $hlavniProp = $ref->getProperty('predmetyHlavni');
-        $hlavniProp->setAccessible(true);
-        $hlavni = $hlavniProp->getValue($shop);
-
-        $vedlejsiProp = $ref->getProperty('predmetyVedlejsi');
-        $vedlejsiProp->setAccessible(true);
-        $vedlejsi = $vedlejsiProp->getValue($shop);
-
-        // Hlavní should contain 'Kostka GameCon' (vedlejsi=0)
-        $hlavniNazvy = array_column($hlavni, 'nazev');
-        self::assertContains('Kostka GameCon', $hlavniNazvy, 'Hlavní předmět je v hlavních');
-
-        // Vedlejší should contain 'Zápisník' (vedlejsi=1)
-        $vedlejsiNazvy = array_column($vedlejsi, 'nazev');
-        self::assertContains('Zápisník', $vedlejsiNazvy, 'Vedlejší předmět je ve vedlejších');
-    }
-
-    /**
-     * @test
-     */
-    public function shopVstupneRozdeleniNaVcasAPozde(): void
-    {
-        $shop = $this->dejShopProUzivatele(77701);
-
-        $ref = new \ReflectionObject($shop);
-
-        // Early vstupne (without "pozdě" in name)
-        $vstupneProp = $ref->getProperty('vstupne');
-        $vstupneProp->setAccessible(true);
-        $vstupne = $vstupneProp->getValue($shop);
-        self::assertNotEmpty($vstupne, 'Včasné vstupné existuje');
-        self::assertStringNotContainsString('pozdě', $vstupne['nazev']);
-
-        // Late vstupne (with "pozdě" in name)
-        $vstupnePozdeProp = $ref->getProperty('vstupnePozde');
-        $vstupnePozdeProp->setAccessible(true);
-        $vstupnePozde = $vstupnePozdeProp->getValue($shop);
-        self::assertNotEmpty($vstupnePozde, 'Pozdní vstupné existuje');
-        self::assertStringContainsString('pozdě', $vstupnePozde['nazev']);
     }
 
     /**

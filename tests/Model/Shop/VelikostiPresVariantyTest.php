@@ -99,6 +99,30 @@ SQL,
         self::assertSame('Tričko velikostní XL ' . ROCNIK, $nazvy[$this->idVarianty('tricko_velikosti_XL')] ?? null);
     }
 
+    /**
+     * The model's own row is also its first size; the desk's overview named it as the model.
+     *
+     * @test
+     */
+    public function prehledObjednavekJmenujeKoupenouVelikost(): void
+    {
+        dbQuery(
+            'INSERT INTO shop_nakupy (id_uzivatele, id_predmetu, variant_id, rok, cena_nakupni) VALUES ($0, $1, $2, $3, 250)',
+            [
+                0 => self::UZIVATEL,
+                1 => self::MODEL,
+                2 => $this->idVarianty('tricko_velikosti_S'),
+                3 => ROCNIK,
+            ],
+        );
+        $uzivatel = \Uzivatel::zIdUrcite(self::UZIVATEL);
+
+        self::assertSame(
+            ['Trička: Tričko velikostní S, Tričko velikostní XL'],
+            (new Shop($uzivatel, $uzivatel, SystemoveNastaveni::zGlobals()))->prehledObjednavekProInfopult(),
+        );
+    }
+
     private function idVarianty(string $kod): int
     {
         $idVarianty = (int) dbOneCol('SELECT id FROM product_variant WHERE code = $0', [
