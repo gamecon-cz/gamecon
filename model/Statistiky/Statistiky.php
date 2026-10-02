@@ -3,6 +3,7 @@ declare(strict_types=1);
 
 namespace Gamecon\Statistiky;
 
+use App\Entity\ProductVariant;
 use App\Enum\ProductTagCode;
 use Gamecon\Cas\DateTimeCz;
 use Gamecon\Cas\DateTimeGamecon;
@@ -225,7 +226,7 @@ SQL,
                 <<<SQL
 SELECT Den, Počet FROM (
     SELECT
-        MIN(noc.name) AS Den,
+        ELT(noc.accommodation_day + 1, $3) AS Den,
         COUNT(nakupy.id_nakupu) AS Počet,
         noc.accommodation_day AS ubytovani_den
     FROM shop_nakupy AS nakupy
@@ -256,6 +257,7 @@ SQL,
                     0 => $this->soucasnyRocnik,
                     1 => ProductTagCode::UBYTOVANI->value,
                     2 => Role::PRIHLASEN_NA_LETOSNI_GC($this->soucasnyRocnik),
+                    3 => ProductVariant::NIGHT_NAMES,
                 ],
             ),
             'Ubytování dny',
