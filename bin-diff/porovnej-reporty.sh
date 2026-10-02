@@ -139,6 +139,47 @@ stahni() {
     esac
 }
 
+# BFGR se přes web jen spustí na pozadí a výsledek odejde mailem, takže stažení vrátí
+# stránku „zahájeno“ a report by zůstal neporovnaný — přitom je ze všech nejcitlivější
+# na názvy položek. Generuje se proto přímo v kontejneru té větve, stejnou metodou,
+# jakou volá proces na pozadí.
+GENEROVAT_PRIMO=('bfgr-report')
+HOTOVO='--- vygenerováno celé ---'
+
+# Úspěch se pozná jen podle značky na konci: dev Tracy výjimku vykreslí jako stránku a
+# skončí s kódem 0, takže návratový kód by spadlý report přijal jako výstup.
+# `$_SERVER`: zavaděč na `main` bez HTTPS přesměruje a skončí, bez hostitele spadne.
+# Na `main` píše CSV na výstup a soubor ignoruje, e-shopová větev zapíše soubor.
+generujPrimo() {
+    local dir="$1" kam="$2"
+    (cd "$dir" && ./bin-docker/php -d memory_limit=2G) > "$kam" 2>&1 <<PHP
+<?php
+\$_SERVER += ['HTTPS' => 'on', 'HTTP_HOST' => 'localhost', 'REQUEST_URI' => '/admin/reporty/bfgr-report'];
+require getcwd() . '/nastaveni/zavadec.php';
+\$soubor = tempnam(sys_get_temp_dir(), 'bfgr-');
+ob_start();
+(new \Gamecon\Report\BfgrReport(\Gamecon\SystemoveNastaveni\SystemoveNastaveni::zGlobals()))
+    ->exportuj('csv', true, \$soubor);
+\$vypsano = ob_get_clean();
+clearstatcache();
+echo filesize(\$soubor) > 0 ? file_get_contents(\$soubor) : \$vypsano;
+unlink(\$soubor);
+echo '$HOTOVO', "\n";
+PHP
+    if [ "$(tail -n 1 "$kam")" != "$HOTOVO" ]; then
+        return 1
+    fi
+    sed -i '$d' "$kam"
+}
+
+generujeSePrimo() {
+    local skript="$1" primy
+    for primy in "${GENEROVAT_PRIMO[@]}"; do
+        [ "$skript" = "$primy" ] && return 0
+    done
+    return 1
+}
+
 # Dev prostředí připíná za odpověď Tracy (na produkci vypnutá). U reportu, který někde
 # vyhodí notice, se navíc Tracy vloží doprostřed CSV a zbytek řádků se nestáhne — obě
 # větve stejně, takže porovnání to nekazí, ale bajtově se Tracy liší při každém běhu
@@ -279,8 +320,13 @@ SHODA=0; ROZDIL=0; PRAZDNE=0
 ROZDILNE=()
 for skript in "${SKRIPTY[@]}"; do
     NOVY_SELHAL=0; LEGACY_SELHAL=0
-    stahni "$NOVY_PORT" "$NOVY_JAR" "$skript" "$OUT/n.csv" || NOVY_SELHAL=1
-    stahni "$LEGACY_PORT" "$LEGACY_JAR" "$skript" "$OUT/l.csv" || LEGACY_SELHAL=1
+    if generujeSePrimo "$skript"; then
+        generujPrimo "$NOVY" "$OUT/n.csv" || NOVY_SELHAL=1
+        generujPrimo "$LEGACY" "$OUT/l.csv" || LEGACY_SELHAL=1
+    else
+        stahni "$NOVY_PORT" "$NOVY_JAR" "$skript" "$OUT/n.csv" || NOVY_SELHAL=1
+        stahni "$LEGACY_PORT" "$LEGACY_JAR" "$skript" "$OUT/l.csv" || LEGACY_SELHAL=1
+    fi
 
     if [ -n "$ULOZIT" ]; then
         cp "$OUT/n.csv" "$ULOZIT/novy/$skript.csv"
@@ -291,6 +337,16 @@ for skript in "${SKRIPTY[@]}"; do
         printf '  ✗  %-52s nestáhl se (nová %s, legacy %s)\n' "$skript" \
             "$([ "$NOVY_SELHAL" = 1 ] && echo chyba || echo ok)" \
             "$([ "$LEGACY_SELHAL" = 1 ] && echo chyba || echo ok)"
+        # Jen ze strany, která selhala: úspěšný výstup je CSV plné účastníků a slovo
+        # „Exception“ ve volném textu by vytisklo jejich řádek.
+        if generujeSePrimo "$skript"; then
+            for vystup in "$NOVY_SELHAL:$OUT/n.csv:nová" "$LEGACY_SELHAL:$OUT/l.csv:legacy"; do
+                [ "${vystup%%:*}" = 1 ] || continue
+                vystup="${vystup#*:}"
+                grep -m1 -E 'Fatal|Uncaught|Exception' "${vystup%%:*}" 2>/dev/null \
+                    | maskuj | sed "s/^/       ${vystup##*:}: /" || true
+            done
+        fi
         ROZDIL=$((ROZDIL + 1))
         ROZDILNE+=("$skript")
         continue
