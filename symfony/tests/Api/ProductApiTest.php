@@ -209,6 +209,55 @@ class ProductApiTest extends AbstractDatabaseKernelTestCase
     }
 
     /**
+     * A variant without a code is a validation error, whatever order the client sends keys in.
+     */
+    public function testVariantWithoutCodeBeforeTheStateIsAValidationError(): void
+    {
+        [$product] = $this->produktSVariantou();
+
+        $response = $this->adminClient([
+            'Content-Type' => 'application/merge-patch+json',
+        ])->request('PATCH', '/symfony/api/products/' . $product->getId(), [
+            'body' => json_encode([
+                'variants' => [[
+                    'name' => 'L',
+                ]],
+                'state' => ProductStateEnum::SUSPENDED->value,
+            ], JSON_THROW_ON_ERROR),
+        ]);
+
+        self::assertSame(422, $response->getStatusCode(), $response->getContent(false));
+    }
+
+    /**
+     * A client changing only the product's state need not send the variant that is the product.
+     */
+    public function testProductStateChangeCarriesItsDefaultVariant(): void
+    {
+        [$product, $variant] = $this->produktSVariantou(null);
+        $this->connection()->executeStatement('UPDATE product_variant SET code = :code WHERE id = :id', [
+            'code' => $product->getCode(),
+            'id'   => $variant->getId(),
+        ]);
+
+        $response = $this->adminClient([
+            'Content-Type' => 'application/merge-patch+json',
+        ])->request('PATCH', '/symfony/api/products/' . $product->getId(), [
+            'body' => json_encode([
+                'state' => ProductStateEnum::SUSPENDED->value,
+            ], JSON_THROW_ON_ERROR),
+        ]);
+
+        self::assertSame(200, $response->getStatusCode(), $response->getContent(false));
+        self::assertSame(ProductStateEnum::SUSPENDED->value, (int) $this->connection()->fetchOne(
+            'SELECT state FROM product_variant WHERE id = :id',
+            [
+                'id' => $variant->getId(),
+            ],
+        ));
+    }
+
+    /**
      * Only a product's single variant may go without a name; among several, a nameless one is
      * a blank option in the size picker.
      */
