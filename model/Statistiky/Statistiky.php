@@ -3,11 +3,11 @@ declare(strict_types=1);
 
 namespace Gamecon\Statistiky;
 
+use App\Enum\ProductTagCode;
 use Gamecon\Cas\DateTimeCz;
 use Gamecon\Cas\DateTimeGamecon;
 use Gamecon\Pravo;
 use Gamecon\Role\Role;
-use Gamecon\Shop\TypPredmetu;
 use Gamecon\SystemoveNastaveni\ZdrojRocniku;
 
 class Statistiky
@@ -159,21 +159,23 @@ SQL,
             dbQuery(
                 <<<SQL
 SELECT
-    shop_predmety.nazev AS Název,
-    shop_predmety.model_rok AS Model,
+    CONCAT_WS(' ', produkt.nazev, product_variant.name) AS Název,
+    -- an archived product belongs to the year it was archived, one still on offer to this year
+    COALESCE(YEAR(produkt.archived_at), $0) AS Model,
     COUNT(shop_nakupy.id_nakupu) AS Počet
 FROM shop_nakupy
-JOIN shop_varianty_s_typem AS shop_predmety
-    ON shop_predmety.id_varianty = shop_nakupy.variant_id
+JOIN product_variant ON product_variant.id = shop_nakupy.variant_id
+JOIN shop_predmety AS produkt ON produkt.id_predmetu = product_variant.product_id
+JOIN product_product_tag ON product_product_tag.product_id = produkt.id_predmetu
+JOIN product_tag ON product_tag.id = product_product_tag.tag_id AND product_tag.code IN ($1)
 WHERE shop_nakupy.rok = $0
-    AND shop_predmety.typ IN ($1)
-GROUP BY shop_predmety.id_varianty
+GROUP BY product_variant.id
 SQL,
                 [
                     0 => $this->soucasnyRocnik,
                     1 => [
-                        TypPredmetu::PREDMET,
-                        TypPredmetu::TRICKO,
+                        ProductTagCode::PREDMET->value,
+                        ProductTagCode::TRICKO->value,
                     ],
                 ],
             ),
@@ -189,23 +191,26 @@ SQL,
 SELECT Název, Počet
 FROM (
   SELECT
-    predmety.nazev AS Název,
-    COUNT(nakupy.id_predmetu) AS Počet,
+    CONCAT_WS(' ', typ_pokoje.nazev, noc.name) AS Název,
+    COUNT(nakupy.id_nakupu) AS Počet,
     FIND_IN_SET(
-        SUBSTR(TRIM(predmety.nazev), 1, 6),
+        SUBSTR(TRIM(CONCAT_WS(' ', typ_pokoje.nazev, noc.name)), 1, 6),
         'Jednol,Dvojlů,Trojlů,Spacák'
     ) AS ubytovani_sort_nazev,
-    predmety.ubytovani_den
+    noc.accommodation_day AS ubytovani_den
   FROM shop_nakupy AS nakupy
-  JOIN shop_varianty_s_typem AS predmety ON predmety.id_varianty = nakupy.variant_id
-  WHERE nakupy.rok = $0 AND predmety.typ = $1
-  GROUP BY predmety.id_varianty
+  JOIN product_variant AS noc ON noc.id = nakupy.variant_id
+  JOIN shop_predmety AS typ_pokoje ON typ_pokoje.id_predmetu = noc.product_id
+  JOIN product_product_tag ON product_product_tag.product_id = typ_pokoje.id_predmetu
+  JOIN product_tag ON product_tag.id = product_product_tag.tag_id AND product_tag.code = $1
+  WHERE nakupy.rok = $0
+  GROUP BY noc.id
 ) AS seskupeno
-ORDER BY ubytovani_sort_nazev, ubytovani_den
+ORDER BY ubytovani_sort_nazev, ubytovani_den, Název
 SQL,
                 [
                     0 => $this->soucasnyRocnik,
-                    1 => TypPredmetu::UBYTOVANI,
+                    1 => ProductTagCode::UBYTOVANI->value,
                 ],
             ),
             'Ubytování dny a místa',
@@ -220,15 +225,15 @@ SQL,
                 <<<SQL
 SELECT Den, Počet FROM (
     SELECT
-        SUBSTR(predmety.nazev,11) AS Den,
-        COUNT(nakupy.id_predmetu) AS Počet,
-        predmety.ubytovani_den
+        MIN(noc.name) AS Den,
+        COUNT(nakupy.id_nakupu) AS Počet,
+        noc.accommodation_day AS ubytovani_den
     FROM shop_nakupy AS nakupy
-    JOIN shop_varianty_s_typem AS predmety
-        ON predmety.id_varianty=nakupy.variant_id
+    JOIN product_variant AS noc ON noc.id = nakupy.variant_id
+    JOIN product_product_tag ON product_product_tag.product_id = noc.product_id
+    JOIN product_tag ON product_tag.id = product_product_tag.tag_id AND product_tag.code = $1
     WHERE nakupy.rok=$0
-        AND predmety.typ=$1
-    GROUP BY predmety.ubytovani_den
+    GROUP BY noc.accommodation_day
 UNION ALL
     SELECT 'neubytovaní' AS Den,
          COUNT(*) AS Počet,
@@ -237,9 +242,9 @@ UNION ALL
     LEFT JOIN(
         SELECT nakupy.id_uzivatele
         FROM shop_nakupy AS nakupy
-        JOIN shop_predmety_s_typem AS predmety
-            ON nakupy.id_predmetu=predmety.id_predmetu
-                AND predmety.typ=$1
+        JOIN product_variant AS noc ON noc.id = nakupy.variant_id
+        JOIN product_product_tag ON product_product_tag.product_id = noc.product_id
+        JOIN product_tag ON product_tag.id = product_product_tag.tag_id AND product_tag.code = $1
         WHERE nakupy.rok=$0
         GROUP BY nakupy.id_uzivatele
     ) nn ON nn.id_uzivatele=uzivatele_role.id_uzivatele
@@ -249,7 +254,7 @@ ORDER BY ubytovani_den
 SQL,
                 [
                     0 => $this->soucasnyRocnik,
-                    1 => TypPredmetu::UBYTOVANI,
+                    1 => ProductTagCode::UBYTOVANI->value,
                     2 => Role::PRIHLASEN_NA_LETOSNI_GC($this->soucasnyRocnik),
                 ],
             ),
@@ -265,29 +270,32 @@ SQL,
                 <<<SQL
 SELECT Název,Cena,Počet,Slev FROM (
   SELECT
-    TRIM(predmety.nazev) AS Název,
-    predmety.cena_aktualni AS Cena, -- například v roce 2022 jsme část jídla prodali za menší cenu a část za větší - mohlo by se to stát u čehokoliv
-    COUNT(nakupy.id_predmetu) AS Počet,
+    TRIM(jidlo.nazev) AS Název,
+    jidlo.cena_aktualni AS Cena, -- například v roce 2022 jsme část jídla prodali za menší cenu a část za větší - mohlo by se to stát u čehokoliv
+    COUNT(nakupy.id_nakupu) AS Počet,
     COUNT(slevy.id_uzivatele) AS Slev, -- počet slev
-    predmety.ubytovani_den,
-    nakupy.id_predmetu
+    jidlo.ubytovani_den,
+    jidlo.id_predmetu
   FROM shop_nakupy AS nakupy
-  JOIN shop_predmety_s_typem AS predmety ON nakupy.id_predmetu = predmety.id_predmetu
+  JOIN product_variant ON product_variant.id = nakupy.variant_id
+  JOIN shop_predmety AS jidlo ON jidlo.id_predmetu = product_variant.product_id
+  JOIN product_product_tag ON product_product_tag.product_id = jidlo.id_predmetu
+  JOIN product_tag ON product_tag.id = product_product_tag.tag_id AND product_tag.code = $2
   LEFT JOIN (
     SELECT uz.id_uzivatele -- id uživatelů s právy uvedenými níž
     FROM uzivatele_role uz
     JOIN prava_role pz ON pz.id_role = uz.id_role AND pz.id_prava IN($0)
     GROUP BY uz.id_uzivatele
   ) AS slevy ON slevy.id_uzivatele = nakupy.id_uzivatele
-  WHERE nakupy.rok = $1 AND predmety.typ = $2
-  GROUP BY nakupy.id_predmetu
+  WHERE nakupy.rok = $1
+  GROUP BY jidlo.id_predmetu
 ) AS seskupeno
 ORDER BY ubytovani_den, Název, id_predmetu
 SQL,
                 [
                     0 => [Pravo::JIDLO_ZDARMA, Pravo::JIDLO_SE_SLEVOU],
                     1 => $this->soucasnyRocnik,
-                    2 => TypPredmetu::JIDLO,
+                    2 => ProductTagCode::JIDLO->value,
                 ],
             ),
             'Jídlo',
@@ -745,16 +753,22 @@ SELECT 2013 AS '', 207 AS 'Prodané placky', 192 AS 'Prodané kostky', 139 AS 'P
 UNION ALL
 SELECT
     shop_nakupy.rok AS '',
-    SUM(shop_predmety.nazev LIKE 'Placka%' AND shop_nakupy.rok = shop_predmety.model_rok) AS 'Prodané placky',
-    SUM(shop_predmety.nazev LIKE 'Kostka%' AND shop_nakupy.rok = shop_predmety.model_rok) AS 'Prodané kostky',
-    SUM(shop_predmety.nazev LIKE 'Tričko%' AND shop_nakupy.rok = shop_predmety.model_rok) AS 'Prodaná trička'
+    SUM(produkt.nazev LIKE 'Placka%' AND shop_nakupy.rok = produkt.model_rok) AS 'Prodané placky',
+    SUM(produkt.nazev LIKE 'Kostka%' AND shop_nakupy.rok = produkt.model_rok) AS 'Prodané kostky',
+    SUM(produkt.nazev LIKE 'Tričko%' AND shop_nakupy.rok = produkt.model_rok) AS 'Prodaná trička'
 FROM shop_nakupy
-JOIN shop_predmety_s_typem AS shop_predmety ON shop_nakupy.id_predmetu = shop_predmety.id_predmetu
+JOIN product_variant ON product_variant.id = shop_nakupy.variant_id
+JOIN (
+    -- an archived product belongs to the year it was archived, one still on offer to this year
+    SELECT id_predmetu, nazev, COALESCE(YEAR(archived_at), $0) AS model_rok
+    FROM shop_predmety
+) AS produkt ON produkt.id_predmetu = product_variant.product_id
 WHERE shop_nakupy.rok >= 2014 /* starší data z DB nesedí, jsou vložena fixně */
     AND shop_nakupy.rok != 2020 /* Call of covid */
 GROUP BY shop_nakupy.rok
 ORDER BY ''
 SQL,
+                [0 => $this->soucasnyRocnik],
             ),
             'Prodané předměty',
         );
@@ -762,13 +776,11 @@ SQL,
 
     public function tabulkaHistorieUbytovaniHtml(): string
     {
-        $ubytovani = TypPredmetu::UBYTOVANI;
-
         return tabMysqlR(
             dbQuery(
                 <<<SQL
 SELECT
-    shop_nakupy.rok AS '',
+    noci.rok AS '',
     SUM(nazev LIKE '%lůžák%') AS 'Postel',
     SUM(nazev LIKE '%lůžák%' AND ubytovani_den=0) AS '&emsp;středa',
     SUM(nazev LIKE '%lůžák%' AND ubytovani_den=1) AS '&emsp;čtvrtek',
@@ -793,12 +805,20 @@ SELECT
     SUM(nazev LIKE 'chata%' AND ubytovani_den=2) AS '&emsp;pátek   ',
     SUM(nazev LIKE 'chata%' AND ubytovani_den=3) AS '&emsp;sobota   ',
     SUM(nazev LIKE 'chata%' AND ubytovani_den=4) AS '&emsp;neděle   '
-FROM shop_nakupy
-JOIN shop_varianty_s_typem AS shop_predmety ON shop_predmety.id_varianty = shop_nakupy.variant_id
-WHERE shop_predmety.typ = {$ubytovani}
-GROUP BY shop_nakupy.rok
-ORDER BY shop_nakupy.rok
+FROM (
+    SELECT shop_nakupy.rok,
+           CONCAT_WS(' ', typ_pokoje.nazev, noc.name) AS nazev,
+           noc.accommodation_day AS ubytovani_den
+    FROM shop_nakupy
+    JOIN product_variant AS noc ON noc.id = shop_nakupy.variant_id
+    JOIN shop_predmety AS typ_pokoje ON typ_pokoje.id_predmetu = noc.product_id
+    JOIN product_product_tag ON product_product_tag.product_id = typ_pokoje.id_predmetu
+    JOIN product_tag ON product_tag.id = product_product_tag.tag_id AND product_tag.code = $0
+) AS noci
+GROUP BY noci.rok
+ORDER BY noci.rok
 SQL,
+                [0 => ProductTagCode::UBYTOVANI->value],
             ),
             'Ubytování',
         );
