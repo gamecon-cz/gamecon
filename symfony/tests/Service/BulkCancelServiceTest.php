@@ -177,7 +177,8 @@ class BulkCancelServiceTest extends TestCase
         $cancelledAt = new \DateTimeImmutable('2026-07-15 10:00:00');
 
         $product = $this->createProduct();
-        $item = $this->createItem();
+        $variant = $this->createVariant($product);
+        $item = $this->createItemWithVariant($variant);
         $item->setProduct($product);
 
         $this->orderItemRepository->method('findByCustomerAndYear')
@@ -195,6 +196,7 @@ class BulkCancelServiceTest extends TestCase
         $archive = $persisted[0];
         $this->assertInstanceOf(CancelledOrderItem::class, $archive);
         $this->assertSame($product, $archive->getProduct());
+        $this->assertSame($variant, $archive->getVariant(), 'The size or night that was bought');
         $this->assertSame('250.00', $archive->getPurchasePrice());
         $this->assertSame('automaticke-odhlaseni', $archive->getCancellationReason());
         $this->assertSame($cancelledAt, $archive->getCancelledAt());
@@ -207,9 +209,12 @@ class BulkCancelServiceTest extends TestCase
      */
     private function createItem(array $tags = []): OrderItem
     {
+        $product = $this->createProduct();
         $item = new OrderItem();
         $item->setCustomer($this->createMock(User::class));
-        $item->setProduct($this->createProduct());
+        $item->setProduct($product);
+        // Every purchase names its variant; the database requires it.
+        $item->setVariant($this->createVariant($product));
         $item->setPurchasePrice('250.00');
         $item->setYear(2026);
         $item->setProductTags($tags);
