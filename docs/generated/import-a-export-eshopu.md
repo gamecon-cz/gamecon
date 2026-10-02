@@ -27,13 +27,10 @@ zpátky (ověřeno nad produkčním dumpem, test `exportJdeBezeZmenyNaimportovat
 - **`archivovano` se bere ze souboru.** Export obsahuje všechny ročníky; import minulý ročník
   neoživí. Produkt, který v souboru chybí, se archivuje (jen pokud ještě archivovaný není).
 - **Varianta, která v souboru chybí, se vyřadí** (`state = RETIRED`), smazat nejde kvůli nákupům.
-- **Zbylé legacy řádky velikostí a nocí** (kód = kód varianty jiného produktu) nejsou produkty:
-  v exportu nejsou, import je nearchivuje a jejich kód nejde použít jako `product_code`. Import
-  jim srovná `stav` (a `archived_at`) s variantou, aby je mirror při pozdější úpravě v adminu
-  nepřepsal zpátky. S krokem C v [issue #1157](https://github.com/gamecon-cz/gamecon/issues/1157)
-  zmizí i tohle.
+- **Kód pojmenovává jednu věc.** `product_code` nesmí být kódem varianty jiného produktu a nový
+  `variant_code` nesmí být kódem jiného produktu (v databázi ani jinde v listu).
 - **Pořadí variant import nepřečísluje.** Nová varianta dostane pozici za poslední; existující
-  si drží svou (u vlastníků skupin čísla nejdou od nuly a round-trip by je jinak změnil).
+  si drží svou (u bývalých vlastníků skupin čísla nejdou od nuly a round-trip by je jinak změnil).
 - **Varianta nejde přesunout pod jiný produkt** — nákupy by zůstaly u původního. Import to
   odmítne celý, jedna transakce.
 - Starý formát (řádek na velikost/noc, `nazev` / `kod_predmetu`) import odmítne chybějícími sloupci.
