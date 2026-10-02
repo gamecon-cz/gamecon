@@ -180,7 +180,7 @@ SQL,
         $uzivatel = \Uzivatel::zIdUrcite(88801);
         $shop = new Shop($uzivatel, $uzivatel, SystemoveNastaveni::zGlobals());
 
-        $shop->prodat(88813, 1);
+        $shop->prodat($this->idVarianty(88813), 1);
 
         self::assertSame(
             1,
@@ -206,7 +206,7 @@ SQL,
         $shop = new Shop($uzivatel, $uzivatel, SystemoveNastaveni::zGlobals());
         $zbyva = fn (): ?int => $this->zbyva('zruseni_prodej_test');
 
-        $shop->prodat(88814, 2);
+        $shop->prodat($this->idVarianty(88814), 2);
         self::assertSame(1, $zbyva(), 'Prodej měl ubrat dva kusy');
 
         $shop->zrusNakupVarianty((int) dbOneCol("SELECT id FROM product_variant WHERE code = 'zruseni_prodej_test'"), 2);
@@ -225,7 +225,7 @@ SQL,
         // Item has only 2 pieces available (kusuVyrobeno = 2)
         // Try to sell 3 pieces - should fail
         $this->expectException(\Chyba::class);
-        $shop->prodat(88811, 3);
+        $shop->prodat($this->idVarianty(88811), 3);
     }
 
     /**
@@ -238,7 +238,7 @@ SQL,
 
         // Item has 2 pieces available
         // Selling exactly 2 should succeed
-        $shop->prodat(88811, 2);
+        $shop->prodat($this->idVarianty(88811), 2);
 
         $pocetNakupu = (int) dbOneCol(
             'SELECT COUNT(*) FROM shop_nakupy WHERE id_predmetu = $0 AND rok = $1',
@@ -261,7 +261,7 @@ SQL,
 
         // Item has unlimited stock (kusuVyrobeno = null)
         // Selling any amount should succeed
-        $shop->prodat(88812, 100);
+        $shop->prodat($this->idVarianty(88812), 100);
 
         $pocetNakupu = (int) dbOneCol(
             'SELECT COUNT(*) FROM shop_nakupy WHERE id_predmetu = $0 AND rok = $1',
@@ -318,6 +318,13 @@ SQL,
                 0 => $idPredmetu,
             ],
         );
+        dbQuery(
+            'INSERT INTO product_variant (product_id, name, code, position, state) VALUES ($0, NULL, $1, 0, 1)',
+            [
+                0 => $idPredmetu,
+                1 => 'HISTORY_' . strtoupper($uniqueId),
+            ],
+        );
 
         $uzivatel = \Uzivatel::zIdUrcite($user->getId());
         $shop = new Shop($uzivatel, $uzivatel, SystemoveNastaveni::zGlobals());
@@ -325,7 +332,7 @@ SQL,
         $this->expectException(\Chyba::class);
         $this->expectExceptionMessage('nelze ho prodávat');
 
-        $shop->prodat($idPredmetu, 1);
+        $shop->prodat($this->idVarianty($idPredmetu), 1);
     }
 
     /**
@@ -339,7 +346,7 @@ SQL,
         $uzivatel = \Uzivatel::zIdUrcite(88801);
         $shop = new Shop($uzivatel, $uzivatel, SystemoveNastaveni::zGlobals());
 
-        $shop->prodat(88817, 1);
+        $shop->prodat($this->idVarianty(88817), 1);
 
         self::assertSame(
             [
@@ -362,22 +369,21 @@ SQL,
     }
 
     /**
-     * A room type is not a bed on any night, so selling it would book nothing.
+     * A room type that got a variant of its own is not a bed on any night, so selling it would
+     * book nothing.
      *
      * @test
-     *
-     * @testWith [88816]
-     *           [88818]
      */
-    public function typPokojeNejdeProdat(int $idTypuPokoje): void
+    public function typPokojeNejdeProdat(): void
     {
+        $idTypuPokoje = 88818;
         $uzivatel = \Uzivatel::zIdUrcite(88801);
         $shop = new Shop($uzivatel, $uzivatel, SystemoveNastaveni::zGlobals());
         // Purchases of its nights point at the room type too, so the refusal is counted by what it adds.
         $nakupuPredtim = (int) dbOneCol('SELECT COUNT(*) FROM shop_nakupy WHERE id_uzivatele = 88801');
 
         try {
-            $shop->prodat($idTypuPokoje, 1);
+            $shop->prodat($this->idVarianty($idTypuPokoje), 1);
             self::fail('A room type must not be sellable');
         } catch (\Chyba $chyba) {
             self::assertStringContainsString('konkrétní noc', $chyba->getMessage());
@@ -404,7 +410,7 @@ SQL,
         $shop = new Shop($uzivatel, $uzivatel, SystemoveNastaveni::zGlobals());
         dbQuery('SET SESSION innodb_lock_wait_timeout = 1');
         try {
-            $shop->prodat(88815, 1);
+            $shop->prodat($this->idVarianty(88815), 1);
         } finally {
             dbQuery('SET SESSION innodb_lock_wait_timeout = DEFAULT');
             $soubeznyNakup->rollBack();
@@ -421,5 +427,18 @@ SQL,
         ]);
 
         return static::getContainer()->get(CapacityManager::class)->remainingByVariantId([$idVarianty])[$idVarianty] ?? null;
+    }
+
+    /**
+     * The variant a catalog row stands for, matched by code as every purchase was.
+     */
+    private function idVarianty(int $idPredmetu): int
+    {
+        return (int) dbOneCol(
+            'SELECT product_variant.id FROM product_variant INNER JOIN shop_predmety ON shop_predmety.kod_predmetu = product_variant.code WHERE shop_predmety.id_predmetu = $0',
+            [
+                0 => $idPredmetu,
+            ],
+        );
     }
 }
