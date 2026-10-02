@@ -235,16 +235,26 @@ class KfcSaleApiTest extends AbstractDatabaseKernelTestCase
             'M' => 5,
         ]);
 
+        $mrizekPredtim = (int) $this->connection()->fetchOne('SELECT COUNT(*) FROM obchod_mrizky');
+
         $ulozeni = $this->ulozMrizku($this->adminClient(), (int) $predmet->getId(), (int) $this->varianta($cizi, 'M')->getId());
 
         self::assertSame(400, $ulozeni['status'], $ulozeni['telo']);
         self::assertStringContainsString('nepatří k produktu', $ulozeni['telo']);
+        self::assertSame($mrizekPredtim, (int) $this->connection()->fetchOne('SELECT COUNT(*) FROM obchod_mrizky'), 'Nothing may be saved');
+    }
+
+    public function testBunkaMrizkyNeprijmeNeexistujiciVariantu(): void
+    {
+        $ulozeni = $this->ulozMrizku($this->adminClient(), null, PHP_INT_MAX);
+
+        self::assertSame(400, $ulozeni['status'], $ulozeni['telo']);
     }
 
     /**
      * @return array{status: int, telo: string}
      */
-    private function ulozMrizku(Client $client, int $idPredmetu, int $idVarianty): array
+    private function ulozMrizku(Client $client, ?int $idPredmetu, int $idVarianty): array
     {
         $response = $client->request('POST', '/symfony/api/kfc/grids', [
             'json' => [
