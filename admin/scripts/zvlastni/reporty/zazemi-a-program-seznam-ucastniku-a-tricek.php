@@ -7,7 +7,7 @@ $tricko  = TypPredmetu::TRICKO;
 $predmet = TypPredmetu::PREDMET;
 
 $report = Report::zSql(<<<SQL
-SELECT u.id_uzivatele, u.login_uzivatele, u.jmeno_uzivatele, u.prijmeni_uzivatele, n.id_predmetu, p.nazev, p.model_rok
+SELECT u.id_uzivatele, u.login_uzivatele, u.jmeno_uzivatele, u.prijmeni_uzivatele, n.id_predmetu AS product_id, p.nazev, p.model_rok
 FROM uzivatele_hodnoty u
 LEFT JOIN shop_nakupy n ON (n.id_uzivatele = u.id_uzivatele)
 LEFT JOIN shop_varianty_s_typem p ON (p.id_varianty = n.variant_id)
