@@ -82,22 +82,33 @@ enum ProductTagCode: string
         return self::subTagCategories()[$this->value] ?? null;
     }
 
-    /**
-     * The legacy shop_predmety.typ this category replaced, as the compatibility view
-     * still reports it. Legacy rows carry the number, not the tag, so anything reading
-     * them has to translate — see TypPredmetu.
-     */
     public static function fromLegacyTyp(int $typ): ?self
     {
-        return match ($typ) {
-            1       => self::PREDMET,
-            2       => self::UBYTOVANI,
-            3       => self::TRICKO,
-            4       => self::JIDLO,
-            5       => self::VSTUPNE,
-            6       => self::PARCON,
-            7       => self::PROPLACENI_BONUSU,
-            default => null,
+        foreach (self::categories() as $category) {
+            if ($category->legacyTyp() === $typ) {
+                return $category;
+            }
+        }
+
+        return null;
+    }
+
+    /**
+     * The legacy shop_predmety.typ this category replaced. Legacy code still branches on
+     * the number, not the tag, so anything handing it a category has to translate — see
+     * TypPredmetu.
+     */
+    public function legacyTyp(): int
+    {
+        return match ($this) {
+            self::PREDMET           => 1,
+            self::UBYTOVANI         => 2,
+            self::TRICKO            => 3,
+            self::JIDLO             => 4,
+            self::VSTUPNE           => 5,
+            self::PARCON            => 6,
+            self::PROPLACENI_BONUSU => 7,
+            default                 => throw new \LogicException(sprintf('Štítek „%s“ není kategorie, starý typ nemá.', $this->value)),
         };
     }
 
