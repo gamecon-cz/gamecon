@@ -328,29 +328,48 @@ class EshopImporter
         $chyby = [];
         foreach ($produkty as $produkt) {
             $kodProduktu = $produkt['product_code'];
-            $vlastnikRadku = dbOneCol(
-                'SELECT product_variant.product_id FROM product_variant INNER JOIN shop_predmety ON shop_predmety.kod_predmetu = product_variant.code WHERE product_variant.code = $0 AND product_variant.product_id <> shop_predmety.id_predmetu',
-                [
-                    0 => $kodProduktu,
-                ],
-            );
-            if ($vlastnikRadku !== null && $vlastnikRadku !== false) {
+            $idProduktu = $this->idProduktu($kodProduktu);
+            $vlastnikKodu = $this->vlastnikVarianty($kodProduktu);
+            $kodyVariant = array_column($produkt['varianty'], 'code');
+            if ($vlastnikKodu !== null && $vlastnikKodu !== $idProduktu) {
                 $chyby[] = sprintf('kód %s patří variantě jiného produktu, produkt jím pojmenovat nejde', $kodProduktu);
                 continue;
             }
-            $idProduktu = $this->idProduktu($kodProduktu);
-            foreach ($produkt['varianty'] as $varianta) {
-                $vlastnik = dbOneCol('SELECT product_id FROM product_variant WHERE code = $0', [
-                    0 => $varianta['code'],
-                ]);
-                if ($vlastnik !== null && $vlastnik !== false && (int) $vlastnik !== $idProduktu) {
-                    $chyby[] = sprintf('varianta %s patří jinému produktu než %s', $varianta['code'], $kodProduktu);
+            // VariantStateMirror copies the product row's state onto this variant, so retiring it would not last.
+            if ($vlastnikKodu !== null && ! in_array($kodProduktu, $kodyVariant, true)) {
+                $chyby[] = sprintf('varianta %s má kód produktu a nejde ji vynechat, dej jí variant_name a nech ji v listu', $kodProduktu);
+            }
+            foreach ($kodyVariant as $kodVarianty) {
+                if ($kodVarianty !== $kodProduktu && isset($produkty[$kodVarianty])) {
+                    $chyby[] = sprintf('kód varianty %s je v listu i kódem jiného produktu', $kodVarianty);
+                    continue;
+                }
+                $vlastnik = $this->vlastnikVarianty($kodVarianty);
+                if ($vlastnik !== null && $vlastnik !== $idProduktu) {
+                    $chyby[] = sprintf('varianta %s patří jinému produktu než %s', $kodVarianty, $kodProduktu);
+                    continue;
+                }
+                $jinyRadek = $vlastnik === null
+                    ? $this->idProduktu($kodVarianty)
+                    : null;
+                // The row would turn into the new variant's own row, driving its state.
+                if ($jinyRadek !== null && $jinyRadek !== $idProduktu) {
+                    $chyby[] = sprintf('kód varianty %s už má jiný řádek katalogu', $kodVarianty);
                 }
             }
         }
         if ($chyby !== []) {
             throw new \Chyba('Chybička se vloudila: ' . implode('; ', $chyby));
         }
+    }
+
+    private function vlastnikVarianty(string $kodVarianty): ?int
+    {
+        $idProduktu = dbOneCol('SELECT product_id FROM product_variant WHERE code = $0', [
+            0 => $kodVarianty,
+        ]);
+
+        return $idProduktu === null || $idProduktu === false ? null : (int) $idProduktu;
     }
 
     private function idProduktu(string $kodProduktu): ?int
@@ -464,14 +483,21 @@ class EshopImporter
             ],
         )) > 0 || $zmeneno;
 
-        // A single-variant product still carries its night on its own row, where legacy reads it.
+        // A product sold as one variant still carries its day on its own row, where legacy reads it.
         dbQuery(
             'UPDATE shop_predmety
-             SET ubytovani_den = IF((SELECT COUNT(*) FROM product_variant WHERE product_id = $0) = 1,
-                                    (SELECT accommodation_day FROM product_variant WHERE product_id = $0), NULL)
+             SET ubytovani_den = (
+                 SELECT IF(COUNT(*) = 1, MIN(varianta.accommodation_day), NULL)
+                 FROM product_variant AS varianta
+                 WHERE varianta.product_id = $0
+                   AND (varianta.state <> $1 OR NOT EXISTS (
+                       SELECT 1 FROM product_variant AS aktivni WHERE aktivni.product_id = $0 AND aktivni.state <> $1
+                   ))
+             )
              WHERE id_predmetu = $0',
             [
                 0 => $idProduktu,
+                1 => ProductStateEnum::RETIRED->value,
             ],
         );
         $this->srovnejZbyleRadky($idProduktu);

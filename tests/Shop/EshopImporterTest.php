@@ -769,6 +769,139 @@ SQL);
     }
 
     /**
+     * An admin edit of the product copies its state onto the variant sharing its code, so that
+     * variant cannot be retired by leaving it out; it has to stay, as one of the sizes.
+     *
+     * @test
+     */
+    public function variantuSKodemProduktuNejdeVynechat(): void
+    {
+        dbQuery("INSERT INTO shop_predmety (id_predmetu, nazev, kod_predmetu, cena_aktualni, stav, popis) VALUES (94501, 'Šála', 'SALA', 100, 1, '')");
+        dbQuery("INSERT INTO product_variant (product_id, name, code, position, state) VALUES (94501, NULL, 'SALA', 0, 1)");
+
+        try {
+            (new EshopImporter($this->createXlsxSoubor([
+                $this->defaultniRadek([
+                    'product_code' => 'SALA',
+                    'variant_code' => 'SALA_KRATKA',
+                    'variant_name' => 'krátká',
+                ]),
+                $this->defaultniRadek([
+                    'product_code' => 'SALA',
+                    'variant_code' => 'SALA_DLOUHA',
+                    'variant_name' => 'dlouhá',
+                ]),
+            ])))->importuj();
+            self::fail('Vynechaná varianta s kódem produktu měla být odmítnuta');
+        } catch (\Chyba $chyba) {
+            self::assertStringContainsString('SALA', $chyba->getMessage());
+        }
+
+        self::assertSame(1, $this->stavVarianty('SALA'));
+        self::assertNull($this->stavVarianty('SALA_KRATKA'), 'Odmítnutý import nesmí nic zapsat');
+    }
+
+    /**
+     * A catalog row whose code a new variant took would turn into that variant's own row, and
+     * the next import would then refuse its product.
+     *
+     * @test
+     */
+    public function novaVariantaNesmiDostatKodJinehoRadkuKatalogu(): void
+    {
+        $this->vlozTypPokojeSNocmi();
+
+        $this->expectException(\Chyba::class);
+        $this->expectExceptionMessageMatches('/TYP_2L/');
+
+        (new EshopImporter($this->createXlsxSoubor([
+            $this->defaultniRadek([
+                'product_code' => 'NOVY',
+                'variant_code' => 'TYP_2L',
+            ]),
+        ])))->importuj();
+    }
+
+    /**
+     * @test
+     */
+    public function novyProduktNesmiDostatKodCiziVarianty(): void
+    {
+        $this->vlozTypPokojeSNocmi();
+        dbQuery("INSERT INTO product_variant (product_id, name, code, position, state) VALUES (94201, 'neděle', 'NOC_2L_NE', 2, 1)");
+
+        $this->expectException(\Chyba::class);
+        $this->expectExceptionMessageMatches('/NOC_2L_NE/');
+
+        (new EshopImporter($this->createXlsxSoubor([
+            $this->defaultniRadek([
+                'product_code' => 'NOC_2L_NE',
+                'variant_code' => 'NOC_2L_NE_JINA',
+            ]),
+        ])))->importuj();
+    }
+
+    /**
+     * Both codes are new, so only the sheet itself shows the collision.
+     *
+     * @test
+     */
+    public function kodVariantyNesmiBytKodemJinehoProduktuVListu(): void
+    {
+        $this->expectException(\Chyba::class);
+        $this->expectExceptionMessageMatches('/tricko_modre/');
+
+        (new EshopImporter($this->createXlsxSoubor([
+            $this->defaultniRadek([
+                'product_code' => 'TRICKO',
+                'product_name' => 'Tričko',
+                'variant_name' => 'modré',
+            ]),
+            $this->defaultniRadek([
+                'product_code' => 'TRICKO',
+                'product_name' => 'Tričko',
+                'variant_name' => 'červené',
+            ]),
+            $this->defaultniRadek([
+                'product_code' => 'tricko_modre',
+                'product_name' => 'Tričko modré',
+                'variant_code' => 'tricko_modre_l',
+                'variant_name' => 'L',
+            ]),
+            $this->defaultniRadek([
+                'product_code' => 'tricko_modre',
+                'product_name' => 'Tričko modré',
+                'variant_code' => 'tricko_modre_xl',
+                'variant_name' => 'XL',
+            ]),
+        ])))->importuj();
+    }
+
+    /**
+     * A meal or night sold as a single variant carries its day on the product row too, where
+     * legacy reports read it; a retired former variant does not make it a multi-variant one.
+     *
+     * @test
+     */
+    public function denProduktuBereJenAktivniVariantu(): void
+    {
+        dbQuery("INSERT INTO shop_predmety (id_predmetu, nazev, kod_predmetu, cena_aktualni, stav, popis, ubytovani_den) VALUES (94601, 'Oběd pátek', 'OBED_PA', 100, 1, '', 2)");
+        dbQuery("INSERT INTO product_variant (product_id, name, code, position, state, accommodation_day) VALUES (94601, NULL, 'OBED_PA', 0, 1, 2), (94601, 'starý', 'OBED_PA_STARY', 1, 0, 3)");
+
+        (new EshopImporter($this->createXlsxSoubor([
+            $this->defaultniRadek([
+                'product_code'  => 'OBED_PA',
+                'tag'           => 'jidlo',
+                'ubytovani_den' => 2,
+            ]),
+        ])))->importuj();
+
+        self::assertSame('2', dbOneCol('SELECT ubytovani_den FROM shop_predmety WHERE kod_predmetu = $0', [
+            0 => 'OBED_PA',
+        ]));
+    }
+
+    /**
      * The export is the import's template: importing it back must change nothing, for this
      * year's offer as for past years and for products whose sizes still have catalog rows.
      *

@@ -21,8 +21,9 @@ zpátky (ověřeno nad produkčním dumpem, test `exportJdeBezeZmenyNaimportovat
 
 - **Stav je i na variantě.** Noci jednoho typu pokoje mají různý stav (neděle podpultová,
   ostatní veřejné), proto `stav_varianty`. Varianta s kódem svého produktu (výchozí varianta,
-  vlastník skupiny) ale vlastní stav mít nesmí: `VariantStateMirror` jí při úpravě produktu
-  v adminu přepíše stav stavem produktu.
+  vlastník skupiny) ale vlastní stav mít nesmí a nejde ji ani vynechat: `VariantStateMirror` jí
+  při úpravě produktu v adminu přepíše stav stavem produktu. Když z výchozí varianty má být
+  jedna z velikostí, zůstane v listu a dostane `variant_name`.
 - **`archivovano` se bere ze souboru.** Export obsahuje všechny ročníky; import minulý ročník
   neoživí. Produkt, který v souboru chybí, se archivuje (jen pokud ještě archivovaný není).
 - **Varianta, která v souboru chybí, se vyřadí** (`state = RETIRED`), smazat nejde kvůli nákupům.
