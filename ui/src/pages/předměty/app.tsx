@@ -297,6 +297,7 @@ const EditorPředmětu: FunctionComponent<EditorProps> = ({
       tags: [categoryTag["@id"]],
       variants: variants.map(({ remaining: _remaining, ...variant }, position) => ({
         ...variant,
+        state: variant.code === code ? Number(state) : variant.state ?? Number(state),
         position,
       })),
     };
@@ -463,6 +464,7 @@ const EditorPředmětu: FunctionComponent<EditorProps> = ({
               <th>Kapacita (prázdné = neomezeno)</th>
               <th>Zbývá</th>
               <th>Den</th>
+              <th>Stav</th>
               <th></th>
             </tr>
           </thead>
@@ -529,6 +531,26 @@ const EditorPředmětu: FunctionComponent<EditorProps> = ({
                       });
                     }}
                   />
+                </td>
+                <td>
+                  {variant.code === code ? (
+                    "jako produkt"
+                  ) : (
+                    <select
+                      value={variant.state ?? state}
+                      onChange={(event) =>
+                        updateVariant(index, {
+                          state: Number((event.target as HTMLSelectElement).value),
+                        })
+                      }
+                    >
+                      {Object.entries(STAV_NAZVY).map(([hodnota, nazev]) => (
+                        <option key={hodnota} value={hodnota}>
+                          {nazev}
+                        </option>
+                      ))}
+                    </select>
+                  )}
                 </td>
                 <td>
                   <button
