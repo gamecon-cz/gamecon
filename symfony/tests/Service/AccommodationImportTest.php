@@ -17,13 +17,15 @@ use App\Tests\AbstractDatabaseKernelTestCase;
 use Gamecon\Tests\Factory\UserFactory;
 
 /**
- * Import posílá id předmětů, `AccommodationWriter` chce id variant — u ubytování to není
- * totéž, protože rodičem variant je nedělní noc. Testy hlídají ten překlad a to, že pravidla
- * zapisovače (návaznost nocí, nejméně dvě) přes import pořád platí.
+ * Noci jsou varianty typu pokoje a vlastní řádek katalogu nemají; import je dohledá podle
+ * „typu" z reportu a dne. Testy hlídají i to, že pravidla zapisovače (návaznost nocí, nejméně
+ * dvě) přes import pořád platí.
  */
 class AccommodationImportTest extends AbstractDatabaseKernelTestCase
 {
     private const ROK = 2026;
+
+    private ?Product $typPokoje = null;
 
     private function import(): AccommodationImport
     {
@@ -60,60 +62,42 @@ class AccommodationImportTest extends AbstractDatabaseKernelTestCase
         return $tag;
     }
 
-    /**
-     * Noc daného dne. Varianta nese týž kód jako produkt — tak to dělá migrace den-variant
-     * a právě na tom stojí překlad id v importu.
-     *
-     * @return array{0: int, 1: int} id předmětu (legacy) a id varianty
-     */
-    private function vytvorNoc(int $den): array
+    private function typPokoje(): Product
     {
-        $kod = 'noc-' . $den . '-' . uniqid();
+        if ($this->typPokoje === null) {
+            $this->typPokoje = new Product();
+            $this->typPokoje->setName('Postel na 2L koleji');
+            $this->typPokoje->setCode('typ-' . uniqid() . '-typ');
+            $this->typPokoje->setCurrentPrice('400.00');
+            $this->typPokoje->setDescription('');
+            $this->typPokoje->setState(ProductStateEnum::SUSPENDED);
+            $this->typPokoje->addTag($this->tagUbytovani());
+            $this->entityManager()->persist($this->typPokoje);
+            $this->entityManager()->flush();
+        }
 
-        $produkt = new Product();
-        $produkt->setName('Postel na 2L koleji den ' . $den);
-        $produkt->setCode($kod);
-        $produkt->setCurrentPrice('400.00');
-        $produkt->setDescription('');
-        $produkt->setState(ProductStateEnum::PUBLIC);
-        $produkt->setAccommodationDay($den);
-        $produkt->addTag($this->tagUbytovani());
-        $this->entityManager()->persist($produkt);
-        $this->entityManager()->flush();
-
-        $varianta = new ProductVariant();
-        $varianta->setProduct($produkt);
-        $varianta->setName('den ' . $den);
-        $varianta->setCode($kod);
-        $varianta->setCapacity(10);
-        // Den musí sedět i na variantě — zapisovač podle něj pozná, že je to noc.
-        $varianta->setAccommodationDay($den);
-        $varianta->setPrice('400.00');
-        $varianta->setPosition(0);
-        $produkt->addVariant($varianta);
-        $this->entityManager()->persist($varianta);
-        $this->entityManager()->flush();
-
-        return [(int) $produkt->getId(), (int) $varianta->getId()];
+        return $this->typPokoje;
     }
 
     /**
-     * Noc s předem daným kódem — dohledávání podle „typu" krájí z kódu poslední 3 znaky.
+     * @return int id varianty té noci
      */
-    private function vytvorNocSKodem(string $kod, int $den): int
+    private function vytvorNoc(int $den, ?string $kod = null): int
     {
-        $produkt = new Product();
-        $produkt->setName('Postel ' . $kod);
-        $produkt->setCode($kod);
-        $produkt->setCurrentPrice('400.00');
-        $produkt->setDescription('');
-        $produkt->setState(ProductStateEnum::PUBLIC);
-        $produkt->setAccommodationDay($den);
-        $produkt->addTag($this->tagUbytovani());
-        $this->entityManager()->persist($produkt);
+        $varianta = new ProductVariant();
+        $varianta->setProduct($this->typPokoje());
+        $varianta->setName('den ' . $den);
+        $varianta->setCode($kod ?? 'noc-' . $den . '-' . uniqid());
+        $varianta->setCapacity(10);
+        $varianta->setAccommodationDay($den);
+        $varianta->setPrice('400.00');
+        $varianta->setPosition($den);
+        $varianta->setState(ProductStateEnum::PUBLIC);
+        $this->typPokoje()->addVariant($varianta);
+        $this->entityManager()->persist($varianta);
         $this->entityManager()->flush();
 
-        return (int) $produkt->getId();
+        return (int) $varianta->getId();
     }
 
     private function pocetNoci(User $ucastnik): int
@@ -130,11 +114,11 @@ class AccommodationImportTest extends AbstractDatabaseKernelTestCase
     /**
      * @test
      */
-    public function zapiseNociPodleIdPredmetu(): void
+    public function zapiseNociPodleIdVariant(): void
     {
         $ucastnik = $this->ucastnik();
-        [$prvni] = $this->vytvorNoc(0);
-        [$druha] = $this->vytvorNoc(1);
+        $prvni = $this->vytvorNoc(0);
+        $druha = $this->vytvorNoc(1);
 
         $this->import()->ulozNociUcastnika($ucastnik->getId(), [$prvni, $druha], self::ROK, false);
 
@@ -150,8 +134,8 @@ class AccommodationImportTest extends AbstractDatabaseKernelTestCase
     public function prazdnySeznamNociSmazeCoUcastnikMel(): void
     {
         $ucastnik = $this->ucastnik();
-        [$prvni] = $this->vytvorNoc(0);
-        [$druha] = $this->vytvorNoc(1);
+        $prvni = $this->vytvorNoc(0);
+        $druha = $this->vytvorNoc(1);
         $this->import()->ulozNociUcastnika($ucastnik->getId(), [$prvni, $druha], self::ROK, false);
 
         $this->import()->ulozNociUcastnika($ucastnik->getId(), [], self::ROK, false);
@@ -167,7 +151,7 @@ class AccommodationImportTest extends AbstractDatabaseKernelTestCase
     public function jednaNocBezPravaNeprojde(): void
     {
         $ucastnik = $this->ucastnik();
-        [$jedina] = $this->vytvorNoc(0);
+        $jedina = $this->vytvorNoc(0);
 
         $this->expectException(InvalidRequestException::class);
 
@@ -180,7 +164,7 @@ class AccommodationImportTest extends AbstractDatabaseKernelTestCase
     public function jednaNocSPravemProjde(): void
     {
         $ucastnik = $this->ucastnik();
-        [$jedina] = $this->vytvorNoc(0);
+        $jedina = $this->vytvorNoc(0);
 
         $this->import()->ulozNociUcastnika($ucastnik->getId(), [$jedina], self::ROK, povolitJednuNoc: true);
 
@@ -193,8 +177,8 @@ class AccommodationImportTest extends AbstractDatabaseKernelTestCase
     public function nenavazujiciNociNeprojdou(): void
     {
         $ucastnik = $this->ucastnik();
-        [$streda] = $this->vytvorNoc(0);
-        [$sobota] = $this->vytvorNoc(3);
+        $streda = $this->vytvorNoc(0);
+        $sobota = $this->vytvorNoc(3);
 
         $this->expectException(InvalidRequestException::class);
 
@@ -207,8 +191,8 @@ class AccommodationImportTest extends AbstractDatabaseKernelTestCase
     public function spolubydliciSeUlozi(): void
     {
         $ucastnik = $this->ucastnik();
-        [$prvni] = $this->vytvorNoc(0);
-        [$druha] = $this->vytvorNoc(1);
+        $prvni = $this->vytvorNoc(0);
+        $druha = $this->vytvorNoc(1);
 
         $this->import()->ulozNociUcastnika(
             $ucastnik->getId(),
@@ -238,8 +222,8 @@ class AccommodationImportTest extends AbstractDatabaseKernelTestCase
     public function vratiPocetZmenenychRadku(): void
     {
         $ucastnik = $this->ucastnik();
-        [$prvni] = $this->vytvorNoc(0);
-        [$druha] = $this->vytvorNoc(1);
+        $prvni = $this->vytvorNoc(0);
+        $druha = $this->vytvorNoc(1);
 
         $poprve = $this->import()->ulozNociUcastnika($ucastnik->getId(), [$prvni, $druha], self::ROK, false);
         $podruhe = $this->import()->ulozNociUcastnika($ucastnik->getId(), [$prvni, $druha], self::ROK, false);
@@ -259,8 +243,8 @@ class AccommodationImportTest extends AbstractDatabaseKernelTestCase
     public function zmenaSpolubydlicihoSePocitaJakoJedenRadek(): void
     {
         $ucastnik = $this->ucastnik();
-        [$prvni] = $this->vytvorNoc(0);
-        [$druha] = $this->vytvorNoc(1);
+        $prvni = $this->vytvorNoc(0);
+        $druha = $this->vytvorNoc(1);
         $this->import()->ulozNociUcastnika($ucastnik->getId(), [$prvni, $druha], self::ROK, false);
 
         $zmen = $this->import()->ulozNociUcastnika(
@@ -280,8 +264,8 @@ class AccommodationImportTest extends AbstractDatabaseKernelTestCase
     public function dohledaNociPodleTypuADnu(): void
     {
         $kod = 'TYP' . strtoupper(substr(uniqid('', false), -6));
-        $streda = $this->vytvorNocSKodem($kod . '_st', 0);
-        $ctvrtek = $this->vytvorNocSKodem($kod . '_ct', 1);
+        $streda = $this->vytvorNoc(0, $kod . '_st');
+        $ctvrtek = $this->vytvorNoc(1, $kod . '_ct');
 
         $ids = $this->import()->dejIdsNociPodleTypu($kod, [0, 1], self::ROK);
 
@@ -299,7 +283,7 @@ class AccommodationImportTest extends AbstractDatabaseKernelTestCase
     public function chybejiciNocJeChyba(): void
     {
         $kod = 'TYP' . strtoupper(substr(uniqid('', false), -6));
-        $this->vytvorNocSKodem($kod . '_st', 0);
+        $this->vytvorNoc(0, $kod . '_st');
 
         $this->expectException(InvalidRequestException::class);
 
@@ -403,8 +387,8 @@ class AccommodationImportTest extends AbstractDatabaseKernelTestCase
     public function pokojINociZaroven(): void
     {
         $ucastnik = $this->ucastnik();
-        [$prvni] = $this->vytvorNoc(1);
-        [$druha] = $this->vytvorNoc(2);
+        $prvni = $this->vytvorNoc(1);
+        $druha = $this->vytvorNoc(2);
 
         $this->import()->ulozPokoj($ucastnik->getId(), 'B309', 1, 2, self::ROK);
         $this->import()->ulozNociUcastnika($ucastnik->getId(), [$prvni, $druha], self::ROK, false);
@@ -429,8 +413,8 @@ class AccommodationImportTest extends AbstractDatabaseKernelTestCase
     public function padPoZapisuNociVratiICeleNoci(): void
     {
         $ucastnik = $this->ucastnik();
-        [$prvni] = $this->vytvorNoc(1);
-        [$druha] = $this->vytvorNoc(2);
+        $prvni = $this->vytvorNoc(1);
+        $druha = $this->vytvorNoc(2);
 
         $this->import()->zacniTransakci();
         $this->import()->ulozPokoj($ucastnik->getId(), 'B309', 1, 2, self::ROK);
@@ -451,8 +435,8 @@ class AccommodationImportTest extends AbstractDatabaseKernelTestCase
     public function importNepresepisujeNechciUbytovani(): void
     {
         $ucastnik = $this->ucastnik();
-        [$prvni] = $this->vytvorNoc(1);
-        [$druha] = $this->vytvorNoc(2);
+        $prvni = $this->vytvorNoc(1);
+        $druha = $this->vytvorNoc(2);
         $this->connection()->executeStatement(
             'UPDATE uzivatele_hodnoty SET nechce_ubytovani = 1 WHERE id_uzivatele = :idUzivatele',
             [
@@ -483,8 +467,8 @@ class AccommodationImportTest extends AbstractDatabaseKernelTestCase
     public function osobniUdajeSeZapisouVeStejneTransakci(): void
     {
         $ucastnik = $this->ucastnik();
-        [$prvni] = $this->vytvorNoc(1);
-        [$druha] = $this->vytvorNoc(2);
+        $prvni = $this->vytvorNoc(1);
+        $druha = $this->vytvorNoc(2);
 
         $this->import()->zacniTransakci();
         $this->import()->ulozNociUcastnika($ucastnik->getId(), [$prvni, $druha], self::ROK, false, 'Pepa');
