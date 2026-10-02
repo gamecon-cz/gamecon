@@ -63,9 +63,9 @@ class ProductTagCodeTest extends AbstractDatabaseKernelTestCase
 
     public function testLegacyTypMapsToTheCategoryThatReplacedIt(): void
     {
-        // The compatibility view still reports typ, so anything reading a legacy row
-        // has to translate. A wrong number here silently discounts the wrong kind of
-        // thing — meals priced as shirts.
+        // Legacy code still branches on typ, so anything handing it a category has to
+        // translate. A wrong number here silently discounts the wrong kind of thing —
+        // meals priced as shirts.
         $this->assertSame(ProductTagCode::PREDMET, ProductTagCode::fromLegacyTyp(TypPredmetu::PREDMET));
         $this->assertSame(ProductTagCode::UBYTOVANI, ProductTagCode::fromLegacyTyp(TypPredmetu::UBYTOVANI));
         $this->assertSame(ProductTagCode::TRICKO, ProductTagCode::fromLegacyTyp(TypPredmetu::TRICKO));
@@ -86,6 +86,21 @@ class ProductTagCodeTest extends AbstractDatabaseKernelTestCase
         );
 
         $this->assertEqualsCanonicalizing(ProductTagCode::categories(), array_values($mapped));
+    }
+
+    public function testEveryCategoryNamesTheLegacyTypItReplaced(): void
+    {
+        foreach (ProductTagCode::categories() as $category) {
+            $this->assertSame($category, ProductTagCode::fromLegacyTyp($category->legacyTyp()));
+        }
+        $this->assertSame(TypPredmetu::UBYTOVANI, ProductTagCode::UBYTOVANI->legacyTyp());
+    }
+
+    public function testSubTagHasNoLegacyTyp(): void
+    {
+        $this->expectException(\LogicException::class);
+
+        ProductTagCode::MIKINA->legacyTyp();
     }
 
     public function testUnknownLegacyTypIsNull(): void
