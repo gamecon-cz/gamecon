@@ -1,28 +1,30 @@
 <?php
 
-use Gamecon\Shop\Shop;
+use App\Enum\ProductTagCode;
 use Gamecon\Role\Role;
 
 require __DIR__ . '/sdilene-hlavicky.php';
 
-$typTricko                 = Shop::TRICKO;
-$typPredmet                = Shop::PREDMET;
-$typJidlo                  = Shop::JIDLO;
+$typTricko                 = '$0';
+$typPredmet                = '$1';
+$typJidlo                  = '$2';
 $rok                       = ROCNIK;
 $idckaRoliSOrganizatorySql = implode(',', Role::dejIdckaRoliSOrganizatory());
 
-$poddotazKoupenehoPredmetu = static function (string $klicoveSlovo, int $idTypuPredmetu, int $rok) {
+// $parametrTypu is the placeholder ($0, $1, …) carrying the category's tag code
+$poddotazKoupenehoPredmetu = static function (string $klicoveSlovo, string $parametrTypu, int $rok) {
     return <<<SQL
 (SELECT GROUP_CONCAT(pocet_a_nazev SEPARATOR ', ')
-    FROM (SELECT CONCAT_WS('× ', COUNT(*), shop_predmety.nazev) AS pocet_a_nazev,
+    FROM (SELECT CONCAT_WS('× ', COUNT(*), CONCAT_WS(' ', produkt.nazev, product_variant.name)) AS pocet_a_nazev,
                  shop_nakupy.id_uzivatele
         FROM shop_nakupy
-            JOIN shop_varianty_s_typem AS shop_predmety ON shop_predmety.id_varianty = shop_nakupy.variant_id
-            WHERE shop_predmety.typ = {$idTypuPredmetu}
-                AND shop_nakupy.rok = {$rok}
-                AND IF ('{$klicoveSlovo}' = '', TRUE, shop_predmety.nazev LIKE '%{$klicoveSlovo}%')
-                AND shop_nakupy.rok = {$rok}
-            GROUP BY shop_nakupy.id_uzivatele, shop_predmety.nazev) AS pocet_a_druh
+            JOIN product_variant ON product_variant.id = shop_nakupy.variant_id
+            JOIN shop_predmety AS produkt ON produkt.id_predmetu = product_variant.product_id
+            JOIN product_product_tag ON product_product_tag.product_id = produkt.id_predmetu
+            JOIN product_tag ON product_tag.id = product_product_tag.tag_id AND product_tag.code = {$parametrTypu}
+            WHERE shop_nakupy.rok = {$rok}
+                AND IF ('{$klicoveSlovo}' = '', TRUE, CONCAT_WS(' ', produkt.nazev, product_variant.name) LIKE '%{$klicoveSlovo}%')
+            GROUP BY shop_nakupy.id_uzivatele, CONCAT_WS(' ', produkt.nazev, product_variant.name)) AS pocet_a_druh
     WHERE pocet_a_druh.id_uzivatele = uzivatele_hodnoty.id_uzivatele
 )
 SQL;
@@ -48,6 +50,7 @@ LEFT JOIN platne_role_uzivatelu
        AND platne_role_uzivatelu.id_role IN ($idckaRoliSOrganizatorySql)
 GROUP BY uzivatele_hodnoty.id_uzivatele
 SQL,
+    [0 => ProductTagCode::TRICKO->value, 1 => ProductTagCode::PREDMET->value, 2 => ProductTagCode::JIDLO->value],
 );
 
 $report->tFormat(get('format'));
