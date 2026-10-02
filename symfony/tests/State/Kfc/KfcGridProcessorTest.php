@@ -35,6 +35,7 @@ class KfcGridProcessorTest extends TestCase
         $this->processor = new KfcGridProcessor(
             $this->connection,
             $this->gridProvider,
+            $this->createMock(\Symfony\Contracts\Translation\TranslatorInterface::class),
         );
     }
 
