@@ -694,7 +694,8 @@ SQL,
                 AND typ = $1
             ORDER BY FIND_IN_SET(CONCAT_WS(' ', TRIM(nazev), model_rok), '{$poradiKostekSql}'),
                      model_rok DESC,
-                     id_predmetu
+                     id_predmetu,
+                     id_varianty
             SQL,
             [0 => StavPredmetu::MIMO, 1 => TypPredmetu::PREDMET],
         );
