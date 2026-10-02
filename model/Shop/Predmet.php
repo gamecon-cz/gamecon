@@ -13,8 +13,7 @@ use Gamecon\Uzivatel\Dto\PolozkaProBfgr;
  */
 class Predmet extends \DbObject
 {
-    // Read from the view so that virtual columns (model_rok, typ, podtyp, je_letosni_hlavni) are populated.
-    protected static $tabulka = Sql::SHOP_PREDMETY_S_TYPEM_TABULKA;
+    protected static $tabulka = Sql::SHOP_PREDMETY_TABULKA;
     protected static $pk = Sql::ID_PREDMETU;
 
     public static function jeToVstupneVcas(int $typPredmetu, string $kodPredmetu): bool
@@ -129,23 +128,5 @@ class Predmet extends \DbObject
         }
 
         return (int)$this->r[Sql::STAV];
-    }
-
-    public function modelRok(): ?int
-    {
-        if ($this->r[Sql::MODEL_ROK] === null) {
-            return null;
-        }
-
-        return (int)$this->r[Sql::MODEL_ROK];
-    }
-
-    public function typ(): ?int
-    {
-        if ($this->r[Sql::TYP] === null) {
-            return null;
-        }
-
-        return (int)$this->r[Sql::TYP];
     }
 }

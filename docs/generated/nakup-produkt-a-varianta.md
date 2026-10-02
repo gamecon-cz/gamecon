@@ -10,7 +10,8 @@ Nákup (`shop_nakupy`, `shop_nakupy_zrusene`) ukazuje na **produkt** i na **vari
 ## Pravidla
 
 - **Lidem `product_id`, v kódu zatím `id_predmetu`** (záměr). Kde sloupec vidí člověk (report, export, quick report), jmenuje se `product_id`, aby se nepletl se starým významem „koupená položka". Fyzický sloupec a SQL v kódu si název drží, dokud ho krok D v [issue #1157](https://github.com/gamecon-cz/gamecon/issues/1157) neodstraní. Nový report, který ho vypisuje, píše `id_predmetu AS product_id`.
-- **Co potřebuje velikost nebo noc, čte `variant_id`** přes `shop_varianty_s_typem` (ubytování, trička na infopultu, `Finance`, BFGR). Přes `id_predmetu` jen to, co je pro všechny varianty produktu stejné: typ, název modelu, ročník.
+- **Co potřebuje velikost nebo noc, čte `variant_id`** → `product_variant` (ubytování, trička na infopultu, `Finance`, BFGR). Přes `id_predmetu` jen to, co je pro všechny varianty produktu stejné: typ, název modelu, ročník.
+- **Legacy SQL čte katalog z tabulek, ne z pohledů** (krok D v [issue #1157](https://github.com/gamecon-cz/gamecon/issues/1157)): kategorie přes `product_product_tag` + `product_tag` s kódem z `ProductTagCode` jako parametrem dotazu, starý číselný `typ` jako `FIELD(kategorie.code, <ProductTagCode::categoryCodes()>)` (pořadí `categories()` je pořadí starého typu, hlídá to test), ročník modelu `COALESCE(YEAR(archived_at), ročník)`, název `CONCAT_WS(' ', produkt.nazev, varianta.name)`. Dotaz, který vrací typ, připojuje kategorii přes `LEFT JOIN (product_product_tag INNER JOIN product_tag …)`, aby produkt bez kategorie nezmizel.
 - Víc variant na produkt mají jen trička, předměty s velikostí (ponožky, mikina) a typy pokojů od 2026; jídlo, vstupné a starší ubytování mají variantu jedinou.
 
 ## Gotchas

@@ -217,6 +217,12 @@ parameters:
             path: symfony/src/Entity/User.php
 
         -
+            message: '#^Unused App\\Enum\\ProductTagCode\:\:categoryCodes$#'
+            identifier: shipmonk.deadMethod
+            count: 1
+            path: symfony/src/Enum/ProductTagCode.php
+
+        -
             message: '#^Unused App\\Enum\\ProductTagCode\:\:fromLegacyTyp$#'
             identifier: shipmonk.deadMethod
             count: 1
