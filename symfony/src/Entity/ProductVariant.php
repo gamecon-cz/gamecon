@@ -147,8 +147,8 @@ class ProductVariant
 
     /**
      * Whether this night or size is on offer. Its own, not the product's: a room type nobody
-     * buys stays suspended while its nights are on sale. Read-only in the API, as it follows
-     * the variant's own catalog row (VariantStateMirror).
+     * buys stays suspended while its nights are on sale. Read-only in the API: the import sets
+     * it, and a default variant follows its product (VariantStateMirror).
      */
     #[ORM\Column(name: 'state', type: Types::SMALLINT, nullable: false, enumType: ProductStateEnum::class)]
     #[Groups([Product::READ, self::READ])]
