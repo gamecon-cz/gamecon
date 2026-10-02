@@ -47,8 +47,7 @@ SQL,
     }
 
     /**
-     * The infopult sells a size by its own catalog row, but the purchase points at the model and
-     * names the size through its variant, as the cart writes it.
+     * The desk sells a size as a variant of its model, as the cart writes it.
      *
      * @test
      */
@@ -56,7 +55,7 @@ SQL,
     {
         $uzivatel = \Uzivatel::zIdUrcite(self::UZIVATEL);
 
-        (new Shop($uzivatel, $uzivatel, SystemoveNastaveni::zGlobals()))->prodat(self::RADEK_XL);
+        (new Shop($uzivatel, $uzivatel, SystemoveNastaveni::zGlobals()))->prodat($this->idVarianty('tricko_velikosti_XL'));
 
         self::assertSame(
             [[
@@ -81,10 +80,30 @@ SQL,
      */
     public function rychlyProdejOdecteProdanouVelikost(): void
     {
-        $zbyva = array_column(Shop::polozkyRychlehoProdeje(ROCNIK), 'zbyva', 'id_predmetu');
+        $zbyva = array_column(Shop::polozkyRychlehoProdeje(ROCNIK), 'zbyva', 'id_varianty');
 
-        self::assertSame(10, (int) $zbyva[self::MODEL], 'S');
-        self::assertSame(9, (int) $zbyva[self::RADEK_XL], 'XL');
+        self::assertSame(10, (int) $zbyva[$this->idVarianty('tricko_velikosti_S')], 'S');
+        self::assertSame(9, (int) $zbyva[$this->idVarianty('tricko_velikosti_XL')], 'XL');
+    }
+
+    /**
+     * The model's own row is also its first size; listed by its bare name, it read as the model.
+     *
+     * @test
+     */
+    public function rychlyProdejJmenujeKazdouVelikost(): void
+    {
+        $nazvy = array_column(Shop::polozkyRychlehoProdeje(ROCNIK), 'nazev', 'id_varianty');
+
+        self::assertSame('Tričko velikostní S ' . ROCNIK, $nazvy[$this->idVarianty('tricko_velikosti_S')] ?? null);
+        self::assertSame('Tričko velikostní XL ' . ROCNIK, $nazvy[$this->idVarianty('tricko_velikosti_XL')] ?? null);
+    }
+
+    private function idVarianty(string $kod): int
+    {
+        return (int) dbOneCol('SELECT id FROM product_variant WHERE code = $0', [
+            0 => $kod,
+        ]);
     }
 
     /**
