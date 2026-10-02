@@ -27,7 +27,7 @@ if ($bezVarianty > 0) {
     throw new \RuntimeException("Zrušených nákupů bez varianty: {$bezVarianty}. Jejich řádek katalogu nemá variantu se stejným kódem — doplň ji a migraci spusť znovu.");
 }
 
-// IF EXISTS, so a run that failed on a cancelled purchase without a variant can be repeated.
+// IF EXISTS, so a run that failed between dropping and re-adding the key can be repeated.
 $this->q(<<<'SQL'
 ALTER TABLE shop_nakupy_zrusene
     DROP FOREIGN KEY IF EXISTS FK_nakupy_zrusene_variant
