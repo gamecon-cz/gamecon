@@ -101,9 +101,12 @@ SQL,
 
     private function idVarianty(string $kod): int
     {
-        return (int) dbOneCol('SELECT id FROM product_variant WHERE code = $0', [
+        $idVarianty = (int) dbOneCol('SELECT id FROM product_variant WHERE code = $0', [
             0 => $kod,
         ]);
+        self::assertNotSame(0, $idVarianty, "Varianta {$kod} neexistuje");
+
+        return $idVarianty;
     }
 
     /**

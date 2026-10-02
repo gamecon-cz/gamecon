@@ -306,11 +306,14 @@ SQL,
      */
     private function idVarianty(int $idPredmetu): int
     {
-        return (int) dbOneCol(
+        $idVarianty = (int) dbOneCol(
             'SELECT product_variant.id FROM product_variant INNER JOIN shop_predmety ON shop_predmety.kod_predmetu = product_variant.code WHERE shop_predmety.id_predmetu = $0',
             [
                 0 => $idPredmetu,
             ],
         );
+        self::assertNotSame(0, $idVarianty, "Předmět {$idPredmetu} nemá variantu");
+
+        return $idVarianty;
     }
 }

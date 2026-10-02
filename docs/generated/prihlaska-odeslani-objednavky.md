@@ -9,7 +9,7 @@ zůstal legacy zápis (admin) a jaké pasti po převodu zbyly.
 - `web/moduly/prihlaska/prihlaska.php` — modul; větev `post('prihlasitNeboUpravit')` je vlastní zpracování
 - `symfony/src/Service/AccommodationWriter.php`, `CartService.php`, `EntryFeeService.php` — kam se zápis přesunul
 - `model/Shop/Shop.php::prodat` — poslední legacy zápis, dnes už **jen ruční prodej v adminu**
-- `admin/scripts/modules/_uzivatel_ovladac.php`, `admin/scripts/modules/infopult/_infopult_ovladac.php` — jeho volající
+- `admin/scripts/modules/_uzivatel_ovladac.php` — jeho jediný volající (rychlý prodej na stránce uživatele, posílá id varianty)
 - `tests/Shop/AbstractTestPrihlaska.php` — testy jedou stejnou sekvenci jako modul
 
 ## Co po odeslání zbylo
@@ -45,7 +45,7 @@ Počet kusů = **počet řádků** v `shop_nakupy`; tabulka nemá unique přes (
 ## Kde se hlídá vyprodání — a kde ne
 
 `Shop::prodat()` už z přihlášky nevolá nic — zbyl jen ruční prodej v adminu
-(`admin/scripts/modules/_shop.php`, `_uzivatel_ovladac.php`); jídlo jde přes `MealWriter`.
+(`_uzivatel_ovladac.php`); jídlo jde přes `MealWriter`.
 Zamyká řádek varianty (`FOR UPDATE`) a odmítne:
 
 - předmět z jiného ročníku (`model_rok != rocnik`)
