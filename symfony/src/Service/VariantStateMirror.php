@@ -9,9 +9,9 @@ use Doctrine\DBAL\ArrayParameterType;
 use Doctrine\DBAL\Connection;
 
 /**
- * Admins and the import still change a night's or size's offer through its own legacy catalog row,
- * while the cart and the variant view read the variant; this keeps the variant following that row.
- * Goes away with those rows.
+ * Admins still change a night's or size's offer through its own legacy catalog row, while the cart
+ * and the variant view read the variant; this keeps the variant following that row. The import
+ * writes the variant and keeps the row agreeing with it. Goes away with those rows.
  */
 class VariantStateMirror
 {

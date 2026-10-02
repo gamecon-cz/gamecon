@@ -11,9 +11,9 @@ e-shopu ze sloupce `je_letosni_hlavni`. Žádná heuristika.
   `codeFragment` říká druh (`kostka`, `placka`), `productCode` konkrétní předmět
 - `symfony/src/Discount/DiscountableItem.php::matches()` — `PRODUCT_CODE` se shoduje jen s tím kódem
 - `model/Shop/LetosniPredmetyZdarma.php` — stav pro stránku importu, zápis z importu, varování
-- `model/Shop/EshopImporter.php` — nepovinný sloupec `je_letosni_hlavni` (1 = letošní)
+- `model/Shop/EshopImporter.php` — nepovinný sloupec `je_letosni_hlavni` (1 = letošní), sloupec produktu
 - `model/Report/BfsrReport.php` — dělí placky na letošní a staré podle téhož pravidla
-- `admin/scripts/zvlastni/reporty/finance-report-eshop.php` — `je_letosni_hlavni` = 1 jen u jmenovaných
+- `model/Shop/EshopExport.php` (report `finance-report-eshop`) — `je_letosni_hlavni` = 1 jen u jmenovaných
 
 ## Co „letošní" znamená
 
@@ -48,5 +48,5 @@ vlastní vazbu na ročník a admin UI navíc.
 Migrace `2026-09-30-100027` jmenuje pro 2026 předměty, které vybral legacy; pravidla jiných
 ročníků zůstanou bez kódu, dokud je nenastaví import.
 
-Pozor: export (`finance-report-eshop`) dnes nejde naimportovat beze změn — dává sloupec `typ`,
-import chce `tag`. List pro import se proto připravuje zvlášť.
+Export (`finance-report-eshop`) jde naimportovat beze změn zpátky, formát popisuje
+[import-a-export-eshopu](import-a-export-eshopu.md).

@@ -7,6 +7,8 @@
   </p>
   <p>
     Jako zdrojový soubor slouží <a href="{baseUrl}/reporty/{eshopReport}"><em>Report e-shopu</em> ve formátu XLSX</a>.
+    Každý řádek je jedna varianta (velikost, noc); sloupce produktu musí být na všech jeho řádcích stejné.
+    Novou velikost nebo noc přidáš novým řádkem se stejným <code>product_code</code>.
   </p>
   <!-- begin:letosni -->
   <p>
