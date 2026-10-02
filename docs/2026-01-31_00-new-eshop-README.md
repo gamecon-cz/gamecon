@@ -43,7 +43,7 @@ older document referring to `2026-01-31-new-eshop-NN-*.sql` names is out of date
 | `symfony/migrations/structures/2026-09-02-100008_bundle-variants.sql` | Bundle variants |
 | `symfony/migrations/structures/2026-09-02-100009_mikina-product-tag.sql` | Ensures the `mikina` tag and its view translation |
 
-## The compatibility view
+## The compatibility view (removed)
 
 `shop_predmety_s_typem` kept the legacy code working after the columns were dropped, until step D.
 It re-derived the old columns from the new model:
@@ -55,18 +55,19 @@ It re-derived the old columns from the new model:
 
 **Superseded by step D of [issue #1157](https://github.com/gamecon-cz/gamecon/issues/1157):** legacy queries now read `shop_predmety`,
 `product_variant` and the tags directly and derive `typ`, `podtyp` and `model_rok` themselves; see
-`docs/generated/nakup-produkt-a-varianta.md`. Writes still go to the base table.
+`docs/generated/nakup-produkt-a-varianta.md`. Migration `2026-10-02-210000_catalog-views-removed.php`
+drops the view (and `shop_varianty_s_typem`, its per-variant sibling).
 
 ## Verifying afterwards
 
 ```bash
-./bin-docker/php ./bin/console dbal:run-sql "SELECT typ, COUNT(*) FROM shop_predmety_s_typem GROUP BY typ"
+./bin-docker/php ./bin/console dbal:run-sql "SELECT product_tag.code, COUNT(*) FROM product_product_tag INNER JOIN product_tag ON product_tag.id = product_product_tag.tag_id GROUP BY product_tag.code"
 ./bin-docker/php ./bin/console dbal:run-sql "SELECT COUNT(*) FROM shop_predmety WHERE id_predmetu NOT IN (SELECT product_id FROM product_product_tag)"
-./bin-docker/php ./bin/console dbal:run-sql "SELECT podtyp, COUNT(*) FROM shop_predmety_s_typem WHERE podtyp IS NOT NULL GROUP BY podtyp"
+./bin-docker/php ./bin/console dbal:run-sql "SELECT SUM(breakfast_included) AS hotel FROM shop_predmety"
 ```
 
-Expect every product to carry a category tag (the second query returns 0), and both `hotel` and
-`mikina` to appear in the third if the source data had them. Verified against a production dump
+Expect every product to carry a category tag (the second query returns 0), `mikina` among the tags
+in the first and hotel rooms in the third if the source data had them. Verified against a production dump
 from 2026-09-01: 1135 products, all tagged, 25 hotel rooms and 7 hoodies preserved.
 
 ## Rollback

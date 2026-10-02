@@ -291,8 +291,8 @@ SQL,
 
         // Stejnou cestou jako ostatní fixtures v téhle třídě: přes legacy zápis, aby se
         // produkt zakládal tak, jak ho prodej opravdu čte.
-        // Pohled `shop_predmety_s_typem` odvozuje `model_rok` z `archived_at`
-        // (NULL → letošní ROCNIK, jinak YEAR(archived_at)), proto je tu loňský rok.
+        // Ročník modelu se odvozuje z `archived_at` (NULL → letošní ROCNIK, jinak
+        // YEAR(archived_at)), proto je tu loňský rok.
         $archivovano = (ROCNIK - 1) . '-12-31 23:59:59';
         $budouci = date('Y-m-d H:i:s', strtotime('+1 day'));
         dbQuery(

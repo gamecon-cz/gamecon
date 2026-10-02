@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace Gamecon\Tests\Model\Report;
 
+use App\Enum\ProductTagCode;
 use Gamecon\Cas\DateTimeGamecon;
-use Gamecon\Shop\TypPredmetu;
 use Gamecon\Tests\Db\AbstractTestDb;
 
 class StravenkyBiancoTest extends AbstractTestDb
@@ -241,7 +241,6 @@ SQL,
     public function biancoStravenkyObsahujiJidlaOdCtvrtka()
     {
         $rocnik = ROCNIK;
-        $typJidlo = TypPredmetu::JIDLO;
         $prvniDen = DateTimeGamecon::PORADI_HERNIHO_DNE_CTVRTEK;
 
         $o = dbQuery(<<<SQL
@@ -249,12 +248,16 @@ SQL,
               shop_predmety.nazev,
               FIELD(SUBSTRING(TRIM(shop_predmety.nazev), POSITION(' ' IN TRIM(shop_predmety.nazev)) + 1), 'středa', 'čtvrtek', 'pátek', 'sobota', 'neděle') AS poradi_dne,
               FIELD(SUBSTRING(TRIM(shop_predmety.nazev), 1, POSITION(' ' IN TRIM(shop_predmety.nazev)) - 1), 'Snídaně', 'Oběd', 'Večeře') AS poradi_jidla
-            FROM shop_predmety_s_typem AS shop_predmety
-            WHERE shop_predmety.model_rok = {$rocnik}
-              AND shop_predmety.typ = {$typJidlo}
+            FROM shop_predmety
+            INNER JOIN product_product_tag ON product_product_tag.product_id = shop_predmety.id_predmetu
+            INNER JOIN product_tag ON product_tag.id = product_product_tag.tag_id AND product_tag.code = $0
+            WHERE COALESCE(YEAR(shop_predmety.archived_at), {$rocnik}) = {$rocnik}
               AND shop_predmety.ubytovani_den >= {$prvniDen}
             ORDER BY poradi_dne DESC, poradi_jidla DESC
 SQL,
+            [
+                0 => ProductTagCode::JIDLO->value,
+            ],
         );
 
         $jidla = [];
@@ -281,7 +284,6 @@ SQL,
     public function biancoStravenkyVyplni24Bunek()
     {
         $rocnik = ROCNIK;
-        $typJidlo = TypPredmetu::JIDLO;
         $prvniDen = DateTimeGamecon::PORADI_HERNIHO_DNE_CTVRTEK;
 
         $o = dbQuery(<<<SQL
@@ -289,12 +291,16 @@ SQL,
               shop_predmety.nazev,
               FIELD(SUBSTRING(TRIM(shop_predmety.nazev), POSITION(' ' IN TRIM(shop_predmety.nazev)) + 1), 'středa', 'čtvrtek', 'pátek', 'sobota', 'neděle') AS poradi_dne,
               FIELD(SUBSTRING(TRIM(shop_predmety.nazev), 1, POSITION(' ' IN TRIM(shop_predmety.nazev)) - 1), 'Snídaně', 'Oběd', 'Večeře') AS poradi_jidla
-            FROM shop_predmety_s_typem AS shop_predmety
-            WHERE shop_predmety.model_rok = {$rocnik}
-              AND shop_predmety.typ = {$typJidlo}
+            FROM shop_predmety
+            INNER JOIN product_product_tag ON product_product_tag.product_id = shop_predmety.id_predmetu
+            INNER JOIN product_tag ON product_tag.id = product_product_tag.tag_id AND product_tag.code = $0
+            WHERE COALESCE(YEAR(shop_predmety.archived_at), {$rocnik}) = {$rocnik}
               AND shop_predmety.ubytovani_den >= {$prvniDen}
             ORDER BY poradi_dne DESC, poradi_jidla DESC
 SQL,
+            [
+                0 => ProductTagCode::JIDLO->value,
+            ],
         );
 
         $jidla = [];

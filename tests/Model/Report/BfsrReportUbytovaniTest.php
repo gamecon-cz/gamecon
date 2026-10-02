@@ -86,12 +86,13 @@ class BfsrReportUbytovaniTest extends AbstractTestDb
     public function kazdyKodUbytovaniVDatabaziSpadaDoNejakehoDruhu(): void
     {
         $kodyUbytovani = dbOneArray(<<<SQL
-            SELECT DISTINCT kod_predmetu
-            FROM shop_predmety_s_typem
-            WHERE typ = $0
+            SELECT DISTINCT shop_predmety.kod_predmetu
+            FROM shop_predmety
+            INNER JOIN product_product_tag ON product_product_tag.product_id = shop_predmety.id_predmetu
+            INNER JOIN product_tag ON product_tag.id = product_product_tag.tag_id AND product_tag.code = $0
             SQL,
             [
-                0 => TypPredmetu::UBYTOVANI,
+                0 => ProductTagCode::UBYTOVANI->value,
             ],
         );
         self::assertNotEmpty($kodyUbytovani, 'V databázi není žádné ubytování, test by nic neověřil');
@@ -196,12 +197,14 @@ class BfsrReportUbytovaniTest extends AbstractTestDb
     public function kazdyLetosProdavanyPredmetJeReportuZnamy(): void
     {
         $predmety = dbFetchAll(<<<SQL
-            SELECT kod_predmetu, typ
-            FROM shop_predmety_s_typem
-            WHERE typ = $0
+            SELECT shop_predmety.kod_predmetu, $1 AS typ
+            FROM shop_predmety
+            INNER JOIN product_product_tag ON product_product_tag.product_id = shop_predmety.id_predmetu
+            INNER JOIN product_tag ON product_tag.id = product_product_tag.tag_id AND product_tag.code = $0
             SQL,
             [
-                0 => TypPredmetu::PREDMET,
+                0 => ProductTagCode::PREDMET->value,
+                1 => TypPredmetu::PREDMET,
             ],
         );
         self::assertNotEmpty($predmety, 'V databázi nejsou žádné předměty, test by nic neověřil');

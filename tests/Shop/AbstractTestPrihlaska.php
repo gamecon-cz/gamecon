@@ -135,8 +135,8 @@ SQL,
         ?string $nabizetDo,
         int $modelRok,
     ): int {
-        // Ročník už není sloupec: pohled shop_predmety_s_typem ho odvozuje z archived_at,
-        // kde NULL znamená letošní a jinak rozhoduje rok archivace.
+        // Ročník už není sloupec: odvozuje se z archived_at, kde NULL znamená letošní
+        // a jinak rozhoduje rok archivace.
         $archivovanoV = $modelRok === ROCNIK
             ? null
             : $modelRok . '-01-01 00:00:00';
