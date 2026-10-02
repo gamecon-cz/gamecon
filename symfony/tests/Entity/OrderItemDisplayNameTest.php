@@ -43,15 +43,25 @@ class OrderItemDisplayNameTest extends TestCase
     }
 
     /**
-     * Without a code snapshot, the size or night bought is the variant; the product is only its model.
+     * The size or night bought is the variant; the product is only its model, whose code the
+     * cart snapshots for every size.
      */
+    public function testCodeIsTheVariantsEvenBesideTheModelsSnapshot(): void
+    {
+        $model = (new Product())->setName('Tričko')->setCode('tricko_XXXL')->setCurrentPrice('250.00');
+        $item = new OrderItem();
+        $item->snapshotProduct($model, (new ProductVariant())->setName('S')->setCode('tricko_S')->setProduct($model));
+
+        self::assertSame('tricko_S', $item->getDisplayCode());
+    }
+
     public function testCodeWithoutSnapshotIsTheVariants(): void
     {
         $item = new OrderItem();
-        $item->setProduct((new Product())->setCode('tricko_S'));
-        $item->setVariant((new ProductVariant())->setCode('tricko_XL'));
+        $item->setProduct((new Product())->setCode('tricko_XXXL'));
+        $item->setVariant((new ProductVariant())->setCode('tricko_S'));
 
-        self::assertSame('tricko_XL', $item->getDisplayCode());
+        self::assertSame('tricko_S', $item->getDisplayCode());
     }
 
     public function testVariantMatchingOnlyPartOfAWordIsShown(): void
