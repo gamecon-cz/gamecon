@@ -15,32 +15,35 @@ use App\Tests\AbstractDatabaseKernelTestCase;
  */
 class ProductRepositoryNabizetDoTest extends AbstractDatabaseKernelTestCase
 {
+    /**
+     * A night is a variant of its room type and has no catalog row of its own; the room type
+     * carries `nabizet_do`.
+     */
     private function vlozRadekNoci(
         string $kod,
         ?string $nabizetDo,
         int $stav = ProductStateEnum::PUBLIC->value,
-        ?int $stavVarianty = null,
     ): void {
         $this->connection()->executeStatement(
             'INSERT INTO shop_predmety
                 (nazev, kod_predmetu, cena_aktualni, stav, nabizet_do, popis)
              VALUES (:nazev, :kod, 0, :stav, :nabizetDo, :popis)',
             [
-                'nazev'     => 'Test noc ' . $kod,
-                'kod'       => $kod,
-                'stav'      => $stav,
+                'nazev'     => 'Test typ pokoje ' . $kod,
+                'kod'       => $kod . '-typ',
+                'stav'      => ProductStateEnum::SUSPENDED->value,
                 'nabizetDo' => $nabizetDo,
                 'popis'     => '',
             ],
         );
         $this->connection()->executeStatement(
-            'INSERT INTO product_variant (product_id, name, code, capacity, position, state)
-             VALUES (:produkt, :nazev, :kod, 10, 0, :stav)',
+            'INSERT INTO product_variant (product_id, name, code, capacity, accommodation_day, position, state)
+             VALUES (:produkt, :nazev, :kod, 10, 2, 0, :stav)',
             [
                 'produkt' => $this->connection()->lastInsertId(),
-                'nazev'   => 'Test noc ' . $kod,
+                'nazev'   => 'pátek',
                 'kod'     => $kod,
-                'stav'    => $stavVarianty ?? $stav,
+                'stav'    => $stav,
             ],
         );
     }
@@ -85,12 +88,25 @@ class ProductRepositoryNabizetDoTest extends AbstractDatabaseKernelTestCase
     }
 
     /**
-     * The night's own catalog row is a leftover of the legacy layout; the variant is the night.
+     * A room type nobody buys stays suspended while its nights are on sale.
      */
-    public function testONabizeniRozhodujeStavVarianty(): void
+    public function testONabizeniRozhodujeStavNociNeTypuPokoje(): void
     {
-        $kod = 'test-noc-varianta-pozastavena-' . uniqid();
-        $this->vlozRadekNoci($kod, null, ProductStateEnum::PUBLIC->value, ProductStateEnum::SUSPENDED->value);
+        $kod = 'test-noc-typ-pozastaveny-' . uniqid();
+        $this->vlozRadekNoci($kod, null);
+
+        $nalezene = $this->repository()->capacityByVariantCode([$kod]);
+
+        self::assertTrue($nalezene[$kod]['nabizeno']);
+    }
+
+    public function testNocArchivovanehoTypuPokojeNeniNabizena(): void
+    {
+        $kod = 'test-noc-archivovana-' . uniqid();
+        $this->vlozRadekNoci($kod, null);
+        $this->connection()->executeStatement('UPDATE shop_predmety SET archived_at = NOW() WHERE kod_predmetu = :kod', [
+            'kod' => $kod . '-typ',
+        ]);
 
         $nalezene = $this->repository()->capacityByVariantCode([$kod]);
 

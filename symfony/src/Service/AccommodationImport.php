@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace App\Service;
 
-use App\Entity\ProductVariant;
 use App\Entity\User;
 use App\Exception\InvalidRequestException;
 use App\Exception\UserFacingException;
@@ -39,12 +38,12 @@ readonly class AccommodationImport
     }
 
     /**
-     * Noci jednoho typu pokoje podle „typu" z reportu, což je `kod_predmetu` bez třípísmenné
+     * Noci jednoho typu pokoje podle „typu" z reportu, což je kód noci bez třípísmenné
      * přípony dne (`3L_ct` → `3L`).
      *
      * @param int[] $dny
      *
-     * @return int[] id předmětů, jedno pro každý žádaný den
+     * @return int[] id variant, jedno pro každý žádaný den
      *
      * @throws InvalidRequestException když se pro některý den noc nenajde
      */
@@ -58,13 +57,14 @@ readonly class AccommodationImport
         $ids = $this->entityManager->getConnection()->fetchFirstColumn(
             // Porovnání drží české řazení, jak to dělalo legacy — bez něj by se rozešla
             // shoda kódů s diakritikou.
-            'SELECT id_predmetu
-             FROM shop_predmety_s_typem
-             WHERE LEFT(kod_predmetu, CHAR_LENGTH(kod_predmetu) - 3) = :kodTypu COLLATE utf8mb4_czech_ci
-               AND typ = :typ
-               AND model_rok = :rok
-               AND ubytovani_den IN (:dny)
-             ORDER BY ubytovani_den',
+            'SELECT product_variant.id
+             FROM product_variant
+             INNER JOIN shop_predmety_s_typem AS typ_pokoje ON typ_pokoje.id_predmetu = product_variant.product_id
+             WHERE LEFT(product_variant.code, CHAR_LENGTH(product_variant.code) - 3) = :kodTypu COLLATE utf8mb4_czech_ci
+               AND typ_pokoje.typ = :typ
+               AND typ_pokoje.model_rok = :rok
+               AND product_variant.accommodation_day IN (:dny)
+             ORDER BY product_variant.accommodation_day',
             [
                 'kodTypu' => $kodTypu,
                 'typ'     => \Gamecon\Shop\TypPredmetu::UBYTOVANI,
@@ -273,7 +273,7 @@ readonly class AccommodationImport
     }
 
     /**
-     * @param int[] $idsPredmetuUbytovani id z `shop_predmety`, tak jak je dohledal import
+     * @param int[] $idsVariantUbytovani noci, jak je dohledal `dejIdsNociPodleTypu()`
      *
      * @return int kolik datových řádků se změnilo — tutéž veličinu hlásily legacy metody
      *             přes `dbAffectedOrNumRows()`, takže import počítá dál stejně
@@ -282,7 +282,7 @@ readonly class AccommodationImport
      */
     public function ulozNociUcastnika(
         int $idUzivatele,
-        array $idsPredmetuUbytovani,
+        array $idsVariantUbytovani,
         int $rok,
         bool $povolitJednuNoc,
         ?string $spolubydlici = null,
@@ -296,7 +296,7 @@ readonly class AccommodationImport
 
         return $this->accommodationWriter->save(
             $zakaznik,
-            $this->idsVariant($idsPredmetuUbytovani),
+            $idsVariantUbytovani,
             $rok,
             $povolitJednuNoc,
             $spolubydlici,
@@ -308,46 +308,5 @@ readonly class AccommodationImport
             // jsou rozhodnutá, jen se zapisují.
             mayOverbook: true,
         );
-    }
-
-    /**
-     * @param int[] $idsPredmetu
-     *
-     * @return int[]
-     */
-    private function idsVariant(array $idsPredmetu): array
-    {
-        $idsPredmetu = array_values(array_filter(array_map('intval', $idsPredmetu)));
-        if ($idsPredmetu === []) {
-            return [];
-        }
-
-        $kody = $this->entityManager->getConnection()->fetchFirstColumn(
-            'SELECT kod_predmetu FROM shop_predmety WHERE id_predmetu IN (:ids)',
-            [
-                'ids' => $idsPredmetu,
-            ],
-            [
-                'ids' => \Doctrine\DBAL\ArrayParameterType::INTEGER,
-            ],
-        );
-
-        $varianty = $this->entityManager->getRepository(ProductVariant::class)
-            ->findBy([
-                'code' => $kody,
-            ]);
-
-        $ids = [];
-        foreach ($varianty as $varianta) {
-            if ($varianta->getId() !== null) {
-                $ids[] = $varianta->getId();
-            }
-        }
-
-        if (count($ids) !== count($idsPredmetu)) {
-            throw new InvalidRequestException($this->translator->trans('accommodation_import.night_not_found', [], 'errors'));
-        }
-
-        return $ids;
     }
 }

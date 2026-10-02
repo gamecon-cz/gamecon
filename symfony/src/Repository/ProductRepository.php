@@ -189,13 +189,14 @@ class ProductRepository extends ServiceEntityRepository
         }
 
         $rows = $this->getEntityManager()->getConnection()->fetchAllAssociative(
-            'SELECT shop_predmety.kod_predmetu, product_variant.capacity, product_variant.state,
-                    shop_predmety.archived_at,
+            'SELECT product_variant.code AS kod_predmetu, product_variant.capacity, product_variant.state,
+                    produkt.archived_at,
                     COALESCE(product_variant.reserved_for_organizers,
-                             shop_predmety.reserved_for_organizers) AS reserved_for_organizers
-             FROM shop_predmety
-             LEFT JOIN product_variant ON product_variant.code = shop_predmety.kod_predmetu
-             WHERE shop_predmety.kod_predmetu IN (:codes)',
+                             vlastni_radek.reserved_for_organizers) AS reserved_for_organizers
+             FROM product_variant
+             INNER JOIN shop_predmety AS produkt ON produkt.id_predmetu = product_variant.product_id
+             LEFT JOIN shop_predmety AS vlastni_radek ON vlastni_radek.kod_predmetu = product_variant.code
+             WHERE product_variant.code IN (:codes)',
             [
                 'codes' => $codes,
             ],
@@ -213,9 +214,8 @@ class ProductRepository extends ServiceEntityRepository
                 // that column here would lock nights the legacy form still sells.
                 'nabizeno' => $row['archived_at'] === null
                     && (int) $row['state'] === ProductStateEnum::PUBLIC->value,
-                // Varianta má přednost před řádkem noci, stejně jako v zapisovači — import
-                // e-shopu zapisuje rezervace na varianty. Rodičovský produkt se schválně
-                // nečte: u ubytování je to typ pokoje, ne ta noc.
+                // Varianta má přednost před řádkem se stejným kódem (u výchozí varianty je to
+                // produkt sám), stejně jako v zapisovači. Typ pokoje se schválně nečte.
                 'rezervovano' => $row['reserved_for_organizers'] === null
                     ? null
                     : (int) $row['reserved_for_organizers'],
