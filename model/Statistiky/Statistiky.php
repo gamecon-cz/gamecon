@@ -161,13 +161,13 @@ SQL,
 SELECT
     shop_predmety.nazev AS Název,
     shop_predmety.model_rok AS Model,
-    COUNT(shop_nakupy.id_predmetu) AS Počet
+    COUNT(shop_nakupy.id_nakupu) AS Počet
 FROM shop_nakupy
-JOIN shop_predmety_s_typem AS shop_predmety
-    ON shop_nakupy.id_predmetu = shop_predmety.id_predmetu
+JOIN shop_varianty_s_typem AS shop_predmety
+    ON shop_predmety.id_varianty = shop_nakupy.variant_id
 WHERE shop_nakupy.rok = $0
     AND shop_predmety.typ IN ($1)
-GROUP BY shop_nakupy.id_predmetu
+GROUP BY shop_predmety.id_varianty
 SQL,
                 [
                     0 => $this->soucasnyRocnik,
