@@ -19,6 +19,25 @@ class CancelledOrderItemRepository extends ServiceEntityRepository
         parent::__construct($registry, CancelledOrderItem::class);
     }
 
+    /**
+     * @param int[] $variantIds
+     *
+     * @return int[]
+     */
+    public function cancelledVariantIds(array $variantIds): array
+    {
+        if ($variantIds === []) {
+            return [];
+        }
+
+        return array_map('intval', $this->createQueryBuilder('cancelled_item')
+            ->select('DISTINCT IDENTITY(cancelled_item.variant)')
+            ->where('cancelled_item.variant IN (:variantIds)')
+            ->setParameter('variantIds', $variantIds)
+            ->getQuery()
+            ->getSingleColumnResult());
+    }
+
     public function hasCancelledPurchaseOf(Product $product): bool
     {
         return $this->createQueryBuilder('cancelled_item')
