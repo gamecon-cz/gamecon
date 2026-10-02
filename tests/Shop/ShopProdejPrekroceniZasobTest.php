@@ -329,7 +329,8 @@ SQL,
     }
 
     /**
-     * A night hangs under its room type, so its variant is found by code, not by `product_id`.
+     * A night is sold by its own catalog row, but the purchase points at its room type and names
+     * the night through its variant, as the cart writes it.
      *
      * @test
      */
@@ -341,20 +342,22 @@ SQL,
         $shop->prodat(88817, 1);
 
         self::assertSame(
-            (int) dbOneCol("SELECT id FROM product_variant WHERE code = 'pokoj_prodej_test-pa'"),
-            (int) dbOneCol('SELECT variant_id FROM shop_nakupy WHERE id_predmetu = 88817'),
+            [
+                'id_predmetu'  => '88816',
+                'product_name' => 'Postel na pokoji',
+                'variant_name' => 'pátek',
+                'variant_code' => 'pokoj_prodej_test-pa',
+            ],
+            dbOneLine(
+                "SELECT shop_nakupy.id_predmetu, shop_nakupy.product_name, shop_nakupy.variant_name, shop_nakupy.variant_code
+                 FROM shop_nakupy
+                 JOIN product_variant ON product_variant.id = shop_nakupy.variant_id
+                 WHERE product_variant.code = 'pokoj_prodej_test-pa'",
+            ),
         );
         self::assertSame(
             2,
             $this->zbyva('pokoj_prodej_test-pa'),
-        );
-        self::assertSame(
-            [
-                'product_name' => 'Postel na pokoji pátek',
-                'product_code' => 'pokoj_prodej_test-pa',
-            ],
-            dbOneLine('SELECT product_name, product_code FROM shop_nakupy WHERE id_predmetu = 88817'),
-            'Snímek noci je z jejího vlastního řádku, jako u historických nákupů a v archivu zrušených',
         );
     }
 
@@ -370,6 +373,8 @@ SQL,
     {
         $uzivatel = \Uzivatel::zIdUrcite(88801);
         $shop = new Shop($uzivatel, $uzivatel, SystemoveNastaveni::zGlobals());
+        // Purchases of its nights point at the room type too, so the refusal is counted by what it adds.
+        $nakupuPredtim = (int) dbOneCol('SELECT COUNT(*) FROM shop_nakupy WHERE id_uzivatele = 88801');
 
         try {
             $shop->prodat($idTypuPokoje, 1);
@@ -378,9 +383,7 @@ SQL,
             self::assertStringContainsString('konkrétní noc', $chyba->getMessage());
         }
 
-        self::assertSame(0, (int) dbOneCol('SELECT COUNT(*) FROM shop_nakupy WHERE id_predmetu = $0', [
-            0 => $idTypuPokoje,
-        ]));
+        self::assertSame($nakupuPredtim, (int) dbOneCol('SELECT COUNT(*) FROM shop_nakupy WHERE id_uzivatele = 88801'));
     }
 
     /**
