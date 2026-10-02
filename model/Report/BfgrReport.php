@@ -686,8 +686,9 @@ SQL,
         $poradiKostekSql = implode(',', $poradiKostek);
 
         $kostky = dbFetchAll(<<<SQL
-            SELECT id_predmetu, nazev, model_rok
-            FROM shop_predmety_s_typem
+            SELECT id_varianty AS id, nazev, model_rok
+            -- named per variant, as Finance names each purchase
+            FROM shop_varianty_s_typem
             WHERE nazev LIKE '%kostka%'
                 AND stav > $0
                 AND typ = $1
@@ -700,7 +701,7 @@ SQL,
     }
 
     /**
-     * @param list<array{id_predmetu: int|string, nazev: string, model_rok: int|string|null}> $predmety
+     * @param list<array{id: int|string, nazev: string, model_rok: int|string|null}> $predmety
      * @param callable(string, ?int, int): string $pojmenuj
      *
      * @return array<int, string> keeps the query's order
@@ -709,7 +710,7 @@ SQL,
     {
         $nazvy = [];
         foreach ($predmety as $predmet) {
-            $nazvy[(int) $predmet['id_predmetu']] = $pojmenuj(
+            $nazvy[(int) $predmet['id']] = $pojmenuj(
                 (string) $predmet['nazev'],
                 $predmet['model_rok'] === null ? null : (int) $predmet['model_rok'],
                 $this->systemoveNastaveni->rocnik(),
@@ -736,8 +737,9 @@ SQL,
     private function letosniOstatniPredmety(): array
     {
         $predmety = dbFetchAll(<<<SQL
-            SELECT id_predmetu, nazev, model_rok
-            FROM shop_predmety_s_typem
+            SELECT id_varianty AS id, nazev, model_rok
+            -- named per variant, as Finance names each purchase
+            FROM shop_varianty_s_typem
             WHERE typ = $0
                 AND stav > $1
                 AND (
