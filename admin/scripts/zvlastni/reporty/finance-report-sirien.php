@@ -1,5 +1,6 @@
 <?php
 
+use App\Enum\ProductTagCode;
 use Gamecon\Aktivita\Tag;
 use Gamecon\Pravo;
 use Gamecon\Role\Role;
@@ -129,9 +130,10 @@ FROM (SELECT MAX(data_rows.poradi) AS poradi, data_rows.kod, MAX(data_rows.nazev
                     'Dobrovolné vstupné (sum CZK)' AS nazev,
                     SUM(ALL shop_nakupy.cena_nakupni)       AS data
              FROM shop_nakupy shop_nakupy
-                      JOIN shop_predmety_s_typem shop_predmety ON shop_predmety.id_predmetu = shop_nakupy.id_predmetu
-             WHERE shop_predmety.typ = 5
-               AND shop_nakupy.rok = $rocnik
+                      JOIN product_variant ON product_variant.id = shop_nakupy.variant_id
+                      JOIN product_product_tag ON product_product_tag.product_id = product_variant.product_id
+                      JOIN product_tag ON product_tag.id = product_product_tag.tag_id AND product_tag.code = $0
+             WHERE shop_nakupy.rok = $rocnik
 
              UNION
 
@@ -140,10 +142,11 @@ FROM (SELECT MAX(data_rows.poradi) AS poradi, data_rows.kod, MAX(data_rows.nazev
                     'Prodané noci 3L (počet)' AS nazev,
                     COUNT(shop_nakupy.id_nakupu)       AS data
              FROM shop_nakupy shop_nakupy
-                      JOIN shop_varianty_s_typem shop_predmety ON shop_predmety.id_varianty = shop_nakupy.variant_id
-             WHERE shop_predmety.typ = 2
-               AND shop_nakupy.rok = $rocnik
-               AND shop_predmety.kod_predmetu IN ('3L_st',
+                      JOIN product_variant ON product_variant.id = shop_nakupy.variant_id
+                      JOIN product_product_tag ON product_product_tag.product_id = product_variant.product_id
+                      JOIN product_tag ON product_tag.id = product_product_tag.tag_id AND product_tag.code = $1
+             WHERE shop_nakupy.rok = $rocnik
+               AND product_variant.code IN ('3L_st',
                                        '3L_ct',
                                        '3L_pa',
                                        '3L_so',
@@ -151,15 +154,15 @@ FROM (SELECT MAX(data_rows.poradi) AS poradi, data_rows.kod, MAX(data_rows.nazev
                AND (NOT (
                  {$maPravoUzivatele('shop_nakupy.id_uzivatele', $maUbytovaniZdarma)} -- právo ubytování zdarma
                      OR
-                 ({$maPravoUzivatele('shop_nakupy.id_uzivatele', $maStredecniNocZdarma)} AND shop_predmety.ubytovani_den = 0) -- ubytování zdarma středa
+                 ({$maPravoUzivatele('shop_nakupy.id_uzivatele', $maStredecniNocZdarma)} AND product_variant.accommodation_day = 0) -- ubytování zdarma středa
                      OR
-                 ({$maPravoUzivatele('shop_nakupy.id_uzivatele', $maCtvrtecniNocZdarma)} AND shop_predmety.ubytovani_den = 1) -- ubytování zdarma čtvrtek
+                 ({$maPravoUzivatele('shop_nakupy.id_uzivatele', $maCtvrtecniNocZdarma)} AND product_variant.accommodation_day = 1) -- ubytování zdarma čtvrtek
                      OR
-                 ({$maPravoUzivatele('shop_nakupy.id_uzivatele', $maPatecniNocZdarma)} AND shop_predmety.ubytovani_den = 2) -- ubytování zdarma pátek
+                 ({$maPravoUzivatele('shop_nakupy.id_uzivatele', $maPatecniNocZdarma)} AND product_variant.accommodation_day = 2) -- ubytování zdarma pátek
                      OR
-                 ({$maPravoUzivatele('shop_nakupy.id_uzivatele', $maSobotniNocZdarma)} AND shop_predmety.ubytovani_den = 3) -- ubytování zdarma sobota
+                 ({$maPravoUzivatele('shop_nakupy.id_uzivatele', $maSobotniNocZdarma)} AND product_variant.accommodation_day = 3) -- ubytování zdarma sobota
                      OR
-                 ({$maPravoUzivatele('shop_nakupy.id_uzivatele', $maNedelniNocZdarma)} AND shop_predmety.ubytovani_den = 4) -- ubytování zdarma neděle
+                 ({$maPravoUzivatele('shop_nakupy.id_uzivatele', $maNedelniNocZdarma)} AND product_variant.accommodation_day = 4) -- ubytování zdarma neděle
                  ))
 
              UNION
@@ -169,10 +172,11 @@ FROM (SELECT MAX(data_rows.poradi) AS poradi, data_rows.kod, MAX(data_rows.nazev
                     'Prodané noci 2L (počet)' AS nazev,
                     COUNT(shop_nakupy.id_nakupu)       AS data
              FROM shop_nakupy shop_nakupy
-                      JOIN shop_varianty_s_typem shop_predmety ON shop_predmety.id_varianty = shop_nakupy.variant_id
-             WHERE shop_predmety.typ = 2
-               AND shop_nakupy.rok = $rocnik
-               AND shop_predmety.kod_predmetu IN ('2L_st',
+                      JOIN product_variant ON product_variant.id = shop_nakupy.variant_id
+                      JOIN product_product_tag ON product_product_tag.product_id = product_variant.product_id
+                      JOIN product_tag ON product_tag.id = product_product_tag.tag_id AND product_tag.code = $1
+             WHERE shop_nakupy.rok = $rocnik
+               AND product_variant.code IN ('2L_st',
                                        '2L_ct',
                                        '2L_pa',
                                        '2L_so',
@@ -180,15 +184,15 @@ FROM (SELECT MAX(data_rows.poradi) AS poradi, data_rows.kod, MAX(data_rows.nazev
                AND (NOT (
                  {$maPravoUzivatele('shop_nakupy.id_uzivatele', $maUbytovaniZdarma)} -- právo ubytování zdarma
                      OR
-                 ({$maPravoUzivatele('shop_nakupy.id_uzivatele', $maStredecniNocZdarma)} AND shop_predmety.ubytovani_den = 0) -- ubytování zdarma středa
+                 ({$maPravoUzivatele('shop_nakupy.id_uzivatele', $maStredecniNocZdarma)} AND product_variant.accommodation_day = 0) -- ubytování zdarma středa
                      OR
-                 ({$maPravoUzivatele('shop_nakupy.id_uzivatele', $maCtvrtecniNocZdarma)} AND shop_predmety.ubytovani_den = 1) -- ubytování zdarma čtvrtek
+                 ({$maPravoUzivatele('shop_nakupy.id_uzivatele', $maCtvrtecniNocZdarma)} AND product_variant.accommodation_day = 1) -- ubytování zdarma čtvrtek
                      OR
-                 ({$maPravoUzivatele('shop_nakupy.id_uzivatele', $maPatecniNocZdarma)} AND shop_predmety.ubytovani_den = 2) -- ubytování zdarma pátek
+                 ({$maPravoUzivatele('shop_nakupy.id_uzivatele', $maPatecniNocZdarma)} AND product_variant.accommodation_day = 2) -- ubytování zdarma pátek
                      OR
-                 ({$maPravoUzivatele('shop_nakupy.id_uzivatele', $maSobotniNocZdarma)} AND shop_predmety.ubytovani_den = 3) -- ubytování zdarma sobota
+                 ({$maPravoUzivatele('shop_nakupy.id_uzivatele', $maSobotniNocZdarma)} AND product_variant.accommodation_day = 3) -- ubytování zdarma sobota
                      OR
-                 ({$maPravoUzivatele('shop_nakupy.id_uzivatele', $maNedelniNocZdarma)} AND shop_predmety.ubytovani_den = 4) -- ubytování zdarma neděle
+                 ({$maPravoUzivatele('shop_nakupy.id_uzivatele', $maNedelniNocZdarma)} AND product_variant.accommodation_day = 4) -- ubytování zdarma neděle
                  ))
 
              UNION
@@ -198,10 +202,11 @@ FROM (SELECT MAX(data_rows.poradi) AS poradi, data_rows.kod, MAX(data_rows.nazev
                     'Prodané noci 1L (počet)' AS nazev,
                     COUNT(shop_nakupy.id_nakupu)       AS data
              FROM shop_nakupy
-                      JOIN shop_varianty_s_typem AS shop_predmety ON shop_predmety.id_varianty = shop_nakupy.variant_id
-             WHERE shop_predmety.typ = 2
-               AND shop_nakupy.rok = $rocnik
-               AND shop_predmety.kod_predmetu IN ('1L_st',
+                      JOIN product_variant ON product_variant.id = shop_nakupy.variant_id
+                      JOIN product_product_tag ON product_product_tag.product_id = product_variant.product_id
+                      JOIN product_tag ON product_tag.id = product_product_tag.tag_id AND product_tag.code = $1
+             WHERE shop_nakupy.rok = $rocnik
+               AND product_variant.code IN ('1L_st',
                                        '1L_ct',
                                        '1L_pa',
                                        '1L_so',
@@ -209,15 +214,15 @@ FROM (SELECT MAX(data_rows.poradi) AS poradi, data_rows.kod, MAX(data_rows.nazev
                AND (NOT (
                  {$maPravoUzivatele('shop_nakupy.id_uzivatele', $maUbytovaniZdarma)} -- právo ubytování zdarma
                      OR
-                 ({$maPravoUzivatele('shop_nakupy.id_uzivatele', $maStredecniNocZdarma)} AND shop_predmety.ubytovani_den = 0) -- ubytování zdarma středa
+                 ({$maPravoUzivatele('shop_nakupy.id_uzivatele', $maStredecniNocZdarma)} AND product_variant.accommodation_day = 0) -- ubytování zdarma středa
                      OR
-                 ({$maPravoUzivatele('shop_nakupy.id_uzivatele', $maCtvrtecniNocZdarma)} AND shop_predmety.ubytovani_den = 1) -- ubytování zdarma čtvrtek
+                 ({$maPravoUzivatele('shop_nakupy.id_uzivatele', $maCtvrtecniNocZdarma)} AND product_variant.accommodation_day = 1) -- ubytování zdarma čtvrtek
                      OR
-                 ({$maPravoUzivatele('shop_nakupy.id_uzivatele', $maPatecniNocZdarma)} AND shop_predmety.ubytovani_den = 2) -- ubytování zdarma pátek
+                 ({$maPravoUzivatele('shop_nakupy.id_uzivatele', $maPatecniNocZdarma)} AND product_variant.accommodation_day = 2) -- ubytování zdarma pátek
                      OR
-                 ({$maPravoUzivatele('shop_nakupy.id_uzivatele', $maSobotniNocZdarma)} AND shop_predmety.ubytovani_den = 3) -- ubytování zdarma sobota
+                 ({$maPravoUzivatele('shop_nakupy.id_uzivatele', $maSobotniNocZdarma)} AND product_variant.accommodation_day = 3) -- ubytování zdarma sobota
                      OR
-                 ({$maPravoUzivatele('shop_nakupy.id_uzivatele', $maNedelniNocZdarma)} AND shop_predmety.ubytovani_den = 4) -- ubytování zdarma neděle
+                 ({$maPravoUzivatele('shop_nakupy.id_uzivatele', $maNedelniNocZdarma)} AND product_variant.accommodation_day = 4) -- ubytování zdarma neděle
                  ))
 
              UNION
@@ -227,10 +232,11 @@ FROM (SELECT MAX(data_rows.poradi) AS poradi, data_rows.kod, MAX(data_rows.nazev
                     'Prodané noci spacáky (počet)' AS nazev,
                     COUNT(shop_nakupy.id_nakupu)            AS data
              FROM shop_nakupy
-                      JOIN shop_varianty_s_typem AS shop_predmety ON shop_predmety.id_varianty = shop_nakupy.variant_id
-             WHERE shop_predmety.typ = 2
-               AND shop_nakupy.rok = $rocnik
-               AND shop_predmety.kod_predmetu IN ('spacak_st',
+                      JOIN product_variant ON product_variant.id = shop_nakupy.variant_id
+                      JOIN product_product_tag ON product_product_tag.product_id = product_variant.product_id
+                      JOIN product_tag ON product_tag.id = product_product_tag.tag_id AND product_tag.code = $1
+             WHERE shop_nakupy.rok = $rocnik
+               AND product_variant.code IN ('spacak_st',
                                        'spacak_ct',
                                        'spacak_pa',
                                        'spacak_so',
@@ -238,15 +244,15 @@ FROM (SELECT MAX(data_rows.poradi) AS poradi, data_rows.kod, MAX(data_rows.nazev
                AND (NOT (
                  {$maPravoUzivatele('shop_nakupy.id_uzivatele', $maUbytovaniZdarma)} -- právo ubytování zdarma
                      OR
-                 ({$maPravoUzivatele('shop_nakupy.id_uzivatele', $maStredecniNocZdarma)} AND shop_predmety.ubytovani_den = 0) -- ubytování zdarma středa
+                 ({$maPravoUzivatele('shop_nakupy.id_uzivatele', $maStredecniNocZdarma)} AND product_variant.accommodation_day = 0) -- ubytování zdarma středa
                      OR
-                 ({$maPravoUzivatele('shop_nakupy.id_uzivatele', $maCtvrtecniNocZdarma)} AND shop_predmety.ubytovani_den = 1) -- ubytování zdarma čtvrtek
+                 ({$maPravoUzivatele('shop_nakupy.id_uzivatele', $maCtvrtecniNocZdarma)} AND product_variant.accommodation_day = 1) -- ubytování zdarma čtvrtek
                      OR
-                 ({$maPravoUzivatele('shop_nakupy.id_uzivatele', $maPatecniNocZdarma)} AND shop_predmety.ubytovani_den = 2) -- ubytování zdarma pátek
+                 ({$maPravoUzivatele('shop_nakupy.id_uzivatele', $maPatecniNocZdarma)} AND product_variant.accommodation_day = 2) -- ubytování zdarma pátek
                      OR
-                 ({$maPravoUzivatele('shop_nakupy.id_uzivatele', $maSobotniNocZdarma)} AND shop_predmety.ubytovani_den = 3) -- ubytování zdarma sobota
+                 ({$maPravoUzivatele('shop_nakupy.id_uzivatele', $maSobotniNocZdarma)} AND product_variant.accommodation_day = 3) -- ubytování zdarma sobota
                      OR
-                 ({$maPravoUzivatele('shop_nakupy.id_uzivatele', $maNedelniNocZdarma)} AND shop_predmety.ubytovani_den = 4) -- ubytování zdarma neděle
+                 ({$maPravoUzivatele('shop_nakupy.id_uzivatele', $maNedelniNocZdarma)} AND product_variant.accommodation_day = 4) -- ubytování zdarma neděle
                  ))
 
              UNION
@@ -524,14 +530,14 @@ FROM (SELECT MAX(data_rows.poradi) AS poradi, data_rows.kod, MAX(data_rows.nazev
              UNION
 
              SELECT 0                                       AS poradi,
-                    CONCAT('Vr-Kostky-', shop_predmety.kod_predmetu)   AS kod,
+                    CONCAT('Vr-Kostky-', product_variant.code)   AS kod,
                     'kostka prodeje - včetně zdarma - kusy' AS nazev,
                     COUNT(*)                                AS data -- BFSR ✅️
              FROM shop_nakupy
-                      JOIN shop_varianty_s_typem AS shop_predmety ON shop_predmety.id_varianty = shop_nakupy.variant_id
+                      JOIN product_variant ON product_variant.id = shop_nakupy.variant_id
              WHERE shop_nakupy.rok = $rocnik
-               AND shop_predmety.kod_predmetu LIKE '%kostk%'
-             GROUP BY shop_predmety.id_varianty
+               AND product_variant.code LIKE '%kostk%'
+             GROUP BY product_variant.id
 
              UNION
 
@@ -540,9 +546,9 @@ FROM (SELECT MAX(data_rows.poradi) AS poradi, data_rows.kod, MAX(data_rows.nazev
                           'Kolik z prodaných kostek (všech typů) je zdarma - kusy' AS nazev,
                           1                                                        AS data
                    FROM shop_nakupy
-                            JOIN shop_varianty_s_typem AS shop_predmety ON shop_predmety.id_varianty = shop_nakupy.variant_id
+                            JOIN product_variant ON product_variant.id = shop_nakupy.variant_id
                    WHERE shop_nakupy.rok = $rocnik
-                     AND shop_predmety.kod_predmetu LIKE '%kostk%'
+                     AND product_variant.code LIKE '%kostk%'
                      AND {$maPravoUzivatele('shop_nakupy.id_uzivatele', $maKostkuZdarma)} -- kostka zdarma
                    GROUP BY shop_nakupy.id_uzivatele) activity_data
 
@@ -553,18 +559,18 @@ FROM (SELECT MAX(data_rows.poradi) AS poradi, data_rows.kod, MAX(data_rows.nazev
                     'placky prodeje - včetně zdarma - kusy' AS nazev,
                     COUNT(*)                                AS data -- BFSR ✅️
              FROM shop_nakupy
-                      JOIN shop_varianty_s_typem AS shop_predmety ON shop_predmety.id_varianty = shop_nakupy.variant_id
+                      JOIN product_variant ON product_variant.id = shop_nakupy.variant_id
              WHERE shop_nakupy.rok = $rocnik
-               AND shop_predmety.kod_predmetu LIKE '%plack%'
+               AND product_variant.code LIKE '%plack%'
 
              UNION
 
              SELECT 0 AS poradi, activity_data.kod, activity_data.nazev, COUNT(*) AS data -- BFSR ✅️
              FROM (SELECT 'Ir-Placky-Zdarma' AS kod, 'Kolik z prodaných placek je zdarma - kusy' AS nazev, 1 AS data
                    FROM shop_nakupy
-                            JOIN shop_varianty_s_typem AS shop_predmety ON shop_predmety.id_varianty = shop_nakupy.variant_id
+                            JOIN product_variant ON product_variant.id = shop_nakupy.variant_id
                    WHERE shop_nakupy.rok = $rocnik
-                     AND shop_predmety.kod_predmetu LIKE '%plack%'
+                     AND product_variant.code LIKE '%plack%'
                      AND {$maPravoUzivatele('shop_nakupy.id_uzivatele', $plackaZdarma)} -- placka zdarma
                    GROUP BY shop_nakupy.id_uzivatele) activity_data
 
@@ -572,50 +578,50 @@ FROM (SELECT MAX(data_rows.poradi) AS poradi, data_rows.kod, MAX(data_rows.nazev
 
              SELECT 0 AS poradi, CONCAT('Vr-Nicknacky') AS kod, 'nicknacky prodeje - kusy' AS nazev, COUNT(*) AS data -- BFSR ✅️
              FROM shop_nakupy
-                      JOIN shop_varianty_s_typem AS shop_predmety ON shop_predmety.id_varianty = shop_nakupy.variant_id
+                      JOIN product_variant ON product_variant.id = shop_nakupy.variant_id
              WHERE shop_nakupy.rok = $rocnik
-               AND shop_predmety.kod_predmetu LIKE '%nicknack%'
+               AND product_variant.code LIKE '%nicknack%'
 
              UNION
 
              SELECT 0 AS poradi, CONCAT('Vr-Bloky') AS kod, 'bloky prodeje - kusy' AS nazev, COUNT(*) AS data -- BFSR ✅️
              FROM shop_nakupy
-                      JOIN shop_varianty_s_typem AS shop_predmety ON shop_predmety.id_varianty = shop_nakupy.variant_id
+                      JOIN product_variant ON product_variant.id = shop_nakupy.variant_id
              WHERE shop_nakupy.rok = $rocnik
-               AND shop_predmety.kod_predmetu LIKE '%blok%'
+               AND product_variant.code LIKE '%blok%'
 
              UNION
 
              SELECT 0 AS poradi, CONCAT('Vr-Ponozky') AS kod, 'ponožky prodeje - kusy' AS nazev, COUNT(*) AS data -- BFSR ✅️
              FROM shop_nakupy
-                      JOIN shop_varianty_s_typem AS shop_predmety ON shop_predmety.id_varianty = shop_nakupy.variant_id
+                      JOIN product_variant ON product_variant.id = shop_nakupy.variant_id
              WHERE shop_nakupy.rok = $rocnik
-               AND shop_predmety.kod_predmetu LIKE '%ponozk%'
+               AND product_variant.code LIKE '%ponozk%'
 
              UNION
 
              SELECT 0 AS poradi, CONCAT('Vr-Tasky') AS kod, 'tašky prodeje - kusy' AS nazev, COUNT(*) AS data -- BFSR ✅️
              FROM shop_nakupy
-                      JOIN shop_varianty_s_typem AS shop_predmety ON shop_predmety.id_varianty = shop_nakupy.variant_id
+                      JOIN product_variant ON product_variant.id = shop_nakupy.variant_id
              WHERE shop_nakupy.rok = $rocnik
-               AND shop_predmety.kod_predmetu LIKE '%task%'
+               AND product_variant.code LIKE '%task%'
 
              UNION
 
              SELECT 0 AS poradi, CONCAT('Xr-Jidla-Snidane') AS kod, 'snídaně placené - kusy' AS nazev, COUNT(*) AS data -- BFSR ✅️
              FROM shop_nakupy
-                      JOIN shop_varianty_s_typem AS shop_predmety ON shop_predmety.id_varianty = shop_nakupy.variant_id
+                      JOIN product_variant ON product_variant.id = shop_nakupy.variant_id
              WHERE shop_nakupy.rok = $rocnik
-               AND shop_predmety.kod_predmetu LIKE '%snidane%'
+               AND product_variant.code LIKE '%snidane%'
                AND NOT {$maPravoUzivatele('shop_nakupy.id_uzivatele', $jidloZdarma)} -- jidlo zdarma
 
              UNION
 
              SELECT 0 AS poradi, CONCAT('Xr-Jidla-Hlavni') AS kod, 'hl. jídla placené - kusy' AS nazev, COUNT(*) AS data -- BFSR ✅️
              FROM shop_nakupy
-                      JOIN shop_varianty_s_typem AS shop_predmety ON shop_predmety.id_varianty = shop_nakupy.variant_id
+                      JOIN product_variant ON product_variant.id = shop_nakupy.variant_id
              WHERE shop_nakupy.rok = $rocnik
-               AND (shop_predmety.kod_predmetu LIKE '%obed%' OR shop_predmety.kod_predmetu LIKE '%vecere%')
+               AND (product_variant.code LIKE '%obed%' OR product_variant.code LIKE '%vecere%')
                AND NOT {$maPravoUzivatele('shop_nakupy.id_uzivatele', $jidloZdarma)} -- jidlo zdarma
 
              UNION
@@ -625,9 +631,9 @@ FROM (SELECT MAX(data_rows.poradi) AS poradi, data_rows.kod, MAX(data_rows.nazev
                     'snídaně zdarma - kusy'          AS nazev,
                     COUNT(*)                         AS data -- BFSR ✅️
              FROM shop_nakupy
-                      JOIN shop_varianty_s_typem AS shop_predmety ON shop_predmety.id_varianty = shop_nakupy.variant_id
+                      JOIN product_variant ON product_variant.id = shop_nakupy.variant_id
              WHERE shop_nakupy.rok = $rocnik
-               AND shop_predmety.kod_predmetu LIKE '%snidane%'
+               AND product_variant.code LIKE '%snidane%'
                AND {$maPravoUzivatele('shop_nakupy.id_uzivatele', $jidloZdarma)} -- jidlo zdarma
 
              UNION
@@ -637,9 +643,9 @@ FROM (SELECT MAX(data_rows.poradi) AS poradi, data_rows.kod, MAX(data_rows.nazev
                     'hl. jídla zdarma - kusy'       AS nazev,
                     COUNT(*)                        AS data -- BFSR ✅️
              FROM shop_nakupy
-                      JOIN shop_varianty_s_typem AS shop_predmety ON shop_predmety.id_varianty = shop_nakupy.variant_id
+                      JOIN product_variant ON product_variant.id = shop_nakupy.variant_id
              WHERE shop_nakupy.rok = $rocnik
-               AND (shop_predmety.kod_predmetu LIKE '%obed%' OR shop_predmety.kod_predmetu LIKE '%vecere%')
+               AND (product_variant.code LIKE '%obed%' OR product_variant.code LIKE '%vecere%')
                AND {$maPravoUzivatele('shop_nakupy.id_uzivatele', $jidloZdarma)} -- jidlo zdarma
 
              UNION
@@ -649,9 +655,9 @@ FROM (SELECT MAX(data_rows.poradi) AS poradi, data_rows.kod, MAX(data_rows.nazev
                     'snídaně se slevou - kusy'      AS nazev,
                     COUNT(*)                        AS data -- BFSR ✅️
              FROM shop_nakupy
-                      JOIN shop_varianty_s_typem AS shop_predmety ON shop_predmety.id_varianty = shop_nakupy.variant_id
+                      JOIN product_variant ON product_variant.id = shop_nakupy.variant_id
              WHERE shop_nakupy.rok = $rocnik
-               AND shop_predmety.kod_predmetu LIKE '%snidane%'
+               AND product_variant.code LIKE '%snidane%'
                AND NOT {$maPravoUzivatele('shop_nakupy.id_uzivatele', $jidloZdarma)} -- jidlo zdarma
                AND {$maPravoUzivatele('shop_nakupy.id_uzivatele', $jidloSeSlevou)}   -- jidlo se slevou
 
@@ -662,9 +668,9 @@ FROM (SELECT MAX(data_rows.poradi) AS poradi, data_rows.kod, MAX(data_rows.nazev
                     'hl. jídla se slevou - kusy'   AS nazev,
                     COUNT(*)                       AS data -- BFSR ✅️
              FROM shop_nakupy
-                      JOIN shop_varianty_s_typem AS shop_predmety ON shop_predmety.id_varianty = shop_nakupy.variant_id
+                      JOIN product_variant ON product_variant.id = shop_nakupy.variant_id
              WHERE shop_nakupy.rok = $rocnik
-               AND (shop_predmety.kod_predmetu LIKE '%obed%' OR shop_predmety.kod_predmetu LIKE '%vecere%')
+               AND (product_variant.code LIKE '%obed%' OR product_variant.code LIKE '%vecere%')
                AND NOT {$maPravoUzivatele('shop_nakupy.id_uzivatele', $jidloZdarma)} -- jidlo zdarma
                AND {$maPravoUzivatele('shop_nakupy.id_uzivatele', $jidloSeSlevou)} -- jidlo se slevou
             )
@@ -992,6 +998,7 @@ FROM (SELECT MAX(data_rows.poradi) AS poradi, data_rows.kod, MAX(data_rows.nazev
       GROUP BY kod) export_data
 ORDER BY export_data.poradi
 SQL,
+    [0 => ProductTagCode::VSTUPNE->value, 1 => ProductTagCode::UBYTOVANI->value],
 );
 
 $report->tFormat(get('format'));
