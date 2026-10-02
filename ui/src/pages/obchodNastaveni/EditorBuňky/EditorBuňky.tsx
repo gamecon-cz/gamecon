@@ -62,7 +62,20 @@ export const EditorBuňky: FunctionComponent<TEditorBuňkyProps> = (props) => {
             }}
           ></input>
         </div>
-        {buňka.typ === "předmět" || buňka.typ === "stránka" ? (
+        {buňka.typ === "předmět" ? (
+          <select
+            style={{ width: "100%" }}
+            value={`${buňka.cilId}:${buňka.variantId ?? ""}`}
+            onChange={(e) => {
+              const [cilId, variantId] = e.currentTarget.value.split(":");
+              setBuňka({ ...buňka, cilId: Number(cilId), variantId: variantId === "" ? undefined : Number(variantId) });
+            }}
+          >
+            {cíle.předměty.map((x) => (
+              <option value={`${x.id}:${x.variantId ?? ""}`}>{x.text}</option>
+            ))}
+          </select>
+        ) : buňka.typ === "stránka" ? (
           <select
             style={{ width: "100%" }}
             value={buňka.cilId}
@@ -71,7 +84,7 @@ export const EditorBuňky: FunctionComponent<TEditorBuňkyProps> = (props) => {
               setBuňka({ ...buňka, cilId });
             }}
           >
-            {cíle[buňka.typ === "předmět" ? "předměty" : "mřížky"].map((x) => (
+            {cíle.mřížky.map((x) => (
               <option value={x.id}>{x.text}</option>
             ))}
           </select>

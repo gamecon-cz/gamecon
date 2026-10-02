@@ -21,6 +21,8 @@ export type DefiniceObchodMřížkaBuňkaSpolečné = {
 export type DefiniceObchodMřížkaBuňkaPředmět = {
   typ: "předmět",
   cilId: number,
+  /** Velikost nebo noc, kterou buňka prodává; bez ní se vybírá při prodeji. */
+  variantId?: number,
 }
 
 export type DefiniceObchodMřížkaBuňkaStránka = {

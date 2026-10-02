@@ -34,6 +34,7 @@ type ApiKfcGrid = {
     barva: string | null,
     barvaText: string | null,
     cilId: number | null,
+    variantId?: number | null,
   }[],
 };
 
@@ -52,6 +53,7 @@ export const fetchMřížky = async (): Promise<DefiniceObchod | null> => {
           (cell) => ({
             typ: DefiniceObchodMřížkaBuňkaTyp[cell.typ] as string,
             cilId: cell.cilId ?? undefined,
+            variantId: cell.variantId ?? undefined,
             text: cell.text ?? undefined,
             barvaPozadí: cell.barva ?? undefined,
             barvaText: cell.barvaText ?? undefined,
@@ -80,6 +82,7 @@ export const fetchNastavMřížky = async (obchod: DefiniceObchod) => {
         cilId: (cell as (
           DefiniceObchodMřížkaBuňkaPředmět | DefiniceObchodMřížkaBuňkaStránka
         ))?.cilId,
+        variantId: cell.typ === "předmět" ? cell.variantId : undefined,
         text: cell.text,
         typ: DefiniceObchodMřížkaBuňkaTyp[cell.typ],
       }))

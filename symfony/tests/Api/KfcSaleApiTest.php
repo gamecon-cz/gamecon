@@ -204,6 +204,68 @@ class KfcSaleApiTest extends AbstractDatabaseKernelTestCase
         ];
     }
 
+    /**
+     * A grid cell sells one size, as it did when every size was an item of its own.
+     */
+    public function testBunkaMrizkyDrziVelikost(): void
+    {
+        $predmet = $this->vytvorPredmet([
+            'S'  => 5,
+            'XL' => 5,
+        ]);
+        $idXl = (int) $this->varianta($predmet, 'XL')->getId();
+        $client = $this->adminClient();
+
+        $ulozeni = $this->ulozMrizku($client, (int) $predmet->getId(), $idXl);
+        self::assertSame(201, $ulozeni['status'], $ulozeni['telo']);
+
+        $mrizky = json_decode($client->request('GET', '/symfony/api/kfc/grids')->getContent(), true, flags: JSON_THROW_ON_ERROR);
+        $bunky = array_merge(...array_column($mrizky['hydra:member'] ?? $mrizky['member'], 'bunky'));
+        $bunka = array_values(array_filter($bunky, static fn (array $bunka): bool => $bunka['cilId'] === (int) $predmet->getId()));
+        self::assertCount(1, $bunka);
+        self::assertSame($idXl, $bunka[0]['variantId'] ?? null);
+    }
+
+    public function testBunkaMrizkyNeprijmeVariantuCizihoPredmetu(): void
+    {
+        $predmet = $this->vytvorPredmet([
+            'S' => 5,
+        ]);
+        $cizi = $this->vytvorPredmet([
+            'M' => 5,
+        ]);
+
+        $ulozeni = $this->ulozMrizku($this->adminClient(), (int) $predmet->getId(), (int) $this->varianta($cizi, 'M')->getId());
+
+        self::assertSame(400, $ulozeni['status'], $ulozeni['telo']);
+        self::assertStringContainsString('nepatří k produktu', $ulozeni['telo']);
+    }
+
+    /**
+     * @return array{status: int, telo: string}
+     */
+    private function ulozMrizku(Client $client, int $idPredmetu, int $idVarianty): array
+    {
+        $response = $client->request('POST', '/symfony/api/kfc/grids', [
+            'json' => [
+                'grids' => [[
+                    'id'    => -1,
+                    'text'  => 'Velikosti',
+                    'bunky' => [[
+                        'typ'       => 0,
+                        'cilId'     => $idPredmetu,
+                        'variantId' => $idVarianty,
+                    ]],
+                ]],
+            ],
+        ]);
+
+        return [
+            'status' => $response->getStatusCode(),
+            'telo'   => $response->getContent(false),
+        ];
+    }
+
     public function testProdaZvolenouVelikost(): void
     {
         $predmet = $this->vytvorPredmet([

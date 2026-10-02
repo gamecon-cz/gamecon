@@ -196,6 +196,12 @@ export const Obchod: FunctionComponent<TObchodProps> = (props) => {
         break;
       case "předmět": {
         const předmět = předmětyVšechny.find((x) => x.id === buňka.cilId);
+        const varianta = předmět?.varianty.find((x) => x.id === buňka.variantId);
+        if (varianta) {
+          setMřížka.shrnutí();
+          předmětPřidej(buňka.cilId, varianta);
+          break;
+        }
         // U víc variant se nejdřív vybírá velikost nebo noc — prodej bez ní neprojde.
         if (předmět && předmět.varianty.length > 1) {
           setVýběrVarianty(předmět);

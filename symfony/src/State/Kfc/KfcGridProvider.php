@@ -30,7 +30,7 @@ readonly class KfcGridProvider implements ProviderInterface
         );
 
         $cells = $this->connection->fetchAllAssociative(
-            'SELECT obchod_bunky.id, obchod_bunky.typ, obchod_bunky.text, obchod_bunky.barva, obchod_bunky.barva_text, obchod_bunky.cil_id, obchod_bunky.mrizka_id FROM obchod_bunky ORDER BY obchod_bunky.id',
+            'SELECT obchod_bunky.id, obchod_bunky.typ, obchod_bunky.text, obchod_bunky.barva, obchod_bunky.barva_text, obchod_bunky.cil_id, obchod_bunky.variant_id, obchod_bunky.mrizka_id FROM obchod_bunky ORDER BY obchod_bunky.id',
         );
 
         $cellsByGrid = [];
@@ -43,6 +43,7 @@ readonly class KfcGridProvider implements ProviderInterface
                 barva: $cell['barva'],
                 barvaText: $cell['barva_text'],
                 cilId: $cell['cil_id'] !== null ? (int) $cell['cil_id'] : null,
+                variantId: $cell['variant_id'] !== null ? (int) $cell['variant_id'] : null,
             );
         }
 

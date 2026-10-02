@@ -47,6 +47,7 @@ class KfcGridProviderTest extends TestCase
                         'barva'      => '#f4bb57',
                         'barva_text' => '#000',
                         'cil_id'     => '42',
+                        'variant_id' => null,
                         'mrizka_id'  => '1',
                     ],
                     [
@@ -56,6 +57,7 @@ class KfcGridProviderTest extends TestCase
                         'barva'      => '#ff0000',
                         'barva_text' => null,
                         'cil_id'     => '2',
+                        'variant_id' => null,
                         'mrizka_id'  => '1',
                     ],
                     [
@@ -65,6 +67,7 @@ class KfcGridProviderTest extends TestCase
                         'barva'      => null,
                         'barva_text' => null,
                         'cil_id'     => null,
+                        'variant_id' => null,
                         'mrizka_id'  => '2',
                     ],
                 ],

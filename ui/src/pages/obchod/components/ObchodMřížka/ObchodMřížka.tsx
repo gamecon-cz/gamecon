@@ -26,25 +26,33 @@ export const ObchodMřížka: FunctionComponent<TObchodMřížkaProps> = (props)
               ? všechnyPředměty.find((y) => y.id === buňka.cilId)
               : undefined;
 
-          const text = !buňka.text && předmět ? předmět.název : buňka.text;
-          const cena = předmět?.cena ? předmět.cena + "Kč" : "";
+          const varianta = buňka.typ === "předmět" && buňka.variantId !== undefined
+            ? předmět?.varianty.find((x) => x.id === buňka.variantId)
+            : undefined;
+
+          const text = !buňka.text && předmět
+            ? [předmět.název, varianta?.název].filter(Boolean).join(" ")
+            : buňka.text;
+          const cenaKs = varianta?.cena ?? předmět?.cena;
+          const cena = cenaKs ? cenaKs + "Kč" : "";
 
           // U víc variant drží počty varianty, takže se sčítají; `zbývá` produktu je NULL
           // a samo o sobě by znamenalo „neomezeně".
           const máVarianty = (předmět?.varianty.length ?? 0) > 1;
-          const zbýváCelkem = máVarianty
+          const zbýváCelkem = varianta
+            ? varianta.zbývá
+            : máVarianty
             ? předmět!.varianty.reduce<number | null>(
-              (součet, varianta) =>
-                součet === null || varianta.zbývá === null ? null : součet + varianta.zbývá,
+              (součet, velikost) =>
+                součet === null || velikost.zbývá === null ? null : součet + velikost.zbývá,
               0,
             )
             : předmět?.zbývá ?? null;
 
           const vyprodáno = předmět !== undefined && zbýváCelkem !== null && zbýváCelkem <= 0;
-          // Prodává se vždycky varianta, takže předmět bez variant prodat nejde — na
-          // mřížkách je jich 28 z doby, kdy velikosti byly samostatné předměty. Archivní
-          // je na starší mřížce taky nakonfigurovaný a taky ho prodej odmítne; bez těchhle
-          // dvou by buňka šla kliknout a spadlo by to až na serveru.
+          // Prodává se vždycky varianta, takže předmět bez variant prodat nejde. Archivní je
+          // na starší mřížce taky nakonfigurovaný a taky ho prodej odmítne; bez těchhle dvou
+          // by buňka šla kliknout a spadlo by to až na serveru.
           // Jen buňka s předmětem; „shrnutí", „zpět" a odkaz na jinou mřížku nic
           // neprodávají a zašednout nesmí.
           const nelzeProdat = buňka.typ === "předmět" && (

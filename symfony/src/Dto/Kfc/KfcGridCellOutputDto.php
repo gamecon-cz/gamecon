@@ -13,6 +13,7 @@ class KfcGridCellOutputDto
         public readonly ?string $barva,
         public readonly ?string $barvaText,
         public readonly ?int $cilId,
+        public readonly ?int $variantId = null,
     ) {
     }
 }

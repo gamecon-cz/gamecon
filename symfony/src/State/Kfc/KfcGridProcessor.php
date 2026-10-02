@@ -8,7 +8,10 @@ use ApiPlatform\Metadata\Operation;
 use ApiPlatform\State\ProcessorInterface;
 use App\Dto\Kfc\KfcGridInputDto;
 use App\Dto\Kfc\KfcGridOutputDto;
+use App\Exception\InvalidRequestException;
+use Doctrine\DBAL\ArrayParameterType;
 use Doctrine\DBAL\Connection;
+use Symfony\Contracts\Translation\TranslatorInterface;
 
 /**
  * Saves KFC grid configuration. Handles negative IDs for newly created grids.
@@ -20,6 +23,7 @@ readonly class KfcGridProcessor implements ProcessorInterface
     public function __construct(
         private Connection $connection,
         private KfcGridProvider $gridProvider,
+        private TranslatorInterface $translator,
     ) {
     }
 
@@ -28,6 +32,10 @@ readonly class KfcGridProcessor implements ProcessorInterface
      */
     public function process(mixed $data, Operation $operation, array $uriVariables = [], array $context = []): array
     {
+        // Before anything is written: the grids are saved statement by statement, so a refusal
+        // halfway would leave some of them saved.
+        $this->refuseVariantsOfOtherProducts($data);
+
         $idMapping = []; // maps negative (temp) IDs → real DB IDs
 
         foreach ($data->grids as $gridInput) {
@@ -73,13 +81,14 @@ readonly class KfcGridProcessor implements ProcessorInterface
                 }
 
                 $this->connection->executeStatement(
-                    'INSERT INTO obchod_bunky (typ, text, barva, barva_text, cil_id, mrizka_id) VALUES (:typ, :text, :barva, :barvaText, :cilId, :gridId)',
+                    'INSERT INTO obchod_bunky (typ, text, barva, barva_text, cil_id, variant_id, mrizka_id) VALUES (:typ, :text, :barva, :barvaText, :cilId, :variantId, :gridId)',
                     [
                         'typ'       => $cellInput->typ,
                         'text'      => $cellInput->text,
                         'barva'     => $cellInput->barva,
                         'barvaText' => $cellInput->barvaText,
                         'cilId'     => $targetId,
+                        'variantId' => $cellInput->variantId,
                         'gridId'    => $gridId,
                     ],
                 );
@@ -88,5 +97,39 @@ readonly class KfcGridProcessor implements ProcessorInterface
 
         // Return fresh grid data
         return $this->gridProvider->provide($operation);
+    }
+
+    private function refuseVariantsOfOtherProducts(KfcGridInputDto $data): void
+    {
+        $productOfVariant = [];
+        foreach ($data->grids as $gridInput) {
+            foreach ($gridInput->bunky as $cellInput) {
+                if ($cellInput->variantId !== null) {
+                    $productOfVariant[$cellInput->variantId] = null;
+                }
+            }
+        }
+        if ($productOfVariant === []) {
+            return;
+        }
+        $productOfVariant = array_map('intval', $this->connection->fetchAllKeyValue(
+            'SELECT id, product_id FROM product_variant WHERE id IN (:ids)',
+            [
+                'ids' => array_keys($productOfVariant),
+            ],
+            [
+                'ids' => ArrayParameterType::INTEGER,
+            ],
+        ));
+
+        foreach ($data->grids as $gridInput) {
+            foreach ($gridInput->bunky as $cellInput) {
+                if ($cellInput->variantId !== null && ($productOfVariant[$cellInput->variantId] ?? null) !== $cellInput->cilId) {
+                    throw new InvalidRequestException($this->translator->trans('kfc.variant_of_other_product', [
+                        '%variant%' => $cellInput->variantId, '%product%' => $cellInput->cilId,
+                    ], 'errors'));
+                }
+            }
+        }
     }
 }
