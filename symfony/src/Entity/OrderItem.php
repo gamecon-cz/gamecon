@@ -467,13 +467,14 @@ class OrderItem
         return preg_match('~(?<!\w)' . preg_quote($word, '~') . '(?!\w)~u', $name) === 1;
     }
 
-    /**
-     * Get display code (prefer snapshot, fallback to product)
-     */
     public function getDisplayCode(): string
     {
         if ($this->productCode !== null) {
             return $this->productCode;
+        }
+
+        if ($this->variant !== null) {
+            return $this->variant->getCode();
         }
 
         if ($this->product instanceof Product) {

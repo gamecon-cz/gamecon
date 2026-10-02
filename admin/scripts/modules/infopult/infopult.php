@@ -318,26 +318,8 @@ if ($uPracovni) {
 
 // načtení předmětů a form s rychloprodejem předmětů, fixme
 $rocnik = $systemoveNastaveni->rocnik();
-$typUbytovani = TypPredmetu::UBYTOVANI;
-$o = dbQuery(
-    <<<SQL
-  SELECT
-    CONCAT(nazev,' ',model_rok) as nazev,
-    kusu_vyrobeno-count(n.id_predmetu) as zbyva,
-    p.id_predmetu,
-    ROUND(p.cena_aktualni) as cena
-  FROM shop_predmety_s_typem p
-  LEFT JOIN shop_nakupy n ON(n.id_predmetu=p.id_predmetu AND n.rok = {$rocnik})
-  WHERE p.stav > 0
-    AND p.model_rok = {$rocnik}
-    AND EXISTS (SELECT 1 FROM product_variant WHERE product_variant.code = p.kod_predmetu)
-    AND (p.typ <> {$typUbytovani} OR p.ubytovani_den IS NOT NULL)
-  GROUP BY p.id_predmetu
-  ORDER BY nazev
-SQL,
-);
 $moznosti = '<option value="">(vyber)</option>';
-while ($r = $o->fetch(PDO::FETCH_ASSOC)) {
+foreach (\Gamecon\Shop\Shop::polozkyRychlehoProdeje($rocnik) as $r) {
     $zbyva = $r['zbyva'] === null ? '&infin;' : $r['zbyva'];
     $moznosti .= '<option value="' . $r['id_predmetu'] . '"' . ($r['zbyva'] > 0 || $r['zbyva'] === null ? '' : ' disabled') . '>' . $r['nazev'] . ' (' . $zbyva . ') ' . $r['cena'] . '&thinsp;Kč</option>';
 }
