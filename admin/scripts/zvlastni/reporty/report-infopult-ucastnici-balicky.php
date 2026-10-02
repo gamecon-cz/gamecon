@@ -1,75 +1,67 @@
 <?php
 require __DIR__ . '/sdilene-hlavicky.php';
 
-use Gamecon\Shop\Shop;
+use App\Enum\ProductTagCode;
 use Gamecon\XTemplate\XTemplate;
 use Gamecon\Role\Role;
 
 $t = new XTemplate(__DIR__ . '/report-infopult-ucastnici-balicky.xtpl');
 
-$typTricko                 = Shop::TRICKO;
-$typPredmet                = Shop::PREDMET;
-$typJidlo                  = Shop::JIDLO;
+$typTricko                 = '$0';
+$typPredmet                = '$1';
+$typJidlo                  = '$2';
 $rok                       = ROCNIK;
 $idckaRoliSOrganizatorySql = implode(',', Role::dejIdckaRoliSOrganizatory());
 
-$poddotazKoupenehoPredmetu = static function (string $klicoveSlovo, int $idTypuPredmetu, int $rok) {
+// $parametrTypu is the placeholder ($0, $1, …) carrying the category's tag code
+$poddotazKoupenehoPredmetu = static function (string $klicoveSlovo, string $parametrTypu, int $rok) {
     return <<<SQL
 (SELECT GROUP_CONCAT(pocet_a_nazev SEPARATOR '</li><li>')
-    FROM (SELECT CONCAT_WS('× ', COUNT(*), shop_predmety.nazev) AS pocet_a_nazev, shop_nakupy.id_uzivatele
+    FROM (SELECT CONCAT_WS('× ', COUNT(*), CONCAT_WS(' ', produkt.nazev, product_variant.name)) AS pocet_a_nazev, shop_nakupy.id_uzivatele
         FROM shop_nakupy
-            JOIN shop_varianty_s_typem AS shop_predmety ON shop_predmety.id_varianty = shop_nakupy.variant_id
-            WHERE shop_predmety.typ = {$idTypuPredmetu}
-                AND IF ('$klicoveSlovo' = '', TRUE, shop_predmety.nazev LIKE '%{$klicoveSlovo}%')
+            JOIN product_variant ON product_variant.id = shop_nakupy.variant_id
+            JOIN shop_predmety AS produkt ON produkt.id_predmetu = product_variant.product_id
+            JOIN product_product_tag ON product_product_tag.product_id = produkt.id_predmetu
+            JOIN product_tag ON product_tag.id = product_product_tag.tag_id AND product_tag.code = {$parametrTypu}
+            WHERE IF ('$klicoveSlovo' = '', TRUE, CONCAT_WS(' ', produkt.nazev, product_variant.name) LIKE '%{$klicoveSlovo}%')
                 AND shop_nakupy.rok = {$rok}
-            GROUP BY shop_nakupy.id_uzivatele, shop_predmety.nazev) AS pocet_a_druh
+            GROUP BY shop_nakupy.id_uzivatele, CONCAT_WS(' ', produkt.nazev, product_variant.name)) AS pocet_a_druh
     WHERE pocet_a_druh.id_uzivatele = uzivatele_hodnoty.id_uzivatele
 )
 SQL;
 };
 
-$poddotazOstatnichKoupeneychPredmetu = static function (array $mimoKlicovaSlova, int $idTypuPredmetu, int $rok) {
+$poddotazOstatnichKoupeneychPredmetu = static function (array $mimoKlicovaSlova, string $parametrTypu, int $rok) {
     $mimoKlicovaSlovaSql = implode(' AND ', array_map(static function (string $klicoveSlovo) {
-        return "shop_predmety.nazev NOT LIKE '%{$klicoveSlovo}%'";
+        return "CONCAT_WS(' ', produkt.nazev, product_variant.name) NOT LIKE '%{$klicoveSlovo}%'";
     }, $mimoKlicovaSlova));
     return <<<SQL
 (SELECT GROUP_CONCAT(pocet_a_nazev SEPARATOR '</li><li>')
-    FROM (SELECT CONCAT_WS('× ', COUNT(*), shop_predmety.nazev) AS pocet_a_nazev, shop_nakupy.id_uzivatele
+    FROM (SELECT CONCAT_WS('× ', COUNT(*), CONCAT_WS(' ', produkt.nazev, product_variant.name)) AS pocet_a_nazev, shop_nakupy.id_uzivatele
         FROM shop_nakupy
-            JOIN shop_varianty_s_typem AS shop_predmety ON shop_predmety.id_varianty = shop_nakupy.variant_id
-            WHERE shop_predmety.typ = {$idTypuPredmetu}
-                AND ($mimoKlicovaSlovaSql)
+            JOIN product_variant ON product_variant.id = shop_nakupy.variant_id
+            JOIN shop_predmety AS produkt ON produkt.id_predmetu = product_variant.product_id
+            JOIN product_product_tag ON product_product_tag.product_id = produkt.id_predmetu
+            JOIN product_tag ON product_tag.id = product_product_tag.tag_id AND product_tag.code = {$parametrTypu}
+            WHERE ($mimoKlicovaSlovaSql)
                 AND shop_nakupy.rok = {$rok}
-            GROUP BY shop_nakupy.id_uzivatele, shop_predmety.nazev) AS pocet_a_druh
+            GROUP BY shop_nakupy.id_uzivatele, CONCAT_WS(' ', produkt.nazev, product_variant.name)) AS pocet_a_druh
     WHERE pocet_a_druh.id_uzivatele = uzivatele_hodnoty.id_uzivatele
 )
 SQL;
 };
 
-$kopilNecoSql = static function (array $typyPredmetu, int $rok) {
-    $typyPredmetuSql = implode(',', array_map('intval', $typyPredmetu));
-    return <<<SQL
-EXISTS(
-    SELECT 1
-    FROM shop_predmety_s_typem AS shop_predmety
-        JOIN shop_nakupy ON shop_predmety.id_predmetu = shop_nakupy.id_predmetu
-    WHERE shop_nakupy.id_uzivatele = uzivatele_hodnoty.id_uzivatele
-        AND shop_nakupy.rok = $rok
-        AND shop_predmety.typ IN ($typyPredmetuSql)
-)
-SQL;
-};
-
-$kolikTypuNakoupil = static function (array $typyPredmetu, int $rok) {
-    $typyPredmetuSql = implode(',', array_map('intval', $typyPredmetu));
+$kolikTypuNakoupil = static function (array $parametryTypu, int $rok) {
+    $parametryTypuSql = implode(', ', $parametryTypu);
     return <<<SQL
     (
         SELECT count(distinct(shop_nakupy.variant_id))
-        FROM shop_varianty_s_typem AS shop_predmety
-            JOIN shop_nakupy ON shop_nakupy.variant_id = shop_predmety.id_varianty
+        FROM shop_nakupy
+            JOIN product_variant ON product_variant.id = shop_nakupy.variant_id
+            JOIN product_product_tag ON product_product_tag.product_id = product_variant.product_id
+            JOIN product_tag ON product_tag.id = product_product_tag.tag_id AND product_tag.code IN ($parametryTypuSql)
         WHERE shop_nakupy.id_uzivatele = uzivatele_hodnoty.id_uzivatele
             AND shop_nakupy.rok = $rok
-            AND shop_predmety.typ IN ($typyPredmetuSql)
     )
     SQL;
 };
@@ -96,12 +88,15 @@ LEFT JOIN platne_role_uzivatelu AS role_organizatoru
 WHERE uzivatele_hodnoty.id_uzivatele IN (
     SELECT DISTINCT(sn.id_uzivatele)
     FROM shop_nakupy AS sn
-    JOIN shop_predmety_s_typem AS sp ON sp.id_predmetu = sn.id_predmetu AND sp.typ IN ({$typTricko}, {$typPredmet})
+    JOIN product_variant ON product_variant.id = sn.variant_id
+    JOIN product_product_tag ON product_product_tag.product_id = product_variant.product_id
+    JOIN product_tag ON product_tag.id = product_product_tag.tag_id AND product_tag.code IN ({$typTricko}, {$typPredmet})
     WHERE sn.rok = $rok
 )
 GROUP BY uzivatele_hodnoty.id_uzivatele
 ORDER BY uzivatele_hodnoty.id_uzivatele
 SQL,
+    [0 => ProductTagCode::TRICKO->value, 1 => ProductTagCode::PREDMET->value, 2 => ProductTagCode::JIDLO->value],
 );
 
 $fn = static function ($radek) use ($t) {

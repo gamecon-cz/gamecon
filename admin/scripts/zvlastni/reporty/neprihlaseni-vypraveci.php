@@ -1,6 +1,6 @@
 <?php
 
-use Gamecon\Shop\Shop;
+use App\Enum\ProductTagCode;
 use Gamecon\Role\Role;
 use Gamecon\Pravo;
 
@@ -39,7 +39,9 @@ $report = Report::zSql('
     ) akt ON (akt.id_uzivatele = z.id_uzivatele)
   LEFT JOIN (
       SELECT id_uzivatele FROM shop_nakupy sn
-      JOIN shop_predmety_s_typem sp ON (sp.id_predmetu = sn.id_predmetu AND sp.typ = ' . Shop::UBYTOVANI . ')
+      JOIN product_variant ON (product_variant.id = sn.variant_id)
+      JOIN product_product_tag ON (product_product_tag.product_id = product_variant.product_id)
+      JOIN product_tag ON (product_tag.id = product_product_tag.tag_id AND product_tag.code = $0)
       WHERE sn.rok = ' . ROCNIK . '
       GROUP BY sn.id_uzivatele
     ) ub ON (ub.id_uzivatele = z.id_uzivatele)
@@ -50,6 +52,6 @@ $report = Report::zSql('
     )
   GROUP BY u.id_uzivatele
   ORDER BY sekce, nazev_role, prijmeni_uzivatele, jmeno_uzivatele
-');
+', [0 => ProductTagCode::UBYTOVANI->value]);
 
 $report->tFormat(get('format'));
