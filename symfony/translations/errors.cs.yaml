@@ -24,7 +24,7 @@ accommodation:
     night_full: 'Ubytování „%product%" na %night% je obsazené.'
 
 accommodation_import:
-    type_not_unique: 'Nepodařilo se jednoznačně dohledat ubytování typu "%type%" pro %days%. Nalezeno %found% předmětů.'
+    type_not_unique: 'Nepodařilo se jednoznačně dohledat ubytování typu "%type%" pro %days%. Nalezeno %found% nocí.'
     days: '{0}%count% dnů|{1}%count% den|[2,4]%count% dny|[5,Inf[%count% dnů'
     incomplete_night_range: 'První a poslední noc musí být buďto obě prázdné, nebo obě zadané: první noc %first%, poslední noc %last%'
     participant_not_found: 'Účastník %id% neexistuje.'

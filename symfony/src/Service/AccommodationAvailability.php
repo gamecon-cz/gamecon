@@ -19,9 +19,7 @@ readonly class AccommodationAvailability
     }
 
     /**
-     * Klíčem je **kód varianty**, ne id. Kód je to jediné, co obě strany umí odvodit:
-     * varianta nese týž `kod_predmetu` jako řádek své noci, kdežto `product_id` ukazuje na
-     * nedělní noc, která variantám dělá rodiče.
+     * Klíčem je **kód varianty**, ne id: podle kódu noci se dostupnost čte i na straně košíku.
      *
      * @return array<string, AccommodationNightAvailability>
      */
@@ -51,7 +49,7 @@ readonly class AccommodationAvailability
 
             $dostupnost[$kod] = $this->noc(
                 vyrobeno: $noc['vyrobeno'] ?? null,
-                // Stav noci, ne typu pokoje: ten zůstává pozastavený, i když se jeho noci prodávají.
+                // Stav noci, ne typu pokoje: ten sám v prodeji není, i když se jeho noci prodávají.
                 nabizeno: $noc['nabizeno'] ?? false,
                 rezervovano: $noc['rezervovano'] ?? null,
                 prodano: $prodano[$id] ?? 0,

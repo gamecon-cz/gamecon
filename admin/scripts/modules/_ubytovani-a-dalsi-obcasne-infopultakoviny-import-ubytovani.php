@@ -150,7 +150,7 @@ while ($rowIterator->valid()) {
 
         $idsUbytovani = []; // prázdný seznam = smazat všechny letošní noci účastníka
         if (($prvniNoc ?? $posledniNoc) !== null && count($typy) === 1) {
-            // "typ" z reportu je kód předmětu bez poslední 3znakové přípony dne
+            // "typ" z reportu je kód noci bez poslední 3znakové přípony dne
             // (viz finance-report-ubytovani.php); dohledáme podle něj + dnů, nezávisle
             // na názvu předmětu.
             try {
