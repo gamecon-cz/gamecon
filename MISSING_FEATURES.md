@@ -353,7 +353,7 @@ if (Predmet::jeToKostka($r['kod_predmetu'])) {
 - Trasovatelnost, kdo provedl objednávku
 
 **Metoda:**
-- `Shop::prodat($idPredmetu, $kusu, $vcetneOznamemi)` - admin prodej
+- `Shop::prodat($idVarianty, $kusu, $vcetneOznamemi)` - admin prodej
 
 **V NEW_ESHOP.md:** Není zmíněno
 
