@@ -135,22 +135,22 @@ SQL,
                     archivedAt: "{$minulyRocnik}-12-31 23:59:59");
 
                 // Purchases for user 77701 — one of each relevant type
-                dbQuery('INSERT INTO shop_nakupy(id_uzivatele, id_predmetu, variant_id, rok, cena_nakupni, datum)
-                    VALUES (77701, 77711, ' . sprintf(self::SQL_VARIANTA_RADKU, 77711) . ", {$rocnik}, 50, NOW())");  // predmet
-                dbQuery('INSERT INTO shop_nakupy(id_uzivatele, id_predmetu, variant_id, rok, cena_nakupni, datum)
-                    VALUES (77701, 77713, ' . sprintf(self::SQL_VARIANTA_RADKU, 77713) . ", {$rocnik}, 100, NOW())"); // ubytovani
-                dbQuery('INSERT INTO shop_nakupy(id_uzivatele, id_predmetu, variant_id, rok, cena_nakupni, datum)
-                    VALUES (77701, 77715, ' . sprintf(self::SQL_VARIANTA_RADKU, 77715) . ", {$rocnik}, 250, NOW())"); // tricko
-                dbQuery('INSERT INTO shop_nakupy(id_uzivatele, id_predmetu, variant_id, rok, cena_nakupni, datum)
-                    VALUES (77701, 77716, ' . sprintf(self::SQL_VARIANTA_RADKU, 77716) . ", {$rocnik}, 120, NOW())"); // jidlo
-                dbQuery('INSERT INTO shop_nakupy(id_uzivatele, id_predmetu, variant_id, rok, cena_nakupni, datum)
-                    VALUES (77701, 77718, ' . sprintf(self::SQL_VARIANTA_RADKU, 77718) . ", {$rocnik}, 200, NOW())"); // vstupne
+                dbQuery('INSERT INTO shop_nakupy(id_uzivatele, variant_id, rok, cena_nakupni, datum)
+                    VALUES (77701, ' . sprintf(self::SQL_VARIANTA_RADKU, 77711) . ", {$rocnik}, 50, NOW())");  // predmet
+                dbQuery('INSERT INTO shop_nakupy(id_uzivatele, variant_id, rok, cena_nakupni, datum)
+                    VALUES (77701, ' . sprintf(self::SQL_VARIANTA_RADKU, 77713) . ", {$rocnik}, 100, NOW())"); // ubytovani
+                dbQuery('INSERT INTO shop_nakupy(id_uzivatele, variant_id, rok, cena_nakupni, datum)
+                    VALUES (77701, ' . sprintf(self::SQL_VARIANTA_RADKU, 77715) . ", {$rocnik}, 250, NOW())"); // tricko
+                dbQuery('INSERT INTO shop_nakupy(id_uzivatele, variant_id, rok, cena_nakupni, datum)
+                    VALUES (77701, ' . sprintf(self::SQL_VARIANTA_RADKU, 77716) . ", {$rocnik}, 120, NOW())"); // jidlo
+                dbQuery('INSERT INTO shop_nakupy(id_uzivatele, variant_id, rok, cena_nakupni, datum)
+                    VALUES (77701, ' . sprintf(self::SQL_VARIANTA_RADKU, 77718) . ", {$rocnik}, 200, NOW())"); // vstupne
 
                 // Purchases for user 77702 — predmet + jidlo (for bulk cancellation test)
-                dbQuery('INSERT INTO shop_nakupy(id_uzivatele, id_predmetu, variant_id, rok, cena_nakupni, datum)
-                    VALUES (77702, 77711, ' . sprintf(self::SQL_VARIANTA_RADKU, 77711) . ", {$rocnik}, 50, NOW())");  // predmet
-                dbQuery('INSERT INTO shop_nakupy(id_uzivatele, id_predmetu, variant_id, rok, cena_nakupni, datum)
-                    VALUES (77702, 77716, ' . sprintf(self::SQL_VARIANTA_RADKU, 77716) . ", {$rocnik}, 120, NOW())"); // jidlo
+                dbQuery('INSERT INTO shop_nakupy(id_uzivatele, variant_id, rok, cena_nakupni, datum)
+                    VALUES (77702, ' . sprintf(self::SQL_VARIANTA_RADKU, 77711) . ", {$rocnik}, 50, NOW())");  // predmet
+                dbQuery('INSERT INTO shop_nakupy(id_uzivatele, variant_id, rok, cena_nakupni, datum)
+                    VALUES (77702, ' . sprintf(self::SQL_VARIANTA_RADKU, 77716) . ", {$rocnik}, 120, NOW())"); // jidlo
             },
         ];
     }
@@ -292,13 +292,13 @@ SQL,
 
         // Verify user has both PREDMET and JIDLO purchases
         $predPredmety = (int) dbOneCol(
-            'SELECT COUNT(*) FROM shop_nakupy WHERE id_uzivatele = 77702 AND id_predmetu = 77711 AND rok = $0',
+            'SELECT COUNT(*) FROM shop_nakupy INNER JOIN product_variant ON product_variant.id = shop_nakupy.variant_id WHERE id_uzivatele = 77702 AND product_variant.product_id = 77711 AND rok = $0',
             [
                 0 => ROCNIK,
             ],
         );
         $predJidlo = (int) dbOneCol(
-            'SELECT COUNT(*) FROM shop_nakupy WHERE id_uzivatele = 77702 AND id_predmetu = 77716 AND rok = $0',
+            'SELECT COUNT(*) FROM shop_nakupy INNER JOIN product_variant ON product_variant.id = shop_nakupy.variant_id WHERE id_uzivatele = 77702 AND product_variant.product_id = 77716 AND rok = $0',
             [
                 0 => ROCNIK,
             ],
@@ -311,7 +311,7 @@ SQL,
 
         // JIDLO purchases should be gone
         $poJidlo = (int) dbOneCol(
-            'SELECT COUNT(*) FROM shop_nakupy WHERE id_uzivatele = 77702 AND id_predmetu = 77716 AND rok = $0',
+            'SELECT COUNT(*) FROM shop_nakupy INNER JOIN product_variant ON product_variant.id = shop_nakupy.variant_id WHERE id_uzivatele = 77702 AND product_variant.product_id = 77716 AND rok = $0',
             [
                 0 => ROCNIK,
             ],
@@ -320,7 +320,7 @@ SQL,
 
         // PREDMET purchases should remain
         $poPredmety = (int) dbOneCol(
-            'SELECT COUNT(*) FROM shop_nakupy WHERE id_uzivatele = 77702 AND id_predmetu = 77711 AND rok = $0',
+            'SELECT COUNT(*) FROM shop_nakupy INNER JOIN product_variant ON product_variant.id = shop_nakupy.variant_id WHERE id_uzivatele = 77702 AND product_variant.product_id = 77711 AND rok = $0',
             [
                 0 => ROCNIK,
             ],

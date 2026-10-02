@@ -96,7 +96,6 @@ SQL,
         dbQuery(<<<SQL
 INSERT INTO shop_nakupy SET
     id_uzivatele = $0,
-    id_predmetu = $1,
     variant_id = {$varianta},
     rok = $2,
     cena_nakupni = (SELECT cena_aktualni FROM shop_predmety WHERE id_predmetu = $1),
@@ -113,7 +112,7 @@ SQL,
     private function jeObjednan(int $idUzivatele, int $idPredmetu): bool
     {
         return (int) dbOneCol(
-            'SELECT COUNT(*) FROM shop_nakupy WHERE id_uzivatele = $0 AND id_predmetu = $1 AND rok = $2',
+            'SELECT COUNT(*) FROM shop_nakupy INNER JOIN product_variant ON product_variant.id = shop_nakupy.variant_id WHERE id_uzivatele = $0 AND product_variant.product_id = $1 AND rok = $2',
             [
                 0 => $idUzivatele,
                 1 => $idPredmetu,
@@ -176,7 +175,7 @@ SQL,
             ],
         );
         $zruseny = dbFetchAll(
-            'SELECT product_name, product_code FROM shop_nakupy_zrusene WHERE id_uzivatele = $0 AND id_predmetu = $1',
+            'SELECT product_name, product_code FROM shop_nakupy_zrusene INNER JOIN product_variant ON product_variant.id = shop_nakupy_zrusene.variant_id WHERE id_uzivatele = $0 AND product_variant.product_id = $1',
             [
                 0 => $uzivatel->id(),
                 1 => $idMerch,
@@ -200,7 +199,7 @@ SQL,
         $idMerch = $this->vytvorPredmet('Predmet', TypPredmetu::PREDMET);
         $this->objednejPredmet($uzivatel->id(), $idMerch);
         dbQuery(
-            'UPDATE shop_nakupy SET product_name = $0, variant_name = $0, product_code = $1 WHERE id_uzivatele = $2 AND id_predmetu = $3',
+            'UPDATE shop_nakupy INNER JOIN product_variant ON product_variant.id = shop_nakupy.variant_id SET product_name = $0, variant_name = $0, product_code = $1 WHERE id_uzivatele = $2 AND product_variant.product_id = $3',
             [
                 0 => 'Tricko ucastnicke XXXL',
                 1 => 'tricko_xxxl',
@@ -213,7 +212,7 @@ SQL,
             ->zrusZrusitelneLetosniObjednavky('test');
 
         $zruseny = dbFetchAll(
-            'SELECT product_name, product_code FROM shop_nakupy_zrusene WHERE id_uzivatele = $0 AND id_predmetu = $1',
+            'SELECT product_name, product_code FROM shop_nakupy_zrusene INNER JOIN product_variant ON product_variant.id = shop_nakupy_zrusene.variant_id WHERE id_uzivatele = $0 AND product_variant.product_id = $1',
             [
                 0 => $uzivatel->id(),
                 1 => $idMerch,

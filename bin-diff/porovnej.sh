@@ -37,13 +37,37 @@ fi
 # Anonymní nákupy: migrace anonymous-buyer je přeřadila ze SYSTEM (1) na ANONYM (0).
 # Je to záměrná změna, tak se obě strany srovnávají na id 1, jinak by 24 řádků hlásilo
 # rozdíl při každém běhu a skutečné nálezy by se v tom ztratily.
-PRUMET_NAKUPY="
-SELECT CONCAT_WS('|', IF(n.id_uzivatele = 0, 1, n.id_uzivatele), n.id_predmetu, n.rok,
+#
+# Koupenou věc nese na legacy řádek katalogu, na nové větvi varianta (nákup už `id_predmetu`
+# nemá), takže se obě strany srovnávají podle kódu. Kód varianty je kód původního řádku, jen
+# starší duplicity dostaly při převodu na varianty příponu `_<id původního řádku>`
+# (`kostka_fate_2021` → `kostka_fate_2021_646`); ta se na nové straně odřízne jen tehdy, když
+# zbytek je kódem jiné varianty — `ponozky_..._42_45` nebo `kostka_2022` tak zůstanou celé.
+PRUMET_NAKUPY_LEGACY="
+SELECT CONCAT_WS('|', IF(n.id_uzivatele = 0, 1, n.id_uzivatele), koupene.kod_predmetu, n.rok,
                  FORMAT(n.cena_nakupni, 2), COUNT(*))
 FROM shop_nakupy n
+INNER JOIN shop_predmety AS koupene ON koupene.id_predmetu = n.id_predmetu
 WHERE 1=1 $KDE_UZIVATEL
-GROUP BY IF(n.id_uzivatele = 0, 1, n.id_uzivatele), n.id_predmetu, n.rok, FORMAT(n.cena_nakupni, 2)
-ORDER BY n.id_uzivatele, n.id_predmetu, n.rok;"
+GROUP BY IF(n.id_uzivatele = 0, 1, n.id_uzivatele), koupene.kod_predmetu, n.rok, FORMAT(n.cena_nakupni, 2)
+ORDER BY IF(n.id_uzivatele = 0, 1, n.id_uzivatele), koupene.kod_predmetu, n.rok, FORMAT(n.cena_nakupni, 2);"
+PRUMET_NAKUPY_NOVY="
+SELECT CONCAT_WS('|', nakupy.uzivatel, nakupy.kod, nakupy.rok, nakupy.cena, COUNT(*))
+FROM (
+    SELECT IF(n.id_uzivatele = 0, 1, n.id_uzivatele) AS uzivatel,
+           IF(EXISTS (SELECT 1 FROM product_variant AS puvodni
+                      WHERE puvodni.code = REGEXP_REPLACE(koupene.code, '_[0-9]+\$', '')
+                        AND puvodni.id <> koupene.id),
+              REGEXP_REPLACE(koupene.code, '_[0-9]+\$', ''),
+              koupene.code) AS kod,
+           n.rok,
+           FORMAT(n.cena_nakupni, 2) AS cena
+    FROM shop_nakupy n
+    INNER JOIN product_variant AS koupene ON koupene.id = n.variant_id
+    WHERE 1=1 $KDE_UZIVATEL
+) AS nakupy
+GROUP BY nakupy.uzivatel, nakupy.kod, nakupy.rok, nakupy.cena
+ORDER BY nakupy.uzivatel, nakupy.kod, nakupy.rok, nakupy.cena;"
 
 # Filtr na uživatele musí platit i tady, jinak `porovnej.sh <id>` porovná jednoho člověka
 # v nákupech a celou tabulku v ubytování. Podmínky jdou do závorky — bez ní by `OR` uvnitř
@@ -69,10 +93,10 @@ vytahni() {
 }
 
 porovnej_cast() {
-    local nazev="$1" sql="$2"
+    local nazev="$1" sql_legacy="$2" sql_novy="${3:-$2}"
     # Volá se jako `porovnej_cast … || …`, takže uvnitř neplatí `set -e` a selhaný dotaz
     # by se jinak propsal jen jako prázdný soubor.
-    if ! vytahni "$LEGACY" "$OUT/legacy" "$sql" || ! vytahni "$NOVY" "$OUT/novy" "$sql"; then
+    if ! vytahni "$LEGACY" "$OUT/legacy" "$sql_legacy" || ! vytahni "$NOVY" "$OUT/novy" "$sql_novy"; then
         printf '  %-22s NEPROBĚHLO — dotaz selhal\n' "$nazev"
         return 1
     fi
@@ -105,6 +129,6 @@ echo "=== sémantické porovnání A (legacy) vs B (nový) ==="
 # Obě části projdou vždycky, ať je vidět celý obrázek, ale nenulový výsledek se musí
 # propsat do exit kódu — jinak `porovnej.sh && echo OK` ohlásí úspěch nad rozdílem.
 nalezen_rozdil=0
-porovnej_cast "nákupy" "$PRUMET_NAKUPY" || nalezen_rozdil=1
+porovnej_cast "nákupy" "$PRUMET_NAKUPY_LEGACY" "$PRUMET_NAKUPY_NOVY" || nalezen_rozdil=1
 porovnej_cast "ubytování/spolubydlící" "$PRUMET_UBYTOVANI" || nalezen_rozdil=1
 exit "$nalezen_rozdil"

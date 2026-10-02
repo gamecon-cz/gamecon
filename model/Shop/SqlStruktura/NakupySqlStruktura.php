@@ -11,7 +11,6 @@ class NakupySqlStruktura
     public const ID_NAKUPU = 'id_nakupu';
     public const ID_UZIVATELE = 'id_uzivatele';
     public const ID_OBJEDNATELE = 'id_objednatele';
-    public const ID_PREDMETU = 'id_predmetu';
     public const ROK = 'rok';
     public const CENA_NAKUPNI = 'cena_nakupni';
     public const DATUM = 'datum';

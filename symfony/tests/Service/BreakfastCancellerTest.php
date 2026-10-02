@@ -103,11 +103,10 @@ class BreakfastCancellerTest extends AbstractDatabaseKernelTestCase
     private function objednej(User $ucastnik, ProductVariant $varianta): void
     {
         $this->connection()->executeStatement(
-            'INSERT INTO shop_nakupy (id_uzivatele, id_predmetu, variant_id, rok, cena_nakupni, datum)
-             VALUES (:customer, :product, :variant, :year, :cena, NOW())',
+            'INSERT INTO shop_nakupy (id_uzivatele, variant_id, rok, cena_nakupni, datum)
+             VALUES (:customer, :variant, :year, :cena, NOW())',
             [
                 'customer' => $ucastnik->getId(),
-                'product'  => $varianta->getProduct()?->getId(),
                 'variant'  => $varianta->getId(),
                 'year'     => self::ROK,
                 'cena'     => $varianta->getPrice(),

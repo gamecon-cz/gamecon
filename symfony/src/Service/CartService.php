@@ -418,7 +418,6 @@ class CartService
 
         $item = new OrderItem();
         $item->setCustomer($order->getCustomer());
-        $item->setProduct($product);
         $item->setVariant($variant);
         $item->setBundle($bundle);
         $item->setYear($order->getYear());

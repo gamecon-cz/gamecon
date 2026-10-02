@@ -236,7 +236,6 @@ class CartServiceTest extends TestCase
         $variant = $this->createVariant($product, 'M', 'TRICKO-M');
 
         $item = new OrderItem();
-        $item->setProduct($product);
         $item->setVariant($variant);
         $item->setPurchasePrice('250.00');
         $item->setYear(2026);
@@ -457,7 +456,6 @@ class CartServiceTest extends TestCase
         $variant = $this->createVariant($product, 'Thu', 'ACCOM-THU');
 
         $item = new OrderItem();
-        $item->setProduct($product);
         $item->setVariant($variant);
         $item->setBundle($bundle);
         $item->setPurchasePrice('250.00');
@@ -484,7 +482,6 @@ class CartServiceTest extends TestCase
         $v2 = $this->createVariant($product, 'Fri', 'ACCOM-FRI');
 
         $item1 = new OrderItem();
-        $item1->setProduct($product);
         $item1->setVariant($v1);
         $item1->setBundle($bundle);
         $item1->setPurchasePrice('250.00');
@@ -492,7 +489,6 @@ class CartServiceTest extends TestCase
         $item1->setCustomer($this->createMock(User::class));
 
         $item2 = new OrderItem();
-        $item2->setProduct($product);
         $item2->setVariant($v2);
         $item2->setBundle($bundle);
         $item2->setPurchasePrice('250.00');

@@ -238,8 +238,8 @@ class AccommodationWriterTest extends AbstractDatabaseKernelTestCase
     private function koupSnidani(User $customer, int $snidaneVariantId): void
     {
         $this->connection()->executeStatement(
-            'INSERT INTO shop_nakupy (id_uzivatele, id_predmetu, variant_id, rok, cena_nakupni, datum)
-             SELECT :customer, product_id, id, :year, 50, NOW() FROM product_variant WHERE id = :variant',
+            'INSERT INTO shop_nakupy (id_uzivatele, variant_id, rok, cena_nakupni, datum)
+             SELECT :customer, id, :year, 50, NOW() FROM product_variant WHERE id = :variant',
             [
                 'customer' => $customer->getId(),
                 'variant'  => $snidaneVariantId,
@@ -330,8 +330,8 @@ class AccommodationWriterTest extends AbstractDatabaseKernelTestCase
         [$hotelovaNoc, $snidane] = $this->pripravHotelSeSnidani(1);
         $ucastnik = $this->ucastnikVSql('ubytovani_snidane_');
         $this->connection()->executeStatement(
-            'INSERT INTO shop_nakupy (id_uzivatele, id_predmetu, variant_id, rok, cena_nakupni, datum)
-             SELECT :customer, product_id, id, :year, 50, NOW() FROM product_variant WHERE id = :variant',
+            'INSERT INTO shop_nakupy (id_uzivatele, variant_id, rok, cena_nakupni, datum)
+             SELECT :customer, id, :year, 50, NOW() FROM product_variant WHERE id = :variant',
             [
                 'customer' => $ucastnik,
                 'variant'  => $snidane,
@@ -347,8 +347,8 @@ class AccommodationWriterTest extends AbstractDatabaseKernelTestCase
                 ['sql', "DELETE FROM shop_nakupy WHERE id_nakupu = {$drzenaSnidane}"],
                 ['hlasim', 'drzi snidani'],
                 ['cekej', 700],
-                ['sql', "INSERT INTO shop_nakupy (id_uzivatele, id_predmetu, variant_id, rok, cena_nakupni, datum)
-                         SELECT {$ucastnik}, product_id, id, " . self::ROK . ", 50, NOW() FROM product_variant WHERE id = {$snidane}"],
+                ['sql', "INSERT INTO shop_nakupy (id_uzivatele, variant_id, rok, cena_nakupni, datum)
+                         SELECT {$ucastnik}, id, " . self::ROK . ", 50, NOW() FROM product_variant WHERE id = {$snidane}"],
                 ['cekej', 300],
             ]);
             $chybaZapisu = null;
@@ -413,8 +413,8 @@ class AccommodationWriterTest extends AbstractDatabaseKernelTestCase
         try {
             $souper = SoubeznaTransakce::spust($this->connection(), [
                 ['sql', "SELECT id FROM product_variant WHERE id = {$streda} FOR UPDATE"],
-                ['sql', 'INSERT INTO shop_nakupy (id_uzivatele, id_predmetu, variant_id, rok, cena_nakupni, datum)
-                         SELECT ' . $ucastnik . ", id_predmetu, {$streda}, " . self::ROK . ", 100, NOW() FROM shop_predmety WHERE kod_predmetu = '" . $this->noci[0]->getCode() . "'"],
+                ['sql', 'INSERT INTO shop_nakupy (id_uzivatele, variant_id, rok, cena_nakupni, datum)
+                         VALUES (' . $ucastnik . ", {$streda}, " . self::ROK . ', 100, NOW())'],
                 ['hlasim', 'kupuje noc'],
                 ['cekej', 500],
                 ['potvrd', ''],
@@ -438,8 +438,8 @@ class AccommodationWriterTest extends AbstractDatabaseKernelTestCase
     private function koupNoc(int $idUzivatele, int $den): int
     {
         $this->connection()->executeStatement(
-            'INSERT INTO shop_nakupy (id_uzivatele, id_predmetu, variant_id, rok, cena_nakupni, datum)
-             SELECT :uzivatel, id_predmetu, :varianta, :rok, 100, NOW() FROM shop_predmety WHERE kod_predmetu = :kod',
+            'INSERT INTO shop_nakupy (id_uzivatele, variant_id, rok, cena_nakupni, datum)
+             SELECT :uzivatel, :varianta, :rok, 100, NOW() FROM shop_predmety WHERE kod_predmetu = :kod',
             [
                 'uzivatel' => $idUzivatele,
                 'varianta' => $this->noci[$den]->getId(),
@@ -602,7 +602,7 @@ class AccommodationWriterTest extends AbstractDatabaseKernelTestCase
         $this->writer()->save($customer, $this->idNoci(0, 1), self::ROK, false);
 
         $nakupy = $this->connection()->fetchAllAssociative(
-            'SELECT shop_nakupy.id_predmetu, product_variant.accommodation_day
+            'SELECT product_variant.product_id AS id_predmetu, product_variant.accommodation_day
              FROM shop_nakupy
              JOIN product_variant ON product_variant.id = shop_nakupy.variant_id
              WHERE shop_nakupy.id_uzivatele = :customer AND shop_nakupy.rok = :year
@@ -1045,11 +1045,10 @@ class AccommodationWriterTest extends AbstractDatabaseKernelTestCase
     {
         for ($i = 0; $i < $kusu; ++$i) {
             $this->connection()->executeStatement(
-                'INSERT INTO shop_nakupy (id_uzivatele, id_predmetu, variant_id, rok, cena_nakupni, datum)
-                 VALUES (:customer, :product, :variant, :year, 0, NOW())',
+                'INSERT INTO shop_nakupy (id_uzivatele, variant_id, rok, cena_nakupni, datum)
+                 VALUES (:customer, :variant, :year, 0, NOW())',
                 [
                     'customer' => $this->ucastnik()->getId(),
-                    'product'  => $this->noci[$den]->getProduct()->getId(),
                     'variant'  => $this->noci[$den]->getId(),
                     'year'     => self::ROK,
                 ],
@@ -1408,8 +1407,8 @@ class AccommodationWriterTest extends AbstractDatabaseKernelTestCase
         // na rodičovský produkt, kdežto writer zapisuje noc samotnou — tady je potřeba
         // duplikovat přesně ten řádek, který writer vytvořil.
         $this->connection()->executeStatement(
-            'INSERT INTO shop_nakupy (id_uzivatele, id_predmetu, variant_id, rok, cena_nakupni, datum)
-             SELECT id_uzivatele, id_predmetu, variant_id, rok, cena_nakupni, NOW()
+            'INSERT INTO shop_nakupy (id_uzivatele, variant_id, rok, cena_nakupni, datum)
+             SELECT id_uzivatele, variant_id, rok, cena_nakupni, NOW()
              FROM shop_nakupy
              WHERE id_uzivatele = :c AND rok = :y AND variant_id = :v LIMIT 1',
             [
