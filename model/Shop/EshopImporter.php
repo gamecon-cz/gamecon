@@ -5,12 +5,50 @@ declare(strict_types=1);
 namespace Gamecon\Shop;
 
 use App\Enum\ProductStateEnum;
-use App\Service\VariantStateMirror;
-use Gamecon\SystemoveNastaveni\SystemoveNastaveni;
+use App\Enum\ProductTagCode;
 use OpenSpout\Reader\XLSX\Reader as XLSXReader;
 
+/**
+ * Reads the sheet `EshopExport` writes: one row per variant, the product's own columns
+ * repeated on each of its rows.
+ */
 class EshopImporter
 {
+    public const SLOUPCE = [
+        'product_name',
+        'product_code',
+        'variant_code',
+        'variant_name',
+        'archivovano',
+        'tag',
+        'cena_aktualni',
+        'stav',
+        'nabizet_do',
+        'popis',
+        'vedlejsi',
+        'snidane_v_cene',
+        'cena_varianty',
+        'stav_varianty',
+        'kusu_vyrobeno',
+        'ubytovani_den',
+    ];
+
+    // Optional: names this year's free dice and badge, see LetosniPredmetyZdarma.
+    public const SLOUPEC_LETOSNI_HLAVNI = 'je_letosni_hlavni';
+
+    private const SLOUPCE_PRODUKTU = [
+        'product_name',
+        'archivovano',
+        'tag',
+        'cena_aktualni',
+        'stav',
+        'nabizet_do',
+        'popis',
+        'vedlejsi',
+        'snidane_v_cene',
+        self::SLOUPEC_LETOSNI_HLAVNI,
+    ];
+
     public function __construct(
         private readonly string $souborCesta,
         private readonly int $rocnik = ROCNIK,
@@ -19,325 +57,500 @@ class EshopImporter
 
     public function importuj(): EshopImportVysledek
     {
+        [$radky, $maSloupecLetosni] = $this->nactiRadky();
+        $produkty = $this->seskupPodleProduktu($radky);
+
+        $pocetNovych = 0;
+        $pocetZmenenych = 0;
+        dbBegin();
+        try {
+            $this->odmitniCiziKody($produkty);
+            foreach ($produkty as $produkt) {
+                $idProduktu = $this->idProduktu($produkt['product_code']);
+                if ($idProduktu === null) {
+                    $this->vlozProdukt($produkt);
+                    ++$pocetNovych;
+                } elseif ($this->upravProdukt($idProduktu, $produkt)) {
+                    ++$pocetZmenenych;
+                }
+            }
+            $pocetVyrazenych = $this->archivujChybejici(array_column($produkty, 'product_code'));
+            dbCommit();
+        } catch (\Throwable $chyba) {
+            dbRollback();
+            throw $chyba;
+        }
+
+        $oznaceneLetosni = array_column(array_filter(
+            $produkty,
+            static fn (array $produkt): bool => $produkt[self::SLOUPEC_LETOSNI_HLAVNI] === 1,
+        ), 'product_code');
+        $varovani = (new LetosniPredmetyZdarma($this->rocnik))->nastavZImportu(
+            $maSloupecLetosni ? $oznaceneLetosni : null,
+        );
+
+        return new EshopImportVysledek($pocetNovych, $pocetZmenenych, $pocetVyrazenych, $varovani);
+    }
+
+    /**
+     * @return array{0: list<array<string, mixed>>, 1: bool} rows with their sheet line under `radek`
+     */
+    private function nactiRadky(): array
+    {
         if (! is_readable($this->souborCesta)) {
             throw new \Chyba('Soubor se nepodařilo načíst');
         }
 
         $reader = new XLSXReader();
         $reader->open($this->souborCesta);
-
         $reader->getSheetIterator()->rewind();
         /** @var \OpenSpout\Reader\SheetInterface $sheet */
         $sheet = $reader->getSheetIterator()->current();
-
         $rowIterator = $sheet->getRowIterator();
         $rowIterator->rewind();
-        /** @var \OpenSpout\Common\Entity\Row|null $row */
-        $row = $rowIterator->current();
-        $hlavickaKlice = array_map('trim', $row->toArray());
-        $hlavicka = array_flip($hlavickaKlice);
 
-        $pozadovaneSloupce = ['nazev', 'kod_predmetu', 'cena_aktualni', 'stav', 'nabizet_do', 'kusu_vyrobeno', 'tag', 'ubytovani_den', 'popis', 'vedlejsi', 'snidane_v_cene'];
-        if (! array_keys_exist($pozadovaneSloupce, $hlavicka)) {
-            throw new \Chyba('Chybný formát souboru - chybí sloupce ' . implode(',', array_diff($pozadovaneSloupce, array_keys($hlavicka))));
+        $hlavicka = array_flip(array_map(static fn ($sloupec) => trim((string) $sloupec), $rowIterator->current()->toArray()));
+        $chybejici = array_diff(self::SLOUPCE, array_keys($hlavicka));
+        if ($chybejici !== []) {
+            $reader->close();
+            throw new \Chyba('Chybný formát souboru - chybí sloupce ' . implode(',', $chybejici));
         }
-
-        $indexNazev = $hlavicka['nazev'];
-        $indexKodPredmetu = $hlavicka['kod_predmetu'];
-        $indexCenaAktualni = $hlavicka['cena_aktualni'];
-        $indexStav = $hlavicka['stav'];
-        $indexNabizetDo = $hlavicka['nabizet_do'];
-        $indexKusuVyrobeno = $hlavicka['kusu_vyrobeno'];
-        $indexTag = $hlavicka['tag'];
-        $indexUbytovaniDen = $hlavicka['ubytovani_den'];
-        $indexPopis = $hlavicka['popis'];
-        $indexVedlejsi = $hlavicka['vedlejsi'];
-        $indexSnidaneVCene = $hlavicka['snidane_v_cene'];
-        // Optional: names this year's free dice and badge, see LetosniPredmetyZdarma.
-        $indexJeLetosniHlavni = $hlavicka['je_letosni_hlavni'] ?? null;
-        $oznaceneLetosni = [];
-
-        $rowIterator->next();
-
-        $cisloNeboNull = static fn (
-            $hodnota,
-        ) => trim((string) $hodnota) !== ''
-            ? $hodnota
-            : null;
-
-        $hodnotaNeboKodZNazvu = static fn (
-            $hodnota,
-            string $nazev,
-        ) => trim((string) $hodnota) !== ''
-            ? $hodnota
-            : kodZNazvu($nazev);
-
-        $trimRadek = static fn (
-            array $radek,
-        ) => array_map(
-            static fn (
-                $hodnota,
-            ) => is_string($hodnota)
-                ? trim($hodnota)
-                : $hodnota,
-            $radek,
-        );
-
-        $stringNullJakoNullRadek = static fn (
-            array $radek,
-        ) => array_map(
-            static fn (
-                $hodnota,
-            ) => is_string($hodnota) && strtoupper($hodnota) === 'NULL'
-                ? null
-                : $hodnota,
-            $radek,
-        );
+        $maSloupecLetosni = isset($hlavicka[self::SLOUPEC_LETOSNI_HLAVNI]);
 
         $chyby = [];
-        $sqlValuesArray = [];
-        $tagsByKodPredmetu = [];
-        $poradiRadku = 1;
-        /** @var \OpenSpout\Common\Entity\Row|null $row */
-        while ($rowIterator->valid()) {
-            $radek = $rowIterator->current()->toArray();
-            ++$poradiRadku;
-            $rowIterator->next();
-
-            if ($radek) {
-                $radek = $trimRadek($radek);
-                $radek = $stringNullJakoNullRadek($radek);
-                $kodPredmetu = $hodnotaNeboKodZNazvu(
-                    $radek[$indexKodPredmetu],
-                    (string) $radek[$indexNazev],
-                );
-                $tag = trim((string) ($radek[$indexTag] ?? ''));
-                if ($tag === '') {
-                    $chyby[] = sprintf(
-                        'Na řádku %d chybí tag v %d. sloupci',
-                        $poradiRadku,
-                        $indexTag + 1,
-                    );
-                    continue;
-                }
-                $tagsByKodPredmetu[$kodPredmetu] = $tag;
-                if ($indexJeLetosniHlavni !== null && (int) ($radek[$indexJeLetosniHlavni] ?? 0) === 1) {
-                    $oznaceneLetosni[] = (string) $kodPredmetu;
-                }
-
-                $stav = (string) ($radek[$indexStav] ?? '');
-                // Checked as a string, not cast: (int) would turn an empty cell or "abc"
-                // into 0 and silently import the product as RETIRED.
-                if (! ctype_digit($stav) || ProductStateEnum::tryFrom((int) $stav) === null) {
-                    $chyby[] = sprintf(
-                        'Na řádku %d je neplatný stav "%s" v %d. sloupci, povolené jsou %s',
-                        $poradiRadku,
-                        $stav,
-                        $indexStav + 1,
-                        implode(', ', array_column(ProductStateEnum::cases(), 'value')),
-                    );
-                    continue;
-                }
-
-                $sqlValuesArray[] = '(' . dbQa([
-                    $radek[$indexNazev],
-                    $kodPredmetu,
-                    $radek[$indexCenaAktualni],
-                    (int) $stav,
-                    $radek[$indexNabizetDo],
-                    $cisloNeboNull($radek[$indexKusuVyrobeno]),
-                    $cisloNeboNull($radek[$indexUbytovaniDen]),
-                    $radek[$indexPopis],
-                    (int) ((string) ($radek[$indexVedlejsi] ?? 0)),
-                    (int) (bool) ($radek[$indexSnidaneVCene] ?? false),
-                ]) . ')';
+        $radky = [];
+        $cisloRadku = 1;
+        for ($rowIterator->next(); $rowIterator->valid(); $rowIterator->next()) {
+            ++$cisloRadku;
+            $bunky = $rowIterator->current()->toArray();
+            $hodnoty = [];
+            foreach ([...self::SLOUPCE, self::SLOUPEC_LETOSNI_HLAVNI] as $sloupec) {
+                $hodnoty[$sloupec] = isset($hlavicka[$sloupec])
+                    ? $this->hodnotaBunky($bunky[$hlavicka[$sloupec]] ?? null)
+                    : null;
+            }
+            if (array_filter($hodnoty, static fn (?string $hodnota): bool => $hodnota !== null) === []) {
+                continue;
+            }
+            try {
+                $radky[] = $this->radek($hodnoty, $cisloRadku);
+            } catch (\Chyba $chyba) {
+                $chyby[] = $chyba->getMessage();
             }
         }
         $reader->close();
 
-        if ($chyby) {
+        if ($chyby !== []) {
             throw new \Chyba('Chybička se vloudila: ' . implode('; ', $chyby));
         }
 
-        $pocetZmenenych = 0;
-        $pocetNovych = 0;
-        $pocetVyrazenych = 0;
+        return [$radky, $maSloupecLetosni];
+    }
 
-        if ($sqlValuesArray) {
-            $temporaryTable = uniqid('import_eshopu_tmp_', true);
-            dbQuery(<<<SQL
-CREATE TEMPORARY TABLE `{$temporaryTable}` (
-    `nazev` VARCHAR(255) NOT NULL,
-    `kod_predmetu` VARCHAR(255) NOT NULL,
-    `cena_aktualni` DECIMAL(6,2) NOT NULL DEFAULT 0,
-    `stav` SMALLINT NOT NULL DEFAULT 0,
-    `nabizet_do` DATETIME DEFAULT NULL,
-    `kusu_vyrobeno` SMALLINT DEFAULT NULL,
-    `ubytovani_den` SMALLINT DEFAULT NULL,
-    `popis` VARCHAR(2000) NOT NULL DEFAULT '',
-    `vedlejsi` TINYINT(1) NOT NULL DEFAULT 0,
-    `snidane_v_cene` TINYINT(1) NOT NULL DEFAULT 0,
-    UNIQUE KEY (`kod_predmetu`)
-)
-SQL,
-            );
+    /**
+     * Empty cells and the text NULL read as no value.
+     */
+    private function hodnotaBunky(mixed $bunka): ?string
+    {
+        if ($bunka instanceof \DateTimeInterface) {
+            return $bunka->format('Y-m-d H:i:s');
+        }
+        $hodnota = trim((string) $bunka);
 
-            $sqlValues = implode(",\n", $sqlValuesArray);
+        return $hodnota === '' || strtoupper($hodnota) === 'NULL'
+            ? null
+            : $hodnota;
+    }
 
-            dbQuery(<<<SQL
-INSERT INTO `{$temporaryTable}` (`nazev`, `kod_predmetu`, `cena_aktualni`, `stav`, `nabizet_do`, `kusu_vyrobeno`, `ubytovani_den`, `popis`, `vedlejsi`, `snidane_v_cene`)
-    VALUES
-{$sqlValues}
-SQL,
-            );
+    /**
+     * @param array<string, string|null> $hodnoty
+     *
+     * @return array<string, mixed>
+     */
+    private function radek(array $hodnoty, int $cisloRadku): array
+    {
+        $chyba = static fn (string $zprava): \Chyba => new \Chyba(sprintf('Na řádku %d %s', $cisloRadku, $zprava));
 
-            // Update existing products (matched by kod_predmetu)
-            $mysqliResult = dbQuery(<<<SQL
-UPDATE shop_predmety
-JOIN `{$temporaryTable}` AS import
-    ON shop_predmety.kod_predmetu = import.kod_predmetu
-SET
-    shop_predmety.nazev = import.nazev,
-    shop_predmety.cena_aktualni = import.cena_aktualni,
-    shop_predmety.stav = import.stav,
-    shop_predmety.nabizet_do = import.nabizet_do,
-    shop_predmety.ubytovani_den = import.ubytovani_den,
-    shop_predmety.popis = import.popis,
-    shop_predmety.vedlejsi = import.vedlejsi,
-    shop_predmety.breakfast_included = import.snidane_v_cene,
-    shop_predmety.archived_at = NULL
-WHERE TRUE
-SQL,
-            );
-            $pocetZmenenych = dbAffectedOrNumRows($mysqliResult);
-
-            // Insert new products
-            $mysqliResult = dbQuery(<<<SQL
-INSERT INTO shop_predmety (`nazev`, `kod_predmetu`, `cena_aktualni`, `stav`,  `nabizet_do`, `ubytovani_den`, `popis`, `vedlejsi`, `breakfast_included`)
-SELECT
-    import.`nazev`,
-    import.`kod_predmetu`,
-    import.`cena_aktualni`,
-    import.`stav`,
-    import.`nabizet_do`,
-    import.`ubytovani_den`,
-    import.`popis`,
-    import.`vedlejsi`,
-    import.`snidane_v_cene`
-FROM `{$temporaryTable}` AS import
-LEFT JOIN shop_predmety AS uz_zname
-    ON uz_zname.kod_predmetu = import.kod_predmetu
-WHERE uz_zname.id_predmetu IS NULL
-SQL,
-            );
-            $pocetNovych = dbAffectedOrNumRows($mysqliResult);
-
-            // Every product is addressable by the cart through a variant, so a product without one
-            // is invisible to it. Give each imported product its default variant, nameless because
-            // it is shown as the product itself. Restricted to the imported codes, so a product
-            // whose variants were deliberately removed elsewhere does not get one resurrected here.
-            dbQuery(<<<SQL
-INSERT INTO product_variant (product_id, name, code, price, reserved_for_organizers, accommodation_day, position, state)
-SELECT shop_predmety.id_predmetu,
-       NULL,
-       shop_predmety.kod_predmetu,
-       NULL,
-       NULL,
-       shop_predmety.ubytovani_den,
-       0,
-       shop_predmety.stav
-FROM shop_predmety
-JOIN `{$temporaryTable}` AS import ON import.kod_predmetu = shop_predmety.kod_predmetu
-WHERE NOT EXISTS (
-    SELECT 1 FROM product_variant WHERE product_variant.product_id = shop_predmety.id_predmetu
-)
-  AND NOT EXISTS (
-    -- code is UNIQUE across all variants; colliding would abort the whole import
-    SELECT 1 FROM product_variant AS jine WHERE jine.code = shop_predmety.kod_predmetu
-)
-SQL,
-            );
-
-            // The sheet's kusu_vyrobeno is the capacity of the variant with that code — sizes and
-            // nights have their own rows in it, so this covers them as well as default variants.
-            dbQuery(<<<SQL
-UPDATE product_variant
-INNER JOIN `{$temporaryTable}` AS import ON import.kod_predmetu = product_variant.code
-SET product_variant.capacity = import.kusu_vyrobeno
-SQL,
-            );
-
-            // A default variant (a product's only one, with its code) keeps the product's day.
-            dbQuery(<<<SQL
-UPDATE product_variant
-JOIN shop_predmety ON shop_predmety.id_predmetu = product_variant.product_id
-JOIN `{$temporaryTable}` AS import ON import.kod_predmetu = shop_predmety.kod_predmetu
-SET product_variant.accommodation_day = shop_predmety.ubytovani_den
-WHERE product_variant.code = shop_predmety.kod_predmetu
-  AND (
-      SELECT COUNT(*) FROM product_variant AS sourozenci
-      WHERE sourozenci.product_id = shop_predmety.id_predmetu
-  ) = 1
-SQL,
-            );
-
-            // Sync tags for all imported products (new and updated)
-            foreach ($tagsByKodPredmetu as $kodPredmetu => $tagCode) {
-                $idPredmetu = dbOneCol(
-                    'SELECT id_predmetu FROM shop_predmety WHERE kod_predmetu = $0',
-                    [
-                        0 => $kodPredmetu,
-                    ],
-                );
-                if ($idPredmetu === null) {
-                    continue;
-                }
-                // Remove old category tags and set the new one
-                dbQuery(<<<SQL
-DELETE product_product_tag FROM product_product_tag
-JOIN product_tag ON product_product_tag.tag_id = product_tag.id
-WHERE product_product_tag.product_id = $0
-  AND product_tag.code IN ('predmet','ubytovani','tricko','jidlo','vstupne','parcon','proplaceni_bonusu')
-SQL,
-                    [
-                        0 => $idPredmetu,
-                    ],
-                );
-                dbQuery(<<<SQL
-INSERT INTO product_product_tag (product_id, tag_id)
-SELECT $0, id FROM product_tag WHERE code = $1
-SQL,
-                    [
-                        0 => $idPredmetu,
-                        1 => $tagCode,
-                    ],
-                );
+        if ($hodnoty['product_name'] === null) {
+            throw $chyba('chybí product_name');
+        }
+        $kategorie = array_map(static fn (ProductTagCode $tag): string => $tag->value, ProductTagCode::categories());
+        if ($hodnoty['tag'] === null) {
+            throw $chyba('chybí tag');
+        }
+        if (! in_array($hodnoty['tag'], $kategorie, true)) {
+            throw $chyba(sprintf('je tag "%s", povolené jsou %s', $hodnoty['tag'], implode(', ', $kategorie)));
+        }
+        $stav = $this->stav($hodnoty['stav'], 'stav', $chyba);
+        $cisloNeboNull = static function (?string $hodnota, string $sloupec) use ($chyba): ?string {
+            if ($hodnota !== null && ! is_numeric($hodnota)) {
+                throw $chyba(sprintf('není %s "%s" číslo', $sloupec, $hodnota));
             }
 
-            // Archive products not in the import file
-            $mysqliResult = dbQuery(<<<SQL
-UPDATE shop_predmety AS stare
-LEFT JOIN `{$temporaryTable}` AS import
-    ON stare.kod_predmetu = import.kod_predmetu
-SET stare.archived_at = NOW()
-WHERE import.kod_predmetu IS NULL
-  AND stare.archived_at IS NULL
-SQL,
-            );
-            $pocetVyrazenych = dbAffectedOrNumRows($mysqliResult);
+            return $hodnota;
+        };
+        $datumNeboNull = static function (?string $hodnota, string $sloupec) use ($chyba): ?string {
+            if ($hodnota === null) {
+                return null;
+            }
+            $datum = date_create_immutable($hodnota);
+            if ($datum === false) {
+                throw $chyba(sprintf('není %s "%s" datum', $sloupec, $hodnota));
+            }
 
-            SystemoveNastaveni::zGlobals()->kernel()->getContainer()->get(VariantStateMirror::class)->mirror();
+            return $datum->format('Y-m-d H:i:s');
+        };
+        $productCode = $hodnoty['product_code'] ?? kodZNazvu($hodnoty['product_name']);
 
-            dbQuery(<<<SQL
-DROP TEMPORARY TABLE `{$temporaryTable}`
-SQL,
-            );
+        return [
+            'radek'                      => $cisloRadku,
+            'product_name'               => $hodnoty['product_name'],
+            'product_code'               => $productCode,
+            'variant_code'               => $hodnoty['variant_code'],
+            'variant_name'               => $hodnoty['variant_name'],
+            'archivovano'                => $datumNeboNull($hodnoty['archivovano'], 'archivovano'),
+            'tag'                        => $hodnoty['tag'],
+            'cena_aktualni'              => $cisloNeboNull($hodnoty['cena_aktualni'], 'cena_aktualni') ?? '0',
+            'stav'                       => $stav,
+            'nabizet_do'                 => $datumNeboNull($hodnoty['nabizet_do'], 'nabizet_do'),
+            'popis'                      => $hodnoty['popis'] ?? '',
+            'vedlejsi'                   => (int) (bool) $hodnoty['vedlejsi'],
+            'snidane_v_cene'             => (int) (bool) $hodnoty['snidane_v_cene'],
+            self::SLOUPEC_LETOSNI_HLAVNI => (int) (bool) $hodnoty[self::SLOUPEC_LETOSNI_HLAVNI],
+            'cena_varianty'              => $cisloNeboNull($hodnoty['cena_varianty'], 'cena_varianty'),
+            'stav_varianty'              => $hodnoty['stav_varianty'] === null
+                ? $stav
+                : $this->stav($hodnoty['stav_varianty'], 'stav_varianty', $chyba),
+            'kusu_vyrobeno' => $cisloNeboNull($hodnoty['kusu_vyrobeno'], 'kusu_vyrobeno'),
+            'ubytovani_den' => $cisloNeboNull($hodnoty['ubytovani_den'], 'ubytovani_den'),
+        ];
+    }
+
+    /**
+     * Checked as a string, not cast: (int) would turn "abc" into 0 and silently import the
+     * product as RETIRED.
+     */
+    private function stav(?string $hodnota, string $sloupec, callable $chyba): int
+    {
+        if ($hodnota === null || ! ctype_digit($hodnota) || ProductStateEnum::tryFrom((int) $hodnota) === null) {
+            throw $chyba(sprintf('je neplatný %s "%s", povolené jsou %s', $sloupec, $hodnota, implode(', ', array_column(ProductStateEnum::cases(), 'value'))));
         }
 
-        $varovani = (new LetosniPredmetyZdarma($this->rocnik))->nastavZImportu(
-            $indexJeLetosniHlavni === null ? null : $oznaceneLetosni,
+        return (int) $hodnota;
+    }
+
+    /**
+     * @param list<array<string, mixed>> $radky
+     *
+     * @return array<string, array<string, mixed>> product code => product columns plus `varianty`
+     */
+    private function seskupPodleProduktu(array $radky): array
+    {
+        $produkty = [];
+        foreach ($radky as $radek) {
+            $produkty[$radek['product_code']][] = $radek;
+        }
+
+        $chyby = [];
+        $kodyVariant = [];
+        $vysledek = [];
+        foreach ($produkty as $kodProduktu => $radkyProduktu) {
+            $prvni = $radkyProduktu[0];
+            foreach (array_slice($radkyProduktu, 1) as $radek) {
+                foreach (self::SLOUPCE_PRODUKTU as $sloupec) {
+                    if ($radek[$sloupec] !== $prvni[$sloupec]) {
+                        $chyby[] = sprintf(
+                            'produkt %s má na řádcích %d a %d různé %s',
+                            $kodProduktu,
+                            $prvni['radek'],
+                            $radek['radek'],
+                            $sloupec,
+                        );
+                    }
+                }
+            }
+
+            $jedinaVarianta = count($radkyProduktu) === 1;
+            $jmena = [];
+            $varianty = [];
+            foreach ($radkyProduktu as $radek) {
+                if (! $jedinaVarianta) {
+                    if ($radek['variant_name'] === null) {
+                        $chyby[] = sprintf('produkt %s má víc variant, ta na řádku %d potřebuje variant_name', $kodProduktu, $radek['radek']);
+                    } elseif (isset($jmena[$radek['variant_name']])) {
+                        $chyby[] = sprintf('produkt %s má dvě varianty „%s"', $kodProduktu, $radek['variant_name']);
+                    }
+                    $jmena[(string) $radek['variant_name']] = true;
+                }
+                $kodVarianty = $radek['variant_code'] ?? ($jedinaVarianta
+                    ? (string) $kodProduktu
+                    : kodZNazvu($radek['product_name'] . ' ' . $radek['variant_name']));
+                if (isset($kodyVariant[$kodVarianty])) {
+                    $chyby[] = sprintf('kód varianty %s je na řádcích %d a %d', $kodVarianty, $kodyVariant[$kodVarianty], $radek['radek']);
+                }
+                $kodyVariant[$kodVarianty] = $radek['radek'];
+                // VariantStateMirror copies the product row's state onto the variant sharing its code.
+                if ($kodVarianty === (string) $kodProduktu && $radek['stav_varianty'] !== $radek['stav']) {
+                    $chyby[] = sprintf('varianta %s na řádku %d má kód produktu, její stav je stav produktu', $kodVarianty, $radek['radek']);
+                }
+                $varianty[] = [
+                    'code'              => $kodVarianty,
+                    'name'              => $radek['variant_name'],
+                    'price'             => $radek['cena_varianty'],
+                    'state'             => $radek['stav_varianty'],
+                    'capacity'          => $radek['kusu_vyrobeno'],
+                    'accommodation_day' => $radek['ubytovani_den'],
+                ];
+            }
+
+            $vysledek[(string) $kodProduktu] = [
+                ...array_intersect_key($prvni, array_flip([...self::SLOUPCE_PRODUKTU, 'product_code'])),
+                'product_code' => (string) $kodProduktu,
+                'varianty'     => $varianty,
+            ];
+        }
+
+        if ($chyby !== []) {
+            throw new \Chyba('Chybička se vloudila: ' . implode('; ', $chyby));
+        }
+
+        return $vysledek;
+    }
+
+    /**
+     * A variant moved to another product would leave its purchases under the old one, and a
+     * night's or size's own catalog row is not a product.
+     *
+     * @param array<string, array<string, mixed>> $produkty
+     */
+    private function odmitniCiziKody(array $produkty): void
+    {
+        $chyby = [];
+        foreach ($produkty as $produkt) {
+            $kodProduktu = $produkt['product_code'];
+            $vlastnikRadku = dbOneCol(
+                'SELECT product_variant.product_id FROM product_variant INNER JOIN shop_predmety ON shop_predmety.kod_predmetu = product_variant.code WHERE product_variant.code = $0 AND product_variant.product_id <> shop_predmety.id_predmetu',
+                [
+                    0 => $kodProduktu,
+                ],
+            );
+            if ($vlastnikRadku !== null && $vlastnikRadku !== false) {
+                $chyby[] = sprintf('kód %s patří variantě jiného produktu, produkt jím pojmenovat nejde', $kodProduktu);
+                continue;
+            }
+            $idProduktu = $this->idProduktu($kodProduktu);
+            foreach ($produkt['varianty'] as $varianta) {
+                $vlastnik = dbOneCol('SELECT product_id FROM product_variant WHERE code = $0', [
+                    0 => $varianta['code'],
+                ]);
+                if ($vlastnik !== null && $vlastnik !== false && (int) $vlastnik !== $idProduktu) {
+                    $chyby[] = sprintf('varianta %s patří jinému produktu než %s', $varianta['code'], $kodProduktu);
+                }
+            }
+        }
+        if ($chyby !== []) {
+            throw new \Chyba('Chybička se vloudila: ' . implode('; ', $chyby));
+        }
+    }
+
+    private function idProduktu(string $kodProduktu): ?int
+    {
+        $idProduktu = dbOneCol('SELECT id_predmetu FROM shop_predmety WHERE kod_predmetu = $0', [
+            0 => $kodProduktu,
+        ]);
+
+        return $idProduktu === null || $idProduktu === false ? null : (int) $idProduktu;
+    }
+
+    /**
+     * @param array<string, mixed> $produkt
+     */
+    private function vlozProdukt(array $produkt): void
+    {
+        dbQuery(
+            'INSERT INTO shop_predmety (nazev, kod_predmetu, cena_aktualni, stav, nabizet_do, popis, vedlejsi, breakfast_included, archived_at)
+             VALUES ($0, $1, $2, $3, $4, $5, $6, $7, $8)',
+            [
+                0 => $produkt['product_name'],
+                1 => $produkt['product_code'],
+                2 => $produkt['cena_aktualni'],
+                3 => $produkt['stav'],
+                4 => $produkt['nabizet_do'],
+                5 => $produkt['popis'],
+                6 => $produkt['vedlejsi'],
+                7 => $produkt['snidane_v_cene'],
+                8 => $produkt['archivovano'],
+            ],
+        );
+        $this->zapisVarianty((int) dbInsertId(), $produkt);
+    }
+
+    /**
+     * @param array<string, mixed> $produkt
+     *
+     * @return bool whether anything of the product or its variants changed
+     */
+    private function upravProdukt(int $idProduktu, array $produkt): bool
+    {
+        $zmeneno = dbAffectedOrNumRows(dbQuery(
+            'UPDATE shop_predmety
+             SET nazev = $1, cena_aktualni = $2, stav = $3, nabizet_do = $4, popis = $5, vedlejsi = $6,
+                 breakfast_included = $7, archived_at = $8
+             WHERE id_predmetu = $0',
+            [
+                0 => $idProduktu,
+                1 => $produkt['product_name'],
+                2 => $produkt['cena_aktualni'],
+                3 => $produkt['stav'],
+                4 => $produkt['nabizet_do'],
+                5 => $produkt['popis'],
+                6 => $produkt['vedlejsi'],
+                7 => $produkt['snidane_v_cene'],
+                8 => $produkt['archivovano'],
+            ],
+        )) > 0;
+
+        return $this->zapisVarianty($idProduktu, $produkt) || $zmeneno;
+    }
+
+    /**
+     * @param array<string, mixed> $produkt
+     *
+     * @return bool whether anything changed
+     */
+    private function zapisVarianty(int $idProduktu, array $produkt): bool
+    {
+        $zmeneno = $this->nastavKategorii($idProduktu, $produkt['tag']);
+        $pozice = (int) dbOneCol('SELECT COALESCE(MAX(position) + 1, 0) FROM product_variant WHERE product_id = $0', [
+            0 => $idProduktu,
+        ]);
+        foreach ($produkt['varianty'] as $varianta) {
+            $hodnoty = [
+                0 => $idProduktu,
+                1 => $varianta['name'],
+                2 => $varianta['code'],
+                3 => $varianta['price'],
+                4 => $varianta['capacity'],
+                5 => $varianta['accommodation_day'],
+                6 => $varianta['state'],
+            ];
+            if (dbOneCol('SELECT 1 FROM product_variant WHERE code = $0', [
+                0 => $varianta['code'],
+            ])) {
+                $zmeneno = dbAffectedOrNumRows(dbQuery(
+                    'UPDATE product_variant SET name = $1, price = $3, capacity = $4, accommodation_day = $5, state = $6
+                     WHERE code = $2 AND product_id = $0',
+                    $hodnoty,
+                )) > 0 || $zmeneno;
+            } else {
+                dbQuery(
+                    'INSERT INTO product_variant (product_id, name, code, price, capacity, accommodation_day, state, position)
+                     VALUES ($0, $1, $2, $3, $4, $5, $6, $7)',
+                    [
+                        ...$hodnoty,
+                        7 => $pozice++,
+                    ],
+                );
+                $zmeneno = true;
+            }
+        }
+
+        $zmeneno = dbAffectedOrNumRows(dbQuery(
+            'UPDATE product_variant SET state = $1 WHERE product_id = $0 AND code NOT IN ($2) AND state <> $1',
+            [
+                0 => $idProduktu,
+                1 => ProductStateEnum::RETIRED->value,
+                2 => array_column($produkt['varianty'], 'code'),
+            ],
+        )) > 0 || $zmeneno;
+
+        // A single-variant product still carries its night on its own row, where legacy reads it.
+        dbQuery(
+            'UPDATE shop_predmety
+             SET ubytovani_den = IF((SELECT COUNT(*) FROM product_variant WHERE product_id = $0) = 1,
+                                    (SELECT accommodation_day FROM product_variant WHERE product_id = $0), NULL)
+             WHERE id_predmetu = $0',
+            [
+                0 => $idProduktu,
+            ],
+        );
+        $this->srovnejZbyleRadky($idProduktu);
+
+        return $zmeneno;
+    }
+
+    private function nastavKategorii(int $idProduktu, string $tag): bool
+    {
+        $kategorie = array_map(static fn (ProductTagCode $kategorie): string => $kategorie->value, ProductTagCode::categories());
+        $soucasna = dbOneArray(
+            'SELECT product_tag.code FROM product_product_tag INNER JOIN product_tag ON product_tag.id = product_product_tag.tag_id
+             WHERE product_product_tag.product_id = $0 AND product_tag.code IN ($1)',
+            [
+                0 => $idProduktu,
+                1 => $kategorie,
+            ],
+        );
+        if ($soucasna === [$tag]) {
+            return false;
+        }
+        dbQuery(
+            'DELETE product_product_tag FROM product_product_tag INNER JOIN product_tag ON product_tag.id = product_product_tag.tag_id
+             WHERE product_product_tag.product_id = $0 AND product_tag.code IN ($1)',
+            [
+                0 => $idProduktu,
+                1 => $kategorie,
+            ],
+        );
+        dbQuery(
+            'INSERT INTO product_product_tag (product_id, tag_id) SELECT $0, id FROM product_tag WHERE code = $1',
+            [
+                0 => $idProduktu,
+                1 => $tag,
+            ],
         );
 
-        return new EshopImportVysledek($pocetNovych, $pocetZmenenych, $pocetVyrazenych, $varovani);
+        return true;
+    }
+
+    /**
+     * Until the nights' and sizes' own catalog rows are gone, an admin edit mirrors each row's
+     * state onto its variant (VariantStateMirror); the rows must agree with what was imported.
+     */
+    private function srovnejZbyleRadky(int $idProduktu): void
+    {
+        dbQuery(
+            'UPDATE shop_predmety AS radek
+             INNER JOIN product_variant ON product_variant.code = radek.kod_predmetu
+             INNER JOIN shop_predmety AS produkt ON produkt.id_predmetu = product_variant.product_id
+             SET radek.stav = product_variant.state,
+                 radek.archived_at = IF(produkt.archived_at IS NULL AND product_variant.state <> $1, NULL, radek.archived_at)
+             WHERE product_variant.product_id = $0 AND radek.id_predmetu <> $0',
+            [
+                0 => $idProduktu,
+                1 => ProductStateEnum::RETIRED->value,
+            ],
+        );
+    }
+
+    /**
+     * @param string[] $kodyProduktu
+     */
+    private function archivujChybejici(array $kodyProduktu): int
+    {
+        // Only products: a night's or size's own row is not in the sheet, its variant is.
+        return dbAffectedOrNumRows(dbQuery(
+            'UPDATE shop_predmety
+             SET archived_at = NOW()
+             WHERE archived_at IS NULL
+               AND kod_predmetu NOT IN ($0)
+               AND NOT EXISTS (
+                   SELECT 1 FROM product_variant
+                   WHERE product_variant.code = shop_predmety.kod_predmetu
+                     AND product_variant.product_id <> shop_predmety.id_predmetu
+               )',
+            [
+                0 => $kodyProduktu,
+            ],
+        ));
     }
 }
