@@ -28,8 +28,8 @@ projeví věci jako collation nebo produkty z minulých ročníků. Na B pak dob
 
 ## Past: schémata nejsou stejná
 
-Mezi větvemi je **23 migrací**. Kompatibilní pohled `shop_predmety_s_typem` sice dopočítává
-zrušené sloupce (`typ`, `model_rok`, `je_letosni_hlavni`), ale platí:
+Mezi větvemi je **23 migrací**. Zrušené sloupce (`typ`, `model_rok`, `je_letosni_hlavni`) do kroku D
+dopočítával kompatibilní pohled `shop_predmety_s_typem`, teď si je legacy dotazy odvozují samy; platí:
 
 **Nelze porovnávat `SELECT *` po sloupcích.** Porovnávat se musí **sémanticky** — kdo má co
 koupené, za kolik, v jakém ročníku a co z toho plyne pro finance:

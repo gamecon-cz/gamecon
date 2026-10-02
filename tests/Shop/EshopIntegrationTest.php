@@ -82,7 +82,7 @@ class EshopIntegrationTest extends AbstractTestDb
                 $product->setAvailableUntil(new \DateTimeImmutable('+1 year'));
                 $product->setReservedForOrganizers(2);
 
-                // Assign tag (needed for backward-compatible view shop_predmety_s_typem)
+                // Legacy reads the category from the tag
                 $trickoTag = $em->getRepository(\App\Entity\ProductTag::class)->findOneBy([
                     'code' => 'tricko',
                 ]);
