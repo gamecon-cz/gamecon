@@ -2,7 +2,6 @@
 
 namespace Gamecon\Shop;
 
-use App\Entity\Product;
 use App\Entity\ProductVariant;
 use App\Entity\User;
 use App\Enum\ProductTagCode;
@@ -1018,7 +1017,6 @@ SQL,
                 $idObjednavky = $this->sluzba(ManualSaleService::class)->sell(
                     $entityManager->getReference(User::class, $this->zakaznik->id()),
                     $entityManager->getReference(User::class, $this->objednatel->id()),
-                    $entityManager->find(Product::class, $idPredmetu),
                     $entityManager->find(ProductVariant::class, $idVarianty),
                     $kusu,
                     (string)$cenaAktualni,

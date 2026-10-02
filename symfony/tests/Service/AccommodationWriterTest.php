@@ -591,30 +591,33 @@ class AccommodationWriterTest extends AbstractDatabaseKernelTestCase
     }
 
     /**
-     * The day-variant migration reparented every night's variant onto one owner product whose
-     * own day is Sunday, but legacy reads ubytovani_den off shop_nakupy.id_predmetu — so
-     * storing the parent would price and count every night as Sunday.
+     * A night is bought as a variant of its room type: the purchase points at the room type and
+     * the night is the variant, as the cart writes it.
      */
-    public function testPurchaseRecordsTheNightsOwnLegacyRow(): void
+    public function testPurchasePointsAtTheRoomTypeAndNamesTheNight(): void
     {
         $this->pripravUbytovani();
         $customer = $this->ucastnik();
 
         $this->writer()->save($customer, $this->idNoci(0, 1), self::ROK, false);
 
-        $dny = $this->connection()->fetchFirstColumn(
-            'SELECT shop_predmety.ubytovani_den
+        $nakupy = $this->connection()->fetchAllAssociative(
+            'SELECT shop_nakupy.id_predmetu, product_variant.accommodation_day
              FROM shop_nakupy
-             JOIN shop_predmety ON shop_predmety.id_predmetu = shop_nakupy.id_predmetu
+             JOIN product_variant ON product_variant.id = shop_nakupy.variant_id
              WHERE shop_nakupy.id_uzivatele = :customer AND shop_nakupy.rok = :year
-             ORDER BY shop_predmety.ubytovani_den',
+             ORDER BY product_variant.accommodation_day',
             [
                 'customer' => $customer->getId(),
                 'year'     => self::ROK,
             ],
         );
 
-        self::assertSame([0, 1], array_map('intval', $dny));
+        $typPokoje = $this->noci[0]->getProduct()->getId();
+        self::assertSame([[$typPokoje, 0], [$typPokoje, 1]], array_map(
+            static fn (array $nakup): array => [(int) $nakup['id_predmetu'], (int) $nakup['accommodation_day']],
+            $nakupy,
+        ));
     }
 
     public function testEmptySetCancelsTheBooking(): void

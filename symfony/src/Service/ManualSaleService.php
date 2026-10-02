@@ -6,7 +6,6 @@ namespace App\Service;
 
 use App\Entity\Order;
 use App\Entity\OrderItem;
-use App\Entity\Product;
 use App\Entity\ProductVariant;
 use App\Entity\User;
 use App\Exception\CapacityExceededException;
@@ -25,9 +24,6 @@ class ManualSaleService
     }
 
     /**
-     * @param Product $product the row the purchase points at: for a night its own legacy row,
-     *                         not the room type its variant hangs under
-     *
      * @return Order the completed order holding one row per piece
      *
      * @throws CapacityExceededException
@@ -35,7 +31,6 @@ class ManualSaleService
     public function sell(
         User $customer,
         User $orderer,
-        Product $product,
         ProductVariant $variant,
         int $pieces,
         string $unitPrice,
@@ -47,6 +42,7 @@ class ManualSaleService
             // Before anything is persisted: a refusal must leave nothing for a later flush().
             $this->capacityManager->lockForSale($variant, $pieces, override: OperatorOverride::deskSale($orderer));
 
+            $product = $variant->getProduct();
             $order = new Order();
             $order->setCustomer($customer);
             $order->setYear($year);

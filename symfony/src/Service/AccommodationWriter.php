@@ -352,11 +352,6 @@ class AccommodationWriter
         return [array_values(array_intersect($held, $keepVariantIds)), $smazano];
     }
 
-    /**
-     * id_predmetu is the night's own legacy row, not the variant's parent — the day-variant
-     * migration reparented variants onto one owner, and every legacy consumer reads
-     * ubytovani_den off id_predmetu.
-     */
     private function addNight(
         User $customer,
         ProductVariant $variant,
@@ -408,17 +403,10 @@ class AccommodationWriter
             }
         }
 
-        $night = $this->productRepository->findOneBy([
-            'code' => $variant->getCode(),
-        ]);
-        if ($night === null) {
-            throw new \RuntimeException(sprintf('Noc „%s" nemá v katalogu vlastní řádek, nejde ji zapsat.', $variant->getCode()));
-        }
-
         $item = new OrderItem();
         // The caller may hold a detached user, which persist() would try to insert again.
         $item->setCustomer($this->entityManager->getReference(User::class, $customer->getId()));
-        $item->setProduct($night);
+        $item->setProduct($product);
         $item->setVariant($variant);
         $item->setOrder($order);
         $item->setYear($year);
