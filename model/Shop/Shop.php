@@ -3,6 +3,7 @@
 namespace Gamecon\Shop;
 
 use App\Entity\ProductVariant;
+use App\Enum\ProductTagCode;
 use App\Entity\User;
 use App\Exception\CapacityExceededException;
 use App\Service\BulkCancelService;
@@ -90,12 +91,14 @@ class Shop
         }, $uzivatele);
 
         dbQuery(<<<SQL
-DELETE sn
-FROM shop_nakupy sn
-JOIN shop_predmety_s_typem sp ON sp.id_predmetu = sn.id_predmetu AND sp.typ = $0
-WHERE sn.id_uzivatele IN ($1) AND sn.rok = $2
+DELETE nakup
+FROM shop_nakupy AS nakup
+INNER JOIN product_variant ON product_variant.id = nakup.variant_id
+INNER JOIN product_product_tag ON product_product_tag.product_id = product_variant.product_id
+INNER JOIN product_tag ON product_tag.id = product_product_tag.tag_id AND product_tag.code = $0
+WHERE nakup.id_uzivatele IN ($1) AND nakup.rok = $2
 SQL,
-            [0 => $typ, 1 => $ids, 2 => ROCNIK],
+            [0 => ProductTagCode::fromLegacyTyp($typ)->value, 1 => $ids, 2 => ROCNIK],
         );
     }
 
@@ -115,22 +118,29 @@ SQL,
      */
     public static function polozkyRychlehoProdeje(int $rocnik): array
     {
-        $typUbytovani = TypPredmetu::UBYTOVANI;
-
         return dbFetchAll(<<<SQL
   SELECT
-    CONCAT(varianty.nazev, ' ', varianty.model_rok) AS nazev,
-    varianty.kusu_vyrobeno - COUNT(nakupy.id_nakupu) AS zbyva,
-    varianty.id_varianty,
-    ROUND(varianty.cena_aktualni) AS cena
-  FROM shop_varianty_s_typem AS varianty
-  LEFT JOIN shop_nakupy AS nakupy ON nakupy.variant_id = varianty.id_varianty AND nakupy.rok = {$rocnik}
-  WHERE varianty.stav > 0
-    AND varianty.model_rok = {$rocnik}
-    AND (varianty.typ <> {$typUbytovani} OR varianty.ubytovani_den IS NOT NULL)
-  GROUP BY varianty.id_varianty
+    CONCAT(CONCAT_WS(' ', produkt.nazev, product_variant.name), ' ', $0) AS nazev,
+    product_variant.capacity - COUNT(nakupy.id_nakupu) AS zbyva,
+    product_variant.id AS id_varianty,
+    ROUND(COALESCE(product_variant.price, produkt.cena_aktualni)) AS cena
+  FROM product_variant
+  INNER JOIN shop_predmety AS produkt ON produkt.id_predmetu = product_variant.product_id
+  LEFT JOIN (
+      product_product_tag AS stitek_kategorie
+      INNER JOIN product_tag AS kategorie ON kategorie.id = stitek_kategorie.tag_id AND kategorie.code IN ($1)
+  ) ON stitek_kategorie.product_id = produkt.id_predmetu
+  LEFT JOIN shop_nakupy AS nakupy ON nakupy.variant_id = product_variant.id AND nakupy.rok = $0
+  WHERE product_variant.state > 0
+    -- an archived product belongs to the year it was archived, one still on offer to this year
+    AND COALESCE(YEAR(produkt.archived_at), $0) = $0
+    -- a room type sells by the night, never as a whole
+    AND (kategorie.code <> $2 OR product_variant.accommodation_day IS NOT NULL)
+  GROUP BY product_variant.id
   ORDER BY nazev
-SQL);
+SQL,
+            [0 => $rocnik, 1 => ProductTagCode::categoryCodes(), 2 => ProductTagCode::UBYTOVANI->value],
+        );
     }
 
     /**
@@ -148,26 +158,53 @@ FROM (
            TRIM(predmety.nazev) AS nazev,
            predmety.cena_aktualni,
            SUM(nakupy.cena_nakupni) AS suma,
-           predmety.model_rok,
+           COALESCE(YEAR(predmety.archived_at), $0) AS model_rok,
            MAX(nakupy.datum) AS naposledy_koupeno_kdy,
            COUNT(nakupy.id_nakupu) AS prodano_kusu,
-           predmety.kusu_vyrobeno,
-           predmety.typ,
-           predmety.podtyp,
+           vychozi_varianta.capacity AS kusu_vyrobeno,
+           -- typ is the position of the category code in ProductTagCode::categories()
+           FIELD(kategorie.code, $4) AS typ,
+           CASE
+               WHEN predmety.breakfast_included THEN $5
+               WHEN EXISTS (
+                   SELECT 1
+                   FROM product_product_tag AS stitek_podtypu
+                   INNER JOIN product_tag AS stitek_mikiny ON stitek_mikiny.id = stitek_podtypu.tag_id
+                   WHERE stitek_podtypu.product_id = predmety.id_predmetu AND stitek_mikiny.code = $6
+               ) THEN $7
+           END AS podtyp,
            predmety.nabizet_do,
            predmety.ubytovani_den,
            predmety.stav
-    FROM shop_predmety_s_typem AS predmety
+    FROM shop_predmety AS predmety
+    -- a product missing its category keeps its row (typ NULL) instead of vanishing
+    LEFT JOIN (
+        product_product_tag AS stitek_kategorie
+        INNER JOIN product_tag AS kategorie ON kategorie.id = stitek_kategorie.tag_id AND kategorie.code IN ($4)
+    ) ON stitek_kategorie.product_id = predmety.id_predmetu
+    LEFT JOIN product_variant AS vychozi_varianta
+        ON vychozi_varianta.product_id = predmety.id_predmetu AND vychozi_varianta.code = predmety.kod_predmetu
+    LEFT JOIN product_variant AS koupena_varianta ON koupena_varianta.product_id = predmety.id_predmetu
     LEFT JOIN shop_nakupy AS nakupy
-        ON nakupy.id_predmetu = predmety.id_predmetu
+        ON nakupy.variant_id = koupena_varianta.id
             AND nakupy.rok = $0
-    WHERE model_rok = $0
+    -- an archived product belongs to the year it was archived, one still on offer to this year
+    WHERE COALESCE(YEAR(predmety.archived_at), $0) = $0
         AND IF($3, TRUE, predmety.id_predmetu IN ($2))
-    GROUP BY predmety.id_predmetu, predmety.typ, predmety.ubytovani_den, predmety.nazev
+    GROUP BY predmety.id_predmetu, kategorie.code, predmety.ubytovani_den, predmety.nazev
 ) AS seskupeno
-ORDER BY typ, IF(typ = $1, LEFT(TRIM(nazev), LOCATE(' ',nazev) - 1), nazev), ubytovani_den
+ORDER BY typ, IF(typ = $1, LEFT(TRIM(nazev), LOCATE(' ',nazev) - 1), nazev), ubytovani_den, id_predmetu
 SQL,
-            [0 => $rok, 1 => TypPredmetu::UBYTOVANI, 2 => $idckaPolozek, 3 => $idckaPolozek === null],
+            [
+                0 => $rok,
+                1 => TypPredmetu::UBYTOVANI,
+                2 => $idckaPolozek,
+                3 => $idckaPolozek === null,
+                4 => ProductTagCode::categoryCodes(),
+                5 => PodtypPredmetu::HOTEL,
+                6 => ProductTagCode::MIKINA->value,
+                7 => PodtypPredmetu::MIKINA,
+            ],
         );
         $polozky = [];
         foreach ($polozkyData as $polozkaData) {
@@ -183,31 +220,37 @@ SQL,
      */
     public static function letosniPolozkySeSpatnymKoncem(SystemoveNastaveni $systemoveNastaveni): array
     {
-        $typJidlo = TypPredmetu::JIDLO;
-        $typPredmet = TypPredmetu::PREDMET;
-        $typTricko = TypPredmetu::TRICKO;
-        $podtypMikina = PodtypPredmetu::MIKINA;
-
         $idckaPredmetu = dbFetchColumn(<<<SQL
-SELECT id_predmetu
-FROM shop_predmety_s_typem
-WHERE model_rok = {$systemoveNastaveni->rocnik()}
-    AND nabizet_do IS NOT NULL
-    AND typ IN ($typJidlo, $typPredmet, $typTricko)
+SELECT shop_predmety.id_predmetu
+FROM shop_predmety
+INNER JOIN product_product_tag ON product_product_tag.product_id = shop_predmety.id_predmetu
+INNER JOIN product_tag AS kategorie ON kategorie.id = product_product_tag.tag_id AND kategorie.code IN ($7, $8, $9)
+-- an archived product belongs to the year it was archived, one still on offer to this year
+WHERE COALESCE(YEAR(shop_predmety.archived_at), $1) = $1
+    AND shop_predmety.nabizet_do IS NOT NULL
     AND CASE
-        WHEN typ = {$typJidlo} THEN nabizet_do != $2
-        WHEN typ = {$typTricko} THEN nabizet_do != $3
-        WHEN typ = {$typPredmet} AND podtyp = $4 THEN nabizet_do != $5
-        WHEN typ = {$typPredmet} THEN nabizet_do != $6
+        WHEN kategorie.code = $7 THEN shop_predmety.nabizet_do != $2
+        WHEN kategorie.code = $9 THEN shop_predmety.nabizet_do != $3
+        WHEN kategorie.code = $8 AND NOT shop_predmety.breakfast_included AND EXISTS (
+            SELECT 1
+            FROM product_product_tag AS stitek_podtypu
+            INNER JOIN product_tag AS stitek_mikiny ON stitek_mikiny.id = stitek_podtypu.tag_id
+            WHERE stitek_podtypu.product_id = shop_predmety.id_predmetu AND stitek_mikiny.code = $4
+        ) THEN shop_predmety.nabizet_do != $5
+        WHEN kategorie.code = $8 THEN shop_predmety.nabizet_do != $6
         ELSE FALSE
     END
 SQL,
             [
+                1 => $systemoveNastaveni->rocnik(),
                 2 => $systemoveNastaveni->prodejJidlaDo(),
                 3 => $systemoveNastaveni->prodejTricekDo(),
-                4 => $podtypMikina,
+                4 => ProductTagCode::MIKINA->value,
                 5 => $systemoveNastaveni->prodejMikinDo(),
                 6 => $systemoveNastaveni->prodejPredmetuBezTricekDo(),
+                7 => ProductTagCode::JIDLO->value,
+                8 => ProductTagCode::PREDMET->value,
+                9 => ProductTagCode::TRICKO->value,
             ],
         );
 
@@ -248,21 +291,51 @@ SQL,
         $results = dbFetchAll(
             <<<SQL
             SELECT
-              varianty.id_varianty, varianty.id_predmetu, varianty.nazev, varianty.kod_predmetu,
-              varianty.cena_aktualni, varianty.stav, varianty.nabizet_do, varianty.kusu_vyrobeno,
-              varianty.typ, varianty.podtyp, varianty.ubytovani_den,
+              product_variant.id AS id_varianty,
+              produkt.id_predmetu,
+              CONCAT_WS(' ', produkt.nazev, product_variant.name) AS nazev,
+              product_variant.code AS kod_predmetu,
+              COALESCE(product_variant.price, produkt.cena_aktualni) AS cena_aktualni,
+              product_variant.state AS stav,
+              produkt.nabizet_do,
+              product_variant.capacity AS kusu_vyrobeno,
+              -- typ is the position of the category code in ProductTagCode::categories()
+              FIELD(kategorie.code, $0) AS typ,
+              CASE
+                  WHEN produkt.breakfast_included THEN $1
+                  WHEN EXISTS (
+                      SELECT 1
+                      FROM product_product_tag AS stitek_podtypu
+                      INNER JOIN product_tag AS stitek_mikiny ON stitek_mikiny.id = stitek_podtypu.tag_id
+                      WHERE stitek_podtypu.product_id = produkt.id_predmetu AND stitek_mikiny.code = $2
+                  ) THEN $3
+              END AS podtyp,
+              product_variant.accommodation_day AS ubytovani_den,
               COUNT(nakupy.id_nakupu) AS kusu_prodano,
               COUNT(IF(nakupy.id_uzivatele = {$zakaznikId}, 1, NULL)) AS kusu_uzivatele,
               SUM(IF(nakupy.id_uzivatele = {$zakaznikId}, nakupy.cena_nakupni, 0)) AS sum_cena_nakupni
-            FROM shop_varianty_s_typem AS varianty
+            FROM product_variant
+            INNER JOIN shop_predmety AS produkt ON produkt.id_predmetu = product_variant.product_id
+            -- a product missing its category keeps its row (typ NULL) instead of vanishing
+            LEFT JOIN (
+                product_product_tag AS stitek_kategorie
+                INNER JOIN product_tag AS kategorie ON kategorie.id = stitek_kategorie.tag_id AND kategorie.code IN ($0)
+            ) ON stitek_kategorie.product_id = produkt.id_predmetu
             LEFT JOIN shop_nakupy AS nakupy
-              ON nakupy.variant_id = varianty.id_varianty
+              ON nakupy.variant_id = product_variant.id
               AND nakupy.rok = {$rocnik}
-            WHERE varianty.model_rok = {$rocnik}
-              AND (varianty.stav > {$mimo} OR nakupy.id_nakupu IS NOT NULL)
-            GROUP BY varianty.id_varianty
-            ORDER BY varianty.typ, varianty.ubytovani_den, varianty.nazev, varianty.id_varianty
+            -- an archived product belongs to the year it was archived, one still on offer to this year
+            WHERE COALESCE(YEAR(produkt.archived_at), {$rocnik}) = {$rocnik}
+              AND (product_variant.state > {$mimo} OR nakupy.id_nakupu IS NOT NULL)
+            GROUP BY product_variant.id
+            ORDER BY typ, ubytovani_den, nazev, id_varianty
             SQL,
+            [
+                0 => ProductTagCode::categoryCodes(),
+                1 => PodtypPredmetu::HOTEL,
+                2 => ProductTagCode::MIKINA->value,
+                3 => PodtypPredmetu::MIKINA,
+            ],
         );
 
         //inicializace
@@ -702,12 +775,13 @@ SQL,
         $idsNakupu = dbOneArray(<<<SQL
             SELECT shop_nakupy.id_nakupu
             FROM shop_nakupy
-            INNER JOIN shop_predmety_s_typem ON shop_nakupy.id_predmetu = shop_predmety_s_typem.id_predmetu
+            INNER JOIN product_variant ON product_variant.id = shop_nakupy.variant_id
+            INNER JOIN product_product_tag ON product_product_tag.product_id = product_variant.product_id
+            INNER JOIN product_tag ON product_tag.id = product_product_tag.tag_id AND product_tag.code = $2
             WHERE shop_nakupy.rok = $0
               AND shop_nakupy.id_uzivatele = $1
-              AND shop_predmety_s_typem.typ = $2
             SQL,
-            [0 => $this->systemoveNastaveni->rocnik(), 1 => $this->zakaznik->id(), 2 => $typPredetu],
+            [0 => $this->systemoveNastaveni->rocnik(), 1 => $this->zakaznik->id(), 2 => ProductTagCode::fromLegacyTyp($typPredetu)->value],
         );
 
         return $this->sluzba(BulkCancelService::class)
@@ -724,30 +798,29 @@ SQL,
     public function zrusZrusitelneLetosniObjednavky(string $zdrojZruseni): int
     {
         // typy předmětů, které se po své uzávěrce už neruší (zůstávají naúčtované)
-        $typyKZachovani = [];
+        $kategorieKZachovani = [];
         if ($this->systemoveNastaveni->prodejJidlaUkoncen()) {
-            $typyKZachovani[] = self::JIDLO;
+            $kategorieKZachovani[] = ProductTagCode::JIDLO->value;
         }
         if ($this->systemoveNastaveni->prodejUbytovaniUkoncen()) {
-            $typyKZachovani[] = self::UBYTOVANI;
+            $kategorieKZachovani[] = ProductTagCode::UBYTOVANI->value;
         }
-        // pozn.: prázdné pole neřešíme přes NOT IN (NULL) – to by (kvůli SQL NULL) vyloučilo
-        // úplně všechno; místo toho podmínku vůbec nepřidáváme.
-        $podminkaZachovani = $typyKZachovani
-            ? 'AND shop_nakupy.id_predmetu NOT IN (
-                    SELECT id_predmetu FROM shop_predmety_s_typem WHERE typ IN (' . implode(', ', array_map('intval', $typyKZachovani)) . ')
-                )'
-            : '';
-
-        $rocnik      = $this->systemoveNastaveni->rocnik();
-        $idZakaznika = $this->zakaznik->id();
 
         $idsNakupu = dbOneArray(<<<SQL
             SELECT shop_nakupy.id_nakupu
             FROM shop_nakupy
-            WHERE shop_nakupy.rok = {$rocnik} AND shop_nakupy.id_uzivatele = {$idZakaznika}
-            {$podminkaZachovani}
+            WHERE shop_nakupy.rok = $0 AND shop_nakupy.id_uzivatele = $1
+              AND NOT EXISTS (
+                  SELECT 1
+                  FROM product_variant
+                  INNER JOIN product_product_tag ON product_product_tag.product_id = product_variant.product_id
+                  INNER JOIN product_tag ON product_tag.id = product_product_tag.tag_id
+                  WHERE product_variant.id = shop_nakupy.variant_id
+                    AND product_tag.code IN ($2)
+              )
             SQL,
+            // an empty list becomes IN (NULL), which keeps nothing back
+            [0 => $this->systemoveNastaveni->rocnik(), 1 => $this->zakaznik->id(), 2 => $kategorieKZachovani],
         );
 
         return $this->sluzba(BulkCancelService::class)
@@ -875,8 +948,25 @@ SQL,
                 [0 => $idVarianty],
             );
             $predmet = dbOneLine(
-                'SELECT cena_aktualni, nazev, kod_predmetu, model_rok, typ, ubytovani_den FROM shop_varianty_s_typem WHERE id_varianty = $0',
-                [0 => $idVarianty],
+                <<<SQL
+                SELECT COALESCE(product_variant.price, produkt.cena_aktualni) AS cena_aktualni,
+                       CONCAT_WS(' ', produkt.nazev, product_variant.name) AS nazev,
+                       product_variant.code AS kod_predmetu,
+                       -- an archived product belongs to the year it was archived, one still on offer to this year
+                       COALESCE(YEAR(produkt.archived_at), $1) AS model_rok,
+                       -- typ is the position of the category code in ProductTagCode::categories()
+                       FIELD(kategorie.code, $2) AS typ,
+                       product_variant.accommodation_day AS ubytovani_den
+                FROM product_variant
+                INNER JOIN shop_predmety AS produkt ON produkt.id_predmetu = product_variant.product_id
+                -- a product missing its category keeps its row (typ NULL) instead of vanishing
+                LEFT JOIN (
+                    product_product_tag AS stitek_kategorie
+                    INNER JOIN product_tag AS kategorie ON kategorie.id = stitek_kategorie.tag_id AND kategorie.code IN ($2)
+                ) ON stitek_kategorie.product_id = produkt.id_predmetu
+                WHERE product_variant.id = $0
+                SQL,
+                [0 => $idVarianty, 1 => $this->systemoveNastaveni->rocnik(), 2 => ProductTagCode::categoryCodes()],
             );
             if (!$varianta || !$predmet) {
                 throw new \Chyba("Varianta s ID {$idVarianty} neexistuje.");

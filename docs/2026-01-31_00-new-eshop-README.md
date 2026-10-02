@@ -45,16 +45,17 @@ older document referring to `2026-01-31-new-eshop-NN-*.sql` names is out of date
 
 ## The compatibility view
 
-`shop_predmety_s_typem` is what keeps the legacy code working after the columns are dropped.
-It re-derives the old columns from the new model:
+`shop_predmety_s_typem` kept the legacy code working after the columns were dropped, until step D.
+It re-derived the old columns from the new model:
 
 - `typ` — from the category tag (`predmet`, `ubytovani`, `tricko`, `jidlo`, `vstupne`, `parcon`, `proplaceni-bonusu`)
 - `podtyp` — `'hotel'` from `breakfast_included`, `'mikina'` from the `mikina` tag
 - `model_rok` — current `ROCNIK` when `archived_at IS NULL`, otherwise the archived year
 - `je_letosni_hlavni` — whether the product is unarchived
 
-**Any legacy query reading `typ`, `podtyp`, `model_rok` or `je_letosni_hlavni` must select from
-the view, not from `shop_predmety`.** Writes still go to the base table.
+**Superseded by step D of [issue #1157](https://github.com/gamecon-cz/gamecon/issues/1157):** legacy queries now read `shop_predmety`,
+`product_variant` and the tags directly and derive `typ`, `podtyp` and `model_rok` themselves; see
+`docs/generated/nakup-produkt-a-varianta.md`. Writes still go to the base table.
 
 ## Verifying afterwards
 

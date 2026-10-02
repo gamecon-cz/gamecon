@@ -96,6 +96,15 @@ class ProductTagCodeTest extends AbstractDatabaseKernelTestCase
         $this->assertSame(TypPredmetu::UBYTOVANI, ProductTagCode::UBYTOVANI->legacyTyp());
     }
 
+    public function testCategoriesAreListedInLegacyTypOrder(): void
+    {
+        // Legacy SQL reads typ as FIELD(category code, categories()), so a category's
+        // position in the list must be its typ.
+        foreach (ProductTagCode::categories() as $poradi => $category) {
+            $this->assertSame($poradi + 1, $category->legacyTyp());
+        }
+    }
+
     public function testSubTagHasNoLegacyTyp(): void
     {
         $this->expectException(\LogicException::class);
