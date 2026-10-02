@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Service;
 
 use App\Entity\User;
+use App\Enum\ProductTagCode;
 use App\Exception\InvalidRequestException;
 use App\Exception\UserFacingException;
 use Doctrine\ORM\EntityManagerInterface;
@@ -59,17 +60,18 @@ readonly class AccommodationImport
             // shoda kódů s diakritikou.
             'SELECT product_variant.id
              FROM product_variant
-             INNER JOIN shop_predmety_s_typem AS typ_pokoje ON typ_pokoje.id_predmetu = product_variant.product_id
+             INNER JOIN shop_predmety AS typ_pokoje ON typ_pokoje.id_predmetu = product_variant.product_id
+             INNER JOIN product_product_tag ON product_product_tag.product_id = typ_pokoje.id_predmetu
+             INNER JOIN product_tag ON product_tag.id = product_product_tag.tag_id AND product_tag.code = :kategorie
              WHERE LEFT(product_variant.code, CHAR_LENGTH(product_variant.code) - 3) = :kodTypu COLLATE utf8mb4_czech_ci
-               AND typ_pokoje.typ = :typ
-               AND typ_pokoje.model_rok = :rok
+               AND COALESCE(YEAR(typ_pokoje.archived_at), :rok) = :rok
                AND product_variant.accommodation_day IN (:dny)
              ORDER BY product_variant.accommodation_day',
             [
-                'kodTypu' => $kodTypu,
-                'typ'     => \Gamecon\Shop\TypPredmetu::UBYTOVANI,
-                'rok'     => $rok,
-                'dny'     => $dny,
+                'kodTypu'   => $kodTypu,
+                'kategorie' => ProductTagCode::UBYTOVANI->value,
+                'rok'       => $rok,
+                'dny'       => $dny,
             ],
             [
                 'dny' => \Doctrine\DBAL\ArrayParameterType::INTEGER,
