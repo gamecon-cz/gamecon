@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Gamecon\Tests\Model\Uzivatel;
 
+use App\Enum\ProductTagCode;
 use Gamecon\Cas\DateTimeImmutableStrict;
 use Gamecon\SystemoveNastaveni\SystemoveNastaveni;
 use Gamecon\Tests\Db\AbstractTestDb;
@@ -50,7 +51,21 @@ SQL,
         $uzivatel = \Uzivatel::zIdUrcite(339);
         $cenik = new Cenik($uzivatel, new Finance($uzivatel, 0, $systemoveNastaveni), $systemoveNastaveni);
 
-        $radek = \dbOneLine('SELECT * FROM shop_predmety_s_typem WHERE id_predmetu = 33900');
+        $radek = \dbOneLine(
+            <<<'SQL'
+            SELECT shop_predmety.*, FIELD(kategorie.code, $1) AS typ
+            FROM shop_predmety
+            LEFT JOIN (
+                product_product_tag AS stitek_kategorie
+                INNER JOIN product_tag AS kategorie ON kategorie.id = stitek_kategorie.tag_id AND kategorie.code IN ($1)
+            ) ON stitek_kategorie.product_id = shop_predmety.id_predmetu
+            WHERE shop_predmety.id_predmetu = $0
+            SQL,
+            [
+                0 => 33900,
+                1 => ProductTagCode::categoryCodes(),
+            ],
+        );
 
         $this->expectException(\RuntimeException::class);
         $this->expectExceptionMessage('nemá čítač');
