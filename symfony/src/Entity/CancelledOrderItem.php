@@ -19,7 +19,6 @@ use Doctrine\ORM\Mapping as ORM;
 #[ORM\Entity(repositoryClass: CancelledOrderItemRepository::class)]
 #[ORM\Table(name: 'shop_nakupy_zrusene')]
 #[ORM\Index(name: 'IDX_id_uzivatele', columns: ['id_uzivatele'])]
-#[ORM\Index(name: 'IDX_id_predmetu', columns: ['id_predmetu'])]
 #[ORM\Index(name: 'IDX_datum_zruseni', columns: ['datum_zruseni'])]
 #[ORM\Index(name: 'IDX_zdroj_zruseni', columns: ['zdroj_zruseni'])]
 class CancelledOrderItem
@@ -33,10 +32,6 @@ class CancelledOrderItem
     #[ORM\ManyToOne(targetEntity: User::class, inversedBy: 'cancelledOrderItems')]
     #[ORM\JoinColumn(name: 'id_uzivatele', referencedColumnName: 'id_uzivatele', nullable: false, onDelete: 'CASCADE')]
     private ?User $customer = null;
-
-    #[ORM\ManyToOne(targetEntity: Product::class, inversedBy: 'cancelledOrderItems')]
-    #[ORM\JoinColumn(name: 'id_predmetu', referencedColumnName: 'id_predmetu', nullable: false)]
-    private ?Product $product = null;
 
     /**
      * The night or size that was bought; the product is only its room type or model.
@@ -101,14 +96,7 @@ class CancelledOrderItem
 
     public function getProduct(): ?Product
     {
-        return $this->product;
-    }
-
-    public function setProduct(?Product $product): self
-    {
-        $this->product = $product;
-
-        return $this;
+        return $this->variant?->getProduct();
     }
 
     public function getVariant(): ?ProductVariant
@@ -218,8 +206,9 @@ class CancelledOrderItem
             return $this->productName;
         }
 
-        if ($this->product instanceof Product) {
-            return $this->product->getName();
+        $product = $this->getProduct();
+        if ($product !== null) {
+            return $product->getName();
         }
 
         return 'Smazaný produkt';

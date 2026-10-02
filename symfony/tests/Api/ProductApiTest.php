@@ -393,11 +393,10 @@ class ProductApiTest extends AbstractDatabaseKernelTestCase
     {
         [$product, $variant] = $this->produktSVariantou();
         $this->connection()->executeStatement(
-            'INSERT INTO shop_nakupy (id_uzivatele, id_predmetu, variant_id, rok, cena_nakupni, datum)
-             VALUES (:customer, :product, :variant, :year, 1, NOW())',
+            'INSERT INTO shop_nakupy (id_uzivatele, variant_id, rok, cena_nakupni, datum)
+             VALUES (:customer, :variant, :year, 1, NOW())',
             [
                 'customer' => $this->createUser('api_test_buyer_')->getId(),
-                'product'  => $product->getId(),
                 'variant'  => $variant->getId(),
                 'year'     => ROCNIK - 1,
             ],
@@ -460,27 +459,6 @@ class ProductApiTest extends AbstractDatabaseKernelTestCase
         self::assertStringContainsString('nejde smazat', $response->toArray(false)['detail']);
         self::assertSame(1, $this->pocetRadku('shop_predmety', 'id_predmetu', $product->getId()));
         self::assertSame(1, $this->pocetRadku('product_variant', 'id', $variant->getId()));
-    }
-
-    public function testProductWhoseVariantWasSoldUnderAnotherCatalogRowIsNotDeleted(): void
-    {
-        [$product, $variant] = $this->produktSVariantou();
-        [$jinyRadekKatalogu] = $this->produktSVariantou();
-        $this->connection()->executeStatement(
-            'INSERT INTO shop_nakupy (id_uzivatele, id_predmetu, variant_id, rok, cena_nakupni, datum)
-             VALUES (:customer, :catalogRow, :variant, :year, 1, NOW())',
-            [
-                'customer'   => $this->createUser('api_test_buyer_')->getId(),
-                'catalogRow' => $jinyRadekKatalogu->getId(),
-                'variant'    => $variant->getId(),
-                'year'       => ROCNIK - 1,
-            ],
-        );
-
-        $response = $this->adminClient()->request('DELETE', '/symfony/api/products/' . $product->getId());
-
-        self::assertSame(1, $this->pocetRadku('shop_nakupy', 'variant_id', $variant->getId()), 'The purchase must keep its variant');
-        self::assertSame(422, $response->getStatusCode(), $response->getContent(false));
     }
 
     public function testProductWithOnlyACancelledPurchaseIsNotDeleted(): void
@@ -594,11 +572,10 @@ class ProductApiTest extends AbstractDatabaseKernelTestCase
     private function zrusenyProdej(Product $product, ProductVariant $variant): void
     {
         $this->connection()->executeStatement(
-            'INSERT INTO shop_nakupy_zrusene (id_nakupu, id_uzivatele, id_predmetu, variant_id, rocnik, cena_nakupni, datum_nakupu)
-             VALUES ((SELECT COALESCE(MAX(id_nakupu), 0) + 1 FROM shop_nakupy_zrusene AS existujici), :customer, :product, :variant, :year, 1, NOW())',
+            'INSERT INTO shop_nakupy_zrusene (id_nakupu, id_uzivatele, variant_id, rocnik, cena_nakupni, datum_nakupu)
+             VALUES ((SELECT COALESCE(MAX(id_nakupu), 0) + 1 FROM shop_nakupy_zrusene AS existujici), :customer, :variant, :year, 1, NOW())',
             [
                 'customer' => $this->createUser('api_test_buyer_')->getId(),
-                'product'  => $product->getId(),
                 'variant'  => $variant->getId(),
                 'year'     => ROCNIK - 1,
             ],
@@ -608,11 +585,10 @@ class ProductApiTest extends AbstractDatabaseKernelTestCase
     private function prodej(Product $product, ProductVariant $variant): void
     {
         $this->connection()->executeStatement(
-            'INSERT INTO shop_nakupy (id_uzivatele, id_predmetu, variant_id, rok, cena_nakupni, datum)
-             VALUES (:customer, :product, :variant, :year, 1, NOW())',
+            'INSERT INTO shop_nakupy (id_uzivatele, variant_id, rok, cena_nakupni, datum)
+             VALUES (:customer, :variant, :year, 1, NOW())',
             [
                 'customer' => $this->createUser('api_test_buyer_')->getId(),
-                'product'  => $product->getId(),
                 'variant'  => $variant->getId(),
                 'year'     => ROCNIK - 1,
             ],
@@ -898,11 +874,10 @@ class ProductApiTest extends AbstractDatabaseKernelTestCase
         $kupujici = $this->createUser('api_test_buyer_');
         for ($kus = 0; $kus < 2; ++$kus) {
             $this->connection()->executeStatement(
-                'INSERT INTO shop_nakupy (id_uzivatele, id_predmetu, variant_id, rok, cena_nakupni, datum)
-                 VALUES (:customer, :product, :variant, :year, 1, NOW())',
+                'INSERT INTO shop_nakupy (id_uzivatele, variant_id, rok, cena_nakupni, datum)
+                 VALUES (:customer, :variant, :year, 1, NOW())',
                 [
                     'customer' => $kupujici->getId(),
-                    'product'  => $product->getId(),
                     'variant'  => $omezena->getId(),
                     'year'     => ROCNIK,
                 ],

@@ -6,6 +6,7 @@ namespace App\Tests\Entity;
 
 use App\Entity\CancelledOrderItem;
 use App\Entity\Product;
+use App\Entity\ProductVariant;
 use App\Entity\User;
 use PHPUnit\Framework\TestCase;
 
@@ -60,7 +61,7 @@ class CancelledOrderItemTest extends TestCase
         $product = $this->createMock(Product::class);
         $product->method('getName')->willReturn('Test Product');
 
-        $this->cancelledOrderItem->setProduct($product);
+        $this->cancelledOrderItem->setVariant((new ProductVariant())->setProduct($product));
         $this->assertSame($product, $this->cancelledOrderItem->getProduct());
     }
 
@@ -69,16 +70,14 @@ class CancelledOrderItemTest extends TestCase
         $product = $this->createMock(Product::class);
         $product->method('getName')->willReturn('GameCon kostka');
 
-        $this->cancelledOrderItem->setProduct($product);
+        $this->cancelledOrderItem->setVariant((new ProductVariant())->setProduct($product));
 
         $this->assertSame('GameCon kostka', $this->cancelledOrderItem->getDisplayProductName());
     }
 
     public function testGetDisplayProductNameWithoutProduct(): void
     {
-        // No product set (deleted product scenario)
-        $this->cancelledOrderItem->setProduct(null);
-
+        // No variant, so no product (deleted product scenario)
         $this->assertSame('Smazaný produkt', $this->cancelledOrderItem->getDisplayProductName());
     }
 

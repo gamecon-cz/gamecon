@@ -50,8 +50,8 @@ SQL,
             'pokoj_varianty_pa' => 44611,
         ] as $kodVarianty => $idProduktu) {
             dbQuery(
-                'INSERT INTO shop_nakupy (id_uzivatele, id_predmetu, variant_id, rok, cena_nakupni)
-                 VALUES ($0, $1, (SELECT id FROM product_variant WHERE code = $2), $3, (SELECT cena_aktualni FROM shop_predmety WHERE id_predmetu = $1))',
+                'INSERT INTO shop_nakupy (id_uzivatele, variant_id, rok, cena_nakupni)
+                 VALUES ($0, (SELECT id FROM product_variant WHERE code = $2), $3, (SELECT cena_aktualni FROM shop_predmety WHERE id_predmetu = $1))',
                 [
                     0 => self::UZIVATEL,
                     1 => $idProduktu,

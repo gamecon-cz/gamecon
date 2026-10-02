@@ -190,7 +190,6 @@ class MealWriter
         // Volající může držet odpojenou entitu (admin si mezitím promazal identity map),
         // a `persist()` by ji pak chtěl vložit znovu jako nového uživatele.
         $item->setCustomer($this->entityManager->getReference(User::class, $customer->getId()));
-        $item->setProduct($product);
         $item->setVariant($variant);
         $item->setOrder($order);
         $item->setYear($year);

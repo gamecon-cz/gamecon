@@ -30,48 +30,6 @@ SQL);
     }
 
     /**
-     * Zpětné naplnění se testuje na datech, která existovala před migrací — ta v testovací
-     * databázi nejsou, protože se staví migracemi. Testuje se proto samotné pravidlo: řádek
-     * bez snapshotu se z produktu doplnit umí, a doplní se tím, co produkt nese teď.
-     *
-     * @test
-     */
-    public function radekBezSnapshotuSeDoplniZProduktu(): void
-    {
-        dbQuery(<<<SQL
-INSERT INTO shop_predmety SET id_predmetu = 94010, nazev = 'Ponožky (vel. 42-45)', kod_predmetu = 'ponozky_94010', cena_aktualni = 120, stav = 1, nabizet_do = NOW()
-SQL);
-        dbQuery(<<<SQL
-INSERT INTO product_variant (product_id, name, code, position, state) VALUES (94010, NULL, 'ponozky_94010', 0, 1)
-SQL);
-        dbQuery(<<<SQL
-INSERT INTO shop_nakupy_zrusene SET id_uzivatele = 1, id_predmetu = 94010, variant_id = (SELECT id FROM product_variant WHERE code = 'ponozky_94010'), rocnik = 2024, cena_nakupni = 120, datum_nakupu = NOW(), datum_zruseni = NOW(), zdroj_zruseni = 'rucne-hromadne'
-SQL);
-
-        self::assertNull(
-            dbFetchSingle('SELECT product_name FROM shop_nakupy_zrusene WHERE id_predmetu = $0', [
-                0 => 94010,
-            ]),
-            'Nový řádek zatím snapshot nemá — to je stav, který migrace zastihla u historických dat',
-        );
-
-        dbQuery(<<<SQL
-UPDATE shop_nakupy_zrusene
-JOIN shop_predmety ON shop_predmety.id_predmetu = shop_nakupy_zrusene.id_predmetu
-SET shop_nakupy_zrusene.product_name = shop_predmety.nazev,
-    shop_nakupy_zrusene.product_code = shop_predmety.kod_predmetu
-WHERE shop_nakupy_zrusene.product_name IS NULL
-SQL);
-
-        self::assertSame(
-            'Ponožky (vel. 42-45)',
-            dbFetchSingle('SELECT product_name FROM shop_nakupy_zrusene WHERE id_predmetu = $0', [
-                0 => 94010,
-            ]),
-        );
-    }
-
-    /**
      * Velikost drží varianta, ne název produktu: seskupení triček pod jednoho vlastníka
      * mu ji z názvu ustřihlo. Přilepit ji ale jde jen tam, kde v názvu chybí — jinak
      * vznikne „Tričko účastnické XXL XXL" nebo „Placka Placka".

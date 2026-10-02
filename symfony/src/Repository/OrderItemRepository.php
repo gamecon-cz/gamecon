@@ -53,8 +53,9 @@ class OrderItemRepository extends ServiceEntityRepository
     {
         $dotaz = $this->createQueryBuilder('oi')
             ->select('COUNT(oi.id)')
+            ->innerJoin('oi.variant', 'koupena_varianta')
             ->where('oi.customer = :customer')
-            ->andWhere('oi.product = :product')
+            ->andWhere('koupena_varianta.product = :product')
             ->andWhere('oi.year = :year')
             ->setParameter('customer', $customer)
             ->setParameter('product', $product)
@@ -150,7 +151,8 @@ class OrderItemRepository extends ServiceEntityRepository
     {
         return $this->createQueryBuilder('oi')
             ->select('1')
-            ->where('oi.product = :product')
+            ->innerJoin('oi.variant', 'koupena_varianta')
+            ->where('koupena_varianta.product = :product')
             ->setParameter('product', $product)
             ->setMaxResults(1)
             ->getQuery()

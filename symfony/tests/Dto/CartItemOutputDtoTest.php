@@ -34,7 +34,6 @@ class CartItemOutputDtoTest extends TestCase
         $ref->setValue($variant, 42);
 
         $item = new OrderItem();
-        $item->setProduct($product);
         $item->setVariant($variant);
         $item->setPurchasePrice('150.00');
         $item->setYear(2026);
@@ -59,7 +58,6 @@ class CartItemOutputDtoTest extends TestCase
         $product->setDescription('');
 
         $item = new OrderItem();
-        $item->setProduct($product);
         $item->setPurchasePrice('100.00');
         $item->setYear(2026);
         $item->setCustomer($this->createMock(User::class));
@@ -90,7 +88,6 @@ class CartItemOutputDtoTest extends TestCase
         $product->setDescription('');
 
         $item = new OrderItem();
-        $item->setProduct($product);
         $item->setBundle($bundle);
         $item->setPurchasePrice('100.00');
         $item->setYear(2026);

@@ -201,25 +201,11 @@ class Product
     #[ORM\OneToMany(targetEntity: ProductDiscount::class, mappedBy: 'product', cascade: ['persist', 'remove'], orphanRemoval: true)]
     private Collection $discounts;
 
-    /**
-     * @var Collection<int, OrderItem>
-     */
-    #[ORM\OneToMany(targetEntity: OrderItem::class, mappedBy: 'product')]
-    private Collection $orderItems;
-
-    /**
-     * @var Collection<int, CancelledOrderItem>
-     */
-    #[ORM\OneToMany(targetEntity: CancelledOrderItem::class, mappedBy: 'product')]
-    private Collection $cancelledOrderItems;
-
     public function __construct()
     {
         $this->tags = new ArrayCollection();
         $this->variants = new ArrayCollection();
         $this->discounts = new ArrayCollection();
-        $this->orderItems = new ArrayCollection();
-        $this->cancelledOrderItems = new ArrayCollection();
     }
 
     // ==================== Getters and Setters ====================
@@ -436,22 +422,6 @@ class Product
     public function getDiscounts(): Collection
     {
         return $this->discounts;
-    }
-
-    /**
-     * @return Collection<int, OrderItem>
-     */
-    public function getOrderItems(): Collection
-    {
-        return $this->orderItems;
-    }
-
-    /**
-     * @return Collection<int, CancelledOrderItem>
-     */
-    public function getCancelledOrderItems(): Collection
-    {
-        return $this->cancelledOrderItems;
     }
 
     // ==================== Helper Methods ====================

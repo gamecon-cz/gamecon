@@ -61,7 +61,7 @@ SQL,
                 'code'        => 'tricko_velikosti_XL',
             ]],
             dbFetchAll(
-                'SELECT shop_nakupy.id_predmetu, product_variant.code
+                'SELECT product_variant.product_id AS id_predmetu, product_variant.code
                  FROM shop_nakupy
                  JOIN product_variant ON product_variant.id = shop_nakupy.variant_id
                  WHERE shop_nakupy.id_uzivatele = $0 AND shop_nakupy.rok = $1 AND shop_nakupy.order_id IS NOT NULL',
@@ -105,7 +105,7 @@ SQL,
     public function prehledObjednavekJmenujeKoupenouVelikost(): void
     {
         dbQuery(
-            'INSERT INTO shop_nakupy (id_uzivatele, id_predmetu, variant_id, rok, cena_nakupni) VALUES ($0, $1, $2, $3, 250)',
+            'INSERT INTO shop_nakupy (id_uzivatele, variant_id, rok, cena_nakupni) VALUES ($0, $2, $3, 250)',
             [
                 0 => self::UZIVATEL,
                 1 => self::MODEL,
@@ -187,8 +187,8 @@ SQL,
     private function kupXl(int $rok): void
     {
         dbQuery(
-            'INSERT INTO shop_nakupy (id_uzivatele, id_predmetu, variant_id, rok, cena_nakupni)
-             VALUES ($0, $1, (SELECT id FROM product_variant WHERE code = $2), $3, 250)',
+            'INSERT INTO shop_nakupy (id_uzivatele, variant_id, rok, cena_nakupni)
+             VALUES ($0, (SELECT id FROM product_variant WHERE code = $2), $3, 250)',
             [
                 0 => self::UZIVATEL,
                 1 => self::MODEL,

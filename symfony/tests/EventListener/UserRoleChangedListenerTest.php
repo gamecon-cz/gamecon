@@ -7,6 +7,7 @@ namespace App\Tests\EventListener;
 use App\Entity\Order;
 use App\Entity\OrderItem;
 use App\Entity\Product;
+use App\Entity\ProductVariant;
 use App\Entity\User;
 use App\EventListener\UserRoleChangedListener;
 use App\Repository\OrderRepository;
@@ -46,7 +47,7 @@ class UserRoleChangedListenerTest extends TestCase
         $product->setCurrentPrice('250.00');
 
         $item = new OrderItem();
-        $item->setProduct($product);
+        $item->setVariant((new ProductVariant())->setProduct($product));
         $item->setPurchasePrice($puvodni);
 
         $order = new Order();
@@ -120,7 +121,7 @@ class UserRoleChangedListenerTest extends TestCase
         $this->discountCalculator->expects(self::never())->method('calculateDiscount');
 
         $item = new OrderItem();
-        $item->setProduct($this->produkt());
+        $item->setVariant((new ProductVariant())->setProduct($this->produkt()));
         $item->setPurchasePrice('0.00');
 
         $order = new Order();

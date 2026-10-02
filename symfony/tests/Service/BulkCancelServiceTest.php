@@ -179,7 +179,6 @@ class BulkCancelServiceTest extends TestCase
         $product = $this->createProduct();
         $variant = $this->createVariant($product);
         $item = $this->createItemWithVariant($variant);
-        $item->setProduct($product);
 
         $this->orderItemRepository->method('findByCustomerAndYear')
             ->willReturn([$item]);
@@ -212,7 +211,6 @@ class BulkCancelServiceTest extends TestCase
         $product = $this->createProduct();
         $item = new OrderItem();
         $item->setCustomer($this->createMock(User::class));
-        $item->setProduct($product);
         // Every purchase names its variant; the database requires it.
         $item->setVariant($this->createVariant($product));
         $item->setPurchasePrice('250.00');

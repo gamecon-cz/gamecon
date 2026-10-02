@@ -200,7 +200,7 @@ class KfcSaleProcessorTest extends AbstractDatabaseKernelTestCase
         self::assertSame('50', $vysledek->totalPrice, 'Pokladna počítá v celých korunách');
 
         $nakup = $this->connection()->fetchAssociative(
-            'SELECT id_uzivatele, id_objednatele, product_name FROM shop_nakupy WHERE id_predmetu = :id',
+            'SELECT id_uzivatele, id_objednatele, product_name FROM shop_nakupy INNER JOIN product_variant ON product_variant.id = shop_nakupy.variant_id WHERE product_variant.product_id = :id',
             [
                 'id' => $predmet->getId(),
             ],
@@ -262,7 +262,7 @@ class KfcSaleProcessorTest extends AbstractDatabaseKernelTestCase
         $this->zpracuj($this->prodej($predmet));
 
         $log = $this->connection()->fetchOne(
-            'SELECT override_log FROM shop_nakupy WHERE id_predmetu = :id',
+            'SELECT override_log FROM shop_nakupy INNER JOIN product_variant ON product_variant.id = shop_nakupy.variant_id WHERE product_variant.product_id = :id',
             [
                 'id' => $predmet->getId(),
             ],
@@ -288,7 +288,7 @@ class KfcSaleProcessorTest extends AbstractDatabaseKernelTestCase
 
         self::assertNull(
             $this->connection()->fetchOne(
-                'SELECT override_log FROM shop_nakupy WHERE id_predmetu = :id',
+                'SELECT override_log FROM shop_nakupy INNER JOIN product_variant ON product_variant.id = shop_nakupy.variant_id WHERE product_variant.product_id = :id',
                 [
                     'id' => $predmet->getId(),
                 ],

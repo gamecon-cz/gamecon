@@ -280,8 +280,8 @@ class MealWriterAvailabilityTest extends AbstractDatabaseKernelTestCase
         try {
             $souper = SoubeznaTransakce::spust($this->connection(), [
                 ['sql', 'SELECT id FROM product_variant WHERE id = ' . $varianta->getId() . ' FOR UPDATE'],
-                ['sql', 'INSERT INTO shop_nakupy (id_uzivatele, id_predmetu, variant_id, rok, cena_nakupni, datum)
-                         VALUES (' . $ucastnik . ', ' . $varianta->getProduct()->getId() . ', ' . $varianta->getId() . ', ' . self::ROK . ', 140, NOW())'],
+                ['sql', 'INSERT INTO shop_nakupy (id_uzivatele, variant_id, rok, cena_nakupni, datum)
+                         VALUES (' . $ucastnik . ', ' . $varianta->getId() . ', ' . self::ROK . ', 140, NOW())'],
                 ['hlasim', 'kupuje jidlo'],
                 ['cekej', 500],
                 ['potvrd', ''],
@@ -305,11 +305,10 @@ class MealWriterAvailabilityTest extends AbstractDatabaseKernelTestCase
     private function nakup(int $idUzivatele, ProductVariant $varianta): int
     {
         $this->connection()->executeStatement(
-            'INSERT INTO shop_nakupy (id_uzivatele, id_predmetu, variant_id, rok, cena_nakupni, datum)
-             VALUES (:uzivatel, :predmet, :varianta, :rok, 140, NOW())',
+            'INSERT INTO shop_nakupy (id_uzivatele, variant_id, rok, cena_nakupni, datum)
+             VALUES (:uzivatel, :varianta, :rok, 140, NOW())',
             [
                 'uzivatel' => $idUzivatele,
-                'predmet'  => $varianta->getProduct()->getId(),
                 'varianta' => $varianta->getId(),
                 'rok'      => self::ROK,
             ],

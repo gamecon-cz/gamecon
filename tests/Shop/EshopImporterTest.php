@@ -944,8 +944,8 @@ SQL);
     {
         for ($kus = 0; $kus < $kusu; ++$kus) {
             dbQuery(<<<SQL
-INSERT INTO shop_nakupy (id_uzivatele, id_objednatele, id_predmetu, variant_id, rok, cena_nakupni, datum)
-SELECT $0, $0, product_variant.product_id, product_variant.id, $1, 100, NOW()
+INSERT INTO shop_nakupy (id_uzivatele, id_objednatele, variant_id, rok, cena_nakupni, datum)
+SELECT $0, $0, product_variant.id, $1, 100, NOW()
 FROM product_variant
 WHERE product_variant.code = $2
 SQL,
