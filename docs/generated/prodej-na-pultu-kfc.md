@@ -6,7 +6,7 @@ TL;DR: KFC je pokladna na infopultu (`/kfc/*`, jen `ROLE_ADMIN`). Kdo přijde be
 
 - `symfony/src/ApiResource/KfcResource.php` — `/kfc/products`, `/kfc/grids`, `/kfc/sales`
 - `symfony/src/State/Kfc/KfcSaleProcessor.php` — zápis prodeje
-- `model/Shop/Shop.php:1504` — legacy ekvivalent (`prodat()`), podle kterého se KFC srovnává
+- `model/Shop/Shop.php::prodat` — legacy ekvivalent (`prodat()`), podle kterého se KFC srovnává
 - `model/Uzivatel/Finance.php:321` — `pripis()`, jediný `INSERT` do `platby`
 - `model/Uzivatel/Finance.php:694` — `sumaPlateb()`, kde se `poznamka` zobrazuje
 
@@ -98,11 +98,11 @@ Dvě známé nedotažené věci (obojí zatím bez následku):
   část 0,50 a víc, tedy 42,60 → 43), vyjde „úspora" záporně. Rozhoduje haléřová část, ne
   výše ceny — 42,40 i 99,10 dají úsporu kladnou. `Order::getTotalSavings()` tímhle netrpí,
   sčítá `discount_amount` a `purchase_price` vůbec nečte. Ani jeden getter nemá volajícího.
-- **Legacy `Shop::prodat()` nezaokrouhluje, i když je to taky prodej za hotové.** Admin
-  mřížka inkasuje mince stejně jako KFC, takže by podle pravidla výše zaokrouhlovat měla —
-  `model/Shop/Shop.php:1513` ale zapisuje `cena_aktualni` syrovou. Navíc už dnes
-  *zobrazuje* `round($cena)` (`renderPredmet()`, `model/Shop/Shop.php:855`), zatímco účtuje
-  nezaokrouhleno, takže obsluha vidí jinou částku, než jaká padne na účet. Dnes to nic
+- **Legacy `Shop::prodat()` nezaokrouhluje, i když je to taky prodej za hotové.** Rychlý
+  prodej na stránce uživatele inkasuje mince stejně jako KFC, takže by podle pravidla výše
+  zaokrouhlovat měl — `Shop::prodat()` ale zapisuje `cena_aktualni` syrovou. Navíc nabídka
+  (`Shop::polozkyRychlehoProdeje()`) *zobrazuje* `ROUND(cena_aktualni)`, zatímco prodej
+  účtuje nezaokrouhleno, takže obsluha vidí jinou částku, než jaká padne na účet. Dnes to nic
   nespustí — žádný předmět nemá v ceně haléře — spustí to až procentní sleva. Až se to bude
   narovnávat, patří sem `naCeleKoruny()` ekvivalent, ne úprava zobrazení.
 
