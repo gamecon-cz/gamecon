@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace Gamecon\Tests\Model\Report;
 
+use App\Enum\ProductTagCode;
 use Gamecon\Role\Role;
-use Gamecon\Shop\TypPredmetu;
 use Gamecon\Tests\Db\AbstractUzivatelTestDb;
 
 /**
@@ -22,9 +22,10 @@ class FinanceReportUbytovaniPoradiTest extends AbstractUzivatelTestDb
     public function nociVMezerePobytuJsouPodleDne(): void
     {
         $ucastnik = self::prihlasenyUzivatel();
+        $postel = $this->typPokoje('zz-pokoj', 'Postel');
         // Bought Friday first, so the purchase order differs from the day order.
-        $this->kupNoc($ucastnik, 'zz-pokoj-pa', 'Postel pátek', 2);
-        $this->kupNoc($ucastnik, 'zz-pokoj-st', 'Postel středa', 0);
+        $this->kupNoc($ucastnik, $postel, 'zz-pokoj-pa', 'pátek', 2);
+        $this->kupNoc($ucastnik, $postel, 'zz-pokoj-st', 'středa', 0);
 
         self::assertSame(
             'Postel středa,Postel pátek',
@@ -44,8 +45,8 @@ class FinanceReportUbytovaniPoradiTest extends AbstractUzivatelTestDb
         dbQuery("UPDATE uzivatele_hodnoty SET statni_obcanstvi = 'SVK' WHERE id_uzivatele = $0", [
             0 => $ucastnik->id(),
         ]);
-        $this->kupNoc($ucastnik, 'zz-pokoj-ct', 'Postel čtvrtek', 1);
-        $this->kupNoc($ucastnik, 'aa-pokoj-pa', 'Postel pátek', 2);
+        $this->kupNoc($ucastnik, $this->typPokoje('zz-pokoj', 'Postel zz'), 'zz-pokoj-ct', 'čtvrtek', 1);
+        $this->kupNoc($ucastnik, $this->typPokoje('aa-pokoj', 'Postel aa'), 'aa-pokoj-pa', 'pátek', 2);
         $this->pridelPokoj($ucastnik, 1, '202');
         $this->pridelPokoj($ucastnik, 2, '101');
 
@@ -55,20 +56,40 @@ class FinanceReportUbytovaniPoradiTest extends AbstractUzivatelTestDb
         self::assertSame('101,202', $radek['pokoj']);
     }
 
-    private function kupNoc(\Uzivatel $ucastnik, string $kod, string $nazev, int $den): void
+    private function typPokoje(string $kodTypu, string $nazev): int
     {
         dbQuery(
-            'INSERT INTO shop_predmety SET nazev = $0, model_rok = $1, kod_predmetu = $2, cena_aktualni = 100, stav = 1, typ = $3, ubytovani_den = $4',
+            "INSERT INTO shop_predmety SET nazev = $0, kod_predmetu = $1, cena_aktualni = 100, stav = 1, popis = ''",
             [
                 0 => $nazev,
-                1 => ROCNIK,
+                1 => $kodTypu . '-typ',
+            ],
+        );
+        $idProduktu = (int) dbInsertId();
+        dbQuery(
+            'INSERT INTO product_product_tag (product_id, tag_id) SELECT $0, id FROM product_tag WHERE code = $1',
+            [
+                0 => $idProduktu,
+                1 => ProductTagCode::UBYTOVANI->value,
+            ],
+        );
+
+        return $idProduktu;
+    }
+
+    private function kupNoc(\Uzivatel $ucastnik, int $idTypuPokoje, string $kod, string $noc, int $den): void
+    {
+        dbQuery(
+            'INSERT INTO product_variant (product_id, name, code, accommodation_day, position, state) VALUES ($0, $1, $2, $3, $3, 1)',
+            [
+                0 => $idTypuPokoje,
+                1 => $noc,
                 2 => $kod,
-                3 => TypPredmetu::UBYTOVANI,
-                4 => $den,
+                3 => $den,
             ],
         );
         dbQuery(
-            'INSERT INTO shop_nakupy (id_uzivatele, id_predmetu, rok, cena_nakupni, datum) VALUES ($0, $1, $2, 100, NOW())',
+            'INSERT INTO shop_nakupy (id_uzivatele, variant_id, rok, cena_nakupni, datum) VALUES ($0, $1, $2, 100, NOW())',
             [
                 0 => $ucastnik->id(),
                 1 => dbInsertId(),
@@ -104,9 +125,9 @@ class FinanceReportUbytovaniPoradiTest extends AbstractUzivatelTestDb
         $vysledek = dbQuery($shody[1], [
             0 => Role::PRIHLASEN_NA_LETOSNI_GC,
             1 => ROCNIK,
-            2 => TypPredmetu::UBYTOVANI,
+            2 => ProductTagCode::UBYTOVANI->value,
         ]);
-        while ($radek = mysqli_fetch_assoc($vysledek)) {
+        while ($radek = $vysledek->fetch(\PDO::FETCH_ASSOC)) {
             if ((int) $radek['id_uzivatele'] === $ucastnik->id()) {
                 return $radek;
             }
