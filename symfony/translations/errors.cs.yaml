@@ -22,6 +22,7 @@ accommodation:
     consecutive_nights: 'Objednané noci musí na sebe navazovat.'
     overbooking_not_permitted: 'Ubytování „%product%" na %night% je plné; přeplnit ho smí jen šéf infopultu.'
     night_full: 'Ubytování „%product%" na %night% je obsazené.'
+    withdrawn: 'Ubytování „%product%" na %night% už není v prodeji.'
 
 accommodation_import:
     type_not_unique: 'Nepodařilo se jednoznačně dohledat ubytování typu "%type%" pro %days%. Nalezeno %found% nocí.'
