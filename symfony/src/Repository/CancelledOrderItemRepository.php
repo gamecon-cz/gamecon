@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace App\Repository;
 
 use App\Entity\CancelledOrderItem;
-use App\Entity\Product;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\Persistence\ManagerRegistry;
 
@@ -38,15 +37,17 @@ class CancelledOrderItemRepository extends ServiceEntityRepository
             ->getSingleColumnResult());
     }
 
-    public function hasCancelledPurchaseOf(Product $product): bool
+    /**
+     * @return array<int, string> code of every variant ever bought this way, by its id
+     */
+    public function everCancelledVariantCodes(): array
     {
-        return $this->createQueryBuilder('cancelled_item')
-            ->select('1')
-            ->innerJoin('cancelled_item.variant', 'zrusena_varianta')
-            ->where('zrusena_varianta.product = :product')
-            ->setParameter('product', $product)
-            ->setMaxResults(1)
+        $rows = $this->createQueryBuilder('cancelled_item')
+            ->select('DISTINCT variant.id, variant.code')
+            ->innerJoin('cancelled_item.variant', 'variant')
             ->getQuery()
-            ->getOneOrNullResult() !== null;
+            ->getArrayResult();
+
+        return array_column($rows, 'code', 'id');
     }
 }

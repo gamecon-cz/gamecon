@@ -477,6 +477,36 @@ class ProductApiTest extends AbstractDatabaseKernelTestCase
         self::assertSame([], array_intersect($letosni, $archivovane));
     }
 
+    /**
+     * The editor disables deleting what the server would refuse, so both must agree on what was sold.
+     */
+    public function testTheEditorSeesWhatCannotBeDeleted(): void
+    {
+        [$prodany, $prodanaVarianta] = $this->produktSVariantou();
+        $this->prodej($prodany, $prodanaVarianta);
+        $neprodanaVarianta = (new ProductVariant())->setName('XL')->setCode($prodany->getCode() . '-XL')->setPosition(1);
+        $neprodanaVarianta->setProduct($prodany);
+        $prodany->addVariant($neprodanaVarianta);
+        $this->entityManager()->persist($neprodanaVarianta);
+        $this->entityManager()->flush();
+        [$zruseny, $zrusenaVarianta] = $this->produktSVariantou();
+        $this->zrusenyProdej($zruseny, $zrusenaVarianta);
+        [$radek, $velikost, $model] = $this->zbylyRadekProdaneVelikosti();
+        $this->prodej($model, $velikost);
+        [$neprodany] = $this->produktSVariantou();
+
+        $odpoved = $this->adminClient()->request('GET', '/symfony/api/products?exists[archivedAt]=false')->toArray();
+        $produkty = array_column($odpoved['hydra:member'] ?? $odpoved['member'], null, 'id');
+
+        self::assertTrue($produkty[$prodany->getId()]['sold']);
+        self::assertTrue($produkty[$zruseny->getId()]['sold'], 'Zrušený nákup na produkt dál ukazuje');
+        self::assertTrue($produkty[$radek->getId()]['sold'], 'Nákupy velikosti ukazují na model, ne na její řádek');
+        self::assertFalse($produkty[$neprodany->getId()]['sold']);
+        $varianty = array_column($produkty[$prodany->getId()]['variants'], 'sold', 'id');
+        self::assertTrue($varianty[$prodanaVarianta->getId()]);
+        self::assertFalse($varianty[$neprodanaVarianta->getId()]);
+    }
+
     public function testSoldProductIsNotDeleted(): void
     {
         [$product, $variant] = $this->produktSVariantou();
