@@ -4,9 +4,6 @@ declare(strict_types=1);
 
 namespace Gamecon\Tests\Db;
 
-use Gamecon\Shop\Predmet;
-use Gamecon\Shop\ShopUbytovani;
-
 class CollationTest extends AbstractTestDb
 {
     public function testDatabazeTabulkyISloupceMajiJednotneUtf8mb4CzechCi()
@@ -47,12 +44,5 @@ class CollationTest extends AbstractTestDb
         dbQuery("INSERT INTO _vars (name, value) VALUES ('test-emoji', $0)", ['🎲 kostka']);
 
         self::assertSame('🎲 kostka', dbOneCol("SELECT value FROM _vars WHERE name = 'test-emoji'"));
-    }
-
-    public function testHledaniPredmetuPodleNazvuAKoduNepadaNaCollation()
-    {
-        self::assertNull(Predmet::letosniKostka(1990));
-        self::assertSame([], ShopUbytovani::dejIdsPredmetuUbytovani(['Neexistující ubytování'], 1990, false));
-        self::assertSame([], ShopUbytovani::dejIdsPredmetuUbytovaniPodleKoduTypu('neexistujici', [1], 1990, false));
     }
 }

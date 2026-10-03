@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Gamecon\Accounting;
 
 use Gamecon\Cas\DateTimeGamecon;
+use Gamecon\Uzivatel\Finance;
 
 readonly class Transaction
 {
@@ -48,8 +49,10 @@ readonly class Transaction
         return $this->splits;
     }
 
-    public function getTotalAmount(): int
+    public function getTotalAmount(): float
     {
-        return array_sum(array_map(fn (TransactionSplit $split) => $split->getAmount(), $this->splits));
+        return Finance::zaokouhli(
+            array_sum(array_map(fn (TransactionSplit $split) => $split->getAmount(), $this->splits)),
+        );
     }
 }

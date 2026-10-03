@@ -5,10 +5,28 @@ declare(strict_types=1);
 namespace Gamecon\Tests\Db;
 
 use Gamecon\Aktivita\Aktivita;
+use Gamecon\Shop\Predmet;
+use Gamecon\SystemoveNastaveni\SystemoveNastaveni;
 use Symfony\Bundle\FrameworkBundle\Test\KernelTestCase;
 
 abstract class AbstractTestDb extends KernelTestCase
 {
+    /**
+     * Gives every catalog row without one the variant production has for it, so fixtures can
+     * insert legacy rows and still have purchases name what they bought.
+     */
+    protected const SQL_VYCHOZI_VARIANTY = <<<SQL
+INSERT INTO product_variant (product_id, name, code, position, state, accommodation_day)
+SELECT shop_predmety.id_predmetu, NULL, shop_predmety.kod_predmetu, 0, shop_predmety.stav, shop_predmety.ubytovani_den
+FROM shop_predmety
+WHERE NOT EXISTS (SELECT 1 FROM product_variant WHERE product_variant.code = shop_predmety.kod_predmetu)
+SQL;
+
+    /**
+     * The variant of a catalog row, for a purchase inserted in SQL; `%s` is the row's id.
+     */
+    protected const SQL_VARIANTA_RADKU = '(SELECT product_variant.id FROM product_variant INNER JOIN shop_predmety AS radek ON radek.kod_predmetu = product_variant.code WHERE radek.id_predmetu = %s)';
+
     private static ?DbWrapper $connection = null;
     /**
      * @var string[]
@@ -91,15 +109,15 @@ abstract class AbstractTestDb extends KernelTestCase
     {
         if (static::keepSingleTestMethodDbChangesInTransaction()) {
             self::$connection->rollback();
+            static::zapomenNacteneEntity();
         }
         if (static::resetDbAfterSingleTestMethod()) {
             self::$connection->resetTestDb();
-            // Po resetu DB se auto_increment vrátí na 1 - vyčistíme Doctrine identity map,
-            // aby v dalším testu nevznikaly EntityIdentityCollisionException
-            $this->getContainer()->get('doctrine')->getManager()->clear();
+            static::zapomenNacteneEntity();
         }
         Aktivita::smazCache();
         \Uzivatel::smazCache();
+        Predmet::smazCache();
     }
 
     protected static function keepTestClassDbChangesInTransaction(): bool
@@ -148,11 +166,32 @@ abstract class AbstractTestDb extends KernelTestCase
         if (static::resetDbAfterClass()) {
             self::$connection->resetTestDb();
         }
+        static::zapomenNacteneEntity();
         if (static::$disableStrictTransTables) {
             static::disableStrictTransTables();
         }
         Aktivita::smazCache();
         \Uzivatel::smazCache();
+        Predmet::smazCache();
+    }
+
+    /**
+     * Entities loaded before a rollback or reset describe rows that are gone, and a reset hands
+     * their ids to new rows. Legacy code writes through the global kernel, not the test one.
+     */
+    protected static function zapomenNacteneEntity(): void
+    {
+        $kernely = [SystemoveNastaveni::zGlobals()->kernel()];
+        if (static::$booted) {
+            $kernely[] = static::$kernel;
+        }
+        foreach ($kernely as $kernel) {
+            $doctrine = $kernel->getContainer()->get('doctrine');
+            // A failed flush closes the manager, and clear() does not reopen it.
+            $doctrine->getManager()->isOpen()
+                ? $doctrine->getManager()->clear()
+                : $doctrine->resetManager();
+        }
     }
 
     // například pro vypnutí kontroly "Field 'cena' doesn't have a default value"
@@ -183,7 +222,7 @@ SQL,
             fn (
                 array $row,
             ) => reset($row),
-            mysqli_fetch_all($result),
+            $result->fetchAll(\PDO::FETCH_NUM),
         );
     }
 }

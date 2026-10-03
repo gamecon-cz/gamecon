@@ -28,7 +28,7 @@ WHERE tables.TABLE_SCHEMA = DATABASE()
     )
 ORDER BY tables.TABLE_NAME
 SQL,
-)->fetch_all();
+)->fetchAll(PDO::FETCH_NUM);
 
 foreach (array_column($tabulkyKPrevodu, 0) as $tabulka) {
     $binarniSloupce = array_column(
@@ -39,13 +39,13 @@ WHERE TABLE_SCHEMA = DATABASE()
     AND TABLE_NAME = '{$tabulka}'
     AND COLLATION_NAME LIKE '%\_bin'
 SQL,
-        )->fetch_all(),
+        )->fetchAll(PDO::FETCH_NUM),
         0,
     );
 
     $definiceBinarnichSloupcu = [];
     if ($binarniSloupce !== []) {
-        $createTable = $this->q("SHOW CREATE TABLE `{$tabulka}`")->fetch_all()[0][1];
+        $createTable = $this->q("SHOW CREATE TABLE `{$tabulka}`")->fetch(PDO::FETCH_NUM)[1];
         foreach ($binarniSloupce as $sloupec) {
             if (preg_match('~^\s*(`' . preg_quote($sloupec, '~') . '` .*COLLATE \w+_bin.*?),?$~m', $createTable, $shoda) !== 1) {
                 throw new RuntimeException("Nenalezena definice binárního sloupce {$tabulka}.{$sloupec} v:\n{$createTable}");

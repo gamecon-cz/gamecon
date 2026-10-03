@@ -11,7 +11,7 @@ use Gamecon\Aktivita\Tag;
 use Gamecon\Aktivita\TypAktivity;
 use Gamecon\Role\Role;
 use Gamecon\Shop\Predmet;
-use Gamecon\Shop\TypPredmetu;
+use App\Enum\ProductTagCode;
 use Gamecon\SystemoveNastaveni\SystemoveNastaveni;
 use Gamecon\SystemoveNastaveni\SystemoveNastaveniKlice;
 use Gamecon\Uzivatel\Dto\PolozkaProBfgr;
@@ -127,10 +127,7 @@ SQL,
         $plackyLetosniPlacene        = 0;
         $plackyStareZdarma           = 0;
         $plackyStarePlacene          = 0;
-        $letosniPlacka = Predmet::letosniPlacka($rocnik);
-        $idLetosniPlacky = $letosniPlacka === null
-            ? null
-            : (int) $letosniPlacka->id();
+        $kodLetosniPlacky = (new \App\Discount\DiscountRuleLoader('dbFetchAll'))->namedItemCode($rocnik, 'placka');
         $kostkyCelkem                = [];
         $kostkyZdarma                = 0;
         $kostkyPlacene               = 0;
@@ -179,7 +176,7 @@ SQL,
         $tooLateCanceledActivityFees = [];
 
         // Projdeme všechny uživatele a agregujeme data
-        while ($r = mysqli_fetch_assoc($result)) {
+        while ($r = $result->fetch(\PDO::FETCH_ASSOC)) {
             $navstevnik = new Uzivatel($r);
 
             $costOfFreeActivitiesForUser = $this->getCostOfFreeActivitiesForUser($navstevnik, $rocnik);
@@ -218,7 +215,7 @@ SQL,
                 }
 
                 // Ubytování - placené i zdarma
-                if ($polozka->typ === TypPredmetu::UBYTOVANI) {
+                if ($polozka->kategorie === ProductTagCode::UBYTOVANI) {
                     $isPaid = $polozka->castka > 0.0;
 
                     $druhUbytovani = self::druhUbytovaniPodleKodu($polozka->kodPredmetu);
@@ -241,7 +238,7 @@ SQL,
                 }
 
                 // Tričko logika (včetně správného zpracování "Tričko/tílko")
-                if (Predmet::jeToTricko($polozka->kodPredmetu, $polozka->typ)) {
+                if (Predmet::jeToTricko($polozka->kodPredmetu, $polozka->kategorie)) {
                     // Započítání výnosů a slev z triček
                     $trickaVynosyCelkem += $polozka->castka;
                     $trickaSlevyCelkem  += $polozka->sleva;
@@ -249,17 +246,15 @@ SQL,
 
                     switch (self::kategorieSvrsku($polozka)) {
                         case self::SVRSEK_ZDARMA:
-                            // Rozpad volných triček podle BARVY položky (ne podle důvodu slevy).
-                            // Vypravěčský bonus dává zdarma libovolné (nejlevnější) tričko, ne
-                            // nutně modré (viz Cenik::cena), takže z barvy už nejde odvodit důvod.
-                            // Historické kódy Orgovska/Vypravecska/Ucastnicka jsou zachovány kvůli
-                            // exportu, ale významově jde o červená / modrá / ostatní.
-                            if (Predmet::jeToCervene($polozka)) {
-                                $trickaOrgovskaZdarma++; // červená
-                            } elseif (Predmet::jeToModre($polozka)) {
-                                $trickaVypravecskaZdarma++; // modrá
+                            // Rozpad volných triček podle HODNOSTI, pro kterou je tričko určené
+                            // (ne podle důvodu slevy): vypravěčský bonus dává zdarma libovolné
+                            // nejlevnější tričko, viz Cenik::cena.
+                            if (Predmet::jeToOrganizatorske($polozka)) {
+                                $trickaOrgovskaZdarma++;
+                            } elseif (Predmet::jeToVypravecske($polozka)) {
+                                $trickaVypravecskaZdarma++;
                             } else {
-                                $trickaUcastnickaZdarma++; // ostatní
+                                $trickaUcastnickaZdarma++;
                             }
                             break;
                         case self::SVRSEK_SE_SLEVOU:
@@ -272,7 +267,7 @@ SQL,
                 }
 
                 // Tílko logika (ale ne generic "Tričko/tílko" - to počítáme jako třičko)
-                if (Predmet::jeToTilko($polozka->kodPredmetu, $polozka->typ)) {
+                if (Predmet::jeToTilko($polozka->kodPredmetu, $polozka->kategorie)) {
                     // Započítání výnosů a slev z tílek
                     $tilkaVynosyCelkem += $polozka->castka;
                     $tilkaSlevyCelkem  += $polozka->sleva;
@@ -280,14 +275,13 @@ SQL,
 
                     switch (self::kategorieSvrsku($polozka)) {
                         case self::SVRSEK_ZDARMA:
-                            // Rozpad volných tílek podle BARVY (stejná logika jako u triček výše):
-                            // historické kódy Orgovska/Vypravecska/Ucastnicka = červená / modrá / ostatní.
-                            if (Predmet::jeToCervene($polozka)) {
-                                $tilkaOrgovskaZdarma++; // červená
-                            } elseif (Predmet::jeToModre($polozka)) {
-                                $tilkaVypravecskaZdarma++; // modrá
+                            // Rozpad volných tílek podle hodnosti, stejně jako u triček výše.
+                            if (Predmet::jeToOrganizatorske($polozka)) {
+                                $tilkaOrgovskaZdarma++;
+                            } elseif (Predmet::jeToVypravecske($polozka)) {
+                                $tilkaVypravecskaZdarma++;
                             } else {
-                                $tilkaUcastnickaZdarma++; // ostatní
+                                $tilkaUcastnickaZdarma++;
                             }
                             break;
                         case self::SVRSEK_SE_SLEVOU:
@@ -305,7 +299,7 @@ SQL,
                     $plackyCelkem[$plackyCelkemKod] ??= 0;
                     $plackyCelkem[$plackyCelkemKod]++;
 
-                    $isOldBadge = self::jeToStaraPlacka($polozka->idPredmetu, $idLetosniPlacky);
+                    $isOldBadge = self::jeToStaraPlacka($polozka->kodPredmetu, $kodLetosniPlacky);
 
                     if ($polozka->castka === 0.0) {
                         if ($isOldBadge) {
@@ -471,7 +465,7 @@ SQL,
                     continue;
                 }
 
-                if (Predmet::jeToVstupneVcas($polozka->typ, $polozka->kodPredmetu)) {
+                if (Predmet::jeToVstupneVcas($polozka->kategorie, $polozka->kodPredmetu)) {
                     Assert::same($navstevnik->finance()->cenaVstupne(), $polozka->castka);
                     // Dobrovolné vstupné
                     $vstupneSum += $polozka->castka;
@@ -787,8 +781,15 @@ SQL,
     {
         return self::druhyUbytovaniPodleKodu(
             dbOneArray(
-                'SELECT DISTINCT kod_predmetu FROM shop_predmety WHERE typ = $0 AND model_rok = $1',
-                [0 => TypPredmetu::UBYTOVANI, 1 => $rocnik],
+                <<<SQL
+                SELECT DISTINCT shop_predmety.kod_predmetu
+                FROM shop_predmety
+                JOIN product_product_tag ON product_product_tag.product_id = shop_predmety.id_predmetu
+                JOIN product_tag ON product_tag.id = product_product_tag.tag_id AND product_tag.code = $0
+                -- an archived product belongs to the year it was archived, one still on offer to this year
+                WHERE COALESCE(YEAR(shop_predmety.archived_at), $1) = $1
+                SQL,
+                [0 => ProductTagCode::UBYTOVANI->value, 1 => $rocnik],
             ),
         );
     }
@@ -905,7 +906,7 @@ SQL,
         );
 
         $stats = [];
-        while ($row = mysqli_fetch_assoc($result)) {
+        while ($row = $result->fetch(\PDO::FETCH_ASSOC)) {
             $stats[$row['kod']] = (int)$row['pocet'];
         }
 
@@ -1463,15 +1464,15 @@ SQL,
     /**
      * Staré kolekce placek se každý rok přeregistrují na aktuální `model_rok`,
      * aby se daly doprodat - podle ročníku modelu je proto letošní úplně všechno.
-     * Letošní je jen ta jedna placka, kterou vrací {@see Predmet::letosniPlacka()},
-     * tedy stejná definice, jakou používá sleva na placku zdarma v Ceníku.
+     * Letošní je jen ta jedna placka, kterou jmenuje letošní pravidlo placky zdarma,
+     * tedy přesně ta, na kterou se sleva vztahuje.
      */
     public static function jeToStaraPlacka(
-        string $idPredmetu,
-        ?int $idLetosniPlacky,
+        string $kodPredmetu,
+        ?string $kodLetosniPlacky,
     ): bool {
-        return $idLetosniPlacky === null
-            || (int) $idPredmetu !== $idLetosniPlacky;
+        return $kodLetosniPlacky === null
+            || mb_strtolower($kodPredmetu) !== mb_strtolower($kodLetosniPlacky);
     }
 
     /**
@@ -1670,10 +1671,10 @@ SQL,
                    $polozka->sleva > 0.0
                    || (
                        (
-                           Predmet::jeToTricko($polozka->kodPredmetu, $polozka->typ)
-                           || Predmet::jeToTilko($polozka->kodPredmetu, $polozka->typ)
+                           Predmet::jeToTricko($polozka->kodPredmetu, $polozka->kategorie)
+                           || Predmet::jeToTilko($polozka->kodPredmetu, $polozka->kategorie)
                        )
-                       && (Predmet::jeToModre($polozka->nazev) || Predmet::jeToCervene($polozka->nazev))
+                       && (Predmet::jeToVypravecske($polozka) || Predmet::jeToOrganizatorske($polozka))
                    )
                );
     }

@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace Gamecon\Tests\Model\Uzivatel;
 
+use App\Enum\ProductTagCode;
 use Gamecon\Pravo;
-use Gamecon\Shop\TypPredmetu;
 use Gamecon\SystemoveNastaveni\SystemoveNastaveni;
 use Gamecon\Tests\Db\AbstractTestDb;
 use Gamecon\Uzivatel\Dto\PolozkaProBfgr;
@@ -20,139 +20,140 @@ SQL,
         // PREDMET A (id 44401)
         [
             <<<SQL
-INSERT INTO shop_predmety SET id_predmetu = 44401, nazev = 'předmět A', model_rok = $0, kod_predmetu = CONCAT('predmet_a_', $0), cena_aktualni = 100, stav = 1, nabizet_do = NOW(), kusu_vyrobeno = 100, typ = $1
+INSERT INTO shop_predmety SET id_predmetu = 44401, nazev = 'předmět A', kod_predmetu = CONCAT('predmet_a_', $0), cena_aktualni = 100, stav = 1, nabizet_do = NOW()
 SQL,
             [
                 0 => ROCNIK,
-                1 => TypPredmetu::PREDMET,
             ],
         ],
+        "INSERT INTO product_product_tag (product_id, tag_id) SELECT 44401, id FROM product_tag WHERE code = 'predmet'",
         // PREDMET B (id 44402)
         [
             <<<SQL
-INSERT INTO shop_predmety SET id_predmetu = 44402, nazev = 'předmět B', model_rok = $0, kod_predmetu = CONCAT('predmet_b_', $0), cena_aktualni = 150, stav = 1, nabizet_do = NOW(), kusu_vyrobeno = 100, typ = $1
+INSERT INTO shop_predmety SET id_predmetu = 44402, nazev = 'předmět B', kod_predmetu = CONCAT('predmet_b_', $0), cena_aktualni = 150, stav = 1, nabizet_do = NOW()
 SQL,
             [
                 0 => ROCNIK,
-                1 => TypPredmetu::PREDMET,
             ],
         ],
+        "INSERT INTO product_product_tag (product_id, tag_id) SELECT 44402, id FROM product_tag WHERE code = 'predmet'",
         // UBYTOVANI A (id 44403)
         [
             <<<SQL
-INSERT INTO shop_predmety SET id_predmetu = 44403, nazev = 'ubytování A', model_rok = $0, kod_predmetu = CONCAT('ubytovani_a_', $0), cena_aktualni = 200, stav = 1, nabizet_do = NOW(), kusu_vyrobeno = 100, typ = $1, ubytovani_den = 1
+INSERT INTO shop_predmety SET id_predmetu = 44403, nazev = 'ubytování A', kod_predmetu = CONCAT('ubytovani_a_', $0), cena_aktualni = 200, stav = 1, nabizet_do = NOW(), ubytovani_den = 1
 SQL,
             [
                 0 => ROCNIK,
-                1 => TypPredmetu::UBYTOVANI,
             ],
         ],
+        "INSERT INTO product_product_tag (product_id, tag_id) SELECT 44403, id FROM product_tag WHERE code = 'ubytovani'",
         // UBYTOVANI B (id 44404)
         [
             <<<SQL
-INSERT INTO shop_predmety SET id_predmetu = 44404, nazev = 'ubytování B', model_rok = $0, kod_predmetu = CONCAT('ubytovani_b_', $0), cena_aktualni = 250, stav = 1, nabizet_do = NOW(), kusu_vyrobeno = 100, typ = $1, ubytovani_den = 2
+INSERT INTO shop_predmety SET id_predmetu = 44404, nazev = 'ubytování B', kod_predmetu = CONCAT('ubytovani_b_', $0), cena_aktualni = 250, stav = 1, nabizet_do = NOW(), ubytovani_den = 2
 SQL,
             [
                 0 => ROCNIK,
-                1 => TypPredmetu::UBYTOVANI,
             ],
         ],
+        "INSERT INTO product_product_tag (product_id, tag_id) SELECT 44404, id FROM product_tag WHERE code = 'ubytovani'",
         // TRICKO cervene (id 44405)
         [
             <<<SQL
-INSERT INTO shop_predmety SET id_predmetu = 44405, nazev = 'červené tričko', model_rok = $0, kod_predmetu = CONCAT('tricko_cervene_', $0), cena_aktualni = 150, stav = 1, nabizet_do = NOW(), kusu_vyrobeno = 100, typ = $1
+INSERT INTO shop_predmety SET id_predmetu = 44405, nazev = 'červené tričko', kod_predmetu = CONCAT('tricko_cervene_', $0), cena_aktualni = 150, stav = 1, nabizet_do = NOW()
 SQL,
             [
                 0 => ROCNIK,
-                1 => TypPredmetu::TRICKO,
             ],
         ],
+        "INSERT INTO product_product_tag (product_id, tag_id) SELECT 44405, id FROM product_tag WHERE code = 'tricko'",
         // TRICKO modre (id 44406)
         [
             <<<SQL
-INSERT INTO shop_predmety SET id_predmetu = 44406, nazev = 'modré tričko', model_rok = $0, kod_predmetu = CONCAT('tricko_modre_', $0), cena_aktualni = 180, stav = 1, nabizet_do = NOW(), kusu_vyrobeno = 100, typ = $1
+INSERT INTO shop_predmety SET id_predmetu = 44406, nazev = 'modré tričko', kod_predmetu = CONCAT('tricko_modre_', $0), cena_aktualni = 180, stav = 1, nabizet_do = NOW()
 SQL,
             [
                 0 => ROCNIK,
-                1 => TypPredmetu::TRICKO,
             ],
         ],
+        "INSERT INTO product_product_tag (product_id, tag_id) SELECT 44406, id FROM product_tag WHERE code = 'tricko'",
         // JIDLO A (id 44407)
         [
             <<<SQL
-INSERT INTO shop_predmety SET id_predmetu = 44407, nazev = 'jídlo A', model_rok = $0, kod_predmetu = CONCAT('jidlo_a_', $0), cena_aktualni = 80, stav = 1, nabizet_do = NOW(), kusu_vyrobeno = 100, typ = $1, ubytovani_den = 1
+INSERT INTO shop_predmety SET id_predmetu = 44407, nazev = 'jídlo A', kod_predmetu = CONCAT('jidlo_a_', $0), cena_aktualni = 80, stav = 1, nabizet_do = NOW(), ubytovani_den = 1
 SQL,
             [
                 0 => ROCNIK,
-                1 => TypPredmetu::JIDLO,
             ],
         ],
+        "INSERT INTO product_product_tag (product_id, tag_id) SELECT 44407, id FROM product_tag WHERE code = 'jidlo'",
         // JIDLO B (id 44408)
         [
             <<<SQL
-INSERT INTO shop_predmety SET id_predmetu = 44408, nazev = 'jídlo B', model_rok = $0, kod_predmetu = CONCAT('jidlo_b_', $0), cena_aktualni = 80, stav = 1, nabizet_do = NOW(), kusu_vyrobeno = 100, typ = $1, ubytovani_den = 2
+INSERT INTO shop_predmety SET id_predmetu = 44408, nazev = 'jídlo B', kod_predmetu = CONCAT('jidlo_b_', $0), cena_aktualni = 80, stav = 1, nabizet_do = NOW(), ubytovani_den = 2
 SQL,
             [
                 0 => ROCNIK,
-                1 => TypPredmetu::JIDLO,
             ],
         ],
+        "INSERT INTO product_product_tag (product_id, tag_id) SELECT 44408, id FROM product_tag WHERE code = 'jidlo'",
         // VSTUPNE vcas (id 44409)
         [
             <<<SQL
-INSERT INTO shop_predmety SET id_predmetu = 44409, nazev = 'vstupné', model_rok = $0, kod_predmetu = CONCAT('vstupne_', $0), cena_aktualni = 300, stav = 1, nabizet_do = NOW(), kusu_vyrobeno = 100, typ = $1
+INSERT INTO shop_predmety SET id_predmetu = 44409, nazev = 'vstupné', kod_predmetu = CONCAT('vstupne_', $0), cena_aktualni = 300, stav = 1, nabizet_do = NOW()
 SQL,
             [
                 0 => ROCNIK,
-                1 => TypPredmetu::VSTUPNE,
             ],
         ],
+        "INSERT INTO product_product_tag (product_id, tag_id) SELECT 44409, id FROM product_tag WHERE code = 'vstupne'",
         // VSTUPNE pozde (id 44410)
         [
             <<<SQL
-INSERT INTO shop_predmety SET id_predmetu = 44410, nazev = 'vstupné pozdě', model_rok = $0, kod_predmetu = CONCAT('vstupne_pozde_', $0), cena_aktualni = 100, stav = 1, nabizet_do = NOW(), kusu_vyrobeno = 100, typ = $1
+INSERT INTO shop_predmety SET id_predmetu = 44410, nazev = 'vstupné pozdě', kod_predmetu = CONCAT('vstupne_pozde_', $0), cena_aktualni = 100, stav = 1, nabizet_do = NOW()
 SQL,
             [
                 0 => ROCNIK,
-                1 => TypPredmetu::VSTUPNE,
             ],
         ],
+        "INSERT INTO product_product_tag (product_id, tag_id) SELECT 44410, id FROM product_tag WHERE code = 'vstupne'",
         // PARCON (id 44411)
         [
             <<<SQL
-INSERT INTO shop_predmety SET id_predmetu = 44411, nazev = 'parcon', model_rok = $0, kod_predmetu = CONCAT('parcon_', $0), cena_aktualni = 50, stav = 1, nabizet_do = NOW(), kusu_vyrobeno = 100, typ = $1
+INSERT INTO shop_predmety SET id_predmetu = 44411, nazev = 'parcon', kod_predmetu = CONCAT('parcon_', $0), cena_aktualni = 50, stav = 1, nabizet_do = NOW()
 SQL,
             [
                 0 => ROCNIK,
-                1 => TypPredmetu::PARCON,
             ],
         ],
+        "INSERT INTO product_product_tag (product_id, tag_id) SELECT 44411, id FROM product_tag WHERE code = 'parcon'",
         // PROPLACENI_BONUSU (id 44412)
         [
             <<<SQL
-INSERT INTO shop_predmety SET id_predmetu = 44412, nazev = 'proplacení bonusu', model_rok = $0, kod_predmetu = CONCAT('proplaceni_', $0), cena_aktualni = 500, stav = 1, nabizet_do = NOW(), kusu_vyrobeno = 100, typ = $1
+INSERT INTO shop_predmety SET id_predmetu = 44412, nazev = 'proplacení bonusu', kod_predmetu = CONCAT('proplaceni_', $0), cena_aktualni = 500, stav = 1, nabizet_do = NOW()
 SQL,
             [
                 0 => ROCNIK,
-                1 => TypPredmetu::PROPLACENI_BONUSU,
             ],
         ],
-        // PREDMET stary rok (id 44413)
+        "INSERT INTO product_product_tag (product_id, tag_id) SELECT 44412, id FROM product_tag WHERE code = 'proplaceni_bonusu'",
+        // PREDMET stary rok (id 44413) - archived (was model_rok = ROCNIK - 1)
         [
             <<<SQL
-INSERT INTO shop_predmety SET id_predmetu = 44413, nazev = 'starý předmět', model_rok = $0, kod_predmetu = CONCAT('predmet_stary_', $0), cena_aktualni = 100, stav = 1, nabizet_do = NOW(), kusu_vyrobeno = 100, typ = $1
+INSERT INTO shop_predmety SET id_predmetu = 44413, nazev = 'starý předmět', kod_predmetu = CONCAT('predmet_stary_', $0), cena_aktualni = 100, stav = 1, nabizet_do = NOW(), archived_at = CONCAT($0, '-01-01 00:00:00')
 SQL,
             [
                 0 => ROCNIK - 1,
-                1 => TypPredmetu::PREDMET,
             ],
         ],
+        "INSERT INTO product_product_tag (product_id, tag_id) SELECT 44413, id FROM product_tag WHERE code = 'predmet'",
+        self::SQL_VYCHOZI_VARIANTY,
     ];
 
     private function vlozNakup(int $idPredmetu, float $cenaNakupni): void
     {
         dbQuery(
-            'INSERT INTO shop_nakupy(id_uzivatele, id_predmetu, rok, cena_nakupni) VALUES($0, $1, $2, $3)',
+            'INSERT INTO shop_nakupy(id_uzivatele, variant_id, rok, cena_nakupni) VALUES($0, ' . sprintf(self::SQL_VARIANTA_RADKU, '$1') . ', $2, $3)',
             [
                 0 => 444,
                 1 => $idPredmetu,
@@ -242,13 +243,13 @@ SQL,
         self::assertCount(1, $bfgr);
         self::assertSame(100.0, $bfgr[0]->castka);
         self::assertSame(0.0, $bfgr[0]->sleva);
-        self::assertSame(TypPredmetu::PREDMET, $bfgr[0]->typ);
+        self::assertSame(Finance::typVPrehledu(ProductTagCode::PREDMET), $bfgr[0]->typ);
         self::assertSame('1', $bfgr[0]->pocet);
 
         self::assertCount(1, $strukturovany);
         self::assertSame(100.0, $strukturovany[0]['castka']);
         self::assertSame(1, $strukturovany[0]['pocet']);
-        self::assertSame(TypPredmetu::PREDMET, $strukturovany[0]['typ']);
+        self::assertSame(Finance::typVPrehledu(ProductTagCode::PREDMET), $strukturovany[0]['typ']);
     }
 
     /**
@@ -339,11 +340,11 @@ SQL,
 
         self::assertCount(1, $bfgr);
         self::assertSame(80.0, $bfgr[0]->castka);
-        self::assertSame(TypPredmetu::JIDLO, $bfgr[0]->typ);
+        self::assertSame(Finance::typVPrehledu(ProductTagCode::JIDLO), $bfgr[0]->typ);
 
         self::assertCount(1, $strukturovany);
         self::assertSame(80.0, $strukturovany[0]['castka']);
-        self::assertSame(TypPredmetu::JIDLO, $strukturovany[0]['typ']);
+        self::assertSame(Finance::typVPrehledu(ProductTagCode::JIDLO), $strukturovany[0]['typ']);
     }
 
     /**
@@ -358,11 +359,11 @@ SQL,
 
         self::assertCount(1, $bfgr);
         self::assertSame(300.0, $bfgr[0]->castka);
-        self::assertSame(TypPredmetu::VSTUPNE, $bfgr[0]->typ);
+        self::assertSame(Finance::typVPrehledu(ProductTagCode::VSTUPNE), $bfgr[0]->typ);
 
         self::assertCount(1, $strukturovany);
         self::assertSame(300.0, $strukturovany[0]['castka']);
-        self::assertSame(TypPredmetu::VSTUPNE, $strukturovany[0]['typ']);
+        self::assertSame(Finance::typVPrehledu(ProductTagCode::VSTUPNE), $strukturovany[0]['typ']);
     }
 
     /**
@@ -377,11 +378,11 @@ SQL,
 
         self::assertCount(1, $bfgr);
         self::assertSame(100.0, $bfgr[0]->castka);
-        self::assertSame(TypPredmetu::VSTUPNE, $bfgr[0]->typ);
+        self::assertSame(Finance::typVPrehledu(ProductTagCode::VSTUPNE), $bfgr[0]->typ);
 
         self::assertCount(1, $strukturovany);
         self::assertSame(100.0, $strukturovany[0]['castka']);
-        self::assertSame(TypPredmetu::VSTUPNE, $strukturovany[0]['typ']);
+        self::assertSame(Finance::typVPrehledu(ProductTagCode::VSTUPNE), $strukturovany[0]['typ']);
     }
 
     /**
@@ -397,8 +398,8 @@ SQL,
         $finance = $this->dejFinanci();
 
         self::assertSame(117.0, $finance->cenaVstupne());
-        self::assertSame(117.0, $this->sumaCastekBfgr($finance->dejPolozkyProBfgr(), TypPredmetu::VSTUPNE));
-        self::assertSame(117.0, $this->sumaCastekStrukturovany($finance->dejStrukturovanyPrehled(), TypPredmetu::VSTUPNE));
+        self::assertSame(117.0, $this->sumaCastekBfgr($finance->dejPolozkyProBfgr(), Finance::typVPrehledu(ProductTagCode::VSTUPNE)));
+        self::assertSame(117.0, $this->sumaCastekStrukturovany($finance->dejStrukturovanyPrehled(), Finance::typVPrehledu(ProductTagCode::VSTUPNE)));
     }
 
     /**
@@ -411,7 +412,7 @@ SQL,
         $finance = $this->dejFinanci();
 
         self::assertSame(100.0, $finance->cenaVstupnePozde());
-        self::assertSame(100.0, $this->sumaCastekBfgr($finance->dejPolozkyProBfgr(), TypPredmetu::VSTUPNE));
+        self::assertSame(100.0, $this->sumaCastekBfgr($finance->dejPolozkyProBfgr(), Finance::typVPrehledu(ProductTagCode::VSTUPNE)));
     }
 
     /**
@@ -461,7 +462,7 @@ SQL,
 
         $financeBfgr = $this->dejFinanci();
         $bfgr = $financeBfgr->dejPolozkyProBfgr();
-        $bfgrProplaceni = array_filter($bfgr, fn (PolozkaProBfgr $p) => $p->typ === TypPredmetu::PROPLACENI_BONUSU);
+        $bfgrProplaceni = array_filter($bfgr, fn (PolozkaProBfgr $p) => $p->typ === Finance::typVPrehledu(ProductTagCode::PROPLACENI_BONUSU));
         self::assertCount(1, $bfgrProplaceni);
 
         $financeStrukturovany = $this->dejFinanci();
@@ -480,10 +481,10 @@ SQL,
         $strukturovany = $finance->dejStrukturovanyPrehled();
 
         self::assertCount(1, $bfgr);
-        self::assertSame(TypPredmetu::PARCON, $bfgr[0]->typ);
+        self::assertSame(Finance::typVPrehledu(ProductTagCode::PARCON), $bfgr[0]->typ);
 
         self::assertCount(1, $strukturovany);
-        self::assertSame(TypPredmetu::PARCON, $strukturovany[0]['typ']);
+        self::assertSame(Finance::typVPrehledu(ProductTagCode::PARCON), $strukturovany[0]['typ']);
     }
 
     /**
@@ -670,14 +671,14 @@ SQL,
         // Strukturovany has entries for types but NOT 7 (PROPLACENI_BONUSU)
         $strukturovanyTypy = array_unique(array_column($strukturovany, 'typ'));
         sort($strukturovanyTypy);
-        self::assertNotContains(TypPredmetu::PROPLACENI_BONUSU, $strukturovanyTypy);
+        self::assertNotContains(Finance::typVPrehledu(ProductTagCode::PROPLACENI_BONUSU), $strukturovanyTypy);
         self::assertSame([1, 2, 3, 4, 5, 6], $strukturovanyTypy);
 
         // Sum comparison: BFGR excluding typ=7 should match strukturovany total
         // But VSTUPNE typ mapping differs (5 in BFGR → 10 in strukturovany), so compare raw sums
         $sumaBfgrBezProplaceni = 0.0;
         foreach ($bfgr as $polozka) {
-            if ($polozka->typ !== TypPredmetu::PROPLACENI_BONUSU) {
+            if ($polozka->typ !== Finance::typVPrehledu(ProductTagCode::PROPLACENI_BONUSU)) {
                 $sumaBfgrBezProplaceni += $polozka->castka;
             }
         }

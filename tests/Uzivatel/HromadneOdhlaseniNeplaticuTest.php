@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Gamecon\Tests\Uzivatel;
 
+use App\Enum\ProductTagCode;
 use Gamecon\Aktivita\Aktivita;
 use Gamecon\Aktivita\StavPrihlaseni;
 use Gamecon\Aktivita\TypAktivity;
@@ -13,7 +14,6 @@ use Gamecon\Cas\DateTimeImmutableStrict;
 use Gamecon\Logger\Zaznamnik;
 use Gamecon\Pravo;
 use Gamecon\Role\Role;
-use Gamecon\Shop\TypPredmetu;
 use Gamecon\SystemoveNastaveni\SystemoveNastaveni;
 use Gamecon\Tests\Db\AbstractTestDb;
 use Gamecon\Uzivatel\Exceptions\HromadneOdhlasovaniJePrilisBrzyPoVlne;
@@ -71,8 +71,8 @@ class HromadneOdhlaseniNeplaticuTest extends AbstractTestDb
         ]);
         $queries[] = "DELETE FROM uzivatele_hodnoty WHERE id_uzivatele IN ({$allTestUserIds})";
 
-        $queries[] = self::nejakyPredmetQuery($systemoveNastaveni);
-        $queries[] = self::predmetUbytovaniQuery($systemoveNastaveni);
+        array_push($queries, ...self::nejakyPredmetQuery($systemoveNastaveni));
+        array_push($queries, ...self::predmetUbytovaniQuery($systemoveNastaveni));
         $queries[] = self::aktivitaLarpQuery($systemoveNastaveni, $cenaLarpu = 11.1);
         $queries[] = self::aktivitaRpgQuery($systemoveNastaveni, $cenaRpg = 22.2);
         $queries[] = self::aktivitaJinaAktvitaQuery($systemoveNastaveni, $cenaJineAkivity = 33.3);
@@ -128,22 +128,22 @@ class HromadneOdhlaseniNeplaticuTest extends AbstractTestDb
         return $queries;
     }
 
-    private static function predmetUbytovaniQuery(SystemoveNastaveni $systemoveNastaveni): string
+    private static function predmetUbytovaniQuery(SystemoveNastaveni $systemoveNastaveni): array
     {
         return self::predmetQuery(
             self::ID_PREDMETU_UBYTOVANI,
-            TypPredmetu::UBYTOVANI,
+            ProductTagCode::UBYTOVANI,
             'luxusní 0+KK',
             $systemoveNastaveni,
         );
     }
 
-    private static function nejakyPredmetQuery(SystemoveNastaveni $systemoveNastaveni): string
+    private static function nejakyPredmetQuery(SystemoveNastaveni $systemoveNastaveni): array
     {
         return self::predmetQuery(
             self::ID_NAHODNEHO_PREDMETU,
             // pozor dvoje vstupné logika ignoruje, jako "koupený předmět" se použije jen jedno
-            TypPredmetu::VSTUPNE,
+            ProductTagCode::VSTUPNE,
             'cosi kdesi',
             $systemoveNastaveni,
         );
@@ -151,26 +151,32 @@ class HromadneOdhlaseniNeplaticuTest extends AbstractTestDb
 
     private static function predmetQuery(
         int $idPredmetu,
-        int $typPredmetu,
+        ProductTagCode $kategorie,
         string $nazev,
         SystemoveNastaveni $systemoveNastaveni,
-    ): string {
+    ): array {
         $rok = $systemoveNastaveni->rocnik();
         $kodPredmetu = kodZNazvu($nazev . '_' . $rok);
 
-        return <<<SQL
+        $tagCode = $kategorie->value;
+
+        return [
+            <<<SQL
 INSERT INTO shop_predmety
 SET id_predmetu = {$idPredmetu},
     nazev = '{$nazev}',
-    model_rok = {$rok},
     kod_predmetu = '{$kodPredmetu}',
-    typ = {$typPredmetu},
     cena_aktualni = 0.0 -- nemá na nic vliv, "nákup" řešíme přímým zápisem do DB včetně vlastní podejní ceny
-SQL;
+SQL,
+            "INSERT INTO product_product_tag (product_id, tag_id) SELECT {$idPredmetu}, id FROM product_tag WHERE code = '{$tagCode}'",
+            self::SQL_VYCHOZI_VARIANTY,
+        ];
     }
 
-    private static function aktivitaLarpQuery(SystemoveNastaveni $systemoveNastaveni, float $cena): string
-    {
+    private static function aktivitaLarpQuery(
+        SystemoveNastaveni $systemoveNastaveni,
+        float $cena,
+    ): string {
         return self::aktivitaQuery(
             self::ID_LARP_AKTIVITY,
             TypAktivity::LARP,
@@ -180,8 +186,10 @@ SQL;
         );
     }
 
-    private static function aktivitaRpgQuery(SystemoveNastaveni $systemoveNastaveni, float $cena): string
-    {
+    private static function aktivitaRpgQuery(
+        SystemoveNastaveni $systemoveNastaveni,
+        float $cena,
+    ): string {
         return self::aktivitaQuery(
             self::ID_RPG_AKTIVITY,
             TypAktivity::RPG,
@@ -191,8 +199,10 @@ SQL;
         );
     }
 
-    private static function aktivitaJinaAktvitaQuery(SystemoveNastaveni $systemoveNastaveni, float $cena): string
-    {
+    private static function aktivitaJinaAktvitaQuery(
+        SystemoveNastaveni $systemoveNastaveni,
+        float $cena,
+    ): string {
         return self::aktivitaQuery(
             self::ID_JINE_AKTIVITY,
             TypAktivity::EPIC,
@@ -221,8 +231,11 @@ SET id_akce = {$idAktivity},
 SQL;
     }
 
-    private static function uzivatelQuery(int $idUzivatele, string $jmeno, string $prijmeni): string
-    {
+    private static function uzivatelQuery(
+        int $idUzivatele,
+        string $jmeno,
+        string $prijmeni,
+    ): string {
         $login = RemoveDiacritics::toSnakeCaseId("{$jmeno} {$prijmeni}");
         $email = str_replace('_', '.', $login) . '@dot.com';
 
@@ -274,9 +287,11 @@ SQL;
         int $rok,
         float $cena,
     ): string {
+        $varianta = sprintf(self::SQL_VARIANTA_RADKU, $idPredmetuUbytovani);
+
         return <<<SQL
-INSERT INTO shop_nakupy(id_uzivatele, id_predmetu, rok, cena_nakupni)
-VALUES ({$idUzivatele}, {$idPredmetuUbytovani}, {$rok}, {$cena})
+INSERT INTO shop_nakupy(id_uzivatele, variant_id, rok, cena_nakupni)
+VALUES ({$idUzivatele}, {$varianta}, {$rok}, {$cena})
 SQL;
     }
 
@@ -295,8 +310,10 @@ SQL;
         return self::prihlaseniNaAktivitu(self::ID_JINE_AKTIVITY, $idUzivatele);
     }
 
-    private static function prihlaseniNaAktivitu(int $idAktivity, int $idUzivatele): string
-    {
+    private static function prihlaseniNaAktivitu(
+        int $idAktivity,
+        int $idUzivatele,
+    ): string {
         $stavPrihlaseni = StavPrihlaseni::PRIHLASEN;
 
         return <<<SQL
@@ -305,8 +322,10 @@ INSERT INTO akce_prihlaseni
 SQL;
     }
 
-    private static function poslalMaloQuery(int $idUzivatele, SystemoveNastaveni $systemoveNastaveni): string
-    {
+    private static function poslalMaloQuery(
+        int $idUzivatele,
+        SystemoveNastaveni $systemoveNastaveni,
+    ): string {
         $rok = $systemoveNastaveni->rocnik();
         $poslalMalo = self::poslalMalo($systemoveNastaveni);
         $uzivatelSystem = \Uzivatel::SYSTEM;
@@ -458,8 +477,10 @@ SQL;
                 );
             }
 
-            public function nejblizsiVlnaKdy(?\DateTimeInterface $platnostZpetneKDatu = null, bool $overovatDatumZpetne = true): DateTimeGamecon
-            {
+            public function nejblizsiVlnaKdy(
+                ?\DateTimeInterface $platnostZpetneKDatu = null,
+                bool $overovatDatumZpetne = true,
+            ): DateTimeGamecon {
                 return $this->nejblizsiVlnaKdy;
             }
 
@@ -659,7 +680,9 @@ SQL;
             }
         }
 
-        $idckaZaznamenanychOdhlasenych = array_map(static fn (\Uzivatel $uzivatel) => $uzivatel->id(), $zaznamnik->entity());
+        $idckaZaznamenanychOdhlasenych = array_map(static fn (
+            \Uzivatel $uzivatel,
+        ) => $uzivatel->id(), $zaznamnik->entity());
         sort($idckaZaznamenanychOdhlasenych);
         self::assertSame(
             [self::VELKY_DLUH_NIC_NEDAM, self::VELKY_DLUH_DAM_MALO],
@@ -678,7 +701,9 @@ SQL;
             "Po odhlášení Uživatele '{$testovaciUzivatelPoOdhlaseni->celeJmeno()}' čekáme jiný počet odhlášených aktivit",
         );
         $idckaZrusenychAktivitUzivatele = array_map(
-            static fn (Aktivita $aktivita) => $aktivita->id(),
+            static fn (
+                Aktivita $aktivita,
+            ) => $aktivita->id(),
             $zruseneAktivityUzivatele,
         );
         sort($idckaZrusenychAktivitUzivatele);
@@ -718,7 +743,10 @@ SQL;
         }
         usort(
             $neplaticiAKategorieScalar,
-            static fn (array $nejakyZaznam, array $jinyZanam) => $nejakyZaznam['neplatic'] <=> $jinyZanam['neplatic'],
+            static fn (
+                array $nejakyZaznam,
+                array $jinyZanam,
+            ) => $nejakyZaznam['neplatic'] <=> $jinyZanam['neplatic'],
         );
 
         return $neplaticiAKategorieScalar;
@@ -730,7 +758,9 @@ SQL;
     private function idckaPrihlasenychAktivit(\Uzivatel $uzivatel): array
     {
         $idckaPrihlasenychAktivit = array_map(
-            static fn (Aktivita $aktivita) => $aktivita->id(),
+            static fn (
+                Aktivita $aktivita,
+            ) => $aktivita->id(),
             $uzivatel->aktivityRyzePrihlasene(),
         );
         sort($idckaPrihlasenychAktivit);

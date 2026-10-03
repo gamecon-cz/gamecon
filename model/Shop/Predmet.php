@@ -3,11 +3,12 @@ declare(strict_types=1);
 
 namespace Gamecon\Shop;
 
+use App\Enum\ProductTagCode;
 use Gamecon\Shop\SqlStruktura\PredmetSqlStruktura as Sql;
 use Gamecon\Uzivatel\Dto\PolozkaProBfgr;
 
 /**
- * For Doctrine entity equivalent @see \App\Entity\ShopItem
+ * For Doctrine entity equivalent @see \App\Entity\Product
  *
  * @method static Predmet|null zId($id, bool $zCache = false)
  */
@@ -15,16 +16,15 @@ class Predmet extends \DbObject
 {
     protected static $tabulka = Sql::SHOP_PREDMETY_TABULKA;
     protected static $pk = Sql::ID_PREDMETU;
-    protected static $letosniPredmety = [];
 
-    public static function jeToVstupneVcas(int $typPredmetu, string $kodPredmetu): bool
+    public static function jeToVstupneVcas(?ProductTagCode $kategorie, string $kodPredmetu): bool
     {
-        return $typPredmetu === TypPredmetu::VSTUPNE && !self::jeToDleCasti($kodPredmetu, 'pozde');
+        return $kategorie === ProductTagCode::VSTUPNE && !self::jeToDleCasti($kodPredmetu, 'pozde');
     }
 
-    public static function jeToVstupnePozde(int $typPredmetu, string $kodPredmetu): bool
+    public static function jeToVstupnePozde(?ProductTagCode $kategorie, string $kodPredmetu): bool
     {
-        return $typPredmetu === TypPredmetu::VSTUPNE && self::jeToDleCasti($kodPredmetu, 'pozde');
+        return $kategorie === ProductTagCode::VSTUPNE && self::jeToDleCasti($kodPredmetu, 'pozde');
     }
 
     public static function jeToKostka(string $kodPredmetu): bool
@@ -78,49 +78,36 @@ class Predmet extends \DbObject
     }
 
     /**
-     * Pozor, název, ne kód předmětu
+     * Reporty nechtějí barvu, ale hodnost — kolik odznaků které úrovně se rozdalo
+     * (výstupní klíče `Nr-TrickaVypravecskaZdarma` apod.). Barva je jen historická
+     * náhražka: v roce 2009 a 2010 byla orgovská trička oranžová, takže hledání
+     * „červen" v názvu je 14 kusů počítalo jako účastnická.
      */
-    public static function jeToModre(string|PolozkaProBfgr $nazev): bool
+    public static function jeToVypravecske(PolozkaProBfgr $polozka): bool
     {
-        if ($nazev instanceof PolozkaProBfgr) {
-            $nazev = $nazev->nazev;
-        }
-        return self::jeToDleCasti($nazev, 'modr');
+        return self::jeToDleCasti($polozka->kodPredmetu, 'vypravecske');
     }
 
     /**
-     * Pozor, název, ne kód předmětu
+     * Viz {@see jeToVypravecske()} — hodnost z kódu, ne barva z názvu.
      */
-    public static function jeToCervene(string|PolozkaProBfgr $nazev): bool
+    public static function jeToOrganizatorske(PolozkaProBfgr $polozka): bool
     {
-        if ($nazev instanceof PolozkaProBfgr) {
-            $nazev = $nazev->nazev;
-        }
-        return self::jeToDleCasti($nazev, 'červen');
+        return self::jeToDleCasti($polozka->kodPredmetu, 'organizatorske');
     }
 
     public static function jeToTricko(
-        string $kodPredmetu,
-        int    $typ,
+        string          $kodPredmetu,
+        ?ProductTagCode $kategorie,
     ): bool {
-        return $typ === TypPredmetu::TRICKO && self::jeToDleCasti($kodPredmetu, 'tricko');
+        return $kategorie === ProductTagCode::TRICKO && self::jeToDleCasti($kodPredmetu, 'tricko');
     }
 
     public static function jeToTilko(
-        string $kodPredmetu,
-        int    $typ,
+        string          $kodPredmetu,
+        ?ProductTagCode $kategorie,
     ): bool {
-        return $typ === TypPredmetu::TRICKO && self::jeToDleCasti($kodPredmetu, 'tilko');
-    }
-
-    public static function letosniKostka(int $rocnik): ?static
-    {
-        return self::letosniPredmet('kostka', $rocnik);
-    }
-
-    public static function letosniPlacka(int $rocnik): ?static
-    {
-        return self::letosniPredmet('placka', $rocnik);
+        return $kategorie === ProductTagCode::TRICKO && self::jeToDleCasti($kodPredmetu, 'tilko');
     }
 
     private static function jeToDleCasti(
@@ -130,54 +117,9 @@ class Predmet extends \DbObject
         return mb_stripos($cele, $cast) !== false;
     }
 
-    private static function letosniPredmet(
-        string $castKodu,
-        int    $rocnik,
-    ): ?static {
-        // Dotaz filtruje podle ročníku, takže ho musí nést i klíč cache - jinak
-        // by druhý ročník v témže procesu dostal výsledek toho prvního.
-        $klicCache = $castKodu . '-' . $rocnik;
-        if (! array_key_exists($klicCache, self::$letosniPredmety)) {
-            $typPredmet = TypPredmetu::PREDMET;
-            $castKoduSql = dbQRaw($castKodu);
-            $letosniPredmetId = dbFetchSingle(<<<SQL
-SELECT id_predmetu
-FROM shop_predmety
-WHERE
-    -- letošní je ten, která má nejnovější model a v dřívějších letech si ho nikdo neobjednal
-    NOT EXISTS(SELECT * FROM shop_nakupy WHERE shop_nakupy.id_predmetu = shop_predmety.id_predmetu AND shop_nakupy.rok < {$rocnik})
-    AND typ = {$typPredmet}
-    AND kod_predmetu LIKE '%{$castKoduSql}%'
-ORDER BY model_rok DESC, je_letosni_hlavni DESC, cena_aktualni DESC, id_predmetu /* dříve nahraný má přednost */
-LIMIT 1 -- pro jistotu
-SQL,
-            );
-            $letosniPredmet = $letosniPredmetId
-                ? static::zId((int)$letosniPredmetId, true)
-                : null;
-            self::$letosniPredmety[$klicCache] = $letosniPredmet;
-        }
-
-        return self::$letosniPredmety[$klicCache];
-    }
-
-    public function kusuVyrobeno(?int $kusuVyrobeno = null, bool $nastavit = false): ?int
-    {
-        if ($kusuVyrobeno !== null || $nastavit) {
-            $this->r['kusu_vyrobeno'] = $kusuVyrobeno;
-        }
-
-        return $this->r['kusu_vyrobeno'] !== null ? (int)$this->r['kusu_vyrobeno'] : null;
-    }
-
     public function nazev(): string
     {
         return (string)$this->r[Sql::NAZEV];
-    }
-
-    public function cenaAktualni(): float
-    {
-        return (float)$this->r[Sql::CENA_AKTUALNI];
     }
 
     public function stav(int $stav = null): int
@@ -187,23 +129,5 @@ SQL,
         }
 
         return (int)$this->r[Sql::STAV];
-    }
-
-    public function modelRok(): ?int
-    {
-        if ($this->r[Sql::MODEL_ROK] === null) {
-            return null;
-        }
-
-        return (int)$this->r[Sql::MODEL_ROK];
-    }
-
-    public function typ(): ?int
-    {
-        if ($this->r[Sql::TYP] === null) {
-            return null;
-        }
-
-        return (int)$this->r[Sql::TYP];
     }
 }

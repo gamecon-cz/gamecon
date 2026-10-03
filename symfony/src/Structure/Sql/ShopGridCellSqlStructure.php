@@ -9,9 +9,6 @@ namespace App\Structure\Sql;
  */
 class ShopGridCellSqlStructure
 {
-    /**
-     * @see ShopGridCell
-     */
     public const _table = 'obchod_bunky';
 
     /**
@@ -43,6 +40,11 @@ class ShopGridCellSqlStructure
      * @see ShopGridCell::$cilId
      */
     public const cil_id = 'cil_id';
+
+    /**
+     * @see ShopGridCell::$variant
+     */
+    public const variant_id = 'variant_id';
 
     /**
      * @see ShopGridCell::$shopGrid
