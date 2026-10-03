@@ -213,6 +213,20 @@ class CartServiceTest extends TestCase
         $this->cartService->addItem($order, $variant);
     }
 
+    public function testAddItemRefusesAProductPastItsOwnDeadline(): void
+    {
+        $product = $this->createProduct();
+        $product->setAvailableUntil(new \DateTimeImmutable('2026-09-01 00:00:00'));
+        $order = new Order();
+        $order->setCustomer($this->createMock(User::class));
+        $order->setYear(2026);
+
+        $this->expectException(NoLongerAvailableException::class);
+        $this->expectExceptionMessage('není dostupný');
+
+        $this->cartService->addItem($order, $this->createVariant($product, 'M', 'TRICKO-M'));
+    }
+
     public function testAddItemRefusesAnAccommodationNight(): void
     {
         $typPokoje = $this->createProduct();

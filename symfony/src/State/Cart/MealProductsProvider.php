@@ -10,7 +10,6 @@ use App\Dto\Cart\MealProductOutputDto;
 use App\Entity\Product;
 use App\Entity\ProductVariant;
 use App\Entity\User;
-use App\Enum\ProductStateEnum;
 use App\Enum\ProductTagCode;
 use App\Repository\ProductRepository;
 use App\Service\CapacityManager;
@@ -99,7 +98,7 @@ readonly class MealProductsProvider implements ProviderInterface
             // jen konec samoobsluhy — legacy ho pultu povoluje přes `jidloBezZamku`, které
             // si obě admin obrazovky zapínají, takže se tady chová stejně jako termín
             // kategorie. Stav RESTRICTED/SUSPENDED řeší varianty, ne tenhle zámek.
-            $stazeno = $product->isArchived() || $product->getState() === ProductStateEnum::RETIRED;
+            $stazeno = $product->isWithdrawn();
             $dto->locked = $stazeno
                 || $poTerminuKategorie
                 || (! $zPultu && ! $product->isAvailable($this->clock->now()));

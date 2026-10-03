@@ -521,16 +521,13 @@ class Product
      */
     public function isAvailable(\DateTimeImmutable $ted): bool
     {
-        if ($this->isArchived()) {
-            return false;
-        }
+        return ! $this->isWithdrawn()
+            && ! ($this->availableUntil instanceof \DateTimeImmutable && $this->availableUntil < $ted);
+    }
 
-        if ($this->state === ProductStateEnum::RETIRED) {
-            return false;
-        }
-
-        return ! ($this->availableUntil instanceof \DateTimeImmutable
-            && $this->availableUntil < $ted);
+    public function isWithdrawn(): bool
+    {
+        return $this->isArchived() || $this->state === ProductStateEnum::RETIRED;
     }
 
     public function isPublic(\DateTimeImmutable $ted): bool
