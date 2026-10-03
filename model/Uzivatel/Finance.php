@@ -16,7 +16,6 @@ use Gamecon\Pravo;
 use Gamecon\Shop\NazevPredmetuProBfgr;
 use Gamecon\Shop\Predmet;
 use Gamecon\Shop\SqlStruktura\PredmetSqlStruktura as PredmetSql;
-use Gamecon\Shop\TypPredmetu;
 use Gamecon\Stat;
 use Gamecon\SystemoveNastaveni\SystemoveNastaveni;
 use Gamecon\Uzivatel\Dto\PolozkaProBfgr;
@@ -101,6 +100,24 @@ class Finance
     public const PLATBA                     = 17;
     public const VYSLEDNY                   = 18;
     public const KATEGORIE_NEPLATICE        = 19;
+
+    /**
+     * A shop category's row in the overview and its BFGR items: the slots between activities and
+     * the entry fee, where predmet and ubytovani share their number with the section totals.
+     */
+    public static function typVPrehledu(ProductTagCode $kategorie): int
+    {
+        return match ($kategorie) {
+            ProductTagCode::PREDMET           => 1,
+            ProductTagCode::UBYTOVANI         => 2,
+            ProductTagCode::TRICKO            => 3,
+            ProductTagCode::JIDLO             => 4,
+            ProductTagCode::VSTUPNE           => 5,
+            ProductTagCode::PARCON            => 6,
+            ProductTagCode::PROPLACENI_BONUSU => 7,
+            default                           => throw new \LogicException(sprintf('Štítek „%s“ není kategorie produktu.', $kategorie->value)),
+        };
+    }
 
     /**
      * Vrátí výchozí vygenerovanou slevu za vedení dané aktivity
@@ -776,8 +793,7 @@ SQL;
              produkt.id_predmetu,
              CONCAT_WS(\' \', produkt.nazev, product_variant.name) AS nazev,
              nakupy.cena_nakupni,
-             -- typ is the position of the category code in ProductTagCode::categories()
-             FIELD(kategorie.code, $2) AS typ,
+             kategorie.code AS kategorie,
              product_variant.accommodation_day AS ubytovani_den,
              -- an archived product belongs to the year it was archived, one still on offer to this year
              COALESCE(YEAR(produkt.archived_at), $1) AS model_rok,
@@ -785,7 +801,7 @@ SQL;
       FROM shop_nakupy AS nakupy
       INNER JOIN product_variant ON product_variant.id = nakupy.variant_id
       INNER JOIN shop_predmety AS produkt ON produkt.id_predmetu = product_variant.product_id
-      -- a product missing its category keeps its row (typ NULL) instead of vanishing
+      -- a product missing its category keeps its row (kategorie NULL), so Cenik rejects it loudly
       LEFT JOIN (
           product_product_tag AS stitek_kategorie
           INNER JOIN product_tag AS kategorie ON kategorie.id = stitek_kategorie.tag_id AND kategorie.code IN ($2)
@@ -804,7 +820,8 @@ SQL;
         $zpracovaneVstupne = [];
         foreach ($o as $r) {
             $idVarianty = (int)$r['id_varianty'];
-            if ($r[PredmetSql::TYP] == TypPredmetu::VSTUPNE) {
+            $kategorie = ProductTagCode::tryFrom((string)$r[PredmetSql::KATEGORIE]);
+            if ($kategorie === ProductTagCode::VSTUPNE) {
                 if (isset($zpracovaneVstupne[$idVarianty])) {
                     continue;
                 }
@@ -813,10 +830,10 @@ SQL;
             $priceAfterDiscountDto = $this->cenik()->cena($r);
             $cena                  = $priceAfterDiscountDto->finalPrice;
             // započtení ceny
-            if ($r[PredmetSql::TYP] == TypPredmetu::UBYTOVANI) {
+            if ($kategorie === ProductTagCode::UBYTOVANI) {
                 $this->cenaUbytovani += $cena;
-            } elseif ($r[PredmetSql::TYP] == TypPredmetu::VSTUPNE) {
-                if (Predmet::jeToVstupnePozde((int)$r[PredmetSql::TYP], $r[PredmetSql::KOD_PREDMETU])) {
+            } elseif ($kategorie === ProductTagCode::VSTUPNE) {
+                if (Predmet::jeToVstupnePozde($kategorie, $r[PredmetSql::KOD_PREDMETU])) {
                     $this->cenaVstupnePozde = $cena;
                 } else {
                     $this->cenaVstupne = $cena;
@@ -824,21 +841,21 @@ SQL;
                 $this->dobrovolneVstupnePrehled = $this->formatujProLog(
                     nazev: "{$r[PredmetSql::NAZEV]} $cena.-",
                     castka: $cena,
-                    kategorie: (int)$r[PredmetSql::TYP],
+                    kategorie: self::typVPrehledu($kategorie),
                     poradiVKategorii: self::PORADI_POLOZKY,
                     poradiVPodkategorii: 0,
                     idPolozky: $idVarianty,
                 );
-            } elseif ($r[PredmetSql::TYP] == TypPredmetu::PROPLACENI_BONUSU) {
+            } elseif ($kategorie === ProductTagCode::PROPLACENI_BONUSU) {
                 $this->proplacenyBonusZaVedeniAktivit += $cena;
             } else {
-                if ($r[PredmetSql::TYP] == TypPredmetu::JIDLO) {
+                if ($kategorie === ProductTagCode::JIDLO) {
                     $this->cenaStravy += $cena;
-                } elseif (in_array($r[PredmetSql::TYP], [TypPredmetu::PREDMET, TypPredmetu::TRICKO])) {
+                } elseif (in_array($kategorie, [ProductTagCode::PREDMET, ProductTagCode::TRICKO], true)) {
                     $this->cenaPredmetu += $cena;
-                } elseif ($r[PredmetSql::TYP] != TypPredmetu::PARCON) {
+                } elseif ($kategorie !== ProductTagCode::PARCON) {
                     throw new NeznamyTypPredmetu(
-                        "Neznámý typ předmětu " . var_export($r[PredmetSql::TYP], true) . ': ' . var_export($r, true),
+                        "Neznámý typ předmětu " . var_export($r[PredmetSql::KATEGORIE], true) . ': ' . var_export($r, true),
                     );
                 }
             }
@@ -848,38 +865,32 @@ SQL;
                 $this->systemoveNastaveni->rocnik(),
             );
 
-            $this->logPolozkaProBfgr((string)$r['nazev'], 1, $priceAfterDiscountDto, (int)$r[PredmetSql::TYP], $r[PredmetSql::KOD_PREDMETU], (string)$idVarianty);
+            $this->logPolozkaProBfgr((string)$r['nazev'], 1, $priceAfterDiscountDto, self::typVPrehledu($kategorie), $r[PredmetSql::KOD_PREDMETU], (string)$idVarianty, $kategorie);
 
             // logování do výpisu
-            if (in_array($r[PredmetSql::TYP], [TypPredmetu::PREDMET, TypPredmetu::TRICKO])) {
+            if (in_array($kategorie, [ProductTagCode::PREDMET, ProductTagCode::TRICKO], true)) {
                 $soucty[$idVarianty]['nazev'] = $r['nazev'];
-                $soucty[$idVarianty]['typ']   = $r[PredmetSql::TYP];
+                $soucty[$idVarianty]['typ']   = self::typVPrehledu($kategorie);
                 $soucty[$idVarianty]['pocet'] = ($soucty[$idVarianty]['pocet'] ?? 0) + 1;
                 $soucty[$idVarianty]['suma']  = ($soucty[$idVarianty]['suma'] ?? 0) + $cena;
-            } elseif ($r[PredmetSql::TYP] == TypPredmetu::VSTUPNE) {
-                $this->logStrukturovane((string)$r['nazev'], 1, $cena, $r[PredmetSql::TYP]);
+            } elseif ($kategorie === ProductTagCode::VSTUPNE) {
+                $this->logStrukturovane((string)$r['nazev'], 1, $cena, self::typVPrehledu($kategorie));
                 $this->logb($r['nazev'], $cena, self::VSTUPNE);
-            } elseif ($r[PredmetSql::TYP] == TypPredmetu::UBYTOVANI) {
-                $this->logStrukturovane((string)$r['nazev'], 1, $cena, $r[PredmetSql::TYP]);
+            } elseif ($kategorie === ProductTagCode::UBYTOVANI) {
+                $this->logStrukturovane((string)$r['nazev'], 1, $cena, self::typVPrehledu($kategorie));
                 $this->log(
                     nazev: $r['nazev'],
                     castka: $cena,
-                    kategorie: $r[PredmetSql::TYP] !== null
-                        ?
-                        (int)$r[PredmetSql::TYP]
-                        : null,
+                    kategorie: self::typVPrehledu($kategorie),
                     idPolozky: $idVarianty,
                     poradiVPodkategorii: $r[PredmetSql::UBYTOVANI_DEN],
                 );
-            } elseif ($r[PredmetSql::TYP] != TypPredmetu::PROPLACENI_BONUSU) {
-                $this->logStrukturovane((string)$r['nazev'], 1, $cena, $r[PredmetSql::TYP]);
+            } elseif ($kategorie !== ProductTagCode::PROPLACENI_BONUSU) {
+                $this->logStrukturovane((string)$r['nazev'], 1, $cena, self::typVPrehledu($kategorie));
                 $this->log(
                     nazev: $r['nazev'],
                     castka: $cena,
-                    kategorie: $r[PredmetSql::TYP] !== null
-                        ?
-                        (int)$r[PredmetSql::TYP]
-                        : null,
+                    kategorie: self::typVPrehledu($kategorie),
                     idPolozky: $idVarianty,
                 );
             }
@@ -1438,6 +1449,7 @@ SQL;
         int                   $typ,
         string               $kodPredmetu,
         string               $idVarianty,
+        ?ProductTagCode      $kategorie = null,
     ): void {
         if (!$this->logovat) {
             return;
@@ -1451,6 +1463,7 @@ SQL;
             typ: $typ,
             kodPredmetu: $kodPredmetu,
             idVarianty: $idVarianty,
+            kategorie: $kategorie,
         );
     }
 

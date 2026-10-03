@@ -16,8 +16,9 @@ $role = [
 ];
 
 // Predmety, ktere chceme ocenit: par jidel, tricko, merch, ubytovani.
-// Legacy má `typ` ve sloupci; nová větev ho z tabulky odstranila a typ je štítek kategorie
-// produktu. `Cenik::cena()` číslo typu vyžaduje, tak se na nové větvi doplní.
+// Legacy má `typ` ve sloupci a `Cenik::cena()` ho čte; nová větev typ nemá, kategorie je štítek
+// produktu a `Cenik::cena()` čte jeho kód.
+$kodKategoriePodleTypu = [1 => 'predmet', 2 => 'ubytovani', 3 => 'tricko', 4 => 'jidlo', 5 => 'vstupne'];
 $typVeSloupci = (bool) dbOneLine("SELECT 1 FROM information_schema.columns
     WHERE table_schema = DATABASE() AND table_name = 'shop_predmety' AND column_name = 'typ'");
 // Z každého typu pár kusů — jinak `LIMIT` sežerou kostky a jídlo se vůbec neporovná.
@@ -26,14 +27,14 @@ foreach ([1 => 'tričko', 2 => 'ubytování', 3 => 'vstupné', 4 => 'jídlo', 5 
     $radky = $typVeSloupci
         ? dbFetchAll("SELECT * FROM shop_predmety WHERE typ = $typ ORDER BY id_predmetu DESC LIMIT 8")
         : dbFetchAll(<<<'SQL'
-            SELECT shop_predmety.*, $1 AS typ
+            SELECT shop_predmety.*, product_tag.code AS kategorie
             FROM shop_predmety
             INNER JOIN product_product_tag ON product_product_tag.product_id = shop_predmety.id_predmetu
             INNER JOIN product_tag ON product_tag.id = product_product_tag.tag_id AND product_tag.code = $0
             ORDER BY shop_predmety.id_predmetu DESC
             LIMIT 8
             SQL,
-            [0 => \App\Enum\ProductTagCode::fromLegacyTyp($typ)->value, 1 => $typ],
+            [0 => $kodKategoriePodleTypu[$typ]],
         );
     foreach ($radky as $r) {
         $r['_typ'] = $popisTypu;

@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Gamecon\Tests\Uzivatel;
 
+use App\Enum\ProductTagCode;
 use Gamecon\Aktivita\Aktivita;
 use Gamecon\Aktivita\StavPrihlaseni;
 use Gamecon\Aktivita\TypAktivity;
@@ -13,7 +14,6 @@ use Gamecon\Cas\DateTimeImmutableStrict;
 use Gamecon\Logger\Zaznamnik;
 use Gamecon\Pravo;
 use Gamecon\Role\Role;
-use Gamecon\Shop\TypPredmetu;
 use Gamecon\SystemoveNastaveni\SystemoveNastaveni;
 use Gamecon\Tests\Db\AbstractTestDb;
 use Gamecon\Uzivatel\Exceptions\HromadneOdhlasovaniJePrilisBrzyPoVlne;
@@ -132,7 +132,7 @@ class HromadneOdhlaseniNeplaticuTest extends AbstractTestDb
     {
         return self::predmetQuery(
             self::ID_PREDMETU_UBYTOVANI,
-            TypPredmetu::UBYTOVANI,
+            ProductTagCode::UBYTOVANI,
             'luxusní 0+KK',
             $systemoveNastaveni,
         );
@@ -143,7 +143,7 @@ class HromadneOdhlaseniNeplaticuTest extends AbstractTestDb
         return self::predmetQuery(
             self::ID_NAHODNEHO_PREDMETU,
             // pozor dvoje vstupné logika ignoruje, jako "koupený předmět" se použije jen jedno
-            TypPredmetu::VSTUPNE,
+            ProductTagCode::VSTUPNE,
             'cosi kdesi',
             $systemoveNastaveni,
         );
@@ -151,22 +151,14 @@ class HromadneOdhlaseniNeplaticuTest extends AbstractTestDb
 
     private static function predmetQuery(
         int $idPredmetu,
-        int $typPredmetu,
+        ProductTagCode $kategorie,
         string $nazev,
         SystemoveNastaveni $systemoveNastaveni,
     ): array {
         $rok = $systemoveNastaveni->rocnik();
         $kodPredmetu = kodZNazvu($nazev . '_' . $rok);
 
-        $tagCode = match ($typPredmetu) {
-            TypPredmetu::PREDMET           => 'predmet',
-            TypPredmetu::UBYTOVANI         => 'ubytovani',
-            TypPredmetu::TRICKO            => 'tricko',
-            TypPredmetu::JIDLO             => 'jidlo',
-            TypPredmetu::VSTUPNE           => 'vstupne',
-            TypPredmetu::PARCON            => 'parcon',
-            TypPredmetu::PROPLACENI_BONUSU => 'proplaceni_bonusu',
-        };
+        $tagCode = $kategorie->value;
 
         return [
             <<<SQL
