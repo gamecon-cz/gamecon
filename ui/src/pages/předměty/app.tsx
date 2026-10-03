@@ -14,17 +14,7 @@ import {
   ApiProductWrite,
 } from "../../api/symfony/types";
 import "./app.less";
-
-/** Category tag codes that classify a product (mutually exclusive). */
-const KATEGORIE_TAG_KODY = [
-  "predmet",
-  "ubytovani",
-  "tricko",
-  "jidlo",
-  "vstupne",
-  "parcon",
-  "proplaceni_bonusu",
-] as const;
+import { KATEGORIE_TAG_KODY, seraditProdukty } from "./razeni";
 
 const ACCOMMODATION_TAG_CODE = "ubytovani";
 
@@ -89,6 +79,11 @@ export const Předměty: FunctionComponent = () => {
   const kategorieTagy = useMemo(
     () => (tagy ?? []).filter((tag) => KATEGORIE_TAG_KODY.includes(tag.code as typeof KATEGORIE_TAG_KODY[number])),
     [tagy],
+  );
+
+  const radky = useMemo(
+    () => seraditProdukty([...(produkty ?? []), ...(archivovane ?? [])]),
+    [produkty, archivovane],
   );
 
   const smazat = useCallback(async (produkt: ApiProduct) => {
@@ -156,7 +151,7 @@ export const Předměty: FunctionComponent = () => {
               </tr>
             </thead>
             <tbody>
-              {[...produkty, ...(archivovane ?? [])].map((produkt) => {
+              {radky.map((produkt) => {
                 const kategorieTag = (produkt.tags ?? []).find((tag) =>
                   KATEGORIE_TAG_KODY.includes(tag.code as typeof KATEGORIE_TAG_KODY[number]),
                 );

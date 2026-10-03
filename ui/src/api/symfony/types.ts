@@ -117,6 +117,8 @@ export type ApiProduct = {
   breakfastIncluded: boolean;
   description: string;
   reservedForOrganizers: number | null;
+  /** Read-only; absent for this year's catalog, as the API leaves out null fields. */
+  archivedAt?: string;
   /** Read-only sum of the variants' capacities; null when any of them is unlimited. */
   capacity: number | null;
   tags: ApiProductTag[];
