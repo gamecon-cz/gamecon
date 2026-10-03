@@ -153,11 +153,11 @@ export const removeFromCart = async (itemId: number): Promise<void> => {
 // ==================== Admin: Products + Variants ====================
 
 /**
- * Fetch all products (admin only). Returns an empty array on error so callers
- * can render a "no items" state without crashing.
+ * Admin only. This year's catalog, or past years' archived products — the editor fetches those
+ * only on request, as legacy never listed them.
  */
-export const fetchProducts = async (): Promise<ApiProduct[]> => {
-  const res = await symfonyFetch("products?itemsPerPage=200&page=1");
+export const fetchProducts = async (archivovane: boolean): Promise<ApiProduct[]> => {
+  const res = await symfonyFetch(`products?${new URLSearchParams({ "exists[archivedAt]": String(archivovane) }).toString()}`);
   if (!res.ok) throw new Error(`Failed to fetch products: ${res.status}`);
   const data = await res.json() as ApiHydraCollection<ApiProduct>;
   return data["hydra:member"] ?? data["member"] ?? [];
