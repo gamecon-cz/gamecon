@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Gamecon\Report;
 
+use Gamecon\Shop\NazevPredmetuProBfgr;
 use Gamecon\Shop\Predmet;
 use Gamecon\Shop\StavPredmetu;
 use Gamecon\Shop\TypPredmetu;
@@ -334,7 +335,7 @@ SQL,
         $polozky = $navstevnik->finance()->dejPolozkyProBfgr();
         $pocetPolozekZdarma = 0;
         foreach ($polozky as $polozka) {
-            if ($polozka->castka === 0.0 && mb_stripos($polozka->nazev, $castNazvu) !== false) {
+            if ($polozka->jeNakup() && $polozka->castka === 0.0 && mb_stripos($polozka->nazev, $castNazvu) !== false) {
                 $pocetPolozekZdarma++;
             }
         }
@@ -496,7 +497,7 @@ SQL,
         $financniPrehled = $navstevnik->finance()->dejPolozkyProBfgr();
         $pocetPolozekPlacenych = 0;
         foreach ($financniPrehled as $polozka) {
-            if ($polozka->castka > 0.0 && mb_stripos($polozka->nazev, $castNazvu) !== false) {
+            if ($polozka->jeNakup() && $polozka->castka > 0.0 && mb_stripos($polozka->nazev, $castNazvu) !== false) {
                 $pocetPolozekPlacenych++;
             }
         }
@@ -562,7 +563,7 @@ SQL,
         $financniPrehled = $navstevnik->finance()->dejPolozkyProBfgr();
         $poctyPredmetu = [];
         foreach ($financniPrehled as $polozka) {
-            if (preg_match('~' . $castNazvuRegexp . '~iuS', $polozka->nazev)) {
+            if ($polozka->jeNakup() && preg_match('~' . $castNazvuRegexp . '~iuS', $polozka->nazev)) {
                 $poctyPredmetu[$polozka->nazev] = ($poctyPredmetu[$polozka->nazev] ?? 0) + (int)$polozka->pocet;
             }
         }
@@ -649,12 +650,10 @@ SQL,
         Uzivatel $navstevnik,
         array    $vsechnyMozneKostky,
     ): array {
-        $objednaneKostky = $this->dejNazvyAPoctyPredmetu($navstevnik, ['kostka']);
-        foreach ($objednaneKostky as $objednanaKostka => $pocet) {
-            if (!preg_match('~ \d{4}$~', $objednanaKostka)) {
-                unset($objednaneKostky[$objednanaKostka]);
-                $objednaneKostky[$objednanaKostka . ' ' . $this->systemoveNastaveni->rocnik()] = $pocet;
-            }
+        $objednaneKostky = [];
+        foreach ($this->dejNazvyAPoctyPredmetu($navstevnik, ['kostka']) as $objednanaKostka => $pocet) {
+            $nazev = NazevPredmetuProBfgr::kostkaSRokem($objednanaKostka, null, $this->systemoveNastaveni->rocnik());
+            $objednaneKostky[$nazev] = ($objednaneKostky[$nazev] ?? 0) + $pocet;
         }
         $poctyKostek = $this->seradADoplnNenakoupene($objednaneKostky, $vsechnyMozneKostky);
         // pozor, kostky zdarma je počet kostek z výše uvedených objednaných (podmnožina) - nejsou to kostky navíc
@@ -686,12 +685,8 @@ SQL,
         ];
         $poradiKostekSql = implode(',', $poradiKostek);
 
-        return dbFetchPairs(<<<SQL
-            SELECT id_predmetu, IF(
-                TRIM(nazev) LIKE CONCAT('% ', shop_predmety.model_rok),
-                TRIM(nazev),
-                CONCAT_WS(' ', TRIM(nazev), model_rok)
-            )
+        $kostky = dbFetchAll(<<<SQL
+            SELECT id_predmetu, nazev, model_rok
             FROM shop_predmety
             WHERE nazev LIKE '%kostka%'
                 AND stav > $0
@@ -700,6 +695,28 @@ SQL,
             SQL,
             [0 => StavPredmetu::MIMO, 1 => TypPredmetu::PREDMET],
         );
+
+        return $this->nazvyPodleId($kostky, NazevPredmetuProBfgr::kostkaSRokem(...));
+    }
+
+    /**
+     * @param list<array{id_predmetu: int|string, nazev: string, model_rok: int|string|null}> $predmety
+     * @param callable(string, ?int, int): string $pojmenuj
+     *
+     * @return array<int, string> keeps the query's order
+     */
+    private function nazvyPodleId(array $predmety, callable $pojmenuj): array
+    {
+        $nazvy = [];
+        foreach ($predmety as $predmet) {
+            $nazvy[(int) $predmet['id_predmetu']] = $pojmenuj(
+                (string) $predmet['nazev'],
+                $predmet['model_rok'] === null ? null : (int) $predmet['model_rok'],
+                $this->systemoveNastaveni->rocnik(),
+            );
+        }
+
+        return $nazvy;
     }
 
     private function letosniJidla(): array
@@ -718,12 +735,8 @@ SQL,
 
     private function letosniOstatniPredmety(): array
     {
-        return dbFetchPairs(<<<SQL
-            SELECT id_predmetu,
-                   IF(model_rok != {$this->systemoveNastaveni->rocnik()},
-                       CONCAT_WS(' ', TRIM(nazev), model_rok),
-                       nazev
-                   ) AS nazev
+        $predmety = dbFetchAll(<<<SQL
+            SELECT id_predmetu, nazev, model_rok
             FROM shop_predmety
             WHERE typ = $0
                 AND stav > $1
@@ -737,5 +750,7 @@ SQL,
             SQL,
             [0 => TypPredmetu::PREDMET, 1 => StavPredmetu::MIMO],
         );
+
+        return $this->nazvyPodleId($predmety, NazevPredmetuProBfgr::sRokemModelu(...));
     }
 }

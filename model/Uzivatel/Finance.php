@@ -12,6 +12,7 @@ use Gamecon\Finance\QrPlatba;
 use Gamecon\Finance\SqlStruktura\SlevySqlStruktura;
 use Gamecon\Objekt\ObnoveniVychozichHodnotTrait;
 use Gamecon\Pravo;
+use Gamecon\Shop\NazevPredmetuProBfgr;
 use Gamecon\Shop\Predmet;
 use Gamecon\Shop\SqlStruktura\PredmetSqlStruktura as PredmetSql;
 use Gamecon\Shop\TypPredmetu;
@@ -822,10 +823,11 @@ SQL;
                     );
                 }
             }
-            // přidání roku do názvu
-            if ($r[PredmetSql::MODEL_ROK] && $r[PredmetSql::MODEL_ROK] != $this->systemoveNastaveni->rocnik()) {
-                $r['nazev'] = $r['nazev'] . ' ' . $r[PredmetSql::MODEL_ROK];
-            }
+            $r['nazev'] = NazevPredmetuProBfgr::sRokemModelu(
+                (string) $r['nazev'],
+                $r[PredmetSql::MODEL_ROK] ? (int) $r[PredmetSql::MODEL_ROK] : null,
+                $this->systemoveNastaveni->rocnik(),
+            );
 
             $this->logPolozkaProBfgr((string)$r['nazev'], 1, $priceAfterDiscountDto, (int)$r[PredmetSql::TYP], $r[PredmetSql::KOD_PREDMETU], $r[PredmetSql::ID_PREDMETU]);
 

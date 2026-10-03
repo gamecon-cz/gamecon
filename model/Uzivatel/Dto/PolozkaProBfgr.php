@@ -16,4 +16,12 @@ readonly class PolozkaProBfgr
         public string $idPredmetu,
     ) {
     }
+
+    /**
+     * Activities, payments and balances share the participant's finance items but carry no product code.
+     */
+    public function jeNakup(): bool
+    {
+        return $this->kodPredmetu !== '';
+    }
 }
