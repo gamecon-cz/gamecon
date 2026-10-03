@@ -10,6 +10,7 @@ use App\Entity\Product;
 use App\Entity\ProductBundle;
 use App\Entity\ProductVariant;
 use App\Entity\User;
+use App\Enum\ProductStateEnum;
 use App\Enum\ProductTagCode;
 use App\Enum\RoleMeaning;
 use App\Exception\InsufficientPermissionsException;
@@ -165,6 +166,28 @@ class CartService
     }
 
     /**
+     * A pause locks self-service only; the desk still sells past it, as legacy's grids did. Sizes
+     * carry their own state, so one can be paused or withdrawn while its product sells.
+     */
+    private function guardVariantOnSale(ProductVariant $variant, ?OperatorOverride $override): void
+    {
+        $product = $variant->getProduct();
+        if ($variant->isWithdrawn()) {
+            throw new NoLongerAvailableException($this->translator->trans('cart.product_unavailable', [
+                '%product%' => $product->getName(),
+            ], 'errors'));
+        }
+        if ($override !== null) {
+            return;
+        }
+        if ($product->getState() === ProductStateEnum::SUSPENDED || $variant->isPaused()) {
+            throw new NoLongerAvailableException($this->translator->trans('cart.product_paused', [
+                '%product%' => $product->getName(),
+            ], 'errors'));
+        }
+    }
+
+    /**
      * Orgovská a vypravěčská trička drží právo, ne cena. Kontrola dřív žila jen na čtecí
      * straně, takže produkt se jen nenabídl — ručně sestavený požadavek ho koupil.
      *
@@ -230,6 +253,7 @@ class CartService
         foreach ($variants as $variant) {
             $product = $variant->getProduct();
             $this->guardNotAccommodation($product);
+            $this->guardVariantOnSale($variant, null);
 
             if (! $product->isAvailable($this->clock->now())) {
                 throw new NoLongerAvailableException($this->translator->trans('cart.product_unavailable', [
@@ -346,6 +370,7 @@ class CartService
         $product = $variant->getProduct();
 
         $this->guardNotAccommodation($product);
+        $this->guardVariantOnSale($variant, $override);
 
         if (! $product->isAvailable($this->clock->now())) {
             throw new NoLongerAvailableException($this->translator->trans('cart.product_unavailable', [

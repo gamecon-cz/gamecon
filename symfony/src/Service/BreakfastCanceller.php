@@ -284,6 +284,8 @@ class BreakfastCanceller
              WHERE TRIM(shop_predmety.nazev) LIKE :snidane
                AND shop_predmety.archived_at IS NULL
                AND shop_predmety.stav <> :stazeno
+               AND shop_predmety.stav <> :pozastaveno
+               AND product_variant.state NOT IN (:stazeno, :pozastaveno)
                AND (shop_predmety.nabizet_do IS NULL OR shop_predmety.nabizet_do >= :ted)
                AND product_variant.accommodation_day IS NOT NULL
                AND EXISTS (
@@ -293,10 +295,11 @@ class BreakfastCanceller
                      AND product_tag.code = :jidlo
                )',
             [
-                'snidane' => 'Snídaně%',
-                'jidlo'   => ProductTagCode::JIDLO->value,
-                'stazeno' => ProductStateEnum::RETIRED->value,
-                'ted'     => $this->clock->now()->format('Y-m-d H:i:s'),
+                'snidane'     => 'Snídaně%',
+                'jidlo'       => ProductTagCode::JIDLO->value,
+                'stazeno'     => ProductStateEnum::RETIRED->value,
+                'pozastaveno' => ProductStateEnum::SUSPENDED->value,
+                'ted'         => $this->clock->now()->format('Y-m-d H:i:s'),
             ],
         );
 

@@ -290,6 +290,20 @@ class ProductVariant
         return isset($this->state);
     }
 
+    /**
+     * Withdrawn on its own, while its product may still sell. A variant not yet stored has no
+     * state yet and follows its product, so it is neither withdrawn nor paused.
+     */
+    public function isWithdrawn(): bool
+    {
+        return isset($this->state) && $this->state === ProductStateEnum::RETIRED;
+    }
+
+    public function isPaused(): bool
+    {
+        return isset($this->state) && $this->state === ProductStateEnum::SUSPENDED;
+    }
+
     public function setState(ProductStateEnum $state): self
     {
         $this->state = $state;

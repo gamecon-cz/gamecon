@@ -7,7 +7,6 @@ namespace App\Service;
 use App\Entity\OrderItem;
 use App\Entity\ProductVariant;
 use App\Entity\User;
-use App\Enum\ProductStateEnum;
 use App\Enum\ProductTagCode;
 use App\Exception\CapacityExceededException;
 use App\Exception\InvalidRequestException;
@@ -166,15 +165,13 @@ class MealWriter
         // already holds never reaches this. Judging those too would leave a withdrawn meal
         // blocking every later save, with no way to untick it — the cell is locked.
         // An expired `nabizet_do` is deliberately not checked; the desk still sells past it.
-        // Archived products never come out of findByTag(), so RETIRED is the whole test.
-        $withdrawn = $variant->getProduct();
-        if ($withdrawn->getState() === ProductStateEnum::RETIRED) {
+        $product = $variant->getProduct();
+        if ($product->isWithdrawn() || $variant->isWithdrawn()) {
             throw new NoLongerAvailableException($this->translator->trans('meal.withdrawn', [
-                '%meal%' => $withdrawn->getName(),
+                '%meal%' => $product->getName(),
             ], 'errors'));
         }
 
-        $product = $variant->getProduct();
         $discount = $this->discountCalculator->calculateDiscount($product, $customer, $year);
         $order = $this->cartService->getOrCreateCart($customer);
 
