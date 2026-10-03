@@ -147,16 +147,18 @@ class OrderItemRepository extends ServiceEntityRepository
         return $prodano;
     }
 
-    public function hasPurchaseOf(Product $product): bool
+    /**
+     * @return array<int, string> code of every variant ever bought this way, by its id
+     */
+    public function everSoldVariantCodes(): array
     {
-        return $this->createQueryBuilder('oi')
-            ->select('1')
-            ->innerJoin('oi.variant', 'koupena_varianta')
-            ->where('koupena_varianta.product = :product')
-            ->setParameter('product', $product)
-            ->setMaxResults(1)
+        $rows = $this->createQueryBuilder('oi')
+            ->select('DISTINCT variant.id, variant.code')
+            ->innerJoin('oi.variant', 'variant')
             ->getQuery()
-            ->getOneOrNullResult() !== null;
+            ->getArrayResult();
+
+        return array_column($rows, 'code', 'id');
     }
 
     /**
