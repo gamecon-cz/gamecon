@@ -17,5 +17,5 @@ interface AccommodationGridInterface
      * @param bool $zPultu volá to obsluha za účastníka — pak neplatí termín prodeje,
      *                     protože doobjednat po termínu je smysl admin obrazovek
      */
-    public function forCustomer(User $user, \Uzivatel $legacyUser, bool $zPultu = false): AccommodationOutputDto;
+    public function forCustomer(User $user, \Uzivatel $legacyUser, bool $zPultu): AccommodationOutputDto;
 }
