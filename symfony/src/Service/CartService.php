@@ -154,6 +154,17 @@ class CartService
     }
 
     /**
+     * Nights are booked as a set through AccommodationWriter; a single cart line would skip its
+     * rules (consecutive nights, a withdrawn night, the sleeping-bag restriction, the deadline).
+     */
+    private function guardNotAccommodation(Product $product): void
+    {
+        if ($product->isAccommodation()) {
+            throw new InvalidRequestException($this->translator->trans('cart.accommodation_has_own_section', [], 'errors'));
+        }
+    }
+
+    /**
      * Orgovská a vypravěčská trička drží právo, ne cena. Kontrola dřív žila jen na čtecí
      * straně, takže produkt se jen nenabídl — ručně sestavený požadavek ho koupil.
      *
@@ -218,6 +229,7 @@ class CartService
         $kusuNaVariantu = [];
         foreach ($variants as $variant) {
             $product = $variant->getProduct();
+            $this->guardNotAccommodation($product);
 
             if (! $product->isAvailable($this->clock->now())) {
                 throw new NoLongerAvailableException($this->translator->trans('cart.product_unavailable', [
@@ -332,6 +344,8 @@ class CartService
     private function createOrderItem(Order $order, ProductVariant $variant, ?ProductBundle $bundle, array $roleMeanings, ?OperatorOverride $override = null, bool $vraceniZruseneSnidane = false): OrderItem
     {
         $product = $variant->getProduct();
+
+        $this->guardNotAccommodation($product);
 
         if (! $product->isAvailable($this->clock->now())) {
             throw new NoLongerAvailableException($this->translator->trans('cart.product_unavailable', [

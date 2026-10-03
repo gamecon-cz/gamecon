@@ -8,9 +8,11 @@ use App\Entity\Order;
 use App\Entity\OrderItem;
 use App\Entity\Product;
 use App\Entity\ProductBundle;
+use App\Entity\ProductTag;
 use App\Entity\ProductVariant;
 use App\Entity\User;
 use App\Enum\ProductStateEnum;
+use App\Enum\ProductTagCode;
 use App\Enum\RoleMeaning;
 use App\Exception\CapacityExceededException;
 use App\Exception\InvalidRequestException;
@@ -211,6 +213,23 @@ class CartServiceTest extends TestCase
         $this->cartService->addItem($order, $variant);
     }
 
+    public function testAddItemRefusesAnAccommodationNight(): void
+    {
+        $typPokoje = $this->createProduct();
+        $typPokoje->addTag((new ProductTag())->setCode(ProductTagCode::UBYTOVANI->value));
+        $noc = $this->createVariant($typPokoje, 'pátek', 'POSTEL-PA');
+        $noc->setAccommodationDay(2);
+        $order = new Order();
+        $order->setCustomer($this->createMock(User::class));
+        $order->setYear(2026);
+
+        $this->capacityManager->expects($this->never())->method('lockForSale');
+        $this->expectException(InvalidRequestException::class);
+        $this->expectExceptionMessage('Ubytování se objednává');
+
+        $this->cartService->addItem($order, $noc);
+    }
+
     public function testAddItemThrowsWhenSoldOut(): void
     {
         $product = $this->createProduct();
@@ -326,6 +345,23 @@ class CartServiceTest extends TestCase
         $item = $this->cartService->addItem($order, $variant, [RoleMeaning::ORGANIZATOR_ZDARMA]);
 
         $this->assertSame($variant, $item->getVariant());
+    }
+
+    public function testAddBundleRefusesAnAccommodationNight(): void
+    {
+        $typPokoje = $this->createProduct();
+        $typPokoje->addTag((new ProductTag())->setCode(ProductTagCode::UBYTOVANI->value));
+        $bundle = $this->createBundle('Víkend', false, [RoleMeaning::PRIHLASEN->value]);
+        $bundle->addVariant($this->createVariant($typPokoje, 'pátek', 'POSTEL-PA'));
+        $order = new Order();
+        $order->setCustomer($this->createMock(User::class));
+        $order->setYear(2026);
+
+        $this->capacityManager->expects($this->never())->method('lockInOrder');
+        $this->expectException(InvalidRequestException::class);
+        $this->expectExceptionMessage('Ubytování se objednává');
+
+        $this->cartService->addBundle($order, $bundle, [RoleMeaning::PRIHLASEN]);
     }
 
     public function testAddBundleAddsAllVariants(): void
