@@ -1370,6 +1370,75 @@ class AccommodationWriterTest extends AbstractDatabaseKernelTestCase
         self::assertNotNull($radek['order_id']);
     }
 
+    /**
+     * The canteen's order is final at the deadline, so a breakfast put back after it would not be served.
+     */
+    public function testABreakfastPastItsOwnDeadlineIsNotOfferedBack(): void
+    {
+        $customer = $this->ucastnik();
+        [$noc, $snidane] = $this->pripravHotelSeSnidani(1);
+        $this->koupSnidani($customer, $snidane);
+        $this->writer()->save($customer, [$noc], self::ROK, true);
+        $this->writer()->save($customer, [], self::ROK, true);
+        $customer = $this->zmenProduktSnidane($customer, $snidane, 'nabizet_do', '2000-01-01 00:00:00');
+
+        self::assertSame([], $this->breakfastCanceller()->restorable($customer, self::ROK));
+        self::assertSame([], $this->breakfastCanceller()->restore($customer, self::ROK));
+        self::assertSame(0, $this->pocetNakupu($customer, $snidane));
+    }
+
+    public function testNothingIsOfferedBackOnceMealsClose(): void
+    {
+        $customer = $this->ucastnik();
+        [$noc, $snidane] = $this->pripravHotelSeSnidani(1);
+        $this->koupSnidani($customer, $snidane);
+        $this->writer()->save($customer, [$noc], self::ROK, true);
+        $this->writer()->save($customer, [], self::ROK, true);
+        $GLOBALS['systemoveNastaveni'] = SystemoveNastaveni::zGlobals(
+            rocnik: ROCNIK,
+            ted: new DateTimeImmutableStrict(ROCNIK . '-12-31 00:00:00'),
+        );
+
+        self::assertSame([], $this->breakfastCanceller()->restorable($customer, self::ROK));
+        self::assertSame([], $this->breakfastCanceller()->restore($customer, self::ROK));
+        self::assertSame(0, $this->pocetNakupu($customer, $snidane));
+    }
+
+    public function testAWithdrawnBreakfastIsNotOfferedBack(): void
+    {
+        $customer = $this->ucastnik();
+        [$noc, $snidane] = $this->pripravHotelSeSnidani(1);
+        $this->koupSnidani($customer, $snidane);
+        $this->writer()->save($customer, [$noc], self::ROK, true);
+        $this->writer()->save($customer, [], self::ROK, true);
+        $customer = $this->zmenProduktSnidane($customer, $snidane, 'stav', ProductStateEnum::RETIRED->value);
+
+        self::assertSame([], $this->breakfastCanceller()->restorable($customer, self::ROK));
+        self::assertSame([], $this->breakfastCanceller()->restore($customer, self::ROK));
+        self::assertSame(0, $this->pocetNakupu($customer, $snidane));
+    }
+
+    /**
+     * An admin edit after the cancellation: in SQL, with the identity map cleared so the restore reads it.
+     */
+    private function zmenProduktSnidane(User $customer, int $snidaneVariantId, string $sloupec, string|int $hodnota): User
+    {
+        $this->connection()->executeStatement(
+            "UPDATE shop_predmety SET {$sloupec} = :hodnota
+             WHERE id_predmetu = (SELECT product_id FROM product_variant WHERE id = :variant)",
+            [
+                'hodnota' => $hodnota,
+                'variant' => $snidaneVariantId,
+            ],
+        );
+        $this->entityManager()->clear();
+
+        $znovu = $this->entityManager()->find(User::class, $customer->getId());
+        self::assertNotNull($znovu);
+
+        return $znovu;
+    }
+
     public function testRestoreDoesNothingWhenNothingWasCancelled(): void
     {
         $customer = $this->ucastnik();

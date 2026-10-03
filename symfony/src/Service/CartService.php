@@ -87,7 +87,7 @@ class CartService
      *
      * @throws UserFacingException if product unavailable, sold out, or in a forced bundle
      */
-    public function addItem(Order $order, ProductVariant $variant, array $roleMeanings = [], ?OperatorOverride $override = null, bool $vraceniZruseneSnidane = false): OrderItem
+    public function addItem(Order $order, ProductVariant $variant, array $roleMeanings = [], ?OperatorOverride $override = null): OrderItem
     {
         // Guard: reject if variant is in a forced bundle for this user
         $mandatoryBundle = $this->bundleRepository->findMandatoryBundleForVariant($variant, $roleMeanings);
@@ -97,7 +97,7 @@ class CartService
             ], 'errors'));
         }
 
-        return $this->vTransakci(fn (): OrderItem => $this->createOrderItem($order, $variant, null, $roleMeanings, $override, $vraceniZruseneSnidane));
+        return $this->vTransakci(fn (): OrderItem => $this->createOrderItem($order, $variant, null, $roleMeanings, $override));
     }
 
     /**
@@ -341,7 +341,7 @@ class CartService
      *
      * @param RoleMeaning[] $roleMeanings
      */
-    private function createOrderItem(Order $order, ProductVariant $variant, ?ProductBundle $bundle, array $roleMeanings, ?OperatorOverride $override = null, bool $vraceniZruseneSnidane = false): OrderItem
+    private function createOrderItem(Order $order, ProductVariant $variant, ?ProductBundle $bundle, array $roleMeanings, ?OperatorOverride $override = null): OrderItem
     {
         $product = $variant->getProduct();
 
@@ -358,10 +358,7 @@ class CartService
         // Sekce mají termín nad rámec stavu produktu, takže stránka nechaná otevřená přes
         // něj — nebo přímý POST — nesmí koupit. Každá sekce má termín vlastní.
         if ($this->prodejSekceUkoncen($product)) {
-            // Vrácení snídaně, kterou zrušil systém sám, není nový prodej — odmítnout ho po
-            // termínu by účastníka připravilo o položku objednanou včas. Zapisuje se stejně
-            // jako obejití obsluhou, aby obejitý termín nebyl nikdy neviditelný.
-            if (! $vraceniZruseneSnidane && $override?->allows(OperatorOverride::GUARD_DEADLINE) !== true) {
+            if ($override?->allows(OperatorOverride::GUARD_DEADLINE) !== true) {
                 throw new NoLongerAvailableException($this->translator->trans('cart.sale_ended', [
                     '%product%' => $product->getName(),
                 ], 'errors'));
