@@ -10,6 +10,7 @@ use App\Dto\Cart\MealProductOutputDto;
 use App\Entity\Product;
 use App\Entity\ProductVariant;
 use App\Entity\User;
+use App\Enum\ProductStateEnum;
 use App\Enum\ProductTagCode;
 use App\Repository\ProductRepository;
 use App\Service\CapacityManager;
@@ -94,14 +95,14 @@ readonly class MealProductsProvider implements ProviderInterface
                 $dto->priceSteps = $this->discountCalculator->priceSteps($product, $user, $year);
             }
 
-            // Stažený produkt neprodá nikdo, ani pult. Propadlé `nabizet_do` je proti tomu
-            // jen konec samoobsluhy — legacy ho pultu povoluje přes `jidloBezZamku`, které
-            // si obě admin obrazovky zapínají, takže se tady chová stejně jako termín
-            // kategorie. Stav RESTRICTED/SUSPENDED řeší varianty, ne tenhle zámek.
-            $stazeno = $product->isWithdrawn();
+            // Nobody sells a withdrawn meal, not even the desk. A passed `nabizet_do` or a pause
+            // only ends self-service: legacy lets the desk past both through `jidloBezZamku`,
+            // which both admin screens switch on. The variant can be paused through the import.
+            $stazeno = $product->isWithdrawn() || $variant->isWithdrawn();
+            $pozastaveno = $product->getState() === ProductStateEnum::SUSPENDED || $variant->isPaused();
             $dto->locked = $stazeno
                 || $poTerminuKategorie
-                || (! $zPultu && ! $product->isAvailable($this->clock->now()));
+                || (! $zPultu && (! $product->isAvailable($this->clock->now()) || $pozastaveno));
             $meals[] = $dto;
         }
 

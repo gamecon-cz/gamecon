@@ -44,12 +44,20 @@ readonly class ProductVariantsForGrid
             }
 
             $purchased = $this->orderItemRepository->countCustomerPurchases($customer, $product, $year, $variant);
+            // A size paused or withdrawn on its own is off sale, as legacy hid it; whoever holds it
+            // still sees it, so it can be dropped, but cannot add more.
+            $naProdej = ! $variant->isWithdrawn() && ! $variant->isPaused();
+            if (! $naProdej && $purchased === 0) {
+                continue;
+            }
 
             $dto = new MerchVariantOutputDto();
             $dto->id = $id;
             $dto->name = $variant->getName();
             $dto->purchasedQuantity = $purchased;
-            $dto->maxQuantity = $this->maxQuantity($variant, $remaining[$id] ?? null, $purchased, $roleMeanings);
+            $dto->maxQuantity = $naProdej
+                ? $this->maxQuantity($variant, $remaining[$id] ?? null, $purchased, $roleMeanings)
+                : $purchased;
             $variants[] = $dto;
         }
 

@@ -24,6 +24,7 @@ use App\Service\CapacityManager;
 use App\Service\CartService;
 use App\Service\CurrentYearProviderInterface;
 use App\Service\DiscountCalculator;
+use App\Service\OperatorOverride;
 use App\Service\RestrictedProductRules;
 use App\Service\SpentQuotaProvider;
 use App\Tests\Support\ChybovePreklady;
@@ -211,6 +212,88 @@ class CartServiceTest extends TestCase
         $this->expectExceptionMessage('není dostupný');
 
         $this->cartService->addItem($order, $variant);
+    }
+
+    public function testAParticipantCannotBuyAPausedProduct(): void
+    {
+        $product = $this->createProduct();
+        $product->setState(ProductStateEnum::SUSPENDED);
+
+        $this->capacityManager->expects($this->never())->method('lockForSale');
+        $this->expectException(NoLongerAvailableException::class);
+        $this->expectExceptionMessage('pozastavený');
+
+        $this->cartService->addItem($this->objednavka(), $this->createVariant($product, 'M', 'TRICKO-M'));
+    }
+
+    /**
+     * Sizes carry their own state, so one size can be paused while the rest of the model sells.
+     */
+    public function testAParticipantCannotBuyAPausedSize(): void
+    {
+        $variant = $this->createVariant($this->createProduct(), 'M', 'TRICKO-M');
+        $variant->setState(ProductStateEnum::SUSPENDED);
+
+        $this->expectException(NoLongerAvailableException::class);
+
+        $this->cartService->addItem($this->objednavka(), $variant);
+    }
+
+    public function testNobodyBuysAWithdrawnSize(): void
+    {
+        $variant = $this->createVariant($this->createProduct(), 'M', 'TRICKO-M');
+        $variant->setState(ProductStateEnum::RETIRED);
+
+        $this->expectException(NoLongerAvailableException::class);
+
+        $this->cartService->addItem(
+            $this->objednavka(),
+            $variant,
+            override: OperatorOverride::deskSale($this->createMock(User::class)),
+        );
+    }
+
+    public function testTheDeskSellsAPausedProduct(): void
+    {
+        $product = $this->createProduct();
+        $product->setState(ProductStateEnum::SUSPENDED);
+        $this->discountCalculator->method('priceForNextPiece')->willReturn([
+            'discount'       => null,
+            'discountAmount' => '0.00',
+            'finalPrice'     => '250.00',
+            'reason'         => null,
+            'snapshot'       => null,
+        ]);
+
+        $item = $this->cartService->addItem(
+            $this->objednavka(),
+            $this->createVariant($product, 'M', 'TRICKO-M'),
+            override: OperatorOverride::deskSale($this->createMock(User::class)),
+        );
+
+        $this->assertSame($product, $item->getProduct());
+    }
+
+    public function testAddBundleRefusesAPausedProduct(): void
+    {
+        $product = $this->createProduct();
+        $product->setState(ProductStateEnum::SUSPENDED);
+        $bundle = $this->createBundle('Víkend', false, [RoleMeaning::PRIHLASEN->value]);
+        $bundle->addVariant($this->createVariant($product, 'M', 'TRICKO-M'));
+
+        $this->capacityManager->expects($this->never())->method('lockInOrder');
+        $this->expectException(NoLongerAvailableException::class);
+
+        $this->cartService->addBundle($this->objednavka(), $bundle, [RoleMeaning::PRIHLASEN]);
+    }
+
+    private function objednavka(): Order
+    {
+        $order = new Order();
+        $order->setCustomer($this->createMock(User::class));
+        $order->setYear(2026);
+
+        return $order;
     }
 
     public function testAddItemRefusesAProductPastItsOwnDeadline(): void

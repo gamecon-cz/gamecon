@@ -222,6 +222,36 @@ class MealWriterAvailabilityTest extends AbstractDatabaseKernelTestCase
     }
 
     /**
+     * Only a variant with a code of its own can be withdrawn apart from its product; the default
+     * variant follows the product's state.
+     *
+     * @test
+     */
+    public function stazenaVariantaJidlaNezapiseAniPult(): void
+    {
+        $zakaznik = $this->zakaznik();
+        $produkt = $this->vytvorJidlo(ProductStateEnum::PUBLIC)->getProduct();
+        $varianta = new ProductVariant();
+        $varianta->setProduct($produkt);
+        $varianta->setName('velká porce');
+        $varianta->setCode($produkt->getCode() . '-velka');
+        $varianta->setCapacity(50);
+        $varianta->setPrice('160.00');
+        $varianta->setPosition(1);
+        $varianta->setState(ProductStateEnum::RETIRED);
+        $produkt->addVariant($varianta);
+        $this->entityManager()->persist($varianta);
+        $this->entityManager()->flush();
+
+        $this->expectException(NoLongerAvailableException::class);
+        try {
+            $this->writer()->save($zakaznik, [$varianta->getId()], self::ROK);
+        } finally {
+            self::assertSame(0, $this->pocetNakupu($zakaznik), 'Odmítnutý zápis nesmí nic zapsat');
+        }
+    }
+
+    /**
      * Two desks swap two meals between two participants at the same moment. The other desk
      * holds both meals and then counts the one this desk gives up; were this desk to delete
      * that purchase before taking its locks, each would wait on the other.

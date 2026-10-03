@@ -1404,6 +1404,47 @@ class AccommodationWriterTest extends AbstractDatabaseKernelTestCase
         self::assertSame(0, $this->pocetNakupu($customer, $snidane));
     }
 
+    /**
+     * The cart refuses a paused product to the participant, so offering it back would only fail.
+     */
+    public function testAPausedBreakfastIsNotOfferedBack(): void
+    {
+        $customer = $this->ucastnik();
+        [$noc, $snidane] = $this->pripravHotelSeSnidani(1);
+        $this->koupSnidani($customer, $snidane);
+        $this->writer()->save($customer, [$noc], self::ROK, true);
+        $this->writer()->save($customer, [], self::ROK, true);
+        $customer = $this->zmenProduktSnidane($customer, $snidane, 'stav', ProductStateEnum::SUSPENDED->value);
+
+        self::assertSame([], $this->breakfastCanceller()->restorable($customer, self::ROK));
+        self::assertSame([], $this->breakfastCanceller()->restore($customer, self::ROK));
+    }
+
+    /**
+     * Breakfasts imported as one product with a variant per day: the import withdraws a day left
+     * out of the sheet while the product stays live.
+     */
+    public function testABreakfastDayWithdrawnOnItsOwnIsNotOfferedBack(): void
+    {
+        $customer = $this->ucastnik();
+        [$noc, $snidane] = $this->pripravHotelSeSnidani(1);
+        $this->koupSnidani($customer, $snidane);
+        $this->writer()->save($customer, [$noc], self::ROK, true);
+        $this->writer()->save($customer, [], self::ROK, true);
+        $this->connection()->executeStatement(
+            "UPDATE product_variant SET code = CONCAT(code, '-den'), state = :stav WHERE id = :variant",
+            [
+                'stav'    => ProductStateEnum::RETIRED->value,
+                'variant' => $snidane,
+            ],
+        );
+        $this->entityManager()->clear();
+        $customer = $this->entityManager()->find(User::class, $customer->getId());
+        self::assertNotNull($customer);
+
+        self::assertSame([], $this->breakfastCanceller()->restorable($customer, self::ROK));
+    }
+
     public function testAWithdrawnBreakfastIsNotOfferedBack(): void
     {
         $customer = $this->ucastnik();
