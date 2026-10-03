@@ -340,6 +340,24 @@ class SetCustomerAccommodationProcessorTest extends AbstractDatabaseKernelTestCa
         self::assertSame($grid, $this->processor->process($this->input(), new Post()));
     }
 
+    /**
+     * The grid redraws from this response, so built for a participant it would show the desk
+     * a closed sale and locked cells after the deadline, until the page is reloaded.
+     */
+    public function testTheSavedGridIsTheDesksView(): void
+    {
+        $this->signInOperator();
+        $this->customer();
+        $this->legacyCustomer();
+
+        $this->accommodationGrid
+            ->expects(self::once())
+            ->method('forCustomer')
+            ->with(self::anything(), self::anything(), true);
+
+        $this->processor->process($this->input(), new Post());
+    }
+
     public function testSignedOutCallerIsRefused(): void
     {
         $this->legacySession->method('getCurrentUser')->willReturn(null);

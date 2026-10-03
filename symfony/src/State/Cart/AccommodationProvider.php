@@ -68,21 +68,20 @@ readonly class AccommodationProvider implements ProviderInterface, Accommodation
             throw new AccessDeniedHttpException($this->translator->trans('accommodation.gamecon_registration_required', [], 'errors'));
         }
 
-        return $this->forCustomer($user, $legacyUzivatel);
+        return $this->forCustomer($user, $legacyUzivatel, zPultu: false);
     }
 
     /**
      * The grid for a named customer, whoever is asking. Split out so the admin desk can read
      * a participant's nights: there the rights below belong to that participant, while the
      * request is sent by an operator, so neither may come from the session.
-     */
-    /**
+     *
      * @param bool $zPultu volá to obsluha za účastníka, ne účastník sám — pak termín
      *                     prodeje neplatí, protože doobjednat po termínu je hlavní důvod,
      *                     proč admin obrazovky existují (`SetCustomerAccommodationProcessor`
      *                     ho z téhož důvodu nekontroluje ani při zápisu)
      */
-    public function forCustomer(User $user, \Uzivatel $legacyUser, bool $zPultu = false): AccommodationOutputDto
+    public function forCustomer(User $user, \Uzivatel $legacyUser, bool $zPultu): AccommodationOutputDto
     {
         $year = $this->currentYearProvider->getCurrentYear();
         $nastaveni = SystemoveNastaveni::zGlobals();

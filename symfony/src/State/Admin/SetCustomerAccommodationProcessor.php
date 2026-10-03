@@ -100,6 +100,6 @@ readonly class SetCustomerAccommodationProcessor implements ProcessorInterface
         }
 
         // The grid redraws from what came back, so it cannot drift from what was stored.
-        return $this->accommodationGrid->forCustomer($customer, $legacyCustomer);
+        return $this->accommodationGrid->forCustomer($customer, $legacyCustomer, zPultu: true);
     }
 }
