@@ -3,6 +3,7 @@ declare(strict_types=1);
 
 namespace Gamecon\Shop;
 
+use App\Enum\ProductTagCode;
 use Gamecon\Shop\SqlStruktura\PredmetSqlStruktura as Sql;
 use Gamecon\Uzivatel\Dto\PolozkaProBfgr;
 
@@ -16,14 +17,14 @@ class Predmet extends \DbObject
     protected static $tabulka = Sql::SHOP_PREDMETY_TABULKA;
     protected static $pk = Sql::ID_PREDMETU;
 
-    public static function jeToVstupneVcas(int $typPredmetu, string $kodPredmetu): bool
+    public static function jeToVstupneVcas(?ProductTagCode $kategorie, string $kodPredmetu): bool
     {
-        return $typPredmetu === TypPredmetu::VSTUPNE && !self::jeToDleCasti($kodPredmetu, 'pozde');
+        return $kategorie === ProductTagCode::VSTUPNE && !self::jeToDleCasti($kodPredmetu, 'pozde');
     }
 
-    public static function jeToVstupnePozde(int $typPredmetu, string $kodPredmetu): bool
+    public static function jeToVstupnePozde(?ProductTagCode $kategorie, string $kodPredmetu): bool
     {
-        return $typPredmetu === TypPredmetu::VSTUPNE && self::jeToDleCasti($kodPredmetu, 'pozde');
+        return $kategorie === ProductTagCode::VSTUPNE && self::jeToDleCasti($kodPredmetu, 'pozde');
     }
 
     public static function jeToKostka(string $kodPredmetu): bool
@@ -96,17 +97,17 @@ class Predmet extends \DbObject
     }
 
     public static function jeToTricko(
-        string $kodPredmetu,
-        int    $typ,
+        string          $kodPredmetu,
+        ?ProductTagCode $kategorie,
     ): bool {
-        return $typ === TypPredmetu::TRICKO && self::jeToDleCasti($kodPredmetu, 'tricko');
+        return $kategorie === ProductTagCode::TRICKO && self::jeToDleCasti($kodPredmetu, 'tricko');
     }
 
     public static function jeToTilko(
-        string $kodPredmetu,
-        int    $typ,
+        string          $kodPredmetu,
+        ?ProductTagCode $kategorie,
     ): bool {
-        return $typ === TypPredmetu::TRICKO && self::jeToDleCasti($kodPredmetu, 'tilko');
+        return $kategorie === ProductTagCode::TRICKO && self::jeToDleCasti($kodPredmetu, 'tilko');
     }
 
     private static function jeToDleCasti(

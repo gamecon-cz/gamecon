@@ -1,7 +1,6 @@
 <?php declare(strict_types=1);
 
 use App\Enum\ProductTagCode;
-use Gamecon\Shop\TypPredmetu;
 
 require_once __DIR__ . '/sdilene-hlavicky.php';
 
@@ -99,7 +98,7 @@ $radky = [];
 foreach ($data as $radek) {
     $typPolozky = $radek['je_aktivita']
         ? 'aktivita'
-        : TypPredmetu::nazevTypu(ProductTagCode::tryFrom((string) $radek['kategorie_shop'])?->legacyTyp() ?? 0);
+        : mb_strtolower(ProductTagCode::tryFrom((string) $radek['kategorie_shop'])?->label() ?? 'neznámý typ');
 
     $urlUzivatele = URL_ADMIN . '/uzivatel?pracovni_uzivatel=' . $radek['id_uzivatele'];
 

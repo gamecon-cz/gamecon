@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace Gamecon\Tests\Model\Uzivatel;
 
+use App\Enum\ProductTagCode;
 use Gamecon\Pravo;
-use Gamecon\Shop\TypPredmetu;
 use Gamecon\SystemoveNastaveni\SystemoveNastaveni;
 use Gamecon\Tests\Db\AbstractTestDb;
 use Gamecon\Uzivatel\Dto\PolozkaProBfgr;
@@ -243,13 +243,13 @@ SQL,
         self::assertCount(1, $bfgr);
         self::assertSame(100.0, $bfgr[0]->castka);
         self::assertSame(0.0, $bfgr[0]->sleva);
-        self::assertSame(TypPredmetu::PREDMET, $bfgr[0]->typ);
+        self::assertSame(Finance::typVPrehledu(ProductTagCode::PREDMET), $bfgr[0]->typ);
         self::assertSame('1', $bfgr[0]->pocet);
 
         self::assertCount(1, $strukturovany);
         self::assertSame(100.0, $strukturovany[0]['castka']);
         self::assertSame(1, $strukturovany[0]['pocet']);
-        self::assertSame(TypPredmetu::PREDMET, $strukturovany[0]['typ']);
+        self::assertSame(Finance::typVPrehledu(ProductTagCode::PREDMET), $strukturovany[0]['typ']);
     }
 
     /**
@@ -340,11 +340,11 @@ SQL,
 
         self::assertCount(1, $bfgr);
         self::assertSame(80.0, $bfgr[0]->castka);
-        self::assertSame(TypPredmetu::JIDLO, $bfgr[0]->typ);
+        self::assertSame(Finance::typVPrehledu(ProductTagCode::JIDLO), $bfgr[0]->typ);
 
         self::assertCount(1, $strukturovany);
         self::assertSame(80.0, $strukturovany[0]['castka']);
-        self::assertSame(TypPredmetu::JIDLO, $strukturovany[0]['typ']);
+        self::assertSame(Finance::typVPrehledu(ProductTagCode::JIDLO), $strukturovany[0]['typ']);
     }
 
     /**
@@ -359,11 +359,11 @@ SQL,
 
         self::assertCount(1, $bfgr);
         self::assertSame(300.0, $bfgr[0]->castka);
-        self::assertSame(TypPredmetu::VSTUPNE, $bfgr[0]->typ);
+        self::assertSame(Finance::typVPrehledu(ProductTagCode::VSTUPNE), $bfgr[0]->typ);
 
         self::assertCount(1, $strukturovany);
         self::assertSame(300.0, $strukturovany[0]['castka']);
-        self::assertSame(TypPredmetu::VSTUPNE, $strukturovany[0]['typ']);
+        self::assertSame(Finance::typVPrehledu(ProductTagCode::VSTUPNE), $strukturovany[0]['typ']);
     }
 
     /**
@@ -378,11 +378,11 @@ SQL,
 
         self::assertCount(1, $bfgr);
         self::assertSame(100.0, $bfgr[0]->castka);
-        self::assertSame(TypPredmetu::VSTUPNE, $bfgr[0]->typ);
+        self::assertSame(Finance::typVPrehledu(ProductTagCode::VSTUPNE), $bfgr[0]->typ);
 
         self::assertCount(1, $strukturovany);
         self::assertSame(100.0, $strukturovany[0]['castka']);
-        self::assertSame(TypPredmetu::VSTUPNE, $strukturovany[0]['typ']);
+        self::assertSame(Finance::typVPrehledu(ProductTagCode::VSTUPNE), $strukturovany[0]['typ']);
     }
 
     /**
@@ -398,8 +398,8 @@ SQL,
         $finance = $this->dejFinanci();
 
         self::assertSame(117.0, $finance->cenaVstupne());
-        self::assertSame(117.0, $this->sumaCastekBfgr($finance->dejPolozkyProBfgr(), TypPredmetu::VSTUPNE));
-        self::assertSame(117.0, $this->sumaCastekStrukturovany($finance->dejStrukturovanyPrehled(), TypPredmetu::VSTUPNE));
+        self::assertSame(117.0, $this->sumaCastekBfgr($finance->dejPolozkyProBfgr(), Finance::typVPrehledu(ProductTagCode::VSTUPNE)));
+        self::assertSame(117.0, $this->sumaCastekStrukturovany($finance->dejStrukturovanyPrehled(), Finance::typVPrehledu(ProductTagCode::VSTUPNE)));
     }
 
     /**
@@ -412,7 +412,7 @@ SQL,
         $finance = $this->dejFinanci();
 
         self::assertSame(100.0, $finance->cenaVstupnePozde());
-        self::assertSame(100.0, $this->sumaCastekBfgr($finance->dejPolozkyProBfgr(), TypPredmetu::VSTUPNE));
+        self::assertSame(100.0, $this->sumaCastekBfgr($finance->dejPolozkyProBfgr(), Finance::typVPrehledu(ProductTagCode::VSTUPNE)));
     }
 
     /**
@@ -462,7 +462,7 @@ SQL,
 
         $financeBfgr = $this->dejFinanci();
         $bfgr = $financeBfgr->dejPolozkyProBfgr();
-        $bfgrProplaceni = array_filter($bfgr, fn (PolozkaProBfgr $p) => $p->typ === TypPredmetu::PROPLACENI_BONUSU);
+        $bfgrProplaceni = array_filter($bfgr, fn (PolozkaProBfgr $p) => $p->typ === Finance::typVPrehledu(ProductTagCode::PROPLACENI_BONUSU));
         self::assertCount(1, $bfgrProplaceni);
 
         $financeStrukturovany = $this->dejFinanci();
@@ -481,10 +481,10 @@ SQL,
         $strukturovany = $finance->dejStrukturovanyPrehled();
 
         self::assertCount(1, $bfgr);
-        self::assertSame(TypPredmetu::PARCON, $bfgr[0]->typ);
+        self::assertSame(Finance::typVPrehledu(ProductTagCode::PARCON), $bfgr[0]->typ);
 
         self::assertCount(1, $strukturovany);
-        self::assertSame(TypPredmetu::PARCON, $strukturovany[0]['typ']);
+        self::assertSame(Finance::typVPrehledu(ProductTagCode::PARCON), $strukturovany[0]['typ']);
     }
 
     /**
@@ -671,14 +671,14 @@ SQL,
         // Strukturovany has entries for types but NOT 7 (PROPLACENI_BONUSU)
         $strukturovanyTypy = array_unique(array_column($strukturovany, 'typ'));
         sort($strukturovanyTypy);
-        self::assertNotContains(TypPredmetu::PROPLACENI_BONUSU, $strukturovanyTypy);
+        self::assertNotContains(Finance::typVPrehledu(ProductTagCode::PROPLACENI_BONUSU), $strukturovanyTypy);
         self::assertSame([1, 2, 3, 4, 5, 6], $strukturovanyTypy);
 
         // Sum comparison: BFGR excluding typ=7 should match strukturovany total
         // But VSTUPNE typ mapping differs (5 in BFGR → 10 in strukturovany), so compare raw sums
         $sumaBfgrBezProplaceni = 0.0;
         foreach ($bfgr as $polozka) {
-            if ($polozka->typ !== TypPredmetu::PROPLACENI_BONUSU) {
+            if ($polozka->typ !== Finance::typVPrehledu(ProductTagCode::PROPLACENI_BONUSU)) {
                 $sumaBfgrBezProplaceni += $polozka->castka;
             }
         }

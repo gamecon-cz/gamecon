@@ -6,7 +6,6 @@ namespace Gamecon\Tests\Shop;
 
 use App\Enum\ProductTagCode;
 use Gamecon\Shop\StavPredmetu;
-use Gamecon\Shop\TypPredmetu;
 use Gamecon\Tests\Db\AbstractTestDb;
 
 /**
@@ -100,7 +99,7 @@ SQL,
         ?string $nabizetDo = null,
         int $modelRok = ROCNIK,
     ): int {
-        return $this->vlozPredmet($nazev, TypPredmetu::PREDMET, $kusuVyrobeno, $cena, $stav, $nabizetDo, $modelRok);
+        return $this->vlozPredmet($nazev, ProductTagCode::PREDMET, $kusuVyrobeno, $cena, $stav, $nabizetDo, $modelRok);
     }
 
     protected function vytvorTricko(
@@ -110,7 +109,7 @@ SQL,
         int $stav = StavPredmetu::VEREJNY,
         ?string $nabizetDo = null,
     ): int {
-        return $this->vlozPredmet($nazev, TypPredmetu::TRICKO, $kusuVyrobeno, $cena, $stav, $nabizetDo, ROCNIK);
+        return $this->vlozPredmet($nazev, ProductTagCode::TRICKO, $kusuVyrobeno, $cena, $stav, $nabizetDo, ROCNIK);
     }
 
     protected function pocetRoliUzivatele(
@@ -128,7 +127,7 @@ SQL,
 
     private function vlozPredmet(
         string $nazev,
-        int $typ,
+        ProductTagCode $kategorie,
         ?int $kusuVyrobeno,
         float $cena,
         int $stav,
@@ -173,7 +172,7 @@ SQL,
                 4 => $stav,
             ],
         );
-        $this->oznacTypem($idPredmetu, $typ);
+        $this->oznacTypem($idPredmetu, $kategorie);
 
         return $idPredmetu;
     }
@@ -183,25 +182,20 @@ SQL,
      */
     private function oznacTypem(
         int $idPredmetu,
-        int $typ,
+        ProductTagCode $kategorie,
     ): void {
-        $kodTagu = ProductTagCode::fromLegacyTyp($typ);
-        if ($kodTagu === null) {
-            throw new \LogicException('Pro typ předmětu ' . $typ . ' neexistuje tag');
-        }
-
         $vlozeni = dbQuery(
             'INSERT INTO product_product_tag (product_id, tag_id)
              SELECT $0, id FROM product_tag WHERE code = $1',
             [
                 0 => $idPredmetu,
-                1 => $kodTagu->value,
+                1 => $kategorie->value,
             ],
         );
         // Bez tagu v databázi vloží INSERT ... SELECT tiše nula řádků a předmět pak
-        // z pohledu vyjde s typ = NULL — spadne až vzdálená assertion.
+        // nemá kategorii — spadne až vzdálená assertion.
         if (dbAffectedOrNumRows($vlozeni) !== 1) {
-            throw new \LogicException('Tag ' . $kodTagu->value . ' v databázi není');
+            throw new \LogicException('Tag ' . $kategorie->value . ' v databázi není');
         }
     }
 }

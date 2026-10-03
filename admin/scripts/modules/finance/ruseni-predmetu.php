@@ -1,5 +1,6 @@
 <?php
 
+use App\Enum\ProductTagCode;
 use Gamecon\XTemplate\XTemplate;
 
 use Gamecon\Shop\Shop;
@@ -16,12 +17,15 @@ use Gamecon\Shop\Shop;
 // nastavení výchozích hodnot
 $zustatek    = (int)post('zustatek')
     ?: -20;
-$typPredmetu = (int)post('typ')
-    ?: Shop::UBYTOVANI;
+// from(), not tryFrom(): a form left open over a deploy still posts the old type number, and a
+// fallback would cancel a different category than the one the admin chose.
+$kategorie   = post('typ')
+    ? ProductTagCode::from((string)post('typ'))
+    : ProductTagCode::UBYTOVANI;
 $mozneTypy   = [
-    Shop::JIDLO     => 'jídlo',
-    Shop::UBYTOVANI => 'ubytování',
-    Shop::TRICKO    => 'tričko',
+    ProductTagCode::JIDLO->value     => 'jídlo',
+    ProductTagCode::UBYTOVANI->value => 'ubytování',
+    ProductTagCode::TRICKO->value    => 'tričko',
 ];
 $uzivatele   = [];
 if (post('vypsat') || post('rusit')) {
@@ -37,7 +41,7 @@ if (post('vypsat') || post('rusit')) {
 
 // zpracování POST požadavků
 if (post('rusit') && $uzivatele) {
-    Shop::zrusObjednavkyPro($uzivatele, $typPredmetu);
+    Shop::zrusObjednavkyPro($uzivatele, $kategorie);
     oznameni('Objednávky pro ' . count($uzivatele) . ' uživatelů zrušeny.');
 }
 
@@ -49,7 +53,7 @@ foreach ($mozneTypy as $typId => $typ) {
     $t->assign([
         'id'       => $typId,
         'nazev'    => $typ,
-        'selected' => $typId == $typPredmetu
+        'selected' => $typId === $kategorie->value
             ? 'selected'
             : '',
     ]);

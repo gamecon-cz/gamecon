@@ -23,7 +23,7 @@ class PredmetSqlStruktura
 
     // Not on the table: legacy queries compute these from the product, its variants and tags
     public const MODEL_ROK     = 'model_rok';
-    public const TYP           = 'typ';
+    public const KATEGORIE     = 'kategorie';
     public const PODTYP        = 'podtyp';
     public const KUSU_VYROBENO = 'kusu_vyrobeno';
 }

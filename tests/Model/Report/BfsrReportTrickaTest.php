@@ -4,9 +4,10 @@ declare(strict_types=1);
 
 namespace Gamecon\Tests\Model\Report;
 
+use App\Enum\ProductTagCode;
 use Gamecon\Report\BfsrReport;
-use Gamecon\Shop\TypPredmetu;
 use Gamecon\Uzivatel\Dto\PolozkaProBfgr;
+use Gamecon\Uzivatel\Finance;
 use PHPUnit\Framework\TestCase;
 
 /**
@@ -130,9 +131,10 @@ class BfsrReportTrickaTest extends TestCase
             pocet: '1',
             castka: $castka,
             sleva: $sleva,
-            typ: TypPredmetu::TRICKO,
+            typ: Finance::typVPrehledu(ProductTagCode::TRICKO),
             kodPredmetu: $kodPredmetu,
             idVarianty: '1',
+            kategorie: ProductTagCode::TRICKO,
         );
     }
 }

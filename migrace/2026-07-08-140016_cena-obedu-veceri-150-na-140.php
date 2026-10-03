@@ -4,8 +4,6 @@ declare(strict_types=1);
 
 /** @var Godric\DbMigrations\Migration $this */
 
-use Gamecon\Shop\TypPredmetu;
-
 // Snížení ceny standardních obědů a večeří ze 150 na 140 Kč pro letošní ročník.
 //
 // Mění se:
@@ -17,7 +15,7 @@ use Gamecon\Shop\TypPredmetu;
 // Snídaně se netýká.
 
 $rok        = ROCNIK;
-$typJidlo   = TypPredmetu::JIDLO;
+$typJidlo   = 4; // the meal typ when this ran; the TypPredmetu class it came from is gone
 $staraCena  = 150;
 $novaCena   = 140;
 

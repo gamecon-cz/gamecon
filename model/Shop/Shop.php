@@ -27,15 +27,6 @@ use Uzivatel;
  */
 class Shop
 {
-    // TYPY PŘEDMĚTŮ
-    public const PREDMET           = TypPredmetu::PREDMET;
-    public const UBYTOVANI         = TypPredmetu::UBYTOVANI;
-    public const TRICKO            = TypPredmetu::TRICKO;
-    public const JIDLO             = TypPredmetu::JIDLO;
-    public const VSTUPNE           = TypPredmetu::VSTUPNE;
-    public const PARCON            = TypPredmetu::PARCON;
-    public const PROPLACENI_BONUSU = TypPredmetu::PROPLACENI_BONUSU;
-
     // STAVY PŘEDMĚTŮ
     public const STAV_MIMO        = StavPredmetu::MIMO;
     public const STAV_VEREJNY     = StavPredmetu::VEREJNY;
@@ -71,16 +62,16 @@ class Shop
 
     /**
      * @param Uzivatel[] $uzivatele
-     * @param string|int $typ
+     * @param ProductTagCode $kategorie
      * @return void
      * @throws \DbException
      */
     public static function zrusObjednavkyPro(
-        array $uzivatele,
-              $typ,
+        array          $uzivatele,
+        ProductTagCode $kategorie,
     ) {
-        $povoleneTypy = [self::PREDMET, self::UBYTOVANI, self::TRICKO, self::JIDLO];
-        if (!in_array($typ, $povoleneTypy)) {
+        $povoleneKategorie = [ProductTagCode::PREDMET, ProductTagCode::UBYTOVANI, ProductTagCode::TRICKO, ProductTagCode::JIDLO];
+        if (!in_array($kategorie, $povoleneKategorie, true)) {
             throw new \Exception('Tento typ objednávek není možné hromadně zrušit');
         }
 
@@ -98,7 +89,7 @@ INNER JOIN product_product_tag ON product_product_tag.product_id = product_varia
 INNER JOIN product_tag ON product_tag.id = product_product_tag.tag_id AND product_tag.code = $0
 WHERE nakup.id_uzivatele IN ($1) AND nakup.rok = $2
 SQL,
-            [0 => ProductTagCode::fromLegacyTyp($typ)->value, 1 => $ids, 2 => ROCNIK],
+            [0 => $kategorie->value, 1 => $ids, 2 => ROCNIK],
         );
     }
 
@@ -152,7 +143,7 @@ SQL,
         ?array $idckaPolozek = null,
     ): array {
         $polozkyData = dbFetchAll(<<<SQL
-SELECT id_predmetu,nazev,cena_aktualni,suma,model_rok,naposledy_koupeno_kdy,prodano_kusu,kusu_vyrobeno,typ,podtyp,nabizet_do,stav
+SELECT id_predmetu,nazev,cena_aktualni,suma,model_rok,naposledy_koupeno_kdy,prodano_kusu,kusu_vyrobeno,kategorie,podtyp,nabizet_do,stav
 FROM (
     SELECT predmety.id_predmetu,
            TRIM(predmety.nazev) AS nazev,
@@ -162,8 +153,7 @@ FROM (
            MAX(nakupy.datum) AS naposledy_koupeno_kdy,
            COUNT(nakupy.id_nakupu) AS prodano_kusu,
            vychozi_varianta.capacity AS kusu_vyrobeno,
-           -- typ is the position of the category code in ProductTagCode::categories()
-           FIELD(kategorie.code, $4) AS typ,
+           kategorie.code AS kategorie,
            CASE
                WHEN predmety.breakfast_included THEN $5
                WHEN EXISTS (
@@ -177,7 +167,7 @@ FROM (
            predmety.ubytovani_den,
            predmety.stav
     FROM shop_predmety AS predmety
-    -- a product missing its category keeps its row (typ NULL) instead of vanishing
+    -- a product missing its category keeps its row (kategorie NULL) instead of vanishing
     LEFT JOIN (
         product_product_tag AS stitek_kategorie
         INNER JOIN product_tag AS kategorie ON kategorie.id = stitek_kategorie.tag_id AND kategorie.code IN ($4)
@@ -193,11 +183,12 @@ FROM (
         AND IF($3, TRUE, predmety.id_predmetu IN ($2))
     GROUP BY predmety.id_predmetu, kategorie.code, predmety.ubytovani_den, predmety.nazev
 ) AS seskupeno
-ORDER BY typ, IF(typ = $1, LEFT(TRIM(nazev), LOCATE(' ',nazev) - 1), nazev), ubytovani_den, id_predmetu
+-- categories in the order ProductTagCode::categories() lists them
+ORDER BY FIELD(kategorie, $4), IF(kategorie = $1, LEFT(TRIM(nazev), LOCATE(' ',nazev) - 1), nazev), ubytovani_den, id_predmetu
 SQL,
             [
                 0 => $rok,
-                1 => TypPredmetu::UBYTOVANI,
+                1 => ProductTagCode::UBYTOVANI->value,
                 2 => $idckaPolozek,
                 3 => $idckaPolozek === null,
                 4 => ProductTagCode::categoryCodes(),
@@ -299,8 +290,7 @@ SQL,
               product_variant.state AS stav,
               produkt.nabizet_do,
               product_variant.capacity AS kusu_vyrobeno,
-              -- typ is the position of the category code in ProductTagCode::categories()
-              FIELD(kategorie.code, $0) AS typ,
+              kategorie.code AS kategorie,
               CASE
                   WHEN produkt.breakfast_included THEN $1
                   WHEN EXISTS (
@@ -316,7 +306,7 @@ SQL,
               SUM(IF(nakupy.id_uzivatele = {$zakaznikId}, nakupy.cena_nakupni, 0)) AS sum_cena_nakupni
             FROM product_variant
             INNER JOIN shop_predmety AS produkt ON produkt.id_predmetu = product_variant.product_id
-            -- a product missing its category keeps its row (typ NULL) instead of vanishing
+            -- a product missing its category keeps its row (kategorie NULL) and the shop refuses it below
             LEFT JOIN (
                 product_product_tag AS stitek_kategorie
                 INNER JOIN product_tag AS kategorie ON kategorie.id = stitek_kategorie.tag_id AND kategorie.code IN ($0)
@@ -328,7 +318,8 @@ SQL,
             WHERE COALESCE(YEAR(produkt.archived_at), {$rocnik}) = {$rocnik}
               AND (product_variant.state > {$mimo} OR nakupy.id_nakupu IS NOT NULL)
             GROUP BY product_variant.id
-            ORDER BY typ, ubytovani_den, nazev, id_varianty
+            -- categories in the order ProductTagCode::categories() lists them
+            ORDER BY FIELD(kategorie, $0), ubytovani_den, nazev, id_varianty
             SQL,
             [
                 0 => ProductTagCode::categoryCodes(),
@@ -343,23 +334,23 @@ SQL,
         $this->jidlo['druhy'] = [];
 
         foreach ($results as $r) {
-            $typ = $r['typ'];
-            if ($typ == self::PROPLACENI_BONUSU) {
+            $kategorie = ProductTagCode::tryFrom((string)$r['kategorie']);
+            if ($kategorie === ProductTagCode::PROPLACENI_BONUSU) {
                 continue; // není určeno k přímému prodeji
             }
             unset($fronta); // $fronta reference na frontu kam vložit předmět (nelze dát =null, přepsalo by předchozí vrch fronty)
-            if ($typ != self::UBYTOVANI && $r['nabizet_do'] && strtotime($r['nabizet_do']) < time()) {
+            if ($kategorie !== ProductTagCode::UBYTOVANI && $r['nabizet_do'] && strtotime($r['nabizet_do']) < time()) {
                 $r['stav'] = StavPredmetu::POZASTAVENY;
             }
             $r['nabizet'] = $r['stav'] == StavPredmetu::VEREJNY; // v základu nabízet vše v stavu 1
             // rozlišení kam ukládat a jestli nabízet podle typu
-            if ($typ == self::PREDMET) {
+            if ($kategorie === ProductTagCode::PREDMET) {
                 if (($r[Sql::PODTYP] ?? null) === PodtypPredmetu::MIKINA) {
                     $fronta = &$this->mikiny[];
                 } else {
                     $fronta = &$this->predmety[];
                 }
-            } elseif ($typ == self::JIDLO) {
+            } elseif ($kategorie === ProductTagCode::JIDLO) {
                 $den = $r['ubytovani_den'];
                 $druh = trim(self::bezDne($r['nazev']));
                 if (!empty($this->jidlo['jidla'][$den][$druh]['kusu_uzivatele'])) {
@@ -383,14 +374,14 @@ SQL,
                     $this->jidlo['druhy'][$druh] = true;
                 }
                 $fronta = &$this->jidlo['jidla'][$den][$druh];
-            } elseif ($typ == self::UBYTOVANI) {
+            } elseif ($kategorie === ProductTagCode::UBYTOVANI) {
                 $fronta = &$this->ubytovaniPole[];
-            } elseif ($typ == self::TRICKO) {
+            } elseif ($kategorie === ProductTagCode::TRICKO) {
                 $fronta = &$this->tricka[];
-            } elseif ($typ == self::VSTUPNE) {
+            } elseif ($kategorie === ProductTagCode::VSTUPNE) {
                 continue;
             } else {
-                throw new \Exception('Objevil se nepodporovaný typ předmětu s č.' . var_export($r['typ'], true));
+                throw new \Exception('Objevil se nepodporovaný typ předmětu ' . var_export($r['kategorie'], true));
             }
             // finální uložení předmětu na vrchol dané fronty
             $fronta = $r;
@@ -765,12 +756,12 @@ SQL,
 
     public function zrusLetosniObjednaneUbytovani(string $zdrojZruseni): int
     {
-        return $this->zrusLetosniObjednavkyTypu(TypPredmetu::UBYTOVANI, $zdrojZruseni);
+        return $this->zrusLetosniObjednavkyTypu(ProductTagCode::UBYTOVANI, $zdrojZruseni);
     }
 
     private function zrusLetosniObjednavkyTypu(
-        int    $typPredetu,
-        string $zdrojZruseni,
+        ProductTagCode $kategorie,
+        string         $zdrojZruseni,
     ): int {
         $idsNakupu = dbOneArray(<<<SQL
             SELECT shop_nakupy.id_nakupu
@@ -781,7 +772,7 @@ SQL,
             WHERE shop_nakupy.rok = $0
               AND shop_nakupy.id_uzivatele = $1
             SQL,
-            [0 => $this->systemoveNastaveni->rocnik(), 1 => $this->zakaznik->id(), 2 => ProductTagCode::fromLegacyTyp($typPredetu)->value],
+            [0 => $this->systemoveNastaveni->rocnik(), 1 => $this->zakaznik->id(), 2 => $kategorie->value],
         );
 
         return $this->sluzba(BulkCancelService::class)
@@ -914,7 +905,7 @@ SQL,
      */
     private function odmitniTypPokoje(array $varianta): void
     {
-        if ((int) $varianta['typ'] === TypPredmetu::UBYTOVANI && $varianta['ubytovani_den'] === null) {
+        if ($varianta['kategorie'] === ProductTagCode::UBYTOVANI->value && $varianta['ubytovani_den'] === null) {
             throw new \Chyba(sprintf(
                 'Typ pokoje „%s" nejde prodat, vyber konkrétní noc.',
                 $varianta['kod_predmetu'],
@@ -954,12 +945,11 @@ SQL,
                        product_variant.code AS kod_predmetu,
                        -- an archived product belongs to the year it was archived, one still on offer to this year
                        COALESCE(YEAR(produkt.archived_at), $1) AS model_rok,
-                       -- typ is the position of the category code in ProductTagCode::categories()
-                       FIELD(kategorie.code, $2) AS typ,
+                       kategorie.code AS kategorie,
                        product_variant.accommodation_day AS ubytovani_den
                 FROM product_variant
                 INNER JOIN shop_predmety AS produkt ON produkt.id_predmetu = product_variant.product_id
-                -- a product missing its category keeps its row (typ NULL) instead of vanishing
+                -- a product missing its category keeps its row (kategorie NULL) instead of vanishing
                 LEFT JOIN (
                     product_product_tag AS stitek_kategorie
                     INNER JOIN product_tag AS kategorie ON kategorie.id = stitek_kategorie.tag_id AND kategorie.code IN ($2)

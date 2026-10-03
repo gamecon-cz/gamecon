@@ -38,8 +38,7 @@ enum ProductTagCode: string
     case TRICKO_CERVENE = 'tricko_cervene';
 
     /**
-     * The category tags — exactly one of these per product, the successor of typ 1–7,
-     * listed in typ order: legacy SQL reads typ as the position of the code in this list.
+     * The category tags — exactly one of these per product, the successor of typ 1–7.
      *
      * @return self[]
      */
@@ -57,7 +56,7 @@ enum ProductTagCode: string
     }
 
     /**
-     * @return list<string> in typ order, see {@see categories()}
+     * @return list<string>
      */
     public static function categoryCodes(): array
     {
@@ -89,36 +88,6 @@ enum ProductTagCode: string
     public function requiredCategory(): ?self
     {
         return self::subTagCategories()[$this->value] ?? null;
-    }
-
-    public static function fromLegacyTyp(int $typ): ?self
-    {
-        foreach (self::categories() as $category) {
-            if ($category->legacyTyp() === $typ) {
-                return $category;
-            }
-        }
-
-        return null;
-    }
-
-    /**
-     * The legacy shop_predmety.typ this category replaced. Legacy code still branches on
-     * the number, not the tag, so anything handing it a category has to translate — see
-     * TypPredmetu.
-     */
-    public function legacyTyp(): int
-    {
-        return match ($this) {
-            self::PREDMET           => 1,
-            self::UBYTOVANI         => 2,
-            self::TRICKO            => 3,
-            self::JIDLO             => 4,
-            self::VSTUPNE           => 5,
-            self::PARCON            => 6,
-            self::PROPLACENI_BONUSU => 7,
-            default                 => throw new \LogicException(sprintf('Štítek „%s“ není kategorie, starý typ nemá.', $this->value)),
-        };
     }
 
     public function label(): string

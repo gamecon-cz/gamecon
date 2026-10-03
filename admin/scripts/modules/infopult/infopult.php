@@ -16,7 +16,6 @@ use Gamecon\Cas\DateTimeCz;
 use Gamecon\Pravo;
 use Gamecon\Shop\Shop;
 use Gamecon\XTemplate\XTemplate;
-use Gamecon\Shop\TypPredmetu;
 use Gamecon\Role\Role;
 use Gamecon\Web\Info;
 use Gamecon\SystemoveNastaveni\SystemoveNastaveniKlice;
@@ -94,13 +93,6 @@ if ($uPracovni) {
     $spolubydlici = $pokoj
         ? $pokoj->ubytovani()
         : [];
-    $typyProPrehled = [
-        TypPredmetu::PREDMET,
-        TypPredmetu::TRICKO,
-    ];
-    if ($u->maPravo(Pravo::MUZE_RUSIT_NAKUPY)) {
-        $typyProPrehled[] = TypPredmetu::VSTUPNE;
-    }
     $x->assign([
         'stavUctu' => sprintf(
             '%s <span class="stav-uctu-castka">%d</span> Kč',
