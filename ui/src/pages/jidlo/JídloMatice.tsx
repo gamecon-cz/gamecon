@@ -10,6 +10,7 @@ import {
 } from "../../api/symfony/endpoints";
 import { MountProps } from "../mountProps";
 import { ApiCart, ApiCartItem, ApiMealProduct } from "../../api/symfony/types";
+import { objednavkyZmrazeny } from "./zmrazeni";
 
 /** Format price string for Czech locale: "120.00" → "120 Kč", "80.50" → "80,50 Kč" */
 function formatCena(price: string): string {
@@ -177,6 +178,9 @@ export function JídloMatice({ customerId }: MountProps) {
 
   return (
     <div class="jidlo-matice">
+      {objednavkyZmrazeny(meals) && (
+        <p class="jidlo-matice--uzavreno">Objednat nebo změnit objednávky jídla již není možné.</p>
+      )}
       <table class="jidlo-matice--table">
         <thead>
           <tr>
