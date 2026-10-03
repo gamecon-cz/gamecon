@@ -7,10 +7,13 @@ namespace App\Service;
 use App\Entity\OrderItem;
 use App\Entity\ProductVariant;
 use App\Entity\User;
+use App\Enum\ProductStateEnum;
 use App\Enum\ProductTagCode;
 use App\Repository\OrderItemRepository;
 use Doctrine\DBAL\Connection;
 use Doctrine\ORM\EntityManagerInterface;
+use Gamecon\SystemoveNastaveni\SystemoveNastaveni;
+use Symfony\Component\Clock\ClockInterface;
 
 /**
  * A night whose price already includes breakfast makes a separately bought breakfast for the
@@ -24,6 +27,7 @@ class BreakfastCanceller
         private readonly EntityManagerInterface $entityManager,
         private readonly CartService $cartService,
         private readonly OrderItemRepository $orderItemRepository,
+        private readonly ClockInterface $clock,
     ) {
     }
 
@@ -84,8 +88,10 @@ class BreakfastCanceller
      */
     public function restorable(User $customer, int $year): array
     {
+        // Putting one back is a purchase like any other: after the deadline the canteen's order is
+        // final, so it would not be served. Only the desk adds a meal past it.
         $snapshot = $this->snapshot($customer, $year);
-        if ($snapshot === []) {
+        if ($snapshot === [] || SystemoveNastaveni::zGlobals()->prodejJidlaUkoncen()) {
             return [];
         }
 
@@ -126,7 +132,7 @@ class BreakfastCanceller
             if ($variant === null) {
                 continue;
             }
-            $this->cartService->addItem($cart, $variant, $customer->getRoleMeanings(), vraceniZruseneSnidane: true);
+            $this->cartService->addItem($cart, $variant, $customer->getRoleMeanings());
         }
 
         return array_values($nabidnute);
@@ -277,6 +283,8 @@ class BreakfastCanceller
              JOIN shop_predmety ON shop_predmety.id_predmetu = product_variant.product_id
              WHERE TRIM(shop_predmety.nazev) LIKE :snidane
                AND shop_predmety.archived_at IS NULL
+               AND shop_predmety.stav <> :stazeno
+               AND (shop_predmety.nabizet_do IS NULL OR shop_predmety.nabizet_do >= :ted)
                AND product_variant.accommodation_day IS NOT NULL
                AND EXISTS (
                    SELECT 1 FROM product_product_tag
@@ -287,6 +295,8 @@ class BreakfastCanceller
             [
                 'snidane' => 'Snídaně%',
                 'jidlo'   => ProductTagCode::JIDLO->value,
+                'stazeno' => ProductStateEnum::RETIRED->value,
+                'ted'     => $this->clock->now()->format('Y-m-d H:i:s'),
             ],
         );
 
