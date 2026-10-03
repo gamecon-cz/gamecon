@@ -363,9 +363,9 @@ class AccommodationWriter
     ): int {
         $product = $variant->getProduct();
         // Additions only, as in MealWriter::addMeal(): a held night withdrawn later must not block
-        // the next save. The night's own state, as the grid judges it (ProductRepository::
-        // capacityByVariantCode()); archived room types never come out of findByTag().
-        if ($variant->getState() === ProductStateEnum::RETIRED) {
+        // the next save. Withdrawn means the night or its room type, as the grid judges it
+        // (ProductRepository::capacityByVariantCode()); archived room types never come out of findByTag().
+        if ($variant->getState() === ProductStateEnum::RETIRED || $product->getState() === ProductStateEnum::RETIRED) {
             throw new NoLongerAvailableException($this->translator->trans('accommodation.withdrawn', [
                 '%product%' => $product->getName(), '%night%' => $variant->getNightName(),
             ], 'errors'));
