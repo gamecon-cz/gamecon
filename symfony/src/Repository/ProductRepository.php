@@ -176,8 +176,9 @@ class ProductRepository extends ServiceEntityRepository
     }
 
     /**
-     * Capacity is the variant's. A night is offered when it is on sale and its room type is not
-     * withdrawn; room types sit suspended or restricted while their nights sell.
+     * Capacity is the variant's. A night is offered unless it is withdrawn or paused, or its room
+     * type is withdrawn; room types sit suspended or restricted while their nights sell. Sunday is
+     * restricted: offered, its column shown only to holders of the right (AccommodationRules).
      *
      * @param string[] $codes
      *
@@ -214,7 +215,7 @@ class ProductRepository extends ServiceEntityRepository
                 // and honouring it here would lock nights that are still on sale.
                 'nabizeno' => $row['archived_at'] === null
                     && (int) $row['stav_typu'] !== ProductStateEnum::RETIRED->value
-                    && (int) $row['state'] === ProductStateEnum::PUBLIC->value,
+                    && ! in_array((int) $row['state'], [ProductStateEnum::RETIRED->value, ProductStateEnum::SUSPENDED->value], true),
                 // Varianta má přednost před řádkem se stejným kódem (u výchozí varianty je to
                 // produkt sám), stejně jako v zapisovači. Typ pokoje se schválně nečte.
                 'rezervovano' => $row['reserved_for_organizers'] === null

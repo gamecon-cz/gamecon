@@ -56,6 +56,7 @@ class AccommodationWriter
         bool $sleepingBagsOnly = false,
         ?bool $mayOverbook = null,
         bool $jeOrganizator = false,
+        bool $maySundayNight = false,
     ): int {
         $variants = $this->loadVariants($variantIds, $sleepingBagsOnly);
 
@@ -85,7 +86,7 @@ class AccommodationWriter
             $zmenenychRadku += $smazano;
             foreach ($variants as $variantId => $variant) {
                 if (! in_array($variantId, $kept, true)) {
-                    $zmenenychRadku += $this->addNight($customer, $variant, $year, $mayOverbook, $jeOrganizator);
+                    $zmenenychRadku += $this->addNight($customer, $variant, $year, $mayOverbook, $jeOrganizator, $maySundayNight);
                 }
             }
             $zmenenychRadku += $this->saveAccommodationDetails(
@@ -360,6 +361,7 @@ class AccommodationWriter
         int $year,
         ?bool $mayOverbook,
         bool $jeOrganizator,
+        bool $maySundayNight,
     ): int {
         $product = $variant->getProduct();
         // Additions only, as in MealWriter::addMeal(): a held night withdrawn later must not block
@@ -367,6 +369,18 @@ class AccommodationWriter
         // (ProductRepository::capacityByVariantCode()); archived room types never come out of findByTag().
         if ($variant->getState() === ProductStateEnum::RETIRED || $product->getState() === ProductStateEnum::RETIRED) {
             throw new NoLongerAvailableException($this->translator->trans('accommodation.withdrawn', [
+                '%product%' => $product->getName(), '%night%' => $variant->getNightName(),
+            ], 'errors'));
+        }
+        if ($variant->getAccommodationDay() === AccommodationRules::SUNDAY && ! $maySundayNight) {
+            throw new InsufficientPermissionsException($this->translator->trans('accommodation.sunday_not_offered', [
+                '%product%' => $product->getName(),
+            ], 'errors'));
+        }
+        // Both grids lock a paused night, but the desk and the import ($mayOverbook not null) may
+        // still write one, as legacy never checked a night's state on write.
+        if ($mayOverbook === null && $variant->getState() === ProductStateEnum::SUSPENDED) {
+            throw new NoLongerAvailableException($this->translator->trans('accommodation.night_paused', [
                 '%product%' => $product->getName(), '%night%' => $variant->getNightName(),
             ], 'errors'));
         }
