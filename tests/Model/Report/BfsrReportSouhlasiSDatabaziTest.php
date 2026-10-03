@@ -257,8 +257,8 @@ SQL,
     {
         $svrsky = [];
         foreach (\Uzivatel::zIdUrcite(self::ID_UZIVATELE)->finance()->dejPolozkyProBfgr() as $polozka) {
-            if (Predmet::jeToTricko($polozka->kodPredmetu, $polozka->typ)
-                || Predmet::jeToTilko($polozka->kodPredmetu, $polozka->typ)
+            if (Predmet::jeToTricko($polozka->kodPredmetu, $polozka->kategorie)
+                || Predmet::jeToTilko($polozka->kodPredmetu, $polozka->kategorie)
             ) {
                 $svrsky[] = $polozka;
             }

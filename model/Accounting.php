@@ -10,7 +10,7 @@ use Gamecon\Accounting\TransactionCategoryEnum;
 use Gamecon\Accounting\TransactionSplit;
 use Gamecon\Cas\DateTimeGamecon;
 use Gamecon\Exceptions\NeznamyTypPredmetu;
-use Gamecon\Shop\TypPredmetu;
+use App\Enum\ProductTagCode;
 use Gamecon\Uzivatel\Finance;
 
 class Accounting
@@ -30,41 +30,39 @@ class Accounting
             }
             /** @var TransactionCategoryEnum $category */
             $category = null;
-            switch ($polozkaProBfgr->typ) {
-                case Finance::AKTIVITY:
-                    $category = TransactionCategoryEnum::ACTIVITY;
-                    break;
-                case TypPredmetu::PROPLACENI_BONUSU:
-                case Finance::PRIPSANE_SLEVY:
-                case Finance::PLATBA:
-                case Finance::ORGSLEVA:
-                case Finance::BRIGADNICKA_ODMENA:
-                    $category = TransactionCategoryEnum::MANUAL_MOVEMENTS;
-                    break;
-                case Finance::VSTUPNE:
-                case TypPredmetu::VSTUPNE:
-                    $category = TransactionCategoryEnum::VOLUNTARY_DONATION;
-                    break;
-                case TypPredmetu::TRICKO:
-                case TypPredmetu::PREDMET:
-                    $category = TransactionCategoryEnum::SHOP_ITEMS;
-                    break;
-                case TypPredmetu::UBYTOVANI:
-                    $category = TransactionCategoryEnum::ACCOMMODATION;
-                    break;
-                case TypPredmetu::JIDLO:
-                    $category = TransactionCategoryEnum::FOOD;
-                    break;
-                case TypPredmetu::PARCON:
-                    throw new NeznamyTypPredmetu(sprintf('Unknown item type %s', $polozkaProBfgr->typ));
-                case Finance::ZUSTATEK_Z_PREDCHOZICH_LET:
-                    $category = TransactionCategoryEnum::LEFTOVER_FROM_LAST_YEAR;
-                    break;
-                case Finance::CELKOVA:
-                case Finance::VYSLEDNY:
-                case Finance::KATEGORIE_NEPLATICE:
-                case Finance::PLATBY_NADPIS:
-                    continue 2;
+            if ($polozkaProBfgr->kategorie !== null) {
+                $category = match ($polozkaProBfgr->kategorie) {
+                    ProductTagCode::PROPLACENI_BONUSU => TransactionCategoryEnum::MANUAL_MOVEMENTS,
+                    ProductTagCode::VSTUPNE           => TransactionCategoryEnum::VOLUNTARY_DONATION,
+                    ProductTagCode::TRICKO,
+                    ProductTagCode::PREDMET           => TransactionCategoryEnum::SHOP_ITEMS,
+                    ProductTagCode::UBYTOVANI         => TransactionCategoryEnum::ACCOMMODATION,
+                    ProductTagCode::JIDLO             => TransactionCategoryEnum::FOOD,
+                    default                           => throw new NeznamyTypPredmetu(sprintf('Unknown item category %s', $polozkaProBfgr->kategorie->value)),
+                };
+            } else {
+                switch ($polozkaProBfgr->typ) {
+                    case Finance::AKTIVITY:
+                        $category = TransactionCategoryEnum::ACTIVITY;
+                        break;
+                    case Finance::PRIPSANE_SLEVY:
+                    case Finance::PLATBA:
+                    case Finance::ORGSLEVA:
+                    case Finance::BRIGADNICKA_ODMENA:
+                        $category = TransactionCategoryEnum::MANUAL_MOVEMENTS;
+                        break;
+                    case Finance::VSTUPNE:
+                        $category = TransactionCategoryEnum::VOLUNTARY_DONATION;
+                        break;
+                    case Finance::ZUSTATEK_Z_PREDCHOZICH_LET:
+                        $category = TransactionCategoryEnum::LEFTOVER_FROM_LAST_YEAR;
+                        break;
+                    case Finance::CELKOVA:
+                    case Finance::VYSLEDNY:
+                    case Finance::KATEGORIE_NEPLATICE:
+                    case Finance::PLATBY_NADPIS:
+                        continue 2;
+                }
             }
             if ($category === null) {
                 continue;

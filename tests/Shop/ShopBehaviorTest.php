@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace Gamecon\Tests\Shop;
 
+use App\Enum\ProductTagCode;
 use Gamecon\Shop\Shop;
-use Gamecon\Shop\TypPredmetu;
 use Gamecon\SystemoveNastaveni\SystemoveNastaveni;
 use Gamecon\Tests\Db\AbstractTestDb;
 use Gamecon\Uzivatel\Finance;
@@ -266,19 +266,17 @@ SQL,
     {
         $polozky = Shop::letosniPolozky(ROCNIK);
 
-        $typy = array_unique(array_map(
-            static fn ($polozka) => $polozka->idTypu(),
+        $typy = array_map(
+            static fn ($polozka) => $polozka->kategorie(),
             $polozky,
-        ));
-
-        sort($typy);
+        );
 
         // Should contain at least PREDMET, UBYTOVANI, TRICKO, JIDLO, VSTUPNE
-        self::assertContains(TypPredmetu::PREDMET, $typy, 'Chybí typ PREDMET');
-        self::assertContains(TypPredmetu::UBYTOVANI, $typy, 'Chybí typ UBYTOVANI');
-        self::assertContains(TypPredmetu::TRICKO, $typy, 'Chybí typ TRICKO');
-        self::assertContains(TypPredmetu::JIDLO, $typy, 'Chybí typ JIDLO');
-        self::assertContains(TypPredmetu::VSTUPNE, $typy, 'Chybí typ VSTUPNE');
+        self::assertContains(ProductTagCode::PREDMET, $typy, 'Chybí typ PREDMET');
+        self::assertContains(ProductTagCode::UBYTOVANI, $typy, 'Chybí typ UBYTOVANI');
+        self::assertContains(ProductTagCode::TRICKO, $typy, 'Chybí typ TRICKO');
+        self::assertContains(ProductTagCode::JIDLO, $typy, 'Chybí typ JIDLO');
+        self::assertContains(ProductTagCode::VSTUPNE, $typy, 'Chybí typ VSTUPNE');
     }
 
     // ==================== C. zrusObjednavkyPro() ====================
@@ -307,7 +305,7 @@ SQL,
         self::assertSame(1, $predJidlo, 'Jídlo nákup existuje');
 
         // Cancel JIDLO purchases
-        Shop::zrusObjednavkyPro([$uzivatel], TypPredmetu::JIDLO);
+        Shop::zrusObjednavkyPro([$uzivatel], ProductTagCode::JIDLO);
 
         // JIDLO purchases should be gone
         $poJidlo = (int) dbOneCol(
@@ -338,7 +336,7 @@ SQL,
         $this->expectException(\Exception::class);
         $this->expectExceptionMessage('Tento typ objednávek není možné hromadně zrušit');
 
-        Shop::zrusObjednavkyPro([$uzivatel], TypPredmetu::VSTUPNE);
+        Shop::zrusObjednavkyPro([$uzivatel], ProductTagCode::VSTUPNE);
     }
 
     // ==================== D. Finance categorization ====================

@@ -182,11 +182,12 @@ class Cenik
     public function cena(array $r): PriceAfterDiscountDto
     {
         $cena = $this->puvodniCena($r);
-        if (! ($typ = $r[PredmetySql::TYP])) {
+        $kategorie = \App\Enum\ProductTagCode::tryFrom((string) ($r[PredmetySql::KATEGORIE] ?? ''));
+        if ($kategorie === null) {
             throw new \RuntimeException('Nenačten typ předmetu');
         }
 
-        $polozka = $this->polozkaProSlevy($r, $typ, $cena);
+        $polozka = $this->polozkaProSlevy($r, $kategorie, $cena);
         if ($polozka === null) {
             return new PriceAfterDiscountDto(finalPrice: $cena, discount: 0.0);
         }
@@ -220,13 +221,11 @@ class Cenik
     /**
      * Převede legacy řádek na položku, se kterou umí pracovat výpočet slev.
      *
-     * Vrací null pro typy, na které žádné pravidlo nemíří — ušetří to načítání
-     * pravidel u vstupného a proplácení bonusů.
+     * Vrací null pro štítek, který není kategorií produktu.
      */
-    private function polozkaProSlevy(array $r, $typ, float $cena): ?\App\Discount\DiscountableItem
+    private function polozkaProSlevy(array $r, \App\Enum\ProductTagCode $tag, float $cena): ?\App\Discount\DiscountableItem
     {
-        $tag = \App\Enum\ProductTagCode::fromLegacyTyp((int) $typ);
-        if ($tag === null) {
+        if (! $tag->isCategory()) {
             return null;
         }
 

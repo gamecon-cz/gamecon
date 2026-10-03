@@ -4,13 +4,13 @@ declare(strict_types=1);
 
 namespace Gamecon\Tests\Shop;
 
+use App\Enum\ProductTagCode;
 use App\Kernel;
 use Gamecon\Cas\DateTimeGamecon;
 use Gamecon\Cas\DateTimeImmutableStrict;
 use Gamecon\Prostredi\Prostredi;
 use Gamecon\Shop\Shop;
 use Gamecon\Shop\StavPredmetu;
-use Gamecon\Shop\TypPredmetu;
 use Gamecon\SystemoveNastaveni\DatabazoveNastaveni;
 use Gamecon\SystemoveNastaveni\SystemoveNastaveni;
 use Gamecon\Tests\Db\AbstractTestDb;
@@ -51,7 +51,7 @@ SQL,
         return \Uzivatel::zIdUrcite(dbInsertId());
     }
 
-    private function vytvorPredmet(string $nazev, int $typ, ?int $den = null): int
+    private function vytvorPredmet(string $nazev, ProductTagCode $kategorie, ?int $den = null): int
     {
         $uniqueId = uniqid();
         dbQuery(<<<SQL
@@ -70,14 +70,7 @@ SQL,
             ],
         );
         $idPredmetu = dbInsertId();
-        $tagCode = match ($typ) {
-            TypPredmetu::PREDMET   => 'predmet',
-            TypPredmetu::UBYTOVANI => 'ubytovani',
-            TypPredmetu::TRICKO    => 'tricko',
-            TypPredmetu::JIDLO     => 'jidlo',
-            TypPredmetu::VSTUPNE   => 'vstupne',
-            TypPredmetu::PARCON    => 'parcon',
-        };
+        $tagCode = $kategorie->value;
         dbQuery(
             'INSERT INTO product_product_tag (product_id, tag_id) SELECT $0, id FROM product_tag WHERE code = $1',
             [
@@ -162,7 +155,7 @@ SQL,
     public function zruseniZapiseNazevAKodDoZrusenehoNakupu(): void
     {
         $uzivatel = $this->vytvorUzivatele();
-        $idMerch = $this->vytvorPredmet('Predmet', TypPredmetu::PREDMET);
+        $idMerch = $this->vytvorPredmet('Predmet', ProductTagCode::PREDMET);
         $this->objednejPredmet($uzivatel->id(), $idMerch);
 
         (new Shop($uzivatel, $uzivatel, $this->nastaveni(jidloUkonceno: false, ubytovaniUkonceno: false)))
@@ -196,7 +189,7 @@ SQL,
     public function zruseniPrevezmeNazevZNakupu(): void
     {
         $uzivatel = $this->vytvorUzivatele();
-        $idMerch = $this->vytvorPredmet('Predmet', TypPredmetu::PREDMET);
+        $idMerch = $this->vytvorPredmet('Predmet', ProductTagCode::PREDMET);
         $this->objednejPredmet($uzivatel->id(), $idMerch);
         dbQuery(
             'UPDATE shop_nakupy INNER JOIN product_variant ON product_variant.id = shop_nakupy.variant_id SET product_name = $0, variant_name = $0, product_code = $1 WHERE id_uzivatele = $2 AND product_variant.product_id = $3',
@@ -230,9 +223,9 @@ SQL,
     {
         $uzivatel = $this->vytvorUzivatele();
 
-        $idUbytovani = $this->vytvorPredmet('Spacak', TypPredmetu::UBYTOVANI, DateTimeGamecon::PORADI_HERNIHO_DNE_CTVRTEK);
-        $idJidlo = $this->vytvorPredmet('Obed', TypPredmetu::JIDLO, DateTimeGamecon::PORADI_HERNIHO_DNE_PATEK);
-        $idMerch = $this->vytvorPredmet('Predmet', TypPredmetu::PREDMET);
+        $idUbytovani = $this->vytvorPredmet('Spacak', ProductTagCode::UBYTOVANI, DateTimeGamecon::PORADI_HERNIHO_DNE_CTVRTEK);
+        $idJidlo = $this->vytvorPredmet('Obed', ProductTagCode::JIDLO, DateTimeGamecon::PORADI_HERNIHO_DNE_PATEK);
+        $idMerch = $this->vytvorPredmet('Predmet', ProductTagCode::PREDMET);
 
         $this->objednejPredmet($uzivatel->id(), $idUbytovani);
         $this->objednejPredmet($uzivatel->id(), $idJidlo);
@@ -255,9 +248,9 @@ SQL,
     {
         $uzivatel = $this->vytvorUzivatele();
 
-        $idUbytovani = $this->vytvorPredmet('Spacak', TypPredmetu::UBYTOVANI, DateTimeGamecon::PORADI_HERNIHO_DNE_CTVRTEK);
-        $idJidlo = $this->vytvorPredmet('Obed', TypPredmetu::JIDLO, DateTimeGamecon::PORADI_HERNIHO_DNE_PATEK);
-        $idMerch = $this->vytvorPredmet('Predmet', TypPredmetu::PREDMET);
+        $idUbytovani = $this->vytvorPredmet('Spacak', ProductTagCode::UBYTOVANI, DateTimeGamecon::PORADI_HERNIHO_DNE_CTVRTEK);
+        $idJidlo = $this->vytvorPredmet('Obed', ProductTagCode::JIDLO, DateTimeGamecon::PORADI_HERNIHO_DNE_PATEK);
+        $idMerch = $this->vytvorPredmet('Predmet', ProductTagCode::PREDMET);
 
         $this->objednejPredmet($uzivatel->id(), $idUbytovani);
         $this->objednejPredmet($uzivatel->id(), $idJidlo);
