@@ -1,5 +1,5 @@
 import { FunctionComponent } from "preact";
-import { useCallback, useEffect, useMemo, useState } from "preact/hooks";
+import { useCallback, useEffect, useMemo, useRef, useState } from "preact/hooks";
 import {
   createProduct,
   deleteProduct,
@@ -14,17 +14,7 @@ import {
   ApiProductWrite,
 } from "../../api/symfony/types";
 import "./app.less";
-
-/** Category tag codes that classify a product (mutually exclusive). */
-const KATEGORIE_TAG_KODY = [
-  "predmet",
-  "ubytovani",
-  "tricko",
-  "jidlo",
-  "vstupne",
-  "parcon",
-  "proplaceni_bonusu",
-] as const;
+import { KATEGORIE_TAG_KODY, seraditProdukty } from "./razeni";
 
 const ACCOMMODATION_TAG_CODE = "ubytovani";
 
@@ -45,16 +35,23 @@ export const Předměty: FunctionComponent = () => {
   const [tagy, setTagy] = useState<ApiProductTag[] | null | undefined>(undefined);
   const [editorState, setEditorState] = useState<EditorState>({ mode: "closed" });
   const [loadError, setLoadError] = useState<string | null>(null);
+  // null until asked for; a reload after a save keeps them shown once they are.
+  const [archivovane, setArchivovane] = useState<ApiProduct[] | null>(null);
+  const [nacitamArchivovane, setNacitamArchivovane] = useState(false);
+  const archivovaneZobrazene = useRef(false);
 
   const loadData = useCallback(async () => {
     setLoadError(null);
     try {
-      const [produktyResult, tagyResult] = await Promise.all([
-        fetchProducts(),
+      const [produktyResult, tagyResult, archivovaneResult] = await Promise.all([
+        fetchProducts(false),
         fetchProductTags(),
+        archivovaneZobrazene.current ? fetchProducts(true) : Promise.resolve(null),
       ]);
       setProdukty(produktyResult);
       setTagy(tagyResult);
+      // A click on the button during this reload may already have shown them.
+      if (archivovaneResult !== null) setArchivovane(archivovaneResult);
     } catch (error) {
       console.error(error);
       setLoadError(error instanceof Error ? error.message : String(error));
@@ -67,9 +64,26 @@ export const Předměty: FunctionComponent = () => {
     void loadData();
   }, [loadData]);
 
+  const zobrazitArchivovane = useCallback(async () => {
+    setNacitamArchivovane(true);
+    try {
+      setArchivovane(await fetchProducts(true));
+      archivovaneZobrazene.current = true;
+    } catch (error) {
+      alert(error instanceof Error ? error.message : String(error));
+    } finally {
+      setNacitamArchivovane(false);
+    }
+  }, []);
+
   const kategorieTagy = useMemo(
     () => (tagy ?? []).filter((tag) => KATEGORIE_TAG_KODY.includes(tag.code as typeof KATEGORIE_TAG_KODY[number])),
     [tagy],
+  );
+
+  const radky = useMemo(
+    () => seraditProdukty([...(produkty ?? []), ...(archivovane ?? [])]),
+    [produkty, archivovane],
   );
 
   const smazat = useCallback(async (produkt: ApiProduct) => {
@@ -137,7 +151,7 @@ export const Předměty: FunctionComponent = () => {
               </tr>
             </thead>
             <tbody>
-              {produkty.map((produkt) => {
+              {radky.map((produkt) => {
                 const kategorieTag = (produkt.tags ?? []).find((tag) =>
                   KATEGORIE_TAG_KODY.includes(tag.code as typeof KATEGORIE_TAG_KODY[number]),
                 );
@@ -157,19 +171,34 @@ export const Předměty: FunctionComponent = () => {
                       >
                         <i className="fa fa-pencil-square-o" aria-hidden="true" />{" "}Upravit
                       </button>
-                      <button
-                        className="produkty__button produkty__button--danger"
-                        title="Smazat"
-                        onClick={() => void smazat(produkt)}
+                      <span
+                        title={produkt.sold
+                          ? "Produkt se už prodával, nejde smazat. Místo smazání ho přepni do stavu Vyřazený."
+                          : "Smazat"}
                       >
-                        <i className="fa fa-trash" aria-hidden="true" />{" "}Smazat
-                      </button>
+                        <button
+                          className="produkty__button produkty__button--danger"
+                          disabled={produkt.sold}
+                          onClick={() => void smazat(produkt)}
+                        >
+                          <i className="fa fa-trash" aria-hidden="true" />{" "}Smazat
+                        </button>
+                      </span>
                     </td>
                   </tr>
                 );
               })}
             </tbody>
           </table>
+          {archivovane === null && (
+            <button
+              className="produkty__button"
+              disabled={nacitamArchivovane}
+              onClick={() => void zobrazitArchivovane()}
+            >
+              {nacitamArchivovane ? "Načítám archivované…" : "Zobrazit archivované"}
+            </button>
+          )}
         </>
       )}
 
@@ -295,7 +324,7 @@ const EditorPředmětu: FunctionComponent<EditorProps> = ({
       reservedForOrganizers:
         reservedForOrganizers === "" ? null : Number(reservedForOrganizers),
       tags: [categoryTag["@id"]],
-      variants: variants.map(({ remaining: _remaining, ...variant }, position) => ({
+      variants: variants.map(({ remaining: _remaining, sold: _sold, ...variant }, position) => ({
         ...variant,
         state: variant.code === code ? Number(state) : variant.state ?? Number(state),
         position,
@@ -553,12 +582,21 @@ const EditorPředmětu: FunctionComponent<EditorProps> = ({
                   )}
                 </td>
                 <td>
-                  <button
-                    className="produkty__button produkty__button--danger"
-                    onClick={() => removeVariant(index)}
+                  <span
+                    title={!variant.sold
+                      ? "Odebrat variantu"
+                      : variant.code === code
+                        ? "Varianta se už prodávala, nejde odebrat. Místo toho vyřaď celý produkt."
+                        : "Varianta se už prodávala, nejde odebrat. Místo toho ji přepni do stavu Vyřazený."}
                   >
-                    ×
-                  </button>
+                    <button
+                      className="produkty__button produkty__button--danger"
+                      disabled={variant.sold}
+                      onClick={() => removeVariant(index)}
+                    >
+                      ×
+                    </button>
+                  </span>
                 </td>
               </tr>
             ))}

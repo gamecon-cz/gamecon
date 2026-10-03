@@ -117,10 +117,14 @@ export type ApiProduct = {
   breakfastIncluded: boolean;
   description: string;
   reservedForOrganizers: number | null;
+  /** Read-only; absent for this year's catalog, as the API leaves out null fields. */
+  archivedAt?: string;
   /** Read-only sum of the variants' capacities; null when any of them is unlimited. */
   capacity: number | null;
   tags: ApiProductTag[];
   variants: ApiProductVariant[];
+  /** Read-only: ever bought, cancelled purchases included, so the server refuses to delete it. */
+  sold: boolean;
 };
 
 export type ApiProductTag = {
@@ -141,6 +145,8 @@ export type ApiProductVariant = {
   capacity: number | null;
   /** Read-only, computed on the server: capacity minus this year's purchases. */
   remaining?: number | null;
+  /** Read-only: ever bought, so it cannot be removed. Absent for a variant not saved yet. */
+  sold?: boolean;
   reservedForOrganizers: number | null;
   accommodationDay: number | null;
   /** Offer state of this night or size; the variant sharing the product's code takes the product's. */
