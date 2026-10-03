@@ -12,6 +12,7 @@ use App\Enum\ProductStateEnum;
 use App\Enum\ProductTagCode;
 use App\Exception\CapacityExceededException;
 use App\Exception\InsufficientPermissionsException;
+use App\Exception\NoLongerAvailableException;
 use App\Service\AccommodationWriter;
 use App\Service\BreakfastCanceller;
 use App\Service\CapacityManager;
@@ -919,6 +920,71 @@ class AccommodationWriterTest extends AbstractDatabaseKernelTestCase
         $this->expectExceptionMessage('není nabízeným ubytováním');
 
         $this->writer()->save($this->ucastnik(), [999999999], self::ROK, true);
+    }
+
+    /**
+     * The grid offers a night by its own state and ignores the room type's, so the write must too —
+     * otherwise the customer is shown a free night that then fails to save.
+     */
+    public function testTheRoomTypesOwnStateDoesNotWithdrawItsNights(): void
+    {
+        $this->pripravUbytovani();
+        $this->stahni('shop_predmety', 'stav', 'id_predmetu', (int) $this->noci[0]->getProduct()->getId());
+        $customer = $this->ucastnik();
+
+        $this->writer()->save($customer, $this->idNoci(0, 1), self::ROK, false);
+
+        self::assertSame(2, $this->pocetNoci($customer, 0) + $this->pocetNoci($customer, 1));
+    }
+
+    /**
+     * Nights carry their own state, so one night of an offered room type can be withdrawn alone.
+     */
+    public function testARetiredNightIsNotBooked(): void
+    {
+        $this->pripravUbytovani();
+        $this->stahni('product_variant', 'state', 'id', (int) $this->noci[1]->getId());
+        $customer = $this->ucastnik();
+
+        $this->expectException(NoLongerAvailableException::class);
+        $this->expectExceptionMessage('už není v prodeji');
+        try {
+            $this->writer()->save($customer, $this->idNoci(0, 1), self::ROK, false);
+        } finally {
+            self::assertSame(0, $this->pocetNoci($customer, 0) + $this->pocetNoci($customer, 1), 'Odmítnutý zápis nesmí nic zapsat');
+        }
+    }
+
+    /**
+     * The desk sends the whole selection, so a held night withdrawn after the purchase must not
+     * block the next save — its grid cell is locked and cannot be unticked.
+     */
+    public function testAHeldNightWithdrawnLaterDoesNotBlockAddingAnother(): void
+    {
+        $this->pripravUbytovani();
+        $customer = $this->ucastnik();
+        $this->writer()->save($customer, $this->idNoci(0, 1), self::ROK, false);
+        $this->stahni('product_variant', 'state', 'id', (int) $this->noci[0]->getId());
+        $customer = $this->entityManager()->find(User::class, $customer->getId());
+
+        $this->writer()->save($customer, $this->idNoci(0, 1, 2), self::ROK, false);
+
+        self::assertSame([1, 1, 1], [$this->pocetNoci($customer, 0), $this->pocetNoci($customer, 1), $this->pocetNoci($customer, 2)]);
+    }
+
+    /**
+     * In SQL with the identity map cleared, so the writer reads the new state, as after an admin edit.
+     */
+    private function stahni(string $tabulka, string $sloupec, string $klic, int $id): void
+    {
+        $this->connection()->executeStatement(
+            "UPDATE {$tabulka} SET {$sloupec} = :stav WHERE {$klic} = :id",
+            [
+                'stav' => ProductStateEnum::RETIRED->value,
+                'id'   => $id,
+            ],
+        );
+        $this->entityManager()->clear();
     }
 
     public function testRoommateAndDeclineGoOntoTheOrderAndTheAccount(): void
