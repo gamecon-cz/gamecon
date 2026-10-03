@@ -425,6 +425,61 @@ class AccommodationProviderTest extends TestCase
         return $variant;
     }
 
+    /**
+     * A held Sunday shows the Sunday column to someone without the right (an import, a revoked
+     * right), but only so they can drop it: the other room types' Sundays stay unoffered.
+     */
+    public function testAHeldSundayDoesNotOfferTheOtherSundays(): void
+    {
+        $this->prepareUser();
+        $drzena = $this->nedele(1, 'Kolej', 'kolej-ne', 70);
+        $jina = $this->nedele(2, 'Hotel', 'hotel-ne', 71);
+        $this->productRepository->method('findByTag')->willReturn([$drzena->getProduct(), $jina->getProduct()]);
+        $this->orderItemRepository->method('countSoldByVariant')->willReturn([]);
+        $this->orderItemRepository->method('countHeldByCustomer')->willReturn([
+            70 => 1,
+        ]);
+        $this->productRepository->method('capacityByVariantCode')->willReturn([
+            'kolej-ne' => [
+                'vyrobeno'    => 10,
+                'nabizeno'    => true,
+                'rezervovano' => null,
+            ],
+            'hotel-ne' => [
+                'vyrobeno'    => 10,
+                'nabizeno'    => true,
+                'rezervovano' => null,
+            ],
+        ]);
+        $drzenyNakup = new OrderItem();
+        $drzenyNakup->setVariant($drzena);
+        $this->orderItemRepository->method('findByCustomerAndYear')->willReturn([$drzenyNakup]);
+
+        $dto = $this->provider->forCustomer($this->security->getUser(), $this->legacySession->getCurrentUser(), zPultu: true);
+
+        $nedele = [];
+        foreach ($dto->types as $typ) {
+            $nedele[$typ->productId] = $typ->nights[AccommodationRules::SUNDAY];
+        }
+        self::assertFalse($nedele[1]->locked, 'Drženou neděli musí jít odškrtnout');
+        self::assertTrue($nedele[2]->locked, 'Bez práva na neděli se jiná neděle nenabízí');
+    }
+
+    private function nedele(int $idProduktu, string $nazev, string $kod, int $idVarianty): ProductVariant
+    {
+        $typPokoje = $this->createProduct($idProduktu, $nazev);
+        $typPokoje->addTag((new ProductTag())->setCode(ProductTagCode::UBYTOVANI->value));
+        $nedele = new ProductVariant();
+        $nedele->setProduct($typPokoje);
+        $nedele->setCode($kod);
+        $nedele->setName('neděle');
+        $nedele->setAccommodationDay(AccommodationRules::SUNDAY);
+        $this->setId($nedele, $idVarianty);
+        $typPokoje->addVariant($nedele);
+
+        return $nedele;
+    }
+
     public function testSleepingBagRestrictionWithNothingTaggedIsRefused(): void
     {
         $this->prepareUser();

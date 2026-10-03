@@ -68,6 +68,7 @@ readonly class SetAccommodationProcessor implements ProcessorInterface
             $data->declined,
             $this->accommodationRules->sleepingBagsOnly($legacyUzivatel),
             jeOrganizator: $user->isOrganizer(),
+            maySundayNight: $this->accommodationRules->maySundayNight($legacyUzivatel),
         );
 
         // After the nights, so a night booked in the same request cancels again what it

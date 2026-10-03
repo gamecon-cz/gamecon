@@ -13,6 +13,7 @@ use App\Enum\ProductTagCode;
 use App\Exception\CapacityExceededException;
 use App\Exception\InsufficientPermissionsException;
 use App\Exception\NoLongerAvailableException;
+use App\Service\AccommodationRules;
 use App\Service\AccommodationWriter;
 use App\Service\BreakfastCanceller;
 use App\Service\CapacityManager;
@@ -995,16 +996,96 @@ class AccommodationWriterTest extends AbstractDatabaseKernelTestCase
     /**
      * In SQL with the identity map cleared, so the writer reads the new state, as after an admin edit.
      */
-    private function stahni(string $tabulka, string $sloupec, string $klic, int $id): void
+    private function stahni(string $tabulka, string $sloupec, string $klic, int $id, ProductStateEnum $stav = ProductStateEnum::RETIRED): void
     {
         $this->connection()->executeStatement(
             "UPDATE {$tabulka} SET {$sloupec} = :stav WHERE {$klic} = :id",
             [
-                'stav' => ProductStateEnum::RETIRED->value,
+                'stav' => $stav->value,
                 'id'   => $id,
             ],
         );
         $this->entityManager()->clear();
+    }
+
+    /**
+     * The grid locks a paused night; only the desk may still sell it.
+     */
+    public function testAParticipantCannotAddAPausedNight(): void
+    {
+        $this->pripravUbytovani();
+        $this->stahni('product_variant', 'state', 'id', (int) $this->noci[1]->getId(), ProductStateEnum::SUSPENDED);
+        $customer = $this->ucastnik();
+
+        $this->expectException(NoLongerAvailableException::class);
+        $this->expectExceptionMessage('teď neprodává');
+        try {
+            $this->writer()->save($customer, $this->idNoci(0, 1), self::ROK, false);
+        } finally {
+            self::assertSame(0, $this->pocetNoci($customer, 0) + $this->pocetNoci($customer, 1), 'Odmítnutý zápis nesmí nic zapsat');
+        }
+    }
+
+    public function testTheDeskMayAddAPausedNight(): void
+    {
+        $this->pripravUbytovani();
+        $this->stahni('product_variant', 'state', 'id', (int) $this->noci[1]->getId(), ProductStateEnum::SUSPENDED);
+        $customer = $this->ucastnik();
+
+        $this->writer()->save($customer, $this->idNoci(0, 1), self::ROK, false, mayOverbook: false);
+
+        self::assertSame(2, $this->pocetNoci($customer, 0) + $this->pocetNoci($customer, 1));
+    }
+
+    public function testSundayNeedsTheSundayRight(): void
+    {
+        $this->pripravUbytovani();
+        $nedele = $this->pridejNedeli();
+        $customer = $this->ucastnik();
+
+        $this->expectException(InsufficientPermissionsException::class);
+        $this->expectExceptionMessage('Nedělní noc');
+
+        $this->writer()->save($customer, [$nedele], self::ROK, true);
+    }
+
+    public function testSundayIsBookedWithTheSundayRight(): void
+    {
+        $this->pripravUbytovani();
+        $nedele = $this->pridejNedeli();
+        $customer = $this->ucastnik();
+
+        $this->writer()->save($customer, [$nedele], self::ROK, true, maySundayNight: true);
+
+        self::assertSame(1, (int) $this->connection()->fetchOne(
+            'SELECT COUNT(*) FROM shop_nakupy WHERE id_uzivatele = :customer AND variant_id = :variant AND rok = :year',
+            [
+                'customer' => $customer->getId(),
+                'variant'  => $nedele,
+                'year'     => self::ROK,
+            ],
+        ));
+    }
+
+    /**
+     * Sunday under the counter, as the import leaves it: offered only to holders of the right.
+     */
+    private function pridejNedeli(): int
+    {
+        $typPokoje = $this->noci[0]->getProduct();
+        $nedele = new ProductVariant();
+        $nedele->setProduct($typPokoje);
+        $nedele->setName('neděle');
+        $nedele->setCode($typPokoje->getCode() . '-4');
+        $nedele->setCapacity(5);
+        $nedele->setAccommodationDay(AccommodationRules::SUNDAY);
+        $nedele->setPosition(AccommodationRules::SUNDAY);
+        $nedele->setState(ProductStateEnum::RESTRICTED);
+        $typPokoje->addVariant($nedele);
+        $this->entityManager()->persist($nedele);
+        $this->entityManager()->flush();
+
+        return (int) $nedele->getId();
     }
 
     public function testRoommateAndDeclineGoOntoTheOrderAndTheAccount(): void

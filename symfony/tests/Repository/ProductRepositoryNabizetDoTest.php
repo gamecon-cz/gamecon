@@ -76,6 +76,19 @@ class ProductRepositoryNabizetDoTest extends AbstractDatabaseKernelTestCase
         self::assertFalse($nalezene[$kod]['nabizeno']);
     }
 
+    /**
+     * Sunday sits under the counter: offered, but only shown to those holding the Sunday right.
+     */
+    public function testPodpultovaNocJeNabizena(): void
+    {
+        $kod = 'test-noc-podpultova-' . uniqid();
+        $this->vlozRadekNoci($kod, null, ProductStateEnum::RESTRICTED->value);
+
+        $nalezene = $this->repository()->capacityByVariantCode([$kod]);
+
+        self::assertTrue($nalezene[$kod]['nabizeno']);
+    }
+
     public function testVerejnaNocJeNabizena(): void
     {
         $kod = 'test-noc-verejna-' . uniqid();

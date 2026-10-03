@@ -85,6 +85,7 @@ readonly class SetCustomerAccommodationProcessor implements ProcessorInterface
             // Rezervace patří zákazníkovi, ne obsluze: pult objednává za něj, takže
             // rozhoduje, jestli je organizátor on. Okruh rolí je tentýž jako u merche.
             jeOrganizator: $customer->isOrganizer(),
+            maySundayNight: $this->accommodationRules->maySundayNight($legacyCustomer),
         );
 
         // Both are stale after the write, for different reasons: save() clears the entity
