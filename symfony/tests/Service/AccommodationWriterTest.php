@@ -923,13 +923,33 @@ class AccommodationWriterTest extends AbstractDatabaseKernelTestCase
     }
 
     /**
-     * The grid offers a night by its own state and ignores the room type's, so the write must too —
-     * otherwise the customer is shown a free night that then fails to save.
+     * A night sells only when its room type does too, so withdrawing the room type withdraws its nights.
      */
-    public function testTheRoomTypesOwnStateDoesNotWithdrawItsNights(): void
+    public function testARetiredRoomTypeWithdrawsItsNights(): void
     {
         $this->pripravUbytovani();
         $this->stahni('shop_predmety', 'stav', 'id_predmetu', (int) $this->noci[0]->getProduct()->getId());
+        $customer = $this->ucastnik();
+
+        $this->expectException(NoLongerAvailableException::class);
+        try {
+            $this->writer()->save($customer, $this->idNoci(0, 1), self::ROK, false);
+        } finally {
+            self::assertSame(0, $this->pocetNoci($customer, 0) + $this->pocetNoci($customer, 1), 'Odmítnutý zápis nesmí nic zapsat');
+        }
+    }
+
+    /**
+     * Room types sit suspended or restricted while their nights sell; only withdrawing one counts.
+     */
+    public function testASuspendedRoomTypeKeepsItsNightsOnSale(): void
+    {
+        $this->pripravUbytovani();
+        $this->connection()->executeStatement('UPDATE shop_predmety SET stav = :stav WHERE id_predmetu = :id', [
+            'stav' => ProductStateEnum::SUSPENDED->value,
+            'id'   => $this->noci[0]->getProduct()->getId(),
+        ]);
+        $this->entityManager()->clear();
         $customer = $this->ucastnik();
 
         $this->writer()->save($customer, $this->idNoci(0, 1), self::ROK, false);

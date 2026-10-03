@@ -49,7 +49,6 @@ readonly class AccommodationAvailability
 
             $dostupnost[$kod] = $this->noc(
                 vyrobeno: $noc['vyrobeno'] ?? null,
-                // Stav noci, ne typu pokoje: ten sám v prodeji není, i když se jeho noci prodávají.
                 nabizeno: $noc['nabizeno'] ?? false,
                 rezervovano: $noc['rezervovano'] ?? null,
                 prodano: $prodano[$id] ?? 0,

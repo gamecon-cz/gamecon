@@ -100,6 +100,23 @@ class ProductRepositoryNabizetDoTest extends AbstractDatabaseKernelTestCase
         self::assertTrue($nalezene[$kod]['nabizeno']);
     }
 
+    /**
+     * A night is on sale only when its room type is too: withdrawing the room type takes all its nights.
+     */
+    public function testNocStazenehoTypuPokojeNeniNabizena(): void
+    {
+        $kod = 'test-noc-typ-stazeny-' . uniqid();
+        $this->vlozRadekNoci($kod, null);
+        $this->connection()->executeStatement('UPDATE shop_predmety SET stav = :stav WHERE kod_predmetu = :kod', [
+            'stav' => ProductStateEnum::RETIRED->value,
+            'kod'  => $kod . '-typ',
+        ]);
+
+        $nalezene = $this->repository()->capacityByVariantCode([$kod]);
+
+        self::assertFalse($nalezene[$kod]['nabizeno']);
+    }
+
     public function testNocArchivovanehoTypuPokojeNeniNabizena(): void
     {
         $kod = 'test-noc-archivovana-' . uniqid();

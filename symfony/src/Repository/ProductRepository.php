@@ -176,7 +176,8 @@ class ProductRepository extends ServiceEntityRepository
     }
 
     /**
-     * Capacity and offer state are the variant's, not its room type's.
+     * Capacity is the variant's. A night is offered when it is on sale and its room type is not
+     * withdrawn; room types sit suspended or restricted while their nights sell.
      *
      * @param string[] $codes
      *
@@ -190,7 +191,7 @@ class ProductRepository extends ServiceEntityRepository
 
         $rows = $this->getEntityManager()->getConnection()->fetchAllAssociative(
             'SELECT product_variant.code AS kod_predmetu, product_variant.capacity, product_variant.state,
-                    produkt.archived_at,
+                    produkt.archived_at, produkt.stav AS stav_typu,
                     COALESCE(product_variant.reserved_for_organizers,
                              vlastni_radek.reserved_for_organizers) AS reserved_for_organizers
              FROM product_variant
@@ -209,10 +210,10 @@ class ProductRepository extends ServiceEntityRepository
         foreach ($rows as $row) {
             $nalezene[(string) $row['kod_predmetu']] = [
                 'vyrobeno' => $row['capacity'] === null ? null : (int) $row['capacity'],
-                // Only the state, deliberately: legacy exempts accommodation from nabizet_do
-                // (Shop::nactiPredmety) and gates a night on POZASTAVENY alone, so honouring
-                // that column here would lock nights the legacy form still sells.
+                // States only, never nabizet_do: accommodation has always been exempt from it,
+                // and honouring it here would lock nights that are still on sale.
                 'nabizeno' => $row['archived_at'] === null
+                    && (int) $row['stav_typu'] !== ProductStateEnum::RETIRED->value
                     && (int) $row['state'] === ProductStateEnum::PUBLIC->value,
                 // Varianta má přednost před řádkem se stejným kódem (u výchozí varianty je to
                 // produkt sám), stejně jako v zapisovači. Typ pokoje se schválně nečte.
