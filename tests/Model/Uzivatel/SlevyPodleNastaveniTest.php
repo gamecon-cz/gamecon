@@ -66,6 +66,17 @@ SQL,
             ],
         ],
         "INSERT INTO product_product_tag (product_id, tag_id) SELECT 33701, id FROM product_tag WHERE code = 'tricko'",
+        // The year's rule names this year's die by exact code, as the e-shop import sets it.
+        [
+            <<<SQL
+UPDATE discount_rule
+SET parameters = CONCAT('{"scope":"product_code","effect":"free","codeFragment":"kostka","productCode":"kostka_nastaveni_', $0, '","maxQuantity":1}')
+WHERE code = 'kostka_zdarma' AND year = $0
+SQL,
+            [
+                0 => ROCNIK,
+            ],
+        ],
     ];
 
     private function udelPravo(int $idPrava): void
