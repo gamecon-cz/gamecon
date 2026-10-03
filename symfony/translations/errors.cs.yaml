@@ -46,6 +46,7 @@ cart:
     item_in_mandatory_bundle: 'Položka je součástí povinného balíčku "%bundle%". Odeberte celý balíček.'
     not_entitled: 'Na produkt "%product%" nemáš nárok.'
     product_unavailable: 'Produkt "%product%" není dostupný.'
+    product_paused: 'Prodej produktu "%product%" je pozastavený.'
     accommodation_has_own_section: 'Ubytování se objednává v sekci Ubytování, ne přes košík.'
     sale_ended: 'Prodej předmětu "%product%" už skončil.'
     sale_ended_cannot_remove: 'Prodej předmětu "%product%" už skončil, položku nejde odebrat.'

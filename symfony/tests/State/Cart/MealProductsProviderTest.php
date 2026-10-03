@@ -90,7 +90,7 @@ class MealProductsProviderTest extends TestCase
         parent::tearDown();
     }
 
-    private function pripravJidlo(?string $nabizetDo = null, ?ProductStateEnum $stav = null): void
+    private function pripravJidlo(?string $nabizetDo = null, ?ProductStateEnum $stav = null, ?ProductStateEnum $stavVarianty = null): void
     {
         $product = new Product();
         $product->setName('Oběd čtvrtek');
@@ -108,6 +108,9 @@ class MealProductsProviderTest extends TestCase
         $variant->setName('porce');
         $variant->setCode('obed-ct-p');
         (new \ReflectionProperty(ProductVariant::class, 'id'))->setValue($variant, 1113);
+        if ($stavVarianty !== null) {
+            $variant->setState($stavVarianty);
+        }
         $product->addVariant($variant);
 
         $this->productRepository->method('findByTag')
@@ -276,5 +279,44 @@ class MealProductsProviderTest extends TestCase
         ]);
 
         self::assertTrue($meals[0]->locked, 'Stažené jídlo neprodá ani pult');
+    }
+
+    public function testAPausedMealIsLockedForTheParticipant(): void
+    {
+        $this->pripravJidlo(stav: ProductStateEnum::SUSPENDED);
+        $this->posunCas('2000-01-01 00:00:00');
+
+        self::assertTrue($this->provider->provide(new Get())[0]->locked);
+    }
+
+    /**
+     * A meal's own variant can be paused through the eshop import while its product stays on sale.
+     */
+    public function testAMealWithAPausedVariantIsLockedForTheParticipant(): void
+    {
+        $this->pripravJidlo(stavVarianty: ProductStateEnum::SUSPENDED);
+        $this->posunCas('2000-01-01 00:00:00');
+
+        self::assertTrue($this->provider->provide(new Get())[0]->locked);
+    }
+
+    /**
+     * A pause locks self-service, not the desk — legacy unlocks it there through `jidloBezZamku`.
+     */
+    public function testTheDeskSellsAPausedMeal(): void
+    {
+        $this->pripravJidlo(stav: ProductStateEnum::SUSPENDED);
+        $this->posunCas('2000-01-01 00:00:00');
+        $operator = $this->createMock(\Uzivatel::class);
+        $operator->method('maPravo')->willReturn(true);
+        $this->legacySession->method('getCurrentUser')->willReturn($operator);
+
+        $meals = $this->provider->provide(new Get(), [], [
+            'filters' => [
+                'customerId' => '5246',
+            ],
+        ]);
+
+        self::assertFalse($meals[0]->locked);
     }
 }
