@@ -45,6 +45,16 @@
       color: #fff;
       border-color: #922;
     }
+
+    // Lets the hover reach the wrapping element's title, which explains why it is disabled.
+    &:disabled {
+      opacity: 0.4;
+      pointer-events: none;
+    }
+  }
+
+  span:has(> &__button:disabled) {
+    cursor: not-allowed;
   }
 
   &__editor {

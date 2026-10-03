@@ -176,13 +176,19 @@ export const Předměty: FunctionComponent = () => {
                       >
                         <i className="fa fa-pencil-square-o" aria-hidden="true" />{" "}Upravit
                       </button>
-                      <button
-                        className="produkty__button produkty__button--danger"
-                        title="Smazat"
-                        onClick={() => void smazat(produkt)}
+                      <span
+                        title={produkt.sold
+                          ? "Produkt se už prodával, nejde smazat. Místo smazání ho přepni do stavu Vyřazený."
+                          : "Smazat"}
                       >
-                        <i className="fa fa-trash" aria-hidden="true" />{" "}Smazat
-                      </button>
+                        <button
+                          className="produkty__button produkty__button--danger"
+                          disabled={produkt.sold}
+                          onClick={() => void smazat(produkt)}
+                        >
+                          <i className="fa fa-trash" aria-hidden="true" />{" "}Smazat
+                        </button>
+                      </span>
                     </td>
                   </tr>
                 );
@@ -323,7 +329,7 @@ const EditorPředmětu: FunctionComponent<EditorProps> = ({
       reservedForOrganizers:
         reservedForOrganizers === "" ? null : Number(reservedForOrganizers),
       tags: [categoryTag["@id"]],
-      variants: variants.map(({ remaining: _remaining, ...variant }, position) => ({
+      variants: variants.map(({ remaining: _remaining, sold: _sold, ...variant }, position) => ({
         ...variant,
         state: variant.code === code ? Number(state) : variant.state ?? Number(state),
         position,
@@ -581,12 +587,21 @@ const EditorPředmětu: FunctionComponent<EditorProps> = ({
                   )}
                 </td>
                 <td>
-                  <button
-                    className="produkty__button produkty__button--danger"
-                    onClick={() => removeVariant(index)}
+                  <span
+                    title={!variant.sold
+                      ? "Odebrat variantu"
+                      : variant.code === code
+                        ? "Varianta se už prodávala, nejde odebrat. Místo toho vyřaď celý produkt."
+                        : "Varianta se už prodávala, nejde odebrat. Místo toho ji přepni do stavu Vyřazený."}
                   >
-                    ×
-                  </button>
+                    <button
+                      className="produkty__button produkty__button--danger"
+                      disabled={variant.sold}
+                      onClick={() => removeVariant(index)}
+                    >
+                      ×
+                    </button>
+                  </span>
                 </td>
               </tr>
             ))}
