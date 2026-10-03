@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Entity;
 
+use ApiPlatform\Doctrine\Orm\Filter\ExistsFilter;
 use ApiPlatform\Doctrine\Orm\Filter\OrderFilter;
 use ApiPlatform\Doctrine\Orm\Filter\RangeFilter;
 use ApiPlatform\Doctrine\Orm\Filter\SearchFilter;
@@ -75,7 +76,8 @@ use Symfony\Component\Validator\Constraints as Assert;
     denormalizationContext: [
         'groups' => [self::WRITE],
     ],
-    paginationItemsPerPage: 30,
+    // The admin editor is the only caller and lists a year's catalog whole.
+    paginationEnabled: false,
 )]
 #[ApiFilter(SearchFilter::class, properties: [
     'code'      => 'exact',
@@ -84,6 +86,7 @@ use Symfony\Component\Validator\Constraints as Assert;
     'tags.code' => 'exact',
 ])]
 #[ApiFilter(OrderFilter::class, properties: ['id', 'name', 'currentPrice', 'state'])]
+#[ApiFilter(ExistsFilter::class, properties: ['archivedAt'])]
 #[ApiFilter(RangeFilter::class, properties: ['currentPrice'])]
 #[AppAssert\BreakfastIncludedRequiresAccommodation]
 #[AppAssert\TagCombinationIsAllowed]

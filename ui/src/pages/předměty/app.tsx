@@ -1,5 +1,5 @@
 import { FunctionComponent } from "preact";
-import { useCallback, useEffect, useMemo, useState } from "preact/hooks";
+import { useCallback, useEffect, useMemo, useRef, useState } from "preact/hooks";
 import {
   createProduct,
   deleteProduct,
@@ -45,16 +45,23 @@ export const Předměty: FunctionComponent = () => {
   const [tagy, setTagy] = useState<ApiProductTag[] | null | undefined>(undefined);
   const [editorState, setEditorState] = useState<EditorState>({ mode: "closed" });
   const [loadError, setLoadError] = useState<string | null>(null);
+  // null until asked for; a reload after a save keeps them shown once they are.
+  const [archivovane, setArchivovane] = useState<ApiProduct[] | null>(null);
+  const [nacitamArchivovane, setNacitamArchivovane] = useState(false);
+  const archivovaneZobrazene = useRef(false);
 
   const loadData = useCallback(async () => {
     setLoadError(null);
     try {
-      const [produktyResult, tagyResult] = await Promise.all([
-        fetchProducts(),
+      const [produktyResult, tagyResult, archivovaneResult] = await Promise.all([
+        fetchProducts(false),
         fetchProductTags(),
+        archivovaneZobrazene.current ? fetchProducts(true) : Promise.resolve(null),
       ]);
       setProdukty(produktyResult);
       setTagy(tagyResult);
+      // A click on the button during this reload may already have shown them.
+      if (archivovaneResult !== null) setArchivovane(archivovaneResult);
     } catch (error) {
       console.error(error);
       setLoadError(error instanceof Error ? error.message : String(error));
@@ -66,6 +73,18 @@ export const Předměty: FunctionComponent = () => {
   useEffect(() => {
     void loadData();
   }, [loadData]);
+
+  const zobrazitArchivovane = useCallback(async () => {
+    setNacitamArchivovane(true);
+    try {
+      setArchivovane(await fetchProducts(true));
+      archivovaneZobrazene.current = true;
+    } catch (error) {
+      alert(error instanceof Error ? error.message : String(error));
+    } finally {
+      setNacitamArchivovane(false);
+    }
+  }, []);
 
   const kategorieTagy = useMemo(
     () => (tagy ?? []).filter((tag) => KATEGORIE_TAG_KODY.includes(tag.code as typeof KATEGORIE_TAG_KODY[number])),
@@ -137,7 +156,7 @@ export const Předměty: FunctionComponent = () => {
               </tr>
             </thead>
             <tbody>
-              {produkty.map((produkt) => {
+              {[...produkty, ...(archivovane ?? [])].map((produkt) => {
                 const kategorieTag = (produkt.tags ?? []).find((tag) =>
                   KATEGORIE_TAG_KODY.includes(tag.code as typeof KATEGORIE_TAG_KODY[number]),
                 );
@@ -170,6 +189,15 @@ export const Předměty: FunctionComponent = () => {
               })}
             </tbody>
           </table>
+          {archivovane === null && (
+            <button
+              className="produkty__button"
+              disabled={nacitamArchivovane}
+              onClick={() => void zobrazitArchivovane()}
+            >
+              {nacitamArchivovane ? "Načítám archivované…" : "Zobrazit archivované"}
+            </button>
+          )}
         </>
       )}
 

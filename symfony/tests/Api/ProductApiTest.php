@@ -448,6 +448,35 @@ class ProductApiTest extends AbstractDatabaseKernelTestCase
         ]));
     }
 
+    /**
+     * The editor lists this year's catalog, as legacy did, and fetches past years' products only
+     * when asked. Either list comes whole, not as the first page.
+     */
+    public function testTheEditorGetsTheCatalogWholeAndArchivedOnRequest(): void
+    {
+        $letosni = [];
+        for ($pocet = 0; $pocet < 31; ++$pocet) {
+            $produkt = $this->createProduct();
+            $this->entityManager()->persist($produkt);
+            $letosni[] = $produkt->getCode();
+        }
+        $archivovany = $this->createProduct()->archive();
+        $this->entityManager()->persist($archivovany);
+        $this->entityManager()->flush();
+        $klient = $this->adminClient();
+
+        $kody = static function (array $odpoved): array {
+            return array_column($odpoved['hydra:member'] ?? $odpoved['member'], 'code');
+        };
+        $nearchivovane = $kody($klient->request('GET', '/symfony/api/products?exists[archivedAt]=false')->toArray());
+        $archivovane = $kody($klient->request('GET', '/symfony/api/products?exists[archivedAt]=true')->toArray());
+
+        self::assertSame([], array_diff($letosni, $nearchivovane), 'Letošní produkty musí přijít všechny');
+        self::assertNotContains($archivovany->getCode(), $nearchivovane);
+        self::assertContains($archivovany->getCode(), $archivovane);
+        self::assertSame([], array_intersect($letosni, $archivovane));
+    }
+
     public function testSoldProductIsNotDeleted(): void
     {
         [$product, $variant] = $this->produktSVariantou();

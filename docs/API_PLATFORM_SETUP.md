@@ -139,8 +139,8 @@ curl "http://localhost/symfony/api/products.json?state=1"
 # Search by name
 curl "http://localhost/symfony/api/products.json?name=tricko"
 
-# Paginate
-curl "http://localhost/symfony/api/products.json?page=2&itemsPerPage=10"
+# This year's catalog (not paginated); =true lists archived products instead
+curl -g "http://localhost/symfony/api/products.json?exists[archivedAt]=false"
 ```
 
 ---
