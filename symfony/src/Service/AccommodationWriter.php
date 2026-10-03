@@ -7,10 +7,12 @@ namespace App\Service;
 use App\Entity\OrderItem;
 use App\Entity\ProductVariant;
 use App\Entity\User;
+use App\Enum\ProductStateEnum;
 use App\Enum\ProductTagCode;
 use App\Exception\CapacityExceededException;
 use App\Exception\InsufficientPermissionsException;
 use App\Exception\InvalidRequestException;
+use App\Exception\NoLongerAvailableException;
 use App\Exception\UserFacingException;
 use App\Repository\OrderItemRepository;
 use App\Repository\ProductRepository;
@@ -360,6 +362,14 @@ class AccommodationWriter
         bool $jeOrganizator,
     ): int {
         $product = $variant->getProduct();
+        // Additions only, as in MealWriter::addMeal(): a held night withdrawn later must not block
+        // the next save. The night's own state, as the grid judges it (ProductRepository::
+        // capacityByVariantCode()); archived room types never come out of findByTag().
+        if ($variant->getState() === ProductStateEnum::RETIRED) {
+            throw new NoLongerAvailableException($this->translator->trans('accommodation.withdrawn', [
+                '%product%' => $product->getName(), '%night%' => $variant->getNightName(),
+            ], 'errors'));
+        }
         // Den nese varianta: typ pokoje žádný nemá, takže bez něj by nárok na konkrétní noc
         // zdarma nikdy nesedl.
         $discount = $this->discountCalculator->calculateDiscount(
