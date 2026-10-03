@@ -23,6 +23,8 @@ accommodation:
     overbooking_not_permitted: 'Ubytování „%product%" na %night% je plné; přeplnit ho smí jen šéf infopultu.'
     night_full: 'Ubytování „%product%" na %night% je obsazené.'
     withdrawn: 'Ubytování „%product%" na %night% už není v prodeji.'
+    night_paused: 'Ubytování „%product%" na %night% se teď neprodává.'
+    sunday_not_offered: 'Nedělní noc „%product%" se tomuto účastníkovi nenabízí.'
 
 accommodation_import:
     type_not_unique: 'Nepodařilo se jednoznačně dohledat ubytování typu "%type%" pro %days%. Nalezeno %found% nocí.'

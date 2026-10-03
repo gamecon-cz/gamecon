@@ -39,8 +39,6 @@ use Symfony\Contracts\Translation\TranslatorInterface;
  */
 readonly class AccommodationProvider implements ProviderInterface, AccommodationGridInterface
 {
-    private const DEN_NEDELE = 4;
-
     public function __construct(
         private ProductRepository $productRepository,
         private OrderItemRepository $orderItemRepository,
@@ -90,9 +88,7 @@ readonly class AccommodationProvider implements ProviderInterface, Accommodation
         $nastaveni = SystemoveNastaveni::zGlobals();
         $prodejUkoncen = ! $zPultu && $nastaveni->prodejUbytovaniUkoncen();
 
-        $muzeNedeli = $legacyUser->maPravo(Pravo::UBYTOVANI_NEDELNI_NOC_NABIZET)
-            || $legacyUser->maPravo(Pravo::UBYTOVANI_NEDELNI_NOC_ZDARMA)
-            || $legacyUser->jeOrganizator();
+        $muzeNedeli = $this->accommodationRules->maySundayNight($legacyUser);
         $muzeJednuNoc = $legacyUser->maPravo(Pravo::UBYTOVANI_MUZE_OBJEDNAT_JEDNU_NOC);
 
         $dto = new AccommodationOutputDto();
@@ -109,7 +105,7 @@ readonly class AccommodationProvider implements ProviderInterface, Accommodation
             : (bool) $legacyUser->nechceUbytovani();
 
         foreach (ProductVariant::NIGHT_NAMES as $den => $nazev) {
-            if ($den === self::DEN_NEDELE && ! $muzeNedeli) {
+            if ($den === AccommodationRules::SUNDAY && ! $muzeNedeli) {
                 continue;
             }
             $denDto = new AccommodationDayOutputDto();
@@ -124,10 +120,10 @@ readonly class AccommodationProvider implements ProviderInterface, Accommodation
         // A night the customer already holds always gets a cell, even on a day they could
         // not newly order — otherwise the booking they own is invisible and the write path
         // would drop it, leaving the rest non-consecutive.
-        if (! $muzeNedeli && in_array(self::DEN_NEDELE, $koupeneDny, true)) {
+        if (! $muzeNedeli && in_array(AccommodationRules::SUNDAY, $koupeneDny, true)) {
             $denDto = new AccommodationDayOutputDto();
-            $denDto->day = self::DEN_NEDELE;
-            $denDto->name = ProductVariant::NIGHT_NAMES[self::DEN_NEDELE];
+            $denDto->day = AccommodationRules::SUNDAY;
+            $denDto->name = ProductVariant::NIGHT_NAMES[AccommodationRules::SUNDAY];
             $dto->days[] = $denDto;
         }
 
@@ -154,7 +150,7 @@ readonly class AccommodationProvider implements ProviderInterface, Accommodation
 
             $typDto = $this->toTypeDto(
                 $product, $user, $year, $viditelneDny, $prodejUkoncen, $koupeneVarianty,
-                $dostupnost, $jeOrganizator,
+                $dostupnost, $jeOrganizator, $muzeNedeli,
             );
             if ($typDto !== null) {
                 $dto->types[] = $typDto;
@@ -178,6 +174,7 @@ readonly class AccommodationProvider implements ProviderInterface, Accommodation
         array $koupeneVarianty,
         array $dostupnost,
         bool $jeOrganizator,
+        bool $muzeNedeli,
     ): ?AccommodationTypeOutputDto {
         // The nights absorbed by the day-variant migration are still products in their own
         // right — the legacy form reads them — but they carry no variants and must not
@@ -205,7 +202,8 @@ readonly class AccommodationProvider implements ProviderInterface, Accommodation
             $noc = $dostupnost[(string) $variant->getCode()] ?? null;
             $zbyva = $noc?->remaining;
             $vyprodano = $noc !== null && $noc->soldOut();
-            $nabizeno = $noc !== null && $noc->offered;
+            // A held Sunday shows the column without the right, but only so it can be dropped.
+            $nabizeno = $noc !== null && $noc->offered && ($den !== AccommodationRules::SUNDAY || $muzeNedeli);
             $rezervovano = $noc?->reservedForOrganizers;
 
             $koupeno = in_array($variant->getId(), $koupeneVarianty, true);

@@ -309,6 +309,7 @@ readonly class AccommodationImport
             // Pult smí posadit i na plnou noc — import je jeho nástroj a data v souboru už
             // jsou rozhodnutá, jen se zapisují.
             mayOverbook: true,
+            maySundayNight: true,
         );
     }
 }
