@@ -8,7 +8,6 @@ use App\Enum\ProductTagCode;
 use Gamecon\Cas\DateTimeImmutableStrict;
 use Gamecon\Pravo;
 use Gamecon\Shop\SqlStruktura\PredmetSqlStruktura as PredmetySql;
-use Gamecon\Shop\TypPredmetu;
 use Gamecon\SystemoveNastaveni\SystemoveNastaveni;
 use Gamecon\Tests\Db\AbstractTestDb;
 use Gamecon\Uzivatel\Cenik;
@@ -207,7 +206,7 @@ SQL,
     {
         $radek = \dbOneLine(
             <<<'SQL'
-            SELECT shop_predmety.*, FIELD(kategorie.code, $1) AS typ
+            SELECT shop_predmety.*, kategorie.code AS kategorie
             FROM shop_predmety
             LEFT JOIN (
                 product_product_tag AS stitek_kategorie
@@ -494,7 +493,7 @@ SQL,
     {
         $cenik = $this->cenik();
         $radek = $this->radek(self::ID_KOSTKA);
-        $radek[PredmetySql::TYP] = null;
+        $radek[PredmetySql::KATEGORIE] = null;
 
         $this->expectException(\RuntimeException::class);
         $cenik->cena($radek);
@@ -511,7 +510,7 @@ SQL,
         // Sleva na tričko se řídí typem, ne názvem ani kódem: obyčejný předmět
         // přeznačený na typ TRICKO dostane tričkovou slevu.
         $radek = $this->radek(self::ID_OBYCEJNY_PREDMET);
-        $radek[PredmetySql::TYP] = TypPredmetu::TRICKO;
+        $radek[PredmetySql::KATEGORIE] = ProductTagCode::TRICKO->value;
 
         self::assertSame(0.0, $cenik->cena($radek)->finalPrice);
     }

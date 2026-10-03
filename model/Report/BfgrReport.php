@@ -355,7 +355,7 @@ SQL,
         $pocet = 0;
 
         foreach ($polozky as $polozka) {
-            if (!Predmet::jeToTricko($polozka->kodPredmetu, $polozka->typ)) {
+            if (!Predmet::jeToTricko($polozka->kodPredmetu, $polozka->kategorie)) {
                 continue;
             }
 
@@ -373,14 +373,14 @@ SQL,
         $pocet = 0;
 
         foreach ($polozky as $polozka) {
-            if (!Predmet::jeToTilko($polozka->kodPredmetu, $polozka->typ)) {
+            if (!Predmet::jeToTilko($polozka->kodPredmetu, $polozka->kategorie)) {
                 continue;
             }
 
             /**
              * Must NOT be generic "Tričko/tílko" item (those count as tričko only) @see dejPocetTricekZdarma
              */
-            if (Predmet::jeToTricko($polozka->kodPredmetu, $polozka->typ)) {
+            if (Predmet::jeToTricko($polozka->kodPredmetu, $polozka->kategorie)) {
                 continue;
             }
 
@@ -399,7 +399,7 @@ SQL,
         $pocet = 0;
 
         foreach ($polozky as $polozka) {
-            if (!Predmet::jeToTricko($polozka->kodPredmetu, $polozka->typ)) {
+            if (!Predmet::jeToTricko($polozka->kodPredmetu, $polozka->kategorie)) {
                 continue;
             }
             if (!Predmet::jeToVypravecske($polozka) && !Predmet::jeToOrganizatorske($polozka)) {
@@ -420,14 +420,14 @@ SQL,
         $pocet = 0;
 
         foreach ($polozky as $polozka) {
-            if (!Predmet::jeToTilko($polozka->kodPredmetu, $polozka->typ)) {
+            if (!Predmet::jeToTilko($polozka->kodPredmetu, $polozka->kategorie)) {
                 continue;
             }
 
             /**
              * Must NOT be generic "Tričko/tílko" item (those count as tričko only) @see dejPocetTricekSeSlevou
              */
-            if (Predmet::jeToTricko($polozka->kodPredmetu, $polozka->typ)) {
+            if (Predmet::jeToTricko($polozka->kodPredmetu, $polozka->kategorie)) {
                 continue;
             }
 
@@ -449,7 +449,7 @@ SQL,
         $pocet = 0;
 
         foreach ($polozky as $polozka) {
-            if (!Predmet::jeToTricko($polozka->kodPredmetu, $polozka->typ) || Predmet::jeToVypravecske($polozka)) {
+            if (!Predmet::jeToTricko($polozka->kodPredmetu, $polozka->kategorie) || Predmet::jeToVypravecske($polozka)) {
                 continue;
             }
 
@@ -467,14 +467,14 @@ SQL,
         $pocet = 0;
 
         foreach ($polozky as $polozka) {
-            if (!Predmet::jeToTilko($polozka->kodPredmetu, $polozka->typ) || Predmet::jeToVypravecske($polozka)) {
+            if (!Predmet::jeToTilko($polozka->kodPredmetu, $polozka->kategorie) || Predmet::jeToVypravecske($polozka)) {
                 continue;
             }
 
             /**
              * Must NOT be generic "Tričko/tílko" item (those count as tričko only) @see dejPocetTricekPlnePlacenych
              */
-            if (Predmet::jeToTricko($polozka->kodPredmetu, $polozka->typ)) {
+            if (Predmet::jeToTricko($polozka->kodPredmetu, $polozka->kategorie)) {
                 continue;
             }
 

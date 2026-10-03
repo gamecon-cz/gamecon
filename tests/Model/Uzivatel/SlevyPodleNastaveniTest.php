@@ -108,7 +108,7 @@ SQL,
     {
         return \dbOneLine(
             <<<'SQL'
-            SELECT shop_predmety.*, FIELD(kategorie.code, $1) AS typ
+            SELECT shop_predmety.*, kategorie.code AS kategorie
             FROM shop_predmety
             LEFT JOIN (
                 product_product_tag AS stitek_kategorie

@@ -12,7 +12,6 @@ use Gamecon\Aktivita\TypAktivity;
 use Gamecon\Role\Role;
 use Gamecon\Shop\Predmet;
 use App\Enum\ProductTagCode;
-use Gamecon\Shop\TypPredmetu;
 use Gamecon\SystemoveNastaveni\SystemoveNastaveni;
 use Gamecon\SystemoveNastaveni\SystemoveNastaveniKlice;
 use Gamecon\Uzivatel\Dto\PolozkaProBfgr;
@@ -216,7 +215,7 @@ SQL,
                 }
 
                 // Ubytování - placené i zdarma
-                if ($polozka->typ === TypPredmetu::UBYTOVANI) {
+                if ($polozka->kategorie === ProductTagCode::UBYTOVANI) {
                     $isPaid = $polozka->castka > 0.0;
 
                     $druhUbytovani = self::druhUbytovaniPodleKodu($polozka->kodPredmetu);
@@ -239,7 +238,7 @@ SQL,
                 }
 
                 // Tričko logika (včetně správného zpracování "Tričko/tílko")
-                if (Predmet::jeToTricko($polozka->kodPredmetu, $polozka->typ)) {
+                if (Predmet::jeToTricko($polozka->kodPredmetu, $polozka->kategorie)) {
                     // Započítání výnosů a slev z triček
                     $trickaVynosyCelkem += $polozka->castka;
                     $trickaSlevyCelkem  += $polozka->sleva;
@@ -268,7 +267,7 @@ SQL,
                 }
 
                 // Tílko logika (ale ne generic "Tričko/tílko" - to počítáme jako třičko)
-                if (Predmet::jeToTilko($polozka->kodPredmetu, $polozka->typ)) {
+                if (Predmet::jeToTilko($polozka->kodPredmetu, $polozka->kategorie)) {
                     // Započítání výnosů a slev z tílek
                     $tilkaVynosyCelkem += $polozka->castka;
                     $tilkaSlevyCelkem  += $polozka->sleva;
@@ -466,7 +465,7 @@ SQL,
                     continue;
                 }
 
-                if (Predmet::jeToVstupneVcas($polozka->typ, $polozka->kodPredmetu)) {
+                if (Predmet::jeToVstupneVcas($polozka->kategorie, $polozka->kodPredmetu)) {
                     Assert::same($navstevnik->finance()->cenaVstupne(), $polozka->castka);
                     // Dobrovolné vstupné
                     $vstupneSum += $polozka->castka;
@@ -1672,8 +1671,8 @@ SQL,
                    $polozka->sleva > 0.0
                    || (
                        (
-                           Predmet::jeToTricko($polozka->kodPredmetu, $polozka->typ)
-                           || Predmet::jeToTilko($polozka->kodPredmetu, $polozka->typ)
+                           Predmet::jeToTricko($polozka->kodPredmetu, $polozka->kategorie)
+                           || Predmet::jeToTilko($polozka->kodPredmetu, $polozka->kategorie)
                        )
                        && (Predmet::jeToVypravecske($polozka) || Predmet::jeToOrganizatorske($polozka))
                    )
