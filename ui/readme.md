@@ -26,7 +26,7 @@ nasazování pořád buildovat)
   - zároveň spustí developement server
     - běží na `localhost:3000` (nebo na jiném portu pokud je zabraný)
     - vyžaduje nastavit prostředí v `index.html`
-    - popř chce i nastavit správně *proxy* ve `vite.config.js` pokud gamecon api vůči kterému vyvýjím se nachází na jiném místě než localhostu
+    - popř chce i nastavit správně *proxy* ve `vite.config.mts` pokud gamecon api vůči kterému vyvýjím se nachází na jiném místě než localhostu
 
 ## Přidávání kódů
 
