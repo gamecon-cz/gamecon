@@ -68,7 +68,7 @@ class Finance
     private ?float                $cenaStravy                    = null;  // cena jídel objednaných z shopu
     private ?float                $cenaVstupne                   = null;
     private ?float                $cenaVstupnePozde              = null;
-    private ?float                $bonusZaVedeniAktivit          = null;  // sleva za tech. aktivity a odvedené aktivity
+    private ?float                $bonusZaAktivity          = null;  // sleva za tech. aktivity a odvedené aktivity
     private ?float                $slevaObecna                   = null;  // sleva získaná z tabulky slev
     private ?float                $nevyuzityBonusZaVedeniAktivit = null;  // zbývající sleva za odvedené aktivity (nevyužitá část)
     private ?float                $vyuzityBonusZaVedeniAktivit   = null;  // sleva za odvedené aktivity (využitá část)
@@ -404,16 +404,16 @@ SQL,
     /**
      * Výše vypravěčské slevy (celková)
      */
-    public function bonusZaVedeniAktivit(): float
+    public function bonusZaAktivity(): float
     {
-        if ($this->bonusZaVedeniAktivit === null) {
-            $this->bonusZaVedeniAktivit = 0.0;
+        if ($this->bonusZaAktivity === null) {
+            $this->bonusZaAktivity = 0.0;
             $this->zapoctiAktivity();
             $this->zapoctiSlevy();
             $this->zapoctiVedeniAktivit();
         }
 
-        return $this->bonusZaVedeniAktivit;
+        return $this->bonusZaAktivity;
     }
 
     /**
@@ -479,7 +479,7 @@ SQL,
      */
     public function maximalniPocetBonusovychTricekZdarma(): int
     {
-        return $this->u->maPravo(Pravo::MODRE_TRICKO_ZDARMA) && $this->bonusZaVedeniAktivit() >= $this->systemoveNastaveni->modreTrickoZdarmaOd()
+        return $this->u->maPravo(Pravo::MODRE_TRICKO_ZDARMA) && $this->bonusZaAktivity() >= $this->systemoveNastaveni->modreTrickoZdarmaOd()
             ? 1
             : 0;
     }
@@ -587,7 +587,7 @@ SQL,
         $this->cenaAktivit          = 0.0;
         $this->brigadnickaOdmena    = 0.0;
         $this->sumaStorna           = 0.0;
-        $this->bonusZaVedeniAktivit ??= 0.0;
+        $this->bonusZaAktivity ??= 0.0;
 
         $soucinitelAktivit     = $this->soucinitelCenyAktivit();
         $rok                   = ROCNIK;
@@ -631,7 +631,7 @@ SQL;
         foreach ($result as $r) {
             if ($r['typ'] == TypAktivity::TECHNICKA) {
                 if ($this->u->maPravoNaBonusZaVedeniAktivitNeboUcastNaTechnicke()) {
-                    $this->bonusZaVedeniAktivit += (float)$r['cena'];
+                    $this->bonusZaAktivity += (float)$r['cena'];
                 }
             } elseif ($r['typ'] == TypAktivity::BRIGADNICKA) {
                 if ($this->u->jeBrigadnik()) {
@@ -890,7 +890,7 @@ SQL;
             );
         }
         $this->slevaObecna          = 0.0;
-        $this->bonusZaVedeniAktivit ??= 0.0;
+        $this->bonusZaAktivity ??= 0.0;
 
         $q = dbQuery('
             SELECT castka, poznamka
@@ -927,7 +927,7 @@ SQL;
                 sprintf('Započítání %s již proběhlo.', __FUNCTION__),
             );
         }
-        $this->bonusZaVedeniAktivit ??= 0.0;
+        $this->bonusZaAktivity ??= 0.0;
         if (!$this->u->maPravoNaPoradaniAktivit()) {
             return;
         }
@@ -942,7 +942,7 @@ SQL;
             // if (TypAktivity::jeInterniDleId($a->typId())) {
             //     continue; // TODO needed ?
             // }
-            $this->bonusZaVedeniAktivit += self::bonusZaAktivitu($a, $this->systemoveNastaveni);
+            $this->bonusZaAktivity += self::bonusZaAktivitu($a, $this->systemoveNastaveni);
         }
         $this->zapocteno[__FUNCTION__] = true;
     }
@@ -981,7 +981,7 @@ SQL;
 
     private function aplikujBonusZaVedeniAktivit(float $cena): float
     {
-        $puvodniBonusZaVedeniAktivit   = $this->bonusZaVedeniAktivit();
+        $puvodniBonusZaVedeniAktivit   = $this->bonusZaAktivity();
         $zbyvajiciBonusZaVedeniAktivit = $puvodniBonusZaVedeniAktivit;
         $zbyvajiciCena                 = $cena;
         ['sleva' => $nevyuzityBonusZaVedeniAktivit] = Cenik::aplikujSlevu(
@@ -991,7 +991,7 @@ SQL;
         $this->nevyuzityBonusZaVedeniAktivit = $nevyuzityBonusZaVedeniAktivit;
         $this->vyuzityBonusZaVedeniAktivit   = $zbyvajiciBonusZaVedeniAktivit - $nevyuzityBonusZaVedeniAktivit;
         /** Do výsledné ceny, respektive celkového stavu, už započítáváme celý bonus za aktivity https://trello.com/c/8SWTdpYl/1069-zobrazen%C3%AD-financ%C3%AD-%C3%BA%C4%8Dastn%C3%ADka */
-        $cena -= $this->bonusZaVedeniAktivit();
+        $cena -= $this->bonusZaAktivity();
 
         if ($puvodniBonusZaVedeniAktivit) {
             $this->logb(
