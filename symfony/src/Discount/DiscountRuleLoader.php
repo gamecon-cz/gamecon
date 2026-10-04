@@ -4,19 +4,29 @@ declare(strict_types=1);
 
 namespace App\Discount;
 
+use Symfony\Contracts\Service\ResetInterface;
+
 /**
  * Reads the rules, the buyer's rights and the settings a rule refers to.
  *
  * Plain SQL rather than Doctrine, because legacy Cenik has no entity manager and this
  * has to serve both sides. Once the storefront no longer goes through Cenik this can
  * become a repository like everything else.
+ *
+ * Rules are read once per year and request: the price grid asks for them per product, and
+ * only an admin import changes them. Rights are not cached — see rightsOfUser().
  */
-final class DiscountRuleLoader
+final class DiscountRuleLoader implements ResetInterface
 {
     /**
      * @var \Closure(string, array<int, mixed>): array<int, array<string, mixed>>
      */
     private readonly \Closure $fetchAll;
+
+    /**
+     * @var array<int, DiscountRule[]>
+     */
+    private array $rulesByYear = [];
 
     /**
      * @param callable(string, array<int, mixed>): array<int, array<string, mixed>> $fetchAll
@@ -31,6 +41,19 @@ final class DiscountRuleLoader
      * @return DiscountRule[]
      */
     public function rulesForYear(int $year): array
+    {
+        return $this->rulesByYear[$year] ??= $this->loadRulesForYear($year);
+    }
+
+    public function reset(): void
+    {
+        $this->rulesByYear = [];
+    }
+
+    /**
+     * @return DiscountRule[]
+     */
+    private function loadRulesForYear(int $year): array
     {
         $rows = ($this->fetchAll)(
             // Priority, not code: which rule wins when two match the same item is an
@@ -71,6 +94,7 @@ final class DiscountRuleLoader
     {
         // For callers that have no Uzivatel. Anything holding one should pass
         // Uzivatel::prava() instead — it is already loaded, cached, and filtered.
+        // Never cached here: a role change reprices the cart within the same request.
         //
         // The year predicate is spelled out rather than delegated to the
         // platne_role_uzivatelu view, so that review can see it. Losing it is not a

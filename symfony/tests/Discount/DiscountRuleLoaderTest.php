@@ -120,4 +120,56 @@ class DiscountRuleLoaderTest extends TestCase
 
         $this->assertSame(ProductTagCode::JIDLO, $loader->rulesForYear(2026)[0]->parameters->tag);
     }
+
+    public function testRulesOfAYearAreReadOnce(): void
+    {
+        $dotazy = [];
+        $loader = new DiscountRuleLoader(static function (string $sql, array $params) use (&$dotazy): array {
+            $dotazy[] = $params[0];
+
+            return [];
+        });
+
+        $loader->rulesForYear(2026);
+        $loader->rulesForYear(2026);
+        $loader->namedItemCode(2026, 'kostka');
+        $loader->rulesForYear(2025);
+
+        $this->assertSame([2026, 2025], $dotazy);
+    }
+
+    /**
+     * A role change reprices the cart within the request that made it, so rights cached
+     * from before the change would price it with the old ones.
+     */
+    public function testRightsAreReadAgainEveryTime(): void
+    {
+        $dotazu = 0;
+        $loader = new DiscountRuleLoader(static function () use (&$dotazu): array {
+            ++$dotazu;
+
+            return [];
+        });
+
+        $loader->rightsOfUser(335, 2026);
+        $loader->rightsOfUser(335, 2026);
+
+        $this->assertSame(2, $dotazu);
+    }
+
+    public function testResetForgetsTheRules(): void
+    {
+        $dotazu = 0;
+        $loader = new DiscountRuleLoader(static function () use (&$dotazu): array {
+            ++$dotazu;
+
+            return [];
+        });
+
+        $loader->rulesForYear(2026);
+        $loader->reset();
+        $loader->rulesForYear(2026);
+
+        $this->assertSame(2, $dotazu);
+    }
 }
