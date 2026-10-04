@@ -54,4 +54,38 @@ SQL);
 
         $this->assertSame(2, (int) $this->migrace->q('SELECT COUNT(*) FROM tmp_migration_query_test')->fetchColumn());
     }
+
+    /**
+     * The database stops a script at its first error, so a silent failure leaves the rest
+     * unapplied while the migration is recorded as done.
+     */
+    public function testLaterStatementFailureIsReported(): void
+    {
+        $this->expectException(\PDOException::class);
+        $this->expectExceptionMessage('tmp_neexistujici_tabulka');
+
+        $this->migrace->q(<<<SQL
+CREATE TEMPORARY TABLE tmp_migration_query_test (id INT PRIMARY KEY);
+INSERT INTO tmp_neexistujici_tabulka (id) VALUES (1);
+INSERT INTO tmp_migration_query_test (id) VALUES (2);
+SQL);
+    }
+
+    public function testFailingSqlMigrationNamesItsFile(): void
+    {
+        $soubor = LOGY . '/migrace-s-chybou-' . uniqid('', false) . '.sql';
+        file_put_contents($soubor, <<<SQL
+CREATE TEMPORARY TABLE tmp_migration_query_test (id INT PRIMARY KEY);
+INSERT INTO tmp_neexistujici_tabulka (id) VALUES (1);
+SQL);
+
+        try {
+            (new Migration($soubor, 'test', $this->connection))->apply();
+            $this->fail('Migrace s chybou ve druhém příkazu musí selhat');
+        } catch (\RuntimeException $exception) {
+            $this->assertStringContainsString(basename($soubor), $exception->getMessage());
+        } finally {
+            unlink($soubor);
+        }
+    }
 }

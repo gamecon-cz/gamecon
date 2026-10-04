@@ -108,18 +108,10 @@ class Migration
 
         // For DDL/DML multi-statement SQL, consume all result sets with nextRowset().
         // \PDO::MYSQL_ATTR_MULTI_STATEMENTS must be enabled on the connection.
+        // An error in a later statement surfaces here, and the database has skipped the rest.
         if ($result instanceof \PDOStatement) {
-            // Advance through all result sets from multi-statement queries.
-            // nextRowset() returns false when there are no more results.
-            // It may also return false on error — we ignore that to match
-            // the old mysqli::multi_query() behavior which continued past errors.
-            try {
-                while ($result->nextRowset()) {
-                    // consume
-                }
-            } catch (\PDOException) {
-                // Some result sets may fail (e.g. IF NOT EXISTS checks),
-                // continue like mysqli::multi_query() did
+            while ($result->nextRowset()) {
+                // consume
             }
         }
 
