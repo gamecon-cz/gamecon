@@ -7,8 +7,9 @@ on:
     # počítá jako selhání (a „Run tests job“ na main required je). Který běh
     # zrušení potká je závod, takže se to nedá obejít branch protection.
     #
-    # Jeden trigger na to ale nestačí: dva `types:` níž můžou padnout na týž
-    # commit a jeden z nich concurrency zruší. Stalo se, zatím bez následku.
+    # Ze stejného důvodu chybí `ready_for_review`: padal na commit, který už testoval
+    # `opened`/`synchronize`, a ještě běžící běh zrušil. Funguje jen proto, že se
+    # testuje i draft — kdo přidá filtr na draft, musí `ready_for_review` vrátit.
     #
     # Push do beta a main testuje deploy-beta.yml / deploy-ostra.yml, ovšem
     # jen phpunit — PHPStan, ECS ani kontrolu .dockerignore tam nikdo nepustí.
@@ -26,12 +27,11 @@ on:
             - opened
             - synchronize
             - reopened
-            - ready_for_review
 
 # Nové pushnutí do PR ruší předchozí, ještě běžící testy téže větve –
-# na starší commit už stejně nikdo nečeká. Klíčujeme na větev, ne na SHA:
-# zrušen tak může být jen běh nad commitem, který byl mezitím přepsán, a
-# nikdy ne druhý běh nad tím samým commitem.
+# na starší commit už stejně nikdo nečeká. Druhý běh nad týmž commitem by ale
+# zrušil i ten první, proto `types:` nahoře na jeden commit dvakrát nepadají —
+# s výjimkou ručního zavření a znovuotevření PR, dokud testy ještě běží.
 concurrency:
     group: run-tests-${{ github.event.pull_request.number || github.ref }}
     cancel-in-progress: true
