@@ -6,8 +6,10 @@ namespace App\Tests\Service;
 
 use App\Entity\Product;
 use App\Entity\ProductTag;
+use App\Entity\User;
 use App\Enum\ProductTagCode;
 use App\Service\RestrictedProductRules;
+use App\Service\UserPermissions;
 use Gamecon\Pravo;
 use PHPUnit\Framework\TestCase;
 
@@ -27,33 +29,34 @@ class RestrictedProductRulesTest extends TestCase
 
     public function testUnrestrictedProductNeverAsksForAPermission(): void
     {
-        $customer = $this->createMock(\Uzivatel::class);
-        $customer->expects(self::never())->method('maPravo');
+        $permissions = $this->createMock(UserPermissions::class);
+        $permissions->expects(self::never())->method('has');
 
         self::assertTrue(
-            (new RestrictedProductRules())->mayOrder($this->product(ProductTagCode::TRICKO), $customer),
+            (new RestrictedProductRules($permissions))->mayOrder($this->product(ProductTagCode::TRICKO), new User(), 2026),
         );
     }
 
     public function testRestrictedProductNeedsItsOwnPermission(): void
     {
-        $customer = $this->createMock(\Uzivatel::class);
-        $customer->method('maPravo')
-            ->with(Pravo::MUZE_OBJEDNAVAT_CERVENA_TRICKA)
+        $customer = new User();
+        $permissions = $this->createMock(UserPermissions::class);
+        $permissions->method('has')
+            ->with($customer, Pravo::MUZE_OBJEDNAVAT_CERVENA_TRICKA, 2026)
             ->willReturn(false);
 
         self::assertFalse(
-            (new RestrictedProductRules())->mayOrder($this->product(ProductTagCode::TRICKO_CERVENE), $customer),
+            (new RestrictedProductRules($permissions))->mayOrder($this->product(ProductTagCode::TRICKO_CERVENE), $customer, 2026),
         );
     }
 
     public function testRestrictedProductIsOrderableWithThePermission(): void
     {
-        $customer = $this->createMock(\Uzivatel::class);
-        $customer->method('maPravo')->willReturn(true);
+        $permissions = $this->createMock(UserPermissions::class);
+        $permissions->method('has')->willReturn(true);
 
         self::assertTrue(
-            (new RestrictedProductRules())->mayOrder($this->product(ProductTagCode::TRICKO_MODRE), $customer),
+            (new RestrictedProductRules($permissions))->mayOrder($this->product(ProductTagCode::TRICKO_MODRE), new User(), 2026),
         );
     }
 }

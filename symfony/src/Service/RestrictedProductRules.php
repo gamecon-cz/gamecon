@@ -19,26 +19,20 @@ class RestrictedProductRules
         ProductTagCode::TRICKO_CERVENE->value => Pravo::MUZE_OBJEDNAVAT_CERVENA_TRICKA,
     ];
 
-    /**
-     * Whether this customer may order the product at all, as opposed to what it costs them.
-     * Only restricted products can answer false; everything else is unrestricted.
-     *
-     * The legacy user is a parameter rather than looked up here, so a caller iterating an
-     * order resolves it once instead of per item.
-     */
-    public function mayOrder(Product $product, \Uzivatel $customer): bool
-    {
-        $permission = $this->permissionFor($product);
-
-        return $permission === null || $customer->maPravo($permission);
+    public function __construct(
+        private readonly UserPermissions $userPermissions,
+    ) {
     }
 
     /**
-     * Loaded once per request: the permission set lives only on the legacy user.
+     * Whether this customer may order the product at all, as opposed to what it costs them.
+     * Only restricted products can answer false; everything else is unrestricted.
      */
-    public function legacyUserFor(User $customer): ?\Uzivatel
+    public function mayOrder(Product $product, User $customer, int $year): bool
     {
-        return \Uzivatel::zId((int) $customer->getId(), true);
+        $permission = $this->permissionFor($product);
+
+        return $permission === null || $this->userPermissions->has($customer, $permission, $year);
     }
 
     /**

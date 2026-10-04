@@ -208,13 +208,10 @@ class CartService
             return true;
         }
 
-        // Všechno dál se musí zlomit do „nesmí": chybějící zákazník ani nenačtený legacy
-        // uživatel nesmí být důvod, proč omezené tričko projde.
+        // Všechno dál se musí zlomit do „nesmí": chybějící zákazník nesmí být důvod, proč
+        // omezené tričko projde.
         $customer = $order->getCustomer();
-        $legacyCustomer = $customer === null
-            ? null
-            : $this->restrictedProductRules->legacyUserFor($customer);
-        if ($legacyCustomer === null || ! $this->restrictedProductRules->mayOrder($product, $legacyCustomer)) {
+        if ($customer === null || ! $this->restrictedProductRules->mayOrder($product, $customer, $order->getYear())) {
             throw new InsufficientPermissionsException($this->translator->trans('cart.not_entitled', [
                 '%product%' => $product->getName(),
             ], 'errors'));
