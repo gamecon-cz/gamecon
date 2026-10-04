@@ -1,6 +1,6 @@
 import { defineConfig } from 'vite'
 import preact from '@preact/preset-vite'
-import * as path from 'path'
+import { fileURLToPath } from 'node:url'
 
 // https://vitejs.dev/config/
 export default defineConfig(({ mode }) => ({
@@ -22,7 +22,7 @@ export default defineConfig(({ mode }) => ({
     emptyOutDir: true,
     cssCodeSplit: false,
     lib: {
-      entry: path.resolve(__dirname, 'src/main.ts'),
+      entry: fileURLToPath(new URL('./src/main.ts', import.meta.url)),
       name: "script",
       fileName: () => "bundle.js",
       formats: ["iife"]
