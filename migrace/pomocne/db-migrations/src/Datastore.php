@@ -14,19 +14,19 @@ class Datastore
     }
 
     public function get($key) {
-        $keySql = "'" . $this->db->escape_string($key) . "'";
+        $keySql = $this->db->quote($key);
 
         try {
             $q = $this->db->query("SELECT value FROM {$this->tableName} WHERE name = {$keySql}");
-        } catch (\mysqli_sql_exception $e) {
-            if (preg_match("/^Table [^ ]+ doesn't exist/", $e->getMessage())) {
+        } catch (\PDOException $e) {
+            if (preg_match("/^.*Table [^ ]+ doesn't exist/", $e->getMessage())) {
                 return null;
             }
 
             throw $e;
         }
 
-        $value = $q->fetch_row()[0] ?? null;
+        $value = $q->fetch(\PDO::FETCH_NUM)[0] ?? null;
         if ($value === null) {
             return null;
         }
@@ -42,8 +42,8 @@ class Datastore
             )
         ");
 
-        $keySql = "'" . $this->db->escape_string($key) . "'";
-        $valueSql = "'" . $this->db->escape_string(serialize($value)) . "'";
+        $keySql = $this->db->quote($key);
+        $valueSql = $this->db->quote(serialize($value));
 
         $this->db->query("
             INSERT INTO {$this->tableName}

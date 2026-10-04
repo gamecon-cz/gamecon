@@ -11,14 +11,14 @@ use PHPUnit\Framework\TestCase;
  * Rozpad placek na letošní a staré se nesmí řídit ročníkem modelu: staré
  * kolekce se každý rok přeregistrují na aktuální `model_rok`, aby se daly
  * doprodat, takže podle něj je letošní úplně všechno. Letošní je jen ta jedna
- * placka z `Predmet::letosniPlacka()`.
+ * placka, kterou jmenuje letošní pravidlo placky zdarma.
  */
 class BfsrReportPlackyTest extends TestCase
 {
-    private const ID_LETOSNI_PLACKY = 1846;
+    private const KOD_LETOSNI_PLACKY = 'placka_2026_verne';
 
     /**
-     * Letošní je právě ta jedna placka, kterou vrátí Predmet::letosniPlacka();
+     * Letošní je právě ta jedna placka, kterou jmenuje pravidlo placky zdarma;
      * všechno ostatní je doprodej staré kolekce, i když má stejný `model_rok`.
      *
      * @test
@@ -26,13 +26,13 @@ class BfsrReportPlackyTest extends TestCase
      * @dataProvider placky
      */
     public function stariPlackySePoznaPodleLetosnihoModelu(
-        string $idPredmetu,
+        string $kodPredmetu,
         bool $ocekavanoStara,
     ): void {
         self::assertSame(
             $ocekavanoStara,
-            BfsrReport::jeToStaraPlacka($idPredmetu, self::ID_LETOSNI_PLACKY),
-            "Placka {$idPredmetu} se zařadila špatně",
+            BfsrReport::jeToStaraPlacka($kodPredmetu, self::KOD_LETOSNI_PLACKY),
+            "Placka {$kodPredmetu} se zařadila špatně",
         );
     }
 
@@ -46,10 +46,10 @@ class BfsrReportPlackyTest extends TestCase
     public static function placky(): array
     {
         return [
-            'letošní Verne'        => ['1846', false],
-            'doprodej 2025'        => ['1847', true],
-            'doprodej 2021'        => ['1903', true],
-            'doprodej bez ročníku' => ['1845', true],
+            'letošní Verne'        => ['placka_2026_verne', false],
+            'doprodej 2025'        => ['placka_2025_cas', true],
+            'doprodej 2021'        => ['placka_2021', true],
+            'doprodej bez ročníku' => ['placka_old', true],
         ];
     }
 
@@ -60,8 +60,8 @@ class BfsrReportPlackyTest extends TestCase
      */
     public function bezLetosniPlackyJsouVsechnyStare(): void
     {
-        self::assertTrue(BfsrReport::jeToStaraPlacka('1846', null));
-        self::assertTrue(BfsrReport::jeToStaraPlacka('1845', null));
+        self::assertTrue(BfsrReport::jeToStaraPlacka('placka_2026_verne', null));
+        self::assertTrue(BfsrReport::jeToStaraPlacka('placka_old', null));
     }
 
     /**
@@ -73,16 +73,16 @@ class BfsrReportPlackyTest extends TestCase
     public function rozpadSediNaCelkovyPocet(): void
     {
         $nakupy = array_merge(
-            array_fill(0, 31, ['1846', true]),   // letošní zdarma
-            array_fill(0, 85, ['1846', false]),  // letošní placené
-            array_fill(0, 5, ['1847', false]),   // doprodej 2025
-            array_fill(0, 4, ['1903', false]),   // doprodej 2021
-            array_fill(0, 3, ['1845', false]),   // doprodej stará
+            array_fill(0, 31, ['placka_2026_verne', true]),   // letošní zdarma
+            array_fill(0, 85, ['placka_2026_verne', false]),  // letošní placené
+            array_fill(0, 5, ['placka_2025_cas', false]),     // doprodej 2025
+            array_fill(0, 4, ['placka_2021', false]),         // doprodej 2021
+            array_fill(0, 3, ['placka_old', false]),          // doprodej stará
         );
 
         $letosniZdarma = $letosniPlacene = $stareZdarma = $starePlacene = 0;
-        foreach ($nakupy as [$idPredmetu, $zdarma]) {
-            $stara = BfsrReport::jeToStaraPlacka($idPredmetu, self::ID_LETOSNI_PLACKY);
+        foreach ($nakupy as [$kodPredmetu, $zdarma]) {
+            $stara = BfsrReport::jeToStaraPlacka($kodPredmetu, self::KOD_LETOSNI_PLACKY);
             if ($zdarma) {
                 $stara ? $stareZdarma++ : $letosniZdarma++;
             } else {

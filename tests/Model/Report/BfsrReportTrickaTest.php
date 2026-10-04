@@ -4,9 +4,10 @@ declare(strict_types=1);
 
 namespace Gamecon\Tests\Model\Report;
 
+use App\Enum\ProductTagCode;
 use Gamecon\Report\BfsrReport;
-use Gamecon\Shop\TypPredmetu;
 use Gamecon\Uzivatel\Dto\PolozkaProBfgr;
+use Gamecon\Uzivatel\Finance;
 use PHPUnit\Framework\TestCase;
 
 /**
@@ -54,6 +55,23 @@ class BfsrReportTrickaTest extends TestCase
             'se slevou'          => ['Tričko účastnické L', $ucastnicke, 100.0, 150.0, BfsrReport::SVRSEK_SE_SLEVOU],
             'placené tílko'      => ['Tričko/tílko účastnické 2026', $tilko, 250.0, 0.0, BfsrReport::SVRSEK_PLACENY],
         ];
+    }
+
+    /**
+     * Hodnost se bere z kódu, ne z barvy v názvu. V roce 2009 a 2010 byla orgovská
+     * trička oranžová — v datech je jich 14 a podle názvu by spadla mezi účastnická.
+     *
+     * @test
+     */
+    public function orgovskeTrickoSePoznaIKdyzNeniCervene(): void
+    {
+        $oranzoveOrgovske = self::svrsek('Tričko oranžové pánské', 'tricko_panske_organizatorske_L_2009', 0.0, 250.0);
+
+        self::assertTrue(
+            \Gamecon\Shop\Predmet::jeToOrganizatorske($oranzoveOrgovske),
+            'Orgovské tričko se musí poznat podle kódu, i když se barvou vymyká',
+        );
+        self::assertSame(BfsrReport::SVRSEK_ZDARMA, BfsrReport::kategorieSvrsku($oranzoveOrgovske));
     }
 
     /**
@@ -113,9 +131,10 @@ class BfsrReportTrickaTest extends TestCase
             pocet: '1',
             castka: $castka,
             sleva: $sleva,
-            typ: TypPredmetu::TRICKO,
+            typ: Finance::typVPrehledu(ProductTagCode::TRICKO),
             kodPredmetu: $kodPredmetu,
-            idPredmetu: '1',
+            idVarianty: '1',
+            kategorie: ProductTagCode::TRICKO,
         );
     }
 }

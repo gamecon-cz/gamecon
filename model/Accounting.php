@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Gamecon;
 
 use Gamecon\Accounting\PersonalAccount;
@@ -8,21 +10,19 @@ use Gamecon\Accounting\TransactionCategoryEnum;
 use Gamecon\Accounting\TransactionSplit;
 use Gamecon\Cas\DateTimeGamecon;
 use Gamecon\Exceptions\NeznamyTypPredmetu;
-use Gamecon\Shop\Predmet;
-use Gamecon\Shop\TypPredmetu;
+use App\Enum\ProductTagCode;
 use Gamecon\Uzivatel\Finance;
-use Uzivatel;
 
 class Accounting
 {
-    public static function getPersonalFinance(Uzivatel $u, bool $showDiscounts): PersonalAccount
+    public static function getPersonalFinance(\Uzivatel $u, bool $showDiscounts): PersonalAccount
     {
         $transactions = [];
         foreach ($u->finance()->dejPolozkyProBfgr() as $polozkaProBfgr) {
             $splits = [];
             if ($showDiscounts) {
                 $splits[] = new TransactionSplit(-($polozkaProBfgr->castka + $polozkaProBfgr->sleva), $polozkaProBfgr->nazev);
-                if ($polozkaProBfgr->sleva != 0) {
+                if ($polozkaProBfgr->sleva !== 0.0) {
                     $splits[] = new TransactionSplit($polozkaProBfgr->sleva, 'Sleva z ' . $polozkaProBfgr->nazev);
                 }
             } else {
@@ -30,43 +30,41 @@ class Accounting
             }
             /** @var TransactionCategoryEnum $category */
             $category = null;
-            switch ($polozkaProBfgr->typ) {
-                case Finance::AKTIVITY:
-                    $category = TransactionCategoryEnum::ACTIVITY;
-                    break;
-                case TypPredmetu::PROPLACENI_BONUSU:
-                case Finance::PRIPSANE_SLEVY:
-                case Finance::PLATBA:
-                case Finance::ORGSLEVA:
-                case Finance::BRIGADNICKA_ODMENA:
-                    $category = TransactionCategoryEnum::MANUAL_MOVEMENTS;
-                    break;
-                case Finance::VSTUPNE:
-                case TypPredmetu::VSTUPNE:
-                    $category = TransactionCategoryEnum::VOLUNTARY_DONATION;
-                    break;
-                case TypPredmetu::TRICKO:
-                case TypPredmetu::PREDMET:
-                    $category = TransactionCategoryEnum::SHOP_ITEMS;
-                    break;
-                case TypPredmetu::UBYTOVANI:
-                    $category = TransactionCategoryEnum::ACCOMMODATION;
-                    break;
-                case TypPredmetu::JIDLO:
-                    $category = TransactionCategoryEnum::FOOD;
-                    break;
-                case TypPredmetu::PARCON:
-                    throw new NeznamyTypPredmetu(sprintf('Unknown item type %s', $polozkaProBfgr->typ));
-                case Finance::ZUSTATEK_Z_PREDCHOZICH_LET:
-                    $category = TransactionCategoryEnum::LEFTOVER_FROM_LAST_YEAR;
-                    break;
-                case Finance::CELKOVA:
-                case Finance::VYSLEDNY:
-                case Finance::KATEGORIE_NEPLATICE:
-                case Finance::PLATBY_NADPIS:
-                    continue 2;
+            if ($polozkaProBfgr->kategorie !== null) {
+                $category = match ($polozkaProBfgr->kategorie) {
+                    ProductTagCode::PROPLACENI_BONUSU => TransactionCategoryEnum::MANUAL_MOVEMENTS,
+                    ProductTagCode::VSTUPNE           => TransactionCategoryEnum::VOLUNTARY_DONATION,
+                    ProductTagCode::TRICKO,
+                    ProductTagCode::PREDMET           => TransactionCategoryEnum::SHOP_ITEMS,
+                    ProductTagCode::UBYTOVANI         => TransactionCategoryEnum::ACCOMMODATION,
+                    ProductTagCode::JIDLO             => TransactionCategoryEnum::FOOD,
+                    default                           => throw new NeznamyTypPredmetu(sprintf('Unknown item category %s', $polozkaProBfgr->kategorie->value)),
+                };
+            } else {
+                switch ($polozkaProBfgr->typ) {
+                    case Finance::AKTIVITY:
+                        $category = TransactionCategoryEnum::ACTIVITY;
+                        break;
+                    case Finance::PRIPSANE_SLEVY:
+                    case Finance::PLATBA:
+                    case Finance::ORGSLEVA:
+                    case Finance::BRIGADNICKA_ODMENA:
+                        $category = TransactionCategoryEnum::MANUAL_MOVEMENTS;
+                        break;
+                    case Finance::VSTUPNE:
+                        $category = TransactionCategoryEnum::VOLUNTARY_DONATION;
+                        break;
+                    case Finance::ZUSTATEK_Z_PREDCHOZICH_LET:
+                        $category = TransactionCategoryEnum::LEFTOVER_FROM_LAST_YEAR;
+                        break;
+                    case Finance::CELKOVA:
+                    case Finance::VYSLEDNY:
+                    case Finance::KATEGORIE_NEPLATICE:
+                    case Finance::PLATBY_NADPIS:
+                        continue 2;
+                }
             }
-            if ($category == null) {
+            if ($category === null) {
                 continue;
             }
             $transactions[] = new Transaction(
@@ -74,14 +72,18 @@ class Accounting
                 date: DateTimeGamecon::zacatekGameconu(),
                 description: $polozkaProBfgr->nazev,
                 splits: $splits,
-                id: "#U[" . $u->id() . "]#P[" . $polozkaProBfgr->idPredmetu . "]");
+                id: '#U[' . $u->id() . ']#V[' . $polozkaProBfgr->idVarianty . ']');
         }
+
         return new PersonalAccount($transactions);
     }
 
     public static function cancelTransaction(string $transactionId): bool
     {
-        preg_match('/#U\[(\d+)]#P\[(\d+)]/', $transactionId, $matches);
-        return Uzivatel::zId(intval($matches[1]))->shop()->zrusNakupPredmetu(intval($matches[2]), 1) > 0;
+        if (preg_match('/#U\[(\d+)]#V\[(\d+)]/', $transactionId, $matches) !== 1) {
+            return false;
+        }
+
+        return \Uzivatel::zId(intval($matches[1]))->shop()->zrusNakupVarianty(intval($matches[2]), 1) > 0;
     }
 }

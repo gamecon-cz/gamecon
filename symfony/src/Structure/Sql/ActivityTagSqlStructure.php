@@ -9,9 +9,6 @@ namespace App\Structure\Sql;
  */
 class ActivityTagSqlStructure
 {
-    /**
-     * @see ActivityTag
-     */
     public const _table = 'akce_sjednocene_tagy';
 
     /**

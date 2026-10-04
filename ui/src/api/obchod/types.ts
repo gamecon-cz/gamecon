@@ -21,6 +21,8 @@ export type DefiniceObchodMřížkaBuňkaSpolečné = {
 export type DefiniceObchodMřížkaBuňkaPředmět = {
   typ: "předmět",
   cilId: number,
+  /** Velikost nebo noc, kterou buňka prodává; bez ní se vybírá při prodeji. */
+  variantId?: number,
 }
 
 export type DefiniceObchodMřížkaBuňkaStránka = {
@@ -55,15 +57,29 @@ export type DefiniceObchod = {
   mřížky: DefiniceObchodMřížka[]
 }
 
+export type Varianta = {
+  id: number,
+  /** Null for a product's only variant, which is shown as the product itself. */
+  název: string | null,
+  cena: number,
+  zbývá: number | null,
+};
+
 export type Předmět = {
   id: number,
   název: string,
   cena: number,
+  /** `null` znamená neomezeně, pokud má předmět jedinou variantu; u víc variant drží počty varianty samy. */
   zbývá: number | null,
+  varianty: Varianta[],
+  /** Z minulého ročníku — na starších mřížkách je nakonfigurovaný, ale prodat ho nejde. */
+  archivní: boolean,
 };
 
 export type ObjednávkaPředmět = {
   množství: number,
   předmět: Předmět,
+  /** U předmětu s víc variantami je povinná; jinak se dopočítá z té jediné. */
+  varianta?: Varianta,
 };
 

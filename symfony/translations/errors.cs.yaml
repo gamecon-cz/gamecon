@@ -1,0 +1,77 @@
+customer:
+    not_found: 'Uživatel s ID %id% nebyl nalezen.'
+    required: 'Musí být zadán účastník.'
+    exactly_one_required: 'Musí být zadán právě jeden účastník.'
+
+desk:
+    admin_login_required: '%action% vyžaduje přihlášení do adminu.'
+    no_right_to_order: 'Na objednávání za účastníky nemáš právo.'
+    action:
+        view_accommodation: 'Zobrazení ubytování účastníka'
+        view_meals: 'Zobrazení jídla účastníka'
+        order_accommodation: 'Objednávání za účastníka'
+        order_meals: 'Objednávání jídla za účastníka'
+
+accommodation:
+    login_required_to_view: 'Pro zobrazení ubytování je nutné přihlášení.'
+    login_required_to_order: 'Pro objednání ubytování je nutné přihlášení.'
+    gamecon_registration_required: 'Ubytování vyžaduje přihlášení na webu GameConu.'
+    sale_ended: 'Prodej ubytování už skončil.'
+    night_not_offered: 'Noc %id% není nabízeným ubytováním.'
+    at_least_two_nights: 'Ubytování je možné objednat nejméně na dvě noci.'
+    consecutive_nights: 'Objednané noci musí na sebe navazovat.'
+    overbooking_not_permitted: 'Ubytování „%product%" na %night% je plné; přeplnit ho smí jen šéf infopultu.'
+    night_full: 'Ubytování „%product%" na %night% je obsazené.'
+    withdrawn: 'Ubytování „%product%" na %night% už není v prodeji.'
+    night_paused: 'Ubytování „%product%" na %night% se teď neprodává.'
+    sunday_not_offered: 'Nedělní noc „%product%" se tomuto účastníkovi nenabízí.'
+
+accommodation_import:
+    type_not_unique: 'Nepodařilo se jednoznačně dohledat ubytování typu "%type%" pro %days%. Nalezeno %found% nocí.'
+    days: '{0}%count% dnů|{1}%count% den|[2,4]%count% dny|[5,Inf[%count% dnů'
+    incomplete_night_range: 'První a poslední noc musí být buďto obě prázdné, nebo obě zadané: první noc %first%, poslední noc %last%'
+    participant_not_found: 'Účastník %id% neexistuje.'
+
+capacity:
+    insufficient: 'Nedostatečná kapacita pro produkt "%product%". Požadované: %quantity%'
+
+cart:
+    variant_or_bundle_required: 'Musí být zadáno variantId nebo bundleId.'
+    bundle_not_found: 'Balíček s ID %id% nebyl nalezen.'
+    variant_not_found: 'Varianta s ID %id% nebyla nalezena.'
+    item_not_found: 'Položka s ID %id% nebyla nalezena.'
+    item_without_order: 'Položka není součástí žádné objednávky.'
+    item_of_someone_else: 'Nemáte oprávnění odebrat tuto položku.'
+    variant_in_mandatory_bundle: 'Varianta "%variant%" je součástí povinného balíčku "%bundle%". Použijte nákup celého balíčku.'
+    item_in_mandatory_bundle: 'Položka je součástí povinného balíčku "%bundle%". Odeberte celý balíček.'
+    not_entitled: 'Na produkt "%product%" nemáš nárok.'
+    product_unavailable: 'Produkt "%product%" není dostupný.'
+    product_paused: 'Prodej produktu "%product%" je pozastavený.'
+    accommodation_has_own_section: 'Ubytování se objednává v sekci Ubytování, ne přes košík.'
+    sale_ended: 'Prodej předmětu "%product%" už skončil.'
+    sale_ended_cannot_remove: 'Prodej předmětu "%product%" už skončil, položku nejde odebrat.'
+    empty: 'Košík je prázdný.'
+    order_closed: 'Objednávka již byla dokončena nebo zrušena.'
+
+meal:
+    not_offered: 'Jídlo %id% není v nabídce.'
+    withdrawn: 'Jídlo „%meal%" už není v prodeji.'
+    sold_out: 'Jídlo „%meal%" je bohužel vyprodané.'
+
+entry_fee:
+    login_required_to_view: 'Pro zobrazení dobrovolného vstupného je nutné přihlášení.'
+    login_required_to_save: 'Pro uložení dobrovolného vstupného je nutné přihlášení.'
+    amount_required: 'Částka musí být vyplněna.'
+    not_imported: 'Dobrovolné vstupné není pro letošní ročník naimportováno.'
+
+merch:
+    login_required_to_view: 'Pro zobrazení merche je nutné přihlášení.'
+
+shirts:
+    login_required_to_view: 'Pro zobrazení triček je nutné přihlášení.'
+
+kfc:
+    product_not_found: 'Produkt s ID %id% nebyl nalezen.'
+    product_without_variant: 'Produkt "%product%" nemá žádnou variantu k prodeji.'
+    variant_of_other_product: 'Varianta %variant% nepatří k produktu "%product%".'
+    choose_variant: 'Produkt "%product%" má víc variant, vyber konkrétní.'

@@ -16,7 +16,6 @@ use Gamecon\Cas\DateTimeCz;
 use Gamecon\Pravo;
 use Gamecon\Shop\Shop;
 use Gamecon\XTemplate\XTemplate;
-use Gamecon\Shop\TypPredmetu;
 use Gamecon\Role\Role;
 use Gamecon\Web\Info;
 use Gamecon\SystemoveNastaveni\SystemoveNastaveniKlice;
@@ -28,7 +27,6 @@ use Gamecon\SystemoveNastaveni\SystemoveNastaveniKlice;
  * @var \Gamecon\SystemoveNastaveni\SystemoveNastaveni $systemoveNastaveni
  */
 
-require_once __DIR__ . '/../_submoduly/ubytovani_tabulka.php';
 require_once __DIR__ . '/../_submoduly/osobni-udaje/osobni_udaje.php';
 
 $ok = '<img alt="OK" src="files/design/ok-s.png" style="margin-bottom:-2px">';
@@ -95,13 +93,6 @@ if ($uPracovni) {
     $spolubydlici = $pokoj
         ? $pokoj->ubytovani()
         : [];
-    $typyProPrehled = [
-        TypPredmetu::PREDMET,
-        TypPredmetu::TRICKO,
-    ];
-    if ($u->maPravo(Pravo::MUZE_RUSIT_NAKUPY)) {
-        $typyProPrehled[] = TypPredmetu::VSTUPNE;
-    }
     $x->assign([
         'stavUctu' => sprintf(
             '%s <span class="stav-uctu-castka">%d</span> Kč',
@@ -119,7 +110,6 @@ if ($uPracovni) {
         'orgA' => $u->koncovkaDlePohlavi(),
         'poznamka' => $uPracovni->poznamka(),
         'ubytovani' => $uPracovni->shop()->dejPopisUbytovani(),
-        'nechceUbytovani' => $uPracovni->nechceUbytovani() ? 'ano' : 'ne',
         'balicek' => $uPracovni->balicekHtml(),
         'prehledPredmetu' => implode("", array_map(fn(Transaction $t) => "<tr>" . "<td>" . $t->getDescription() . "</td>" .
             ($u?->maPravo(Pravo::MUZE_RUSIT_NAKUPY) ?
@@ -134,10 +124,7 @@ if ($uPracovni) {
                               ($u->maPravo(Pravo::MUZE_RUSIT_NAKUPY) && $t->getCategory() == TransactionCategoryEnum::VOLUNTARY_DONATION))))
     ]);
 
-    $maObjednaneUbytovani = $uPracovni->shop()->ubytovani()->maObjednaneUbytovani();
-    if (!$maObjednaneUbytovani) {
-        $x->parse('infopult.uzivatel.nechceUbytovaniInfo');
-    }
+    $maObjednaneUbytovani = $uPracovni->shop()->maObjednaneUbytovani();
     $chybejiciUdaje = $uPracovni->chybejiciUdaje(
         Uzivatel::povinneUdajeProRegistraci($maObjednaneUbytovani),
     );
@@ -212,15 +199,10 @@ if ($uPracovni) {
     $x->assign("telefon", $uPracovni->telefon());
 
     if ($uPracovni->gcPrihlasen()) {
-        $x->assign(
-            'ubytovaniTabulka',
-            UbytovaniTabulka::ubytovaniTabulkaZ(
-                $shop->ubytovani(),
-                $systemoveNastaveni,
-                true,
-            ),
-        );
-        $x->assign('jidloHtml', $shop->jidloHtml(true));
+        // Which participant the grid is for. The API cannot learn it on its own: the working
+        // user lives in a session key of its own, and the token names the operator.
+        $x->assign('idUbytovanehoUzivatele', $uPracovni->id());
+        $x->parse('infopult.uzivatel.ubytovaniMrizka');
         if ($shop->objednalNejakeJidlo()) {
             $x->assign('urlStravenky', URL_ADMIN . '/reporty/stravenky?format=html&id_uzivatele=' . $uPracovni->id());
             foreach ($shop->objednanaJidlaDleDnu() as $denData) {
@@ -300,7 +282,7 @@ if ($uPracovni) {
         }
     }
 
-    $maUbytovani = $uPracovni->shop()->ubytovani()->maObjednaneUbytovani();
+    $maUbytovani = $uPracovni->shop()->maObjednaneUbytovani();
     $x->assign(
         'udajeHtml',
         OsobniUdajeTabulka::osobniUdajeTabulkaZ($uPracovni, $maUbytovani),
@@ -326,29 +308,6 @@ if ($uPracovni) {
     $x->parse('infopult.neUzivatel');
 }
 
-// načtení předmětů a form s rychloprodejem předmětů, fixme
-$rocnik = $systemoveNastaveni->rocnik();
-$o = dbQuery(
-    <<<SQL
-  SELECT
-    CONCAT(nazev,' ',model_rok) as nazev,
-    kusu_vyrobeno-count(n.id_predmetu) as zbyva,
-    p.id_predmetu,
-    ROUND(p.cena_aktualni) as cena
-  FROM shop_predmety p
-  LEFT JOIN shop_nakupy n ON(n.id_predmetu=p.id_predmetu AND n.rok = {$rocnik})
-  WHERE p.stav > 0
-    AND p.model_rok = {$rocnik}
-  GROUP BY p.id_predmetu
-  ORDER BY nazev
-SQL,
-);
-$moznosti = '<option value="">(vyber)</option>';
-while ($r = mysqli_fetch_assoc($o)) {
-    $zbyva = $r['zbyva'] === null ? '&infin;' : $r['zbyva'];
-    $moznosti .= '<option value="' . $r['id_predmetu'] . '"' . ($r['zbyva'] > 0 || $r['zbyva'] === null ? '' : ' disabled') . '>' . $r['nazev'] . ' (' . $zbyva . ') ' . $r['cena'] . '&thinsp;Kč</option>';
-}
-$x->assign('predmety', $moznosti);
 
 // rychloregistrace
 if (!$uPracovni) { // nechceme zobrazovat rychloregistraci (zakladani uctu), kdyz mame vybraneho uzivatele pro praci

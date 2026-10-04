@@ -4,23 +4,214 @@ declare(strict_types=1);
 
 namespace Gamecon\Tests\Shop;
 
-use App\Entity\ShopItem;
 use App\Entity\User;
-use App\Structure\Entity\ShopItemEntityStructure;
+use App\Service\CapacityManager;
 use App\Structure\Entity\UserEntityStructure;
+use Doctrine\DBAL\DriverManager;
 use Gamecon\Shop\Shop;
 use Gamecon\Shop\StavPredmetu;
-use Gamecon\Shop\TypPredmetu;
 use Gamecon\SystemoveNastaveni\SystemoveNastaveni;
 use Gamecon\Tests\Db\AbstractTestDb;
-use Gamecon\Tests\Factory\ShopItemFactory;
 use Gamecon\Tests\Factory\UserFactory;
 
 class ShopProdejPrekroceniZasobTest extends AbstractTestDb
 {
+    protected static bool $disableStrictTransTables = true;
+
+    // Foundry persists via a separate Doctrine connection; running the test-class init queries
+    // inside an open legacy transaction blocks Doctrine's writes (innodb auto-inc lock on
+    // uzivatele_hodnoty), so we let init writes auto-commit and reset the test DB at class teardown.
+    // Per-method transaction also conflicts: writes to product_product_tag via legacy PDO get
+    // rolled back while Foundry's Doctrine-side insert is already committed.
     protected static function keepTestClassDbChangesInTransaction(): bool
     {
+        return false;
+    }
+
+    protected static function keepSingleTestMethodDbChangesInTransaction(): bool
+    {
+        return false;
+    }
+
+    protected static function resetDbAfterClass(): bool
+    {
         return true;
+    }
+
+    protected static array $initQueries = [
+        <<<SQL
+INSERT INTO uzivatele_hodnoty SET
+    id_uzivatele = 88801,
+    login_uzivatele = 'test_buyer_prodej',
+    jmeno_uzivatele = 'Test',
+    prijmeni_uzivatele = 'Buyer',
+    email1_uzivatele = 'test.buyer.prodej@example.org'
+SQL,
+    ];
+
+    protected static function getBeforeClassInitCallbacks(): array
+    {
+        return [
+            static function () {
+                $budouci = date('Y-m-d H:i:s', strtotime('+1 day'));
+
+                // Limited stock item (2 pieces)
+                dbQuery("INSERT INTO shop_predmety SET
+                    id_predmetu = 88811,
+                    nazev = 'Limitovaný předmět',
+                    kod_predmetu = 'limit_prodej_test',
+                    cena_aktualni = 100,
+                    stav = " . StavPredmetu::VEREJNY . ",
+                    nabizet_do = '{$budouci}',
+                    popis = ''");
+                dbQuery("INSERT INTO product_product_tag (product_id, tag_id)
+                    SELECT 88811, id FROM product_tag WHERE code = 'predmet'");
+
+                // Unlimited stock item (capacity NULL)
+                dbQuery("INSERT INTO shop_predmety SET
+                    id_predmetu = 88812,
+                    nazev = 'Neomezený předmět',
+                    kod_predmetu = 'unlim_prodej_test',
+                    cena_aktualni = 100,
+                    stav = " . StavPredmetu::VEREJNY . ",
+                    nabizet_do = '{$budouci}',
+                    popis = ''");
+                dbQuery("INSERT INTO product_product_tag (product_id, tag_id)
+                    SELECT 88812, id FROM product_tag WHERE code = 'predmet'");
+
+                // Varianta ke každému prodejnému předmětu, jak to má produkce.
+                dbQuery("INSERT INTO product_variant (product_id, name, code, price, capacity, position, state)
+                    VALUES (88811, 'Limitovaný předmět', 'limit_prodej_test', 100, 2, 0, 1)");
+                dbQuery("INSERT INTO product_variant (product_id, name, code, price, capacity, position, state)
+                    VALUES (88812, 'Neomezený předmět', 'unlim_prodej_test', 100, NULL, 0, 1)");
+
+                // Vlastní předmět pro test zápisu varianty: třída nemá rollback po metodě,
+                // takže prodej z jednoho testu by ubral zásobu tomu dalšímu.
+                dbQuery("INSERT INTO shop_predmety SET
+                    id_predmetu = 88813,
+                    nazev = 'Předmět pro variantu',
+                    kod_predmetu = 'varianta_prodej_test',
+                    cena_aktualni = 100,
+                    stav = " . StavPredmetu::VEREJNY . ",
+                    nabizet_do = '{$budouci}',
+                    popis = ''");
+                dbQuery("INSERT INTO product_product_tag (product_id, tag_id)
+                    SELECT 88813, id FROM product_tag WHERE code = 'predmet'");
+                dbQuery("INSERT INTO product_variant (product_id, name, code, price, capacity, position, state)
+                    VALUES (88813, 'Předmět pro variantu', 'varianta_prodej_test', 100, 2, 0, 1)");
+
+                dbQuery("INSERT INTO shop_predmety SET
+                    id_predmetu = 88814,
+                    nazev = 'Předmět pro zrušení',
+                    kod_predmetu = 'zruseni_prodej_test',
+                    cena_aktualni = 100,
+                    stav = " . StavPredmetu::VEREJNY . ",
+                    nabizet_do = '{$budouci}',
+                    popis = ''");
+                dbQuery("INSERT INTO product_product_tag (product_id, tag_id)
+                    SELECT 88814, id FROM product_tag WHERE code = 'predmet'");
+                dbQuery("INSERT INTO product_variant (product_id, name, code, price, capacity, position, state)
+                    VALUES (88814, 'Předmět pro zrušení', 'zruseni_prodej_test', 100, 3, 0, 1)");
+
+                dbQuery("INSERT INTO shop_predmety SET
+                    id_predmetu = 88815,
+                    nazev = 'Předmět pro souběh',
+                    kod_predmetu = 'soubeh_prodej_test',
+                    cena_aktualni = 100,
+                    stav = " . StavPredmetu::VEREJNY . ",
+                    nabizet_do = '{$budouci}',
+                    popis = ''");
+                dbQuery("INSERT INTO product_product_tag (product_id, tag_id)
+                    SELECT 88815, id FROM product_tag WHERE code = 'predmet'");
+                dbQuery("INSERT INTO product_variant (product_id, name, code, price, capacity, position, state)
+                    VALUES (88815, 'Předmět pro souběh', 'soubeh_prodej_test', 100, 5, 0, 1)");
+
+                // Room type owning its nights: no variant carries the type's own code.
+                dbQuery("INSERT INTO shop_predmety SET
+                    id_predmetu = 88816,
+                    nazev = 'Postel na pokoji',
+                    kod_predmetu = 'pokoj_prodej_test-typ',
+                    cena_aktualni = 300,
+                    stav = " . StavPredmetu::POZASTAVENY . ",
+                    nabizet_do = '{$budouci}',
+                    popis = ''");
+                dbQuery("INSERT INTO shop_predmety SET
+                    id_predmetu = 88817,
+                    nazev = 'Postel na pokoji pátek',
+                    kod_predmetu = 'pokoj_prodej_test-pa',
+                    cena_aktualni = 300,
+                    stav = " . StavPredmetu::VEREJNY . ",
+                    nabizet_do = '{$budouci}',
+                    ubytovani_den = 2,
+                    popis = ''");
+                dbQuery("INSERT INTO product_product_tag (product_id, tag_id)
+                    SELECT ubytovani.id_predmetu, product_tag.id
+                    FROM product_tag
+                    INNER JOIN (SELECT 88816 AS id_predmetu UNION SELECT 88817) AS ubytovani
+                    WHERE product_tag.code = 'ubytovani'");
+                dbQuery("INSERT INTO product_variant (product_id, name, code, price, capacity, accommodation_day, position, state)
+                    VALUES (88816, 'pátek', 'pokoj_prodej_test-pa', 300, 3, 2, 0, 1)");
+
+                // Room type that got a default variant of its own, as a fresh import gives one.
+                dbQuery("INSERT INTO shop_predmety SET
+                    id_predmetu = 88818,
+                    nazev = 'Postel na jiném pokoji',
+                    kod_predmetu = 'pokoj_s_variantou_test-typ',
+                    cena_aktualni = 300,
+                    stav = " . StavPredmetu::POZASTAVENY . ",
+                    nabizet_do = '{$budouci}',
+                    popis = ''");
+                dbQuery("INSERT INTO product_product_tag (product_id, tag_id)
+                    SELECT 88818, id FROM product_tag WHERE code = 'ubytovani'");
+                dbQuery("INSERT INTO product_variant (product_id, name, code, price, accommodation_day, position, state)
+                    VALUES (88818, 'Postel na jiném pokoji', 'pokoj_s_variantou_test-typ', 300, NULL, 0, 3)");
+            },
+        ];
+    }
+
+    /**
+     * Prodej z adminu musí zapsat variantu, jinak vzniká nákup, který nová vrstva nevidí
+     * a do zásoby varianty se nezapočítá.
+     *
+     * @test
+     */
+    public function prodejZapiseVariantuAUbereZeZasoby(): void
+    {
+        $uzivatel = \Uzivatel::zIdUrcite(88801);
+        $shop = new Shop($uzivatel, $uzivatel, SystemoveNastaveni::zGlobals());
+
+        $shop->prodat($this->idVarianty(88813), 1);
+
+        self::assertSame(
+            1,
+            (int) dbOneCol('SELECT COUNT(*) FROM shop_nakupy INNER JOIN product_variant ON product_variant.id = shop_nakupy.variant_id WHERE product_variant.product_id = 88813 AND variant_id IS NOT NULL'),
+            'Nákup musí ukazovat na variantu',
+        );
+        self::assertSame(
+            1,
+            $this->zbyva('varianta_prodej_test'),
+            'Ze zásoby na variantě se měl ubrat jeden kus',
+        );
+    }
+
+    /**
+     * Zrušení nákupu musí kus vrátit do zásoby, jinak by každá oprava v adminu zásobu
+     * natrvalo snížila.
+     *
+     * @test
+     */
+    public function zruseniNakupuVratiKusDoZasoby(): void
+    {
+        $uzivatel = \Uzivatel::zIdUrcite(88801);
+        $shop = new Shop($uzivatel, $uzivatel, SystemoveNastaveni::zGlobals());
+        $zbyva = fn (): ?int => $this->zbyva('zruseni_prodej_test');
+
+        $shop->prodat($this->idVarianty(88814), 2);
+        self::assertSame(1, $zbyva(), 'Prodej měl ubrat dva kusy');
+
+        $shop->zrusNakupVarianty((int) dbOneCol("SELECT id FROM product_variant WHERE code = 'zruseni_prodej_test'"), 2);
+
+        self::assertSame(3, $zbyva(), 'Zrušení mělo oba kusy vrátit');
     }
 
     /**
@@ -28,97 +219,13 @@ class ShopProdejPrekroceniZasobTest extends AbstractTestDb
      */
     public function prodejNeprekrociSkladovouZasobu(): void
     {
-        $uniqueId = uniqid();
-
-        /** @var User $user */
-        $user = UserFactory::createOne([
-            UserEntityStructure::login    => 'test_buyer_' . $uniqueId,
-            UserEntityStructure::email    => 'test.buyer.' . $uniqueId . '@example.org',
-            UserEntityStructure::jmeno    => 'Test',
-            UserEntityStructure::prijmeni => 'Buyer',
-        ])->_real();
-
-        /** @var ShopItem $shopItem */
-        $shopItem = ShopItemFactory::createOne([
-            ShopItemEntityStructure::nazev        => 'Limitovaný předmět ' . $uniqueId,
-            ShopItemEntityStructure::kodPredmetu  => 'LIMIT_' . strtoupper($uniqueId),
-            ShopItemEntityStructure::modelRok     => ROCNIK,
-            ShopItemEntityStructure::cenaAktualni => '100',
-            ShopItemEntityStructure::stav         => StavPredmetu::VEREJNY,
-            ShopItemEntityStructure::nabizetDo    => new \DateTime('+1 day'),
-            ShopItemEntityStructure::kusuVyrobeno => 2,
-            ShopItemEntityStructure::typ          => TypPredmetu::PREDMET,
-        ])->_real();
-
-        $uzivatel = \Uzivatel::zIdUrcite($user->getId());
+        $uzivatel = \Uzivatel::zIdUrcite(88801);
         $shop = new Shop($uzivatel, $uzivatel, SystemoveNastaveni::zGlobals());
 
         // Item has only 2 pieces available (kusuVyrobeno = 2)
         // Try to sell 3 pieces - should fail
-
         $this->expectException(\Chyba::class);
-        $shop->prodat($shopItem->getId(), 3);
-    }
-
-    /**
-     * @test
-     */
-    public function prihlasceNeprojdeNakupPresahujiciSkladovouZasobu(): void
-    {
-        $uniqueId = uniqid();
-
-        /** @var User $user */
-        $user = UserFactory::createOne([
-            UserEntityStructure::login    => 'test_buyer_' . $uniqueId,
-            UserEntityStructure::email    => 'test.buyer.' . $uniqueId . '@example.org',
-            UserEntityStructure::jmeno    => 'Test',
-            UserEntityStructure::prijmeni => 'Buyer',
-        ])->_real();
-
-        /** @var ShopItem $shopItem */
-        $shopItem = ShopItemFactory::createOne([
-            ShopItemEntityStructure::nazev        => 'Limitovaný předmět ' . $uniqueId,
-            ShopItemEntityStructure::kodPredmetu  => 'LIMIT_' . strtoupper($uniqueId),
-            ShopItemEntityStructure::modelRok     => ROCNIK,
-            ShopItemEntityStructure::cenaAktualni => '100',
-            ShopItemEntityStructure::stav         => StavPredmetu::VEREJNY,
-            ShopItemEntityStructure::nabizetDo    => new \DateTime('+1 day'),
-            ShopItemEntityStructure::kusuVyrobeno => 2,
-            ShopItemEntityStructure::typ          => TypPredmetu::PREDMET,
-        ])->_real();
-
-        $uzivatel = \Uzivatel::zIdUrcite($user->getId());
-        $shop = new Shop($uzivatel, $uzivatel, SystemoveNastaveni::zGlobals());
-        $chyba = null;
-
-        $puvodniPost = $_POST;
-        try {
-            $_POST = [
-                'shopP' => [
-                    $shopItem->getId() => 3,
-                ],
-            ];
-
-            $shop->zpracujPredmety();
-        } catch (\Chyba $zachycenaChyba) {
-            $chyba = $zachycenaChyba;
-        } finally {
-            $_POST = $puvodniPost;
-        }
-
-        self::assertInstanceOf(\Chyba::class, $chyba);
-        self::assertStringContainsString('Zbývá dostupných kusů: 2', $chyba->getMessage());
-
-        $pocetNakupu = (int) dbOneCol(<<<SQL
-SELECT COUNT(*) FROM shop_nakupy WHERE id_predmetu = $0 AND rok = $1
-SQL,
-            [
-                0 => $shopItem->getId(),
-                1 => ROCNIK,
-            ],
-        );
-
-        self::assertSame(0, $pocetNakupu);
+        $shop->prodat($this->idVarianty(88811), 3);
     }
 
     /**
@@ -126,40 +233,17 @@ SQL,
      */
     public function prodejPovoliNakupAzDoLimituZasob(): void
     {
-        $uniqueId = uniqid();
-
-        /** @var User $user */
-        $user = UserFactory::createOne([
-            UserEntityStructure::login    => 'test_buyer_' . $uniqueId,
-            UserEntityStructure::email    => 'test.buyer.' . $uniqueId . '@example.org',
-            UserEntityStructure::jmeno    => 'Test',
-            UserEntityStructure::prijmeni => 'Buyer',
-        ])->_real();
-
-        /** @var ShopItem $shopItem */
-        $shopItem = ShopItemFactory::createOne([
-            ShopItemEntityStructure::nazev        => 'Limitovaný předmět ' . $uniqueId,
-            ShopItemEntityStructure::kodPredmetu  => 'LIMIT_' . strtoupper($uniqueId),
-            ShopItemEntityStructure::modelRok     => ROCNIK,
-            ShopItemEntityStructure::cenaAktualni => '100',
-            ShopItemEntityStructure::stav         => StavPredmetu::VEREJNY,
-            ShopItemEntityStructure::nabizetDo    => new \DateTime('+1 day'),
-            ShopItemEntityStructure::kusuVyrobeno => 2,
-            ShopItemEntityStructure::typ          => TypPredmetu::PREDMET,
-        ])->_real();
-
-        $uzivatel = \Uzivatel::zIdUrcite($user->getId());
+        $uzivatel = \Uzivatel::zIdUrcite(88801);
         $shop = new Shop($uzivatel, $uzivatel, SystemoveNastaveni::zGlobals());
 
         // Item has 2 pieces available
         // Selling exactly 2 should succeed
-        $shop->prodat($shopItem->getId(), 2);
+        $shop->prodat($this->idVarianty(88811), 2);
 
-        $pocetNakupu = (int) dbOneCol(<<<SQL
-SELECT COUNT(*) FROM shop_nakupy WHERE id_predmetu = $0 AND rok = $1
-SQL,
+        $pocetNakupu = (int) dbOneCol(
+            'SELECT COUNT(*) FROM shop_nakupy INNER JOIN product_variant ON product_variant.id = shop_nakupy.variant_id WHERE product_variant.product_id = $0 AND rok = $1',
             [
-                0 => $shopItem->getId(),
+                0 => 88811,
                 1 => ROCNIK,
             ],
         );
@@ -172,40 +256,17 @@ SQL,
      */
     public function prodejPovoliNeomezenyNakupPriNullZasobach(): void
     {
-        $uniqueId = uniqid();
-
-        /** @var User $user */
-        $user = UserFactory::createOne([
-            UserEntityStructure::login    => 'test_buyer_' . $uniqueId,
-            UserEntityStructure::email    => 'test.buyer.' . $uniqueId . '@example.org',
-            UserEntityStructure::jmeno    => 'Test',
-            UserEntityStructure::prijmeni => 'Buyer',
-        ])->_real();
-
-        /** @var ShopItem $shopItem */
-        $shopItem = ShopItemFactory::createOne([
-            ShopItemEntityStructure::nazev        => 'Neomezený předmět ' . $uniqueId,
-            ShopItemEntityStructure::kodPredmetu  => 'UNLIM_' . strtoupper($uniqueId),
-            ShopItemEntityStructure::modelRok     => ROCNIK,
-            ShopItemEntityStructure::cenaAktualni => '100',
-            ShopItemEntityStructure::stav         => StavPredmetu::VEREJNY,
-            ShopItemEntityStructure::nabizetDo    => new \DateTime('+1 day'),
-            ShopItemEntityStructure::kusuVyrobeno => null,
-            ShopItemEntityStructure::typ          => TypPredmetu::PREDMET,
-        ])->_real();
-
-        $uzivatel = \Uzivatel::zIdUrcite($user->getId());
+        $uzivatel = \Uzivatel::zIdUrcite(88801);
         $shop = new Shop($uzivatel, $uzivatel, SystemoveNastaveni::zGlobals());
 
         // Item has unlimited stock (kusuVyrobeno = null)
         // Selling any amount should succeed
-        $shop->prodat($shopItem->getId(), 100);
+        $shop->prodat($this->idVarianty(88812), 100);
 
-        $pocetNakupu = (int) dbOneCol(<<<SQL
-SELECT COUNT(*) FROM shop_nakupy WHERE id_predmetu = $0 AND rok = $1
-SQL,
+        $pocetNakupu = (int) dbOneCol(
+            'SELECT COUNT(*) FROM shop_nakupy INNER JOIN product_variant ON product_variant.id = shop_nakupy.variant_id WHERE product_variant.product_id = $0 AND rok = $1',
             [
-                0 => $shopItem->getId(),
+                0 => 88812,
                 1 => ROCNIK,
             ],
         );
@@ -226,19 +287,44 @@ SQL,
             UserEntityStructure::email    => 'test.buyer.' . $uniqueId . '@example.org',
             UserEntityStructure::jmeno    => 'Test',
             UserEntityStructure::prijmeni => 'Buyer',
-        ])->_real();
+        ])->_save()->_real();
 
-        /** @var ShopItem $shopItem */
-        $shopItem = ShopItemFactory::createOne([
-            ShopItemEntityStructure::nazev        => 'Historický předmět ' . $uniqueId,
-            ShopItemEntityStructure::kodPredmetu  => 'HISTORY_' . strtoupper($uniqueId),
-            ShopItemEntityStructure::modelRok     => ROCNIK - 1,
-            ShopItemEntityStructure::cenaAktualni => '100',
-            ShopItemEntityStructure::stav         => StavPredmetu::VEREJNY,
-            ShopItemEntityStructure::nabizetDo    => new \DateTime('+1 day'),
-            ShopItemEntityStructure::kusuVyrobeno => 10,
-            ShopItemEntityStructure::typ          => TypPredmetu::PREDMET,
-        ])->_real();
+        // Stejnou cestou jako ostatní fixtures v téhle třídě: přes legacy zápis, aby se
+        // produkt zakládal tak, jak ho prodej opravdu čte.
+        // Ročník modelu se odvozuje z `archived_at` (NULL → letošní ROCNIK, jinak
+        // YEAR(archived_at)), proto je tu loňský rok.
+        $archivovano = (ROCNIK - 1) . '-12-31 23:59:59';
+        $budouci = date('Y-m-d H:i:s', strtotime('+1 day'));
+        dbQuery(
+            'INSERT INTO shop_predmety SET
+                nazev = $0,
+                kod_predmetu = $1,
+                cena_aktualni = 100,
+                stav = ' . StavPredmetu::VEREJNY . ",
+                nabizet_do = $2,
+                popis = '',
+                archived_at = $3",
+            [
+                0 => 'Historický předmět ' . $uniqueId,
+                1 => 'HISTORY_' . strtoupper($uniqueId),
+                2 => $budouci,
+                3 => $archivovano,
+            ],
+        );
+        $idPredmetu = (int) dbInsertId();
+        dbQuery(
+            "INSERT INTO product_product_tag (product_id, tag_id) SELECT $0, id FROM product_tag WHERE code = 'predmet'",
+            [
+                0 => $idPredmetu,
+            ],
+        );
+        dbQuery(
+            'INSERT INTO product_variant (product_id, name, code, position, state) VALUES ($0, NULL, $1, 0, 1)',
+            [
+                0 => $idPredmetu,
+                1 => 'HISTORY_' . strtoupper($uniqueId),
+            ],
+        );
 
         $uzivatel = \Uzivatel::zIdUrcite($user->getId());
         $shop = new Shop($uzivatel, $uzivatel, SystemoveNastaveni::zGlobals());
@@ -246,6 +332,116 @@ SQL,
         $this->expectException(\Chyba::class);
         $this->expectExceptionMessage('nelze ho prodávat');
 
-        $shop->prodat($shopItem->getId(), 1);
+        $shop->prodat($this->idVarianty($idPredmetu), 1);
+    }
+
+    /**
+     * A night is sold by its own catalog row, but the purchase points at its room type and names
+     * the night through its variant, as the cart writes it.
+     *
+     * @test
+     */
+    public function prodejNociZapiseJejiVariantuAUbereZeZasoby(): void
+    {
+        $uzivatel = \Uzivatel::zIdUrcite(88801);
+        $shop = new Shop($uzivatel, $uzivatel, SystemoveNastaveni::zGlobals());
+
+        $shop->prodat($this->idVarianty(88817), 1);
+
+        self::assertSame(
+            [
+                'id_predmetu'  => '88816',
+                'product_name' => 'Postel na pokoji',
+                'variant_name' => 'pátek',
+                'variant_code' => 'pokoj_prodej_test-pa',
+            ],
+            dbOneLine(
+                "SELECT product_variant.product_id AS id_predmetu, shop_nakupy.product_name, shop_nakupy.variant_name, shop_nakupy.variant_code
+                 FROM shop_nakupy
+                 JOIN product_variant ON product_variant.id = shop_nakupy.variant_id
+                 WHERE product_variant.code = 'pokoj_prodej_test-pa'",
+            ),
+        );
+        self::assertSame(
+            2,
+            $this->zbyva('pokoj_prodej_test-pa'),
+        );
+    }
+
+    /**
+     * A room type that got a variant of its own is not a bed on any night, so selling it would
+     * book nothing.
+     *
+     * @test
+     */
+    public function typPokojeNejdeProdat(): void
+    {
+        $idTypuPokoje = 88818;
+        $uzivatel = \Uzivatel::zIdUrcite(88801);
+        $shop = new Shop($uzivatel, $uzivatel, SystemoveNastaveni::zGlobals());
+        // Purchases of its nights point at the room type too, so the refusal is counted by what it adds.
+        $nakupuPredtim = (int) dbOneCol('SELECT COUNT(*) FROM shop_nakupy WHERE id_uzivatele = 88801');
+
+        try {
+            $shop->prodat($this->idVarianty($idTypuPokoje), 1);
+            self::fail('A room type must not be sellable');
+        } catch (\Chyba $chyba) {
+            self::assertStringContainsString('konkrétní noc', $chyba->getMessage());
+        }
+
+        self::assertSame($nakupuPredtim, (int) dbOneCol('SELECT COUNT(*) FROM shop_nakupy WHERE id_uzivatele = 88801'));
+    }
+
+    /**
+     * A cart sale holds the variant lock and then, inserting its purchase, a shared lock on the
+     * catalog row through the foreign key. Taking that row exclusively here would deadlock with it.
+     *
+     * @test
+     */
+    public function prodejNecekaNaSdilenyZamekPredmetuOdSoubeznehoNakupu(): void
+    {
+        $soubeznyNakup = DriverManager::getConnection(
+            static::getContainer()->get('doctrine.dbal.default_connection')->getParams(),
+        );
+        $soubeznyNakup->beginTransaction();
+        $soubeznyNakup->fetchOne('SELECT id_predmetu FROM shop_predmety WHERE id_predmetu = 88815 LOCK IN SHARE MODE');
+
+        $uzivatel = \Uzivatel::zIdUrcite(88801);
+        $shop = new Shop($uzivatel, $uzivatel, SystemoveNastaveni::zGlobals());
+        dbQuery('SET SESSION innodb_lock_wait_timeout = 1');
+        try {
+            $shop->prodat($this->idVarianty(88815), 1);
+        } finally {
+            dbQuery('SET SESSION innodb_lock_wait_timeout = DEFAULT');
+            $soubeznyNakup->rollBack();
+            $soubeznyNakup->close();
+        }
+
+        self::assertSame(4, $this->zbyva('soubeh_prodej_test'));
+    }
+
+    private function zbyva(string $kodVarianty): ?int
+    {
+        $idVarianty = (int) dbOneCol('SELECT id FROM product_variant WHERE code = $0', [
+            0 => $kodVarianty,
+        ]);
+
+        return static::getContainer()->get(CapacityManager::class)->remainingByVariantId([$idVarianty])[$idVarianty] ?? null;
+    }
+
+    /**
+     * The variant a catalog row stands for, matched by code as every purchase was.
+     */
+    private function idVarianty(int $idPredmetu): int
+    {
+        $idVarianty = (int) dbOneCol(
+            'SELECT product_variant.id FROM product_variant INNER JOIN shop_predmety ON shop_predmety.kod_predmetu = product_variant.code WHERE shop_predmety.id_predmetu = $0',
+            [
+                0 => $idPredmetu,
+            ],
+        );
+        self::assertNotSame(0, $idVarianty, "Předmět {$idPredmetu} nemá variantu");
+
+        return $idVarianty;
     }
 }

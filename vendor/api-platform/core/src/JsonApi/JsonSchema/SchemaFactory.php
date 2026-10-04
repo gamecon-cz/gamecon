@@ -1,0 +1,410 @@
+<?php
+
+/*
+ * This file is part of the API Platform project.
+ *
+ * (c) Kévin Dunglas <dunglas@gmail.com>
+ *
+ * For the full copyright and license information, please view the LICENSE
+ * file that was distributed with this source code.
+ */
+
+declare(strict_types=1);
+
+namespace ApiPlatform\JsonApi\JsonSchema;
+
+use ApiPlatform\JsonApi\Serializer\ReservedAttributeNameConverter;
+use ApiPlatform\JsonApi\Util\ResourceLinkageResolver;
+use ApiPlatform\JsonSchema\DefinitionNameFactory;
+use ApiPlatform\JsonSchema\DefinitionNameFactoryInterface;
+use ApiPlatform\JsonSchema\ResourceMetadataTrait;
+use ApiPlatform\JsonSchema\Schema;
+use ApiPlatform\JsonSchema\SchemaFactoryAwareInterface;
+use ApiPlatform\JsonSchema\SchemaFactoryInterface;
+use ApiPlatform\JsonSchema\SchemaUriPrefixTrait;
+use ApiPlatform\Metadata\HttpOperation;
+use ApiPlatform\Metadata\Operation;
+use ApiPlatform\Metadata\Property\Factory\PropertyMetadataFactoryInterface;
+use ApiPlatform\Metadata\Resource\Factory\ResourceMetadataCollectionFactoryInterface;
+use ApiPlatform\Metadata\ResourceClassResolverInterface;
+use ApiPlatform\State\ApiResource\Error;
+
+/**
+ * Decorator factory which adds JSON:API properties to the JSON Schema document.
+ *
+ * @author Gwendolen Lynch <gwendolen.lynch@gmail.com>
+ */
+final class SchemaFactory implements SchemaFactoryInterface, SchemaFactoryAwareInterface
+{
+    use ResourceMetadataTrait;
+    use SchemaUriPrefixTrait;
+
+    /**
+     * As JSON:API recommends using [includes](https://jsonapi.org/format/#fetching-includes) instead of groups
+     * this flag allows to force using groups to generate the JSON:API JSONSchema. Defaults to true, use it in
+     * a serializer context.
+     */
+    public const DISABLE_JSON_SCHEMA_SERIALIZER_GROUPS = 'disable_json_schema_serializer_groups';
+
+    private const COLLECTION_BASE_SCHEMA_NAME = 'JsonApiCollectionBaseSchema';
+    private const COLLECTION_BASE_SCHEMA_NAME_NO_PAGINATION = 'JsonApiCollectionBaseSchemaNoPagination';
+
+    private const RELATION_PROPS = [
+        'type' => 'object',
+        'properties' => [
+            'type' => [
+                'type' => 'string',
+            ],
+            'id' => [
+                'type' => 'string',
+                'format' => 'iri-reference',
+            ],
+        ],
+        'required' => ['type', 'id'],
+    ];
+    private const PROPERTY_PROPS = [
+        'id' => [
+            'type' => 'string',
+        ],
+        'type' => [
+            'type' => 'string',
+        ],
+        'attributes' => [
+            'type' => 'object',
+            'properties' => [],
+        ],
+    ];
+
+    /**
+     * @var array<string, bool>
+     */
+    private $builtSchema = [];
+
+    private readonly ResourceLinkageResolver $resourceLinkageResolver;
+
+    public function __construct(private readonly SchemaFactoryInterface $schemaFactory, private readonly PropertyMetadataFactoryInterface $propertyMetadataFactory, ResourceClassResolverInterface $resourceClassResolver, ?ResourceMetadataCollectionFactoryInterface $resourceMetadataFactory = null, private ?DefinitionNameFactoryInterface $definitionNameFactory = null, ?ResourceLinkageResolver $resourceLinkageResolver = null)
+    {
+        if (!$definitionNameFactory) {
+            $this->definitionNameFactory = new DefinitionNameFactory();
+        }
+        if ($this->schemaFactory instanceof SchemaFactoryAwareInterface) {
+            $this->schemaFactory->setSchemaFactory($this);
+        }
+        $this->resourceClassResolver = $resourceClassResolver;
+        $this->resourceMetadataFactory = $resourceMetadataFactory;
+        $this->resourceLinkageResolver = $resourceLinkageResolver ?? new ResourceLinkageResolver($resourceClassResolver);
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function buildSchema(string $className, string $format = 'jsonapi', string $type = Schema::TYPE_OUTPUT, ?Operation $operation = null, ?Schema $schema = null, ?array $serializerContext = null, bool $forceCollection = false): Schema
+    {
+        if ('jsonapi' !== $format) {
+            return $this->schemaFactory->buildSchema($className, $format, $type, $operation, $schema, $serializerContext, $forceCollection);
+        }
+
+        if (!$this->isResourceClass($className)) {
+            $operation = null;
+            $inputOrOutputClass = null;
+            $serializerContext ??= [];
+        } else {
+            $operation = $this->findOperation($className, $type, $operation, $serializerContext, $format);
+            $inputOrOutputClass = $this->findOutputClass($className, $type, $operation, $serializerContext);
+            $serializerContext ??= $this->getSerializerContext($operation, $type);
+        }
+
+        if (null === $inputOrOutputClass) {
+            // input or output disabled
+            return $this->schemaFactory->buildSchema($className, $format, $type, $operation, $schema, $serializerContext, $forceCollection);
+        }
+
+        // We don't use the serializer context here as JSON:API doesn't leverage serializer groups for related resources.
+        // That is done by query parameter. @see https://jsonapi.org/format/#fetching-includes
+        $jsonApiSerializerContext = $serializerContext;
+        if (true === ($serializerContext[self::DISABLE_JSON_SCHEMA_SERIALIZER_GROUPS] ?? true) && $inputOrOutputClass === $className) {
+            unset($jsonApiSerializerContext['groups']);
+        }
+
+        $schema = $this->schemaFactory->buildSchema($className, 'json', $type, $operation, $schema, $jsonApiSerializerContext, $forceCollection);
+        $definitionName = $this->definitionNameFactory->create($className, $format, $inputOrOutputClass, $operation, $jsonApiSerializerContext + ['schema_type' => $type]);
+        $prefix = $this->getSchemaUriPrefix($schema->getVersion());
+        $definitions = $schema->getDefinitions();
+        $collectionKey = $schema->getItemsDefinitionKey();
+
+        // Already computed
+        if (!$collectionKey && isset($definitions[$definitionName])) {
+            $schema['$ref'] = $prefix.$definitionName;
+
+            return $schema;
+        }
+
+        $key = $schema->getRootDefinitionKey() ?? $collectionKey;
+        $properties = $definitions[$definitionName]['properties'] ?? [];
+
+        if (Error::class === $className && !isset($properties['errors'])) {
+            $definitions[$definitionName]['properties'] = [
+                'errors' => [
+                    'type' => 'array',
+                    'items' => [
+                        'allOf' => [
+                            ['$ref' => $prefix.$key],
+                            ['type' => 'object', 'properties' => ['source' => ['type' => 'object'], 'status' => ['type' => ['string', 'integer', 'null']]]],
+                        ],
+                    ],
+                ],
+            ];
+
+            $schema['$ref'] = $prefix.$definitionName;
+
+            return $schema;
+        }
+
+        if (!$collectionKey) {
+            $definitions[$definitionName]['properties'] = $this->buildDefinitionPropertiesSchema($key, $className, $format, $type, $operation, $schema, []);
+            $schema['$ref'] = $prefix.$definitionName;
+
+            return $schema;
+        }
+
+        if (($schema['type'] ?? '') !== 'array') {
+            return $schema;
+        }
+
+        if (!isset($definitions[self::COLLECTION_BASE_SCHEMA_NAME_NO_PAGINATION])) {
+            $definitions[self::COLLECTION_BASE_SCHEMA_NAME_NO_PAGINATION] = [
+                'type' => 'object',
+                'properties' => [
+                    'links' => [
+                        'type' => 'object',
+                        'properties' => [
+                            'self' => [
+                                'type' => 'string',
+                                'format' => 'iri-reference',
+                            ],
+                        ],
+                        'example' => [
+                            'self' => 'string',
+                        ],
+                    ],
+                    'meta' => [
+                        'type' => 'object',
+                        'properties' => [
+                            'totalItems' => [
+                                'type' => 'integer',
+                                'minimum' => 0,
+                            ],
+                        ],
+                    ],
+                    'data' => [
+                        'type' => 'array',
+                    ],
+                ],
+                'required' => ['data'],
+            ];
+
+            $definitions[self::COLLECTION_BASE_SCHEMA_NAME] = [
+                'allOf' => [
+                    ['$ref' => $prefix.self::COLLECTION_BASE_SCHEMA_NAME_NO_PAGINATION],
+                    [
+                        'type' => 'object',
+                        'properties' => [
+                            'links' => [
+                                'type' => 'object',
+                                'properties' => [
+                                    'first' => [
+                                        'type' => 'string',
+                                        'format' => 'iri-reference',
+                                    ],
+                                    'prev' => [
+                                        'type' => 'string',
+                                        'format' => 'iri-reference',
+                                    ],
+                                    'next' => [
+                                        'type' => 'string',
+                                        'format' => 'iri-reference',
+                                    ],
+                                    'last' => [
+                                        'type' => 'string',
+                                        'format' => 'iri-reference',
+                                    ],
+                                ],
+                                'example' => [
+                                    'first' => 'string',
+                                    'prev' => 'string',
+                                    'next' => 'string',
+                                    'last' => 'string',
+                                ],
+                            ],
+                            'meta' => [
+                                'type' => 'object',
+                                'properties' => [
+                                    'itemsPerPage' => [
+                                        'type' => 'integer',
+                                        'minimum' => 0,
+                                    ],
+                                    'currentPage' => [
+                                        'type' => 'integer',
+                                        'minimum' => 0,
+                                    ],
+                                ],
+                            ],
+                        ],
+                    ],
+                ],
+            ];
+        }
+
+        unset($schema['items']);
+        unset($schema['type']);
+
+        $properties = $this->buildDefinitionPropertiesSchema($key, $className, $format, $type, $operation, $schema, []);
+
+        $properties['data'] = [
+            'type' => 'array',
+            'items' => $properties['data'],
+        ];
+
+        $schema['description'] = "$definitionName collection.";
+        $schema['allOf'] = [
+            ['$ref' => $prefix.(false === $operation->getPaginationEnabled() ? self::COLLECTION_BASE_SCHEMA_NAME_NO_PAGINATION : self::COLLECTION_BASE_SCHEMA_NAME)],
+            ['type' => 'object', 'properties' => $properties],
+        ];
+
+        return $schema;
+    }
+
+    public function setSchemaFactory(SchemaFactoryInterface $schemaFactory): void
+    {
+        if ($this->schemaFactory instanceof SchemaFactoryAwareInterface) {
+            $this->schemaFactory->setSchemaFactory($schemaFactory);
+        }
+    }
+
+    private function buildDefinitionPropertiesSchema(string $key, string $className, string $format, string $type, ?Operation $operation, Schema $schema, ?array $serializerContext): array
+    {
+        // Capture the resource's operation up front; the relationship loop below reassigns $operation.
+        $resourceOperation = $operation;
+        $definitions = $schema->getDefinitions();
+        $properties = $definitions[$key]['properties'] ?? [];
+
+        $attributes = [];
+        $relationships = [];
+        $relatedDefinitions = [];
+        foreach ($properties as $propertyName => $property) {
+            if ($relation = $this->getRelationship($className, $propertyName, $serializerContext)) {
+                [$isOne, $relatedClasses] = $relation;
+                $refs = [];
+                foreach ($relatedClasses as $relatedClassName => $hasOperations) {
+                    if (false === $hasOperations) {
+                        continue;
+                    }
+
+                    $operation = $this->findOperation($relatedClassName, $type, null, $serializerContext);
+                    $inputOrOutputClass = $this->findOutputClass($relatedClassName, $type, $operation, $serializerContext);
+                    $serializerContext ??= $this->getSerializerContext($operation, $type);
+                    $definitionName = $this->definitionNameFactory->create($relatedClassName, $format, $inputOrOutputClass, $operation, $serializerContext + ['schema_type' => $type]);
+
+                    // to avoid recursion
+                    if ($this->builtSchema[$definitionName] ?? false) {
+                        $refs[$this->getSchemaUriPrefix($schema->getVersion()).$definitionName] = '$ref';
+                        continue;
+                    }
+
+                    if (!isset($definitions[$definitionName])) {
+                        $this->builtSchema[$definitionName] = true;
+                        $subSchema = new Schema($schema->getVersion());
+                        $subSchema->setDefinitions($schema->getDefinitions());
+                        $subSchema = $this->buildSchema($relatedClassName, $format, $type, $operation, $subSchema, $serializerContext + [self::FORCE_SUBSCHEMA => true], false);
+                        $schema->setDefinitions($subSchema->getDefinitions());
+                        $definitions = $schema->getDefinitions();
+                    }
+
+                    $refs[$this->getSchemaUriPrefix($schema->getVersion()).$definitionName] = '$ref';
+                }
+                // keep one entry per related definition: a polymorphic relation targets several resource classes, all of which may appear in "included"
+                foreach (array_keys($refs) as $ref) {
+                    $relatedDefinitions[$ref] = ['$ref' => $ref];
+                }
+                // A relationship literally named "relationships"/"included" is prefixed at runtime too.
+                $relationshipName = ReservedAttributeNameConverter::JSON_API_RESERVED_ATTRIBUTES[$propertyName] ?? $propertyName;
+                if ($isOne) {
+                    $relationships[$relationshipName]['properties']['data'] = [
+                        'oneOf' => [
+                            ['type' => 'null'],
+                            self::RELATION_PROPS,
+                        ],
+                    ];
+                    continue;
+                }
+                $relationships[$relationshipName]['properties']['data'] = [
+                    'type' => 'array',
+                    'items' => self::RELATION_PROPS,
+                ];
+                continue;
+            }
+
+            // Reserved names (id, type, links, relationships, included) are prefixed by the
+            // ReservedAttributeNameConverter at runtime; mirror that single source of truth here.
+            $attributes[ReservedAttributeNameConverter::JSON_API_RESERVED_ATTRIBUTES[$propertyName] ?? $propertyName] = $property;
+        }
+
+        $replacement = self::PROPERTY_PROPS;
+        $replacement['attributes']['properties'] = $attributes;
+
+        $included = [];
+        if (\count($relationships) > 0) {
+            $replacement['relationships'] = [
+                'type' => 'object',
+                'properties' => $relationships,
+            ];
+            $included = [
+                'included' => [
+                    'description' => 'Related resources requested via the "include" query parameter.',
+                    'type' => 'array',
+                    'items' => [
+                        'anyOf' => array_values($relatedDefinitions),
+                    ],
+                    'readOnly' => true,
+                    'externalDocs' => [
+                        'url' => 'https://jsonapi.org/format/#fetching-includes',
+                    ],
+                ],
+            ];
+        }
+
+        // https://jsonapi.org/format/#crud-creating — clients MAY supply an id when creating a resource.
+        // Only relax the requirement on the input schema; responses still always carry an `id`.
+        $required = Schema::TYPE_INPUT === $type && $resourceOperation instanceof HttpOperation && 'POST' === $resourceOperation->getMethod() ? ['type'] : ['type', 'id'];
+
+        return [
+            'data' => [
+                'type' => 'object',
+                'properties' => $replacement,
+                'required' => $required,
+            ],
+        ] + $included;
+    }
+
+    private function getRelationship(string $resourceClass, string $property, ?array $serializerContext): ?array
+    {
+        $propertyMetadata = $this->propertyMetadataFactory->create($resourceClass, $property, $serializerContext ?? []);
+
+        // Share the runtime attributes/relationships split so the generated schema cannot drift from the document.
+        $relationships = $this->resourceLinkageResolver->getRelationships($propertyMetadata);
+        if ([] === $relationships) {
+            return null;
+        }
+
+        $isOne = false;
+        $relatedClasses = [];
+        foreach ($relationships as [$className, $isCollection]) {
+            $isOne = $isOne || !$isCollection;
+            // @see https://github.com/api-platform/core/issues/5501
+            // @see https://github.com/api-platform/core/pull/5722
+            $relatedClasses[$className] = $this->resourceMetadataFactory->create($className)->getOperation()->canRead();
+        }
+
+        return [$isOne, $relatedClasses];
+    }
+}

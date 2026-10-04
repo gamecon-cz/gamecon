@@ -12,7 +12,7 @@ SELECT hodnota
 FROM systemove_nastaveni
 WHERE klic = 'NEPLATIC_CASTKA_VELKY_DLUH'
     AND rocnik_nastaveni = -1
-")->fetch_assoc()['hodnota'] ?? '251'; // fallback je nedosažitelný, klíč zakládá migrace 000
+")->fetch(PDO::FETCH_ASSOC)['hodnota'] ?? '251'; // fallback je nedosažitelný, klíč zakládá migrace 000
 
 $vychoziCastka = (float)$vychoziCastka;
 
