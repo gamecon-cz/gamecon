@@ -31,7 +31,7 @@ HTML;
 $veci      = Accounting::getPersonalFinance($u, showDiscounts: true);
 $slevyA    = array_flat('<li>', $u->finance()->slevyNaAktivity(), '</li>');
 $slevyV    = array_flat('<li>', $u->finance()->slevyVse(), '</li>');
-$bonusZaVedeniAktivit = Finance::zaokouhli($u->finance()->bonusZaVedeniAktivit());
+$bonusZaVedeniAktivit = Finance::zaokouhli($u->finance()->bonusZaAktivity());
 if ($bonusZaVedeniAktivit > 0.0) {
     $bonusZaVedeniAktivitText = (float)(int)$bonusZaVedeniAktivit === $bonusZaVedeniAktivit
         ? (string)(int)$bonusZaVedeniAktivit
