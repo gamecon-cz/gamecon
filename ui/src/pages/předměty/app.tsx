@@ -156,7 +156,7 @@ export const Předměty: FunctionComponent = () => {
                   KATEGORIE_TAG_KODY.includes(tag.code as typeof KATEGORIE_TAG_KODY[number]),
                 );
                 return (
-                  <tr key={produkt.id}>
+                  <tr key={produkt.id} className={produkt.archivedAt ? "produkty__archived" : undefined}>
                     <td>{produkt.name}</td>
                     <td>{produkt.currentPrice}.-</td>
                     <td>{kategorieTag?.name ?? "—"}</td>
