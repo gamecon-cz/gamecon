@@ -665,7 +665,9 @@ SQL,
             $discountCalculator,
             $yearProvider,
             new NativeClock(),
-            new RestrictedProductRules(),
+            new RestrictedProductRules(
+                new \App\Service\UserPermissions(self::getContainer()->get(\App\Discount\DiscountRuleLoader::class)),
+            ),
             $orderItemRepo,
             new \App\Service\SpentQuotaProvider(
                 $orderItemRepo,

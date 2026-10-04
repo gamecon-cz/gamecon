@@ -81,17 +81,11 @@ class ShirtProductsProviderTest extends TestCase
         $security->method('getUser')->willReturn($this->createMock(User::class));
 
         $this->restrictedProductRules = $this->createMock(RestrictedProductRules::class);
-        // Legacy uživatel musí existovat, jinak by ho fail-closed kontrola odmítla dřív,
-        // než se vůbec zeptá na právo.
-        $this->restrictedProductRules->method('legacyUserFor')
-            ->willReturn($this->createMock(\Uzivatel::class));
-        $this->restrictedProductRules->method('isRestricted')
-            ->willReturnCallback(
-                static fn (Product $product): bool => $product->hasTag(ProductTagCode::TRICKO_CERVENE->value)
-                    || $product->hasTag(ProductTagCode::TRICKO_MODRE->value),
-            );
+        $jeOmezene = static fn (Product $product): bool => $product->hasTag(ProductTagCode::TRICKO_CERVENE->value)
+            || $product->hasTag(ProductTagCode::TRICKO_MODRE->value);
+        $this->restrictedProductRules->method('isRestricted')->willReturnCallback($jeOmezene);
         $this->restrictedProductRules->method('mayOrder')
-            ->willReturnCallback(fn (): bool => $this->smiOmezene);
+            ->willReturnCallback(fn (Product $product): bool => ! $jeOmezene($product) || $this->smiOmezene);
 
         $this->provider = new ShirtProductsProvider(
             $this->productRepository,
