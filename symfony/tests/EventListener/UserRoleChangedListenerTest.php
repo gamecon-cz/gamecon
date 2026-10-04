@@ -86,8 +86,6 @@ class UserRoleChangedListenerTest extends TestCase
         $notifier = $this->priceIncreaseNotifier;
         $restrictedProductRules = $this->createMock(RestrictedProductRules::class);
         $restrictedProductRules->method('mayOrder')->willReturn($this->mayOrder);
-        $restrictedProductRules->method('legacyUserFor')
-            ->willReturn($this->createMock(\Uzivatel::class));
         /** @var EntityManagerInterface $entityManager */
         $entityManager = $this->createMock(EntityManagerInterface::class);
         /** @var LoggerInterface $logger */

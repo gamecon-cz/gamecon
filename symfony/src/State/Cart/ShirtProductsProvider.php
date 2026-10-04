@@ -60,9 +60,6 @@ readonly class ShirtProductsProvider implements ProviderInterface
         $year = $this->currentYearProvider->getCurrentYear();
         $nastaveni = SystemoveNastaveni::zGlobals();
         $roleMeanings = $user->getRoleMeanings();
-        // Legacy uživatel stojí dotaz navíc, a když v nabídce žádné omezené tričko není,
-        // není za co platit. Načte se proto až u prvního, a pak se drží.
-        $legacyUser = false;
         // Jednou za request: mřížka mezi produkty nezapisuje, takže se spotřeba nemění.
         $spentQuota = $this->spentQuota->forUser($user, $year);
 
@@ -72,14 +69,9 @@ readonly class ShirtProductsProvider implements ProviderInterface
                 ? $nastaveni->prodejMikinUkoncen()
                 : $nastaveni->prodejTricekUkoncen();
 
-            if ($this->restrictedProductRules->isRestricted($product) && $legacyUser === false) {
-                $legacyUser = $this->restrictedProductRules->legacyUserFor($user);
-            }
-
             $dto = $this->toDto(
                 $product,
                 $user,
-                $legacyUser === false ? null : $legacyUser,
                 $year,
                 $prodejUkoncen,
                 $roleMeanings,
@@ -118,7 +110,6 @@ readonly class ShirtProductsProvider implements ProviderInterface
     private function toDto(
         Product $product,
         User $user,
-        ?\Uzivatel $legacyUser,
         int $year,
         bool $prodejUkoncen,
         array $roleMeanings,
@@ -126,10 +117,8 @@ readonly class ShirtProductsProvider implements ProviderInterface
     ): ?MerchProductOutputDto {
         // Omezené tričko se bez práva vůbec nenabízí — jinak by zákazník klikl a dostal
         // chybu z `CartService`, místo aby ho neviděl.
-        if ($this->restrictedProductRules->isRestricted($product)) {
-            if ($legacyUser === null || ! $this->restrictedProductRules->mayOrder($product, $legacyUser)) {
-                return null;
-            }
+        if (! $this->restrictedProductRules->mayOrder($product, $user, $year)) {
+            return null;
         }
 
         $purchasedQuantity = $this->orderItemRepository->countCustomerPurchases($user, $product, $year);

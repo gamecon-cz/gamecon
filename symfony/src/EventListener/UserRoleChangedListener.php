@@ -73,8 +73,6 @@ readonly class UserRoleChangedListener
         // Kolikátý kus téhož produktu právě přeceňujeme — u nároku s omezeným počtem
         // je druhé tričko v objednávce už za plnou cenu.
         $alreadyCounted = [];
-        // Resolved once for the whole order; permissions cannot change mid-request.
-        $legacyUzivatel = $this->restrictedProductRules->legacyUserFor($user);
 
         foreach ($order->getItems() as $orderItem) {
             $product = $orderItem->getProduct();
@@ -84,16 +82,8 @@ readonly class UserRoleChangedListener
             }
 
             // They ordered it while entitled; losing the right to order it again must not
-            // silently reprice what they already have. Without the legacy user the permission
-            // is unknowable, and silently freezing prices would hide that.
-            if ($legacyUzivatel === null) {
-                $this->logger->error('Přecenění objednávky bez legacy uživatele — práva nelze ověřit.', [
-                    'user_id' => $user->getId(),
-                ]);
-
-                return;
-            }
-            if (! $this->restrictedProductRules->mayOrder($product, $legacyUzivatel)) {
+            // silently reprice what they already have.
+            if (! $this->restrictedProductRules->mayOrder($product, $user, $year)) {
                 continue;
             }
 
