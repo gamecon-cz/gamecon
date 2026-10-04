@@ -99,16 +99,15 @@ class Migration
     {
         $this->connection->setAttribute(\PDO::ATTR_ERRMODE, \PDO::ERRMODE_EXCEPTION);
 
-        // Check if this looks like a single SELECT/SHOW query (returns result set)
-        $trimmed = ltrim($query);
-        if (preg_match('/^(SELECT|SHOW|DESCRIBE|EXPLAIN)\b/i', $trimmed)) {
-            return $this->connection->query($query);
+        $result = $this->connection->query($query);
+        // Decided by what came back, not by the first word: draining a read below would
+        // discard its rows, so a WITH or a commented SELECT returned nothing.
+        if ($result instanceof \PDOStatement && $result->columnCount() > 0) {
+            return $result;
         }
 
-        // For DDL/DML multi-statement SQL, use query() with nextRowset() to consume
-        // all result sets. \PDO::MYSQL_ATTR_MULTI_STATEMENTS must be enabled on the connection.
-        $result = $this->connection->query($query);
-
+        // For DDL/DML multi-statement SQL, consume all result sets with nextRowset().
+        // \PDO::MYSQL_ATTR_MULTI_STATEMENTS must be enabled on the connection.
         if ($result instanceof \PDOStatement) {
             // Advance through all result sets from multi-statement queries.
             // nextRowset() returns false when there are no more results.
