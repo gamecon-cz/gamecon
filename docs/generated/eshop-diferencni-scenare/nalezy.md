@@ -533,7 +533,7 @@ Zámek je na **dvou vrstvách**, protože ta v UI sama o sobě nic nedrží:
 | `JídloMatice.tsx` | `disabled` bez výjimky `!checked` — zamyká i koupené |
 
 Pult zůstává odemčený: chodí mimo košík, přes `MealWriter`, a v katalogu se pozná podle
-`?customerId` **plus** práva (`CustomerDeskRights::jeObsluhaPultu()`), takže si účastník
+`?customerId` **plus** podmínky pultu (`AdminCustomerOrderResource::DESK_OPERATOR`), takže si účastník
 matici dopsáním parametru do URL neodemkne.
 
 **Že je zámek v UI jen kosmetický, se ukázalo až při ověřování:** matice byla zamčená, ale

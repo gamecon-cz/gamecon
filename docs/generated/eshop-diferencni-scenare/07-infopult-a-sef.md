@@ -25,7 +25,8 @@ Testuje se **ze tří stran** — právo rozhoduje, ne role:
 
 **Pozor:** `ROLE_ADMIN` v nové vrstvě tohle neřeší — `User::getRoles()` porovnává kódy rolí
 proti pevnému seznamu, kdežto reálné kódy jsou po ročnících (`gc2026_infopult`). Kontrola
-proto sedí uvnitř v `CustomerDeskRights` na právech 100/101. Ověřit, že to platí i v GUI.
+proto stojí v `security:` operací (`AdminCustomerOrderResource::DESK_OPERATOR`: `PermissionVoter`
+na právech 100/101 a k tomu živá admin session téhož uživatele). Ověřit, že to platí i v GUI.
 
 ## Co projít
 
@@ -115,9 +116,9 @@ SET capacity = 0 WHERE code = <kód varianty>`.
 
 ### `SEF_INFOPULTU` sám o sobě do adminu nepustí
 
-Role 24 nese jen práva **111 a 1038** — ani 100, ani 101. `CustomerDeskRights` přitom
-vyžaduje 100 nebo 101, takže držitel *jen* téhle role by dostal „Na objednávání za
-účastníky nemáš právo" dřív, než by se vůbec došlo na přeplnění.
+Role 24 nese jen práva **111 a 1038** — ani 100, ani 101. Pult (`DESK_OPERATOR`) přitom
+vyžaduje 100 nebo 101, takže držitel *jen* téhle role by dostal 403 „Objednávat za
+účastníky smí jen obsluha pultu…" dřív, než by se vůbec došlo na přeplnění.
 
 **Není to chyba v produkci:** všichni reální držitelé mají 30+ dalších rolí, odkud 100/101
 dostanou. Je to add-on role, ne samostatná. Důsledek je testovací: **7.11 nejde ověřit

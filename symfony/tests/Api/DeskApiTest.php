@@ -5,11 +5,18 @@ declare(strict_types=1);
 namespace App\Tests\Api;
 
 use ApiPlatform\Symfony\Bundle\Test\Client;
+use App\Entity\Product;
+use App\Entity\ProductTag;
+use App\Entity\ProductVariant;
 use App\Entity\User;
 use App\Enum\PermissionEnum;
+use App\Enum\ProductStateEnum;
+use App\Enum\ProductTagCode;
 use App\Service\JwtService;
 use App\Structure\Entity\UserEntityStructure;
 use App\Tests\AbstractDatabaseKernelTestCase;
+use Gamecon\Cas\DateTimeImmutableStrict;
+use Gamecon\SystemoveNastaveni\SystemoveNastaveni;
 use Gamecon\Tests\Factory\UserFactory;
 
 /**
@@ -18,9 +25,40 @@ use Gamecon\Tests\Factory\UserFactory;
  */
 class DeskApiTest extends AbstractDatabaseKernelTestCase
 {
+    private const REFUSAL = 'Objednávat za účastníky smí jen obsluha pultu přihlášená v adminu.';
+
+    private mixed $puvodniNastaveni = null;
+
+    private bool $sessionIdSetHere = false;
+
     protected static function getKernelClass(): string
     {
         return \App\Kernel::class;
+    }
+
+    protected function setUp(): void
+    {
+        parent::setUp();
+
+        // The legacy session is read from $_SESSION; a fixed id keeps it from starting a real one.
+        if (session_id() === '') {
+            session_id('desk-api-test');
+            $this->sessionIdSetHere = true;
+        }
+        $this->puvodniNastaveni = $GLOBALS['systemoveNastaveni'] ?? null;
+    }
+
+    protected function tearDown(): void
+    {
+        unset($_SESSION[\Uzivatel::UZIVATEL]);
+        // Legacy tests that come later must start their own session, not find this one.
+        if ($this->sessionIdSetHere) {
+            session_id('');
+            unset($_SESSION);
+        }
+        $GLOBALS['systemoveNastaveni'] = $this->puvodniNastaveni;
+
+        parent::tearDown();
     }
 
     /**
@@ -39,27 +77,22 @@ class DeskApiTest extends AbstractDatabaseKernelTestCase
     }
 
     /**
-     * Refused before the customer is even looked up, so the answer says nothing about which
-     * ids exist.
+     * The customer does not exist, so a check that ran after the lookup would answer 400 and
+     * tell the caller which ids are real.
      *
      * @dataProvider deskOperationProvider
      *
      * @param array<string, mixed>|null $body
      */
-    public function testOperatorWithoutADeskRightIsRefused(string $method, string $uri, ?array $body): void
+    public function testOperatorWithoutADeskRightIsRefusedBeforeAnyLookup(string $method, string $uri, ?array $body): void
     {
-        $customerId = $this->user('desk_customer_')->getId();
+        $nobody = $this->user('desk_nobody_');
+        $this->signIntoAdmin($nobody);
 
-        $response = $this->clientFor($this->user('desk_nobody_'))->request($method, sprintf($uri, $customerId), $body === null
-            ? []
-            : [
-                'json' => $body + [
-                    'customerId' => $customerId,
-                ],
-            ]);
+        $response = $this->request($nobody, $method, $uri, $body, customerId: 999999999);
 
         self::assertSame(403, $response->getStatusCode(), $response->getContent(false));
-        self::assertSame('Na objednávání za účastníky nemáš právo.', $response->toArray(false)['detail'] ?? null);
+        self::assertSame(self::REFUSAL, $response->toArray(false)['detail'] ?? null);
     }
 
     /**
@@ -78,13 +111,76 @@ class DeskApiTest extends AbstractDatabaseKernelTestCase
      */
     public function testEitherDeskRightLetsTheOperatorIn(PermissionEnum $permission): void
     {
-        $customerId = $this->user('desk_customer_')->getId();
-        $operator = $this->user('desk_operator_');
-        $this->grant($operator, $permission);
+        $operator = $this->operator($permission);
+        $this->signIntoAdmin($operator);
 
-        $response = $this->clientFor($operator)->request('GET', sprintf('/symfony/api/admin/customer-meals?customerId=%d', $customerId));
+        $response = $this->request($operator, 'GET', '/symfony/api/admin/customer-meals?customerId=%d', null, $this->user('desk_customer_')->getId());
 
         self::assertSame(200, $response->getStatusCode(), $response->getContent(false));
+    }
+
+    /**
+     * Logging out ends the admin session but not the JWT the page still holds.
+     *
+     * @return iterable<string, array{bool}>
+     */
+    public static function endedAdminSessionProvider(): iterable
+    {
+        yield 'logged out' => [false];
+        yield 'someone else logged in' => [true];
+    }
+
+    /**
+     * @dataProvider endedAdminSessionProvider
+     */
+    public function testOperatorWhoseAdminSessionEndedIsRefused(bool $someoneElseSignedIn): void
+    {
+        $operator = $this->operator(PermissionEnum::ADMINISTRACE_INFOPULT);
+        if ($someoneElseSignedIn) {
+            $this->signIntoAdmin($this->user('desk_next_'));
+        }
+
+        $response = $this->request($operator, 'GET', '/symfony/api/admin/customer-meals?customerId=%d', null, $this->user('desk_customer_')->getId());
+
+        self::assertSame(403, $response->getStatusCode(), $response->getContent(false));
+        self::assertSame(self::REFUSAL, $response->toArray(false)['detail'] ?? null);
+    }
+
+    /**
+     * The catalogue is shared with participants; the desk only differs in ordering past the
+     * deadline, and only a real operator gets that, whatever ?customerId says.
+     */
+    public function testOnlyTheDeskSeesMealsUnlockedPastTheDeadline(): void
+    {
+        $variantId = $this->meal();
+        $GLOBALS['systemoveNastaveni'] = SystemoveNastaveni::zGlobals(
+            rocnik: ROCNIK,
+            ted: new DateTimeImmutableStrict('2099-01-01 00:00:00'),
+        );
+        $operator = $this->operator(PermissionEnum::ADMINISTRACE_INFOPULT);
+        $nobody = $this->user('desk_nobody_');
+        $uri = '/symfony/api/cart/meals?customerId=%d';
+
+        $this->signIntoAdmin($operator);
+        $forOperator = $this->request($operator, 'GET', $uri, null, (int) $nobody->getId());
+        $this->signIntoAdmin($nobody);
+        $forNobody = $this->request($nobody, 'GET', $uri, null, (int) $operator->getId());
+
+        self::assertFalse($this->lockedOf($forOperator->toArray(false), $variantId), $forOperator->getContent(false));
+        self::assertTrue($this->lockedOf($forNobody->toArray(false), $variantId), $forNobody->getContent(false));
+    }
+
+    /**
+     * @param array<string, mixed> $collection
+     */
+    private function lockedOf(array $collection, int $variantId): bool
+    {
+        foreach ($collection['hydra:member'] ?? $collection['member'] ?? [] as $meal) {
+            if (($meal['variantId'] ?? null) === $variantId) {
+                return $meal['locked'];
+            }
+        }
+        self::fail(sprintf('Meal variant %d is not in the catalogue', $variantId));
     }
 
     private function user(string $loginPrefix): User
@@ -98,8 +194,9 @@ class DeskApiTest extends AbstractDatabaseKernelTestCase
         return $user;
     }
 
-    private function grant(User $user, PermissionEnum $permission): void
+    private function operator(PermissionEnum $permission): User
     {
+        $operator = $this->user('desk_operator_');
         $roleId = $this->connection()->fetchOne(
             'SELECT prava_role.id_role
              FROM prava_role
@@ -116,10 +213,33 @@ class DeskApiTest extends AbstractDatabaseKernelTestCase
         $this->connection()->executeStatement(
             'INSERT INTO uzivatele_role (id_uzivatele, id_role) VALUES (:uzivatel, :role)',
             [
-                'uzivatel' => $user->getId(),
+                'uzivatel' => $operator->getId(),
                 'role'     => $roleId,
             ],
         );
+
+        return $operator;
+    }
+
+    private function signIntoAdmin(User $user): void
+    {
+        $_SESSION[\Uzivatel::UZIVATEL] = [
+            'id_uzivatele' => $user->getId(),
+        ];
+    }
+
+    /**
+     * @param array<string, mixed>|null $body
+     */
+    private function request(User $caller, string $method, string $uri, ?array $body, ?int $customerId): \Symfony\Contracts\HttpClient\ResponseInterface
+    {
+        return $this->clientFor($caller)->request($method, sprintf($uri, $customerId), $body === null
+            ? []
+            : [
+                'json' => $body + [
+                    'customerId' => $customerId,
+                ],
+            ]);
     }
 
     private function clientFor(User $user): Client
@@ -130,5 +250,43 @@ class DeskApiTest extends AbstractDatabaseKernelTestCase
         return $this->jsonLdClient([
             'Authorization' => 'Bearer ' . $jwtService->generateJwtToken($jwtService->extractUserData($user)),
         ]);
+    }
+
+    private function meal(): int
+    {
+        $this->connection()->executeStatement(
+            'INSERT IGNORE INTO product_tag (code, name, created_at) VALUES (:code, :name, NOW())',
+            [
+                'code' => ProductTagCode::JIDLO->value,
+                'name' => 'Jídlo',
+            ],
+        );
+        $tag = $this->entityManager()->getRepository(ProductTag::class)->findOneBy([
+            'code' => ProductTagCode::JIDLO->value,
+        ]);
+        self::assertNotNull($tag);
+
+        $code = 'DESK-TEST-' . uniqid();
+        $meal = new Product();
+        $meal->setName('Oběd neděle');
+        $meal->setCode($code);
+        $meal->setCurrentPrice('140.00');
+        $meal->setDescription('');
+        $meal->setState(ProductStateEnum::PUBLIC);
+        $meal->setAccommodationDay(4);
+        $meal->addTag($tag);
+        $this->entityManager()->persist($meal);
+
+        $variant = new ProductVariant();
+        $variant->setProduct($meal);
+        $variant->setName('porce');
+        $variant->setCode($code . '-V');
+        $variant->setPrice('140.00');
+        $variant->setPosition(0);
+        $meal->addVariant($variant);
+        $this->entityManager()->persist($variant);
+        $this->entityManager()->flush();
+
+        return (int) $variant->getId();
     }
 }
