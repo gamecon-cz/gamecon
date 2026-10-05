@@ -12,11 +12,11 @@ use App\Entity\User;
 use App\Service\AccommodationRules;
 use App\Service\AccommodationWriter;
 use App\Service\CurrentYearProviderInterface;
-use App\Service\CustomerDeskRights;
 use App\Service\LegacySessionService;
 use App\State\Cart\AccommodationGridInterface;
 use Doctrine\ORM\EntityManagerInterface;
 use Gamecon\Pravo;
+use Symfony\Bundle\SecurityBundle\Security;
 use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
 use Symfony\Contracts\Translation\TranslatorInterface;
 
@@ -38,7 +38,7 @@ readonly class SetCustomerAccommodationProcessor implements ProcessorInterface
         private AccommodationWriter $accommodationWriter,
         private AccommodationRules $accommodationRules,
         private CurrentYearProviderInterface $currentYearProvider,
-        private CustomerDeskRights $deskRights,
+        private Security $security,
         private LegacySessionService $legacySession,
         private AccommodationGridInterface $accommodationGrid,
         private EntityManagerInterface $entityManager,
@@ -51,7 +51,10 @@ readonly class SetCustomerAccommodationProcessor implements ProcessorInterface
      */
     public function process(mixed $data, Operation $operation, array $uriVariables = [], array $context = []): AccommodationOutputDto
     {
-        $operator = $this->deskRights->verifyOperator('desk.action.order_accommodation');
+        $operator = $this->security->getUser();
+        if (! $operator instanceof User) {
+            throw new \LogicException('The operation lets only a signed-in user through.');
+        }
 
         $customer = $this->entityManager->find(User::class, $data->customerId);
         if ($customer === null) {
@@ -81,7 +84,7 @@ readonly class SetCustomerAccommodationProcessor implements ProcessorInterface
             $this->accommodationRules->sleepingBagsOnly($legacyCustomer),
             // Legacy offered this button to the infopult chief but never checked on write,
             // so a hand-made request overbooked for anyone. Now the server decides.
-            mayOverbook: $operator->jeSefInfopultu(),
+            mayOverbook: $this->legacySession->getUserById((int) $operator->getId())?->jeSefInfopultu() ?? false,
             // Rezervace patří zákazníkovi, ne obsluze: pult objednává za něj, takže
             // rozhoduje, jestli je organizátor on. Okruh rolí je tentýž jako u merche.
             jeOrganizator: $customer->isOrganizer(),

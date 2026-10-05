@@ -6,6 +6,7 @@ namespace App\State\Cart;
 
 use ApiPlatform\Metadata\Operation;
 use ApiPlatform\State\ProviderInterface;
+use App\ApiResource\AdminCustomerOrderResource;
 use App\Dto\Cart\MealProductOutputDto;
 use App\Entity\Product;
 use App\Entity\ProductVariant;
@@ -15,11 +16,11 @@ use App\Enum\ProductTagCode;
 use App\Repository\ProductRepository;
 use App\Service\CapacityManager;
 use App\Service\CurrentYearProviderInterface;
-use App\Service\CustomerDeskRights;
 use App\Service\DiscountCalculator;
 use Gamecon\SystemoveNastaveni\SystemoveNastaveni;
 use Psr\Clock\ClockInterface;
 use Symfony\Bundle\SecurityBundle\Security;
+use Symfony\Component\ExpressionLanguage\Expression;
 
 /**
  * @implements ProviderInterface<MealProductOutputDto>
@@ -31,7 +32,6 @@ readonly class MealProductsProvider implements ProviderInterface
         private DiscountCalculator $discountCalculator,
         private CurrentYearProviderInterface $currentYearProvider,
         private Security $security,
-        private CustomerDeskRights $deskRights,
         private ClockInterface $clock,
         private CapacityManager $capacityManager,
     ) {
@@ -46,7 +46,7 @@ readonly class MealProductsProvider implements ProviderInterface
         // že smí objednávat po termínu — pozná se podle `?customerId`, které posílá jen
         // matice v adminu. Samotný parametr nestačí, jinak by si ho účastník dopsal do URL.
         $zPultu = ($context['filters']['customerId'] ?? null) !== null
-            && $this->deskRights->jeObsluhaPultu();
+            && $this->security->isGranted(new Expression(AdminCustomerOrderResource::DESK_OPERATOR));
 
         return $this->proZakaznika($zPultu);
     }

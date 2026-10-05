@@ -56,8 +56,8 @@ class ChybovyKatalogTest extends TestCase
         foreach ((new Finder())->files()->in(__DIR__ . '/../../src')->name('*.php') as $soubor) {
             $kod = $soubor->getContents();
             preg_match_all("~->trans\\(\\s*'([^']+)'~", $kod, $preklady);
-            preg_match_all("~verifyOperator\\(\\s*'([^']+)'~", $kod, $akce);
-            foreach ([...$preklady[1], ...$akce[1]] as $klic) {
+            preg_match_all("~securityMessage:\\s*'([^']+)'~", $kod, $zamitnuti);
+            foreach ([...$preklady[1], ...$zamitnuti[1]] as $klic) {
                 $klice[$klic][$soubor->getRelativePathname()] = $kod;
             }
         }

@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Tests\State\Cart;
 
 use ApiPlatform\Metadata\Get;
+use App\ApiResource\AdminCustomerOrderResource;
 use App\Entity\Product;
 use App\Entity\ProductVariant;
 use App\Entity\User;
@@ -12,18 +13,16 @@ use App\Enum\ProductStateEnum;
 use App\Enum\ProductTagCode;
 use App\Repository\ProductRepository;
 use App\Service\CurrentYearProviderInterface;
-use App\Service\CustomerDeskRights;
 use App\Service\DiscountCalculator;
-use App\Service\LegacySessionService;
 use App\State\Cart\MealProductsProvider;
 use App\Tests\Service\PevnaZasoba;
-use App\Tests\Support\ChybovePreklady;
 use Gamecon\Cas\DateTimeImmutableStrict;
 use Gamecon\SystemoveNastaveni\SystemoveNastaveni;
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
 use Symfony\Bundle\SecurityBundle\Security;
 use Symfony\Component\Clock\MockClock;
+use Symfony\Component\ExpressionLanguage\Expression;
 
 /**
  * `JIDLO_LZE_OBJEDNAT_A_MENIT_DO_DNE` znamená „objednat **a měnit**": po termínu GameCon
@@ -37,8 +36,6 @@ class MealProductsProviderTest extends TestCase
     private ProductRepository&MockObject $productRepository;
 
     private Security&MockObject $security;
-
-    private LegacySessionService&MockObject $legacySession;
 
     private MealProductsProvider $provider;
 
@@ -69,15 +66,11 @@ class MealProductsProviderTest extends TestCase
         $yearProvider = $this->createMock(CurrentYearProviderInterface::class);
         $yearProvider->method('getCurrentYear')->willReturn(self::ROK);
 
-        // `CustomerDeskRights` je readonly, takže se nemockuje — staví se nad mocknutou
-        // session, což je zároveň bližší tomu, co se testuje (právo operátora).
-        $this->legacySession = $this->createMock(LegacySessionService::class);
         $this->provider = new MealProductsProvider(
             $this->productRepository,
             $discountCalculator,
             $yearProvider,
             $this->security,
-            new CustomerDeskRights($this->legacySession, ChybovePreklady::translator()),
             $this->clock,
             new PevnaZasoba(),
         );
@@ -117,6 +110,16 @@ class MealProductsProviderTest extends TestCase
             ->with(ProductTagCode::JIDLO)
             ->willReturn([$product]);
         $this->security->method('getUser')->willReturn($this->createMock(User::class));
+    }
+
+    /**
+     * Ptá se na tutéž podmínku, jakou mají admin endpointy pultu, ne na libovolné `isGranted`.
+     */
+    private function obsluhaPultu(bool $smi): void
+    {
+        $this->security->method('isGranted')
+            ->with(self::equalTo(new Expression(AdminCustomerOrderResource::DESK_OPERATOR)))
+            ->willReturn($smi);
     }
 
     private function posunCas(string $ted): void
@@ -167,15 +170,13 @@ class MealProductsProviderTest extends TestCase
     /**
      * Pult po termínu doobjednat smí — proto admin obrazovky existují a proto ani
      * `MealWriter` termín nekontroluje. Pozná se podle `?customerId`, které posílá jen
-     * matice v adminu; samotné právo obsluhy ověřuje `CustomerDeskRights`.
+     * matice v adminu; samotné právo obsluhy rozhoduje `PermissionVoter`.
      */
     public function testDeskIsNotLockedOutAfterTheDeadline(): void
     {
         $this->pripravJidlo();
         $this->posunCas('2099-01-01 00:00:00');
-        $operator = $this->createMock(\Uzivatel::class);
-        $operator->method('maPravo')->willReturn(true);
-        $this->legacySession->method('getCurrentUser')->willReturn($operator);
+        $this->obsluhaPultu(true);
 
         $meals = $this->provider->provide(new Get(), [], [
             'filters' => [
@@ -194,9 +195,7 @@ class MealProductsProviderTest extends TestCase
     {
         $this->pripravJidlo();
         $this->posunCas('2099-01-01 00:00:00');
-        $operator = $this->createMock(\Uzivatel::class);
-        $operator->method('maPravo')->willReturn(false);
-        $this->legacySession->method('getCurrentUser')->willReturn($operator);
+        $this->obsluhaPultu(false);
 
         $meals = $this->provider->provide(new Get(), [], [
             'filters' => [
@@ -248,9 +247,7 @@ class MealProductsProviderTest extends TestCase
     {
         $this->pripravJidlo(nabizetDo: '2000-06-01 00:00:00');
         $this->posunCas('2000-06-02 00:00:00');
-        $operator = $this->createMock(\Uzivatel::class);
-        $operator->method('maPravo')->willReturn(true);
-        $this->legacySession->method('getCurrentUser')->willReturn($operator);
+        $this->obsluhaPultu(true);
 
         $meals = $this->provider->provide(new Get(), [], [
             'filters' => [
@@ -268,9 +265,7 @@ class MealProductsProviderTest extends TestCase
     {
         $this->pripravJidlo(stav: ProductStateEnum::RETIRED);
         $this->posunCas('2000-01-01 00:00:00');
-        $operator = $this->createMock(\Uzivatel::class);
-        $operator->method('maPravo')->willReturn(true);
-        $this->legacySession->method('getCurrentUser')->willReturn($operator);
+        $this->obsluhaPultu(true);
 
         $meals = $this->provider->provide(new Get(), [], [
             'filters' => [
@@ -307,9 +302,7 @@ class MealProductsProviderTest extends TestCase
     {
         $this->pripravJidlo(stav: ProductStateEnum::SUSPENDED);
         $this->posunCas('2000-01-01 00:00:00');
-        $operator = $this->createMock(\Uzivatel::class);
-        $operator->method('maPravo')->willReturn(true);
-        $this->legacySession->method('getCurrentUser')->willReturn($operator);
+        $this->obsluhaPultu(true);
 
         $meals = $this->provider->provide(new Get(), [], [
             'filters' => [
