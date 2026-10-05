@@ -4,7 +4,7 @@ customer:
     exactly_one_required: 'Musí být zadán právě jeden účastník.'
 
 desk:
-    no_right_to_order: 'Na objednávání za účastníky nemáš právo.'
+    operator_required: 'Objednávat za účastníky smí jen obsluha pultu přihlášená v adminu.'
 
 accommodation:
     login_required_to_view: 'Pro zobrazení ubytování je nutné přihlášení.'
