@@ -4,13 +4,7 @@ customer:
     exactly_one_required: 'Musí být zadán právě jeden účastník.'
 
 desk:
-    admin_login_required: '%action% vyžaduje přihlášení do adminu.'
     no_right_to_order: 'Na objednávání za účastníky nemáš právo.'
-    action:
-        view_accommodation: 'Zobrazení ubytování účastníka'
-        view_meals: 'Zobrazení jídla účastníka'
-        order_accommodation: 'Objednávání za účastníka'
-        order_meals: 'Objednávání jídla za účastníka'
 
 accommodation:
     login_required_to_view: 'Pro zobrazení ubytování je nutné přihlášení.'

@@ -9,27 +9,21 @@ use App\Dto\Admin\SetCustomerMealsInputDto;
 use App\Entity\User;
 use App\Exception\CapacityExceededException;
 use App\Service\CurrentYearProviderInterface;
-use App\Service\CustomerDeskRights;
-use App\Service\LegacySessionService;
 use App\Service\MealWriter;
 use App\State\Admin\SetCustomerMealsProcessor;
 use App\Tests\AbstractDatabaseKernelTestCase;
 use App\Tests\Support\ChybovePreklady;
 use Doctrine\ORM\EntityManagerInterface;
-use Gamecon\Pravo;
 use PHPUnit\Framework\MockObject\MockObject;
-use Symfony\Component\HttpKernel\Exception\AccessDeniedHttpException;
 use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
 
 /**
- * Covers who may save a participant's meals and what reaches the caller when the writer
- * refuses. What the writer then does with the selection is covered in AccommodationWriterTest.
+ * Covers whose meals are saved and what reaches the caller when the writer refuses. What
+ * the writer then does with the selection is covered in AccommodationWriterTest.
  */
 class SetCustomerMealsProcessorTest extends AbstractDatabaseKernelTestCase
 {
     private MockObject $entityManager;
-
-    private MockObject $legacySession;
 
     private MockObject $mealWriter;
 
@@ -40,30 +34,14 @@ class SetCustomerMealsProcessorTest extends AbstractDatabaseKernelTestCase
         parent::setUp();
 
         $this->entityManager = $this->createMock(EntityManagerInterface::class);
-        $this->legacySession = $this->createMock(LegacySessionService::class);
         $this->mealWriter = $this->createMock(MealWriter::class);
 
         $this->processor = new SetCustomerMealsProcessor(
             $this->mealWriter,
-            // Real rights over the mocked session, so the tests exercise the actual rule.
-            new CustomerDeskRights($this->legacySession, ChybovePreklady::translator()),
             static::getContainer()->get(CurrentYearProviderInterface::class),
             $this->entityManager,
             ChybovePreklady::translator(),
         );
-    }
-
-    private function signInOperator(bool $mayOrder = true): void
-    {
-        $operator = $this->createMock(\Uzivatel::class);
-        $operator->method('maPravo')->willReturnCallback(
-            static fn (int $permission): bool => $mayOrder && in_array(
-                $permission,
-                [Pravo::ADMINISTRACE_UBYTOVANI, Pravo::ADMINISTRACE_INFOPULT],
-                true,
-            ),
-        );
-        $this->legacySession->method('getCurrentUser')->willReturn($operator);
     }
 
     private function input(int $customerId = 4242): SetCustomerMealsInputDto
@@ -74,34 +52,8 @@ class SetCustomerMealsProcessorTest extends AbstractDatabaseKernelTestCase
         return $input;
     }
 
-    public function testSignedOutCallerIsRefused(): void
-    {
-        $this->legacySession->method('getCurrentUser')->willReturn(null);
-        $this->entityManager->expects(self::never())->method('find');
-
-        $this->expectException(AccessDeniedHttpException::class);
-
-        $this->processor->process($this->input(), new Post());
-    }
-
-    /**
-     * Checked before the customer is looked up, so a caller without the right cannot use the
-     * differing error to find out which participant ids exist.
-     */
-    public function testOperatorWithoutTheRightIsRefusedBeforeAnyLookup(): void
-    {
-        $this->signInOperator(mayOrder: false);
-        $this->entityManager->expects(self::never())->method('find');
-        $this->mealWriter->expects(self::never())->method('save');
-
-        $this->expectException(AccessDeniedHttpException::class);
-
-        $this->processor->process($this->input(), new Post());
-    }
-
     public function testUnknownCustomerIsRefused(): void
     {
-        $this->signInOperator();
         $this->entityManager->method('find')->willReturn(null);
         $this->mealWriter->expects(self::never())->method('save');
 
@@ -114,7 +66,6 @@ class SetCustomerMealsProcessorTest extends AbstractDatabaseKernelTestCase
     public function testMealsAreSavedForThePayloadCustomer(): void
     {
         $customer = $this->createMock(User::class);
-        $this->signInOperator();
         $this->entityManager->method('find')->willReturn($customer);
 
         $this->mealWriter
@@ -136,7 +87,6 @@ class SetCustomerMealsProcessorTest extends AbstractDatabaseKernelTestCase
     public function testAnswerIsWhatTheCustomerHoldsAfterTheSave(): void
     {
         $customer = $this->createMock(User::class);
-        $this->signInOperator();
         $this->entityManager->method('find')->willReturn($customer);
         $this->mealWriter->method('heldMeals')->willReturn([11]);
 
@@ -170,7 +120,6 @@ class SetCustomerMealsProcessorTest extends AbstractDatabaseKernelTestCase
 
     private function exceptionFromSaveThrowing(\Throwable $exception): \Throwable
     {
-        $this->signInOperator();
         $this->entityManager->method('find')->willReturn($this->createMock(User::class));
         $this->mealWriter->method('save')->willThrowException($exception);
 

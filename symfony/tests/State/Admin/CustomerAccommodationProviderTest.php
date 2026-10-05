@@ -7,21 +7,18 @@ namespace App\Tests\State\Admin;
 use ApiPlatform\Metadata\Get;
 use App\Dto\Cart\AccommodationOutputDto;
 use App\Entity\User;
-use App\Service\CustomerDeskRights;
 use App\Service\LegacySessionService;
 use App\State\Admin\CustomerAccommodationProvider;
 use App\State\Cart\AccommodationGridInterface;
 use App\Tests\Support\ChybovePreklady;
 use Doctrine\ORM\EntityManagerInterface;
-use Gamecon\Pravo;
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
-use Symfony\Component\HttpKernel\Exception\AccessDeniedHttpException;
 use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
 
 /**
- * Covers who may read a participant's accommodation and how the customer is identified. What
- * the grid then contains is covered in AccommodationProviderTest.
+ * Covers how the customer is identified. Who may ask is the operation's `security`, see
+ * DeskApiTest; what the grid then contains is covered in AccommodationProviderTest.
  */
 class CustomerAccommodationProviderTest extends TestCase
 {
@@ -41,24 +38,10 @@ class CustomerAccommodationProviderTest extends TestCase
 
         $this->provider = new CustomerAccommodationProvider(
             $this->accommodationGrid,
-            new CustomerDeskRights($this->legacySession, ChybovePreklady::translator()),
             $this->legacySession,
             $this->entityManager,
             ChybovePreklady::translator(),
         );
-    }
-
-    private function signInOperator(bool $mayOrder = true): void
-    {
-        $operator = $this->createMock(\Uzivatel::class);
-        $operator->method('maPravo')->willReturnCallback(
-            static fn (int $permission): bool => $mayOrder && in_array(
-                $permission,
-                [Pravo::ADMINISTRACE_UBYTOVANI, Pravo::ADMINISTRACE_INFOPULT],
-                true,
-            ),
-        );
-        $this->legacySession->method('getCurrentUser')->willReturn($operator);
     }
 
     /**
@@ -71,34 +54,8 @@ class CustomerAccommodationProviderTest extends TestCase
         ]);
     }
 
-    public function testSignedOutCallerIsRefused(): void
-    {
-        $this->legacySession->method('getCurrentUser')->willReturn(null);
-        $this->entityManager->expects(self::never())->method('find');
-
-        $this->expectException(AccessDeniedHttpException::class);
-
-        $this->read([
-            'customerId' => '4242',
-        ]);
-    }
-
-    public function testOperatorWithoutTheRightIsRefused(): void
-    {
-        $this->signInOperator(mayOrder: false);
-        $this->entityManager->expects(self::never())->method('find');
-
-        $this->expectException(AccessDeniedHttpException::class);
-
-        $this->read([
-            'customerId' => '4242',
-        ]);
-    }
-
     public function testMissingCustomerIsRefused(): void
     {
-        $this->signInOperator();
-
         $this->expectException(BadRequestHttpException::class);
 
         $this->read([]);
@@ -125,7 +82,6 @@ class CustomerAccommodationProviderTest extends TestCase
      */
     public function testNonsensicalCustomerIdIsRefused(mixed $customerId): void
     {
-        $this->signInOperator();
         $this->entityManager->expects(self::never())->method('find');
 
         $this->expectException(BadRequestHttpException::class);
@@ -137,7 +93,6 @@ class CustomerAccommodationProviderTest extends TestCase
 
     public function testUnknownCustomerIsRefused(): void
     {
-        $this->signInOperator();
         $this->entityManager->method('find')->willReturn(null);
 
         $this->expectException(BadRequestHttpException::class);
@@ -152,7 +107,6 @@ class CustomerAccommodationProviderTest extends TestCase
     {
         $customer = $this->createMock(User::class);
         $legacyCustomer = $this->createMock(\Uzivatel::class);
-        $this->signInOperator();
         $this->entityManager->method('find')->willReturn($customer);
         $this->legacySession->method('getUserById')->with(self::identicalTo(4242))->willReturn($legacyCustomer);
 
