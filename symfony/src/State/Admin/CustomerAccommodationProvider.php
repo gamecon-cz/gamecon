@@ -8,7 +8,6 @@ use ApiPlatform\Metadata\Operation;
 use ApiPlatform\State\ProviderInterface;
 use App\Dto\Cart\AccommodationOutputDto;
 use App\Entity\User;
-use App\Service\CustomerDeskRights;
 use App\Service\LegacySessionService;
 use App\State\Cart\AccommodationGridInterface;
 use Doctrine\ORM\EntityManagerInterface;
@@ -26,7 +25,6 @@ readonly class CustomerAccommodationProvider implements ProviderInterface
 {
     public function __construct(
         private AccommodationGridInterface $accommodationGrid,
-        private CustomerDeskRights $deskRights,
         private LegacySessionService $legacySession,
         private EntityManagerInterface $entityManager,
         private TranslatorInterface $translator,
@@ -35,8 +33,6 @@ readonly class CustomerAccommodationProvider implements ProviderInterface
 
     public function provide(Operation $operation, array $uriVariables = [], array $context = []): AccommodationOutputDto
     {
-        $this->deskRights->verifyOperator('desk.action.view_accommodation');
-
         // Cast only what is already a number: a repeated ?customerId arrives as an array and
         // would cast to 1, quietly answering for whoever that is.
         $requested = $context['filters']['customerId'] ?? null;

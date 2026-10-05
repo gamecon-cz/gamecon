@@ -12,7 +12,6 @@ use App\Exception\InsufficientPermissionsException;
 use App\Service\AccommodationRules;
 use App\Service\AccommodationWriter;
 use App\Service\CurrentYearProviderInterface;
-use App\Service\CustomerDeskRights;
 use App\Service\LegacySessionService;
 use App\State\Admin\SetCustomerAccommodationProcessor;
 use App\State\Cart\AccommodationGridInterface;
@@ -21,15 +20,17 @@ use App\Tests\Support\ChybovePreklady;
 use Doctrine\ORM\EntityManagerInterface;
 use Gamecon\Pravo;
 use PHPUnit\Framework\MockObject\MockObject;
-use Symfony\Component\HttpKernel\Exception\AccessDeniedHttpException;
+use Symfony\Bundle\SecurityBundle\Security;
 use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
 
 /**
- * Covers who may call this, whose booking it becomes, and what is handed to the writer. The
- * rules the writer then applies are covered in AccommodationWriterTest.
+ * Covers whose booking it becomes, who decides overbooking, and what is handed to the
+ * writer. The rules the writer then applies are covered in AccommodationWriterTest.
  */
 class SetCustomerAccommodationProcessorTest extends AbstractDatabaseKernelTestCase
 {
+    private const OPERATOR_ID = 7;
+
     private MockObject $accommodationGrid;
 
     private MockObject $accommodationWriter;
@@ -37,6 +38,13 @@ class SetCustomerAccommodationProcessorTest extends AbstractDatabaseKernelTestCa
     private MockObject $entityManager;
 
     private MockObject $legacySession;
+
+    private MockObject $security;
+
+    /**
+     * @var array<int, \Uzivatel> by id, so the operator and the customer cannot be mistaken for each other
+     */
+    private array $legacyUsers = [];
 
     private SetCustomerAccommodationProcessor $processor;
 
@@ -48,6 +56,10 @@ class SetCustomerAccommodationProcessorTest extends AbstractDatabaseKernelTestCa
         $this->accommodationWriter = $this->createMock(AccommodationWriter::class);
         $this->entityManager = $this->createMock(EntityManagerInterface::class);
         $this->legacySession = $this->createMock(LegacySessionService::class);
+        $this->legacySession->method('getUserById')->willReturnCallback(
+            fn (int $id): ?\Uzivatel => $this->legacyUsers[$id] ?? null,
+        );
+        $this->security = $this->createMock(Security::class);
 
         $container = static::getContainer();
 
@@ -55,29 +67,12 @@ class SetCustomerAccommodationProcessorTest extends AbstractDatabaseKernelTestCa
             $this->accommodationWriter,
             $container->get(AccommodationRules::class),
             $container->get(CurrentYearProviderInterface::class),
-            // Real rights over the mocked session, so the tests exercise the actual rule
-            // rather than a stub of it.
-            new CustomerDeskRights($this->legacySession, ChybovePreklady::translator()),
+            $this->security,
             $this->legacySession,
             $this->accommodationGrid,
             $this->entityManager,
             ChybovePreklady::translator(),
         );
-    }
-
-    private function operator(bool $mayOrder = true, bool $isInfopultChief = false): MockObject
-    {
-        $operator = $this->createMock(\Uzivatel::class);
-        $operator->method('jeSefInfopultu')->willReturn($isInfopultChief);
-        $operator->method('maPravo')->willReturnCallback(
-            static fn (int $permission): bool => $mayOrder && in_array(
-                $permission,
-                [Pravo::ADMINISTRACE_UBYTOVANI, Pravo::ADMINISTRACE_INFOPULT],
-                true,
-            ),
-        );
-
-        return $operator;
     }
 
     private function input(int $customerId = 4242): SetCustomerAccommodationInputDto
@@ -90,9 +85,13 @@ class SetCustomerAccommodationProcessorTest extends AbstractDatabaseKernelTestCa
 
     private function signInOperator(bool $isInfopultChief = false): void
     {
-        $this->legacySession->method('getCurrentUser')->willReturn(
-            $this->operator(isInfopultChief: $isInfopultChief),
-        );
+        $operator = $this->createMock(User::class);
+        $operator->method('getId')->willReturn(self::OPERATOR_ID);
+        $this->security->method('getUser')->willReturn($operator);
+
+        $legacyOperator = $this->createMock(\Uzivatel::class);
+        $legacyOperator->method('jeSefInfopultu')->willReturn($isInfopultChief);
+        $this->legacyUsers[self::OPERATOR_ID] = $legacyOperator;
     }
 
     private function customer(int $id = 4242): MockObject
@@ -104,16 +103,17 @@ class SetCustomerAccommodationProcessorTest extends AbstractDatabaseKernelTestCa
         return $customer;
     }
 
-    private function legacyCustomer(string $roommate = '', bool $maySingleNight = false): MockObject
+    private function legacyCustomer(string $roommate = '', bool $maySingleNight = false, bool $isInfopultChief = false): MockObject
     {
         $legacyCustomer = $this->createMock(\Uzivatel::class);
         $legacyCustomer->method('ubytovanS')->willReturn($roommate);
+        $legacyCustomer->method('jeSefInfopultu')->willReturn($isInfopultChief);
         // Answers for one right only: a blanket stub would pass even if the processor read
         // some other permission off the customer.
         $legacyCustomer->method('maPravo')->willReturnCallback(
             static fn (int $permission): bool => $maySingleNight && $permission === Pravo::UBYTOVANI_MUZE_OBJEDNAT_JEDNU_NOC,
         );
-        $this->legacySession->method('getUserById')->willReturn($legacyCustomer);
+        $this->legacyUsers[4242] = $legacyCustomer;
 
         return $legacyCustomer;
     }
@@ -247,6 +247,33 @@ class SetCustomerAccommodationProcessorTest extends AbstractDatabaseKernelTestCa
         $this->processor->process($this->input(), new Post());
     }
 
+    /**
+     * Both are on the legacy side and both looked up by id, so a mix-up would let a customer's
+     * own role decide what the desk may do for them.
+     */
+    public function testOverbookingFollowsTheOperatorNotTheCustomer(): void
+    {
+        $this->signInOperator();
+        $this->customer();
+        $this->legacyCustomer(isInfopultChief: true);
+
+        $this->accommodationWriter
+            ->expects(self::once())
+            ->method('save')
+            ->with(
+                self::anything(),
+                self::anything(),
+                self::anything(),
+                self::anything(),
+                self::anything(),
+                self::anything(),
+                self::anything(),
+                self::identicalTo(false),
+            );
+
+        $this->processor->process($this->input(), new Post());
+    }
+
     public function testOrdinaryOperatorMayNotOverbook(): void
     {
         $this->signInOperator();
@@ -358,33 +385,9 @@ class SetCustomerAccommodationProcessorTest extends AbstractDatabaseKernelTestCa
         $this->processor->process($this->input(), new Post());
     }
 
-    public function testSignedOutCallerIsRefused(): void
-    {
-        $this->legacySession->method('getCurrentUser')->willReturn(null);
-        $this->entityManager->expects(self::never())->method('find');
-
-        $this->expectException(AccessDeniedHttpException::class);
-
-        $this->processor->process($this->input(), new Post());
-    }
-
-    /**
-     * ROLE_ADMIN cannot be the gate — it is granted by role code, and the codes carrying these
-     * rights are per-year — so the operator's legacy right is what decides.
-     */
-    public function testOperatorWithoutTheRightIsRefused(): void
-    {
-        $this->legacySession->method('getCurrentUser')->willReturn($this->operator(mayOrder: false));
-        $this->entityManager->expects(self::never())->method('find');
-
-        $this->expectException(AccessDeniedHttpException::class);
-
-        $this->processor->process($this->input(), new Post());
-    }
-
     public function testUnknownCustomerIsRefused(): void
     {
-        $this->legacySession->method('getCurrentUser')->willReturn($this->operator());
+        $this->signInOperator();
         $this->entityManager->method('find')->willReturn(null);
         $this->legacySession->expects(self::never())->method('getUserById');
 
@@ -403,9 +406,8 @@ class SetCustomerAccommodationProcessorTest extends AbstractDatabaseKernelTestCa
     {
         $customer = $this->createMock(User::class);
         $customer->method('getId')->willReturn(4242);
-        $this->legacySession->method('getCurrentUser')->willReturn($this->operator());
+        $this->signInOperator();
         $this->entityManager->method('find')->willReturn($customer);
-        $this->legacySession->method('getUserById')->willReturn(null);
 
         $this->expectException(BadRequestHttpException::class);
 
@@ -420,7 +422,7 @@ class SetCustomerAccommodationProcessorTest extends AbstractDatabaseKernelTestCa
     {
         $customer = $this->createMock(User::class);
         $customer->method('getId')->willReturn(4242);
-        $this->legacySession->method('getCurrentUser')->willReturn($this->operator());
+        $this->signInOperator();
         $this->entityManager->method('find')->willReturn($customer);
 
         $this->legacySession

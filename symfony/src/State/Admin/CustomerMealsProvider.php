@@ -9,7 +9,6 @@ use ApiPlatform\State\ProviderInterface;
 use App\Dto\Admin\CustomerMealsOutputDto;
 use App\Entity\User;
 use App\Service\CurrentYearProviderInterface;
-use App\Service\CustomerDeskRights;
 use App\Service\MealWriter;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
@@ -28,7 +27,6 @@ readonly class CustomerMealsProvider implements ProviderInterface
 {
     public function __construct(
         private MealWriter $mealWriter,
-        private CustomerDeskRights $deskRights,
         private CurrentYearProviderInterface $currentYearProvider,
         private EntityManagerInterface $entityManager,
         private TranslatorInterface $translator,
@@ -37,8 +35,6 @@ readonly class CustomerMealsProvider implements ProviderInterface
 
     public function provide(Operation $operation, array $uriVariables = [], array $context = []): CustomerMealsOutputDto
     {
-        $this->deskRights->verifyOperator('desk.action.view_meals');
-
         // Cast only what is already a number: a repeated ?customerId arrives as an array and
         // would cast to 1, quietly answering for whoever that is.
         $requested = $context['filters']['customerId'] ?? null;
