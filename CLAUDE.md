@@ -235,6 +235,16 @@ Prefix doplňuje hook `prepare-commit-msg`: vytáhne z názvu větve úvodní č
 i s případným písmenným prefixem a **převede ho na velká písmena**. Píšeš tedy
 holý předmět a hook ho doplní.
 
+Hook je v repozitáři (`.githooks/prepare-commit-msg`) a `make init` ho zapojí přes
+`bin/install-git-hooks.sh`, tedy `git config --local core.hooksPath .githooks`
+(idempotentně, už nastavenou cestu nepřepíše). Bez toho se prefix nedoplňuje, a nic
+na to neupozorní.
+
+**Pozor na worktree a větve bez `.githooks/`:** nastavení je v konfiguraci sdílené všemi
+worktree, ale cesta je relativní a hledá se v každém checkoutu zvlášť; chybějící složku
+git mlčky přeskočí. Větev, ve které `.githooks/` není (`1274-*` před sloučením `main`,
+`archive/*`), tak žádný hook nemá, ani globální. Skript z takového stromu hook nezapojí.
+
 | tracker | větev | předmět commitu |
 | --- | --- | --- |
 | Trello karta | `1274-prepsat-e-shop` | `1274 Commit the differential harness` |
@@ -256,7 +266,8 @@ Dvě věci, na které se dá naletět:
   ```
 
 Hook se nikdy neobchází (`--no-verify`, `core.hooksPath`) — jen doplňuje text,
-takže není co obcházet, a commit bez prefixu znamená, že neběžel.
+takže není co obcházet, a commit bez prefixu znamená, že neběžel
+(`git config --get core.hooksPath` má vracet `.githooks`).
 
 ## Merging to `main`
 

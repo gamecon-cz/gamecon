@@ -1,0 +1,23 @@
+#!/bin/sh
+
+# Prepends the task id from the branch name to the commit subject:
+# `1274-…` -> `1274 …` (Trello card), `gh-1090-…` -> `GH-1090 …` (GitHub issue).
+# Versioned here and wired by `make init` (core.hooksPath), so nobody has to keep a copy.
+
+grep --quiet '^fixup! ' "$1"
+COMMIT_MESSAGE_IS_FIXUP=$?
+if [ "${COMMIT_MESSAGE_IS_FIXUP}" -eq 0 ]; then
+   exit
+fi
+
+# Uppercased to match TICKET, so typing the id in the branch's own lower case
+# is still recognised as already-prefixed rather than doubled.
+FIRST_WORD=$(head -n1 "$1" | awk '{print $1}' | tr '[:lower:]' '[:upper:]')
+
+# Branch names are lowercased in some projects (epm-322-...), while trackers and
+# commit subjects always use the uppercase id, so match either and normalise.
+TICKET=$(git rev-parse --abbrev-ref HEAD | sed -e 's~^pr/~~' | grep -E '^([A-Za-z]+-)*[0-9]+' --only-matching | tr '[:lower:]' '[:upper:]')
+
+if [ -n "$TICKET" ] && [ "$FIRST_WORD" != "$TICKET" ] && [ $# -eq 1 -o "$2" = "message" -o "$2" = "template" ]; then
+   echo "$TICKET `cat $1`" > $1
+fi
