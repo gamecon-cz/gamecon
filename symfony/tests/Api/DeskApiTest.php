@@ -25,11 +25,9 @@ use Gamecon\Tests\Factory\UserFactory;
  */
 class DeskApiTest extends AbstractDatabaseKernelTestCase
 {
-    private const REFUSAL = 'Objednávat za účastníky smí jen obsluha pultu přihlášená v adminu.';
+    private const REFUSAL = 'Na objednávání za účastníky nemáš právo.';
 
     private mixed $puvodniNastaveni = null;
-
-    private bool $sessionIdSetHere = false;
 
     protected static function getKernelClass(): string
     {
@@ -40,22 +38,11 @@ class DeskApiTest extends AbstractDatabaseKernelTestCase
     {
         parent::setUp();
 
-        // The legacy session is read from $_SESSION; a fixed id keeps it from starting a real one.
-        if (session_id() === '') {
-            session_id('desk-api-test');
-            $this->sessionIdSetHere = true;
-        }
         $this->puvodniNastaveni = $GLOBALS['systemoveNastaveni'] ?? null;
     }
 
     protected function tearDown(): void
     {
-        unset($_SESSION[\Uzivatel::UZIVATEL]);
-        // Legacy tests that come later must start their own session, not find this one.
-        if ($this->sessionIdSetHere) {
-            session_id('');
-            unset($_SESSION);
-        }
         $GLOBALS['systemoveNastaveni'] = $this->puvodniNastaveni;
 
         parent::tearDown();
@@ -87,7 +74,6 @@ class DeskApiTest extends AbstractDatabaseKernelTestCase
     public function testOperatorWithoutADeskRightIsRefusedBeforeAnyLookup(string $method, string $uri, ?array $body): void
     {
         $nobody = $this->user('desk_nobody_');
-        $this->signIntoAdmin($nobody);
 
         $response = $this->request($nobody, $method, $uri, $body, customerId: 999999999);
 
@@ -112,38 +98,10 @@ class DeskApiTest extends AbstractDatabaseKernelTestCase
     public function testEitherDeskRightLetsTheOperatorIn(PermissionEnum $permission): void
     {
         $operator = $this->operator($permission);
-        $this->signIntoAdmin($operator);
 
         $response = $this->request($operator, 'GET', '/symfony/api/admin/customer-meals?customerId=%d', null, $this->user('desk_customer_')->getId());
 
         self::assertSame(200, $response->getStatusCode(), $response->getContent(false));
-    }
-
-    /**
-     * Logging out ends the admin session but not the JWT the page still holds.
-     *
-     * @return iterable<string, array{bool}>
-     */
-    public static function endedAdminSessionProvider(): iterable
-    {
-        yield 'logged out' => [false];
-        yield 'someone else logged in' => [true];
-    }
-
-    /**
-     * @dataProvider endedAdminSessionProvider
-     */
-    public function testOperatorWhoseAdminSessionEndedIsRefused(bool $someoneElseSignedIn): void
-    {
-        $operator = $this->operator(PermissionEnum::ADMINISTRACE_INFOPULT);
-        if ($someoneElseSignedIn) {
-            $this->signIntoAdmin($this->user('desk_next_'));
-        }
-
-        $response = $this->request($operator, 'GET', '/symfony/api/admin/customer-meals?customerId=%d', null, $this->user('desk_customer_')->getId());
-
-        self::assertSame(403, $response->getStatusCode(), $response->getContent(false));
-        self::assertSame(self::REFUSAL, $response->toArray(false)['detail'] ?? null);
     }
 
     /**
@@ -161,9 +119,7 @@ class DeskApiTest extends AbstractDatabaseKernelTestCase
         $nobody = $this->user('desk_nobody_');
         $uri = '/symfony/api/cart/meals?customerId=%d';
 
-        $this->signIntoAdmin($operator);
         $forOperator = $this->request($operator, 'GET', $uri, null, (int) $nobody->getId());
-        $this->signIntoAdmin($nobody);
         $forNobody = $this->request($nobody, 'GET', $uri, null, (int) $operator->getId());
 
         self::assertFalse($this->lockedOf($forOperator->toArray(false), $variantId), $forOperator->getContent(false));
@@ -219,13 +175,6 @@ class DeskApiTest extends AbstractDatabaseKernelTestCase
         );
 
         return $operator;
-    }
-
-    private function signIntoAdmin(User $user): void
-    {
-        $_SESSION[\Uzivatel::UZIVATEL] = [
-            'id_uzivatele' => $user->getId(),
-        ];
     }
 
     /**

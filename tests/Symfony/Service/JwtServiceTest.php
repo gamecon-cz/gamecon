@@ -6,6 +6,8 @@ namespace Gamecon\Tests\Symfony\Service;
 
 use App\Service\Exception\JwtTokenException;
 use App\Service\JwtService;
+use App\Service\TokenVersionService;
+use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
 use Symfony\Component\Filesystem\Filesystem;
 
@@ -13,6 +15,7 @@ class JwtServiceTest extends TestCase
 {
     private string $testCacheDir;
     private JwtService $jwtService;
+    private TokenVersionService&MockObject $tokenVersions;
     private const TEST_SECRET = 'test-secret-key-for-jwt-that-is-long-enough-for-hs256';
     private const TEST_USER_ID = 42;
 
@@ -24,9 +27,11 @@ class JwtServiceTest extends TestCase
         $this->testCacheDir = SPEC . '/jwt_service_test_' . uniqid();
         (new Filesystem())->mkdir($this->testCacheDir, 0755);
 
+        $this->tokenVersions = $this->createMock(TokenVersionService::class);
         $this->jwtService = new JwtService(
             secret: self::TEST_SECRET,
             legacyCacheDir: $this->testCacheDir,
+            tokenVersions: $this->tokenVersions,
             algorithm: 'HS256',
             expirationInSeconds: 3600,
         );
@@ -52,6 +57,17 @@ class JwtServiceTest extends TestCase
         if (is_dir($this->testCacheDir)) {
             rmdir($this->testCacheDir);
         }
+    }
+
+    public function testTokenCarriesTheUsersCurrentVersion(): void
+    {
+        $this->tokenVersions->method('current')->with(123)->willReturn(7);
+
+        $token = $this->jwtService->generateJwtToken([
+            'id' => 123,
+        ]);
+
+        self::assertSame(7, $this->jwtService->decodeJwtToken($token)['version']);
     }
 
     public function testGenerateJwtTokenCreatesValidToken(): void
@@ -110,6 +126,7 @@ class JwtServiceTest extends TestCase
         $differentService = new JwtService(
             secret: 'different-secret-that-is-long-enough-for-hs256-algorithm',
             legacyCacheDir: $this->testCacheDir,
+            tokenVersions: $this->tokenVersions,
         );
         $token = $differentService->generateJwtToken([
             'id' => 1,
@@ -127,6 +144,7 @@ class JwtServiceTest extends TestCase
         $shortExpirationService = new JwtService(
             secret: self::TEST_SECRET,
             legacyCacheDir: $this->testCacheDir,
+            tokenVersions: $this->tokenVersions,
             expirationInSeconds: -1, // Already expired
         );
 
@@ -256,6 +274,7 @@ class JwtServiceTest extends TestCase
         $shortExpirationService = new JwtService(
             secret: self::TEST_SECRET,
             legacyCacheDir: $this->testCacheDir,
+            tokenVersions: $this->tokenVersions,
             expirationInSeconds: 1,
         );
 
@@ -300,6 +319,7 @@ class JwtServiceTest extends TestCase
         $nonExistentService = new JwtService(
             secret: self::TEST_SECRET,
             legacyCacheDir: SPEC . '/non_existent_' . uniqid(),
+            tokenVersions: $this->tokenVersions,
         );
 
         // Should not throw exception
@@ -324,6 +344,7 @@ class JwtServiceTest extends TestCase
         $readOnlyService = new JwtService(
             secret: self::TEST_SECRET,
             legacyCacheDir: $readOnlyDir,
+            tokenVersions: $this->tokenVersions,
         );
 
         // Make the directory read-only

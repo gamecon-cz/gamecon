@@ -7,6 +7,7 @@ namespace App\Security;
 use App\Entity\User;
 use App\Repository\UserRepository;
 use App\Service\JwtService;
+use App\Service\TokenVersionService;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -23,6 +24,7 @@ class JwtAuthenticator implements AuthenticatorInterface
     public function __construct(
         private readonly JwtService $jwtService,
         private readonly UserRepository $userRepository,
+        private readonly TokenVersionService $tokenVersions,
     ) {
     }
 
@@ -54,6 +56,11 @@ class JwtAuthenticator implements AuthenticatorInterface
         $userId = is_array($userData) ? ($userData['id'] ?? null) : ($userData->id ?? null);
         if (! $userId) {
             throw new AuthenticationException('JWT token missing user ID');
+        }
+
+        // Tokens issued before versions existed carry none, which is version 0.
+        if ((int) ($payload['version'] ?? 0) !== $this->tokenVersions->current((int) $userId)) {
+            throw new AuthenticationException('Token has been revoked');
         }
 
         $user = $this->userRepository->find($userId);

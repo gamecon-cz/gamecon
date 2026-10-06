@@ -7,6 +7,7 @@
  */
 
 use App\Service\JwtService;
+use App\Service\TokenVersionService;
 use Gamecon\SystemoveNastaveni\SystemoveNastaveni;
 
 /**
@@ -57,6 +58,21 @@ function getJwtForUser(
     $jwtService = $kernel->getContainer()->get(JwtService::class);
 
     return $jwtService->getToken($userId);
+}
+
+/**
+ * Make every JWT already issued to the user stop working (called on logout). Not wrapped in a
+ * try like the cleanup below: a failure must be seen, or the tokens would silently survive.
+ */
+function revokeJwtsForUser(
+    Uzivatel $uzivatel,
+): void {
+    $userId = $uzivatel->id();
+    if ($userId === null) {
+        throw new \RuntimeException('Can not revoke JWT tokens because user ID is empty');
+    }
+
+    SystemoveNastaveni::zGlobals()->kernel()->getContainer()->get(TokenVersionService::class)->invalidate($userId);
 }
 
 /**
