@@ -79,7 +79,7 @@ přeplnil noc komukoliv; legacy si toho bylo vědomo (`// není zabezpečeno`).
 ho dává jen šéfovi infopultu. Invariant se obrátil — rozhoduje server, UI je jen nápověda.
 
 Pozor, nesouvisející nález: nápověda `docs/napoveda/infopult.md` tvrdí, že „zrušit jiné ubytování
-než neděli může pouze šéf Infa". Takové pravidlo **v kódu nikdy nebylo** — ani v legacy zápisové
+než neděli může pouze šéf infopultu". Takové pravidlo **v kódu nikdy nebylo** — ani v legacy zápisové
 cestě, ani nikde jinde; všechna nedělní pravidla se týkají nabízení, ne rušení. Buď je ta věta
 k smazání, nebo je to nenaimplementovaný záměr *(nejisté)* — chce to rozhodnutí vlastníka
 produktu, ne odhad.
