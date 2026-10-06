@@ -1588,6 +1588,8 @@ SQL,
     public function odhlas(bool $naUvodniStranku = true)
     {
         $a = $this->koncovkaDlePohlavi();
+        // Before the session goes, so a failure leaves a session to retry the logout from.
+        revokeJwtsForUser($this);
         $this->odhlasProTed();
         if (isset($_COOKIE['gcTrvalePrihlaseni'])) {
             setcookie('gcTrvalePrihlaseni', '', 0, '/');

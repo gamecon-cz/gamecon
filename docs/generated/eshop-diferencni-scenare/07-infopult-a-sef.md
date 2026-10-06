@@ -26,7 +26,7 @@ Testuje se **ze tří stran** — právo rozhoduje, ne role:
 **Pozor:** `ROLE_ADMIN` v nové vrstvě tohle neřeší — `User::getRoles()` porovnává kódy rolí
 proti pevnému seznamu, kdežto reálné kódy jsou po ročnících (`gc2026_infopult`). Kontrola
 proto stojí v `security:` operací (`AdminCustomerOrderResource::DESK_OPERATOR`: `PermissionVoter`
-na právech 100/101 a k tomu živá admin session téhož uživatele). Ověřit, že to platí i v GUI.
+na právech 100/101). Ověřit, že to platí i v GUI.
 
 ## Co projít
 
