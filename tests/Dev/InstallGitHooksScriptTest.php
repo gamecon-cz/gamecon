@@ -16,6 +16,8 @@ class InstallGitHooksScriptTest extends TestCase
 {
     private string $kořen;
 
+    private string $globalniKonfigurace = '/dev/null';
+
     protected function setUp(): void
     {
         parent::setUp();
@@ -102,6 +104,140 @@ class InstallGitHooksScriptTest extends TestCase
         self::assertStringContainsString('worktree', $vystup);
     }
 
+    /**
+     * `core.hooksPath` nahrazuje `.git/hooks` celé, takže zapojení by tiše vypnulo hooky, které si
+     * vývojář nastavil sám (kontrola formátu, hledání tajemství).
+     */
+    public function testNezapojiKdyzByVypnulVlastniLokalniHook(): void
+    {
+        $this->repozitarSHookem();
+        file_put_contents($this->kořen . '/.git/hooks/pre-commit', "#!/bin/sh\n");
+        chmod($this->kořen . '/.git/hooks/pre-commit', 0755);
+
+        [$kod, $vystup] = $this->spust();
+
+        self::assertSame(0, $kod, $vystup);
+        self::assertSame('', $this->hooksPath());
+        self::assertStringContainsString('pre-commit', $vystup);
+    }
+
+    public function testUkazkoveHookyGituNevadi(): void
+    {
+        $this->repozitarSHookem();
+        file_put_contents($this->kořen . '/.git/hooks/pre-commit.sample', "#!/bin/sh\n");
+        chmod($this->kořen . '/.git/hooks/pre-commit.sample', 0755);
+
+        $this->spust();
+
+        self::assertSame('.githooks', $this->hooksPath());
+    }
+
+    /**
+     * Git spouští jen soubory s přesným názvem hooku; záloha nebo pomocný skript hookem nejsou.
+     */
+    public function testSouboryKtereGitNespoustiHookemNejsou(): void
+    {
+        $this->repozitarSHookem();
+        $this->globalniHooky(['prepare-commit-msg', 'prepare-commit-msg.bak-stary', 'pomocny-skript']);
+        foreach (['pre-commit.bak', 'README'] as $nazev) {
+            file_put_contents($this->kořen . '/.git/hooks/' . $nazev, "#!/bin/sh\n");
+            chmod($this->kořen . '/.git/hooks/' . $nazev, 0755);
+        }
+
+        $this->spust();
+
+        self::assertSame('.githooks', $this->hooksPath());
+    }
+
+    public function testNeprovedtelnyLokalniSouborHookemNeni(): void
+    {
+        $this->repozitarSHookem();
+        // Git hook bez příznaku spustitelnosti nespouští, takže zapojením nic nezmizí.
+        file_put_contents($this->kořen . '/.git/hooks/pre-commit', "#!/bin/sh\n");
+        chmod($this->kořen . '/.git/hooks/pre-commit', 0644);
+
+        $this->spust();
+
+        self::assertSame('.githooks', $this->hooksPath());
+    }
+
+    public function testNezapojiKdyzByVypnulJinyHookZGlobalniCesty(): void
+    {
+        $this->repozitarSHookem();
+        $this->globalniHooky(['pre-commit', 'prepare-commit-msg']);
+
+        [$kod, $vystup] = $this->spust();
+
+        self::assertSame(0, $kod, $vystup);
+        self::assertSame('', $this->hooksPath());
+        self::assertStringContainsString('pre-commit', $vystup);
+    }
+
+    /**
+     * Vlastní lokální `prepare-commit-msg` je naopak konflikt: nahradil by ho ten z repozitáře.
+     */
+    public function testVlastniLokalniPrepareCommitMsgJeKonflikt(): void
+    {
+        $this->repozitarSHookem();
+        file_put_contents($this->kořen . '/.git/hooks/prepare-commit-msg', "#!/bin/sh\n");
+        chmod($this->kořen . '/.git/hooks/prepare-commit-msg', 0755);
+
+        [, $vystup] = $this->spust();
+
+        self::assertSame('', $this->hooksPath());
+        self::assertStringContainsString('prepare-commit-msg', $vystup);
+    }
+
+    public function testNeexistujiciGlobalniSlozkaNevadi(): void
+    {
+        $this->repozitarSHookem();
+        $this->globalniKonfigurace = $this->kořen . '/globalni-konfigurace';
+        file_put_contents($this->globalniKonfigurace, "[core]\n\thooksPath = {$this->kořen}/neexistuje\n");
+
+        $this->spust();
+
+        self::assertSame('.githooks', $this->hooksPath());
+    }
+
+    public function testRefuseRekneZeHookSPrefixemNeniAktivni(): void
+    {
+        $this->repozitarSHookem();
+        file_put_contents($this->kořen . '/.git/hooks/pre-commit', "#!/bin/sh\n");
+        chmod($this->kořen . '/.git/hooks/pre-commit', 0755);
+
+        [, $vystup] = $this->spust();
+
+        self::assertStringContainsString('NOT active', $vystup);
+    }
+
+    /**
+     * Právě globální `prepare-commit-msg` je to, co se tímhle zapojením nahrazuje.
+     */
+    public function testGlobalniPrepareCommitMsgSeNahradiBezProblemu(): void
+    {
+        $this->repozitarSHookem();
+        $this->globalniHooky(['prepare-commit-msg']);
+
+        $this->spust();
+
+        self::assertSame('.githooks', $this->hooksPath());
+    }
+
+    /**
+     * @param list<string> $nazvy
+     */
+    private function globalniHooky(array $nazvy): void
+    {
+        $slozka = $this->kořen . '/globalni-hooky';
+        (new Filesystem())->mkdir($slozka, 0775);
+        foreach ($nazvy as $nazev) {
+            file_put_contents($slozka . '/' . $nazev, "#!/bin/sh\n");
+            chmod($slozka . '/' . $nazev, 0755);
+        }
+        $this->globalniKonfigurace = $this->kořen . '/globalni-konfigurace';
+        file_put_contents($this->globalniKonfigurace, "[core]\n\thooksPath = {$slozka}\n");
+    }
+
     private function repozitarSHookem(): void
     {
         $this->git('init', '--quiet');
@@ -142,7 +278,7 @@ class InstallGitHooksScriptTest extends TestCase
             2 => ['pipe', 'w'],
         ], $roury, $this->kořen, [
             // Ať se nepoužije konfigurace z domovského adresáře, který by test ovlivnil.
-            'GIT_CONFIG_GLOBAL'   => '/dev/null',
+            'GIT_CONFIG_GLOBAL'   => $this->globalniKonfigurace,
             'GIT_CONFIG_NOSYSTEM' => '1',
             // Jednorázový adresář leží uvnitř projektu, ať si git nenajde jeho repozitář a netvrdí, že je v repozitáři.
             'GIT_CEILING_DIRECTORIES' => dirname((string) realpath($this->kořen)),

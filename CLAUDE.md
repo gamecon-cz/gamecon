@@ -240,6 +240,11 @@ Hook je v repozitáři (`.githooks/prepare-commit-msg`) a `make init` ho zapojí
 (idempotentně, už nastavenou cestu nepřepíše). Bez toho se prefix nedoplňuje, a nic
 na to neupozorní.
 
+`core.hooksPath` nahrazuje `.git/hooks` celé, takže skript **nezapojí nic, co by tiše vypnulo
+jiné hooky**, které už máš (v `.git/hooks` nebo v globální složce; globální
+`prepare-commit-msg` je právě to, co se nahrazuje). Vypíše je a řekne, co dál: přesunout je do
+`.githooks/` a cestu nastavit ručně.
+
 **Pozor na worktree a větve bez `.githooks/`:** nastavení je v konfiguraci sdílené všemi
 worktree, ale cesta je relativní a hledá se v každém checkoutu zvlášť; chybějící složku
 git mlčky přeskočí. Větev, ve které `.githooks/` není (`1274-*` před sloučením `main`,
