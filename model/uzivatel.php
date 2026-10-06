@@ -3099,7 +3099,7 @@ SQL;
         $uzivatele = [];
         while ($r = mysqli_fetch_assoc($o)) {
             $u = new self($r);
-            $u->r['prava'] = explode(',', $u->r['prava'] ?? '');
+            $u->r['prava'] = array_map('intval', array_values(array_filter(explode(',', $u->r['prava'] ?? ''), 'strlen')));
             $uzivatele[] = $u;
         }
 
