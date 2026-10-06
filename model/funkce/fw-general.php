@@ -212,7 +212,7 @@ function randHex($chars)
         throw new Exception('maximum characters is 32 so far.');
     }
 
-    return substr(md5(mt_rand()), 0, $chars);
+    return substr(bin2hex(random_bytes(16)), 0, $chars);
 }
 
 /**

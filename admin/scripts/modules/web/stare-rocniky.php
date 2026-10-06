@@ -50,9 +50,8 @@ $ssoMaster = defined('GAMECON_SSO_SECRET') ? GAMECON_SSO_SECRET : '';
 $ssoNonce = null;
 $ssoIdUzivatele = $u->id() ?? 0;
 if ($ssoIdUzivatele > 0 && $ssoMaster !== '') {
-    // Kryptograficky náhodný nonce (128 bitů). Ne randHex() — ta stropuje na 32
-    // znaků a stojí na substr(md5(mt_rand())), což má slabou entropii; tady jde
-    // o bezpečnostní párovací token, tak chceme random_bytes.
+    // Kryptograficky náhodný nonce (128 bitů). Ne randHex() — ta stropuje na 32 znaků,
+    // a tady chceme celých 128 bitů, tak rovnou random_bytes.
     $ssoNonce = bin2hex(random_bytes(16));
     SsoParovaciCookie::nastav($ssoNonce);
 }
