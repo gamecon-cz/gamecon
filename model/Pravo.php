@@ -15,7 +15,8 @@ class Pravo extends \DbObject
     protected static $pk      = 'id_prava';
 
     /**
-     * Konstanty jsou kopie SQL tabulky `r_prava_soupis`
+     * Konstanty jsou kopie SQL tabulky `r_prava_soupis`; název konstanty je `kod_prava` jejího řádku
+     * (hlídá to `PermissionCodeTest`). Nové právo se zakládá s kódem.
      */
     public const PORADANI_AKTIVIT                 = 4; // Uživatel může pořádat aktivity (je v nabídce pořadatelů aktivit a má v administraci nabídku „moje aktivity“)
     public const PREKRYVANI_AKTIVIT               = 5; // Smí mít zaregistrovaných víc aktivit v jeden čas

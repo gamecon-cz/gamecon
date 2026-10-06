@@ -17,6 +17,11 @@ class PermissionSqlStructure
     public const id_prava = 'id_prava';
 
     /**
+     * @see Permission::$code
+     */
+    public const kod_prava = 'kod_prava';
+
+    /**
      * @see Permission::$jmenoPrava
      */
     public const jmeno_prava = 'jmeno_prava';

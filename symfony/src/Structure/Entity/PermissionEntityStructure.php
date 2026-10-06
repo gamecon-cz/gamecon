@@ -15,6 +15,11 @@ class PermissionEntityStructure
     public const id = 'id';
 
     /**
+     * @see Permission::$code
+     */
+    public const code = 'code';
+
+    /**
      * @see Permission::$jmenoPrava
      */
     public const jmenoPrava = 'jmenoPrava';

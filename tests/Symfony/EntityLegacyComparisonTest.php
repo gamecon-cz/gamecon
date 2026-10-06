@@ -493,6 +493,7 @@ class EntityLegacyComparisonTest extends AbstractTestDb
 
         // Test raw database values
         $legacyData = $legacyPermission->raw();
+        $this->assertEquals($symfonyPermission->getCode(), $legacyData['kod_prava']);
         $this->assertEquals($symfonyPermission->getJmenoPrava(), $legacyData['jmeno_prava']);
         $this->assertEquals($symfonyPermission->getPopisPrava(), $legacyData['popis_prava']);
     }
