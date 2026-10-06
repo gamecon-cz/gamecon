@@ -426,11 +426,11 @@ class ProductService
 
 **`bin/ecs.sh --fix` with no arguments.** A path as an argument **overrides `withPaths()`** in `ecs.php` and pulls files into formatting that are deliberately kept out of it.
 
-`ecs.php` holds an allow-list: `symfony/src`, `symfony/config`, `tests` and three subdirectories of `model/`. The rest of `model/`, plus `web/` and `admin/`, is out — that is legacy that has not been converted yet. **66 files in `model/` have no `declare(strict_types=1)`** and cannot take one: the `strict: true` set adds it, and a file that relied on loose comparison starts failing.
+What `withPaths()` in `ecs.php` does not list — most of `model/`, plus `web/` and `admin/` — is legacy that has not been converted yet. **66 files in `model/` have no `declare(strict_types=1)`** and cannot take one: the `strict: true` set adds it, and a file that relied on loose comparison starts failing.
 
 Concretely (this happened twice): `./bin-docker/docker-bash bin/ecs.sh --fix model/SystemoveNastaveni/` reformatted 15 files, 13 of them untouched by me, and `--fix model/Uzivatel/Finance.php` added `strict_types` to it. The result was **70 failing tests** with `NeznamyTypPredmetu` — an error that looks like a logic defect, not a formatting one. The second time it cost twenty minutes of searching.
 
-**When a file outside the allow-list needs formatting** (typically your own edit in legacy), do it by hand following the surrounding code. Not through ECS.
+**When a file outside `withPaths()` needs formatting** (typically your own edit in legacy), do it by hand following the surrounding code. Not through ECS.
 
 **How to spot that it happened:** after formatting, `git status` shows more changed files than you edited. That is the signal to revert immediately (`git checkout -- <files>`) and reapply the edit — not to investigate it through the tests.
 
