@@ -75,6 +75,75 @@ class TrvalePrihlaseniTest extends AbstractTestDb
         self::assertSame($idUzivatele, $uzivatel?->id());
     }
 
+    public function testObnovaHeslaOdkazemZnehodnotiTrvalePrihlaseni(): void
+    {
+        $token = randHex(20);
+        $idUzivatele = $this->vytvorUzivateleSTokenem($token);
+
+        \Uzivatel::zId($idUzivatele)->heslo('nove-heslo-z-obnovy');
+
+        $this->assertCookieUzNeprihlasi($token);
+    }
+
+    public function testZmenaHeslaVProfiluZnehodnotiTrvalePrihlaseni(): void
+    {
+        $token = randHex(20);
+        $idUzivatele = $this->vytvorUzivateleSTokenem($token);
+
+        \Uzivatel::zId($idUzivatele)->uprav([
+            'heslo'          => 'nove-heslo-z-profilu',
+            'heslo_kontrola' => 'nove-heslo-z-profilu',
+        ]);
+
+        $this->assertCookieUzNeprihlasi($token);
+    }
+
+    public function testUpravaJinychUdajuTrvalePrihlaseniNerusi(): void
+    {
+        $token = randHex(20);
+        $idUzivatele = $this->vytvorUzivateleSTokenem($token);
+
+        \Uzivatel::zId($idUzivatele)->uprav([
+            'jmeno_uzivatele' => 'Jiné',
+        ]);
+
+        self::assertSame($token, dbOneCol('SELECT random FROM uzivatele_hodnoty WHERE id_uzivatele = $0', [$idUzivatele]));
+    }
+
+    /**
+     * Přihlášení ukládá heslo znovu jen v novějším hashi; to není změna hesla, takže nesmí
+     * shodit trvalé přihlášení na ostatních zařízeních.
+     */
+    public function testZpetnyZapisHasheAtPrihlaseniTokenNemeni(): void
+    {
+        $token = randHex(20);
+        $idUzivatele = $this->vytvorUzivateleSTokenem($token);
+        // Slabší cena než výchozí, takže `password_needs_rehash()` hash při přihlášení přepíše.
+        $slabyHash = password_hash('stare-heslo', PASSWORD_BCRYPT, [
+            'cost' => 4,
+        ]);
+        dbQuery('UPDATE uzivatele_hodnoty SET heslo_md5 = $0 WHERE id_uzivatele = $1', [$slabyHash, $idUzivatele]);
+        $login = dbOneCol('SELECT login_uzivatele FROM uzivatele_hodnoty WHERE id_uzivatele = $0', [$idUzivatele]);
+
+        $prihlaseny = $this->bezVarovaniSession(static fn () => \Uzivatel::prihlas($login, 'stare-heslo'));
+
+        self::assertSame($idUzivatele, $prihlaseny?->id());
+        self::assertNotSame(
+            $slabyHash,
+            dbOneCol('SELECT heslo_md5 FROM uzivatele_hodnoty WHERE id_uzivatele = $0', [$idUzivatele]),
+            'Hash se při přihlášení má přepsat novějším, jinak test nic nezkouší.',
+        );
+        self::assertSame($token, dbOneCol('SELECT random FROM uzivatele_hodnoty WHERE id_uzivatele = $0', [$idUzivatele]));
+    }
+
+    private function assertCookieUzNeprihlasi(string $token): void
+    {
+        $_COOKIE[self::COOKIE] = $token;
+        unset($_SESSION);
+
+        self::assertNull($this->bezVarovaniSession(static fn () => \Uzivatel::zSession()));
+    }
+
     /**
      * Sloupec `random` má 20 znaků, stejně jako `randHex(20)`; delší hodnota by se tiše oříznula
      * a test by nikdy nenašel, co hledá.
