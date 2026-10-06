@@ -51,6 +51,24 @@ class PravaSefaInfopultuTest extends AbstractTestDb
         self::assertFalse(\Uzivatel::zIdUrcite($ostatni->id())->maPravo($idPrava));
     }
 
+    /**
+     * Program v prohlížeči se podle toho pozná, že přihlášený je šéf infopultu. Klíč je součástí
+     * API, takže se jeho název nesmí změnit bez frontendu.
+     */
+    public function testApiOznaciSefaInfopultu(): void
+    {
+        $sef = $this->vytvorUzivatele('api_sef');
+        $ostatni = $this->vytvorUzivatele('api_ostatni');
+        dbQuery(
+            'INSERT INTO uzivatele_role(id_uzivatele, id_role, posadil) VALUES ($0, $1, $0)',
+            [$sef->id(), Role::SEF_INFOPULTU],
+        );
+        \Uzivatel::smazCache();
+
+        self::assertTrue(\Uzivatel::zIdUrcite($sef->id())->apiUzivatel()['role']['sefInfopultu'] ?? false);
+        self::assertArrayNotHasKey('sefInfopultu', \Uzivatel::zIdUrcite($ostatni->id())->apiUzivatel()['role'] ?? []);
+    }
+
     private function vytvorUzivatele(string $suffix): \Uzivatel
     {
         dbQuery(<<<SQL
