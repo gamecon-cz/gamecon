@@ -973,7 +973,10 @@ SQL,
             [Sql::HESLO_MD5 => $novyHash],
             [Sql::HESLO_MD5 => $this->r[Sql::HESLO_MD5] ?? null],
         );
-        dbQuery('UPDATE uzivatele_hodnoty SET heslo_md5 = $1 WHERE id_uzivatele = $2', [$novyHash, $this->id()]);
+        dbQuery(
+            'UPDATE uzivatele_hodnoty SET heslo_md5 = $1, random = $3 WHERE id_uzivatele = $2',
+            [$novyHash, $this->id(), randHex(20)],
+        );
     }
 
     /**
@@ -1582,7 +1585,7 @@ SQL,
     /**
      * Cookie trvalého přihlášení nese hodnotu uloženou i v DB, takže její smazání v prohlížeči
      * nestačí: kopie by dál přihlašovala. Token je jen jeden na uživatele, takže odhlášení
-     * ruší trvalé přihlášení na všech zařízeních.
+     * a změna hesla ruší trvalé přihlášení na všech zařízeních.
      */
     private function zneplatniTrvalePrihlaseni(): void
     {
@@ -2181,6 +2184,10 @@ SQL,
         // doplnění dopočítaných polí
         if (isset($dbTab['heslo'])) {
             $dbTab['heslo_md5'] = password_hash($dbTab['heslo'], PASSWORD_DEFAULT);
+            // Stejným zápisem jako hash, aby nevzniklo okno s novým heslem a starým tokenem.
+            if ($u) {
+                $dbTab['random'] = randHex(20);
+            }
         }
 
         if (! $u) {
