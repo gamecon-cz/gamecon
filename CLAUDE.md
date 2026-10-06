@@ -446,6 +446,19 @@ Concretely (this happened in `2026-09-04-100013_seed-discount-rules.php`, both f
 
 **How to do it:** insert the number or string directly and say in a comment what it means (`1003 = Pravo::KOSTKA_ZDARMA`). If the value later diverges from the constant, that is correct — a historical row keeps what was true then. Validation belongs where a human writes data (an admin form), not where history is replayed.
 
+**For rights and roles, a lookup by code wins over a number literal.** `r_prava_soupis.kod_prava` is required, unique and not empty, and is the name of the `Gamecon\Pravo` constant (`MUZE_PRETIZIT_UBYTOVANI`); roles have `role_seznam.kod_role`. A migration that creates a right inserts it **with** its `kod_prava` (an `INSERT` without one is refused by the not-empty check), and one that gives a right to a role looks both up by code instead of counting on numbers:
+
+```sql
+INSERT INTO prava_role (id_role, id_prava)
+SELECT role_seznam.id_role, r_prava_soupis.id_prava
+FROM role_seznam
+         CROSS JOIN r_prava_soupis
+WHERE role_seznam.kod_role = 'SEF_INFOPULTU'
+  AND r_prava_soupis.kod_prava = 'MUZE_PRETIZIT_UBYTOVANI';
+```
+
+A new `Pravo` constant needs its row with the same code, and `PermissionCodeTest` fails when a constant and its row disagree.
+
 **Exception:** helper functions defined inside the migration file itself (`$columnExists = fn (...) => ...`) are fine — they are not dependencies on outside code.
 
 ## Dead code detection (PHPStan)

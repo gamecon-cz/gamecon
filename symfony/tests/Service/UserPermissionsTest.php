@@ -32,9 +32,10 @@ class UserPermissionsTest extends AbstractDatabaseKernelTestCase
             ],
         );
         $this->connection()->executeStatement(
-            "INSERT INTO r_prava_soupis (id_prava, jmeno_prava, popis_prava) VALUES (:pravo, :jmeno, '')",
+            "INSERT INTO r_prava_soupis (id_prava, kod_prava, jmeno_prava, popis_prava) VALUES (:pravo, :kod, :jmeno, '')",
             [
                 'pravo' => $idPrava,
+                'kod'   => 'TEST_PRAVO_' . $idPrava,
                 'jmeno' => 'Test právo ' . $idPrava,
             ],
         );
