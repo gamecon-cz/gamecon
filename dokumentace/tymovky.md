@@ -61,7 +61,7 @@ PRIO
     - immutable pro běžné uživatele
     - vždy neveřejný (nastaveno automaticky při zamčení)
     - nelze měnit členy/kapitána/limit
-    - může být odemčen pouze šéfem infa nebo systémem (odhlášení neplatiče)
+    - může být odemčen pouze šéfem infopultu nebo systémem (odhlášení neplatiče)
   - expirovaný E (tohle je asi nezávýslý stav tak nemá smysl ho tu mít takhle. Skoro ve všech směrech je expirovaný tým to samé co připravený)
     - čas expirace v minulosti
     - nejde nastavit jako neveřejný podkud je expirace zveřejnění
@@ -75,7 +75,7 @@ PRIO
   PZ: zamčení připraveného týmu (min kapacita naplněna): P → Z
   EZ: zamčení expirovaného týmu (min kapacita naplněna): E → Z
     - záměrné — umožňuje zachránit tým po expiraci před smazáním
-  ZP: odemčení zamčeného týmu (pouze šéf infa): Z → P
+  ZP: odemčení zamčeného týmu (pouze šéf infopultu): Z → P
     - čas expirace se resetuje na NOW + 72h
   ZP (systém): odhlášení neplatiče ze zamčeného týmu: Z → P (nebo S pokud byl poslední člen)
   PE: expirace nepřipraveného zamčení: P → E (vypršení času expirace)
@@ -148,7 +148,7 @@ PRIO
   - zamčený tým
     - nelze nijak dál editovat (vypne odhlašování/přihlašování předávání kapitána etc.)
     - odemčení
-      - pouze šéf infa nebo automaticky odhlášením neplatiče
+      - pouze šéf infopultu nebo automaticky odhlášením neplatiče
       - při odhlášení neplatiče odemkne a vyhodí neplatiče
       - při odemčení běží limit 72h znova
     - každý zamčený tým je automaticky nastavený jako neveřejný
@@ -191,7 +191,7 @@ PRIO
       - limit dává asi možná trochu smysl pro veřejné týmy co chcou hrát v menším počtu
     - co vše by mělo jít dělat přes admin ?
       - alespoň vše co by mohl normálně dělat kapitán
-      - šef infa může odemknout tým
+      - šef infopultu může odemknout tým
     - Má se zobrazovat kdo je v cizím veřejném týmu, nebo jen počet členů?
       - asi s anonymizací v pohodě
 
@@ -364,10 +364,10 @@ Turnajové
 ## Odemčení týmu
 - [X] Backend logika odemčení
   - [X] Metoda `odemknout()` v `AktivitaTym` — reset `zamcen`, reset `zalozen` na `NOW()` (nový 72h limit)
-  - [X] Oprávnění: pouze šéf infa (admin) nebo systém (odhlášení neplatiče)
-- [ ] Šéf infa může tým odemknout přes admin (zatím stačí jen s pohledu vybreného uživatele)
+  - [X] Oprávnění: pouze šéf infopultu (admin) nebo systém (odhlášení neplatiče)
+- [ ] Šéf infopultu může tým odemknout přes admin (zatím stačí jen s pohledu vybreného uživatele)
   - [X] Tlačítko "Odemknout" v admin panelu `tymy.php` / `tymy.xtpl`
-  - [ ] Kontrola oprávnění (šéf infa)
+  - [ ] Kontrola oprávnění (šéf infopultu)
 - [X] Automatické odemčení při odhlášení neplatiče
   - [X] Odemknout tým + vyhodit neplatiče z týmu
   - [X] Po odemčení běží limit 72h znova (reset `zalozen`)
@@ -442,7 +442,7 @@ Turnajové
   - [ ] API akceptuje admin operace jménem jiného uživatele
 - [ ] Definovat co vše admin program musí podporovat (`program-uzivatele.php:118`)
   - [ ] Minimálně: vše co kapitán (přihlášení/odhlášení členů, předání kapitána, změna limitu, zamčení týmu)
-  - [ ] Navíc (šéf infa a další vyšší org role): odemčení týmu, přidání nad max kapacitu (ignorovatLimity), rozpuštění týmu, editace zamčeného týmu (přihlášení/odhlášení členů bez ohledu na zamčení)
+  - [ ] Navíc (šéf infopultu a další vyšší org role): odemčení týmu, přidání nad max kapacitu (ignorovatLimity), rozpuštění týmu, editace zamčeného týmu (přihlášení/odhlášení členů bez ohledu na zamčení)
 - [ ] Admin může editovat zamčený tým nebo ho alespoň odemknout
   - [X] Admin rozebírání týmu existuje v `tymy.php`
   - [ ] Tlačítko odemknout v admin panelu
