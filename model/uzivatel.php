@@ -1510,10 +1510,18 @@ SQL,
         if (! isset($this->r['prava'])) {
             $this->nactiPrava();
         } elseif (is_string($this->r['prava'])) {
-            $this->r['prava'] = array_map('intval', explode(',', $this->r['prava']));
+            $this->r['prava'] = self::idsPravZRetezce($this->r['prava']);
         }
 
         return $this->r['prava'];
+    }
+
+    /**
+     * @return int[]
+     */
+    private static function idsPravZRetezce(string $idsOdeleneCarkami): array
+    {
+        return array_map('intval', array_values(array_filter(explode(',', $idsOdeleneCarkami), 'strlen')));
     }
 
     public function potvrzeniZakonnehoZastupceOd(): ?DateTimeImmutable
@@ -3099,7 +3107,7 @@ SQL;
         $uzivatele = [];
         while ($r = mysqli_fetch_assoc($o)) {
             $u = new self($r);
-            $u->r['prava'] = array_map('intval', array_values(array_filter(explode(',', $u->r['prava'] ?? ''), 'strlen')));
+            $u->r['prava'] = self::idsPravZRetezce($u->r['prava'] ?? '');
             $uzivatele[] = $u;
         }
 

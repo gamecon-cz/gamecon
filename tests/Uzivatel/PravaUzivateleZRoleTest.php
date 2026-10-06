@@ -47,6 +47,31 @@ VALUES ($0, $1, $2, '', -1, 'trvala', '')",
         self::assertFalse($uzivatele[0]->maPravo(Pravo::PLACKA_ZDARMA));
     }
 
+    /**
+     * @return iterable<string, array{string, list<int>}>
+     */
+    public static function pravaJakoRetezecProvider(): iterable
+    {
+        yield 'dvě práva' => ['4,1037', [4, 1037]];
+        yield 'jedno právo' => ['100', [100]];
+        yield 'žádné právo' => ['', []];
+    }
+
+    /**
+     * @dataProvider pravaJakoRetezecProvider
+     *
+     * @param list<int> $ocekavanaPrava
+     */
+    public function testPravaPredanaJakoRetezecSeRozebiraStejneJakoPriNacteniZRole(string $retezec, array $ocekavanaPrava): void
+    {
+        $uzivatel = new \Uzivatel([
+            'id_uzivatele' => 1,
+            'prava'        => $retezec,
+        ]);
+
+        self::assertSame($ocekavanaPrava, $uzivatel->prava());
+    }
+
     public function testUzivatelZRoleBezPravNemaZadnaPrava(): void
     {
         $idRole = -random_int(100000, 999999);
