@@ -55,7 +55,7 @@ server nemá (`UbytovaniMřížka.tsx:63-70`). Bez payloadu tahle logika nefungu
 | vykreslení | mřížka (`UbytovaniMřížka.tsx`) | mřížka (`UbytovaniMřížka.tsx`) — legacy renderery obou stran smazány |
 | spolubydlící | edituje (1. argument `true`) | **jen zobrazuje** seznam lidí na pokoji, needituje |
 | „nechce ubytování" | jen zobrazuje `ano`/`ne` | jen zobrazuje `ano`/`ne` |
-| přes kapacitu | tlačítko jen pro `jeSefInfopultu()` | nenabízí |
+| přes kapacitu | tlačítko jen pro právo `MUZE_PRETIZIT_UBYTOVANI` | nenabízí |
 
 Pozor na dvě místa, kde by převod **tiše přidal schopnost**, ne ji zachoval. Preact mřížka
 nabízí editovatelné pole spolubydlícího i zaškrtávátko „nechci ubytování". Infopult ale

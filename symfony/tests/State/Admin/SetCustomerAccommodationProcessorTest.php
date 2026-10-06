@@ -13,6 +13,7 @@ use App\Service\AccommodationRules;
 use App\Service\AccommodationWriter;
 use App\Service\CurrentYearProviderInterface;
 use App\Service\LegacySessionService;
+use App\Service\UserPermissions;
 use App\State\Admin\SetCustomerAccommodationProcessor;
 use App\State\Cart\AccommodationGridInterface;
 use App\Tests\AbstractDatabaseKernelTestCase;
@@ -42,6 +43,11 @@ class SetCustomerAccommodationProcessorTest extends AbstractDatabaseKernelTestCa
     private MockObject $security;
 
     /**
+     * @var list<int> ids of users holding the right to overbook
+     */
+    private array $overbookers = [];
+
+    /**
      * @var array<int, \Uzivatel> by id, so the operator and the customer cannot be mistaken for each other
      */
     private array $legacyUsers = [];
@@ -62,12 +68,22 @@ class SetCustomerAccommodationProcessorTest extends AbstractDatabaseKernelTestCa
         $this->security = $this->createMock(Security::class);
 
         $container = static::getContainer();
+        $currentYear = $container->get(CurrentYearProviderInterface::class)->getCurrentYear();
+        // Answers for one right only, for this year: a blanket stub would pass even if the
+        // processor asked about some other permission.
+        $userPermissions = $this->createMock(UserPermissions::class);
+        $userPermissions->method('has')->willReturnCallback(
+            fn (User $user, int $permission, int $year): bool => $permission === Pravo::MUZE_PRETIZIT_UBYTOVANI
+                && $year === $currentYear
+                && in_array($user->getId(), $this->overbookers, true),
+        );
 
         $this->processor = new SetCustomerAccommodationProcessor(
             $this->accommodationWriter,
             $container->get(AccommodationRules::class),
             $container->get(CurrentYearProviderInterface::class),
             $this->security,
+            $userPermissions,
             $this->legacySession,
             $this->accommodationGrid,
             $this->entityManager,
@@ -89,9 +105,9 @@ class SetCustomerAccommodationProcessorTest extends AbstractDatabaseKernelTestCa
         $operator->method('getId')->willReturn(self::OPERATOR_ID);
         $this->security->method('getUser')->willReturn($operator);
 
-        $legacyOperator = $this->createMock(\Uzivatel::class);
-        $legacyOperator->method('jeSefInfopultu')->willReturn($isInfopultChief);
-        $this->legacyUsers[self::OPERATOR_ID] = $legacyOperator;
+        if ($isInfopultChief) {
+            $this->overbookers[] = self::OPERATOR_ID;
+        }
     }
 
     private function customer(int $id = 4242): MockObject
@@ -107,7 +123,9 @@ class SetCustomerAccommodationProcessorTest extends AbstractDatabaseKernelTestCa
     {
         $legacyCustomer = $this->createMock(\Uzivatel::class);
         $legacyCustomer->method('ubytovanS')->willReturn($roommate);
-        $legacyCustomer->method('jeSefInfopultu')->willReturn($isInfopultChief);
+        if ($isInfopultChief) {
+            $this->overbookers[] = 4242;
+        }
         // Answers for one right only: a blanket stub would pass even if the processor read
         // some other permission off the customer.
         $legacyCustomer->method('maPravo')->willReturnCallback(

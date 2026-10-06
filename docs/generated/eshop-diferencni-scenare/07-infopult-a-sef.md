@@ -116,7 +116,7 @@ SET capacity = 0 WHERE code = <kód varianty>`.
 
 ### `SEF_INFOPULTU` sám o sobě do adminu nepustí
 
-Role 24 nese jen práva **111 a 1038** — ani 100, ani 101. Pult (`DESK_OPERATOR`) přitom
+Role 24 nese vedle tří práv šéfa infopultu (1040–1042, viz níže) jen **111 a 1038** — ani 100, ani 101. Pult (`DESK_OPERATOR`) přitom
 vyžaduje 100 nebo 101, takže držitel *jen* téhle role by dostal 403 „Objednávat za
 účastníky smí jen obsluha pultu…" dřív, než by se vůbec došlo na přeplnění.
 
@@ -125,9 +125,9 @@ dostanou. Je to add-on role, ne samostatná. Důsledek je testovací: **7.11 nej
 přidělením téhle jediné role**, musí se kombinovat s `GC2026_INFOPULT` nebo
 `ORGANIZATOR_ZDARMA`.
 
-Pozor i na nesourodost: do adminu pouští **právo**, přeplnění povoluje **role**
-(`jeSefInfopultu()` → `maRoli`). Scénář varuje „právo rozhoduje, ne role" — u přeplnění to
-neplatí.
+Pravomoci šéfa infopultu jsou tři samostatná práva, která drží jen role 24 — `MUZE_PRETIZIT_UBYTOVANI`
+(1040), `MUZE_ZAMYKAT_TYMY` (1041) a `NEMUSI_POTVRZOVAT_NA_INFOPULTU` (1042). Přeplnění se tedy
+řídí právem stejně jako vstup do adminu, takže scénář „právo rozhoduje, ne role" platí i tady.
 
 ## Průchod prohlížečem (2026-09-18)
 
