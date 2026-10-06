@@ -123,9 +123,11 @@ Dělicí čára tedy nevede mezi „identita a kontext", ale mezi **pomalu se m�
 někdo spravuje**, a **výběrem, který si držitel tokenu mění sám**. To první do tokenu patří,
 druhé ne.
 
-U nás to má konkrétní důsledek: token platí **hodinu a nejde odvolat** (`JwtService`, žádné
-`jti` ani blocklist). Token vydaný nad účastníkem A by tak hodinu zůstal platný i poté, co
-obsluha přepnula na B — buď by se musel razit znovu při každém přepnutí, nebo by zápisy končily
+U nás to má konkrétní důsledek: token platí **hodinu a jednotlivě nejde odvolat** (`JwtService`,
+žádné `jti` ani blocklist; odhlášení zneplatní najednou všechny tokeny uživatele přes verzi
+tokenů, přepnutí obsluhy na jiného účastníka ne). Token vydaný nad účastníkem A by tak hodinu
+zůstal platný i poté, co obsluha přepnula na B — buď by se musel razit znovu při každém
+přepnutí, nebo by zápisy končily
 u špatného člověka. A stálý token se zapečeným účastníkem je navíc hodinu použitelná oprávnění
 k úpravě jeho objednávky. S `customerId` v payloadu tohle nehrozí: server si práva obsluhy ověří
 při každém requestu a zákazník je ten, kterého říká **tenhle** request.

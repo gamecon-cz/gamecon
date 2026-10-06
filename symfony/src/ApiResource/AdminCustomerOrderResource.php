@@ -13,7 +13,6 @@ use App\Dto\Admin\SetCustomerAccommodationInputDto;
 use App\Dto\Admin\SetCustomerMealsInputDto;
 use App\Dto\Cart\AccommodationOutputDto;
 use App\Enum\PermissionEnum;
-use App\Security\Voter\LegacySessionVoter;
 use App\Security\Voter\PermissionVoter;
 use App\State\Admin\CustomerAccommodationProvider;
 use App\State\Admin\CustomerMealsProvider;
@@ -35,7 +34,7 @@ use App\State\Admin\SetCustomerMealsProcessor;
             output: AccommodationOutputDto::class,
             provider: CustomerAccommodationProvider::class,
             security: self::DESK_OPERATOR,
-            securityMessage: 'desk.operator_required',
+            securityMessage: 'desk.no_right_to_order',
             openapi: new Operation(
                 summary: 'Read a participant\'s accommodation',
                 description: 'The same payload the participant sees for themselves, for the customer named in ?customerId.',
@@ -47,7 +46,7 @@ use App\State\Admin\SetCustomerMealsProcessor;
             output: AccommodationOutputDto::class,
             processor: SetCustomerAccommodationProcessor::class,
             security: self::DESK_OPERATOR,
-            securityMessage: 'desk.operator_required',
+            securityMessage: 'desk.no_right_to_order',
             openapi: new Operation(
                 summary: 'Set a participant\'s accommodation',
                 description: 'Replaces the named customer\'s nights with exactly the ones sent; an empty list cancels the booking. Returns the same payload as GET.',
@@ -58,7 +57,7 @@ use App\State\Admin\SetCustomerMealsProcessor;
             output: CustomerMealsOutputDto::class,
             provider: CustomerMealsProvider::class,
             security: self::DESK_OPERATOR,
-            securityMessage: 'desk.operator_required',
+            securityMessage: 'desk.no_right_to_order',
             openapi: new Operation(
                 summary: 'Read a participant\'s meals',
                 description: 'The variant ids the customer named in ?customerId currently holds. The catalogue comes from /cart/meals.',
@@ -70,7 +69,7 @@ use App\State\Admin\SetCustomerMealsProcessor;
             output: CustomerMealsOutputDto::class,
             processor: SetCustomerMealsProcessor::class,
             security: self::DESK_OPERATOR,
-            securityMessage: 'desk.operator_required',
+            securityMessage: 'desk.no_right_to_order',
             openapi: new Operation(
                 summary: 'Set a participant\'s meals',
                 description: 'Replaces the named customer\'s meals with exactly the ones sent; an empty list cancels them all. Answers with what the customer ends up holding, which drops a breakfast the hotel covers.',
@@ -82,11 +81,9 @@ class AdminCustomerOrderResource
 {
     /**
      * The rights the two admin screens declare in their module headers: this is about reaching
-     * those screens at all, not about what is being ordered. The admin session must still be
-     * the token's, so that logging out ends the desk's access too.
+     * those screens at all, not about what is being ordered.
      */
     public const DESK_OPERATOR = "is_granted('" . PermissionVoter::ANY_OF . "', ["
         . PermissionEnum::ADMINISTRACE_UBYTOVANI->value . ', '
-        . PermissionEnum::ADMINISTRACE_INFOPULT->value . '])'
-        . " and is_granted('" . LegacySessionVoter::SAME_USER . "')";
+        . PermissionEnum::ADMINISTRACE_INFOPULT->value . '])';
 }

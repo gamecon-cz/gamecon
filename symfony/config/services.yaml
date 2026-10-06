@@ -88,3 +88,7 @@ services:
         arguments:
             $secret: '%app.secret%' # Use the same secret as Symfony app
             $legacyCacheDir: '%app.legacy_cache_dir%' # Use cache directory that both apps can access
+
+    # The legacy logout (revokeJwtsForUser in nastaveni/jwt-bridge.php) fetches it from the container
+    App\Service\TokenVersionService:
+        public: true

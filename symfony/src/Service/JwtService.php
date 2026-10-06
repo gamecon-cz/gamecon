@@ -15,6 +15,7 @@ readonly class JwtService
     public function __construct(
         private string $secret,
         private string $legacyCacheDir,
+        private TokenVersionService $tokenVersions,
         private string $algorithm = 'HS256',
         private int $expirationInSeconds = 3600,
     ) {
@@ -26,11 +27,12 @@ readonly class JwtService
     public function generateJwtToken(array $userData): string
     {
         $payload = [
-            'iss'  => 'gamecon-php', // Issuer
-            'aud'  => 'gamecon-csharp', // Audience
-            'iat'  => time(), // Issued at
-            'exp'  => time() + $this->expirationInSeconds, // Expiration
-            'user' => $userData,
+            'iss'     => 'gamecon-php', // Issuer
+            'aud'     => 'gamecon-csharp', // Audience
+            'iat'     => time(), // Issued at
+            'exp'     => time() + $this->expirationInSeconds, // Expiration
+            'version' => $this->tokenVersions->current((int) ($userData['id'] ?? 0)),
+            'user'    => $userData,
         ];
 
         return JWT::encode($payload, $this->secret, $this->algorithm);

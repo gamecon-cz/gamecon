@@ -86,6 +86,14 @@ parameters:
                 - symfony/src/Service/ManualSaleService.php
                 - symfony/src/Service/BulkCancelService.php
 
+        # Called by the legacy logout (nastaveni/jwt-bridge.php), outside `paths:`, like the
+        # entries above. Goes away once the legacy tree is analysed.
+        -
+            identifier: shipmonk.deadMethod
+            message: '#^Unused App\\Service\\TokenVersionService\:\:invalidate$#'
+            paths:
+                - symfony/src/Service/TokenVersionService.php
+
         # ProductDiscount byl první pokus o slevy (procenta na dvojici produkt+role).
         # Nahradila ho pravidla v discount_rule, která umí i pevnou částku. Entita tu
         # zůstává jen kvůli mapování v Product; smazat ji znamená migraci, takže vlastní PR.
