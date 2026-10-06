@@ -570,8 +570,6 @@ SQL,
             prednacitat: true,
         );
 
-        $bonusForStandardActivity = (int)$this->systemoveNastaveni->dejHodnotu(SystemoveNastaveniKlice::BONUS_ZA_STANDARDNI_3H_AZ_5H_AKTIVITU);
-
         foreach ($this->getCountOfActivitiesAsStandardActivity($activities) as $code => $value) {
             $data[] = [$code, 'Počet aktivit přepočtený na standardní aktivitu (včetně dalších kol turnajů)', $value];
         }
@@ -592,21 +590,8 @@ SQL,
             $data[] = [$code, 'Vypravěčobloky (přepočtené standardní aktivity * počet lidí) vedené Orgy (včetně dalších kol turnajů)', $value];
         }
 
-        $sumOfOrgBonuses = $this->getSumOfOrgBonusesAsStandardActivity($activities, $bonusForStandardActivity);
-        foreach ($sumOfOrgBonuses as $code => $value) {
-            $data[] = [$code, 'Suma bonusů za vedení aktivit u lidí bez práva "Bez bonusu za vedení aktivit"', $value];
-        }
-
-        $data[] = ['Nr-BonusyCelkem', 'Suma všech bonusů za vedení aktivit bez technických aktivit', array_sum($sumOfOrgBonuses)];
-
-        $data[] = ['Nr-BonusyVedeniTech', 'Suma všech bonusů za vedení technických aktivit', $this->getSumOfTechnicalActivityLeadershipBonuses($activities, $bonusForStandardActivity)];
-        $data[] = ['Nr-BonusyUcastTech', 'Suma všech bonusů za účast na technické aktivitě', $this->getSumOfTechnicalActivityParticipationBonuses($activities)];
-
-        $data[] = ['Nr-OdmenyVedeniBrigadnicke', 'Suma všech odměn za vedení brigádnických aktivit', $this->getSumOfBrigadnickaActivityLeadershipPayments($activities, $bonusForStandardActivity)];
-        $data[] = ['Nr-OdmenyUcastBrigadnicke', 'Suma všech odměn za účast na brigádnické aktivitě', $this->getSumOfBrigadnickaActivityParticipationPayments($activities)];
-
-        foreach ($this->getSumOfSavedBonusesAsStandardActivity($activities) as $code => $value) {
-            $data[] = [$code, 'Ušetřené bonusy sekce (full-org vedoucí aktivit bez nároku na bonus)', $value];
+        foreach ($this->getBonusRows($activities) as $row) {
+            $data[] = $row;
         }
 
         foreach ($this->getCountOfPlayBlocksAsStandardActivity($activities) as $code => $value) {
@@ -1130,6 +1115,37 @@ SQL,
 
     /**
      * @param array<int, Aktivita> $activities
+     * @return list<array{string, string, int|float}> rows of [code, label, value]
+     */
+    public function getBonusRows(array $activities): array
+    {
+        $bonusForStandardActivity = (int)$this->systemoveNastaveni->dejHodnotu(SystemoveNastaveniKlice::BONUS_ZA_STANDARDNI_3H_AZ_5H_AKTIVITU);
+        $rows                     = [];
+
+        $sumOfOrgBonuses = $this->getSumOfOrgBonusesAsStandardActivity($activities, $bonusForStandardActivity);
+        foreach ($sumOfOrgBonuses as $code => $value) {
+            $rows[] = [$code, 'Plánovaná alokace bonusů za vedení aktivit sekce (bez práva "Bez bonusu za vedení aktivit")', $value];
+        }
+
+        $rows[] = ['Nr-BonusyCelkem', 'Plánovaná alokace bonusů za vedení aktivit bez technických', array_sum($sumOfOrgBonuses)];
+
+        $rows[] = ['Nr-BonusyVedeniTech', 'Plánovaná alokace bonusů za vedení technických aktivit', $this->getSumOfTechnicalActivityLeadershipBonuses($activities, $bonusForStandardActivity)];
+        $rows[] = ['Nr-BonusyUcastTech', 'Plánovaná alokace bonusů za účast na technických aktivitách', $this->getSumOfTechnicalActivityParticipationBonuses($activities)];
+
+        $rows[] = ['Nr-OdmenyVedeniBrigadnicke', 'Plánovaná alokace odměn za vedení brigádnických aktivit', $this->getSumOfBrigadnickaActivityLeadershipPayments($activities, $bonusForStandardActivity)];
+        $rows[] = ['Nr-OdmenyUcastBrigadnicke', 'Plánovaná alokace odměn za účast na brigádnických aktivitách', $this->getSumOfBrigadnickaActivityParticipationPayments($activities)];
+
+        $rows[] = ['Nr-BonusyVedeniNedorazili', 'Z toho bonusy a odměny za vedení aktivit lidem přihlášeným na GC, kteří nedorazili na infopult (jen po konci GC)', $this->getSumOfLeadershipBonusesOfRegisteredWhoDidNotArrive($activities, $bonusForStandardActivity)];
+
+        foreach ($this->getSumOfSavedBonusesAsStandardActivity($activities) as $code => $value) {
+            $rows[] = [$code, 'Ušetřené bonusy sekce (full-org vedoucí aktivit bez nároku na bonus)', $value];
+        }
+
+        return $rows;
+    }
+
+    /**
+     * @param array<int, Aktivita> $activities
      * @return array{code: string, value: float}
      */
     private function getSumOfOrgBonusesAsStandardActivity(
@@ -1142,7 +1158,7 @@ SQL,
             if (TypAktivity::jeInterniDleId($activity->typId())) {
                 continue;
             }
-            $countOfOrgsWithBonus      = self::getCountOfOrganizersWithBonus($activity);
+            $countOfOrgsWithBonus      = $this->getCountOfOrganizersWithBonus($activity);
             $standardLengthCoefficient = $this->getActivityStandardLengthCoefficient($activity->delka());
             $code                      = 'Nr-Bonusy-' . $this->getActivityGroupCode($activity);
 
@@ -1162,9 +1178,12 @@ SQL,
         $bonusForStandardActivity = (int)$this->systemoveNastaveni->dejHodnotu(SystemoveNastaveniKlice::BONUS_ZA_STANDARDNI_3H_AZ_5H_AKTIVITU);
         $savedBonuses             = [];
         foreach ($activities as $activity) {
-            $countOfFullOrgs = count(array_filter($activity->organizatori(), fn(
-                Uzivatel $u,
-            ) => $u->nemaPravoNaBonusZaVedeniAktivitAniUcastNaTechnicke()));
+            $countOfFullOrgs = $activity->nedavaBonus()
+                ? 0
+                : count(array_filter($activity->organizatori(), fn(
+                    Uzivatel $u,
+                ) => $u->nemaPravoNaBonusZaVedeniAktivitAniUcastNaTechnicke()
+                    && $u->gcPrihlasen()));
             $standardLength  = $this->getActivityStandardLengthCoefficient($activity->delka());
             $code            = 'Nr-UsetreneBonusy-' . $this->getActivityGroupCode($activity);
 
@@ -1189,7 +1208,7 @@ SQL,
             if ($activity->typId() !== TypAktivity::TECHNICKA) {
                 continue;
             }
-            $countOfOrgsWithBonus      = self::getCountOfOrganizersWithBonus($activity);
+            $countOfOrgsWithBonus      = $this->getCountOfOrganizersWithBonus($activity);
             $standardLengthCoefficient = $this->getActivityStandardLengthCoefficient($activity->delka());
             $totalLeadershipBonuses    += $countOfOrgsWithBonus * $standardLengthCoefficient * $bonusForStandardActivity;
         }
@@ -1197,13 +1216,51 @@ SQL,
         return $totalLeadershipBonuses;
     }
 
-    private static function getCountOfOrganizersWithBonus(Aktivita $activity): int
+    private function getCountOfOrganizersWithBonus(Aktivita $activity): int
     {
+        if ($activity->nedavaBonus()) {
+            return 0;
+        }
+
         return count(
             array_filter($activity->organizatori(), fn(
                 Uzivatel $u,
-            ) => !$u->nemaPravoNaBonusZaVedeniAktivitAniUcastNaTechnicke()),
+            ) => $u->maPravoNaPoradaniAktivit()
+                && !$u->nemaPravoNaBonusZaVedeniAktivitAniUcastNaTechnicke()
+                && $u->gcPrihlasen()),
         );
+    }
+
+    /**
+     * Bonuses and rewards for leading any activity that Finance credits to people registered
+     * for the festival who never arrived at the infopult.
+     *
+     * @param array<int, Aktivita> $activities
+     */
+    private function getSumOfLeadershipBonusesOfRegisteredWhoDidNotArrive(
+        array $activities,
+        int   $bonusForStandardActivity,
+    ): float {
+        // Before the festival ends nobody has to be marked as arrived yet, so the row would repeat the whole plan.
+        if ($this->systemoveNastaveni->ted() <= $this->systemoveNastaveni->spocitanyKonecLetosnihoGameconu()) {
+            return 0.0;
+        }
+        $total = 0.0;
+        foreach ($activities as $activity) {
+            $countOfOrgs = $activity->nedavaBonus()
+                ? 0
+                : count(
+                    array_filter($activity->organizatori(), fn(
+                        Uzivatel $u,
+                    ) => $u->maPravoNaPoradaniAktivit()
+                        && !$u->nemaPravoNaBonusZaVedeniAktivitAniUcastNaTechnicke()
+                        && $u->gcPrihlasen()
+                        && !$u->gcPritomen()),
+                );
+            $total += $countOfOrgs * $this->getActivityStandardLengthCoefficient($activity->delka()) * $bonusForStandardActivity;
+        }
+
+        return $total;
     }
 
     /**
@@ -1243,7 +1300,7 @@ SQL,
             if ($activity->typId() !== TypAktivity::BRIGADNICKA) {
                 continue;
             }
-            $countOfOrgsWithBonus      = self::getCountOfOrganizersWithBonus($activity);
+            $countOfOrgsWithBonus      = $this->getCountOfOrganizersWithBonus($activity);
             $standardLengthCoefficient = $this->getActivityStandardLengthCoefficient($activity->delka());
             $totalLeadershipPayments   += $countOfOrgsWithBonus * $standardLengthCoefficient * $bonusForStandardActivity;
         }
