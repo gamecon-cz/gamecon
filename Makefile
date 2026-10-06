@@ -4,6 +4,7 @@ MAKEFLAGS += --no-print-directory # to disable "make: Entering directory ..." me
 
 init:
 	which docker > /dev/null || (echo "Please install docker binary" && exit 1)
+	./bin/install-git-hooks.sh
 	if command -v direnv &> /dev/null; then \
 		[ -f .envrc ] || cp .envrc.dist .envrc; \
 		direnv allow; \
