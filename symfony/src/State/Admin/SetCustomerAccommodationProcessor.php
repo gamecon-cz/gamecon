@@ -13,6 +13,7 @@ use App\Service\AccommodationRules;
 use App\Service\AccommodationWriter;
 use App\Service\CurrentYearProviderInterface;
 use App\Service\LegacySessionService;
+use App\Service\UserPermissions;
 use App\State\Cart\AccommodationGridInterface;
 use Doctrine\ORM\EntityManagerInterface;
 use Gamecon\Pravo;
@@ -39,6 +40,7 @@ readonly class SetCustomerAccommodationProcessor implements ProcessorInterface
         private AccommodationRules $accommodationRules,
         private CurrentYearProviderInterface $currentYearProvider,
         private Security $security,
+        private UserPermissions $userPermissions,
         private LegacySessionService $legacySession,
         private AccommodationGridInterface $accommodationGrid,
         private EntityManagerInterface $entityManager,
@@ -73,18 +75,19 @@ readonly class SetCustomerAccommodationProcessor implements ProcessorInterface
         // An omitted roommate keeps whatever is stored: the writer treats null as "clear it",
         // and the infopult screen has no such field to send.
         $roommate = $data->roommate ?? $legacyCustomer->ubytovanS();
+        $year = $this->currentYearProvider->getCurrentYear();
 
         $this->accommodationWriter->save(
             $customer,
             array_map('intval', $data->variantIds),
-            $this->currentYearProvider->getCurrentYear(),
+            $year,
             $legacyCustomer->maPravo(Pravo::UBYTOVANI_MUZE_OBJEDNAT_JEDNU_NOC),
             $roommate,
             $data->declined,
             $this->accommodationRules->sleepingBagsOnly($legacyCustomer),
             // Legacy offered this button to the infopult chief but never checked on write,
             // so a hand-made request overbooked for anyone. Now the server decides.
-            mayOverbook: $this->legacySession->getUserById((int) $operator->getId())?->jeSefInfopultu() ?? false,
+            mayOverbook: $this->userPermissions->has($operator, Pravo::MUZE_PRETIZIT_UBYTOVANI, $year),
             // Rezervace patří zákazníkovi, ne obsluze: pult objednává za něj, takže
             // rozhoduje, jestli je organizátor on. Okruh rolí je tentýž jako u merche.
             jeOrganizator: $customer->isOrganizer(),

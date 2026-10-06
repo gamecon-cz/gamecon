@@ -1479,11 +1479,6 @@ SQL,
         return $this->maRoli(Role::SEF_PROGRAMU);
     }
 
-    public function jeSefInfopultu(): bool
-    {
-        return $this->maRoli(Role::SEF_INFOPULTU);
-    }
-
     /**
      * @return int[]
      */

@@ -231,7 +231,7 @@ if ($uPracovni) {
         $x->parse('infopult.uzivatel.cipLink');
     }
 
-    if ($u->jeInfopultak() && !$u->jeSefInfopultu()) {
+    if ($u->jeInfopultak() && !$u->maPravo(Pravo::NEMUSI_POTVRZOVAT_NA_INFOPULTU)) {
         $zpravyProPotvrzeni = [];
         $a = $uPracovni->koncovkaDlePohlavi();
         if (!$uPracovni->gcPritomen()) {

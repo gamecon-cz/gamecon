@@ -14,6 +14,7 @@ declare(strict_types=1);
 
 use Gamecon\Aktivita\AktivitaTym;
 use Gamecon\Cas\DateTimeCz;
+use Gamecon\Pravo;
 use Gamecon\XTemplate\XTemplate;
 
 require_once __DIR__ . '/_tymy-akce.php';
@@ -107,12 +108,12 @@ while ($aktivitaRow = $aktivity->fetch(PDO::FETCH_ASSOC)) {
                 $tpl->parse('tymy.aktivita.tym.clenove');
             }
 
-            $smíZamykat = $u->jeSefInfopultu();
+            $smíZamykat = $u->maPravo(Pravo::MUZE_ZAMYKAT_TYMY);
             $tpl->assign([
                 'zamceni_name'     => $aktivitaTym->jeZamceny() ? 'odemknoutTym' : 'zamknoutTym',
                 'zamceni_label'    => $aktivitaTym->jeZamceny() ? 'Odemknout tým' : 'Zamknout tým',
                 'zamceni_disabled' => $smíZamykat ? '' : 'disabled',
-                'zamceni_title'    => $smíZamykat ? '' : 'Zamykání/odemykání týmu může provádět pouze Šéf infopultu',
+                'zamceni_title'    => $smíZamykat ? '' : 'Zamykání a odemykání týmů vyžaduje právo, které má běžně šéf infopultu',
             ]);
             $tpl->parse('tymy.aktivita.tym.zamceniTlacitko');
 

@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 use Gamecon\Aktivita\Aktivita;
 use Gamecon\Aktivita\AktivitaTym;
+use Gamecon\Pravo;
 use Gamecon\SystemoveNastaveni\SystemoveNastaveni;
 
 /**
@@ -21,7 +22,7 @@ function zpracujAkciTymu(\Uzivatel $u, SystemoveNastaveni $systemoveNastaveni): 
     }
 
     if (post('zamknoutTym') || post('odemknoutTym')) {
-        if (!$u->jeSefInfopultu()) {
+        if (!$u->maPravo(Pravo::MUZE_ZAMYKAT_TYMY)) {
             throw new \Chyba('Nemáte oprávnění zamykat/odemykat týmy');
         }
         $idTymu = (int)post('idTymu');
