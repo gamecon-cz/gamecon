@@ -1,5 +1,6 @@
 <?php
 
+use Gamecon\Web\QrOdkaz;
 use Gamecon\XTemplate\XTemplate;
 
 /**
@@ -12,6 +13,10 @@ if (get('id') || get('akce') === 'nova') {
     $f = Stranka::form(get('id'));
     $f->processPost();
     echo $f->full();
+    $stranka = get('id') ? Stranka::zId(get('id')) : null;
+    if ($stranka) {
+        echo (new QrOdkaz($stranka->urlNaWebu(), 'qr-' . str_replace('/', '-', $stranka->url())))->html();
+    }
     return;
 }
 
