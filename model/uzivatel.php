@@ -1566,6 +1566,8 @@ SQL,
      */
     public function odhlas(bool $naUvodniStranku = true)
     {
+        // Než zmizí session: když to selže, odhlášení jde zopakovat.
+        $this->zneplatniTrvalePrihlaseni();
         $a = $this->koncovkaDlePohlavi();
         $this->odhlasProTed();
         if (isset($_COOKIE['gcTrvalePrihlaseni'])) {
@@ -1575,6 +1577,19 @@ SQL,
         if ($naUvodniStranku) {
             back(URL_WEBU);
         }
+    }
+
+    /**
+     * Cookie trvalého přihlášení nese hodnotu uloženou i v DB, takže její smazání v prohlížeči
+     * nestačí: kopie by dál přihlašovala. Token je jen jeden na uživatele, takže odhlášení
+     * ruší trvalé přihlášení na všech zařízeních.
+     */
+    private function zneplatniTrvalePrihlaseni(): void
+    {
+        dbQuery(
+            'UPDATE uzivatele_hodnoty SET random = $0 WHERE id_uzivatele = $1',
+            [randHex(20), $this->id()],
+        );
     }
 
     /**
