@@ -36,11 +36,11 @@ SQL,
         $idsPrav = Pravo::dejIdsVsechPrav();
         $pravaSqlArray = [];
         foreach ($idsPrav as $nazevKonstanty => $idPrava) {
-            $pravaSqlArray[] = "({$idPrava}, '{$nazevKonstanty}', '{$nazevKonstanty}')";
+            $pravaSqlArray[] = "({$idPrava}, '{$nazevKonstanty}', '{$nazevKonstanty}', '{$nazevKonstanty}')";
         }
         $pravaSql = implode(',', $pravaSqlArray);
         $queries[] = <<<SQL
-INSERT IGNORE INTO r_prava_soupis(id_prava, jmeno_prava, popis_prava)
+INSERT IGNORE INTO r_prava_soupis(id_prava, kod_prava, jmeno_prava, popis_prava)
     VALUES
 {$pravaSql}
 SQL;

@@ -227,8 +227,8 @@ SQL,
         $idRole = -random_int(100000, 999999);
         $kodRole = 'TEST_ACC_' . $idPrava . '_' . $unique;
         dbQuery(<<<SQL
-INSERT IGNORE INTO r_prava_soupis(id_prava, jmeno_prava, popis_prava)
-VALUES ({$idPrava}, 'test_pravo_{$idPrava}', 'test')
+INSERT IGNORE INTO r_prava_soupis(id_prava, kod_prava, jmeno_prava, popis_prava)
+VALUES ({$idPrava}, 'TEST_PRAVO_{$idPrava}', 'test_pravo_{$idPrava}', 'test')
 SQL,
         );
         dbQuery(
