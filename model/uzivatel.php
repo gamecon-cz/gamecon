@@ -3303,7 +3303,7 @@ SQL;
             $role['brigadnik'] = true;
         }
         if ($this->maRoli(Role::SEF_INFOPULTU)) {
-            $role['sefInfa'] = true;
+            $role['sefInfopultu'] = true;
         }
 
         if (! empty($role)) {
