@@ -235,6 +235,10 @@ Prefix doplňuje hook `prepare-commit-msg`: vytáhne z názvu větve úvodní č
 i s případným písmenným prefixem a **převede ho na velká písmena**. Píšeš tedy
 holý předmět a hook ho doplní.
 
+Hook nepřidává prefix k `fixup!`, `squash!` a `amend!` (jinak by `rebase --autosquash` nenašel
+cíl), cherry-pick nechá předmět s úkolem, který už má, a `Revert "…"` / `Reapply "…"`
+s úkolem větve ho nezdvojí; zpětná lomítka ve zprávě nechá být.
+
 Hook je v repozitáři (`.githooks/prepare-commit-msg`) a `make init` ho zapojí přes
 `bin/install-git-hooks.sh`, tedy `git config --local core.hooksPath .githooks`
 (idempotentně, už nastavenou cestu nepřepíše). Bez toho se prefix nedoplňuje, a nic
