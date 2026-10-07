@@ -56,6 +56,9 @@ function vytvorSouborSkrytehoNastaveniPodleEnv(
         // ani k SECRET_CRYPTO_KEY. Viz CrossSiteLogin + stare-rocniky.php / prihlaseni.php.
         $GAMECON_SSO_SECRET = getenv('GAMECON_SSO_SECRET');
         $GAMECON_SSO_KEY = getenv('GAMECON_SSO_KEY');
+        // Přihlášení do Vševědy (?gcsso=). Vlastní tajemství jen pro ostrou: GAMECON_SSO_SECRET dostává
+        // každé preview, a z něj odvozený klíč by si tak mohla podepsat libovolná větev.
+        $VSEVEDA_SSO_SECRET = getenv('VSEVEDA_SSO_SECRET');
 
         $ted = date(DATE_ATOM);
         $nazevTetoFunkce = __FUNCTION__;
@@ -113,6 +116,9 @@ function vytvorSouborSkrytehoNastaveniPodleEnv(
             // Magické přihlášení do archivu: master jen na ostré, odvozený klíč jen v archivu
             define('GAMECON_SSO_SECRET', '{$GAMECON_SSO_SECRET}');
             define('GAMECON_SSO_KEY', '{$GAMECON_SSO_KEY}');
+
+            // Přihlášení do Vševědy: jen ostrá
+            define('VSEVEDA_SSO_SECRET', '{$VSEVEDA_SSO_SECRET}');
             PHP,
         );
     }

@@ -1,5 +1,7 @@
 <?php
 
+use Gamecon\Dev\SsoParovaciCookie;
+use Gamecon\Dev\VsevedaOdkaz;
 use Gamecon\Role\Role;
 use Gamecon\Shop\Shop;
 use Gamecon\XTemplate\XTemplate;
@@ -24,6 +26,20 @@ require __DIR__ . '/../penize/_postPrepocetPoukazu.php';
 require __DIR__ . '/../penize/_postUzivatelKVyplaceniAktivity.php';
 
 require __DIR__ . '/../penize/_ajaxGetUzivatelKVyplaceniAktivity.php';
+
+// Token se podepíše až po kliknutí: platí 5 minut a spárovací cookie sdílí i odkazy do preview a archivů,
+// takže podpis při každém zobrazení stránky by po chvíli nefungoval a přepisoval by jim ji.
+$vsevedaSecret = defined('VSEVEDA_SSO_SECRET') ? VSEVEDA_SSO_SECRET : '';
+if (isset($_GET['vseveda']) && $vsevedaSecret !== '' && $u->maRoli(Role::CFO)) {
+    $vsevedaNonce = bin2hex(random_bytes(16));
+    $vsevedaUrl = VsevedaOdkaz::url((int) $u->id(), $vsevedaNonce, $vsevedaSecret, PREVIEW_GATE_SECRET);
+    if ($vsevedaUrl !== null) {
+        SsoParovaciCookie::nastav($vsevedaNonce);
+        header('Location: ' . $vsevedaUrl);
+        // Not return: the admin would then render a page nobody sees and use up its pending warnings.
+        exit;
+    }
+}
 
 $x = new XTemplate(__DIR__ . '/finance.xtpl');
 
@@ -70,6 +86,10 @@ $x->assign('rok', $systemoveNastaveni->rocnik());
 
 $x->assign('bfgr', basename(__DIR__ . '/../../zvlastni/reporty/bfgr-report.php', '.php'));
 $x->parse('finance.reporty');
+
+if ($vsevedaSecret !== '' && $u->maRoli(Role::CFO)) {
+    $x->parse('finance.vseveda');
+}
 
 $x->parse('finance');
 $x->out('finance');

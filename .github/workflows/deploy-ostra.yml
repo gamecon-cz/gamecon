@@ -102,3 +102,6 @@ jobs:
                     # JEN ostrá — z něj odvozuje klíč pro daný ročník. Archivy dostanou
                     # jen odvozený klíč (ne tohle), takže popadený archiv master neunese.
                     GAMECON_SSO_SECRET: ${{ secrets.GAMECON_SSO_SECRET }}
+                    # Přihlášení do Vševědy. JEN ostrá: beta ani preview ho nedostanou, jinak by si
+                    # přihlášení mohla podepsat libovolná větev. Shodné s vseveda.sso.secret v ansiblu.
+                    VSEVEDA_SSO_SECRET: ${{ secrets.VSEVEDA_SSO_SECRET }}
