@@ -919,7 +919,25 @@ SQL,
         if (! $this->gcPritomen()) {
             throw new Chyba('Uživatel není přítomen na GC');
         }
-        $this->pridejRoli(Role::ODJEL_Z_LETOSNIHO_GC, $editor);
+        // One transaction: the button is disabled once the role exists, so a failed completion could not be retried.
+        dbBegin();
+        try {
+            $this->pridejRoli(Role::ODJEL_Z_LETOSNIHO_GC, $editor);
+            // After the role: adding it reprices a pending order, so completing first would freeze the old prices.
+            $this->dokonciLetosniObjednavku();
+            dbCommit();
+        } catch (\Throwable $throwable) {
+            dbRollback();
+            throw $throwable;
+        }
+    }
+
+    private function dokonciLetosniObjednavku(): void
+    {
+        $kontejner = $this->systemoveNastaveni->kernel()->getContainer();
+        // A reference, because one production account has a gender Doctrine cannot hydrate and only the id is needed.
+        $uzivatelEntita = $kontejner->get('doctrine.orm.entity_manager')->getReference(\App\Entity\User::class, $this->id());
+        $kontejner->get(\App\Service\OrderCompletionService::class)->completeCart($uzivatelEntita);
     }
 
     /**
