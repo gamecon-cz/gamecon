@@ -59,12 +59,14 @@ class BreakfastCanceller
         }
 
         $kryteRana = array_map('intval', $this->connection->fetchFirstColumn(
-            'SELECT DISTINCT product_variant.accommodation_day + 1
-             FROM product_variant
-             JOIN shop_predmety ON shop_predmety.id_predmetu = product_variant.product_id
-             WHERE product_variant.id IN (:noci)
-               AND shop_predmety.breakfast_included = 1
-               AND product_variant.accommodation_day IS NOT NULL',
+            <<<'SQL'
+            SELECT DISTINCT product_variant.accommodation_day + 1
+            FROM product_variant
+            JOIN shop_predmety ON shop_predmety.id_predmetu = product_variant.product_id
+            WHERE product_variant.id IN (:noci)
+              AND shop_predmety.breakfast_included = 1
+              AND product_variant.accommodation_day IS NOT NULL
+            SQL,
             [
                 'noci' => $nightVariantIds,
             ],
@@ -77,18 +79,20 @@ class BreakfastCanceller
         }
 
         return array_map('intval', $this->connection->fetchFirstColumn(
-            'SELECT DISTINCT product_variant.id
-             FROM product_variant
-             JOIN shop_predmety ON shop_predmety.id_predmetu = product_variant.product_id
-             WHERE product_variant.accommodation_day IN (:rana)
-               AND TRIM(shop_predmety.nazev) LIKE :snidane
-               AND shop_predmety.archived_at IS NULL
-               AND EXISTS (
-                   SELECT 1 FROM product_product_tag
-                   JOIN product_tag ON product_tag.id = product_product_tag.tag_id
-                   WHERE product_product_tag.product_id = shop_predmety.id_predmetu
-                     AND product_tag.code = :jidlo
-               )',
+            <<<'SQL'
+            SELECT DISTINCT product_variant.id
+            FROM product_variant
+            JOIN shop_predmety ON shop_predmety.id_predmetu = product_variant.product_id
+            WHERE product_variant.accommodation_day IN (:rana)
+              AND TRIM(shop_predmety.nazev) LIKE :snidane
+              AND shop_predmety.archived_at IS NULL
+              AND EXISTS (
+                  SELECT 1 FROM product_product_tag
+                  JOIN product_tag ON product_tag.id = product_product_tag.tag_id
+                  WHERE product_product_tag.product_id = shop_predmety.id_predmetu
+                    AND product_tag.code = :jidlo
+              )
+            SQL,
             [
                 'rana'    => $kryteRana,
                 'snidane' => 'Snídaně%',

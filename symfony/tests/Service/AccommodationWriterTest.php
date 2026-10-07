@@ -420,20 +420,30 @@ class AccommodationWriterTest extends AbstractDatabaseKernelTestCase
         $ucastnik = $this->ucastnikVSql('ubytovani_snidane_soubezne_');
         $this->connection()->commit();
 
+        $rok = self::ROK;
+        $zamknoutSnidani = <<<SQL
+            SELECT id FROM product_variant WHERE id = {$snidane} FOR UPDATE
+            SQL;
+        $koupitSnidani = <<<SQL
+            INSERT INTO shop_nakupy (id_uzivatele, variant_id, rok, cena_nakupni, datum)
+            VALUES ({$ucastnik}, {$snidane}, {$rok}, 50, NOW())
+            SQL;
+
         try {
             $souper = SoubeznaTransakce::spust($this->connection(), [
-                ['sql', "SELECT id FROM product_variant WHERE id = {$snidane} FOR UPDATE"],
+                ['sql', $zamknoutSnidani],
                 ['hlasim', 'drzi snidani'],
                 ['cekej', 500],
-                ['sql', 'INSERT INTO shop_nakupy (id_uzivatele, variant_id, rok, cena_nakupni, datum)
-                         VALUES (' . $ucastnik . ", {$snidane}, " . self::ROK . ', 50, NOW())'],
+                ['sql', $koupitSnidani],
                 ['potvrd', ''],
             ]);
             $this->writer()->save($this->entityManager()->find(User::class, $ucastnik), [$hotelovaNoc], self::ROK, true);
 
             self::assertSame('hotovo', $souper->dokonci());
             self::assertSame(0, (int) $this->connection()->fetchOne(
-                'SELECT COUNT(*) FROM shop_nakupy WHERE id_uzivatele = :uzivatel AND variant_id = :snidane',
+                <<<'SQL'
+                SELECT COUNT(*) FROM shop_nakupy WHERE id_uzivatele = :uzivatel AND variant_id = :snidane
+                SQL,
                 [
                     'uzivatel' => $ucastnik,
                     'snidane'  => $snidane,
