@@ -1,6 +1,7 @@
 import { GAMECON_KONSTANTY } from "../../env";
 import { symfonyFetch } from "../symfony/fetch";
-import { ApiHydraCollection } from "../symfony/types";
+import { zprávaChyby } from "../symfony/zpravaChyby";
+import { ApiCollection } from "../symfony/types";
 import { DefiniceObchod, DefiniceObchodMřížka, DefiniceObchodMřížkaBuňka, DefiniceObchodMřížkaBuňkaPředmět, DefiniceObchodMřížkaBuňkaStránka, DefiniceObchodMřížkaBuňkaTyp, ObjednávkaPředmět, Předmět } from "./types";
 
 /**
@@ -42,8 +43,8 @@ export const fetchMřížky = async (): Promise<DefiniceObchod | null> => {
   try {
     const response = await symfonyFetch("kfc/grids");
     if (!response.ok) throw new Error(`Failed to fetch grids: ${response.status}`);
-    const data = await response.json() as ApiHydraCollection<ApiKfcGrid>;
-    const grids = data["hydra:member"] ?? data["member"] ?? [];
+    const data = await response.json() as ApiCollection<ApiKfcGrid>;
+    const grids = data.member ?? [];
 
     const obchod: DefiniceObchod = {
       mřížky: grids.map(grid => ({
@@ -105,8 +106,8 @@ export const fetchPředměty = async (): Promise<Předmět[] | null> => {
   try {
     const response = await symfonyFetch("kfc/products");
     if (!response.ok) throw new Error(`Failed to fetch products: ${response.status}`);
-    const data = await response.json() as ApiHydraCollection<ApiKfcProduct>;
-    const products = data["hydra:member"] ?? data["member"] ?? [];
+    const data = await response.json() as ApiCollection<ApiKfcProduct>;
+    const products = data.member ?? [];
 
     return products.map(product => ({
       název: product.name,
@@ -146,8 +147,7 @@ export const fetchProdej = async (objednávky: ObjednávkaPředmět[]): Promise<
     });
 
     if (!response.ok) {
-      const errorData = await response.json().catch(() => ({}));
-      throw new Error(errorData.detail ?? `Sale failed: ${response.status}`);
+      throw new Error(await zprávaChyby(response, `Sale failed: ${response.status}`));
     }
   } catch (error) {
     console.error(error);
