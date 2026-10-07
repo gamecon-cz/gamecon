@@ -23,7 +23,7 @@ class OrderCompletionServiceTest extends AbstractDatabaseKernelTestCase
         $customer = $this->createCustomer();
         $cart = $this->createCart($customer, withItem: true);
 
-        $completed = $this->service()->completeCart($customer);
+        $completed = $this->service()->completeCart($customer->getId());
 
         self::assertTrue($completed);
         self::assertSame(Order::STATUS_COMPLETED, $this->statusInDatabase($cart));
@@ -35,7 +35,7 @@ class OrderCompletionServiceTest extends AbstractDatabaseKernelTestCase
         $customer = $this->createCustomer();
         $cart = $this->createCart($customer, withItem: false);
 
-        $completed = $this->service()->completeCart($customer);
+        $completed = $this->service()->completeCart($customer->getId());
 
         self::assertFalse($completed);
         self::assertSame(Order::STATUS_PENDING, $this->statusInDatabase($cart));
@@ -43,7 +43,7 @@ class OrderCompletionServiceTest extends AbstractDatabaseKernelTestCase
 
     public function testDoesNothingWhenThereIsNoCart(): void
     {
-        self::assertFalse($this->service()->completeCart($this->createCustomer()));
+        self::assertFalse($this->service()->completeCart($this->createCustomer()->getId()));
     }
 
     public function testLeavesACartOfAnotherYearAlone(): void
@@ -51,7 +51,7 @@ class OrderCompletionServiceTest extends AbstractDatabaseKernelTestCase
         $customer = $this->createCustomer();
         $cart = $this->createCart($customer, withItem: true, year: $this->currentYear() - 1);
 
-        $completed = $this->service()->completeCart($customer);
+        $completed = $this->service()->completeCart($customer->getId());
 
         self::assertFalse($completed);
         self::assertSame(Order::STATUS_PENDING, $this->statusInDatabase($cart));
@@ -62,7 +62,7 @@ class OrderCompletionServiceTest extends AbstractDatabaseKernelTestCase
         $customer = $this->createCustomer();
         $otherCart = $this->createCart($this->createCustomer(), withItem: true);
 
-        $completed = $this->service()->completeCart($customer);
+        $completed = $this->service()->completeCart($customer->getId());
 
         self::assertFalse($completed);
         self::assertSame(Order::STATUS_PENDING, $this->statusInDatabase($otherCart));
@@ -72,10 +72,10 @@ class OrderCompletionServiceTest extends AbstractDatabaseKernelTestCase
     {
         $customer = $this->createCustomer();
         $cart = $this->createCart($customer, withItem: true);
-        $this->service()->completeCart($customer);
+        $this->service()->completeCart($customer->getId());
         $firstCompletion = $this->completedAtInDatabase($cart);
 
-        $completedAgain = $this->service()->completeCart($customer);
+        $completedAgain = $this->service()->completeCart($customer->getId());
 
         self::assertFalse($completedAgain);
         self::assertSame($firstCompletion, $this->completedAtInDatabase($cart));

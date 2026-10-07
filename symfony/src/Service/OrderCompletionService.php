@@ -22,8 +22,10 @@ class OrderCompletionService
      *
      * @return bool whether an order was completed
      */
-    public function completeCart(User $customer): bool
+    public function completeCart(int $customerId): bool
     {
+        // A reference, not find(): an account whose gender Doctrine cannot read must still be completable.
+        $customer = $this->entityManager->getReference(User::class, $customerId);
         $cart = $this->orderRepository->findPendingForCustomer($customer, $this->currentYearProvider->getCurrentYear());
 
         // The checkout refuses an empty cart too, and there is nothing in it to freeze.
