@@ -72,6 +72,9 @@ services:
     # UserRoleService - accessed from legacy code via container
     App\Service\UserRoleService:
         public: true
+    # Completes a participant's order when the legacy infopult records their departure
+    App\Service\OrderCompletionService:
+        public: true
 
     # CurrentYearProvider
     App\Service\CurrentYearProviderInterface:
