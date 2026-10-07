@@ -55,6 +55,7 @@ class AccommodationWriter
             ...$this->heldNights($customer, $year),
             ...$variantIds,
             ...$this->breakfastCanceller->heldBreakfasts($customer, $year),
+            ...$this->breakfastCanceller->coveredBreakfastVariants($variantIds),
         ];
         $this->capacityManager->lockInOrder($locked);
 

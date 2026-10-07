@@ -241,4 +241,54 @@ class BreakfastCancellerTest extends AbstractDatabaseKernelTestCase
         self::assertSame([$snidane->getId()], $zrusene);
         self::assertSame(0, $this->pocetNakupu($ucastnik, $snidane));
     }
+
+    public function testCoveredBreakfastIsTheOneOfTheMorningAfterTheNight(): void
+    {
+        $hotel = $this->vytvorVariantu('Dvojlůžák čtvrtek', self::CTVRTEK, ProductTagCode::UBYTOVANI, snidaneVCene: true);
+        $snidanePatek = $this->vytvorVariantu('Snídaně pátek', self::PATEK, ProductTagCode::JIDLO);
+        $snidaneSobota = $this->vytvorVariantu('Snídaně sobota', self::SOBOTA, ProductTagCode::JIDLO);
+        $obed = $this->vytvorVariantu('Oběd pátek', self::PATEK, ProductTagCode::JIDLO);
+
+        $kryte = $this->canceller()->coveredBreakfastVariants([(int) $hotel->getId()]);
+
+        self::assertContains($snidanePatek->getId(), $kryte);
+        self::assertNotContains($snidaneSobota->getId(), $kryte, 'Sobotní ráno noc ze čtvrtka nekryje');
+        self::assertNotContains($obed->getId(), $kryte, 'Oběd není snídaně');
+    }
+
+    /**
+     * The meal desk still sells past `nabizet_do` and sells suspended food, so a purchase in
+     * flight can target a breakfast the public offer no longer lists.
+     */
+    public function testCoveredBreakfastsIncludeThoseOnlyTheDeskStillSells(): void
+    {
+        $hotel = $this->vytvorVariantu('Dvojlůžák čtvrtek', self::CTVRTEK, ProductTagCode::UBYTOVANI, snidaneVCene: true);
+        $nabizena = $this->vytvorVariantu('Snídaně pátek', self::PATEK, ProductTagCode::JIDLO);
+        $podPultem = $this->vytvorVariantu('Snídaně pátek podpultová', self::PATEK, ProductTagCode::JIDLO);
+        $podPultem->getProduct()->setState(ProductStateEnum::SUSPENDED);
+        $poTerminu = $this->vytvorVariantu('Snídaně pátek po termínu', self::PATEK, ProductTagCode::JIDLO);
+        $poTerminu->getProduct()->setAvailableUntil(new \DateTimeImmutable('-1 day'));
+        $this->entityManager()->flush();
+
+        $kryte = $this->canceller()->coveredBreakfastVariants([(int) $hotel->getId()]);
+
+        foreach ([$nabizena, $podPultem, $poTerminu] as $snidane) {
+            self::assertContains($snidane->getId(), $kryte);
+        }
+    }
+
+    public function testNoBreakfastIsCoveredByANightWithoutBreakfastInThePrice(): void
+    {
+        $spacak = $this->vytvorVariantu('Spacák čtvrtek', self::CTVRTEK, ProductTagCode::UBYTOVANI);
+        $this->vytvorVariantu('Snídaně pátek', self::PATEK, ProductTagCode::JIDLO);
+
+        self::assertSame([], $this->canceller()->coveredBreakfastVariants([(int) $spacak->getId()]));
+    }
+
+    public function testNoBreakfastIsCoveredWithoutNights(): void
+    {
+        $this->vytvorVariantu('Snídaně pátek', self::PATEK, ProductTagCode::JIDLO);
+
+        self::assertSame([], $this->canceller()->coveredBreakfastVariants([]));
+    }
 }

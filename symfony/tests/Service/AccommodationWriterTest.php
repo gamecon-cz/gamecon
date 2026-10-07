@@ -410,6 +410,42 @@ class AccommodationWriterTest extends AbstractDatabaseKernelTestCase
     }
 
     /**
+     * A buyer takes the breakfast's variant lock first and inserts the purchase a moment later.
+     * Unless the save locks that variant too it does not wait for the buyer and finds nothing
+     * to cancel, so the participant pays for a breakfast the night includes.
+     */
+    public function testBreakfastBoughtWhileTheCoveringNightIsBookedIsCancelled(): void
+    {
+        [$hotelovaNoc, $snidane] = $this->pripravHotelSeSnidani(1);
+        $ucastnik = $this->ucastnikVSql('ubytovani_snidane_soubezne_');
+        $this->connection()->commit();
+
+        try {
+            $souper = SoubeznaTransakce::spust($this->connection(), [
+                ['sql', "SELECT id FROM product_variant WHERE id = {$snidane} FOR UPDATE"],
+                ['hlasim', 'drzi snidani'],
+                ['cekej', 500],
+                ['sql', 'INSERT INTO shop_nakupy (id_uzivatele, variant_id, rok, cena_nakupni, datum)
+                         VALUES (' . $ucastnik . ", {$snidane}, " . self::ROK . ', 50, NOW())'],
+                ['potvrd', ''],
+            ]);
+            $this->writer()->save($this->entityManager()->find(User::class, $ucastnik), [$hotelovaNoc], self::ROK, true);
+
+            self::assertSame('hotovo', $souper->dokonci());
+            self::assertSame(0, (int) $this->connection()->fetchOne(
+                'SELECT COUNT(*) FROM shop_nakupy WHERE id_uzivatele = :uzivatel AND variant_id = :snidane',
+                [
+                    'uzivatel' => $ucastnik,
+                    'snidane'  => $snidane,
+                ],
+            ));
+        } finally {
+            $this->smazPotvrzenyHotel($ucastnik, [$hotelovaNoc, $snidane]);
+            $this->connection()->beginTransaction();
+        }
+    }
+
+    /**
      * See the meal writer's test of the same race: a night bought while this save waited for
      * its lock must count as held, not be bought a second time.
      */
