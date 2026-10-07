@@ -36,11 +36,11 @@ class GcOdjedTest extends AbstractTestDb
     private Connection $connection;
 
     protected static array $initQueries = [
-        <<<SQL
-INSERT INTO uzivatele_hodnoty (id_uzivatele, login_uzivatele, jmeno_uzivatele, prijmeni_uzivatele, email1_uzivatele, pohlavi)
-VALUES (77001, 'odjizdejici', 'Odjíždějící', 'Účastník', 'odjizdejici@example.invalid', 'f'),
-       (77002, 'infopultak', 'Infopult', 'Obsluha', 'infopultak@example.invalid', 'm')
-SQL,
+        <<<'SQL'
+        INSERT INTO uzivatele_hodnoty (id_uzivatele, login_uzivatele, jmeno_uzivatele, prijmeni_uzivatele, email1_uzivatele, pohlavi)
+        VALUES (77001, 'odjizdejici', 'Odjíždějící', 'Účastník', 'odjizdejici@example.invalid', 'f'),
+               (77002, 'infopultak', 'Infopult', 'Obsluha', 'infopultak@example.invalid', 'm')
+        SQL,
     ];
 
     protected function setUp(): void
@@ -51,7 +51,9 @@ SQL,
         $this->em->clear();
 
         $this->connection->executeStatement(
-            'INSERT IGNORE INTO uzivatele_role (id_uzivatele, id_role, posadil) VALUES (:user, :role, :posadil)',
+            <<<'SQL'
+            INSERT IGNORE INTO uzivatele_role (id_uzivatele, id_role, posadil) VALUES (:user, :role, :posadil)
+            SQL,
             [
                 'user'    => self::ODJIZDEJICI,
                 'role'    => Role::PRITOMEN_NA_LETOSNIM_GC,
@@ -94,7 +96,9 @@ SQL,
             {
                 if ($event->getObject() instanceof UserRole) {
                     $this->statusWhenRoleWasPersisted[] = (string) $this->connection->fetchOne(
-                        'SELECT status FROM shop_order WHERE id = :id',
+                        <<<'SQL'
+                        SELECT status FROM shop_order WHERE id = :id
+                        SQL,
                         [
                             'id' => $this->order->getId(),
                         ],
@@ -126,9 +130,14 @@ SQL,
         $order = $this->createPendingOrder();
         $this->odjizdejici()->gcOdjed($this->infopultak());
         // Backdated, because completed_at has second precision and both departures fall in one second.
-        $this->connection->executeStatement("UPDATE shop_order SET completed_at = '2000-01-01 00:00:00' WHERE id = :id", [
-            'id' => $order->getId(),
-        ]);
+        $this->connection->executeStatement(
+            <<<'SQL'
+            UPDATE shop_order SET completed_at = '2000-01-01 00:00:00' WHERE id = :id
+            SQL,
+            [
+                'id' => $order->getId(),
+            ],
+        );
 
         $this->odjizdejici()->gcOdjed($this->infopultak());
 
@@ -142,9 +151,14 @@ SQL,
     public function testDepartureOfAParticipantDoctrineCannotHydrateStillCompletesTheOrder(): void
     {
         $order = $this->createPendingOrder();
-        $this->connection->executeStatement("UPDATE uzivatele_hodnoty SET pohlavi = '' WHERE id_uzivatele = :id", [
-            'id' => self::ODJIZDEJICI,
-        ]);
+        $this->connection->executeStatement(
+            <<<'SQL'
+            UPDATE uzivatele_hodnoty SET pohlavi = '' WHERE id_uzivatele = :id
+            SQL,
+            [
+                'id' => self::ODJIZDEJICI,
+            ],
+        );
         $this->em->clear();
 
         $this->odjizdejici()->gcOdjed($this->infopultak());
@@ -241,24 +255,39 @@ SQL,
 
     private function countOfDepartureRoles(): int
     {
-        return (int) $this->connection->fetchOne('SELECT COUNT(*) FROM uzivatele_role WHERE id_uzivatele = :user AND id_role = :role', [
-            'user' => self::ODJIZDEJICI,
-            'role' => Role::ODJEL_Z_LETOSNIHO_GC,
-        ]);
+        return (int) $this->connection->fetchOne(
+            <<<'SQL'
+            SELECT COUNT(*) FROM uzivatele_role WHERE id_uzivatele = :user AND id_role = :role
+            SQL,
+            [
+                'user' => self::ODJIZDEJICI,
+                'role' => Role::ODJEL_Z_LETOSNIHO_GC,
+            ],
+        );
     }
 
     private function statusOf(Order $order): string
     {
-        return (string) $this->connection->fetchOne('SELECT status FROM shop_order WHERE id = :id', [
-            'id' => $order->getId(),
-        ]);
+        return (string) $this->connection->fetchOne(
+            <<<'SQL'
+            SELECT status FROM shop_order WHERE id = :id
+            SQL,
+            [
+                'id' => $order->getId(),
+            ],
+        );
     }
 
     private function completedAtOf(Order $order): ?string
     {
-        $completedAt = $this->connection->fetchOne('SELECT completed_at FROM shop_order WHERE id = :id', [
-            'id' => $order->getId(),
-        ]);
+        $completedAt = $this->connection->fetchOne(
+            <<<'SQL'
+            SELECT completed_at FROM shop_order WHERE id = :id
+            SQL,
+            [
+                'id' => $order->getId(),
+            ],
+        );
 
         return $completedAt === false ? null : $completedAt;
     }

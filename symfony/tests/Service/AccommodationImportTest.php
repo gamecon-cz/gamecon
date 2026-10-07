@@ -463,7 +463,9 @@ class AccommodationImportTest extends AbstractDatabaseKernelTestCase
         $treti = $this->vytvorNoc(3);
         $idTypuPokoje = (int) $this->typPokoje()->getId();
         $this->connection()->executeStatement(
-            'INSERT INTO shop_nakupy (id_uzivatele, variant_id, rok, cena_nakupni, datum) VALUES (:uzivatel, :varianta, :rok, 100, NOW())',
+            <<<'SQL'
+            INSERT INTO shop_nakupy (id_uzivatele, variant_id, rok, cena_nakupni, datum) VALUES (:uzivatel, :varianta, :rok, 100, NOW())
+            SQL,
             [
                 'uzivatel' => $ucastnik,
                 'varianta' => $drzena,
@@ -493,11 +495,17 @@ class AccommodationImportTest extends AbstractDatabaseKernelTestCase
      */
     private function importProtiPultu(int $ucastnik, int $nocPultu, array $noveNoci, int $prvniDen, int $posledniDen): array
     {
+        $zamknoutNoc = <<<SQL
+            SELECT id FROM product_variant WHERE id = {$nocPultu} FOR UPDATE
+            SQL;
+        $zapsatSpolubydlicihoPultem = <<<SQL
+            UPDATE uzivatele_hodnoty SET ubytovan_s = 'Karel' WHERE id_uzivatele = {$ucastnik}
+            SQL;
         $pult = SoubeznaTransakce::spust($this->connection(), [
-            ['sql', "SELECT id FROM product_variant WHERE id = {$nocPultu} FOR UPDATE"],
+            ['sql', $zamknoutNoc],
             ['hlasim', 'pult drzi noc'],
             ['cekej', 700],
-            ['sql', "UPDATE uzivatele_hodnoty SET ubytovan_s = 'Karel' WHERE id_uzivatele = {$ucastnik}"],
+            ['sql', $zapsatSpolubydlicihoPultem],
             ['cekej', 300],
         ]);
         $chybaImportu = null;
@@ -523,22 +531,62 @@ class AccommodationImportTest extends AbstractDatabaseKernelTestCase
         $uzivatel = [
             'uzivatel' => $idUzivatele,
         ];
-        foreach (['ubytovani', 'shop_nakupy', 'uzivatele_hodnoty_log'] as $tabulka) {
-            $spojeni->executeStatement("DELETE FROM {$tabulka} WHERE id_uzivatele = :uzivatel", $uzivatel);
-        }
-        $spojeni->executeStatement('DELETE FROM shop_order WHERE customer_id = :uzivatel', $uzivatel);
+        $spojeni->executeStatement(
+            <<<'SQL'
+            DELETE FROM ubytovani WHERE id_uzivatele = :uzivatel
+            SQL,
+            $uzivatel,
+        );
+        $spojeni->executeStatement(
+            <<<'SQL'
+            DELETE FROM shop_nakupy WHERE id_uzivatele = :uzivatel
+            SQL,
+            $uzivatel,
+        );
+        $spojeni->executeStatement(
+            <<<'SQL'
+            DELETE FROM uzivatele_hodnoty_log WHERE id_uzivatele = :uzivatel
+            SQL,
+            $uzivatel,
+        );
+        $spojeni->executeStatement(
+            <<<'SQL'
+            DELETE FROM shop_order WHERE customer_id = :uzivatel
+            SQL,
+            $uzivatel,
+        );
         foreach ($idsNoci as $idNoci) {
-            $spojeni->executeStatement('DELETE FROM product_variant WHERE id = :id', [
-                'id' => $idNoci,
-            ]);
+            $spojeni->executeStatement(
+                <<<'SQL'
+                DELETE FROM product_variant WHERE id = :id
+                SQL,
+                [
+                    'id' => $idNoci,
+                ],
+            );
         }
-        $spojeni->executeStatement('DELETE FROM product_product_tag WHERE product_id = :id', [
-            'id' => $idTypuPokoje,
-        ]);
-        $spojeni->executeStatement('DELETE FROM shop_predmety WHERE id_predmetu = :id', [
-            'id' => $idTypuPokoje,
-        ]);
-        $spojeni->executeStatement('DELETE FROM uzivatele_hodnoty WHERE id_uzivatele = :uzivatel', $uzivatel);
+        $spojeni->executeStatement(
+            <<<'SQL'
+            DELETE FROM product_product_tag WHERE product_id = :id
+            SQL,
+            [
+                'id' => $idTypuPokoje,
+            ],
+        );
+        $spojeni->executeStatement(
+            <<<'SQL'
+            DELETE FROM shop_predmety WHERE id_predmetu = :id
+            SQL,
+            [
+                'id' => $idTypuPokoje,
+            ],
+        );
+        $spojeni->executeStatement(
+            <<<'SQL'
+            DELETE FROM uzivatele_hodnoty WHERE id_uzivatele = :uzivatel
+            SQL,
+            $uzivatel,
+        );
     }
 
     /**
