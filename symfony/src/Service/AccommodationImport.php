@@ -90,9 +90,20 @@ readonly class AccommodationImport
         return $ids;
     }
 
-    public function zacniTransakci(): void
+    /**
+     * Noci se zamykají hned, před zápisem pokoje: ten bere sdílený zámek řádku účastníka a pult
+     * jde opačně (noci, pak řádek účastníka).
+     *
+     * @param int[] $idsVariantUbytovani noci, které řádek importu nastaví
+     */
+    public function zacniTransakci(int $idUzivatele, array $idsVariantUbytovani, int $rok): void
     {
         $this->capacityManager->beginSaleTransaction();
+        $this->accommodationWriter->lockForSave(
+            $this->entityManager->getReference(User::class, $idUzivatele),
+            $idsVariantUbytovani,
+            $rok,
+        );
     }
 
     public function potvrdTransakci(): void
