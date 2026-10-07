@@ -195,11 +195,9 @@ export type ApiCart = {
   items: ApiCartItem[];
 };
 
-export type ApiHydraCollection<T> = {
-  "hydra:member"?: T[];
-  "member"?: T[];
-  "hydra:totalItems"?: number;
-  "totalItems"?: number;
+export type ApiCollection<T> = {
+  member?: T[];
+  totalItems?: number;
 };
 
 export type ApiEntryFee = {

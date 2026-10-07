@@ -1,10 +1,11 @@
 import { symfonyFetch } from "./fetch";
+import { zprávaChyby } from "./zpravaChyby";
 import {
   ApiAccommodation,
   ApiAccommodationWrite,
   ApiCart,
   ApiEntryFee,
-  ApiHydraCollection,
+  ApiCollection,
   ApiMealProduct,
   ApiMerchProduct,
   ApiProduct,
@@ -36,8 +37,7 @@ export const saveCustomerMeals = async (customerId: number, variantIds: number[]
     body: JSON.stringify({ customerId, variantIds }),
   });
   if (!res.ok) {
-    const chyba = await res.json().catch(() => null) as { "hydra:description"?: string; detail?: string } | null;
-    throw new Error(chyba?.["hydra:description"] ?? chyba?.detail ?? `Uložení jídla selhalo: ${res.status}`);
+    throw new Error(await zprávaChyby(res, `Uložení jídla selhalo: ${res.status}`));
   }
   const data = await res.json() as { variantIds?: number[] };
   return data.variantIds ?? [];
@@ -50,8 +50,8 @@ export const fetchMeals = async (customerId?: number): Promise<ApiMealProduct[]>
     customerId === undefined ? "cart/meals" : `cart/meals?customerId=${customerId}`,
   );
   if (!res.ok) throw new Error(`Failed to fetch meals: ${res.status}`);
-  const data = await res.json() as ApiHydraCollection<ApiMealProduct>;
-  return data["hydra:member"] ?? data["member"] ?? [];
+  const data = await res.json() as ApiCollection<ApiMealProduct>;
+  return data.member ?? [];
 };
 
 /**
@@ -86,8 +86,7 @@ export const saveAccommodation = async (
     },
   );
   if (!res.ok) {
-    const chyba = await res.json().catch(() => null) as { "hydra:description"?: string; detail?: string } | null;
-    throw new Error(chyba?.["hydra:description"] ?? chyba?.detail ?? `Uložení ubytování selhalo: ${res.status}`);
+    throw new Error(await zprávaChyby(res, `Uložení ubytování selhalo: ${res.status}`));
   }
   return await res.json() as ApiAccommodation;
 };
@@ -98,16 +97,16 @@ export const saveAccommodation = async (
 export const fetchMerch = async (): Promise<ApiMerchProduct[]> => {
   const res = await symfonyFetch("cart/merch");
   if (!res.ok) throw new Error(`Failed to fetch merch: ${res.status}`);
-  const data = await res.json() as ApiHydraCollection<ApiMerchProduct>;
-  return data["hydra:member"] ?? data["member"] ?? [];
+  const data = await res.json() as ApiCollection<ApiMerchProduct>;
+  return data.member ?? [];
 };
 
 /** Shirts and hoodies: same payload as merch, own endpoint because of their own deadlines. */
 export const fetchShirts = async (): Promise<ApiMerchProduct[]> => {
   const res = await symfonyFetch("cart/shirts");
   if (!res.ok) throw new Error(`Failed to fetch shirts: ${res.status}`);
-  const data = await res.json() as ApiHydraCollection<ApiMerchProduct>;
-  return data["hydra:member"] ?? data["member"] ?? [];
+  const data = await res.json() as ApiCollection<ApiMerchProduct>;
+  return data.member ?? [];
 };
 
 /**
@@ -128,8 +127,7 @@ export const addToCart = async (variantId: number): Promise<ApiCart> => {
     body: JSON.stringify({ variantId }),
   });
   if (!res.ok) {
-    const err = await res.json().catch(() => ({}));
-    throw new Error(err.detail ?? `Failed to add to cart: ${res.status}`);
+    throw new Error(await zprávaChyby(res, `Failed to add to cart: ${res.status}`));
   }
   return await res.json() as ApiCart;
 };
@@ -145,8 +143,7 @@ export const removeFromCart = async (itemId: number): Promise<void> => {
     method: "DELETE",
   });
   if (!res.ok) {
-    const err = await res.json().catch(() => ({}));
-    throw new Error(err.detail ?? `Failed to remove from cart: ${res.status}`);
+    throw new Error(await zprávaChyby(res, `Failed to remove from cart: ${res.status}`));
   }
 };
 
@@ -159,8 +156,8 @@ export const removeFromCart = async (itemId: number): Promise<void> => {
 export const fetchProducts = async (archivovane: boolean): Promise<ApiProduct[]> => {
   const res = await symfonyFetch(`products?${new URLSearchParams({ "exists[archivedAt]": String(archivovane) }).toString()}`);
   if (!res.ok) throw new Error(`Failed to fetch products: ${res.status}`);
-  const data = await res.json() as ApiHydraCollection<ApiProduct>;
-  return data["hydra:member"] ?? data["member"] ?? [];
+  const data = await res.json() as ApiCollection<ApiProduct>;
+  return data.member ?? [];
 };
 
 /**
@@ -170,8 +167,8 @@ export const fetchProducts = async (archivovane: boolean): Promise<ApiProduct[]>
 export const fetchProductTags = async (): Promise<ApiProductTag[]> => {
   const res = await symfonyFetch("product_tags");
   if (!res.ok) throw new Error(`Failed to fetch product tags: ${res.status}`);
-  const data = await res.json() as ApiHydraCollection<ApiProductTag>;
-  return data["hydra:member"] ?? data["member"] ?? [];
+  const data = await res.json() as ApiCollection<ApiProductTag>;
+  return data.member ?? [];
 };
 
 /**
@@ -185,8 +182,7 @@ export const createProduct = async (
     body: JSON.stringify(payload),
   });
   if (!res.ok) {
-    const err = await res.json().catch(() => ({}));
-    throw new Error(err.detail ?? err["hydra:description"] ?? `Failed to create product: ${res.status}`);
+    throw new Error(await zprávaChyby(res, `Failed to create product: ${res.status}`));
   }
   return await res.json() as ApiProduct;
 };
@@ -207,8 +203,7 @@ export const updateProduct = async (
     body: JSON.stringify(payload),
   });
   if (!res.ok) {
-    const err = await res.json().catch(() => ({}));
-    throw new Error(err.detail ?? err["hydra:description"] ?? `Failed to update product: ${res.status}`);
+    throw new Error(await zprávaChyby(res, `Failed to update product: ${res.status}`));
   }
   return await res.json() as ApiProduct;
 };
@@ -221,8 +216,7 @@ export const deleteProduct = async (id: number): Promise<void> => {
     method: "DELETE",
   });
   if (!res.ok) {
-    const err = await res.json().catch(() => ({}));
-    throw new Error(err.detail ?? `Failed to delete product: ${res.status}`);
+    throw new Error(await zprávaChyby(res, `Failed to delete product: ${res.status}`));
   }
 };
 
@@ -244,8 +238,7 @@ export const setEntryFee = async (amount: number): Promise<ApiEntryFee> => {
     body: JSON.stringify({ amount }),
   });
   if (!res.ok) {
-    const err = await res.json().catch(() => ({}));
-    throw new Error(err.detail ?? `Failed to set entry fee: ${res.status}`);
+    throw new Error(await zprávaChyby(res, `Failed to set entry fee: ${res.status}`));
   }
   return await res.json() as ApiEntryFee;
 };
