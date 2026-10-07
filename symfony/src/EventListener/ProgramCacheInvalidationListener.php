@@ -10,6 +10,7 @@ use App\Entity\ActivityRegistration;
 use App\Entity\ActivityTag;
 use App\Entity\CategoryTag;
 use App\Entity\Tag;
+use App\Entity\Team;
 use App\Entity\User;
 use Doctrine\Bundle\DoctrineBundle\Attribute\AsDoctrineListener;
 use Doctrine\ORM\Event\PostFlushEventArgs;
@@ -83,6 +84,7 @@ final class ProgramCacheInvalidationListener
             $entity instanceof Tag                  => [ProgramStaticFileType::TAGY, ProgramStaticFileType::AKTIVITY],
             $entity instanceof CategoryTag          => [ProgramStaticFileType::TAGY, ProgramStaticFileType::AKTIVITY],
             $entity instanceof ActivityRegistration => [ProgramStaticFileType::OBSAZENOSTI],
+            $entity instanceof Team                 => [ProgramStaticFileType::OBSAZENOSTI],
             $entity instanceof User                 => $this->flagsForUser($entity, $args, $isUpdate),
             default                                 => [],
         };

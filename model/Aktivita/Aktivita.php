@@ -1873,10 +1873,14 @@ SQL
         $kapacitaZeny = (int)$this->a[Sql::KAPACITA_F];
         $kapacitaUniverzalni = (int)$this->a[Sql::KAPACITA];
         $kapacitaCelkova = $kapacitaUniverzalni + $kapacitaMuzi + $kapacitaZeny;
+        $jedenTym = $this->maJedenTym();
+        if ($jedenTym) {
+            $kapacitaCelkova = $this->kapacitaHracuJedinehoTymu(AktivitaTym::vsechnyTymyAktivity($this->id()));
+        }
         if (!$kapacitaCelkova) {
             return '';
         }
-        if ($this->tymova() && $this->tymovaKapacita() !== null) {
+        if (!$jedenTym && $this->tymova() && $this->tymovaKapacita() !== null) {
             // Týmová aktivita se plní po týmech, ne po hlavách - stejně jako obsazenostObj() pro program.
             $obsazenostTymu = $this->pocetPrihlasenychTymu() . '/' . $this->tymovaKapacita();
 
@@ -1908,19 +1912,24 @@ SQL
         $kapacitaZeny = (int)$this->a[Sql::KAPACITA_F];
         $kapacitaUniverzalni = (int)$this->a[Sql::KAPACITA];
 
+        $tymy = $this->tymova()
+            ? AktivitaTym::vsechnyTymyAktivity($this->id())
+            : [];
+
         $res = [
             'm'  => $prihlasenoMuzu,
             'f'  => $prihlasenoZen,
             'km' => $kapacitaMuzi,
             'kf' => $kapacitaZeny,
-            'ku' => $kapacitaUniverzalni,
+            'ku' => $this->maJedenTym()
+                ? $this->kapacitaHracuJedinehoTymu($tymy)
+                : $kapacitaUniverzalni,
         ];
 
         if ($this->tymova()) {
             $kapacitaTymu = $this->tymovaKapacita() ?? 0;
-            $prihlasenoTymu = $this->pocetPrihlasenychTymu();
             $res["kt"] = $kapacitaTymu;
-            $res["t"] = $prihlasenoTymu;
+            $res["t"] = count($tymy);
         }
 
         return $res;
@@ -2689,6 +2698,29 @@ SQL
         }
 
         return null;
+    }
+
+    /**
+     * Na jediný tým je (0/1) a (1/1) zavádějící, proto se u takové aktivity ukazují obsazená místa pro hráče.
+     */
+    public function maJedenTym(): bool
+    {
+        return $this->tymova() && $this->tymovaKapacita() === 1;
+    }
+
+    /**
+     * Počet míst pro hráče jediného týmu: limit nastavený kapitánem, jinak team_max (stejné pořadí jako AktivitaTymService::limitTymu).
+     * Bere už načtené týmy, aby se u každé aktivity četly jednou.
+     *
+     * - kapacita = 0, team_max > 0 (import, staré řádky): platí team_max, sloupec kapacita se ignoruje
+     * - team_max prázdné/0: 0 míst, obsazenostHtml() nic nezobrazí a program nikdy nehlásí plno
+     *   (formulář tomu předchází uložením kapacita = team_max × team_kapacita)
+     *
+     * @param list<AktivitaTym> $tymy
+     */
+    private function kapacitaHracuJedinehoTymu(array $tymy): int
+    {
+        return ($tymy[0] ?? null)?->getLimit() ?? $this->tymMaxKapacita() ?? $this->kapacita();
     }
 
     public function zkontrolujZdaSeMuzeOdhlasit(

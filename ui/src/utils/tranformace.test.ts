@@ -21,15 +21,16 @@ describe("volnoTypZObsazenost – týmové aktivity", () => {
       .toBe("t");
   });
 
-  it("prázdnou týmovku nechá jako týmovou (volnou)", () => {
-    expect(volnoTypZObsazenost(obsazenost({ ku: 5, kt: 1, t: 0 })))
-      .toBe("t");
+  it("aktivitu s jediným týmem posuzuje podle míst pro hráče: prázdná je volná", () => {
+    expect(volnoTypZObsazenost(obsazenost({ ku: 5, kt: 1, t: 0 }))).toBe("u");
   });
 
-  it("týmovku s jediným místem označí po prvním týmu jako plno", () => {
-    // Reálný případ z programu: kt=1, t=1 se zobrazovalo jako 1/1, ale zeleně.
-    expect(volnoTypZObsazenost(obsazenost({ ku: 5, m: 3, f: 1, kt: 1, t: 1 })))
-      .toBe("x");
+  it("jediný tým s méně lidmi než kapacita (2/5) je dál volný pro přihlášení", () => {
+    expect(volnoTypZObsazenost(obsazenost({ ku: 5, m: 1, f: 1, kt: 1, t: 1 }))).toBe("u");
+  });
+
+  it("jediný tým naplněný do kapacity (5/5) je plno", () => {
+    expect(volnoTypZObsazenost(obsazenost({ ku: 5, m: 3, f: 2, kt: 1, t: 1 }))).toBe("x");
   });
 
   it("o zaplnění týmovky rozhoduje počet týmů, ne počet hlav", () => {
