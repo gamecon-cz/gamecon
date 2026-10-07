@@ -154,16 +154,26 @@ class OrderCompletionServiceTest extends AbstractDatabaseKernelTestCase
 
     private function statusInDatabase(Order $order): string
     {
-        return (string) $this->connection()->fetchOne('SELECT status FROM shop_order WHERE id = :id', [
-            'id' => $order->getId(),
-        ]);
+        return (string) $this->connection()->fetchOne(
+            <<<'SQL'
+            SELECT status FROM shop_order WHERE id = :id
+            SQL,
+            [
+                'id' => $order->getId(),
+            ],
+        );
     }
 
     private function completedAtInDatabase(Order $order): ?string
     {
-        $completedAt = $this->connection()->fetchOne('SELECT completed_at FROM shop_order WHERE id = :id', [
-            'id' => $order->getId(),
-        ]);
+        $completedAt = $this->connection()->fetchOne(
+            <<<'SQL'
+            SELECT completed_at FROM shop_order WHERE id = :id
+            SQL,
+            [
+                'id' => $order->getId(),
+            ],
+        );
 
         return $completedAt === false ? null : $completedAt;
     }

@@ -177,16 +177,20 @@ class AccommodationWriterTest extends AbstractDatabaseKernelTestCase
         $this->entityManager()->flush();
 
         $connection->executeStatement(
-            'INSERT INTO product_product_tag (product_id, tag_id)
-             SELECT :product, id FROM product_tag WHERE code = :code',
+            <<<'SQL'
+            INSERT INTO product_product_tag (product_id, tag_id)
+            SELECT :product, id FROM product_tag WHERE code = :code
+            SQL,
             [
                 'product' => $hotel->getId(),
                 'code'    => ProductTagCode::UBYTOVANI->value,
             ],
         );
         $connection->executeStatement(
-            'INSERT INTO shop_predmety (nazev, kod_predmetu, cena_aktualni, stav, ubytovani_den)
-             VALUES (:nazev, :kod, 500, :stav, :den)',
+            <<<'SQL'
+            INSERT INTO shop_predmety (nazev, kod_predmetu, cena_aktualni, stav, ubytovani_den)
+            VALUES (:nazev, :kod, 500, :stav, :den)
+            SQL,
             [
                 'nazev' => 'Hotel se snídaní',
                 'kod'   => $noc->getCode(),
@@ -209,15 +213,19 @@ class AccommodationWriterTest extends AbstractDatabaseKernelTestCase
         // Tagged as food, which is what tells a breakfast apart from anything else whose
         // name happens to start with "Snídaně".
         $connection->executeStatement(
-            'INSERT IGNORE INTO product_tag (code, name, created_at) VALUES (:code, :name, NOW())',
+            <<<'SQL'
+            INSERT IGNORE INTO product_tag (code, name, created_at) VALUES (:code, :name, NOW())
+            SQL,
             [
                 'code' => ProductTagCode::JIDLO->value,
                 'name' => 'Jídlo',
             ],
         );
         $connection->executeStatement(
-            'INSERT INTO product_product_tag (product_id, tag_id)
-             SELECT :product, id FROM product_tag WHERE code = :code',
+            <<<'SQL'
+            INSERT INTO product_product_tag (product_id, tag_id)
+            SELECT :product, id FROM product_tag WHERE code = :code
+            SQL,
             [
                 'product' => $snidaneProdukt->getId(),
                 'code'    => ProductTagCode::JIDLO->value,
