@@ -934,10 +934,7 @@ SQL,
 
     private function dokonciLetosniObjednavku(): void
     {
-        $kontejner = $this->systemoveNastaveni->kernel()->getContainer();
-        // A reference, because one production account has a gender Doctrine cannot hydrate and only the id is needed.
-        $uzivatelEntita = $kontejner->get('doctrine.orm.entity_manager')->getReference(\App\Entity\User::class, $this->id());
-        $kontejner->get(\App\Service\OrderCompletionService::class)->completeCart($uzivatelEntita);
+        $this->systemoveNastaveni->kernel()->getContainer()->get(\App\Service\OrderCompletionService::class)->completeCart($this->id());
     }
 
     /**
