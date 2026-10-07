@@ -4,20 +4,43 @@
 # `1274-…` -> `1274 …` (Trello card), `gh-1090-…` -> `GH-1090 …` (GitHub issue).
 # Versioned here and wired by `make init` (core.hooksPath), so nobody has to keep a copy.
 
-grep --quiet '^fixup! ' "$1"
-COMMIT_MESSAGE_IS_FIXUP=$?
-if [ "${COMMIT_MESSAGE_IS_FIXUP}" -eq 0 ]; then
-   exit
+MESSAGE_FILE="$1"
+
+# `rebase --autosquash` finds its target by the leading `fixup! `, `squash! ` or `amend! `.
+if head -n1 "$MESSAGE_FILE" | grep --quiet -E '^(fixup|squash|amend)! '; then
+   exit 0
+fi
+
+# Only a message written now gets a prefix, not one that already exists (merge, squash, amend).
+if [ $# -ne 1 ] && [ "$2" != "message" ] && [ "$2" != "template" ]; then
+   exit 0
 fi
 
 # Uppercased to match TICKET, so typing the id in the branch's own lower case
 # is still recognised as already-prefixed rather than doubled.
-FIRST_WORD=$(head -n1 "$1" | awk '{print $1}' | tr '[:lower:]' '[:upper:]')
+FIRST_WORD=$(head -n1 "$MESSAGE_FILE" | awk '{print $1}' | tr '[:lower:]' '[:upper:]')
 
 # Branch names are lowercased in some projects (epm-322-...), while trackers and
 # commit subjects always use the uppercase id, so match either and normalise.
-TICKET=$(git rev-parse --abbrev-ref HEAD | sed -e 's~^pr/~~' | grep -E '^([A-Za-z]+-)*[0-9]+' --only-matching | tr '[:lower:]' '[:upper:]')
+TICKET=$(git symbolic-ref --quiet --short HEAD | sed -e 's~^pr/~~' | grep -E '^([A-Za-z]+-)*[0-9]+' --only-matching | tr '[:lower:]' '[:upper:]')
 
-if [ -n "$TICKET" ] && [ "$FIRST_WORD" != "$TICKET" ] && [ $# -eq 1 -o "$2" = "message" -o "$2" = "template" ]; then
-   echo "$TICKET `cat $1`" > $1
+if [ -z "$TICKET" ] || [ "$FIRST_WORD" = "$TICKET" ]; then
+   exit 0
 fi
+
+# A revert (or the revert of a revert) of a commit that carries this task already has it in `Revert "<id> …"`.
+case "$(head -n1 "$MESSAGE_FILE")" in
+   'Revert "'* | 'Reapply "'*)
+      if head -n1 "$MESSAGE_FILE" | grep --quiet -E -i "(^|[^A-Za-z0-9-])${TICKET}([^A-Za-z0-9-]|\$)"; then
+         exit 0
+      fi
+      ;;
+esac
+
+# A cherry-pick keeps the task id the commit already carries instead of adding the branch's.
+if git rev-parse --quiet --verify CHERRY_PICK_HEAD > /dev/null && printf '%s\n' "$FIRST_WORD" | grep --quiet -E '^([A-Z]+-)*[0-9]+$'; then
+   exit 0
+fi
+
+# Not through `echo`: dash's `echo` reads backslashes in the message as escapes.
+{ printf '%s ' "$TICKET"; cat "$MESSAGE_FILE"; } > "$MESSAGE_FILE.prefixed" && mv "$MESSAGE_FILE.prefixed" "$MESSAGE_FILE"

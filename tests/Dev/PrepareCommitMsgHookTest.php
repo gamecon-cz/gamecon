@@ -70,6 +70,40 @@ class PrepareCommitMsgHookTest extends TestCase
         self::assertSame('gh-1090 Upgrade', $this->spust('gh-1090 Upgrade'));
     }
 
+    /**
+     * Předmět, který úkol jen zmiňuje uprostřed, prefix pořád potřebuje: pravidlo „už je v předmětu"
+     * patří jen revertu, který ho nese po vracené změně.
+     */
+    public function testPredmetKterySvujUkolJenZminujeDostanePrefix(): void
+    {
+        $this->naVetvi('gh-1090-neco');
+
+        self::assertSame('GH-1090 Oprava GH-1090 uprostred', $this->spust('Oprava GH-1090 uprostred'));
+        self::assertSame('GH-1090 Foo 1090 bar', $this->spust('Foo 1090 bar'));
+    }
+
+    public function testRevertSVlastnimUkolemHoNezdvoji(): void
+    {
+        $this->naVetvi('gh-1090-neco');
+
+        self::assertSame('Revert "GH-1090 Foo"', $this->spust('Revert "GH-1090 Foo"'));
+    }
+
+    public function testRevertSJinymUkolemDostanePrefix(): void
+    {
+        $this->naVetvi('gh-1090-neco');
+
+        self::assertSame('GH-1090 Revert "GH-9 Foo"', $this->spust('Revert "GH-9 Foo"'));
+    }
+
+    public function testSquashAAmendSeNemeni(): void
+    {
+        $this->naVetvi('gh-1090-neco');
+
+        self::assertSame('squash! GH-1090 Foo', $this->spust('squash! GH-1090 Foo'));
+        self::assertSame('amend! GH-1090 Foo', $this->spust('amend! GH-1090 Foo'));
+    }
+
     public function testFixupSeNemeni(): void
     {
         $this->naVetvi('gh-1090-neco');
@@ -90,6 +124,16 @@ class PrepareCommitMsgHookTest extends TestCase
         $this->git('update-ref', '--no-deref', 'HEAD', trim($this->git('rev-parse', 'HEAD')));
 
         self::assertSame('Upgrade', $this->spust('Upgrade'));
+    }
+
+    /**
+     * První commit na čerstvé větvi: `HEAD` ještě nikam neukazuje, ale jméno větve už je známé.
+     */
+    public function testPrvniCommitNaNovaVetviDostanePrefix(): void
+    {
+        $this->git('symbolic-ref', 'HEAD', 'refs/heads/gh-5-nova');
+
+        self::assertSame('GH-5 Prvni', $this->spust('Prvni'));
     }
 
     public function testVetevBezCislaSeNemeni(): void
