@@ -14,6 +14,7 @@ use App\Exception\InvalidRequestException;
 use App\Service\AccommodationImport;
 use App\Structure\Entity\UserEntityStructure;
 use App\Tests\AbstractDatabaseKernelTestCase;
+use App\Tests\Support\SoubeznaTransakce;
 use Gamecon\Tests\Factory\UserFactory;
 
 /**
@@ -416,13 +417,128 @@ class AccommodationImportTest extends AbstractDatabaseKernelTestCase
         $prvni = $this->vytvorNoc(1);
         $druha = $this->vytvorNoc(2);
 
-        $this->import()->zacniTransakci();
+        $this->import()->zacniTransakci($ucastnik->getId(), [$prvni, $druha], self::ROK);
         $this->import()->ulozPokoj($ucastnik->getId(), 'B309', 1, 2, self::ROK);
         $this->import()->ulozNociUcastnika($ucastnik->getId(), [$prvni, $druha], self::ROK, false);
         $this->import()->vratTransakci();
 
         self::assertSame([], $this->pokojePodleDnu($ucastnik), 'Pokoj se odrolovat musí');
         self::assertSame(0, $this->pocetNoci($ucastnik), 'Noci se odrolovat musí');
+    }
+
+    /**
+     * Writing the room takes a shared lock on the participant's row (foreign key), while a desk
+     * saving the same participant goes the other way: nights first, then an exclusive lock on
+     * that row. Taking the nights only after the room write closes the cycle, so the import must
+     * hold them before it writes anything.
+     */
+    public function testDeskHoldingTheNightsDoesNotDeadlockWithTheRoomWrite(): void
+    {
+        $ucastnik = $this->ucastnikVSql('import_soubeh_');
+        $prvni = $this->vytvorNoc(1);
+        $druha = $this->vytvorNoc(2);
+        $idTypuPokoje = (int) $this->typPokoje()->getId();
+        $this->connection()->commit();
+
+        try {
+            [$odpovedPultu, $chybaImportu] = $this->importProtiPultu($ucastnik, $prvni, [$prvni, $druha], 1, 2);
+
+            self::assertSame('hotovo', $odpovedPultu);
+            self::assertNull($chybaImportu, (string) $chybaImportu?->getMessage());
+        } finally {
+            $this->smazPotvrzenyImport($ucastnik, [$prvni, $druha], $idTypuPokoje);
+            $this->connection()->beginTransaction();
+        }
+    }
+
+    /**
+     * The same cycle through a night the import removes: the desk saving the participant locks
+     * what they hold as well, so the import has to wait for that one before it writes the room.
+     */
+    public function testDeskHoldingANightTheImportRemovesDoesNotDeadlockWithTheRoomWrite(): void
+    {
+        $ucastnik = $this->ucastnikVSql('import_soubeh_drzena_');
+        $drzena = $this->vytvorNoc(1);
+        $druha = $this->vytvorNoc(2);
+        $treti = $this->vytvorNoc(3);
+        $idTypuPokoje = (int) $this->typPokoje()->getId();
+        $this->connection()->executeStatement(
+            'INSERT INTO shop_nakupy (id_uzivatele, variant_id, rok, cena_nakupni, datum) VALUES (:uzivatel, :varianta, :rok, 100, NOW())',
+            [
+                'uzivatel' => $ucastnik,
+                'varianta' => $drzena,
+                'rok'      => self::ROK,
+            ],
+        );
+        $this->connection()->commit();
+
+        try {
+            [$odpovedPultu, $chybaImportu] = $this->importProtiPultu($ucastnik, $drzena, [$druha, $treti], 2, 3);
+
+            self::assertSame('hotovo', $odpovedPultu);
+            self::assertNull($chybaImportu, (string) $chybaImportu?->getMessage());
+        } finally {
+            $this->smazPotvrzenyImport($ucastnik, [$drzena, $druha, $treti], $idTypuPokoje);
+            $this->connection()->beginTransaction();
+        }
+    }
+
+    /**
+     * The desk takes `$nocPultu`, then the participant's row, while one import row for the same
+     * participant runs in this process.
+     *
+     * @param int[] $noveNoci
+     *
+     * @return array{0: string, 1: ?\Throwable} what the desk's process reported, and the import's error
+     */
+    private function importProtiPultu(int $ucastnik, int $nocPultu, array $noveNoci, int $prvniDen, int $posledniDen): array
+    {
+        $pult = SoubeznaTransakce::spust($this->connection(), [
+            ['sql', "SELECT id FROM product_variant WHERE id = {$nocPultu} FOR UPDATE"],
+            ['hlasim', 'pult drzi noc'],
+            ['cekej', 700],
+            ['sql', "UPDATE uzivatele_hodnoty SET ubytovan_s = 'Karel' WHERE id_uzivatele = {$ucastnik}"],
+            ['cekej', 300],
+        ]);
+        $chybaImportu = null;
+        try {
+            $this->import()->zacniTransakci($ucastnik, $noveNoci, self::ROK);
+            $this->import()->ulozPokoj($ucastnik, 'B309', $prvniDen, $posledniDen, self::ROK);
+            $this->import()->ulozNociUcastnika($ucastnik, $noveNoci, self::ROK, false);
+            $this->import()->potvrdTransakci();
+        } catch (\Throwable $chyba) {
+            $chybaImportu = $chyba;
+            $this->import()->vratTransakci();
+        }
+
+        return [$pult->dokonci(), $chybaImportu];
+    }
+
+    /**
+     * @param int[] $idsNoci
+     */
+    private function smazPotvrzenyImport(int $idUzivatele, array $idsNoci, int $idTypuPokoje): void
+    {
+        $spojeni = $this->connection();
+        $uzivatel = [
+            'uzivatel' => $idUzivatele,
+        ];
+        foreach (['ubytovani', 'shop_nakupy', 'uzivatele_hodnoty_log'] as $tabulka) {
+            $spojeni->executeStatement("DELETE FROM {$tabulka} WHERE id_uzivatele = :uzivatel", $uzivatel);
+        }
+        $spojeni->executeStatement('DELETE FROM shop_order WHERE customer_id = :uzivatel', $uzivatel);
+        foreach ($idsNoci as $idNoci) {
+            $spojeni->executeStatement('DELETE FROM product_variant WHERE id = :id', [
+                'id' => $idNoci,
+            ]);
+        }
+        $spojeni->executeStatement('DELETE FROM product_product_tag WHERE product_id = :id', [
+            'id' => $idTypuPokoje,
+        ]);
+        $spojeni->executeStatement('DELETE FROM shop_predmety WHERE id_predmetu = :id', [
+            'id' => $idTypuPokoje,
+        ]);
+        $spojeni->executeStatement('DELETE FROM uzivatele_hodnoty WHERE id_uzivatele = :uzivatel', $uzivatel);
     }
 
     /**
@@ -470,7 +586,7 @@ class AccommodationImportTest extends AbstractDatabaseKernelTestCase
         $prvni = $this->vytvorNoc(1);
         $druha = $this->vytvorNoc(2);
 
-        $this->import()->zacniTransakci();
+        $this->import()->zacniTransakci($ucastnik->getId(), [$prvni, $druha], self::ROK);
         $this->import()->ulozNociUcastnika($ucastnik->getId(), [$prvni, $druha], self::ROK, false, 'Pepa');
         $zmen = $this->import()->ulozOsobniUdaje($ucastnik->getId(), 'SVK');
         $this->import()->potvrdTransakci();

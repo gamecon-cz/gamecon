@@ -174,7 +174,7 @@ while ($rowIterator->valid()) {
         // spojení; proč to tak musí být, viz jeho docblock.
         $zapsanoZmenVTransakci = 0;
         try {
-            $ubytovaniImport->zacniTransakci();
+            $ubytovaniImport->zacniTransakci($ucastnik->id(), $idsUbytovani, ROCNIK);
             $zapsanoZmenVTransakci += $ubytovaniImport->ulozPokoj($ucastnik->id(), $pokoj, $prvniNoc, $posledniNoc, ROCNIK);
             // Noci i spolubydlícího zapisuje Symfony (`AccommodationImport`), aby platila
             // tatáž pravidla jako v mřížce. Odmítnutí je nutné přeložit na `Chyba`, kterou
