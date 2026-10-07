@@ -41,6 +41,27 @@ class AccommodationWriter
     }
 
     /**
+     * Takes every capacity lock a save needs, before its first write. A caller that writes
+     * something else for the customer first, such as the import's room, calls this before that
+     * write: the desk takes the nights and then the customer's row, so the reverse order deadlocks.
+     *
+     * @param int[] $variantIds nights the customer wants to end up with
+     *
+     * @return int[] every variant id locked
+     */
+    public function lockForSave(User $customer, array $variantIds, int $year): array
+    {
+        $locked = [
+            ...$this->heldNights($customer, $year),
+            ...$variantIds,
+            ...$this->breakfastCanceller->heldBreakfasts($customer, $year),
+        ];
+        $this->capacityManager->lockInOrder($locked);
+
+        return $locked;
+    }
+
+    /**
      * @param int[]     $variantIds  nights the customer wants to end up with
      * @param bool|null $mayOverbook null when the caller is not the desk, which alone is offered overbooking
      *
@@ -72,12 +93,7 @@ class AccommodationWriter
 
         $this->capacityManager->beginSaleTransaction();
         try {
-            $locked = [
-                ...$this->heldNights($customer, $year),
-                ...array_keys($variants),
-                ...$this->breakfastCanceller->heldBreakfasts($customer, $year),
-            ];
-            $this->capacityManager->lockInOrder($locked);
+            $locked = $this->lockForSave($customer, array_keys($variants), $year);
             // Počítají se jen datové řádky. Snapshot zrušených snídaní ani log změn osobních
             // údajů se nezapočítává — volající hlásí „změněno N záznamů" a evidence o změně
             // není změna.
