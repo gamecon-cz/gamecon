@@ -10,6 +10,7 @@ use App\Entity\User;
 use App\Enum\ProductStateEnum;
 use App\Enum\ProductTagCode;
 use App\Repository\OrderItemRepository;
+use Doctrine\DBAL\ArrayParameterType;
 use Doctrine\DBAL\Connection;
 use Doctrine\ORM\EntityManagerInterface;
 use Gamecon\SystemoveNastaveni\SystemoveNastaveni;
@@ -39,6 +40,64 @@ class BreakfastCanceller
     public function heldBreakfasts(User $customer, int $year): array
     {
         return array_values($this->drzeneSnidane($customer, $year));
+    }
+
+    /**
+     * Breakfasts the given nights would cover that someone may be buying right now, so a caller
+     * can lock them before it books the nights: only held breakfasts are cancelled, and one
+     * bought in flight is not held yet. Not limited to what is on offer, because the desk still
+     * sells past `nabizet_do` and sells suspended food.
+     *
+     * @param int[] $nightVariantIds
+     *
+     * @return int[] variant ids
+     */
+    public function coveredBreakfastVariants(array $nightVariantIds): array
+    {
+        if ($nightVariantIds === []) {
+            return [];
+        }
+
+        $kryteRana = array_map('intval', $this->connection->fetchFirstColumn(
+            'SELECT DISTINCT product_variant.accommodation_day + 1
+             FROM product_variant
+             JOIN shop_predmety ON shop_predmety.id_predmetu = product_variant.product_id
+             WHERE product_variant.id IN (:noci)
+               AND shop_predmety.breakfast_included = 1
+               AND product_variant.accommodation_day IS NOT NULL',
+            [
+                'noci' => $nightVariantIds,
+            ],
+            [
+                'noci' => ArrayParameterType::INTEGER,
+            ],
+        ));
+        if ($kryteRana === []) {
+            return [];
+        }
+
+        return array_map('intval', $this->connection->fetchFirstColumn(
+            'SELECT DISTINCT product_variant.id
+             FROM product_variant
+             JOIN shop_predmety ON shop_predmety.id_predmetu = product_variant.product_id
+             WHERE product_variant.accommodation_day IN (:rana)
+               AND TRIM(shop_predmety.nazev) LIKE :snidane
+               AND shop_predmety.archived_at IS NULL
+               AND EXISTS (
+                   SELECT 1 FROM product_product_tag
+                   JOIN product_tag ON product_tag.id = product_product_tag.tag_id
+                   WHERE product_product_tag.product_id = shop_predmety.id_predmetu
+                     AND product_tag.code = :jidlo
+               )',
+            [
+                'rana'    => $kryteRana,
+                'snidane' => 'Snídaně%',
+                'jidlo'   => ProductTagCode::JIDLO->value,
+            ],
+            [
+                'rana' => ArrayParameterType::INTEGER,
+            ],
+        ));
     }
 
     /**
