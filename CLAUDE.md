@@ -403,6 +403,7 @@ Pravdivý stav ke dni auditu (zdroj: `cat /usr/local/sbin/deploy-preview-branch.
 | `DB_ANONYM_SERV/USER/PASS/NAME` | `docker run -e` | **stejné jako ostra** (sdílená anonymní DB) | beta i ostra ji sdílí (workflow používá `secrets.DB_ANONYM_*`, ne `OSTRA_DB_ANONYM_*`) |
 | `CRON_KEY` | `docker run -e` | per-slug HMAC | per-preview izolace; reálné crony nikdo zvenku nespouští, ale endpoint nesmí být `403` |
 | `SERVER_NAME` | `docker run -e` | `<slug>.preview.gamecon.cz` | konzistentní s tím, co by Apache nastavil z requestu |
+| `VSEVEDA_SSO_SECRET` | nepředáváno (ani beta, ani archiv) | n/a | **úmyslně jen ostrá** — podepisuje přihlášení do Vševědy (`vseveda.preview.gamecon.cz`), která pracuje nad kopií ostré DB. Preview běží kód libovolné větve, takže by si s ním přihlášení mohlo podepsat samo. |
 | `GOOGLE_API_CREDENTIALS` | (nevyplněno) | prázdné | úmyslné — vyřešíme později, většina toků v preview netřeba |
 | `PREVIEW_BASIC_AUTH_USER/PASSWORD` | Dockerfile bake | sdílené napříč všemi preview | bake je správná cesta — společná hodnota |
 | `ARCHIVE_BASIC_AUTH_USER/PASSWORD` | Dockerfile bake | sdílené napříč všemi archive | bake je správná cesta |

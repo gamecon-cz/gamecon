@@ -174,4 +174,9 @@ if (! defined('GAMECON_SSO_KEY')) {
     define('GAMECON_SSO_KEY', getenv('GAMECON_SSO_KEY') ?: '');
 }
 
+// Přihlášení do Vševědy (?gcsso=). Lokálně prázdné — odkaz se v adminu neukáže.
+if (! defined('VSEVEDA_SSO_SECRET')) {
+    define('VSEVEDA_SSO_SECRET', getenv('VSEVEDA_SSO_SECRET') ?: '');
+}
+
 error_reporting(E_ALL);
