@@ -141,6 +141,7 @@ Get the custom repository via `->getRepository(SomeEntity::class)` (returns the 
 - **Directory creation**: Use Symfony's `(new Filesystem)->mkdir($dir, 0775)` instead of `@mkdir()` or `is_dir()` + `mkdir()` checks
 - **Hashing**: Always use the complete result of a hashing function — never truncate it (e.g. `substr(md5(...), 0, 12)`) as this increases collision risk
 - **Cache directories**: Use `SPEC` constant for private cache files and `CACHE` constant for public cache files (web-accessible)
+- **Relative links in admin resolve against the admin root**, not the current page: `admin/templates/main.xtpl` sets `<base href="{URL_ADMIN}/">`. A bare `href="?nahled=1"` therefore opens the admin homepage; always write the module path, e.g. `href="web/previews?admin=…"`. It has already broken a link that only clicking revealed (the dunning preview).
 
 ## Kam patří úkol: GitHub issues vs. Trello
 

@@ -47,15 +47,8 @@ $gateUrl = static fn (string $url): string => GateLink::podepis($url, ARCHIVE_GA
 // archivními snapshoty stabilní, kdežto e-mail je proměnný a mohl by se časem
 // přiřadit jinému člověku (→ přihlášení do cizího účtu).
 $ssoMaster = defined('GAMECON_SSO_SECRET') ? GAMECON_SSO_SECRET : '';
-$ssoNonce = null;
 $ssoIdUzivatele = $u->id() ?? 0;
-if ($ssoIdUzivatele > 0 && $ssoMaster !== '') {
-    // Kryptograficky náhodný nonce (128 bitů). Ne randHex() — ta stropuje na 32 znaků,
-    // a tady chceme celých 128 bitů, tak rovnou random_bytes.
-    $ssoNonce = bin2hex(random_bytes(16));
-    SsoParovaciCookie::nastav($ssoNonce);
-}
-$adminUrlSeSso = static function (string $adminUrl, int $rocnik) use ($ssoNonce, $ssoIdUzivatele, $ssoMaster, $gateUrl): string {
+$adminUrlSeSso = static function (string $adminUrl, int $rocnik, ?string $ssoNonce) use ($ssoIdUzivatele, $ssoMaster, $gateUrl): string {
     if ($ssoNonce !== null) {
         $klicRocniku = hash_hmac('sha256', (string) $rocnik, $ssoMaster);
         $gcsso = CrossSiteLogin::podepis($ssoIdUzivatele, $ssoNonce, $klicRocniku);
@@ -88,6 +81,22 @@ $nadpisEpochy = [
     'staticka' => 'Pouze statické kopie',
     'altar'    => 'Věk Altaru',
 ];
+
+// Token se podepíše až po kliknutí (odkaz vede sem s ?admin=<ročník>). Podepsaný při vykreslení by do kliknutí
+// vypršel (platí 5 minut), nebo by jeho spárovací cookie mezitím přepsala jiná takhle podepsaná stránka.
+$rocnikDoAdminu = (int) ($_GET['admin'] ?? 0);
+foreach ($archives as $archive) {
+    if ($archive->year === $rocnikDoAdminu && $epochaRocniku($archive->year) === 'ziva') {
+        $ssoNonce = null;
+        if ($ssoIdUzivatele > 0 && $ssoMaster !== '') {
+            // Ne randHex() — ta stropuje na 32 znaků, a tady chceme celých 128 bitů.
+            $ssoNonce = bin2hex(random_bytes(16));
+            SsoParovaciCookie::nastav($ssoNonce);
+        }
+        header('Location: ' . $adminUrlSeSso(rtrim($archive->url, '/') . '/admin', $archive->year, $ssoNonce));
+        exit;
+    }
+}
 ?>
 <h2>Staré ročníky</h2>
 
@@ -137,10 +146,8 @@ $nadpisEpochy = [
                 </td>
                 <td>
                     <?php
-                    if ($epocha === 'ziva') {
-                        $adminUrl = rtrim($archive->url, '/') . '/admin';
-                        ?>
-                        <a href="<?php echo htmlspecialchars($adminUrlSeSso($adminUrl, $archive->year)); ?>" target="_blank" rel="noopener"><?php echo $archive->year; ?> /admin</a>
+                    if ($epocha === 'ziva') { ?>
+                        <a href="web/stare-rocniky?admin=<?php echo $archive->year; ?>" target="_blank" rel="noopener"><?php echo $archive->year; ?> /admin</a>
                     <?php } else { ?>
                         —
                     <?php } ?>
