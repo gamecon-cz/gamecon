@@ -38,14 +38,8 @@ $gateUrl = static fn (string $url): string => GateLink::podepis($url, PREVIEW_GA
 // deploy-preview-branch.sh (-e GAMECON_SSO_SECRET); ověřovací stranu viz
 // admin/scripts/prihlaseni.php (větev jsmeNaPreview()).
 $ssoMaster = defined('GAMECON_SSO_SECRET') ? GAMECON_SSO_SECRET : '';
-$ssoNonce = null;
 $ssoIdUzivatele = $u->id() ?? 0;
-if ($ssoIdUzivatele > 0 && $ssoMaster !== '') {
-    // Kryptograficky náhodný nonce (128 bitů) — bezpečnostní párovací token.
-    $ssoNonce = bin2hex(random_bytes(16));
-    SsoParovaciCookie::nastav($ssoNonce);
-}
-$adminUrlSeSso = static function (string $previewUrl) use ($ssoNonce, $ssoIdUzivatele, $ssoMaster, $gateUrl): string {
+$adminUrlSeSso = static function (string $previewUrl, ?string $ssoNonce) use ($ssoIdUzivatele, $ssoMaster, $gateUrl): string {
     $adminUrl = rtrim($previewUrl, '/') . '/admin';
     if ($ssoNonce !== null) {
         $gcsso = CrossSiteLogin::podepis($ssoIdUzivatele, $ssoNonce, $ssoMaster);
@@ -57,6 +51,21 @@ $adminUrlSeSso = static function (string $previewUrl) use ($ssoNonce, $ssoIdUziv
 
     return $gateUrl($adminUrl);
 };
+
+// Token se podepíše až po kliknutí (odkaz vede sem s ?admin=<slug>). Podepsaný při vykreslení by do kliknutí
+// vypršel (platí 5 minut), nebo by jeho spárovací cookie mezitím přepsala jiná takhle podepsaná stránka.
+$slugDoAdminu = is_string($_GET['admin'] ?? null) ? $_GET['admin'] : '';
+foreach ($previews as $preview) {
+    if ($slugDoAdminu !== '' && $preview->slug === $slugDoAdminu) {
+        $ssoNonce = null;
+        if ($ssoIdUzivatele > 0 && $ssoMaster !== '') {
+            $ssoNonce = bin2hex(random_bytes(16));
+            SsoParovaciCookie::nastav($ssoNonce);
+        }
+        header('Location: ' . $adminUrlSeSso($preview->url, $ssoNonce));
+        exit;
+    }
+}
 
 $mailpitUrl = $gateUrl('https://webmail.preview.gamecon.cz/');
 
@@ -102,7 +111,7 @@ $mailpitUrl = $gateUrl('https://webmail.preview.gamecon.cz/');
                     </a>
                 </td>
                 <td>
-                    <a href="<?php echo htmlspecialchars($adminUrlSeSso($preview->url)); ?>" target="_blank" rel="noopener">/admin</a>
+                    <a href="web/previews?admin=<?php echo htmlspecialchars(rawurlencode($preview->slug)); ?>" target="_blank" rel="noopener">/admin</a>
                 </td>
                 <td>
                     <?php echo $preview->deployedAt !== null
