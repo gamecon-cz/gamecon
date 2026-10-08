@@ -2,13 +2,6 @@
 
 <h1>Finance</h1>
 
-<!-- begin:vseveda -->
-<p>
-  <a href="finance?vseveda=1" target="_blank" rel="noopener"><strong>🧙 Zeptat se Vševědy</strong></a>
-  — odpovědi na finanční dotazy z kopie ostré databáze a ze zdrojového kódu, včetně exportu do Excelu.
-</p>
-<!-- end:vseveda -->
-
 <form>
   <label>
     Vypsat uživatele, kteří mají stav účtu vyšší rovno jak
@@ -78,3 +71,11 @@
 <!-- end:reporty -->
 
 <!-- end:finance -->
+
+<!-- begin:vseveda -->
+<hr style="clear: left">
+<p>
+  <a href="finance?vseveda=1" target="_blank" rel="noopener"><strong>🧙 Zeptat se Vševědy</strong></a>
+  — odpovědi na finanční dotazy z kopie ostré databáze a ze zdrojového kódu, včetně exportu do Excelu.
+</p>
+<!-- end:vseveda -->
