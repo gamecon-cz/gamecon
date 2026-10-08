@@ -4,7 +4,7 @@
 
 <!-- begin:vseveda -->
 <p>
-  <a href="?vseveda=1" target="_blank" rel="noopener"><strong>🧙 Zeptat se Vševědy</strong></a>
+  <a href="finance?vseveda=1" target="_blank" rel="noopener"><strong>🧙 Zeptat se Vševědy</strong></a>
   — odpovědi na finanční dotazy z kopie ostré databáze a ze zdrojového kódu, včetně exportu do Excelu.
 </p>
 <!-- end:vseveda -->
