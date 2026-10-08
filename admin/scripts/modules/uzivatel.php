@@ -23,6 +23,31 @@ require_once __DIR__ . '/_submoduly/osobni-udaje/osobni_udaje.php';
  * @var \Gamecon\SystemoveNastaveni\SystemoveNastaveni $systemoveNastaveni
  */
 
+$odkazDoArchivu = static function (?string $ssoNonce) use ($u): OdkazDoArchivnihoAdmina {
+    $reader = new DeploymentsReader();
+
+    return new OdkazDoArchivnihoAdmina(
+        $reader->unavailableReason() === null ? $reader->readArchives() : [],
+        // Magické přihlášení patří přihlášenému adminovi, ne prohlíženému uživateli.
+        $u?->id() ?? 0,
+        defined('GAMECON_SSO_SECRET') ? GAMECON_SSO_SECRET : '',
+        defined('ARCHIVE_GATE_SECRET') ? ARCHIVE_GATE_SECRET : '',
+        $ssoNonce,
+    );
+};
+
+// Token se podepíše až po kliknutí na ročník v historii účasti. Podepsaný při vykreslení by do kliknutí
+// vypršel (platí 5 minut), nebo by jeho spárovací cookie mezitím přepsala jiná takhle podepsaná stránka.
+if (isset($_GET['archiv'], $_GET['archiv_uzivatel'])) {
+    $ssoNonce = bin2hex(random_bytes(16));
+    $url = $odkazDoArchivu($ssoNonce)->proUzivatele((int) $_GET['archiv'], (int) $_GET['archiv_uzivatel']);
+    if ($url !== null) {
+        SsoParovaciCookie::nastav($ssoNonce);
+        header('Location: ' . $url);
+        exit;
+    }
+}
+
 $ok   = '<img alt="OK" src="files/design/ok-s.png" style="margin-bottom:-2px">';
 $warn = '<img alt="warning" src="files/design/warning-s.png" style="margin-bottom:-2px">';
 $err  = '<img alt="error" src="files/design/error-s.png" style="margin-bottom:-2px">';
@@ -164,32 +189,17 @@ if ($uPracovni) {
     $roky = $uPracovni->historiePrihlaseni();
     sort($roky);
     if ($roky) {
-        $reader   = new DeploymentsReader();
-        $archivy  = $reader->unavailableReason() === null ? $reader->readArchives() : [];
-        $ssoNonce = null;
-        if ($u && $u->id() > 0 && defined('GAMECON_SSO_SECRET') && GAMECON_SSO_SECRET !== '') {
-            // Nonce se podepíše do tokenu a zároveň uloží do párovací cookie, takže
-            // odkaz přihlásí jen ten prohlížeč, který na něj klikl.
-            $ssoNonce = bin2hex(random_bytes(16));
-            SsoParovaciCookie::nastav($ssoNonce);
-        }
-        $odkazNaArchiv = new OdkazDoArchivnihoAdmina(
-            $archivy,
-            // Magické přihlášení patří přihlášenému adminovi, ne prohlíženému uživateli.
-            $u?->id() ?? 0,
-            defined('GAMECON_SSO_SECRET') ? GAMECON_SSO_SECRET : '',
-            defined('ARCHIVE_GATE_SECRET') ? ARCHIVE_GATE_SECRET : '',
-            $ssoNonce,
-        );
+        // Bez nonce jen zjistí, kam se z kterého ročníku dá odkázat; podepisuje se až po kliknutí (viz výše).
+        $odkazNaArchiv = $odkazDoArchivu(null);
 
         $odkazy = [];
         foreach ($roky as $rok) {
-            $url = (int)$rok === $systemoveNastaveni->rocnik()
-                ? null
-                : $odkazNaArchiv->proUzivatele((int)$rok, $uPracovni->id());
-            $odkazy[] = $url === null
-                ? (string)$rok
-                : '<a href="' . htmlspecialchars($url) . '" target="_blank" rel="noopener">' . $rok . '</a>';
+            $lzeOdkazat = (int)$rok !== $systemoveNastaveni->rocnik()
+                && $odkazNaArchiv->proUzivatele((int)$rok, $uPracovni->id()) !== null;
+            $odkazy[] = $lzeOdkazat
+                ? '<a href="uzivatel?' . htmlspecialchars(http_build_query(['archiv' => (int)$rok, 'archiv_uzivatel' => $uPracovni->id()]))
+                    . '" target="_blank" rel="noopener">' . $rok . '</a>'
+                : (string)$rok;
         }
         $x->assign('historieUcastiHtml', implode(', ', $odkazy));
     } else {
