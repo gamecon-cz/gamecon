@@ -1,0 +1,11 @@
+--- /dev/null
++++ ../src/Writer/XLSX/Entity/SheetView.php
+@@ -218,7 +218,7 @@
+             'showFormulas' => $this->showFormulas,
+             'showGridLines' => $this->showGridLines,
+             'showRowColHeaders' => $this->showRowColHeaders,
+-            'showZeroes' => $this->showZeroes,
++            'showZeros' => $this->showZeroes,
+             'rightToLeft' => $this->rightToLeft,
+             'tabSelected' => $this->tabSelected,
+             'showOutlineSymbols' => $this->showOutlineSymbols,

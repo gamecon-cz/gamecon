@@ -91,9 +91,13 @@
         }
     },
     "extra": {
+        "composer-exit-on-patch-failure": true,
         "patches": {
             "doctrine/orm": [
                 "patches/doctrine-orm-src-tools-schematool-php.patch"
+            ],
+            "openspout/openspout": [
+                "patches/openspout-openspout-src-writer-xlsx-entity-sheetview-php.patch"
             ]
         },
         "google/apiclient-services": [
