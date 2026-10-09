@@ -22,6 +22,9 @@ services:
             - '../src/Entity/'
             - '../src/DependencyInjection/'
             - '../src/Doctrine/SharedConnection.php'
+            - '../src/Doctrine/EnumParameterDriver.php'
+            - '../src/Doctrine/EnumParameterConnection.php'
+            - '../src/Doctrine/EnumParameterStatement.php'
 
     # Every container in the process gets the same connection, which legacy dbQuery() uses too.
     app.doctrine.shared_connection:

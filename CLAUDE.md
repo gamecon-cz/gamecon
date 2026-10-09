@@ -550,6 +550,7 @@ apply: what the detector calls alive is alive.
       ['days' => ArrayParameterType::INTEGER],
   );
   ```
+- **Pass a backed enum as a parameter as it is** (`'tag' => ProductTagCode::UBYTOVANI`), not `->value`. `EnumParameterMiddleware` converts it for every DBAL query, the DBAL QueryBuilder included (a string enum binds as a string, an int enum as an integer). ORM QueryBuilder and DQL parameters take an enum natively, and the legacy `dbQuery()` converts it too.
 
 ## SQL Query Parameter Preprocessing
 
