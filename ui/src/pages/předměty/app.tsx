@@ -14,7 +14,7 @@ import {
   ApiProductWrite,
 } from "../../api/symfony/types";
 import "./app.less";
-import { KATEGORIE_TAG_KODY, seraditProdukty } from "./razeni";
+import { KATEGORIE_TAG_KODY, seraditProdukty, tagyKUlozeni } from "./razeni";
 
 const ACCOMMODATION_TAG_CODE = "ubytovani";
 
@@ -323,7 +323,7 @@ const EditorPředmětu: FunctionComponent<EditorProps> = ({
       description,
       reservedForOrganizers:
         reservedForOrganizers === "" ? null : Number(reservedForOrganizers),
-      tags: [categoryTag["@id"]],
+      tags: tagyKUlozeni(categoryTag["@id"], produkt?.tags ?? []),
       variants: variants.map(({ remaining: _remaining, sold: _sold, ...variant }, position) => ({
         ...variant,
         state: variant.code === code ? Number(state) : variant.state ?? Number(state),
