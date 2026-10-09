@@ -225,7 +225,7 @@ type EditorProps = {
   zrušit: () => void;
 };
 
-const EditorPředmětu: FunctionComponent<EditorProps> = ({
+export const EditorPředmětu: FunctionComponent<EditorProps> = ({
   produkt,
   kategorieTagy,
   uložit,
