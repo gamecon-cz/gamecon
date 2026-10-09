@@ -94,7 +94,7 @@ class BreakfastCanceller
             SQL,
             [
                 'rana'    => $kryteRana,
-                'snidane' => ProductTagCode::SNIDANE->value,
+                'snidane' => ProductTagCode::SNIDANE,
             ],
             [
                 'rana' => ArrayParameterType::INTEGER,
@@ -293,7 +293,7 @@ class BreakfastCanceller
             [
                 'customer' => $customer->getId(),
                 'year'     => $year,
-                'snidane'  => ProductTagCode::SNIDANE->value,
+                'snidane'  => ProductTagCode::SNIDANE,
             ],
         );
 
@@ -353,9 +353,9 @@ class BreakfastCanceller
                      AND product_tag.code = :snidane
                )',
             [
-                'snidane'     => ProductTagCode::SNIDANE->value,
-                'stazeno'     => ProductStateEnum::RETIRED->value,
-                'pozastaveno' => ProductStateEnum::SUSPENDED->value,
+                'snidane'     => ProductTagCode::SNIDANE,
+                'stazeno'     => ProductStateEnum::RETIRED,
+                'pozastaveno' => ProductStateEnum::SUSPENDED,
                 'ted'         => $this->clock->now()->format('Y-m-d H:i:s'),
             ],
         );
