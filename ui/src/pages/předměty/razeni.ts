@@ -11,16 +11,29 @@ export const KATEGORIE_TAG_KODY = [
   "proplaceni_bonusu",
 ] as const;
 
+export type UpravovanyTag = { code: string; iri: string; zapnuto: boolean };
+
 /**
- * The API replaces `tags` as a whole and the editor offers only the category, so every other tag
- * has to be sent back, or saving a product quietly removes its sub-tags (`snidane`, `mikina`, ...).
+ * The API replaces `tags` as a whole, so every tag the editor does not edit has to be sent back,
+ * or saving a product quietly removes its sub-tags (`mikina`, ...). The ones it does edit follow
+ * their checkbox instead of what the product had.
  */
-export const tagyKUlozeni = (kategorieIri: string, soucasneTagy: ApiProductTag[]): string[] => [
-  kategorieIri,
-  ...soucasneTagy
-    .filter((tag) => !KATEGORIE_TAG_KODY.includes(tag.code as typeof KATEGORIE_TAG_KODY[number]))
-    .flatMap((tag) => (tag["@id"] === undefined ? [] : [tag["@id"]])),
-];
+export const tagyKUlozeni = (
+  kategorieIri: string,
+  soucasneTagy: ApiProductTag[],
+  upravovaneTagy: UpravovanyTag[] = [],
+): string[] => {
+  const upravovaneKody = upravovaneTagy.map(({ code }) => code);
+
+  return [
+    kategorieIri,
+    ...soucasneTagy
+      .filter((tag) => !KATEGORIE_TAG_KODY.includes(tag.code as typeof KATEGORIE_TAG_KODY[number])
+        && !upravovaneKody.includes(tag.code))
+      .flatMap((tag) => (tag["@id"] === undefined ? [] : [tag["@id"]])),
+    ...upravovaneTagy.filter(({ zapnuto }) => zapnuto).map(({ iri }) => iri),
+  ];
+};
 
 export type RazenyProdukt = Pick<ApiProduct, "name" | "tags" | "accommodationDay" | "archivedAt">;
 

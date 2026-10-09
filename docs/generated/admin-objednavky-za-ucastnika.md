@@ -154,14 +154,18 @@ přímo, co to je, takže přejmenování produktu snídani nevyřadí. Migrace
 `2026-10-09-100041_snidane-product-tag.php` tag založila a přidělila ho podle `kod_predmetu`
 (`%snidane%`), přičemž spadne, kdyby nějaké jídlo se jménem „Snídaně…" zůstalo bez něj.
 
-**Past: nový produkt snídaně tag nedostane sám.** Import z tabulky i stránka Předměty nastavují
-jen kategorii (`EshopImporter::nastavKategorii` maže a zapisuje jen `categories()`), podtagy
-přidat neumí. Snídaně zavedená v novém ročníku proto bez ručního tagu **tiše nevstoupí** do rušení
-ani do nabídky vrácení; stejně je na tom `mikina`, `spacak` a barevná trička.
+**Past: nový produkt snídaně tag nedostane sám.** Na stránce Předměty ho nastaví zaškrtávátko
+„Je to snídaně“ (jen u kategorie Jídlo). Import z tabulky podtagy nenastavuje
+(`EshopImporter::nastavKategorii` maže a zapisuje jen `categories()`), takže snídaně založená
+tabulkou bez ručního označení **tiše nevstoupí** do rušení ani do nabídky vrácení. `mikina`,
+`spacak` a barevná trička nemají zaškrtávátko nikde, jen migraci. Samotný štítek ale nestačí:
+`BreakfastCanceller` páruje den varianty snídaně (sloupec „Den“) s nocí + 1, takže varianta
+bez vyplněného dne se přeskočí také.
 
 **Past: API nahrazuje `tags` jako celek.** Klient, který pošle jen kategorii, smaže všechny
 podtagy produktu. Stránka Předměty proto při uložení posílá zpět i štítky, které needituje
-(`tagyKUlozeni`); `ProductApiTest::testPatchedTagsReplaceTheWholeSet` drží, že API samo je nezachová.
+(`tagyKUlozeni`), a `snidane` řídí zaškrtávátko; `ProductApiTest::testPatchedTagsReplaceTheWholeSet`
+drží, že API samo je nezachová.
 
 ## Jídlo je pozadu za ubytováním
 

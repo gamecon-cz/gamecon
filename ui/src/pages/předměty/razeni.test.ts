@@ -75,4 +75,26 @@ describe("tagyKUlozeni", () => {
   it("u nového produktu bez dosavadních štítků pošle jen kategorii", () => {
     expect(tagyKUlozeni(iri("predmet"), [])).toEqual([iri("predmet")]);
   });
+
+  describe("štítek, který editor upravuje sám", () => {
+    const snidane = (zapnuto: boolean) => [{ code: "snidane", iri: iri("snidane"), zapnuto }];
+
+    it("zapnutý přidá", () => {
+      expect(tagyKUlozeni(iri("jidlo"), [tag("jidlo")], snidane(true))).toEqual([iri("jidlo"), iri("snidane")]);
+    });
+
+    it("vypnutý z produktu odebere", () => {
+      expect(tagyKUlozeni(iri("jidlo"), [tag("jidlo"), tag("snidane")], snidane(false))).toEqual([iri("jidlo")]);
+    });
+
+    it("zapnutý, který už produkt má, nezdvojí", () => {
+      expect(tagyKUlozeni(iri("jidlo"), [tag("jidlo"), tag("snidane")], snidane(true)))
+        .toEqual([iri("jidlo"), iri("snidane")]);
+    });
+
+    it("ostatní podštítky nechá být", () => {
+      expect(tagyKUlozeni(iri("predmet"), [tag("predmet"), tag("mikina")], snidane(false)))
+        .toEqual([iri("predmet"), iri("mikina")]);
+    });
+  });
 });

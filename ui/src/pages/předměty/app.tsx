@@ -14,9 +14,19 @@ import {
   ApiProductWrite,
 } from "../../api/symfony/types";
 import "./app.less";
-import { KATEGORIE_TAG_KODY, seraditProdukty, tagyKUlozeni } from "./razeni";
+import { KATEGORIE_TAG_KODY, seraditProdukty, tagyKUlozeni, UpravovanyTag } from "./razeni";
 
 const ACCOMMODATION_TAG_CODE = "ubytovani";
+const FOOD_TAG_CODE = "jidlo";
+const BREAKFAST_TAG_CODE = "snidane";
+
+const snidaneNapoveda = (isFood: boolean, isBreakfast: boolean): string => {
+  if (isFood) {
+    return "(zruší se, když ji kryje hotelová noc se snídaní v ceně)";
+  }
+
+  return isBreakfast ? "(patří jen k jídlu, odškrtněte)" : "(dostupné pouze pro jídlo)";
+};
 
 const STAV_NAZVY: Record<number, string> = {
   0: "Vyřazený",
@@ -78,6 +88,11 @@ export const Předměty: FunctionComponent = () => {
 
   const kategorieTagy = useMemo(
     () => (tagy ?? []).filter((tag) => KATEGORIE_TAG_KODY.includes(tag.code as typeof KATEGORIE_TAG_KODY[number])),
+    [tagy],
+  );
+
+  const snidaneTag = useMemo(
+    () => (tagy ?? []).find((tag) => tag.code === BREAKFAST_TAG_CODE) ?? null,
     [tagy],
   );
 
@@ -206,6 +221,7 @@ export const Předměty: FunctionComponent = () => {
         <EditorPředmětu
           produkt={editorState.mode === "edit" ? editorState.produkt : null}
           kategorieTagy={kategorieTagy}
+          snidaneTag={snidaneTag}
           uložit={uložit}
           zrušit={() => setEditorState({ mode: "closed" })}
         />
@@ -221,6 +237,7 @@ Předměty.displayName = "Předměty";
 type EditorProps = {
   produkt: ApiProduct | null;
   kategorieTagy: ApiProductTag[];
+  snidaneTag: ApiProductTag | null;
   uložit: (payload: ApiProductWrite, editingId: number | null) => Promise<void>;
   zrušit: () => void;
 };
@@ -228,6 +245,7 @@ type EditorProps = {
 export const EditorPředmětu: FunctionComponent<EditorProps> = ({
   produkt,
   kategorieTagy,
+  snidaneTag,
   uložit,
   zrušit,
 }) => {
@@ -253,21 +271,28 @@ export const EditorPředmětu: FunctionComponent<EditorProps> = ({
     produkt?.reservedForOrganizers?.toString() ?? "",
   );
   const [category, setCategory] = useState<string>(initialCategory);
+  const [isBreakfast, setIsBreakfast] = useState(
+    produkt?.tags.some((tag) => tag.code === BREAKFAST_TAG_CODE) ?? false,
+  );
   const [variants, setVariants] = useState<ApiProductVariant[]>(
     produkt?.variants?.map((variant) => ({ ...variant })) ?? [],
   );
   const [saving, setSaving] = useState(false);
   const [saveError, setSaveError] = useState<string | null>(null);
 
-  // Keep breakfastIncluded consistent with category: turn it off when
-  // switching away from 'ubytovani' (server-side validator will reject
+  // Keep breakfastIncluded and isBreakfast consistent with category: turn them off
+  // when switching away from 'ubytovani' / 'jidlo' (server-side validator will reject
   // otherwise, and toggling is confusing for the admin).
   const isAccommodation = category === ACCOMMODATION_TAG_CODE;
+  const isFood = category === FOOD_TAG_CODE;
   const handleCategoryChange = useCallback((nextCategory: string) => {
     setCategory(nextCategory);
     if (nextCategory !== ACCOMMODATION_TAG_CODE) {
       setBreakfastIncluded(false);
       setAccommodationDay("");
+    }
+    if (nextCategory !== FOOD_TAG_CODE) {
+      setIsBreakfast(false);
     }
   }, []);
 
@@ -312,6 +337,11 @@ export const EditorPředmětu: FunctionComponent<EditorProps> = ({
       return;
     }
 
+    const snidaneIri = snidaneTag?.["@id"];
+    const upravovaneTagy: UpravovanyTag[] = snidaneIri === undefined
+      ? []
+      : [{ code: BREAKFAST_TAG_CODE, iri: snidaneIri, zapnuto: isBreakfast }];
+
     const payload: ApiProductWrite = {
       name,
       code,
@@ -323,7 +353,7 @@ export const EditorPředmětu: FunctionComponent<EditorProps> = ({
       description,
       reservedForOrganizers:
         reservedForOrganizers === "" ? null : Number(reservedForOrganizers),
-      tags: tagyKUlozeni(categoryTag["@id"], produkt?.tags ?? []),
+      tags: tagyKUlozeni(categoryTag["@id"], produkt?.tags ?? [], upravovaneTagy),
       variants: variants.map(({ remaining: _remaining, sold: _sold, ...variant }, position) => ({
         ...variant,
         state: variant.code === code ? Number(state) : variant.state ?? Number(state),
@@ -347,10 +377,12 @@ export const EditorPředmětu: FunctionComponent<EditorProps> = ({
     code,
     currentPrice,
     description,
+    isBreakfast,
     kategorieTagy,
     name,
     produkt,
     reservedForOrganizers,
+    snidaneTag,
     state,
     uložit,
     variants,
@@ -434,6 +466,21 @@ export const EditorPředmětu: FunctionComponent<EditorProps> = ({
             (dostupné pouze pro ubytování)
           </span>
         )}
+      </label>
+
+      <label className="produkty__field">
+        <span>Je to snídaně</span>
+        <input
+          type="checkbox"
+          checked={isBreakfast}
+          disabled={snidaneTag === null || (!isFood && !isBreakfast)}
+          onChange={(event) =>
+            setIsBreakfast((event.target as HTMLInputElement).checked)
+          }
+        />
+        <span style={{ marginLeft: 8, color: "#888" }}>
+          {snidaneNapoveda(isFood, isBreakfast)}
+        </span>
       </label>
 
       <label className="produkty__field">
