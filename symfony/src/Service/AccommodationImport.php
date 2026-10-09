@@ -69,7 +69,7 @@ readonly class AccommodationImport
              ORDER BY product_variant.accommodation_day',
             [
                 'kodTypu'   => $kodTypu,
-                'kategorie' => ProductTagCode::UBYTOVANI->value,
+                'kategorie' => ProductTagCode::UBYTOVANI,
                 'rok'       => $rok,
                 'dny'       => $dny,
             ],

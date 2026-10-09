@@ -232,7 +232,7 @@ class AccommodationWriter
             [
                 'customer' => $customer->getId(),
                 'year'     => $year,
-                'tag'      => ProductTagCode::UBYTOVANI->value,
+                'tag'      => ProductTagCode::UBYTOVANI,
             ],
         );
 
