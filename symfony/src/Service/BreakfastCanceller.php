@@ -84,19 +84,17 @@ class BreakfastCanceller
             FROM product_variant
             JOIN shop_predmety ON shop_predmety.id_predmetu = product_variant.product_id
             WHERE product_variant.accommodation_day IN (:rana)
-              AND TRIM(shop_predmety.nazev) LIKE :snidane
               AND shop_predmety.archived_at IS NULL
               AND EXISTS (
                   SELECT 1 FROM product_product_tag
                   JOIN product_tag ON product_tag.id = product_product_tag.tag_id
                   WHERE product_product_tag.product_id = shop_predmety.id_predmetu
-                    AND product_tag.code = :jidlo
+                    AND product_tag.code = :snidane
               )
             SQL,
             [
                 'rana'    => $kryteRana,
-                'snidane' => 'Snídaně%',
-                'jidlo'   => ProductTagCode::JIDLO->value,
+                'snidane' => ProductTagCode::SNIDANE->value,
             ],
             [
                 'rana' => ArrayParameterType::INTEGER,
@@ -286,18 +284,16 @@ class BreakfastCanceller
              JOIN shop_predmety ON shop_predmety.id_predmetu = product_variant.product_id
              WHERE shop_nakupy.id_uzivatele = :customer
                AND shop_nakupy.rok = :year
-               AND TRIM(shop_predmety.nazev) LIKE :snidane
                AND EXISTS (
                    SELECT 1 FROM product_product_tag
                    JOIN product_tag ON product_tag.id = product_product_tag.tag_id
                    WHERE product_product_tag.product_id = shop_predmety.id_predmetu
-                     AND product_tag.code = :jidlo
+                     AND product_tag.code = :snidane
                )',
             [
                 'customer' => $customer->getId(),
                 'year'     => $year,
-                'snidane'  => 'Snídaně%',
-                'jidlo'    => ProductTagCode::JIDLO->value,
+                'snidane'  => ProductTagCode::SNIDANE->value,
             ],
         );
 
@@ -344,8 +340,7 @@ class BreakfastCanceller
             'SELECT product_variant.accommodation_day AS den, product_variant.id, shop_predmety.nazev
              FROM product_variant
              JOIN shop_predmety ON shop_predmety.id_predmetu = product_variant.product_id
-             WHERE TRIM(shop_predmety.nazev) LIKE :snidane
-               AND shop_predmety.archived_at IS NULL
+             WHERE shop_predmety.archived_at IS NULL
                AND shop_predmety.stav <> :stazeno
                AND shop_predmety.stav <> :pozastaveno
                AND product_variant.state NOT IN (:stazeno, :pozastaveno)
@@ -355,11 +350,10 @@ class BreakfastCanceller
                    SELECT 1 FROM product_product_tag
                    JOIN product_tag ON product_tag.id = product_product_tag.tag_id
                    WHERE product_product_tag.product_id = shop_predmety.id_predmetu
-                     AND product_tag.code = :jidlo
+                     AND product_tag.code = :snidane
                )',
             [
-                'snidane'     => 'Snídaně%',
-                'jidlo'       => ProductTagCode::JIDLO->value,
+                'snidane'     => ProductTagCode::SNIDANE->value,
                 'stazeno'     => ProductStateEnum::RETIRED->value,
                 'pozastaveno' => ProductStateEnum::SUSPENDED->value,
                 'ted'         => $this->clock->now()->format('Y-m-d H:i:s'),

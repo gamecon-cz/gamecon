@@ -63,6 +63,36 @@ class TagCombinationIsAllowedValidatorTest extends ConstraintValidatorTestCase
             ->assertRaised();
     }
 
+    public function testBreakfastTagOnFoodIsValid(): void
+    {
+        $this->validator->validate(
+            $this->product(ProductTagCode::JIDLO, ProductTagCode::SNIDANE),
+            new TagCombinationIsAllowed(),
+        );
+
+        $this->assertNoViolation();
+    }
+
+    /**
+     * The breakfast queries trust the tag alone and no longer look at the food category, so this
+     * is what keeps a non-food product from being treated as a breakfast.
+     */
+    public function testBreakfastTagOnAnythingButFoodIsRefused(): void
+    {
+        $constraint = new TagCombinationIsAllowed();
+
+        $this->validator->validate(
+            $this->product(ProductTagCode::UBYTOVANI, ProductTagCode::SNIDANE),
+            $constraint,
+        );
+
+        $this->buildViolation($constraint->subTagMessage)
+            ->setParameter('{{ subTag }}', 'snidane')
+            ->setParameter('{{ category }}', 'jidlo')
+            ->atPath('property.path.tags')
+            ->assertRaised();
+    }
+
     public function testTwoCategoriesAreRefused(): void
     {
         $constraint = new TagCombinationIsAllowed();

@@ -37,6 +37,8 @@ enum ProductTagCode: string
 
     case TRICKO_CERVENE = 'tricko_cervene';
 
+    case SNIDANE = 'snidane';
+
     /**
      * The category tags — exactly one of these per product, the successor of typ 1–7.
      *
@@ -82,6 +84,7 @@ enum ProductTagCode: string
             self::SPACAK->value         => self::UBYTOVANI,
             self::TRICKO_MODRE->value   => self::TRICKO,
             self::TRICKO_CERVENE->value => self::TRICKO,
+            self::SNIDANE->value        => self::JIDLO,
         ];
     }
 
@@ -104,6 +107,7 @@ enum ProductTagCode: string
             self::SPACAK            => 'Spacák',
             self::TRICKO_MODRE      => 'Modré tričko',
             self::TRICKO_CERVENE    => 'Červené tričko',
+            self::SNIDANE           => 'Snídaně',
         };
     }
 }
