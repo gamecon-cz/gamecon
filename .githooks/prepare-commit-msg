@@ -3,11 +3,12 @@
 # Prepends the task id from the branch name to the commit subject:
 # `1274-…` -> `1274 …` (Trello card), `gh-1090-…` -> `GH-1090 …` (GitHub issue).
 # Versioned here and wired by `make init` (core.hooksPath), so nobody has to keep a copy.
+# Short grep options only: BusyBox grep rejects the long ones.
 
 MESSAGE_FILE="$1"
 
 # `rebase --autosquash` finds its target by the leading `fixup! `, `squash! ` or `amend! `.
-if head -n1 "$MESSAGE_FILE" | grep --quiet -E '^(fixup|squash|amend)! '; then
+if head -n1 "$MESSAGE_FILE" | grep -q -E '^(fixup|squash|amend)! '; then
    exit 0
 fi
 
@@ -22,7 +23,7 @@ FIRST_WORD=$(head -n1 "$MESSAGE_FILE" | awk '{print $1}' | tr '[:lower:]' '[:upp
 
 # Branch names are lowercased in some projects (epm-322-...), while trackers and
 # commit subjects always use the uppercase id, so match either and normalise.
-TICKET=$(git symbolic-ref --quiet --short HEAD | sed -e 's~^pr/~~' | grep -E '^([A-Za-z]+-)*[0-9]+' --only-matching | tr '[:lower:]' '[:upper:]')
+TICKET=$(git symbolic-ref --quiet --short HEAD | sed -e 's~^pr/~~' | grep -o -E '^([A-Za-z]+-)*[0-9]+' | tr '[:lower:]' '[:upper:]')
 
 if [ -z "$TICKET" ] || [ "$FIRST_WORD" = "$TICKET" ]; then
    exit 0
@@ -31,14 +32,14 @@ fi
 # A revert (or the revert of a revert) of a commit that carries this task already has it in `Revert "<id> …"`.
 case "$(head -n1 "$MESSAGE_FILE")" in
    'Revert "'* | 'Reapply "'*)
-      if head -n1 "$MESSAGE_FILE" | grep --quiet -E -i "(^|[^A-Za-z0-9-])${TICKET}([^A-Za-z0-9-]|\$)"; then
+      if head -n1 "$MESSAGE_FILE" | grep -q -E -i "(^|[^A-Za-z0-9-])${TICKET}([^A-Za-z0-9-]|\$)"; then
          exit 0
       fi
       ;;
 esac
 
 # A cherry-pick keeps the task id the commit already carries instead of adding the branch's.
-if git rev-parse --quiet --verify CHERRY_PICK_HEAD > /dev/null && printf '%s\n' "$FIRST_WORD" | grep --quiet -E '^([A-Z]+-)*[0-9]+$'; then
+if git rev-parse --quiet --verify CHERRY_PICK_HEAD > /dev/null && printf '%s\n' "$FIRST_WORD" | grep -q -E '^([A-Z]+-)*[0-9]+$'; then
    exit 0
 fi
 
