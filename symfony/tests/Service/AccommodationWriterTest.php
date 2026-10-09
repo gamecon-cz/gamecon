@@ -201,7 +201,7 @@ class AccommodationWriterTest extends AbstractDatabaseKernelTestCase
 
         // The breakfast this night covers: night N covers the morning of day N+1.
         $snidaneProdukt = new Product();
-        $snidaneNazev = 'Snídaně testovací ' . ($den + 1);
+        $snidaneNazev = 'Ranní jídlo testovací ' . ($den + 1);
         $snidaneProdukt->setName($snidaneNazev);
         $snidaneProdukt->setCode('snidane-' . uniqid());
         $snidaneProdukt->setCurrentPrice('50.00');
@@ -210,27 +210,28 @@ class AccommodationWriterTest extends AbstractDatabaseKernelTestCase
         $this->entityManager()->persist($snidaneProdukt);
         $this->entityManager()->flush();
 
-        // Tagged as food, which is what tells a breakfast apart from anything else whose
-        // name happens to start with "Snídaně".
-        $connection->executeStatement(
-            <<<'SQL'
-            INSERT IGNORE INTO product_tag (code, name, created_at) VALUES (:code, :name, NOW())
-            SQL,
-            [
-                'code' => ProductTagCode::JIDLO->value,
-                'name' => 'Jídlo',
-            ],
-        );
-        $connection->executeStatement(
-            <<<'SQL'
-            INSERT INTO product_product_tag (product_id, tag_id)
-            SELECT :product, id FROM product_tag WHERE code = :code
-            SQL,
-            [
-                'product' => $snidaneProdukt->getId(),
-                'code'    => ProductTagCode::JIDLO->value,
-            ],
-        );
+        // The name deliberately does not start with "Snídaně": the sub-tag is what makes it one.
+        foreach ([ProductTagCode::JIDLO, ProductTagCode::SNIDANE] as $tag) {
+            $connection->executeStatement(
+                <<<'SQL'
+                INSERT IGNORE INTO product_tag (code, name, created_at) VALUES (:code, :name, NOW())
+                SQL,
+                [
+                    'code' => $tag->value,
+                    'name' => $tag->label(),
+                ],
+            );
+            $connection->executeStatement(
+                <<<'SQL'
+                INSERT INTO product_product_tag (product_id, tag_id)
+                SELECT :product, id FROM product_tag WHERE code = :code
+                SQL,
+                [
+                    'product' => $snidaneProdukt->getId(),
+                    'code'    => $tag->value,
+                ],
+            );
+        }
 
         $snidane = new ProductVariant();
         $snidane->setProduct($snidaneProdukt);
