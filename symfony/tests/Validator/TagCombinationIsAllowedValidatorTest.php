@@ -74,8 +74,7 @@ class TagCombinationIsAllowedValidatorTest extends ConstraintValidatorTestCase
     }
 
     /**
-     * The breakfast queries trust the tag alone and no longer look at the food category, so this
-     * is what keeps a non-food product from being treated as a breakfast.
+     * The breakfast queries trust the tag alone, so the API must not let it onto anything but food.
      */
     public function testBreakfastTagOnAnythingButFoodIsRefused(): void
     {
