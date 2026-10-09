@@ -70,6 +70,7 @@ class BreakfastCancellerTest extends AbstractDatabaseKernelTestCase
         int $den,
         ProductTagCode $kategorie,
         bool $snidaneVCene = false,
+        ?ProductTagCode $podtag = null,
     ): ProductVariant {
         $kod = strtolower(str_replace(' ', '_', $nazev)) . '_' . uniqid();
 
@@ -82,6 +83,9 @@ class BreakfastCancellerTest extends AbstractDatabaseKernelTestCase
         $produkt->setAccommodationDay($den);
         $produkt->setBreakfastIncluded($snidaneVCene);
         $produkt->addTag($this->tag($kategorie));
+        if ($podtag !== null) {
+            $produkt->addTag($this->tag($podtag));
+        }
         $this->entityManager()->persist($produkt);
         $this->entityManager()->flush();
 
@@ -131,7 +135,7 @@ class BreakfastCancellerTest extends AbstractDatabaseKernelTestCase
     {
         $ucastnik = $this->ucastnik();
         $hotel = $this->vytvorVariantu('Dvojlůžák čtvrtek', self::CTVRTEK, ProductTagCode::UBYTOVANI, snidaneVCene: true);
-        $snidane = $this->vytvorVariantu('Snídaně pátek', self::PATEK, ProductTagCode::JIDLO);
+        $snidane = $this->vytvorVariantu('Snídaně pátek', self::PATEK, ProductTagCode::JIDLO, podtag: ProductTagCode::SNIDANE);
         $this->objednej($ucastnik, $hotel);
         $this->objednej($ucastnik, $snidane);
 
@@ -149,7 +153,7 @@ class BreakfastCancellerTest extends AbstractDatabaseKernelTestCase
     {
         $ucastnik = $this->ucastnik();
         $hotel = $this->vytvorVariantu('Dvojlůžák čtvrtek', self::CTVRTEK, ProductTagCode::UBYTOVANI, snidaneVCene: true);
-        $snidane = $this->vytvorVariantu('Snídaně pátek', self::PATEK, ProductTagCode::JIDLO);
+        $snidane = $this->vytvorVariantu('Snídaně pátek', self::PATEK, ProductTagCode::JIDLO, podtag: ProductTagCode::SNIDANE);
         $this->objednej($ucastnik, $hotel);
         $this->objednej($ucastnik, $snidane);
 
@@ -166,7 +170,7 @@ class BreakfastCancellerTest extends AbstractDatabaseKernelTestCase
     {
         $ucastnik = $this->ucastnik();
         $spacak = $this->vytvorVariantu('Spacák čtvrtek', self::CTVRTEK, ProductTagCode::UBYTOVANI);
-        $snidane = $this->vytvorVariantu('Snídaně pátek', self::PATEK, ProductTagCode::JIDLO);
+        $snidane = $this->vytvorVariantu('Snídaně pátek', self::PATEK, ProductTagCode::JIDLO, podtag: ProductTagCode::SNIDANE);
         $this->objednej($ucastnik, $spacak);
         $this->objednej($ucastnik, $snidane);
 
@@ -200,8 +204,8 @@ class BreakfastCancellerTest extends AbstractDatabaseKernelTestCase
     {
         $ucastnik = $this->ucastnik();
         $hotel = $this->vytvorVariantu('Dvojlůžák čtvrtek', self::CTVRTEK, ProductTagCode::UBYTOVANI, snidaneVCene: true);
-        $snidanePatek = $this->vytvorVariantu('Snídaně pátek', self::PATEK, ProductTagCode::JIDLO);
-        $snidaneSobota = $this->vytvorVariantu('Snídaně sobota', self::SOBOTA, ProductTagCode::JIDLO);
+        $snidanePatek = $this->vytvorVariantu('Snídaně pátek', self::PATEK, ProductTagCode::JIDLO, podtag: ProductTagCode::SNIDANE);
+        $snidaneSobota = $this->vytvorVariantu('Snídaně sobota', self::SOBOTA, ProductTagCode::JIDLO, podtag: ProductTagCode::SNIDANE);
         $this->objednej($ucastnik, $hotel);
         $this->objednej($ucastnik, $snidanePatek);
         $this->objednej($ucastnik, $snidaneSobota);
@@ -212,10 +216,57 @@ class BreakfastCancellerTest extends AbstractDatabaseKernelTestCase
         self::assertSame(1, $this->pocetNakupu($ucastnik, $snidaneSobota), 'Sobotní ráno žádná hotelová noc nekryje');
     }
 
+    /**
+     * Co je snídaně, říká tag, ne název: přejmenování produktu nesmí snídani vyřadit.
+     */
+    public function testBreakfastIsRecognisedByItsTagWhateverItIsCalled(): void
+    {
+        $ucastnik = $this->ucastnik();
+        $hotel = $this->vytvorVariantu('Dvojlůžák čtvrtek', self::CTVRTEK, ProductTagCode::UBYTOVANI, snidaneVCene: true);
+        $prejmenovana = $this->vytvorVariantu('Ranní jídlo v pátek', self::PATEK, ProductTagCode::JIDLO, podtag: ProductTagCode::SNIDANE);
+        $this->objednej($ucastnik, $hotel);
+        $this->objednej($ucastnik, $prejmenovana);
+
+        $zrusene = $this->canceller()->cancelCovered($ucastnik, self::ROK);
+
+        self::assertSame([$prejmenovana->getId()], $zrusene);
+        self::assertSame(0, $this->pocetNakupu($ucastnik, $prejmenovana));
+    }
+
+    /**
+     * Jídlo, které se jen jmenuje „Snídaně", ale tag nemá, snídaní není — kryje se jen to, co
+     * organizátoři jako snídani označili.
+     */
+    public function testFoodMerelyNamedLikeABreakfastIsKept(): void
+    {
+        $ucastnik = $this->ucastnik();
+        $hotel = $this->vytvorVariantu('Dvojlůžák čtvrtek', self::CTVRTEK, ProductTagCode::UBYTOVANI, snidaneVCene: true);
+        $jenNazev = $this->vytvorVariantu('Snídaně pátek', self::PATEK, ProductTagCode::JIDLO);
+        $this->objednej($ucastnik, $hotel);
+        $this->objednej($ucastnik, $jenNazev);
+
+        $zrusene = $this->canceller()->cancelCovered($ucastnik, self::ROK);
+
+        self::assertSame([], $zrusene);
+        self::assertSame(1, $this->pocetNakupu($ucastnik, $jenNazev));
+    }
+
+    public function testCoveredBreakfastsFollowTheTagNotTheName(): void
+    {
+        $hotel = $this->vytvorVariantu('Dvojlůžák čtvrtek', self::CTVRTEK, ProductTagCode::UBYTOVANI, snidaneVCene: true);
+        $prejmenovana = $this->vytvorVariantu('Ranní jídlo v pátek', self::PATEK, ProductTagCode::JIDLO, podtag: ProductTagCode::SNIDANE);
+        $jenNazev = $this->vytvorVariantu('Snídaně pátek', self::PATEK, ProductTagCode::JIDLO);
+
+        $kryte = $this->canceller()->coveredBreakfastVariants([(int) $hotel->getId()]);
+
+        self::assertContains($prejmenovana->getId(), $kryte);
+        self::assertNotContains($jenNazev->getId(), $kryte);
+    }
+
     public function testNothingIsCancelledWithoutAHotelNight(): void
     {
         $ucastnik = $this->ucastnik();
-        $snidane = $this->vytvorVariantu('Snídaně pátek', self::PATEK, ProductTagCode::JIDLO);
+        $snidane = $this->vytvorVariantu('Snídaně pátek', self::PATEK, ProductTagCode::JIDLO, podtag: ProductTagCode::SNIDANE);
         $this->objednej($ucastnik, $snidane);
 
         $zrusene = $this->canceller()->cancelCovered($ucastnik, self::ROK);
@@ -232,7 +283,7 @@ class BreakfastCancellerTest extends AbstractDatabaseKernelTestCase
     {
         $ucastnik = $this->ucastnik();
         $hotel = $this->vytvorVariantu('Dvojlůžák středa', self::STREDA, ProductTagCode::UBYTOVANI, snidaneVCene: true);
-        $snidane = $this->vytvorVariantu('Snídaně čtvrtek', self::CTVRTEK, ProductTagCode::JIDLO);
+        $snidane = $this->vytvorVariantu('Snídaně čtvrtek', self::CTVRTEK, ProductTagCode::JIDLO, podtag: ProductTagCode::SNIDANE);
         $this->objednej($ucastnik, $hotel);
         $this->objednej($ucastnik, $snidane);
 
@@ -245,8 +296,8 @@ class BreakfastCancellerTest extends AbstractDatabaseKernelTestCase
     public function testCoveredBreakfastIsTheOneOfTheMorningAfterTheNight(): void
     {
         $hotel = $this->vytvorVariantu('Dvojlůžák čtvrtek', self::CTVRTEK, ProductTagCode::UBYTOVANI, snidaneVCene: true);
-        $snidanePatek = $this->vytvorVariantu('Snídaně pátek', self::PATEK, ProductTagCode::JIDLO);
-        $snidaneSobota = $this->vytvorVariantu('Snídaně sobota', self::SOBOTA, ProductTagCode::JIDLO);
+        $snidanePatek = $this->vytvorVariantu('Snídaně pátek', self::PATEK, ProductTagCode::JIDLO, podtag: ProductTagCode::SNIDANE);
+        $snidaneSobota = $this->vytvorVariantu('Snídaně sobota', self::SOBOTA, ProductTagCode::JIDLO, podtag: ProductTagCode::SNIDANE);
         $obed = $this->vytvorVariantu('Oběd pátek', self::PATEK, ProductTagCode::JIDLO);
 
         $kryte = $this->canceller()->coveredBreakfastVariants([(int) $hotel->getId()]);
@@ -263,10 +314,10 @@ class BreakfastCancellerTest extends AbstractDatabaseKernelTestCase
     public function testCoveredBreakfastsIncludeThoseOnlyTheDeskStillSells(): void
     {
         $hotel = $this->vytvorVariantu('Dvojlůžák čtvrtek', self::CTVRTEK, ProductTagCode::UBYTOVANI, snidaneVCene: true);
-        $nabizena = $this->vytvorVariantu('Snídaně pátek', self::PATEK, ProductTagCode::JIDLO);
-        $podPultem = $this->vytvorVariantu('Snídaně pátek podpultová', self::PATEK, ProductTagCode::JIDLO);
+        $nabizena = $this->vytvorVariantu('Snídaně pátek', self::PATEK, ProductTagCode::JIDLO, podtag: ProductTagCode::SNIDANE);
+        $podPultem = $this->vytvorVariantu('Snídaně pátek podpultová', self::PATEK, ProductTagCode::JIDLO, podtag: ProductTagCode::SNIDANE);
         $podPultem->getProduct()->setState(ProductStateEnum::SUSPENDED);
-        $poTerminu = $this->vytvorVariantu('Snídaně pátek po termínu', self::PATEK, ProductTagCode::JIDLO);
+        $poTerminu = $this->vytvorVariantu('Snídaně pátek po termínu', self::PATEK, ProductTagCode::JIDLO, podtag: ProductTagCode::SNIDANE);
         $poTerminu->getProduct()->setAvailableUntil(new \DateTimeImmutable('-1 day'));
         $this->entityManager()->flush();
 
@@ -280,14 +331,14 @@ class BreakfastCancellerTest extends AbstractDatabaseKernelTestCase
     public function testNoBreakfastIsCoveredByANightWithoutBreakfastInThePrice(): void
     {
         $spacak = $this->vytvorVariantu('Spacák čtvrtek', self::CTVRTEK, ProductTagCode::UBYTOVANI);
-        $this->vytvorVariantu('Snídaně pátek', self::PATEK, ProductTagCode::JIDLO);
+        $this->vytvorVariantu('Snídaně pátek', self::PATEK, ProductTagCode::JIDLO, podtag: ProductTagCode::SNIDANE);
 
         self::assertSame([], $this->canceller()->coveredBreakfastVariants([(int) $spacak->getId()]));
     }
 
     public function testNoBreakfastIsCoveredWithoutNights(): void
     {
-        $this->vytvorVariantu('Snídaně pátek', self::PATEK, ProductTagCode::JIDLO);
+        $this->vytvorVariantu('Snídaně pátek', self::PATEK, ProductTagCode::JIDLO, podtag: ProductTagCode::SNIDANE);
 
         self::assertSame([], $this->canceller()->coveredBreakfastVariants([]));
     }
