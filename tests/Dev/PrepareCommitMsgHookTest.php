@@ -16,6 +16,8 @@ class PrepareCommitMsgHookTest extends TestCase
 {
     private string $repozitar;
 
+    private ?string $adresarStinovehoGrepu = null;
+
     protected function setUp(): void
     {
         parent::setUp();
@@ -175,6 +177,24 @@ class PrepareCommitMsgHookTest extends TestCase
     }
 
     /**
+     * BusyBox grep (Alpine) zná jen krátké přepínače. S dlouhými by hook jen vypsal chybu, skončil
+     * s nulou a commit by prošel bez prefixu, takže by na to nic neupozornilo.
+     */
+    public function testFungujeSGrepemKteryZnaJenKratkePrepinace(): void
+    {
+        $this->naVetvi('gh-1090-neco');
+        $this->nahradGrepJenSKratkymiPrepinaci();
+
+        self::assertSame('GH-1090 Upgrade', $this->spust('Upgrade'));
+        self::assertSame('fixup! GH-1090 Upgrade', $this->spust('fixup! GH-1090 Upgrade'));
+        self::assertSame('GH-1090 Upgrade', $this->spust('GH-1090 Upgrade'));
+        self::assertSame('Revert "GH-1090 Foo"', $this->spust('Revert "GH-1090 Foo"'));
+
+        file_put_contents($this->repozitar . '/.git/CHERRY_PICK_HEAD', trim($this->git('rev-parse', 'HEAD')) . "\n");
+        self::assertSame('GH-9 Foo', $this->spust('GH-9 Foo'));
+    }
+
+    /**
      * Commit z plumbingu, aby vznikl bez spuštění jakéhokoli hooku.
      */
     private function naVetvi(string $vetev): void
@@ -185,6 +205,22 @@ class PrepareCommitMsgHookTest extends TestCase
         $this->git('symbolic-ref', 'HEAD', 'refs/heads/' . $vetev);
     }
 
+    private function nahradGrepJenSKratkymiPrepinaci(): void
+    {
+        $adresar = $this->repozitar . '/busybox';
+        (new Filesystem())->mkdir($adresar, 0775);
+        $skript = <<<'SH'
+        #!/bin/sh
+        for argument in "$@"; do
+            case "$argument" in --*) echo "grep: unrecognized option: $argument" >&2; exit 2 ;; esac
+        done
+        PATH="${PATH#__ADRESAR__:}" exec grep "$@"
+        SH;
+        file_put_contents($adresar . '/grep', str_replace('__ADRESAR__', $adresar, $skript) . "\n");
+        chmod($adresar . '/grep', 0755);
+        $this->adresarStinovehoGrepu = $adresar;
+    }
+
     private function spust(string $zprava, ?string $zdroj = null): string
     {
         $soubor = $this->repozitar . '/COMMIT_EDITMSG';
@@ -193,10 +229,16 @@ class PrepareCommitMsgHookTest extends TestCase
         $hook = dirname(__DIR__, 2) . '/.githooks/prepare-commit-msg';
         self::assertFileExists($hook);
         $prikaz = array_filter(['sh', $hook, $soubor, $zdroj], static fn (?string $cast): bool => $cast !== null);
+        $prostredi = $this->adresarStinovehoGrepu === null
+            ? null
+            : [
+                ...getenv(),
+                'PATH' => $this->adresarStinovehoGrepu . ':' . getenv('PATH'),
+            ];
         $proces = proc_open($prikaz, [
             1 => ['pipe', 'w'],
             2 => ['pipe', 'w'],
-        ], $roury, $this->repozitar);
+        ], $roury, $this->repozitar, $prostredi);
         self::assertIsResource($proces);
         stream_get_contents($roury[1]);
         stream_get_contents($roury[2]);
