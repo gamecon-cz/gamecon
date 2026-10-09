@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
-import { RazenyProdukt, seraditProdukty } from "./razeni";
+import { ApiProductTag } from "../../api/symfony/types";
+import { RazenyProdukt, seraditProdukty, tagyKUlozeni } from "./razeni";
 
 const produkt = (
   name: string,
@@ -52,5 +53,26 @@ describe("seraditProdukty", () => {
       produkt("Kostka 2025", "predmet", { archivedAt: "2025-12-31T23:59:59+01:00" }),
       produkt("Vstupné", "vstupne"),
     ])).toEqual(["Vstupné", "Kostka 2025", "Tričko 2025", "Kostka 2023"]);
+  });
+});
+
+describe("tagyKUlozeni", () => {
+  const tag = (code: string): ApiProductTag => ({ "@id": `/symfony/api/product_tags/${code}`, code, name: code });
+  const iri = (code: string) => `/symfony/api/product_tags/${code}`;
+
+  it("vedle vybrané kategorie pošle štítky, které editor neupravuje", () => {
+    expect(tagyKUlozeni(iri("jidlo"), [tag("jidlo"), tag("snidane")])).toEqual([iri("jidlo"), iri("snidane")]);
+  });
+
+  it("dosavadní kategorii nahradí vybranou, ostatní štítky nechá", () => {
+    expect(tagyKUlozeni(iri("vstupne"), [tag("predmet"), tag("kostka")])).toEqual([iri("vstupne"), iri("kostka")]);
+  });
+
+  it("u produktu bez podštítků pošle jen kategorii", () => {
+    expect(tagyKUlozeni(iri("predmet"), [tag("predmet")])).toEqual([iri("predmet")]);
+  });
+
+  it("u nového produktu bez dosavadních štítků pošle jen kategorii", () => {
+    expect(tagyKUlozeni(iri("predmet"), [])).toEqual([iri("predmet")]);
   });
 });

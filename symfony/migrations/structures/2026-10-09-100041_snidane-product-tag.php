@@ -18,8 +18,8 @@ WHERE NOT EXISTS (
 )
 SQL);
 
-// Keyed on kod_predmetu, not on the name: under utf8mb4_czech_ci a name search folds é→e but
-// not č→c, while the code is plain ASCII and the same word in every year's catalog.
+// Keyed on kod_predmetu, not on the name: the code is plain ASCII and says it the same way in
+// every year's catalog.
 $this->q(<<<'SQL'
 INSERT INTO product_product_tag (product_id, tag_id)
 SELECT shop_predmety.id_predmetu, breakfast_tag.id
@@ -38,8 +38,8 @@ WHERE shop_predmety.kod_predmetu LIKE '%snidane%'
     AND already_tagged.product_id IS NULL
 SQL);
 
-// Deploy runs migrations without strict mode, so nothing else would stop a breakfast the old
-// name rule found from quietly dropping out: it would just no longer be cancelled.
+// A breakfast the old name rule found must not drop out unnoticed: it would simply stop being
+// cancelled.
 $bezTagu = $this->q(<<<'SQL'
 SELECT shop_predmety.kod_predmetu
 FROM shop_predmety

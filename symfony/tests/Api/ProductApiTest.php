@@ -436,6 +436,97 @@ class ProductApiTest extends AbstractDatabaseKernelTestCase
         self::assertSame(405, $response->getStatusCode(), $response->getContent(false));
     }
 
+    /**
+     * `tags` is replaced as a whole, so a client that edits only the category must send back
+     * the sub-tags it does not edit, or the save silently removes them.
+     */
+    public function testPatchedTagsReplaceTheWholeSet(): void
+    {
+        $product = $this->produktSeSnidani();
+
+        $response = $this->ulozTagy($product, [ProductTagCode::JIDLO]);
+
+        self::assertSame(200, $response->getStatusCode(), $response->getContent(false));
+        self::assertSame(['jidlo'], $this->tagCodes($product));
+    }
+
+    public function testPatchedTagsKeepWhatTheClientSendsBack(): void
+    {
+        $product = $this->produktSeSnidani();
+
+        $response = $this->ulozTagy($product, [ProductTagCode::JIDLO, ProductTagCode::SNIDANE]);
+
+        self::assertSame(200, $response->getStatusCode(), $response->getContent(false));
+        self::assertSame(['jidlo', 'snidane'], $this->tagCodes($product));
+    }
+
+    private function produktSeSnidani(): Product
+    {
+        [$product] = $this->produktSVariantou();
+        $product->removeTag($this->tag(ProductTagCode::PREDMET));
+        $product->addTag($this->tag(ProductTagCode::JIDLO));
+        $product->addTag($this->tag(ProductTagCode::SNIDANE));
+        $this->entityManager()->flush();
+        self::assertSame(['jidlo', 'snidane'], $this->tagCodes($product));
+
+        return $product;
+    }
+
+    /**
+     * @param list<ProductTagCode> $kody
+     */
+    private function ulozTagy(Product $product, array $kody): ResponseInterface
+    {
+        return $this->adminClient([
+            'Content-Type' => 'application/merge-patch+json',
+        ])->request('PATCH', '/symfony/api/products/' . $product->getId(), [
+            'body' => json_encode([
+                'tags' => array_map(
+                    fn (ProductTagCode $kod): string => '/symfony/api/product_tags/' . $this->tag($kod)->getId(),
+                    $kody,
+                ),
+            ], JSON_THROW_ON_ERROR),
+        ]);
+    }
+
+    /**
+     * @return list<string>
+     */
+    private function tagCodes(Product $product): array
+    {
+        return $this->connection()->fetchFirstColumn(
+            <<<'SQL'
+            SELECT product_tag.code
+            FROM product_product_tag
+            INNER JOIN product_tag ON product_tag.id = product_product_tag.tag_id
+            WHERE product_product_tag.product_id = :product
+            ORDER BY product_tag.code
+            SQL,
+            [
+                'product' => $product->getId(),
+            ],
+        );
+    }
+
+    private function tag(ProductTagCode $code): ProductTag
+    {
+        // The timestamps are NOT NULL with no default and nothing fills them on persist,
+        // so a missing row is created in SQL.
+        $this->connection()->executeStatement(
+            <<<'SQL'
+            INSERT IGNORE INTO product_tag (code, name, created_at) VALUES (:code, :name, NOW())
+            SQL,
+            [
+                'code' => $code->value,
+                'name' => $code->label(),
+            ],
+        );
+
+        return $this->entityManager()->getRepository(ProductTag::class)->findOneBy([
+            'code' => $code->value,
+        ]);
+    }
+
     public function testEditorRemovesAnUnsoldVariant(): void
     {
         [$product, $variant] = $this->produktSVariantou();

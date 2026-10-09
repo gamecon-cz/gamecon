@@ -1,4 +1,4 @@
-import { ApiProduct } from "../../api/symfony/types";
+import { ApiProduct, ApiProductTag } from "../../api/symfony/types";
 
 /** Category tag codes that classify a product (mutually exclusive), in legacy's type order. */
 export const KATEGORIE_TAG_KODY = [
@@ -10,6 +10,17 @@ export const KATEGORIE_TAG_KODY = [
   "parcon",
   "proplaceni_bonusu",
 ] as const;
+
+/**
+ * The API replaces `tags` as a whole and the editor offers only the category, so every other tag
+ * has to be sent back, or saving a product quietly removes its sub-tags (`snidane`, `mikina`, ...).
+ */
+export const tagyKUlozeni = (kategorieIri: string, soucasneTagy: ApiProductTag[]): string[] => [
+  kategorieIri,
+  ...soucasneTagy
+    .filter((tag) => !KATEGORIE_TAG_KODY.includes(tag.code as typeof KATEGORIE_TAG_KODY[number]))
+    .flatMap((tag) => (tag["@id"] === undefined ? [] : [tag["@id"]])),
+];
 
 export type RazenyProdukt = Pick<ApiProduct, "name" | "tags" | "accommodationDay" | "archivedAt">;
 
