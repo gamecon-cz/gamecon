@@ -1,6 +1,7 @@
 {
     "name": "gamecon-cz/gamecon",
     "type": "project",
+    "version": "1.0.0",
     "description": "Počítačem řízené zázemí pro Největší festival nepočítačových her",
     "autoload": {
         "psr-4": {
