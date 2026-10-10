@@ -37,6 +37,9 @@ docker compose up
 # Run tests
 vendor/bin/phpunit
 
+# Run the UI tests (vitest in ui/); `make ci` runs them after PHPUnit
+make test-ui
+
 # Database access (use dbal:run-sql to ensure correct DB)
 ./bin-docker/php ./bin/console dbal:run-sql 'SELECT 1'  # Execute SQL query in current DB
 

@@ -1,4 +1,4 @@
-.PHONY: init start-docker-foreground run cache bash phpstan ecs fix static ci tests migrations-run migrations-diff
+.PHONY: init start-docker-foreground run cache bash phpstan ecs fix static ci tests test-ui migrations-run migrations-diff
 
 MAKEFLAGS += --no-print-directory # to disable "make: Entering directory ..." messages
 
@@ -36,10 +36,13 @@ cache:
 bash:
 	./bin-docker/docker-bash
 
-ci: init static tests
+ci: init static tests test-ui
 
 tests:
 	./bin-docker/docker-bash bin/phpunit.sh
+
+test-ui:
+	./bin-docker/yarn test
 
 phpstan:
 	./bin-docker/docker-bash bin/phpstan.sh
