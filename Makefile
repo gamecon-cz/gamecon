@@ -1,4 +1,4 @@
-.PHONY: init start-docker-foreground run cache bash phpstan ecs fix static ci tests test-ui migrations-run migrations-diff
+.PHONY: init start-docker-foreground run cache bash phpstan ecs fix static ci tests tests-be test-ui migrations-run migrations-diff
 
 MAKEFLAGS += --no-print-directory # to disable "make: Entering directory ..." messages
 
@@ -36,9 +36,13 @@ cache:
 bash:
 	./bin-docker/docker-bash
 
-ci: init static tests test-ui
+ci: init static tests-be test-ui
 
+# The old name must fail: `tests/` is a directory, so without this rule make says "Nothing to be done" and exits 0.
 tests:
+	@echo "make tests was renamed: use make tests-be (PHPUnit) or make test-ui" >&2; exit 1
+
+tests-be:
 	./bin-docker/docker-bash bin/phpunit.sh
 
 test-ui:
