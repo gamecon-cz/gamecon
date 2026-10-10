@@ -41,6 +41,10 @@ deps:
 	docker compose up -d
 	./bin-docker/composer install
 	./bin-docker/yarn install --frozen-lockfile
+	./bin-docker/php ./bin/console cache:clear --no-optional-warmers
+# --no-debug: tests boot Kernel('test', false), whose container is never revalidated; a debug clear leaves it behind
+# whenever it had to recompile the stale debug container itself.
+	./bin-docker/php ./bin/console cache:clear --env=test --no-debug --no-optional-warmers
 
 ci: deps rector ecs phpstan tests
 
