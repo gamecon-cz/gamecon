@@ -40,6 +40,10 @@ vendor/bin/phpunit
 # Run all tests: PHPUnit (`make tests-be`) and the UI tests, vitest in ui/ (`make test-ui`)
 make tests
 
+# Everything CI-like: syncs vendor/ and ui/node_modules to the lockfiles, then checks (rector --dry-run,
+# ECS, PHPStan) and runs all tests. Rewrites no source, touches no git hooks or direnv (`make init` / `make fix` do).
+make ci
+
 # Database access (use dbal:run-sql to ensure correct DB)
 ./bin-docker/php ./bin/console dbal:run-sql 'SELECT 1'  # Execute SQL query in current DB
 

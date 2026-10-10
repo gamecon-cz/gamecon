@@ -1,4 +1,4 @@
-.PHONY: init start-docker-foreground run cache bash phpstan ecs fix static ci tests tests-be test-ui migrations-run migrations-diff
+.PHONY: init start-docker-foreground run cache bash phpstan ecs rector fix static deps ci tests tests-be test-ui migrations-run migrations-diff
 
 MAKEFLAGS += --no-print-directory # to disable "make: Entering directory ..." messages
 
@@ -36,7 +36,13 @@ cache:
 bash:
 	./bin-docker/docker-bash
 
-ci: init static tests
+deps:
+	which docker > /dev/null || (echo "Please install docker binary" && exit 1)
+	docker compose up -d
+	./bin-docker/composer install
+	./bin-docker/yarn install --frozen-lockfile
+
+ci: deps rector ecs phpstan tests
 
 tests: tests-be test-ui
 
@@ -51,6 +57,9 @@ phpstan:
 
 ecs:
 	./bin-docker/docker-bash bin/ecs.sh
+
+rector:
+	./bin-docker/php vendor/bin/rector process --config rector-ci.php --dry-run
 
 fix:
 	./bin-docker/php vendor/bin/rector process --config rector-ci.php
