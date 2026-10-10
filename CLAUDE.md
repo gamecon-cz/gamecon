@@ -34,11 +34,11 @@ GameCon is a Czech PHP web application for managing the largest Czechoslovak non
 # Start development environment
 docker compose up
 
-# Run tests
+# Run PHPUnit only
 vendor/bin/phpunit
 
-# Run the UI tests (vitest in ui/); `make ci` runs them after PHPUnit
-make test-ui
+# Run all tests: PHPUnit (`make tests-be`) and the UI tests, vitest in ui/ (`make test-ui`)
+make tests
 
 # Database access (use dbal:run-sql to ensure correct DB)
 ./bin-docker/php ./bin/console dbal:run-sql 'SELECT 1'  # Execute SQL query in current DB

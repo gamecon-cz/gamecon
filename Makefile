@@ -36,11 +36,9 @@ cache:
 bash:
 	./bin-docker/docker-bash
 
-ci: init static tests-be test-ui
+ci: init static tests
 
-# The old name must fail: `tests/` is a directory, so without this rule make says "Nothing to be done" and exits 0.
-tests:
-	@echo "make tests was renamed: use make tests-be (PHPUnit) or make test-ui" >&2; exit 1
+tests: tests-be test-ui
 
 tests-be:
 	./bin-docker/docker-bash bin/phpunit.sh
