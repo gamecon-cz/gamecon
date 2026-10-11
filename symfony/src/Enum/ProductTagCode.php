@@ -33,9 +33,9 @@ enum ProductTagCode: string
 
     case SPACAK = 'spacak';
 
-    case TRICKO_MODRE = 'tricko_modre';
+    case TRICKO_VYPRAVECSKE = 'tricko_vypravecske';
 
-    case TRICKO_CERVENE = 'tricko_cervene';
+    case TRICKO_ORGANIZATORSKE = 'tricko_organizatorske';
 
     case SNIDANE = 'snidane';
 
@@ -80,11 +80,11 @@ enum ProductTagCode: string
     public static function subTagCategories(): array
     {
         return [
-            self::MIKINA->value         => self::PREDMET,
-            self::SPACAK->value         => self::UBYTOVANI,
-            self::TRICKO_MODRE->value   => self::TRICKO,
-            self::TRICKO_CERVENE->value => self::TRICKO,
-            self::SNIDANE->value        => self::JIDLO,
+            self::MIKINA->value                => self::PREDMET,
+            self::SPACAK->value                => self::UBYTOVANI,
+            self::TRICKO_VYPRAVECSKE->value    => self::TRICKO,
+            self::TRICKO_ORGANIZATORSKE->value => self::TRICKO,
+            self::SNIDANE->value               => self::JIDLO,
         ];
     }
 
@@ -104,18 +104,18 @@ enum ProductTagCode: string
     public function label(): string
     {
         return match ($this) {
-            self::PREDMET           => 'Předmět',
-            self::UBYTOVANI         => 'Ubytování',
-            self::TRICKO            => 'Tričko',
-            self::JIDLO             => 'Jídlo',
-            self::VSTUPNE           => 'Vstupné',
-            self::PARCON            => 'ParCon mini-akce',
-            self::PROPLACENI_BONUSU => 'Výplata bonusu (interní)',
-            self::MIKINA            => 'Mikina',
-            self::SPACAK            => 'Spacák',
-            self::TRICKO_MODRE      => 'Modré tričko',
-            self::TRICKO_CERVENE    => 'Červené tričko',
-            self::SNIDANE           => 'Snídaně',
+            self::PREDMET               => 'Předmět',
+            self::UBYTOVANI             => 'Ubytování',
+            self::TRICKO                => 'Tričko',
+            self::JIDLO                 => 'Jídlo',
+            self::VSTUPNE               => 'Vstupné',
+            self::PARCON                => 'ParCon mini-akce',
+            self::PROPLACENI_BONUSU     => 'Výplata bonusu (interní)',
+            self::MIKINA                => 'Mikina',
+            self::SPACAK                => 'Spacák',
+            self::TRICKO_VYPRAVECSKE    => 'Vypravěčské tričko',
+            self::TRICKO_ORGANIZATORSKE => 'Organizátorské tričko',
+            self::SNIDANE               => 'Snídaně',
         };
     }
 }

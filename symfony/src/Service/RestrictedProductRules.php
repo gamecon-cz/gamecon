@@ -15,8 +15,8 @@ class RestrictedProductRules
      * Sub-tag => the legacy permission that allows ordering it.
      */
     private const PERMISSION_BY_TAG = [
-        ProductTagCode::TRICKO_MODRE->value   => Pravo::MUZE_OBJEDNAVAT_MODRA_TRICKA,
-        ProductTagCode::TRICKO_CERVENE->value => Pravo::MUZE_OBJEDNAVAT_CERVENA_TRICKA,
+        ProductTagCode::TRICKO_VYPRAVECSKE->value    => Pravo::MUZE_OBJEDNAVAT_MODRA_TRICKA,
+        ProductTagCode::TRICKO_ORGANIZATORSKE->value => Pravo::MUZE_OBJEDNAVAT_CERVENA_TRICKA,
     ];
 
     public function __construct(

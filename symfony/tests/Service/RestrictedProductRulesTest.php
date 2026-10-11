@@ -46,7 +46,7 @@ class RestrictedProductRulesTest extends TestCase
             ->willReturn(false);
 
         self::assertFalse(
-            (new RestrictedProductRules($permissions))->mayOrder($this->product(ProductTagCode::TRICKO_CERVENE), $customer, 2026),
+            (new RestrictedProductRules($permissions))->mayOrder($this->product(ProductTagCode::TRICKO_ORGANIZATORSKE), $customer, 2026),
         );
     }
 
@@ -56,7 +56,7 @@ class RestrictedProductRulesTest extends TestCase
         $permissions->method('has')->willReturn(true);
 
         self::assertTrue(
-            (new RestrictedProductRules($permissions))->mayOrder($this->product(ProductTagCode::TRICKO_MODRE), new User(), 2026),
+            (new RestrictedProductRules($permissions))->mayOrder($this->product(ProductTagCode::TRICKO_VYPRAVECSKE), new User(), 2026),
         );
     }
 }

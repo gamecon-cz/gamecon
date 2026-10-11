@@ -20,7 +20,7 @@ zpátky (ověřeno nad produkčním dumpem, test `exportJdeBezeZmenyNaimportovat
 ## Pravidla, která z kódu nejsou hned vidět
 
 - **Podštítky nese nepovinný sloupec `podstitky`**, kódy oddělené čárkou (`snidane`, `mikina`,
-  `spacak`, `tricko_modre`, `tricko_cervene`). Je-li sloupec v listu, produkt dostane přesně
+  `spacak`, `tricko_vypravecske`, `tricko_organizatorske`). Je-li sloupec v listu, produkt dostane přesně
   uvedené podštítky (chybějící se přidají, nadbytečné odeberou) a prázdná buňka znamená žádný.
   Bez sloupce zůstanou podštítky beze změny, takže tabulka z doby před sloupcem projde. Každý
   podštítek musí patřit ke kategorii ve sloupci `tag` (`ProductTagCode::requiredCategory()`,
