@@ -78,18 +78,16 @@ readonly class EntryFeeService
         $year = $this->currentYearProvider->getCurrentYear();
 
         $this->entityManager->wrapInTransaction(function () use ($user, $amount, $product, $year): void {
-            // Locking the row up front keeps two concurrent saves — the slider debounce makes those
-            // routine — from each deciding to insert their own, which would double the donation.
+            // The participant's row keeps two concurrent saves — the slider debounce makes those
+            // routine — from each inserting their own purchase, which would double the donation,
+            // and queues them with AccommodationWriter::lockForSave(). Locking the purchases
+            // instead would wait for a desk that deleted one and needs this row to insert another.
             $this->entityManager->getConnection()->executeQuery(
-                'SELECT shop_nakupy.id_nakupu
-                 FROM shop_nakupy
-                 INNER JOIN product_variant ON product_variant.id = shop_nakupy.variant_id
-                 WHERE shop_nakupy.id_uzivatele = :user AND shop_nakupy.rok = :year AND product_variant.product_id = :product
-                 FOR UPDATE',
+                <<<'SQL'
+                SELECT id_uzivatele FROM uzivatele_hodnoty WHERE id_uzivatele = :user FOR UPDATE
+                SQL,
                 [
-                    'user'    => $user->getId(),
-                    'year'    => $year,
-                    'product' => $product->getId(),
+                    'user' => $user->getId(),
                 ],
             );
 
