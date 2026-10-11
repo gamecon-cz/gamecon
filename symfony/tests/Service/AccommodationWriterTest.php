@@ -18,6 +18,7 @@ use App\Service\AccommodationWriter;
 use App\Service\BreakfastCanceller;
 use App\Service\CapacityManager;
 use App\Service\CartService;
+use App\Service\EntryFeeService;
 use App\Structure\Entity\UserEntityStructure;
 use App\Tests\AbstractDatabaseKernelTestCase;
 use App\Tests\Support\SoubeznaTransakce;
@@ -399,6 +400,179 @@ class AccommodationWriterTest extends AbstractDatabaseKernelTestCase
             $this->smazPotvrzeneUbytovani([$ucastnik]);
             $this->connection()->beginTransaction();
         }
+    }
+
+    /**
+     * A desk replacing a meal deletes the purchase first and inserts the new one afterwards,
+     * which needs the participant's row. An entry fee save that held that row while waiting for
+     * the deleted purchase would close the cycle.
+     */
+    public function testEntryFeeSaveDoesNotDeadlockWithADeskReplacingAPurchase(): void
+    {
+        $this->pripravUbytovani();
+        [$idVstupneho] = $this->pripravVstupne();
+        $ucastnik = $this->ucastnikVSql('ubytovani_vstupne_pult_');
+        $drzenyNakup = $this->koupNoc($ucastnik, 0);
+        [$ctvrtek] = $this->idNoci(1);
+        $this->connection()->commit();
+
+        $rok = self::ROK;
+        $smazatNakup = <<<SQL
+            DELETE FROM shop_nakupy WHERE id_nakupu = {$drzenyNakup}
+            SQL;
+        $koupitNahradu = <<<SQL
+            INSERT INTO shop_nakupy (id_uzivatele, variant_id, rok, cena_nakupni, datum)
+            VALUES ({$ucastnik}, {$ctvrtek}, {$rok}, 100, NOW())
+            SQL;
+
+        try {
+            $pult = SoubeznaTransakce::spust($this->connection(), [
+                ['sql', $smazatNakup],
+                ['hlasim', 'pult smazal nakup'],
+                ['cekej', 700],
+                ['sql', $koupitNahradu],
+                ['potvrd', ''],
+            ]);
+            $chybaVstupneho = null;
+            try {
+                static::getContainer()->get(EntryFeeService::class)
+                    ->setAmount($this->entityManager()->find(User::class, $ucastnik), 100);
+            } catch (\Throwable $chyba) {
+                $chybaVstupneho = $chyba;
+            }
+            $odpovedPultu = $pult->dokonci();
+
+            self::assertNull($chybaVstupneho, (string) $chybaVstupneho?->getMessage());
+            self::assertSame('hotovo', $odpovedPultu);
+            self::assertSame(2, (int) $this->connection()->fetchOne(
+                <<<'SQL'
+                SELECT COUNT(*) FROM shop_nakupy WHERE id_uzivatele = :uzivatel
+                SQL,
+                [
+                    'uzivatel' => $ucastnik,
+                ],
+            ));
+        } finally {
+            $this->smazPotvrzeneUbytovani([$ucastnik]);
+            $this->smazVstupne($idVstupneho);
+            $this->connection()->beginTransaction();
+        }
+    }
+
+    /**
+     * The participant's row is what keeps two entry fee saves, which the slider debounce makes
+     * routine, from each inserting a purchase: the second must wait for the first and then update it.
+     */
+    public function testConcurrentEntryFeeSavesDoNotDoubleThePurchase(): void
+    {
+        $this->pripravUbytovani();
+        [$idVstupneho, $idVarianty] = $this->pripravVstupne();
+        $ucastnik = $this->ucastnikVSql('ubytovani_vstupne_dvakrat_');
+        $this->connection()->commit();
+
+        $rok = self::ROK;
+        $zamknoutUcastnika = <<<SQL
+            SELECT id_uzivatele FROM uzivatele_hodnoty WHERE id_uzivatele = {$ucastnik} FOR UPDATE
+            SQL;
+        $koupitVstupne = <<<SQL
+            INSERT INTO shop_nakupy (id_uzivatele, variant_id, rok, cena_nakupni, datum)
+            VALUES ({$ucastnik}, {$idVarianty}, {$rok}, 50, NOW())
+            SQL;
+
+        try {
+            $prvniZapis = SoubeznaTransakce::spust($this->connection(), [
+                ['sql', $zamknoutUcastnika],
+                ['hlasim', 'prvni zapis drzi ucastnika'],
+                ['cekej', 700],
+                ['sql', $koupitVstupne],
+                ['potvrd', ''],
+            ]);
+            $chybaDruheho = null;
+            try {
+                static::getContainer()->get(EntryFeeService::class)
+                    ->setAmount($this->entityManager()->find(User::class, $ucastnik), 100);
+            } catch (\Throwable $chyba) {
+                $chybaDruheho = $chyba;
+            }
+            $odpovedPrvniho = $prvniZapis->dokonci();
+
+            self::assertNull($chybaDruheho, (string) $chybaDruheho?->getMessage());
+            self::assertSame('hotovo', $odpovedPrvniho);
+            self::assertSame(
+                ['100.00'],
+                $this->connection()->fetchFirstColumn(
+                    <<<'SQL'
+                    SELECT cena_nakupni FROM shop_nakupy WHERE id_uzivatele = :uzivatel
+                    SQL,
+                    [
+                        'uzivatel' => $ucastnik,
+                    ],
+                ),
+            );
+        } finally {
+            $this->smazPotvrzeneUbytovani([$ucastnik]);
+            $this->smazVstupne($idVstupneho);
+            $this->connection()->beginTransaction();
+        }
+    }
+
+    /**
+     * @return array{0: int, 1: int} ids of an entry fee product and of its only variant
+     */
+    private function pripravVstupne(): array
+    {
+        $connection = $this->connection();
+        $connection->executeStatement(
+            <<<'SQL'
+            INSERT INTO product_tag (code, name, created_at, updated_at)
+            SELECT :code, :name, NOW(), NOW() FROM DUAL
+            WHERE NOT EXISTS (SELECT 1 FROM product_tag WHERE code = :code)
+            SQL,
+            [
+                'code' => ProductTagCode::VSTUPNE->value,
+                'name' => ProductTagCode::VSTUPNE->label(),
+            ],
+        );
+        $product = new Product();
+        $product->setName('Testovací vstupné');
+        $product->setCode('vstupne-' . uniqid());
+        $product->setCurrentPrice('300.00');
+        $product->setDescription('');
+        $product->setState(ProductStateEnum::PUBLIC);
+        $this->entityManager()->persist($product);
+        $this->entityManager()->flush();
+
+        $variant = new ProductVariant();
+        $variant->setProduct($product);
+        $variant->setName('vstupné');
+        $variant->setCode($product->getCode());
+        $variant->setPosition(0);
+        $product->addVariant($variant);
+        $this->entityManager()->persist($variant);
+        $this->entityManager()->flush();
+
+        $connection->executeStatement(
+            <<<'SQL'
+            INSERT INTO product_product_tag (product_id, tag_id)
+            SELECT :product, id FROM product_tag WHERE code = :code
+            SQL,
+            [
+                'product' => $product->getId(),
+                'code'    => ProductTagCode::VSTUPNE->value,
+            ],
+        );
+
+        return [(int) $product->getId(), (int) $variant->getId()];
+    }
+
+    private function smazVstupne(int $idProduktu): void
+    {
+        $produkt = [
+            'produkt' => $idProduktu,
+        ];
+        $this->connection()->executeStatement('DELETE FROM product_variant WHERE product_id = :produkt', $produkt);
+        $this->connection()->executeStatement('DELETE FROM product_product_tag WHERE product_id = :produkt', $produkt);
+        $this->connection()->executeStatement('DELETE FROM shop_predmety WHERE id_predmetu = :produkt', $produkt);
     }
 
     /**
