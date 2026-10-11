@@ -332,6 +332,76 @@ class AccommodationWriterTest extends AbstractDatabaseKernelTestCase
     }
 
     /**
+     * Two saves of a participant who holds nothing yet, each for a different night, share no night
+     * lock, so only the participant's row orders them. The gate holds that row until both are
+     * queued behind it. The other save is played as a writer that takes the row exclusively, as
+     * lockForSave() does: one that took it shared first would deadlock with any fix.
+     */
+    public function testTwoSavesOfOneParticipantWithDifferentNightsDoNotDeadlock(): void
+    {
+        $this->pripravUbytovani();
+        $ucastnik = $this->ucastnikVSql('ubytovani_dva_zapisy_');
+        [$streda, $ctvrtek] = $this->idNoci(0, 1);
+        $this->connection()->commit();
+
+        $rok = self::ROK;
+        $zamknoutCtvrtek = <<<SQL
+            SELECT id FROM product_variant WHERE id = {$ctvrtek} FOR UPDATE
+            SQL;
+        $zamknoutUcastnika = <<<SQL
+            SELECT id_uzivatele FROM uzivatele_hodnoty WHERE id_uzivatele = {$ucastnik} FOR UPDATE
+            SQL;
+        $koupitCtvrtek = <<<SQL
+            INSERT INTO shop_nakupy (id_uzivatele, variant_id, rok, cena_nakupni, datum)
+            VALUES ({$ucastnik}, {$ctvrtek}, {$rok}, 100, NOW())
+            SQL;
+        $zapsatSpolubydlicihoDruhym = <<<SQL
+            UPDATE uzivatele_hodnoty SET ubytovan_s = 'Karel' WHERE id_uzivatele = {$ucastnik}
+            SQL;
+
+        try {
+            $brana = SoubeznaTransakce::spust($this->connection(), [
+                ['sql', $zamknoutUcastnika],
+                ['hlasim', 'brana drzi ucastnika'],
+                ['cekej', 2000],
+            ]);
+            $druhyZapis = SoubeznaTransakce::spust($this->connection(), [
+                ['sql', $zamknoutCtvrtek],
+                ['hlasim', 'drzi ctvrtek'],
+                ['cekej', 700],
+                ['sql', $zamknoutUcastnika],
+                ['sql', $koupitCtvrtek],
+                ['sql', $zapsatSpolubydlicihoDruhym],
+                ['potvrd', ''],
+            ]);
+            $chybaZapisu = null;
+            try {
+                $this->writer()->save($this->entityManager()->find(User::class, $ucastnik), [$streda], self::ROK, true);
+            } catch (\Throwable $chyba) {
+                $chybaZapisu = $chyba;
+            }
+
+            $odpovedBrany = $brana->dokonci();
+            $odpovedDruheho = $druhyZapis->dokonci();
+
+            self::assertNull($chybaZapisu, (string) $chybaZapisu?->getMessage());
+            self::assertSame('hotovo', $odpovedBrany);
+            self::assertSame('hotovo', $odpovedDruheho);
+            self::assertSame(2, (int) $this->connection()->fetchOne(
+                <<<'SQL'
+                SELECT COUNT(*) FROM shop_nakupy WHERE id_uzivatele = :uzivatel
+                SQL,
+                [
+                    'uzivatel' => $ucastnik,
+                ],
+            ));
+        } finally {
+            $this->smazPotvrzeneUbytovani([$ucastnik]);
+            $this->connection()->beginTransaction();
+        }
+    }
+
+    /**
      * A hotel night cancels the breakfast it covers. The meal desk, saving the same participant,
      * holds that breakfast, has deleted it and re-inserts it — which needs the participant's row
      * this save has just updated; deleting the breakfast before locking it would close the cycle.

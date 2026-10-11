@@ -41,9 +41,10 @@ class AccommodationWriter
     }
 
     /**
-     * Takes every capacity lock a save needs, before its first write. A caller that writes
-     * something else for the customer first, such as the import's room, calls this before that
-     * write: the desk takes the nights and then the customer's row, so the reverse order deadlocks.
+     * Takes every lock a save needs, before its first write: the capacity locks, then the
+     * customer's row. A caller that writes something else for the customer first, such as the
+     * import's room, calls this before that write: the desk takes the nights and then the
+     * customer's row, so the reverse order deadlocks.
      *
      * @param int[] $variantIds nights the customer wants to end up with
      *
@@ -58,6 +59,16 @@ class AccommodationWriter
             ...$this->breakfastCanceller->coveredBreakfastVariants($variantIds),
         ];
         $this->capacityManager->lockInOrder($locked);
+        // Exclusive: every purchase holds the row shared (foreign key) and the save updates it, so
+        // two saves with disjoint nights would wait for each other's shared lock.
+        $this->connection->fetchOne(
+            <<<'SQL'
+            SELECT id_uzivatele FROM uzivatele_hodnoty WHERE id_uzivatele = :customer FOR UPDATE
+            SQL,
+            [
+                'customer' => $customer->getId(),
+            ],
+        );
 
         return $locked;
     }
