@@ -41,8 +41,9 @@ vendor/bin/phpunit
 make tests
 
 # Everything CI-like: syncs vendor/ (committed) and ui/node_modules to the lockfiles, clears the Symfony cache,
-# checks (rector --dry-run, ECS, PHPStan) and runs all tests. Rewrites no source code and wires no git hooks
-# or direnv (`make fix` rewrites source, `make init` wires hooks and direnv).
+# checks (rector --dry-run, ECS, PHPStan, .dockerignore) and runs all tests. Rewrites no source code and wires
+# no git hooks or direnv (`make fix` rewrites source, `make init` wires hooks and direnv).
+# The GitHub workflow `Run tests` calls the same targets one by one, except `deps` and `rector`.
 make ci
 
 # Database access (use dbal:run-sql to ensure correct DB)
