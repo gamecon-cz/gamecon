@@ -930,13 +930,13 @@ SQL);
             'product_code' => 'TRICKO_DVOJBARVA',
             'product_name' => 'Tričko ve dvou barvách',
             'tag'          => 'tricko',
-            'podstitky'    => 'tricko_modre, tricko_cervene',
+            'podstitky'    => 'tricko_vypravecske, tricko_organizatorske',
         ]);
 
         (new EshopImporter($soubor))->importuj();
         $podruhe = (new EshopImporter($soubor))->importuj();
 
-        self::assertSame(['tricko', 'tricko_cervene', 'tricko_modre'], $this->tagyProduktuVcetnePodstitku('TRICKO_DVOJBARVA'));
+        self::assertSame(['tricko', 'tricko_organizatorske', 'tricko_vypravecske'], $this->tagyProduktuVcetnePodstitku('TRICKO_DVOJBARVA'));
         self::assertSame(0, $podruhe->pocetZmenenych, 'pořadí kódů v buňce nesmí rozhodovat o změně');
     }
 
@@ -947,7 +947,7 @@ SQL);
     {
         $this->vlozProduktSTagy('MIKINA_STARA', 'predmet', ['mikina']);
         $this->vlozProduktSTagy('JIDLO_BEZ_SNIDANE', 'jidlo', []);
-        $this->vlozProduktSTagy('TRICKO_PREBARVENE', 'tricko', ['tricko_modre']);
+        $this->vlozProduktSTagy('TRICKO_PREBARVENE', 'tricko', ['tricko_vypravecske']);
 
         $vysledek = (new EshopImporter($this->createXlsxSoubor(
             [
@@ -964,7 +964,7 @@ SQL);
                 $this->defaultniRadek([
                     'product_code' => 'TRICKO_PREBARVENE',
                     'tag'          => 'tricko',
-                    'podstitky'    => 'tricko_cervene',
+                    'podstitky'    => 'tricko_organizatorske',
                 ]),
             ],
             [...EshopImporter::SLOUPCE, 'podstitky'],
@@ -972,7 +972,7 @@ SQL);
 
         self::assertSame(['predmet'], $this->tagyProduktuVcetnePodstitku('MIKINA_STARA'));
         self::assertSame(['jidlo', 'snidane'], $this->tagyProduktuVcetnePodstitku('JIDLO_BEZ_SNIDANE'));
-        self::assertSame(['tricko', 'tricko_cervene'], $this->tagyProduktuVcetnePodstitku('TRICKO_PREBARVENE'));
+        self::assertSame(['tricko', 'tricko_organizatorske'], $this->tagyProduktuVcetnePodstitku('TRICKO_PREBARVENE'));
         self::assertSame(3, $vysledek->pocetZmenenych);
     }
 
@@ -1082,7 +1082,7 @@ SQL);
     public function exportNeseKazdyPodstitekAImportHoObnovi(): void
     {
         $this->vlozProduktSTagy('MIKINA_EXPORT', 'predmet', ['mikina']);
-        $this->vlozProduktSTagy('TRICKO_EXPORT', 'tricko', ['tricko_modre', 'tricko_cervene']);
+        $this->vlozProduktSTagy('TRICKO_EXPORT', 'tricko', ['tricko_vypravecske', 'tricko_organizatorske']);
         $predtim = $this->snimekKatalogu();
 
         $soubor = tempnam(sys_get_temp_dir(), 'eshop_export_test_') . '.xlsx';
@@ -1091,7 +1091,7 @@ SQL);
 DELETE product_product_tag
 FROM product_product_tag
 INNER JOIN product_tag ON product_tag.id = product_product_tag.tag_id
-WHERE product_tag.code IN ('mikina', 'tricko_modre', 'tricko_cervene')
+WHERE product_tag.code IN ('mikina', 'tricko_vypravecske', 'tricko_organizatorske')
 SQL);
         self::assertSame(['predmet'], $this->tagyProduktuVcetnePodstitku('MIKINA_EXPORT'));
 

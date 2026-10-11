@@ -138,7 +138,7 @@ class CartServiceRestrictedProductTest extends AbstractDatabaseKernelTestCase
     public function beznemuZakaznikoviNejdeProdatOrgovskeTricko(): void
     {
         $zakaznik = $this->vytvorZakaznika();
-        $varianta = $this->vytvorTricko(ProductTagCode::TRICKO, ProductTagCode::TRICKO_CERVENE);
+        $varianta = $this->vytvorTricko(ProductTagCode::TRICKO, ProductTagCode::TRICKO_ORGANIZATORSKE);
         $kosik = $this->cartService()->getOrCreateCart($zakaznik);
 
         $this->expectException(InsufficientPermissionsException::class);
@@ -153,7 +153,7 @@ class CartServiceRestrictedProductTest extends AbstractDatabaseKernelTestCase
     public function beznemuZakaznikoviNejdeProdatVypravecskeTricko(): void
     {
         $zakaznik = $this->vytvorZakaznika();
-        $varianta = $this->vytvorTricko(ProductTagCode::TRICKO, ProductTagCode::TRICKO_MODRE);
+        $varianta = $this->vytvorTricko(ProductTagCode::TRICKO, ProductTagCode::TRICKO_VYPRAVECSKE);
         $kosik = $this->cartService()->getOrCreateCart($zakaznik);
 
         $this->expectException(InsufficientPermissionsException::class);
@@ -187,7 +187,7 @@ class CartServiceRestrictedProductTest extends AbstractDatabaseKernelTestCase
     public function omezeneTrickoNejdeProdatAniVBalicku(): void
     {
         $zakaznik = $this->vytvorZakaznika();
-        $varianta = $this->vytvorTricko(ProductTagCode::TRICKO, ProductTagCode::TRICKO_CERVENE);
+        $varianta = $this->vytvorTricko(ProductTagCode::TRICKO, ProductTagCode::TRICKO_ORGANIZATORSKE);
 
         $balicek = new ProductBundle();
         $balicek->setName('Orgovský balíček');
@@ -214,7 +214,7 @@ class CartServiceRestrictedProductTest extends AbstractDatabaseKernelTestCase
      */
     public function objednavkaBezZakaznikaOmezeneTrickoNekoupi(): void
     {
-        $varianta = $this->vytvorTricko(ProductTagCode::TRICKO, ProductTagCode::TRICKO_CERVENE);
+        $varianta = $this->vytvorTricko(ProductTagCode::TRICKO, ProductTagCode::TRICKO_ORGANIZATORSKE);
 
         $kosik = new Order();
         $kosik->setYear((int) ROCNIK);
@@ -236,7 +236,7 @@ class CartServiceRestrictedProductTest extends AbstractDatabaseKernelTestCase
     {
         $zakaznik = $this->vytvorZakaznika();
         $obsluha = $this->vytvorZakaznika();
-        $varianta = $this->vytvorTricko(ProductTagCode::TRICKO, ProductTagCode::TRICKO_CERVENE);
+        $varianta = $this->vytvorTricko(ProductTagCode::TRICKO, ProductTagCode::TRICKO_ORGANIZATORSKE);
         $kosik = $this->cartService()->getOrCreateCart($zakaznik);
 
         $polozka = $this->cartService()->addItem(
