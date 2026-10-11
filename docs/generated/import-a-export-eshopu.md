@@ -15,9 +15,18 @@ zpátky (ověřeno nad produkčním dumpem, test `exportJdeBezeZmenyNaimportovat
 
 | produktu (musí se shodovat na všech řádcích produktu) | varianty |
 |---|---|
-| `product_name`, `product_code`, `archivovano`, `tag` (jen kategorie), `cena_aktualni`, `stav`, `nabizet_do`, `popis`, `vedlejsi`, `snidane_v_cene`, `je_letosni_hlavni` (nepovinný) | `variant_name`, `variant_code`, `cena_varianty` (prázdná = cena produktu), `stav_varianty` (prázdný = stav produktu), `kusu_vyrobeno`, `ubytovani_den` |
+| `product_name`, `product_code`, `archivovano`, `tag` (jen kategorie), `podstitky` (nepovinný), `cena_aktualni`, `stav`, `nabizet_do`, `popis`, `vedlejsi`, `snidane_v_cene`, `je_letosni_hlavni` (nepovinný) | `variant_name`, `variant_code`, `cena_varianty` (prázdná = cena produktu), `stav_varianty` (prázdný = stav produktu), `kusu_vyrobeno`, `ubytovani_den` |
 
 ## Pravidla, která z kódu nejsou hned vidět
+
+- **Podštítky nese nepovinný sloupec `podstitky`**, kódy oddělené čárkou (`snidane`, `mikina`,
+  `spacak`, `tricko_modre`, `tricko_cervene`). Je-li sloupec v listu, produkt dostane přesně
+  uvedené podštítky (chybějící se přidají, nadbytečné odeberou) a prázdná buňka znamená žádný.
+  Bez sloupce zůstanou podštítky beze změny, takže tabulka z doby před sloupcem projde. Každý
+  podštítek musí patřit ke kategorii ve sloupci `tag` (`ProductTagCode::requiredCategory()`,
+  stejné pravidlo jako `TagCombinationIsAllowed`). Stojí na tom třeba snídaně: rušení snídaní
+  krytých hotelovou nocí a nabídka jejich vrácení ji poznají podle štítku `snidane`, produkt
+  bez něj z obojího tiše vypadne.
 
 - **Stav je i na variantě.** Noci jednoho typu pokoje mají různý stav (neděle podpultová,
   ostatní veřejné), proto `stav_varianty`. Varianta s kódem svého produktu (výchozí varianta,

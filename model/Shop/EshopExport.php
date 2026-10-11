@@ -38,6 +38,11 @@ SELECT
    WHERE product_product_tag.product_id = produkt.id_predmetu
      AND product_tag.code IN ($1)
    LIMIT 1) AS tag,
+  (SELECT GROUP_CONCAT(product_tag.code ORDER BY product_tag.code SEPARATOR ', ')
+   FROM product_product_tag
+   INNER JOIN product_tag ON product_tag.id = product_product_tag.tag_id
+   WHERE product_product_tag.product_id = produkt.id_predmetu
+     AND product_tag.code IN ($2)) AS podstitky,
   produkt.cena_aktualni,
   produkt.stav,
   produkt.nabizet_do,
@@ -56,7 +61,8 @@ ORDER BY produkt.archived_at IS NOT NULL, produkt.archived_at DESC, produkt.id_p
 SQL,
             [
                 0 => $letosniKody,
-                1 => array_map(static fn (ProductTagCode $tag): string => $tag->value, ProductTagCode::categories()),
+                1 => ProductTagCode::categoryCodes(),
+                2 => ProductTagCode::subTagCodes(),
             ],
         );
     }
