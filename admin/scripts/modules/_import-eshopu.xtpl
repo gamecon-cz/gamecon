@@ -10,6 +10,10 @@
     Každý řádek je jedna varianta (velikost, noc); sloupce produktu musí být na všech jeho řádcích stejné.
     Novou velikost nebo noc přidáš novým řádkem se stejným <code>product_code</code>.
   </p>
+  <p>
+    Podštítky produktu (třeba <code>snidane</code> u jídla) nese sloupec <code>podstitky</code>,
+    víc jich odděl čárkou. Prázdná buňka podštítky produktu odebere, soubor bez tohoto sloupce je nemění.
+  </p>
   <!-- begin:letosni -->
   <p>
     Letošní předmět zdarma pro organizátory určuje sloupec <code>je_letosni_hlavni</code>

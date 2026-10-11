@@ -36,10 +36,14 @@ class EshopImporter
     // Optional: names this year's free dice and badge, see LetosniPredmetyZdarma.
     public const SLOUPEC_LETOSNI_HLAVNI = 'je_letosni_hlavni';
 
+    // Optional: sub-tag codes separated by commas. Without the column the product keeps its sub-tags.
+    public const SLOUPEC_PODSTITKY = 'podstitky';
+
     private const SLOUPCE_PRODUKTU = [
         'product_name',
         'archivovano',
         'tag',
+        self::SLOUPEC_PODSTITKY,
         'cena_aktualni',
         'stav',
         'nabizet_do',
@@ -116,6 +120,7 @@ class EshopImporter
             throw new \Chyba('Chybný formát souboru - chybí sloupce ' . implode(',', $chybejici));
         }
         $maSloupecLetosni = isset($hlavicka[self::SLOUPEC_LETOSNI_HLAVNI]);
+        $maSloupecPodstitky = isset($hlavicka[self::SLOUPEC_PODSTITKY]);
 
         $chyby = [];
         $radky = [];
@@ -124,7 +129,7 @@ class EshopImporter
             ++$cisloRadku;
             $bunky = $rowIterator->current()->toArray();
             $hodnoty = [];
-            foreach ([...self::SLOUPCE, self::SLOUPEC_LETOSNI_HLAVNI] as $sloupec) {
+            foreach ([...self::SLOUPCE, self::SLOUPEC_LETOSNI_HLAVNI, self::SLOUPEC_PODSTITKY] as $sloupec) {
                 $hodnoty[$sloupec] = isset($hlavicka[$sloupec])
                     ? $this->hodnotaBunky($bunky[$hlavicka[$sloupec]] ?? null)
                     : null;
@@ -133,7 +138,7 @@ class EshopImporter
                 continue;
             }
             try {
-                $radky[] = $this->radek($hodnoty, $cisloRadku);
+                $radky[] = $this->radek($hodnoty, $cisloRadku, $maSloupecPodstitky);
             } catch (\Chyba $chyba) {
                 $chyby[] = $chyba->getMessage();
             }
@@ -167,7 +172,7 @@ class EshopImporter
      *
      * @return array<string, mixed>
      */
-    private function radek(array $hodnoty, int $cisloRadku): array
+    private function radek(array $hodnoty, int $cisloRadku, bool $maSloupecPodstitky): array
     {
         $chyba = static fn (string $zprava): \Chyba => new \Chyba(sprintf('Na řádku %d %s', $cisloRadku, $zprava));
 
@@ -210,6 +215,9 @@ class EshopImporter
             'variant_name'               => $hodnoty['variant_name'],
             'archivovano'                => $datumNeboNull($hodnoty['archivovano'], 'archivovano'),
             'tag'                        => $hodnoty['tag'],
+            self::SLOUPEC_PODSTITKY      => $maSloupecPodstitky
+                ? $this->podstitky($hodnoty[self::SLOUPEC_PODSTITKY], $hodnoty['tag'], $chyba)
+                : null,
             'cena_aktualni'              => $cisloNeboNull($hodnoty['cena_aktualni'], 'cena_aktualni') ?? '0',
             'stav'                       => $stav,
             'nabizet_do'                 => $datumNeboNull($hodnoty['nabizet_do'], 'nabizet_do'),
@@ -237,6 +245,34 @@ class EshopImporter
         }
 
         return (int) $hodnota;
+    }
+
+    /**
+     * Sorted, so rows of one product compare equal whatever order the cell lists them in.
+     *
+     * @return list<string>
+     */
+    private function podstitky(?string $bunka, string $kategorie, callable $chyba): array
+    {
+        $povolene = ProductTagCode::subTagCodes();
+        $kody = [];
+        foreach (explode(',', (string) $bunka) as $kod) {
+            $kod = trim($kod);
+            if ($kod === '') {
+                continue;
+            }
+            if (! in_array($kod, $povolene, true)) {
+                throw $chyba(sprintf('je podštítek "%s", povolené jsou %s', $kod, implode(', ', $povolene)));
+            }
+            $vyzadovana = ProductTagCode::from($kod)->requiredCategory();
+            if ($vyzadovana?->value !== $kategorie) {
+                throw $chyba(sprintf('je podštítek "%s", který patří ke kategorii %s, ne %s', $kod, $vyzadovana?->value, $kategorie));
+            }
+            $kody[$kod] = $kod;
+        }
+        sort($kody);
+
+        return $kody;
     }
 
     /**
@@ -439,6 +475,7 @@ class EshopImporter
     private function zapisVarianty(int $idProduktu, array $produkt): bool
     {
         $zmeneno = $this->nastavKategorii($idProduktu, $produkt['tag']);
+        $zmeneno = $this->nastavPodstitky($idProduktu, $produkt[self::SLOUPEC_PODSTITKY]) || $zmeneno;
         $pozice = (int) dbOneCol('SELECT COALESCE(MAX(position) + 1, 0) FROM product_variant WHERE product_id = $0', [
             0 => $idProduktu,
         ]);
@@ -532,6 +569,48 @@ class EshopImporter
                 1 => $tag,
             ],
         );
+
+        return true;
+    }
+
+    /**
+     * @param list<string>|null $podstitky null when the sheet has no such column
+     */
+    private function nastavPodstitky(int $idProduktu, ?array $podstitky): bool
+    {
+        if ($podstitky === null) {
+            return false;
+        }
+        $vsechnyPodstitky = ProductTagCode::subTagCodes();
+        $soucasne = dbOneArray(
+            'SELECT product_tag.code FROM product_product_tag INNER JOIN product_tag ON product_tag.id = product_product_tag.tag_id
+             WHERE product_product_tag.product_id = $0 AND product_tag.code IN ($1)',
+            [
+                0 => $idProduktu,
+                1 => $vsechnyPodstitky,
+            ],
+        );
+        sort($soucasne);
+        if ($soucasne === $podstitky) {
+            return false;
+        }
+        dbQuery(
+            'DELETE product_product_tag FROM product_product_tag INNER JOIN product_tag ON product_tag.id = product_product_tag.tag_id
+             WHERE product_product_tag.product_id = $0 AND product_tag.code IN ($1)',
+            [
+                0 => $idProduktu,
+                1 => $vsechnyPodstitky,
+            ],
+        );
+        if ($podstitky !== []) {
+            dbQuery(
+                'INSERT INTO product_product_tag (product_id, tag_id) SELECT $0, id FROM product_tag WHERE code IN ($1)',
+                [
+                    0 => $idProduktu,
+                    1 => $podstitky,
+                ],
+            );
+        }
 
         return true;
     }

@@ -88,6 +88,14 @@ enum ProductTagCode: string
         ];
     }
 
+    /**
+     * @return list<string>
+     */
+    public static function subTagCodes(): array
+    {
+        return array_keys(self::subTagCategories());
+    }
+
     public function requiredCategory(): ?self
     {
         return self::subTagCategories()[$this->value] ?? null;

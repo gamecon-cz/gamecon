@@ -896,6 +896,211 @@ SQL);
     }
 
     /**
+     * @param array<string, mixed> $prepis
+     */
+    private function souborSPodstitky(array $prepis): string
+    {
+        return $this->createXlsxSoubor(
+            [$this->defaultniRadek($prepis)],
+            [...EshopImporter::SLOUPCE, 'podstitky'],
+        );
+    }
+
+    /**
+     * @test
+     */
+    public function novyProduktDostanePodstitekZTabulky(): void
+    {
+        (new EshopImporter($this->souborSPodstitky([
+            'product_code' => 'SNIDANE_NOVA',
+            'product_name' => 'Snídaně nová',
+            'tag'          => 'jidlo',
+            'podstitky'    => 'snidane',
+        ])))->importuj();
+
+        self::assertSame(['jidlo', 'snidane'], $this->tagyProduktuVcetnePodstitku('SNIDANE_NOVA'));
+    }
+
+    /**
+     * @test
+     */
+    public function vicePodstitkuOdelenychCarkouSeZapisouVsechny(): void
+    {
+        $soubor = $this->souborSPodstitky([
+            'product_code' => 'TRICKO_DVOJBARVA',
+            'product_name' => 'Tričko ve dvou barvách',
+            'tag'          => 'tricko',
+            'podstitky'    => 'tricko_modre, tricko_cervene',
+        ]);
+
+        (new EshopImporter($soubor))->importuj();
+        $podruhe = (new EshopImporter($soubor))->importuj();
+
+        self::assertSame(['tricko', 'tricko_cervene', 'tricko_modre'], $this->tagyProduktuVcetnePodstitku('TRICKO_DVOJBARVA'));
+        self::assertSame(0, $podruhe->pocetZmenenych, 'pořadí kódů v buňce nesmí rozhodovat o změně');
+    }
+
+    /**
+     * @test
+     */
+    public function importPridaOdebereAVymeniPodstitkyExistujicihoProduktu(): void
+    {
+        $this->vlozProduktSTagy('MIKINA_STARA', 'predmet', ['mikina']);
+        $this->vlozProduktSTagy('JIDLO_BEZ_SNIDANE', 'jidlo', []);
+        $this->vlozProduktSTagy('TRICKO_PREBARVENE', 'tricko', ['tricko_modre']);
+
+        $vysledek = (new EshopImporter($this->createXlsxSoubor(
+            [
+                $this->defaultniRadek([
+                    'product_code' => 'MIKINA_STARA',
+                    'tag'          => 'predmet',
+                    'podstitky'    => '',
+                ]),
+                $this->defaultniRadek([
+                    'product_code' => 'JIDLO_BEZ_SNIDANE',
+                    'tag'          => 'jidlo',
+                    'podstitky'    => 'snidane',
+                ]),
+                $this->defaultniRadek([
+                    'product_code' => 'TRICKO_PREBARVENE',
+                    'tag'          => 'tricko',
+                    'podstitky'    => 'tricko_cervene',
+                ]),
+            ],
+            [...EshopImporter::SLOUPCE, 'podstitky'],
+        )))->importuj();
+
+        self::assertSame(['predmet'], $this->tagyProduktuVcetnePodstitku('MIKINA_STARA'));
+        self::assertSame(['jidlo', 'snidane'], $this->tagyProduktuVcetnePodstitku('JIDLO_BEZ_SNIDANE'));
+        self::assertSame(['tricko', 'tricko_cervene'], $this->tagyProduktuVcetnePodstitku('TRICKO_PREBARVENE'));
+        self::assertSame(3, $vysledek->pocetZmenenych);
+    }
+
+    /**
+     * @test
+     */
+    public function importSeStejnymiPodstitkyNicNezmeni(): void
+    {
+        $this->vlozProduktSTagy('JIDLO_SE_SNIDANI', 'jidlo', ['snidane']);
+
+        $vysledek = (new EshopImporter($this->souborSPodstitky([
+            'product_code' => 'JIDLO_SE_SNIDANI',
+            'tag'          => 'jidlo',
+            'podstitky'    => 'snidane',
+        ])))->importuj();
+
+        self::assertSame(['jidlo', 'snidane'], $this->tagyProduktuVcetnePodstitku('JIDLO_SE_SNIDANI'));
+        self::assertSame(0, $vysledek->pocetZmenenych);
+    }
+
+    /**
+     * Sheets exported before the column existed must not wipe the sub-tags they never carried.
+     *
+     * @test
+     */
+    public function tabulkaBezSloupcePodstitkyPodstitkyNechaBeze(): void
+    {
+        $this->vlozProduktSTagy('MIKINA_STARA', 'predmet', ['mikina']);
+
+        $vysledek = (new EshopImporter($this->createXlsxSoubor([
+            $this->defaultniRadek([
+                'product_code' => 'MIKINA_STARA',
+                'tag'          => 'predmet',
+            ]),
+        ])))->importuj();
+
+        self::assertSame(['mikina', 'predmet'], $this->tagyProduktuVcetnePodstitku('MIKINA_STARA'));
+        self::assertSame(0, $vysledek->pocetZmenenych);
+    }
+
+    /**
+     * @test
+     */
+    public function podstitekNaJineKategoriiNezKterouVyzadujeSeOdmitne(): void
+    {
+        $this->expectException(\Chyba::class);
+        $this->expectExceptionMessageMatches('/řádku 2.*snidane.*jidlo/');
+
+        (new EshopImporter($this->souborSPodstitky([
+            'tag'       => 'predmet',
+            'podstitky' => 'snidane',
+        ])))->importuj();
+    }
+
+    /**
+     * A category in the sub-tag column, or a typo, would otherwise be skipped without a word.
+     *
+     * @test
+     */
+    public function neznamyPodstitekANeboKategorieJakoPodstitekSeOdmitne(): void
+    {
+        foreach (['nesmysl', 'jidlo', 'snidane, nesmysl'] as $neplatneHodnoty) {
+            try {
+                (new EshopImporter($this->souborSPodstitky([
+                    'tag'       => 'jidlo',
+                    'podstitky' => $neplatneHodnoty,
+                ])))->importuj();
+                self::fail(sprintf('Podštítky „%s" měly být odmítnuty', $neplatneHodnoty));
+            } catch (\Chyba $chyba) {
+                self::assertMatchesRegularExpression('/řádku 2.*podštítek/', $chyba->getMessage());
+            }
+        }
+    }
+
+    /**
+     * @test
+     */
+    public function lisiciSePodstitkyProduktuSeOdmitnou(): void
+    {
+        $this->expectException(\Chyba::class);
+        $this->expectExceptionMessageMatches('/JIDLO_DVE_VARIANTY.*podstitky/');
+
+        (new EshopImporter($this->createXlsxSoubor(
+            [
+                $this->defaultniRadek([
+                    'product_code' => 'JIDLO_DVE_VARIANTY',
+                    'variant_name' => 'malá',
+                    'tag'          => 'jidlo',
+                    'podstitky'    => 'snidane',
+                ]),
+                $this->defaultniRadek([
+                    'product_code' => 'JIDLO_DVE_VARIANTY',
+                    'variant_name' => 'velká',
+                    'tag'          => 'jidlo',
+                    'podstitky'    => '',
+                ]),
+            ],
+            [...EshopImporter::SLOUPCE, 'podstitky'],
+        )))->importuj();
+    }
+
+    /**
+     * The export has to carry the sub-tags, or editing the sheet could never set them.
+     *
+     * @test
+     */
+    public function exportNeseKazdyPodstitekAImportHoObnovi(): void
+    {
+        $this->vlozProduktSTagy('MIKINA_EXPORT', 'predmet', ['mikina']);
+        $this->vlozProduktSTagy('TRICKO_EXPORT', 'tricko', ['tricko_modre', 'tricko_cervene']);
+        $predtim = $this->snimekKatalogu();
+
+        $soubor = tempnam(sys_get_temp_dir(), 'eshop_export_test_') . '.xlsx';
+        (new EshopExport(ROCNIK))->report()->tXlsx(null, (new KonfiguraceReportu())->setDestinationFile($soubor));
+        dbQuery(<<<'SQL'
+DELETE product_product_tag
+FROM product_product_tag
+INNER JOIN product_tag ON product_tag.id = product_product_tag.tag_id
+WHERE product_tag.code IN ('mikina', 'tricko_modre', 'tricko_cervene')
+SQL);
+        self::assertSame(['predmet'], $this->tagyProduktuVcetnePodstitku('MIKINA_EXPORT'));
+
+        (new EshopImporter($soubor))->importuj();
+
+        self::assertSame($predtim, $this->snimekKatalogu());
+    }
+
+    /**
      * The export is the import's template: importing it back must change nothing, for this
      * year's offer as for past years.
      *
@@ -977,6 +1182,76 @@ SQL,
                 0 => $kody,
             ],
         ), 'code', 'kod_predmetu');
+    }
+
+    /**
+     * Matches `defaultniRadek()` in everything but the tags, so that importing that row changes
+     * nothing else and the tags alone decide whether the product counts as changed.
+     *
+     * @param list<string> $tagy category plus sub-tags, by code
+     */
+    private function vlozProduktSTagy(string $kod, string $kategorie, array $tagy): void
+    {
+        $vychozi = $this->defaultniRadek();
+        dbQuery(
+            <<<'SQL'
+INSERT INTO shop_predmety (nazev, kod_predmetu, cena_aktualni, stav, nabizet_do, popis, vedlejsi, archived_at)
+VALUES ($0, $1, $2, $3, $4, $5, 0, NULL)
+SQL,
+            [
+                0 => $vychozi['product_name'],
+                1 => $kod,
+                2 => $vychozi['cena_aktualni'],
+                3 => $vychozi['stav'],
+                4 => $vychozi['nabizet_do'],
+                5 => $vychozi['popis'],
+            ],
+        );
+        $idProduktu = (int) dbInsertId();
+        dbQuery(
+            <<<'SQL'
+INSERT INTO product_product_tag (product_id, tag_id)
+SELECT $0, id FROM product_tag WHERE code IN ($1)
+SQL,
+            [
+                0 => $idProduktu,
+                1 => [$kategorie, ...$tagy],
+            ],
+        );
+        dbQuery(
+            <<<'SQL'
+INSERT INTO product_variant (product_id, name, code, price, capacity, accommodation_day, position, state)
+VALUES ($0, NULL, $1, NULL, $2, NULL, 0, $3)
+SQL,
+            [
+                0 => $idProduktu,
+                1 => $kod,
+                2 => $vychozi['kusu_vyrobeno'],
+                3 => $vychozi['stav'],
+            ],
+        );
+    }
+
+    /**
+     * @return list<string> every tag code of the product, categories and sub-tags, in a fixed order
+     */
+    private function tagyProduktuVcetnePodstitku(string $kodProduktu): array
+    {
+        $kody = dbOneArray(
+            <<<'SQL'
+SELECT product_tag.code
+FROM product_product_tag
+INNER JOIN product_tag ON product_tag.id = product_product_tag.tag_id
+INNER JOIN shop_predmety ON shop_predmety.id_predmetu = product_product_tag.product_id
+WHERE shop_predmety.kod_predmetu = $0
+SQL,
+            [
+                0 => $kodProduktu,
+            ],
+        );
+        sort($kody);
+
+        return $kody;
     }
 
     private function archivovano(string $kodProduktu): ?string

@@ -155,10 +155,12 @@ přímo, co to je, takže přejmenování produktu snídani nevyřadí. Migrace
 (`%snidane%`), přičemž spadne, kdyby nějaké jídlo se jménem „Snídaně…" zůstalo bez něj.
 
 **Past: nový produkt snídaně tag nedostane sám.** Na stránce Předměty ho nastaví zaškrtávátko
-„Je to snídaně“ (jen u kategorie Jídlo). Import z tabulky podtagy nenastavuje
-(`EshopImporter::nastavKategorii` maže a zapisuje jen `categories()`), takže snídaně založená
-tabulkou bez ručního označení **tiše nevstoupí** do rušení ani do nabídky vrácení. `mikina`,
-`spacak` a barevná trička nemají zaškrtávátko nikde, jen migraci. Samotný štítek ale nestačí:
+„Je to snídaně“ (jen u kategorie Jídlo). Import z tabulky ho nastaví jen tehdy, když list má
+sloupec `podstitky` (`EshopImporter::nastavPodstitky`, viz
+[import-a-export-eshopu](import-a-export-eshopu.md)); tabulka bez sloupce podtagy nemění, takže
+snídaně z ní založená bez ručního označení **tiše nevstoupí** do rušení ani do nabídky vrácení.
+`mikina`, `spacak` a barevná trička nemají zaškrtávátko nikde, jen migraci a sloupec `podstitky`.
+Samotný štítek ale nestačí:
 `BreakfastCanceller` páruje den varianty snídaně (sloupec „Den“) s nocí + 1, takže varianta
 bez vyplněného dne se přeskočí také.
 
