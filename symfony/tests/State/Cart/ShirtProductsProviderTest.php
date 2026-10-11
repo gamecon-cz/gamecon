@@ -81,8 +81,8 @@ class ShirtProductsProviderTest extends TestCase
         $security->method('getUser')->willReturn($this->createMock(User::class));
 
         $this->restrictedProductRules = $this->createMock(RestrictedProductRules::class);
-        $jeOmezene = static fn (Product $product): bool => $product->hasTag(ProductTagCode::TRICKO_CERVENE->value)
-            || $product->hasTag(ProductTagCode::TRICKO_MODRE->value);
+        $jeOmezene = static fn (Product $product): bool => $product->hasTag(ProductTagCode::TRICKO_ORGANIZATORSKE->value)
+            || $product->hasTag(ProductTagCode::TRICKO_VYPRAVECSKE->value);
         $this->restrictedProductRules->method('isRestricted')->willReturnCallback($jeOmezene);
         $this->restrictedProductRules->method('mayOrder')
             ->willReturnCallback(fn (Product $product): bool => ! $jeOmezene($product) || $this->smiOmezene);
@@ -189,7 +189,7 @@ class ShirtProductsProviderTest extends TestCase
         $this->smiOmezene = false;
 
         $svrsky = $this->nabidka([
-            $this->vytvor('Cervene', ProductStateEnum::RESTRICTED, ProductTagCode::TRICKO, ProductTagCode::TRICKO_CERVENE),
+            $this->vytvor('Cervene', ProductStateEnum::RESTRICTED, ProductTagCode::TRICKO, ProductTagCode::TRICKO_ORGANIZATORSKE),
         ]);
 
         self::assertSame([], $svrsky);
@@ -203,7 +203,7 @@ class ShirtProductsProviderTest extends TestCase
         $this->smiOmezene = true;
 
         $svrsky = $this->nabidka([
-            $this->vytvor('Cervene', ProductStateEnum::RESTRICTED, ProductTagCode::TRICKO, ProductTagCode::TRICKO_CERVENE),
+            $this->vytvor('Cervene', ProductStateEnum::RESTRICTED, ProductTagCode::TRICKO, ProductTagCode::TRICKO_ORGANIZATORSKE),
         ]);
 
         self::assertCount(1, $svrsky);

@@ -67,12 +67,18 @@ Výstupní klíče to říkají natvrdo: `Nr-TrickaOrgovskaZdarma`, `Nr-TrickaVy
 popisek sloupce.
 
 Hodnost se bere **z `kod_predmetu`** (`organizatorske` / `vypravecske`), stejně jako ji
-bere migrace `100020`, která z ní odvozuje tagy `tricko_cervene` / `tricko_modre`:
+bere migrace `100020`, která z ní odvozuje tagy `tricko_organizatorske` / `tricko_vypravecske`
+(dnešní názvy, viz níže):
 
 | | směr | podle čeho |
 |---|---|---|
 | `Predmet::jeToOrganizatorske()` / `jeToVypravecske()` | kód → hodnost | `kod_predmetu LIKE '%organizatorske%'` / `'%vypravecske%'` |
-| tagy `tricko_modre` / `tricko_cervene` (migrace `100020`) | kód → barva → právo | totéž, jen pro `RestrictedProductRules` |
+| tagy `tricko_vypravecske` / `tricko_organizatorske` (migrace `100020` a `100042`) | kód → hodnost → právo | totéž, jen pro `RestrictedProductRules` |
+
+Tagy se jmenují podle hodnosti, ne podle barvy (migrace `100020` je založila jako
+`tricko_modre` / `tricko_cervene`, `100042` je přejmenovala). Práva, která z nich plynou,
+si barvu v názvu nechávají: `MUZE_OBJEDNAVAT_MODRA_TRICKA` je vypravěčské,
+`MUZE_OBJEDNAVAT_CERVENA_TRICKA` organizátorské tričko.
 
 **Dřív to šlo obráceně** a bylo to chybně: `jeToCervene()` / `jeToModre()` hledaly
 v `nazev` podřetězce „červen" / „modr". Barva ale hodnost nedrží spolehlivě — **v roce
@@ -85,7 +91,7 @@ Pro fixtury to znamená: tričko se pozná podle kódu, název je jen štítek. 
 
 ## Kdo hlídá omezená trička
 
-Orgovská a vypravěčská trička (tagy `tricko_cervene` / `tricko_modre`, 34 produktů) smí
+Orgovská a vypravěčská trička (tagy `tricko_organizatorske` / `tricko_vypravecske`, 34 produktů) smí
 objednat jen ten, kdo má příslušné právo. Kontrola je **jen na zápisové straně**:
 `CartService::buildOrderItem()` volá `guardRestrictedProduct()`, tedy oba zápisy
 (`addItem()` i `addBundle()`) jí projdou.
