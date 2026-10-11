@@ -223,6 +223,12 @@ parameters:
             path: symfony/src/Enum/ProductTagCode.php
 
         -
+            message: '#^Unused App\\Enum\\ProductTagCode\:\:subTagCodes$#'
+            identifier: shipmonk.deadMethod
+            count: 1
+            path: symfony/src/Enum/ProductTagCode.php
+
+        -
             message: '#^Unused App\\EventListener\\UserRoleChangedListener\:\:forceRecalculateCompletedOrder$#'
             identifier: shipmonk.deadMethod
             count: 1
