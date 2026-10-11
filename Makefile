@@ -1,4 +1,4 @@
-.PHONY: init start-docker-foreground run cache bash phpstan ecs rector fix static deps ci tests tests-be test-ui migrations-run migrations-diff
+.PHONY: init start-docker-foreground run cache bash phpstan ecs rector check-dockerignore fix static deps ui-deps ci tests tests-be test-ui migrations-run migrations-diff
 
 MAKEFLAGS += --no-print-directory # to disable "make: Entering directory ..." messages
 
@@ -40,13 +40,16 @@ deps:
 	which docker > /dev/null || (echo "Please install docker binary" && exit 1)
 	docker compose up -d
 	./bin-docker/composer install
-	./bin-docker/yarn install --frozen-lockfile
+	@make ui-deps
 	./bin-docker/php ./bin/console cache:clear --no-optional-warmers
 # --no-debug: tests boot Kernel('test', false), whose container is never revalidated; a debug clear leaves it behind
 # whenever it had to recompile the stale debug container itself.
 	./bin-docker/php ./bin/console cache:clear --env=test --no-debug --no-optional-warmers
 
-ci: deps rector ecs phpstan tests
+ui-deps:
+	./bin-docker/yarn install --frozen-lockfile
+
+ci: deps rector ecs phpstan check-dockerignore tests
 
 tests: tests-be test-ui
 
@@ -64,6 +67,9 @@ ecs:
 
 rector:
 	./bin-docker/php vendor/bin/rector process --config rector-ci.php --dry-run
+
+check-dockerignore:
+	./bin-docker/php bin/check-dockerignore-dev-vendor.php
 
 fix:
 	./bin-docker/php vendor/bin/rector process --config rector-ci.php

@@ -12,7 +12,7 @@ on:
     # testuje i draft — kdo přidá filtr na draft, musí `ready_for_review` vrátit.
     #
     # Push do beta a main testuje deploy-beta.yml / deploy-ostra.yml, ovšem
-    # jen phpunit — PHPStan, ECS ani kontrolu .dockerignore tam nikdo nepustí.
+    # jen phpunit — PHPStan, ECS, kontrolu .dockerignore ani UI testy tam nikdo nepustí.
     workflow_dispatch:
         inputs:
             branch:
@@ -52,17 +52,25 @@ jobs:
             -   name: Build and start containers
                 run: docker compose up --build --detach
 
+            # Co který krok dělá, určuje Makefile, takže lokální `make ci` a tenhle workflow
+            # nespouštějí jiné příkazy. Bez `make deps`: vendor/ je commitnutý.
             -   name: Run tests in container
-                run: docker compose exec --no-TTY --user www-data web php ./vendor/bin/phpunit
+                run: make tests-be
 
             -   name: Run PHPStan in container
-                run: docker compose exec --no-TTY --user www-data web ./bin/phpstan.sh
+                run: make phpstan
 
             -   name: Run ECS in container
-                run: docker compose exec --no-TTY --user www-data web ./bin/ecs.sh
+                run: make ecs
 
             -   name: Check .dockerignore still matches composer.lock
-                run: docker compose exec --no-TTY --user www-data web php bin/check-dockerignore-dev-vendor.php
+                run: make check-dockerignore
+
+            -   name: Install UI dependencies
+                run: make ui-deps
+
+            -   name: Run UI tests
+                run: make test-ui
 
             -   name: Upload test output as artifact
                 if: always()
