@@ -36,7 +36,7 @@ jobs:
                 run: docker compose exec --no-TTY web composer install
 
             -   name: Run tests in container
-                run: docker compose exec --no-TTY --user www-data web php ./vendor/bin/phpunit
+                run: make tests-be
 
             -   name: Upload test output as artifact
                 if: always()
