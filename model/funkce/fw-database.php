@@ -1027,6 +1027,15 @@ function dbQa(
     return implode(',', $out);
 }
 
+function dbEnumValue(UnitEnum $enum): int|string
+{
+    if (! $enum instanceof BackedEnum) {
+        throw new InvalidArgumentException(sprintf('Enum %s has no value, so it cannot be a query parameter.', $enum::class));
+    }
+
+    return $enum->value;
+}
+
 /**
  * Quotes input values for DB. Nulls are passed as real NULLs, other values as
  * strings. Quotes $val as value
@@ -1041,14 +1050,15 @@ function dbQv(
     if ($val === null) {
         return 'NULL';
     }
+    // Before the type checks: a numeric enum has to come out as a number, as `LIMIT "1"` is a syntax error.
+    if ($val instanceof UnitEnum) {
+        $val = dbEnumValue($val);
+    }
     if (is_int($val) || (is_numeric($val) && (string)(int)$val === $val)) {
         return $val;
     }
     if ($val instanceof DateTimeInterface) {
         return '"' . $val->format('Y-m-d H:i:s') . '"';
-    }
-    if ($val instanceof BackedEnum) {
-        $val = $val->value;
     }
 
     return '"' . mysqli_real_escape_string($mysqli ?? dbConnect(), $val) . '"';
@@ -1062,6 +1072,9 @@ function dbQRaw(
     }
     if ($val === null) {
         return 'NULL';
+    }
+    if ($val instanceof UnitEnum) {
+        $val = dbEnumValue($val);
     }
     if (is_int($val) || (is_numeric($val) && (string)(int)$val === $val)) {
         return $val;
