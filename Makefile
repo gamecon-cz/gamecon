@@ -1,4 +1,4 @@
-.PHONY: init start-docker-foreground run cache bash phpstan ecs rector check-dockerignore fix static deps ui-deps ci tests tests-be test-ui migrations-run migrations-diff
+.PHONY: init start-docker-foreground run cache bash phpstan ecs rector check-dockerignore check-vendor-matches-lock fix static deps ui-deps ci tests tests-be test-ui migrations-run migrations-diff
 
 MAKEFLAGS += --no-print-directory # to disable "make: Entering directory ..." messages
 
@@ -49,7 +49,8 @@ deps:
 ui-deps:
 	./bin-docker/yarn install --frozen-lockfile
 
-ci: deps rector ecs phpstan check-dockerignore tests
+# check-vendor-matches-lock first: `deps` runs composer install, which makes vendor/ match the lock and hides the difference.
+ci: check-vendor-matches-lock deps rector ecs phpstan check-dockerignore tests
 
 tests: tests-be test-ui
 
@@ -70,6 +71,9 @@ rector:
 
 check-dockerignore:
 	./bin-docker/php bin/check-dockerignore-dev-vendor.php
+
+check-vendor-matches-lock:
+	./bin-docker/php bin/check-vendor-matches-lock.php
 
 fix:
 	./bin-docker/php vendor/bin/rector process --config rector-ci.php
