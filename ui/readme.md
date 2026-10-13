@@ -26,7 +26,8 @@ nasazování pořád buildovat)
   - zároveň spustí developement server
     - běží na `localhost:3000` (nebo na jiném portu pokud je zabraný)
     - vyžaduje nastavit prostředí v `index.html`
-    - popř chce i nastavit správně *proxy* ve `vite.config.mts` pokud gamecon api vůči kterému vyvýjím se nachází na jiném místě než localhostu
+    - *proxy* ve `vite.config.mts` míří na lokální gamecon web (`localhost:80`); běží-li web na jiném portu, je potřeba nastavit `WEB_HTTP_HOST_MAPPING_PORT` v kořenovém `.env` nebo v prostředí – je to tatáž proměnná, kterou docker compose port webu publikuje (vite navíc čte `.env.local` a `.env.<mode>`, compose jen `.env`)
+    - pokud gamecon api, proti kterému vyvíjím, běží na jiném stroji než localhost, je potřeba upravit *proxy* ve `vite.config.mts`
 
 ## Přidávání kódů
 
