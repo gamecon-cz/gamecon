@@ -1,6 +1,15 @@
-import { defineConfig } from 'vite'
+import { defineConfig, loadEnv } from 'vite'
 import preact from '@preact/preset-vite'
 import { fileURLToPath } from 'node:url'
+
+/**
+ * Dev proxy musí mířit tam, kam compose publikuje web: stejná proměnná, stejný výchozí port 80.
+ * Čte ji z prostředí a z kořenových `.env*` souborů; compose čte jen `.env`.
+ *
+ * @see ../docker-compose.yml
+ */
+const webPort = (mode: string) =>
+  loadEnv(mode, fileURLToPath(new URL('..', import.meta.url)), 'WEB_HTTP_').WEB_HTTP_HOST_MAPPING_PORT || '80'
 
 // https://vitejs.dev/config/
 export default defineConfig(({ mode }) => ({
@@ -40,7 +49,7 @@ export default defineConfig(({ mode }) => ({
   server: {
     proxy: {
       '/api': {
-        target: `http://localhost:80/admin/api/`,
+        target: `http://localhost:${webPort(mode)}/admin/api/`,
       },
     },
     host: true,
