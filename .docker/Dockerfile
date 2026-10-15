@@ -75,7 +75,7 @@ RUN mkdir -p /var/log/php && chown -R www-data /var/log/php && chmod +w /var/log
 
 FROM gamecon-php-step3 AS gamecon-php-step4
 
-RUN curl -fsSL https://deb.nodesource.com/setup_20.x | bash - \
+RUN curl -fsSL https://deb.nodesource.com/setup_24.x | bash - \
     && apt-get install -y nodejs
 
 RUN corepack enable && yarn --version && sudo -u www-data corepack enable && sudo -u www-data yarn --version
