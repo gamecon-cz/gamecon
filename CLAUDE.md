@@ -4,7 +4,7 @@
 GameCon is a Czech PHP web application for managing the largest Czechoslovak non-computer games festival. It's a comprehensive event management system with both public web interface and admin panel.
 
 ## Technology Stack
-- **Language**: PHP 8.2+ with strict typing
+- **Language**: PHP 8.3+ with strict typing
 - **Database**: MariaDB 10.11
 - **Architecture**: Custom MVC with XTemplate templating
 - **Testing**: PHPUnit 10.0
