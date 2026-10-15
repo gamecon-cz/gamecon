@@ -13,8 +13,8 @@ class JwtServiceTest extends TestCase
 {
     private string $testCacheDir;
     private JwtService $jwtService;
-    private const TEST_SECRET = 'test-secret-key-for-jwt-that-is-long-enough-for-hs256';
-    private const TEST_USER_ID = 42;
+    private const string TEST_SECRET = 'test-secret-key-for-jwt-that-is-long-enough-for-hs256';
+    private const int TEST_USER_ID = 42;
 
     protected function setUp(): void
     {

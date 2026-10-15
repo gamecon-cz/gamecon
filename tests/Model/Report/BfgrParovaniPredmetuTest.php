@@ -17,7 +17,7 @@ use OpenSpout\Reader\XLSX\Reader;
  */
 class BfgrParovaniPredmetuTest extends AbstractTestDb
 {
-    private const ID_UZIVATELE = 1253;
+    private const int ID_UZIVATELE = 1253;
 
     protected static array $initQueries = [
         "INSERT INTO uzivatele_hodnoty SET id_uzivatele = 1253, login_uzivatele = 'BfgrParovani', jmeno_uzivatele = 'Bfgr', prijmeni_uzivatele = 'Parovani', email1_uzivatele = 'bfgr.parovani@example.invalid'",

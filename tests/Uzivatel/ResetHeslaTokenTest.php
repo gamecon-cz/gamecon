@@ -9,8 +9,8 @@ use PHPUnit\Framework\TestCase;
 
 class ResetHeslaTokenTest extends TestCase
 {
-    private const SECRET = 'test-secret-do-not-use-in-prod';
-    private const HASH = '$2y$10$abcdefghijklmnopqrstuv'; // jako hodnota sloupce heslo_md5
+    private const string SECRET = 'test-secret-do-not-use-in-prod';
+    private const string HASH = '$2y$10$abcdefghijklmnopqrstuv'; // jako hodnota sloupce heslo_md5
 
     public function testPodepsanyTokenSeOveriZpetNaIdUzivatele(): void
     {

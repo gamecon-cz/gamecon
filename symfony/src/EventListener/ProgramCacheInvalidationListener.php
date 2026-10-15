@@ -43,7 +43,7 @@ final class ProgramCacheInvalidationListener
      * Pole sledovaných polí entity User, jejichž změna mění zobrazované
      * jméno (vypraveci[] v aktivity.json).
      */
-    private const USER_DISPLAY_FIELDS = ['login', 'jmeno', 'prijmeni'];
+    private const array USER_DISPLAY_FIELDS = ['login', 'jmeno', 'prijmeni'];
 
     /**
      * Příznak, že v aktuálním flushi došlo ke změně, která vyžaduje

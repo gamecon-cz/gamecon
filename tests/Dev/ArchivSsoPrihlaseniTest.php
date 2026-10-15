@@ -16,8 +16,8 @@ use Uzivatel;
  */
 class ArchivSsoPrihlaseniTest extends AbstractUzivatelTestDb
 {
-    private const SECRET = 'integration-secret';
-    private const NONCE = 'parovaci-nonce-integration';
+    private const string SECRET = 'integration-secret';
+    private const string NONCE = 'parovaci-nonce-integration';
 
     protected function tearDown(): void
     {

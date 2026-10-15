@@ -12,7 +12,7 @@ use Gamecon\Tests\Db\AbstractTestDb;
  */
 class TrvalePrihlaseniTest extends AbstractTestDb
 {
-    private const COOKIE = 'gcTrvalePrihlaseni';
+    private const string COOKIE = 'gcTrvalePrihlaseni';
 
     private bool $sessionIdNastavenoTady = false;
 

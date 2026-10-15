@@ -8,7 +8,7 @@ use Gamecon\Tests\Db\AbstractTestDb;
 
 class FinanceReportSirienTest extends AbstractTestDb
 {
-    private const SKRIPT_REPORTU = __DIR__ . '/../../../admin/scripts/zvlastni/reporty/finance-report-sirien.php';
+    private const string SKRIPT_REPORTU = __DIR__ . '/../../../admin/scripts/zvlastni/reporty/finance-report-sirien.php';
 
     /**
      * Zálohy se obnovují bez uložených rutin, takže volání kterékoli z nich

@@ -15,7 +15,7 @@ use PHPUnit\Framework\TestCase;
  */
 class BfsrReportPlackyTest extends TestCase
 {
-    private const ID_LETOSNI_PLACKY = 1846;
+    private const int ID_LETOSNI_PLACKY = 1846;
 
     /**
      * Letošní je právě ta jedna placka, kterou vrátí Predmet::letosniPlacka();

@@ -6,7 +6,7 @@ namespace Gamecon\Tests\web;
 
 class StrankyWebuTest extends AbstractTestWeb
 {
-    private const EXTERNI_REDIRECT_MODULY_WEBU = [
+    private const array EXTERNI_REDIRECT_MODULY_WEBU = [
         'discord',
         'facebook',
         'instagram',

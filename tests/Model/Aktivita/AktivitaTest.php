@@ -20,7 +20,7 @@ use Gamecon\Tests\Db\AbstractTestDb;
 
 class AktivitaTest extends AbstractTestDb
 {
-    private const KOLIK_MINUT_JE_ODHLASENI_BEZ_POKUTY = 12345;
+    private const int KOLIK_MINUT_JE_ODHLASENI_BEZ_POKUTY = 12345;
 
     protected static array $initQueries = [
         <<<SQL
