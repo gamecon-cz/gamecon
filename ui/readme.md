@@ -21,6 +21,7 @@ nasazování pořád buildovat)
 ## Buildování
 
 - `yarn build` nebo `yarn dev` spustí buildování ui. Po buildu je nutné vždy stránku znovu načíst (Ctrl+Shift+R nebo Ctrl+F5 pro většinu prohlížečů)
+- zbuildované bundly (`web/soubory/ui`, `admin/files/ui`) jsou commitnuté a nasazení je nestaví; po změně v `ui/src` i po upgradu Node nebo závislostí je potřeba spustit `yarn build` a commitnout výsledek. CI to hlídá (`make check-ui-bundles`)
 - `yarn dev`
   - zároveň sleduje změny a po každé provede build
   - zároveň spustí developement server
