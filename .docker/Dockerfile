@@ -6,19 +6,14 @@ RUN a2enmod rewrite expires headers && \
 	# avoid warning on start
     echo 'ServerName localhost' >> /etc/apache2/apache2.conf
 
-# Install Linux libraries
+# Install Linux libraries used at runtime
 RUN apt-get update && apt-get install -y --no-install-recommends \
-      zlib1g-dev \
-      libaio-dev \
-      libxml2-dev \
-      librabbitmq-dev \
-      libyaml-0-2 libyaml-dev \
-      libfreetype6-dev libjpeg62-turbo-dev \
-      libgd-dev \
-      libmagickwand-dev \
       mysql-common \
-      libzip-dev \
-      iproute2 # to get 'ss' command for list of used ports via 'ss -tulw'
+      # iproute2 to get 'ss' command for list of used ports via 'ss -tulw'
+      iproute2 \
+      # without it Imagick cannot decode SVG, and partner logos in SVG are thumbnailed through Imagick
+      libmagickcore-7.q16-10-extra \
+    && rm -rf /var/lib/apt/lists/*
 
 FROM gamecon-server-step1 AS gamecon-tools-step2
 
@@ -39,18 +34,43 @@ RUN apt-get update && apt-get install -y \
 
 FROM gamecon-tools-step2 AS gamecon-php-step3
 
-RUN docker-php-ext-install mysqli pdo_mysql intl exif bcmath xml zip
-
-# images support, like imagecreatefromjpeg()
-RUN docker-php-ext-configure gd --with-freetype --with-jpeg \
-    && docker-php-ext-install gd \
-    && php -r 'exit(function_exists("imagecreatefromjpeg") ? 0 : 1);'
-
-# XDebug - to start it use docker compose
-RUN pecl channel-update pecl.php.net \
-    && yes | pecl install xdebug imagick \
-    && docker-php-ext-enable imagick \
-    && sed 's/<policy domain="coder" rights="none" pattern="PDF" \/>/<policy domain="coder" rights="read" pattern="PDF" \/>/' --in-place /etc/ImageMagick*/policy.xml
+# The -dev packages are only needed to compile the extensions. They are installed and purged in this one RUN,
+# because a package removed in a later layer still takes its space in the layer that installed it.
+RUN set -eux; \
+    savedAptMark="$(apt-mark showmanual)"; \
+    apt-get update; \
+    apt-get install -y --no-install-recommends \
+      zlib1g-dev \
+      libxml2-dev \
+      libfreetype6-dev libjpeg62-turbo-dev \
+      libgd-dev \
+      libmagickwand-dev \
+      libzip-dev; \
+    docker-php-ext-install mysqli pdo_mysql intl exif bcmath xml zip; \
+    # images support, like imagecreatefromjpeg()
+    docker-php-ext-configure gd --with-freetype --with-jpeg; \
+    docker-php-ext-install gd; \
+    # XDebug - to start it use docker compose
+    pecl channel-update pecl.php.net; \
+    yes | pecl install xdebug imagick; \
+    docker-php-ext-enable imagick; \
+    sed 's/<policy domain="coder" rights="none" pattern="PDF" \/>/<policy domain="coder" rights="read" pattern="PDF" \/>/' --in-place /etc/ImageMagick*/policy.xml; \
+    # Keep the runtime libraries the built extensions link against, purge the rest. Recommends stay important on
+    # purpose: ignoring them would also drop what the tools step pulled in (less, openssh-client, unzip, exim4).
+    apt-mark auto '.*' > /dev/null; \
+    apt-mark manual $savedAptMark; \
+    # pecl installs its .so files without the executable bit
+    find /usr/local -type f \( -executable -o -name '*.so' \) -exec ldd '{}' ';' \
+      | awk '/=>/ { so = $(NF-1); if (index(so, "/usr/local/") == 1) { next }; gsub("^/(usr/)?", "", so); printf "*/%s\n", so }' \
+      | sort -u \
+      | xargs -r dpkg-query --search \
+      | awk 'sub(":$", "", $1) { print $1 }' \
+      | sort -u \
+      | xargs -r apt-mark manual; \
+    apt-get purge -y --auto-remove; \
+    rm -rf /var/lib/apt/lists/* /tmp/pear; \
+    # PHP only warns and skips an extension whose library was purged, so check every one of them is loaded
+    php -r 'foreach (["mysqli", "pdo_mysql", "intl", "exif", "bcmath", "xml", "zip", "gd", "imagick"] as $extension) { if (!extension_loaded($extension)) { exit(1); } } exit(function_exists("imagecreatefromjpeg") ? 0 : 1);'
 
 # Fix debconf warnings upon build
 ARG DEBIAN_FRONTEND=noninteractive
@@ -76,7 +96,8 @@ RUN mkdir -p /var/log/php && chown -R www-data /var/log/php && chmod +w /var/log
 FROM gamecon-php-step3 AS gamecon-php-step4
 
 RUN curl -fsSL https://deb.nodesource.com/setup_24.x | bash - \
-    && apt-get install -y nodejs
+    && apt-get install -y nodejs \
+    && rm -rf /var/lib/apt/lists/*
 
 RUN corepack enable && yarn --version && sudo -u www-data corepack enable && sudo -u www-data yarn --version
 
