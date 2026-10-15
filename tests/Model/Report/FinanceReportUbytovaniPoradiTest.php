@@ -14,7 +14,7 @@ use Gamecon\Tests\Db\AbstractUzivatelTestDb;
  */
 class FinanceReportUbytovaniPoradiTest extends AbstractUzivatelTestDb
 {
-    private const REPORTY = __DIR__ . '/../../../admin/scripts/zvlastni/reporty/';
+    private const string REPORTY = __DIR__ . '/../../../admin/scripts/zvlastni/reporty/';
 
     /**
      * @test

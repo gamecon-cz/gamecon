@@ -17,8 +17,8 @@ use Gamecon\Uzivatel\Finance;
  */
 class FinanceBonusTrickoZdarmaTest extends AbstractTestDb
 {
-    private const ID_UZIVATELE = 334;
-    private const ID_ROLE = -334334;
+    private const int ID_UZIVATELE = 334;
+    private const int ID_ROLE = -334334;
 
     protected static array $initQueries = [
         <<<SQL

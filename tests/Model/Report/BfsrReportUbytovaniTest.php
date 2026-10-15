@@ -17,7 +17,7 @@ class BfsrReportUbytovaniTest extends AbstractTestDb
     /**
      * Sortiment roku 2026, na kterém report spadl.
      */
-    private const PREDMETY = [
+    private const array PREDMETY = [
         ['Hs-1L-st', TypPredmetu::UBYTOVANI],
         ['Hs-2L-st', TypPredmetu::UBYTOVANI],
         ['Hd-1L-st', TypPredmetu::UBYTOVANI],

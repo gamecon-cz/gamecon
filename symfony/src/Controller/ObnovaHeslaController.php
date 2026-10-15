@@ -32,8 +32,8 @@ use Symfony\Component\Routing\Attribute\Route;
  */
 class ObnovaHeslaController extends AbstractController
 {
-    private const MIN_DELKA_HESLA = 8;
-    private const MAX_DELKA_HESLA = 72; // bcrypt limit, viz Uzivatel::heslo()
+    private const int MIN_DELKA_HESLA = 8;
+    private const int MAX_DELKA_HESLA = 72; // bcrypt limit, viz Uzivatel::heslo()
 
     public function __construct(
         private readonly LegacySessionService $legacySession,

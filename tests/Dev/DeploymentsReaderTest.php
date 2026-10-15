@@ -9,7 +9,7 @@ use PHPUnit\Framework\TestCase;
 
 class DeploymentsReaderTest extends TestCase
 {
-    private const FIXTURES = __DIR__ . '/fixtures';
+    private const string FIXTURES = __DIR__ . '/fixtures';
 
     /**
      * @test

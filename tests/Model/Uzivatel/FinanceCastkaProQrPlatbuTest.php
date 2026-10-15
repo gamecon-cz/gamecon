@@ -17,7 +17,7 @@ use PHPUnit\Framework\TestCase;
  */
 class FinanceCastkaProQrPlatbuTest extends TestCase
 {
-    private const TESTOVACI_KURZ_EURO = 25.0;
+    private const float TESTOVACI_KURZ_EURO = 25.0;
 
     public static function setUpBeforeClass(): void
     {

@@ -27,16 +27,16 @@ use Gamecon\Uzivatel\UpominkaVlastniZneni;
 class UpominaniDluznikuTest extends AbstractTestDb
 {
     // Test user IDs
-    private const ID_DLUZNIK_MALY_DLUH = 2001;
-    private const ID_DLUZNIK_VELKY_DLUH = 2002;
-    private const ID_KLADNY_ZUSTATEK = 2003;
-    private const ID_NULOVY_ZUSTATEK = 2004;
-    private const ID_DLUZNIK_BEZ_EMAILU = 2005;
-    private const ID_DLUZNIK_Z_MINULYCH_LET = 2006;
-    private const ID_DLUZNIK_PRITOMNY = 2007;
-    private const ID_DLUZNICE_NEDORAZILA = 2008;
-    private const ID_DLUZNIK_JEN_ZAPORNA_PLATBA = 2009;
-    private const ROK_POSLEDNI_UCASTI_STAREHO_DLUZNIKA = 2019;
+    private const int ID_DLUZNIK_MALY_DLUH = 2001;
+    private const int ID_DLUZNIK_VELKY_DLUH = 2002;
+    private const int ID_KLADNY_ZUSTATEK = 2003;
+    private const int ID_NULOVY_ZUSTATEK = 2004;
+    private const int ID_DLUZNIK_BEZ_EMAILU = 2005;
+    private const int ID_DLUZNIK_Z_MINULYCH_LET = 2006;
+    private const int ID_DLUZNIK_PRITOMNY = 2007;
+    private const int ID_DLUZNICE_NEDORAZILA = 2008;
+    private const int ID_DLUZNIK_JEN_ZAPORNA_PLATBA = 2009;
+    private const int ROK_POSLEDNI_UCASTI_STAREHO_DLUZNIKA = 2019;
 
     protected static bool $disableStrictTransTables = true;
 

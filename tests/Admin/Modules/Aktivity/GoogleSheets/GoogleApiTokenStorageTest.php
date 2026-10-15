@@ -9,7 +9,7 @@ use Gamecon\Tests\Db\AbstractTestDb;
 
 class GoogleApiTokenStorageTest extends AbstractTestDb
 {
-    private const GOOGLE_CLIENT_ID = 'test-google-client-id.apps.googleusercontent.com';
+    private const string GOOGLE_CLIENT_ID = 'test-google-client-id.apps.googleusercontent.com';
 
     public function testOdebraniPristupuSmazeTokenyPouzePrihlasenehoUzivatele()
     {

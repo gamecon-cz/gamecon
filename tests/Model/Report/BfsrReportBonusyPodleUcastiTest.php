@@ -24,29 +24,29 @@ use Gamecon\Tests\Db\AbstractTestDb;
  */
 class BfsrReportBonusyPodleUcastiTest extends AbstractTestDb
 {
-    private const ID_ORG_PRIHLASEN = 4801;
-    private const ID_ORG_PRITOMEN = 4802;
-    private const ID_ORG_NEPRIHLASEN = 4803;
-    private const ID_FULLORG_PRIHLASEN = 4804;
-    private const ID_FULLORG_PRITOMEN = 4805;
-    private const ID_TECH_PRIHLASEN = 4806;
-    private const ID_TECH_PRITOMEN = 4807;
-    private const ID_TECH_NEPRIHLASEN = 4808;
-    private const ID_BRIG_PRIHLASEN = 4809;
-    private const ID_BRIG_PRITOMEN = 4810;
-    private const ID_BRIG_NEPRIHLASEN = 4811;
-    private const ID_ORG_BEZ_PRAVA_PORADAT = 4812;
+    private const int ID_ORG_PRIHLASEN = 4801;
+    private const int ID_ORG_PRITOMEN = 4802;
+    private const int ID_ORG_NEPRIHLASEN = 4803;
+    private const int ID_FULLORG_PRIHLASEN = 4804;
+    private const int ID_FULLORG_PRITOMEN = 4805;
+    private const int ID_TECH_PRIHLASEN = 4806;
+    private const int ID_TECH_PRITOMEN = 4807;
+    private const int ID_TECH_NEPRIHLASEN = 4808;
+    private const int ID_BRIG_PRIHLASEN = 4809;
+    private const int ID_BRIG_PRITOMEN = 4810;
+    private const int ID_BRIG_NEPRIHLASEN = 4811;
+    private const int ID_ORG_BEZ_PRAVA_PORADAT = 4812;
 
-    private const ID_AKTIVITA_VEDENI = 48001;
-    private const ID_AKTIVITA_TECHNICKA = 48002;
-    private const ID_AKTIVITA_BRIGADNICKA = 48003;
-    private const ID_AKTIVITA_NEDAVA_BONUS = 48004;
+    private const int ID_AKTIVITA_VEDENI = 48001;
+    private const int ID_AKTIVITA_TECHNICKA = 48002;
+    private const int ID_AKTIVITA_BRIGADNICKA = 48003;
+    private const int ID_AKTIVITA_NEDAVA_BONUS = 48004;
 
-    private const ID_ROLE_BEZ_BONUSU = -48010001;
-    private const ID_ROLE_PORADANI_AKTIVIT = -48010002;
+    private const int ID_ROLE_BEZ_BONUSU = -48010001;
+    private const int ID_ROLE_PORADANI_AKTIVIT = -48010002;
 
-    private const CENA_TECHNICKE = 200;
-    private const CENA_BRIGADNICKE = 300;
+    private const int CENA_TECHNICKE = 200;
+    private const int CENA_BRIGADNICKE = 300;
 
     /**
      * @return list<string|array{string, array<int, mixed>}>

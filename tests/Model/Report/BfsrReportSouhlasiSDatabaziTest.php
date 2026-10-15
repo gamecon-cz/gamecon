@@ -23,8 +23,8 @@ use Gamecon\Uzivatel\Dto\PolozkaProBfgr;
  */
 class BfsrReportSouhlasiSDatabaziTest extends AbstractTestDb
 {
-    private const ID_UZIVATELE = 4661;
-    private const ID_ROLE = -46614661;
+    private const int ID_UZIVATELE = 4661;
+    private const int ID_ROLE = -46614661;
 
     /**
      * Uživatel má právo na jedno jakékoliv tričko zdarma, takže mu `Cenik`

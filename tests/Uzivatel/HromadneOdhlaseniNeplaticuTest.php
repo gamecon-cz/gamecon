@@ -27,22 +27,22 @@ use function PHPUnit\Framework\assertCount;
 
 class HromadneOdhlaseniNeplaticuTest extends AbstractTestDb
 {
-    private const ID_NAHODNEHO_PREDMETU = 100;
-    private const ID_PREDMETU_UBYTOVANI = 101;
-    private const ID_LARP_AKTIVITY = 1000;
-    private const ID_RPG_AKTIVITY = 1010;
-    private const ID_JINE_AKTIVITY = 1020;
+    private const int ID_NAHODNEHO_PREDMETU = 100;
+    private const int ID_PREDMETU_UBYTOVANI = 101;
+    private const int ID_LARP_AKTIVITY = 1000;
+    private const int ID_RPG_AKTIVITY = 1010;
+    private const int ID_JINE_AKTIVITY = 1020;
 
-    private const VELKY_DLUH_NIC_NEDAM = 200;
-    private const VELKY_DLUH_DAM_MALO = 201;
-    private const VELKY_DLUH_DAM_MALO_ODHLASTE_UBYTOVANI = 202;
-    private const VELKY_DLUH_DAM_MALO_ODHLASTE_AKTIVITY = 203;
-    private const VELKY_DLUH_NIC_NEDAM_NEODHLASOVAT = 2010;
-    private const VELKY_DLUH_DAM_MALO_NEODHLASOVAT = 2220;
-    private const VELKY_DLUH_NIC_NEDAM_LETOS_NEJSEM = 2230;
-    private const VELKY_DLUH_DAM_MALO_LETOS_NEJSEM = 2240;
+    private const int VELKY_DLUH_NIC_NEDAM = 200;
+    private const int VELKY_DLUH_DAM_MALO = 201;
+    private const int VELKY_DLUH_DAM_MALO_ODHLASTE_UBYTOVANI = 202;
+    private const int VELKY_DLUH_DAM_MALO_ODHLASTE_AKTIVITY = 203;
+    private const int VELKY_DLUH_NIC_NEDAM_NEODHLASOVAT = 2010;
+    private const int VELKY_DLUH_DAM_MALO_NEODHLASOVAT = 2220;
+    private const int VELKY_DLUH_NIC_NEDAM_LETOS_NEJSEM = 2230;
+    private const int VELKY_DLUH_DAM_MALO_LETOS_NEJSEM = 2240;
 
-    private const LETOS_PRIHLASENI_UZIVATELE = [
+    private const array LETOS_PRIHLASENI_UZIVATELE = [
         self::VELKY_DLUH_NIC_NEDAM,
         self::VELKY_DLUH_DAM_MALO,
         self::VELKY_DLUH_DAM_MALO_ODHLASTE_UBYTOVANI,

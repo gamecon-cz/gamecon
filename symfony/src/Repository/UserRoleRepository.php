@@ -23,21 +23,21 @@ class UserRoleRepository extends ServiceEntityRepository
      *
      * @see \Gamecon\Role\Role::VYZNAM_DEV
      */
-    private const ROLE_SIGNIFICANCE_DEV = 'DEV';
+    private const string ROLE_SIGNIFICANCE_DEV = 'DEV';
 
     /**
      * Význam of the yearly "may switch to any user in admin" role.
      *
      * @see \Gamecon\Role\Role::VYZNAM_PREPINANI_UZIVATELE
      */
-    private const ROLE_SIGNIFICANCE_SWITCH_USER = 'PREPINANI_NA_UZIVATELE';
+    private const string ROLE_SIGNIFICANCE_SWITCH_USER = 'PREPINANI_NA_UZIVATELE';
 
     /**
      * Id of the user representing the system itself (used as "granted by").
      *
      * @see \Uzivatel::SYSTEM
      */
-    private const SYSTEM_USER_ID = 1;
+    private const int SYSTEM_USER_ID = 1;
 
     public function __construct(ManagerRegistry $registry)
     {

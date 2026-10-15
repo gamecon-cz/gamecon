@@ -10,11 +10,11 @@ use PHPUnit\Framework\TestCase;
 
 class VsevedaOdkazTest extends TestCase
 {
-    private const VSEVEDA_SECRET = 'test-vseveda-do-not-use-in-prod';
-    private const SSO_MASTER = 'test-master-do-not-use-in-prod';
-    private const GATE_SECRET = 'test-gate-do-not-use-in-prod';
-    private const NONCE = 'nonce-abc';
-    private const ID_UZIVATELE = 4032;
+    private const string VSEVEDA_SECRET = 'test-vseveda-do-not-use-in-prod';
+    private const string SSO_MASTER = 'test-master-do-not-use-in-prod';
+    private const string GATE_SECRET = 'test-gate-do-not-use-in-prod';
+    private const string NONCE = 'nonce-abc';
+    private const int ID_UZIVATELE = 4032;
 
     private function token(string $url): string
     {

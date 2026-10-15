@@ -10,7 +10,7 @@ use Gamecon\Tests\Db\AbstractUzivatelTestDb;
 
 class PotvrzeniZobrazeniKontaktuTest extends AbstractUzivatelTestDb
 {
-    private const ID_AKTIVITY = 123456;
+    private const int ID_AKTIVITY = 123456;
 
     protected static function resetDbAfterClass(): bool
     {

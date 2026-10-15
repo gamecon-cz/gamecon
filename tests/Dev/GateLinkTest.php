@@ -9,7 +9,7 @@ use PHPUnit\Framework\TestCase;
 
 class GateLinkTest extends TestCase
 {
-    private const SECRET = 'test-secret-do-not-use-in-prod';
+    private const string SECRET = 'test-secret-do-not-use-in-prod';
 
     public function testPrazdnySecretVraciUrlBeZeZmeny(): void
     {

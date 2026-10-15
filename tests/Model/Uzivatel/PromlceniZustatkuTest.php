@@ -25,12 +25,12 @@ use Uzivatel;
 class PromlceniZustatkuTest extends AbstractTestDb
 {
     // Test user IDs
-    private const ID_KLADNY_ZUSTATEK_STARA_UCAST = 1001;
-    private const ID_KLADNY_ZUSTATEK_NEDAVNA_UCAST = 1002;
-    private const ID_NULOVY_ZUSTATEK = 1003;
-    private const ID_ZAPORNY_ZUSTATEK = 1004;
-    private const ID_KLADNY_ZUSTATEK_NIKDY_NEMEL_UCAST = 1005;
-    private const ID_KLADNY_ZUSTATEK_STARA_UCAST_2 = 1006;
+    private const int ID_KLADNY_ZUSTATEK_STARA_UCAST = 1001;
+    private const int ID_KLADNY_ZUSTATEK_NEDAVNA_UCAST = 1002;
+    private const int ID_NULOVY_ZUSTATEK = 1003;
+    private const int ID_ZAPORNY_ZUSTATEK = 1004;
+    private const int ID_KLADNY_ZUSTATEK_NIKDY_NEMEL_UCAST = 1005;
+    private const int ID_KLADNY_ZUSTATEK_STARA_UCAST_2 = 1006;
 
     protected static bool $disableStrictTransTables = true;
 

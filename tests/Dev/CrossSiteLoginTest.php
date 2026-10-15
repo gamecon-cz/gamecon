@@ -9,9 +9,9 @@ use PHPUnit\Framework\TestCase;
 
 class CrossSiteLoginTest extends TestCase
 {
-    private const SECRET = 'test-secret-do-not-use-in-prod';
-    private const TED = 1_700_000_000;
-    private const ID = 12345;
+    private const string SECRET = 'test-secret-do-not-use-in-prod';
+    private const int TED = 1_700_000_000;
+    private const int ID = 12345;
 
     public function testPrazdnySecretNepodepisuje(): void
     {

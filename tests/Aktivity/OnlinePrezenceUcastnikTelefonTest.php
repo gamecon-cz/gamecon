@@ -19,8 +19,8 @@ use Gamecon\Tests\Db\AbstractUzivatelTestDb;
  */
 class OnlinePrezenceUcastnikTelefonTest extends AbstractUzivatelTestDb
 {
-    private const GC_OD = '2099-06-18 20:00:00';
-    private const GC_DO = '2099-06-22 18:00:00';
+    private const string GC_OD = '2099-06-18 20:00:00';
+    private const string GC_DO = '2099-06-22 18:00:00';
 
     protected static function resetDbAfterClass(): bool
     {

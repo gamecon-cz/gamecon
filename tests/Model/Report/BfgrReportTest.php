@@ -13,7 +13,7 @@ use Gamecon\Uzivatel\SqlStruktura\UzivateleHodnotySqlStruktura as UzivatelSql;
 
 class BfgrReportTest extends AbstractTestDb
 {
-    private const ID_UZDLUZNIKA = 2;
+    private const int ID_UZDLUZNIKA = 2;
 
     protected static function getBeforeClassInitCallbacks(): array
     {
