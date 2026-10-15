@@ -1,4 +1,4 @@
-.PHONY: init start-docker-foreground run cache bash phpstan ecs rector check-dockerignore check-vendor-matches-lock fix static deps ui-deps ci tests tests-be test-ui migrations-run migrations-diff
+.PHONY: init start-docker-foreground run cache bash phpstan ecs rector check-dockerignore check-vendor-matches-lock check-ui-bundles fix static deps ui-deps ci tests tests-be test-ui migrations-run migrations-diff
 
 MAKEFLAGS += --no-print-directory # to disable "make: Entering directory ..." messages
 
@@ -50,7 +50,7 @@ ui-deps:
 	./bin-docker/yarn install --frozen-lockfile
 
 # check-vendor-matches-lock first: `deps` runs composer install, which makes vendor/ match the lock and hides the difference.
-ci: check-vendor-matches-lock deps rector ecs phpstan check-dockerignore tests
+ci: check-vendor-matches-lock deps rector ecs phpstan check-dockerignore check-ui-bundles tests
 
 tests: tests-be test-ui
 
@@ -74,6 +74,22 @@ check-dockerignore:
 
 check-vendor-matches-lock:
 	./bin-docker/php bin/check-vendor-matches-lock.php
+
+UI_BUNDLES_CHECK_DIR := node_modules/.cache/bundles-check
+
+# The built UI is committed and deploy does not build it, so build it elsewhere and fail on any difference.
+# One build is compared with both copies: build:web and build:admin differ only in outDir.
+check-ui-bundles:
+	rm -rf ui/$(UI_BUNDLES_CHECK_DIR)
+	./bin-docker/yarn build:web --outDir $(UI_BUNDLES_CHECK_DIR)
+	@failed=0; \
+	for committed in admin/files/ui web/soubory/ui; do \
+		diff -rq -x '*.map' ui/$(UI_BUNDLES_CHECK_DIR) $$committed || { echo "  ^ compared with $$committed"; failed=1; }; \
+	done; \
+	[ $$failed -eq 0 ] || { \
+		echo 'The UI built from ui/src differs from the committed bundles (a Node or dependency change alone can cause it). Run ./bin-docker/yarn build and commit admin/files/ui and web/soubory/ui.'; \
+		exit 1; \
+	}
 
 fix:
 	./bin-docker/php vendor/bin/rector process --config rector-ci.php

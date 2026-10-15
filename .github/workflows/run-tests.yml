@@ -12,7 +12,7 @@ on:
     # testuje i draft — kdo přidá filtr na draft, musí `ready_for_review` vrátit.
     #
     # Push do beta a main testuje deploy-beta.yml / deploy-ostra.yml, ovšem
-    # jen phpunit — PHPStan, ECS, kontrolu vendor/ a .dockerignore ani UI testy tam nikdo nepustí.
+    # jen phpunit — PHPStan, ECS, kontrolu vendor/ a .dockerignore, UI testy ani kontrolu zbuildovaného UI tam nikdo nepustí.
     workflow_dispatch:
         inputs:
             branch:
@@ -74,6 +74,9 @@ jobs:
 
             -   name: Run UI tests
                 run: make test-ui
+
+            -   name: Check committed UI bundles match ui/src
+                run: make check-ui-bundles
 
             -   name: Upload test output as artifact
                 if: always()
