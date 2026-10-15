@@ -1,7 +1,7 @@
 # Preview-environment image for <slug>.preview.gamecon.cz.
 #
 # Unlike .docker/Dockerfile (the dev base image that lives on Docker
-# Hub as gameconcz/gamecon:8.2 and is bind-mounted by docker-compose
+# Hub as gameconcz/gamecon:8.3 and is bind-mounted by docker-compose
 # in development), this image bakes the application source IN — no
 # bind-mount, immutable per commit.
 #
@@ -14,7 +14,7 @@
 # rebuilds on every feature branch push but mostly hits cache because
 # the heavy layers (apt + pecl + composer + yarn) come from the base.
 
-FROM gameconcz/gamecon:8.2
+FROM gameconcz/gamecon:8.3
 
 # Switch to www-data so anything we write (composer cache, yarn build)
 # ends up owned by the runtime user, not root. The base image
