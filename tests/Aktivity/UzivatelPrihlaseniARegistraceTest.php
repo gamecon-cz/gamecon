@@ -267,6 +267,50 @@ class UzivatelPrihlaseniARegistraceTest extends AbstractTestDb
         }
     }
 
+    public static function provideNeplatnePohlavi(): iterable
+    {
+        yield 'prázdné' => [''];
+        yield 'chybějící' => [null];
+        yield 'neznámé' => ['x'];
+    }
+
+    /**
+     * @dataProvider provideNeplatnePohlavi
+     */
+    public function testRegistraceBezPlatnehoPohlaviSeNezapise(?string $pohlavi): void
+    {
+        $login = 'bez-pohlavi.' . uniqid('', true);
+        $tab = $this->uzivatel([
+            Sql::LOGIN_UZIVATELE  => $login,
+            Sql::EMAIL1_UZIVATELE => $login . '@example.com',
+        ]);
+        if ($pohlavi === null) {
+            unset($tab[Sql::POHLAVI]);
+        } else {
+            $tab[Sql::POHLAVI] = $pohlavi;
+        }
+
+        try {
+            \Uzivatel::registruj($tab);
+            self::fail('Mělo vyhodit výjimku kvůli chybějícímu nebo neplatnému pohlaví');
+        } catch (\Chyby $chyby) {
+            self::assertMatchesRegularExpression('/pohlaví/', $chyby->klic(Sql::POHLAVI));
+        }
+
+        self::assertNull(\Uzivatel::zNicku($login), 'účet s neplatným pohlavím nesmí vzniknout');
+    }
+
+    public function testUpravPrazdnouHodnotouPohlaviNezmeni(): void
+    {
+        $u = $this->novyUzivatel();
+
+        $u->uprav([
+            Sql::POHLAVI => '',
+        ]);
+
+        self::assertSame('f', \Uzivatel::zId($u->id())->rawDb()[Sql::POHLAVI]);
+    }
+
     public function testPoKontroleNelzeZamceneUdajeUpravitPresUpravAniPriSmisenemPayloadu()
     {
         $u = $this->novyUzivatel();

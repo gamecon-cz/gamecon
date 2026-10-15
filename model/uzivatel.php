@@ -124,6 +124,7 @@ class Uzivatel extends DbObject
             Sql::TELEFON_UZIVATELE  => 'Telefon',
             Sql::EMAIL1_UZIVATELE   => 'E-mail',
             Sql::LOGIN_UZIVATELE    => 'Přezdívka',
+            Sql::POHLAVI            => 'Pohlaví',
         ];
         if ($vcetneProUbytovani) {
             $povinneUdaje = [
