@@ -91,7 +91,7 @@ services:
 
 ## spouštění ui devu v dockeru
 #   yarn-dev:
-#     image: node:20-alpine
+#     image: node:24-alpine
 #     restart: "no"
 #     working_dir: /app/ui
 #     volumes:

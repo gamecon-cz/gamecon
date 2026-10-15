@@ -6,7 +6,9 @@ Příprava hostitelského stroje. Je potřeba pro buildování ui (ui bude vždy
 nasazování pořád buildovat)
 
 - [nodejs](https://nodejs.org/en/)
-  - `node -v` vypíše verzi (alespoň 16)
+  - `node -v` vypíše verzi (alespoň 24)
+  - v Docker obrazu je Node už zabalený; stažený starší obraz s Node 20 se pozná tak, že `yarn install` skončí chybou
+    `The engine "node" is incompatible with this module`. Pomůže `docker compose pull` a znovu `docker compose up -d`
 - [yarn](https://yarnpkg.com/getting-started/install)
   - `yarn -v` vypíše verzi
   - na Debianu nebo Gamecon Docker image je namísto `yarn` binárka `yarnpkg`
