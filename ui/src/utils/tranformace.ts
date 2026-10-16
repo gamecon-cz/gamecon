@@ -12,7 +12,8 @@ export const volnoTypZObsazenost = (obsazenost: ApiObsazenost) => {
   const c = m + f;
   const kc = ku + km + kf;
 
-  if (kt) {
+  // Jediný tým se hodnotí podle míst pro hráče (viz Aktivita::maJedenTym): tým 2/5 je volný a dá se do něj přihlásit.
+  if (kt && kt > 1) {
     return (t ?? 0) >= kt ? "x" : "t";
   }
   if (kc <= 0) {

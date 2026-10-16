@@ -7,6 +7,7 @@ namespace Gamecon\Tests\Symfony\EventListener;
 use App\Entity\ActivityOrganizer;
 use App\Entity\ActivityRegistration;
 use App\Entity\ActivityRegistrationState;
+use App\Entity\Team;
 use App\Entity\User;
 use Doctrine\ORM\EntityManagerInterface;
 use Gamecon\Cache\ProgramStaticFileType;
@@ -196,6 +197,40 @@ class ProgramCacheInvalidationListenerTest extends AbstractTestDb
             ProgramStaticFileType::OBSAZENOSTI,
             'persist registrace na aktivitu',
         );
+    }
+
+    /**
+     * @test
+     */
+    public function zalozeniZmenaLimituASmazaniTymuNastaviObsazenostiFlag(): void
+    {
+        $activity = ActivityFactory::createOne([
+            'urlAkce' => 'lst-' . uniqid('', true),
+        ])->_real();
+        $kapitan = UserFactory::createOne([
+            'login' => 'lst-' . uniqid('', true),
+            'email' => 'lst-' . uniqid('', true) . '@example.test',
+        ])->_real();
+        $em = $this->getEntityManager();
+
+        $this->smazVsechnyDirtyFlagy();
+        $tym = (new Team())
+            ->setKod(random_int(100000, 999999))
+            ->setKapitan($kapitan)
+            ->addAktivita($activity);
+        $em->persist($tym);
+        $em->flush();
+        $this->assertDirtyFlagNastaven(ProgramStaticFileType::OBSAZENOSTI, 'založení týmu');
+
+        $this->smazVsechnyDirtyFlagy();
+        $tym->setLimit(4);
+        $em->flush();
+        $this->assertDirtyFlagNastaven(ProgramStaticFileType::OBSAZENOSTI, 'změna limitu týmu');
+
+        $this->smazVsechnyDirtyFlagy();
+        $em->remove($tym);
+        $em->flush();
+        $this->assertDirtyFlagNastaven(ProgramStaticFileType::OBSAZENOSTI, 'smazání týmu');
     }
 
     /**

@@ -49,6 +49,7 @@ Každá programová linie (RPG, deskovky, larpy…) má vlastní stránku se sez
 - Přihlašovat se může jen ten, kdo **má aktivní přihlášku na GameCon** (jinak: „Nemáš aktivní přihlášku na GameCon.").
 - Odkazy u aktivity: **„přihlásit"** / **„odhlásit"**.
 - Nelze se přihlásit na dvě aktivity ve stejném čase: „V daném čase už máš přihlášenu jinou aktivitu."
+- U **týmových aktivit** s jedním týmem ukazuje obsazenost místa pro hráče (např. `2/5`), u aktivit s více týmy počet týmů (např. `1/3`).
 - Když je plno, systém hlásí „Místa jsou už plná". Některé aktivity mají **genderově dělená místa** — pak se může zobrazit „pouze ženská místa" / „pouze mužská místa" (tj. pro tebe je plno, i když ukazatel obsazenosti nevypadá plný).
 - Aktivity se platí — jejich cena se propisuje do Přehledu financí. Přihlášením/odhlášením se finance přepočítají.
 

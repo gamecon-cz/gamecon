@@ -31,8 +31,9 @@ export const Obsazenost: FunctionComponent<TObsazenostProps> = (props) => {
     );
   }
 
-  if (kt) {
+  if (kt && kt > 1) {
     // Týmová aktivita počítá týmy, ne hlavy — a to i když je zaplněná.
+    // Při jediném týmu by bylo 0/1 a 1/1 zavádějící, tam se ukazují místa pro hráče (viz Aktivita::maJedenTym).
     return (
       <>
         <span class="program_obsazenost_tym">{`${t ?? 0}/${kt}`}</span>

@@ -85,6 +85,12 @@ class AktivitaTym
         return $this->team->getNazev();
     }
 
+    /** Limit nastavený kapitánem, null = nenastaven (na rozdíl od limitTymu() bez dalšího dotazu a bez fallbacku). */
+    public function getLimit(): ?int
+    {
+        return $this->team->getLimit();
+    }
+
     public function jeVerejny(): bool
     {
         return $this->team->isVerejny();
