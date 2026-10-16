@@ -1,25 +1,25 @@
 # Preview-environment image for <slug>.preview.gamecon.cz.
 #
-# Unlike .docker/Dockerfile (the dev base image that lives on Docker
-# Hub as gameconcz/gamecon:8.3 and is bind-mounted by docker-compose
-# in development), this image bakes the application source IN — no
+# Unlike .docker/Dockerfile (whose dev image lives on Docker Hub as
+# gameconcz/gamecon:8.3 and is bind-mounted by docker-compose in
+# development), this image bakes the application source IN — no
 # bind-mount, immutable per commit.
 #
 # Built by .github/workflows/deploy-preview.yml, tagged as
 # ghcr.io/gamecon-cz/gamecon:preview-<slug>, pulled by the host's
 # deploy-preview-branch.sh.
 #
-# Base image rebuilds rarely (only when PHP extensions, system tools,
-# or Node version change in .docker/Dockerfile). The preview image
-# rebuilds on every feature branch push but mostly hits cache because
-# the heavy layers (apt + pecl + composer + yarn) come from the base.
+# Two stages: composer and yarn run on the dev image, and only the
+# finished application is copied onto the runtime image, so Node, yarn,
+# git and xdebug never reach the preview. The base images rebuild rarely
+# (only when PHP extensions, system tools, or Node version change in
+# .docker/Dockerfile).
 
-FROM gameconcz/gamecon:8.3
+ARG DEV_IMAGE=gameconcz/gamecon:8.3
+ARG RUNTIME_IMAGE=gameconcz/gamecon:8.3-runtime
 
-# Switch to www-data so anything we write (composer cache, yarn build)
-# ends up owned by the runtime user, not root. The base image
-# already has APACHE_DOCUMENT_ROOT=/var/www/html/gamecon and Apache
-# configured to serve from there.
+FROM ${DEV_IMAGE} AS application
+
 USER root
 
 # Bring the entire application source in. Layer ordering matters for
@@ -34,16 +34,12 @@ WORKDIR /var/www/html/gamecon
 # install --no-dev` mostly just regenerates the optimized autoloader
 # (no network round-trips). UI build (`yarn build`) compiles the
 # preact bundles into web/soubory/ui/ and admin/files/ui/.
-# Caches and node_modules go in THIS layer, not a later one — a file
-# removed by a later RUN still occupies space in the layer that created
-# it, which is why the rm -rf below never shrank anything. Both tools
-# clear their own global cache, which leaves corepack's pinned yarn
-# release alone; deleting that by path makes yarn re-download itself.
+# Runs as www-data so what it writes ends up owned by the runtime user,
+# not root. node_modules is part of the tree that is copied to the
+# runtime image below, so it has to go here.
 USER www-data
 RUN composer install --no-dev --optimize-autoloader --no-interaction --prefer-dist \
     && cd ui && yarn install --frozen-lockfile && yarn build \
-    && yarn cache clean \
-    && composer clear-cache \
     && rm -rf node_modules
 
 USER root
@@ -59,7 +55,15 @@ RUN rm -rf \
     /var/www/html/gamecon/phpstan*.* \
     /var/www/html/gamecon/ecs.php
 
-# Ensure cache/ and logy/ are writable by Apache. The base image's
+FROM ${RUNTIME_IMAGE}
+
+USER root
+
+COPY --from=application --chown=www-data:www-data /var/www/html/gamecon /var/www/html/gamecon
+
+WORKDIR /var/www/html/gamecon
+
+# Ensure cache/ and logy/ are writable by Apache. The dev image's
 # .docker/init-container.sh handles UID matching for the bind-mount
 # case; for the baked image we don't need that dance.
 RUN mkdir -p \
@@ -76,13 +80,11 @@ RUN mkdir -p \
 COPY preview/apache-https.conf /etc/apache2/conf-available/preview-https.conf
 RUN a2enconf preview-https
 
-# Override the base image's `ENV ENV=local` (set for dev compose use).
-# With ENV=local, jsmeNaLocale() returns true and the app loads
-# nastaveni-local-default.php — which hardcodes MIGRACE_HESLO=''
-# regardless of getenv(). For previews we want the env-driven
-# nastaveni-preview.php path, which is gated on jsmeNaLocale() being
-# false. Setting ENV=preview achieves that (any non-"local" value
-# would work, but "preview" is descriptive).
+# Defensive: the runtime image sets no ENV, but with ENV=local (the dev
+# image) jsmeNaLocale() returns true and the app loads
+# nastaveni-local-default.php — which hardcodes MIGRACE_HESLO='' regardless
+# of getenv(). Previews need the env-driven nastaveni-preview.php path;
+# any non-"local" value does that, "preview" is descriptive.
 ENV ENV=preview
 
 # Basic-auth credentials + gate-token signing secrets for the Caddy gate
@@ -107,7 +109,7 @@ ENV PREVIEW_BASIC_AUTH_USER=$PREVIEW_BASIC_AUTH_USER \
 
 EXPOSE 80
 
-# Standard Apache foreground (the base image's gamecon-run.sh does the
+# Standard Apache foreground (the dev image's gamecon-run.sh does the
 # UID dance + cron setup, neither of which we need here). If we ever
 # add per-preview cron, factor that in.
 CMD ["apache2-foreground"]

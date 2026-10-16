@@ -76,7 +76,7 @@ jobs:
                     # Dockerfile.archive's setup block installs the needed
                     # extensions on a bare base — so no custom base image /
                     # registry is involved. Default (unlisted years) = the
-                    # gameconcz/gamecon:8.3 image baked into Dockerfile.archive.
+                    # gameconcz/gamecon:8.3-runtime image baked into Dockerfile.archive.
                     # Add a row when a year's PHP era is confirmed during recon.
                     case "$year" in
                         # 2003–2011 are STATIC archives (the live DB + router
@@ -121,7 +121,7 @@ jobs:
                         2023) base_image="gameconcz/gamecon:8.2" ;;
                         2024) base_image="gameconcz/gamecon:8.2" ;;
                         2025) base_image="gameconcz/gamecon:8.2" ;;
-                        *)    base_image="gameconcz/gamecon:8.3" ;;
+                        *)    base_image="gameconcz/gamecon:8.3-runtime" ;;
                     esac
 
                     # PHP extensions to install on a bare base. Defaults to the
