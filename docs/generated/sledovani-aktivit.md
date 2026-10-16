@@ -17,9 +17,9 @@ TL;DR: „Sledování" (watchlist) aktivity = uživatel si nechá poslat mail, a
   - `pohlaviSVolnymMistem(): list<string>` — pro která pohlaví je volno (`PRO_VSECHNY` → obě, `PLNO` → žádné).
 - `Aktivita::prihlasovatelnaProSledujici()` — `return !$this->tymova() && !$this->jeSoucastiTurnaje();` — sledovat lze jen netýmové aktivity mimo turnaj.
 - `Aktivita::prihlasSledujiciho()` / `odhlasSledujiciho()` — zápis/smazání řádku v `akce_prihlaseni_spec`.
-- `Aktivita::poslatMailSledujicim(array $pohlaviSVolnymMistem)` — `model/Aktivita/Aktivita.php` (ř. 2402) — odešle mail (`hlaskaMail('uvolneneMisto', …)`) jen sledujícím předaných pohlaví (filtr `AND uzivatele_hodnoty.pohlavi IN (…)` přímo v SQL).
+- `Aktivita::poslatMailSledujicim(array $pohlaviSVolnymMistem)` — `model/Aktivita/Aktivita.php` (ř. 2402) — odešle mail ze šablony `uvolnene_misto` jen sledujícím předaných pohlaví (filtr `AND uzivatele_hodnoty.pohlavi IN (…)` přímo v SQL).
 - **Jediný spouštěč mailu**: `Aktivita::odhlas()` (ř. 2060–2066). Žádný cron, žádný jiný trigger, žádná fronta — posílá se synchronně v requestu odhlášení (retry viz Gotchas).
-- Mail šablona `uvolneneMisto` v `nastaveni/hlasky/nastaveni-hlasky-subst.php`.
+- Předmět a text mailu jsou v tabulce `emailova_sablona` (kód `uvolnene_misto`) a mění se v adminu, viz [emailove-sablony](emailove-sablony.md).
 
 ### Kdy přesně se mail pošle
 

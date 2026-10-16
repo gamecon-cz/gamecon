@@ -30,6 +30,11 @@ class SystemSettingLogSqlStructure
     public const vlastni = 'vlastni';
 
     /**
+     * @see SystemSettingLog::$verejne
+     */
+    public const verejne = 'verejne';
+
+    /**
      * @see SystemSettingLog::$kdy
      */
     public const kdy = 'kdy';

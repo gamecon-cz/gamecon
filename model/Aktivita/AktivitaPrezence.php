@@ -4,8 +4,7 @@ namespace Gamecon\Aktivita;
 
 use Gamecon\Aktivita\SqlStruktura\AkcePrihlaseniLogSqlStruktura as LogSql;
 use Gamecon\Exceptions\ChybaKolizeAktivit;
-use Gamecon\Hlaska\Hlaska;
-use Gamecon\Kanaly\GcMail;
+use Gamecon\Kanaly\EmailovaSablona\EmailoveSablony;
 use Gamecon\SystemoveNastaveni\SystemoveNastaveni;
 use Symfony\Component\Filesystem\Filesystem;
 
@@ -259,16 +258,13 @@ class AktivitaPrezence
             return;
         }
 
-        GcMail::vytvorZGlobals()
+        (new EmailoveSablony($this->systemoveNastaveni))
+            ->vytvorMail('nedostaveni_se_na_aktivitu', [
+                'aktivita'         => $this->aktivita->nazev(),
+                'lhuta_bez_pokuty' => $this->doKdyJeAktivitaBezPokuty(),
+                'pokuta_procenta'  => $this->procentaZaPozdniOdhlaseni(),
+            ])
             ->adresat($u->mail())
-            ->predmet('Nedostavení se na aktivitu')
-            ->text(hlaskaMail(
-                Hlaska::NEDOSTAVENI_SE_NA_AKTIVITU_MAIL,
-                $u,
-                $this->aktivita->nazev(),
-                $this->doKdyJeAktivitaBezPokuty(),
-                $this->procentaZaPozdniOdhlaseni(),
-            ))
             ->odeslat();
     }
 

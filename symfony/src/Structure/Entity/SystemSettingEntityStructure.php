@@ -65,6 +65,11 @@ class SystemSettingEntityStructure
     public const pouzeProCteni = 'pouzeProCteni';
 
     /**
+     * @see SystemSetting::$verejne
+     */
+    public const verejne = 'verejne';
+
+    /**
      * @see SystemSetting::$rocnikNastaveni
      */
     public const rocnikNastaveni = 'rocnikNastaveni';

@@ -855,7 +855,7 @@ SQL,
         $upominkaVlastniZneni->uloz(
             ROCNIK,
             'Nedoplatek GameCon %ROCNIK%',
-            'Ahoj {jmeno}, dluh {dluh} Kč pošli na %UCET_CZ% pod VS {vs}. Nezapomněl{a} jsi?',
+            'Ahoj %jmeno%, dluh %dluh% Kč pošli na %UCET_CZ% pod VS %vs%. Nezapomněl%a% jsi?',
             \Uzivatel::SYSTEM,
         );
 
@@ -875,7 +875,7 @@ SQL,
         self::assertSame(
             'Ahoj Tester, dluh 250 Kč pošli na ' . UCET_CZ . ' pod VS 12345. Nezapomněla jsi?',
             $zprava,
-            'Vlastní znění musí projít dosazením {…} symbolů i %KONSTANT%',
+            'Vlastní znění musí projít dosazením %proměnných% i %KONSTANT%',
         );
         self::assertStringNotContainsString(
             'krásné vzpomínky',
@@ -1023,7 +1023,7 @@ SQL,
         (new UpominkaVlastniZneni())->uloz(
             ROCNIK,
             'Vlastní předmět',
-            'Ahoj {jmeno}, dluh {dluh} Kč pod VS {vs}.',
+            'Ahoj %jmeno%, dluh %dluh% Kč pod VS %vs%.',
             \Uzivatel::SYSTEM,
         );
 

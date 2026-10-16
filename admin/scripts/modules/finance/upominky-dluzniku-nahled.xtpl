@@ -1,6 +1,6 @@
 <!-- begin: nahled -->
 
-<div id="nahledUpominkyObsah">
+<div id="nahledUpominkyObsah" data-editor-sablony-nahled>
 <p>
     Příjemce: <strong>{jmenoNick}</strong> &lt;{mail}&gt;
 </p>

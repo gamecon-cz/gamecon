@@ -6,7 +6,7 @@ use DateTimeImmutable;
 use DateTimeInterface;
 use Gamecon\Finance\FioPlatba;
 use Gamecon\Cas\DateTimeImmutableStrict;
-use Gamecon\Kanaly\GcMail;
+use Gamecon\Kanaly\EmailovaSablona\EmailoveSablony;
 use Gamecon\Logger\LogHomadnychAkciTrait;
 use Gamecon\Role\Role;
 use Gamecon\SystemoveNastaveni\SystemoveNastaveni;
@@ -380,36 +380,20 @@ class Platby
         $odkazUzivatel = URL_ADMIN . '/uzivatel?pracovni_uzivatel=' . $uzivatel->id();
         $odkazNesparovane = URL_ADMIN . '/finance/nesparovane-platby';
 
-        $mail = new GcMail($this->systemoveNastaveni);
-        $mail->predmet('Podezřele vysoká platba automaticky spárována s účastníkem');
-        $mail->text(<<<TEXT
-Byla automaticky spárována podezřele vysoká platba s účastníkem.
-
-Detaily platby:
-- Částka: {$castka} Kč
-- Variabilní symbol: {$vs}
-- Datum: {$datum}
-- Název protiúčtu: {$nazevProtiuctu}
-
-Spárováno s účastníkem:
-- ID: {$uzivatel->id()}
-- Jméno: {$uzivatel->jmenoNick()}
-- Email: {$uzivatel->mail()}
-
-Zkontrolujte prosím správnost spárování v administraci:
-{$odkazUzivatel}
-
-Pokud se jedná o chybné spárování (např. institucionální platbu), odpojte platbu od účastníka na stránce nesparovaných plateb:
-{$odkazNesparovane}
-TEXT
-        );
-
-        $cfosEmaily = Uzivatel::cfosEmaily();
-        foreach ($cfosEmaily as $cfoEmail) {
-            $mail->adresat($cfoEmail);
-        }
-
         try {
+            $mail = (new EmailoveSablony($this->systemoveNastaveni))
+                ->vytvorMail('cfo_podezrele_vysoka_platba', [
+                    'castka'            => $castka,
+                    'vs'                => $vs,
+                    'datum'             => $datum,
+                    'protiucet'         => $nazevProtiuctu,
+                    'id_uzivatele'      => $uzivatel->id(),
+                    'jmeno_uzivatele'   => (string)$uzivatel->jmenoNick(),
+                    'email_uzivatele'   => (string)$uzivatel->mail(),
+                    'odkaz_uzivatel'    => $odkazUzivatel,
+                    'odkaz_nesparovane' => $odkazNesparovane,
+                ]);
+            $mail->adresati(Uzivatel::cfosEmaily());
             $mail->odeslat();
         } catch (\Throwable $e) {
             // Log error but don't break payment processing

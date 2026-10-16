@@ -1,0 +1,70 @@
+<!-- begin: editor -->
+
+<link rel="stylesheet" href="files/editor-sablony.css?version={cssVerze}">
+
+<div class="editorSablony" data-nahled-url="{nahledUrl}">
+    <form method="post" class="editorSablony_formular">
+        <!-- begin: chyby -->
+        <div class="editorSablony_hlasky editorSablony_hlaskyServeru">
+            <ul>
+                <!-- begin: chyba -->
+                <li>{chyba}</li>
+                <!-- end: chyba -->
+            </ul>
+        </div>
+        <!-- end: chyby -->
+
+        <p>
+            <label for="editorSablonyPredmet">Předmět e-mailu</label><br>
+            <input type="text" id="editorSablonyPredmet" name="predmet" value="{predmet}"
+                   class="editorSablony_pole editorSablony_predmet" autocomplete="off">
+        </p>
+
+        <div class="editorSablony_nastroje">
+            <button type="button" class="editorSablony_vlozit">Vložit symbol</button>
+            <span class="editorSablony_rezimy">
+                <button type="button" class="editorSablony_rezim editorSablony_aktivniRezim" data-rezim="uprava">Úprava</button><button type="button" class="editorSablony_rezim" data-rezim="nahled">Náhled</button>
+            </span>
+            <span>Napiš <code>%</code> a nabídne se seznam symbolů. Samotné procento se píše <code>%%</code>.</span>
+        </div>
+
+        <div>
+            <label for="editorSablonyText">Text e-mailu</label><br>
+            <textarea id="editorSablonyText" name="text" rows="18"
+                      class="editorSablony_pole editorSablony_text">{text}</textarea>
+            <div class="editorSablony_nahled" hidden></div>
+        </div>
+
+        <div class="editorSablony_hlasky editorSablony_hlaskyKontroly" aria-live="polite"></div>
+
+        <p>
+            <input type="hidden" name="ulozit" value="1">
+            <input type="submit" value="Uložit" class="editorSablony_ulozit">
+            <a href="{zpetUrl}" style="margin-left: 1em">↶ {zpetNazev}</a>
+        </p>
+    </form>
+
+    <dialog class="editorSablony_symboly">
+        <h3>Vložit symbol <small class="editorSablony_kam"></small></h3>
+        <p>Klikni na symbol a vloží se na místo kurzoru (označený text nahradí).</p>
+        <table class="seznam">
+            <thead>
+            <tr>
+                <th>Symbol</th>
+                <th>Co doplní</th>
+                <th>Příklad</th>
+            </tr>
+            </thead>
+            <tbody></tbody>
+        </table>
+        <p><button type="button" class="editorSablony_zavritSymboly">Zavřít</button></p>
+    </dialog>
+
+    <div class="editorSablony_naseptavac" role="listbox" hidden></div>
+
+    <script type="application/json" class="editorSablony_data">{dataJson}</script>
+    <script src="files/editor-sablony-logika.js?version={logikaVerze}"></script>
+    <script src="files/editor-sablony.js?version={scriptVerze}"></script>
+</div>
+
+<!-- end: editor -->

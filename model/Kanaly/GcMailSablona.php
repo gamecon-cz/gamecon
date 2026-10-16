@@ -38,7 +38,7 @@ class GcMailSablona
     }
 
     /**
-     * @param string $obsahHtml vnitřní obsah mailu (už jako HTML, např. z hlaskaMail())
+     * @param string $obsahHtml inner content of the mail (already HTML, e.g. from {@see \Gamecon\Kanaly\EmailovaSablona\EmailoveSablony::vykresli()})
      */
     public static function obal(string $obsahHtml, string $nadpis = ''): string
     {

@@ -43,18 +43,6 @@ function hlaska($nazev, $u = null, ...$parametry)
     throw new Exception('missing mandatory argument');
 }
 
-function hlaskaMail($nazev, $u = null, ...$parametry)
-{
-    $out = hlaska($nazev,
-        func_num_args() > 1 ? func_get_arg(1) : '',
-        func_num_args() > 2 ? func_get_arg(2) : '',
-        func_num_args() > 3 ? func_get_arg(3) : '',
-        func_num_args() > 4 ? func_get_arg(4) : '',
-        func_num_args() > 5 ? func_get_arg(5) : '');
-
-    return '<html><body>' . $out . '</body></html>';
-}
-
 /**
  * Přesměruje na adresu s https, pokud jde požadavek z adresy s http,
  * a následně ukončí skript.
