@@ -1,5 +1,7 @@
 <!-- begin:nastaveni -->
 
+{problemySablon}
+
 <table class="zvyraznovana nastaveni" id="nastaveni" style="width: 100%" data-ajax-klic="{ajaxKlic}">
   <caption><h1>Nastavení</h1></caption>
   <!-- begin:skupina -->
@@ -15,6 +17,12 @@
       Vlastní
       <span class="hint">
         Pokud existuje výchozí hodnota, můžeš ruční nastavení vyřadit a tím to přenechat systému
+      </span>
+    </th>
+    <th class="hinted">
+      Veřejné
+      <span class="hint">
+        Veřejnou hodnotu smí e-mail dosadit do textu pod jejím klíčem, např. %GC_BEZI_OD%. Neveřejná se do e-mailu nikdy nedosadí.
       </span>
     </th>
     <th>Název</th>
@@ -33,7 +41,13 @@
                {checked} {checkboxDisabled}>
       </label>
     </td>
-    <td class="technicke nazev hinted" style="width: 55%">
+    <td style="width: 5%">
+      <label>
+        <input class="verejne-nastaveni" type="checkbox" name="{postKlic}[{klic}][{verejneKlic}]" value="1"
+               {verejneChecked}>
+      </label>
+    </td>
+    <td class="technicke nazev hinted" style="width: 50%">
       <label for="hodnota-{klic}">
           {nazev}
           <a href="nastaveni#{klic}" class="lokalni-odkaz float-right">#</a>

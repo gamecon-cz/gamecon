@@ -6,6 +6,8 @@ namespace Gamecon\SystemoveNastaveni;
 
 use Gamecon\BackgroundProcess\BackgroundProcessService;
 use Gamecon\Cas\DateTimeCz;
+use Gamecon\Kanaly\EmailovaSablona\EmailovaSablonaKontrola;
+use Gamecon\Kanaly\EmailovaSablona\ProblemySablonHtml;
 use Gamecon\SystemoveNastaveni\SystemoveNastaveniStruktura as Sql;
 use Gamecon\XTemplate\XTemplate;
 use Granam\RemoveDiacritics\RemoveDiacritics;
@@ -37,6 +39,12 @@ class SystemoveNastaveniHtml
         $template->assign('ajaxKlic', SystemoveNastaveniAjax::AJAX_KLIC);
         $template->assign('postKlic', SystemoveNastaveniAjax::POST_KLIC);
         $template->assign('vlastniKlic', SystemoveNastaveniAjax::VLASTNI_KLIC);
+        $template->assign('verejneKlic', SystemoveNastaveniAjax::VEREJNE_KLIC);
+        // A public setting can be unticked even while an e-mail substitutes it, and the value would silently vanish from that e-mail.
+        $template->assign(
+            'problemySablon',
+            ProblemySablonHtml::vykresli(EmailovaSablonaKontrola::zNastaveni($this->systemoveNastaveni)->najdiProblemy()),
+        );
         $template->assign('hodnotaKlic', SystemoveNastaveniAjax::HODNOTA_KLIC);
 
         $template->assign(
@@ -268,6 +276,9 @@ class SystemoveNastaveniHtml
                 $zaznam['vychoziHodnotaValue'] = $this->dejHtmlInputValue($zaznam[Sql::VYCHOZI_HODNOTA], $zaznam[Sql::DATOVY_TYP]);
                 $zaznam['vychoziInputChecked'] = $this->dejHtmlInputChecked($zaznam[Sql::VYCHOZI_HODNOTA], $zaznam[Sql::DATOVY_TYP]);
                 $zaznam['checked'] = $zaznam[Sql::VLASTNI]
+                    ? 'checked'
+                    : '';
+                $zaznam['verejneChecked'] = $zaznam[Sql::VEREJNE]
                     ? 'checked'
                     : '';
                 $zaznam['checkboxDisabled'] = $zaznam[Sql::POUZE_PRO_CTENI] || $zaznam[Sql::VYCHOZI_HODNOTA] === ''

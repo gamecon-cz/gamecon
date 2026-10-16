@@ -12,6 +12,11 @@ document.addEventListener('DOMContentLoaded', function () {
     nastaveni.odesilejPriZmnene(checkboxNode, ['click'])
   })
 
+  const verejneCheckboxNodes = document.getElementsByClassName('verejne-nastaveni')
+  Array.from(verejneCheckboxNodes).forEach(/** @param {HTMLElement} checkboxNode */function (checkboxNode) {
+    nastaveni.odesilejPriZmnene(checkboxNode, ['click'])
+  })
+
   $('.hodnota-nastaveni[data-tag-input-type=date]').each(function (index, element) {
     element.type = 'text'
     $(element).datepicker({

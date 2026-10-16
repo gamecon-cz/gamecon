@@ -1,6 +1,14 @@
 <?php
 
 use Gamecon\Command\FioStazeniNovychPlateb;
+use Gamecon\Kanaly\EmailovaSablona\EditorSablonyHtml;
+use Gamecon\Kanaly\EmailovaSablona\EmailovaSablonaKontrola;
+use Gamecon\Kanaly\EmailovaSablona\EmailovaSablonaValidator;
+use Gamecon\Kanaly\EmailovaSablona\EmailovaSablonaVykreslovac;
+use Gamecon\Kanaly\EmailovaSablona\ProblemSablony;
+use Gamecon\Kanaly\EmailovaSablona\ProblemySablonHtml;
+use Gamecon\Kanaly\EmailovaSablona\RozkladSymbolu;
+use Gamecon\Kanaly\EmailovaSablona\SystemoveHodnotyProSablony;
 use Gamecon\Logger\JobResultLogger;
 use Gamecon\Role\Role;
 use Gamecon\Uzivatel\Dto\Dluznik;
@@ -49,17 +57,9 @@ $upominaniDluzniku    = new UpominaniDluzniku(
 );
 
 if (get('zneni') !== null) {
-    if (post('ulozit')) {
-        $upominkaVlastniZneni->uloz(
-            $rocnik,
-            trim((string) post('predmet')),
-            trim((string) post('text')),
-            $u->id(),
-        );
-        oznameniPresmeruj('Vlastní znění uloženo', URL_ADMIN . '/finance/upominky-dluzniku?zneni');
-    }
-
-    $zneni = $upominkaVlastniZneni->dejZneni($rocnik);
+    $definiceZneni    = UpominkaVlastniZneni::definice();
+    $systemoveHodnoty = new SystemoveHodnotyProSablony($systemoveNastaveni);
+    $zneni            = $upominkaVlastniZneni->dejZneni($rocnik);
 
     // Náhled na sobě samém - CFO si chce ověřit, jak text vypadá po dosazení,
     // a vlastní účet je jediný, u kterého má reálné jméno, VS i pohlaví.
@@ -74,7 +74,7 @@ if (get('zneni') !== null) {
         $nahled->assign('jmenoNick', htmlspecialchars((string) $u->jmenoNick(), ENT_QUOTES));
         $nahled->assign('mail', htmlspecialchars((string) $u->mail(), ENT_QUOTES));
 
-        if ($nahlizenyPredmet === '' || $nahlizenyText === '') {
+        if (RozkladSymbolu::jePrazdny($nahlizenyPredmet) || RozkladSymbolu::jePrazdny($nahlizenyText)) {
             $nahled->assign('predmet', '(nevyplněno)');
             $nahled->assign('zprava', 'Vyplň předmět i text, pak bude co ukázat.');
         } else {
@@ -84,20 +84,20 @@ if (get('zneni') !== null) {
             // CFO ukazoval 0,10 Kč pod textem o téhle částce.
             $ukazkovyDluh = (int) round($systemoveNastaveni->upominkaMinimalniCastka());
 
-            $nahled->assign('predmet', htmlspecialchars(
-                UpominkaVlastniZneni::dosadPovoleneKonstanty($nahlizenyPredmet),
-                ENT_QUOTES,
-            ));
-            $nahled->assign('zprava', htmlspecialchars(
-                $upominkaVlastniZneni->dosadSymboly(
-                    $nahlizenyText,
-                    (string) $u->jmenoNick(),
-                    $u->id(),
-                    $ukazkovyDluh,
-                    $u->koncovkaDlePohlavi(),
-                ),
-                ENT_QUOTES,
-            ));
+            $vykresleno = (new EmailovaSablonaVykreslovac($systemoveHodnoty))->vykresli(
+                $definiceZneni,
+                $nahlizenyPredmet,
+                $nahlizenyText,
+                [
+                    'jmeno' => (string) $u->jmenoNick(),
+                    'vs'    => $u->id(),
+                    'dluh'  => $ukazkovyDluh,
+                    'a'     => $u->koncovkaDlePohlavi(),
+                ],
+            );
+
+            $nahled->assign('predmet', htmlspecialchars($vykresleno->predmet, ENT_QUOTES));
+            $nahled->assign('zprava', htmlspecialchars($vykresleno->text, ENT_QUOTES));
         }
 
         $nahled->parse('nahled');
@@ -108,30 +108,44 @@ if (get('zneni') !== null) {
         exit;
     }
 
-    $editor = new XTemplate(__DIR__ . '/upominky-dluzniku-zneni.xtpl');
-    $editor->assign([
-        'rocnik'    => $rocnik,
-        'predmet'   => htmlspecialchars($zneni?->predmet ?? '', ENT_QUOTES),
-        'text'      => htmlspecialchars($zneni?->text ?? '', ENT_QUOTES),
-        'zpetUrl'   => 'finance/upominky-dluzniku',
-        'nahledUrl' => 'finance/upominky-dluzniku?zneni&amp;nahled',
-    ]);
-    foreach (UpominkaVlastniZneni::dejPopisSymbolu() as $symbol => $popis) {
-        $editor->assign('symbol', htmlspecialchars($symbol, ENT_QUOTES));
-        $editor->assign('popisSymbolu', htmlspecialchars($popis, ENT_QUOTES));
-        $editor->parse('zneni.symbol');
-    }
-    foreach (UpominkaVlastniZneni::POVOLENE_KONSTANTY as $nazevKonstanty) {
-        if (!defined($nazevKonstanty)) {
-            continue;
+    $predmetZneni = $zneni?->predmet ?? '';
+    $textZneni    = $zneni?->text ?? '';
+    $chybyZneni   = [];
+    if (post('ulozit')) {
+        $predmetZneni = (string) post('predmet');
+        $textZneni    = (string) post('text');
+        $chybyZneni   = (new EmailovaSablonaValidator($systemoveHodnoty))
+            ->validuj($definiceZneni, $predmetZneni, $textZneni);
+        if ($chybyZneni === []) {
+            $upominkaVlastniZneni->uloz(
+                $rocnik,
+                trim($predmetZneni),
+                trim(str_replace("\r\n", "\n", $textZneni)),
+                $u->id(),
+            );
+            oznameniPresmeruj('Vlastní znění uloženo', URL_ADMIN . '/finance/upominky-dluzniku?zneni');
         }
-
-        $editor->assign('symbol', htmlspecialchars("%$nazevKonstanty%", ENT_QUOTES));
-        $editor->assign('popisSymbolu', htmlspecialchars((string) constant($nazevKonstanty), ENT_QUOTES));
-        $editor->parse('zneni.symbol');
     }
-    $editor->parse('zneni');
-    $editor->out('zneni');
+
+    $stranaZneni = new XTemplate(__DIR__ . '/upominky-dluzniku-zneni.xtpl');
+    $stranaZneni->assign([
+        'rocnik'   => $rocnik,
+        'problemy' => ProblemySablonHtml::vykresli(array_values(array_filter(
+            EmailovaSablonaKontrola::zNastaveni($systemoveNastaveni)->najdiProblemy(),
+            static fn (ProblemSablony $problem) => $problem->kod === EmailovaSablonaKontrola::KOD_VLASTNIHO_ZNENI_UPOMINKY,
+        ))),
+        'editor'   => (new EditorSablonyHtml($systemoveHodnoty))->vykresli(
+            $definiceZneni,
+            $predmetZneni,
+            $textZneni,
+            $chybyZneni,
+            'finance/upominky-dluzniku?zneni&nahled',
+            'finance/upominky-dluzniku',
+            'Zpět na seznam dlužníků',
+        ),
+    ]);
+    $stranaZneni->parse('zneni');
+    $stranaZneni->out('zneni');
 
     return;
 }
@@ -198,7 +212,12 @@ if ($idNahledu) {
     $nahled = new XTemplate(__DIR__ . '/upominky-dluzniku-nahled.xtpl');
     $nahled->assign('jmenoNick', htmlspecialchars((string)$dluznik->uzivatel->jmenoNick(), ENT_QUOTES));
     $nahled->assign('mail', htmlspecialchars((string)$dluznik->uzivatel->mail(), ENT_QUOTES));
-    $nahled->assign('predmet', htmlspecialchars($upominaniDluzniku->dejEmailPredmet($typNahledu, $rocnik), ENT_QUOTES));
+    $nahled->assign('predmet', htmlspecialchars($upominaniDluzniku->dejEmailPredmet(
+        $typNahledu,
+        $rocnik,
+        $dluznik->ucastNaGc,
+        $dluznik->rokPosledniUcasti,
+    ), ENT_QUOTES));
     $nahled->assign('zprava', htmlspecialchars($upominaniDluzniku->dejEmailZpravu(
         $typNahledu,
         (int)round($dluznik->dluh),
@@ -382,8 +401,18 @@ foreach ($dluznici as $dluznik) {
                 $rocnik,
             ), ENT_QUOTES)
             : '',
-        'predmetRucni'       => htmlspecialchars($upominaniDluzniku->dejEmailPredmet(TypUpominky::RUCNI, $rocnik), ENT_QUOTES),
-        'predmetTyden'       => htmlspecialchars($upominaniDluzniku->dejEmailPredmet(TypUpominky::TYDEN, $rocnik), ENT_QUOTES),
+        'predmetRucni'       => htmlspecialchars($upominaniDluzniku->dejEmailPredmet(
+            TypUpominky::RUCNI,
+            $rocnik,
+            $dluznik->ucastNaGc,
+            $dluznik->rokPosledniUcasti,
+        ), ENT_QUOTES),
+        'predmetTyden'       => htmlspecialchars($upominaniDluzniku->dejEmailPredmet(
+            TypUpominky::TYDEN,
+            $rocnik,
+            $dluznik->ucastNaGc,
+            $dluznik->rokPosledniUcasti,
+        ), ENT_QUOTES),
         'predmetVlastni'     => $maVyplneneVlastniZneni
             ? htmlspecialchars($upominaniDluzniku->dejEmailPredmet(TypUpominky::VLASTNI, $rocnik), ENT_QUOTES)
             : '',

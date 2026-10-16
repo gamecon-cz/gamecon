@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Gamecon\Uzivatel;
 
-use Gamecon\Kanaly\GcMail;
+use Gamecon\Kanaly\EmailovaSablona\EmailoveSablony;
 use Gamecon\Logger\JobResultLoggerInterface;
 use Gamecon\Logger\LogHomadnychAkciTrait;
 use Gamecon\Role\Role;
@@ -22,10 +22,13 @@ class PromlceniZustatku
     private const ROK_NEPLATNOST    = 3; // Počet let bez účasti, po kterých se zůstatek promlčí
     private const SKUPINA_PROMLCENI = 'promlceni-zustatku';
 
+    private readonly EmailoveSablony $emailoveSablony;
+
     public function __construct(
         private readonly SystemoveNastaveni       $systemoveNastaveni,
         private readonly JobResultLoggerInterface $jobResultLogger,
     ) {
+        $this->emailoveSablony = new EmailoveSablony($systemoveNastaveni);
     }
 
     /**
@@ -332,6 +335,12 @@ SQL,
 
         $pocetLet              = self::ROK_NEPLATNOST;
         $pocetOdeslanychEmailu = 0;
+        $kodSablony            = 'promlceni_varovani_' . $typVarovani->value;
+        $posledniRoky          = $this->dejPosledniRoky($pocetLet);
+        $registraceOd          = match ($typVarovani) {
+            TypVarovaniPromlceni::MESIC => $regGcOd->format('d.m.Y'),
+            TypVarovaniPromlceni::TYDEN => $regGcOd->formatCasZacatekUdalosti(),
+        };
 
         foreach ($uzivatele as $uzivatelKPromlceni) {
             $uzivatel = $uzivatelKPromlceni->uzivatel;
@@ -339,17 +348,16 @@ SQL,
                 continue;
             }
 
-            $zustatek = (int)$uzivatel->finance()->stav();
-            $jmeno    = $uzivatel->jmenoNick();
-
-            $predmet = $this->dejEmailPredmet($typVarovani, $rocnik, $zustatek);
-            $zprava  = $this->dejEmailZpravu($typVarovani, $rocnik, $jmeno, $zustatek, $pocetLet, $regGcOd, $uzivatel);
-
-            (new GcMail($this->systemoveNastaveni))
+            $this->emailoveSablony
+                ->vytvorMail($kodSablony, [
+                    'jmeno'         => (string)$uzivatel->jmenoNick(),
+                    'zustatek'      => (int)$uzivatel->finance()->stav(),
+                    'posledni_roky' => $posledniRoky,
+                    'a'             => $uzivatel->koncovkaDlePohlavi(),
+                    'registrace_od' => $registraceOd,
+                ])
                 ->adresat($uzivatel->mail())
-                ->predmet($predmet)
-                ->text($zprava)
-                ->odeslat(GcMail::FORMAT_TEXT);
+                ->odeslat();
 
             $pocetOdeslanychEmailu++;
             set_time_limit(10); // Prodloužit timeout pro každý e-mail
@@ -362,7 +370,7 @@ SQL,
         };
 
         // Poslat CFO informaci o počtu odeslaných e-mailů
-        $this->odesliInfoCfo($typVarovani, $rocnik, $pocetOdeslanychEmailu, $pocetLet, $regGcOd);
+        $this->odesliInfoCfo($typVarovani, $pocetOdeslanychEmailu, $pocetLet, $regGcOd);
 
         $nazev = $this->dejNazevVarovani($typVarovani);
         $this->jobResultLogger->logs("Varovné e-maily o promlčení ($nazev): Odesláno $pocetOdeslanychEmailu e-mailů");
@@ -378,128 +386,40 @@ SQL,
         };
     }
 
-    private function dejEmailPredmet(
-        TypVarovaniPromlceni $typVarovani,
-        int                  $rocnik,
-        int                  $zustatek,
-    ): string {
-        return match ($typVarovani) {
-            TypVarovaniPromlceni::MESIC => "GameCon $rocnik - Tvůj zůstatek {$zustatek} Kč bude promlčen",
-            TypVarovaniPromlceni::TYDEN => "PŘIPOMÍNKA: GameCon $rocnik - Tvůj zůstatek {$zustatek} Kč bude promlčen",
-        };
-    }
-
-    private function dejEmailZpravu(
-        TypVarovaniPromlceni $typVarovani,
-        int                  $rocnik,
-        string               $jmeno,
-        int                  $zustatek,
-        int                  $pocetLet,
-        \DateTimeInterface   $regGcOd,
-        \Uzivatel            $uzivatel,
-    ): string {
-        // Formátování počtu let
-        $pattern      = <<<ICU
+    /**
+     * @return string for example „posledních 3 let“, correctly declined in Czech
+     */
+    private function dejPosledniRoky(int $pocetLet): string
+    {
+        $pattern   = <<<'ICU'
         {pocetLet, plural,
             one {poslední # rok}
             few {poslední # roky}
             other {posledních # let}
         }
         ICU;
-        $formatter    = new \MessageFormatter('cs_CZ', $pattern);
-        $posledniRoky = trim($formatter->format(['pocetLet' => $pocetLet]));
-        $a            = $uzivatel->koncovkaDlePohlavi();
+        $formatter = new \MessageFormatter('cs_CZ', $pattern);
 
-        return match ($typVarovani) {
-            TypVarovaniPromlceni::MESIC => <<<TEXT
-Ahoj $jmeno,
-
-máš na GameCon účtu zůstatek $zustatek Kč, ale {$posledniRoky} jsi se GameConu nezúčastnil{$a}.
-
-Hrozí promlčení zůstatku na Tvém GameCon účtu kvůli tvé neaktivitě.
-
-Zůstatek bude promlčen krátce po skončení letošního GameConu $rocnik.
-
-Co můžeš proti tomu udělat:
-- Registrovat se na letošní GameCon $rocnik (registrace začnou {$regGcOd->format('d.m.Y')})
-- Kontaktovat nás na info@gamecon.cz a domluvit se, kam chceš zůstatek vrátit
-
-Tvůj zůstatek: $zustatek Kč
-
-Děkujeme za pochopení!
-Tvůj
-organizační tým GameConu
-TEXT,
-            TypVarovaniPromlceni::TYDEN => <<<TEXT
-Ahoj $jmeno,
-
-toto je připomínka našeho předchozího e-mailu.
-
-Máš na GameCon účtu zůstatek $zustatek Kč, ale {$posledniRoky} jsi se GameConu nezúčastnil{$a}.
-
-REGISTRACE UŽ ZA TÝDEN!
-Registrace na GameCon $rocnik začínají {$regGcOd->formatCasZacatekUdalosti()}.
-
-Pokud se nezaregistruješ a nezúčastníš se letošního GameConu, tvůj zůstatek bude promlčen krátce po skončení akce.
-
-Co můžeš udělat:
-- Registrovat se na letošní GameCon $rocnik
-- Kontaktovat nás na info@gamecon.cz, pokud máš dotazy
-
-Tvůj zůstatek: $zustatek Kč
-
-Děkujeme!
-Tvůj
-organizační tým GameConu
-TEXT,
-        };
+        return trim($formatter->format(['pocetLet' => $pocetLet]));
     }
 
     private function odesliInfoCfo(
         TypVarovaniPromlceni $typVarovani,
-        int                  $rocnik,
         int                  $pocetEmailu,
         int                  $pocetLet,
         \DateTimeInterface   $regGcOd,
     ): void {
         $cfosEmaily = Uzivatel::cfosEmaily();
 
-        $predmet = match ($typVarovani) {
-            TypVarovaniPromlceni::MESIC => "Varovné e-maily o promlčení zůstatků: odesláno $pocetEmailu e-mailů",
-            TypVarovaniPromlceni::TYDEN => "Připomínka promlčení zůstatků: odesláno $pocetEmailu e-mailů",
-        };
-
-        $typTextu = match ($typVarovani) {
-            TypVarovaniPromlceni::MESIC => 'Varovné',
-            TypVarovaniPromlceni::TYDEN => 'Připomínkové',
-        };
-
-        $nazev = $this->dejNazevVarovani($typVarovani);
-
-        $zprava = <<<TEXT
-$typTextu e-maily o promlčení zůstatků ($nazev před otevřením registrací) byly odeslány.
-
-Počet uživatelů: $pocetEmailu
-Registrace začínají: {$regGcOd->format('d.m.Y H:i')}
-Počet let neúčasti: $pocetLet
-
-Uživatelé byli {$this->varovani($typVarovani)}, že jejich zůstatky budou promlčeny po skončení GameConu $rocnik, pokud se nezúčastní.
-TEXT;
-
-        (new GcMail($this->systemoveNastaveni))
+        $this->emailoveSablony
+            ->vytvorMail('cfo_promlceni_varovani_' . $typVarovani->value . '_odeslano', [
+                'pocet'         => $pocetEmailu,
+                'registrace_od' => $regGcOd->format('d.m.Y H:i'),
+                'pocet_let'     => $pocetLet,
+            ])
             ->adresati($cfosEmaily
                 ?: ['info@gamecon.cz'])
-            ->predmet($predmet)
-            ->text($zprava)
-            ->odeslat(GcMail::FORMAT_TEXT);
-    }
-
-    private function varovani(TypVarovaniPromlceni $typVarovani): string
-    {
-        return match ($typVarovani) {
-            TypVarovaniPromlceni::MESIC => 'varováni',
-            TypVarovaniPromlceni::TYDEN => 'znovu upozorněni',
-        };
+            ->odeslat();
     }
 
     private function jizOdeslano(TypVarovaniPromlceni $typVarovani, int $rocnik): bool

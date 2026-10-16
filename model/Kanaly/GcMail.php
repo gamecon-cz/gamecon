@@ -31,6 +31,7 @@ class GcMail
     }
 
     private array $adresati = [];
+    private ?string $format = null;
     private string $predmet = '';
     private ?Address $odesilatel = null;
     /**
@@ -71,12 +72,24 @@ class GcMail
     }
 
     /**
+     * The format it is sent in when the caller of odeslat() does not choose one - for an e-mail
+     * from a template the template decides.
+     */
+    public function format(string $format): self
+    {
+        $this->format = $format;
+
+        return $this;
+    }
+
+    /**
      * Odešle sestavenou zprávu.
      *
      * @return bool jestli se zprávu podařilo odeslat
      */
-    public function odeslat(string $format = self::FORMAT_HTML)
+    public function odeslat(?string $format = null)
     {
+        $format ??= $this->format ?? self::FORMAT_HTML;
         $predmet = $this->pridejPrefixPodleProstredi($this->dejPredmet());
         $mail = (new Email())
             ->from($this->odesilatelSPrefixemProstredi())

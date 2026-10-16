@@ -203,11 +203,8 @@ SQL,
             // testy nebo úplně prázdný Gamecon na začátku nemají ještě databázi
             return;
         } catch (\DbException $dbException) {
-            if (in_array($dbException->getCode(), [1146 /* table does not exist */, 1054 /* new column does not exist */])) {
-                if ((new SqlMigrace($this))->nejakeMigraceKeSpusteni()) {
-                    return; // tabulka či sloupec musí vzniknout SQL migrací
-                }
-                // else například jsme si na lokál stáhli příliš novou databázi
+            if ($this->chybiTabulkaNeboSloupecKtereVytvoriMigrace($dbException)) {
+                return;
             }
             throw $dbException;
         }
@@ -230,7 +227,24 @@ SQL,
                 );
             }
         }
-        $this->definujOdvozeneKonstanty();
+        // Derived values read whole setting records, including columns that a pending migration is yet to add.
+        try {
+            $this->definujOdvozeneKonstanty();
+        } catch (\DbException $dbException) {
+            if (!$this->chybiTabulkaNeboSloupecKtereVytvoriMigrace($dbException)) {
+                throw $dbException;
+            }
+        }
+    }
+
+    private function chybiTabulkaNeboSloupecKtereVytvoriMigrace(\DbException $dbException): bool
+    {
+        if (!in_array($dbException->getCode(), [1146 /* table does not exist */, 1054 /* new column does not exist */])) {
+            return false;
+        }
+
+        // e.g. we downloaded a database that is too new onto the local machine
+        return (new SqlMigrace($this))->nejakeMigraceKeSpusteni();
     }
 
     private function definujOdvozeneKonstanty()
@@ -439,6 +453,37 @@ SQL,
         return $zmenenoZaznamu;
     }
 
+    public function ulozZmenuPriznakuVerejne(
+        bool      $verejne,
+        string    $klic,
+        \Uzivatel $editujici,
+    ): int {
+        $updateQuery = dbQuery(<<<'SQL'
+UPDATE systemove_nastaveni
+SET verejne = $1
+WHERE klic = $2
+SQL,
+            [$verejne
+                 ? 1
+                 : 0, $klic],
+        );
+        dbQuery(<<<'SQL'
+INSERT INTO systemove_nastaveni_log(id_uzivatele, id_nastaveni, verejne)
+SELECT $1, id_nastaveni, verejne
+FROM systemove_nastaveni
+WHERE klic = $2
+SQL,
+            [$editujici->id(), $klic],
+        );
+        $zmenenoZaznamu = dbAffectedOrNumRows($updateQuery);
+        if ($zmenenoZaznamu > 0 && isset($this->vsechnyZaznamyNastaveni[$klic])) {
+            $this->vsechnyZaznamyNastaveni[$klic][Sql::VEREJNE]   = (string)(int)$verejne;
+            $this->vsechnyZaznamyNastaveni[$klic]['id_uzivatele'] = (string)$editujici->id();
+        }
+
+        return $zmenenoZaznamu;
+    }
+
     private function formatujHodnotuProDb(
         string $hodnota,
         string $klic,
@@ -545,6 +590,7 @@ SELECT systemove_nastaveni.klic,
        systemove_nastaveni.skupina,
        systemove_nastaveni.poradi,
        systemove_nastaveni.pouze_pro_cteni,
+       systemove_nastaveni.verejne,
        systemove_nastaveni.rocnik_nastaveni
 FROM systemove_nastaveni
 LEFT JOIN (

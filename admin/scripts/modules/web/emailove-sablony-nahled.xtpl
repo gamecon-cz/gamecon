@@ -1,0 +1,11 @@
+<!-- begin: nahled -->
+
+<div data-editor-sablony-nahled>
+    <p>Předmět: <strong>{predmet}</strong></p>
+
+    {telo}
+
+    <p><em>Tohle je jen náhled s ukázkovými hodnotami, nic se neodeslalo.</em></p>
+</div>
+
+<!-- end: nahled -->

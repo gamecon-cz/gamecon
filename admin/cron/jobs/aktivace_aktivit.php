@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-use Gamecon\Kanaly\GcMail;
+use Gamecon\Kanaly\EmailovaSablona\EmailoveSablony;
 use Gamecon\Cas\DateTimeCz;
 use Gamecon\Aktivita\HromadneAkceAktivit;
 use Gamecon\Aktivita\Exceptions\NevhodnyCasProAutomatickouHromadnouAktivaci;
@@ -46,16 +46,14 @@ try {
 }
 $automatickyAktivovanoCelkem = $hromadneAkceAktivit->automatickyAktivovanoCelkem();
 
-$zprava = "Hromadně aktivováno $automatickyAktivovanoCelkem aktivit";
-(new GcMail($systemoveNastaveni))
+(new EmailoveSablony($systemoveNastaveni))
+    ->vytvorMail('info_hromadna_aktivace_aktivit', [
+        'pocet'      => $automatickyAktivovanoCelkem,
+        'komplikace' => $potize
+            ? "U některých se vyskytly komplikace $potize"
+            : '',
+    ])
     ->adresat('info@gamecon.cz')
-    ->predmet($zprava)
-    ->text("Právě jsme aktivovali $automatickyAktivovanoCelkem aktivit."
-        . ($potize
-            ? ("\n\nU některých se vyskytly komplikace $potize")
-            : ''
-        ),
-    )
-    ->odeslat(GcMail::FORMAT_TEXT);
+    ->odeslat();
 
-logs($zprava);
+logs("Hromadně aktivováno $automatickyAktivovanoCelkem aktivit");

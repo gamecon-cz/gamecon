@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 use Gamecon\Uzivatel\HromadneOdhlaseniNeplaticu;
 use Gamecon\Uzivatel\Exceptions\NevhodnyCasProHromadneOdhlasovani;
-use Gamecon\Kanaly\GcMail;
+use Gamecon\Kanaly\EmailovaSablona\EmailoveSablony;
 use Gamecon\Cas\DateTimeCz;
 use Gamecon\Logger\Zaznamnik;
 use Gamecon\Report\BfgrReport;
@@ -62,24 +62,16 @@ try {
 }
 $odhlasenoCelkem = $hromadneOdhlaseniNeplaticu->odhlasenoCelkem();
 
-$zprava          = "Hromadně odhlášeno $odhlasenoCelkem účastníků z GC";
-$zaznamy         = implode(";\n", $zaznamnik->zpravy());
-$uvodProCfo      = "Právě jsme odhlásili $odhlasenoCelkem účastníků z letošního Gameconu.";
-$oddelovacProCfo = str_repeat('═', mb_strlen($uvodProCfo));
-$cfosEmaily      = Uzivatel::cfosEmaily();
-(new GcMail($systemoveNastaveni))
+$zprava     = "Hromadně odhlášeno $odhlasenoCelkem účastníků z GC";
+$cfosEmaily = Uzivatel::cfosEmaily();
+(new EmailoveSablony($systemoveNastaveni))
+    ->vytvorMail('cfo_odhlaseni_neplaticu_provedeno', [
+        'pocet'   => $odhlasenoCelkem,
+        'zaznamy' => implode(";\n", $zaznamnik->zpravy()),
+    ])
     ->adresati($cfosEmaily ?: ['info@gamecon.cz'])
-    ->predmet($zprava)
-    ->text(<<<TEXT
-            $uvodProCfo
-
-            $oddelovacProCfo
-
-            $zaznamy
-            TEXT,
-    )
     // ->prilohaSoubor($bfgrSoubor)
-    ->odeslat(GcMail::FORMAT_TEXT);
+    ->odeslat();
 
 logs($zprava);
 

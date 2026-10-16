@@ -4,47 +4,51 @@ declare(strict_types=1);
 
 namespace Gamecon\Uzivatel;
 
+use Gamecon\Kanaly\EmailovaSablona\EmailovaPromenna;
+use Gamecon\Kanaly\EmailovaSablona\EmailovaSablonaDefinice;
+use Gamecon\Kanaly\GcMail;
 use Gamecon\Uzivatel\Dto\VlastniZneniUpominky;
 use Gamecon\Uzivatel\SqlStruktura\UpominkaVlastniZneniSqlStruktura as Sql;
 
 class UpominkaVlastniZneni
 {
     /**
-     * Konstanty, které smí vlastní znění dosadit. Výčet je tu proto, že
-     * nahradNazvyKonstantZaHodnoty() dosadí LIBOVOLNOU definovanou konstantu,
-     * tedy i FIO_TOKEN nebo DB_PASS - a text upomínky odchází stovkám lidí mimo
-     * organizaci.
+     * The same editor and substitution as for the other e-mails. The subject has no variables, only system values.
      *
-     * @var list<string>
+     * @see \Gamecon\Kanaly\EmailovaSablona\EmailoveSablonyKatalog
      */
-    public const POVOLENE_KONSTANTY = ['UCET_CZ', 'IBAN', 'ROCNIK'];
-
-    /**
-     * Zástupné symboly, které se liší příjemce od příjemce. Tvar {…} sem patří
-     * proto, že se stejně zapisují koncovky v model/pomoc.php.
-     *
-     * @return array<string, string> symbol => co doplní
-     */
-    public static function dejPopisSymbolu(): array
+    public static function definice(): EmailovaSablonaDefinice
     {
-        return [
-            '{jmeno}' => 'jméno a přezdívka příjemce',
-            '{vs}'    => 'variabilní symbol platby',
-            '{dluh}'  => 'dlužná částka v korunách',
-            '{a}'     => 'koncovka podle pohlaví (např. „dostal{a}“)',
-        ];
-    }
-
-    public static function dosadPovoleneKonstanty(string $text): string
-    {
-        $nahrady = [];
-        foreach (self::POVOLENE_KONSTANTY as $nazevKonstanty) {
-            if (defined($nazevKonstanty)) {
-                $nahrady["%$nazevKonstanty%"] = (string) constant($nazevKonstanty);
-            }
-        }
-
-        return strtr($text, $nahrady);
+        return new EmailovaSablonaDefinice(
+            kod: 'upominka_vlastni',
+            skupina: 'Upomínky dlužníkům',
+            nazev: 'Upomínka dlužníkům vlastním zněním',
+            kdyOdchazi: 'Když CFO rozesílá upomínky ručně s volbou „vlastní znění“.',
+            prijemce: 'vybraní dlužníci',
+            format: GcMail::FORMAT_TEXT,
+            promenne: [
+                new EmailovaPromenna(
+                    nazev: 'jmeno',
+                    popis: 'jméno a přezdívka příjemce',
+                    ukazka: 'Jana „Jája“ Nováková',
+                ),
+                new EmailovaPromenna(
+                    nazev: 'vs',
+                    popis: 'variabilní symbol platby (ID účastníka)',
+                    ukazka: '1234',
+                ),
+                new EmailovaPromenna(
+                    nazev: 'dluh',
+                    popis: 'dlužná částka v korunách',
+                    ukazka: '350',
+                ),
+                new EmailovaPromenna(
+                    nazev: 'a',
+                    popis: 'koncovka podle pohlaví příjemce: u ženy „a“, jinak nic (např. „dostal%a%“)',
+                    ukazka: 'a',
+                ),
+            ],
+        );
     }
 
     /** @var array<int, ?VlastniZneniUpominky> */
@@ -113,20 +117,5 @@ SQL,
         );
 
         unset($this->zneniPodleRocniku[$rocnik]);
-    }
-
-    public function dosadSymboly(
-        string $text,
-        string $jmenoNick,
-        int    $variabilniSymbol,
-        int    $dluh,
-        string $koncovkaDlePohlavi,
-    ): string {
-        return self::dosadPovoleneKonstanty(strtr($text, [
-            '{jmeno}' => $jmenoNick,
-            '{vs}'    => (string) $variabilniSymbol,
-            '{dluh}'  => (string) $dluh,
-            '{a}'     => $koncovkaDlePohlavi,
-        ]));
     }
 }

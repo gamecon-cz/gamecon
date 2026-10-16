@@ -3,7 +3,7 @@
 declare(strict_types=1);
 
 use Gamecon\Uzivatel\PromlceniZustatku;
-use Gamecon\Kanaly\GcMail;
+use Gamecon\Kanaly\EmailovaSablona\EmailoveSablony;
 use Gamecon\Report\KonfiguraceReportu;
 use Gamecon\Uzivatel\UzivatelKPromlceni;
 use Gamecon\Logger\JobResultLogger;
@@ -64,19 +64,11 @@ if (count($uzivateleKPromlceni) === 0) {
 
     // Pošli CFO informaci, že nikdo nebyl promlčen
     $cfosEmaily = Uzivatel::cfosEmaily();
-    (new GcMail($systemoveNastaveni))
+    (new EmailoveSablony($systemoveNastaveni))
+        ->vytvorMail('cfo_promlceni_nikdo', ['gc_skoncil' => $gcBeziDo->format('d.m.Y H:i')])
         ->adresati($cfosEmaily
             ?: ['info@gamecon.cz'])
-        ->predmet("Automatické promlčení zůstatků GC $rocnik: 0 promlčených")
-        ->text(<<<TEXT
-Automatické promlčení zůstatků po skončení GameConu $rocnik bylo provedeno.
-
-Výsledek: Žádní uživatelé nesplňovali kritéria pro promlčení zůstatků.
-
-GameCon skončil: {$gcBeziDo->format('d.m.Y H:i')}
-TEXT,
-        )
-        ->odeslat(GcMail::FORMAT_TEXT);
+        ->odeslat();
 
     return;
 }
@@ -98,25 +90,17 @@ Report::zPole($reportPredPromlcenim)->tFormat('xlsx', null, $konfiguraceReportu)
 
 // Pošli CFO report o uživatelích, kteří budou promlčeni
 $cfosEmaily = Uzivatel::cfosEmaily();
-(new GcMail($systemoveNastaveni))
+(new EmailoveSablony($systemoveNastaveni))
+    ->vytvorMail('cfo_promlceni_pred', [
+        'pocet_uzivatelu' => $pocetUzivatelu,
+        'suma'            => $celkovaSuma,
+        'gc_skoncil'      => $gcBeziDo->format('d.m.Y H:i'),
+    ])
     ->adresati($cfosEmaily
         ?: ['info@gamecon.cz'])
-    ->predmet("Automatické promlčení zůstatků GC $rocnik: Report před promlčením")
     ->prilohaSoubor($tempFile)
     ->prilohaNazev("promlceni-zustatku-gc-$rocnik-pred.xlsx")
-    ->text(<<<TEXT
-Automatické promlčení zůstatků po skončení GameConu $rocnik bude nyní provedeno.
-
-Přehled před promlčením:
-- Počet uživatelů: $pocetUzivatelu
-- Celková suma k promlčení: $celkovaSuma Kč
-
-V příloze najdete detailní report se všemi uživateli, jejich účastí na GC a částkami k promlčení.
-
-GameCon skončil: {$gcBeziDo->format('d.m.Y H:i')}
-TEXT,
-    )
-    ->odeslat(GcMail::FORMAT_HTML);
+    ->odeslat();
 
 if (isset($tempFile) && file_exists($tempFile)) {
     @unlink($tempFile);
@@ -156,25 +140,17 @@ $konfiguraceReportuAktualni = (new KonfiguraceReportu())
 Report::zPole($reportPoPromlceni)->tFormat('xlsx', null, $konfiguraceReportuAktualni);
 
 // 6. Pošli CFO finální report po promlčení
-(new GcMail($systemoveNastaveni))
+(new EmailoveSablony($systemoveNastaveni))
+    ->vytvorMail('cfo_promlceni_dokonceno', [
+        'pocet'      => $vysledek['pocet'],
+        'suma'       => $vysledek['suma'],
+        'gc_skoncil' => $gcBeziDo->format('d.m.Y H:i'),
+    ])
     ->adresati($cfosEmaily
         ?: ['info@gamecon.cz'])
-    ->predmet("Automatické promlčení zůstatků GC $rocnik: DOKONČENO")
     ->prilohaSoubor($tempFileAktualni)
     ->prilohaNazev("zustatky-vsech-uzivatelu-po-promlceni-gc-$rocnik.xlsx")
-    ->text(<<<TEXT
-Automatické promlčení zůstatků po skončení GameConu $rocnik bylo úspěšně dokončeno.
-
-Výsledek promlčení:
-- Promlčeno uživatelů: {$vysledek['pocet']}
-- Celková promlčená suma: {$vysledek['suma']} Kč
-
-V příloze najdete aktuální report zůstatků všech uživatelů v databázi po promlčení.
-
-GameCon skončil: {$gcBeziDo->format('d.m.Y H:i')}
-TEXT,
-    )
-    ->odeslat(GcMail::FORMAT_HTML);
+    ->odeslat();
 
 if (isset($tempFileAktualni) && file_exists($tempFileAktualni)) {
     @unlink($tempFileAktualni);

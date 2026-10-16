@@ -38,6 +38,9 @@ class SystemSettingLog
     #[ORM\Column(name: 'vlastni', type: Types::BOOLEAN, nullable: true)]
     private ?bool $vlastni = null;
 
+    #[ORM\Column(name: 'verejne', type: Types::BOOLEAN, nullable: true)]
+    private ?bool $verejne = null;
+
     #[ORM\Column(name: 'kdy', type: Types::DATETIME_MUTABLE, nullable: false, options: [
         'default' => 'CURRENT_TIMESTAMP',
     ])]
@@ -92,6 +95,18 @@ class SystemSettingLog
     public function setVlastni(?bool $vlastni): self
     {
         $this->vlastni = $vlastni;
+
+        return $this;
+    }
+
+    public function getVerejne(): ?bool
+    {
+        return $this->verejne;
+    }
+
+    public function setVerejne(?bool $verejne): self
+    {
+        $this->verejne = $verejne;
 
         return $this;
     }

@@ -10,6 +10,7 @@ use Gamecon\Cache\ProgramStaticFileGenerator;
 use Gamecon\Cache\ProgramStaticFileType;
 use Gamecon\Cas\DateTimeCz;
 use Gamecon\Cas\DateTimeGamecon;
+use Gamecon\Kanaly\EmailovaSablona\EmailoveSablony;
 use Gamecon\Kanaly\GcMail;
 use Gamecon\Logger\Zaznamnik;
 use Gamecon\Pravo;
@@ -657,23 +658,14 @@ SQL, [Pravo::PORADANI_AKTIVIT],
         float $celkemLetosPoslal,
         self $odhlasujici,
     ): GcMail {
-        $odhlasen = $this->id() === $odhlasujici->id()
-            ? ' se odhlásil'
-            : 'byl odhlášen';
-
-        return (new GcMail($this->systemoveNastaveni))
-            ->adresat('info@gamecon.cz')
-            ->predmet("Uživatel '{$this->jmenoNick()}' ({$this->id()}) {$odhlasen} ale platil")
-            ->text(
-                hlaskaMail(
-                    'odhlasilPlatil',
-                    $this->jmenoNick(),
-                    $this->id(),
-                    $odhlasen,
-                    $this->systemoveNastaveni->rocnik(),
-                    $celkemLetosPoslal,
-                ),
-            );
+        return (new EmailoveSablony($this->systemoveNastaveni))
+            ->vytvorMail('info_odhlasil_ale_platil', [
+                'jmeno_nick'   => (string)$this->jmenoNick(),
+                'id_uzivatele' => $this->id(),
+                'odhlaseni'    => $this->popisOdhlaseni($odhlasujici),
+                'castka'       => $celkemLetosPoslal,
+            ])
+            ->adresat('info@gamecon.cz');
     }
 
     /**
@@ -683,48 +675,37 @@ SQL, [Pravo::PORADANI_AKTIVIT],
         array $prehledObjednavek,
         self $odhlasujici,
     ): GcMail {
-        $odhlasen = $this->id() === $odhlasujici->id()
-            ? ' se odhlásil'
-            : 'byl odhlášen';
+        return (new EmailoveSablony($this->systemoveNastaveni))
+            ->vytvorMail('info_odhlasil_mel_objednavky', [
+                'jmeno_nick'   => (string)$this->jmenoNick(),
+                'id_uzivatele' => $this->id(),
+                'odhlaseni'    => $this->popisOdhlaseni($odhlasujici),
+                'objednavky'   => implode('<br>', $prehledObjednavek),
+            ])
+            ->adresat('info@gamecon.cz');
+    }
 
-        return (new GcMail($this->systemoveNastaveni))
-            ->adresat('info@gamecon.cz')
-            ->predmet("Uživatel {$odhlasen} a měl objednávky")
-            ->text(
-                hlaskaMail(
-                    'odhlasilMelObjednavky',
-                    $this->jmenoNick(),
-                    $this->id(),
-                    $odhlasen,
-                    $this->systemoveNastaveni->rocnik(),
-                    implode('<br>', $prehledObjednavek),
-                ),
-            );
+    private function popisOdhlaseni(self $odhlasujici): string
+    {
+        return $this->id() === $odhlasujici->id()
+            ? 'se odhlásil'
+            : 'byl odhlášen';
     }
 
     private function mailZeBylOdhlasen(): GcMail
     {
-        $rok = $this->systemoveNastaveni->rocnik();
         $nejblizsiHromadneOdhlasovaniKdy = DateTimeGamecon::nejblizsiVlnaKdy(
             $this->systemoveNastaveni,
             $this->systemoveNastaveni->ted(),
         );
-        $uvod = 'Právě jsme tě odhlásili z letošního Gameconu.';
-        $oddelovac = str_repeat('═', mb_strlen($uvod));
         set_time_limit(30); // pro jistotu
-        $a = $this->koncovkaDlePohlavi('a');
 
-        return (new GcMail($this->systemoveNastaveni))
-            ->adresat($this->mail())
-            ->predmet("Byl{$a} jsi odhlášen{$a} z Gameconu {$rok}")
-            ->text(<<<TEXT
-                {$uvod}
-
-                {$oddelovac}
-
-                Pokud jsi platbu zapomněl{$a} poslat, přihlaš se zpět v další vlně aktivit, která bude {$nejblizsiHromadneOdhlasovaniKdy->formatCasStandard()} a platbu ohlídej.
-                TEXT,
-            );
+        return (new EmailoveSablony($this->systemoveNastaveni))
+            ->vytvorMail('odhlaseni_z_gameconu', [
+                'a'          => $this->koncovkaDlePohlavi('a'),
+                'dalsi_vlna' => $nejblizsiHromadneOdhlasovaniKdy->formatCasStandard(),
+            ])
+            ->adresat($this->mail());
     }
 
     /**
@@ -2347,14 +2328,11 @@ SQL,
         $uid = dbInsertId();
         // poslání mailu
         if ($opt['informovat']) {
-            $tab[Sql::ID_UZIVATELE] = $uid;
-            $u = new self($tab); // pozor, spekulativní, nekompletní! využito kvůli std rozhraní hlaskaMail
-            $mail = new GcMail(
-                $systemoveNastaveni,
-                hlaskaMail('rychloregMail', $u, $tab[Sql::EMAIL1_UZIVATELE], $rand),
-            );
-            $mail->adresat($tab[Sql::EMAIL1_UZIVATELE]);
-            $mail->predmet('Registrace na GameCon.cz');
+            $mail = (new EmailoveSablony($systemoveNastaveni))
+                ->vytvorMail('rychla_registrace', [
+                    'odkaz_k_potvrzeni' => URL_WEBU . '/potvrzeni-registrace/' . $rand,
+                ])
+                ->adresat($tab[Sql::EMAIL1_UZIVATELE]);
             if (! $mail->odeslat()) {
                 throw new Exception('Chyba: Email s novým heslem NEBYL odeslán, uživatel má pravděpodobně nastavený neplatný email');
             }
