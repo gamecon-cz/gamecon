@@ -154,4 +154,4 @@ RUN export NODE_PATH=/usr/lib/nodejs:/usr/share/nodejs
 
 WORKDIR $APACHE_DOCUMENT_ROOT
 
-CMD bash /.docker/gamecon-run.sh $(pwd)
+CMD ["bash", "/.docker/gamecon-run.sh"]
