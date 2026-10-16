@@ -1,0 +1,120 @@
+{
+  "popis": "Společné případy pro PHP validátor (EmailovaSablonaValidatorTest) a JS validátor (editor-sablony-logika.test.ts), aby se obě zrcadla nerozešla.",
+  "data": {
+    "promenne": [
+      {"nazev": "jmeno", "popis": "jméno", "ukazka": "Jan", "vPredmetu": true},
+      {"nazev": "odkaz", "popis": "odkaz", "ukazka": "https://example.test", "vPredmetu": false}
+    ],
+    "systemove": [
+      {"nazev": "GC_BEZI_OD", "popis": "Začátek Gameconu", "ukazka": "18. 7. 2024 12:00"},
+      {"nazev": "IBAN", "popis": "konstanta z nastavení GameConu", "ukazka": "CZ00"},
+      {"nazev": "ROCNIK", "popis": "Ročník", "ukazka": "2026"},
+      {"nazev": "UCET_CZ", "popis": "konstanta z nastavení GameConu", "ukazka": "1234/2010"}
+    ],
+    "neverejne": ["PODEZRELE_VYSOKA_PLATBA_UCASTNIKA"]
+  },
+  "pripady": [
+    {
+      "nazev": "platná šablona s proměnnými a systémovou hodnotou projde",
+      "predmet": "Ahoj %jmeno% z GameConu %ROCNIK%",
+      "text": "Dobrý den %jmeno%,\n\nodkaz: %odkaz%\n\nZačátek: %GC_BEZI_OD%",
+      "chyby": []
+    },
+    {
+      "nazev": "prázdný předmět a text",
+      "predmet": "",
+      "text": "",
+      "chyby": ["Předmět nesmí být prázdný.", "Text nesmí být prázdný."]
+    },
+    {
+      "nazev": "předmět a text jen z bílých znaků",
+      "predmet": "  \t ",
+      "text": " \n\r\n  ",
+      "chyby": ["Předmět nesmí být prázdný.", "Text nesmí být prázdný."]
+    },
+    {
+      "nazev": "předmět a text jen z nezlomitelných mezer",
+      "predmet": "\u00a0",
+      "text": "\u00a0\u00a0\ufeff",
+      "chyby": ["Předmět nesmí být prázdný.", "Text nesmí být prázdný."]
+    },
+    {
+      "nazev": "předmět na více řádcích",
+      "predmet": "Řádek\nDruhý řádek",
+      "text": "Text",
+      "chyby": ["Předmět musí být na jednom řádku."]
+    },
+    {
+      "nazev": "neznámá proměnná",
+      "predmet": "Předmět",
+      "text": "Ahoj %jmen%",
+      "chyby": ["Text: „%jmen%“ není v téhle šabloně k dispozici."]
+    },
+    {
+      "nazev": "proměnná, kterou předmět nepovoluje",
+      "predmet": "Odkaz %odkaz%",
+      "text": "Odkaz %odkaz%",
+      "chyby": ["Předmět: „%odkaz%“ nejde použít v předmětu, jen v textu."]
+    },
+    {
+      "nazev": "nezavřený symbol",
+      "predmet": "Předmět",
+      "text": "Ahoj %jmeno",
+      "chyby": ["Text: Symbol „%jmeno“ není zavřený, chybí mu závěrečné procento. Samotné procento napiš jako %%."]
+    },
+    {
+      "nazev": "číselný symbol",
+      "predmet": "Předmět",
+      "text": "Aktivita %1",
+      "chyby": ["Text: „%1“ není symbol, symboly mají jména. Samotné procento napiš jako %%."]
+    },
+    {
+      "nazev": "symbol se smíšenými písmeny",
+      "predmet": "Předmět",
+      "text": "Ahoj %Jmeno%",
+      "chyby": ["Text: „%Jmeno%“ má špatný tvar: proměnné se píšou malými písmeny, systémové hodnoty VELKÝMI."]
+    },
+    {
+      "nazev": "složené závorky ze starého zápisu",
+      "predmet": "Předmět",
+      "text": "Ahoj {jmeno}",
+      "chyby": ["Text: symboly se píšou mezi procenta, ne do složených závorek („{jmeno}“)."]
+    },
+    {
+      "nazev": "dvojité procento a holé procento před mezerou projdou",
+      "predmet": "Sleva 50%%",
+      "text": "Vrátíme 50 % nebo 25%% podle toho.",
+      "chyby": []
+    },
+    {
+      "nazev": "neveřejné nastavení se odmítne a veřejné projde",
+      "predmet": "Předmět",
+      "text": "%PODEZRELE_VYSOKA_PLATBA_UCASTNIKA% a %GC_BEZI_OD%",
+      "chyby": ["Text: „%PODEZRELE_VYSOKA_PLATBA_UCASTNIKA%“ je neveřejné nastavení a do e-mailu se nedosadí. Zveřejnit ho jde na stránce Nastavení."]
+    },
+    {
+      "nazev": "neexistující systémová hodnota",
+      "predmet": "Pro %NENI_TAKOVE_NASTAVENI%",
+      "text": "Text",
+      "chyby": ["Předmět: „%NENI_TAKOVE_NASTAVENI%“ není známá systémová hodnota."]
+    },
+    {
+      "nazev": "povolené konstanty z konfigurace",
+      "predmet": "Předmět",
+      "text": "Účet %UCET_CZ%, IBAN %IBAN%",
+      "chyby": []
+    },
+    {
+      "nazev": "konstanta, která není povolená, ani když existuje",
+      "predmet": "Předmět",
+      "text": "Heslo %DB_PASS%",
+      "chyby": ["Text: „%DB_PASS%“ není známá systémová hodnota."]
+    },
+    {
+      "nazev": "stejná chyba se hlásí jen jednou",
+      "predmet": "Předmět",
+      "text": "%jmen% a znovu %jmen%",
+      "chyby": ["Text: „%jmen%“ není v téhle šabloně k dispozici."]
+    }
+  ]
+}

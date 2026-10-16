@@ -9,7 +9,7 @@ declare(strict_types=1);
  */
 
 use Gamecon\Report\BfgrReport;
-use Gamecon\Kanaly\GcMail;
+use Gamecon\Kanaly\EmailovaSablona\EmailoveSablony;
 use Gamecon\SystemoveNastaveni\SystemoveNastaveni;
 use Gamecon\BackgroundProcess\BackgroundProcessService;
 
@@ -67,27 +67,17 @@ try {
   $timestamp = date('Y-m-d_H-i-s');
   $attachmentName = "bfgr-report-{$rocnik}-{$timestamp}.xlsx";
 
-  $htmlBody = <<<HTML
-<html lang="cs">
-<body>
-<p>Ahoj {$userName},</p>
-<p>BFGR report najdeš v příloze.</p>
-<strong>Ročník:</strong> {$rocnik}<br>
-<strong>Vygenerováno:</strong> {$timestamp}</p>
-<p>S pozdravem,<br>
-GameCon systém</p>
-</body>
-</html>
-HTML;
-
-  $gmail = GcMail::vytvorZGlobals()
+  $gmail = EmailoveSablony::zGlobals()
+                 ->vytvorMail('bfgr_report', [
+                     'jmeno'          => (string)$userName,
+                     'rocnik_reportu' => $rocnik,
+                     'vygenerovano'   => $timestamp,
+                 ])
                  ->adresat($userEmail)
-                 ->predmet("BFGR Report - ročník {$rocnik}")
-                 ->text($htmlBody)
                  ->prilohaSoubor($tempFile)
                  ->prilohaNazev($attachmentName);
 
-  $odeslano = $gmail->odeslat(GcMail::FORMAT_HTML);
+  $odeslano = $gmail->odeslat();
 
   if (jsmeNaOstre()) {
     // Smazání dočasného souboru
@@ -119,24 +109,13 @@ HTML;
 
   // Odeslání chybového emailu uživateli
   try {
-    $errorHtml = <<<HTML
-<html lang="cs">
-<body>
-<p>Ahoj {$userName},</p>
-<p>Bohužel došlo k chybě při generování BFGR reportu.</p>
-<p><strong>Chyba:</strong> {$e->getMessage()}</p>
-<p>Kontaktuj prosím administrátora systému.</p>
-<p>S pozdravem,<br>
-GameCon systém</p>
-</body>
-</html>
-HTML;
-
-    GcMail::vytvorZGlobals()
+    EmailoveSablony::zGlobals()
+          ->vytvorMail('bfgr_report_chyba', [
+              'jmeno' => (string)$userName,
+              'chyba' => $e->getMessage(),
+          ])
           ->adresat($userEmail)
-          ->predmet("Chyba při generování BFGR reportu")
-          ->text($errorHtml)
-          ->odeslat(GcMail::FORMAT_HTML);
+          ->odeslat();
   } catch (Throwable $mailError) {
     // Nemůžeme ani odeslat chybový email
     fwrite(STDERR, "Nepodařilo se odeslat chybový email: {$mailError->getMessage()}\n");

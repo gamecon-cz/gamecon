@@ -3,7 +3,7 @@
 declare(strict_types=1);
 
 use Gamecon\Uzivatel\HromadneOdhlaseniNeplaticu;
-use Gamecon\Kanaly\GcMail;
+use Gamecon\Kanaly\EmailovaSablona\EmailoveSablony;
 use Gamecon\Cas\DateTimeCz;
 use Gamecon\Uzivatel\Exceptions\NevhodnyCasProHromadneOdhlasovani;
 use Gamecon\Cas\DateTimeGamecon;
@@ -139,43 +139,21 @@ $nejblizsiHromadneOdhlasovaniKdy = DateTimeGamecon::nejblizsiHromadneOdhlasovani
     $overenaPlatnostZpetne,
 );
 
-$brzy         = $nejblizsiHromadneOdhlasovaniKdy->relativniVBudoucnu($systemoveNastaveni->ted(), true);
-$brzy         = mb_ucfirst($brzy);
-$uvod         = "$brzy Gamecon systém odhlásí $budeOdhlaseno účastníků z letošního Gameconu, protože jsou neplatiči.";
-$oddelovac    = count($zpravyNeplatici) > 0
-    ? str_repeat('═', mb_strlen($uvod))
-    : '';
-$zpravyString = implode(";\n", $zpravyNeplatici);
+$brzy   = mb_ucfirst($nejblizsiHromadneOdhlasovaniKdy->relativniVBudoucnu($systemoveNastaveni->ted(), true));
+$seznam = implode(";\n", $zpravyNeplatici);
 
 if ($zpravyPolozky) {
-    $zpravyPolozkyString = implode(";\n", $zpravyPolozky);
-    $zpravyString        .= <<<TEXT
-
-$oddelovac
-
-$zpravyPolozkyString
-TEXT;
+    $seznam .= "\n" . str_repeat('═', 50) . "\n\n" . implode(";\n", $zpravyPolozky);
 }
 
-$uvod .= <<<TEXT
-
-$oddelovac
-
-Sirien: zkontroluj partnery ty kokos ať se hromadně nezjebou i se svym ubytkem
-TEXT;
-
-(new GcMail($systemoveNastaveni))
+(new EmailoveSablony($systemoveNastaveni))
+    ->vytvorMail('cfo_brzke_odhlaseni_neplaticu', [
+        'kdy'    => $brzy,
+        'pocet'  => $budeOdhlaseno,
+        'seznam' => $seznam,
+    ])
     ->adresati($cfosEmaily ?: ['info@gamecon.cz'])
-    ->predmet("Odhlášení neplatičů: $brzy bude hromadně odhlášeno $budeOdhlaseno neplatičů z GC")
-    ->text(<<<TEXT
-        $uvod
-
-        $oddelovac
-
-        $zpravyString
-        TEXT,
-    )
-    ->odeslat(GcMail::FORMAT_TEXT);
+    ->odeslat();
 
 $hromadneOdhlaseniNeplaticu->zalogujNotifikovaniCfoOBrzkemHromadnemOdhlaseni(
     $budeOdhlaseno,

@@ -17,7 +17,7 @@ use Gamecon\Cache\ProgramStaticFileType;
 use Gamecon\Cas\DateTimeCz;
 use Gamecon\Cas\DateTimeGamecon;
 use Gamecon\Exceptions\ChybaKolizeAktivit;
-use Gamecon\Kanaly\GcMail;
+use Gamecon\Kanaly\EmailovaSablona\EmailoveSablony;
 use Gamecon\Pravo;
 use Gamecon\PrednacitaniTrait;
 use Gamecon\SystemoveNastaveni\SystemoveNastaveni;
@@ -2349,12 +2349,14 @@ SQL
         AND akce_prihlaseni_spec.id_stavu_prihlaseni = $1
         AND uzivatele_hodnoty.pohlavi IN ($2)
     ', [$this->id(), StavPrihlaseni::SLEDUJICI, $pohlaviSVolnymMistem]);
+        $sablony = EmailoveSablony::zGlobals();
         foreach ($emaily as $email) {
-            $mail = GcMail::vytvorZGlobals();
-            $mail->predmet('Gamecon: Volné místo na aktivitě ' . $this->nazev());
-            $mail->text(hlaskaMail('uvolneneMisto', $this->nazev(), $this->denCasSkutecny()));
-            $mail->adresat($email);
-            $mail->odeslat();
+            $sablony->vytvorMail('uvolnene_misto', [
+                'aktivita' => $this->nazev(),
+                'cas'      => $this->denCasSkutecny(),
+            ])
+                ->adresat($email)
+                ->odeslat();
         }
     }
 
@@ -3941,26 +3943,27 @@ SQL,
             }
         }
 
+        $emailoveSablony = EmailoveSablony::zGlobals();
         foreach ($vypraveciAktivit as $idVypravece => $neuzavreneAktivity) {
             $vypravec = Uzivatel::zId($idVypravece); // například nechceme posílat mail vypravěčským skupinám
             if ((!$vypravec->jeVypravec() && !$vypravec->jePartner()) || $vypravec->mrtvyMail()) {
                 continue;
             }
-            $text = 'Zkontroluj prezenci a zavři';
+            $radkyAktivit = [];
             foreach ($neuzavreneAktivity as $neuzavrenaAktivita) {
-                $url = $vypravec->mojeAktivityAdminUrl()
-                       . '#' . OnlinePrezenceHtml::nazevProAnchor($neuzavrenaAktivita);
-                $text .= "<br><a href='$url'>{$neuzavrenaAktivita->nazev()}</a> (skončila {$neuzavrenaAktivita->konec()->formatCasNaMinutyStandard()})";
+                $url            = $vypravec->mojeAktivityAdminUrl()
+                                  . '#' . OnlinePrezenceHtml::nazevProAnchor($neuzavrenaAktivita);
+                $radkyAktivit[] = "<a href='" . htmlspecialchars($url, ENT_QUOTES) . "'>" . htmlspecialchars($neuzavrenaAktivita->nazev(), ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8', false) . "</a> (skončila {$neuzavrenaAktivita->konec()->formatCasNaMinutyStandard()})";
             }
-            $mail = GcMail::vytvorZGlobals();
-            $mail->predmet(
-                'Gamecon: Uzavři prosím prezenci na ' . (count($neuzavreneAktivity) === 1
-                    ? 'aktivitě'
-                    : (count($neuzavreneAktivity) . ' aktivitách')),
-            );
-            $mail->text($text);
-            $mail->adresat($vypravec->mail());
-            $mail->odeslat();
+            $emailoveSablony
+                ->vytvorMail('uzavreni_prezence', [
+                    'na_aktivitach' => count($neuzavreneAktivity) === 1
+                        ? 'aktivitě'
+                        : (count($neuzavreneAktivity) . ' aktivitách'),
+                    'aktivity'      => implode('<br>', $radkyAktivit),
+                ])
+                ->adresat($vypravec->mail())
+                ->odeslat();
         }
 
         return count($vypraveciAktivit);

@@ -19,6 +19,7 @@ class SystemoveNastaveniSqlStruktura
     public const SKUPINA          = 'skupina';
     public const PORADI           = 'poradi';
     public const POUZE_PRO_CTENI  = 'pouze_pro_cteni';
+    public const VEREJNE          = 'verejne';
     public const ROCNIK_NASTAVENI = 'rocnik_nastaveni';
 
     public static function sloupce(): array
@@ -35,6 +36,7 @@ class SystemoveNastaveniSqlStruktura
             self::SKUPINA,
             self::PORADI,
             self::POUZE_PRO_CTENI,
+            self::VEREJNE,
             self::ROCNIK_NASTAVENI,
         ];
     }

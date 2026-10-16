@@ -14,6 +14,7 @@ class SystemoveNastaveniAjax
     public const AJAX_KLIC    = 'ajax';
     public const POST_KLIC    = 'nastaveni-ajax';
     public const VLASTNI_KLIC = 'vlastni';
+    public const VEREJNE_KLIC = 'verejne';
     public const HODNOTA_KLIC = 'hodnota';
 
     public function __construct(
@@ -44,6 +45,13 @@ class SystemoveNastaveniAjax
                     $this->systemoveNastaveni->ulozZmenuPriznakuVlastni(
                     // filter_var z "true" udělá true a z "false" udělá false
                         filter_var(trim($zmena[self::VLASTNI_KLIC]), FILTER_VALIDATE_BOOLEAN),
+                        $klic,
+                        $this->editujici,
+                    );
+                }
+                if (array_key_exists(self::VEREJNE_KLIC, $zmena)) {
+                    $this->systemoveNastaveni->ulozZmenuPriznakuVerejne(
+                        filter_var(trim($zmena[self::VEREJNE_KLIC]), FILTER_VALIDATE_BOOLEAN),
                         $klic,
                         $this->editujici,
                     );

@@ -8,7 +8,7 @@ use Gamecon\Aktivita\Aktivita;
 use Gamecon\Cas\DateTimeCz;
 use Gamecon\Cas\DateTimeGamecon;
 use Gamecon\Cas\DateTimeImmutableStrict;
-use Gamecon\Kanaly\GcMail;
+use Gamecon\Kanaly\EmailovaSablona\EmailoveSablony;
 use Gamecon\Logger\LogHomadnychAkciTrait;
 use Gamecon\Logger\Zaznamnik;
 use Gamecon\Role\Role;
@@ -399,18 +399,12 @@ Platnost současného hromadného odhlašování byla '%s' (%s), teď je '%s' a 
 
         $text = implode(' a ', $castiTextu);
 
-        (new GcMail($this->systemoveNastaveni))
+        (new EmailoveSablony($this->systemoveNastaveni))
+            ->vytvorMail('hromadne_odhlaseni_neplatic_zruseno', [
+                'co'      => implode(' a ', $castiPredmetu),
+                'zruseno' => $text,
+            ])
             ->adresat($uzivatel->mail())
-            ->predmet('Odhlášené ' . implode(' a ', $castiPredmetu))
-            ->text(<<<TEXT
-                Jelikož tvé finance nedorazili na účet Gameconu včas, museli jsme $text
-
-                Aktivity si můžeš znovu přihlásit v další vlně, předměty si můžeš znovu objednat kdykoliv. Jen prosíme ohlídej své platby.
-
-                Tvůj
-                organizační tým GameConu
-                TEXT,
-            )
-            ->odeslat(GcMail::FORMAT_TEXT);
+            ->odeslat();
     }
 }
