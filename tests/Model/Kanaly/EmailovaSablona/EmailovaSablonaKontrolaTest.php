@@ -120,6 +120,8 @@ class EmailovaSablonaKontrolaTest extends AbstractTestDb
 
         self::assertStringContainsString('<a href="finance/emailove-sablony?kod=obnova_hesla">Obnova hesla</a>', $html);
         self::assertStringContainsString('id="problemySablon"', $html);
+        self::assertStringContainsString('používá neveřejné nastavení', $html);
+        self::assertStringContainsString('zaškrtnutím „Veřejné“ na stránce Nastavení', $html);
     }
 
     private function kontrola(): EmailovaSablonaKontrola

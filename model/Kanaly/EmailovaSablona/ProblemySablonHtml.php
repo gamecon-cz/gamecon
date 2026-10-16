@@ -32,8 +32,8 @@ class ProblemySablonHtml
         }
         if ($nedosazene !== []) {
             $bloky .= self::blok(
-                'Text e-mailu obsahuje hodnotu, která se do e-mailu nedosadí.',
-                'E-mail se odešle a symbol v něm zůstane tak, jak je napsaný. Oprav text:',
+                'Text e-mailu používá neveřejné nastavení nebo neznámou hodnotu, proto se do e-mailu nedosadí.',
+                'E-mail se přesto odešle a symbol v něm zůstane tak, jak je napsaný. Neveřejné nastavení zveřejníš zaškrtnutím „Veřejné“ na stránce Nastavení, neznámý symbol odstraň z textu:',
                 $nedosazene,
             );
         }
