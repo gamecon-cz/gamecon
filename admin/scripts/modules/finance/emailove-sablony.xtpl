@@ -1,0 +1,53 @@
+<!-- begin: seznam -->
+
+<h1>Texty e-mailů</h1>
+
+{problemy}
+
+<p>
+    Předmět a text každého e-mailu, který GameCon posílá. Změna platí hned, bez nasazení.
+    Texty smí upravovat jen CFO.
+</p>
+
+<style>
+    .emailoveSablony td {
+        vertical-align: top;
+    }
+</style>
+
+<table class="zvyraznovana emailoveSablony" style="width: 100%">
+    <colgroup>
+        <col style="width: 20%">
+        <col style="width: 33%">
+        <col style="width: 14%">
+        <col style="width: 20%">
+        <col style="width: 13%">
+    </colgroup>
+    <!-- begin: skupina -->
+    <thead>
+    <tr>
+        <th colspan="5"><h2>{skupina}</h2></th>
+    </tr>
+    <tr>
+        <th>E-mail</th>
+        <th>Kdy odchází</th>
+        <th>Komu</th>
+        <th>Předmět</th>
+        <th>Naposledy změněno</th>
+    </tr>
+    </thead>
+    <tbody>
+    <!-- begin: sablona -->
+    <tr>
+        <td>{problem}<a href="{odkaz}">{nazev}</a></td>
+        <td>{kdyOdchazi}</td>
+        <td>{prijemce}</td>
+        <td>{predmet}</td>
+        <td>{zmeneno}</td>
+    </tr>
+    <!-- end: sablona -->
+    </tbody>
+    <!-- end: skupina -->
+</table>
+
+<!-- end: seznam -->

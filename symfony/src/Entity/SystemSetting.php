@@ -69,6 +69,11 @@ class SystemSetting
     ])]
     private ?bool $pouzeProCteni = false;
 
+    #[ORM\Column(name: 'verejne', type: Types::BOOLEAN, nullable: false, options: [
+        'default' => 0,
+    ])]
+    private bool $verejne = false;
+
     #[ORM\Column(name: 'rocnik_nastaveni', type: Types::INTEGER, nullable: false, options: [
         'default' => -1,
     ])]
@@ -195,6 +200,18 @@ class SystemSetting
     public function setPouzeProCteni(?bool $pouzeProCteni): self
     {
         $this->pouzeProCteni = $pouzeProCteni;
+
+        return $this;
+    }
+
+    public function isVerejne(): bool
+    {
+        return $this->verejne;
+    }
+
+    public function setVerejne(bool $verejne): self
+    {
+        $this->verejne = $verejne;
 
         return $this;
     }

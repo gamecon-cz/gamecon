@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-use Gamecon\Kanaly\GcMail;
+use Gamecon\Kanaly\EmailovaSablona\EmailoveSablony;
 use Gamecon\Cas\DateTimeCz;
 use Gamecon\Uzivatel\Platby;
 use Gamecon\Cas\DateTimeGamecon;
@@ -103,23 +103,16 @@ $nejblizsiHromadneOdhlasovaniKdy = DateTimeGamecon::nejblizsiHromadneOdhlasovani
     $overenaPlatnostZpetne,
 );
 
-$brzy      = $nejblizsiHromadneOdhlasovaniKdy->relativniVBudoucnu($systemoveNastaveni->ted(), true);
-$brzy      = mb_ucfirst($brzy);
-$uvod      = "$brzy Gamecon systém hromadně odhlásí neplatiče. Přitom ale máme $pocetNesparovanychPlateb nespárovaných plateb a hrozí komplikace.";
-$oddelovac = str_repeat('═', mb_strlen($uvod));
-(new GcMail($systemoveNastaveni))
+$brzy = mb_ucfirst($nejblizsiHromadneOdhlasovaniKdy->relativniVBudoucnu($systemoveNastaveni->ted(), true));
+(new EmailoveSablony($systemoveNastaveni))
+    ->vytvorMail('cfo_nesparovane_platby', [
+        'kdy'    => $brzy,
+        'pocet'  => $pocetNesparovanychPlateb,
+        'seznam' => $zpravyString,
+    ])
     ->adresati($cfosEmaily
                    ?: ['info@gamecon.cz'])
-    ->predmet("$brzy bude hromadné odhlášení a stále máme $pocetNesparovanychPlateb nespárovaných plateb")
-    ->text(<<<TEXT
-        $uvod
-
-        $oddelovac
-
-        $zpravyString
-        TEXT,
-    )
-    ->odeslat(GcMail::FORMAT_TEXT);
+    ->odeslat();
 
 $platby->zalogujCfoNotifikovanONesparovanychPlatbach(
     rocnik:              $systemoveNastaveni->rocnik(),

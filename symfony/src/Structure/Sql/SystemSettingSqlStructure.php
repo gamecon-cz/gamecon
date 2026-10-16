@@ -70,6 +70,11 @@ class SystemSettingSqlStructure
     public const pouze_pro_cteni = 'pouze_pro_cteni';
 
     /**
+     * @see SystemSetting::$verejne
+     */
+    public const verejne = 'verejne';
+
+    /**
      * @see SystemSetting::$rocnikNastaveni
      */
     public const rocnik_nastaveni = 'rocnik_nastaveni';

@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Gamecon\Tests\Model\Uzivatel;
 
 use Gamecon\Cas\DateTimeImmutableStrict;
+use Gamecon\Kanaly\MailLogger;
 use Gamecon\Logger\JobResultLoggerInterface;
 use Gamecon\Role\Role;
 use Gamecon\SystemoveNastaveni\SystemoveNastaveni;
@@ -550,6 +551,7 @@ SQL;
         $vysledek = $promlceniZustatku->odesliVarovneEmaily(TypVarovaniPromlceni::MESIC);
 
         self::assertGreaterThanOrEqual(0, $vysledek, 'Měly by se odeslat e-maily (počet >= 0)');
+        $this->assertOdeslanoVarovaniSTextem('Hrozí promlčení zůstatku', 'registrace začnou');
     }
 
     /**
@@ -568,6 +570,28 @@ SQL;
         $vysledek = $promlceniZustatku->odesliVarovneEmaily(TypVarovaniPromlceni::TYDEN);
 
         self::assertGreaterThanOrEqual(0, $vysledek, 'Měly by se odeslat e-maily (počet >= 0)');
+        $this->assertOdeslanoVarovaniSTextem('toto je připomínka našeho předchozího e-mailu', 'REGISTRACE UŽ ZA TÝDEN!');
+    }
+
+    /**
+     * The mail comes from a database template, not from code: we verify that the name, balance and the
+     * ROCNIK symbol were substituted and nothing stayed in percent signs.
+     */
+    private function assertOdeslanoVarovaniSTextem(string ...$ocekavaneUryvky): void
+    {
+        $logger = new MailLogger(LOGY . '/maily.sqlite');
+        $nalezene = $logger->najdi('Tvůj zůstatek', limit: 1);
+        self::assertNotEmpty($nalezene, 'Varování o promlčení se nezalogovalo');
+
+        $mail = $logger->detail((int) $nalezene[0]['id']);
+        // The log stores the whole message with headers, the body of a text e-mail is in it as quoted-printable
+        $telo = quoted_printable_decode(explode("\r\n\r\n", $mail['telo'], 2)[1]);
+
+        self::assertStringContainsString('GameCon ' . ROCNIK . ' - Tvůj zůstatek', $mail['predmet']);
+        foreach ($ocekavaneUryvky as $uryvek) {
+            self::assertStringContainsString($uryvek, $telo);
+        }
+        self::assertDoesNotMatchRegularExpression('~%[A-Za-z_]+%~', $mail['predmet'] . $telo);
     }
 
     /**

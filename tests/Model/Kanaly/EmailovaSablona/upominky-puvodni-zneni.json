@@ -1,0 +1,34 @@
+{
+    "upominka_tyden_pritomen": {
+        "predmet": "GameCon %ROCNIK% - nedoplatky",
+        "text": "Ahoj!\n\nDoufáme, že tě letošní GameCon bavil!\n\nV systému ti nicméně zbyly nějaké nedoplatky, pravděpodobně za last moment aktivity nebo jiné objednávky během GC. Konkrétně se jedná o %dluh% korun. Můžeš nám prosím nedoplatek co nejdřív srovnat?\n\nStačí poslat danou částku na GC účet %UCET_CZ% (%IBAN%) s variabilním symbolem %vs%, popř. využít platební QR kód přiložený níže.\n\nJakékoliv dotazy, nejasnosti nebo reklamace směřuj prosím v odpovědi na tento e-mail, nebo na finance@gamecon.cz.\n\nMoc děkujeme a těšíme se zase za rok!\n\nPS: rovnou si dovolíme i připomenout možnost vyplnění zpětných vazeb na GC i na jednotlivé aktivity, které jsou pro nás velmi důležité pro další zlepšování. Najdeš je tady: https:\/\/gamecon.cz\/prakticke-informace#dotazniky"
+    },
+    "upominka_tyden_jen_prihlasen": {
+        "predmet": "GameCon %ROCNIK% - nedoplatky",
+        "text": "Ahoj!\n\nMrzí nás, že ses na letošní GameCon nakonec nedostal%a%.\n\nI tak ti ale na GC účtu zůstal nedoplatek za objednávky z letošní přihlášky. Konkrétně se jedná o %dluh% korun. Můžeš nám prosím nedoplatek co nejdřív srovnat?\n\nStačí poslat danou částku na GC účet %UCET_CZ% (%IBAN%) s variabilním symbolem %vs%, popř. využít platební QR kód přiložený níže.\n\nJakékoliv dotazy, nejasnosti nebo reklamace směřuj prosím v odpovědi na tento e-mail, nebo na finance@gamecon.cz.\n\nDěkujeme a snad se uvidíme na některém z dalších ročníků!"
+    },
+    "upominka_tyden_nedorazil_drive": {
+        "predmet": "GameCon %ROCNIK% - nedoplatky",
+        "text": "Ahoj!\n\nOzýváme se ohledně tvého účtu na GameConu.\n\nZ GameConu %rok_posledni_ucasti% ti na GC účtu zůstal nedoplatek. Konkrétně se jedná o %dluh% korun. Můžeš nám prosím nedoplatek co nejdřív srovnat?\n\nStačí poslat danou částku na GC účet %UCET_CZ% (%IBAN%) s variabilním symbolem %vs%, popř. využít platební QR kód přiložený níže.\n\nJakékoliv dotazy, nejasnosti nebo reklamace směřuj prosím v odpovědi na tento e-mail, nebo na finance@gamecon.cz.\n\nDěkujeme a snad se uvidíme na některém z dalších ročníků!"
+    },
+    "upominka_tyden_nedorazil_nikdy": {
+        "predmet": "GameCon %ROCNIK% - nedoplatky",
+        "text": "Ahoj!\n\nOzýváme se ohledně tvého účtu na GameConu.\n\nNa tvém GC účtu evidujeme nedoplatek. Konkrétně se jedná o %dluh% korun. Můžeš nám prosím nedoplatek co nejdřív srovnat?\n\nStačí poslat danou částku na GC účet %UCET_CZ% (%IBAN%) s variabilním symbolem %vs%, popř. využít platební QR kód přiložený níže.\n\nJakékoliv dotazy, nejasnosti nebo reklamace směřuj prosím v odpovědi na tento e-mail, nebo na finance@gamecon.cz.\n\nDěkujeme a snad se uvidíme na některém z dalších ročníků!"
+    },
+    "upominka_mesic_pritomen": {
+        "predmet": "GameCon %ROCNIK% - PŘIPOMÍNKA nedoplatků",
+        "text": "Ahoj!\n\nDoufáme, že ti na GameCon zůstaly krásné vzpomínky!\n\nV systému ti nicméně zbyly nějaké nedoplatky, pravděpodobně za last moment aktivity nebo jiné objednávky během GC. Konkrétně se jedná o %dluh% korun a nám už se velmi blíží účetní uzávěrka. Můžeš nám prosím nedoplatek co nejdřív srovnat?\n\nStačí poslat danou částku na GC účet %UCET_CZ% (%IBAN%) s variabilním symbolem %vs%, popř. využít platební QR kód přiložený níže.\n\nJakékoliv dotazy, nejasnosti nebo reklamace směřuj prosím v odpovědi na tento e-mail, nebo na finance@gamecon.cz.\n\nMoc děkujeme a těšíme se zase za rok!\n\nPS: stále ještě případně zbývá trochu času na vyplnění zpětné vazby na GC i jednotlivé aktivity. Dotazníky najdeš tady: https:\/\/gamecon.cz\/prakticke-informace#dotazniky. Jejich vyplnění je pro další zlepšování akce velmi důležité."
+    },
+    "upominka_mesic_jen_prihlasen": {
+        "predmet": "GameCon %ROCNIK% - PŘIPOMÍNKA nedoplatků",
+        "text": "Ahoj!\n\nMrzí nás, že ses na letošní GameCon nakonec nedostal%a%.\n\nI tak ti ale na GC účtu zůstal nedoplatek za objednávky z letošní přihlášky. Konkrétně se jedná o %dluh% korun a nám už se velmi blíží účetní uzávěrka. Můžeš nám prosím nedoplatek co nejdřív srovnat?\n\nStačí poslat danou částku na GC účet %UCET_CZ% (%IBAN%) s variabilním symbolem %vs%, popř. využít platební QR kód přiložený níže.\n\nJakékoliv dotazy, nejasnosti nebo reklamace směřuj prosím v odpovědi na tento e-mail, nebo na finance@gamecon.cz.\n\nDěkujeme a snad se uvidíme na některém z dalších ročníků!"
+    },
+    "upominka_mesic_nedorazil_drive": {
+        "predmet": "GameCon %ROCNIK% - PŘIPOMÍNKA nedoplatků",
+        "text": "Ahoj!\n\nOzýváme se ohledně tvého účtu na GameConu.\n\nZ GameConu %rok_posledni_ucasti% ti na GC účtu zůstal nedoplatek. Konkrétně se jedná o %dluh% korun a nám už se velmi blíží účetní uzávěrka. Můžeš nám prosím nedoplatek co nejdřív srovnat?\n\nStačí poslat danou částku na GC účet %UCET_CZ% (%IBAN%) s variabilním symbolem %vs%, popř. využít platební QR kód přiložený níže.\n\nJakékoliv dotazy, nejasnosti nebo reklamace směřuj prosím v odpovědi na tento e-mail, nebo na finance@gamecon.cz.\n\nDěkujeme a snad se uvidíme na některém z dalších ročníků!"
+    },
+    "upominka_mesic_nedorazil_nikdy": {
+        "predmet": "GameCon %ROCNIK% - PŘIPOMÍNKA nedoplatků",
+        "text": "Ahoj!\n\nOzýváme se ohledně tvého účtu na GameConu.\n\nNa tvém GC účtu evidujeme nedoplatek. Konkrétně se jedná o %dluh% korun a nám už se velmi blíží účetní uzávěrka. Můžeš nám prosím nedoplatek co nejdřív srovnat?\n\nStačí poslat danou částku na GC účet %UCET_CZ% (%IBAN%) s variabilním symbolem %vs%, popř. využít platební QR kód přiložený níže.\n\nJakékoliv dotazy, nejasnosti nebo reklamace směřuj prosím v odpovědi na tento e-mail, nebo na finance@gamecon.cz.\n\nDěkujeme a snad se uvidíme na některém z dalších ročníků!"
+    }
+}

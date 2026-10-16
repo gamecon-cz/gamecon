@@ -5,6 +5,9 @@ declare(strict_types=1);
 namespace Gamecon\Uzivatel;
 
 use Gamecon\Command\FioStazeniNovychPlateb;
+use Gamecon\Kanaly\EmailovaSablona\EmailovaSablonaVykreslovac;
+use Gamecon\Kanaly\EmailovaSablona\EmailoveSablony;
+use Gamecon\Kanaly\EmailovaSablona\SystemoveHodnotyProSablony;
 use Gamecon\Kanaly\GcMail;
 use Gamecon\Logger\JobResultLoggerInterface;
 use Gamecon\Logger\LogHomadnychAkciTrait;
@@ -29,6 +32,9 @@ class UpominaniDluzniku
 
     private const SKUPINA_UPOMINANI = 'upominani-dluzniku';
 
+    private readonly EmailoveSablony $emailoveSablony;
+    private readonly EmailovaSablonaVykreslovac $vykreslovac;
+
     public function __construct(
         private readonly SystemoveNastaveni        $systemoveNastaveni,
         private readonly JobResultLoggerInterface  $jobResultLogger,
@@ -37,6 +43,8 @@ class UpominaniDluzniku
         private readonly UcastNaGcPodleRoli        $ucastNaGcPodleRoli = new UcastNaGcPodleRoli(),
         private readonly UpominkaVlastniZneni      $upominkaVlastniZneni = new UpominkaVlastniZneni(),
     ) {
+        $this->emailoveSablony = new EmailoveSablony($systemoveNastaveni);
+        $this->vykreslovac     = new EmailovaSablonaVykreslovac(new SystemoveHodnotyProSablony($systemoveNastaveni));
     }
 
     /**
@@ -54,7 +62,7 @@ class UpominaniDluzniku
     ): GcMail {
         $gcMail = (new GcMail($this->systemoveNastaveni))
             ->adresat($uzivatel->mail())
-            ->predmet($this->dejEmailPredmet($typUpominky, $rocnik))
+            ->predmet($this->dejEmailPredmet($typUpominky, $rocnik, $ucastNaGc, $rokPosledniUcasti))
             ->text($this->dejEmailZpravu(
                 $typUpominky,
                 $dluh,
@@ -407,7 +415,6 @@ SQL,
         // Poslat CFO informaci o počtu odeslaných e-mailů
         $this->odeslInfoCfo(
             $typUpominky,
-            $rocnik,
             $pocetOdeslanychEmailu,
             $pocetPreskocenych,
             $pocetPodPrahem,
@@ -450,20 +457,30 @@ SQL,
         return $zneni;
     }
 
+    /**
+     * The subject depends on how the debtor took part, because each text variant has its own subject
+     * in the admin. For a custom wording neither the participation nor the last year are used.
+     */
     public function dejEmailPredmet(
         TypUpominky $typUpominky,
         int         $rocnik,
+        ?UcastNaGc  $ucastNaGc = null,
+        ?int        $rokPosledniUcasti = null,
     ): string {
         if ($typUpominky->maVlastniZneni()) {
-            return UpominkaVlastniZneni::dosadPovoleneKonstanty(
+            return $this->vykreslovac->vykresliPredmet(
+                UpominkaVlastniZneni::definice(),
                 $this->dejVyplneneVlastniZneni($rocnik)->predmet,
             );
         }
 
-        return match ($typUpominky->textovaVarianta()) {
-            TypUpominky::TYDEN => "GameCon $rocnik - nedoplatky",
-            TypUpominky::MESIC => "GameCon $rocnik - PŘIPOMÍNKA nedoplatků",
-        };
+        if ($ucastNaGc === null) {
+            throw new \LogicException('Předmět standardní upomínky závisí na účasti dlužníka, ta se musí předat.');
+        }
+
+        return $this->emailoveSablony->vykresliPredmet(
+            $this->kodSablonyUpominky($typUpominky, $ucastNaGc, $rokPosledniUcasti),
+        );
     }
 
     public function dejEmailZpravu(
@@ -476,90 +493,48 @@ SQL,
         string      $jmenoNick,
         int         $rocnik,
     ): string {
+        $promenne = [
+            'jmeno' => $jmenoNick,
+            'vs'    => $variabilniSymbol,
+            'dluh'  => $dluh,
+            'a'     => $koncovkaDlePohlavi,
+        ];
+
         if ($typUpominky->maVlastniZneni()) {
-            return $this->upominkaVlastniZneni->dosadSymboly(
+            return $this->vykreslovac->vykresli(
+                UpominkaVlastniZneni::definice(),
+                '',
                 $this->dejVyplneneVlastniZneni($rocnik)->text,
-                $jmenoNick,
-                $variabilniSymbol,
-                $dluh,
-                $koncovkaDlePohlavi,
-            );
+                $promenne,
+            )->text;
         }
 
-        $ucetCz = UCET_CZ;
-        $iban   = IBAN;
-
-        $uvod     = $this->dejUvodPodleUcasti($typUpominky, $ucastNaGc, $koncovkaDlePohlavi);
-        $duvod    = $this->dejDuvodDluhuPodleUcasti($ucastNaGc, $rokPosledniUcasti);
-        $zaver    = $this->dejZaverPodleUcasti($typUpominky, $ucastNaGc);
-        $nalehavost = $typUpominky->textovaVarianta() === TypUpominky::MESIC
-            ? ' a nám už se velmi blíží účetní uzávěrka'
-            : '';
-
-        return <<<TEXT
-Ahoj!
-
-$uvod
-
-$duvod Konkrétně se jedná o $dluh korun$nalehavost. Můžeš nám prosím nedoplatek co nejdřív srovnat?
-
-Stačí poslat danou částku na GC účet $ucetCz ($iban) s variabilním symbolem $variabilniSymbol, popř. využít platební QR kód přiložený níže.
-
-Jakékoliv dotazy, nejasnosti nebo reklamace směřuj prosím v odpovědi na tento e-mail, nebo na finance@gamecon.cz.
-
-$zaver
-TEXT;
-    }
-
-    private function dejUvodPodleUcasti(
-        TypUpominky $typUpominky,
-        UcastNaGc   $ucastNaGc,
-        string      $koncovkaDlePohlavi,
-    ): string {
-        $jeMesicni = $typUpominky->textovaVarianta() === TypUpominky::MESIC;
-
-        return match ($ucastNaGc) {
-            UcastNaGc::PRITOMEN => $jeMesicni
-                ? 'Doufáme, že ti na GameCon zůstaly krásné vzpomínky!'
-                : 'Doufáme, že tě letošní GameCon bavil!',
-            UcastNaGc::JEN_PRIHLASEN => "Mrzí nás, že ses na letošní GameCon nakonec nedostal{$koncovkaDlePohlavi}.",
-            UcastNaGc::NEDORAZIL     => 'Ozýváme se ohledně tvého účtu na GameConu.',
-        };
-    }
-
-    private function dejDuvodDluhuPodleUcasti(
-        UcastNaGc $ucastNaGc,
-        ?int      $rokPosledniUcasti,
-    ): string {
-        // O dřívějším ročníku se smí psát jen tomu, kdo na nějakém opravdu byl -
-        // část dlužníků na GC nikdy nedorazila a dluh má z nedokončené přihlášky.
-        $nedorazil = $rokPosledniUcasti === null
-            ? 'Na tvém GC účtu evidujeme nedoplatek.'
-            : "Z GameConu $rokPosledniUcasti ti na GC účtu zůstal nedoplatek.";
-
-        return match ($ucastNaGc) {
-            UcastNaGc::PRITOMEN => 'V systému ti nicméně zbyly nějaké nedoplatky, pravděpodobně za last moment aktivity nebo jiné objednávky během GC.',
-            UcastNaGc::JEN_PRIHLASEN => 'I tak ti ale na GC účtu zůstal nedoplatek za objednávky z letošní přihlášky.',
-            UcastNaGc::NEDORAZIL     => $nedorazil,
-        };
-    }
-
-    private function dejZaverPodleUcasti(
-        TypUpominky $typUpominky,
-        UcastNaGc   $ucastNaGc,
-    ): string {
-        $jeMesicni = $typUpominky->textovaVarianta() === TypUpominky::MESIC;
-
-        // Zpětné vazby dává smysl připomínat jen tomu, kdo na GC opravdu byl.
-        if ($ucastNaGc !== UcastNaGc::PRITOMEN) {
-            return 'Děkujeme a snad se uvidíme na některém z dalších ročníků!';
+        $kodSablony = $this->kodSablonyUpominky($typUpominky, $ucastNaGc, $rokPosledniUcasti);
+        if ($rokPosledniUcasti !== null && $ucastNaGc === UcastNaGc::NEDORAZIL) {
+            $promenne['rok_posledni_ucasti'] = $rokPosledniUcasti;
         }
 
-        $dotazniky = $jeMesicni
-            ? 'PS: stále ještě případně zbývá trochu času na vyplnění zpětné vazby na GC i jednotlivé aktivity. Dotazníky najdeš tady: https://gamecon.cz/prakticke-informace#dotazniky. Jejich vyplnění je pro další zlepšování akce velmi důležité.'
-            : 'PS: rovnou si dovolíme i připomenout možnost vyplnění zpětných vazeb na GC i na jednotlivé aktivity, které jsou pro nás velmi důležité pro další zlepšování. Najdeš je tady: https://gamecon.cz/prakticke-informace#dotazniky';
+        return $this->emailoveSablony->vykresli($kodSablony, $promenne)->text;
+    }
 
-        return "Moc děkujeme a těšíme se zase za rok!\n\n$dotazniky";
+    /**
+     * Only somebody who was really at some earlier year may be written to about it - part of the debtors
+     * never showed up at GC and their debt comes from an unfinished registration. Hence two 'did not show up' variants.
+     */
+    private function kodSablonyUpominky(
+        TypUpominky $typUpominky,
+        UcastNaGc   $ucastNaGc,
+        ?int        $rokPosledniUcasti,
+    ): string {
+        $varianta = match ($ucastNaGc) {
+            UcastNaGc::PRITOMEN      => 'pritomen',
+            UcastNaGc::JEN_PRIHLASEN => 'jen_prihlasen',
+            UcastNaGc::NEDORAZIL     => $rokPosledniUcasti === null
+                ? 'nedorazil_nikdy'
+                : 'nedorazil_drive',
+        };
+
+        return 'upominka_' . $typUpominky->textovaVarianta()->value . '_' . $varianta;
     }
 
     public function dejQrKodyProUpominku(Uzivatel $uzivatel): array
@@ -578,7 +553,6 @@ TEXT;
 
     private function odeslInfoCfo(
         TypUpominky        $typUpominky,
-        int                $rocnik,
         int                $pocetEmailu,
         int                $pocetPreskocenych,
         int                $pocetPodPrahem,
@@ -586,50 +560,21 @@ TEXT;
         \DateTimeInterface $konecGc,
         ?GcMail            $prikladEmailu,
     ): void {
-        $prahVKc    = (int)ceil($minimalniCastka);
         $cfosEmaily = Uzivatel::cfosEmaily();
-        $oddelovac  = str_repeat('═', 50);
-        $nazev      = $this->dejNazevUpominky($typUpominky);
 
-        $predmet = match ($typUpominky) {
-            TypUpominky::TYDEN => "Upomínky dlužníkům: odesláno $pocetEmailu e-mailů",
-            TypUpominky::MESIC => "PŘIPOMÍNKA upomínek dlužníkům: odesláno $pocetEmailu e-mailů",
-            TypUpominky::RUCNI => "Ručně rozeslané upomínky dlužníkům: odesláno $pocetEmailu e-mailů",
-            TypUpominky::VLASTNI => "Upomínky vlastním zněním: odesláno $pocetEmailu e-mailů",
-        };
-
-        $typTextu = match ($typUpominky) {
-            TypUpominky::TYDEN => 'Upomínkové',
-            TypUpominky::MESIC => 'Připomínkové',
-            TypUpominky::RUCNI => 'Ručně rozeslané upomínkové',
-            TypUpominky::VLASTNI => 'Vlastním zněním rozeslané upomínkové',
-        };
-
-        $zprava = <<<TEXT
-$typTextu e-maily dlužníkům ($nazev po skončení GameConu $rocnik) byly odeslány.
-
-Počet dlužníků: $pocetEmailu
-Přeskočeno (upomínku už dostali dřív): $pocetPreskocenych
-Přeskočeno (dluh pod prahem {$prahVKc} Kč): $pocetPodPrahem
-Konec GameConu: {$konecGc->format('d.m.Y H:i')}
-
-$oddelovac
-
-Příklad odeslaného emailu:
-
-{$prikladEmailu?->dejPredmet()}
-
-$oddelovac
-
-{$prikladEmailu?->dejText()}
-TEXT;
-
-        (new GcMail($this->systemoveNastaveni))
+        $this->emailoveSablony
+            ->vytvorMail('cfo_upominky_' . $typUpominky->value . '_odeslano', [
+                'pocet'              => $pocetEmailu,
+                'pocet_preskocenych' => $pocetPreskocenych,
+                'pocet_pod_prahem'   => $pocetPodPrahem,
+                'prah'               => (int)ceil($minimalniCastka),
+                'konec_gc'           => $konecGc->format('d.m.Y H:i'),
+                'priklad_predmet'    => $prikladEmailu?->dejPredmet() ?? '',
+                'priklad_text'       => $prikladEmailu?->dejText() ?? '',
+            ])
             ->adresati($cfosEmaily
                 ?: ['info@gamecon.cz'])
-            ->predmet($predmet)
-            ->text($zprava)
-            ->odeslat(GcMail::FORMAT_TEXT);
+            ->odeslat();
     }
 
     private function jizOdeslano(

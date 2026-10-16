@@ -1,0 +1,34 @@
+<!-- begin: detail -->
+
+<h1>{nazev}</h1>
+
+{problemy}
+
+<table class="seznam">
+    <tbody>
+    <tr>
+        <th>Skupina</th>
+        <td>{skupina}</td>
+    </tr>
+    <tr>
+        <th>Kdy odchází</th>
+        <td>{kdyOdchazi}</td>
+    </tr>
+    <tr>
+        <th>Komu</th>
+        <td>{prijemce}</td>
+    </tr>
+    <tr>
+        <th>Formát</th>
+        <td>{format}</td>
+    </tr>
+    <tr>
+        <th>Naposledy změněno</th>
+        <td>{zmeneno}</td>
+    </tr>
+    </tbody>
+</table>
+
+{editor}
+
+<!-- end: detail -->

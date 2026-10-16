@@ -1,0 +1,120 @@
+.editorSablony_pole {
+  box-sizing: border-box;
+  width: 100%;
+}
+
+.editorSablony_text {
+  font-family: monospace;
+}
+
+.editorSablony_chybne {
+  outline: 2px solid #c00;
+}
+
+.editorSablony_hlasky ul {
+  margin: .5em 0;
+  padding: .5em 1em .5em 2em;
+  background: #fde8e8;
+  color: #a00;
+  border: 1px solid #e8b4b4;
+}
+
+.editorSablony_nastroje {
+  display: flex;
+  gap: 1em;
+  align-items: center;
+  margin: .5em 0;
+}
+
+.editorSablony_rezimy button {
+  border: 1px solid #aaa;
+  background: #f4f4f4;
+  padding: .2em .9em;
+  cursor: pointer;
+}
+
+.editorSablony_rezimy button + button {
+  margin-left: -1px;
+}
+
+.editorSablony_rezimy .editorSablony_aktivniRezim {
+  background: #fff;
+  font-weight: bold;
+  box-shadow: inset 0 -3px 0 #c00;
+}
+
+.editorSablony_nahled {
+  box-sizing: border-box;
+  min-height: 12em;
+  padding: 1em;
+  background: #fafafa;
+  border: 1px solid #ccc;
+}
+
+.editorSablony_nahled pre {
+  white-space: pre-wrap;
+  background: #f5f5f5;
+  padding: 1em;
+  border: 1px solid #ddd;
+}
+
+.editorSablony_nahled iframe {
+  width: 100%;
+  height: 24em;
+  border: 1px solid #ddd;
+  background: #fff;
+}
+
+.editorSablony_naseptavac {
+  position: fixed;
+  z-index: 1000;
+  min-width: 18em;
+  max-width: 34em;
+  max-height: 14em;
+  overflow-y: auto;
+  background: #fff;
+  border: 1px solid #888;
+  box-shadow: 0 3px 10px rgba(0, 0, 0, .3);
+}
+
+.editorSablony_polozka {
+  display: flex;
+  gap: 1em;
+  justify-content: space-between;
+  padding: .25em .6em;
+  cursor: pointer;
+}
+
+.editorSablony_polozka span {
+  color: #666;
+  font-size: .9em;
+}
+
+.editorSablony_vybrana {
+  background: #d9e8ff;
+}
+
+.editorSablony_symboly {
+  max-width: 900px;
+  width: 90%;
+}
+
+.editorSablony_symboly table {
+  width: 100%;
+}
+
+.editorSablony_radekSymbolu {
+  cursor: pointer;
+}
+
+.editorSablony_radekSymbolu:hover {
+  background: #d9e8ff;
+}
+
+.editorSablony_nespravneSymboly {
+  margin: 0 0 1em;
+  padding: 1em;
+  background: rgba(255, 191, 191, .5);
+  color: #a00;
+  border: 1px solid #e8b4b4;
+}

@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 use Gamecon\Cas\Exceptions\ChybnaZpetnaPlatnost;
 use Gamecon\Uzivatel\HromadneOdhlaseniNeplaticu;
-use Gamecon\Kanaly\GcMail;
+use Gamecon\Kanaly\EmailovaSablona\EmailoveSablony;
 use Gamecon\Cas\DateTimeCz;
 use Gamecon\Uzivatel\Exceptions\NevhodnyCasProHromadneOdhlasovani;
 use Gamecon\Cas\DateTimeGamecon;
@@ -73,7 +73,6 @@ if (!$poradiOznameni) {
 requireOnceIsolated(__DIR__ . '/../fio_stazeni_novych_plateb.php');
 
 $pocetPotencialnichNeplaticu     = 0;
-$rocnik                          = $systemoveNastaveni->rocnik();
 $finalniPosun                    = $posuny[$poradiOznameni];
 $overenaPlatnostZpetne           = DateTimeGamecon::overenaPlatnostZpetne($systemoveNastaveni)
     ->modifyStrict($finalniPosun);
@@ -84,9 +83,8 @@ $nejblizsiHromadneOdhlasovaniKdy = DateTimeGamecon::nejblizsiHromadneOdhlasovani
 $kDatu                           = $systemoveNastaveni->ted()->modify($finalniPosun);
 
 $posledniGcMail = null;
+$sablony        = new EmailoveSablony($systemoveNastaveni);
 try {
-    $uvod      = "Prosíme zaplať své objednávky na Gamecon $rocnik";
-    $oddelovac = str_repeat('═', mb_strlen($uvod));
     foreach ($hromadneOdhlaseniNeplaticu->neplaticiAKategorie(
         $nejblizsiHromadneOdhlasovaniKdy,
         $overenaPlatnostZpetne,
@@ -97,19 +95,10 @@ try {
         set_time_limit(10);
         /** @var \Gamecon\Uzivatel\KategorieNeplatice $kategorieNeplatice */
         /** @var \Uzivatel $neplatic */
-        $a      = $neplatic->koncovkaDlePohlavi();
-        $gcMail = (new GcMail($systemoveNastaveni))
-            ->adresat($neplatic->mail())
-            ->predmet("Nezaplacené objednávky Gamecon $rocnik")
-            ->text(<<<TEXT
-                $uvod
-
-                $oddelovac
-
-                Ahoj {$neplatic->jmenoNick()}, zaplať prosím všechny své objednávky, jinak Tě budeme muset za tři dny odhlásit z Gameconu $rocnik
-                TEXT,
-            );
-        $gcMail->odeslat(GcMail::FORMAT_TEXT);
+        $gcMail = $sablony
+            ->vytvorMail('varovani_brzke_odhlaseni_neplatic', ['jmeno' => (string)$neplatic->jmenoNick()])
+            ->adresat($neplatic->mail());
+        $gcMail->odeslat();
         $posledniGcMail = $gcMail;
         $pocetPotencialnichNeplaticu++;
     }
@@ -134,24 +123,14 @@ $hromadneOdhlaseniNeplaticu->zalogujNotifikovaniNeplaticuOBrzkemHromadnemOdhlase
 );
 
 $cfosEmaily = Uzivatel::cfosEmaily();
-(new GcMail($systemoveNastaveni))
+$sablony
+    ->vytvorMail('cfo_neplatici_varovani_odeslano', [
+        'pocet'           => $pocetPotencialnichNeplaticu,
+        'priklad_predmet' => $posledniGcMail?->dejPredmet() ?? '',
+        'priklad_text'    => $posledniGcMail?->dejText() ?? '',
+    ])
     ->adresati($cfosEmaily
         ?: ['info@gamecon.cz'])
-    ->predmet("{$pocetPotencialnichNeplaticu} neplatičům jsme právě odeslali bububu email")
-    ->text(<<<TEXT
-        {$pocetPotencialnichNeplaticu} potenciálním neplatičům jsme právě odeslali varovný email, že pokud nezaplatí včas, budeme je muset odhlásit z Gameconu.
-        
-        {$oddelovac}
-        
-        Příklad odeslaného emailu:
-        
-        {$posledniGcMail?->dejPredmet()}
-        
-        {$oddelovac}
-        
-        {$posledniGcMail?->dejText()}
-        TEXT,
-    )
-    ->odeslat(GcMail::FORMAT_TEXT);
+    ->odeslat();
 
 logs('E-maily s varováním neplatičům: e-maily odeslány');
