@@ -61,6 +61,7 @@ class Login
             'stylesheets' => [
                 __DIR__ . '/../../admin/files/login/login.css',
                 __DIR__ . '/../../admin/files/design/ribbon.css',
+                __DIR__ . '/../../admin/files/design/hint.css',
             ],
             'javascripts' => [
                 __DIR__ . '/../../admin/files/login/login.js',
