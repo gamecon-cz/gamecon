@@ -13,6 +13,7 @@ use App\Enum\ProductStateEnum;
 use App\Enum\ProductTagCode;
 use App\Repository\OrderItemRepository;
 use App\Repository\ProductRepository;
+use App\Repository\UserRoleRepository;
 use App\Service\CurrentYearProviderInterface;
 use App\Service\DiscountCalculator;
 use App\Service\ProductVariantsForGrid;
@@ -94,6 +95,7 @@ class MerchProductsProviderTest extends TestCase
             $currentYearProvider,
             new ProductVariantsForGrid($this->orderItemRepository, $this->zasoba),
             $this->createMock(SpentQuotaProvider::class),
+            $this->createMock(UserRoleRepository::class),
             $this->security,
             new NativeClock(),
             ChybovePreklady::translator(),
@@ -284,6 +286,7 @@ class MerchProductsProviderTest extends TestCase
             $currentYearProvider,
             new ProductVariantsForGrid($orderItemRepository, $this->zasoba),
             $this->createMock(SpentQuotaProvider::class),
+            $this->createMock(UserRoleRepository::class),
             $this->security,
             new NativeClock(),
             ChybovePreklady::translator(),

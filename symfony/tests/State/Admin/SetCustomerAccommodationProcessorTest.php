@@ -9,6 +9,7 @@ use App\Dto\Admin\SetCustomerAccommodationInputDto;
 use App\Dto\Cart\AccommodationOutputDto;
 use App\Entity\User;
 use App\Exception\InsufficientPermissionsException;
+use App\Repository\UserRoleRepository;
 use App\Service\AccommodationRules;
 use App\Service\AccommodationWriter;
 use App\Service\CurrentYearProviderInterface;
@@ -63,6 +64,11 @@ class SetCustomerAccommodationProcessorTest extends AbstractDatabaseKernelTestCa
     private array $sundayNightUsers = [];
 
     /**
+     * @var list<int> ids of users who are organizers this year
+     */
+    private array $organizerUsers = [];
+
+    /**
      * @var array<int, \Uzivatel> by id, so the operator and the customer cannot be mistaken for each other
      */
     private array $legacyUsers = [];
@@ -107,12 +113,19 @@ class SetCustomerAccommodationProcessorTest extends AbstractDatabaseKernelTestCa
                 && in_array($user->getId(), $this->sundayNightUsers, true),
         );
 
+        $userRoleRepository = $this->createMock(UserRoleRepository::class);
+        $userRoleRepository->method('isOrganizer')->willReturnCallback(
+            fn (User $user, int $year): bool => $year === $currentYear
+                && in_array($user->getId(), $this->organizerUsers, true),
+        );
+
         $this->processor = new SetCustomerAccommodationProcessor(
             $this->accommodationWriter,
             $accommodationRules,
             $container->get(CurrentYearProviderInterface::class),
             $this->security,
             $userPermissions,
+            $userRoleRepository,
             $this->legacySession,
             $this->accommodationGrid,
             $this->entityManager,
@@ -288,6 +301,35 @@ class SetCustomerAccommodationProcessorTest extends AbstractDatabaseKernelTestCa
                 self::anything(),
                 self::anything(),
                 self::identicalTo(true),
+                self::anything(),
+                self::anything(),
+                self::identicalTo(false),
+            );
+
+        $this->processor->process($this->input(), new Post());
+    }
+
+    /**
+     * Reserved beds are held back from the customer, not from whoever sits at the desk, so the
+     * organizer flag follows the customer.
+     */
+    public function testOrganizerStatusComesFromTheCustomerNotTheOperator(): void
+    {
+        $this->signInOperator();
+        $this->organizerUsers[] = self::OPERATOR_ID;
+        $this->customer();
+        $this->legacyCustomer();
+
+        $this->accommodationWriter
+            ->expects(self::once())
+            ->method('save')
+            ->with(
+                self::anything(),
+                self::anything(),
+                self::anything(),
+                self::anything(),
+                self::anything(),
+                self::anything(),
                 self::anything(),
                 self::anything(),
                 self::identicalTo(false),

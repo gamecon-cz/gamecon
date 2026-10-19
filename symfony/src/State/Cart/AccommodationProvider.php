@@ -16,6 +16,7 @@ use App\Entity\User;
 use App\Enum\ProductTagCode;
 use App\Repository\OrderItemRepository;
 use App\Repository\ProductRepository;
+use App\Repository\UserRoleRepository;
 use App\Service\AccommodationAvailability;
 use App\Service\AccommodationRules;
 use App\Service\BreakfastCanceller;
@@ -50,6 +51,7 @@ readonly class AccommodationProvider implements ProviderInterface, Accommodation
         private BreakfastCanceller $breakfastCanceller,
         private AccommodationRules $accommodationRules,
         private UserPermissions $userPermissions,
+        private UserRoleRepository $userRoleRepository,
         private Security $security,
         private AccommodationAvailability $availability,
         private TranslatorInterface $translator,
@@ -129,10 +131,10 @@ readonly class AccommodationProvider implements ProviderInterface, Accommodation
         }
 
         $viditelneDny = array_column($dto->days, 'day');
-        // Rezervace pro orgy jede na `User::isOrganizer()` — tentýž okruh rolí jako merch
-        // (`RoleMeaning::anyIsOrganizer`). Legacy `jeOrganizator()` zná jen 5 rolí z 15,
+        // Rezervace pro orgy jede na `UserRoleRepository::isOrganizer()` — tentýž okruh rolí jako merch
+        // (`RoleMeaning::organizerMeanings`). Legacy `jeOrganizator()` zná jen 5 rolí z 15,
         // takže vypravěč by dosáhl na tričko, ale ne na postel.
-        $jeOrganizator = $user->isOrganizer();
+        $jeOrganizator = $this->userRoleRepository->isOrganizer($user, $year);
         $dostupnost = $this->availability->proZakaznika($user, $year, $jeOrganizator);
 
         $sleepingBagsOnly = $this->accommodationRules->sleepingBagsOnly($user, $year);

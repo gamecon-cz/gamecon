@@ -11,7 +11,9 @@ use App\Dto\Cart\CartOutputDto;
 use App\Entity\ProductBundle;
 use App\Entity\ProductVariant;
 use App\Entity\User;
+use App\Repository\UserRoleRepository;
 use App\Service\CartService;
+use App\Service\CurrentYearProviderInterface;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\SecurityBundle\Security;
 use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
@@ -26,6 +28,8 @@ readonly class AddToCartProcessor implements ProcessorInterface
     public function __construct(
         private CartService $cartService,
         private EntityManagerInterface $entityManager,
+        private UserRoleRepository $userRoleRepository,
+        private CurrentYearProviderInterface $currentYearProvider,
         private Security $security,
         private TranslatorInterface $translator,
     ) {
@@ -36,7 +40,7 @@ readonly class AddToCartProcessor implements ProcessorInterface
         $user = $this->security->getUser();
         assert($user instanceof User);
 
-        $roleMeanings = $user->getRoleMeanings();
+        $roleMeanings = $this->userRoleRepository->validMeanings($user, $this->currentYearProvider->getCurrentYear());
         $cart = $this->cartService->getOrCreateCart($user);
 
         if ($data->bundleId !== null) {

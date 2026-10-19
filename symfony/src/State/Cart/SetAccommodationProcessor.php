@@ -10,6 +10,7 @@ use App\Dto\Cart\AccommodationOutputDto;
 use App\Dto\Cart\SetAccommodationInputDto;
 use App\Entity\User;
 use App\Exception\NoLongerAvailableException;
+use App\Repository\UserRoleRepository;
 use App\Service\AccommodationRules;
 use App\Service\AccommodationWriter;
 use App\Service\BreakfastCanceller;
@@ -32,6 +33,7 @@ readonly class SetAccommodationProcessor implements ProcessorInterface
         private BreakfastCanceller $breakfastCanceller,
         private AccommodationRules $accommodationRules,
         private UserPermissions $userPermissions,
+        private UserRoleRepository $userRoleRepository,
         private AccommodationProvider $accommodationProvider,
         private CurrentYearProviderInterface $currentYearProvider,
         private LegacySessionService $legacySession,
@@ -69,7 +71,7 @@ readonly class SetAccommodationProcessor implements ProcessorInterface
             $data->roommate,
             $data->declined,
             $this->accommodationRules->sleepingBagsOnly($user, $year),
-            jeOrganizator: $user->isOrganizer(),
+            jeOrganizator: $this->userRoleRepository->isOrganizer($user, $year),
             maySundayNight: $this->accommodationRules->maySundayNight($user, $year),
         );
 
