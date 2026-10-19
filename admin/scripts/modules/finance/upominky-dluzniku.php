@@ -5,9 +5,9 @@ use Gamecon\Kanaly\EmailovaSablona\EditorSablonyHtml;
 use Gamecon\Kanaly\EmailovaSablona\EmailovaSablonaKontrola;
 use Gamecon\Kanaly\EmailovaSablona\EmailovaSablonaValidator;
 use Gamecon\Kanaly\EmailovaSablona\EmailovaSablonaVykreslovac;
+use Gamecon\Kanaly\EmailovaSablona\NahledSablony;
 use Gamecon\Kanaly\EmailovaSablona\ProblemSablony;
 use Gamecon\Kanaly\EmailovaSablona\ProblemySablonHtml;
-use Gamecon\Kanaly\EmailovaSablona\RozkladSymbolu;
 use Gamecon\Kanaly\EmailovaSablona\SystemoveHodnotyProSablony;
 use Gamecon\Logger\JobResultLogger;
 use Gamecon\Role\Role;
@@ -74,31 +74,26 @@ if (get('zneni') !== null) {
         $nahled->assign('jmenoNick', htmlspecialchars((string) $u->jmenoNick(), ENT_QUOTES));
         $nahled->assign('mail', htmlspecialchars((string) $u->mail(), ENT_QUOTES));
 
-        if (RozkladSymbolu::jePrazdny($nahlizenyPredmet) || RozkladSymbolu::jePrazdny($nahlizenyText)) {
-            $nahled->assign('predmet', '(nevyplněno)');
-            $nahled->assign('zprava', 'Vyplň předmět i text, pak bude co ukázat.');
-        } else {
-            // Dluh je jediná hodnota, kterou si CFO nemůže vzít ze svého účtu -
-            // ukázkou je proto částka, od které se vůbec upomíná. QR kód se sem
-            // nedává: generuje se z reálného zůstatku, takže by u nezadluženého
-            // CFO ukazoval 0,10 Kč pod textem o téhle částce.
-            $ukazkovyDluh = (int) round($systemoveNastaveni->upominkaMinimalniCastka());
+        // Dluh je jediná hodnota, kterou si CFO nemůže vzít ze svého účtu -
+        // ukázkou je proto částka, od které se vůbec upomíná. QR kód se sem
+        // nedává: generuje se z reálného zůstatku, takže by u nezadluženého
+        // CFO ukazoval 0,10 Kč pod textem o téhle částce.
+        $ukazkovyDluh = (int) round($systemoveNastaveni->upominkaMinimalniCastka());
 
-            $vykresleno = (new EmailovaSablonaVykreslovac($systemoveHodnoty))->vykresli(
-                $definiceZneni,
-                $nahlizenyPredmet,
-                $nahlizenyText,
-                [
-                    'jmeno' => (string) $u->jmenoNick(),
-                    'vs'    => $u->id(),
-                    'dluh'  => $ukazkovyDluh,
-                    'a'     => $u->koncovkaDlePohlavi(),
-                ],
-            );
+        $vykresleno = (new NahledSablony(new EmailovaSablonaVykreslovac($systemoveHodnoty)))->vykresli(
+            $definiceZneni,
+            $nahlizenyPredmet,
+            $nahlizenyText,
+            [
+                'jmeno' => (string) $u->jmenoNick(),
+                'vs'    => $u->id(),
+                'dluh'  => $ukazkovyDluh,
+                'a'     => $u->koncovkaDlePohlavi(),
+            ],
+        );
 
-            $nahled->assign('predmet', htmlspecialchars($vykresleno->predmet, ENT_QUOTES));
-            $nahled->assign('zprava', htmlspecialchars($vykresleno->text, ENT_QUOTES));
-        }
+        $nahled->assign('predmet', htmlspecialchars($vykresleno->predmet, ENT_QUOTES));
+        $nahled->assign('zprava', htmlspecialchars($vykresleno->text, ENT_QUOTES));
 
         $nahled->parse('nahled');
         $nahled->out('nahled');
