@@ -417,6 +417,103 @@ describe('odeslání zkušebního e-mailu', () => {
   })
 })
 
+describe('zablikání tlačítka Otevřít schránku po odeslání testu', () => {
+  const ADRESA = 'foo@example.com'
+  const ADRESA_SCHRANKY = 'http://localhost:11112'
+  const BLIKA = 'editorSablony_schrankaBlika'
+  let fetchMock: ReturnType<typeof vi.fn>
+
+  const schranka = () => document.querySelector<HTMLButtonElement>('.editorSablony_schranka')!
+  const odpoved = (obsah: { ok: boolean; zprava: string }) => ({ ok: true, text: () => Promise.resolve(JSON.stringify(obsah)) })
+
+  /** Confirms the test e-mail in the dialog and lets the answer of the server be processed */
+  async function odesliTest() {
+    document.querySelector<HTMLButtonElement>('.editorSablony_test')!.click()
+    document.querySelector<HTMLButtonElement>('.editorSablony_testOdeslat')!.click()
+    await vi.advanceTimersByTimeAsync(0)
+  }
+
+  beforeEach(() => {
+    vi.useFakeTimers({ toFake: ['setTimeout', 'clearTimeout'] })
+    fetchMock = vi.fn().mockResolvedValue(odpoved({ ok: true, zprava: `Test odeslán na ${ADRESA}` }))
+    vi.stubGlobal('fetch', fetchMock)
+  })
+
+  afterEach(() => {
+    vi.useRealTimers()
+    vi.unstubAllGlobals()
+    document.body.innerHTML = ''
+  })
+
+  it('po úspěšném odeslání tlačítko zablikne', async () => {
+    await otevriEditor('Obnova hesla', 'Text', [], undefined, ADRESA, ADRESA_SCHRANKY)
+    expect(schranka().classList.contains(BLIKA)).toBe(false)
+
+    await odesliTest()
+
+    expect(schranka().classList.contains(BLIKA)).toBe(true)
+  })
+
+  it('zablikne dvakrát za sekundu: zelená 0,35 s, pauza 0,3 s, zelená 0,35 s, pak skončí', async () => {
+    await otevriEditor('Obnova hesla', 'Text', [], undefined, ADRESA, ADRESA_SCHRANKY)
+    await odesliTest()
+    const blika = () => schranka().classList.contains(BLIKA)
+    const blikaPoUplynuti = (milisekundy: number) => {
+      vi.advanceTimersByTime(milisekundy)
+      return blika()
+    }
+
+    expect(blika()).toBe(true)
+    expect(blikaPoUplynuti(349)).toBe(true) // 349 ms: first flash
+    expect(blikaPoUplynuti(1)).toBe(false) // 350 ms: pause begins
+    expect(blikaPoUplynuti(299)).toBe(false) // 649 ms: still the pause
+    expect(blikaPoUplynuti(1)).toBe(true) // 650 ms: second flash
+    expect(blikaPoUplynuti(349)).toBe(true) // 999 ms: still the second flash
+    expect(blikaPoUplynuti(1)).toBe(false) // 1000 ms: over
+    expect(blikaPoUplynuti(5000)).toBe(false)
+  })
+
+  it('při neúspěšném odeslání tlačítko nebliká, ve schránce nic nepřibylo', async () => {
+    fetchMock.mockResolvedValue(odpoved({ ok: false, zprava: 'E-mail se neodeslal, SMTP nereaguje.' }))
+    await otevriEditor('Obnova hesla', 'Text', [], undefined, ADRESA, ADRESA_SCHRANKY)
+
+    await odesliTest()
+
+    expect(document.querySelector('.editorSablony_testStav')!.textContent).toContain('SMTP nereaguje')
+    expect(schranka().classList.contains(BLIKA)).toBe(false)
+  })
+
+  it('další úspěšné odeslání blikání začne znovu od začátku, zbytek předchozího nevstoupí do nového', async () => {
+    await otevriEditor('Obnova hesla', 'Text', [], undefined, ADRESA, ADRESA_SCHRANKY)
+    await odesliTest()
+    vi.advanceTimersByTime(200)
+    expect(schranka().classList.contains(BLIKA)).toBe(true)
+
+    // sent again while the first flash is on: the first sequence would turn it off at 350 ms, i.e. 150 ms from now
+    await odesliTest()
+    vi.advanceTimersByTime(250)
+    expect(schranka().classList.contains(BLIKA)).toBe(true)
+
+    vi.advanceTimersByTime(100) // 350 ms of the new sequence: its pause
+    expect(schranka().classList.contains(BLIKA)).toBe(false)
+
+    vi.advanceTimersByTime(300) // 650 ms of the new sequence: its second flash
+    expect(schranka().classList.contains(BLIKA)).toBe(true)
+
+    vi.advanceTimersByTime(350) // 1000 ms of the new sequence
+    expect(schranka().classList.contains(BLIKA)).toBe(false)
+  })
+
+  it('bez tlačítka Otevřít schránku se po odeslání nic nestane a hláška se ukáže', async () => {
+    await otevriEditor('Obnova hesla', 'Text', [], undefined, ADRESA)
+
+    await odesliTest()
+
+    expect(document.querySelector('.editorSablony_schranka')).toBeNull()
+    expect(document.querySelector('.editorSablony_testStav')!.textContent).toBe(`Test odeslán na ${ADRESA}`)
+  })
+})
+
 describe('zvýraznění vloženého symbolu', () => {
   const zvyrazneni = () => document.querySelectorAll('.editorSablony_vlozeno')
 

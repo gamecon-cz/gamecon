@@ -103,6 +103,18 @@
   background: #d9e8ff;
 }
 
+/*
+ * The mailbox button after a test e-mail was sent (editor-sablony.js): the green of zablikej() as its background.
+ * A class and not a keyframe animation: Chromium keeps drawing the native gray button when only an animation sets the background.
+ */
+.editorSablony_schranka {
+  transition: background-color .1s linear;
+}
+
+.editorSablony_schrankaBlika {
+  background-color: #cdec94;
+}
+
 /* A box laid over a symbol that was just inserted into a field (editor-sablony.js); the green is the one of zablikej() */
 .editorSablony_zvyrazneni {
   position: absolute;
@@ -119,7 +131,7 @@
   animation: editorSablony_vlozeno 3s linear forwards;
 }
 
-/* 0.2 s fade in, 0.5 s fade out of the 3 s */
+/* 0.2 s fade in, 0.5 s fade out of the 3 s; the 3 s equal TRVANI_ZVYRAZNENI_MS in editor-sablony.js */
 @keyframes editorSablony_vlozeno {
   0% {
     opacity: 0;

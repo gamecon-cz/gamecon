@@ -121,6 +121,7 @@
 
     // --- highlight of the inserted symbol
 
+    // Equal to the duration of the animation of .editorSablony_vlozeno in editor-sablony.css
     const TRVANI_ZVYRAZNENI_MS = 3000
     let zvyrazneni = null
 
@@ -455,6 +456,23 @@
       stavTestu.classList.toggle('editorSablony_testStavChyba', jeChyba)
     }
 
+    // Moments of switching on and off in turn: two flashes in one second
+    const OKAMZIKY_BLIKANI_SCHRANKY_MS = [0, 350, 650, 1000]
+    let casovaceBlikaniSchranky = []
+
+    /** Draws the eye to the mailbox once the test e-mail has landed in it; a sequence still running starts over */
+    function zablikejSchranku() {
+      if (!tlacitkoSchranky) {
+        return
+      }
+      casovaceBlikaniSchranky.forEach(clearTimeout)
+      casovaceBlikaniSchranky = OKAMZIKY_BLIKANI_SCHRANKY_MS.map(function (okamzik, poradi) {
+        return setTimeout(function () {
+          tlacitkoSchranky.classList.toggle('editorSablony_schrankaBlika', poradi % 2 === 0)
+        }, okamzik)
+      })
+    }
+
     function odesliTest() {
       const udaje = new FormData()
       udaje.append('predmet', predmetPole.value)
@@ -484,6 +502,9 @@
             return
           }
           ukazStavTestu(vysledek.zprava, !vysledek.ok)
+          if (vysledek.ok) {
+            zablikejSchranku()
+          }
         })
         .catch(function (chyba) {
           ukazStavTestu('Test se nepodařilo odeslat: ' + chyba.message, true)
