@@ -1,4 +1,4 @@
-import { pražskýDenVTýdnu, pražskýDenVMěsíci, pražskýMěsíc } from "./czech-time";
+import { pražskýDenVTýdnu } from "./czech-time";
 
 /** Dny v týdnu bez diakritiky. Začíná pondeli. Pro háčky použít funkci doplňHáčkyDoDne */
 export const DNY_NÁZVY = [
@@ -46,14 +46,4 @@ export const formátujDenVTýdnu = (datum: Date | number, háčky = false) => {
   return háčky ? doplňHáčkyDoDne(denText) : denText;
 };
 
-/** datum ve tvaru "denVTýdnuNázev denVMesíci.měsíc" */
-export const formátujDatum = (datum: Date, pouzeText = false) => {
-  const denText = formátujDenVTýdnu(datum, true);
-  if (pouzeText) return denText;
-
-  const den = pražskýDenVMěsíci(datum);
-  const měsíc = pražskýMěsíc(datum);
-
-  return `${denText} ${den}.${měsíc}.`;
-};
 

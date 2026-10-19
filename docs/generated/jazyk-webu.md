@@ -35,8 +35,16 @@ Plán celé dvojjazyčnosti a co ještě chybí: [docs/dvojjazycny-web.md](../dv
 - `tests/Model/Jazyk/PrekladyKatalogTest.php` hlídá: stejné klíče ve všech jazycích, každý `t('…')` a `{t:…}` v kódu je v katalogu, v katalogu nic nepoužitého, stejné parametry a platné ICU. Klíč skládaný za běhu (`t('menu.' . $x)`) test nenajde, proto ho nepiš.
 - Preact: `ui/src/i18n/en.ts` je typovaný `Slovník`, takže chybějící klíč zastaví `tsc` (a tedy build). Parametry `{nazev}`.
 
+## Data, typografie a klíče
+
+- `DateTimeCz::format()` vrací dny česky vždy, i na anglické stránce. Jeho výstup je i klíč (slugy dnů programu v `web/moduly/program.php::nazevStranky()`, párování dnů v importu aktivit), proto se nepřepíná. Text pro člověka skládá `model/Cas/DatumVJazyce.php` přes `IntlDateFormatter` (`denVTydnu()`, `denAMesic()`, `denAMesicSCasem()`); na něm stojí i `datum3()` a `datum4()`.
+- `relativni()` a `relativniVBudoucnu()` zůstávají česky, používá je jen admin a cron.
+- `markdown($text, $jazyk)`: `$jazyk` je jazyk **textu**, ne stránky (česká záloha na anglické stránce dostane české uvozovky). Podle něj `Smartyp` volí typografii a cache markdownu má pro angličtinu vlastní skupinu (`kvs('markdown-en', …)`), protože výstup stejného textu se liší.
+- Preact: klíče skupin v tabulce programu i slugy dnů v URL zůstávají česky (`formátujDenVTýdnu`). Zobrazuje se přes `ui/src/i18n/datum.ts` (`popisekSkupiny()`, `názevDneVTýdnu()`, `formátujDatumProČtenáře()`).
+
 ## Gotchas
 
-- Slugy dnů programu (`/program/patek`) jsou klíče a musí zůstat česky i v angličtině. `web/moduly/program.php::nazevStranky()` je dnes skládá z `format('l')`, což je česky jen díky `DateTimeCzTrait::format()`.
+- Slugy dnů programu (`/program/patek`) jsou klíče a musí zůstat česky i v angličtině. `nazevStranky()` je skládá z `format('l')`, viz výše.
+- Logika legacy e-shopu stojí na českých názvech předmětů (`Shop::bezDne()`, `'Spacák'`, `LIKE 'Snídaně%'`). Nevadí to, dokud se názvy jen zobrazují; anglické názvy předmětů patří až do nového e-shopu z PR #1058.
 - Chybová stránka `model/Vyjimkovac/vyjimkovac-omluva.xtpl` má `lang="cs"` natvrdo; přepnout až spolu s překladem jejího textu.
 - Testy webu přes HTTP (`tests/web/AnglickyWebTest.php`, `StrankyWebuTest` projde všechny moduly i pod `/en/`) běží proti Apachi v kontejneru `web` s testovací DB přes cookie.
