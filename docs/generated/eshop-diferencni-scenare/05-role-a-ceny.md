@@ -28,6 +28,7 @@ Role se přiřazují v adminu (`/admin/uzivatel`), na **obou** větvích stejně
 | `PUL_ORG_TRICKO` | sleva jen na tričko, práva 100+101 | půlorg |
 | `CESTNY_ORGANIZATOR` | právo 1037 | |
 | `MINI_ORG` | právo 1037 | |
+| *role jen z minulého ročníku* (např. `GC2025_VYPRAVEC`, letos nic) | žádné organizátorské výsady: zadržená zásoba, merch ani postel navíc, jako běžný účastník | legacy čte jen platné role; celé populaci to ověří `bin-diff/porovnej-role.sh` |
 
 ## Co projít u každé role
 
@@ -55,8 +56,13 @@ Role se přiřazují v adminu (`/admin/uzivatel`), na **obou** větvích stejně
 
 ```bash
 bin-diff/porovnej.sh <id_uzivatele>     # cena_nakupni musí sedět na haléř
+bin-diff/porovnej-role.sh               # významy rolí všech uživatelů = legacy pohled; viz playbook
 ```
 
 ## Zjištěno
 
-<!-- co se lišilo, s klasifikací -->
+- **Role jen z minulého ročníku se brala jako organizátorská** ([issue #1365](https://github.com/gamecon-cz/gamecon/issues/1365)).
+  Matice výše přiděluje účtům jen role letošního ročníku, takže ruční průchod nenarazil na nikoho,
+  kdo má roli jen z minulého. Odhalilo to až porovnání přes všechny uživatele.
+- **Role s významem `DOBROVOLNIK_SENIOR` (jen minulé ročníky) nešly načíst** — enum `RoleMeaning`
+  takový případ neměl. Test nad databází z migrací ho vidět nemůže, v záloze produkce je.

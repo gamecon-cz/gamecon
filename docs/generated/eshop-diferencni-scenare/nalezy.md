@@ -14,6 +14,7 @@ Klasifikace: **záměrné** (víme a chceme) · **chyba** (na opravu) · **nezji
 | [#1151](https://github.com/gamecon-cz/gamecon/issues/1151) | N13 | zamčená matice jídla neřekne proč |
 | [#1152](https://github.com/gamecon-cz/gamecon/issues/1152) | N13 | zrušená snídaně nejde vrátit při různých termínech |
 | [#1153](https://github.com/gamecon-cz/gamecon/issues/1153) | M1 | `TRETI_VLNA_KDY` je na rok 2024 |
+| [#1365](https://github.com/gamecon-cz/gamecon/issues/1365) | N14 | nová vrstva bere za organizátora i toho, kdo měl roli jen v minulých ročnících |
 
 | # | scénář | co se liší | A (legacy) | B (nový) | klasifikace |
 |---|---|---|---|---|---|
@@ -26,6 +27,8 @@ Klasifikace: **záměrné** (víme a chceme) · **chyba** (na opravu) · **nezji
 | N8 | 5 | **brigádník platí za jídlo plnou cenu** | Oběd/Večeře 110, Snídaně 150 | 140 / 180 — jako člověk bez role | **neplatí** — sleva funguje, chyba měření (viz rozbor) |
 | N9 | 5 | předmět „Nicknack" (80 Kč) nová větev vůbec nenabízí | nabízí u všech rolí | chybí u všech rolí | **neplatí** — termín kategorie merche, netýká se konkrétního předmětu |
 | N5 | 2 | `findByTag()` neaplikuje `nabizet_do` | — | ubytování i jídlo se nabízí i po termínu produktu | **částečně opraveno** — jídlo vyřešeno v `MealProductsProvider`; zbytek [issue #1150](https://github.com/gamecon-cz/gamecon/issues/1150) |
+| N14 | 5 | role jen z minulého ročníku se berou jako organizátorské | běžný účastník | organizátor: zadržená zásoba, merch, postel navíc | **opraveno** — [issue #1365](https://github.com/gamecon-cz/gamecon/issues/1365); hlídá `bin-diff/porovnej-role.sh` a `CartApiTest` |
+| N15 | 5 | role s významem `DOBROVOLNIK_SENIOR` (jen minulé ročníky) nejdou načíst | role se načte | `MappingException`: enum `RoleMeaning` takový případ nemá | **opraveno** — případ doplněn (není organizátor); hlídá `bin-diff/porovnej-role.sh` |
 
 ## Mimo e-shop, ale zjištěno cestou
 
