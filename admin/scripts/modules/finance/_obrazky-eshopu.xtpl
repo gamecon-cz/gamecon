@@ -1,0 +1,67 @@
+<!-- begin:obrazkyEshopu -->
+<h2 id="obrazky-eshopu">Obrázky e-shopu v přihlášce (ročník {rocnik})</h2>
+
+<p>
+  Galerie pod e-shopem v přihlášce ukazuje všechny obrázky z tohoto seznamu, seřazené podle názvu souboru.
+  Číslo na začátku názvu určuje pořadí a do popisku se nepíše (<code>08_Účastnické triko</code> → „Účastnické triko“).
+  Nahrání obrázku se stejným názvem původní obrázek nahradí.
+</p>
+
+<table class="zvyraznovana obrazky-eshopu">
+  <tr>
+    <th>Náhled</th>
+    <th>Soubor</th>
+    <th>Popisek v přihlášce</th>
+    <th></th>
+  </tr>
+  <!-- begin:obrazek -->
+  <tr>
+    <td><a href="{url}" target="_blank" rel="noopener"><img src="{nahled}" alt=""></a></td>
+    <td>
+      {soubor}
+      <!-- begin:nezobrazi -->
+      <br><span class="obrazky-eshopu__varovani">Přihláška ho neukáže, umí jen JPG, PNG a GIF.</span>
+      <!-- end:nezobrazi -->
+    </td>
+    <td>{popisek}</td>
+    <td>
+      <form method="post" onsubmit="return confirm('Opravdu smazat tento obrázek?')">
+        <input type="hidden" name="obrazkyEshopuAkce" value="smazat">
+        <input type="hidden" name="soubor" value="{soubor}">
+        <button type="submit">Smazat</button>
+      </form>
+    </td>
+  </tr>
+  <!-- end:obrazek -->
+  <!-- begin:zadny -->
+  <tr>
+    <td colspan="4"><i>Zatím tu žádný obrázek není, přihláška galerii nezobrazí.</i></td>
+  </tr>
+  <!-- end:zadny -->
+</table>
+
+<form method="post" enctype="multipart/form-data" class="obrazky-eshopu__nahrat">
+  <input type="hidden" name="obrazkyEshopuAkce" value="nahrat">
+  <label>Obrázek <input type="file" name="obrazekEshopu" accept="{accept}" required></label>
+  <label>Název <input type="text" name="nazev" placeholder="např. 08_Účastnické triko" maxlength="100"></label>
+  <button type="submit">Nahrát</button>
+  <div class="tip">{limit}. Bez vyplněného názvu se použije název nahrávaného souboru.</div>
+</form>
+
+<style>
+    .obrazky-eshopu img {
+        max-width: 120px;
+        max-height: 80px;
+    }
+
+    .obrazky-eshopu__varovani {
+        color: #c00;
+    }
+
+    .obrazky-eshopu__nahrat {
+        margin: 1em 0 2em;
+        padding: 0.5em 1em;
+        background-color: rgba(215, 246, 170, 0.47);
+    }
+</style>
+<!-- end:obrazkyEshopu -->
