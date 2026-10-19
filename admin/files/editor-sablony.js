@@ -1,6 +1,6 @@
 /**
  * E-mail subject and text editor: symbol suggestions after typing `%`, the Insert symbol button,
- * live checking while typing and the Edit / Preview switch.
+ * live checking while typing, the Edit / Preview switch and the question before leaving with unsaved changes.
  *
  * Nobody writes the symbol list by hand, it comes from the server in <script type="application/json">.
  * The server always decides, the check here is only a convenience.
@@ -247,6 +247,8 @@
       })
       pole.addEventListener('input', function (udalost) {
         zkontrolujPozdeji()
+        odesilaSe = false
+        srovnejVarovaniPredOdchodem()
         // Undo, paste and drag-and-drop are not typing: the suggestions would open over text the author was not
         // currently typing, and the next Enter would insert a symbol instead of a new line.
         if (/^(history|insertFromPaste|insertFromDrop)/.test(udalost.inputType || '')) {
@@ -370,12 +372,47 @@
       })
     })
 
+    // --- leaving with unsaved changes
+
+    // The defaults are what the server rendered; the current values may already be refilled by the browser from before
+    // the page was left (Firefox before this script runs, Chrome after it and without an input event).
+    // A save that failed on the server leaves the typed text only in this form, even though it looks like the saved one.
+    const ulozeniSelhalo = hlaskyServeru !== null
+    let odesilaSe = false
+
+    function maNeulozeneZmeny() {
+      return ulozeniSelhalo
+        || predmetPole.value !== predmetPole.defaultValue
+        || textPole.value !== textPole.defaultValue
+    }
+
+    function zeptejSePredOdchodem(udalost) {
+      udalost.preventDefault()
+      udalost.returnValue = true // Chrome and Edge before 119 ask only when this is set too
+    }
+
+    // Registered only while there is something to lose: Firefox does not keep a page with this listener in its back/forward cache.
+    function srovnejVarovaniPredOdchodem() {
+      if (maNeulozeneZmeny() && !odesilaSe) {
+        window.addEventListener('beforeunload', zeptejSePredOdchodem)
+      } else {
+        window.removeEventListener('beforeunload', zeptejSePredOdchodem)
+      }
+    }
+
     formular.addEventListener('submit', function (udalost) {
       if (zkontroluj().length > 0) {
         udalost.preventDefault()
+        return
       }
+      odesilaSe = true
+      srovnejVarovaniPredOdchodem()
     })
 
+    // Chrome refills the form on Back only after the scripts have run, and fires no event for it
+    window.addEventListener('pageshow', srovnejVarovaniPredOdchodem)
+
+    srovnejVarovaniPredOdchodem()
     zkontroluj()
   }
 }())
