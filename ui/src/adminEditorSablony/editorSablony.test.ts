@@ -416,3 +416,91 @@ describe('odeslání zkušebního e-mailu', () => {
     expect(tlacitkoTestu().disabled).toBe(true)
   })
 })
+
+describe('zvýraznění vloženého symbolu', () => {
+  const zvyrazneni = () => document.querySelectorAll('.editorSablony_vlozeno')
+
+  /** Picks the first symbol of the list the Insert symbol button opens, with the caret at the given place of the text */
+  function vlozZDialogu(textPole: HTMLTextAreaElement, pozice: number) {
+    textPole.focus()
+    textPole.setSelectionRange(pozice, pozice)
+    document.querySelector<HTMLButtonElement>('.editorSablony_vlozit')!.click()
+    document.querySelector<HTMLElement>('.editorSablony_radekSymbolu')!.click()
+  }
+
+  afterEach(() => {
+    vi.useRealTimers()
+    vi.unstubAllGlobals()
+    document.body.innerHTML = ''
+  })
+
+  it('symbol vybraný v seznamu se vloží a zvýrazní', async () => {
+    const { textPole } = await otevriEditor('Obnova hesla', 'Ahoj ')
+
+    vlozZDialogu(textPole, 5)
+
+    expect(textPole.value).toBe('Ahoj %jmeno%')
+    expect(zvyrazneni()).toHaveLength(1)
+  })
+
+  it('symbol vybraný z našeptávače po napsání procenta se zvýrazní také', async () => {
+    const { textPole } = await otevriEditor('Obnova hesla', 'Ahoj ')
+    pis(textPole, 'Ahoj %jm')
+
+    document
+      .querySelector<HTMLElement>('.editorSablony_polozka')!
+      .dispatchEvent(new MouseEvent('mousedown', { bubbles: true, cancelable: true }))
+
+    expect(textPole.value).toBe('Ahoj %jmeno%')
+    expect(zvyrazneni()).toHaveLength(1)
+  })
+
+  it('zvýraznění po třech sekundách zmizí', async () => {
+    const { textPole } = await otevriEditor('Obnova hesla', 'Ahoj ')
+    vi.useFakeTimers()
+
+    vlozZDialogu(textPole, 5)
+    vi.advanceTimersByTime(2999)
+    expect(zvyrazneni()).toHaveLength(1)
+
+    vi.advanceTimersByTime(1)
+    expect(zvyrazneni()).toHaveLength(0)
+  })
+
+  it('další vložený symbol zvýraznění předchozího nahradí, nepřibývá jich', async () => {
+    const { textPole } = await otevriEditor('Obnova hesla', 'Ahoj ')
+
+    vlozZDialogu(textPole, 5)
+    vlozZDialogu(textPole, 5)
+
+    expect(zvyrazneni()).toHaveLength(1)
+  })
+
+  it('úprava textu před symbolem zvýraznění zruší, protože by ukazovalo jinam', async () => {
+    const { textPole } = await otevriEditor('Obnova hesla', 'Ahoj ')
+    vlozZDialogu(textPole, 5)
+
+    pis(textPole, 'X' + textPole.value)
+
+    expect(zvyrazneni()).toHaveLength(0)
+  })
+
+  it('psaní za symbolem zvýraznění nechá', async () => {
+    const { textPole } = await otevriEditor('Obnova hesla', 'Ahoj ')
+    vlozZDialogu(textPole, 5)
+
+    pis(textPole, textPole.value + ', jak se máš?')
+
+    expect(zvyrazneni()).toHaveLength(1)
+  })
+
+  it('přepnutí na náhled zvýraznění zruší, pole je pak skryté', async () => {
+    vi.stubGlobal('fetch', vi.fn().mockResolvedValue({ ok: true, text: () => Promise.resolve('<div data-editor-sablony-nahled></div>') }))
+    const { textPole } = await otevriEditor('Obnova hesla', 'Ahoj ')
+    vlozZDialogu(textPole, 5)
+
+    document.querySelector<HTMLButtonElement>('.editorSablony_rezim[data-rezim="nahled"]')!.click()
+
+    expect(zvyrazneni()).toHaveLength(0)
+  })
+})

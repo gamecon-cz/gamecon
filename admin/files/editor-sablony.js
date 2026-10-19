@@ -116,6 +116,82 @@
         pole.setRangeText(text, zacatek, konec, 'end')
         pole.dispatchEvent(new Event('input', {bubbles: true}))
       }
+      zvyrazniVlozeny(pole, zacatek, text)
+    }
+
+    // --- highlight of the inserted symbol
+
+    const TRVANI_ZVYRAZNENI_MS = 3000
+    let zvyrazneni = null
+
+    function zrusZvyrazneni() {
+      if (!zvyrazneni) {
+        return
+      }
+      clearTimeout(zvyrazneni.casovac)
+      zvyrazneni.kontejner.remove()
+      zvyrazneni = null
+    }
+
+    /**
+     * The text of a field cannot be styled in part, so a coloured box is laid over the place where the symbol landed.
+     * The box sits in the offset parent of the field, so it moves with the page, and is clipped to the field.
+     */
+    function zvyrazniVlozeny(pole, zacatek, text) {
+      zrusZvyrazneni()
+      const kontejner = document.createElement('div')
+      kontejner.className = 'editorSablony_zvyrazneni'
+      kontejner.setAttribute('aria-hidden', 'true')
+      const znacka = document.createElement('div')
+      znacka.className = 'editorSablony_vlozeno'
+      kontejner.appendChild(znacka)
+      ;(pole.offsetParent || document.body).appendChild(kontejner)
+      zvyrazneni = {
+        pole: pole,
+        zacatek: zacatek,
+        text: text,
+        kontejner: kontejner,
+        znacka: znacka,
+        casovac: setTimeout(zrusZvyrazneni, TRVANI_ZVYRAZNENI_MS),
+      }
+      umistiZvyrazneni()
+    }
+
+    function umistiZvyrazneni() {
+      if (!zvyrazneni) {
+        return
+      }
+      const pole = zvyrazneni.pole
+      // An edit before the symbol moved it, or the field is hidden: the box would mark the wrong place
+      if (pole.hidden || pole.value.substr(zvyrazneni.zacatek, zvyrazneni.text.length) !== zvyrazneni.text) {
+        zrusZvyrazneni()
+        return
+      }
+      const styl = window.getComputedStyle(pole)
+      const kontejner = zvyrazneni.kontejner.style
+      kontejner.left = (pole.offsetLeft + (parseFloat(styl.borderLeftWidth) || 0)) + 'px'
+      kontejner.top = (pole.offsetTop + (parseFloat(styl.borderTopWidth) || 0)) + 'px'
+      kontejner.width = pole.clientWidth + 'px'
+      kontejner.height = pole.clientHeight + 'px'
+      const obdelnik = obdelnikTextu(pole, zvyrazneni.zacatek, zvyrazneni.zacatek + zvyrazneni.text.length)
+      const znacka = zvyrazneni.znacka.style
+      znacka.left = obdelnik.left + 'px'
+      znacka.top = obdelnik.top + 'px'
+      znacka.width = obdelnik.sirka + 'px'
+      znacka.height = obdelnik.vyska + 'px'
+    }
+
+    ;[predmetPole, textPole].forEach(function (pole) {
+      pole.addEventListener('input', umistiZvyrazneni)
+      pole.addEventListener('scroll', umistiZvyrazneni)
+    })
+    window.addEventListener('resize', umistiZvyrazneni)
+    // The text can move without any of these events: a field resized by its drag handle, a message above it appearing or going away
+    if (window.ResizeObserver) {
+      const sledovatelVelikosti = new ResizeObserver(umistiZvyrazneni)
+      ;[koren, predmetPole, textPole].forEach(function (uzel) {
+        sledovatelVelikosti.observe(uzel)
+      })
     }
 
     function vlozSymbolNaKurzor(pole, nazevSymbolu) {
@@ -125,12 +201,13 @@
 
     // --- suggestions
 
-    function souradniceKurzoru(pole, pozice) {
+    /** A hidden copy of the field that lays out its text the same way, to measure where a place of the text lands */
+    function zrcadloPole(pole) {
       const styl = window.getComputedStyle(pole)
       const zrcadlo = document.createElement('div')
       ;['boxSizing', 'width', 'borderTopWidth', 'borderRightWidth', 'borderBottomWidth', 'borderLeftWidth',
         'paddingTop', 'paddingRight', 'paddingBottom', 'paddingLeft', 'fontFamily', 'fontSize', 'fontWeight',
-        'fontStyle', 'letterSpacing', 'textTransform', 'wordSpacing', 'textIndent', 'lineHeight', 'tabSize',
+        'fontStyle', 'letterSpacing', 'textTransform', 'wordSpacing', 'textIndent', 'textAlign', 'lineHeight', 'tabSize',
       ].forEach(function (vlastnost) {
         zrcadlo.style[vlastnost] = styl[vlastnost]
       })
@@ -140,6 +217,18 @@
       zrcadlo.style.left = '-9999px'
       zrcadlo.style.whiteSpace = pole.tagName === 'TEXTAREA' ? 'pre-wrap' : 'pre'
       zrcadlo.style.wordWrap = 'break-word'
+      if (pole.tagName === 'TEXTAREA') {
+        // A classic scrollbar takes width from the text, and the copy has none: without this it wraps lines later than the field
+        zrcadlo.style.boxSizing = 'content-box'
+        zrcadlo.style.width = Math.max(0, pole.clientWidth - parseFloat(styl.paddingLeft) - parseFloat(styl.paddingRight)) + 'px'
+      }
+
+      return zrcadlo
+    }
+
+    function souradniceKurzoru(pole, pozice) {
+      const styl = window.getComputedStyle(pole)
+      const zrcadlo = zrcadloPole(pole)
       zrcadlo.textContent = pole.value.substring(0, pozice)
       const znacka = document.createElement('span')
       znacka.textContent = pole.value.substring(pozice) || '.'
@@ -149,6 +238,26 @@
         left: znacka.offsetLeft - pole.scrollLeft,
         top: znacka.offsetTop - pole.scrollTop,
         vyska: parseFloat(styl.lineHeight) || parseFloat(styl.fontSize) * 1.3,
+      }
+      document.body.removeChild(zrcadlo)
+
+      return vysledek
+    }
+
+    /** @return {{left: number, top: number, sirka: number, vyska: number}} relative to the padding box of the field */
+    function obdelnikTextu(pole, zacatek, konec) {
+      const zrcadlo = zrcadloPole(pole)
+      zrcadlo.textContent = pole.value.substring(0, zacatek)
+      const znacka = document.createElement('span')
+      znacka.textContent = pole.value.substring(zacatek, konec)
+      zrcadlo.appendChild(znacka)
+      zrcadlo.appendChild(document.createTextNode(pole.value.substring(konec)))
+      document.body.appendChild(zrcadlo)
+      const vysledek = {
+        left: znacka.offsetLeft - pole.scrollLeft,
+        top: znacka.offsetTop - pole.scrollTop,
+        sirka: znacka.offsetWidth,
+        vyska: znacka.offsetHeight,
       }
       document.body.removeChild(zrcadlo)
 
@@ -418,6 +527,9 @@
         prepinac.classList.toggle('editorSablony_aktivniRezim', prepinac.dataset.rezim === rezim)
       })
       const nahled = rezim === 'nahled'
+      if (nahled) {
+        zrusZvyrazneni()
+      }
       textPole.hidden = nahled
       tlacitkoVlozit.disabled = nahled
       nahledOkno.hidden = !nahled
