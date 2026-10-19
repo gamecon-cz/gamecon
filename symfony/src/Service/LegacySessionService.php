@@ -26,15 +26,14 @@ class LegacySessionService
     }
 
     /**
-     * Any user by id, not just the one signed in — the admin desk acts for someone else, and
-     * the permissions that decide what may be booked live only on the legacy user.
+     * Any user by id, not just the one signed in — the admin desk acts for someone else.
      */
     public function getUserById(int $id): ?\Uzivatel
     {
         $this->initializeLegacyEnvironment();
 
-        // Uncached: the permissions this object carries decide what may be booked, and the
-        // cache is a process-static that would outlive a revocation in a worker.
+        // Uncached: the process-static cache would hand a long-lived worker the object as it
+        // was before a write.
         return \Uzivatel::zId($id);
     }
 

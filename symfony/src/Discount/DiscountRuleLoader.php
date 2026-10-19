@@ -89,6 +89,8 @@ final class DiscountRuleLoader implements ResetInterface
 
     /**
      * @return int[] id_prava the user holds for that year
+     *
+     * @see \App\Repository\UserRoleRepository::holdsAnyMeaning() the same validity, for role meanings
      */
     public function rightsOfUser(int $userId, int $year): array
     {

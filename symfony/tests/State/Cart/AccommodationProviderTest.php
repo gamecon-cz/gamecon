@@ -58,6 +58,8 @@ class AccommodationProviderTest extends TestCase
 
     private bool $maySingleNight = false;
 
+    private ?User $signedInUser = null;
+
     private AccommodationProvider $provider;
 
     private ?SystemoveNastaveni $puvodniNastaveni = null;
@@ -87,12 +89,15 @@ class AccommodationProviderTest extends TestCase
         $this->breakfastCanceller->method('restorable')->willReturn([]);
         $this->accommodationRules = $this->createMock(AccommodationRules::class);
         $this->accommodationRules->method('sleepingBagsOnly')
-            ->willReturnCallback(fn (): bool => $this->sleepingBagsOnly);
-        // Answers for one right only: a blanket stub would pass even if the grid asked about
-        // some other permission.
+            ->willReturnCallback(fn (User $user, int $year): bool => $this->sleepingBagsOnly
+                && $user === $this->signedInUser
+                && $year === self::ROK);
+        // Answers for one right only, about the signed-in user: a blanket stub would pass even
+        // if the grid asked about some other permission or some other person.
         $userPermissions = $this->createMock(UserPermissions::class);
         $userPermissions->method('has')->willReturnCallback(
             fn (User $user, int $permission, int $year): bool => $this->maySingleNight
+                && $user === $this->signedInUser
                 && $permission === Pravo::UBYTOVANI_MUZE_OBJEDNAT_JEDNU_NOC
                 && $year === self::ROK,
         );
@@ -181,8 +186,8 @@ class AccommodationProviderTest extends TestCase
         $this->security->method('getUser')->willReturn($this->createMock(User::class));
         $this->legacySession->method('getCurrentUser')->willReturn(null);
 
-        // Degrading to "no rights" would silently drop an organizer's Sunday night
-        // behind a 200, so the endpoint has to refuse instead.
+        // The roommate and the decline are read off the legacy user, so without one the grid
+        // would silently show neither behind a 200.
         $this->expectException(AccessDeniedHttpException::class);
 
         $this->provider->provide(new Get());
@@ -361,6 +366,7 @@ class AccommodationProviderTest extends TestCase
         $user = $this->createMock(User::class);
         // Rezervace pro orgy jede na `User::isOrganizer()` — tentýž okruh rolí jako merch.
         $user->method('isOrganizer')->willReturn($jeOrganizator);
+        $this->signedInUser = $user;
         $this->security->method('getUser')->willReturn($user);
 
         $legacyUzivatel = $this->createMock(\Uzivatel::class);

@@ -39,7 +39,7 @@ class AccommodationRules
 
     public function __construct(
         private readonly UserPermissions $permissions,
-        private readonly UserRoleRepository $roles,
+        private readonly UserRoleRepository $userRoleRepository,
     ) {
     }
 
@@ -48,9 +48,8 @@ class AccommodationRules
      */
     public function maySundayNight(User $user, int $year): bool
     {
-        return $this->permissions->has($user, Pravo::UBYTOVANI_NEDELNI_NOC_NABIZET, $year)
-            || $this->permissions->has($user, Pravo::UBYTOVANI_NEDELNI_NOC_ZDARMA, $year)
-            || $this->roles->holdsAnyMeaning($user, self::LEGACY_ORGANIZER_MEANINGS, $year);
+        return $this->permissions->hasAny($user, [Pravo::UBYTOVANI_NEDELNI_NOC_NABIZET, Pravo::UBYTOVANI_NEDELNI_NOC_ZDARMA], $year)
+            || $this->userRoleRepository->holdsAnyMeaning($user, self::LEGACY_ORGANIZER_MEANINGS, $year);
     }
 
     /**
@@ -66,6 +65,6 @@ class AccommodationRules
 
     public function isEntitledToBed(User $user, int $year): bool
     {
-        return $this->roles->holdsAnyMeaning($user, self::ENTITLED_TO_BED_MEANINGS, $year);
+        return $this->userRoleRepository->holdsAnyMeaning($user, self::ENTITLED_TO_BED_MEANINGS, $year);
     }
 }
