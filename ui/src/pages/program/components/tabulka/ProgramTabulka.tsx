@@ -72,6 +72,7 @@ export const ProgramTabulka: FunctionComponent<ProgramTabulkaProps> = (
     urlStavVýběr.typ === "můj"
     || urlStav.filtrLinie?.length
     || urlStav.filtrTagy?.length
+    || urlStav.filtrJazyk?.length
     || urlStav.filtrText
     || urlStav.filtrStavAktivit?.length
     || urlStav.filtrPřihlašovatelné

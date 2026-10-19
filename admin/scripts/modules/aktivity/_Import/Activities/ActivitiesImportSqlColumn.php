@@ -29,6 +29,7 @@ class ActivitiesImportSqlColumn
     public const TEAM_KAPACITA = 'team_kapacita'; // int null comment 'max. počet týmů na aktivitě',
     public const POPIS         = 'popis'; // longtext not null — markdown, přímo text (dříve FK do odstraněné tabulky `texty`)
     public const POPIS_KRATKY  = 'popis_kratky'; // varchar(255) not null,
+    public const JAZYK         = 'jazyk'; // varchar(16) not null default 'cs', viz JazykAktivity
     public const VYBAVENI      = 'vybaveni'; // text not null,
     public const ID_TURNAJE    = 'id_turnaje'; // int unsigned null, FK do turnaje
     public const TURNAJ_KOLO   = 'turnaj_kolo'; // tinyint unsigned null, číslo kola v turnaji
@@ -61,6 +62,7 @@ class ActivitiesImportSqlColumn
             self::TEAM_KAPACITA,
             self::POPIS,
             self::POPIS_KRATKY,
+            self::JAZYK,
             self::VYBAVENI,
             self::ID_TURNAJE,
             self::TURNAJ_KOLO,

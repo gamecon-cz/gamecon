@@ -2,6 +2,7 @@
 
 use Gamecon\Aktivita\Aktivita;
 use Gamecon\Aktivita\FiltrAktivity;
+use Gamecon\Aktivita\JazykAktivity;
 use Gamecon\Aktivita\KontaktSefaLinie;
 use Gamecon\Aktivita\Program;
 use Gamecon\Aktivita\RocnikyAktivit;
@@ -198,6 +199,11 @@ foreach ($skupiny as $skupina) {
         $t->parse('aktivity.nahled.vypraveci');
     }
 
+    if ($aktivita->jazyk() !== JazykAktivity::CESKY) {
+        $t->assign('jazyk', $aktivita->jazyk()->nazev());
+        $t->parse('aktivity.aktivita.jazyk');
+        $t->parse('aktivity.nahled.jazyk');
+    }
     $t->parseEach($aktivita->tagy(), 'stitek', 'aktivity.aktivita.stitek');
     $t->parseEach($aktivita->tagy(), 'stitek', 'aktivity.nahled.stitek');
     $t->parse('aktivity.aktivita');

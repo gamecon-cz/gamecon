@@ -30,6 +30,7 @@ class AkceSeznamSqlStruktura
     public const TYM_SMAZAT_PO_EXPIRACI = 'tym_smazat_po_expiraci';
     public const POPIS            = 'popis';
     public const POPIS_KRATKY     = 'popis_kratky';
+    public const JAZYK            = 'jazyk';
     public const VYBAVENI         = 'vybaveni';
     public const PROBEHLA_KOREKCE    = 'probehla_korekce';
     public const ID_HLAVNI_LOKACE   = 'id_hlavni_lokace';

@@ -5,6 +5,7 @@ export * from "./tranformace";
 export * from "./async";
 export * from "./czech-time";
 export * from "./nazevTymu";
+export * from "./jazykAktivity";
 
 export const tryParseNumber = (str: string | null): number | undefined => {
   if (str == null || str === "") return;

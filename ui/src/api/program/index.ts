@@ -53,6 +53,13 @@ export type ApiObsazenost = {
   kt?: number,
 }
 
+/**
+ * Gamecon\Aktivita\JazykAktivity – v jakém jazyce aktivita probíhá
+ *  - "cs-en": vypravěč ji povede česky, nebo anglicky podle hráčů
+ *  - "nezavisla": jazyk nehraje roli
+ */
+export type JazykAktivity = "cs" | "en" | "cs-en" | "nezavisla";
+
 export type OdDo = {
   od: number,
   do: number,
@@ -74,6 +81,8 @@ export type ApiAktivitaNepřihlášen = {
   casText: string,
   cas: OdDo,
   linie: string,
+  /** chybí v datech vygenerovaných před zavedením jazyka aktivity, pak jde o "cs" */
+  jazyk?: JazykAktivity,
   turnajId?: number;
   turnajKolo?: number;
   vBudoucnu?: boolean,

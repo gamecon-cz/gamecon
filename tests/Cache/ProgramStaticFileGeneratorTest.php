@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Gamecon\Tests\Cache;
 
 use App\Kernel;
+use Gamecon\Aktivita\JazykAktivity;
 use Gamecon\Aktivita\SqlStruktura\AkceSeznamSqlStruktura as Sql;
 use Gamecon\Aktivita\SqlStruktura\TypAktivitySqlStruktura as TypSql;
 use Gamecon\Aktivita\StavAktivity;
@@ -741,6 +742,29 @@ class ProgramStaticFileGeneratorTest extends AbstractTestDb
         foreach ($manifest as $filename) {
             self::assertFileExists($programDir . '/' . $filename);
         }
+    }
+
+    /**
+     * @test
+     * Program podle jazyka filtruje a vypisuje štítek, takže ho JSON musí nést.
+     */
+    public function generateAktivityObsahujeJazykAktivity(): void
+    {
+        $idAnglicke = $this->insertAktivita([
+            Sql::NAZEV_AKCE => 'Anglický larp',
+            Sql::JAZYK      => JazykAktivity::ANGLICKY->value,
+        ]);
+        $idBezJazyka = $this->insertAktivita([
+            Sql::NAZEV_AKCE => 'Aktivita bez zadaného jazyka',
+        ]);
+
+        $generator = $this->createGenerator();
+        $filename = $generator->generateActivities(self::ROK);
+        $data = json_decode(file_get_contents($this->publicCacheDir . '/program/' . $filename), true);
+        $jazykPodleId = array_column($data, 'jazyk', 'id');
+
+        self::assertSame('en', $jazykPodleId[$idAnglicke] ?? null);
+        self::assertSame('cs', $jazykPodleId[$idBezJazyka] ?? null, 'Výchozí jazyk aktivity je čeština.');
     }
 
     /**

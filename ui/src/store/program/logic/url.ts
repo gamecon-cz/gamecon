@@ -1,4 +1,5 @@
 import { AktivitaStav } from "../../../api/program";
+import { JazykFiltru } from "../../../utils/jazykAktivity";
 import { GAMECON_KONSTANTY } from "../../../env";
 import { formátujDenVTýdnu, pražskýRok, pražskýMěsíc, pražskýDenVMěsíci, pražskýDenVTýdnu } from "../../../utils";
 import { denAktivity } from "./aktivity";
@@ -24,6 +25,7 @@ export type ProgramURLStav = {
   aktivitaNáhledId?: number,
   filtrLinie?: string[],
   filtrTagy?: number[],
+  filtrJazyk?: JazykFiltru[],
   filtrStavAktivit?: AktivitaStav[],
   filtrText?: string,
   /** ADMIN */
@@ -90,6 +92,7 @@ export const URL_STATE_VÝCHOZÍ_STAV: ProgramURLStav = Object.freeze({
 const NÁHLED_QUERY_KEY = "idAktivityNahled";
 const LINIE_QUERY_KEY = "linie";
 const TAGY_QUERY_KEY = "tagy";
+const JAZYK_QUERY_KEY = "jazyk";
 const PŘIHLAŠOVATELNÉ_QUERY_KEY = "pouzePrihlasovatelne";
 const VOLNÉ_QUERY_KEY = "pouzeVolne";
 const ROCNIK_QUERY_KEY = "rocnik";
@@ -110,6 +113,7 @@ const párováníQueryDoStavu: {
   { stavString: "aktivitaNáhledId", query: NÁHLED_QUERY_KEY },
   { stavString: "filtrLinie", query: LINIE_QUERY_KEY },
   { stavString: "filtrTagy", query: TAGY_QUERY_KEY },
+  { stavString: "filtrJazyk", query: JAZYK_QUERY_KEY },
   { stavString: "filtrStavAktivit", query: STAVY_QUERY_KEY },
   { stavString: "filtrText", query: TEXT_QUERY_KEY },
   { stavString: "podleMístnosti", query: PODLE_MÍSTNOSTI_QUERY_KEY },
