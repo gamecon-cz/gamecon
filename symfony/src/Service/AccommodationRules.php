@@ -63,7 +63,7 @@ class AccommodationRules
             && ! $this->isEntitledToBed($user, $year);
     }
 
-    public function isEntitledToBed(User $user, int $year): bool
+    private function isEntitledToBed(User $user, int $year): bool
     {
         return $this->userRoleRepository->holdsAnyMeaning($user, self::ENTITLED_TO_BED_MEANINGS, $year);
     }

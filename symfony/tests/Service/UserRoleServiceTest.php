@@ -10,6 +10,7 @@ use App\Entity\UserRole;
 use App\Entity\UserRoleLog;
 use App\Enum\RoleChangeType;
 use App\Enum\RoleMeaning;
+use App\Enum\RoleTypeEnum;
 use App\Repository\UserRoleRepository;
 use App\Service\CurrentYearProviderInterface;
 use App\Service\RoleHistoryRecalculator;
@@ -174,7 +175,7 @@ class UserRoleServiceTest extends TestCase
         $role->setNazevRole('Test Role');
         $role->setPopisRole('');
         $role->setRocnikRole(-1);
-        $role->setTypRole('trvala');
+        $role->setTypRole(RoleTypeEnum::PERMANENT);
         $role->setVyznamRole($meaning);
 
         return $role;

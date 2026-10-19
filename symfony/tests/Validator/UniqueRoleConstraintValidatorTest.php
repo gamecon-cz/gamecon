@@ -8,6 +8,7 @@ use App\Entity\Role;
 use App\Entity\User;
 use App\Entity\UserRole;
 use App\Enum\RoleMeaning;
+use App\Enum\RoleTypeEnum;
 use App\Repository\RolePermissionRepository;
 use App\Repository\UserRoleRepository;
 use App\Validator\UniqueRoleConstraint;
@@ -139,7 +140,7 @@ class UniqueRoleConstraintValidatorTest extends TestCase
         $role->setNazevRole($meaning->value);
         $role->setPopisRole('');
         $role->setRocnikRole(-1);
-        $role->setTypRole('trvala');
+        $role->setTypRole(RoleTypeEnum::PERMANENT);
         $role->setVyznamRole($meaning);
 
         $user = $this->createMock(User::class);

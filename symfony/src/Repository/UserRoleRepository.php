@@ -7,6 +7,7 @@ namespace App\Repository;
 use App\Entity\User;
 use App\Entity\UserRole;
 use App\Enum\RoleMeaning;
+use App\Enum\RoleTypeEnum;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\DBAL\ArrayParameterType;
 use Doctrine\ORM\AbstractQuery;
@@ -48,11 +49,6 @@ class UserRoleRepository extends ServiceEntityRepository
      */
     private const int ANY_YEAR = -1;
 
-    /**
-     * @see \Gamecon\Role\Role::TYP_UCAST
-     */
-    private const string ROLE_TYPE_PARTICIPATION = 'ucast';
-
     public function __construct(ManagerRegistry $registry)
     {
         parent::__construct($registry, UserRole::class);
@@ -85,7 +81,7 @@ class UserRoleRepository extends ServiceEntityRepository
             ->setParameter('meanings', array_map(static fn (RoleMeaning $meaning): string => $meaning->value, $meanings), ArrayParameterType::STRING)
             ->setParameter('year', $year)
             ->setParameter('anyYear', self::ANY_YEAR)
-            ->setParameter('participationType', self::ROLE_TYPE_PARTICIPATION)
+            ->setParameter('participationType', RoleTypeEnum::PARTICIPATION)
             ->setMaxResults(1)
             ->getQuery()
             ->getOneOrNullResult(AbstractQuery::HYDRATE_SINGLE_SCALAR) !== null;

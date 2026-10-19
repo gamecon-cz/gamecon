@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Service;
 
+use App\Enum\RoleTypeEnum;
 use Doctrine\DBAL\Connection;
 
 /**
@@ -13,8 +14,6 @@ use Doctrine\DBAL\Connection;
  */
 class RoleHistoryRecalculator
 {
-    private const string ROLE_TYPE_PERMANENT = 'trvala';
-
     public function __construct(
         private readonly Connection $connection,
     ) {
@@ -41,7 +40,7 @@ class RoleHistoryRecalculator
                 ]),
             );
 
-            $typTrvala = self::ROLE_TYPE_PERMANENT;
+            $typTrvala = RoleTypeEnum::PERMANENT->value;
             $userConditionLog = $userId !== null ? 'AND prihlaseni.id_uzivatele = :userId' : '';
 
             $this->connection->executeStatement(

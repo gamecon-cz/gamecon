@@ -442,7 +442,7 @@ class EntityLegacyComparisonTest extends AbstractTestDb
             RoleEntityStructure::nazevRole     => 'Test Role ' . uniqid(),
             RoleEntityStructure::popisRole     => 'Test role description',
             RoleEntityStructure::rocnikRole    => 2024,
-            RoleEntityStructure::typRole       => 'trvala',
+            RoleEntityStructure::typRole       => \App\Enum\RoleTypeEnum::PERMANENT,
             RoleEntityStructure::vyznamRole    => \App\Enum\RoleMeaning::HERMAN,
             RoleEntityStructure::skryta        => false,
             RoleEntityStructure::kategorieRole => 1,
@@ -466,7 +466,7 @@ class EntityLegacyComparisonTest extends AbstractTestDb
         $this->assertEquals($symfonyRole->getNazevRole(), $legacyData['nazev_role']);
         $this->assertEquals($symfonyRole->getPopisRole(), $legacyData['popis_role']);
         $this->assertEquals($symfonyRole->getRocnikRole(), $legacyData['rocnik_role']);
-        $this->assertEquals($symfonyRole->getTypRole(), $legacyData['typ_role']);
+        $this->assertEquals($symfonyRole->getTypRole()->value, $legacyData['typ_role']);
         $this->assertEquals($symfonyRole->getVyznamRole()->value, $legacyData['vyznam_role']);
         $this->assertEquals($symfonyRole->isSkryta(), (bool) $legacyData['skryta']);
         $this->assertEquals($symfonyRole->getKategorieRole(), $legacyData['kategorie_role']);

@@ -6,6 +6,7 @@ namespace App\Tests\Repository;
 
 use App\Entity\User;
 use App\Enum\RoleMeaning;
+use App\Enum\RoleTypeEnum;
 use App\Repository\UserRoleRepository;
 use App\Tests\AbstractDatabaseKernelTestCase;
 use Gamecon\Role\Role;
@@ -23,40 +24,40 @@ class UserRoleRepositoryTest extends AbstractDatabaseKernelTestCase
 
     public function testRoleOfNoYearCounts(): void
     {
-        $this->role(self::ROLE_OF_NO_YEAR, Role::JAKYKOLI_ROCNIK, Role::TYP_TRVALA, RoleMeaning::MINI_ORG);
+        $this->role(self::ROLE_OF_NO_YEAR, Role::JAKYKOLI_ROCNIK, RoleTypeEnum::PERMANENT, RoleMeaning::MINI_ORG);
 
         self::assertTrue($this->holds(self::ROLE_OF_NO_YEAR, RoleMeaning::MINI_ORG));
     }
 
     public function testParticipationRoleOfAnyYearCounts(): void
     {
-        $this->role(self::PARTICIPATION_ROLE_OF_PAST_YEAR, ROCNIK - 1, Role::TYP_UCAST, RoleMeaning::PRIHLASEN);
+        $this->role(self::PARTICIPATION_ROLE_OF_PAST_YEAR, ROCNIK - 1, RoleTypeEnum::PARTICIPATION, RoleMeaning::PRIHLASEN);
 
         self::assertTrue($this->holds(self::PARTICIPATION_ROLE_OF_PAST_YEAR, RoleMeaning::PRIHLASEN));
     }
 
     public function testRoleOfPastYearDoesNotCount(): void
     {
-        $this->role(self::ROLE_OF_PAST_YEAR, ROCNIK - 1, Role::TYP_ROCNIKOVA, RoleMeaning::VYPRAVEC);
+        $this->role(self::ROLE_OF_PAST_YEAR, ROCNIK - 1, RoleTypeEnum::YEARLY, RoleMeaning::VYPRAVEC);
 
         self::assertFalse($this->holds(self::ROLE_OF_PAST_YEAR, RoleMeaning::VYPRAVEC));
     }
 
     public function testRoleOfLaterYearDoesNotCount(): void
     {
-        $this->role(self::ROLE_OF_LATER_YEAR, ROCNIK + 1, Role::TYP_ROCNIKOVA, RoleMeaning::VYPRAVEC);
+        $this->role(self::ROLE_OF_LATER_YEAR, ROCNIK + 1, RoleTypeEnum::YEARLY, RoleMeaning::VYPRAVEC);
 
         self::assertFalse($this->holds(self::ROLE_OF_LATER_YEAR, RoleMeaning::VYPRAVEC));
     }
 
     public function testOtherMeaningDoesNotCount(): void
     {
-        $this->role(self::ROLE_OF_NO_YEAR, Role::JAKYKOLI_ROCNIK, Role::TYP_TRVALA, RoleMeaning::MINI_ORG);
+        $this->role(self::ROLE_OF_NO_YEAR, Role::JAKYKOLI_ROCNIK, RoleTypeEnum::PERMANENT, RoleMeaning::MINI_ORG);
 
         self::assertFalse($this->holds(self::ROLE_OF_NO_YEAR, RoleMeaning::CFO));
     }
 
-    private function role(int $roleId, int $year, string $type, RoleMeaning $meaning): void
+    private function role(int $roleId, int $year, RoleTypeEnum $type, RoleMeaning $meaning): void
     {
         $this->connection()->executeStatement(
             "INSERT INTO role_seznam (id_role, kod_role, nazev_role, popis_role, rocnik_role, typ_role, vyznam_role)
@@ -65,7 +66,7 @@ class UserRoleRepositoryTest extends AbstractDatabaseKernelTestCase
                 'role'    => $roleId,
                 'code'    => 'TEST_REPO_' . abs($roleId),
                 'year'    => $year,
-                'type'    => $type,
+                'type'    => $type->value,
                 'meaning' => $meaning->value,
             ],
         );
