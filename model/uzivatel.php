@@ -1018,6 +1018,8 @@ SQL,
             throw new Chyba('Heslo nemůže být kvůli technikým omezením delší než 72 znaků');
         }
         $novyHash = password_hash($noveHeslo, PASSWORD_DEFAULT);
+        // Before the hash is written, so a failure leaves the old password and its tokens together.
+        revokeJwtsForUser($this);
         self::zalogujZmenuOsobnichUdaju(
             $this->id(),
             [Sql::HESLO_MD5 => $novyHash],
@@ -2234,6 +2236,8 @@ SQL,
             // Stejným zápisem jako hash, aby nevzniklo okno s novým heslem a starým tokenem.
             if ($u) {
                 $dbTab['random'] = randHex(20);
+                // Before the hash is written, so a failure leaves the old password and its tokens together.
+                revokeJwtsForUser($u);
             }
         }
 

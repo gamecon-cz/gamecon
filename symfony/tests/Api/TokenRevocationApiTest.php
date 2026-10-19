@@ -14,8 +14,8 @@ use Firebase\JWT\JWT;
 use Gamecon\Tests\Factory\UserFactory;
 
 /**
- * What logging out does to the tokens the admin pages already handed out: every one stops
- * working at once, and a token issued afterwards works again.
+ * What logging out or changing the password does to the tokens the admin pages already handed
+ * out: every one stops working at once, and a token issued afterwards works again.
  */
 class TokenRevocationApiTest extends AbstractDatabaseKernelTestCase
 {
@@ -58,6 +58,46 @@ class TokenRevocationApiTest extends AbstractDatabaseKernelTestCase
         }
 
         self::assertSame(401, $this->get($token)->getStatusCode());
+    }
+
+    /**
+     * `Uzivatel::heslo()` is where the emailed reset link ends.
+     */
+    public function testPasswordResetByLinkRevokesTheUsersTokens(): void
+    {
+        $user = $this->user();
+        $token = $this->tokenFor($user);
+        self::assertSame(200, $this->get($token)->getStatusCode());
+
+        \Uzivatel::zId((int) $user->getId())->heslo('new-password-from-reset');
+
+        self::assertSame(401, $this->get($token)->getStatusCode());
+    }
+
+    public function testPasswordChangeInTheProfileRevokesTheUsersTokens(): void
+    {
+        $user = $this->user();
+        $token = $this->tokenFor($user);
+        self::assertSame(200, $this->get($token)->getStatusCode());
+
+        \Uzivatel::zId((int) $user->getId())->uprav([
+            'heslo'          => 'new-password-from-profile',
+            'heslo_kontrola' => 'new-password-from-profile',
+        ]);
+
+        self::assertSame(401, $this->get($token)->getStatusCode());
+    }
+
+    public function testEditingOtherDataLeavesTheUsersTokensWorking(): void
+    {
+        $user = $this->user();
+        $token = $this->tokenFor($user);
+
+        \Uzivatel::zId((int) $user->getId())->uprav([
+            'jmeno_uzivatele' => 'Changed',
+        ]);
+
+        self::assertSame(200, $this->get($token)->getStatusCode());
     }
 
     public function testEveryTokenHandedOutBeforeTheLogoutStopsWorking(): void
