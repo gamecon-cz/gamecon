@@ -2,6 +2,8 @@
 
 declare(strict_types=1);
 
+use Gamecon\Jazyk\AktualniJazyk;
+use Gamecon\Jazyk\Jazyk;
 use Gamecon\XTemplate\XTemplate;
 use Symfony\Component\Filesystem\Filesystem;
 
@@ -18,6 +20,26 @@ class XTemplateTest extends PHPUnit\Framework\TestCase
         foreach (glob(__DIR__ . '/resources/*.xtpc') ?: [] as $cacheSoubor) {
             unlink($cacheSoubor);
         }
+    }
+
+    public function testPrekladVJazycePozadavku()
+    {
+        try {
+            AktualniJazyk::nastav(Jazyk::ANGLICTINA);
+            $template = new XTemplate(__DIR__ . '/resources/preklad.xtpl');
+            $template->parse('page');
+            $anglicky = $template->text('page');
+
+            AktualniJazyk::nastav(Jazyk::CESTINA);
+            $template->parse('page');
+            $cesky = $template->text('page');
+        } finally {
+            AktualniJazyk::reset();
+        }
+
+        self::assertStringContainsString('>programme<', $anglicky);
+        self::assertStringContainsString('>program<', $cesky, 'Jedna zkompilovaná šablona slouží všem jazykům.');
+        self::assertStringContainsString('{t:x}', $cesky, 'Bez tečky v klíči nejde o překlad, ale třeba o objekt v JS.');
     }
 
     public function testOne()

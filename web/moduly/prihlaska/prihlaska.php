@@ -100,7 +100,7 @@ if (!$u) {
         $sessionVyprsela
             ? 'Mezitím došlo k odhlášení, takže se přihláška neuložila. Přihlas se prosím znovu a odešli ji ještě jednou.'
             : 'Tato stránka vyžaduje přihlášení',
-        URL_WEBU . '/prihlaseni',
+        urlWebu('prihlaseni'),
         Chyba::VAROVANI
     );
 }
@@ -266,7 +266,7 @@ if ($u->gcPrihlasen()) {
             $t->assign('uspesneNahrano', 'prihlaska_uspesneNahrano');
             $t->parse('prihlaska.prihlasen.potvrzeniZakonnyZastupce.nahrano');
         }
-        $t->assign('urlWebu', URL_WEBU);
+        $t->assign('urlWebu', rtrim(urlWebu(), '/'));
         $t->assign('rocnik', $systemoveNastaveni->rocnik());
         $t->parse('prihlaska.prihlasen.potvrzeniZakonnyZastupce');
     }

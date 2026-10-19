@@ -10,6 +10,8 @@ use Gamecon\Cache\ProgramStaticFileGenerator;
 use Gamecon\Cache\ProgramStaticFileType;
 use Gamecon\Cas\DateTimeCz;
 use Gamecon\Cas\DateTimeGamecon;
+use Gamecon\Jazyk\AktualniJazyk;
+use Gamecon\Jazyk\Jazyk;
 use Gamecon\Kanaly\EmailovaSablona\EmailoveSablony;
 use Gamecon\Kanaly\GcMail;
 use Gamecon\Logger\Zaznamnik;
@@ -1009,6 +1011,24 @@ SQL,
     public function zpusobZobrazeniNaWebu(): ZpusobZobrazeniNaWebu
     {
         return ZpusobZobrazeniNaWebu::zHodnoty($this->r[Sql::ZPUSOB_ZOBRAZENI_NA_WEBU] ?? null);
+    }
+
+    /**
+     * Jazyk, ve kterém uživatel používá web. Píšou se v něm i e-maily, které jdou mimo jeho request.
+     */
+    public function jazyk(): Jazyk
+    {
+        return Jazyk::tryFrom((string)($this->r[Sql::JAZYK] ?? ''))
+            ?? Jazyk::vychozi();
+    }
+
+    public function nastavJazyk(Jazyk $jazyk): void
+    {
+        dbQuery(
+            'UPDATE uzivatele_hodnoty SET jazyk = $0 WHERE id_uzivatele = $1',
+            [0 => $jazyk->value, 1 => $this->id()],
+        );
+        $this->r[Sql::JAZYK] = $jazyk->value;
     }
 
     /** Vrátí řetězec s jménem i nickemu uživatele jak se zobrazí např. u
@@ -2176,6 +2196,8 @@ SQL,
         if (! $u) {
             $dbTab['random'] = randHex(20);
             $dbTab['registrovan'] = (new DateTimeCz())->formatDb();
+            // nový účet dostane jazyk, ve kterém se registroval
+            $dbTab[Sql::JAZYK] = AktualniJazyk::jazyk()->value;
         }
 
         // odstranění polí, co nebudou v DB
@@ -2306,6 +2328,7 @@ SQL,
         $tab[Sql::POTVRZENI_ZAKONNEHO_ZASTUPCE] = null;
         $tab[Sql::FORMULAR_CIZINCE_OD] = null; // nullable DATE, prázdný string by byl nevalidní
         $tab[Sql::ZPUSOB_ZOBRAZENI_NA_WEBU] ??= ZpusobZobrazeniNaWebu::vychozi()->value;
+        $tab[Sql::JAZYK] ??= AktualniJazyk::jazyk()->value;
         foreach (Sql::sloupce() as $sloupec) {
             if (! array_key_exists($sloupec, $tab)) {
                 $tab[$sloupec] = '';

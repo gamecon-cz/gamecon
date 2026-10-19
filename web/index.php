@@ -3,6 +3,8 @@
 declare(strict_types=1);
 
 use Gamecon\Aktivita\TypAktivity;
+use Gamecon\Jazyk\AktualniJazyk;
+use Gamecon\Jazyk\JazykPozadavku;
 use Gamecon\Vyjimkovac\Vyjimkovac;
 use Gamecon\Web\Info;
 use Gamecon\XTemplate\XTemplate;
@@ -17,6 +19,9 @@ if (HTTPS_ONLY) {
 omezCsrf();
 
 $u = Uzivatel::zSession();
+
+// Jazyk podle prefixu cesty (/en/…). Odtrhne ho z $_GET['req'], takže routery níž pracují s cestou bez něj.
+JazykPozadavku::zGlobals()->zpracuj($u);
 
 /** @var Gamecon\SystemoveNastaveni\SystemoveNastaveni $systemoveNastaveni */
 
@@ -98,7 +103,8 @@ $t->assign([
     'chyba'        => Chyba::vyzvedniHtml(),
     'menu'         => $menu,
     'obsah'        => $m->vystup(),
-    'base'         => URL_WEBU . '/',
+    'base'         => urlWebu(),
+    'jazyk'        => AktualniJazyk::jazyk()->value,
     'info'         => $m->info() ? $m->info()->html() : '',
     'letosniRok'   => date('Y'),
 ]);

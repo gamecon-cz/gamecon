@@ -1,9 +1,9 @@
 <!-- begin: index -->
 <!DOCTYPE html>
-<html lang="cs">
+<html lang="{jazyk}">
 <head>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="description" content="Největší festival nepočítačových her. Na Gameconu si najde každý fanoušek aktivní zábavy a nepočítačových her to svoje, bez ohledu na věk.">
+    <meta name="description" content="{t:web.popis}">
     <base href="{base}">
     {FILE "sablony/blackarrow/fonty.xtpl"}
     <link rel="stylesheet" href="../../soubory/blackarrow/_spolecne/details.css">
@@ -32,11 +32,11 @@
         </div>
         <div class="paticka_odkazy">
             <!-- begin: qrka -->
-            <a href="qrka">QR k sockám</a>
+            <a href="qrka">{t:paticka.qr_k_sockam}</a>
             <!-- end: qrka -->
-            <a href="sponzori">sponzoři</a>
-            <a href="kontakty">kontakt</a>
-            <a href="drd">Archiv mDrD</a>
+            <a href="sponzori">{t:paticka.sponzori}</a>
+            <a href="kontakty">{t:paticka.kontakt}</a>
+            <a href="drd">{t:paticka.archiv_mdrd}</a>
             <a href="discord" target="_blank" class="paticka_ext paticka_discord">Discord</a>
             <a href="instagram" target="_blank" class="paticka_ext paticka_instagram">Instagram</a>
             <a href="youtube" target="_blank" class="paticka_ext paticka_youtube">Youtube</a>

@@ -59,7 +59,7 @@ if ($gcPrihlasen && ! $jizUplatneno && post('kod')) {
 $this->blackarrowStyl(true);
 $this->info()->nazev('Uplatnění slevového poukazu');
 
-$t->assign('urlWebu', URL_WEBU);
+$t->assign('urlWebu', rtrim(urlWebu(), '/'));
 
 if (! $prihlasen) {
     $t->parse('poukaz.neprihlasen');

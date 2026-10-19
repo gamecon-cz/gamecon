@@ -26,14 +26,14 @@ function nazevStranky(?string $slug): string {
     }
 
     if (!$slug) {
-        return 'Program ' . reset($dny)->format('l');
+        return t('program.nadpis.den', ['den' => reset($dny)->format('l')]);
     }
 
     if ($slug === 'muj') {
-        return 'Můj program';
+        return t('program.nadpis.muj');
     }
     if (isset($dny[$slug])) {
-        return 'Program ' . $dny[$slug]->format('l');
+        return t('program.nadpis.den', ['den' => $dny[$slug]->format('l')]);
     }
 
     throw new \Nenalezeno();

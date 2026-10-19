@@ -1,6 +1,7 @@
 import { AktivitaStav } from "../../../api/program";
 import { JazykFiltru } from "../../../utils/jazykAktivity";
 import { GAMECON_KONSTANTY } from "../../../env";
+import { t } from "../../../i18n";
 import { formátujDenVTýdnu, pražskýRok, pražskýMěsíc, pražskýDenVMěsíci, pražskýDenVTýdnu } from "../../../utils";
 import { denAktivity } from "./aktivity";
 
@@ -257,7 +258,7 @@ export const porovnejTabulkaVýběr = (v1: ProgramTabulkaVýběr, v2: ProgramTab
  */
 export const nadpisProgramu = (výběr: ProgramTabulkaVýběr): string =>
   výběr.typ === "můj"
-    ? "Můj program"
+    ? t("program.nadpis.muj")
     : výběr.typ === "všechny_dny"
-    ? "Program – všechny dny"
-    : `Program ${formátujDenVTýdnu(výběr.datum, true)}`;
+    ? t("program.nadpis.vsechny_dny")
+    : t("program.nadpis.den", { den: formátujDenVTýdnu(výběr.datum, true) });

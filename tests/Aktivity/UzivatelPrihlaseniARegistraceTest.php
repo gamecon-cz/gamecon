@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace Gamecon\Tests\Aktivity;
 
+use Gamecon\Jazyk\AktualniJazyk;
+use Gamecon\Jazyk\Jazyk;
 use Gamecon\Role\Role;
 use Gamecon\Tests\Db\AbstractTestDb;
 use Gamecon\Uzivatel\Registrace;
@@ -248,6 +250,23 @@ class UzivatelPrihlaseniARegistraceTest extends AbstractTestDb
             ZpusobZobrazeniNaWebu::POUZE_PREZDIVKA->value,
             (int) \Uzivatel::zId($id)->rawDb()[Sql::ZPUSOB_ZOBRAZENI_NA_WEBU],
         );
+    }
+
+    public function testRegistraceUloziJazykPozadavku(): void
+    {
+        AktualniJazyk::nastav(Jazyk::ANGLICTINA);
+        try {
+            $id = \Uzivatel::registruj($this->uzivatel([
+                Sql::LOGIN_UZIVATELE  => 'anglicky.' . uniqid('', true),
+                Sql::EMAIL1_UZIVATELE => 'anglicky.' . uniqid('', true) . '@example.com',
+            ]));
+            $idRychloregistrace = \Uzivatel::rychloregistrace(\Gamecon\SystemoveNastaveni\SystemoveNastaveni::zGlobals());
+        } finally {
+            AktualniJazyk::reset();
+        }
+
+        self::assertSame(Jazyk::ANGLICTINA, \Uzivatel::zId($id)->jazyk());
+        self::assertSame(Jazyk::ANGLICTINA, \Uzivatel::zId($idRychloregistrace)->jazyk());
     }
 
     public function testRegistrujeOdmitneNeplatnyZpusobZobrazeniNaWebu(): void

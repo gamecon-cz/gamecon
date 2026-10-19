@@ -2,6 +2,9 @@
 
 namespace Gamecon\Web;
 
+use Gamecon\Jazyk\AktualniJazyk;
+use Gamecon\Jazyk\Jazyk;
+use Gamecon\Jazyk\JazykPozadavku;
 use Gamecon\Prostredi\Prostredi;
 use Gamecon\SystemoveNastaveni\SystemoveNastaveni;
 
@@ -47,8 +50,32 @@ class Info
             $o[] = '<meta property="og:image" content="' . $e . '">';
         }
         $o[] = '<meta property="og:type" content="website">';
+        $o[] = '<meta property="og:locale" content="' . AktualniJazyk::jazyk()->locale() . '">';
+        array_push($o, ...$this->alternativniJazyky());
 
         return implode("\n", $o);
+    }
+
+    /**
+     * Odkazy na tutéž stránku v ostatních jazycích, aby ji vyhledávače nabízely ve správném jazyce.
+     *
+     * @return list<string>
+     */
+    private function alternativniJazyky(): array
+    {
+        $jazykPozadavku = JazykPozadavku::aktualni();
+        if ($jazykPozadavku === null) {
+            return [];
+        }
+        $odkazy = [];
+        foreach (Jazyk::cases() as $jazyk) {
+            $odkazy[] = '<link rel="alternate" hreflang="' . $jazyk->value . '" href="'
+                . htmlspecialchars($jazykPozadavku->urlVJazyce($jazyk, false)) . '">';
+        }
+        $odkazy[] = '<link rel="alternate" hreflang="x-default" href="'
+            . htmlspecialchars($jazykPozadavku->urlVJazyce(Jazyk::vychozi(), false)) . '">';
+
+        return $odkazy;
     }
 
     /**

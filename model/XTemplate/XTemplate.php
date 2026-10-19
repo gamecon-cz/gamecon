@@ -167,6 +167,10 @@ class XTemplate
      */
     protected function convertVariables(string $text)
     {
+        // {t:menu.program} – text rozhraní v jazyce požadavku, viz t(). Překládá se až při vykreslení,
+        // takže zkompilovaná šablona je jedna pro všechny jazyky. Klíč má vždy aspoň jednu tečku,
+        // aby se to nepletlo s objekty v inline JS.
+        $text = preg_replace('@{t:([a-z][a-z0-9_]*(?:\.[a-z][a-z0-9_]*)+)}@', '<?=t(\'$1\')?>', $text);
         $text = preg_replace('@{([a-zA-Z][a-zA-Z0-9_]*)}@', '<?=isset($this->context["$1"])?$this->context["$1"]:\'\'?>', $text);
         $text = preg_replace('@{([a-zA-Z]+)\.([a-zA-Z_]+)}@', '<?=$this->context["$1"]->$2()?>', $text);
         $text = preg_replace('@{([a-zA-Z]+)\.([a-zA-Z]+)\.([a-zA-Z]+)}@', '<?=$this->context["$1"]->$2()->$3()?>', $text);

@@ -10,21 +10,21 @@
 
       <div class="menu_uzivatel">
         <!-- begin: neprihlasen -->
-        <a class="menu_prihlasit" href="prihlaseni">přihlásit</a>
+        <a class="menu_prihlasit" href="prihlaseni">{t:menu.prihlasit}</a>
         <!-- end: neprihlasen -->
         <!-- begin: prihlasen -->
         <div class="menu_jmeno">{uJmenoMenu} ({u.id})</div>
         <div class="menu_uzivatelpolozky">
-          <a href="finance">Finance</a>
-          <a href="registrace">Nastavení</a>
+          <a href="finance">{t:menu.finance}</a>
+          <a href="registrace">{t:menu.nastaveni}</a>
           <!-- begin: admin -->
-          <a href="{uvodniAdminUrl}" target="_blank">Admin</a>
+          <a href="{uvodniAdminUrl}" target="_blank">{t:menu.admin}</a>
           <!-- end: admin -->
           <!-- begin: mujPrehled -->
-          <a href="{mojeAktivityAdminUrl}" target="_blank">Hry, které vedu</a>
+          <a href="{mojeAktivityAdminUrl}" target="_blank">{t:menu.hry_ktere_vedu}</a>
           <!-- end: mujPrehled -->
           <a href="prihlaska">{gcPrihlaska}</a>
-          <a href="#" onclick="odhlasForm.submit(); return false;">Odhlásit</a>
+          <a href="#" onclick="odhlasForm.submit(); return false;">{t:menu.odhlasit}</a>
           <form id="odhlasForm" method="post" action="prihlaseni">
             <input type="hidden" name="odhlasit" value="true">
           </form>
@@ -32,10 +32,14 @@
         <!-- end: prihlasen -->
       </div>
 
+      <!-- begin: jazyk -->
+      <a class="menu_jazyk" href="{jazykUrl}" title="{jazykTitulek}" lang="{jazykKod}" hreflang="{jazykKod}">{jazykNazev}</a>
+      <!-- end: jazyk -->
+
       <div class="menu_menu">
-        <a href="program" class="menu_odkaz">program</a>
+        <a href="program" class="menu_odkaz">{t:menu.program}</a>
         <div class="menu_kategorie">
-          <div class="menu_nazevkategorie">aktivity</div>
+          <div class="menu_nazevkategorie">{t:menu.aktivity}</div>
           <div class="menu_polozky">
             <!-- begin: typAktivit -->
             <a href="{typ.url}" class="menu_polozka">{typ.nazev}</a>
@@ -43,14 +47,14 @@
           </div>
         </div>
         <div class="menu_kategorie">
-          <div class="menu_nazevkategorie">informace</div>
+          <div class="menu_nazevkategorie">{t:menu.informace}</div>
           <div class="menu_polozky">
-            <a class="menu_polozka" href="prakticke-informace">Praktické informace</a>
-            <a class="menu_polozka" href="jidelnicek">Jídelníček</a>
-            <a class="menu_polozka" href="organizacni-vypomoc">Chci organizovat GameCon</a>
-            <a class="menu_polozka" href="blog">Blog</a>
-            <a class="menu_polozka" href="pro-sponzory-a-media">Pro sponzory a média</a>
-            <a class="menu_polozka" href="kontakty">Kontakty</a>
+            <a class="menu_polozka" href="prakticke-informace">{t:menu.prakticke_informace}</a>
+            <a class="menu_polozka" href="jidelnicek">{t:menu.jidelnicek}</a>
+            <a class="menu_polozka" href="organizacni-vypomoc">{t:menu.chci_organizovat}</a>
+            <a class="menu_polozka" href="blog">{t:menu.blog}</a>
+            <a class="menu_polozka" href="pro-sponzory-a-media">{t:menu.pro_sponzory_a_media}</a>
+            <a class="menu_polozka" href="kontakty">{t:menu.kontakty}</a>
 
           </div>
         </div>
