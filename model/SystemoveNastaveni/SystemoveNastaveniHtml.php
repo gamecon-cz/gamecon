@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Gamecon\SystemoveNastaveni;
 
+use Gamecon\Admin\PosledniZmenaHtml;
 use Gamecon\BackgroundProcess\BackgroundProcessService;
 use Gamecon\Cas\DateTimeCz;
 use Gamecon\Kanaly\EmailovaSablona\EmailovaSablonaKontrola;
@@ -40,6 +41,7 @@ class SystemoveNastaveniHtml
         $template->assign('postKlic', SystemoveNastaveniAjax::POST_KLIC);
         $template->assign('vlastniKlic', SystemoveNastaveniAjax::VLASTNI_KLIC);
         $template->assign('verejneKlic', SystemoveNastaveniAjax::VEREJNE_KLIC);
+        $template->assign('nazevSloupcePosledniZmena', PosledniZmenaHtml::NAZEV_SLOUPCE);
         // A public setting can be unticked even while an e-mail substitutes it, and the value would silently vanish from that e-mail.
         $template->assign(
             'problemySablon',
@@ -264,11 +266,10 @@ class SystemoveNastaveniHtml
             function (
                 array &$zaznam,
             ) {
-                $zaznam['posledniZmena'] = (new DateTimeCz($zaznam[Sql::ZMENA_KDY]))->relativni();
-                $zaznam['zmenil'] = '<strong>' . ($zaznam[Sql::ZMENA_KDY]
-                        ? (\Uzivatel::zId($zaznam[Sql::ID_UZIVATELE]) ?? \Uzivatel::zId(\Uzivatel::SYSTEM))->jmenoNick()
-                        : '<i>SQL migrace</i>'
-                ) . '</strong><br>' . (new DateTimeCz($zaznam[Sql::ZMENA_KDY]))->formatCasStandard();
+                ['relativne' => $zaznam['posledniZmena'], 'napoveda' => $zaznam['zmenil']] = PosledniZmenaHtml::dej(
+                    new DateTimeCz($zaznam[Sql::ZMENA_KDY]),
+                    \Uzivatel::zId($zaznam[Sql::ID_UZIVATELE]),
+                );
                 $zaznam['inputType'] = $this->dejHtmlInputType($zaznam[Sql::DATOVY_TYP]);
                 $zaznam['tagInputType'] = $this->dejHtmlTagInputType($zaznam[Sql::DATOVY_TYP]);
                 $zaznam['inputValue'] = $this->dejHtmlInputValue($zaznam[Sql::HODNOTA], $zaznam[Sql::DATOVY_TYP]);

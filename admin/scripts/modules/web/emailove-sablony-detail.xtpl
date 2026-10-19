@@ -23,7 +23,7 @@
         <td>{format}</td>
     </tr>
     <tr>
-        <th>Naposledy změněno</th>
+        <th>{nazevSloupcePosledniZmena}</th>
         <td>{zmeneno}</td>
     </tr>
     </tbody>

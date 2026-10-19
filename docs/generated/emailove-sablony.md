@@ -12,6 +12,7 @@ Předmět a text e-mailů, které GameCon posílá, jsou v databázi a mění se
 - `EmailovaSablonaKontrola` + `ProblemySablonHtml` — zpětná kontrola uložených textů a červený blok nad stránkou.
 - `EditorSablonyHtml` + `admin/files/editor-sablony.js` + `editor-sablony-logika.js` — formulář s našeptávačem. Modul `admin/scripts/modules/web/emailove-sablony.php`.
 - `GcMail::format()` — formát (text / HTML), který určila šablona; `odeslat()` bez argumentu ho použije.
+- `Gamecon\Admin\PosledniZmenaHtml` — sloupec Poslední změna (relativní čas a nápověda s autorem a přesným časem), sdílí ho stránka Nastavení a seznam e-mailů. Neznámý autor je uživatel System.
 
 ## Datový model
 

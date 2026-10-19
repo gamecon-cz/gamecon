@@ -1,5 +1,6 @@
 <?php
 
+use Gamecon\Admin\PosledniZmenaHtml;
 use Gamecon\Cas\DateTimeCz;
 use Gamecon\Kanaly\EmailovaSablona\EditorSablonyHtml;
 use Gamecon\Kanaly\EmailovaSablona\EmailovaSablonaKontrola;
@@ -35,9 +36,7 @@ $kdoAKdyZmenil = static function (UlozenaEmailovaSablona $sablona): string {
     $kdy = $sablona->zmenenoKdy
         ? DateTimeCz::createFromInterface($sablona->zmenenoKdy)->formatCasNaMinutyStandard()
         : '';
-    $kdo = $sablona->zmenil !== null
-        ? Uzivatel::zId($sablona->zmenil)?->jmenoNick()
-        : null;
+    $kdo = Uzivatel::zId($sablona->zmenil ?? Uzivatel::SYSTEM)?->jmenoNick();
 
     return trim($kdy . ($kdo
             ? " ($kdo)"
@@ -46,21 +45,12 @@ $kdoAKdyZmenil = static function (UlozenaEmailovaSablona $sablona): string {
 
 $zmenaProSeznam = static function (?UlozenaEmailovaSablona $sablona): array {
     if ($sablona === null || $sablona->zmenenoKdy === null) {
-        return ['trida' => '', 'relativne' => '', 'napoveda' => ''];
+        return ['trida' => '', 'obsah' => ''];
     }
-    $kdy = DateTimeCz::createFromInterface($sablona->zmenenoKdy);
-    $kdo = $sablona->zmenil !== null
-        ? Uzivatel::zId($sablona->zmenil)?->jmenoNick()
-        : null;
 
     return [
-        'trida'     => 'hinted',
-        'relativne' => htmlspecialchars($kdy->relativni(), ENT_QUOTES),
-        'napoveda'  => '<span class="hint"><strong>'
-            . ($kdo !== null
-                ? htmlspecialchars((string)$kdo, ENT_QUOTES)
-                : '<i>SQL migrace</i>')
-            . '</strong><br>' . $kdy->formatCasStandard() . '</span>',
+        'trida' => 'hinted',
+        'obsah' => PosledniZmenaHtml::bunka($sablona->zmenenoKdy, Uzivatel::zId($sablona->zmenil)),
     ];
 };
 
@@ -126,6 +116,7 @@ if ($kod !== null) {
 
     $sablonaStranky = new XTemplate(__DIR__ . '/emailove-sablony-detail.xtpl');
     $sablonaStranky->assign([
+        'nazevSloupcePosledniZmena' => PosledniZmenaHtml::NAZEV_SLOUPCE,
         'problemy'   => ProblemySablonHtml::vykresli(array_values(array_filter(
             $problemy,
             static fn(ProblemSablony $problem) => $problem->kod === $kod,
@@ -159,6 +150,7 @@ if ($kod !== null) {
 $problemy       = EmailovaSablonaKontrola::zNastaveni($systemoveNastaveni)->najdiProblemy();
 $sablonaStranky = new XTemplate(__DIR__ . '/emailove-sablony.xtpl');
 $sablonaStranky->assign('problemy', ProblemySablonHtml::vykresli($problemy));
+$sablonaStranky->assign('nazevSloupcePosledniZmena', PosledniZmenaHtml::NAZEV_SLOUPCE);
 
 $ulozene          = $repository->vsechny();
 $kodyProblemovych = array_flip(array_map(
@@ -183,8 +175,7 @@ foreach ($definicePodleSkupin as $skupina => $definiceSkupiny) {
             'prijemce'         => htmlspecialchars($definice->prijemce, ENT_QUOTES),
             'predmet'          => htmlspecialchars($sablona?->predmet ?? '(chybí)', ENT_QUOTES),
             'zmenenoTrida'     => $zmena['trida'],
-            'zmenenoRelativne' => $zmena['relativne'],
-            'zmenenoNapoveda'  => $zmena['napoveda'],
+            'zmenenoObsah'     => $zmena['obsah'],
             'problem'          => isset($kodyProblemovych[$definice->kod])
                 ? '<span title="Text chybí nebo obsahuje hodnotu, která se nedosadí">⚠️</span> '
                 : '',
