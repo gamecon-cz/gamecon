@@ -28,4 +28,14 @@ class UserPermissions
 
         return $userId !== null && in_array($permission, $this->ruleLoader->rightsOfUser($userId, $year), true);
     }
+
+    /**
+     * @param int[] $permissions Gamecon\Pravo constants
+     */
+    public function hasAny(User $user, array $permissions, int $year): bool
+    {
+        $userId = $user->getId();
+
+        return $userId !== null && array_intersect($permissions, $this->ruleLoader->rightsOfUser($userId, $year)) !== [];
+    }
 }

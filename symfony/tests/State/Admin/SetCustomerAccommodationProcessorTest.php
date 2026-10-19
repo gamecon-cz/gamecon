@@ -53,6 +53,16 @@ class SetCustomerAccommodationProcessorTest extends AbstractDatabaseKernelTestCa
     private array $singleNightUsers = [];
 
     /**
+     * @var list<int> ids of users for whom the rules restrict accommodation to sleeping bags
+     */
+    private array $sleepingBagsOnlyUsers = [];
+
+    /**
+     * @var list<int> ids of users who may book the Sunday night
+     */
+    private array $sundayNightUsers = [];
+
+    /**
      * @var array<int, \Uzivatel> by id, so the operator and the customer cannot be mistaken for each other
      */
     private array $legacyUsers = [];
@@ -86,9 +96,20 @@ class SetCustomerAccommodationProcessorTest extends AbstractDatabaseKernelTestCa
                 },
         );
 
+        // Answers per user, so a rule asked about the operator instead of the customer shows.
+        $accommodationRules = $this->createMock(AccommodationRules::class);
+        $accommodationRules->method('sleepingBagsOnly')->willReturnCallback(
+            fn (User $user, int $year): bool => $year === $currentYear
+                && in_array($user->getId(), $this->sleepingBagsOnlyUsers, true),
+        );
+        $accommodationRules->method('maySundayNight')->willReturnCallback(
+            fn (User $user, int $year): bool => $year === $currentYear
+                && in_array($user->getId(), $this->sundayNightUsers, true),
+        );
+
         $this->processor = new SetCustomerAccommodationProcessor(
             $this->accommodationWriter,
-            $container->get(AccommodationRules::class),
+            $accommodationRules,
             $container->get(CurrentYearProviderInterface::class),
             $this->security,
             $userPermissions,
@@ -239,6 +260,37 @@ class SetCustomerAccommodationProcessorTest extends AbstractDatabaseKernelTestCa
                 self::anything(),
                 self::anything(),
                 self::anything(),
+            );
+
+        $this->processor->process($this->input(), new Post());
+    }
+
+    /**
+     * The bed and Sunday night rules belong to the customer, like the single-night right:
+     * the operator at the desk holds both, the customer neither, and the booking follows the customer.
+     */
+    public function testBedAndSundayNightRulesComeFromTheCustomerNotTheOperator(): void
+    {
+        $this->signInOperator();
+        $this->sleepingBagsOnlyUsers[] = 4242;
+        $this->sundayNightUsers[] = self::OPERATOR_ID;
+        $this->customer();
+        $this->legacyCustomer();
+
+        $this->accommodationWriter
+            ->expects(self::once())
+            ->method('save')
+            ->with(
+                self::anything(),
+                self::anything(),
+                self::anything(),
+                self::anything(),
+                self::anything(),
+                self::anything(),
+                self::identicalTo(true),
+                self::anything(),
+                self::anything(),
+                self::identicalTo(false),
             );
 
         $this->processor->process($this->input(), new Post());

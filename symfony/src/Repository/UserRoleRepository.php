@@ -66,6 +66,7 @@ class UserRoleRepository extends ServiceEntityRepository
      * @param RoleMeaning[] $meanings
      *
      * @see \App\Discount\DiscountRuleLoader::rightsOfUser() the same validity, for rights
+     * @see \Uzivatel::dejIdsRoli() legacy reads it through the platne_role_uzivatelu view
      */
     public function holdsAnyMeaning(User $user, array $meanings, int $year): bool
     {
