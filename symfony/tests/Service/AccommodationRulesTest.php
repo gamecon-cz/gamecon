@@ -5,10 +5,12 @@ declare(strict_types=1);
 namespace App\Tests\Service;
 
 use App\Entity\User;
+use App\Enum\RoleTypeEnum;
 use App\Service\AccommodationRules;
 use App\Tests\AbstractDatabaseKernelTestCase;
 use Gamecon\Pravo;
 use Gamecon\Role\Role;
+use Gamecon\SystemoveNastaveni\SystemoveNastaveni;
 use PHPUnit\Framework\Attributes\DataProvider;
 
 /**
@@ -30,13 +32,13 @@ class AccommodationRulesTest extends AbstractDatabaseKernelTestCase
         $yearly = static fn (int $base, int $year, string $meaning): array => [
             'id'      => Role::idRocnikoveRole($base, $year),
             'year'    => $year,
-            'type'    => Role::TYP_ROCNIKOVA,
+            'type'    => RoleTypeEnum::YEARLY->value,
             'meaning' => $meaning,
         ];
         $permanent = static fn (int $id, string $meaning): array => [
             'id'      => $id,
             'year'    => Role::JAKYKOLI_ROCNIK,
-            'type'    => Role::TYP_TRVALA,
+            'type'    => RoleTypeEnum::PERMANENT->value,
             'meaning' => $meaning,
         ];
 
@@ -123,7 +125,7 @@ class AccommodationRulesTest extends AbstractDatabaseKernelTestCase
                     [
                         'id'      => self::SUNDAY_NIGHT_OFFER_ROLE,
                         'year'    => ROCNIK,
-                        'type'    => Role::TYP_ROCNIKOVA,
+                        'type'    => RoleTypeEnum::YEARLY->value,
                         'meaning' => '',
                         'rights'  => [Pravo::UBYTOVANI_NEDELNI_NOC_NABIZET],
                     ],
@@ -136,7 +138,7 @@ class AccommodationRulesTest extends AbstractDatabaseKernelTestCase
                     [
                         'id'      => self::SUNDAY_NIGHT_FREE_ROLE,
                         'year'    => ROCNIK,
-                        'type'    => Role::TYP_ROCNIKOVA,
+                        'type'    => RoleTypeEnum::YEARLY->value,
                         'meaning' => '',
                         'rights'  => [Pravo::UBYTOVANI_NEDELNI_NOC_ZDARMA],
                     ],
@@ -149,7 +151,7 @@ class AccommodationRulesTest extends AbstractDatabaseKernelTestCase
                     [
                         'id'      => self::LAST_YEAR_SUNDAY_NIGHT_ROLE,
                         'year'    => ROCNIK - 1,
-                        'type'    => Role::TYP_ROCNIKOVA,
+                        'type'    => RoleTypeEnum::YEARLY->value,
                         'meaning' => '',
                         'rights'  => [Pravo::UBYTOVANI_NEDELNI_NOC_NABIZET],
                     ],
@@ -174,7 +176,7 @@ class AccommodationRulesTest extends AbstractDatabaseKernelTestCase
         $rules = static::getContainer()->get(AccommodationRules::class);
 
         self::assertSame($entitledToBed, $this->legacyEntitledToBed($legacy), 'Legacy, bed');
-        self::assertSame($entitledToBed, $rules->isEntitledToBed($user, ROCNIK), 'New layer, bed');
+        self::assertSame(! $entitledToBed, $this->sleepingBagsOnlyWithRestriction(true, $user), 'New layer, bed');
         self::assertSame($maySundayNight, $this->legacyMaySundayNight($legacy), 'Legacy, Sunday night');
         self::assertSame($maySundayNight, $rules->maySundayNight($user, ROCNIK), 'New layer, Sunday night');
     }
@@ -190,12 +192,39 @@ class AccommodationRulesTest extends AbstractDatabaseKernelTestCase
         self::assertNotNull($user);
         $rules = static::getContainer()->get(AccommodationRules::class);
         self::assertFalse($rules->maySundayNight($user, ROCNIK));
-        self::assertFalse($rules->isEntitledToBed($user, ROCNIK));
+        self::assertTrue($this->sleepingBagsOnlyWithRestriction(true, $user));
 
         $this->assignRole($userId, Role::ORGANIZATOR);
 
         self::assertTrue($rules->maySundayNight($user, ROCNIK));
-        self::assertTrue($rules->isEntitledToBed($user, ROCNIK));
+        self::assertFalse($this->sleepingBagsOnlyWithRestriction(true, $user));
+    }
+
+    public function testNobodyIsLimitedToSleepingBagsWhileTheRestrictionIsOff(): void
+    {
+        $user = $this->entityManager()->find(User::class, $this->userWithRoles([]));
+        self::assertNotNull($user);
+
+        self::assertFalse($this->sleepingBagsOnlyWithRestriction(false, $user));
+    }
+
+    /**
+     * The restriction is a constant, fixed for the whole process, so the settings are swapped for
+     * the length of the call only; the legacy user in the same test must keep the real ones.
+     */
+    private function sleepingBagsOnlyWithRestriction(bool $restricted, User $user): bool
+    {
+        $originalSettings = $GLOBALS['systemoveNastaveni'] ?? null;
+        $settings = $this->createMock(SystemoveNastaveni::class);
+        $settings->method('rocnik')->willReturn(ROCNIK);
+        $settings->method('jeOmezeniUbytovaniPouzeNaSpacaky')->willReturn($restricted);
+        $GLOBALS['systemoveNastaveni'] = $settings;
+
+        try {
+            return static::getContainer()->get(AccommodationRules::class)->sleepingBagsOnly($user, ROCNIK);
+        } finally {
+            $GLOBALS['systemoveNastaveni'] = $originalSettings;
+        }
     }
 
     /**
@@ -245,7 +274,7 @@ class AccommodationRulesTest extends AbstractDatabaseKernelTestCase
     }
 
     /**
-     * The legacy formula the new AccommodationRules::isEntitledToBed() has to reproduce.
+     * The legacy formula for who keeps a real bed, which AccommodationRules::sleepingBagsOnly() has to reproduce.
      */
     private function legacyEntitledToBed(\Uzivatel $legacy): bool
     {
