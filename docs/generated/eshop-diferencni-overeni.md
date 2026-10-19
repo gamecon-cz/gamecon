@@ -74,13 +74,18 @@ uživatele s rolí a ověří, že
 - významy jeho platných rolí, jak je čte nová vrstva (`UserRoleRepository`), jsou tytéž jako
   v legacy pohledu `platne_role_uzivatelu`,
 - rozhodnutí „je organizátor" sedí na tytéž významy,
+- nová vrstva odpoví každému bez výjimky (výjimka z `UserRoleRepository` se počítá jako rozdíl),
 - jeho role se dají načíst jako entity (to dělá Symfony Security u každého přihlášeného, a jediný
   neznámý význam v záloze shodí celý požadavek).
 
 Stačí nová větev: referencí je pohled v databázi, ne druhý worktree. Databáze musí být ze zálohy
-produkce a mít doběhlé migrace, jinak v ní role minulých ročníků nejsou. Výstup jsou počty;
-při rozdílu přidá pár id. Kód výstupu: `0` shoda, `1` rozdíl, `2` databáze nemá co zkontrolovat
-(žádný uživatel s rolí z minulého ročníku — zelená by nic neprokazovala), `3` skript nedoběhl.
+produkce a mít doběhlé migrace, jinak v ní role minulých ročníků nejsou. Výstup jsou počty,
+při rozdílu pár id a zprávy výjimek, které mohou nést data z databáze: nevkládat do PR ani
+issue. Kód výstupu: `0` shoda, `1` rozdíl (hlásí se i na nevhodné databázi),
+`2` databáze nemá co zkontrolovat (žádný uživatel s rolí z minulého ročníku — zelená by nic
+neprokazovala), `3` skript nedoběhl do konce; jiný kód znamená, že PHP spadlo (třeba paměť).
+Kód `1` platí jako rozdíl jen s řádkem „✗ Rozdíly" ve výstupu; bez něj jde o chybu nastavení
+(špatný adresář, neběžící Docker).
 
 ## Než se to spustí
 

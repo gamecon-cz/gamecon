@@ -12,8 +12,8 @@ use App\Tests\AbstractDatabaseKernelTestCase;
 use Gamecon\Role\Role;
 
 /**
- * holdsAnyMeaning() is the Doctrine-side copy of what the platne_role_uzivatelu view lets
- * through, so each way a role stays valid, and the ways it does not, is pinned here.
+ * The repository's answers are the Doctrine-side copy of what the platne_role_uzivatelu view
+ * lets through, so each way a role stays valid, and the ways it does not, is pinned here.
  */
 class UserRoleRepositoryTest extends AbstractDatabaseKernelTestCase
 {

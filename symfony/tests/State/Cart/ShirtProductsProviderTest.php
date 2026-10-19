@@ -41,6 +41,10 @@ class ShirtProductsProviderTest extends TestCase
 
     private MockObject $restrictedProductRules;
 
+    private MockObject $userRoleRepository;
+
+    private User $user;
+
     private ShirtProductsProvider $provider;
 
     private ?SystemoveNastaveni $puvodniNastaveni = null;
@@ -78,8 +82,10 @@ class ShirtProductsProviderTest extends TestCase
         $currentYearProvider = $this->createMock(CurrentYearProviderInterface::class);
         $currentYearProvider->method('getCurrentYear')->willReturn(self::ROK);
 
+        $this->user = $this->createMock(User::class);
         $security = $this->createMock(Security::class);
-        $security->method('getUser')->willReturn($this->createMock(User::class));
+        $security->method('getUser')->willReturn($this->user);
+        $this->userRoleRepository = $this->createMock(UserRoleRepository::class);
 
         $this->restrictedProductRules = $this->createMock(RestrictedProductRules::class);
         $jeOmezene = static fn (Product $product): bool => $product->hasTag(ProductTagCode::TRICKO_ORGANIZATORSKE->value)
@@ -98,7 +104,7 @@ class ShirtProductsProviderTest extends TestCase
                 700 => 10,
             ])),
             $this->createMock(SpentQuotaProvider::class),
-            $this->createMock(UserRoleRepository::class),
+            $this->userRoleRepository,
             $security,
             new NativeClock(),
             ChybovePreklady::translator(),
@@ -108,6 +114,21 @@ class ShirtProductsProviderTest extends TestCase
     protected function tearDown(): void
     {
         $GLOBALS['systemoveNastaveni'] = $this->puvodniNastaveni;
+    }
+
+    /**
+     * Role řídí zadrženou zásobu, takže mřížka smí brát jen významy rolí platných letos,
+     * ne všechno, co člověk kdy měl.
+     */
+    public function testMrizkaBereVyznamyRoliPlatneLetos(): void
+    {
+        $this->productRepository->method('findByTag')->willReturn([]);
+        $this->userRoleRepository->expects(self::once())
+            ->method('validMeanings')
+            ->with($this->user, self::ROK)
+            ->willReturn([]);
+
+        $this->provider->provide(new Get());
     }
 
     private function posunCas(string $ted): void

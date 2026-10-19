@@ -14,7 +14,6 @@ Klasifikace: **záměrné** (víme a chceme) · **chyba** (na opravu) · **nezji
 | [#1151](https://github.com/gamecon-cz/gamecon/issues/1151) | N13 | zamčená matice jídla neřekne proč |
 | [#1152](https://github.com/gamecon-cz/gamecon/issues/1152) | N13 | zrušená snídaně nejde vrátit při různých termínech |
 | [#1153](https://github.com/gamecon-cz/gamecon/issues/1153) | M1 | `TRETI_VLNA_KDY` je na rok 2024 |
-| [#1365](https://github.com/gamecon-cz/gamecon/issues/1365) | N14 | nová vrstva bere za organizátora i toho, kdo měl roli jen v minulých ročnících |
 
 | # | scénář | co se liší | A (legacy) | B (nový) | klasifikace |
 |---|---|---|---|---|---|

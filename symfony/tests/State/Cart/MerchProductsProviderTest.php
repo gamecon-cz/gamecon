@@ -42,6 +42,10 @@ class MerchProductsProviderTest extends TestCase
 
     private MockObject $security;
 
+    private MockObject $userRoleRepository;
+
+    private User $user;
+
     private MerchProductsProvider $provider;
 
     private PevnaZasoba $zasoba;
@@ -75,7 +79,9 @@ class MerchProductsProviderTest extends TestCase
         $this->orderItemRepository = $this->createMock(OrderItemRepository::class);
         $this->orderItemRepository->method('countCustomerPurchases')->willReturn(0);
         $this->security = $this->createMock(Security::class);
-        $this->security->method('getUser')->willReturn($this->createMock(User::class));
+        $this->user = $this->createMock(User::class);
+        $this->security->method('getUser')->willReturn($this->user);
+        $this->userRoleRepository = $this->createMock(UserRoleRepository::class);
 
         $discountCalculator = $this->createMock(DiscountCalculator::class);
         $discountCalculator->method('calculateDiscount')->willReturn([
@@ -95,7 +101,7 @@ class MerchProductsProviderTest extends TestCase
             $currentYearProvider,
             new ProductVariantsForGrid($this->orderItemRepository, $this->zasoba),
             $this->createMock(SpentQuotaProvider::class),
-            $this->createMock(UserRoleRepository::class),
+            $this->userRoleRepository,
             $this->security,
             new NativeClock(),
             ChybovePreklady::translator(),
@@ -144,6 +150,23 @@ class MerchProductsProviderTest extends TestCase
         $this->productRepository->method('findByTag')->willReturn([$product]);
 
         return $product;
+    }
+
+    /**
+     * Role řídí zadrženou zásobu, takže mřížka smí brát jen významy rolí platných letos,
+     * ne všechno, co člověk kdy měl.
+     *
+     * @test
+     */
+    public function mrizkaBereVyznamyRoliPlatneLetos(): void
+    {
+        $this->productRepository->method('findByTag')->willReturn([]);
+        $this->userRoleRepository->expects(self::once())
+            ->method('validMeanings')
+            ->with($this->user, self::ROK)
+            ->willReturn([]);
+
+        $this->provider->provide(new Get());
     }
 
     /**
