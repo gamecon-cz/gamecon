@@ -2,12 +2,14 @@ import { defineConfig } from 'vitest/config'
 
 // Samostatná konfigurace pro testy – nemíchá se s lib/IIFE buildem ve vite.config.mts.
 // Bez @preact/preset-vite: babel parser z presetu neřeší unicode v identifikátorech,
-// proto JSX komponentových testů překládá esbuild (tsconfig má `preserve`).
+// proto JSX komponentových testů překládá oxc (tsconfig má `preserve`).
 // jsdom je potřeba, protože env.ts čte `window` už při importu.
 export default defineConfig({
-  esbuild: {
-    jsx: 'automatic',
-    jsxImportSource: 'preact',
+  oxc: {
+    jsx: {
+      runtime: 'automatic',
+      importSource: 'preact',
+    },
   },
   test: {
     environment: 'jsdom',
