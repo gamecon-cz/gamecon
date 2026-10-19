@@ -61,6 +61,11 @@ class UpominaniDluzniku
         ?int        $rokPosledniUcasti,
     ): GcMail {
         $gcMail = (new GcMail($this->systemoveNastaveni))
+            ->sablona(
+                $typUpominky->maVlastniZneni()
+                    ? UpominkaVlastniZneni::definice()->kod
+                    : $this->kodSablonyUpominky($typUpominky, $ucastNaGc, $rokPosledniUcasti),
+            )
             ->adresat($uzivatel->mail())
             ->predmet($this->dejEmailPredmet($typUpominky, $rocnik, $ucastNaGc, $rokPosledniUcasti))
             ->text($this->dejEmailZpravu(

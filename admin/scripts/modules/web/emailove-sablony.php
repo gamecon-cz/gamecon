@@ -13,6 +13,7 @@ use Gamecon\Kanaly\EmailovaSablona\ProblemySablonHtml;
 use Gamecon\Kanaly\EmailovaSablona\RozkladSymbolu;
 use Gamecon\Kanaly\EmailovaSablona\SystemoveHodnotyProSablony;
 use Gamecon\Kanaly\EmailovaSablona\UlozenaEmailovaSablona;
+use Gamecon\Kanaly\MailLogger;
 use Gamecon\XTemplate\XTemplate;
 
 /**
@@ -153,6 +154,17 @@ $sablonaStranky->assign('problemy', ProblemySablonHtml::vykresli($problemy));
 $sablonaStranky->assign('nazevSloupcePosledniZmena', PosledniZmenaHtml::NAZEV_SLOUPCE);
 $sablonaStranky->assign('urlModulu', $urlModulu);
 
+$rocnik = $systemoveNastaveni->rocnik();
+$sablonaStranky->assign([
+    'nazevSloupceOdeslano'    => 'Odesláno',
+    'napovedaSloupceOdeslano' => htmlspecialchars(
+        "Odeslané e-maily z tohoto textu v ročníku $rocnik. Počítá se od chvíle, kdy se k odeslanému e-mailu začal"
+        . ' zapisovat kód textu, dřívější e-maily se nezapočítají.',
+        ENT_QUOTES,
+    ),
+]);
+$odeslanoPodleSablon = MailLogger::zGlobals()->souhrnPodleSablon($rocnik);
+
 $ulozene          = $repository->vsechny();
 $kodyProblemovych = array_flip(array_map(
     static fn(ProblemSablony $problem) => $problem->kod,
@@ -167,8 +179,9 @@ foreach (EmailoveSablonyKatalog::vsechny() as $definice) {
 foreach ($definicePodleSkupin as $skupina => $definiceSkupiny) {
     $sablonaStranky->assign('skupina', htmlspecialchars($skupina, ENT_QUOTES));
     foreach ($definiceSkupiny as $definice) {
-        $sablona = $ulozene[$definice->kod] ?? null;
-        $zmena   = $zmenaProSeznam($sablona);
+        $sablona  = $ulozene[$definice->kod] ?? null;
+        $zmena    = $zmenaProSeznam($sablona);
+        $odeslano = $odeslanoPodleSablon[$definice->kod] ?? ['odeslano' => 0, 'prijemcu' => 0, 'selhalo' => 0];
         $sablonaStranky->assign([
             'kod'              => htmlspecialchars($definice->kod, ENT_QUOTES),
             'odkaz'            => htmlspecialchars(EmailovaSablonaKontrola::odkazNaEditaci($definice->kod), ENT_QUOTES),
@@ -176,6 +189,9 @@ foreach ($definicePodleSkupin as $skupina => $definiceSkupiny) {
             'kdyOdchazi'       => htmlspecialchars($definice->kdyOdchazi, ENT_QUOTES),
             'prijemce'         => htmlspecialchars($definice->prijemce, ENT_QUOTES),
             'predmet'          => htmlspecialchars($sablona?->predmet ?? '(chybí)', ENT_QUOTES),
+            'odeslano'         => $odeslano['odeslano'] . '&nbsp;×',
+            'odeslanoNapoveda' => '<strong>Příjemců:</strong> ' . $odeslano['prijemcu']
+                . '<br><strong>Selhalo:</strong> ' . $odeslano['selhalo'],
             'zmenenoTrida'     => $zmena['trida'],
             'zmenenoObsah'     => $zmena['obsah'],
             'problem'          => isset($kodyProblemovych[$definice->kod])

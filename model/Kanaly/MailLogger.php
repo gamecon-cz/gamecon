@@ -13,6 +13,8 @@ class MailLogger
 {
     private const SOUBOR_SQLITE = 'maily.sqlite';
 
+    private const DODAVANE_SLOUPCE = ['telo_html' => 'TEXT', 'sablona' => 'TEXT', 'rocnik' => 'INTEGER'];
+
     private ?EPDO $sqlite = null;
 
     public static function zGlobals(): static
@@ -37,10 +39,12 @@ class MailLogger
         string $telo,
         ?string $teloHtml = null,
         ?string $chyba = null,
+        ?string $sablona = null,
+        ?int    $rocnik = null,
     ): void {
         $dotaz = $this->databaze()->prepare(
-            'INSERT INTO maily (kdy, predmet, predmet_lower, format, adresati, prilohy_count, telo, telo_html, chyba)
-             VALUES (:kdy, :predmet, :predmet_lower, :format, :adresati, :prilohy_count, :telo, :telo_html, :chyba)'
+            'INSERT INTO maily (kdy, predmet, predmet_lower, format, adresati, prilohy_count, telo, telo_html, chyba, sablona, rocnik)
+             VALUES (:kdy, :predmet, :predmet_lower, :format, :adresati, :prilohy_count, :telo, :telo_html, :chyba, :sablona, :rocnik)'
         );
         $dotaz->execute([
             ':kdy'           => date('c'),
@@ -52,7 +56,44 @@ class MailLogger
             ':telo'          => $telo,
             ':telo_html'     => $teloHtml,
             ':chyba'         => $chyba,
+            ':sablona'       => $sablona,
+            ':rocnik'        => $rocnik,
         ]);
+    }
+
+    /**
+     * Counts per e-mail template for one year (ročník) of the festival. A message counts as sent when it has no error,
+     * recipients are summed over the sent ones only, a failure is a message that did not go out even after the retry.
+     * E-mails logged without a template (system notices, tests from the admin) are left out.
+     * Recipients are counted here, not by the SQLite JSON functions, which a build of SQLite may lack.
+     *
+     * @return array<string, array{odeslano: int, prijemcu: int, selhalo: int}> by template code
+     */
+    public function souhrnPodleSablon(int $rocnik): array
+    {
+        $dotaz = $this->databaze()->prepare(<<<'SQL'
+            SELECT sablona, chyba IS NULL AS odeslano, adresati
+            FROM maily
+            WHERE rocnik = :rocnik
+              AND sablona IS NOT NULL
+            SQL);
+        $dotaz->bindValue(':rocnik', $rocnik, PDO::PARAM_INT);
+        $dotaz->execute();
+
+        $souhrn = [];
+        while ($radek = $dotaz->fetch(PDO::FETCH_ASSOC)) {
+            $kod = $radek['sablona'];
+            $souhrn[$kod] ??= ['odeslano' => 0, 'prijemcu' => 0, 'selhalo' => 0];
+            if ((int) $radek['odeslano'] === 1) {
+                ++$souhrn[$kod]['odeslano'];
+                $souhrn[$kod]['prijemcu'] += count(json_decode((string) $radek['adresati'], true) ?: []);
+            } else {
+                ++$souhrn[$kod]['selhalo'];
+            }
+        }
+        ksort($souhrn);
+
+        return $souhrn;
     }
 
     /**
@@ -69,7 +110,7 @@ class MailLogger
         $orderBy           = $this->bezpecnyOrderBy($razeniSloupec, $razeniSmer);
 
         $dotaz = $this->databaze()->prepare(
-            "SELECT id, kdy, predmet, format, adresati, prilohy_count, chyba
+            "SELECT id, kdy, predmet, format, adresati, prilohy_count, chyba, sablona, rocnik
              FROM maily
              $kde
              ORDER BY $orderBy
@@ -91,7 +132,7 @@ class MailLogger
     public function detail(int $id): ?array
     {
         $dotaz = $this->databaze()->prepare(
-            'SELECT id, kdy, predmet, format, adresati, prilohy_count, telo, telo_html, chyba
+            'SELECT id, kdy, predmet, format, adresati, prilohy_count, telo, telo_html, chyba, sablona, rocnik
              FROM maily
              WHERE id = :id'
         );
@@ -157,28 +198,59 @@ class MailLogger
                 prilohy_count   INTEGER NOT NULL DEFAULT 0,
                 telo            TEXT NOT NULL,
                 telo_html       TEXT,
-                chyba           TEXT
+                chyba           TEXT,
+                sablona         TEXT,
+                rocnik          INTEGER
             )
             SQLITE3);
+
+        $this->dodejChybejiciSloupce($sqlite);
+
         $sqlite->query('CREATE INDEX IF NOT EXISTS idx_maily_kdy ON maily (kdy)');
         $sqlite->query('CREATE INDEX IF NOT EXISTS idx_maily_prilohy_count ON maily (prilohy_count)');
         $sqlite->query('CREATE INDEX IF NOT EXISTS idx_maily_predmet_lower ON maily (predmet_lower)');
+        $sqlite->query('CREATE INDEX IF NOT EXISTS idx_maily_rocnik_sablona ON maily (rocnik, sablona)');
 
+        // Only a database that is whole is kept: a failed migration must not leave a half-migrated connection behind.
         $this->sqlite = $sqlite;
-        $this->dodejSloupecTeloHtml();
 
         return $sqlite;
     }
 
     /**
-     * Doplní sloupec `telo_html` do již existující databáze, která vznikla
-     * před jeho zavedením (SQLite nemá ADD COLUMN IF NOT EXISTS).
+     * Adds columns to a database made before they existed (SQLite has no ADD COLUMN IF NOT EXISTS). The lock and the
+     * second check under it keep a concurrent process from failing on "duplicate column" in the middle of sending a
+     * mail, which would send it again. Older rows keep the new columns empty, so rewriting the whole log is avoided.
      */
-    private function dodejSloupecTeloHtml(): void
+    private function dodejChybejiciSloupce(EPDO $sqlite): void
     {
-        $sloupce = $this->sqlite->query('PRAGMA table_info(maily)')->fetchAll(PDO::FETCH_COLUMN, 1);
-        if (!in_array('telo_html', $sloupce, true)) {
-            $this->sqlite->query('ALTER TABLE maily ADD COLUMN telo_html TEXT');
+        if ($this->chybejiciSloupce($sqlite) === []) {
+            return;
         }
+
+        $sqlite->query('BEGIN IMMEDIATE');
+        try {
+            foreach ($this->chybejiciSloupce($sqlite) as $nazev => $typ) {
+                $sqlite->query("ALTER TABLE maily ADD COLUMN $nazev $typ");
+            }
+            $sqlite->query('COMMIT');
+        } catch (\Throwable $chyba) {
+            try {
+                $sqlite->query('ROLLBACK');
+            } catch (\Throwable) {
+                // SQLite may have ended the transaction itself, and that must not hide the original error
+            }
+            throw $chyba;
+        }
+    }
+
+    /**
+     * @return array<string, string> missing column name => its type
+     */
+    private function chybejiciSloupce(EPDO $sqlite): array
+    {
+        $sloupce = $sqlite->query('PRAGMA table_info(maily)')->fetchAll(PDO::FETCH_COLUMN, 1);
+
+        return array_diff_key(self::DODAVANE_SLOUPCE, array_flip($sloupce));
     }
 }

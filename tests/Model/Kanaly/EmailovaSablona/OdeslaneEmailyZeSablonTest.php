@@ -45,6 +45,29 @@ class OdeslaneEmailyZeSablonTest extends AbstractTestDb
     /**
      * @test
      */
+    public function logOdeslanychEmailuPoznaSablonuARocnikSKterymSeOdeslaly(): void
+    {
+        $email = 'log.sablony.' . uniqid('', true) . '@example.test';
+
+        \Uzivatel::rychloregistrace(
+            SystemoveNastaveni::zGlobals(),
+            [
+                Sql::EMAIL1_UZIVATELE => $email,
+            ],
+            [
+                'informovat' => true,
+            ],
+        );
+
+        $mail = $this->posledniMailPro($email);
+
+        self::assertSame('rychla_registrace', $mail['sablona']);
+        self::assertSame(SystemoveNastaveni::zGlobals()->rocnik(), (int) $mail['rocnik']);
+    }
+
+    /**
+     * @test
+     */
     public function uzivatelskyUpravenyTextSeOdesleSeStejnymiHodnotami(): void
     {
         (new EmailovaSablonaRepository())->uloz(

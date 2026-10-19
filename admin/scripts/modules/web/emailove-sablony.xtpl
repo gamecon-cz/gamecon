@@ -22,22 +22,24 @@
 <table class="zvyraznovana emailoveSablony" style="width: 100%">
     <colgroup>
         <col style="width: 20%">
-        <col style="width: 31%">
-        <col style="width: 14%">
-        <col style="width: 19%">
+        <col style="width: 26%">
+        <col style="width: 13%">
+        <col style="width: 18%">
+        <col style="width: 7%">
         <col style="width: 3%">
         <col style="width: 13%">
     </colgroup>
     <!-- begin: skupina -->
     <thead>
     <tr>
-        <th colspan="6"><h2>{skupina}</h2></th>
+        <th colspan="7"><h2>{skupina}</h2></th>
     </tr>
     <tr class="nazvy-sloupcu">
         <th>E-mail</th>
         <th>Kdy odchází</th>
         <th>Komu</th>
         <th>Předmět</th>
+        <th class="hinted">{nazevSloupceOdeslano}<span class="hint">{napovedaSloupceOdeslano}</span></th>
         <th></th>
         <th>{nazevSloupcePosledniZmena}</th>
     </tr>
@@ -49,6 +51,7 @@
         <td>{kdyOdchazi}</td>
         <td>{prijemce}</td>
         <td>{predmet}</td>
+        <td class="hinted">{odeslano}<span class="hint">{odeslanoNapoveda}</span></td>
         <td><a href="{urlModulu}#{kod}" class="lokalni-odkaz float-right">#</a></td>
         <td class="{zmenenoTrida}">{zmenenoObsah}</td>
     </tr>

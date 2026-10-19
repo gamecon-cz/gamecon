@@ -42,6 +42,7 @@ class GcMail
      * @var array<int, array{soubor: string, cid: string}>
      */
     private array $obrazkyInline = [];
+    private ?string $sablona = null;
 
     public function __construct(
         private readonly SystemoveNastaveni $systemoveNastaveni,
@@ -78,6 +79,16 @@ class GcMail
     public function format(string $format): self
     {
         $this->format = $format;
+
+        return $this;
+    }
+
+    /**
+     * The code of the e-mail template the message comes from, kept in the log of sent mails so they can be counted per template.
+     */
+    public function sablona(string $kod): self
+    {
+        $this->sablona = $kod;
 
         return $this;
     }
@@ -175,6 +186,8 @@ class GcMail
             telo: $telo,
             teloHtml: $teloHtml,
             chyba: $chyba,
+            sablona: $this->sablona,
+            rocnik: $this->systemoveNastaveni->rocnik(),
         );
     }
 
