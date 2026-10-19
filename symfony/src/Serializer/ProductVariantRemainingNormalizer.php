@@ -19,7 +19,7 @@ final class ProductVariantRemainingNormalizer implements NormalizerInterface, No
 {
     use NormalizerAwareTrait;
 
-    private const ALREADY_CALLED = 'product_variant_remaining_normalizer_already_called';
+    private const string ALREADY_CALLED = 'product_variant_remaining_normalizer_already_called';
 
     public function __construct(
         private readonly CapacityManager $capacityManager,

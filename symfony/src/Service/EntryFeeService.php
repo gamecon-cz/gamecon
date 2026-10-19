@@ -31,9 +31,9 @@ readonly class EntryFeeService
      * Tells the no-longer-offered late-payment product apart from the ordinary one; both are
      * tagged 'vstupne' and only the name distinguishes them.
      */
-    private const LATE_NAME_MARKER = 'pozdě';
+    private const string LATE_NAME_MARKER = 'pozdě';
 
-    private const LAST_YEAR_AVERAGE_SETTING = 'PRUMERNE_LONSKE_VSTUPNE';
+    private const string LAST_YEAR_AVERAGE_SETTING = 'PRUMERNE_LONSKE_VSTUPNE';
 
     /**
      * The slider maps an amount onto its width as (amount / SLIDER_MAXIMUM) ** GAMMA_CORRECTION,

@@ -13,7 +13,7 @@ use Doctrine\DBAL\Connection;
  */
 class RoleHistoryRecalculator
 {
-    private const ROLE_TYPE_PERMANENT = 'trvala';
+    private const string ROLE_TYPE_PERMANENT = 'trvala';
 
     public function __construct(
         private readonly Connection $connection,

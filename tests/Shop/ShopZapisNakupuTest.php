@@ -16,11 +16,11 @@ use Gamecon\Tests\Db\AbstractTestDb;
  */
 class ShopZapisNakupuTest extends AbstractTestDb
 {
-    private const OPERATOR = 88841;
-    private const ZAKAZNIK = 88842;
-    private const PREDMET = 88851;
-    private const POSLEDNI_KUS = 88852;
-    private const VEDLEJSI_PREDMET = 88853;
+    private const int OPERATOR = 88841;
+    private const int ZAKAZNIK = 88842;
+    private const int PREDMET = 88851;
+    private const int POSLEDNI_KUS = 88852;
+    private const int VEDLEJSI_PREDMET = 88853;
 
     protected static bool $disableStrictTransTables = true;
 

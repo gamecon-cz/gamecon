@@ -16,10 +16,10 @@ use Gamecon\Tests\Db\AbstractTestDb;
  */
 class UbytovaniPresVariantyTest extends AbstractTestDb
 {
-    private const UZIVATEL = 447;
-    private const TYP_POKOJE = 44711;
+    private const int UZIVATEL = 447;
+    private const int TYP_POKOJE = 44711;
     // A year no other fixture buys in, so the statistics count only these nights.
-    private const ROK_STATISTIK = 2099;
+    private const int ROK_STATISTIK = 2099;
 
     protected static array $initQueries = [
         <<<SQL

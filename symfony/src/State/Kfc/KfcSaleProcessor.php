@@ -34,7 +34,7 @@ readonly class KfcSaleProcessor implements ProcessorInterface
      * A walk-up buyer has no account of their own, so the sale is booked on a shared account
      * that deliberately carries no roles — see docs/generated/prodej-na-pultu-kfc.md.
      */
-    private const LOGIN_ANONYMNIHO_KUPUJICIHO = 'ANONYM';
+    private const string LOGIN_ANONYMNIHO_KUPUJICIHO = 'ANONYM';
 
     public function __construct(
         private EntityManagerInterface $entityManager,

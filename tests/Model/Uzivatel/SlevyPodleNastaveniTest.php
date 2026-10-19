@@ -21,10 +21,10 @@ use Gamecon\Uzivatel\Finance;
  */
 class SlevyPodleNastaveniTest extends AbstractTestDb
 {
-    private const ID_UZIVATELE = 337;
-    private const ID_ROLE = -337337;
-    private const ID_KOSTKA = 33700;
-    private const ID_TRICKO = 33701;
+    private const int ID_UZIVATELE = 337;
+    private const int ID_ROLE = -337337;
+    private const int ID_KOSTKA = 33700;
+    private const int ID_TRICKO = 33701;
 
     protected static array $initQueries = [
         <<<SQL

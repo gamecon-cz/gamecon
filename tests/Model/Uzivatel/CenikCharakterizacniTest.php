@@ -30,19 +30,19 @@ use Gamecon\Uzivatel\Finance;
  */
 class CenikCharakterizacniTest extends AbstractTestDb
 {
-    private const ID_UZIVATELE = 335;
-    private const ID_ROLE = -335335;
+    private const int ID_UZIVATELE = 335;
+    private const int ID_ROLE = -335335;
 
-    private const ID_KOSTKA = 33500;
-    private const ID_PLACKA = 33501;
-    private const ID_TRICKO_LEVNE = 33502;
-    private const ID_TRICKO_DRAHE = 33503;
-    private const ID_UBYTOVANI_STREDA = 33504;
-    private const ID_UBYTOVANI_CTVRTEK = 33505;
-    private const ID_JIDLO = 33506;
-    private const ID_OBYCEJNY_PREDMET = 33507;
-    private const ID_KOSTKA_STARA = 33508;
-    private const ID_PLACKA_STARA = 33509;
+    private const int ID_KOSTKA = 33500;
+    private const int ID_PLACKA = 33501;
+    private const int ID_TRICKO_LEVNE = 33502;
+    private const int ID_TRICKO_DRAHE = 33503;
+    private const int ID_UBYTOVANI_STREDA = 33504;
+    private const int ID_UBYTOVANI_CTVRTEK = 33505;
+    private const int ID_JIDLO = 33506;
+    private const int ID_OBYCEJNY_PREDMET = 33507;
+    private const int ID_KOSTKA_STARA = 33508;
+    private const int ID_PLACKA_STARA = 33509;
 
     protected static array $initQueries = [
         <<<SQL

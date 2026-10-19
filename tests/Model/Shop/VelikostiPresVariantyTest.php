@@ -17,10 +17,10 @@ use Gamecon\Tests\Db\AbstractTestDb;
  */
 class VelikostiPresVariantyTest extends AbstractTestDb
 {
-    private const UZIVATEL = 448;
-    private const MODEL = 44801;
+    private const int UZIVATEL = 448;
+    private const int MODEL = 44801;
     // A year no other fixture buys in, so the statistics count only this purchase.
-    private const ROK_STATISTIK = 2098;
+    private const int ROK_STATISTIK = 2098;
 
     protected static array $initQueries = [
         <<<SQL

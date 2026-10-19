@@ -14,7 +14,7 @@ use Gamecon\Tests\Db\AbstractTestDb;
  */
 class BfgrVelikostiTest extends AbstractTestDb
 {
-    private const UZIVATEL = 449;
+    private const int UZIVATEL = 449;
 
     protected static array $initQueries = [
         <<<SQL

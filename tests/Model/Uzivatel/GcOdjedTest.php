@@ -26,8 +26,8 @@ use Gamecon\Tests\Db\AbstractTestDb;
  */
 class GcOdjedTest extends AbstractTestDb
 {
-    private const ODJIZDEJICI = 77001;
-    private const INFOPULTAK = 77002;
+    private const int ODJIZDEJICI = 77001;
+    private const int INFOPULTAK = 77002;
 
     protected static bool $disableStrictTransTables = true;
 

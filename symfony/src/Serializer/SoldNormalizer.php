@@ -20,8 +20,8 @@ final class SoldNormalizer implements NormalizerInterface, NormalizerAwareInterf
     use NormalizerAwareTrait;
 
     // One flag per class: a product's context reaches its nested variants, which need their own pass.
-    private const ALREADY_CALLED_PRODUCT = 'sold_normalizer_product_already_called';
-    private const ALREADY_CALLED_VARIANT = 'sold_normalizer_variant_already_called';
+    private const string ALREADY_CALLED_PRODUCT = 'sold_normalizer_product_already_called';
+    private const string ALREADY_CALLED_VARIANT = 'sold_normalizer_variant_already_called';
 
     public function __construct(
         private readonly SoldCatalog $soldCatalog,

@@ -14,13 +14,13 @@ use App\Entity\User;
  */
 final readonly class OperatorOverride
 {
-    public const GUARD_DEADLINE = 'deadline';
+    public const string GUARD_DEADLINE = 'deadline';
 
-    public const GUARD_ORGANIZER_STOCK = 'organizer_stock';
+    public const string GUARD_ORGANIZER_STOCK = 'organizer_stock';
 
-    public const GUARD_RESTRICTED_PRODUCT = 'restricted_product';
+    public const string GUARD_RESTRICTED_PRODUCT = 'restricted_product';
 
-    public const SOURCE_KFC = 'kfc';
+    public const string SOURCE_KFC = 'kfc';
 
     /**
      * @param list<self::GUARD_*> $allowedGuards

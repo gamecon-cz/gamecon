@@ -15,7 +15,7 @@ use Gamecon\Uzivatel\Finance;
  */
 class FinancePresVariantyTest extends AbstractTestDb
 {
-    private const UZIVATEL = 446;
+    private const int UZIVATEL = 446;
 
     protected static array $initQueries = [
         <<<SQL
