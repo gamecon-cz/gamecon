@@ -3,6 +3,7 @@
 use Gamecon\Cas\DateTimeCz;
 use Gamecon\Shop\Shop;
 use Gamecon\Pravo;
+use Gamecon\Web\ZpracovaneObrazky;
 
 /**
  * @see web/sablony/blackarrow/prihlaska.xtpl
@@ -22,7 +23,7 @@ function cestaKObrazkuEshopPredmetu(string $soubor): string
 
 function adresarKObrazkuEshopPredmetu(): string
 {
-    return WWW . '/soubory/obsah/materialy/' . ROCNIK . '/eshop';
+    return ZpracovaneObrazky::adresarObrazkuEshopu();
 }
 
 /**
@@ -189,7 +190,8 @@ if ($u->maPravoNaUbytovaniZdarma()) {
 $adresarKObrazkuPredmetu = adresarKObrazkuEshopPredmetu();
 if (is_dir($adresarKObrazkuPredmetu)) {
     foreach (scandir(adresarKObrazkuEshopPredmetu()) as $soubor) {
-        if ($soubor === '.' || $soubor === '..') {
+        // včetně `.` a `..` a dočasných souborů z nahrávání v administraci
+        if (str_starts_with($soubor, '.')) {
             continue;
         }
         $cestaKObrazku = cestaKObrazkuEshopPredmetu($soubor);
@@ -214,18 +216,7 @@ if (is_dir($adresarKObrazkuPredmetu)) {
             $miniatura      = $cestaKObrazku;
             $chybiMiniatura = true;
         }
-        $bezPripony = basename($soubor, '.' . pathinfo($soubor, PATHINFO_EXTENSION));
-        $nazev      = trim(
-            preg_replace(
-                '~^\d+~', // odstraníme pořadové číslo souboru
-                '',
-                preg_replace(
-                    '~[^[:alnum:]]+~u',
-                    ' ',
-                    $bezPripony
-                )
-            )
-        );
+        $nazev = ZpracovaneObrazky::popisekObrazkuEshopu($soubor);
 
         $t->assign([
             'obrazek'   => $obrazek,

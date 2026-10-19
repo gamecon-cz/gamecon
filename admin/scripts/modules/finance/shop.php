@@ -94,6 +94,8 @@ $template->parse('shop.typ');
 $template->parse('shop');
 $template->out('shop');
 
+require __DIR__ . '/_obrazky-eshopu.php';
+
 require __DIR__ . '/../_import-eshopu.php';
 
 require __DIR__ . '/../penize/_kfcMrizkovyProdej.php';
