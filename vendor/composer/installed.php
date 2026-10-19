@@ -1210,6 +1210,30 @@
             'aliases' => array(),
             'dev_requirement' => false,
         ),
+        'symfony/translation' => array(
+            'pretty_version' => 'v7.4.17',
+            'version' => '7.4.17.0',
+            'reference' => '2ee1e4a3b32a528a642babe041ff7c440b213b4b',
+            'type' => 'library',
+            'install_path' => __DIR__ . '/../symfony/translation',
+            'aliases' => array(),
+            'dev_requirement' => false,
+        ),
+        'symfony/translation-contracts' => array(
+            'pretty_version' => 'v3.7.1',
+            'version' => '3.7.1.0',
+            'reference' => 'ccb206b98faccc511ebae8e5fad50f2dc0b30621',
+            'type' => 'library',
+            'install_path' => __DIR__ . '/../symfony/translation-contracts',
+            'aliases' => array(),
+            'dev_requirement' => false,
+        ),
+        'symfony/translation-implementation' => array(
+            'dev_requirement' => false,
+            'provided' => array(
+                0 => '2.3|3.0',
+            ),
+        ),
         'symfony/type-info' => array(
             'pretty_version' => 'v7.4.9',
             'version' => '7.4.9.0',
