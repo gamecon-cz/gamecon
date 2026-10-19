@@ -230,6 +230,13 @@
                     selectAll: true,
                 })
             </script>
+            <!-- begin:medailonky -->
+            <div class="medailonky-vypravecu" style="margin-top: 0.5em">
+                Fotka a text na webu:
+                <!-- begin:medailonek -->
+                <span style="margin-right: 0.8em; white-space: nowrap"><a href="aktivity/medailonky?id={medailonekIdVypravece}" target="_blank">{medailonekJmeno}</a> {medailonekFotka}</span><!-- end:medailonek -->
+            </div>
+            <!-- end:medailonky -->
             <!-- end:vypraveci -->
         </td>
     </tr>
