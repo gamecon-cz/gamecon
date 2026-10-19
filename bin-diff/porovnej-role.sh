@@ -2,13 +2,9 @@
 set -euo pipefail
 IFS=$'\n\t'
 
-# Pro KAŽDÉHO uživatele s nějakou rolí porovná významy rolí, které čte nová vrstva
-# (`UserRoleRepository`), s tím, co čte legacy (pohled `platne_role_uzivatelu`), a ověří, že
-# se jeho role dají načíst jako entity. Vzorek několika účtů v scénářích tohle nezachytí:
-# role minulých ročníků mívá jen část lidí a neznámý význam v záloze shodí jen jejich požadavky.
-#
-# Stačí nová větev (legacy tu nemá co porovnávat — referencí je sám pohled v databázi), ale
-# běh musí být nad zálohou produkce, jinak v databázi nejsou role minulých ročníků.
+# Pro KAŽDÉHO uživatele s rolí porovná významy rolí nové vrstvy s legacy pohledem a ověří, že
+# se jeho role dají načíst jako entity. Proč, nad čím to pouštět a co znamenají kódy výstupu:
+# docs/generated/eshop-diferencni-overeni.md, část „Kontrola přes všechny uživatele“.
 #
 #   bin-diff/porovnej-role.sh
 
@@ -36,8 +32,8 @@ if [ "$stav" -ne 0 ]; then
     exit "$stav"
 fi
 
-# Zavaděč při nedokončené migraci vypíše stránku s tlačítkem a skončí s 0, takže kód
-# výstupu sám nic neříká. Úspěch je jen ta závěrečná věta, kterou skript vypíše na konci.
+# Zavaděč při nedokončené migraci vypíše stránku a skončí s 0, kód výstupu tedy nestačí;
+# úspěch je jen závěrečná věta skriptu.
 if ! grep -q '^✓ Nová vrstva čte role' <<<"$vystup"; then
     echo "✗ Skript nedoběhl do konce (jsou v databázi dokončené migrace? ./bin-docker/php bin/console migrations:continue)." >&2
     exit 3

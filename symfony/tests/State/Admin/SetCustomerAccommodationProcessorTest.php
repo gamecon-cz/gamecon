@@ -338,6 +338,31 @@ class SetCustomerAccommodationProcessorTest extends AbstractDatabaseKernelTestCa
         $this->processor->process($this->input(), new Post());
     }
 
+    public function testCustomerWhoIsAnOrganizerBooksWithTheOrganizerReserve(): void
+    {
+        $this->signInOperator();
+        $this->organizerUsers[] = 4242;
+        $this->customer();
+        $this->legacyCustomer();
+
+        $this->accommodationWriter
+            ->expects(self::once())
+            ->method('save')
+            ->with(
+                self::anything(),
+                self::anything(),
+                self::anything(),
+                self::anything(),
+                self::anything(),
+                self::anything(),
+                self::anything(),
+                self::anything(),
+                self::identicalTo(true),
+            );
+
+        $this->processor->process($this->input(), new Post());
+    }
+
     /**
      * Legacy showed the "over capacity" button to the infopult chief but never checked it on
      * write, so anyone reaching the screen could overbook. The server decides now.
