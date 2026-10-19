@@ -13,6 +13,8 @@ use Gamecon\Kanaly\EmailovaSablona\ProblemySablonHtml;
 use Gamecon\Kanaly\EmailovaSablona\RozkladSymbolu;
 use Gamecon\Kanaly\EmailovaSablona\SystemoveHodnotyProSablony;
 use Gamecon\Kanaly\EmailovaSablona\UlozenaEmailovaSablona;
+use Gamecon\Kanaly\EmailovaSablona\VysledekZkusebnihoEmailuEnum;
+use Gamecon\Kanaly\EmailovaSablona\ZkusebniEmail;
 use Gamecon\Kanaly\MailLogger;
 use Gamecon\XTemplate\XTemplate;
 
@@ -73,19 +75,15 @@ if ($kod !== null) {
             $nahled->assign('predmet', '(nevyplněno)');
             $nahled->assign('telo', '<p>Vyplň předmět i text, pak bude co ukázat.</p>');
         } else {
-            $ukazky = [];
-            foreach ($definice->promenne as $promenna) {
-                $ukazky[$promenna->nazev] = $promenna->ukazka;
-            }
             $vykresleno = (new EmailovaSablonaVykreslovac($systemoveHodnoty))
-                ->vykresli($definice, $nahlizenyPredmet, $nahlizenyText, $ukazky);
+                ->vykresli($definice, $nahlizenyPredmet, $nahlizenyText, $definice->ukazky());
 
             $nahled->assign('predmet', htmlspecialchars($vykresleno->predmet, ENT_QUOTES));
             // An HTML e-mail is shown in a sandboxed frame so its styles and scripts cannot touch the admin.
             $nahled->assign(
                 'telo',
                 $definice->jeHtml()
-                    ? '<iframe sandbox srcdoc="' . htmlspecialchars('<html><body>' . $vykresleno->text . '</body></html>', ENT_QUOTES) . '"></iframe>'
+                    ? '<iframe sandbox srcdoc="' . htmlspecialchars($vykresleno->textProEmail(), ENT_QUOTES) . '"></iframe>'
                     : '<pre>' . htmlspecialchars($vykresleno->text, ENT_QUOTES) . '</pre>',
             );
         }
@@ -93,6 +91,47 @@ if ($kod !== null) {
         $nahled->out('nahled');
 
         // exit, not $BEZ_DEKORACE: the preview fragment is returned on its own, with nothing of the admin page around it
+        exit;
+    }
+
+    // The editor sends the text it holds, saved or not, as a test to the e-mail of the admin who is logged in
+    if (get('test') !== null) {
+        $adresatTestu = (string)$u->mail();
+        $chybyTestu   = $validator->validuj($definice, (string)post('predmet'), (string)post('text'));
+        if ($adresatTestu === '') {
+            $chybyTestu[] = 'U tvého účtu není vyplněný e-mail, není kam test poslat.';
+        }
+
+        $odpoved = ['ok' => false, 'zprava' => implode(' ', $chybyTestu)];
+        if ($chybyTestu === []) {
+            try {
+                $vysledek = ZkusebniEmail::zGlobals()
+                    ->odesli($definice, (string)post('predmet'), (string)post('text'), $adresatTestu);
+                $odpoved  = match ($vysledek) {
+                    VysledekZkusebnihoEmailuEnum::ODESLANO       => [
+                        'ok'     => true,
+                        // Preview delivers into the shared Mailpit catcher, not into any inbox
+                        'zprava' => "Test odeslán na $adresatTestu."
+                            . ($systemoveNastaveni->jsmeNaPreview()
+                                ? ' Na preview e-maily nechodí do schránek, najdeš ho ve webmailu https://webmail.preview.gamecon.cz/.'
+                                : ''),
+                    ],
+                    VysledekZkusebnihoEmailuEnum::JEN_DO_SOUBORU => [
+                        'ok'     => false,
+                        'zprava' => "Na tomto prostředí se e-mail na $adresatTestu nedoručuje, jen se zapsal do souboru.",
+                    ],
+                    VysledekZkusebnihoEmailuEnum::NEODESLANO     => ['ok' => false, 'zprava' => 'E-mail se nepodařilo odeslat.'],
+                };
+            } catch (Throwable $chyba) {
+                $odpoved['zprava'] = 'E-mail se neodeslal: ' . $chyba->getMessage();
+            }
+        }
+
+        header('Content-Type: application/json; charset=utf-8');
+        // A message of the mail server may hold bytes that are not UTF-8, and without the flag the whole answer would be empty
+        echo json_encode($odpoved, JSON_UNESCAPED_UNICODE | JSON_INVALID_UTF8_SUBSTITUTE);
+
+        // exit, not $BEZ_DEKORACE: only the answer for the editor, with nothing of the admin page around it
         exit;
     }
 
@@ -140,6 +179,8 @@ if ($kod !== null) {
             $urlModulu . '?kod=' . rawurlencode($kod) . '&nahled',
             $urlModulu,
             'Zpět na seznam e-mailů',
+            $urlModulu . '?kod=' . rawurlencode($kod) . '&test',
+            $u->mail() ?: null,
         ),
     ]);
     $sablonaStranky->parse('detail');

@@ -1,6 +1,7 @@
 /**
  * E-mail subject and text editor: symbol suggestions after typing `%`, the Insert symbol button,
- * live checking while typing, the Edit / Preview switch and the question before leaving with unsaved changes.
+ * live checking while typing, the Edit / Preview switch, sending a test e-mail and the question before leaving
+ * with unsaved changes.
  *
  * Nobody writes the symbol list by hand, it comes from the server in <script type="application/json">.
  * The server always decides, the check here is only a convenience.
@@ -29,6 +30,10 @@
     const nahledOkno = koren.querySelector('.editorSablony_nahled')
     const prepinace = koren.querySelectorAll('.editorSablony_rezim')
     const naseptavac = koren.querySelector('.editorSablony_naseptavac')
+    // Present only on a page that offers sending a test e-mail
+    const tlacitkoTestu = koren.querySelector('.editorSablony_test')
+    const dialogTestu = koren.querySelector('.editorSablony_testDialog')
+    const stavTestu = koren.querySelector('.editorSablony_testStav')
     /** @type {{promenne: object[], systemove: object[], neverejne: string[]}} */
     const data = JSON.parse(koren.querySelector('.editorSablony_data').textContent)
 
@@ -37,6 +42,8 @@
     let vybranaPolozka = 0
     let rozepsanySymbol = null
     let casovacKontroly = null
+    let pocetChyb = 0
+    let testSeOdesila = false
 
     function symbolyProPole(pole) {
       const jePredmet = pole === predmetPole
@@ -77,6 +84,8 @@
         return chyba.indexOf('Text') === 0
       }))
       tlacitkoUlozit.disabled = chyby.length > 0
+      pocetChyb = chyby.length
+      srovnejTlacitkoTestu()
 
       return chyby
     }
@@ -320,6 +329,79 @@
         dialogSymbolu.close()
       }
     })
+
+    // --- test e-mail
+
+    function srovnejTlacitkoTestu() {
+      if (tlacitkoTestu) {
+        tlacitkoTestu.disabled = pocetChyb > 0 || testSeOdesila
+      }
+    }
+
+    function ukazStavTestu(text, jeChyba) {
+      stavTestu.hidden = false
+      stavTestu.textContent = text
+      stavTestu.classList.toggle('editorSablony_testStavChyba', jeChyba)
+    }
+
+    function odesliTest() {
+      const udaje = new FormData()
+      udaje.append('predmet', predmetPole.value)
+      udaje.append('text', textPole.value)
+      testSeOdesila = true
+      srovnejTlacitkoTestu()
+      ukazStavTestu('Odesílám…', false)
+
+      fetch(koren.dataset.testUrl, {method: 'POST', body: udaje, credentials: 'same-origin'})
+        .then(function (odpoved) {
+          if (!odpoved.ok) {
+            throw new Error('HTTP ' + odpoved.status)
+          }
+          return odpoved.text()
+        })
+        .then(function (telo) {
+          let vysledek = null
+          try {
+            vysledek = JSON.parse(telo)
+          } catch (chyba) {
+            vysledek = null
+          }
+          // An expired session returns 200 with the login page, not the answer
+          if (vysledek === null || typeof vysledek.ok !== 'boolean') {
+            ukazStavTestu('Test se nepodařilo odeslat, nejspíš vypršelo přihlášení. Otevři admin v jiné záložce,'
+              + ' přihlas se a zkus to znovu - text v editoru zůstává.', true)
+            return
+          }
+          ukazStavTestu(vysledek.zprava, !vysledek.ok)
+        })
+        .catch(function (chyba) {
+          ukazStavTestu('Test se nepodařilo odeslat: ' + chyba.message, true)
+        })
+        .then(function () {
+          testSeOdesila = false
+          srovnejTlacitkoTestu()
+        })
+    }
+
+    if (tlacitkoTestu && dialogTestu && stavTestu) {
+      tlacitkoTestu.addEventListener('click', function () {
+        skryjNaseptavac()
+        dialogTestu.showModal()
+      })
+      dialogTestu.querySelector('.editorSablony_testZrusit').addEventListener('click', function () {
+        dialogTestu.close()
+      })
+      dialogTestu.querySelector('.editorSablony_testOdeslat').addEventListener('click', function () {
+        dialogTestu.close()
+        odesliTest()
+      })
+      // a click on the dimmed backdrop targets the <dialog> itself, not anything inside
+      dialogTestu.addEventListener('click', function (udalost) {
+        if (udalost.target === dialogTestu) {
+          dialogTestu.close()
+        }
+      })
+    }
 
     // --- Edit / Preview switch
 

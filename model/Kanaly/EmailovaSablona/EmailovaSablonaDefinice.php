@@ -54,6 +54,19 @@ readonly class EmailovaSablonaDefinice
         );
     }
 
+    /**
+     * What each variable is replaced with to show what a text turns into (the preview, a test e-mail).
+     *
+     * @return array<string, string>
+     */
+    public function ukazky(): array
+    {
+        return array_map(
+            static fn(EmailovaPromenna $promenna) => $promenna->ukazka,
+            $this->promenne,
+        );
+    }
+
     public function jeHtml(): bool
     {
         return $this->format === GcMail::FORMAT_HTML;

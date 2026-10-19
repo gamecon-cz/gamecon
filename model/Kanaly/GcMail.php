@@ -240,7 +240,12 @@ class GcMail
         return Transport::fromDsn(MAILER_DSN);
     }
 
-    private function adresatiDoSouboru(): array
+    /**
+     * The recipients that on this environment only get the message written to a file, it is not delivered to them.
+     *
+     * @return array<int|string, string>
+     */
+    public function adresatiDoSouboru(): array
     {
         if (! defined('MAILY_DO_SOUBORU') || ! MAILY_DO_SOUBORU) {
             return [];
