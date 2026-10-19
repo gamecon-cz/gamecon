@@ -1,86 +1,47 @@
 <?php
-use Endroid\QrCode\QrCode;
-use Endroid\QrCode\Writer\PngWriter;
-use Endroid\QrCode\Encoding\Encoding;
-use Endroid\QrCode\ErrorCorrectionLevel\ErrorCorrectionLevelHigh;
-use Endroid\QrCode\RoundBlockSizeMode\RoundBlockSizeModeMargin;
-use Endroid\QrCode\Logo\Logo;
 
-function generateQrCode($url, $logoPngPath, $id) {
-    // Create a new QR code
-    $qrCode = new QrCode($url);
-    $qrCode->setSize(300);
-    $qrCode->setEncoding(new Encoding('UTF-8'));
-    $qrCode->setErrorCorrectionLevel(new ErrorCorrectionLevelHigh());
-    $qrCode->setRoundBlockSizeMode(new RoundBlockSizeModeMargin());
+declare(strict_types=1);
 
-    // Set up the writer for generating the QR code
-    $writer = new PngWriter();
+use Gamecon\Web\QrOdkaz;
 
-    // Check if the PNG logo file exists
-    $logo = null;
-    if ($logoPngPath && file_exists($logoPngPath)) {
-
-
-        list($originalWidth, $originalHeight) = getimagesize($logoPngPath);
-
-        // Desired width or height
-        $newWidth = 100; // Example width
-        $newHeight = 100; // Example height
-
-        // Calculate the aspect ratio
-        $aspectRatio = $originalWidth / $originalHeight;
-
-        // Adjust width or height to maintain aspect ratio
-        if ($newWidth / $newHeight > $aspectRatio) {
-            $newWidth = $newHeight * $aspectRatio;
-        }  else {
-        $newHeight = $newWidth / $aspectRatio;
-        }
-        // Add the PNG logo to the QR code
-       // $logo = new Logo($logoPngPath, 100, 0, punchoutBackground: false);
-        $logo = new Logo($logoPngPath, (int)$newWidth, (int)$newHeight, punchoutBackground: false);
-    } else {
-        // If file does not exist, log a message (optional)
-        error_log("Logo file does not exist at path: " . $logoPngPath);
-    }
-
-    // Generate the QR code image with the optional logo
-    $result = $writer->write($qrCode, $logo);
-
-    // Capture the image data as a PNG string
-    $imageData = $result->getString();
-
-    // Encode the image data to Base64 for inline display
-    $base64 = base64_encode($imageData);
-
-    // Return the inline HTML img tag with the Base64 encoded image
-    return "
-        <div>
-            <img id='qrCode-$id' src='data:image/png;base64,$base64' alt='QR Code'>
-            <button onclick='copyQrCode(\"qrCode-$id\")'>Zkopírovat</button>
-            <a href='data:image/png;base64,$base64' download='qr-code-$id.png'>
-                <button>Stáhnout</button>
-            </a>
-        </div>
-    ";
+/**
+ * QR kódy se sociálními sítěmi a dalšími odkazy pro orgy (plakáty, letáky, prezentace).
+ *
+ * @var Modul                       $this
+ * @var Gamecon\XTemplate\XTemplate $t
+ * @var Uzivatel|null               $u
+ */
+if (! $u) {
+    throw new Neprihlasen();
+}
+if (! $u->jeOrganizator()) {
+    throw new Nenalezeno();
 }
 
-$qrCodes = [
-    'instagram'       => 'https://gamecon.cz/instagram',
-    'facebook'        => 'https://gamecon.cz/facebook',
-    'discord'         => 'https://gamecon.cz/discord',
-    'youtube'         => 'https://gamecon.cz/youtube',
-    'tiskova_kronika' => 'https://gamecon.cz/soubory/obsah/download/tiskova_kronika.pdf'
+$this->info()->nazev('QR kódy k sockám');
+$this->pridejJsSoubor(__DIR__ . '/../soubory/blackarrow/qrka/script.js');
+
+// Logo doprostřed kódu = název PNG souboru v soubory/blackarrow/qrka/. Zatím bez log, ať kódy vypadají jednotně.
+$qrKody = [
+    'instagram'       => ['Instagram', 'https://gamecon.cz/instagram', null],
+    'facebook'        => ['Facebook', 'https://gamecon.cz/facebook', null],
+    'discord'         => ['Discord', 'https://gamecon.cz/discord', null],
+    'youtube'         => ['YouTube', 'https://gamecon.cz/youtube', null],
+    'tiskova_kronika' => ['Tisková kronika', 'https://gamecon.cz/soubory/obsah/download/tiskova_kronika.pdf', null],
 ];
 
-$basePath = realpath('soubory' . DIRECTORY_SEPARATOR . 'blackarrow' . DIRECTORY_SEPARATOR . 'qrka');
-
-foreach ($qrCodes as $name => $url) {
-    $filePath = $basePath . DIRECTORY_SEPARATOR . $name . '.png';
-    echo generateQrCode($url, $filePath, $name);
+foreach ($qrKody as $id => [$nazev, $url, $logo]) {
+    $qrOdkaz = new QrOdkaz(
+        $url,
+        "qr-{$id}",
+        $logo !== null ? __DIR__ . "/../soubory/blackarrow/qrka/{$logo}" : null,
+    );
+    $t->assign([
+        'id'    => $id,
+        'nazev' => htmlspecialchars($nazev),
+        'url'   => htmlspecialchars($qrOdkaz->url()),
+        'png'   => $qrOdkaz->pngDataUri(),
+        'svg'   => $qrOdkaz->svgDataUri(),
+    ]);
+    $t->parse('qrka.kod');
 }
-
-?>
-
-<script src="/../soubory/blackarrow/qrka/script.js"></script>
