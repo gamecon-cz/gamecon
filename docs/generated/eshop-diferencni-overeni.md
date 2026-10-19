@@ -64,6 +64,24 @@ Rozdíl **není automaticky chyba** — část jich je záměrná (hlídání ka
 převod bonusu). Každý nalezený rozdíl se musí zařadit: *záměrná změna*, *chyba*, nebo
 *nezjištěno*. Záměrné patří do poznámek u karty, chyby na opravu.
 
+## Kontrola přes všechny uživatele
+
+Několik účtů ve scénářích nezachytí chyby, které se týkají jen části lidí: role minulých
+ročníků mívá jen zlomek účastníků a neznámá hodnota v záloze shodí jen jejich požadavky.
+Proto je vedle scénářů `bin-diff/porovnej-role.sh`. Nad zálohou produkce projde **každého**
+uživatele s rolí a ověří, že
+
+- významy jeho platných rolí, jak je čte nová vrstva (`UserRoleRepository`), jsou tytéž jako
+  v legacy pohledu `platne_role_uzivatelu`,
+- rozhodnutí „je organizátor" sedí na tytéž významy,
+- jeho role se dají načíst jako entity (to dělá Symfony Security u každého přihlášeného, a jediný
+  neznámý význam v záloze shodí celý požadavek).
+
+Stačí nová větev: referencí je pohled v databázi, ne druhý worktree. Databáze musí být ze zálohy
+produkce a mít doběhlé migrace, jinak v ní role minulých ročníků nejsou. Výstup jsou počty;
+při rozdílu přidá pár id. Kód výstupu: `0` shoda, `1` rozdíl, `2` databáze nemá co zkontrolovat
+(žádný uživatel s rolí z minulého ročníku — zelená by nic neprokazovala), `3` skript nedoběhl.
+
 ## Než se to spustí
 
 - Pořadí kroků a co ještě chybí v adminu drží [[admin-objednavky-za-ucastnika]].
