@@ -12,7 +12,7 @@
   <tr>
     <th colspan="100%"><h2>{nazevSkupiny}</h2></th>
   </tr>
-  <tr>
+  <tr class="nazvy-sloupcu">
     <th class="hinted">
       Vlastní
       <span class="hint">

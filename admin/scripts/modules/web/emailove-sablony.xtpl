@@ -33,7 +33,7 @@
     <tr>
         <th colspan="6"><h2>{skupina}</h2></th>
     </tr>
-    <tr>
+    <tr class="nazvy-sloupcu">
         <th>E-mail</th>
         <th>Kdy odchází</th>
         <th>Komu</th>
