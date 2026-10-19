@@ -103,6 +103,38 @@
   background: #d9e8ff;
 }
 
+/* A box laid over a symbol that was just inserted into a field (editor-sablony.js); the green is the one of zablikej() */
+.editorSablony_zvyrazneni {
+  position: absolute;
+  overflow: hidden;
+  pointer-events: none;
+}
+
+.editorSablony_vlozeno {
+  position: absolute;
+  background: #cdec94;
+  border-radius: 2px;
+  /* multiply keeps the text under the box readable */
+  mix-blend-mode: multiply;
+  animation: editorSablony_vlozeno 3s linear forwards;
+}
+
+/* 0.2 s fade in, 0.5 s fade out of the 3 s */
+@keyframes editorSablony_vlozeno {
+  0% {
+    opacity: 0;
+  }
+  6.667% {
+    opacity: 1;
+  }
+  83.333% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+  }
+}
+
 .editorSablony_symboly {
   max-width: 900px;
   width: 90%;
