@@ -170,14 +170,6 @@ readonly class UserRoleChangedListener
         // kterého se už neúčtuje — a tvářil by se přitom jako záznam o tomhle nákupu.
         $orderItem->setDiscountSnapshot($discountInfo['snapshot']);
 
-        $this->logger->debug('OrderItem pricing updated', [
-            'order_item_id'   => $orderItem->getId(),
-            'product_name'    => $product->getName(),
-            'old_price'       => $orderItem->getPurchasePrice(),
-            'new_price'       => $newPurchasePrice,
-            'discount_amount' => $newDiscountAmount,
-        ]);
-
         return true;
     }
 

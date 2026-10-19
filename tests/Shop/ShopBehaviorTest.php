@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Gamecon\Tests\Shop;
 
+use App\Enum\OrderItemChangeEnum;
 use App\Enum\ProductTagCode;
 use Gamecon\Shop\Shop;
 use Gamecon\SystemoveNastaveni\SystemoveNastaveni;
@@ -324,6 +325,26 @@ SQL,
             ],
         );
         self::assertSame(1, $poPredmety, 'Předmět nákupy zůstaly');
+    }
+
+    /**
+     * @test
+     */
+    public function hromadneZruseniZapiseSmazaneNakupyDoLogu(): void
+    {
+        $uzivatel = \Uzivatel::zIdUrcite(77702);
+
+        Shop::zrusObjednavkyPro([$uzivatel], ProductTagCode::JIDLO);
+
+        $smazano = (int) dbOneCol(
+            <<<'SQL'
+            SELECT COUNT(*) FROM shop_order_item_log WHERE customer_id = 77702 AND action = $0
+            SQL,
+            [
+                0 => OrderItemChangeEnum::REMOVED,
+            ],
+        );
+        self::assertSame(1, $smazano, 'Zrušené jídlo musí mít v logu nákupů řádek o smazání, ostatní nákupy ne');
     }
 
     /**

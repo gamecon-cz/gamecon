@@ -2785,7 +2785,7 @@ SQL,
      * pokud session neběží / nikdo přihlášen není (CLI, cron, systémové akce).
      * Session zde záměrně nespouštíme – jen čteme, pokud už běží.
      */
-    private static function aktualniEditorIdZeSession(): ?int
+    public static function aktualniEditorIdZeSession(): ?int
     {
         if (PHP_SAPI === 'cli' || session_status() !== PHP_SESSION_ACTIVE) {
             return null;

@@ -72,6 +72,18 @@ class AnonymizovanaDatabazeTest extends AbstractTestDb
         dbQuery("INSERT INTO medailonky SET id_uzivatele = 100, o_sobe = 'Osobní info', drd = 'DRD info'");
 
         dbQuery("INSERT INTO stranky SET url_stranky = 'test', obsah = 'Kontakt: jan.novak@example.com', poradi = 1");
+
+        dbQuery(<<<'SQL'
+            INSERT INTO shop_order_item_log SET
+                order_item_id = 1,
+                customer_id = 100,
+                year = 2026,
+                action = 'created',
+                changes = '{"id_uzivatele":[null,100]}',
+                changed_by_id = 100,
+                origin = 'test',
+                changed_at = NOW()
+            SQL);
     }
 
     public static function tearDownAfterClass(): void
@@ -108,7 +120,7 @@ class AnonymizovanaDatabazeTest extends AbstractTestDb
         self::assertContains('medailonky', $tables, 'Anonymní databáze by měla obsahovat tabulku medailonky');
 
         // sensitive tables should be empty
-        foreach (['_vars', 'platby', 'akce_import', 'uzivatele_url'] as $sensitivniTabulka) {
+        foreach (['_vars', 'platby', 'akce_import', 'uzivatele_url', 'shop_order_item_log'] as $sensitivniTabulka) {
             $countResult = $connection->query(sprintf('SELECT COUNT(*) as cnt FROM `%s`.`%s`', self::$anonymniDatabaze, $sensitivniTabulka));
             $count = $countResult->fetch(\PDO::FETCH_ASSOC)['cnt'];
             self::assertSame('0', $count, "Tabulka {$sensitivniTabulka} by měla být prázdná");

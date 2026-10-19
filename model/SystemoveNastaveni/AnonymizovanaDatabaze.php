@@ -214,7 +214,8 @@ SQL,
         mysqli_close($mysqliConnection);
 
         $dbConnectionAnonymDb->query("SET FOREIGN_KEY_CHECKS = 0");
-        foreach (['_vars', 'platby', 'akce_import', 'uzivatele_url'] as $prilisCitlivaTabulka) {
+        // Log nákupů nemá cizí klíče, takže se id uživatelů v něm neposunou, a leží i v JSONu.
+        foreach (['_vars', 'platby', 'akce_import', 'uzivatele_url', 'shop_order_item_log'] as $prilisCitlivaTabulka) {
             $dbConnectionAnonymDb->query("TRUNCATE TABLE `{$this->anonymniDatabaze}`.`$prilisCitlivaTabulka`");
         }
         $dbConnectionAnonymDb->query("SET FOREIGN_KEY_CHECKS = 1");

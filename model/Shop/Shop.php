@@ -81,16 +81,18 @@ class Shop
             return $u->id();
         }, $uzivatele);
 
-        dbQuery(<<<SQL
-DELETE nakup
-FROM shop_nakupy AS nakup
-INNER JOIN product_variant ON product_variant.id = nakup.variant_id
+        $idsNakupu = dbOneArray(<<<'SQL'
+SELECT shop_nakupy.id_nakupu
+FROM shop_nakupy
+INNER JOIN product_variant ON product_variant.id = shop_nakupy.variant_id
 INNER JOIN product_product_tag ON product_product_tag.product_id = product_variant.product_id
 INNER JOIN product_tag ON product_tag.id = product_product_tag.tag_id AND product_tag.code = $0
-WHERE nakup.id_uzivatele IN ($1) AND nakup.rok = $2
+WHERE shop_nakupy.id_uzivatele IN ($1) AND shop_nakupy.rok = $2
 SQL,
             [0 => $kategorie->value, 1 => $ids, 2 => ROCNIK],
         );
+
+        SystemoveNastaveni::zGlobals()->kernel()->getContainer()->get(BulkCancelService::class)->removePurchases($idsNakupu);
     }
 
     /** Smaže z názvu identifikaci dne */
