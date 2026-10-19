@@ -873,6 +873,21 @@ SQL
             $xtpl->assign('vypravecJmeno', $org);
             $xtpl->parse('upravy.tabulka.vypraveci.vypravec');
         }
+        // fotka a text vypravěče se ukazují na jeho stránce na webu, spravují se v Medailoncích
+        $vypraveciAktivity = $aktivita?->organizatori() ?? [];
+        foreach ($vypraveciAktivity as $vypravec) {
+            $xtpl->assign([
+                'medailonekIdVypravece' => $vypravec->id(),
+                'medailonekJmeno'       => htmlspecialchars((string)$vypravec->jmenoNick()),
+                'medailonekFotka'       => $vypravec->fotka()
+                    ? '📷'
+                    : '(bez fotky)',
+            ]);
+            $xtpl->parse('upravy.tabulka.vypraveci.medailonky.medailonek');
+        }
+        if ($vypraveciAktivity !== []) {
+            $xtpl->parse('upravy.tabulka.vypraveci.medailonky');
+        }
         $xtpl->parse('upravy.tabulka.vypraveci');
     }
 
