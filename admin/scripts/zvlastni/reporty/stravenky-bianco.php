@@ -1,7 +1,7 @@
 <?php
 
+use App\Enum\ProductTagCode;
 use Gamecon\Cas\DateTimeGamecon;
-use Gamecon\Shop\Shop;
 use Gamecon\SystemoveNastaveni\SystemoveNastaveni;
 use Gamecon\XTemplate\XTemplate;
 
@@ -12,7 +12,6 @@ $t = new XTemplate(__DIR__ . '/stravenky.xtpl');
 $systemoveNastaveni ??= SystemoveNastaveni::zGlobals();
 
 $rocnik   = $systemoveNastaveni->rocnik();
-$typJidlo = Shop::JIDLO;
 $prvniDen = DateTimeGamecon::PORADI_HERNIHO_DNE_CTVRTEK;
 
 $o = dbQuery(<<<SQL
@@ -21,15 +20,18 @@ $o = dbQuery(<<<SQL
       FIELD(SUBSTRING(TRIM(shop_predmety.nazev), POSITION(' ' IN TRIM(shop_predmety.nazev)) + 1), 'středa', 'čtvrtek', 'pátek', 'sobota', 'neděle') AS poradi_dne,
       FIELD(SUBSTRING(TRIM(shop_predmety.nazev), 1, POSITION(' ' IN TRIM(shop_predmety.nazev)) - 1), 'Snídaně', 'Oběd', 'Večeře') AS poradi_jidla
     FROM shop_predmety
-    WHERE shop_predmety.model_rok = {$rocnik}
-      AND shop_predmety.typ = {$typJidlo}
+    JOIN product_product_tag ON product_product_tag.product_id = shop_predmety.id_predmetu
+    JOIN product_tag ON product_tag.id = product_product_tag.tag_id AND product_tag.code = $0
+    -- an archived product belongs to the year it was archived, one still on offer to this year
+    WHERE COALESCE(YEAR(shop_predmety.archived_at), {$rocnik}) = {$rocnik}
       AND shop_predmety.ubytovani_den >= {$prvniDen}
     ORDER BY poradi_dne DESC, poradi_jidla DESC
 SQL,
+    [0 => ProductTagCode::JIDLO->value],
 );
 
 $jidla = [];
-while ($r = mysqli_fetch_assoc($o)) {
+while ($r = $o->fetch(PDO::FETCH_ASSOC)) {
     $jidla[] = $r;
 }
 

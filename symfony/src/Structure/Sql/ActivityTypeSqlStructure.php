@@ -9,9 +9,6 @@ namespace App\Structure\Sql;
  */
 class ActivityTypeSqlStructure
 {
-    /**
-     * @see ActivityType
-     */
     public const _table = 'akce_typy';
 
     /**

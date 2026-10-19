@@ -48,6 +48,7 @@ final class PermissionFactory extends PersistentProxyObjectFactory
             // of that small range). 10000..999999 leaves ample headroom
             // and unique() has 990k slots.
             PermissionEntityStructure::id         => self::faker()->unique()->numberBetween(10_000, 999_999),
+            PermissionEntityStructure::code       => strtoupper(self::faker()->unique()->lexify('TEST_????????')),
             PermissionEntityStructure::jmenoPrava => self::faker()->unique()->text(255),
             PermissionEntityStructure::popisPrava => self::faker()->text(),
         ];

@@ -30,7 +30,7 @@ export type ApiUživatel = {
   role?: {
     organizator?: boolean,
     brigadnik?: boolean,
-    sefInfa?: boolean,
+    sefInfopultu?: boolean,
   }
 }
 

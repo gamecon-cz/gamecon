@@ -1,4 +1,4 @@
-.PHONY: init start-docker-foreground run cache bash phpstan ecs rector check-dockerignore check-vendor-matches-lock check-ui-bundles fix static deps ui-deps ci tests tests-be test-ui migrations-run migrations-diff
+.PHONY: init start-docker-foreground run cache bash phpstan ecs rector check-dockerignore check-vendor-matches-lock check-ui-bundles fix static deps ui-deps ci tests tests-be test-ui symfony-lint doctrine-lint composer-lint migrations-run migrations-diff yarn
 
 MAKEFLAGS += --no-print-directory # to disable "make: Entering directory ..." messages
 
@@ -18,6 +18,9 @@ init:
 	direnv exec bin-docker/yarn build
 	@make cache
 	@echo 'Gamecon initialized ✅'
+
+yarn:
+	yarn --cwd=ui install --frozen-lockfile && yarn --cwd=ui build
 
 run: init
 	@PORT=$$(docker compose port web 80 2>/dev/null | cut -d: -f2); \
@@ -50,7 +53,7 @@ ui-deps:
 	./bin-docker/yarn install --frozen-lockfile
 
 # check-vendor-matches-lock first: `deps` runs composer install, which makes vendor/ match the lock and hides the difference.
-ci: check-vendor-matches-lock deps rector ecs phpstan check-dockerignore check-ui-bundles tests
+ci: check-vendor-matches-lock deps rector ecs phpstan symfony-lint doctrine-lint composer-lint check-dockerignore check-ui-bundles tests
 
 tests: tests-be test-ui
 
@@ -95,7 +98,16 @@ fix:
 	./bin-docker/php vendor/bin/rector process --config rector-ci.php
 	./bin-docker/docker-bash bin/ecs.sh --fix
 
-static: fix phpstan
+static: fix phpstan symfony-lint doctrine-lint composer-lint
+
+symfony-lint:
+	./bin-docker/docker-bash bin/symfony-lint.sh
+
+doctrine-lint:
+	./bin-docker/docker-bash bin/doctrine-lint.sh
+
+composer-lint:
+	./bin-docker/composer validate --no-check-lock
 
 migrations-run:
 	./bin-docker/php ./bin/console migrations:continue
@@ -105,7 +117,7 @@ migrations-run:
 	./bin-docker/php ./bin/console doctrine:cache:clear-result
 
 migrations-diff:
-	./bin-docker/php ./bin/console --env=test migrations:continue
+	./bin-docker/php ./bin/console --env=test migrations:reset
 	./bin-docker/php ./bin/console --env=test migrations:create structures rename-me
 	@find ./symfony/migrations/structures -type f -name '*-rename-me.sql' -empty -exec echo NO CHANGES, removing empty {} \;
 	@find ./symfony/migrations/structures -type f -name '*-rename-me.sql' -empty -exec rm {} \;

@@ -22,22 +22,4 @@ class BulkActivityLogRepository extends ServiceEntityRepository
     {
         parent::__construct($registry, BulkActivityLog::class);
     }
-
-    public function save(BulkActivityLog $entity, bool $flush = false): void
-    {
-        $this->getEntityManager()->persist($entity);
-
-        if ($flush) {
-            $this->getEntityManager()->flush();
-        }
-    }
-
-    public function remove(BulkActivityLog $entity, bool $flush = false): void
-    {
-        $this->getEntityManager()->remove($entity);
-
-        if ($flush) {
-            $this->getEntityManager()->flush();
-        }
-    }
 }

@@ -10,8 +10,18 @@ doctrine:
                 user: '%gamecon.db.user%'
                 password: '%gamecon.db.password%'
                 charset: utf8mb4
+                wrapper_class: App\Doctrine\SharedConnection
+                # Legacy code shares this connection and was written against these session settings.
+                options:
+                    !php/const PDO::MYSQL_ATTR_INIT_COMMAND: 'SET NAMES utf8mb4 COLLATE utf8mb4_czech_ci, SESSION group_concat_max_len = 1048576'
+                    !php/const PDO::ATTR_STRINGIFY_FETCHES: true
+                    # pdo_mysql allows several statements in one query unless told otherwise
+                    !php/const PDO::MYSQL_ATTR_MULTI_STATEMENTS: false
                 profiling_collect_backtrace: '%kernel.debug%'
                 use_savepoints: true
+                # Doctrine's idle-connection listener would close it, though another kernel may hold a transaction on it
+                idle_connection_ttl: 0
+                schema_filter: ~^(?!akce_lokace$)~ # Ignore akce_lokace (managed by legacy code)
 
     orm:
         auto_generate_proxy_classes: true
@@ -36,7 +46,7 @@ when@test:
     doctrine:
         dbal:
             # "TEST_TOKEN" is typically set by ParaTest
-#            dbname_suffix: '_test%env(default::TEST_TOKEN)%' # currently not need because test DB name is solved in nastaveni/verejne-nastaveni-tests.php
+#            dbname_suffix: '_test%env(default::TEST_TOKEN)%' # currently not needed because the test DB name is solved in nastaveni/verejne-nastaveni-tests.php
 
 when@prod:
     doctrine:

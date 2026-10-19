@@ -5,9 +5,9 @@ declare(strict_types=1);
 namespace Gamecon\Report;
 
 use Gamecon\Shop\NazevPredmetuProBfgr;
+use App\Enum\ProductTagCode;
 use Gamecon\Shop\Predmet;
 use Gamecon\Shop\StavPredmetu;
-use Gamecon\Shop\TypPredmetu;
 use Gamecon\SystemoveNastaveni\SystemoveNastaveni;
 use Report;
 use Gamecon\Cas\DateTimeCz;
@@ -50,8 +50,6 @@ class BfgrReport
             $ucastPodleRoku[$rokUcasti] = 'účast ' . $rokUcasti;
         }
 
-        // $letosniPlacky = $this->letosniPlacky();
-
         $letosniKostky = $this->letosniKostky();
 
         $letosniJidla = $this->letosniJidla();
@@ -59,7 +57,6 @@ class BfgrReport
         $letosniOstatniPredmety = $this->letosniOstatniPredmety();
 
         $rocnik = $this->systemoveNastaveni->rocnik();
-        $predmetUbytovani = TypPredmetu::UBYTOVANI;
         $typUcast = Role::TYP_UCAST;
         $result = dbQuery(<<<SQL
 SELECT
@@ -67,9 +64,9 @@ SELECT
     prihlasen.posazen AS prihlasen_na_gc_kdy,
     pritomen.posazen as prosel_infopultem_kdy,
     odjel.posazen as odjel_kdy,
-    ( SELECT MIN(shop_predmety.ubytovani_den) FROM shop_nakupy JOIN shop_predmety USING(id_predmetu) WHERE shop_nakupy.rok=$rocnik AND shop_nakupy.id_uzivatele=prihlasen.id_uzivatele AND shop_predmety.typ=$predmetUbytovani ) AS den_prvni,
-    ( SELECT MAX(shop_predmety.ubytovani_den) FROM shop_nakupy JOIN shop_predmety USING(id_predmetu) WHERE shop_nakupy.rok=$rocnik AND shop_nakupy.id_uzivatele=prihlasen.id_uzivatele AND shop_predmety.typ=$predmetUbytovani ) AS den_posledni,
-    ( SELECT MAX(shop_predmety.nazev) FROM shop_nakupy JOIN shop_predmety USING(id_predmetu) WHERE shop_nakupy.rok=$rocnik AND shop_nakupy.id_uzivatele=prihlasen.id_uzivatele AND shop_predmety.typ=$predmetUbytovani ) AS ubytovani_typ,
+    ( SELECT MIN(noc.accommodation_day) FROM shop_nakupy JOIN product_variant AS noc ON noc.id = shop_nakupy.variant_id JOIN product_product_tag ON product_product_tag.product_id = noc.product_id JOIN product_tag ON product_tag.id = product_product_tag.tag_id AND product_tag.code = $4 WHERE shop_nakupy.rok=$rocnik AND shop_nakupy.id_uzivatele=prihlasen.id_uzivatele ) AS den_prvni,
+    ( SELECT MAX(noc.accommodation_day) FROM shop_nakupy JOIN product_variant AS noc ON noc.id = shop_nakupy.variant_id JOIN product_product_tag ON product_product_tag.product_id = noc.product_id JOIN product_tag ON product_tag.id = product_product_tag.tag_id AND product_tag.code = $4 WHERE shop_nakupy.rok=$rocnik AND shop_nakupy.id_uzivatele=prihlasen.id_uzivatele ) AS den_posledni,
+    ( SELECT MAX(CONCAT_WS(' ', typ_pokoje.nazev, noc.name)) FROM shop_nakupy JOIN product_variant AS noc ON noc.id = shop_nakupy.variant_id JOIN product_product_tag ON product_product_tag.product_id = noc.product_id JOIN product_tag ON product_tag.id = product_product_tag.tag_id AND product_tag.code = $4 JOIN shop_predmety AS typ_pokoje ON typ_pokoje.id_predmetu = noc.product_id WHERE shop_nakupy.rok=$rocnik AND shop_nakupy.id_uzivatele=prihlasen.id_uzivatele ) AS ubytovani_typ,
     ( SELECT GROUP_CONCAT(r_prava_soupis.jmeno_prava SEPARATOR ', ')
       FROM platne_role_uzivatelu
       JOIN prava_role
@@ -124,9 +121,10 @@ SQL,
                 2 => Role::ODJEL_Z_LETOSNIHO_GC,
                 3 => $idUzivatele
                     ?: null,
+                4 => ProductTagCode::UBYTOVANI->value,
             ],
         );
-        if (mysqli_num_rows($result) === 0) {
+        if ($result->rowCount() === 0) {
             if ($doSouboru) {
                 file_put_contents($doSouboru, '');
 
@@ -135,14 +133,13 @@ SQL,
             exit('V tabulce nejsou žádná data.');
         }
 
-        // $letosniPlackyKlice          = array_fill_keys($letosniPlacky, null);
         // $letosniKostkyKlice          = array_fill_keys($letosniKostky, null);
         // $letosniJidlaKlice           = array_fill_keys($letosniJidla, null);
         // $letosniOstatniPredmetyKlice = array_fill_keys($letosniOstatniPredmety, null);
 
         $obsah = [];
 
-        while ($r = mysqli_fetch_assoc($result)) {
+        while ($r = $result->fetch(\PDO::FETCH_ASSOC)) {
             $navstevnik = new Uzivatel($r);
             $finance = $navstevnik->finance();
             $shop = $navstevnik->shop();
@@ -212,7 +209,7 @@ SQL,
                 ],
                 [
                     'Celkové náklady' => [
-                        'Celkem dní' => $celkemDniUbytovani = count($shop->ubytovani()->veKterychDnechJeUbytovan()),
+                        'Celkem dní' => $celkemDniUbytovani = count($shop->veKterychDnechJeUbytovan()),
                         'Cena / den' => $celkemDniUbytovani
                             ? $finance->cenaUbytovani() / $celkemDniUbytovani
                             : 0,
@@ -276,7 +273,7 @@ SQL,
         }
 
         Report::zPoleSDvojitouHlavickou($obsah, Report::HLAVICKU_ZACINAT_VElKYM_PISMENEM)
-              ->tFormat($format, null, $konfiguraceReportu);
+              ->tFormat($format, 'BFGR', $konfiguraceReportu);
     }
 
     private function letosniOstatniPredmetyPocty(
@@ -359,7 +356,7 @@ SQL,
         $pocet = 0;
 
         foreach ($polozky as $polozka) {
-            if (!Predmet::jeToTricko($polozka->kodPredmetu, $polozka->typ)) {
+            if (!Predmet::jeToTricko($polozka->kodPredmetu, $polozka->kategorie)) {
                 continue;
             }
 
@@ -377,14 +374,14 @@ SQL,
         $pocet = 0;
 
         foreach ($polozky as $polozka) {
-            if (!Predmet::jeToTilko($polozka->kodPredmetu, $polozka->typ)) {
+            if (!Predmet::jeToTilko($polozka->kodPredmetu, $polozka->kategorie)) {
                 continue;
             }
 
             /**
              * Must NOT be generic "Tričko/tílko" item (those count as tričko only) @see dejPocetTricekZdarma
              */
-            if (Predmet::jeToTricko($polozka->kodPredmetu, $polozka->typ)) {
+            if (Predmet::jeToTricko($polozka->kodPredmetu, $polozka->kategorie)) {
                 continue;
             }
 
@@ -403,10 +400,10 @@ SQL,
         $pocet = 0;
 
         foreach ($polozky as $polozka) {
-            if (!Predmet::jeToTricko($polozka->kodPredmetu, $polozka->typ)) {
+            if (!Predmet::jeToTricko($polozka->kodPredmetu, $polozka->kategorie)) {
                 continue;
             }
-            if (!Predmet::jeToModre($polozka->nazev) && !Predmet::jeToCervene($polozka->nazev)) {
+            if (!Predmet::jeToVypravecske($polozka) && !Predmet::jeToOrganizatorske($polozka)) {
                 continue;
             }
 
@@ -424,18 +421,18 @@ SQL,
         $pocet = 0;
 
         foreach ($polozky as $polozka) {
-            if (!Predmet::jeToTilko($polozka->kodPredmetu, $polozka->typ)) {
+            if (!Predmet::jeToTilko($polozka->kodPredmetu, $polozka->kategorie)) {
                 continue;
             }
 
             /**
              * Must NOT be generic "Tričko/tílko" item (those count as tričko only) @see dejPocetTricekSeSlevou
              */
-            if (Predmet::jeToTricko($polozka->kodPredmetu, $polozka->typ)) {
+            if (Predmet::jeToTricko($polozka->kodPredmetu, $polozka->kategorie)) {
                 continue;
             }
 
-            if (!Predmet::jeToModre($polozka->nazev) && !Predmet::jeToCervene($polozka->nazev)) {
+            if (!Predmet::jeToVypravecske($polozka) && !Predmet::jeToOrganizatorske($polozka)) {
                 continue;
             }
 
@@ -453,7 +450,7 @@ SQL,
         $pocet = 0;
 
         foreach ($polozky as $polozka) {
-            if (!Predmet::jeToTricko($polozka->kodPredmetu, $polozka->typ) || Predmet::jeToModre($polozka->nazev)) {
+            if (!Predmet::jeToTricko($polozka->kodPredmetu, $polozka->kategorie) || Predmet::jeToVypravecske($polozka)) {
                 continue;
             }
 
@@ -471,14 +468,14 @@ SQL,
         $pocet = 0;
 
         foreach ($polozky as $polozka) {
-            if (!Predmet::jeToTilko($polozka->kodPredmetu, $polozka->typ) || Predmet::jeToModre($polozka->nazev)) {
+            if (!Predmet::jeToTilko($polozka->kodPredmetu, $polozka->kategorie) || Predmet::jeToVypravecske($polozka)) {
                 continue;
             }
 
             /**
              * Must NOT be generic "Tričko/tílko" item (those count as tričko only) @see dejPocetTricekPlnePlacenych
              */
-            if (Predmet::jeToTricko($polozka->kodPredmetu, $polozka->typ)) {
+            if (Predmet::jeToTricko($polozka->kodPredmetu, $polozka->kategorie)) {
                 continue;
             }
 
@@ -662,18 +659,6 @@ SQL,
         return pridejNaZacatekPole('Celkem kostek', array_sum($objednaneKostky), $poctyKostek);
     }
 
-    private function letosniPlacky(): array
-    {
-        return dbFetchPairs(<<<SQL
-            SELECT id_predmetu, CONCAT_WS(' ', TRIM(nazev), model_rok)
-            FROM shop_predmety
-            WHERE nazev LIKE '%placka%'
-                AND stav > $0
-            SQL,
-            [0 => StavPredmetu::MIMO],
-        );
-    }
-
     private function letosniKostky(): array
     {
         $poradiKostek = [
@@ -686,21 +671,35 @@ SQL,
         $poradiKostekSql = implode(',', $poradiKostek);
 
         $kostky = dbFetchAll(<<<SQL
-            SELECT id_predmetu, nazev, model_rok
-            FROM shop_predmety
+            SELECT id_varianty AS id, nazev, model_rok
+            -- named per variant, as Finance names each purchase
+            FROM (
+                SELECT product_variant.id AS id_varianty,
+                       produkt.id_predmetu,
+                       CONCAT_WS(' ', produkt.nazev, product_variant.name) AS nazev,
+                       -- an archived product belongs to the year it was archived, one still on offer to this year
+                       COALESCE(YEAR(produkt.archived_at), $2) AS model_rok,
+                       product_variant.state AS stav
+                FROM product_variant
+                JOIN shop_predmety AS produkt ON produkt.id_predmetu = product_variant.product_id
+                JOIN product_product_tag ON product_product_tag.product_id = produkt.id_predmetu
+                JOIN product_tag ON product_tag.id = product_product_tag.tag_id AND product_tag.code = $1
+            ) AS varianta
             WHERE nazev LIKE '%kostka%'
                 AND stav > $0
-                AND typ = $1
-            ORDER BY FIND_IN_SET(CONCAT_WS(' ', TRIM(nazev), model_rok), '{$poradiKostekSql}')
+            ORDER BY FIND_IN_SET(CONCAT_WS(' ', TRIM(nazev), model_rok), '{$poradiKostekSql}'),
+                     model_rok DESC,
+                     id_predmetu,
+                     id_varianty
             SQL,
-            [0 => StavPredmetu::MIMO, 1 => TypPredmetu::PREDMET],
+            [0 => StavPredmetu::MIMO, 1 => ProductTagCode::PREDMET->value, 2 => $this->systemoveNastaveni->rocnik()],
         );
 
         return $this->nazvyPodleId($kostky, NazevPredmetuProBfgr::kostkaSRokem(...));
     }
 
     /**
-     * @param list<array{id_predmetu: int|string, nazev: string, model_rok: int|string|null}> $predmety
+     * @param list<array{id: int|string, nazev: string, model_rok: int|string|null}> $predmety
      * @param callable(string, ?int, int): string $pojmenuj
      *
      * @return array<int, string> keeps the query's order
@@ -709,7 +708,7 @@ SQL,
     {
         $nazvy = [];
         foreach ($predmety as $predmet) {
-            $nazvy[(int) $predmet['id_predmetu']] = $pojmenuj(
+            $nazvy[(int) $predmet['id']] = $pojmenuj(
                 (string) $predmet['nazev'],
                 $predmet['model_rok'] === null ? null : (int) $predmet['model_rok'],
                 $this->systemoveNastaveni->rocnik(),
@@ -722,33 +721,45 @@ SQL,
     private function letosniJidla(): array
     {
         return dbFetchPairs(<<<SQL
-            SELECT id_predmetu, TRIM(nazev)
+            SELECT shop_predmety.id_predmetu, TRIM(shop_predmety.nazev)
             FROM shop_predmety
-            WHERE typ = $0
-                AND model_rok = {$this->systemoveNastaveni->rocnik()}
-            ORDER BY FIELD(SUBSTRING(TRIM(nazev), 1, POSITION(' ' IN TRIM(nazev)) - 1), 'Snídaně', 'Oběd', 'Večeře'),
-                     FIELD(SUBSTRING(TRIM(nazev), POSITION(' ' IN TRIM(nazev)) + 1), 'středa', 'čtvrtek', 'pátek', 'sobota', 'neděle')
+            JOIN product_product_tag ON product_product_tag.product_id = shop_predmety.id_predmetu
+            JOIN product_tag ON product_tag.id = product_product_tag.tag_id AND product_tag.code = $0
+            WHERE COALESCE(YEAR(shop_predmety.archived_at), $1) = $1
+            ORDER BY FIELD(SUBSTRING(TRIM(shop_predmety.nazev), 1, POSITION(' ' IN TRIM(shop_predmety.nazev)) - 1), 'Snídaně', 'Oběd', 'Večeře'),
+                     FIELD(SUBSTRING(TRIM(shop_predmety.nazev), POSITION(' ' IN TRIM(shop_predmety.nazev)) + 1), 'středa', 'čtvrtek', 'pátek', 'sobota', 'neděle')
             SQL,
-            [0 => TypPredmetu::JIDLO],
+            [0 => ProductTagCode::JIDLO->value, 1 => $this->systemoveNastaveni->rocnik()],
         );
     }
 
     private function letosniOstatniPredmety(): array
     {
         $predmety = dbFetchAll(<<<SQL
-            SELECT id_predmetu, nazev, model_rok
-            FROM shop_predmety
-            WHERE typ = $0
-                AND stav > $1
+            SELECT id_varianty AS id, nazev, model_rok
+            -- named per variant, as Finance names each purchase
+            FROM (
+                SELECT product_variant.id AS id_varianty,
+                       produkt.id_predmetu,
+                       CONCAT_WS(' ', produkt.nazev, product_variant.name) AS nazev,
+                       -- an archived product belongs to the year it was archived, one still on offer to this year
+                       COALESCE(YEAR(produkt.archived_at), $2) AS model_rok,
+                       product_variant.state AS stav
+                FROM product_variant
+                JOIN shop_predmety AS produkt ON produkt.id_predmetu = product_variant.product_id
+                JOIN product_product_tag ON product_product_tag.product_id = produkt.id_predmetu
+                JOIN product_tag ON product_tag.id = product_product_tag.tag_id AND product_tag.code = $1
+            ) AS varianta
+            WHERE stav > $0
                 AND (
                         nazev LIKE '%nicknack%'
                         OR nazev LIKE '%ponožky%'
                         OR nazev LIKE '%lok%'
                         OR nazev LIKE '%taška%'
                     )
-            ORDER BY TRIM(nazev)
+            ORDER BY TRIM(nazev), model_rok DESC, id_predmetu
             SQL,
-            [0 => TypPredmetu::PREDMET, 1 => StavPredmetu::MIMO],
+            [0 => StavPredmetu::MIMO, 1 => ProductTagCode::PREDMET->value, 2 => $this->systemoveNastaveni->rocnik()],
         );
 
         return $this->nazvyPodleId($predmety, NazevPredmetuProBfgr::sRokemModelu(...));

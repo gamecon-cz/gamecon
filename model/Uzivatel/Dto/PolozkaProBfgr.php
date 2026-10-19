@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace Gamecon\Uzivatel\Dto;
 
+use App\Enum\ProductTagCode;
+
 readonly class PolozkaProBfgr
 {
     public function __construct(
@@ -13,7 +15,9 @@ readonly class PolozkaProBfgr
         public float $sleva,
         public int $typ,
         public string $kodPredmetu,
-        public string $idPredmetu,
+        public string $idVarianty,
+        /** A shop item's category; null for activities, payments and other non-shop rows. */
+        public ?ProductTagCode $kategorie = null,
     ) {
     }
 

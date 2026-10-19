@@ -5,10 +5,15 @@ declare(strict_types=1);
 namespace App\Entity;
 
 use App\Entity\Enum\GenderEnum;
+use App\Enum\RoleMeaning;
 use App\Repository\UserRepository;
+use Doctrine\Common\Collections\ArrayCollection;
+use Doctrine\Common\Collections\Collection;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 use Gamecon\Uzivatel\ZpusobZobrazeniNaWebu;
+use Symfony\Component\Security\Core\User\PasswordAuthenticatedUserInterface;
+use Symfony\Component\Security\Core\User\UserInterface;
 
 /**
  * Legacy @see \Gamecon\Uzivatel
@@ -18,7 +23,7 @@ use Gamecon\Uzivatel\ZpusobZobrazeniNaWebu;
 #[ORM\Index(name: 'IDX_infopult_poznamka', columns: ['infopult_poznamka'])]
 #[ORM\UniqueConstraint(name: 'UNIQ_login_uzivatele', columns: ['login_uzivatele'])]
 #[ORM\UniqueConstraint(name: 'UNIQ_email1_uzivatele', columns: ['email1_uzivatele'])]
-class User
+class User implements UserInterface, PasswordAuthenticatedUserInterface
 {
     #[ORM\Id]
     #[ORM\GeneratedValue]
@@ -135,6 +140,31 @@ class User
 
     #[ORM\OneToOne(targetEntity: UserBadge::class, mappedBy: 'user', cascade: ['persist', 'remove'])]
     private UserBadge $badge;
+
+    /**
+     * @var Collection<int, CancelledOrderItem>
+     */
+    #[ORM\OneToMany(targetEntity: CancelledOrderItem::class, mappedBy: 'customer', cascade: ['remove'])]
+    private Collection $cancelledOrderItems;
+
+    /**
+     * @var Collection<int, UserRole>
+     */
+    #[ORM\OneToMany(targetEntity: UserRole::class, mappedBy: 'user')]
+    private Collection $userRoles;
+
+    /**
+     * @var Collection<int, Order>
+     */
+    #[ORM\OneToMany(targetEntity: Order::class, mappedBy: 'customer')]
+    private Collection $orders;
+
+    public function __construct()
+    {
+        $this->cancelledOrderItems = new ArrayCollection();
+        $this->userRoles = new ArrayCollection();
+        $this->orders = new ArrayCollection();
+    }
 
     // Getters and Setters
 
@@ -537,8 +567,142 @@ class User
         $this->badge = $badge;
     }
 
+    /**
+     * @return Collection<int, CancelledOrderItem>
+     */
+    public function getCancelledOrderItems(): Collection
+    {
+        return $this->cancelledOrderItems;
+    }
+
+    /**
+     * @return Collection<int, UserRole>
+     */
+    public function getUserRoles(): Collection
+    {
+        return $this->userRoles;
+    }
+
+    public function addUserRole(UserRole $userRole): static
+    {
+        if (! $this->userRoles->contains($userRole)) {
+            $this->userRoles->add($userRole);
+        }
+
+        return $this;
+    }
+
+    public function removeUserRole(UserRole $userRole): static
+    {
+        $this->userRoles->removeElement($userRole);
+
+        return $this;
+    }
+
+    /**
+     * @return Collection<int, Order>
+     */
+    public function getOrders(): Collection
+    {
+        return $this->orders;
+    }
+
+    /**
+     * Get role codes (e.g., ['GC2026_BRIGADNIK', 'ORGANIZATOR_ZDARMA'])
+     *
+     * @return string[]
+     */
+    public function getRoleCodes(): array
+    {
+        return $this->userRoles
+            ->map(fn (UserRole $ur) => $ur->getRole()->getKodRole())
+            ->toArray();
+    }
+
+    /**
+     * Get role meanings (vyznam_role) for this user
+     *
+     * @return RoleMeaning[]
+     */
+    public function getRoleMeanings(): array
+    {
+        return array_values(array_unique(
+            $this->userRoles
+                ->map(fn (UserRole $ur) => $ur->getRole()->getVyznamRole())
+                ->toArray(),
+            SORT_REGULAR,
+        ));
+    }
+
+    /**
+     * Check if user has organizer-level access (for reserved stock, org discounts)
+     */
+    public function isOrganizer(): bool
+    {
+        return RoleMeaning::anyIsOrganizer($this->getRoleMeanings());
+    }
+
     public function getCelemeJmeno(): string
     {
         return $this->jmeno . ' ' . $this->prijmeni;
+    }
+
+    // UserInterface implementation for Symfony Security
+
+    /**
+     * Returns the roles granted to the user.
+     *
+     * Maps role codes to Symfony roles (e.g., 'organizator' -> ROLE_ORGANIZATOR)
+     * All users get ROLE_USER by default.
+     * Also adds ROLE_ADMIN for specific role codes.
+     */
+    public function getRoles(): array
+    {
+        $roles = ['ROLE_USER'];
+
+        // Map role codes to Symfony roles
+        $roleCodes = $this->getRoleCodes();
+        foreach ($roleCodes as $roleCode) {
+            $roles[] = 'ROLE_' . strtoupper($roleCode);
+        }
+
+        // Map specific roles to ROLE_ADMIN
+        $roleCodesLower = array_map('strtolower', $roleCodes);
+        $adminRoles = ['organizator', 'admin', 'infopult', 'cfo'];
+        foreach ($adminRoles as $adminRole) {
+            if (in_array($adminRole, $roleCodesLower, true)) {
+                $roles[] = 'ROLE_ADMIN';
+                break;
+            }
+        }
+
+        return array_unique($roles);
+    }
+
+    public function getUserIdentifier(): string
+    {
+        return $this->login;
+    }
+
+    /**
+     * Returns the password used to authenticate the user.
+     * This is the hashed password stored in heslo_md5 column.
+     */
+    public function getPassword(): ?string
+    {
+        return $this->hesloMd5;
+    }
+
+    /**
+     * Returns the name to display (first + last name)
+     */
+    public function getName(): string
+    {
+        return $this->getCelemeJmeno();
+    }
+
+    public function eraseCredentials(): void
+    {
+        // Nothing to erase (no plain password stored)
     }
 }

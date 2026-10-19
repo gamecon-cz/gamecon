@@ -5,17 +5,17 @@ namespace Godric\DbMigrations;
 class Migration
 {
 
-    private \mysqli $connection;
-    private string  $code;
-    private string  $path;
-    private string  $relativePath;
-    private bool    $endless = false;
+    private \PDO   $connection;
+    private string $code;
+    private string $path;
+    private string $relativePath;
+    private bool   $endless = false;
 
     public function __construct(
-        string  $path,
-        string  $code,
-        \mysqli $connection,
-        string  $relativePath = '',
+        string $path,
+        string $code,
+        \PDO   $connection,
+        string $relativePath = '',
     ) {
         $this->path         = $path;
         $this->code         = removeDiacritics($code);
@@ -92,22 +92,27 @@ class Migration
 
     /**
      * @param $query
-     * @return false|\mysqli_result
+     * @return false|\PDOStatement
      * @throws \Exception
      */
     public function q($query)
     {
-        $this->connection->multi_query($query);
+        $this->connection->setAttribute(\PDO::ATTR_ERRMODE, \PDO::ERRMODE_EXCEPTION);
 
-        $i = 0;
-        do {
-            $result = $this->connection->use_result();
-            $i++;
-        } while ($this->connection->more_results() && $this->connection->next_result());
+        $result = $this->connection->query($query);
+        // Decided by what came back, not by the first word: draining a read below would
+        // discard its rows, so a WITH or a commented SELECT returned nothing.
+        if ($result instanceof \PDOStatement && $result->columnCount() > 0) {
+            return $result;
+        }
 
-        if ($this->connection->error) {
-            $i++;
-            throw new \Exception("Error in multi_query number $i: {$this->connection->error}");
+        // For DDL/DML multi-statement SQL, consume all result sets with nextRowset().
+        // \PDO::MYSQL_ATTR_MULTI_STATEMENTS must be enabled on the connection.
+        // An error in a later statement surfaces here, and the database has skipped the rest.
+        if ($result instanceof \PDOStatement) {
+            while ($result->nextRowset()) {
+                // consume
+            }
         }
 
         return $result;
@@ -129,7 +134,7 @@ WHERE
 SQL,
         );
         $constraints = [];
-        while ($constrain = mysqli_fetch_column($result)) {
+        while ($constrain = $result->fetchColumn()) {
             $constraints[] = $constrain;
         }
         $existingForeignKeysToDrop = array_intersect(
@@ -160,7 +165,7 @@ SELECT DATABASE()
 SQL,
         );
         $db     = $result !== false
-            ? mysqli_fetch_column($result)
+            ? $result->fetchColumn()
             : null;
         if ((string)$db === '') {
             throw new \RuntimeException('Can not determine current DB as no DB is selected');

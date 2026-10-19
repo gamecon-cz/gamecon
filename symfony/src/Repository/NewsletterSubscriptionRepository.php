@@ -22,31 +22,4 @@ class NewsletterSubscriptionRepository extends ServiceEntityRepository
     {
         parent::__construct($registry, NewsletterSubscription::class);
     }
-
-    public function save(NewsletterSubscription $entity, bool $flush = false): void
-    {
-        $this->getEntityManager()->persist($entity);
-
-        if ($flush) {
-            $this->getEntityManager()->flush();
-        }
-    }
-
-    public function remove(NewsletterSubscription $entity, bool $flush = false): void
-    {
-        $this->getEntityManager()->remove($entity);
-
-        if ($flush) {
-            $this->getEntityManager()->flush();
-        }
-    }
-
-    public function findByEmail(string $email): ?NewsletterSubscription
-    {
-        return $this->createQueryBuilder('n')
-            ->andWhere('n.email = :email')
-            ->setParameter('email', $email)
-            ->getQuery()
-            ->getOneOrNullResult();
-    }
 }

@@ -9,9 +9,6 @@ namespace App\Structure\Sql;
  */
 class ReportUsageLogSqlStructure
 {
-    /**
-     * @see ReportUsageLog
-     */
     public const _table = 'reporty_log_pouziti';
 
     /**

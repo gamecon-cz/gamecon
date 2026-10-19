@@ -66,7 +66,7 @@ $formatDatumPrihlaseni = static function (?string $datumPrihlaseni) use ($naDate
 };
 
 $o = dbQuery('SELECT id_typu, typ_1pmn FROM akce_typy ORDER BY poradi, typ_1pmn');
-while ($r = mysqli_fetch_assoc($o)) {
+while ($r = $o->fetch(PDO::FETCH_ASSOC)) {
     $xtpl2->assign($r);
     $xtpl2->parse('prihlaseni.vyber');
 }
@@ -134,8 +134,8 @@ $rozpadPohlavi = static function (int $unisex, int $muzi, int $zeny): string {
     return sprintf('%d+%d+%d', $unisex, $muzi, $zeny);
 };
 
-$totoPrihlaseni = mysqli_fetch_assoc($odpoved) ?: [];
-$dalsiPrihlaseni = mysqli_fetch_assoc($odpoved) ?: [];
+$totoPrihlaseni = $odpoved->fetch(PDO::FETCH_ASSOC) ?: [];
+$dalsiPrihlaseni = $odpoved->fetch(PDO::FETCH_ASSOC) ?: [];
 $obsazenost = 0;
 $obsazenostMuzi = 0;
 $obsazenostZeny = 0;
@@ -200,7 +200,7 @@ while ($totoPrihlaseni) {
         $maily = [];
     }
     $totoPrihlaseni = $dalsiPrihlaseni;
-    $dalsiPrihlaseni = mysqli_fetch_assoc($odpoved);
+    $dalsiPrihlaseni = $odpoved->fetch(PDO::FETCH_ASSOC);
 }
 
 $xtpl2->parse('prihlaseni');

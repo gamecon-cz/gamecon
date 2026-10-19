@@ -17,7 +17,7 @@ class PravaUzivateleZRoleTest extends AbstractTestDb
     {
         $idRole = -random_int(100000, 999999);
         dbQuery(
-            "INSERT IGNORE INTO r_prava_soupis(id_prava, jmeno_prava, popis_prava) VALUES ($0, 'test_pravo', 'test')",
+            "INSERT IGNORE INTO r_prava_soupis(id_prava, kod_prava, jmeno_prava, popis_prava) VALUES ($0, CONCAT('TEST_PRAVO_', $0), 'test_pravo', 'test')",
             [Pravo::PORADANI_AKTIVIT],
         );
         dbQuery(

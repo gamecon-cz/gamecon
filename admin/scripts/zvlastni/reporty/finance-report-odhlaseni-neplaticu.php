@@ -1,6 +1,6 @@
 <?php declare(strict_types=1);
 
-use Gamecon\Shop\TypPredmetu;
+use App\Enum\ProductTagCode;
 
 require_once __DIR__ . '/sdilene-hlavicky.php';
 
@@ -32,7 +32,7 @@ $data = dbFetchAll(<<<SQL
                     THEN CONCAT(' (', uzivatele_hodnoty.login_uzivatele, ')') ELSE '' END) AS ucastnik,
         uzivatele_hodnoty.email1_uzivatele                AS email,
         zruseni.je_aktivita                               AS je_aktivita,
-        zruseni.typ_shop                                  AS typ_shop,
+        zruseni.kategorie_shop                            AS kategorie_shop,
         zruseni.nazev_polozky                             AS nazev_polozky,
         zruseni.cena                                      AS cena,
         zruseni.objednano_kdy                             AS objednano_kdy,
@@ -42,15 +42,23 @@ $data = dbFetchAll(<<<SQL
         SELECT
             shop_nakupy_zrusene.rocnik           AS rocnik,
             shop_nakupy_zrusene.id_uzivatele     AS id_uzivatele,
-            shop_predmety.nazev                  AS nazev_polozky,
-            shop_predmety.typ                    AS typ_shop,
+            -- Název ze zrušeného nákupu, ne z produktu: report vypisuje i starší ročníky
+            -- a produkt se mezitím mohl přejmenovat. Typ snapshot nenese, ten zůstává
+            -- z produktu.
+            shop_nakupy_zrusene.product_name     AS nazev_polozky,
+            kategorie.code                       AS kategorie_shop,
             NULL                                 AS je_aktivita,
             shop_nakupy_zrusene.cena_nakupni     AS cena,
             shop_nakupy_zrusene.datum_nakupu     AS objednano_kdy,
             shop_nakupy_zrusene.datum_zruseni    AS zruseno_kdy,
             shop_nakupy_zrusene.zdroj_zruseni    AS zdroj
         FROM shop_nakupy_zrusene
-        JOIN shop_predmety ON shop_predmety.id_predmetu = shop_nakupy_zrusene.id_predmetu
+        JOIN product_variant ON product_variant.id = shop_nakupy_zrusene.variant_id
+        -- a product missing its category keeps its row (typ NULL) instead of vanishing
+        LEFT JOIN (
+            product_product_tag AS stitek_kategorie
+            INNER JOIN product_tag AS kategorie ON kategorie.id = stitek_kategorie.tag_id AND kategorie.code IN ($0)
+        ) ON stitek_kategorie.product_id = product_variant.product_id
         WHERE shop_nakupy_zrusene.zdroj_zruseni = 'rucne-hromadne'
            OR shop_nakupy_zrusene.zdroj_zruseni LIKE 'automaticky-%'
 
@@ -60,7 +68,7 @@ $data = dbFetchAll(<<<SQL
             akce_prihlaseni_log.rocnik           AS rocnik,
             akce_prihlaseni_log.id_uzivatele     AS id_uzivatele,
             akce_seznam.nazev_akce               AS nazev_polozky,
-            NULL                                 AS typ_shop,
+            NULL                                 AS kategorie_shop,
             1                                    AS je_aktivita,
             NULL                                 AS cena,
             (
@@ -82,13 +90,15 @@ $data = dbFetchAll(<<<SQL
     ) AS zruseni
     JOIN uzivatele_hodnoty ON uzivatele_hodnoty.id_uzivatele = zruseni.id_uzivatele
     ORDER BY zruseni.zruseno_kdy DESC, zruseni.id_uzivatele, nazev_polozky
-    SQL);
+    SQL,
+    [0 => array_map(static fn (ProductTagCode $kategorie): string => $kategorie->value, ProductTagCode::categories())],
+);
 
 $radky = [];
 foreach ($data as $radek) {
     $typPolozky = $radek['je_aktivita']
         ? 'aktivita'
-        : TypPredmetu::nazevTypu((int)$radek['typ_shop']);
+        : mb_strtolower(ProductTagCode::tryFrom((string) $radek['kategorie_shop'])?->label() ?? 'neznámý typ');
 
     $urlUzivatele = URL_ADMIN . '/uzivatel?pracovni_uzivatel=' . $radek['id_uzivatele'];
 

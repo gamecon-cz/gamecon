@@ -8,7 +8,7 @@ Skoro všechno na Infopultu se točí kolem **pracovního uživatele** — úča
 
 Po výběru vidíš vlevo nahoře jeho přezdívku, jméno, ID a stav. Práci s ním ukončíš tlačítkem **zrušit**; pod polem se pak nabízejí odkazy ↻ na naposledy otevřené účastníky. Odkaz s ikonou řetězu / kopírování ti dá URL, kterou můžeš poslat kolegovi — otevře mu stejného účastníka.
 
-Pokud jsi infopulťák (a ne šéf Infa), při klepnutí na **zrušit** tě systém může zastavit potvrzovací hláškou „Účastník … Přesto ukončit práci s uživatelem?", když má účastník nedoplatek, chybí mu potvrzení od rodičů, formulář cizince nebo nemá kompletní či zkontrolované osobní údaje. Nejdřív to s ním dořeš.
+Pokud jsi infopulťák (a ne šéf infopultu), při klepnutí na **zrušit** tě systém může zastavit potvrzovací hláškou „Účastník … Přesto ukončit práci s uživatelem?", když má účastník nedoplatek, chybí mu potvrzení od rodičů, formulář cizince nebo nemá kompletní či zkontrolované osobní údaje. Nejdřív to s ním dořeš.
 
 ## Horní tlačítka — stav účastníka na GameConu
 
@@ -56,7 +56,7 @@ Formulář pro hotovost (nebo ruční opravu):
 
 ## Ubytování a Nastavení pokojů
 
-Sekce **Ubytování** ukazuje pokoj, spolubydlící (se jmény a telefony), objednané ubytování a případně „Nechce ubytování". V tabulce nocí můžeš ubytování upravit a uložit tlačítkem **Uložit**. Pozor: „Zrušit jiné ubytování než neděli může pouze šéf Infa."
+Sekce **Ubytování** ukazuje pokoj, spolubydlící (se jmény a telefony), objednané ubytování a případně „Nechce ubytování". V tabulce nocí můžeš ubytování upravit a uložit tlačítkem **Uložit**. Pozor: „Zrušit jiné ubytování než neděli může pouze šéf infopultu."
 
 Sekce **Nastavení pokojů**:
 
@@ -97,4 +97,4 @@ Když **nemáš** vybraného žádného účastníka, dole na stránce je box **
 - **Rušení objednávek** (koš v Objednávkách) měň zůstatek účastníka — potvrzuj s rozmyslem.
 - **Přidělit pokoj** přepíše stávající přidělení bez ptaní.
 - **Zrušit jídlo** jen proti vrácené stravence; nové jídlo = vydat stravenku.
-- Před **Dát materiály** a před ukončením práce s účastníkem vyřeš nedoplatek, potvrzení od rodičů (mladší 15 let), formulář cizince a chybějící osobní údaje — systém tě na ně upozorní, ale nezastaví šéfa Infa.
+- Před **Dát materiály** a před ukončením práce s účastníkem vyřeš nedoplatek, potvrzení od rodičů (mladší 15 let), formulář cizince a chybějící osobní údaje — systém tě na ně upozorní, ale nezastaví šéfa infopultu.
