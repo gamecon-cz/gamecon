@@ -5,6 +5,8 @@ declare(strict_types=1);
 use Gamecon\Aktivita\TypAktivity;
 use Gamecon\ArchivPrednasek\ArchivPrednasekStranka;
 use Gamecon\Dev\SsoPrihlaseniZUrl;
+use Gamecon\Jazyk\AktualniJazyk;
+use Gamecon\Jazyk\JazykPozadavku;
 use Gamecon\Vyjimkovac\Vyjimkovac;
 use Gamecon\Web\CestyKSitemape;
 use Gamecon\Web\Info;
@@ -55,6 +57,9 @@ if (($_GET['req'] ?? '') === 'sitemap.xml') {
 
 $u = Uzivatel::zSession();
 SsoPrihlaseniZUrl::zpracuj($u);
+
+// Jazyk podle prefixu cesty (/en/…). Odtrhne ho z $_GET['req'], takže routery níž pracují s cestou bez něj.
+JazykPozadavku::zGlobals()->zpracuj($u);
 
 // Postupná migrace na Symfony: vybrané veřejné cesty obsluhuje Symfony
 // controller. Kernel bootujeme JEN pro tyhle cesty (jsou pro nepřihlášené
@@ -151,7 +156,8 @@ $t->assign([
     'chyba'        => Chyba::vyzvedniHtml(),
     'menu'         => $menu,
     'obsah'        => $m->vystup(),
-    'base'         => URL_WEBU . '/',
+    'base'         => urlWebu(),
+    'jazyk'        => AktualniJazyk::jazyk()->value,
     'info'         => $m->info() ? $m->info()->html() : '',
     'letosniRok'   => date('Y'),
 ]);

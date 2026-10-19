@@ -1,6 +1,30 @@
 <?php
 
 declare(strict_types=1);
+
+use Gamecon\Jazyk\AktualniJazyk;
+use Gamecon\Jazyk\Jazyk;
+use Gamecon\Jazyk\Preklad;
+
+/**
+ * Text rozhraní v jazyce požadavku (nebo v předaném jazyce), viz {@see Preklad}.
+ *
+ * @param array<string, mixed> $parametry hodnoty pro `{nazev}` v textu
+ */
+function t(string $klic, array $parametry = [], ?Jazyk $jazyk = null): string
+{
+    return Preklad::t($klic, $parametry, $jazyk);
+}
+
+/**
+ * Absolutní URL stránky veřejného webu v jazyce požadavku, např. `urlWebu('program')`.
+ * Relativní odkazy jazyk drží samy přes `<base href>`, tohle je pro odkazy s `URL_WEBU`.
+ */
+function urlWebu(string $cesta = '', ?Jazyk $jazyk = null): string
+{
+    return URL_WEBU . '/' . ($jazyk ?? AktualniJazyk::jazyk())->prefixCesty() . ltrim($cesta, '/');
+}
+
 /**
  * Vrací hlášku s daným názvem. Libovolný počet argumentů. Pokud je druhým
  * argumentem uživatel, podporuje symbol {a} jako proměnlivou koncovku a. Další

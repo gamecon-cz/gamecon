@@ -5,6 +5,9 @@ declare(strict_types=1);
 namespace Gamecon\Web;
 
 use Gamecon\Aktivita\TypAktivity;
+use Gamecon\Jazyk\AktualniJazyk;
+use Gamecon\Jazyk\Jazyk;
+use Gamecon\Jazyk\JazykPozadavku;
 use Gamecon\Kostymy\NastaveniPujcovny;
 use Gamecon\Pravo;
 use Gamecon\SystemoveNastaveni\SystemoveNastaveni;
@@ -49,6 +52,8 @@ class MenuWebu
             $sablona->parse('menu.pujcovnaKostymu');
         }
 
+        self::parsePrepinacJazyka($sablona);
+
         if ($uzivatel) {
             $jmenoDoMenu = match ($uzivatel->zpusobZobrazeniNaWebu()) {
                 ZpusobZobrazeniNaWebu::JMENO_A_PRIJMENI => $uzivatel->celeJmeno(),
@@ -66,7 +71,7 @@ class MenuWebu
                 'uJmenoMenu' => $jmenoDoMenu,
             ]);
             $sablona->assign([
-                'gcPrihlaska' => $uzivatel->gcPrihlasen() ? 'Upravit přihlášku' : 'Přihláška na GC',
+                'gcPrihlaska' => $uzivatel->gcPrihlasen() ? \t('menu.upravit_prihlasku') : \t('menu.prihlaska_na_gc'),
             ]);
             if ($katalogKostymuZverejnen) {
                 $sablona->parse('menu.prihlasen.mojeKostymy');
@@ -87,12 +92,35 @@ class MenuWebu
         } else {
             $sablona->parse('menu.neprihlasen');
             $sablona->assign([
-                'gcPrihlaska' => 'Přihláška na GC',
+                'gcPrihlaska' => \t('menu.prihlaska_na_gc'),
             ]);
         }
 
         $sablona->parse('menu');
 
         return $sablona->text('menu');
+    }
+
+    /**
+     * Odkaz na tutéž stránku v ostatních jazycích. Popisek je v cílovém jazyce,
+     * aby ho našel i ten, kdo jazyk aktuální stránky neumí.
+     */
+    private static function parsePrepinacJazyka(XTemplate $sablona): void
+    {
+        $jazykPozadavku = JazykPozadavku::aktualni();
+        $aktualniJazyk = AktualniJazyk::jazyk();
+        foreach (Jazyk::cases() as $jazyk) {
+            if ($jazyk === $aktualniJazyk) {
+                continue;
+            }
+            $sablona->assign([
+                'jazykUrl'     => $jazykPozadavku?->urlPrepnuti($jazyk)
+                    ?? \urlWebu('', $jazyk),
+                'jazykTitulek' => \t('jazyk.prepnout', [], $jazyk),
+                'jazykKod'     => $jazyk->value,
+                'jazykNazev'   => $jazyk->vlastniNazev(),
+            ]);
+            $sablona->parse('menu.jazyk');
+        }
     }
 }
