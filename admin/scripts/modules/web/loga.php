@@ -2,6 +2,8 @@
 
 use Gamecon\Web\ZpracovaneObrazky;
 use Gamecon\Web\LogoUpload;
+use Gamecon\Web\NahravaniObrazku;
+use Gamecon\Web\NahravaniObrazkuException;
 use Gamecon\XTemplate\XTemplate;
 use Symfony\Component\Filesystem\Filesystem;
 
@@ -85,8 +87,13 @@ if ($_POST) {
                     throw new \RuntimeException(sprintf('Neznámá akce: %s', $action));
             }
 
-            $filePath = $targetDir . '/' . $filename;
-            if (file_exists($filePath)) {
+            try {
+                // jen soubory přímo v adresáři log, bez `..` a skrytých souborů
+                $filePath = (new NahravaniObrazku($targetDir))->cestaKSouboru(basename($filename));
+            } catch (NahravaniObrazkuException) {
+                $filePath = null;
+            }
+            if ($filePath !== null && is_file($filePath)) {
                 if (unlink($filePath)) {
                     oznameni("Logo bylo úspěšně smazáno.");
                 } else {
