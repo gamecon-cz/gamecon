@@ -358,6 +358,17 @@
     </tr>
     <tr>
         <th class="hinted">
+            <label for="jazykAktivity" class="hinted">Jazyk<span class="hint">V jakém jazyce aktivita probíhá. Podle toho si ji v programu najdou hráči, kteří neumí česky.</span></label>
+        </th>
+        <td>
+            <select name="{fields}[jazyk]" id="jazykAktivity">
+                <!-- begin:jazyk -->
+                <option {jazykSelected} value="{jazykKod}">{jazykNazev}</option><!-- end:jazyk -->
+            </select>
+        </td>
+    </tr>
+    <tr>
+        <th class="hinted">
             <label for="kapacitaInput" class="hinted">Kapacita</label>
         </th>
         <td>

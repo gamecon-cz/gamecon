@@ -55,6 +55,9 @@
         </h2>
         <div class="aktivity_vypravec"><b>Vypravěč:</b> {organizatori}</div>
         <div class="aktivity_stitky">
+            <!-- begin: jazyk -->
+            <div class="aktivity_stitek aktivity_stitek-jazyk">{jazyk}</div>
+            <!-- end: jazyk -->
             <!-- begin: stitek -->
             <div class="aktivity_stitek">{stitek}</div>
             <!-- end: stitek -->
@@ -98,6 +101,9 @@ zachovejScroll(document.querySelectorAll('.aktivity_aktivity form > a'), null)
     <div class="aktivity_nahledTextPole">
         <h2>{aktivita.nazev}</h2>
         <div class="aktivity_stitky">
+            <!-- begin: jazyk -->
+            <div class="aktivity_stitek aktivity_stitek-nahled aktivity_stitek-jazyk">{jazyk}</div>
+            <!-- end: jazyk -->
             <!-- begin: stitek -->
             <div class="aktivity_stitek aktivity_stitek-nahled">{stitek}</div>
             <!-- end: stitek -->

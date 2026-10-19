@@ -5,7 +5,7 @@ import {
 } from "../../../store/program/selektory";
 import { skryjAktivitaNáhledId } from "../../../store/program/slices/urlSlice";
 import { Obsazenost } from "./tabulka/Obsazenost";
-import { tagyZId } from "../../../utils";
+import { jazykAktivity, NÁZVY_JAZYKŮ_AKTIVITY, tagyZId } from "../../../utils";
 
 type ProgramNáhledProps = {};
 
@@ -16,6 +16,8 @@ export const ProgramNáhled: FunctionComponent<ProgramNáhledProps> = (props) =>
   const tagy = useTagy();
 
   const programNáhledTextRef = useRef<HTMLDivElement>(null);
+
+  const jazyk = aktivita ? jazykAktivity(aktivita) : undefined;
 
   const obalClass =
     "programNahled_obalNahledu" +
@@ -49,6 +51,11 @@ export const ProgramNáhled: FunctionComponent<ProgramNáhledProps> = (props) =>
               }}
             ></div>
             <div class="programNahled_stitky">
+              {jazyk && jazyk !== "cs" && (
+                <div class="programNahled_stitek programNahled_stitek-jazyk">
+                  {NÁZVY_JAZYKŮ_AKTIVITY[jazyk]}
+                </div>
+              )}
               {tagyZId(aktivita?.stitkyId, tagy).map((x) => (
                 <div class="programNahled_stitek">{x}</div>
               ))}

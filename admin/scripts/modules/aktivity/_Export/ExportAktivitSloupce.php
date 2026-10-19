@@ -10,6 +10,7 @@ class ExportAktivitSloupce
     public const URL = 'URL'; // url_akce
     public const KRATKA_ANOTACE = 'Krátká anotace'; // popis_kratky
     public const TAGY = 'Tagy';
+    public const JAZYK = 'Jazyk'; // jazyk
     public const DLOUHA_ANOTACE = 'Dlouhá anotace'; // popis
     public const DEN = 'Den'; // zacatek / konec
     public const ZACATEK = 'Začátek'; // zacatek
@@ -38,6 +39,7 @@ class ExportAktivitSloupce
             self::URL,
             self::KRATKA_ANOTACE,
             self::TAGY,
+            self::JAZYK,
             self::DLOUHA_ANOTACE,
             self::DEN,
             self::ZACATEK,

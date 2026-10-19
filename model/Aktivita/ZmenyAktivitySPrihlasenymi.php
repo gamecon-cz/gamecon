@@ -14,6 +14,7 @@ class ZmenyAktivitySPrihlasenymi
         'čas'      => [Sql::ZACATEK, Sql::KONEC],
         'cenu'     => [Sql::CENA],
         'kapacitu' => [Sql::TEAMOVA, Sql::TEAM_MIN, Sql::TEAM_MAX, Sql::KAPACITA, Sql::KAPACITA_F, Sql::KAPACITA_M],
+        'jazyk'    => [Sql::JAZYK],
     ];
 
     /**
@@ -21,7 +22,7 @@ class ZmenyAktivitySPrihlasenymi
      * (viz Aktivita::editorZpracuj, větev `$zmenyVse`). Změna takového pole se proto týká
      * i hráčů na sourozeneckých instancích. Ostatní sledovaná pole (den, čas) jsou per-instance.
      */
-    public const POLE_PROPAGOVANA_NA_RODINU = ['cenu', 'kapacitu'];
+    public const POLE_PROPAGOVANA_NA_RODINU = ['cenu', 'kapacitu', 'jazyk'];
 
     /**
      * @var string[]
@@ -92,6 +93,7 @@ class ZmenyAktivitySPrihlasenymi
             'čas'      => fn () => $this->zmenenCas(),
             'cenu'     => fn () => $this->zmenenaCena(),
             'kapacitu' => fn () => $this->zmenenaKapacita(),
+            'jazyk'    => fn () => $this->zmenenJazyk(),
         ];
 
         $zmeneneUdaje = [];
@@ -152,6 +154,15 @@ class ZmenyAktivitySPrihlasenymi
         $novaCena = (int) ($this->dataZFormulare[Sql::CENA] ?? 0);
 
         return $puvodniCena !== $novaCena;
+    }
+
+    private function zmenenJazyk(): bool
+    {
+        if (! array_key_exists(Sql::JAZYK, $this->dataZFormulare)) {
+            return false;
+        }
+
+        return $this->puvodniAktivita->jazyk()->value !== (string) $this->dataZFormulare[Sql::JAZYK];
     }
 
     private function zmenenaKapacita(): bool
