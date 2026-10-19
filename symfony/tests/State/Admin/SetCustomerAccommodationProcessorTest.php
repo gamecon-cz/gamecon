@@ -48,6 +48,11 @@ class SetCustomerAccommodationProcessorTest extends AbstractDatabaseKernelTestCa
     private array $overbookers = [];
 
     /**
+     * @var list<int> ids of users holding the right to order a single night
+     */
+    private array $singleNightUsers = [];
+
+    /**
      * @var array<int, \Uzivatel> by id, so the operator and the customer cannot be mistaken for each other
      */
     private array $legacyUsers = [];
@@ -69,13 +74,16 @@ class SetCustomerAccommodationProcessorTest extends AbstractDatabaseKernelTestCa
 
         $container = static::getContainer();
         $currentYear = $container->get(CurrentYearProviderInterface::class)->getCurrentYear();
-        // Answers for one right only, for this year: a blanket stub would pass even if the
+        // Answers for two rights only, for this year: a blanket stub would pass even if the
         // processor asked about some other permission.
         $userPermissions = $this->createMock(UserPermissions::class);
         $userPermissions->method('has')->willReturnCallback(
-            fn (User $user, int $permission, int $year): bool => $permission === Pravo::MUZE_PRETIZIT_UBYTOVANI
-                && $year === $currentYear
-                && in_array($user->getId(), $this->overbookers, true),
+            fn (User $user, int $permission, int $year): bool => $year === $currentYear
+                && match ($permission) {
+                    Pravo::MUZE_PRETIZIT_UBYTOVANI           => in_array($user->getId(), $this->overbookers, true),
+                    Pravo::UBYTOVANI_MUZE_OBJEDNAT_JEDNU_NOC => in_array($user->getId(), $this->singleNightUsers, true),
+                    default                                  => false,
+                },
         );
 
         $this->processor = new SetCustomerAccommodationProcessor(
@@ -126,11 +134,9 @@ class SetCustomerAccommodationProcessorTest extends AbstractDatabaseKernelTestCa
         if ($isInfopultChief) {
             $this->overbookers[] = 4242;
         }
-        // Answers for one right only: a blanket stub would pass even if the processor read
-        // some other permission off the customer.
-        $legacyCustomer->method('maPravo')->willReturnCallback(
-            static fn (int $permission): bool => $maySingleNight && $permission === Pravo::UBYTOVANI_MUZE_OBJEDNAT_JEDNU_NOC,
-        );
+        if ($maySingleNight) {
+            $this->singleNightUsers[] = 4242;
+        }
         $this->legacyUsers[4242] = $legacyCustomer;
 
         return $legacyCustomer;
@@ -266,8 +272,8 @@ class SetCustomerAccommodationProcessorTest extends AbstractDatabaseKernelTestCa
     }
 
     /**
-     * Both are on the legacy side and both looked up by id, so a mix-up would let a customer's
-     * own role decide what the desk may do for them.
+     * Operator and customer are both looked up by id, so a mix-up would let a customer's own
+     * role decide what the desk may do for them.
      */
     public function testOverbookingFollowsTheOperatorNotTheCustomer(): void
     {
@@ -416,9 +422,8 @@ class SetCustomerAccommodationProcessorTest extends AbstractDatabaseKernelTestCa
     }
 
     /**
-     * The rights that decide what may be booked live on the legacy user, so a customer the
-     * legacy side cannot resolve must stop the booking instead of falling through to whatever
-     * rights the operator happens to hold.
+     * The roommate is kept and the grid redrawn from the legacy user, so a customer the legacy
+     * side cannot resolve must stop the booking instead of saving nights the desk cannot show.
      */
     public function testCustomerMissingOnTheLegacySideIsRefused(): void
     {
@@ -436,7 +441,7 @@ class SetCustomerAccommodationProcessorTest extends AbstractDatabaseKernelTestCa
      * The customer comes from the payload, not from the security token — the operator sends the
      * request but the booking is the customer's.
      */
-    public function testLegacyRightsAreReadForThePayloadCustomerNotTheOperator(): void
+    public function testLegacyUserIsLookedUpForThePayloadCustomerNotTheOperator(): void
     {
         $customer = $this->createMock(User::class);
         $customer->method('getId')->willReturn(4242);

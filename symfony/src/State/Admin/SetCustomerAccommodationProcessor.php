@@ -81,17 +81,17 @@ readonly class SetCustomerAccommodationProcessor implements ProcessorInterface
             $customer,
             array_map('intval', $data->variantIds),
             $year,
-            $legacyCustomer->maPravo(Pravo::UBYTOVANI_MUZE_OBJEDNAT_JEDNU_NOC),
+            $this->userPermissions->has($customer, Pravo::UBYTOVANI_MUZE_OBJEDNAT_JEDNU_NOC, $year),
             $roommate,
             $data->declined,
-            $this->accommodationRules->sleepingBagsOnly($legacyCustomer),
+            $this->accommodationRules->sleepingBagsOnly($customer, $year),
             // Legacy offered this button to the infopult chief but never checked on write,
             // so a hand-made request overbooked for anyone. Now the server decides.
             mayOverbook: $this->userPermissions->has($operator, Pravo::MUZE_PRETIZIT_UBYTOVANI, $year),
             // Rezervace patří zákazníkovi, ne obsluze: pult objednává za něj, takže
             // rozhoduje, jestli je organizátor on. Okruh rolí je tentýž jako u merche.
             jeOrganizator: $customer->isOrganizer(),
-            maySundayNight: $this->accommodationRules->maySundayNight($legacyCustomer),
+            maySundayNight: $this->accommodationRules->maySundayNight($customer, $year),
         );
 
         // Both are stale after the write, for different reasons: save() clears the entity
