@@ -86,7 +86,7 @@ foreach (array_keys($vsechny) as $poradi => $idUzivatele) {
     // Výjimka z nové vrstvy (třeba neznámý význam u platné role) je nález, ne důvod skript
     // ukončit bez přehledu. Každá kontrola má vlastní `try`, aby pád jedné nepřeskočil druhou.
     try {
-        $nove = array_map(static fn (RoleMeaning $vyznam): string => $vyznam->value, $repozitar->validMeanings($uzivatel, ROCNIK));
+        $nove = array_map(static fn (RoleMeaning $vyznam): string => $vyznam->value, $repozitar->getValidMeanings($uzivatel, ROCNIK));
         sort($nove);
         if ($nove !== $ocekavane) {
             ++$pocet['rozdil_vyznamy'];

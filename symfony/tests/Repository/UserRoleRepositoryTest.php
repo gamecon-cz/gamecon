@@ -77,7 +77,7 @@ class UserRoleRepositoryTest extends AbstractDatabaseKernelTestCase
             self::VOLUNTEER_OF_LATER_YEAR,
         ]);
 
-        $meanings = static::getContainer()->get(UserRoleRepository::class)->validMeanings($user, ROCNIK);
+        $meanings = static::getContainer()->get(UserRoleRepository::class)->getValidMeanings($user, ROCNIK);
 
         self::assertEqualsCanonicalizing(
             [RoleMeaning::VYPRAVEC, RoleMeaning::MINI_ORG, RoleMeaning::PRIHLASEN],
@@ -91,7 +91,7 @@ class UserRoleRepositoryTest extends AbstractDatabaseKernelTestCase
         $this->role(self::HERMAN_OF_NO_YEAR, Role::JAKYKOLI_ROCNIK, RoleTypeEnum::PERMANENT, RoleMeaning::HERMAN);
         $user = $this->userWithRoles([self::HERMAN_OF_THIS_YEAR, self::HERMAN_OF_NO_YEAR]);
 
-        $meanings = static::getContainer()->get(UserRoleRepository::class)->validMeanings($user, ROCNIK);
+        $meanings = static::getContainer()->get(UserRoleRepository::class)->getValidMeanings($user, ROCNIK);
 
         self::assertSame([RoleMeaning::HERMAN], $meanings);
     }
@@ -100,7 +100,7 @@ class UserRoleRepositoryTest extends AbstractDatabaseKernelTestCase
     {
         $user = $this->userWithRoles([]);
 
-        self::assertSame([], static::getContainer()->get(UserRoleRepository::class)->validMeanings($user, ROCNIK));
+        self::assertSame([], static::getContainer()->get(UserRoleRepository::class)->getValidMeanings($user, ROCNIK));
     }
 
     public function testOrganizerIsOnlyWhoHoldsAnOrganizerRoleValidThisYear(): void

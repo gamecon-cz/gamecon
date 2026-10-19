@@ -56,7 +56,7 @@ readonly class MerchProductsProvider implements ProviderInterface
         $year = $this->currentYearProvider->getCurrentYear();
         // The whole section locks on a date, independent of any single product's state.
         $prodejUkoncen = SystemoveNastaveni::zGlobals()->prodejPredmetuBezTricekUkoncen();
-        $roleMeanings = $this->userRoleRepository->validMeanings($user, $year);
+        $roleMeanings = $this->userRoleRepository->getValidMeanings($user, $year);
         // Jednou za request: mřížka mezi produkty nezapisuje, takže se spotřeba nemění.
         $spentQuota = $this->spentQuota->forUser($user, $year);
         $merch = [];

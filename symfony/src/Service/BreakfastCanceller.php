@@ -190,7 +190,7 @@ class BreakfastCanceller
         // Bought through the cart, not an INSERT of our own: that is what applies the
         // customer's discount and writes the tag snapshot a later bulk cancel filters on.
         $cart = $this->cartService->getOrCreateCart($customer);
-        $roleMeanings = $this->userRoleRepository->validMeanings($customer, $year);
+        $roleMeanings = $this->userRoleRepository->getValidMeanings($customer, $year);
         foreach (array_keys($nabidnute) as $variantId) {
             $variant = $this->entityManager->find(ProductVariant::class, $variantId);
             if ($variant === null) {

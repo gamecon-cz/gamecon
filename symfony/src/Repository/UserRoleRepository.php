@@ -77,7 +77,7 @@ class UserRoleRepository extends ServiceEntityRepository
      *
      * @return RoleMeaning[]
      */
-    public function validMeanings(User $user, int $year): array
+    public function getValidMeanings(User $user, int $year): array
     {
         $meanings = $this->validRolesOf($user, $year)
             ->select('DISTINCT role.vyznamRole')
