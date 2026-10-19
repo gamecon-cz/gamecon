@@ -48,7 +48,7 @@
                {verejneChecked}>
       </label>
     </td>
-    <td class="technicke nazev hinted" style="width: 47%">
+    <td class="technicke nazev hinted">
       <label for="hodnota-{klic}">
           {nazev}
       </label>
@@ -59,7 +59,7 @@
         </div>
       </div>
     </td>
-    <td class="technicke" style="width: 25%">
+    <td class="technicke nastaveni-hodnota">
       <form style="position:relative;">
         <input name="{postKlic}[{klic}][{hodnotaKlic}]" class="hodnota-nastaveni {hodnotaDisplayClass}"
                id="hodnota-{klic}" value="{inputValue}" type="{inputType}" {valueChangeDisabled} {inputChecked}
