@@ -590,6 +590,22 @@ input[type="submit"]:disabled {
   font-weight: normal;
 }
 
+/* The row with the column names under a group heading must not read as one more row of the table. */
+.main table tr.nazvy-sloupcu th {
+  font-weight: bold;
+  font-size: 0.85em;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: #555;
+}
+
+/* The tooltips of the column names inherit the look of the name, which they must not. */
+.main table tr.nazvy-sloupcu .hint {
+  font-weight: normal;
+  text-transform: none;
+  letter-spacing: normal;
+}
+
 .main table caption {
   background: linear-gradient(to top, #fafdff 0%, #fdffff 50%, #f7f9fa 50%, #f2f1f3 100%);
   background-color: rgba(0, 0, 0, 0);
