@@ -9,7 +9,6 @@ use App\Entity\UserRole;
 use App\Enum\RoleMeaning;
 use App\Enum\RoleTypeEnum;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
-use Doctrine\DBAL\ArrayParameterType;
 use Doctrine\ORM\AbstractQuery;
 use Doctrine\Persistence\ManagerRegistry;
 
@@ -78,7 +77,7 @@ class UserRoleRepository extends ServiceEntityRepository
                 'role.typRole = :participationType',
             ))
             ->setParameter('userId', $user->getId())
-            ->setParameter('meanings', array_map(static fn (RoleMeaning $meaning): string => $meaning->value, $meanings), ArrayParameterType::STRING)
+            ->setParameter('meanings', $meanings)
             ->setParameter('year', $year)
             ->setParameter('anyYear', self::ANY_YEAR)
             ->setParameter('participationType', RoleTypeEnum::PARTICIPATION)

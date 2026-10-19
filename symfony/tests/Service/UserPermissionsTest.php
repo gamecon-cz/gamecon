@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Tests\Service;
 
 use App\Entity\User;
+use App\Enum\RoleTypeEnum;
 use App\Service\UserPermissions;
 use App\Tests\AbstractDatabaseKernelTestCase;
 
@@ -19,7 +20,7 @@ class UserPermissionsTest extends AbstractDatabaseKernelTestCase
     private const PRAVO_TRVALE_ROLE = 990103;
     private const PRAVO_LONSKE_UCASTI = 990104;
 
-    private function role(int $idRole, int $rocnik, string $typ, int $idPrava): void
+    private function role(int $idRole, int $rocnik, RoleTypeEnum $typ, int $idPrava): void
     {
         $this->connection()->executeStatement(
             "INSERT INTO role_seznam (id_role, kod_role, nazev_role, popis_role, rocnik_role, typ_role, vyznam_role)
@@ -28,7 +29,7 @@ class UserPermissionsTest extends AbstractDatabaseKernelTestCase
                 'role'   => $idRole,
                 'kod'    => 'TEST_PRAVA_' . $idRole,
                 'rocnik' => $rocnik,
-                'typ'    => $typ,
+                'typ'    => $typ->value,
             ],
         );
         $this->connection()->executeStatement(
@@ -61,10 +62,10 @@ class UserPermissionsTest extends AbstractDatabaseKernelTestCase
 
     public function testRightsMatchLegacyForEveryKindOfRole(): void
     {
-        $this->role(990001, ROCNIK, 'rocnikova', self::PRAVO_LETOSNI_ROLE);
-        $this->role(990002, ROCNIK - 1, 'rocnikova', self::PRAVO_LONSKE_ROLE);
-        $this->role(990003, -1, 'trvala', self::PRAVO_TRVALE_ROLE);
-        $this->role(990004, ROCNIK - 1, 'ucast', self::PRAVO_LONSKE_UCASTI);
+        $this->role(990001, ROCNIK, RoleTypeEnum::YEARLY, self::PRAVO_LETOSNI_ROLE);
+        $this->role(990002, ROCNIK - 1, RoleTypeEnum::YEARLY, self::PRAVO_LONSKE_ROLE);
+        $this->role(990003, -1, RoleTypeEnum::PERMANENT, self::PRAVO_TRVALE_ROLE);
+        $this->role(990004, ROCNIK - 1, RoleTypeEnum::PARTICIPATION, self::PRAVO_LONSKE_UCASTI);
         $idUzivatele = $this->ucastnikVSql('prava_');
         foreach ([990001, 990002, 990003, 990004] as $idRole) {
             $this->prirad($idUzivatele, $idRole);
@@ -93,7 +94,7 @@ class UserPermissionsTest extends AbstractDatabaseKernelTestCase
      */
     public function testRoleGrantedWithinTheRequestCounts(): void
     {
-        $this->role(990001, ROCNIK, 'rocnikova', self::PRAVO_LETOSNI_ROLE);
+        $this->role(990001, ROCNIK, RoleTypeEnum::YEARLY, self::PRAVO_LETOSNI_ROLE);
         $idUzivatele = $this->ucastnikVSql('prava_');
         $uzivatel = $this->entityManager()->find(User::class, $idUzivatele);
         self::assertNotNull($uzivatel);

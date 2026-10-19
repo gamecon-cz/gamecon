@@ -7,7 +7,9 @@ namespace App\Enum;
 /**
  * Values of role_seznam.typ_role.
  *
- * Supersedes Gamecon\Role\Role::TYP_*.
+ * @see \Gamecon\Role\Role::TYP_ROCNIKOVA
+ * @see \Gamecon\Role\Role::TYP_UCAST
+ * @see \Gamecon\Role\Role::TYP_TRVALA
  */
 enum RoleTypeEnum: string
 {
