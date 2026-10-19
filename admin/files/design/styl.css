@@ -1132,6 +1132,14 @@ button .ajax-loader {
   word-spacing: -0.3em;
 }
 
+/* The value column shrinks to its widest input; the right padding is room for the saved-marker,
+   and nowrap keeps Firefox from putting the marker on a line below the input. */
+.main table td.nastaveni-hodnota {
+  width: 1%;
+  padding-right: 2em;
+  white-space: nowrap;
+}
+
 .display-none {
   display: none;
 }
