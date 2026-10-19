@@ -34,6 +34,8 @@
     const tlacitkoTestu = koren.querySelector('.editorSablony_test')
     const dialogTestu = koren.querySelector('.editorSablony_testDialog')
     const stavTestu = koren.querySelector('.editorSablony_testStav')
+    // Present only on an environment that catches e-mails instead of delivering them
+    const tlacitkoSchranky = koren.querySelector('.editorSablony_schranka')
     /** @type {{promenne: object[], systemove: object[], neverejne: string[]}} */
     const data = JSON.parse(koren.querySelector('.editorSablony_data').textContent)
 
@@ -400,6 +402,12 @@
         if (udalost.target === dialogTestu) {
           dialogTestu.close()
         }
+      })
+    }
+
+    if (tlacitkoSchranky) {
+      tlacitkoSchranky.addEventListener('click', function () {
+        window.open(tlacitkoSchranky.dataset.url, '_blank', 'noopener')
       })
     }
 

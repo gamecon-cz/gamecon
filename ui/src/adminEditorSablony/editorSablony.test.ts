@@ -11,7 +11,7 @@ const sablonaEditoru = readFileSync(zRepozitare('model/Kanaly/EmailovaSablona/te
 const escapuj = (text: string) => text.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;')
 
 /** Fills the XTemplate placeholders and blocks the way EditorSablonyHtml::vykresli() does. */
-function vykresliSablonu(predmet: string, text: string, chyby: string[], testEmail?: string): string {
+function vykresliSablonu(predmet: string, text: string, chyby: string[], testEmail?: string, schrankaUrl?: string): string {
   const data = {
     promenne: [{ nazev: 'jmeno', popis: 'jméno příjemce', ukazka: 'Jana', vPredmetu: false }],
     systemove: [],
@@ -43,12 +43,17 @@ function vykresliSablonu(predmet: string, text: string, chyby: string[], testEma
     .replace(/<!-- begin: (testTlacitko|testDialog) -->([\s\S]*?)<!-- end: \1 -->/g, (_celek: string, _nazev: string, blok: string) =>
       testEmail === undefined ? '' : blok.replace('{testEmail}', escapuj(testEmail)),
     )
+    // The Open mailbox button is rendered only on an environment that catches e-mails
+    .replace(/<!-- begin: schrankaTlacitko -->([\s\S]*?)<!-- end: schrankaTlacitko -->/, (_celek: string, blok: string) =>
+      schrankaUrl === undefined ? '' : blok.replace('{schrankaUrl}', escapuj(schrankaUrl)),
+    )
     .replace(/\{(\w+)\}/g, (_celek: string, nazev: string) => hodnoty[nazev] ?? '')
 }
 
 /**
  * @param obnovenyText what the browser puts back into the text field before the script starts (Firefox does)
  * @param testEmail the address of the logged-in admin, when the page offers sending a test e-mail
+ * @param schrankaUrl where the mailbox of caught e-mails is, on an environment that has one
  */
 async function otevriEditor(
   predmet = 'Obnova hesla',
@@ -56,8 +61,9 @@ async function otevriEditor(
   chyby: string[] = [],
   obnovenyText?: string,
   testEmail?: string,
+  schrankaUrl?: string,
 ) {
-  document.body.innerHTML = vykresliSablonu(predmet, text, chyby, testEmail)
+  document.body.innerHTML = vykresliSablonu(predmet, text, chyby, testEmail, schrankaUrl)
   if (obnovenyText !== undefined) {
     document.querySelector<HTMLTextAreaElement>('.editorSablony_text')!.value = obnovenyText
   }
@@ -238,6 +244,7 @@ describe('upozornění při odchodu z editoru s neuloženými změnami', () => {
 
 describe('odeslání zkušebního e-mailu', () => {
   const ADRESA = 'foo@example.com'
+  const ADRESA_SCHRANKY = 'http://localhost:11112'
   let fetchMock: ReturnType<typeof vi.fn>
 
   const tlacitkoTestu = () => document.querySelector<HTMLButtonElement>('.editorSablony_test')!
@@ -246,11 +253,12 @@ describe('odeslání zkušebního e-mailu', () => {
   const odpovedServeru = (telo: string) => ({ ok: true, text: () => Promise.resolve(telo) })
 
   beforeEach(() => {
-    fetchMock = vi.fn().mockResolvedValue(odpovedServeru(JSON.stringify({ ok: true, zprava: `Test odeslán na ${ADRESA}.` })))
+    fetchMock = vi.fn().mockResolvedValue(odpovedServeru(JSON.stringify({ ok: true, zprava: `Test odeslán na ${ADRESA}` })))
     vi.stubGlobal('fetch', fetchMock)
   })
 
   afterEach(() => {
+    vi.restoreAllMocks()
     vi.unstubAllGlobals()
     document.body.innerHTML = ''
   })
@@ -267,6 +275,54 @@ describe('odeslání zkušebního e-mailu', () => {
 
     expect(poradi).toEqual(['prepinac', 'test', 'vlozit', 'napoveda'])
     expect(tlacitkoTestu().textContent?.trim()).toBe('Odeslat test')
+  })
+
+  it('tlačítko Otevřít schránku je hned za Odeslat test, před Vložit symbol', async () => {
+    await otevriEditor('Obnova hesla', 'Text', [], undefined, ADRESA, ADRESA_SCHRANKY)
+
+    const poradi = [...document.querySelector('.editorSablony_nastroje')!.children].map((uzel) => {
+      if (uzel.classList.contains('editorSablony_rezimy')) return 'prepinac'
+      if (uzel.classList.contains('editorSablony_test')) return 'test'
+      if (uzel.classList.contains('editorSablony_schranka')) return 'schranka'
+      if (uzel.classList.contains('editorSablony_vlozit')) return 'vlozit'
+      return 'napoveda'
+    })
+
+    expect(poradi).toEqual(['prepinac', 'test', 'schranka', 'vlozit', 'napoveda'])
+    expect(document.querySelector('.editorSablony_schranka')!.textContent?.trim()).toBe('Otevřít schránku')
+  })
+
+  it('tlačítka mají ikonu Font Awesome, která je jen ozdoba a nemění jejich text', async () => {
+    await otevriEditor('Obnova hesla', 'Text', [], undefined, ADRESA, ADRESA_SCHRANKY)
+
+    const ikony = ['test', 'schranka', 'vlozit'].map((trida) => {
+      const tlacitko = document.querySelector<HTMLButtonElement>(`.editorSablony_${trida}`)!
+      const ikona = tlacitko.querySelector('i')!
+      return [ikona?.className, ikona?.getAttribute('aria-hidden'), tlacitko.textContent?.trim()]
+    })
+
+    expect(ikony).toEqual([
+      ['fa-solid fa-paper-plane', 'true', 'Odeslat test'],
+      ['fa-solid fa-inbox', 'true', 'Otevřít schránku'],
+      ['fa-solid fa-percent', 'true', 'Vložit symbol'],
+    ])
+  })
+
+  it('klik na Otevřít schránku otevře schránku v nové záložce a nic neodešle', async () => {
+    const otevri = vi.spyOn(window, 'open').mockReturnValue(null)
+    await otevriEditor('Obnova hesla', 'Text', [], undefined, ADRESA, ADRESA_SCHRANKY)
+
+    document.querySelector<HTMLButtonElement>('.editorSablony_schranka')!.click()
+
+    expect(otevri).toHaveBeenCalledExactlyOnceWith(ADRESA_SCHRANKY, '_blank', 'noopener')
+    expect(fetchMock).not.toHaveBeenCalled()
+    expect(dialogTestu().hasAttribute('open')).toBe(false)
+  })
+
+  it('prostředí, které e-maily nezachytává, tlačítko Otevřít schránku nemá', async () => {
+    await otevriEditor('Obnova hesla', 'Text', [], undefined, ADRESA)
+
+    expect(document.querySelector('.editorSablony_schranka')).toBeNull()
   })
 
   it('stránka, která zkušební e-mail nenabízí, tlačítko ani potvrzení nemá', async () => {
@@ -305,7 +361,7 @@ describe('odeslání zkušebního e-mailu', () => {
 
     dialogTestu().querySelector<HTMLButtonElement>('.editorSablony_testOdeslat')!.click()
 
-    await vi.waitFor(() => expect(stavTestu().textContent).toContain(`Test odeslán na ${ADRESA}.`))
+    await vi.waitFor(() => expect(stavTestu().textContent).toBe(`Test odeslán na ${ADRESA}`))
     const [url, nastaveni] = fetchMock.mock.calls[0] as [string, { method: string; body: FormData }]
     expect(url).toBe('test')
     expect(nastaveni.method).toBe('POST')
