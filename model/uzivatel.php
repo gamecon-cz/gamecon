@@ -28,6 +28,7 @@ use Gamecon\Uzivatel\UserController;
 use Gamecon\Uzivatel\UserRepository;
 use Gamecon\Uzivatel\UzivatelSlucovani;
 use Gamecon\Uzivatel\ZpusobZobrazeniNaWebu;
+use Gamecon\Web\ZpracovaneObrazky;
 
 /**
  * Třída popisující uživatele a jeho vlastnosti
@@ -539,7 +540,7 @@ SQL, [Pravo::PORADANI_AKTIVIT],
      */
     public function fotka(): ?Nahled
     {
-        foreach (glob(WWW . '/soubory/systemove/fotky/' . $this->id() . '.*') as $soubor) {
+        foreach (glob(ZpracovaneObrazky::adresarFotekUzivatelu() . '/' . $this->id() . '.*') as $soubor) {
             if (preg_match('/\.(jpg|jpeg|png|gif|webp)$/i', $soubor)) {
                 return Nahled::zeSouboru($soubor);
             }

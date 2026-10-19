@@ -1,8 +1,9 @@
 <?php
 
+use Gamecon\Web\NahravaniObrazku;
+use Gamecon\Web\NahravaniObrazkuException;
+use Gamecon\Web\ZpracovaneObrazky;
 use Gamecon\XTemplate\XTemplate;
-use Symfony\Component\Filesystem\Exception\IOException;
-use Symfony\Component\Filesystem\Filesystem;
 
 /**
  * Editace šéfů linií, kontaktů a obrázků v hlavičkách aktivit
@@ -11,14 +12,10 @@ use Symfony\Component\Filesystem\Filesystem;
  * pravo: 105
  */
 
-$adresarObrazkuLinii = ADRESAR_WEBU_S_OBRAZKY . '/soubory/systemove/linie-ikony';
-$podporovanePriponyObrazkuLinii = ['jpg', 'jpeg', 'png', 'webp', 'gif'];
-$mimeNaPriponuObrazkuLinie = [
-    'image/jpeg' => 'jpg',
-    'image/png'  => 'png',
-    'image/webp' => 'webp',
-    'image/gif'  => 'gif',
-];
+$nahravaniObrazkuLinii = NahravaniObrazku::proObrazkyLinii();
+if (NahravaniObrazku::bylPozadavekPrilisVelky()) {
+    chyba(NahravaniObrazku::zpravaOPrilisVelkemPozadavku());
+}
 
 $informaceOObrazkuLinie = static function (int $idTypu): array {
     $cestaVcetneVerze = cestaObrazkuLinie($idTypu);
@@ -92,52 +89,14 @@ if (post('action') === 'upload-line-header-image') {
         chyba('Neplatná linie.');
     }
 
-    $obrazek = $_FILES['obrazek'] ?? null;
-    if (!$obrazek || ($obrazek['error'] ?? UPLOAD_ERR_NO_FILE) !== UPLOAD_ERR_OK) {
-        chyba('Nepodařilo se nahrát obrázek.');
-    }
-
-    if (($obrazek['size'] ?? 0) > OBRAZEK_LINIE_MAX_MB * 1024 * 1024) {
-        chyba('Obrázek je příliš velký, maximum je ' . OBRAZEK_LINIE_MAX_MB . ' MB.');
-    }
-
-    $informaceOObrazku = getimagesize($obrazek['tmp_name']);
-    if (!$informaceOObrazku || empty($informaceOObrazku['mime'])) {
-        chyba('Nahraný soubor není platný obrázek.');
-    }
-    $mime = $informaceOObrazku['mime'];
-    $pripona = $mimeNaPriponuObrazkuLinie[$mime] ?? null;
-    if (!$pripona) {
-        chyba('Obrázek musí být JPG, PNG, WebP nebo GIF.');
-    }
-
     try {
-        (new Filesystem())->mkdir($adresarObrazkuLinii, 0775);
-    } catch (IOException $e) {
-        chyba('Nepodařilo se vytvořit adresář pro obrázky linií.');
-    }
-
-    $cilovaCesta = $adresarObrazkuLinii . '/org_' . $idTypu . '.' . $pripona;
-    $docasnaCesta = $cilovaCesta . '.nova';
-
-    if (!move_uploaded_file($obrazek['tmp_name'], $docasnaCesta)) {
-        chyba('Nepodařilo se uložit obrázek.');
-    }
-
-    foreach ($podporovanePriponyObrazkuLinii as $staraPriponaObrazkuLinie) {
-        $staraCesta = $adresarObrazkuLinii . '/org_' . $idTypu . '.' . $staraPriponaObrazkuLinie;
-        if ($staraCesta === $cilovaCesta) {
-            continue;
-        }
-        if (is_file($staraCesta) && !unlink($staraCesta)) {
-            unlink($docasnaCesta);
-            chyba('Nepodařilo se odstranit starší variantu obrázku.');
-        }
-    }
-
-    if (!rename($docasnaCesta, $cilovaCesta)) {
-        unlink($docasnaCesta);
-        chyba('Nepodařilo se dokončit uložení obrázku.');
+        $nahravaniObrazkuLinii->ulozJakoJediny(
+            $nahravaniObrazkuLinii->overNahranySoubor($_FILES['obrazek'] ?? null),
+            '',
+            'org_' . $idTypu,
+        );
+    } catch (NahravaniObrazkuException $nahravaniObrazkuException) {
+        chyba(htmlspecialchars($nahravaniObrazkuException->getMessage()));
     }
 
     oznameni('Obrázek linie byl nahrán.');
@@ -149,14 +108,13 @@ if (post('action') === 'delete-line-header-image') {
         chyba('Neplatná linie.');
     }
 
-    foreach ($podporovanePriponyObrazkuLinii as $priponaObrazkuLinie) {
-        $cilovaCesta = $adresarObrazkuLinii . '/org_' . $idTypu . '.' . $priponaObrazkuLinie;
-        if (is_file($cilovaCesta) && !unlink($cilovaCesta)) {
-            chyba('Nepodařilo se smazat obrázek linie.');
-        }
+    try {
+        $nahravaniObrazkuLinii->smazVsechnyVarianty('', 'org_' . $idTypu);
+    } catch (NahravaniObrazkuException $nahravaniObrazkuException) {
+        chyba(htmlspecialchars($nahravaniObrazkuException->getMessage()));
     }
 
-    $legacyCesta = $adresarObrazkuLinii . '/' . $idTypu . '.png';
+    $legacyCesta = ZpracovaneObrazky::adresarObrazkuLinii() . '/' . $idTypu . '.png';
     if (is_file($legacyCesta)) {
         oznameni('Vlastní obrázek linie byl smazán, použije se starší ' . basename($legacyCesta));
     } else {

@@ -44,6 +44,7 @@ seznam pomocí čísel
 <p><b>FAQ:</b></p>
 <ul>
   <li>Odkazy mimo stránky se automaticky otevřou v novém tabu, není dobré je psát ručně přes html.</li>
+  <li>Obrázek nahraješ v editaci stránky nebo novinky v části Obrázky a do textu ho vložíš jako <code>![popis](soubory/obsah/…)</code>. Tam taky nahradíš obrázek, na který už text odkazuje.</li>
   <li>Obrázky plovoucí vpravo nebo vlevo TODO</li>
 </ul>
 

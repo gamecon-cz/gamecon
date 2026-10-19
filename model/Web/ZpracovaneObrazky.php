@@ -69,6 +69,80 @@ readonly class ZpracovaneObrazky
         return ADRESAR_WEBU_S_OBRAZKY . '/soubory/obsah/partneri';
     }
 
+    /** Fotky k medailonkům, `<id uživatele>.<přípona>`, viz @see \Uzivatel::fotka() */
+    public static function adresarFotekUzivatelu(): string
+    {
+        return WWW . '/soubory/systemove/fotky';
+    }
+
+    /** Obrázky v hlavičkách linií, `org_<id typu>.<přípona>`, viz @see cestaObrazkuLinie() */
+    public static function adresarObrazkuLinii(): string
+    {
+        return ADRESAR_WEBU_S_OBRAZKY . '/soubory/systemove/linie-ikony';
+    }
+
+    /** Obrázky pro texty stránek a novinek, dřív nahrávané přes FTP */
+    public static function adresarObsahu(): string
+    {
+        return ADRESAR_WEBU_S_OBRAZKY . '/soubory/obsah';
+    }
+
+    /** Galerie e-shopu v přihlášce */
+    public static function adresarObrazkuEshopu(int $rocnik = ROCNIK): string
+    {
+        return WWW . '/soubory/obsah/materialy/' . $rocnik . '/eshop';
+    }
+
+    /**
+     * Cesta vůči kořeni webu, jak ji píšou texty (`soubory/obsah/blog/obrazek.jpg`), nebo null mimo web.
+     */
+    public static function cestaVuciWebu(string $absolutniCesta): ?string
+    {
+        $web = realpath(ADRESAR_WEBU_S_OBRAZKY);
+        $adresar = realpath(dirname($absolutniCesta));
+        if ($web === false || $adresar === false) {
+            return null;
+        }
+        $cesta = $adresar . '/' . basename($absolutniCesta);
+
+        return str_starts_with($cesta, $web . '/')
+            ? substr($cesta, strlen($web) + 1)
+            : null;
+    }
+
+    /**
+     * Veřejná adresa souboru uloženého ve webu, s cestou zakódovanou pro URL.
+     */
+    public static function urlNaWebu(string $absolutniCesta): ?string
+    {
+        $cesta = self::cestaVuciWebu($absolutniCesta);
+
+        return $cesta === null
+            ? null
+            : URL_WEBU . '/' . implode('/', array_map('rawurlencode', explode('/', $cesta)));
+    }
+
+    /**
+     * Popisek obrázku v galerii e-shopu: název souboru bez přípony a bez úvodního čísla,
+     * které určuje pořadí. `08_Účastnické triko.jpeg` → `Účastnické triko`
+     */
+    public static function popisekObrazkuEshopu(string $soubor): string
+    {
+        $bezPripony = basename($soubor, '.' . pathinfo($soubor, PATHINFO_EXTENSION));
+
+        return trim(
+            preg_replace(
+                '~^\d+~', // odstraníme pořadové číslo souboru
+                '',
+                preg_replace(
+                    '~[^[:alnum:]]+~u',
+                    ' ',
+                    $bezPripony,
+                ),
+            ),
+        );
+    }
+
     public function __construct(
         private string $adresarLog,
     ) {
