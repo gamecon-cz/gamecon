@@ -1,0 +1,94 @@
+<!-- begin:obrazkyObsahu -->
+<details class="obrazky-obsahu" open>
+  <summary>Obrázky</summary>
+
+  <p class="tip">
+    Obrázek vložíš do textu Markdownem <code>![popis](soubory/obsah/…)</code>,
+    nebo v HTML jako <code>&lt;img src="soubory/obsah/…"&gt;</code>. Povolené jsou {limit}.
+  </p>
+
+  <!-- begin:odkazy -->
+  <h3>Obrázky, na které text odkazuje</h3>
+  <table class="zvyraznovana">
+    <!-- begin:obrazek -->
+    <tr>
+      <td class="obrazky-obsahu__nahled">
+        <!-- begin:existuje --><a href="{url}" target="_blank" rel="noopener"><img src="{nahled}" alt=""></a><!-- end:existuje -->
+        <!-- begin:chybi --><span class="obrazky-obsahu__chybi">na serveru chybí</span><!-- end:chybi -->
+      </td>
+      <td><code>{vTextu}</code></td>
+      <td>
+        <form method="post" enctype="multipart/form-data">
+          <input type="hidden" name="{postAkce}" value="nahradit">
+          <input type="hidden" name="cesta" value="{cesta}">
+          <input type="file" name="{postSoubor}" accept="{acceptObrazku}" required>
+          <button type="submit">{tlacitko}</button>
+        </form>
+      </td>
+    </tr>
+    <!-- end:obrazek -->
+  </table>
+  <p class="tip">Nový obrázek musí být ve stejném formátu jako ten původní (třeba zase JPG), odkaz v textu se nemění.</p>
+  <!-- end:odkazy -->
+
+  <h3>Nahrát nový obrázek</h3>
+  <form method="post" enctype="multipart/form-data" class="obrazky-obsahu__nahrat">
+    <input type="hidden" name="{postAkce}" value="nahrat">
+    <label>Obrázek <input type="file" name="{postSoubor}" accept="{accept}" required></label>
+    <label>Název <input type="text" name="nazev" placeholder="když nevyplníš, podle souboru" maxlength="100"></label>
+    <button type="submit">Nahrát</button>
+    <div class="tip">Uloží se do <code>{adresar}</code>. Název se upraví do tvaru vhodného do adresy, tedy malými písmeny bez diakritiky.</div>
+  </form>
+
+  <!-- begin:vlastni -->
+  <h3>Obrázky nahrané {kCemu}</h3>
+  <table class="zvyraznovana">
+    <!-- begin:obrazek -->
+    <tr>
+      <td class="obrazky-obsahu__nahled"><a href="{url}" target="_blank" rel="noopener"><img src="{nahled}" alt=""></a></td>
+      <td>
+        <input type="text" readonly value="{markdown}" onclick="this.select()" size="60" aria-label="Markdown pro vložení obrázku">
+      </td>
+      <td>
+        <!-- begin:pouziti -->
+        Odkazuje na něj <!-- begin:misto --><a href="{pouzitiUrl}">{pouzitiPopis}</a> <!-- end:misto -->
+        <!-- end:pouziti -->
+        <!-- begin:smazat -->
+        <form method="post" onsubmit="return confirm('Opravdu smazat tento obrázek?')">
+          <input type="hidden" name="{postAkce}" value="smazat">
+          <input type="hidden" name="cesta" value="{cesta}">
+          <button type="submit">Smazat</button>
+        </form>
+        <!-- end:smazat -->
+      </td>
+    </tr>
+    <!-- end:obrazek -->
+  </table>
+  <!-- end:vlastni -->
+</details>
+
+<style>
+    .obrazky-obsahu {
+        margin: 1.5em 0;
+    }
+
+    .obrazky-obsahu summary {
+        cursor: pointer;
+        font-size: larger;
+    }
+
+    .obrazky-obsahu__nahled img {
+        max-width: 150px;
+        max-height: 100px;
+    }
+
+    .obrazky-obsahu__chybi {
+        color: #c00;
+    }
+
+    .obrazky-obsahu__nahrat {
+        padding: 0.5em 1em;
+        background-color: rgba(215, 246, 170, 0.47);
+    }
+</style>
+<!-- end:obrazkyObsahu -->
