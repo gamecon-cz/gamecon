@@ -14,6 +14,7 @@
     <th>Uživatel</th>
     <th>Popis</th>
     <th>DrD</th>
+    <th>Fotka</th>
     <th>Upravit</th>
   </tr>
   <!-- begin:radek -->
@@ -30,6 +31,7 @@
         <div class="hint">{drdPopis}</div>
       </div>
     </td>
+    <td style="text-align: center">{maFotku}</td>
     <td style="text-align: center">
       <a href="aktivity/medailonky?id={medailonek.id}" class="tlacitko"
          style="display: inline">
@@ -41,3 +43,70 @@
 </table>
 
 <!-- end:medailonky -->
+
+<!-- begin:medailonek -->
+
+<p><a href="aktivity/medailonky">← všechny medailonky</a></p>
+
+<h1>Medailonek: {jmeno}</h1>
+
+<p>Na webu ho najdeš na stránce vypravěče <a href="{urlNaWebu}" target="_blank" rel="noopener">{urlNaWebu}</a>.</p>
+
+<!-- begin:fotka -->
+<h2>Fotka</h2>
+<div class="medailonek-fotka">
+  <img src="{nahledFotky}" alt="Fotka: {jmeno}" width="180" height="180">
+  <div>
+    <!-- begin:ma -->
+    <p>Takhle se fotka ukáže na stránce vypravěče, ořízne se do čtverce.</p>
+    <!-- end:ma -->
+    <!-- begin:nema -->
+    <p><strong>Fotka chybí</strong>, na webu se zatím ukazuje výchozí obrázek. Vypravěč bez fotky se navíc nezobrazí v přehledech vypravěčů DrD a DnD.</p>
+    <!-- end:nema -->
+    <form method="post" enctype="multipart/form-data">
+      <input type="hidden" name="akceFotky" value="nahrat">
+      <input type="file" name="fotka" accept="{acceptFotky}" required>
+      <button type="submit">Nahrát fotku</button>
+      <div class="tip">{limitFotky}. Nová fotka nahradí tu dosavadní. Nejlépe vypadá čtvercová fotka obličeje aspoň 360 × 360 px.</div>
+    </form>
+    <!-- begin:smazat -->
+    <form method="post" onsubmit="return confirm('Opravdu smazat fotku?')">
+      <input type="hidden" name="akceFotky" value="smazat">
+      <button type="submit">Smazat fotku</button>
+    </form>
+    <!-- end:smazat -->
+  </div>
+</div>
+<!-- end:fotka -->
+
+<h2>Text</h2>
+<!-- begin:formular -->
+{formular}
+<!-- end:formular -->
+<!-- begin:zalozit -->
+<p>Uživatel zatím nemá medailonek.</p>
+<form method="post">
+  <input type="hidden" name="noveId" value="{idUzivatele}">
+  <input type="submit" value="Založit medailonek">
+</form>
+<!-- end:zalozit -->
+
+<style>
+    .medailonek-fotka {
+        display: flex;
+        gap: 1.5em;
+        align-items: flex-start;
+        flex-wrap: wrap;
+        margin-bottom: 1.5em;
+    }
+
+    .medailonek-fotka img {
+        object-fit: cover;
+    }
+
+    .medailonek-fotka form {
+        margin-bottom: 0.5em;
+    }
+</style>
+
+<!-- end:medailonek -->
