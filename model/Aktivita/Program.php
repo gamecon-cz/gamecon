@@ -5,6 +5,7 @@ namespace Gamecon\Aktivita;
 use App\Service\AktivitaTymService;
 use Gamecon\Cache\ProgramStaticFileGenerator;
 use Gamecon\Cas\DateTimeCz;
+use Gamecon\Jazyk\AktualniJazyk;
 use Gamecon\SystemoveNastaveni\SystemoveNastaveni;
 use Stranka;
 use Uzivatel;
@@ -45,13 +46,19 @@ class Program
     public static function gameconKonstanty($jeAdmin = false, $pageName = "program"): array
     {
         $legendaText        = Stranka::zUrl('program-legenda-text')?->html();
-        $basePathApi        = ($jeAdmin ? URL_ADMIN : URL_WEBU) . '/api/';
-        $basePathPage       = ($jeAdmin ? URL_ADMIN : URL_WEBU) . '/' . $pageName . '/';
+        // na webu i API v jazyce stránky (/en/api/…), aby texty z API sedly k rozhraní
+        $basePathApi        = $jeAdmin
+            ? URL_ADMIN . '/api/'
+            : urlWebu('api/');
+        $basePathPage       = $jeAdmin
+            ? URL_ADMIN . '/' . $pageName . '/'
+            : urlWebu($pageName . '/');
         $systemoveNastaveni = SystemoveNastaveni::zGlobals();
 
         $konstanty = [
             'BASE_PATH_API'                => $basePathApi,
             'BASE_PATH_PAGE'               => $basePathPage,
+            'JAZYK'                        => AktualniJazyk::jazyk()->value,
             'ROCNIK'                       => ROCNIK,
             'LEGENDA'                      => $legendaText,
             'FORCE_REDUX_DEVTOOLS'         => defined('FORCE_REDUX_DEVTOOLS'),

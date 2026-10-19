@@ -1,0 +1,4 @@
+<!-- begin: page -->
+<a href="program">{t:menu.program}</a>
+<script>const bezTecky = {t:x}</script>
+<!-- end: page -->
