@@ -13,6 +13,10 @@
     .emailoveSablony td {
         vertical-align: top;
     }
+
+    .emailoveSablony td.hinted {
+        border-bottom: none;
+    }
 </style>
 
 <table class="zvyraznovana emailoveSablony" style="width: 100%">
@@ -33,7 +37,7 @@
         <th>Kdy odchází</th>
         <th>Komu</th>
         <th>Předmět</th>
-        <th>Naposledy změněno</th>
+        <th>{nazevSloupcePosledniZmena}</th>
     </tr>
     </thead>
     <tbody>
@@ -43,7 +47,7 @@
         <td>{kdyOdchazi}</td>
         <td>{prijemce}</td>
         <td>{predmet}</td>
-        <td class="{zmenenoTrida}">{zmenenoRelativne}{zmenenoNapoveda}</td>
+        <td class="{zmenenoTrida}">{zmenenoObsah}</td>
     </tr>
     <!-- end: sablona -->
     </tbody>

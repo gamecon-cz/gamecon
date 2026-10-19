@@ -27,7 +27,7 @@
     </th>
     <th>Název</th>
     <th>Hodnota</th>
-    <th>Poslední změna</th>
+    <th>{nazevSloupcePosledniZmena}</th>
   </tr>
   </thead>
   <tbody>
