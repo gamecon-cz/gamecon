@@ -139,6 +139,8 @@ function profilInfo()
         }
     }
     // výstup
+    // The .hint needs "top: auto": hint.css / styl.css give it a top offset that would otherwise win over
+    // "bottom" and open the query list below the viewport.
     echo '
     <div class="profilInfo" style="
       background-color: rgba(0,192,255,0.80);
@@ -162,7 +164,7 @@ function profilInfo()
     <div class="hinted">
       <img src="' . $iDb . '" alt="délka odbavení DB/počet dotazů">
     ' . round(dbExecTime() * 1000) . '&thinsp;ms (' . dbNumQ() . ' dotazů)
-      <div class="hint" style="position: absolute; bottom: 2em; left: 0; width: 90vw; max-width: 90vw;">
+      <div class="hint" style="position: absolute; top: auto; bottom: 2em; left: 0; width: 90vw; max-width: 90vw;">
         ' . implode('<br>', $queries) . '
       </div>
     </div>
