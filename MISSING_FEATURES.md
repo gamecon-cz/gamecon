@@ -257,7 +257,7 @@ if (Predmet::jeToKostka($r['kod_predmetu'])) {
 - `cenaUbytovani()` - cena ubytování
 - `cenaVstupne()` - dobrovolné vstupné včas
 - `cenaVstupnePozde()` - dobrovolné vstupné pozdě
-- `bonusZaVedeniAktivit()` - získaný bonus
+- `bonusZaAktivity()` - získaný bonus
 - `vyuzityBonusZaVedeniAktivit()` - použitý bonus
 - `nevyuzityBonusZaVedeniAktivit()` - zbývající bonus
 - `stav()` - celkový zůstatek

@@ -202,7 +202,7 @@ class Cenik
             $this->dostupnaPravidla(),
             $this->pravaUzivatele(),
             $this->hodnotyNastaveni(),
-            (float) $this->finance->bonusZaVedeniAktivit(),
+            (float) $this->finance->bonusZaAktivity(),
         ))->apply([$polozka]);
 
         $sleva = $slevy[$polozka->key] ?? null;
