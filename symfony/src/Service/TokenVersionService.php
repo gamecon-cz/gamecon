@@ -9,7 +9,7 @@ use Doctrine\DBAL\Connection;
 /**
  * Raising a user's version cuts off every token issued before it, however many the pages have
  * handed out. A user with no row is on version 0, so tokens issued before this existed, which
- * carry no version, stay valid until they expire or the user logs out.
+ * carry no version, stay valid until they expire or the user logs out or changes the password.
  */
 class TokenVersionService
 {

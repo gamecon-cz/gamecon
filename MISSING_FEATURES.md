@@ -258,8 +258,8 @@ if (Predmet::jeToKostka($r['kod_predmetu'])) {
 - `cenaVstupne()` - dobrovolné vstupné včas
 - `cenaVstupnePozde()` - dobrovolné vstupné pozdě
 - `bonusZaAktivity()` - získaný bonus
-- `vyuzityBonusZaVedeniAktivit()` - použitý bonus
-- `nevyuzityBonusZaVedeniAktivit()` - zbývající bonus
+- `vyuzityBonusZaAktivity()` - použitý bonus
+- `nevyuzityBonusZaAktivity()` - zbývající bonus
 - `stav()` - celkový zůstatek
 
 **V NEW_ESHOP.md:** ❌ Platby - "používáme stávající systém"

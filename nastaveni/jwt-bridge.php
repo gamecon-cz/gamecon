@@ -61,7 +61,7 @@ function getJwtForUser(
 }
 
 /**
- * Make every JWT already issued to the user stop working (called on logout). Not wrapped in a
+ * Make every JWT already issued to the user stop working (called on logout and password change). Not wrapped in a
  * try like the cleanup below: a failure must be seen, or the tokens would silently survive.
  */
 function revokeJwtsForUser(
