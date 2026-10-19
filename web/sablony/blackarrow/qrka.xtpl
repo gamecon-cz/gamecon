@@ -1,0 +1,18 @@
+<!-- begin: qrka -->
+<h1>QR kódy k sockám</h1>
+<p>Na tisk stahuj SVG, PNG se hodí na web a do prezentací.</p>
+<div style="display: flex; gap: 2em; flex-wrap: wrap">
+  <!-- begin: kod -->
+  <div>
+    <h2>{nazev}</h2>
+    <img id="qr-{id}" src="{png}" alt="QR kód s odkazem na {url}" style="width: 200px; height: 200px; border: 1px solid #ddd">
+    <p><a href="{url}" target="_blank" rel="noopener">{url}</a></p>
+    <p>
+      <button type="button" onclick="copyQrCode('qr-{id}', '{nazev}')">Zkopírovat</button>
+      <a href="{png}" download="qr-{id}.png">Stáhnout PNG</a>
+      <a href="{svg}" download="qr-{id}.svg">Stáhnout SVG</a>
+    </p>
+  </div>
+  <!-- end: kod -->
+</div>
+<!-- end: qrka -->

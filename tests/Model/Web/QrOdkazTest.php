@@ -42,6 +42,34 @@ class QrOdkazTest extends TestCase
     /**
      * @test
      */
+    public function logoSeVlozeDoPngISvg(): void
+    {
+        // nečtvercové logo, ať se ověří i dopočet druhého rozměru
+        $logo = tempnam(sys_get_temp_dir(), 'qr-logo-');
+        imagepng(imagecreatetruecolor(200, 100), $logo);
+        try {
+            $qrOdkaz = new QrOdkaz('https://gamecon.cz/youtube', 'qr-youtube', $logo);
+
+            $png = base64_decode(substr($qrOdkaz->pngDataUri(), strlen('data:image/png;base64,')), true);
+            $info = getimagesizefromstring($png);
+            self::assertNotFalse($info);
+            self::assertGreaterThanOrEqual(1000, $info[0]);
+
+            $svg = base64_decode(substr($qrOdkaz->svgDataUri(), strlen('data:image/svg+xml;base64,')), true);
+            self::assertStringContainsString('<image', $svg);
+        } finally {
+            unlink($logo);
+        }
+
+        self::assertStringNotContainsString(
+            '<image',
+            base64_decode(substr((new QrOdkaz('https://gamecon.cz/youtube', 'qr'))->svgDataUri(), strlen('data:image/svg+xml;base64,')), true),
+        );
+    }
+
+    /**
+     * @test
+     */
     public function htmlObsahujeEscapovanyOdkazANazvySouboruKeStazeni(): void
     {
         $html = (new QrOdkaz('https://gamecon.cz/blog/a"b', 'qr-blog-ab'))->html('Poznámka');

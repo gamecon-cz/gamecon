@@ -1,5 +1,5 @@
 
-function copyQrCode(qrCodeId) {
+function copyQrCode(qrCodeId, nazev) {
     const qrCodeImg = document.getElementById(qrCodeId);
     const canvas = document.createElement('canvas');
     const context = canvas.getContext('2d');
@@ -18,7 +18,7 @@ function copyQrCode(qrCodeId) {
             const item = new ClipboardItem({ "image/png": blob });
             navigator.clipboard.write([item])
                 .then(() => {
-                    showNotification(qrCodeId + " zkopírován");
+                    showNotification("QR kód " + nazev + " zkopírován");
                 })
                 .catch((err) => {
                     showNotification("Chyba při kopírování QR kódu: " + err, true);
