@@ -64,6 +64,9 @@
         <div class="aktivity_vypravec"><b>Vypravěč:</b> {organizatori}</div>
         <!-- end: vypraveci -->
         <div class="aktivity_stitky">
+            <!-- begin: jazyk -->
+            <div class="aktivity_stitek aktivity_stitek-jazyk">{jazyk}</div>
+            <!-- end: jazyk -->
             <!-- begin: stitek -->
             <div class="aktivity_stitek">{stitek}</div>
             <!-- end: stitek -->
@@ -108,6 +111,9 @@ document.addEventListener('DOMContentLoaded', () => zachovejScroll(document.quer
     <div class="aktivity_nahledTextPole" id="aktivity_nahledText{aktivita.id}">
         <h2>{aktivita.nazev}</h2>
         <div class="aktivity_stitky">
+            <!-- begin: jazyk -->
+            <div class="aktivity_stitek aktivity_stitek-nahled aktivity_stitek-jazyk">{jazyk}</div>
+            <!-- end: jazyk -->
             <!-- begin: stitek -->
             <div class="aktivity_stitek aktivity_stitek-nahled">{stitek}</div>
             <!-- end: stitek -->

@@ -10,6 +10,7 @@ use Gamecon\Admin\Modules\Aktivity\GoogleSheets\GoogleSheetsService;
 use Gamecon\Admin\Modules\Aktivity\Import\Activities\ActivitiesImporter;
 use Gamecon\Admin\Modules\Aktivity\Import\Activities\ActivitiesImportLogger;
 use Gamecon\Aktivita\Aktivita;
+use Gamecon\Aktivita\JazykAktivity;
 use Gamecon\Cas\DateTimeCz;
 use Gamecon\Cas\DateTimeGamecon;
 use Gamecon\Mutex\Mutex;
@@ -239,7 +240,7 @@ class ActivitiesImporterTest extends AbstractTestDb
     /**
      * Helper method to create mock Google Sheets data
      */
-    private function createMockSheetData(array $dataRows): array
+    private function createMockSheetData(array $dataRows, array $extraHeaders = []): array
     {
         $headers = [
             'ID aktivity',
@@ -269,7 +270,7 @@ class ActivitiesImporterTest extends AbstractTestDb
             'Obrázek',
         ];
 
-        return array_merge([$headers], $dataRows);
+        return array_merge([array_merge($headers, $extraHeaders)], $dataRows);
     }
 
     /**
@@ -346,5 +347,50 @@ class ActivitiesImporterTest extends AbstractTestDb
 
         $this->assertSame(0, $result->getImportedCount(), 'Aktivita s příliš dlouhým popiskem by neměla být importována');
         $this->assertNotEmpty($result->getErrorMessages(), 'Import by měl vrátit chybu');
+    }
+
+    public function testImportActivityLanguage()
+    {
+        $mockData = $this->createMockSheetData(
+            [
+                ['', 'Deskoherna', 'Aktivita anglicky', 'url-jazyk-en', 'Popis', '', '', 'Pátek', '10:00', '12:00', '', '', '10', '', '', '', '', '', '', '', '0', '', '', '1', '', 'anglicky'],
+                ['', 'Deskoherna', 'Aktivita bez jazyka', 'url-jazyk-prazdny', 'Popis', '', '', 'Pátek', '13:00', '15:00', '', '', '10', '', '', '', '', '', '', '', '0', '', '', '1', '', ''],
+            ],
+            [ExportAktivitSloupce::JAZYK],
+        );
+
+        $result = $this->createImporter($mockData)->importActivities('fake-spreadsheet-id');
+        self::assertSame(2, $result->getImportedCount(), print_r($result->getErrorMessages(), true));
+
+        $anglicka = $this->fetchActivityByUrl('url-jazyk-en', ROCNIK);
+        self::assertSame(JazykAktivity::ANGLICKY, $anglicka->jazyk());
+        self::assertSame(
+            JazykAktivity::vychozi(),
+            $this->fetchActivityByUrl('url-jazyk-prazdny', ROCNIK)->jazyk(),
+            'Nová aktivita bez vyplněného jazyka je česká',
+        );
+
+        // Starší tabulka bez sloupce Jazyk nesmí jazyk existující aktivity přepsat na výchozí
+        $reimport = $this->createMockSheetData([
+            [(string) $anglicka->id(), 'Deskoherna', 'Aktivita anglicky', 'url-jazyk-en', 'Popis', '', '', 'Pátek', '10:00', '12:00', '', '', '10', '', '', '', '', '', '', '', '0', '', '', '1', ''],
+        ]);
+        $result = $this->createImporter($reimport)->importActivities('fake-spreadsheet-id');
+        self::assertSame(1, $result->getImportedCount(), print_r($result->getErrorMessages(), true));
+        self::assertSame(JazykAktivity::ANGLICKY, Aktivita::zId($anglicka->id())->jazyk());
+    }
+
+    public function testImportActivityWithUnknownLanguage()
+    {
+        $mockData = $this->createMockSheetData(
+            [
+                ['', 'Deskoherna', 'Aktivita klingonsky', 'url-jazyk-neznamy', 'Popis', '', '', 'Pátek', '10:00', '12:00', '', '', '10', '', '', '', '', '', '', '', '0', '', '', '1', '', 'klingonsky'],
+            ],
+            [ExportAktivitSloupce::JAZYK],
+        );
+
+        $result = $this->createImporter($mockData)->importActivities('fake-spreadsheet-id');
+
+        self::assertSame(0, $result->getImportedCount());
+        self::assertStringContainsString('Neznámý jazyk aktivity', print_r($result->getErrorMessages(), true));
     }
 }

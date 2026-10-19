@@ -1,6 +1,7 @@
 import { ProgramStateCreator, useProgramStore } from "..";
 import { AktivitaStav, AktivitaStavyVšechny } from "../../../api/program";
 import { GAMECON_KONSTANTY } from "../../../env";
+import { JAZYKY_FILTRU, JazykFiltru } from "../../../utils/jazykAktivity";
 import { generujUrl, parsujUrl, ProgramTabulkaVýběr, ProgramURLStav, urlStavProgramTabulkaMožnostíDnyMůj, URL_STATE_VÝCHOZÍ_STAV } from "../logic/url";
 
 export type ProgramUrlSlice = {
@@ -91,6 +92,12 @@ export const nastavFiltrTagů = (vybranéTagy: number[]) => {
   useProgramStore.setState((s) => {
     s.urlStav.filtrTagy = vybranéTagy;
   }, undefined, "nastav filtr tagů");
+};
+
+export const nastavFiltrJazyků = (vybranéJazyky: JazykFiltru[]) => {
+  useProgramStore.setState((s) => {
+    s.urlStav.filtrJazyk = filtrZMožností(vybranéJazyky, [...JAZYKY_FILTRU]);
+  }, undefined, "nastav filtr jazyků");
 };
 
 export const nastavFiltrStavů = (vybranéStavy: AktivitaStav[]) => {
