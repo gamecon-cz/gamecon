@@ -156,6 +156,111 @@ class MailLoggerTest extends TestCase
     /**
      * @test
      */
+    public function zalogujeSablonuARocnikSKterymSeEmailOdeslal(): void
+    {
+        $logger = new MailLogger($this->cestaSqlite);
+
+        $logger->zalogujOdeslani('Obnova hesla', 'text', ['a@b.cz'], 0, 'telo', sablona: 'obnova_hesla', rocnik: 2026);
+        $logger->zalogujOdeslani('Test z adminu', 'text', ['c@d.cz'], 0, 'telo');
+
+        $zaznamy = array_column($logger->najdi(), null, 'predmet');
+        self::assertSame('obnova_hesla', $zaznamy['Obnova hesla']['sablona']);
+        self::assertSame(2026, (int) $zaznamy['Obnova hesla']['rocnik']);
+        self::assertNull($zaznamy['Test z adminu']['sablona'], 'E-mail mimo šablony nemá kód šablony');
+    }
+
+    /**
+     * @test
+     */
+    public function souhrnPodleSablonSpocitaOdeslaneSelhanePrijemceAPocitaJenDanyRocnik(): void
+    {
+        $logger = new MailLogger($this->cestaSqlite);
+        $logger->zalogujOdeslani('A1', 'text', ['a@x.cz', 'b@x.cz'], 0, '', sablona: 'uvolnene_misto', rocnik: 2026);
+        $logger->zalogujOdeslani('A2', 'text', ['c@x.cz'], 0, '', sablona: 'uvolnene_misto', rocnik: 2026);
+        $logger->zalogujOdeslani('A3', 'text', ['d@x.cz', 'e@x.cz', 'f@x.cz'], 0, '', chyba: 'SMTP nereaguje', sablona: 'uvolnene_misto', rocnik: 2026);
+        $logger->zalogujOdeslani('A starý', 'text', ['g@x.cz'], 0, '', sablona: 'uvolnene_misto', rocnik: 2025);
+        $logger->zalogujOdeslani('B1', 'text', ['h@x.cz'], 0, '', sablona: 'rychla_registrace', rocnik: 2026);
+        $logger->zalogujOdeslani('Bez šablony', 'text', ['i@x.cz'], 0, '', rocnik: 2026);
+
+        self::assertSame(
+            [
+                'rychla_registrace' => [
+                    'odeslano' => 1,
+                    'prijemcu' => 1,
+                    'selhalo'  => 0,
+                ],
+                'uvolnene_misto' => [
+                    'odeslano' => 2,
+                    'prijemcu' => 3,
+                    'selhalo'  => 1,
+                ],
+            ],
+            $logger->souhrnPodleSablon(2026),
+            'Příjemci se počítají jen z odeslaných zpráv, selhání se počítají po zprávách',
+        );
+        self::assertSame(
+            [
+                'uvolnene_misto' => [
+                    'odeslano' => 1,
+                    'prijemcu' => 1,
+                    'selhalo'  => 0,
+                ],
+            ],
+            $logger->souhrnPodleSablon(2025),
+        );
+        self::assertSame([], $logger->souhrnPodleSablon(2024));
+    }
+
+    /**
+     * @test
+     */
+    public function starsiDatabazeSeDoplniAStareZaznamyZustanouBezSablonyARocniku(): void
+    {
+        $pdo = new \PDO('sqlite:' . $this->cestaSqlite);
+        $pdo->exec(<<<'SQLITE3'
+            CREATE TABLE maily(
+                id              INTEGER PRIMARY KEY AUTOINCREMENT,
+                kdy             DATETIME NOT NULL,
+                predmet         TEXT NOT NULL,
+                predmet_lower   TEXT NOT NULL,
+                format          TEXT NOT NULL,
+                adresati        JSON NOT NULL,
+                prilohy_count   INTEGER NOT NULL DEFAULT 0,
+                telo            TEXT NOT NULL,
+                telo_html       TEXT,
+                chyba           TEXT
+            )
+            SQLITE3);
+        $pdo->exec(<<<'SQLITE3'
+            INSERT INTO maily (kdy, predmet, predmet_lower, format, adresati, telo)
+            VALUES ('2025-12-30T10:00:00+01:00', 'Loni', 'loni', 'text', '["a@x.cz"]', ''),
+                   ('2026-03-01T10:00:00+01:00', 'Letos', 'letos', 'text', '["b@x.cz"]', '')
+            SQLITE3);
+        unset($pdo);
+
+        $logger = new MailLogger($this->cestaSqlite);
+        $logger->zalogujOdeslani('Nový', 'text', ['c@x.cz'], 0, '', sablona: 'rychla_registrace', rocnik: 2026);
+
+        $zaznamy = array_column($logger->najdi(), null, 'predmet');
+        self::assertNull($zaznamy['Loni']['rocnik'], 'Doplnění sloupců nesmí přepisovat celý log, starým záznamům zůstane prázdný');
+        self::assertNull($zaznamy['Letos']['rocnik']);
+        self::assertNull($zaznamy['Letos']['sablona'], 'Starší e-maily se k šabloně přiřadit nedají');
+        self::assertSame(3, $logger->spocitej());
+        self::assertSame(
+            [
+                'rychla_registrace' => [
+                    'odeslano' => 1,
+                    'prijemcu' => 1,
+                    'selhalo'  => 0,
+                ],
+            ],
+            $logger->souhrnPodleSablon(2026),
+        );
+    }
+
+    /**
+     * @test
+     */
     public function ukladaIVraciSamostatnyHtmlNahled(): void
     {
         $logger = new MailLogger($this->cestaSqlite);

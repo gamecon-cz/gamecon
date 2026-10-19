@@ -243,6 +243,7 @@ class ObnovaHeslaController extends AbstractController
         $mail = new GcMail(\Gamecon\SystemoveNastaveni\SystemoveNastaveni::zGlobals(), $telo);
         $mail->adresat($uzivatel->mail());
         $mail->predmet($vykresleno->predmet);
+        $mail->sablona('obnova_hesla');
         $mail->obrazekInline(GcMailSablona::logoSoubor(), GcMailSablona::LOGO_CID);
         $mail->format($vykresleno->format);
         $mail->odeslat();

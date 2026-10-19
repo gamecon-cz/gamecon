@@ -6,6 +6,7 @@ namespace Gamecon\Tests\Model\Uzivatel;
 
 use Gamecon\Cas\DateTimeImmutableStrict;
 use Gamecon\Command\FioStazeniNovychPlateb;
+use Gamecon\Kanaly\MailLogger;
 use Gamecon\Logger\JobResultLoggerInterface;
 use Gamecon\Role\Role;
 use Gamecon\Stat;
@@ -1045,6 +1046,55 @@ SQL,
             'Reálně odeslaný mail musí mít dosazené vlastní znění, ne jen náhled',
         );
         self::assertSame('Vlastní předmět', $gcMail->dejPredmet());
+    }
+
+    /**
+     * @test
+     */
+    public function odeslanaUpominkaSeVLoguMailuZnaZneniSKterymOdesla()
+    {
+        $dluznice = \Uzivatel::zId(self::ID_DLUZNICE_NEDORAZILA);
+
+        $this->dejUpominaniDluzniku()->odesliUpominkuJednomu(
+            $dluznice,
+            TypUpominky::TYDEN,
+            120,
+            ROCNIK,
+            \Uzivatel::zId(\Uzivatel::SYSTEM, true),
+            UcastNaGc::JEN_PRIHLASEN,
+            null,
+        );
+
+        $zaznam = (new MailLogger(LOGY . '/maily.sqlite'))->najdi((string) $dluznice->mail(), limit: 1)[0];
+        self::assertSame('upominka_tyden_jen_prihlasen', $zaznam['sablona']);
+        self::assertSame(SystemoveNastaveni::zGlobals()->rocnik(), (int) $zaznam['rocnik']);
+    }
+
+    /**
+     * @test
+     */
+    public function odeslaneVlastniZneniUpominkySeVLoguMailuZnaPodSvymKodem()
+    {
+        (new UpominkaVlastniZneni())->uloz(
+            ROCNIK,
+            'Vlastní předmět',
+            'Ahoj %jmeno%, dluh %dluh% Kč pod VS %vs%.',
+            \Uzivatel::SYSTEM,
+        );
+        $dluznice = \Uzivatel::zId(self::ID_DLUZNICE_NEDORAZILA);
+
+        $this->dejUpominaniDluzniku()->odesliUpominkuJednomu(
+            $dluznice,
+            TypUpominky::VLASTNI,
+            120,
+            ROCNIK,
+            \Uzivatel::zId(\Uzivatel::SYSTEM, true),
+            UcastNaGc::JEN_PRIHLASEN,
+            null,
+        );
+
+        $zaznam = (new MailLogger(LOGY . '/maily.sqlite'))->najdi((string) $dluznice->mail(), limit: 1)[0];
+        self::assertSame('upominka_vlastni', $zaznam['sablona']);
     }
 
     /**
