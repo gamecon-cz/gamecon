@@ -151,6 +151,7 @@ $problemy       = EmailovaSablonaKontrola::zNastaveni($systemoveNastaveni)->najd
 $sablonaStranky = new XTemplate(__DIR__ . '/emailove-sablony.xtpl');
 $sablonaStranky->assign('problemy', ProblemySablonHtml::vykresli($problemy));
 $sablonaStranky->assign('nazevSloupcePosledniZmena', PosledniZmenaHtml::NAZEV_SLOUPCE);
+$sablonaStranky->assign('urlModulu', $urlModulu);
 
 $ulozene          = $repository->vsechny();
 $kodyProblemovych = array_flip(array_map(
