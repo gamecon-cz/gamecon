@@ -13,7 +13,10 @@ use App\Entity\ProductBundle;
 use App\Entity\ProductVariant;
 use App\Entity\User;
 use App\Enum\ProductStateEnum;
+use App\Enum\RoleMeaning;
+use App\Repository\UserRoleRepository;
 use App\Service\CartService;
+use App\Service\CurrentYearProviderInterface;
 use App\State\Cart\AddToCartProcessor;
 use App\Tests\Support\ChybovePreklady;
 use Doctrine\ORM\EntityManagerInterface;
@@ -27,6 +30,8 @@ class AddToCartProcessorTest extends TestCase
 
     private MockObject $entityManager;
 
+    private MockObject $userRoleRepository;
+
     private MockObject $security;
 
     private AddToCartProcessor $processor;
@@ -35,20 +40,51 @@ class AddToCartProcessorTest extends TestCase
     {
         $this->cartService = $this->createMock(CartService::class);
         $this->entityManager = $this->createMock(EntityManagerInterface::class);
+        $this->userRoleRepository = $this->createMock(UserRoleRepository::class);
         $this->security = $this->createMock(Security::class);
+        $currentYearProvider = $this->createMock(CurrentYearProviderInterface::class);
+        $currentYearProvider->method('getCurrentYear')->willReturn(ROCNIK);
 
         $this->processor = new AddToCartProcessor(
             $this->cartService,
             $this->entityManager,
+            $this->userRoleRepository,
+            $currentYearProvider,
             $this->security,
             ChybovePreklady::translator(),
         );
     }
 
+    /**
+     * The meanings steer reserved stock and mandatory bundles, so they must be the ones valid
+     * this year, never everything the user ever held.
+     */
+    public function testRoleMeaningsPassedOnAreTheOnesValidThisYear(): void
+    {
+        $user = $this->createMock(User::class);
+        $this->security->method('getUser')->willReturn($user);
+        $this->userRoleRepository->expects($this->once())
+            ->method('validMeanings')
+            ->with($user, ROCNIK)
+            ->willReturn([RoleMeaning::VYPRAVEC]);
+
+        $variant = $this->createVariant();
+        $this->entityManager->method('find')->willReturn($variant);
+        $order = $this->createOrder($user);
+        $this->cartService->method('getOrCreateCart')->willReturn($order);
+        $this->cartService->expects($this->once())
+            ->method('addItem')
+            ->with($order, $variant, [RoleMeaning::VYPRAVEC]);
+
+        $input = new AddToCartInputDto();
+        $input->variantId = 42;
+
+        $this->processor->process($input, new Post());
+    }
+
     public function testAddVariantToCart(): void
     {
         $user = $this->createMock(User::class);
-        $user->method('getRoleMeanings')->willReturn([]);
         $this->security->method('getUser')->willReturn($user);
 
         $variant = $this->createVariant();
@@ -73,7 +109,6 @@ class AddToCartProcessorTest extends TestCase
     public function testAddBundleToCart(): void
     {
         $user = $this->createMock(User::class);
-        $user->method('getRoleMeanings')->willReturn([]);
         $this->security->method('getUser')->willReturn($user);
 
         $bundle = new ProductBundle();
@@ -103,7 +138,6 @@ class AddToCartProcessorTest extends TestCase
     public function testThrowsWhenVariantNotFound(): void
     {
         $user = $this->createMock(User::class);
-        $user->method('getRoleMeanings')->willReturn([]);
         $this->security->method('getUser')->willReturn($user);
 
         $this->entityManager->method('find')->willReturn(null);

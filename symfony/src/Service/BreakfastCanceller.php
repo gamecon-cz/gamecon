@@ -10,6 +10,7 @@ use App\Entity\User;
 use App\Enum\ProductStateEnum;
 use App\Enum\ProductTagCode;
 use App\Repository\OrderItemRepository;
+use App\Repository\UserRoleRepository;
 use Doctrine\DBAL\ArrayParameterType;
 use Doctrine\DBAL\Connection;
 use Doctrine\ORM\EntityManagerInterface;
@@ -28,6 +29,7 @@ class BreakfastCanceller
         private readonly EntityManagerInterface $entityManager,
         private readonly CartService $cartService,
         private readonly OrderItemRepository $orderItemRepository,
+        private readonly UserRoleRepository $userRoleRepository,
         private readonly ClockInterface $clock,
     ) {
     }
@@ -193,7 +195,7 @@ class BreakfastCanceller
             if ($variant === null) {
                 continue;
             }
-            $this->cartService->addItem($cart, $variant, $customer->getRoleMeanings());
+            $this->cartService->addItem($cart, $variant, $this->userRoleRepository->validMeanings($customer, $year));
         }
 
         return array_values($nabidnute);

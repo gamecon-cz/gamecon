@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace App\Entity;
 
 use App\Entity\Enum\GenderEnum;
-use App\Enum\RoleMeaning;
 use App\Repository\UserRepository;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
@@ -617,29 +616,6 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
         return $this->userRoles
             ->map(fn (UserRole $ur) => $ur->getRole()->getKodRole())
             ->toArray();
-    }
-
-    /**
-     * Get role meanings (vyznam_role) for this user
-     *
-     * @return RoleMeaning[]
-     */
-    public function getRoleMeanings(): array
-    {
-        return array_values(array_unique(
-            $this->userRoles
-                ->map(fn (UserRole $ur) => $ur->getRole()->getVyznamRole())
-                ->toArray(),
-            SORT_REGULAR,
-        ));
-    }
-
-    /**
-     * Check if user has organizer-level access (for reserved stock, org discounts)
-     */
-    public function isOrganizer(): bool
-    {
-        return RoleMeaning::anyIsOrganizer($this->getRoleMeanings());
     }
 
     public function getCelemeJmeno(): string

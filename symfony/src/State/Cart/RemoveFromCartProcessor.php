@@ -9,7 +9,9 @@ use ApiPlatform\State\ProcessorInterface;
 use App\Dto\Cart\CartOutputDto;
 use App\Entity\OrderItem;
 use App\Entity\User;
+use App\Repository\UserRoleRepository;
 use App\Service\CartService;
+use App\Service\CurrentYearProviderInterface;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\SecurityBundle\Security;
 use Symfony\Component\HttpKernel\Exception\AccessDeniedHttpException;
@@ -24,6 +26,8 @@ readonly class RemoveFromCartProcessor implements ProcessorInterface
     public function __construct(
         private CartService $cartService,
         private EntityManagerInterface $entityManager,
+        private UserRoleRepository $userRoleRepository,
+        private CurrentYearProviderInterface $currentYearProvider,
         private Security $security,
         private TranslatorInterface $translator,
     ) {
@@ -52,7 +56,7 @@ readonly class RemoveFromCartProcessor implements ProcessorInterface
             throw new NotFoundHttpException($this->translator->trans('cart.item_without_order', [], 'errors'));
         }
 
-        $roleMeanings = $user->getRoleMeanings();
+        $roleMeanings = $this->userRoleRepository->validMeanings($user, $this->currentYearProvider->getCurrentYear());
 
         // If item is part of a forced bundle, remove the whole bundle
         $bundle = $item->getBundle();

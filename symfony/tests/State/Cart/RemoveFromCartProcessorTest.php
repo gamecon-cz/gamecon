@@ -11,7 +11,9 @@ use App\Entity\OrderItem;
 use App\Entity\ProductBundle;
 use App\Entity\User;
 use App\Enum\RoleMeaning;
+use App\Repository\UserRoleRepository;
 use App\Service\CartService;
+use App\Service\CurrentYearProviderInterface;
 use App\State\Cart\RemoveFromCartProcessor;
 use App\Tests\Support\ChybovePreklady;
 use Doctrine\ORM\EntityManagerInterface;
@@ -25,6 +27,8 @@ class RemoveFromCartProcessorTest extends TestCase
 
     private MockObject $entityManager;
 
+    private MockObject $userRoleRepository;
+
     private MockObject $security;
 
     private RemoveFromCartProcessor $processor;
@@ -33,11 +37,16 @@ class RemoveFromCartProcessorTest extends TestCase
     {
         $this->cartService = $this->createMock(CartService::class);
         $this->entityManager = $this->createMock(EntityManagerInterface::class);
+        $this->userRoleRepository = $this->createMock(UserRoleRepository::class);
         $this->security = $this->createMock(Security::class);
+        $currentYearProvider = $this->createMock(CurrentYearProviderInterface::class);
+        $currentYearProvider->method('getCurrentYear')->willReturn(ROCNIK);
 
         $this->processor = new RemoveFromCartProcessor(
             $this->cartService,
             $this->entityManager,
+            $this->userRoleRepository,
+            $currentYearProvider,
             $this->security,
             ChybovePreklady::translator(),
         );
@@ -46,8 +55,7 @@ class RemoveFromCartProcessorTest extends TestCase
     public function testRemoveItemFromCart(): void
     {
         $user = $this->createConfiguredMock(User::class, [
-            'getId'           => 1,
-            'getRoleMeanings' => [],
+            'getId' => 1,
         ]);
         $this->security->method('getUser')->willReturn($user);
 
@@ -83,10 +91,12 @@ class RemoveFromCartProcessorTest extends TestCase
     public function testRemoveBundleItemRemovesWholeBundleForParticipant(): void
     {
         $user = $this->createConfiguredMock(User::class, [
-            'getId'           => 1,
-            'getRoleMeanings' => [RoleMeaning::PRIHLASEN],
+            'getId' => 1,
         ]);
         $this->security->method('getUser')->willReturn($user);
+        $this->userRoleRepository->method('validMeanings')
+            ->with($user, ROCNIK)
+            ->willReturn([RoleMeaning::PRIHLASEN]);
 
         $bundle = new ProductBundle();
         $bundle->setName('Weekend');
@@ -129,8 +139,7 @@ class RemoveFromCartProcessorTest extends TestCase
     public function testThrowsWhenItemNotFound(): void
     {
         $user = $this->createConfiguredMock(User::class, [
-            'getId'           => 1,
-            'getRoleMeanings' => [],
+            'getId' => 1,
         ]);
         $this->security->method('getUser')->willReturn($user);
 

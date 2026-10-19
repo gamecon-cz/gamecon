@@ -21,6 +21,11 @@ class UserRoleRepositoryTest extends AbstractDatabaseKernelTestCase
     private const int PARTICIPATION_ROLE_OF_PAST_YEAR = -990202;
     private const int ROLE_OF_LATER_YEAR = -990203;
     private const int ROLE_OF_PAST_YEAR = -990204;
+    private const int NARRATOR_OF_THIS_YEAR = -990205;
+    private const int HERMAN_OF_THIS_YEAR = -990206;
+    private const int HERMAN_OF_NO_YEAR = -990207;
+    private const int BACKSTAGE_OF_PAST_YEAR = -990208;
+    private const int VOLUNTEER_OF_LATER_YEAR = -990209;
 
     public function testRoleOfNoYearCounts(): void
     {
@@ -57,6 +62,60 @@ class UserRoleRepositoryTest extends AbstractDatabaseKernelTestCase
         self::assertFalse($this->holds(self::ROLE_OF_NO_YEAR, RoleMeaning::CFO));
     }
 
+    public function testValidMeaningsAreOnlyThoseOfRolesValidThisYear(): void
+    {
+        $this->role(self::NARRATOR_OF_THIS_YEAR, ROCNIK, RoleTypeEnum::YEARLY, RoleMeaning::VYPRAVEC);
+        $this->role(self::ROLE_OF_NO_YEAR, Role::JAKYKOLI_ROCNIK, RoleTypeEnum::PERMANENT, RoleMeaning::MINI_ORG);
+        $this->role(self::PARTICIPATION_ROLE_OF_PAST_YEAR, ROCNIK - 1, RoleTypeEnum::PARTICIPATION, RoleMeaning::PRIHLASEN);
+        $this->role(self::BACKSTAGE_OF_PAST_YEAR, ROCNIK - 1, RoleTypeEnum::YEARLY, RoleMeaning::ZAZEMI);
+        $this->role(self::VOLUNTEER_OF_LATER_YEAR, ROCNIK + 1, RoleTypeEnum::YEARLY, RoleMeaning::BRIGADNIK);
+        $user = $this->userWithRoles([
+            self::NARRATOR_OF_THIS_YEAR,
+            self::ROLE_OF_NO_YEAR,
+            self::PARTICIPATION_ROLE_OF_PAST_YEAR,
+            self::BACKSTAGE_OF_PAST_YEAR,
+            self::VOLUNTEER_OF_LATER_YEAR,
+        ]);
+
+        $meanings = static::getContainer()->get(UserRoleRepository::class)->validMeanings($user, ROCNIK);
+
+        self::assertEqualsCanonicalizing(
+            [RoleMeaning::VYPRAVEC, RoleMeaning::MINI_ORG, RoleMeaning::PRIHLASEN],
+            $meanings,
+        );
+    }
+
+    public function testValidMeaningIsListedOnceWhenTwoRolesCarryIt(): void
+    {
+        $this->role(self::HERMAN_OF_THIS_YEAR, ROCNIK, RoleTypeEnum::YEARLY, RoleMeaning::HERMAN);
+        $this->role(self::HERMAN_OF_NO_YEAR, Role::JAKYKOLI_ROCNIK, RoleTypeEnum::PERMANENT, RoleMeaning::HERMAN);
+        $user = $this->userWithRoles([self::HERMAN_OF_THIS_YEAR, self::HERMAN_OF_NO_YEAR]);
+
+        $meanings = static::getContainer()->get(UserRoleRepository::class)->validMeanings($user, ROCNIK);
+
+        self::assertSame([RoleMeaning::HERMAN], $meanings);
+    }
+
+    public function testNoRolesGiveNoMeanings(): void
+    {
+        $user = $this->userWithRoles([]);
+
+        self::assertSame([], static::getContainer()->get(UserRoleRepository::class)->validMeanings($user, ROCNIK));
+    }
+
+    public function testOrganizerIsOnlyWhoHoldsAnOrganizerRoleValidThisYear(): void
+    {
+        $this->role(self::NARRATOR_OF_THIS_YEAR, ROCNIK, RoleTypeEnum::YEARLY, RoleMeaning::VYPRAVEC);
+        $this->role(self::ROLE_OF_PAST_YEAR, ROCNIK - 1, RoleTypeEnum::YEARLY, RoleMeaning::VYPRAVEC);
+        $this->role(self::HERMAN_OF_THIS_YEAR, ROCNIK, RoleTypeEnum::YEARLY, RoleMeaning::HERMAN);
+        $repository = static::getContainer()->get(UserRoleRepository::class);
+
+        self::assertTrue($repository->isOrganizer($this->userWithRoles([self::NARRATOR_OF_THIS_YEAR]), ROCNIK), 'narrator this year');
+        self::assertFalse($repository->isOrganizer($this->userWithRoles([self::ROLE_OF_PAST_YEAR]), ROCNIK), 'narrator only in a past year');
+        self::assertFalse($repository->isOrganizer($this->userWithRoles([self::HERMAN_OF_THIS_YEAR]), ROCNIK), 'a role outside the organizer list');
+        self::assertFalse($repository->isOrganizer($this->userWithRoles([]), ROCNIK), 'no role');
+    }
+
     private function role(int $roleId, int $year, RoleTypeEnum $type, RoleMeaning $meaning): void
     {
         $this->connection()->executeStatement(
@@ -77,17 +136,28 @@ class UserRoleRepositoryTest extends AbstractDatabaseKernelTestCase
      */
     private function holds(int $roleId, RoleMeaning $meaning): bool
     {
+        return static::getContainer()->get(UserRoleRepository::class)
+            ->holdsAnyMeaning($this->userWithRoles([$roleId]), [$meaning], ROCNIK);
+    }
+
+    /**
+     * @param int[] $roleIds
+     */
+    private function userWithRoles(array $roleIds): User
+    {
         $userId = $this->ucastnikVSql('role_repo_');
-        $this->connection()->executeStatement(
-            'INSERT INTO uzivatele_role (id_uzivatele, id_role) VALUES (:user, :role)',
-            [
-                'user' => $userId,
-                'role' => $roleId,
-            ],
-        );
+        foreach ($roleIds as $roleId) {
+            $this->connection()->executeStatement(
+                'INSERT INTO uzivatele_role (id_uzivatele, id_role) VALUES (:user, :role)',
+                [
+                    'user' => $userId,
+                    'role' => $roleId,
+                ],
+            );
+        }
         $user = $this->entityManager()->find(User::class, $userId);
         self::assertNotNull($user);
 
-        return static::getContainer()->get(UserRoleRepository::class)->holdsAnyMeaning($user, [$meaning], ROCNIK);
+        return $user;
     }
 }

@@ -14,6 +14,7 @@ use App\Enum\ProductStateEnum;
 use App\Enum\ProductTagCode;
 use App\Repository\OrderItemRepository;
 use App\Repository\ProductRepository;
+use App\Repository\UserRoleRepository;
 use App\Service\AccommodationAvailability;
 use App\Service\AccommodationRules;
 use App\Service\BreakfastCanceller;
@@ -58,6 +59,8 @@ class AccommodationProviderTest extends TestCase
 
     private bool $maySingleNight = false;
 
+    private bool $isOrganizer = false;
+
     private ?User $signedInUser = null;
 
     private AccommodationProvider $provider;
@@ -101,6 +104,12 @@ class AccommodationProviderTest extends TestCase
                 && $permission === Pravo::UBYTOVANI_MUZE_OBJEDNAT_JEDNU_NOC
                 && $year === self::ROK,
         );
+        $userRoleRepository = $this->createMock(UserRoleRepository::class);
+        $userRoleRepository->method('isOrganizer')->willReturnCallback(
+            fn (User $user, int $year): bool => $this->isOrganizer
+                && $user === $this->signedInUser
+                && $year === self::ROK,
+        );
 
         $this->provider = new AccommodationProvider(
             $this->productRepository,
@@ -112,6 +121,7 @@ class AccommodationProviderTest extends TestCase
             $this->breakfastCanceller,
             $this->accommodationRules,
             $userPermissions,
+            $userRoleRepository,
             $this->security,
             // Staví se nad týmiž mocky repozitářů jako provider, aby test procházel
             // skutečným výpočtem, ne nastrčenou odpovědí.
@@ -363,9 +373,8 @@ class AccommodationProviderTest extends TestCase
     private function prepareUser(bool $smiJednuNoc = false, bool $jeOrganizator = false): void
     {
         $this->maySingleNight = $smiJednuNoc;
+        $this->isOrganizer = $jeOrganizator;
         $user = $this->createMock(User::class);
-        // Rezervace pro orgy jede na `User::isOrganizer()` — tentýž okruh rolí jako merch.
-        $user->method('isOrganizer')->willReturn($jeOrganizator);
         $this->signedInUser = $user;
         $this->security->method('getUser')->willReturn($user);
 

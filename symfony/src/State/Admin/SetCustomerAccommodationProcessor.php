@@ -9,6 +9,7 @@ use ApiPlatform\State\ProcessorInterface;
 use App\Dto\Admin\SetCustomerAccommodationInputDto;
 use App\Dto\Cart\AccommodationOutputDto;
 use App\Entity\User;
+use App\Repository\UserRoleRepository;
 use App\Service\AccommodationRules;
 use App\Service\AccommodationWriter;
 use App\Service\CurrentYearProviderInterface;
@@ -41,6 +42,7 @@ readonly class SetCustomerAccommodationProcessor implements ProcessorInterface
         private CurrentYearProviderInterface $currentYearProvider,
         private Security $security,
         private UserPermissions $userPermissions,
+        private UserRoleRepository $userRoleRepository,
         private LegacySessionService $legacySession,
         private AccommodationGridInterface $accommodationGrid,
         private EntityManagerInterface $entityManager,
@@ -90,7 +92,7 @@ readonly class SetCustomerAccommodationProcessor implements ProcessorInterface
             mayOverbook: $this->userPermissions->has($operator, Pravo::MUZE_PRETIZIT_UBYTOVANI, $year),
             // Rezervace patří zákazníkovi, ne obsluze: pult objednává za něj, takže
             // rozhoduje, jestli je organizátor on. Okruh rolí je tentýž jako u merche.
-            jeOrganizator: $customer->isOrganizer(),
+            jeOrganizator: $this->userRoleRepository->isOrganizer($customer, $year),
             maySundayNight: $this->accommodationRules->maySundayNight($customer, $year),
         );
 

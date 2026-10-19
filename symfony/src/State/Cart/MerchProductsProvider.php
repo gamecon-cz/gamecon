@@ -13,6 +13,7 @@ use App\Enum\ProductTagCode;
 use App\Enum\RoleMeaning;
 use App\Repository\OrderItemRepository;
 use App\Repository\ProductRepository;
+use App\Repository\UserRoleRepository;
 use App\Service\CurrentYearProviderInterface;
 use App\Service\DiscountCalculator;
 use App\Service\ProductVariantsForGrid;
@@ -35,6 +36,7 @@ readonly class MerchProductsProvider implements ProviderInterface
         private CurrentYearProviderInterface $currentYearProvider,
         private ProductVariantsForGrid $variantsForGrid,
         private SpentQuotaProvider $spentQuota,
+        private UserRoleRepository $userRoleRepository,
         private Security $security,
         private ClockInterface $clock,
         private TranslatorInterface $translator,
@@ -54,7 +56,7 @@ readonly class MerchProductsProvider implements ProviderInterface
         $year = $this->currentYearProvider->getCurrentYear();
         // The whole section locks on a date, independent of any single product's state.
         $prodejUkoncen = SystemoveNastaveni::zGlobals()->prodejPredmetuBezTricekUkoncen();
-        $roleMeanings = $user->getRoleMeanings();
+        $roleMeanings = $this->userRoleRepository->validMeanings($user, $year);
         // Jednou za request: mřížka mezi produkty nezapisuje, takže se spotřeba nemění.
         $spentQuota = $this->spentQuota->forUser($user, $year);
         $merch = [];

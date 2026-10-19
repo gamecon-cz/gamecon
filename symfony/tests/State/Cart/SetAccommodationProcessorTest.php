@@ -8,6 +8,7 @@ use ApiPlatform\Metadata\Post;
 use App\Dto\Cart\SetAccommodationInputDto;
 use App\Entity\User;
 use App\Exception\NoLongerAvailableException;
+use App\Repository\UserRoleRepository;
 use App\Service\AccommodationRules;
 use App\Service\AccommodationWriter;
 use App\Service\BreakfastCanceller;
@@ -58,6 +59,7 @@ class SetAccommodationProcessorTest extends AbstractDatabaseKernelTestCase
             $this->createMock(BreakfastCanceller::class),
             static::getContainer()->get(AccommodationRules::class),
             static::getContainer()->get(UserPermissions::class),
+            static::getContainer()->get(UserRoleRepository::class),
             static::getContainer()->get(AccommodationProvider::class),
             static::getContainer()->get(CurrentYearProviderInterface::class),
             $legacySession,
