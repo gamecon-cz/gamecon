@@ -169,6 +169,7 @@ foreach ($definicePodleSkupin as $skupina => $definiceSkupiny) {
         $sablona = $ulozene[$definice->kod] ?? null;
         $zmena   = $zmenaProSeznam($sablona);
         $sablonaStranky->assign([
+            'kod'              => htmlspecialchars($definice->kod, ENT_QUOTES),
             'odkaz'            => htmlspecialchars(EmailovaSablonaKontrola::odkazNaEditaci($definice->kod), ENT_QUOTES),
             'nazev'            => htmlspecialchars($definice->nazev, ENT_QUOTES),
             'kdyOdchazi'       => htmlspecialchars($definice->kdyOdchazi, ENT_QUOTES),

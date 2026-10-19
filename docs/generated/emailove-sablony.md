@@ -18,6 +18,7 @@ Předmět a text e-mailů, které GameCon posílá, jsou v databázi a mění se
 
 - `emailova_sablona(kod PK, predmet, text, zmenil, zmeneno_kdy)`. Jeden řádek na e-mail, **neprázdnost hlídá i `CHECK`** (aplikace ji hlídá dřív, ale ruční zásah do databáze ji nesmí obejít). Výchozí znění je seedované migrací z původního kódu.
 - `upominka_vlastni_zneni` zůstává: vlastní znění upomínky je jeden text na ročník, ne pevná šablona. Používá stejný editor, validátor a vykreslovač (`UpominkaVlastniZneni::definice()`).
+- Na stránce `finance/upominky-dluzniku` vede u každé ze dvou standardních voleb odkaz „Upravit obsah standardního znění“ rovnou na detail e-mailu `?kod=upominka_<typ>_pritomen`. Každý typ má čtyři varianty podle účasti (`pritomen`, `jen_prihlasen`, `nedorazil_drive`, `nedorazil_nikdy`) a odkaz vede na první; ostatní jsou v seznamu e-mailů, kam se z detailu dostaneš odkazem „Zpět na seznam e-mailů“. Kódy `promlceni_varovani_*` jsou jiný e-mail (varování před promlčením zůstatku), ne upomínky dlužníkům. CFO bez práva 105 dostane na detailu e-mailu odmítnutou stránku, což je záměr.
 - `systemove_nastaveni.verejne` (a `systemove_nastaveni_log.verejne`) — příznak „veřejné“, výchozí 0.
 
 ## Pravidla zápisu symbolů (záměr)
