@@ -46,6 +46,21 @@ class OrderItemRepository extends ServiceEntityRepository
     }
 
     /**
+     * Purchases of every year that the user bought or ordered for someone else.
+     *
+     * @return OrderItem[]
+     */
+    public function findByCustomerOrOrderer(User $user): array
+    {
+        return $this->createQueryBuilder('orderItem')
+            ->where('orderItem.customer = :user OR orderItem.orderer = :user')
+            ->setParameter('user', $user)
+            ->orderBy('orderItem.id', 'ASC')
+            ->getQuery()
+            ->getResult();
+    }
+
+    /**
      * S variantou počítá jen tu jednu velikost — zásoba se doprodává per varianta, takže
      * mřížka potřebuje obojí: součet za produkt i počet za konkrétní velikost.
      */

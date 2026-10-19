@@ -2,6 +2,9 @@
 
 namespace Gamecon\Uzivatel;
 
+use App\Service\PurchaseTransferService;
+use App\Structure\Sql\OrderItemSqlStructure;
+use Gamecon\SystemoveNastaveni\SystemoveNastaveni;
 use Uzivatel;
 use Gamecon\Uzivatel\SqlStruktura\UzivateleHodnotySqlStruktura as Sql;
 
@@ -54,8 +57,14 @@ class UzivatelSlucovani
             $odkazujiciTabulky = $this->najdiOdkazujiciTabulky();
 
             foreach ($odkazujiciTabulky as $tabulka) {
+                // Nákupy se přesouvají níž přes Doctrine, ať je vidí log nákupů.
+                if ($tabulka['table_name'] === OrderItemSqlStructure::_table) {
+                    continue;
+                }
                 $this->prevedDataVTabulce($tabulka['table_name'], $tabulka['column_name'], $idStarehoUzivatele, $idNovehoUzivatele);
             }
+            SystemoveNastaveni::zGlobals()->kernel()->getContainer()->get(PurchaseTransferService::class)
+                ->transferAll($idStarehoUzivatele, $idNovehoUzivatele);
 
             // Smazání starého uživatele - FK CASCADE automaticky smaže související data
             dbQuery("DELETE FROM `uzivatele_hodnoty` WHERE `id_uzivatele` = $idStarehoUzivatele");

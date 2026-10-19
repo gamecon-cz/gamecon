@@ -86,6 +86,14 @@ parameters:
                 - symfony/src/Service/ManualSaleService.php
                 - symfony/src/Service/BulkCancelService.php
 
+        # Called by the legacy merge of two users (model/Uzivatel/UzivatelSlucovani.php), outside
+        # `paths:`, like the entries above. Goes away once the legacy tree is analysed.
+        -
+            identifier: shipmonk.deadMethod
+            message: '#^Unused App\\Service\\PurchaseTransferService\:\:transferAll$#'
+            paths:
+                - symfony/src/Service/PurchaseTransferService.php
+
         # Called by the legacy logout (nastaveni/jwt-bridge.php), outside `paths:`, like the
         # entries above. Goes away once the legacy tree is analysed.
         -
