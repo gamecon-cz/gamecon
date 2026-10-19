@@ -21,6 +21,7 @@ use App\Service\CartService;
 use App\Service\CurrentYearProviderInterface;
 use App\Service\DiscountCalculator;
 use App\Service\LegacySessionService;
+use App\Service\UserPermissions;
 use App\State\Cart\AccommodationProvider;
 use App\Tests\Support\ChybovePreklady;
 use Gamecon\Cas\DateTimeImmutableStrict;
@@ -55,6 +56,8 @@ class AccommodationProviderTest extends TestCase
 
     private bool $sleepingBagsOnly = false;
 
+    private bool $maySingleNight = false;
+
     private AccommodationProvider $provider;
 
     private ?SystemoveNastaveni $puvodniNastaveni = null;
@@ -85,6 +88,14 @@ class AccommodationProviderTest extends TestCase
         $this->accommodationRules = $this->createMock(AccommodationRules::class);
         $this->accommodationRules->method('sleepingBagsOnly')
             ->willReturnCallback(fn (): bool => $this->sleepingBagsOnly);
+        // Answers for one right only: a blanket stub would pass even if the grid asked about
+        // some other permission.
+        $userPermissions = $this->createMock(UserPermissions::class);
+        $userPermissions->method('has')->willReturnCallback(
+            fn (User $user, int $permission, int $year): bool => $this->maySingleNight
+                && $permission === Pravo::UBYTOVANI_MUZE_OBJEDNAT_JEDNU_NOC
+                && $year === self::ROK,
+        );
 
         $this->provider = new AccommodationProvider(
             $this->productRepository,
@@ -95,6 +106,7 @@ class AccommodationProviderTest extends TestCase
             $this->cartService,
             $this->breakfastCanceller,
             $this->accommodationRules,
+            $userPermissions,
             $this->security,
             // Staví se nad týmiž mocky repozitářů jako provider, aby test procházel
             // skutečným výpočtem, ne nastrčenou odpovědí.
@@ -345,18 +357,13 @@ class AccommodationProviderTest extends TestCase
 
     private function prepareUser(bool $smiJednuNoc = false, bool $jeOrganizator = false): void
     {
+        $this->maySingleNight = $smiJednuNoc;
         $user = $this->createMock(User::class);
         // Rezervace pro orgy jede na `User::isOrganizer()` — tentýž okruh rolí jako merch.
-        // Legacy `jeOrganizator()` níž rozhoduje o něčem jiném (nedělní noc).
         $user->method('isOrganizer')->willReturn($jeOrganizator);
         $this->security->method('getUser')->willReturn($user);
 
         $legacyUzivatel = $this->createMock(\Uzivatel::class);
-        $legacyUzivatel->method('maPravo')->willReturnCallback(
-            static fn (int $pravo): bool => $smiJednuNoc
-                && $pravo === Pravo::UBYTOVANI_MUZE_OBJEDNAT_JEDNU_NOC,
-        );
-        $legacyUzivatel->method('jeOrganizator')->willReturn($jeOrganizator);
         $legacyUzivatel->method('ubytovanS')->willReturn('');
         $legacyUzivatel->method('nechceUbytovani')->willReturn(false);
 

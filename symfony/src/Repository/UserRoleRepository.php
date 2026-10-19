@@ -4,8 +4,12 @@ declare(strict_types=1);
 
 namespace App\Repository;
 
+use App\Entity\User;
 use App\Entity\UserRole;
+use App\Enum\RoleMeaning;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
+use Doctrine\DBAL\ArrayParameterType;
+use Doctrine\ORM\AbstractQuery;
 use Doctrine\Persistence\ManagerRegistry;
 
 /**
@@ -39,9 +43,51 @@ class UserRoleRepository extends ServiceEntityRepository
      */
     private const int SYSTEM_USER_ID = 1;
 
+    /**
+     * @see \Gamecon\Role\Role::JAKYKOLI_ROCNIK
+     */
+    private const int ANY_YEAR = -1;
+
+    /**
+     * @see \Gamecon\Role\Role::TYP_UCAST
+     */
+    private const string ROLE_TYPE_PARTICIPATION = 'ucast';
+
     public function __construct(ManagerRegistry $registry)
     {
         parent::__construct($registry, UserRole::class);
+    }
+
+    /**
+     * Whether the user holds a role of one of these meanings that is valid in the given year:
+     * of that year, of no year, or a participation role. Read on every call, so a role granted
+     * within the request counts.
+     *
+     * @param RoleMeaning[] $meanings
+     *
+     * @see \App\Discount\DiscountRuleLoader::rightsOfUser() the same validity, for rights
+     */
+    public function holdsAnyMeaning(User $user, array $meanings, int $year): bool
+    {
+        $queryBuilder = $this->createQueryBuilder('userRole');
+
+        return $queryBuilder
+            ->select('1')
+            ->innerJoin('userRole.role', 'role')
+            ->where('IDENTITY(userRole.user) = :userId')
+            ->andWhere('role.vyznamRole IN (:meanings)')
+            ->andWhere($queryBuilder->expr()->orX(
+                'role.rocnikRole IN (:year, :anyYear)',
+                'role.typRole = :participationType',
+            ))
+            ->setParameter('userId', $user->getId())
+            ->setParameter('meanings', array_map(static fn (RoleMeaning $meaning): string => $meaning->value, $meanings), ArrayParameterType::STRING)
+            ->setParameter('year', $year)
+            ->setParameter('anyYear', self::ANY_YEAR)
+            ->setParameter('participationType', self::ROLE_TYPE_PARTICIPATION)
+            ->setMaxResults(1)
+            ->getQuery()
+            ->getOneOrNullResult(AbstractQuery::HYDRATE_SINGLE_SCALAR) !== null;
     }
 
     /**

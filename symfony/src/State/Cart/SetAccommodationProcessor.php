@@ -15,6 +15,7 @@ use App\Service\AccommodationWriter;
 use App\Service\BreakfastCanceller;
 use App\Service\CurrentYearProviderInterface;
 use App\Service\LegacySessionService;
+use App\Service\UserPermissions;
 use Gamecon\Pravo;
 use Gamecon\SystemoveNastaveni\SystemoveNastaveni;
 use Symfony\Bundle\SecurityBundle\Security;
@@ -30,6 +31,7 @@ readonly class SetAccommodationProcessor implements ProcessorInterface
         private AccommodationWriter $accommodationWriter,
         private BreakfastCanceller $breakfastCanceller,
         private AccommodationRules $accommodationRules,
+        private UserPermissions $userPermissions,
         private AccommodationProvider $accommodationProvider,
         private CurrentYearProviderInterface $currentYearProvider,
         private LegacySessionService $legacySession,
@@ -48,10 +50,9 @@ readonly class SetAccommodationProcessor implements ProcessorInterface
             throw new AccessDeniedHttpException($this->translator->trans('accommodation.login_required_to_order', [], 'errors'));
         }
 
-        // The same reason the read endpoint refuses: every accommodation right lives in the
-        // legacy permission system, so without that session an organizer silently loses one.
-        $legacyUzivatel = $this->legacySession->getCurrentUser();
-        if ($legacyUzivatel === null) {
+        // The grid returned at the end needs the legacy user, so refuse before writing
+        // rather than save the nights and then answer 403.
+        if ($this->legacySession->getCurrentUser() === null) {
             throw new AccessDeniedHttpException($this->translator->trans('accommodation.gamecon_registration_required', [], 'errors'));
         }
 
@@ -59,22 +60,23 @@ readonly class SetAccommodationProcessor implements ProcessorInterface
             throw new NoLongerAvailableException($this->translator->trans('accommodation.sale_ended', [], 'errors'));
         }
 
+        $year = $this->currentYearProvider->getCurrentYear();
         $this->accommodationWriter->save(
             $user,
             array_map('intval', $data->variantIds),
-            $this->currentYearProvider->getCurrentYear(),
-            $legacyUzivatel->maPravo(Pravo::UBYTOVANI_MUZE_OBJEDNAT_JEDNU_NOC),
+            $year,
+            $this->userPermissions->has($user, Pravo::UBYTOVANI_MUZE_OBJEDNAT_JEDNU_NOC, $year),
             $data->roommate,
             $data->declined,
-            $this->accommodationRules->sleepingBagsOnly($legacyUzivatel),
+            $this->accommodationRules->sleepingBagsOnly($user, $year),
             jeOrganizator: $user->isOrganizer(),
-            maySundayNight: $this->accommodationRules->maySundayNight($legacyUzivatel),
+            maySundayNight: $this->accommodationRules->maySundayNight($user, $year),
         );
 
         // After the nights, so a night booked in the same request cancels again what it
         // covers instead of the restore silently undoing it.
         if ($data->restoreBreakfasts) {
-            $this->breakfastCanceller->restore($user, $this->currentYearProvider->getCurrentYear());
+            $this->breakfastCanceller->restore($user, $year);
         }
 
         return $this->accommodationProvider->provide($operation, $uriVariables, $context);

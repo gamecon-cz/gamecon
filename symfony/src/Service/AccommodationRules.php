@@ -4,6 +4,9 @@ declare(strict_types=1);
 
 namespace App\Service;
 
+use App\Entity\User;
+use App\Enum\RoleMeaning;
+use App\Repository\UserRoleRepository;
 use Gamecon\Pravo;
 use Gamecon\SystemoveNastaveni\SystemoveNastaveni;
 
@@ -12,13 +15,42 @@ class AccommodationRules
     public const SUNDAY = 4;
 
     /**
+     * The roles legacy Uzivatel::jeOrganizator() recognises. RoleMeaning::organizerMeanings() is
+     * wider and the accommodation rules do not follow it, which has yet to be decided.
+     *
+     * @see \Gamecon\Role\Role::dejIdckaRoliSOrganizatory()
+     */
+    private const array LEGACY_ORGANIZER_MEANINGS = [
+        RoleMeaning::ORGANIZATOR_ZDARMA,
+        RoleMeaning::PUL_ORG_UBYTKO,
+        RoleMeaning::PUL_ORG_TRICKO,
+        RoleMeaning::MINI_ORG,
+        RoleMeaning::PAUZUJICI_FULL_ORG,
+    ];
+
+    private const array ENTITLED_TO_BED_MEANINGS = [
+        ...self::LEGACY_ORGANIZER_MEANINGS,
+        RoleMeaning::VYPRAVEC,
+        RoleMeaning::HERMAN,
+        RoleMeaning::PARTNER,
+        RoleMeaning::INFOPULT,
+        RoleMeaning::ZAZEMI,
+    ];
+
+    public function __construct(
+        private readonly UserPermissions $permissions,
+        private readonly UserRoleRepository $roles,
+    ) {
+    }
+
+    /**
      * Sunday is offered to few, so its night sits under the counter and only these see its column.
      */
-    public function maySundayNight(\Uzivatel $legacyUser): bool
+    public function maySundayNight(User $user, int $year): bool
     {
-        return $legacyUser->maPravo(Pravo::UBYTOVANI_NEDELNI_NOC_NABIZET)
-            || $legacyUser->maPravo(Pravo::UBYTOVANI_NEDELNI_NOC_ZDARMA)
-            || $legacyUser->jeOrganizator();
+        return $this->permissions->has($user, Pravo::UBYTOVANI_NEDELNI_NOC_NABIZET, $year)
+            || $this->permissions->has($user, Pravo::UBYTOVANI_NEDELNI_NOC_ZDARMA, $year)
+            || $this->roles->holdsAnyMeaning($user, self::LEGACY_ORGANIZER_MEANINGS, $year);
     }
 
     /**
@@ -26,19 +58,14 @@ class AccommodationRules
      * handful of roles keep a real bed anyway. Read by both the grid and the write path, so
      * a hand-made request cannot book what the grid hides.
      */
-    public function sleepingBagsOnly(\Uzivatel $legacyUser): bool
+    public function sleepingBagsOnly(User $user, int $year): bool
     {
         return SystemoveNastaveni::zGlobals()->jeOmezeniUbytovaniPouzeNaSpacaky()
-            && ! $this->isEntitledToBed($legacyUser);
+            && ! $this->isEntitledToBed($user, $year);
     }
 
-    private function isEntitledToBed(\Uzivatel $legacyUser): bool
+    public function isEntitledToBed(User $user, int $year): bool
     {
-        return $legacyUser->jeVypravec()
-            || $legacyUser->jeOrganizator()
-            || $legacyUser->jeHerman()
-            || $legacyUser->jePartner()
-            || $legacyUser->jeInfopultak()
-            || $legacyUser->jeZazemi();
+        return $this->roles->holdsAnyMeaning($user, self::ENTITLED_TO_BED_MEANINGS, $year);
     }
 }

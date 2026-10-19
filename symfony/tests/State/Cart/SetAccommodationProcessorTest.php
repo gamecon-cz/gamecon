@@ -13,6 +13,7 @@ use App\Service\AccommodationWriter;
 use App\Service\BreakfastCanceller;
 use App\Service\CurrentYearProviderInterface;
 use App\Service\LegacySessionService;
+use App\Service\UserPermissions;
 use App\State\Cart\AccommodationProvider;
 use App\State\Cart\SetAccommodationProcessor;
 use App\Tests\AbstractDatabaseKernelTestCase;
@@ -56,6 +57,7 @@ class SetAccommodationProcessorTest extends AbstractDatabaseKernelTestCase
             $writer,
             $this->createMock(BreakfastCanceller::class),
             static::getContainer()->get(AccommodationRules::class),
+            static::getContainer()->get(UserPermissions::class),
             static::getContainer()->get(AccommodationProvider::class),
             static::getContainer()->get(CurrentYearProviderInterface::class),
             $legacySession,

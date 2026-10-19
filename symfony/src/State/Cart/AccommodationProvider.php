@@ -23,6 +23,7 @@ use App\Service\CartService;
 use App\Service\CurrentYearProviderInterface;
 use App\Service\DiscountCalculator;
 use App\Service\LegacySessionService;
+use App\Service\UserPermissions;
 use Gamecon\Pravo;
 use Gamecon\SystemoveNastaveni\SystemoveNastaveni;
 use Symfony\Bundle\SecurityBundle\Security;
@@ -48,6 +49,7 @@ readonly class AccommodationProvider implements ProviderInterface, Accommodation
         private CartService $cartService,
         private BreakfastCanceller $breakfastCanceller,
         private AccommodationRules $accommodationRules,
+        private UserPermissions $userPermissions,
         private Security $security,
         private AccommodationAvailability $availability,
         private TranslatorInterface $translator,
@@ -61,8 +63,8 @@ readonly class AccommodationProvider implements ProviderInterface, Accommodation
             throw new AccessDeniedHttpException($this->translator->trans('accommodation.login_required_to_view', [], 'errors'));
         }
 
-        // Every accommodation right lives in the legacy permission system. Failing beats
-        // degrading to "no rights", which would drop an organizer's Sunday night with a 200.
+        // The roommate and the decline of an account with no order yet are still read off the
+        // legacy user. Failing beats a grid that silently shows neither.
         $legacyUzivatel = $this->legacySession->getCurrentUser();
         if ($legacyUzivatel === null) {
             throw new AccessDeniedHttpException($this->translator->trans('accommodation.gamecon_registration_required', [], 'errors'));
@@ -87,8 +89,8 @@ readonly class AccommodationProvider implements ProviderInterface, Accommodation
         $nastaveni = SystemoveNastaveni::zGlobals();
         $prodejUkoncen = ! $zPultu && $nastaveni->prodejUbytovaniUkoncen();
 
-        $muzeNedeli = $this->accommodationRules->maySundayNight($legacyUser);
-        $muzeJednuNoc = $legacyUser->maPravo(Pravo::UBYTOVANI_MUZE_OBJEDNAT_JEDNU_NOC);
+        $muzeNedeli = $this->accommodationRules->maySundayNight($user, $year);
+        $muzeJednuNoc = $this->userPermissions->has($user, Pravo::UBYTOVANI_MUZE_OBJEDNAT_JEDNU_NOC, $year);
 
         $dto = new AccommodationOutputDto();
         $dto->saleClosed = $prodejUkoncen;
@@ -133,7 +135,7 @@ readonly class AccommodationProvider implements ProviderInterface, Accommodation
         $jeOrganizator = $user->isOrganizer();
         $dostupnost = $this->availability->proZakaznika($user, $year, $jeOrganizator);
 
-        $sleepingBagsOnly = $this->accommodationRules->sleepingBagsOnly($legacyUser);
+        $sleepingBagsOnly = $this->accommodationRules->sleepingBagsOnly($user, $year);
         $ubytovani = $this->productRepository->findByTag(ProductTagCode::UBYTOVANI);
 
         // Turning the restriction on with nothing tagged would hide accommodation entirely
