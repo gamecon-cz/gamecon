@@ -53,7 +53,7 @@ ui-deps:
 	./bin-docker/yarn install --frozen-lockfile
 
 # check-vendor-matches-lock first: `deps` runs composer install, which makes vendor/ match the lock and hides the difference.
-ci: check-vendor-matches-lock deps rector ecs phpstan check-dockerignore check-ui-bundles tests
+ci: check-vendor-matches-lock deps rector ecs phpstan symfony-lint doctrine-lint composer-lint check-dockerignore check-ui-bundles tests
 
 tests: tests-be test-ui
 
