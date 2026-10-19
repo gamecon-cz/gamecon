@@ -31,6 +31,16 @@ class RoleMeaningTest extends TestCase
         $this->assertFalse(RoleMeaning::STREDECNI_NOC_ZDARMA->isOrganizer());
     }
 
+    /**
+     * Roles of this meaning exist in the production data of past years, so the case has to exist
+     * or the roles of their holders cannot be loaded. Legacy does not count them as organizers.
+     */
+    public function testSeniorVolunteerIsKnownAndNotAnOrganizer(): void
+    {
+        $this->assertSame(RoleMeaning::DOBROVOLNIK_SENIOR, RoleMeaning::from('DOBROVOLNIK_SENIOR'));
+        $this->assertFalse(RoleMeaning::DOBROVOLNIK_SENIOR->isOrganizer());
+    }
+
     public function testAnyIsOrganizer(): void
     {
         $this->assertTrue(RoleMeaning::anyIsOrganizer([RoleMeaning::PRIHLASEN, RoleMeaning::VYPRAVEC]));

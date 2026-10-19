@@ -46,6 +46,7 @@ enum RoleMeaning: string
     case ZAZEMI = 'ZAZEMI';
     case PREPINANI_NA_UZIVATELE = 'PREPINANI_NA_UZIVATELE';
     case JEDNA_AKTIVITA_ZDARMA = 'JEDNA_AKTIVITA_ZDARMA';
+    case DOBROVOLNIK_SENIOR = 'DOBROVOLNIK_SENIOR';
 
     // Verification
     case ZKONTROLOVANE_UDAJE = 'ZKONTROLOVANE_UDAJE';
@@ -139,6 +140,7 @@ enum RoleMeaning: string
             self::ZAZEMI                 => 'Zázemí',
             self::PREPINANI_NA_UZIVATELE => 'Přepínání na uživatele',
             self::JEDNA_AKTIVITA_ZDARMA  => 'Jedna aktivita zdarma',
+            self::DOBROVOLNIK_SENIOR     => 'Dobrovolník senior',
             self::ZKONTROLOVANE_UDAJE    => 'Zkontrolované údaje',
             self::PRIHLASEN              => 'Přihlášen',
             self::PRITOMEN               => 'Přítomen',
