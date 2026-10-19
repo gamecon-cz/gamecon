@@ -162,7 +162,7 @@ class MerchProductsProviderTest extends TestCase
     {
         $this->productRepository->method('findByTag')->willReturn([]);
         $this->userRoleRepository->expects(self::once())
-            ->method('validMeanings')
+            ->method('getValidMeanings')
             ->with($this->user, self::ROK)
             ->willReturn([]);
 

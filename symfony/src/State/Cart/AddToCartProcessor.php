@@ -40,7 +40,7 @@ readonly class AddToCartProcessor implements ProcessorInterface
         $user = $this->security->getUser();
         assert($user instanceof User);
 
-        $roleMeanings = $this->userRoleRepository->validMeanings($user, $this->currentYearProvider->getCurrentYear());
+        $roleMeanings = $this->userRoleRepository->getValidMeanings($user, $this->currentYearProvider->getCurrentYear());
         $cart = $this->cartService->getOrCreateCart($user);
 
         if ($data->bundleId !== null) {

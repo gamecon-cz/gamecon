@@ -56,7 +56,7 @@ readonly class RemoveFromCartProcessor implements ProcessorInterface
             throw new NotFoundHttpException($this->translator->trans('cart.item_without_order', [], 'errors'));
         }
 
-        $roleMeanings = $this->userRoleRepository->validMeanings($user, $this->currentYearProvider->getCurrentYear());
+        $roleMeanings = $this->userRoleRepository->getValidMeanings($user, $this->currentYearProvider->getCurrentYear());
 
         // If item is part of a forced bundle, remove the whole bundle
         $bundle = $item->getBundle();

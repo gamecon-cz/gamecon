@@ -64,7 +64,7 @@ class AddToCartProcessorTest extends TestCase
         $user = $this->createMock(User::class);
         $this->security->method('getUser')->willReturn($user);
         $this->userRoleRepository->expects($this->once())
-            ->method('validMeanings')
+            ->method('getValidMeanings')
             ->with($user, ROCNIK)
             ->willReturn([RoleMeaning::VYPRAVEC]);
 

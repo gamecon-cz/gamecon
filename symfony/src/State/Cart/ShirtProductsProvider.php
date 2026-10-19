@@ -61,7 +61,7 @@ readonly class ShirtProductsProvider implements ProviderInterface
 
         $year = $this->currentYearProvider->getCurrentYear();
         $nastaveni = SystemoveNastaveni::zGlobals();
-        $roleMeanings = $this->userRoleRepository->validMeanings($user, $year);
+        $roleMeanings = $this->userRoleRepository->getValidMeanings($user, $year);
         // Jednou za request: mřížka mezi produkty nezapisuje, takže se spotřeba nemění.
         $spentQuota = $this->spentQuota->forUser($user, $year);
 

@@ -94,7 +94,7 @@ class RemoveFromCartProcessorTest extends TestCase
             'getId' => 1,
         ]);
         $this->security->method('getUser')->willReturn($user);
-        $this->userRoleRepository->method('validMeanings')
+        $this->userRoleRepository->method('getValidMeanings')
             ->with($user, ROCNIK)
             ->willReturn([RoleMeaning::PRIHLASEN]);
 
