@@ -2,6 +2,7 @@ import { AktivitaStav } from "../../../api/program";
 import { JazykFiltru } from "../../../utils/jazykAktivity";
 import { GAMECON_KONSTANTY } from "../../../env";
 import { t } from "../../../i18n";
+import { názevDneVTýdnu } from "../../../i18n/datum";
 import { formátujDenVTýdnu, pražskýRok, pražskýMěsíc, pražskýDenVMěsíci, pražskýDenVTýdnu } from "../../../utils";
 import { denAktivity } from "./aktivity";
 
@@ -261,4 +262,4 @@ export const nadpisProgramu = (výběr: ProgramTabulkaVýběr): string =>
     ? t("program.nadpis.muj")
     : výběr.typ === "všechny_dny"
     ? t("program.nadpis.vsechny_dny")
-    : t("program.nadpis.den", { den: formátujDenVTýdnu(výběr.datum, true) });
+    : t("program.nadpis.den", { den: názevDneVTýdnu(výběr.datum) });
