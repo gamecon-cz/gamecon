@@ -8,9 +8,9 @@ use Gamecon\Kanaly\EmailovaSablona\EmailovaSablonaRepository;
 use Gamecon\Kanaly\EmailovaSablona\EmailovaSablonaValidator;
 use Gamecon\Kanaly\EmailovaSablona\EmailovaSablonaVykreslovac;
 use Gamecon\Kanaly\EmailovaSablona\EmailoveSablonyKatalog;
+use Gamecon\Kanaly\EmailovaSablona\NahledSablony;
 use Gamecon\Kanaly\EmailovaSablona\ProblemSablony;
 use Gamecon\Kanaly\EmailovaSablona\ProblemySablonHtml;
-use Gamecon\Kanaly\EmailovaSablona\RozkladSymbolu;
 use Gamecon\Kanaly\EmailovaSablona\SystemoveHodnotyProSablony;
 use Gamecon\Kanaly\EmailovaSablona\UlozenaEmailovaSablona;
 use Gamecon\Kanaly\EmailovaSablona\VysledekZkusebnihoEmailuEnum;
@@ -71,23 +71,18 @@ if ($kod !== null) {
         $nahlizenyPredmet = trim((string)post('predmet'));
         $nahlizenyText    = trim((string)post('text'));
 
-        $nahled = new XTemplate(__DIR__ . '/emailove-sablony-nahled.xtpl');
-        if (RozkladSymbolu::jePrazdny($nahlizenyPredmet) || RozkladSymbolu::jePrazdny($nahlizenyText)) {
-            $nahled->assign('predmet', '(nevyplněno)');
-            $nahled->assign('telo', '<p>Vyplň předmět i text, pak bude co ukázat.</p>');
-        } else {
-            $vykresleno = (new EmailovaSablonaVykreslovac($systemoveHodnoty))
-                ->vykresli($definice, $nahlizenyPredmet, $nahlizenyText, $definice->ukazky());
+        $vykresleno = (new NahledSablony(new EmailovaSablonaVykreslovac($systemoveHodnoty)))
+            ->vykresli($definice, $nahlizenyPredmet, $nahlizenyText, $definice->ukazky());
 
-            $nahled->assign('predmet', htmlspecialchars($vykresleno->predmet, ENT_QUOTES));
-            // An HTML e-mail is shown in a sandboxed frame so its styles and scripts cannot touch the admin.
-            $nahled->assign(
-                'telo',
-                $definice->jeHtml()
-                    ? '<iframe sandbox srcdoc="' . htmlspecialchars($vykresleno->textProEmail(), ENT_QUOTES) . '"></iframe>'
-                    : '<pre>' . htmlspecialchars($vykresleno->text, ENT_QUOTES) . '</pre>',
-            );
-        }
+        $nahled = new XTemplate(__DIR__ . '/emailove-sablony-nahled.xtpl');
+        $nahled->assign('predmet', htmlspecialchars($vykresleno->predmet, ENT_QUOTES));
+        // An HTML e-mail is shown in a sandboxed frame so its styles and scripts cannot touch the admin.
+        $nahled->assign(
+            'telo',
+            $definice->jeHtml()
+                ? '<iframe sandbox srcdoc="' . htmlspecialchars($vykresleno->textProEmail(), ENT_QUOTES) . '"></iframe>'
+                : '<pre>' . htmlspecialchars($vykresleno->text, ENT_QUOTES) . '</pre>',
+        );
         $nahled->parse('nahled');
         $nahled->out('nahled');
 
