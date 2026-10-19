@@ -1,6 +1,8 @@
 import { FunctionComponent } from "preact";
 import { useRef } from "preact/hooks";
 import { DNY_NÁZVY_S_HÁČKY, formátujDenVTýdnu, range } from "../../../../utils";
+import { t } from "../../../../i18n";
+import { popisekSkupiny } from "../../../../i18n/datum";
 import { ProgramPosuv } from "./ProgramPosuv";
 import {
   připravTabulkuAktivit,
@@ -116,7 +118,7 @@ export const ProgramTabulka: FunctionComponent<ProgramTabulkaProps> = (
 
   const tabulkaŽádnéAktivity = (
     <tr>
-      <td colSpan={PROGRAM_ČASY.length + 1}>Žádné aktivity tento den</td>
+      <td colSpan={PROGRAM_ČASY.length + 1}>{t("program.zadne_aktivity")}</td>
     </tr>
   );
 
@@ -128,7 +130,7 @@ export const ProgramTabulka: FunctionComponent<ProgramTabulkaProps> = (
 
         const nadpisSkupiny = (
           <td rowSpan={Math.max(řádků, 1)}>
-            <div class="program_nazevLinie">{klíč}</div>
+            <div class="program_nazevLinie">{popisekSkupiny(klíč)}</div>
           </td>
         );
 
@@ -189,7 +191,7 @@ export const ProgramTabulka: FunctionComponent<ProgramTabulkaProps> = (
           .flatMap(([denKlíč, tabulkaProDen]) => [
             <tr key={`nadpis-${denKlíč}`}>
               <td colSpan={PROGRAM_ČASY.length + 1}>
-                <div class="program_den_nadpis">{denKlíč}</div>
+                <div class="program_den_nadpis">{popisekSkupiny(denKlíč)}</div>
               </td>
             </tr>,
             ...vytvořŘádkyZeSeskupiny(tabulkaProDen, true, seskupPodle === SeskupováníAktivit.mistnost),
