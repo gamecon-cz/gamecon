@@ -4,6 +4,7 @@ use Gamecon\Dev\CrossSiteLogin;
 use Gamecon\Dev\DeploymentsReader;
 use Gamecon\Dev\GateLink;
 use Gamecon\Dev\SsoParovaciCookie;
+use Gamecon\Kanaly\ZachytavacEmailu;
 
 /**
  * Seznam aktivních preview prostředí.
@@ -67,7 +68,7 @@ foreach ($previews as $preview) {
     }
 }
 
-$mailpitUrl = $gateUrl('https://webmail.preview.gamecon.cz/');
+$mailpitUrl = $gateUrl(ZachytavacEmailu::URL_PREVIEW);
 
 ?>
 <h2>Preview prostředí</h2>

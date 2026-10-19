@@ -25,9 +25,13 @@
                 <button type="button" class="editorSablony_rezim editorSablony_aktivniRezim" data-rezim="uprava">Úprava</button><button type="button" class="editorSablony_rezim" data-rezim="nahled">Náhled</button>
             </span>
             <!-- begin: testTlacitko -->
-            <button type="button" class="editorSablony_test">Odeslat test</button>
+            <button type="button" class="editorSablony_test"><i class="fa-solid fa-paper-plane" aria-hidden="true"></i> Odeslat test</button>
             <!-- end: testTlacitko -->
-            <button type="button" class="editorSablony_vlozit">Vložit symbol</button>
+            <!-- begin: schrankaTlacitko -->
+            <button type="button" class="editorSablony_schranka" data-url="{schrankaUrl}"
+                    title="E-maily z tohoto prostředí nechodí do skutečných schránek, zachytává je Mailpit"><i class="fa-solid fa-inbox" aria-hidden="true"></i> Otevřít schránku</button>
+            <!-- end: schrankaTlacitko -->
+            <button type="button" class="editorSablony_vlozit"><i class="fa-solid fa-percent" aria-hidden="true"></i> Vložit symbol</button>
             <span>Napiš <code>%</code> a nabídne se seznam symbolů. Samotné procento se píše <code>%%</code>.</span>
         </div>
         <!-- begin: testDialog -->

@@ -418,6 +418,7 @@ Pravdivý stav ke dni auditu (zdroj: `cat /usr/local/sbin/deploy-preview-branch.
 | `MIGRACE_HESLO` | `docker run -e` | per-slug HMAC | správně |
 | `APP_ENV`, `APP_DEBUG`, `APP_SECRET` | `docker run -e` | `prod` / prázdné / per-slug HMAC | správně |
 | `MAILER_DSN` | `docker run -e` | `smtp://172.17.0.1:1025` (sdílený Mailpit, `webmail.preview.gamecon.cz`) | **úmyslně jiné než ostra** — nechceme posílat z preview reálné maily |
+| `MAILHOG_URL` | nepředáváno | n/a | **jen lokální `docker-compose.yml`** (kam z prohlížeče vede Mailpit, pro tlačítko Otevřít schránku). Preview má adresu webmailu v kódu (`ZachytavacEmailu::URL_PREVIEW`), je pro všechna preview stejná |
 | `FIO_TOKEN` | `docker run -e` | **stejné jako ostra** | chceme testovat stahování plateb i z preview |
 | `SECRET_CRYPTO_KEY` | `docker run -e` | **stejné jako ostra** | šifruje osobní data (číslo OP) — preview musí umět rozšifrovat, co bylo zašifrováno na ostré (restored ostra dump) |
 | `DB_ANONYM_SERV/USER/PASS/NAME` | `docker run -e` | **stejné jako ostra** (sdílená anonymní DB) | beta i ostra ji sdílí (workflow používá `secrets.DB_ANONYM_*`, ne `OSTRA_DB_ANONYM_*`) |

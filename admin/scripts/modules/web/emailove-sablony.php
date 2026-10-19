@@ -16,6 +16,7 @@ use Gamecon\Kanaly\EmailovaSablona\UlozenaEmailovaSablona;
 use Gamecon\Kanaly\EmailovaSablona\VysledekZkusebnihoEmailuEnum;
 use Gamecon\Kanaly\EmailovaSablona\ZkusebniEmail;
 use Gamecon\Kanaly\MailLogger;
+use Gamecon\Kanaly\ZachytavacEmailu;
 use Gamecon\XTemplate\XTemplate;
 
 /**
@@ -108,14 +109,8 @@ if ($kod !== null) {
                 $vysledek = ZkusebniEmail::zGlobals()
                     ->odesli($definice, (string)post('predmet'), (string)post('text'), $adresatTestu);
                 $odpoved  = match ($vysledek) {
-                    VysledekZkusebnihoEmailuEnum::ODESLANO       => [
-                        'ok'     => true,
-                        // Preview delivers into the shared Mailpit catcher, not into any inbox
-                        'zprava' => "Test odeslán na $adresatTestu."
-                            . ($systemoveNastaveni->jsmeNaPreview()
-                                ? ' Na preview e-maily nechodí do schránek, najdeš ho ve webmailu https://webmail.preview.gamecon.cz/.'
-                                : ''),
-                    ],
+                    // No full stop: it would look like the end of the address
+                    VysledekZkusebnihoEmailuEnum::ODESLANO       => ['ok' => true, 'zprava' => "Test odeslán na $adresatTestu"],
                     VysledekZkusebnihoEmailuEnum::JEN_DO_SOUBORU => [
                         'ok'     => false,
                         'zprava' => "Na tomto prostředí se e-mail na $adresatTestu nedoručuje, jen se zapsal do souboru.",
@@ -181,6 +176,7 @@ if ($kod !== null) {
             'Zpět na seznam e-mailů',
             $urlModulu . '?kod=' . rawurlencode($kod) . '&test',
             $u->mail() ?: null,
+            ZachytavacEmailu::zGlobals()->getUrl(),
         ),
     ]);
     $sablonaStranky->parse('detail');

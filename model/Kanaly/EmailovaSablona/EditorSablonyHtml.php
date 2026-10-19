@@ -28,6 +28,9 @@ class EditorSablonyHtml
      * @param string $nahledUrl where the editor sends the text being typed and where it expects the HTML preview from
      * @param string|null $testUrl where the editor sends the text to be mailed as a test, with $testEmail the address
      *     it goes to (the logged-in admin); without both the Send test button is not offered
+     * @param string|null $schrankaUrl where the Open mailbox button leads, on an environment that catches e-mails;
+     *     without it the button is not offered
+     * @see \Gamecon\Kanaly\ZachytavacEmailu::getUrl()
      */
     public function vykresli(
         EmailovaSablonaDefinice $definice,
@@ -39,6 +42,7 @@ class EditorSablonyHtml
         string                  $zpetNazev,
         ?string                 $testUrl = null,
         ?string                 $testEmail = null,
+        ?string                 $schrankaUrl = null,
     ): string {
         $sablona = new XTemplate(__DIR__ . '/templates/editor.xtpl');
         $sablona->assign([
@@ -47,6 +51,7 @@ class EditorSablonyHtml
             'nahledUrl'    => htmlspecialchars($nahledUrl, ENT_QUOTES),
             'testUrl'      => htmlspecialchars((string) $testUrl, ENT_QUOTES),
             'testEmail'    => htmlspecialchars((string) $testEmail, ENT_QUOTES),
+            'schrankaUrl'  => htmlspecialchars((string) $schrankaUrl, ENT_QUOTES),
             'zpetUrl'      => htmlspecialchars($zpetUrl, ENT_QUOTES),
             'zpetNazev'    => htmlspecialchars($zpetNazev, ENT_QUOTES),
             'dataJson'     => $this->dataJson($definice),
@@ -65,6 +70,9 @@ class EditorSablonyHtml
         if ($testUrl !== null && $testEmail !== null && $testEmail !== '') {
             $sablona->parse('editor.testTlacitko');
             $sablona->parse('editor.testDialog');
+        }
+        if ($schrankaUrl !== null && $schrankaUrl !== '') {
+            $sablona->parse('editor.schrankaTlacitko');
         }
 
         $sablona->parse('editor');
