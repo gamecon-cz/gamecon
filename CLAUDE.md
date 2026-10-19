@@ -149,6 +149,7 @@ Get the custom repository via `->getRepository(SomeEntity::class)` (returns the 
 - Check existing patterns in similar components
 - Use Docker for consistent development environment
 - **Directory creation**: Use Symfony's `(new Filesystem)->mkdir($dir, 0775)` instead of `@mkdir()` or `is_dir()` + `mkdir()` checks
+- **PHP method naming (Symfony style)**: a getter is prefixed `get` (`getValidMeanings()`), never a bare noun that reads like a property (`validMeanings()`); a boolean getter, an isser, is prefixed `is` (`isOrganizer()`); a setter is prefixed `set` (`setRoommate()`). PHP only: TypeScript/JS follow their own conventions, and the existing Czech names in the legacy `model/` (`jeOrganizator()`, `ubytovanS()`) are not renamed for this rule
 - **Hashing**: Always use the complete result of a hashing function — never truncate it (e.g. `substr(md5(...), 0, 12)`) as this increases collision risk
 - **Cache directories**: Use `SPEC` constant for private cache files and `CACHE` constant for public cache files (web-accessible)
 - **Relative links in admin resolve against the admin root**, not the current page: `admin/templates/main.xtpl` sets `<base href="{URL_ADMIN}/">`. A bare `href="?nahled=1"` therefore opens the admin homepage; always write the module path, e.g. `href="web/previews?admin=…"`. It has already broken a link that only clicking revealed (the dunning preview).
