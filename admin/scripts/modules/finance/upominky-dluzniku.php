@@ -354,6 +354,16 @@ $popisUcasti = [
 // Admin má <base href=".../admin/">, takže samotné "?nahled=" by spadlo na /admin/.
 $t->assign('urlModulu', 'finance/upominky-dluzniku');
 
+/**
+ * A type has four texts by the debtor's participation, the link opens the first one; the rest is in the list from there.
+ *
+ * @see \Gamecon\Kanaly\EmailovaSablona\EmailoveSablonyKatalog::upominky()
+ */
+$t->assign([
+    'urlStandardnihoZneniMesic' => 'web/emailove-sablony?kod=upominka_' . TypUpominky::MESIC->value . '_pritomen',
+    'urlStandardnihoZneniTyden' => 'web/emailove-sablony?kod=upominka_' . TypUpominky::TYDEN->value . '_pritomen',
+]);
+
 $celkovyDluh = 0;
 foreach ($dluznici as $dluznik) {
     $idUzivatele      = $dluznik->uzivatel->id();

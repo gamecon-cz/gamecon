@@ -17,6 +17,8 @@
             </select>
         </label>
         <a href="{urlModulu}?zneni" id="odkazNaZneni" style="margin-left: 1em; display: none">Upravit obsah vlastního znění</a>
+        <a href="{urlStandardnihoZneniMesic}" class="odkazNaStandardniZneni" data-typ="rucni" style="margin-left: 1em; display: none">Upravit obsah standardního znění</a>
+        <a href="{urlStandardnihoZneniTyden}" class="odkazNaStandardniZneni" data-typ="tyden" style="margin-left: 1em; display: none">Upravit obsah standardního znění</a>
         <span id="zneniChybi" data-chybi="{zneniChybi}" style="margin-left: 1em; display: none; color: #a00">⬅️ Vyplň Předmět a Text emailu</span>
     </p>
 
@@ -142,6 +144,7 @@
         }
 
         const odkazNaZneni = document.getElementById('odkazNaZneni');
+        const odkazyNaStandardniZneni = form.querySelectorAll('a.odkazNaStandardniZneni');
         const zneniChybi = document.getElementById('zneniChybi');
 
         const odeslatUpominky = document.getElementById('odeslatUpominky');
@@ -151,6 +154,9 @@
             const nejdeOdeslat = jeVlastni && zneniChybi.dataset.chybi === 'ano';
 
             odkazNaZneni.style.display = jeVlastni ? 'inline' : 'none';
+            odkazyNaStandardniZneni.forEach(function (odkaz) {
+                odkaz.style.display = odkaz.dataset.typ === vyberTextu.value ? 'inline' : 'none';
+            });
             zneniChybi.style.display = nejdeOdeslat ? 'inline' : 'none';
             odeslatUpominky.disabled = nejdeOdeslat;
             odeslatUpominky.title = nejdeOdeslat

@@ -42,7 +42,7 @@
     </thead>
     <tbody>
     <!-- begin: sablona -->
-    <tr>
+    <tr id="{kod}">
         <td>{problem}<a href="{odkaz}">{nazev}</a></td>
         <td>{kdyOdchazi}</td>
         <td>{prijemce}</td>
