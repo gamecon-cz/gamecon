@@ -26,6 +26,8 @@ class EditorSablonyHtml
     /**
      * @param list<string> $chyby errors from the server when saving failed
      * @param string $nahledUrl where the editor sends the text being typed and where it expects the HTML preview from
+     * @param string|null $testUrl where the editor sends the text to be mailed as a test, with $testEmail the address
+     *     it goes to (the logged-in admin); without both the Send test button is not offered
      */
     public function vykresli(
         EmailovaSablonaDefinice $definice,
@@ -35,12 +37,16 @@ class EditorSablonyHtml
         string                  $nahledUrl,
         string                  $zpetUrl,
         string                  $zpetNazev,
+        ?string                 $testUrl = null,
+        ?string                 $testEmail = null,
     ): string {
         $sablona = new XTemplate(__DIR__ . '/templates/editor.xtpl');
         $sablona->assign([
             'predmet'      => htmlspecialchars($predmet, ENT_QUOTES),
             'text'         => htmlspecialchars($text, ENT_QUOTES),
             'nahledUrl'    => htmlspecialchars($nahledUrl, ENT_QUOTES),
+            'testUrl'      => htmlspecialchars((string) $testUrl, ENT_QUOTES),
+            'testEmail'    => htmlspecialchars((string) $testEmail, ENT_QUOTES),
             'zpetUrl'      => htmlspecialchars($zpetUrl, ENT_QUOTES),
             'zpetNazev'    => htmlspecialchars($zpetNazev, ENT_QUOTES),
             'dataJson'     => $this->dataJson($definice),
@@ -55,6 +61,10 @@ class EditorSablonyHtml
         }
         if ($chyby !== []) {
             $sablona->parse('editor.chyby');
+        }
+        if ($testUrl !== null && $testEmail !== null && $testEmail !== '') {
+            $sablona->parse('editor.testTlacitko');
+            $sablona->parse('editor.testDialog');
         }
 
         $sablona->parse('editor');

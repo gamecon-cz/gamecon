@@ -2,7 +2,7 @@
 
 <link rel="stylesheet" href="files/editor-sablony.css?version={cssVerze}">
 
-<div class="editorSablony" data-nahled-url="{nahledUrl}">
+<div class="editorSablony" data-nahled-url="{nahledUrl}" data-test-url="{testUrl}">
     <form method="post" class="editorSablony_formular">
         <!-- begin: chyby -->
         <div class="editorSablony_hlasky editorSablony_hlaskyServeru">
@@ -21,12 +21,25 @@
         </p>
 
         <div class="editorSablony_nastroje">
-            <button type="button" class="editorSablony_vlozit">Vložit symbol</button>
             <span class="editorSablony_rezimy">
                 <button type="button" class="editorSablony_rezim editorSablony_aktivniRezim" data-rezim="uprava">Úprava</button><button type="button" class="editorSablony_rezim" data-rezim="nahled">Náhled</button>
             </span>
+            <!-- begin: testTlacitko -->
+            <button type="button" class="editorSablony_test">Odeslat test</button>
+            <!-- end: testTlacitko -->
+            <button type="button" class="editorSablony_vlozit">Vložit symbol</button>
             <span>Napiš <code>%</code> a nabídne se seznam symbolů. Samotné procento se píše <code>%%</code>.</span>
         </div>
+        <!-- begin: testDialog -->
+        <p class="editorSablony_testStav" aria-live="polite" hidden></p>
+        <dialog class="editorSablony_testDialog">
+            <p>Odeslat na <strong>{testEmail}</strong> ?</p>
+            <p>
+                <button type="button" class="editorSablony_testOdeslat">Odeslat</button>
+                <button type="button" class="editorSablony_testZrusit">Zrušit</button>
+            </p>
+        </dialog>
+        <!-- end: testDialog -->
 
         <div>
             <label for="editorSablonyText">Text e-mailu</label><br>

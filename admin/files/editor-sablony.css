@@ -26,6 +26,15 @@
   margin: .5em 0;
 }
 
+.editorSablony_testStav {
+  margin: .5em 0;
+  color: #060;
+}
+
+.editorSablony_testStav.editorSablony_testStavChyba {
+  color: #a00;
+}
+
 .editorSablony_rezimy button {
   border: 1px solid #aaa;
   background: #f4f4f4;

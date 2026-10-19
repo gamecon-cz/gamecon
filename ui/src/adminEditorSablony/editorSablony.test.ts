@@ -11,7 +11,7 @@ const sablonaEditoru = readFileSync(zRepozitare('model/Kanaly/EmailovaSablona/te
 const escapuj = (text: string) => text.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;')
 
 /** Fills the XTemplate placeholders and blocks the way EditorSablonyHtml::vykresli() does. */
-function vykresliSablonu(predmet: string, text: string, chyby: string[]): string {
+function vykresliSablonu(predmet: string, text: string, chyby: string[], testEmail?: string): string {
   const data = {
     promenne: [{ nazev: 'jmeno', popis: 'jméno příjemce', ukazka: 'Jana', vPredmetu: false }],
     systemove: [],
@@ -22,6 +22,7 @@ function vykresliSablonu(predmet: string, text: string, chyby: string[]): string
     text: escapuj(text),
     dataJson: JSON.stringify(data),
     nahledUrl: 'nahled',
+    testUrl: 'test',
     zpetUrl: 'seznam',
     zpetNazev: 'Zpět na seznam e-mailů',
     cssVerze: '1',
@@ -38,20 +39,33 @@ function vykresliSablonu(predmet: string, text: string, chyby: string[]): string
             chyby.map((chyba) => polozka.replace('{chyba}', escapuj(chyba))).join(''),
           ),
     )
+    // The test e-mail button and its confirmation are rendered only for a page that offers sending a test
+    .replace(/<!-- begin: (testTlacitko|testDialog) -->([\s\S]*?)<!-- end: \1 -->/g, (_celek: string, _nazev: string, blok: string) =>
+      testEmail === undefined ? '' : blok.replace('{testEmail}', escapuj(testEmail)),
+    )
     .replace(/\{(\w+)\}/g, (_celek: string, nazev: string) => hodnoty[nazev] ?? '')
 }
 
-/** @param obnovenyText what the browser puts back into the text field before the script starts (Firefox does) */
+/**
+ * @param obnovenyText what the browser puts back into the text field before the script starts (Firefox does)
+ * @param testEmail the address of the logged-in admin, when the page offers sending a test e-mail
+ */
 async function otevriEditor(
   predmet = 'Obnova hesla',
   text = 'Ahoj %jmeno%, nové heslo je v odkazu.',
   chyby: string[] = [],
   obnovenyText?: string,
+  testEmail?: string,
 ) {
-  document.body.innerHTML = vykresliSablonu(predmet, text, chyby)
+  document.body.innerHTML = vykresliSablonu(predmet, text, chyby, testEmail)
   if (obnovenyText !== undefined) {
     document.querySelector<HTMLTextAreaElement>('.editorSablony_text')!.value = obnovenyText
   }
+  // jsdom has the <dialog> element but not showModal() and close()
+  document.querySelectorAll('dialog').forEach((dialog) => {
+    dialog.showModal = () => dialog.setAttribute('open', '')
+    dialog.close = () => dialog.removeAttribute('open')
+  })
   Object.assign(window, { EditorSablonyLogika: logika })
   // The script starts itself on load, so every test needs it evaluated again against its own page.
   vi.resetModules()
@@ -219,5 +233,130 @@ describe('upozornění při odchodu z editoru s neuloženými změnami', () => {
     window.dispatchEvent(new Event('pageshow'))
 
     expect(zkusOdejit()).toBe(false)
+  })
+})
+
+describe('odeslání zkušebního e-mailu', () => {
+  const ADRESA = 'foo@example.com'
+  let fetchMock: ReturnType<typeof vi.fn>
+
+  const tlacitkoTestu = () => document.querySelector<HTMLButtonElement>('.editorSablony_test')!
+  const dialogTestu = () => document.querySelector<HTMLDialogElement>('.editorSablony_testDialog')!
+  const stavTestu = () => document.querySelector<HTMLElement>('.editorSablony_testStav')!
+  const odpovedServeru = (telo: string) => ({ ok: true, text: () => Promise.resolve(telo) })
+
+  beforeEach(() => {
+    fetchMock = vi.fn().mockResolvedValue(odpovedServeru(JSON.stringify({ ok: true, zprava: `Test odeslán na ${ADRESA}.` })))
+    vi.stubGlobal('fetch', fetchMock)
+  })
+
+  afterEach(() => {
+    vi.unstubAllGlobals()
+    document.body.innerHTML = ''
+  })
+
+  it('nástroje jdou za sebou: přepínač Úprava / Náhled, Odeslat test, Vložit symbol, nápověda', async () => {
+    await otevriEditor('Obnova hesla', 'Text', [], undefined, ADRESA)
+
+    const poradi = [...document.querySelector('.editorSablony_nastroje')!.children].map((uzel) => {
+      if (uzel.classList.contains('editorSablony_rezimy')) return 'prepinac'
+      if (uzel.classList.contains('editorSablony_test')) return 'test'
+      if (uzel.classList.contains('editorSablony_vlozit')) return 'vlozit'
+      return 'napoveda'
+    })
+
+    expect(poradi).toEqual(['prepinac', 'test', 'vlozit', 'napoveda'])
+    expect(tlacitkoTestu().textContent?.trim()).toBe('Odeslat test')
+  })
+
+  it('stránka, která zkušební e-mail nenabízí, tlačítko ani potvrzení nemá', async () => {
+    await otevriEditor()
+
+    expect(document.querySelector('.editorSablony_test')).toBeNull()
+    expect(document.querySelector('.editorSablony_testDialog')).toBeNull()
+  })
+
+  it('klik otevře potvrzení s adresou přihlášeného admina', async () => {
+    await otevriEditor('Obnova hesla', 'Text', [], undefined, ADRESA)
+
+    tlacitkoTestu().click()
+
+    expect(dialogTestu().hasAttribute('open')).toBe(true)
+    expect(dialogTestu().querySelector('p')!.textContent!.replace(/\s+/g, ' ').trim()).toBe(`Odeslat na ${ADRESA} ?`)
+    expect(dialogTestu().querySelector('strong')!.textContent).toBe(ADRESA)
+    expect(fetchMock).not.toHaveBeenCalled()
+  })
+
+  it('zrušení nic neodešle', async () => {
+    await otevriEditor('Obnova hesla', 'Text', [], undefined, ADRESA)
+    tlacitkoTestu().click()
+
+    dialogTestu().querySelector<HTMLButtonElement>('.editorSablony_testZrusit')!.click()
+
+    expect(dialogTestu().hasAttribute('open')).toBe(false)
+    expect(fetchMock).not.toHaveBeenCalled()
+  })
+
+  it('potvrzení odešle předmět a text tak, jak jsou v editoru, i neuložené', async () => {
+    const { predmetPole, textPole } = await otevriEditor('Obnova hesla', 'Uložený text', [], undefined, ADRESA)
+    pis(predmetPole, 'Nový předmět')
+    pis(textPole, 'Ahoj %jmeno%, rozepsaný text')
+    tlacitkoTestu().click()
+
+    dialogTestu().querySelector<HTMLButtonElement>('.editorSablony_testOdeslat')!.click()
+
+    await vi.waitFor(() => expect(stavTestu().textContent).toContain(`Test odeslán na ${ADRESA}.`))
+    const [url, nastaveni] = fetchMock.mock.calls[0] as [string, { method: string; body: FormData }]
+    expect(url).toBe('test')
+    expect(nastaveni.method).toBe('POST')
+    expect(nastaveni.body.get('predmet')).toBe('Nový předmět')
+    expect(nastaveni.body.get('text')).toBe('Ahoj %jmeno%, rozepsaný text')
+    expect(dialogTestu().hasAttribute('open')).toBe(false)
+    expect(stavTestu().classList.contains('editorSablony_testStavChyba')).toBe(false)
+  })
+
+  it('chybu ohlášenou serverem ukáže jako chybu', async () => {
+    fetchMock.mockResolvedValue(odpovedServeru(JSON.stringify({ ok: false, zprava: 'E-mail se neodeslal, SMTP nereaguje.' })))
+    await otevriEditor('Obnova hesla', 'Text', [], undefined, ADRESA)
+    tlacitkoTestu().click()
+
+    dialogTestu().querySelector<HTMLButtonElement>('.editorSablony_testOdeslat')!.click()
+
+    await vi.waitFor(() => expect(stavTestu().textContent).toContain('SMTP nereaguje'))
+    expect(stavTestu().classList.contains('editorSablony_testStavChyba')).toBe(true)
+  })
+
+  it('odpověď, která není JSON (vypršelo přihlášení), ukáže jako chybu', async () => {
+    fetchMock.mockResolvedValue(odpovedServeru('<html><body>Přihlášení</body></html>'))
+    await otevriEditor('Obnova hesla', 'Text', [], undefined, ADRESA)
+    tlacitkoTestu().click()
+
+    dialogTestu().querySelector<HTMLButtonElement>('.editorSablony_testOdeslat')!.click()
+
+    await vi.waitFor(() => expect(stavTestu().classList.contains('editorSablony_testStavChyba')).toBe(true))
+    expect(stavTestu().textContent).toContain('přihlášení')
+  })
+
+  it('při odesílání je tlačítko zakázané, ať se nepošle dvakrát', async () => {
+    let dokonci: (odpoved: unknown) => void = () => undefined
+    fetchMock.mockReturnValue(new Promise((vyresit) => (dokonci = vyresit)))
+    await otevriEditor('Obnova hesla', 'Text', [], undefined, ADRESA)
+    tlacitkoTestu().click()
+
+    dialogTestu().querySelector<HTMLButtonElement>('.editorSablony_testOdeslat')!.click()
+
+    expect(tlacitkoTestu().disabled).toBe(true)
+    dokonci(odpovedServeru(JSON.stringify({ ok: true, zprava: 'Hotovo.' })))
+    await vi.waitFor(() => expect(tlacitkoTestu().disabled).toBe(false))
+  })
+
+  it('text s chybou test odeslat nedovolí, stejně jako uložit', async () => {
+    const { formular, textPole } = await otevriEditor('Obnova hesla', 'Text', [], undefined, ADRESA)
+    expect(tlacitkoTestu().disabled).toBe(false)
+
+    pis(textPole, 'Ahoj %neexistuje%')
+    odesli(formular)
+
+    expect(tlacitkoTestu().disabled).toBe(true)
   })
 })

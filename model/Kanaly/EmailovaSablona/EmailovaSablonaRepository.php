@@ -54,6 +54,17 @@ SQL,
     }
 
     /**
+     * The subject and text as they are stored: trimmed, with Unix line ends.
+     *
+     * @see ZkusebniEmail::odesli() which sends the text as it would be saved
+     * @return array{0: string, 1: string} subject, text
+     */
+    public function normalizuj(string $predmet, string $text): array
+    {
+        return [trim($predmet), trim(str_replace("\r\n", "\n", $text))];
+    }
+
+    /**
      * Rejects a blank template here as well, so no caller other than the form
      * (which catches it earlier) can save one.
      */
@@ -63,8 +74,7 @@ SQL,
         string $text,
         int    $zmenil,
     ): void {
-        $predmet = trim($predmet);
-        $text    = trim(str_replace("\r\n", "\n", $text));
+        [$predmet, $text] = $this->normalizuj($predmet, $text);
         if (RozkladSymbolu::jePrazdny($predmet) || RozkladSymbolu::jePrazdny($text)) {
             throw new \InvalidArgumentException("Šablona e-mailu '$kod' nesmí mít prázdný předmět ani text.");
         }

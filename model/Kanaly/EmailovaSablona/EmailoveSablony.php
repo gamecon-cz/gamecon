@@ -78,11 +78,7 @@ class EmailoveSablony
         return (new GcMail($this->systemoveNastaveni))
             ->sablona($kod)
             ->predmet($vykresleno->predmet)
-            ->text(
-                $vykresleno->format === GcMail::FORMAT_HTML
-                    ? '<html><body>' . $vykresleno->text . '</body></html>'
-                    : $vykresleno->text,
-            )
+            ->text($vykresleno->textProEmail())
             ->format($vykresleno->format);
     }
 }
