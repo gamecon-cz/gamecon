@@ -220,7 +220,8 @@ body {
   display: none;
 }
 
-.nic-nenalezeno {
+.nic-nenalezeno,
+.omnibox-selhalo {
   position: absolute;
   font-size: 1.5em;
   right: calc(10% + 2em);

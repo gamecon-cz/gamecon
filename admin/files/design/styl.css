@@ -1688,19 +1688,25 @@ Radio musí být ve tvaru:
   padding: 3px;
 }
 
-.nic-nenalezeno {
+.nic-nenalezeno,
+.omnibox-selhalo {
   position: absolute;
   font-size: 1.5em;
   right: 1em;
   opacity: 0.5;
 }
 
-.hinted .nic-nenalezeno {
+.hinted .nic-nenalezeno,
+.hinted .omnibox-selhalo {
   right: 0.3em;
 }
 
 .nic-nenalezeno::after {
   content: '😵';
+}
+
+.omnibox-selhalo::after {
+  content: '⚠️';
 }
 
 .cekame {

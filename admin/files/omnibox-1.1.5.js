@@ -1,5 +1,6 @@
 const initializeOmnibox = function ($) {
   const $omnibox = $('.omnibox')
+  let posledniDotazSelhal = false
   /**
    * @param {{term: string}} request
    * @param {function} response
@@ -27,7 +28,9 @@ const initializeOmnibox = function ($) {
       dataType: 'json',
       async: false,
     })
-    response(responseData)
+    // bez úspěchu (server selhal, nebo vrátil přihlašovací stránku po odhlášení) zůstane responseData nedefinované
+    posledniDotazSelhal = responseData === undefined
+    response(posledniDotazSelhal ? [] : responseData)
   }
   // Našeptávátko pro omnibox
   /** https://api.jqueryui.com/autocomplete/ */
@@ -70,12 +73,15 @@ const initializeOmnibox = function ($) {
         throw Error('Chybný formát odpovědi pro Omnibox, ui.content má být Array: ' + JSON.stringify(event.content));
       }
       if (ui.content.length === 0) {
-        if (this.parentNode.getElementsByClassName('nic-nenalezeno').length === 0) {
-          const nicNenalezenoElement = document.createElement('span')
-          nicNenalezenoElement.classList.add('nic-nenalezeno')
-          nicNenalezenoElement.classList.add('remove-on-omnibox-change')
-          nicNenalezenoElement.title = 'Nic nenalezeno'
-          this.parentNode.insertBefore(nicNenalezenoElement, this.nextElementSibling)
+        const trida = posledniDotazSelhal ? 'omnibox-selhalo' : 'nic-nenalezeno'
+        if (this.parentNode.getElementsByClassName(trida).length === 0) {
+          const znackaElement = document.createElement('span')
+          znackaElement.classList.add(trida)
+          znackaElement.classList.add('remove-on-omnibox-change')
+          znackaElement.title = posledniDotazSelhal
+            ? 'Našeptávání selhalo, obnov stránku (možná došlo k odhlášení)'
+            : 'Nic nenalezeno'
+          this.parentNode.insertBefore(znackaElement, this.nextElementSibling)
         }
       }
     }
