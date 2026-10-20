@@ -6,6 +6,7 @@ namespace Gamecon\Tests\Shop;
 
 use App\Enum\OrderItemChangeEnum;
 use App\Enum\ProductTagCode;
+use App\Service\BulkCancelService;
 use Gamecon\Shop\Shop;
 use Gamecon\SystemoveNastaveni\SystemoveNastaveni;
 use Gamecon\Tests\Db\AbstractTestDb;
@@ -306,7 +307,7 @@ SQL,
         self::assertSame(1, $predJidlo, 'Jídlo nákup existuje');
 
         // Cancel JIDLO purchases
-        Shop::zrusObjednavkyPro([$uzivatel], ProductTagCode::JIDLO);
+        Shop::zrusObjednavkyPro([$uzivatel], ProductTagCode::JIDLO, SystemoveNastaveni::zGlobals());
 
         // JIDLO purchases should be gone
         $poJidlo = (int) dbOneCol(
@@ -334,7 +335,7 @@ SQL,
     {
         $uzivatel = \Uzivatel::zIdUrcite(77702);
 
-        Shop::zrusObjednavkyPro([$uzivatel], ProductTagCode::JIDLO);
+        Shop::zrusObjednavkyPro([$uzivatel], ProductTagCode::JIDLO, SystemoveNastaveni::zGlobals());
 
         $smazano = (int) dbOneCol(
             <<<'SQL'
@@ -350,6 +351,34 @@ SQL,
     /**
      * @test
      */
+    public function hromadneZruseniPouzijeSluzbuZDodanehoNastaveni(): void
+    {
+        $uzivatel = \Uzivatel::zIdUrcite(77702);
+        $idNakupuJidla = (int) dbOneCol(
+            <<<'SQL'
+            SELECT shop_nakupy.id_nakupu
+            FROM shop_nakupy
+            INNER JOIN product_variant ON product_variant.id = shop_nakupy.variant_id
+            WHERE shop_nakupy.id_uzivatele = 77702 AND product_variant.product_id = 77716 AND shop_nakupy.rok = $0
+            SQL,
+            [
+                0 => ROCNIK,
+            ],
+        );
+        self::assertGreaterThan(0, $idNakupuJidla, 'Chybí jídlo uživatele 77702 v tomto ročníku');
+        $sluzba = $this->createMock(BulkCancelService::class);
+        $sluzba->expects(self::once())->method('removePurchases')->with([$idNakupuJidla]);
+
+        Shop::zrusObjednavkyPro(
+            [$uzivatel],
+            ProductTagCode::JIDLO,
+            $this->systemoveNastaveniSeSluzbou(BulkCancelService::class, $sluzba),
+        );
+    }
+
+    /**
+     * @test
+     */
     public function hromadneZruseniOdmitneNepovolenyTyp(): void
     {
         $uzivatel = \Uzivatel::zIdUrcite(77701);
@@ -357,7 +386,7 @@ SQL,
         $this->expectException(\Exception::class);
         $this->expectExceptionMessage('Tento typ objednávek není možné hromadně zrušit');
 
-        Shop::zrusObjednavkyPro([$uzivatel], ProductTagCode::VSTUPNE);
+        Shop::zrusObjednavkyPro([$uzivatel], ProductTagCode::VSTUPNE, SystemoveNastaveni::zGlobals());
     }
 
     // ==================== D. Finance categorization ====================

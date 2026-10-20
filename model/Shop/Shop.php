@@ -67,8 +67,9 @@ class Shop
      * @throws \DbException
      */
     public static function zrusObjednavkyPro(
-        array          $uzivatele,
-        ProductTagCode $kategorie,
+        array              $uzivatele,
+        ProductTagCode     $kategorie,
+        SystemoveNastaveni $systemoveNastaveni,
     ) {
         $povoleneKategorie = [ProductTagCode::PREDMET, ProductTagCode::UBYTOVANI, ProductTagCode::TRICKO, ProductTagCode::JIDLO];
         if (!in_array($kategorie, $povoleneKategorie, true)) {
@@ -89,10 +90,10 @@ INNER JOIN product_product_tag ON product_product_tag.product_id = product_varia
 INNER JOIN product_tag ON product_tag.id = product_product_tag.tag_id AND product_tag.code = $0
 WHERE shop_nakupy.id_uzivatele IN ($1) AND shop_nakupy.rok = $2
 SQL,
-            [0 => $kategorie->value, 1 => $ids, 2 => ROCNIK],
+            [0 => $kategorie->value, 1 => $ids, 2 => $systemoveNastaveni->rocnik()],
         );
 
-        SystemoveNastaveni::zGlobals()->kernel()->getContainer()->get(BulkCancelService::class)->removePurchases($idsNakupu);
+        $systemoveNastaveni->kernel()->getContainer()->get(BulkCancelService::class)->removePurchases($idsNakupu);
     }
 
     /** Smaže z názvu identifikaci dne */

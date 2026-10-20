@@ -310,7 +310,7 @@ if (Predmet::jeToKostka($r['kod_predmetu'])) {
 > **Hotovo.** `BulkCancelService` + `BulkCancelProcessor`; vrací zásobu přes
 > `CapacityManager`.
 **Současné metody:**
-- `Shop::zrusObjednavkyPro($uzivatele, $typ)` - zruší objednávky daného typu pro více uživatelů
+- `Shop::zrusObjednavkyPro($uzivatele, $kategorie, $systemoveNastaveni)` - zruší objednávky dané kategorie pro více uživatelů
 - `Shop::zrusLetosniObjednaneUbytovani($zdrojZruseni)` - zruší ubytování
 - `Shop::zrusVsechnyLetosniObjedavky($zdrojZruseni)` - zruší všechny nákupy za rok
 - `Shop::zrusPrihlaseniNaLetosniLarpy($odhlasujici, $zdrojZruseni)` - zruší LARPy

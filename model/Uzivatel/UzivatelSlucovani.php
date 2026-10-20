@@ -10,6 +10,11 @@ use Gamecon\Uzivatel\SqlStruktura\UzivateleHodnotySqlStruktura as Sql;
 
 class UzivatelSlucovani
 {
+    public function __construct(
+        private readonly SystemoveNastaveni $systemoveNastaveni,
+    ) {
+    }
+
     /**
      * @param array<string, mixed> $zmeny páry sloupec => hodnota, které se mají upravit v novém uživateli
      */
@@ -63,7 +68,7 @@ class UzivatelSlucovani
                 }
                 $this->prevedDataVTabulce($tabulka['table_name'], $tabulka['column_name'], $idStarehoUzivatele, $idNovehoUzivatele);
             }
-            SystemoveNastaveni::zGlobals()->kernel()->getContainer()->get(PurchaseTransferService::class)
+            $this->systemoveNastaveni->kernel()->getContainer()->get(PurchaseTransferService::class)
                 ->transferAll($idStarehoUzivatele, $idNovehoUzivatele);
 
             // Smazání starého uživatele - FK CASCADE automaticky smaže související data

@@ -5,6 +5,8 @@ declare(strict_types=1);
 namespace Gamecon\Tests\Uzivatel;
 
 use App\Enum\OrderItemChangeEnum;
+use App\Service\PurchaseTransferService;
+use Gamecon\SystemoveNastaveni\SystemoveNastaveni;
 use Gamecon\Tests\Db\AbstractTestDb;
 use Gamecon\Uzivatel\UzivatelSlucovani;
 
@@ -60,7 +62,7 @@ class UzivatelSlucovaniNakupyTest extends AbstractTestDb
         $this->radekLogu($ciziNakupZmenenyStarym, (int) $okolni->id(), (int) $stary->id());
         $this->radekLogu($ciziNakupBezStareho, (int) $okolni->id(), (int) $okolni->id());
 
-        (new UzivatelSlucovani())->sluc($stary, $novy, []);
+        (new UzivatelSlucovani(SystemoveNastaveni::zGlobals()))->sluc($stary, $novy, []);
 
         self::assertSame([(int) $novy->id(), null], $this->majitele($jehoNakup), 'Nákup starého uživatele patří novému');
         self::assertSame([(int) $okolni->id(), (int) $novy->id()], $this->majitele($objednalZaJineho), 'Kdo objednával, je nový uživatel; komu, zůstává');
@@ -90,6 +92,32 @@ class UzivatelSlucovaniNakupyTest extends AbstractTestDb
             $this->zakaznikAZmenilVStaremRadkuLogu($ciziNakupBezStareho),
             'Řádek logu, který se starého uživatele netýká, se nehýbe',
         );
+    }
+
+    public function testSlucovaniPredaNakupyDoSluzbyZDodanehoNastaveni(): void
+    {
+        $stary = $this->uzivatel('stary');
+        $novy = $this->uzivatel('novy');
+        $sluzba = $this->createMock(PurchaseTransferService::class);
+        $sluzba->expects(self::once())->method('transferAll')->with((int) $stary->id(), (int) $novy->id());
+
+        (new UzivatelSlucovani($this->systemoveNastaveniSeSluzbou(PurchaseTransferService::class, $sluzba)))
+            ->sluc($stary, $novy, []);
+    }
+
+    public function testUzivatelPredaSveNastaveniDoSlucovani(): void
+    {
+        $stary = $this->uzivatel('stary');
+        $novy = $this->uzivatel('novy');
+        $sluzba = $this->createMock(PurchaseTransferService::class);
+        $sluzba->expects(self::once())->method('transferAll')->with((int) $stary->id(), (int) $novy->id());
+        $radekNovehoUzivatele = dbFetchRow('SELECT * FROM uzivatele_hodnoty WHERE id_uzivatele = $0', [(int) $novy->id()]);
+        $novySPodstrcenymNastavenim = new \Uzivatel(
+            $radekNovehoUzivatele,
+            $this->systemoveNastaveniSeSluzbou(PurchaseTransferService::class, $sluzba),
+        );
+
+        $novySPodstrcenymNastavenim->sluc($stary);
     }
 
     private function uzivatel(string $prefix): \Uzivatel
