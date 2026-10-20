@@ -30,6 +30,16 @@ class StrankyWebuTest extends AbstractTestWeb
 
     /**
      * @test
+     */
+    public function muzuSiZobrazitNovinkySeZapornymZacatkem()
+    {
+        get_headers(URL_WEBU);
+
+        $this->testPagesAccessibility(['web/novinky?start=-20']);
+    }
+
+    /**
+     * @test
      *
      * @dataProvider provideWebRedirectUrls
      *

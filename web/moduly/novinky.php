@@ -6,7 +6,7 @@
 
 $this->blackarrowStyl(true);
 
-$start = (int)get('start') ?: 0;
+$start = max(0, (int)get('start'));
 $naStranku = 20;
 
 $novinky = Novinka::zNejnovejsich($start, $naStranku);
