@@ -14,6 +14,8 @@ use Gamecon\Shop\Shop;
  * submenu_group: 5
  */
 
+/** @var \Gamecon\SystemoveNastaveni\SystemoveNastaveni $systemoveNastaveni */
+
 // nastavení výchozích hodnot
 $zustatek    = (int)post('zustatek')
     ?: -20;
@@ -41,7 +43,7 @@ if (post('vypsat') || post('rusit')) {
 
 // zpracování POST požadavků
 if (post('rusit') && $uzivatele) {
-    Shop::zrusObjednavkyPro($uzivatele, $kategorie);
+    Shop::zrusObjednavkyPro($uzivatele, $kategorie, $systemoveNastaveni);
     oznameni('Objednávky pro ' . count($uzivatele) . ' uživatelů zrušeny.');
 }
 

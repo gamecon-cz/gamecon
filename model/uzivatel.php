@@ -2423,7 +2423,7 @@ SQL,
     ) {
         $zmeny = array_intersect_key($u->r, array_flip($zmeny));
 
-        $slucovani = new UzivatelSlucovani();
+        $slucovani = new UzivatelSlucovani($this->systemoveNastaveni);
         $slucovani->sluc($u, $this, $zmeny);
 
         $this->otoc();
