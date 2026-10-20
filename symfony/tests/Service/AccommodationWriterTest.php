@@ -1650,8 +1650,9 @@ class AccommodationWriterTest extends AbstractDatabaseKernelTestCase
         // Nothing left to offer once it is back.
         self::assertSame([], $this->breakfastCanceller()->restorable($customer, self::ROK));
 
-        // The row has to look like any other purchase: a bulk cancel filters on the tag
-        // snapshot, and an order-less line is invisible to the cart.
+        // The row has to look like any other purchase: the tag snapshot is what
+        // OrderItemRepository::discountableCustomerPurchases() reads, and an order-less
+        // line is invisible to the cart.
         $radek = $this->connection()->fetchAssociative(
             'SELECT product_tags, order_id, cena_nakupni FROM shop_nakupy
              WHERE id_uzivatele = :customer AND variant_id = :variant AND rok = :year',

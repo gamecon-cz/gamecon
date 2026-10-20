@@ -270,20 +270,6 @@ class Order
     }
 
     /**
-     * Stock is capacity minus the purchase rows, so a cancelled order must not keep any:
-     * its pieces would stay sold, and billed.
-     */
-    public function cancel(): self
-    {
-        if (! $this->items->isEmpty()) {
-            throw new \LogicException(sprintf('Objednávka %s ještě drží položky, nejdřív je zrušte.', $this->id ?? '(nová)'));
-        }
-        $this->status = self::STATUS_CANCELLED;
-
-        return $this;
-    }
-
-    /**
      * Check if order is pending
      */
     public function isPending(): bool

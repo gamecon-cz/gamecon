@@ -5,109 +5,20 @@ declare(strict_types=1);
 namespace App\Service;
 
 use App\Entity\CancelledOrderItem;
-use App\Entity\Order;
 use App\Entity\OrderItem;
-use App\Entity\User;
 use App\Repository\OrderItemRepository;
 use Doctrine\ORM\EntityManagerInterface;
 
 /**
- * BulkCancelService — handles bulk cancellation of e-shop orders/items.
- *
- * Archives cancelled items to CancelledOrderItem (shop_nakupy_zrusene) and tracks the
- * cancellation reason. Deleting the purchase row is what frees the stock.
- *
- * Use cases:
- * - Cancel all purchases for a non-paying user
- * - Cancel all accommodation for a user (tag = 'ubytovani')
- * - Cancel accommodation for multiple non-payers at once
- * - Cancel entire order
+ * Cancels purchases of the e-shop and archives them to CancelledOrderItem (shop_nakupy_zrusene)
+ * with the cancellation reason. Deleting the purchase row is what frees the stock.
  */
 class BulkCancelService
 {
     public function __construct(
         private readonly EntityManagerInterface $entityManager,
         private readonly OrderItemRepository $orderItemRepository,
-        private readonly CurrentYearProviderInterface $currentYearProvider,
     ) {
-    }
-
-    /**
-     * Cancel all items for a user in the current year.
-     *
-     * @return int number of cancelled items
-     */
-    public function cancelAllForUser(
-        User $user,
-        string $reason,
-        \DateTimeImmutable $cancelledAt,
-    ): int {
-        $year = $this->currentYearProvider->getCurrentYear();
-        $items = $this->orderItemRepository->findByCustomerAndYear($user, $year);
-
-        return $this->cancelItems($items, $reason, $cancelledAt);
-    }
-
-    /**
-     * Cancel items with a specific product tag for a user in the current year.
-     *
-     * @return int number of cancelled items
-     */
-    public function cancelByTagForUser(
-        User $user,
-        string $tag,
-        string $reason,
-        \DateTimeImmutable $cancelledAt,
-    ): int {
-        $year = $this->currentYearProvider->getCurrentYear();
-        $items = $this->orderItemRepository->findByCustomerAndYear($user, $year);
-
-        $filtered = array_filter(
-            $items,
-            static fn (OrderItem $item): bool => in_array($tag, $item->getProductTags(), true),
-        );
-
-        return $this->cancelItems($filtered, $reason, $cancelledAt);
-    }
-
-    /**
-     * Cancel items with a specific product tag for multiple users.
-     *
-     * @param User[] $users
-     *
-     * @return int total number of cancelled items across all users
-     */
-    public function cancelByTagForUsers(
-        array $users,
-        string $tag,
-        string $reason,
-        \DateTimeImmutable $cancelledAt,
-    ): int {
-        $total = 0;
-        foreach ($users as $user) {
-            $total += $this->cancelByTagForUser($user, $tag, $reason, $cancelledAt);
-        }
-
-        return $total;
-    }
-
-    /**
-     * Cancel all items in an order.
-     *
-     * @return int number of cancelled items
-     */
-    public function cancelOrder(
-        Order $order,
-        string $reason,
-        \DateTimeImmutable $cancelledAt,
-    ): int {
-        $items = $order->getItems()->toArray();
-        $count = $this->cancelItems($items, $reason, $cancelledAt);
-
-        $order->cancel();
-        $this->entityManager->flush();
-
-        return $count;
     }
 
     /**

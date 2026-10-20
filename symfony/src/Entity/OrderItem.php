@@ -308,14 +308,6 @@ class OrderItem
     }
 
     /**
-     * @return array<string>
-     */
-    public function getProductTags(): array
-    {
-        return $this->productTags;
-    }
-
-    /**
      * @param array<string> $productTags
      */
     public function setProductTags(array $productTags): self

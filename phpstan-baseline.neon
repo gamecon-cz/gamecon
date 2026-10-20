@@ -457,12 +457,6 @@ parameters:
             path: symfony/src/Service/AktivitaTymService.php
 
         -
-            message: '#^Unused App\\Service\\BulkCancelService\:\:cancelOrder$#'
-            identifier: shipmonk.deadMethod
-            count: 1
-            path: symfony/src/Service/BulkCancelService.php
-
-        -
             message: '#^Unused App\\Service\\CapacityManager\:\:isLowStock$#'
             identifier: shipmonk.deadMethod
             count: 1

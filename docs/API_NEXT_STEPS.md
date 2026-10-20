@@ -93,7 +93,6 @@ Without this:
 ### 🟢 **NICE TO HAVE - Advanced Features** (16-24 hours)
 
 **8. Bulk Operations**
-- POST `/symfony/api/admin/orders/bulk-cancel`
 - POST `/symfony/api/admin/products/bulk-archive`
 
 **9. Accommodation Features**
