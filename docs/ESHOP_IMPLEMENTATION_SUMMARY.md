@@ -81,7 +81,6 @@ The API Platform work listed here as pending was done afterwards:
 - ✅ **Product / ProductTag / ProductVariant** exposed as API resources (admin CRUD)
 - ✅ **Cart and checkout** — `/cart`, `/cart/items`, `/cart/items/{itemId}`, `/cart/checkout`, `/cart/meals`, writing real `Order`/`OrderItem` rows
 - ✅ **KFC grid sale** — `/kfc/grids`, `/kfc/products`, `/kfc/sale`
-- ✅ **Admin bulk cancel** — `/admin/bulk-cancel`
 - ✅ **Admin product editor** — Preact app mounted at `preact-předměty` in the finance module
 
 The XLSX import still runs through the legacy code path (`model/Shop/EshopImporter.php`); it was

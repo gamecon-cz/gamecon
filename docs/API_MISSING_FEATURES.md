@@ -247,10 +247,6 @@ security:
 **Create:** `symfony/src/Controller/Admin/BulkOrderController.php`
 
 **Missing:**
-- `POST /api/admin/orders/bulk-cancel` - Cancel multiple orders
-  - Accepts: array of order IDs or criteria (e.g., non-paying users)
-  - Returns: count of cancelled orders
-  - Moves to cancelled_order_items table
 - `POST /api/admin/products/bulk-archive` - Archive multiple products
 - `POST /api/admin/products/bulk-update-state` - Update state for multiple products
 

@@ -307,9 +307,10 @@ if (Predmet::jeToKostka($r['kod_predmetu'])) {
 ### 8. Hromadné operace - Bulk actions
 
 #### ✅ **Hromadné zrušení objednávek**
-> **Hotovo.** `BulkCancelService` + `BulkCancelProcessor`; vrací zásobu přes
-> `CapacityManager`. Ruční stránka v adminu (Finance > Hromadné rušení
-> objednávek) je smazaná, nahradilo ji automatické rušení neplatičů.
+> **Hotovo.** `BulkCancelService` (`cancelPurchases` archivuje, `removePurchases`
+> jen opravuje); zásobu vrací smazáním řádku nákupu. Ruční stránka v adminu
+> (Finance > Hromadné rušení objednávek) i API endpoint `/admin/bulk-cancel` jsou
+> smazané, nahradilo je automatické rušení neplatičů.
 **Současné metody:**
 - `Shop::zrusLetosniObjednaneUbytovani($zdrojZruseni)` - zruší ubytování
 - `Shop::zrusVsechnyLetosniObjedavky($zdrojZruseni)` - zruší všechny nákupy za rok
@@ -321,7 +322,7 @@ if (Predmet::jeToKostka($r['kod_predmetu'])) {
 
 **V NEW_ESHOP.md:** ❌ Hromadné akce
 
-**Rozhodnutí potřeba:** Potřebujeme hromadné zrušení objednávek? (Pro automatické skripty při kontrole plateb)
+**Rozhodnuto:** Ruční hromadné zrušení nepotřebujeme, řeší to automatická úloha.
 
 ---
 
@@ -510,6 +511,7 @@ $chceNove = array_diff($nove, $stare); // co přidat
 
 8. **Hromadné zrušení** - Potřebujeme bulk cancel operations?
    - Používá se v automatických skriptech pro neplatící
+   - Rozhodnuto: ruční (stránka v adminu, API) ne, automatická úloha ano
 
 9. **Archiv zrušených** - Tabulka `shop_nakupy_zrusene`?
    - Auditní stopa důvodů zrušení
@@ -552,7 +554,8 @@ $chceNove = array_diff($nove, $stare); // co přidat
 
 Body 1, 2, 4 a 5 z původního seznamu jsou rozhodnuté a hotové — speciální typy produktů
 nahradily tagy plus varianty, multi-year verze se zrušily ve prospěch `archived_at`,
-KFC mřížka i hromadné rušení objednávek existují. Zbývá:
+KFC mřížka existuje a objednávky neplatičů ruší automatická úloha (ruční hromadné
+rušení se nedělá). Zbývá:
 
 1. **Integrace s `Finance`** — dosud jediná velká nedořešená vazba; nový e-shop počítá
    ceny a slevy, ale zůstatek a platby drží legacy `Finance`.

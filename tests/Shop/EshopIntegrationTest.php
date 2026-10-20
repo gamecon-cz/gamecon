@@ -399,7 +399,7 @@ SQL,
 
     // ==================== 7. BulkCancelService with real DB ====================
 
-    public function testBulkCancelAllForUserArchivesAndReturnsStock(): void
+    public function testCancelPurchasesArchivesAndReturnsStock(): void
     {
         $cartService = $this->createCartService();
         $bulkCancelService = $this->createBulkCancelService();
@@ -420,11 +420,10 @@ SQL,
         $stockAfterPurchase = $this->zbyva(self::$variantM->getId());
         $this->assertSame($stockBefore - 2, $stockAfterPurchase);
 
-        // Bulk cancel all
+        // Cancel both purchases
         $this->em->clear();
-        $user = $this->em->find(User::class, 89901);
-        $cancelled = $bulkCancelService->cancelAllForUser(
-            $user,
+        $cancelled = $bulkCancelService->cancelPurchases(
+            [$item1->getId(), $item2->getId()],
             'hromadne-odhlaseni-test',
             new \DateTimeImmutable('2026-07-15 10:00:00'),
         );
@@ -449,89 +448,6 @@ SQL,
             ],
         );
         $this->assertSame(0, $itemCount);
-    }
-
-    public function testBulkCancelByTagCancelsOnlyMatchingItems(): void
-    {
-        $bulkCancelService = $this->createBulkCancelService();
-        $user = $this->em->find(User::class, 89901);
-        $variant = $this->em->find(ProductVariant::class, self::$variantM->getId());
-        $product = $variant->getProduct();
-
-        // Insert items with different tags directly via DBAL for speed
-        $this->connection->executeStatement(
-            "INSERT INTO shop_nakupy (id_uzivatele, rok, cena_nakupni, datum, product_tags, variant_id)
-             VALUES (89901, :rok, '100.00', NOW(), :tagsUbyt, :variantId),
-                    (89901, :rok, '50.00', NOW(), :tagsJidlo, :variantId)",
-            [
-                'rok'       => ROCNIK,
-                'tagsUbyt'  => json_encode(['ubytovani']),
-                'tagsJidlo' => json_encode(['jidlo']),
-                'variantId' => $variant->getId(),
-            ],
-        );
-
-        $this->em->clear();
-        $user = $this->em->find(User::class, 89901);
-
-        // Cancel only 'ubytovani' items
-        $cancelled = $bulkCancelService->cancelByTagForUser(
-            $user,
-            'ubytovani',
-            'zruseni-ubytovani',
-            new \DateTimeImmutable(),
-        );
-
-        $this->assertSame(1, $cancelled);
-
-        // 'jidlo' item still exists
-        $remainingCount = (int) $this->connection->fetchOne(
-            'SELECT COUNT(*) FROM shop_nakupy WHERE id_uzivatele = 89901 AND rok = :rok',
-            [
-                'rok' => ROCNIK,
-            ],
-        );
-        $this->assertSame(1, $remainingCount);
-
-        // Clean up remaining jidlo item
-        $this->connection->executeStatement(
-            'DELETE FROM shop_nakupy WHERE id_uzivatele = 89901 AND rok = :rok',
-            [
-                'rok' => ROCNIK,
-            ],
-        );
-    }
-
-    public function testBulkCancelOrderSetsStatusAndArchives(): void
-    {
-        $cartService = $this->createCartService();
-        $bulkCancelService = $this->createBulkCancelService();
-        $user = $this->em->find(User::class, 89901);
-        $variant = $this->em->find(ProductVariant::class, self::$variantM->getId());
-
-        // Add item to cart
-        $cart = $cartService->getOrCreateCart($user);
-        $cartService->addItem($cart, $variant);
-
-        $this->assertFalse($cart->isCancelled());
-        $this->assertSame(1, $cart->getItemCount());
-
-        // Cancel entire order
-        $cancelled = $bulkCancelService->cancelOrder(
-            $cart,
-            'storno-objednavky-test',
-            new \DateTimeImmutable(),
-        );
-
-        $this->assertSame(1, $cancelled);
-        $this->assertTrue($cart->isCancelled());
-        $this->assertTrue($cart->isEmpty());
-
-        // Archive exists
-        $archiveCount = (int) $this->connection->fetchOne(
-            "SELECT COUNT(*) FROM shop_nakupy_zrusene WHERE id_uzivatele = 89901 AND zdroj_zruseni = 'storno-objednavky-test'",
-        );
-        $this->assertSame(1, $archiveCount);
     }
 
     // ==================== 8. ProductRepository findByTag with real DB ====================
@@ -641,7 +557,6 @@ SQL,
         return new BulkCancelService(
             $this->em,
             $orderItemRepo,
-            new CurrentYearProvider(),
         );
     }
 

@@ -10,7 +10,6 @@ use ApiPlatform\Metadata\Get;
 use ApiPlatform\Metadata\GetCollection;
 use ApiPlatform\Metadata\Patch;
 use ApiPlatform\Metadata\Post;
-use App\ApiResource\BulkCancelResource;
 use App\ApiResource\CartResource;
 use App\ApiResource\KfcResource;
 use App\Entity\Product;
@@ -98,25 +97,6 @@ class ApiSecurityTest extends TestCase
             'DELETE /cart/items/{itemId}' => ['/cart/items/{itemId}'],
             'POST /cart/checkout'         => ['/cart/checkout'],
         ];
-    }
-
-    /**
-     * Bulk cancel must require ROLE_ADMIN.
-     */
-    public function testBulkCancelRequiresAdmin(): void
-    {
-        $operations = $this->getOperations(BulkCancelResource::class);
-
-        foreach ($operations as $operation) {
-            $this->assertStringContainsString(
-                'ROLE_ADMIN',
-                $operation->getSecurity() ?? '',
-                sprintf(
-                    'BulkCancel operation %s must require ROLE_ADMIN',
-                    $operation->getUriTemplate(),
-                ),
-            );
-        }
     }
 
     /**

@@ -278,7 +278,7 @@ Tento dokument obsahuje rozhodnutí o funkcích pro nový e-shop GameCon.
 - ❌ **Dashboard s přehledovými statistikami** - úvod adminu s grafy
 - ✅ **Plné CRUD operace** - Budeme muset použít co nejvíce současného rozhraní adminu, kde část CRUD operací je, ale podle práv admina
 - ✅ **Tabulkové/seznamové zobrazení** - moderní gridy s filtrováním, řazením, stránkováním
-- ✅ **Hromadné akce** - bulk operations (označit více položek a provést akci) - NUTNÉ pro hromadné zrušení objednávek neplatících
+- ✅ **Hromadné akce** - bulk operations (označit více položek a provést akci); objednávky neplatících ruší automatická úloha, ruční hromadné rušení se nedělá
 - ✅ **Nahrávání a správa obrázků** - upload produktových fotek
 - ✅ **Řízení přístupu a oprávnění** - podle rolí adminů
 - ✅ **KFC mřížkové prodejní rozhraní** - speciální UI pro rychlý prodej na místě u pokladny (zachovat)
@@ -484,7 +484,6 @@ Tento dokument obsahuje rozhodnutí o funkcích pro nový e-shop GameCon.
 - Gridy s filtrováním a stránkováním
 - **Kompletní CRUD produktů** (SHOULD) - přidání/editace bez reimportu
 - Upload obrázků
-- **Hromadné akce** (bulk cancel objednávek)
 - **KFC prodejní rozhraní** (rychlý prodej na místě)
 - **Admin prodej za jiného uživatele** (id_objednatele)
 - **Individuální ukončení prodeje** (COULD) - stop stav pro každý item v admin UI
@@ -670,24 +669,9 @@ Tato sekce obsahuje rozhodnutí o funkcích, které existují v současném e-sh
 - Mřížka s produkty pro rychlý výběr
 - Okamžité vytvoření objednávky a zobrazení QR platby
 
-### ✅ Hromadné zrušení objednávek
+### ❌ Ruční hromadné zrušení objednávek
 
-**Rozhodnutí:** Ano, implementovat **bulk cancel operations**.
-
-**Zdůvodnění:**
-- Používá se v automatických skriptech pro zrušení objednávek neplatících účastníků
-- Zrušení ubytování/jídla/merchandise pro všechny neplatící najednou
-- Kritické pro finanční管理 před a po akci
-
-**Implementace:**
-- Admin může označit více objednávek a provést hromadné zrušení
-- API endpoint pro bulk operace: `POST /api/orders/bulk-cancel`
-- Možnost zrušit objednávky podle kritérií (typ produktu, stav platby, datum)
-
-**Příklady operací:**
-- Zrušit všechny objednávky ubytování pro neplatící
-- Zrušit všechny objednávky jídla vytvořené před datem X a nezaplacené
-- Zrušit všechny objednávky daného uživatele
+**Rozhodnutí:** Ne. Ručně se hromadně neruší, ani stránkou v adminu, ani API endpointem. Objednávky neplatících účastníků ruší automatická úloha `admin/cron/jobs/odhlaseni_neplaticu.php`; legacy `Shop`, který ta úloha použije, ruší přes `BulkCancelService`.
 
 ### ✅ Archiv zrušených objednávek
 
@@ -711,7 +695,7 @@ cancelled_order_items:
   - ordered_at (původní datum objednávky)
   - cancelled_at (datum zrušení)
   - cancelled_by_id (kdo zrušil)
-  - cancellation_reason (důvod: 'non-payment', 'customer-request', 'admin-bulk-cancel', 'out-of-stock')
+  - cancellation_reason (důvod: 'non-payment', 'customer-request', 'out-of-stock')
 ```
 
 ### ✅ Časově omezená dostupnost produktů
