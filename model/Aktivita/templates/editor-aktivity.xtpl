@@ -309,11 +309,14 @@
                     }
                 }
 
-                pripravCenu()
+                // Musí být POTÉ, co jsou prvky ceny v DOM, jsou na stránce až pod tímto skriptem
+                $(document).ready(function () {
+                    pripravCenu()
 
-                document.getElementById('typAktivity').addEventListener('change', pripravCenu)
-                document.getElementById('zacatekAkce').addEventListener('change', pripravCenu)
-                document.getElementById('konecAkce').addEventListener('change', pripravCenu)
+                    document.getElementById('typAktivity').addEventListener('change', pripravCenu)
+                    document.getElementById('zacatekAkce').addEventListener('change', pripravCenu)
+                    document.getElementById('konecAkce').addEventListener('change', pripravCenu)
+                })
             }
         </script>
     </tr>
