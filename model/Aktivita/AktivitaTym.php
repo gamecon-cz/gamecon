@@ -396,17 +396,11 @@ class AktivitaTym
 
     private static function service(): AktivitaTymService
     {
-        return SystemoveNastaveni::zGlobals()
-            ->kernel()
-            ->getContainer()
-            ->get(AktivitaTymService::class);
+        return SystemoveNastaveni::zGlobals()->getService(AktivitaTymService::class);
     }
 
     private static function teamRepository(): TeamRepository
     {
-        return SystemoveNastaveni::zGlobals()
-            ->kernel()
-            ->getContainer()
-            ->get(TeamRepository::class);
+        return SystemoveNastaveni::zGlobals()->getService(TeamRepository::class);
     }
 }

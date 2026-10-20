@@ -13,11 +13,8 @@ function jwtKonstantyJs(
     \Gamecon\SystemoveNastaveni\SystemoveNastaveni $systemoveNastaveni,
 ): string {
     try {
-        $kernel = $systemoveNastaveni->kernel();
-        $container = $kernel->getContainer();
-        /** @var \App\Service\JwtService $jwtService */
-        $jwtService = $container->get(\App\Service\JwtService::class);
-        $userEntity = $container->get('doctrine.orm.entity_manager')->find(\App\Entity\User::class, $u->id());
+        $jwtService = $systemoveNastaveni->getService(\App\Service\JwtService::class);
+        $userEntity = $systemoveNastaveni->getService('doctrine.orm.entity_manager')->find(\App\Entity\User::class, $u->id());
         if ($userEntity === null) {
             return '';
         }

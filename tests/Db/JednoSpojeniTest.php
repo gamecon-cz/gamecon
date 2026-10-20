@@ -194,6 +194,6 @@ class JednoSpojeniTest extends TestCase
 
     private function doctrine(): SharedConnection
     {
-        return $GLOBALS['systemoveNastaveni']->kernel()->getContainer()->get('doctrine.dbal.default_connection');
+        return $GLOBALS['systemoveNastaveni']->getService('doctrine.dbal.default_connection');
     }
 }

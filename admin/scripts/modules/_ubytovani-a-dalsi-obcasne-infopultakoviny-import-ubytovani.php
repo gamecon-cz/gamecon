@@ -34,10 +34,7 @@ if (!is_readable($vstupniSoubor)) {
 $zapsanoZmenPerUcastnik = 0;
 
 /** @var \App\Service\AccommodationImport $ubytovaniImport */
-$ubytovaniImport = SystemoveNastaveni::zGlobals()
-    ->kernel()
-    ->getContainer()
-    ->get(\App\Service\AccommodationImport::class);
+$ubytovaniImport = SystemoveNastaveni::zGlobals()->getService(\App\Service\AccommodationImport::class);
 
 // Report ubytování je vždy XLSX; použijeme přímo XLSX reader místo hádání podle MIME
 // (mime_content_type je nespolehlivý – u přeuloženého Excelu vrací i application/zip apod.

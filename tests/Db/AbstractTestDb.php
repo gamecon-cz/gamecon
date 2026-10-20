@@ -4,12 +4,10 @@ declare(strict_types=1);
 
 namespace Gamecon\Tests\Db;
 
-use App\Kernel;
 use Gamecon\Aktivita\Aktivita;
 use Gamecon\Shop\Predmet;
 use Gamecon\SystemoveNastaveni\SystemoveNastaveni;
 use Symfony\Bundle\FrameworkBundle\Test\KernelTestCase;
-use Symfony\Component\DependencyInjection\ContainerInterface;
 
 abstract class AbstractTestDb extends KernelTestCase
 {
@@ -214,8 +212,8 @@ SQL,
     }
 
     /**
-     * Nastavení, jehož kontejner vydá místo skutečné služby zadanou náhradu. Pro kód, který nastavení
-     * dostává zvenku místo čtení globálu, takže si ho test může podstrčit; jiná služba skončí výjimkou.
+     * Nastavení, které místo skutečné služby vydá zadanou náhradu. Pro kód, který nastavení dostává
+     * zvenku místo čtení globálu, takže si ho test může podstrčit; jiná služba skončí výjimkou.
      * Ročník je letošní, nic dalšího nastavení neumí.
      *
      * @template T of object
@@ -225,16 +223,15 @@ SQL,
      */
     protected function systemoveNastaveniSeSluzbou(string $trida, object $nahrada): SystemoveNastaveni
     {
-        $kontejner = $this->createStub(ContainerInterface::class);
-        $kontejner->method('get')->willReturnCallback(
+        $nastaveni = $this->createStub(SystemoveNastaveni::class);
+        $nastaveni->method('getService')->willReturnCallback(
             static fn (string $id): object => $id === $trida
                 ? $nahrada
                 : throw new \LogicException("Test nepočítá se službou {$id}"),
         );
-        $kernel = $this->createStub(Kernel::class);
-        $kernel->method('getContainer')->willReturn($kontejner);
-        $nastaveni = $this->createStub(SystemoveNastaveni::class);
-        $nastaveni->method('kernel')->willReturn($kernel);
+        $nastaveni->method('kernel')->willThrowException(
+            new \LogicException('Test počítá jen se službou přes getService(), ne s kernelem'),
+        );
         $nastaveni->method('rocnik')->willReturn(ROCNIK);
 
         return $nastaveni;

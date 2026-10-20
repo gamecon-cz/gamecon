@@ -54,12 +54,10 @@ function prihlaskaPreactSekceHtml(
     \Gamecon\SystemoveNastaveni\SystemoveNastaveni $systemoveNastaveni,
 ): string {
 
-    $container = $systemoveNastaveni->kernel()->getContainer();
-    /** @var \App\Service\JwtService $jwtService */
-    $jwtService = $container->get(\App\Service\JwtService::class);
+    $jwtService = $systemoveNastaveni->getService(\App\Service\JwtService::class);
     // Token se razí z User entity, ne z legacy Uzivatele: jmenoNick() vrací jméno s přezdívkou
     // („Jakub „Elden“ Jandák“), kdežto entita samotné jméno — a to je to, co GUI zobrazuje.
-    $userEntity = $container->get('doctrine.orm.entity_manager')->find(\App\Entity\User::class, $u->id());
+    $userEntity = $systemoveNastaveni->getService('doctrine.orm.entity_manager')->find(\App\Entity\User::class, $u->id());
     if ($userEntity === null) {
         throw new \RuntimeException(sprintf('Uživatel %d nemá protějšek v nové vrstvě.', $u->id()));
     }
