@@ -102,6 +102,17 @@ function datum4(
         . date(' H:i', $datumTimestamp);
 }
 
+function kvsOtevriDatabazi(string $soubor): SQLite3
+{
+    $db = new SQLite3($soubor);
+    // Před WAL pragmou: ta při souběhu vrací "database is locked" hned, pokud ještě není nastaven timeout
+    $db->busyTimeout(5000);
+    // WAL (Write-Ahead Log) kvůli souběžnému přístupu, @see https://sqlite.org/wal.html
+    $db->exec('PRAGMA journal_mode=WAL');
+
+    return $db;
+}
+
 /** Načte / uloží hodnotu do key-value storage s daným názvem */
 function kvs(
     string $group,
@@ -125,11 +136,7 @@ function kvs(
 
     try {
         if (!isset($GLOBALS['CACHEDB'][$group])) {
-            $db = new SQLite3(SPEC . '/' . $group . '.sqlite');
-            // Enable WAL (Write-Ahead Log) mode for better concurrent access, @see https://sqlite.org/wal.html
-            $db->exec('PRAGMA journal_mode=WAL');
-            // Wait up to 5 seconds if database is locked
-            $db->busyTimeout(5000);
+            $db = kvsOtevriDatabazi(SPEC . '/' . $group . '.sqlite');
             $GLOBALS['CACHEDB'][$group] = $db;
             $db->exec("CREATE TABLE IF NOT EXISTS kvs (k INTEGER PRIMARY KEY, v TEXT)");
         } else {
