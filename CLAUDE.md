@@ -316,13 +316,20 @@ safe" change — use a PR.
   -- ✅ GOOD: Full table names or descriptive aliases
   UPDATE `novinky` LEFT JOIN `texty` ON texty.`id` = novinky.`text` SET novinky.`text_md` = texty.`text`;
   ```
+- **Nowdoc, not heredoc, unless a PHP variable is evaluated**: SQL written in PHP goes in a block labelled `SQL` (the IDE highlights and checks it, unlike a quoted string), migrations included (`$this->q(<<<'SQL'`). Use a `<<<'SQL'` nowdoc; an unquoted `<<<SQL` heredoc only for a block that really evaluates a PHP variable (`$name`, `{$expr}`), so a reader sees at a glance that a nowdoc is constant text and nothing gets interpolated by accident. The same holds for any other heredoc, not only SQL. The `$0`, `$1` placeholders of `dbQuery()` are **not** PHP variables, so such a query is still a nowdoc. A nowdoc does not process backslash escapes, so check a block that contains a `\` before converting it. Apply it to new code and to a query you touch anyway; do not retrofit untouched merged code unasked.
+  ```php
+  // ✅ no PHP variable is evaluated, $0 and $1 are placeholders of dbQuery()
+  dbQuery(<<<'SQL'
+  UPDATE uzivatele_hodnoty SET ubytovan_s = $0 WHERE id_uzivatele = $1
+  SQL, [0 => $ubytovanS, 1 => $idUzivatele]);
+  ```
 
 ## SQL Query Parameter Preprocessing
 
 The GameCon project has a custom SQL preprocessing system (see `model/funkce/fw-database.php`):
 
 **Parameter Placeholders:**
-- `$0, $1, $2...` - Indexed parameters in queries
+- `$0, $1, $2...` - Indexed parameters in queries (not PHP variables, so the query stays a nowdoc, see SQL Coding Style)
 - `?` - Sequential placeholders (can be mixed with `$N`)
 - Parameters passed as second argument to `dbQuery()`
 
