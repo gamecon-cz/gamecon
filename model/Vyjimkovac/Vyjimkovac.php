@@ -151,8 +151,21 @@ class Vyjimkovac implements Logovac
      */
     public function jsZpracuj()
     {
+        if (self::jeJsChybaKterouNeumimeOpravit((string)post('msg'))) {
+            return;
+        }
+
         $e = new JsException(post('msg'), post('url'), post('line'));
         $this->zpracuj($e);
+    }
+
+    /**
+     * "Script error." hlásí prohlížeč za cizí skript bez detailů, `__gCrWeb` vkládá Chrome na iOS do každé stránky.
+     */
+    private static function jeJsChybaKterouNeumimeOpravit(string $zprava): bool
+    {
+        return trim($zprava) === 'Script error.'
+            || str_contains($zprava, '__gCrWeb');
     }
 
     public function zobrazeni(int $zobrazeni = null): int
