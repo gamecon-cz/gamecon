@@ -1,14 +1,23 @@
 <?php
 require __DIR__ . '/sdilene-hlavicky.php';
 
-$report = Report::zSql(<<<SQL
+$report = Report::zSql(<<<'SQL'
 SELECT
     uzivatele_hodnoty.login_uzivatele,
     uzivatele_hodnoty.jmeno_uzivatele,
     uzivatele_hodnoty.prijmeni_uzivatele,
     uzivatele_hodnoty.email1_uzivatele,
     uzivatele_hodnoty.telefon_uzivatele,
-    akce_seznam.team_nazev,
+    (
+        SELECT akce_tym.nazev
+        FROM akce_tym
+        JOIN akce_tym_akce ON akce_tym_akce.id_tymu = akce_tym.id
+        JOIN akce_tym_prihlaseni ON akce_tym_prihlaseni.id_tymu = akce_tym.id
+        WHERE akce_tym_akce.id_akce = akce_seznam.id_akce
+            AND akce_tym_prihlaseni.id_uzivatele = akce_prihlaseni.id_uzivatele
+        ORDER BY akce_tym.id
+        LIMIT 1
+    ) AS team_nazev,
     org.login_uzivatele,
     akce_seznam.zacatek AS '1KOLO',
     semifinale.zacatek AS '2KOLO'
