@@ -68,7 +68,7 @@ class UzivatelSlucovani
                 }
                 $this->prevedDataVTabulce($tabulka['table_name'], $tabulka['column_name'], $idStarehoUzivatele, $idNovehoUzivatele);
             }
-            $this->systemoveNastaveni->kernel()->getContainer()->get(PurchaseTransferService::class)
+            $this->systemoveNastaveni->getService(PurchaseTransferService::class)
                 ->transferAll($idStarehoUzivatele, $idNovehoUzivatele);
 
             // Smazání starého uživatele - FK CASCADE automaticky smaže související data

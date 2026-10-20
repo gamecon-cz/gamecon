@@ -80,7 +80,7 @@ class GcOdjedTest extends AbstractTestDb
     {
         $order = $this->createPendingOrder();
         $statusWhenRoleWasPersisted = new \ArrayObject();
-        $legacyEntityManager = SystemoveNastaveni::zGlobals()->kernel()->getContainer()->get('doctrine.orm.entity_manager');
+        $legacyEntityManager = SystemoveNastaveni::zGlobals()->getService('doctrine.orm.entity_manager');
         $listener = new class($order, $legacyEntityManager->getConnection(), $statusWhenRoleWasPersisted) {
             /**
              * @param \ArrayObject<int, string> $statusWhenRoleWasPersisted
@@ -173,8 +173,8 @@ class GcOdjedTest extends AbstractTestDb
     public function testFailedCompletionTakesTheDepartureRoleBackWithIt(): void
     {
         $order = $this->createPendingOrder();
-        $legacyContainer = SystemoveNastaveni::zGlobals()->kernel()->getContainer();
-        $legacyEntityManager = $legacyContainer->get('doctrine.orm.entity_manager');
+        $legacySystemoveNastaveni = SystemoveNastaveni::zGlobals();
+        $legacyEntityManager = $legacySystemoveNastaveni->getService('doctrine.orm.entity_manager');
         $failOnCompletion = new class {
             public function preUpdate(PreUpdateEventArgs $event): void
             {
@@ -193,7 +193,7 @@ class GcOdjedTest extends AbstractTestDb
         } finally {
             $legacyEntityManager->getEventManager()->removeEventListener(Events::preUpdate, $failOnCompletion);
             // A failed flush closes the manager, and this one is shared by the rest of the run.
-            $legacyContainer->get('doctrine')->resetManager();
+            $legacySystemoveNastaveni->getService('doctrine')->resetManager();
         }
 
         self::assertSame(0, $this->countOfDepartureRoles());

@@ -471,11 +471,9 @@ SQL, [Pravo::PORADANI_AKTIVIT],
         }
 
         try {
-            $container = $this->systemoveNastaveni->kernel()->getContainer();
             /** @var \Doctrine\ORM\EntityManagerInterface $em */
-            $em = $container->get('doctrine.orm.entity_manager');
-            /** @var \App\Service\UserRoleService $userRoleService */
-            $userRoleService = $container->get(\App\Service\UserRoleService::class);
+            $em = $this->systemoveNastaveni->getService('doctrine.orm.entity_manager');
+            $userRoleService = $this->systemoveNastaveni->getService(\App\Service\UserRoleService::class);
 
             $userEntity = $em->find(\App\Entity\User::class, $this->id());
             $roleEntity = $em->find(\App\Entity\Role::class, $idRole);
@@ -935,7 +933,7 @@ SQL,
 
     private function dokonciLetosniObjednavku(): void
     {
-        $this->systemoveNastaveni->kernel()->getContainer()->get(\App\Service\OrderCompletionService::class)->completeCart($this->id());
+        $this->systemoveNastaveni->getService(\App\Service\OrderCompletionService::class)->completeCart($this->id());
     }
 
     /**
@@ -2608,11 +2606,9 @@ SQL,
         self $editor,
     ): bool {
         try {
-            $container = $this->systemoveNastaveni->kernel()->getContainer();
             /** @var \Doctrine\ORM\EntityManagerInterface $em */
-            $em = $container->get('doctrine.orm.entity_manager');
-            /** @var \App\Service\UserRoleService $userRoleService */
-            $userRoleService = $container->get(\App\Service\UserRoleService::class);
+            $em = $this->systemoveNastaveni->getService('doctrine.orm.entity_manager');
+            $userRoleService = $this->systemoveNastaveni->getService(\App\Service\UserRoleService::class);
 
             $userEntity = $em->find(\App\Entity\User::class, $this->id());
             $roleEntity = $em->find(\App\Entity\Role::class, $idRole);

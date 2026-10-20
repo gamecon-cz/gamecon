@@ -256,9 +256,7 @@ function dbSdileneSpojeni(): \Doctrine\DBAL\Connection
     static $sdileneSpojeni = null;
 
     return $sdileneSpojeni ??= \Gamecon\SystemoveNastaveni\SystemoveNastaveni::zGlobals()
-        ->kernel()
-        ->getContainer()
-        ->get('doctrine.dbal.default_connection');
+        ->getService('doctrine.dbal.default_connection');
 }
 
 function _nastavRocnikDoSpojeni(

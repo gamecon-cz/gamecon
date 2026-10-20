@@ -25,10 +25,8 @@ function generateJwtForUser(
 
     // Use existing Symfony kernel from SystemoveNastaveni
     $systemoveNastaveni ??= SystemoveNastaveni::zGlobals();
-    $kernel             = $systemoveNastaveni->kernel();
 
-    /** @var JwtService $jwtService */
-    $jwtService = $kernel->getContainer()->get(JwtService::class);
+    $jwtService = $systemoveNastaveni->getService(JwtService::class);
 
     // Extract user data and generate token
     $userData = $jwtService->extractUserData($uzivatel);
@@ -51,11 +49,7 @@ function getJwtForUser(
         throw new \RuntimeException('Can not get JWT token because user ID is empty');
     }
 
-    $systemoveNastaveni = SystemoveNastaveni::zGlobals();
-    $kernel             = $systemoveNastaveni->kernel();
-
-    /** @var JwtService $jwtService */
-    $jwtService = $kernel->getContainer()->get(JwtService::class);
+    $jwtService = SystemoveNastaveni::zGlobals()->getService(JwtService::class);
 
     return $jwtService->getToken($userId);
 }
@@ -72,7 +66,7 @@ function revokeJwtsForUser(
         throw new \RuntimeException('Can not revoke JWT tokens because user ID is empty');
     }
 
-    SystemoveNastaveni::zGlobals()->kernel()->getContainer()->get(TokenVersionService::class)->invalidate($userId);
+    SystemoveNastaveni::zGlobals()->getService(TokenVersionService::class)->invalidate($userId);
 }
 
 /**
@@ -87,11 +81,7 @@ function deleteJwtForUser(
             throw new \RuntimeException('Can not delete JWT token because user ID is empty');
         }
 
-        $systemoveNastaveni = SystemoveNastaveni::zGlobals();
-        $kernel             = $systemoveNastaveni->kernel();
-
-        /** @var JwtService $jwtService */
-        $jwtService = $kernel->getContainer()->get(JwtService::class);
+        $jwtService = SystemoveNastaveni::zGlobals()->getService(JwtService::class);
         $jwtService->deleteToken($userId);
 
         // Also clear the cookie if it exists
@@ -123,11 +113,7 @@ function deleteJwtForUser(
 function cleanupExpiredJwtTokens(): void
 {
     try {
-        $systemoveNastaveni = SystemoveNastaveni::zGlobals();
-        $kernel             = $systemoveNastaveni->kernel();
-
-        /** @var JwtService $jwtService */
-        $jwtService = $kernel->getContainer()->get(JwtService::class);
+        $jwtService = SystemoveNastaveni::zGlobals()->getService(JwtService::class);
         $jwtService->cleanupExpiredTokens();
     } catch (Exception $e) {
         error_log("JWT cleanup failed: " . $e->getMessage());

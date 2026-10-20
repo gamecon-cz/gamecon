@@ -16,8 +16,7 @@ use App\Enum\RoleMeaning;
 use App\Repository\UserRoleRepository;
 use Gamecon\SystemoveNastaveni\SystemoveNastaveni;
 
-$kontejner = SystemoveNastaveni::zGlobals()->kernel()->getContainer();
-$entityManager = $kontejner->get('doctrine.orm.entity_manager');
+$entityManager = SystemoveNastaveni::zGlobals()->getService('doctrine.orm.entity_manager');
 // Repozitář není veřejná služba, přes `getRepository()` se k němu dá dostat i tak.
 /** @var UserRoleRepository $repozitar */
 $repozitar = $entityManager->getRepository(UserRole::class);

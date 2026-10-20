@@ -93,7 +93,7 @@ SQL,
             [0 => $kategorie->value, 1 => $ids, 2 => $systemoveNastaveni->rocnik()],
         );
 
-        $systemoveNastaveni->kernel()->getContainer()->get(BulkCancelService::class)->removePurchases($idsNakupu);
+        $systemoveNastaveni->getService(BulkCancelService::class)->removePurchases($idsNakupu);
     }
 
     /** Smaže z názvu identifikaci dne */
@@ -733,7 +733,7 @@ SQL,
             [0 => $this->zakaznik->id(), 1 => $idVarianty, 2 => ROCNIK],
         );
 
-        return $this->sluzba(BulkCancelService::class)->removePurchases($idsNakupu);
+        return $this->systemoveNastaveni->getService(BulkCancelService::class)->removePurchases($idsNakupu);
     }
 
     public function dejPopisUbytovani(): string
@@ -778,7 +778,7 @@ SQL,
             [0 => $this->systemoveNastaveni->rocnik(), 1 => $this->zakaznik->id(), 2 => $kategorie->value],
         );
 
-        return $this->sluzba(BulkCancelService::class)
+        return $this->systemoveNastaveni->getService(BulkCancelService::class)
             ->cancelPurchases($idsNakupu, $zdrojZruseni, $this->systemoveNastaveni->ted());
     }
 
@@ -817,7 +817,7 @@ SQL,
             [0 => $this->systemoveNastaveni->rocnik(), 1 => $this->zakaznik->id(), 2 => $kategorieKZachovani],
         );
 
-        return $this->sluzba(BulkCancelService::class)
+        return $this->systemoveNastaveni->getService(BulkCancelService::class)
             ->cancelPurchases($idsNakupu, $zdrojZruseni, $this->systemoveNastaveni->ted());
     }
 
@@ -916,24 +916,12 @@ SQL,
         }
     }
 
-    /**
-     * @template T of object
-     *
-     * @param class-string<T> $trida
-     *
-     * @return T
-     */
-    private function sluzba(string $trida): object
-    {
-        return $this->systemoveNastaveni->kernel()->getContainer()->get($trida);
-    }
-
     public function prodat(
         int  $idVarianty,
         int  $kusu = 1,
         bool $vcetneOznamemi = false,
     ) {
-        $this->sluzba(CapacityManager::class)->beginSaleTransaction();
+        $this->systemoveNastaveni->getService(CapacityManager::class)->beginSaleTransaction();
         try {
             // The variant row is the capacity lock every sale path takes. Locking read first, so
             // the plain read below takes its snapshot only once the lock is held.
@@ -972,13 +960,13 @@ SQL,
             $this->odmitniTypPokoje($predmet);
 
             /** @var EntityManagerInterface $entityManager */
-            $entityManager = $this->systemoveNastaveni->kernel()->getContainer()->get('doctrine.orm.entity_manager');
+            $entityManager = $this->systemoveNastaveni->getService('doctrine.orm.entity_manager');
             try {
                 // Vlastní objednávka na každý prodej drží pohromadě řádky nákupu a jejich
                 // protizápis v platbách.
                 // References, not find(): a sale needs only the ids, and hydrating a user fails on
                 // accounts that predate a value the entity requires.
-                $idObjednavky = $this->sluzba(ManualSaleService::class)->sell(
+                $idObjednavky = $this->systemoveNastaveni->getService(ManualSaleService::class)->sell(
                     $entityManager->getReference(User::class, $this->zakaznik->id()),
                     $entityManager->getReference(User::class, $this->objednatel->id()),
                     $entityManager->find(ProductVariant::class, $idVarianty),

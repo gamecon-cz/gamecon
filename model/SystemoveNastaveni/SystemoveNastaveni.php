@@ -1207,4 +1207,18 @@ SQL;
 
         return $this->kernel;
     }
+
+    /**
+     * Zkratka za `kernel()->getContainer()->get()`.
+     *
+     * @template T of object
+     *
+     * @param class-string<T>|string $id
+     *
+     * @return ($id is class-string<T> ? T : object)
+     */
+    public function getService(string $id): object
+    {
+        return $this->kernel()->getContainer()->get($id);
+    }
 }
