@@ -24,36 +24,36 @@ class EmailoveSablonyKatalog
     private const SKUPINA_TYM         = 'Zprávy pro tým (info@)';
     private const SKUPINA_REPORTY     = 'Reporty';
 
-    /** @var array<string, EmailovaSablonaDefinice>|null */
+    /** @var array<string, EmailovaSablonaDefinice>|null by the value of the code */
     private static ?array $definice = null;
 
     /**
-     * @return array<string, EmailovaSablonaDefinice> by code, in the same order as the list in the admin
+     * @return array<string, EmailovaSablonaDefinice> by the value of the code, in the same order as the list in the admin
      */
     public static function vsechny(): array
     {
         if (self::$definice === null) {
             self::$definice = [];
             foreach (self::sestav() as $definice) {
-                if (isset(self::$definice[$definice->kod])) {
-                    throw new \LogicException("Šablona '{$definice->kod}' je v katalogu dvakrát.");
+                if (isset(self::$definice[$definice->kod->value])) {
+                    throw new \LogicException("Šablona '{$definice->kod->value}' je v katalogu dvakrát.");
                 }
-                self::$definice[$definice->kod] = $definice;
+                self::$definice[$definice->kod->value] = $definice;
             }
         }
 
         return self::$definice;
     }
 
-    public static function dej(string $kod): EmailovaSablonaDefinice
+    public static function dej(KodEmailoveSablonyEnum $kod): EmailovaSablonaDefinice
     {
-        return self::vsechny()[$kod]
-            ?? throw new NeznamaEmailovaSablona("Neznámá šablona e-mailu '$kod'.");
+        return self::vsechny()[$kod->value]
+            ?? throw new NeznamaEmailovaSablona("Neznámá šablona e-mailu '{$kod->value}'.");
     }
 
-    public static function existuje(string $kod): bool
+    public static function existuje(KodEmailoveSablonyEnum $kod): bool
     {
-        return isset(self::vsechny()[$kod]);
+        return isset(self::vsechny()[$kod->value]);
     }
 
     /**
@@ -80,7 +80,7 @@ class EmailoveSablonyKatalog
     {
         return [
             new EmailovaSablonaDefinice(
-                kod: 'obnova_hesla',
+                kod: KodEmailoveSablonyEnum::OBNOVA_HESLA,
                 skupina: self::SKUPINA_UCET,
                 nazev: 'Obnova hesla',
                 kdyOdchazi: 'Když někdo na webu požádá o zapomenuté heslo.',
@@ -95,7 +95,7 @@ class EmailoveSablonyKatalog
                 ],
             ),
             new EmailovaSablonaDefinice(
-                kod: 'rychla_registrace',
+                kod: KodEmailoveSablonyEnum::RYCHLA_REGISTRACE,
                 skupina: self::SKUPINA_UCET,
                 nazev: 'Rychlá registrace',
                 kdyOdchazi: 'Když infopult zaregistruje účastníka na místě a ten dostane odkaz na dokončení registrace.',
@@ -119,7 +119,7 @@ class EmailoveSablonyKatalog
     {
         return [
             new EmailovaSablonaDefinice(
-                kod: 'uvolnene_misto',
+                kod: KodEmailoveSablonyEnum::UVOLNENE_MISTO,
                 skupina: self::SKUPINA_AKTIVITY,
                 nazev: 'Uvolnilo se místo na sledované aktivitě',
                 kdyOdchazi: 'Když se na aktivitě, kterou účastník sleduje, uvolní místo (odhlásil se někdo jiný).',
@@ -135,7 +135,7 @@ class EmailoveSablonyKatalog
                 ],
             ),
             new EmailovaSablonaDefinice(
-                kod: 'nedostaveni_se_na_aktivitu',
+                kod: KodEmailoveSablonyEnum::NEDOSTAVENI_SE_NA_AKTIVITU,
                 skupina: self::SKUPINA_AKTIVITY,
                 nazev: 'Nedostavení se na aktivitu',
                 kdyOdchazi: 'Když vypravěč při zavírání prezence označí účastníka jako nedorazivšího (jen u typů aktivit, kde se to řeší, a jen během GameConu).',
@@ -156,7 +156,7 @@ class EmailoveSablonyKatalog
                 ],
             ),
             new EmailovaSablonaDefinice(
-                kod: 'uzavreni_prezence',
+                kod: KodEmailoveSablonyEnum::UZAVRENI_PREZENCE,
                 skupina: self::SKUPINA_AKTIVITY,
                 nazev: 'Uzavři prosím prezenci',
                 kdyOdchazi: 'Když vypravěč po skončení aktivity nemá uzavřenou prezenci.',
@@ -187,7 +187,7 @@ class EmailoveSablonyKatalog
     {
         return [
             new EmailovaSablonaDefinice(
-                kod: 'odhlaseni_z_gameconu',
+                kod: KodEmailoveSablonyEnum::ODHLASENI_Z_GAMECONU,
                 skupina: self::SKUPINA_ODHLASOVANI,
                 nazev: 'Odhlášení z GameConu',
                 kdyOdchazi: 'Když organizátor (ne účastník sám) odhlásí účastníka z letošního GameConu.',
@@ -203,7 +203,7 @@ class EmailoveSablonyKatalog
                 ],
             ),
             new EmailovaSablonaDefinice(
-                kod: 'hromadne_odhlaseni_neplatic_zruseno',
+                kod: KodEmailoveSablonyEnum::HROMADNE_ODHLASENI_NEPLATIC_ZRUSENO,
                 skupina: self::SKUPINA_ODHLASOVANI,
                 nazev: 'Hromadné odhlášení neplatiče: co se zrušilo',
                 kdyOdchazi: 'Při hromadném odhlášení neplatičů, těm, kterým se zrušily objednávky nebo aktivity.',
@@ -224,7 +224,7 @@ class EmailoveSablonyKatalog
                 ],
             ),
             new EmailovaSablonaDefinice(
-                kod: 'varovani_brzke_odhlaseni_neplatic',
+                kod: KodEmailoveSablonyEnum::VAROVANI_BRZKE_ODHLASENI_NEPLATIC,
                 skupina: self::SKUPINA_ODHLASOVANI,
                 nazev: 'Varování neplatiče před hromadným odhlášením',
                 kdyOdchazi: 'Tři dny před hromadným odhlášením neplatičů, každému, komu odhlášení hrozí.',
@@ -251,9 +251,27 @@ class EmailoveSablonyKatalog
     {
         $definice = [];
         foreach ([
-            'tyden' => ['týden po skončení GameConu', 'Upomínka týden po GC'],
-            'mesic' => ['měsíc po skončení GameConu a při ručním rozeslání „jako měsíční“', 'Upomínka měsíc po GC'],
-        ] as $typ => [$kdy, $nazevTypu]) {
+            [
+                'týden po skončení GameConu',
+                'Upomínka týden po GC',
+                [
+                    'pritomen'        => KodEmailoveSablonyEnum::UPOMINKA_TYDEN_PRITOMEN,
+                    'jen_prihlasen'   => KodEmailoveSablonyEnum::UPOMINKA_TYDEN_JEN_PRIHLASEN,
+                    'nedorazil_drive' => KodEmailoveSablonyEnum::UPOMINKA_TYDEN_NEDORAZIL_DRIVE,
+                    'nedorazil_nikdy' => KodEmailoveSablonyEnum::UPOMINKA_TYDEN_NEDORAZIL_NIKDY,
+                ],
+            ],
+            [
+                'měsíc po skončení GameConu a při ručním rozeslání „jako měsíční“',
+                'Upomínka měsíc po GC',
+                [
+                    'pritomen'        => KodEmailoveSablonyEnum::UPOMINKA_MESIC_PRITOMEN,
+                    'jen_prihlasen'   => KodEmailoveSablonyEnum::UPOMINKA_MESIC_JEN_PRIHLASEN,
+                    'nedorazil_drive' => KodEmailoveSablonyEnum::UPOMINKA_MESIC_NEDORAZIL_DRIVE,
+                    'nedorazil_nikdy' => KodEmailoveSablonyEnum::UPOMINKA_MESIC_NEDORAZIL_NIKDY,
+                ],
+            ],
+        ] as [$kdy, $nazevTypu, $kodyPodleUcasti]) {
             foreach ([
                 'pritomen'       => ['letos na GC byl', 'dlužník, který letos na GC byl'],
                 'jen_prihlasen'  => ['se letos přihlásil, ale nedorazil', 'dlužník, který se letos přihlásil, ale nedorazil'],
@@ -287,7 +305,7 @@ class EmailoveSablonyKatalog
                     );
                 }
                 $definice[] = new EmailovaSablonaDefinice(
-                    kod: "upominka_{$typ}_{$ucast}",
+                    kod: $kodyPodleUcasti[$ucast],
                     skupina: self::SKUPINA_UPOMINKY,
                     nazev: "$nazevTypu: $prijemce",
                     kdyOdchazi: "Automaticky $kdy, dlužníkovi, který $popisUcasti. QR kódy pro platbu jdou v příloze.",
@@ -328,7 +346,7 @@ class EmailoveSablonyKatalog
 
         return [
             new EmailovaSablonaDefinice(
-                kod: 'promlceni_varovani_mesic',
+                kod: KodEmailoveSablonyEnum::PROMLCENI_VAROVANI_MESIC,
                 skupina: self::SKUPINA_PROMLCENI,
                 nazev: 'Varování před promlčením zůstatku (měsíc před)',
                 kdyOdchazi: 'Měsíc před otevřením registrací, každému s nevyužitým zůstatkem, který se několik let nezúčastnil.',
@@ -344,7 +362,7 @@ class EmailoveSablonyKatalog
                 ],
             ),
             new EmailovaSablonaDefinice(
-                kod: 'promlceni_varovani_tyden',
+                kod: KodEmailoveSablonyEnum::PROMLCENI_VAROVANI_TYDEN,
                 skupina: self::SKUPINA_PROMLCENI,
                 nazev: 'Připomínka promlčení zůstatku (týden před)',
                 kdyOdchazi: 'Týden před otevřením registrací, stejným lidem jako měsíční varování.',
@@ -369,7 +387,7 @@ class EmailoveSablonyKatalog
     {
         $definice = [
             new EmailovaSablonaDefinice(
-                kod: 'cfo_brzke_odhlaseni_neplaticu',
+                kod: KodEmailoveSablonyEnum::CFO_BRZKE_ODHLASENI_NEPLATICU,
                 skupina: self::SKUPINA_CFO,
                 nazev: 'Brzy se hromadně odhlásí neplatiči',
                 kdyOdchazi: 'Hodinu, den a týden před hromadným odhlášením neplatičů, se seznamem, koho se odhlášení týká.',
@@ -391,7 +409,7 @@ class EmailoveSablonyKatalog
                 ],
             ),
             new EmailovaSablonaDefinice(
-                kod: 'cfo_nesparovane_platby',
+                kod: KodEmailoveSablonyEnum::CFO_NESPAROVANE_PLATBY,
                 skupina: self::SKUPINA_CFO,
                 nazev: 'Před hromadným odhlášením máme nespárované platby',
                 kdyOdchazi: 'Den a týden před hromadným odhlášením neplatičů, pokud jsou nespárované platby.',
@@ -413,7 +431,7 @@ class EmailoveSablonyKatalog
                 ],
             ),
             new EmailovaSablonaDefinice(
-                kod: 'cfo_neplatici_varovani_odeslano',
+                kod: KodEmailoveSablonyEnum::CFO_NEPLATICI_VAROVANI_ODESLANO,
                 skupina: self::SKUPINA_CFO,
                 nazev: 'Neplatiči dostali varování před odhlášením',
                 kdyOdchazi: 'Když se rozešlou varování neplatičům před hromadným odhlášením.',
@@ -439,7 +457,7 @@ class EmailoveSablonyKatalog
                 ],
             ),
             new EmailovaSablonaDefinice(
-                kod: 'cfo_odhlaseni_neplaticu_provedeno',
+                kod: KodEmailoveSablonyEnum::CFO_ODHLASENI_NEPLATICU_PROVEDENO,
                 skupina: self::SKUPINA_CFO,
                 nazev: 'Neplatiči byli hromadně odhlášeni',
                 kdyOdchazi: 'Po automatickém hromadném odhlášení neplatičů.',
@@ -460,7 +478,7 @@ class EmailoveSablonyKatalog
                 ],
             ),
             new EmailovaSablonaDefinice(
-                kod: 'cfo_podezrele_vysoka_platba',
+                kod: KodEmailoveSablonyEnum::CFO_PODEZRELE_VYSOKA_PLATBA,
                 skupina: self::SKUPINA_CFO,
                 nazev: 'Podezřele vysoká platba',
                 kdyOdchazi: 'Když se platba z banky automaticky spáruje s účastníkem a je vyšší než hranice v Nastavení.',
@@ -479,7 +497,7 @@ class EmailoveSablonyKatalog
                 ],
             ),
             new EmailovaSablonaDefinice(
-                kod: 'cfo_promlceni_nikdo',
+                kod: KodEmailoveSablonyEnum::CFO_PROMLCENI_NIKDO,
                 skupina: self::SKUPINA_CFO,
                 nazev: 'Promlčení zůstatků: nikdo k promlčení',
                 kdyOdchazi: 'Po skončení GameConu, když automatické promlčení nenašlo nikoho, komu promlčet.',
@@ -488,7 +506,7 @@ class EmailoveSablonyKatalog
                 promenne: [self::gcSkoncil()],
             ),
             new EmailovaSablonaDefinice(
-                kod: 'cfo_promlceni_pred',
+                kod: KodEmailoveSablonyEnum::CFO_PROMLCENI_PRED,
                 skupina: self::SKUPINA_CFO,
                 nazev: 'Promlčení zůstatků: report před promlčením',
                 kdyOdchazi: 'Po skončení GameConu těsně před automatickým promlčením, s přílohou se seznamem.',
@@ -501,7 +519,7 @@ class EmailoveSablonyKatalog
                 ],
             ),
             new EmailovaSablonaDefinice(
-                kod: 'cfo_promlceni_dokonceno',
+                kod: KodEmailoveSablonyEnum::CFO_PROMLCENI_DOKONCENO,
                 skupina: self::SKUPINA_CFO,
                 nazev: 'Promlčení zůstatků: dokončeno',
                 kdyOdchazi: 'Po automatickém promlčení, s přílohou se zůstatky všech uživatelů.',
@@ -516,11 +534,11 @@ class EmailoveSablonyKatalog
         ];
 
         foreach ([
-            'mesic' => ['Měsíc před registracemi'],
-            'tyden' => ['Týden před registracemi'],
-        ] as $typ => [$kdy]) {
+            [KodEmailoveSablonyEnum::CFO_PROMLCENI_VAROVANI_MESIC_ODESLANO, 'Měsíc před registracemi'],
+            [KodEmailoveSablonyEnum::CFO_PROMLCENI_VAROVANI_TYDEN_ODESLANO, 'Týden před registracemi'],
+        ] as [$kod, $kdy]) {
             $definice[] = new EmailovaSablonaDefinice(
-                kod: "cfo_promlceni_varovani_{$typ}_odeslano",
+                kod: $kod,
                 skupina: self::SKUPINA_CFO,
                 nazev: "Promlčení zůstatků: varování rozeslána ($kdy)",
                 kdyOdchazi: 'Po rozeslání varování o promlčení zůstatků účastníkům.',
@@ -535,13 +553,13 @@ class EmailoveSablonyKatalog
         }
 
         foreach ([
-            'tyden'   => 'týden po GameConu',
-            'mesic'   => 'měsíc po GameConu',
-            'rucni'   => 'ruční rozeslání s měsíčním textem',
-            'vlastni' => 'vlastní znění',
-        ] as $typ => $kdy) {
+            [KodEmailoveSablonyEnum::CFO_UPOMINKY_TYDEN_ODESLANO, 'týden po GameConu'],
+            [KodEmailoveSablonyEnum::CFO_UPOMINKY_MESIC_ODESLANO, 'měsíc po GameConu'],
+            [KodEmailoveSablonyEnum::CFO_UPOMINKY_RUCNI_ODESLANO, 'ruční rozeslání s měsíčním textem'],
+            [KodEmailoveSablonyEnum::CFO_UPOMINKY_VLASTNI_ODESLANO, 'vlastní znění'],
+        ] as [$kod, $kdy]) {
             $definice[] = new EmailovaSablonaDefinice(
-                kod: "cfo_upominky_{$typ}_odeslano",
+                kod: $kod,
                 skupina: self::SKUPINA_CFO,
                 nazev: "Upomínky dlužníkům rozeslány ($kdy)",
                 kdyOdchazi: 'Po rozeslání upomínek dlužníkům, s ukázkou posledního odeslaného e-mailu.',
@@ -588,7 +606,7 @@ class EmailoveSablonyKatalog
 
         return [
             new EmailovaSablonaDefinice(
-                kod: 'info_odhlasil_ale_platil',
+                kod: KodEmailoveSablonyEnum::INFO_ODHLASIL_ALE_PLATIL,
                 skupina: self::SKUPINA_TYM,
                 nazev: 'Odhlášený účastník už platil',
                 kdyOdchazi: 'Když se odhlásí (nebo je odhlášen) účastník, který už letos něco zaplatil.',
@@ -602,7 +620,7 @@ class EmailoveSablonyKatalog
                 ],
             ),
             new EmailovaSablonaDefinice(
-                kod: 'info_odhlasil_mel_objednavky',
+                kod: KodEmailoveSablonyEnum::INFO_ODHLASIL_MEL_OBJEDNAVKY,
                 skupina: self::SKUPINA_TYM,
                 nazev: 'Odhlášený účastník měl objednávky',
                 kdyOdchazi: 'Když se odhlásí (nebo je odhlášen) účastník, který měl letos objednávky (ubytování, jídlo, trička…).',
@@ -621,7 +639,7 @@ class EmailoveSablonyKatalog
                 ],
             ),
             new EmailovaSablonaDefinice(
-                kod: 'info_hromadna_aktivace_aktivit',
+                kod: KodEmailoveSablonyEnum::INFO_HROMADNA_AKTIVACE_AKTIVIT,
                 skupina: self::SKUPINA_TYM,
                 nazev: 'Hromadně se aktivovaly aktivity',
                 kdyOdchazi: 'Když cron na začátku vlny hromadně aktivuje aktivity.',
@@ -642,7 +660,7 @@ class EmailoveSablonyKatalog
     {
         return [
             new EmailovaSablonaDefinice(
-                kod: 'bfgr_report',
+                kod: KodEmailoveSablonyEnum::BFGR_REPORT,
                 skupina: self::SKUPINA_REPORTY,
                 nazev: 'BFGR report',
                 kdyOdchazi: 'Když si někdo v adminu vyžádá BFGR report a ten se vygeneruje (zpráva má report v příloze).',
@@ -655,7 +673,7 @@ class EmailoveSablonyKatalog
                 ],
             ),
             new EmailovaSablonaDefinice(
-                kod: 'bfgr_report_chyba',
+                kod: KodEmailoveSablonyEnum::BFGR_REPORT_CHYBA,
                 skupina: self::SKUPINA_REPORTY,
                 nazev: 'BFGR report se nepodařilo vygenerovat',
                 kdyOdchazi: 'Když se vyžádaný BFGR report nepodaří vygenerovat.',

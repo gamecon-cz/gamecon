@@ -8,6 +8,7 @@ use Gamecon\Kanaly\EmailovaSablona\EmailoveSablony;
 use Gamecon\Cas\DateTimeCz;
 use Gamecon\Logger\Zaznamnik;
 use Gamecon\Report\BfgrReport;
+use Gamecon\Kanaly\EmailovaSablona\KodEmailoveSablonyEnum;
 
 /** @var bool $znovu */
 
@@ -65,7 +66,7 @@ $odhlasenoCelkem = $hromadneOdhlaseniNeplaticu->odhlasenoCelkem();
 $zprava     = "Hromadně odhlášeno $odhlasenoCelkem účastníků z GC";
 $cfosEmaily = Uzivatel::cfosEmaily();
 (new EmailoveSablony($systemoveNastaveni))
-    ->vytvorMail('cfo_odhlaseni_neplaticu_provedeno', [
+    ->vytvorMail(KodEmailoveSablonyEnum::CFO_ODHLASENI_NEPLATICU_PROVEDENO, [
         'pocet'   => $odhlasenoCelkem,
         'zaznamy' => implode(";\n", $zaznamnik->zpravy()),
     ])

@@ -7,6 +7,7 @@ namespace App\Controller;
 use App\Service\LegacySessionService;
 use Gamecon\Antibot\Altcha;
 use Gamecon\Kanaly\EmailovaSablona\EmailoveSablony;
+use Gamecon\Kanaly\EmailovaSablona\KodEmailoveSablonyEnum;
 use Gamecon\Kanaly\GcMail;
 use Gamecon\Kanaly\GcMailSablona;
 use Gamecon\Uzivatel\ResetHeslaToken;
@@ -235,7 +236,7 @@ class ObnovaHeslaController extends AbstractController
         $token = ResetHeslaToken::podepis((int) $uzivatel->id(), $hesloMd5, self::secret());
         $odkaz = URL_WEBU . '/obnova-hesla?token=' . $token;
 
-        $vykresleno = EmailoveSablony::zGlobals()->vykresli('obnova_hesla', [
+        $vykresleno = EmailoveSablony::zGlobals()->vykresli(KodEmailoveSablonyEnum::OBNOVA_HESLA, [
             'odkaz' => $odkaz,
         ]);
         $telo = GcMailSablona::obal($vykresleno->text, 'Obnova hesla');
@@ -243,7 +244,7 @@ class ObnovaHeslaController extends AbstractController
         $mail = new GcMail(\Gamecon\SystemoveNastaveni\SystemoveNastaveni::zGlobals(), $telo);
         $mail->adresat($uzivatel->mail());
         $mail->predmet($vykresleno->predmet);
-        $mail->sablona('obnova_hesla');
+        $mail->sablona(KodEmailoveSablonyEnum::OBNOVA_HESLA);
         $mail->obrazekInline(GcMailSablona::logoSoubor(), GcMailSablona::LOGO_CID);
         $mail->format($vykresleno->format);
         $mail->odeslat();

@@ -6,6 +6,7 @@ namespace Gamecon\Tests\Model\Kanaly\EmailovaSablona;
 
 use Gamecon\Kanaly\EmailovaSablona\EmailovaSablonaKontrola;
 use Gamecon\Kanaly\EmailovaSablona\EmailovaSablonaRepository;
+use Gamecon\Kanaly\EmailovaSablona\KodEmailoveSablonyEnum;
 use Gamecon\Kanaly\EmailovaSablona\ProblemySablonHtml;
 use Gamecon\SystemoveNastaveni\SystemoveNastaveniKlice;
 use Gamecon\Tests\Db\AbstractTestDb;
@@ -31,12 +32,15 @@ class EmailovaSablonaKontrolaTest extends AbstractTestDb
     public function najdeSablonuObsahujiciNeverejneNastaveniVPredmetuINaTextu(): void
     {
         $repository = new EmailovaSablonaRepository();
-        $repository->uloz('obnova_hesla', 'Hranice %' . self::NEVEREJNY_KLIC . '%', 'Text %odkaz%', \Uzivatel::SYSTEM);
-        $repository->uloz('rychla_registrace', 'Předmět', 'Hranice %' . self::NEVEREJNY_KLIC . '%: %odkaz_k_potvrzeni%', \Uzivatel::SYSTEM);
+        $repository->uloz(KodEmailoveSablonyEnum::OBNOVA_HESLA, 'Hranice %' . self::NEVEREJNY_KLIC . '%', 'Text %odkaz%', \Uzivatel::SYSTEM);
+        $repository->uloz(KodEmailoveSablonyEnum::RYCHLA_REGISTRACE, 'Předmět', 'Hranice %' . self::NEVEREJNY_KLIC . '%: %odkaz_k_potvrzeni%', \Uzivatel::SYSTEM);
 
         $problemy = $this->kontrola()->najdiProblemy();
 
-        self::assertSame(['obnova_hesla', 'rychla_registrace'], array_map(static fn ($problem) => $problem->kod, $problemy));
+        self::assertSame(
+            [KodEmailoveSablonyEnum::OBNOVA_HESLA, KodEmailoveSablonyEnum::RYCHLA_REGISTRACE],
+            array_map(static fn ($problem) => $problem->kod, $problemy),
+        );
         self::assertSame('web/emailove-sablony?kod=obnova_hesla', $problemy[0]->odkaz);
         self::assertSame('Obnova hesla', $problemy[0]->nazev);
         self::assertStringContainsString(self::NEVEREJNY_KLIC, $problemy[0]->chyby[0]);
@@ -47,7 +51,7 @@ class EmailovaSablonaKontrolaTest extends AbstractTestDb
      */
     public function problemSePrestaHlasitPoZverejneniNastaveni(): void
     {
-        (new EmailovaSablonaRepository())->uloz('obnova_hesla', 'Předmět', 'Hranice %' . self::NEVEREJNY_KLIC . '% %odkaz%', \Uzivatel::SYSTEM);
+        (new EmailovaSablonaRepository())->uloz(KodEmailoveSablonyEnum::OBNOVA_HESLA, 'Předmět', 'Hranice %' . self::NEVEREJNY_KLIC . '% %odkaz%', \Uzivatel::SYSTEM);
         self::assertCount(1, $this->kontrola()->najdiProblemy());
 
         $this->cerstveSystemoveNastaveni()->ulozZmenuPriznakuVerejne(true, self::NEVEREJNY_KLIC, \Uzivatel::zId(\Uzivatel::SYSTEM));
@@ -70,7 +74,7 @@ class EmailovaSablonaKontrolaTest extends AbstractTestDb
         $problemy = $this->kontrola()->najdiProblemy();
 
         self::assertCount(1, $problemy);
-        self::assertSame(EmailovaSablonaKontrola::KOD_VLASTNIHO_ZNENI_UPOMINKY, $problemy[0]->kod);
+        self::assertSame(KodEmailoveSablonyEnum::UPOMINKA_VLASTNI, $problemy[0]->kod);
         self::assertSame('finance/upominky-dluzniku?zneni', $problemy[0]->odkaz);
     }
 
@@ -79,7 +83,7 @@ class EmailovaSablonaKontrolaTest extends AbstractTestDb
      */
     public function neznamaVelkaHodnotaSeHlasiTaky(): void
     {
-        (new EmailovaSablonaRepository())->uloz('obnova_hesla', 'Předmět', 'Text %NENI_TAKOVE_NASTAVENI% %odkaz%', \Uzivatel::SYSTEM);
+        (new EmailovaSablonaRepository())->uloz(KodEmailoveSablonyEnum::OBNOVA_HESLA, 'Předmět', 'Text %NENI_TAKOVE_NASTAVENI% %odkaz%', \Uzivatel::SYSTEM);
 
         $problemy = $this->kontrola()->najdiProblemy();
 
@@ -96,7 +100,7 @@ class EmailovaSablonaKontrolaTest extends AbstractTestDb
 
         $problemy = $this->kontrola()->najdiProblemy();
 
-        self::assertSame(['obnova_hesla'], array_map(static fn ($problem) => $problem->kod, $problemy));
+        self::assertSame([KodEmailoveSablonyEnum::OBNOVA_HESLA], array_map(static fn ($problem) => $problem->kod, $problemy));
         self::assertTrue($problemy[0]->zabranujeOdeslani);
         self::assertStringContainsString('E-mail se neodešle', ProblemySablonHtml::vykresli($problemy));
     }
@@ -114,7 +118,7 @@ class EmailovaSablonaKontrolaTest extends AbstractTestDb
      */
     public function vykreslenyBlokMaOdkazNaEditaciAEscapujeNazev(): void
     {
-        (new EmailovaSablonaRepository())->uloz('obnova_hesla', 'Předmět', 'Text %' . self::NEVEREJNY_KLIC . '% %odkaz%', \Uzivatel::SYSTEM);
+        (new EmailovaSablonaRepository())->uloz(KodEmailoveSablonyEnum::OBNOVA_HESLA, 'Předmět', 'Text %' . self::NEVEREJNY_KLIC . '% %odkaz%', \Uzivatel::SYSTEM);
 
         $html = ProblemySablonHtml::vykresli($this->kontrola()->najdiProblemy());
 

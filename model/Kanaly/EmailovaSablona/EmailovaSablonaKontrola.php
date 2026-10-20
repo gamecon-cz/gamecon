@@ -16,8 +16,6 @@ use Gamecon\Uzivatel\UpominkaVlastniZneni;
  */
 class EmailovaSablonaKontrola
 {
-    public const KOD_VLASTNIHO_ZNENI_UPOMINKY = 'upominka_vlastni';
-
     public function __construct(
         private readonly EmailovaSablonaRepository $repository,
         private readonly EmailovaSablonaValidator  $validator,
@@ -43,7 +41,8 @@ class EmailovaSablonaKontrola
     {
         $problemy = [];
 
-        foreach (EmailoveSablonyKatalog::vsechny() as $kod => $definice) {
+        foreach (EmailoveSablonyKatalog::vsechny() as $definice) {
+            $kod     = $definice->kod;
             $sablona = $this->repository->dej($kod);
             if ($sablona === null || !$sablona->jeVyplnena()) {
                 $problemy[] = new ProblemSablony(
@@ -71,7 +70,7 @@ class EmailovaSablonaKontrola
             $chyby = $this->validator->chybySystemovychHodnot($vlastniZneni->predmet . "\n" . $vlastniZneni->text);
             if ($chyby !== []) {
                 $problemy[] = new ProblemSablony(
-                    kod: self::KOD_VLASTNIHO_ZNENI_UPOMINKY,
+                    kod: KodEmailoveSablonyEnum::UPOMINKA_VLASTNI,
                     nazev: "Upomínky dlužníkům, vlastní znění pro ročník {$this->rocnik}",
                     odkaz: 'finance/upominky-dluzniku?zneni',
                     chyby: $chyby,
@@ -82,8 +81,8 @@ class EmailovaSablonaKontrola
         return $problemy;
     }
 
-    public static function odkazNaEditaci(string $kod): string
+    public static function odkazNaEditaci(KodEmailoveSablonyEnum $kod): string
     {
-        return 'web/emailove-sablony?kod=' . rawurlencode($kod);
+        return 'web/emailove-sablony?kod=' . rawurlencode($kod->value);
     }
 }

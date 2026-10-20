@@ -7,6 +7,7 @@ use Gamecon\Kanaly\EmailovaSablona\EmailoveSablony;
 use Gamecon\Report\KonfiguraceReportu;
 use Gamecon\Uzivatel\UzivatelKPromlceni;
 use Gamecon\Logger\JobResultLogger;
+use Gamecon\Kanaly\EmailovaSablona\KodEmailoveSablonyEnum;
 
 /** @var bool $znovu */
 
@@ -65,7 +66,7 @@ if (count($uzivateleKPromlceni) === 0) {
     // Pošli CFO informaci, že nikdo nebyl promlčen
     $cfosEmaily = Uzivatel::cfosEmaily();
     (new EmailoveSablony($systemoveNastaveni))
-        ->vytvorMail('cfo_promlceni_nikdo', ['gc_skoncil' => $gcBeziDo->format('d.m.Y H:i')])
+        ->vytvorMail(KodEmailoveSablonyEnum::CFO_PROMLCENI_NIKDO, ['gc_skoncil' => $gcBeziDo->format('d.m.Y H:i')])
         ->adresati($cfosEmaily
             ?: ['info@gamecon.cz'])
         ->odeslat();
@@ -91,7 +92,7 @@ Report::zPole($reportPredPromlcenim)->tFormat('xlsx', null, $konfiguraceReportu)
 // Pošli CFO report o uživatelích, kteří budou promlčeni
 $cfosEmaily = Uzivatel::cfosEmaily();
 (new EmailoveSablony($systemoveNastaveni))
-    ->vytvorMail('cfo_promlceni_pred', [
+    ->vytvorMail(KodEmailoveSablonyEnum::CFO_PROMLCENI_PRED, [
         'pocet_uzivatelu' => $pocetUzivatelu,
         'suma'            => $celkovaSuma,
         'gc_skoncil'      => $gcBeziDo->format('d.m.Y H:i'),
@@ -141,7 +142,7 @@ Report::zPole($reportPoPromlceni)->tFormat('xlsx', null, $konfiguraceReportuAktu
 
 // 6. Pošli CFO finální report po promlčení
 (new EmailoveSablony($systemoveNastaveni))
-    ->vytvorMail('cfo_promlceni_dokonceno', [
+    ->vytvorMail(KodEmailoveSablonyEnum::CFO_PROMLCENI_DOKONCENO, [
         'pocet'      => $vysledek['pocet'],
         'suma'       => $vysledek['suma'],
         'gc_skoncil' => $gcBeziDo->format('d.m.Y H:i'),

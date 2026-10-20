@@ -8,6 +8,7 @@ use Gamecon\Kanaly\EmailovaSablona\EmailovaSablonaRepository;
 use Gamecon\Kanaly\EmailovaSablona\EmailovaSablonaValidator;
 use Gamecon\Kanaly\EmailovaSablona\EmailovaSablonaVykreslovac;
 use Gamecon\Kanaly\EmailovaSablona\EmailoveSablonyKatalog;
+use Gamecon\Kanaly\EmailovaSablona\KodEmailoveSablonyEnum;
 use Gamecon\Kanaly\EmailovaSablona\SystemoveHodnotyProSablony;
 use Gamecon\SystemoveNastaveni\SystemoveNastaveni;
 use Gamecon\Tests\Db\AbstractTestDb;
@@ -34,9 +35,23 @@ class EmailoveSablonyKatalogTest extends AbstractTestDb
     /**
      * @test
      */
+    public function kazdyKodMaVKatalozeDefiniciKromeVlastnihoZneniUpominky(): void
+    {
+        $kodyBezDefinice = array_filter(
+            KodEmailoveSablonyEnum::cases(),
+            static fn (KodEmailoveSablonyEnum $kod) => ! EmailoveSablonyKatalog::existuje($kod),
+        );
+
+        self::assertSame([KodEmailoveSablonyEnum::UPOMINKA_VLASTNI], array_values($kodyBezDefinice));
+    }
+
+    /**
+     * @test
+     */
     public function vDatabaziNeniSablonaKteraNeniVKatalogu(): void
     {
-        $ulozene = array_keys((new EmailovaSablonaRepository())->vsechny());
+        // Straight from the table: the repository skips a row whose code is not a case of the enum
+        $ulozene = array_column(dbFetchAll('SELECT kod FROM emailova_sablona'), 'kod');
 
         self::assertSame([], array_values(array_diff($ulozene, array_keys(EmailoveSablonyKatalog::vsechny()))));
     }

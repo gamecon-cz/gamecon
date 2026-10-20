@@ -7,6 +7,7 @@ use Gamecon\Cas\DateTimeCz;
 use Gamecon\Uzivatel\Platby;
 use Gamecon\Cas\DateTimeGamecon;
 use Gamecon\Uzivatel\HromadneOdhlaseniNeplaticu;
+use Gamecon\Kanaly\EmailovaSablona\KodEmailoveSablonyEnum;
 
 /** @var bool $znovu */
 
@@ -105,7 +106,7 @@ $nejblizsiHromadneOdhlasovaniKdy = DateTimeGamecon::nejblizsiHromadneOdhlasovani
 
 $brzy = mb_ucfirst($nejblizsiHromadneOdhlasovaniKdy->relativniVBudoucnu($systemoveNastaveni->ted(), true));
 (new EmailoveSablony($systemoveNastaveni))
-    ->vytvorMail('cfo_nesparovane_platby', [
+    ->vytvorMail(KodEmailoveSablonyEnum::CFO_NESPAROVANE_PLATBY, [
         'kdy'    => $brzy,
         'pocet'  => $pocetNesparovanychPlateb,
         'seznam' => $zpravyString,

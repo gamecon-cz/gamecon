@@ -17,6 +17,7 @@ use Gamecon\Uzivatel\Exceptions\HromadneOdhlasovaniJePrilisBrzyPoVlne;
 use Gamecon\Uzivatel\Exceptions\NaHromadneOdhlasovaniJeBrzy;
 use Gamecon\Uzivatel\Exceptions\NaHromadneOdhlasovaniJePozde;
 use Chyba;
+use Gamecon\Kanaly\EmailovaSablona\KodEmailoveSablonyEnum;
 
 class HromadneOdhlaseniNeplaticu
 {
@@ -400,7 +401,7 @@ Platnost současného hromadného odhlašování byla '%s' (%s), teď je '%s' a 
         $text = implode(' a ', $castiTextu);
 
         (new EmailoveSablony($this->systemoveNastaveni))
-            ->vytvorMail('hromadne_odhlaseni_neplatic_zruseno', [
+            ->vytvorMail(KodEmailoveSablonyEnum::HROMADNE_ODHLASENI_NEPLATIC_ZRUSENO, [
                 'co'      => implode(' a ', $castiPredmetu),
                 'zruseno' => $text,
             ])

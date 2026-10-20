@@ -12,7 +12,7 @@ readonly class ProblemSablony
      * @param bool $zabranujeOdeslani the e-mail cannot be sent at all, as opposed to going out with a symbol left as written
      */
     public function __construct(
-        public string $kod,
+        public KodEmailoveSablonyEnum $kod,
         public string $nazev,
         public string $odkaz,
         public array $chyby,

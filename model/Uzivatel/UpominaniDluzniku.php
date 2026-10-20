@@ -7,6 +7,7 @@ namespace Gamecon\Uzivatel;
 use Gamecon\Command\FioStazeniNovychPlateb;
 use Gamecon\Kanaly\EmailovaSablona\EmailovaSablonaVykreslovac;
 use Gamecon\Kanaly\EmailovaSablona\EmailoveSablony;
+use Gamecon\Kanaly\EmailovaSablona\KodEmailoveSablonyEnum;
 use Gamecon\Kanaly\EmailovaSablona\SystemoveHodnotyProSablony;
 use Gamecon\Kanaly\GcMail;
 use Gamecon\Logger\JobResultLoggerInterface;
@@ -530,16 +531,26 @@ SQL,
         TypUpominky $typUpominky,
         UcastNaGc   $ucastNaGc,
         ?int        $rokPosledniUcasti,
-    ): string {
-        $varianta = match ($ucastNaGc) {
-            UcastNaGc::PRITOMEN      => 'pritomen',
-            UcastNaGc::JEN_PRIHLASEN => 'jen_prihlasen',
-            UcastNaGc::NEDORAZIL     => $rokPosledniUcasti === null
-                ? 'nedorazil_nikdy'
-                : 'nedorazil_drive',
+    ): KodEmailoveSablonyEnum {
+        return match ($typUpominky->textovaVarianta()) {
+            TypUpominky::TYDEN => match ($ucastNaGc) {
+                UcastNaGc::PRITOMEN      => KodEmailoveSablonyEnum::UPOMINKA_TYDEN_PRITOMEN,
+                UcastNaGc::JEN_PRIHLASEN => KodEmailoveSablonyEnum::UPOMINKA_TYDEN_JEN_PRIHLASEN,
+                UcastNaGc::NEDORAZIL     => $rokPosledniUcasti === null
+                    ? KodEmailoveSablonyEnum::UPOMINKA_TYDEN_NEDORAZIL_NIKDY
+                    : KodEmailoveSablonyEnum::UPOMINKA_TYDEN_NEDORAZIL_DRIVE,
+            },
+            TypUpominky::MESIC => match ($ucastNaGc) {
+                UcastNaGc::PRITOMEN      => KodEmailoveSablonyEnum::UPOMINKA_MESIC_PRITOMEN,
+                UcastNaGc::JEN_PRIHLASEN => KodEmailoveSablonyEnum::UPOMINKA_MESIC_JEN_PRIHLASEN,
+                UcastNaGc::NEDORAZIL     => $rokPosledniUcasti === null
+                    ? KodEmailoveSablonyEnum::UPOMINKA_MESIC_NEDORAZIL_NIKDY
+                    : KodEmailoveSablonyEnum::UPOMINKA_MESIC_NEDORAZIL_DRIVE,
+            },
+            TypUpominky::RUCNI, TypUpominky::VLASTNI => throw new \LogicException(
+                'Textová varianta upomínky je vždy týden nebo měsíc.',
+            ),
         };
-
-        return 'upominka_' . $typUpominky->textovaVarianta()->value . '_' . $varianta;
     }
 
     public function dejQrKodyProUpominku(Uzivatel $uzivatel): array
@@ -568,7 +579,7 @@ SQL,
         $cfosEmaily = Uzivatel::cfosEmaily();
 
         $this->emailoveSablony
-            ->vytvorMail('cfo_upominky_' . $typUpominky->value . '_odeslano', [
+            ->vytvorMail($typUpominky->getKodSablonyInfoCfo(), [
                 'pocet'              => $pocetEmailu,
                 'pocet_preskocenych' => $pocetPreskocenych,
                 'pocet_pod_prahem'   => $pocetPodPrahem,

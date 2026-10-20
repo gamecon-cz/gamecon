@@ -6,6 +6,7 @@ namespace Gamecon\Uzivatel;
 
 use Gamecon\Kanaly\EmailovaSablona\EmailovaPromenna;
 use Gamecon\Kanaly\EmailovaSablona\EmailovaSablonaDefinice;
+use Gamecon\Kanaly\EmailovaSablona\KodEmailoveSablonyEnum;
 use Gamecon\Kanaly\GcMail;
 use Gamecon\Uzivatel\Dto\VlastniZneniUpominky;
 use Gamecon\Uzivatel\SqlStruktura\UpominkaVlastniZneniSqlStruktura as Sql;
@@ -20,7 +21,7 @@ class UpominkaVlastniZneni
     public static function definice(): EmailovaSablonaDefinice
     {
         return new EmailovaSablonaDefinice(
-            kod: 'upominka_vlastni',
+            kod: KodEmailoveSablonyEnum::UPOMINKA_VLASTNI,
             skupina: 'Upomínky dlužníkům',
             nazev: 'Upomínka dlužníkům vlastním zněním',
             kdyOdchazi: 'Když CFO rozesílá upomínky ručně s volbou „vlastní znění“.',

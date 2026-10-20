@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Gamecon\Tests\Model\Kanaly\EmailovaSablona;
 
+use Gamecon\Kanaly\EmailovaSablona\KodEmailoveSablonyEnum;
 use Gamecon\Kanaly\EmailovaSablona\RozkladSymbolu;
 use Gamecon\Kanaly\EmailovaSablona\Token;
 use Gamecon\Kanaly\EmailovaSablona\UlozenaEmailovaSablona;
@@ -46,9 +47,9 @@ class RozkladSymboluTest extends TestCase
      */
     public function ulozenaSablonaJenZNezlomitelnychMezerNeniVyplnena(): void
     {
-        self::assertFalse((new UlozenaEmailovaSablona('x', "\u{A0}", 'Text'))->jeVyplnena());
-        self::assertFalse((new UlozenaEmailovaSablona('x', 'Předmět', "\u{A0}"))->jeVyplnena());
-        self::assertTrue((new UlozenaEmailovaSablona('x', 'Předmět', 'Text'))->jeVyplnena());
+        self::assertFalse((new UlozenaEmailovaSablona(KodEmailoveSablonyEnum::OBNOVA_HESLA, "\u{A0}", 'Text'))->jeVyplnena());
+        self::assertFalse((new UlozenaEmailovaSablona(KodEmailoveSablonyEnum::OBNOVA_HESLA, 'Předmět', "\u{A0}"))->jeVyplnena());
+        self::assertTrue((new UlozenaEmailovaSablona(KodEmailoveSablonyEnum::OBNOVA_HESLA, 'Předmět', 'Text'))->jeVyplnena());
         self::assertFalse((new VlastniZneniUpominky("\u{A0}", 'Text'))->jeVyplnene());
         self::assertFalse((new VlastniZneniUpominky('Předmět', "\u{A0}"))->jeVyplnene());
         self::assertTrue((new VlastniZneniUpominky('Předmět', 'Text'))->jeVyplnene());

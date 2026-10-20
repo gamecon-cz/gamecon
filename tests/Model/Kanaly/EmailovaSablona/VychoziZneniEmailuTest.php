@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Gamecon\Tests\Model\Kanaly\EmailovaSablona;
 
 use Gamecon\Kanaly\EmailovaSablona\EmailoveSablony;
+use Gamecon\Kanaly\EmailovaSablona\KodEmailoveSablonyEnum;
 use Gamecon\Kanaly\GcMail;
 use Gamecon\SystemoveNastaveni\SystemoveNastaveni;
 use Gamecon\Tests\Db\AbstractTestDb;
@@ -20,7 +21,7 @@ class VychoziZneniEmailuTest extends AbstractTestDb
      */
     public function uvolneneMisto(): void
     {
-        $mail = $this->sablony()->vytvorMail('uvolnene_misto', [
+        $mail = $this->sablony()->vytvorMail(KodEmailoveSablonyEnum::UVOLNENE_MISTO, [
             'aktivita' => 'Hrob krále',
             'cas'      => 'čtvrtek 10–14',
         ]);
@@ -37,7 +38,7 @@ class VychoziZneniEmailuTest extends AbstractTestDb
      */
     public function nedostaveniSeNaAktivitu(): void
     {
-        $mail = $this->sablony()->vytvorMail('nedostaveni_se_na_aktivitu', [
+        $mail = $this->sablony()->vytvorMail(KodEmailoveSablonyEnum::NEDOSTAVENI_SE_NA_AKTIVITU, [
             'aktivita'         => 'Hrob krále',
             'lhuta_bez_pokuty' => '2 hodiny',
             'pokuta_procenta'  => 50,
@@ -72,7 +73,7 @@ class VychoziZneniEmailuTest extends AbstractTestDb
      */
     public function obnovaHesla(): void
     {
-        $vykresleno = $this->sablony()->vykresli('obnova_hesla', [
+        $vykresleno = $this->sablony()->vykresli(KodEmailoveSablonyEnum::OBNOVA_HESLA, [
             'odkaz' => 'https://gamecon.cz/obnova-hesla?token=abc.def',
         ]);
 
@@ -100,7 +101,7 @@ class VychoziZneniEmailuTest extends AbstractTestDb
      */
     public function rychlaRegistrace(): void
     {
-        $mail = $this->sablony()->vytvorMail('rychla_registrace', [
+        $mail = $this->sablony()->vytvorMail(KodEmailoveSablonyEnum::RYCHLA_REGISTRACE, [
             'odkaz_k_potvrzeni' => 'https://gamecon.cz/potvrzeni-registrace/kod123',
         ]);
 
@@ -124,7 +125,7 @@ class VychoziZneniEmailuTest extends AbstractTestDb
      */
     public function odhlaseniZGameconu(string $koncovka): void
     {
-        $mail = $this->sablony()->vytvorMail('odhlaseni_z_gameconu', [
+        $mail = $this->sablony()->vytvorMail(KodEmailoveSablonyEnum::ODHLASENI_Z_GAMECONU, [
             'a'          => $koncovka,
             'dalsi_vlna' => '17. 7. 2026 20:00:00',
         ]);
@@ -143,7 +144,7 @@ class VychoziZneniEmailuTest extends AbstractTestDb
      */
     public function odhlaseniZGameconuSeOdesilaJakoProstyText(): void
     {
-        $mail = $this->sablony()->vytvorMail('odhlaseni_z_gameconu', [
+        $mail = $this->sablony()->vytvorMail(KodEmailoveSablonyEnum::ODHLASENI_Z_GAMECONU, [
             'a'          => '',
             'dalsi_vlna' => 'x',
         ]);
@@ -179,7 +180,7 @@ class VychoziZneniEmailuTest extends AbstractTestDb
             '%rok_posledni_ucasti%' => '2019',
         ];
 
-        $vykresleno = $this->sablony()->vykresli($kod, $promenne);
+        $vykresleno = $this->sablony()->vykresli(KodEmailoveSablonyEnum::from($kod), $promenne);
 
         self::assertSame(strtr($ocekavanyPredmet, $nahrady), $vykresleno->predmet);
         self::assertSame(strtr($ocekavanyText, $nahrady), $vykresleno->text);

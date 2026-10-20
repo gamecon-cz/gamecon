@@ -7,6 +7,7 @@ use Gamecon\Cas\DateTimeCz;
 use Gamecon\Aktivita\HromadneAkceAktivit;
 use Gamecon\Aktivita\Exceptions\NevhodnyCasProAutomatickouHromadnouAktivaci;
 use Gamecon\Cas\DateTimeGamecon;
+use Gamecon\Kanaly\EmailovaSablona\KodEmailoveSablonyEnum;
 
 /** @var bool $znovu */
 
@@ -47,7 +48,7 @@ try {
 $automatickyAktivovanoCelkem = $hromadneAkceAktivit->automatickyAktivovanoCelkem();
 
 (new EmailoveSablony($systemoveNastaveni))
-    ->vytvorMail('info_hromadna_aktivace_aktivit', [
+    ->vytvorMail(KodEmailoveSablonyEnum::INFO_HROMADNA_AKTIVACE_AKTIVIT, [
         'pocet'      => $automatickyAktivovanoCelkem,
         'komplikace' => $potize
             ? "U některých se vyskytly komplikace $potize"

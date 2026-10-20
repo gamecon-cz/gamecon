@@ -6,6 +6,7 @@ namespace Gamecon\Tests\Model\Kanaly\EmailovaSablona;
 
 use Gamecon\Kanaly\EmailovaSablona\EmailovaSablonaVykreslovac;
 use Gamecon\Kanaly\EmailovaSablona\EmailoveSablonyKatalog;
+use Gamecon\Kanaly\EmailovaSablona\KodEmailoveSablonyEnum;
 use Gamecon\Kanaly\EmailovaSablona\NahledSablony;
 use Gamecon\Kanaly\EmailovaSablona\SystemoveHodnotyProSablony;
 use Gamecon\Kanaly\GcMail;
@@ -19,7 +20,7 @@ class NahledSablonyTest extends AbstractTestDb
      */
     public function prazdnyPredmetNebraniVykreslenemuTextu(): void
     {
-        $definice = EmailoveSablonyKatalog::dej('uvolnene_misto');
+        $definice = EmailoveSablonyKatalog::dej(KodEmailoveSablonyEnum::UVOLNENE_MISTO);
         $aktivita = $definice->promenna('aktivita')->ukazka;
 
         $nahled = $this->nahled()->vykresli($definice, '', 'Přijď na %aktivita%.', $definice->ukazky());
@@ -33,7 +34,7 @@ class NahledSablonyTest extends AbstractTestDb
      */
     public function prazdnyTextNebraniVykreslenemuPredmetu(): void
     {
-        $definice = EmailoveSablonyKatalog::dej('uvolnene_misto');
+        $definice = EmailoveSablonyKatalog::dej(KodEmailoveSablonyEnum::UVOLNENE_MISTO);
         $aktivita = $definice->promenna('aktivita')->ukazka;
 
         $nahled = $this->nahled()->vykresli($definice, 'Volno na %aktivita%', '', $definice->ukazky());
@@ -47,7 +48,7 @@ class NahledSablonyTest extends AbstractTestDb
      */
     public function kdyzNicNeniVyplnenoUkazeObaZastupneZnaky(): void
     {
-        $definice = EmailoveSablonyKatalog::dej('uvolnene_misto');
+        $definice = EmailoveSablonyKatalog::dej(KodEmailoveSablonyEnum::UVOLNENE_MISTO);
 
         $nahled = $this->nahled()->vykresli($definice, '', '', $definice->ukazky());
 
@@ -60,7 +61,7 @@ class NahledSablonyTest extends AbstractTestDb
      */
     public function samaMezeraNebonovyRadekSeBereJakoNevyplneno(): void
     {
-        $definice = EmailoveSablonyKatalog::dej('uvolnene_misto');
+        $definice = EmailoveSablonyKatalog::dej(KodEmailoveSablonyEnum::UVOLNENE_MISTO);
 
         $nahled = $this->nahled()->vykresli($definice, " \t ", "\n\n", $definice->ukazky());
 
@@ -73,7 +74,7 @@ class NahledSablonyTest extends AbstractTestDb
      */
     public function vyplneneObeCastiSeVykresliBezZastupnychZnaku(): void
     {
-        $definice = EmailoveSablonyKatalog::dej('uvolnene_misto');
+        $definice = EmailoveSablonyKatalog::dej(KodEmailoveSablonyEnum::UVOLNENE_MISTO);
         $systemoveHodnoty = new SystemoveHodnotyProSablony(SystemoveNastaveni::zGlobals());
         $ocekavane = (new EmailovaSablonaVykreslovac($systemoveHodnoty))
             ->vykresli($definice, 'Volno na %aktivita%', 'Přijď na %aktivita% v %cas%.', $definice->ukazky());
@@ -90,7 +91,7 @@ class NahledSablonyTest extends AbstractTestDb
      */
     public function symbolSChybouSeVNahleduNechaJakoZapsanyAOstatniSeVykresli(): void
     {
-        $definice = EmailoveSablonyKatalog::dej('uvolnene_misto');
+        $definice = EmailoveSablonyKatalog::dej(KodEmailoveSablonyEnum::UVOLNENE_MISTO);
         $aktivita = $definice->promenna('aktivita')->ukazka;
 
         $nahled = $this->nahled()->vykresli($definice, '', '%aktivita% a %neexistuje%', $definice->ukazky());
@@ -103,7 +104,7 @@ class NahledSablonyTest extends AbstractTestDb
      */
     public function zastupnyZnakVHtmlEmailuJdeDoTelaDokumentu(): void
     {
-        $definice = EmailoveSablonyKatalog::dej('obnova_hesla');
+        $definice = EmailoveSablonyKatalog::dej(KodEmailoveSablonyEnum::OBNOVA_HESLA);
         self::assertTrue($definice->jeHtml(), 'Test potřebuje šablonu s HTML textem');
 
         $nahled = $this->nahled()->vykresli($definice, 'Obnova hesla', '', $definice->ukazky());

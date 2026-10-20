@@ -32,7 +32,7 @@ class EmailoveSablony
      * @param array<string, string|int|float|\Stringable> $promenne exactly those the template declares
      * @throws EmailovaSablonaNeniVyplnena
      */
-    public function vykresli(string $kod, array $promenne): VykreslenaSablona
+    public function vykresli(KodEmailoveSablonyEnum $kod, array $promenne): VykreslenaSablona
     {
         $definice = EmailoveSablonyKatalog::dej($kod);
         $sablona  = $this->vyplnenaSablona($kod);
@@ -40,12 +40,12 @@ class EmailoveSablony
         return $this->vykreslovac->vykresli($definice, $sablona->predmet, $sablona->text, $promenne);
     }
 
-    private function vyplnenaSablona(string $kod): UlozenaEmailovaSablona
+    private function vyplnenaSablona(KodEmailoveSablonyEnum $kod): UlozenaEmailovaSablona
     {
         $sablona = $this->repository->dej($kod);
         if ($sablona === null || !$sablona->jeVyplnena()) {
             throw new EmailovaSablonaNeniVyplnena(
-                "Šablona e-mailu '$kod' chybí nebo má prázdný předmět či text, e-mail se neodešle.",
+                "Šablona e-mailu '{$kod->value}' chybí nebo má prázdný předmět či text, e-mail se neodešle.",
             );
         }
 
@@ -58,7 +58,7 @@ class EmailoveSablony
      * @param array<string, string|int|float|\Stringable> $promenne
      * @throws EmailovaSablonaNeniVyplnena
      */
-    public function vykresliPredmet(string $kod, array $promenne = []): string
+    public function vykresliPredmet(KodEmailoveSablonyEnum $kod, array $promenne = []): string
     {
         $definice = EmailoveSablonyKatalog::dej($kod);
 
@@ -71,7 +71,7 @@ class EmailoveSablony
      * @param array<string, string|int|float|\Stringable> $promenne
      * @throws EmailovaSablonaNeniVyplnena
      */
-    public function vytvorMail(string $kod, array $promenne): GcMail
+    public function vytvorMail(KodEmailoveSablonyEnum $kod, array $promenne): GcMail
     {
         $vykresleno = $this->vykresli($kod, $promenne);
 

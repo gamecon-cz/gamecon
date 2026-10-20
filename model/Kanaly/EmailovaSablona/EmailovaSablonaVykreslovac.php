@@ -68,7 +68,7 @@ class EmailovaSablonaVykreslovac
 
         throw new ChybiPromennaSablony(sprintf(
             "Šablona '%s' dostala jiné proměnné, než deklaruje. Chybí: [%s], navíc: [%s].",
-            $definice->kod,
+            $definice->kod->value,
             implode(', ', $chybejici),
             implode(', ', $navic),
         ));

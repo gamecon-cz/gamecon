@@ -8,19 +8,20 @@ use Gamecon\Kanaly\EmailovaSablona\SqlStruktura\EmailovaSablonaSqlStruktura as S
 
 class EmailovaSablonaRepository
 {
-    /** @var array<string, UlozenaEmailovaSablona>|null */
+    /** @var array<string, UlozenaEmailovaSablona>|null by the value of the code */
     private ?array $podleKodu = null;
 
-    public function dej(string $kod): ?UlozenaEmailovaSablona
+    public function dej(KodEmailoveSablonyEnum $kod): ?UlozenaEmailovaSablona
     {
-        return $this->vsechny()[$kod] ?? null;
+        return $this->vsechny()[$kod->value] ?? null;
     }
 
     /**
      * Cached because of bulk sending: the subject and text and all e-mails of one run
      * must come from the same wording, even if somebody changes it meanwhile.
+     * A row with a code this version does not know (left by a newer one) is skipped.
      *
-     * @return array<string, UlozenaEmailovaSablona>
+     * @return array<string, UlozenaEmailovaSablona> by the value of the code
      */
     public function vsechny(): array
     {
@@ -37,8 +38,12 @@ SQL,
 
         $this->podleKodu = [];
         foreach ($radky as $radek) {
-            $this->podleKodu[$radek[Sql::KOD]] = new UlozenaEmailovaSablona(
-                kod: (string)$radek[Sql::KOD],
+            $kod = KodEmailoveSablonyEnum::tryFrom((string)$radek[Sql::KOD]);
+            if ($kod === null) {
+                continue;
+            }
+            $this->podleKodu[$kod->value] = new UlozenaEmailovaSablona(
+                kod: $kod,
                 predmet: (string)$radek[Sql::PREDMET],
                 text: (string)$radek[Sql::TEXT],
                 zmenil: $radek[Sql::ZMENIL] !== null
@@ -69,14 +74,14 @@ SQL,
      * (which catches it earlier) can save one.
      */
     public function uloz(
-        string $kod,
-        string $predmet,
-        string $text,
-        int    $zmenil,
+        KodEmailoveSablonyEnum $kod,
+        string                 $predmet,
+        string                 $text,
+        int                    $zmenil,
     ): void {
         [$predmet, $text] = $this->normalizuj($predmet, $text);
         if (RozkladSymbolu::jePrazdny($predmet) || RozkladSymbolu::jePrazdny($text)) {
-            throw new \InvalidArgumentException("Šablona e-mailu '$kod' nesmí mít prázdný předmět ani text.");
+            throw new \InvalidArgumentException("Šablona e-mailu '{$kod->value}' nesmí mít prázdný předmět ani text.");
         }
 
         dbQuery(<<<'SQL'
@@ -85,7 +90,7 @@ VALUES ($0, $1, $2, $3)
 ON DUPLICATE KEY UPDATE predmet = VALUES(predmet), text = VALUES(text), zmenil = VALUES(zmenil)
 SQL,
             [
-                0 => $kod,
+                0 => $kod->value,
                 1 => $predmet,
                 2 => $text,
                 3 => $zmenil,

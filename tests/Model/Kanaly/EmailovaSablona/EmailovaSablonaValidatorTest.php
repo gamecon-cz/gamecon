@@ -7,6 +7,7 @@ namespace Gamecon\Tests\Model\Kanaly\EmailovaSablona;
 use Gamecon\Kanaly\EmailovaSablona\EmailovaPromenna;
 use Gamecon\Kanaly\EmailovaSablona\EmailovaSablonaDefinice;
 use Gamecon\Kanaly\EmailovaSablona\EmailovaSablonaValidator;
+use Gamecon\Kanaly\EmailovaSablona\KodEmailoveSablonyEnum;
 use Gamecon\Kanaly\EmailovaSablona\SystemoveHodnotyProSablony;
 use Gamecon\Kanaly\GcMail;
 use Gamecon\SystemoveNastaveni\SystemoveNastaveni;
@@ -94,7 +95,7 @@ class EmailovaSablonaValidatorTest extends AbstractTestDb
     private function validuj(string $predmet, string $text, ?SystemoveNastaveni $systemoveNastaveni = null): array
     {
         $definice = new EmailovaSablonaDefinice(
-            kod: 'test',
+            kod: KodEmailoveSablonyEnum::UPOMINKA_VLASTNI,
             skupina: 'Test',
             nazev: 'Test',
             kdyOdchazi: '',

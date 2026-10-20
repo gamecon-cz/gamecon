@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Gamecon\Tests\Model\Kanaly\EmailovaSablona;
 
 use Gamecon\Kanaly\EmailovaSablona\EmailoveSablonyKatalog;
+use Gamecon\Kanaly\EmailovaSablona\KodEmailoveSablonyEnum;
 use Gamecon\Kanaly\EmailovaSablona\VysledekZkusebnihoEmailuEnum;
 use Gamecon\Kanaly\EmailovaSablona\ZkusebniEmail;
 use Gamecon\Kanaly\MailLogger;
@@ -19,7 +20,7 @@ class ZkusebniEmailTest extends AbstractTestDb
     public function odesleTextSUkazkovymiHodnotamiNaZadanouAdresuSPredmetemOznacenymJakoTest(): void
     {
         $adresat = 'zkusebni.' . uniqid('', true) . '@example.test';
-        $definice = EmailoveSablonyKatalog::dej('uvolnene_misto');
+        $definice = EmailoveSablonyKatalog::dej(KodEmailoveSablonyEnum::UVOLNENE_MISTO);
         $aktivita = $definice->promenna('aktivita')->ukazka;
         $cas = $definice->promenna('cas')->ukazka;
 
@@ -44,7 +45,7 @@ class ZkusebniEmailTest extends AbstractTestDb
     {
         $adresat = 'zkusebni.text.' . uniqid('', true) . '@example.test';
 
-        $this->zkusebniEmail()->odesli(EmailoveSablonyKatalog::dej('odhlaseni_z_gameconu'), 'Zkouška', 'Jen text, bez symbolů.', $adresat);
+        $this->zkusebniEmail()->odesli(EmailoveSablonyKatalog::dej(KodEmailoveSablonyEnum::ODHLASENI_Z_GAMECONU), 'Zkouška', 'Jen text, bez symbolů.', $adresat);
 
         $mail = $this->posledniMailPro($adresat);
         self::assertSame('text', $mail['format']);
@@ -58,7 +59,7 @@ class ZkusebniEmailTest extends AbstractTestDb
     {
         $adresat = 'zkusebni.pocet.' . uniqid('', true) . '@example.test';
 
-        $this->zkusebniEmail()->odesli(EmailoveSablonyKatalog::dej('uvolnene_misto'), 'Zkouška', 'Zkouška.', $adresat);
+        $this->zkusebniEmail()->odesli(EmailoveSablonyKatalog::dej(KodEmailoveSablonyEnum::UVOLNENE_MISTO), 'Zkouška', 'Zkouška.', $adresat);
 
         $mail = $this->posledniMailPro($adresat);
         self::assertNull($mail['sablona'], 'Sloupec Odesláno v seznamu e-mailů počítá jen e-maily, které opravdu odešly účastníkům');
@@ -72,7 +73,7 @@ class ZkusebniEmailTest extends AbstractTestDb
         // Tests define MAILY_DO_SOUBORU and no MAILY_ROLIM, so on this environment every recipient only goes to the file
         $adresat = 'zkusebni.soubor.' . uniqid('', true) . '@example.test';
 
-        $vysledek = $this->zkusebniEmail()->odesli(EmailoveSablonyKatalog::dej('uvolnene_misto'), 'Zkouška', 'Zkouška.', $adresat);
+        $vysledek = $this->zkusebniEmail()->odesli(EmailoveSablonyKatalog::dej(KodEmailoveSablonyEnum::UVOLNENE_MISTO), 'Zkouška', 'Zkouška.', $adresat);
 
         self::assertSame(VysledekZkusebnihoEmailuEnum::JEN_DO_SOUBORU, $vysledek, 'Admin se nesmí dozvědět, že test odešel, když jen skončil v souboru');
     }
@@ -83,7 +84,7 @@ class ZkusebniEmailTest extends AbstractTestDb
     public function textSeUpravujeJakoPriUlozeni(): void
     {
         $adresat = 'zkusebni.upravy.' . uniqid('', true) . '@example.test';
-        $definice = EmailoveSablonyKatalog::dej('uvolnene_misto');
+        $definice = EmailoveSablonyKatalog::dej(KodEmailoveSablonyEnum::UVOLNENE_MISTO);
         $aktivita = $definice->promenna('aktivita')->ukazka;
 
         $this->zkusebniEmail()->odesli($definice, "  Zkouška\r\n", "Přijď na %aktivita%.\r\n\r\n", $adresat);
