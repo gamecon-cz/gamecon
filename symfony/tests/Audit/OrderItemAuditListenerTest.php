@@ -21,8 +21,12 @@ use App\Structure\Entity\UserEntityStructure;
 use App\Tests\AbstractDatabaseKernelTestCase;
 use Doctrine\ORM\Event\PostPersistEventArgs;
 use Gamecon\Tests\Factory\UserFactory;
+use Symfony\Bundle\FrameworkBundle\Console\Application;
 use Symfony\Bundle\SecurityBundle\Security;
 use Symfony\Component\Clock\NativeClock;
+use Symfony\Component\Console\Command\Command;
+use Symfony\Component\Console\Input\ArrayInput;
+use Symfony\Component\Console\Output\NullOutput;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\RequestStack;
 use Symfony\Component\Security\Core\Authentication\Token\Storage\TokenStorageInterface;
@@ -299,7 +303,7 @@ class OrderItemAuditListenerTest extends AbstractDatabaseKernelTestCase
     {
         $customer = $this->createUser('customer');
         $variant = $this->createVariant();
-        $unavailableOrigin = new class(static::getContainer()->get(Security::class), static::getContainer()->get(RequestStack::class)) extends AuditOriginProvider {
+        $unavailableOrigin = new class(static::getContainer()->get(Security::class), static::getContainer()->get(RequestStack::class), $this->appRootDir()) extends AuditOriginProvider {
             public function getOrigin(): string
             {
                 throw new \RuntimeException('The log is unavailable');
@@ -344,6 +348,41 @@ class OrderItemAuditListenerTest extends AbstractDatabaseKernelTestCase
         $log = $this->logOf($item);
         self::assertSame($actor->getId(), $log[0]->getChangedById());
         self::assertSame('admin_test_route', $log[0]->getOrigin());
+    }
+
+    public function testScriptOriginIsAPathFromTheAppRoot(): void
+    {
+        $originalArguments = $_SERVER['argv'] ?? null;
+        $_SERVER['argv'] = [$this->appRootDir() . '/admin/cron/jobs/foo.php', 'a-secret-key'];
+
+        try {
+            $item = $this->createPurchase($this->createUser('customer'), $this->createVariant());
+        } finally {
+            $_SERVER['argv'] = $originalArguments;
+        }
+
+        self::assertSame('admin/cron/jobs/foo.php', $this->logOf($item)[0]->getOrigin());
+    }
+
+    public function testCommandRunByTheConsoleNamesTheOriginUntilItEnds(): void
+    {
+        $provider = static::getContainer()->get(AuditOriginProvider::class);
+        $originInsideTheCommand = null;
+        $application = new Application(static::$kernel);
+        $application->setAutoExit(false);
+        $application->setCatchExceptions(false);
+        $application->addCommand((new Command('audit:probe'))->setCode(static function () use ($provider, &$originInsideTheCommand): int {
+            $originInsideTheCommand = $provider->getOrigin();
+
+            return Command::SUCCESS;
+        }));
+
+        $application->run(new ArrayInput([
+            'command' => 'audit:probe',
+        ]), new NullOutput());
+
+        self::assertSame('console audit:probe', $originInsideTheCommand);
+        self::assertNotSame('console audit:probe', $provider->getOrigin());
     }
 
     public function testManualSaleLogsEveryPieceWithTheOperator(): void
@@ -434,9 +473,14 @@ class OrderItemAuditListenerTest extends AbstractDatabaseKernelTestCase
     private function auditListener(): OrderItemAuditListener
     {
         return new OrderItemAuditListener(
-            new AuditOriginProvider(static::getContainer()->get(Security::class), static::getContainer()->get(RequestStack::class)),
+            new AuditOriginProvider(static::getContainer()->get(Security::class), static::getContainer()->get(RequestStack::class), $this->appRootDir()),
             new NativeClock(),
         );
+    }
+
+    private function appRootDir(): string
+    {
+        return dirname((string) static::getContainer()->getParameter('kernel.project_dir'));
     }
 
     /**
