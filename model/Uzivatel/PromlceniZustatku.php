@@ -335,7 +335,7 @@ SQL,
 
         $pocetLet              = self::ROK_NEPLATNOST;
         $pocetOdeslanychEmailu = 0;
-        $kodSablony            = 'promlceni_varovani_' . $typVarovani->value;
+        $kodSablony            = $typVarovani->getKodSablonyVarovani();
         $posledniRoky          = $this->dejPosledniRoky($pocetLet);
         $registraceOd          = match ($typVarovani) {
             TypVarovaniPromlceni::MESIC => $regGcOd->format('d.m.Y'),
@@ -412,7 +412,7 @@ SQL,
         $cfosEmaily = Uzivatel::cfosEmaily();
 
         $this->emailoveSablony
-            ->vytvorMail('cfo_promlceni_varovani_' . $typVarovani->value . '_odeslano', [
+            ->vytvorMail($typVarovani->getKodSablonyInfoCfo(), [
                 'pocet'         => $pocetEmailu,
                 'registrace_od' => $regGcOd->format('d.m.Y H:i'),
                 'pocet_let'     => $pocetLet,

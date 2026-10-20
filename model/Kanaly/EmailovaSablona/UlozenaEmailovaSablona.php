@@ -7,7 +7,7 @@ namespace Gamecon\Kanaly\EmailovaSablona;
 readonly class UlozenaEmailovaSablona
 {
     public function __construct(
-        public string $kod,
+        public KodEmailoveSablonyEnum $kod,
         public string $predmet,
         public string $text,
         public ?int $zmenil = null,

@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Gamecon\Tests\Model\Kanaly\EmailovaSablona;
 
 use Gamecon\Kanaly\EmailovaSablona\EmailovaSablonaRepository;
+use Gamecon\Kanaly\EmailovaSablona\KodEmailoveSablonyEnum;
 use Gamecon\Kanaly\MailLogger;
 use Gamecon\SystemoveNastaveni\SystemoveNastaveni;
 use Gamecon\Tests\Db\AbstractTestDb;
@@ -71,7 +72,7 @@ class OdeslaneEmailyZeSablonTest extends AbstractTestDb
     public function uzivatelskyUpravenyTextSeOdesleSeStejnymiHodnotami(): void
     {
         (new EmailovaSablonaRepository())->uloz(
-            'rychla_registrace',
+            KodEmailoveSablonyEnum::RYCHLA_REGISTRACE,
             'Vítej na %ROCNIK%',
             'Potvrď: %odkaz_k_potvrzeni% (a %%)',
             \Uzivatel::SYSTEM,

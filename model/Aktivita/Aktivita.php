@@ -28,6 +28,7 @@ use Gamecon\XTemplate\XTemplate;
 use Granam\RemoveDiacritics\RemoveDiacritics;
 use Symfony\Component\Filesystem\Filesystem;
 use Uzivatel;
+use Gamecon\Kanaly\EmailovaSablona\KodEmailoveSablonyEnum;
 
 
 
@@ -2351,7 +2352,7 @@ SQL
     ', [$this->id(), StavPrihlaseni::SLEDUJICI, $pohlaviSVolnymMistem]);
         $sablony = EmailoveSablony::zGlobals();
         foreach ($emaily as $email) {
-            $sablony->vytvorMail('uvolnene_misto', [
+            $sablony->vytvorMail(KodEmailoveSablonyEnum::UVOLNENE_MISTO, [
                 'aktivita' => $this->nazev(),
                 'cas'      => $this->denCasSkutecny(),
             ])
@@ -3956,7 +3957,7 @@ SQL,
                 $radkyAktivit[] = "<a href='" . htmlspecialchars($url, ENT_QUOTES) . "'>" . htmlspecialchars($neuzavrenaAktivita->nazev(), ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8', false) . "</a> (skončila {$neuzavrenaAktivita->konec()->formatCasNaMinutyStandard()})";
             }
             $emailoveSablony
-                ->vytvorMail('uzavreni_prezence', [
+                ->vytvorMail(KodEmailoveSablonyEnum::UZAVRENI_PREZENCE, [
                     'na_aktivitach' => count($neuzavreneAktivity) === 1
                         ? 'aktivitě'
                         : (count($neuzavreneAktivity) . ' aktivitách'),

@@ -8,6 +8,7 @@ use Gamecon\Cas\DateTimeCz;
 use Gamecon\Uzivatel\Exceptions\NevhodnyCasProHromadneOdhlasovani;
 use Gamecon\Cas\DateTimeGamecon;
 use Gamecon\Shop\Shop;
+use Gamecon\Kanaly\EmailovaSablona\KodEmailoveSablonyEnum;
 
 /** @var bool $znovu */
 
@@ -147,7 +148,7 @@ if ($zpravyPolozky) {
 }
 
 (new EmailoveSablony($systemoveNastaveni))
-    ->vytvorMail('cfo_brzke_odhlaseni_neplaticu', [
+    ->vytvorMail(KodEmailoveSablonyEnum::CFO_BRZKE_ODHLASENI_NEPLATICU, [
         'kdy'    => $brzy,
         'pocet'  => $budeOdhlaseno,
         'seznam' => $seznam,

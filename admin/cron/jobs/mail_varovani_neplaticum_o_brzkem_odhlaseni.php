@@ -8,6 +8,7 @@ use Gamecon\Kanaly\EmailovaSablona\EmailoveSablony;
 use Gamecon\Cas\DateTimeCz;
 use Gamecon\Uzivatel\Exceptions\NevhodnyCasProHromadneOdhlasovani;
 use Gamecon\Cas\DateTimeGamecon;
+use Gamecon\Kanaly\EmailovaSablona\KodEmailoveSablonyEnum;
 
 /** @var bool $znovu */
 
@@ -96,7 +97,7 @@ try {
         /** @var \Gamecon\Uzivatel\KategorieNeplatice $kategorieNeplatice */
         /** @var \Uzivatel $neplatic */
         $gcMail = $sablony
-            ->vytvorMail('varovani_brzke_odhlaseni_neplatic', ['jmeno' => (string)$neplatic->jmenoNick()])
+            ->vytvorMail(KodEmailoveSablonyEnum::VAROVANI_BRZKE_ODHLASENI_NEPLATIC, ['jmeno' => (string)$neplatic->jmenoNick()])
             ->adresat($neplatic->mail());
         $gcMail->odeslat();
         $posledniGcMail = $gcMail;
@@ -124,7 +125,7 @@ $hromadneOdhlaseniNeplaticu->zalogujNotifikovaniNeplaticuOBrzkemHromadnemOdhlase
 
 $cfosEmaily = Uzivatel::cfosEmaily();
 $sablony
-    ->vytvorMail('cfo_neplatici_varovani_odeslano', [
+    ->vytvorMail(KodEmailoveSablonyEnum::CFO_NEPLATICI_VAROVANI_ODESLANO, [
         'pocet'           => $pocetPotencialnichNeplaticu,
         'priklad_predmet' => $posledniGcMail?->dejPredmet() ?? '',
         'priklad_text'    => $posledniGcMail?->dejText() ?? '',

@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Gamecon\Kanaly;
 
+use Gamecon\Kanaly\EmailovaSablona\KodEmailoveSablonyEnum;
 use Gamecon\Kanaly\Exceptions\ChybiEmailoveNastaveni;
 use Gamecon\SystemoveNastaveni\SystemoveNastaveni;
 use Symfony\Component\Mailer\Mailer;
@@ -86,9 +87,9 @@ class GcMail
     /**
      * The code of the e-mail template the message comes from, kept in the log of sent mails so they can be counted per template.
      */
-    public function sablona(string $kod): self
+    public function sablona(KodEmailoveSablonyEnum $kod): self
     {
-        $this->sablona = $kod;
+        $this->sablona = $kod->value;
 
         return $this;
     }

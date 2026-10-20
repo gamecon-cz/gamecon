@@ -20,7 +20,7 @@ readonly class EmailovaSablonaDefinice
      * @param list<EmailovaPromenna> $promenne
      */
     public function __construct(
-        public string $kod,
+        public KodEmailoveSablonyEnum $kod,
         public string $skupina,
         public string $nazev,
         public string $kdyOdchazi,
@@ -31,7 +31,7 @@ readonly class EmailovaSablonaDefinice
         $promennePodleNazvu = [];
         foreach ($promenne as $promenna) {
             if (isset($promennePodleNazvu[$promenna->nazev])) {
-                throw new \LogicException("Šablona '{$this->kod}' má proměnnou '{$promenna->nazev}' dvakrát.");
+                throw new \LogicException("Šablona '{$this->kod->value}' má proměnnou '{$promenna->nazev}' dvakrát.");
             }
             $promennePodleNazvu[$promenna->nazev] = $promenna;
         }

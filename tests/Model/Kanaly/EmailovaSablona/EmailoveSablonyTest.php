@@ -9,6 +9,7 @@ use Gamecon\Kanaly\EmailovaSablona\EmailoveSablony;
 use Gamecon\Kanaly\EmailovaSablona\Exceptions\ChybiPromennaSablony;
 use Gamecon\Kanaly\EmailovaSablona\Exceptions\EmailovaSablonaNeniVyplnena;
 use Gamecon\Kanaly\EmailovaSablona\Exceptions\NeznamaEmailovaSablona;
+use Gamecon\Kanaly\EmailovaSablona\KodEmailoveSablonyEnum;
 use Gamecon\Kanaly\GcMail;
 use Gamecon\SystemoveNastaveni\SystemoveNastaveni;
 use Gamecon\Tests\Db\AbstractTestDb;
@@ -20,9 +21,9 @@ class EmailoveSablonyTest extends AbstractTestDb
      */
     public function vytvorMailMaPredmetATextZDatabaze(): void
     {
-        (new EmailovaSablonaRepository())->uloz('uvolnene_misto', 'Volno na %aktivita%', 'Přijď na %aktivita% v %cas%.', \Uzivatel::SYSTEM);
+        (new EmailovaSablonaRepository())->uloz(KodEmailoveSablonyEnum::UVOLNENE_MISTO, 'Volno na %aktivita%', 'Přijď na %aktivita% v %cas%.', \Uzivatel::SYSTEM);
 
-        $mail = $this->sablony()->vytvorMail('uvolnene_misto', [
+        $mail = $this->sablony()->vytvorMail(KodEmailoveSablonyEnum::UVOLNENE_MISTO, [
             'aktivita' => 'Hrob',
             'cas'      => 'pátek 10–14',
         ]);
@@ -36,7 +37,7 @@ class EmailoveSablonyTest extends AbstractTestDb
      */
     public function textovyMailSeNeobalujeDoHtml(): void
     {
-        $mail = $this->sablony()->vytvorMail('odhlaseni_z_gameconu', [
+        $mail = $this->sablony()->vytvorMail(KodEmailoveSablonyEnum::ODHLASENI_Z_GAMECONU, [
             'a'          => '',
             'dalsi_vlna' => 'x',
         ]);
@@ -52,13 +53,13 @@ class EmailoveSablonyTest extends AbstractTestDb
         $repository = new EmailovaSablonaRepository();
         $sablony = $this->sablony($repository);
 
-        $repository->uloz('obnova_hesla', 'Jedna', 'Text %odkaz%', \Uzivatel::SYSTEM);
-        self::assertSame('Jedna', $sablony->vykresli('obnova_hesla', [
+        $repository->uloz(KodEmailoveSablonyEnum::OBNOVA_HESLA, 'Jedna', 'Text %odkaz%', \Uzivatel::SYSTEM);
+        self::assertSame('Jedna', $sablony->vykresli(KodEmailoveSablonyEnum::OBNOVA_HESLA, [
             'odkaz' => 'x',
         ])->predmet);
 
-        $repository->uloz('obnova_hesla', 'Dvě', 'Text %odkaz%', \Uzivatel::SYSTEM);
-        self::assertSame('Dvě', $sablony->vykresli('obnova_hesla', [
+        $repository->uloz(KodEmailoveSablonyEnum::OBNOVA_HESLA, 'Dvě', 'Text %odkaz%', \Uzivatel::SYSTEM);
+        self::assertSame('Dvě', $sablony->vykresli(KodEmailoveSablonyEnum::OBNOVA_HESLA, [
             'odkaz' => 'x',
         ])->predmet);
     }
@@ -70,7 +71,7 @@ class EmailoveSablonyTest extends AbstractTestDb
     {
         self::assertSame(
             'GameCon ' . ROCNIK . ' - nedoplatky',
-            $this->sablony()->vykresliPredmet('upominka_tyden_pritomen'),
+            $this->sablony()->vykresliPredmet(KodEmailoveSablonyEnum::UPOMINKA_TYDEN_PRITOMEN),
         );
     }
 
@@ -81,7 +82,7 @@ class EmailoveSablonyTest extends AbstractTestDb
     {
         $this->expectException(ChybiPromennaSablony::class);
 
-        $this->sablony()->vykresliPredmet('uvolnene_misto');
+        $this->sablony()->vykresliPredmet(KodEmailoveSablonyEnum::UVOLNENE_MISTO);
     }
 
     /**
@@ -91,7 +92,7 @@ class EmailoveSablonyTest extends AbstractTestDb
     {
         $this->expectException(ChybiPromennaSablony::class);
 
-        $this->sablony()->vykresliPredmet('uvolnene_misto', [
+        $this->sablony()->vykresliPredmet(KodEmailoveSablonyEnum::UVOLNENE_MISTO, [
             'aktivita' => 'Hrob',
             'cas'      => 'pátek',
         ]);
@@ -106,7 +107,7 @@ class EmailoveSablonyTest extends AbstractTestDb
 
         $this->expectException(EmailovaSablonaNeniVyplnena::class);
 
-        $this->sablony()->vykresli('obnova_hesla', [
+        $this->sablony()->vykresli(KodEmailoveSablonyEnum::OBNOVA_HESLA, [
             'odkaz' => 'x',
         ]);
     }
@@ -114,11 +115,11 @@ class EmailoveSablonyTest extends AbstractTestDb
     /**
      * @test
      */
-    public function neznamaSablonaJeChybaVolajicihoKodu(): void
+    public function sablonaMimoKatalogJeChybaVolajicihoKodu(): void
     {
         $this->expectException(NeznamaEmailovaSablona::class);
 
-        $this->sablony()->vykresli('neexistuje', []);
+        $this->sablony()->vykresli(KodEmailoveSablonyEnum::UPOMINKA_VLASTNI, []);
     }
 
     /**
@@ -126,7 +127,7 @@ class EmailoveSablonyTest extends AbstractTestDb
      */
     public function mailZeSablonyPouzijeFormatSablony(): void
     {
-        $mail = $this->sablony()->vytvorMail('uvolnene_misto', [
+        $mail = $this->sablony()->vytvorMail(KodEmailoveSablonyEnum::UVOLNENE_MISTO, [
             'aktivita' => 'x',
             'cas'      => 'y',
         ]);

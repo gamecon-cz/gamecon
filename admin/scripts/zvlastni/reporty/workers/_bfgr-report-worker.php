@@ -12,6 +12,7 @@ use Gamecon\Report\BfgrReport;
 use Gamecon\Kanaly\EmailovaSablona\EmailoveSablony;
 use Gamecon\SystemoveNastaveni\SystemoveNastaveni;
 use Gamecon\BackgroundProcess\BackgroundProcessService;
+use Gamecon\Kanaly\EmailovaSablona\KodEmailoveSablonyEnum;
 
 // Zpracování argumentů z příkazové řádky
 $options = getopt('', ['format:', 'recipientEmail:', 'recipientName::', 'includeNonPayers::', 'userId::']);
@@ -68,7 +69,7 @@ try {
   $attachmentName = "bfgr-report-{$rocnik}-{$timestamp}.xlsx";
 
   $gmail = EmailoveSablony::zGlobals()
-                 ->vytvorMail('bfgr_report', [
+                 ->vytvorMail(KodEmailoveSablonyEnum::BFGR_REPORT, [
                      'jmeno'          => (string)$userName,
                      'rocnik_reportu' => $rocnik,
                      'vygenerovano'   => $timestamp,
@@ -110,7 +111,7 @@ try {
   // Odeslání chybového emailu uživateli
   try {
     EmailoveSablony::zGlobals()
-          ->vytvorMail('bfgr_report_chyba', [
+          ->vytvorMail(KodEmailoveSablonyEnum::BFGR_REPORT_CHYBA, [
               'jmeno' => (string)$userName,
               'chyba' => $e->getMessage(),
           ])

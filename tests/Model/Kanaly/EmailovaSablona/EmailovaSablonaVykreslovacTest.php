@@ -9,6 +9,7 @@ use Gamecon\Kanaly\EmailovaSablona\EmailovaPromenna;
 use Gamecon\Kanaly\EmailovaSablona\EmailovaSablonaDefinice;
 use Gamecon\Kanaly\EmailovaSablona\EmailovaSablonaVykreslovac;
 use Gamecon\Kanaly\EmailovaSablona\Exceptions\ChybiPromennaSablony;
+use Gamecon\Kanaly\EmailovaSablona\KodEmailoveSablonyEnum;
 use Gamecon\Kanaly\EmailovaSablona\SystemoveHodnotyProSablony;
 use Gamecon\Kanaly\EmailovaSablona\VykreslenaSablona;
 use Gamecon\Kanaly\GcMail;
@@ -252,7 +253,7 @@ class EmailovaSablonaVykreslovacTest extends AbstractTestDb
         bool $odkazJeHtml = false,
     ): VykreslenaSablona {
         $definice = new EmailovaSablonaDefinice(
-            kod: 'test',
+            kod: KodEmailoveSablonyEnum::UPOMINKA_VLASTNI,
             skupina: 'Test',
             nazev: 'Test',
             kdyOdchazi: '',

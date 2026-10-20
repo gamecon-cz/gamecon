@@ -6,6 +6,7 @@ namespace Gamecon\Tests\Model\Kanaly\EmailovaSablona;
 
 use Gamecon\Kanaly\EmailovaSablona\EditorSablonyHtml;
 use Gamecon\Kanaly\EmailovaSablona\EmailoveSablonyKatalog;
+use Gamecon\Kanaly\EmailovaSablona\KodEmailoveSablonyEnum;
 use Gamecon\Kanaly\EmailovaSablona\SystemoveHodnotyProSablony;
 use Gamecon\SystemoveNastaveni\SystemoveNastaveni;
 use Gamecon\Tests\Db\AbstractTestDb;
@@ -73,7 +74,7 @@ class EditorSablonyHtmlTest extends AbstractTestDb
     private function vykresli(?string $schrankaUrl): string
     {
         return (new EditorSablonyHtml(new SystemoveHodnotyProSablony(SystemoveNastaveni::zGlobals())))->vykresli(
-            EmailoveSablonyKatalog::dej('uvolnene_misto'),
+            EmailoveSablonyKatalog::dej(KodEmailoveSablonyEnum::UVOLNENE_MISTO),
             'Předmět',
             'Text',
             [],

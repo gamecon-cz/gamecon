@@ -4,7 +4,8 @@ Předmět a text e-mailů, které GameCon posílá, jsou v databázi a mění se
 
 ## Vstupní body v kódu
 
-- `Gamecon\Kanaly\EmailovaSablona\EmailoveSablony` — vstup pro kód, který e-mail posílá: `vytvorMail($kod, $promenne): GcMail`, `vykresli()` (jen předmět a text), `vykresliPredmet()`.
+- `Gamecon\Kanaly\EmailovaSablona\EmailoveSablony` — vstup pro kód, který e-mail posílá: `vytvorMail(KodEmailoveSablonyEnum $kod, $promenne): GcMail`, `vykresli()` (jen předmět a text), `vykresliPredmet()`.
+- `KodEmailoveSablonyEnum` — kód každého e-mailu; hodnota je to, co drží sloupec `emailova_sablona.kod`, log odeslaných e-mailů a `?kod=` v adminu. Nikde v kódu se kód nepíše jako řetězec: kódy složené z typu (`upominka_<typ>_<účast>`, `…_odeslano`) vybírá `match` v `TypUpominky`, `TypVarovaniPromlceni` a `UpominaniDluzniku::kodSablonyUpominky()`. `UPOMINKA_VLASTNI` jako jediný nemá řádek v `emailova_sablona` (vlastní znění je po ročnících v `upominka_vlastni_zneni`) a není v katalogu.
 - `EmailoveSablonyKatalog` — seznam všech šablon: kód, skupina, kdy odchází, komu, formát a **proměnné** (název, popis, ukázka, smí být v předmětu, je to už HTML, je volitelná).
 - `EmailovaSablonaRepository` — čtení a ukládání tabulky `emailova_sablona`.
 - `RozkladSymbolu` — jediné místo, které rozhoduje, co je v textu symbol. `EmailovaSablonaValidator` a `EmailovaSablonaVykreslovac` z něj vycházejí.
@@ -42,9 +43,9 @@ U e-mailů ve formátu HTML se každý nový řádek v **šabloně** převede na
 
 ## Přidání dalšího e-mailu
 
-1. Definice v `EmailoveSablonyKatalog` (proměnné včetně ukázky pro náhled).
+1. Nový případ v `KodEmailoveSablonyEnum` a definice v `EmailoveSablonyKatalog` (proměnné včetně ukázky pro náhled). Případ bez definice v katalogu ohlídá `EmailoveSablonyKatalogTest`.
 2. **Nová migrace** s `INSERT IGNORE INTO emailova_sablona` výchozího znění (už sloučenou migraci se nemění). Test `EmailoveSablonyKatalogTest` ohlídá, že kód a databáze si odpovídají, že výchozí znění projde validací a že se každá nevolitelná proměnná někde použije.
-3. V místě odeslání `EmailoveSablony::vytvorMail($kod, [...])` s přesně deklarovanými proměnnými (jiná sada je `ChybiPromennaSablony`).
+3. V místě odeslání `EmailoveSablony::vytvorMail(KodEmailoveSablonyEnum::…, [...])` s přesně deklarovanými proměnnými (jiná sada je `ChybiPromennaSablony`).
 
 ## Mimo šablony schválně
 

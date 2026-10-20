@@ -13,6 +13,7 @@ use Gamecon\SystemoveNastaveni\SystemoveNastaveni;
 use Gamecon\SystemoveNastaveni\SystemoveNastaveniKlice;
 use Gamecon\Uzivatel\SqlStruktura\PlatbySqlStruktura as Sql;
 use Uzivatel;
+use Gamecon\Kanaly\EmailovaSablona\KodEmailoveSablonyEnum;
 
 class Platby
 {
@@ -382,7 +383,7 @@ class Platby
 
         try {
             $mail = (new EmailoveSablony($this->systemoveNastaveni))
-                ->vytvorMail('cfo_podezrele_vysoka_platba', [
+                ->vytvorMail(KodEmailoveSablonyEnum::CFO_PODEZRELE_VYSOKA_PLATBA, [
                     'castka'            => $castka,
                     'vs'                => $vs,
                     'datum'             => $datum,

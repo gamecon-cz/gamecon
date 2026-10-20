@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace Gamecon\Uzivatel\Enum;
 
+use Gamecon\Kanaly\EmailovaSablona\KodEmailoveSablonyEnum;
+
 /**
  * Typ upomínky dlužníků
  */
@@ -30,5 +32,15 @@ enum TypUpominky: string
     public function maVlastniZneni(): bool
     {
         return $this === self::VLASTNI;
+    }
+
+    public function getKodSablonyInfoCfo(): KodEmailoveSablonyEnum
+    {
+        return match ($this) {
+            self::TYDEN   => KodEmailoveSablonyEnum::CFO_UPOMINKY_TYDEN_ODESLANO,
+            self::MESIC   => KodEmailoveSablonyEnum::CFO_UPOMINKY_MESIC_ODESLANO,
+            self::RUCNI   => KodEmailoveSablonyEnum::CFO_UPOMINKY_RUCNI_ODESLANO,
+            self::VLASTNI => KodEmailoveSablonyEnum::CFO_UPOMINKY_VLASTNI_ODESLANO,
+        };
     }
 }

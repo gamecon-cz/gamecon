@@ -7,6 +7,7 @@ use Gamecon\Exceptions\ChybaKolizeAktivit;
 use Gamecon\Kanaly\EmailovaSablona\EmailoveSablony;
 use Gamecon\SystemoveNastaveni\SystemoveNastaveni;
 use Symfony\Component\Filesystem\Filesystem;
+use Gamecon\Kanaly\EmailovaSablona\KodEmailoveSablonyEnum;
 
 /**
  * Prezenční listina aktivity.
@@ -259,7 +260,7 @@ class AktivitaPrezence
         }
 
         (new EmailoveSablony($this->systemoveNastaveni))
-            ->vytvorMail('nedostaveni_se_na_aktivitu', [
+            ->vytvorMail(KodEmailoveSablonyEnum::NEDOSTAVENI_SE_NA_AKTIVITU, [
                 'aktivita'         => $this->aktivita->nazev(),
                 'lhuta_bez_pokuty' => $this->doKdyJeAktivitaBezPokuty(),
                 'pokuta_procenta'  => $this->procentaZaPozdniOdhlaseni(),

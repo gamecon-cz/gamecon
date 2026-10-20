@@ -8,6 +8,7 @@ use Gamecon\Kanaly\EmailovaSablona\EmailovaSablonaRepository;
 use Gamecon\Kanaly\EmailovaSablona\EmailovaSablonaValidator;
 use Gamecon\Kanaly\EmailovaSablona\EmailovaSablonaVykreslovac;
 use Gamecon\Kanaly\EmailovaSablona\EmailoveSablonyKatalog;
+use Gamecon\Kanaly\EmailovaSablona\KodEmailoveSablonyEnum;
 use Gamecon\Kanaly\EmailovaSablona\NahledSablony;
 use Gamecon\Kanaly\EmailovaSablona\ProblemSablony;
 use Gamecon\Kanaly\EmailovaSablona\ProblemySablonHtml;
@@ -58,10 +59,10 @@ $zmenaProSeznam = static function (?UlozenaEmailovaSablona $sablona): array {
     ];
 };
 
-$kod = get('kod');
-if ($kod !== null) {
-    $kod = (string)$kod;
-    if (!EmailoveSablonyKatalog::existuje($kod)) {
+$kodZUrl = get('kod');
+if ($kodZUrl !== null) {
+    $kod = KodEmailoveSablonyEnum::tryFrom((string)$kodZUrl);
+    if ($kod === null || !EmailoveSablonyKatalog::existuje($kod)) {
         oznameniPresmeruj('Takový e-mail neznáme.', URL_ADMIN . '/' . $urlModulu, Chyba::CHYBA);
     }
     $definice = EmailoveSablonyKatalog::dej($kod);
@@ -137,7 +138,7 @@ if ($kod !== null) {
         $chyby   = $validator->validuj($definice, $predmet, $text);
         if ($chyby === []) {
             $repository->uloz($kod, $predmet, $text, $u->id());
-            oznameniPresmeruj('Text e-mailu uložen', URL_ADMIN . '/' . $urlModulu . '?kod=' . rawurlencode($kod));
+            oznameniPresmeruj('Text e-mailu uložen', URL_ADMIN . '/' . EmailovaSablonaKontrola::odkazNaEditaci($kod));
         }
     }
 
@@ -166,10 +167,10 @@ if ($kod !== null) {
             $predmet,
             $text,
             $chyby,
-            $urlModulu . '?kod=' . rawurlencode($kod) . '&nahled',
+            EmailovaSablonaKontrola::odkazNaEditaci($kod) . '&nahled',
             $urlModulu,
             'Zpět na seznam e-mailů',
-            $urlModulu . '?kod=' . rawurlencode($kod) . '&test',
+            EmailovaSablonaKontrola::odkazNaEditaci($kod) . '&test',
             $u->mail() ?: null,
             ZachytavacEmailu::zGlobals()->getUrl(),
         ),
@@ -199,7 +200,7 @@ $odeslanoPodleSablon = MailLogger::zGlobals()->souhrnPodleSablon($rocnik);
 
 $ulozene          = $repository->vsechny();
 $kodyProblemovych = array_flip(array_map(
-    static fn(ProblemSablony $problem) => $problem->kod,
+    static fn(ProblemSablony $problem) => $problem->kod->value,
     $problemy,
 ));
 
@@ -211,11 +212,11 @@ foreach (EmailoveSablonyKatalog::vsechny() as $definice) {
 foreach ($definicePodleSkupin as $skupina => $definiceSkupiny) {
     $sablonaStranky->assign('skupina', htmlspecialchars($skupina, ENT_QUOTES));
     foreach ($definiceSkupiny as $definice) {
-        $sablona  = $ulozene[$definice->kod] ?? null;
+        $sablona  = $ulozene[$definice->kod->value] ?? null;
         $zmena    = $zmenaProSeznam($sablona);
-        $odeslano = $odeslanoPodleSablon[$definice->kod] ?? ['odeslano' => 0, 'prijemcu' => 0, 'selhalo' => 0];
+        $odeslano = $odeslanoPodleSablon[$definice->kod->value] ?? ['odeslano' => 0, 'prijemcu' => 0, 'selhalo' => 0];
         $sablonaStranky->assign([
-            'kod'              => htmlspecialchars($definice->kod, ENT_QUOTES),
+            'kod'              => htmlspecialchars($definice->kod->value, ENT_QUOTES),
             'odkaz'            => htmlspecialchars(EmailovaSablonaKontrola::odkazNaEditaci($definice->kod), ENT_QUOTES),
             'nazev'            => htmlspecialchars($definice->nazev, ENT_QUOTES),
             'kdyOdchazi'       => htmlspecialchars($definice->kdyOdchazi, ENT_QUOTES),
@@ -226,7 +227,7 @@ foreach ($definicePodleSkupin as $skupina => $definiceSkupiny) {
                 . '<br><strong>Selhalo:</strong> ' . $odeslano['selhalo'],
             'zmenenoTrida'     => $zmena['trida'],
             'zmenenoObsah'     => $zmena['obsah'],
-            'problem'          => isset($kodyProblemovych[$definice->kod])
+            'problem'          => isset($kodyProblemovych[$definice->kod->value])
                 ? '<span title="Text chybí nebo obsahuje hodnotu, která se nedosadí">⚠️</span> '
                 : '',
         ]);

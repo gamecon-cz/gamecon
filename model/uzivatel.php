@@ -29,6 +29,7 @@ use Gamecon\Uzivatel\UserController;
 use Gamecon\Uzivatel\UserRepository;
 use Gamecon\Uzivatel\UzivatelSlucovani;
 use Gamecon\Uzivatel\ZpusobZobrazeniNaWebu;
+use Gamecon\Kanaly\EmailovaSablona\KodEmailoveSablonyEnum;
 
 /**
  * Třída popisující uživatele a jeho vlastnosti
@@ -659,7 +660,7 @@ SQL, [Pravo::PORADANI_AKTIVIT],
         self $odhlasujici,
     ): GcMail {
         return (new EmailoveSablony($this->systemoveNastaveni))
-            ->vytvorMail('info_odhlasil_ale_platil', [
+            ->vytvorMail(KodEmailoveSablonyEnum::INFO_ODHLASIL_ALE_PLATIL, [
                 'jmeno_nick'   => (string)$this->jmenoNick(),
                 'id_uzivatele' => $this->id(),
                 'odhlaseni'    => $this->popisOdhlaseni($odhlasujici),
@@ -676,7 +677,7 @@ SQL, [Pravo::PORADANI_AKTIVIT],
         self $odhlasujici,
     ): GcMail {
         return (new EmailoveSablony($this->systemoveNastaveni))
-            ->vytvorMail('info_odhlasil_mel_objednavky', [
+            ->vytvorMail(KodEmailoveSablonyEnum::INFO_ODHLASIL_MEL_OBJEDNAVKY, [
                 'jmeno_nick'   => (string)$this->jmenoNick(),
                 'id_uzivatele' => $this->id(),
                 'odhlaseni'    => $this->popisOdhlaseni($odhlasujici),
@@ -701,7 +702,7 @@ SQL, [Pravo::PORADANI_AKTIVIT],
         set_time_limit(30); // pro jistotu
 
         return (new EmailoveSablony($this->systemoveNastaveni))
-            ->vytvorMail('odhlaseni_z_gameconu', [
+            ->vytvorMail(KodEmailoveSablonyEnum::ODHLASENI_Z_GAMECONU, [
                 'a'          => $this->koncovkaDlePohlavi('a'),
                 'dalsi_vlna' => $nejblizsiHromadneOdhlasovaniKdy->formatCasStandard(),
             ])
@@ -2329,7 +2330,7 @@ SQL,
         // poslání mailu
         if ($opt['informovat']) {
             $mail = (new EmailoveSablony($systemoveNastaveni))
-                ->vytvorMail('rychla_registrace', [
+                ->vytvorMail(KodEmailoveSablonyEnum::RYCHLA_REGISTRACE, [
                     'odkaz_k_potvrzeni' => URL_WEBU . '/potvrzeni-registrace/' . $rand,
                 ])
                 ->adresat($tab[Sql::EMAIL1_UZIVATELE]);

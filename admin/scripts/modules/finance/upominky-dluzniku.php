@@ -5,6 +5,7 @@ use Gamecon\Kanaly\EmailovaSablona\EditorSablonyHtml;
 use Gamecon\Kanaly\EmailovaSablona\EmailovaSablonaKontrola;
 use Gamecon\Kanaly\EmailovaSablona\EmailovaSablonaValidator;
 use Gamecon\Kanaly\EmailovaSablona\EmailovaSablonaVykreslovac;
+use Gamecon\Kanaly\EmailovaSablona\KodEmailoveSablonyEnum;
 use Gamecon\Kanaly\EmailovaSablona\NahledSablony;
 use Gamecon\Kanaly\EmailovaSablona\ProblemSablony;
 use Gamecon\Kanaly\EmailovaSablona\ProblemySablonHtml;
@@ -127,7 +128,7 @@ if (get('zneni') !== null) {
         'rocnik'   => $rocnik,
         'problemy' => ProblemySablonHtml::vykresli(array_values(array_filter(
             EmailovaSablonaKontrola::zNastaveni($systemoveNastaveni)->najdiProblemy(),
-            static fn (ProblemSablony $problem) => $problem->kod === EmailovaSablonaKontrola::KOD_VLASTNIHO_ZNENI_UPOMINKY,
+            static fn (ProblemSablony $problem) => $problem->kod === KodEmailoveSablonyEnum::UPOMINKA_VLASTNI,
         ))),
         'editor'   => (new EditorSablonyHtml($systemoveHodnoty))->vykresli(
             $definiceZneni,
@@ -355,8 +356,8 @@ $t->assign('urlModulu', 'finance/upominky-dluzniku');
  * @see \Gamecon\Kanaly\EmailovaSablona\EmailoveSablonyKatalog::upominky()
  */
 $t->assign([
-    'urlStandardnihoZneniMesic' => 'web/emailove-sablony?kod=upominka_' . TypUpominky::MESIC->value . '_pritomen',
-    'urlStandardnihoZneniTyden' => 'web/emailove-sablony?kod=upominka_' . TypUpominky::TYDEN->value . '_pritomen',
+    'urlStandardnihoZneniMesic' => EmailovaSablonaKontrola::odkazNaEditaci(KodEmailoveSablonyEnum::UPOMINKA_MESIC_PRITOMEN),
+    'urlStandardnihoZneniTyden' => EmailovaSablonaKontrola::odkazNaEditaci(KodEmailoveSablonyEnum::UPOMINKA_TYDEN_PRITOMEN),
 ]);
 
 $celkovyDluh = 0;
