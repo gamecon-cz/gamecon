@@ -98,21 +98,6 @@ Seznam letošních záznamů o stornu za aktivity (účastník se nedostavil apo
 aktivitu nedorazil*. **Pozor: tlačítko se na nic neptá, ruší okamžitě.**
 Když letos žádná storna nejsou, uvidíš *„Letos zatím žádná storna."*
 
-## Hromadné rušení objednávek
-
-Nástroj na zrušení objednávek (jídlo / ubytování / tričko) lidem se zůstatkem
-nižším než zadaná hranice — typicky neplatičům před festivalem. Ve výpisu se
-neobjeví lidé s právem „nerušit automaticky objednávky".
-
-1. Zadej **Minimální zůstatek** (výchozí −20 Kč) a **Typ objednávek**.
-2. Klikni na **Vypsat uživatele s nižším zůstatkem** a seznam zkontroluj.
-3. Teprve pak klikni na **Zrušit vypsaným uživatelům vybrané objednávky**.
-   Bez předchozího výpisu tě zastaví hláška *„Nejdříve si musíte uživatele
-   vypsat."*
-
-**⚠️ Nevratná akce bez dalšího potvrzení** — po kliknutí se objednávky
-vypsaným lidem rovnou zruší. Před krokem 3 si výpis opravdu projdi.
-
 ## Promlčení zůstatků 🤫
 
 Odepsání starých zůstatků lidí, kteří už na GameCon nejezdí.
@@ -190,20 +175,18 @@ uživatele. Samotné vrácení peněz proběhne převodem z banky mimo tuto sekc
 Staré nevyzvednuté zůstatky lidí, kteří už nejezdí, řeš hromadně přes
 **Promlčení zůstatků**.
 
-**Před festivalem / konec ročníku.** Obvyklý úklid: (1) **Hromadné rušení
-objednávek** uvolní jídlo a ubytování rezervované neplatiči; (2) **Hromadné
-odhlášení účastníků** odhlásí ty, kdo nezaplatili vůbec; (3) po festivalu
-**Rušení storna** pro odpuštění storn v odůvodněných případech; (4) čas od
-času **Slučování uživatelů** podle reportu duplicit a **Promlčení zůstatků**
-za staré ročníky.
+**Před festivalem / konec ročníku.** Obvyklý úklid: (1) neplatiče odhlašuje
+automaticky plánovaná úloha (zruší jim ubytování a aktivity, případně je
+odhlásí z GameConu celé); (2) **Hromadné odhlášení účastníků** odhlásí ručně
+ty, kdo nezaplatili vůbec; (3) po festivalu **Rušení storna** pro odpuštění
+storn v odůvodněných případech; (4) čas od času **Slučování uživatelů** podle
+reportu duplicit a **Promlčení zůstatků** za staré ročníky.
 
 ## Na co si dát pozor
 
-- **Nevratné akce:** hromadné odhlášení, hromadné rušení objednávek,
-  promlčení zůstatků, sloučení účtů, anonymizace. Vždy si nejdřív seznam
-  vypiš/zkontroluj a teprve potom klikej.
-- **Rušení storna a hromadné rušení objednávek nemají potvrzovací dialog** —
-  kliknutí rovnou provede akci.
+- **Nevratné akce:** hromadné odhlášení, promlčení zůstatků, sloučení účtů,
+  anonymizace. Vždy si nejdřív seznam vypiš/zkontroluj a teprve potom klikej.
+- **Rušení storna nemá potvrzovací dialog** — kliknutí rovnou provede akci.
 - **Import e-shopu a import ubytování kompletně přepisují letošní data.**
   Položky, které v importním souboru chybí, import skryje.
 - Sleva jde připsat jen uživateli **přihlášenému na letošní GameCon**.

@@ -42,7 +42,7 @@ TL;DR: Každá změna řádku `shop_nakupy` (vznik, změna, smazání) se zapí�
 - Jednotlivý zápis s vlastním commitem: ~0,35 ms navíc na flush, který trvá ~2,8 ms (+12 %). Hromadný flush: ~0,1 ms navíc na nákup.
 - Řádek zabere ~265 B dat, se dvěma indexy změřeno ~315 B; třetí index (`changed_by_id`) přidal po měření, odhadem dalších ~15 B a ~6 µs na zápis. Čtvrtý (`origin`) také nebyl měřen; drží celý text původu, takže bude dražší než číselné indexy, odhadem desítky bajtů na řádek.
 - Dávkový zápis (jeden víceřádkový `INSERT` na flush) by u hromadných operací snížil cenu samotného `INSERT` z ~63 na ~14 µs na řádek, ale jednotlivé zápisy, které dominují při náporu registrace, nezrychlí; zatím se nedělá.
-- Hromadné rušení objednávek v adminu (1000 nákupů ve 200 objednávkách): jeden ruční `DELETE` ~8 ms, přes Doctrine ~300 ms, s logem ~400 ms.
+- Hromadné smazání 1000 nákupů ve 200 objednávkách přes `BulkCancelService::removePurchases()` (měřeno ještě přes dnes smazanou stránku hromadného rušení): jeden ruční `DELETE` ~8 ms, přes Doctrine ~300 ms, s logem ~400 ms.
 
 ## Otevřené
 

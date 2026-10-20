@@ -308,9 +308,9 @@ if (Predmet::jeToKostka($r['kod_predmetu'])) {
 
 #### ✅ **Hromadné zrušení objednávek**
 > **Hotovo.** `BulkCancelService` + `BulkCancelProcessor`; vrací zásobu přes
-> `CapacityManager`.
+> `CapacityManager`. Ruční stránka v adminu (Finance > Hromadné rušení
+> objednávek) je smazaná, nahradilo ji automatické rušení neplatičů.
 **Současné metody:**
-- `Shop::zrusObjednavkyPro($uzivatele, $kategorie, $systemoveNastaveni)` - zruší objednávky dané kategorie pro více uživatelů
 - `Shop::zrusLetosniObjednaneUbytovani($zdrojZruseni)` - zruší ubytování
 - `Shop::zrusVsechnyLetosniObjedavky($zdrojZruseni)` - zruší všechny nákupy za rok
 - `Shop::zrusPrihlaseniNaLetosniLarpy($odhlasujici, $zdrojZruseni)` - zruší LARPy

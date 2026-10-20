@@ -454,7 +454,7 @@ Nová vrstva ten termín nečte vůbec. `prodejJidlaUkoncen()` má v celém repu
 volající a ani jeden není storefront:
 
 - `model/SystemoveNastaveni/SystemoveNastaveni.php:839` — definice
-- `model/Shop/Shop.php:809` — hromadné rušení objednávek (*co se po uzávěrce neruší*)
+- `Shop::zrusZrusitelneLetosniObjednavky()` v `model/Shop/Shop.php` — rušení objednávek při odhlášení z GameConu (*co se po uzávěrce neruší*)
 
 V `symfony/src/` **není ani jeden výskyt**.
 
