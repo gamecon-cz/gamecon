@@ -16,7 +16,7 @@ TL;DR: Každá změna řádku `shop_nakupy` (vznik, změna, smazání) se zapí�
 - `order_item_id`, `customer_id` (zákazník po změně), `year`, `action` (`created` / `updated` / `removed`), `changed_at`
 - `changes` — JSON `sloupec shop_nakupy → [před, po]`. Vznik nemá „před" (`null`), smazání nemá „po". U vzniku a smazání jen jádro nákupu (zákazník, objednatel, objednávka, varianta, balíček, ročník, ceny, sleva, `override_log`); u změny cokoli, co se změnilo, včetně snapshotů názvů
 - `changed_by_id` — přihlášený uživatel; `NULL` = nikdo (cron, příkaz)
-- `origin` — název routy, cesta legacy stránky nebo skript; u konzole i název příkazu. Nikdy ne query string ani argumenty, ty mohou nést tokeny. Delší původ se zkrátí na délku sloupce, 255 znaků
+- `origin` — název routy, cesta legacy stránky nebo skript (cesta od kořene aplikace, např. `admin/cron/jobs/aktivace_aktivit.php`, skript mimo aplikaci s celou cestou); u příkazu Symfony konzole `console` a jeho název, tak jak ho aplikace rozpoznala (událost `console.command`, ne argumenty příkazové řádky). Nikdy ne query string ani argumenty, ty mohou nést tokeny. Delší původ se zkrátí na délku sloupce, 255 znaků
 
 ## Pravidla
 

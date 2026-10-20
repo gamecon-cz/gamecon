@@ -69,6 +69,10 @@ services:
     # The legacy merge of two users hands the purchases over through it
     App\Service\PurchaseTransferService:
         public: true
+    # The app root is the directory above the Symfony project, where legacy scripts live
+    App\Service\AuditOriginProvider:
+        arguments:
+            $appRootDir: '%kernel.project_dir%/..'
     # The legacy e-shop import keeps variants following its catalog rows through this
     App\Service\VariantStateMirror:
         public: true
