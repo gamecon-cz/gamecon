@@ -17,8 +17,7 @@ Rámcový přehled činností, které se během roku běžně v souvislosti s we
 - (květen–červen) Spouštění „vln“ programu – provádí si postupně program.
 - (konec června) Poloautomatické odhlašování – má na starosti zázemí, ale většinou to zapomíná a zpětně to nejde¹ opravit, tzn. je nutné je s tím urgovat. Obsahuje několik kroků:
   - Poslední večer (ideálně v 23:xx) kdy ještě platí včasná platba: pomocí panelu Finance v adminu všem účastníkům odebrat roli včasné platby, vyfiltrovat ty s zůstatkem větším jak např. -100Kč a potvrdit jejich posazení na roli včasné platby. Pokud se toto neudělá, po půlnoci všem naskočí nedoplatek (sleva se přestane automaticky dávat) a tím pádem už se nedá zjistit, kdo vlastně zaplatil a kdo ne.
-  - O pár dní po té pomocí panelu Finance > Hromadné rušení objednávek v adminu odhlásit lidem s nedoplatky vybrané věci (co se bude odhlašovat a jaká výše nedoplatku se bere v úvahu si opět určuje zázemí).
-  - Odhlásit neplatičům aktivity – provádí ručně zázemí.
+  - Potom v čase daném nastavením hromadného odhlašování běží automaticky úloha `admin/cron/jobs/odhlaseni_neplaticu.php`: podle dluhu a toho, kolik člověk poslal, mu zruší jen ubytování a aktivity, nebo ho odhlásí z GameConu celého. Ruční rušení objednávek v adminu už neexistuje.
 - (před GC) Další vlna odhlašování (TODO: toto je nějaká nová věc zavedená zázemím, nevíme o tom mnoho)
 - (začátek GC) Automatické přepnutí stránek do režimu „GC běží“ – znepřístupní se přihláška, klikat si věci v programu je stále možné. Nové lidi přihlašuje infopult přes admin, který stále plně funguje.
 - (v průběhu GC) Vyplňování prezenček, …, TODO

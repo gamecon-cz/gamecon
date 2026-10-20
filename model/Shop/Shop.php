@@ -60,42 +60,6 @@ class Shop
 
     private static $dny = ['středa', 'čtvrtek', 'pátek', 'sobota', 'neděle'];
 
-    /**
-     * @param Uzivatel[] $uzivatele
-     * @param ProductTagCode $kategorie
-     * @return void
-     * @throws \DbException
-     */
-    public static function zrusObjednavkyPro(
-        array              $uzivatele,
-        ProductTagCode     $kategorie,
-        SystemoveNastaveni $systemoveNastaveni,
-    ) {
-        $povoleneKategorie = [ProductTagCode::PREDMET, ProductTagCode::UBYTOVANI, ProductTagCode::TRICKO, ProductTagCode::JIDLO];
-        if (!in_array($kategorie, $povoleneKategorie, true)) {
-            throw new \Exception('Tento typ objednávek není možné hromadně zrušit');
-        }
-
-        $ids = array_map(static function (
-            $u,
-        ) {
-            return $u->id();
-        }, $uzivatele);
-
-        $idsNakupu = dbOneArray(<<<'SQL'
-SELECT shop_nakupy.id_nakupu
-FROM shop_nakupy
-INNER JOIN product_variant ON product_variant.id = shop_nakupy.variant_id
-INNER JOIN product_product_tag ON product_product_tag.product_id = product_variant.product_id
-INNER JOIN product_tag ON product_tag.id = product_product_tag.tag_id AND product_tag.code = $0
-WHERE shop_nakupy.id_uzivatele IN ($1) AND shop_nakupy.rok = $2
-SQL,
-            [0 => $kategorie->value, 1 => $ids, 2 => $systemoveNastaveni->rocnik()],
-        );
-
-        $systemoveNastaveni->getService(BulkCancelService::class)->removePurchases($idsNakupu);
-    }
-
     /** Smaže z názvu identifikaci dne */
     public static function bezDne(string $nazev): string
     {

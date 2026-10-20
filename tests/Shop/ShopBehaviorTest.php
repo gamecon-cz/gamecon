@@ -4,9 +4,7 @@ declare(strict_types=1);
 
 namespace Gamecon\Tests\Shop;
 
-use App\Enum\OrderItemChangeEnum;
 use App\Enum\ProductTagCode;
-use App\Service\BulkCancelService;
 use Gamecon\Shop\Shop;
 use Gamecon\SystemoveNastaveni\SystemoveNastaveni;
 use Gamecon\Tests\Db\AbstractTestDb;
@@ -148,7 +146,7 @@ SQL,
                 dbQuery('INSERT INTO shop_nakupy(id_uzivatele, variant_id, rok, cena_nakupni, datum)
                     VALUES (77701, ' . sprintf(self::SQL_VARIANTA_RADKU, 77718) . ", {$rocnik}, 200, NOW())"); // vstupne
 
-                // Purchases for user 77702 — predmet + jidlo (for bulk cancellation test)
+                // Purchases for user 77702 — predmet + jidlo, no ubytovani
                 dbQuery('INSERT INTO shop_nakupy(id_uzivatele, variant_id, rok, cena_nakupni, datum)
                     VALUES (77702, ' . sprintf(self::SQL_VARIANTA_RADKU, 77711) . ", {$rocnik}, 50, NOW())");  // predmet
                 dbQuery('INSERT INTO shop_nakupy(id_uzivatele, variant_id, rok, cena_nakupni, datum)
@@ -279,114 +277,6 @@ SQL,
         self::assertContains(ProductTagCode::TRICKO, $typy, 'Chybí typ TRICKO');
         self::assertContains(ProductTagCode::JIDLO, $typy, 'Chybí typ JIDLO');
         self::assertContains(ProductTagCode::VSTUPNE, $typy, 'Chybí typ VSTUPNE');
-    }
-
-    // ==================== C. zrusObjednavkyPro() ====================
-
-    /**
-     * @test
-     */
-    public function hromadneZruseniSmazeNakupyDanehoTypu(): void
-    {
-        $uzivatel = \Uzivatel::zIdUrcite(77702);
-
-        // Verify user has both PREDMET and JIDLO purchases
-        $predPredmety = (int) dbOneCol(
-            'SELECT COUNT(*) FROM shop_nakupy INNER JOIN product_variant ON product_variant.id = shop_nakupy.variant_id WHERE id_uzivatele = 77702 AND product_variant.product_id = 77711 AND rok = $0',
-            [
-                0 => ROCNIK,
-            ],
-        );
-        $predJidlo = (int) dbOneCol(
-            'SELECT COUNT(*) FROM shop_nakupy INNER JOIN product_variant ON product_variant.id = shop_nakupy.variant_id WHERE id_uzivatele = 77702 AND product_variant.product_id = 77716 AND rok = $0',
-            [
-                0 => ROCNIK,
-            ],
-        );
-        self::assertSame(1, $predPredmety, 'Předmět nákup existuje');
-        self::assertSame(1, $predJidlo, 'Jídlo nákup existuje');
-
-        // Cancel JIDLO purchases
-        Shop::zrusObjednavkyPro([$uzivatel], ProductTagCode::JIDLO, SystemoveNastaveni::zGlobals());
-
-        // JIDLO purchases should be gone
-        $poJidlo = (int) dbOneCol(
-            'SELECT COUNT(*) FROM shop_nakupy INNER JOIN product_variant ON product_variant.id = shop_nakupy.variant_id WHERE id_uzivatele = 77702 AND product_variant.product_id = 77716 AND rok = $0',
-            [
-                0 => ROCNIK,
-            ],
-        );
-        self::assertSame(0, $poJidlo, 'Jídlo nákupy smazány');
-
-        // PREDMET purchases should remain
-        $poPredmety = (int) dbOneCol(
-            'SELECT COUNT(*) FROM shop_nakupy INNER JOIN product_variant ON product_variant.id = shop_nakupy.variant_id WHERE id_uzivatele = 77702 AND product_variant.product_id = 77711 AND rok = $0',
-            [
-                0 => ROCNIK,
-            ],
-        );
-        self::assertSame(1, $poPredmety, 'Předmět nákupy zůstaly');
-    }
-
-    /**
-     * @test
-     */
-    public function hromadneZruseniZapiseSmazaneNakupyDoLogu(): void
-    {
-        $uzivatel = \Uzivatel::zIdUrcite(77702);
-
-        Shop::zrusObjednavkyPro([$uzivatel], ProductTagCode::JIDLO, SystemoveNastaveni::zGlobals());
-
-        $smazano = (int) dbOneCol(
-            <<<'SQL'
-            SELECT COUNT(*) FROM shop_order_item_log WHERE customer_id = 77702 AND action = $0
-            SQL,
-            [
-                0 => OrderItemChangeEnum::REMOVED,
-            ],
-        );
-        self::assertSame(1, $smazano, 'Zrušené jídlo musí mít v logu nákupů řádek o smazání, ostatní nákupy ne');
-    }
-
-    /**
-     * @test
-     */
-    public function hromadneZruseniPouzijeSluzbuZDodanehoNastaveni(): void
-    {
-        $uzivatel = \Uzivatel::zIdUrcite(77702);
-        $idNakupuJidla = (int) dbOneCol(
-            <<<'SQL'
-            SELECT shop_nakupy.id_nakupu
-            FROM shop_nakupy
-            INNER JOIN product_variant ON product_variant.id = shop_nakupy.variant_id
-            WHERE shop_nakupy.id_uzivatele = 77702 AND product_variant.product_id = 77716 AND shop_nakupy.rok = $0
-            SQL,
-            [
-                0 => ROCNIK,
-            ],
-        );
-        self::assertGreaterThan(0, $idNakupuJidla, 'Chybí jídlo uživatele 77702 v tomto ročníku');
-        $sluzba = $this->createMock(BulkCancelService::class);
-        $sluzba->expects(self::once())->method('removePurchases')->with([$idNakupuJidla]);
-
-        Shop::zrusObjednavkyPro(
-            [$uzivatel],
-            ProductTagCode::JIDLO,
-            $this->systemoveNastaveniSeSluzbou(BulkCancelService::class, $sluzba),
-        );
-    }
-
-    /**
-     * @test
-     */
-    public function hromadneZruseniOdmitneNepovolenyTyp(): void
-    {
-        $uzivatel = \Uzivatel::zIdUrcite(77701);
-
-        $this->expectException(\Exception::class);
-        $this->expectExceptionMessage('Tento typ objednávek není možné hromadně zrušit');
-
-        Shop::zrusObjednavkyPro([$uzivatel], ProductTagCode::VSTUPNE, SystemoveNastaveni::zGlobals());
     }
 
     // ==================== D. Finance categorization ====================
