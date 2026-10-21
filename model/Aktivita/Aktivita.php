@@ -72,6 +72,7 @@ class Aktivita
     private ?AktivitaTurnaj   $turnaj     = null;
 
     const AJAX_KLIC             = 'aEditFormTest'; // název post proměnné; ve které jdou data; pokud chceme ajaxově testovat jejich platnost a čekáme json odpověď
+    const AJAX_CENA_KLIC        = 'aEditFormCena'; // název post proměnné; pokud se chceme ajaxově zeptat na cenu brigádnické aktivity a čekáme json odpověď
     const OBRAZEK_KLIC          = 'aEditObrazek';    // název proměnné; v které bude případně obrázek
     const ODMENA_ZA_HODINU_KLIC = 'odmena_za_hodinu';
     const TAGY_KLIC             = 'aEditTag'; // název proměnné; v které jdou tagy
@@ -482,10 +483,8 @@ SQL
     protected static function editorChyby(array $a)
     {
         $chyby = []; // kontrola dostupnosti organizátorů v daný čas
-        if (!empty($a['den']) && !empty($a[Sql::ZACATEK]) && !empty($a[Sql::KONEC])) {
-
-            $zacatek = (Program::denAktivityDleZacatku($a))->add(new \DateInterval('PT' . $a[Sql::ZACATEK] . 'H'));
-            $konec = (Program::denAktivityDleKonce($a))->add(new \DateInterval('PT' . $a[Sql::KONEC] . 'H'));
+        if ($casy = self::dejCasyZFormulare($a)) {
+            [$zacatek, $konec] = $casy;
             if ($zacatek >= $konec) {
                 $chyby[] = 'Konec aktivity musí být po jejím začátku.';
             }
@@ -545,6 +544,7 @@ SQL
         $xtpl = new XTemplate(__DIR__ . '/templates/editor-aktivity.xtpl');
         $xtpl->assign('fields', self::POST_KLIC); // název proměnné (pole) v kterém se mají posílat věci z formuláře
         $xtpl->assign('ajaxKlic', self::AJAX_KLIC);
+        $xtpl->assign('ajaxCenaKlic', self::AJAX_CENA_KLIC);
         $xtpl->assign('obrKlic', self::OBRAZEK_KLIC);
         $xtpl->assign('obrKlicUrl', self::OBRAZEK_KLIC . 'Url');
         $xtpl->assign('aEditLokace', self::LOKACE_KLIC);
@@ -949,6 +949,47 @@ SQL
         return isset($_POST[self::AJAX_KLIC]);
     }
 
+    public static function editorCenaTestJson(): bool
+    {
+        return isset($_POST[self::AJAX_CENA_KLIC]);
+    }
+
+    /**
+     * Vrátí v JSON formátu (pro ajax) cenu, jakou by uložil formulář editoru, nebo null, když z něj nejde spočítat
+     */
+    public static function editorCenaJson(): string
+    {
+        $formular = (array)($_POST[self::POST_KLIC] ?? []);
+        $casy = self::dejCasyZFormulare($formular);
+        $cena = $casy === null
+            ? null
+            : self::vypocitejCenuBrigadnickeAktivity(
+                [
+                    Sql::TYP     => $formular[Sql::TYP] ?? null,
+                    Sql::ZACATEK => $casy[0]->formatDb(),
+                    Sql::KONEC   => $casy[1]->formatDb(),
+                ],
+                (int)post(self::ODMENA_ZA_HODINU_KLIC),
+            );
+
+        return json_encode(['cena' => $cena]);
+    }
+
+    /**
+     * @return array{DateTimeCz, DateTimeCz}|null začátek a konec aktivity z dne a hodin ve formuláři, null, když některý chybí
+     */
+    private static function dejCasyZFormulare(array $formular): ?array
+    {
+        if (empty($formular['den']) || empty($formular[Sql::ZACATEK]) || empty($formular[Sql::KONEC])) {
+            return null;
+        }
+
+        return [
+            Program::denAktivityDleZacatku($formular)->add(new \DateInterval('PT' . $formular[Sql::ZACATEK] . 'H')),
+            Program::denAktivityDleKonce($formular)->add(new \DateInterval('PT' . $formular[Sql::KONEC] . 'H')),
+        ];
+    }
+
     /**
      * Zpracuje data odeslaná formulářem s vloženým editorem
      * vrací null pokud se nic nestalo nebo aktualizovaný objekt Aktivita,
@@ -981,18 +1022,15 @@ SQL
             }
         }
         // přepočet času
-        if (empty($a['den']) || empty($a[Sql::ZACATEK]) || empty($a[Sql::KONEC])) {
+        $casy = self::dejCasyZFormulare($a);
+        if ($casy === null) {
             if (!empty($a['den']) || !empty($a[Sql::ZACATEK]) || !empty($a[Sql::KONEC])) {
                 chyba('Buďto vyplň den se začátkem i koncem, nebo nic. Čas byl zrušen.', false);
             }
             $a[Sql::ZACATEK] = null;
             $a[Sql::KONEC] = null;
         } else {
-            $zacatekCas = Program::denAktivityDleZacatku($a)
-                                 ->add(new \DateInterval('PT' . $a[Sql::ZACATEK] . 'H'));
-
-            $konecCas = Program::denAktivityDleKonce($a)
-                               ->add(new \DateInterval('PT' . $a[Sql::KONEC] . 'H'));
+            [$zacatekCas, $konecCas] = $casy;
 
             if ($zacatekCas >= $konecCas) {
                 chyba('Konec aktivity musí být po jejím začátku. Čas byl zrušen.', false);

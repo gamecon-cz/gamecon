@@ -34,6 +34,11 @@ if (Aktivita::editorTestJson()) {       // samo sebe volání ajaxu
     exit;
 }
 
+if (Aktivita::editorCenaTestJson()) {
+    echo Aktivita::editorCenaJson();
+    exit;
+}
+
 /** @var Logovac $vyjimkovac */
 try {
     if ($a = Aktivita::editorZpracuj($u?->maPravoNaProvadeniKorekci())) {  // úspěšné uložení změn ve formuláři

@@ -10,11 +10,13 @@ use Gamecon\Aktivita\StavAktivity;
 use Gamecon\Aktivita\TypAktivity;
 use Gamecon\SystemoveNastaveni\SystemoveNastaveni;
 use Gamecon\Tests\Db\AbstractTestDb;
+use Gamecon\XTemplate\XTemplate;
 
 class AktivitaCenaBrigadnickeAktivityTest extends AbstractTestDb
 {
-    private const ID_AKTIVITY = 7201;
-    private const CENA_Z_FORMULARE = 999;
+    private const int ID_AKTIVITY = 7201;
+    private const int CENA_Z_FORMULARE = 999;
+    private const int ID_UZIVATELE = 7301;
 
     protected static bool $disableStrictTransTables = true;
 
@@ -24,6 +26,11 @@ class AktivitaCenaBrigadnickeAktivityTest extends AbstractTestDb
         $typBrigadnicka = TypAktivity::BRIGADNICKA;
 
         return [
+            <<<'SQL'
+INSERT INTO uzivatele_hodnoty(id_uzivatele, login_uzivatele, jmeno_uzivatele, prijmeni_uzivatele, email1_uzivatele)
+VALUES
+    (7301, 'test-admin-editoru', 'Test', 'Admin', 'test-admin-editoru@example.invalid')
+SQL,
             <<<SQL
 INSERT INTO akce_seznam(
     id_akce, nazev_akce, url_akce, typ, rok, stav, patri_pod, zacatek, konec, cena, teamova, team_min, team_max, kapacita, kapacita_f, kapacita_m
@@ -37,6 +44,7 @@ SQL,
     protected function tearDown(): void
     {
         $_POST = [];
+        unset($_SESSION[\Uzivatel::UZIVATEL]);
         \Chyba::vyzvedniHtml();
 
         parent::tearDown();
@@ -110,7 +118,175 @@ SQL,
         ];
     }
 
+    public function testEditorCenaJsonVratiCenuBrigadnickeAktivity(): void
+    {
+        $this->nastavFormular(TypAktivity::BRIGADNICKA, '8', '12', 150);
+
+        self::assertSame([
+            'cena' => 600,
+        ], $this->zavolejEditorCenaJson());
+    }
+
+    /**
+     * @dataProvider provideFormularyBezSpocitatelneCeny
+     */
+    public function testEditorCenaJsonVratiNullKdyzCenuNejdeSpocitat(
+        int $typ,
+        string $zacatek,
+        string $konec,
+        int $odmenaZaHodinu,
+    ): void {
+        $this->nastavFormular($typ, $zacatek, $konec, $odmenaZaHodinu);
+
+        self::assertSame([
+            'cena' => null,
+        ], $this->zavolejEditorCenaJson());
+    }
+
+    public static function provideFormularyBezSpocitatelneCeny(): array
+    {
+        return [
+            'jiný typ aktivity'    => [TypAktivity::DESKOHERNA, '8', '12', 150],
+            'bez odměny za hodinu' => [TypAktivity::BRIGADNICKA, '8', '12', 0],
+            'bez času'             => [TypAktivity::BRIGADNICKA, '', '', 150],
+            'bez konce'            => [TypAktivity::BRIGADNICKA, '8', '', 150],
+            'konec před začátkem'  => [TypAktivity::BRIGADNICKA, '14', '10', 150],
+        ];
+    }
+
+    public function testKonecPredZacatkemZustaneCenaZFormulare(): void
+    {
+        self::assertSame(self::CENA_Z_FORMULARE, $this->ulozPresEditor(TypAktivity::BRIGADNICKA, '14', '10', 150));
+    }
+
+    public function testEditorPosilaAjaxuKlicProCenu(): void
+    {
+        // Without it XTemplate compiles the template next to its source, into the tracked tree
+        $cacheDir = XTemplate::cache() ?: XTPL_CACHE_DIR;
+        pripravCache($cacheDir);
+        XTemplate::cache($cacheDir);
+        $_SESSION[\Uzivatel::UZIVATEL] = [
+            'id_uzivatele' => self::ID_UZIVATELE,
+        ];
+
+        $html = Aktivita::editor(SystemoveNastaveni::zGlobals(), null);
+
+        self::assertStringContainsString('&' . Aktivita::AJAX_CENA_KLIC . '=true', $html);
+        self::assertStringContainsString('id="odmenaZaHodinuCelkem"', $html);
+        self::assertStringContainsString("=== '" . TypAktivity::BRIGADNICKA . "'", $html);
+    }
+
+    /**
+     * @dataProvider provideDataBezSpocitatelneCeny
+     */
+    public function testVzorecVratiNullKdyzCenuNejdeSpocitat(array $data, int $odmenaZaHodinu): void
+    {
+        self::assertNull(Aktivita::vypocitejCenuBrigadnickeAktivity($data, $odmenaZaHodinu));
+    }
+
+    public static function provideDataBezSpocitatelneCeny(): array
+    {
+        $brigadnicka = [
+            Sql::TYP     => TypAktivity::BRIGADNICKA,
+            Sql::ZACATEK => '2026-07-17 10:00:00',
+            Sql::KONEC   => '2026-07-17 13:00:00',
+        ];
+
+        return [
+            'bez typu' => [array_diff_key($brigadnicka, [
+                Sql::TYP => true,
+            ]), 100],
+            'jiný typ' => [[
+                Sql::TYP => TypAktivity::LARP,
+            ] + $brigadnicka, 100],
+            'bez odměny'  => [$brigadnicka, 0],
+            'bez začátku' => [array_diff_key($brigadnicka, [
+                Sql::ZACATEK => true,
+            ]), 100],
+            'bez konce' => [array_diff_key($brigadnicka, [
+                Sql::KONEC => true,
+            ]), 100],
+            'konec shodný se začátkem' => [[
+                Sql::KONEC => '2026-07-17 10:00:00',
+            ] + $brigadnicka, 100],
+            'konec před začátkem' => [[
+                Sql::KONEC => '2026-07-17 09:00:00',
+            ] + $brigadnicka, 100],
+            'méně než půl hodiny' => [[
+                Sql::KONEC => '2026-07-17 10:20:00',
+            ] + $brigadnicka, 100],
+        ];
+    }
+
+    public function testVzorecVratiOdmenuKratCeleHodiny(): void
+    {
+        self::assertSame(
+            300,
+            Aktivita::vypocitejCenuBrigadnickeAktivity(
+                [
+                    Sql::TYP     => TypAktivity::BRIGADNICKA,
+                    Sql::ZACATEK => '2026-07-17 10:00:00',
+                    Sql::KONEC   => '2026-07-17 13:00:00',
+                ],
+                100,
+            ),
+        );
+    }
+
+    public function testEditorCenaTestJsonPoznaDotazNaCenu(): void
+    {
+        self::assertFalse(Aktivita::editorCenaTestJson());
+
+        $_POST[Aktivita::AJAX_CENA_KLIC] = 'true';
+
+        self::assertTrue(Aktivita::editorCenaTestJson());
+    }
+
+    /**
+     * @dataProvider provideCasyAOdmeny
+     */
+    public function testEditorCenaJsonVratiStejnouCenuJakoUlozeniFormulare(
+        string $zacatek,
+        string $konec,
+        int $odmenaZaHodinu,
+    ): void {
+        $this->nastavFormular(TypAktivity::BRIGADNICKA, $zacatek, $konec, $odmenaZaHodinu);
+        $cenaZAjaxu = $this->zavolejEditorCenaJson()['cena'];
+
+        self::assertNotNull(Aktivita::editorZpracuj(null), 'Aktivita se má uložit.');
+
+        self::assertSame($this->ulozenaCena(), $cenaZAjaxu);
+    }
+
+    public static function provideCasyAOdmeny(): array
+    {
+        return [
+            'dopoledne'                            => ['8', '12', 150],
+            'přes půlnoc'                          => ['22', '2', 150],
+            'celý den'                             => ['9', '18', 130],
+            'jedna hodina'                         => ['13', '14', 175],
+            'stejná hodina je celý programový den' => ['8', '8', 150],
+        ];
+    }
+
     private function ulozPresEditor(int $typ, string $zacatek, string $konec, int $odmenaZaHodinu): int
+    {
+        $this->nastavFormular($typ, $zacatek, $konec, $odmenaZaHodinu);
+
+        self::assertNotNull(Aktivita::editorZpracuj(null), 'Aktivita se má uložit.');
+
+        return $this->ulozenaCena();
+    }
+
+    /**
+     * @return array{cena: int|null}
+     */
+    private function zavolejEditorCenaJson(): array
+    {
+        return json_decode(Aktivita::editorCenaJson(), true, flags: JSON_THROW_ON_ERROR);
+    }
+
+    private function nastavFormular(int $typ, string $zacatek, string $konec, int $odmenaZaHodinu): void
     {
         $_POST[Aktivita::POST_KLIC] = [
             Sql::ID_AKCE    => self::ID_AKTIVITY,
@@ -129,10 +305,6 @@ SQL,
             Sql::KAPACITA_M => 0,
         ];
         $_POST[Aktivita::ODMENA_ZA_HODINU_KLIC] = (string) $odmenaZaHodinu;
-
-        self::assertNotNull(Aktivita::editorZpracuj(null), 'Aktivita se má uložit.');
-
-        return $this->ulozenaCena();
     }
 
     private function ulozenaCena(): int
