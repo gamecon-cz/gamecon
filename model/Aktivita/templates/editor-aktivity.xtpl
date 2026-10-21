@@ -258,6 +258,33 @@
         </td>
         <script type="text/javascript">
             {
+                let poradiPoslednihoDotazuNaCenu = 0
+
+                function jeVybranaBrigadnicka() {
+                    return document.getElementById('typAktivity').value === '{typBrigadnicka}'
+                }
+
+                function zobrazCenuBrigadnickeAktivity() {
+                    const odmenaZaHodinuCelkem = document.getElementById('odmenaZaHodinuCelkem')
+                    const poradiDotazu = ++poradiPoslednihoDotazuNaCenu
+                    const zobraz = function (cena) {
+                        // pomalejší odpověď na starší dotaz nesmí přepsat novější
+                        if (poradiDotazu === poradiPoslednihoDotazuNaCenu) {
+                            odmenaZaHodinuCelkem.textContent = typeof cena === 'number' ? '= ' + cena.toLocaleString('cs-CZ') + ' Kč celkem' : ''
+                        }
+                    }
+                    const odmenaZaHodinuInput = document.getElementById('odmenaZaHodinu')
+                    if (!jeVybranaBrigadnicka() || odmenaZaHodinuInput.disabled || odmenaZaHodinuInput.value.trim() === '') {
+                        zobraz(null)
+                        return
+                    }
+                    $.post(document.URL, $(odmenaZaHodinuCelkem).closest('form').serialize() + '&{ajaxCenaKlic}=true', function (data) {
+                        zobraz(data.cena)
+                    }, 'json').fail(function () {
+                        zobraz(null)
+                    })
+                }
+
                 function pripravCenu() {
                     const cenaAktivityCelkemInput = document.getElementById('cenaAktivityCelkem')
                     const cenaAktivityCelkemLabel = document.querySelector('label[for=cenaAktivityCelkem]')
@@ -265,8 +292,7 @@
                     const odmenaZaHodinuLabel = document.querySelector('label[for=odmenaZaHodinu]')
                     const odmenaZaHodinuChybiHodiny = document.getElementById('odmenaZaHodinuChybiHodiny')
 
-                    const typAktivityInput = document.getElementById('typAktivity')
-                    const jeBrigadnicka = typAktivityInput.value === '{typBrigadnicka}'
+                    const jeBrigadnicka = jeVybranaBrigadnicka()
 
                     const delkaAkceVHodinach = dejDelkuAkceVHodinach()
 
@@ -299,6 +325,8 @@
                         odmenaZaHodinuLabel.style.display = 'none'
                     }
 
+                    zobrazCenuBrigadnickeAktivity()
+
                     function dejDelkuAkceVHodinach() {
                         const zacatekAkce = Number.parseInt(document.getElementById('zacatekAkce').value.trim())
                         const konecAkce = Number.parseInt(document.getElementById('konecAkce').value.trim())
@@ -316,6 +344,12 @@
                     document.getElementById('typAktivity').addEventListener('change', pripravCenu)
                     document.getElementById('zacatekAkce').addEventListener('change', pripravCenu)
                     document.getElementById('konecAkce').addEventListener('change', pripravCenu)
+                    document.getElementById('denAkce').addEventListener('change', zobrazCenuBrigadnickeAktivity)
+                    let casovacDotazuNaCenu = null
+                    document.getElementById('odmenaZaHodinu').addEventListener('input', function () {
+                        clearTimeout(casovacDotazuNaCenu)
+                        casovacDotazuNaCenu = setTimeout(zobrazCenuBrigadnickeAktivity, 250)
+                    })
                 })
             }
         </script>
@@ -371,6 +405,7 @@
             <input id="cenaAktivityCelkem" type="text" style="width:4em" name="{fields}[cena]" value="{cena}">
             <input id="odmenaZaHodinu" type="text" style="width:4em; display: none" name="odmena_za_hodinu"
                    value="{odmenaZaHodinu}">
+            <span id="odmenaZaHodinuCelkem" style="margin-left:.3em;color:#888"></span>
             <span id="odmenaZaHodinuChybiHodiny" class="hinted"> ⚠️<span
                     class="hint">Musíš správně vyplnit čas od - do</span></span>
             <input id="bezSlev" style="float:right" type="checkbox" name="{fields}[bez_slevy]" value="1">
