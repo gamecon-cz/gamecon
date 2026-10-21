@@ -573,7 +573,7 @@
 <div style="width: 30%">
 <div class="zaskrtavatko-s-popiskem" style="margin-top:3px">
     <div class="hinted"><label for="probehla_korekce">Proběhla korekce?</label>
-        <div class="hint">Poslední, kdo upravoval popis aktivity byl člověk oprávněný provádět korekce a zaškrtl tento checkbox.</div>
+        <div class="hint" style="max-width:340px">Zaškrtni, jakmile je text aktivity zkontrolovaný (gramatika, překlepy). Ve výpisu aktivit se pak ve sloupci <code style="font-size:inherit">Kor</code> ukáže zelená fajfka.</div>
     </div>
     <input type="checkbox" name="{fields}[probehla_korekce]" value="1" id="probehla_korekce">
 </div>
