@@ -240,9 +240,11 @@
                 <!-- begin:typ -->
                 <option {selected} value="{id_typu}">{typ_1p}</option><!-- end:typ -->
             </select>
-            <input style="float:right" type="checkbox" name="{fields}[teamova]" value="1" id="teamova">
-            <div class="hinted" style="float:right;margin:2px 0 0 1em"><label for="teamova">teamová</label>
-                <div class="hint">Jestli je aktivita teamová, tj. první přihlášený si sestavuje team</div>
+            <div class="zaskrtavatko-s-popiskem">
+                <div class="hinted"><label for="teamova">teamová</label>
+                    <div class="hint">Jestli je aktivita teamová, tj. první přihlášený si sestavuje team</div>
+                </div>
+                <input type="checkbox" name="{fields}[teamova]" value="1" id="teamova">
             </div>
             <script>
                 var box = $('[name="{fields}[teamova]"]')
@@ -408,13 +410,15 @@
             <span id="odmenaZaHodinuCelkem" style="margin-left:.3em;color:#888"></span>
             <span id="odmenaZaHodinuChybiHodiny" class="hinted"> ⚠️<span
                     class="hint">Musíš správně vyplnit čas od - do</span></span>
-            <input id="bezSlev" style="float:right" type="checkbox" name="{fields}[bez_slevy]" value="1">
+            <div class="zaskrtavatko-s-popiskem">
+                <div class="hinted"><label for="bezSlev">bez slev</label>
+                    <div class="hint">Jestli má být cena pevná a nesmí se na ni aplikovat slevy</div>
+                </div>
+                <input id="bezSlev" type="checkbox" name="{fields}[bez_slevy]" value="1">
+            </div>
             <script>if ('{bez_slevy}') {
                 $('[name="{fields}[bez_slevy]"]').attr('checked', '{bez_slevy}' === '1')
             }</script>
-            <div class="hinted" style="float:right;margin-top:2px"><label for="bezSlev">bez slev</label>
-                <div class="hint">Jestli má být cena pevná a nesmí se na ni aplikovat slevy</div>
-            </div>
         </td>
     </tr>
     <tr>
@@ -567,10 +571,11 @@
 <div style="clear:both"></div>
 <!-- begin:checkboxKorekce -->
 <div style="width: 30%">
-<div class="hinted" style="float:right;margin:2px 0 0 1em">
-    <label for="probehla_korekce">Proběhla korekce?</label>
+<div class="zaskrtavatko-s-popiskem" style="margin-top:3px">
+    <div class="hinted"><label for="probehla_korekce">Proběhla korekce?</label>
+        <div class="hint">Poslední, kdo upravoval popis aktivity byl člověk oprávněný provádět korekce a zaškrtl tento checkbox.</div>
+    </div>
     <input type="checkbox" name="{fields}[probehla_korekce]" value="1" id="probehla_korekce">
-    <div class="hint">Poslední, kdo upravoval popis aktivity byl člověk oprávněný provádět korekce a zaškrtl tento checkbox.</div>
 </div>
 <script>
     var box = $('[name="{fields}[probehla_korekce]"]')

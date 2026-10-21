@@ -985,6 +985,14 @@ a > .hinted {
   white-space: normal
 }
 
+.zaskrtavatko-s-popiskem {
+  float: right;
+  display: flex;
+  align-items: center;
+  gap: .5em;
+  margin-left: 1em;
+}
+
 .error, .success, .warning {
   font-style: italic;
   padding: 8px 200px 8px 40px;
