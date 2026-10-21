@@ -1166,6 +1166,27 @@ SQL
         );
     }
 
+    /**
+     * Cena brigádnické aktivity = odměna za hodinu × počet hodin zaokrouhlený na celé,
+     * nebo null, když ji z daných údajů nejde spočítat a platí cena zadaná ručně.
+     * @param array $data Pole odpovídající strukturou řádku DB, tedy se začátkem a koncem ve formátu DB
+     */
+    public static function vypocitejCenuBrigadnickeAktivity(array $data, int $odmenaZaHodinu): ?int
+    {
+        if (empty($data[Sql::TYP]) || (int)$data[Sql::TYP] !== TypAktivity::BRIGADNICKA
+            || !$odmenaZaHodinu
+            || empty($data[Sql::ZACATEK]) || empty($data[Sql::KONEC])
+        ) {
+            return null;
+        }
+        $trvaniVSekundach = (new \DateTimeImmutable($data[Sql::KONEC]))->getTimestamp() - (new \DateTimeImmutable($data[Sql::ZACATEK]))->getTimestamp();
+        $trvaniVHodinach = (int)round($trvaniVSekundach / 3600);
+
+        return $trvaniVHodinach > 0
+            ? $odmenaZaHodinu * $trvaniVHodinach
+            : null;
+    }
+
     public static function uloz(
         array   $data,
         ?string $markdownPopis,
@@ -1230,17 +1251,7 @@ SQL
             ? $data[Sql::PATRI_POD]
             : null;
 
-        if (!empty($data[Sql::TYP]) && (int)$data[Sql::TYP] === TypAktivity::BRIGADNICKA && $odmenaZaHodinu
-            && !empty($data[Sql::ZACATEK]) && !empty($data[Sql::KONEC])
-        ) {
-            $trvaniVSekundach = (new \DateTimeImmutable($data[Sql::KONEC]))->getTimestamp() - (new \DateTimeImmutable($data[Sql::ZACATEK]))->getTimestamp();
-            if ($trvaniVSekundach) {
-                $trvaniVHodinach = (int)round($trvaniVSekundach / 3600);
-                if ($trvaniVHodinach > 0) {
-                    $data[Sql::CENA] = $odmenaZaHodinu * $trvaniVHodinach;
-                }
-            }
-        }
+        $data[Sql::CENA] = self::vypocitejCenuBrigadnickeAktivity($data, (int)$odmenaZaHodinu) ?? $data[Sql::CENA];
 
         $problemy = [];
         // uložení změn do akce_seznam
