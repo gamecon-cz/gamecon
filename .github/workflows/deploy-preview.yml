@@ -85,10 +85,13 @@ jobs:
                         | sed -E 's/[^a-z0-9]+/-/g; s/^-+//; s/-+$//' \
                         | cut -c1-30 \
                         | sed -E 's/-+$//')
+                    # The checked-out commit, not GITHUB_SHA: a dispatch started
+                    # from main would otherwise tag the branch's image with main's tip.
+                    head_sha=$(git rev-parse HEAD)
                     if [ -z "$slug" ]; then
-                        slug="sha-${GITHUB_SHA::8}"
+                        slug="sha-${head_sha::8}"
                     fi
-                    sha7="${GITHUB_SHA::7}"
+                    sha7="${head_sha::7}"
                     echo "slug=$slug" >> "$GITHUB_OUTPUT"
                     echo "sha7=$sha7" >> "$GITHUB_OUTPUT"
                     echo "Deploying as: $slug ($sha7)"
