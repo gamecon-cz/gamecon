@@ -11,9 +11,8 @@
 #
 # Two stages: composer and yarn run on the dev image, and only the
 # finished application is copied onto the runtime image, so Node, yarn,
-# git and xdebug never reach the preview. The base images rebuild rarely
-# (only when PHP extensions, system tools, or Node version change in
-# .docker/Dockerfile).
+# git and xdebug never reach the preview. The base images are built from
+# .docker/Dockerfile, see docs/docker-images.md.
 
 ARG DEV_IMAGE=gameconcz/gamecon:8.3
 ARG RUNTIME_IMAGE=gameconcz/gamecon:8.3-runtime
