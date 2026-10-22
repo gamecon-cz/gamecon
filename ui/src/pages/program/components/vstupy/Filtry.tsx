@@ -22,7 +22,8 @@ import {
 import "./ReactSelect.less";
 import "./Filtry.less";
 import { FiltrTagů } from "./FiltrŠtítků";
-import { asValueLabel, JAZYKY_FILTRU, JazykFiltru, NÁZVY_JAZYKŮ_FILTRU } from "../../../../utils";
+import { asValueLabel, JAZYKY_FILTRU, JazykFiltru, názevJazykaFiltru } from "../../../../utils";
+import { t } from "../../../../i18n";
 import { useProgramStore } from "../../../../store/program";
 import { přepniKompaktní, přepniZvětšeno } from "../../../../store/program/slices/všeobecnéSlice";
 
@@ -34,7 +35,7 @@ const ROKY_OPTIONS = ROKY.concat(GAMECON_KONSTANTY.ROCNIK)
   .map((x) => ({ value: x, label: x }))
   .reverse();
 
-const jazykOption = (jazyk: JazykFiltru) => ({ value: jazyk, label: NÁZVY_JAZYKŮ_FILTRU[jazyk] });
+const jazykOption = (jazyk: JazykFiltru) => ({ value: jazyk, label: názevJazykaFiltru(jazyk) });
 
 const JAZYKY_OPTIONS = JAZYKY_FILTRU.map(jazykOption);
 
@@ -94,7 +95,7 @@ export const Filtry: FunctionComponent<TFiltryProps> = (props) => {
           </div>
           <div style={{ flex: "1", maxWidth: "260px" }}>
             <Select
-              placeholder="Jazyk"
+              placeholder={t("program.filtr.jazyk")}
               options={JAZYKY_OPTIONS}
               closeMenuOnSelect={false}
               isMulti

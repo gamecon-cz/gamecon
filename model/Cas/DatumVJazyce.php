@@ -15,6 +15,9 @@ use Gamecon\Jazyk\Jazyk;
  */
 final class DatumVJazyce
 {
+    /** @var array<string, \IntlDateFormatter> */
+    private static array $formattery = [];
+
     /** „pátek" / „Friday" */
     public static function denVTydnu(\DateTimeInterface $datum, ?Jazyk $jazyk = null): string
     {
@@ -43,15 +46,19 @@ final class DatumVJazyce
 
     private static function format(\DateTimeInterface $datum, string $vzor, ?Jazyk $jazyk): string
     {
-        $formatter = new \IntlDateFormatter(
-            ($jazyk ?? AktualniJazyk::jazyk())->locale(),
+        $locale = ($jazyk ?? AktualniJazyk::jazyk())->locale();
+        $casovaZona = $datum->getTimezone() ?: new \DateTimeZone(date_default_timezone_get());
+        $klic = $locale . '|' . $vzor . '|' . $casovaZona->getName();
+        // vytvořit formatter je dražší než formátovat, stránka jich přitom potřebuje jen pár druhů
+        self::$formattery[$klic] ??= new \IntlDateFormatter(
+            $locale,
             \IntlDateFormatter::NONE,
             \IntlDateFormatter::NONE,
-            $datum->getTimezone(),
+            $casovaZona,
             \IntlDateFormatter::GREGORIAN,
             $vzor,
         );
 
-        return (string)$formatter->format($datum);
+        return (string)self::$formattery[$klic]->format($datum);
     }
 }

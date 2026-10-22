@@ -186,7 +186,7 @@ foreach ($skupiny as $skupina) {
         'aktivita'           => $aktivita,
         'htmlId'             => $aktivita->urlId(),
         // nelze použít prosté #htmlId, protože to rozbije base href a odkazuje to pak o úroveň výš
-        'kotva'              => URL_WEBU . '/' . $url->cela()
+        'kotva'              => urlWebu($url->cela())
             . ($minulyRocnik
                 ? '?rocnik=' . $rocnik
                 : '')
@@ -207,7 +207,7 @@ foreach ($skupiny as $skupina) {
     }
 
     if ($aktivita->jazyk() !== JazykAktivity::CESKY) {
-        $t->assign('jazyk', $aktivita->jazyk()->nazev());
+        $t->assign('jazyk', $aktivita->jazyk()->popisek());
         $t->parse('aktivity.aktivita.jazyk');
         $t->parse('aktivity.nahled.jazyk');
     }

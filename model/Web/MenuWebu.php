@@ -88,9 +88,11 @@ class MenuWebu
                 continue;
             }
             $sablona->assign([
-                'jazykUrl'     => $jazykPozadavku?->urlPrepnuti($jazyk)
+                'jazykUrl'     => htmlspecialchars(
+                    $jazykPozadavku?->urlPrepnuti($jazyk)
                     ?? \urlWebu('', $jazyk),
-                'jazykTitulek' => \t('jazyk.prepnout', [], $jazyk),
+                ),
+                'jazykTitulek' => htmlspecialchars(\t('jazyk.prepnout', [], $jazyk)),
                 'jazykKod'     => $jazyk->value,
                 'jazykNazev'   => $jazyk->vlastniNazev(),
             ]);

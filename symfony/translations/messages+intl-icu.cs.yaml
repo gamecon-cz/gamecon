@@ -4,6 +4,12 @@
 jazyk:
     prepnout: Přepnout do češtiny
 
+jazyk_aktivity:
+    cesky: česky
+    anglicky: anglicky
+    cesky_i_anglicky: česky i anglicky
+    nezavisla: jazykově nezávislá
+
 menu:
     prihlasit: přihlásit
     finance: Finance

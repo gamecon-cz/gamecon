@@ -57,6 +57,33 @@ class JazykPozadavkuTest extends TestCase
         self::assertSame(URL_WEBU . '/blog?strana=2&jazyk=cs', $jazykPozadavku->urlPrepnuti(Jazyk::CESTINA));
     }
 
+    public function testCestuVOdkazuZnovuZakoduje(): void
+    {
+        // $_GET['req'] je už dekódovaná cesta, např. z /x%22%3E%3Cb%3E nebo /blog/a%3Fb
+        self::assertSame(
+            URL_WEBU . '/en/x%22%3E%3Cb%3E?jazyk=en',
+            JazykPozadavku::zCesty('x"><b>')->urlPrepnuti(Jazyk::ANGLICTINA),
+        );
+        self::assertSame(
+            URL_WEBU . '/en/blog/a%3Fb',
+            JazykPozadavku::zCesty('blog/a?b')->presmerovani(Jazyk::ANGLICTINA, 'GET', false),
+        );
+        self::assertSame(
+            URL_WEBU . '/en/a%0D%0ALocation%3A%20x',
+            JazykPozadavku::zCesty("a\r\nLocation: x")->urlVJazyce(Jazyk::ANGLICTINA),
+        );
+    }
+
+    public function testPoleVParametruPrepnutiNeniVolbaJazyka(): void
+    {
+        $jazykPozadavku = JazykPozadavku::zCesty('program', [
+            'jazyk' => ['en'],
+        ]);
+
+        self::assertNull($jazykPozadavku->jazykPrepnuti());
+        self::assertNull($jazykPozadavku->jazykKZapamatovani());
+    }
+
     public function testCeskaAdresaSeZvolenouAnglictinouPresmerujeNaAnglickou(): void
     {
         $jazykPozadavku = JazykPozadavku::zCesty('program');
