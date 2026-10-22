@@ -162,7 +162,8 @@ class ZmenyAktivitySPrihlasenymi
             return false;
         }
 
-        return $this->puvodniAktivita->jazyk()->value !== (string) $this->dataZFormulare[Sql::JAZYK];
+        // porovnáváme, co se opravdu uloží, viz Aktivita::uloz()
+        return $this->puvodniAktivita->jazyk() !== JazykAktivity::zFormulare($this->dataZFormulare[Sql::JAZYK]);
     }
 
     private function zmenenaKapacita(): bool

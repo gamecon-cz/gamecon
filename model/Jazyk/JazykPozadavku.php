@@ -90,7 +90,7 @@ final class JazykPozadavku
             ? $this->dotazBezPrepnuti()
             : [];
 
-        return urlWebu($this->cestaBezJazyka, $jazyk)
+        return urlWebu($this->cestaProUrl(), $jazyk)
             . ($dotaz !== []
                 ? '?' . http_build_query($dotaz)
                 : '');
@@ -102,13 +102,18 @@ final class JazykPozadavku
      */
     public function urlPrepnuti(Jazyk $jazyk): string
     {
-        return urlWebu($this->cestaBezJazyka, $jazyk)
+        return urlWebu($this->cestaProUrl(), $jazyk)
             . '?' . http_build_query([...$this->dotazBezPrepnuti(), self::PARAMETR_PREPNUTI => $jazyk->value]);
     }
 
     public function jazykPrepnuti(): ?Jazyk
     {
-        return Jazyk::tryFrom((string)($this->dotaz[self::PARAMETR_PREPNUTI] ?? ''));
+        $hodnota = $this->dotaz[self::PARAMETR_PREPNUTI] ?? null;
+
+        // ?jazyk[]=… je pole, ne volba jazyka
+        return is_string($hodnota)
+            ? Jazyk::tryFrom($hodnota)
+            : null;
     }
 
     /**
@@ -178,6 +183,16 @@ final class JazykPozadavku
             header('Location: ' . $presmerovani, true, 302);
             exit;
         }
+    }
+
+    /**
+     * Cesta je z `$_GET['req']`, tedy už dekódovaná. Do odkazu i do hlavičky `Location` ji vracíme
+     * zakódovanou, jinak by se `%3F` z cesty stal začátkem dotazu, `%0D%0A` by rozbil hlavičku
+     * a uvozovka by vyskočila z atributu `href`.
+     */
+    private function cestaProUrl(): string
+    {
+        return implode('/', array_map('rawurlencode', explode('/', $this->cestaBezJazyka)));
     }
 
     private function jeApi(): bool
