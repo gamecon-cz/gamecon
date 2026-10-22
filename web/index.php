@@ -6,6 +6,7 @@ use Gamecon\Aktivita\TypAktivity;
 use Gamecon\ArchivPrednasek\ArchivPrednasekStranka;
 use Gamecon\Dev\SsoPrihlaseniZUrl;
 use Gamecon\Jazyk\AktualniJazyk;
+use Gamecon\Jazyk\Jazyk;
 use Gamecon\Jazyk\JazykPozadavku;
 use Gamecon\Vyjimkovac\Vyjimkovac;
 use Gamecon\Web\CestyKSitemape;
@@ -80,10 +81,21 @@ try {
 // a line or a CMS page is found case-insensitively (/RPG, /rpg), its canonical address is the stored one
 $kanonickaCesta = $url?->cela() ?? '';
 
+// Titulka zatím není přeložená. Do té doby je anglickou úvodní stránkou ručně psaná stránka `en`
+// z CMS, která dřív byla na adrese /en (tu teď zabral prefix jazyka).
+$anglickaUvodniStranka = $url?->cela() === '' && AktualniJazyk::jazyk() === Jazyk::ANGLICTINA
+    ? Stranka::zUrl('en')
+    : null;
+
 // určení modulu, který zpracuje požadavek (router)
-$m = $url
-    ? Modul::zUrl(null, $systemoveNastaveni)
-    : Modul::zNazvu('nenalezeno', null, $systemoveNastaveni);
+if ($anglickaUvodniStranka) {
+    $m = Modul::zNazvu('stranka', null, $systemoveNastaveni);
+    $m->param('stranka', $anglickaUvodniStranka);
+} else {
+    $m = $url
+        ? Modul::zUrl(null, $systemoveNastaveni)
+        : Modul::zNazvu('nenalezeno', null, $systemoveNastaveni);
+}
 // archive of lectures under the page of their line (/prednasky/archiv); a directory web/moduly/prednasky would make
 // the sitemap take /prednasky and its pages for a module (CestyKSitemape::isCestaKterouRouterVrati)
 if (! $m && $url?->cast(1) === ArchivPrednasekStranka::PODSTRANKA && $url->cast(2) === null

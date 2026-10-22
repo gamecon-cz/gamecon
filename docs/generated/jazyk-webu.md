@@ -49,6 +49,7 @@ Plán celé dvojjazyčnosti a co ještě chybí: [docs/dvojjazycny-web.md](../dv
 
 ## Gotchas
 
+- Anglická titulka `/en/` ukazuje stránku `en` z CMS (ručně psané „Welcome“, dřív na adrese `/en`, kterou zabral prefix jazyka). Rozhoduje o tom `web/index.php` `(záměr, dokud není přeložená titulka)`. Až se titulka přeloží, výjimku z routeru odstraň a stránku `en` smaž nebo přesměruj.
 - Slugy dnů programu (`/program/patek`) jsou klíče a musí zůstat česky i v angličtině. `nazevStranky()` je skládá z `format('l')`, viz výše.
 - Logika legacy e-shopu stojí na českých názvech předmětů (`Shop::bezDne()`, `'Spacák'`, `LIKE 'Snídaně%'`). Nevadí to, dokud se názvy jen zobrazují; anglické názvy předmětů patří až do nového e-shopu z PR #1058.
 - Chybová stránka `model/Vyjimkovac/vyjimkovac-omluva.xtpl` má `lang="cs"` natvrdo; přepnout až spolu s překladem jejího textu.
