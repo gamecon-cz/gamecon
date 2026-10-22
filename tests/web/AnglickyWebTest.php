@@ -17,6 +17,25 @@ class AnglickyWebTest extends AbstractTestWeb
         return true;
     }
 
+    protected static function getSetUpBeforeClassInitQueries(): array
+    {
+        return [
+            ...parent::getSetUpBeforeClassInitQueries(),
+            "INSERT INTO stranky (url_stranky, obsah) VALUES ('en', '# Welcome to GameCon test page')",
+        ];
+    }
+
+    public function testAnglickaTitulkaJeStrankaEnZCms(): void
+    {
+        ['kod' => $kod, 'telo' => $telo] = $this->stahni('web/en/');
+
+        self::assertSame(200, $kod);
+        self::assertStringContainsString('Welcome to GameCon test page', $telo, 'Dokud není titulka přeložená, je anglickou titulkou stránka en z CMS.');
+
+        ['telo' => $ceskaTitulka] = $this->stahni('web/');
+        self::assertStringNotContainsString('Welcome to GameCon test page', $ceskaTitulka);
+    }
+
     public function testAnglickaTitulkaMaAnglickeMenuAOdkazyNaJazyky(): void
     {
         ['kod' => $kod, 'telo' => $telo] = $this->stahni('web/en/');
