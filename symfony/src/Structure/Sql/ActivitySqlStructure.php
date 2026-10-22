@@ -100,6 +100,11 @@ class ActivitySqlStructure
     public const popis_kratky = 'popis_kratky';
 
     /**
+     * @see Activity::$jazyk
+     */
+    public const jazyk = 'jazyk';
+
+    /**
      * @see Activity::$vybaveni
      */
     public const vybaveni = 'vybaveni';

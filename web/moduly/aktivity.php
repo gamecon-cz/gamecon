@@ -108,7 +108,7 @@ foreach ($skupiny as $skupina) {
         'aktivita'           => $aktivita,
         'htmlId'             => $aktivita->urlId(),
         // nelze použít prosté #htmlId, protože to rozbije base href a odkazuje to pak o úroveň výš
-        'kotva'              => URL_WEBU . '/' . $url->cela() . '#' . $aktivita->urlId(),
+        'kotva'              => urlWebu($url->cela()) . '#' . $aktivita->urlId(),
         'obrazek'            => $obrazek
             ? $obrazek->pasuj(512)
             : null, // TODO kvalita?
@@ -119,7 +119,7 @@ foreach ($skupiny as $skupina) {
     ]);
 
     if ($aktivita->jazyk() !== JazykAktivity::CESKY) {
-        $t->assign('jazyk', $aktivita->jazyk()->nazev());
+        $t->assign('jazyk', $aktivita->jazyk()->popisek());
         $t->parse('aktivity.aktivita.jazyk');
         $t->parse('aktivity.nahled.jazyk');
     }

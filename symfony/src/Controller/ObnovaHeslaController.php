@@ -6,6 +6,7 @@ namespace App\Controller;
 
 use App\Service\LegacySessionService;
 use Gamecon\Antibot\Altcha;
+use Gamecon\Jazyk\AktualniJazyk;
 use Gamecon\Kanaly\EmailovaSablona\EmailoveSablony;
 use Gamecon\Kanaly\EmailovaSablona\KodEmailoveSablonyEnum;
 use Gamecon\Kanaly\GcMail;
@@ -53,7 +54,7 @@ class ObnovaHeslaController extends AbstractController
             if (! Altcha::zGlobals()->overReseni((string) $request->request->get('altcha', ''))) {
                 \Chyba::nastav('Ověř prosím, že nejsi robot.', \Chyba::CHYBA);
 
-                return new RedirectResponse(URL_WEBU . '/zapomenute-heslo');
+                return new RedirectResponse(\urlWebu('zapomenute-heslo'));
             }
 
             $email = trim((string) $request->request->get('mail', ''));
@@ -145,7 +146,7 @@ class ObnovaHeslaController extends AbstractController
                 // zamítnuté (neshodující se) heslo.
                 \Chyba::nastav($chyba, \Chyba::CHYBA);
 
-                return new RedirectResponse(URL_WEBU . '/obnova-hesla?token=' . urlencode($token));
+                return new RedirectResponse(\urlWebu('obnova-hesla') . '?token=' . urlencode($token));
             }
 
             $uzivatel->heslo($heslo);
@@ -154,7 +155,7 @@ class ObnovaHeslaController extends AbstractController
             // přihlašovací stránce přes Chyba::vyzvedniHtml().
             \Chyba::nastav('Heslo bylo změněno. Můžeš se přihlásit.', \Chyba::OZNAMENI);
 
-            return new RedirectResponse(URL_WEBU . '/prihlaseni');
+            return new RedirectResponse(\urlWebu('prihlaseni'));
         }
 
         return $this->formularNovehoHesla($token, $uzivatel->mail());
@@ -311,7 +312,8 @@ class ObnovaHeslaController extends AbstractController
                 'chyba'      => \Chyba::vyzvedniHtml(),
                 'menu'       => MenuWebu::html($this->legacySession->getCurrentUser()),
                 'obsah'      => $obsah,
-                'base'       => URL_WEBU . '/',
+                'base'       => \urlWebu(),
+                'jazyk'      => AktualniJazyk::jazyk()->value,
                 'info'       => '<title>' . htmlspecialchars($nazev, ENT_QUOTES) . ' – GameCon</title>',
                 'letosniRok' => date('Y'),
             ]);

@@ -338,6 +338,24 @@ class ZmenyAktivitySPrihlasenymiTest extends TestCase
         self::assertFalse($zmeny->maZmenySPrihlasenymi());
     }
 
+    public function testSPrihlasenymiNeznamyJazykNevarujeKdyzSeUloziStejny(): void
+    {
+        $aktivita = $this->vytvorAktivituSMocky(2, '2026-07-16', '2026-07-16 10:00:00', '2026-07-16 12:00:00', 100);
+
+        foreach (['', 'klingonsky'] as $jazyk) {
+            $dataZFormulare = [
+                'den'        => '2026-07-16',
+                Sql::ZACATEK => '10',
+                Sql::KONEC   => '12',
+                Sql::CENA    => 100,
+                Sql::JAZYK   => $jazyk, // uloží se jako výchozí čeština, tedy beze změny
+            ];
+
+            $zmeny = new ZmenyAktivitySPrihlasenymi($aktivita, $dataZFormulare);
+            self::assertFalse($zmeny->maZmenySPrihlasenymi(), "Jazyk '{$jazyk}'");
+        }
+    }
+
     public function testPrazdnaInstanceVarujeProZmenuJazykaKvuliPrihlasenymVRodine(): void
     {
         // Jazyk se jako cena propaguje na celou rodinu instancí, takže se dotkne i hráčů na sourozeneckých instancích.

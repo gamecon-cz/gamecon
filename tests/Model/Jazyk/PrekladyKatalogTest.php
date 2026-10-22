@@ -62,6 +62,35 @@ class PrekladyKatalogTest extends TestCase
         }
     }
 
+    public function testVKataloguNeniHtml(): void
+    {
+        foreach (Jazyk::cases() as $jazyk) {
+            foreach ($this->katalog($jazyk) as $klic => $text) {
+                self::assertDoesNotMatchRegularExpression(
+                    '~<[a-z/!]|&[a-z#][a-z0-9]*;~i',
+                    $text,
+                    "Text '{$klic}' v '{$jazyk->value}' obsahuje HTML. {t:…} v šabloně ho escapuje, ukázalo by se doslova.",
+                );
+            }
+        }
+    }
+
+    /**
+     * Preact má vlastní slovník (ui/src/i18n). Klíč, který je v obou, musí mít stejný text:
+     * titulek programu skládá po F5 PHP, po přepnutí dne Preact.
+     */
+    public function testTextySdileneSPreactemSeShoduji(): void
+    {
+        foreach (Jazyk::cases() as $jazyk) {
+            $preact = $this->slovnikPreactu($jazyk);
+            $sdilene = array_intersect_key($this->katalog($jazyk), $preact);
+            self::assertNotSame([], $sdilene, "Ve slovníku Preactu '{$jazyk->value}' se nenašel žádný sdílený klíč, test by nic nehlídal.");
+            foreach ($sdilene as $klic => $text) {
+                self::assertSame($text, $preact[$klic], "Text '{$klic}' v '{$jazyk->value}' se v PHP a v Preactu liší.");
+            }
+        }
+    }
+
     public function testChybejiciAnglickyTextSpadneNaCestinu(): void
     {
         self::assertSame('Můj program', Preklad::t('program.nadpis.muj', [], Jazyk::CESTINA));
@@ -89,6 +118,22 @@ class PrekladyKatalogTest extends TestCase
         $zplosti(Yaml::parseFile(Preklad::souborKatalogu($jazyk)) ?? [], '');
 
         return $ploche;
+    }
+
+    /**
+     * @return array<string, string> klíč => text ze `ui/src/i18n/{jazyk}.ts`
+     */
+    private function slovnikPreactu(Jazyk $jazyk): array
+    {
+        $kod = (string) file_get_contents(__DIR__ . '/../../../ui/src/i18n/' . $jazyk->value . '.ts');
+        preg_match_all('~^\s*"([^"]+)":\s*("(?:[^"\\\\]|\\\\.)*"),?\s*$~m', $kod, $nalezy, PREG_SET_ORDER);
+        $slovnik = [];
+        foreach ($nalezy as [, $klic, $text]) {
+            $slovnik[$klic] = (string) json_decode($text, flags: JSON_THROW_ON_ERROR);
+        }
+        self::assertNotSame([], $slovnik, "Slovník Preactu '{$jazyk->value}' se nepodařilo přečíst.");
+
+        return $slovnik;
     }
 
     /**

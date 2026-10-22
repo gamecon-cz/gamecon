@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Gamecon\Tests\Model\Aktivita;
 
 use Gamecon\Aktivita\JazykAktivity;
+use Gamecon\Jazyk\Jazyk;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
 
@@ -43,5 +44,19 @@ class JazykAktivityTest extends TestCase
             self::assertSame($jazyk, JazykAktivity::zTextu($jazyk->nazev()));
             self::assertSame($jazyk, JazykAktivity::zTextu($jazyk->value));
         }
+    }
+
+    public function testPopisekJeVJazyceStrankyANazevProImportZustavaCesky(): void
+    {
+        self::assertSame('in English', JazykAktivity::ANGLICKY->popisek(Jazyk::ANGLICTINA));
+        self::assertSame('anglicky', JazykAktivity::ANGLICKY->popisek(Jazyk::CESTINA));
+        self::assertSame('anglicky', JazykAktivity::ANGLICKY->nazev());
+    }
+
+    public function testNeznamyJazykZFormulareJeVychozi(): void
+    {
+        self::assertSame(JazykAktivity::ANGLICKY, JazykAktivity::zFormulare('en'));
+        self::assertSame(JazykAktivity::vychozi(), JazykAktivity::zFormulare(''));
+        self::assertSame(JazykAktivity::vychozi(), JazykAktivity::zFormulare('klingonsky'));
     }
 }

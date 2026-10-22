@@ -4,7 +4,7 @@ import { Pohlavi } from "../../../../api/přihlášenýUživatel";
 import { generujUrl } from "../../../../store/program/logic/url";
 import { useAktivita, useUrlStav, useÚčastníkPohlaví } from "../../../../store/program/selektory";
 import { nastavUrlAktivitaNáhledId } from "../../../../store/program/slices/urlSlice";
-import { jazykAktivity, krátkýŠtítekJazyka, NÁZVY_JAZYKŮ_AKTIVITY, volnoTypZObsazenost } from "../../../../utils";
+import { jazykAktivity, krátkýŠtítekJazyka, názevJazykaAktivity, volnoTypZObsazenost } from "../../../../utils";
 import { Obsazenost } from "./Obsazenost";
 import { Přihlašovátko } from "./Přihlašovátko";
 import { Aktivita } from "../../../../store/program/slices/programDataSlice";
@@ -104,7 +104,7 @@ export const ProgramTabulkaBuňka: FunctionComponent<
             {aktivita.nazev}
           </a>
           {štítekJazyka && (
-            <span class="program_jazyk" title={NÁZVY_JAZYKŮ_AKTIVITY[jazyk]}>{štítekJazyka}</span>
+            <span class="program_jazyk" title={názevJazykaAktivity(jazyk)}>{štítekJazyka}</span>
           )}
           <Obsazenost
             obsazenost={aktivita.obsazenost}

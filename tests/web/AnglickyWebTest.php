@@ -72,6 +72,16 @@ class AnglickyWebTest extends AbstractTestWeb
 
         self::assertSame(200, $kod);
         self::assertStringContainsString('>programme</a>', $telo, 'Symfony stránka vykresluje menu webu, i to má být anglicky.');
+        self::assertStringContainsString('<html lang="en">', $telo);
+        self::assertStringContainsString('<base href="' . URL_WEBU . '/en/">', $telo, 'Relativní odkazy mají zůstat v angličtině.');
+    }
+
+    public function testCestaZUrlSeVPrepinaciJazykaNeprovede(): void
+    {
+        ['telo' => $telo] = $this->stahni('web/x%22%3E%3Cb%3Eahoj%3C/b%3E');
+
+        self::assertStringNotContainsString('<b>ahoj</b>', $telo);
+        self::assertStringContainsString('href="' . URL_WEBU . '/en/x%22%3E%3Cb%3Eahoj%3C/b%3E?jazyk=en"', $telo);
     }
 
     public function testApiPodAnglickymPrefixemFunguje(): void

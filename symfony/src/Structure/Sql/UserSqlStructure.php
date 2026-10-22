@@ -180,6 +180,11 @@ class UserSqlStructure
     public const zpusob_zobrazeni_na_webu = 'zpusob_zobrazeni_na_webu';
 
     /**
+     * @see User::$jazyk
+     */
+    public const jazyk = 'jazyk';
+
+    /**
      * @see User::$zRychloregistrace
      */
     public const z_rychloregistrace = 'z_rychloregistrace';

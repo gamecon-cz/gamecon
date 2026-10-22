@@ -1,6 +1,7 @@
 <?php
 
 use Gamecon\Accounting;
+use Gamecon\Jazyk\Jazyk;
 use Gamecon\SystemoveNastaveni\SystemoveNastaveni;
 use Gamecon\Stat;
 use Gamecon\Uzivatel\Finance;
@@ -56,7 +57,8 @@ if (!$zaplaceno) {
     $nejpozdejiZaplatitDo            = $systemoveNastaveni->nejpozdejiZaplatitDo(
         $systemoveNastaveni->ted(),
     );
-    $limit                           = datum4($nejpozdejiZaplatitDo);
+    // věty o platbě jsou zatím jen česky, datum v nich musí být taky
+    $limit                           = datum4($nejpozdejiZaplatitDo, Jazyk::CESTINA);
     $castkaCZ = $castka . '&thinsp;Kč';
     // Stejná částka (vč. kurzové rezervy), jaká jde do QR kódu, ať se výpis a QR nerozejdou.
     $castkaEUR = round($u->finance()->dejCastkuProQrPlatbuVEurech(), 2) . '&thinsp;€';
@@ -271,7 +273,7 @@ if (!$zaplaceno) {
             <?php if (pred($nejpozdejiZaplatitDo) && !$u->maPravoNerusitObjednavky()): ?>
                 <ul class="seznam-bez-okraje">
                     <li class="poznamka">Při pozdější platbě tě systém dne
-                        <strong><?= datum3($nejpozdejiZaplatitDo) ?></strong> automaticky odhlásí.
+                        <strong><?= datum3($nejpozdejiZaplatitDo, Jazyk::CESTINA) ?></strong> automaticky odhlásí.
                     </li>
                     <li class="poznamka">
                         Peníze navíc můžeš využít na přihlášení aktivit na GameConu a přeplatek ti po GameConu rádi vrátíme.
@@ -280,7 +282,7 @@ if (!$zaplaceno) {
             <?php else: ?>
                 <ul class="seznam-bez-okraje">
                     <li class="poznamka">Při pozdější platbě tě systém dne
-                        <strong><?= datum3($nejpozdejiZaplatitDo) ?></strong> automaticky odhlásí.
+                        <strong><?= datum3($nejpozdejiZaplatitDo, Jazyk::CESTINA) ?></strong> automaticky odhlásí.
                     </li>
                     <li class="poznamka">
                         Peníze navíc můžeš využít na přihlášení aktivit na GameConu a přeplatek ti po GameConu rádi vrátíme.

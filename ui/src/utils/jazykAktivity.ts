@@ -1,4 +1,5 @@
 import { JazykAktivity } from "../api/program";
+import { KlíčPřekladu, t } from "../i18n";
 
 /**
  * Jazyky, podle kterých jde program filtrovat. Aktivita vedená česky i anglicky
@@ -8,18 +9,25 @@ export const JAZYKY_FILTRU = ["cs", "en", "nezavisla"] as const;
 
 export type JazykFiltru = (typeof JAZYKY_FILTRU)[number];
 
-export const NÁZVY_JAZYKŮ_FILTRU: Record<JazykFiltru, string> = {
-  cs: "česky",
-  en: "anglicky",
-  nezavisla: "jazykově nezávislé",
+const KLÍČE_JAZYKŮ_FILTRU: Record<JazykFiltru, KlíčPřekladu> = {
+  cs: "jazyk_filtru.cesky",
+  en: "jazyk_filtru.anglicky",
+  nezavisla: "jazyk_filtru.nezavisle",
 };
 
-export const NÁZVY_JAZYKŮ_AKTIVITY: Record<JazykAktivity, string> = {
-  cs: "česky",
-  en: "anglicky",
-  "cs-en": "česky i anglicky",
-  nezavisla: "jazykově nezávislá",
+/** Klíče sdílí PHP katalog, viz Gamecon\Aktivita\JazykAktivity::popisek() */
+const KLÍČE_JAZYKŮ_AKTIVITY: Record<JazykAktivity, KlíčPřekladu> = {
+  cs: "jazyk_aktivity.cesky",
+  en: "jazyk_aktivity.anglicky",
+  "cs-en": "jazyk_aktivity.cesky_i_anglicky",
+  nezavisla: "jazyk_aktivity.nezavisla",
 };
+
+export const názevJazykaFiltru = (jazyk: JazykFiltru): string =>
+  t(KLÍČE_JAZYKŮ_FILTRU[jazyk]);
+
+export const názevJazykaAktivity = (jazyk: JazykAktivity): string =>
+  t(KLÍČE_JAZYKŮ_AKTIVITY[jazyk]);
 
 /** Data vygenerovaná před zavedením jazyka aktivity ho nemají, tehdy šlo vždy o češtinu. */
 export const jazykAktivity = (aktivita: { jazyk?: JazykAktivity }): JazykAktivity =>

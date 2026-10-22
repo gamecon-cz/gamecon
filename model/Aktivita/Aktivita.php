@@ -1268,7 +1268,7 @@ SQL
         }
         $data[Sql::CENA] = (int)($data[Sql::CENA] ?? 0);
         if (array_key_exists(Sql::JAZYK, $data)) {
-            $data[Sql::JAZYK] = (JazykAktivity::tryFrom((string)$data[Sql::JAZYK]) ?? JazykAktivity::vychozi())->value;
+            $data[Sql::JAZYK] = JazykAktivity::zFormulare($data[Sql::JAZYK])->value;
         }
 
         if (empty($data[Sql::POPIS]) && empty($data[Sql::ID_AKCE])) {

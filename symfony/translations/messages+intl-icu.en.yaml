@@ -4,6 +4,12 @@
 jazyk:
     prepnout: Switch to English
 
+jazyk_aktivity:
+    cesky: in Czech
+    anglicky: in English
+    cesky_i_anglicky: in Czech and English
+    nezavisla: language-independent
+
 menu:
     prihlasit: log in
     finance: Payments

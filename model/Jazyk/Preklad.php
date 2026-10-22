@@ -50,13 +50,20 @@ final class Preklad
     private static function translator(): Translator
     {
         if (self::$translator === null) {
-            // debug = true: katalog se přegeneruje, když se změní jeho YAML (stačí stat souboru)
+            // Změněný YAML pozná Translator podle času změny katalogů v klíči cache. Debug režim by to
+            // poznal taky, ale při každém požadavku by načítal a rozbaloval metadata cache.
             $translator = new Translator(
                 locale: Jazyk::vychozi()->value,
                 cacheDir: defined('SPEC')
                     ? SPEC . '/preklady'
                     : null,
-                debug: true,
+                debug: false,
+                cacheVary: [
+                    'zmeny_katalogu' => array_map(
+                        static fn (Jazyk $jazyk) => filemtime(self::souborKatalogu($jazyk)),
+                        Jazyk::cases(),
+                    ),
+                ],
             );
             $translator->setFallbackLocales([Jazyk::vychozi()->value]);
             $translator->addLoader('yaml', new YamlFileLoader());
