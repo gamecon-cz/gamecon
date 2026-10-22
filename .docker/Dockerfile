@@ -2,8 +2,12 @@
 #
 # Two images are built from this file. `runtime` is PHP, its extensions and Apache: the preview and archive images build
 # on it. `dev` is `runtime` plus the development tools (xdebug, git, Node, ...): local development and CI run in it.
+#
+# The PHP minor version is a build argument, because the archives of 2022-2025 stay on the 8.2 image: ./docker-build.sh 8.2
 
-FROM php:8.3-apache AS gamecon-runtime-step1
+ARG PHP_VERSION=8.3
+
+FROM php:${PHP_VERSION}-apache AS gamecon-runtime-step1
 
 RUN a2enmod rewrite expires headers && \
 	# avoid warning on start
