@@ -25,10 +25,10 @@
 # (docs/year-archive-phase0-recon.md).
 
 # Base image is parameterized so older archive years can build on a
-# period-correct PHP. Modern years use the default gameconcz/gamecon:8.3-runtime
-# (2022-2025 pin gameconcz/gamecon:8.2 in the workflow map, the one image that
-# predates the runtime/dev split), which already ships Apache + all needed
-# PHP extensions + the gamecon DocumentRoot, and no Node, yarn, git or xdebug.
+# period-correct PHP. Modern years use the default gameconcz/gamecon:8.3-runtime,
+# which already ships Apache + all needed PHP extensions + the gamecon
+# DocumentRoot, and no Node, yarn, git or xdebug. 2022-2025 pin the dev image
+# gameconcz/gamecon:8.2 in the workflow map (frozen code written for PHP 8.2).
 # Pre-2022 years whose code predates
 # PHP 8.1/8.2 deprecations (e.g. 2021, written for PHP 7.3) override it via
 # --build-arg BASE_IMAGE=php:7.3-apache (the official, publicly-pullable
