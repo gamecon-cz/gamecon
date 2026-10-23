@@ -6,12 +6,13 @@ namespace Gamecon\Tests\Model\Web;
 
 use Gamecon\Web\NahravaniObrazku;
 use Gamecon\Web\ObrazkyObsahu;
-use Gamecon\Web\ZpracovaneObrazky;
 use PHPUnit\Framework\TestCase;
 use Symfony\Component\Filesystem\Filesystem;
 
 class ObrazkyObsahuTest extends TestCase
 {
+    use TestovaciObrazky;
+
     private string $koren;
 
     protected function setUp(): void
@@ -89,10 +90,77 @@ class ObrazkyObsahuTest extends TestCase
     /**
      * @test
      */
-    public function popisekObrazkuEshopuJeNazevBezPoradiAPripony(): void
+    public function zpetneLomitkoVOdkazuSeBereJakoLomitko(): void
     {
-        self::assertSame('Účastnické triko na postavě', ZpracovaneObrazky::popisekObrazkuEshopu('08_Účastnické triko na postavě.jpeg'));
-        self::assertSame('nicknack vyrocni', ZpracovaneObrazky::popisekObrazkuEshopu('/cesta/20_nicknack_vyrocni.JPG'));
-        self::assertSame('Tematická placka Verneovky', ZpracovaneObrazky::popisekObrazkuEshopu('04_Tematická placka - Verneovky.png'));
+        self::assertSame(
+            ['sponzori/podvrh.png', 'materialy/2026/eshop/01_Blok.jpg'],
+            ObrazkyObsahu::odkazyVTextu(
+                '![](soubory/obsah/sponzori%5Cpodvrh.png) ![](soubory/obsah/materialy%5C2026%5Ceshop%5C01_Blok.jpg)',
+            ),
+        );
+    }
+
+    /**
+     * @test
+     */
+    public function nenabidneObrazkyAdresareJinehoModuluAniZapsaneZpetnymiLomitky(): void
+    {
+        (new Filesystem())->mkdir([$this->koren . '/sponzori', $this->koren . '/stranky/kontakty']);
+        imagepng(imagecreatetruecolor(4, 4), $this->koren . '/sponzori/podvrh.png');
+        $text = '![](soubory/obsah/sponzori%5Cpodvrh.png) ![](soubory/obsah/SPONZORI/podvrh.png)';
+
+        $html = $this->widget($text)->html();
+
+        self::assertStringNotContainsString('podvrh.png', $html);
+        self::assertStringNotContainsString('Obrázky, na které text odkazuje', $html);
+    }
+
+    /**
+     * @test
+     */
+    public function nahledyVEditoruJsouSkutecneMaleNeOriginalVPuvodniVelikosti(): void
+    {
+        (new Filesystem())->mkdir([$this->koren . '/obrazky', $this->koren . '/stranky/kontakty']);
+        imagepng(imagecreatetruecolor(600, 300), $this->koren . '/obrazky/velky.png');
+        imagepng(imagecreatetruecolor(600, 300), $this->koren . '/stranky/kontakty/vlastni.png');
+
+        $html = $this->widget('![](soubory/obsah/obrazky/velky.png)')->html();
+
+        preg_match_all('~<img src="([^"]+)" alt="">~', $html, $shody);
+        self::assertCount(2, $shody[1], 'Čekáme náhled odkazovaného i vlastního obrázku');
+        foreach ($shody[1] as $urlNahledu) {
+            $rozmery = getimagesize(self::souborNahledu(html_entity_decode($urlNahledu)));
+            self::assertSame([150, 100], [$rozmery[0], $rozmery[1]]);
+        }
+    }
+
+    /**
+     * @test
+     */
+    public function adresarStrankyKterySymlinkemVedeVenEditorNeshodi(): void
+    {
+        $venku = $this->koren . '-venku';
+        (new Filesystem())->mkdir([$venku, $this->koren . '/stranky']);
+        imagepng(imagecreatetruecolor(4, 4), $venku . '/cizi.png');
+        symlink($venku, $this->koren . '/stranky/kontakty');
+
+        try {
+            $html = $this->widget('text bez obrázků')->html();
+        } finally {
+            (new Filesystem())->remove($venku);
+        }
+
+        self::assertStringContainsString('Nahrát nový obrázek', $html);
+        self::assertStringNotContainsString('cizi.png', $html);
+    }
+
+    private function widget(string $text): ObrazkyObsahu
+    {
+        return new ObrazkyObsahu(
+            $text,
+            'stranky/kontakty',
+            'k této stránce',
+            new NahravaniObrazku($this->koren, formaty: [...NahravaniObrazku::RASTROVE_FORMATY, NahravaniObrazku::SVG]),
+        );
     }
 }
