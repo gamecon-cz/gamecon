@@ -60,6 +60,8 @@ SQL,
         return ZpracovaneObrazky::adresarObsahu() . '/' . self::adresar() . '/' . $soubor;
     }
 
+    private ?string $ulozisteVenku = null;
+
     protected function setUp(): void
     {
         parent::setUp();
@@ -68,8 +70,26 @@ SQL,
 
     protected function tearDown(): void
     {
-        (new Filesystem())->remove(ZpracovaneObrazky::adresarObsahu() . '/' . self::adresar());
+        (new Filesystem())->remove(array_filter([
+            ZpracovaneObrazky::adresarObsahu() . '/' . self::adresar(),
+            $this->ulozisteVenku,
+        ]));
         parent::tearDown();
+    }
+
+    /**
+     * web/soubory může být symlink na sdílené úložiště, skutečná cesta souboru pak vede mimo web.
+     */
+    private function nahravaniSKorenemNaJinemUlozisti(): NahravaniObrazku
+    {
+        $this->ulozisteVenku = sys_get_temp_dir() . '/gamecon-pouziti-' . bin2hex(random_bytes(6));
+        (new Filesystem())->mkdir($this->ulozisteVenku);
+        file_put_contents($this->ulozisteVenku . '/obrazek_1.jpg', 'fotka');
+        $koren = ZpracovaneObrazky::adresarObsahu() . '/' . self::adresar();
+        (new Filesystem())->remove($koren);
+        symlink($this->ulozisteVenku, $koren);
+
+        return new NahravaniObrazku($koren, new PouzitiObrazku());
     }
 
     /**
@@ -121,6 +141,91 @@ SQL,
     {
         self::assertSame([], (new PouzitiObrazku())->kdeJePouzity(self::absolutniCesta('jiny.jpg')));
         self::assertSame([], (new PouzitiObrazku())->kdeJePouzity(sys_get_temp_dir() . '/obrazek_1.jpg'));
+    }
+
+    /**
+     * @test
+     */
+    public function najdeOdkazyNaVicObrazkuNajednouJednimDotazemNaKazdouTabulku(): void
+    {
+        $cesty = [
+            self::absolutniCesta('obrazek_1.jpg'),
+            self::absolutniCesta('máj.png'),
+            self::absolutniCesta('obrazekX1.jpg'),
+            self::absolutniCesta('jiny.jpg'),
+        ];
+        $dotazuPred = dbNumQ();
+
+        $pouziti = (new PouzitiObrazku())->kdeJsouPouzity($cesty);
+
+        self::assertSame(4, dbNumQ() - $dotazuPred, 'Jeden dotaz na stránky, novinky, aktivity a medailonky');
+        self::assertSame($cesty, array_keys($pouziti));
+        self::assertSame(
+            [
+                'stránka kontakty-test',
+                'blog Testovací blog',
+                'aktivita Testovací aktivita (' . ROCNIK . ')',
+                'medailonek Test „test-vypravec“ Vypravěč',
+            ],
+            array_column($pouziti[$cesty[0]], 'popis'),
+        );
+        self::assertSame(['stránka zakodovana-test'], array_column($pouziti[$cesty[1]], 'popis'));
+        self::assertSame(['stránka podobna-test'], array_column($pouziti[$cesty[2]], 'popis'));
+        self::assertSame([], $pouziti[$cesty[3]]);
+    }
+
+    /**
+     * @test
+     */
+    public function bezCestNeudelaZadnyDotaz(): void
+    {
+        $dotazuPred = dbNumQ();
+
+        self::assertSame([], (new PouzitiObrazku())->kdeJsouPouzity([]));
+        self::assertSame($dotazuPred, dbNumQ());
+    }
+
+    /**
+     * @test
+     */
+    public function nesmazePouzityObrazekKdyzKorenLeziNaJinemUlozisti(): void
+    {
+        $nahravani = $this->nahravaniSKorenemNaJinemUlozisti();
+
+        try {
+            $nahravani->smaz('obrazek_1.jpg');
+            self::fail('Použitý obrázek neměl jít smazat');
+        } catch (NahravaniObrazkuException $nahravaniObrazkuException) {
+            self::assertStringStartsWith(
+                'Na obrázek obrazek_1.jpg odkazuje stránka kontakty-test',
+                $nahravaniObrazkuException->getMessage(),
+            );
+        }
+        self::assertFileExists($nahravani->cestaKSouboru('obrazek_1.jpg'));
+    }
+
+    /**
+     * @test
+     */
+    public function adresaSouboruVedeNaWebIKdyzKorenLeziNaJinemUlozisti(): void
+    {
+        $nahravani = $this->nahravaniSKorenemNaJinemUlozisti();
+
+        self::assertSame(
+            URL_WEBU . '/soubory/obsah/' . self::adresar() . '/obrazek_1.jpg',
+            $nahravani->urlSouboru($nahravani->cestaKSouboru('obrazek_1.jpg')),
+        );
+    }
+
+    /**
+     * @test
+     */
+    public function souborMimoKorenSluzbyNeniNikdePouzity(): void
+    {
+        $nahravani = new NahravaniObrazku(ZpracovaneObrazky::adresarObsahu(), new PouzitiObrazku());
+
+        self::assertSame([], $nahravani->kdeJePouzity(sys_get_temp_dir() . '/obrazek_1.jpg'));
+        self::assertNull($nahravani->urlSouboru(sys_get_temp_dir() . '/obrazek_1.jpg'));
     }
 
     /**
