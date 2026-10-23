@@ -53,14 +53,25 @@ SQL,
                 self::ID_VYPRAVECE,
                 self::ID_BEZ_PRAV,
             ),
-            sprintf("INSERT INTO medailonky(id_uzivatele, o_sobe, drd) VALUES (%d, 'O mně', '')", self::ID_VYPRAVECE),
             sprintf(
-                "INSERT INTO stranky(id_stranky, url_stranky, obsah, poradi) VALUES (%d, '%s', '# Test\n\n![mapa](%s)', 0)",
+                <<<'SQL'
+INSERT INTO medailonky(id_uzivatele, o_sobe, drd) VALUES (%d, 'O mně', '')
+SQL,
+                self::ID_VYPRAVECE,
+            ),
+            // \n zpracuje až MariaDB, v textu stránky z toho jsou odřádkování
+            sprintf(
+                <<<'SQL'
+INSERT INTO stranky(id_stranky, url_stranky, obsah, poradi) VALUES (%d, '%s', '# Test\n\n![mapa](%s)', 0)
+SQL,
                 self::ID_STRANKY,
                 self::URL_STRANKY,
                 $obrazekVTextu,
             ),
-            "INSERT INTO novinky(id, typ, vydat, url, nazev, autor, text) VALUES (9801, 2, NOW(), 'test-obrazky-blog', 'Test obrázků', 'Autor', 'Text')",
+            <<<'SQL'
+INSERT INTO novinky(id, typ, vydat, url, nazev, autor, text)
+VALUES (9801, 2, NOW(), 'test-obrazky-blog', 'Test obrázků', 'Autor', 'Text')
+SQL,
             sprintf(
                 <<<'SQL'
 INSERT INTO akce_seznam(id_akce, nazev_akce, url_akce, typ, rok, stav, popis, cena, kapacita, kapacita_f, kapacita_m)
@@ -68,7 +79,12 @@ VALUES (9801, 'Test obrázků', 'test-obrazku-v-adminu', 1, %d, 2, 'Popis', 0, 5
 SQL,
                 ROCNIK,
             ),
-            sprintf('INSERT INTO akce_organizatori(id_akce, id_uzivatele) VALUES (9801, %d)', self::ID_VYPRAVECE),
+            sprintf(
+                <<<'SQL'
+INSERT INTO akce_organizatori(id_akce, id_uzivatele) VALUES (9801, %d)
+SQL,
+                self::ID_VYPRAVECE,
+            ),
         ];
     }
 
@@ -217,6 +233,23 @@ SQL,
     /**
      * @test
      */
+    public function editorTextuHlidaNeulozeneZmenyPredNahranimObrazku(): void
+    {
+        $session = $this->prihlas(\Uzivatel::SYSTEM_LOGIN);
+
+        foreach (['web/novinka?id=9801', 'web/editace-stranek?id=' . self::ID_STRANKY] as $url) {
+            $editor = $this->stahni($session, $url);
+
+            // widget hledá editor podle třídy, kterou mu dává DbForm
+            self::assertMatchesRegularExpression('~<form[^>]*class="dbForm"~', $editor, $url);
+            self::assertStringContainsString("querySelector('form.dbForm')", $editor, $url);
+            self::assertStringContainsString("addEventListener('beforeunload'", $editor, $url);
+        }
+    }
+
+    /**
+     * @test
+     */
     public function obrazekEshopuSeObjeviVSeznamuSPopiskem(): void
     {
         $nazev = '99_Testovací předmět ' . getmypid();
@@ -293,7 +326,9 @@ SQL,
      */
     public function obrazekLinieNahrajeSpolecnaSluzba(): void
     {
-        $idTypu = (int) dbFetchSingle('SELECT id_typu FROM akce_typy WHERE zobrazit_v_menu = 1 ORDER BY id_typu LIMIT 1');
+        $idTypu = (int) dbFetchSingle(<<<'SQL'
+SELECT id_typu FROM akce_typy WHERE zobrazit_v_menu = 1 ORDER BY id_typu LIMIT 1
+SQL);
         self::assertGreaterThan(0, $idTypu, 'Testovací DB nemá linii zobrazenou v menu');
         $obrazek = ZpracovaneObrazky::adresarObrazkuLinii() . '/org_' . $idTypu;
         if (glob($obrazek . '.*') !== []) {
