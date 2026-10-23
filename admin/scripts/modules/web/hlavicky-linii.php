@@ -1,7 +1,6 @@
 <?php
 
 use Gamecon\Web\NahravaniObrazku;
-use Gamecon\Web\NahravaniObrazkuException;
 use Gamecon\Web\ZpracovaneObrazky;
 use Gamecon\XTemplate\XTemplate;
 
@@ -14,9 +13,7 @@ use Gamecon\XTemplate\XTemplate;
  */
 
 $nahravaniObrazkuLinii = NahravaniObrazku::proObrazkyLinii();
-if (NahravaniObrazku::bylPozadavekPrilisVelky()) {
-    chyba(NahravaniObrazku::zpravaOPrilisVelkemPozadavku());
-}
+NahravaniObrazku::hlidejPrilisVelkyPozadavek();
 
 $informaceOObrazkuLinie = static function (int $idTypu): array {
     $cestaVcetneVerze = cestaObrazkuLinie($idTypu);
@@ -90,15 +87,11 @@ if (post('action') === 'upload-line-header-image') {
         chyba('Neplatná linie.');
     }
 
-    try {
-        $nahravaniObrazkuLinii->ulozJakoJediny(
-            $nahravaniObrazkuLinii->overNahranySoubor($_FILES['obrazek'] ?? null),
-            '',
-            'org_' . $idTypu,
-        );
-    } catch (NahravaniObrazkuException $nahravaniObrazkuException) {
-        chyba(htmlspecialchars($nahravaniObrazkuException->getMessage()));
-    }
+    NahravaniObrazku::sOhlasenimChyby(fn () => $nahravaniObrazkuLinii->ulozJakoJediny(
+        $nahravaniObrazkuLinii->overNahranySoubor($_FILES['obrazek'] ?? null),
+        '',
+        'org_' . $idTypu,
+    ));
 
     oznameni('Obrázek linie byl nahrán.');
 }
@@ -109,11 +102,7 @@ if (post('action') === 'delete-line-header-image') {
         chyba('Neplatná linie.');
     }
 
-    try {
-        $nahravaniObrazkuLinii->smazVsechnyVarianty('', 'org_' . $idTypu);
-    } catch (NahravaniObrazkuException $nahravaniObrazkuException) {
-        chyba(htmlspecialchars($nahravaniObrazkuException->getMessage()));
-    }
+    NahravaniObrazku::sOhlasenimChyby(fn () => $nahravaniObrazkuLinii->smazVsechnyVarianty('', 'org_' . $idTypu));
 
     $legacyCesta = ZpracovaneObrazky::adresarObrazkuLinii() . '/' . $idTypu . '.png';
     if (is_file($legacyCesta)) {
