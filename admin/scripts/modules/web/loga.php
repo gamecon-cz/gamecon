@@ -62,6 +62,8 @@ if (isset($_GET['action']) && ($_GET['action'] === 'download_pattern_csv' || $_G
     }
 }
 
+NahravaniObrazku::hlidejPrilisVelkyPozadavek();
+
 if ($_POST) {
     $action = $_POST['action'] ?? '';
 

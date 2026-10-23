@@ -9,7 +9,6 @@
 
 use Gamecon\Uzivatel\Medailonek;
 use Gamecon\Web\NahravaniObrazku;
-use Gamecon\Web\NahravaniObrazkuException;
 use Gamecon\XTemplate\XTemplate;
 
 if (post('noveId')) {
@@ -29,38 +28,28 @@ if (get('id') !== null) {
 
     // fotka patří uživateli, ne řádku v medailonkách, jde tedy nahrát i před založením medailonku
     $nahravaniFotek = NahravaniObrazku::proFotkyUzivatelu();
-    if (NahravaniObrazku::bylPozadavekPrilisVelky()) {
-        chyba(NahravaniObrazku::zpravaOPrilisVelkemPozadavku());
-    }
+    NahravaniObrazku::hlidejPrilisVelkyPozadavek();
     if (post('akceFotky') === 'nahrat') {
-        try {
-            $nahravaniFotek->ulozJakoJediny(
-                $nahravaniFotek->overNahranySoubor($_FILES['fotka'] ?? null),
-                '',
-                (string)$idUzivatele,
-            );
-        } catch (NahravaniObrazkuException $nahravaniObrazkuException) {
-            chyba(htmlspecialchars($nahravaniObrazkuException->getMessage()));
-        }
+        NahravaniObrazku::sOhlasenimChyby(fn () => $nahravaniFotek->ulozJakoJediny(
+            $nahravaniFotek->overNahranySoubor($_FILES['fotka'] ?? null),
+            '',
+            (string)$idUzivatele,
+        ));
         oznameni('Fotka je nahraná.');
     }
     if (post('akceFotky') === 'smazat') {
-        try {
-            $nahravaniFotek->smazVsechnyVarianty('', (string)$idUzivatele);
-        } catch (NahravaniObrazkuException $nahravaniObrazkuException) {
-            chyba(htmlspecialchars($nahravaniObrazkuException->getMessage()));
-        }
+        NahravaniObrazku::sOhlasenimChyby(fn () => $nahravaniFotek->smazVsechnyVarianty('', (string)$idUzivatele));
         oznameni('Fotka je smazaná, na webu se ukáže výchozí obrázek.');
     }
 
     $medailonek = Medailonek::zId($idUzivatele);
-    $f = Medailonek::form($idUzivatele);
+    $medailonekForm = Medailonek::form($idUzivatele);
     if ($medailonek) {
-        $f->processPost();
+        $medailonekForm->processPost();
     }
 
-    $t = new XTemplate(__DIR__ . '/medailonky.xtpl');
-    $t->assign([
+    $template = new XTemplate(__DIR__ . '/medailonky.xtpl');
+    $template->assign([
         'idUzivatele'  => $idUzivatele,
         'jmeno'        => htmlspecialchars((string)$uzivatelMedailonku->jmenoNick()),
         'urlNaWebu'    => htmlspecialchars(URL_WEBU . '/' . $idUzivatele),
@@ -70,46 +59,46 @@ if (get('id') !== null) {
         'nahledFotky'  => htmlspecialchars((string)$uzivatelMedailonku->fotkaAuto()?->kvalita(85)->pokryjOrez(180, 180)),
     ]);
     if ($uzivatelMedailonku->fotka()) {
-        $t->parse('medailonek.fotka.smazat');
-        $t->parse('medailonek.fotka.ma');
+        $template->parse('medailonek.fotka.smazat');
+        $template->parse('medailonek.fotka.ma');
     } else {
-        $t->parse('medailonek.fotka.nema');
+        $template->parse('medailonek.fotka.nema');
     }
-    $t->parse('medailonek.fotka');
+    $template->parse('medailonek.fotka');
     if ($medailonek) {
-        $t->assign('formular', $f->full());
-        $t->parse('medailonek.formular');
+        $template->assign('formular', $medailonekForm->full());
+        $template->parse('medailonek.formular');
     } else {
-        $t->parse('medailonek.zalozit');
+        $template->parse('medailonek.zalozit');
     }
-    $t->parse('medailonek');
-    $t->out('medailonek');
+    $template->parse('medailonek');
+    $template->out('medailonek');
 
     return; // nezobrazovat věci níž
 }
 
-$t = new XTemplate(__DIR__ . '/medailonky.xtpl');
+$template = new XTemplate(__DIR__ . '/medailonky.xtpl');
 foreach (Medailonek::zVsech() as $medailonek) {
     assert($medailonek instanceof Medailonek);
     $uzivatelMedailonku = Uzivatel::zId($medailonek->idUzivatele());
-    $t->assign('uzivatelId', $uzivatelMedailonku->id());
-    $t->assign('jmenoNick', $uzivatelMedailonku->jmenoNick());
-    $t->assign('maPopisOSobe', trim($medailonek->oSobe()) !== ''
+    $template->assign('uzivatelId', $uzivatelMedailonku->id());
+    $template->assign('jmenoNick', $uzivatelMedailonku->jmenoNick());
+    $template->assign('maPopisOSobe', trim($medailonek->oSobe()) !== ''
         ? '✅'
         : '❌'
     );
-    $t->assign('oSobe', $medailonek->oSobe());
-    $t->assign('maDrdPopis', trim($medailonek->drd()) !== ''
+    $template->assign('oSobe', $medailonek->oSobe());
+    $template->assign('maDrdPopis', trim($medailonek->drd()) !== ''
         ? '✅'
         : '❌'
     );
-    $t->assign('drdPopis', $medailonek->drd());
-    $t->assign('maFotku', $uzivatelMedailonku->fotka()
+    $template->assign('drdPopis', $medailonek->drd());
+    $template->assign('maFotku', $uzivatelMedailonku->fotka()
         ? '✅'
         : '❌'
     );
-    $t->assign('medailonek', $medailonek);
-    $t->parse('medailonky.radek');
+    $template->assign('medailonek', $medailonek);
+    $template->parse('medailonky.radek');
 }
-$t->parse('medailonky');
-$t->out('medailonky');
+$template->parse('medailonky');
+$template->out('medailonky');

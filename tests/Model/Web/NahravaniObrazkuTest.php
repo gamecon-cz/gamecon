@@ -12,6 +12,8 @@ use Symfony\Component\Filesystem\Filesystem;
 
 class NahravaniObrazkuTest extends TestCase
 {
+    use TestovaciObrazky;
+
     /**
      * 1 × 1 px bezztrátové WebP, GD v našem obrazu WebP zapsat neumí
      */
@@ -105,6 +107,29 @@ class NahravaniObrazkuTest extends TestCase
         // malý soubor s obřími rozměry by při výrobě náhledu spolkl paměť
         $this->ocekavejChybu('Obrázek má 20 × 10 px');
         (new NahravaniObrazku($this->koren, maxPixelu: 100))->overSoubor($this->png('a.png'));
+    }
+
+    /**
+     * @test
+     */
+    public function galerieEshopuOdmitneFotkuSVicNezDvanactiMegapixely(): void
+    {
+        $obri = $this->soubor('obri.jpg', self::jpgSRozmeryVHlavicce(8000, 6000));
+
+        $this->ocekavejChybu('Obrázek má 8000 × 6000 px, to je na web zbytečně moc. Zmenši ho prosím nejvýš na 12 Mpx.');
+        NahravaniObrazku::proObrazkyEshopu()->overSoubor($obri);
+    }
+
+    /**
+     * @test
+     */
+    public function galerieEshopuPustiFotkuSDvanactiMegapixely(): void
+    {
+        $dvanactMegapixelu = $this->soubor('dvanact.jpg', self::jpgSRozmeryVHlavicce(4000, 3000));
+
+        $obrazek = NahravaniObrazku::proObrazkyEshopu()->overSoubor($dvanactMegapixelu);
+
+        self::assertSame([4000, 3000], [$obrazek->sirka, $obrazek->vyska]);
     }
 
     /**
@@ -211,6 +236,27 @@ class NahravaniObrazkuTest extends TestCase
         self::assertFileEquals($nova, $this->koren . '/42.png');
         self::assertFileExists($nova, 'Soubor, který nepřišel uploadem, se kopíruje');
         self::assertSame(['42.png'], $this->souboryVKoreni(), 'Nezůstal žádný dočasný soubor');
+    }
+
+    /**
+     * @test
+     */
+    public function ulozJakoJedinyPriNeuspechuZapisuNesmazeStarouVariantu(): void
+    {
+        file_put_contents($this->koren . '/42.jpg', 'stará fotka');
+        // na místě nové fotky je adresář, přejmenování na něj selže
+        (new Filesystem())->mkdir($this->koren . '/42.png');
+        $nahravani = new NahravaniObrazku($this->koren);
+
+        try {
+            $nahravani->ulozJakoJediny($nahravani->overSoubor($this->png('nova.png')), '', '42');
+            self::fail('Zápis na místo, kde je adresář, měl selhat');
+        } catch (NahravaniObrazkuException $nahravaniObrazkuException) {
+            self::assertSame('Obrázek se nepodařilo uložit.', $nahravaniObrazkuException->getMessage());
+        }
+
+        self::assertSame(['42.jpg', '42.png'], $this->souboryVKoreni(), 'Stará fotka zůstala a po dočasném souboru nezbylo nic');
+        self::assertStringEqualsFile($this->koren . '/42.jpg', 'stará fotka');
     }
 
     /**
@@ -399,6 +445,26 @@ class NahravaniObrazkuTest extends TestCase
         self::assertSame([], (new NahravaniObrazku($this->koren))->obrazkyVAdresari('neexistuje'));
     }
 
+    /**
+     * @test
+     */
+    public function nevypisujeSouboryKterychNazevSluzbaNeumiAdresovat(): void
+    {
+        (new Filesystem())->mkdir($this->koren . '/eshop');
+        // zpětné lomítko je na Linuxu obyčejný znak názvu, služba v něm ale vidí oddělovač adresářů
+        foreach (['01_Blok.jpg', '02_Zpětné\\lomítko.jpg'] as $soubor) {
+            file_put_contents($this->koren . '/eshop/' . $soubor, 'x');
+        }
+        $nahravani = new NahravaniObrazku($this->koren);
+
+        $obrazky = $nahravani->obrazkyVAdresari('eshop');
+
+        self::assertSame(['01_Blok.jpg'], $obrazky);
+        foreach ($obrazky as $obrazek) {
+            self::assertFileExists($nahravani->cestaKSouboru('eshop/' . $obrazek));
+        }
+    }
+
     public static function provideNazvy(): array
     {
         return [
@@ -468,6 +534,17 @@ class NahravaniObrazkuTest extends TestCase
         self::assertFalse(NahravaniObrazku::bylPozadavekPrilisVelky());
     }
 
+    /**
+     * @test
+     */
+    public function zpravaOPrilisVelkemPozadavkuRiktaKolikServerPrijme(): void
+    {
+        self::assertMatchesRegularExpression(
+            '~^Nahrávaný soubor je příliš velký, server přijme nejvýš \d+(,\d)? (kB|MB)\.$~u',
+            NahravaniObrazku::zpravaOPrilisVelkemPozadavku(),
+        );
+    }
+
     private function ocekavejChybu(string $castZpravy): void
     {
         $this->expectException(NahravaniObrazkuException::class);
@@ -523,9 +600,9 @@ class NahravaniObrazkuTest extends TestCase
         $cesta = $this->soubor($nazev, '');
         $obrazek = imagecreatetruecolor($sirka, $vyska);
         // šum, ať JPEG nejde zkomprimovat na pár bajtů
-        for ($x = 0; $x < $sirka; ++$x) {
-            for ($y = 0; $y < $vyska; ++$y) {
-                imagesetpixel($obrazek, $x, $y, random_int(0, 0xFFFFFF));
+        for ($sloupec = 0; $sloupec < $sirka; ++$sloupec) {
+            for ($radek = 0; $radek < $vyska; ++$radek) {
+                imagesetpixel($obrazek, $sloupec, $radek, random_int(0, 0xFFFFFF));
             }
         }
         imagejpeg($obrazek, $cesta);

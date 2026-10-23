@@ -124,6 +124,8 @@ class Nahled
     {
         try {
             $imagick = new Imagick($this->soubor);
+            // fotka z telefonu má pixely natočené a v EXIFu, jak ji otočit; prohlížeč to u originálu udělá sám
+            $imagick->autoOrient();
 
             $s = $this->s
                 ?: $imagick->getImageWidth();
