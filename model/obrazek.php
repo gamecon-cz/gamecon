@@ -175,15 +175,10 @@ class Obrazek
         return imagesx($this->o);
     }
 
+    /** Podle hlavičky souboru, obrázek se nedekóduje, takže se nehledí na jeho rozměry */
     public static function jeToPodporovanyObrazek(string $soubor): bool
     {
-        try {
-            self::zUrl($soubor, $soubor);
-
-            return true;
-        } catch (ObrazekException) {
-            return false;
-        }
+        return in_array(@exif_imagetype($soubor), [IMAGETYPE_JPEG, IMAGETYPE_PNG, IMAGETYPE_GIF], true);
     }
 
     /** Načte obrázek z některého z podporovaných typů souboru */
