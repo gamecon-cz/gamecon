@@ -7,12 +7,9 @@ namespace Gamecon\Web;
 use Gamecon\XTemplate\XTemplate;
 
 /**
- * Obrázky k textu stránky nebo novinky, pod editorem v administraci: nahrání nového obrázku,
- * nahrazení obrázku, na který text odkazuje (i dosud chybějícího), a smazání nepoužitého
- * obrázku z adresáře stránky. Editor textu (@see \DbForm) se odesílá AJAXem, proto vlastní formuláře.
- *
- * Nové obrázky jdou do adresáře podle stránky (`soubory/obsah/stranky/<url>/`, `soubory/obsah/blog/<url>/`),
- * starší obrázky z doby FTP zůstávají, kde jsou, a nahrazují se na svém místě, aby odkazy dál fungovaly.
+ * Obrázky k textu stránky nebo novinky, pod editorem v administraci: nahrání, nahrazení a smazání. Má vlastní
+ * formuláře, protože editor textu (@see \DbForm) se odesílá AJAXem. Nové obrázky jdou do adresáře stránky,
+ * starší z doby FTP zůstávají, kde jsou, a nahrazují se na místě, aby odkazy dál fungovaly.
  */
 final class ObrazkyObsahu
 {
@@ -20,11 +17,6 @@ final class ObrazkyObsahu
 
     private const POST_AKCE = 'obrazkyObsahuAkce';
     private const POST_SOUBOR = 'obrazekObsahu';
-    /**
-     * Adresáře, které spravují jiné moduly s vlastním právem: obrázek nahraný sem by se ukázal
-     * mezi logy (Loga) nebo v galerii e-shopu v přihlášce (Shop)
-     */
-    private const CIZI_ADRESARE = '~^(?:sponzori|partneri)/|^materialy/[^/]+/eshop/~i';
 
     private readonly NahravaniObrazku $nahravani;
 
@@ -69,8 +61,9 @@ final class ObrazkyObsahu
         );
         $odkazy = [];
         foreach ($shody[1] as $cesta) {
+            // %5C se po dekódování mění na zpětné lomítko, které služba bere jako oddělovač adresářů
             $segmenty = array_values(array_filter(
-                explode('/', rawurldecode($cesta)),
+                explode('/', str_replace('\\', '/', rawurldecode($cesta))),
                 static fn (string $segment): bool => $segment !== '',
             ));
             // `..` ani skryté soubory nenabízíme, služba by je stejně odmítla
@@ -105,31 +98,22 @@ final class ObrazkyObsahu
      */
     public function zpracujPost(): void
     {
-        if (NahravaniObrazku::bylPozadavekPrilisVelky()) {
-            chyba(NahravaniObrazku::zpravaOPrilisVelkemPozadavku());
-        }
+        NahravaniObrazku::hlidejPrilisVelkyPozadavek();
         $akce = post(self::POST_AKCE);
         if (!in_array($akce, ['nahrat', 'nahradit', 'smazat'], true)) {
             return;
         }
-        try {
-            $zprava = match ($akce) {
-                'nahrat'   => $this->nahrajNovy(),
-                'nahradit' => $this->nahrad((string)post('cesta')),
-                'smazat'   => $this->smaz((string)post('cesta')),
-            };
-        } catch (NahravaniObrazkuException $nahravaniObrazkuException) {
-            chyba(htmlspecialchars($nahravaniObrazkuException->getMessage()));
-
-            return; // chyba() přesměruje a skončí
-        }
-        oznameni($zprava);
+        oznameni(NahravaniObrazku::sOhlasenimChyby(fn (): string => match ($akce) {
+            'nahrat'   => $this->nahrajNovy(),
+            'nahradit' => $this->nahrad((string)post('cesta')),
+            'smazat'   => $this->smaz((string)post('cesta')),
+        }));
     }
 
     public function html(): string
     {
-        $t = new XTemplate(__DIR__ . '/obrazky-obsahu.xtpl');
-        $t->assign([
+        $template = new XTemplate(__DIR__ . '/obrazky-obsahu.xtpl');
+        $template->assign([
             'postAkce'   => self::POST_AKCE,
             'postSoubor' => self::POST_SOUBOR,
             'accept'     => $this->nahravani->accept(),
@@ -140,45 +124,49 @@ final class ObrazkyObsahu
 
         $odkazy = $this->odkazyNaSpravovaneObrazky();
         foreach ($odkazy as $cesta) {
-            $absolutniCesta = $this->assignObrazek($t, $cesta);
+            $absolutniCesta = $this->existujiciSoubor($cesta);
+            $this->assignObrazek($template, $cesta, $absolutniCesta);
             if ($absolutniCesta !== null) {
-                $t->assign('tlacitko', 'Nahradit');
-                $t->parse('obrazkyObsahu.odkazy.obrazek.existuje');
+                $template->assign('tlacitko', 'Nahradit');
+                $template->parse('obrazkyObsahu.odkazy.obrazek.existuje');
             } else {
-                $t->assign('tlacitko', 'Nahrát');
-                $t->parse('obrazkyObsahu.odkazy.obrazek.chybi');
+                $template->assign('tlacitko', 'Nahrát');
+                $template->parse('obrazkyObsahu.odkazy.obrazek.chybi');
             }
-            $t->parse('obrazkyObsahu.odkazy.obrazek');
+            $template->parse('obrazkyObsahu.odkazy.obrazek');
         }
         if ($odkazy !== []) {
-            $t->parse('obrazkyObsahu.odkazy');
+            $template->parse('obrazkyObsahu.odkazy');
         }
 
-        $vlastniObrazky = $this->vlastniObrazky();
-        foreach ($vlastniObrazky as $cesta) {
-            $absolutniCesta = $this->assignObrazek($t, $cesta);
+        $vlastniObrazky = $this->vlastniObrazkyProVypis();
+        $absolutniCesty = array_map($this->existujiciSoubor(...), $vlastniObrazky);
+        $kdeJsouPouzity = $this->nahravani->kdeJsouPouzity(array_values(array_filter($absolutniCesty)));
+        foreach ($vlastniObrazky as $index => $cesta) {
+            $absolutniCesta = $absolutniCesty[$index];
+            $this->assignObrazek($template, $cesta, $absolutniCesta);
             $pouziti = $absolutniCesta !== null
-                ? $this->nahravani->kdeJePouzity($absolutniCesta)
+                ? $kdeJsouPouzity[$absolutniCesta]
                 : [];
             foreach ($pouziti as ['popis' => $popis, 'url' => $url]) {
-                $t->assign([
+                $template->assign([
                     'pouzitiPopis' => htmlspecialchars($popis),
                     'pouzitiUrl'   => htmlspecialchars($url),
                 ]);
-                $t->parse('obrazkyObsahu.vlastni.obrazek.pouziti.misto');
+                $template->parse('obrazkyObsahu.vlastni.obrazek.pouziti.misto');
             }
-            $t->parse($pouziti !== []
+            $template->parse($pouziti !== []
                 ? 'obrazkyObsahu.vlastni.obrazek.pouziti'
                 : 'obrazkyObsahu.vlastni.obrazek.smazat');
-            $t->parse('obrazkyObsahu.vlastni.obrazek');
+            $template->parse('obrazkyObsahu.vlastni.obrazek');
         }
         if ($vlastniObrazky !== []) {
-            $t->parse('obrazkyObsahu.vlastni');
+            $template->parse('obrazkyObsahu.vlastni');
         }
 
-        $t->parse('obrazkyObsahu');
+        $template->parse('obrazkyObsahu');
 
-        return $t->text('obrazkyObsahu');
+        return $template->text('obrazkyObsahu');
     }
 
     private static function doTextu(string $cesta): string
@@ -206,7 +194,7 @@ final class ObrazkyObsahu
 
     private function nahrad(string $cesta): string
     {
-        if (!in_array($cesta, [...$this->odkazyNaSpravovaneObrazky(), ...$this->vlastniObrazky()], true)) {
+        if (!in_array($cesta, $this->odkazyNaSpravovaneObrazky(), true) && !in_array($cesta, $this->vlastniObrazky(), true)) {
             throw new NahravaniObrazkuException('Tenhle obrázek tu nahradit nejde, text na něj neodkazuje.');
         }
         $this->nahravani->nahrad(
@@ -237,7 +225,7 @@ final class ObrazkyObsahu
     {
         return array_values(array_filter(
             self::odkazyVTextu($this->text),
-            fn (string $cesta): bool => !preg_match(self::CIZI_ADRESARE, $cesta)
+            fn (string $cesta): bool => !ZpracovaneObrazky::jeAdresarJinehoModulu($cesta)
                 && in_array(NahravaniObrazku::mimePodlePripony($cesta), $this->nahravani->formaty(), true),
         ));
     }
@@ -254,19 +242,37 @@ final class ObrazkyObsahu
     }
 
     /**
+     * @return list<string>
+     */
+    private function vlastniObrazkyProVypis(): array
+    {
+        try {
+            return $this->vlastniObrazky();
+        } catch (NahravaniObrazkuException) {
+            // adresář, který symlinkem vede mimo kořen, jen nevypíšeme; smazání a nahrazení ať řeknou skutečnou chybu
+            return [];
+        }
+    }
+
+    /**
      * @return string|null absolutní cesta, pokud obrázek existuje
      */
-    private function assignObrazek(XTemplate $t, string $cesta): ?string
+    private function existujiciSoubor(string $cesta): ?string
     {
         try {
             $absolutniCesta = $this->nahravani->cestaKSouboru($cesta);
         } catch (NahravaniObrazkuException) {
-            $absolutniCesta = null;
+            return null;
         }
-        if ($absolutniCesta !== null && !is_file($absolutniCesta)) {
-            $absolutniCesta = null;
-        }
-        $t->assign([
+
+        return is_file($absolutniCesta)
+            ? $absolutniCesta
+            : null;
+    }
+
+    private function assignObrazek(XTemplate $template, string $cesta, ?string $absolutniCesta): void
+    {
+        $template->assign([
             'cesta'         => htmlspecialchars($cesta),
             'vTextu'        => htmlspecialchars(self::PREFIX_V_TEXTU . $cesta),
             'markdown'      => htmlspecialchars('![](' . self::doTextu($cesta) . ')'),
@@ -275,21 +281,19 @@ final class ObrazkyObsahu
                 ? htmlspecialchars($this->nahled($absolutniCesta))
                 : '',
             'url'           => $absolutniCesta !== null
-                ? htmlspecialchars((string)ZpracovaneObrazky::urlNaWebu($absolutniCesta))
+                ? htmlspecialchars((string)$this->nahravani->urlSouboru($absolutniCesta))
                 : '',
         ]);
-
-        return $absolutniCesta;
     }
 
     private function nahled(string $absolutniCesta): string
     {
         // SVG se v <img> nespouští, ukážeme ho přímo; Imagick by na něj potřeboval další knihovny
         if (NahravaniObrazku::mimePodlePripony($absolutniCesta) === NahravaniObrazku::SVG) {
-            return (string)ZpracovaneObrazky::urlNaWebu($absolutniCesta);
+            return (string)$this->nahravani->urlSouboru($absolutniCesta);
         }
         try {
-            return \Nahled::zeSouboru($absolutniCesta)->pasuj(150, 100)->url();
+            return \Nahled::zeSouboru($absolutniCesta)->pokryjOrez(150, 100)->url();
         } catch (\RuntimeException) {
             return '';
         }
