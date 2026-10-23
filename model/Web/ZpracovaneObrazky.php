@@ -9,6 +9,12 @@ use Nahled;
 
 readonly class ZpracovaneObrazky
 {
+    private const OBSAH = '/soubory/obsah';
+    private const ADRESAR_SPONZORU = 'sponzori';
+    private const ADRESAR_PARTNERU = 'partneri';
+    private const ADRESAR_MATERIALU = 'materialy';
+    private const ADRESAR_ESHOPU = 'eshop';
+
     public static function logaSponzoruTitulka(): static
     {
         return new static(self::adresarSponzoruTitulka());
@@ -61,12 +67,12 @@ readonly class ZpracovaneObrazky
 
     public static function adresarSponzoruPrehled(): string
     {
-        return ADRESAR_WEBU_S_OBRAZKY . '/soubory/obsah/sponzori';
+        return self::adresarObsahu() . '/' . self::ADRESAR_SPONZORU;
     }
 
     public static function adresarPartneruPrehled(): string
     {
-        return ADRESAR_WEBU_S_OBRAZKY . '/soubory/obsah/partneri';
+        return self::adresarObsahu() . '/' . self::ADRESAR_PARTNERU;
     }
 
     /** Fotky k medailonkům, `<id uživatele>.<přípona>`, viz @see \Uzivatel::fotka() */
@@ -84,13 +90,31 @@ readonly class ZpracovaneObrazky
     /** Obrázky pro texty stránek a novinek, dřív nahrávané přes FTP */
     public static function adresarObsahu(): string
     {
-        return ADRESAR_WEBU_S_OBRAZKY . '/soubory/obsah';
+        return ADRESAR_WEBU_S_OBRAZKY . self::OBSAH;
     }
 
     /** Galerie e-shopu v přihlášce */
     public static function adresarObrazkuEshopu(int $rocnik = ROCNIK): string
     {
-        return WWW . '/soubory/obsah/materialy/' . $rocnik . '/eshop';
+        return WWW . self::OBSAH . '/' . self::ADRESAR_MATERIALU . '/' . $rocnik . '/' . self::ADRESAR_ESHOPU;
+    }
+
+    /**
+     * Loga spravuje modul Loga a galerii e-shopu modul Shop, každý s vlastním právem, editor textu do nich nesahá.
+     *
+     * @param string $cestaVuciObsahu například `sponzori/logo.png`
+     */
+    public static function jeAdresarJinehoModulu(string $cestaVuciObsahu): bool
+    {
+        $vzor = sprintf(
+            '~^(?:%s|%s)/|^%s/[^/]+/%s/~i',
+            self::ADRESAR_SPONZORU,
+            self::ADRESAR_PARTNERU,
+            self::ADRESAR_MATERIALU,
+            self::ADRESAR_ESHOPU,
+        );
+
+        return preg_match($vzor, str_replace('\\', '/', $cestaVuciObsahu)) === 1;
     }
 
     /**
@@ -98,6 +122,15 @@ readonly class ZpracovaneObrazky
      */
     public static function cestaVuciWebu(string $absolutniCesta): ?string
     {
+        // nejdřív podle kořene webu tak, jak je zapsaný: kdyby byl `soubory` symlink, skutečná cesta by vedla mimo web
+        $zapsanyKoren = rtrim(ADRESAR_WEBU_S_OBRAZKY, '/') . '/';
+        if (str_starts_with($absolutniCesta, $zapsanyKoren)) {
+            $cesta = substr($absolutniCesta, strlen($zapsanyKoren));
+
+            return in_array('..', explode('/', $cesta), true)
+                ? null
+                : $cesta;
+        }
         $web = realpath(ADRESAR_WEBU_S_OBRAZKY);
         $adresar = realpath(dirname($absolutniCesta));
         if ($web === false || $adresar === false) {
@@ -128,19 +161,11 @@ readonly class ZpracovaneObrazky
      */
     public static function popisekObrazkuEshopu(string $soubor): string
     {
-        $bezPripony = basename($soubor, '.' . pathinfo($soubor, PATHINFO_EXTENSION));
+        // název z FTP nemusí být UTF-8, preg_replace s `u` by pak vrátilo null
+        $bezPripony = mb_scrub(basename($soubor, '.' . pathinfo($soubor, PATHINFO_EXTENSION)), 'UTF-8');
+        $slova = (string) preg_replace('~[^[:alnum:]]+~u', ' ', $bezPripony);
 
-        return trim(
-            preg_replace(
-                '~^\d+~', // odstraníme pořadové číslo souboru
-                '',
-                preg_replace(
-                    '~[^[:alnum:]]+~u',
-                    ' ',
-                    $bezPripony,
-                ),
-            ),
-        );
+        return trim((string) preg_replace('~^\d+~', '', $slova));
     }
 
     public function __construct(

@@ -8,16 +8,9 @@ use Symfony\Component\Filesystem\Exception\IOException;
 use Symfony\Component\Filesystem\Filesystem;
 
 /**
- * Společné nahrávání obrázků z administrace: fotky k medailonkům, obrázky linií, e-shopu a obsahu webu.
- *
- * - Typ pozná z obsahu souboru, ne z přípony od prohlížeče, a příponu podle něj určí sám.
- * - Hlídá velikost souboru i počet pixelů. Malý soubor s obřími rozměry by při výrobě náhledu
- *   (@see \Nahled) zabral gigabajty paměti.
- * - SVG pustí jen tam, kde je povolené, a jen přes kontrolu z @see LogoUpload::validujSvgSoubor().
- * - Zapisuje a maže jen uvnitř svého kořenového adresáře. Nový soubor uloží nejdřív pod dočasným
- *   názvem vedle cíle a teprve pak ho přejmenuje, takže web nikdy nenačte napůl zapsaný obrázek.
- * - Před smazáním (i před nahrazením obrázkem s jinou příponou) zjistí přes @see PouzitiObrazku,
- *   jestli na soubor neodkazuje některý text webu.
+ * Společné nahrávání obrázků z administrace: fotky medailonků, obrázky linií, e-shopu a obsahu webu.
+ * Typ pozná z obsahu souboru, zapisuje a maže jen uvnitř svého kořene a před smazáním zjistí přes
+ * @see PouzitiObrazku, jestli na obrázek neodkazuje text webu. Pravidla: docs/generated/nahravani-obrazku.md
  */
 final class NahravaniObrazku
 {
@@ -29,7 +22,6 @@ final class NahravaniObrazku
 
     public const RASTROVE_FORMATY = [self::JPG, self::PNG, self::GIF, self::WEBP];
 
-    /** Přípona, pod kterou se uloží nově nahraný obrázek */
     private const PRIPONA_PODLE_MIME = [
         self::JPG  => 'jpg',
         self::PNG  => 'png',
@@ -77,8 +69,10 @@ final class NahravaniObrazku
         return new self(
             ZpracovaneObrazky::adresarObrazkuEshopu($rocnik),
             new PouzitiObrazku(),
-            // galerie v přihlášce ukáže jen to, co umí načíst GD (@see \Obrazek::zUrl), tedy ne WebP
+            // galerie v přihlášce ukáže jen to, co projde @see \Obrazek::jeToPodporovanyObrazek(), tedy ne WebP
             formaty: [self::JPG, self::PNG, self::GIF],
+            // přihláška převádí každý obrázek celý do WebP, fotka předmětu nepotřebuje rozlišení foťáku
+            maxPixelu: 12_000_000,
         );
     }
 
@@ -108,9 +102,38 @@ final class NahravaniObrazku
     public static function zpravaOPrilisVelkemPozadavku(): string
     {
         return sprintf(
-            'Obrázek je příliš velký, server přijme nejvýš %s.',
+            'Nahrávaný soubor je příliš velký, server přijme nejvýš %s.',
             self::lidskaVelikost(self::bajtyZNastaveniPhp('post_max_size')),
         );
+    }
+
+    /**
+     * Pro začátek modulu s uploadem: příliš velký požadavek ohlásí organizátorovi a skončí.
+     */
+    public static function hlidejPrilisVelkyPozadavek(): void
+    {
+        if (self::bylPozadavekPrilisVelky()) {
+            chyba(self::zpravaOPrilisVelkemPozadavku());
+        }
+    }
+
+    /**
+     * Provede akci modulu. Chybu nahrávání ohlásí organizátorovi a skončí; zpráva výjimky není escapovaná,
+     * proto jde vždy přes tuhle metodu.
+     *
+     * @template T
+     * @param callable(): T $akce
+     * @return T
+     */
+    public static function sOhlasenimChyby(callable $akce): mixed
+    {
+        try {
+            return $akce();
+        } catch (NahravaniObrazkuException $nahravaniObrazkuException) {
+            chyba(htmlspecialchars($nahravaniObrazkuException->getMessage()));
+
+            throw $nahravaniObrazkuException; // nedosažitelné, chyba() skončí skript
+        }
     }
 
     /**
@@ -191,7 +214,6 @@ final class NahravaniObrazku
         return $this->formaty;
     }
 
-    /** Hodnota atributu accept pro <input type="file"> */
     public function accept(): string
     {
         return implode(',', $this->formaty);
@@ -259,19 +281,14 @@ final class NahravaniObrazku
             );
         }
 
-        $docasny = $this->presunDoDocasnehoSouboru($obrazek, $adresar);
-        try {
-            foreach ($ostatniVarianty as $varianta) {
-                if (!@unlink($varianta)) {
-                    throw new NahravaniObrazkuException(
-                        sprintf('Nepodařilo se odstranit starší obrázek %s.', basename($varianta)),
-                    );
-                }
-            }
-            $this->presunNaMisto($docasny, $cil);
-        } finally {
-            if (is_file($docasny)) {
-                @unlink($docasny);
+        $this->ulozPresDocasny($obrazek, $adresar, $cil);
+        // až po uložení nového, jinak by neúspěšný zápis nechal uživatele bez jakéhokoli obrázku
+        foreach ($ostatniVarianty as $varianta) {
+            if (!@unlink($varianta)) {
+                throw new NahravaniObrazkuException(sprintf(
+                    'Nový obrázek je uložený, ale starší %s se nepodařilo odstranit. Zkus to prosím znovu.',
+                    basename($varianta),
+                ));
             }
         }
 
@@ -381,7 +398,9 @@ final class NahravaniObrazku
         $adresar = $this->adresarUvnitrKorene($relativniAdresar, false);
         $obrazky = [];
         foreach (scandir($adresar) ?: [] as $soubor) {
+            // zpětné lomítko je pro službu oddělovač adresářů, takový soubor by neuměla smazat ani nahradit
             if (!str_starts_with($soubor, '.')
+                && !str_contains($soubor, '\\')
                 && self::mimePodlePripony($soubor) !== null
                 && is_file($adresar . '/' . $soubor)
             ) {
@@ -408,7 +427,35 @@ final class NahravaniObrazku
      */
     public function kdeJePouzity(string $absolutniCesta): array
     {
-        return $this->pouzitiObrazku?->kdeJePouzity($absolutniCesta) ?? [];
+        return $this->pouzitiObrazku?->kdeJePouzity($this->cestaPodKorenem($absolutniCesta)) ?? [];
+    }
+
+    /**
+     * Totéž pro víc souborů najednou, texty webu se prohledají jednou.
+     *
+     * @param list<string> $absolutniCesty
+     * @return array<string, list<array{popis: string, url: string}>> podle zadané cesty
+     */
+    public function kdeJsouPouzity(array $absolutniCesty): array
+    {
+        if ($this->pouzitiObrazku === null) {
+            return array_fill_keys($absolutniCesty, []);
+        }
+        $podKorenem = array_combine($absolutniCesty, array_map($this->cestaPodKorenem(...), $absolutniCesty));
+        $pouziti = $this->pouzitiObrazku->kdeJsouPouzity(array_values($podKorenem));
+
+        return array_map(
+            static fn (string $cestaPodKorenem): array => $pouziti[$cestaPodKorenem] ?? [],
+            $podKorenem,
+        );
+    }
+
+    /**
+     * Veřejná adresa souboru, null pro soubor mimo web.
+     */
+    public function urlSouboru(string $absolutniCesta): ?string
+    {
+        return ZpracovaneObrazky::urlNaWebu($this->cestaPodKorenem($absolutniCesta));
     }
 
     private static function bajtyZNastaveniPhp(string $nazev): int
@@ -618,6 +665,26 @@ final class NahravaniObrazku
         }
 
         return $this->overZeJeUvnitrKorene($cesta);
+    }
+
+    /**
+     * Cesta souboru tak, jak vede pod kořenem zadaným při vytvoření služby. Služba pracuje se skutečnými cestami,
+     * jenže když je kořen (nebo adresář nad ním) symlink na jiné úložiště, skutečná cesta vede mimo web
+     * a texty na ni neodkazují.
+     */
+    private function cestaPodKorenem(string $absolutniCesta): string
+    {
+        $realnyKoren = realpath($this->korenovyAdresar);
+        $realnyAdresar = realpath(dirname($absolutniCesta));
+        if ($realnyKoren === false || $realnyAdresar === false) {
+            return $absolutniCesta;
+        }
+        $predponaKorene = rtrim($realnyKoren, '/') . '/';
+        $realnaCesta = $realnyAdresar . '/' . basename($absolutniCesta);
+
+        return str_starts_with($realnaCesta, $predponaKorene)
+            ? rtrim($this->korenovyAdresar, '/') . '/' . substr($realnaCesta, strlen($predponaKorene))
+            : $absolutniCesta;
     }
 
     private function overZeJeUvnitrKorene(string $cesta): string
