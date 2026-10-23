@@ -5,6 +5,7 @@ use Gamecon\Shop\Predmet;
 use Gamecon\Shop\TypPredmetu;
 use Gamecon\XTemplate\XTemplate;
 use Gamecon\Shop\StavPredmetu;
+use Gamecon\Web\ObrazkyEshopu;
 
 /**
  * nazev: Shop
@@ -14,6 +15,9 @@ use Gamecon\Shop\StavPredmetu;
  */
 
 /** @var \Gamecon\SystemoveNastaveni\SystemoveNastaveni $systemoveNastaveni */
+
+$obrazkyEshopu = new ObrazkyEshopu();
+$obrazkyEshopu->zpracujPost();
 
 if (($polozkyKUlozeni = post('polozky')) !== null) {
     $puvodniHodnoty = post('polozky_original');
@@ -95,7 +99,7 @@ $template->parse('shop.typ');
 $template->parse('shop');
 $template->out('shop');
 
-require __DIR__ . '/_obrazky-eshopu.php';
+echo $obrazkyEshopu->html();
 
 require __DIR__ . '/../_import-eshopu.php';
 
