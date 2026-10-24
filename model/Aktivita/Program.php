@@ -11,6 +11,12 @@ use Uzivatel;
 
 class Program
 {
+    /**
+     * Aktivity začínají a končí po čtvrthodinách. Tabulka programu má proto na každou hodinu
+     * čtyři sloupce (ui/src/pages/program/components/tabulka/seskupování.ts, SLOUPCŮ_ZA_HODINU),
+     * při změně je potřeba změnit obojí.
+     */
+    public const KROK_CASU_AKTIVITY_MINUT = 15;
 
     public static function vypisPreact($jeAdmin = false, $pageName = "program"): void
     {
@@ -160,11 +166,13 @@ class Program
      */
     public static function denAktivityDleZacatku($a): ?DateTimeCz
     {
-        if (!isset($a['den']) || !isset($a['zacatek'])) {
+        $minuty = self::minutyZCasuFormulare($a['zacatek'] ?? null);
+        // den „?“ posílá editor jako 0
+        if (empty($a['den']) || $minuty === null) {
             return null;
         }
 
-        return $a['zacatek'] >= PROGRAM_ZACATEK
+        return $minuty >= PROGRAM_ZACATEK * 60
             ? new DateTimeCz($a['den'])
             : (new DateTimeCz($a['den']))->plusDen();
     }
@@ -173,15 +181,88 @@ class Program
      * Den ve kterém se odehrává aktivita (např. po půlnoci je stále v předchozím dni) bráno z času ukončení
      * @param array $a
      */
-    public static function denAktivityDleKonce($a)
+    public static function denAktivityDleKonce($a): ?DateTimeCz
     {
-        if (!isset($a['den']) || !isset($a['konec'])) {
+        $minuty = self::minutyZCasuFormulare($a['konec'] ?? null);
+        // den „?“ posílá editor jako 0
+        if (empty($a['den']) || $minuty === null) {
             return null;
         }
 
-        return $a['konec'] > PROGRAM_ZACATEK
+        return $minuty > PROGRAM_ZACATEK * 60
             ? new DateTimeCz($a['den'])
             : (new DateTimeCz($a['den']))->plusDen();
+    }
+
+    /**
+     * Čas z editoru aktivity jako počet minut od půlnoci, null když chybí nebo neleží na čtvrthodině.
+     * Editor posílá „14:15“, starší formuláře jen celou hodinu „14“, půlnoc i jako „24“ nebo „24:00“.
+     */
+    public static function minutyZCasuFormulare(mixed $cas): ?int
+    {
+        if ((!is_string($cas) && !is_int($cas))
+            || !preg_match('~^\s*(?<hodiny>\d{1,2})(?::(?<minuty>\d{2}))?\s*$~', (string)$cas, $casti)
+        ) {
+            return null;
+        }
+        $minuty = (int)$casti['hodiny'] * 60 + (int)($casti['minuty'] ?? 0);
+        if ((int)($casti['minuty'] ?? 0) > 59 || $minuty > 24 * 60 || $minuty % self::KROK_CASU_AKTIVITY_MINUT !== 0) {
+            return null;
+        }
+
+        return $minuty;
+    }
+
+    /**
+     * Minuta dne, kterou editor aktivity u začátku předvybere – čas mimo čtvrthodiny
+     * (starší aktivity) zaokrouhlí dolů, stejně jako dřív na celé hodiny.
+     */
+    public static function minutaZacatkuVEditoru(\DateTimeInterface $zacatek): int
+    {
+        return self::minutaDneDoluNaKrok($zacatek);
+    }
+
+    /**
+     * Minuta dne, kterou editor aktivity u konce předvybere. Konec se zaokrouhluje přes poslední
+     * úsek aktivity, aby konec o půlnoci vyšel 24:00 (= 0 modulo den) a ne začátek dne.
+     */
+    public static function minutaKonceVEditoru(\DateTimeInterface $konec): int
+    {
+        $posledniUsek = \DateTimeImmutable::createFromInterface($konec)
+            ->modify('-' . self::KROK_CASU_AKTIVITY_MINUT . ' minutes');
+
+        return (self::minutaDneDoluNaKrok($posledniUsek) + self::KROK_CASU_AKTIVITY_MINUT) % (24 * 60);
+    }
+
+    private static function minutaDneDoluNaKrok(\DateTimeInterface $cas): int
+    {
+        $minuta = (int)$cas->format('G') * 60 + (int)$cas->format('i');
+
+        return intdiv($minuta, self::KROK_CASU_AKTIVITY_MINUT) * self::KROK_CASU_AKTIVITY_MINUT;
+    }
+
+    /**
+     * Čas pro editor aktivity ve tvaru „14:15“, půlnoc na konci dne jako „24:00“
+     */
+    public static function formatujCasFormulare(int $minutyOdPulnoci): string
+    {
+        return sprintf('%d:%02d', intdiv($minutyOdPulnoci, 60), $minutyOdPulnoci % 60);
+    }
+
+    /**
+     * Vrátí časy (v minutách od půlnoci), kdy můžou začínat aktivity, po krocích KROK_CASU_AKTIVITY_MINUT
+     * @return array<int>
+     */
+    public static function seznamCasuZacatku(): array
+    {
+        $casyZacatku = [];
+        foreach (self::seznamHodinZacatku() as $hodina) {
+            foreach (range(0, 60 - self::KROK_CASU_AKTIVITY_MINUT, self::KROK_CASU_AKTIVITY_MINUT) as $minuta) {
+                $casyZacatku[] = $hodina * 60 + $minuta;
+            }
+        }
+
+        return $casyZacatku;
     }
 
     /**

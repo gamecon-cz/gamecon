@@ -48,7 +48,7 @@ SELECT * FROM
         IF(akce_seznam.typ = {$technicka}, 1, 0) AS technicka,
         IF(akce_seznam.typ = {$brigadnicka}, 1, 0) AS brigadnicka,
         akce_seznam.cena,
-        FORMAT(TIMESTAMPDIFF(SECOND, akce_seznam.zacatek, akce_seznam.konec) / 3600, 1) AS delka_v_hodinach
+        FORMAT(TIMESTAMPDIFF(SECOND, akce_seznam.zacatek, akce_seznam.konec) / 3600, 2) AS delka_v_hodinach -- čtvrthodiny (1.25) potřebují dvě desetinná místa
     FROM akce_seznam
     LEFT JOIN (SELECT * FROM akce_prihlaseni UNION ALL SELECT * FROM akce_prihlaseni_spec) AS akce_prihlaseni_vse
         ON akce_seznam.id_akce = akce_prihlaseni_vse.id_akce

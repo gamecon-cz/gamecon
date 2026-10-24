@@ -271,6 +271,16 @@ trait DateTimeCzTrait
     }
 
     /**
+     * Vrací hodinu, minuty jen když nejde o celou hodinu - tvar 16 nebo 16:15
+     */
+    public function formatHodinaPripadneSMinutami(): string
+    {
+        return parent::format((int)parent::format('i') === 0
+            ? 'G'
+            : 'G:i');
+    }
+
+    /**
      * Vrací běžně používaný formát data a času s přesností na minuty - tvar d. m. yyyy 16:46
      */
     public function formatCasNaMinutyStandard(): string

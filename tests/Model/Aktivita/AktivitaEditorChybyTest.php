@@ -40,6 +40,19 @@ class AktivitaEditorChybyTest extends AbstractTestDb
         );
     }
 
+    /**
+     * Den „?“ posílá editor jako 0. S vyplněným časem se aktivita uloží bez času, nesmí spadnout.
+     */
+    public function testDenNevyplnenySCasemNevyhodiVyjimku(): void
+    {
+        $chyby = self::zavolejEditorChyby([
+            'den' => '0',
+        ] + self::zakladniData(14, 16));
+
+        $casoveChyby = array_filter($chyby, static fn (string $chyba): bool => str_contains($chyba, 'začátku'));
+        $this->assertEmpty($casoveChyby);
+    }
+
     public function testValidniCasNeniChyba(): void
     {
         $chyby = self::zavolejEditorChyby(self::zakladniData(13, 14));

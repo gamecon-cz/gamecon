@@ -60,9 +60,10 @@ function _casy(&$zacatekDt, bool $pred = false) {
 
     if ($zacatkyAktivit) {
         foreach ($zacatkyAktivit as $zacatek) {
-            $t->assign('cas', $zacatek->format('l') . ' ' . $zacatek->format('H') . ':00');
-            $t->assign('val', $zacatek->format('Y-m-d') . ' ' . $zacatek->format('H') . ':00');
-            $t->assign('sel', $vybrany && $vybrany->format('Y-m-d H') === $zacatek->format('Y-m-d H') ? 'selected' : '');
+            // aktivity začínají i po čtvrthodinách a filtr hledá přesný začátek, takže čas i s minutami
+            $t->assign('cas', $zacatek->format('l H:i'));
+            $t->assign('val', $zacatek->format('Y-m-d H:i'));
+            $t->assign('sel', $vybrany && $vybrany->format('Y-m-d H:i') === $zacatek->format('Y-m-d H:i') ? 'selected' : '');
             $t->parse('casy.vyberCasu.cas');
         }
         $t->parse('casy.vyberCasu');

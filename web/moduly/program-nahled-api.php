@@ -32,6 +32,6 @@ echo json_encode([
     ),
     'stitky'      => array_map('mb_ucfirst', $a->tagy()),
     'cena'        => $a->cenaTextem(),
-    'cas'         => $a->zacatek()->format('G') . ':00&ndash;' . $a->konec()->format('G') . ':00',
+    'cas'         => $a->zacatek()->format('G:i') . '&ndash;' . $a->konec()->format('G:i'),
     'obsazenost'  => $a->obsazenost(),
 ], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES | JSON_THROW_ON_ERROR);

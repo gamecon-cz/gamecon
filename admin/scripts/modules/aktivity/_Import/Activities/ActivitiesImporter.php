@@ -280,31 +280,31 @@ HTML
             return PHP_INT_MAX;
         }
         try {
-            $dayTimeForSort = $this->dateTimeCz::poradiDne($activityValues[$this->exportAktivitSloupce::DEN]) * 24;
+            $dayTimeForSort = $this->dateTimeCz::poradiDne($activityValues[$this->exportAktivitSloupce::DEN]) * 24 * 60;
         } catch (\RuntimeException $runtimeException) {
             return PHP_INT_MAX; // invalid date name
         }
         if (!empty($activityValues[$this->exportAktivitSloupce::ZACATEK])) {
-            return $dayTimeForSort + $this->parseTimeToHour($activityValues[$this->exportAktivitSloupce::ZACATEK]);
+            return $dayTimeForSort + $this->parseTimeToMinutes($activityValues[$this->exportAktivitSloupce::ZACATEK]);
         }
         if (!empty($activityValues[$this->exportAktivitSloupce::KONEC])) {
-            return $dayTimeForSort + $this->parseTimeToHour($activityValues[$this->exportAktivitSloupce::KONEC]);
+            return $dayTimeForSort + $this->parseTimeToMinutes($activityValues[$this->exportAktivitSloupce::KONEC]);
         }
 
         return $dayTimeForSort;
     }
 
     /**
-     * Parse a time string like "10:00" or "14:30" to an hour integer (10, 14).
-     * Also handles numeric values (already an hour).
+     * Parse a time string like "10:00" or "14:30" to minutes since midnight (600, 870).
+     * Also handles numeric values (an hour).
      */
-    private function parseTimeToHour(mixed $timeValue): int
+    private function parseTimeToMinutes(mixed $timeValue): int
     {
         if (is_numeric($timeValue)) {
-            return (int)$timeValue;
+            return (int)$timeValue * 60;
         }
-        if (is_string($timeValue) && preg_match('/^(\d{1,2}):/', $timeValue, $matches)) {
-            return (int)$matches[1];
+        if (is_string($timeValue) && preg_match('/^(\d{1,2}):(\d{2})/', $timeValue, $matches)) {
+            return (int)$matches[1] * 60 + (int)$matches[2];
         }
 
         return 0;

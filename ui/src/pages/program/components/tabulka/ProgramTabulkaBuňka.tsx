@@ -8,6 +8,7 @@ import { volnoTypZObsazenost } from "../../../../utils";
 import { Obsazenost } from "./Obsazenost";
 import { Přihlašovátko } from "./Přihlašovátko";
 import { Aktivita } from "../../../../store/program/slices/programDataSlice";
+import { SLOUPCŮ_ZA_HODINU, stylŠířkyBuňky } from "./seskupování";
 
 export const tabulkaBuňkaAktivitaTřídy = (
   aktivita: Aktivita,
@@ -49,6 +50,8 @@ export const tabulkaBuňkaAktivitaTřídy = (
 
 type TProgramTabulkaBuňkaProps = {
   aktivitaId: number;
+  /** Kolik sloupců tabulky (čtvrthodin) aktivita zabírá, viz rozložŘádekDoSloupců */
+  početSloupců: number;
   zobrazLinii?: boolean;
   kompaktní?: boolean;
   /**
@@ -62,7 +65,7 @@ type TProgramTabulkaBuňkaProps = {
 export const ProgramTabulkaBuňka: FunctionComponent<
   TProgramTabulkaBuňkaProps
 > = (props) => {
-  const { aktivitaId, zobrazLinii, kompaktní, lokaceNazev } = props;
+  const { aktivitaId, početSloupců, zobrazLinii, kompaktní, lokaceNazev } = props;
 
   const aktivita = useAktivita(aktivitaId);
   const pohlavi = useÚčastníkPohlaví();
@@ -81,13 +84,14 @@ export const ProgramTabulkaBuňka: FunctionComponent<
   // jinak (linie/den) padneme zpět na hlavní lokaci aktivity.
   const zobrazenáLokace = lokaceNazev ?? aktivita.mistnosti?.[0]?.nazev;
 
-  const hodinOd = new Date(aktivita.cas.od).getHours();
-  const hodinDo = new Date(aktivita.cas.do).getHours();
-  const rozsah = (hodinDo - hodinOd + 24) % 24;
+  // Do buňky kratší než hodina se název nevejde celý, ukáže se aspoň v bublině.
+  const kratšíNežHodina = početSloupců < SLOUPCŮ_ZA_HODINU;
+  const buňkaTřída = kratšíNežHodina ? "program_kratkaAktivita" : undefined;
+  const odkazTitulek = kratšíNežHodina ? aktivita.nazev : undefined;
 
   return !kompaktní ? (
     <>
-      <td colSpan={rozsah}>
+      <td colSpan={početSloupců} style={stylŠířkyBuňky(početSloupců)} class={buňkaTřída}>
         <div class={tabulkaBuňkaAktivitaTřídy(aktivita, pohlavi)}>
           <a
             href={generujUrl(
@@ -96,6 +100,7 @@ export const ProgramTabulkaBuňka: FunctionComponent<
               })
             )}
             class="programNahled_odkaz"
+            title={odkazTitulek}
             onClick={onAktivitaOdkazKlik}
           >
             {aktivita.nazev}
@@ -117,7 +122,7 @@ export const ProgramTabulkaBuňka: FunctionComponent<
     </>
   ) : (
     <>
-      <td colSpan={rozsah}>
+      <td colSpan={početSloupců} style={stylŠířkyBuňky(početSloupců)} class={buňkaTřída}>
         <div class={"kompaktni " + tabulkaBuňkaAktivitaTřídy(aktivita, pohlavi)} >
           <a
             href={generujUrl(
@@ -126,6 +131,7 @@ export const ProgramTabulkaBuňka: FunctionComponent<
               })
             )}
             class="programNahled_odkaz"
+            title={odkazTitulek}
             onClick={onAktivitaOdkazKlik}
           >
             {aktivita.nazev}

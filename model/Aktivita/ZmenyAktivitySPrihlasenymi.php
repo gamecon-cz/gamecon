@@ -124,26 +124,29 @@ class ZmenyAktivitySPrihlasenymi
         return $puvodniDen !== $novyDen;
     }
 
+    /**
+     * Původní čas se bere tak, jak ho editor předvybral – starší čas mimo čtvrthodiny editor
+     * zaokrouhlí, a kdyby se tu porovnával přesně, uložení beze změny by stále hlásilo změnu času.
+     */
     private function zmenenCas(): bool
     {
         $puvodniZacatek = $this->puvodniAktivita->zacatek();
-        $puvodniZacatekVUpravach = '';
-        if ($puvodniZacatek) {
-            $puvodniZacatekHodina = (int) $puvodniZacatek->format('G');
-            $puvodniZacatekVUpravach = (string) ($puvodniZacatekHodina === 0
-                ? 24
-                : $puvodniZacatekHodina);
-        }
         $puvodniKonec = $this->puvodniAktivita->konec();
-        $puvodniKonecVUpravach = '';
-        if ($puvodniKonec) {
-            $puvodniKonecHodina = (int) (clone $puvodniKonec)->sub(new \DateInterval('PT1H'))->format('G');
-            $puvodniKonecVUpravach = (string) ($puvodniKonecHodina + 1);
-        }
-        $novyZacatek = trim((string) ($this->dataZFormulare[Sql::ZACATEK] ?? ''));
-        $novyKonec = trim((string) ($this->dataZFormulare[Sql::KONEC] ?? ''));
 
-        return $puvodniZacatekVUpravach !== $novyZacatek || $puvodniKonecVUpravach !== $novyKonec;
+        return ($puvodniZacatek ? Program::minutaZacatkuVEditoru($puvodniZacatek) : null) !== $this->minutaDneZFormulare(Sql::ZACATEK)
+            || ($puvodniKonec ? Program::minutaKonceVEditoru($puvodniKonec) : null) !== $this->minutaDneZFormulare(Sql::KONEC);
+    }
+
+    /**
+     * Půlnoc přichází z editoru jako „0:00“ i „24:00“, proto modulo celý den.
+     */
+    private function minutaDneZFormulare(string $pole): ?int
+    {
+        $minuty = Program::minutyZCasuFormulare($this->dataZFormulare[$pole] ?? null);
+
+        return $minuty === null
+            ? null
+            : $minuty % (24 * 60);
     }
 
     private function zmenenaCena(): bool

@@ -88,6 +88,10 @@ class SystemoveNastaveni implements ZdrojRocniku, ZdrojVlnAktivit, ZdrojTed, Zdr
         return $noveSystemoveNastaveni;
     }
 
+    /**
+     * Kolika standardním (3–5h) aktivitám odpovídá aktivita dané délky v hodinách.
+     * Pásma jsou horní meze, necelá hodina padne do vyššího pásma (1:15 jako 2 h).
+     */
     public static function getActivityStandardLengthCoefficient(float $length): float
     {
         return match (true) {
@@ -98,7 +102,8 @@ class SystemoveNastaveni implements ZdrojRocniku, ZdrojVlnAktivit, ZdrojTed, Zdr
             $length <= 9  => 2.0,
             $length <= 11 => 2.5,
             $length <= 13 => 3.0,
-            default       => throw new \RuntimeException('Neznámá délka aktivity pro přepočet na standardní aktivitu: ' . $length),
+            // delší aktivity pokračují stejným krokem – každé další dvě hodiny o půl standardní aktivity víc
+            default => 3.0 + 0.5 * ceil(($length - 13) / 2),
         };
     }
 

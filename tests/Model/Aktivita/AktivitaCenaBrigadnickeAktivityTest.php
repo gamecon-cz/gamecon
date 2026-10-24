@@ -60,6 +60,11 @@ SQL,
         self::assertSame(600, $this->ulozPresEditor(TypAktivity::BRIGADNICKA, '22', '2', 150));
     }
 
+    public function testCasPoCtvrthodinachSePlatiPomerne(): void
+    {
+        self::assertSame(225, $this->ulozPresEditor(TypAktivity::BRIGADNICKA, '8:15', '9:45', 150));
+    }
+
     public function testBezOdmenyZustaneCenaZFormulare(): void
     {
         self::assertSame(self::CENA_Z_FORMULARE, $this->ulozPresEditor(TypAktivity::BRIGADNICKA, '8', '12', 0));
@@ -78,7 +83,7 @@ SQL,
     /**
      * @dataProvider provideNeceleHodiny
      */
-    public function testPocetHodinSeZaokrouhlujeNaCele(string $zacatek, string $konec, int $ocekavanaCena): void
+    public function testNeceleHodinySePlatiPomerne(string $zacatek, string $konec, int $ocekavanaCena): void
     {
         $datum = ROCNIK . '-07-17';
         Aktivita::uloz(
@@ -112,9 +117,10 @@ SQL,
     public static function provideNeceleHodiny(): array
     {
         return [
-            'hodina a půl se zaokrouhlí nahoru' => ['10:00:00', '11:30:00', 200],
-            'půl hodiny se zaokrouhlí nahoru'   => ['10:00:00', '10:30:00', 100],
-            'čtvrt hodiny cenu nezmění'         => ['10:00:00', '10:15:00', self::CENA_Z_FORMULARE],
+            'hodina a půl'                        => ['10:00:00', '11:30:00', 150],
+            'půl hodiny'                          => ['10:00:00', '10:30:00', 50],
+            'čtvrt hodiny'                        => ['10:00:00', '10:15:00', 25],
+            'necelé koruny se zaokrouhlí na celé' => ['10:00:00', '10:01:00', 2],
         ];
     }
 
@@ -212,9 +218,32 @@ SQL,
             'konec před začátkem' => [[
                 Sql::KONEC => '2026-07-17 09:00:00',
             ] + $brigadnicka, 100],
-            'méně než půl hodiny' => [[
-                Sql::KONEC => '2026-07-17 10:20:00',
-            ] + $brigadnicka, 100],
+        ];
+    }
+
+    /**
+     * @dataProvider provideKratkeBrigady
+     */
+    public function testVzorecPlatiIKratsiNezHodinuPomerne(string $konec, int $ocekavanaCena): void
+    {
+        self::assertSame(
+            $ocekavanaCena,
+            Aktivita::vypocitejCenuBrigadnickeAktivity(
+                [
+                    Sql::TYP     => TypAktivity::BRIGADNICKA,
+                    Sql::ZACATEK => '2026-07-17 10:00:00',
+                    Sql::KONEC   => $konec,
+                ],
+                100,
+            ),
+        );
+    }
+
+    public static function provideKratkeBrigady(): array
+    {
+        return [
+            'čtvrt hodiny'        => ['2026-07-17 10:15:00', 25],
+            'méně než půl hodiny' => ['2026-07-17 10:20:00', 33],
         ];
     }
 
@@ -266,6 +295,9 @@ SQL,
             'celý den'                             => ['9', '18', 130],
             'jedna hodina'                         => ['13', '14', 175],
             'stejná hodina je celý programový den' => ['8', '8', 150],
+            'po čtvrthodinách'                     => ['8:15', '9:45', 150],
+            'po čtvrthodinách přes půlnoc'         => ['23:45', '0:30', 130],
+            'začátek o půlnoci'                    => ['0:00', '1:15', 100],
         ];
     }
 

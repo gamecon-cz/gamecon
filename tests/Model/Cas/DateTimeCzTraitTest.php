@@ -42,6 +42,29 @@ class DateTimeCzTraitTest extends TestCase
     /**
      * @test
      *
+     * @dataProvider dataHodinaPripadneSMinutami
+     */
+    public function formatHodinaPripadneSMinutamiVypiseMinutyJenUNeceleHodiny(string $cas, string $ocekavany): void
+    {
+        $dateTime = new class($cas) extends \DateTime {
+            use DateTimeCzTrait;
+        };
+        self::assertSame($ocekavany, $dateTime->formatHodinaPripadneSMinutami());
+    }
+
+    public static function dataHodinaPripadneSMinutami(): array
+    {
+        return [
+            'celá hodina'  => ['2025-07-17 14:00:00', '14'],
+            'půlnoc'       => ['2025-07-17 00:00:00', '0'],
+            'čtvrthodina'  => ['2025-07-17 14:15:00', '14:15'],
+            'ráno s nulou' => ['2025-07-17 08:05:00', '8:05'],
+        ];
+    }
+
+    /**
+     * @test
+     *
      * @dataProvider dataStari
      */
     public function stariVraciSpravnyRetezec(string $cas, string $ted, string $ocekavany): void

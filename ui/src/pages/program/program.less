@@ -440,6 +440,27 @@
   -webkit-line-clamp: 2;
 }
 
+// aktivita kratší než hodina má buňku užší, než je běžné odsazení a šířka názvu
+.program td.program_kratkaAktivita {
+  > div {
+    padding-left: 4px;
+    padding-right: 4px;
+  }
+
+  .programNahled_odkaz {
+    min-width: 0;
+  }
+
+  // text nesmí přetéct do sousední aktivity; přihlašovátko přetéká dál, aby šlo kliknout
+  .program_obsazenost,
+  .program_obsazenost_tym,
+  .program_lokace {
+    display: block;
+    overflow: hidden;
+    white-space: nowrap;
+  }
+}
+
 .program .program_osobniTyp::before {
   position: absolute;
   color: rgba(255, 255, 255, 0.75);

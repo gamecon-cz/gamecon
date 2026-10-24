@@ -6,6 +6,7 @@ namespace Gamecon\Admin\Modules\Aktivity\Import\Activities;
 use Gamecon\Admin\Modules\Aktivity\Export\ExportAktivitSloupce;
 use Gamecon\Aktivita\Aktivita;
 use Gamecon\Aktivita\Lokace;
+use Gamecon\Aktivita\Program;
 use Gamecon\Aktivita\StavAktivity;
 use Gamecon\Aktivita\TypAktivity;
 use Gamecon\Cas\DateTimeCz;
@@ -1109,13 +1110,15 @@ HTML;
             );
         }
         if ($endDateTime->isSuccess()) {
-            $endHour = (int)(DateTimeCz::createFromFormat(DateTimeCz::FORMAT_DB, $endDateTime->getSuccess())->format('G'));
-            if (($endHour < PROGRAM_ZACATEK) && $endHour >= PROGRAM_KONEC) {
+            $end = DateTimeCz::createFromFormat(DateTimeCz::FORMAT_DB, $endDateTime->getSuccess());
+            $endMinutes = (int)$end->format('G') * 60 + (int)$end->format('i');
+            // v PROGRAM_KONEC už se nehraje, ale aktivita v ní ještě skončit může
+            if ($endMinutes < PROGRAM_ZACATEK * 60 && $endMinutes > PROGRAM_KONEC * 60) {
                 return ImportStepResult::successWithErrorLikeWarnings(
                     null,
                     [sprintf(
                          'Aktivita má uvedený konec (%s), který je mimo rozsah denního začátku a konce GameConu (%s, %s)',
-                         $activityValues[ExportAktivitSloupce::ZACATEK],
+                         $activityValues[ExportAktivitSloupce::KONEC],
                          PROGRAM_ZACATEK,
                          PROGRAM_KONEC,
                      )],
@@ -1145,7 +1148,8 @@ HTML;
             );
         }
 
-        if (!preg_match('~^(?<hours>\d+)(\s*:\s*(?<minutes>\d+))?$~', $hoursAndMinutes, $timeMatches)) {
+        // Google Sheets vrací čas zadaný jako 14:15 i se sekundami 14:15:00
+        if (!preg_match('~^(?<hours>\d+)(\s*:\s*(?<minutes>\d+)(\s*:\s*(?<seconds>00))?)?$~', $hoursAndMinutes, $timeMatches)) {
             return ImportStepResult::error(
                 sprintf(
                     "Nepodařilo se nastavit čas podle dne '%s' a času '%s'. Chybný formát času '%s'. Čas aktivity je vynechán.",
@@ -1172,6 +1176,17 @@ HTML;
                     "Nepodařilo se nastavit čas podle dne '%s' a času '%s'. Čas uvádí více než 59 minut a posunul by hodiny. Čas aktivity je vynechán.",
                     $dayName,
                     $hoursAndMinutes,
+                ),
+            );
+        }
+
+        if ($minutes % Program::KROK_CASU_AKTIVITY_MINUT !== 0) {
+            return ImportStepResult::error(
+                sprintf(
+                    "Nepodařilo se nastavit čas podle dne '%s' a času '%s'. Aktivity začínají a končí po %d minutách. Čas aktivity je vynechán.",
+                    $dayName,
+                    $hoursAndMinutes,
+                    Program::KROK_CASU_AKTIVITY_MINUT,
                 ),
             );
         }

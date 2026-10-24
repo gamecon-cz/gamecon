@@ -8,10 +8,24 @@ table.program {
     border-spacing: 10px;
     margin: -10px;
     border-collapse: separate;
+    /* z šířky hodiny (= min-width hlavičky) a mezery (= border-spacing) se počítají sloupce a buňky */
+    --sirka-hodiny: 100px;
+    --mezera-sloupcu: 10px;
     } @media (max-width: 800px) { table.program {
         border-spacing: 6px;
         margin: -6px;
+        --mezera-sloupcu: 6px;
     }
+}
+
+/*
+ * Hodina má v tabulce čtyři sloupce (čtvrthodiny). Sloupec i buňka zabírají --hodin hodin
+ * (nastavuje ProgramTabulka) a jsou široké jako tolik hodin včetně mezer mezi sloupci.
+ * Pevná šířka sloupců drží čtvrthodiny stejně široké, jinak by je prohlížeč
+ * u buněk přes víc sloupců rozdělil nerovnoměrně.
+ */
+.program col.program_ctvrthodina {
+    width: calc(var(--hodin) * (var(--sirka-hodiny) + var(--mezera-sloupcu)) - var(--mezera-sloupcu));
 }
 
 .program tr {
@@ -101,16 +115,16 @@ table.program {
     }
 }
 
+/* buňka bez --hodin (název linie, nadpis dne) je široká jako hodina */
 .program td {
-    min-width: 100px;
-    max-width: 100px;
+    --sirka-bunky: calc(var(--hodin, 1) * (var(--sirka-hodiny) + var(--mezera-sloupcu)) - var(--mezera-sloupcu));
+    min-width: var(--sirka-bunky);
+    max-width: var(--sirka-bunky);
     padding: 0;
-    } @media (max-width: 1500px) { .program td:first-child {
+    /* jen název linie – první buňka dalších řádků linie je aktivita nebo mezera a rozšířila by čtvrthodinu */
+    } @media (max-width: 1500px) { .program td[rowspan] {
         min-width: 40px;
         max-width: 40px;
-    }} @media (max-width: 800px) { .program td {
-        min-width: 70px;
-        max-width: 70px;
     }
 }
 
@@ -126,6 +140,9 @@ table.program {
     height: 72px;
     padding: 12px 15px;
     box-sizing: border-box;
+    /* Pevná šířka podle --hodin, jinak by delší název rozšířil sloupce (max-width
+       buňky prohlížeč u colspan nedodrží). Bez --hodin (nadpis dne) je šířka automatická. */
+    width: calc(var(--hodin) * (var(--sirka-hodiny) + var(--mezera-sloupcu)) - var(--mezera-sloupcu));
     /* nechat přetékat kvůli týmovému formuláři v adminu */
 
     font-size: 12px;

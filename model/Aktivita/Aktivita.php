@@ -349,14 +349,33 @@ SQL
         return $dalsiKola;
     }
 
-    /** Délka aktivity v hodinách (float) */
+    /**
+     * Délka aktivity v hodinách, u aktivit po čtvrthodinách i necelá (1.25).
+     * Bonus za vedení i přepočet na standardní aktivitu ji berou jako horní mez pásma,
+     * takže necelá hodina padne do vyššího pásma (1:15 jako dvouhodinová).
+     */
     public function delka(): float
     {
         if (($zacatek = $this->zacatek()) && ($konec = $this->konec())) {
-            return (($konec->getTimestamp() - $zacatek->getTimestamp()) / 3600 + 24) % 24;
+            return fmod(($konec->getTimestamp() - $zacatek->getTimestamp()) / 3600 + 24, 24);
         }
 
         return 0.0;
+    }
+
+    /** Délka aktivity pro zobrazení - tvar 2 h, 1 h 15 min nebo 45 min */
+    public function delkaTextem(): string
+    {
+        $minut = (int)round($this->delka() * 60);
+        $casti = [];
+        if (intdiv($minut, 60) > 0 || $minut === 0) {
+            $casti[] = intdiv($minut, 60) . "\u{2009}h";
+        }
+        if ($minut % 60 > 0) {
+            $casti[] = ($minut % 60) . "\u{2009}min";
+        }
+
+        return implode(' ', $casti);
     }
 
     public function rok(): int
@@ -365,12 +384,13 @@ SQL
     }
 
     /**
-     * @return string datum ve stylu Pátek 14-18 (skutečný čas)
+     * @return string datum ve stylu Pátek 14-18 nebo Pátek 14:15-18 (skutečný čas)
      */
     public function denCasSkutecny(): string
     {
         if ($this->denSkutecny() && $this->konec()) {
-            return $this->denSkutecny()->format('l G') . '–' . $this->konec()->format('G');
+            return $this->denSkutecny()->format('l') . ' ' . $this->denSkutecny()->formatHodinaPripadneSMinutami()
+                . '–' . $this->konec()->formatHodinaPripadneSMinutami();
         }
 
         return '';
@@ -553,6 +573,7 @@ SQL
         $xtpl->assign('potvrditZmenuUdajuSPrihlasenymiKlic', self::POTVRDIT_ZMENU_UDAJU_S_PRIHLASENYMI_KLIC);
         $xtpl->assign('limitPopisKratky', self::LIMIT_POPIS_KRATKY);
         $xtpl->assign('typBrigadnicka', TypAktivity::BRIGADNICKA);
+        $xtpl->assign('zacatekProgramuMinut', PROGRAM_ZACATEK * 60);
         $xtpl->assign('sledovanaPoleConfig', json_encode(ZmenyAktivitySPrihlasenymi::SLEDOVANA_POLE, JSON_UNESCAPED_UNICODE));
         $xtpl->assign('poleNaRodinuConfig', json_encode(ZmenyAktivitySPrihlasenymi::POLE_PROPAGOVANA_NA_RODINU, JSON_UNESCAPED_UNICODE));
 
@@ -689,10 +710,10 @@ SQL
                 ? $aktivita->zacatek()->format('l')
                 : '',
             $aktivita->zacatek()
-                ? $aktivita->zacatek()->format('G')
+                ? $aktivita->zacatek()->formatHodinaPripadneSMinutami()
                 : '',
             $aktivita->konec()
-                ? $aktivita->konec()->format('G')
+                ? $aktivita->konec()->formatHodinaPripadneSMinutami()
                 : '',
         );
     }
@@ -749,8 +770,8 @@ SQL
                 $xtpl->assign([
                     'kolo_cislo'        => $koloInfo['turnaj_kolo'],
                     'kolo_den'          => $zacatek ? $zacatek->format('l') : '?',
-                    'kolo_cas_od'       => $zacatek ? $zacatek->format('G') : '?',
-                    'kolo_cas_do'       => $konec ? $konec->format('G') : '?',
+                    'kolo_cas_od'       => $zacatek ? $zacatek->formatHodinaPripadneSMinutami() : '?',
+                    'kolo_cas_do'       => $konec ? $konec->formatHodinaPripadneSMinutami() : '?',
                     'kolo_id_akce_html'  => (int)$koloInfo['id_akce'] === $aktivita?->id()
                         ? '<strong>' . $koloInfo['id_akce'] . '</strong>'
                         : '<a href="' . Urls::urlAdminDetailAktivity((int)$koloInfo['id_akce']) . '">' . $koloInfo['id_akce'] . '</a>',
@@ -795,38 +816,36 @@ SQL
         ?Aktivita $aktivita,
         XTemplate $xtpl,
     ) {
+        $krok = Program::KROK_CASU_AKTIVITY_MINUT;
         $aZacatek = $aktivita && $aktivita->zacatek()
-            ? (int)$aktivita->zacatek()->format('G')
+            ? Program::minutaZacatkuVEditoru($aktivita->zacatek())
             : null;
         $aKonec = $aktivita && $aktivita->konec()
-            ? (int)$aktivita->konec()->sub(new \DateInterval('PT1H'))->format('G')
-            : null; // kontrola přehoupnutí přes půlnoc
-        $hodinyZacatku = Program::seznamHodinZacatku();
+            ? Program::minutaKonceVEditoru($aktivita->konec())
+            : null;
+        $casyZacatku = Program::seznamCasuZacatku();
 
-        array_unshift($hodinyZacatku, null);
-        foreach ($hodinyZacatku as $hodinaZacatku) {
-            $xtpl->assign('selected', $aZacatek === $hodinaZacatku
+        array_unshift($casyZacatku, null);
+        foreach ($casyZacatku as $casZacatku) {
+            $xtpl->assign('selected', $aZacatek === $casZacatku
                 ? 'selected'
                 : '');
-            if ($hodinaZacatku === 0) {
-                $xtpl->assign(Sql::ZACATEK, "24");
-                $xtpl->assign('zacatekSlovy', '24:00');
-            } else {
-                $xtpl->assign(Sql::ZACATEK, $hodinaZacatku);
-                $xtpl->assign('zacatekSlovy', $hodinaZacatku !== null
-                    ? ($hodinaZacatku . ':00')
-                    : '?');
-            }
+            $xtpl->assign(Sql::ZACATEK, $casZacatku !== null
+                ? Program::formatujCasFormulare($casZacatku)
+                : '');
+            $xtpl->assign('zacatekSlovy', $casZacatku !== null
+                ? Program::formatujCasFormulare($casZacatku)
+                : '?');
             $xtpl->parse('upravy.tabulka.zacatek');
 
-            $xtpl->assign('selected', $aKonec === $hodinaZacatku
+            $xtpl->assign('selected', $casZacatku !== null && $aKonec === ($casZacatku + $krok) % (24 * 60)
                 ? 'selected'
                 : '');
-            $xtpl->assign(Sql::KONEC, ($hodinaZacatku !== null
-                ? $hodinaZacatku + 1
-                : null));
-            $xtpl->assign('konecSlovy', $hodinaZacatku !== null
-                ? (($hodinaZacatku + 1) . ':00')
+            $xtpl->assign(Sql::KONEC, $casZacatku !== null
+                ? Program::formatujCasFormulare($casZacatku + $krok)
+                : '');
+            $xtpl->assign('konecSlovy', $casZacatku !== null
+                ? Program::formatujCasFormulare($casZacatku + $krok)
                 : '?');
             $xtpl->parse('upravy.tabulka.konec');
         }
@@ -980,13 +999,18 @@ SQL
      */
     private static function dejCasyZFormulare(array $formular): ?array
     {
-        if (empty($formular['den']) || empty($formular[Sql::ZACATEK]) || empty($formular[Sql::KONEC])) {
+        if (empty($formular['den'])) {
+            return null;
+        }
+        $denZacatku = Program::denAktivityDleZacatku($formular);
+        $denKonce = Program::denAktivityDleKonce($formular);
+        if ($denZacatku === null || $denKonce === null) {
             return null;
         }
 
         return [
-            Program::denAktivityDleZacatku($formular)->add(new \DateInterval('PT' . $formular[Sql::ZACATEK] . 'H')),
-            Program::denAktivityDleKonce($formular)->add(new \DateInterval('PT' . $formular[Sql::KONEC] . 'H')),
+            $denZacatku->add(new \DateInterval('PT' . Program::minutyZCasuFormulare($formular[Sql::ZACATEK]) . 'M')),
+            $denKonce->add(new \DateInterval('PT' . Program::minutyZCasuFormulare($formular[Sql::KONEC]) . 'M')),
         ];
     }
 
@@ -1205,8 +1229,8 @@ SQL
     }
 
     /**
-     * Cena brigádnické aktivity = odměna za hodinu × počet hodin zaokrouhlený na celé,
-     * nebo null, když ji z daných údajů nejde spočítat a platí cena zadaná ručně.
+     * Cena brigádnické aktivity = odměna za hodinu × přesná délka (necelé hodiny poměrně, 1:15 = 1,25 ×)
+     * zaokrouhlená na celé koruny, nebo null, když ji z daných údajů nejde spočítat a platí cena zadaná ručně.
      * @param array $data Pole odpovídající strukturou řádku DB, tedy se začátkem a koncem ve formátu DB
      */
     public static function vypocitejCenuBrigadnickeAktivity(array $data, int $odmenaZaHodinu): ?int
@@ -1218,10 +1242,9 @@ SQL
             return null;
         }
         $trvaniVSekundach = (new \DateTimeImmutable($data[Sql::KONEC]))->getTimestamp() - (new \DateTimeImmutable($data[Sql::ZACATEK]))->getTimestamp();
-        $trvaniVHodinach = (int)round($trvaniVSekundach / 3600);
 
-        return $trvaniVHodinach > 0
-            ? $odmenaZaHodinu * $trvaniVHodinach
+        return $trvaniVSekundach > 0
+            ? (int)round($odmenaZaHodinu * $trvaniVSekundach / 3600)
             : null;
     }
 
@@ -4298,6 +4321,7 @@ SQL,
     }
 
     /**
+     * Různé začátky aktivit v rozmezí, s přesností na minuty (aktivity začínají i po čtvrthodinách)
      * @param DateTimeCz $od
      * @param DateTimeCz $do
      * @param int $flags
@@ -4314,9 +4338,9 @@ SQL,
         /** @var \DateTime[][] $zacatky */
         $zacatky = [];
         foreach ($aktivity as $aktivita) {
-            $zacatekHodin = $aktivita->zacatek()->format('YmdH');
-            if (!array_key_exists($zacatekHodin, $zacatky)) {
-                $zacatky[$zacatekHodin] = $aktivita->zacatek();
+            $zacatekVMinutach = $aktivita->zacatek()->format('YmdHi');
+            if (!array_key_exists($zacatekVMinutach, $zacatky)) {
+                $zacatky[$zacatekVMinutach] = $aktivita->zacatek();
             }
         }
 

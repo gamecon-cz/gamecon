@@ -112,7 +112,7 @@ zachovejScroll(document.querySelectorAll('.aktivity_aktivity form > a'), null)
 
         <h3>Informace:</h3>
         <div class="programNahled_obsazenost aktivity_nahledInfo">{kapacita}</div>
-        <div class="programNahled_cas aktivity_nahledInfo">{aktivita.delka}&thinsp;h</div>
+        <div class="programNahled_cas aktivity_nahledInfo">{aktivita.delkaTextem}</div>
         <div class="programNahled_cena aktivity_nahledInfo">{aktivita.cenaZaklad}</div>
 
         <h3>Termíny:</h3>
