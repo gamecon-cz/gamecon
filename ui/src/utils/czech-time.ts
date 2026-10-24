@@ -1,6 +1,7 @@
 export const PRAGUE_TZ = "Europe/Prague";
 
 const fmtHodiny = new Intl.DateTimeFormat("cs-CZ", { timeZone: PRAGUE_TZ, hour: "numeric", hour12: false });
+const fmtMinuty = new Intl.DateTimeFormat("cs-CZ", { timeZone: PRAGUE_TZ, minute: "numeric" });
 const fmtDen = new Intl.DateTimeFormat("en-US", { timeZone: PRAGUE_TZ, weekday: "short" });
 const fmtDenMesic = new Intl.DateTimeFormat("cs-CZ", { timeZone: PRAGUE_TZ, day: "numeric" });
 const fmtMesic = new Intl.DateTimeFormat("cs-CZ", { timeZone: PRAGUE_TZ, month: "numeric" });
@@ -13,6 +14,10 @@ export const pražskéHodiny = (date: Date): number => {
   const formatted = fmtHodiny.format(date);
   return parseInt(formatted, 10) % 24; // % 24 pro případné "24" o půlnoci v některých prostředích
 };
+
+/** Minuty 0–59 v Europe/Prague */
+export const pražskéMinuty = (date: Date): number =>
+  parseInt(fmtMinuty.format(date), 10);
 
 /** Den v týdnu 0–6 (Ned–Sob) v Europe/Prague */
 export const pražskýDenVTýdnu = (date: Date): number => {

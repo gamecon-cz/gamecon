@@ -3,6 +3,76 @@ import { GAMECON_KONSTANTY } from "../../../../env";
 import { denAktivity } from "../../../../store/program/logic/aktivity";
 import { Aktivita } from "../../../../store/program/slices/programDataSlice";
 import { formátujDenVTýdnu, zip } from "../../../../utils";
+import { pražskéHodiny, pražskéMinuty } from "../../../../utils/czech-time";
+
+/** Aktivity začínají a končí po čtvrthodinách, takže každá hodina má v tabulce čtyři sloupce. */
+export const SLOUPCŮ_ZA_HODINU = 4;
+const MINUT_ZA_SLOUPEC = 60 / SLOUPCŮ_ZA_HODINU;
+const DÉLKA_SLOUPCE_MS = MINUT_ZA_SLOUPEC * 60 * 1_000;
+const SLOUPCŮ_ZA_DEN = 24 * SLOUPCŮ_ZA_HODINU;
+
+/**
+ * Zarovná čas aktivity na sloupce tabulky – začátek dolů, konec nahoru, aspoň na jeden sloupec.
+ * Editor aktivit jiné časy než po čtvrthodinách nenabízí, zarovnání jen hlídá, aby starší
+ * aktivita s „necelým“ časem nerozbila tabulku. Pražský posun od UTC je v celých hodinách,
+ * takže zaokrouhlený timestamp leží i na pražské čtvrthodině.
+ */
+const zarovnejNaSloupce = ({ od, do: časDo }: OdDo): OdDo => {
+  const sloupecOd = Math.floor(od / DÉLKA_SLOUPCE_MS);
+  const sloupecDo = Math.max(Math.ceil(časDo / DÉLKA_SLOUPCE_MS), sloupecOd + 1);
+
+  return { od: sloupecOd * DÉLKA_SLOUPCE_MS, do: sloupecDo * DÉLKA_SLOUPCE_MS };
+};
+
+/** Index sloupce tabulky, ve kterém leží daný čas, počítaný od začátku programového dne */
+const sloupecProgramu = (čas: number): number => {
+  const datum = new Date(čas);
+  const sloupecDne = pražskéHodiny(datum) * SLOUPCŮ_ZA_HODINU
+    + Math.floor(pražskéMinuty(datum) / MINUT_ZA_SLOUPEC);
+
+  return (sloupecDne - GAMECON_KONSTANTY.PROGRAM_ZACATEK * SLOUPCŮ_ZA_HODINU + SLOUPCŮ_ZA_DEN) % SLOUPCŮ_ZA_DEN;
+};
+
+/** Inline styl buňky přes daný počet sloupců, šířku podle něj počítá program-trida.css */
+export const stylŠířkyBuňky = (sloupců: number): string =>
+  `--hodin: ${sloupců / SLOUPCŮ_ZA_HODINU}`;
+
+export type BuňkaŘádku = {
+  aktivita: Aktivita,
+  /** Počet prázdných sloupců před aktivitou */
+  odsazení: number,
+  /** Počet sloupců, které aktivita zabírá */
+  šířka: number,
+};
+
+/**
+ * Rozloží aktivity jednoho řádku tabulky do sloupců po čtvrthodinách.
+ * Aktivity v řádku se nesmí překrývat, viz časyDoŘádkůBezPřekryvu.
+ * @returns buňky aktivit a počet prázdných sloupců za poslední z nich
+ */
+export const rozložŘádekDoSloupců = (
+  aktivity: Aktivita[],
+  početSloupců: number,
+): { buňky: BuňkaŘádku[], zbývá: number } => {
+  let obsazenoDo = 0;
+  const buňky = [...aktivity]
+    .sort((a1, a2) => a1.cas.od - a2.cas.od)
+    .map((aktivita) => {
+      const čas = zarovnejNaSloupce(aktivita.cas);
+      const sloupecOd = sloupecProgramu(čas.od);
+      // aktivita končící až po konci programu (např. celodenní brigáda) se ořízne na konec tabulky
+      const šířka = Math.min(
+        Math.round((čas.do - čas.od) / DÉLKA_SLOUPCE_MS),
+        Math.max(početSloupců - sloupecOd, 1),
+      );
+      const odsazení = Math.max(sloupecOd - obsazenoDo, 0);
+      obsazenoDo = sloupecOd + šířka;
+
+      return { aktivita, odsazení, šířka };
+    });
+
+  return { buňky, zbývá: Math.max(početSloupců - obsazenoDo, 0) };
+};
 
 /**
  * Pro array časů vrátí indexy řádků tak
@@ -80,7 +150,7 @@ export const připravTabulkuAktivit = (aktivity: Aktivita[], seskupitPodle = Ses
   const seskupené = seskupAktivity(aktivity, seskupitPodle);
 
   const zpracujSkupinu = (skupina: Aktivita[]): PředpřivenáTabulkaAktivit["klíč"] =>
-    zip(skupina, časyDoŘádkůBezPřekryvu(skupina.map(x => x.cas))).map(([aktivita, řádek]) => ({ aktivita, řádek }));
+    zip(skupina, časyDoŘádkůBezPřekryvu(skupina.map(x => zarovnejNaSloupce(x.cas)))).map(([aktivita, řádek]) => ({ aktivita, řádek }));
 
 
   const tabulka: PředpřivenáTabulkaAktivit = Object.fromEntries(
@@ -106,7 +176,7 @@ const připravTabulkuAktivitDenALinie = (aktivity: Aktivita[], seskupitPodle = S
   }
 
   const zpracujSkupinu = (skupina: Aktivita[], seskupitPodle = SeskupováníAktivit.linie): PředpřivenáTabulkaAktivit["klíč"] =>
-    zip(skupina, časyDoŘádkůBezPřekryvu(skupina.map(x => x.cas))).map(([aktivita, řádek]) => ({ aktivita, řádek }));
+    zip(skupina, časyDoŘádkůBezPřekryvu(skupina.map(x => zarovnejNaSloupce(x.cas)))).map(([aktivita, řádek]) => ({ aktivita, řádek }));
 
   const výsledek: PředpřivenáTabulkaAktivitHierarchie = Object.fromEntries(
     Object.entries(aktivitySeskupDen).map(([denKlíč, aktivitySeskupDenyDen]) => {

@@ -4,7 +4,10 @@ import { DNY_NÁZVY_S_HÁČKY, formátujDenVTýdnu, range } from "../../../../ut
 import { ProgramPosuv } from "./ProgramPosuv";
 import {
   připravTabulkuAktivit,
+  rozložŘádekDoSloupců,
   SeskupováníAktivit,
+  SLOUPCŮ_ZA_HODINU,
+  stylŠířkyBuňky,
   PředpřivenáTabulkaAktivit,
   PředpřivenáTabulkaAktivitHierarchie,
 } from "./seskupování";
@@ -22,7 +25,6 @@ import { useEffect } from "react";
 import { nastavZvětšeno } from "../../../../store/program/slices/všeobecnéSlice";
 import { PřekrývacíNačítač } from "../Načítač";
 import { exitFullscreen, requestFullscreen } from "../../../../utils/dom";
-import { pražskéHodiny } from "../../../../utils/czech-time";
 
 type ProgramTabulkaProps = {};
 
@@ -32,6 +34,8 @@ const PROGRAM_ČASY =
     : range(GAMECON_KONSTANTY.PROGRAM_ZACATEK, 24).concat(
       range(0, GAMECON_KONSTANTY.PROGRAM_KONEC)
     );
+
+const PROGRAM_SLOUPCŮ = PROGRAM_ČASY.length * SLOUPCŮ_ZA_HODINU;
 
 const indexŘazení = (klíč: string) => {
   const index = GAMECON_KONSTANTY.PROGRAM_ŘAZENÍ_LINIE.findIndex(
@@ -103,18 +107,28 @@ export const ProgramTabulka: FunctionComponent<ProgramTabulkaProps> = (
     prázdnéMístnosti
   );
 
+  // pevná šířka čtvrthodin, viz program-trida.css
+  const sloupceTabulky = (
+    <colgroup>
+      <col />
+      {range(PROGRAM_SLOUPCŮ).map(() => (
+        <col class="program_ctvrthodina" style={stylŠířkyBuňky(1)} />
+      ))}
+    </colgroup>
+  );
+
   const tabulkaHlavičkaČasy = (
     <tr>
       <th></th>
       {PROGRAM_ČASY.map((čas) => (
-        <th>{čas}:00</th>
+        <th colSpan={SLOUPCŮ_ZA_HODINU}>{čas}:00</th>
       ))}
     </tr>
   );
 
   const tabulkaŽádnéAktivity = (
     <tr>
-      <td colSpan={PROGRAM_ČASY.length + 1}>Žádné aktivity tento den</td>
+      <td colSpan={PROGRAM_SLOUPCŮ + 1}>Žádné aktivity tento den</td>
     </tr>
   );
 
@@ -134,7 +148,7 @@ export const ProgramTabulka: FunctionComponent<ProgramTabulkaProps> = (
           return (
             <tr>
               {nadpisSkupiny}
-              <td></td>
+              <td colSpan={PROGRAM_SLOUPCŮ} style={stylŠířkyBuňky(PROGRAM_SLOUPCŮ)}></td>
             </tr>
           );
         }
@@ -142,39 +156,26 @@ export const ProgramTabulka: FunctionComponent<ProgramTabulkaProps> = (
         return range(řádků).map((řádek) => {
           const klíčSkupiny = řádek === 0 ? nadpisSkupiny : <></>;
 
-          let posledníAktivitaDo = GAMECON_KONSTANTY.PROGRAM_ZACATEK;
+          const { buňky, zbývá } = rozložŘádekDoSloupců(
+            skupina.filter((x) => x.řádek === řádek).map((x) => x.aktivita),
+            PROGRAM_SLOUPCŮ
+          );
           return (
             <tr key={`${klíč}-${řádek}`}>
               {klíčSkupiny}
-              {skupina
-                .filter((x) => x.řádek === řádek)
-                .map((x) => x.aktivita)
-                .sort((a1, a2) => a1.cas.od - a2.cas.od)
-                .map((aktivita) => {
-                  const hodinOd = pražskéHodiny(new Date(aktivita.cas.od));
-                  const hodinDo = pražskéHodiny(new Date(aktivita.cas.do));
-
-                  const časOdsazení = (hodinOd - posledníAktivitaDo + 24) % 24;
-                  const odsazení = časOdsazení > 0
-                      ? <td colSpan={časOdsazení}></td>
-                      : <></>;
-                  posledníAktivitaDo = hodinDo;
-
-                  return (
-                    <>
-                      {odsazení}
-                      <ProgramTabulkaBuňka
-                        aktivitaId={aktivita.id}
-                        zobrazLinii={zobrazitLinii}
-                        kompaktní={kompaktní}
-                        lokaceNazev={jeMístnost ? klíč : undefined}
-                      />
-                    </>
-                  );
-                })}
-              {
-                <td colSpan={(GAMECON_KONSTANTY.PROGRAM_KONEC - posledníAktivitaDo + 24) % 24}></td>
-              }
+              {buňky.map(({ aktivita, odsazení, šířka }) => (
+                <>
+                  {odsazení > 0 ? <td colSpan={odsazení} style={stylŠířkyBuňky(odsazení)}></td> : <></>}
+                  <ProgramTabulkaBuňka
+                    aktivitaId={aktivita.id}
+                    početSloupců={šířka}
+                    zobrazLinii={zobrazitLinii}
+                    kompaktní={kompaktní}
+                    lokaceNazev={jeMístnost ? klíč : undefined}
+                  />
+                </>
+              ))}
+              {zbývá > 0 ? <td colSpan={zbývá} style={stylŠířkyBuňky(zbývá)}></td> : <></>}
             </tr>
           );
         });
@@ -186,7 +187,7 @@ export const ProgramTabulka: FunctionComponent<ProgramTabulkaProps> = (
           .filter(([denKlíč]) => zobrazitDenVHierarchii(denKlíč))
           .flatMap(([denKlíč, tabulkaProDen]) => [
             <tr key={`nadpis-${denKlíč}`}>
-              <td colSpan={PROGRAM_ČASY.length + 1}>
+              <td colSpan={PROGRAM_SLOUPCŮ + 1}>
                 <div class="program_den_nadpis">{denKlíč}</div>
               </td>
             </tr>,
@@ -256,6 +257,7 @@ export const ProgramTabulka: FunctionComponent<ProgramTabulkaProps> = (
         <div class="programPosuv_obal2">
           <div class="programPosuv_obal" ref={obalRef}>
             <table class="program">
+              {sloupceTabulky}
               <tbody>{tabulka}</tbody>
             </table>
           </div>
