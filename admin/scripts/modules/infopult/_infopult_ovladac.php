@@ -184,6 +184,7 @@ if ($uPracovni && ($udaje = (array)post('udaje'))) {
 
 if (post('zpracujUbytovani')) {
     $shop->zpracujUbytovani(false, false);
+    $shop->oznamZpravyUbytovani();
     $shop = $obnovPracovnihoUzivateleAShop();
     oznameni('Ubytování uloženo');
 }

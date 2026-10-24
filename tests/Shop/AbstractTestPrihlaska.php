@@ -82,6 +82,7 @@ abstract class AbstractTestPrihlaska extends AbstractTestDb
                 dbRollback();
                 throw $throwable;
             }
+            $shop->oznamZpravyUbytovani();
         } finally {
             $_POST = $puvodniPost;
             \Uzivatel::smazCache();

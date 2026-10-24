@@ -8,6 +8,7 @@ use Gamecon\Exceptions\ChybaUbytovaciSkupiny;
 use Gamecon\SystemoveNastaveni\SystemoveNastaveni;
 use Chyba;
 use Gamecon\Pravo;
+use Gamecon\Ubytovani\HotelovePokoje;
 use Gamecon\Ubytovani\UbytovaciSkupiny;
 use Gamecon\Uzivatel\Registrace;
 use Uzivatel;
@@ -464,7 +465,14 @@ SQL,
     private            $pnZalozitSkupinu = 'shopUbytovaniZalozitSkupinu';
     private            $pnKodSkupiny     = 'shopUbytovaniKodSkupiny';
     private            $pnOpustitSkupinu = 'shopUbytovaniOpustitSkupinu';
+    private            $pnSamotar        = 'shopUbytovaniSamotar';
     private ?UbytovaciSkupiny $ubytovaciSkupiny = null;
+    /** @var array<int, int>|null beds held by roommate groups on hotels by item id, without the group of the user, who can take its beds */
+    private ?array $drzenePostele = null;
+    /** @var array{typy: list<string>, noci: array<string, array<int, true>>}|false|null the others in the group of the user, false when in none */
+    private array|false|null $skupinaUzivatele = null;
+    /** @var array{varovani: list<string>, oznameni: list<string>} about the roommate group, see {@see oznamZpravy()} */
+    private array $zpravyKOznameni = ['varovani' => [], 'oznameni' => []];
 
     public function __construct(
         array                               $predmety,
@@ -683,10 +691,27 @@ SQL,
         $muzeMenitSkupinu = $this->muzeMenitSkupinu();
         $prehled          = $this->ubytovaciSkupiny()->prehled((int)$this->ubytovany->id());
         if ($prehled === null) {
+            $jeSamotar = $this->ubytovaciSkupiny()->jeSamotar((int)$this->ubytovany->id());
             $t->assign([
                 'postnameZalozitSkupinu' => $this->pnZalozitSkupinu,
                 'postnameKodSkupiny'     => $this->pnKodSkupiny,
+                'postnameSamotar'        => $this->pnSamotar,
+                'checkedSamotar'         => $jeSamotar
+                    ? 'checked'
+                    : '',
+                'sam'                    => $this->ubytovany->jeZena()
+                    ? 'sama'
+                    : 'sám',
             ]);
+            if ($muzeMenitSkupinu && $this->jsouPosteleJenSKodemSkupiny()) {
+                $t->parse('ubytovani.skupina.neclen.drzenePostele');
+            }
+            if ($muzeMenitSkupinu && $this->jeMaloNaNovyPokoj()) {
+                $t->parse('ubytovani.skupina.neclen.zalozeniBezPokoje');
+            }
+            if (!$muzeMenitSkupinu && $jeSamotar) {
+                $t->parse('ubytovani.skupina.zamceno.samotar');
+            }
             $t->parse($muzeMenitSkupinu
                 ? 'ubytovani.skupina.neclen'
                 : 'ubytovani.skupina.zamceno');
@@ -696,6 +721,10 @@ SQL,
         }
 
         $t->assign('kodSkupiny', $prehled['kod']);
+        // after the sales nobody joins any more, sending the code would be no use
+        $t->parse($muzeMenitSkupinu
+            ? 'ubytovani.skupina.clen.pozvanka'
+            : 'ubytovani.skupina.clen.uzavrena');
         foreach ($prehled['clenove'] as $clen) {
             $t->assign([
                 'jmenoClena'     => htmlspecialchars($clen['jmeno']),
@@ -727,10 +756,22 @@ SQL,
         return $this->ubytovaciSkupiny ??= new UbytovaciSkupiny($this->systemoveNastaveni->rocnik());
     }
 
-    private function zpracujSkupinu(): void
+    private function hotelovePokoje(): HotelovePokoje
     {
+        return new HotelovePokoje($this->systemoveNastaveni->rocnik());
+    }
+
+    /**
+     * Messages are returned, not shown, so that none of them stays behind when the hotel check
+     * after them rolls the whole registration back.
+     *
+     * @return array{varovani: list<string>, oznameni: list<string>, zalozena: bool}
+     */
+    private function zpracujSkupinu(): array
+    {
+        $zpravy = ['varovani' => [], 'oznameni' => [], 'zalozena' => false];
         if (!$this->muzeMenitSkupinu()) {
-            return;
+            return $zpravy;
         }
         $skupiny = $this->ubytovaciSkupiny();
         $kod     = UbytovaciSkupiny::normalizujKod((string)($_POST[$this->pnKodSkupiny] ?? ''));
@@ -738,19 +779,116 @@ SQL,
             if (!empty($_POST[$this->pnOpustitSkupinu])) {
                 $kodOpustene = $skupiny->kodSkupiny((int)$this->ubytovany->id());
                 if ($skupiny->opust((int)$this->ubytovany->id())) {
-                    oznameni("Skupina spolubydlících {$kodOpustene} je opuštěná.", false);
+                    $zpravy['oznameni'][] = "Skupina spolubydlících {$kodOpustene} je opuštěná.";
                 }
             } elseif ($kod !== '') {
                 $skupiny->pripoj($this->ubytovany, $kod);
-                oznameni("Připojeno ke skupině spolubydlících {$kod}.", false);
+                $zpravy['oznameni'][] = "Připojeno ke skupině spolubydlících {$kod}.";
             } elseif (!empty($_POST[$this->pnZalozitSkupinu])) {
-                $kod = $skupiny->zaloz($this->ubytovany);
-                oznameni("Skupina spolubydlících je založená, její kód je {$kod}. Pošli ho těm, kdo mají bydlet na stejném pokoji.", false);
+                $kod                  = $skupiny->zaloz($this->ubytovany);
+                $zpravy['zalozena']   = true;
+                $zpravy['oznameni'][] = "Skupina spolubydlících je založená, její kód je {$kod}. Pošli ho těm, kdo mají bydlet na stejném pokoji."
+                                        . ($this->dnyHotelovychPokoju() !== []
+                                            ? ' Zbylé postele na pokoji pro ně držíme.'
+                                            : '');
+            } elseif (!empty($_POST[$this->pnSamotar])) {
+                if (!$skupiny->jeSamotar((int)$this->ubytovany->id())) {
+                    $skupiny->prihlasSamotare($this->ubytovany);
+                    $zpravy['oznameni'][] = 'Spolubydlící ti přidělíme po konci prodeje ubytování.';
+                }
+            } else {
+                // unchecked (a member gets no checkbox, but does not wait for roommates either)
+                $skupiny->odhlasSamotare((int)$this->ubytovany->id());
             }
         } catch (ChybaUbytovaciSkupiny $chyba) {
             // chybný kód nebo plná skupina nemá zahodit zbytek přihlášky
-            varovani($chyba->getMessage(), false);
+            $zpravy['varovani'][] = $chyba->getMessage();
         }
+
+        return $zpravy;
+    }
+
+    /**
+     * Whether the change of accommodation and roommate group left a hotel night fuller than it can hold,
+     * see {@see HotelovePokoje}. Rolls the whole registration back when it did, as a sold out item does.
+     *
+     * @param array<int, array{prodano: int, drzeno: int}> $hotelPredZmenou
+     * @param list<string> $varovaniSkupiny why the user did not get into a group, it can explain the rest
+     * @param bool $zalozilSkupinu the code of a group founded now goes away with the rollback, it is not shown
+     * @throws Chyba
+     */
+    private function zkontrolujPokojeNaHotelu(
+        array   $hotelPredZmenou,
+        ?string $kodSkupinyPredZmenou,
+        array   $varovaniSkupiny,
+        bool    $zalozilSkupinu,
+    ): void {
+        $preplnene = $this->hotelovePokoje()->preplnenePoZmene($hotelPredZmenou);
+        if ($preplnene === []) {
+            return;
+        }
+
+        $nociPodleTypu  = [];
+        $drziSkupinyPro = [];
+        foreach ($preplnene as $predmet) {
+            $nociPodleTypu[$predmet['nazev']][] = $this->dejNazevJakoRozsahDnu($predmet['den']);
+            if ($predmet['drzeno'] > 0) {
+                $drziSkupinyPro[$predmet['nazev']] = true;
+            }
+        }
+        $kodSkupiny = $this->ubytovaciSkupiny()->kodSkupiny((int)$this->ubytovany->id());
+        $zpravy     = $varovaniSkupiny;
+        foreach ($nociPodleTypu as $nazev => $noci) {
+            $naNoci = (count($noci) === 1
+                    ? 'na noc '
+                    : 'na noci ')
+                      . implode(', ', $noci);
+            if ($zalozilSkupinu) {
+                $zpravy[] = sprintf(
+                    'Na „%s“ už %s není volný celý pokoj, skupinu spolubydlících proto založit nejde. Skupina na hotelu zabírá celý pokoj.',
+                    $nazev,
+                    $naNoci,
+                );
+            } elseif ($kodSkupiny !== null) {
+                $zpravy[] = sprintf(
+                    'Na „%s“ už %s není volný celý pokoj pro skupinu spolubydlících %s. Skupina na hotelu zabírá celý pokoj.',
+                    $nazev,
+                    $naNoci,
+                    $kodSkupiny,
+                );
+            } elseif ($kodSkupinyPredZmenou !== null) {
+                $zpravy[] = sprintf(
+                    'Na „%s“ už %s není volná postel mimo skupiny spolubydlících, ze skupiny %s proto odejít a ubytování si nechat nejde.',
+                    $nazev,
+                    $naNoci,
+                    $kodSkupinyPredZmenou,
+                );
+            } else {
+                $zpravy[] = sprintf(
+                    'Na „%s“ už %s není volná postel.%s',
+                    $nazev,
+                    $naNoci,
+                    isset($drziSkupinyPro[$nazev])
+                        ? ' Zbylé postele drží skupiny spolubydlících pro ty, kdo se k nim připojí kódem.'
+                        : '',
+                );
+            }
+        }
+
+        throw new Chyba(implode(' ', $zpravy));
+    }
+
+    /**
+     * @param array<int|string, int|string|null> $idsPredmetu ids of the items chosen in the form
+     */
+    private function objednavaHotel(array $idsPredmetu): bool
+    {
+        // from the database: the form leaves out items not on sale, a crafted POST may still send them
+        return dbOneCol(<<<'SQL'
+SELECT 1 FROM shop_predmety WHERE id_predmetu IN ($0) AND podtyp = $1 LIMIT 1
+SQL,
+            [0 => array_map('intval', array_filter($idsPredmetu)), 1 => PodtypPredmetu::HOTEL],
+        ) !== null;
     }
 
     private function vsechnPozastaveno(): bool
@@ -813,6 +951,12 @@ SQL,
                     'kapacita'      => $kapacita,
                     'kapacitaProJs' => $kapacita === '∞' ? -1 : $kapacita,
                     'typ'           => $typ,
+                    'jenSKodemSkupiny' => !$prodejUbytovaniUkoncen && !$ubytovanVeDniATypu && $this->jenSKodemSkupiny($den, $typ)
+                        ? '1'
+                        : '',
+                    'maloNaPokoj'      => !$prodejUbytovaniUkoncen && $this->maloNaNovyPokoj($den, $typ)
+                        ? '1'
+                        : '',
                 ])->parse('ubytovani.den.typ');
             }
 
@@ -847,7 +991,10 @@ SQL,
         return (!$checked // GUI neumí checked disabled, tak nesmíme dát disabled, když je chcecked
                 && ($prodejUbytovaniUkoncen
                     || (!$ubytovanVeDniATypu
-                        && (!$this->existujeUbytovani($den, $typ) || $this->plno($den, $typ) || $this->neprodejne($den, $typ))
+                        && (!$this->existujeUbytovani($den, $typ)
+                            || $this->plno($den, $typ)
+                            || $this->neprodejne($den, $typ)
+                            || $this->chybiPokojProSkupinu($den, $typ))
                     )
                     || !$this->maPravoObjednatUbytovani($den)
                 )
@@ -872,6 +1019,17 @@ SQL,
 
         $dny = $_POST[$this->pnDny];
 
+        // Only an order of a hotel can make a hotel fuller: who leaves it frees at least as many beds as the group
+        // starts to hold for the others. So nobody else waits for the lock, it holds until the registration commits.
+        $hotelPredZmenou      = $hlidatKapacituUbytovani && $this->objednavaHotel($dny)
+            ? $this->hotelovePokoje()->obsazenost(zamknout: true)
+            : null;
+        $kodSkupinyPredZmenou = $hotelPredZmenou !== null
+            ? $this->ubytovaciSkupiny()->kodSkupiny((int)$this->ubytovany->id())
+            : null;
+        $this->drzenePostele    = null;
+        $this->skupinaUzivatele = null;
+
         self::ulozObjednaneUbytovaniUcastnika(
             $dny,
             $this->ubytovany,
@@ -884,9 +1042,11 @@ SQL,
         self::zrusSnidaneProHotelovePokoje($this->ubytovany);
 
         // po změně typu nebo zrušení ubytování už skupina spolubydlících nemusí sedět
+        $zpravySkupiny        = ['varovani' => [], 'oznameni' => []];
+        $zalozilSkupinu       = false;
         $duvodOpusteniSkupiny = $this->ubytovaciSkupiny()->zkontrolujPoZmeneUbytovani($this->ubytovany);
         if ($duvodOpusteniSkupiny !== null) {
-            varovani($duvodOpusteniSkupiny, false);
+            $zpravySkupiny['varovani'][] = $duvodOpusteniSkupiny;
         }
 
         if ($ulozitNechceUbytovani) {
@@ -898,12 +1058,40 @@ SQL,
         if ($vcetneSpolubydliciho) {
             // uložit s kým chce být na pokoji
             self::ulozSKymChceBytNaPokoji($_POST[$this->pnPokoj] ?? '', $this->ubytovany);
-            $this->zpracujSkupinu();
+            $skupina                   = $this->zpracujSkupinu();
+            $zpravySkupiny['varovani'] = [...$zpravySkupiny['varovani'], ...$skupina['varovani']];
+            $zpravySkupiny['oznameni'] = $skupina['oznameni'];
+            $zalozilSkupinu            = $skupina['zalozena'];
         }
+
+        if ($hotelPredZmenou !== null) {
+            $this->zkontrolujPokojeNaHotelu(
+                $hotelPredZmenou,
+                $kodSkupinyPredZmenou,
+                $zpravySkupiny['varovani'],
+                $zalozilSkupinu,
+            );
+        }
+        $this->zpravyKOznameni = $zpravySkupiny;
 
         $this->registrace->ulozZmeny(); // povinné údaje pro ubytování
 
         return true;
+    }
+
+    /**
+     * Shows what {@see zpracuj()} has to say about the roommate group. Call it after the changes are committed:
+     * when the registration rolls back later, "the group is founded" must not stay behind.
+     */
+    public function oznamZpravy(): void
+    {
+        foreach ($this->zpravyKOznameni['varovani'] as $varovani) {
+            varovani($varovani, false);
+        }
+        foreach ($this->zpravyKOznameni['oznameni'] as $oznameni) {
+            oznameni($oznameni, false);
+        }
+        $this->zpravyKOznameni = ['varovani' => [], 'oznameni' => []];
     }
 
     private function aktualizujUbytovanPoDnech(array $ulozeneIdsPredmetu): void
@@ -1077,7 +1265,7 @@ SQL,
         return $dny;
     }
 
-    /** Vrátí počet volných míst */
+    /** Vrátí počet volných míst, bez postelí, které na hotelu drží skupiny spolubydlících pro své členy */
     public function zbyvaMist(
         $den,
         $typ,
@@ -1090,7 +1278,166 @@ SQL,
             return PHP_INT_MAX;
         }
 
-        return (int)max(0, $ub['kusu_vyrobeno'] - $ub['kusu_prodano']);
+        return (int)max(0, $ub['kusu_vyrobeno'] - $ub['kusu_prodano'] - $this->drzenePostele($den, $typ));
+    }
+
+    /**
+     * On sale, but full only because roommate groups hold the rest of their rooms: whoever joins one of them
+     * by code gets a bed there.
+     */
+    private function jenSKodemSkupiny(
+        int | string $den,
+        int | string $typ,
+    ): bool {
+        return $this->existujeUbytovani($den, $typ)
+               && !$this->neprodejne($den, $typ)
+               && $this->maPravoObjednatUbytovani((int)$den)
+               && $this->plno($den, $typ)
+               && $this->drzenePostele($den, $typ) > 0
+               && (int)$this->mozneDny[$den][$typ]['kusu_vyrobeno'] > (int)$this->mozneDny[$den][$typ]['kusu_prodano'];
+    }
+
+    /**
+     * A member who adds a night on which the group has nobody on the hotel yet needs a whole room for it,
+     * the group starts to hold it. Who changes to another type leaves the group and needs a bed only.
+     */
+    private function chybiPokojProSkupinu(
+        int | string $den,
+        int | string $typ,
+    ): bool {
+        $posteliNaPokoji = $this->posteliNaHotelovemPokoji($den, $typ);
+        $skupina         = $this->skupinaUzivatele();
+        if ($posteliNaPokoji === null || $skupina === false || $this->ubytovan($den, $typ)) {
+            return false;
+        }
+        $typUbytovani = substr((string)$this->mozneDny[$den][$typ][Sql::KOD_PREDMETU], 0, -3);
+        if ($skupina['typy'] !== [] && !in_array($typUbytovani, $skupina['typy'], true)) {
+            return false;
+        }
+        if (isset($skupina['noci'][$typUbytovani][(int)$den])) {
+            return false; // the group holds its room that night
+        }
+
+        return $this->zbyvaMist($den, $typ) < $posteliNaPokoji;
+    }
+
+    /**
+     * Free beds, but fewer than a room has: a bed can be ordered, a group cannot be founded with it.
+     * Only for who is in no group, the form hides it once "found a group" is ticked.
+     */
+    private function maloNaNovyPokoj(
+        int | string $den,
+        int | string $typ,
+    ): bool {
+        $posteliNaPokoji = $this->posteliNaHotelovemPokoji($den, $typ);
+        if ($posteliNaPokoji === null
+            || $this->skupinaUzivatele() !== false
+            || $this->ubytovan($den, $typ)
+            // the form unlocks the night again when "found a group" is unticked, it must be on sale for the user
+            || $this->neprodejne($den, $typ)
+            || !$this->maPravoObjednatUbytovani((int)$den)
+        ) {
+            return false;
+        }
+        $zbyva = $this->zbyvaMist($den, $typ);
+
+        return $zbyva > 0 && $zbyva < $posteliNaPokoji;
+    }
+
+    /**
+     * @return int|null beds of a hotel room for more people on sale, null for anything else or after the sales
+     */
+    private function posteliNaHotelovemPokoji(
+        int | string $den,
+        int | string $typ,
+    ): ?int {
+        if (!$this->existujeUbytovani($den, $typ)
+            || $this->maNeomezenouKapacitu($den, $typ)
+            || ($this->mozneDny[$den][$typ][Sql::PODTYP] ?? null) !== PodtypPredmetu::HOTEL
+            || $this->systemoveNastaveni->prodejUbytovaniUkoncen()
+        ) {
+            return null;
+        }
+        $posteli = UbytovaciSkupiny::maxClenu(substr((string)$this->mozneDny[$den][$typ][Sql::KOD_PREDMETU], 0, -3));
+
+        return $posteli !== null && $posteli >= 2
+            ? $posteli
+            : null;
+    }
+
+    /**
+     * @return array{typy: list<string>, noci: array<string, array<int, true>>}|false types and nights of the others
+     *     in the group of the user, false when the user is in none
+     */
+    private function skupinaUzivatele(): array|false
+    {
+        if ($this->skupinaUzivatele !== null) {
+            return $this->skupinaUzivatele;
+        }
+        $idUzivatele = (int)$this->ubytovany->id();
+        $kod         = $this->ubytovaciSkupiny()->kodSkupiny($idUzivatele);
+        if ($kod === null) {
+            return $this->skupinaUzivatele = false;
+        }
+        $skupina  = ['typy' => [], 'noci' => []];
+        $ostatni  = array_values(array_diff($this->ubytovaciSkupiny()->idsClenu($kod), [$idUzivatele]));
+        foreach ($this->ubytovaciSkupiny()->ubytovaniClenu($ostatni) as $ubytovani) {
+            if (count($ubytovani['typy']) !== 1) {
+                continue; // nights of more types cannot be told apart, such a group is in trouble anyway
+            }
+            $typUbytovani = $ubytovani['typy'][0];
+            $skupina['typy'][$typUbytovani] = $typUbytovani;
+            foreach ($ubytovani['noci'] as $noc) {
+                $skupina['noci'][$typUbytovani][$noc] = true;
+            }
+        }
+        $skupina['typy'] = array_values($skupina['typy']);
+
+        return $this->skupinaUzivatele = $skupina;
+    }
+
+    private function jsouPosteleJenSKodemSkupiny(): bool
+    {
+        foreach ($this->mozneDny as $den => $typy) {
+            foreach (array_keys($typy) as $typ) {
+                if (!$this->ubytovan($den, $typ) && $this->jenSKodemSkupiny($den, $typ)) {
+                    return true;
+                }
+            }
+        }
+
+        return false;
+    }
+
+    private function jeMaloNaNovyPokoj(): bool
+    {
+        foreach ($this->mozneDny as $den => $typy) {
+            foreach (array_keys($typy) as $typ) {
+                if ($this->maloNaNovyPokoj($den, $typ)) {
+                    return true;
+                }
+            }
+        }
+
+        return false;
+    }
+
+    /**
+     * Only until the sales end: then nobody joins by code any more and the infopult may put anyone
+     * on a bed a group has not used.
+     */
+    private function drzenePostele(
+        int | string $den,
+        int | string $typ,
+    ): int {
+        if ($this->systemoveNastaveni->prodejUbytovaniUkoncen()) {
+            return 0;
+        }
+        $this->drzenePostele ??= $this->hotelovePokoje()->drzenePostele(
+            $this->ubytovaciSkupiny()->kodSkupiny((int)$this->ubytovany->id()),
+        );
+
+        return $this->drzenePostele[(int)$this->mozneDny[$den][$typ]['id_predmetu']] ?? 0;
     }
 
     private function maNeomezenouKapacitu(int | string $den, int | string $typ): bool

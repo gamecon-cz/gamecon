@@ -51,7 +51,8 @@
         <div class="shopUbytovani_radek">
                  <input type="radio" class="shopUbytovani_radio" name="{postnameDen}" value="{idPredmetu}"
                      data-kapacita="{kapacitaProJs}" data-typ="{typ}" data-podtyp="{podtyp}"
-                     data-snidane-dny="{snidaneDnyProJs}" {checked} {disabled}>
+                     data-snidane-dny="{snidaneDnyProJs}" data-jen-s-kodem-skupiny="{jenSKodemSkupiny}"
+                     data-malo-na-pokoj="{maloNaPokoj}" {checked} {disabled}>
             <div class="shopUbytovani_kapacita">{obsazeno}/{kapacita}</div>
         </div>
         <!-- end:typ -->
@@ -72,11 +73,19 @@
         <div class="shopUbytovani_skupinaNadpis">Spolubydlící</div>
 
         <!-- begin:clen -->
+        <!-- begin:pozvanka -->
         <p>
             Na pokoji chceš bydlet se skupinou s kódem
             <strong class="shopUbytovani_kodSkupiny">{kodSkupiny}</strong>.
             Kód pošli těm, kdo mají bydlet s tebou, ať se ke skupině připojí.
         </p>
+        <!-- end:pozvanka -->
+        <!-- begin:uzavrena -->
+        <p>
+            Na pokoji budeš se skupinou spolubydlících
+            <strong class="shopUbytovani_kodSkupiny">{kodSkupiny}</strong>:
+        </p>
+        <!-- end:uzavrena -->
         <ul class="shopUbytovani_clenoveSkupiny">
             <!-- begin:clenSkupiny -->
             <li>{jmenoClena} <span class="shopUbytovani_ubytovaniClena">({ubytovaniClena})</span></li>
@@ -98,20 +107,43 @@
             Chceš bydlet s kamarády? Jeden z vás založí skupinu a ostatním pošle její kód.
             Ve skupině musí mít všichni stejný typ ubytování a vejde se do ní tolik lidí, kolik má pokoj postelí.
             Na pokoje rozdělujeme podle skupin.
+            Na hotelu zabere skupina celý pokoj hned při založení a zbylé postele drží pro ty, kdo se připojí.
         </p>
         <label class="formular_polozka formular_polozka-checkbox">
-            <input type="checkbox" name="{postnameZalozitSkupinu}" value="1">
+            <input type="checkbox" class="shopUbytovani_zalozitSkupinu" name="{postnameZalozitSkupinu}" value="1">
             založit novou skupinu
         </label>
+        <!-- begin:zalozeniBezPokoje -->
+        <p class="shopUbytovani_zalozeniBezPokoje" style="display: none">
+            Na některé noci hotelu zbývá méně postelí, než má pokoj. Skupina na hotelu zabírá celý pokoj,
+            takže s nimi založit nejde. Postel bez skupiny objednat můžeš.
+        </p>
+        <!-- end:zalozeniBezPokoje -->
         <label class="shopUbytovani_kodSkupinyVstup">
             nebo se připoj ke skupině s kódem
             <input type="text" class="formular_input" name="{postnameKodSkupiny}" value=""
                    placeholder="např. K7MPQX" autocomplete="off" maxlength="20">
         </label>
+        <!-- begin:drzenePostele -->
+        <p class="shopUbytovani_drzenePostele">
+            Hotel je plný, ale skupiny na něm drží postele pro své spolubydlící.
+            Když zadáš kód skupiny, půjde postel vybrat.
+        </p>
+        <!-- end:drzenePostele -->
+        <label class="formular_polozka formular_polozka-checkbox">
+            <input type="checkbox" name="{postnameSamotar}" value="1" {checkedSamotar}>
+            nebo přijedu {sam}, spolubydlící mi přidělte
+        </label>
+        <p class="shopUbytovani_samotarPopis">
+            Když to zaškrtneš, po konci prodeje ubytování tě doplníme na volnou postel k lidem stejného pohlaví.
+        </p>
         <!-- end:neclen -->
 
         <!-- begin:zamceno -->
         <p>Zakládat skupiny spolubydlících a přidávat se do nich už nejde.</p>
+        <!-- begin:samotar -->
+        <p>Přijedeš {sam}, spolubydlící ti přidělíme.</p>
+        <!-- end:samotar -->
         <!-- end:zamceno -->
     </div>
     <!-- end:skupina -->

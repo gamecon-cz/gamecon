@@ -415,6 +415,8 @@
             }
         });
         aktualizujTlacitkoPresKapacitu(false);
+        zpristupniPosteleDrzeneSkupinami(); // s vyplněným kódem skupiny zůstanou držené postele dostupné
+        zamkniNociBezCelehoPokoje();
     }
 
     function aktualizujTlacitkoPresKapacitu(aktivni) {
@@ -422,6 +424,56 @@
         if (btn) {
             btn.value = aktivni ? 'zrušit přes kapacitu' : 'přes kapacitu';
         }
+    }
+
+    // Plný hotel, kde zbylé postele drží skupiny spolubydlících: postel jde vybrat jen s kódem skupiny,
+    // jestli ji skupina opravdu drží, ověří až server.
+    var kodSkupinyInput = document.querySelector('.shopUbytovani_kodSkupinyVstup input');
+
+    function zpristupniPosteleDrzeneSkupinami() {
+        if (!kodSkupinyInput || presKapacituBtn) {
+            return; // "přes kapacitu" už odemklo všechno
+        }
+        var sKodem = kodSkupinyInput.value.trim() !== '';
+        document.querySelectorAll('input.shopUbytovani_radio[data-jen-s-kodem-skupiny="1"]').forEach(function (radio) {
+            if (radio.checked && !sKodem) {
+                vyberZadneUbytovani(radio.name);
+            }
+            radio.disabled = !sKodem;
+        });
+    }
+
+    if (kodSkupinyInput) {
+        kodSkupinyInput.addEventListener('input', zpristupniPosteleDrzeneSkupinami);
+        zpristupniPosteleDrzeneSkupinami(); // prohlížeč mohl kód vyplnit sám
+    }
+
+    // Noci hotelu, kde zbývá méně postelí, než má pokoj: postel objednat jde, skupinu s nimi založit ne,
+    // protože skupina na hotelu zabírá celý pokoj. Ověří i server.
+    var zalozitSkupinuCheckbox = document.querySelector('input.shopUbytovani_zalozitSkupinu');
+    var zalozeniBezPokojeUpozorneni = document.querySelector('.shopUbytovani_zalozeniBezPokoje');
+
+    function zamkniNociBezCelehoPokoje() {
+        if (!zalozitSkupinuCheckbox || presKapacituBtn) {
+            return;
+        }
+        var zaklada = zalozitSkupinuCheckbox.checked;
+        var nejakaNoc = false;
+        document.querySelectorAll('input.shopUbytovani_radio[data-malo-na-pokoj="1"]').forEach(function (radio) {
+            nejakaNoc = true;
+            if (radio.checked && zaklada) {
+                vyberZadneUbytovani(radio.name);
+            }
+            radio.disabled = zaklada;
+        });
+        if (zalozeniBezPokojeUpozorneni) {
+            zalozeniBezPokojeUpozorneni.style.display = zaklada && nejakaNoc ? '' : 'none';
+        }
+    }
+
+    if (zalozitSkupinuCheckbox) {
+        zalozitSkupinuCheckbox.addEventListener('change', zamkniNociBezCelehoPokoje);
+        zamkniNociBezCelehoPokoje(); // prohlížeč mohl zaškrtnutí obnovit sám
     }
 
     obnovStavUbytovani();

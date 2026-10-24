@@ -613,8 +613,11 @@ SQL, [Pravo::PORADANI_AKTIVIT],
         // zrušení nákupů (až po použití dejShop a ubytovani).
         // Jídlo a ubytování po jejich uzávěrce už zrušit nelze – zůstávají naúčtované.
         $this->shop()->zrusZrusitelneLetosniObjednavky($zdrojOdhlaseni);
-        // ze skupiny spolubydlících odchází i ten, komu ubytování po uzávěrce zůstalo naúčtované, nepřijede
-        (new UbytovaciSkupiny($this->systemoveNastaveni->rocnik()))->opust((int)$this->id());
+        // ze skupiny spolubydlících (i z čekání na přidělené spolubydlící) odchází i ten, komu ubytování
+        // po uzávěrce zůstalo naúčtované, nepřijede
+        $ubytovaciSkupiny = new UbytovaciSkupiny($this->systemoveNastaveni->rocnik());
+        $ubytovaciSkupiny->opust((int)$this->id());
+        $ubytovaciSkupiny->odhlasSamotare((int)$this->id());
 
         try {
             $this->informujOOdhlaseni($odhlasujici, $zaznamnik, $odeslatMailPokudSeNeodhlasilSam);

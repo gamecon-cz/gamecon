@@ -21,6 +21,9 @@ use Gamecon\Ubytovani\SqlStruktura\UbytovaciSkupinaClenSqlStruktura as Sql;
  * The type of accommodation is the item code without its three character day suffix
  * ("2L_ct" → "2L", "Hs-2L-ct" → "Hs-2L"), the same as in the report of accommodation.
  * A member without accommodation that year (cancelled outside the form) does not take a bed.
+ *
+ * Who comes alone can ask for roommates instead ("samotář"), {@see DoplneniSamotaru} puts them
+ * into rooms after the sales end. Being in a group and waiting for roommates exclude each other.
  */
 class UbytovaciSkupiny
 {
@@ -181,11 +184,7 @@ SQL,
 
         $kod = $this->vygenerujKod();
         $this->opust((int)$uzivatel->id());
-        dbInsert(Sql::UBYTOVANI_SKUPINY_CLENOVE_TABULKA, [
-            Sql::ROK          => $this->rok,
-            Sql::ID_UZIVATELE => $uzivatel->id(),
-            Sql::KOD_SKUPINY  => $kod,
-        ]);
+        $this->pridejClena((int)$uzivatel->id(), $kod);
 
         return $kod;
     }
@@ -211,7 +210,10 @@ SQL,
         }
 
         $typ = $this->typProSkupinu($idUzivatele);
-        foreach ($this->typySkupiny($idsClenu) as $typSkupiny) {
+        // read as committed: who joined just before has the membership locked above, but bought the bed
+        // after the snapshot of this transaction
+        $ubytovaniClenu = $this->ubytovaniClenu($idsClenu, zamknout: true);
+        foreach ($this->typySkupiny($idsClenu, $ubytovaniClenu) as $typSkupiny) {
             if ($typSkupiny !== $typ) {
                 throw new ChybaUbytovaciSkupiny(sprintf(
                     'Skupina %s má ubytování „%s“, zvolené ubytování je ale „%s“. Ve skupině musí mít všichni stejný typ ubytování.',
@@ -223,7 +225,7 @@ SQL,
         }
 
         $maxClenu = self::maxClenu($typ);
-        if ($maxClenu !== null && count($this->sUbytovanim($idsClenu)) >= $maxClenu) {
+        if ($maxClenu !== null && count($ubytovaniClenu) >= $maxClenu) {
             throw new ChybaUbytovaciSkupiny(sprintf(
                 'Skupina %s je plná, víc lidí se na pokoj typu „%s“ nevejde.',
                 $kod,
@@ -232,6 +234,112 @@ SQL,
         }
 
         $this->opust($idUzivatele);
+        $this->pridejClena($idUzivatele, $kod);
+    }
+
+    /**
+     * Founds a group of people who do not know each other, for {@see DoplneniSamotaru}.
+     * Checks nothing, the caller has.
+     *
+     * @param int[] $idsUzivatelu in the order they should appear in the group
+     * @return string code of the new group
+     */
+    public function zalozSkupinuZ(array $idsUzivatelu): string
+    {
+        $kod = $this->vygenerujKod();
+        foreach ($idsUzivatelu as $idUzivatele) {
+            $this->opust($idUzivatele);
+            $this->pridejClena($idUzivatele, $kod);
+        }
+
+        return $kod;
+    }
+
+    /**
+     * Puts the user into the group without any check, for {@see DoplneniSamotaru}, which has checked.
+     */
+    public function doplnDoSkupiny(int $idUzivatele, string $kod): void
+    {
+        $this->opust($idUzivatele);
+        $this->pridejClena($idUzivatele, $kod);
+    }
+
+    public function jeSamotar(int $idUzivatele): bool
+    {
+        return dbOneCol(<<<'SQL'
+SELECT 1 FROM ubytovani_samotari WHERE rok = $0 AND id_uzivatele = $1
+SQL,
+            [0 => $this->rok, 1 => $idUzivatele],
+        ) !== null;
+    }
+
+    /**
+     * Who comes alone and wants roommates assigned, see {@see DoplneniSamotaru}.
+     * Leaves the group the user was in.
+     *
+     * @throws ChybaUbytovaciSkupiny
+     */
+    public function prihlasSamotare(\Uzivatel $uzivatel): void
+    {
+        $typ      = $this->typProSkupinu((int)$uzivatel->id());
+        $maxClenu = self::maxClenu($typ);
+        if ($maxClenu === null || $maxClenu < 2) {
+            throw new ChybaUbytovaciSkupiny(sprintf(
+                'Na „%s“ spolubydlící nepřidělujeme.',
+                $this->nazevTypu($typ),
+            ));
+        }
+
+        $this->opust((int)$uzivatel->id());
+        dbQuery(<<<'SQL'
+INSERT IGNORE INTO ubytovani_samotari (rok, id_uzivatele) VALUES ($0, $1)
+SQL,
+            [0 => $this->rok, 1 => $uzivatel->id()],
+        );
+    }
+
+    /**
+     * @return bool whether the user waited for roommates
+     */
+    public function odhlasSamotare(int $idUzivatele): bool
+    {
+        // a DELETE of a missing row locks the gap and blocks (or deadlocks) others inserting into it
+        if (!$this->jeSamotar($idUzivatele)) {
+            return false;
+        }
+        $result = dbQuery(<<<'SQL'
+DELETE FROM ubytovani_samotari
+WHERE rok = $0 AND id_uzivatele = $1
+SQL,
+            [0 => $this->rok, 1 => $idUzivatele],
+        );
+
+        return dbAffectedOrNumRows($result) > 0;
+    }
+
+    /**
+     * Who waits for roommates, in the order they asked.
+     *
+     * @return int[]
+     */
+    public function idsSamotaru(): array
+    {
+        return array_map('intval', dbOneArray(<<<'SQL'
+SELECT id_uzivatele
+FROM ubytovani_samotari
+WHERE rok = $0
+ORDER BY zapsan, id_uzivatele
+SQL,
+            [0 => $this->rok],
+        ));
+    }
+
+    /**
+     * Membership also ends waiting for roommates, the two exclude each other.
+     */
+    private function pridejClena(int $idUzivatele, string $kod): void
+    {
+        $this->odhlasSamotare($idUzivatele);
         dbInsert(Sql::UBYTOVANI_SKUPINY_CLENOVE_TABULKA, [
             Sql::ROK          => $this->rok,
             Sql::ID_UZIVATELE => $idUzivatele,
@@ -244,6 +352,10 @@ SQL,
      */
     public function opust(int $idUzivatele): bool
     {
+        // a DELETE of a missing row locks the gap and blocks (or deadlocks) others inserting into it
+        if ($this->kodSkupiny($idUzivatele) === null) {
+            return false;
+        }
         $result = dbQuery(<<<'SQL'
 DELETE FROM ubytovani_skupiny_clenove
 WHERE rok = $0 AND id_uzivatele = $1
@@ -263,13 +375,17 @@ SQL,
     public function zkontrolujPoZmeneUbytovani(\Uzivatel $uzivatel): ?string
     {
         $idUzivatele = (int)$uzivatel->id();
-        $kod         = $this->kodSkupiny($idUzivatele);
+        $typy        = $this->ubytovaniClenu([$idUzivatele])[$idUzivatele]['typy'] ?? [];
+        if (count($typy) !== 1 || (self::maxClenu($typy[0]) ?? 0) < 2) {
+            // roommates are found only for one type of rooms for more people, as prihlasSamotare() asks
+            $this->odhlasSamotare($idUzivatele);
+        }
+        $kod = $this->kodSkupiny($idUzivatele);
         if ($kod === null) {
             return null;
         }
 
         $duvod = null;
-        $typy  = $this->ubytovaniClenu([$idUzivatele])[$idUzivatele]['typy'] ?? [];
         if ($typy === []) {
             $duvod = 'bez objednaného ubytování nelze být ve skupině';
         } elseif (count($typy) > 1) {
@@ -336,8 +452,7 @@ SQL,
                 'id'          => $idClena,
                 'jmeno'       => $jmeno,
                 'ubytovani'   => $ubytovani !== null
-                    ? implode(', ', array_map(fn(string $typ) => $this->nazevTypu($typ), $ubytovani['typy']))
-                      . ', ' . $this->rozsahNoci($ubytovani['noci'])
+                    ? $this->popisUbytovani($ubytovani)
                     : 'nemá objednané ubytování',
                 'maUbytovani' => $ubytovani !== null,
             ];
@@ -370,6 +485,16 @@ SQL,
             'clenove'  => $clenove,
             'varovani' => $varovani,
         ];
+    }
+
+    /**
+     * @param array{typy: list<string>, noci: list<int>} $ubytovani one item of {@see ubytovaniClenu()}
+     * @return string like "Postel na 2L koleji, St–Ne"
+     */
+    public function popisUbytovani(array $ubytovani): string
+    {
+        return implode(', ', array_map(fn(string $typ) => $this->nazevTypu($typ), $ubytovani['typy']))
+               . ', ' . $this->rozsahNoci($ubytovani['noci']);
     }
 
     /**
@@ -415,12 +540,13 @@ SQL,
 
     /**
      * @param int[] $idsClenu
+     * @param array<int, array{typy: list<string>, noci: list<int>}>|null $ubytovaniClenu already read
      * @return string[] types of accommodation of the members who have some
      */
-    private function typySkupiny(array $idsClenu): array
+    private function typySkupiny(array $idsClenu, ?array $ubytovaniClenu = null): array
     {
         $typy = [];
-        foreach ($this->ubytovaniClenu($idsClenu) as $ubytovani) {
+        foreach ($ubytovaniClenu ?? $this->ubytovaniClenu($idsClenu) as $ubytovani) {
             foreach ($ubytovani['typy'] as $typ) {
                 $typy[$typ] = $typ;
             }
@@ -442,12 +568,15 @@ SQL,
      * @param int[] $idsUzivatelu
      * @return array<int, array{typy: list<string>, noci: list<int>}> only the users who have accommodation
      */
-    private function ubytovaniClenu(array $idsUzivatelu): array
+    public function ubytovaniClenu(array $idsUzivatelu, bool $zamknout = false): array
     {
         if ($idsUzivatelu === []) {
             return [];
         }
-        $radky = dbFetchAll(<<<'SQL'
+        $zamek = $zamknout
+            ? 'LOCK IN SHARE MODE'
+            : '';
+        $radky = dbFetchAll(<<<SQL
 SELECT shop_nakupy.id_uzivatele,
        LEFT(shop_predmety.kod_predmetu, CHAR_LENGTH(shop_predmety.kod_predmetu) - 3) AS typ,
        shop_predmety.ubytovani_den
@@ -457,6 +586,7 @@ WHERE shop_nakupy.id_uzivatele IN ($0)
   AND shop_nakupy.rok = $1
   AND shop_predmety.typ = $2
 ORDER BY shop_predmety.ubytovani_den
+{$zamek}
 SQL,
             [0 => $idsUzivatelu, 1 => $this->rok, 2 => TypPredmetu::UBYTOVANI],
         );
