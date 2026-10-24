@@ -4,9 +4,11 @@ namespace Gamecon\Shop;
 
 use Gamecon\Cas\DateTimeCz;
 use Gamecon\Cas\DateTimeGamecon;
+use Gamecon\Exceptions\ChybaUbytovaciSkupiny;
 use Gamecon\SystemoveNastaveni\SystemoveNastaveni;
 use Chyba;
 use Gamecon\Pravo;
+use Gamecon\Ubytovani\UbytovaciSkupiny;
 use Gamecon\Uzivatel\Registrace;
 use Uzivatel;
 use Gamecon\XTemplate\XTemplate;
@@ -459,6 +461,10 @@ SQL,
     private            $pnDny           = 'shopUbytovaniDny';
     private            $pnPokoj         = 'shopUbytovaniPokoj';
     private            $pnNechci        = 'shopUbytovaniNechci';
+    private            $pnZalozitSkupinu = 'shopUbytovaniZalozitSkupinu';
+    private            $pnKodSkupiny     = 'shopUbytovaniKodSkupiny';
+    private            $pnOpustitSkupinu = 'shopUbytovaniOpustitSkupinu';
+    private ?UbytovaciSkupiny $ubytovaciSkupiny = null;
 
     public function __construct(
         array                               $predmety,
@@ -649,6 +655,8 @@ SQL,
             $t->parse('ubytovani.ubytovaniPresKapacitu');
         }
 
+        $this->htmlSkupina($t);
+
         if ($this->maMitVolbuNechciUbytovani()) {
             $maObjednaneUbytovani = $this->maObjednaneUbytovani();
             $nechceUbytovani = $this->ubytovany->nechceUbytovani();
@@ -667,6 +675,82 @@ SQL,
         $t->parse('ubytovani');
 
         return $t->text('ubytovani');
+    }
+
+    /** Zparsuje šablonu se skupinou spolubydlících */
+    private function htmlSkupina(XTemplate $t): void
+    {
+        $muzeMenitSkupinu = $this->muzeMenitSkupinu();
+        $prehled          = $this->ubytovaciSkupiny()->prehled((int)$this->ubytovany->id());
+        if ($prehled === null) {
+            $t->assign([
+                'postnameZalozitSkupinu' => $this->pnZalozitSkupinu,
+                'postnameKodSkupiny'     => $this->pnKodSkupiny,
+            ]);
+            $t->parse($muzeMenitSkupinu
+                ? 'ubytovani.skupina.neclen'
+                : 'ubytovani.skupina.zamceno');
+            $t->parse('ubytovani.skupina');
+
+            return;
+        }
+
+        $t->assign('kodSkupiny', $prehled['kod']);
+        foreach ($prehled['clenove'] as $clen) {
+            $t->assign([
+                'jmenoClena'     => htmlspecialchars($clen['jmeno']),
+                'ubytovaniClena' => htmlspecialchars($clen['ubytovani']),
+            ]);
+            $t->parse('ubytovani.skupina.clen.clenSkupiny');
+        }
+        foreach ($prehled['varovani'] as $varovani) {
+            $t->assign('varovaniSkupiny', htmlspecialchars($varovani));
+            $t->parse('ubytovani.skupina.clen.varovani');
+        }
+        if ($muzeMenitSkupinu) {
+            $t->assign('postnameOpustitSkupinu', $this->pnOpustitSkupinu);
+            $t->parse('ubytovani.skupina.clen.opustit');
+        }
+        $t->parse('ubytovani.skupina.clen');
+        $t->parse('ubytovani.skupina');
+    }
+
+    /** Na webu jdou skupiny měnit jen do konce prodeje ubytování, v adminu kdykoli */
+    private function muzeMenitSkupinu(): bool
+    {
+        return $this->kontextZobrazeni !== KontextZobrazeni::WEB
+               || !$this->systemoveNastaveni->prodejUbytovaniUkoncen();
+    }
+
+    private function ubytovaciSkupiny(): UbytovaciSkupiny
+    {
+        return $this->ubytovaciSkupiny ??= new UbytovaciSkupiny($this->systemoveNastaveni->rocnik());
+    }
+
+    private function zpracujSkupinu(): void
+    {
+        if (!$this->muzeMenitSkupinu()) {
+            return;
+        }
+        $skupiny = $this->ubytovaciSkupiny();
+        $kod     = UbytovaciSkupiny::normalizujKod((string)($_POST[$this->pnKodSkupiny] ?? ''));
+        try {
+            if (!empty($_POST[$this->pnOpustitSkupinu])) {
+                $kodOpustene = $skupiny->kodSkupiny((int)$this->ubytovany->id());
+                if ($skupiny->opust((int)$this->ubytovany->id())) {
+                    oznameni("Skupina spolubydlících {$kodOpustene} je opuštěná.", false);
+                }
+            } elseif ($kod !== '') {
+                $skupiny->pripoj($this->ubytovany, $kod);
+                oznameni("Připojeno ke skupině spolubydlících {$kod}.", false);
+            } elseif (!empty($_POST[$this->pnZalozitSkupinu])) {
+                $kod = $skupiny->zaloz($this->ubytovany);
+                oznameni("Skupina spolubydlících je založená, její kód je {$kod}. Pošli ho těm, kdo mají bydlet na stejném pokoji.", false);
+            }
+        } catch (ChybaUbytovaciSkupiny $chyba) {
+            // chybný kód nebo plná skupina nemá zahodit zbytek přihlášky
+            varovani($chyba->getMessage(), false);
+        }
     }
 
     private function vsechnPozastaveno(): bool
@@ -799,6 +883,12 @@ SQL,
 
         self::zrusSnidaneProHotelovePokoje($this->ubytovany);
 
+        // po změně typu nebo zrušení ubytování už skupina spolubydlících nemusí sedět
+        $duvodOpusteniSkupiny = $this->ubytovaciSkupiny()->zkontrolujPoZmeneUbytovani($this->ubytovany);
+        if ($duvodOpusteniSkupiny !== null) {
+            varovani($duvodOpusteniSkupiny, false);
+        }
+
         if ($ulozitNechceUbytovani) {
             $nechceUbytovani = isset($_POST[$this->pnNechci])
                 && !$this->maObjednaneUbytovani();
@@ -808,6 +898,7 @@ SQL,
         if ($vcetneSpolubydliciho) {
             // uložit s kým chce být na pokoji
             self::ulozSKymChceBytNaPokoji($_POST[$this->pnPokoj] ?? '', $this->ubytovany);
+            $this->zpracujSkupinu();
         }
 
         $this->registrace->ulozZmeny(); // povinné údaje pro ubytování
