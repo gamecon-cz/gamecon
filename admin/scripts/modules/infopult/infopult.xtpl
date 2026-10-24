@@ -343,7 +343,7 @@
 <div class="warning" onclick="document.getElementById('omniboxUzivateleProPraci').focus()">
   <strong class="skryt-pri-uzkem ">↖</strong>Vyberte uživatele
   <span class="skryt-pri-uzkem">(pole vlevo nahoře)</span>
-  <span class="zobrazit-pri-uzkem">(⬆ pole nahoře)</span>
+  <span class="zobrazit-pri-uzkem">(<i class="fa-solid fa-arrow-up" aria-hidden="true"></i> pole nahoře)</span>
 </div>
 <!-- end:neUzivatel -->
 <!-- begin:neprihlasen -->
@@ -375,12 +375,12 @@
               <span>
                 <span class="stav-uctu">{stavUctu}</span>
                 <span style="float: right">
-                  <span class="chybaFio hinted" style="display: none"> ⚠️
+                  <span class="chybaFio hinted" style="display: none"> <i class="fa-solid fa-triangle-exclamation" aria-hidden="true"></i>
                     <span class="hint">
                       Stahování plateb z Fio se nezdařilo. Zkus to prosím za chvíli znovu.
                     </span>
                   </span>
-                  <button type="button">🗘 Fio</button>
+                  <button type="button"><i class="fa-solid fa-rotate" aria-hidden="true"></i> Fio</button>
                 </span>
               </span>
           </td>
@@ -446,7 +446,7 @@
               {balicek}
               <!-- begin:cipLink -->
               <div>
-                <a href="{nfcCipUrl}">Čip 🏷️</a>
+                <a href="{nfcCipUrl}">Čip <i class="fa-solid fa-tag" aria-hidden="true"></i></a>
               </div>
               <!-- end:cipLink -->
             </div>

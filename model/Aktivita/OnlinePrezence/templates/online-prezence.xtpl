@@ -54,10 +54,10 @@
             <div class="col"></div>
             <div class="col-sm col-md-3 col-xl-2" style="position: relative">
                 <!-- begin:odkazNaTest -->
-                <a class="btn btn-dark tlacitko-testu" href="{urlTest}">🪄 Testovat</a>
+                <a class="btn btn-dark tlacitko-testu" href="{urlTest}"><i class="fa-solid fa-wand-magic-sparkles" aria-hidden="true"></i> Testovat</a>
                 <!-- end:odkazNaTest -->
                 <!-- begin:odkazBezTestu -->
-                <a class="btn btn-danger tlacitko-testu" href="{urlBezTestu}">🥵 Do reality</a>
+                <a class="btn btn-danger tlacitko-testu" href="{urlBezTestu}"><i class="fa-solid fa-fire" aria-hidden="true"></i> Do reality</a>
                 <!-- end:odkazBezTestu -->
             </div>
         </div>
@@ -66,7 +66,7 @@
         <!-- begin:zadnaAktivita -->
         <div class="d-flex justify-content-center align-items-center" style="min-height: 99vh">
             <div class="fs-1">
-                Nevedeš žádné aktivity 😞
+                Nevedeš žádné aktivity <i class="fa-solid fa-face-frown" aria-hidden="true"></i>
                 <div>
                     <a class="btn btn-warning" href="{urlZpet}" style="width: 100%">↶ {textZpet}</a>
                 </div>
@@ -104,7 +104,7 @@
                     data-title-pro-zobrazeni="Zobazit návod"
                     data-title-pro-skryti="Skrýt návod"
             >
-                📖
+                <i class="fa-solid fa-book-open" aria-hidden="true"></i>
               </button>
             </span>
                 </div>
@@ -116,13 +116,13 @@
                                 <li>15 minut předem buď u maskota své sekce.</li>
                                 <li>Pokud nemáš mobil, půjč si od Spojky tablet.</li>
                                 <li>Najdi / svolej si přihlášené hráče. Nepřítomným zkus zavolat.</li>
-                                <li>Přihlášeným před < 10 minutami ⏰ dej chvíli na doběhnutí.</li>
+                                <li>Přihlášeným před < 10 minutami <i class="fa-solid fa-clock" aria-hidden="true"></i> dej chvíli na doběhnutí.</li>
                                 <li>
                                     Pokud účastník (i náhradník {FILE "./_nahradnik.xtpl"}) neprošel infem {FILE "./_neprosel-infopultem.html"}, pošli ho tam {FILE "./_prosel-infopultem.html"}, než aktivitu začneš.
                                 </li>
                                 <li>
                                     Volná místa nabídni náhradníkům {FILE "./_nahradnik.xtpl"}.
-                                    Sledující <span class="bg-dark">👀</span> můžeš
+                                    Sledující <span class="bg-dark"><i class="fa-solid fa-eye" aria-hidden="true"></i></span> můžeš
                                     oslovit první.
                                 </li>
                                 <li>Náhradníky přidej na prezenčku.</li>
@@ -206,16 +206,16 @@
                              style="white-space: nowrap; text-align: center">
 
                             <div class="text-ceka display-none">
-                                <em>⏳ Můžeš ji editovat za <span id="odpocet-{idAktivity}" class="odpocet"></span>
-                                    ⏳</em>
+                                <em><i class="fa-solid fa-hourglass-half" aria-hidden="true"></i> Můžeš ji editovat za <span id="odpocet-{idAktivity}" class="odpocet"></span>
+                                    <i class="fa-solid fa-hourglass-half" aria-hidden="true"></i></em>
                             </div>
 
                             <div id="zamcena-{idAktivity}" class="display-none">
-                                <em>🔒 Zamčena pro online přihlašování 🔒</em>
+                                <em><i class="fa-solid fa-lock" aria-hidden="true"></i> Zamčena pro online přihlašování <i class="fa-solid fa-lock" aria-hidden="true"></i></em>
                             </div>
 
                             <div id="uzavrena-{idAktivity}" class="display-none">
-                                <em><span class="emoji">📕</span> Uzavřena <span class="emoji">📕</span></em>
+                                <em><i class="fa-solid fa-book" aria-hidden="true"></i> Uzavřena <i class="fa-solid fa-book" aria-hidden="true"></i></em>
                             </div>
                         </div>
 
@@ -224,10 +224,10 @@
                     id="skoncila-{idAktivity}"
                     class="alert-info text-skoncila display-none skryt-pokud-aktivitu-nelze-editovat"
             >
-              ✋ <em>Aktivita už skončila, pozor na úpravy</em> 🤚
+              <i class="fa-solid fa-hand" aria-hidden="true"></i> <em>Aktivita už skončila, pozor na úpravy</em> <i class="fa-solid fa-hand" aria-hidden="true"></i>
             </span>
             <span class="alert-info text-skoncila display-none zobrazit-pokud-aktivitu-nelze-editovat">
-              <em>🧊 Už ji nelze editovat ani zpětně 🧊</em>
+              <em><i class="fa-solid fa-snowflake" aria-hidden="true"></i> Už ji nelze editovat ani zpětně <i class="fa-solid fa-snowflake" aria-hidden="true"></i></em>
             </span>
           </span>
 
@@ -277,7 +277,7 @@
                         <div class='text-start'>
                           <h5 class='text-center'>Legenda</h4>
                           <hr>
-                          <div>⏰ Přihlásil se před chvílí.
+                          <div><i class="fa-solid fa-clock" aria-hidden="true"></i> Přihlásil se před chvílí.
                           <div>(do {minutNaPosledniChvili} minut před začátkem aktivity)</div>
                           a je nejspíš na cestě.</div>
                           <hr>
@@ -287,10 +287,10 @@
                           </div>
                           <hr>
                           <div>
-                            💤 Zrušený náhradník
+                            <i class="fa-solid fa-moon" aria-hidden="true"></i> Zrušený náhradník
                           </div>
                           <hr>
-                          <div>👀 Sledující. Pokud sháníš náhradníka, tenhle bude mít zájem.</div>
+                          <div><i class="fa-solid fa-eye" aria-hidden="true"></i> Sledující. Pokud sháníš náhradníka, tenhle bude mít zájem.</div>
                           <hr>
                           <div>
                             <i class='mladsi-osmnacti-let fa-solid fa-baby'></i>
@@ -319,7 +319,7 @@
                             </tr>
                             </thead>
                             <tbody class="ucastnici-seznam">
-                            <tr class="nacitani"><td colspan="6"><em>Načítám...</em> ⏳</td></tr>
+                            <tr class="nacitani"><td colspan="6"><em>Načítám...</em> <i class="fa-solid fa-hourglass-half" aria-hidden="true"></i></td></tr>
                             </tbody>
                         </table>
 
@@ -339,17 +339,17 @@
                                    title="Kapacita {kapacita}"
                             >
                             <span class="col-md-4" id="omniboxNicNenalezeno{idAktivity}" style="display: none">
-              <em>Nic...</em> 🤷
+              <em>Nic...</em>
             </span>
                             <span class="col-md-4" id="omniboxHledam{idAktivity}"
-                                  style="display: none"><em>Hledám...</em> ⏳</span>
+                                  style="display: none"><em>Hledám...</em> <i class="fa-solid fa-hourglass-half" aria-hidden="true"></i></span>
                             <span class="col-md-4 display-none" id="pozor-zamcena-{idAktivity}"
                                   style="white-space: nowrap">
                   <span class="hinted skryt-pokud-aktivitu-nelze-editovat"
                         data-bs-toggle="tooltip"
                         data-bs-placement="top"
                         title="Přídání účastníka zvýší jeho dluh. Zkontroluj jeho finance.">
-                    <em style="vertical-align: sub">⚠️Pozor, aktivita je už uzavřená! ⚠️</em>
+                    <em style="vertical-align: sub"><i class="fa-solid fa-triangle-exclamation" aria-hidden="true"></i> Pozor, aktivita je už uzavřená! <i class="fa-solid fa-triangle-exclamation" aria-hidden="true"></i></em>
                   </span>
             </span>
                         </div>
@@ -363,7 +363,7 @@
                                     data-bs-toggle="modal"
                                     data-bs-target="#modalOpravduUzavrit"
                                     onclick="posledneKliknutaAktivitaId={idAktivity}">
-                                Uzavřít <span class="emoji">📕</span>
+                                Uzavřít <i class="fa-solid fa-book" aria-hidden="true"></i>
                             </button>
                         </div>
 

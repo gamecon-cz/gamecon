@@ -29,13 +29,13 @@ Pokud účastník není přihlášen na GC, ukazuje se červená hláška „Už
 
 ## Přehled
 
-- **Stav účtu** — zůstatek účastníka; záporný (dluh) svítí červeně. Tlačítko **🗘 Fio** znovu stáhne platby z banky — hodí se, když účastník tvrdí, že „právě zaplatil mobilem". Když se stažení nezdaří, objeví se ⚠️ s hláškou „Stahování plateb z Fio se nezdařilo. Zkus to prosím za chvíli znovu."
+- **Stav účtu** — zůstatek účastníka; záporný (dluh) svítí červeně. Tlačítko **Fio** (se šipkami obnovení) znovu stáhne platby z banky — hodí se, když účastník tvrdí, že „právě zaplatil mobilem". Když se stažení nezdaří, objeví se výstražný trojúhelník s hláškou „Stahování plateb z Fio se nezdařilo. Zkus to prosím za chvíli znovu."
 - **Poznámka** — interní poznámka k účastníkovi, ulož tlačítkem **uložit**.
 - **Potvrzení** — jen u účastníků, kterým na začátku letošního GameConu ještě nebylo 15 let. Vidíš „má potvrzení od rodičů" nebo „chybí potvrzení od rodičů!"; zaškrtnutím políčka a uložením potvrdíš, že papírové potvrzení máte. Pokud rodiče potvrzení nahráli elektronicky, je tu „odkaz na potvrzení".
 - **Cizinec** — u ubytovaných účastníků s jiným než českým občanstvím koleje vyžadují registrační formulář cizince. Opět „má formulář cizince" / „chybí formulář cizince!", zaškrtni a ulož, až ho vyplní.
 - **Údaje** — souhrn stavu osobních údajů: „chybí údaje", „zkontrolovat údaje", „údaje v pořádku" nebo „údaje kompletní".
 - **Kontakt** — telefon účastníka.
-- **Balíček** — co má účastník předplacené k výdeji (tričko, kostky, placka…, případně „jen stravenky"); najetím myší se rozbalí přesný seznam. U brigádníka připomene „papír na bonus ✍️" — nech podepsat převzetí bonusu.
+- **Balíček** — co má účastník předplacené k výdeji (tričko, kostky, placka…, případně „jen stravenky"); najetím myší se rozbalí přesný seznam. U brigádníka připomene „papír na bonus" (s ikonou pera) — nech podepsat převzetí bonusu.
 - Odkazy **Program** a **Program účastníka** vedou na jeho osobní program.
 
 ## Osobní údaje
@@ -77,7 +77,7 @@ Velké tlačítko **Prodej** otevře obchod, kde vybranému účastníkovi prod�
 
 ## Čip
 
-Podstránka **Čip** (odkaz „Čip 🏷️" v Přehledu u Balíčku) je rozpracovaná stránka pro párování NFC čipů s účastníkem. Zatím nabízí testovací čtení a zápis čipu („Test NFC Read" / „Test NFC Write") a ukazuje, jestli to tvé zařízení zvládne: čtení i zápis vyžadují zabezpečené (https) spojení a prohlížeč s podporou NFC — použij **Chrome na Android telefonu s NFC**. Jinak stránka napíše „Tvůj prohlížeč bohužel neumí číst z NFC čipu". Bez vybraného pracovního uživatele stránka jen vyzve „Vyber pracovního uživatele". Odkaz na Čip se zatím ukazuje jen na vývojovém prostředí, na ostrém webu ho neuvidíš.
+Podstránka **Čip** (odkaz „Čip" s ikonou štítku v Přehledu u Balíčku) je rozpracovaná stránka pro párování NFC čipů s účastníkem. Zatím nabízí testovací čtení a zápis čipu („Test NFC Read" / „Test NFC Write") a ukazuje, jestli to tvé zařízení zvládne: čtení i zápis vyžadují zabezpečené (https) spojení a prohlížeč s podporou NFC — použij **Chrome na Android telefonu s NFC**. Jinak stránka napíše „Tvůj prohlížeč bohužel neumí číst z NFC čipu". Bez vybraného pracovního uživatele stránka jen vyzve „Vyber pracovního uživatele". Odkaz na Čip se zatím ukazuje jen na vývojovém prostředí, na ostrém webu ho neuvidíš.
 
 ## Rychloregistrace
 
@@ -85,7 +85,7 @@ Když **nemáš** vybraného žádného účastníka, dole na stránce je box **
 
 ## Typické postupy
 
-**Účastník přišel zaplatit hotově:** vyber ho omniboxem → zkontroluj Stav účtu → v „Připsat platbu" zadej částku → **Připsat**. Platí mobilem? Ukaž mu **QR platby** a po zaplacení klikni **🗘 Fio**.
+**Účastník přišel zaplatit hotově:** vyber ho omniboxem → zkontroluj Stav účtu → v „Připsat platbu" zadej částku → **Připsat**. Platí mobilem? Ukaž mu **QR platby** a po zaplacení klikni **Fio**.
 
 **Účastník se chce registrovat na místě:** nemá účet → **Jen registrovat**, vyber nový účet podle ohlášeného ID, doplň osobní údaje. Má účet → vyber ho a klikni **Přihlásit**. Pak s ním vyřiď platbu, ubytování a jídlo a nakonec **Přijel(a) a Dát materiály**.
 

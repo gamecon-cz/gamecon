@@ -408,7 +408,7 @@
             <input id="odmenaZaHodinu" type="text" style="width:4em; display: none" name="odmena_za_hodinu"
                    value="{odmenaZaHodinu}">
             <span id="odmenaZaHodinuCelkem" style="margin-left:.3em;color:#888"></span>
-            <span id="odmenaZaHodinuChybiHodiny" class="hinted"> ⚠️<span
+            <span id="odmenaZaHodinuChybiHodiny" class="hinted"> <i class="fa-solid fa-triangle-exclamation" aria-hidden="true"></i><span
                     class="hint">Musíš správně vyplnit čas od - do</span></span>
             <div class="zaskrtavatko-s-popiskem">
                 <div class="hinted"><label for="bezSlev">bez slev</label>
