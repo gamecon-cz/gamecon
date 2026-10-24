@@ -199,7 +199,7 @@ body {
   font-size: 14px;
 }
 
-.main .submenuAktivovatVse input {
+.main .submenuAktivovatVse button {
   font-size: 100%;
   white-space: normal;
 }

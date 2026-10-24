@@ -335,7 +335,8 @@ body:has(.profilInfo) .sloupL {
   position: relative;
 }
 
-#submenu .adm_submenu_item a .fa-solid {
+#submenu .adm_submenu_item a .fa-solid,
+.submenuAktivovatVse button .fa-solid {
   margin-right: 0.4em;
 }
 
@@ -404,7 +405,8 @@ body:has(.profilInfo) .sloupL {
   margin: 0;
 }
 
-.submenuAktivovatVse input[type=submit] {
+/* [type=submit] keeps the specificity above .tlacitko.tlacitko_isDanger, whose padding would otherwise win. */
+.submenuAktivovatVse button[type=submit] {
   border: 1px solid #AD3E19;
   display: inline-block;
   font-weight: normal;
@@ -422,7 +424,13 @@ body:has(.profilInfo) .sloupL {
   cursor: pointer;
 }
 
-.submenuAktivovatVse input[type=submit]:hover {
+/* Needs its own :disabled look: the generic input[type="submit"]:disabled rule does not match a <button>. */
+.submenuAktivovatVse button[type=submit]:disabled {
+  color: gray;
+  cursor: not-allowed;
+}
+
+.submenuAktivovatVse button[type=submit]:hover {
   border-color: #833214;
   background: red;
   text-decoration: underline;
