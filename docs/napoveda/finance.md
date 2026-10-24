@@ -55,8 +55,8 @@ Upravit můžeš dva sloupce a pak klikni na **Uložit změny**:
 
 **Importér e-shopu** — nahráním XLSX (vychází z *Reportu e-shopu*)
 **přepíše kompletně letošní nabízené předměty a ubytování**. Pozor na
-varování přímo ve formuláři: *Položky, které nebudou v importním souboru,
-import skryje* (s výstražnými ikonami po stranách).
+varování přímo ve formuláři: *⚠️ Položky, které nebudou v importním souboru,
+import skryje ⚠️*.
 
 Pod importérem je **Nastavení mřížkového prodeje** (mřížky obchodu, např.
 prodej jídla po dnech).

@@ -115,7 +115,7 @@ if ($backgroundProcessService->isProcessRunning($commandName)) {
     <div class="message-box running" id="message-box">
         <!-- Running state -->
         <div class="running-content" id="running-content">
-            <h1>Generování BFGR reportu již běží</h1>
+            <h1>⚠ Generování BFGR reportu již běží</h1>
             <p>V tuto chvíli probíhá generování BFGR reportu.</p>
             <div class="info">
                 <strong>Běží:</strong> <span id="elapsed-time">{$elapsedFormatted}</span><br>

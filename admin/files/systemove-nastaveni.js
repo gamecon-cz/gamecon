@@ -290,7 +290,7 @@ class SystemoveNastaveni {
    * @param {HTMLElement} element
    */
   oznamUlozeni(element) {
-    this.oznamVysledek(element, '<i class="fa-solid fa-check ikona-ano" aria-hidden="true"></i>', 'Změny jsou uloženy')
+    this.oznamVysledek(element, '✔️' /* to nekonci mezerou, to je soucast smajliku, nemazat ji */, 'Změny jsou uloženy')
   }
 
   /**
@@ -298,7 +298,7 @@ class SystemoveNastaveni {
    * @param {{error: string}} odpoved
    */
   oznamChybu(element, odpoved) {
-    this.oznamVysledek(element, '<i class="fa-solid fa-circle-exclamation ikona-ne" aria-hidden="true"></i>', `Změny se nepodařilo uložit: <b>${odpoved.error}</b>`)
+    this.oznamVysledek(element, '❗', `Změny se nepodařilo uložit: <b>${odpoved.error}</b>`)
   }
 
   /**

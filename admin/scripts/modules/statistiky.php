@@ -237,7 +237,7 @@ $pocetDni = count($nazvyDnu);
                         <?php
                         if ($callOfCovid) { ?>
                           <span>
-                                <i class="fa-solid fa-virus" aria-hidden="true"></i>
+                                👾
                                 <span class="hint">Call of Covid</span>
                             </span>
                         <?php

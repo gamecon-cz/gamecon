@@ -125,7 +125,7 @@ nejsou, zatím žijí na staré infrastruktuře mimo tento přehled.
 Medailonky (krátké představení vypravěčů na webu) se spravují na kartičce
 **Aktivity → Medailonky** — přístup k nim ale patří ke správě webu. Nový
 medailonek vytvoříš zadáním **ID uživatele** a tlačítkem **vytvořit**.
-V tabulce vidíš u každého vypravěče zelenou fajfku nebo červený křížek podle toho, zda má vyplněný obecný
+V tabulce vidíš u každého vypravěče ✅/❌ podle toho, zda má vyplněný obecný
 **Popis** a část pro **DrD** (najetím myší se text ukáže), a tužku pro
 editaci. Horní část medailonku je obecná, dolní část je pro DrD.
 

@@ -310,11 +310,11 @@ const dataStr = {data};
 <!-- end:obsah -->
 
 <!-- begin:zadnaJidla -->
-<p style="font-size: 1.5em; color: #c00; margin: 2em;">Uživatel s ID {idUzivatele} nemá objednaná žádná jídla</p>
+<p style="font-size: 1.5em; color: #c00; margin: 2em;">Uživatel s ID {idUzivatele} nemá objednaná žádná jídla 🍽️</p>
 <!-- end:zadnaJidla -->
 
 <!-- begin:nenalezen -->
-<p style="font-size: 1.5em; color: #c00; margin: 2em;">Uživatel s ID {idUzivatele} nenalezen</p>
+<p style="font-size: 1.5em; color: #c00; margin: 2em;">Uživatel s ID {idUzivatele} nenalezen 😱</p>
 <!-- end:nenalezen -->
 
 <!-- end:stravenky -->

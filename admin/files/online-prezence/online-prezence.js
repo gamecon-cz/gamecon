@@ -100,7 +100,7 @@ import {OnlinePrezenceOmnibox} from "./online-prezence-omnibox.js"
     const omnibox = new OnlinePrezenceOmnibox(akceAktivity, $)
     omnibox.inicializujOmnibox()
 
-    // ČEKÁNÍ NA EDITACI
+    // ⏳ ČEKÁNÍ NA EDITACI ⏳
     // Nastavení odpočtů a hlídání časů se spouští až po načtení počátečního stavu přes AJAX (event aktivitaVyrenderovana)
 
     document.addEventListener('aktivitaVyrenderovana', function (event) {
@@ -132,7 +132,7 @@ import {OnlinePrezenceOmnibox} from "./online-prezence-omnibox.js"
         hlidatDoKdyJeMozneOdebiratUcastniky(aktivitaNode)
       }
 
-      // AKTIVITA UŽ SKONČILA, POZOR NA ÚPRAVY
+      // ✋ AKTIVITA UŽ SKONČILA, POZOR NA ÚPRAVY ✋
       aktivitaNode.querySelectorAll('.text-skoncila').forEach(function (textSkoncilaNode) {
         const $textSkoncilaNode = $(textSkoncilaNode)
         hlidatUpozorneniNaSkoncenouAktivitu(aktivitaNode, $textSkoncilaNode)
@@ -163,23 +163,23 @@ import {OnlinePrezenceOmnibox} from "./online-prezence-omnibox.js"
       const muzePridatUcastnikyHned = pridatelniHned
       const muzeOdebratUcastnikyHned = odebratelniHned
 
-      // Můžeš ji editovat za
+      // ⏳ Můžeš ji editovat za ⏳
       zobrazitKdyz(aktivitaNode, '.text-ceka', nejdouAlePujdouPridat && nejdouAlePujdouOdebrat)
-      // Zamčena
+      // 🔒 Zamčena 🔒
       zobrazitKdyz(aktivitaNode, `#zamcena-${idAktivity}`, zamcena)
-      // Uzavřít
+      // Uzavřít 📕
       zobrazitKdyz(aktivitaNode, '.tlacitko-uzavrit-aktivitu', neuzavrena && !nejdouAlePujdouPridat)
-      // Už ji nelze editovat
+      // 🧊 Už ji nelze editovat 🧊
       zobrazitKdyz(aktivitaNode, '.zobrazit-pokud-aktivitu-nelze-editovat', neuzavrena && uzNepujdePridat && uzNepujdeOdebrat)
-      // Uzavřena
+      // 📕 Uzavřena 📕
       zobrazitKdyz(aktivitaNode, `#uzavrena-${idAktivity}`, uzavrena)
-      // Aktivita už skončila
+      // ✋ Aktivita už skončila ✋
       zobrazitKdyz(
         aktivitaNode,
         '.skryt-pokud-aktivitu-nelze-editovat',
         (muzePridatUcastnikyHned && !pridatelniHned) || (muzeOdebratUcastnikyHned && !odebratelniHned),
       )
-      // Pozor, uzavřená!
+      // ⚠️ Pozor, uzavřená! ⚠️
       zobrazitKdyz(
         aktivitaNode,
         `#pozor-zamcena-${idAktivity}`,
