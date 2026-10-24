@@ -1121,6 +1121,14 @@ SQL,
     }
 
     /**
+     * Messages about the roommate group from {@see zpracujUbytovani()}, to show once the changes are committed.
+     */
+    public function oznamZpravyUbytovani(): void
+    {
+        $this->ubytovani->oznamZpravy();
+    }
+
+    /**
      * Zpracuje část formuláře s vstupným
      */
     public function zpracujVstupne()

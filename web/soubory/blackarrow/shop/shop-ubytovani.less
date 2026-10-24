@@ -95,21 +95,81 @@
 }
 
 .shopUbytovani_spolubydlici {
+    margin-top: 75px;
+
+    @media (max-width: 600px) {
+        margin-top: 40px;
+    }
+}
+
+.shopUbytovani_skupina {
+    margin-bottom: 2em;
+
+    p {
+        margin: 0 0 0.8em;
+    }
+
+    .formular_polozka.formular_polozka-checkbox {
+        display: flex;
+        align-items: center;
+        margin: 0 0 0.8em;
+        font-weight: bold;
+    }
+}
+
+.shopUbytovani_skupinaNadpis {
+    font-weight: bold;
+    font-size: 18px;
+    margin-bottom: 0.5em;
+}
+
+.shopUbytovani_kodSkupiny {
+    font-family: monospace;
+    font-size: 1.2em;
+    letter-spacing: 0.1em;
+    user-select: all;
+}
+
+.shopUbytovani_clenoveSkupiny {
+    margin: 0 0 1em;
+}
+
+.shopUbytovani_ubytovaniClena {
+    font-size: 0.9em;
+    opacity: 0.75;
+}
+
+.shopUbytovani_varovaniSkupiny {
+    padding: 8px 12px;
+    border-left: 4px solid #d69d00;
+    background: #fff7dc;
+    color: #4a3a06;
+}
+
+.shopUbytovani_kodSkupinyVstup {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 10px;
+    font-weight: bold;
+
+    input {
+        width: 10em;
+        margin: 0;
+        text-transform: uppercase;
+    }
+}
+
+.shopUbytovani_prani {
     font-weight: bold;
     font-size: 18px;
     display: flex;
     max-width: initial;
     align-items: center;
-    margin-top: 75px;
     input { width: 514px; margin: 0 0 0 auto; }
 
     @media (max-width: 600px) {
-        margin-top: 40px;
         flex-wrap: wrap;
-
-        label {
-            width: 100%;
-        }
 
         input {
             width: 100%;

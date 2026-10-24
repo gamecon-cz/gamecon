@@ -8,6 +8,7 @@ require __DIR__ . '/sdilene-hlavicky.php';
 use Gamecon\Role\Role;
 use Gamecon\Shop\TypPredmetu;
 use Gamecon\Cas\DateTimeCz;
+use Gamecon\Ubytovani\UbytovaciSkupiny;
 
 $o = dbQuery(<<<SQL
 SELECT
@@ -27,6 +28,9 @@ SELECT
     MAX(predmety.ubytovani_den) as posledni_noc,
     GROUP_CONCAT(DISTINCT IF(ubytovani.pokoj = '', NULL, ubytovani.pokoj) ORDER BY ubytovani.pokoj) as pokoj,
     uzivatele.ubytovan_s,
+    '' AS skupina, -- placeholder, podle skupiny spolubydlících se v Excelu rozdělují pokoje; import ji nečte
+    '' AS spolubydlici_ve_skupine, -- placeholder
+    '' AS ceka_na_spolubydlici, -- placeholder, přijede sám a doplnění samotářů ho nikam nedalo
     '' AS pozice, -- placeholder kvůli pořadí, hodnotu dáme později, viz PHP foreach dále
     '' AS datum_narozeni, -- placeholder
     uzivatele.mesto_uzivatele,
@@ -55,13 +59,22 @@ SQL,
     ],
 );
 
+$ubytovaciSkupiny = new UbytovaciSkupiny(ROCNIK);
+$skupiny          = $ubytovaciSkupiny->clenstviProReport();
+$samotari         = array_flip($ubytovaciSkupiny->idsSamotaru());
+
 $vystup = [];
 while ($r = mysqli_fetch_assoc($o)) {
-    $u                   = Uzivatel::zId($r['id_uzivatele']);
-    $r['pozice']         = $u->status(false);
-    $r['datum_narozeni'] = $u->datumNarozeni()->format(DateTimeCz::FORMAT_DATUM_STANDARD);
-    $r['cislo_dokladu']  = $u->cisloOp();
-    $vystup[]            = $r;
+    $u                            = Uzivatel::zId($r['id_uzivatele']);
+    $r['skupina']                 = $skupiny[(int)$r['id_uzivatele']]['kod'] ?? '';
+    $r['spolubydlici_ve_skupine'] = $skupiny[(int)$r['id_uzivatele']]['spolubydlici'] ?? '';
+    $r['ceka_na_spolubydlici']    = isset($samotari[(int)$r['id_uzivatele']])
+        ? 'ano'
+        : '';
+    $r['pozice']                  = $u->status(false);
+    $r['datum_narozeni']          = $u->datumNarozeni()->format(DateTimeCz::FORMAT_DATUM_STANDARD);
+    $r['cislo_dokladu']           = $u->cisloOp();
+    $vystup[]                     = $r;
 }
 
 Report::zPole($vystup)->tFormat(get('format'));

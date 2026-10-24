@@ -661,6 +661,12 @@
           </td>
         </tr>
         <tr>
+          <td>Skupina spolubydlících:</td>
+          <td>
+            {skupinaSpolubydlicich}
+          </td>
+        </tr>
+        <tr>
           <td>Ubytování:</td>
           <td>{ubytovani}</td>
         </tr>

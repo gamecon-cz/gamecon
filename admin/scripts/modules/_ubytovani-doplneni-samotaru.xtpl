@@ -1,0 +1,32 @@
+<!-- begin:doplneni -->
+
+<div class="aBox">
+  <h3>Doplnění samotářů na pokoje</h3>
+  <p>
+    Kdo v přihlášce zaškrtl, že přijede sám a spolubydlící mu máme přidělit, toho doplní na volnou postel
+    ve skupině, která na pokoji spí ve všechny jeho noci, a zbylé dá dohromady do nových skupin.
+    Cizí lidi dává na pokoj jen se stejným pohlavím, na hotelu pokoje nepřeplní.
+    Kdo se nikam nevejde, zůstane v seznamu na ruční přidělení. Pak teprve stáhni report ubytování.
+  </p>
+  <p>Na spolubydlící čeká: <strong>{pocetCekajicich}</strong></p>
+
+  <!-- begin:tlacitko -->
+  <form method="post">
+    <input type="submit" name="doplnitSamotare" value="Doplnit samotáře" class="disable-and-show-loading-on-click">
+  </form>
+  <!-- end:tlacitko -->
+
+  <!-- begin:predKoncemProdeje -->
+  <p>Doplnit jde až po konci prodeje ubytování ({konecProdeje}), do té doby drží skupiny volné postele pro kamarády.</p>
+  <!-- end:predKoncemProdeje -->
+
+  <!-- begin:cekajici -->
+  <ul>
+    <!-- begin:samotar -->
+    <li>{jmeno} ({id}), {pohlavi}: {ubytovani}</li>
+    <!-- end:samotar -->
+  </ul>
+  <!-- end:cekajici -->
+</div>
+
+<!-- end:doplneni -->

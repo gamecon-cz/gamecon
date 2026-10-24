@@ -151,6 +151,7 @@ if (post('prihlasitNeboUpravit')) {
         dbRollback();
         throw $throwable;
     }
+    $shop->oznamZpravyUbytovani();
     if ($prihlasovani) {
         oznameni(hlaska('prihlaseniNaGc', $u));
     } else {
