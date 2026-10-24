@@ -36,6 +36,26 @@ final class OptimalizaceObrazku
     }
 
     /**
+     * Nejdelší šířka a výška, kterou ImageMagick přečte, podle `policy.xml` serveru (na ostré 16 000 px).
+     *
+     * @return array{sirka: float|int, vyska: float|int}
+     */
+    public function limityServeru(): array
+    {
+        return [
+            'sirka' => \Imagick::getResourceLimit(\Imagick::RESOURCETYPE_WIDTH),
+            'vyska' => \Imagick::getResourceLimit(\Imagick::RESOURCETYPE_HEIGHT),
+        ];
+    }
+
+    public function jeDelsiNezServerPrecte(int $sirka, int $vyska): bool
+    {
+        $limity = $this->limityServeru();
+
+        return $sirka > $limity['sirka'] || $vyska > $limity['vyska'];
+    }
+
+    /**
      * Animovaný PNG a WebP se nezmenšují, ImageMagick by z nich nechal jen první snímek.
      */
     public function jeAnimovany(string $cesta, string $mime): bool

@@ -343,6 +343,25 @@ class OptimalizaceObrazkuTest extends TestCase
     /**
      * @test
      */
+    public function obrazekDelsiNezServerPrecteSeOdmitneSJasnouHlaskou(): void
+    {
+        if (max(\Imagick::getResourceLimit(\Imagick::RESOURCETYPE_WIDTH), \Imagick::getResourceLimit(\Imagick::RESOURCETYPE_HEIGHT)) >= 65_000) {
+            self::markTestSkipped('ImageMagick tu nemá omezení rozměru, které by šlo překročit hlavičkou JPEG.');
+        }
+        $limitSirky = (int) \Imagick::getResourceLimit(\Imagick::RESOURCETYPE_WIDTH);
+        $limitVysky = (int) \Imagick::getResourceLimit(\Imagick::RESOURCETYPE_HEIGHT);
+        $nahravani = $this->nahravani();
+
+        // na hraně projde, o pixel víc ne: ImageMagick by ho přečíst nedokázal a organizátor by dostal jen „poškozený“
+        $nahravani->overSoubor($this->soubor('na-hrane.jpg', self::jpgSRozmeryVHlavicce($limitSirky, 10)));
+        $this->expectException(NahravaniObrazkuException::class);
+        $this->expectExceptionMessage(sprintf('server zvládne nejvýš %d × %d px', $limitSirky, $limitVysky));
+        $nahravani->overSoubor($this->soubor('moc-siroky.jpg', self::jpgSRozmeryVHlavicce($limitSirky + 1, 10)));
+    }
+
+    /**
+     * @test
+     */
     public function nabidkaProNahrazeniZahrnujeFormatyKtereSePrevedouDoCile(): void
     {
         self::assertSame('image/webp,image/jpeg,image/png', $this->nahravani()->acceptProNahrazeni(NahravaniObrazku::WEBP));
