@@ -101,6 +101,21 @@ SQL,
     /**
      * @test
      */
+    public function mistrovstviVDrdJeNaKonciStrankyZaCarou(): void
+    {
+        $stranka = $this->stahni($this->prihlas(\Uzivatel::SYSTEM_LOGIN), 'web/soubory');
+
+        $celohra = strpos($stranka, '<code>soubory/obsah/celohra/</code>');
+        $drd = strpos($stranka, '<code>soubory/obsah/drd/</code>');
+        self::assertNotFalse($celohra);
+        self::assertNotFalse($drd);
+        self::assertGreaterThan($celohra, $drd);
+        self::assertStringContainsString('<hr', substr($stranka, $celohra, $drd - $celohra));
+    }
+
+    /**
+     * @test
+     */
     public function organizatorNahrajeNahradiASmazeSouborVPodslozce(): void
     {
         $celohra = ZpracovaneObrazky::adresarObsahu() . '/celohra';

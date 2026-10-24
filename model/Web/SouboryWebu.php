@@ -14,20 +14,10 @@ final class SouboryWebu
 {
     /**
      * Složky v `soubory/obsah`, název složky => k čemu slouží a jaké soubory do ní patří. Obrázky e-shopu
-     * (`materialy/<ročník>/eshop`) mají vlastní modul a tady se nevypisují.
+     * (`materialy/<ročník>/eshop`) mají vlastní modul a tady se nevypisují. Složky s `historie` se vypisují
+     * na konci pod čárou.
      */
     public const SLOZKY = [
-        'drd' => [
-            'nazev'   => 'Mistrovství v Dračím doupěti',
-            'popis'   => 'Archiv stránky DrD: dobrodružství, deníky postav a nahrávky.',
-            'formaty' => [
-                NahravaniObrazku::PDF,
-                NahravaniObrazku::XLSX,
-                NahravaniObrazku::MP3,
-                NahravaniObrazku::ZIP,
-                ...NahravaniObrazku::RASTROVE_FORMATY,
-            ],
-        ],
         'download' => [
             'nazev'   => 'Ke stažení',
             'popis'   => 'Soubory ke stažení, například tisková kronika nebo orientační brožura.',
@@ -43,6 +33,18 @@ final class SouboryWebu
             'popis'   => 'Podklady k celohře.',
             'formaty' => [NahravaniObrazku::PDF],
         ],
+        'drd' => [
+            'nazev'    => 'Mistrovství v Dračím doupěti',
+            'popis'    => 'Archiv stránky DrD, poslední ročník byl 2025: dobrodružství, deníky postav a nahrávky.',
+            'historie' => true,
+            'formaty'  => [
+                NahravaniObrazku::PDF,
+                NahravaniObrazku::XLSX,
+                NahravaniObrazku::MP3,
+                NahravaniObrazku::ZIP,
+                ...NahravaniObrazku::RASTROVE_FORMATY,
+            ],
+        ],
     ];
 
     private const POST_AKCE = 'souboryWebuAkce';
@@ -57,7 +59,7 @@ final class SouboryWebu
     private array $sluzby = [];
 
     /**
-     * @param array<string, array{nazev: string, popis: string, formaty: list<string>}> $slozky
+     * @param array<string, array{nazev: string, popis: string, formaty: list<string>, historie?: bool}> $slozky
      * @param string|null $korenObsahu null je `soubory/obsah` webu
      */
     public function __construct(
@@ -96,9 +98,15 @@ final class SouboryWebu
             array_keys($this->slozky),
         ));
 
-        foreach ($this->slozky as $nazevSlozky => $nastaveni) {
+        $predchoziJeHistorie = null;
+        foreach ($this->slozkyNaKonciHistorie() as $nazevSlozky => $nastaveni) {
             // číselný název složky je v poli celé číslo
             $slozka = (string) $nazevSlozky;
+            $jeHistorie = $nastaveni['historie'] ?? false;
+            if ($jeHistorie && $predchoziJeHistorie === false) {
+                $template->parse('souboryWebu.slozka.historie');
+            }
+            $predchoziJeHistorie = $jeHistorie;
             $nahravani = $this->nahravani($slozka);
             $soubory = array_values(array_filter(
                 $nahravani->souboryVeStromu('', self::MAX_HLOUBKA_VYPISU),
@@ -131,6 +139,17 @@ final class SouboryWebu
         $template->parse('souboryWebu');
 
         return $template->text('souboryWebu');
+    }
+
+    /**
+     * Aktuální složky, za nimi historické. Operátor `+` drží klíče, i číselné, které by spread přečísloval.
+     *
+     * @return array<string, array{nazev: string, popis: string, formaty: list<string>, historie?: bool}>
+     */
+    private function slozkyNaKonciHistorie(): array
+    {
+        return array_filter($this->slozky, static fn (array $nastaveni): bool => !($nastaveni['historie'] ?? false))
+            + array_filter($this->slozky, static fn (array $nastaveni): bool => $nastaveni['historie'] ?? false);
     }
 
     /**
