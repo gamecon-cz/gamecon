@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Gamecon\Tests\web;
 
 use Gamecon\Tests\Model\Web\TestovaciDokumenty;
+use Gamecon\Tests\Model\Web\TestovaciObrazky;
 use Gamecon\Web\ZpracovaneObrazky;
 use Symfony\Component\Filesystem\Filesystem;
 
@@ -15,6 +16,7 @@ use Symfony\Component\Filesystem\Filesystem;
 class NahravaniSouboruVAdminuTest extends AbstractTestWeb
 {
     use TestovaciDokumenty;
+    use TestovaciObrazky;
     use ZadostiDoAdmina;
 
     private const int ID_BEZ_PRAV = 9811;
@@ -154,6 +156,76 @@ SQL,
         ]));
         self::assertFileDoesNotExist($ulozeno);
         self::assertStringContainsString('Soubor je smazaný.', $this->stahni($session, 'web/soubory'));
+    }
+
+    /**
+     * @test
+     */
+    public function velkyObrazekSeZmensiAUlozJakoWebp(): void
+    {
+        $materialy = ZpracovaneObrazky::adresarObsahu() . '/materialy';
+        $this->uklidNoveAdresare($materialy);
+        $this->kUklidu[] = $materialy . '/rocnik_2099';
+        $session = $this->prihlas(\Uzivatel::SYSTEM_LOGIN);
+
+        self::assertSame(303, $this->odesli($session, 'web/soubory', [
+            'souboryWebuAkce' => 'nahrat',
+            'slozka'          => 'materialy',
+            'podslozka'       => 'Ročník 2099',
+            'nazev'           => 'Plakát ' . self::znacka(),
+            'souborWebu'      => new \CURLFile($this->soubor('.jpg', self::jpgBajty(3000, 2000)), 'image/jpeg', 'IMG_0001.JPG'),
+        ]));
+
+        $ulozeno = $materialy . '/rocnik_2099/plakat_' . self::znacka() . '.webp';
+        self::assertFileExists($ulozeno);
+        $info = getimagesize($ulozeno);
+        self::assertSame([1920, 1280, 'image/webp'], [$info[0], $info[1], $info['mime']]);
+        $stranka = $this->stahni($session, 'web/soubory');
+        self::assertStringContainsString('Soubor je nahraný jako plakat_' . self::znacka() . '.webp', $stranka);
+        // soubor, který vznikl převodem, jde nahradit i JPEG a PNG, prohlížeč je v oknu pro výběr nezakáže
+        self::assertStringContainsString('accept="image/webp,image/jpeg,image/png"', $stranka);
+
+        $pred = md5_file($ulozeno);
+        self::assertSame(303, $this->odesli($session, 'web/soubory', [
+            'souboryWebuAkce' => 'nahradit',
+            'slozka'          => 'materialy',
+            'cesta'           => 'rocnik_2099/plakat_' . self::znacka() . '.webp',
+            'souborWebu'      => new \CURLFile($this->soubor('.jpg', self::jpgBajty(2400, 1600)), 'image/jpeg', 'IMG_0004.JPG'),
+        ]));
+        self::assertNotSame($pred, md5_file($ulozeno));
+        $info = getimagesize($ulozeno);
+        self::assertSame([1920, 1280, 'image/webp'], [$info[0], $info[1], $info['mime']]);
+        self::assertSame([], glob($materialy . '/rocnik_2099/plakat_' . self::znacka() . '.jpg'));
+    }
+
+    /**
+     * @test
+     */
+    public function fotkaNadDvaMegabajtyProjdeAZmensiSe(): void
+    {
+        if (ini_parse_quantity(ini_get('upload_max_filesize')) < 8 * 1024 * 1024) {
+            self::markTestSkipped('PHP tu přijme soubor jen do ' . ini_get('upload_max_filesize') . ', viz .docker/php/conf.d/upload.ini.');
+        }
+        $materialy = ZpracovaneObrazky::adresarObsahu() . '/materialy';
+        $this->uklidNoveAdresare($materialy);
+        $this->kUklidu[] = $materialy . '/rocnik_2099';
+        $fotka = $this->soubor('.jpg', self::fotkaZFotakuBajty(3600, 2400));
+        // bez téhle kontroly by test mohl projít i s fotkou, kterou by prošel i dřívější limit
+        self::assertGreaterThan(2 * 1024 * 1024, filesize($fotka));
+        $session = $this->prihlas(\Uzivatel::SYSTEM_LOGIN);
+
+        self::assertSame(303, $this->odesli($session, 'web/soubory', [
+            'souboryWebuAkce' => 'nahrat',
+            'slozka'          => 'materialy',
+            'podslozka'       => 'Ročník 2099',
+            'nazev'           => 'Velká fotka ' . self::znacka(),
+            'souborWebu'      => new \CURLFile($fotka, 'image/jpeg', 'IMG_0002.JPG'),
+        ]));
+
+        $ulozeno = $materialy . '/rocnik_2099/velka_fotka_' . self::znacka() . '.webp';
+        self::assertFileExists($ulozeno);
+        self::assertSame(1920, getimagesize($ulozeno)[0]);
+        self::assertLessThan(filesize($fotka) / 4, filesize($ulozeno));
     }
 
     /**

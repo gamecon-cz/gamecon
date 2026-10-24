@@ -116,7 +116,7 @@ SQL,
     public function organizatorNahrajeVymeniASmazeFotkuKMedailonku(): void
     {
         $fotky = ZpracovaneObrazky::adresarFotekUzivatelu() . '/' . self::ID_VYPRAVECE;
-        $this->kUklidu = [...$this->kUklidu, $fotky . '.png', $fotky . '.jpg'];
+        $this->kUklidu = [...$this->kUklidu, $fotky . '.png', $fotky . '.jpg', $fotky . '.webp'];
         $session = $this->prihlas(\Uzivatel::SYSTEM_LOGIN);
         $url = 'aktivity/medailonky?id=' . self::ID_VYPRAVECE;
 
@@ -127,23 +127,25 @@ SQL,
             'akceFotky' => 'nahrat',
             'fotka'     => new \CURLFile($png, 'image/png', 'portret.png'),
         ]));
-        self::assertFileEquals($png, $fotky . '.png');
+        self::assertSame('image/webp', getimagesize($fotky . '.webp')['mime']);
+        self::assertFileDoesNotExist($fotky . '.png');
         $stranka = $this->stahni($session, $url);
         self::assertStringContainsString('Fotka je nahraná.', $stranka);
         self::assertStringContainsString('Smazat fotku', $stranka);
 
-        // fotka z telefonu jako JPG nahradí PNG, dvě verze vedle sebe by si web vybíral náhodně
+        // starší fotka v jiném formátu, třeba z doby FTP, se nahrazením smaže, dvě verze vedle sebe by si web vybíral náhodně
+        copy($png, $fotky . '.png');
         self::assertSame(303, $this->odesli($session, $url, [
             'akceFotky' => 'nahrat',
             'fotka'     => new \CURLFile($this->jpg(), 'image/jpeg', 'IMG_0001.JPG'),
         ]));
-        self::assertFileExists($fotky . '.jpg');
+        self::assertFileExists($fotky . '.webp');
         self::assertFileDoesNotExist($fotky . '.png');
 
         self::assertSame(303, $this->odesli($session, $url, [
             'akceFotky' => 'smazat',
         ]));
-        self::assertFileDoesNotExist($fotky . '.jpg');
+        self::assertFileDoesNotExist($fotky . '.webp');
         self::assertStringContainsString('Fotka je smazaná', $this->stahni($session, $url));
     }
 
@@ -153,7 +155,7 @@ SQL,
     public function souborKteryNeniObrazekOdmitne(): void
     {
         $fotky = ZpracovaneObrazky::adresarFotekUzivatelu() . '/' . self::ID_VYPRAVECE;
-        $this->kUklidu[] = $fotky . '.png';
+        $this->kUklidu = [...$this->kUklidu, $fotky . '.png', $fotky . '.webp'];
         $session = $this->prihlas(\Uzivatel::SYSTEM_LOGIN);
         $url = 'aktivity/medailonky?id=' . self::ID_VYPRAVECE;
         $skript = $this->zdroje . '/fotka.png';
@@ -174,7 +176,7 @@ SQL,
     public function bezPravaNaMedailonkyNicNenahraje(): void
     {
         $fotky = ZpracovaneObrazky::adresarFotekUzivatelu() . '/' . self::ID_VYPRAVECE;
-        $this->kUklidu[] = $fotky . '.png';
+        $this->kUklidu = [...$this->kUklidu, $fotky . '.png', $fotky . '.webp'];
         $session = $this->prihlas('test-fotka-bez-prav');
 
         self::assertSame(
@@ -310,14 +312,25 @@ SQL,
             'nazev'             => 'Nová členka Rady',
             'obrazekObsahu'     => new \CURLFile($this->jpg(), 'image/jpeg', 'IMG_0002.jpg'),
         ]));
-        $novy = $obsah . '/stranky/' . self::URL_STRANKY . '/nova-clenka-rady.jpg';
+        // JPEG se uloží jako WebP a odkaz, který se nabídne do textu, už míří na ten
+        $novy = $obsah . '/stranky/' . self::URL_STRANKY . '/nova-clenka-rady.webp';
         self::assertFileExists($novy);
         $stranka = $this->stahni($session, $url);
-        self::assertStringContainsString('![](soubory/obsah/stranky/' . self::URL_STRANKY . '/nova-clenka-rady.jpg)', $stranka);
+        self::assertStringContainsString('![](soubory/obsah/stranky/' . self::URL_STRANKY . '/nova-clenka-rady.webp)', $stranka);
+
+        // převedený soubor jde nahradit i JPEG, odkaz míří na `.webp`
+        self::assertSame(303, $this->odesli($session, $url, [
+            'obrazkyObsahuAkce' => 'nahradit',
+            'cesta'             => 'stranky/' . self::URL_STRANKY . '/nova-clenka-rady.webp',
+            'obrazekObsahu'     => new \CURLFile($this->jpg(60, 30), 'image/jpeg', 'IMG_0003.jpg'),
+        ]));
+        $info = getimagesize($novy);
+        self::assertSame([60, 30, 'image/webp'], [$info[0], $info[1], $info['mime']]);
+        self::assertFileDoesNotExist(dirname($novy) . '/nova-clenka-rady.jpg');
 
         self::assertSame(303, $this->odesli($session, $url, [
             'obrazkyObsahuAkce' => 'smazat',
-            'cesta'             => 'stranky/' . self::URL_STRANKY . '/nova-clenka-rady.jpg',
+            'cesta'             => 'stranky/' . self::URL_STRANKY . '/nova-clenka-rady.webp',
         ]));
         self::assertFileDoesNotExist($novy);
     }
@@ -335,7 +348,7 @@ SQL);
         if (glob($obrazek . '.*') !== []) {
             self::markTestSkipped("Linie {$idTypu} už má vlastní obrázek, nechceme ho přepsat");
         }
-        $this->kUklidu = [...$this->kUklidu, $obrazek . '.png', $obrazek . '.gif'];
+        $this->kUklidu = [...$this->kUklidu, $obrazek . '.png', $obrazek . '.gif', $obrazek . '.webp'];
         $session = $this->prihlas(\Uzivatel::SYSTEM_LOGIN);
 
         self::assertSame(303, $this->odesli($session, 'web/hlavicky-linii', [
@@ -343,7 +356,7 @@ SQL);
             'id_typu' => (string) $idTypu,
             'obrazek' => new \CURLFile($this->png(), 'image/png', 'linie.png'),
         ]));
-        self::assertFileExists($obrazek . '.png');
+        self::assertFileExists($obrazek . '.webp');
 
         self::assertSame(303, $this->odesli($session, 'web/hlavicky-linii', [
             'action'  => 'delete-line-header-image',
@@ -379,10 +392,10 @@ SQL);
         return $cesta;
     }
 
-    private function jpg(): string
+    private function jpg(int $sirka = 40, int $vyska = 40): string
     {
         $cesta = $this->zdroje . '/' . bin2hex(random_bytes(4)) . '.jpg';
-        imagejpeg(imagecreatetruecolor(40, 40), $cesta);
+        imagejpeg(imagecreatetruecolor($sirka, $vyska), $cesta);
 
         return $cesta;
     }
