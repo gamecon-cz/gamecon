@@ -1,0 +1,62 @@
+.jidelnicek-admin {
+  max-width: 1100px;
+
+  &--den h4 {
+    margin: 1.2em 0 0.4em;
+  }
+
+  &--slot {
+    border: 1px solid #ddd;
+    padding: 0.6em 0.8em;
+    margin-bottom: 0.8em;
+  }
+
+  &--hlavicka {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.3em 1em;
+    align-items: baseline;
+    margin-bottom: 0.4em;
+  }
+
+  &--pocty,
+  &--neulozeno {
+    color: #666;
+    font-size: 0.9em;
+  }
+
+  &--tabulka {
+    border-collapse: collapse;
+    width: 100%;
+
+    th, td {
+      padding: 3px 6px;
+      text-align: left;
+    }
+
+    input[type="text"] {
+      width: 100%;
+      box-sizing: border-box;
+    }
+  }
+
+  &--stred {
+    text-align: center !important;
+  }
+
+  &--akce {
+    white-space: nowrap;
+  }
+
+  &--tlacitka {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5em;
+    align-items: center;
+    margin-top: 0.5em;
+  }
+
+  &--chyba {
+    color: #b00020;
+  }
+}

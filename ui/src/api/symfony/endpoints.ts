@@ -3,9 +3,12 @@ import { zprávaChyby } from "./zpravaChyby";
 import {
   ApiAccommodation,
   ApiAccommodationWrite,
+  ApiAdminMealMenu,
   ApiCart,
   ApiEntryFee,
   ApiCollection,
+  ApiMealDishWrite,
+  ApiMealMenu,
   ApiMealProduct,
   ApiMerchProduct,
   ApiProduct,
@@ -52,6 +55,67 @@ export const fetchMeals = async (customerId?: number): Promise<ApiMealProduct[]>
   if (!res.ok) throw new Error(`Failed to fetch meals: ${res.status}`);
   const data = await res.json() as ApiCollection<ApiMealProduct>;
   return data.member ?? [];
+};
+
+/**
+ * Jídelníček s porcemi zákazníka. Pult se ptá za účastníka, účastník za sebe.
+ */
+export const fetchMealMenu = async (customerId?: number): Promise<ApiMealMenu> => {
+  const res = await symfonyFetch(
+    customerId === undefined ? "cart/meal-menu" : `admin/customer-meal-menu?customerId=${customerId}`,
+  );
+  if (!res.ok) throw new Error(`Nepodařilo se načíst jídelníček: ${res.status}`);
+  return await res.json() as ApiMealMenu;
+};
+
+/**
+ * Vybere jídlo k jedné porci; `null` ji vrátí k výchozímu jídlu. Odpovídá celým jídelníčkem,
+ * tak jak ho server uložil.
+ */
+export const chooseMealDish = async (
+  orderItemId: number,
+  dishId: number | null,
+  customerId?: number,
+): Promise<ApiMealMenu> => {
+  const res = await symfonyFetch(
+    customerId === undefined ? "cart/meal-menu" : "admin/customer-meal-menu",
+    {
+      method: "POST",
+      body: JSON.stringify(customerId === undefined
+        ? { orderItemId, dishId }
+        : { orderItemId, dishId, customerId }),
+    },
+  );
+  if (!res.ok) {
+    throw new Error(await zprávaChyby(res, `Výběr jídla se nepodařilo uložit: ${res.status}`));
+  }
+  return await res.json() as ApiMealMenu;
+};
+
+/** Admin: celý letošní jídelníček s počty vybraných jídel. */
+export const fetchAdminMealMenu = async (): Promise<ApiAdminMealMenu> => {
+  const res = await symfonyFetch("admin/meal-menu");
+  if (!res.ok) {
+    throw new Error(await zprávaChyby(res, `Nepodařilo se načíst jídelníček: ${res.status}`));
+  }
+  return await res.json() as ApiAdminMealMenu;
+};
+
+/**
+ * Admin: uloží jídla jednoho obědu nebo večeře, celá najednou — co v seznamu chybí, se smaže.
+ */
+export const saveMealMenuSlot = async (
+  variantId: number,
+  dishes: ApiMealDishWrite[],
+): Promise<ApiAdminMealMenu> => {
+  const res = await symfonyFetch("admin/meal-menu", {
+    method: "POST",
+    body: JSON.stringify({ variantId, dishes }),
+  });
+  if (!res.ok) {
+    throw new Error(await zprávaChyby(res, `Jídelníček se nepodařilo uložit: ${res.status}`));
+  }
+  return await res.json() as ApiAdminMealMenu;
 };
 
 /**

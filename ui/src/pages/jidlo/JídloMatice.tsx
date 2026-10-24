@@ -11,6 +11,7 @@ import {
 import { MountProps } from "../mountProps";
 import { ApiCart, ApiCartItem, ApiMealProduct } from "../../api/symfony/types";
 import { objednavkyZmrazeny } from "./zmrazeni";
+import { VýběrJídel } from "./VýběrJídel";
 
 /** Format price string for Czech locale: "120.00" → "120 Kč", "80.50" → "80,50 Kč" */
 function formatCena(price: string): string {
@@ -92,6 +93,8 @@ export function JídloMatice({ customerId }: MountProps) {
   // current at send time rather than the one captured when the handler was created.
   const vybranoRef = useRef<number[]>([]);
   const odesílání = useRef<Promise<void>>(Promise.resolve());
+  // Po každé změně objednávky se výběr jídel načte znovu, ať ukazuje i nově koupené porce.
+  const [verzeObjednavky, setVerzeObjednavky] = useState(0);
 
   useEffect(() => {
     Promise.all([
@@ -161,6 +164,7 @@ export function JídloMatice({ customerId }: MountProps) {
         const newCart = await addToCart(variantId);
         setCart(newCart);
       }
+      setVerzeObjednavky((verze) => verze + 1);
     } catch (error: unknown) {
       setError(error instanceof Error ? error.message : "Chyba při změně jídla");
     } finally {
@@ -235,6 +239,7 @@ export function JídloMatice({ customerId }: MountProps) {
           Celkem: {formatCena(cart.totalPrice)} ({cart.itemCount} položek)
         </div>
       )}
+      <VýběrJídel customerId={customerId} obnoveni={verzeObjednavky} />
     </div>
   );
 }

@@ -4,6 +4,8 @@ import { ObchodNastaveni } from "./obchodNastaveni";
 import { AktivityApp } from "./aktivity";
 import { Předměty } from "./předměty";
 import { JídloMatice } from "./jidlo/JídloMatice";
+import { VýběrJídel } from "./jidlo/VýběrJídel";
+import { JídelníčekAdmin } from "./jidelnicekAdmin/JídelníčekAdmin";
 import { MerchMřížka, SvrškyMřížka } from "./merch/MerchMřížka";
 import { UbytovaniMřížka } from "./ubytovani/UbytovaniMřížka";
 import { Vstupne } from "./vstupne/Vstupne";
@@ -39,6 +41,8 @@ export const renderPages = () => {
   renderComponent("preact-obchod", Obchod);
   renderComponent("preact-aktivity-modal", AktivityApp);
   renderComponent("preact-jidlo", JídloMatice);
+  renderComponent("preact-vyber-jidel", VýběrJídel);
+  renderComponent("preact-jidelnicek-admin", JídelníčekAdmin);
   renderComponent("preact-merch", MerchMřížka);
   renderComponent("preact-svrsky", SvrškyMřížka);
   renderComponent("preact-ubytovani", UbytovaniMřížka);

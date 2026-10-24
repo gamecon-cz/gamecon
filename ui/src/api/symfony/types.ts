@@ -209,3 +209,75 @@ export type ApiEntryFee = {
   maximum: number;
   maximumAmount: number;
 };
+
+/** Jídlo z jídelníčku, ze kterého se vybírá k objednané porci. */
+export type ApiMealDish = {
+  id: number;
+  name: string;
+  description: string | null;
+  vegetarian: boolean;
+  /** Dostane ho, kdo si do termínu nevybere. */
+  default: boolean;
+};
+
+export type ApiMealPortion = {
+  orderItemId: number;
+  /** Co si účastník vybral; null = zatím nic. */
+  chosenDishId: number | null;
+  /** Co porce opravdu dostane: vybrané, jinak výchozí jídlo. */
+  effectiveDishId: number | null;
+};
+
+export type ApiMealMenuSlot = {
+  variantId: number;
+  day: number;
+  dayName: string;
+  /** Název porce, např. „Oběd pátek". */
+  name: string;
+  dishes: ApiMealDish[];
+  portions: ApiMealPortion[];
+};
+
+export type ApiMealMenu = {
+  /** Jídelníček je zveřejněný; do té doby účastník jídla nevidí (pult ano). */
+  published: boolean;
+  /** Y-m-d */
+  publishedFrom: string;
+  /** Výběr skončil spolu s prodejem jídla. Pultu se nezavírá. */
+  locked: boolean;
+  /** Y-m-d, poslední den výběru */
+  choiceDeadline: string;
+  slots: ApiMealMenuSlot[];
+};
+
+export type ApiAdminMealDish = ApiMealDish & {
+  /** Kolik porcí si jídlo vybralo samo, bez těch, kdo na něj spadnou jako na výchozí. */
+  chosenCount: number;
+};
+
+export type ApiAdminMealMenuSlot = {
+  variantId: number;
+  day: number;
+  dayName: string;
+  name: string;
+  portionCount: number;
+  unchosenCount: number;
+  dishes: ApiAdminMealDish[];
+};
+
+export type ApiAdminMealMenu = {
+  published: boolean;
+  publishedFrom: string;
+  choiceClosed: boolean;
+  choiceDeadline: string;
+  slots: ApiAdminMealMenuSlot[];
+};
+
+export type ApiMealDishWrite = {
+  /** Uložené jídlo; bez id vznikne nové. */
+  id?: number;
+  name: string;
+  description: string | null;
+  vegetarian: boolean;
+  default: boolean;
+};

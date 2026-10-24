@@ -1,0 +1,58 @@
+<!-- begin:jidelnicek -->
+<div class="jidelnicekWidget">
+    <!-- begin:nezverejneno -->
+    <p class="jidelnicekWidget_info">Jídelníček zveřejníme {datumZverejneni}. Potom si k objednaným obědům a večeřím vybereš konkrétní jídla.</p>
+    <!-- end:nezverejneno -->
+
+    <!-- begin:prazdny -->
+    <p class="jidelnicekWidget_info">Jídla do jídelníčku právě doplňujeme.</p>
+    <!-- end:prazdny -->
+
+    <!-- begin:chyba -->
+    <p class="jidelnicekWidget_info">Jídelníček se teď nepodařilo načíst, zkus to prosím za chvíli.</p>
+    <!-- end:chyba -->
+
+    <!-- begin:jidla -->
+    <p class="jidelnicekWidget_info">
+        K objednaným obědům a večeřím si vyber konkrétní jídlo do {vyberDo} včetně, v přihlášce nebo tady níže.
+        Kdo si nevybere, dostane jídlo označené jako výchozí.
+    </p>
+    <!-- begin:den -->
+    <div class="jidelnicekWidget_den">
+        <h3>{den}</h3>
+        <!-- begin:slot -->
+        <div class="jidelnicekWidget_slot">
+            <h4>{druh}</h4>
+            <ul>
+                <!-- begin:jidlo -->
+                <li>
+                    {nazev}
+                    <!-- begin:vegetarianske --><span class="jidelnicekWidget_stitek">vegetariánské</span><!-- end:vegetarianske -->
+                    <!-- begin:vychozi --><span class="jidelnicekWidget_stitek">výchozí</span><!-- end:vychozi -->
+                    <!-- begin:popis --><div class="jidelnicekWidget_popis">{popis}</div><!-- end:popis -->
+                </li>
+                <!-- end:jidlo -->
+            </ul>
+        </div>
+        <!-- end:slot -->
+    </div>
+    <!-- end:den -->
+    <!-- end:jidla -->
+
+    <!-- begin:neprihlasen -->
+    <p class="jidelnicekWidget_info">Pro výběr jídel se přihlas.</p>
+    <!-- end:neprihlasen -->
+
+    <!-- begin:bezPorci -->
+    <p class="jidelnicekWidget_info">Zatím nemáš objednaný žádný oběd ani večeři. Objednat si je můžeš v <a href="{urlPrihlasky}">přihlášce</a>.</p>
+    <!-- end:bezPorci -->
+
+    <!-- begin:vyberVPrihlasce -->
+    <p class="jidelnicekWidget_info">Jídla si vybereš v <a href="{urlPrihlasky}">přihlášce</a>.</p>
+    <!-- end:vyberVPrihlasce -->
+
+    <!-- begin:vyber -->
+    {vyberJidel}
+    <!-- end:vyber -->
+</div>
+<!-- end:jidelnicek -->

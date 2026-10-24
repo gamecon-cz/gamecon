@@ -1,0 +1,34 @@
+.jidelnicekWidget_den {
+    margin: 1em 0;
+}
+
+.jidelnicekWidget_slot {
+    display: inline-block;
+    vertical-align: top;
+    min-width: 14em;
+    max-width: 100%;
+    margin: 0 2em 0.5em 0;
+}
+
+.jidelnicekWidget_slot h4 {
+    margin: 0.3em 0;
+}
+
+.jidelnicekWidget_slot ul {
+    margin: 0;
+    padding-left: 1.2em;
+}
+
+.jidelnicekWidget_stitek {
+    font-size: 0.8em;
+    color: #555;
+    border: 1px solid #ccc;
+    border-radius: 3px;
+    padding: 0 0.3em;
+    margin-left: 0.3em;
+}
+
+.jidelnicekWidget_popis {
+    font-size: 0.9em;
+    color: #666;
+}

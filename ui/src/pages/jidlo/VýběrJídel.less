@@ -1,0 +1,59 @@
+.vyber-jidel {
+  margin: 1.5em 0 1em;
+
+  &--nadpis {
+    margin: 0 0 0.4em;
+  }
+
+  &--info {
+    margin: 0 0 0.8em;
+  }
+
+  &--chyba {
+    color: #b00020;
+  }
+
+  &--den {
+    border-top: 1px solid #ddd;
+    padding: 0.5em 0;
+  }
+
+  &--nazev-dne {
+    font-weight: bold;
+    margin-bottom: 0.3em;
+  }
+
+  &--porce {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: 0.3em 1em;
+    padding: 0.25em 0;
+  }
+
+  &--druh {
+    min-width: 5em;
+  }
+
+  &--vyber {
+    flex: 1 1 16em;
+    min-width: 0;
+
+    select {
+      max-width: 100%;
+      padding: 0.2em;
+    }
+  }
+
+  // Nevybraná porce dostane výchozí jídlo; je dobré to vidět na první pohled.
+  &--nevybrano select {
+    font-style: italic;
+  }
+
+  &--popis,
+  &--poznamka,
+  &--nezadano {
+    color: #666;
+    font-size: 0.9em;
+  }
+}

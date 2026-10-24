@@ -5,8 +5,10 @@ vi.mock("./fetch", () => ({ symfonyFetch: vi.fn() }));
 import { fetchMřížky, fetchPředměty, fetchProdej } from "../obchod/endpoints";
 import {
   addToCart,
+  chooseMealDish,
   createProduct,
   deleteProduct,
+  fetchMealMenu,
   fetchMeals,
   fetchMerch,
   fetchProducts,
@@ -15,6 +17,7 @@ import {
   removeFromCart,
   saveAccommodation,
   saveCustomerMeals,
+  saveMealMenuSlot,
   setEntryFee,
   updateProduct,
 } from "./endpoints";
@@ -121,5 +124,50 @@ describe("zpráva o odmítnutém požadavku", () => {
     vi.mocked(symfonyFetch).mockResolvedValue(new Response("není JSON", { status: 500 }));
 
     await expect(volej()).rejects.toThrow("500");
+  });
+});
+
+describe("jídelníček", () => {
+  const menu = { published: true, publishedFrom: "2026-07-02", locked: false, choiceDeadline: "2026-07-15", slots: [] };
+
+  it("účastník čte a vybírá za sebe, bez zákazníka v payloadu", async () => {
+    odpovězPoslednímVolání(menu);
+    await fetchMealMenu();
+    odpovězPoslednímVolání(menu);
+    await chooseMealDish(501, 2);
+
+    expect(vi.mocked(symfonyFetch).mock.calls[0][0]).toBe("cart/meal-menu");
+    expect(vi.mocked(symfonyFetch).mock.calls[1][0]).toBe("cart/meal-menu");
+    expect(JSON.parse(vi.mocked(symfonyFetch).mock.calls[1][1]?.body as string)).toEqual({ orderItemId: 501, dishId: 2 });
+  });
+
+  it("pult jmenuje zákazníka a chodí na admin endpoint", async () => {
+    odpovězPoslednímVolání(menu);
+    await fetchMealMenu(42);
+    odpovězPoslednímVolání(menu);
+    await chooseMealDish(501, null, 42);
+
+    expect(vi.mocked(symfonyFetch).mock.calls[0][0]).toBe("admin/customer-meal-menu?customerId=42");
+    expect(vi.mocked(symfonyFetch).mock.calls[1][0]).toBe("admin/customer-meal-menu");
+    expect(JSON.parse(vi.mocked(symfonyFetch).mock.calls[1][1]?.body as string))
+      .toEqual({ orderItemId: 501, dishId: null, customerId: 42 });
+  });
+
+  it("odmítnutý výběr hlásí text ze serveru", async () => {
+    odpovězPoslednímVolání({ detail: "Výběr jídel už skončil, počty jsme poslali do jídelny." }, 409);
+
+    await expect(chooseMealDish(501, 2)).rejects.toThrow("Výběr jídel už skončil");
+  });
+
+  it("admin ukládá jídla jednoho slotu celá najednou", async () => {
+    odpovězPoslednímVolání({ ...menu, choiceClosed: false });
+
+    await saveMealMenuSlot(11, [{ name: "Guláš", description: null, vegetarian: false, default: true }]);
+
+    expect(vi.mocked(symfonyFetch).mock.calls[0][0]).toBe("admin/meal-menu");
+    expect(JSON.parse(vi.mocked(symfonyFetch).mock.calls[0][1]?.body as string)).toEqual({
+      variantId: 11,
+      dishes: [{ name: "Guláš", description: null, vegetarian: false, default: true }],
+    });
   });
 });
