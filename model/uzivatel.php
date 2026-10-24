@@ -1728,13 +1728,13 @@ SQL,
         $hintParts = [];
 
         if ($this->jeBrigadnik()) {
-            $hintedParts[] = 'papír na bonus ✍️';
+            $hintedParts[] = 'papír na bonus <i class="fa-solid fa-pen" aria-hidden="true"></i>';
             $hintParts[] = 'podepsat papír na převzetí bonusu';
         }
 
         if (! $shop->koupilNejakouVec()) {
             if ($objednalNejakeJidlo) {
-                $hintedParts[] = 'jen stravenky 🍽️';
+                $hintedParts[] = 'jen stravenky <i class="fa-solid fa-utensils" aria-hidden="true"></i>';
                 $hintParts[] = $shop->objednaneJidloPrehledHtml();
             }
             if (count($hintedParts) === 0) {

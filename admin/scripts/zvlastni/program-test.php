@@ -208,7 +208,7 @@ $check = static fn(bool $v): string => $v ? '<span class="flag-true">✓</span>'
 <!-- MOCK PANEL – přehled endpointů                                    -->
 <!-- ================================================================ -->
 <div class="mock-panel">
-    <h2>🧪 Program mock – přehled API endpointů</h2>
+    <h2>Program mock – přehled API endpointů</h2>
     <div class="subtitle">
         BASE_PATH_API = <code style="color:#a6e3a1"><?= htmlspecialchars($mockBasePathApi, ENT_QUOTES | ENT_HTML5) ?></code> &nbsp;|&nbsp;
         URL_PROGRAM_CACHE = <code style="color:#a6e3a1"><?= htmlspecialchars($mockProgramCache, ENT_QUOTES | ENT_HTML5) ?></code>

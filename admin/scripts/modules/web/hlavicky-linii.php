@@ -8,6 +8,7 @@ use Symfony\Component\Filesystem\Filesystem;
  * Editace šéfů linií, kontaktů a obrázků v hlavičkách aktivit
  *
  * nazev: Hlavičky linií
+ * ikona: heading
  * pravo: 105
  */
 

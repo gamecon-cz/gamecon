@@ -7,6 +7,7 @@ use Gamecon\Vyjimkovac\Vyjimkovac;
 
 /**
  * nazev: Nastavení
+ * ikona: gear
  * pravo: 110 Administrace - panel Nastavení
  */
 

@@ -15,6 +15,7 @@ body {
   position: relative;
   width: 100%;
   overflow: hidden;
+  max-height: none;
   height: 50px;
   min-height: 50px;
   z-index: 20;
@@ -160,8 +161,7 @@ body {
   text-overflow: ellipsis;
 }
 
-#submenu .adm_submenu_item_ord_1::before,
-.main .submenuAktivovatVse::before {
+#submenu .adm_submenu_item_ord_1::before {
   display: none;
   visibility: hidden;
   overflow: hidden;
@@ -177,7 +177,7 @@ body {
 
 .main #submenu.submenu-selected-aktivity {
   padding-top: 5px;
-  width: 83%;
+  width: 100%;
 }
 
 .main #submenu > li {
@@ -195,10 +195,6 @@ body {
 }
 
 .main .submenuAktivovatVse {
-  right: 5px;
-  width: auto;
-  margin: -22px 0 0 0;
-  left: 82%;
   white-space: normal;
   font-size: 14px;
 }

@@ -4,6 +4,7 @@
  * Správa uživatelských práv a židlí (starý kód)
  *
  * nazev: Práva
+ * ikona: user-shield
  * pravo: 106
  */
 

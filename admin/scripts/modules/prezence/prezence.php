@@ -11,6 +11,7 @@ use Gamecon\XTemplate\XTemplate;
  * Vyklikávací tabulky s prezencí na aktivity
  *
  * nazev: Prezence
+ * ikona: user-check
  * pravo: 103
  */
 
@@ -121,10 +122,10 @@ foreach ($aktivity as $aktivita) {
         'nadpis',
         implode(' – ', array_filter([$aktivita->nazev(), $aktivita->orgJmena(), $aktivita->popisLokaci(), $aktivita->zacatek()?->format('l H:i')]))
         . ($aktivita->zamcena()
-            ? ' <span class="hinted">🔒<span class="hint">Zamčená pro přihlašování</span></span> '
+            ? ' <span class="hinted"><i class="fa-solid fa-lock" aria-hidden="true"></i><span class="hint">Zamčená pro přihlašování</span></span> '
             : '')
         . ($aktivita->uzavrena()
-            ? ' <span class="hinted">📕<span class="hint">S uzavřenou prezencí</span></span> '
+            ? ' <span class="hinted"><i class="fa-solid fa-book" aria-hidden="true"></i><span class="hint">S uzavřenou prezencí</span></span> '
             : ''),
     );
     $t->parse('prezence.aktivita.form');

@@ -10,6 +10,7 @@ use Symfony\Component\Filesystem\Filesystem;
  * Úvodní karta organizátora s přehledem jeho aktivit
  *
  * nazev: Moje aktivity
+ * ikona: calendar-check
  * pravo: 109
  */
 

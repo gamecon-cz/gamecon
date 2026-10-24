@@ -25,6 +25,7 @@ use Gamecon\XTemplate\XTemplate;
  * Ruční rozeslání upomínek dlužníkům
  *
  * nazev: Upomínky dlužníkům
+ * ikona: bell
  * pravo: 108
  * submenu_group: 5
  */

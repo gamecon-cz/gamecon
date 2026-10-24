@@ -19,19 +19,6 @@
 </div>
 <!-- end:exportImport -->
 
-<!-- begin:aktivovatVse -->
-<form class="submenuAktivovatVse" method="post">
-  <span class="hinted">
-    <input class="tlacitko tlacitko_isDanger" type="submit" name="aktivovatVse" value="aktivovat hromadně" {aktivovatVseDisabled}
-           onclick="return window.confirm('Toto aktivuje všechny aktivity označené jako „připravené“ ve všech kategoriích. Určitě?');"/>
-    <span class="hint" style="left: -5em">
-      Hromadně aktivovat může pouze člen rady<br>
-        a pouze všechny aktivity bez vybrané <i>Programové linie</i>.
-    </span>
-  </span>
-</form>
-<!-- end:aktivovatVse -->
-
 <div class="test"></div>
 
 <!-- ilustrace stavů -->
@@ -143,7 +130,7 @@
             Smazat všechny aktivity '{nazev_typu}' (celkem {pocet})
         </button>
         <span class="hinted">
-      🤔
+      <i class="fa-solid fa-circle-question" aria-hidden="true"></i>
       <span class="hint">Lze pouze na testu</span>
     </span>
     </form>

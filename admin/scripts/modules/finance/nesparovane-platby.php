@@ -8,7 +8,8 @@ use Gamecon\Cas\DateTimeCz;
 use Gamecon\Uzivatel\Platba;
 
 /**
- * nazev: Nespárované platby 💸
+ * nazev: Nespárované platby
+ * ikona: link-slash
  * pravo: 108
  * submenu_group: 5
  */

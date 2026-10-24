@@ -7,6 +7,7 @@ use Gamecon\XTemplate\XTemplate;
 
 /**
  * nazev: Mail logy
+ * ikona: envelope
  * pravo: 113
  * submenu_group: 1
  * submenu_order: 4

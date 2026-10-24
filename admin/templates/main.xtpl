@@ -61,9 +61,9 @@
           <ul class="adm_submenu_group"><!-- begin:polozka -->
             {break}
             <li class="adm_submenu_item adm_submenu_item_ord_{order} adm_submenu_item_grp_{group}" style="display: {displayPolozka}">
-              <a href="{url}" {add_attributes}>{nazev}</a>
+              <a href="{url}" {add_attributes}><!-- begin:ikona --><i class="fa-solid fa-fw fa-{ikona}" aria-hidden="true"></i><!-- end:ikona -->{nazev}</a>
             </li>
-            <!-- end:polozka --></ul>
+            <!-- end:polozka --><!-- begin:doplnek --><li class="adm_submenu_doplnek">{doplnek}</li><!-- end:doplnek --></ul>
         </li>
       </ul>
       <!-- end:submenu -->

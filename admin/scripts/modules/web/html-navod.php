@@ -2,6 +2,7 @@
 
 /** 
  * nazev: Návod
+ * ikona: book
  * pravo: 105
  */
 

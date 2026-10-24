@@ -3,6 +3,7 @@
  * Jen redirect na report s neprihlasenymi a neubytovanymi Vypraveci
  *
  * nazev: Program po místnostech
+ * ikona: table-cells
  * pravo: 105
  * submenu_group: 4
  * submenu_order: 3

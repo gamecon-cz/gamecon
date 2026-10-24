@@ -4,6 +4,7 @@
  * Stránka pro přehled všech přihlášených na aktivity
  *
  * nazev: Místnosti
+ * ikona: door-open
  * pravo: 102
  * submenu_group: 4
  * submenu_order: 1

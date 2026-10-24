@@ -71,7 +71,7 @@
               Zápis na NFC čip vyžaduje <strong>https</strong> spojení.
             </div>
             <div class="unsupported-nfc display-none">
-              <p>Tvůj prohlížeč bohužel neumí zapisovat na NFC čip 😔</p>
+              <p>Tvůj prohlížeč bohužel neumí zapisovat na NFC čip</p>
               <p>Použij prosím Chrome v Android telefonu, vybaveném NFC.</p>
             </div>
           </div>
@@ -89,7 +89,7 @@
               Čtení NFC čipu vyžaduje <strong>https</strong> spojení.
             </div>
             <div class="unsupported-nfc display-none">
-              <p>Tvůj prohlížeč bohužel neumí číst z NFC čipu 😔</p>
+              <p>Tvůj prohlížeč bohužel neumí číst z NFC čipu</p>
               <p>Použij prosím Chrome v Android telefonu, vybaveném NFC.</p>
             </div>
           </div>

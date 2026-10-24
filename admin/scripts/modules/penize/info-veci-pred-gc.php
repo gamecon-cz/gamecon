@@ -7,6 +7,7 @@ use Gamecon\XTemplate\XTemplate;
  * Nástroje potřebné rpo infopult před začátkem GC
  *
  * nazev: Info věci před GC
+ * ikona: circle-info
  * pravo: 111
  * submenu_group: 1
  */

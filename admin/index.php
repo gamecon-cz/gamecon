@@ -170,6 +170,8 @@ $uzivatelMaPristup = $strankaExistuje
                          || ($podstrankaExistuje && $maNekterePravo($submenu[$podstranka]))
                      );
 
+$submenuDoplnek = '';
+
 // konstrukce stránky
 if ($strankaExistuje && $uzivatelMaPristup) {
     $_SESSION['id_admin'] = $u->id(); // součást interface starých modulů
@@ -299,6 +301,10 @@ foreach ($submenu as $url => $polozka) {
             ? $url
             : $stranka . '/' . $url);
         $xtpl->assign('nazev', $polozka['nazev']);
+        if ($polozka['ikona']) {
+            $xtpl->assign('ikona', $polozka['ikona']);
+            $xtpl->parse('all.submenu.polozka.ikona');
+        }
         $addAttributes = [];
         if ($polozka['link_in_blank']) {
             $addAttributes[] = 'target="_blank"';
@@ -330,6 +336,10 @@ foreach ($submenu as $url => $polozka) {
 }
 $xtpl->assign('stranka', $stranka);
 $xtpl->assign('podstranka', $podstranka);
+if ($submenuDoplnek !== '') {
+    $xtpl->assign('doplnek', $submenuDoplnek);
+    $xtpl->parse('all.submenu.doplnek');
+}
 $xtpl->assign('displaySubmenu', $allHidden ? 'none' : '');
 $xtpl->parse('all.submenu');
 

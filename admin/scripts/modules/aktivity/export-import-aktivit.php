@@ -3,6 +3,7 @@
  * Stránka pro hromadný export aktivit.
  *
  * nazev: Export & Import aktivit
+ * ikona: file-export
  * pravo: 102
  * submenu_group: 1
  * submenu_order: 2
@@ -32,7 +33,7 @@ if (($_GET['zpet'] ?? '') === 'aktivity') {
 try {
     $googleApiCredentials = GoogleApiCredentials::createFromGlobals();
 } catch (MissingGoogleApiCredentials $missingGoogleApiCredentials) {
-    chyba('V nastavení chybí přístupy pro Google Sheets API. Kontaktujte Gamecon IT 💻.');
+    chyba('V nastavení chybí přístupy pro Google Sheets API. Kontaktujte Gamecon IT.');
     exit;
 }
 

@@ -1,6 +1,6 @@
 # Reporty
 
-Stránka **Reporty** je centrální místo, odkud si stáhneš data z GameConu — seznamy účastníků, přehledy financí, maily pro rozesílky, podklady pro program a podobně. Vidí ji organizátoři s právem na administraci reportů; některé jednotlivé reporty jsou navíc omezené na další právo (poznáš je podle ikony 🫥 — po najetí myší se dozvíš, jaké právo je potřeba).
+Stránka **Reporty** je centrální místo, odkud si stáhneš data z GameConu — seznamy účastníků, přehledy financí, maily pro rozesílky, podklady pro program a podobně. Vidí ji organizátoři s právem na administraci reportů; některé jednotlivé reporty jsou navíc omezené na další právo (poznáš je podle ikony přeškrtnutého oka — po najetí myší se dozvíš, jaké právo je potřeba).
 
 Reporty **nejsou optimalizované na rychlost**. Počítej s tím, že větší report (zvlášť finanční přehledy přes všechny účastníky) se může generovat i desítky sekund. Neklikej opakovaně — jen bys server zatížil víc.
 
@@ -15,7 +15,7 @@ U každého reportu v seznamu jsou odkazy na dostupné formáty:
 
 Ne každý report nabízí oba formáty — čistě grafické reporty bývají jen v html, některé exporty naopak jen v xlsx.
 
-U každého reportu je také ikona 📊 — po najetí myší ukáže, **kdo report naposledy použil, kdy a kolikrát byl celkem použit**. Hodí se, když si nejsi jistý, jestli report ještě někdo potřebuje, nebo chceš vědět, s kým řešit jeho obsah.
+U každého reportu je také ikona sloupcového grafu — po najetí myší ukáže, **kdo report naposledy použil, kdy a kolikrát byl celkem použit**. Hodí se, když si nejsi jistý, jestli report ještě někdo potřebuje, nebo chceš vědět, s kým řešit jeho obsah.
 
 Nad seznamem je pole pro **omezení reportu na jediného uživatele** — začni psát přezdívku, jméno, příjmení, e-mail nebo ID a vyber člověka z našeptávače. Odkazy na reporty se pak upraví tak, aby report počítal jen s vybraným uživatelem. Využívají to hlavně souhrnné (finanční) reporty; reporty, které s filtrem nepočítají, ho ignorují.
 

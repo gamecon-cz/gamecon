@@ -13,6 +13,7 @@ use Gamecon\SystemoveNastaveni\AnonymizovanaDatabaze;
  * z rozcestníku (single-action, nemá smysl mít vlastní podstránku).
  *
  * nazev: Dev
+ * ikona: code
  * pravo: 113
  * submenu_group: 1
  * submenu_order: 1
