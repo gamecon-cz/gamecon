@@ -6,14 +6,21 @@ on:
         branches:
             - 'beta'
     workflow_dispatch:
+        inputs:
+            dry_run:
+                description: 'Only list what rsync would upload and delete; nothing changes'
+                type: boolean
+                default: false
 
-# Serialize BETA deploys for the same reason as OSTRA: concurrent FTP
-# syncs race on `.deploytmp` files and fail with "Overwrite permission
-# denied". A separate group from ostra (different target) so the two
+# Serialize BETA deploys for the same reason as OSTRA: concurrent syncs
+# race on temp files (FTP `.deploytmp`, rsync `.~tmp~`) and on deletions.
+# A separate group from ostra (different target) so the two
 # never block each other. `cancel-in-progress: false` so an in-flight
 # sync completes instead of being killed mid-upload.
+# A dry run changes nothing, so it gets its own group: in the shared one it
+# would replace the single pending real deploy, which GitHub cancels.
 concurrency:
-    group: deploy-beta
+    group: ${{ inputs.dry_run && 'deploy-beta-dry-run' || 'deploy-beta' }}
     cancel-in-progress: false
 
 jobs:
@@ -48,12 +55,19 @@ jobs:
             -   name: Composer libraries without dev
                 run: docker compose exec --no-TTY --user www-data web composer install --no-dev --optimize-autoloader
 
-            -   name: Deploy via FTP
+            -   name: Deploy via rsync, or via FTP while DEPLOY_RSYNC_TARGET is not set
                 # testy provádíme zvlášť, abychom neměli output z deploye moc dlouhý; změny nekontrolujeme, protože jsme je vytvořili přes `composer install --no-dev`
-                run: php ./udrzba/nasad.php --skip-tests --skip-no-changes-check
+                run: php ./udrzba/nasad.php --skip-tests --skip-no-changes-check ${{ inputs.dry_run && '--dry-run' || '' }}
                 env:
                     FTP_DIR: beta
                     FTP_BASE_URL: ${{ secrets.FTP_BASE_URL }}
+                    # Beta has its own key, allowed to write only to the beta directory; ostra has another.
+                    DEPLOY_RSYNC_TARGET: ${{ secrets.BETA_DEPLOY_RSYNC_TARGET }}
+                    DEPLOY_SSH_KEY: ${{ secrets.BETA_DEPLOY_SSH_KEY }}
+                    DEPLOY_SSH_KNOWN_HOSTS: ${{ secrets.DEPLOY_SSH_KNOWN_HOSTS }}
+                    # Optional repository variables; empty means port 22 and at most 1000 deleted files.
+                    DEPLOY_SSH_PORT: ${{ vars.DEPLOY_SSH_PORT }}
+                    DEPLOY_RSYNC_MAX_DELETE: ${{ vars.DEPLOY_RSYNC_MAX_DELETE }}
                     DB_USER: ${{ secrets.BETA_DB_USER }}
                     DB_PASS: ${{ secrets.BETA_DB_PASS }}
                     DB_NAME: ${{ secrets.BETA_DB_NAME }}

@@ -6,17 +6,25 @@ on:
         branches:
             - 'main'
     workflow_dispatch:
+        inputs:
+            dry_run:
+                description: 'Only list what rsync would upload and delete; nothing changes'
+                type: boolean
+                default: false
 
 # Serialize OSTRA deploys. The FTP deployment uploads each file as a
-# `.deploytmp` then renames it into place; two deploys running at once
+# `.deploytmp` then renames it into place (rsync does the same with
+# `.~tmp~` and also deletes); two deploys running at once
 # race on those temp files and the loser dies with "Overwrite permission
 # denied". A burst of merges to `main` (e.g. several Dependabot PRs in
 # quick succession) otherwise launches one concurrent deploy per merge.
 # `cancel-in-progress: false` lets an in-flight sync finish rather than
 # being killed mid-upload, which could leave prod half-updated; later
 # deploys queue and run one after another.
+# A dry run changes nothing, so it gets its own group: in the shared one it
+# would replace the single pending real deploy, which GitHub cancels.
 concurrency:
-    group: deploy-ostra
+    group: ${{ inputs.dry_run && 'deploy-ostra-dry-run' || 'deploy-ostra' }}
     cancel-in-progress: false
 
 jobs:
@@ -58,12 +66,19 @@ jobs:
             -   name: Composer libraries without dev
                 run: docker compose exec --no-TTY --user www-data web composer install --no-dev --optimize-autoloader
 
-            -   name: Deploy via FTP
+            -   name: Deploy via rsync, or via FTP while DEPLOY_RSYNC_TARGET is not set
                 # testy provádíme zvlášť, abychom neměli output z deploye moc dlouhý; změny nekontrolujeme, protože jsme je vytvořili přes `composer install --no-dev`
-                run: php ./udrzba/nasad.php --skip-tests --skip-no-changes-check
+                run: php ./udrzba/nasad.php --skip-tests --skip-no-changes-check ${{ inputs.dry_run && '--dry-run' || '' }}
                 env:
                     FTP_DIR: ostra
                     FTP_BASE_URL: ${{ secrets.FTP_BASE_URL }}
+                    # Ostra has its own key, allowed to write only to the ostra directory; beta has another.
+                    DEPLOY_RSYNC_TARGET: ${{ secrets.OSTRA_DEPLOY_RSYNC_TARGET }}
+                    DEPLOY_SSH_KEY: ${{ secrets.OSTRA_DEPLOY_SSH_KEY }}
+                    DEPLOY_SSH_KNOWN_HOSTS: ${{ secrets.DEPLOY_SSH_KNOWN_HOSTS }}
+                    # Optional repository variables; empty means port 22 and at most 1000 deleted files.
+                    DEPLOY_SSH_PORT: ${{ vars.DEPLOY_SSH_PORT }}
+                    DEPLOY_RSYNC_MAX_DELETE: ${{ vars.DEPLOY_RSYNC_MAX_DELETE }}
                     DB_USER: ${{ secrets.OSTRA_DB_USER }}
                     DB_PASS: ${{ secrets.OSTRA_DB_PASS }}
                     DB_NAME: ${{ secrets.OSTRA_DB_NAME }}
