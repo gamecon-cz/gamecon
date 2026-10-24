@@ -38,8 +38,14 @@ if (!$skipTests) {
     call_check(['php', __DIR__ . '/testuj.php']);
 }
 
-exec('git rev-parse --abbrev-ref HEAD', $out);
-$vetev = $out[0];
+exec('git rev-parse --abbrev-ref HEAD', $branchOutput);
+$vetev = $branchOutput[0];
+
+$dryRun = (bool)getopt('', ['dry-run']);
+if ($dryRun && !in_array($vetev, ['main', 'beta'], true)) {
+    echo "error: --dry-run works only on the main and beta branches, on '$vetev' it would deploy for real\n";
+    exit(1);
+}
 
 // nasazení
 if ($vetev === 'main') {
@@ -47,6 +53,10 @@ if ($vetev === 'main') {
         'vetev'                    => $vetev,
         'zdrojovaSlozka'           => __DIR__ . '/..',
         'ciloveFtp'                => $nastaveni['ostra']['ftp'] ?? (getenv('FTP_BASE_URL') . '/' . getenv('FTP_DIR')),
+        // DEPLOY_RSYNC_TARGET switches from FTP to rsync; ostra and beta each have their own SSH key, limited to its directory
+        'ciloveRsync'              => getenv('DEPLOY_RSYNC_TARGET')
+            ?: '',
+        'dryRun'                   => $dryRun,
         'serverPassphrase'         => getenv('FTP_SERVER_PASSPHRASE')
             ?: '',
         'hesloMigrace'             => $nastaveni['ostra']['hesloMigrace'] ?? getenv('MIGRACE_HESLO'),
@@ -67,6 +77,9 @@ if ($vetev === 'main') {
         'vetev'                    => $vetev,
         'zdrojovaSlozka'           => __DIR__ . '/..',
         'ciloveFtp'                => $nastaveni['beta']['ftp'] ?? (getenv('FTP_BASE_URL') . '/' . getenv('FTP_DIR')),
+        'ciloveRsync'              => getenv('DEPLOY_RSYNC_TARGET')
+            ?: '',
+        'dryRun'                   => $dryRun,
         'hesloMigrace'             => $nastaveni['beta'] ['hesloMigrace'] ?? getenv('MIGRACE_HESLO'),
         'souborVerejnehoNastaveni' => __DIR__ . '/../nastaveni/verejne-nastaveni-beta.php',
     ]);
