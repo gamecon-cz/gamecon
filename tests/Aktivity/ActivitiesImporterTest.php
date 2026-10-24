@@ -334,6 +334,74 @@ class ActivitiesImporterTest extends AbstractTestDb
         );
     }
 
+    /**
+     * Aktivity začínají a končí po čtvrthodinách. Google Sheets vrací čas zadaný
+     * jako 10:15 i se sekundami.
+     */
+    public function testImportActivityWithQuarterHourTimes()
+    {
+        $mockData = $this->createMockSheetData([
+            ['', 'Deskoherna', 'Aktivita Ctvrthodiny', 'url-ctvrthodiny', 'Popis', '', '', 'Pátek', '10:15:00', '12:45', '', '', '10', '', '', '', '', '', '', '', '0', '', '', '1', ''],
+        ]);
+
+        $result = $this->createImporter($mockData)->importActivities('fake-spreadsheet-id');
+
+        self::assertSame(1, $result->getImportedCount(), print_r($result->getErrorMessages(), true));
+        $aktivita = $this->fetchActivityByUrl('url-ctvrthodiny', ROCNIK);
+        self::assertSame('10:15', $aktivita->zacatek()?->format('H:i'));
+        self::assertSame('12:45', $aktivita->konec()?->format('H:i'));
+    }
+
+    /**
+     * Čas mimo čtvrthodiny by tabulka programu neuměla přesně zobrazit.
+     */
+    public function testImportSkipsTimeOutsideQuarterHours()
+    {
+        $mockData = $this->createMockSheetData([
+            ['', 'Deskoherna', 'Aktivita Mimo Ctvrthodiny', 'url-mimo-ctvrthodiny', 'Popis', '', '', 'Pátek', '10:10', '12:00', '', '', '10', '', '', '', '', '', '', '', '0', '', '', '1', ''],
+        ]);
+
+        $result = $this->createImporter($mockData)->importActivities('fake-spreadsheet-id');
+
+        self::assertNull(
+            dbOneCol("SELECT zacatek FROM akce_seznam WHERE url_akce = 'url-mimo-ctvrthodiny' AND rok = $0", [
+                0 => ROCNIK,
+            ]),
+            'Začátek mimo čtvrthodiny se nemá uložit',
+        );
+        $zpravy = array_merge(
+            $result->getErrorMessages(),
+            $result->getErrorLikeAndWarningMessagesExceptErrored(),
+        );
+        $texty = [];
+        array_walk_recursive($zpravy, static function ($zprava) use (&$texty) {
+            $texty[] = $zprava;
+        });
+        self::assertStringContainsString('po 15 minutách', implode("\n", $texty));
+    }
+
+    /**
+     * PROGRAM_KONEC je hodina, kdy už se nehraje – aktivita v ní může skončit (editor 6:00 nabízí).
+     */
+    public function testImportActivityEndingExactlyAtProgramEnd(): void
+    {
+        $mockData = $this->createMockSheetData([
+            ['', 'Deskoherna', 'Aktivita Do Rana', 'url-do-rana', 'Popis', '', '', 'Sobota', '2:00', PROGRAM_KONEC . ':00', '', '', '10', '', '', '', '', '', '', '', '0', '', '', '1', ''],
+            ['', 'Deskoherna', 'Aktivita Po Konci', 'url-po-konci', 'Popis', '', '', 'Sobota', '2:00', PROGRAM_KONEC . ':15', '', '', '10', '', '', '', '', '', '', '', '0', '', '', '1', ''],
+        ]);
+
+        $result = $this->createImporter($mockData)->importActivities('fake-spreadsheet-id');
+
+        self::assertSame(2, $result->getImportedCount(), print_r($result->getErrorMessages(), true));
+        $doRana = $this->fetchActivityByUrl('url-do-rana', ROCNIK);
+        self::assertSame('02:00', $doRana->zacatek()?->format('H:i'));
+        self::assertSame(sprintf('%02d:00', PROGRAM_KONEC), $doRana->konec()?->format('H:i'));
+        self::assertNull(
+            $this->fetchActivityByUrl('url-po-konci', ROCNIK)->konec(),
+            'Konec po konci programu se nemá uložit',
+        );
+    }
+
     public function testImportActivityWithTooLongShortDescription()
     {
         $tooLong = str_repeat('a', Aktivita::LIMIT_POPIS_KRATKY + 1);
