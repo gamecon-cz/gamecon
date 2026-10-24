@@ -6,6 +6,7 @@ use Gamecon\XTemplate\XTemplate;
  * Úpravy novinek na webu
  *
  * nazev: Web
+ * ikona: globe
  * pravo: 105
  */
 

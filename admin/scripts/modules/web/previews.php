@@ -10,6 +10,7 @@ use Gamecon\Kanaly\ZachytavacEmailu;
  * Seznam aktivních preview prostředí.
  *
  * nazev: Previews
+ * ikona: eye
  * pravo: 105
  * submenu_group: 9
  */

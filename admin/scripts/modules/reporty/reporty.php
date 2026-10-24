@@ -10,6 +10,7 @@ use Gamecon\Report\SqlStruktura\ReportyQuickSqlStruktura as QuickSql;
  * se s jejich časově kritickým použitím.
  *
  * nazev: Reporty
+ * ikona: chart-column
  * pravo: 104
  *
  * @var Uzivatel $u

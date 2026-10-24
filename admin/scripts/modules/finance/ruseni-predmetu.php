@@ -9,6 +9,7 @@ use Gamecon\Shop\Shop;
  * menším jak X.
  *
  * nazev: Hromadné rušení objednávek
+ * ikona: ban
  * pravo: 108
  * submenu_group: 5
  */

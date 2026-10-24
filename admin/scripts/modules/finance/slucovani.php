@@ -4,6 +4,7 @@ use Gamecon\XTemplate\XTemplate;
 
 /**
  * nazev: Slučování uživatelů
+ * ikona: code-merge
  * pravo: 108
  * submenu_group: 5
  */

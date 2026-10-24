@@ -13,6 +13,7 @@ use Gamecon\Aktivita\SqlStruktura\AkceSeznamSqlStruktura as Sql;
  * Stránka pro tvorbu a správu aktivit.
  *
  * nazev: Aktivity
+ * ikona: dice
  * pravo: 102
  * submenu_group: 1
  * submenu_order: 3

@@ -4,6 +4,7 @@ use Gamecon\Report\QuickReportSqlGuard;
 
 /**
  * nazev: Přidat quick report
+ * ikona: circle-plus
  * pravo: 104
  */
 

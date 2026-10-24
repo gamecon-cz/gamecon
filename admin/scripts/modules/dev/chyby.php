@@ -2,6 +2,7 @@
 
 /**
  * nazev: Chyby
+ * ikona: bug
  * pravo: 113
  * submenu_group: 1
  * submenu_order: 3

@@ -8,6 +8,7 @@ use Gamecon\Web\Urls;
  * Stránka pro tvorbu a editaci aktivit. Brand new.
  *
  * nazev: Nová aktivita
+ * ikona: circle-plus
  * pravo: 102
  * submenu_group: 1
  * submenu_order: 1

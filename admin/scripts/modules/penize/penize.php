@@ -7,6 +7,7 @@ use Gamecon\Uzivatel\Platby;
 
 /**
  * nazev: Peníze
+ * ikona: coins
  * pravo: 111
  */
 

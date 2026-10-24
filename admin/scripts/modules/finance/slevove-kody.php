@@ -6,7 +6,8 @@ use Gamecon\Cas\DateTimeCz;
 use Gamecon\XTemplate\XTemplate;
 
 /**
- * nazev: Slevové poukazy 🎟️
+ * nazev: Slevové poukazy
+ * ikona: ticket
  * pravo: 108
  * submenu_group: 5
  */

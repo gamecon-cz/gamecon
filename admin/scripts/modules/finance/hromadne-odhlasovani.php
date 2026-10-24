@@ -6,6 +6,7 @@ use Gamecon\XTemplate\XTemplate;
  * Nástroj na hromadné odhlašování účastníků (obvykle neplatičů)
  *
  * nazev: Hromadné odhlášení účastníků
+ * ikona: user-slash
  * pravo: 108
  * submenu_group: 5
  */

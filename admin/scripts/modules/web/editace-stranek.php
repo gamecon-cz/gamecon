@@ -5,6 +5,7 @@ use Gamecon\XTemplate\XTemplate;
 
 /**
  * nazev: Editace stránek
+ * ikona: pen-to-square
  * pravo: 105
  */
 
