@@ -6,6 +6,7 @@ use Gamecon\Web\QrOdkaz;
  * Přidat novinku
  *
  * nazev: Přidat novinku
+ * ikona: newspaper
  * pravo: 105
  */
 

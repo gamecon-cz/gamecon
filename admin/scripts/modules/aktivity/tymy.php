@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 /**
  * nazev: Týmy
+ * ikona: people-group
  * pravo: 102
  * submenu_group: 3
  * submenu_order: 2

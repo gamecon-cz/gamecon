@@ -4,6 +4,7 @@
  * Generuje SQL příkazy pro uzavření financí ročníku (před překlopením ROCNIK).
  *
  * nazev: SQL update pro uzavření financí
+ * ikona: database
  * pravo: 113
  * submenu_group: 2
  * submenu_order: 2

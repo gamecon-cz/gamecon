@@ -299,6 +299,10 @@ foreach ($submenu as $url => $polozka) {
             ? $url
             : $stranka . '/' . $url);
         $xtpl->assign('nazev', $polozka['nazev']);
+        if ($polozka['ikona']) {
+            $xtpl->assign('ikona', $polozka['ikona']);
+            $xtpl->parse('all.submenu.polozka.ikona');
+        }
         $addAttributes = [];
         if ($polozka['link_in_blank']) {
             $addAttributes[] = 'target="_blank"';

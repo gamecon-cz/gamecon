@@ -11,6 +11,7 @@ use Gamecon\Dev\SsoParovaciCookie;
  * nezobrazí — žijí na jiné infrastruktuře (Wedos, bare-metal Apache).
  *
  * nazev: Staré ročníky
+ * ikona: clock-rotate-left
  * pravo: 105
  * submenu_group: 9
  */

@@ -8,7 +8,8 @@ use Symfony\Component\Filesystem\Filesystem;
 /**
  * Správa log sponzorů a partnerů
  *
- * nazev: Loga 🎨
+ * nazev: Loga
+ * ikona: palette
  * pravo: 112
  */
 

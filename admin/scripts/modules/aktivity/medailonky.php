@@ -2,6 +2,7 @@
 
 /**
  * nazev: Medailonky
+ * ikona: id-card
  * pravo: 105
  * submenu_group: 2
  * submenu_order: 2

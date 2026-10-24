@@ -317,6 +317,10 @@ body {
   position: relative;
 }
 
+#submenu .adm_submenu_item a .fa-solid {
+  margin-right: 0.4em;
+}
+
 #submenu .adm_submenu_item a.activeSubmenuLink {
   background: #FFF;
   border-color: hsl(98, 23%, 75%);

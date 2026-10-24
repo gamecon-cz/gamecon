@@ -8,6 +8,7 @@ use Gamecon\Role\Role;
  * Stránka pro přidávání organizátorských entit / skupin
  *
  * nazev: Nová vypravěčská skupina
+ * ikona: user-plus
  * pravo: 102
  * submenu_group: 2
  * submenu_order: 1
