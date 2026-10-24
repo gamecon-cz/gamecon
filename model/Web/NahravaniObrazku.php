@@ -66,6 +66,8 @@ final class NahravaniObrazku
     ];
     /** ext4 dovolí 255 bajtů na název, zbytek je rezerva na příponu */
     private const MAX_DELKA_NAZVU_BAJTU = 150;
+    /** Výchozí strop pixelů; obrázek, který se při uložení zmenší, se jen jednou dekóduje, takže mu stačí vždy aspoň tenhle */
+    private const MAX_PIXELU = 50_000_000;
     /** Tečka na začátku: dočasný soubor nevypíše žádný seznam obrázků */
     private const PREFIX_DOCASNEHO_SOUBORU = '.nahravani-';
 
@@ -73,7 +75,11 @@ final class NahravaniObrazku
 
     public static function proFotkyUzivatelu(): self
     {
-        return new self(ZpracovaneObrazky::adresarFotekUzivatelu(), new PouzitiObrazku());
+        return new self(
+            ZpracovaneObrazky::adresarFotekUzivatelu(),
+            new PouzitiObrazku(),
+            optimalizace: new OptimalizaceObrazku(),
+        );
     }
 
     public static function proObrazkyLinii(): self
@@ -82,6 +88,7 @@ final class NahravaniObrazku
             ZpracovaneObrazky::adresarObrazkuLinii(),
             new PouzitiObrazku(),
             maxVelikostMb: OBRAZEK_LINIE_MAX_MB,
+            optimalizace: new OptimalizaceObrazku(),
         );
     }
 
@@ -92,8 +99,9 @@ final class NahravaniObrazku
             new PouzitiObrazku(),
             // galerie v přihlášce ukáže jen to, co projde @see \Obrazek::jeToPodporovanyObrazek(), tedy ne WebP
             formaty: [self::JPG, self::PNG, self::GIF],
-            // přihláška převádí každý obrázek celý do WebP, fotka předmětu nepotřebuje rozlišení foťáku
+            // GIF se neupravuje a přihláška převádí každý obrázek celý do WebP; ostatní se při uložení zmenší
             maxPixelu: 12_000_000,
+            optimalizace: new OptimalizaceObrazku(),
         );
     }
 
@@ -103,6 +111,7 @@ final class NahravaniObrazku
             ZpracovaneObrazky::adresarObsahu(),
             new PouzitiObrazku(),
             formaty: [...self::RASTROVE_FORMATY, self::SVG],
+            optimalizace: new OptimalizaceObrazku(),
         );
     }
 
@@ -238,14 +247,17 @@ final class NahravaniObrazku
      * @param list<string> $formaty povolené MIME typy, viz konstanty této třídy
      * @param int|float|null $maxVelikostObrazkuMb menší limit jen pro obrázky; null je OBRAZEK_MAX_MB, když služba
      *                                             bere i dokumenty, jinak stejný limit jako pro všechno
+     * @param OptimalizaceObrazku|null $optimalizace bez ní se obrázky ukládají tak, jak přišly; s ní se JPEG a PNG
+     *                                               převádějí do WebP (když ho formáty povolují) a velké obrázky zmenšují
      */
     public function __construct(
         private readonly string $korenovyAdresar,
         private readonly ?PouzitiObrazku $pouzitiObrazku = null,
         private readonly int|float|null $maxVelikostMb = null,
         private readonly array $formaty = self::RASTROVE_FORMATY,
-        private readonly int $maxPixelu = 50_000_000,
+        private readonly int $maxPixelu = self::MAX_PIXELU,
         private readonly int|float|null $maxVelikostObrazkuMb = null,
+        private readonly ?OptimalizaceObrazku $optimalizace = null,
     ) {
         $this->pracujeSDokumenty = array_intersect($formaty, self::DOKUMENTY) !== [];
     }
@@ -263,10 +275,15 @@ final class NahravaniObrazku
         return $limit;
     }
 
-    /** Například „JPG, PNG, GIF nebo WebP, nejvýš 5 MB“ */
+    /** Například „JPG, PNG, GIF nebo WebP, nejvýš 5 MB; JPG a PNG se zmenší na nejvýš 1920 px a uloží jako WebP“ */
     public function popisLimitu(): string
     {
-        return $this->popisFormatu() . ', nejvýš ' . self::lidskaVelikost($this->maxVelikostBajtu());
+        $popis = $this->popisFormatu() . ', nejvýš ' . self::lidskaVelikost($this->maxVelikostBajtu());
+        $uprava = $this->popisUpravy();
+
+        return $uprava === ''
+            ? $popis
+            : $popis . '; ' . $uprava;
     }
 
     /**
@@ -280,6 +297,18 @@ final class NahravaniObrazku
     public function accept(): string
     {
         return implode(',', $this->formaty);
+    }
+
+    /**
+     * Co nabídnout při nahrazení souboru: jeho formát a u WebP i JPEG a PNG, které se při uložení převedou.
+     */
+    public function acceptProNahrazeni(string $mimeNahrazovaneho): string
+    {
+        $povolene = $mimeNahrazovaneho === self::WEBP && $this->optimalizace !== null
+            ? array_intersect([self::WEBP, self::JPG, self::PNG], $this->formaty)
+            : [$mimeNahrazovaneho];
+
+        return implode(',', $povolene);
     }
 
     /**
@@ -329,6 +358,13 @@ final class NahravaniObrazku
     {
         $this->overNazevSouboru($nazevBezPripony);
         $adresar = $this->adresarUvnitrKorene($relativniAdresar, true);
+        if ($obrazek->zdrojovyMime !== null
+            && $obrazek->zdrojovyMime !== $obrazek->mime
+            && $this->jeUzPouzitaJinaPripona($adresar, $nazevBezPripony, $obrazek->pripona)
+        ) {
+            // převod by smazal soubor, na který odkazuje text, a text by pak vedl nikam
+            $obrazek = $this->vFormatu($obrazek, $obrazek->zdrojovyMime);
+        }
         $cil = $adresar . '/' . $nazevBezPripony . '.' . $obrazek->pripona;
         $ostatniVarianty = array_values(array_filter(
             $this->variantyObrazku($adresar, $nazevBezPripony),
@@ -368,10 +404,13 @@ final class NahravaniObrazku
         $this->overNazevSouboru($nazevBezPripony);
         $adresar = $this->adresarUvnitrKorene($relativniAdresar, true);
         $cil = $adresar . '/' . $nazevBezPripony . '.' . $obrazek->pripona;
-        if (file_exists($cil)) {
+        $existujici = file_exists($cil)
+            ? $cil
+            : $this->obrazekStejnehoNazvu($adresar, $nazevBezPripony, $obrazek->mime);
+        if ($existujici !== null) {
             throw new NahravaniObrazkuException(sprintf(
                 'Soubor %s už existuje. Zvol jiný název, nebo ho nahraď u něj v seznamu.',
-                basename($cil),
+                basename($existujici),
             ));
         }
         $this->ulozPresDocasny($obrazek, $adresar, $cil);
@@ -397,15 +436,17 @@ final class NahravaniObrazku
                 sprintf('Soubor %s tu nejde nahradit, jeho typ tu není povolený.', basename($cil)),
             );
         }
-        if ($mimeCile !== $obrazek->mime) {
+        // soubor ve formátu cíle nebo takový, který se do něj při uložení převede (JPEG a PNG do WebP)
+        if ($mimeCile !== $obrazek->nahranyMime() && $mimeCile !== $obrazek->mime) {
             throw new NahravaniObrazkuException(sprintf(
                 '%s je ve formátu %s a nahraný soubor ve formátu %s. Nahraj prosím soubor ve stejném formátu, jinak by přestaly fungovat odkazy na něj.',
                 basename($cil),
                 self::NAZVY_FORMATU[$mimeCile],
-                self::NAZVY_FORMATU[$obrazek->mime],
+                self::NAZVY_FORMATU[$obrazek->nahranyMime()],
             ));
         }
-        $this->ulozPresDocasny($obrazek, dirname($cil), $cil);
+        // odkazy míří na příponu, takže se obrázek zmenší, ale nepřevádí
+        $this->ulozPresDocasny($this->vFormatu($obrazek, $mimeCile), dirname($cil), $cil);
 
         return $cil;
     }
@@ -618,12 +659,16 @@ final class NahravaniObrazku
             if ($sirka <= 0 || $vyska <= 0) {
                 throw new NahravaniObrazkuException('Obrázek nemá platné rozměry, nejspíš je poškozený.');
             }
-            if ($sirka * $vyska > $this->maxPixelu) {
+            $cilUpravy = $this->cilUpravy($mime, $sirka, $vyska, $cesta);
+            $maxPixelu = $cilUpravy === null
+                ? $this->maxPixelu
+                : max($this->maxPixelu, self::MAX_PIXELU);
+            if ($sirka * $vyska > $maxPixelu) {
                 throw new NahravaniObrazkuException(sprintf(
                     'Obrázek má %d × %d px, to je na web zbytečně moc. Zmenši ho prosím nejvýš na %s Mpx.',
                     $sirka,
                     $vyska,
-                    rtrim(rtrim(number_format($this->maxPixelu / 1_000_000, 1, ',', ''), '0'), ','),
+                    rtrim(rtrim(number_format($maxPixelu / 1_000_000, 1, ',', ''), '0'), ','),
                 ));
             }
             if ($velikost > $this->maxVelikostObrazkuBajtu()) {
@@ -636,12 +681,15 @@ final class NahravaniObrazku
             return new NahranyObrazek(
                 cesta: $cesta,
                 puvodniNazev: $puvodniNazev,
-                mime: $mime,
-                pripona: self::PRIPONA_PODLE_MIME[$mime],
+                mime: $cilUpravy ?? $mime,
+                pripona: self::PRIPONA_PODLE_MIME[$cilUpravy ?? $mime],
                 sirka: $sirka,
                 vyska: $vyska,
                 velikostBajtu: $velikost,
                 zHttpUploadu: $zHttpUploadu,
+                zdrojovyMime: $cilUpravy === null
+                    ? null
+                    : $mime,
             );
         }
 
@@ -661,6 +709,51 @@ final class NahravaniObrazku
             default => sprintf('Soubor tohoto typu tu nejde nahrát, povolené jsou %s.', $this->popisFormatu())
                 . $this->tipProHeic($puvodniNazev),
         });
+    }
+
+    /**
+     * GIF se neupravuje, animace by se ztratila a paleta zhoršila; animovaný PNG a WebP taky ne.
+     *
+     * @param string|null $vynucenyCil formát, ve kterém se soubor musí uložit, třeba protože nahrazuje soubor s touhle příponou
+     * @return string|null formát, ve kterém se soubor při uložení zapíše znovu; null, když se uloží tak, jak přišel
+     */
+    private function cilUpravy(string $zdrojovyMime, int $sirka, int $vyska, string $cesta, ?string $vynucenyCil = null): ?string
+    {
+        if ($this->optimalizace === null || !in_array($zdrojovyMime, [self::JPG, self::PNG, self::WEBP], true)) {
+            return null;
+        }
+        $cil = $vynucenyCil ?? (
+            $zdrojovyMime !== self::WEBP && in_array(self::WEBP, $this->formaty, true)
+                ? self::WEBP
+                : $zdrojovyMime
+        );
+        if ($cil === $zdrojovyMime && !$this->optimalizace->jeVetsiNezPotrebuje($sirka, $vyska)) {
+            return null;
+        }
+        if ($this->optimalizace->jeAnimovany($cesta, $zdrojovyMime)) {
+            return null;
+        }
+
+        return $cil;
+    }
+
+    /**
+     * Stejný soubor s jiným cílovým formátem; soubor, který se ukládá tak, jak přišel, zůstane.
+     */
+    private function vFormatu(NahranyObrazek $obrazek, string $mime): NahranyObrazek
+    {
+        if ($obrazek->zdrojovyMime === null) {
+            return $obrazek;
+        }
+        $cilUpravy = $this->cilUpravy($obrazek->zdrojovyMime, (int) $obrazek->sirka, (int) $obrazek->vyska, $obrazek->cesta, $mime);
+
+        return $obrazek->sFormatem(
+            $mime,
+            self::PRIPONA_PODLE_MIME[$mime],
+            $cilUpravy === null
+                ? null
+                : $obrazek->zdrojovyMime,
+        );
     }
 
     private function zpravaOBalikuOffice(): string
@@ -712,6 +805,18 @@ final class NahravaniObrazku
         }
 
         return stripos((string) @file_get_contents($cesta, false, null, 0, 4096), '<svg') !== false;
+    }
+
+    private function popisUpravy(): string
+    {
+        if ($this->optimalizace === null || array_intersect($this->formaty, self::RASTROVE_FORMATY) === []) {
+            return '';
+        }
+        $rozmer = $this->optimalizace->maxRozmerPx() . ' px';
+
+        return in_array(self::WEBP, $this->formaty, true)
+            ? sprintf('JPG a PNG se zmenší na nejvýš %s a uloží jako WebP', $rozmer)
+            : sprintf('větší obrázky se zmenší na nejvýš %s', $rozmer);
     }
 
     private function popisFormatu(): string
@@ -896,6 +1001,38 @@ final class NahravaniObrazku
         return $varianty;
     }
 
+    /**
+     * Obrázek se může uložit s jinou příponou, než měl nahraný, takže `foto.jpg` nahrané k existujícímu `foto.png`
+     * by vedle něj vytvořilo `foto.webp`. Dokumenty mají příponu podle formátu a s obrázky se nepletou.
+     *
+     * @return string|null absolutní cesta k obrázku stejného názvu
+     */
+    private function obrazekStejnehoNazvu(string $adresar, string $nazevBezPripony, string $mime): ?string
+    {
+        if (in_array($mime, self::DOKUMENTY, true)) {
+            return null;
+        }
+        foreach ($this->variantyObrazku($adresar, $nazevBezPripony) as $varianta) {
+            if (!in_array(self::mimePodlePripony($varianta), self::DOKUMENTY, true)) {
+                return $varianta;
+            }
+        }
+
+        return null;
+    }
+
+    private function jeUzPouzitaJinaPripona(string $adresar, string $nazevBezPripony, string $pripona): bool
+    {
+        $cil = $adresar . '/' . $nazevBezPripony . '.' . $pripona;
+        foreach ($this->variantyObrazku($adresar, $nazevBezPripony) as $varianta) {
+            if ($varianta !== $cil && $this->kdeJePouzity($varianta) !== []) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
     private function overZeNeniPouzity(string $cesta, string $coDal): void
     {
         $pouziti = $this->kdeJePouzity($cesta);
@@ -915,27 +1052,39 @@ final class NahravaniObrazku
 
     private function ulozPresDocasny(NahranyObrazek $obrazek, string $adresar, string $cil): void
     {
-        $docasny = $this->presunDoDocasnehoSouboru($obrazek, $adresar);
+        $docasny = $adresar . '/' . self::PREFIX_DOCASNEHO_SOUBORU . bin2hex(random_bytes(8));
         try {
+            $this->zapisDoDocasneho($obrazek, $docasny);
             $this->presunNaMisto($docasny, $cil);
         } finally {
+            // úprava i kopírování mohly soubor začít psát a nedopsat
             if (is_file($docasny)) {
                 @unlink($docasny);
             }
         }
     }
 
-    private function presunDoDocasnehoSouboru(NahranyObrazek $obrazek, string $adresar): string
+    private function zapisDoDocasneho(NahranyObrazek $obrazek, string $docasny): void
     {
-        $docasny = $adresar . '/' . self::PREFIX_DOCASNEHO_SOUBORU . bin2hex(random_bytes(8));
+        if ($obrazek->zdrojovyMime !== null) {
+            ($this->optimalizace ?? throw new \LogicException('Obrázek čeká na úpravu, ale služba ji nemá nastavenou.'))
+                ->zapis(
+                    $obrazek->cesta,
+                    $obrazek->zdrojovyMime,
+                    $docasny,
+                    $obrazek->mime,
+                    (int) $obrazek->sirka,
+                    (int) $obrazek->vyska,
+                );
+
+            return;
+        }
         $presunuto = $obrazek->zHttpUploadu
             ? @move_uploaded_file($obrazek->cesta, $docasny)
             : @copy($obrazek->cesta, $docasny);
         if (!$presunuto) {
             throw new NahravaniObrazkuException('Soubor se nepodařilo uložit.');
         }
-
-        return $docasny;
     }
 
     private function presunNaMisto(string $docasny, string $cil): void

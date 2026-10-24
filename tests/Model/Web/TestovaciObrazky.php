@@ -32,18 +32,35 @@ trait TestovaciObrazky
     /**
      * Fotka z telefonu: pixely vodorovně a v EXIFu orientace, podle které se má před zobrazením otočit.
      *
-     * @param int $orientace hodnota EXIF Orientation, 6 je „otočit o 90° po směru hodin“
+     * @param int  $orientace hodnota EXIF Orientation, 6 je „otočit o 90° po směru hodin“
+     * @param bool $sPolohou  přidá i GPS (zeměpisná šířka je „N“), jak ji ukládají telefony
      */
-    private static function jpgSOrientaci(int $orientace, int $sirka = 40, int $vyska = 20): string
+    private static function jpgSOrientaci(int $orientace, int $sirka = 40, int $vyska = 20, bool $sPolohou = false): string
     {
         $jpeg = self::jpgBajty($sirka, $vyska);
+        // IFD0 začíná na 8. bajtu, zabírá 2 + 12 × počet položek + 4 bajty, GPS IFD stojí hned za ním
         $tiff = 'II' . pack('vV', 42, 8)
-            . pack('v', 1)
+            . pack('v', $sPolohou ? 2 : 1)
             . pack('vvVvv', 0x0112, 3, 1, $orientace, 0)
-            . pack('V', 0);
+            . ($sPolohou ? pack('vvVV', 0x8825, 4, 1, 38) : '')
+            . pack('V', 0)
+            . ($sPolohou ? pack('v', 1) . pack('vvV', 0x0001, 2, 2) . "N\0\0\0" . pack('V', 0) : '');
         $exif = "Exif\0\0" . $tiff;
 
         return substr($jpeg, 0, 2) . "\xFF\xE1" . pack('n', strlen($exif) + 2) . $exif . substr($jpeg, 2);
+    }
+
+    /**
+     * JPEG s obsahem, který se nezkomprimuje na pár bajtů, jako snímek z foťáku
+     */
+    private static function fotkaZFotakuBajty(int $sirka, int $vyska, int $kvalita = 92): string
+    {
+        $obrazek = new \Imagick();
+        $obrazek->newPseudoImage($sirka, $vyska, 'plasma:fractal');
+        $obrazek->setImageFormat('jpeg');
+        $obrazek->setImageCompressionQuality($kvalita);
+
+        return $obrazek->getImageBlob();
     }
 
     private static function jpgBajty(int $sirka, int $vyska): string
