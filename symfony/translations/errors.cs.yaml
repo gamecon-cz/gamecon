@@ -52,6 +52,22 @@ meal:
     withdrawn: 'Jídlo „%meal%" už není v prodeji.'
     sold_out: 'Jídlo „%meal%" je bohužel vyprodané.'
 
+meal_dish:
+    login_required: 'Pro výběr jídla je nutné přihlášení.'
+    portion_not_found: 'Porce %id% nepatří mezi tvoje letošní jídla.'
+    not_a_meal_with_choice: 'K „%meal%" se konkrétní jídlo nevybírá.'
+    menu_not_published: 'Jídelníček zveřejníme %date%, teprve potom si půjde vybrat konkrétní jídlo.'
+    choice_closed: 'Výběr jídel už skončil, počty jsme poslali do jídelny.'
+    not_in_slot: 'Jídlo %id% není v jídelníčku k „%meal%".'
+
+meal_menu:
+    no_right_to_edit: 'Na úpravu jídelníčku nemáš právo.'
+    not_a_meal_slot: 'Porce %id% není oběd ani večeře, ke kterým se vybírá jídlo.'
+    more_than_one_default: '„%meal%" může mít jen jedno výchozí jídlo.'
+    dish_name_required: 'Každé jídlo k „%meal%" musí mít název.'
+    duplicate_dish: 'Jídlo „%dish%" je u „%meal%" dvakrát.'
+    dish_not_in_slot: 'Jídlo %id% nepatří k „%meal%".'
+
 entry_fee:
     login_required_to_view: 'Pro zobrazení dobrovolného vstupného je nutné přihlášení.'
     login_required_to_save: 'Pro uložení dobrovolného vstupného je nutné přihlášení.'

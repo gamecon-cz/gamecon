@@ -61,6 +61,11 @@ class DeskApiTest extends AbstractDatabaseKernelTestCase
         yield 'order meals' => ['POST', '/symfony/api/admin/customer-meals', [
             'variantIds' => [],
         ]];
+        yield 'read dish choices' => ['GET', '/symfony/api/admin/customer-meal-menu?customerId=%d', null];
+        yield 'choose a dish' => ['POST', '/symfony/api/admin/customer-meal-menu', [
+            'orderItemId' => 1,
+            'dishId'      => null,
+        ]];
     }
 
     /**

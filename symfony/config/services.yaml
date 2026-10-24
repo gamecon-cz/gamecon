@@ -85,6 +85,9 @@ services:
     # Completes a participant's order when the legacy infopult records their departure
     App\Service\OrderCompletionService:
         public: true
+    # Jídelníček na webu je widget stránky z redakčního systému, tedy legacy kód
+    App\Service\MealMenuReader:
+        public: true
 
     # CurrentYearProvider
     App\Service\CurrentYearProviderInterface:

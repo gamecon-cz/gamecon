@@ -12,9 +12,13 @@ use App\Dto\Admin\CustomerMealsOutputDto;
 use App\Dto\Admin\SetCustomerAccommodationInputDto;
 use App\Dto\Admin\SetCustomerMealsInputDto;
 use App\Dto\Cart\AccommodationOutputDto;
+use App\Dto\MealMenu\ChooseCustomerMealDishInputDto;
+use App\Dto\MealMenu\MealMenuOutputDto;
 use App\Enum\PermissionEnum;
 use App\Security\Voter\PermissionVoter;
+use App\State\Admin\ChooseCustomerMealDishProcessor;
 use App\State\Admin\CustomerAccommodationProvider;
+use App\State\Admin\CustomerMealMenuProvider;
 use App\State\Admin\CustomerMealsProvider;
 use App\State\Admin\SetCustomerAccommodationProcessor;
 use App\State\Admin\SetCustomerMealsProcessor;
@@ -73,6 +77,29 @@ use App\State\Admin\SetCustomerMealsProcessor;
             openapi: new Operation(
                 summary: 'Set a participant\'s meals',
                 description: 'Replaces the named customer\'s meals with exactly the ones sent; an empty list cancels them all. Answers with what the customer ends up holding, which drops a breakfast the hotel covers.',
+            ),
+        ),
+        new Get(
+            uriTemplate: '/admin/customer-meal-menu',
+            output: MealMenuOutputDto::class,
+            provider: CustomerMealMenuProvider::class,
+            security: self::DESK_OPERATOR,
+            securityMessage: 'desk.no_right_to_order',
+            openapi: new Operation(
+                summary: 'Read a participant\'s dish choices',
+                description: 'The meal menu with the portions of the customer named in ?customerId. Unlike the participant, the desk sees dishes before the menu is published.',
+            ),
+        ),
+        new Post(
+            uriTemplate: '/admin/customer-meal-menu',
+            input: ChooseCustomerMealDishInputDto::class,
+            output: MealMenuOutputDto::class,
+            processor: ChooseCustomerMealDishProcessor::class,
+            security: self::DESK_OPERATOR,
+            securityMessage: 'desk.no_right_to_order',
+            openapi: new Operation(
+                summary: 'Choose a dish for a participant\'s portion',
+                description: 'Sets the dish of one of the named customer\'s portions, deadline or not. Returns the same payload as GET.',
             ),
         ),
     ],

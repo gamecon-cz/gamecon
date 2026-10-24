@@ -19,11 +19,15 @@ use App\Dto\Cart\MealProductOutputDto;
 use App\Dto\Cart\MerchProductOutputDto;
 use App\Dto\Cart\SetAccommodationInputDto;
 use App\Dto\Cart\SetEntryFeeInputDto;
+use App\Dto\MealMenu\ChooseMealDishInputDto;
+use App\Dto\MealMenu\MealMenuOutputDto;
 use App\State\Cart\AccommodationProvider;
 use App\State\Cart\AddToCartProcessor;
 use App\State\Cart\CartProvider;
 use App\State\Cart\CheckoutProcessor;
+use App\State\Cart\ChooseMealDishProcessor;
 use App\State\Cart\EntryFeeProvider;
+use App\State\Cart\MealMenuProvider;
 use App\State\Cart\MealProductsProvider;
 use App\State\Cart\MerchProductsProvider;
 use App\State\Cart\RemoveFromCartProcessor;
@@ -41,6 +45,27 @@ use App\State\Cart\ShirtProductsProvider;
             openapi: new Operation(
                 summary: 'List available meals',
                 description: 'Returns flat list of meal products with variant info for the meal matrix UI.',
+            ),
+        ),
+        new Get(
+            uriTemplate: '/cart/meal-menu',
+            output: MealMenuOutputDto::class,
+            provider: MealMenuProvider::class,
+            security: "is_granted('ROLE_USER')",
+            openapi: new Operation(
+                summary: 'Meal menu with the customer\'s portions',
+                description: 'Lunches and dinners with the dishes to choose from, and which dish each of the customer\'s portions gets. Dishes stay hidden until the menu is published.',
+            ),
+        ),
+        new Post(
+            uriTemplate: '/cart/meal-menu',
+            input: ChooseMealDishInputDto::class,
+            output: MealMenuOutputDto::class,
+            processor: ChooseMealDishProcessor::class,
+            security: "is_granted('ROLE_USER')",
+            openapi: new Operation(
+                summary: 'Choose a dish for a portion',
+                description: 'Sets the dish one of the customer\'s portions gets; a null dish falls back to the default one. Returns the same payload as GET.',
             ),
         ),
         new Get(
