@@ -27,7 +27,7 @@ K tomu můžeš filtrovat podle programové linie. Když filtrům nic neodpovíd
 
 ## Co vidíš v přehledu
 
-Každá aktivita má nadpis ve tvaru *název – vypravěči – místnost – den a čas*, případně doplněný ikonou 🔒 („Zamčená pro přihlašování") a 📕 („S uzavřenou prezencí"). U každého přihlášeného účastníka vidíš:
+Každá aktivita má nadpis ve tvaru *název – vypravěči – místnost – den a čas*, případně doplněný ikonou zámku („Zamčená pro přihlašování") a zavřené knížky („S uzavřenou prezencí"). U každého přihlášeného účastníka vidíš:
 
 - zda **je přítomen na GameConu** (prošel infopultem) — zelená/červená ikona,
 - symbol **$** zeleně či červeně podle zůstatku; po najetí myší uvidíš přesný stav jeho financí,
@@ -40,10 +40,10 @@ U aktivit bez uzavřené prezence svítí červené upozornění **„Pozor, akt
 
 Formulář Online prezence má u každé aktivity tabulku účastníků. U jména se zobrazují pomocné ikony (legendu najdeš po najetí na hlavičku sloupce):
 
-- ⏰ — přihlásil se jen pár minut před začátkem a je nejspíš na cestě, dej mu chvíli na doběhnutí,
+- ikona hodin — přihlásil se jen pár minut před začátkem a je nejspíš na cestě, dej mu chvíli na doběhnutí,
 - ikona náhradníka — dorazil jako náhradník,
-- 💤 — zrušený náhradník,
-- 👀 — **sledující**: na aktivitu se nevešel, ale má o ni zájem. Pokud sháníš náhradníka, oslov ho prvního,
+- ikona měsíce — zrušený náhradník,
+- ikona oka — **sledující**: na aktivitu se nevešel, ale má o ni zájem. Pokud sháníš náhradníka, oslov ho prvního,
 - ikona miminka — účastník je mladší 18 let,
 - zelená/červená ikona přítomnosti na GC — pokud účastník **neprošel infopultem**, pošli ho tam, než aktivitu začneš.
 
@@ -62,16 +62,16 @@ Volná místa po nedorazivších nabídni náhradníkům. Do pole **„Přidej �
 
 ## Uzavření prezence
 
-Když je prezence vyklikaná, stiskni **Uzavřít 📕**. Objeví se potvrzení **„Opravdu uzavřít aktivitu?"** s textem: *„Po uzavření aktivity už nebudeš mít možnost prezenci měnit. Až do 1 hodiny po skončení aktivity můžeš ještě někoho přidat."* Pokud nemá zaškrtnutou účast vůbec nikdo, musíš navíc potvrdit **„Uvědomuji si, že aktivitu uzavírám bez účastníků (tj. není zaškrtlá ničí účast)."** Tlačítkem **Opravit prezenci** se vrátíš zpět, tlačítkem **Uzavřít aktivitu** prezenci definitivně uzavřeš.
+Když je prezence vyklikaná, stiskni **Uzavřít**. Objeví se potvrzení **„Opravdu uzavřít aktivitu?"** s textem: *„Po uzavření aktivity už nebudeš mít možnost prezenci měnit. Až do 1 hodiny po skončení aktivity můžeš ještě někoho přidat."* Pokud nemá zaškrtnutou účast vůbec nikdo, musíš navíc potvrdit **„Uvědomuji si, že aktivitu uzavírám bez účastníků (tj. není zaškrtlá ničí účast)."** Tlačítkem **Opravit prezenci** se vrátíš zpět, tlačítkem **Uzavřít aktivitu** prezenci definitivně uzavřeš.
 
 **Uzavření má finanční důsledky.** Každý přihlášený, který při uzavření nemá zaškrtnuto „dorazil", se označí jako **nedorazivší** — propadá mu storno poplatek z ceny aktivity a u většiny typů aktivit mu odejde e-mail „Nedostavení se na aktivitu". Naopak zaškrtnutí „dorazil" ruší případnou dřívější pokutu (za nedorazení či pozdní zrušení) na této aktivitě.
 
 ## Časová omezení
 
-- Prezenci lze vyplňovat až krátce před začátkem aktivity — dřív uvidíš odpočet „⏳ Můžeš ji editovat za …".
-- Po skončení aktivity se objeví „✋ Aktivita už skončila, pozor na úpravy" a po vypršení lhůty „🧊 Už ji nelze editovat ani zpětně".
+- Prezenci lze vyplňovat až krátce před začátkem aktivity — dřív uvidíš odpočet „Můžeš ji editovat za …".
+- Po skončení aktivity se objeví „Aktivita už skončila, pozor na úpravy" a po vypršení lhůty „Už ji nelze editovat ani zpětně".
 - Vypravěč může do **uzavřené** aktivity přidávat další účastníky ještě zhruba hodinu po jejím konci; měnit už zapsanou prezenci ale nelze.
-- Někteří admini mají **právo na změnu historie aktivit** — mohou přihlašovat a odhlašovat lidi i z aktivit, které už proběhly, prakticky kdykoli až do dalšího ročníku. Právě jim se u zamčených aktivit s vyplněnou prezencí ukazuje varování **„Pozor, aktivita už je vyplněná!"** s vysvětlením: *přidání účastníka zvýší jeho dluh, zkontroluj jeho finance.* Stejné varování („⚠️ Pozor, aktivita je už uzavřená! ⚠️") svítí u pole pro přidání účastníka v Online prezenci.
+- Někteří admini mají **právo na změnu historie aktivit** — mohou přihlašovat a odhlašovat lidi i z aktivit, které už proběhly, prakticky kdykoli až do dalšího ročníku. Právě jim se u zamčených aktivit s vyplněnou prezencí ukazuje varování **„Pozor, aktivita už je vyplněná!"** s vysvětlením: *přidání účastníka zvýší jeho dluh, zkontroluj jeho finance.* Stejné varování („Pozor, aktivita je už uzavřená!") svítí u pole pro přidání účastníka v Online prezenci.
 
 ## Na co si dát pozor
 

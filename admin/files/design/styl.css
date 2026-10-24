@@ -1713,12 +1713,27 @@ Radio musí být ve tvaru:
   right: 0.3em;
 }
 
+.nic-nenalezeno::after,
+.omnibox-selhalo::after,
+.cekame::after {
+  font-family: 'Font Awesome 6 Free';
+  font-weight: 900;
+}
+
 .nic-nenalezeno::after {
-  content: '😵';
+  content: '\f567';
 }
 
 .omnibox-selhalo::after {
-  content: '⚠️';
+  content: '\f071';
+}
+
+.ikona-ano {
+  color: #2e7d32;
+}
+
+.ikona-ne {
+  color: #c62828;
 }
 
 .cekame {
@@ -1733,5 +1748,5 @@ Radio musí být ve tvaru:
 }
 
 .cekame::after {
-  content: '⏳';
+  content: '\f254';
 }

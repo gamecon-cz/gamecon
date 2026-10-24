@@ -75,7 +75,7 @@ $mailpitUrl = $gateUrl(ZachytavacEmailu::URL_PREVIEW);
 <h2>Preview prostředí</h2>
 
 <div style="margin: 12px 0; padding: 14px 18px; border: 2px solid #2b7cb3; border-radius: 6px; background: #eaf4fb; font-size: 1.05em;">
-    📬 Sdílený Mailpit pro všechna preview:
+    <i class="fa-solid fa-inbox" aria-hidden="true"></i> Sdílený Mailpit pro všechna preview:
     <a href="<?php echo htmlspecialchars($mailpitUrl); ?>" target="_blank" rel="noopener" style="font-weight: bold;">
         webmail.preview.gamecon.cz
     </a>

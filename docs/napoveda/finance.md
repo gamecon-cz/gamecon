@@ -55,8 +55,8 @@ Upravit můžeš dva sloupce a pak klikni na **Uložit změny**:
 
 **Importér e-shopu** — nahráním XLSX (vychází z *Reportu e-shopu*)
 **přepíše kompletně letošní nabízené předměty a ubytování**. Pozor na
-varování přímo ve formuláři: *⚠️ Položky, které nebudou v importním souboru,
-import skryje ⚠️*.
+varování přímo ve formuláři: *Položky, které nebudou v importním souboru,
+import skryje* (s výstražnými ikonami po stranách).
 
 Pod importérem je **Nastavení mřížkového prodeje** (mřížky obchodu, např.
 prodej jídla po dnech).
@@ -113,7 +113,7 @@ neobjeví lidé s právem „nerušit automaticky objednávky".
 **⚠️ Nevratná akce bez dalšího potvrzení** — po kliknutí se objednávky
 vypsaným lidem rovnou zruší. Před krokem 3 si výpis opravdu projdi.
 
-## Promlčení zůstatků 🤫
+## Promlčení zůstatků
 
 Odepsání starých zůstatků lidí, kteří už na GameCon nejezdí.
 
@@ -167,7 +167,7 @@ a vybrat znova. Pokud se vyskytne chyba, hlásit. Dole na stránce je
 **Historie slučování uživatelů** — kdy, jaká ID, zůstatky a e-maily před
 a po sloučení.
 
-## Anonymizace 👻
+## Anonymizace
 
 Vyhovění žádosti o výmaz osobních údajů (GDPR). Zadej **ID uživatele**
 a klikni na **Anonymizovat uživatele**.

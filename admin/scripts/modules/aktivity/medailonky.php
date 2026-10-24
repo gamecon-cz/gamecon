@@ -25,21 +25,18 @@ if (post('noveId')) {
     back(getCurrentUrlWithQuery(['id' => post('noveId')]));
 }
 
+$ikonaAno = '<i class="fa-solid fa-circle-check ikona-ano" role="img" aria-label="ano"></i>';
+$ikonaNe = '<i class="fa-solid fa-circle-xmark ikona-ne" role="img" aria-label="ne"></i>';
+
 $t = new XTemplate(__DIR__ . '/medailonky.xtpl');
 foreach (Medailonek::zVsech() as $medailonek) {
     assert($medailonek instanceof Medailonek);
     $uzivatelMedailonku = Uzivatel::zId($medailonek->idUzivatele());
     $t->assign('uzivatelId', $uzivatelMedailonku->id());
     $t->assign('jmenoNick', $uzivatelMedailonku->jmenoNick());
-    $t->assign('maPopisOSobe', trim($medailonek->oSobe()) !== ''
-        ? '✅'
-        : '❌'
-    );
+    $t->assign('maPopisOSobe', trim($medailonek->oSobe()) !== '' ? $ikonaAno : $ikonaNe);
     $t->assign('oSobe', $medailonek->oSobe());
-    $t->assign('maDrdPopis', trim($medailonek->drd()) !== ''
-        ? '✅'
-        : '❌'
-    );
+    $t->assign('maDrdPopis', trim($medailonek->drd()) !== '' ? $ikonaAno : $ikonaNe);
     $t->assign('drdPopis', $medailonek->drd());
     $t->assign('medailonek', $medailonek);
     $t->parse('medailonky.radek');

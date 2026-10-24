@@ -229,7 +229,7 @@ foreach ($definicePodleSkupin as $skupina => $definiceSkupiny) {
             'zmenenoTrida'     => $zmena['trida'],
             'zmenenoObsah'     => $zmena['obsah'],
             'problem'          => isset($kodyProblemovych[$definice->kod->value])
-                ? '<span title="Text chybí nebo obsahuje hodnotu, která se nedosadí">⚠️</span> '
+                ? '<span title="Text chybí nebo obsahuje hodnotu, která se nedosadí"><i class="fa-solid fa-triangle-exclamation" aria-hidden="true"></i></span> '
                 : '',
         ]);
         $sablonaStranky->parse('seznam.skupina.sablona');
