@@ -20,6 +20,7 @@ use Gamecon\Shop\TypPredmetu;
 use Gamecon\Role\Role;
 use Gamecon\Web\Info;
 use Gamecon\SystemoveNastaveni\SystemoveNastaveniKlice;
+use Gamecon\Ubytovani\UbytovaciSkupiny;
 
 /**
  * @var Uzivatel|null|void $u
@@ -95,6 +96,7 @@ if ($uPracovni) {
     $spolubydlici = $pokoj
         ? $pokoj->ubytovani()
         : [];
+    $prehledSkupiny = (new UbytovaciSkupiny($systemoveNastaveni->rocnik()))->prehled((int)$uPracovni->id());
     $typyProPrehled = [
         TypPredmetu::PREDMET,
         TypPredmetu::TRICKO,
@@ -115,6 +117,15 @@ if ($uPracovni) {
         'spolubydlici' => array_uprint($spolubydlici, static function (Uzivatel $spolubydla) {
             return "<li> {$spolubydla->jmenoNick()} ({$spolubydla->id()}) {$spolubydla->telefon()} </li>";
         }),
+        'skupinaSpolubydlicich' => $prehledSkupiny === null
+            ? '(žádná)'
+            : htmlspecialchars($prehledSkupiny['kod'])
+              . array_uprint($prehledSkupiny['clenove'], static function (array $clen) {
+                  return '<li>' . htmlspecialchars($clen['jmeno']) . " ({$clen['id']}), " . htmlspecialchars($clen['ubytovani']) . '</li>';
+              })
+              . array_uprint($prehledSkupiny['varovani'], static function (string $varovani) {
+                  return '<div class="error">' . htmlspecialchars($varovani) . '</div>';
+              }),
         'org' => $u->jmenoNick(),
         'orgA' => $u->koncovkaDlePohlavi(),
         'poznamka' => $uPracovni->poznamka(),

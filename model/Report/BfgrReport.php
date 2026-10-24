@@ -9,6 +9,7 @@ use Gamecon\Shop\Predmet;
 use Gamecon\Shop\StavPredmetu;
 use Gamecon\Shop\TypPredmetu;
 use Gamecon\SystemoveNastaveni\SystemoveNastaveni;
+use Gamecon\Ubytovani\UbytovaciSkupiny;
 use Report;
 use Gamecon\Cas\DateTimeCz;
 use Gamecon\Role\Role;
@@ -61,6 +62,8 @@ class BfgrReport
         $rocnik = $this->systemoveNastaveni->rocnik();
         $predmetUbytovani = TypPredmetu::UBYTOVANI;
         $typUcast = Role::TYP_UCAST;
+        $sqlKodSkupiny = UbytovaciSkupiny::sqlKodSkupiny('uzivatele_hodnoty.id_uzivatele', $rocnik);
+        $sqlSpolubydliciVeSkupine = UbytovaciSkupiny::sqlSpolubydliciVeSkupine('uzivatele_hodnoty.id_uzivatele', $rocnik);
         $result = dbQuery(<<<SQL
 SELECT
     uzivatele_hodnoty.*,
@@ -70,6 +73,8 @@ SELECT
     ( SELECT MIN(shop_predmety.ubytovani_den) FROM shop_nakupy JOIN shop_predmety USING(id_predmetu) WHERE shop_nakupy.rok=$rocnik AND shop_nakupy.id_uzivatele=prihlasen.id_uzivatele AND shop_predmety.typ=$predmetUbytovani ) AS den_prvni,
     ( SELECT MAX(shop_predmety.ubytovani_den) FROM shop_nakupy JOIN shop_predmety USING(id_predmetu) WHERE shop_nakupy.rok=$rocnik AND shop_nakupy.id_uzivatele=prihlasen.id_uzivatele AND shop_predmety.typ=$predmetUbytovani ) AS den_posledni,
     ( SELECT MAX(shop_predmety.nazev) FROM shop_nakupy JOIN shop_predmety USING(id_predmetu) WHERE shop_nakupy.rok=$rocnik AND shop_nakupy.id_uzivatele=prihlasen.id_uzivatele AND shop_predmety.typ=$predmetUbytovani ) AS ubytovani_typ,
+    {$sqlKodSkupiny} AS skupina_spolubydlicich,
+    {$sqlSpolubydliciVeSkupine} AS spolubydlici_ve_skupine,
     ( SELECT GROUP_CONCAT(r_prava_soupis.jmeno_prava SEPARATOR ', ')
       FROM platne_role_uzivatelu
       JOIN prava_role
@@ -196,6 +201,8 @@ SQL,
                     'Ubytovací informace' => array_merge(
                         [
                             'Chci bydlet s'          => $r['ubytovan_s'],
+                            'Skupina spolubydlících' => $r['skupina_spolubydlicich'],
+                            'Ostatní ve skupině'     => $r['spolubydlici_ve_skupine'],
                             'První noc'              => $r['den_prvni'] === null
                                 ? '-'
                                 : (new DateTimeCz(DEN_PRVNI_UBYTOVANI))->add(new DateInterval("P$r[den_prvni]D"))->format('j.n.Y'),

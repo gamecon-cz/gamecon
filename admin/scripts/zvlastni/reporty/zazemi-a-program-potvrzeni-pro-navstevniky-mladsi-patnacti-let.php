@@ -2,9 +2,11 @@
 require __DIR__ . '/sdilene-hlavicky.php';
 
 use Gamecon\Role\Role;
+use Gamecon\Ubytovani\UbytovaciSkupiny;
 use Gamecon\Uzivatel\SqlStruktura\UzivateleHodnotySqlStruktura;
 
-$idSystemUzivatele = Uzivatel::SYSTEM;
+$idSystemUzivatele        = Uzivatel::SYSTEM;
+$sqlSpolubydliciVeSkupine = UbytovaciSkupiny::sqlSpolubydliciVeSkupine('uzivatele_hodnoty.id_uzivatele', ROCNIK);
 
 $mysqliResult = dbQuery(<<<SQL
 SELECT id_uzivatele,
@@ -25,6 +27,7 @@ SELECT id_uzivatele,
        pohlavi,
        registrovan,
        ubytovan_s,
+       {$sqlSpolubydliciVeSkupine} AS spolubydlici_ve_skupine,
        poznamka,
        pomoc_typ,
        pomoc_vice,
