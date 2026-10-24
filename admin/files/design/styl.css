@@ -243,7 +243,8 @@ body {
   height: auto;
 }
 
-#submenu.submenu-selected-finance {
+#submenu.submenu-selected-finance,
+#submenu.submenu-selected-aktivity {
   width: 100%;
 }
 
@@ -343,8 +344,11 @@ body {
   margin-right: 5px;
 }
 
-.adm_submenu_item_ord_1::before,
-.submenuAktivovatVse::before {
+#submenu .adm_submenu_doplnek {
+  margin-right: 10px;
+}
+
+.adm_submenu_item_ord_1::before {
   position: absolute;
   left: 0;
   top: 0;
@@ -380,18 +384,7 @@ body {
 }
 
 .submenuAktivovatVse {
-  position: absolute;
-  right: 20px;
-  top: 36px;
-  left: 80%;
-  width: auto;
-  padding: 0;
   margin: 0;
-  text-align: right;
-}
-
-.submenuAktivovatVse::before {
-  content: 'Nešmatlat';
 }
 
 .submenuAktivovatVse input[type=submit] {

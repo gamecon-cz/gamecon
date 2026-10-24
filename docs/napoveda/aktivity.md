@@ -35,7 +35,7 @@ Obvyklá cesta: **nová → publikovaná → připravená → aktivovaná**, po 
 
 ### Hromadná aktivace
 
-Tlačítko **aktivovat hromadně** nad tabulkou aktivuje **všechny „připravené" aktivity ve všech programových liniích najednou**. Je to ostrá akce vázaná na zvláštní právo (drží ho jen člen rady) a jde použít jen bez vybrané programové linie a jen pro letošní rok. Před spuštěním se zobrazí potvrzení — přečti si ho.
+Červené tlačítko **aktivovat hromadně** v podmenu, pod sloupcem Administrace (je jen na stránce Přehled Aktivit), aktivuje **všechny „připravené" aktivity ve všech programových liniích najednou**. Je to ostrá akce vázaná na zvláštní právo (drží ho jen člen rady) a jde použít jen bez vybrané programové linie a jen pro letošní rok. Před spuštěním se zobrazí potvrzení — přečti si ho.
 
 Kromě ručního tlačítka se připravené aktivity aktivují i **automaticky v čase vlny** přihlašování. Běžný postup tedy je: aktivity dopředu překlop do stavu „připravená" a v okamžiku vlny se otevřou samy.
 
