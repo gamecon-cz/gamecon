@@ -155,7 +155,15 @@ readonly class ZpracovaneObrazky
 
         return $cesta === null
             ? null
-            : URL_WEBU . '/' . implode('/', array_map('rawurlencode', explode('/', $cesta)));
+            : URL_WEBU . '/' . self::zakodujCestu($cesta);
+    }
+
+    /**
+     * Cesta zakódovaná pro URL po částech, lomítka zůstávají.
+     */
+    public static function zakodujCestu(string $cesta): string
+    {
+        return implode('/', array_map('rawurlencode', explode('/', $cesta)));
     }
 
     /**

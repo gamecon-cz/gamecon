@@ -1,9 +1,11 @@
-Nahrávání obrázků z administrace místo FTP: kde který obrázek leží, kdo ho čte, kterým modulem se spravuje a jak funguje společná služba `NahravaniObrazku` (kontrola typu, velikosti, cest, použití v textech).
+Nahrávání obrázků a souborů ke stažení z administrace místo FTP: kde který soubor leží, kdo ho čte, kterým modulem se spravuje a jak funguje společná služba `NahravaniObrazku` (kontrola typu, velikosti, cest, použití v textech a v kódu).
 
 ## Vstupní body v kódu
 
-- `model/Web/NahravaniObrazku.php`: společná služba. Ověří upload (`overNahranySoubor`) a uloží ho (`ulozJakoJediny`, `ulozNovy`, `nahrad`), případně smaže (`smaz`, `smazVsechnyVarianty`). Továrny `proFotkyUzivatelu`, `proObrazkyLinii`, `proObrazkyEshopu`, `proObsahWebu`.
-- `model/Web/PouzitiObrazku.php`: kde texty webu odkazují na soubor (stránky, novinky a blog, popisy aktivit všech ročníků, medailonky).
+- `model/Web/NahravaniObrazku.php`: společná služba. Ověří upload (`overNahranySoubor`) a uloží ho (`ulozJakoJediny`, `ulozNovy`, `nahrad`), případně smaže (`smaz`, `smazVsechnyVarianty`) nebo vypíše (`obrazkyVAdresari`, `souboryVeStromu`). Továrny `proFotkyUzivatelu`, `proObrazkyLinii`, `proObrazkyEshopu`, `proObsahWebu`. Dokumenty (PDF, MP3, ZIP, XLSX) zná jen služba, která je mezi povolenými formáty má; služba pro obrázky je nevidí.
+- `model/Web/RozpoznaniDokumentu.php`: pozná PDF, MP3, ZIP a XLSX podle obsahu.
+- `model/Web/PouzitiObrazku.php`: kde texty webu odkazují na soubor (stránky, novinky a blog, popisy aktivit všech ročníků, medailonky). `kdeJsouPouzity` hledá pro každý soubor zvlášť a rozhoduje o smazání, `odkazyVeSlozkach` projde texty jednou pro celou složku a slouží k výpisu. `ODKAZY_Z_KODU` je seznam souborů, na které odkazuje kód.
+- `model/Web/SouboryWebu.php` + `soubory-webu.xtpl`: stránka Web → Soubory (`admin/scripts/modules/web/soubory.php`, právo 105). Pevný seznam složek a povolených formátů je v `SLOZKY`.
 - `model/Web/ObrazkyObsahu.php` + `obrazky-obsahu.xtpl`: widget „Obrázky" pod editorem stránky (`web/editace-stranek`) a novinky (`web/novinka`).
 - `model/Web/ObrazkyEshopu.php` + `obrazky-eshopu.xtpl`: galerie e-shopu pod tabulkou `finance/shop`; `zpracujPost()` běží před vykreslením stránky, `html()` až za ní.
 - `model/Web/ZpracovaneObrazky.php`: cesty k adresářům (`adresarFotekUzivatelu`, `adresarObrazkuLinii`, `adresarObrazkuEshopu`, `adresarObsahu`, loga), `jeAdresarJinehoModulu`, `popisekObrazkuEshopu`, `cestaVuciWebu`, `urlNaWebu`.
@@ -20,6 +22,7 @@ Nahrávání obrázků z administrace místo FTP: kde který obrázek leží, kd
 | galerie e-shopu v přihlášce | `obsah/materialy/<ROCNIK>/eshop/*` | `web/moduly/prihlaska/prihlaska.php` | Finance → Shop (108), `ObrazkyEshopu` |
 | obrázky v textech | `obsah/**` (volná struktura z doby FTP), nové do `obsah/stranky/<url>/`, `obsah/blog/<url>/`, `obsah/novinky/<url>/` | Apache přímo podle odkazu v textu | widget pod editorem stránky/novinky (105) |
 | loga | `obsah/{sponzori,partneri}/` a `…/titulka/` | `ZpracovaneObrazky` | Web → Loga (112, ale otevře ho i 105) |
+| PDF, MP3, ZIP, XLSX ke stažení | `obsah/drd/` (vše včetně obrázků), `obsah/download/` (PDF), `obsah/materialy/<ročník>/` (PDF a obrázky), `obsah/celohra/` (PDF), podsložky do dvou pater | odkazy v textech stránek (`drd`, přihláška), `web/moduly/qrka.php` a `prihlaska.xtpl` v kódu | Web → Soubory (105), `SouboryWebu` |
 
 ## Pravidla
 
@@ -30,6 +33,10 @@ Nahrávání obrázků z administrace místo FTP: kde který obrázek leží, kd
 - „Jediný obrázek daného názvu" (fotka, linie, e-shop): nový obrázek smaže varianty s jinou příponou, jinak by `glob` ve čtení vybral tu starou.
 - Mazání i nahrazení jinou příponou se zablokuje, když na soubor odkazuje text (`PouzitiObrazku`). Hledá se cesta `soubory/…` i v URL kódování a `_` v `LIKE` je escapované. Šablony a kód se neprohledávají. Víc souborů najednou (`kdeJsouPouzity`) projde každou tabulku jednou; shodu pro každý soubor vyhodnotí databáze, aby platila stejná kolace jako v `LIKE`.
 - Widget obsahu nahrazuje jen obrázky, na které text odkazuje, nebo obrázky z adresáře stránky. Nahrazení musí mít stejný formát, aby odkaz dál sedl. Maže jen nepoužité obrázky z adresáře stránky. Adresáře log a e-shopu vynechává (`ZpracovaneObrazky::jeAdresarJinehoModulu`), ty mají vlastní modul s jiným právem.
+- Soubory ke stažení: typ se pozná podle začátku a stavby souboru (`RozpoznaniDokumentu`), přípona se dopočítá, takže PDF s příponou `.mp3` se uloží jako `.pdf` a soubor, který nezačíná jako PDF, jako `.pdf` neprojde. Nehlídá se, jestli je obsah neškodný: soubory se servírují podle přípony a nahrávat smí jen organizátor s právem. Dokument z Wordu, PowerPointu nebo LibreOffice a Excel s makry se odmítne s radou, aby se uložil jako PDF (nebo XLSX bez maker), neuloží se jako ZIP. XLSX je jen ten, kde `[Content_Types].xml` deklaruje `/xl/workbook.xml` jako sešit bez maker a archiv nemá `xl/vbaProject.bin` ani `xl/macrosheets/`. MP3 musí mít dva MPEG snímky vrstvy III za sebou; bez ID3 značky začíná první snímek hned na začátku souboru (jinak by stačily dvě podobné hlavičky v metadatech obrázku), za značkou se hledá v okně, protože některé programy nechávají za ní výplň. MP3, které začíná jinak, se odmítne. Dokumenty se poznávají dřív než obrázky, protože `getimagesize` zkouší i XBM a WBMP a čte soubor po řádcích, velký soubor bez zalomení řádku by vyčerpal paměť.
+- Obrázek ve složce s dokumenty má menší limit než dokument: `OBRAZEK_MAX_MB` (8) místo `SOUBOR_MAX_MB` (200).
+- Název nového souboru: malá písmena bez diakritiky, číslice, `_` a `-`, ostatní se změní na `_` (`bezpecnyNazevDokumentu`). Tečky v názvu nejsou, vícenásobné přípony jako `foo.php.pdf` jsou u Apache klasické riziko. Podtržítko zůstává, kód webu odkazuje na `souhlas_rodicu_2026.pdf`. Nový soubor nikdy nepřepíše existující, nahrazuje se v seznamu a musí mít stejný formát jako původní.
+- Soubor, na který odkazuje text webu nebo kód (`ODKAZY_Z_KODU`, u souhlasu rodičů jen aktuální ročník), se nesmaže, jen nahradí. Obrázky e-shopu (`materialy/<ročník>/eshop`) stránka Soubory nevypisuje ani s nimi nic nedělá, cesta se před kontrolou normalizuje (`2026//eshop` je `2026/eshop`).
 - (záměr) Loga se do společné služby převádí jen tehdy, když se nezmění chování modulu. Převedené je jen mazání (ošetření cesty). Upload log dál bere příponu z názvu souboru, nehlídá skutečný typ ani velikost.
 - (záměr) Titulka a stránka se sponzory mají oddělené sady log, nesjednocovat.
 
@@ -46,10 +53,19 @@ Nahrávání obrázků z administrace místo FTP: kde který obrázek leží, kd
 - **`\Nahled` obrázek otočí podle EXIF orientace** (`autoOrient`), stejně jako prohlížeč u originálu. Fotka z telefonu bez toho ve výřezu leží na boku.
 - **Kořen služby nebo adresář nad ním může být symlink** na sdílené úložiště. Služba pracuje se skutečnými cestami, které pak vedou mimo web, proto `kdeJePouzity` a `urlSouboru` cestu nejdřív přepočtou pod kořen zadaný při vytvoření služby (`cestaPodKorenem`).
 - **Editor textu se odesílá AJAXem, formuláře widgetu načtou stránku znovu.** Widget proto přes `beforeunload` porovná obsah editoru s tím z načtení stránky a prohlížeč před nahráním obrázku upozorní na neuložený text. Nepoužívá `jquery.dirty` (`prevent-leaving-without-save`): ten při odeslání formuláře nastaví `submitting` a po neúspěšném AJAXovém uložení ho už nenuluje, takže by pak varování navždy mlčelo. Při ukládání je tlačítko Uložit zablokované (`DbForm`), po chybě ne; podle toho se pozná, že se ukládá.
+- **Velké soubory (MP3, ZIP)**: služba přijme nejvýš nejmenší z `SOUBOR_MAX_MB`, `upload_max_filesize` a `post_max_size`, stránka Soubory ukáže skutečný limit. Na ostré je `upload_max_filesize` 20M, ale `post_max_size` zůstává výchozích 8M (role `php` v repu ansible ho nenastavuje), takže soubor nad 8 MB neprojde, dokud se `post_max_size` nezvedne. Lokálně je `upload_max_filesize` 2M. Časy v řetězci (HAProxy `timeout client`, Apache `Timeout`) se počítají od posledních přenesených dat, ne od začátku nahrávání; největší soubor na ostré se zatím nezkoušel.
+- **Výpis a mazání nemusí vidět totéž**: `odkazyVeSlozkach` pro výpis hledá odkazy regulárním výrazem a odkaz s mezerou nebo s tečkou za větou nepozná, soubor pak vypadá nepoužitý. Nesmaže se, o smazání rozhoduje vždy `kdeJsouPouzity`, který hledá přes `LIKE`.
+- **Soubory jiných typů ve spravovaných složkách** (třeba `.docx` z doby FTP) stránka Soubory vypíše, ale nenabídne k nim nahrazení ani smazání, aby bylo vidět, co se zatím dá jen přes FTP. Totéž platí pro soubor, jehož název neprojde formulářem (kódování z FTP, které není UTF-8, nebo mezera na kraji), a smazání soubor jiného typu odmítne i ručně poslaný požadavek.
+- **Nový soubor jde nahrát jen do podsložky s názvem v tom tvaru, který server vyrobí** (`a-z`, číslice, `_`, `-`, nejvýš dvě patra), tedy i do nové. Do staré složky z doby FTP s diakritikou nebo tečkou (`Deníky postav`, `v1.2`) se z administrace nahrát nedá, její soubory jde ale vypsat, nahradit a smazat. Výpis jde do pěti pater podsložek a symlinkované podsložky nevypisuje (vedly by mimo kořen, nebo do smyčky a soubory by se vypsaly víckrát).
+- **Cestu souboru stránka skládá z názvu složky**, ne ze skutečné cesty, takže funguje i se složkou na jiném úložišti (symlink).
+- **Archivní ročníky** (`archive-<rok>`) mají vlastní nasazení a stránka Soubory do nich nesahá. Jestli se do nich má dál nahrávat, je otevřená otázka, viz níže.
 - **Preview**: nahrané soubory leží jen ve filesystému kontejneru, redeploy je zahodí. Na ostré je ftp-deployment nesmaže, maže jen soubory, které sám nasadil.
 - **Testy**: `AbstractTestWeb::loginToAdmin()` posílá POST na `/admin`. Apache ho přesměruje (`DirectorySlash` a pravidlo pro koncové lomítko v `admin/.htaccess`), curl z něj udělá GET a přihlášení se tak vůbec neprovede. `tests/web/NahravaniObrazkuVAdminuTest` se proto přihlašuje POSTem na adresu modulu a úspěch ověřuje.
 
 ## Otevřené otázky
+
+- Archivní ročníky: nahrává se do nich přes FTP (PDF, obrázky) a z administrace aktuálního ročníku se k nim nedostaneme. Buď se rozhodne, že se do nich už nenahrává, nebo vznikne jiná cesta (jejich vlastní nasazení).
+- `post_max_size` na ostré: zvednout v roli `php` repa ansible, jinak MP3 a ZIP nad 8 MB nejdou nahrát.
 
 - Aktivity: když PHP upload odmítne (velikost), `postFile()` vrátí prázdný řetězec a aktivita se uloží bez obrázku a bez hlášky.
 - EXIF (i GPS) zůstává ve fotkách, originál je veřejně na odhadnutelné adrese `systemove/fotky/<id>.jpg`.

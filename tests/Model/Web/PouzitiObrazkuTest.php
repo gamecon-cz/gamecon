@@ -8,6 +8,7 @@ use Gamecon\Tests\Db\AbstractTestDb;
 use Gamecon\Web\NahravaniObrazku;
 use Gamecon\Web\NahravaniObrazkuException;
 use Gamecon\Web\PouzitiObrazku;
+use Gamecon\Web\SouboryWebu;
 use Gamecon\Web\ZpracovaneObrazky;
 use Symfony\Component\Filesystem\Filesystem;
 
@@ -316,6 +317,7 @@ SQL,
     public function seznamSouboruZKoduOdpovidaKodu(): void
     {
         $koren = dirname(__DIR__, 3);
+        $spravovaneSlozky = implode('|', array_map(preg_quote(...), array_keys(SouboryWebu::SLOZKY)));
         $nalezene = [];
         foreach (['web', 'admin', 'model', 'symfony/src', 'symfony/templates', 'ui/src'] as $adresar) {
             if (! is_dir($koren . '/' . $adresar)) {
@@ -332,7 +334,7 @@ SQL,
                     continue;
                 }
                 preg_match_all(
-                    '~soubory/obsah/(?:drd|download|materialy|celohra)/[^\s\'"<>()?#]*~i',
+                    '~soubory/obsah/(?:' . $spravovaneSlozky . ')/[^\s\'"<>()?#]*~i',
                     (string) file_get_contents($cesta),
                     $shody,
                 );
