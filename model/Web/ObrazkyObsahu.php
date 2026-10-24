@@ -276,7 +276,7 @@ final class ObrazkyObsahu
             'cesta'         => htmlspecialchars($cesta),
             'vTextu'        => htmlspecialchars(self::PREFIX_V_TEXTU . $cesta),
             'markdown'      => htmlspecialchars('![](' . self::doTextu($cesta) . ')'),
-            'acceptObrazku' => (string)NahravaniObrazku::mimePodlePripony($cesta),
+            'acceptObrazku' => $this->nahravani->acceptProNahrazeni((string)NahravaniObrazku::mimePodlePripony($cesta)),
             'nahled'        => $absolutniCesta !== null
                 ? htmlspecialchars($this->nahled($absolutniCesta))
                 : '',

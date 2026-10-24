@@ -3,14 +3,15 @@
 
 __Editování kódu přes FTP je zakázáno.__ Kód se na FTP dostává automaticky (viz dál) a ruční nahrání by způsobilo skrytý rozdíl mezi obsahem gitu a FTP, což způsobuje hodně těžko odhalitelné bugy, které se mohou objevit s velkým spožděním a úplně nečekaně.
 
-Obrázky se nahrávají z administrace, FTP na ně není potřeba:
+Obrázky a soubory ke stažení se nahrávají z administrace, FTP na ně není potřeba:
 
 - fotky vypravěčů (`web/soubory/systemove/fotky`) v Aktivity → Medailonky,
 - obrázky do textů stránek a novinek (`web/soubory/obsah`) v editaci stránky nebo novinky, část Obrázky,
 - obrázky galerie e-shopu v přihlášce (`web/soubory/obsah/materialy/<ročník>/eshop`) ve Finance → Shop,
-- loga sponzorů a partnerů ve Web → Loga, obrázky linií ve Web → Hlavičky linií.
+- loga sponzorů a partnerů ve Web → Loga, obrázky linií ve Web → Hlavičky linií,
+- PDF, MP3, ZIP a XLSX ve složkách `drd`, `download`, `materialy` a `celohra` v `web/soubory/obsah` ve Web → Soubory.
 
-Ručně přes FTP se dál nahrávají jiné soubory než obrázky (PDF, fonty a podobně) do podsložek `web/soubory/obsah`.
+Přes FTP zůstávají soubory jiných typů (třeba fonty) a nahrávání do archivních ročníků, které mají vlastní nasazení.
 
 __Editování struktury databáze přes Adminer je zakázáno.__ K změnám struktury databáze se používají skripty v složce `migrace`. Strukturou se rozumí přidávání sloupců, tabulek a podobně.
 

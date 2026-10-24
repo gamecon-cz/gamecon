@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace Gamecon\Tests\web;
 
-use Gamecon\Login\Login;
 use Gamecon\Web\ZpracovaneObrazky;
 use Symfony\Component\Filesystem\Filesystem;
 
@@ -14,6 +13,8 @@ use Symfony\Component\Filesystem\Filesystem;
  */
 class NahravaniObrazkuVAdminuTest extends AbstractTestWeb
 {
+    use ZadostiDoAdmina;
+
     private const int ID_VYPRAVECE = 9801;
     private const int ID_BEZ_PRAV = 9802;
     private const int ID_STRANKY = 9801;
@@ -115,7 +116,7 @@ SQL,
     public function organizatorNahrajeVymeniASmazeFotkuKMedailonku(): void
     {
         $fotky = ZpracovaneObrazky::adresarFotekUzivatelu() . '/' . self::ID_VYPRAVECE;
-        $this->kUklidu = [...$this->kUklidu, $fotky . '.png', $fotky . '.jpg'];
+        $this->kUklidu = [...$this->kUklidu, $fotky . '.png', $fotky . '.jpg', $fotky . '.webp'];
         $session = $this->prihlas(\Uzivatel::SYSTEM_LOGIN);
         $url = 'aktivity/medailonky?id=' . self::ID_VYPRAVECE;
 
@@ -126,23 +127,25 @@ SQL,
             'akceFotky' => 'nahrat',
             'fotka'     => new \CURLFile($png, 'image/png', 'portret.png'),
         ]));
-        self::assertFileEquals($png, $fotky . '.png');
+        self::assertSame('image/webp', getimagesize($fotky . '.webp')['mime']);
+        self::assertFileDoesNotExist($fotky . '.png');
         $stranka = $this->stahni($session, $url);
         self::assertStringContainsString('Fotka je nahraná.', $stranka);
         self::assertStringContainsString('Smazat fotku', $stranka);
 
-        // fotka z telefonu jako JPG nahradí PNG, dvě verze vedle sebe by si web vybíral náhodně
+        // starší fotka v jiném formátu, třeba z doby FTP, se nahrazením smaže, dvě verze vedle sebe by si web vybíral náhodně
+        copy($png, $fotky . '.png');
         self::assertSame(303, $this->odesli($session, $url, [
             'akceFotky' => 'nahrat',
             'fotka'     => new \CURLFile($this->jpg(), 'image/jpeg', 'IMG_0001.JPG'),
         ]));
-        self::assertFileExists($fotky . '.jpg');
+        self::assertFileExists($fotky . '.webp');
         self::assertFileDoesNotExist($fotky . '.png');
 
         self::assertSame(303, $this->odesli($session, $url, [
             'akceFotky' => 'smazat',
         ]));
-        self::assertFileDoesNotExist($fotky . '.jpg');
+        self::assertFileDoesNotExist($fotky . '.webp');
         self::assertStringContainsString('Fotka je smazaná', $this->stahni($session, $url));
     }
 
@@ -152,7 +155,7 @@ SQL,
     public function souborKteryNeniObrazekOdmitne(): void
     {
         $fotky = ZpracovaneObrazky::adresarFotekUzivatelu() . '/' . self::ID_VYPRAVECE;
-        $this->kUklidu[] = $fotky . '.png';
+        $this->kUklidu = [...$this->kUklidu, $fotky . '.png', $fotky . '.webp'];
         $session = $this->prihlas(\Uzivatel::SYSTEM_LOGIN);
         $url = 'aktivity/medailonky?id=' . self::ID_VYPRAVECE;
         $skript = $this->zdroje . '/fotka.png';
@@ -173,7 +176,7 @@ SQL,
     public function bezPravaNaMedailonkyNicNenahraje(): void
     {
         $fotky = ZpracovaneObrazky::adresarFotekUzivatelu() . '/' . self::ID_VYPRAVECE;
-        $this->kUklidu[] = $fotky . '.png';
+        $this->kUklidu = [...$this->kUklidu, $fotky . '.png', $fotky . '.webp'];
         $session = $this->prihlas('test-fotka-bez-prav');
 
         self::assertSame(
@@ -309,14 +312,25 @@ SQL,
             'nazev'             => 'Nová členka Rady',
             'obrazekObsahu'     => new \CURLFile($this->jpg(), 'image/jpeg', 'IMG_0002.jpg'),
         ]));
-        $novy = $obsah . '/stranky/' . self::URL_STRANKY . '/nova-clenka-rady.jpg';
+        // JPEG se uloží jako WebP a odkaz, který se nabídne do textu, už míří na ten
+        $novy = $obsah . '/stranky/' . self::URL_STRANKY . '/nova-clenka-rady.webp';
         self::assertFileExists($novy);
         $stranka = $this->stahni($session, $url);
-        self::assertStringContainsString('![](soubory/obsah/stranky/' . self::URL_STRANKY . '/nova-clenka-rady.jpg)', $stranka);
+        self::assertStringContainsString('![](soubory/obsah/stranky/' . self::URL_STRANKY . '/nova-clenka-rady.webp)', $stranka);
+
+        // převedený soubor jde nahradit i JPEG, odkaz míří na `.webp`
+        self::assertSame(303, $this->odesli($session, $url, [
+            'obrazkyObsahuAkce' => 'nahradit',
+            'cesta'             => 'stranky/' . self::URL_STRANKY . '/nova-clenka-rady.webp',
+            'obrazekObsahu'     => new \CURLFile($this->jpg(60, 30), 'image/jpeg', 'IMG_0003.jpg'),
+        ]));
+        $info = getimagesize($novy);
+        self::assertSame([60, 30, 'image/webp'], [$info[0], $info[1], $info['mime']]);
+        self::assertFileDoesNotExist(dirname($novy) . '/nova-clenka-rady.jpg');
 
         self::assertSame(303, $this->odesli($session, $url, [
             'obrazkyObsahuAkce' => 'smazat',
-            'cesta'             => 'stranky/' . self::URL_STRANKY . '/nova-clenka-rady.jpg',
+            'cesta'             => 'stranky/' . self::URL_STRANKY . '/nova-clenka-rady.webp',
         ]));
         self::assertFileDoesNotExist($novy);
     }
@@ -334,7 +348,7 @@ SQL);
         if (glob($obrazek . '.*') !== []) {
             self::markTestSkipped("Linie {$idTypu} už má vlastní obrázek, nechceme ho přepsat");
         }
-        $this->kUklidu = [...$this->kUklidu, $obrazek . '.png', $obrazek . '.gif'];
+        $this->kUklidu = [...$this->kUklidu, $obrazek . '.png', $obrazek . '.gif', $obrazek . '.webp'];
         $session = $this->prihlas(\Uzivatel::SYSTEM_LOGIN);
 
         self::assertSame(303, $this->odesli($session, 'web/hlavicky-linii', [
@@ -342,7 +356,7 @@ SQL);
             'id_typu' => (string) $idTypu,
             'obrazek' => new \CURLFile($this->png(), 'image/png', 'linie.png'),
         ]));
-        self::assertFileExists($obrazek . '.png');
+        self::assertFileExists($obrazek . '.webp');
 
         self::assertSame(303, $this->odesli($session, 'web/hlavicky-linii', [
             'action'  => 'delete-line-header-image',
@@ -370,87 +384,6 @@ SQL);
         self::assertFileExists($navnada);
     }
 
-    /**
-     * Test zapisuje do skutečného stromu webu, uklidí proto i nadřazené adresáře, které sám založí.
-     */
-    private function uklidNoveAdresare(string $adresar): void
-    {
-        $nejvyssiNovy = null;
-        while (! is_dir($adresar)) {
-            $nejvyssiNovy = $adresar;
-            $adresar = dirname($adresar);
-        }
-        if ($nejvyssiNovy !== null) {
-            $this->kUklidu[] = $nejvyssiNovy;
-        }
-    }
-
-    /**
-     * Přihlášení posíláme na adresu modulu. Na `/admin` a `/admin/` (to dělá loginToAdmin()) Apache
-     * přesměruje a curl z POSTu udělá GET, takže se přihlašovací údaje k PHP vůbec nedostanou.
-     */
-    private function prihlas(string $login): string
-    {
-        $cookieFile = tempnam(sys_get_temp_dir(), 'cookie');
-        $this->kUklidu[] = $cookieFile;
-        $curl = $this->curl($cookieFile, 'aktivity/medailonky');
-        curl_setopt($curl, CURLOPT_POST, true);
-        curl_setopt($curl, CURLOPT_POSTFIELDS, [
-            Login::LOGIN_INPUT_NAME    => $login,
-            Login::PASSWORD_INPUT_NAME => UNIVERZALNI_HESLO,
-        ]);
-        curl_setopt($curl, CURLOPT_FOLLOWLOCATION, true);
-        $odpoved = curl_exec($curl);
-        self::assertNotFalse($odpoved, curl_error($curl));
-        unset($curl); // až teď curl zapíše cookies do souboru
-
-        self::assertStringNotContainsString(
-            'name="' . Login::PASSWORD_INPUT_NAME . '"',
-            (string) $odpoved,
-            "Přihlášení '{$login}' se nepovedlo",
-        );
-
-        return $cookieFile;
-    }
-
-    /**
-     * @return int HTTP kód odpovědi, přesměrování se nenásledují
-     */
-    private function odesli(string $cookieFile, string $url, array $pole): int
-    {
-        $curl = $this->curl($cookieFile, $url);
-        curl_setopt($curl, CURLOPT_POST, true);
-        curl_setopt($curl, CURLOPT_POSTFIELDS, $pole);
-        $odpoved = curl_exec($curl);
-        self::assertNotFalse($odpoved, curl_error($curl));
-
-        return curl_getinfo($curl, CURLINFO_HTTP_CODE);
-    }
-
-    private function stahni(string $cookieFile, string $url): string
-    {
-        $curl = $this->curl($cookieFile, $url);
-        $odpoved = curl_exec($curl);
-        self::assertNotFalse($odpoved, curl_error($curl));
-        self::assertSame(200, curl_getinfo($curl, CURLINFO_HTTP_CODE), (string) $odpoved);
-
-        return (string) $odpoved;
-    }
-
-    private function curl(string $cookieFile, string $url): \CurlHandle
-    {
-        $curl = curl_init('http://localhost/' . basename(__DIR__ . '/../../admin') . '/' . $url);
-        curl_setopt($curl, CURLOPT_RETURNTRANSFER, true);
-        curl_setopt($curl, CURLOPT_FOLLOWLOCATION, false);
-        curl_setopt($curl, CURLOPT_HTTP_VERSION, CURL_HTTP_VERSION_1_1);
-        curl_setopt($curl, CURLOPT_COOKIEFILE, $cookieFile);
-        // hlášky (oznámení, chyby) chodí v cookies až na další stránku
-        curl_setopt($curl, CURLOPT_COOKIEJAR, $cookieFile);
-        $this->setLocalServerCookieWithGameconTestDb($curl);
-
-        return $curl;
-    }
-
     private function png(): string
     {
         $cesta = $this->zdroje . '/' . bin2hex(random_bytes(4)) . '.png';
@@ -459,10 +392,10 @@ SQL);
         return $cesta;
     }
 
-    private function jpg(): string
+    private function jpg(int $sirka = 40, int $vyska = 40): string
     {
         $cesta = $this->zdroje . '/' . bin2hex(random_bytes(4)) . '.jpg';
-        imagejpeg(imagecreatetruecolor(40, 40), $cesta);
+        imagejpeg(imagecreatetruecolor($sirka, $vyska), $cesta);
 
         return $cesta;
     }

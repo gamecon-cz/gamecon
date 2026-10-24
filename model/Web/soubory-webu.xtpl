@@ -1,0 +1,109 @@
+<!-- begin:souboryWebu -->
+<h2>Soubory ke stažení</h2>
+
+<p class="tip">
+  Tady se nahrávají PDF, zvuk, archivy a tabulky, na které odkazují texty webu a přihláška.
+  Odkaz do textu vložíš z tabulky jako <code>[popis](soubory/obsah/…)</code>.
+  Obrázky do textu stránky nebo novinky se nahrávají v jejich editoru, obrázky e-shopu ve Finance → Shop.
+</p>
+
+<!-- begin:slozka -->
+<!-- begin:historie --><hr><!-- end:historie -->
+<details class="soubory-webu" open>
+  <summary><strong>{nazev}</strong> <code>{adresar}</code> ({pocet})</summary>
+  <p>{popis}</p>
+
+  <form method="post" enctype="multipart/form-data" class="soubory-webu__nahrat">
+    <input type="hidden" name="{postAkce}" value="nahrat">
+    <input type="hidden" name="slozka" value="{slozka}">
+    <label>Soubor <input type="file" name="{postSoubor}" accept="{accept}" required></label>
+    <label>Název <input type="text" name="nazev" maxlength="100" placeholder="když nevyplníš, podle souboru"></label>
+    <label>Podsložka
+      <input type="text" name="podslozka" list="podslozky-{slozka}" maxlength="100" placeholder="nepovinná, třeba {rocnik}">
+    </label>
+    <datalist id="podslozky-{slozka}">
+      <!-- begin:podslozka --><option value="{podslozka}"><!-- end:podslozka -->
+    </datalist>
+    <button type="submit">Nahrát</button>
+    <div class="tip">
+      {limit}. Název i podsložka se upraví do tvaru vhodného do adresy: malá písmena bez diakritiky,
+      mezery a tečky se změní na podtržítka. Soubor se stejným názvem nejde nahrát znovu, nahraď ho v seznamu.
+    </div>
+  </form>
+
+  <table class="zvyraznovana soubory-webu__tabulka">
+    <tr>
+      <th>Soubor</th>
+      <th>Typ</th>
+      <th>Velikost</th>
+      <th>Změněno</th>
+      <th>Odkazuje na něj</th>
+      <th></th>
+    </tr>
+    <!-- begin:soubor -->
+    <tr>
+      <td>
+        <a href="{url}" target="_blank" rel="noopener">{cesta}</a><br>
+        <input type="text" readonly value="{markdown}" onclick="this.select()" aria-label="Odkaz pro vložení do textu" class="soubory-webu__odkaz">
+      </td>
+      <td>{typ}</td>
+      <td>{velikost}</td>
+      <td>{zmeneno}</td>
+      <td>
+        <!-- begin:misto -->
+        <!-- begin:vTextu --><a href="{pouzitiUrl}">{pouzitiPopis}</a><br><!-- end:vTextu -->
+        <!-- begin:vKodu -->{pouzitiPopis} <span class="tip">(v kódu webu)</span><br><!-- end:vKodu -->
+        <!-- end:misto -->
+      </td>
+      <td>
+        <!-- begin:nahradit -->
+        <form method="post" enctype="multipart/form-data">
+          <input type="hidden" name="{postAkce}" value="nahradit">
+          <input type="hidden" name="slozka" value="{slozka}">
+          <input type="hidden" name="cesta" value="{cesta}">
+          <input type="file" name="{postSoubor}" accept="{acceptSouboru}" required>
+          <button type="submit">Nahradit</button>
+        </form>
+        <!-- end:nahradit -->
+        <!-- begin:smazat -->
+        <form method="post" onsubmit="return confirm('Opravdu smazat tento soubor?')">
+          <input type="hidden" name="{postAkce}" value="smazat">
+          <input type="hidden" name="slozka" value="{slozka}">
+          <input type="hidden" name="cesta" value="{cesta}">
+          <button type="submit">Smazat</button>
+        </form>
+        <!-- end:smazat -->
+        <!-- begin:nespravovany --><span class="tip">Tenhle soubor se tu nespravuje, jen přes FTP.</span><!-- end:nespravovany -->
+      </td>
+    </tr>
+    <!-- end:soubor -->
+    <!-- begin:zadny -->
+    <tr>
+      <td colspan="6"><i>Zatím tu žádný soubor není.</i></td>
+    </tr>
+    <!-- end:zadny -->
+  </table>
+</details>
+<!-- end:slozka -->
+
+<style>
+    .soubory-webu {
+        margin: 1.5em 0;
+    }
+
+    .soubory-webu summary {
+        cursor: pointer;
+        font-size: larger;
+    }
+
+    .soubory-webu__nahrat {
+        padding: 0.5em 1em;
+        background-color: rgba(215, 246, 170, 0.47);
+    }
+
+    .soubory-webu__odkaz {
+        width: 28em;
+        max-width: 100%;
+    }
+</style>
+<!-- end:souboryWebu -->
