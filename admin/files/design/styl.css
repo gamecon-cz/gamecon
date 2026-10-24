@@ -36,9 +36,20 @@ body {
 }
 
 .sloupL {
+  --vyska-profilovaci-listy: 0px;
   position: fixed;
   width: 180px;
+  max-height: calc(100vh - var(--vyska-profilovaci-listy));
+  max-height: calc(100dvh - var(--vyska-profilovaci-listy));
+  overflow-x: hidden;
+  overflow-y: auto;
+  scrollbar-width: thin;
   text-align: left;
+}
+
+/* The profiling bar (not on production) is fixed at the bottom-left and would cover the last menu item. */
+body:has(.profilInfo) .sloupL {
+  --vyska-profilovaci-listy: 44px;
 }
 
 .sloupR {

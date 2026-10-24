@@ -15,6 +15,7 @@ body {
   position: relative;
   width: 100%;
   overflow: hidden;
+  max-height: none;
   height: 50px;
   min-height: 50px;
   z-index: 20;
