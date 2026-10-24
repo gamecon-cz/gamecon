@@ -1,6 +1,7 @@
 <?php
 
 use App\Enum\ProductTagCode;
+use Gamecon\Report\JidlaZJidelnicku;
 use Gamecon\Role\Role;
 use Gamecon\XTemplate\XTemplate;
 use Gamecon\SystemoveNastaveni\SystemoveNastaveni;
@@ -35,9 +36,11 @@ $jidlaFiltr               = array_values(array_filter(array_map(
 $jidlaFiltrSql            = $jidlaFiltr
     ? "AND TRIM(predmety.nazev) IN ($2)"
     : '';
+// k obědu a večeři jídlo z jídelníčku, aby jídelna věděla, co vydat; bez výběru výchozí
+$efektivniJidloSql        = JidlaZJidelnicku::efektivniJidloSql('nakupy');
 $o                        = dbQuery(<<<SQL
     SELECT
-      uzivatele.id_uzivatele, uzivatele.login_uzivatele, predmety.nazev,
+      uzivatele.id_uzivatele, uzivatele.login_uzivatele, predmety.nazev, COALESCE(jidlo.name, '') AS jidlo,
       FIELD(SUBSTRING(TRIM(predmety.nazev), POSITION(' ' IN TRIM(predmety.nazev)) + 1), 'středa', 'čtvrtek', 'pátek', 'sobota', 'neděle') AS poradi_dne,
       FIELD(SUBSTRING(TRIM(predmety.nazev), 1, POSITION(' ' IN TRIM(predmety.nazev)) - 1), 'Snídaně', 'Oběd', 'Večeře') AS poradi_jidla
     FROM uzivatele_hodnoty AS uzivatele
@@ -53,6 +56,8 @@ $o                        = dbQuery(<<<SQL
         ON stitek_jidla.product_id = predmety.id_predmetu
     JOIN product_tag AS kategorie_jidla
         ON kategorie_jidla.id = stitek_jidla.tag_id AND kategorie_jidla.code = $3
+    LEFT JOIN meal_dish AS jidlo
+        ON jidlo.id = {$efektivniJidloSql}
     WHERE TRUE {$uzivatelFiltrSql}
       {$dnyFiltrSql}
       {$jidlaFiltrSql}

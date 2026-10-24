@@ -131,6 +131,10 @@ table {
   }
   .text-den {
   }
+  .text-jidlo {
+    font-weight: normal;
+    font-size: 0.8em;
+  }
 
   @media print {
     html, body {

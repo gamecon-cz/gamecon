@@ -4,6 +4,7 @@ const entry = document.querySelector("#entry");
 const data = dataStr.map(uživ => ({
   login_uzivatele: uživ.login_uzivatele,
   nazev: uživ.nazev,
+  jidlo: uživ.jidlo ?? "",
   id_uzivatele: +uživ.id_uzivatele,
   poradi_dne: +uživ.poradi_dne,
   poradi_jidla: +uživ.poradi_jidla,
@@ -86,6 +87,8 @@ const vytvořBuňku = (texty) => {
       textElm.classList.add("text-id");
     if (i === 2)
       textElm.classList.add("text-den");
+    if (i === 3)
+      textElm.classList.add("text-jidlo");
     textElm.innerText = text;
     textyElm.appendChild(textElm);
     i++;
@@ -115,6 +118,8 @@ for (uživ of uživatelé) {
       buňka.login_uzivatele.slice(0,15) + (buňka.login_uzivatele.length >= 15 ? "..." : ""),
       "ID " + buňka.id_uzivatele,
       buňka.nazev,
+      // jídlo z jídelníčku, ať jídelna ví, co vydat; snídaně ho nemá
+      ...(buňka.jidlo ? [buňka.jidlo.slice(0, 40) + (buňka.jidlo.length > 40 ? "..." : "")] : []),
     ]);
   }
 
