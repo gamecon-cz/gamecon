@@ -304,11 +304,16 @@ final class NahravaniObrazku
      */
     public function acceptProNahrazeni(string $mimeNahrazovaneho): string
     {
-        $povolene = $mimeNahrazovaneho === self::WEBP && $this->optimalizace !== null
+        $povolene = $this->jeCilPrevodu($mimeNahrazovaneho)
             ? array_intersect([self::WEBP, self::JPG, self::PNG], $this->formaty)
             : [$mimeNahrazovaneho];
 
         return implode(',', $povolene);
+    }
+
+    private function jeCilPrevodu(string $mime): bool
+    {
+        return $mime === self::WEBP && $this->optimalizace !== null;
     }
 
     /**
@@ -439,10 +444,13 @@ final class NahravaniObrazku
         // soubor ve formátu cíle nebo takový, který se do něj při uložení převede (JPEG a PNG do WebP)
         if ($mimeCile !== $obrazek->nahranyMime() && $mimeCile !== $obrazek->mime) {
             throw new NahravaniObrazkuException(sprintf(
-                '%s je ve formátu %s a nahraný soubor ve formátu %s. Nahraj prosím soubor ve stejném formátu, jinak by přestaly fungovat odkazy na něj.',
+                '%s je ve formátu %s a nahraný soubor ve formátu %s. Nahraj prosím %s, jinak by přestaly fungovat odkazy na něj.',
                 basename($cil),
                 self::NAZVY_FORMATU[$mimeCile],
                 self::NAZVY_FORMATU[$obrazek->nahranyMime()],
+                $this->jeCilPrevodu($mimeCile)
+                    ? 'WebP, JPG nebo PNG bez animace'
+                    : 'soubor ve stejném formátu',
             ));
         }
         // odkazy míří na příponu, takže se obrázek zmenší, ale nepřevádí
@@ -1013,17 +1021,17 @@ final class NahravaniObrazku
 
     /**
      * Obrázek se může uložit s jinou příponou, než měl nahraný, takže `foto.jpg` nahrané k existujícímu `foto.png`
-     * by vedle něj vytvořilo `foto.webp`. Dokumenty mají příponu podle formátu a s obrázky se nepletou.
+     * by vedle něj vytvořilo `foto.webp`. Dokumenty a SVG se nepřevádějí, mají příponu podle formátu a s rastrem se nepletou.
      *
      * @return string|null absolutní cesta k obrázku stejného názvu
      */
     private function obrazekStejnehoNazvu(string $adresar, string $nazevBezPripony, string $mime): ?string
     {
-        if (in_array($mime, self::DOKUMENTY, true)) {
+        if (!in_array($mime, self::RASTROVE_FORMATY, true)) {
             return null;
         }
         foreach ($this->variantyObrazku($adresar, $nazevBezPripony) as $varianta) {
-            if (!in_array(self::mimePodlePripony($varianta), self::DOKUMENTY, true)) {
+            if (in_array(self::mimePodlePripony($varianta), self::RASTROVE_FORMATY, true)) {
                 return $varianta;
             }
         }
