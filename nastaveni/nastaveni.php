@@ -110,6 +110,8 @@ if (!defined('VYCHOZI_DOBROVOLNE_VSTUPNE')) define('VYCHOZI_DOBROVOLNE_VSTUPNE',
 if (!defined('OBRAZEK_LINIE_MAX_MB')) define('OBRAZEK_LINIE_MAX_MB', 2);
 // obrázky z administrace (fotky k medailonkům, e-shop, obsah webu); skutečný limit může snížit upload_max_filesize a post_max_size
 if (!defined('OBRAZEK_MAX_MB')) define('OBRAZEK_MAX_MB', 8);
+// PDF, zvuk a archivy ke stažení (Web → Soubory); víc než PHP přijme stejně nepůjde, viz upload_max_filesize a post_max_size
+if (!defined('SOUBOR_MAX_MB')) define('SOUBOR_MAX_MB', 200);
 
 //////////////////////////////////////////////
 // Staré hodnoty a aliasy pro kompatibilitu //
