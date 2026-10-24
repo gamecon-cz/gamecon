@@ -660,6 +660,16 @@ final class NahravaniObrazku
                 throw new NahravaniObrazkuException('Obrázek nemá platné rozměry, nejspíš je poškozený.');
             }
             $cilUpravy = $this->cilUpravy($mime, $sirka, $vyska, $cesta);
+            if ($cilUpravy !== null && $this->optimalizace?->jeDelsiNezServerPrecte($sirka, $vyska)) {
+                $limity = $this->optimalizace->limityServeru();
+                throw new NahravaniObrazkuException(sprintf(
+                    'Obrázek má %d × %d px a server zvládne nejvýš %d × %d px. Zmenši ho prosím.',
+                    $sirka,
+                    $vyska,
+                    $limity['sirka'],
+                    $limity['vyska'],
+                ));
+            }
             $maxPixelu = $cilUpravy === null
                 ? $this->maxPixelu
                 : max($this->maxPixelu, self::MAX_PIXELU);
