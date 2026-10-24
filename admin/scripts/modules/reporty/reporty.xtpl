@@ -18,9 +18,7 @@
     }
 
     #bfgr .hint::after {
-        content: " \e2ca";
-        font-family: 'Font Awesome 6 Free';
-        font-weight: 900;
+        content: " 🧙";
     }
 </style>
 
@@ -40,14 +38,14 @@
     <td>
       {nazev}
       <!-- begin: pravo -->
-      <span class="hinted"><i class="fa-solid fa-eye-slash" aria-hidden="true"></i>
+      <span class="hinted">🫥
         <span class="hint">Viditelné pouze pro uživatele s právem <i>{nazev_prava}</i></span>
       </span>
       <!-- end: pravo -->
       <a href="reporty#{skript}" class="lokalni-odkaz float-right">#</a>
     </td>
     <td>
-      <span class="hinted"><i class="fa-solid fa-chart-simple" aria-hidden="true"></i>
+      <span class="hinted">📊
         <span class="hint">
             poslední použití {jmeno_posledniho_uzivatele} {cas_posledniho_pouziti}<br>
             celkem použito {pocet_pouziti}✕
@@ -62,7 +60,7 @@
 
 <h2>
   Quick reporty
-  <span class="hinted"><i class="fa-solid fa-circle-info" aria-hidden="true"></i><span class="hint">tyto reporty samy náhodně mizí a nelze tomu zabránit. Proto není možné na ně spoléhat</span></span>
+  <span class="hinted">ℹ<span class="hint">tyto reporty samy náhodně mizí a nelze tomu zabránit. Proto není možné na ně spoléhat</span></span>
 </h2>
 
 <table class="zvyraznovana">
@@ -75,7 +73,7 @@
   <tr id="quick-{id}">
     <td>{nazev} <a href="reporty#quick-{id}" class="lokalni-odkaz float-right">#</a></td>
     <td>
-      <span class="hinted"><i class="fa-solid fa-chart-simple" aria-hidden="true"></i>
+      <span class="hinted">📊
         <span class="hint">
             poslední použití {jmeno_posledniho_uzivatele} {cas_posledniho_pouziti}<br>
             celkem použito {pocet_pouziti}✕

@@ -6,7 +6,7 @@ Stránka **Nastavení** je řídicí pult celého ročníku. Měníš tu termín
 
 ## Jak se hodnoty mění a kdy se projeví
 
-- Hodnota se **ukládá automaticky hned při změně** políčka. U políčka se objeví zelená fajfka („Změny jsou uloženy") nebo červený vykřičník s popisem chyby, pokud systém hodnotu odmítl (třeba špatný formát data).
+- Hodnota se **ukládá automaticky hned při změně** políčka. U políčka se objeví ✔️ („Změny jsou uloženy") nebo ❗ s popisem chyby, pokud systém hodnotu odmítl (třeba špatný formát data).
 - U každé položky vidíš ve sloupci **Poslední změna**, kdy byla naposledy změněna a kdo to udělal (po najetí myší). Starší historie se na stránce nezobrazuje — o to opatrněji s přepisováním.
 - Sloupec **Vlastní**: řada položek má **výchozí hodnotu**, kterou si systém spočítá sám (typicky termíny odvozené od začátku a konce GC). Odškrtnutím políčka Vlastní svou ruční hodnotu vyřadíš a necháš to na systému; zaškrtnutím ji zase převezmeš. Položky bez výchozí hodnoty přepnout nejdou.
 - Po najetí na název položky se zobrazí podrobný popis včetně aktuální výchozí hodnoty. Odkaz **#** u názvu zkopíruje do adresy odkaz přímo na tu položku — hodí se, když chceš kolegovi poslat „tohle nastav".
@@ -63,7 +63,7 @@ Každé tlačítko se ještě jednou zeptá, jestli opravdu chceš data přemaza
 
 ## Na co si dát pozor
 
-- **Změny platí okamžitě a bez potvrzení.** Překlep v datu vlny nebo v částce se hned promítne účastníkům. Po každé změně zkontroluj uloženou hodnotu a fajfku.
+- **Změny platí okamžitě a bez potvrzení.** Překlep v datu vlny nebo v částce se hned promítne účastníkům. Po každé změně zkontroluj uloženou hodnotu a ✔️.
 - **Vrácení změny je jen ruční.** Vidíš pouze poslední změnu a jejího autora; starou hodnotu musíš znát a nastavit zpět sám.
 - **Termíny vln a hromadných odhlašování** jsou nejcitlivější — řídí automaty, které se spouštějí samy. Neposouvej je na poslední chvíli bez domluvy s ostatními orgy.
 - **Odškrtnutí „Vlastní"** znamená, že hodnota začne žít vlastním životem podle výpočtu systému (a změní se třeba při posunu termínu GC). Zaškrtnutá vlastní hodnota naopak zůstává, i když se ostatní termíny posunou — nezapomeň ji pak posunout taky.

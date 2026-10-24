@@ -8,7 +8,7 @@ import {AkceAktivity} from "./online-prezence-akce-aktivity-class.js"
     const akceAktivity = new AkceAktivity()
 
     if (!onlinePrezence) {
-      return // Nevedeš žádné aktivity
+      return // Nevedeš žádné aktivity 😞
     }
 
     // SEMAFOR
@@ -79,7 +79,7 @@ import {AkceAktivity} from "./online-prezence-akce-aktivity-class.js"
         $aktivity.each(function (indexAktivity, aktivita) {
           const nacitani = aktivita.querySelector('.nacitani')
           if (nacitani) {
-            nacitani.innerHTML = '<td colspan="6"><em>Chyba při načítání</em> <i class="fa-solid fa-face-frown" aria-hidden="true"></i></td>'
+            nacitani.innerHTML = '<td colspan="6"><em>Chyba při načítání</em> 😢</td>'
           }
         })
       })

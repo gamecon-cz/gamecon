@@ -298,7 +298,7 @@ class AkceAktivity {
       if (response.status === 400 && response.responseJSON && response.responseJSON.errors) {
         problems.warnings = response.responseJSON.errors
       } else {
-        problems.errors = ['Něco se pokazilo']
+        problems.errors = ['Něco se pokazilo 😢']
       }
 
       triggeringNode = triggeringNode || checkboxNode
