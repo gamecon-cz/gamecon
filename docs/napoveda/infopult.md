@@ -67,6 +67,8 @@ Sekce **Nastavení pokojů**:
 
 Zaškrtávací přehled objednaných jídel po dnech, uloží se tlačítkem **Uložit**. Platí pravidla ze samotné obrazovky: „Zrušit jídlo je možné jenom oproti vrácené stravence. Při objednání jídla je naopak potřeba předat stravenku (a zkontrolovat stav financí). Snídaně nabízíme jen organizátorům a vypravěčům." Odkaz **Tisk stravenek** otevře stravenky účastníka k vytištění.
 
+Pod mřížkou je **Výběr jídel**: ke každému objednanému obědu a večeři konkrétní jídlo z jídelníčku. Infopult ho může změnit kdykoli, i před zveřejněním jídelníčku a po termínu, kdy už to účastník sám nezmění. Kdo si nevybral, má u porce „nevybráno – dostaneš …“ a dostane výchozí jídlo. Na stravence je vytištěné jídlo, které porce dostane.
+
 ## Objednávky
 
 Seznam nakoupených předmětů a jídel účastníka. Kdo má právo rušit nákupy, vidí u položek (včetně vstupného a dobrovolného vstupného) ikonu koše — **zrušení objednávky** se potvrzuje dotazem „Opravdu zrušit objednávku …". Rozmysli si to: zrušená položka zmizí z účtu účastníka a změní jeho zůstatek.

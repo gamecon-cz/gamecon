@@ -61,6 +61,25 @@ import skryje ⚠️*.
 Pod importérem je **Nastavení mřížkového prodeje** (mřížky obchodu, např.
 prodej jídla po dnech).
 
+## Jídelníček
+
+Jídla, ze kterých si účastníci vybírají k objednaným obědům a večeřím.
+Stránka ukazuje každý oběd a večeři letošní nabídky (podle e-shopu) s počtem
+prodaných porcí a kolik z nich je **bez výběru**. Ke každému jídlu se zadává
+**název**, **popis** (alergeny, příloha), zda je **vegetariánské** a které je
+**výchozí** — to dostane, kdo si nevybere (bez označení je výchozí první).
+Pořadí se mění šipkami, jídla večeře jde vzít z obědu stejného dne tlačítkem
+**Zkopírovat jídla z obědu**. Ukládá se po jednotlivých obědech a večeřích.
+
+Smazat jde i jídlo, které si už někdo vybral — ti lidé pak dostanou výchozí
+jídlo (admin se před smazáním zeptá). Kdy jídelníček uvidí účastníci a do
+kdy si vybírají, řídí v Nastavení **Zveřejnění jídelníčku** a **Ukončení
+prodeje jídla**.
+
+Počty pro jídelnu jsou v Reportech: **Jídlo: počty konkrétních jídel**
+(kolik kterého jídla uvařit, porce bez výběru se počítají k výchozímu jídlu)
+a **Jídlo: výběr jídel účastníků** (kdo dostane co).
+
 ## Slevové poukazy
 
 Přehled poukazů na jednu aktivitu zdarma s počty **Celkem / platných /

@@ -22,7 +22,8 @@ Nejdůležitější skupina — termíny, které řídí celý ročník.
 | Začátek / Ukončení registrací účastníků | Od kdy a do kdy se lze registrovat na GC přes web. Konec registrací musí být nejpozději na konci GC — dřívější datum systém odmítne. |
 | Začátek první / druhé / třetí vlny aktivit | Kdy se hromadně aktivují aktivity „Připravené k aktivaci" — tedy kdy se otevře přihlašování na další dávku aktivit. **Klíčové termíny ročníku**; posun vlny na špatné datum znamená, že se aktivity neotevřou, kdy mají. |
 | První / Druhé / Třetí hromadné odhlašování | Kdy budou hromadně odhlášeni neplatiči. |
-| Ukončení prodeje ubytování / jídla / triček / mikin / předmětů | Do kdy (včetně daného dne) lze v přihlášce danou věc objednat a měnit, než se zamkne. |
+| Ukončení prodeje ubytování / jídla / triček / mikin / předmětů | Do kdy (včetně daného dne) lze v přihlášce danou věc objednat a měnit, než se zamkne. U jídla je to zároveň konec výběru konkrétních jídel. |
+| Zveřejnění jídelníčku | Od kdy je na webu vidět jídelníček a účastníci si k objednaným obědům a večeřím vybírají konkrétní jídla. Výchozí je 14 dní před začátkem GameConu. |
 | Do kolika dní po GC lze přidat účastníka | Jak dlouho po akci mohou vypravěči doplňovat účastníky na neuzavřené aktivity. |
 | Ročník | Který ročník GC je aktivní — jen pro čtení, tady ho nezměníš. |
 

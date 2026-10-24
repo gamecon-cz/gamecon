@@ -13,13 +13,16 @@ rozhoduje to, jestli je zboží objednané na hlavu u dodavatele, nebo leží na
 
 Pult objednává dál po termínu u všech sekcí — proto admin obrazovky existují.
 
-## Jídlo: počet porcí, ne konkrétní jídla
+## Jídlo: počet porcí a od roku 2027 i konkrétní jídla
 
-Catering dostane **počet porcí**, ne seznam jmen. Org to takhle vysvětluje účastníkům
+Catering dostával jen **počet porcí**, ne seznam jmen. Org to takhle vysvětloval účastníkům
 (dotaz na rezervaci bezlepkového jídla):
 
 > „Možnost rezervace konkrétního jídla bohužel také nedokážeme zajistit, protože
 > objednáváme konkrétní počet porcí, nikoliv jednotlivých jídel."
+
+Nově se 14 dní před GameConem zveřejní jídelníček a k porci se vybírá konkrétní jídlo; výběr
+končí ve stejný termín jako prodej jídla *(záměr)*. Viz [jidelnicek-vyber-jidla](jidelnicek-vyber-jidla.md).
 
 Důsledek pro zrušení: porce je po termínu nevratná. Když účastník onemocní, orgy řeší
 **převodem na jinou osobu na infopultu**, ne zrušením.

@@ -18,7 +18,8 @@ Stránka **Přihláška** je dostupná jen přihlášenému uživateli a jen v o
 
 - **Předměty** — GameCon merch (placky, kostky, mikiny, trička…), lze objednat i více kusů. Trička a mikiny mají vlastní (dřívější) uzávěrku než ostatní merch; konkrétní termíny jsou vypsané přímo ve formuláři.
 - **Ubytování** — čísla ukazují obsazenost/kapacitu, ubytování je od středy (program začíná ve čtvrtek v poledne), běžně jde objednat minimálně na 2 navazující noci, hotelové pokoje mají v ceně snídani. Organizátoři mají ubytování zdarma, vypravěči mají bonus dle množství vyprávěných aktivit.
-- **Jídlo** — obědy a večeře, na výběr 3–5 jídel včetně vegetariánského, jídelníček je na webu. Objednat nebo zrušit lze do termínu uvedeného ve formuláři.
+- **Jídlo** — snídaně, obědy a večeře; objednává se porce. Objednat nebo zrušit lze do termínu uvedeného ve formuláři.
+- **Výběr jídel** — 14 dní před GameConem zveřejníme jídelníček (na webu na stránce **Jídelníček**). Od té chvíle si účastník ke každému objednanému obědu a večeři vybere konkrétní jídlo (3–5 jídel včetně vegetariánského), a to v přihlášce pod mřížkou jídel nebo přímo na stránce Jídelníček. Měnit jde do konce prodeje jídla. Kdo si nevybere, dostane jídlo označené jako **výchozí**. Snídaně jsou švédský stůl, k nim se nic nevybírá.
 - **Dobrovolné vstupné** — libovolný příspěvek, na posuvníku se ukazuje průměrné loňské vstupné.
 - **„Chceš se zapojit do organizace?"** — účastník může vyznačit zájem pomoct jako dobrovolník, vypravěč, organizátor či partner a dopsat detail.
 
@@ -107,4 +108,5 @@ Placení:
 | Můžu se odhlásit z aktivity? | Ano, ale při odhlášení na poslední chvíli (zhruba den před začátkem) se platí storno; kdo nedorazí vůbec, platí plnou cenu. |
 | Jak se odhlásím z celého GameConu? | Tlačítkem na přihlášce — zruší se tím všechny aktivity i nákupy. Během GameConu to jde už jen na infopultu. |
 | Je mi méně než 15 let, co potřebuji? | Potvrzení zákonného zástupce — formulář je ke stažení na přihlášce, nahrává se tamtéž, případně se odevzdá na infopultu. |
+| Kdy si vyberu, co budu jíst? | Jakmile zveřejníme jídelníček (14 dní před GameConem), v přihlášce nebo na stránce Jídelníček, a to do konce prodeje jídla. Kdo si nevybere, dostane výchozí jídlo. Po termínu výběr změní jen infopult. |
 | Můžu změnit objednávku po odeslání přihlášky? | Ano, přihláška jde upravovat opakovaně; každá sekce (trička, ostatní merch, ubytování, jídlo) má ale svou uzávěrku uvedenou přímo ve formuláři. Po začátku GameConu už jen na infopultu. |

@@ -54,7 +54,9 @@ Přesný seznam se v čase mění (a liší se podle tvých práv), tohle jsou t
 - **Zázemí & Program: Seznam účastníků a triček** — velikosti triček pro objednávku.
 - **Zázemí & Program: Potvrzení pro návštěvníky mladší patnácti let** — kdo potřebuje potvrzení od rodičů.
 - **Nepřihlášení a neubytovaní vypravěči + další** — koho z vypravěčů je potřeba ještě „dohnat".
-- **Stravenky uživatelů** a **Stravenky (bianco)** — tisk stravenek.
+- **Stravenky uživatelů** a **Stravenky (bianco)** — tisk stravenek. Na stravence k obědu a večeři je i konkrétní jídlo z jídelníčku (vybrané, jinak výchozí).
+- **Jídlo: počty konkrétních jídel** — kolik kterého jídla z jídelníčku uvařit, po dnech; porce bez výběru se počítají k výchozímu jídlu, v seznamu jsou i jídla, která si nikdo nevybral. Podklad pro jídelnu.
+- **Jídlo: výběr jídel účastníků** — kdo dostane jaké jídlo k obědům a večeřím a jestli si ho vybral sám.
 
 ### Infopult
 

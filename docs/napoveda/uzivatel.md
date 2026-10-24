@@ -25,7 +25,7 @@ Tabulka nocí (sloupce) a typů ubytování (řádky) s cenou za noc a obsazenos
 
 ### Jídlo uživatele
 
-Mřížka dnů a jídel (snídaně, obědy, večeře) se zaškrtávátky. Platí pravidla uvedená přímo na stránce: **„Zrušit jídlo je možné jenom oproti vrácené stravence. Při objednání jídla je naopak potřeba předat stravenku (a zkontrolovat stav financí). Snídaně nabízíme jen organizátorům a vypravěčům."** Změny ulož tlačítkem **Uložit**. Pokud má uživatel nějaké jídlo objednané, objeví se odkaz **Tisk stravenek**.
+Mřížka dnů a jídel (snídaně, obědy, večeře) se zaškrtávátky. Platí pravidla uvedená přímo na stránce: **„Zrušit jídlo je možné jenom oproti vrácené stravence. Při objednání jídla je naopak potřeba předat stravenku (a zkontrolovat stav financí). Snídaně nabízíme jen organizátorům a vypravěčům."** Změny ulož tlačítkem **Uložit**. Pokud má uživatel nějaké jídlo objednané, objeví se odkaz **Tisk stravenek**. Pod mřížkou je **Výběr jídel**: konkrétní jídlo k objednaným obědům a večeřím, které můžeš změnit i po termínu (stejně jako na Infopultu).
 
 ### Nastavení pokojů
 
