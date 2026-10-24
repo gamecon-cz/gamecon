@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Tests\Audit;
 
+use App\Entity\MealDish;
 use App\Entity\Order;
 use App\Entity\OrderItem;
 use App\Entity\OrderItemLog;
@@ -511,8 +512,10 @@ class OrderItemAuditListenerTest extends AbstractDatabaseKernelTestCase
         $order->setYear(ROCNIK);
         $bundle = new ProductBundle();
         $bundle->setName('Balíček na víkend');
+        $dish = new MealDish($variant, ROCNIK, 'Guláš');
         $this->entityManager()->persist($order);
         $this->entityManager()->persist($bundle);
+        $this->entityManager()->persist($dish);
         $this->entityManager()->flush();
 
         $item = new OrderItem();
@@ -521,6 +524,7 @@ class OrderItemAuditListenerTest extends AbstractDatabaseKernelTestCase
         $item->setOrder($order);
         $item->setVariant($variant);
         $item->setBundle($bundle);
+        $item->setMealDish($dish);
         $item->setYear(ROCNIK);
         // Filled so that a left-out column which started to be logged would show up as an extra one.
         $item->setProductName('Placka');
@@ -547,6 +551,7 @@ class OrderItemAuditListenerTest extends AbstractDatabaseKernelTestCase
             'order_id'          => [null, $order->getId()],
             'variant_id'        => [null, $variant->getId()],
             'bundle_id'         => [null, $bundle->getId()],
+            'meal_dish_id'      => [null, $dish->getId()],
             'rok'               => [null, ROCNIK],
             'cena_nakupni'      => [null, '40.00'],
             'original_price'    => [null, '50.00'],

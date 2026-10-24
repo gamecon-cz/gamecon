@@ -61,6 +61,14 @@ class OrderItem
     #[ORM\JoinColumn(name: 'bundle_id', referencedColumnName: 'id', nullable: true, onDelete: 'SET NULL')]
     private ?ProductBundle $bundle = null;
 
+    /**
+     * Jídlo z jídelníčku vybrané k téhle porci. NULL = nevybráno, účastník dostane výchozí
+     * jídlo slotu (MealDish::isDefault()). Nic jiného než porci jídla to nemá.
+     */
+    #[ORM\ManyToOne(targetEntity: MealDish::class)]
+    #[ORM\JoinColumn(name: 'meal_dish_id', referencedColumnName: 'id', nullable: true, onDelete: 'RESTRICT')]
+    private ?MealDish $mealDish = null;
+
     #[ORM\Column(name: 'rok', type: Types::SMALLINT, nullable: false)]
     #[Assert\Positive(message: 'Rok musí být kladné číslo')]
     private int $year;
@@ -219,6 +227,18 @@ class OrderItem
     public function setVariant(?ProductVariant $variant): self
     {
         $this->variant = $variant;
+
+        return $this;
+    }
+
+    public function getMealDish(): ?MealDish
+    {
+        return $this->mealDish;
+    }
+
+    public function setMealDish(?MealDish $mealDish): self
+    {
+        $this->mealDish = $mealDish;
 
         return $this;
     }

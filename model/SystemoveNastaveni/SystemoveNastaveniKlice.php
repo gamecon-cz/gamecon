@@ -21,6 +21,7 @@ class SystemoveNastaveniKlice
     public const REG_GC_DO                                                    = 'REG_GC_DO';
     public const REG_GC_OD                                                    = 'REG_GC_OD';
     public const JIDLO_LZE_OBJEDNAT_A_MENIT_DO_DNE                            = 'JIDLO_LZE_OBJEDNAT_A_MENIT_DO_DNE';
+    public const JIDELNICEK_ZVEREJNIT_OD                                      = 'JIDELNICEK_ZVEREJNIT_OD';
     public const KURZ_EURO                                                    = 'KURZ_EURO';
     public const NEPLATIC_CASTKA_POSLAL_DOST                                  = 'NEPLATIC_CASTKA_POSLAL_DOST';
     public const NEPLATIC_CASTKA_VELKY_DLUH                                   = 'NEPLATIC_CASTKA_VELKY_DLUH';

@@ -17,6 +17,7 @@ const TEXT_PRO_SPAROVANI_ODCHOZI_PLATBY            = '';
 
 const UBYTOVANI_LZE_OBJEDNAT_A_MENIT_DO_DNE           = '';
 const JIDLO_LZE_OBJEDNAT_A_MENIT_DO_DNE               = '';
+const JIDELNICEK_ZVEREJNIT_OD                         = '';
 const MIKINY_LZE_OBJEDNAT_A_MENIT_DO_DNE              = '';
 const PREDMETY_BEZ_TRICEK_LZE_OBJEDNAT_A_MENIT_DO_DNE = '';
 const TRICKA_LZE_OBJEDNAT_A_MENIT_DO_DNE              = '';

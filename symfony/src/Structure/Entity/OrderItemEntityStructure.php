@@ -108,4 +108,9 @@ class OrderItemEntityStructure
      * @see OrderItem::$bundle
      */
     public const bundle = 'bundle';
+
+    /**
+     * @see OrderItem::$mealDish
+     */
+    public const mealDish = 'mealDish';
 }

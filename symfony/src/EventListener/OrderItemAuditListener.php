@@ -43,6 +43,7 @@ class OrderItemAuditListener
         'order',
         'variant',
         'bundle',
+        'mealDish',
         'year',
         'purchasePrice',
         'originalPrice',

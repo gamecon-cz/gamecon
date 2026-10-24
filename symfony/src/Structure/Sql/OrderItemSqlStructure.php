@@ -110,4 +110,9 @@ class OrderItemSqlStructure
      * @see OrderItem::$bundle
      */
     public const bundle_id = 'bundle_id';
+
+    /**
+     * @see OrderItem::$mealDish
+     */
+    public const meal_dish_id = 'meal_dish_id';
 }

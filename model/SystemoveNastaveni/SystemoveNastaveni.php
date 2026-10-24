@@ -714,6 +714,10 @@ SQL;
                                                                                         ->formatDb(),
                 Klic::UBYTOVANI_LZE_OBJEDNAT_A_MENIT_DO_DNE           => $tretiHromadneOdhlasovaniKdy,
                 Klic::JIDLO_LZE_OBJEDNAT_A_MENIT_DO_DNE               => $tretiHromadneOdhlasovaniKdy,
+                // jídelní lístek dostáváme a zveřejňujeme 14 dní před GameConem
+                Klic::JIDELNICEK_ZVEREJNIT_OD                         => DateTimeGamecon::spocitejZacatekGameconu($this->rocnik())
+                                                                                        ->modify('-14 days')
+                                                                                        ->formatDatumDb(),
                 Klic::MIKINY_LZE_OBJEDNAT_A_MENIT_DO_DNE              => $konecProdejePredmetuBezTricekKdy,
                 Klic::PREDMETY_BEZ_TRICEK_LZE_OBJEDNAT_A_MENIT_DO_DNE => $konecProdejePredmetuBezTricekKdy,
                 Klic::TRICKA_LZE_OBJEDNAT_A_MENIT_DO_DNE              => $this->rocnik() === 2023
@@ -839,6 +843,22 @@ SQL;
     public function prodejJidlaUkoncen(): bool
     {
         return $this->prodejJidlaDo() < $this->ted();
+    }
+
+    /**
+     * Od kdy je vidět jídelníček a dají se vybírat konkrétní jídla k objednaným porcím.
+     * Vybírat jde do konce prodeje jídla, @see prodejJidlaDo()
+     */
+    public function jidelnicekZverejnitOd(): DateTimeImmutableStrict
+    {
+        // viz prodejUbytovaniDo() – dejHodnotu kvůli nedefinované konstantě v dávkových tocích
+        return (new DateTimeImmutableStrict($this->dejHodnotu(Klic::JIDELNICEK_ZVEREJNIT_OD)))
+            ->setTime(0, 0);
+    }
+
+    public function jeJidelnicekZverejnen(): bool
+    {
+        return $this->jidelnicekZverejnitOd() <= $this->ted();
     }
 
     public function prodejTricekDo(): DateTimeImmutableStrict
