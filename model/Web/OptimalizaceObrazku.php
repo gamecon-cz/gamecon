@@ -115,7 +115,8 @@ final class OptimalizaceObrazku
     }
 
     /**
-     * Nižší JPEG se neukládá s vyšší kvalitou, než jakou má, jen by se zbytečně zvětšil.
+     * Nižší JPEG se neukládá s vyšší kvalitou, než jakou má: pevných 85 by z něj udělalo větší soubor, WebP i JPEG.
+     * Rezerva nad kvalitu zdroje by u JPEG zvětšila i výsledek, u hladkého obrázku i WebP.
      */
     private function kvalitaVystupu(\Imagick $imagick, string $zdrojovyMime): int
     {

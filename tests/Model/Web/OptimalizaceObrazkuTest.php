@@ -403,6 +403,63 @@ class OptimalizaceObrazkuTest extends TestCase
     /**
      * @test
      */
+    public function svgStejnehoNazvuNovemuRastrovemuObrazkuNevadi(): void
+    {
+        file_put_contents($this->koren . '/logo.svg', '<svg xmlns="http://www.w3.org/2000/svg"/>');
+        $nahravani = new NahravaniObrazku(
+            $this->koren,
+            formaty: [...NahravaniObrazku::RASTROVE_FORMATY, NahravaniObrazku::SVG],
+            optimalizace: new OptimalizaceObrazku(),
+        );
+
+        $ulozeno = $nahravani->ulozNovy($nahravani->overSoubor($this->soubor('logo.png', self::pngSPolovinouPruhlednou(20, 10))), '', 'logo');
+
+        self::assertSame($this->koren . '/logo.webp', $ulozeno);
+    }
+
+    /**
+     * @test
+     */
+    public function svgNovemuSouboruNevadiRastrovyObrazekStejnehoNazvu(): void
+    {
+        file_put_contents($this->koren . '/logo.jpg', 'stary');
+        $nahravani = new NahravaniObrazku(
+            $this->koren,
+            formaty: [...NahravaniObrazku::RASTROVE_FORMATY, NahravaniObrazku::SVG],
+            optimalizace: new OptimalizaceObrazku(),
+        );
+        $svg = $this->soubor('logo.svg', '<svg xmlns="http://www.w3.org/2000/svg" width="10" height="10"><rect width="10" height="10"/></svg>');
+
+        $ulozeno = $nahravani->ulozNovy($nahravani->overSoubor($svg), '', 'logo');
+
+        self::assertSame($this->koren . '/logo.svg', $ulozeno);
+    }
+
+    public static function provideNahraditWebpNejde(): iterable
+    {
+        yield 'GIF' => ['pohyb.gif', self::gifBajty()];
+        yield 'animovaný PNG' => ['pohyb.png', self::apngBajty(10, 10)];
+    }
+
+    /**
+     * @test
+     *
+     * @dataProvider provideNahraditWebpNejde
+     */
+    public function nahrazeniWebpGifemNeboAnimovanymPngemSeOdmitneSJasnouHlaskou(string $nazev, string $bajty): void
+    {
+        file_put_contents($this->koren . '/a.webp', 'stary');
+        $nahravani = $this->nahravani();
+        $obrazek = $nahravani->overSoubor($this->soubor($nazev, $bajty));
+
+        $this->expectException(NahravaniObrazkuException::class);
+        $this->expectExceptionMessage('Nahraj prosím WebP, JPG nebo PNG bez animace');
+        $nahravani->nahrad($obrazek, 'a.webp');
+    }
+
+    /**
+     * @test
+     */
     public function animovanyPngZustaneJakoByl(): void
     {
         $zdroj = $this->soubor('animace.png', self::apngBajty(2500, 2000));
