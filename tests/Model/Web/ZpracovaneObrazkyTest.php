@@ -62,6 +62,20 @@ class ZpracovaneObrazkyTest extends TestCase
     }
 
     /**
+     * Služba cestu před použitím skládá ze segmentů a prázdné zahodí, takže `2026//eshop` je pro ni `2026/eshop`.
+     *
+     * @test
+     */
+    public function adresareJinychModuluPoznaIKdyzJeVCesteDvojiteNeboUvodniLomitko(): void
+    {
+        self::assertTrue(ZpracovaneObrazky::jeAdresarJinehoModulu('materialy/2026//eshop/01_Blok.jpg'));
+        self::assertTrue(ZpracovaneObrazky::jeAdresarJinehoModulu('materialy///2026\\\\eshop\\01_Blok.jpg'));
+        self::assertTrue(ZpracovaneObrazky::jeAdresarJinehoModulu('/sponzori/logo.png'));
+        self::assertTrue(ZpracovaneObrazky::jeAdresarJinehoModulu('//partneri//logo.png'));
+        self::assertTrue(ZpracovaneObrazky::jeAdresarJinehoModulu('materialy/2026/eshop/'), 'Samotný adresář');
+    }
+
+    /**
      * @test
      */
     public function bezneAdresareObsahuNejsouAdresareJinychModulu(): void

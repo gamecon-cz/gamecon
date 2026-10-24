@@ -100,7 +100,8 @@ readonly class ZpracovaneObrazky
     }
 
     /**
-     * Loga spravuje modul Loga a galerii e-shopu modul Shop, každý s vlastním právem, editor textu do nich nesahá.
+     * Loga spravuje modul Loga a galerii e-shopu modul Shop, každý s vlastním právem. Editor textu ani stránka
+     * Soubory do nich nesahají.
      *
      * @param string $cestaVuciObsahu například `sponzori/logo.png`
      */
@@ -113,8 +114,10 @@ readonly class ZpracovaneObrazky
             self::ADRESAR_MATERIALU,
             self::ADRESAR_ESHOPU,
         );
+        // NahravaniObrazku skládá cestu ze segmentů a prázdné zahazuje, `2026//eshop` je pro něj `2026/eshop`
+        $cesta = ltrim((string) preg_replace('~/{2,}~', '/', str_replace('\\', '/', $cestaVuciObsahu)), '/');
 
-        return preg_match($vzor, str_replace('\\', '/', $cestaVuciObsahu)) === 1;
+        return preg_match($vzor, $cesta) === 1;
     }
 
     /**
