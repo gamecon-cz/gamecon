@@ -330,12 +330,29 @@
                     zobrazCenuBrigadnickeAktivity()
 
                     function dejDelkuAkceVHodinach() {
-                        const zacatekAkce = Number.parseInt(document.getElementById('zacatekAkce').value.trim())
-                        const konecAkce = Number.parseInt(document.getElementById('konecAkce').value.trim())
-                        if (zacatekAkce < konecAkce) {
-                            return konecAkce - zacatekAkce
+                        const zacatekAkce = dejMinutyOdZacatkuDne(document.getElementById('zacatekAkce').value, false)
+                        const konecAkce = dejMinutyOdZacatkuDne(document.getElementById('konecAkce').value, true)
+                        if (zacatekAkce !== null && konecAkce !== null && zacatekAkce < konecAkce) {
+                            return (konecAkce - zacatekAkce) / 60
                         }
                         return 0
+                    }
+
+                    // stejně jako Program::denAktivityDleZacatku / denAktivityDleKonce – čas před začátkem programu patří do dalšího dne
+                    function dejMinutyOdZacatkuDne(cas, jeKonec) {
+                        const casti = /^(\d{1,2})(?::(\d{2}))?$/.exec(cas.trim())
+                        if (!casti) {
+                            return null
+                        }
+                        const minuty = Number(casti[1]) * 60 + Number(casti[2] ?? 0)
+                        // proměnná šablony na konci řádku by spolkla odřádkování (PHP za ?>), proto v uvozovkách
+                        const zacatekProgramu = Number.parseInt('{zacatekProgramuMinut}', 10)
+                        const patriDoDalsihoDne = jeKonec
+                            ? minuty <= zacatekProgramu
+                            : minuty < zacatekProgramu
+                        return patriDoDalsihoDne
+                            ? minuty + 24 * 60
+                            : minuty
                     }
                 }
 

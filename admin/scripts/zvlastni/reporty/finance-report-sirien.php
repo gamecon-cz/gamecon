@@ -57,8 +57,9 @@ $maPravoUzivatele = static fn (string $sloupecUzivatele, int $pravo): string => 
              AND prava_role.id_prava = {$pravo})
     SQL;
 
+// necelé hodiny nahoru (1:15 jako 2 h) a nad 13 h dál po dvou hodinách, stejně jako SystemoveNastaveni::getActivityStandardLengthCoefficient
 $delkaAktivityJakoNasobekStandardni = <<<SQL
-    CASE HOUR(TIMEDIFF(akce_seznam.konec, akce_seznam.zacatek))
+    CASE CEIL(TIMESTAMPDIFF(MINUTE, akce_seznam.zacatek, akce_seznam.konec) / 60)
         WHEN 1 THEN 0.25
         WHEN 2 THEN 0.5
         WHEN 3 THEN 1
@@ -72,6 +73,11 @@ $delkaAktivityJakoNasobekStandardni = <<<SQL
         WHEN 11 THEN 2.5
         WHEN 12 THEN 3
         WHEN 13 THEN 3
+        ELSE IF(
+            CEIL(TIMESTAMPDIFF(MINUTE, akce_seznam.zacatek, akce_seznam.konec) / 60) > 13,
+            3 + 0.5 * CEIL((CEIL(TIMESTAMPDIFF(MINUTE, akce_seznam.zacatek, akce_seznam.konec) / 60) - 13) / 2),
+            NULL
+        )
     END
     SQL;
 

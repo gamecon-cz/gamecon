@@ -220,6 +220,56 @@ class ZmenyAktivitySPrihlasenymiTest extends TestCase
         self::assertStringContainsString('čas', $zmeny->dejTextPotvrzeniZmenyUdajuSPrihlasenymi());
     }
 
+    public function testSPrihlasenymiStejnyCasVeCtvrthodinach(): void
+    {
+        $aktivita = $this->vytvorAktivituSMocky(2, '2026-07-16', '2026-07-16 10:15:00', '2026-07-17 00:00:00', 100);
+
+        $dataZFormulare = [
+            'den'        => '2026-07-16',
+            Sql::ZACATEK => '10:15',
+            Sql::KONEC   => '24:00', // půlnoc na konci dne
+            Sql::CENA    => 100,
+        ];
+
+        $zmeny = new ZmenyAktivitySPrihlasenymi($aktivita, $dataZFormulare);
+        self::assertFalse($zmeny->maZmenySPrihlasenymi(), 'Očekáváno bez změn.');
+    }
+
+    /**
+     * Starší čas mimo čtvrthodiny editor předvybere zaokrouhlený dolů; uložení beze změny pak nesmí
+     * hlásit změnu času, jinak by aktivitu nešlo uložit (varování by se vracelo pořád dokola).
+     */
+    public function testSPrihlasenymiCasMimoCtvrthodinyUlozenyBezeZmeny(): void
+    {
+        $aktivita = $this->vytvorAktivituSMocky(2, '2026-07-16', '2026-07-16 14:10:00', '2026-07-16 16:50:00', 100);
+
+        $dataZFormulare = [
+            'den'        => '2026-07-16',
+            Sql::ZACATEK => '14:00',
+            Sql::KONEC   => '16:45',
+            Sql::CENA    => 100,
+        ];
+
+        $zmeny = new ZmenyAktivitySPrihlasenymi($aktivita, $dataZFormulare);
+        self::assertFalse($zmeny->maZmenySPrihlasenymi(), 'Očekáváno bez změn.');
+    }
+
+    public function testSPrihlasenymiZmenenCasOCtvrthodinu(): void
+    {
+        $aktivita = $this->vytvorAktivituSMocky(2, '2026-07-16', '2026-07-16 10:00:00', '2026-07-16 12:00:00', 100);
+
+        $dataZFormulare = [
+            'den'        => '2026-07-16',
+            Sql::ZACATEK => '10:00',
+            Sql::KONEC   => '12:15', // změna z 12:00 na 12:15
+            Sql::CENA    => 100,
+        ];
+
+        $zmeny = new ZmenyAktivitySPrihlasenymi($aktivita, $dataZFormulare);
+        self::assertTrue($zmeny->maZmenySPrihlasenymi());
+        self::assertStringContainsString('čas', $zmeny->dejTextPotvrzeniZmenyUdajuSPrihlasenymi());
+    }
+
     public function testSPrihlasenymiZmenenaCena(): void
     {
         $aktivita = $this->vytvorAktivituSMocky(2, '2026-07-16', '2026-07-16 10:00:00', '2026-07-16 12:00:00', 100);
