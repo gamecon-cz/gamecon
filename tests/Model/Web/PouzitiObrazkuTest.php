@@ -380,7 +380,7 @@ SQL,
             self::fail('Použitý obrázek neměl jít smazat');
         } catch (NahravaniObrazkuException $nahravaniObrazkuException) {
             self::assertStringStartsWith(
-                'Na obrázek obrazek_1.jpg odkazuje stránka kontakty-test',
+                'Na soubor obrazek_1.jpg odkazuje stránka kontakty-test',
                 $nahravaniObrazkuException->getMessage(),
             );
         }
@@ -424,7 +424,7 @@ SQL,
             self::fail('Použitý obrázek neměl jít smazat');
         } catch (NahravaniObrazkuException $nahravaniObrazkuException) {
             self::assertSame(
-                'Na obrázek obrazek_1.jpg odkazuje stránka kontakty-test, blog Testovací blog, aktivita Testovací aktivita ('
+                'Na soubor obrazek_1.jpg odkazuje stránka kontakty-test, blog Testovací blog, aktivita Testovací aktivita ('
                 . ROCNIK . ') a 1 další. Nejdřív prosím odkaz odstraň.',
                 $nahravaniObrazkuException->getMessage(),
             );

@@ -13,6 +13,7 @@ use Symfony\Component\Filesystem\Filesystem;
 class NahravaniObrazkuTest extends TestCase
 {
     use TestovaciObrazky;
+    use TestovaciDokumenty;
 
     /**
      * 1 × 1 px bezztrátové WebP, GD v našem obrazu WebP zapsat neumí
@@ -95,7 +96,7 @@ class NahravaniObrazkuTest extends TestCase
      */
     public function odmitnePrilisVelkySoubor(): void
     {
-        $this->ocekavejChybu('Obrázek je příliš velký, maximum je 1 kB.');
+        $this->ocekavejChybu('Soubor je příliš velký, maximum je 1 kB.');
         (new NahravaniObrazku($this->koren, maxVelikostMb: 0.0001))->overSoubor($this->jpg('velka.jpg', 300, 300));
     }
 
@@ -186,7 +187,7 @@ class NahravaniObrazkuTest extends TestCase
             ], 'Není vybraný žádný soubor.'],
             [[
                 'error' => UPLOAD_ERR_INI_SIZE,
-            ], 'Obrázek je příliš velký'],
+            ], 'Soubor je příliš velký'],
             [[
                 'error' => UPLOAD_ERR_PARTIAL,
             ], 'chyba 3'],
@@ -252,7 +253,7 @@ class NahravaniObrazkuTest extends TestCase
             $nahravani->ulozJakoJediny($nahravani->overSoubor($this->png('nova.png')), '', '42');
             self::fail('Zápis na místo, kde je adresář, měl selhat');
         } catch (NahravaniObrazkuException $nahravaniObrazkuException) {
-            self::assertSame('Obrázek se nepodařilo uložit.', $nahravaniObrazkuException->getMessage());
+            self::assertSame('Soubor se nepodařilo uložit.', $nahravaniObrazkuException->getMessage());
         }
 
         self::assertSame(['42.jpg', '42.png'], $this->souboryVKoreni(), 'Stará fotka zůstala a po dočasném souboru nezbylo nic');
@@ -268,7 +269,7 @@ class NahravaniObrazkuTest extends TestCase
         $nahravani->ulozNovy($nahravani->overSoubor($this->png('a.png')), 'stranky/kontakty', 'mapa');
 
         self::assertFileExists($this->koren . '/stranky/kontakty/mapa.png');
-        $this->ocekavejChybu('Obrázek mapa.png už existuje.');
+        $this->ocekavejChybu('Soubor mapa.png už existuje.');
         $nahravani->ulozNovy($nahravani->overSoubor($this->png('b.png')), 'stranky/kontakty', 'mapa');
     }
 
@@ -301,7 +302,7 @@ class NahravaniObrazkuTest extends TestCase
         file_put_contents($this->koren . '/index.php', '<?php');
         $nahravani = new NahravaniObrazku($this->koren);
 
-        $this->ocekavejChybu('index.php není obrázek, který by tu šlo nahradit.');
+        $this->ocekavejChybu('Soubor index.php tu nejde nahradit, jeho typ tu není povolený.');
         $nahravani->nahrad($nahravani->overSoubor($this->png('a.png')), 'index.php');
     }
 
@@ -393,7 +394,7 @@ class NahravaniObrazkuTest extends TestCase
         $nahravani->smaz('obrazek.png');
         self::assertFileDoesNotExist($this->koren . '/obrazek.png');
 
-        $this->ocekavejChybu('Obrázek neexistuje.');
+        $this->ocekavejChybu('Soubor neexistuje.');
         $nahravani->smaz('poznamky.txt');
     }
 
@@ -416,7 +417,7 @@ class NahravaniObrazkuTest extends TestCase
                 self::fail('Použitý obrázek neměl jít smazat');
             } catch (NahravaniObrazkuException $nahravaniObrazkuException) {
                 self::assertStringStartsWith(
-                    'Na obrázek 42.jpg odkazuje stránka kontakty.',
+                    'Na soubor 42.jpg odkazuje stránka kontakty.',
                     $nahravaniObrazkuException->getMessage(),
                 );
             }
@@ -542,6 +543,351 @@ class NahravaniObrazkuTest extends TestCase
         self::assertMatchesRegularExpression(
             '~^Nahrávaný soubor je příliš velký, server přijme nejvýš \d+(,\d)? (kB|MB)\.$~u',
             NahravaniObrazku::zpravaOPrilisVelkemPozadavku(),
+        );
+    }
+
+    /**
+     * @test
+     */
+    public function dokumentPoznaPodleObsahuAPriponuDopocita(): void
+    {
+        $nahravani = $this->sluzbaProDokumenty();
+
+        $pdf = $nahravani->overSoubor($this->soubor('smlouva.mp3', self::pdfBajty()));
+        self::assertSame([NahravaniObrazku::PDF, 'pdf', null, null], [$pdf->mime, $pdf->pripona, $pdf->sirka, $pdf->vyska]);
+        self::assertSame('xlsx', $nahravani->overSoubor($this->soubor('tabulka.zip', self::xlsxBajty()))->pripona);
+        self::assertSame('zip', $nahravani->overSoubor($this->soubor('archiv.xlsx', self::zipBajty()))->pripona);
+        self::assertSame('mp3', $nahravani->overSoubor($this->soubor('nahravka.pdf', self::mp3Bajty()))->pripona);
+        self::assertSame('png', $nahravani->overSoubor($this->png('obrazek.pdf'))->pripona, 'Složka s dokumenty bere i obrázky');
+    }
+
+    /**
+     * @test
+     */
+    public function sluzbaProObrazkyDokumentNepusti(): void
+    {
+        $this->ocekavejChybu('Soubor není obrázek, nahraj prosím JPG, PNG, GIF nebo WebP.');
+        (new NahravaniObrazku($this->koren))->overSoubor($this->soubor('smlouva.pdf', self::pdfBajty()));
+    }
+
+    /**
+     * @test
+     */
+    public function odmitneDokumentKteryTuNeniPovoleny(): void
+    {
+        $this->ocekavejChybu('Formát MP3 tu nejde použít, nahraj prosím PDF.');
+        (new NahravaniObrazku($this->koren, formaty: [NahravaniObrazku::PDF]))
+            ->overSoubor($this->soubor('nahravka.mp3', self::mp3Bajty()));
+    }
+
+    public static function provideSouboryKterePoslouNaDokumenty(): array
+    {
+        return [
+            'skript s příponou PDF' => ['smlouva.pdf', '<?php echo "ahoj";', 'Soubor tohoto typu tu nejde nahrát, povolené jsou PDF, MP3, ZIP, XLSX, JPG, PNG, GIF nebo WebP.'],
+            'Word'                  => ['dopis.docx', self::docxBajty(), 'Dokument z Wordu, PowerPointu, Excelu s makry nebo LibreOffice tu nejde nahrát.'],
+            'LibreOffice'           => ['dopis.odt', self::odtBajty(), 'Dokument z Wordu, PowerPointu, Excelu s makry nebo LibreOffice tu nejde nahrát.'],
+            'Excel s makry'         => ['tabulka.xlsm', self::xlsmBajty(), 'Ulož ho prosím jako PDF, tabulku jako XLSX bez maker.'],
+            'iPhone HEIC'           => ['IMG_0001.HEIC', 'ftypheic' . "\0\0\0\0\0\0\0\0", 'Fotku z iPhonu (HEIC) je potřeba nejdřív uložit jako JPG.'],
+        ];
+    }
+
+    /**
+     * @test
+     *
+     * @dataProvider provideSouboryKterePoslouNaDokumenty
+     */
+    public function odmitneSouborKterySeNaDokumentTvariJenSPriponou(string $nazev, string $obsah, string $ocekavanaChyba): void
+    {
+        $this->ocekavejChybu($ocekavanaChyba);
+        $this->sluzbaProDokumenty()->overSoubor($this->soubor($nazev, $obsah));
+    }
+
+    public static function provideRadyKDokumentuOffice(): array
+    {
+        $word = 'Dokument z Wordu, PowerPointu, Excelu s makry nebo LibreOffice tu nejde nahrát.';
+
+        return [
+            'jen PDF'           => [[NahravaniObrazku::PDF], $word . ' Ulož ho prosím jako PDF. Povolené jsou PDF.'],
+            'PDF a tabulky'     => [[NahravaniObrazku::PDF, NahravaniObrazku::XLSX], $word . ' Ulož ho prosím jako PDF, tabulku jako XLSX bez maker. Povolené jsou PDF nebo XLSX.'],
+            'bez PDF a tabulek' => [[NahravaniObrazku::MP3], $word . ' Povolené jsou MP3.'],
+        ];
+    }
+
+    /**
+     * @test
+     *
+     * @dataProvider provideRadyKDokumentuOffice
+     *
+     * @param list<string> $formaty
+     */
+    public function radaKDokumentuOfficeSeRidiPovolenymiFormaty(array $formaty, string $ocekavanaChyba): void
+    {
+        $this->ocekavejChybu($ocekavanaChyba);
+        (new NahravaniObrazku($this->koren, formaty: $formaty))->overSoubor($this->soubor('dopis.docx', self::docxBajty()));
+    }
+
+    /**
+     * getimagesize() umí hledat i obrázek XBM, který je jen text s řádky `#define`.
+     *
+     * @test
+     */
+    public function pdfSRadkyPodobnymiXbmPoznaJakoPdf(): void
+    {
+        $pdf = $this->soubor('a.pdf', self::pdfBajty() . "#define screen_width 640\n#define screen_height 480\n");
+
+        self::assertSame(NahravaniObrazku::PDF, $this->sluzbaProDokumenty()->overSoubor($pdf)->mime);
+    }
+
+    /**
+     * @test
+     */
+    public function obrazekVeSlozceSDokumentyMaVlastniMensiLimit(): void
+    {
+        $nahravani = new NahravaniObrazku(
+            $this->koren,
+            formaty: [NahravaniObrazku::PDF, NahravaniObrazku::JPG],
+            maxVelikostMb: 1,
+            maxVelikostObrazkuMb: 0.0005,
+        );
+
+        self::assertSame(
+            NahravaniObrazku::PDF,
+            $nahravani->overSoubor($this->soubor('velke.pdf', self::pdfBajty() . str_repeat('x', 5000)))->mime,
+            'Dokument se limitem pro obrázky nehlídá',
+        );
+        $this->ocekavejChybu('Obrázek je příliš velký, maximum pro obrázky je 1 kB.');
+        $nahravani->overSoubor($this->jpg('velka.jpg', 100, 100));
+    }
+
+    /**
+     * @test
+     */
+    public function dokumentNahradiJenDokumentStejnehoTypu(): void
+    {
+        file_put_contents($this->koren . '/drd.pdf', 'starý');
+        $nahravani = $this->sluzbaProDokumenty();
+        $novy = $this->soubor('novy.pdf', self::pdfBajty());
+
+        $nahravani->nahrad($nahravani->overSoubor($novy), 'drd.pdf');
+        self::assertFileEquals($novy, $this->koren . '/drd.pdf');
+
+        $this->ocekavejChybu('drd.pdf je ve formátu PDF a nahraný soubor ve formátu ZIP. Nahraj prosím soubor ve stejném formátu');
+        $nahravani->nahrad($nahravani->overSoubor($this->soubor('archiv.zip', self::zipBajty())), 'drd.pdf');
+    }
+
+    /**
+     * @test
+     */
+    public function dokumentNejdeNahraditSouboremJehozTypTuNeniPovoleny(): void
+    {
+        file_put_contents($this->koren . '/stary.docx', 'starý dokument z doby FTP');
+        $nahravani = $this->sluzbaProDokumenty();
+
+        $this->ocekavejChybu('Soubor stary.docx tu nejde nahradit, jeho typ tu není povolený.');
+        $nahravani->nahrad($nahravani->overSoubor($this->soubor('novy.pdf', self::pdfBajty())), 'stary.docx');
+    }
+
+    /**
+     * @test
+     */
+    public function ulozNovyDokumentDoPodslozkyAMazeHo(): void
+    {
+        $nahravani = $this->sluzbaProDokumenty();
+
+        $ulozeno = $nahravani->ulozNovy($nahravani->overSoubor($this->soubor('a.pdf', self::pdfBajty())), '2027/podklady', 'souhlas_rodicu_2027');
+
+        self::assertSame($this->koren . '/2027/podklady/souhlas_rodicu_2027.pdf', $ulozeno);
+        self::assertSame(['2027/podklady/souhlas_rodicu_2027.pdf'], $nahravani->souboryVeStromu());
+        $nahravani->smaz('2027/podklady/souhlas_rodicu_2027.pdf');
+        self::assertSame([], $nahravani->souboryVeStromu());
+    }
+
+    /**
+     * @test
+     */
+    public function souboryVeStromuNevypisujiSouborVickratKdyzSymlinkVedeDoKorene(): void
+    {
+        file_put_contents($this->koren . '/a.pdf', 'x');
+        (new Filesystem())->mkdir($this->koren . '/podslozka');
+        file_put_contents($this->koren . '/podslozka/b.pdf', 'x');
+        // oba odkazy míří dovnitř kořene, takže je nic nezastaví kromě toho, že se přes symlinky nechodí
+        symlink($this->koren, $this->koren . '/smycka');
+        symlink($this->koren . '/podslozka', $this->koren . '/alias');
+
+        self::assertSame(['a.pdf', 'podslozka/b.pdf'], $this->sluzbaProDokumenty()->souboryVeStromu());
+    }
+
+    /**
+     * @test
+     */
+    public function sluzbaProObrazkyNevidiDokumentyVeStejnemAdresari(): void
+    {
+        file_put_contents($this->koren . '/42.pdf', 'životopis');
+        file_put_contents($this->koren . '/43.mp3', 'zvuk');
+        $nahravani = new NahravaniObrazku($this->koren);
+
+        $nahravani->ulozJakoJediny($nahravani->overSoubor($this->png('fotka.png')), '', '42');
+        self::assertFileExists($this->koren . '/42.pdf', 'PDF není varianta fotky, nové PNG ho nesmí smazat');
+        self::assertSame(['42.png'], $nahravani->obrazkyVAdresari());
+
+        $this->ocekavejChybu('Soubor neexistuje.');
+        $nahravani->smaz('43.mp3');
+    }
+
+    /**
+     * @test
+     */
+    public function sluzbaProDokumentyVypisujeIMazeVsechnyZnameTypy(): void
+    {
+        foreach (['a.pdf', 'b.mp3', 'c.zip', 'd.xlsx', 'e.png', 'f.docx', 'poznamky.txt'] as $soubor) {
+            file_put_contents($this->koren . '/' . $soubor, 'x');
+        }
+        $nahravani = $this->sluzbaProDokumenty();
+
+        self::assertSame(['a.pdf', 'b.mp3', 'c.zip', 'd.xlsx', 'e.png'], $nahravani->obrazkyVAdresari());
+        $nahravani->smaz('b.mp3');
+        self::assertFileDoesNotExist($this->koren . '/b.mp3');
+    }
+
+    /**
+     * @test
+     */
+    public function souboryVeStromuVypisuJenSouboryUvnitrKorene(): void
+    {
+        $venku = dirname($this->koren) . '/venku';
+        (new Filesystem())->mkdir([$venku, $this->koren . '/2026/eshop', $this->koren . '/skryty/.git', $this->koren . '/a/b/c/d']);
+        file_put_contents($venku . '/tajne.pdf', 'x');
+        symlink($venku, $this->koren . '/odkaz');
+        foreach ([
+            'drd.pdf', '2026/souhlas.pdf', '2026/eshop/01_Blok.jpg', '.htaccess', 'skryty/.git/config', '.nahravani-abc',
+            'zpětné\\lomítko.pdf', 'a/b/c/uroven3.pdf', 'a/b/c/d/uroven4.pdf', 'Velke.pdf', 'poznamky.txt',
+        ] as $soubor) {
+            file_put_contents($this->koren . '/' . $soubor, 'x');
+        }
+
+        self::assertSame(
+            ['2026/eshop/01_Blok.jpg', '2026/souhlas.pdf', 'a/b/c/uroven3.pdf', 'drd.pdf', 'poznamky.txt', 'Velke.pdf'],
+            $this->sluzbaProDokumenty()->souboryVeStromu(),
+            'Bez skrytých souborů, názvů se zpětným lomítkem, symlinku ven a čtvrtého patra podadresářů, řazeno bez ohledu na velikost písmen',
+        );
+        self::assertSame(['2026/eshop/01_Blok.jpg', '2026/souhlas.pdf'], $this->sluzbaProDokumenty()->souboryVeStromu('2026'));
+        self::assertSame([], $this->sluzbaProDokumenty()->souboryVeStromu('neexistuje'));
+    }
+
+    public static function provideNazvyDokumentu(): array
+    {
+        return [
+            'mezery a diakritika'  => ['Souhlas rodičů 2027.PDF', 'souhlas_rodicu_2027'],
+            'podtržítko zůstává'   => ['tiskova_kronika', 'tiskova_kronika'],
+            'bez cesty'            => ['../../etc/passwd', 'etc_passwd'],
+            'závorky a přípona'    => ['Deník postavy (v2).xlsx', 'denik_postavy_v2'],
+            'tečky v názvu nejsou' => ['a.b.c.zip', 'a_b_c'],
+            'pomlčky na okrajích'  => ['---x---', 'x'],
+            'víc znaků za sebou'   => ["Kostka  –\tFate!!!", 'kostka_fate'],
+            'příliš dlouhý'        => [str_repeat('a', 200), str_repeat('a', 150)],
+        ];
+    }
+
+    /**
+     * @test
+     *
+     * @dataProvider provideNazvyDokumentu
+     */
+    public function bezpecnyNazevDokumentu(string $nazev, string $ocekavany): void
+    {
+        self::assertSame($ocekavany, NahravaniObrazku::bezpecnyNazevDokumentu($nazev));
+    }
+
+    /**
+     * @test
+     */
+    public function nazevDokumentuBezPismenOdmitne(): void
+    {
+        foreach (['', '...', '/', '<>', '___', ' - '] as $nazev) {
+            try {
+                NahravaniObrazku::bezpecnyNazevDokumentu($nazev);
+                self::fail("Název '{$nazev}' měl být odmítnut");
+            } catch (NahravaniObrazkuException) {
+                self::addToAssertionCount(1);
+            }
+        }
+    }
+
+    public static function provideVelikosti(): array
+    {
+        return [
+            'nula'                => [0, '0 kB'],
+            'zaokrouhleno nahoru' => [1500, '2 kB'],
+            'těsně pod megabajt'  => [1024 * 1024 - 1, '1024 kB'],
+            'celé megabajty'      => [5 * 1024 * 1024, '5 MB'],
+            'desetiny'            => [(int) (1.5 * 1024 * 1024), '1,5 MB'],
+        ];
+    }
+
+    /**
+     * @test
+     *
+     * @dataProvider provideVelikosti
+     */
+    public function lidskaVelikost(int $bajty, string $ocekavana): void
+    {
+        self::assertSame($ocekavana, NahravaniObrazku::lidskaVelikost($bajty));
+    }
+
+    /**
+     * @test
+     */
+    public function nazevFormatuPodlePripony(): void
+    {
+        self::assertSame('PDF', NahravaniObrazku::nazevFormatuPodlePripony('Smlouva.PDF'));
+        self::assertSame('JPG', NahravaniObrazku::nazevFormatuPodlePripony('fotka.jpeg'));
+        self::assertNull(NahravaniObrazku::nazevFormatuPodlePripony('dopis.docx'));
+    }
+
+    /**
+     * @test
+     */
+    public function dokumentNaKterySeOdkazujeKodNesmazeAZdurazniToVeZprave(): void
+    {
+        file_put_contents($this->koren . '/tiskova_kronika.pdf', 'kronika');
+        $nahravani = new NahravaniObrazku(
+            $this->koren,
+            new class extends PouzitiObrazku {
+                public function __construct()
+                {
+                }
+
+                public function kdeJePouzity(string $absolutniCesta): array
+                {
+                    return [[
+                        'popis' => 'QR kódy (web/moduly/qrka.php)',
+                        'url'   => '',
+                    ]];
+                }
+            },
+            formaty: [NahravaniObrazku::PDF],
+        );
+
+        $this->ocekavejChybu('Na soubor tiskova_kronika.pdf odkazuje QR kódy (web/moduly/qrka.php). Odkaz je v kódu webu, smazat ho jde jen jeho úpravou.');
+        $nahravani->smaz('tiskova_kronika.pdf');
+    }
+
+    /**
+     * @test
+     */
+    public function popisLimituVypisujeDokumenty(): void
+    {
+        self::assertStringStartsWith(
+            'PDF, XLSX, MP3 nebo ZIP, nejvýš ',
+            (new NahravaniObrazku($this->koren, formaty: [NahravaniObrazku::PDF, NahravaniObrazku::XLSX, NahravaniObrazku::MP3, NahravaniObrazku::ZIP]))->popisLimitu(),
+        );
+    }
+
+    private function sluzbaProDokumenty(): NahravaniObrazku
+    {
+        return new NahravaniObrazku(
+            $this->koren,
+            formaty: [...NahravaniObrazku::DOKUMENTY, ...NahravaniObrazku::RASTROVE_FORMATY],
         );
     }
 
