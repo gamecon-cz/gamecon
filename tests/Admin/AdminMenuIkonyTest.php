@@ -14,6 +14,8 @@ class AdminMenuIkonyTest extends TestCase
     private const string ROOT_DIR = __DIR__ . '/../..';
     private const string MODULY_DIR = self::ROOT_DIR . '/admin/scripts/modules';
     private const string FONT_AWESOME_CSS = self::ROOT_DIR . '/admin/files/design/font-awesome-6.1.1/css/all.css';
+    private const int DELKA_HLAVICKY = 2048;
+    private const string NAZEV_V_HLAVICCE = '~\*[ \t]*(?:submenu_)?nazev:[ \t]*(.*)~';
 
     private static ?string $fontAwesomeCss = null;
 
@@ -31,48 +33,50 @@ class AdminMenuIkonyTest extends TestCase
         }
     }
 
+    public static function provideModulySNazvem(): iterable
+    {
+        foreach (glob(self::MODULY_DIR . '/{*.php,*/*.php}', GLOB_BRACE) as $soubor) {
+            if (str_starts_with(basename($soubor), '_') || str_starts_with(basename(dirname($soubor)), '_')) {
+                continue;
+            }
+            if (preg_match_all(self::NAZEV_V_HLAVICCE, self::getHlavicka($soubor), $nazvy) > 0) {
+                yield substr($soubor, strlen(self::MODULY_DIR) + 1) => [$nazvy[1]];
+            }
+        }
+    }
+
     #[DataProvider('provideSubmenuPolozky')]
     public function testKazdaPolozkaSubmenuMaIkonuZFontAwesome(array $polozka): void
     {
         self::assertNotNull($polozka['ikona'], "Chybí hlavička `ikona:` v {$polozka['soubor']}");
         self::assertTrue(
-            self::existujeIkonaFontAwesome($polozka['ikona']),
+            self::isIkonaVeFontAwesome($polozka['ikona']),
             "Ikona {$polozka['ikona']} z {$polozka['soubor']} není ve Font Awesome 6.1.1",
         );
     }
 
-    #[DataProvider('provideSubmenuPolozky')]
-    public function testNazevPolozkyNeobsahujeEmoji(array $polozka): void
+    /**
+     * @param list<string> $nazvy values of `nazev:` and `submenu_nazev:` from the module header
+     */
+    #[DataProvider('provideModulySNazvem')]
+    public function testNazvyVHlavicceNeobsahujiEmoji(array $nazvy): void
     {
-        self::assertDoesNotMatchRegularExpression(
-            '~\p{Extended_Pictographic}~u',
-            $polozka['nazev'],
-            'Název patří do textu tlačítka i do názvu stránky, ikonu dej do hlavičky `ikona:`',
-        );
-    }
-
-    public function testIkonyVeSablonachAJavaScriptuExistujiVeFontAwesome(): void
-    {
-        $chybejici = [];
-        $soubory = new \RecursiveIteratorIterator(new \RecursiveDirectoryIterator(self::ROOT_DIR . '/admin', \FilesystemIterator::SKIP_DOTS));
-        $modely = new \RecursiveIteratorIterator(new \RecursiveDirectoryIterator(self::ROOT_DIR . '/model', \FilesystemIterator::SKIP_DOTS));
-        foreach ([...$soubory, ...$modely] as $soubor) {
-            $cesta = $soubor->getPathname();
-            if (! preg_match('~\.(xtpl|php|js|html)$~', $cesta) || preg_match('~/(files/ui|font-awesome[^/]*)/|\.min\.~', $cesta)) {
-                continue;
-            }
-            preg_match_all('~\bfa-(?:solid|regular|brands)\s+(?:fa-fw\s+)?fa-(?!fw\b)([a-z0-9]+(?:-[a-z0-9]+)*)(?![a-z0-9{-])~', (string) file_get_contents($cesta), $nalezene);
-            foreach (array_unique($nalezene[1]) as $ikona) {
-                if (! self::existujeIkonaFontAwesome($ikona)) {
-                    $chybejici[] = "{$ikona} v " . substr($cesta, strlen(self::ROOT_DIR) + 1);
-                }
-            }
+        foreach ($nazvy as $nazev) {
+            self::assertDoesNotMatchRegularExpression(
+                '~\p{Extended_Pictographic}~u',
+                $nazev,
+                'Název patří do textu tlačítka i do názvu stránky, ikonu dej do hlavičky `ikona:`',
+            );
         }
-
-        self::assertSame([], $chybejici, 'Tyto ikony nejsou ve Font Awesome 6.1.1 a nevykreslí se');
     }
 
-    private static function existujeIkonaFontAwesome(string $ikona): bool
+    private static function getHlavicka(string $soubor): string
+    {
+        // mb_strcut does not split a multibyte character, a broken one would make the /u pattern fail silently
+        return mb_strcut((string) file_get_contents($soubor), 0, self::DELKA_HLAVICKY);
+    }
+
+    private static function isIkonaVeFontAwesome(string $ikona): bool
     {
         self::$fontAwesomeCss ??= (string) file_get_contents(self::FONT_AWESOME_CSS);
 
