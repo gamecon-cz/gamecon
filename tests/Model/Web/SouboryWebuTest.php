@@ -8,6 +8,7 @@ use Gamecon\Tests\Db\AbstractTestDb;
 use Gamecon\Web\NahravaniObrazku;
 use Gamecon\Web\SouboryWebu;
 use Gamecon\Web\ZpracovaneObrazky;
+use Gamecon\XTemplate\XTemplate;
 use Symfony\Component\Filesystem\Filesystem;
 
 class SouboryWebuTest extends AbstractTestDb
@@ -43,8 +44,16 @@ SQL,
     protected function setUp(): void
     {
         parent::setUp();
+        $this->pripravXTemplateCache();
         $this->kUklidu = [ZpracovaneObrazky::adresarObsahu() . '/' . self::slozka()];
         (new Filesystem())->mkdir($this->kUklidu);
+    }
+
+    private function pripravXTemplateCache(): void
+    {
+        $cacheDir = XTemplate::cache() ?: XTPL_CACHE_DIR;
+        pripravCache($cacheDir);
+        XTemplate::cache($cacheDir);
     }
 
     protected function tearDown(): void
@@ -275,6 +284,63 @@ SQL,
     /**
      * @test
      */
+    public function historickeSlozkyJsouNaKonciOddelenePouzeJednouCarou(): void
+    {
+        $html = (new SouboryWebu(
+            [
+                'stara'  => $this->nastaveni([NahravaniObrazku::PDF], 'Stará soutěž', true),
+                'prvni'  => $this->nastaveni([NahravaniObrazku::PDF], 'První složka'),
+                'starsi' => $this->nastaveni([NahravaniObrazku::PDF], 'Starší soutěž', true),
+                'druha'  => $this->nastaveni([NahravaniObrazku::PDF], 'Druhá složka'),
+            ],
+            sys_get_temp_dir() . '/gamecon-soubory-neexistuje-' . bin2hex(random_bytes(6)),
+        ))->html();
+
+        $poradi = [
+            strpos($html, 'První složka'),
+            strpos($html, 'Druhá složka'),
+            strpos($html, '<hr'),
+            strpos($html, 'Stará soutěž'),
+            strpos($html, 'Starší soutěž'),
+        ];
+        self::assertNotContains(false, $poradi);
+        $serazene = $poradi;
+        sort($serazene);
+        self::assertSame($serazene, $poradi);
+        self::assertSame(1, substr_count($html, '<hr'));
+    }
+
+    /**
+     * @test
+     */
+    public function samotneHistorickeSlozkyNemajiCaruNahore(): void
+    {
+        $html = (new SouboryWebu(
+            [
+                'stara' => $this->nastaveni([NahravaniObrazku::PDF], 'Stará soutěž', true),
+            ],
+            sys_get_temp_dir() . '/gamecon-soubory-neexistuje-' . bin2hex(random_bytes(6)),
+        ))->html();
+
+        self::assertStringContainsString('Stará soutěž', $html);
+        self::assertStringNotContainsString('<hr', $html);
+    }
+
+    /**
+     * @test
+     */
+    public function mistrovstviVDrdJeVeVychozimSeznamuPosledniAHistoricke(): void
+    {
+        self::assertSame('drd', array_key_last(SouboryWebu::SLOZKY));
+        self::assertTrue(SouboryWebu::SLOZKY['drd']['historie']);
+        foreach (array_slice(SouboryWebu::SLOZKY, 0, -1) as $slozka => $nastaveni) {
+            self::assertFalse($nastaveni['historie'] ?? false, $slozka);
+        }
+    }
+
+    /**
+     * @test
+     */
     public function vsechnyVychoziSlozkyMajiNazevPopisAFormaty(): void
     {
         foreach (SouboryWebu::SLOZKY as $slozka => $nastaveni) {
@@ -292,14 +358,15 @@ SQL,
     /**
      * @param list<string> $formaty
      *
-     * @return array{nazev: string, popis: string, formaty: list<string>}
+     * @return array{nazev: string, popis: string, formaty: list<string>, historie: bool}
      */
-    private function nastaveni(array $formaty): array
+    private function nastaveni(array $formaty, string $nazev = 'Testovací složka', bool $historie = false): array
     {
         return [
-            'nazev'   => 'Testovací složka',
-            'popis'   => 'Popis testovací složky',
-            'formaty' => $formaty,
+            'nazev'    => $nazev,
+            'popis'    => 'Popis testovací složky',
+            'formaty'  => $formaty,
+            'historie' => $historie,
         ];
     }
 
