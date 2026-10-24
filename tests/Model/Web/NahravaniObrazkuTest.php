@@ -113,17 +113,6 @@ class NahravaniObrazkuTest extends TestCase
     /**
      * @test
      */
-    public function galerieEshopuOdmitneFotkuSVicNezDvanactiMegapixely(): void
-    {
-        $obri = $this->soubor('obri.jpg', self::jpgSRozmeryVHlavicce(8000, 6000));
-
-        $this->ocekavejChybu('Obrázek má 8000 × 6000 px, to je na web zbytečně moc. Zmenši ho prosím nejvýš na 12 Mpx.');
-        NahravaniObrazku::proObrazkyEshopu()->overSoubor($obri);
-    }
-
-    /**
-     * @test
-     */
     public function galerieEshopuPustiFotkuSDvanactiMegapixely(): void
     {
         $dvanactMegapixelu = $this->soubor('dvanact.jpg', self::jpgSRozmeryVHlavicce(4000, 3000));

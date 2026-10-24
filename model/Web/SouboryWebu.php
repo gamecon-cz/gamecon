@@ -230,7 +230,7 @@ final class SouboryWebu
             'markdown'      => $cestaVuciWebu === null
                 ? ''
                 : htmlspecialchars(self::markdownOdkaz($cestaVuciWebu)),
-            'acceptSouboru' => (string) $mime,
+            'acceptSouboru' => $nahravani->acceptProNahrazeni((string) $mime),
         ]);
 
         if ($mime === null || !in_array($mime, $povoleneFormaty, true) || !self::nazevPrezijeFormular($soubor)) {
@@ -373,6 +373,7 @@ final class SouboryWebu
             $this->pouziti,
             maxVelikostMb: SOUBOR_MAX_MB,
             formaty: $this->slozky[$slozka]['formaty'],
+            optimalizace: new OptimalizaceObrazku(),
         );
     }
 
