@@ -439,7 +439,7 @@ Pravdivý stav ke dni auditu (zdroj: `cat /usr/local/sbin/deploy-preview-branch.
 | `GOOGLE_API_CREDENTIALS` | (nevyplněno) | prázdné | úmyslné — vyřešíme později, většina toků v preview netřeba |
 | `PREVIEW_BASIC_AUTH_USER/PASSWORD` | Dockerfile bake | sdílené napříč všemi preview | bake je správná cesta — společná hodnota |
 | `ARCHIVE_BASIC_AUTH_USER/PASSWORD` | Dockerfile bake | sdílené napříč všemi archive | bake je správná cesta |
-| `FTP_*` | nepředáváno | n/a | deploy-only, runtime kód nečte — správně, že to v preview není |
+| `FTP_*`, `DEPLOY_*` (rsync nasazení) | nepředáváno | n/a | deploy-only, runtime kód nečte — správně, že to v preview není |
 
 **Když přidáváš novou env-driven feature, vrať se k téhle tabulce a doplň řádek.** Pokud rozhodneš, že preview má dostat něco jiného než ostra, **napiš proč** — jinak se z toho stane skrytý drift.
 
