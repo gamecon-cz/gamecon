@@ -40,11 +40,17 @@ body {
   position: fixed;
   width: 180px;
   max-height: calc(100vh - var(--vyska-profilovaci-listy));
-  max-height: calc(100dvh - var(--vyska-profilovaci-listy));
   overflow-x: hidden;
   overflow-y: auto;
   scrollbar-width: thin;
   text-align: left;
+}
+
+/* @supports, because a var() declaration parses everywhere and would leave a browser without dvh with no max-height. */
+@supports (height: 100dvh) {
+  .sloupL {
+    max-height: calc(100dvh - var(--vyska-profilovaci-listy));
+  }
 }
 
 /* The profiling bar (not on production) is fixed at the bottom-left and would cover the last menu item. */
