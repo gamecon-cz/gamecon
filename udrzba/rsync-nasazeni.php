@@ -3,7 +3,10 @@
 declare(strict_types=1);
 
 /**
- * Masks that dg/ftp-deployment appends after the configured ones, so they override their exceptions.
+ * Masks that dg/ftp-deployment appends after the configured ones, so they override their exceptions. rsync gets them as
+ * sender-only rules: never sent, and a leftover on the server is deleted unless a `P` rule or an exclude of the other
+ * masks covers it (a `.gitkeep` in the uploads, a `.bak` in the content). A mask added by a library upgrade is treated
+ * the same way, so check that it names no server data.
  *
  * @see \Deployment\CliRunner::$ignoreMasks
  * @return list<string>
@@ -15,7 +18,7 @@ function getDefaultIgnoreMasks(): array
 
 /**
  * Paths that appear on the server at runtime or were uploaded by hand, so git lacks them. FTP never deleted them,
- * because it deleted only what it had uploaded; rsync `--delete` deletes everything not listed here or in the masks.
+ * because it deleted only what it had uploaded; rsync `--delete` deletes everything not listed here or covered by an exclude of the project masks.
  *
  * @return list<string>
  */
@@ -36,19 +39,30 @@ function getRsyncProtectedPaths(): array
 /**
  * Translates dg/ftp-deployment masks (the last match wins, `!` is an exception) to rsync filters (the first match wins)
  * that select the same files, see docs/generated/nasazeni-rsync.md. Protected paths go first as `P` rules; after the
- * masks, the `+` exceptions would match them first and leave a server-only `.htaccess` deletable.
+ * masks, the `+` exceptions would match them first and leave a server-only `.htaccess` deletable. The sender-only masks
+ * (plain names) become `H` rules after them, not excludes, see the same document.
  *
  * @param list<string> $ignoreMasks
  * @param list<string> $protectedPaths
+ * @param list<string> $senderOnlyMasks
  * @return list<string>
  */
-function buildRsyncFilters(array $ignoreMasks, array $protectedPaths = []): array
+function buildRsyncFilters(array $ignoreMasks, array $protectedPaths = [], array $senderOnlyMasks = []): array
 {
-    assertMasksTranslatable($ignoreMasks);
+    assertMasksTranslatable(array_merge($ignoreMasks, $senderOnlyMasks));
 
     $filters = [];
     foreach ($protectedPaths as $protectedPath) {
         $filters[] = "P {$protectedPath}";
+    }
+    foreach (array_reverse($senderOnlyMasks) as $mask) {
+        $mask = trim($mask);
+        if (str_starts_with($mask, '!') || str_contains($mask, '/')) {
+            throw new \LogicException("Maska '{$mask}' pro odesílatele musí být jen název, bez výjimky a bez lomítka");
+        }
+        if ($mask !== '') {
+            $filters[] = 'H ' . foldRsyncPatternCase($mask);
+        }
     }
     foreach (array_reverse($ignoreMasks) as $mask) {
         $mask = trim($mask);
@@ -315,7 +329,7 @@ function uploadFilesViaRsync(
         file_put_contents($keyFile, rtrim(str_replace("\r\n", "\n", $privateKey)) . "\n");
         file_put_contents($knownHostsFile, rtrim(str_replace("\r\n", "\n", $knownHosts)) . "\n");
 
-        $filters      = buildRsyncFilters(array_merge($ignoreMasks, getDefaultIgnoreMasks()), getRsyncProtectedPaths());
+        $filters      = buildRsyncFilters($ignoreMasks, getRsyncProtectedPaths(), getDefaultIgnoreMasks());
         $buildCommand = static fn(bool $dryRunCommand, ?int $maxDeleteInCommand) => buildRsyncCommand(
             sourceDir: $sourceDir,
             target: $target,
