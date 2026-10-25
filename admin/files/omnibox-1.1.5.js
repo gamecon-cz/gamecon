@@ -94,11 +94,12 @@ const initializeOmnibox = function ($) {
   })
 
   // Klávesové zkratky
+  // ID z admin/templates/uzivatel.xtpl a admin/templates/moderni/uzivatel.xtpl
   $(document).on('keydown', null, 'alt+u', function () {
-    $('#omnibox').focus()
+    $('#omniboxUzivateleProPraci').focus()
     return false
   }).on('keydown', null, 'alt+z', function () {
-    $('#zrusit').submit()
+    $('#zrusitUzivateleProPraci').submit()
     return false
   })
 };
