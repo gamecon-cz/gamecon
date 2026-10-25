@@ -100,11 +100,11 @@
     </main>
     <footer class="moderni-paticka">
       {FILE "templates/moderni/paticka.xtpl"}
-      {FILE "templates/prepinac-vzhledu.xtpl"}
+      {prepinacVzhledu}
     </footer>
   </div>
 </div>
-{FILE "templates/vyber-vzhledu.xtpl"}
+{vyberVzhledu}
 <!-- begin: ribbon -->
 <div class="corner-ribbon">{ribbonLabel}</div>
 <!-- end: ribbon -->

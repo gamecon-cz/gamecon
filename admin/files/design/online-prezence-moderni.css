@@ -1,0 +1,529 @@
+/*
+ * Moderní vzhled online prezence (Moje aktivity a online prezence v Prezenci). Stránka nemá rám adminu, stojí na
+ * Bootstrapu a online-prezence.css; tenhle soubor se načítá poslední a jen je přebarvuje, značky a háčky pro skripty
+ * zůstávají stejné jako v klasickém vzhledu. Barvy a tvary drží moderni.css (moderní admin).
+ */
+
+body.vzhled-moderni {
+  --m-pozadi: #f3f4f6;
+  --m-plocha: #fff;
+  --m-text: #1f2328;
+  --m-text-tlumeny: #5b6370;
+  --m-okraj: #e2e5ea;
+  --m-okraj-pole: #c4c9d1;
+  --m-okraj-pole-hover: #9aa1ab;
+  --m-tmava: #1c1f26;
+  --m-panel-tlumeny: #8b92a1;
+  --m-panel-hover: #2a2e38;
+  --m-akcent: #c62828;
+  --m-dorazil: #1f7a3d;
+  --m-fokus: #2563eb;
+  --m-fokus-stin: rgba(37, 99, 235, 0.22);
+  --m-zaobleni: 8px;
+  --m-vyska-listy: 56px;
+  --m-pismo: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, "Noto Sans", sans-serif;
+
+  background-color: var(--m-pozadi);
+  color: var(--m-text);
+  font-family: var(--m-pismo);
+  font-size: 15px;
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+}
+
+/* ---------- Horní lišta ---------- */
+
+.op-lista {
+  position: sticky;
+  top: 0;
+  z-index: 1030;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  box-sizing: border-box;
+  min-height: var(--m-vyska-listy);
+  padding: 8px max(16px, env(safe-area-inset-right)) 8px max(16px, env(safe-area-inset-left));
+  background-color: var(--m-tmava);
+  color: #fff;
+}
+
+.op-lista-logo {
+  display: inline-grid;
+  flex: 0 0 auto;
+  place-items: center;
+  width: 34px;
+  height: 34px;
+  border-radius: 9px;
+  background-color: var(--m-akcent);
+  color: #fff;
+  font-weight: 800;
+  font-size: 14px;
+  text-decoration: none;
+}
+
+.op-lista-logo:hover,
+.op-lista-logo:focus {
+  color: #fff;
+}
+
+.op-lista-nazev {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  min-width: 0;
+  line-height: 1.2;
+}
+
+.op-lista-nazev strong {
+  overflow: hidden;
+  font-size: 17px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.op-lista-nazev span {
+  overflow: hidden;
+  color: var(--m-panel-tlumeny);
+  font-size: 12px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.op-lista-zpet {
+  display: inline-flex;
+  flex: 0 0 auto;
+  align-items: center;
+  gap: 8px;
+  min-height: 38px;
+  padding: 6px 14px;
+  border: 1px solid #3a3f4b;
+  border-radius: 999px;
+  color: #fff;
+  font-size: 14px;
+  text-decoration: none;
+  white-space: nowrap;
+}
+
+.op-lista-zpet:hover,
+.op-lista-zpet:focus {
+  background-color: var(--m-panel-hover);
+  color: #fff;
+}
+
+.op-lista a:focus-visible {
+  outline: 2px solid #8ab4f8;
+  outline-offset: 2px;
+}
+
+/* ---------- Obsah ---------- */
+
+.vzhled-moderni .main > .container {
+  max-width: 1100px;
+  padding-top: 16px;
+}
+
+.vzhled-moderni .online-prezence {
+  padding: 0;
+}
+
+/* Návod */
+.vzhled-moderni #tlacitkoJakNaOnlinePrezenci {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 38px;
+  border: 1px solid var(--m-okraj-pole);
+  border-radius: 999px;
+  background-color: var(--m-plocha);
+  font-size: 15px;
+}
+
+.vzhled-moderni #tlacitkoJakNaOnlinePrezenci::after {
+  content: "Návod";
+  color: var(--m-text);
+  font-size: 14px;
+  font-weight: 500;
+}
+
+.vzhled-moderni #jakNaOnlinePrezenci .card {
+  border-color: var(--m-okraj);
+  border-radius: 12px;
+  line-height: 1.55;
+}
+
+.vzhled-moderni #jakNaOnlinePrezenci ul {
+  padding-left: 1.2em;
+}
+
+/* Karta aktivity */
+.vzhled-moderni .aktivita {
+  margin: 16px 0;
+  padding: 16px 20px 18px;
+  border: 1px solid var(--m-okraj);
+  border-radius: 12px;
+  background-color: var(--m-plocha);
+  box-shadow: 0 1px 2px rgba(16, 24, 40, 0.04);
+}
+
+.vzhled-moderni .aktivita > .row {
+  margin: 0;
+}
+
+.vzhled-moderni .aktivita > .row > h2 {
+  margin: 0;
+  padding: 0;
+  font-weight: 650;
+  font-size: 20px;
+  line-height: 1.3;
+}
+
+.vzhled-moderni .aktivita .anchor {
+  font-size: 0.8em;
+  text-decoration: none;
+}
+
+.vzhled-moderni .pocet-prihlasenych,
+.vzhled-moderni .zobrazit-v-programu {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin: 8px 6px 0 0;
+  padding: 3px 12px;
+  border-radius: 999px;
+  background-color: var(--m-pozadi);
+  color: var(--m-text);
+  font-weight: 500;
+  font-size: 13px;
+  vertical-align: middle;
+}
+
+.vzhled-moderni .zobrazit-v-programu:hover {
+  background-color: #e5e7eb;
+  color: var(--m-text);
+}
+
+.vzhled-moderni .pocet-prihlasenych .fa-solid,
+.vzhled-moderni .zobrazit-v-programu .fa-solid {
+  color: var(--m-text-tlumeny);
+}
+
+.vzhled-moderni .pocet-prihlasenych .plno {
+  color: var(--m-akcent);
+}
+
+/* Sbalení prezence */
+.vzhled-moderni .aktivita h2 .btn-light {
+  display: inline-grid;
+  place-items: center;
+  width: 38px;
+  height: 38px;
+  padding: 0;
+  border: 1px solid var(--m-okraj-pole);
+  border-radius: var(--m-zaobleni);
+  background-color: var(--m-plocha);
+  font-size: 15px;
+}
+
+.vzhled-moderni .aktivita .mb-5 {
+  margin-bottom: 0 !important;
+}
+
+/* Tlačítko zpět je v horní liště, v každé kartě se jen opakovalo. */
+.vzhled-moderni .aktivita .row > span:has(> a.btn-warning) {
+  display: none;
+}
+
+/* Stav aktivity: odpočet, zamčená, uzavřená, skončila */
+.vzhled-moderni .text-ceka em,
+.vzhled-moderni [id^="zamcena-"] em,
+.vzhled-moderni [id^="uzavrena-"] em {
+  display: inline-block;
+  padding: 4px 12px;
+  border-radius: 999px;
+  background-color: var(--m-pozadi);
+  color: var(--m-text);
+  font-style: normal;
+  font-size: 14px;
+}
+
+.vzhled-moderni .text-skoncila {
+  padding: 4px 12px;
+  border-radius: 999px;
+  background-color: #fff8e1;
+  color: #6b5000;
+  font-size: 14px;
+}
+
+.vzhled-moderni .text-skoncila em {
+  font-style: normal;
+}
+
+.vzhled-moderni .kontakty-zamcene-pruh {
+  margin: 4px 0 8px;
+  padding: 8px 12px !important;
+  border-radius: var(--m-zaobleni);
+  background-color: var(--m-pozadi);
+  color: var(--m-text-tlumeny);
+}
+
+.vzhled-moderni .kontakty-zamcene-pruh > div {
+  padding: 0;
+}
+
+.vzhled-moderni .aktivita .alert {
+  border-radius: 10px;
+}
+
+/* Tabulka účastníků */
+.vzhled-moderni .main table.ucastnici {
+  border-collapse: separate;
+  border-spacing: 0;
+  overflow: hidden;
+  border: 1px solid var(--m-okraj);
+  border-radius: 10px;
+}
+
+.vzhled-moderni .main table.ucastnici th {
+  padding: 8px;
+  border: 0;
+  border-bottom: 1px solid var(--m-okraj);
+  background: #f6f7f9;
+  color: #3d4450;
+  font-family: inherit;
+  font-weight: 600;
+  font-size: 13px;
+}
+
+.vzhled-moderni .main table.ucastnici td {
+  padding: 6px 8px;
+  border-bottom: 1px solid #eef0f3;
+  vertical-align: middle;
+}
+
+.vzhled-moderni .main table.ucastnici tbody tr:last-child td {
+  border-bottom: 0;
+}
+
+.vzhled-moderni .main table tbody tr:nth-child(even) {
+  background-color: #fafbfc;
+}
+
+.vzhled-moderni .main table.zvyraznovana tr:hover td {
+  background-color: #eef4ff;
+}
+
+.vzhled-moderni .razeni.neaktivni {
+  color: var(--m-panel-tlumeny);
+}
+
+/* Zaškrtnutí „dorazil“ je hlavní akce stránky, na dotyk větší. */
+.vzhled-moderni .styl-pro-dorazil-checkbox {
+  display: inline-grid;
+  place-items: center;
+  min-width: 44px;
+  min-height: 40px;
+}
+
+.vzhled-moderni .styl-pro-dorazil-checkbox input[type=checkbox] {
+  width: 24px;
+  height: 24px;
+  margin: 0;
+  vertical-align: middle;
+  accent-color: var(--m-dorazil);
+}
+
+.vzhled-moderni .kontakt-atrapa {
+  white-space: nowrap;
+}
+
+.vzhled-moderni .kontakt a {
+  color: var(--m-text);
+  text-decoration: none;
+}
+
+.vzhled-moderni .kontakt a:hover {
+  color: var(--m-fokus);
+}
+
+/* Přidání účastníka */
+.vzhled-moderni .formAktivita .omnibox {
+  box-sizing: border-box;
+  min-height: 44px;
+  padding: 8px 12px;
+  border: 1px solid var(--m-okraj-pole);
+  border-radius: var(--m-zaobleni);
+  background-color: var(--m-plocha);
+  color: var(--m-text);
+  font-size: 16px;
+}
+
+.vzhled-moderni .formAktivita .omnibox:focus {
+  border-color: var(--m-fokus);
+  box-shadow: 0 0 0 3px var(--m-fokus-stin);
+  outline: none;
+}
+
+.vzhled-moderni .formAktivita .omnibox[disabled] {
+  background-color: var(--m-pozadi);
+}
+
+/* Tlačítka (Bootstrap) */
+.vzhled-moderni .btn {
+  border-radius: var(--m-zaobleni);
+  font-weight: 500;
+}
+
+.vzhled-moderni .btn:focus-visible {
+  box-shadow: 0 0 0 3px var(--m-fokus-stin);
+}
+
+.vzhled-moderni .btn-primary,
+.vzhled-moderni .btn-warning {
+  border-color: var(--m-tmava);
+  background-color: var(--m-tmava);
+  color: #fff;
+}
+
+.vzhled-moderni .btn-primary:hover,
+.vzhled-moderni .btn-primary:focus,
+.vzhled-moderni .btn-warning:hover,
+.vzhled-moderni .btn-warning:focus {
+  border-color: #343946;
+  background-color: #343946;
+  color: #fff;
+}
+
+.vzhled-moderni .btn-primary:disabled {
+  border-color: var(--m-okraj-pole);
+  background-color: var(--m-okraj-pole);
+}
+
+.vzhled-moderni .btn-secondary {
+  border-color: var(--m-okraj-pole);
+  background-color: var(--m-plocha);
+  color: var(--m-text);
+}
+
+.vzhled-moderni .btn-secondary:hover,
+.vzhled-moderni .btn-secondary:focus {
+  border-color: var(--m-okraj-pole-hover);
+  background-color: var(--m-pozadi);
+  color: var(--m-text);
+}
+
+.vzhled-moderni .tlacitko-uzavrit-aktivitu {
+  min-height: 44px;
+  font-weight: 600;
+}
+
+/* Okna (Uzavřít aktivitu, Zobrazit kontakty) */
+.vzhled-moderni .modal-content {
+  border: 0;
+  border-radius: 14px;
+  box-shadow: 0 24px 64px rgba(0, 0, 0, 0.25);
+}
+
+.vzhled-moderni .modal-header,
+.vzhled-moderni .modal-footer {
+  border-color: var(--m-okraj);
+}
+
+.vzhled-moderni .modal input[type=checkbox] {
+  width: 18px;
+  height: 18px;
+  margin-right: 6px;
+  vertical-align: -3px;
+  accent-color: var(--m-tmava);
+}
+
+/* Našeptávač účastníků (jQuery UI) */
+.vzhled-moderni .ui-widget {
+  font-family: var(--m-pismo);
+  font-size: 15px;
+}
+
+.vzhled-moderni .ui-autocomplete {
+  max-width: calc(100vw - 24px);
+  max-height: 60vh;
+  padding: 4px;
+  border: 1px solid var(--m-okraj);
+  border-radius: 10px;
+  background: var(--m-plocha);
+  box-shadow: 0 12px 32px rgba(16, 24, 40, 0.16);
+  overflow-y: auto;
+}
+
+.vzhled-moderni .ui-menu .ui-menu-item-wrapper {
+  padding: 10px 12px;
+  border: 0;
+  border-radius: 6px;
+}
+
+.vzhled-moderni .ui-menu .ui-menu-item-wrapper.ui-state-active {
+  margin: 0;
+  border: 0;
+  background: #eef2f7;
+  color: var(--m-text);
+}
+
+/* Patička s přepínačem vzhledu */
+.op-paticka {
+  padding: 8px 16px max(32px, env(safe-area-inset-bottom));
+}
+
+/* ---------- Telefon ---------- */
+
+@media only screen and (max-width: 600px) {
+  .vzhled-moderni .main > .container {
+    padding: 12px 10px 0;
+  }
+
+  .op-lista {
+    gap: 10px;
+    padding-right: max(10px, env(safe-area-inset-right));
+    padding-left: max(10px, env(safe-area-inset-left));
+  }
+
+  .op-lista-zpet {
+    padding: 6px 12px;
+    font-size: 13px;
+  }
+
+  .vzhled-moderni .aktivita {
+    margin: 12px 0;
+    padding: 14px 12px 14px;
+  }
+
+  .vzhled-moderni .aktivita > .row > h2 {
+    font-size: 18px;
+  }
+
+  /* stav aktivity se na telefonu nevejde na řádek */
+  .vzhled-moderni .text-ceka em,
+  .vzhled-moderni [id^="zamcena-"] em,
+  .vzhled-moderni [id^="uzavrena-"] em,
+  .vzhled-moderni .text-skoncila {
+    white-space: normal;
+  }
+
+  .vzhled-moderni .main table.ucastnici th,
+  .vzhled-moderni .main table.ucastnici td {
+    padding: 6px 4px;
+  }
+
+  .vzhled-moderni .ucastnici th:first-child,
+  .vzhled-moderni .ucastnici th:nth-child(2) {
+    width: auto;
+  }
+}
+
+@media print {
+  .op-lista,
+  .op-paticka {
+    display: none;
+  }
+
+  body.vzhled-moderni {
+    background-color: #fff;
+  }
+}

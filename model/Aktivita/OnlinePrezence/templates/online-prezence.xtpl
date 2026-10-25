@@ -37,7 +37,18 @@
     <!-- end:javascript -->
 </head>
 
-<body>
+<body class="{tridaVzhledu}">
+
+<!-- begin:moderniLista -->
+<header class="op-lista">
+    <a class="op-lista-logo" href="{urlZpet}" aria-label="GameCon – {textZpet}">GC</a>
+    <div class="op-lista-nazev">
+        <strong>{nazevStranky}</strong>
+        <span>{jmenoEditujiciho}</span>
+    </div>
+    <a class="op-lista-zpet" href="{urlZpet}"><i class="fa-solid fa-arrow-left" aria-hidden="true"></i> {textZpet}</a>
+</header>
+<!-- end:moderniLista -->
 
 <script type="text/javascript">
   if (window.navigator.userAgent.indexOf("MSIE ") > -1) {
@@ -445,6 +456,13 @@
         <!-- end:aktivity -->
     </div>
 </main>
+
+<!-- begin:volbaVzhledu -->
+<footer class="op-paticka">
+    {prepinacVzhledu}
+</footer>
+{vyberVzhledu}
+<!-- end:volbaVzhledu -->
 
 </body>
 </html>

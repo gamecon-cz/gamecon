@@ -76,10 +76,10 @@
       </div>
     </div>
     {FILE "templates/paticka.xtpl"}
-    {FILE "templates/prepinac-vzhledu.xtpl"}
+    {prepinacVzhledu}
   </div>
 </div>
-{FILE "templates/vyber-vzhledu.xtpl"}
+{vyberVzhledu}
 <!-- begin: ribbon -->
 <div class="corner-ribbon">{ribbonLabel}</div>
 <!-- end: ribbon -->

@@ -14,6 +14,8 @@ use Gamecon\SystemoveNastaveni\SystemoveNastaveni;
 /**
  * @var Uzivatel $u
  * @var Uzivatel|null $uPracovni
+ * @var \Gamecon\Admin\VzhledAdminuEnum $vzhled z admin/index.php
+ * @var \Gamecon\Admin\VzhledAdminuHtml|null $vzhledAdminuHtml z admin/index.php
  * @var \Gamecon\SystemoveNastaveni\SystemoveNastaveni $systemoveNastaveni
  */
 
@@ -23,7 +25,13 @@ if (!$u || !$u->maPravo(Pravo::ADMINISTRACE_PREZENCE)) {
 }
 
 $filesystem = new Filesystem();
-$onlinePrezenceHtml = new OnlinePrezenceHtml(Vyjimkovac::js(URL_WEBU), $systemoveNastaveni, $filesystem);
+$onlinePrezenceHtml = new OnlinePrezenceHtml(
+    Vyjimkovac::js(URL_WEBU),
+    $systemoveNastaveni,
+    $filesystem,
+    vzhled: $vzhled,
+    vzhledAdminuHtml: $vzhledAdminuHtml,
+);
 $onlinePrezenceAjax = new OnlinePrezenceAjax(
     $onlinePrezenceHtml,
     $filesystem,

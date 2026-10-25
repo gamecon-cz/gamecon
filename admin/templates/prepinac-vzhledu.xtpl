@@ -1,5 +1,6 @@
 <!-- begin:prepinacVzhledu -->
 <form method="post" class="prepinac-vzhledu">
+  <!-- begin:bezOznameni --><input type="hidden" name="{bezOznameniKlic}" value="1"><!-- end:bezOznameni -->
   <span id="prepinacVzhleduPopisek">Vzhled administrace</span>
   <span class="prepinac-vzhledu-volby" role="group" aria-labelledby="prepinacVzhleduPopisek">
     <button type="submit" name="{vzhledPostKlic}" value="{vzhledKlasicky}" aria-pressed="{klasickyZvolen}">Klasický</button>

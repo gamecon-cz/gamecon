@@ -4,6 +4,9 @@ declare(strict_types=1);
 
 namespace Gamecon\Aktivita\OnlinePrezence;
 
+use Gamecon\Admin\VzhledAdminu;
+use Gamecon\Admin\VzhledAdminuEnum;
+use Gamecon\Admin\VzhledAdminuHtml;
 use Gamecon\Aktivita\Aktivita;
 use Gamecon\Aktivita\AktivitaPrezence;
 use Gamecon\Aktivita\RazitkoPosledniZmenyPrihlaseni;
@@ -25,12 +28,19 @@ class OnlinePrezenceHtml
     private ?PotvrzeniZobrazeniKontaktu $potvrzeniZobrazeniKontaktu = null;
     private bool $testujeme;
 
+    /**
+     * @param VzhledAdminuHtml|null $vzhledAdminuHtml přepínač a výběr vzhledu; bez něj (ajax, testy) se nevykreslí
+     * @param string $nazevStranky nadpis horní lišty moderního vzhledu
+     */
     public function __construct(
         private readonly string $jsVyjimkovac,
         private readonly SystemoveNastaveni $systemoveNastaveni,
         private readonly Filesystem $filesystem,
         private readonly bool $muzemeTestovat = false,
         bool $testujeme = false,
+        private readonly VzhledAdminuEnum $vzhled = VzhledAdminu::VYCHOZI,
+        private readonly ?VzhledAdminuHtml $vzhledAdminuHtml = null,
+        private readonly string $nazevStranky = 'Online prezence',
     ) {
         $this->testujeme = $muzemeTestovat && $testujeme;
     }
@@ -64,6 +74,19 @@ class OnlinePrezenceHtml
         $template->assign('textZpet', $textZpet);
         $template->assign('jsVyjimkovac', $this->jsVyjimkovac);
         $template->assign('a', $editujici->koncovkaDlePohlavi());
+
+        if ($this->vzhled === VzhledAdminuEnum::MODERNI) {
+            $template->assign('tridaVzhledu', 'vzhled-moderni');
+            $template->assign('nazevStranky', $this->nazevStranky);
+            $template->assign('jmenoEditujiciho', $editujici->jmenoNick());
+            $template->parse('onlinePrezence.moderniLista');
+        }
+        if ($this->vzhledAdminuHtml !== null) {
+            // stránka nevypisuje hlášky, oznámení o změně vzhledu by vyskočilo až na jiné stránce adminu
+            $template->assign('prepinacVzhledu', $this->vzhledAdminuHtml->dejPrepinac((int) $editujici->id(), sOznamenim: false));
+            $template->assign('vyberVzhledu', $this->vzhledAdminuHtml->dejVyber((int) $editujici->id(), sOznamenim: false));
+            $template->parse('onlinePrezence.volbaVzhledu');
+        }
 
         $this->pridejLokalniAssety($template);
 
@@ -110,7 +133,15 @@ class OnlinePrezenceHtml
                 ],
             ],
         ];
-        foreach ($localAssets['stylesheets'] as $stylesheet) {
+        $stylesheets = $localAssets['stylesheets'];
+        if ($this->vzhledAdminuHtml !== null) {
+            $stylesheets[] = __DIR__ . '/../../../admin/files/design/vzhled_adminu.css';
+        }
+        if ($this->vzhled === VzhledAdminuEnum::MODERNI) {
+            // poslední, přebíjí styly výše
+            $stylesheets[] = __DIR__ . '/../../../admin/files/design/online-prezence-moderni.css';
+        }
+        foreach ($stylesheets as $stylesheet) {
             $template->assign('url', str_replace(__DIR__ . '/../../../admin/', '', $stylesheet));
             $template->assign('version', md5_file($stylesheet));
             $template->parse('onlinePrezence.stylesheet');
