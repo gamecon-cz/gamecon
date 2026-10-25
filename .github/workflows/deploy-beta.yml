@@ -19,12 +19,25 @@ on:
 # sync completes instead of being killed mid-upload.
 # A dry run changes nothing, so it gets its own group: in the shared one it
 # would replace the single pending real deploy, which GitHub cancels.
+# A run on the wrong branch is refused at once, so it gets a group of its own for the same reason.
 concurrency:
-    group: ${{ inputs.dry_run && 'deploy-beta-dry-run' || 'deploy-beta' }}
+    group: ${{ github.ref != 'refs/heads/beta' && format('deploy-beta-refused-{0}', github.run_id) || (inputs.dry_run && 'deploy-beta-dry-run' || 'deploy-beta') }}
     cancel-in-progress: false
 
 jobs:
+    # nasad.php picks the settings by branch name; a manual run on main would put the OSTRA settings into the beta directory.
+    check-branch:
+        runs-on: ubuntu-24.04
+
+        steps:
+            -   name: Refuse to deploy BETA from another branch
+                if: github.ref != 'refs/heads/beta'
+                run: |
+                    echo "::error::Deploy BETA runs only on the beta branch; choose 'beta' under 'Use workflow from'"
+                    exit 1
+
     publish:
+        needs: check-branch
         runs-on: ubuntu-24.04
 
         steps:

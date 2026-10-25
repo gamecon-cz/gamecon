@@ -29,6 +29,8 @@ TL;DR: `udrzba/nasad.php` nahrává kód na ostrou a betu buď přes rsync po SS
 - Skryté nastavení (`nastaveni/nastaveni-<prostředí>.php`) generuje `nasad()` přímo ve zdrojové složce před nahráním, takže je v nahrávaném stromu; kdo spouští suchý běh mimo `nasad()`, uvidí je jako mazané.
 - Zapnout rsync znamená nastavit `*_DEPLOY_RSYNC_TARGET`; vypnout (zpět na FTP) smazat ho. Dokud FTP existuje, nasazení bez toho secretu skončí na FTP.
 - Zkušební běh (`dry_run`) má vlastní skupinu `concurrency`; ve sdílené by nahradil jediné čekající skutečné nasazení, které GitHub zruší.
+- **Ruční spuštění workflow patří na větev jeho prostředí** (`beta`, respektive `main`), jinak úloha `check-branch` skončí chybou dřív, než se cokoli sestaví. `nasad.php` vybírá nastavení podle větve, ale cíl (secrets, rsync, FTP) určuje workflow. Deploy BETA spuštěný na `main` by sestavil `nastaveni-produkce.php`, rsync by z bety smazal `nastaveni/nastaveni-beta.php` (zkušební běh ho tak hlásí) a volání cache a migrací po nahrání by šla na adresu ostré (`URL_ADMIN` z nastavení `main`). Klíč bety smí psát jen do bety, takže rsync ostrou nezasáhne; FTP takové omezení nemá.
+- **Ochrana je součástí workflow na vybrané větvi.** Větev, která nemá poslední `main` (`beta` před prvním sloučením), ji nemá, a opakované spuštění staršího běhu používá workflow z jeho commitu. Úplné řešení by byly GitHub Environments s omezením větví a secrets uvnitř nich.
 
 ## Jak se ověřilo, že rsync nahrává totéž co FTP
 

@@ -38,7 +38,9 @@ Rozdíly proti FTP, které je dobré znát:
 - **Chyba uprostřed.** Když rsync skončí chybou (spojení, soubor, který nejde smazat), nasazení skončí červeně před smazáním cache a migracemi a server je částečně aktualizovaný. Po odstranění příčiny stačí workflow spustit znovu: rsync dokončí rozdíl a pak proběhnou migrace. Automatický opakovaný pokus, jaký měl FTP, tu není.
 - **Ruční úpravy na serveru** (hotfix) rsync při příštím nasazení přepíše.
 
-Co by nasazení udělalo, ukáže ruční spuštění workflow (Actions → Run workflow) se zaškrtnutým `dry_run`: proběhnou testy a pak `rsync --dry-run`, který vypíše nahrávané a mazané soubory, a nic se nezmění ani na serveru, ani v databázi. Zkušební běh má vlastní skupinu `concurrency`, takže nezruší čekající skutečné nasazení.
+Workflow „Deploy BETA on direct push or merged pull request“ (`deploy-beta.yml`) se spouští ručně na větvi `beta`, „Deploy OSTRA (main) on direct push or merged pull request“ (`deploy-ostra.yml`) na větvi `main` (Actions → Run workflow → Use workflow from). Na jiné větvi skončí úloha `check-branch` chybou a nic se nenasadí, protože `nasad.php` skládá nastavení podle názvu větve a do složky jednoho prostředí by nahrál nastavení druhého. Ochrana i volba `dry_run` jsou ve workflow z vybrané větve, takže na `beta` platí, až když `beta` obsahuje poslední `main`; do té doby na ní zůstává staré workflow bez nich. Opakované spuštění staršího běhu (Re-run) nasadí znovu jeho původní commit.
+
+Co by nasazení udělalo, ukáže ruční spuštění workflow se zaškrtnutým `dry_run`: proběhnou testy a pak `rsync --dry-run`, který vypíše nahrávané a mazané soubory, a nic se nezmění ani na serveru, ani v databázi. Zkušební běh má vlastní skupinu `concurrency`, takže nezruší čekající skutečné nasazení.
 
 ### Co musí být na serveru
 
