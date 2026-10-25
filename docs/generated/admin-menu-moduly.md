@@ -14,7 +14,7 @@ TL;DR: každý soubor `admin/scripts/modules/<modul>/*.php`, jehož název neza�
 ## Pravidla
 
 - Hlavička se čte jen z **prvních 2048 bajtů** souboru, drž ji nahoře.
-- Každá položka podmenu musí mít hlavičku `ikona:` a ikona musí existovat v `admin/files/design/font-awesome-6.1.1/css/all.css`; `nazev:` ani `submenu_nazev:` nesmí obsahovat emoji. Hlídá to `tests/Admin/AdminMenuIkonyTest.php`.
+- Každá položka podmenu i hlavního menu musí mít hlavičku `ikona:` a ikona musí existovat v `admin/files/design/font-awesome-6.1.1/css/all.css`; `nazev:` ani `submenu_nazev:` nesmí obsahovat emoji. Hlídá to `tests/Admin/AdminMenuIkonyTest.php`.
 - Modul může přes proměnnou `$submenuDoplnek` (HTML, nastaví ji před koncem souboru) přidat blok na konec posledního sloupce podmenu; používá to Přehled Aktivit pro tlačítko „aktivovat hromadně" pod sloupcem Administrace (`aktivity/_aktivovat-vse.xtpl`). Takový blok není položka podmenu, `ikona:` se ho netýká; ikonu (`fa-bolt`) nese přímo jeho šablona.
-- Hlavní menu vlevo ikonu z `ikona:` nepoužívá, kreslí PNG `admin/files/design/<modul>.png`.
+- Hlavní menu vlevo kreslí v klasickém vzhledu PNG `admin/files/design/<modul>.png`, v moderním ikonu z `ikona:` (viz [vzhled-adminu](vzhled-adminu.md)). Proto ji musí mít i moduly hlavního menu bez podmenu (`uzivatel.php`, `statistiky.php`, `napoveda.php`); hlídá to týž test.
 - (záměr) Ikony z Font Awesome nahrazují emoji jen v menu (názvy a tlačítka podmenu). Emoji mimo menu, tedy v hláškách, na tlačítkách a ve stavových značkách stránek, na online prezenci i v nápovědě, zůstávají; nenahrazuj je.

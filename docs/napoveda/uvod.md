@@ -53,6 +53,22 @@ V patičce každé stránky jsou odkazy **Program GameConu**, **Volná místa**
 a **Program test** (otevírají se do nové záložky) a náhodný **Protip** —
 krátká rada, jak si práci v adminu zrychlit. Vyplatí se je číst.
 
+## Vzhled administrace: klasický a moderní
+
+Admin má dva vzhledy, funkce mají oba stejné:
+
+- **Klasický** — tak, jak ho znáš.
+- **Moderní** — přehlednější, s většími tlačítky, přizpůsobí se i telefonu
+  a tabletu. Na úzké obrazovce je levý sloupec schovaný pod tlačítkem **☰**
+  vlevo nahoře; najdeš v něm menu, výběr pracovního uživatele i **Odhlásit**.
+  Tabulku, která se na šířku nevejde, posuneš prstem do strany.
+
+Při první návštěvě se tě admin zeptá, který vzhled chceš. Když si zatím
+vybrat nechceš, klikni na **Rozhodnu se později** a admin se zeptá znovu po
+dalším přihlášení. Vzhled kdykoli změníš přepínačem **Vzhled administrace**
+dole na každé stránce. Volba se pamatuje u tvého účtu, platí tedy na počítači,
+telefonu i tabletu.
+
 ## Pracovní uživatel
 
 Máš-li právo na infopult, je úplně nahoře v levém sloupci políčko pro výběr
@@ -68,7 +84,7 @@ přihlášky, platby, ubytování…):
   s předvybraným uživatelem — hodí se pro poslání kolegovi, kterému se po
   otevření odkazu vybere tentýž uživatel.
 - Pod políčkem se pamatuje **předchozí pracovní uživatel** — kliknutím na
-  odkaz **↻ jméno** se k němu rychle vrátíš.
+  odkaz s jeho jménem se k němu rychle vrátíš.
 
 Důležité: pracovní uživatel je jen „koho obsluhuji". **Ty jsi pořád přihlášen
 sám za sebe** a akce děláš svým jménem.

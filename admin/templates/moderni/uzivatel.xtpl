@@ -1,0 +1,56 @@
+<!-- begin:uzivatel -->
+<section class="uzivatel moderni-uzivatel" aria-labelledby="moderniUzivatelNadpis">
+    <h2 class="moderni-popisek" id="moderniUzivatelNadpis">Uživatel pro práci</h2>
+    <!-- begin:omnibox -->
+    <form method="post" class="moderni-hledani">
+        <input type="hidden" name="vybratUzivateleProPraci" value="1">
+        <i class="fa-solid fa-magnifying-glass" aria-hidden="true"></i>
+        <input id="omniboxUzivateleProPraci" class="omnibox autosubmit" type="text" name="id" autocomplete="off"
+               placeholder="Hledat uživatele…" aria-describedby="moderniUzivatelTip">
+        <div class="tip" id="moderniUzivatelTip">Začátek jména, přezdívky, e-mailu nebo ID (alt+U)</div>
+    </form>
+    <!-- end:omnibox -->
+    <!-- begin:vybrany -->
+    <div class="moderni-vybrany">
+        <img alt="" class="avatar" src="{uPracovni.avatar}">
+        <div class="moderni-vybrany-udaje">
+            <h3 class="nick">{uPracovni.login}</h3>
+            <div class="moderni-vybrany-jmeno">{uPracovni.krestniJmeno}</div>
+            <div class="moderni-vybrany-id">
+                ID {uPracovni.id}
+                <a id="urlSPracovnimUzivatelem" href="{urlSPracovnimUzivatelem}" title="Odkaz s tímto uživatelem"><i class="fas fa-link" aria-hidden="true"></i><span class="moderni-skryte">Odkaz s tímto uživatelem</span></a>
+                <button type="button" class="moderni-tlacitko-ikona" onclick="kopirovatUrlSPracovnimUzivatelem(this)" title="Zkopírovat odkaz">
+                    <i class="far fa-copy zkopirovat" aria-hidden="true"></i>
+                    <i class="fas fa-check zkopirovano" aria-hidden="true" style="display: none"></i>
+                    <span class="moderni-skryte" aria-live="polite"></span>
+                </button>
+            </div>
+        </div>
+    </div>
+    <div class="status">{uPracovni.statusHtml}</div>
+    <!-- Změnu ID formu je nutné provést i v admin/scripts/modules/infopult/infopult.xtpl kvůli potvrzení zrušení práce s dlužníkem a podobnými černými ovcemi -->
+    <form method="post" id="zrusitUzivateleProPraci">
+        <input type="hidden" name="zrusitUzivateleProPraci" value="1">
+        <button type="submit" class="moderni-tlacitko-zrusit"><i class="fa-solid fa-xmark" aria-hidden="true"></i> Z̲rušit výběr</button>
+    </form>
+    <script type="text/javascript">
+      function kopirovatUrlSPracovnimUzivatelem(tlacitko) {
+        navigator.clipboard.writeText(document.getElementById('urlSPracovnimUzivatelem').href)
+        tlacitko.querySelector('.zkopirovat').style.display = 'none'
+        tlacitko.querySelector('.zkopirovano').style.display = 'inline'
+        tlacitko.querySelector('[aria-live]').textContent = 'Zkopírováno'
+        setTimeout(function () {
+          tlacitko.querySelector('.zkopirovat').style.display = 'inline'
+          tlacitko.querySelector('.zkopirovano').style.display = 'none'
+          tlacitko.querySelector('[aria-live]').textContent = ''
+        }, 3000)
+      }
+    </script>
+    <!-- end:vybrany -->
+    <!-- begin:predchozi -->
+    <a class="moderni-predchozi" href="{adminUrl}/uzivatel?pracovni_uzivatel={predchoziId}" title="Vrátit se k předchozímu uživateli">
+        <i class="fa-solid fa-clock-rotate-left" aria-hidden="true"></i> {predchoziJmenoNick}
+    </a>
+    <!-- end:predchozi -->
+</section>
+<!-- end:uzivatel -->
