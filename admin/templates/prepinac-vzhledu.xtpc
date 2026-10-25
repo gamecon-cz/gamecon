@@ -1,0 +1,74 @@
+<?php
+  class Prepinacvzhledu792164Tpl {
+    public $context = array();
+    public $dependencies = array("");
+    protected $buffer = array();
+    protected $current = "";        // currently buffered block
+    
+    function prepinacVzhledu() {
+      if($this->current == "prepinacVzhledu") {
+        if(!empty($this->buffer["prepinacVzhledu"])) {
+          $out = $this->buffer["prepinacVzhledu"] . ob_get_clean();
+          $this->buffer["prepinacVzhledu"] = "";
+        } else {
+          $out = ob_get_clean();
+        }
+        $this->current = "";
+        return $out;
+      } else {
+        $out = $this->buffer["prepinacVzhledu"] ?? "";
+        $this->buffer["prepinacVzhledu"] = "";
+        return $out;
+      }
+    }
+
+    function parse_prepinacVzhledu() {
+      if($this->current != "prepinacVzhledu") {
+        if($this->current) {
+          $this->buffer[$this->current] = ($this->buffer[$this->current] ?? "") . ob_get_clean();
+        }
+        ob_start();
+        $this->current = "prepinacVzhledu";
+      }
+      ?>
+<form method="post" class="prepinac-vzhledu">
+  <?=$this->prepinacVzhledu_bezOznameni()?>
+  <span id="prepinacVzhleduPopisek">Vzhled administrace</span>
+  <span class="prepinac-vzhledu-volby" role="group" aria-labelledby="prepinacVzhleduPopisek">
+    <button type="submit" name="<?=isset($this->context["vzhledPostKlic"])?$this->context["vzhledPostKlic"]:''?>" value="<?=isset($this->context["vzhledKlasicky"])?$this->context["vzhledKlasicky"]:''?>" aria-pressed="<?=isset($this->context["klasickyZvolen"])?$this->context["klasickyZvolen"]:''?>">Klasický</button>
+    <button type="submit" name="<?=isset($this->context["vzhledPostKlic"])?$this->context["vzhledPostKlic"]:''?>" value="<?=isset($this->context["vzhledModerni"])?$this->context["vzhledModerni"]:''?>" aria-pressed="<?=isset($this->context["moderniZvolen"])?$this->context["moderniZvolen"]:''?>">Moderní</button>
+  </span>
+</form>
+<?php
+    }
+  
+    function prepinacVzhledu_bezOznameni() {
+      if($this->current == "prepinacVzhledu_bezOznameni") {
+        if(!empty($this->buffer["prepinacVzhledu_bezOznameni"])) {
+          $out = $this->buffer["prepinacVzhledu_bezOznameni"] . ob_get_clean();
+          $this->buffer["prepinacVzhledu_bezOznameni"] = "";
+        } else {
+          $out = ob_get_clean();
+        }
+        $this->current = "";
+        return $out;
+      } else {
+        $out = $this->buffer["prepinacVzhledu_bezOznameni"] ?? "";
+        $this->buffer["prepinacVzhledu_bezOznameni"] = "";
+        return $out;
+      }
+    }
+
+    function parse_prepinacVzhledu_bezOznameni() {
+      if($this->current != "prepinacVzhledu_bezOznameni") {
+        if($this->current) {
+          $this->buffer[$this->current] = ($this->buffer[$this->current] ?? "") . ob_get_clean();
+        }
+        ob_start();
+        $this->current = "prepinacVzhledu_bezOznameni";
+      }
+      ?><input type="hidden" name="<?=isset($this->context["bezOznameniKlic"])?$this->context["bezOznameniKlic"]:''?>" value="1"><?php
+    }
+  
+  }
+  

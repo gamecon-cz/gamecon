@@ -1,6 +1,7 @@
 <!-- begin:vyberVzhledu -->
 <dialog class="vyber-vzhledu" id="vyberVzhledu" aria-labelledby="vyberVzhleduNadpis" aria-describedby="vyberVzhleduPopis">
   <form method="post">
+    <!-- begin:bezOznameni --><input type="hidden" name="{bezOznameniKlic}" value="1"><!-- end:bezOznameni -->
     <h2 id="vyberVzhleduNadpis">Vyber si vzhled administrace</h2>
     <p id="vyberVzhleduPopis">
       Administrace má nový vzhled, který se přizpůsobí i telefonu a tabletu. Funkce zůstávají stejné.

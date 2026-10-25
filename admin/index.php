@@ -3,7 +3,7 @@
 declare(strict_types=1);
 
 use Gamecon\Admin\VzhledAdminu;
-use Gamecon\Admin\VzhledAdminuEnum;
+use Gamecon\Admin\VzhledAdminuHtml;
 use Gamecon\Cas\DateTimeCz;
 use Gamecon\Pravo;
 use Gamecon\Role\Role;
@@ -84,12 +84,14 @@ $info->nazev('Administrace');
 
 // vzhled administrace (klasický / moderní), volba z výběru při první návštěvě nebo z přepínače v patičce
 $vzhledAdminu = null;
+$vzhledAdminuHtml = null; // používá i online prezence v Moje aktivity, která nemá rám adminu
 $vzhled = VzhledAdminu::VYCHOZI;
 if ($u) {
     $vzhledAdminu = new VzhledAdminu($_SESSION);
+    $vzhledAdminuHtml = new VzhledAdminuHtml($vzhledAdminu);
     if (post(VzhledAdminu::POST_KLIC) !== null) {
         $zvolenyVzhled = $vzhledAdminu->zpracujVolbu($u->id(), (string) post(VzhledAdminu::POST_KLIC));
-        if ($zvolenyVzhled !== null) {
+        if ($zvolenyVzhled !== null && ! post(VzhledAdminu::POST_KLIC_BEZ_OZNAMENI)) {
             oznameni("Administrace má teď {$zvolenyVzhled->getNazev()} vzhled. Přepnout ho můžeš kdykoli dole na stránce.");
         }
         back();
@@ -379,18 +381,10 @@ $info->nazev($info->nazev() ?? '', 'Administrace');
 $xtpl->assign('protip', $protipy[array_rand($protipy)]);
 $xtpl->parse('all.paticka');
 $xtpl->assign([
-    'nazevSekce'     => $menu[$stranka]['nazev'] ?? 'Administrace',
-    'vzhledPostKlic' => VzhledAdminu::POST_KLIC,
-    'vzhledPozdeji'  => VzhledAdminu::VOLBA_POZDEJI,
-    'vzhledKlasicky' => VzhledAdminuEnum::KLASICKY->value,
-    'vzhledModerni'  => VzhledAdminuEnum::MODERNI->value,
-    'klasickyZvolen' => $vzhled === VzhledAdminuEnum::KLASICKY ? 'true' : 'false',
-    'moderniZvolen'  => $vzhled === VzhledAdminuEnum::MODERNI ? 'true' : 'false',
+    'nazevSekce'      => $menu[$stranka]['nazev'] ?? 'Administrace',
+    'prepinacVzhledu' => $vzhledAdminuHtml?->dejPrepinac($u->id()) ?? '',
+    'vyberVzhledu'    => $vzhledAdminuHtml?->dejVyber($u->id()) ?? '',
 ]);
-$xtpl->parse('all.prepinacVzhledu');
-if ($vzhledAdminu?->isNabidnoutVyber($u->id())) {
-    $xtpl->parse('all.vyberVzhledu');
-}
 $xtpl->assign('chyba', chyba::vyzvedniHtml());
 $xtpl->assign('jsVyjimkovac', Gamecon\Vyjimkovac\Vyjimkovac::js(URL_WEBU));
 $xtpl->assign('headerPageInfo', $info->html());

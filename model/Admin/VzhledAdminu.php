@@ -11,6 +11,8 @@ namespace Gamecon\Admin;
 class VzhledAdminu
 {
     public const string POST_KLIC = 'vzhledAdminu';
+    /** Stránka bez rámu adminu (online prezence) hlášky nevypisuje, oznámení o změně by vyskočilo až jinde. */
+    public const string POST_KLIC_BEZ_OZNAMENI = 'vzhledAdminuBezOznameni';
     /** Not a look: the user postponed the choice, the offer comes back with the next login. */
     public const string VOLBA_POZDEJI = 'pozdeji';
     public const VzhledAdminuEnum VYCHOZI = VzhledAdminuEnum::KLASICKY;
