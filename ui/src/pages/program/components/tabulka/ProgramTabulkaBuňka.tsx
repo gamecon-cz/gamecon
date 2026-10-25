@@ -1,5 +1,5 @@
 import produce from "immer";
-import { FunctionComponent } from "preact";
+import { FunctionComponent, JSX } from "preact";
 import { Pohlavi } from "../../../../api/přihlášenýUživatel";
 import { generujUrl } from "../../../../store/program/logic/url";
 import { useAktivita, useUrlStav, useÚčastníkPohlaví } from "../../../../store/program/selektory";
