@@ -1,4 +1,4 @@
-import { FunctionComponent } from "preact";
+import { FunctionComponent, JSX } from "preact";
 import { ApiObsazenost as ObsazenostTyp } from "../../../../api/program";
 import { volnoTypZObsazenost } from "../../../../utils";
 
