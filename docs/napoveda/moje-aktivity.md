@@ -10,6 +10,11 @@ každý s letošní rolí **Vypravěč** (a také organizátoři či partneři).
 se ale ukážou jen aktivity, u kterých jsi uveden jako vypravěč v aktuálním
 ročníku. Pokud žádnou nevedeš, uvidíš jen hlášku **„Nevedeš žádné aktivity 😞"**.
 
+Stránka má stejně jako zbytek adminu **klasický** a **moderní vzhled** (viz
+kapitola Úvod). V moderním je nahoře lišta s odkazem zpět do adminu a
+zaškrtávátka jsou větší, aby se na telefonu dobře trefovala. Vzhled přepneš
+dole na stránce, volba platí pro celý admin.
+
 ## Co u své aktivity vidíš
 
 Každá aktivita má vlastní blok s nadpisem ve tvaru *název – vypravěči — místnost*.

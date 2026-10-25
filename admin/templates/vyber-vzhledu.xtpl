@@ -1,0 +1,45 @@
+<!-- begin:vyberVzhledu -->
+<dialog class="vyber-vzhledu" id="vyberVzhledu" aria-labelledby="vyberVzhleduNadpis" aria-describedby="vyberVzhleduPopis">
+  <form method="post">
+    <!-- begin:bezOznameni --><input type="hidden" name="{bezOznameniKlic}" value="1"><!-- end:bezOznameni -->
+    <h2 id="vyberVzhleduNadpis">Vyber si vzhled administrace</h2>
+    <p id="vyberVzhleduPopis">
+      Administrace má nový vzhled, který se přizpůsobí i telefonu a tabletu. Funkce zůstávají stejné.
+      Změnit ho můžeš kdykoli dole na každé stránce.
+    </p>
+    <div class="vyber-vzhledu-moznosti">
+      <button type="submit" name="{vzhledPostKlic}" value="{vzhledModerni}" class="vyber-vzhledu-moznost">
+        <span class="vyber-vzhledu-nahled vyber-vzhledu-nahled-moderni" aria-hidden="true">
+          <span class="nahled-panel"><span></span><span></span><span></span><span></span></span>
+          <span class="nahled-obsah"><span class="nahled-cipy"><span></span><span></span><span></span></span><span class="nahled-karta"></span></span>
+        </span>
+        <strong>Moderní <span class="vyber-vzhledu-stitek">nový</span></strong>
+        <span class="vyber-vzhledu-popis">Přehlednější, větší tlačítka, funguje na mobilu i tabletu</span>
+      </button>
+      <button type="submit" name="{vzhledPostKlic}" value="{vzhledKlasicky}" class="vyber-vzhledu-moznost">
+        <span class="vyber-vzhledu-nahled vyber-vzhledu-nahled-klasicky" aria-hidden="true">
+          <span class="nahled-panel"><span></span><span></span><span></span><span></span></span>
+          <span class="nahled-obsah"><span class="nahled-cipy"><span></span><span></span><span></span></span><span class="nahled-karta"></span></span>
+        </span>
+        <strong>Klasický</strong>
+        <span class="vyber-vzhledu-popis">Tak, jak ho znáš</span>
+      </button>
+    </div>
+    <button type="submit" name="{vzhledPostKlic}" value="{vzhledPozdeji}" class="vyber-vzhledu-pozdeji">Rozhodnu se později</button>
+  </form>
+</dialog>
+<script type="text/javascript">
+  (function () {
+    var dialog = document.getElementById('vyberVzhledu')
+    if (typeof dialog.showModal !== 'function') {
+      return // bez podpory <dialog> zůstane jen přepínač v patičce
+    }
+    // Esc znamená totéž co „Rozhodnu se později“, jinak by se výběr vnucoval na každé další stránce
+    dialog.addEventListener('cancel', function (event) {
+      event.preventDefault()
+      dialog.querySelector('.vyber-vzhledu-pozdeji').click()
+    })
+    dialog.showModal()
+  })()
+</script>
+<!-- end:vyberVzhledu -->

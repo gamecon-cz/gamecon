@@ -1,0 +1,7 @@
+<nav class="menu moderni-menu" aria-label="Hlavní menu">
+  <!-- begin:menuPolozka -->
+  <div {aktivni}>
+    <a href="{url}" {ariaAktivni}><i class="fa-solid fa-fw fa-{ikona}" aria-hidden="true"></i><span>{nazev}</span></a>
+  </div>
+  <!-- end:menuPolozka -->
+</nav>
