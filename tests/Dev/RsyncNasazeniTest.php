@@ -351,10 +351,100 @@ class RsyncNasazeniTest extends TestCase
      */
     public function theRealMasksAndProtectedPathsAreTranslatable(): void
     {
-        $filtry = buildRsyncFilters(array_merge(buildIgnoreMasks(), getDefaultIgnoreMasks()), getRsyncProtectedPaths());
+        $filtry = buildRsyncFilters(buildIgnoreMasks(), getRsyncProtectedPaths(), getDefaultIgnoreMasks());
 
         self::assertContains('P /cache/*', $filtry);
         self::assertContains('P /nastaveni/google-api-client-secret.json', $filtry);
+        self::assertContains('H ' . foldRsyncPatternCase('.git*'), $filtry);
+        self::assertNotContains('- ' . foldRsyncPatternCase('.git*'), $filtry);
+        self::assertStringStartsWith('H ', $filtry[count(getRsyncProtectedPaths())]);
+    }
+
+    /**
+     * @test
+     */
+    public function senderOnlyMasksBecomeHideRulesAfterTheProtectedPathsAndBeforeTheOtherMasks(): void
+    {
+        $filtry = buildRsyncFilters(['/backup/*', '!/backup/.htaccess'], ['/cache/*'], ['*.bak', '.git*']);
+
+        self::assertSame(
+            [
+                'P /cache/*',
+                'H ' . foldRsyncPatternCase('.git*'),
+                'H ' . foldRsyncPatternCase('*.bak'),
+                '+ ' . foldRsyncPatternCase('/backup/.htaccess'),
+                '+ ' . foldRsyncPatternCase('/backup/'),
+                '- ' . foldRsyncPatternCase('/backup/*'),
+            ],
+            $filtry,
+        );
+    }
+
+    /**
+     * @test
+     */
+    public function theGuardAgainstUntranslatableMasksAlsoChecksTheSenderOnlyOnes(): void
+    {
+        $this->expectException(\LogicException::class);
+        buildRsyncFilters(['/a/*'], [], ['log[A-Z]']);
+    }
+
+    /**
+     * @test
+     *
+     * @dataProvider provideSenderOnlyMasksThatAreNotPlainNames
+     */
+    public function aSenderOnlyMaskThatIsAnExceptionOrHasASlashIsRefused(string $mask): void
+    {
+        $this->expectException(\LogicException::class);
+        buildRsyncFilters(['/a/*'], [], [$mask]);
+    }
+
+    public static function provideSenderOnlyMasksThatAreNotPlainNames(): iterable
+    {
+        yield 'an exception, which would lift the protection of the plain excludes' => ['!keep.bak'];
+        yield 'a rooted path' => ['/backup/old.bak'];
+        yield 'a path below a directory' => ['sub/old.bak'];
+    }
+
+    /**
+     * @test
+     *
+     * @dataProvider provideServerFilesThatMatchADefaultMaskButMustStay
+     */
+    public function aServerFileThatMatchesADefaultMaskButMustStayIsCoveredByAnotherRule(string $path): void
+    {
+        $filters = buildRsyncFilters(buildIgnoreMasks(), getRsyncProtectedPaths(), getDefaultIgnoreMasks());
+
+        self::assertTrue($this->isCoveredByAProtectOrExcludeRule($path, $filters), "{$path} would be deleted from the server");
+    }
+
+    public static function provideServerFilesThatMatchADefaultMaskButMustStay(): iterable
+    {
+        yield 'a backup in the uploaded content' => ['/web/soubory/obsah/rubrika/stranka/stary-soubor.bak'];
+        yield 'a gitignore in the uploaded content' => ['/web/soubory/obsah/sponzori/titulka/.gitignore'];
+        yield 'a gitkeep in an upload folder' => ['/web/soubory/systemove/linie/.gitkeep'];
+        yield 'a gitkeep in the cache' => ['/cache/private/databaze/.gitkeep'];
+        yield 'a gitkeep in the backups' => ['/backup/.gitkeep'];
+    }
+
+    /**
+     * @test
+     *
+     * @dataProvider provideServerLeftoversThatAreDeleted
+     */
+    public function aLeftoverThatMatchesADefaultMaskAndNothingElseIsNotCovered(string $path): void
+    {
+        $filters = buildRsyncFilters(buildIgnoreMasks(), getRsyncProtectedPaths(), getDefaultIgnoreMasks());
+
+        self::assertFalse($this->isCoveredByAProtectOrExcludeRule($path, $filters), "{$path} would stay on the server");
+    }
+
+    public static function provideServerLeftoversThatAreDeleted(): iterable
+    {
+        yield 'a workflow of a package' => ['/vendor/balicek/.github/workflows/ci.yaml'];
+        yield 'a gitignore of a package' => ['/vendor/balicek/.gitignore'];
+        yield 'a thumbnail cache' => ['/web/Thumbs.db'];
     }
 
     /**
@@ -510,6 +600,8 @@ class RsyncNasazeniTest extends TestCase
         self::assertContains('--max-delete=21', $upload);
         foreach ([$plan, $upload] as $argumenty) {
             self::assertContains('--filter=P /cache/*', $argumenty);
+            self::assertContains('--filter=H ' . foldRsyncPatternCase('.git*'), $argumenty);
+            self::assertNotContains('--filter=- ' . foldRsyncPatternCase('.git*'), $argumenty);
             self::assertContains('x:/', $argumenty);
             self::assertStringContainsString('-p 2222', implode(' ', $argumenty));
         }
@@ -797,6 +889,48 @@ class RsyncNasazeniTest extends TestCase
         }
 
         self::assertFileDoesNotExist($this->workDir . '/arguments-2');
+    }
+
+    /**
+     * Walks the path from its top directory down like the receiving rsync: the first rule that matches a node decides,
+     * `H` rules are for the sender only, so they are skipped. Close enough to rsync for the rules of this project.
+     *
+     * @param list<string> $filters
+     */
+    private function isCoveredByAProtectOrExcludeRule(string $path, array $filters): bool
+    {
+        $parts = explode('/', trim($path, '/'));
+        for ($depth = 1; $depth <= count($parts); ++$depth) {
+            $node = '/' . implode('/', array_slice($parts, 0, $depth));
+            $isDir = $depth < count($parts);
+            foreach ($filters as $filter) {
+                [$type, $pattern] = explode(' ', $filter, 2);
+                if ($type === 'H' || ! $this->ruleMatchesNode($pattern, $node, $isDir)) {
+                    continue;
+                }
+                if ($type !== '+') {
+                    return true;
+                }
+                break;
+            }
+        }
+
+        return false;
+    }
+
+    private function ruleMatchesNode(string $pattern, string $node, bool $isDir): bool
+    {
+        if (str_ends_with($pattern, '/***')) {
+            return fnmatch(substr($pattern, 0, -4), $node, FNM_PATHNAME);
+        }
+        if (str_ends_with($pattern, '/')) {
+            return $isDir && fnmatch(rtrim($pattern, '/'), $node, FNM_PATHNAME);
+        }
+        if (! str_contains($pattern, '/')) {
+            return fnmatch($pattern, basename($node));
+        }
+
+        return fnmatch($pattern, $node, FNM_PATHNAME);
     }
 
     private function runDeploy(bool $dryRun): void
