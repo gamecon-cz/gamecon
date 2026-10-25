@@ -8,6 +8,7 @@ use Gamecon\Admin\VzhledAdminu;
 use Gamecon\Admin\VzhledAdminuEnum;
 use Gamecon\Admin\VzhledAdminuHtml;
 use Gamecon\Tests\Db\AbstractTestDb;
+use Gamecon\XTemplate\XTemplate;
 
 class VzhledAdminuHtmlTest extends AbstractTestDb
 {
@@ -15,6 +16,16 @@ class VzhledAdminuHtmlTest extends AbstractTestDb
      * @var array<string, mixed>
      */
     private array $session = [];
+
+    protected function setUp(): void
+    {
+        parent::setUp();
+
+        // Without it XTemplate compiles the template next to its source, into the tracked tree
+        $cacheDir = XTemplate::cache() ?: XTPL_CACHE_DIR;
+        pripravCache($cacheDir);
+        XTemplate::cache($cacheDir);
+    }
 
     private function vytvorUzivatele(string $suffix): int
     {

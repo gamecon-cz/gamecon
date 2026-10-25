@@ -10,6 +10,7 @@ use Gamecon\Admin\VzhledAdminuHtml;
 use Gamecon\Aktivita\OnlinePrezence\OnlinePrezenceHtml;
 use Gamecon\SystemoveNastaveni\SystemoveNastaveni;
 use Gamecon\Tests\Db\AbstractUzivatelTestDb;
+use Gamecon\XTemplate\XTemplate;
 use Symfony\Component\Filesystem\Filesystem;
 
 /**
@@ -21,6 +22,16 @@ class OnlinePrezenceHtmlVzhledTest extends AbstractUzivatelTestDb
      * @var array<string, mixed>
      */
     private array $session = [];
+
+    protected function setUp(): void
+    {
+        parent::setUp();
+
+        // Without it XTemplate compiles the template next to its source, into the tracked tree
+        $cacheDir = XTemplate::cache() ?: XTPL_CACHE_DIR;
+        pripravCache($cacheDir);
+        XTemplate::cache($cacheDir);
+    }
 
     private function dejHtml(?VzhledAdminuEnum $vzhled): string
     {
