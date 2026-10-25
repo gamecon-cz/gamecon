@@ -30,6 +30,7 @@ class ComposerStaticInitdb580ec440eba8dacea536916cb0200b
         'ec07570ca5a812141189b1fa81503674' => __DIR__ . '/..' . '/phpunit/phpunit/src/Framework/Assert/Functions.php',
         '38143a9afc50997d55e4815db8489d1c' => __DIR__ . '/..' . '/rector/rector/bootstrap.php',
         '2203a247e6fda86070a5e4e07aed533a' => __DIR__ . '/..' . '/symfony/clock/Resources/now.php',
+        'a1105708a18b76903365ca1c4aa61b02' => __DIR__ . '/..' . '/symfony/translation/Resources/functions.php',
         '5bf57f5eebf62cf90c3fc03a259adc34' => __DIR__ . '/..' . '/symplify/easy-coding-standard/bootstrap.php',
         'd507e002f7fce7f0c6dbf1f22edcb902' => __DIR__ . '/..' . '/tracy/tracy/src/Tracy/functions.php',
         '4f9a1929b39ff2a6c1016427077d16f5' => __DIR__ . '/..' . '/zenstruck/foundry/src/functions.php',
@@ -79,6 +80,7 @@ class ComposerStaticInitdb580ec440eba8dacea536916cb0200b
             'Symfony\\Polyfill\\Intl\\Grapheme\\' => 31,
             'Symfony\\Polyfill\\Ctype\\' => 23,
             'Symfony\\Flex\\' => 13,
+            'Symfony\\Contracts\\Translation\\' => 30,
             'Symfony\\Contracts\\Service\\' => 26,
             'Symfony\\Contracts\\EventDispatcher\\' => 34,
             'Symfony\\Contracts\\Cache\\' => 24,
@@ -86,6 +88,7 @@ class ComposerStaticInitdb580ec440eba8dacea536916cb0200b
             'Symfony\\Component\\VarExporter\\' => 30,
             'Symfony\\Component\\VarDumper\\' => 28,
             'Symfony\\Component\\TypeInfo\\' => 27,
+            'Symfony\\Component\\Translation\\' => 30,
             'Symfony\\Component\\String\\' => 25,
             'Symfony\\Component\\Routing\\' => 26,
             'Symfony\\Component\\PropertyInfo\\' => 31,
@@ -291,6 +294,10 @@ class ComposerStaticInitdb580ec440eba8dacea536916cb0200b
         array (
             0 => __DIR__ . '/..' . '/symfony/flex/src',
         ),
+        'Symfony\\Contracts\\Translation\\' =>
+        array (
+            0 => __DIR__ . '/..' . '/symfony/translation-contracts',
+        ),
         'Symfony\\Contracts\\Service\\' =>
         array (
             0 => __DIR__ . '/..' . '/symfony/service-contracts',
@@ -318,6 +325,10 @@ class ComposerStaticInitdb580ec440eba8dacea536916cb0200b
         'Symfony\\Component\\TypeInfo\\' =>
         array (
             0 => __DIR__ . '/..' . '/symfony/type-info',
+        ),
+        'Symfony\\Component\\Translation\\' =>
+        array (
+            0 => __DIR__ . '/..' . '/symfony/translation',
         ),
         'Symfony\\Component\\String\\' =>
         array (

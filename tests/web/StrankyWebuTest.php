@@ -71,6 +71,10 @@ class StrankyWebuTest extends AbstractTestWeb
                 self::getUrlsModuluWebu(),
                 self::getUrlsExternichRedirectu(),
             )),
+            'moduly anglického webu' => array_values(array_diff(
+                self::getUrlsModuluWebu('en/'),
+                self::getUrlsExternichRedirectu('en/'),
+            )),
         ];
     }
 
@@ -88,7 +92,7 @@ class StrankyWebuTest extends AbstractTestWeb
         ];
     }
 
-    protected static function getUrlsModuluWebu(): array
+    protected static function getUrlsModuluWebu(string $prefixJazyka = ''): array
     {
         $modulyWebu = scandir(__DIR__ . '/../../web/moduly');
         $modulyWebuBaseUrls = [];
@@ -109,15 +113,15 @@ class StrankyWebuTest extends AbstractTestWeb
         ];
         $modulyWebuBaseUrls = array_diff($modulyWebuBaseUrls, $blocklist);
 
-        return self::prefixWebBaseUrl($modulyWebuBaseUrls);
+        return self::prefixWebBaseUrl($modulyWebuBaseUrls, $prefixJazyka);
     }
 
     /**
      * @return string[]
      */
-    protected static function getUrlsExternichRedirectu(): array
+    protected static function getUrlsExternichRedirectu(string $prefixJazyka = ''): array
     {
-        return self::prefixWebBaseUrl(self::EXTERNI_REDIRECT_MODULY_WEBU);
+        return self::prefixWebBaseUrl(self::EXTERNI_REDIRECT_MODULY_WEBU, $prefixJazyka);
     }
 
     /**
@@ -125,9 +129,9 @@ class StrankyWebuTest extends AbstractTestWeb
      *
      * @return string[]
      */
-    private static function prefixWebBaseUrl(array $modulyWebuBaseUrls): array
+    private static function prefixWebBaseUrl(array $modulyWebuBaseUrls, string $prefixJazyka = ''): array
     {
-        $webBaseUrl = basename(__DIR__ . '/../../web');
+        $webBaseUrl = basename(__DIR__ . '/../../web') . ($prefixJazyka !== '' ? '/' . rtrim($prefixJazyka, '/') : '');
 
         return array_map(static function (
             string $modulWebuUrl,

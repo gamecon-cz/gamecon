@@ -2,6 +2,7 @@
 
 use Gamecon\Aktivita\Aktivita;
 use Gamecon\Aktivita\FiltrAktivity;
+use Gamecon\Aktivita\JazykAktivity;
 use Gamecon\Aktivita\Program;
 use Gamecon\Aktivita\TypAktivity;
 
@@ -107,7 +108,7 @@ foreach ($skupiny as $skupina) {
         'aktivita'           => $aktivita,
         'htmlId'             => $aktivita->urlId(),
         // nelze použít prosté #htmlId, protože to rozbije base href a odkazuje to pak o úroveň výš
-        'kotva'              => URL_WEBU . '/' . $url->cela() . '#' . $aktivita->urlId(),
+        'kotva'              => urlWebu($url->cela()) . '#' . $aktivita->urlId(),
         'obrazek'            => $obrazek
             ? $obrazek->pasuj(512)
             : null, // TODO kvalita?
@@ -117,6 +118,11 @@ foreach ($skupiny as $skupina) {
             ?: 'neomezeně',
     ]);
 
+    if ($aktivita->jazyk() !== JazykAktivity::CESKY) {
+        $t->assign('jazyk', $aktivita->jazyk()->popisek());
+        $t->parse('aktivity.aktivita.jazyk');
+        $t->parse('aktivity.nahled.jazyk');
+    }
     $t->parseEach($aktivita->tagy(), 'stitek', 'aktivity.aktivita.stitek');
     $t->parseEach($aktivita->tagy(), 'stitek', 'aktivity.nahled.stitek');
     $t->parse('aktivity.aktivita');

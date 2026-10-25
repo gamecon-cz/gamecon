@@ -1,0 +1,44 @@
+# Public website texts, ICU message format (see Gamecon\Jazyk\Preklad).
+# Every key must also be in messages+intl-icu.cs.yaml, PrekladyKatalogTest checks it.
+
+jazyk:
+    prepnout: Switch to English
+
+jazyk_aktivity:
+    cesky: in Czech
+    anglicky: in English
+    cesky_i_anglicky: in Czech and English
+    nezavisla: language-independent
+
+menu:
+    prihlasit: log in
+    finance: Payments
+    nastaveni: Settings
+    admin: Admin
+    hry_ktere_vedu: Games I run
+    upravit_prihlasku: Edit registration
+    prihlaska_na_gc: Register for GameCon
+    odhlasit: Log out
+    program: programme
+    aktivity: activities
+    informace: information
+    prakticke_informace: Practical information
+    jidelnicek: Food menu
+    chci_organizovat: I want to help organise GameCon
+    blog: Blog
+    pro_sponzory_a_media: For sponsors and media
+    kontakty: Contacts
+
+paticka:
+    qr_k_sockam: Social media QR codes
+    sponzori: sponsors
+    kontakt: contact
+    archiv_mdrd: mDrD archive
+
+program:
+    nadpis:
+        muj: My programme
+        den: Programme – {den}
+
+web:
+    popis: The largest festival of non-computer games. Every fan of board games, role-playing, larps and other active fun will find something at GameCon, whatever their age.

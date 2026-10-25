@@ -2,6 +2,8 @@
 
 use \Gamecon\Cas\DateTimeCz;
 use \Gamecon\Cas\DateTimeGamecon;
+use Gamecon\Cas\DatumVJazyce;
+use Gamecon\Jazyk\Jazyk;
 use Gamecon\SystemoveNastaveni\Exceptions\NeznamyKlicSystemovehoNastaveni;
 use Granam\RemoveDiacritics\RemoveDiacritics;
 use Symfony\Component\Filesystem\Filesystem;
@@ -66,40 +68,33 @@ function datum2(
 }
 
 /**
- * Vrací datum ve stylu 1. července
+ * Vrací datum ve stylu „1. července" (anglicky „1 July") v jazyce požadavku
  *  akceptuje vše, co žere strtotime
  */
 function datum3(
     string|DateTimeInterface $datum,
+    ?Jazyk $jazyk = null,
 ): string
 {
-    $datumTimestamp = ($datum instanceof DateTimeInterface)
-        ? $datum->getTimestamp()
-        : strtotime($datum);
-    $mesic = [
-        'ledna', 'února', 'března', 'dubna', 'května', 'června',
-        'července', 'srpna', 'září', 'října', 'listopadu', 'prosince',
-    ];
-
-    return date('j. ', $datumTimestamp) . $mesic[date('n', $datumTimestamp) - 1];
+    return DatumVJazyce::denAMesic(datumZTextu($datum), $jazyk);
 }
 
+/**
+ * Vrací datum ve stylu „1. července 14:00" (anglicky „1 July 14:00") v jazyce požadavku
+ */
 function datum4(
     string|DateTimeInterface $datum,
+    ?Jazyk $jazyk = null,
 ): string
 {
-    $datumTimestamp = ($datum instanceof DateTimeInterface)
-        ? $datum->getTimestamp()
-        : strtotime($datum);
+    return DatumVJazyce::denAMesicSCasem(datumZTextu($datum), $jazyk);
+}
 
-    $mesic = [
-        'ledna', 'února', 'března', 'dubna', 'května', 'června',
-        'července', 'srpna', 'září', 'října', 'listopadu', 'prosince',
-    ];
-
-    return date('j. ', $datumTimestamp)
-        . $mesic[date('n', $datumTimestamp) - 1]
-        . date(' H:i', $datumTimestamp);
+function datumZTextu(string|DateTimeInterface $datum): DateTimeInterface
+{
+    return $datum instanceof DateTimeInterface
+        ? $datum
+        : (new DateTimeImmutable())->setTimestamp((int)strtotime($datum));
 }
 
 function kvsOtevriDatabazi(string $soubor): SQLite3
@@ -180,6 +175,7 @@ function kvs(
  */
 function markdown(
     ?string $text,
+    ?Jazyk $jazyk = null,
 ): ?string
 {
     if ($text === null) {
@@ -190,25 +186,35 @@ function markdown(
         return '';
     }
 
-    $out = kvs('markdown', $text);
+    // typografie závisí na jazyce textu, stejný text v jiném jazyce má jiný výstup
+    $jazyk ??= Jazyk::vychozi();
+    $skupina = $jazyk->jeVychozi()
+        ? 'markdown'
+        : 'markdown-' . $jazyk->value;
+    $out = kvs($skupina, $text);
     if ($out === null) {
-        $out = markdownNoCache($text);
-        kvs('markdown', $text, $out);
+        $out = markdownNoCache($text, $jazyk);
+        kvs($skupina, $text, $out);
     }
 
     return $out;
 }
 
-/** Převede text markdown na html (přímo on the fly) */
+/**
+ * Převede text markdown na html (přímo on the fly)
+ *
+ * @param Jazyk|null $jazyk jazyk textu (ne stránky), podle něj se volí typografie; výchozí čeština
+ */
 function markdownNoCache(
     ?string $text,
+    ?Jazyk $jazyk = null,
 ): string
 {
     if (!$text) {
         return '';
     }
     $text = MarkdownExtra::defaultTransform($text);
-    $text = Smartyp::defaultTransform($text);
+    $text = Smartyp::defaultTransform($text, $jazyk);
     assert(is_string($text), sprintf('Expected string, got %s', gettype($text)));
 
     return $text;

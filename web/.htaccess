@@ -3,6 +3,13 @@ Allow from all
 AddDefaultCharset   UTF-8
 RewriteEngine       On
 
+# Anglická verze webu (/en/…) má <base href> pod prefixem, takže relativní odkazy na soubory
+# (soubory/…, obrázky v obsahu stránek) míří pod /en/. Obsloužíme je stejným souborem jako bez prefixu.
+# Adresář en/ neexistuje, proto je REQUEST_FILENAME „…/en" a zbytek cesty bereme z RewriteRule.
+RewriteCond %{REQUEST_FILENAME} ^(.+)/en$
+RewriteCond %1/$1 -f
+RewriteRule ^en/(.+)$ $1 [L]
+
 RewriteCond %{REQUEST_FILENAME} !-f
 RewriteRule .* index.php?req=$0 [L,QSA]
 

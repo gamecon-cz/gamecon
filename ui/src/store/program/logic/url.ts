@@ -1,5 +1,8 @@
 import { AktivitaStav } from "../../../api/program";
+import { JazykFiltru } from "../../../utils/jazykAktivity";
 import { GAMECON_KONSTANTY } from "../../../env";
+import { t } from "../../../i18n";
+import { názevDneVTýdnu } from "../../../i18n/datum";
 import { formátujDenVTýdnu, pražskýRok, pražskýMěsíc, pražskýDenVMěsíci, pražskýDenVTýdnu } from "../../../utils";
 import { denAktivity } from "./aktivity";
 
@@ -23,6 +26,7 @@ export type ProgramURLStav = {
   aktivitaNáhledId?: number,
   filtrLinie?: string[],
   filtrTagy?: number[],
+  filtrJazyk?: JazykFiltru[],
   filtrStavAktivit?: AktivitaStav[],
   filtrText?: string,
   /** ADMIN */
@@ -89,6 +93,8 @@ export const URL_STATE_VÝCHOZÍ_STAV: ProgramURLStav = Object.freeze({
 const NÁHLED_QUERY_KEY = "idAktivityNahled";
 const LINIE_QUERY_KEY = "linie";
 const TAGY_QUERY_KEY = "tagy";
+// ne "jazyk", ten patří přepínači jazyka webu (Gamecon\Jazyk\JazykPozadavku::PARAMETR_PREPNUTI)
+const JAZYK_AKTIVITY_QUERY_KEY = "jazykAktivity";
 const PŘIHLAŠOVATELNÉ_QUERY_KEY = "pouzePrihlasovatelne";
 const ROCNIK_QUERY_KEY = "rocnik";
 const STAVY_QUERY_KEY = "stav";
@@ -107,6 +113,7 @@ const párováníQueryDoStavu: {
   { stavString: "aktivitaNáhledId", query: NÁHLED_QUERY_KEY },
   { stavString: "filtrLinie", query: LINIE_QUERY_KEY },
   { stavString: "filtrTagy", query: TAGY_QUERY_KEY },
+  { stavString: "filtrJazyk", query: JAZYK_AKTIVITY_QUERY_KEY },
   { stavString: "filtrStavAktivit", query: STAVY_QUERY_KEY },
   { stavString: "filtrText", query: TEXT_QUERY_KEY },
   { stavString: "podleMístnosti", query: PODLE_MÍSTNOSTI_QUERY_KEY },
@@ -253,7 +260,7 @@ export const porovnejTabulkaVýběr = (v1: ProgramTabulkaVýběr, v2: ProgramTab
  */
 export const nadpisProgramu = (výběr: ProgramTabulkaVýběr): string =>
   výběr.typ === "můj"
-    ? "Můj program"
+    ? t("program.nadpis.muj")
     : výběr.typ === "všechny_dny"
-    ? "Program – všechny dny"
-    : `Program ${formátujDenVTýdnu(výběr.datum, true)}`;
+    ? t("program.nadpis.vsechny_dny")
+    : t("program.nadpis.den", { den: názevDneVTýdnu(výběr.datum) });

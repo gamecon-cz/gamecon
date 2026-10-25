@@ -129,6 +129,7 @@ export const inicializujProgramStore = () => {
     urlStav.ročník !== GAMECON_KONSTANTY.ROCNIK
     || urlStav.filtrLinie?.length
     || urlStav.filtrTagy?.length
+    || urlStav.filtrJazyk?.length
     || urlStav.filtrPřihlašovatelné
   ) {
     nastavFiltryOtevřené(true);

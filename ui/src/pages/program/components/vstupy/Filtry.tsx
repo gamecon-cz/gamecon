@@ -7,6 +7,7 @@ import {
   useUrlStavMožnosti,
 } from "../../../../store/program/selektory";
 import {
+  nastavFiltrJazyků,
   nastavFiltrLinií,
   nastavFiltrPřihlašovatelné,
   nastavFiltrRočník,
@@ -21,7 +22,8 @@ import {
 import "./ReactSelect.less";
 import "./Filtry.less";
 import { FiltrTagů } from "./FiltrŠtítků";
-import { asValueLabel } from "../../../../utils";
+import { asValueLabel, JAZYKY_FILTRU, JazykFiltru, názevJazykaFiltru } from "../../../../utils";
+import { t } from "../../../../i18n";
 import { useProgramStore } from "../../../../store/program";
 import { přepniKompaktní, přepniZvětšeno } from "../../../../store/program/slices/všeobecnéSlice";
 
@@ -33,11 +35,15 @@ const ROKY_OPTIONS = ROKY.concat(GAMECON_KONSTANTY.ROCNIK)
   .map((x) => ({ value: x, label: x }))
   .reverse();
 
+const jazykOption = (jazyk: JazykFiltru) => ({ value: jazyk, label: názevJazykaFiltru(jazyk) });
+
+const JAZYKY_OPTIONS = JAZYKY_FILTRU.map(jazykOption);
+
 
 export const Filtry: FunctionComponent<TFiltryProps> = (props) => {
   const { otevřeno } = props;
 
-  const { ročník, filtrPřihlašovatelné, filtrLinie, filtrText, podleMístnosti, bezÚčastníka, zobrazInterni, zobrazPrázdné, autoRefresh } = useUrlStav();
+  const { ročník, filtrPřihlašovatelné, filtrLinie, filtrJazyk, filtrText, podleMístnosti, bezÚčastníka, zobrazInterni, zobrazPrázdné, autoRefresh } = useUrlStav();
 
   const urlStavMožnosti = useUrlStavMožnosti();
 
@@ -84,6 +90,18 @@ export const Filtry: FunctionComponent<TFiltryProps> = (props) => {
               value={filtrLinie?.map(asValueLabel) ?? []}
               onChange={(e) => {
                 nastavFiltrLinií(e.map((x) => x.value));
+              }}
+            />
+          </div>
+          <div style={{ flex: "1", maxWidth: "260px" }}>
+            <Select
+              placeholder={t("program.filtr.jazyk")}
+              options={JAZYKY_OPTIONS}
+              closeMenuOnSelect={false}
+              isMulti
+              value={filtrJazyk?.map(jazykOption) ?? []}
+              onChange={(e) => {
+                nastavFiltrJazyků(e.map((x) => x.value));
               }}
             />
           </div>

@@ -580,6 +580,7 @@ SQL
 
         // načtení typů
         self::parseUpravyTabulkaTypy($aktivita, $xtpl);
+        self::parseUpravyTabulkaJazyk($aktivita, $xtpl);
 
         // výstup
         $xtpl->parse('upravy.tabulka');
@@ -892,6 +893,23 @@ SQL
                 : '');
             $xtpl->assign($akceTypData);
             $xtpl->parse('upravy.tabulka.typ');
+        }
+    }
+
+    private static function parseUpravyTabulkaJazyk(
+        ?Aktivita $aktivita,
+        XTemplate $xtpl,
+    ): void {
+        $jazykAktivity = $aktivita?->jazyk() ?? JazykAktivity::vychozi();
+        foreach (JazykAktivity::cases() as $jazyk) {
+            $xtpl->assign([
+                'jazykKod'      => $jazyk->value,
+                'jazykNazev'    => $jazyk->nazev(),
+                'jazykSelected' => $jazyk === $jazykAktivity
+                    ? 'selected'
+                    : '',
+            ]);
+            $xtpl->parse('upravy.tabulka.jazyk');
         }
     }
 
@@ -1249,6 +1267,9 @@ SQL
             $data[Sql::PROBEHLA_KOREKCE] = (int)!empty($data[Sql::PROBEHLA_KOREKCE]); // checkbox pro "probehla_korekce"
         }
         $data[Sql::CENA] = (int)($data[Sql::CENA] ?? 0);
+        if (array_key_exists(Sql::JAZYK, $data)) {
+            $data[Sql::JAZYK] = JazykAktivity::zFormulare($data[Sql::JAZYK])->value;
+        }
 
         if (empty($data[Sql::POPIS]) && empty($data[Sql::ID_AKCE])) {
             $data[Sql::POPIS] = 0; // uložíme později jako jako $markdownPopis,teď jenom vyřešíme "Field Sql::POPIS doesn't have a default value"
@@ -1580,6 +1601,12 @@ SQL
     public function kratkyPopis()
     {
         return $this->a['popis_kratky'];
+    }
+
+    public function jazyk(): JazykAktivity
+    {
+        return JazykAktivity::tryFrom((string)($this->a[Sql::JAZYK] ?? ''))
+            ?? JazykAktivity::vychozi();
     }
 
     /**

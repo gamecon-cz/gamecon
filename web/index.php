@@ -3,6 +3,9 @@
 declare(strict_types=1);
 
 use Gamecon\Aktivita\TypAktivity;
+use Gamecon\Jazyk\AktualniJazyk;
+use Gamecon\Jazyk\Jazyk;
+use Gamecon\Jazyk\JazykPozadavku;
 use Gamecon\Vyjimkovac\Vyjimkovac;
 use Gamecon\Web\Info;
 use Gamecon\XTemplate\XTemplate;
@@ -17,6 +20,9 @@ if (HTTPS_ONLY) {
 omezCsrf();
 
 $u = Uzivatel::zSession();
+
+// Jazyk podle prefixu cesty (/en/…). Odtrhne ho z $_GET['req'], takže routery níž pracují s cestou bez něj.
+JazykPozadavku::zGlobals()->zpracuj($u);
 
 /** @var Gamecon\SystemoveNastaveni\SystemoveNastaveni $systemoveNastaveni */
 
@@ -37,10 +43,21 @@ try {
     $url = null;
 }
 
+// Titulka zatím není přeložená. Do té doby je anglickou úvodní stránkou ručně psaná stránka `en`
+// z CMS, která dřív byla na adrese /en (tu teď zabral prefix jazyka).
+$anglickaUvodniStranka = $url?->cela() === '' && AktualniJazyk::jazyk() === Jazyk::ANGLICTINA
+    ? Stranka::zUrl('en')
+    : null;
+
 // určení modulu, který zpracuje požadavek (router)
-$m = $url
-    ? Modul::zUrl(null, $systemoveNastaveni)
-    : Modul::zNazvu('nenalezeno', null, $systemoveNastaveni);
+if ($anglickaUvodniStranka) {
+    $m = Modul::zNazvu('stranka', null, $systemoveNastaveni);
+    $m->param('stranka', $anglickaUvodniStranka);
+} else {
+    $m = $url
+        ? Modul::zUrl(null, $systemoveNastaveni)
+        : Modul::zNazvu('nenalezeno', null, $systemoveNastaveni);
+}
 if (! $m && ($stranka = Stranka::zUrl())) {
     if ($stranka->isRedirect()) {
         header('Location: ' . $stranka->redirectUrl(), true, 301);
@@ -98,7 +115,8 @@ $t->assign([
     'chyba'        => Chyba::vyzvedniHtml(),
     'menu'         => $menu,
     'obsah'        => $m->vystup(),
-    'base'         => URL_WEBU . '/',
+    'base'         => urlWebu(),
+    'jazyk'        => AktualniJazyk::jazyk()->value,
     'info'         => $m->info() ? $m->info()->html() : '',
     'letosniRok'   => date('Y'),
 ]);

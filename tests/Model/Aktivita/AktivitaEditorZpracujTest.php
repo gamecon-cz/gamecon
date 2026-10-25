@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Gamecon\Tests\Model\Aktivita;
 
 use Gamecon\Aktivita\Aktivita;
+use Gamecon\Aktivita\JazykAktivity;
 use Gamecon\Aktivita\SqlStruktura\AkceSeznamSqlStruktura as Sql;
 use Gamecon\Aktivita\StavPrihlaseni;
 use Gamecon\Tests\Db\AbstractTestDb;
@@ -163,6 +164,67 @@ SQL,
         $varovaniHtml = \Chyba::vyzvedniHtml();
         self::assertStringContainsString('Tato změna se dotkne přihlášených hráčů (1).', $varovaniHtml);
         self::assertStringContainsString('změnit cenu', $varovaniHtml);
+    }
+
+    public function testEditorZpracujPoPotvrzeníPropíšeJazykDoCeléRodiny(): void
+    {
+        // Jazyk je vlastnost celé aktivity, ne termínu – po potvrzení se musí propsat do všech instancí.
+        $_POST[Aktivita::POST_KLIC] = [
+            Sql::ID_AKCE    => 7102,
+            Sql::NAZEV_AKCE => 'Instance bez přihlášených',
+            Sql::URL_AKCE   => 'hlavni-aktivita-editor-test',
+            Sql::PATRI_POD  => 9101,
+            Sql::POPIS      => '',
+            'den'           => ROCNIK . '-07-16',
+            Sql::ZACATEK    => '10',
+            Sql::KONEC      => '12',
+            Sql::CENA       => 100,
+            Sql::TEAMOVA    => 0,
+            Sql::KAPACITA   => 5,
+            Sql::KAPACITA_F => 0,
+            Sql::KAPACITA_M => 0,
+            Sql::JAZYK      => JazykAktivity::CESKY_I_ANGLICKY->value,
+        ];
+        $_POST[Aktivita::POTVRDIT_ZMENU_UDAJU_S_PRIHLASENYMI_KLIC] = '0';
+
+        self::assertNull(Aktivita::editorZpracuj(null), 'Změna jazyka se dotkne hráčů na sourozenecké instanci, bez potvrzení se nemá uložit.');
+        self::assertStringContainsString('změnit jazyk', \Chyba::vyzvedniHtml());
+
+        $_POST[Aktivita::POTVRDIT_ZMENU_UDAJU_S_PRIHLASENYMI_KLIC] = '1';
+        self::assertNotNull(Aktivita::editorZpracuj(null));
+
+        self::assertSame(
+            [
+                '7101' => 'cs-en',
+                '7102' => 'cs-en',
+                '7103' => 'cs-en',
+            ],
+            dbArrayCol('SELECT id_akce, jazyk FROM akce_seznam WHERE patri_pod = 9101 ORDER BY id_akce'),
+        );
+    }
+
+    public function testEditorZpracujNeznámýJazykNahradíČeštinou(): void
+    {
+        $_POST[Aktivita::POST_KLIC] = [
+            Sql::ID_AKCE    => 7102,
+            Sql::NAZEV_AKCE => 'Instance bez přihlášených',
+            Sql::URL_AKCE   => 'hlavni-aktivita-editor-test',
+            Sql::PATRI_POD  => 9101,
+            Sql::POPIS      => '',
+            'den'           => ROCNIK . '-07-16',
+            Sql::ZACATEK    => '10',
+            Sql::KONEC      => '12',
+            Sql::CENA       => 100,
+            Sql::TEAMOVA    => 0,
+            Sql::KAPACITA   => 5,
+            Sql::KAPACITA_F => 0,
+            Sql::KAPACITA_M => 0,
+            Sql::JAZYK      => 'klingonsky',
+        ];
+        $_POST[Aktivita::POTVRDIT_ZMENU_UDAJU_S_PRIHLASENYMI_KLIC] = '1';
+
+        self::assertNotNull(Aktivita::editorZpracuj(null));
+        self::assertSame('cs', dbOneCol('SELECT jazyk FROM akce_seznam WHERE id_akce = 7102'));
     }
 
     protected static function keepSingleTestMethodDbChangesInTransaction(): bool

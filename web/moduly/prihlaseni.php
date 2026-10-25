@@ -23,7 +23,7 @@ if (post('prihlasit')) {
         }
 
         if ($u) {
-            back(URL_WEBU . '/prihlaska');
+            back(urlWebu('prihlaska'));
         } else {
             Chyba::nastav(hlaska('chybaPrihlaseni'));
         }

@@ -3,6 +3,7 @@ import { Pohlavi } from "../../../api/přihlášenýUživatel";
 import { GAMECON_KONSTANTY } from "../../../env";
 import { volnoTypZObsazenost } from "../../../utils";
 import { pražskéHodiny, pražskýDenVTýdnu, pražskýRok } from "../../../utils/czech-time";
+import { JazykFiltru, jazykAktivity, jazykyFiltruAktivity } from "../../../utils/jazykAktivity";
 // Pozor musí být defaultní import!
 import FlexSearch from "flexsearch";
 import { Aktivita } from "../slices/programDataSlice";
@@ -39,6 +40,7 @@ export type FiltrAktivit = Partial<{
   filtrPřihlašovatelné: boolean,
   filtrLinie: string[],
   filtrTagy: number[],
+  filtrJazyk: JazykFiltru[],
   filtrStavAktivit: AktivitaStav[],
   filtrText: string,
   filtrInterni: boolean,
@@ -136,7 +138,7 @@ const zaindexujFullText = (aktivita: Aktivita) => {
 
 export const filtrujAktivity = (aktivity: Aktivita[], filtr: FiltrAktivit, mapováníTagů: MapováníTagů) => {
   const {
-    filtrLinie, filtrPřihlašovatelné, filtrTagy: filtrTagyId, ročník, výběr, filtrStavAktivit, filtrText, filtrInterni
+    filtrLinie, filtrPřihlašovatelné, filtrTagy: filtrTagyId, filtrJazyk, ročník, výběr, filtrStavAktivit, filtrText, filtrInterni
   } = filtr;
 
   const textovéFiltry: string[] = [];
@@ -203,6 +205,12 @@ export const filtrujAktivity = (aktivity: Aktivita[], filtr: FiltrAktivit, mapov
         )
       );
   }
+
+  if (filtrJazyk?.length)
+    aktivityFiltrované = aktivityFiltrované.filter((aktivita) =>
+      jazykyFiltruAktivity(jazykAktivity(aktivita))
+        .some((jazyk) => filtrJazyk.includes(jazyk))
+    );
 
   // TODO: přihlašovatelnost aktivity dle pohlaví
   // TODO: přihlašovatelnost aktivity dle pohlaví přidat tooltip na tlačítko

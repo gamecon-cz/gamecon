@@ -125,6 +125,15 @@ class User
     ])]
     private int $zpusobZobrazeniNaWebu = ZpusobZobrazeniNaWebu::POUZE_PREZDIVKA->value;
 
+    /**
+     * @see \Gamecon\Jazyk\Jazyk
+     */
+    #[ORM\Column(name: 'jazyk', type: Types::STRING, length: 5, nullable: false, options: [
+        'default' => 'cs',
+        'comment' => 'jazyk veřejného webu a e-mailů: cs, en',
+    ])]
+    private string $jazyk = 'cs';
+
     #[ORM\Column(name: 'z_rychloregistrace', type: Types::BOOLEAN, nullable: true, options: [
         'default' => 0,
     ])]
@@ -499,6 +508,18 @@ class User
     public function setZpusobZobrazeniNaWebu(int $zpusobZobrazeniNaWebu): static
     {
         $this->zpusobZobrazeniNaWebu = $zpusobZobrazeniNaWebu;
+
+        return $this;
+    }
+
+    public function getJazyk(): string
+    {
+        return $this->jazyk;
+    }
+
+    public function setJazyk(string $jazyk): static
+    {
+        $this->jazyk = $jazyk;
 
         return $this;
     }

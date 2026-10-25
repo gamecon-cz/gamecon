@@ -165,6 +165,11 @@ class UserEntityStructure
     public const zpusobZobrazeniNaWebu = 'zpusobZobrazeniNaWebu';
 
     /**
+     * @see User::$jazyk
+     */
+    public const jazyk = 'jazyk';
+
+    /**
      * @see User::$zRychloregistrace
      */
     public const zRychloregistrace = 'zRychloregistrace';
