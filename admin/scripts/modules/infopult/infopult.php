@@ -5,6 +5,7 @@
  * DrD, Trojboj, Gamecon, Placení aj.
  *
  * nazev: Infopult
+ * ikona: bell-concierge
  * pravo: 100
  * submenu_hidden: true
  */

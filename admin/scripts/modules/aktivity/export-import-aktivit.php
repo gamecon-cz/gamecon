@@ -3,6 +3,7 @@
  * Stránka pro hromadný export aktivit.
  *
  * nazev: Export & Import aktivit
+ * ikona: file-export
  * pravo: 102
  * submenu_group: 1
  * submenu_order: 2

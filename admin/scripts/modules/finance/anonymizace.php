@@ -4,7 +4,8 @@ use Gamecon\Uzivatel\AnonymizovanyUzivatel;
 use Gamecon\XTemplate\XTemplate;
 
 /**
- * nazev: Anonymizace 👻
+ * nazev: Anonymizace
+ * ikona: user-secret
  * pravo: 108
  * submenu_group: 6
  */

@@ -4,6 +4,7 @@
  * Stránka pro přehled všech tagů k aktivitám
  *
  * nazev: Štítky
+ * ikona: tags
  * pravo: 102
  * submenu_group: 4
  * submenu_order: 2

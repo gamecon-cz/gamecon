@@ -6,6 +6,7 @@ declare(strict_types=1);
  * Stránka pro přehled všech přihlášených na aktivity
  *
  * nazev: Seznam přihlášených
+ * ikona: clipboard-list
  * pravo: 102
  * submenu_group: 3
  * submenu_order: 1

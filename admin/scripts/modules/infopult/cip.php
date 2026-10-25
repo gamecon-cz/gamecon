@@ -3,6 +3,7 @@
  * Párování NFC čipu
  *
  * nazev: Čip
+ * ikona: microchip
  * pravo: 100
  * submenu_hidden: true
  */

@@ -338,7 +338,7 @@ describe('odeslání zkušebního e-mailu', () => {
     tlacitkoTestu().click()
 
     expect(dialogTestu().hasAttribute('open')).toBe(true)
-    expect(dialogTestu().querySelector('p')!.textContent!.replace(/\s+/g, ' ').trim()).toBe(`Odeslat na ${ADRESA} ?`)
+    expect(dialogTestu().querySelector('p')!.textContent.replace(/\s+/g, ' ').trim()).toBe(`Odeslat na ${ADRESA} ?`)
     expect(dialogTestu().querySelector('strong')!.textContent).toBe(ADRESA)
     expect(fetchMock).not.toHaveBeenCalled()
   })

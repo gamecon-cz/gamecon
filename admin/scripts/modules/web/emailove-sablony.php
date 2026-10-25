@@ -24,6 +24,7 @@ use Gamecon\XTemplate\XTemplate;
  * Předmět a text e-mailů, které GameCon posílá
  *
  * nazev: Texty e-mailů
+ * ikona: envelope-open-text
  * pravo: 105
  */
 

@@ -9,6 +9,7 @@ use Gamecon\Uzivatel\Platby;
 
 /**
  * nazev: Finance
+ * ikona: wallet
  * pravo: 108
  * submenu_group: 5
  */

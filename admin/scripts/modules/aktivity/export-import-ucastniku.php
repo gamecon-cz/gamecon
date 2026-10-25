@@ -3,6 +3,7 @@
  * Stránka pro hromadný export účastníků.
  *
  * nazev: Export & Import účastníků
+ * ikona: people-arrows
  * pravo: 102
  * submenu_group: 3
  * submenu_order: 3

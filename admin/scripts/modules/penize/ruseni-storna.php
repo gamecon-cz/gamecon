@@ -7,6 +7,7 @@ use Gamecon\XTemplate\XTemplate;
  * Nástroj na zrušení storna za to, když se účastník nedostavil na aktivitu.
  *
  * nazev: Rušení storna
+ * ikona: rotate-left
  * pravo: 111
  * submenu_group: 1
  */

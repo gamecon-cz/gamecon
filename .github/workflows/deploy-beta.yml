@@ -6,18 +6,38 @@ on:
         branches:
             - 'beta'
     workflow_dispatch:
+        inputs:
+            dry_run:
+                description: 'Only list what rsync would upload and delete; nothing changes'
+                type: boolean
+                default: false
 
-# Serialize BETA deploys for the same reason as OSTRA: concurrent FTP
-# syncs race on `.deploytmp` files and fail with "Overwrite permission
-# denied". A separate group from ostra (different target) so the two
+# Serialize BETA deploys for the same reason as OSTRA: concurrent syncs
+# race on temp files (FTP `.deploytmp`, rsync `.~tmp~`) and on deletions.
+# A separate group from ostra (different target) so the two
 # never block each other. `cancel-in-progress: false` so an in-flight
 # sync completes instead of being killed mid-upload.
+# A dry run changes nothing, so it gets its own group: in the shared one it
+# would replace the single pending real deploy, which GitHub cancels.
+# A run on the wrong branch is refused at once, so it gets a group of its own for the same reason.
 concurrency:
-    group: deploy-beta
+    group: ${{ github.ref != 'refs/heads/beta' && format('deploy-beta-refused-{0}', github.run_id) || (inputs.dry_run && 'deploy-beta-dry-run' || 'deploy-beta') }}
     cancel-in-progress: false
 
 jobs:
+    # nasad.php picks the settings by branch name; a manual run on main would put the OSTRA settings into the beta directory.
+    check-branch:
+        runs-on: ubuntu-24.04
+
+        steps:
+            -   name: Refuse to deploy BETA from another branch
+                if: github.ref != 'refs/heads/beta'
+                run: |
+                    echo "::error::Deploy BETA runs only on the beta branch; choose 'beta' under 'Use workflow from'"
+                    exit 1
+
     publish:
+        needs: check-branch
         runs-on: ubuntu-24.04
 
         steps:
@@ -48,12 +68,20 @@ jobs:
             -   name: Composer libraries without dev
                 run: docker compose exec --no-TTY --user www-data web composer install --no-dev --optimize-autoloader
 
-            -   name: Deploy via FTP
+            -   name: Deploy via rsync, or via FTP while DEPLOY_RSYNC_TARGET is not set
                 # testy provádíme zvlášť, abychom neměli output z deploye moc dlouhý; změny nekontrolujeme, protože jsme je vytvořili přes `composer install --no-dev`
-                run: php ./udrzba/nasad.php --skip-tests --skip-no-changes-check
+                run: php ./udrzba/nasad.php --skip-tests --skip-no-changes-check ${{ inputs.dry_run && '--dry-run' || '' }}
                 env:
                     FTP_DIR: beta
                     FTP_BASE_URL: ${{ secrets.FTP_BASE_URL }}
+                    # Beta has its own key, allowed to write only to the beta directory; ostra has another.
+                    DEPLOY_RSYNC_TARGET: ${{ secrets.BETA_DEPLOY_RSYNC_TARGET }}
+                    DEPLOY_SSH_KEY: ${{ secrets.BETA_DEPLOY_SSH_KEY }}
+                    DEPLOY_SSH_KNOWN_HOSTS: ${{ secrets.DEPLOY_SSH_KNOWN_HOSTS }}
+                    # Optional repository variables; empty means port 22 and at most 500 deleted items (files and folders) outside vendor/ and 5000 in it.
+                    DEPLOY_SSH_PORT: ${{ vars.DEPLOY_SSH_PORT }}
+                    DEPLOY_RSYNC_MAX_DELETE_PROJECT: ${{ vars.DEPLOY_RSYNC_MAX_DELETE_PROJECT }}
+                    DEPLOY_RSYNC_MAX_DELETE_VENDOR: ${{ vars.DEPLOY_RSYNC_MAX_DELETE_VENDOR }}
                     DB_USER: ${{ secrets.BETA_DB_USER }}
                     DB_PASS: ${{ secrets.BETA_DB_PASS }}
                     DB_NAME: ${{ secrets.BETA_DB_NAME }}

@@ -103,6 +103,8 @@ class AdminMenu
         $this->menu[$url]['nazev'] = ($m[1] ?? $this->menu[$url]['nazev']);
         preg_match('@\*\s*submenu_link_open_in_blank:\s*(.*)@', $fc, $m);
         $this->menu[$url]['link_in_blank'] = (bool)($m[1] ?? false);
+        preg_match('@\*\s*ikona:\s*([a-z0-9-]+)@', $fc, $ikonaMatch);
+        $this->menu[$url]['ikona'] = $ikonaMatch[1] ?? null;
         // TODO
         preg_match('@\*\s*submenu_hidden:\s*(.*)@', $fc, $m);
         $this->menu[$url]['hidden'] = filter_var($m[1] ?? false, FILTER_VALIDATE_BOOL);

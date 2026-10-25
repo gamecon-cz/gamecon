@@ -113,7 +113,7 @@ neobjeví lidé s právem „nerušit automaticky objednávky".
 **⚠️ Nevratná akce bez dalšího potvrzení** — po kliknutí se objednávky
 vypsaným lidem rovnou zruší. Před krokem 3 si výpis opravdu projdi.
 
-## Promlčení zůstatků 🤫
+## Promlčení zůstatků
 
 Odepsání starých zůstatků lidí, kteří už na GameCon nejezdí.
 
@@ -167,7 +167,7 @@ a vybrat znova. Pokud se vyskytne chyba, hlásit. Dole na stránce je
 **Historie slučování uživatelů** — kdy, jaká ID, zůstatky a e-maily před
 a po sloučení.
 
-## Anonymizace 👻
+## Anonymizace
 
 Vyhovění žádosti o výmaz osobních údajů (GDPR). Zadej **ID uživatele**
 a klikni na **Anonymizovat uživatele**.

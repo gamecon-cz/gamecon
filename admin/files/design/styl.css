@@ -36,9 +36,26 @@ body {
 }
 
 .sloupL {
+  --vyska-profilovaci-listy: 0px;
   position: fixed;
   width: 180px;
+  max-height: calc(100vh - var(--vyska-profilovaci-listy));
+  overflow-x: hidden;
+  overflow-y: auto;
+  scrollbar-width: thin;
   text-align: left;
+}
+
+/* @supports, because a var() declaration parses everywhere and would leave a browser without dvh with no max-height. */
+@supports (height: 100dvh) {
+  .sloupL {
+    max-height: calc(100dvh - var(--vyska-profilovaci-listy));
+  }
+}
+
+/* The profiling bar (not on production) is fixed at the bottom-left and would cover the last menu item. */
+body:has(.profilInfo) .sloupL {
+  --vyska-profilovaci-listy: 44px;
 }
 
 .sloupR {
@@ -243,7 +260,8 @@ body {
   height: auto;
 }
 
-#submenu.submenu-selected-finance {
+#submenu.submenu-selected-finance,
+#submenu.submenu-selected-aktivity {
   width: 100%;
 }
 
@@ -317,6 +335,11 @@ body {
   position: relative;
 }
 
+#submenu .adm_submenu_item a .fa-solid,
+.submenuAktivovatVse button .fa-solid {
+  margin-right: 0.4em;
+}
+
 #submenu .adm_submenu_item a.activeSubmenuLink {
   background: #FFF;
   border-color: hsl(98, 23%, 75%);
@@ -339,8 +362,11 @@ body {
   margin-right: 5px;
 }
 
-.adm_submenu_item_ord_1::before,
-.submenuAktivovatVse::before {
+#submenu .adm_submenu_doplnek {
+  margin-right: 10px;
+}
+
+.adm_submenu_item_ord_1::before {
   position: absolute;
   left: 0;
   top: 0;
@@ -376,21 +402,11 @@ body {
 }
 
 .submenuAktivovatVse {
-  position: absolute;
-  right: 20px;
-  top: 36px;
-  left: 80%;
-  width: auto;
-  padding: 0;
   margin: 0;
-  text-align: right;
 }
 
-.submenuAktivovatVse::before {
-  content: 'Nešmatlat';
-}
-
-.submenuAktivovatVse input[type=submit] {
+/* [type=submit] keeps the specificity above .tlacitko.tlacitko_isDanger, whose padding would otherwise win. */
+.submenuAktivovatVse button[type=submit] {
   border: 1px solid #AD3E19;
   display: inline-block;
   font-weight: normal;
@@ -408,7 +424,13 @@ body {
   cursor: pointer;
 }
 
-.submenuAktivovatVse input[type=submit]:hover {
+/* Needs its own :disabled look: the generic input[type="submit"]:disabled rule does not match a <button>. */
+.submenuAktivovatVse button[type=submit]:disabled {
+  color: gray;
+  cursor: not-allowed;
+}
+
+.submenuAktivovatVse button[type=submit]:hover {
   border-color: #833214;
   background: red;
   text-decoration: underline;

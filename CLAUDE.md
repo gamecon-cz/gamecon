@@ -154,14 +154,15 @@ Get the custom repository via `->getRepository(SomeEntity::class)` (returns the 
 - **Hashing**: Always use the complete result of a hashing function — never truncate it (e.g. `substr(md5(...), 0, 12)`) as this increases collision risk
 - **Cache directories**: Use `SPEC` constant for private cache files and `CACHE` constant for public cache files (web-accessible)
 - **Relative links in admin resolve against the admin root**, not the current page: `admin/templates/main.xtpl` sets `<base href="{URL_ADMIN}/">`. A bare `href="?nahled=1"` therefore opens the admin homepage; always write the module path, e.g. `href="web/previews?admin=…"`. It has already broken a link that only clicking revealed (the dunning preview).
-- **Any update of a JS library requires a rebuild of the UI bundles** (public site and admin), Dependabot bumps included: the ostra and beta deploys do not build the UI, so the committed bundles are what runs, and `make check-ui-bundles` (part of `make ci`) fails when they differ from a fresh build. After changing `ui/package.json` or `ui/yarn.lock` run `./bin-docker/yarn install` (with `--frozen-lockfile` when only the lock changed) and `./bin-docker/yarn build`, then commit whichever of `web/soubory/ui/{bundle.js,style.css}` and `admin/files/ui/{bundle.js,style.css}` changed, in the same PR (`*.map` are git-ignored). Bundles that come out byte-identical (usual for dev-tool and transitive bumps) leave nothing to commit; say "bundle unchanged" in the PR instead. Never merge a Dependabot PR on GitHub: it changes only the lockfile.
+- **Any update of a JS library requires a rebuild of the UI bundles** (public site and admin), Dependabot bumps included: the ostra and beta deploys do not build the UI, so the committed bundles are what runs, and `make check-ui-bundles` (part of `make ci`) fails when they differ from a fresh build. After changing `ui/package.json` or `ui/yarn.lock` run `./bin-docker/yarn install` (with `--frozen-lockfile` when only the lock changed) and `./bin-docker/yarn build`, then commit whichever of `web/soubory/ui/{bundle.js,style.css}` and `admin/files/ui/{bundle.js,style.css}` changed, **in the same commit as the library change** (manifest, lock and any source or test fix the update needs), so that every commit passes `make check-ui-bundles` and the update cannot be reverted apart from its bundles (`*.map` are git-ignored). A library update without its rebuilt bundles is unfinished. Bundles that come out byte-identical (usual for dev-tool and transitive bumps) leave nothing to commit; say "bundle unchanged" in the PR instead. Never merge a Dependabot PR on GitHub: it changes only the lockfile.
 
 ## Kam patří úkol: GitHub issues vs. Trello
 
 Projekt má dva trackery a **rozhoduje publikum, ne velikost úkolu**:
 
 - **Čistě technické věci → [GitHub issue](https://github.com/gamecon-cz/gamecon/issues)**
-  a přidat je do projektu [@Gamecon](https://github.com/orgs/gamecon-cz/projects/2).
+  v projektu [@Gamecon](https://github.com/orgs/gamecon-cz/projects/2)
+  (issue se do něj obvykle přidá samo, viz níže).
   Typicky: upgrady závislostí, refaktoring, CI, build, statická analýza, technický dluh,
   výkon, věci okolo infrastruktury. Tedy všechno, co dává smysl jen tomu, kdo čte kód.
 - **Všechno ostatní → Trello board 5C: Web & IT.** Featury, bugy hlášené uživateli,
@@ -172,23 +173,32 @@ Projekt má dva trackery a **rozhoduje publikum, ne velikost úkolu**:
 Trello srozumitelné pro netechnické publikum a technický dluh vedeme v issues vedle kódu,
 kde k němu jde rovnou linkovat PR a commity.
 
-**Nové issue v projektu zakládej se stavem `Ready`** (ne `Backlog`) — projekt má sloupce
-`Backlog` / `Ready` / `In progress` / `In review` / `Done`.
+**Nové issue v tomto repozitáři se do projektu obvykle přidá samo** a skončí ve sloupci
+`Todo` — projekt má sloupce `Todo` / `In progress` / `Review` / `Done`, stav tedy
+nastavovat nemusíš.
 
 ```bash
 gh issue create --title "..." --body-file <soubor> --label <label>
-
-PROJECT=$(gh project view 2 --owner gamecon-cz --format json --jq .id)
-STATUS=$(gh project field-list 2 --owner gamecon-cz --format json \
-  --jq '.fields[] | select(.name=="Status") | .id')
-READY=$(gh project field-list 2 --owner gamecon-cz --format json \
-  --jq '.fields[] | select(.name=="Status") | .options[] | select(.name=="Ready") | .id')
-ITEM=$(gh project item-add 2 --owner gamecon-cz --url <URL issue> --format json --jq .id)
-gh project item-edit --id "$ITEM" --project-id "$PROJECT" \
-  --field-id "$STATUS" --single-select-option-id "$READY"
 ```
 
-`item-add` vrací ID *položky v projektu*, ne ID issue — přesně to chce `item-edit --id`.
+Že je issue v projektu, ověříš takto: příkaz vypíše jeho sloupec (`Todo`) a když issue
+v projektu není, nevypíše nic:
+
+```bash
+gh project item-list 2 --owner gamecon-cz --format json --limit 1000 \
+  --jq '.items[]
+        | select(.content.repository == "gamecon-cz/gamecon" and .content.number == <číslo issue>)
+        | .status'
+```
+
+Když v projektu není, přidej ho ručně:
+
+```bash
+gh project item-add 2 --owner gamecon-cz --url <URL issue>
+```
+
+Pak znovu spusť kontrolní příkaz výše: issue má ležet ve sloupci `Todo`. Chybí-li stav,
+nastav ho na tabuli projektu.
 
 Když se úkol založí na špatném místě, přesuň ho a na původním nech odkaz, ať se nedělá
 dvojí evidence.
@@ -429,7 +439,7 @@ Pravdivý stav ke dni auditu (zdroj: `cat /usr/local/sbin/deploy-preview-branch.
 | `GOOGLE_API_CREDENTIALS` | (nevyplněno) | prázdné | úmyslné — vyřešíme později, většina toků v preview netřeba |
 | `PREVIEW_BASIC_AUTH_USER/PASSWORD` | Dockerfile bake | sdílené napříč všemi preview | bake je správná cesta — společná hodnota |
 | `ARCHIVE_BASIC_AUTH_USER/PASSWORD` | Dockerfile bake | sdílené napříč všemi archive | bake je správná cesta |
-| `FTP_*` | nepředáváno | n/a | deploy-only, runtime kód nečte — správně, že to v preview není |
+| `FTP_*`, `DEPLOY_*` (rsync nasazení) | nepředáváno | n/a | deploy-only, runtime kód nečte — správně, že to v preview není |
 
 **Když přidáváš novou env-driven feature, vrať se k téhle tabulce a doplň řádek.** Pokud rozhodneš, že preview má dostat něco jiného než ostra, **napiš proč** — jinak se z toho stane skrytý drift.
 

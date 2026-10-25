@@ -13,6 +13,7 @@ use Gamecon\Aktivita\SqlStruktura\AkceSeznamSqlStruktura as Sql;
  * Stránka pro tvorbu a správu aktivit.
  *
  * nazev: Aktivity
+ * ikona: dice
  * pravo: 102
  * submenu_group: 1
  * submenu_order: 3
@@ -20,6 +21,7 @@ use Gamecon\Aktivita\SqlStruktura\AkceSeznamSqlStruktura as Sql;
  *
  * @var Uzivatel $u
  * @var SystemoveNastaveni $systemoveNastaveni
+ * @var string $submenuDoplnek HTML na konec posledního sloupce podmenu, viz admin/index.php
  */
 
 if (post('smazat')) {
@@ -231,13 +233,15 @@ foreach ($aktivity as $aktivita) {
     $tpl->parse('aktivity.aktivita');
 }
 
-$tpl->assign(
+$aktivovatVseTpl = new XTemplate(__DIR__ . '/_aktivovat-vse.xtpl');
+$aktivovatVseTpl->assign(
     'aktivovatVseDisabled',
     $filtr != ['rok' => ROCNIK] || !$u->maPravo(Pravo::HROMADNA_AKTIVACE_AKTIVIT)
         ? 'disabled'
         : '',
 );
-$tpl->parse('aktivity.aktivovatVse');
+$aktivovatVseTpl->parse('aktivovatVse');
+$submenuDoplnek = $aktivovatVseTpl->text('aktivovatVse');
 
 $tpl->parse('aktivity');
 $tpl->out('aktivity');

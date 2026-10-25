@@ -3,7 +3,7 @@
 Kartička **Web** v adminu slouží ke správě obsahu veřejného webu GameConu:
 novinek a blogu, obsahových stránek, hlaviček programových linií a log
 sponzorů a partnerů. Najdeš tu také odkazy na preview prostředí a archivy
-starých ročníků. Co z toho vidíš, závisí na tvých právech — **Loga 🎨**
+starých ročníků. Co z toho vidíš, závisí na tvých právech — **Loga**
 mají vlastní právo, takže je nemusí vidět každý, kdo spravuje zbytek webu.
 
 ## Novinky (hlavní stránka)
@@ -74,7 +74,7 @@ a **Obrázek**.
 
 ## Loga sponzorů a partnerů
 
-Podstránka **Loga 🎨** spravuje čtyři skupiny log: **Loga sponzorů na
+Podstránka **Loga** spravuje čtyři skupiny log: **Loga sponzorů na
 titulce**, **Loga partnerů na titulce**, **Loga sponzorů v přehledu**
 a **Loga partnerů v přehledu**. V každé skupině vidíš nahraná loga
 s náhledem a odkazem, tlačítko **Smazat** (s potvrzením „Opravdu chcete

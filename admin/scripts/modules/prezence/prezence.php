@@ -11,6 +11,7 @@ use Gamecon\XTemplate\XTemplate;
  * Vyklikávací tabulky s prezencí na aktivity
  *
  * nazev: Prezence
+ * ikona: user-check
  * pravo: 103
  */
 

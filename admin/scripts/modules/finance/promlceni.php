@@ -4,7 +4,8 @@ use Gamecon\XTemplate\XTemplate;
 use Gamecon\Role\Role;
 
 /**
- * nazev: Promlčení zůstatků 🤫
+ * nazev: Promlčení zůstatků
+ * ikona: hourglass-end
  * pravo: 108
  * submenu_group: 5
  */
