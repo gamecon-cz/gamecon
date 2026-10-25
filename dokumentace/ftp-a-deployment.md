@@ -49,7 +49,7 @@ Co by nasazení udělalo, ukáže ruční spuštění workflow se zaškrtnutým 
 - účet s přihlášením klíčem, který smí spustit jen `rsync` (ne shell) a jen do složky ostré, respektive bety;
 - právo zápisu do všech souborů v té složce, tedy i do těch, které vlastní `www-data`, a nově vytvořené soubory musí být čitelné pro `www-data`;
 - `rsync` ve stejné nebo novější major verzi než na straně GitHub Actions;
-- soubory, které nepatří `www-data` a nejdou smazat (například `beta/backups.log` vlastněný rootem), musí být pryč, jinak rsync skončí chybou při mazání.
+- složky, do kterých účet nasazení nesmí zapisovat (typicky založené rootem), nesmí obsahovat nic, co se má smazat nebo přepsat, jinak rsync skončí chybou. Soubor vlastněný rootem ve složce, kam `www-data` zapisuje, smazat jde.
 
 ## Hotfix
 
