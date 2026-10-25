@@ -195,9 +195,9 @@ function buildRsyncCommand(
  * Limit for everything outside vendor/. Those deletions come a few at a time, so it is low enough to notice a broken
  * filter or protected path.
  */
-function getRsyncMaxDelete(): int
+function getRsyncMaxDeleteProject(): int
 {
-    return parseRsyncDeleteLimit('DEPLOY_RSYNC_MAX_DELETE', 500);
+    return parseRsyncDeleteLimit('DEPLOY_RSYNC_MAX_DELETE_PROJECT', 500);
 }
 
 /**
@@ -223,7 +223,7 @@ function parseRsyncDeleteLimit(string $variableName, int $default): int
 
 /**
  * @param list<string> $deletions the "deleting …" lines
- * @return array{vendor: list<string>, other: list<string>}
+ * @return array{vendor: list<string>, project: list<string>}
  */
 function splitRsyncDeletionsByVendor(array $deletions): array
 {
@@ -232,7 +232,7 @@ function splitRsyncDeletionsByVendor(array $deletions): array
         static fn(string $deletion) => str_starts_with($deletion, 'deleting vendor/'),
     ));
 
-    return ['vendor' => $vendor, 'other' => array_values(array_diff($deletions, $vendor))];
+    return ['vendor' => $vendor, 'project' => array_values(array_diff($deletions, $vendor))];
 }
 
 /**
@@ -299,9 +299,9 @@ function uploadFilesViaRsync(
     if (trim($privateKey) === '' || trim($knownHosts) === '') {
         throw new \RuntimeException('Nasazení přes rsync vyžaduje DEPLOY_SSH_KEY a DEPLOY_SSH_KNOWN_HOSTS, bez known_hosts by se server neověřoval');
     }
-    $sshPort         = getRsyncSshPort();
-    $maxDelete       = getRsyncMaxDelete();
-    $maxDeleteVendor = getRsyncMaxDeleteVendor();
+    $sshPort          = getRsyncSshPort();
+    $maxDeleteProject = getRsyncMaxDeleteProject();
+    $maxDeleteVendor  = getRsyncMaxDeleteVendor();
 
     $keyFile        = null;
     $knownHostsFile = null;
@@ -332,17 +332,17 @@ function uploadFilesViaRsync(
         $deletions       = getPlannedRsyncDeletions($plan);
         $keptDirectories = count(getKeptRsyncDirectories($plan));
         $deletionsByArea = splitRsyncDeletionsByVendor($deletions);
-        $otherCount      = count($deletionsByArea['other']);
+        $projectCount    = count($deletionsByArea['project']);
         $vendorCount     = count($deletionsByArea['vendor']);
-        $otherExceeded   = $otherCount > $maxDelete;
+        $projectExceeded = $projectCount > $maxDeleteProject;
         $vendorExceeded  = $vendorCount > $maxDeleteVendor;
         // vendor/ usually has far more deletions than the rest, so the area that tripped its limit is listed first
         $shown = $dryRun
             ? $plan
             : array_slice(
-                $vendorExceeded && !$otherExceeded
-                    ? array_merge($deletionsByArea['vendor'], $deletionsByArea['other'])
-                    : array_merge($deletionsByArea['other'], $deletionsByArea['vendor']),
+                $vendorExceeded && !$projectExceeded
+                    ? array_merge($deletionsByArea['vendor'], $deletionsByArea['project'])
+                    : array_merge($deletionsByArea['project'], $deletionsByArea['vendor']),
                 0,
                 50,
             );
@@ -352,12 +352,12 @@ function uploadFilesViaRsync(
         if (!$dryRun && count($deletions) > 50) {
             echo '… a dalších ' . (count($deletions) - 50) . PHP_EOL;
         }
-        msg(count($deletions) . " položek by rsync smazal ({$otherCount} mimo vendor/, {$vendorCount} ve vendor/" . ($keptDirectories > 0
+        msg(count($deletions) . " položek by rsync smazal ({$projectCount} mimo vendor/, {$vendorCount} ve vendor/" . ($keptDirectories > 0
             ? ", bez {$keptDirectories} složek, které nechají chráněné soubory"
             : '') . ')');
         $exceeded = [];
-        if ($otherExceeded) {
-            $exceeded[] = "{$otherCount} položek mimo vendor/, víc než DEPLOY_RSYNC_MAX_DELETE ({$maxDelete}), zkontroluj chráněné cesty a masky";
+        if ($projectExceeded) {
+            $exceeded[] = "{$projectCount} položek mimo vendor/, víc než DEPLOY_RSYNC_MAX_DELETE_PROJECT ({$maxDeleteProject}), zkontroluj chráněné cesty a masky";
         }
         if ($vendorExceeded) {
             $exceeded[] = "{$vendorCount} položek ve vendor/, víc než DEPLOY_RSYNC_MAX_DELETE_VENDOR ({$maxDeleteVendor}), zkontroluj, co se změnilo v závislostech";

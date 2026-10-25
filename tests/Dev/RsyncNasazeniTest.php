@@ -20,7 +20,7 @@ class RsyncNasazeniTest extends TestCase
         'DEPLOY_SSH_KEY',
         'DEPLOY_SSH_KNOWN_HOSTS',
         'DEPLOY_SSH_PORT',
-        'DEPLOY_RSYNC_MAX_DELETE',
+        'DEPLOY_RSYNC_MAX_DELETE_PROJECT',
         'DEPLOY_RSYNC_MAX_DELETE_VENDOR',
     ];
 
@@ -311,7 +311,7 @@ class RsyncNasazeniTest extends TestCase
         $this->installFakeRsync(planOutput: "deleting a\ndeleting b\ncannot delete non-empty directory: d\ndeleting d/\n");
         putenv('DEPLOY_SSH_KEY=klic');
         putenv('DEPLOY_SSH_KNOWN_HOSTS=hosts');
-        putenv('DEPLOY_RSYNC_MAX_DELETE=2');
+        putenv('DEPLOY_RSYNC_MAX_DELETE_PROJECT=2');
 
         $this->runDeploy(dryRun: false);
 
@@ -329,7 +329,7 @@ class RsyncNasazeniTest extends TestCase
         $this->installFakeRsync(planOutput: $planOutput);
         putenv('DEPLOY_SSH_KEY=klic');
         putenv('DEPLOY_SSH_KNOWN_HOSTS=hosts');
-        putenv('DEPLOY_RSYNC_MAX_DELETE=500');
+        putenv('DEPLOY_RSYNC_MAX_DELETE_PROJECT=500');
         putenv('DEPLOY_RSYNC_MAX_DELETE_VENDOR=5000');
 
         $this->runDeploy(dryRun: false);
@@ -360,16 +360,16 @@ class RsyncNasazeniTest extends TestCase
     /**
      * @test
      *
-     * @dataProvider provideMaxDelete
+     * @dataProvider provideMaxDeleteProject
      */
-    public function maxDeleteComesFromTheEnvironmentAndZeroMeansDeleteNothing(string $env, int $expected): void
+    public function theProjectLimitComesFromTheEnvironmentAndZeroMeansDeleteNothing(string $env, int $expected): void
     {
-        putenv('DEPLOY_RSYNC_MAX_DELETE=' . $env);
+        putenv('DEPLOY_RSYNC_MAX_DELETE_PROJECT=' . $env);
 
-        self::assertSame($expected, getRsyncMaxDelete());
+        self::assertSame($expected, getRsyncMaxDeleteProject());
     }
 
-    public static function provideMaxDelete(): iterable
+    public static function provideMaxDeleteProject(): iterable
     {
         yield 'unset uses the default' => ['', 500];
         yield 'zero is a real limit, not the default' => ['0', 0];
@@ -445,7 +445,7 @@ class RsyncNasazeniTest extends TestCase
         self::assertSame(['deleting vendor/a/b.php', 'deleting vendor/'], $split['vendor']);
         self::assertSame(
             ['deleting vendorish/x.php', 'deleting web/vendor/x.js', 'deleting symfony/vendor/y.php', 'deleting web/x.php'],
-            $split['other'],
+            $split['project'],
         );
     }
 
@@ -454,13 +454,13 @@ class RsyncNasazeniTest extends TestCase
      *
      * @dataProvider provideInvalidMaxDelete
      */
-    public function maxDeleteThatIsNotAWholeNumberIsRefused(string $env): void
+    public function aProjectLimitThatIsNotAWholeNumberIsRefused(string $env): void
     {
-        putenv('DEPLOY_RSYNC_MAX_DELETE=' . $env);
+        putenv('DEPLOY_RSYNC_MAX_DELETE_PROJECT=' . $env);
 
         $this->expectException(\RuntimeException::class);
-        $this->expectExceptionMessageMatches('~^DEPLOY_RSYNC_MAX_DELETE musí~');
-        getRsyncMaxDelete();
+        $this->expectExceptionMessageMatches('~^DEPLOY_RSYNC_MAX_DELETE_PROJECT musí~');
+        getRsyncMaxDeleteProject();
     }
 
     public static function provideInvalidMaxDelete(): iterable
@@ -498,7 +498,7 @@ class RsyncNasazeniTest extends TestCase
         putenv("DEPLOY_SSH_KEY=-----BEGIN-----\r\ntajny\r\n-----END-----");
         putenv('DEPLOY_SSH_KNOWN_HOSTS=gamecon.cz ssh-ed25519 AAAA');
         putenv('DEPLOY_SSH_PORT=2222');
-        putenv('DEPLOY_RSYNC_MAX_DELETE=77');
+        putenv('DEPLOY_RSYNC_MAX_DELETE_PROJECT=77');
 
         $this->runDeploy(dryRun: false);
 
@@ -543,7 +543,7 @@ class RsyncNasazeniTest extends TestCase
         $this->installFakeRsync(planOutput: "deleting a\ndeleting b\ndeleting c\n");
         putenv('DEPLOY_SSH_KEY=klic');
         putenv('DEPLOY_SSH_KNOWN_HOSTS=hosts');
-        putenv('DEPLOY_RSYNC_MAX_DELETE=2');
+        putenv('DEPLOY_RSYNC_MAX_DELETE_PROJECT=2');
 
         try {
             $this->runDeploy(dryRun: false);
@@ -566,7 +566,7 @@ class RsyncNasazeniTest extends TestCase
         $this->installFakeRsync(planOutput: "deleting a\ndeleting b\ndeleting c\n");
         putenv('DEPLOY_SSH_KEY=klic');
         putenv('DEPLOY_SSH_KNOWN_HOSTS=hosts');
-        putenv('DEPLOY_RSYNC_MAX_DELETE=2');
+        putenv('DEPLOY_RSYNC_MAX_DELETE_PROJECT=2');
 
         try {
             $this->runDeploy(dryRun: true);
@@ -586,7 +586,7 @@ class RsyncNasazeniTest extends TestCase
         $this->installFakeRsync(planOutput: "deleting vendor/a.php\ndeleting vendor/b.php\ndeleting vendor/c/\ndeleting web/x.php\n");
         putenv('DEPLOY_SSH_KEY=klic');
         putenv('DEPLOY_SSH_KNOWN_HOSTS=hosts');
-        putenv('DEPLOY_RSYNC_MAX_DELETE=1');
+        putenv('DEPLOY_RSYNC_MAX_DELETE_PROJECT=1');
         putenv('DEPLOY_RSYNC_MAX_DELETE_VENDOR=30');
 
         $this->runDeploy(dryRun: false);
@@ -603,7 +603,7 @@ class RsyncNasazeniTest extends TestCase
         $this->installFakeRsync(planOutput: "deleting a\ndeleting b\ndeleting vendor/x\n");
         putenv('DEPLOY_SSH_KEY=klic');
         putenv('DEPLOY_SSH_KNOWN_HOSTS=hosts');
-        putenv('DEPLOY_RSYNC_MAX_DELETE=1');
+        putenv('DEPLOY_RSYNC_MAX_DELETE_PROJECT=1');
         putenv('DEPLOY_RSYNC_MAX_DELETE_VENDOR=100');
 
         try {
@@ -611,7 +611,7 @@ class RsyncNasazeniTest extends TestCase
             self::fail('Two deletions outside vendor/ with a limit of 1 must stop the deploy');
         } catch (\RuntimeException $exception) {
             self::assertStringContainsString('2 položek mimo vendor/', $exception->getMessage());
-            self::assertStringContainsString('DEPLOY_RSYNC_MAX_DELETE (1)', $exception->getMessage());
+            self::assertStringContainsString('DEPLOY_RSYNC_MAX_DELETE_PROJECT (1)', $exception->getMessage());
             self::assertStringNotContainsString('DEPLOY_RSYNC_MAX_DELETE_VENDOR', $exception->getMessage());
             self::assertStringContainsString('chráněné cesty', $exception->getMessage());
             self::assertStringContainsString('nic se nezměnilo', $exception->getMessage());
@@ -628,7 +628,7 @@ class RsyncNasazeniTest extends TestCase
         $this->installFakeRsync(planOutput: "deleting vendor/a\ndeleting vendor/b\ndeleting vendor/c\ndeleting web/x.php\n");
         putenv('DEPLOY_SSH_KEY=klic');
         putenv('DEPLOY_SSH_KNOWN_HOSTS=hosts');
-        putenv('DEPLOY_RSYNC_MAX_DELETE=100');
+        putenv('DEPLOY_RSYNC_MAX_DELETE_PROJECT=100');
         putenv('DEPLOY_RSYNC_MAX_DELETE_VENDOR=2');
 
         try {
@@ -653,11 +653,11 @@ class RsyncNasazeniTest extends TestCase
         $this->installFakeRsync(planOutput: "deleting vendor/a\ndeleting vendor/b\ndeleting x\ndeleting y\n");
         putenv('DEPLOY_SSH_KEY=klic');
         putenv('DEPLOY_SSH_KNOWN_HOSTS=hosts');
-        putenv('DEPLOY_RSYNC_MAX_DELETE=1');
+        putenv('DEPLOY_RSYNC_MAX_DELETE_PROJECT=1');
         putenv('DEPLOY_RSYNC_MAX_DELETE_VENDOR=1');
 
         $this->expectException(\RuntimeException::class);
-        $this->expectExceptionMessageMatches('~2 položek mimo vendor/.*DEPLOY_RSYNC_MAX_DELETE \(1\).*2 položek ve vendor/.*DEPLOY_RSYNC_MAX_DELETE_VENDOR \(1\)~');
+        $this->expectExceptionMessageMatches('~2 položek mimo vendor/.*DEPLOY_RSYNC_MAX_DELETE_PROJECT \(1\).*2 položek ve vendor/.*DEPLOY_RSYNC_MAX_DELETE_VENDOR \(1\)~');
         $this->runDeploy(dryRun: false);
     }
 
@@ -669,7 +669,7 @@ class RsyncNasazeniTest extends TestCase
         $this->installFakeRsync(planOutput: "cannot delete non-empty directory: vendor/x\ndeleting vendor/x/\ndeleting vendor/y.php\n");
         putenv('DEPLOY_SSH_KEY=klic');
         putenv('DEPLOY_SSH_KNOWN_HOSTS=hosts');
-        putenv('DEPLOY_RSYNC_MAX_DELETE=0');
+        putenv('DEPLOY_RSYNC_MAX_DELETE_PROJECT=0');
         putenv('DEPLOY_RSYNC_MAX_DELETE_VENDOR=1');
 
         $this->runDeploy(dryRun: false);
@@ -711,7 +711,7 @@ class RsyncNasazeniTest extends TestCase
         $this->installFakeRsync(planOutput: implode("\n", $plan) . "\n");
         putenv('DEPLOY_SSH_KEY=klic');
         putenv('DEPLOY_SSH_KNOWN_HOSTS=hosts');
-        putenv('DEPLOY_RSYNC_MAX_DELETE=1');
+        putenv('DEPLOY_RSYNC_MAX_DELETE_PROJECT=1');
 
         ob_start();
         try {
