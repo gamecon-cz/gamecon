@@ -4,6 +4,7 @@
  * Stránka k editaci ubytovacích informací
  *
  * nazev: Uživatel
+ * ikona: user
  * pravo: 101
  */
 

@@ -1,0 +1,113 @@
+<!-- begin: all --><!DOCTYPE html>
+<html lang="cs">
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover"/>
+  <meta name="theme-color" content="#1c1f26"/>
+  <base href="{base}">
+  {headerPageInfo}
+  <link rel="shortcut icon" href="files/favicon.png"/>
+  <!-- Obsah modulů staví na klasickém stylu, moderni.css (načtený poslední) ho jen přebarví a přeskládá. -->
+  <link rel="stylesheet" href="files/design/styl.css?version={cssVersions.styl}"/>
+  <link rel="stylesheet" href="files/design/ribbon.css?version={cssVersions.ribbon}"/>
+  <link rel="stylesheet" href="files/design/ui-lightness/jquery-ui-v1.12.1.min.css" />
+  <link rel="stylesheet" href="files/design/ui-lightness/jquery-ui-timepicker-addon-1.6.3.min.css" />
+  <link rel="stylesheet" href="files/design/jquery-multiselect/jquery.multiselect-2.4.16.css" />
+  <link rel="stylesheet" href="files/design/jquery-multiselect/jquery.multiselect.gamecon.css?version=7726af9be4b35c7389767c3225d93d9a" />
+  <link rel="stylesheet" href="files/design/jquery-modal/jquery.modal-0.9.1.min.css" />
+  <link rel="stylesheet" href="files/design/jquery-modal/jquery.modal.gamecon.css?version=f946305a5585486a6c3448dd9a304720" />
+  <link rel="stylesheet" href="files/design/font-awesome-6.1.1/css/all.min.css">
+  <link rel="stylesheet" href="files/design/font-awesome-6.1.1/css/v4-shims.css">
+  <link rel="stylesheet" href="files/design/vzhled_adminu.css?version={cssVersions.vzhled_adminu}"/>
+  <link rel="stylesheet" href="files/design/moderni.css?version={cssVersions.moderni}"/>
+  <!-- begin:april -->
+  <link rel="stylesheet" href="files/design/april-1.1.css">
+  <!-- end:april -->
+
+  <script type="text/javascript" src="files/jquery-3.4.1.min.js"></script>
+  {jsVyjimkovac}
+  <script type="text/javascript" src="files/jquery-ui-v1.12.1.min.js"></script>
+  <script type="text/javascript" src="files/jquery-ui-timepicker-addon-1.6.3.min.js"></script>
+  <script type="text/javascript" src="files/jquery.hotkeys-0.8.0.js"></script>
+  <script type="text/javascript" src="files/jquery.serializeobject.js?version=756c72ca3178bfe417882afe5b460406"></script>
+  <script type="text/javascript" src="files/jquery.cookie-v1.4.1.js"></script>
+  <script type="text/javascript" src="files/aplikace.js?version={jsVersions.aplikace}"></script>
+  <script type="text/javascript" src="files/omnibox-1.1.5.js"></script>
+  <script type="text/javascript" src="files/jquery.multiselect-2.4.16.js"></script>
+  <script type="text/javascript" src="files/jquery.modal-0.9.1.min.js"></script>
+  <script type="text/javascript" src="files/jquery.dirty-0.8.3.js"></script>
+  <script type="text/javascript" src="files/prevent-leaving-without-save-1.0.js"></script>
+  <script type="text/javascript" src="files/sticky-pinned-1.0.js"></script>
+  <script type="text/javascript" src="files/keep-scroll-on-reload-1.2.js"></script>
+  <script type="text/javascript" src="files/disable-and-show-loading-on-click-1.2.js"></script>
+  <script type="text/javascript" src="files/responsivni_tabulka_auto_scroll_right.js?version={jsVersions.responsivni_tabulka_auto_scroll_right}"></script>
+  <script type="text/javascript" src="files/zablikej-1.1.js"></script>
+  <script type="text/javascript" src="files/reload-fio-1.0.js"></script>
+  <script type="text/javascript" src="files/hinted-1.0.js"></script>
+  <script type="text/javascript" src="files/moderni.js?version={jsVersions.moderni}" defer></script>
+</head>
+<body class="vzhled-moderni">
+<a class="moderni-preskocit" href="#mainContent">Přeskočit na obsah</a>
+<header class="moderni-horni-lista">
+  <button type="button" class="moderni-tlacitko-menu" aria-controls="moderniPostranniPanel" aria-expanded="false">
+    <i class="fa-solid fa-bars" aria-hidden="true"></i><span class="moderni-skryte">Menu</span>
+  </button>
+  <span class="moderni-horni-lista-nazev">{nazevSekce}</span>
+  <a class="moderni-znacka moderni-znacka-mala" href="{base}" aria-label="GameCon administrace – úvod">GC</a>
+</header>
+<!-- .obal, .sloupL, .sloupR a .main nesou stejné třídy jako klasický vzhled, styly a skripty modulů s nimi počítají
+     (třeba detail aktivity v Moje aktivity skrývá .sloupL). -->
+<div class="obal">
+  <aside class="sloupL moderni-postranni-panel" id="moderniPostranniPanel" aria-label="Navigace administrace">
+    <div class="moderni-panel-hlavicka">
+      <a class="moderni-znacka" href="{base}">
+        <span class="moderni-znacka-logo" aria-hidden="true">GC</span>
+        <span class="moderni-znacka-text">GameCon<small>Administrace</small></span>
+      </a>
+      <button type="button" class="moderni-tlacitko-zavrit" aria-label="Zavřít menu">
+        <i class="fa-solid fa-xmark" aria-hidden="true"></i>
+      </button>
+    </div>
+    <div class="prvniBlok">
+      {FILE "templates/moderni/uzivatel.xtpl"}
+    </div>
+    {FILE "templates/moderni/menu.xtpl"}
+    {FILE "templates/moderni/operator.xtpl"}
+  </aside>
+  <div class="moderni-zavoj" hidden></div>
+  <div class="sloupR">
+    <main class="main">
+      <!-- begin:submenu -->
+      <nav aria-label="Podmenu">
+      <ul id="submenu" class="submenu-selected-{stranka}" data-stranka="{stranka}" data-podstranka="{podstranka}" style="display: {displaySubmenu}">
+        <li>
+          <ul class="adm_submenu_group"><!-- begin:polozka -->
+            {break}
+            <li class="adm_submenu_item adm_submenu_item_ord_{order} adm_submenu_item_grp_{group}" style="display: {displayPolozka}">
+              <a href="{url}" {add_attributes}><!-- begin:ikona --><i class="fa-solid fa-fw fa-{ikona}" aria-hidden="true"></i><!-- end:ikona -->{nazev}</a>
+            </li>
+            <!-- end:polozka --><!-- begin:doplnek --><li class="adm_submenu_doplnek">{doplnek}</li><!-- end:doplnek --></ul>
+        </li>
+      </ul>
+      </nav>
+      <!-- end:submenu -->
+      <!-- begin: zakazano -->{FILE "templates/zakazano.xtpl"}<!-- end: zakazano -->
+      <!-- begin: nenalezeno -->{FILE "templates/404.xtpl"}<!-- end: nenalezeno -->
+      {chyba}
+      <div id="mainContent" tabindex="-1">
+        {obsahRetezec}
+      </div>
+    </main>
+    <footer class="moderni-paticka">
+      {FILE "templates/moderni/paticka.xtpl"}
+      {FILE "templates/prepinac-vzhledu.xtpl"}
+    </footer>
+  </div>
+</div>
+{FILE "templates/vyber-vzhledu.xtpl"}
+<!-- begin: ribbon -->
+<div class="corner-ribbon">{ribbonLabel}</div>
+<!-- end: ribbon -->
+</body>
+</html>
+<!-- end: all -->

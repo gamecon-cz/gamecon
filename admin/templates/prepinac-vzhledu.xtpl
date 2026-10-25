@@ -1,0 +1,9 @@
+<!-- begin:prepinacVzhledu -->
+<form method="post" class="prepinac-vzhledu">
+  <span id="prepinacVzhleduPopisek">Vzhled administrace</span>
+  <span class="prepinac-vzhledu-volby" role="group" aria-labelledby="prepinacVzhleduPopisek">
+    <button type="submit" name="{vzhledPostKlic}" value="{vzhledKlasicky}" aria-pressed="{klasickyZvolen}">Klasický</button>
+    <button type="submit" name="{vzhledPostKlic}" value="{vzhledModerni}" aria-pressed="{moderniZvolen}">Moderní</button>
+  </span>
+</form>
+<!-- end:prepinacVzhledu -->
