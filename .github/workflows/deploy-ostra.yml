@@ -89,9 +89,10 @@ jobs:
                     DEPLOY_RSYNC_TARGET: ${{ secrets.OSTRA_DEPLOY_RSYNC_TARGET }}
                     DEPLOY_SSH_KEY: ${{ secrets.OSTRA_DEPLOY_SSH_KEY }}
                     DEPLOY_SSH_KNOWN_HOSTS: ${{ secrets.DEPLOY_SSH_KNOWN_HOSTS }}
-                    # Optional repository variables; empty means port 22 and at most 1000 deleted files.
+                    # Optional repository variables; empty means port 22 and at most 500 deleted items (files and folders) outside vendor/ and 5000 in it.
                     DEPLOY_SSH_PORT: ${{ vars.DEPLOY_SSH_PORT }}
                     DEPLOY_RSYNC_MAX_DELETE: ${{ vars.DEPLOY_RSYNC_MAX_DELETE }}
+                    DEPLOY_RSYNC_MAX_DELETE_VENDOR: ${{ vars.DEPLOY_RSYNC_MAX_DELETE_VENDOR }}
                     DB_USER: ${{ secrets.OSTRA_DB_USER }}
                     DB_PASS: ${{ secrets.OSTRA_DB_PASS }}
                     DB_NAME: ${{ secrets.OSTRA_DB_NAME }}

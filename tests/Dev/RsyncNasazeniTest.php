@@ -21,6 +21,7 @@ class RsyncNasazeniTest extends TestCase
         'DEPLOY_SSH_KNOWN_HOSTS',
         'DEPLOY_SSH_PORT',
         'DEPLOY_RSYNC_MAX_DELETE',
+        'DEPLOY_RSYNC_MAX_DELETE_VENDOR',
     ];
 
     private string $workDir;
@@ -35,6 +36,9 @@ class RsyncNasazeniTest extends TestCase
         (new Filesystem())->mkdir($this->workDir . '/bin', 0775);
         foreach (self::ENV_NAMES as $name) {
             $this->originalEnv[$name] = getenv($name);
+            if ($name !== 'PATH') {
+                putenv($name); // a limit exported in the shell or the CI must not leak into the defaults under test
+            }
         }
     }
 
@@ -312,7 +316,34 @@ class RsyncNasazeniTest extends TestCase
         $this->runDeploy(dryRun: false);
 
         self::assertNotContains('--max-delete=2', $this->readRecordedArguments(2));
-        self::assertContains('--max-delete=3', $this->readRecordedArguments(2));
+        self::assertContains('--max-delete=23', $this->readRecordedArguments(2));
+    }
+
+    /**
+     * @test
+     *
+     * @dataProvider providePlanAndTheBudgetOfTheUpload
+     */
+    public function theUploadMayDeleteOnlyWhatThePlanFoundPlusASmallReserveWhateverTheLimitsAre(string $planOutput, string $expectedBudget): void
+    {
+        $this->installFakeRsync(planOutput: $planOutput);
+        putenv('DEPLOY_SSH_KEY=klic');
+        putenv('DEPLOY_SSH_KNOWN_HOSTS=hosts');
+        putenv('DEPLOY_RSYNC_MAX_DELETE=500');
+        putenv('DEPLOY_RSYNC_MAX_DELETE_VENDOR=5000');
+
+        $this->runDeploy(dryRun: false);
+
+        $plan = $this->readRecordedArguments(1);
+        self::assertSame([], array_filter($plan, static fn (string $argument) => str_starts_with($argument, '--max-delete')));
+        self::assertContains($expectedBudget, $this->readRecordedArguments(2));
+    }
+
+    public static function providePlanAndTheBudgetOfTheUpload(): iterable
+    {
+        yield 'nothing to delete leaves only the reserve' => ["sending incremental file list\n", '--max-delete=20'];
+        yield 'both areas count' => ["deleting a\ndeleting vendor/b\n", '--max-delete=22'];
+        yield 'a kept directory counts too' => ["deleting a\ncannot delete non-empty directory: d\ndeleting d/\n", '--max-delete=22'];
     }
 
     /**
@@ -340,9 +371,82 @@ class RsyncNasazeniTest extends TestCase
 
     public static function provideMaxDelete(): iterable
     {
-        yield 'unset uses the default' => ['', 1000];
+        yield 'unset uses the default' => ['', 500];
         yield 'zero is a real limit, not the default' => ['0', 0];
         yield 'a number' => ['25', 25];
+    }
+
+    /**
+     * @test
+     *
+     * @dataProvider provideMaxDeleteVendor
+     */
+    public function theVendorLimitHasItsOwnVariableAndAHigherDefault(string $env, int $expected): void
+    {
+        putenv('DEPLOY_RSYNC_MAX_DELETE_VENDOR=' . $env);
+
+        self::assertSame($expected, getRsyncMaxDeleteVendor());
+    }
+
+    public static function provideMaxDeleteVendor(): iterable
+    {
+        yield 'unset uses the default' => ['', 5000];
+        yield 'zero is a real limit, not the default' => ['0', 0];
+        yield 'a number' => ['12000', 12000];
+    }
+
+    /**
+     * @test
+     *
+     * @dataProvider provideInvalidMaxDelete
+     */
+    public function aVendorLimitThatIsNotAWholeNumberIsRefused(string $env): void
+    {
+        putenv('DEPLOY_RSYNC_MAX_DELETE_VENDOR=' . $env);
+
+        $this->expectException(\RuntimeException::class);
+        $this->expectExceptionMessageMatches('~^DEPLOY_RSYNC_MAX_DELETE_VENDOR musí~');
+        getRsyncMaxDeleteVendor();
+    }
+
+    /**
+     * @test
+     */
+    public function anInvalidVendorLimitStopsTheRunBeforeRsyncIsCalled(): void
+    {
+        $this->installFakeRsync();
+        putenv('DEPLOY_SSH_KEY=klic');
+        putenv('DEPLOY_SSH_KNOWN_HOSTS=hosts');
+        putenv('DEPLOY_RSYNC_MAX_DELETE_VENDOR=lots');
+
+        $this->expectException(\RuntimeException::class);
+        $this->expectExceptionMessage('DEPLOY_RSYNC_MAX_DELETE_VENDOR');
+        try {
+            $this->runDeploy(dryRun: false);
+        } finally {
+            self::assertFileDoesNotExist($this->workDir . '/calls');
+        }
+    }
+
+    /**
+     * @test
+     */
+    public function deletionsAreSplitIntoVendorAndTheRestByTheTopLevelDirectory(): void
+    {
+        $split = splitRsyncDeletionsByVendor([
+            'deleting vendor/a/b.php',
+            'deleting vendor/',
+            'deleting vendorish/x.php',
+            'deleting web/vendor/x.js',
+            'deleting symfony/vendor/y.php',
+            'deleting web/x.php',
+        ]);
+
+        self::assertSame(['deleting vendor/a/b.php', 'deleting vendor/'], $split['vendor']);
+        self::assertSame(
+            ['deleting vendorish/x.php', 'deleting web/vendor/x.js', 'deleting symfony/vendor/y.php', 'deleting web/x.php'],
+            $split['other'],
+        );
     }
 
     /**
@@ -355,6 +459,7 @@ class RsyncNasazeniTest extends TestCase
         putenv('DEPLOY_RSYNC_MAX_DELETE=' . $env);
 
         $this->expectException(\RuntimeException::class);
+        $this->expectExceptionMessageMatches('~^DEPLOY_RSYNC_MAX_DELETE musí~');
         getRsyncMaxDelete();
     }
 
@@ -401,8 +506,8 @@ class RsyncNasazeniTest extends TestCase
         $upload = $this->readRecordedArguments(2);
         self::assertContains('--dry-run', $plan);
         self::assertNotContains('--dry-run', $upload);
-        self::assertNotContains('--max-delete=77', $plan);
-        self::assertContains('--max-delete=77', $upload);
+        self::assertNotContains('--max-delete=21', $plan);
+        self::assertContains('--max-delete=21', $upload);
         foreach ([$plan, $upload] as $argumenty) {
             self::assertContains('--filter=P /cache/*', $argumenty);
             self::assertContains('x:/', $argumenty);
@@ -471,6 +576,188 @@ class RsyncNasazeniTest extends TestCase
         }
 
         self::assertFileDoesNotExist($this->workDir . '/arguments-2');
+    }
+
+    /**
+     * @test
+     */
+    public function manyVendorDeletionsPassTheirOwnHigherLimitWhileTheRestIsHeldToTheLowerOne(): void
+    {
+        $this->installFakeRsync(planOutput: "deleting vendor/a.php\ndeleting vendor/b.php\ndeleting vendor/c/\ndeleting web/x.php\n");
+        putenv('DEPLOY_SSH_KEY=klic');
+        putenv('DEPLOY_SSH_KNOWN_HOSTS=hosts');
+        putenv('DEPLOY_RSYNC_MAX_DELETE=1');
+        putenv('DEPLOY_RSYNC_MAX_DELETE_VENDOR=30');
+
+        $this->runDeploy(dryRun: false);
+
+        self::assertFileExists($this->workDir . '/arguments-2');
+        self::assertContains('--max-delete=24', $this->readRecordedArguments(2));
+    }
+
+    /**
+     * @test
+     */
+    public function tooManyDeletionsOutsideVendorStopTheRunEvenWhenVendorHasRoom(): void
+    {
+        $this->installFakeRsync(planOutput: "deleting a\ndeleting b\ndeleting vendor/x\n");
+        putenv('DEPLOY_SSH_KEY=klic');
+        putenv('DEPLOY_SSH_KNOWN_HOSTS=hosts');
+        putenv('DEPLOY_RSYNC_MAX_DELETE=1');
+        putenv('DEPLOY_RSYNC_MAX_DELETE_VENDOR=100');
+
+        try {
+            $this->runDeploy(dryRun: false);
+            self::fail('Two deletions outside vendor/ with a limit of 1 must stop the deploy');
+        } catch (\RuntimeException $exception) {
+            self::assertStringContainsString('2 položek mimo vendor/', $exception->getMessage());
+            self::assertStringContainsString('DEPLOY_RSYNC_MAX_DELETE (1)', $exception->getMessage());
+            self::assertStringNotContainsString('DEPLOY_RSYNC_MAX_DELETE_VENDOR', $exception->getMessage());
+            self::assertStringContainsString('chráněné cesty', $exception->getMessage());
+            self::assertStringContainsString('nic se nezměnilo', $exception->getMessage());
+        }
+
+        self::assertFileDoesNotExist($this->workDir . '/arguments-2');
+    }
+
+    /**
+     * @test
+     */
+    public function tooManyVendorDeletionsStopTheRunEvenWhenTheRestHasRoom(): void
+    {
+        $this->installFakeRsync(planOutput: "deleting vendor/a\ndeleting vendor/b\ndeleting vendor/c\ndeleting web/x.php\n");
+        putenv('DEPLOY_SSH_KEY=klic');
+        putenv('DEPLOY_SSH_KNOWN_HOSTS=hosts');
+        putenv('DEPLOY_RSYNC_MAX_DELETE=100');
+        putenv('DEPLOY_RSYNC_MAX_DELETE_VENDOR=2');
+
+        try {
+            $this->runDeploy(dryRun: false);
+            self::fail('Three deletions in vendor/ with a limit of 2 must stop the deploy');
+        } catch (\RuntimeException $exception) {
+            self::assertStringContainsString('3 položek ve vendor/', $exception->getMessage());
+            self::assertStringContainsString('DEPLOY_RSYNC_MAX_DELETE_VENDOR (2)', $exception->getMessage());
+            self::assertStringContainsString('závislostech', $exception->getMessage());
+            self::assertStringNotContainsString('položek mimo vendor/', $exception->getMessage());
+            self::assertStringNotContainsString('chráněné cesty', $exception->getMessage());
+        }
+
+        self::assertFileDoesNotExist($this->workDir . '/arguments-2');
+    }
+
+    /**
+     * @test
+     */
+    public function bothLimitsAreNamedWhenBothAreExceeded(): void
+    {
+        $this->installFakeRsync(planOutput: "deleting vendor/a\ndeleting vendor/b\ndeleting x\ndeleting y\n");
+        putenv('DEPLOY_SSH_KEY=klic');
+        putenv('DEPLOY_SSH_KNOWN_HOSTS=hosts');
+        putenv('DEPLOY_RSYNC_MAX_DELETE=1');
+        putenv('DEPLOY_RSYNC_MAX_DELETE_VENDOR=1');
+
+        $this->expectException(\RuntimeException::class);
+        $this->expectExceptionMessageMatches('~2 položek mimo vendor/.*DEPLOY_RSYNC_MAX_DELETE \(1\).*2 položek ve vendor/.*DEPLOY_RSYNC_MAX_DELETE_VENDOR \(1\)~');
+        $this->runDeploy(dryRun: false);
+    }
+
+    /**
+     * @test
+     */
+    public function aDirectoryUnderVendorThatProtectedFilesKeepIsNotCountedAgainstTheVendorLimit(): void
+    {
+        $this->installFakeRsync(planOutput: "cannot delete non-empty directory: vendor/x\ndeleting vendor/x/\ndeleting vendor/y.php\n");
+        putenv('DEPLOY_SSH_KEY=klic');
+        putenv('DEPLOY_SSH_KNOWN_HOSTS=hosts');
+        putenv('DEPLOY_RSYNC_MAX_DELETE=0');
+        putenv('DEPLOY_RSYNC_MAX_DELETE_VENDOR=1');
+
+        $this->runDeploy(dryRun: false);
+
+        self::assertContains('--max-delete=22', $this->readRecordedArguments(2));
+    }
+
+    /**
+     * @test
+     */
+    public function aDryRunFailsTooWhenTheVendorLimitWouldStopTheRealRun(): void
+    {
+        $this->installFakeRsync(planOutput: "deleting vendor/a\ndeleting vendor/b\ndeleting vendor/c\n");
+        putenv('DEPLOY_SSH_KEY=klic');
+        putenv('DEPLOY_SSH_KNOWN_HOSTS=hosts');
+        putenv('DEPLOY_RSYNC_MAX_DELETE_VENDOR=2');
+
+        try {
+            $this->runDeploy(dryRun: true);
+            self::fail('A dry run that lists more vendor/ deletions than allowed must fail, like the real run would');
+        } catch (\RuntimeException $exception) {
+            self::assertStringContainsString('3 položek ve vendor/', $exception->getMessage());
+        }
+
+        self::assertFileDoesNotExist($this->workDir . '/arguments-2');
+    }
+
+    /**
+     * @test
+     */
+    public function theListedDeletionsStartOutsideVendorSoThatWhatTrippedTheLimitIsNotCutOff(): void
+    {
+        $plan = [];
+        for ($index = 1; $index <= 60; ++$index) {
+            $plan[] = "deleting vendor/pkg/file{$index}.php";
+        }
+        $plan[] = 'deleting web/a.php';
+        $plan[] = 'deleting web/b.php';
+        $this->installFakeRsync(planOutput: implode("\n", $plan) . "\n");
+        putenv('DEPLOY_SSH_KEY=klic');
+        putenv('DEPLOY_SSH_KNOWN_HOSTS=hosts');
+        putenv('DEPLOY_RSYNC_MAX_DELETE=1');
+
+        ob_start();
+        try {
+            uploadFilesViaRsync('/repo', ['/tests'], 'x:/', false);
+            self::fail('Two deletions outside vendor/ with a limit of 1 must stop the deploy');
+        } catch (\RuntimeException) {
+            // expected, what matters is what was printed before it
+        } finally {
+            $output = (string) ob_get_clean();
+        }
+
+        self::assertStringContainsString('deleting web/a.php', $output);
+        self::assertStringContainsString('deleting web/b.php', $output);
+        self::assertStringContainsString('… a dalších 12', $output);
+    }
+
+    /**
+     * @test
+     */
+    public function theListedDeletionsStartWithTheVendorAreaWhenOnlyItTrippedItsLimit(): void
+    {
+        $plan = [];
+        for ($index = 1; $index <= 60; ++$index) {
+            $plan[] = "deleting web/file{$index}.php";
+        }
+        $plan[] = 'deleting vendor/pkg/a.php';
+        $plan[] = 'deleting vendor/pkg/b.php';
+        $plan[] = 'deleting vendor/pkg/c.php';
+        $this->installFakeRsync(planOutput: implode("\n", $plan) . "\n");
+        putenv('DEPLOY_SSH_KEY=klic');
+        putenv('DEPLOY_SSH_KNOWN_HOSTS=hosts');
+        putenv('DEPLOY_RSYNC_MAX_DELETE_VENDOR=2');
+
+        ob_start();
+        try {
+            uploadFilesViaRsync('/repo', ['/tests'], 'x:/', false);
+            self::fail('Three deletions in vendor/ with a limit of 2 must stop the deploy');
+        } catch (\RuntimeException) {
+            // expected, what matters is what was printed before it
+        } finally {
+            $output = (string) ob_get_clean();
+        }
+
+        self::assertStringContainsString('deleting vendor/pkg/a.php', $output);
+        self::assertStringContainsString('deleting vendor/pkg/c.php', $output);
+        self::assertStringContainsString('… a dalších 13', $output);
     }
 
     /**

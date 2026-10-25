@@ -191,17 +191,48 @@ function buildRsyncCommand(
     return $command;
 }
 
+/**
+ * Limit for everything outside vendor/. Those deletions come a few at a time, so it is low enough to notice a broken
+ * filter or protected path.
+ */
 function getRsyncMaxDelete(): int
 {
-    $maxDelete = (string)getenv('DEPLOY_RSYNC_MAX_DELETE');
-    if ($maxDelete === '') {
-        return 1000;
+    return parseRsyncDeleteLimit('DEPLOY_RSYNC_MAX_DELETE', 500);
+}
+
+/**
+ * vendor/ is committed, so one dependency update can delete thousands of files.
+ */
+function getRsyncMaxDeleteVendor(): int
+{
+    return parseRsyncDeleteLimit('DEPLOY_RSYNC_MAX_DELETE_VENDOR', 5000);
+}
+
+function parseRsyncDeleteLimit(string $variableName, int $default): int
+{
+    $limit = (string)getenv($variableName);
+    if ($limit === '') {
+        return $default;
     }
-    if (!ctype_digit($maxDelete) || strlen($maxDelete) > 9) {
-        throw new \RuntimeException("DEPLOY_RSYNC_MAX_DELETE musí být celé číslo od 0 do 999999999, je '{$maxDelete}'");
+    if (!ctype_digit($limit) || strlen($limit) > 9) {
+        throw new \RuntimeException("{$variableName} musí být celé číslo od 0 do 999999999, je '{$limit}'");
     }
 
-    return (int)$maxDelete;
+    return (int)$limit;
+}
+
+/**
+ * @param list<string> $deletions the "deleting …" lines
+ * @return array{vendor: list<string>, other: list<string>}
+ */
+function splitRsyncDeletionsByVendor(array $deletions): array
+{
+    $vendor = array_values(array_filter(
+        $deletions,
+        static fn(string $deletion) => str_starts_with($deletion, 'deleting vendor/'),
+    ));
+
+    return ['vendor' => $vendor, 'other' => array_values(array_diff($deletions, $vendor))];
 }
 
 /**
@@ -254,7 +285,8 @@ function getRsyncSshPort(): ?int
  * The key and known_hosts come from environment variables (GitHub secrets), ssh reads them from files.
  *
  * Every run first plans with `--dry-run` and stops when more items would be deleted than allowed, before anything
- * changes; `--max-delete` alone only stops the deleting after that many are gone, and only the upload carries it.
+ * changes; `--max-delete` alone only stops the deleting after that many are gone, so only the upload carries it,
+ * set to what the plan found plus a small reserve.
  */
 function uploadFilesViaRsync(
     string $sourceDir,
@@ -267,8 +299,9 @@ function uploadFilesViaRsync(
     if (trim($privateKey) === '' || trim($knownHosts) === '') {
         throw new \RuntimeException('Nasazení přes rsync vyžaduje DEPLOY_SSH_KEY a DEPLOY_SSH_KNOWN_HOSTS, bez known_hosts by se server neověřoval');
     }
-    $sshPort   = getRsyncSshPort();
-    $maxDelete = getRsyncMaxDelete();
+    $sshPort         = getRsyncSshPort();
+    $maxDelete       = getRsyncMaxDelete();
+    $maxDeleteVendor = getRsyncMaxDeleteVendor();
 
     $keyFile        = null;
     $knownHostsFile = null;
@@ -298,21 +331,40 @@ function uploadFilesViaRsync(
         $plan            = call_check_capture($buildCommand(true, null));
         $deletions       = getPlannedRsyncDeletions($plan);
         $keptDirectories = count(getKeptRsyncDirectories($plan));
-        $shown           = $dryRun
+        $deletionsByArea = splitRsyncDeletionsByVendor($deletions);
+        $otherCount      = count($deletionsByArea['other']);
+        $vendorCount     = count($deletionsByArea['vendor']);
+        $otherExceeded   = $otherCount > $maxDelete;
+        $vendorExceeded  = $vendorCount > $maxDeleteVendor;
+        // vendor/ usually has far more deletions than the rest, so the area that tripped its limit is listed first
+        $shown = $dryRun
             ? $plan
-            : array_slice($deletions, 0, 50);
+            : array_slice(
+                $vendorExceeded && !$otherExceeded
+                    ? array_merge($deletionsByArea['vendor'], $deletionsByArea['other'])
+                    : array_merge($deletionsByArea['other'], $deletionsByArea['vendor']),
+                0,
+                50,
+            );
         if ($shown !== []) {
             echo implode(PHP_EOL, $shown) . PHP_EOL;
         }
         if (!$dryRun && count($deletions) > 50) {
             echo '… a dalších ' . (count($deletions) - 50) . PHP_EOL;
         }
-        msg(count($deletions) . ' položek by rsync smazal' . ($keptDirectories > 0
-            ? " (bez {$keptDirectories} složek, které nechají chráněné soubory)"
-            : ''));
-        if (count($deletions) > $maxDelete) {
+        msg(count($deletions) . " položek by rsync smazal ({$otherCount} mimo vendor/, {$vendorCount} ve vendor/" . ($keptDirectories > 0
+            ? ", bez {$keptDirectories} složek, které nechají chráněné soubory"
+            : '') . ')');
+        $exceeded = [];
+        if ($otherExceeded) {
+            $exceeded[] = "{$otherCount} položek mimo vendor/, víc než DEPLOY_RSYNC_MAX_DELETE ({$maxDelete}), zkontroluj chráněné cesty a masky";
+        }
+        if ($vendorExceeded) {
+            $exceeded[] = "{$vendorCount} položek ve vendor/, víc než DEPLOY_RSYNC_MAX_DELETE_VENDOR ({$maxDeleteVendor}), zkontroluj, co se změnilo v závislostech";
+        }
+        if ($exceeded !== []) {
             throw new \RuntimeException(
-                'rsync by smazal ' . count($deletions) . " položek, víc než DEPLOY_RSYNC_MAX_DELETE ({$maxDelete}); nic se nezměnilo. Jestli je to správně, limit zvyš, jinak zkontroluj chráněné cesty a masky",
+                'rsync by smazal ' . implode('; ', $exceeded) . ' – nic se nezměnilo. Jestli je to správně, zvyš příslušný limit',
             );
         }
         if ($dryRun) {
@@ -320,8 +372,11 @@ function uploadFilesViaRsync(
         }
 
         msg('synchronizuji soubory na vzdáleném serveru přes rsync');
-        // rsync counts each refused removal of a kept directory as a skipped deletion once the limit is reached
-        call_check($buildCommand(false, $maxDelete + $keptDirectories));
+        // at most what the plan approved, plus the kept directories (a refused removal counts as skipped once the limit is
+        // reached) and a few items that appear between the plan and the upload: failing after the new files are live but
+        // before the migrations run is worse than deleting a stray file
+        $itemsAllowedAfterThePlan = 20;
+        call_check($buildCommand(false, count($deletions) + $keptDirectories + $itemsAllowedAfterThePlan));
     } finally {
         foreach ([$keyFile, $knownHostsFile] as $temporaryFile) {
             if (is_string($temporaryFile) && is_file($temporaryFile)) {
