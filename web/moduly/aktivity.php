@@ -3,7 +3,9 @@
 use Gamecon\Aktivita\Aktivita;
 use Gamecon\Aktivita\FiltrAktivity;
 use Gamecon\Aktivita\Program;
+use Gamecon\Aktivita\Tag;
 use Gamecon\Aktivita\TypAktivity;
+use Gamecon\KategorieTagu;
 
 /** @var Modul $this */
 /** @var Url $url */
@@ -59,11 +61,32 @@ $skupiny = serazenePodle($skupiny, function (
     return current($skupina)->nazev();
 });
 
+// data pro filtry nad seznamem, jedna položka na kartu
+$kartyProFiltr          = [];
+$dnyProFiltr            = [];
+$klicePodleNazvuDne     = [];
+$nekteraPrihlasovatelna = false;
+
 foreach ($skupiny as $skupina) {
     $skupina = serazenePodle($skupina, 'zacatek');
 
+    $dnyKarty     = [];
+    $volnoNaKarte = false;
+
     /** @var Aktivita $aktivita */
     foreach ($skupina as $aktivita) {
+        // skutečný den, ten je napsaný i u termínu na kartě
+        $den = $aktivita->denSkutecny();
+        if ($den) {
+            $nazevDne               = $den->format('l');
+            // transliterace je drahá a dnů je pár
+            $klicDne                = $klicePodleNazvuDne[$nazevDne] ??= odstranDiakritiku($nazevDne);
+            $dnyKarty[$klicDne]     = true;
+            $dnyProFiltr[$klicDne] ??= ['datum' => $den->format('Y-m-d'), 'nazev' => $nazevDne];
+        }
+        $nekteraPrihlasovatelna = $nekteraPrihlasovatelna || $aktivita->prihlasovatelna();
+        $volnoNaKarte           = $volnoNaKarte || $aktivita->isVolnoKPrihlaseni($u);
+
         $vypravec = current($aktivita->organizatori());
         if ($vypravec && ($aktivita->typId() == TypAktivity::DRD || $aktivita->patriPod() > 0)) {
             $t->assign('vypravec', $vypravec->jmenoNaWebu());
@@ -121,6 +144,44 @@ foreach ($skupiny as $skupina) {
     $t->parseEach($aktivita->tagy(), 'stitek', 'aktivity.nahled.stitek');
     $t->parse('aktivity.aktivita');
     $t->parse('aktivity.nahled');
+
+    $kartyProFiltr[] = [
+        'htmlId' => $aktivita->urlId(),
+        'id'     => (int)$aktivita->id(),
+        'tagy'   => $aktivita->tagyId(),
+        'dny'    => array_keys($dnyKarty),
+        'volno'  => $volnoNaKarte,
+    ];
+}
+
+// u pár karet by filtry jen překážely
+$filtrAktivit = null;
+if (count($kartyProFiltr) >= 15) {
+    $nazvyKategoriiTagu = [];
+    foreach (KategorieTagu::zVsech() as $kategorieTagu) {
+        $nazvyKategoriiTagu[$kategorieTagu->id()] = $kategorieTagu->nazev();
+    }
+    uasort($dnyProFiltr, static fn(
+        array $den,
+        array $jinyDen,
+    ) => $den['datum'] <=> $jinyDen['datum']);
+
+    $filtrAktivit = [
+        'karty'          => $kartyProFiltr,
+        // seřazené podle pořadí kategorie a názvu, viz Tag::dotaz()
+        'tagy'           => array_map(static fn(
+            Tag $tag,
+        ) => [
+            'id'        => $tag->id(),
+            'nazev'     => $tag->nazev(),
+            'kategorie' => $nazvyKategoriiTagu[$tag->idKategorieTagu()] ?? '',
+        ], Tag::zIds(array_values(array_unique(array_merge(...array_column($kartyProFiltr, 'tagy')))))),
+        'dny'            => array_map(static fn(
+            string $klic,
+            array  $den,
+        ) => ['klic' => $klic, 'nazev' => $den['nazev']], array_keys($dnyProFiltr), $dnyProFiltr),
+        'lzePrihlasovat' => $nekteraPrihlasovatelna,
+    ];
 }
 
 // záhlaví a informace
@@ -178,8 +239,12 @@ if (!empty($org)) {
 <?php
     $konstanty   = json_encode(Program::gameconKonstanty(false, "aktivity"));
     $prednacteni = json_encode(
-        ['přihlášenýUživatel' => Uzivatel::apiPrihlasenyUzivatel()],
-        JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES,
+        [
+            'přihlášenýUživatel' => Uzivatel::apiPrihlasenyUzivatel(),
+            'filtrAktivit'       => $filtrAktivit,
+        ],
+        // HEX_TAG, ať názvy nemůžou ukončit <script>
+        JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES | JSON_HEX_TAG,
     );
 ?>
 <script>
