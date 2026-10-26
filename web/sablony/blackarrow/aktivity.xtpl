@@ -46,6 +46,7 @@
 </div>
 
 <div class="aktivity_aktivityObal">
+<div id="preact-aktivity-filtr" class="aktivity_filtr"></div>
 <div class="aktivity_aktivity {specTridy}">
     <!-- begin: aktivita -->
     <div class="aktivity_aktivita" id="{htmlId}">
@@ -85,7 +86,8 @@
 </div>
 
 <script>
-zachovejScroll(document.querySelectorAll('.aktivity_aktivity form > a'), null)
+// až po filtrech nad seznamem (Preact, type="module" běží před DOMContentLoaded), jinak by schované karty posunuly obnovený scroll
+document.addEventListener('DOMContentLoaded', () => zachovejScroll(document.querySelectorAll('.aktivity_aktivity form > a'), null))
 </script>
 
 <!-- begin: nahled -->
@@ -95,7 +97,7 @@ zachovejScroll(document.querySelectorAll('.aktivity_aktivity form > a'), null)
 <div class="aktivity_nahled">
     <label class="aktivity_nahledZavrit" for="aktivity_nahledId{aktivita.id}">✕</label>
 
-    <div class="aktivity_nahledTextPole">
+    <div class="aktivity_nahledTextPole" id="aktivity_nahledText{aktivita.id}">
         <h2>{aktivita.nazev}</h2>
         <div class="aktivity_stitky">
             <!-- begin: stitek -->
