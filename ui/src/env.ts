@@ -4,6 +4,7 @@
 
 import { ApiPřihlášenýUživatel } from "./api/přihlášenýUživatel";
 import { ApiLokace, ProgramManifest } from "./api/program";
+import { ApiFiltrAktivit } from "./api/filtrAktivit";
 import { range } from "./utils";
 
 
@@ -78,6 +79,8 @@ define('FORCE_REDUX_DEVTOOLS', true);
 
 type GameconPřednačtení = {
   přihlášenýUživatel?: ApiPřihlášenýUživatel
+  /** jen na stránce linie s dost aktivitami */
+  filtrAktivit?: ApiFiltrAktivit | null
 };
 
 declare global {

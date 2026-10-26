@@ -163,6 +163,106 @@
     column-count: 1;
 }
 
+// lišta filtrů (Preact, ui/src/pages/aktivityFiltr), zarovnaná s kartami pod ní
+.aktivity_filtr {
+    margin: 32px auto 0;
+    width: 1600px;
+    max-width: 90%;
+    padding: 0 40px;
+
+    &:empty {
+        display: none;
+    }
+
+    @media (max-width: 600px) {
+        box-sizing: border-box;
+        max-width: 100%;
+        padding: 0 1.5%;
+    }
+}
+
+.aktivity_aktivity .aktivity_aktivita[hidden] {
+    display: none;
+}
+
+// zobrazení seznamem, jedna aktivita na řádek bez obrázku a popisu (přepínač v liště filtrů)
+.aktivity_aktivity-seznam {
+    column-count: 1;
+
+    .aktivity_aktivita {
+        display: grid;
+        grid-template-columns: minmax(0, 4fr) minmax(0, 4fr) minmax(0, 3fr);
+        grid-template-rows: auto 1fr;
+        grid-template-areas:
+            "nazev stitky terminy"
+            "vypravec stitky terminy";
+        column-gap: 32px;
+        padding: 14px 20px 6px;
+        margin-bottom: 12px;
+        background-color: #fff; // jinak prosvítá šmouha z pozadí seznamu
+
+        @media (max-width: 1000px) {
+            grid-template-columns: minmax(0, 3fr) minmax(0, 2fr);
+            grid-template-rows: auto auto 1fr;
+            grid-template-areas:
+                "nazev terminy"
+                "vypravec terminy"
+                "stitky terminy";
+        }
+
+        @media (max-width: 600px) {
+            grid-template-columns: minmax(0, 1fr);
+            grid-template-rows: none;
+            grid-template-areas:
+                "nazev"
+                "vypravec"
+                "stitky"
+                "terminy";
+        }
+    }
+
+    // první label obaluje obrázek
+    .aktivity_aktivita > label:first-child,
+    .aktivity_popis {
+        display: none;
+    }
+
+    .aktivity_nazev {
+        grid-area: nazev;
+        margin-bottom: 4px;
+        font-size: 20px;
+
+        label:hover {
+            text-decoration: underline;
+        }
+    }
+
+    .aktivity_vypravec {
+        grid-area: vypravec;
+        margin-bottom: 8px;
+    }
+
+    .aktivity_stitky {
+        grid-area: stitky;
+        align-self: start;
+        margin-bottom: 0;
+    }
+
+    .aktivity_stitek {
+        font-size: 10px;
+        padding: 4px 8px 3px;
+        margin: 0 6px 6px 0;
+    }
+
+    .aktivity_terminy {
+        grid-area: terminy;
+    }
+
+    .aktivity_termin > br:last-child {
+        display: none;
+    }
+}
+
 .aktivity_aktivita {
     display: inline-block; // aby se nezalamovaly do víc sloupců
     box-sizing: border-box;

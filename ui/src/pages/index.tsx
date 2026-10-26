@@ -2,6 +2,7 @@ import { Program } from "./program";
 import { Obchod } from "./obchod";
 import { ObchodNastaveni } from "./obchodNastaveni";
 import { AktivityApp } from "./aktivity";
+import { AktivityFiltr } from "./aktivityFiltr";
 import { FunctionComponent, render } from "preact";
 
 import "./index.less";
@@ -22,4 +23,5 @@ export const renderPages = () => {
   renderComponent("preact-program", Program);
   renderComponent("preact-obchod", Obchod);
   renderComponent("preact-aktivity-modal", AktivityApp);
+  renderComponent("preact-aktivity-filtr", AktivityFiltr);
 };
