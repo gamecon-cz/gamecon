@@ -20,6 +20,17 @@
   <link rel="stylesheet" href="files/design/font-awesome-6.1.1/css/v4-shims.css">
   <link rel="stylesheet" href="files/design/vzhled_adminu.css?version={cssVersions.vzhled_adminu}"/>
   <link rel="stylesheet" href="files/design/moderni.css?version={cssVersions.moderni}"/>
+  <!-- Schované menu si pamatuje prohlížeč (moderni.js). Třída je na <html> dřív, než se stránka vykreslí,
+       jinak by menu při každém načtení probliklo. -->
+  <script>
+    try {
+      if (localStorage.getItem('adminSchovaneMenu') === '1') {
+        document.documentElement.classList.add('moderni-menu-schovane')
+      }
+    } catch (e) {
+      // bez úložiště (soukromé okno, zakázaná data webu) je menu vidět
+    }
+  </script>
   <!-- begin:april -->
   <link rel="stylesheet" href="files/design/april-1.1.css">
   <!-- end:april -->
@@ -64,9 +75,17 @@
         <span class="moderni-znacka-logo" aria-hidden="true">GC</span>
         <span class="moderni-znacka-text">GameCon<small>Administrace</small></span>
       </a>
-      <button type="button" class="moderni-tlacitko-zavrit" aria-label="Zavřít menu">
-        <i class="fa-solid fa-xmark" aria-hidden="true"></i>
-      </button>
+      <div class="moderni-panel-tlacitka">
+        <button type="button" class="moderni-tlacitko-schovat" aria-label="Schovat menu" title="Schovat menu">
+          <i class="fa-solid fa-angles-left" aria-hidden="true"></i>
+        </button>
+        <button type="button" class="moderni-tlacitko-pripnout" aria-label="Připnout menu" title="Připnout menu">
+          <i class="fa-solid fa-thumbtack" aria-hidden="true"></i>
+        </button>
+        <button type="button" class="moderni-tlacitko-zavrit" aria-label="Zavřít menu">
+          <i class="fa-solid fa-xmark" aria-hidden="true"></i>
+        </button>
+      </div>
     </div>
     <div class="prvniBlok">
       {FILE "templates/moderni/uzivatel.xtpl"}

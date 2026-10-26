@@ -34,6 +34,7 @@ TL;DR: admin má dvě kostry stránky (`admin/templates/main.xtpl` a `admin/temp
 - Díky tomu dál vyhrávají vlastní `<style>` modulů, vložené do stránky později (stejná specificita, pozdější pořadí). Moderní kostra proto nese stejné třídy jako klasická (`.obal`, `.sloupL`, `.sloupR`, `.main`, `#submenu`, `.uzivatel`, `.operator`): moduly je používají, např. detail aktivity v Moje aktivity skrývá `.sloupL`.
 - Obsah (`.sloupR`) je široký nejvýš `--m-sirka-obsahu` (1600 px, tolik má na Full HD), na větším monitoru se vystředí vedle panelu. Klasický vzhled má celou stránku nejvýš 1200 px.
 - Pod 1024 px je `.sloupL` vysouvací panel (z-index 1000) a nahoře je lišta; lišta při posunu dolů ustoupí, aby nezakrývala přilepené hlavičky tabulek (`th { position: sticky; top: 0 }` na přehledu aktivit).
+- (záměr) Na širší obrazovce si panel uživatel schová tlačítkem v jeho hlavičce (kvůli notebooku) a pak se chová jako pod 1024 px; připínáček ho vrátí. Volba patří prohlížeči (localStorage `adminSchovaneMenu`), ne účtu, ať na velkém monitoru menu zůstane. Třídu `moderni-menu-schovane` na `<html>` nastaví skript v hlavičce `moderni/main.xtpl` ještě před vykreslením (jinak by menu probliklo) a JS i CSS se ptají „je menu vysouvací“ (úzká obrazovka nebo schované), ne jen na šířku. Pravidla vysunutého panelu jsou proto v `moderni.css` mimo `@media` a podmíněné je jen schování panelu.
 - Tabulky širší než obsah obalí `moderni.js` do posuvného bloku se stínem u okraje (ne ty, které už jsou v `.responzivni-tabulka` nebo v jiné tabulce).
 
 ## Gotchas
