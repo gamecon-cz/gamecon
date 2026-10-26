@@ -11,7 +11,7 @@ TL;DR: Stránky linií (`/rpg`, `/epic`, `/larpy`, …) mají nad seznamem aktiv
 ## Pravidla
 
 - Lišta je jen u stránky s aspoň 15 kartami (`count($kartyProFiltr) >= 15`). U menších linií by překážela. Karta = skupina aktivit (`patriPod`), ne jednotlivý termín.
-- **Den je skutečný den termínu (`denSkutecny()`), ne programový (`denProgramu()`).** Program řadí noční aktivity po půlnoci do předchozího dne. Karta ale ukazuje skutečný den a filtr se s ní nesmí rozcházet.
+- **Den je programový (`denProgramu()`), stejně jako v programu:** noční hra po půlnoci (před `PROGRAM_ZACATEK`) patří k předchozímu dni (záměr, pořadatelé to tak chtějí). Rozpor: termín na kartě (`denCasSkutecny()`) ukazuje skutečný den, takže hra „pátek 0–3“ je pod filtrem „čtvrtek“.
 - „Jen volná místa“ = aspoň jeden termín je přihlašovatelný a má místo. Přihlášenému se počítají jen místa pro jeho pohlaví, nepřihlášenému stačí místo pro kohokoli. Týmové aktivity se počítají po týmech jako v `obsazenostHtml()`. Tlačítko se ukáže, jen když je na stránce aspoň jeden přihlašovatelný termín (`lzePrihlasovat`). Jinak by vždy vrátilo nulu.
 - Štítky se kombinují stejně jako v programu (`filtrujAktivity`): uvnitř jedné kategorie stačí kterýkoli vybraný, mezi kategoriemi musí platit všechny.
 - Hledá se bez diakritiky a velikosti písmen, všechna slova musí v kartě být. Prohledává se text detailu (`#aktivity_nahledText{id}`: název, štítky, celý popis) a vypravěč z karty. Text se bere z DOM, není podruhé v JSON.

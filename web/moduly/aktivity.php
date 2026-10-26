@@ -75,8 +75,8 @@ foreach ($skupiny as $skupina) {
 
     /** @var Aktivita $aktivita */
     foreach ($skupina as $aktivita) {
-        // skutečný den, ten je napsaný i u termínu na kartě
-        $den = $aktivita->denSkutecny();
+        // programový den jako v programu, noční hra po půlnoci patří k předchozímu dni (záměr), i když karta ukazuje skutečný den
+        $den = $aktivita->denProgramu();
         if ($den) {
             $nazevDne               = $den->format('l');
             // transliterace je drahá a dnů je pár
