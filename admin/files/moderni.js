@@ -1,19 +1,42 @@
-// Moderní vzhled administrace (admin/templates/moderni/main.xtpl): vysouvací menu na úzké obrazovce,
-// horní lišta, která při posunu dolů ustoupí (ať nezakrývá přilepené hlavičky tabulek), a vodorovně
-// posuvné tabulky, které se do obsahu nevejdou.
+// Moderní vzhled administrace (admin/templates/moderni/main.xtpl): vysouvací menu na úzké obrazovce nebo když
+// si ho uživatel schová, horní lišta, která při posunu dolů ustoupí (ať nezakrývá přilepené hlavičky tabulek),
+// a vodorovně posuvné tabulky, které se do obsahu nevejdou.
 (function () {
   'use strict'
 
+  const html = document.documentElement
   const body = document.body
   const panel = document.getElementById('moderniPostranniPanel')
   const lista = document.querySelector('.moderni-horni-lista')
   const tlacitkoMenu = document.querySelector('.moderni-tlacitko-menu')
   const tlacitkoZavrit = document.querySelector('.moderni-tlacitko-zavrit')
+  const tlacitkoSchovat = document.querySelector('.moderni-tlacitko-schovat')
+  const tlacitkoPripnout = document.querySelector('.moderni-tlacitko-pripnout')
   const zavoj = document.querySelector('.moderni-zavoj')
   const sloupR = document.querySelector('.sloupR')
   const obsah = document.getElementById('mainContent')
   // stejná hranice jako v moderni.css
   const uzkaObrazovka = window.matchMedia('(max-width: 1023.98px)')
+  // stejný klíč čte skript v hlavičce main.xtpl
+  const klicSchovanehoMenu = 'adminSchovaneMenu'
+
+  function jeMenuVysouvaci() {
+    return uzkaObrazovka.matches || html.classList.contains('moderni-menu-schovane')
+  }
+
+  // Pamatuje si to prohlížeč, ne účet: na notebooku může být menu schované a na velkém monitoru ne.
+  function nastavSchovaneMenu(schovat) {
+    html.classList.toggle('moderni-menu-schovane', schovat)
+    try {
+      if (schovat) {
+        localStorage.setItem(klicSchovanehoMenu, '1')
+      } else {
+        localStorage.removeItem(klicSchovanehoMenu)
+      }
+    } catch (e) {
+      // bez úložiště platí jen do dalšího načtení stránky
+    }
+  }
 
   function jeMenuOtevrene() {
     return body.classList.contains('moderni-menu-otevrene')
@@ -44,10 +67,19 @@
     }
   }
 
-  if (panel && tlacitkoMenu && tlacitkoZavrit && zavoj && sloupR && lista) {
+  if (panel && tlacitkoMenu && tlacitkoZavrit && tlacitkoSchovat && tlacitkoPripnout && zavoj && sloupR && lista) {
     tlacitkoMenu.addEventListener('click', otevriMenu)
     tlacitkoZavrit.addEventListener('click', function () {
       zavriMenu(true)
+    })
+    tlacitkoSchovat.addEventListener('click', function () {
+      nastavSchovaneMenu(true)
+      tlacitkoMenu.focus()
+    })
+    tlacitkoPripnout.addEventListener('click', function () {
+      zavriMenu(false)
+      nastavSchovaneMenu(false)
+      tlacitkoSchovat.focus()
     })
     zavoj.addEventListener('click', function () {
       zavriMenu(true)
@@ -58,8 +90,8 @@
         zavriMenu(true)
       }
     })
-    uzkaObrazovka.addEventListener('change', function (event) {
-      if (!event.matches) {
+    uzkaObrazovka.addEventListener('change', function () {
+      if (!jeMenuVysouvaci()) {
         zavriMenu(false)
       }
     })
@@ -70,7 +102,7 @@
       if (Math.abs(posun - posledniPosun) < 8) {
         return
       }
-      const skryt = uzkaObrazovka.matches && posun > posledniPosun && posun > lista.offsetHeight
+      const skryt = jeMenuVysouvaci() && posun > posledniPosun && posun > lista.offsetHeight
       lista.classList.toggle('moderni-horni-lista-skryta', skryt)
       posledniPosun = posun
     }, {passive: true})
@@ -78,11 +110,11 @@
       lista.classList.remove('moderni-horni-lista-skryta')
     })
 
-    // Výběr pracovního uživatele je na úzké obrazovce ve schovaném menu, kam se fokus nedostane. Zkratka alt+U
+    // Výběr pracovního uživatele je ve vysouvacím menu, kam se fokus nedostane, dokud je zasunuté. Zkratka alt+U
     // (omnibox-1.1.5.js) i hlášky „Vyberte uživatele (pole vlevo)“ (onclick s focus()) proto menu nejdřív vysunou.
     const ukazVyberUzivatele = function () {
       const vyberUzivatele = document.getElementById('omniboxUzivateleProPraci')
-      if (!vyberUzivatele || !uzkaObrazovka.matches) {
+      if (!vyberUzivatele || !jeMenuVysouvaci()) {
         return
       }
       if (!jeMenuOtevrene()) {

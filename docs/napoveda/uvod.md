@@ -61,6 +61,8 @@ Admin má dva vzhledy, funkce mají oba stejné:
 - **Moderní** — přehlednější, s většími tlačítky, přizpůsobí se i telefonu
   a tabletu. Na úzké obrazovce je levý sloupec schovaný pod tlačítkem **☰**
   vlevo nahoře; najdeš v něm menu, výběr pracovního uživatele i **Odhlásit**.
+  Na notebooku si ho můžeš schovat i ty tlačítkem **«** v jeho záhlaví a vrátit
+  připínáčkem. Pamatuje si to prohlížeč, na velkém monitoru tak sloupec zůstane.
   Tabulku, která se na šířku nevejde, posuneš prstem do strany.
 
 Při první návštěvě se tě admin zeptá, který vzhled chceš. Když si zatím
