@@ -1,0 +1,134 @@
+<!-- begin: aktivity -->
+<!-- Moderní vzhled stránky linie (a vypravěče). Modul web/moduly/aktivity.php je pro oba vzhledy stejný, šablona
+     proto musí mít všechny bloky, které modul parsuje (aktivita, termin, vypravec, stitek, nahled,
+     hlavickaVypravec, stranka, strankaNavod). -->
+
+<section class="mw-linie-hlavicka">
+    <div class="mw-obal mw-linie-hlavicka-obal">
+        <div class="mw-linie-hlavicka-text">
+            <nav class="mw-drobecky" aria-label="Drobečková navigace"><a href=".">GameCon</a><span>Aktivity</span></nav>
+            <div class="mw-text">
+                {popisLinie}
+            </div>
+            <!-- begin: hlavickaVypravec -->
+            <div class="mw-vypravec">
+                <img class="mw-vypravec-fotka" alt="" src="{fotka}">
+                <div class="mw-text">
+                    <h1>{jmeno}</h1>
+                    <div>{popis}</div>
+                </div>
+            </div>
+            <!-- end: hlavickaVypravec -->
+        </div>
+        <aside class="mw-karta mw-kontakt" aria-label="Kontakt na linii" {kontaktLinieAtributy}>
+            <img class="mw-kontakt-fotka" alt="" src="{ikonaLinie}">
+            <span class="mw-kontakt-sekce">{ikonaLinieSekce}</span>
+            <strong class="mw-kontakt-jmeno">{ikonaLinieJmeno}</strong>
+            <a class="mw-tlacitko mw-tlacitko-obrys-tmave mw-tlacitko-male" href="mailto:{ikonaLinieEmail}">{ikonaLinieEmail}</a>
+        </aside>
+        <!-- begin: strankaNavod -->
+        <div class="mw-navod">
+            <strong>🙋 Vidí jen přihlášení organizátoři mimo ostrou</strong>
+            Stránky u aktivit můžeš editovat na <a href="{urlEditaceStranek}">{urlEditaceStranek}</a>,
+            šéfa linie, kontakt a obrázek na <a href="{urlEditaceHlavickyLinie}">{urlEditaceHlavickyLinie}</a>.
+            Novou stránku přidej s <i>Url stránky</i> <code>URL-aktivit/URL-nové-stránky</code>, například <code>{prikladUrlStranky}</code>.
+        </div>
+        <!-- end: strankaNavod -->
+    </div>
+</section>
+
+<nav class="mw-obal mw-podstranky" aria-label="Další stránky linie">
+    <!-- begin: stranka -->
+    <a href="{stranka.url}">{stranka.nadpis}</a>
+    <!-- end: stranka -->
+</nav>
+
+<!-- Hledání a filtr štítků doplní moderni.js, bez JS jsou vidět všechny hry. -->
+<div class="mw-nastroje" data-mw-filtr hidden>
+    <div class="mw-obal mw-nastroje-obal">
+        <label class="mw-hledat">
+            <span class="mw-skryte">Hledat hru</span>
+            <input type="search" placeholder="Hledat hru, vypravěče, téma…" data-mw-filtr-hledat>
+        </label>
+        <div class="mw-filtr-stitky" role="group" aria-label="Filtrovat podle štítku" data-mw-filtr-stitky></div>
+        <span class="mw-filtr-pocet" aria-live="polite" data-mw-filtr-pocet></span>
+    </div>
+</div>
+
+<div class="mw-obal">
+    <div class="mw-aktivity {specTridy}" data-mw-aktivity>
+        <!-- begin: aktivita -->
+        <article class="mw-karta mw-aktivita" id="{htmlId}">
+            <button type="button" class="mw-aktivita-obrazek" style="--mw-obrazek: url('{obrazek}')" data-mw-detail="mwDetail{aktivita.id}" tabindex="-1" aria-hidden="true"></button>
+            <div class="mw-aktivita-telo">
+                <h2 class="mw-aktivita-nazev">
+                    <button type="button" data-mw-detail="mwDetail{aktivita.id}">{aktivita.nazev}</button>
+                    <a href="{kotva}" class="mw-kotva" aria-label="Odkaz na tuhle hru">#</a>
+                </h2>
+                <p class="mw-aktivita-vypravec">{organizatori}</p>
+                <ul class="mw-stitky">
+                    <!-- begin: stitek -->
+                    <li>{stitek}</li>
+                    <!-- end: stitek -->
+                </ul>
+                <p class="mw-aktivita-popis">{aktivita.kratkyPopis}</p>
+                <button type="button" class="mw-aktivita-vice" data-mw-detail="mwDetail{aktivita.id}">Více o hře</button>
+            </div>
+            <ul class="mw-terminy" aria-label="Termíny">
+                <!-- begin: termin -->
+                <li class="mw-termin">
+                    <span class="mw-termin-cas">{aktivita.denCasSkutecny}</span>
+                    <span class="mw-termin-obsazenost">{obsazenost}</span>
+                    <span class="mw-termin-akce">{prihlasit}</span>
+                    <!-- begin: vypravec -->
+                    <span class="mw-termin-vypravec">Vypravěč: {vypravec}</span>
+                    <!-- end: vypravec -->
+                </li>
+                <!-- end: termin -->
+            </ul>
+        </article>
+        <!-- end: aktivita -->
+    </div>
+    <p class="mw-aktivity-prazdne" data-mw-filtr-prazdne hidden>Hledání neodpovídá žádná hra.</p>
+</div>
+
+<script>
+zachovejScroll(document.querySelectorAll('.mw-aktivity form > a'), null)
+</script>
+
+<!-- begin: nahled -->
+<dialog class="mw-detail" id="mwDetail{aktivita.id}" aria-labelledby="mwDetailNazev{aktivita.id}">
+    <div class="mw-detail-hlavicka">
+        <h2 id="mwDetailNazev{aktivita.id}">{aktivita.nazev}</h2>
+        <button type="button" class="mw-detail-zavrit" aria-label="Zavřít">✕</button>
+    </div>
+    <div class="mw-detail-telo">
+        <div class="mw-text mw-detail-text">
+            <ul class="mw-stitky">
+                <!-- begin: stitek -->
+                <li>{stitek}</li>
+                <!-- end: stitek -->
+            </ul>
+            <p class="mw-detail-perex">{aktivita.kratkyPopis}</p>
+            {aktivita.popis}
+        </div>
+        <aside class="mw-detail-info">
+            <h3>Vypravěč</h3>
+            <p>{organizatoriNahled}</p>
+            <dl>
+                <div><dt>Kapacita</dt><dd>{kapacita}</dd></div>
+                <div><dt>Délka</dt><dd>{aktivita.delka}&thinsp;h</dd></div>
+                <div><dt>Cena</dt><dd>{aktivita.cenaZaklad}&nbsp;Kč</dd></div>
+            </dl>
+            <h3>Termíny</h3>
+            <ul class="mw-detail-terminy">
+                <!-- begin: termin -->
+                <li><b>{aktivita.denCasSkutecny}</b> {obsazenost}</li>
+                <!-- end: termin -->
+            </ul>
+        </aside>
+    </div>
+</dialog>
+<!-- end: nahled -->
+
+<!-- end: aktivity -->

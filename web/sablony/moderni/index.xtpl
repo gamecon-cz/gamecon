@@ -1,0 +1,79 @@
+<!-- begin: index -->
+<!DOCTYPE html>
+<html lang="cs">
+<head>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <meta name="description" content="Největší festival nepočítačových her. Na Gameconu si najde každý fanoušek aktivní zábavy a nepočítačových her to svoje, bez ohledu na věk.">
+    <meta name="theme-color" content="#10111a">
+    <base href="{base}">
+    {FILE "sablony/blackarrow/fonty.xtpl"}
+    <!-- Stránky bez vlastní moderní šablony ukazují klasický obsah, proto se klasické styly načítají vždy
+         a moderni.css (načtený poslední) jen přidá kostru a moderní šablony. -->
+    <link rel="stylesheet" href="../../soubory/blackarrow/_spolecne/details.css">
+    <link rel="stylesheet" href="{css}">
+    <link rel="stylesheet" href="{moderniCss}">
+    <!-- begin: extraCss --><link rel="stylesheet" href="{url}"><!-- end: extraCss -->
+    <!-- begin: extraJs --><script src="{url}"></script><!-- end: extraJs -->
+    <!-- třída mw-js hned, ať se obsah odhalovaný při posunu (moderni.js) neukáže a zase neschová -->
+    <script>document.documentElement.classList.add('mw-js')</script>
+    <script src="{moderniJs}" defer></script>
+    {info}
+    <link rel="icon" href="soubory/blackarrow/_spolecne/favicon.png">
+</head>
+
+{FILE "sablony/blackarrow/gtag.xtpl"}
+
+<body class="vzhled-moderni {tridaModulu} {moderniSablona}">
+
+    <a class="mw-preskocit" href="#mwObsah">Přeskočit na obsah</a>
+
+    {menu}
+
+    {chyba}
+
+    <main id="mwObsah" class="mw-obsah" tabindex="-1">
+        {obsah}
+    </main>
+
+    <!-- begin: paticka -->
+    <footer class="mw-paticka">
+        <div class="mw-paticka-obal">
+            <div class="mw-paticka-znacka">
+                <a href="." class="mw-logo" aria-label="GameCon – úvod"></a>
+                <p>Největší festival nepočítačových her v&nbsp;Česku a&nbsp;na Slovensku. Každý rok v&nbsp;červenci.</p>
+                <a class="mw-paticka-email" href="mailto:info@gamecon.cz">info@gamecon.cz</a>
+            </div>
+            <nav class="mw-paticka-odkazy" aria-label="Odkazy v patičce">
+                <h2>GameCon</h2>
+                <a href="prakticke-informace">Praktické informace</a>
+                <a href="kontakty">Kontakty</a>
+                <a href="sponzori">Sponzoři</a>
+                <a href="drd">Archiv mDrD</a>
+                <!-- begin: qrka -->
+                <a href="qrka">QR k sockám</a>
+                <!-- end: qrka -->
+            </nav>
+            <nav class="mw-paticka-odkazy" aria-label="Sociální sítě">
+                <h2>Sleduj nás</h2>
+                <a href="discord" target="_blank" class="mw-paticka-sit mw-paticka-discord">Discord</a>
+                <a href="instagram" target="_blank" class="mw-paticka-sit mw-paticka-instagram">Instagram</a>
+                <a href="youtube" target="_blank" class="mw-paticka-sit mw-paticka-youtube">YouTube</a>
+            </nav>
+        </div>
+        <div class="mw-paticka-spodek">
+            <span>&copy; {letosniRok} GameCon z.&nbsp;s.</span>
+            <span class="mw-prepinac-vzhledu" role="group" aria-label="Vzhled webu">
+                <span>Vzhled webu</span>
+                <a href="{urlKlasicky}">Klasický</a>
+                <a href="{urlModerni}" aria-current="true">Moderní <small>beta</small></a>
+            </span>
+        </div>
+    </footer>
+    <!-- end: paticka -->
+
+    <!-- begin: ribbon -->
+    <div class="corner-ribbon">{ribbonLabel}</div>
+    <!-- end: ribbon -->
+</body>
+</html>
+<!-- end: index -->

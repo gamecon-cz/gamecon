@@ -5,6 +5,8 @@ declare(strict_types=1);
 use Gamecon\Aktivita\TypAktivity;
 use Gamecon\Vyjimkovac\Vyjimkovac;
 use Gamecon\Web\Info;
+use Gamecon\Web\VzhledWebu;
+use Gamecon\Web\VzhledWebuEnum;
 use Gamecon\XTemplate\XTemplate;
 
 require __DIR__ . '/../nastaveni/zavadec.php';
@@ -37,6 +39,16 @@ try {
     $url = null;
 }
 
+// vzhled webu (klasický / moderní), volba z ?vzhled=… se zapamatuje v cookie
+$aktualniStranka = URL_WEBU . '/' . ($url?->cela() ?? '');
+$aktualniQuery   = array_diff_key($_GET, ['req' => true]);
+$vzhledWebu      = new VzhledWebu($_COOKIE);
+if (isset($_GET[VzhledWebu::GET_KLIC])) {
+    $vzhledWebu->zpracujVolbu((string) $_GET[VzhledWebu::GET_KLIC]);
+    back(VzhledWebu::getUrlBezVolby($aktualniStranka, $aktualniQuery));
+}
+$vzhled = $vzhledWebu->getVzhled();
+
 // určení modulu, který zpracuje požadavek (router)
 $m = $url
     ? Modul::zUrl(null, $systemoveNastaveni)
@@ -59,6 +71,7 @@ if (! $m) {
 }
 
 // spuštění kódu modulu + buffering výstupu a nastavení
+$m->setVzhled($vzhled);
 $m->param('u', $u);
 $m->param('url', $url);
 if (($url?->cast(0) ?? null) === 'api') {
@@ -73,15 +86,15 @@ $m->info($i);
 try {
     $m->spust();
 } catch (Nenalezeno $e) {
-    $m = Modul::zNazvu('nenalezeno', null, $systemoveNastaveni)->spust();
+    $m = Modul::zNazvu('nenalezeno', null, $systemoveNastaveni)->setVzhled($vzhled)->spust();
 } catch (Neprihlasen $e) {
-    $m = Modul::zNazvu('neprihlasen', null, $systemoveNastaveni)->spust();
+    $m = Modul::zNazvu('neprihlasen', null, $systemoveNastaveni)->setVzhled($vzhled)->spust();
 }
 
 // sestavení menu
 $menu = '';
 if (! $m->bezStranky() && ! $m->bezMenu()) {
-    $menu = Gamecon\Web\MenuWebu::html($u);
+    $menu = Gamecon\Web\MenuWebu::html($u, $vzhled);
 }
 
 // výstup (s ohledem na to co modul nastavil)
@@ -91,7 +104,7 @@ if ($m->bezStranky()) {
     return;
 }
 
-$t = new XTemplate(__DIR__ . '/sablony/blackarrow/index.xtpl');
+$t = new XTemplate(__DIR__ . '/sablony/' . $vzhled->getAdresarSablon() . '/index.xtpl');
 $t->assign([
     'css'          => perfectcache('soubory/blackarrow/*/*.less'),
     'jsVyjimkovac' => Vyjimkovac::js(URL_WEBU),
@@ -101,6 +114,15 @@ $t->assign([
     'base'         => URL_WEBU . '/',
     'info'         => $m->info() ? $m->info()->html() : '',
     'letosniRok'   => date('Y'),
+]);
+// moderní vzhled (klasická kostra z toho používá jen odkaz na přepnutí)
+$t->assign([
+    'moderniCss'     => 'soubory/moderni/moderni.css?version=' . md5_file(__DIR__ . '/soubory/moderni/moderni.css'),
+    'moderniJs'      => 'soubory/moderni/moderni.js?version=' . md5_file(__DIR__ . '/soubory/moderni/moderni.js'),
+    'urlKlasicky'    => htmlspecialchars(VzhledWebu::getUrlPrepnuti($aktualniStranka, $aktualniQuery, VzhledWebuEnum::KLASICKY)),
+    'urlModerni'     => htmlspecialchars(VzhledWebu::getUrlPrepnuti($aktualniStranka, $aktualniQuery, VzhledWebuEnum::MODERNI)),
+    'tridaModulu'    => 'mw-modul-' . $m->getNazev(),
+    'moderniSablona' => $m->maModerniSablonu() ? 'mw-moderni-obsah' : 'mw-klasicky-obsah',
 ]);
 $t->parseEach($m->cssUrls(), 'url', 'index.extraCss');
 $t->parseEach($m->jsUrls(), 'url', 'index.extraJs');

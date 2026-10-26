@@ -21,12 +21,15 @@ $offsety = [120, 320, 280];
 $typy    = serazenePodle(TypAktivity::zViditelnych(), 'poradi');
 $obrazky = ZpracovaneObrazky::linieTitulka()->seznamObrazku();
 foreach ($typy as $i => $typ) {
+    $ikona = cestaObrazkuLinieNaTitulce($typ->id());
     $t->assign([
         'cislo'     => sprintf('%02d', $i + 1),
         'nazev'     => mb_ucfirst($typ->nazev()),
         'url'       => $typ->url(),
         'obrazek'   => $obrazky[$typ->id()]['src'] ?? '', // prevent errors, mainly for local testing
-        'ikona'     => cestaObrazkuLinieNaTitulce($typ->id()),
+        'ikona'     => $ikona,
+        // moderní vzhled bere ikonu v CSS proměnné, relativní cesta by se počítala od stylu, ne od stránky
+        'ikonaUrl'  => URL_WEBU . '/' . $ikona,
         'aosOffset' => $offsety[$i % 3],
         'popis'     => $typ->popisKratky(),
     ]);

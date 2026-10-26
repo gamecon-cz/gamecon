@@ -1,0 +1,70 @@
+<!-- begin: menu -->
+<header class="mw-hlavicka">
+  <div class="mw-hlavicka-obal">
+
+    <a href="." class="mw-logo" aria-label="GameCon – úvod"></a>
+
+    <!-- Na úzké obrazovce je navigace vysouvací panel (moderni.js), skupiny v něm jsou rozbalené. -->
+    <nav class="mw-navigace" id="mwNavigace" aria-label="Hlavní navigace">
+      <a href="program" class="mw-nav-odkaz">Program</a>
+      <div class="mw-nav-skupina">
+        <button type="button" class="mw-nav-odkaz mw-nav-rozbalit" aria-expanded="false" aria-controls="mwNavAktivity">Aktivity</button>
+        <div class="mw-nav-panel mw-nav-panel-aktivity" id="mwNavAktivity">
+          <!-- begin: typAktivit -->
+          <a href="{typ.url}">{typ.nazev}</a>
+          <!-- end: typAktivit -->
+        </div>
+      </div>
+      <div class="mw-nav-skupina">
+        <button type="button" class="mw-nav-odkaz mw-nav-rozbalit" aria-expanded="false" aria-controls="mwNavInformace">Informace</button>
+        <div class="mw-nav-panel" id="mwNavInformace">
+          <a href="prakticke-informace">Praktické informace</a>
+          <a href="jidelnicek">Jídelníček</a>
+          <a href="organizacni-vypomoc">Chci organizovat GameCon</a>
+          <a href="blog">Blog</a>
+          <a href="pro-sponzory-a-media">Pro sponzory a média</a>
+          <a href="kontakty">Kontakty</a>
+        </div>
+      </div>
+      <a href="prihlaska" class="mw-tlacitko mw-tlacitko-cervene mw-nav-prihlaska">{gcPrihlaska}</a>
+    </nav>
+
+    <div class="mw-hlavicka-akce">
+      <!-- begin: neprihlasen -->
+      <a class="mw-hlavicka-prihlasit" href="prihlaseni">Přihlásit</a>
+      <!-- end: neprihlasen -->
+      <!-- begin: prihlasen -->
+      <div class="mw-nav-skupina mw-uzivatel">
+        <button type="button" class="mw-uzivatel-tlacitko mw-nav-rozbalit" aria-expanded="false" aria-controls="mwNavUzivatel">
+          <span class="mw-avatar" aria-hidden="true">{uInicala}</span>
+          <span class="mw-uzivatel-jmeno">{uJmenoMenu}</span>
+        </button>
+        <div class="mw-nav-panel mw-nav-panel-vpravo" id="mwNavUzivatel">
+          <span class="mw-nav-panel-hlavicka">{uJmenoMenu} <small>#{u.id}</small></span>
+          <a href="finance">Finance</a>
+          <a href="registrace">Nastavení</a>
+          <!-- begin: admin -->
+          <a href="{uvodniAdminUrl}" target="_blank">Admin</a>
+          <!-- end: admin -->
+          <!-- begin: mujPrehled -->
+          <a href="{mojeAktivityAdminUrl}" target="_blank">Hry, které vedu</a>
+          <!-- end: mujPrehled -->
+          <a href="prihlaska">{gcPrihlaska}</a>
+          <form method="post" action="prihlaseni">
+            <input type="hidden" name="odhlasit" value="true">
+            <button type="submit">Odhlásit</button>
+          </form>
+        </div>
+      </div>
+      <!-- end: prihlasen -->
+      <a href="prihlaska" class="mw-tlacitko mw-tlacitko-cervene mw-hlavicka-prihlaska">{gcPrihlaska}</a>
+      <button type="button" class="mw-burger" aria-expanded="false" aria-controls="mwNavigace">
+        <span></span><span></span><span></span>
+        <span class="mw-skryte">Menu</span>
+      </button>
+    </div>
+
+  </div>
+</header>
+<div class="mw-zavoj" hidden></div>
+<!-- end: menu -->

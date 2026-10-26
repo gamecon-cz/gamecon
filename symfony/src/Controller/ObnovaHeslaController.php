@@ -12,6 +12,8 @@ use Gamecon\Kanaly\GcMail;
 use Gamecon\Kanaly\GcMailSablona;
 use Gamecon\Uzivatel\ResetHeslaToken;
 use Gamecon\Web\MenuWebu;
+use Gamecon\Web\VzhledWebu;
+use Gamecon\Web\VzhledWebuEnum;
 use Gamecon\XTemplate\XTemplate;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\RedirectResponse;
@@ -314,6 +316,8 @@ class ObnovaHeslaController extends AbstractController
                 'base'       => URL_WEBU . '/',
                 'info'       => '<title>' . htmlspecialchars($nazev, ENT_QUOTES) . ' – GameCon</title>',
                 'letosniRok' => date('Y'),
+                // tyhle stránky zůstávají v klasickém vzhledu, odkaz z patičky přepne a vrátí na titulku
+                'urlModerni' => URL_WEBU . '/?' . VzhledWebu::GET_KLIC . '=' . VzhledWebuEnum::MODERNI->value,
             ]);
             $sablona->parse('index.paticka');
             $sablona->parse('index');

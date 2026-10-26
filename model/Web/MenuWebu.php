@@ -19,9 +19,9 @@ use Gamecon\XTemplate\XTemplate;
  */
 class MenuWebu
 {
-    public static function html(?\Uzivatel $uzivatel): string
+    public static function html(?\Uzivatel $uzivatel, VzhledWebuEnum $vzhled = VzhledWebu::VYCHOZI): string
     {
-        $sablona = new XTemplate(WWW . '/sablony/blackarrow/menu.xtpl');
+        $sablona = new XTemplate(WWW . '/sablony/' . $vzhled->getAdresarSablon() . '/menu.xtpl');
 
         $typy = \serazenePodle(TypAktivity::zViditelnych(), 'poradi');
         $sablona->parseEach($typy, 'typ', 'menu.typAktivit');
@@ -41,6 +41,7 @@ class MenuWebu
             ]);
             $sablona->assign([
                 'uJmenoMenu' => $jmenoDoMenu,
+                'uInicala'   => mb_strtoupper(mb_substr($jmenoDoMenu, 0, 1)),
             ]);
             $sablona->assign([
                 'gcPrihlaska' => $uzivatel->gcPrihlasen() ? 'Upravit přihlášku' : 'Přihláška na GC',
