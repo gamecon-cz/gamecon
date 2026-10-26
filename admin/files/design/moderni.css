@@ -189,8 +189,10 @@ body.vzhled-moderni:has(.profilInfo) .sloupL {
   font-size: 12px;
 }
 
-.moderni-tlacitko-zavrit {
-  display: none;
+.moderni-panel-tlacitka {
+  display: flex;
+  align-items: center;
+  gap: 4px;
 }
 
 :where(.vzhled-moderni) .sloupL > .prvniBlok {
@@ -518,15 +520,6 @@ body.vzhled-moderni:has(.profilInfo) .sloupL {
 .moderni-tlacitko-odhlasit:hover {
   background-color: var(--m-panel-hover);
   color: #fff;
-}
-
-.moderni-zavoj {
-  display: none;
-}
-
-/* Horní lišta je jen na úzké obrazovce */
-.moderni-horni-lista {
-  display: none;
 }
 
 /* ---------- Podmenu ---------- */
@@ -1232,73 +1225,165 @@ body.vzhled-moderni:has(.profilInfo) .sloupL {
   outline-color: var(--m-fokus);
 }
 
-/* ---------- Tablet a telefon: menu se vysouvá zleva, nahoře je lišta ---------- */
+/* ---------- Vysouvací menu: menu se vysouvá zleva, nahoře je lišta ---------- */
+
+/* Na úzké obrazovce (@media níž), nebo když si ho uživatel schová (třeba na notebooku). Jinak lišta, závoj
+   ani tlačítka zavřít a připnout vidět nejsou. */
+
+.moderni-horni-lista {
+  position: sticky;
+  top: 0;
+  z-index: 900;
+  display: none;
+  align-items: center;
+  gap: 8px;
+  box-sizing: border-box;
+  height: var(--m-vyska-listy);
+  padding: 0 12px 0 max(6px, env(safe-area-inset-left));
+  background-color: var(--m-panel);
+  color: #fff;
+  transition: transform 0.2s ease;
+}
+
+.moderni-horni-lista-skryta {
+  transform: translateY(-100%);
+}
+
+.moderni-tlacitko-menu,
+.moderni-tlacitko-zavrit,
+.moderni-tlacitko-schovat,
+.moderni-tlacitko-pripnout {
+  display: none;
+  place-items: center;
+  width: 44px;
+  height: 44px;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  border-radius: var(--m-zaobleni);
+  background: none;
+  color: var(--m-panel-text);
+  font-size: 20px;
+  cursor: pointer;
+}
+
+.moderni-tlacitko-menu {
+  display: inline-grid;
+  color: inherit;
+}
+
+.moderni-tlacitko-schovat {
+  display: inline-grid;
+}
+
+/* jen pro myš na širší obrazovce, hlavička panelu kvůli nim nemá být vyšší */
+.moderni-tlacitko-schovat,
+.moderni-tlacitko-pripnout {
+  width: 34px;
+  height: 34px;
+  font-size: 15px;
+}
+
+.moderni-tlacitko-menu:hover,
+.moderni-tlacitko-zavrit:hover,
+.moderni-tlacitko-schovat:hover,
+.moderni-tlacitko-pripnout:hover {
+  background-color: var(--m-panel-hover);
+}
+
+.moderni-tlacitko-menu:focus-visible,
+.moderni-tlacitko-zavrit:focus-visible,
+.moderni-tlacitko-schovat:focus-visible,
+.moderni-tlacitko-pripnout:focus-visible {
+  outline: 2px solid #8ab4f8;
+  outline-offset: -2px;
+}
+
+.moderni-horni-lista-nazev {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  font-weight: 600;
+  font-size: 17px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.moderni-znacka-mala {
+  width: 32px;
+  height: 32px;
+  font-size: 13px;
+}
+
+body.moderni-menu-otevrene {
+  overflow: hidden;
+}
+
+body.moderni-menu-otevrene .sloupL {
+  transform: none;
+  visibility: visible;
+  transition: transform 0.25s ease;
+}
+
+.moderni-zavoj {
+  display: none;
+}
+
+.moderni-zavoj:not([hidden]) {
+  position: fixed;
+  inset: 0;
+  z-index: 999;
+  display: block;
+  background-color: rgba(15, 18, 25, 0.5);
+}
+
+/* Schované menu: třídu na <html> nastaví skript v hlavičce main.xtpl a přepíná ji moderni.js. Panel je mimo
+   stránku stejně jako na úzké obrazovce. */
+:where(.moderni-menu-schovane) .moderni-horni-lista {
+  display: flex;
+}
+
+:where(.moderni-menu-schovane) .moderni-tlacitko-zavrit,
+:where(.moderni-menu-schovane) .moderni-tlacitko-pripnout {
+  display: inline-grid;
+}
+
+:where(.moderni-menu-schovane) .moderni-tlacitko-schovat {
+  display: none;
+}
+
+:where(.moderni-menu-schovane .vzhled-moderni) .sloupL {
+  position: fixed;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  width: min(320px, 86vw);
+  height: auto;
+  box-shadow: 0 0 40px rgba(0, 0, 0, 0.35);
+  transform: translateX(-105%);
+  visibility: hidden;
+  transition: transform 0.25s ease, visibility 0s linear 0.25s;
+  z-index: 1000;
+}
+
+:where(.moderni-menu-schovane .vzhled-moderni) .chybaBlok {
+  top: calc(var(--m-vyska-listy) + 8px);
+}
+
+/* ---------- Tablet a telefon: menu se vysouvá vždycky ---------- */
 
 @media (max-width: 1023.98px) {
   .moderni-horni-lista {
-    position: sticky;
-    top: 0;
-    z-index: 900;
     display: flex;
-    align-items: center;
-    gap: 8px;
-    box-sizing: border-box;
-    height: var(--m-vyska-listy);
-    padding: 0 12px 0 max(6px, env(safe-area-inset-left));
-    background-color: var(--m-panel);
-    color: #fff;
-    transition: transform 0.2s ease;
   }
 
-  .moderni-horni-lista-skryta {
-    transform: translateY(-100%);
-  }
-
-  .moderni-tlacitko-menu,
   .moderni-tlacitko-zavrit {
     display: inline-grid;
-    place-items: center;
-    width: 44px;
-    height: 44px;
-    margin: 0;
-    padding: 0;
-    border: 0;
-    border-radius: var(--m-zaobleni);
-    background: none;
-    color: inherit;
-    font-size: 20px;
-    cursor: pointer;
   }
 
-  .moderni-tlacitko-menu:hover,
-  .moderni-tlacitko-zavrit:hover {
-    background-color: var(--m-panel-hover);
-  }
-
-  .moderni-tlacitko-menu:focus-visible,
-  .moderni-tlacitko-zavrit:focus-visible {
-    outline: 2px solid #8ab4f8;
-    outline-offset: -2px;
-  }
-
-  .moderni-tlacitko-zavrit {
-    color: var(--m-panel-text);
-  }
-
-  .moderni-horni-lista-nazev {
-    flex: 1;
-    min-width: 0;
-    overflow: hidden;
-    font-weight: 600;
-    font-size: 17px;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-  }
-
-  .moderni-znacka-mala {
-    width: 32px;
-    height: 32px;
-    font-size: 13px;
+  .moderni-tlacitko-schovat,
+  .moderni-tlacitko-pripnout {
+    display: none;
   }
 
   :where(.vzhled-moderni) .sloupL {
@@ -1320,24 +1405,6 @@ body.vzhled-moderni:has(.profilInfo) .sloupL {
     :where(.vzhled-moderni) .sloupL {
       height: auto;
     }
-  }
-
-  body.moderni-menu-otevrene {
-    overflow: hidden;
-  }
-
-  body.moderni-menu-otevrene .sloupL {
-    transform: none;
-    visibility: visible;
-    transition: transform 0.25s ease;
-  }
-
-  .moderni-zavoj:not([hidden]) {
-    position: fixed;
-    inset: 0;
-    z-index: 999;
-    display: block;
-    background-color: rgba(15, 18, 25, 0.5);
   }
 
   :where(.vzhled-moderni) .sloupR {
