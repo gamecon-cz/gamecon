@@ -1,5 +1,6 @@
 import produce from "immer";
 import { FunctionComponent, JSX } from "preact";
+import { jeNeúčast } from "../../../../api/program";
 import { Pohlavi } from "../../../../api/přihlášenýUživatel";
 import { generujUrl } from "../../../../store/program/logic/url";
 import { useAktivita, useUrlStav, useÚčastníkPohlaví } from "../../../../store/program/selektory";
@@ -14,7 +15,9 @@ export const tabulkaBuňkaAktivitaTřídy = (
   pohlavi: Pohlavi | undefined
 ) => {
   const classes: string[] = [];
-  if (
+  if (jeNeúčast(aktivita.stavPrihlaseni)) {
+    classes.push("neucast");
+  } else if (
     aktivita.stavPrihlaseni &&
     aktivita.stavPrihlaseni !== "sledujici"
   ) {
