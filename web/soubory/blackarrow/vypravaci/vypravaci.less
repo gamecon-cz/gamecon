@@ -1,0 +1,71 @@
+// Přehled vypravěčů (/vypravaci): medailonky z _spolecne/medailonek.less
+// a nad nimi filtr sekcí ve stylu přepínačů dnů v programu.
+
+.vypravaci {
+  max-width: 1200px;
+  padding: 1px 16px; // 1px kvůli funkci min-height
+  margin: 0 auto 100px;
+  min-height: ~'calc(75vh - 186px)';
+
+  h1 {
+    font-size: 52px;
+    line-height: normal;
+    margin: 55px 0 16px;
+
+    @media (max-width: 800px) {
+      font-size: 32px;
+      margin: 20px 0 12px;
+    }
+  }
+}
+
+.vypravaci_uvod,
+.vypravaci_zadni {
+  font-size: 16px;
+  line-height: 26/16;
+  margin: 0 0 24px;
+}
+
+.vypravaci_filtr {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+
+  // na telefonu by sekce pod sebou zabraly celou obrazovku, posouvají se do strany až k jejímu okraji
+  @media (max-width: 600px) {
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    margin: -4px -16px 0;
+    padding: 4px 16px; // místo pro obrys zaměřené sekce, posuvný pás ho jinak ořízne
+    scrollbar-width: none;
+  }
+}
+
+.vypravaci_sekce {
+  flex: none;
+  padding: 0 18px;
+  font-size: 12px;
+  font-weight: bold;
+  line-height: 40px;
+  letter-spacing: .15em;
+  text-transform: uppercase;
+  text-decoration: none;
+  color: inherit;
+  background-color: #fff;
+  border: solid 1px #FDC689;
+
+  &:hover {
+    border-color: var(--gc-red);
+  }
+
+  &:focus-visible {
+    outline: solid 2px var(--gc-red);
+    outline-offset: 2px;
+  }
+
+  &[aria-current] {
+    color: #fff;
+    background-color: var(--gc-red);
+    border-color: var(--gc-red);
+  }
+}

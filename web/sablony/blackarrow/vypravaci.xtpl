@@ -1,0 +1,41 @@
+<!-- begin: vypravaci -->
+<div class="vypravaci">
+  <h1>Vypravěči GameConu {rocnik}</h1>
+  <p class="vypravaci_uvod">Kliknutím na vypravěče uvidíš i hry a program, které na GameConu vede.</p>
+
+  <!-- begin: filtr -->
+  <nav class="vypravaci_filtr" aria-label="Sekce">
+    <a href="vypravaci" class="vypravaci_sekce"{vsichniAktivni}>Všichni</a>
+    <!-- begin: sekce -->
+    <a href="vypravaci/{urlSekce}" class="vypravaci_sekce"{sekceAktivni}>{nazevSekce}</a>
+    <!-- end: sekce -->
+  </nav>
+  <!-- end: filtr -->
+
+  <!-- begin: medailonky -->
+  <div class="medailonky">
+    <!-- begin: vypravec -->
+    <article class="medailonek">
+      <a href="{id}" tabindex="-1" aria-hidden="true"><img class="medailonek_fotka" src="{fotka}" alt=""></a>
+      <div class="medailonek_popis">
+        <h2 class="medailonek_jmeno"><a href="{id}">{jmenoNaWebu}</a></h2>
+        <!-- begin: sekce -->
+        <p>{sekce}</p>
+        <!-- end: sekce -->
+      </div>
+      <!-- begin: oSobe -->
+      <details class="medailonek_vice">
+        <summary>O sobě píše</summary>
+        <div class="medailonek_text">{oSobe}</div>
+      </details>
+      <!-- end: oSobe -->
+    </article>
+    <!-- end: vypravec -->
+  </div>
+  <!-- end: medailonky -->
+
+  <!-- begin: zadni -->
+  <p class="vypravaci_zadni">Tady zatím nikdo není, vypravěče teprve skládáme. Mrkni sem později.</p>
+  <!-- end: zadni -->
+</div>
+<!-- end: vypravaci -->
