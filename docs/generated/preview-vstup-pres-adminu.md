@@ -7,9 +7,10 @@ TL;DR: Když někdo otevře URL preview a nemá přístup, brána na serveru se 
 - `admin/scripts/api/preview-vstup.php` — endpoint (`GET /api/preview-vstup?nonce=…`), bez layoutu a bez přesměrování na přihlášení
 - `model/Dev/PreviewVstup.php` — kdo smí a podpis přihlašovacího tokenu
 - `model/Dev/GateLink.php::over()` — ověření tokenu v `X-Gate-Auth`
+- `model/Dev/NavratNaPreview.php` + `admin/scripts/prihlaseni.php` — kam se admin po přihlášení vrátí (`?returnTo=`)
 - repozitář ansible (soukromý): `roles/gate_validator/files/enter.go`, snippet `preview_auth` v `roles/caddy/templates/Caddyfile.j2`, `docs/preview-archive-gate-token.md`
 
-Testy: `tests/Dev/PreviewVstupTest.php`, `tests/Dev/GateLinkTest.php`.
+Testy: `tests/Dev/PreviewVstupTest.php`, `tests/Dev/GateLinkTest.php`, `tests/Dev/NavratNaPreviewTest.php`.
 
 ## Pravidla
 
@@ -17,6 +18,9 @@ Testy: `tests/Dev/PreviewVstupTest.php`, `tests/Dev/GateLinkTest.php`.
 - **Kdo smí:** `Uzivatel::jeOrganizator()` (role organizátora letošního ročníku, vypravěči mezi ně nepatří) nebo právo `Pravo::ADMINISTRACE_WEB`. `(záměr)` Organizátor s přístupem do adminu. Data z ostré v preview chrání práva uvnitř aplikace stejně jako na ostré, vstup do preview tedy nic navíc neodemyká.
 - **Odpovědi:** `401 {"stav":"neprihlasen"}`, `403 {"stav":"bez-pristupu"}`, `200 {"stav":"ok","gcsso":"…"}`. `gcsso` je prázdné bez platného `nonce` (32 znaků `0-9a-f`) nebo bez `GAMECON_SSO_SECRET`; pak se organizátor jen pustí dál.
 - **`nonce` generuje brána** a stejnou hodnotu uloží do spárovací cookie `gc_sso_pair` (viz `SsoParovaciCookie`). Token se podepisuje jako u odkazů ze stránky Previews (`CrossSiteLogin::podepis`), do preview ho přijme jen prohlížeč s odpovídající cookie.
+- **Návrat z adminu (`?returnTo=`).** Odkaz „Přihlas se do adminu“ na stránce brány vede na `https://admin.gamecon.cz/?returnTo=<URL preview>`. Admin po přihlášení přesměruje (303) na tu URL, a stejně pošle zpět už přihlášeného, kdo odkaz otevře. To druhé platí pro každý GET na admin s platným `returnTo` (i `api`, ajax) a běží až po `?gcsso=`, takže token z téže URL se nejdřív vyřídí. Přijme výhradně `https://<jeden štítek>.preview.gamecon.cz/…` (`NavratNaPreview`: https, bez portu a uživatele, za hostem jen viditelné ASCII bez zpětného lomítka, nejvýš 2000 znaků; ansible `enter.go` má stejný vzor); cokoli jiného se ignoruje a přihlášení proběhne jako dřív, takže admin není otevřené přesměrování. Formulář se odesílá na tutéž URL, proto `returnTo` přežije odeslání; po špatném hesle vrací `chyba()` přes `back()` na tutéž URL i s dotazem (Referer, jinak `REQUEST_URI`), tedy parametr se neztratí, dokud se tohle chování `back()` nezmění. Na preview pak brána organizátora pozná podle sdílené cookie relace a pustí ho dál.
+  - **Smyčka nehrozí:** brána ukazuje odkaz do adminu jen tomu, koho admin nezná (stránka s „Přihlas se do adminu“); přihlášený, kterého preview odmítne, dostane stránku bez odkazu.
+  - Přesměrování ven je povolené na jakékoli preview (i `webmail`, `vseveda`), ne jen na to, odkud brána poslala: kdo by chtěl užší pravidlo, musí do odkazu přidat něco podepsaného.
 - **Přihlášení do webu preview** funguje až na větvi, která čte `?gcsso=` i na veřejném webu (`SsoPrihlaseniZUrl`). Brána samotná na tom nezávisí.
 
 ## Gotchas

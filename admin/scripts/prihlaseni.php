@@ -2,6 +2,7 @@
 
 declare(strict_types=1);
 
+use Gamecon\Dev\NavratNaPreview;
 use Gamecon\Dev\SsoPrihlaseniZUrl;
 use Gamecon\Exceptions\UzivatelNenalezen;
 use Gamecon\Login\Login;
@@ -14,14 +15,15 @@ if (! empty($_GET['update_code'])) {
     print_r($output);
     exit($returnValue);
 }
-// Přihlášení
+// Přihlášení. Zpět na preview, odkud brána preview poslala do adminu, se jde přes ?returnTo=; formulář se odesílá
+// na tutéž URL, takže parametr přežije odeslání, a chyba() po špatném hesle vrací na ni (back()) také.
 $u = null;
 if (post(Login::LOGIN_INPUT_NAME) && post(Login::PASSWORD_INPUT_NAME)) {
     $pravePrihlaseny = Uzivatel::prihlas(post(Login::LOGIN_INPUT_NAME), post(Login::PASSWORD_INPUT_NAME));
     if (! $pravePrihlaseny) {
         chyba('Chybné přihlašovací jméno nebo heslo');
     }
-    back();
+    back(NavratNaPreview::getBezpecnaUrl(get(NavratNaPreview::PARAMETR)));
 }
 $u = Uzivatel::zSession();
 
@@ -29,6 +31,16 @@ $u = Uzivatel::zSession();
 // výběr klíče a odstranění tokenu z URL SsoPrihlaseniZUrl (společná s webem).
 // Viz docs/generated/odkazy-do-archivnich-rocniku.md.
 SsoPrihlaseniZUrl::zpracuj($u);
+
+// Už přihlášený, kdo otevřel odkaz z brány preview, se vrací hned; brána mu ho ukazuje jen tehdy, když ho nezná.
+$navratPrihlaseneho = NavratNaPreview::getCilProPrihlaseneho(
+    (bool) $u,
+    $_SERVER['REQUEST_METHOD'] ?? '',
+    get(NavratNaPreview::PARAMETR),
+);
+if ($navratPrihlaseneho !== null) {
+    back($navratPrihlaseneho);
+}
 
 if (post('odhlasNAdm')) {
     if ($u) {
