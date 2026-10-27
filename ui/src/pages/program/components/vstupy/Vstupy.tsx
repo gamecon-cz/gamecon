@@ -79,6 +79,11 @@ export const ProgramUživatelskéVstupy: FunctionComponent<
               </a>
             );
           })}
+          {!GAMECON_KONSTANTY.JE_ADMIN && (
+            <a href="vypravaci" class="program_filtry_tlacitko program_vypravaci">
+              Vypravěči
+            </a>
+          )}
           <button
             class={
               "program_filtry_tlacitko" + (filtryOtevřené ? " aktivni" : "")
