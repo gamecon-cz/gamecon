@@ -3,6 +3,7 @@
 use Gamecon\Aktivita\Aktivita;
 use Gamecon\Aktivita\FiltrAktivity;
 use Gamecon\Aktivita\Program;
+use Gamecon\Aktivita\StavAktivity;
 use Gamecon\Aktivita\Tag;
 use Gamecon\Aktivita\TypAktivity;
 use Gamecon\KategorieTagu;
@@ -31,12 +32,49 @@ $typ = $this->param('typ');
 
 Aktivita::prihlasovatkoZpracuj($u, $u);
 
+// ročník, dřívější jde vybrat v liště nad aktivitami (?rocnik=2024)
+
+$letosniRocnik = $systemoveNastaveni->rocnik();
+// ve kterých ročnících tu něco bylo, stejně jako filtr aktivit níž (FiltrAktivity::JEN_VIDITELNE a BEZ_DALSICH_KOL),
+// jinak by šel vybrat ročník bez jediné karty (vypravěč, který vedl jen semifinále DrD)
+$rocniky = array_map('intval', dbOneArray(<<<'SQL'
+SELECT DISTINCT akce_seznam.rok
+FROM akce_seznam
+WHERE akce_seznam.rok <= $0
+    AND akce_seznam.stav IN ($1)
+    AND NOT (akce_seznam.typ IN ($2) AND akce_seznam.stav IN ($3))
+    AND NOT (akce_seznam.typ IN ($6) AND akce_seznam.cena = 0)
+    AND ($4 IS NULL OR akce_seznam.typ = $4)
+    AND ($5 IS NULL OR akce_seznam.id_akce IN (
+        SELECT akce_organizatori.id_akce FROM akce_organizatori WHERE akce_organizatori.id_uzivatele = $5
+    ))
+ORDER BY akce_seznam.rok DESC
+SQL, [
+    0 => $letosniRocnik,
+    1 => StavAktivity::bezneViditelneStavy(),
+    2 => TypAktivity::interniTypy(),
+    3 => StavAktivity::probehnuteStavy(),
+    4 => $typ?->id(),
+    5 => !empty($org)
+        ? $org->id()
+        : null,
+    6 => [TypAktivity::DRD, TypAktivity::LKD],
+]));
+// letošní i bez aktivit, ať se jde vrátit
+$rocniky = array_values(array_unique(array_merge([$letosniRocnik], $rocniky)));
+
+$rocnik = (int)get('rocnik');
+if (!in_array($rocnik, $rocniky, true)) {
+    $rocnik = $letosniRocnik;
+}
+$minulyRocnik = $rocnik !== $letosniRocnik;
+
 // aktivity
 
 $aktivity = Aktivita::zFiltru(
     systemoveNastaveni: $systemoveNastaveni,
     filtr: [
-        FiltrAktivity::ROK             => $systemoveNastaveni->rocnik(),
+        FiltrAktivity::ROK             => $rocnik,
         FiltrAktivity::JEN_VIDITELNE   => true,
         FiltrAktivity::BEZ_DALSICH_KOL => true,
         FiltrAktivity::TYP             => $typ
@@ -65,13 +103,15 @@ $skupiny = serazenePodle($skupiny, function (
 $kartyProFiltr          = [];
 $dnyProFiltr            = [];
 $klicePodleNazvuDne     = [];
+$vypraveciProFiltr      = [];
 $nekteraPrihlasovatelna = false;
 
 foreach ($skupiny as $skupina) {
     $skupina = serazenePodle($skupina, 'zacatek');
 
-    $dnyKarty     = [];
-    $volnoNaKarte = false;
+    $dnyKarty       = [];
+    $vypraveciKarty = [];
+    $volnoNaKarte   = false;
 
     /** @var Aktivita $aktivita */
     foreach ($skupina as $aktivita) {
@@ -84,8 +124,16 @@ foreach ($skupiny as $skupina) {
             $dnyKarty[$klicDne]     = true;
             $dnyProFiltr[$klicDne] ??= ['datum' => $den->format('Y-m-d'), 'nazev' => $nazevDne];
         }
-        $nekteraPrihlasovatelna = $nekteraPrihlasovatelna || $aktivita->prihlasovatelna();
-        $volnoNaKarte           = $volnoNaKarte || $aktivita->isVolnoKPrihlaseni($u);
+        // na minulý ročník se nepřihlašuje, i když v něm aktivita zůstala aktivovaná (prihlasovatelna() rok nehlídá)
+        if (!$minulyRocnik) {
+            $nekteraPrihlasovatelna = $nekteraPrihlasovatelna || $aktivita->prihlasovatelna();
+            $volnoNaKarte           = $volnoNaKarte || $aktivita->isVolnoKPrihlaseni($u);
+        }
+        // u DrD a skupin má každý termín svého vypravěče, filtr kartu najde u kteréhokoli z nich
+        foreach ($aktivita->organizatori() as $organizator) {
+            $vypraveciKarty[$organizator->id()]    = true;
+            $vypraveciProFiltr[$organizator->id()] ??= $organizator->jmenoNaWebu();
+        }
 
         $vypravec = current($aktivita->organizatori());
         if ($vypravec && ($aktivita->typId() == TypAktivity::DRD || $aktivita->patriPod() > 0)) {
@@ -93,7 +141,9 @@ foreach ($skupiny as $skupina) {
             $t->parse('aktivity.aktivita.termin.vypravec');
         }
 
-        if ($aktivita->tymova() && $u && $u->gcPrihlasen() && $aktivita->prihlasovatelna()) {
+        if ($minulyRocnik) {
+            $prihlasit = '';
+        } elseif ($aktivita->tymova() && $u && $u->gcPrihlasen() && $aktivita->prihlasovatelna()) {
             $aktivitaId    = (int)$aktivita->id();
             $aktivitaNazev = addslashes($aktivita->nazev());
             $label         = $aktivita->prihlasen($u) ? 'Nastavení týmu' : 'Přihlásit tým';
@@ -130,7 +180,11 @@ foreach ($skupiny as $skupina) {
         'aktivita'           => $aktivita,
         'htmlId'             => $aktivita->urlId(),
         // nelze použít prosté #htmlId, protože to rozbije base href a odkazuje to pak o úroveň výš
-        'kotva'              => URL_WEBU . '/' . $url->cela() . '#' . $aktivita->urlId(),
+        'kotva'              => URL_WEBU . '/' . $url->cela()
+            . ($minulyRocnik
+                ? '?rocnik=' . $rocnik
+                : '')
+            . '#' . $aktivita->urlId(),
         'obrazek'            => $obrazek
             ? $obrazek->pasuj(512)
             : null, // TODO kvalita?
@@ -146,11 +200,12 @@ foreach ($skupiny as $skupina) {
     $t->parse('aktivity.nahled');
 
     $kartyProFiltr[] = [
-        'htmlId' => $aktivita->urlId(),
-        'id'     => (int)$aktivita->id(),
-        'tagy'   => $aktivita->tagyId(),
-        'dny'    => array_keys($dnyKarty),
-        'volno'  => $volnoNaKarte,
+        'htmlId'    => $aktivita->urlId(),
+        'id'        => (int)$aktivita->id(),
+        'tagy'      => $aktivita->tagyId(),
+        'dny'       => array_keys($dnyKarty),
+        'vypraveci' => array_keys($vypraveciKarty),
+        'volno'     => $volnoNaKarte,
     ];
 }
 
@@ -165,6 +220,7 @@ if (count($kartyProFiltr) >= 15) {
         array $den,
         array $jinyDen,
     ) => $den['datum'] <=> $jinyDen['datum']);
+    (new Collator('cs'))->asort($vypraveciProFiltr);
 
     $filtrAktivit = [
         'karty'          => $kartyProFiltr,
@@ -180,17 +236,30 @@ if (count($kartyProFiltr) >= 15) {
             string $klic,
             array  $den,
         ) => ['klic' => $klic, 'nazev' => $den['nazev']], array_keys($dnyProFiltr), $dnyProFiltr),
+        'vypraveci'      => array_map(static fn(
+            int    $id,
+            string $jmeno,
+        ) => ['id' => $id, 'jmeno' => $jmeno], array_keys($vypraveciProFiltr), $vypraveciProFiltr),
         'lzePrihlasovat' => $nekteraPrihlasovatelna,
     ];
 }
 
+// přepínač ročníku, i u stránky bez filtrů
+$rocnikyAktivit = count($rocniky) > 1
+    ? ['rocnik' => $rocnik, 'letosni' => $letosniRocnik, 'rocniky' => $rocniky]
+    : null;
+
 // záhlaví a informace
 
 $this->info()->obrazek(null);
+// ať je odkaz na dřívější ročník poznat už podle názvu stránky
+$pripojkaRocniku = $minulyRocnik
+    ? ' ' . $rocnik
+    : '';
 
 if (!empty($org)) {
     /** @var Uzivatel $org */
-    $this->info()->nazev($org->jmenoNaWebu());
+    $this->info()->nazev($org->jmenoNaWebu() . $pripojkaRocniku);
     $t->assign([
         'jmeno' => $org->jmenoNaWebu(),
         'popis' => $org->oSobe()
@@ -199,7 +268,7 @@ if (!empty($org)) {
     ]);
     $t->parse('aktivity.hlavickaVypravec');
 } elseif ($typ) {
-    $this->info()->nazev(mb_ucfirst($typ->nazevDlouhy()));
+    $this->info()->nazev(mb_ucfirst($typ->nazevDlouhy()) . $pripojkaRocniku);
 
     $hlavickaLinie = dbOneLine(
         'SELECT sekce, jmeno, email FROM akce_typy_hlavicky WHERE id_typu = $1',
@@ -242,6 +311,7 @@ if (!empty($org)) {
         [
             'přihlášenýUživatel' => Uzivatel::apiPrihlasenyUzivatel(),
             'filtrAktivit'       => $filtrAktivit,
+            'rocnikyAktivit'     => $rocnikyAktivit,
         ],
         // HEX_TAG, ať názvy nemůžou ukončit <script>
         JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES | JSON_HEX_TAG,
