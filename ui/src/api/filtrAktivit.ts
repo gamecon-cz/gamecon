@@ -11,6 +11,8 @@ export type ApiFiltrAktivitKarta = {
   tagy: number[],
   /** dny termínů bez diakritiky ("patek"), jak je ukazuje karta */
   dny: string[],
+  /** id vypravěčů ze všech termínů karty */
+  vypraveci: number[],
   /** aspoň na jeden termín se dá přihlásit a je na něm místo */
   volno: boolean,
 };
@@ -26,12 +28,28 @@ export type ApiFiltrAktivitDen = {
   nazev: string,
 };
 
+export type ApiFiltrAktivitVypravec = {
+  id: number,
+  jmeno: string,
+};
+
 export type ApiFiltrAktivit = {
   karty: ApiFiltrAktivitKarta[],
   /** štítky z karet, seřazené podle pořadí kategorie a názvu */
   tagy: ApiFiltrAktivitTag[],
   /** dny z karet, popořadě */
   dny: ApiFiltrAktivitDen[],
+  /** vypravěči z karet, podle abecedy */
+  vypraveci: ApiFiltrAktivitVypravec[],
   /** nějaký termín je přihlašovatelný, jinak nemá filtr volných míst smysl */
   lzePrihlasovat: boolean,
+};
+
+/** přepínač ročníku nad aktivitami, jen když tu něco bylo i dřív */
+export type ApiRocnikyAktivit = {
+  /** zobrazený ročník */
+  rocnik: number,
+  letosni: number,
+  /** ročníky s aktivitami od nejnovějšího, letošní vždy */
+  rocniky: number[],
 };

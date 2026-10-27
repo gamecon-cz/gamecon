@@ -1,6 +1,7 @@
 import { describe, it, expect } from "vitest";
 import {
   filtrujKarty, filtrZUrl, FiltrKaret, jeFiltrPrázdný, KartaProFiltr, normalizujText, PRÁZDNÝ_FILTR, urlSFiltrem,
+  urlSRočníkem,
 } from "./filtr";
 
 const karta = (htmlId: string, vlastnosti: Partial<KartaProFiltr>): KartaProFiltr => ({
@@ -8,6 +9,7 @@ const karta = (htmlId: string, vlastnosti: Partial<KartaProFiltr>): KartaProFilt
   id: 0,
   tagy: [],
   dny: [],
+  vypraveci: [],
   volno: false,
   text: "",
   ...vlastnosti,
@@ -17,6 +19,10 @@ const ŽÁNR_FANTASY = 1;
 const ŽÁNR_HOROR = 2;
 const VĚK_15 = 3;
 
+const ALMI = 67;
+const MORFIN = 1381;
+const KILLI = 6407;
+
 const kategorieŠtítků = new Map<number, string>([
   [ŽÁNR_FANTASY, "žánr"],
   [ŽÁNR_HOROR, "žánr"],
@@ -24,9 +30,15 @@ const kategorieŠtítků = new Map<number, string>([
 ]);
 
 const karty: KartaProFiltr[] = [
-  karta("draci-doupe", { tagy: [ŽÁNR_FANTASY], dny: ["patek"], volno: true, text: normalizujText("Dračí doupě, příběh") }),
-  karta("hrbitov", { tagy: [ŽÁNR_HOROR, VĚK_15], dny: ["sobota"], text: normalizujText("Hřbitov o půlnoci") }),
-  karta("les", { tagy: [ŽÁNR_FANTASY, VĚK_15], dny: ["patek", "nedele"], volno: true, text: normalizujText("Temný les") }),
+  karta("draci-doupe", {
+    tagy: [ŽÁNR_FANTASY], dny: ["patek"], vypraveci: [ALMI, KILLI], volno: true, text: normalizujText("Dračí doupě, příběh"),
+  }),
+  karta("hrbitov", {
+    tagy: [ŽÁNR_HOROR, VĚK_15], dny: ["sobota"], vypraveci: [MORFIN], text: normalizujText("Hřbitov o půlnoci"),
+  }),
+  karta("les", {
+    tagy: [ŽÁNR_FANTASY, VĚK_15], dny: ["patek", "nedele"], vypraveci: [KILLI], volno: true, text: normalizujText("Temný les"),
+  }),
 ];
 
 const htmlIdčka = (filtr: Partial<FiltrKaret>): string[] =>
@@ -64,13 +76,25 @@ describe("filtrujKarty", () => {
     expect(htmlIdčka({ štítky: [ŽÁNR_FANTASY, VĚK_15] })).toEqual(["les"]);
   });
 
+  it("z vypravěčů stačí kterýkoli, i když vede jen jeden z termínů karty", () => {
+    expect(htmlIdčka({ vypravěči: [ALMI] })).toEqual(["draci-doupe"]);
+    expect(htmlIdčka({ vypravěči: [KILLI] })).toEqual(["draci-doupe", "les"]);
+    expect(htmlIdčka({ vypravěči: [ALMI, MORFIN] })).toEqual(["draci-doupe", "hrbitov"]);
+  });
+
+  it("vypravěči se sčítají se štítky", () => {
+    expect(htmlIdčka({ vypravěči: [KILLI], štítky: [VĚK_15] })).toEqual(["les"]);
+  });
+
   it("filtry se sčítají", () => {
     expect(htmlIdčka({ štítky: [VĚK_15], dny: ["sobota"], jenVolné: true })).toEqual([]);
   });
 });
 
 describe("filtr v adrese", () => {
-  const filtr: FiltrKaret = { text: "temný les", štítky: [1, 3], dny: ["patek", "sobota"], jenVolné: true };
+  const filtr: FiltrKaret = {
+    text: "temný les", štítky: [1, 3], vypravěči: [KILLI], dny: ["patek", "sobota"], jenVolné: true,
+  };
 
   it("přežije cestu do adresy a zpátky", () => {
     expect(filtrZUrl(urlSFiltrem("https://gamecon.cz/rpg", filtr))).toEqual(filtr);
@@ -91,9 +115,21 @@ describe("filtr v adrese", () => {
   });
 });
 
+describe("ročník v adrese", () => {
+  it("nechá filtr, kotvu zahodí", () => {
+    expect(urlSRočníkem("https://gamecon.cz/rpg?den=patek,sobota#draci-doupe", 2019, 2026))
+      .toBe("https://gamecon.cz/rpg?den=patek,sobota&rocnik=2019");
+  });
+
+  it("letošní je bez parametru", () => {
+    expect(urlSRočníkem("https://gamecon.cz/rpg?rocnik=2019&stitky=1", 2026, 2026)).toBe("https://gamecon.cz/rpg?stitky=1");
+  });
+});
+
 describe("jeFiltrPrázdný", () => {
   it("mezery v hledání se nepočítají", () => {
     expect(jeFiltrPrázdný({ ...PRÁZDNÝ_FILTR, text: "  " })).toBe(true);
     expect(jeFiltrPrázdný({ ...PRÁZDNÝ_FILTR, dny: ["patek"] })).toBe(false);
+    expect(jeFiltrPrázdný({ ...PRÁZDNÝ_FILTR, vypravěči: [KILLI] })).toBe(false);
   });
 });

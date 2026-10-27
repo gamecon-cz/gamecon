@@ -30,9 +30,26 @@
   }
 }
 
+// ročník s vypravěči se vejdou na mobil vedle sebe
+.aktivityFiltr_rocnik {
+  flex: 0 0 150px;
+}
+
 .aktivityFiltr_stitky {
   flex: 2 1 320px;
   min-width: 0;
+}
+
+.aktivityFiltr_vypravec {
+  flex: 1 1 180px;
+  min-width: 0;
+
+  // vypravěčů je hodně, širší menu jich ukáže víc vedle sebe; na užší obrazovce by vyteklo z okna
+  .aktivityFiltrVypravec__menu {
+    @media (min-width: 901px) {
+      min-width: 580px;
+    }
+  }
 }
 
 .aktivityFiltr_skupina {
