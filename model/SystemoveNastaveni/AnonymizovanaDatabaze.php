@@ -228,7 +228,7 @@ SQL,
         (new \MySQLImport($dbConnectionAnonymDb))->load($tempFile);
 
         mysqli_query($dbConnectionAnonymDb, "SET FOREIGN_KEY_CHECKS = 0");
-        foreach (['_vars', 'platby', 'akce_import', 'uzivatele_url'] as $prilisCitlivaTabulka) {
+        foreach (['_vars', 'platby', 'akce_import', 'uzivatele_url', 'uzivatele_trvala_prihlaseni'] as $prilisCitlivaTabulka) {
             mysqli_query($dbConnectionAnonymDb, "TRUNCATE TABLE `{$this->anonymniDatabaze}`.`$prilisCitlivaTabulka`");
         }
         mysqli_query($dbConnectionAnonymDb, "SET FOREIGN_KEY_CHECKS = 1");

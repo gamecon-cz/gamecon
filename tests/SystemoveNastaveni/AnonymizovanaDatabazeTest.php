@@ -71,6 +71,8 @@ class AnonymizovanaDatabazeTest extends AbstractTestDb
 
         dbQuery("INSERT INTO medailonky SET id_uzivatele = 100, o_sobe = 'Osobní info', drd = 'DRD info'");
 
+        dbQuery("INSERT INTO uzivatele_trvala_prihlaseni SET id_uzivatele = 100, token_hash = SHA2('token', 256)");
+
         dbQuery("INSERT INTO stranky SET url_stranky = 'test', obsah = 'Kontakt: jan.novak@example.com', poradi = 1");
     }
 
@@ -108,7 +110,7 @@ class AnonymizovanaDatabazeTest extends AbstractTestDb
         self::assertContains('medailonky', $tables, 'Anonymní databáze by měla obsahovat tabulku medailonky');
 
         // sensitive tables should be empty
-        foreach (['_vars', 'platby', 'akce_import', 'uzivatele_url'] as $sensitivniTabulka) {
+        foreach (['_vars', 'platby', 'akce_import', 'uzivatele_url', 'uzivatele_trvala_prihlaseni'] as $sensitivniTabulka) {
             $countResult = mysqli_query($connection, sprintf('SELECT COUNT(*) as cnt FROM `%s`.`%s`', self::$anonymniDatabaze, $sensitivniTabulka));
             $count = mysqli_fetch_assoc($countResult)['cnt'];
             self::assertSame('0', $count, "Tabulka {$sensitivniTabulka} by měla být prázdná");
