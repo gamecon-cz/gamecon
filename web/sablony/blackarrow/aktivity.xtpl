@@ -69,12 +69,12 @@
         <div class="aktivity_terminy">
             <!-- begin: termin -->
             <div class="aktivity_termin">
-                <b>{aktivita.denCasSkutecny}</b>&ensp;
-                {obsazenost}&ensp;
-                {prihlasit}
+                <b class="aktivity_terminCas">{aktivita.denCasSkutecny}</b>
+                <span class="aktivity_terminObsazenost">{obsazenost}</span>
+                <div class="aktivity_terminPrihlasit">{prihlasit}</div>
 
                 <!-- begin: vypravec -->
-                <div><b>Vypravěč:</b> {vypravec}</div>
+                <div class="aktivity_terminVypravec"><b>Vypravěč:</b> {vypravec}</div>
                 <!-- end: vypravec -->
                 <br>
             </div>
