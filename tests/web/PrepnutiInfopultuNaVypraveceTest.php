@@ -221,16 +221,16 @@ SQL,
     }
 
     /**
-     * Odhlášení po přepnutí odhlásí infopulťáka, který sedí u zařízení. Vypravěči by zrušilo trvalé přihlášení
-     * i na jeho vlastním telefonu.
+     * Odhlášení po přepnutí odhlásí infopulťáka, který sedí u zařízení. Vypravěči trvalé přihlášení na jeho
+     * vlastním telefonu zůstane. Že o své trvalé přihlášení přijde prohlížeč infopulťáka, ověřuje
+     * tests/Uzivatel/TrvalePrihlaseniTest.php: cookie patří webu a admin ji nevidí.
      *
      * @test
      */
     public function odhlaseniPoPrepnutiNechaVypraveciTrvalePrihlaseni(): void
     {
         $this->setVzhled(self::ID_INFOPULTAKA, VzhledAdminuEnum::KLASICKY);
-        $tokenInfopultaka = $this->setTrvalePrihlaseni(self::ID_INFOPULTAKA);
-        $tokenVypravece = $this->setTrvalePrihlaseni(self::ID_VYPRAVECE);
+        $this->zalozTrvalePrihlaseni(self::ID_VYPRAVECE);
         $session = $this->prihlas('test-infopultak');
         self::assertSame(303, $this->odesli($session, 'infopult', [
             'prihlasitSeJakoUzivatel' => 1,
@@ -241,8 +241,7 @@ SQL,
             'odhlasNAdm' => 1,
         ]));
 
-        self::assertSame($tokenVypravece, $this->getTrvalePrihlaseni(self::ID_VYPRAVECE));
-        self::assertNotSame($tokenInfopultaka, $this->getTrvalePrihlaseni(self::ID_INFOPULTAKA));
+        self::assertSame(1, $this->getPocetTrvalychPrihlaseni(self::ID_VYPRAVECE));
         self::assertStringContainsString(
             'name="' . Login::PASSWORD_INPUT_NAME . '"',
             $this->stahni($session, 'uzivatel'),
@@ -338,25 +337,22 @@ SQL, [
     }
 
     /**
-     * @return string hodnota cookie trvalého přihlášení, jak ji má uživatel v prohlížeči
+     * Trvalé přihlášení na jiném zařízení, než ze kterého chodí požadavky testu.
      */
-    private function setTrvalePrihlaseni(int $idUzivatele): string
+    private function zalozTrvalePrihlaseni(int $idUzivatele): void
     {
-        $token = randHex(20);
         dbQuery(<<<'SQL'
-UPDATE uzivatele_hodnoty SET random = $0 WHERE id_uzivatele = $1
+INSERT INTO uzivatele_trvala_prihlaseni SET id_uzivatele = $0, token_hash = $1
 SQL, [
-            0 => $token,
-            1 => $idUzivatele,
+            0 => $idUzivatele,
+            1 => hash('sha256', bin2hex(random_bytes(32))),
         ]);
-
-        return $token;
     }
 
-    private function getTrvalePrihlaseni(int $idUzivatele): string
+    private function getPocetTrvalychPrihlaseni(int $idUzivatele): int
     {
-        return (string) dbOneCol(<<<'SQL'
-SELECT random FROM uzivatele_hodnoty WHERE id_uzivatele = $0
+        return (int) dbOneCol(<<<'SQL'
+SELECT COUNT(*) FROM uzivatele_trvala_prihlaseni WHERE id_uzivatele = $0
 SQL, [
             0 => $idUzivatele,
         ]);

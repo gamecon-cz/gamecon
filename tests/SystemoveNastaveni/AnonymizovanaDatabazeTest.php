@@ -142,6 +142,9 @@ class AnonymizovanaDatabazeTest extends AbstractTestDb
             'upominka_vlastni_zneni' => <<<'SQL'
                 INSERT INTO upominka_vlastni_zneni SET rocnik = 2026, predmet = 'Předmět', text = 'Text', zmenil = 100
                 SQL,
+            'uzivatele_trvala_prihlaseni' => <<<'SQL'
+                INSERT INTO uzivatele_trvala_prihlaseni SET id_uzivatele = 100, token_hash = SHA2('token', 256)
+                SQL,
         ];
 
         self::assertEqualsCanonicalizing(

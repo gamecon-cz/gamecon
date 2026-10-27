@@ -24,5 +24,6 @@ $registrace = new Registrace($systemoveNastaveni, $u);
 
 $registrace->zpracujRegistraci();
 $registrace->zpracujUpravu();
+$registrace->zpracujOdhlaseniOstatnichZarizeni();
 
 $registrace->zobrazHtml();
