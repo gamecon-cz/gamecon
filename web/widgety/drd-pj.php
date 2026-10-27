@@ -44,11 +44,23 @@ usort($organizatori, function (
 
 // zobrazit
 foreach ($organizatori as $o) {
-    if (!$o->fotka()) continue;
+    $fotka = $o->fotka();
+    if (!$fotka) continue;
+    $oSobe  = trim((string)$o->oSobe());
+    $profil = trim((string)$o->drdProfil());
     $t->assign([
-        'pj'           => $o,
-        'jmenoNaWebu'  => $o->jmenoNaWebu(),
-        'tituly'       => mb_ucfirst(implode(', ', $o->drdTituly())),
+        'fotka'       => $fotka->kvalita(85)->pokryjOrez(240, 240),
+        'jmenoNaWebu' => $o->jmenoNaWebu(),
+        'tituly'      => mb_ucfirst(implode(', ', $o->drdTituly())),
+        'oSobe'       => $oSobe,
+        'profil'      => $profil,
     ]);
-    $t->parse('drdPj.pj', 'pj');
+    // prázdný popis by se rozbalil do ničeho
+    if ($oSobe !== '') {
+        $t->parse('drdPj.pj.oSobe');
+    }
+    if ($profil !== '') {
+        $t->parse('drdPj.pj.profil');
+    }
+    $t->parse('drdPj.pj');
 }
