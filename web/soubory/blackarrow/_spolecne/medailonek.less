@@ -1,5 +1,6 @@
 // Medailonek člověka: fotka, jméno, role, kontakt a rozbalovací „O sobě píše“.
-// Kontakty (obsah stránky z adminu) a widgety Pánů jeskyně a Dungeon Masterů:
+// Kontakty (obsah stránky z adminu), widgety Pánů jeskyně a Dungeon Masterů
+// a přehled vypravěčů (tam fotka i jméno odkazují na stránku vypravěče):
 // <div class="medailonky">
 //   <article class="medailonek">
 //     <img class="medailonek_fotka" src="…" alt="">
@@ -45,6 +46,7 @@
   }
 
   .medailonek_fotka {
+    display: block; // v odkazu by pod řádkovým obrázkem zůstala mezera
     width: 6rem;
     height: 6rem;
     max-width: none;
@@ -77,6 +79,15 @@
     margin: 0 0 .35em;
     font-size: 18px;
     line-height: 1.3;
+
+    a {
+      color: inherit;
+      text-decoration: none;
+
+      &:hover {
+        color: var(--gc-red);
+      }
+    }
   }
 
   .medailonek_vice {
