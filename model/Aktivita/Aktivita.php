@@ -47,6 +47,8 @@ class Aktivita
     /** @var array<string, array> */
     private static       $prihlaseniRawArrayCache = [];
     private static array $seznamUcastnikuCache    = [];
+    /** @var array<int, true> ročníky, jejichž účastníci už v $seznamUcastnikuCache jsou */
+    private static array $seznamUcastnikuNacteneRoky = [];
 
     private array $a; // databázový řádek s aktivitou
     private array $kolekce = []; // nadřízená kolekce, v rámci které byla aktivita načtena
@@ -1786,14 +1788,17 @@ SQL
     {
         if (!isset($this->seznamUcastniku)) {
             if ($this->prednacitat) {
-                if (!array_key_exists($this->id(), self::$seznamUcastnikuCache)) {
-                    // pouze pokud je někdo na aktivitu přihlášen, jinak nemá cenu zkoušet načítat její účastníky
-                    if ($this->prihlaseniRaw() !== '') {
-                        // array + array přidá nové záznamy s novými klíči, ale nepřepíše původní
-                        self::$seznamUcastnikuCache += self::seznamUcastnikuAktivit(
-                            Sql::AKCE_SEZNAM_TABULKA . '.' . Sql::ROK . '=' . $this->systemoveNastaveni->rocnik(),
-                        );
-                    }
+                // Celý ročník načteme jen jednou. Podle prihlaseniRaw() rozhodovat nejde: nedorazivší,
+                // pozdě odhlášení a sledující jsou jen v akce_prihlaseni_spec, takže aktivita bez
+                // přihlášených účastníky mít může. A aktivita bez účastníků v načteném ročníku chybí,
+                // podle klíče v cache by se proto ročník načítal pořád znovu.
+                $rok = $this->rok();
+                if (!isset(self::$seznamUcastnikuNacteneRoky[$rok])) {
+                    // array + array přidá nové záznamy s novými klíči, ale nepřepíše původní
+                    self::$seznamUcastnikuCache += self::seznamUcastnikuAktivit(
+                        Sql::AKCE_SEZNAM_TABULKA . '.' . Sql::ROK . '=' . $rok,
+                    );
+                    self::$seznamUcastnikuNacteneRoky[$rok] = true;
                 }
                 self::$seznamUcastnikuCache[$this->id()] ??= [];
                 $this->seznamUcastniku = self::$seznamUcastnikuCache[$this->id()];
@@ -4259,6 +4264,7 @@ SQL,
         self::$prihlaseniRawCache = [];
         self::$prihlaseniRawArrayCache = [];
         self::$seznamUcastnikuCache = [];
+        self::$seznamUcastnikuNacteneRoky = [];
     }
 
     /**
