@@ -20,17 +20,28 @@ https://2023.gamecon.cz/admin/uzivatel?pracovni_uzivatel=102&gcsso=<token>&gate=
 ⚠️ **Dvě různé identity na jedné URL.** `gcsso` nese id **operátora** (přihlášeného admina, který klikl — `$u`), `pracovni_uzivatel` nese id **prohlíženého** uživatele (`$uPracovni`). Záměna admina přihlásí do cizího účtu — reálně se to stalo, protože oba údaje šly do jedné metody jako jeden parametr. Regresní test: `testSsoPrihlasujeOperatoraNePracovnihoUzivatele`.
 | akční parametr | Až tenhle něco udělá (`?pracovni_uzivatel=` otevře uživatele) | — | — |
 
-Master `GAMECON_SSO_SECRET` žije **jen na ostré**; archiv dostane přes deploy jen svůj odvozený `GAMECON_SSO_KEY`. Popadnutý archiv tak umí podvrhnout přihlášení jen do sebe. Viz `docs/` + ansible role `year_archive_deployer`.
+Master `GAMECON_SSO_SECRET` žije na ostré, betě a preview, **ne v archivech**; archiv dostane přes deploy jen svůj odvozený `GAMECON_SSO_KEY`. Popadnutý archiv tak umí podvrhnout přihlášení jen do sebe. Viz `docs/` + ansible role `year_archive_deployer`.
 
 ## Proč smí být `gcsso` a `pracovni_uzivatel` na jedné URL (gotcha)
 
 Vypadá to jako konflikt — obojí zpracovává `admin/scripts/prihlaseni.php` a `back()` končí `exit`. Funguje to díky pořadí a zachování query:
 
-1. `gcsso` se vyřídí první (`prihlaseni.php:48`) → `back(getCurrentUrlWithQuery(['gcsso' => null]))`.
-2. `getCurrentUrlWithQuery()` (`model/funkce/fw-general.php:122`) **maže jen uvedené klíče a ostatní zachová** → `pracovni_uzivatel` přežije do redirectu.
-3. Druhý request: uživatel už je přihlášený, zpracuje se `pracovni_uzivatel` (`prihlaseni.php:93`).
+1. `gcsso` se vyřídí první (`SsoPrihlaseniZUrl::zpracuj()`, volaná z `prihlaseni.php`) → `back(getCurrentUrlWithQuery(['gcsso' => null]))`.
+2. `getCurrentUrlWithQuery()` (`model/funkce/fw-general.php`) **maže jen uvedené klíče a ostatní zachová** → `pracovni_uzivatel` přežije do redirectu.
+3. Druhý request: uživatel už je přihlášený, zpracuje se `pracovni_uzivatel` (blok `get('pracovni_uzivatel')` v `prihlaseni.php`).
 
 Kdyby `getCurrentUrlWithQuery()` query zahazovalo, odkaz by uživatele přihlásil, ale pracovního uživatele by neotevřel.
+
+## Preview: odkaz na web i na admin přihlásí stejně
+
+Stránka Previews (`admin/scripts/modules/web/previews.php`) vede oba odkazy řádku (Web, Admin) přes `web/previews?web=<slug>`, resp. `?admin=<slug>`. Token `?gcsso=` se podepíše až po kliknutí (platí 5 minut) spolu s nastavením párovací cookie, pak následuje redirect na preview (`<url>`, resp. `<url>/admin`) s `?gate=`.
+
+- `?gcsso=` čte `SsoPrihlaseniZUrl::zpracuj()` na obou vstupech: `admin/scripts/prihlaseni.php` i `web/index.php`. Admin a web preview sdílejí session (cookie `.host`, `session_name` podle `URL_WEBU`), takže přihlášení na jedné straně platí i na druhé.
+- Ověřovací klíč: archiv svým klíčem ročníku `GAMECON_SSO_KEY`, preview masterem `GAMECON_SSO_SECRET`, ostrá a beta masterem nikdy (`getOverovaciKlic()`, hlídá `SsoPrihlaseniZUrlTest`). Veřejný web je přes `?gcsso=` dostupný všem, proto výběr klíče žije na jednom místě. Bez klíče (ostrá, beta, lokál) se `?gcsso=` vůbec nezpracuje a požadavek se nepřesměruje; hodnota, která není text (`?gcsso[]=x`), se taky ignoruje.
+- Web a Admin sdílejí jednu párovací cookie. Druhé kliknutí proto převezme nonce z cookie (`SsoParovaciCookie::nastavNonceProKliknuti()`): nový nonce by přepsal cookie, na kterou se karta otevřená prvním kliknutím ještě spoléhá, a ta by zůstala nepřihlášená.
+- ⚠️ „Kopírovat adresu odkazu" u sloupce Web už nedá URL preview, ale odkaz na rozcestník (ten chce přihlášení do adminu). Ke sdílení se opisuje zobrazený hostname.
+- Preview ze starší větve `?gcsso=` na webu nečte: odkaz nepřihlásí, jinak funguje.
+- Lokální ověření: v `docker-compose.override.yml` stejná hodnota pro `GAMECON_SSO_SECRET` i `GAMECON_SSO_KEY` a mount složky s `previews/<slug>.json` do `/var/lib/gamecon/deployments`. Lokální Apache zahazuje query při `/admin?x` → `/admin/?req=`, token pro admin se tedy zkouší na `/admin/?req=&gcsso=`.
 
 ## Dolní meze podle ročníku (nejsou stejné!)
 
@@ -54,7 +65,7 @@ Odkaz se **degraduje, nemizí** — i „jen do adminu" ušetří hledání host
 - `model/Dev/OdkazDoArchivnihoAdmina.php` — složení odkazu na uživatele (gate + sso + `pracovni_uzivatel`, respektuje meze i nasazenost)
 - `admin/scripts/modules/uzivatel.php` (blok „historie účasti") — konzument; ročníky bez odkazu vypíše jako prostý text
 - `admin/scripts/modules/web/stare-rocniky.php` — původní vzor (seznam archivů), `previews.php` totéž pro preview
-- `admin/scripts/prihlaseni.php` — ověřovací strana obou tokenů
-- `model/Dev/{GateLink,CrossSiteLogin,SsoParovaciCookie,ArchivSsoPrihlaseni,DeploymentsReader}.php`
+- `admin/scripts/prihlaseni.php` a `web/index.php` — ověřovací strana obou tokenů (volají `SsoPrihlaseniZUrl::zpracuj()`)
+- `model/Dev/{GateLink,CrossSiteLogin,SsoParovaciCookie,ArchivSsoPrihlaseni,SsoPrihlaseniZUrl,DeploymentsReader}.php`
 
-Testy: `tests/Dev/OdkazDoArchivnihoAdminaTest.php`, `tests/Dev/CrossSiteLoginTest.php`.
+Testy: `tests/Dev/OdkazDoArchivnihoAdminaTest.php`, `tests/Dev/CrossSiteLoginTest.php`, `tests/Dev/SsoPrihlaseniZUrlTest.php`.

@@ -7,7 +7,7 @@ namespace Gamecon\Dev;
 /**
  * Magické přihlášení napříč subdoménami: hlavní admin (admin.gamecon.cz) podepíše
  * token vázaný na `id_uzivatele` přihlášeného uživatele, archiv (NNNN.gamecon.cz)
- * ho ověří a uživatele podle ID přihlásí — bez zadávání hesla.
+ * nebo preview ho ověří a uživatele podle ID přihlásí — bez zadávání hesla.
  *
  * Identitu nese ČÍSELNÉ ID, ne e-mail: ID je napříč ostrou i zmrazenými archivními
  * snapshoty téhož kontinuálního `uzivatele` stabilní, kdežto e-mail je proměnný a
@@ -19,11 +19,11 @@ namespace Gamecon\Dev;
  * scope `.gamecon.cz`). Token commituje na konkrétní nonce; archiv přihlásí jen když
  * se nonce z tokenu shoduje s nonce z cookie. Sdílená URL nonce v cizím prohlížeči
  * nemá → nepřihlásí. Viz {@see GateLink} (ten řeší jen průchod bránou,
- * ne přihlášení) a admin/scripts/prihlaseni.php (ověřovací strana).
+ * ne přihlášení) a {@see SsoPrihlaseniZUrl} (ověřovací strana, v adminu i na webu).
  *
- * Podpis stojí na klíči ODVOZENÉM PRO DANÝ ROČNÍK z master tajemství
+ * Podpis archivu stojí na klíči ODVOZENÉM PRO DANÝ ROČNÍK z master tajemství
  * (`hash_hmac('sha256', (string) $rocnik, GAMECON_SSO_SECRET)`); master žije jen na
- * ostré, archiv dostane jen svůj odvozený klíč přes `-e GAMECON_SSO_KEY`. NE
+ * ostré, betě a preview, archiv dostane jen svůj odvozený klíč přes `-e GAMECON_SSO_KEY`. NE
  * `SECRET_CRYPTO_KEY` — ten šifruje osobní data a do zmrazeného archivu nepatří.
  *
  * Formát tokenu (`?gcsso=`):
