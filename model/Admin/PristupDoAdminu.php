@@ -43,6 +43,8 @@ final class PristupDoAdminu
     public const array PRAVA_JEN_STRANKY = [
         Pravo::ADMINISTRACE_BINGO => 'Bingo mají všichni orgové včetně pauzujícího full-orga, který jinak v adminu nic'
             . ' nesmí. Stav si stránka bere sama od sebe (bingo?stav=1), API nepotřebuje.',
+        Pravo::PROVADI_KOREKCE => 'Korektury textů aktivit jsou obyčejné formuláře a stažení souboru, API'
+            . ' nepotřebují. Korektor má navíc správu aktivit, se kterou smí víc.',
     ];
 
     /**

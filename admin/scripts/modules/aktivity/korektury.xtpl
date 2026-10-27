@@ -1,0 +1,194 @@
+<!-- begin:korektury -->
+
+<h1>Korektury textů</h1>
+
+<p>
+    Neopravené texty letošních aktivit (název, krátký a dlouhý popis) se tu dají poslat na korekturu do AI chatu
+    (Claude, ChatGPT…) a její návrhy pak schválit. Aktivitu změní a označí jako opravenou až schválení.
+</p>
+<ol>
+    <li>Připrav balíky a stáhni první z nich. Pokyny pro AI jsou v souboru, nic nepiš.</li>
+    <li>Soubor nahraj do chatu s AI, nebo vlož jeho obsah do zprávy. Když AI odpověď přeruší, napiš jí „pokračuj“.</li>
+    <li>Odpověď AI vlož níže a načti. Jde to i po částech a opakovaně.</li>
+    <li>Projdi návrhy: přijmi, ručně uprav, nebo zamítni. Pak další balík.</li>
+</ol>
+
+<style>
+    .korektury-navrh {
+        border: 1px solid #ccc;
+        border-radius: 4px;
+        padding: 0.5em 1em 1em;
+        margin: 1em 0;
+    }
+
+    .korektury-rozdil {
+        white-space: pre-wrap;
+        background: #fafafa;
+        border: 1px solid #eee;
+        padding: 0.5em;
+        margin: 0.25em 0 0.75em;
+    }
+
+    /* a proofreading changes a comma here and there, it must not get lost in a long text */
+    .korektury-rozdil del, .korektury-rozdil ins {
+        font-weight: bold;
+        padding: 0 3px;
+        border-radius: 3px;
+    }
+
+    .korektury-rozdil del {
+        background: #f8b4b4;
+        color: #800;
+    }
+
+    .korektury-rozdil ins {
+        background: #a8e6a8;
+        color: #040;
+        text-decoration: none;
+    }
+
+    .korektury-navrh label {
+        display: block;
+        margin: 0.5em 0;
+    }
+
+    .korektury-navrh input[type=text], .korektury-navrh textarea {
+        width: 100%;
+        box-sizing: border-box;
+    }
+
+    .korektury-odpoved {
+        width: 100%;
+        box-sizing: border-box;
+    }
+</style>
+
+<h2>1. Stáhni texty pro AI</h2>
+
+<p>Neopravených textů, které ještě nejsou na korektuře: <strong>{pocetKExportu}</strong></p>
+
+<form method="post">
+    <label>
+        Aktivit v balíku
+        <input type="number" name="velikostBaliku" value="{velikostBaliku}" min="1" max="200" style="width: 5em">
+    </label>
+    <button type="submit" name="exportovat" value="1">Připravit balíky</button>
+</form>
+
+<!-- begin:baliky -->
+<p>Čeká na odpověď AI: <strong>{pocetCekajicich}</strong></p>
+<table class="zvyraznovana">
+    <tr>
+        <th>Balík</th>
+        <th>Aktivit</th>
+        <th></th>
+        <th></th>
+    </tr>
+    <!-- begin:balik -->
+    <tr>
+        <td>{balik}</td>
+        <td>{pocetAktivit}</td>
+        <td><a href="{urlModulu}?stahnout=1&amp;balik={balik}">Stáhnout</a></td>
+        <td>
+            <form method="post" onsubmit="return window.confirm('Zrušit balík {balik}? Jeho aktivity se vrátí mezi neopravené.')">
+                <input type="hidden" name="balik" value="{balik}">
+                <button type="submit" name="zrusitBalik" value="1">Zrušit</button>
+            </form>
+        </td>
+    </tr>
+    <!-- end:balik -->
+</table>
+<p>
+    <a href="{urlModulu}?stahnout=1">Stáhnout všechny balíky v jednom souboru</a>,
+    pro AI, která zvládne pracovat se souborem (třeba Claude Code).
+</p>
+<!-- end:baliky -->
+
+<h2 id="import">2. Nahraj odpověď AI</h2>
+
+<form method="post" enctype="multipart/form-data">
+    <textarea name="odpoved" rows="8" class="korektury-odpoved" placeholder="Sem vlož odpověď AI…"></textarea>
+    <p>
+        nebo soubor s odpovědí <input type="file" name="souborOdpovedi" accept=".txt,.md,text/plain">
+        <button type="submit" name="importovat" value="1">Načíst odpověď</button>
+    </p>
+</form>
+
+<!-- begin:vysledekImportu -->
+<div class="info no-image">
+    Načteno návrhů: <strong>{pocetNavrhu}</strong>, z toho bez nalezených chyb: {pocetBezZmen}.
+</div>
+<!-- begin:varovani -->
+<div class="warning no-image">
+    <ul>
+        <!-- begin:polozka -->
+        <li>{varovani}</li>
+        <!-- end:polozka -->
+    </ul>
+</div>
+<!-- end:varovani -->
+<!-- end:vysledekImportu -->
+
+<h2 id="schvalovani">3. Zkontroluj návrhy</h2>
+
+<p>Čeká na schválení: <strong>{pocetKeSchvaleni}</strong>{zobrazeno}</p>
+
+<!-- begin:prijmoutBezZmen -->
+<form method="post" onsubmit="return window.confirm('Označit jako opravené všechny aktivity, ve kterých AI nic nenašla?')">
+    <button type="submit" name="prijmoutBezZmen" value="1">Označit jako opravené všechny, ve kterých AI nic nenašla</button>
+</form>
+<!-- end:prijmoutBezZmen -->
+
+<!-- begin:navrh -->
+<div class="korektury-navrh">
+    <h3>
+        <a href="aktivity/upravy?aktivitaId={idAktivity}" target="_blank">{nazevAktivity}</a>
+        <small>(balík {balik})</small>
+    </h3>
+
+    <!-- begin:branicPrijeti -->
+    <div class="error no-image">{varovani}</div>
+    <!-- end:branicPrijeti -->
+    <!-- begin:kontrola -->
+    <div class="warning no-image">{varovani}</div>
+    <!-- end:kontrola -->
+
+    <!-- begin:zmeny -->
+    <p><em>AI: {zmeny}</em></p>
+    <!-- end:zmeny -->
+    <!-- begin:bezNavrhu -->
+    <p>AI v textech nenašla nic k opravě.</p>
+    <!-- end:bezNavrhu -->
+
+    <!-- begin:pole -->
+    <strong>{nazevPole}</strong>
+    <div class="korektury-rozdil">{rozdil}</div>
+    <!-- end:pole -->
+
+    <form method="post">
+        <input type="hidden" name="idKorektury" value="{idKorektury}">
+        <!-- begin:prijmout -->
+        <details>
+            <summary>Upravit ručně</summary>
+            <label>Název
+                <input type="text" name="nazev" value="{navrhNazev}" maxlength="255" required>
+            </label>
+            <label>Krátký popis
+                <input type="text" name="popisKratky" value="{navrhPopisKratky}" maxlength="255">
+            </label>
+            <label>Popis
+                <textarea name="popis" rows="12">{navrhPopis}</textarea>
+            </label>
+        </details>
+        <button type="submit" name="prijmout" value="1">Přijmout</button>
+        <!-- end:prijmout -->
+        <button type="submit" name="zamitnout" value="1" formnovalidate>Zamítnout</button>
+    </form>
+</div>
+<!-- end:navrh -->
+
+<!-- begin:zadneNavrhy -->
+<p>Žádný návrh nečeká na schválení.</p>
+<!-- end:zadneNavrhy -->
+
+<!-- end:korektury -->
