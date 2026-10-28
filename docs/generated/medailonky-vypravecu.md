@@ -5,7 +5,7 @@ Medailonky vypravěčů: stránka jednoho vypravěče na `/<id>`, sdílený vzhl
 - **Medailonek jednoho vypravěče** = `/<id>` (i `/<id>-<slug>` nebo `/<slug>`): `web/index.php` přes `Uzivatel::zUrl()` pustí modul `web/moduly/aktivity.php` s parametrem `org`, ten vypíše hlavičku (fotka, jméno, „o sobě“) a aktivity, které vede. Funguje pro každé ID uživatele, ne jen pro vypravěče.
 - **Přehled vypravěčů** = `web/moduly/vypravaci.php` + `web/sablony/blackarrow/vypravaci.xtpl`, data z `model/Uzivatel/PrehledVypravecu.php`. Filtr sekce je druhá část URL: `/vypravaci/rpg`.
 - **Vzhled karty** `.medailonky > .medailonek` = `web/soubory/blackarrow/_spolecne/medailonek.less`. Sdílí ho stránka Kontakty (HTML v DB, upravuje se v adminu), widgety `web/widgety/dnd-pj.*` a `drd-pj.*` a přehled vypravěčů.
-- **Odkaz z programu**: tlačítko „Vypravěči“ vedle „Filtry“ v `ui/src/pages/program/components/vstupy/Vstupy.tsx`; v adminu je skryté (`JE_ADMIN`), relativní `href` by tam vedl do adminu.
+- **Odkaz z programu**: tlačítko „Vypravěči“ vedle „Filtry“ v `ui/src/pages/program/components/vstupy/Vstupy.tsx`; v adminu je skryté (`JE_ADMIN`), relativní `href` by tam vedl do adminu, a v programu minulého ročníku (`?rocnik=`) taky, přehled je jen letošní.
 
 ## Pravidla
 
