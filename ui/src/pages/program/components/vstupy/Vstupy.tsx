@@ -79,7 +79,8 @@ export const ProgramUživatelskéVstupy: FunctionComponent<
               </a>
             );
           })}
-          {!GAMECON_KONSTANTY.JE_ADMIN && (
+          {/* přehled vypravěčů je jen letošní */}
+          {!GAMECON_KONSTANTY.JE_ADMIN && jeLetošníRočník && (
             <a href="vypravaci" class="program_filtry_tlacitko program_vypravaci">
               Vypravěči
             </a>
