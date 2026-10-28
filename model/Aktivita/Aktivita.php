@@ -3707,6 +3707,25 @@ SQL,
         return VolnoProEnum::PRO_VSECHNY; // je volno a žádné pohlaví nevyžralo limit míst
     }
 
+    /**
+     * Dá se na aktivitu přihlásit a zbývá na ní místo. S uživatelem se počítají jen místa pro jeho pohlaví,
+     * bez něj stačí místo pro kohokoli. Týmová aktivita se plní po týmech, stejně jako v obsazenostHtml().
+     */
+    public function isVolnoKPrihlaseni(?Uzivatel $uzivatel = null): bool
+    {
+        if (!$this->prihlasovatelna()) {
+            return false;
+        }
+        if ($this->tymova() && $this->tymovaKapacita() !== null) {
+            return $this->pocetPrihlasenychTymu() < $this->tymovaKapacita();
+        }
+        $volnoPro = $this->volnoPro();
+
+        return $uzivatel
+            ? $volnoPro->proPohlaviJeVolno($uzivatel->pohlavi())
+            : $volnoPro !== VolnoProEnum::PLNO;
+    }
+
     public function getKapacitaUnisex(): int
     {
         return (int)$this->a[Sql::KAPACITA];

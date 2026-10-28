@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace Gamecon\Dev;
 
 /**
- * Spárovací cookie pro magické přihlášení do archivu ({@see CrossSiteLogin}).
+ * Spárovací cookie pro magické přihlášení do archivu a preview ({@see CrossSiteLogin}).
  *
  * Drží náhodný nonce a je scope `.gamecon.cz`, aby ji prohlížeč automaticky poslal
  * i na `NNNN.gamecon.cz`. NENÍ to přihlášení — sama o sobě nikoho nepřihlásí; je to
@@ -64,5 +64,25 @@ final class SsoParovaciCookie
         $nonce = $_COOKIE[self::JMENO] ?? null;
 
         return is_string($nonce) && $nonce !== '' ? $nonce : null;
+    }
+
+    /**
+     * Nonce pro kliknutí na podepsaný odkaz: převezme platný z cookie, jinak vytvoří nový, a cookie obnoví.
+     * Web a Admin otevřené hned po sobě tak sdílejí nonce: nový by přepsal cookie, na kterou se první karta
+     * ještě spoléhá. Spárování tím neslábne, nonce je v tokenu stejně čitelný.
+     */
+    public static function nastavNonceProKliknuti(): string
+    {
+        $nonce = self::getNonceProKliknuti(self::precti());
+        self::nastav($nonce);
+
+        return $nonce;
+    }
+
+    public static function getNonceProKliknuti(?string $nonceZCookie): string
+    {
+        return $nonceZCookie !== null && preg_match('~^[0-9a-f]{32}\z~', $nonceZCookie) === 1
+            ? $nonceZCookie
+            : bin2hex(random_bytes(16));
     }
 }

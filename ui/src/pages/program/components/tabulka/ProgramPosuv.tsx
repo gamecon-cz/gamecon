@@ -1,11 +1,10 @@
-import Preact from "preact";
-import { Ref} from "preact/hooks";
+import Preact, { RefObject } from "preact";
 import { useEffect, useState } from "preact/hooks";
 
 const POSUN = 220;
 
 type ProgramPosuvProps = {
-  obalRef: Ref<HTMLElement>;
+  obalRef: RefObject<HTMLElement>;
 }
 
 export const ProgramPosuv: Preact.FunctionComponent<ProgramPosuvProps> = (

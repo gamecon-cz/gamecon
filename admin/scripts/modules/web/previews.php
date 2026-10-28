@@ -26,47 +26,45 @@ $previews = $unavailableReason === null ? $reader->readPreviews() : [];
 // kopírovatelný text. Viz GateLink + ansible role gate_validator.
 $gateUrl = static fn (string $url): string => GateLink::podepis($url, PREVIEW_GATE_SECRET);
 
-// Magické přihlášení do preview adminu: k odkazu na /admin připojíme podepsaný
-// ?gcsso= token vázaný na id_uzivatele přihlášeného admina + náhodný nonce, který
-// zároveň uložíme do spárovací cookie (.gamecon.cz). Preview pak admina přihlásí
-// podle ID — ale jen když nonce z tokenu sedí s nonce z cookie, takže pouhé sdílení
-// odkazu nikoho nepřihlásí (cizí prohlížeč cookie nemá). Bez masteru / ID se token
-// nepřipojí a zůstane jen basic-auth brána.
-//
-// Na rozdíl od archivů (ty ověřují klíčem ODVOZENÝM pro daný ročník) preview
-// podepisuje i ověřuje přímo MASTEREM GAMECON_SSO_SECRET: preview není ročník v
-// rámci fan-outu, je to jedno samostatné prostředí, které přihlašuje samo sebe —
-// žádné odvození per-prostředí netřeba. Master se do preview dostává přes
-// deploy-preview-branch.sh (-e GAMECON_SSO_SECRET); ověřovací stranu viz
-// admin/scripts/prihlaseni.php (větev jsmeNaPreview()).
+// Magické přihlášení do preview (web i /admin): k odkazu připojíme podepsaný ?gcsso= token a nastavíme spárovací
+// cookie, takže pouhé sdílení odkazu nikoho nepřihlásí. Preview podepisuje i ověřuje přímo MASTEREM
+// GAMECON_SSO_SECRET (z deploy-preview-branch.sh), ne klíčem ročníku jako archivy. Bez masteru / ID se token nepřipojí.
+// Ověřuje SsoPrihlaseniZUrl, viz docs/generated/odkazy-do-archivnich-rocniku.md.
 $ssoMaster = defined('GAMECON_SSO_SECRET') ? GAMECON_SSO_SECRET : '';
 $ssoIdUzivatele = $u->id() ?? 0;
-$adminUrlSeSso = static function (string $previewUrl, ?string $ssoNonce) use ($ssoIdUzivatele, $ssoMaster, $gateUrl): string {
-    $adminUrl = rtrim($previewUrl, '/') . '/admin';
+$urlSeSso = static function (string $url, ?string $ssoNonce) use ($ssoIdUzivatele, $ssoMaster, $gateUrl): string {
     if ($ssoNonce !== null) {
         $gcsso = CrossSiteLogin::podepis($ssoIdUzivatele, $ssoNonce, $ssoMaster);
         if ($gcsso !== '') {
-            $oddelovac = str_contains($adminUrl, '?') ? '&' : '?';
-            $adminUrl .= $oddelovac . 'gcsso=' . $gcsso;
+            $oddelovac = str_contains($url, '?') ? '&' : '?';
+            $url .= $oddelovac . 'gcsso=' . $gcsso;
         }
     }
 
-    return $gateUrl($adminUrl);
+    return $gateUrl($url);
 };
 
-// Token se podepíše až po kliknutí (odkaz vede sem s ?admin=<slug>). Podepsaný při vykreslení by do kliknutí
-// vypršel (platí 5 minut), nebo by jeho spárovací cookie mezitím přepsala jiná takhle podepsaná stránka.
+// Token se podepíše až po kliknutí (odkaz vede sem s ?admin=<slug>, resp. ?web=<slug>).
+// Podepsaný při vykreslení by do kliknutí vypršel (platí 5 minut).
 $slugDoAdminu = is_string($_GET['admin'] ?? null) ? $_GET['admin'] : '';
+$slugNaWeb = is_string($_GET['web'] ?? null) ? $_GET['web'] : '';
 foreach ($previews as $preview) {
+    $cilovaUrl = null;
     if ($slugDoAdminu !== '' && $preview->slug === $slugDoAdminu) {
-        $ssoNonce = null;
-        if ($ssoIdUzivatele > 0 && $ssoMaster !== '') {
-            $ssoNonce = bin2hex(random_bytes(16));
-            SsoParovaciCookie::nastav($ssoNonce);
-        }
-        header('Location: ' . $adminUrlSeSso($preview->url, $ssoNonce));
-        exit;
+        $cilovaUrl = rtrim($preview->url, '/') . '/admin';
+    } elseif ($slugNaWeb !== '' && $preview->slug === $slugNaWeb) {
+        $cilovaUrl = $preview->url;
     }
+    if ($cilovaUrl === null) {
+        continue;
+    }
+
+    $ssoNonce = null;
+    if ($ssoIdUzivatele > 0 && $ssoMaster !== '') {
+        $ssoNonce = SsoParovaciCookie::nastavNonceProKliknuti();
+    }
+    header('Location: ' . $urlSeSso($cilovaUrl, $ssoNonce));
+    exit;
 }
 
 $mailpitUrl = $gateUrl(ZachytavacEmailu::URL_PREVIEW);
@@ -108,7 +106,7 @@ $mailpitUrl = $gateUrl(ZachytavacEmailu::URL_PREVIEW);
         <?php foreach ($previews as $preview) { ?>
             <tr id="<?php echo htmlspecialchars($preview->slug); ?>">
                 <td>
-                    <a href="<?php echo htmlspecialchars($gateUrl($preview->url)); ?>" target="_blank" rel="noopener">
+                    <a href="web/previews?web=<?php echo htmlspecialchars(rawurlencode($preview->slug)); ?>" target="_blank" rel="noopener">
                         <?php echo htmlspecialchars(preg_replace('/^https?:\/\/|\/$/', '', $preview->url)); ?>
                     </a>
                 </td>

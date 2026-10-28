@@ -48,8 +48,45 @@ final class GateLink
         return $url . $oddelovac . 'gate=' . $token;
     }
 
+    /**
+     * Ověří token ve tvaru z {@see self::podepis} (bez URL): podpis a že ještě nevypršel.
+     * Prázdný secret neověří nic.
+     *
+     * Odkaz z {@see self::podepis} i cookie `gc_gate` platí 24 h a má je každý, kdo byl v preview. Kdo čeká
+     * krátce platný token (volání brány), zadá `$nejdelsiPlatnost`: token s delší zbývající platností se nepřijme.
+     */
+    public static function over(string $token, string $secret, ?int $ted = null, ?int $nejdelsiPlatnost = null): bool
+    {
+        if ($secret === '' || preg_match('~^[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+\z~', $token) !== 1) {
+            return false;
+        }
+
+        [$expiryKodovane, $podpisKodovany] = explode('.', $token);
+        $expiry = self::base64UrlDecode($expiryKodovane);
+        $podpis = self::base64UrlDecode($podpisKodovany);
+        // Nanejvýš deset číslic: unixový čas jich má deset do roku 2286, a delší expiry (třeba PHP_INT_MAX) by nikdy nevypršelo.
+        if ($expiry === null || $podpis === null || ! ctype_digit($expiry) || strlen($expiry) > 10) {
+            return false;
+        }
+
+        $ted ??= time();
+
+        return hash_equals(hash_hmac('sha256', $expiry, $secret, true), $podpis)
+            && (int) $expiry > $ted
+            && ($nejdelsiPlatnost === null || (int) $expiry <= $ted + $nejdelsiPlatnost);
+    }
+
     private static function base64Url(string $data): string
     {
         return rtrim(strtr(base64_encode($data), '+/', '-_'), '=');
+    }
+
+    private static function base64UrlDecode(string $data): ?string
+    {
+        $dekodovano = base64_decode(strtr($data, '-_', '+/'), true);
+
+        return $dekodovano === false
+            ? null
+            : $dekodovano;
     }
 }

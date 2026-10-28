@@ -1,28 +1,21 @@
 <!-- begin: dndPj -->
 
-<!-- begin: pj -->
-<div class="pj">
-  <img class="leftPj" src="{pj.fotka}">
-  <div class="rightPj">
-    <div class="description">
-      <div class="name">{jmenoNaWebu}</div>
-      <div class="position">Dungeon Master</div>
+<div class="medailonky">
+  <!-- begin: pj -->
+  <article class="medailonek">
+    <img class="medailonek_fotka" src="{fotka}" alt="">
+    <div class="medailonek_popis">
+      <h3 class="medailonek_jmeno">{jmenoNaWebu}</h3>
+      <p>Dungeon Master</p>
     </div>
-    <div class="aboutButton">
-      <a href="#" onclick="ukaz(oSobe_{pj.id}); return false">O sobě píše</a>
-    </div>
-  </div>
+    <!-- begin: oSobe -->
+    <details class="medailonek_vice">
+      <summary>O sobě píše</summary>
+      <div class="medailonek_text">{oSobe}</div>
+    </details>
+    <!-- end: oSobe -->
+  </article>
+  <!-- end: pj -->
 </div>
-
-<div style="clear: both"></div>
-
-<div class="oSobe" id="oSobe_{pj.id}" style="display: none">{pj.oSobe}</div>
-<!-- end: pj -->
-
-<script>
-function ukaz(e) {
-  e.style.display = e.style.display == 'none' ? 'block' : 'none'
-}
-</script>
 
 <!-- end: dndPj -->

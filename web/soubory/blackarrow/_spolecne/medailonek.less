@@ -1,0 +1,197 @@
+// Medailonek člověka: fotka, jméno, role, kontakt a rozbalovací „O sobě píše“.
+// Kontakty (obsah stránky z adminu) a widgety Pánů jeskyně a Dungeon Masterů:
+// <div class="medailonky">
+//   <article class="medailonek">
+//     <img class="medailonek_fotka" src="…" alt="">
+//     <div class="medailonek_popis">
+//       <h3 class="medailonek_jmeno">Jméno „Přezdívka“ Příjmení</h3>
+//       <p>role</p>
+//       <p>další role</p>
+//       <p><a href="mailto:…">…</a></p>
+//     </div>
+//     <details class="medailonek_vice">
+//       <summary>O sobě píše</summary>
+//       <div class="medailonek_text">…</div>
+//     </details>
+//   </article>
+// </div>
+
+@medailonek-odsazeni: 1.25rem;
+
+.medailonky {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(~'min(100%, 20rem)', 1fr));
+  gap: 2.5rem 1.75rem;
+  align-items: start; // rozbalený medailonek nenatahuje souseda v řádku
+  margin: 2rem 0 3rem;
+}
+
+.medailonek {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  align-items: center;
+  column-gap: 1rem;
+  padding: @medailonek-odsazeni;
+  border: solid 2px var(--gc-dark);
+  background-color: #fff;
+  box-shadow: .75rem .75rem 0 #F6F1EA;
+  font-size: 15px;
+  line-height: 1.5;
+
+  // na nejužších telefonech by se vedle fotky lámal každý e-mail
+  @media (max-width: 360px) {
+    grid-template-columns: 1fr;
+    row-gap: 1rem;
+  }
+
+  .medailonek_fotka {
+    width: 6rem;
+    height: 6rem;
+    max-width: none;
+    margin: 0;
+    object-fit: cover;
+    mask: url('../blackarrow/aktivity/flek.png') no-repeat center ~'/' 120% 120%;
+
+    @media (max-width: 400px) {
+      width: 5rem;
+      height: 5rem;
+    }
+  }
+
+  .medailonek_popis {
+    min-width: 0;
+    overflow-wrap: anywhere; // dlouhé e-maily na úzkém displeji
+
+    p {
+      margin: 0;
+      color: #555;
+    }
+
+    // kontakt kousek od rolí
+    p:has(> a[href^="mailto:"]) {
+      margin-top: .35em;
+    }
+  }
+
+  .medailonek_jmeno {
+    margin: 0 0 .35em;
+    font-size: 18px;
+    line-height: 1.3;
+  }
+
+  .medailonek_vice {
+    grid-column: ~'1 / -1';
+    margin: @medailonek-odsazeni (-@medailonek-odsazeni) 0;
+    border-top: solid 1px rgba(16, 17, 26, .12);
+
+    & + .medailonek_vice {
+      margin-top: 0;
+    }
+
+    // dolní okraj medailonku dělá poslední lišta, medailonek bez ní si nechá odsazení
+    &:last-child {
+      margin-bottom: -@medailonek-odsazeni;
+    }
+
+    > summary {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 1em;
+      padding: .9rem @medailonek-odsazeni;
+      list-style: none;
+      font-size: 12px;
+      font-weight: bold;
+      letter-spacing: .1em;
+      text-transform: uppercase;
+      color: var(--gc-dark);
+      background-color: transparent;
+      transition: color 200ms ease-in;
+
+      &::-webkit-details-marker {
+        display: none;
+      }
+
+      // šipka z borderů jako v menu
+      &::after {
+        content: '';
+        flex: none;
+        width: 7px;
+        height: 7px;
+        margin: -4px 2px 0 0;
+        border-bottom: solid 2px currentColor;
+        border-right: solid 2px currentColor;
+        transform: rotate(45deg);
+      }
+
+      &:hover {
+        color: var(--gc-red);
+      }
+
+      &:focus-visible {
+        outline: solid 2px var(--gc-red);
+        outline-offset: -2px;
+      }
+    }
+
+    &[open] > summary {
+      color: var(--gc-red);
+      background-color: transparent;
+
+      &::after {
+        margin-top: 4px;
+        transform: rotate(225deg);
+      }
+    }
+
+    // výšku vysouvá details.less, tady se k ní přidá prolnutí
+    &::details-content {
+      opacity: 0;
+    }
+
+    &[open]::details-content {
+      opacity: 1;
+    }
+
+    @media (prefers-reduced-motion: no-preference) {
+      &::details-content {
+        transition: height 300ms ease-in-out, opacity 300ms ease-in-out, content-visibility 300ms allow-discrete;
+      }
+
+      > summary::after {
+        transition: transform 300ms ease-in-out, margin-top 300ms ease-in-out;
+      }
+    }
+  }
+
+  .medailonek_text {
+    padding: 0 @medailonek-odsazeni @medailonek-odsazeni;
+
+    p {
+      margin: 0 0 .75em;
+    }
+
+    > :last-child {
+      margin-bottom: 0;
+    }
+  }
+
+  // herní profil Pána jeskyně: popisek a puntíky (<hr>) za každý bod
+  .drdStaty {
+    display: grid;
+    grid-template-columns: auto 1fr;
+    align-items: center;
+    gap: .25em 1.5em;
+    margin-bottom: 1em;
+
+    hr {
+      display: inline-block;
+      width: 10px;
+      height: 10px;
+      margin: 0 4px 0 0;
+      border: none;
+      border-radius: 50%;
+      background-color: var(--gc-red);
+    }
+  }
+}

@@ -44,10 +44,17 @@ usort($organizatori, function (
 
 // zobrazit
 foreach ($organizatori as $o) {
-    if (!$o->fotka()) continue;
+    $fotka = $o->fotka();
+    if (!$fotka) continue;
+    $oSobe = trim((string)$o->oSobe());
     $t->assign([
-        'pj'           => $o,
-        'jmenoNaWebu'  => $o->jmenoNaWebu()
+        'fotka'       => $fotka->kvalita(85)->pokryjOrez(240, 240),
+        'jmenoNaWebu' => $o->jmenoNaWebu(),
+        'oSobe'       => $oSobe,
     ]);
-    $t->parse('dndPj.pj', 'pj');
+    // prázdný popis by se rozbalil do ničeho
+    if ($oSobe !== '') {
+        $t->parse('dndPj.pj.oSobe');
+    }
+    $t->parse('dndPj.pj');
 }

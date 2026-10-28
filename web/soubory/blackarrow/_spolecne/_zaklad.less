@@ -1,14 +1,19 @@
+:root {
+  --gc-red: #E22630;
+  --gc-dark: #10111A;
+}
+
 body {
   margin: 0;
   background-color: #fff;
-  color: #10111A;
+  color: var(--gc-dark);
   overflow-y: scroll;
   overflow-x: hidden; // prevence bočního scrollu kvůli přetékajícím globálním prvkům
   position: relative;
 }
 
 a {
-  color: #E22630;
+  color: var(--gc-red);
 }
 
 input, textarea, select {

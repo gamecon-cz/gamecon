@@ -163,6 +163,152 @@
     column-count: 1;
 }
 
+// lišta filtrů (Preact, ui/src/pages/aktivityFiltr), zarovnaná s kartami pod ní
+.aktivity_filtr {
+    margin: 32px auto 0;
+    width: 1600px;
+    max-width: 90%;
+    padding: 0 40px;
+
+    &:empty {
+        display: none;
+    }
+
+    @media (max-width: 600px) {
+        box-sizing: border-box;
+        max-width: 100%;
+        padding: 0 1.5%;
+    }
+}
+
+.aktivity_aktivity .aktivity_aktivita[hidden] {
+    display: none;
+}
+
+// zobrazení seznamem, jedna aktivita na řádek s malým obrázkem a bez popisu (přepínač v liště filtrů)
+.aktivity_aktivity-seznam {
+    column-count: 1;
+
+    .aktivity_aktivita {
+        display: grid;
+        grid-template-columns: 160px minmax(0, 3fr) minmax(0, 3fr) minmax(0, 4fr);
+        grid-template-rows: auto 1fr;
+        grid-template-areas:
+            "obrazek nazev stitky terminy"
+            "obrazek vypravec stitky terminy";
+        column-gap: 24px;
+        padding: 12px 20px 6px 12px;
+        margin-bottom: 12px;
+        background-color: #fff; // jinak prosvítá šmouha z pozadí seznamu
+
+        @media (max-width: 1000px) {
+            grid-template-columns: 120px minmax(0, 3fr) minmax(0, 2fr);
+            grid-template-rows: auto auto 1fr;
+            // obrázek přes všechny řádky, ať jeho výšku vezme poslední (1fr) a ne mezera pod názvem
+            grid-template-areas:
+                "obrazek nazev terminy"
+                "obrazek vypravec terminy"
+                "obrazek stitky terminy";
+        }
+
+        @media (max-width: 600px) {
+            grid-template-columns: 96px minmax(0, 1fr);
+            grid-template-rows: none;
+            grid-template-areas:
+                "obrazek nazev"
+                "obrazek vypravec"
+                "stitky stitky"
+                "terminy terminy";
+            column-gap: 12px;
+        }
+    }
+
+    // první label obaluje obrázek
+    .aktivity_aktivita > label:first-child {
+        grid-area: obrazek;
+        align-self: start;
+        margin-bottom: 6px;
+    }
+
+    .aktivity_obrazek {
+        margin: 0;
+        width: 100%;
+        height: auto;
+        aspect-ratio: 16 / 9;
+        object-fit: cover;
+    }
+
+    .aktivity_popis {
+        display: none;
+    }
+
+    .aktivity_nazev {
+        grid-area: nazev;
+        margin-bottom: 4px;
+        font-size: 20px;
+
+        label:hover {
+            text-decoration: underline;
+        }
+    }
+
+    .aktivity_vypravec {
+        grid-area: vypravec;
+        margin-bottom: 8px;
+    }
+
+    .aktivity_stitky {
+        grid-area: stitky;
+        align-self: start;
+        margin-bottom: 0;
+    }
+
+    .aktivity_stitek {
+        font-size: 10px;
+        padding: 4px 8px 3px;
+        margin: 0 6px 6px 0;
+    }
+
+    .aktivity_terminy {
+        grid-area: terminy;
+    }
+
+    // vypravěč termínu vpravo od času, ne pod ním, ať se řádek zbytečně nenatahuje
+    .aktivity_termin {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: baseline;
+        column-gap: .6em;
+    }
+
+    .aktivity_terminCas {
+        order: 1;
+        margin-right: 0;
+    }
+
+    // vypravěči pod sebou začínají stejně, bez nich by obsazenost zbytečně odskočila
+    .aktivity_termin:has(.aktivity_terminVypravec) .aktivity_terminCas {
+        min-width: 7.5em;
+    }
+
+    .aktivity_terminVypravec {
+        order: 2;
+    }
+
+    .aktivity_terminObsazenost {
+        order: 3;
+        margin-right: 0;
+    }
+
+    .aktivity_terminPrihlasit {
+        order: 4;
+    }
+
+    .aktivity_termin > br:last-child {
+        display: none;
+    }
+}
+
 .aktivity_aktivita {
     display: inline-block; // aby se nezalamovaly do víc sloupců
     box-sizing: border-box;
@@ -195,7 +341,8 @@
     }
 }
 
-.aktivity_aktivity-drd .aktivity_obrazek {
+.aktivity_aktivity-drd .aktivity_obrazek,
+.aktivity_obrazek[src=""] { // bez obrázku, typicky starší ročníky, jinak ikona rozbitého obrázku
     visibility: hidden; // zjednodušení, aby zůstalo odsazení od vrchu
     height: 20px;
 }
@@ -284,6 +431,17 @@
     padding-left: 21px;
     background: url('../blackarrow/aktivity/kalendar.png') no-repeat 0 5px;
     margin-bottom: 3px;
+}
+
+// místo &ensp; mezi částmi termínu, ty jsou zvlášť kvůli seznamu (.aktivity_aktivity-seznam), který je řadí jinak
+.aktivity_terminCas,
+.aktivity_terminObsazenost {
+    margin-right: .5em;
+}
+
+// div, protože přihlašovátko je <form> a ten do <span> nesmí; na řádku jako dřív
+.aktivity_terminPrihlasit {
+    display: inline;
 }
 
 

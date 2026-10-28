@@ -1,0 +1,111 @@
+// Rozbalovací bloky, hlavně v obsahu stránek z adminu (praktické informace, kontakty):
+// <details><summary>Nadpis</summary><article>…</article></details>
+
+details {
+  margin-bottom: .5rem;
+  interpolate-size: allow-keywords; // aby šla animovat výška až do auto, zatím umí jen Chromium
+
+  &[open] {
+    margin-bottom: 1em;
+  }
+
+  // obsah pod <summary>, prohlížeč bez ::details-content ho rozbalí bez animace
+  &::details-content {
+    height: 0;
+    overflow: clip;
+  }
+
+  &[open]::details-content {
+    height: auto;
+  }
+
+  @media (prefers-reduced-motion: no-preference) {
+    &::details-content {
+      transition: height 300ms ease-in-out, content-visibility 300ms allow-discrete;
+    }
+  }
+}
+
+summary {
+  padding: .5em 1em;
+  color: white;
+  background-color: var(--gc-red);
+  cursor: pointer;
+  user-select: none;
+  transition: background-color 200ms ease-in;
+
+  &:hover,
+  details[open] > & {
+    background-color: var(--gc-dark);
+  }
+}
+
+details > article {
+  padding: 0 .5em;
+  border: solid 2px var(--gc-dark);
+}
+
+details article {
+  p {
+    margin: .25em 0;
+  }
+
+  h2, h3, h4, h5, h6 {
+    margin: 0 0 .5em;
+  }
+
+  span {
+    color: var(--gc-red);
+    font-weight: bolder;
+  }
+
+  ul {
+    margin-left: 1em;
+  }
+
+  ul li {
+    margin: 0 0 1em;
+    padding-left: .5em;
+  }
+
+  // číslování v červených kolečkách
+  > ol {
+    margin: 0;
+    padding-left: 2em;
+  }
+
+  ol {
+    list-style: none;
+    counter-reset: polozka;
+  }
+
+  ol li {
+    margin: 0 0 .5em;
+    padding-left: 1em;
+  }
+
+  ol > li {
+    position: relative;
+
+    &::before {
+      content: counter(polozka);
+      counter-increment: polozka;
+      position: absolute;
+      left: -2.2em;
+      top: .2em;
+      width: 1.2em;
+      padding: .25em;
+      border-radius: 1em;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: .5em;
+      color: white;
+      background-color: var(--gc-red);
+    }
+  }
+
+  li:last-child {
+    margin: .25em 0 .5em;
+  }
+}

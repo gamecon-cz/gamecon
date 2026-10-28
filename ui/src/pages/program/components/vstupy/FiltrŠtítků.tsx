@@ -5,7 +5,7 @@ import { useAktivityFiltrované, useTagyPodleKategorie, useTagyPočetAktivit, us
 import { nastavFiltrTagů } from "../../../../store/program/slices/urlSlice";
 import { asValueLabel } from "../../../../utils";
 
-type TagValueLabel = {
+export type TagValueLabel = {
   value: number;
   label: string;
   početMožností?: number;
@@ -14,7 +14,7 @@ type TagValueLabel = {
   jeNázevKategorie?: boolean;
 }
 
-const formatOptionLabel = (data: TagValueLabel): React.ReactNode =>
+export const formatOptionLabel = (data: TagValueLabel): React.ReactNode =>
   (
     <div class="react_select_option--container">
       <span>{data.label}</span>
@@ -30,7 +30,7 @@ const formatOptionLabel = (data: TagValueLabel): React.ReactNode =>
   ) as any;
 
 const MultiValueDefault = components.MultiValue;
-const MultiValueTagy = (props: MultiValueProps<TagValueLabel, true, GroupBase<TagValueLabel>>) => {
+export const MultiValueTagy = (props: MultiValueProps<TagValueLabel, true, GroupBase<TagValueLabel>>) => {
   const { data } = props;
   if (data?.jeNázevKategorie) {
     return (<div>{data?.label}:</div>);
@@ -40,7 +40,7 @@ const MultiValueTagy = (props: MultiValueProps<TagValueLabel, true, GroupBase<Ta
 };
 
 const GroupDefault = components.Group;
-const GroupFlex: React.ComponentType<GroupProps<TagValueLabel, true, GroupBase<TagValueLabel>>> = (props) => {
+export const GroupFlex: React.ComponentType<GroupProps<TagValueLabel, true, GroupBase<TagValueLabel>>> = (props) => {
   // TODO: použít class name a css
   props.children = <div style={{ display: "flex", flexWrap: "wrap" }}>
     {props.children}

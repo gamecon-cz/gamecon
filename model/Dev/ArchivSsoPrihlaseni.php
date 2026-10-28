@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace Gamecon\Dev;
 
 /**
- * Ověřovací (consume) strana magického přihlášení do archivu — rozhoduje, zda
+ * Ověřovací (consume) strana magického přihlášení do archivu a preview — rozhoduje, zda
  * `?gcsso=` token uživatele přihlásí. Drží pravidla na jednom místě.
  *
  * Identita = číselné `id_uzivatele` z tokenu (ne e-mail — ten je proměnný a mohl by
@@ -16,8 +16,8 @@ namespace Gamecon\Dev;
  * nemusí existovat.
  *
  * Nepracuje s HTTP (žádné $_GET/$_COOKIE/redirect) — token i nonce z cookie dostane
- * předané; volající si pak řeší odstranění parametru z URL. Viz {@see CrossSiteLogin}
- * (podpis) a {@see SsoParovaciCookie} (spárovací cookie).
+ * předané; volající ({@see SsoPrihlaseniZUrl}, z adminu i z webu) si pak řeší odstranění
+ * parametru z URL. Viz {@see CrossSiteLogin} (podpis) a {@see SsoParovaciCookie} (spárovací cookie).
  */
 final class ArchivSsoPrihlaseni
 {
