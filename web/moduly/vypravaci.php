@@ -23,7 +23,7 @@ if ($urlSekce !== null) {
         TypAktivity::zViditelnych(),
         static fn (TypAktivity $linie) => $linie->url() === $urlSekce,
     )) ?: throw new Nenalezeno();
-    $this->info()->nazev('Vypravěči – ' . $vybranaSekce->nazev());
+    $this->info()->nazev('Vypravěči – ' . mb_ucfirst($vybranaSekce->nazev()));
     // na telefonu může být vybraná sekce ve filtru mimo obrazovku
     $t->assign('nazevVybraneSekce', htmlspecialchars(mb_ucfirst($vybranaSekce->nazev())));
     $t->parse('vypravaci.nadpisSekce');
