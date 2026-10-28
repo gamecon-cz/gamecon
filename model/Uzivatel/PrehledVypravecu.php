@@ -26,6 +26,9 @@ class PrehledVypravecu
     /** @var list<TypAktivity>|null */
     private ?array $linieZMenu = null;
 
+    /** @var array<int, Medailonek>|null ID vypravěče => jeho medailonek */
+    private ?array $medailonky = null;
+
     public function __construct(private readonly int $rocnik)
     {
     }
@@ -94,6 +97,23 @@ class PrehledVypravecu
             $this->linieZMenu(),
             static fn (TypAktivity $linie) => isset($idTypu[(int)$linie->id()]),
         ));
+    }
+
+    /**
+     * Co o sobě vypravěč píše, jako HTML; prázdné, když nic nevyplnil.
+     */
+    public function oSobe(\Uzivatel $vypravec): string
+    {
+        if ($this->medailonky === null) {
+            // jedním dotazem pro všechny, \Uzivatel::oSobe() by se ptal za každého zvlášť
+            $this->medailonky = [];
+            $idVypravecu      = array_map(static fn (\Uzivatel $vypravec) => (int)$vypravec->id(), $this->vypraveci());
+            foreach (Medailonek::zIds($idVypravecu) as $medailonek) {
+                $this->medailonky[$medailonek->idUzivatele()] = $medailonek;
+            }
+        }
+
+        return trim(($this->medailonky[(int)$vypravec->id()] ?? null)?->oSobe() ?? '');
     }
 
     /**

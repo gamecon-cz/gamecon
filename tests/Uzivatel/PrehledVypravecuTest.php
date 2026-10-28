@@ -111,6 +111,32 @@ SQL, [
         );
     }
 
+    public function testOSobeJeHtmlZMedailonkuAPrazdneKdyzNicNevyplnil(): void
+    {
+        $sTextem = $this->vlozVypravece('Pavla');
+        $this->vlozMedailonek($sTextem, 'Vedu **hororové** hry.');
+        $sPrazdnym = $this->vlozVypravece('Petr');
+        $this->vlozMedailonek($sPrazdnym, '');
+        $bezMedailonku = $this->vlozVypravece('Ota');
+
+        self::assertStringContainsString(
+            '<strong>hororové</strong>',
+            $this->prehled->oSobe(\Uzivatel::zId($sTextem)),
+        );
+        self::assertSame('', $this->prehled->oSobe(\Uzivatel::zId($sPrazdnym)));
+        self::assertSame('', $this->prehled->oSobe(\Uzivatel::zId($bezMedailonku)));
+    }
+
+    private function vlozMedailonek(int $idUzivatele, string $oSobe): void
+    {
+        dbQuery(<<<'SQL'
+INSERT INTO medailonky(id_uzivatele, o_sobe, drd) VALUES ($0, $1, '')
+SQL, [
+            0 => $idUzivatele,
+            1 => $oSobe,
+        ]);
+    }
+
     private function vlozVypravece(string $jmeno): int
     {
         $idUzivatele = $this->vlozUzivatele($jmeno);
