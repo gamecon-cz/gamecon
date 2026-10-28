@@ -11,7 +11,8 @@ use Gamecon\Role\Role;
 /**
  * Vypravěči ročníku pro veřejnou stránku /vypravaci.
  *
- * Vypravěčem je, kdo má ročníkovou roli vypravěče, i když ještě nevede žádnou aktivitu.
+ * Vypravěčem je, kdo má ročníkovou roli vypravěče, i když ještě nevede žádnou aktivitu,
+ * a kdo vede netechnickou aktivitu viditelnou na webu, i když roli nemá.
  * Jeho sekce jsou linie z menu webu, ve kterých vede aktivitu viditelnou na webu.
  */
 class PrehledVypravecu
@@ -19,8 +20,8 @@ class PrehledVypravecu
     /** @var list<\Uzivatel>|null */
     private ?array $vypraveci = null;
 
-    /** @var array<int, list<int>>|null ID vypravěče => ID typů jeho aktivit */
-    private ?array $idTypuPodleVypravecu = null;
+    /** @var array<int, list<int>>|null ID vedoucího => ID typů jeho aktivit */
+    private ?array $idTypuPodleVedoucich = null;
 
     /** @var list<TypAktivity>|null */
     private ?array $linieZMenu = null;
@@ -35,8 +36,20 @@ class PrehledVypravecu
     public function vypraveci(?TypAktivity $sekce = null): array
     {
         if ($this->vypraveci === null) {
+            // technickou a brigádnickou aktivitu vedou i lidé, kteří nic nevyprávějí
+            $idVedoucichNetechnickych = array_keys(array_filter(
+                $this->idTypuPodleVedoucich(),
+                static fn (array $idTypu) => array_diff($idTypu, TypAktivity::interniTypy()) !== [],
+            ));
+            $vypraveci = [];
+            foreach ([
+                ...\Uzivatel::zRole(Role::LETOSNI_VYPRAVEC($this->rocnik)),
+                ...\Uzivatel::zIds($idVedoucichNetechnickych),
+            ] as $vypravec) {
+                $vypraveci[(int)$vypravec->id()] = $vypravec;
+            }
             $this->vypraveci = serazenePodle(
-                \Uzivatel::zRole(Role::LETOSNI_VYPRAVEC($this->rocnik)),
+                array_values($vypraveci),
                 static fn (\Uzivatel $vypravec) => $vypravec->jmenoNaWebu(),
             );
         }
@@ -88,8 +101,16 @@ class PrehledVypravecu
      */
     private function idTypu(\Uzivatel $vypravec): array
     {
-        if ($this->idTypuPodleVypravecu === null) {
-            $this->idTypuPodleVypravecu = [];
+        return $this->idTypuPodleVedoucich()[(int)$vypravec->id()] ?? [];
+    }
+
+    /**
+     * @return array<int, list<int>>
+     */
+    private function idTypuPodleVedoucich(): array
+    {
+        if ($this->idTypuPodleVedoucich === null) {
+            $this->idTypuPodleVedoucich = [];
             $radky = dbFetchAll(<<<'SQL'
 SELECT DISTINCT akce_organizatori.id_uzivatele, akce_seznam.typ
 FROM akce_organizatori
@@ -98,11 +119,11 @@ WHERE akce_seznam.rok = $0
     AND akce_seznam.stav IN ($1)
 SQL, [0 => $this->rocnik, 1 => StavAktivity::bezneViditelneStavy()]);
             foreach ($radky as $radek) {
-                $this->idTypuPodleVypravecu[(int)$radek['id_uzivatele']][] = (int)$radek['typ'];
+                $this->idTypuPodleVedoucich[(int)$radek['id_uzivatele']][] = (int)$radek['typ'];
             }
         }
 
-        return $this->idTypuPodleVypravecu[(int)$vypravec->id()] ?? [];
+        return $this->idTypuPodleVedoucich;
     }
 
     /**

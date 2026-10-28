@@ -9,7 +9,7 @@ Medailonky vypravěčů: stránka jednoho vypravěče na `/<id>`, sdílený vzhl
 
 ## Pravidla
 
-- Vypravěč = má ročníkovou roli `Role::LETOSNI_VYPRAVEC($rocnik)`, i když ještě nevede žádnou aktivitu (záměr: seznam se mění během příprav a má se propsat sám, bez editace stránky).
+- Vypravěč = má ročníkovou roli `Role::LETOSNI_VYPRAVEC($rocnik)`, i když ještě nevede žádnou aktivitu (záměr: seznam se mění během příprav a má se propsat sám, bez editace stránky), **nebo** v ročníku vede netechnickou aktivitu ve stavu z `StavAktivity::bezneViditelneStavy()`, i když roli nemá (záměr: aktivity vedou i organizátoři bez role vypravěče a do přehledu patří). Netechnická = typ mimo `TypAktivity::interniTypy()` (technická a brigádnická), stejně jako na stránkách aktivit a titulce; kdo vede jen technickou nebo brigádnickou aktivitu a roli nemá, ve výpisu není.
 - Sekce vypravěče = linie z menu webu (`TypAktivity::zViditelnych()`, v pořadí menu), ve kterých v ročníku vede aktivitu ve stavu z `StavAktivity::bezneViditelneStavy()`. Aktivita v přípravě ani loňská aktivita sekci nepřidá.
 - Filtr nabízí jen sekce, ve kterých vede aspoň jeden vypravěč. URL linie z menu bez vypravěčů ukáže prázdný výpis, ne 404 (sdílený odkaz nemá vést na chybu); neznámá linie je 404.
 - Řazení podle jména na webu českou abecedou (`serazenePodle()` s `Collator`).
@@ -19,4 +19,4 @@ Medailonky vypravěčů: stránka jednoho vypravěče na `/<id>`, sdílený vzhl
 ## Gotchas
 
 - XTemplate neescapuje. Jméno a název sekce escapuje modul (`htmlspecialchars`), „o sobě“ je HTML z Markdownu a jde ven, jak je.
-- Ve výpisu jsou jen lidé s rolí; kdo vede aktivitu bez role vypravěče, v přehledu chybí, i když jeho medailonek na `/<id>` existuje.
+- Vedoucí netechnické aktivity, která není v linii z menu (např. mistrovství v DrD, workshopy, když je menu nezobrazuje), ve výpisu je, ale bez sekce, a filtr sekcí ho nenajde.
