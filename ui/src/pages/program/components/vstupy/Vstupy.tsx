@@ -79,22 +79,25 @@ export const ProgramUživatelskéVstupy: FunctionComponent<
               </a>
             );
           })}
-          {/* přehled vypravěčů je jen letošní */}
-          {!GAMECON_KONSTANTY.JE_ADMIN && jeLetošníRočník && (
-            <a href="vypravaci" class="program_filtry_tlacitko program_vypravaci">
-              Vypravěči
-            </a>
-          )}
-          <button
-            class={
-              "program_filtry_tlacitko" + (filtryOtevřené ? " aktivni" : "")
-            }
-            onClick={() => {
-              nastavFiltryOtevřené(!filtryOtevřené);
-            }}
-          >
-            Filtry
-          </button>
+          {/* Vypravěči a Filtry se zalamují spolu, samotné Filtry by spadly pod první den */}
+          <div class="program_dny_vpravo">
+            {/* přehled vypravěčů je jen letošní */}
+            {!GAMECON_KONSTANTY.JE_ADMIN && jeLetošníRočník && (
+              <a href="vypravaci" class="program_filtry_tlacitko program_vypravaci">
+                Vypravěči
+              </a>
+            )}
+            <button
+              class={
+                "program_filtry_tlacitko" + (filtryOtevřené ? " aktivni" : "")
+              }
+              onClick={() => {
+                nastavFiltryOtevřené(!filtryOtevřené);
+              }}
+            >
+              Filtry
+            </button>
+          </div>
         </div>
         <Filtry {...{ otevřeno: filtryOtevřené }} />
       </div>
