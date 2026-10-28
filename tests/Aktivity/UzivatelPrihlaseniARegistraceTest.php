@@ -204,6 +204,23 @@ class UzivatelPrihlaseniARegistraceTest extends AbstractTestDb
         self::assertSame('Jan „Drak" Novak', \Uzivatel::zId($id)->jmenoNaWebu());
     }
 
+    public function testJmenoNaWebuOrizneNezlomitelneMezery(): void
+    {
+        $id = \Uzivatel::registruj($this->uzivatel([
+            Sql::LOGIN_UZIVATELE    => 'Kew.' . uniqid('', true),
+            Sql::EMAIL1_UZIVATELE   => 'kew.' . uniqid('', true) . '@example.com',
+            Sql::JMENO_UZIVATELE    => 'Jan',
+            Sql::PRIJMENI_UZIVATELE => 'Novak',
+        ]));
+        \dbUpdate(Sql::UZIVATELE_HODNOTY_TABULKA, [
+            Sql::LOGIN_UZIVATELE => "\u{A0}Kew\u{A0}",
+        ], [
+            Sql::ID_UZIVATELE => $id,
+        ]);
+
+        self::assertSame('Kew', \Uzivatel::zId($id)->jmenoNaWebu());
+    }
+
     public function testJmenoNaWebuBezPrezdivkyPouzijeFallbackNaCeleJmeno(): void
     {
         $id = \Uzivatel::registruj($this->uzivatel([
