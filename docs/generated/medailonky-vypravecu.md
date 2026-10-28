@@ -11,7 +11,8 @@ Medailonky vypravěčů: stránka jednoho vypravěče na `/<id>`, sdílený vzhl
 
 - Vypravěč = má ročníkovou roli `Role::LETOSNI_VYPRAVEC($rocnik)`, i když ještě nevede žádnou aktivitu (záměr: seznam se mění během příprav a má se propsat sám, bez editace stránky), **nebo** v ročníku vede netechnickou aktivitu ve stavu z `StavAktivity::bezneViditelneStavy()`, i když roli nemá (záměr: aktivity vedou i organizátoři bez role vypravěče a do přehledu patří). Netechnická = typ mimo `TypAktivity::interniTypy()` (technická a brigádnická), stejně jako na stránkách aktivit a titulce; kdo vede jen technickou nebo brigádnickou aktivitu a roli nemá, ve výpisu není.
 - Sekce vypravěče = linie z menu webu (`TypAktivity::zViditelnych()`, v pořadí menu), ve kterých v ročníku vede aktivitu ve stavu z `StavAktivity::bezneViditelneStavy()`. Aktivita v přípravě ani loňská aktivita sekci nepřidá.
-- Filtr nabízí jen sekce, ve kterých vede aspoň jeden vypravěč. URL linie z menu bez vypravěčů ukáže prázdný výpis, ne 404 (sdílený odkaz nemá vést na chybu); neznámá linie je 404.
+- Filtr nabízí jen sekce, ve kterých vede aspoň jeden vypravěč. URL linie z menu bez vypravěčů ukáže prázdný výpis s odkazem na všechny vypravěče, ne 404 (sdílený odkaz nemá vést na chybu); neznámá linie je 404.
+- Vybraná sekce je i v nadpisu a skript při načtení posune pás sekcí k ní: na telefonu se pás posouvá do strany a vybraná sekce by jinak zůstala mimo obrazovku.
 - Řazení podle jména na webu českou abecedou (`serazenePodle()` s `Collator`).
 - Fotka: `fotkaAuto()`, kdo nenahrál vlastní, má náhradní podle pohlaví (záměr: náhradní obrázek, když uživatel fotku nedodá). Jméno: `jmenoNaWebu()`, tedy podle volby uživatele (jméno a příjmení / přezdívka).
 - „O sobě píše“ se rozbaluje jen u vypravěče, který text vyplnil; prázdná lišta by se rozbalila do ničeho.

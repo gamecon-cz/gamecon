@@ -24,6 +24,9 @@ if ($urlSekce !== null) {
         static fn (TypAktivity $linie) => $linie->url() === $urlSekce,
     )) ?: throw new Nenalezeno();
     $this->info()->nazev('Vypravěči – ' . $vybranaSekce->nazev());
+    // na telefonu může být vybraná sekce ve filtru mimo obrazovku
+    $t->assign('nazevVybraneSekce', htmlspecialchars(mb_ucfirst($vybranaSekce->nazev())));
+    $t->parse('vypravaci.nadpisSekce');
 }
 
 $prehled = new PrehledVypravecu($systemoveNastaveni->rocnik());
@@ -68,4 +71,8 @@ foreach ($vypraveci as $vypravec) {
     }
     $t->parse('vypravaci.medailonky.vypravec');
 }
-$t->parse($vypraveci ? 'vypravaci.medailonky' : 'vypravaci.zadni');
+if ($vypraveci) {
+    $t->parse('vypravaci.medailonky');
+} else {
+    $t->parse($vybranaSekce ? 'vypravaci.zadniVSekci' : 'vypravaci.zadni');
+}
