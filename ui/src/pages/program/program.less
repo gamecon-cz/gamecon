@@ -476,14 +476,31 @@
   left: 0;
 }
 
-.program_dny .program_filtry_tlacitko {
+// Vypravěči a Filtry stojí vpravo; když se za dny nevejdou, zalomí se spolu
+.program_dny_vpravo {
+  display: flex;
   margin-left: auto;
+
+  @media (max-width: 1200px) {
+    flex-grow: 1;
+  }
+}
+
+// pod 1200px dělá mezeru mezi řádky margin tlačítek, nad nimi by se zalomený řádek dotýkal dnů
+@media (min-width: 1201px) {
+  .program_dny {
+    row-gap: 10px;
+  }
+}
+
+.program_dny .program_filtry_tlacitko {
+  margin-left: 0;
   margin-right: 16px;
 }
 
-// odkaz na vypravěče stojí vpravo hned před Filtry, volné místo zůstává před ním
-.program_dny .program_vypravaci + .program_filtry_tlacitko {
-  margin-left: 0;
+// stejně velký jako Filtry, <button> má rámeček započítaný ve výšce
+.program_vypravaci {
+  box-sizing: border-box;
 }
 
 .program_filtry {
