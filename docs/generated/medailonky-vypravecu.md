@@ -18,5 +18,6 @@ Medailonky vypravěčů: stránka jednoho vypravěče na `/<id>`, sdílený vzhl
 
 ## Gotchas
 
+- „O sobě“ načítá `PrehledVypravecu::oSobe()` jedním dotazem pro všechny; `\Uzivatel::oSobe()` se ptá za každého zvlášť, u stovek vypravěčů stovky dotazů na stránku.
 - XTemplate neescapuje. Jméno a název sekce escapuje modul (`htmlspecialchars`), „o sobě“ je HTML z Markdownu a jde ven, jak je.
 - Vedoucí netechnické aktivity, která není v linii z menu (např. mistrovství v DrD, workshopy, když je menu nezobrazuje), ve výpisu je, ale bez sekce, a filtr sekcí ho nenajde.

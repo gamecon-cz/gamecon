@@ -46,7 +46,7 @@ if ($sekce) {
 
 $vypraveci = $prehled->vypraveci($vybranaSekce);
 foreach ($vypraveci as $vypravec) {
-    $oSobe      = trim((string)$vypravec->oSobe());
+    $oSobe      = $prehled->oSobe($vypravec);
     $nazvySekci = array_map(
         static fn (TypAktivity $linie) => $linie->nazev(),
         $prehled->sekceVypravece($vypravec),
