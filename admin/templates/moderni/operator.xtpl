@@ -1,0 +1,25 @@
+<!-- begin:operator -->
+<section class="operator moderni-operator" aria-label="Přihlášený uživatel">
+  <div class="moderni-operator-kdo">
+    <i class="fa-solid fa-circle-user" aria-hidden="true"></i>
+    <div>
+      <span class="moderni-popisek">Přihlášen{a} jako</span>
+      <strong>{operator}</strong>
+    </div>
+  </div>
+  <!-- begin:prepnutiUzivatele -->
+  <form method="post" class="moderni-hledani">
+    <input type="hidden" name="prihlasitSeJakoUzivatel" value="1">
+    <label class="moderni-skryte" for="omniboxUzivatel">Přihlásit se jako jiný uživatel</label>
+    <i class="fa-solid fa-user-secret" aria-hidden="true"></i>
+    <input id="omniboxUzivatel" class="omnibox autosubmit" type="text" name="id" autocomplete="off"
+           placeholder="Přihlásit se jako…" data-omnibox="{dataOmniboxJson}">
+  </form>
+  <!-- end:prepnutiUzivatele -->
+  <form method="post">
+    <button type="submit" name="odhlasNAdm" value="1" class="moderni-tlacitko-odhlasit">
+      <i class="fa-solid fa-right-from-bracket" aria-hidden="true"></i> Odhlásit
+    </button>
+  </form>
+</section>
+<!-- end:operator -->

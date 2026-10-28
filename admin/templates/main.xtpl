@@ -17,6 +17,7 @@
   <link rel="stylesheet" href="files/design/jquery-modal/jquery.modal.gamecon.css?version=f946305a5585486a6c3448dd9a304720" />
   <link rel="stylesheet" href="files/design/font-awesome-6.1.1/css/all.min.css">
   <link rel="stylesheet" href="files/design/font-awesome-6.1.1/css/v4-shims.css">
+  <link rel="stylesheet" href="files/design/vzhled_adminu.css?version={cssVersions.vzhled_adminu}"/>
   <!-- begin:april -->
   <link rel="stylesheet" href="files/design/april-1.1.css">
   <!-- end:april -->
@@ -75,8 +76,10 @@
       </div>
     </div>
     {FILE "templates/paticka.xtpl"}
+    {prepinacVzhledu}
   </div>
 </div>
+{vyberVzhledu}
 <!-- begin: ribbon -->
 <div class="corner-ribbon">{ribbonLabel}</div>
 <!-- end: ribbon -->

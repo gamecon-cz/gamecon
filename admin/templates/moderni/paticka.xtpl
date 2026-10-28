@@ -1,0 +1,12 @@
+<!-- begin:paticka -->
+<div class="paticka">
+  <nav class="nabidka" aria-label="Další stránky">
+    <a href="program-obecny" target="_blank"><i class="fa-solid fa-calendar-days" aria-hidden="true"></i> Program GameConu</a>
+    <a href="last-minute-tabule" target="_blank"><i class="fa-solid fa-chair" aria-hidden="true"></i> Volná místa</a>
+    <a href="program-test" target="_blank"><i class="fa-solid fa-flask" aria-hidden="true"></i> Program test</a>
+  </nav>
+  <div class="protip">
+    <i class="fa-regular fa-lightbulb" aria-hidden="true"></i> Protip: {protip}
+  </div>
+</div>
+<!-- end:paticka -->

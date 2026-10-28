@@ -1,0 +1,327 @@
+/* Výběr vzhledu administrace: dialog při první návštěvě a přepínač v patičce.
+   Načítá ho klasický i moderní vzhled, proto si nastavuje písmo i barvy sám a nespoléhá na styl.css. */
+
+/* Přepínač v patičce, na světlém pozadí (online prezence; moderní admin si ho dobarví v moderni.css). */
+.prepinac-vzhledu {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  margin: 4px 16px 24px;
+  color: #5b6370;
+  font: 13px/1.4 system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+}
+
+.prepinac-vzhledu-volby {
+  display: inline-flex;
+  padding: 2px;
+  border: 1px solid #c4c9d1;
+  border-radius: 999px;
+  background-color: #fff;
+}
+
+.prepinac-vzhledu button {
+  margin: 0;
+  padding: 6px 14px;
+  border: 0;
+  border-radius: 999px;
+  background: none;
+  color: inherit;
+  font: inherit;
+  cursor: pointer;
+}
+
+.prepinac-vzhledu button:hover {
+  color: #1f2328;
+}
+
+.prepinac-vzhledu button[aria-pressed="true"] {
+  background-color: #1c1f26;
+  color: #fff;
+}
+
+.prepinac-vzhledu button:focus-visible {
+  outline: 2px solid #2563eb;
+  outline-offset: 1px;
+}
+
+/* V klasickém adminu je přepínač pod patičkou na tmavém pozadí, písmem a velikostí jako patička. */
+.sloupR > .prepinac-vzhledu {
+  color: #999;
+  font: 12px tahoma, sans-serif;
+}
+
+.sloupR > .prepinac-vzhledu .prepinac-vzhledu-volby {
+  border-color: #555;
+  background-color: #2e2e2e;
+}
+
+.sloupR > .prepinac-vzhledu button {
+  padding: 4px 12px;
+}
+
+.sloupR > .prepinac-vzhledu button:hover {
+  color: #eee;
+}
+
+.sloupR > .prepinac-vzhledu button[aria-pressed="true"] {
+  background-color: #bbb;
+  color: #222;
+}
+
+.sloupR > .prepinac-vzhledu button:focus-visible {
+  outline-color: #8ab4f8;
+}
+
+/* Dialog výběru vzhledu */
+.vyber-vzhledu {
+  box-sizing: border-box;
+  width: calc(100% - 32px);
+  max-width: 640px;
+  max-height: calc(100vh - 32px);
+  padding: 0;
+  border: 0;
+  border-radius: 16px;
+  background-color: #fff;
+  box-shadow: 0 24px 64px rgba(0, 0, 0, 0.35);
+  color: #1f2328;
+  font: 15px/1.5 system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  text-align: left;
+  overflow: auto;
+}
+
+@supports (height: 100dvh) {
+  .vyber-vzhledu {
+    max-height: calc(100dvh - 32px);
+  }
+}
+
+.vyber-vzhledu::backdrop {
+  background-color: rgba(15, 18, 25, 0.6);
+}
+
+.vyber-vzhledu form {
+  padding: 28px;
+}
+
+.vyber-vzhledu h2 {
+  margin: 0 0 8px;
+  font-size: 22px;
+  line-height: 1.25;
+}
+
+.vyber-vzhledu p {
+  margin: 0 0 20px;
+  color: #57606a;
+}
+
+.vyber-vzhledu-moznosti {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+}
+
+.vyber-vzhledu-moznost {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin: 0;
+  padding: 12px 12px 14px;
+  border: 2px solid #d0d7de;
+  border-radius: 12px;
+  background-color: #fff;
+  color: inherit;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+  transition: border-color 0.15s, box-shadow 0.15s;
+}
+
+.vyber-vzhledu-moznost:hover,
+.vyber-vzhledu-moznost:focus-visible {
+  border-color: #1c1f26;
+  box-shadow: 0 0 0 4px rgba(28, 31, 38, 0.12);
+  outline: none;
+}
+
+.vyber-vzhledu-moznost strong {
+  margin-top: 8px;
+  font-size: 17px;
+}
+
+.vyber-vzhledu-popis {
+  color: #57606a;
+  font-size: 14px;
+  line-height: 1.4;
+}
+
+.vyber-vzhledu-stitek {
+  display: inline-block;
+  margin-left: 4px;
+  padding: 1px 8px;
+  border-radius: 999px;
+  background-color: #c62828;
+  color: #fff;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  vertical-align: 2px;
+}
+
+.vyber-vzhledu-pozdeji {
+  display: block;
+  margin: 16px auto 0;
+  padding: 8px 12px;
+  border: 0;
+  background: none;
+  color: #57606a;
+  font: inherit;
+  text-decoration: underline;
+  cursor: pointer;
+}
+
+.vyber-vzhledu-pozdeji:hover {
+  color: #1f2328;
+}
+
+/* Náhledy obou vzhledů, kreslené jen styly */
+.vyber-vzhledu-nahled {
+  display: flex;
+  gap: 6px;
+  height: 116px;
+  padding: 8px;
+  border-radius: 8px;
+  overflow: hidden;
+  box-sizing: border-box;
+}
+
+/* :where, aby display: flex níže pro rozložení náhledu vyhrál */
+:where(.vyber-vzhledu-nahled) span {
+  display: block;
+}
+
+.nahled-panel {
+  display: flex;
+  flex: 0 0 28%;
+  flex-direction: column;
+  gap: 5px;
+  padding: 6px 4px;
+  border-radius: 4px;
+}
+
+.nahled-panel span {
+  height: 9px;
+  border-radius: 3px;
+}
+
+.nahled-obsah {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  gap: 6px;
+  padding: 6px;
+  border-radius: 5px;
+}
+
+.nahled-cipy {
+  display: flex;
+  gap: 4px;
+}
+
+.nahled-cipy span {
+  flex: 1;
+  height: 12px;
+  border-radius: 999px;
+}
+
+.nahled-karta {
+  flex: 1;
+  border-radius: 4px;
+}
+
+.vyber-vzhledu-nahled-moderni {
+  background-color: #f3f4f6;
+}
+
+.vyber-vzhledu-nahled-moderni .nahled-panel {
+  background-color: #1c1f26;
+}
+
+.vyber-vzhledu-nahled-moderni .nahled-panel span {
+  background-color: #3a3f4b;
+}
+
+.vyber-vzhledu-nahled-moderni .nahled-panel span:nth-child(2) {
+  background-color: #c62828;
+}
+
+.vyber-vzhledu-nahled-moderni .nahled-obsah {
+  background-color: #fff;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.12);
+}
+
+.vyber-vzhledu-nahled-moderni .nahled-cipy span {
+  background-color: #e5e7eb;
+}
+
+.vyber-vzhledu-nahled-moderni .nahled-cipy span:first-child {
+  background-color: #1c1f26;
+}
+
+.vyber-vzhledu-nahled-moderni .nahled-karta {
+  background: repeating-linear-gradient(#fff 0 8px, #eef0f3 8px 10px);
+}
+
+.vyber-vzhledu-nahled-klasicky {
+  background-color: #3b3b3b;
+}
+
+.vyber-vzhledu-nahled-klasicky .nahled-panel {
+  padding: 6px 0 6px 4px;
+}
+
+.vyber-vzhledu-nahled-klasicky .nahled-panel span {
+  border-radius: 3px 0 0 3px;
+  background-color: #bbb;
+}
+
+.vyber-vzhledu-nahled-klasicky .nahled-panel span:nth-child(2) {
+  background-color: #fff;
+}
+
+.vyber-vzhledu-nahled-klasicky .nahled-obsah {
+  background-color: #fff;
+}
+
+.vyber-vzhledu-nahled-klasicky .nahled-cipy span {
+  border: 1px solid #7b936d;
+  border-radius: 3px;
+  background-color: hsl(98, 43%, 75%);
+}
+
+.vyber-vzhledu-nahled-klasicky .nahled-karta {
+  background: repeating-linear-gradient(#f0f0f0 0 8px, #fff 8px 16px);
+}
+
+@media (max-width: 520px) {
+  .vyber-vzhledu form {
+    padding: 20px;
+  }
+
+  .vyber-vzhledu-moznosti {
+    grid-template-columns: 1fr;
+    gap: 12px;
+  }
+
+  .vyber-vzhledu-nahled {
+    height: 84px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .vyber-vzhledu-moznost {
+    transition: none;
+  }
+}

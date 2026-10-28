@@ -4,6 +4,7 @@
  * Stránka statistik GC
  *
  * nazev: Statistiky
+ * ikona: chart-line
  * pravo: 107
  */
 
