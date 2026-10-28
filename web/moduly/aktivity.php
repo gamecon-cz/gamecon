@@ -292,6 +292,11 @@ if (!empty($org)) {
     // podstránky linie
     $stranky = serazenePodle($typ->stranky(), 'poradi');
     $t->parseEach($stranky, 'stranka', 'aktivity.stranka');
+    // přehled vypravěčů je jen letošní a sekce má jen pro linie z menu; bez vypravěčů by odkaz vedl na prázdný výpis
+    if (!$minulyRocnik && $typ->isVMenu() && $vypraveciProFiltr) {
+        $t->assign('urlLinie', $typ->url());
+        $t->parse('aktivity.vypraveciLinie');
+    }
 
     if (!$systemoveNastaveni->jsmeNaOstre() && $u && $u->jeOrganizator()) {
         $t->assign('urlEditaceStranek', URL_ADMIN . '/web/editace-stranek');
