@@ -45,11 +45,28 @@ SQL, [
         $tomas = $this->vlozVypravece('Tomáš');
         $simon = $this->vlozVypravece('Šimon');
         $adam = $this->vlozVypravece('Adam');
-        $bezRole = $this->vlozUzivatele('Bezrole');
-        $this->vlozAktivitu($bezRole, TypAktivity::RPG);
 
         // podle bajtů by Šimon skončil až za Tomášem
         self::assertSame([$adam, $simon, $tomas], $this->idVypravecu($this->prehled->vypraveci()));
+    }
+
+    public function testVypravecemJeIKdoBezRoleVedeNetechnickouAktivitu(): void
+    {
+        $sRoli = $this->vlozVypravece('Bára');
+        $this->vlozAktivitu($sRoli, TypAktivity::RPG);
+        $bezRole = $this->vlozUzivatele('Cyril');
+        $this->vlozAktivitu($bezRole, TypAktivity::LARP);
+        $this->vlozAktivitu($bezRole, TypAktivity::TECHNICKA);
+        $technik = $this->vlozUzivatele('Technik');
+        $this->vlozAktivitu($technik, TypAktivity::TECHNICKA);
+        $brigadnik = $this->vlozUzivatele('Brigádník');
+        $this->vlozAktivitu($brigadnik, TypAktivity::BRIGADNICKA);
+        $vPriprave = $this->vlozUzivatele('Připravující');
+        $this->vlozAktivitu($vPriprave, TypAktivity::RPG, stav: StavAktivity::NOVA);
+        $lonsky = $this->vlozUzivatele('Loňský');
+        $this->vlozAktivitu($lonsky, TypAktivity::RPG, rok: ROCNIK - 1);
+
+        self::assertSame([$sRoli, $bezRole], $this->idVypravecu($this->prehled->vypraveci()));
     }
 
     public function testSekceJsouLinieZMenuSViditelnouAktivitouVypravece(): void
@@ -85,7 +102,11 @@ SQL, [
         self::assertSame([$larpar], $this->idVypravecu($this->prehled->vypraveci(TypAktivity::zId(TypAktivity::LARP))));
         // wargaming vede jen člověk bez role vypravěče
         self::assertSame(
-            [TypAktivity::LARP, TypAktivity::RPG],
+            [$bezRole],
+            $this->idVypravecu($this->prehled->vypraveci(TypAktivity::zId(TypAktivity::WARGAMING))),
+        );
+        self::assertSame(
+            [TypAktivity::LARP, TypAktivity::RPG, TypAktivity::WARGAMING],
             $this->idLinii($this->prehled->sekce()),
         );
     }
