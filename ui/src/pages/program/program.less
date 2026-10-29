@@ -163,6 +163,8 @@
   --program-barva-plno-pruhledna: #F5F5F500;
   --program-barva-prihlasen: #65D161;
   --program-barva-prihlasen-pruhledna: #65D16100;
+  --program-barva-neucast: #FFB74D;
+  --program-barva-neucast-pruhledna: #FFB74D00;
   --program-barva-nahradnik: #E5E891;
   --program-barva-nahradnik-pruhledna: #E5E89100;
   --program-barva-organizator: #7EA5FF;
@@ -213,6 +215,10 @@
     background-color: var(--program-barva-prihlasen);
   }
 
+  &.neucast input[type=checkbox] {
+    background-color: var(--program-barva-neucast);
+  }
+
   &.nahradnik input[type=checkbox] {
     background-color: var(--program-barva-nahradnik);
   }
@@ -250,6 +256,11 @@
 .program tbody .prihlasen,
 .program_legenda_typ.prihlasen::before {
   background-color: var(--program-barva-prihlasen);
+}
+
+.program tbody .neucast,
+.program_legenda_typ.neucast::before {
+  background-color: var(--program-barva-neucast);
 }
 
 .program tbody .sledujici,
@@ -297,6 +308,7 @@
   &.vBudoucnu > a::after { background: linear-gradient(to left, var(--program-barva-vBudoucnu), var(--popis-doztracena-mezibod), var(--program-barva-vBudoucnu-pruhledna) var(--popis-doztracena-bod)); }
   &.plno > a::after { background: linear-gradient(to left, var(--program-barva-plno), var(--popis-doztracena-mezibod), var(--program-barva-plno-pruhledna) var(--popis-doztracena-bod)); }
   &.prihlasen > a::after { background: linear-gradient(to left, var(--program-barva-prihlasen), var(--popis-doztracena-mezibod), var(--program-barva-prihlasen-pruhledna) var(--popis-doztracena-bod)); }
+  &.neucast > a::after { background: linear-gradient(to left, var(--program-barva-neucast), var(--popis-doztracena-mezibod), var(--program-barva-neucast-pruhledna) var(--popis-doztracena-bod)); }
   &.nahradnik > a::after { background: linear-gradient(to left, var(--program-barva-nahradnik), var(--popis-doztracena-mezibod), var(--program-barva-nahradnik-pruhledna) var(--popis-doztracena-bod)); }
   &.organizator > a::after { background: linear-gradient(to left, var(--program-barva-organizator), var(--popis-doztracena-mezibod), var(--program-barva-organizator-pruhledna) var(--popis-doztracena-bod)); }
 }
@@ -315,6 +327,10 @@
 }
 
 .program_legenda_typ.prihlasen::before {
+  opacity: 1;
+}
+
+.program_legenda_typ.neucast::before {
   opacity: 1;
 }
 
@@ -405,6 +421,7 @@
 }
 
 .program td div.prihlasen,
+.program td div.neucast,
 .program td div.sledujici,
 .program td div.organizator {
   position: relative;

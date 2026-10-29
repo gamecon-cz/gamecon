@@ -1,4 +1,4 @@
-import { ApiTag, AktivitaStav } from "../../../api/program";
+import { ApiTag, AktivitaStav, jeNeúčast } from "../../../api/program";
 import { Pohlavi } from "../../../api/přihlášenýUživatel";
 import { GAMECON_KONSTANTY } from "../../../env";
 import { volnoTypZObsazenost } from "../../../utils";
@@ -48,6 +48,9 @@ export const aktivitaStatusZAktivity = (
   aktivita: Aktivita,
   pohlavi?: Pohlavi | undefined
 ): AktivitaStav => {
+  if (jeNeúčast(aktivita.stavPrihlaseni)) {
+    return "neucast";
+  }
   if (
     aktivita.stavPrihlaseni !== null &&
     aktivita.stavPrihlaseni !== "sledujici"

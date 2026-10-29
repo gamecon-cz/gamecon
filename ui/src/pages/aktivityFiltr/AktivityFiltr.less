@@ -1,0 +1,126 @@
+// šířku a odsazení lišty dává .aktivity_filtr ve web/soubory/blackarrow/aktivity/aktivity.less
+
+.aktivityFiltr {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  font-size: 14px;
+}
+
+.aktivityFiltr_radek {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 12px 16px;
+}
+
+.aktivityFiltr_hledat {
+  flex: 1 1 260px;
+  box-sizing: border-box;
+  height: 38px;
+  margin: 0;
+  padding: 0 12px;
+  border: solid 1px hsl(0, 0%, 80%); // jako react-select vedle
+  border-radius: 4px;
+  font: inherit;
+
+  &:focus {
+    outline: none;
+    border-color: #E22630;
+  }
+}
+
+// ročník s vypravěči se vejdou na mobil vedle sebe
+.aktivityFiltr_rocnik {
+  flex: 0 0 150px;
+}
+
+.aktivityFiltr_stitky {
+  flex: 2 1 320px;
+  min-width: 0;
+}
+
+.aktivityFiltr_vypravec {
+  flex: 1 1 180px;
+  min-width: 0;
+
+  // vypravěčů je hodně, širší menu jich ukáže víc vedle sebe; na užší obrazovce by vyteklo z okna
+  .aktivityFiltrVypravec__menu {
+    @media (min-width: 901px) {
+      min-width: 580px;
+    }
+  }
+}
+
+.aktivityFiltr_skupina {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.aktivityFiltr_zobrazeni {
+  margin-left: auto;
+}
+
+// vzhled jako tlačítka filtrů v programu (.program_filtry_tlacitko), jen menší
+.aktivityFiltr_tlacitko {
+  height: 38px;
+  padding: 0 16px;
+  background: #fff;
+  border: solid 1px #FDC689;
+  color: inherit;
+  font: inherit;
+  font-size: 12px;
+  font-weight: bold;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  cursor: pointer;
+
+  &:hover {
+    border-color: #E22630;
+  }
+
+  &.aktivni {
+    color: #fff;
+    background-color: #E22630;
+    border-color: #E22630;
+  }
+}
+
+.aktivityFiltr_souhrn {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 4px 16px;
+  font-weight: bold;
+}
+
+.aktivityFiltr_zrusit {
+  padding: 0;
+  background: none;
+  border: none;
+  color: inherit;
+  font: inherit;
+  font-weight: normal;
+  text-decoration: underline;
+  cursor: pointer;
+}
+
+@media (max-width: 600px) {
+  // dny i přepínač zobrazení každý na celý řádek, tlačítka rovným dílem
+  .aktivityFiltr_skupina {
+    flex: 1 1 100%;
+    flex-wrap: nowrap;
+
+    .aktivityFiltr_tlacitko {
+      flex: 1 1 0;
+      min-width: 0;
+      padding: 0 4px;
+      letter-spacing: 0.05em;
+    }
+  }
+
+  .aktivityFiltr_zobrazeni {
+    margin-left: 0;
+  }
+}

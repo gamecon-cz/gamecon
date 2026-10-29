@@ -3,6 +3,7 @@
 declare(strict_types=1);
 
 use Gamecon\Aktivita\TypAktivity;
+use Gamecon\Dev\SsoPrihlaseniZUrl;
 use Gamecon\Vyjimkovac\Vyjimkovac;
 use Gamecon\Web\Info;
 use Gamecon\Web\Motiv\BarvyWebuRepository;
@@ -26,6 +27,7 @@ if (HTTPS_ONLY) {
 omezCsrf();
 
 $u = Uzivatel::zSession();
+SsoPrihlaseniZUrl::zpracuj($u);
 
 /** @var Gamecon\SystemoveNastaveni\SystemoveNastaveni $systemoveNastaveni */
 

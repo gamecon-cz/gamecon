@@ -66,6 +66,10 @@ export const ProgramLegenda = () => {
               {zaškrtávátkoPro("prihlasen")}
               Přihlášen{koncovkaDlePohlaví}
             </label>
+            <label class="program_legenda_typ neucast">
+              {zaškrtávátkoPro("neucast")}
+              Neúčast
+            </label>
           </>
         ) : undefined}
         <label class="program_legenda_typ plno">

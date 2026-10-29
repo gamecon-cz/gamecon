@@ -2,8 +2,8 @@
 
 declare(strict_types=1);
 
-use Gamecon\Dev\ArchivSsoPrihlaseni;
-use Gamecon\Dev\SsoParovaciCookie;
+use Gamecon\Dev\NavratNaPreview;
+use Gamecon\Dev\SsoPrihlaseniZUrl;
 use Gamecon\Exceptions\UzivatelNenalezen;
 use Gamecon\Login\Login;
 
@@ -15,49 +15,31 @@ if (! empty($_GET['update_code'])) {
     print_r($output);
     exit($returnValue);
 }
-// Přihlášení
+// Přihlášení. Zpět na preview, odkud brána preview poslala do adminu, se jde přes ?returnTo=; formulář se odesílá
+// na tutéž URL, takže parametr přežije odeslání, a chyba() po špatném hesle vrací na ni (back()) také.
 $u = null;
 if (post(Login::LOGIN_INPUT_NAME) && post(Login::PASSWORD_INPUT_NAME)) {
     $pravePrihlaseny = Uzivatel::prihlas(post(Login::LOGIN_INPUT_NAME), post(Login::PASSWORD_INPUT_NAME));
     if (! $pravePrihlaseny) {
         chyba('Chybné přihlašovací jméno nebo heslo');
     }
-    back();
+    back(NavratNaPreview::getBezpecnaUrl(get(NavratNaPreview::PARAMETR)));
 }
 $u = Uzivatel::zSession();
 
-// Magické přihlášení z administračního rozcestníku (?gcsso= token).
-// Rozcestník podepsal token na id_uzivatele klikajícího + nonce a uložil stejný
-// nonce do spárovací cookie (.gamecon.cz). Přihlásíme jen když: tady ještě nikdo
-// není přihlášený (cizí sezení nepřepisujeme), token je platný, nonce z tokenu
-// sedí s nonce z cookie (= jde o prohlížeč, který klikl — sdílená URL nestačí) a
-// uživatele s tím ID v téhle DB máme. Jakékoli selhání je tiché: token z URL
-// odstraníme a necháme doběhnout běžné přihlášení. Pravidla drží ArchivSsoPrihlaseni
-// (sdílí je s testem).
-//
-// Volba ověřovacího klíče podle prostředí:
-//   - Archiv ročníku: GAMECON_SSO_KEY = klíč odvozený pro TENTO ročník
-//     (HMAC(rok, master)), vstříknutý deployem přes -e. Master tu není.
-//   - Preview: GAMECON_SSO_KEY prázdný, ale preview má rovnou master
-//     GAMECON_SSO_SECRET (viz deploy-preview-branch.sh) — preview podepisuje i
-//     ověřuje sám sebe, takže ověřujeme přímo masterem.
-//   - Ostrá: master sice má (kvůli mintování odkazů do archivů/preview), ale
-//     NENÍ preview → master k ověření tady nepoužijeme, takže se na ostré SSO
-//     login nikdy neuplatní (jsi tu už přihlášený) — což je správně.
-// Viz ArchivSsoPrihlaseni + SsoParovaciCookie + admin/scripts/modules/web/{stare-rocniky,previews}.php.
-if (($gcsso = get('gcsso')) !== null) {
-    $ssoKlic = defined('GAMECON_SSO_KEY') ? GAMECON_SSO_KEY : '';
-    if ($ssoKlic === '' && jsmeNaPreview() && defined('GAMECON_SSO_SECRET')) {
-        $ssoKlic = GAMECON_SSO_SECRET;
-    }
-    $u = (new ArchivSsoPrihlaseni($ssoKlic))->prihlas(
-        (string) $gcsso,
-        SsoParovaciCookie::precti(),
-        $u,
-    );
-    back(getCurrentUrlWithQuery([
-        'gcsso' => null,
-    ]));
+// Magické přihlášení z administračního rozcestníku (?gcsso= token). Kdy přihlásí, drží ArchivSsoPrihlaseni,
+// výběr klíče a odstranění tokenu z URL SsoPrihlaseniZUrl (společná s webem).
+// Viz docs/generated/odkazy-do-archivnich-rocniku.md.
+SsoPrihlaseniZUrl::zpracuj($u);
+
+// Už přihlášený, kdo otevřel odkaz z brány preview, se vrací hned; brána mu ho ukazuje jen tehdy, když ho nezná.
+$navratPrihlaseneho = NavratNaPreview::getCilProPrihlaseneho(
+    (bool) $u,
+    $_SERVER['REQUEST_METHOD'] ?? '',
+    get(NavratNaPreview::PARAMETR),
+);
+if ($navratPrihlaseneho !== null) {
+    back($navratPrihlaseneho);
 }
 
 if (post('odhlasNAdm')) {
