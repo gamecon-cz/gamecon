@@ -9,7 +9,7 @@ use Gamecon\Aktivita\TypAktivity;
 use Gamecon\Role\Role;
 
 /**
- * Vypravěči ročníku pro veřejnou stránku /vypravaci.
+ * Vypravěči ročníku pro veřejnou stránku /vypraveci.
  *
  * Vypravěčem je, kdo má ročníkovou roli vypravěče, i když ještě nevede žádnou aktivitu,
  * a kdo vede netechnickou aktivitu viditelnou na webu, i když roli nemá.

@@ -83,7 +83,7 @@ export const ProgramUživatelskéVstupy: FunctionComponent<
           <div class="program_dny_vpravo">
             {/* přehled vypravěčů je jen letošní */}
             {!GAMECON_KONSTANTY.JE_ADMIN && jeLetošníRočník && (
-              <a href="vypravaci" class="program_filtry_tlacitko program_vypravaci">
+              <a href="vypraveci" class="program_filtry_tlacitko program_vypraveci">
                 Vypravěči
               </a>
             )}

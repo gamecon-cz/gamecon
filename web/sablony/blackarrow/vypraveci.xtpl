@@ -1,19 +1,19 @@
-<!-- begin: vypravaci -->
-<div class="vypravaci">
+<!-- begin: vypraveci -->
+<div class="vypraveci">
   <h1>Vypravěči GameConu {rocnik}<!-- begin: nadpisSekce --> – {nazevVybraneSekce}<!-- end: nadpisSekce --></h1>
-  <p class="vypravaci_uvod">Kliknutím na vypravěče uvidíš i hry a program, které na GameConu vede.</p>
+  <p class="vypraveci_uvod">Kliknutím na vypravěče uvidíš i hry a program, které na GameConu vede.</p>
 
   <!-- begin: filtr -->
-  <nav class="vypravaci_filtr" aria-label="Sekce">
-    <a href="vypravaci" class="vypravaci_sekce"{vsichniAktivni}>Všichni</a>
+  <nav class="vypraveci_filtr" aria-label="Sekce">
+    <a href="vypraveci" class="vypraveci_sekce"{vsichniAktivni}>Všichni</a>
     <!-- begin: sekce -->
-    <a href="vypravaci/{urlSekce}" class="vypravaci_sekce"{sekceAktivni}>{nazevSekce}</a>
+    <a href="vypraveci/{urlSekce}" class="vypraveci_sekce"{sekceAktivni}>{nazevSekce}</a>
     <!-- end: sekce -->
   </nav>
   <script>
   // na telefonu se pás sekcí posouvá do strany, vybraná sekce by mohla zůstat mimo obrazovku
   (() => {
-    const filtr = document.querySelector('.vypravaci_filtr')
+    const filtr = document.querySelector('.vypraveci_filtr')
     const vybrana = filtr.querySelector('[aria-current]')
     if (vybrana) {
       filtr.scrollLeft += vybrana.getBoundingClientRect().left - filtr.getBoundingClientRect().left
@@ -46,11 +46,11 @@
   <!-- end: medailonky -->
 
   <!-- begin: zadni -->
-  <p class="vypravaci_zadni">Tady zatím nikdo není, vypravěče teprve skládáme. Mrkni sem později.</p>
+  <p class="vypraveci_zadni">Tady zatím nikdo není, vypravěče teprve skládáme. Mrkni sem později.</p>
   <!-- end: zadni -->
 
   <!-- begin: zadniVSekci -->
-  <p class="vypravaci_zadni">V téhle sekci zatím nikdo nevede. Mrkni sem později, nebo se podívej na <a href="vypravaci">všechny vypravěče</a>.</p>
+  <p class="vypraveci_zadni">V téhle sekci zatím nikdo nevede. Mrkni sem později, nebo se podívej na <a href="vypraveci">všechny vypravěče</a>.</p>
   <!-- end: zadniVSekci -->
 </div>
-<!-- end: vypravaci -->
+<!-- end: vypraveci -->
