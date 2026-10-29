@@ -148,7 +148,7 @@ class ObnovaHeslaController extends AbstractController
                 return new RedirectResponse(URL_WEBU . '/obnova-hesla?token=' . urlencode($token));
             }
 
-            $uzivatel->heslo($heslo);
+            $uzivatel->heslo($heslo, 'obnova-hesla');
 
             // Cookie hláška (TTL pár sekund) přežije redirect a zobrazí se na
             // přihlašovací stránce přes Chyba::vyzvedniHtml().

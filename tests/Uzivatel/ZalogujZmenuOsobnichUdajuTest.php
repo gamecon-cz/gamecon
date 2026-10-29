@@ -135,6 +135,63 @@ SQL,
         self::assertSame('Přejmenováno', $log[0]['nova_hodnota']);
     }
 
+    public function testZmenaHeslaZalogujeJenZeSeZmenilo(): void
+    {
+        $uzivatel = $this->vytvorUzivatele('heslo');
+
+        \Uzivatel::zalogujZmenuOsobnichUdaju(
+            $uzivatel->id(),
+            [
+                Sql::HESLO_MD5 => password_hash('nove-heslo', PASSWORD_DEFAULT),
+            ],
+            [
+                Sql::HESLO_MD5 => password_hash('stare-heslo', PASSWORD_DEFAULT),
+            ],
+            123,
+            'test',
+        );
+
+        $log = $this->logProUzivatele($uzivatel->id());
+        self::assertCount(1, $log);
+        self::assertSame(Sql::HESLO_MD5, $log[0]['sloupec']);
+        self::assertSame(\Uzivatel::SKRYTA_HODNOTA_V_LOGU, $log[0]['stara_hodnota'], 'Hash hesla v logu nemá co dělat');
+        self::assertSame(\Uzivatel::SKRYTA_HODNOTA_V_LOGU, $log[0]['nova_hodnota']);
+    }
+
+    public function testPrvniHesloNechaStarouHodnotuPrazdnou(): void
+    {
+        $uzivatel = $this->vytvorUzivatele('prvni_heslo');
+
+        \Uzivatel::zalogujZmenuOsobnichUdaju(
+            $uzivatel->id(),
+            [
+                Sql::HESLO_MD5 => password_hash('prvni-heslo', PASSWORD_DEFAULT),
+            ],
+            [
+                Sql::HESLO_MD5 => '',
+            ],
+            123,
+            'test',
+        );
+
+        $log = $this->logProUzivatele($uzivatel->id());
+        self::assertCount(1, $log);
+        self::assertSame('', $log[0]['stara_hodnota'], 'Z logu musí být poznat, že uživatel předtím heslo neměl');
+        self::assertSame(\Uzivatel::SKRYTA_HODNOTA_V_LOGU, $log[0]['nova_hodnota']);
+    }
+
+    public function testZmenaHeslaZalogujeOdkudPrisla(): void
+    {
+        $uzivatel = $this->vytvorUzivatele('zdroj_hesla');
+
+        $uzivatel->heslo('nove-heslo-z-obnovy', 'obnova-hesla');
+
+        $log = $this->logProUzivatele($uzivatel->id());
+        self::assertCount(1, $log);
+        self::assertSame(Sql::HESLO_MD5, $log[0]['sloupec']);
+        self::assertSame('obnova-hesla', $log[0]['zdroj_zmeny']);
+    }
+
     public function testZalogujeZmenuOpZasifrovane(): void
     {
         $uzivatel = $this->vytvorUzivatele('op');
