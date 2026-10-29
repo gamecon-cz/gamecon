@@ -228,7 +228,8 @@ SQL,
         (new \MySQLImport($dbConnectionAnonymDb))->load($tempFile);
 
         mysqli_query($dbConnectionAnonymDb, "SET FOREIGN_KEY_CHECKS = 0");
-        foreach (['_vars', 'platby', 'akce_import', 'uzivatele_url'] as $prilisCitlivaTabulka) {
+        // obnova_hesla_log: IP adresy, z nichž kdo žádal o obnovu hesla k jakému účtu
+        foreach (['_vars', 'platby', 'akce_import', 'uzivatele_url', 'obnova_hesla_log'] as $prilisCitlivaTabulka) {
             mysqli_query($dbConnectionAnonymDb, "TRUNCATE TABLE `{$this->anonymniDatabaze}`.`$prilisCitlivaTabulka`");
         }
         mysqli_query($dbConnectionAnonymDb, "SET FOREIGN_KEY_CHECKS = 1");
