@@ -88,6 +88,16 @@ class Uzivatel extends DbObject
         Sql::POTVRZENI_ZAKONNEHO_ZASTUPCE,
     ];
 
+    /**
+     * Sloupce z LOGOVANE_OSOBNI_SLOUPCE, u kterých log zaznamená jen to, že se
+     * změnily, a hodnotu nahradí SKRYTA_HODNOTA_V_LOGU. Hash hesla v logu nemá co
+     * dělat: zůstal by tam napořád a dal by se lámat i po další změně hesla.
+     */
+    private const SKRYTE_HODNOTY_V_LOGU = [
+        Sql::HESLO_MD5,
+    ];
+    public const SKRYTA_HODNOTA_V_LOGU = '***';
+
     public const FAKE = 0x01;  // modifikátor "fake uživatel"
     public const SYSTEM = 1;     // id uživatele reprezentujícího systém (např. "operaci provedl systém")
     public const SYSTEM_LOGIN = 'SYSTEM';
@@ -941,8 +951,10 @@ SQL,
 
     /**
      * Nastaví nové heslo (pouze setter)
+     *
+     * @param string $zdroj odkud změna přišla, do logu změn osobních údajů (viz zalogujZmenuOsobnichUdaju)
      */
-    public function heslo(string $noveHeslo)
+    public function heslo(string $noveHeslo, string $zdroj = '')
     {
         if (PASSWORD_DEFAULT === PASSWORD_BCRYPT && strlen($noveHeslo) > 72) {
             /*
@@ -955,6 +967,7 @@ SQL,
             $this->id(),
             [Sql::HESLO_MD5 => $novyHash],
             [Sql::HESLO_MD5 => $this->r[Sql::HESLO_MD5] ?? null],
+            zdroj: $zdroj,
         );
         dbQuery(
             'UPDATE uzivatele_hodnoty SET heslo_md5 = $1, random = $3 WHERE id_uzivatele = $2',
@@ -2605,10 +2618,24 @@ SQL,
             if (self::naNormalizovanyText($stara) === self::naNormalizovanyText($nova)) {
                 continue;
             }
+            if (in_array($sloupec, self::SKRYTE_HODNOTY_V_LOGU, true)) {
+                $stara = self::skrytaHodnotaDoLogu($stara);
+                $nova = self::skrytaHodnotaDoLogu($nova);
+            }
             $zmeny[] = [$sloupec, $stara, $nova];
         }
 
         self::zapisDoLoguZmenHodnot($idUzivatele, $zmeny, $idZmenil, $zdroj);
+    }
+
+    /**
+     * Prázdná hodnota zůstane prázdná, aby z logu bylo poznat, že předtím žádná nebyla.
+     */
+    private static function skrytaHodnotaDoLogu(mixed $hodnota): mixed
+    {
+        return $hodnota === null || $hodnota === ''
+            ? $hodnota
+            : self::SKRYTA_HODNOTA_V_LOGU;
     }
 
     /**
