@@ -10,6 +10,7 @@ use Gamecon\Kanaly\EmailovaSablona\EmailoveSablony;
 use Gamecon\Kanaly\EmailovaSablona\KodEmailoveSablonyEnum;
 use Gamecon\Kanaly\GcMail;
 use Gamecon\Kanaly\GcMailSablona;
+use Gamecon\Uzivatel\ObnovaHeslaLog;
 use Gamecon\Uzivatel\ResetHeslaToken;
 use Gamecon\Web\MenuWebu;
 use Gamecon\XTemplate\XTemplate;
@@ -57,16 +58,14 @@ class ObnovaHeslaController extends AbstractController
             }
 
             $email = trim((string) $request->request->get('mail', ''));
-            $uzivatel = $email === ''
-                ? null
-                : \Uzivatel::zEmailu($email);
+            if (! $this->vyridZadost($email, (string) $request->getClientIp())) {
+                \Chyba::nastav('Z tvé adresy přišlo za poslední hodinu moc žádostí o obnovu hesla. Zkus to prosím později.', \Chyba::CHYBA);
 
-            if ($uzivatel) {
-                $this->posliResetMail($uzivatel);
+                return new RedirectResponse(URL_WEBU . '/zapomenute-heslo');
             }
 
-            // Neutrální hláška bez ohledu na existenci účtu — neprozrazujeme,
-            // jestli e-mail v systému je.
+            // Neutrální hláška bez ohledu na existenci účtu a na limit účtu —
+            // neprozrazujeme, jestli e-mail v systému je.
             return $this->strankaResponse(
                 'Zapomenuté heslo',
                 <<<HTML
@@ -227,11 +226,35 @@ class ObnovaHeslaController extends AbstractController
         return null;
     }
 
-    private function posliResetMail(\Uzivatel $uzivatel): void
+    /**
+     * Pošle odkaz, pokud to dovolí limity, a žádost zapíše do {@see ObnovaHeslaLog}.
+     * Vrací false, jen když IP překročila limit: to se říct dá, limit účtu ne,
+     * prozradil by, že k e-mailu účet je.
+     */
+    private function vyridZadost(string $email, string $ip): bool
+    {
+        $obnovaHeslaLog = new ObnovaHeslaLog();
+        // Odmítnutá žádost se nezapisuje, jinak by vytrvalý bot plnil tabulku bez omezení.
+        if ($obnovaHeslaLog->jePrekrocenLimitIp($ip)) {
+            return false;
+        }
+
+        $uzivatel = $email === ''
+            ? null
+            : \Uzivatel::zEmailu($email);
+        $odeslano = $uzivatel !== null
+            && ! $obnovaHeslaLog->jePrekrocenLimitUctu((int) $uzivatel->id())
+            && $this->posliResetMail($uzivatel);
+        $obnovaHeslaLog->zaznamenej($ip, $uzivatel?->id(), $odeslano);
+
+        return true;
+    }
+
+    private function posliResetMail(\Uzivatel $uzivatel): bool
     {
         $hesloMd5 = self::hesloMd5((int) $uzivatel->id());
         if ($hesloMd5 === null) {
-            return;
+            return false;
         }
         $token = ResetHeslaToken::podepis((int) $uzivatel->id(), $hesloMd5, self::secret());
         $odkaz = URL_WEBU . '/obnova-hesla?token=' . $token;
@@ -249,7 +272,8 @@ class ObnovaHeslaController extends AbstractController
         $mail->skrytVLogu($token);
         $mail->obrazekInline(GcMailSablona::logoSoubor(), GcMailSablona::LOGO_CID);
         $mail->format($vykresleno->format);
-        $mail->odeslat();
+
+        return (bool) $mail->odeslat();
     }
 
     /**
