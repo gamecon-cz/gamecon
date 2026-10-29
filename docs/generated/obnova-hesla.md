@@ -15,7 +15,7 @@ TL;DR: Zapomenuté heslo = mail s podepsaným odkazem platným hodinu, heslo si 
 
 ## Co se kde loguje
 
-- `obnova_hesla_log` — každá přijatá žádost: kdy, IP, účet (`NULL` = k e-mailu účet není), jestli mail odešel. Prohlížeč v adminu není, jen SQL.
+- `obnova_hesla_log` — každá přijatá žádost: kdy, IP, účet (`NULL` = k e-mailu účet není), jestli mail odešel. Prohlížeč v adminu není, jen SQL. Anonymizovaná DB ji dostane prázdnou (`AnonymizovanaDatabaze::zkopirujData()`).
 - Log odeslaných mailů (`logy/maily.sqlite`, admin Dev → Mail logy, šablona `obnova_hesla`) — token v odkazu je nahrazený `***` (`GcMail::skrytVLogu()`), jinak by si s ním kdokoli s přístupem k logu nastavil cizí heslo. Soubor `MAILY_DO_SOUBORU` (beta/lokál bez SMTP) dostává mail **s platným** odkazem, je to náhrada doručení.
 - `uzivatele_hodnoty_log` — změna hesla se zapíše se zdrojem `obnova-hesla`; místo hashů `***` (`Uzivatel::SKRYTE_HODNOTY_V_LOGU`), prázdná stará hodnota zůstane prázdná (heslo předtím nebylo).
 
