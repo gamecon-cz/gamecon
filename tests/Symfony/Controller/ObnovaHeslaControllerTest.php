@@ -16,7 +16,7 @@ use Gamecon\Uzivatel\SqlStruktura\UzivateleHodnotySqlStruktura as Sql;
  */
 class ObnovaHeslaControllerTest extends AbstractTestDb
 {
-    private const IP = '198.51.100.7';
+    private const string IP = '198.51.100.7';
 
     public function testUcetDostaneNejvysLimitMailuDalsiZadostiSeJenZapisou(): void
     {
@@ -49,6 +49,26 @@ class ObnovaHeslaControllerTest extends AbstractTestDb
         self::assertSame(0, (int) $zadosti[0]['odeslano']);
     }
 
+    public function testZadostPoKtereMailNeodeselLimitUctuNezabira(): void
+    {
+        $email = $this->novyEmail();
+        // Rychloregistrace heslo nenastaví a účet bez hesla odkaz nedostane.
+        $idUzivatele = (int) \Uzivatel::rychloregistrace(
+            SystemoveNastaveni::zGlobals(),
+            [
+                Sql::EMAIL1_UZIVATELE => $email,
+            ],
+        );
+
+        self::assertTrue($this->vyridZadost($email, self::IP));
+
+        self::assertSame(0, (new MailLogger(LOGY . '/maily.sqlite'))->spocitej($email));
+        $zadosti = $this->zadostiZIp(self::IP);
+        self::assertCount(1, $zadosti);
+        self::assertSame($idUzivatele, (int) $zadosti[0]['id_uzivatele']);
+        self::assertSame(0, (int) $zadosti[0]['odeslano'], 'Zapsaná žádost počítala s mailem, ten ale neodešel');
+    }
+
     public function testPoLimituIpZadostOdmitneANicNeposle(): void
     {
         $obnovaHeslaLog = new ObnovaHeslaLog();
@@ -64,7 +84,7 @@ class ObnovaHeslaControllerTest extends AbstractTestDb
         self::assertCount(
             ObnovaHeslaLog::MAX_ZADOSTI_Z_IP,
             $this->zadostiZIp(self::IP),
-            'Odmítnutá žádost se nezapisuje, vytrvalý bot by jinak plnil tabulku bez omezení',
+            'Odmítnutá žádost v logu nezůstane, vytrvalý bot by jinak plnil tabulku bez omezení',
         );
     }
 

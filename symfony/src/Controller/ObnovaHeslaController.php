@@ -233,19 +233,31 @@ class ObnovaHeslaController extends AbstractController
      */
     private function vyridZadost(string $email, string $ip): bool
     {
-        $obnovaHeslaLog = new ObnovaHeslaLog();
-        // Odmítnutá žádost se nezapisuje, jinak by vytrvalý bot plnil tabulku bez omezení.
-        if ($obnovaHeslaLog->jePrekrocenLimitIp($ip)) {
-            return false;
-        }
-
         $uzivatel = $email === ''
             ? null
             : \Uzivatel::zEmailu($email);
-        $odeslano = $uzivatel !== null
-            && ! $obnovaHeslaLog->jePrekrocenLimitUctu((int) $uzivatel->id())
-            && $this->posliResetMail($uzivatel);
-        $obnovaHeslaLog->zaznamenej($ip, $uzivatel?->id(), $odeslano);
+        $obnovaHeslaLog = new ObnovaHeslaLog();
+        // Zapisuje se před počítáním limitů, jinak je souběžné žádosti přeskočí (viz ObnovaHeslaLog).
+        $idZadosti = $obnovaHeslaLog->zaznamenej($ip, $uzivatel?->id(), $uzivatel !== null);
+        if ($obnovaHeslaLog->jePrekrocenLimitIp($ip)) {
+            // Odmítnutá žádost v logu nezůstane, jinak by vytrvalý bot plnil tabulku bez omezení.
+            $obnovaHeslaLog->smaz($idZadosti);
+
+            return false;
+        }
+        if ($uzivatel === null) {
+            return true;
+        }
+
+        $odeslano = false;
+        try {
+            $odeslano = ! $obnovaHeslaLog->jePrekrocenLimitUctu((int) $uzivatel->id())
+                && $this->posliResetMail($uzivatel);
+        } finally {
+            if (! $odeslano) {
+                $obnovaHeslaLog->oznacNeodeslano($idZadosti);
+            }
+        }
 
         return true;
     }
