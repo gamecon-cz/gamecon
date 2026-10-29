@@ -4,9 +4,12 @@ declare(strict_types=1);
 
 namespace Gamecon\Tests\Model\Kanaly\EmailovaSablona;
 
+use App\Controller\ObnovaHeslaController;
 use Gamecon\Kanaly\EmailovaSablona\EmailovaSablonaRepository;
 use Gamecon\Kanaly\EmailovaSablona\KodEmailoveSablonyEnum;
+use Gamecon\Kanaly\GcMail;
 use Gamecon\Kanaly\MailLogger;
+use Gamecon\Kanaly\MimeNahled;
 use Gamecon\SystemoveNastaveni\SystemoveNastaveni;
 use Gamecon\Tests\Db\AbstractTestDb;
 use Gamecon\Uzivatel\SqlStruktura\UzivateleHodnotySqlStruktura as Sql;
@@ -98,6 +101,43 @@ class OdeslaneEmailyZeSablonTest extends AbstractTestDb
             $mail['telo_html'],
             'Odeslat se musí to, co je v databázi, ne původní znění z kódu',
         );
+    }
+
+    /**
+     * @test
+     */
+    public function logOdeslanychEmailuNeukazePlatnyOdkazNaObnovuHesla(): void
+    {
+        $email = 'obnova.hesla.' . uniqid('', true) . '@example.test';
+        $id = \Uzivatel::rychloregistrace(
+            SystemoveNastaveni::zGlobals(),
+            [
+                Sql::EMAIL1_UZIVATELE => $email,
+            ],
+        );
+        $uzivatel = \Uzivatel::zIdUrcite($id);
+        $uzivatel->heslo('stare-heslo');
+
+        // Tok s Altchou a CSRF se v testu projít nedá, mail ale posílá tahle jedna metoda.
+        $controller = (new \ReflectionClass(ObnovaHeslaController::class))->newInstanceWithoutConstructor();
+        (new \ReflectionMethod(ObnovaHeslaController::class, 'posliResetMail'))->invoke($controller, $uzivatel);
+
+        $mail = $this->posledniMailPro($email);
+        self::assertSame('obnova_hesla', $mail['sablona']);
+        self::assertStringContainsString(URL_WEBU . '/obnova-hesla?token=' . GcMail::SKRYTO_V_LOGU, $mail['telo_html']);
+        $tela = MimeNahled::vytahniTela($mail['telo']);
+        foreach ([
+            'telo_html'   => $mail['telo_html'],
+            'html v MIME' => $tela['html'],
+            'text v MIME' => $tela['text'],
+        ] as $kde => $obsah) {
+            self::assertNotNull($obsah, $kde);
+            self::assertDoesNotMatchRegularExpression(
+                '~token=(?!' . preg_quote(GcMail::SKRYTO_V_LOGU, '~') . ')~',
+                $obsah,
+                "S odkazem z logu ({$kde}) by si kdokoli s přístupem k logu nastavil cizí heslo",
+            );
+        }
     }
 
     /**

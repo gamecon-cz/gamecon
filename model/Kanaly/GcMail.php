@@ -20,6 +20,7 @@ class GcMail
 {
     public const FORMAT_HTML = 'html';
     public const FORMAT_TEXT = 'text';
+    public const SKRYTO_V_LOGU = '***';
     private const VYCHOZI_EMAIL_ODESILATELE = 'info@gamecon.cz';
 
     public static function vytvorZGlobals(string $text = ''): static
@@ -44,6 +45,10 @@ class GcMail
      */
     private array $obrazkyInline = [];
     private ?string $sablona = null;
+    /**
+     * @var string[]
+     */
+    private array $skrytoVLogu = [];
 
     public function __construct(
         private readonly SystemoveNastaveni $systemoveNastaveni,
@@ -95,6 +100,19 @@ class GcMail
     }
 
     /**
+     * A text the log of sent mails gets replaced by SKRYTO_V_LOGU, such as the token in a link to reset a password,
+     * which anyone who reads the log could use. The recipient gets the mail unchanged.
+     */
+    public function skrytVLogu(string $text): self
+    {
+        if ($text !== '') {
+            $this->skrytoVLogu[] = $text;
+        }
+
+        return $this;
+    }
+
+    /**
      * Odešle sestavenou zprávu.
      *
      * @return bool jestli se zprávu podařilo odeslat
@@ -108,10 +126,8 @@ class GcMail
             ->subject($predmet);
         $body = $this->pridejPrefixPodleProstredi($this->dejText());
         $mail->text(strip_tags($body));
-        $teloHtml = null;
         if ($format === self::FORMAT_HTML) {
             $mail->html($body);
-            $teloHtml = $body;
             foreach ($this->obrazkyInline as $obrazek) {
                 if ($obrazek['soubor'] !== '' && is_file($obrazek['soubor'])) {
                     $mail->embedFromPath($obrazek['soubor'], $obrazek['cid']);
@@ -125,7 +141,7 @@ class GcMail
         if ($adresatiDoSouboru) {
             $mail->addBcc(...$adresatiDoSouboru);
             $odeslano = $this->zalogovatDo(MAILY_DO_SOUBORU, $mail->toString()) || $odeslano;
-            $this->zalogujOdeslani($predmet, $format, $adresatiDoSouboru, $mail->toString(), $teloHtml);
+            $this->zalogujOdeslani($predmet, $format, $adresatiDoSouboru, $mail);
         }
         $adresati = $this->adresatiPovoleniPodleRoli();
         if ($adresati) {
@@ -147,15 +163,15 @@ class GcMail
             try {
                 $mailer->send($mail);
                 $odeslano = true;
-                $this->zalogujOdeslani($predmet, $format, $adresati, $mail->toString(), $teloHtml);
+                $this->zalogujOdeslani($predmet, $format, $adresati, $mail);
             } catch (\Throwable $chyba) {
                 sleep(1); //ratelimiting
                 try {
                     $mailer->send($mail);
                     $odeslano = true;
-                    $this->zalogujOdeslani($predmet, $format, $adresati, $mail->toString(), $teloHtml);
+                    $this->zalogujOdeslani($predmet, $format, $adresati, $mail);
                 } catch (\Throwable $chyba) {
-                    $this->zalogujOdeslani($predmet, $format, $adresati, $mail->toString(), $teloHtml, $chyba->getMessage());
+                    $this->zalogujOdeslani($predmet, $format, $adresati, $mail, $chyba->getMessage());
                     throw $chyba;
                 }
             }
@@ -168,8 +184,7 @@ class GcMail
         string $predmet,
         string $format,
         array $adresati,
-        string $telo,
-        ?string $teloHtml = null,
+        Email $mail,
         ?string $chyba = null,
     ): void {
         $mailLogger = $this->mailLogger ?? MailLogger::zGlobals();
@@ -179,17 +194,43 @@ class GcMail
                 ++$pocetPriloh;
             }
         }
+        $mailDoLogu = $this->mailDoLogu($mail);
+        $teloHtml = $mailDoLogu->getHtmlBody();
         $mailLogger->zalogujOdeslani(
             predmet: $predmet,
             format: $format,
             adresati: $adresati,
             pocetPriloh: $pocetPriloh,
-            telo: $telo,
-            teloHtml: $teloHtml,
+            telo: $mailDoLogu->toString(),
+            teloHtml: is_string($teloHtml)
+                ? $teloHtml
+                : null,
             chyba: $chyba,
             sablona: $this->sablona,
             rocnik: $this->systemoveNastaveni->rocnik(),
         );
+    }
+
+    /**
+     * A copy of the mail for the log, the texts from skrytVLogu() replaced in it. Replaced in the bodies before the copy
+     * is encoded, a quoted-printable line break cannot split a hidden text and let it through.
+     */
+    private function mailDoLogu(Email $mail): Email
+    {
+        if ($this->skrytoVLogu === []) {
+            return $mail;
+        }
+        $kopie = clone $mail;
+        $text = $mail->getTextBody();
+        if (is_string($text)) {
+            $kopie->text(str_replace($this->skrytoVLogu, self::SKRYTO_V_LOGU, $text));
+        }
+        $html = $mail->getHtmlBody();
+        if (is_string($html)) {
+            $kopie->html(str_replace($this->skrytoVLogu, self::SKRYTO_V_LOGU, $html));
+        }
+
+        return $kopie;
     }
 
     private function vychoziOdesilatel(): Address

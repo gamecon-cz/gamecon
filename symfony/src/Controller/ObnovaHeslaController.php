@@ -245,6 +245,8 @@ class ObnovaHeslaController extends AbstractController
         $mail->adresat($uzivatel->mail());
         $mail->predmet($vykresleno->predmet);
         $mail->sablona(KodEmailoveSablonyEnum::OBNOVA_HESLA);
+        // Kdo vidí log odeslaných mailů, nesmí odkazem nastavit cizí heslo.
+        $mail->skrytVLogu($token);
         $mail->obrazekInline(GcMailSablona::logoSoubor(), GcMailSablona::LOGO_CID);
         $mail->format($vykresleno->format);
         $mail->odeslat();
