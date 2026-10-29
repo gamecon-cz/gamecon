@@ -1,12 +1,12 @@
-Medailonky vypravěčů: stránka jednoho vypravěče na `/<id>`, sdílený vzhled karty medailonku a veřejný přehled všech vypravěčů ročníku na `/vypravaci` s filtrem podle sekcí.
+Medailonky vypravěčů: stránka jednoho vypravěče na `/<id>`, sdílený vzhled karty medailonku a veřejný přehled všech vypravěčů ročníku na `/vypraveci` s filtrem podle sekcí.
 
 ## Vstupní body
 
 - **Medailonek jednoho vypravěče** = `/<id>` (i `/<id>-<slug>` nebo `/<slug>`): `web/index.php` přes `Uzivatel::zUrl()` pustí modul `web/moduly/aktivity.php` s parametrem `org`, ten vypíše hlavičku (fotka, jméno, „o sobě“) a aktivity, které vede. Funguje pro každé ID uživatele, ne jen pro vypravěče.
-- **Přehled vypravěčů** = `web/moduly/vypravaci.php` + `web/sablony/blackarrow/vypravaci.xtpl`, data z `model/Uzivatel/PrehledVypravecu.php`. Filtr sekce je druhá část URL: `/vypravaci/rpg`.
+- **Přehled vypravěčů** = `web/moduly/vypraveci.php` + `web/sablony/blackarrow/vypraveci.xtpl`, data z `model/Uzivatel/PrehledVypravecu.php`. Filtr sekce je druhá část URL: `/vypraveci/rpg`.
 - **Vzhled karty** `.medailonky > .medailonek` = `web/soubory/blackarrow/_spolecne/medailonek.less`. Sdílí ho stránka Kontakty (HTML v DB, upravuje se v adminu), widgety `web/widgety/dnd-pj.*` a `drd-pj.*` a přehled vypravěčů.
 - **Odkaz z programu**: tlačítko „Vypravěči“ vedle „Filtry“ v `ui/src/pages/program/components/vstupy/Vstupy.tsx`, obě v obalu `program_dny_vpravo`, aby se zalamovala spolu (na 1201–1430 px se za dny nevejdou a samotné Filtry by spadly pod první den); v adminu je skryté (`JE_ADMIN`), relativní `href` by tam vedl do adminu, a v programu minulého ročníku (`?rocnik=`) taky, přehled je jen letošní.
-- **Odkaz ze stránky linie** (`/prednasky`): tlačítko „Vypravěči“ v řadě podstránek linie vede na její sekci (`/vypravaci/prednasky`), blok `vypraveciLinie` v `web/sablony/blackarrow/aktivity.xtpl`. Jen letošní ročník, jen linie z menu (`TypAktivity::isVMenu()`, jiná linie by vedla na 404) a jen když v linii někdo vede (`$vypraveciProFiltr` z karet stránky, stejné stavy jako přehled), jinak by vedl na prázdný výpis. D&D/JaD turnaj má vedle něj ručně psanou podstránku „Dungeon Masteři“ (widget `dnd-pj`) se skoro stejným obsahem.
+- **Odkaz ze stránky linie** (`/prednasky`): tlačítko „Vypravěči“ v řadě podstránek linie vede na její sekci (`/vypraveci/prednasky`), blok `vypraveciLinie` v `web/sablony/blackarrow/aktivity.xtpl`. Jen letošní ročník, jen linie z menu (`TypAktivity::isVMenu()`, jiná linie by vedla na 404) a jen když v linii někdo vede (`$vypraveciProFiltr` z karet stránky, stejné stavy jako přehled), jinak by vedl na prázdný výpis. D&D/JaD turnaj má vedle něj ručně psanou podstránku „Dungeon Masteři“ (widget `dnd-pj`) se skoro stejným obsahem.
 
 ## Pravidla
 

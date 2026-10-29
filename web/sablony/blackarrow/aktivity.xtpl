@@ -44,7 +44,7 @@
     <a href="{stranka.url}" class="aktivity_stranka">{stranka.nadpis}</a>
     <!-- end: stranka -->
     <!-- begin: vypraveciLinie -->
-    <a href="vypravaci/{urlLinie}" class="aktivity_stranka">Vypravěči</a>
+    <a href="vypraveci/{urlLinie}" class="aktivity_stranka">Vypravěči</a>
     <!-- end: vypraveciLinie -->
 </div>
 

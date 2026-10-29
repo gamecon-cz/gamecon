@@ -11,7 +11,7 @@ use Gamecon\Uzivatel\PrehledVypravecu;
 $this->blackarrowStyl(true);
 $this->info()->nazev('Vypravěči');
 
-// vypravaci/rpg ukáže jen vypravěče RPG
+// vypraveci/rpg ukáže jen vypravěče RPG
 $vybranaSekce = null;
 $urlSekce     = $url->cast(1);
 if ($urlSekce !== null) {
@@ -26,7 +26,7 @@ if ($urlSekce !== null) {
     $this->info()->nazev('Vypravěči – ' . mb_ucfirst($vybranaSekce->nazev()));
     // na telefonu může být vybraná sekce ve filtru mimo obrazovku
     $t->assign('nazevVybraneSekce', htmlspecialchars(mb_ucfirst($vybranaSekce->nazev())));
-    $t->parse('vypravaci.nadpisSekce');
+    $t->parse('vypraveci.nadpisSekce');
 }
 
 $prehled = new PrehledVypravecu($systemoveNastaveni->rocnik());
@@ -42,9 +42,9 @@ if ($sekce) {
             'nazevSekce'   => htmlspecialchars(mb_ucfirst($linie->nazev())),
             'sekceAktivni' => $linie->url() === $urlSekce ? ' aria-current="page"' : '',
         ]);
-        $t->parse('vypravaci.filtr.sekce');
+        $t->parse('vypraveci.filtr.sekce');
     }
-    $t->parse('vypravaci.filtr');
+    $t->parse('vypraveci.filtr');
 }
 
 $vypraveci = $prehled->vypraveci($vybranaSekce);
@@ -63,16 +63,16 @@ foreach ($vypraveci as $vypravec) {
         'oSobe'       => $oSobe,
     ]);
     if ($nazvySekci) {
-        $t->parse('vypravaci.medailonky.vypravec.sekce');
+        $t->parse('vypraveci.medailonky.vypravec.sekce');
     }
     // prázdný popis by se rozbalil do ničeho
     if ($oSobe !== '') {
-        $t->parse('vypravaci.medailonky.vypravec.oSobe');
+        $t->parse('vypraveci.medailonky.vypravec.oSobe');
     }
-    $t->parse('vypravaci.medailonky.vypravec');
+    $t->parse('vypraveci.medailonky.vypravec');
 }
 if ($vypraveci) {
-    $t->parse('vypravaci.medailonky');
+    $t->parse('vypraveci.medailonky');
 } else {
-    $t->parse($vybranaSekce ? 'vypravaci.zadniVSekci' : 'vypravaci.zadni');
+    $t->parse($vybranaSekce ? 'vypraveci.zadniVSekci' : 'vypraveci.zadni');
 }
