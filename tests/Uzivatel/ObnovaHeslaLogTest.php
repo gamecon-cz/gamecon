@@ -12,7 +12,7 @@ use Gamecon\Uzivatel\SqlStruktura\UzivateleHodnotySqlStruktura as UzivatelSql;
 
 class ObnovaHeslaLogTest extends AbstractTestDb
 {
-    private const IP = '192.0.2.1';
+    private const string IP = '192.0.2.1';
 
     public function testLimitUctuPocitaJenOdeslaneMailyZaPosledniHodinu(): void
     {
@@ -20,11 +20,11 @@ class ObnovaHeslaLogTest extends AbstractTestDb
         $obnovaHeslaLog = new ObnovaHeslaLog();
         $this->zapisZadosti(self::IP, $idUzivatele, true, ObnovaHeslaLog::MAX_MAILU_NA_UCET, ObnovaHeslaLog::OKNO_MINUT + 1);
         $this->zapisZadosti(self::IP, $idUzivatele, false, ObnovaHeslaLog::MAX_MAILU_NA_UCET, 0);
-        $this->zapisZadosti(self::IP, $idUzivatele, true, ObnovaHeslaLog::MAX_MAILU_NA_UCET - 1, 0);
+        $this->zapisZadosti(self::IP, $idUzivatele, true, ObnovaHeslaLog::MAX_MAILU_NA_UCET, 0);
 
         self::assertFalse(
             $obnovaHeslaLog->jePrekrocenLimitUctu($idUzivatele),
-            'Starší maily a žádosti, po kterých mail neodešel, se do limitu účtu nepočítají',
+            'Starší maily a žádosti, po kterých mail neodešel, se do limitu účtu nepočítají, a limit dovolí právě MAX_MAILU_NA_UCET mailů',
         );
 
         $obnovaHeslaLog->zaznamenej(self::IP, $idUzivatele, true);
@@ -36,12 +36,12 @@ class ObnovaHeslaLogTest extends AbstractTestDb
     {
         $obnovaHeslaLog = new ObnovaHeslaLog();
         $this->zapisZadosti(self::IP, null, false, ObnovaHeslaLog::MAX_ZADOSTI_Z_IP, ObnovaHeslaLog::OKNO_MINUT + 1);
-        $this->zapisZadosti(self::IP, null, false, ObnovaHeslaLog::MAX_ZADOSTI_Z_IP - 1, 0);
+        $this->zapisZadosti(self::IP, null, false, ObnovaHeslaLog::MAX_ZADOSTI_Z_IP, 0);
         $this->zapisZadosti('192.0.2.2', null, false, ObnovaHeslaLog::MAX_ZADOSTI_Z_IP, 0);
 
         self::assertFalse(
             $obnovaHeslaLog->jePrekrocenLimitIp(self::IP),
-            'Starší žádosti a žádosti z jiné IP se do limitu nepočítají',
+            'Starší žádosti a žádosti z jiné IP se do limitu nepočítají, a limit dovolí právě MAX_ZADOSTI_Z_IP žádostí',
         );
 
         $obnovaHeslaLog->zaznamenej(self::IP, null, false);
