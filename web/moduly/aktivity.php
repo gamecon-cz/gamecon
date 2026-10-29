@@ -209,9 +209,9 @@ foreach ($skupiny as $skupina) {
     ];
 }
 
-// u pár karet by filtry jen překážely, přednášky (kolem 10–15 karet) je ale už potřebují
+// u jediné karty není co filtrovat; co na menší stránce nic nezúží (jediný den), schová lišta sama
 $filtrAktivit = null;
-if (count($kartyProFiltr) >= 10) {
+if (count($kartyProFiltr) >= 2) {
     $nazvyKategoriiTagu = [];
     foreach (KategorieTagu::zVsech() as $kategorieTagu) {
         $nazvyKategoriiTagu[$kategorieTagu->id()] = $kategorieTagu->nazev();

@@ -155,6 +155,8 @@ const AktivityFiltrSDaty: FunctionComponent<TAktivityFiltrSDatyProps> = (props) 
     () => new Map(data.tagy.map((tag) => [tag.id, tag.kategorie])),
     [data],
   );
+  // lišta je i u pár karet, jediný den by ale nic nezúžil
+  const nabídnoutDny = data.dny.length > 1;
 
   const [filtr, setFiltr] = useState<FiltrKaret>(() => {
     // odkaz z jiné linie nebo z loňska: co na stránce není, by v liště nešlo vypnout
@@ -163,7 +165,9 @@ const AktivityFiltrSDaty: FunctionComponent<TAktivityFiltrSDatyProps> = (props) 
       ...zUrl,
       štítky: zUrl.štítky.filter((štítek) => kategorieŠtítků.has(štítek)),
       vypravěči: zUrl.vypravěči.filter((vypravěč) => data.vypraveci.some((známý) => známý.id === vypravěč)),
-      dny: zUrl.dny.filter((den) => data.dny.some((známý) => známý.klic === den)),
+      dny: nabídnoutDny
+        ? zUrl.dny.filter((den) => data.dny.some((známý) => známý.klic === den))
+        : [],
       jenVolné: zUrl.jenVolné && data.lzePrihlasovat,
     };
   });
@@ -282,37 +286,39 @@ const AktivityFiltrSDaty: FunctionComponent<TAktivityFiltrSDatyProps> = (props) 
             nastav({ text: e.currentTarget.value });
           }}
         />
-        <div class="aktivityFiltr_stitky" ref={menuŠtítků.obal}>
-          <Select<TagValueLabel, true>
-            placeholder="Štítky (žánr, věk, …)"
-            aria-label="Štítky"
-            options={možnostiŠtítků}
-            isMulti
-            closeMenuOnSelect={false}
-            maxMenuHeight={menuŠtítků.výška}
-            onMenuOpen={menuŠtítků.otevři}
-            onMenuClose={menuŠtítků.zavři}
-            value={vybranéŠtítky}
-            onChange={(vybrané) => {
-              nastav({ štítky: vybrané.filter((x) => !x.jeNázevKategorie).map((x) => x.value) });
-            }}
-            components={{
-              MultiValue: MultiValueTagy,
-              Group: GroupFlex,
-            }}
-            formatOptionLabel={formatOptionLabel}
-            noOptionsMessage={() => "Žádný takový štítek"}
-            styles={{
-              option(base) {
-                return {
-                  ...base,
-                  minWidth: "180px",
-                  maxWidth: "180px",
-                };
-              },
-            }}
-          />
-        </div>
+        {data.tagy.length > 0 && (
+          <div class="aktivityFiltr_stitky" ref={menuŠtítků.obal}>
+            <Select<TagValueLabel, true>
+              placeholder="Štítky (žánr, věk, …)"
+              aria-label="Štítky"
+              options={možnostiŠtítků}
+              isMulti
+              closeMenuOnSelect={false}
+              maxMenuHeight={menuŠtítků.výška}
+              onMenuOpen={menuŠtítků.otevři}
+              onMenuClose={menuŠtítků.zavři}
+              value={vybranéŠtítky}
+              onChange={(vybrané) => {
+                nastav({ štítky: vybrané.filter((x) => !x.jeNázevKategorie).map((x) => x.value) });
+              }}
+              components={{
+                MultiValue: MultiValueTagy,
+                Group: GroupFlex,
+              }}
+              formatOptionLabel={formatOptionLabel}
+              noOptionsMessage={() => "Žádný takový štítek"}
+              styles={{
+                option(base) {
+                  return {
+                    ...base,
+                    minWidth: "180px",
+                    maxWidth: "180px",
+                  };
+                },
+              }}
+            />
+          </div>
+        )}
       </div>
 
       <div class="aktivityFiltr_radek">
@@ -347,21 +353,23 @@ const AktivityFiltrSDaty: FunctionComponent<TAktivityFiltrSDatyProps> = (props) 
             />
           </div>
         )}
-        <div class="aktivityFiltr_skupina">
-          {data.dny.map((den) => (
-            <button
-              key={den.klic}
-              type="button"
-              class={třídaTlačítka(filtr.dny.includes(den.klic))}
-              aria-pressed={filtr.dny.includes(den.klic)}
-              onClick={() => {
-                přepniDen(den.klic);
-              }}
-            >
-              {den.nazev}
-            </button>
-          ))}
-        </div>
+        {nabídnoutDny && (
+          <div class="aktivityFiltr_skupina">
+            {data.dny.map((den) => (
+              <button
+                key={den.klic}
+                type="button"
+                class={třídaTlačítka(filtr.dny.includes(den.klic))}
+                aria-pressed={filtr.dny.includes(den.klic)}
+                onClick={() => {
+                  přepniDen(den.klic);
+                }}
+              >
+                {den.nazev}
+              </button>
+            ))}
+          </div>
+        )}
         {data.lzePrihlasovat && (
           <button
             type="button"
@@ -429,7 +437,7 @@ export const AktivityFiltr: FunctionComponent = () => {
     return <AktivityFiltrSDaty data={data} přepínačRočníku={přepínačRočníku} minulýRočník={minulýRočník} />;
   }
 
-  // u pár aktivit bez filtrů, ale k loňským se jde dostat i tady
+  // u jediné aktivity bez filtrů, ale k loňským se jde dostat i tady
   return ročníky
     ? (
       <div class="aktivityFiltr">
