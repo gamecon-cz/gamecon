@@ -4,7 +4,7 @@
 <head>
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
     <meta name="description" content="Největší festival nepočítačových her. Na Gameconu si najde každý fanoušek aktivní zábavy a nepočítačových her to svoje, bez ohledu na věk.">
-    <meta name="theme-color" content="#10111a">
+    <meta name="theme-color" content="{barvaProhlizece}">
     <base href="{base}">
     {FILE "sablony/blackarrow/fonty.xtpl"}
     <!-- Stránky bez vlastní moderní šablony ukazují klasický obsah, proto se klasické styly načítají vždy
@@ -14,6 +14,8 @@
     <link rel="stylesheet" href="{moderniCss}">
     <!-- begin: extraCss --><link rel="stylesheet" href="{url}"><!-- end: extraCss -->
     <!-- begin: extraJs --><script src="{url}"></script><!-- end: extraJs -->
+    <!-- barvy ročníku a speciální motiv z adminu (Web → Barvy a motivy webu), přepisují proměnné moderni.css -->
+    {motivWebu}
     <!-- třída mw-js hned, ať se obsah odhalovaný při posunu (moderni.js) neukáže a zase neschová -->
     <script>document.documentElement.classList.add('mw-js')</script>
     <script src="{moderniJs}" defer></script>
@@ -28,6 +30,8 @@
     <a class="mw-preskocit" href="#mwObsah">Přeskočit na obsah</a>
 
     {menu}
+
+    {oznameni}
 
     {chyba}
 
@@ -70,6 +74,13 @@
         </div>
     </footer>
     <!-- end: paticka -->
+
+    <!-- begin: nahledMotivu -->
+    <div class="mw-nahled-motivu" role="status">
+        <span>Náhled: {popisNahleduMotivu}. Návštěvníci ho nevidí.</span>
+        <a href="{urlKonceNahleduMotivu}">Ukončit náhled</a>
+    </div>
+    <!-- end: nahledMotivu -->
 
     <!-- begin: ribbon -->
     <div class="corner-ribbon">{ribbonLabel}</div>

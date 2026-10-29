@@ -7,6 +7,12 @@
         position: fixed;
         width: 100%;
     }
+
+    /* pevné menu (70 až 120 px podle šířky) by překrylo lištu oznámení pod sebou a naléhavé oznámení nejde zavřít,
+       s lištou proto zůstane jako na ostatních stránkách */
+    .menu:has(~ .oznameniWebu) {
+        position: sticky;
+    }
 }
 </style>
 

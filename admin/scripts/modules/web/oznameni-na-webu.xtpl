@@ -1,0 +1,154 @@
+<!-- begin: oznameniNaWebu -->
+
+<h1>Oznámení na webu</h1>
+
+<p>
+    Lišta pod menu na všech stránkách webu, v klasickém i moderním vzhledu. Hodí se hlavně během festivalu,
+    když se něco změní: přesun, zpoždění, zrušení, bouřka. Text se píše stejně jako stránky webu
+    (<a href="web/html-navod">návod</a>), odkaz třeba <code>[program](https://gamecon.cz/program)</code>.
+</p>
+
+<style>
+    .oznameniNaWebu-formular {
+        max-width: 760px;
+        margin-bottom: 2em;
+    }
+
+    .oznameniNaWebu-formular label {
+        display: block;
+        margin: 0.6em 0;
+    }
+
+    .oznameniNaWebu-formular textarea {
+        display: block;
+        width: 100%;
+        box-sizing: border-box;
+    }
+
+    .oznameniNaWebu-formular fieldset {
+        margin: 0.6em 0;
+    }
+
+    .oznameniNaWebu-formular fieldset label {
+        margin: 0.3em 0;
+    }
+
+    .oznameniNaWebu-chyba {
+        color: #b00020;
+        font-weight: bold;
+    }
+
+    .oznameniNaWebu-seznam td {
+        vertical-align: top;
+    }
+
+    .oznameniNaWebu-seznam td p {
+        margin: 0;
+    }
+
+    .oznameniNaWebu-seznam form {
+        display: inline;
+    }
+
+    .oznameniNaWebu-skoncilo td {
+        color: #777;
+    }
+
+    .oznameniNaWebu-typ {
+        display: inline-block;
+        padding: 1px 8px;
+        border-radius: 999px;
+        background-color: #10111a;
+        color: #fff;
+        white-space: nowrap;
+    }
+
+    .oznameniNaWebu-typ-upozorneni {
+        background-color: #fbc584;
+        color: #10111a;
+    }
+
+    .oznameniNaWebu-typ-nalehave {
+        background-color: #e22630;
+    }
+</style>
+
+<form method="post" class="oznameniNaWebu-formular">
+    <h2>{nadpisFormulare}</h2>
+    <!-- begin: chybaFormulare -->
+    <p class="oznameniNaWebu-chyba">{chybaFormulare}</p>
+    <!-- end: chybaFormulare -->
+    <input type="hidden" name="id" value="{id}">
+    <label>
+        Text
+        <textarea name="text" rows="3" required>{text}</textarea>
+    </label>
+    <fieldset>
+        <legend>Typ</legend>
+        <!-- begin: typ -->
+        <label>
+            <input type="radio" name="typ" value="{typHodnota}" {zaskrtnuto} required>
+            <strong>{typNazev}</strong>: {typPopis}
+        </label>
+        <!-- end: typ -->
+    </fieldset>
+    <label>
+        Zobrazit od
+        <input type="datetime-local" name="zobrazit_od" value="{zobrazitOd}">
+        <small>prázdné = hned</small>
+    </label>
+    <label>
+        Zobrazit do
+        <input type="datetime-local" name="zobrazit_do" value="{zobrazitDo}">
+        <small>prázdné = dokud ho neukončíš</small>
+    </label>
+    <button type="submit" name="akce" value="ulozit">Uložit</button>
+    <!-- begin: zrusitUpravu -->
+    <a href="{urlModulu}">Zrušit úpravu</a>
+    <!-- end: zrusitUpravu -->
+</form>
+
+<h2>Oznámení</h2>
+
+<!-- begin: zadne -->
+<p>Zatím žádné.</p>
+<!-- end: zadne -->
+
+<!-- begin: seznam -->
+<table class="zvyraznovana oznameniNaWebu-seznam" style="width: 100%">
+    <tr>
+        <th>Stav</th>
+        <th>Typ</th>
+        <th>Text</th>
+        <th>Od</th>
+        <th>Do</th>
+        <th>Poslední změna</th>
+        <th></th>
+    </tr>
+    <!-- begin: radek -->
+    <tr class="oznameniNaWebu-{stav}">
+        <td>{stavNazev}</td>
+        <td><span class="oznameniNaWebu-typ oznameniNaWebu-typ-{typ}">{typNazev}</span></td>
+        <td>{textHtml}</td>
+        <td>{od}</td>
+        <td>{do}</td>
+        <td class="hinted">{zmeneno}</td>
+        <td style="white-space: nowrap">
+            <a href="{urlModulu}?id={oznameniId}">upravit</a>
+            <!-- begin: ukoncit -->
+            <form method="post">
+                <input type="hidden" name="id" value="{oznameniId}">
+                <button type="submit" name="akce" value="ukoncit">ukončit teď</button>
+            </form>
+            <!-- end: ukoncit -->
+            <form method="post" onsubmit="return confirm('Smazat oznámení?')">
+                <input type="hidden" name="id" value="{oznameniId}">
+                <button type="submit" name="akce" value="smazat">smazat</button>
+            </form>
+        </td>
+    </tr>
+    <!-- end: radek -->
+</table>
+<!-- end: seznam -->
+
+<!-- end: oznameniNaWebu -->

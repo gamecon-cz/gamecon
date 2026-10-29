@@ -122,7 +122,7 @@ body.vzhled-moderni {
 .mw-tlacitko-cervene {
   background-color: var(--mw-cervena);
   color: #fff;
-  box-shadow: 0 6px 18px rgba(226, 38, 48, 0.28);
+  box-shadow: 0 6px 18px color-mix(in srgb, var(--mw-cervena) 28%, transparent);
 }
 
 .mw-tlacitko-cervene:hover {
@@ -577,6 +577,128 @@ body.vzhled-moderni {
   }
 }
 
+/* ---------- Oznámení (admin Web → Oznámení na webu) ---------- */
+
+.mw-oznameni-polozka {
+  border-bottom: 1px solid var(--mw-okraj);
+  background-color: var(--mw-kremova);
+  color: var(--mw-text);
+  font-size: 15px;
+  line-height: 1.45;
+}
+
+.mw-oznameni-upozorneni {
+  border-bottom-color: transparent;
+  background-color: var(--mw-oranzova);
+}
+
+.mw-oznameni-nalehave {
+  border-bottom-color: transparent;
+  background-color: var(--mw-cervena);
+  color: #fff;
+}
+
+.mw-oznameni-obal {
+  position: relative;
+  display: flex;
+  align-items: baseline;
+  gap: 12px;
+  padding-top: 12px;
+  padding-bottom: 12px;
+  padding-right: calc(var(--mw-okraj-stranky) + 40px);
+}
+
+.mw-oznameni-typ {
+  flex: 0 0 auto;
+  padding: 3px 10px;
+  border-radius: 999px;
+  background-color: var(--mw-inkoust);
+  color: #fff;
+  font-weight: 700;
+  font-size: 12px;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.mw-oznameni-nalehave .mw-oznameni-typ {
+  background-color: #fff;
+  color: var(--mw-cervena);
+}
+
+.mw-oznameni-text {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+.mw-oznameni-text p {
+  margin: 0;
+}
+
+.mw-oznameni-text p + p {
+  margin-top: 0.5em;
+}
+
+.mw-oznameni-text a {
+  color: inherit;
+  font-weight: 700;
+}
+
+.mw-oznameni-zavrit {
+  position: absolute;
+  top: 50%;
+  right: var(--mw-okraj-stranky);
+  display: grid;
+  place-items: center;
+  width: 32px;
+  height: 32px;
+  border-radius: 999px;
+  color: inherit;
+  font-size: 24px;
+  line-height: 1;
+  text-decoration: none;
+  transform: translateY(-50%);
+}
+
+.mw-oznameni-zavrit:hover {
+  background-color: color-mix(in srgb, currentColor 12%, transparent);
+}
+
+@media (max-width: 640px) {
+  .mw-oznameni-obal {
+    flex-direction: column;
+    gap: 6px;
+  }
+}
+
+/* Náhled barev nebo motivu pro grafika (?nahledMotivu=…), návštěvníci ho nevidí */
+.mw-nahled-motivu {
+  position: fixed;
+  bottom: 16px;
+  left: 50%;
+  z-index: 900;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  max-width: calc(100% - 2 * var(--mw-okraj-stranky));
+  box-sizing: border-box;
+  padding: 10px 12px 10px 20px;
+  border-radius: 999px;
+  background-color: #2563eb;
+  box-shadow: var(--mw-stin-hover);
+  color: #fff;
+  font: 700 14px/1.3 system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif;
+  transform: translateX(-50%);
+}
+
+.mw-nahled-motivu a {
+  flex: 0 0 auto;
+  padding: 6px 12px;
+  border-radius: 999px;
+  background-color: #fff;
+  color: #2563eb;
+  text-decoration: none;
+}
+
 /* ---------- Patička ---------- */
 
 .mw-paticka {
@@ -771,8 +893,8 @@ body.vzhled-moderni {
   position: relative;
   padding: 72px 0 152px;
   background:
-    radial-gradient(900px 520px at 88% -8%, rgba(226, 38, 48, 0.38), transparent 62%),
-    radial-gradient(760px 480px at -8% 108%, rgba(251, 197, 132, 0.16), transparent 60%),
+    radial-gradient(900px 520px at 88% -8%, color-mix(in srgb, var(--mw-cervena) 38%, transparent), transparent 62%),
+    radial-gradient(760px 480px at -8% 108%, color-mix(in srgb, var(--mw-oranzova) 16%, transparent), transparent 60%),
     var(--mw-inkoust);
   color: #fff;
   overflow: hidden;
@@ -801,11 +923,33 @@ body.vzhled-moderni {
   text-wrap: balance;
 }
 
-/* červený tah štětcem jako v klasické titulce */
-.mw-zvyraznit {
-  background: url("../blackarrow/gchlavicka/smouha.png") no-repeat 0 92% / 100% 0.42em;
-  -webkit-box-decoration-break: clone;
-  box-decoration-break: clone;
+/* Tah štětcem jako v klasické titulce. Obrázek dává jen tvar (maska), barva je hlavní barva webu, takže se mění
+   s barvami ročníku i s motivem. Maska by schovala i text, tah proto maluje pseudoprvek pod ním. Ten se ale na řádky
+   nerozdělí, takže tah má každé slovo zvlášť, a jen když je fráze na jednom řádku (pozná moderni.js), je přes
+   celou, jinak by mezi slovy byl vidět spoj. */
+.mw-zvyraznit,
+.mw-zvyraznit-slovo {
+  position: relative;
+  isolation: isolate;
+}
+
+.mw-zvyraznit::before,
+.mw-zvyraznit-slovo::before {
+  content: "";
+  position: absolute;
+  z-index: -1;
+  /* svisle jako dřív pozadí s pozicí 92 % a výškou 0.42em */
+  top: calc(92% - 0.92 * 0.42em);
+  right: 0;
+  left: 0;
+  height: 0.42em;
+  background-color: var(--mw-cervena);
+  mask: url("../blackarrow/gchlavicka/smouha.png") no-repeat 0 0 / 100% 100%;
+}
+
+.mw-zvyraznit:not(.mw-zvyraznit-na-radku)::before,
+.mw-zvyraznit-na-radku .mw-zvyraznit-slovo::before {
+  content: none;
 }
 
 .mw-hero-perex {

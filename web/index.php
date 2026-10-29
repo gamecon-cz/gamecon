@@ -5,6 +5,13 @@ declare(strict_types=1);
 use Gamecon\Aktivita\TypAktivity;
 use Gamecon\Vyjimkovac\Vyjimkovac;
 use Gamecon\Web\Info;
+use Gamecon\Web\Motiv\BarvyWebuRepository;
+use Gamecon\Web\Motiv\MotivWebu;
+use Gamecon\Web\Motiv\NahledMotivuWebu;
+use Gamecon\Web\Motiv\NaplanovaneMotivyWebuRepository;
+use Gamecon\Web\OznameniNaWebu\OznameniNaWebuHtml;
+use Gamecon\Web\OznameniNaWebu\OznameniNaWebuRepository;
+use Gamecon\Web\OznameniNaWebu\SkrytaOznameniNaWebu;
 use Gamecon\Web\VzhledWebu;
 use Gamecon\Web\VzhledWebuEnum;
 use Gamecon\XTemplate\XTemplate;
@@ -39,13 +46,31 @@ try {
     $url = null;
 }
 
-// vzhled webu (klasický / moderní), volba z ?vzhled=… se zapamatuje v cookie
+// vzhled webu (klasický / moderní), zavřená oznámení a náhled motivu pro grafika (jen s právem na web v adminu)
 $aktualniStranka = URL_WEBU . '/' . ($url?->cela() ?? '');
 $aktualniQuery   = array_diff_key($_GET, ['req' => true]);
 $vzhledWebu      = new VzhledWebu($_COOKIE);
-if (isset($_GET[VzhledWebu::GET_KLIC])) {
-    $vzhledWebu->zpracujVolbu((string) $_GET[VzhledWebu::GET_KLIC]);
-    back(VzhledWebu::getUrlBezVolby($aktualniStranka, $aktualniQuery));
+$skrytaOznameni  = new SkrytaOznameniNaWebu($_COOKIE);
+$nahledMotivu    = NahledMotivuWebu::smiNahlizet($u)
+    ? new NahledMotivuWebu($_COOKIE)
+    : null;
+// volba z odkazu (?vzhled=…, ?skrytOznameni=…, ?nahledMotivu=…) se zapamatuje v cookie a stránka se načte znovu bez ní
+$volbyZOdkazu = [VzhledWebu::GET_KLIC => true, SkrytaOznameniNaWebu::GET_KLIC => true, NahledMotivuWebu::GET_KLIC => true];
+if (array_intersect_key($_GET, $volbyZOdkazu) !== []) {
+    if (isset($_GET[VzhledWebu::GET_KLIC])) {
+        $vzhledWebu->zpracujVolbu((string) $_GET[VzhledWebu::GET_KLIC]);
+    }
+    if (isset($_GET[SkrytaOznameniNaWebu::GET_KLIC])) {
+        $skrytaOznameni->zpracujSkryti((string) $_GET[SkrytaOznameniNaWebu::GET_KLIC]);
+    }
+    if (isset($_GET[NahledMotivuWebu::GET_KLIC])) {
+        if ($nahledMotivu !== null) {
+            $nahledMotivu->zpracujVolbu((string) $_GET[NahledMotivuWebu::GET_KLIC]);
+        } else {
+            Chyba::nastav('Náhled barev a motivů webu vidí jen přihlášení s právem na web v adminu.', Chyba::CHYBA);
+        }
+    }
+    back(VzhledWebu::getUrlBezVolby($aktualniStranka, array_diff_key($aktualniQuery, $volbyZOdkazu)));
 }
 $vzhled = $vzhledWebu->getVzhled();
 
@@ -131,6 +156,33 @@ if (! $m->bezPaticky()) {
         $t->parse('index.paticka.qrka');
     }
     $t->parse('index.paticka');
+}
+
+// oznámení z adminu (Web → Oznámení na webu) bez těch, která návštěvník zavřel
+$t->assign('oznameni', OznameniNaWebuHtml::html(
+    $skrytaOznameni->neskryta((new OznameniNaWebuRepository())->zobrazovana($systemoveNastaveni->ted())),
+    $vzhled,
+    $aktualniStranka,
+    $aktualniQuery,
+));
+
+// barvy ročníku a speciální motiv (Web → Barvy a motivy webu), používá je jen moderní kostra
+$motivWebu = MotivWebu::zjisti(
+    new BarvyWebuRepository(),
+    new NaplanovaneMotivyWebuRepository(),
+    $systemoveNastaveni->ted(),
+    $nahledMotivu,
+);
+$t->assign([
+    'motivWebu'       => $motivWebu->getHtmlDoHlavicky(__DIR__),
+    'barvaProhlizece' => $motivWebu->getBarvaProhlizece(),
+]);
+if ($motivWebu->popisNahledu !== null) {
+    $t->assign([
+        'popisNahleduMotivu'    => htmlspecialchars($motivWebu->popisNahledu),
+        'urlKonceNahleduMotivu' => htmlspecialchars(NahledMotivuWebu::getUrlKonce($aktualniStranka, $aktualniQuery)),
+    ]);
+    $t->parse('index.nahledMotivu');
 }
 
 $ribbonLabel = $systemoveNastaveni->prostredi()->ribbonLabel();

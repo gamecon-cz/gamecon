@@ -21,7 +21,7 @@ TL;DR: veřejný web má vedle klasického (blackarrow) moderní vzhled jako uk�
 
 ## Gotchas
 
-- Každý blok, který modul nebo `web/index.php` parsuje, musí existovat v **obou** šablonách (titulka: `linie`, `odpocetPrihlasit`, `karty`, `cisla`, `fotky`, `sponzor`, `partner`; aktivity: `aktivita`, `termin`, `vypravec`, `stitek`, `nahled`, `hlavickaVypravec`, `stranka`, `strankaNavod`; kostra: `extraCss`, `extraJs`, `paticka`, `qrka`, `ribbon`; menu: `typAktivit`, `prihlasen`, `admin`, `mujPrehled`, `neprihlasen`).
+- Každý blok, který modul nebo `web/index.php` parsuje, musí existovat v **obou** šablonách (titulka: `linie`, `odpocetPrihlasit`, `karty`, `cisla`, `fotky`, `sponzor`, `partner`; aktivity: `aktivita`, `termin`, `vypravec`, `stitek`, `nahled`, `hlavickaVypravec`, `stranka`, `strankaNavod`; kostra: `extraCss`, `extraJs`, `paticka`, `qrka`, `ribbon`, `nahledMotivu`; menu: `typAktivit`, `prihlasen`, `admin`, `mujPrehled`, `neprihlasen`).
 - Obrázek předaný šabloně do CSS proměnné (`style="--mw-obrazek: url('…')"`) musí mít absolutní URL: relativní cestu prohlížeč spočítá od `soubory/moderni/moderni.css`, ne od stránky. Náhledy (`Nahled`) absolutní jsou, ikony linií ne, proto `ikonaUrl`.
 - `{…}` v inline JS/CSS šablony XTemplate nahradí. Skripty proto žijí v `moderni.js`, v šablonách jsou jen volání bez složených závorek.
 - Přihlašovátko (`Aktivita::prihlasovatko()`) je odkaz ve formuláři; tlačítko z něj dělá až `moderni.css` (`.mw-termin-akce form a`, „přihlásit“ červeně podle `input[name=prihlasit]`).

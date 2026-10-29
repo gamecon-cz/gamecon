@@ -1,0 +1,43 @@
+/*
+ * Motiv Apríl (MotivWebuEnum::APRIL). Načítá se za moderni.css a barvami ročníku, když je naplánovaný v adminu
+ * Web → Barvy a motivy webu. Web musí zůstat použitelný: nic se neschovává ani nepřekrývá, jen vypadá jinak.
+ * Natáčí se vlastností rotate, ne transform, ať se nepere s animacemi karet (mw-odhalit, hover).
+ */
+
+:root {
+  /* růžová místo červené, bílý text na ní má kontrast přes 4,5:1 */
+  --mw-cervena: #d6006f;
+  --mw-cervena-tmava: #b0005c;
+  --mw-pismo: "Comic Sans MS", "Comic Neue", "Chalkboard SE", "Comic Relief", cursive;
+}
+
+.mw-logo {
+  rotate: 180deg;
+}
+
+.mw-karta:nth-child(odd),
+.mw-linie-karta:nth-child(odd) {
+  rotate: -1.2deg;
+}
+
+.mw-karta:nth-child(even),
+.mw-linie-karta:nth-child(even) {
+  rotate: 0.8deg;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  /* celý nadpis, zvýraznění uvnitř je inline a jako inline-block by se na mobilu nezalomilo */
+  .mw-hero h1 {
+    animation: mw-april-houpani 3s ease-in-out infinite;
+  }
+
+  @keyframes mw-april-houpani {
+    0%, 100% {
+      rotate: -1deg;
+    }
+
+    50% {
+      rotate: 1deg;
+    }
+  }
+}

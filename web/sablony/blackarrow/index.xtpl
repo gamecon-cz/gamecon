@@ -20,6 +20,8 @@
 
     {menu}
 
+    {oznameni}
+
     {chyba}
 
     {obsah}
@@ -44,6 +46,14 @@
         </div>
     </div>
     <!-- end: paticka -->
+
+    <!-- begin: nahledMotivu -->
+    <div class="nahledMotivuWebu" role="status">
+        Náhled ({popisNahleduMotivu}) se ukazuje jen v moderním vzhledu.
+        <a href="{urlModerni}">Přepnout na moderní</a>
+        <a href="{urlKonceNahleduMotivu}">Ukončit náhled</a>
+    </div>
+    <!-- end: nahledMotivu -->
 
     <!-- begin: ribbon -->
     <div class="corner-ribbon">{ribbonLabel}</div>

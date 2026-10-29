@@ -9,7 +9,8 @@
                 <span class="mw-stitek mw-stitek-svetly">{gcOd}&thinsp;–&thinsp;{gcDo}&nbsp;{gcRok}</span>
                 <span class="mw-stitek mw-stitek-svetly">Ostrava</span>
             </p>
-            <h1>Největší festival <span class="mw-zvyraznit">nepočítačových her</span></h1>
+            <!-- tah štětcem má každé slovo, a když je fráze na jednom řádku, jde přes celou (moderni.css, .mw-zvyraznit) -->
+            <h1>Největší festival <span class="mw-zvyraznit"><span class="mw-zvyraznit-slovo">nepočítačových</span> <span class="mw-zvyraznit-slovo">her</span></span></h1>
             <p class="mw-hero-perex">
                 Deskovky, RPG, larpy, akční hry, wargaming, turnaje, pohybové workshopy, koncert a&nbsp;párty.
                 Čtyři dny her a&nbsp;lidí, kteří tě budou bavit do dalšího roku.

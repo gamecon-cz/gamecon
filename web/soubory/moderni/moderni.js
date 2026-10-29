@@ -91,6 +91,22 @@
     setInterval(obnov, 1000)
   })
 
+  // ---------- Tah štětcem pod zvýrazněnou frází ----------
+
+  // Fráze na jednom řádku dostane jeden tah místo tahu pod každým slovem (moderni.css, .mw-zvyraznit). Zalomení záleží
+  // na šířce i na písmu (motiv ho může změnit), proto se měří, a znovu, když se nadpis změní nebo se načte písmo.
+  // Řádky počítá getClientRects() (obdélník za každý řádek), ten nezmate ani natočení nadpisu.
+  document.querySelectorAll('.mw-zvyraznit').forEach(function (zvyrazneni) {
+    function zmer() {
+      zvyrazneni.classList.toggle('mw-zvyraznit-na-radku', zvyrazneni.getClientRects().length === 1)
+    }
+    zmer()
+    if ('ResizeObserver' in window) {
+      new ResizeObserver(zmer).observe(zvyrazneni.parentElement)
+    }
+    document.fonts.ready.then(zmer)
+  })
+
   // ---------- Video až po načtení stránky ----------
 
   window.addEventListener('load', function () {
