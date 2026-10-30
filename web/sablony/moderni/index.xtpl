@@ -24,7 +24,7 @@
 
 {FILE "sablony/blackarrow/gtag.xtpl"}
 
-<body class="vzhled-moderni {tridaModulu} {moderniSablona}">
+<body class="vzhled-moderni {tridaVarianty} {tridaModulu} {moderniSablona}">
 
     <a class="mw-preskocit" href="#mwObsah">Přeskočit na obsah</a>
 
@@ -68,7 +68,11 @@
             <span class="mw-prepinac-vzhledu" role="group" aria-label="Vzhled webu">
                 <span>Vzhled webu</span>
                 <a href="{urlKlasicky}">Klasický</a>
-                <a href="{urlModerni}" aria-current="true">Moderní <small>beta</small></a>
+                <span class="mw-prepinac-vzhledu-moderni">Moderní <small>beta</small></span>
+                <!-- begin: varianta -->
+                <a href="{url}" title="{nazev}" {aktualni}>{pismeno}</a>
+                <!-- end: varianta -->
+                <a href="vzhledy">Porovnat</a>
             </span>
         </div>
     </footer>

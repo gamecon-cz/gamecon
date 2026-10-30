@@ -74,7 +74,7 @@ if (array_intersect_key($_GET, $volbyZOdkazu) !== []) {
     }
     back(VzhledWebu::getUrlBezVolby($aktualniStranka, array_diff_key($aktualniQuery, $volbyZOdkazu)));
 }
-$vzhled = $vzhledWebu->getVzhled();
+$vzhled = $vzhledWebu->getVzhledStranky($_GET);
 
 // určení modulu, který zpracuje požadavek (router)
 $m = $url
@@ -150,12 +150,33 @@ $t->assign([
     'urlModerni'     => htmlspecialchars(VzhledWebu::getUrlPrepnuti($aktualniStranka, $aktualniQuery, VzhledWebuEnum::MODERNI)),
     'tridaModulu'    => 'mw-modul-' . $m->getNazev(),
     'moderniSablona' => $m->maModerniSablonu() ? 'mw-moderni-obsah' : 'mw-klasicky-obsah',
+    'tridaVarianty'  => 'mw-varianta-' . strtolower((string) $vzhled->getPismenoVarianty()),
 ]);
+// vlastní styly a skript varianty moderního vzhledu, když je má (soubory/moderni/varianty/<a>.css|js)
+foreach (['css' => 'index.extraCss', 'js' => 'index.extraJs'] as $pripona => $blok) {
+    $souborVarianty = $vzhled->getSouborVarianty($pripona);
+    if ($souborVarianty !== null && is_file(__DIR__ . '/' . $souborVarianty)) {
+        $t->assign('url', $souborVarianty . '?version=' . md5_file(__DIR__ . '/' . $souborVarianty));
+        $t->parse($blok);
+    }
+}
 $t->parseEach($m->cssUrls(), 'url', 'index.extraCss');
 $t->parseEach($m->jsUrls(), 'url', 'index.extraJs');
 if (! $m->bezPaticky()) {
     if ($u?->jeOrganizator()) {
         $t->parse('index.paticka.qrka');
+    }
+    // přepínač variant A–D, má ho jen moderní kostra
+    if ($vzhled->isModerni()) {
+        foreach (VzhledWebuEnum::getModerni() as $varianta) {
+            $t->assign([
+                'url'      => htmlspecialchars(VzhledWebu::getUrlPrepnuti($aktualniStranka, $aktualniQuery, $varianta)),
+                'pismeno'  => $varianta->getPismenoVarianty(),
+                'nazev'    => htmlspecialchars((string) $varianta->getNazevVarianty()),
+                'aktualni' => $varianta === $vzhled ? 'aria-current="true"' : '',
+            ]);
+            $t->parse('index.paticka.varianta');
+        }
     }
     $t->parse('index.paticka');
 }

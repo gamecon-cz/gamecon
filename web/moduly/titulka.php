@@ -88,6 +88,7 @@ $t->assign([
     'gcRok'                      => $konecGameconu->format('Y'),
     'stovkySpokojenychUcastniku' => $stovkySpokojenychUcastniku,
     'stovkyAktivit'              => $stovkyAktivit,
+    'pocetLinii'                 => count($typy),
 ]);
 
 // vyplnění obrázku

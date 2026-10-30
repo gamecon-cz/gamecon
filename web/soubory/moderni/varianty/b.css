@@ -1,0 +1,398 @@
+/*
+ * Varianta B moderního vzhledu (Krabice od hry, viz VzhledWebuEnum): titulka jako krabice deskovky, odvaha je v liště
+ * z boku krabice (hráči, doba hraní, věk, místo). Načítá se za moderni.css, jen ve variantě B. Šablona titulky je
+ * v sablony/moderni/varianty/b/, ostatní stránky jsou stejné jako v moderním vzhledu.
+ */
+
+.mw-modul-titulka .mw-obsah *,
+.mw-modul-titulka .mw-obsah *::before,
+.mw-modul-titulka .mw-obsah *::after {
+  box-sizing: border-box;
+}
+
+/* ---------- Víko krabice ---------- */
+
+.mw-b-viko {
+  padding: 56px 0 64px;
+  background-color: var(--mw-inkoust);
+  color: #fff;
+}
+
+.mw-b-viko-obsah {
+  display: grid;
+  grid-template-columns: minmax(0, 1.6fr) minmax(0, 1fr);
+  align-items: center;
+  gap: 56px;
+}
+
+.mw-b-viko h1 {
+  margin: 0;
+  font-weight: 800;
+  font-size: clamp(44px, 5vw, 72px);
+  line-height: 0.98;
+  letter-spacing: -0.03em;
+  text-wrap: balance;
+}
+
+.mw-b-perex {
+  max-width: 30em;
+  margin: 24px 0 0;
+  color: rgba(255, 255, 255, 0.78);
+  font-size: 20px;
+}
+
+.mw-b-akce {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-top: 36px;
+}
+
+.mw-b-odpocet {
+  margin: 24px 0 0;
+  color: rgba(255, 255, 255, 0.65);
+  font-size: 16px;
+}
+
+.mw-b-odpocet b {
+  color: #fff;
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+}
+
+.mw-b-obal-krabice {
+  display: block;
+  width: 100%;
+  aspect-ratio: 4 / 3;
+  object-fit: cover;
+  border-radius: 8px;
+}
+
+/* bok krabice: bílá lišta s piktogramy */
+.mw-b-bok {
+  display: grid;
+  grid-template-columns: minmax(0, 0.9fr) minmax(0, 0.9fr) minmax(0, 1.35fr) minmax(0, 1fr);
+  margin: 56px 0 0;
+  padding: 0;
+  border-radius: 12px;
+  background-color: var(--mw-plocha);
+  color: var(--mw-text);
+  list-style: none;
+}
+
+.mw-b-bok li {
+  display: flex;
+  align-items: center;
+  gap: 18px;
+  padding: 28px;
+}
+
+.mw-b-bok li + li {
+  border-left: 2px solid var(--mw-kremova-tmava);
+}
+
+.mw-b-bok svg {
+  flex: none;
+  width: 52px;
+  height: 52px;
+  fill: none;
+  stroke: var(--mw-inkoust);
+  stroke-width: 2.2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.mw-b-bok strong {
+  display: block;
+  font-weight: 800;
+  font-size: 34px;
+  line-height: 1.05;
+  letter-spacing: -0.015em;
+}
+
+.mw-b-bok span {
+  display: block;
+  color: var(--mw-text-tlumeny);
+  font-size: 16px;
+}
+
+/* ---------- Sekce ---------- */
+
+.mw-b-sekce {
+  padding: 104px 0;
+}
+
+.mw-b-sekce h2 {
+  margin: 0;
+  font-weight: 800;
+  font-size: clamp(34px, 4.4vw, 56px);
+  line-height: 1.04;
+  letter-spacing: -0.025em;
+}
+
+.mw-b-uvod {
+  max-width: 34em;
+  margin: 14px 0 0;
+  color: var(--mw-text-tlumeny);
+  font-size: 20px;
+}
+
+.mw-b-krabice {
+  background-color: var(--mw-kremova);
+}
+
+.mw-b-obsah {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 40px 48px;
+  margin: 56px 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.mw-b-obsah li {
+  display: grid;
+  grid-template-columns: 88px minmax(0, 1fr);
+  align-items: center;
+  gap: 20px;
+}
+
+/* multiply schová bílé pozadí JPG na krémové ploše */
+.mw-b-obsah img {
+  display: block;
+  width: 88px;
+  height: 88px;
+  object-fit: contain;
+  mix-blend-mode: multiply;
+}
+
+.mw-b-obsah strong {
+  display: block;
+  font-weight: 800;
+  font-size: 26px;
+  line-height: 1.15;
+}
+
+.mw-b-obsah b {
+  color: var(--mw-cervena);
+}
+
+.mw-b-obsah span {
+  display: block;
+  margin-top: 2px;
+  color: var(--mw-text-tlumeny);
+  font-size: 16px;
+}
+
+.mw-b-kroky {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 40px;
+  margin: 56px 0 0;
+  padding: 0;
+  list-style: none;
+  counter-reset: mw-b-krok;
+}
+
+.mw-b-kroky li {
+  position: relative;
+  padding-top: 88px;
+  counter-increment: mw-b-krok;
+}
+
+.mw-b-kroky li::before {
+  content: counter(mw-b-krok);
+  position: absolute;
+  top: 0;
+  left: 0;
+  display: grid;
+  place-items: center;
+  width: 64px;
+  height: 64px;
+  border: 3px solid var(--mw-inkoust);
+  border-radius: 14px;
+  font-weight: 800;
+  font-size: 32px;
+}
+
+/* čárkovaná cesta od kroku ke kroku, jako na herním plánu */
+.mw-b-kroky li:not(:last-child)::after {
+  content: "";
+  position: absolute;
+  top: 31px;
+  left: 80px;
+  right: -24px;
+  border-top: 3px dashed var(--mw-cervena);
+}
+
+.mw-b-kroky h3 {
+  margin: 0;
+  font-weight: 800;
+  font-size: 23px;
+}
+
+.mw-b-kroky p {
+  margin: 8px 0 0;
+  color: var(--mw-text-tlumeny);
+  font-size: 17px;
+}
+
+.mw-b-kroky a {
+  color: inherit;
+  text-underline-offset: 3px;
+}
+
+.mw-b-kroky a:hover {
+  color: var(--mw-cervena);
+}
+
+.mw-b-linie-sekce {
+  border-top: 2px solid var(--mw-okraj);
+}
+
+.mw-b-linie {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0 64px;
+  margin-top: 48px;
+}
+
+.mw-b-linie a {
+  display: grid;
+  grid-template-columns: 76px minmax(0, 1fr);
+  align-items: start;
+  gap: 22px;
+  padding: 26px 0;
+  border-bottom: 2px solid var(--mw-okraj);
+  color: var(--mw-text);
+  text-decoration: none;
+}
+
+.mw-b-linie img {
+  display: block;
+  width: 76px;
+  height: 64px;
+  object-fit: contain;
+}
+
+.mw-b-linie h3 {
+  margin: 0;
+  font-weight: 800;
+  font-size: 22px;
+}
+
+.mw-b-linie a:hover h3,
+.mw-b-linie a:focus-visible h3 {
+  color: var(--mw-cervena);
+  text-decoration: underline;
+  text-underline-offset: 4px;
+}
+
+.mw-b-linie p {
+  margin: 4px 0 0;
+  color: var(--mw-text-tlumeny);
+  font-size: 16px;
+}
+
+@media (max-width: 1000px) {
+  .mw-b-viko-obsah {
+    grid-template-columns: 1fr;
+  }
+
+  .mw-b-bok {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .mw-b-bok li:nth-child(3) {
+    border-left: 0;
+  }
+
+  .mw-b-bok li:nth-child(n + 3) {
+    border-top: 2px solid var(--mw-kremova-tmava);
+  }
+
+  .mw-b-obsah {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .mw-b-kroky {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .mw-b-kroky li:nth-child(2)::after {
+    display: none;
+  }
+}
+
+@media (max-width: 640px) {
+  .mw-b-viko {
+    padding: 36px 0 40px;
+  }
+
+  .mw-b-perex {
+    font-size: 18px;
+  }
+
+  .mw-b-bok {
+    margin-top: 36px;
+  }
+
+  .mw-b-bok li {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 10px;
+    padding: 18px 16px;
+  }
+
+  .mw-b-bok svg {
+    width: 36px;
+    height: 36px;
+  }
+
+  .mw-b-bok strong {
+    font-size: 22px;
+  }
+
+  .mw-b-sekce {
+    padding: 72px 0;
+  }
+
+  .mw-b-obsah,
+  .mw-b-kroky,
+  .mw-b-linie {
+    grid-template-columns: 1fr;
+  }
+
+  .mw-b-obsah li {
+    grid-template-columns: 64px minmax(0, 1fr);
+  }
+
+  .mw-b-obsah img {
+    width: 64px;
+    height: 64px;
+  }
+
+  .mw-b-obsah strong {
+    font-size: 21px;
+  }
+
+  /* kroky pod sebou, čárkovaná cesta svisle */
+  .mw-b-kroky {
+    gap: 0;
+  }
+
+  .mw-b-kroky li {
+    min-height: 64px;
+    padding: 0 0 36px 88px;
+  }
+
+  .mw-b-kroky li:not(:last-child)::after {
+    display: block;
+    top: 76px;
+    right: auto;
+    bottom: 8px;
+    left: 31px;
+    border-top: 0;
+    border-left: 3px dashed var(--mw-cervena);
+  }
+}

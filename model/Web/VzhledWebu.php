@@ -12,6 +12,8 @@ class VzhledWebu
 {
     /** ?vzhled=moderni / ?vzhled=klasicky switches the look and remembers it */
     public const string GET_KLIC = 'vzhled';
+    /** ?nahledVzhledu=moderni-b shows one page in that look and remembers nothing (frames of web/moduly/vzhledy.php) */
+    public const string GET_KLIC_NAHLEDU = 'nahledVzhledu';
     public const string COOKIE = 'vzhledWebu';
     public const VzhledWebuEnum VYCHOZI = VzhledWebuEnum::KLASICKY;
     private const int PLATNOST_COOKIE_SEKUND = 365 * 24 * 3600;
@@ -28,6 +30,25 @@ class VzhledWebu
         // A value this version does not know (left by a newer one, or made up) counts as not chosen.
         return VzhledWebuEnum::tryFrom((string) ($this->cookies[self::COOKIE] ?? ''))
                ?? self::VYCHOZI;
+    }
+
+    /**
+     * The look of the current page: the one from ?nahledVzhledu=… when it is known, otherwise the chosen one.
+     *
+     * @param array<string, mixed> $query typically $_GET
+     */
+    public function getVzhledStranky(array $query): VzhledWebuEnum
+    {
+        return VzhledWebuEnum::tryFrom((string) ($query[self::GET_KLIC_NAHLEDU] ?? ''))
+               ?? $this->getVzhled();
+    }
+
+    /**
+     * The URL of a page shown in the given look, without remembering it.
+     */
+    public static function getUrlNahledu(string $cesta, VzhledWebuEnum $vzhled): string
+    {
+        return $cesta . '?' . http_build_query([self::GET_KLIC_NAHLEDU => $vzhled->value]);
     }
 
     /**
@@ -56,6 +77,8 @@ class VzhledWebu
      */
     public static function getUrlPrepnuti(string $cesta, array $query, VzhledWebuEnum $vzhled): string
     {
+        // the chosen look ends a preview of another one
+        unset($query[self::GET_KLIC_NAHLEDU]);
         $query[self::GET_KLIC] = $vzhled->value;
 
         return $cesta . '?' . http_build_query($query);

@@ -1,0 +1,109 @@
+<!-- begin: titulka -->
+<!-- Titulka varianty A moderního vzhledu (Inkoust a štětec, viz VzhledWebuEnum), styly v soubory/moderni/varianty/a.css.
+     Modul web/moduly/titulka.php je pro všechny vzhledy stejný, šablona proto musí mít všechny bloky, které modul
+     parsuje (linie, odpocetPrihlasit, karty, cisla, fotky, sponzor, partner), i ty, které nepoužije. -->
+
+<section class="mw-a-hero">
+    <div class="mw-obal">
+        <p class="mw-a-kdy"><strong>{gcOd}&thinsp;–&thinsp;{gcDo}&nbsp;{gcRok}</strong> Ostrava</p>
+        <!-- kresby stojí v řádku nadpisu jako písmena; originály, zmenšeniny z bloku cisla jsou na to malé -->
+        <h1>Největší <img class="mw-a-meeple" alt="" src="soubory/blackarrow/cisla/1.jpg"> festival nepočítačových her <img class="mw-a-kostky" alt="" src="soubory/blackarrow/cisla/2.jpg"></h1>
+        <div class="mw-a-hero-spodek">
+            <div>
+                <p class="mw-a-perex">
+                    Deskovky, RPG, larpy, akční hry, wargaming, turnaje, pohybové workshopy, koncert a&nbsp;párty.
+                    Čtyři dny her a&nbsp;lidí, kteří tě budou bavit do dalšího roku.
+                </p>
+                <p class="mw-a-odpocet" data-mw-odpocet="{odpocetTimestamp}">
+                    {odpocetNadpis}
+                    <span role="timer"><b data-mw-odpocet-dnu>0</b>&nbsp;dní <b data-mw-odpocet-hodin>00</b>&nbsp;hod <b data-mw-odpocet-minut>00</b>&nbsp;min <b data-mw-odpocet-sekund>00</b>&nbsp;s</span>
+                </p>
+            </div>
+            <div class="mw-a-akce">
+                <!-- begin: odpocetPrihlasit -->
+                <a href="prihlaska" class="mw-tlacitko mw-tlacitko-cervene mw-tlacitko-velke">Přihlásit se</a>
+                <!-- end: odpocetPrihlasit -->
+                <a href="program" class="mw-a-odkaz">Prohlédnout program</a>
+            </div>
+        </div>
+    </div>
+    <!-- begin: fotky -->
+    <!-- fotky různě široké, ať to není mřížka stejných dlaždic -->
+    <div class="mw-a-fotky">
+        <img alt="Koncert" src="{src1}">
+        <img alt="" src="{src4}">
+        <img alt="" src="{src5}">
+        <img alt="" src="{src6}">
+    </div>
+    <!-- end: fotky -->
+</section>
+
+<section class="mw-a-vety" aria-label="GameCon v číslech">
+    <div class="mw-obal">
+        <p>Přes <b>{stovkySpokojenychUcastniku}</b> hráčů, <b>{stovkyAktivit}+</b> aktivit, čtyři dny a&nbsp;jeden koncert. Registrace je zdarma.</p>
+    </div>
+</section>
+<!-- begin: cisla --><!-- end: cisla -->
+
+<section class="mw-a-sekce" id="co-zazijes">
+    <div class="mw-obal">
+        <h2>Co na GameConu zažiješ?</h2>
+        <p class="mw-a-uvod">Vyber si, co tě láká. Každá linie má vlastní tým, vlastní hry a&nbsp;vlastní atmosféru.</p>
+        <div class="mw-a-linie">
+            <!-- begin: linie -->
+            <a href="{url}">
+                <img alt="" src="{ikonaUrl}">
+                <h3>{nazev}</h3>
+                <p>{popis}</p>
+            </a>
+            <!-- end: linie -->
+        </div>
+    </div>
+</section>
+
+<section class="mw-a-sekce mw-a-proc">
+    <div class="mw-obal">
+        <h2>Festival pro každého, kdo si rád hraje</h2>
+        <!-- begin: karty -->
+        <!-- originály kreseb, zmenšeniny z bloku jsou na tuhle velikost malé -->
+        <div class="mw-a-proc-mrizka">
+            <article>
+                <img alt="" src="soubory/blackarrow/karty/1.jpg">
+                <h3>Akce pro všechny</h3>
+                <p>Na GameConu si najde každý fanoušek aktivní zábavy a&nbsp;nepočítačových her to svoje.</p>
+            </article>
+            <article>
+                <img alt="" src="soubory/blackarrow/karty/2.jpg">
+                <h3>Festival aktivní zábavy</h3>
+                <p>Najdeš tu všechno od celodenně otevřené deskoherny přes rolové hry až po koncert.</p>
+            </article>
+            <article>
+                <img alt="" src="soubory/blackarrow/karty/3.jpg">
+                <h3>Žádné vstupné</h3>
+                <p>Registrace na GameCon je zdarma. Platíš jen za služby a&nbsp;aktivity, které si sám vybereš a&nbsp;objednáš.</p>
+            </article>
+        </div>
+        <!-- end: karty -->
+    </div>
+</section>
+
+<section class="mw-sekce mw-sponzori">
+    <div class="mw-obal">
+        <header class="mw-sekce-hlavicka">
+            <h2>Děkujeme našim sponzorům a&nbsp;partnerům</h2>
+            <p><a href="sponzori">Všichni sponzoři a partneři</a> · <a href="pro-sponzory-a-media">Chci GameCon podpořit</a></p>
+        </header>
+        <div class="mw-sponzori-loga">
+            <!-- begin: sponzor -->
+            <a href="{url}" target="_blank" rel="noopener"><img loading="lazy" alt="" src="{src}"></a>
+            <!-- end: sponzor -->
+        </div>
+        <div class="mw-sponzori-loga mw-partneri-loga">
+            <!-- begin: partner -->
+            <a href="{url}" target="_blank" rel="noopener"><img loading="lazy" alt="" src="{src}"></a>
+            <!-- end: partner -->
+        </div>
+    </div>
+</section>
+
+<!-- end: titulka -->

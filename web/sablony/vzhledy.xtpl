@@ -1,0 +1,46 @@
+<!-- begin: vzhledy -->
+<!DOCTYPE html>
+<html lang="cs">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="robots" content="noindex">
+    <title>Varianty moderního vzhledu – GameCon</title>
+    <base href="{base}">
+    {FILE "sablony/blackarrow/fonty.xtpl"}
+    <link rel="stylesheet" href="{css}">
+    <script src="{js}" defer></script>
+    <link rel="icon" href="soubory/blackarrow/_spolecne/favicon.png">
+</head>
+<body class="mw-vzhledy">
+
+    <header class="mw-vzhledy-hlavicka">
+        <div>
+            <h1>Varianty moderního vzhledu</h1>
+            <p>
+                Titulka webu ve čtyřech variantách vedle sebe. Rám jen ukazuje, variantu zapne až odkaz pod jejím
+                názvem; pak platí v&nbsp;tomhle prohlížeči na celém webu a&nbsp;přepnout ji jde v&nbsp;patičce.
+            </p>
+        </div>
+        <div class="mw-vzhledy-prepinac" role="group" aria-label="Šířka náhledu">
+            <button type="button" data-mw-vzhledy-sirka="1440" aria-pressed="true">Počítač</button>
+            <button type="button" data-mw-vzhledy-sirka="390" aria-pressed="false">Mobil</button>
+        </div>
+    </header>
+
+    <main class="mw-vzhledy-mrizka">
+        <!-- begin: varianta -->
+        <section class="mw-vzhledy-varianta">
+            <h2>{pismeno}: {nazev}</h2>
+            <p>{popis}</p>
+            <a href="{urlZapnuti}">Zapnout variantu {pismeno}</a>
+            <div class="mw-vzhledy-okno">
+                <iframe src="{urlNahledu}" title="Titulka ve variantě {pismeno}" loading="lazy"></iframe>
+            </div>
+        </section>
+        <!-- end: varianta -->
+    </main>
+
+</body>
+</html>
+<!-- end: vzhledy -->

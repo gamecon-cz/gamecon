@@ -41,6 +41,51 @@ class VzhledWebuTest extends TestCase
         self::assertNull((new VzhledWebu([]))->zpracujVolbu('z-budoucnosti'));
     }
 
+    public function testVariantaModernihoVzhleduJeZCookie(): void
+    {
+        self::assertSame(
+            VzhledWebuEnum::MODERNI_B,
+            (new VzhledWebu([
+                VzhledWebu::COOKIE => 'moderni-b',
+            ]))->getVzhled(),
+        );
+    }
+
+    public function testNahledVzhleduMaPrednostPredVolbou(): void
+    {
+        $vzhledWebu = new VzhledWebu([
+            VzhledWebu::COOKIE => 'moderni-b',
+        ]);
+
+        self::assertSame(
+            VzhledWebuEnum::MODERNI_C,
+            $vzhledWebu->getVzhledStranky([
+                VzhledWebu::GET_KLIC_NAHLEDU => 'moderni-c',
+            ]),
+        );
+        self::assertSame(VzhledWebuEnum::MODERNI_B, $vzhledWebu->getVzhledStranky([]));
+    }
+
+    public function testNeznamyNahledVzhleduNechaVolbu(): void
+    {
+        self::assertSame(
+            VzhledWebuEnum::MODERNI_B,
+            (new VzhledWebu([
+                VzhledWebu::COOKIE => 'moderni-b',
+            ]))->getVzhledStranky([
+                VzhledWebu::GET_KLIC_NAHLEDU => 'z-budoucnosti',
+            ]),
+        );
+    }
+
+    public function testUrlNahledu(): void
+    {
+        self::assertSame(
+            'https://gamecon.cz/?nahledVzhledu=moderni-a',
+            VzhledWebu::getUrlNahledu('https://gamecon.cz/', VzhledWebuEnum::MODERNI_A),
+        );
+    }
+
     /**
      * @param array<string, string> $query
      */
@@ -62,6 +107,9 @@ class VzhledWebuTest extends TestCase
             ], 'https://gamecon.cz/rpg?filtr=horor&vzhled=moderni'],
             'přepíše starou volbu' => [[
                 'vzhled' => 'klasicky',
+            ], 'https://gamecon.cz/rpg?vzhled=moderni'],
+            'ukončí náhled' => [[
+                'nahledVzhledu' => 'moderni-c',
             ], 'https://gamecon.cz/rpg?vzhled=moderni'],
         ];
     }

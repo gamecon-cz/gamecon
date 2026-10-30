@@ -135,12 +135,24 @@ class Modul
     /** Jestli má modul v aktuálním vzhledu vlastní šablonu (jinak se v moderním vzhledu ukáže klasický obsah) */
     public function maModerniSablonu(): bool
     {
-        return $this->vzhled === VzhledWebuEnum::MODERNI && is_file($this->moderniSoubor());
+        return $this->moderniSoubor() !== null;
     }
 
-    private function moderniSoubor(): string
+    /** Moderní šablona modulu: vlastní šablona varianty, jinak společná moderní; mimo moderní vzhled žádná */
+    private function moderniSoubor(): ?string
     {
-        return __DIR__ . '/../sablony/moderni/' . $this->nazev() . '.xtpl';
+        $adresarVarianty = $this->vzhled->getAdresarSablonVarianty();
+        if ($adresarVarianty === null) {
+            return null;
+        }
+        foreach ([$adresarVarianty, $this->vzhled->getAdresarSablon()] as $adresar) {
+            $soubor = __DIR__ . '/../sablony/' . $adresar . '/' . $this->nazev() . '.xtpl';
+            if (is_file($soubor)) {
+                return $soubor;
+            }
+        }
+
+        return null;
     }
 
     /** Setter/getter pro parametr (proměnnou) předanou dovnitř modulu */
@@ -182,8 +194,9 @@ class Modul
     /** Vrátí výchozí šablonu pro tento modul (pokud existuje) */
     protected function sablona()
     {
-        if ($this->maModerniSablonu()) {
-            return new XTemplate($this->moderniSoubor());
+        $moderniSoubor = $this->moderniSoubor();
+        if ($moderniSoubor !== null) {
+            return new XTemplate($moderniSoubor);
         }
 
         $blackarrowSoubor = __DIR__ . '/../sablony/blackarrow/' . $this->nazev() . '.xtpl';
