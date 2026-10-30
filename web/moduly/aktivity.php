@@ -266,6 +266,8 @@ if (!empty($org)) {
             ?: '<p><em>popisek od vypravěče nemáme</em></p>',
         'fotka' => $org->fotkaAuto()->kvalita(85)->pokryjOrez(180, 180),
     ]);
+    // moderní vzhled: kontakt na šéfa linie na stránce vypravěče nedává smysl
+    $t->assign('kontaktLinieAtributy', 'hidden');
     $t->parse('aktivity.hlavickaVypravec');
 } elseif ($typ) {
     $this->info()->nazev(mb_ucfirst($typ->nazevDlouhy()) . $pripojkaRocniku);

@@ -3,6 +3,8 @@
 use Gamecon\SystemoveNastaveni\SystemoveNastaveni;
 use Gamecon\XTemplate\XTemplate;
 use Gamecon\Web\Info;
+use Gamecon\Web\VzhledWebu;
+use Gamecon\Web\VzhledWebuEnum;
 
 /**
  * Modul stránek (controller). Objektové zapouzdření pro soubory ze složky
@@ -23,6 +25,7 @@ class Modul
     protected $info;
     protected $cssUrls        = [];
     protected $jsUrls         = [];
+    protected VzhledWebuEnum $vzhled = VzhledWebu::VYCHOZI;
 
     /** Načte modul ze zadané cesty k souboru */
     protected function __construct(
@@ -111,6 +114,47 @@ class Modul
         return basename($this->soubor, '.php');
     }
 
+    public function getNazev(): string
+    {
+        return $this->nazev();
+    }
+
+    /** Vzhled webu, ve kterém se modul vykreslí. Nastavit před spust(), šablona se vybírá podle něj. */
+    public function setVzhled(VzhledWebuEnum $vzhled): static
+    {
+        $this->vzhled = $vzhled;
+
+        return $this;
+    }
+
+    public function getVzhled(): VzhledWebuEnum
+    {
+        return $this->vzhled;
+    }
+
+    /** Jestli má modul v aktuálním vzhledu vlastní šablonu (jinak se v moderním vzhledu ukáže klasický obsah) */
+    public function maModerniSablonu(): bool
+    {
+        return $this->moderniSoubor() !== null;
+    }
+
+    /** Moderní šablona modulu: vlastní šablona varianty, jinak společná moderní; mimo moderní vzhled žádná */
+    private function moderniSoubor(): ?string
+    {
+        $adresarVarianty = $this->vzhled->getAdresarSablonVarianty();
+        if ($adresarVarianty === null) {
+            return null;
+        }
+        foreach ([$adresarVarianty, $this->vzhled->getAdresarSablon()] as $adresar) {
+            $soubor = __DIR__ . '/../sablony/' . $adresar . '/' . $this->nazev() . '.xtpl';
+            if (is_file($soubor)) {
+                return $soubor;
+            }
+        }
+
+        return null;
+    }
+
     /** Setter/getter pro parametr (proměnnou) předanou dovnitř modulu */
     public function param($nazev)
     {
@@ -150,6 +194,11 @@ class Modul
     /** Vrátí výchozí šablonu pro tento modul (pokud existuje) */
     protected function sablona()
     {
+        $moderniSoubor = $this->moderniSoubor();
+        if ($moderniSoubor !== null) {
+            return new XTemplate($moderniSoubor);
+        }
+
         $blackarrowSoubor = __DIR__ . '/../sablony/blackarrow/' . $this->nazev() . '.xtpl';
 
         if (is_file($blackarrowSoubor)) {

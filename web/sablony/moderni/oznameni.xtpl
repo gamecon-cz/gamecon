@@ -1,0 +1,15 @@
+<!-- begin: oznameni -->
+<div class="mw-oznameni" role="region" aria-label="Oznámení">
+    <!-- begin: jedno -->
+    <div class="mw-oznameni-polozka mw-oznameni-{typ}">
+        <div class="mw-obal mw-oznameni-obal">
+            <span class="mw-oznameni-typ">{nazevTypu}</span>
+            <div class="mw-oznameni-text">{text}</div>
+            <!-- begin: skryt -->
+            <a class="mw-oznameni-zavrit" href="{urlSkryti}" rel="nofollow" title="Zavřít oznámení" aria-label="Zavřít oznámení">&times;</a>
+            <!-- end: skryt -->
+        </div>
+    </div>
+    <!-- end: jedno -->
+</div>
+<!-- end: oznameni -->

@@ -1,0 +1,141 @@
+/*
+ * Rozcestník variant moderního vzhledu (web/moduly/vzhledy.php): samostatná stránka bez kostry webu,
+ * titulka každé varianty v rámu zmenšeném na šířku sloupce (vzhledy.js).
+ */
+
+:root {
+  --mw-inkoust: #10111a;
+  --mw-kremova: #f6f1ea;
+  --mw-plocha: #fff;
+  --mw-text-tlumeny: #5c5f6e;
+  --mw-cervena: #e22630;
+  --mw-fokus: #2563eb;
+}
+
+.mw-vzhledy {
+  margin: 0;
+  background-color: var(--mw-kremova);
+  color: var(--mw-inkoust);
+  font-family: Gilroy, system-ui, sans-serif;
+  font-size: 16px;
+  line-height: 1.55;
+  -webkit-font-smoothing: antialiased;
+}
+
+.mw-vzhledy :focus-visible {
+  outline: 3px solid var(--mw-fokus);
+  outline-offset: 2px;
+}
+
+.mw-vzhledy-hlavicka {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 16px 32px;
+  padding: 28px 24px 24px;
+}
+
+.mw-vzhledy-hlavicka h1 {
+  margin: 0;
+  font-weight: 800;
+  font-size: 32px;
+  line-height: 1.1;
+  letter-spacing: -0.02em;
+}
+
+.mw-vzhledy-hlavicka p {
+  max-width: 46em;
+  margin: 8px 0 0;
+  color: var(--mw-text-tlumeny);
+}
+
+.mw-vzhledy-prepinac {
+  display: inline-flex;
+  padding: 4px;
+  border-radius: 999px;
+  background-color: var(--mw-plocha);
+}
+
+.mw-vzhledy-prepinac button {
+  padding: 8px 18px;
+  border: 0;
+  border-radius: 999px;
+  background: none;
+  color: var(--mw-inkoust);
+  font: 700 15px/1.2 Gilroy, system-ui, sans-serif;
+  cursor: pointer;
+}
+
+.mw-vzhledy-prepinac button[aria-pressed="true"] {
+  background-color: var(--mw-inkoust);
+  color: #fff;
+}
+
+/* počítač: dva sloupce, ať je náhled čitelný, na hodně širokém monitoru všechny čtyři */
+.mw-vzhledy-mrizka {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 32px 24px;
+  padding: 0 24px 48px;
+}
+
+@media (min-width: 2000px) {
+  .mw-vzhledy-mrizka {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+}
+
+/* mobil: úzké rámy, vejdou se všechny vedle sebe */
+.mw-vzhledy-mobil .mw-vzhledy-mrizka {
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+}
+
+.mw-vzhledy-varianta h2 {
+  margin: 0;
+  font-weight: 800;
+  font-size: 22px;
+  line-height: 1.2;
+}
+
+.mw-vzhledy-varianta p {
+  margin: 4px 0 0;
+  color: var(--mw-text-tlumeny);
+  font-size: 15px;
+}
+
+.mw-vzhledy-varianta a {
+  display: inline-block;
+  margin-top: 8px;
+  color: var(--mw-cervena);
+  font-weight: 700;
+  font-size: 15px;
+}
+
+.mw-vzhledy-okno {
+  position: relative;
+  height: 75vh;
+  min-height: 420px;
+  margin-top: 12px;
+  overflow: hidden;
+  border-radius: 10px;
+  background-color: var(--mw-plocha);
+  box-shadow: 0 1px 2px rgba(16, 17, 26, 0.08);
+}
+
+/* bez JS rám vyplní okno v plné velikosti, vzhledy.js ho zvětší na šířku počítače nebo mobilu a zmenší */
+.mw-vzhledy-okno iframe {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  border: 0;
+  transform-origin: top center;
+}
+
+@media (max-width: 900px) {
+  .mw-vzhledy-mrizka {
+    grid-template-columns: 1fr;
+  }
+}

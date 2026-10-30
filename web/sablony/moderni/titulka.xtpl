@@ -1,0 +1,164 @@
+<!-- begin: titulka -->
+<!-- Moderní vzhled titulky. Modul web/moduly/titulka.php je pro oba vzhledy stejný, šablona proto musí mít
+     všechny bloky, které modul parsuje (linie, odpocetPrihlasit, karty, cisla, fotky, sponzor, partner). -->
+
+<section class="mw-hero">
+    <div class="mw-obal mw-hero-obal">
+        <div class="mw-hero-text">
+            <p class="mw-hero-stitky">
+                <span class="mw-stitek mw-stitek-svetly">{gcOd}&thinsp;–&thinsp;{gcDo}&nbsp;{gcRok}</span>
+                <span class="mw-stitek mw-stitek-svetly">Ostrava</span>
+            </p>
+            <!-- tah štětcem má každé slovo, a když je fráze na jednom řádku, jde přes celou (moderni.css, .mw-zvyraznit) -->
+            <h1>Největší festival <span class="mw-zvyraznit"><span class="mw-zvyraznit-slovo">nepočítačových</span> <span class="mw-zvyraznit-slovo">her</span></span></h1>
+            <p class="mw-hero-perex">
+                Deskovky, RPG, larpy, akční hry, wargaming, turnaje, pohybové workshopy, koncert a&nbsp;párty.
+                Čtyři dny her a&nbsp;lidí, kteří tě budou bavit do dalšího roku.
+            </p>
+            <div class="mw-hero-tlacitka">
+                <!-- begin: odpocetPrihlasit -->
+                <a href="prihlaska" class="mw-tlacitko mw-tlacitko-cervene mw-tlacitko-velke">Přihlásit se</a>
+                <!-- end: odpocetPrihlasit -->
+                <a href="program" class="mw-tlacitko mw-tlacitko-obrys mw-tlacitko-velke">Prohlédnout program</a>
+            </div>
+            <div class="mw-odpocet" data-mw-odpocet="{odpocetTimestamp}">
+                <span class="mw-odpocet-nadpis">{odpocetNadpis}</span>
+                <span class="mw-odpocet-cas" role="timer">
+                    <span><b data-mw-odpocet-dnu>0</b> dní</span>
+                    <span><b data-mw-odpocet-hodin>00</b> hod</span>
+                    <span><b data-mw-odpocet-minut>00</b> min</span>
+                    <span><b data-mw-odpocet-sekund>00</b> s</span>
+                </span>
+            </div>
+        </div>
+        <div class="mw-hero-media">
+            <div class="mw-video">
+                <!-- video se načte až po načtení stránky (moderni.js), ať nebrzdí první vykreslení -->
+                <iframe
+                    data-mw-src="https://www.youtube.com/embed/GNVFqDw12bY?playlist=GNVFqDw12bY&amp;autoplay=1&amp;loop=1&amp;mute=1"
+                    title="GameCon ve videu"
+                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                    referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe>
+            </div>
+            <img class="mw-hero-foto" alt="" src="soubory/blackarrow/gchlavicka/obr_1.jpg">
+            <a class="mw-hero-video-odkaz" href="https://www.youtube.com/watch?v=-SBu7WGPkO4" target="_blank">
+                <span class="mw-ikona-prehrat" aria-hidden="true"></span> Přehrát video s&nbsp;hlasem
+            </a>
+        </div>
+    </div>
+</section>
+
+<section class="mw-cisla" aria-label="GameCon v číslech">
+    <div class="mw-obal">
+        <!-- begin: cisla -->
+        <ul class="mw-cisla-seznam">
+            <li class="mw-karta mw-cislo mw-odhalit">
+                <img alt="" src="{src1}">
+                <strong>{stovkySpokojenychUcastniku}+</strong>
+                <span>spokojených účastníků</span>
+            </li>
+            <li class="mw-karta mw-cislo mw-odhalit">
+                <img alt="" src="{src2}">
+                <strong>{stovkyAktivit}+</strong>
+                <span>různých aktivit</span>
+            </li>
+            <li class="mw-karta mw-cislo mw-odhalit">
+                <img alt="" src="{src3}">
+                <strong>4</strong>
+                <span>dny zábavy</span>
+            </li>
+            <li class="mw-karta mw-cislo mw-odhalit">
+                <img alt="" src="{src4}">
+                <strong>1</strong>
+                <span>super koncert</span>
+            </li>
+        </ul>
+        <!-- end: cisla -->
+    </div>
+</section>
+
+<section class="mw-sekce mw-linie" id="co-zazijes">
+    <div class="mw-obal">
+        <header class="mw-sekce-hlavicka">
+            <p class="mw-nadtitulek">Program</p>
+            <h2>Co na GameConu zažiješ?</h2>
+            <p>Vyber si, co tě láká. Každá linie má vlastní tým, vlastní hry a&nbsp;vlastní atmosféru.</p>
+        </header>
+        <div class="mw-linie-mrizka">
+            <!-- begin: linie -->
+            <a href="{url}" class="mw-linie-karta mw-odhalit" style="--mw-obrazek: url('{obrazek}'); --mw-ikona: url('{ikonaUrl}')">
+                <span class="mw-linie-karta-obrazek" aria-hidden="true"><span class="mw-linie-karta-ikona"></span></span>
+                <span class="mw-linie-karta-text">
+                    <span class="mw-linie-karta-cislo">{cislo}</span>
+                    <strong class="mw-linie-karta-nazev">{nazev}</strong>
+                    <span class="mw-linie-karta-popis">{popis}</span>
+                </span>
+            </a>
+            <!-- end: linie -->
+        </div>
+    </div>
+</section>
+
+<section class="mw-sekce mw-sekce-kremova mw-proc">
+    <div class="mw-obal">
+        <header class="mw-sekce-hlavicka">
+            <p class="mw-nadtitulek">Proč přijet</p>
+            <h2>Festival pro každého, kdo si rád hraje</h2>
+        </header>
+        <!-- begin: karty -->
+        <div class="mw-proc-mrizka">
+            <article class="mw-karta mw-proc-karta mw-odhalit">
+                <img alt="" src="{src1}">
+                <h3>Akce pro všechny</h3>
+                <p>Na GameConu si najde každý fanoušek aktivní zábavy a nepočítačových her to svoje, bez ohledu na věk.</p>
+            </article>
+            <article class="mw-karta mw-proc-karta mw-odhalit">
+                <img alt="" src="{src2}">
+                <h3>Festival aktivní zábavy</h3>
+                <p>Najdeš tu všechno od celodenně otevřené deskoherny, přes rolové hry až po koncert.</p>
+            </article>
+            <article class="mw-karta mw-proc-karta mw-odhalit">
+                <img alt="" src="{src3}">
+                <h3>Žádné vstupné</h3>
+                <p>Registrace na GameCon je zdarma. Platíš jen za služby a aktivity, které si sám vybereš a objednáš.</p>
+            </article>
+        </div>
+        <!-- end: karty -->
+    </div>
+</section>
+
+<section class="mw-sekce mw-fotky" aria-label="Fotky z GameConu">
+    <div class="mw-obal">
+        <!-- begin: fotky -->
+        <div class="mw-fotky-mrizka">
+            <img loading="lazy" alt="Koncert" src="{src1}" class="mw-odhalit">
+            <img loading="lazy" alt="" src="{src2}" class="mw-odhalit">
+            <img loading="lazy" alt="" src="{src3}" class="mw-odhalit">
+            <img loading="lazy" alt="" src="{src4}" class="mw-odhalit">
+            <img loading="lazy" alt="" src="{src5}" class="mw-odhalit">
+            <img loading="lazy" alt="" src="{src6}" class="mw-odhalit">
+        </div>
+        <!-- end: fotky -->
+    </div>
+</section>
+
+<section class="mw-sekce mw-sponzori">
+    <div class="mw-obal">
+        <header class="mw-sekce-hlavicka">
+            <h2>Děkujeme našim sponzorům a&nbsp;partnerům</h2>
+            <p><a href="sponzori">Všichni sponzoři a partneři</a> · <a href="pro-sponzory-a-media">Chci GameCon podpořit</a></p>
+        </header>
+        <div class="mw-sponzori-loga">
+            <!-- begin: sponzor -->
+            <a href="{url}" target="_blank" rel="noopener"><img loading="lazy" alt="" src="{src}"></a>
+            <!-- end: sponzor -->
+        </div>
+        <div class="mw-sponzori-loga mw-partneri-loga">
+            <!-- begin: partner -->
+            <a href="{url}" target="_blank" rel="noopener"><img loading="lazy" alt="" src="{src}"></a>
+            <!-- end: partner -->
+        </div>
+    </div>
+</section>
+
+<!-- end: titulka -->

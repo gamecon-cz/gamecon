@@ -1,0 +1,121 @@
+<!-- begin: titulka -->
+<!-- Titulka varianty B moderního vzhledu (Krabice od hry, viz VzhledWebuEnum), styly v soubory/moderni/varianty/b.css.
+     Modul web/moduly/titulka.php je pro všechny vzhledy stejný, šablona proto musí mít všechny bloky, které modul
+     parsuje (linie, odpocetPrihlasit, karty, cisla, fotky, sponzor, partner), i ty, které nepoužije. -->
+
+<section class="mw-b-viko">
+    <div class="mw-obal">
+        <div class="mw-b-viko-obsah">
+            <div>
+                <h1>Největší festival nepočítačových her</h1>
+                <p class="mw-b-perex">
+                    Deskovky, RPG, larpy, akční hry, wargaming, turnaje, pohybové workshopy, koncert a&nbsp;párty.
+                    Čtyři dny her a&nbsp;lidí, kteří tě budou bavit do dalšího roku.
+                </p>
+                <div class="mw-b-akce">
+                    <!-- begin: odpocetPrihlasit -->
+                    <a href="prihlaska" class="mw-tlacitko mw-tlacitko-cervene mw-tlacitko-velke">Přihlásit se</a>
+                    <!-- end: odpocetPrihlasit -->
+                    <a href="program" class="mw-tlacitko mw-tlacitko-obrys mw-tlacitko-velke">Prohlédnout program</a>
+                </div>
+                <p class="mw-b-odpocet" data-mw-odpocet="{odpocetTimestamp}">
+                    {odpocetNadpis}
+                    <span role="timer"><b data-mw-odpocet-dnu>0</b>&nbsp;dní <b data-mw-odpocet-hodin>00</b>&nbsp;hod <b data-mw-odpocet-minut>00</b>&nbsp;min <b data-mw-odpocet-sekund>00</b>&nbsp;s</span>
+                </p>
+            </div>
+            <img class="mw-b-obal-krabice" alt="" src="soubory/blackarrow/gchlavicka/obr_1.jpg">
+        </div>
+
+        <!-- bok krabice: bílá lišta s piktogramy, jak ji má každá deskovka -->
+        <ul class="mw-b-bok" aria-label="GameCon v kostce">
+            <li>
+                <svg viewBox="0 0 44 44" aria-hidden="true"><circle cx="16" cy="13" r="6"/><path d="M5 38c0-7 5-12 11-12s11 5 11 12"/><circle cx="31" cy="15" r="5"/><path d="M29 26c6-1 11 4 11 11"/></svg>
+                <div><strong>{stovkySpokojenychUcastniku}+</strong><span>hráčů</span></div>
+            </li>
+            <li>
+                <svg viewBox="0 0 44 44" aria-hidden="true"><path d="M11 5h22M11 39h22M13 5c0 10 9 11 9 17s-9 7-9 17M31 5c0 10-9 11-9 17s9 7 9 17"/><path d="M16 34c2-3 4-4 6-4s4 1 6 4"/></svg>
+                <div><strong>4 dny</strong><span>doba hraní</span></div>
+            </li>
+            <li>
+                <!-- mladší 15 let potřebují souhlas zákonného zástupce (web/moduly/prihlaska/prihlaska.php); program pro
+                     menší děti nemáme, proto ne „0+“ -->
+                <svg viewBox="0 0 44 44" aria-hidden="true"><circle cx="22" cy="10" r="5"/><path d="M22 15v13M13 21h18M22 28l-7 11M22 28l7 11"/></svg>
+                <div><strong>15+</strong><span>mladší se souhlasem rodičů</span></div>
+            </li>
+            <li>
+                <svg viewBox="0 0 44 44" aria-hidden="true"><path d="M22 40s12-12 12-22a12 12 0 0 0-24 0c0 10 12 22 12 22z"/><circle cx="22" cy="18" r="4.5"/></svg>
+                <div><strong>{gcOd}&thinsp;–&thinsp;{gcDo}</strong><span>Ostrava {gcRok}</span></div>
+            </li>
+        </ul>
+    </div>
+</section>
+
+<section class="mw-b-sekce mw-b-krabice">
+    <div class="mw-obal">
+        <h2>Co je v krabici</h2>
+        <p class="mw-b-uvod">Všechno, co na GameConu najdeš. Za vstup neplatíš nic, jen za aktivity a&nbsp;služby, které si objednáš.</p>
+        <!-- originály kreseb, zmenšeniny z bloků cisla a karty jsou na tuhle velikost malé -->
+        <ul class="mw-b-obsah">
+            <li><img alt="" src="soubory/blackarrow/cisla/2.jpg"><div><strong><b>{stovkyAktivit}+</b> aktivit</strong><span>deskovky, RPG, larpy, turnaje a přednášky</span></div></li>
+            <li><img alt="" src="soubory/blackarrow/karty/1.jpg"><div><strong><b>{pocetLinii}×</b> herní linie</strong><span>každá s vlastním týmem a hrami</span></div></li>
+            <li><img alt="" src="soubory/blackarrow/cisla/1.jpg"><div><strong><b>1×</b> deskoherna</strong><span>zdarma a otevřená skoro celý den</span></div></li>
+            <li><img alt="" src="soubory/blackarrow/cisla/4.jpg"><div><strong><b>1×</b> koncert</strong><span>a k tomu pár večírků</span></div></li>
+            <li><img alt="" src="soubory/blackarrow/cisla/3.jpg"><div><strong><b>4×</b> den hraní</strong><span>od rána do noci</span></div></li>
+            <li><img alt="" src="soubory/blackarrow/karty/2.jpg"><div><strong><b>0&nbsp;Kč</b> vstupné</strong><span>registrace je zdarma</span></div></li>
+        </ul>
+        <!-- begin: cisla --><!-- end: cisla -->
+        <!-- begin: karty --><!-- end: karty -->
+    </div>
+</section>
+
+<section class="mw-b-sekce">
+    <div class="mw-obal">
+        <h2>Příprava hry</h2>
+        <p class="mw-b-uvod">Čtyři kroky od přihlášky k&nbsp;první hře.</p>
+        <!-- příprava hry je opravdu postup, proto tu čísla jsou -->
+        <ol class="mw-b-kroky">
+            <li><h3>Vyplň <a href="prihlaska">přihlášku</a></h3><p>Registrace je zdarma. Rovnou si objednáš ubytování a&nbsp;jídlo.</p></li>
+            <li><h3>Přihlas se na aktivity</h3><p>Aktivity se otevírají postupně ve vlnách. Datum další vlny najdeš v&nbsp;<a href="program">programu</a>.</p></li>
+            <li><h3>Zaplať</h3><p>Platíš jen za aktivity a&nbsp;služby, které si objednáš.</p></li>
+            <li><h3>Přijeď do Ostravy</h3><p>{gcOd}&thinsp;–&thinsp;{gcDo}&nbsp;{gcRok}. Pak už jen hraješ.</p></li>
+        </ol>
+    </div>
+</section>
+
+<section class="mw-b-sekce mw-b-linie-sekce" id="co-zazijes">
+    <div class="mw-obal">
+        <h2>Herní linie</h2>
+        <p class="mw-b-uvod">Vyber si, co tě láká. Každá linie má vlastní tým, vlastní hry a&nbsp;vlastní atmosféru.</p>
+        <div class="mw-b-linie">
+            <!-- begin: linie -->
+            <a href="{url}">
+                <img alt="" src="{ikonaUrl}">
+                <div><h3>{nazev}</h3><p>{popis}</p></div>
+            </a>
+            <!-- end: linie -->
+        </div>
+    </div>
+</section>
+
+<!-- begin: fotky --><!-- end: fotky -->
+
+<section class="mw-sekce mw-sponzori">
+    <div class="mw-obal">
+        <header class="mw-sekce-hlavicka">
+            <h2>Děkujeme našim sponzorům a&nbsp;partnerům</h2>
+            <p><a href="sponzori">Všichni sponzoři a partneři</a> · <a href="pro-sponzory-a-media">Chci GameCon podpořit</a></p>
+        </header>
+        <div class="mw-sponzori-loga">
+            <!-- begin: sponzor -->
+            <a href="{url}" target="_blank" rel="noopener"><img loading="lazy" alt="" src="{src}"></a>
+            <!-- end: sponzor -->
+        </div>
+        <div class="mw-sponzori-loga mw-partneri-loga">
+            <!-- begin: partner -->
+            <a href="{url}" target="_blank" rel="noopener"><img loading="lazy" alt="" src="{src}"></a>
+            <!-- end: partner -->
+        </div>
+    </div>
+</section>
+
+<!-- end: titulka -->

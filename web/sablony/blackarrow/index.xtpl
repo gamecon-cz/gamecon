@@ -19,6 +19,8 @@
 
     {menu}
 
+    {oznameni}
+
     {chyba}
 
     {obsah}
@@ -36,12 +38,21 @@
             <a href="sponzori">sponzoři</a>
             <a href="kontakty">kontakt</a>
             <a href="drd">Archiv mDrD</a>
+            <a href="{urlModerni}">nový vzhled webu</a>
             <a href="discord" target="_blank" class="paticka_ext paticka_discord">Discord</a>
             <a href="instagram" target="_blank" class="paticka_ext paticka_instagram">Instagram</a>
             <a href="youtube" target="_blank" class="paticka_ext paticka_youtube">Youtube</a>
         </div>
     </div>
     <!-- end: paticka -->
+
+    <!-- begin: nahledMotivu -->
+    <div class="nahledMotivuWebu" role="status">
+        Náhled ({popisNahleduMotivu}) se ukazuje jen v moderním vzhledu.
+        <a href="{urlModerni}">Přepnout na moderní</a>
+        <a href="{urlKonceNahleduMotivu}">Ukončit náhled</a>
+    </div>
+    <!-- end: nahledMotivu -->
 
     <!-- begin: ribbon -->
     <div class="corner-ribbon">{ribbonLabel}</div>

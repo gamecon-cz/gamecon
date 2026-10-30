@@ -1,0 +1,300 @@
+<!-- begin: barvyAMotivy -->
+
+<h1>Barvy a motivy webu</h1>
+
+<p>
+    Platí jen pro moderní vzhled webu, klasický se nemění.
+</p>
+
+<style>
+    .barvyAMotivy-sekce {
+        max-width: 1100px;
+        margin-bottom: 2.5em;
+    }
+
+    .barvyAMotivy-sekce td {
+        vertical-align: middle;
+    }
+
+    .barvyAMotivy-sekce form {
+        display: inline;
+    }
+
+    .barvyWebu-hodnota {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        white-space: nowrap;
+    }
+
+    .barvyWebu-hodnota input[type="color"] {
+        width: 44px;
+        height: 30px;
+        padding: 0;
+        border: 1px solid #ccc;
+        cursor: pointer;
+    }
+
+    .barvyWebu-hodnota input[type="text"] {
+        font-family: monospace;
+    }
+
+    .barvyWebu-vychozi {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        font-family: monospace;
+        white-space: nowrap;
+    }
+
+    .barvyWebu-vzorek {
+        display: inline-block;
+        width: 14px;
+        height: 14px;
+        border: 1px solid #999;
+    }
+
+    .barvyWebu-zmena {
+        display: inline-block;
+        margin-left: 6px;
+        padding: 0 6px;
+        border-radius: 999px;
+        background-color: #2563eb;
+        color: #fff;
+        font-size: 0.85em;
+    }
+
+    .barvyWebu-tlacitka {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+        margin: 1em 0;
+    }
+
+    .barvyWebu-chyba {
+        color: #b00020;
+        font-weight: bold;
+    }
+
+    .barvyWebu-kontrast {
+        margin: 1em 0;
+        padding: 8px 12px;
+        border-left: 4px solid #f67f00;
+        background-color: #fff6e5;
+    }
+
+    .barvyWebu-kontrast ul {
+        margin: 0.3em 0 0;
+    }
+
+    .motivyWebu-skoncilo td {
+        color: #777;
+    }
+</style>
+
+<div class="barvyAMotivy-sekce">
+    <h2>Barvy ročníku</h2>
+
+    <p>
+        Pro grafika. Uprav barvy, ulož návrh a prohlédni si ho na webu: náhled vidíš jen ty a ostatní s právem na web
+        v adminu, návštěvníci pořád vidí zveřejněné barvy. Když sedí, zveřejni ho.
+        Barvu jde vybrat, nebo vložit kód ve tvaru <code>#e22630</code>.
+    </p>
+
+    <p>
+        Na webu teď: <strong>{stavZverejnenych}</strong>
+        <!-- begin: zmenaZverejnenych -->
+        <span class="hinted">(zveřejněno {zmenaZverejnenych})</span>
+        <!-- end: zmenaZverejnenych -->
+        <br>
+        <!-- begin: navrh -->
+        Návrh: <strong>{stavNavrhu}</strong> <span class="hinted">(uloženo {zmenaNavrhu})</span>
+        <!-- end: navrh -->
+        <!-- begin: bezNavrhu -->
+        Návrh: <strong>žádný</strong>, ve formuláři jsou barvy z webu.
+        <!-- end: bezNavrhu -->
+    </p>
+
+    <!-- begin: chybaBarev -->
+    <p class="barvyWebu-chyba">{chybaBarev}</p>
+    <!-- end: chybaBarev -->
+
+    <form method="post" class="barvyWebu-formular">
+        <table class="zvyraznovana" style="width: 100%">
+            <tr>
+                <th>Barva</th>
+                <th>Kde se používá</th>
+                <th>Hodnota</th>
+                <th>Výchozí</th>
+            </tr>
+            <!-- begin: barva -->
+            <tr class="barvyWebu-radek">
+                <td>
+                    <strong>{barvaNazev}</strong>
+                    <!-- begin: zmenaOprotiZverejnene -->
+                    <span class="barvyWebu-zmena" title="Na webu je teď {barvaZverejnena}">v návrhu jiná</span>
+                    <!-- end: zmenaOprotiZverejnene -->
+                </td>
+                <td>{barvaPouziti}</td>
+                <td>
+                    <span class="barvyWebu-hodnota">
+                        <input type="color" class="barvyWebu-picker" value="{barvaPicker}" aria-label="{barvaNazev}">
+                        <input type="text" class="barvyWebu-hex" name="barvy[{barvaKlic}]" value="{barvaHodnota}"
+                               size="8" required pattern="#?([0-9a-fA-F]{3}|[0-9a-fA-F]{6})" aria-label="{barvaNazev}, kód">
+                    </span>
+                </td>
+                <td>
+                    <button type="button" class="barvyWebu-vychozi" data-vychozi="{barvaVychozi}" title="Vrátit výchozí barvu">
+                        <span class="barvyWebu-vzorek" style="background-color: {barvaVychozi}"></span>{barvaVychozi}
+                    </button>
+                </td>
+            </tr>
+            <!-- end: barva -->
+        </table>
+
+        <!-- begin: kontrast -->
+        <div class="barvyWebu-kontrast">
+            <strong>Pozor na čitelnost</strong> (jen upozornění, uložit i zveřejnit to jde):
+            <ul>
+                <!-- begin: varovani -->
+                <li>{varovani}</li>
+                <!-- end: varovani -->
+            </ul>
+        </div>
+        <!-- end: kontrast -->
+
+        <div class="barvyWebu-tlacitka">
+            <button type="submit" name="akce" value="ulozit-navrh">Uložit návrh</button>
+            <button type="submit" name="akce" value="ulozit-a-prohlednout" formtarget="_blank">Uložit a prohlédnout na webu</button>
+        </div>
+    </form>
+
+    <div class="barvyWebu-tlacitka">
+        <!-- begin: akceNavrhu -->
+        <a href="{urlNahleduNavrhu}" target="_blank">Prohlédnout uložený návrh na webu</a>
+        <form method="post" onsubmit="return confirm('Zveřejnit návrh? Návštěvníci uvidí nové barvy hned.')">
+            <button type="submit" name="akce" value="zverejnit"><strong>Zveřejnit návrh</strong></button>
+        </form>
+        <form method="post" onsubmit="return confirm('Zahodit návrh barev?')">
+            <button type="submit" name="akce" value="zahodit-navrh">Zahodit návrh</button>
+        </form>
+        <!-- end: akceNavrhu -->
+        <form method="post">
+            <button type="submit" name="akce" value="vychozi-do-navrhu">Dát do návrhu výchozí barvy</button>
+        </form>
+    </div>
+</div>
+
+<div class="barvyAMotivy-sekce">
+    <h2>Speciální motivy</h2>
+
+    <p>
+        Motiv mění víc než barvy (písmo, natočení, pohyb) a je připravený v kódu, nový přidá vývojář.
+        Tady se jen naplánuje, odkdy dokdy platí, mimo ten čas se sám vypne. Překryje barvy ročníku.
+    </p>
+
+    <table class="zvyraznovana" style="width: 100%">
+        <tr>
+            <th>Motiv</th>
+            <th>Co dělá</th>
+            <th></th>
+        </tr>
+        <!-- begin: motiv -->
+        <tr>
+            <td><strong>{motivNazev}</strong></td>
+            <td>{motivPopis}</td>
+            <td><a href="{urlNahleduMotivu}" target="_blank">náhled na webu</a></td>
+        </tr>
+        <!-- end: motiv -->
+    </table>
+
+    <h3>Naplánovat</h3>
+    <form method="post" style="display: block">
+        <label>
+            Motiv
+            <select name="motiv" required>
+                <!-- begin: volbaMotivu -->
+                <option value="{motivHodnota}">{motivNazev}</option>
+                <!-- end: volbaMotivu -->
+            </select>
+        </label>
+        <label>
+            od <input type="datetime-local" name="zobrazit_od" required>
+        </label>
+        <label>
+            do <input type="datetime-local" name="zobrazit_do" required>
+        </label>
+        <button type="submit" name="akce" value="naplanovat-motiv">Naplánovat</button>
+    </form>
+
+    <!-- begin: naplanovane -->
+    <h3>Naplánované</h3>
+    <table class="zvyraznovana" style="width: 100%">
+        <tr>
+            <th>Motiv</th>
+            <th>Od</th>
+            <th>Do</th>
+            <th>Stav</th>
+            <th>Poslední změna</th>
+            <th></th>
+        </tr>
+        <!-- begin: naplanovany -->
+        <tr class="motivyWebu-{naplanovanyStav}">
+            <td>{naplanovanyNazev}</td>
+            <td>{naplanovanyOd}</td>
+            <td>{naplanovanyDo}</td>
+            <td>{naplanovanyStavNazev}</td>
+            <td class="hinted">{naplanovanyZmena}</td>
+            <td style="white-space: nowrap">
+                <!-- begin: ukoncit -->
+                <form method="post">
+                    <input type="hidden" name="id" value="{naplanovanyId}">
+                    <button type="submit" name="akce" value="ukoncit-motiv">ukončit teď</button>
+                </form>
+                <!-- end: ukoncit -->
+                <form method="post" onsubmit="return confirm('Smazat naplánovaný motiv?')">
+                    <input type="hidden" name="id" value="{naplanovanyId}">
+                    <button type="submit" name="akce" value="smazat-motiv">smazat</button>
+                </form>
+            </td>
+        </tr>
+        <!-- end: naplanovany -->
+    </table>
+    <!-- end: naplanovane -->
+</div>
+
+<script>
+    // The colour picker and the code field show the same colour, the code field is the one that is sent
+    document.querySelectorAll('.barvyWebu-radek').forEach(function (radek) {
+        const vyber = radek.querySelector('.barvyWebu-picker')
+        const kod = radek.querySelector('.barvyWebu-hex')
+        vyber.addEventListener('input', function () {
+            kod.value = vyber.value
+        })
+        kod.addEventListener('input', function () {
+            const hodnota = kod.value.trim().replace(/^#/, '').toLowerCase()
+            if (/^[0-9a-f]{6}$/.test(hodnota)) {
+                vyber.value = '#' + hodnota
+            }
+        })
+        radek.querySelector('.barvyWebu-vychozi').addEventListener('click', function () {
+            kod.value = vyber.value = this.dataset.vychozi
+        })
+    })
+
+    // "Uložit a prohlédnout" saves in a new tab, this one still shows the state before it (without a draft to publish),
+    // so it loads again when the designer comes back from the preview. As a GET: reload() could send a form again
+    let nacistPoNavratu = false
+    document.querySelector('.barvyWebu-formular').addEventListener('submit', function (udalost) {
+        if (udalost.submitter && udalost.submitter.value === 'ulozit-a-prohlednout') {
+            nacistPoNavratu = true
+        }
+    })
+    document.addEventListener('visibilitychange', function () {
+        if (nacistPoNavratu && document.visibilityState === 'visible') {
+            location.replace(location.href)
+        }
+    })
+</script>
+
+<!-- end: barvyAMotivy -->

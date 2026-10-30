@@ -1,0 +1,13 @@
+<!-- begin: oznameni -->
+<div class="oznameniWebu" role="region" aria-label="Oznámení">
+    <!-- begin: jedno -->
+    <div class="oznameniWebu_polozka oznameniWebu_polozka-{typ}">
+        <span class="oznameniWebu_typ">{nazevTypu}</span>
+        <div class="oznameniWebu_text">{text}</div>
+        <!-- begin: skryt -->
+        <a class="oznameniWebu_zavrit" href="{urlSkryti}" rel="nofollow" title="Zavřít oznámení" aria-label="Zavřít oznámení">&times;</a>
+        <!-- end: skryt -->
+    </div>
+    <!-- end: jedno -->
+</div>
+<!-- end: oznameni -->

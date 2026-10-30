@@ -1,0 +1,428 @@
+/*
+ * Varianta C moderního vzhledu (Ruka karet, viz VzhledWebuEnum): linie jako hrací karty 63 × 88 mm, odvaha je ve
+ * vějíři karet v hlavičce titulky, který se při načtení jednou rozdá (c.js). Načítá se za moderni.css, jen ve
+ * variantě C. Šablona titulky je v sablony/moderni/varianty/c/, ostatní stránky jsou stejné jako v moderním vzhledu.
+ */
+
+.mw-modul-titulka .mw-obsah *,
+.mw-modul-titulka .mw-obsah *::before,
+.mw-modul-titulka .mw-obsah *::after {
+  box-sizing: border-box;
+}
+
+/* ---------- Hlavička titulky ---------- */
+
+.mw-c-stul {
+  overflow: hidden;
+  padding: 64px 0 72px;
+  background-color: var(--mw-inkoust);
+  color: #fff;
+}
+
+.mw-c-stul-obsah {
+  display: grid;
+  grid-template-columns: minmax(0, 1.25fr) minmax(0, 1fr);
+  align-items: center;
+  gap: 40px;
+}
+
+/* bez JS vějíř není, text dostane celou šířku */
+html:not(.mw-js) .mw-c-stul-obsah {
+  grid-template-columns: 1fr;
+}
+
+html:not(.mw-js) .mw-c-ruka {
+  display: none;
+}
+
+.mw-c-kdy {
+  margin: 0;
+  color: var(--mw-oranzova);
+  font-weight: 700;
+  font-size: 19px;
+}
+
+.mw-c-stul h1 {
+  margin: 16px 0 0;
+  font-weight: 800;
+  font-size: clamp(44px, 4.6vw, 66px);
+  line-height: 0.98;
+  letter-spacing: -0.03em;
+  text-wrap: balance;
+}
+
+.mw-c-perex {
+  max-width: 30em;
+  margin: 24px 0 0;
+  color: rgba(255, 255, 255, 0.78);
+  font-size: 20px;
+}
+
+.mw-c-akce {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-top: 36px;
+}
+
+.mw-c-fakta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 32px;
+  margin: 40px 0 0;
+  padding: 0;
+  color: rgba(255, 255, 255, 0.7);
+  font-size: 17px;
+  list-style: none;
+}
+
+.mw-c-fakta strong {
+  color: #fff;
+  font-weight: 800;
+}
+
+.mw-c-odpocet {
+  margin: 14px 0 0;
+  color: rgba(255, 255, 255, 0.6);
+  font-size: 15px;
+}
+
+.mw-c-odpocet b {
+  color: #fff;
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+}
+
+/* ---------- Karta ---------- */
+
+/* karta je kontejner, vnitřek se měří v cqw (procentech její šířky), takže vypadá stejně v každé velikosti */
+.mw-c-karta {
+  --mw-c-sirka: 240px;
+  container-type: inline-size;
+  display: block;
+  width: var(--mw-c-sirka);
+  aspect-ratio: 63 / 88;
+  color: var(--mw-text);
+  text-decoration: none;
+}
+
+.mw-c-karta-lic {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  padding: 4.5cqw;
+  border-radius: 6cqw;
+  background-color: var(--mw-plocha);
+  box-shadow: 0 1px 0 rgba(0, 0, 0, 0.25), 0 10px 30px rgba(0, 0, 0, 0.28);
+}
+
+/* tištěný rámeček uvnitř karty */
+.mw-c-karta-ram {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  min-height: 0;
+  padding: 4cqw;
+  border: 2px solid var(--mw-inkoust);
+  border-radius: 3.5cqw;
+}
+
+.mw-c-karta-obraz {
+  flex: none;
+  aspect-ratio: 5 / 4;
+  overflow: hidden;
+  border-radius: 1.6cqw;
+  background-color: var(--mw-kremova);
+}
+
+.mw-c-karta-obraz img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+/* rohový index: kresba linie, nahoře a otočená dole, jako hodnota a barva na hrací kartě */
+.mw-c-karta-roh {
+  position: absolute;
+  width: 17cqw;
+  height: 17cqw;
+  padding: 1.2cqw;
+  border-radius: 50%;
+  background-color: var(--mw-plocha);
+}
+
+.mw-c-karta-roh img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
+.mw-c-karta-roh-nahore {
+  top: 2cqw;
+  left: 2cqw;
+}
+
+.mw-c-karta-roh-dole {
+  right: 2cqw;
+  bottom: 2cqw;
+  rotate: 180deg;
+}
+
+.mw-c-karta strong {
+  display: block;
+  margin-top: 5cqw;
+  font-weight: 800;
+  font-size: 8cqw;
+  line-height: 1.12;
+  letter-spacing: -0.01em;
+  text-align: center;
+  text-wrap: balance;
+}
+
+.mw-c-karta-popis {
+  display: -webkit-box;
+  overflow: hidden;
+  margin-top: 3cqw;
+  color: var(--mw-text-tlumeny);
+  font-size: 5.4cqw;
+  line-height: 1.4;
+  text-align: center;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 4;
+}
+
+/* ---------- Vějíř v hlavičce ---------- */
+
+.mw-c-ruka {
+  position: relative;
+  height: 470px;
+}
+
+.mw-c-ruka .mw-c-karta {
+  --mw-c-sirka: 230px;
+  position: absolute;
+  bottom: 0;
+  left: calc(50% - var(--mw-c-sirka) / 2);
+  transform-origin: 50% 150%;
+  rotate: var(--mw-c-uhel);
+  transition: translate 0.2s ease-out;
+}
+
+.mw-c-ruka .mw-c-karta-popis {
+  display: none;
+}
+
+.mw-c-ruka .mw-c-karta:hover {
+  z-index: 5;
+  translate: 0 -28px;
+}
+
+.mw-c-ruka .mw-c-karta:nth-child(1) {
+  --mw-c-uhel: -22deg;
+}
+
+.mw-c-ruka .mw-c-karta:nth-child(2) {
+  --mw-c-uhel: -11deg;
+}
+
+.mw-c-ruka .mw-c-karta:nth-child(3) {
+  --mw-c-uhel: 0deg;
+}
+
+.mw-c-ruka .mw-c-karta:nth-child(4) {
+  --mw-c-uhel: 11deg;
+}
+
+.mw-c-ruka .mw-c-karta:nth-child(5) {
+  --mw-c-uhel: 22deg;
+}
+
+/* jediný pohyb na stránce: karty se jednou rozdají z balíčku do vějíře */
+@media (prefers-reduced-motion: no-preference) {
+  .mw-c-ruka .mw-c-karta {
+    animation: mw-c-rozdat 0.7s cubic-bezier(0.2, 0.8, 0.2, 1) both;
+  }
+
+  .mw-c-ruka .mw-c-karta:nth-child(2) {
+    animation-delay: 0.08s;
+  }
+
+  .mw-c-ruka .mw-c-karta:nth-child(3) {
+    animation-delay: 0.16s;
+  }
+
+  .mw-c-ruka .mw-c-karta:nth-child(4) {
+    animation-delay: 0.24s;
+  }
+
+  .mw-c-ruka .mw-c-karta:nth-child(5) {
+    animation-delay: 0.32s;
+  }
+
+  @keyframes mw-c-rozdat {
+    from {
+      opacity: 0;
+      rotate: 0deg;
+      translate: 0 60px;
+    }
+
+    30% {
+      opacity: 1;
+    }
+  }
+}
+
+/* ---------- Sekce ---------- */
+
+.mw-c-sekce {
+  padding: 104px 0;
+}
+
+.mw-c-sekce h2 {
+  margin: 0;
+  font-weight: 800;
+  font-size: clamp(34px, 4.4vw, 56px);
+  line-height: 1.04;
+  letter-spacing: -0.025em;
+}
+
+.mw-c-uvod {
+  max-width: 34em;
+  margin: 14px 0 0;
+  color: var(--mw-text-tlumeny);
+  font-size: 20px;
+}
+
+.mw-c-balicek {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  justify-items: center;
+  gap: 40px 32px;
+  margin-top: 56px;
+}
+
+.mw-c-balicek .mw-c-karta {
+  --mw-c-sirka: 100%;
+  max-width: 280px;
+  transition: translate 0.2s ease-out;
+}
+
+.mw-c-balicek .mw-c-karta-lic {
+  box-shadow: 0 1px 0 rgba(16, 17, 26, 0.18), 0 2px 10px rgba(16, 17, 26, 0.08);
+  transition: box-shadow 0.2s ease-out;
+}
+
+.mw-c-balicek .mw-c-karta:hover,
+.mw-c-balicek .mw-c-karta:focus-visible {
+  translate: 0 -8px;
+}
+
+.mw-c-balicek .mw-c-karta:hover .mw-c-karta-lic,
+.mw-c-balicek .mw-c-karta:focus-visible .mw-c-karta-lic {
+  box-shadow: 0 1px 0 rgba(16, 17, 26, 0.18), 0 18px 34px rgba(16, 17, 26, 0.16);
+}
+
+.mw-c-proc {
+  background-color: var(--mw-kremova);
+}
+
+.mw-c-proc-mrizka {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 48px;
+  margin-top: 48px;
+}
+
+.mw-c-proc h3 {
+  margin: 0;
+  font-weight: 800;
+  font-size: 24px;
+}
+
+.mw-c-proc p {
+  margin: 8px 0 0;
+  color: var(--mw-text-tlumeny);
+  font-size: 17px;
+}
+
+@media (max-width: 1100px) {
+  .mw-c-balicek {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 960px) {
+  .mw-c-stul-obsah {
+    grid-template-columns: 1fr;
+  }
+
+  .mw-c-ruka {
+    height: 400px;
+    margin-top: 16px;
+  }
+
+  .mw-c-ruka .mw-c-karta {
+    --mw-c-sirka: 190px;
+  }
+}
+
+@media (max-width: 760px) {
+  .mw-c-balicek {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 20px 14px;
+  }
+
+  .mw-c-proc-mrizka {
+    grid-template-columns: 1fr;
+    gap: 28px;
+  }
+}
+
+@media (max-width: 640px) {
+  .mw-c-stul {
+    padding: 40px 0 48px;
+  }
+
+  .mw-c-perex {
+    font-size: 18px;
+  }
+
+  .mw-c-ruka {
+    height: 250px;
+    margin-top: 8px;
+  }
+
+  .mw-c-ruka .mw-c-karta {
+    --mw-c-sirka: 148px;
+  }
+
+  .mw-c-sekce {
+    padding: 72px 0;
+  }
+
+  /* malá karta unese jen obrázek a název */
+  .mw-c-balicek .mw-c-karta-popis {
+    display: none;
+  }
+
+  .mw-c-balicek .mw-c-karta-obraz {
+    flex: 1;
+    aspect-ratio: auto;
+  }
+
+  .mw-c-balicek .mw-c-karta strong {
+    margin: 5cqw 0 3cqw;
+    font-size: 9.5cqw;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .mw-c-ruka .mw-c-karta,
+  .mw-c-balicek .mw-c-karta,
+  .mw-c-balicek .mw-c-karta-lic {
+    transition: none;
+  }
+}
