@@ -209,9 +209,9 @@ foreach ($skupiny as $skupina) {
     ];
 }
 
-// u pár karet by filtry jen překážely
+// u jediné karty není co filtrovat; co na menší stránce nic nezúží (jediný den), schová lišta sama
 $filtrAktivit = null;
-if (count($kartyProFiltr) >= 15) {
+if (count($kartyProFiltr) >= 2) {
     $nazvyKategoriiTagu = [];
     foreach (KategorieTagu::zVsech() as $kategorieTagu) {
         $nazvyKategoriiTagu[$kategorieTagu->id()] = $kategorieTagu->nazev();
@@ -292,6 +292,11 @@ if (!empty($org)) {
     // podstránky linie
     $stranky = serazenePodle($typ->stranky(), 'poradi');
     $t->parseEach($stranky, 'stranka', 'aktivity.stranka');
+    // přehled vypravěčů je jen letošní a sekce má jen pro linie z menu; bez vypravěčů by odkaz vedl na prázdný výpis
+    if (!$minulyRocnik && $typ->isVMenu() && $vypraveciProFiltr) {
+        $t->assign('urlLinie', $typ->url());
+        $t->parse('aktivity.vypraveciLinie');
+    }
 
     if (!$systemoveNastaveni->jsmeNaOstre() && $u && $u->jeOrganizator()) {
         $t->assign('urlEditaceStranek', URL_ADMIN . '/web/editace-stranek');

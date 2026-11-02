@@ -6,6 +6,7 @@ export const AktivitaStavyVšechny = [
   "vBudoucnu",
   "plno",
   "prihlasen",
+  "neucast",
   "nahradnik",
   "organizator",
   "volno",
@@ -24,6 +25,13 @@ export type StavPřihlášení =
   | "pozdeZrusil"
   | "sledujici"
   ;
+
+/**
+ * Nedorazil nebo se pozdě odhlásil. Aktivita v programu zůstává (účastník za ni
+ * platí storno), ale odlišená od přihlášení.
+ */
+export const jeNeúčast = (stav: StavPřihlášení | null | undefined): boolean =>
+  stav === "prihlasenAleNedorazil" || stav === "pozdeZrusil";
 
 /**
  * Aktivita::obsazenostObj

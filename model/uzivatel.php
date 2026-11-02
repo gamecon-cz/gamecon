@@ -1082,9 +1082,10 @@ SQL,
 
     public static function jmenoNaWebuZjisti(array $r): string
     {
-        $jmeno = trim((string) ($r[Sql::JMENO_UZIVATELE] ?? ''));
-        $prijmeni = trim((string) ($r[Sql::PRIJMENI_UZIVATELE] ?? ''));
-        $login = trim((string) ($r[Sql::LOGIN_UZIVATELE] ?? ''));
+        // mb_trim ořízne i nezlomitelné mezery, trim je nechá a jméno by na webu odskočilo
+        $jmeno = mb_trim((string) ($r[Sql::JMENO_UZIVATELE] ?? ''));
+        $prijmeni = mb_trim((string) ($r[Sql::PRIJMENI_UZIVATELE] ?? ''));
+        $login = mb_trim((string) ($r[Sql::LOGIN_UZIVATELE] ?? ''));
         $nick = str_contains($login, '@') ? '' : $login;
         $celeJmeno = trim($jmeno . ' ' . $prijmeni);
 

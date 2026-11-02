@@ -160,6 +160,12 @@ class TypAktivity extends \DbObject
         return $this->r['url_typu_mn'];
     }
 
+    /** Linie z menu webu (Aktivity) */
+    public function isVMenu(): bool
+    {
+        return (bool)$this->r['zobrazit_v_menu'];
+    }
+
     public function jeBrigadnicka(): bool
     {
         return $this->id() === self::BRIGADNICKA;

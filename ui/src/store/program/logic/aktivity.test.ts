@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { filtrujAktivity, FiltrAktivit, MapováníTagů } from "./aktivity";
+import { aktivitaStatusZAktivity, filtrujAktivity, FiltrAktivit, MapováníTagů } from "./aktivity";
 import { Aktivita } from "../slices/programDataSlice";
 
 // Regresní krytí pro filtr interních (nepublikovaných technických/brigádnických)
@@ -63,5 +63,30 @@ describe("filtrujAktivity – muj program nekoliduje s filtrem interních", () =
     expect(výsledek).toContain(2);
     expect(výsledek).toContain(3);
     expect(výsledek).not.toContain(4);
+  });
+});
+
+describe("neúčast (nedorazil, pozdě se odhlásil)", () => {
+  const aktivity: Aktivita[] = [
+    aktivita(1, { interni: false, stavPrihlaseni: "prihlasen", vedu: false }),
+    aktivita(2, { interni: false, stavPrihlaseni: "prihlasenADorazil", vedu: false }),
+    aktivita(3, { interni: false, stavPrihlaseni: "prihlasenAleNedorazil", vedu: false }),
+    aktivita(4, { interni: false, stavPrihlaseni: "pozdeZrusil", vedu: false }),
+    aktivita(5, { interni: false, stavPrihlaseni: null, vedu: false }),
+  ];
+
+  it("má vlastní stav, ne přihlášen", () => {
+    expect(aktivity.map(a => aktivitaStatusZAktivity(a))).toEqual(
+      ["prihlasen", "prihlasen", "neucast", "neucast", "volno"],
+    );
+  });
+
+  it("v můj program zůstane", () => {
+    expect(idčka(aktivity, { výběr: { typ: "můj" }, filtrInterni: true })).toEqual([1, 2, 3, 4]);
+  });
+
+  it("filtr legendy ji odliší od přihlášení", () => {
+    expect(idčka(aktivity, { filtrStavAktivit: ["prihlasen"], filtrInterni: true })).toEqual([1, 2]);
+    expect(idčka(aktivity, { filtrStavAktivit: ["neucast"], filtrInterni: true })).toEqual([3, 4]);
   });
 });

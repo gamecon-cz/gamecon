@@ -6,6 +6,7 @@ namespace Gamecon\Tests\Model\Aktivita;
 
 use App\Kernel;
 use Gamecon\Aktivita\Aktivita;
+use Gamecon\Aktivita\FiltrAktivity;
 use Gamecon\Aktivita\SqlStruktura\AkceSeznamSqlStruktura as Sql;
 use Gamecon\Aktivita\SqlStruktura\TypAktivitySqlStruktura as TypSql;
 use Gamecon\Aktivita\StavAktivity;
@@ -233,6 +234,60 @@ SQL,
             $aktivita->stavPrihlaseni($uzivatel),
             'Bez záznamu o pozdním zrušení se uživatel může na aktivitu zdarma znovu přihlásit (program není zablokovaný)',
         );
+    }
+
+    /**
+     * Program účastníka načítá aktivity s přednačítáním. Kdo nedorazil nebo se pozdě odhlásil,
+     * už v akce_prihlaseni není, jeho stav je jen v akce_prihlaseni_spec – a program ho musí
+     * ukázat i v minulém ročníku a i na aktivitě, kde nikdo jiný přihlášený nezůstal.
+     *
+     * @test
+     *
+     * @dataProvider provideRokyProgramu
+     */
+    public function prednacitanyProgramUkazeNeucastINaAktivituBezPrihlasenych(int $rok): void
+    {
+        dbQuery(<<<'SQL'
+INSERT INTO akce_seznam(id_akce, nazev_akce, rok) VALUES (10, 'nikdo nedorazil', $0), (11, 'někdo dorazil', $0)
+SQL, [
+            0 => $rok,
+        ]);
+        dbQuery(<<<'SQL'
+INSERT INTO akce_prihlaseni(id_akce, id_uzivatele, id_stavu_prihlaseni) VALUES (11, 123, $0)
+SQL, [
+            0 => StavPrihlaseni::PRIHLASEN_A_DORAZIL,
+        ]);
+        dbQuery(<<<'SQL'
+INSERT INTO akce_prihlaseni_spec(id_akce, id_uzivatele, id_stavu_prihlaseni) VALUES (10, 124, $0), (11, 124, $1)
+SQL, [
+            0 => StavPrihlaseni::PRIHLASEN_ALE_NEDORAZIL,
+            1 => StavPrihlaseni::POZDE_ZRUSIL,
+        ]);
+
+        $aktivityPodleId = [];
+        foreach (Aktivita::zFiltru(
+            systemoveNastaveni: SystemoveNastaveni::zGlobals(),
+            filtr: [
+                FiltrAktivity::ROK => $rok,
+            ],
+            prednacitat: true,
+        ) as $aktivita) {
+            $aktivityPodleId[$aktivita->id()] = $aktivita;
+        }
+        $nedorazil = \Uzivatel::zIdUrcite(124);
+
+        // aktivita bez přihlášených schválně první – dřív podle ní přednačítání rozhodlo, že není co načítat
+        self::assertSame(StavPrihlaseni::PRIHLASEN_ALE_NEDORAZIL, $aktivityPodleId[10]->stavPrihlaseni($nedorazil));
+        self::assertSame(StavPrihlaseni::POZDE_ZRUSIL, $aktivityPodleId[11]->stavPrihlaseni($nedorazil));
+        self::assertSame(StavPrihlaseni::PRIHLASEN_A_DORAZIL, $aktivityPodleId[11]->stavPrihlaseni(\Uzivatel::zIdUrcite(123)));
+    }
+
+    public static function provideRokyProgramu(): array
+    {
+        return [
+            'letošní ročník' => [ROCNIK],
+            'minulý ročník'  => [2023],
+        ];
     }
 
     private function systemoveNastaveniProStorno(int $kolikMinutJeOdhlaseniBezPokuty = self::KOLIK_MINUT_JE_ODHLASENI_BEZ_POKUTY): SystemoveNastaveni
