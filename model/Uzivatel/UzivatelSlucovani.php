@@ -44,8 +44,15 @@ class UzivatelSlucovani
                 dbUpdate(Sql::UZIVATELE_HODNOTY_TABULKA, $unikatniData, ['id_uzivatele' => $idStarehoUzivatele]);
             }
 
-            // Update nového uživatele se změnami
-            dbUpdate(Sql::UZIVATELE_HODNOTY_TABULKA, $zmeny, ['id_uzivatele' => $idNovehoUzivatele]);
+            // Update nového uživatele se změnami. Převzaté heslo je změna hesla, odhlásí všechna zařízení jako obnova hesla.
+            if (array_key_exists(Sql::HESLO_MD5, $zmeny)) {
+                $novyUzivatel->zmenRazitkoPrihlaseni(ponechatTotoZarizeni: false, sloupce: $zmeny);
+            } else {
+                dbUpdate(Sql::UZIVATELE_HODNOTY_TABULKA, $zmeny, ['id_uzivatele' => $idNovehoUzivatele]);
+            }
+
+            // Zařízení starého uživatele by se převedeným trvalým přihlášením přihlašovala jako nový bez jeho hesla.
+            TrvalePrihlaseni::zrusVsude($idStarehoUzivatele);
 
             // Převod zůstatku ze starého na nového uživatele
             dbQuery("UPDATE uzivatele_hodnoty SET zustatek = zustatek + (SELECT zustatek FROM uzivatele_hodnoty u2 WHERE u2.id_uzivatele = $idStarehoUzivatele) WHERE id_uzivatele = $idNovehoUzivatele");

@@ -26,10 +26,15 @@ final class TrvalePrihlaseni
      */
     private const int PREDCHOZI_TOKEN_PLATI_SEKUND = 60;
 
-    public static function zaloz(int $idUzivatele): void
+    /**
+     * @param int|null $idTohoto trvalé přihlášení, které si pamatuje session tohoto prohlížeče
+     *
+     * @return int id nového trvalého přihlášení
+     */
+    public static function zaloz(int $idUzivatele, ?int $idTohoto): int
     {
         // Prohlížeč nese jen jednu cookie, předchozí přihlášení by jinak zůstalo viset bez ní.
-        self::smazTotoZarizeni();
+        self::smazTotoZarizeni($idTohoto);
         dbQuery(<<<'SQL'
             DELETE FROM uzivatele_trvala_prihlaseni
             WHERE naposledy_pouzito < NOW() - INTERVAL $0 DAY
@@ -40,29 +45,54 @@ final class TrvalePrihlaseni
             INSERT INTO uzivatele_trvala_prihlaseni (id_uzivatele, token_hash)
             VALUES ($0, $1)
             SQL, [0 => $idUzivatele, 1 => self::hash($token)]);
+        $id = (int) dbInsertId();
         self::nastavCookie($token, time() + self::PLATNOST_DNU * 24 * 3600);
+
+        return $id;
     }
 
     /**
-     * Id uživatele, kterého přihlásí cookie tohoto prohlížeče, nebo null. Platný token zároveň
-     * vymění za nový.
+     * Přihlášení cookie tohoto prohlížeče. Platný token zároveň vymění za nový.
+     *
+     * @return array{id: int, id_uzivatele: int, razitko: string}|null id trvalého přihlášení, koho přihlásit
+     *     a jeho razítko přihlášení, přečtené stejným dotazem jako řádek: dokud řádek existuje, je razítko
+     *     to staré, viz {@see \Uzivatel::zmenRazitkoPrihlaseni()}
      */
-    public static function idUzivateleZCookie(): ?int
+    public static function uplatniCookie(): ?array
     {
         $hash = self::hashZCookie();
         if ($hash === null) {
             return null;
         }
-        $prihlaseni = dbOneLine(<<<'SQL'
-            SELECT id, id_uzivatele, token_hash = $0 AS je_aktualni
-            FROM uzivatele_trvala_prihlaseni
-            WHERE naposledy_pouzito >= NOW() - INTERVAL $1 DAY
-                AND (
-                    token_hash = $0
-                    OR (predchozi_token_hash = $0 AND naposledy_pouzito >= NOW() - INTERVAL $2 SECOND)
-                )
-            SQL, [0 => $hash, 1 => self::PLATNOST_DNU, 2 => self::PREDCHOZI_TOKEN_PLATI_SEKUND]);
+        try {
+            $prihlaseni = dbOneLine(<<<'SQL'
+                SELECT uzivatele_trvala_prihlaseni.id,
+                    uzivatele_trvala_prihlaseni.id_uzivatele,
+                    uzivatele_trvala_prihlaseni.token_hash = $0 AS je_aktualni,
+                    uzivatele_hodnoty.random AS razitko
+                FROM uzivatele_trvala_prihlaseni
+                JOIN uzivatele_hodnoty ON uzivatele_hodnoty.id_uzivatele = uzivatele_trvala_prihlaseni.id_uzivatele
+                WHERE uzivatele_trvala_prihlaseni.naposledy_pouzito >= NOW() - INTERVAL $1 DAY
+                    AND (
+                        uzivatele_trvala_prihlaseni.token_hash = $0
+                        OR (
+                            uzivatele_trvala_prihlaseni.predchozi_token_hash = $0
+                            AND uzivatele_trvala_prihlaseni.naposledy_pouzito >= NOW() - INTERVAL $2 SECOND
+                        )
+                    )
+                SQL, [0 => $hash, 1 => self::PLATNOST_DNU, 2 => self::PREDCHOZI_TOKEN_PLATI_SEKUND]);
+        } catch (\DbException $dbException) {
+            // Nasazení nahraje kód dřív, než migrace tabulku vytvoří. Stránka kvůli tomu nespadne.
+            if ($dbException->getCode() !== 1146 /* table does not exist */) {
+                throw $dbException;
+            }
+
+            return null;
+        }
         if (! $prihlaseni) {
+            // Zrušené nebo vypršelé. Prohlížeč by cookie posílal ještě rok a každý požadavek bez session by ji hledal.
+            self::nastavCookie('', 0);
+
             return null;
         }
 
@@ -82,25 +112,35 @@ final class TrvalePrihlaseni
             }
         }
 
-        return (int) $prihlaseni['id_uzivatele'];
+        return [
+            'id'           => (int) $prihlaseni['id'],
+            'id_uzivatele' => (int) $prihlaseni['id_uzivatele'],
+            'razitko'      => (string) $prihlaseni['razitko'],
+        ];
     }
 
-    public static function zrusNaTomtoZarizeni(): void
+    /**
+     * @param int|null $idTohoto trvalé přihlášení, které si pamatuje session tohoto prohlížeče. Admin běží
+     *                           na jiném hostu a cookie nevidí, bez tohohle by odhlášení v něm trvalé přihlášení nechalo.
+     */
+    public static function zrusNaTomtoZarizeni(?int $idTohoto): void
     {
-        self::smazTotoZarizeni();
+        self::smazTotoZarizeni($idTohoto);
         if (isset($_COOKIE[self::COOKIE])) {
             self::nastavCookie('', 0);
         }
     }
 
+    /**
+     * Toto zařízení pozná jen podle cookie, ne podle session: s ukradenou kopií cookie sdílí řádek i útočník,
+     * a ten by v něm zůstal.
+     */
     public static function zrusNaOstatnichZarizenich(int $idUzivatele): void
     {
         dbQuery(<<<'SQL'
             DELETE FROM uzivatele_trvala_prihlaseni
-            WHERE id_uzivatele = $0
-                AND token_hash != $1
-                AND (predchozi_token_hash IS NULL OR predchozi_token_hash != $1)
-            SQL, [0 => $idUzivatele, 1 => self::hashZCookie() ?? '']);
+            WHERE id_uzivatele = $0 AND id != $1
+            SQL, [0 => $idUzivatele, 1 => self::idZCookie() ?? 0]);
     }
 
     public static function zrusVsude(int $idUzivatele): void
@@ -111,17 +151,39 @@ final class TrvalePrihlaseni
             SQL, [0 => $idUzivatele]);
     }
 
-    private static function smazTotoZarizeni(): void
+    private static function smazTotoZarizeni(?int $idTohoto): void
+    {
+        $idTohotoZarizeni = array_filter([self::idZCookie(), $idTohoto]);
+        if ($idTohotoZarizeni === []) {
+            return;
+        }
+        dbQuery(<<<'SQL'
+            DELETE FROM uzivatele_trvala_prihlaseni
+            WHERE id IN ($0)
+            SQL, [0 => $idTohotoZarizeni]);
+    }
+
+    /**
+     * Trvalé přihlášení, jehož token nese cookie tohoto prohlížeče. Předchozím tokenem jen chvíli po výměně:
+     * cookie mohla přijít ze souběžného požadavku, ale starší kopie už je ukradená nebo zapomenutá.
+     */
+    private static function idZCookie(): ?int
     {
         $hash = self::hashZCookie();
         if ($hash === null) {
-            return;
+            return null;
         }
-        // I předchozím tokenem: cookie mohla přijít ze souběžného požadavku, který ho nevyměnil.
-        dbQuery(<<<'SQL'
-            DELETE FROM uzivatele_trvala_prihlaseni
-            WHERE token_hash = $0 OR predchozi_token_hash = $0
-            SQL, [0 => $hash]);
+        $id = dbOneCol(<<<'SQL'
+            SELECT id
+            FROM uzivatele_trvala_prihlaseni
+            WHERE token_hash = $0
+                OR (predchozi_token_hash = $0 AND naposledy_pouzito >= NOW() - INTERVAL $1 SECOND)
+            LIMIT 1
+            SQL, [0 => $hash, 1 => self::PREDCHOZI_TOKEN_PLATI_SEKUND]);
+
+        return $id !== null
+            ? (int) $id
+            : null;
     }
 
     private static function hashZCookie(): ?string
@@ -146,6 +208,9 @@ final class TrvalePrihlaseni
     /**
      * Do $_COOKIE taky, aby další volání v tomtéž požadavku pracovala s tokenem, který prohlížeč
      * od teď nese.
+     *
+     * Bez domény, tedy jen pro tento host: session cookie platí pro celou doménu, i pro betu, preview
+     * a archivy, a token tam nemá co dělat. Secure podle session cookie, ta ví, kdy jde o HTTPS.
      */
     private static function nastavCookie(string $token, int $vyprsi): void
     {
@@ -157,7 +222,7 @@ final class TrvalePrihlaseni
         setcookie(self::COOKIE, $token, [
             'expires'  => $vyprsi,
             'path'     => '/',
-            'secure'   => ! empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off',
+            'secure'   => session_get_cookie_params()['secure'],
             'httponly' => true,
             'samesite' => 'Lax',
         ]);
