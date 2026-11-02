@@ -1,6 +1,6 @@
 # Oznámení na webu, barvy ročníku a speciální motivy
 
-TL;DR: z adminu (Web → Oznámení na webu, Web → Barvy a motivy webu, právo 105) jde dát na všechny stránky webu lištu s oznámením, přebarvit moderní vzhled pro ročník (návrh → náhled → zveřejnění) a naplánovat speciální motiv napsaný v kódu (apríl).
+TL;DR: z adminu (Web → Oznámení na webu, Web → Barvy a motivy webu, právo 105) jde dát na všechny stránky webu lištu s oznámením, přebarvit web pro ročník (návrh → náhled → zveřejnění; moderní vzhled celý, klasický z části) a naplánovat speciální motiv napsaný v kódu (apríl).
 
 ## Vstupní body
 
@@ -14,15 +14,17 @@ TL;DR: z adminu (Web → Oznámení na webu, Web → Barvy a motivy webu, právo
 ## Pravidla
 
 - (záměr) Oznámení je pro všechny návštěvníky, hlavně během festivalu (přesun, zpoždění, zrušení), proto je v klasickém i moderním vzhledu.
-- (záměr) Barvy a motivy jsou jen pro moderní vzhled, klasický se časem odbourá.
+- (záměr) Barvy ročníku platí pro oba vzhledy, motivy jen pro moderní (jsou psané pro jeho kostru). Klasický vzhled se sice časem odbourá, ale dokud je výchozí, mají ho barvy ročníku přebarvit taky.
+- (záměr) Klasický vzhled přebarví jen hlavní, tmavší hlavní, tmavou, doplňkovou a text (`BarvaWebuEnum::getCssPromennaKlasickehoVzhledu()`). Krémovou si nechá: má na ní nakreslené ilustrace (úvod titulky, hlavička programu, pozadí „Co na GameConu zažiješ“, ikony karet), s jinou by se rozpadl na krémové a jiné plochy. Bílou taky (obrázky s bílým pozadím), šedé nejsou barvy značky. Admin u každé barvy píše, kde je v kterém vzhledu.
 - (záměr) Barvy ročníku nastavuje grafik v adminu. Speciální motiv umí víc než barvy, proto je v kódu a admin ho jen plánuje.
 - Oznámení bez začátku platí hned, bez konce do ukončení. Pořadí: naléhavé, upozornění, informace, v rámci typu nejnovější. Naléhavé nejde zavřít.
 - Zavření je obyčejný odkaz `?skrytOznameni=<id>-<md5(typ + text)>`, server klíč uloží do cookie `skrytaOznameni` (posledních 20) a přesměruje bez parametru: funguje bez JS a zavřené oznámení neprobliká. Po změně textu nebo typu se oznámení ukáže znovu.
 - `barvy_webu` má nejvýš dva řádky (`navrh`, `zverejneno`), JSON drží jen barvy odlišné od výchozích, takže nezměněná barva sleduje `moderni.css`. Výchozí hodnoty v `BarvaWebuEnum` jsou kopie `:root` z `moderni.css`, shodu hlídá `BarvaWebuEnumTest`.
-- Barvy jdou do stránky jako `<style>:root{…}</style>` za `moderni.css`. Hodnota projde jen jako `#rrggbb` (`BarvyWebu::normalizujHodnotu()`), nic jiného se do CSS nedostane.
+- Klasický vzhled má vlastní proměnné `--gc-<hodnota BarvaWebuEnum>` s vlastními výchozími hodnotami v `:root` `web/soubory/blackarrow/_spolecne/_zaklad.less` (doplňková `#FDC689` a tmavší hlavní `#CE232D` jsou o odstín jiné než moderní). Nezměněná barva tak drží každému vzhledu tu jeho, změněná platí pro oba. Že každá proměnná `--gc-` jde z adminu změnit a naopak, hlídá `BarvaWebuEnumTest`.
+- Barvy jdou do stránky jako `<style>:root{…}</style>` (`--mw-…` i `--gc-…`) za styly vzhledu, v obou kostrách proměnná `{motivWebu}`. Hodnota projde jen jako `#rrggbb` (`BarvyWebu::normalizujHodnotu()`), nic jiného se do CSS nedostane.
 - Kontrast (WCAG 4,5:1) admin jen hlásí, uložit a zveřejnit jde i tak. Hlídané dvojice jsou v `KontrastBarevWebu::dvojice()`.
 - Překrývající se motivy: platí ten, který začal později. Motiv, který kód nezná, se přeskočí a platí ten pod ním.
-- Náhled `?nahledMotivu=navrh-barev|<motiv>|konec` jen pro přihlášené s právem 105 (jinak chybová hláška), pamatuje se v cookie do zavření prohlížeče. Odkaz z adminu přidává `?vzhled=moderni`. Náhled návrhu ukazuje barvy bez naplánovaného motivu.
+- Náhled `?nahledMotivu=navrh-barev|<motiv>|konec` jen pro přihlášené s právem 105 (jinak chybová hláška), pamatuje se v cookie do zavření prohlížeče. Odkaz z adminu na náhled motivu přidává `?vzhled=moderni`, náhled barev nechá vzhled, který má grafik zapnutý (lišta náhledu v obou kostrách umí přepnout na druhý). Náhled návrhu ukazuje barvy bez naplánovaného motivu.
 - Čas bere z `SystemoveNastaveni::ted()`, dá se tedy posunout jako u ostatních termínů.
 
 ## Jak přidat motiv
@@ -32,8 +34,14 @@ TL;DR: z adminu (Web → Oznámení na webu, Web → Barvy a motivy webu, právo
 
 ## Gotchas
 
-- Blok `nahledMotivu` je v obou kostrách, parsuje se bez ohledu na vzhled. V klasické kostře lišta jen řekne, že náhled jde vidět v moderním vzhledu.
-- Stránky skládané Symfony (`ObnovaHeslaController`) si kostru skládají samy a lištu oznámení nemají.
+- Blok `nahledMotivu` je v obou kostrách, parsuje se bez ohledu na vzhled. V klasické kostře lišta u náhledu motivu řekne, že motiv je jen v moderním vzhledu (`poznamkaNahleduMotivu`).
+- Klasický vzhled má značkové barvy v LESS (`perfectcache`) i v UI (Preact program a filtr aktivit, `ui/src`). UI se načítá i v adminu, kde proměnné `--gc-` nejsou, proto UI a soubory, které si přibaluje (`program-nahled.less`, `program-trida.css`), píšou `var(--gc-cervena, #E22630)` se zálohou. `:root` s výchozími hodnotami do UI nepatří: načítá se až za barvami ročníku a přebil by je.
+- Odvozené odstíny klasického vzhledu (tmavá po najetí myší `#30323E`, světle oranžový štítek v náhledu `#F9D6B0`) jsou `color-mix()` 50 : 50 proměnné s barvou spočítanou tak, aby s výchozí barvou vyšel přesně původní odstín.
+- Červená chyb a tlačítka „Odhlásit se z GameConu“ v `formular.less` zůstává červená schválně, chyba a nevratný krok mají být červené v každém ročníku.
+- Obrázky v barvách značky jsou v klasickém vzhledu masky pseudoprvku v barvě proměnné (vlna nad patičkou, šmouha pod datem na titulce, šmouhy u karet a aktivit, křížky, vlnky v pásu na titulce). Oranžové šmouhy byly jpg na bílé, teď jsou to `smouha.png` s alfou; jpg zakrýval bílým obdélníkem vlnky vedle seznamu aktivit, proto má `.aktivity_aktivity` pod šmouhou bílý obdélník jako pozadí. Pás s vlnkami na titulce má obal `.popisboxObal`: maska potřebuje pozicovaný prvek a `.popisbox` jím být nemůže, jeho `overflow: hidden` (kvůli animaci textu) by uřízl bublinu, která přečnívá nahoru.
+- Nepřebarví se ilustrace (úvod titulky s červenými tahy a oranžovou skvrnou, hlavička programu), korálově červené kresby `#fc4349` (vlnky u aktivit, pily u čísel, bubliny; jiný odstín než hlavní barva, maska by změnila i výchozí vzhled) a tmavé ikony.
+- Klasický vzhled s výchozími barvami se nemá změnit: ověřeno pixelovým porovnáním 17 stránek na šířce 1400, 900 a 375 px proti `main`, liší se jen vyhlazení okraje masek (vlna patičky o 2 z 255) a šmouhy (šum jpg, nejvýš 34 z 255).
+- Stránky skládané Symfony (`ObnovaHeslaController`) si kostru skládají samy a lištu oznámení nemají. Zveřejněné barvy ročníku dostanou (`{motivWebu}`), náhled grafika ne.
 - Klasická titulka dává menu `position: fixed` (hack v `sablony/blackarrow/titulka.xtpl`), které by lištu pod sebou překrylo. S lištou je menu `sticky` jako jinde (`.menu:has(~ .oznameniWebu)`), odsazení o výšku menu by nestačilo, menu má podle šířky a přihlášení 70 až 120 px.
 - „Uložit a prohlédnout na webu“ ukládá v nové záložce (`formtarget="_blank"`), původní záložka adminu se proto po návratu z náhledu načte znovu, jinak by v ní chybělo „Zveřejnit návrh“.
 - Barvy napsané v `moderni.css` natvrdo se s ročníkem nemění. Záře v úvodu titulky a stín červeného tlačítka jsou proto přes `color-mix()` z proměnných, bílý text na hlavní a tmavé barvě zůstává bílý (proto ho hlídá kontrola kontrastu). Totéž platí pro obrázky: červený obrázek by zůstal červený.

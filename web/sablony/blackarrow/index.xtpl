@@ -7,6 +7,7 @@
     <base href="{base}">
     {FILE "sablony/blackarrow/fonty.xtpl"}
     <link rel="stylesheet" href="{css}">
+    {motivWebu}
     <!-- begin: extraCss --><link rel="stylesheet" href="{url}"><!-- end: extraCss -->
     <!-- begin: extraJs --><script src="{url}"></script><!-- end: extraJs -->
     {info}
@@ -48,8 +49,8 @@
 
     <!-- begin: nahledMotivu -->
     <div class="nahledMotivuWebu" role="status">
-        Náhled ({popisNahleduMotivu}) se ukazuje jen v moderním vzhledu.
-        <a href="{urlModerni}">Přepnout na moderní</a>
+        Náhled: {popisNahleduMotivu}. {poznamkaNahleduMotivu}
+        <a href="{urlModerni}">Moderní vzhled</a>
         <a href="{urlKonceNahleduMotivu}">Ukončit náhled</a>
     </div>
     <!-- end: nahledMotivu -->

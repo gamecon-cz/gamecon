@@ -12,6 +12,8 @@ use Gamecon\Kanaly\GcMail;
 use Gamecon\Kanaly\GcMailSablona;
 use Gamecon\Uzivatel\ResetHeslaToken;
 use Gamecon\Web\MenuWebu;
+use Gamecon\Web\Motiv\BarvyWebuRepository;
+use Gamecon\Web\Motiv\MotivWebu;
 use Gamecon\Web\VzhledWebu;
 use Gamecon\Web\VzhledWebuEnum;
 use Gamecon\XTemplate\XTemplate;
@@ -318,6 +320,9 @@ class ObnovaHeslaController extends AbstractController
                 'letosniRok' => date('Y'),
                 // tyhle stránky zůstávají v klasickém vzhledu, odkaz z patičky přepne a vrátí na titulku
                 'urlModerni' => URL_WEBU . '/?' . VzhledWebu::GET_KLIC . '=' . VzhledWebuEnum::MODERNI->value,
+                // zveřejněné barvy ročníku jako na zbytku webu, náhled grafika tu není
+                'motivWebu' => (new MotivWebu((new BarvyWebuRepository())->zverejnene(), null))
+                    ->getHtmlDoHlavicky(WWW, VzhledWebuEnum::KLASICKY),
             ]);
             $sablona->parse('index.paticka');
             $sablona->parse('index');

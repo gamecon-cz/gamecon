@@ -189,7 +189,7 @@ $t->assign('oznameni', OznameniNaWebuHtml::html(
     $aktualniQuery,
 ));
 
-// barvy ročníku a speciální motiv (Web → Barvy a motivy webu), používá je jen moderní kostra
+// barvy ročníku a speciální motiv (Web → Barvy a motivy webu), klasická kostra dostane jen barvy
 $motivWebu = MotivWebu::zjisti(
     new BarvyWebuRepository(),
     new NaplanovaneMotivyWebuRepository(),
@@ -197,12 +197,16 @@ $motivWebu = MotivWebu::zjisti(
     $nahledMotivu,
 );
 $t->assign([
-    'motivWebu'       => $motivWebu->getHtmlDoHlavicky(__DIR__),
+    'motivWebu'       => $motivWebu->getHtmlDoHlavicky(__DIR__, $vzhled),
     'barvaProhlizece' => $motivWebu->getBarvaProhlizece(),
 ]);
 if ($motivWebu->popisNahledu !== null) {
     $t->assign([
-        'popisNahleduMotivu'    => htmlspecialchars($motivWebu->popisNahledu),
+        'popisNahleduMotivu' => htmlspecialchars($motivWebu->popisNahledu),
+        // jen pro klasickou kostru, motiv v ní vidět není
+        'poznamkaNahleduMotivu' => $vzhled->isModerni() || $motivWebu->motiv === null
+            ? 'Návštěvníci ho nevidí.'
+            : 'Motiv je jen v moderním vzhledu.',
         'urlKonceNahleduMotivu' => htmlspecialchars(NahledMotivuWebu::getUrlKonce($aktualniStranka, $aktualniQuery)),
     ]);
     $t->parse('index.nahledMotivu');

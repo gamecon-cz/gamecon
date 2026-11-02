@@ -29,6 +29,54 @@ class BarvaWebuEnumTest extends TestCase
     }
 
     /**
+     * The classic look has its own defaults, but a colour of the admin it uses has to be its variable, otherwise
+     * the designer would change a colour nothing reads.
+     */
+    #[DataProvider('provideBarvy')]
+    public function testKlasickyVzhledMaPromennou(BarvaWebuEnum $barva): void
+    {
+        $promenna = $barva->getCssPromennaKlasickehoVzhledu();
+        self::assertSame(
+            $promenna === null,
+            $barva->getPouzitiVKlasickemVzhledu() === null,
+            'Barva, kterou klasický vzhled používá, potřebuje proměnnou i popis pro grafika',
+        );
+        if ($promenna === null) {
+            self::assertNotContains('--gc-' . $barva->value, array_keys(self::promenneKlasickehoVzhledu()));
+
+            return;
+        }
+        self::assertArrayHasKey($promenna, self::promenneKlasickehoVzhledu(), "V :root _zaklad.less chybí {$promenna}");
+    }
+
+    /**
+     * Each colour of the classic look comes from the admin, a variable nobody can change would not follow the year.
+     */
+    public function testKazdaPromennaKlasickehoVzhleduJdeZmenit(): void
+    {
+        $zAdminu = array_filter(array_map(
+            static fn (BarvaWebuEnum $barva): ?string => $barva->getCssPromennaKlasickehoVzhledu(),
+            BarvaWebuEnum::cases(),
+        ));
+
+        self::assertEqualsCanonicalizing(array_values($zAdminu), array_keys(self::promenneKlasickehoVzhledu()));
+    }
+
+    /**
+     * @return array<string, string> '--gc-…' => value, from :root of the classic look
+     */
+    private static function promenneKlasickehoVzhledu(): array
+    {
+        $less = file_get_contents(__DIR__ . '/../../../web/soubory/blackarrow/_spolecne/_zaklad.less');
+        self::assertIsString($less);
+        self::assertMatchesRegularExpression('~:root\s*\{(?<promenne>[^}]*)}~', $less);
+        preg_match('~:root\s*\{(?<promenne>[^}]*)}~', $less, $root);
+        preg_match_all('~(?<nazev>--gc-[a-z-]+):\s*(?<hodnota>[^;]+);~', $root['promenne'], $promenne);
+
+        return array_combine($promenne['nazev'], $promenne['hodnota']);
+    }
+
+    /**
      * @return array<string, array{0: BarvaWebuEnum}>
      */
     public static function provideBarvy(): array

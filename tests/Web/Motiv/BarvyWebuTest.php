@@ -74,7 +74,8 @@ class BarvyWebuTest extends TestCase
             BarvaWebuEnum::PLOCHA->value  => '#fafafa',
         ]);
 
-        self::assertSame(':root{--mw-cervena:#0057b8;--mw-plocha:#fafafa;}', $barvy->getCss());
+        // the classic look keeps its white background, so it gets no variable for it
+        self::assertSame(':root{--mw-cervena:#0057b8;--gc-cervena:#0057b8;--mw-plocha:#fafafa;}', $barvy->getCss());
     }
 
     public function testJsonTamAZpet(): void

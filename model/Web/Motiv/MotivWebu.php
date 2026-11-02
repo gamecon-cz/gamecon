@@ -4,9 +4,11 @@ declare(strict_types=1);
 
 namespace Gamecon\Web\Motiv;
 
+use Gamecon\Web\VzhledWebuEnum;
+
 /**
- * How the modern look is coloured for this request: the colours of the year, a special theme on top of them,
- * or what a designer previews instead.
+ * How the web is coloured for this request: the colours of the year, a special theme on top of them (only the modern
+ * look has themes), or what a designer previews instead.
  */
 readonly class MotivWebu
 {
@@ -46,18 +48,19 @@ readonly class MotivWebu
     }
 
     /**
-     * Into <head> after moderni.css, whose variables it overrides.
+     * Into <head> after the styles of the look, whose variables it overrides. The classic look gets the colours only,
+     * a theme is written for the modern one.
      *
      * @param string $adresarWebu where the stylesheet of the theme is, for its version
      */
-    public function getHtmlDoHlavicky(string $adresarWebu): string
+    public function getHtmlDoHlavicky(string $adresarWebu, VzhledWebuEnum $vzhled): string
     {
         $html = '';
         $css = $this->barvy->getCss();
         if ($css !== '') {
             $html .= '<style>' . $css . '</style>';
         }
-        if ($this->motiv !== null) {
+        if ($this->motiv !== null && $vzhled->isModerni()) {
             $soubor = $this->motiv->getCssSoubor();
             $cesta = $adresarWebu . '/' . $soubor;
             $verze = is_file($cesta)

@@ -15,7 +15,7 @@ TL;DR: veřejný web má vedle klasického (blackarrow) moderní vzhled jako uk�
 ## Pravidla
 
 - (záměr) Zatím jen ukázka na titulce a RPG (stránka linie = modul `aktivity`, takže moderní jsou všechny linie i stránka vypravěče). Další stránky se převádějí po jedné přidáním `sablony/moderni/<modul>.xtpl`, stejně jako kdysi blackarrow.
-- (záměr) Klasický vzhled se nemá měnit. Ověřeno porovnáním HTML titulky, RPG, praktických informací a programu: liší se jen odkazem „nový vzhled webu“ v patičce.
+- (záměr) Klasický vzhled se nemá měnit. Ověřeno porovnáním HTML titulky, RPG, praktických informací a programu: liší se jen odkazem „nový vzhled webu“ v patičce. Výjimkou jsou barvy ročníku z adminu, které ho přebarví taky (viz [oznameni-a-motivy-webu](oznameni-a-motivy-webu.md)); s výchozími barvami vypadá stejně.
 - Volba patří prohlížeči, ne účtu: většina návštěvníků není přihlášená. Neznámá hodnota v cookie i v `?vzhled=` znamená klasický vzhled.
 - Moderní kostra obaluje i stránky bez moderní šablony (praktické informace, program, přihláška…), ty ukazují klasický obsah. Proto moderní kostra načítá i klasické styly (`perfectcache` z blackarrow) a `moderni.css` až za nimi; moderní třídy mají prefix `mw-`, s klasickými se nepotkají. `<body>` nese `mw-moderni-obsah` nebo `mw-klasicky-obsah` a `mw-modul-<modul>`.
 - Stránky obsluhované Symfony (zapomenuté heslo, obnova hesla, `ObnovaHeslaController::strankaResponse()`) si kostru skládají samy z klasické šablony a zůstávají klasické; odkaz „nový vzhled webu“ v jejich patičce přepne a vrátí na titulku.

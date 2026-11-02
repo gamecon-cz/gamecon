@@ -5,8 +5,8 @@ declare(strict_types=1);
 namespace Gamecon\Web\Motiv;
 
 /**
- * Colours of the modern look for the year. Holds only the colours that differ from the default, so a colour nobody
- * changed follows moderni.css even when its default changes there later.
+ * Colours of the web for the year. Holds only the colours that differ from the default, so a colour nobody changed
+ * follows moderni.css (and the classic look its own default) even when its default changes there later.
  */
 final readonly class BarvyWebu
 {
@@ -93,8 +93,8 @@ final readonly class BarvyWebu
     }
 
     /**
-     * Overrides the variables of moderni.css, so it has to come after it. Empty when nothing is changed.
-     * Values are only ever '#rrggbb', nothing else gets into the page.
+     * Overrides the variables of moderni.css and of the classic look, so it has to come after both. Empty when nothing
+     * is changed. Values are only ever '#rrggbb', nothing else gets into the page.
      */
     public function getCss(): string
     {
@@ -105,6 +105,10 @@ final readonly class BarvyWebu
         foreach (BarvaWebuEnum::cases() as $barva) {
             if ($this->jeZmenena($barva)) {
                 $promenne .= $barva->getCssPromenna() . ':' . $this->getHodnota($barva) . ';';
+                $klasicka = $barva->getCssPromennaKlasickehoVzhledu();
+                if ($klasicka !== null) {
+                    $promenne .= $klasicka . ':' . $this->getHodnota($barva) . ';';
+                }
             }
         }
 

@@ -76,16 +76,21 @@ class NahledMotivuWebu
     }
 
     /**
-     * The URL of the web that starts the preview, it switches to the modern look as well, as only that one has themes.
+     * The URL of the web that starts the preview. A theme switches to the modern look as well, as only that one has
+     * themes, the colours keep the look the designer has, both have them.
      *
      * @param string $volba NAVRH_BAREV or the value of a theme
      */
     public static function getUrlNahledu(string $urlWebu, string $volba): string
     {
-        return $urlWebu . '/?' . http_build_query([
-            VzhledWebu::GET_KLIC => VzhledWebuEnum::MODERNI->value,
-            self::GET_KLIC       => $volba,
-        ]);
+        $query = $volba === self::NAVRH_BAREV
+            ? []
+            : [
+                VzhledWebu::GET_KLIC => VzhledWebuEnum::MODERNI->value,
+            ];
+        $query[self::GET_KLIC] = $volba;
+
+        return $urlWebu . '/?' . http_build_query($query);
     }
 
     /**

@@ -3,7 +3,7 @@
 <h1>Barvy a motivy webu</h1>
 
 <p>
-    Platí jen pro moderní vzhled webu, klasický se nemění.
+    Barvy ročníku platí pro klasický i moderní vzhled webu, speciální motivy jen pro moderní.
 </p>
 
 <style>
@@ -87,6 +87,10 @@
         margin: 0.3em 0 0;
     }
 
+    .barvyWebu-nepouziva {
+        color: #777;
+    }
+
     .motivyWebu-skoncilo td {
         color: #777;
     }
@@ -99,6 +103,13 @@
         Pro grafika. Uprav barvy, ulož návrh a prohlédni si ho na webu: náhled vidíš jen ty a ostatní s právem na web
         v adminu, návštěvníci pořád vidí zveřejněné barvy. Když sedí, zveřejni ho.
         Barvu jde vybrat, nebo vložit kód ve tvaru <code>#e22630</code>.
+        Náhled se otevře ve vzhledu, který máš na webu zapnutý, přepnout na druhý jde v liště náhledu.
+    </p>
+
+    <p>
+        Klasický vzhled přebarví jen část: světlé pozadí a bílou si nechá, má na nich nakreslené ilustrace, a obrázky
+        se nepřebarví vůbec (úvod titulky s červenými tahy, hlavička programu). Doplňková a tmavší hlavní barva mají
+        v klasickém vzhledu výchozí o odstín jinou, dokud je nezměníš, drží si každý vzhled tu svoji.
     </p>
 
     <p>
@@ -123,7 +134,8 @@
         <table class="zvyraznovana" style="width: 100%">
             <tr>
                 <th>Barva</th>
-                <th>Kde se používá</th>
+                <th>Kde je v moderním vzhledu</th>
+                <th>Kde je v klasickém vzhledu</th>
                 <th>Hodnota</th>
                 <th>Výchozí</th>
             </tr>
@@ -136,6 +148,7 @@
                     <!-- end: zmenaOprotiZverejnene -->
                 </td>
                 <td>{barvaPouziti}</td>
+                <td>{barvaPouzitiKlasicky}</td>
                 <td>
                     <span class="barvyWebu-hodnota">
                         <input type="color" class="barvyWebu-picker" value="{barvaPicker}" aria-label="{barvaNazev}">

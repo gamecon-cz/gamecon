@@ -49,11 +49,19 @@ class NahledMotivuWebuTest extends TestCase
         self::assertFalse($nahled->zpracujVolbu('z-budoucnosti'));
     }
 
-    public function testNahledPrepneNaModerniVzhled(): void
+    public function testNahledMotivuPrepneNaModerniVzhled(): void
     {
         self::assertSame(
             'https://gamecon.cz/?vzhled=moderni&nahledMotivu=april',
             NahledMotivuWebu::getUrlNahledu('https://gamecon.cz', MotivWebuEnum::APRIL->value),
+        );
+    }
+
+    public function testNahledBarevNechaVzhled(): void
+    {
+        self::assertSame(
+            'https://gamecon.cz/?nahledMotivu=navrh-barev',
+            NahledMotivuWebu::getUrlNahledu('https://gamecon.cz', NahledMotivuWebu::NAVRH_BAREV),
         );
     }
 

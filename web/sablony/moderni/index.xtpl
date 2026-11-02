@@ -81,6 +81,7 @@
     <!-- begin: nahledMotivu -->
     <div class="mw-nahled-motivu" role="status">
         <span>Náhled: {popisNahleduMotivu}. Návštěvníci ho nevidí.</span>
+        <a href="{urlKlasicky}">Klasický vzhled</a>
         <a href="{urlKonceNahleduMotivu}">Ukončit náhled</a>
     </div>
     <!-- end: nahledMotivu -->

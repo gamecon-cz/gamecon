@@ -17,7 +17,7 @@ use Gamecon\Web\StavZobrazeniEnum;
 use Gamecon\XTemplate\XTemplate;
 
 /**
- * Barvy moderního vzhledu webu pro ročník (nastavuje grafik) a speciální motivy jako apríl
+ * Barvy webu pro ročník (nastavuje grafik, platí pro klasický i moderní vzhled) a speciální motivy jako apríl
  *
  * nazev: Barvy a motivy webu
  * ikona: swatchbook
@@ -132,9 +132,11 @@ $barvyFormulare = $navrh?->barvy ?? $zverejneneBarvy;
 foreach (BarvaWebuEnum::cases() as $barva) {
     $hodnota = $odeslaneBarvy[$barva->value] ?? $barvyFormulare->getHodnota($barva);
     $t->assign([
-        'barvaKlic'    => $barva->value,
-        'barvaNazev'   => $barva->getNazev(),
-        'barvaPouziti' => $barva->getPouziti(),
+        'barvaKlic'            => $barva->value,
+        'barvaNazev'           => $barva->getNazev(),
+        'barvaPouziti'         => $barva->getPouziti(),
+        'barvaPouzitiKlasicky' => $barva->getPouzitiVKlasickemVzhledu()
+            ?? '<span class="barvyWebu-nepouziva">nemění se</span>',
         'barvaHodnota' => htmlspecialchars($hodnota),
         // the colour picker takes only #rrggbb, a mistyped value leaves it on the default
         'barvaPicker'     => BarvyWebu::normalizujHodnotu($hodnota) ?? $barva->getVychoziHodnota(),

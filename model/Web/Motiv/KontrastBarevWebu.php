@@ -46,7 +46,7 @@ class KontrastBarevWebu
     }
 
     /**
-     * The pairs of text and background the modern look actually uses.
+     * The pairs of text and background the modern or the classic look actually uses.
      *
      * @return list<array{0: string, 1: string, 2: string}> text, background, description
      */
@@ -55,13 +55,13 @@ class KontrastBarevWebu
         $hodnota = static fn (BarvaWebuEnum $barva): string => $barvy->getHodnota($barva);
 
         return [
-            [self::BILA, $hodnota(BarvaWebuEnum::CERVENA), 'Bílý text na hlavní barvě (tlačítka, naléhavé oznámení)'],
+            [self::BILA, $hodnota(BarvaWebuEnum::CERVENA), 'Bílý text na hlavní barvě (tlačítka, naléhavé oznámení, menu klasického vzhledu)'],
             [self::BILA, $hodnota(BarvaWebuEnum::CERVENA_TMAVA), 'Bílý text na tmavší hlavní barvě (tlačítka po najetí myší)'],
             [self::BILA, $hodnota(BarvaWebuEnum::INKOUST), 'Bílý text na tmavé (hlavička, úvod titulky, patička)'],
             [$hodnota(BarvaWebuEnum::CERVENA), $hodnota(BarvaWebuEnum::PLOCHA), 'Hlavní barva jako text na pozadí stránky'],
             [$hodnota(BarvaWebuEnum::TEXT), $hodnota(BarvaWebuEnum::PLOCHA), 'Text na pozadí stránky'],
             [$hodnota(BarvaWebuEnum::TEXT), $hodnota(BarvaWebuEnum::KREMOVA), 'Text na světlém pozadí'],
-            [$hodnota(BarvaWebuEnum::TEXT), $hodnota(BarvaWebuEnum::ORANZOVA), 'Text na doplňkové barvě (upozornění)'],
+            [$hodnota(BarvaWebuEnum::TEXT), $hodnota(BarvaWebuEnum::ORANZOVA), 'Text na doplňkové barvě (upozornění, infoboxy)'],
             [$hodnota(BarvaWebuEnum::TEXT_TLUMENY), $hodnota(BarvaWebuEnum::PLOCHA), 'Tlumený text na pozadí stránky'],
             [$hodnota(BarvaWebuEnum::TEXT_TLUMENY), $hodnota(BarvaWebuEnum::KREMOVA), 'Tlumený text na světlém pozadí'],
         ];
