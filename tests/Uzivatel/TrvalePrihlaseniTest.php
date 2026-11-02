@@ -103,6 +103,27 @@ class TrvalePrihlaseniTest extends AbstractTestDb
         $this->assertOdhlasenaJenOstatniZarizeni($idUzivatele, $toto, $jineSTrvalym, $jineJenSession);
     }
 
+    /**
+     * Zbytek session by zdědil ten, kdo se na odhlášeném zařízení přihlásí příště, třeba na
+     * sdíleném počítači infopultu.
+     */
+    public function testOdhlaseniOstatnichZarizeniZahodiCelouJejichSession(): void
+    {
+        $idUzivatele = $this->vytvorUzivatele();
+        $idPracovnihoUzivatele = $this->vytvorUzivatele();
+        $toto = $this->zarizeni(cookie: $this->zalozTrvalePrihlaseni($idUzivatele));
+        $this->idPrihlasenehoNa($toto);
+        $jine = $this->zarizeni();
+        $this->pozadavek($jine, static fn () => \Uzivatel::prihlasId($idUzivatele));
+        $this->pozadavek($jine, static fn () => \Uzivatel::prihlasId($idPracovnihoUzivatele, \Uzivatel::UZIVATEL_PRACOVNI));
+
+        $this->pozadavek($toto, static fn () => \Uzivatel::zSession()->odhlasNaOstatnichZarizenich());
+
+        self::assertNull($this->idPrihlasenehoNa($jine));
+        self::assertSame([], $jine['session']);
+        self::assertNotEmpty($toto['session'], 'Session tohoto zařízení má zůstat.');
+    }
+
     public function testZmenaHeslaVProfiluOdhlasiOstatniZarizeni(): void
     {
         $idUzivatele = $this->vytvorUzivatele();

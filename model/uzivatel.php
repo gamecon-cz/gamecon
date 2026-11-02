@@ -3020,7 +3020,9 @@ SQL,
                 && $klic === self::UZIVATEL
                 && ($_SESSION[$klic][self::RAZITKO_PRIHLASENI] ?? '') !== (string) $u->r[Sql::RANDOM]
             ) {
-                self::odhlasKlic($klic);
+                // Celá session jako při odhlášení: pracovního uživatele v adminu, potvrzená zobrazení
+                // kontaktů a další by jinak zdědil ten, kdo se v tomhle prohlížeči přihlásí příště.
+                $_SESSION = [];
                 $u = null;
             }
             if ($u) {
