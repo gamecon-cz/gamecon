@@ -30,17 +30,20 @@ SQL,
 
 // The current tokens keep working, so nobody is logged out by the deploy. Which of them still sit
 // in a browser is unknown, the unused ones expire after a year like any other.
+// Except quick registrations: their `random` may still be the code emailed in the confirmation link,
+// which mail logs keep. Those who logged in persistently since then log in once more.
 $this->q(<<<'SQL'
 INSERT IGNORE INTO uzivatele_trvala_prihlaseni (id_uzivatele, token_hash)
 SELECT id_uzivatele, SHA2(random, 256)
 FROM uzivatele_hodnoty
 WHERE random != ''
+    AND COALESCE(z_rychloregistrace, 0) = 0
 SQL,
 );
 
 // From now on `random` is the login stamp: a running session remembers it and ends when it changes.
-// Empty is the stamp sessions started before this deploy are treated as having, so they keep running too,
-// and the plaintext tokens do not stay in the table.
+// The plaintext tokens do not stay in the table, whoever read it would log in with them.
+// Sessions keep running until the stamp of their user changes for the first time, see Uzivatel::PREDPONA_RAZITKA.
 $this->q(<<<'SQL'
 UPDATE uzivatele_hodnoty
 SET random = ''
