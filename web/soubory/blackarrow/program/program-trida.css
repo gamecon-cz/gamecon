@@ -50,8 +50,8 @@ table.program {
     left: 0;
     padding-right: 14px;
     z-index: 1; /* aby bylo nad symboly v programu */
-    background-color: #FDC689;
-    color: #10111A;
+    background-color: var(--gc-oranzova, #FDC689);
+    color: var(--gc-text, #10111A);
 }
 @media (max-width: 1500px) {.program td[rowspan] {
     padding: 0;

@@ -32,7 +32,7 @@
   align-items: center;
   column-gap: 1rem;
   padding: @medailonek-odsazeni;
-  border: solid 2px var(--gc-dark);
+  border: solid 2px var(--gc-inkoust);
   background-color: #fff;
   box-shadow: .75rem .75rem 0 #F6F1EA;
   font-size: 15px;
@@ -104,7 +104,7 @@
       font-weight: bold;
       letter-spacing: .1em;
       text-transform: uppercase;
-      color: var(--gc-dark);
+      color: var(--gc-text);
       background-color: transparent;
       transition: color 200ms ease-in;
 
@@ -125,17 +125,17 @@
       }
 
       &:hover {
-        color: var(--gc-red);
+        color: var(--gc-cervena);
       }
 
       &:focus-visible {
-        outline: solid 2px var(--gc-red);
+        outline: solid 2px var(--gc-cervena);
         outline-offset: -2px;
       }
     }
 
     &[open] > summary {
-      color: var(--gc-red);
+      color: var(--gc-cervena);
       background-color: transparent;
 
       &::after {
@@ -191,7 +191,7 @@
       margin: 0 4px 0 0;
       border: none;
       border-radius: 50%;
-      background-color: var(--gc-red);
+      background-color: var(--gc-cervena);
     }
   }
 }

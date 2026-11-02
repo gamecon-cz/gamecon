@@ -104,8 +104,8 @@ if (!$zaplaceno) {
 
         .payment-methods__switch-button {
             padding: 8px 14px;
-            border: 1px solid #E22630;
-            background-color: #E22630;
+            border: 1px solid var(--gc-cervena);
+            background-color: var(--gc-cervena);
             color: #fff;
             font-size: 12px;
             font-weight: bold;
@@ -116,8 +116,8 @@ if (!$zaplaceno) {
 
         .payment-methods__switch-button.is-aktivni,
         .payment-methods__switch-button[aria-pressed="true"] {
-            border-color: #10111A;
-            background-color: #10111A;
+            border-color: var(--gc-inkoust);
+            background-color: var(--gc-inkoust);
         }
 
         .payment-method {

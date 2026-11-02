@@ -101,7 +101,7 @@
     text-decoration: none;
     line-height: 54px;
     height: 54px;
-    background-color: #10111A;
+    background-color: var(--gc-inkoust);
     color: #fff;
     padding: 0 24px;
     position: relative; // kvůli šipce
@@ -121,8 +121,8 @@
     top: 22px;
     width: 8px;
     height: 8px;
-    border-bottom: solid 2px #CE232D;
-    border-right: solid 2px #CE232D;
+    border-bottom: solid 2px var(--gc-cervena-tmava);
+    border-right: solid 2px var(--gc-cervena-tmava);
     transform: rotate(-45deg);
     transition: right 0.3s;
 
@@ -149,13 +149,25 @@
     width: 1600px;
     max-width: 90%; // na toto je navázaná výška obrázků
     padding: 40px;
-    background: url('../blackarrow/aktivity/smouha.jpg') no-repeat 100% 0;
+    background: linear-gradient(#fff, #fff) no-repeat 100% 0 ~'/' 372px 108px; // bílý obdélník pod šmouhou zakrývá vlnky jako dřív šmouha v jpg
+    position: relative; // kvůli šmouze
+    isolation: isolate; // šmouha pod kartami
 
     @media (max-width: 600px) {
         column-count: 1;
         box-sizing: border-box;
         max-width: 100%;
         padding: 40px 1.5%;
+    }
+
+    // šmouha vpravo nahoře, maska v barvě ročníku (obrázek na pozadí by se nepřebarvil)
+    &::before {
+        content: '';
+        position: absolute;
+        inset: 0;
+        z-index: -1;
+        background-color: var(--gc-oranzova);
+        mask: url('../blackarrow/aktivity/smouha.png') no-repeat 100% 0;
     }
 }
 
@@ -316,7 +328,7 @@
     padding: 0 26px 22px 26px;
 
     margin-bottom: 38px;
-    border: solid 2px #10111A;
+    border: solid 2px var(--gc-inkoust);
 
     font-size: 13px;
     line-height: 22/13;
@@ -527,7 +539,7 @@
 }
 
 .aktivity_stitek-nahled {
-    background-color: #F9D6B0;
+    background-color: color-mix(in srgb, var(--gc-oranzova), #F5E6D7);
 }
 
 .aktivity_nahledInfoPole {

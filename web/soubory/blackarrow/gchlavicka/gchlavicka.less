@@ -79,9 +79,8 @@
     font-size: 42rel;
     font-weight: bold;
     color: #fff;
-    background: url('../blackarrow/gchlavicka/smouha.png');
-    background-size: cover;
     position: absolute;
+    isolation: isolate; // šmouha pod textem
     width: 350rel;
     padding: 20rel 0 15rel 30rel;
     box-sizing: border-box;
@@ -96,6 +95,16 @@
     }
     letter-spacing: -1px;
     word-spacing: -2px;
+
+    // šmouha pod datem, maska v barvě ročníku (obrázek na pozadí by zůstal červený)
+    &::before {
+        content: '';
+        position: absolute;
+        inset: 0;
+        z-index: -1;
+        background-color: var(--gc-cervena);
+        mask: url('../blackarrow/gchlavicka/smouha.png') 0 0 ~'/' cover;
+    }
 }
 
 .gchlavicka_misto {

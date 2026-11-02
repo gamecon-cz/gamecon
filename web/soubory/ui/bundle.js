@@ -11,7 +11,7 @@ In order to be iterable, non-array objects must have a [Symbol.iterator]() metho
 .loader {
   height: 45px;
   aspect-ratio: 1.2;
-  --c:no-repeat repeating-linear-gradient(90deg,#e22630 0 20%,#e2263000 0 40%);
+  --c:no-repeat repeating-linear-gradient(90deg,var(--gc-cervena, #e22630) 0 20%,transparent 0 40%);
   background:
     var(--c) 50% 0,
     var(--c) 50% 100%;
@@ -26,7 +26,7 @@ In order to be iterable, non-array objects must have a [Symbol.iterator]() metho
 .loader {
   width: 45px;
   aspect-ratio: 1;
-  --c:no-repeat linear-gradient(#e22630 0 0);
+  --c:no-repeat linear-gradient(var(--gc-cervena, #e22630) 0 0);
   background: var(--c), var(--c), var(--c);
   animation:
     l18-1 1s infinite,
@@ -43,7 +43,7 @@ In order to be iterable, non-array objects must have a [Symbol.iterator]() metho
 .loader {
   width: 45px;
   aspect-ratio: 1;
-  --c: conic-gradient(from -90deg,#e22630 90deg,#e2263000 0);
+  --c: conic-gradient(from -90deg,var(--gc-cervena, #e22630) 90deg,transparent 0);
   background: var(--c), var(--c);
   background-size: 40% 40%;
   animation: l19 1s infinite alternate;
@@ -58,7 +58,7 @@ In order to be iterable, non-array objects must have a [Symbol.iterator]() metho
 .loader {
   width: 45px;
   aspect-ratio: 1;
-  --c: conic-gradient(from -90deg,#e22630 90deg,#e2263000 0);
+  --c: conic-gradient(from -90deg,var(--gc-cervena, #e22630) 90deg,transparent 0);
   background: var(--c), var(--c);
   background-size: 40% 40%;
   animation: l20 1.5s infinite;
@@ -74,7 +74,7 @@ In order to be iterable, non-array objects must have a [Symbol.iterator]() metho
 .loader {
   width: 45px;
   aspect-ratio: .8;
-  --c:no-repeat repeating-linear-gradient(90deg,#e22630 0 20%,#e2263000 0 40%);
+  --c:no-repeat repeating-linear-gradient(90deg,var(--gc-cervena, #e22630) 0 20%,transparent 0 40%);
   background: var(--c),var(--c),var(--c),var(--c);
   background-size: 100% 21%;
   animation: l24 .75s infinite alternate;
@@ -91,7 +91,7 @@ In order to be iterable, non-array objects must have a [Symbol.iterator]() metho
 .loader {
   width: 45px;
   aspect-ratio: 1;
-  --c:no-repeat repeating-linear-gradient(90deg,#e22630 0 calc(100%/7),#e2263000 0 calc(200%/7));
+  --c:no-repeat repeating-linear-gradient(90deg,var(--gc-cervena, #e22630) 0 calc(100%/7),transparent 0 calc(200%/7));
   background: var(--c),var(--c),var(--c),var(--c);
   background-size: 140% 26%;
   animation: l27 .75s infinite linear;

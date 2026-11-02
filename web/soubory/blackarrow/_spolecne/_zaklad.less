@@ -1,19 +1,26 @@
+// Barvy ročníku z adminu (Web → Barvy a motivy webu) tyhle proměnné přepíšou, název je hodnota BarvaWebuEnum.
+// Kde je barva odvozená (o kus tmavší / světlejší), míchá se z proměnné, aby se přebarvila taky; namíchaná
+// s výchozí barvou dá přesně původní odstín. Krémová proměnnou nemá schválně: je i v ilustracích (úvod titulky,
+// hlavička programu, pozadí „Co na GameConu zažiješ“), jinou by se web rozpadl na krémové a jiné plochy.
 :root {
-  --gc-red: #E22630;
-  --gc-dark: #10111A;
+  --gc-cervena: #E22630;
+  --gc-cervena-tmava: #CE232D;
+  --gc-inkoust: #10111A;
+  --gc-oranzova: #FDC689;
+  --gc-text: #10111A;
 }
 
 body {
   margin: 0;
   background-color: #fff;
-  color: var(--gc-dark);
+  color: var(--gc-text);
   overflow-y: scroll;
   overflow-x: hidden; // prevence bočního scrollu kvůli přetékajícím globálním prvkům
   position: relative;
 }
 
 a {
-  color: var(--gc-red);
+  color: var(--gc-cervena);
 }
 
 input, textarea, select {
@@ -89,7 +96,7 @@ hr {
 
 .tooltip_obsah {
   display: block;
-  color: #10111A;
+  color: var(--gc-text);
   background-color: #fff;
   text-align: left;
   white-space: normal;

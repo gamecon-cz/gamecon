@@ -1,4 +1,5 @@
 // šířku a odsazení lišty dává .aktivity_filtr ve web/soubory/blackarrow/aktivity/aktivity.less
+// barvy ročníku (--gc-…) jako v ui/src/pages/program/program.less, se zálohou pro admin
 
 .aktivityFiltr {
   display: flex;
@@ -26,7 +27,7 @@
 
   &:focus {
     outline: none;
-    border-color: #E22630;
+    border-color: var(--gc-cervena, #E22630);
   }
 }
 
@@ -67,7 +68,7 @@
   height: 38px;
   padding: 0 16px;
   background: #fff;
-  border: solid 1px #FDC689;
+  border: solid 1px var(--gc-oranzova, #FDC689);
   color: inherit;
   font: inherit;
   font-size: 12px;
@@ -77,13 +78,13 @@
   cursor: pointer;
 
   &:hover {
-    border-color: #E22630;
+    border-color: var(--gc-cervena, #E22630);
   }
 
   &.aktivni {
     color: #fff;
-    background-color: #E22630;
-    border-color: #E22630;
+    background-color: var(--gc-cervena, #E22630);
+    border-color: var(--gc-cervena, #E22630);
   }
 }
 

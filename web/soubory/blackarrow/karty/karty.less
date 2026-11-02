@@ -1,21 +1,41 @@
 .karty {
-    background:
-        url('../blackarrow/karty/smouha.jpg') no-repeat 1230/19.2vw 30/19.2vw,
-        url('../blackarrow/karty/krizky.svg') no-repeat 1793/19.2vw 125/19.2vw;
-    @media (max-width: 1000px) { // kdy skočí na tři sloupce
-        background-position: 0 0, 100% 50%;
-    }
+    position: relative; // kvůli šmouze a křížkům
+    isolation: isolate; // šmouha a křížky pod kartami
     display: flex;
     justify-content: center;
     flex-wrap: wrap;
     margin: 0 0 70rel 0;
 }
 
+// křížky a přes ně šmouha, masky v barvách ročníku (obrázky na pozadí by se nepřebarvily)
+.karty::before, .karty::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+}
+
+.karty::before {
+    background-color: var(--gc-cervena);
+    mask: url('../blackarrow/karty/krizky.svg') no-repeat 1793/19.2vw 125/19.2vw;
+    @media (max-width: 1000px) { // kdy skočí na tři sloupce
+        mask-position: 100% 50%;
+    }
+}
+
+.karty::after {
+    background-color: var(--gc-oranzova);
+    mask: url('../blackarrow/karty/smouha.png') no-repeat 1230/19.2vw 30/19.2vw;
+    @media (max-width: 1000px) {
+        mask-position: 0 0;
+    }
+}
+
 .karty_karta {
     width: 415rel;
     min-height: 557rel;
     margin: 58rel 70rel;
-    border: solid 2px #10111A;
+    border: solid 2px var(--gc-inkoust);
     box-shadow: 20rel 20rel 0 #F6F1EA;
     position: relative; // kvůli vnořeným prvkům
     background-color: #fff;
@@ -36,7 +56,7 @@
     position: absolute;
     margin: 224rel 0 0 42rel;
     font-size: 42rel;
-    color: #E22630;
+    color: var(--gc-cervena);
     width: 250rel;
     @media (max-width: 600px) { width: 80% }
 }

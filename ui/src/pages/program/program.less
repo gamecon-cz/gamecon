@@ -2,6 +2,9 @@
 @import (less) '../../../../web/soubory/blackarrow/_spolecne/hint.css';
 @import (less) '../../../../web/soubory/blackarrow/program/program-trida.css';
 
+// Barvy ročníku (--gc-…) definuje web ve web/soubory/blackarrow/_spolecne/_zaklad.less, záloha ve var() je pro admin,
+// který UI načítá taky a proměnné nemá.
+
 .programNahled_obsazenost {
   background: url('../blackarrow/program-nahled/clovek.svg') no-repeat 2px 30%;
 
@@ -44,7 +47,7 @@
 }
 
 .program_hlavicka>h1 {
-  color: #10111A;
+  color: var(--gc-text, #10111A);
   font-size: 80rel;
   margin: 58/19.2vw 0;
 
@@ -76,7 +79,7 @@
   line-height: 48px;
   text-align: center;
   background: #fff;
-  border: solid 1px #FDC689;
+  border: solid 1px var(--gc-oranzova, #FDC689);
 
   @media (max-width: 1200px) {
     margin: 0 10px 10px 0;
@@ -91,13 +94,13 @@
 
 .program_den:hover,
 .program_filtry_tlacitko:hover {
-  border-color: #E22630;
+  border-color: var(--gc-cervena, #E22630);
 }
 
 .program_den-aktivni, .program_filtry_tlacitko.aktivni {
   color: #fff;
-  background-color: #E22630;
-  border-color: #E22630;
+  background-color: var(--gc-cervena, #E22630);
+  border-color: var(--gc-cervena, #E22630);
 }
 
 .program_tisk {
@@ -536,7 +539,7 @@
 
 .program tbody td > .program_den_nadpis {
   color: #fff;
-  background-color: #E22630;
+  background-color: var(--gc-cervena, #E22630);
   font-size: 25px;
   font-weight: 700;
   text-transform: uppercase;
@@ -584,7 +587,7 @@
     line-height: 48px;
     text-align: center;
     color: #fff;
-    background-color: #e22630;
+    background-color: var(--gc-cervena, #E22630);
     border: none;
     cursor: pointer;
     &:disabled {
@@ -596,7 +599,7 @@
   button.zpet {
     color: inherit;
     background: #fff;
-    border: solid 1px #FDC689;
+    border: solid 1px var(--gc-oranzova, #FDC689);
   }
 
   background-color: #fefefe;

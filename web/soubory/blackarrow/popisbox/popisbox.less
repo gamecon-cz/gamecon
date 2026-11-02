@@ -1,11 +1,24 @@
-.popisbox {
-    background:
-        url('../blackarrow/popisbox/vlnky.svg') no-repeat -140px 76%,
-        linear-gradient(to right, transparent, transparent 1.5%, #10111A 1.5%, #10111A 98.5%, transparent 98.5%, transparent),
-    ;
+// Pozadí a vlnky má obal: vlnky jsou maska v barvě ročníku (obrázek na pozadí by zůstal červený), potřebují tedy
+// pozicovaný prvek, a ten nemůže být .popisbox, jeho overflow: hidden by uřízl bublinu přečnívající nahoru.
+.popisboxObal {
+    background: linear-gradient(to right, transparent, transparent 1.5%, var(--gc-inkoust) 1.5%, var(--gc-inkoust) 98.5%, transparent 98.5%, transparent);
+    position: relative; // kvůli vlnkám a bublině
+    isolation: isolate; // vlnky pod textem
+}
+
+.popisboxObal::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    background-color: var(--gc-cervena);
+    mask: url('../blackarrow/popisbox/vlnky.svg') no-repeat -140px 76%;
     @media (max-width: 1000px) {
-        background-position: -330px 76%, 0 0;
+        mask-position: -330px 76%;
     }
+}
+
+.popisbox {
     font-size: 42rel;
     line-height: 1.43;
     font-weight: 800;
@@ -39,7 +52,7 @@
 
 .popisbox_overlay {
     position: absolute;
-    color: #e22630;
+    color: var(--gc-cervena);
     max-width: 0px;
     overflow: hidden;
     text-shadow: 0 0 5px #000; // text shadow, aby neprosvítala bílá na pozadí

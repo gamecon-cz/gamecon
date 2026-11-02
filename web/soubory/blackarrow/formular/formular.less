@@ -162,7 +162,7 @@
 .formular_polozka > select:focus,
 .formular_input:focus,
 .formular_select:focus {
-  border-color: #10111A;
+  border-color: var(--gc-inkoust);
 }
 
 .formular_polozka > input:placeholder-shown,
@@ -201,7 +201,7 @@
   }
 
   &:focus {
-    border-color: #10111A
+    border-color: var(--gc-inkoust)
   }
 }
 
@@ -216,7 +216,7 @@ input[type=checkbox] {
   border-radius: 2px;
 
   &:checked {
-    background: #10111A url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10.698' height='8.288' viewBox='0 0 10.698 8.288'%3E%3Cpath id='Path_2669' data-name='Path 2669' d='M7283.8,702.841l3.117,3.117,6.167-6.167' transform='translate(-7283.093 -699.085)' fill='none' stroke='%23fff' stroke-width='2'/%3E%3C/svg%3E%0A") no-repeat 4px 5px;
+    background: var(--gc-inkoust) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10.698' height='8.288' viewBox='0 0 10.698 8.288'%3E%3Cpath id='Path_2669' data-name='Path 2669' d='M7283.8,702.841l3.117,3.117,6.167-6.167' transform='translate(-7283.093 -699.085)' fill='none' stroke='%23fff' stroke-width='2'/%3E%3C/svg%3E%0A") no-repeat 4px 5px;
   }
 }
 
@@ -255,6 +255,7 @@ input[type=checkbox] {
   letter-spacing: 0.15em;
 }
 
+// chyba a odhlášení zůstávají červené, i když má ročník jinou hlavní barvu
 .formular_polozka.formular_polozka-chyba input,
 .formular_polozka.formular_polozka-chyba select {
   background-color: #FCE9EA;
@@ -272,7 +273,7 @@ input[type=checkbox] {
   font-size: 14px;
 
   & > a {
-    color: #E22630;
+    color: var(--gc-cervena);
     text-decoration: underline;
   }
 }
@@ -304,7 +305,7 @@ input[type=checkbox] {
 
 .formular_primarni {
   color: #fff;
-  background-color: #10111A;
+  background-color: var(--gc-inkoust);
   border: none;
   line-height: 50px;
   padding: 0 30px;
@@ -312,7 +313,7 @@ input[type=checkbox] {
 }
 
 .formular_primarni:hover {
-  background-color: #30323E;
+  background-color: color-mix(in srgb, var(--gc-inkoust), #505362);
 }
 
 .formular_primarni:disabled {
@@ -324,7 +325,7 @@ input[type=checkbox] {
   min-width: 240px;
   text-align: left;
   background: url('../blackarrow/formular/sipka.svg') no-repeat ~'calc(100% - 16px)' 13px,
-  #10111A;
+  var(--gc-inkoust);
   transition: background-position 0.3s;
 }
 
@@ -370,7 +371,7 @@ input[type=checkbox] {
 
 .formular_infobox {
   font-size: 13px;
-  background-color: #FDC689;
+  background-color: var(--gc-oranzova);
   padding: 24px;
   letter-spacing: 0.03em;
   max-width: 2 * 260px + 16px;

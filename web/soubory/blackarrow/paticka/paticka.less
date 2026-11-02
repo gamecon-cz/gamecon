@@ -1,7 +1,7 @@
 .paticka {
-    background:
-        url('../blackarrow/paticka/vrsek.svg') -1vw 0 ~'/' 102% auto, // fix podivných bugů s přetíkáním
-        linear-gradient(to bottom, #fff, #fff 4vw, #E22630 4vw);
+    background: linear-gradient(to bottom, #fff, #fff 4vw, var(--gc-cervena) 4vw);
+    position: relative; // kvůli vlně
+    isolation: isolate; // vlna pod obsahem
     margin: 0 1.5vw 1.5vw;
     padding: 88/19.2vw 255/19.2vw 70/19.2vw;
     @media (max-width: 600px) {
@@ -11,6 +11,16 @@
     font-size: 12px;
     font-weight: bold;
     &::after { content: ''; display: block; clear: both; }
+
+    // vlna nahoře, maska v barvě ročníku (obrázek na pozadí by zůstal červený)
+    &::before {
+        content: '';
+        position: absolute;
+        inset: 0;
+        z-index: -1;
+        background-color: var(--gc-cervena);
+        mask: url('../blackarrow/paticka/vrsek.svg') -1vw 0 ~'/' 102% auto; // fix podivných bugů s přetíkáním
+    }
 }
 
 .paticka_info {

@@ -1,3 +1,6 @@
+// Barvy ročníku tu mají zálohu (var(--gc-…, #…)): soubor si přibaluje i UI (ui/src/pages/program/program.less)
+// a to se načítá i v adminu, kde proměnné z _spolecne/_zaklad.less nejsou.
+
 @sirkaPruhu: 320px;
 @sirkaPruhu2: 500px;
 @programNahled_siroke: ~"(min-width: 1500px)";
@@ -125,7 +128,7 @@
 
 .programNahled_stitek {
     display: inline-block;
-    background-color: #FDC689;
+    background-color: var(--gc-oranzova, #FDC689);
     font-weight: bold;
     font-size: 10px;
     padding: 6px 12px 5px;
@@ -136,7 +139,7 @@
     padding-right: 15px;
 
     // standardized scrollbar (firefox)
-    scrollbar-color: #FDC689 #EDE3D6;
+    scrollbar-color: var(--gc-oranzova, #FDC689) #EDE3D6;
     scrollbar-width: thin;
 
     // webkit/chrome scrollbar
@@ -145,7 +148,7 @@
         background-color: #EDE3D6;
     }
     &::-webkit-scrollbar-thumb {
-        background-color: #FDC689;
+        background-color: var(--gc-oranzova, #FDC689);
     }
 
     @media @programNahled_vysoke {

@@ -57,14 +57,14 @@
     line-height: normal;
 
     padding: 14px 16px;
-    border: solid 1px #FDC689;
+    border: solid 1px var(--gc-oranzova);
 
     margin: 0 @rozestupTlacitek 16px 0;
     cursor: pointer;
     display: block;
 
     &:hover {
-        border-color: #E22630;
+        border-color: var(--gc-cervena);
     }
 
     @media (max-width: 600px) {
@@ -77,15 +77,15 @@
 }
 
 .shopPomoc_radio:checked + .shopPomoc_vyberNazev {
-    background-color: #E22630;
-    border-color: #E22630;
+    background-color: var(--gc-cervena);
+    border-color: var(--gc-cervena);
     color: #fff;
 }
 
 .shopPomoc_vyberPopis {
     display: none;
     order: 9999;
-    background-color: #FDC689;
+    background-color: var(--gc-oranzova);
     padding: 24px;
     letter-spacing: 0.03em;
     margin-right: @rozestupTlacitek;

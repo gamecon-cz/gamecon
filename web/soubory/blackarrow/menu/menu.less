@@ -1,6 +1,6 @@
 .menu {
     min-height: 70px; // fix přetékání na malém monitoru
-    background-color: #E22630;
+    background-color: var(--gc-cervena);
     color: #fff;
     top: 0;
     z-index: 20;
@@ -70,7 +70,7 @@
 }
 
 .menu_odkaz:hover, .menu_kategorie:hover {
-    background-color: #10111A;
+    background-color: var(--gc-inkoust);
 }
 
 .menu_kategorie, .menu_odkaz {
@@ -111,7 +111,7 @@
     column-gap: 40px;
     row-gap: 30px;
 
-    background-color: #10111A;
+    background-color: var(--gc-inkoust);
     left: 0;
     width: 100%;
     padding: 40px 220px;
@@ -143,8 +143,8 @@
     top: 5px;
     width:  8px;
     height: 8px;
-    border-bottom: solid 2px #CE232D;
-    border-right:  solid 2px #CE232D;
+    border-bottom: solid 2px var(--gc-cervena-tmava);
+    border-right:  solid 2px var(--gc-cervena-tmava);
     transform: rotate(-45deg);
     transition: right 0.3s;
 }
@@ -165,7 +165,7 @@
 }
 
 .menu_uzivatel:hover {
-    background-color: #10111A;
+    background-color: var(--gc-inkoust);
 }
 
 .menu_prihlasit {
@@ -196,7 +196,7 @@
     display: none;
     position: absolute;
     left: 0;
-    background-color: #10111A;
+    background-color: var(--gc-inkoust);
     width: 220px;
     line-height: 1.0;
     font-weight: bold;

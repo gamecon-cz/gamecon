@@ -75,16 +75,18 @@
 <!-- end: karty -->
 </div>
 
-<div class="popisbox">
-    <div class="popisbox_obsah" data-aos="fade-up">
-        <a href="deskoherna">Deskové</a> hry, <a href="rpg">RPG</a> a <a href="larpy">Larpy</a>, <a href="bonusy">akční hry</a>, <a href="wargaming">wargaming</a>, <a href="dnd">Turnaj</a> v D&amp;D/JaD, pohybové <a href="bonusy">workshopy</a>, koncert a párty. To všechno a mnohem víc je festival nepočítačových her GameCon.
+<div class="popisboxObal">
+    <div class="popisbox">
+        <div class="popisbox_obsah" data-aos="fade-up">
+            <a href="deskoherna">Deskové</a> hry, <a href="rpg">RPG</a> a <a href="larpy">Larpy</a>, <a href="bonusy">akční hry</a>, <a href="wargaming">wargaming</a>, <a href="dnd">Turnaj</a> v D&amp;D/JaD, pohybové <a href="bonusy">workshopy</a>, koncert a párty. To všechno a mnohem víc je festival nepočítačových her GameCon.
+        </div>
+        <script>
+            document.querySelectorAll('.popisbox_obsah a').forEach(e => {
+                const t = e.innerText
+                e.innerHTML = '<span class="popisbox_overlay">'+t+'</span>'+t
+            })
+        </script>
     </div>
-    <script>
-        document.querySelectorAll('.popisbox_obsah a').forEach(e => {
-            const t = e.innerText
-            e.innerHTML = '<span class="popisbox_overlay">'+t+'</span>'+t
-        })
-    </script>
 </div>
 
 <div class="cisla">
