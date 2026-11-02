@@ -24,8 +24,7 @@
       </tr>
       <tr>
         <td><label for="pripsal">Připsal{aa}:</label></td>
-        <td><input type="text" value="{org}" disabled style="background-color: lightgray; cursor: not-allowed"
-                   id="pripsal"></td>
+        <td><input type="text" value="{org}" disabled id="pripsal"></td>
       </tr>
     </table>
     <input type="submit" value="Připsat">

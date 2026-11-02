@@ -37,6 +37,11 @@ class OnlinePrezenceHtmlVzhledTest extends AbstractUzivatelTestDb
     {
         $vypravec = self::prihlasenyUzivatel();
         $this->session = [];
+        $vzhledAdminu = new VzhledAdminu($this->session);
+        if ($vzhled !== null) {
+            // jako admin/index.php: vzhled stránky je ten zvolený
+            $vzhledAdminu->setVzhled((int) $vypravec->id(), $vzhled);
+        }
         $onlinePrezenceHtml = $vzhled === null
             ? new OnlinePrezenceHtml('', SystemoveNastaveni::zGlobals(), new Filesystem())
             : new OnlinePrezenceHtml(
@@ -44,7 +49,7 @@ class OnlinePrezenceHtmlVzhledTest extends AbstractUzivatelTestDb
                 SystemoveNastaveni::zGlobals(),
                 new Filesystem(),
                 vzhled: $vzhled,
-                vzhledAdminuHtml: new VzhledAdminuHtml(new VzhledAdminu($this->session)),
+                vzhledAdminuHtml: new VzhledAdminuHtml($vzhledAdminu),
                 nazevStranky: 'Moje aktivity',
             );
 
@@ -70,6 +75,7 @@ class OnlinePrezenceHtmlVzhledTest extends AbstractUzivatelTestDb
         self::assertStringNotContainsString('op-lista', $html);
         self::assertStringContainsString('prepinac-vzhledu', $html);
         self::assertStringContainsString('vzhled_adminu.css', $html);
+        self::assertStringNotContainsString('barvy_adminu.js', $html, 'Tmavé barvy umí jen moderní vzhled');
         self::assertStringContainsString(
             'name="' . VzhledAdminu::POST_KLIC_BEZ_OZNAMENI . '"',
             $html,
@@ -85,6 +91,12 @@ class OnlinePrezenceHtmlVzhledTest extends AbstractUzivatelTestDb
         self::assertStringContainsString('<strong>Moje aktivity</strong>', $html);
         self::assertStringContainsString('online-prezence-moderni.css', $html);
         self::assertStringContainsString('prepinac-vzhledu', $html);
+        self::assertStringContainsString('data-barvy-adminu="tmave"', $html);
+        self::assertLessThan(
+            strpos($html, '<body'),
+            strpos($html, 'barvy_adminu.js'),
+            'Barvy se nastaví v hlavičce, než se stránka vykreslí',
+        );
         self::assertLessThan(
             strpos($html, 'online-prezence-moderni.css'),
             strpos($html, 'design/online-prezence.css'),

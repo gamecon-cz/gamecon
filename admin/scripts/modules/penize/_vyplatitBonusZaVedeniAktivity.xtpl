@@ -51,8 +51,7 @@
       </tr>
       <tr>
         <td><label for="prevedlBonus">Převedl{aa}:</label></td>
-        <td><input id="prevedlBonus" type="text" value="{org}" disabled
-                   style="background-color: lightgray; cursor: not-allowed"></td>
+        <td><input id="prevedlBonus" type="text" value="{org}" disabled></td>
       </tr>
     </table>
     <span class="hinted">

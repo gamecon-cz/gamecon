@@ -1,7 +1,8 @@
 /*
  * Moderní vzhled online prezence (Moje aktivity a online prezence v Prezenci). Stránka nemá rám adminu, stojí na
  * Bootstrapu a online-prezence.css; tenhle soubor se načítá poslední a jen je přebarvuje, značky a háčky pro skripty
- * zůstávají stejné jako v klasickém vzhledu. Barvy a tvary drží moderni.css (moderní admin).
+ * zůstávají stejné jako v klasickém vzhledu. Barvy a tvary drží moderni.css (moderní admin), tmavé barvy
+ * (třída moderni-tmave na <html> z barvy_adminu.js) mění hlavně proměnné, zbytek je v oddílu Tmavé barvy na konci.
  */
 
 body.vzhled-moderni {
@@ -12,7 +13,18 @@ body.vzhled-moderni {
   --m-okraj: #e2e5ea;
   --m-okraj-pole: #c4c9d1;
   --m-okraj-pole-hover: #9aa1ab;
+  --m-hover: #e5e7eb;
+  --m-hlavicka-tabulky: #f6f7f9;
+  --m-hlavicka-tabulky-text: #3d4450;
+  --m-okraj-radku: #eef0f3;
+  --m-radek-sudy: #fafbfc;
+  --m-radek-zvyrazneny: #eef4ff;
+  --m-vybrana-polozka: #eef2f7;
+  /* zvýraznění (hlavní tlačítka): v tmavých barvách obrácené, světlé */
   --m-tmava: #1c1f26;
+  --m-tmava-hover: #343946;
+  --m-na-tmave: #fff;
+  --m-panel: #1c1f26;
   --m-panel-tlumeny: #8b92a1;
   --m-panel-hover: #2a2e38;
   --m-akcent: #c62828;
@@ -43,7 +55,7 @@ body.vzhled-moderni {
   box-sizing: border-box;
   min-height: var(--m-vyska-listy);
   padding: 8px max(16px, env(safe-area-inset-right)) 8px max(16px, env(safe-area-inset-left));
-  background-color: var(--m-tmava);
+  background-color: var(--m-panel);
   color: #fff;
 }
 
@@ -198,7 +210,7 @@ body.vzhled-moderni {
 }
 
 .vzhled-moderni .zobrazit-v-programu:hover {
-  background-color: #e5e7eb;
+  background-color: var(--m-hover);
   color: var(--m-text);
 }
 
@@ -287,8 +299,8 @@ body.vzhled-moderni {
   padding: 8px;
   border: 0;
   border-bottom: 1px solid var(--m-okraj);
-  background: #f6f7f9;
-  color: #3d4450;
+  background: var(--m-hlavicka-tabulky);
+  color: var(--m-hlavicka-tabulky-text);
   font-family: inherit;
   font-weight: 600;
   font-size: 13px;
@@ -296,7 +308,7 @@ body.vzhled-moderni {
 
 .vzhled-moderni .main table.ucastnici td {
   padding: 6px 8px;
-  border-bottom: 1px solid #eef0f3;
+  border-bottom: 1px solid var(--m-okraj-radku);
   vertical-align: middle;
 }
 
@@ -304,12 +316,16 @@ body.vzhled-moderni {
   border-bottom: 0;
 }
 
+.vzhled-moderni .ucastnik {
+  background-color: var(--m-plocha);
+}
+
 .vzhled-moderni .main table tbody tr:nth-child(even) {
-  background-color: #fafbfc;
+  background-color: var(--m-radek-sudy);
 }
 
 .vzhled-moderni .main table.zvyraznovana tr:hover td {
-  background-color: #eef4ff;
+  background-color: var(--m-radek-zvyrazneny);
 }
 
 .vzhled-moderni .razeni.neaktivni {
@@ -381,16 +397,16 @@ body.vzhled-moderni {
 .vzhled-moderni .btn-warning {
   border-color: var(--m-tmava);
   background-color: var(--m-tmava);
-  color: #fff;
+  color: var(--m-na-tmave);
 }
 
 .vzhled-moderni .btn-primary:hover,
 .vzhled-moderni .btn-primary:focus,
 .vzhled-moderni .btn-warning:hover,
 .vzhled-moderni .btn-warning:focus {
-  border-color: #343946;
-  background-color: #343946;
-  color: #fff;
+  border-color: var(--m-tmava-hover);
+  background-color: var(--m-tmava-hover);
+  color: var(--m-na-tmave);
 }
 
 .vzhled-moderni .btn-primary:disabled {
@@ -462,13 +478,31 @@ body.vzhled-moderni {
 .vzhled-moderni .ui-menu .ui-menu-item-wrapper.ui-state-active {
   margin: 0;
   border: 0;
-  background: #eef2f7;
+  background: var(--m-vybrana-polozka);
   color: var(--m-text);
 }
 
-/* Patička s přepínačem vzhledu */
+/* Patička s přepínačem vzhledu (barvy má z vzhled_adminu.css, tady jen přes proměnné kvůli tmavým barvám) */
 .op-paticka {
   padding: 8px 16px max(32px, env(safe-area-inset-bottom));
+}
+
+.vzhled-moderni .prepinac-vzhledu {
+  color: var(--m-text-tlumeny);
+}
+
+.vzhled-moderni .prepinac-vzhledu-volby {
+  border-color: var(--m-okraj-pole);
+  background-color: var(--m-plocha);
+}
+
+.vzhled-moderni .prepinac-vzhledu button:hover {
+  color: var(--m-text);
+}
+
+.vzhled-moderni .prepinac-vzhledu button[aria-pressed="true"] {
+  background-color: var(--m-tmava);
+  color: var(--m-na-tmave);
 }
 
 /* ---------- Telefon ---------- */
@@ -525,5 +559,95 @@ body.vzhled-moderni {
 
   body.vzhled-moderni {
     background-color: #fff;
+  }
+}
+
+/* ---------- Tmavé barvy ---------- */
+
+/* Jako v moderni.css: jen na obrazovce, vytištěná stránka zůstane světlá. Bootstrap 5.1 tmavé barvy nemá,
+   jeho prvky dobarvuje oddíl níže. */
+@media screen {
+  :root.moderni-tmave {
+    color-scheme: dark;
+  }
+
+  .moderni-tmave body.vzhled-moderni {
+    --m-pozadi: #111317;
+    --m-plocha: #1b1e24;
+    --m-text: #e4e7ec;
+    --m-text-tlumeny: #9ba3b0;
+    --m-okraj: #2d323b;
+    --m-okraj-pole: #464d59;
+    --m-okraj-pole-hover: #626a78;
+    --m-hover: #30353f;
+    --m-hlavicka-tabulky: #23272e;
+    --m-hlavicka-tabulky-text: #c4c9d2;
+    --m-okraj-radku: #262a32;
+    --m-radek-sudy: #1f2228;
+    --m-radek-zvyrazneny: #22324f;
+    --m-vybrana-polozka: #2c3543;
+    --m-tmava: #e4e7ec;
+    --m-tmava-hover: #c9ced6;
+    --m-na-tmave: #16181d;
+    --m-dorazil: #3fb965;
+    --m-fokus: #6b9cff;
+    --m-fokus-stin: rgba(107, 156, 255, 0.35);
+  }
+
+  .moderni-tmave .vzhled-moderni .main a:not([class]) {
+    color: #8ab4f8;
+  }
+
+  .moderni-tmave .vzhled-moderni .text-skoncila {
+    background-color: #2e2510;
+    color: #f2d27a;
+  }
+
+  .moderni-tmave .vzhled-moderni .card,
+  .moderni-tmave .vzhled-moderni .modal-content {
+    border-color: var(--m-okraj);
+    background-color: var(--m-plocha);
+    color: var(--m-text);
+  }
+
+  .moderni-tmave .vzhled-moderni .btn-close {
+    filter: invert(1) grayscale(100%) brightness(200%);
+  }
+
+  .moderni-tmave .vzhled-moderni .btn-light {
+    color: var(--m-text);
+  }
+
+  .moderni-tmave .vzhled-moderni .btn-primary:disabled {
+    border-color: var(--m-okraj-pole);
+    background-color: var(--m-okraj-pole);
+    color: var(--m-text-tlumeny);
+  }
+
+  .moderni-tmave .vzhled-moderni .alert-info {
+    border-color: #1d4f61;
+    background-color: #102a33;
+    color: #9fdcef;
+  }
+
+  .moderni-tmave .vzhled-moderni .alert-warning {
+    border-color: #6e5617;
+    background-color: #2e2510;
+    color: #f2d27a;
+  }
+
+  .moderni-tmave .vzhled-moderni .alert-danger {
+    border-color: #7a2e2e;
+    background-color: #33191b;
+    color: #ffb4ab;
+  }
+
+  /* jasnější odstíny barev z online-prezence.css */
+  .moderni-tmave .vzhled-moderni .kontakt-nedostupny {
+    color: #ff7b72;
+  }
+
+  .moderni-tmave .vzhled-moderni .kontakty-zamcene-pruh {
+    color: var(--m-text-tlumeny);
   }
 }

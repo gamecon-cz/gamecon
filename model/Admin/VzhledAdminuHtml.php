@@ -15,8 +15,9 @@ class VzhledAdminuHtml
 {
     private const string SABLONY = __DIR__ . '/../../admin/templates';
 
-    public function __construct(private readonly VzhledAdminu $vzhledAdminu)
-    {
+    public function __construct(
+        private readonly VzhledAdminu $vzhledAdminu,
+    ) {
     }
 
     /**
@@ -33,6 +34,10 @@ class VzhledAdminuHtml
         if (! $sOznamenim) {
             $sablona->parse('prepinacVzhledu.bezOznameni');
         }
+        // tmavé barvy umí jen moderní vzhled
+        if ($vzhled === VzhledAdminuEnum::MODERNI) {
+            $sablona->parse('prepinacVzhledu.barvy');
+        }
         $sablona->parse('prepinacVzhledu');
 
         return $sablona->text('prepinacVzhledu');
@@ -40,6 +45,7 @@ class VzhledAdminuHtml
 
     /**
      * @param bool $sOznamenim false na stránce, která nevypisuje hlášky (chyba(), oznameni())
+     *
      * @return string empty when the user has chosen already or postponed the choice for this session
      */
     public function dejVyber(int $idUzivatele, bool $sOznamenim = true): string

@@ -71,6 +71,12 @@ dalším přihlášení. Vzhled kdykoli změníš přepínačem **Vzhled adminis
 dole na každé stránce. Volba se pamatuje u tvého účtu, platí tedy na počítači,
 telefonu i tabletu.
 
+Moderní vzhled má i **tmavé barvy**. Vedle přepínače vzhledu je přepínač
+**Barvy**: **Světlé**, **Tmavé**, nebo **Podle zařízení** (výchozí — admin je
+tmavý, když máš tmavý režim v systému nebo v prohlížeči). Barvy si pamatuje
+prohlížeč, telefon tak může být tmavý a počítač světlý. Vytištěná stránka je
+vždy světlá.
+
 ## Pracovní uživatel
 
 Máš-li právo na infopult, je úplně nahoře v levém sloupci políčko pro výběr
