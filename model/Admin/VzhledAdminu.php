@@ -11,22 +11,29 @@ namespace Gamecon\Admin;
 class VzhledAdminu
 {
     public const string POST_KLIC = 'vzhledAdminu';
-    /** Stránka bez rámu adminu (online prezence) hlášky nevypisuje, oznámení o změně by vyskočilo až jinde. */
+    /**
+     * Stránka bez rámu adminu (online prezence) hlášky nevypisuje, oznámení o změně by vyskočilo až jinde.
+     */
     public const string POST_KLIC_BEZ_OZNAMENI = 'vzhledAdminuBezOznameni';
-    /** Not a look: the user postponed the choice, the offer comes back with the next login. */
+    /**
+     * Not a look: the user postponed the choice, the offer comes back with the next login.
+     */
     public const string VOLBA_POZDEJI = 'pozdeji';
     public const VzhledAdminuEnum VYCHOZI = VzhledAdminuEnum::KLASICKY;
 
     private const string SESSION_KLIC_VYBER_ODLOZEN = 'vzhled_adminu_vyber_odlozen';
 
-    /** @var array<int, ?VzhledAdminuEnum> by user id */
+    /**
+     * @var array<int, ?VzhledAdminuEnum> by user id
+     */
     private array $zvolenyPodleUzivatele = [];
 
     /**
      * @param array<string, mixed> $session the PHP session, by reference so that postponing outlives the request
      */
-    public function __construct(private array &$session)
-    {
+    public function __construct(
+        private array &$session,
+    ) {
     }
 
     public function getZvolenyVzhled(int $idUzivatele): ?VzhledAdminuEnum
@@ -38,7 +45,9 @@ class VzhledAdminu
         $hodnota = dbOneCol(<<<'SQL'
 SELECT vzhled FROM uzivatele_vzhled_adminu WHERE id_uzivatele = $0
 SQL,
-            [0 => $idUzivatele],
+            [
+                0 => $idUzivatele,
+            ],
         );
 
         // A value this version does not know (left by a newer one) counts as not chosen.
@@ -66,6 +75,42 @@ SQL,
         );
 
         $this->zvolenyPodleUzivatele[$idUzivatele] = $vzhled;
+    }
+
+    /**
+     * Counts a page the user has just seen, per day and look, so the reports show how the looks caught on.
+     * A user who has not chosen yet is counted in the default look, marked as not chosen.
+     */
+    public function zaznamenejZobrazeniStranky(int $idUzivatele, \DateTimeInterface $kdy): void
+    {
+        $zvolenyVzhled = $this->getZvolenyVzhled($idUzivatele);
+        dbQuery(<<<'SQL'
+INSERT INTO uzivatele_vzhled_adminu_pouziti (id_uzivatele, den, vzhled, zvoleny, pocet_zobrazeni)
+VALUES ($0, $1, $2, $3, 1)
+ON DUPLICATE KEY UPDATE
+    pocet_zobrazeni = pocet_zobrazeni + 1,
+    zvoleny = GREATEST(zvoleny, VALUES(zvoleny))
+SQL,
+            [
+                0 => $idUzivatele,
+                1 => $kdy->format('Y-m-d'),
+                2 => ($zvolenyVzhled ?? self::VYCHOZI)->value,
+                3 => $zvolenyVzhled !== null ? 1 : 0,
+            ],
+        );
+    }
+
+    /**
+     * Whether the request is the user opening a page, not an ajax call or a form being sent (that redirects
+     * to a page, which counts on its own). Browsers without Sec-Fetch-Dest count unless they say it is ajax.
+     *
+     * @param array<string, mixed> $server $_SERVER
+     */
+    public static function isZobrazeniStranky(array $server): bool
+    {
+        return ($server['REQUEST_METHOD'] ?? 'GET') === 'GET'
+               && ($server['HTTP_SEC_FETCH_DEST'] ?? 'document') === 'document'
+               && empty($server['HTTP_X_REQUESTED_WITH']);
     }
 
     public function isNabidnoutVyber(int $idUzivatele): bool

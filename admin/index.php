@@ -179,6 +179,7 @@ $maNekterePravo = static function (array $polozkaMenu) use ($u): bool {
             return true;
         }
     }
+
     return false;
 };
 $strankaExistuje = isset($menu[$stranka]);
@@ -214,6 +215,10 @@ if ($strankaExistuje && $uzivatelMaPristup) {
     }
 
     $vystup = ob_get_clean();
+    // jak se vzhledy ujaly (reporty Vzhled administrace); i stránky bez rámu, třeba Moje aktivity
+    if ($vzhledAdminu !== null && VzhledAdminu::isZobrazeniStranky($_SERVER)) {
+        $vzhledAdminu->zaznamenejZobrazeniStranky($u->id(), $systemoveNastaveni->ted());
+    }
     if ($BEZ_DEKORACE) {
         echo $vystup;
     } else {

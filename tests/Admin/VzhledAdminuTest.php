@@ -147,6 +147,128 @@ SQL,
         );
     }
 
+    public function testZobrazeniStranekSeSectouPoDnechAVzhledech(): void
+    {
+        $idUzivatele = $this->vytvorUzivatele('pouziti');
+        $session = [];
+        $vzhledAdminu = new VzhledAdminu($session);
+        $prvniDen = new \DateTimeImmutable('2026-11-02 09:00:00');
+
+        $vzhledAdminu->zaznamenejZobrazeniStranky($idUzivatele, $prvniDen);
+        $vzhledAdminu->zaznamenejZobrazeniStranky($idUzivatele, $prvniDen->modify('+3 hours'));
+        $vzhledAdminu->setVzhled($idUzivatele, VzhledAdminuEnum::MODERNI);
+        $vzhledAdminu->zaznamenejZobrazeniStranky($idUzivatele, $prvniDen->modify('+4 hours'));
+        $vzhledAdminu->zaznamenejZobrazeniStranky($idUzivatele, $prvniDen->modify('+1 day'));
+
+        self::assertSame(
+            [
+                [
+                    'den'             => '2026-11-02',
+                    'vzhled'          => 'klasicky',
+                    'zvoleny'         => '0',
+                    'pocet_zobrazeni' => '2',
+                ],
+                [
+                    'den'             => '2026-11-02',
+                    'vzhled'          => 'moderni',
+                    'zvoleny'         => '1',
+                    'pocet_zobrazeni' => '1',
+                ],
+                [
+                    'den'             => '2026-11-03',
+                    'vzhled'          => 'moderni',
+                    'zvoleny'         => '1',
+                    'pocet_zobrazeni' => '1',
+                ],
+            ],
+            dbFetchAll(<<<'SQL'
+SELECT den, vzhled, zvoleny, pocet_zobrazeni
+FROM uzivatele_vzhled_adminu_pouziti
+WHERE id_uzivatele = $0
+ORDER BY den, vzhled
+SQL,
+                [
+                    0 => $idUzivatele,
+                ],
+            ),
+            'Dokud si uživatel nevybral, počítá se mu klasický vzhled jako nezvolený',
+        );
+    }
+
+    public function testZvolenyKlasickyOdlisiOdVychoziho(): void
+    {
+        $idUzivatele = $this->vytvorUzivatele('pouziti_klasicky');
+        $session = [];
+        $vzhledAdminu = new VzhledAdminu($session);
+        $den = new \DateTimeImmutable('2026-11-02 09:00:00');
+
+        $vzhledAdminu->zaznamenejZobrazeniStranky($idUzivatele, $den);
+        $vzhledAdminu->setVzhled($idUzivatele, VzhledAdminuEnum::KLASICKY);
+        $vzhledAdminu->zaznamenejZobrazeniStranky($idUzivatele, $den);
+
+        self::assertSame(
+            [
+                'zvoleny'         => '1',
+                'pocet_zobrazeni' => '2',
+            ],
+            dbOneLine(<<<'SQL'
+SELECT zvoleny, pocet_zobrazeni FROM uzivatele_vzhled_adminu_pouziti WHERE id_uzivatele = $0
+SQL,
+                [
+                    0 => $idUzivatele,
+                ],
+            ),
+            'Den, kdy si klasický vybral, už je zvolený',
+        );
+    }
+
+    public function testZobrazeniStrankyJeJenOtevreniStranky(): void
+    {
+        self::assertTrue(VzhledAdminu::isZobrazeniStranky([
+            'REQUEST_METHOD'      => 'GET',
+            'HTTP_SEC_FETCH_DEST' => 'document',
+        ]));
+        self::assertTrue(VzhledAdminu::isZobrazeniStranky([
+            'REQUEST_METHOD' => 'GET',
+        ]), 'Prohlížeč bez Sec-Fetch-Dest');
+        self::assertFalse(
+            VzhledAdminu::isZobrazeniStranky([
+                'REQUEST_METHOD'      => 'POST',
+                'HTTP_SEC_FETCH_DEST' => 'document',
+            ]),
+            'Odeslaný formulář přesměruje na stránku, ta se započítá sama',
+        );
+        self::assertFalse(VzhledAdminu::isZobrazeniStranky([
+            'REQUEST_METHOD'      => 'GET',
+            'HTTP_SEC_FETCH_DEST' => 'empty',
+        ]), 'fetch()');
+        self::assertFalse(VzhledAdminu::isZobrazeniStranky([
+            'REQUEST_METHOD'        => 'GET',
+            'HTTP_X_REQUESTED_WITH' => 'XMLHttpRequest',
+        ]), 'jQuery ajax');
+        self::assertFalse(VzhledAdminu::isZobrazeniStranky([
+            'REQUEST_METHOD'      => 'GET',
+            'HTTP_SEC_FETCH_DEST' => 'iframe',
+        ]));
+    }
+
+    public function testPouzitiMaCiziKlicNaUzivatele(): void
+    {
+        self::assertSame(
+            '1',
+            dbOneCol(<<<'SQL'
+SELECT COUNT(*)
+FROM information_schema.KEY_COLUMN_USAGE
+WHERE CONSTRAINT_SCHEMA = DATABASE()
+    AND TABLE_NAME = 'uzivatele_vzhled_adminu_pouziti'
+    AND REFERENCED_TABLE_NAME = 'uzivatele_hodnoty'
+    AND REFERENCED_COLUMN_NAME = 'id_uzivatele'
+SQL,
+            ),
+            'Podle cizího klíče převádí UzivatelSlucovani záznamy na sloučeného uživatele a smazání účtu je smaže',
+        );
+    }
+
     public function testKazdyVzhledMaSablonu(): void
     {
         foreach (VzhledAdminuEnum::cases() as $vzhled) {
