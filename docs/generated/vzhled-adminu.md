@@ -9,8 +9,9 @@ TL;DR: admin má dvě kostry stránky (`admin/templates/main.xtpl` a `admin/temp
 - `model/Admin/VzhledAdminuEnum.php` — `klasicky` / `moderni`, název a šablona.
 - `model/Admin/VzhledAdminuHtml.php` — vykreslí `admin/templates/vyber-vzhledu.xtpl` (dialog při první návštěvě) a `admin/templates/prepinac-vzhledu.xtpl` (přepínač v patičce) pro oba vzhledy adminu i pro online prezenci; styly v `admin/files/design/vzhled_adminu.css`.
 - `admin/templates/moderni/*.xtpl`, `admin/files/design/moderni.css`, `admin/files/moderni.js` — moderní vzhled.
+- `VzhledAdminu::zaznamenejZobrazeniStranky()` (volá `admin/index.php`), reporty `admin/scripts/zvlastni/reporty/vzhled-adminu-uzivatele.php` a `vzhled-adminu-dny.php` — jak se vzhledy ujaly.
 - `model/Aktivita/OnlinePrezence/OnlinePrezenceHtml.php` (parametry `vzhled`, `vzhledAdminuHtml`, `nazevStranky`), `admin/files/design/online-prezence-moderni.css` — online prezence.
-- Testy: `tests/Admin/VzhledAdminuTest.php`, `tests/Admin/VzhledAdminuHtmlTest.php`, `tests/Aktivity/OnlinePrezenceHtmlVzhledTest.php`, ikony hlavního menu v `tests/Admin/AdminMenuIkonyTest.php`.
+- Testy: `tests/Admin/VzhledAdminuTest.php` (i záznam používání), `tests/Admin/VzhledAdminuHtmlTest.php`, `tests/Aktivity/OnlinePrezenceHtmlVzhledTest.php`, ikony hlavního menu v `tests/Admin/AdminMenuIkonyTest.php`.
 
 ## Pravidla
 
@@ -36,6 +37,14 @@ TL;DR: admin má dvě kostry stránky (`admin/templates/main.xtpl` a `admin/temp
 - Pod 1024 px je `.sloupL` vysouvací panel (z-index 1000) a nahoře je lišta; lišta při posunu dolů ustoupí, aby nezakrývala přilepené hlavičky tabulek (`th { position: sticky; top: 0 }` na přehledu aktivit).
 - (záměr) Na širší obrazovce si panel uživatel schová tlačítkem v jeho hlavičce (kvůli notebooku) a pak se chová jako pod 1024 px; připínáček ho vrátí. Volba patří prohlížeči (localStorage `adminSchovaneMenu`), ne účtu, ať na velkém monitoru menu zůstane. Třídu `moderni-menu-schovane` na `<html>` nastaví skript v hlavičce `moderni/main.xtpl` ještě před vykreslením (jinak by menu probliklo) a JS i CSS se ptají „je menu vysouvací“ (úzká obrazovka nebo schované), ne jen na šířku. Pravidla vysunutého panelu jsou proto v `moderni.css` mimo `@media` a podmíněné je jen schování panelu.
 - Tabulky širší než obsah obalí `moderni.js` do posuvného bloku se stínem u okraje (ne ty, které už jsou v `.responzivni-tabulka` nebo v jiné tabulce).
+
+## Záznam používání
+
+- Tabulka `uzivatele_vzhled_adminu_pouziti`: řádek na uživatele, den a vzhled s počtem zobrazených stránek; `zvoleny` = vzhled si vybral (0 = klasický jen jako výchozí, ještě nevybíral). Kdo vzhled během dne přepne, má ten den dva řádky.
+- Počítá `admin/index.php` po modulu, ke kterému má uživatel přístup, tedy i stránky bez rámu (Moje aktivity). Jen otevření stránky (`VzhledAdminu::isZobrazeniStranky()`: GET a `Sec-Fetch-Dest: document`), ne ajax, `fetch()` ani odeslání formuláře (to přesměruje na stránku, která se započítá sama). Přihlášení, 403, 404 a skripty reportů (`zvlastni/reporty`) se nepočítají.
+- Barvy (tmavé/světlé) se nezaznamenávají, jsou jen v prohlížeči.
+- Reporty v Reporty: **Vzhled administrace: kdo jaký používá** (na uživatele: zvolený vzhled, dny a stránky v kterém, první a poslední den) a **Vzhled administrace: po dnech** (kolik lidí který den v kterém vzhledu).
+- Cizí klíč na `uzivatele_hodnoty` jako u volby; při slučování se řádky ze stejného dne nesečtou, zůstane ten uživatele, do kterého se slučuje.
 
 ## Gotchas
 
