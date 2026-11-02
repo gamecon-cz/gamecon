@@ -93,6 +93,14 @@
     {FILE "templates/moderni/menu.xtpl"}
     {FILE "templates/moderni/operator.xtpl"}
   </aside>
+  <!-- Panel, který se na výšku nevejde, se zhustí (moderni.css, Kompaktní panel). Hned za panelem, ať neproblikne;
+       při změně velikosti okna to přepočítá moderni.js. -->
+  <script>
+    (function () {
+      var panel = document.getElementById('moderniPostranniPanel')
+      document.documentElement.classList.toggle('moderni-panel-kompaktni', panel.scrollHeight > panel.clientHeight)
+    })()
+  </script>
   <div class="moderni-zavoj" hidden></div>
   <div class="sloupR">
     <main class="main">

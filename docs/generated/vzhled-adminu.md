@@ -38,6 +38,12 @@ TL;DR: admin má dvě kostry stránky (`admin/templates/main.xtpl` a `admin/temp
 - (záměr) Na širší obrazovce si panel uživatel schová tlačítkem v jeho hlavičce (kvůli notebooku) a pak se chová jako pod 1024 px; připínáček ho vrátí. Volba patří prohlížeči (localStorage `adminSchovaneMenu`), ne účtu, ať na velkém monitoru menu zůstane. Třídu `moderni-menu-schovane` na `<html>` nastaví skript v hlavičce `moderni/main.xtpl` ještě před vykreslením (jinak by menu probliklo) a JS i CSS se ptají „je menu vysouvací“ (úzká obrazovka nebo schované), ne jen na šířku. Pravidla vysunutého panelu jsou proto v `moderni.css` mimo `@media` a podmíněné je jen schování panelu.
 - Tabulky širší než obsah obalí `moderni.js` do posuvného bloku se stínem u okraje (ne ty, které už jsou v `.responzivni-tabulka` nebo v jiné tabulce).
 
+## Kompaktní panel
+
+- (záměr) Na malém monitoru se má celé menu vejít bez posouvání (přání pořadatele s malým monitorem). Nerozhoduje přepínač ani výška obrazovky, ale to, jestli panel přetéká: skript hned za `</aside>` v `moderni/main.xtpl` změří `scrollHeight > clientHeight` a dá na `<html>` třídu `moderni-panel-kompaktni`; po změně velikosti okna to `moderni.js` přeměří (plný panel, pak případně znovu zhustí, bez překreslení mezi tím).
+- Pravidla jsou v `@media (min-width: 1024px) and (pointer: fine)`: na dotyk zůstávají položky velké a panel se posouvá.
+- Zhuštěný panel: menší mezery a položky menu (28 px), Zrušit výběr jako křížek v rohu karty uživatele, Odhlásit jako ikona vedle jména. Na 1366×657 se panel s pracovním uživatelem a 13 položkami vejde (602 px místo 916).
+
 ## Záznam používání
 
 - Tabulka `uzivatele_vzhled_adminu_pouziti`: řádek na uživatele, den a vzhled s počtem zobrazených stránek; `zvoleny` = vzhled si vybral (0 = klasický jen jako výchozí, ještě nevybíral). Kdo vzhled během dne přepne, má ten den dva řádky.
