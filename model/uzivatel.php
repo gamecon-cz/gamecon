@@ -59,9 +59,22 @@ class Uzivatel extends DbObject
     /**
      * Klíč v session pod {@see self::UZIVATEL}: hodnota sloupce `random` v okamžiku přihlášení.
      * Odhlášení ostatních zařízení a změna hesla `random` vymění, a tím ukončí session všude,
-     * kde si ji nepřepíšou na novou.
+     * kde si ji nepřepíšou na novou. Viz {@see self::zmenRazitkoPrihlaseni()}.
      */
     private const string RAZITKO_PRIHLASENI = 'razitko_prihlaseni';
+
+    /**
+     * Vyměněné razítko začíná touhle předponou, hex z randHex() ji mít nemůže. Dokud ji `random` nemá,
+     * platí každá session uživatele: session z doby před nasazením razítko nemá a do migrace byl
+     * v `random` token trvalého přihlášení, takže by ji jinak zahodilo už nahrání kódu.
+     */
+    private const string PREDPONA_RAZITKA = 'r';
+
+    /**
+     * Klíč v session pod {@see self::UZIVATEL}: id trvalého přihlášení tohoto prohlížeče, aby ho zrušilo
+     * i odhlášení v adminu, který cookie trvalého přihlášení nevidí.
+     */
+    private const string ID_TRVALEHO_PRIHLASENI = 'id_trvaleho_prihlaseni';
 
     /**
      * Sloupce tabulky uzivatele_hodnoty, jejichž změny se auditují do
@@ -964,12 +977,8 @@ SQL,
             [Sql::HESLO_MD5 => $novyHash],
             [Sql::HESLO_MD5 => $this->r[Sql::HESLO_MD5] ?? null],
         );
-        // Nové razítko ukončí všechny běžící session, i v prohlížeči, kde se heslo obnovuje: přihlásí se novým.
-        dbQuery(
-            'UPDATE uzivatele_hodnoty SET heslo_md5 = $1, random = $3 WHERE id_uzivatele = $2',
-            [$novyHash, $this->id(), randHex(20)],
-        );
-        TrvalePrihlaseni::zrusVsude($this->id());
+        // Odhlásí i prohlížeč, ve kterém se heslo obnovuje: přihlásí se novým.
+        $this->zmenRazitkoPrihlaseni(ponechatTotoZarizeni: false, sloupce: [Sql::HESLO_MD5 => $novyHash]);
     }
 
     /**
@@ -1565,7 +1574,7 @@ SQL,
     public function odhlas(bool $naUvodniStranku = true)
     {
         // Než zmizí session: když to selže, odhlášení jde zopakovat.
-        TrvalePrihlaseni::zrusNaTomtoZarizeni();
+        TrvalePrihlaseni::zrusNaTomtoZarizeni($_SESSION[self::UZIVATEL][self::ID_TRVALEHO_PRIHLASENI] ?? null);
         $a = $this->koncovkaDlePohlavi();
         $this->odhlasProTed();
         oznameni("Byl{$a} jsi odhlášen{$a}", false);
@@ -1579,23 +1588,32 @@ SQL,
      */
     public function odhlasNaOstatnichZarizenich(): void
     {
-        $razitko = randHex(20);
-        dbQuery(
-            'UPDATE uzivatele_hodnoty SET random = $0 WHERE id_uzivatele = $1',
-            [$razitko, $this->id()],
-        );
-        $this->r[Sql::RANDOM] = $razitko;
-        self::ponechTotoZarizeniPrihlasene($this->id(), $razitko);
-        TrvalePrihlaseni::zrusNaOstatnichZarizenich($this->id());
+        $this->zmenRazitkoPrihlaseni(ponechatTotoZarizeni: true);
     }
 
     /**
-     * Session tohoto prohlížeče převezme nové razítko přihlášení, pokud patří uživateli, kterému se změnilo.
+     * Vymění razítko přihlášení, čímž skončí běžící session uživatele, a zruší jeho trvalá přihlášení.
+     *
+     * @param bool                 $ponechatTotoZarizeni session a trvalé přihlášení tohoto prohlížeče zůstanou
+     * @param array<string, mixed> $sloupce              další sloupce zapsané stejným dotazem jako razítko, třeba nové
+     *                                                   heslo, aby nevzniklo okno, kdy se starým ještě běží ostatní session
      */
-    private static function ponechTotoZarizeniPrihlasene(int $idUzivatele, string $razitko): void
+    public function zmenRazitkoPrihlaseni(bool $ponechatTotoZarizeni, array $sloupce = []): void
     {
-        if ((int) ($_SESSION[self::UZIVATEL]['id_uzivatele'] ?? 0) === $idUzivatele) {
-            $_SESSION[self::UZIVATEL][self::RAZITKO_PRIHLASENI] = $razitko;
+        // Trvalá přihlášení dřív než razítko. Přihlášení z cookie čte razítko stejným dotazem jako svůj řádek,
+        // takže dokud řádek najde, dostane do session staré razítko a ta skončí s dalším požadavkem.
+        if ($ponechatTotoZarizeni) {
+            TrvalePrihlaseni::zrusNaOstatnichZarizenich($this->id());
+        } else {
+            TrvalePrihlaseni::zrusVsude($this->id());
+        }
+        $sloupce[Sql::RANDOM] = self::PREDPONA_RAZITKA . randHex(19);
+        dbUpdate(Sql::UZIVATELE_HODNOTY_TABULKA, $sloupce, [
+            Sql::ID_UZIVATELE => $this->id(),
+        ]);
+        $this->r = array_merge($this->r, $sloupce);
+        if ($ponechatTotoZarizeni && (int) ($_SESSION[self::UZIVATEL]['id_uzivatele'] ?? 0) === $this->id()) {
+            $_SESSION[self::UZIVATEL][self::RAZITKO_PRIHLASENI] = $sloupce[Sql::RANDOM];
         }
     }
 
@@ -1690,12 +1708,17 @@ SQL,
         $klic = $this->klic;
         // máme obnovit starou proměnnou pro id uživatele (otáčíme aktuálně přihlášeného uživatele)?
         $sesssionObnovit = (isset($_SESSION['id_uzivatele']) && $_SESSION['id_uzivatele'] === $this->id());
+        $idTrvalehoPrihlaseni = null;
         if ($klic === self::UZIVATEL) { // pokud je klíč default, zničíme celou session
+            $idTrvalehoPrihlaseni = $_SESSION[self::UZIVATEL][self::ID_TRVALEHO_PRIHLASENI] ?? null;
             $this->odhlasProTed();      // ponech případnou cookie pro trvalé přihášení
         } else { // pokud je speciální, pouze přemažeme položku v session
             self::odhlasKlic($klic);
         }
         $u = self::prihlasId($id, $klic);
+        if ($idTrvalehoPrihlaseni !== null) {
+            $_SESSION[self::UZIVATEL][self::ID_TRVALEHO_PRIHLASENI] = $idTrvalehoPrihlaseni;
+        }
         $this->r = $u->r;
         if ($sesssionObnovit) {
             $_SESSION['id_uzivatele'] = $this->id();
@@ -1873,11 +1896,14 @@ SQL,
     /**
      * Vytvoří v session na indexu $klic dalšího uživatele pro práci
      *
+     * @param string|null $razitko razítko přihlášení přečtené spolu s trvalým přihlášením, jinak aktuální z DB
+     *
      * @return Uzivatel|null nebo null
      */
     public static function prihlasId(
         int|string $idUzivatele,
         $klic = self::UZIVATEL,
+        ?string $razitko = null,
     ): ?self {
         $idUzivatele = (int) $idUzivatele;
         $uzivatelData = dbOneLine("SELECT * FROM uzivatele_hodnoty WHERE id_uzivatele={$idUzivatele}");
@@ -1888,7 +1914,7 @@ SQL,
             session_start();
         }
         $_SESSION[$klic]['id_uzivatele'] = $idUzivatele;
-        $_SESSION[$klic][self::RAZITKO_PRIHLASENI] = (string) $uzivatelData[Sql::RANDOM];
+        $_SESSION[$klic][self::RAZITKO_PRIHLASENI] = $razitko ?? (string) $uzivatelData[Sql::RANDOM];
         // načtení uživatelských práv
         $p = dbQuery(
             'SELECT id_prava FROM platne_role_uzivatelu uz LEFT JOIN prava_role pz USING(id_role) WHERE uz.id_uzivatele=' . $idUzivatele,
@@ -1918,7 +1944,10 @@ SQL,
     ) {
         $u = self::prihlas($login, $heslo, $klic);
         if ($u) {
-            TrvalePrihlaseni::zaloz($u->id());
+            $_SESSION[self::UZIVATEL][self::ID_TRVALEHO_PRIHLASENI] = TrvalePrihlaseni::zaloz(
+                $u->id(),
+                $_SESSION[self::UZIVATEL][self::ID_TRVALEHO_PRIHLASENI] ?? null,
+            );
         }
 
         return $u;
@@ -2184,11 +2213,6 @@ SQL,
         $zmenaHesla = $u && isset($dbTab['heslo']);
         if (isset($dbTab['heslo'])) {
             $dbTab['heslo_md5'] = password_hash($dbTab['heslo'], PASSWORD_DEFAULT);
-            // Nové razítko přihlášení stejným zápisem jako hash, aby nevzniklo okno, kdy ostatní
-            // zařízení se starým heslem ještě běží.
-            if ($zmenaHesla) {
-                $dbTab['random'] = randHex(20);
-            }
         }
 
         if (! $u) {
@@ -2219,12 +2243,13 @@ SQL,
                     'web',
                 );
             }
-            dbUpdate(Sql::UZIVATELE_HODNOTY_TABULKA, $dbTab, [
-                Sql::ID_UZIVATELE => $u->id(),
-            ]);
             if ($zmenaHesla) {
-                self::ponechTotoZarizeniPrihlasene($u->id(), $dbTab[Sql::RANDOM]);
-                TrvalePrihlaseni::zrusNaOstatnichZarizenich($u->id());
+                // Změna hesla odhlásí ostatní zařízení, údaje se zapíšou stejným dotazem jako nové razítko.
+                $u->zmenRazitkoPrihlaseni(ponechatTotoZarizeni: true, sloupce: $dbTab);
+            } else {
+                dbUpdate(Sql::UZIVATELE_HODNOTY_TABULKA, $dbTab, [
+                    Sql::ID_UZIVATELE => $u->id(),
+                ]);
             }
             $u->otoc();
             $idUzivatele = $u->id();
@@ -3014,11 +3039,11 @@ SQL,
             if (! empty($_SESSION[$klic]['id_uzivatele'])) {
                 $u = self::zId($_SESSION[$klic]['id_uzivatele']);
             }
-            // Mezitím se odhlásil na ostatních zařízeních nebo si změnil heslo. Session z doby
-            // před razítkem žádné nemá a platí, dokud se `random` poprvé nezmění z prázdného.
+            // Mezitím se odhlásil na ostatních zařízeních nebo si změnil heslo.
             if ($u
                 && $klic === self::UZIVATEL
-                && ($_SESSION[$klic][self::RAZITKO_PRIHLASENI] ?? '') !== (string) $u->r[Sql::RANDOM]
+                && str_starts_with((string) $u->r[Sql::RANDOM], self::PREDPONA_RAZITKA)
+                && ($_SESSION[$klic][self::RAZITKO_PRIHLASENI] ?? null) !== $u->r[Sql::RANDOM]
             ) {
                 // Celá session jako při odhlášení: pracovního uživatele v adminu, potvrzená zobrazení
                 // kontaktů a další by jinak zdědil ten, kdo se v tomhle prohlížeči přihlásí příště.
@@ -3032,9 +3057,12 @@ SQL,
             }
         }
         if ($klic === self::UZIVATEL) {
-            $id = TrvalePrihlaseni::idUzivateleZCookie();
-            if ($id !== null) {
-                return self::prihlasId($id, $klic);
+            $trvalePrihlaseni = TrvalePrihlaseni::uplatniCookie();
+            if ($trvalePrihlaseni !== null) {
+                $u = self::prihlasId($trvalePrihlaseni['id_uzivatele'], $klic, $trvalePrihlaseni['razitko']);
+                $_SESSION[$klic][self::ID_TRVALEHO_PRIHLASENI] = $trvalePrihlaseni['id'];
+
+                return $u;
             }
         }
 
