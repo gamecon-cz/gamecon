@@ -1565,3 +1565,206 @@ body.moderni-menu-otevrene .sloupL {
     transition: none;
   }
 }
+
+/* ---------- Kompaktní panel ---------- */
+
+/* Třídu moderni-panel-kompaktni na <html> dá skript za panelem v main.xtpl (a při změně velikosti okna
+   moderni.js), jen když se panel na výšku nevejde: malý monitor, hodně položek menu. Panel se pak vejde
+   celý, bez posouvání. Jen pro myš na širší obrazovce, na dotyk zůstávají položky velké a panel se posouvá. */
+@media (min-width: 1024px) and (pointer: fine) {
+  :where(.moderni-panel-kompaktni) .moderni-panel-hlavicka {
+    padding: 8px 12px 6px;
+  }
+
+  :where(.moderni-panel-kompaktni) .moderni-znacka-logo {
+    width: 28px;
+    height: 28px;
+    border-radius: 7px;
+    font-size: 12px;
+  }
+
+  :where(.moderni-panel-kompaktni) .moderni-znacka-text {
+    font-size: 15px;
+  }
+
+  :where(.moderni-panel-kompaktni) .moderni-tlacitko-zavrit,
+  :where(.moderni-panel-kompaktni) .moderni-tlacitko-schovat,
+  :where(.moderni-panel-kompaktni) .moderni-tlacitko-pripnout {
+    width: 28px;
+    height: 28px;
+    font-size: 14px;
+  }
+
+  /* Karta pracovního uživatele: Zrušit výběr jako křížek v jejím rohu, jméno a ID na jednom řádku. */
+  :where(.moderni-panel-kompaktni .vzhled-moderni) .uzivatel {
+    position: relative;
+    margin-bottom: 6px;
+    padding: 8px 10px;
+  }
+
+  :where(.moderni-panel-kompaktni) .moderni-uzivatel .moderni-popisek {
+    margin-bottom: 4px;
+  }
+
+  :where(.moderni-panel-kompaktni .vzhled-moderni) .uzivatel .tip {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip: rect(0 0 0 0);
+    white-space: nowrap;
+  }
+
+  :where(.moderni-panel-kompaktni .vzhled-moderni) .moderni-hledani input.omnibox {
+    height: 32px;
+  }
+
+  :where(.moderni-panel-kompaktni) .moderni-hledani > .fa-solid {
+    top: 9px;
+  }
+
+  :where(.moderni-panel-kompaktni) .moderni-vybrany {
+    gap: 10px;
+  }
+
+  :where(.moderni-panel-kompaktni .vzhled-moderni) .uzivatel .avatar {
+    width: 40px;
+    height: 40px;
+  }
+
+  :where(.moderni-panel-kompaktni) .moderni-vybrany-udaje {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    column-gap: 6px;
+  }
+
+  /* místo pro křížek Zrušit výběr */
+  :where(.moderni-panel-kompaktni .vzhled-moderni) .uzivatel h3 {
+    flex: 1 0 100%;
+    max-width: calc(100% - 24px);
+    font-size: 15px;
+  }
+
+  :where(.moderni-panel-kompaktni) .moderni-vybrany-jmeno {
+    max-width: 50%;
+    font-size: 12px;
+  }
+
+  :where(.moderni-panel-kompaktni) .moderni-vybrany-id a,
+  :where(.moderni-panel-kompaktni) .moderni-vybrany-id .moderni-tlacitko-ikona {
+    width: 24px;
+    height: 24px;
+  }
+
+  :where(.moderni-panel-kompaktni .vzhled-moderni) .uzivatel .status {
+    margin-top: 4px;
+    font-size: 12px;
+  }
+
+  :where(.moderni-panel-kompaktni) #zrusitUzivateleProPraci {
+    position: absolute;
+    top: 4px;
+    right: 4px;
+  }
+
+  /* text tlačítka zůstává pro čtečky, vidět je jen křížek (a title) */
+  :where(.moderni-panel-kompaktni) .moderni-tlacitko-zrusit {
+    width: 28px;
+    min-height: 28px;
+    margin: 0;
+    padding: 0;
+    border-color: transparent;
+    background-color: transparent;
+    color: var(--m-text-tlumeny);
+    font-size: 0;
+  }
+
+  :where(.moderni-panel-kompaktni) .moderni-tlacitko-zrusit .fa-solid {
+    font-size: 15px;
+  }
+
+  :where(.moderni-panel-kompaktni) .moderni-tlacitko-zrusit:hover {
+    color: var(--m-text);
+  }
+
+  :where(.moderni-panel-kompaktni) .moderni-predchozi {
+    margin-top: 6px;
+    padding-top: 6px;
+    font-size: 12px;
+  }
+
+  /* Hlavní menu */
+  :where(.moderni-panel-kompaktni .vzhled-moderni) .menu {
+    gap: 0;
+    padding: 2px 12px;
+    font-size: 13px;
+  }
+
+  :where(.moderni-panel-kompaktni .vzhled-moderni) .menu a {
+    gap: 10px;
+    min-height: 28px;
+    padding: 4px 12px;
+  }
+
+  :where(.moderni-panel-kompaktni .vzhled-moderni) .menu a .fa-solid {
+    font-size: 13px;
+  }
+
+  /* Přihlášený uživatel: Odhlásit jako ikona vedle jména, přihlášení za jiného pod nimi. */
+  :where(.moderni-panel-kompaktni .vzhled-moderni) .operator {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    align-items: center;
+    gap: 6px 8px;
+    padding: 8px 12px 6px;
+  }
+
+  :where(.moderni-panel-kompaktni) .moderni-operator-kdo {
+    grid-row: 1;
+    grid-column: 1;
+    min-width: 0;
+    margin: 0;
+    gap: 8px;
+  }
+
+  :where(.moderni-panel-kompaktni) .moderni-operator-kdo > .fa-solid {
+    font-size: 20px;
+  }
+
+  :where(.moderni-panel-kompaktni) .moderni-operator-kdo > div {
+    min-width: 0;
+  }
+
+  :where(.moderni-panel-kompaktni) .moderni-operator-kdo .moderni-popisek {
+    display: none;
+  }
+
+  :where(.moderni-panel-kompaktni) .moderni-operator-kdo strong {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  :where(.moderni-panel-kompaktni) .moderni-operator > .moderni-hledani {
+    grid-row: 2;
+    grid-column: 1 / -1;
+  }
+
+  :where(.moderni-panel-kompaktni) .moderni-operator > form:not(.moderni-hledani) {
+    grid-row: 1;
+    grid-column: 2;
+  }
+
+  :where(.moderni-panel-kompaktni) .moderni-tlacitko-odhlasit {
+    width: 30px;
+    min-height: 30px;
+    margin: 0;
+    padding: 0;
+    font-size: 0;
+  }
+
+  :where(.moderni-panel-kompaktni) .moderni-tlacitko-odhlasit .fa-solid {
+    font-size: 14px;
+  }
+}

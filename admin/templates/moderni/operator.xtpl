@@ -17,7 +17,7 @@
   </form>
   <!-- end:prepnutiUzivatele -->
   <form method="post">
-    <button type="submit" name="odhlasNAdm" value="1" class="moderni-tlacitko-odhlasit">
+    <button type="submit" name="odhlasNAdm" value="1" class="moderni-tlacitko-odhlasit" title="Odhlásit">
       <i class="fa-solid fa-right-from-bracket" aria-hidden="true"></i> Odhlásit
     </button>
   </form>

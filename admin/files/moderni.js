@@ -1,6 +1,6 @@
 // Moderní vzhled administrace (admin/templates/moderni/main.xtpl): vysouvací menu na úzké obrazovce nebo když
 // si ho uživatel schová, horní lišta, která při posunu dolů ustoupí (ať nezakrývá přilepené hlavičky tabulek),
-// a vodorovně posuvné tabulky, které se do obsahu nevejdou.
+// zhuštěný panel, když se na výšku nevejde, a vodorovně posuvné tabulky, které se do obsahu nevejdou.
 (function () {
   'use strict'
 
@@ -163,6 +163,17 @@
     })
   }
 
+  // Panel, který se na výšku nevejde, se zhustí (moderni.css, Kompaktní panel). Při načtení to rozhodne skript
+  // hned za panelem v main.xtpl, tady jen po změně velikosti okna. Měří se plný panel a případné zhuštění
+  // proběhne dřív, než se stránka překreslí.
+  function zhustiPanelPokudSeNevejde() {
+    if (!panel) {
+      return
+    }
+    html.classList.remove('moderni-panel-kompaktni')
+    html.classList.toggle('moderni-panel-kompaktni', panel.scrollHeight > panel.clientHeight)
+  }
+
   // Na telefonu je podmenu jeden posuvný řádek, aktivní položka má být vidět.
   function ukazAktivniPolozkuPodmenu() {
     const podmenu = document.getElementById('submenu')
@@ -181,6 +192,9 @@
   let casovacZmenyVelikosti = null
   window.addEventListener('resize', function () {
     clearTimeout(casovacZmenyVelikosti)
-    casovacZmenyVelikosti = setTimeout(obalSirokeTabulky, 200)
+    casovacZmenyVelikosti = setTimeout(function () {
+      obalSirokeTabulky()
+      zhustiPanelPokudSeNevejde()
+    }, 200)
   })
 })()
