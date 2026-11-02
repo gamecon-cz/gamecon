@@ -206,7 +206,8 @@ HTML;
     public function zobrazHtml()
     {
         ?>
-      <form method="post" class="formular_stranka">
+      <div class="formular_stranka">
+      <form method="post">
         <div class="bg"></div>
 
           <?php
@@ -311,20 +312,6 @@ HTML
             <?php echo $this->input('Heslo pro kontrolu', 'password', 'heslo_kontrola', $this->u === null); ?>
         </div>
 
-          <?php
-          if ($this->u) { ?>
-            <h2 class="formular_sekceNadpis">Přihlášená zařízení</h2>
-            <p>
-              Odhlásí tě na všech ostatních zařízeních a prohlížečích, tady zůstaneš
-              přihlášen<?php echo $this->u->koncovkaDlePohlavi(); ?>. Totéž udělá změna hesla.
-            </p>
-            <!-- odesílá vlastní formulář pod tímhle, aby se neukládalo ani nekontrolovalo nastavení -->
-            <button type="submit" form="odhlasitOstatniZarizeni" class="formular_sekundarni" style="margin-left: 0">
-              Odhlásit ostatní zařízení
-            </button>
-              <?php
-          } ?>
-
         <div style="margin: 30px 0 40px" class="formular_polozka-checkbox">
           <label style="float: left; margin-right: 1em">
             <input type="checkbox" required <?php echo $this->souhlasilSeZpracovanimOsobnichUdaju()
@@ -383,11 +370,23 @@ HTML
 
         <?php
         if ($this->u) { ?>
-          <form method="post" id="odhlasitOstatniZarizeni">
+          <!-- vlastní formulář pod tlačítkem Uložit, aby se nastavení neukládalo ani nekontrolovalo -->
+          <form method="post">
+            <h2 class="formular_sekceNadpis">Přihlášená zařízení</h2>
+            <p>
+              Odhlásí tě na všech ostatních zařízeních a prohlížečích, tady zůstaneš
+              přihlášen<?php echo $this->u->koncovkaDlePohlavi(); ?>. Totéž udělá změna hesla.
+              Neuložené změny nastavení výš se zahodí.
+            </p>
             <input type="hidden" name="odhlasitOstatniZarizeni" value="true">
+            <button type="submit" class="formular_sekundarni" style="margin-left: 0">
+              Odhlásit ostatní zařízení
+            </button>
           </form>
             <?php
-        }
+        } ?>
+      </div>
+        <?php
     }
 
     private function zacatekPrihlasovani(): string
