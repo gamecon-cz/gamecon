@@ -23,6 +23,7 @@ TL;DR: Jak přihlášení drží na víc zařízeních naráz a jak se odhlašuj
 
 ## Gotchas
 - `random` dřív nesl přímo token trvalého přihlášení (jeden na uživatele, takže přihlášení na dalším zařízení odhlásilo předchozí). Migrace tokeny převedla do tabulky a `random` všem vyprázdnila. Session bez razítka se bere jako prázdné razítko, takže session z doby před nasazením běží, dokud se `random` uživatele poprvé nezmění.
+- Session s neplatným razítkem se zahodí celá, ne jen klíč `Uzivatel::UZIVATEL`: pracovního uživatele v adminu, potvrzená zobrazení kontaktů a další by jinak zdědil ten, kdo se v tom prohlížeči přihlásí příště (sdílený počítač na infopultu).
 - Kdo mění `random`, ukončí všechny session uživatele. Aktuální zařízení si nové razítko musí převzít (`ponechTotoZarizeniPrihlasene()`, nebo `otoc()`, které session přihlásí znovu z čerstvého řádku).
 - Odhlášení ostatních zařízení pozná „toto zařízení" podle cookie, ne podle uživatele: cookie počítá i s předchozím tokenem.
 - Anonymizovaná DB tabulku `uzivatele_trvala_prihlaseni` vyprázdní.
