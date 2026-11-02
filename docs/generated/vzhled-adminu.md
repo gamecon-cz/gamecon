@@ -1,6 +1,6 @@
 # Vzhled administrace: klasický a moderní
 
-TL;DR: admin má dvě kostry stránky (`admin/templates/main.xtpl` a `admin/templates/moderni/main.xtpl`) nad stejným obsahem modulů, online prezence (Moje aktivity) má moderní vzhled jako vrstvu stylů nad svou šablonou; volbu drží tabulka `uzivatele_vzhled_adminu`, kdo ji nemá, dostane klasický vzhled a dialog s výběrem.
+TL;DR: admin má dvě kostry stránky (`admin/templates/main.xtpl` a `admin/templates/moderni/main.xtpl`) nad stejným obsahem modulů, online prezence (Moje aktivity) má moderní vzhled jako vrstvu stylů nad svou šablonou; volbu drží tabulka `uzivatele_vzhled_adminu`, kdo ji nemá, dostane klasický vzhled a dialog s výběrem. Moderní vzhled má tmavé barvy (volba v prohlížeči) a panel, který se na výšku nevejde, zhustí; kolik kdo který vzhled používá, zapisuje `uzivatele_vzhled_adminu_pouziti` pro dva reporty.
 
 ## Vstupní body
 
@@ -8,7 +8,7 @@ TL;DR: admin má dvě kostry stránky (`admin/templates/main.xtpl` a `admin/temp
 - `model/Admin/VzhledAdminu.php` — čtení a zápis volby, odložení výběru v session (`isNabidnoutVyber()`, `zpracujVolbu()`).
 - `model/Admin/VzhledAdminuEnum.php` — `klasicky` / `moderni`, název a šablona.
 - `model/Admin/VzhledAdminuHtml.php` — vykreslí `admin/templates/vyber-vzhledu.xtpl` (dialog při první návštěvě) a `admin/templates/prepinac-vzhledu.xtpl` (přepínač v patičce) pro oba vzhledy adminu i pro online prezenci; styly v `admin/files/design/vzhled_adminu.css`.
-- `admin/templates/moderni/*.xtpl`, `admin/files/design/moderni.css`, `admin/files/moderni.js` — moderní vzhled.
+- `admin/templates/moderni/*.xtpl`, `admin/files/design/moderni.css`, `admin/files/moderni.js` — moderní vzhled; `admin/files/barvy_adminu.js` — světlé a tmavé barvy.
 - `VzhledAdminu::zaznamenejZobrazeniStranky()` (volá `admin/index.php`), reporty `admin/scripts/zvlastni/reporty/vzhled-adminu-uzivatele.php` a `vzhled-adminu-dny.php` — jak se vzhledy ujaly.
 - `model/Aktivita/OnlinePrezence/OnlinePrezenceHtml.php` (parametry `vzhled`, `vzhledAdminuHtml`, `nazevStranky`), `admin/files/design/online-prezence-moderni.css` — online prezence.
 - Testy: `tests/Admin/VzhledAdminuTest.php` (i záznam používání), `tests/Admin/VzhledAdminuHtmlTest.php`, `tests/Aktivity/OnlinePrezenceHtmlVzhledTest.php`, ikony hlavního menu v `tests/Admin/AdminMenuIkonyTest.php`.
@@ -38,6 +38,17 @@ TL;DR: admin má dvě kostry stránky (`admin/templates/main.xtpl` a `admin/temp
 - (záměr) Na širší obrazovce si panel uživatel schová tlačítkem v jeho hlavičce (kvůli notebooku) a pak se chová jako pod 1024 px; připínáček ho vrátí. Volba patří prohlížeči (localStorage `adminSchovaneMenu`), ne účtu, ať na velkém monitoru menu zůstane. Třídu `moderni-menu-schovane` na `<html>` nastaví skript v hlavičce `moderni/main.xtpl` ještě před vykreslením (jinak by menu probliklo) a JS i CSS se ptají „je menu vysouvací“ (úzká obrazovka nebo schované), ne jen na šířku. Pravidla vysunutého panelu jsou proto v `moderni.css` mimo `@media` a podmíněné je jen schování panelu.
 - Tabulky širší než obsah obalí `moderni.js` do posuvného bloku se stínem u okraje (ne ty, které už jsou v `.responzivni-tabulka` nebo v jiné tabulce).
 
+## Tmavé barvy
+
+- Jen moderní vzhled (admin i online prezence); přepínač **Barvy** (Světlé / Tmavé / Podle zařízení) je blok `barvy` šablony `prepinac-vzhledu.xtpl`, který `VzhledAdminuHtml` parsuje jen u moderního. Tlačítka nejsou `submit`, formulář vzhledu neodesílají.
+- (záměr) Volba patří prohlížeči (localStorage `adminBarvy`), ne účtu, stejně jako barvy zařízení: telefon může být tmavý a počítač světlý. Bez volby platí `prefers-color-scheme` a `barvy_adminu.js` sleduje jeho změnu i volbu z jiné záložky.
+- `barvy_adminu.js` se načítá v hlavičce bez `defer` a dá na `<html>` třídu `moderni-tmave` ještě před vykreslením (jinak by stránka probliknula světle). CSS se ptá jen na tu třídu, ne na `@media (prefers-color-scheme)`, aby pravidla nebyla dvakrát.
+- Tmavé barvy jsou v `@media screen`: vytištěná stránka zůstane světlá.
+- Barvy jdou přes proměnné `--m-*` (světlé hodnoty jsou stejné jako dřív natvrdo, světlý vzhled se nezměnil, ověřeno pixelovým porovnáním). `--m-tmava`/`--m-na-tmave` jsou zvýraznění (aktivní položka podmenu, zvolený přepínač), v tmavých barvách se obrátí na světlé. Postranní panel je tmavý v obou.
+- Co přes proměnné nejde, dobarvuje oddíl Tmavé barvy na konci `moderni.css` (a `online-prezence-moderni.css`, včetně Bootstrapu 5.1, který tmavé barvy nemá): barvy ze `styl.css`, které světlý moderní vzhled nemění, knihovny (jQuery UI, multiselect, jquery-modal) a vlastní `<style>` modulů. Na ty je selektor o `.moderni-tmave .vzhled-moderni` delší, protože jsou ve stránce až za `moderni.css`.
+- Barvy natvrdo v atributu `style` (stav uživatele z `Uzivatel::statusHtml()`, ano/ne ve Slučování, text e-mailu v Upomínkách) přebíjí jen selektor podle `[style*=…]`. Světlé pozadí natvrdo zůstává světlé a dostane tmavé písmo i `--m-odkaz`, jinak by odkazy v něm byly světlé. Barvu písma natvrdo ve `style` (hláška u vlastního znění v Upomínkách) přebije jen `!important`. Nový modul se světlým pozadím bez barvy písma je v tmavých barvách nečitelný: dát mu barvy přes proměnné `--m-*`, nebo s pozadím i barvu písma.
+- QR kód plateb zůstává na bílém (čtečka), grafy ve Statistikách taky.
+
 ## Kompaktní panel
 
 - (záměr) Na malém monitoru se má celé menu vejít bez posouvání (přání pořadatele s malým monitorem). Nerozhoduje přepínač ani výška obrazovky, ale to, jestli panel přetéká: skript hned za `</aside>` v `moderni/main.xtpl` změří `scrollHeight > clientHeight` a dá na `<html>` třídu `moderni-panel-kompaktni`; po změně velikosti okna to `moderni.js` přeměří (plný panel, pak případně znovu zhustí, bez překreslení mezi tím).
@@ -58,4 +69,4 @@ TL;DR: admin má dvě kostry stránky (`admin/templates/main.xtpl` a `admin/temp
 - `{FILE}` uvnitř vloženého souboru se nezpracuje (vkládání není rekurzivní) a cesta `./../x.xtpl` se rozbije (`convertIncludeFilePath` maže každé `./`). Proto obě šablony vkládají soubory cestou od kořene adminu (`templates/…`) a přepínač s výběrem se vkládají jako hotové HTML z `VzhledAdminuHtml`.
 - `{proměnná}` v inline JS/CSS šablony XTemplate nahradí; píše se `function () {` s mezerou nebo novým řádkem za `{`.
 - ID `omniboxUzivateleProPraci` a `zrusitUzivateleProPraci` musí zůstat v obou vzhledech: zkratky alt+U / alt+Z v `admin/files/omnibox-1.1.5.js` a potvrzení zrušení u dlužníka v `infopult.xtpl`.
-- Stav uživatele (`Uzivatel::statusHtml()`) má barvy natvrdo pro světlé pozadí, proto je karta pracovního uživatele v tmavém panelu světlá.
+- Stav uživatele (`Uzivatel::statusHtml()`) má barvy natvrdo pro světlé pozadí, proto je karta pracovního uživatele v tmavém panelu světlá. V tmavých barvách je karta tmavá a tmavší barvy stavu přebarví `moderni.css` podle `[style*=…]`.

@@ -29,6 +29,7 @@
   background: none;
   color: inherit;
   font: inherit;
+  white-space: nowrap; /* ikona barev se na úzkém telefonu nesmí odtrhnout od textu */
   cursor: pointer;
 }
 
@@ -44,6 +45,28 @@
 .prepinac-vzhledu button:focus-visible {
   outline: 2px solid #2563eb;
   outline-offset: 1px;
+}
+
+/* Barvy (jen moderní vzhled) jako druhá skupina vedle vzhledu */
+.prepinac-barev {
+  display: inline-flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  margin-left: 8px;
+}
+
+.prepinac-barev .fa-solid {
+  margin-right: 2px;
+}
+
+/* Na úzkém telefonu se tři tlačítka barev na jeden řádek vejdou jen s menším odsazením. */
+@media (max-width: 400px) {
+  .prepinac-barev .prepinac-vzhledu-volby button {
+    padding-right: 8px;
+    padding-left: 8px;
+  }
 }
 
 /* V klasickém adminu je přepínač pod patičkou na tmavém pozadí, písmem a velikostí jako patička. */

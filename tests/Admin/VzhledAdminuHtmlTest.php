@@ -67,6 +67,27 @@ SQL,
         self::assertStringContainsString('value="klasicky" aria-pressed="false"', $prepinac);
     }
 
+    public function testBarvyNabiziJenModerniVzhled(): void
+    {
+        $idUzivatele = $this->vytvorUzivatele('barvy');
+        $vzhledAdminu = $this->vytvorVzhledAdminu();
+        $html = new VzhledAdminuHtml($vzhledAdminu);
+
+        self::assertStringNotContainsString('data-barvy-adminu', $html->dejPrepinac($idUzivatele));
+
+        $vzhledAdminu->setVzhled($idUzivatele, VzhledAdminuEnum::MODERNI);
+
+        $prepinac = $html->dejPrepinac($idUzivatele);
+        foreach (['svetle', 'tmave', ''] as $barvy) {
+            self::assertStringContainsString('data-barvy-adminu="' . $barvy . '"', $prepinac);
+        }
+        self::assertStringNotContainsString(
+            'type="submit" data-barvy-adminu',
+            $prepinac,
+            'Barvy si pamatuje prohlížeč, tlačítka formulář vzhledu neodesílají',
+        );
+    }
+
     public function testBezOznameniPridaSkrytePole(): void
     {
         $idUzivatele = $this->vytvorUzivatele('bez_oznameni');

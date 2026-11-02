@@ -30,7 +30,7 @@ class OnlinePrezenceHtml
 
     /**
      * @param VzhledAdminuHtml|null $vzhledAdminuHtml přepínač a výběr vzhledu; bez něj (ajax, testy) se nevykreslí
-     * @param string $nazevStranky nadpis horní lišty moderního vzhledu
+     * @param string                $nazevStranky     nadpis horní lišty moderního vzhledu
      */
     public function __construct(
         private readonly string $jsVyjimkovac,
@@ -134,20 +134,23 @@ class OnlinePrezenceHtml
             ],
         ];
         $stylesheets = $localAssets['stylesheets'];
+        $javascripts = $localAssets['javascripts'];
         if ($this->vzhledAdminuHtml !== null) {
             $stylesheets[] = __DIR__ . '/../../../admin/files/design/vzhled_adminu.css';
         }
         if ($this->vzhled === VzhledAdminuEnum::MODERNI) {
             // poslední, přebíjí styly výše
             $stylesheets[] = __DIR__ . '/../../../admin/files/design/online-prezence-moderni.css';
+            // v hlavičce bez defer, tmavé barvy musí být nastavené dřív, než se stránka vykreslí
+            $javascripts['text'][] = __DIR__ . '/../../../admin/files/barvy_adminu.js';
         }
         foreach ($stylesheets as $stylesheet) {
             $template->assign('url', str_replace(__DIR__ . '/../../../admin/', '', $stylesheet));
             $template->assign('version', md5_file($stylesheet));
             $template->parse('onlinePrezence.stylesheet');
         }
-        foreach ($localAssets['javascripts'] as $type => $javascripts) {
-            foreach ($javascripts as $javascript) {
+        foreach ($javascripts as $type => $javascriptsTypu) {
+            foreach ($javascriptsTypu as $javascript) {
                 $template->assign('url', str_replace(__DIR__ . '/../../../admin/', '', $javascript));
                 $template->assign('version', md5_file($javascript));
                 if ($type === 'module') {
