@@ -1,14 +1,14 @@
 <!-- begin: sponzori -->
 <div class="sponzori">
   <h2 id="sponzori"><a href="#sponzori">Děkujeme našim sponzorům a partnerům!</a></h2>
-  <div class="sponzori_loga">
+  <div class="sponzori_loga" id="sponzori-loga">
     <!-- begin: sponzor -->
     <div class="sponzori_logo">
       <a href="{url}" target="_blank"><img src="{src}" alt="{url}"></a>
     </div>
     <!-- end:sponzor -->
   </div>
-  <div class="partneri_loga">
+  <div class="partneri_loga" id="partneri-loga">
     <!-- begin: partner -->
     <div class="partneri_logo">
       <a href="{url}" target="_blank"><img src="{src}" alt="{url}"></a>

@@ -31,6 +31,14 @@
   }
 }
 
+// odkaz na #sponzori-loga a #partneri-loga se nesmí schovat pod přilepené menu
+.sponzori_loga,
+.partneri_loga {
+  @media (min-width: 600px) {
+    scroll-margin-top: 90px;
+  }
+}
+
 .sponzori_logo {
   height: 160px; // aby se zabránilo skákání
   line-height: 96px; // kvůli zarovnání obrázků
