@@ -6,9 +6,11 @@ namespace Gamecon\Web;
 
 use Gamecon\XTemplate\XTemplate;
 use Nahled;
+use Symfony\Component\Filesystem\Filesystem;
 
 readonly class ZpracovaneObrazky
 {
+    private const RADICI_SOUBOR = 'RAZENI.csv';
     private const OBSAH = '/soubory/obsah';
     private const ADRESAR_SPONZORU = 'sponzori';
     private const ADRESAR_PARTNERU = 'partneri';
@@ -220,15 +222,7 @@ readonly class ZpracovaneObrazky
         $width = 120,
         $height = 60,
     ): iterable {
-        if (!is_dir($this->adresarLog)) {
-            throw new \RuntimeException("Adresář '{$this->adresarLog}' neexistuje nebo nelze přečíst.");
-        }
-        $soubory = glob($this->adresarLog . '/*', GLOB_NOSORT);
-        ['obrazky' => $obrazky, 'radici_soubor' => $radiciSoubor] = $this->rozdel($soubory);
-        $obrazky  = $this->vyhodVyrazene($obrazky);
-        $serazene = $this->serad($obrazky, $radiciSoubor);
-
-        foreach ($serazene as $obrazek) {
+        foreach ($this->serazeneObrazky() as $obrazek) {
             if (substr($obrazek, 0) === '_') {
                 continue;
             }
@@ -241,6 +235,46 @@ readonly class ZpracovaneObrazky
                 'url'  => 'https://' . $urlPartnera,
             ];
         }
+    }
+
+    /**
+     * Uloží pořadí log do RAZENI.csv ve tvaru, který čte @see serad().
+     * Loga, která v seznamu chybí, se zařadí za ně v dosavadním pořadí, názvy, které v adresáři nejsou, se přeskočí.
+     *
+     * @param list<string> $nazvySouboru například `albi.cz.png`, v pořadí, v jakém se mají loga zobrazit
+     */
+    public function ulozPoradi(array $nazvySouboru): void
+    {
+        $dosavadniPoradi = array_map('basename', $this->serazeneObrazky());
+        $vybrana         = array_values(array_unique(array_filter(
+            $nazvySouboru,
+            fn(string $nazev): bool => in_array($nazev, $dosavadniPoradi, true),
+        )));
+        if ($vybrana === []) {
+            throw new \InvalidArgumentException('Žádný ze zadaných souborů není logem v tomto adresáři.');
+        }
+        $poradi = [...$vybrana, ...array_diff($dosavadniPoradi, $vybrana)];
+
+        (new Filesystem())->dumpFile(
+            $this->adresarLog . '/' . self::RADICI_SOUBOR,
+            "# Pořadí log se mění v administraci (Web, Loga), ruční úpravy se při dalším uložení přepíšou.\n"
+            . implode("\n", $poradi) . "\n",
+        );
+    }
+
+    /**
+     * @return list<string> cesty k obrázkům v pořadí, v jakém se zobrazují
+     */
+    private function serazeneObrazky(): array
+    {
+        if (!is_dir($this->adresarLog)) {
+            throw new \RuntimeException("Adresář '{$this->adresarLog}' neexistuje nebo nelze přečíst.");
+        }
+        $soubory = glob($this->adresarLog . '/*', GLOB_NOSORT);
+        ['obrazky' => $obrazky, 'radici_soubor' => $radiciSoubor] = $this->rozdel($soubory);
+        $obrazky = $this->vyhodVyrazene($obrazky);
+
+        return array_values($this->serad($obrazky, $radiciSoubor));
     }
 
     /**
@@ -331,7 +365,7 @@ readonly class ZpracovaneObrazky
             $soubory,
             fn(
                 string $soubor,
-            ) => str_ends_with($soubor, 'RAZENI.csv'),
+            ) => str_ends_with($soubor, self::RADICI_SOUBOR),
         );
         $radiciSoubor  = reset($radiciSoubory)
             ?: null;
