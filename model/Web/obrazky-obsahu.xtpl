@@ -28,7 +28,7 @@
     </tr>
     <!-- end:obrazek -->
   </table>
-  <p class="tip">Nový obrázek musí být ve stejném formátu jako ten původní (třeba zase JPG), odkaz v textu se nemění.</p>
+  <p class="tip">Nový obrázek musí být ve stejném formátu jako ten původní (třeba zase JPG), jen u WebP stačí i JPG nebo PNG bez animace, převede se. Odkaz v textu se nemění.</p>
   <!-- end:odkazy -->
 
   <h3>Nahrát nový obrázek</h3>

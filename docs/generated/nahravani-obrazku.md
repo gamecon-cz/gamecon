@@ -71,7 +71,7 @@ Nahrávání obrázků a souborů ke stažení z administrace místo FTP: kde kt
 - **Nový soubor jde nahrát jen do podsložky s názvem v tom tvaru, který server vyrobí** (`a-z`, číslice, `_`, `-`, nejvýš dvě patra), tedy i do nové. Do staré složky z doby FTP s diakritikou nebo tečkou (`Deníky postav`, `v1.2`) se z administrace nahrát nedá, její soubory jde ale vypsat, nahradit a smazat. Výpis jde do pěti pater podsložek a symlinkované podsložky nevypisuje (vedly by mimo kořen, nebo do smyčky a soubory by se vypsaly víckrát).
 - **Cestu souboru stránka skládá z názvu složky**, ne ze skutečné cesty, takže funguje i se složkou na jiném úložišti (symlink).
 - **Archivní ročníky** (`archive-<rok>`) mají vlastní nasazení a stránka Soubory do nich nesahá. Jestli se do nich má dál nahrávat, je otevřená otázka, viz níže.
-- **Preview**: nahrané soubory leží jen ve filesystému kontejneru, redeploy je zahodí. Na ostré je ftp-deployment nesmaže, maže jen soubory, které sám nasadil.
+- **Preview**: nahrané soubory leží jen ve filesystému kontejneru, redeploy je zahodí. Na ostré a betě nasazení přes rsync maže všechno, co není v gitu. Nahrané soubory přežijí jen v `web/soubory/obsah` (maska v `buildIgnoreMasks()`) a v `web/soubory/systemove/*/*` (`getRsyncProtectedPaths()`, viz `nasazeni-rsync.md`). Kdo začne zapisovat jinam, musí přidat jedno z toho.
 - **Testy**: `AbstractTestWeb::loginToAdmin()` posílá POST na `/admin`. Apache ho přesměruje (`DirectorySlash` a pravidlo pro koncové lomítko v `admin/.htaccess`), curl z něj udělá GET a přihlášení se tak vůbec neprovede. `tests/web/NahravaniObrazkuVAdminuTest` se proto přihlašuje POSTem na adresu modulu a úspěch ověřuje.
 
 ## Otevřené otázky

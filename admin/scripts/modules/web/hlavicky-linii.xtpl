@@ -84,7 +84,7 @@
 <p>
   Tady se upravuje text a obrázek v hlavičce programové linie na webu aktivit.
   Když necháš všechna textová pole prázdná, použije se fallback. Obrázek se ukládá jako
-  <code>org_&lt;id_typu&gt;.&lt;pripona&gt;</code>, kde podporujeme JPG, PNG, WebP a GIF.
+  <code>org_&lt;id_typu&gt;.&lt;pripona&gt;</code>, kde podporujeme JPG, PNG, WebP a GIF. JPG a PNG bez animace se při nahrání převedou na WebP.
   Pokud nový obrázek chybí, web ještě vezme starší <code>&lt;id_typu&gt;.png</code>, pokud existuje.
 </p>
 
