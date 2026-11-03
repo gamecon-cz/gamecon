@@ -69,6 +69,16 @@ class Registrace
         }
     }
 
+    public function zpracujOdhlaseniOstatnichZarizeni(): void
+    {
+        if (! post('odhlasitOstatniZarizeni') || ! $this->u) {
+            return;
+        }
+        $this->u->odhlasNaOstatnichZarizenich();
+        $a = $this->u->koncovkaDlePohlavi();
+        oznameni("Na ostatních zařízeních jsi odhlášen{$a}.");
+    }
+
     public function ulozZmeny(): bool
     {
         try {
@@ -196,7 +206,8 @@ HTML;
     public function zobrazHtml()
     {
         ?>
-      <form method="post" class="formular_stranka">
+      <div class="formular_stranka">
+      <form method="post">
         <div class="bg"></div>
 
           <?php
@@ -357,6 +368,24 @@ HTML
         <div style="height: 30px"></div>
       </form>
 
+        <?php
+        if ($this->u) { ?>
+          <!-- vlastní formulář pod tlačítkem Uložit, aby se nastavení neukládalo ani nekontrolovalo -->
+          <form method="post">
+            <h2 class="formular_sekceNadpis">Přihlášená zařízení</h2>
+            <p>
+              Odhlásí tě na všech ostatních zařízeních a prohlížečích, tady zůstaneš
+              přihlášen<?php echo $this->u->koncovkaDlePohlavi(); ?>. Totéž udělá změna hesla.
+              Neuložené změny nastavení výš se zahodí.
+            </p>
+            <input type="hidden" name="odhlasitOstatniZarizeni" value="true">
+            <button type="submit" class="formular_sekundarni" style="margin-left: 0">
+              Odhlásit ostatní zařízení
+            </button>
+          </form>
+            <?php
+        } ?>
+      </div>
         <?php
     }
 

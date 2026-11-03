@@ -286,7 +286,8 @@ class UzivatelSlucovaniTest extends AbstractUzivatelTestDb
         $this->assertEquals('2023-01-15 10:30:00', $user['nechce_maily']);
         $this->assertEquals(1, $user['mrtvy_mail']);
         $this->assertEquals('A', $user['forum_razeni']);
-        $this->assertEquals('old_random_123', $user['random']);
+        // `random` je razítko přihlášení, převzaté heslo ho vymění, aby odhlásilo všechna zařízení
+        $this->assertNotEquals('old_random_123', $user['random']);
         $this->assertEquals('m', $user['pohlavi']);
         $this->assertEquals('2020-01-01 12:00:00', $user['registrovan']);
         $this->assertEquals('Někdo Jiný', $user['ubytovan_s']);
