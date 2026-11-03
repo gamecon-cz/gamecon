@@ -275,7 +275,8 @@ final class ObrazkyObsahu
         $template->assign([
             'cesta'         => htmlspecialchars($cesta),
             'vTextu'        => htmlspecialchars(self::PREFIX_V_TEXTU . $cesta),
-            'markdown'      => htmlspecialchars('![](' . self::doTextu($cesta) . ')'),
+            'markdown'      => htmlspecialchars(ZapisObrazkuVTextu::markdown(self::doTextu($cesta))),
+            'html'          => htmlspecialchars(ZapisObrazkuVTextu::html(self::doTextu($cesta))),
             'acceptObrazku' => (string)NahravaniObrazku::mimePodlePripony($cesta),
             'nahled'        => $absolutniCesta !== null
                 ? htmlspecialchars($this->nahled($absolutniCesta))
