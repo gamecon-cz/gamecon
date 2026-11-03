@@ -171,7 +171,7 @@ final class ObrazkyObsahu
 
     private static function doTextu(string $cesta): string
     {
-        return self::PREFIX_V_TEXTU . implode('/', array_map('rawurlencode', explode('/', $cesta)));
+        return self::PREFIX_V_TEXTU . ZpracovaneObrazky::zakodujCestu($cesta);
     }
 
     private function nahrajNovy(): string
