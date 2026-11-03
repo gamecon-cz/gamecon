@@ -83,6 +83,12 @@ class ObrazkyObsahuTest extends TestCase
         self::assertStringNotContainsString('eshop/01_Blok.jpg', $html);
         self::assertStringContainsString('Obrázky nahrané k této stránce', $html);
         self::assertStringContainsString('value="![](soubory/obsah/stranky/kontakty/nova-clenka.png)"', $html);
+        self::assertStringContainsString(
+            'value="&lt;img src=&quot;soubory/obsah/stranky/kontakty/nova-clenka.png&quot; alt=&quot;&quot;&gt;"',
+            $html,
+        );
+        self::assertMatchesRegularExpression('~Markdown:.*?<input[^>]*!\[\]\(soubory/obsah/stranky/kontakty/nova-clenka\.png\)~s', $html);
+        self::assertMatchesRegularExpression('~HTML:.*?<input[^>]*&lt;img src=&quot;soubory/obsah/stranky/kontakty/nova-clenka\.png~s', $html);
         self::assertStringContainsString('name="cesta" value="stranky/kontakty/nova-clenka.png"', $html);
         self::assertStringContainsString('Uloží se do <code>soubory/obsah/stranky/kontakty/</code>', $html);
     }
