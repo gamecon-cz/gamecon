@@ -17,12 +17,12 @@
     <div>{field.html}</div>
     <!-- end:custom -->
 
-    <input type="submit" value="Uložit">
+    <button type="submit"><i class="fa fa-save" aria-hidden="true"></i> Uložit</button>
 
 </form>
 <script>
     $('form').last().submit(function () {
-        $submit = $(this).find('input[type=submit]');
+        $submit = $(this).find('[type=submit]');
         $submit.attr('disabled', 'true');
         var $error = function (msg) {
             alert('Chyba: ' + msg);

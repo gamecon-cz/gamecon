@@ -524,7 +524,8 @@ a.tlacitko {
   text-decoration: none;
 }
 
-input[type="submit"]:disabled {
+input[type="submit"]:disabled,
+.dbForm > button[type="submit"]:disabled {
   background-color: lightgray;
   color: gray;
   cursor: not-allowed
@@ -763,6 +764,11 @@ form table .orez img {
 
 .dbForm input[type="text"] {
   min-width: 200px;
+}
+
+/* Stejné odsazení jako buňky tabulky (.main table td), ať Uložit lícuje s textem v nich. */
+.dbForm > button[type="submit"] {
+  margin: 5px;
 }
 
 /* Kontrola stavu týmů */

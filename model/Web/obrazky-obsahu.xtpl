@@ -22,7 +22,7 @@
           <input type="hidden" name="{postAkce}" value="nahradit">
           <input type="hidden" name="cesta" value="{cesta}">
           <input type="file" name="{postSoubor}" accept="{acceptObrazku}" required>
-          <button type="submit">{tlacitko}</button>
+          <button type="submit"><i class="fa fa-upload" aria-hidden="true"></i> {tlacitko}</button>
         </form>
       </td>
     </tr>
@@ -36,7 +36,7 @@
     <input type="hidden" name="{postAkce}" value="nahrat">
     <label>Obrázek <input type="file" name="{postSoubor}" accept="{accept}" required></label>
     <label>Název <input type="text" name="nazev" placeholder="když nevyplníš, podle souboru" maxlength="100"></label>
-    <button type="submit">Nahrát</button>
+    <button type="submit"><i class="fa fa-upload" aria-hidden="true"></i> Nahrát</button>
     <div class="tip">Uloží se do <code>{adresar}</code>. Název se upraví do tvaru vhodného do adresy, tedy malými písmeny bez diakritiky.</div>
   </form>
 
@@ -58,7 +58,7 @@
         <form method="post" onsubmit="return confirm('Opravdu smazat tento obrázek?')">
           <input type="hidden" name="{postAkce}" value="smazat">
           <input type="hidden" name="cesta" value="{cesta}">
-          <button type="submit">Smazat</button>
+          <button type="submit"><i class="fa fa-trash" aria-hidden="true"></i> Smazat</button>
         </form>
         <!-- end:smazat -->
       </td>
@@ -80,7 +80,7 @@
         };
         window.addEventListener('beforeunload', function (event) {
             // db-form.xtpl drží Uložit zablokované, dokud ukládá, a po chybě ho odblokuje
-            var ukladaSe = Array.prototype.some.call(editor.querySelectorAll('input[type=submit]'), function (tlacitko) {
+            var ukladaSe = Array.prototype.some.call(editor.querySelectorAll('[type=submit]'), function (tlacitko) {
                 return tlacitko.disabled;
             });
             // výchozí obsah dá reset kopie, hodnoty, které po obnovení stránky vrátil prohlížeč, se tak neberou jako uložené
