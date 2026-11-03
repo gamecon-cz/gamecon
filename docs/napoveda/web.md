@@ -92,11 +92,15 @@ Podporované formáty: JPG, PNG, GIF, WebP, SVG. Soubor se pojmenuje podle
 domény z URL, takže nahrání dalšího loga se stejnou doménou přepíše to
 původní.
 
-Pořadí log řídí soubor **RAZENI.csv**: nahraješ ho tlačítkem **Nahrát
-RAZENI.csv**, stáhnout si můžeš **Platné RAZENI.csv** i **vzor RAZENI.csv**.
-Loga se seřadí podle seznamu v souboru (velikost písmen a případné `www.`
-na začátku se ignorují — `www.Albi.cz` se bere jako `albi.cz`); loga, která
-v souboru nejsou, se připojí za ně seřazená podle abecedy.
+Pořadí log změníš přetažením: chyť logo myší, přetáhni ho na jiné místo
+ve stejné skupině a pusť. Změna se uloží hned, pod skupinou se na chvíli
+ukáže **Pořadí uloženo.** Když se uložení nepovede, logo se vrátí na původní
+místo a pod skupinou je důvod. Každá ze čtyř skupin má své vlastní pořadí.
+Nově nahrané logo se zařadí na konec; víc nových log se mezi sebou seřadí
+podle abecedy, dokud je nepřetáhneš. Dokud pořadí nikdy nezměníš, jsou loga
+seřazená podle abecedy. Logo, které smažeš a později nahraješ znovu pod
+stejnou doménou, se vrátí na své původní místo, dokud ve skupině
+něco znovu nepřetáhneš.
 
 ## Previews
 

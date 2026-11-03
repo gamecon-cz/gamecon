@@ -15,80 +15,59 @@ use Symfony\Component\Filesystem\Filesystem;
  * pravo: 112
  */
 
-// Handle CSV download requests
-if (isset($_GET['action']) && ($_GET['action'] === 'download_pattern_csv' || $_GET['action'] === 'download_current_csv')) {
-    $typ = $_GET['typ'] ?? '';
-    $action = $_GET['action'];
-    $csvFile = '';
-    $filename = '';
+$adresarePodleTypu = [
+    'sponzor_titulka' => ZpracovaneObrazky::adresarSponzoruTitulka(),
+    'partner_titulka' => ZpracovaneObrazky::adresarPartneruTitulka(),
+    'sponzor_prehled' => ZpracovaneObrazky::adresarSponzoruPrehled(),
+    'partner_prehled' => ZpracovaneObrazky::adresarPartneruPrehled(),
+];
+$blokyPodleTypu = [
+    'sponzor_titulka' => 'sponzoriTitulka',
+    'partner_titulka' => 'partneriTitulka',
+    'sponzor_prehled' => 'sponzoriPrehled',
+    'partner_prehled' => 'partneriPrehled',
+];
+$adresarProAkci = static function (string $akce) use ($adresarePodleTypu): string {
+    preg_match('~^(?:remove|upload)_(.+)$~', $akce, $shoda);
 
-    $baseDir = '';
-    switch ($typ) {
-        case 'sponzor_titulka':
-            $baseDir = ZpracovaneObrazky::adresarSponzoruTitulka();
-            break;
-        case 'partner_titulka':
-            $baseDir = ZpracovaneObrazky::adresarPartneruTitulka();
-            break;
-        case 'sponzor_prehled':
-            $baseDir = ZpracovaneObrazky::adresarSponzoruPrehled();
-            break;
-        case 'partner_prehled':
-            $baseDir = ZpracovaneObrazky::adresarPartneruPrehled();
-            break;
-        default:
-            throw new \RuntimeException(sprintf('Neznámý typ %s', $typ));
-    }
-
-    if ($action === 'download_current_csv') {
-        $csvFile = $baseDir . '/RAZENI.csv';
-        $filename = 'RAZENI.csv';
-    } else {
-        $csvFile = $baseDir . '/RAZENI-VZOR.csv';
-        $filename = 'RAZENI-VZOR.csv';
-    }
-
-    if ($csvFile && file_exists($csvFile)) {
-        header('Content-Type: text/csv; charset=utf-8');
-        header('Content-Disposition: attachment; filename="' . $filename . '"');
-        header('Content-Length: ' . filesize($csvFile));
-        readfile($csvFile);
-        exit;
-    } else {
-        if ($action === 'download_current_csv') {
-            chyba("Soubor RAZENI.csv nebyl nalezen. Nejdříve nahrajte řazení.");
-        } else {
-            chyba("Soubor RAZENI-VZOR.csv nebyl nalezen.");
-        }
-    }
-}
+    return $adresarePodleTypu[$shoda[1] ?? ''] ?? throw new \RuntimeException(sprintf('Neznámá akce: %s', $akce));
+};
 
 NahravaniObrazku::hlidejPrilisVelkyPozadavek();
 
 if ($_POST) {
     $action = $_POST['action'] ?? '';
 
+    if ($action === 'save_razeni') {
+        $typ     = $_POST['typ'] ?? null;
+        $adresar = is_string($typ)
+            ? ($adresarePodleTypu[$typ] ?? null)
+            : null;
+        $odpoved = ['ok' => true];
+        try {
+            if ($adresar === null) {
+                throw new \InvalidArgumentException('Neznámá skupina log.');
+            }
+            (new ZpracovaneObrazky($adresar))->ulozPoradi(
+                array_values(array_filter((array)($_POST['poradi'] ?? []), 'is_string')),
+            );
+        } catch (\InvalidArgumentException $invalidArgumentException) {
+            http_response_code(400);
+            $odpoved = ['ok' => false, 'error' => $invalidArgumentException->getMessage()];
+        } catch (\RuntimeException) {
+            http_response_code(500);
+            $odpoved = ['ok' => false, 'error' => 'Pořadí se nepodařilo uložit.'];
+        }
+        header('Content-Type: application/json');
+        echo json_encode($odpoved, JSON_UNESCAPED_UNICODE);
+        exit;
+    }
+
     // Handle remove actions
     if (str_starts_with($action, 'remove_')) {
         $filename = $_POST['filename'] ?? '';
         if ($filename) {
-            $targetDir = '';
-            switch ($action) {
-                case 'remove_sponzor_titulka':
-                    $targetDir = ZpracovaneObrazky::adresarSponzoruTitulka();
-                    break;
-                case 'remove_partner_titulka':
-                    $targetDir = ZpracovaneObrazky::adresarPartneruTitulka();
-                    break;
-                case 'remove_sponzor_prehled':
-                    $targetDir = ZpracovaneObrazky::adresarSponzoruPrehled();
-                    break;
-                case 'remove_partner_prehled':
-                    $targetDir = ZpracovaneObrazky::adresarPartneruPrehled();
-                    break;
-                default:
-                    throw new \RuntimeException(sprintf('Neznámá akce: %s', $action));
-            }
+            $targetDir = $adresarProAkci($action);
 
             try {
                 // jen soubory přímo v adresáři log, bez `..` a skrytých souborů
@@ -105,53 +84,6 @@ if ($_POST) {
             } else {
                 chyba("Soubor neexistuje.");
             }
-        }
-        return;
-    }
-
-    // Handle CSV upload actions
-    if (str_starts_with($action, 'upload_') && str_ends_with($action, '_razeni')) {
-        if (isset($_FILES['razeni_file']) && $_FILES['razeni_file']['error'] === UPLOAD_ERR_OK) {
-            $uploadedFile = $_FILES['razeni_file'];
-            $fileInfo = pathinfo($uploadedFile['name']);
-            $extension = strtolower($fileInfo['extension']);
-
-            if ($extension === 'csv') {
-                $targetDir = '';
-                switch ($action) {
-                    case 'upload_sponzor_titulka_razeni':
-                        $targetDir = ZpracovaneObrazky::adresarSponzoruTitulka();
-                        break;
-                    case 'upload_partner_titulka_razeni':
-                        $targetDir = ZpracovaneObrazky::adresarPartneruTitulka();
-                        break;
-                    case 'upload_sponzor_prehled_razeni':
-                        $targetDir = ZpracovaneObrazky::adresarSponzoruPrehled();
-                        break;
-                    case 'upload_partner_prehled_razeni':
-                        $targetDir = ZpracovaneObrazky::adresarPartneruPrehled();
-                        break;
-                    default:
-                        throw new \RuntimeException(sprintf('Neznámá akce: %s', $action));
-                }
-
-                if ($targetDir) {
-                    (new Filesystem())->mkdir($targetDir);
-                    $targetPath = $targetDir . '/RAZENI.csv';
-
-                    if (move_uploaded_file($uploadedFile['tmp_name'], $targetPath)) {
-                        oznameni("Soubor RAZENI.csv byl úspěšně nahrán.");
-                    } else {
-                        chyba("Nepodařilo se nahrát soubor RAZENI.csv.");
-                    }
-                } else {
-                    chyba("Neplatná akce.");
-                }
-            } else {
-                chyba("Podporován je pouze CSV formát.");
-            }
-        } else {
-            chyba("Nepodařilo se nahrát CSV soubor.");
         }
         return;
     }
@@ -174,36 +106,16 @@ if ($_POST) {
                 } else {
                     $filename = $host . '.' . $extension;
 
-                    $targetDir = '';
-                    switch ($action) {
-                        case 'upload_sponzor_titulka':
-                            $targetDir = ZpracovaneObrazky::adresarSponzoruTitulka();
-                            break;
-                        case 'upload_partner_titulka':
-                            $targetDir = ZpracovaneObrazky::adresarPartneruTitulka();
-                            break;
-                        case 'upload_sponzor_prehled':
-                            $targetDir = ZpracovaneObrazky::adresarSponzoruPrehled();
-                            break;
-                        case 'upload_partner_prehled':
-                            $targetDir = ZpracovaneObrazky::adresarPartneruPrehled();
-                            break;
-                        default:
-                            throw new \RuntimeException(sprintf('Neznámá akce: %s', $action));
-                    }
+                    $targetDir = $adresarProAkci($action);
 
-                    if ($targetDir) {
-                        (new Filesystem())->mkdir($targetDir);
+                    (new Filesystem())->mkdir($targetDir);
 
-                        $targetPath = $targetDir . '/' . $filename;
+                    $targetPath = $targetDir . '/' . $filename;
 
-                        if (move_uploaded_file($uploadedFile['tmp_name'], $targetPath)) {
-                            $successMessage = "Logo $filename bylo úspěšně nahráno.";
-                        } else {
-                            $errorMessage = "Nepodařilo se nahrát soubor.";
-                        }
+                    if (move_uploaded_file($uploadedFile['tmp_name'], $targetPath)) {
+                        $successMessage = "Logo $filename bylo úspěšně nahráno.";
                     } else {
-                        $errorMessage = "Neplatná akce.";
+                        $errorMessage = "Nepodařilo se nahrát soubor.";
                     }
                 }
             } else {
@@ -225,7 +137,6 @@ if ($_POST) {
 }
 
 $t = new XTemplate(__DIR__ . '/loga.xtpl');
-$t->assign('actionBaseUrl', $_SERVER['REQUEST_URI']);
 // kotvy #sponzori-loga a #partneri-loga jsou v šablonách titulka.xtpl a sponzori.xtpl, hlídá je test
 $t->assign([
     'urlSponzoriTitulka' => htmlspecialchars(URL_WEBU . '/#sponzori-loga'),
@@ -234,63 +145,18 @@ $t->assign([
     'urlPartneriPrehled' => htmlspecialchars(URL_WEBU . '/sponzori#partneri-loga'),
 ]);
 
-// Načtení log z jednotlivých adresářů
-$logaSponzoruTitulka = ZpracovaneObrazky::logaSponzoruTitulka();
-$logaPartneruTitulka = ZpracovaneObrazky::logaPartneruTitulka();
-$logaSponzoruPrehled = ZpracovaneObrazky::logaSponzoruPrehled();
-$logaPartneruPrehled = ZpracovaneObrazky::logaPartneruPrehled();
-
-// Výpis log sponzorů na titulce
-$seznamSponzoruTitulka = $logaSponzoruTitulka->seznamObrazku();
-foreach ($seznamSponzoruTitulka as $nazev => $data) {
-    $t->assign([
-        'nazev' => $nazev,
-        'src'   => $data['src'],
-        'url'   => $data['url'],
-        'filename' => basename($data['src']->soubor()),
-    ]);
-    $t->parse('loga.sponzoriTitulka.logo');
+foreach ($blokyPodleTypu as $typ => $blok) {
+    foreach ((new ZpracovaneObrazky($adresarePodleTypu[$typ]))->seznamObrazku() as $nazev => $data) {
+        $t->assign([
+            'nazev'    => $nazev,
+            'src'      => $data['src'],
+            'url'      => $data['url'],
+            'filename' => htmlspecialchars(basename($data['src']->soubor())),
+        ]);
+        $t->parse("loga.{$blok}.logo");
+    }
+    $t->parse("loga.{$blok}");
 }
-$t->parse('loga.sponzoriTitulka');
-
-// Výpis log partnerů na titulce
-$seznamPartneruTitulka = $logaPartneruTitulka->seznamObrazku();
-foreach ($seznamPartneruTitulka as $nazev => $data) {
-    $t->assign([
-        'nazev' => $nazev,
-        'src'   => $data['src'],
-        'url'   => $data['url'],
-        'filename' => basename($data['src']->soubor()),
-    ]);
-    $t->parse('loga.partneriTitulka.logo');
-}
-$t->parse('loga.partneriTitulka');
-
-// Výpis log sponzorů v přehledu
-$seznamSponzoruPrehled = $logaSponzoruPrehled->seznamObrazku();
-foreach ($seznamSponzoruPrehled as $nazev => $data) {
-    $t->assign([
-        'nazev' => $nazev,
-        'src'   => $data['src'],
-        'url'   => $data['url'],
-        'filename' => basename($data['src']->soubor()),
-    ]);
-    $t->parse('loga.sponzoriPrehled.logo');
-}
-$t->parse('loga.sponzoriPrehled');
-
-// Výpis log partnerů v přehledu
-$seznamPartneruPrehled = $logaPartneruPrehled->seznamObrazku();
-foreach ($seznamPartneruPrehled as $nazev => $data) {
-    $t->assign([
-        'nazev' => $nazev,
-        'src'   => $data['src'],
-        'url'   => $data['url'],
-        'filename' => basename($data['src']->soubor()),
-    ]);
-    $t->parse('loga.partneriPrehled.logo');
-}
-$t->parse('loga.partneriPrehled');
 
 $t->parse('loga');
 $t->out('loga');

@@ -6,9 +6,21 @@ namespace Gamecon\Tests\Model\Web;
 
 use Gamecon\Web\ZpracovaneObrazky;
 use PHPUnit\Framework\TestCase;
+use Symfony\Component\Filesystem\Filesystem;
 
 class ZpracovaneObrazkyTest extends TestCase
 {
+    /**
+     * @var list<string>
+     */
+    private array $adresareKUklidu = [];
+
+    protected function tearDown(): void
+    {
+        (new Filesystem())->remove($this->adresareKUklidu);
+        parent::tearDown();
+    }
+
     /**
      * @test
      */
@@ -75,5 +87,135 @@ class ZpracovaneObrazkyTest extends TestCase
         ] as $cesta) {
             self::assertFalse(ZpracovaneObrazky::jeAdresarJinehoModulu($cesta), $cesta);
         }
+    }
+
+    /**
+     * @test
+     */
+    public function razeniCsvSeraziLogaPodleSeznamuBezOhleduNaVelikostPismenWwwPriponuAKomentare(): void
+    {
+        $adresar = $this->adresarSLogy(['albi.cz.png', 'alfa.cz.png', 'blackfire.cz.png', 'zebra.cz.png']);
+        file_put_contents(
+            $adresar . '/RAZENI.csv',
+            "# komentář\n\nBLACKFIRE.cz.jpg\nwww.Albi.cz.png\n",
+        );
+
+        self::assertSame(
+            ['blackfire.cz', 'albi.cz', 'alfa.cz', 'zebra.cz'],
+            array_keys((new ZpracovaneObrazky($adresar))->seznamObrazku()),
+        );
+    }
+
+    /**
+     * @test
+     */
+    public function logaBezRazeniCsvJsouSerazenaPodleAbecedy(): void
+    {
+        $adresar = $this->adresarSLogy(['zebra.cz.png', 'albi.cz.png', 'blackfire.cz.png']);
+
+        self::assertSame(
+            ['albi.cz', 'blackfire.cz', 'zebra.cz'],
+            array_keys((new ZpracovaneObrazky($adresar))->seznamObrazku()),
+        );
+    }
+
+    /**
+     * @test
+     */
+    public function ulozenePoradiSeNacteVeStejnemPoradi(): void
+    {
+        $adresar = $this->adresarSLogy(['albi.cz.png', 'alfa.cz.png', 'blackfire.cz.png', 'zebra.cz.png']);
+        $loga = new ZpracovaneObrazky($adresar);
+
+        $loga->ulozPoradi(['zebra.cz.png', 'albi.cz.png', 'alfa.cz.png', 'blackfire.cz.png']);
+
+        self::assertSame(
+            ['zebra.cz', 'albi.cz', 'alfa.cz', 'blackfire.cz'],
+            array_keys($loga->seznamObrazku()),
+        );
+        $radky = file($adresar . '/RAZENI.csv', FILE_IGNORE_NEW_LINES);
+        self::assertStringStartsWith('#', $radky[0]);
+        self::assertSame(['zebra.cz.png', 'albi.cz.png', 'alfa.cz.png', 'blackfire.cz.png'], array_slice($radky, 1));
+    }
+
+    /**
+     * @test
+     */
+    public function logoKtereVUlozenemPoradiChybiSeZaraziZaNeVDosavadnimPoradi(): void
+    {
+        $adresar = $this->adresarSLogy(['albi.cz.png', 'alfa.cz.png', 'blackfire.cz.png', 'zebra.cz.png']);
+        $loga = new ZpracovaneObrazky($adresar);
+        $loga->ulozPoradi(['zebra.cz.png', 'blackfire.cz.png', 'albi.cz.png', 'alfa.cz.png']);
+
+        $loga->ulozPoradi(['alfa.cz.png']);
+
+        self::assertSame(
+            ['alfa.cz', 'zebra.cz', 'blackfire.cz', 'albi.cz'],
+            array_keys($loga->seznamObrazku()),
+        );
+    }
+
+    /**
+     * @test
+     */
+    public function pridaneLogoSeZaraziNaKonecUlozenehoPoradi(): void
+    {
+        $adresar = $this->adresarSLogy(['albi.cz.png', 'zebra.cz.png']);
+        $loga = new ZpracovaneObrazky($adresar);
+        $loga->ulozPoradi(['zebra.cz.png', 'albi.cz.png']);
+
+        $this->vytvorLogo($adresar, 'aaa.cz.png');
+
+        self::assertSame(['zebra.cz', 'albi.cz', 'aaa.cz'], array_keys($loga->seznamObrazku()));
+    }
+
+    /**
+     * @test
+     */
+    public function ulozeniPoradiPreskociNazvyKterePatriMimoAdresarLog(): void
+    {
+        $adresar = $this->adresarSLogy(['albi.cz.png', 'zebra.cz.png']);
+        $loga = new ZpracovaneObrazky($adresar);
+
+        $loga->ulozPoradi(['../RAZENI.csv', 'neexistuje.cz.png', 'zebra.cz.png', 'zebra.cz.png']);
+
+        $radky = array_slice(file($adresar . '/RAZENI.csv', FILE_IGNORE_NEW_LINES), 1);
+        self::assertSame(['zebra.cz.png', 'albi.cz.png'], $radky);
+        self::assertFileDoesNotExist(dirname($adresar) . '/RAZENI.csv');
+    }
+
+    /**
+     * @test
+     */
+    public function ulozeniPoradiBezJedinehoZnamehoLogaNicNezapise(): void
+    {
+        $adresar = $this->adresarSLogy(['albi.cz.png']);
+
+        try {
+            (new ZpracovaneObrazky($adresar))->ulozPoradi(['neexistuje.cz.png']);
+            self::fail('Měla vzniknout výjimka');
+        } catch (\InvalidArgumentException) {
+            self::assertFileDoesNotExist($adresar . '/RAZENI.csv');
+        }
+    }
+
+    /**
+     * @param list<string> $nazvy
+     */
+    private function adresarSLogy(array $nazvy): string
+    {
+        $adresar = sys_get_temp_dir() . '/gamecon-loga-' . bin2hex(random_bytes(6)) . '/loga';
+        (new Filesystem())->mkdir($adresar);
+        $this->adresareKUklidu[] = dirname($adresar);
+        foreach ($nazvy as $nazev) {
+            $this->vytvorLogo($adresar, $nazev);
+        }
+
+        return $adresar;
+    }
+
+    private function vytvorLogo(string $adresar, string $nazev): void
+    {
+        imagepng(imagecreatetruecolor(8, 8), $adresar . '/' . $nazev);
     }
 }
