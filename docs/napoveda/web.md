@@ -80,7 +80,9 @@ stránku**, pod ním formulář s texty), vpravo **Obrázek**.
 
 Podstránka **Loga** spravuje čtyři skupiny log: **Loga sponzorů na
 titulce**, **Loga partnerů na titulce**, **Loga sponzorů v přehledu**
-a **Loga partnerů v přehledu**. V každé skupině vidíš nahraná loga
+a **Loga partnerů v přehledu**. Pod nadpisem každé skupiny je odkaz
+**titulní straně webu** nebo **stránce Sponzoři**, který otevře veřejný web
+rovnou na místě, kde se ta loga ukazují. V každé skupině vidíš nahraná loga
 s náhledem a odkazem, tlačítko **Smazat** (s potvrzením „Opravdu chcete
 smazat logo …?") a formulář pro nahrání nového.
 

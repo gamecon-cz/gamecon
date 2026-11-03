@@ -254,6 +254,32 @@ SQL,
     /**
      * @test
      */
+    public function odkazyZLogNaWebVedouNaKotvyVeVerejnychSablonach(): void
+    {
+        $session = $this->prihlas(\Uzivatel::SYSTEM_LOGIN);
+
+        self::assertSame(
+            4,
+            preg_match_all('~Zobrazují se na <a href="([^"]+)"~', $this->stahni($session, 'web/loga'), $shody),
+        );
+        self::assertCount(4, array_unique($shody[1]));
+        foreach ($shody[1] as $odkaz) {
+            $odkaz = html_entity_decode($odkaz);
+            $casti = parse_url($odkaz);
+            self::assertArrayHasKey('fragment', $casti, $odkaz);
+
+            // prohlížeč na kotvu odskočí jen tehdy, když ji veřejná stránka opravdu má
+            self::assertStringContainsString(
+                'id="' . $casti['fragment'] . '"',
+                $this->stahniVerejnou($session, $casti['path']),
+                $odkaz,
+            );
+        }
+    }
+
+    /**
+     * @test
+     */
     public function obrazekEshopuSeObjeviVSeznamuSPopiskem(): void
     {
         $nazev = '99_Testovací předmět ' . getmypid();
@@ -456,7 +482,19 @@ SQL);
 
     private function stahni(string $cookieFile, string $url): string
     {
-        $curl = $this->curl($cookieFile, $url);
+        return $this->stahniOdpoved($this->curl($cookieFile, $url));
+    }
+
+    /**
+     * @param string $cesta absolutní cesta na serveru, třeba `/web/sponzori`
+     */
+    private function stahniVerejnou(string $cookieFile, string $cesta): string
+    {
+        return $this->stahniOdpoved($this->curlNaAdresu($cookieFile, 'http://localhost' . $cesta));
+    }
+
+    private function stahniOdpoved(\CurlHandle $curl): string
+    {
         $odpoved = curl_exec($curl);
         self::assertNotFalse($odpoved, curl_error($curl));
         self::assertSame(200, curl_getinfo($curl, CURLINFO_HTTP_CODE), (string) $odpoved);
@@ -466,7 +504,12 @@ SQL);
 
     private function curl(string $cookieFile, string $url): \CurlHandle
     {
-        $curl = curl_init('http://localhost/' . basename(__DIR__ . '/../../admin') . '/' . $url);
+        return $this->curlNaAdresu($cookieFile, 'http://localhost/' . basename(__DIR__ . '/../../admin') . '/' . $url);
+    }
+
+    private function curlNaAdresu(string $cookieFile, string $adresa): \CurlHandle
+    {
+        $curl = curl_init($adresa);
         curl_setopt($curl, CURLOPT_RETURNTRANSFER, true);
         curl_setopt($curl, CURLOPT_FOLLOWLOCATION, false);
         curl_setopt($curl, CURLOPT_HTTP_VERSION, CURL_HTTP_VERSION_1_1);
