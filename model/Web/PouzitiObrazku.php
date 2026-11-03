@@ -94,7 +94,7 @@ class PouzitiObrazku
             if ($cestaVuciWebu === null) {
                 continue;
             }
-            $zakodovanaCesta = implode('/', array_map('rawurlencode', explode('/', $cestaVuciWebu)));
+            $zakodovanaCesta = ZpracovaneObrazky::zakodujCestu($cestaVuciWebu);
             $hledaneCesty[] = (string) $absolutniCesta;
             $zKodu[(string) $absolutniCesta] = self::odkazyZKodu($cestaVuciWebu);
             array_push($vzory, self::vzorProLike($cestaVuciWebu), self::vzorProLike($zakodovanaCesta));
