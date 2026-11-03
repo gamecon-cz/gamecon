@@ -1,6 +1,7 @@
 <?php
 
 use Gamecon\Web\NahravaniObrazku;
+use Gamecon\Web\ZapisObrazkuVTextu;
 use Gamecon\Web\ZpracovaneObrazky;
 use Gamecon\XTemplate\XTemplate;
 
@@ -20,18 +21,28 @@ $informaceOObrazkuLinie = static function (int $idTypu): array {
     $cestaBezVerze = strtok($cestaVcetneVerze, '?');
     $nazevSouboru = basename($cestaBezVerze);
 
-    if (str_starts_with($nazevSouboru, 'org_')) {
-        $stav = 'Používá se vlastní obrázek.';
-    } elseif ($nazevSouboru === 'default.png') {
-        $stav = 'Vlastní obrázek chybí, používá se fallback.';
-    } else {
-        $stav = 'Používá se starší obrázek linie (*.png).';
+    $maNahranyObrazek = str_starts_with($nazevSouboru, 'org_');
+    $jeFallback = $nazevSouboru === 'default.png';
+    $stav = match (true) {
+        $maNahranyObrazek => null,
+        $jeFallback => 'Vlastní obrázek chybí, používá se fallback.',
+        default => 'Používá se starší obrázek linie (*.png).',
+    };
+
+    $url = URL_WEBU . '/' . $cestaVcetneVerze;
+    try {
+        $nahled = Nahled::zeSouboru(ADRESAR_WEBU_S_OBRAZKY . '/' . $cestaBezVerze)->pokryjOrez(160, 160)->url();
+    } catch (RuntimeException) {
+        $nahled = $url;
     }
 
     return [
-        'url' => URL_WEBU . '/' . $cestaVcetneVerze,
+        'url' => $url,
+        'nahled' => $nahled,
         'cesta' => $cestaBezVerze,
         'stav' => $stav,
+        'maNahranyObrazek' => $maNahranyObrazek,
+        'jeObrazekLinie' => !$jeFallback,
     ];
 };
 
@@ -141,10 +152,24 @@ foreach ($radky as $radek) {
         'jmeno' => htmlspecialchars((string)($radek['jmeno'] ?? '')),
         'email' => htmlspecialchars((string)($radek['email'] ?? '')),
         'obrazek_url' => htmlspecialchars($informaceOObrazku['url']),
+        'obrazek_nahled' => htmlspecialchars($informaceOObrazku['nahled']),
         'verejna_url_linie' => htmlspecialchars(URL_WEBU . '/' . $radek['url_typu_mn']),
         'obrazek_cesta' => htmlspecialchars($informaceOObrazku['cesta']),
-        'obrazek_stav' => htmlspecialchars($informaceOObrazku['stav']),
+        'obrazek_stav' => htmlspecialchars((string)$informaceOObrazku['stav']),
+        'zapis_markdown' => htmlspecialchars(ZapisObrazkuVTextu::markdown($informaceOObrazku['cesta'])),
+        'zapis_html' => htmlspecialchars(ZapisObrazkuVTextu::html($informaceOObrazku['cesta'])),
     ]);
+    if ($informaceOObrazku['jeObrazekLinie']) {
+        $t->parse('hlavickyLinii.radek.zapisy');
+    } else {
+        $t->parse('hlavickyLinii.radek.cesta');
+    }
+    if ($informaceOObrazku['stav'] !== null) {
+        $t->parse('hlavickyLinii.radek.stav');
+    }
+    if ($informaceOObrazku['maNahranyObrazek']) {
+        $t->parse('hlavickyLinii.radek.smazat');
+    }
     $t->parse('hlavickyLinii.radek');
 }
 
