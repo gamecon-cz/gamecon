@@ -225,6 +225,13 @@ if ($_POST) {
 
 $t = new XTemplate(__DIR__ . '/loga.xtpl');
 $t->assign('actionBaseUrl', $_SERVER['REQUEST_URI']);
+// kotvy #sponzori-loga a #partneri-loga jsou v šablonách titulka.xtpl a sponzori.xtpl, hlídá je test
+$t->assign([
+    'urlSponzoriTitulka' => htmlspecialchars(URL_WEBU . '/#sponzori-loga'),
+    'urlPartneriTitulka' => htmlspecialchars(URL_WEBU . '/#partneri-loga'),
+    'urlSponzoriPrehled' => htmlspecialchars(URL_WEBU . '/sponzori#sponzori-loga'),
+    'urlPartneriPrehled' => htmlspecialchars(URL_WEBU . '/sponzori#partneri-loga'),
+]);
 
 // Načtení log z jednotlivých adresářů
 $logaSponzoruTitulka = ZpracovaneObrazky::logaSponzoruTitulka();
