@@ -121,11 +121,13 @@ class TypAktivity extends \DbObject
         return (string)$this->nazev();
     }
 
-    /** Název natáhnutý ze stránky */
+    /** Název natáhnutý z nadpisu stránky, bez nadpisu název linie. Obojí escapované pro HTML. */
     public function nazevDlouhy()
     {
-        preg_match('@<h1>([^<]+)</h1>@', $this->oTypu(), $m);
-        return $m[1];
+        if (preg_match('@<h1>([^<]+)</h1>@', (string)$this->oTypu(), $m)) {
+            return $m[1];
+        }
+        return htmlspecialchars((string)$this->nazev());
     }
 
     public function oTypu()
