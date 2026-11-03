@@ -5,6 +5,7 @@ Nahrávání obrázků z administrace místo FTP: kde který obrázek leží, kd
 - `model/Web/NahravaniObrazku.php`: společná služba. Ověří upload (`overNahranySoubor`) a uloží ho (`ulozJakoJediny`, `ulozNovy`, `nahrad`), případně smaže (`smaz`, `smazVsechnyVarianty`). Továrny `proFotkyUzivatelu`, `proObrazkyLinii`, `proObrazkyEshopu`, `proObsahWebu`.
 - `model/Web/PouzitiObrazku.php`: kde texty webu odkazují na soubor (stránky, novinky a blog, popisy aktivit všech ročníků, medailonky).
 - `model/Web/ObrazkyObsahu.php` + `obrazky-obsahu.xtpl`: widget „Obrázky" pod editorem stránky (`web/editace-stranek`) a novinky (`web/novinka`).
+- `model/Web/ZapisObrazkuVTextu.php`: Markdown a HTML zápis obrázku do textu. Nabízí ho widget obsahu i Web → Hlavičky linií (jen u vlastního obrázku linie, ne u výchozího avataru).
 - `model/Web/ObrazkyEshopu.php` + `obrazky-eshopu.xtpl`: galerie e-shopu pod tabulkou `finance/shop`; `zpracujPost()` běží před vykreslením stránky, `html()` až za ní.
 - `model/Web/ZpracovaneObrazky.php`: cesty k adresářům (`adresarFotekUzivatelu`, `adresarObrazkuLinii`, `adresarObrazkuEshopu`, `adresarObsahu`, loga), `jeAdresarJinehoModulu`, `popisekObrazkuEshopu`, `cestaVuciWebu`, `urlNaWebu`.
 - Moduly: `admin/scripts/modules/aktivity/medailonky.php` (fotka vypravěče), `web/hlavicky-linii.php`, `web/loga.php` (jen mazání přes `cestaKSouboru`).

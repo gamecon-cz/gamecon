@@ -59,9 +59,9 @@ v novém tabu — neřeš to ručně přes HTML. Na podstránce najdeš živou u
 ## Hlavičky linií
 
 Podstránka **Hlavičky linií** upravuje text a obrázek v hlavičce programové
-linie na webu aktivit. Každá linie zobrazovaná v menu má řádek se třemi
-sloupci: **Linie** (název a odkaz **otevřít veřejnou stránku**), **Texty**
-a **Obrázek**.
+linie na webu aktivit. Každá linie zobrazovaná v menu má řádek se dvěma
+sloupci: vlevo **Linie a texty** (nahoře název a odkaz **otevřít veřejnou
+stránku**, pod ním formulář s texty), vpravo **Obrázek**.
 
 - Texty: pole **Sekce**, **Jméno** a **E-mail** (kontakt na šéfa linie),
   uložíš tlačítkem **Uložit texty**. Když necháš všechna tři pole prázdná,
@@ -69,8 +69,12 @@ a **Obrázek**.
   byla vymazána, použije se fallback.").
 - Obrázek: vyber soubor a klikni **Nahrát obrázek**. Podporované formáty
   jsou JPG, PNG, WebP a GIF, maximální velikost 2 MB. U každé linie vidíš
-  náhled a stav (vlastní obrázek / fallback). Tlačítko **Smazat vlastní
-  obrázek** vrátí linii k výchozímu obrázku.
+  náhled (kliknutím se otevře obrázek v původní velikosti). U obrázku, který
+  linie opravdu má, jsou hotové zápisy **Markdown** a **HTML** pro vložení
+  do textu (je v nich i cesta k souboru); u linie bez vlastního obrázku se
+  místo nich píše, že se používá výchozí obrázek. Tlačítko **Smazat vlastní
+  obrázek** (s potvrzením „Opravdu smazat vlastní obrázek linie?") vrátí
+  linii k výchozímu obrázku; je jen u linie, která vlastní obrázek má.
 
 ## Loga sponzorů a partnerů
 
