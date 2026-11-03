@@ -336,6 +336,12 @@ SQL);
         }
         $this->kUklidu = [...$this->kUklidu, $obrazek . '.png', $obrazek . '.gif'];
         $session = $this->prihlas(\Uzivatel::SYSTEM_LOGIN);
+        $cestaVTextu = 'soubory/systemove/linie-ikony/org_' . $idTypu . '.png';
+
+        // výchozí avatar není obrázek té linie, zápis do textu k němu nenabízíme
+        $strankaPredNahranim = $this->stahni($session, 'web/hlavicky-linii');
+        self::assertStringNotContainsString($cestaVTextu, $strankaPredNahranim);
+        self::assertStringContainsString('Vlastní obrázek chybí, používá se fallback.', $strankaPredNahranim);
 
         self::assertSame(303, $this->odesli($session, 'web/hlavicky-linii', [
             'action'  => 'upload-line-header-image',
@@ -344,11 +350,22 @@ SQL);
         ]));
         self::assertFileExists($obrazek . '.png');
 
+        $stranka = $this->stahni($session, 'web/hlavicky-linii');
+        self::assertStringContainsString('value="![](' . $cestaVTextu . ')"', $stranka);
+        self::assertStringContainsString(
+            'value="&lt;img src=&quot;' . $cestaVTextu . '&quot; alt=&quot;&quot;&gt;"',
+            $stranka,
+        );
+        // cesta je v hotových zápisech, vlastní obrázek nepotřebuje ani stav, ani samostatný řádek s cestou
+        self::assertStringNotContainsString('Používá se vlastní obrázek', $stranka);
+        self::assertStringNotContainsString('Cesta: <code>' . $cestaVTextu, $stranka);
+
         self::assertSame(303, $this->odesli($session, 'web/hlavicky-linii', [
             'action'  => 'delete-line-header-image',
             'id_typu' => (string) $idTypu,
         ]));
         self::assertSame([], glob($obrazek . '.*'));
+        self::assertStringNotContainsString($cestaVTextu, $this->stahni($session, 'web/hlavicky-linii'));
     }
 
     /**
