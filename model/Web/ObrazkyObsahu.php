@@ -180,16 +180,13 @@ final class ObrazkyObsahu
         $nazev = trim((string)post('nazev')) !== ''
             ? (string)post('nazev')
             : $obrazek->puvodniNazevBezPripony();
-        $ulozeno = $this->nahravani->ulozNovy(
+        $this->nahravani->ulozNovy(
             $obrazek,
             $this->adresarProNove,
             NahravaniObrazku::bezpecnyNazev($nazev),
         );
 
-        return sprintf(
-            'Obrázek je nahraný, do textu ho vložíš jako <code>%s</code>',
-            htmlspecialchars('![](' . self::doTextu($this->adresarProNove . '/' . basename($ulozeno)) . ')'),
-        );
+        return 'Obrázek je nahraný.';
     }
 
     private function nahrad(string $cesta): string
@@ -202,10 +199,7 @@ final class ObrazkyObsahu
             $cesta,
         );
 
-        return sprintf(
-            'Obrázek %s je nahraný. Kdo ho už viděl, může mít chvíli v prohlížeči ještě starou verzi.',
-            htmlspecialchars(basename($cesta)),
-        );
+        return sprintf('Obrázek %s je nahraný.', htmlspecialchars(basename($cesta)));
     }
 
     private function smaz(string $cesta): string

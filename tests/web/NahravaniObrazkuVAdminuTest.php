@@ -244,6 +244,10 @@ SQL,
             self::assertMatchesRegularExpression('~<form[^>]*class="dbForm"~', $editor, $url);
             self::assertStringContainsString("querySelector('form.dbForm')", $editor, $url);
             self::assertStringContainsString("addEventListener('beforeunload'", $editor, $url);
+
+            // Uložit je <button> kvůli ikoně, hlídání ho proto nesmí hledat jen mezi <input>
+            self::assertStringContainsString('<button type="submit"><i class="fa fa-save" aria-hidden="true"></i> Uložit</button>', $editor, $url);
+            self::assertStringContainsString("querySelectorAll('[type=submit]')", $editor, $url);
         }
     }
 
@@ -313,6 +317,12 @@ SQL,
         self::assertFileExists($novy);
         $stranka = $this->stahni($session, $url);
         self::assertStringContainsString('![](soubory/obsah/stranky/' . self::URL_STRANKY . '/nova-clenka-rady.jpg)', $stranka);
+        // zápis do textu je v seznamu obrázků, hláška po nahrání je jen potvrzení
+        self::assertStringContainsString('Obrázek je nahraný.', $stranka);
+        self::assertStringNotContainsString('do textu ho vložíš', $stranka);
+        self::assertStringContainsString('<i class="fa fa-upload" aria-hidden="true"></i> Nahrát</button>', $stranka);
+        self::assertStringContainsString('<i class="fa fa-upload" aria-hidden="true"></i> Nahradit</button>', $stranka);
+        self::assertStringContainsString('<i class="fa fa-trash" aria-hidden="true"></i> Smazat</button>', $stranka);
 
         self::assertSame(303, $this->odesli($session, $url, [
             'obrazkyObsahuAkce' => 'smazat',
