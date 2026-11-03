@@ -424,6 +424,141 @@ SQL);
     }
 
     /**
+     * @test
+     */
+    public function poradiLogaSeMeniPresAdministraciBezPristupuKCsv(): void
+    {
+        $adresar = ZpracovaneObrazky::adresarSponzoruPrehled();
+        $razeni = $adresar . '/RAZENI.csv';
+        // v adresáři může být skutečné pořadí, které test nesmí zničit
+        $puvodniRazeni = is_file($razeni)
+            ? (string) file_get_contents($razeni)
+            : null;
+        $this->uklidNoveAdresare($adresar);
+        $session = $this->prihlas(\Uzivatel::SYSTEM_LOGIN);
+        $soubory = [];
+        foreach (['a', 'b', 'c'] as $pismeno) {
+            $host = sprintf('test-poradi-%s-%d.example.com', $pismeno, getmypid());
+            $soubory[$pismeno] = $host . '.png';
+            $this->kUklidu[] = $adresar . '/' . $soubory[$pismeno];
+        }
+
+        try {
+            foreach ($soubory as $soubor) {
+                $this->odesli($session, 'web/loga', [
+                    'action'    => 'upload_sponzor_prehled',
+                    'url'       => 'https://' . basename($soubor, '.png'),
+                    'logo_file' => new \CURLFile($this->png(), 'image/png', 'logo.png'),
+                ]);
+                self::assertFileExists($adresar . '/' . $soubor);
+            }
+            self::assertSame(
+                [$soubory['a'], $soubory['b'], $soubory['c']],
+                $this->poradiTestovacichLog($session, 'sponzor_prehled'),
+                'Bez uloženého pořadí jdou loga podle abecedy',
+            );
+
+            [$kod, $odpoved] = $this->ulozPoradiLog($session, 'sponzor_prehled', [$soubory['c'], '../../x.png', $soubory['a']]);
+
+            self::assertSame(200, $kod);
+            self::assertSame([
+                'ok' => true,
+            ], $odpoved);
+            self::assertSame(
+                [$soubory['c'], $soubory['a'], $soubory['b']],
+                $this->poradiTestovacichLog($session, 'sponzor_prehled'),
+                'Logo, které v odeslaném pořadí chybí, se zařadí za ostatní',
+            );
+            self::assertStringNotContainsString('..', (string) file_get_contents($razeni));
+
+            $verejnaStranka = $this->stahniVerejnou($session, parse_url(URL_WEBU, PHP_URL_PATH) . '/sponzori');
+            $pozice = array_map(
+                fn (string $soubor): int|false => strpos($verejnaStranka, 'href="https://' . basename($soubor, '.png') . '"'),
+                [$soubory['c'], $soubory['a'], $soubory['b']],
+            );
+            self::assertNotContains(false, $pozice, 'Loga jsou na veřejné stránce');
+            $serazenePozice = $pozice;
+            sort($serazenePozice);
+            self::assertSame($serazenePozice, $pozice, 'Veřejná stránka drží pořadí z administrace');
+
+            $stranka = $this->stahni($session, 'web/loga');
+            self::assertSame(4, substr_count($stranka, 'data-typ="'));
+            // ikona říká, že se loga dají přetahovat, každá karta s logem ji má
+            self::assertGreaterThanOrEqual(3, substr_count($stranka, 'class="logo-item"'));
+            self::assertSame(
+                substr_count($stranka, 'class="logo-item"'),
+                substr_count($stranka, 'class="fa fa-arrows logo-uchyt"'),
+            );
+            self::assertStringNotContainsString('RAZENI', $stranka, 'Soubor s pořadím se v administraci neukazuje');
+        } finally {
+            if ($puvodniRazeni === null) {
+                (new Filesystem())->remove($razeni);
+            } else {
+                file_put_contents($razeni, $puvodniRazeni);
+            }
+        }
+    }
+
+    /**
+     * @test
+     */
+    public function neplatnePoradiLogaAdministraceOdmitne(): void
+    {
+        $session = $this->prihlas(\Uzivatel::SYSTEM_LOGIN);
+
+        [$kod, $odpoved] = $this->ulozPoradiLog($session, 'sponzor_prehled', ['neexistuje.cz.png']);
+        self::assertSame(400, $kod);
+        self::assertFalse($odpoved['ok']);
+
+        [$kod, $odpoved] = $this->ulozPoradiLog($session, 'neznama_skupina', ['neexistuje.cz.png']);
+        self::assertSame(400, $kod);
+        self::assertSame('Neznámá skupina log.', $odpoved['error']);
+
+        // skupina poslaná jako pole nesmí skončit chybou serveru
+        $odpoved = $this->odesliSTelem($session, 'web/loga', [
+            'action'    => 'save_razeni',
+            'typ[0]'    => 'sponzor_prehled',
+            'poradi[0]' => 'neexistuje.cz.png',
+        ]);
+        self::assertSame(400, $odpoved['kod']);
+        self::assertSame('Neznámá skupina log.', json_decode($odpoved['telo'], true, flags: JSON_THROW_ON_ERROR)['error']);
+    }
+
+    /**
+     * @param list<string> $poradi
+     *
+     * @return array{0: int, 1: array{ok: bool, error?: string}}
+     */
+    private function ulozPoradiLog(string $session, string $typ, array $poradi): array
+    {
+        $pole = [
+            'action' => 'save_razeni',
+            'typ'    => $typ,
+        ];
+        foreach ($poradi as $index => $soubor) {
+            $pole["poradi[{$index}]"] = $soubor;
+        }
+        $odpoved = $this->odesliSTelem($session, 'web/loga', $pole);
+
+        return [$odpoved['kod'], json_decode($odpoved['telo'], true, flags: JSON_THROW_ON_ERROR)];
+    }
+
+    /**
+     * @return list<string> názvy souborů log, které založil test, v pořadí, v jakém je ukazuje administrace
+     */
+    private function poradiTestovacichLog(string $session, string $typ): array
+    {
+        $stranka = $this->stahni($session, 'web/loga');
+        self::assertSame(1, preg_match('~data-typ="' . $typ . '">(.*?)<div class="logo-poradi-stav"~s', $stranka, $skupina), $typ);
+        preg_match_all('~data-soubor="([^"]+)"~', $skupina[1], $shody);
+
+        return array_values(array_filter(
+            $shody[1],
+            fn (string $soubor): bool => str_starts_with($soubor, 'test-poradi-'),
+        ));
+    }
+
+    /**
      * Test zapisuje do skutečného stromu webu, uklidí proto i nadřazené adresáře, které sám založí.
      */
     private function uklidNoveAdresare(string $adresar): void
@@ -471,13 +606,24 @@ SQL);
      */
     private function odesli(string $cookieFile, string $url, array $pole): int
     {
+        return $this->odesliSTelem($cookieFile, $url, $pole)['kod'];
+    }
+
+    /**
+     * @return array{kod: int, telo: string}
+     */
+    private function odesliSTelem(string $cookieFile, string $url, array $pole): array
+    {
         $curl = $this->curl($cookieFile, $url);
         curl_setopt($curl, CURLOPT_POST, true);
         curl_setopt($curl, CURLOPT_POSTFIELDS, $pole);
         $odpoved = curl_exec($curl);
         self::assertNotFalse($odpoved, curl_error($curl));
 
-        return curl_getinfo($curl, CURLINFO_HTTP_CODE);
+        return [
+            'kod'  => curl_getinfo($curl, CURLINFO_HTTP_CODE),
+            'telo' => (string) $odpoved,
+        ];
     }
 
     private function stahni(string $cookieFile, string $url): string
