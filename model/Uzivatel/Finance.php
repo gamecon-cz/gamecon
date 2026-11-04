@@ -21,6 +21,7 @@ use Gamecon\SystemoveNastaveni\SystemoveNastaveni;
 use Gamecon\Uzivatel\Dto\PolozkaProBfgr;
 use Gamecon\Uzivatel\Dto\PriceAfterDiscountDto;
 use Gamecon\Uzivatel\SqlStruktura\PlatbySqlStruktura;
+use NumberFormatter;
 use Uzivatel;
 
 /**
@@ -160,6 +161,36 @@ SQL,
     public static function zaokouhli($cena): float
     {
         return round((float)$cena, 2);
+    }
+
+    /**
+     * Celé koruny bez desetin, jinak se dvěma desetinnými místy (250 nebo 250,60). Čárku a pevnou mezeru mezi
+     * tisíci dodá ICU podle cs_CZ.
+     */
+    public static function formatujCastku(float $castka): string
+    {
+        static $formattery = [];
+
+        $castka = self::zaokouhli($castka);
+        if ($castka === 0.0) {
+            $castka = 0.0; // z -0.0 by ICU udělalo „-0“
+        }
+        $jeCele = floor($castka) === $castka;
+
+        $formatter = $formattery[(int) $jeCele] ?? null;
+        if ($formatter === null) {
+            $formatter = new NumberFormatter('cs_CZ', NumberFormatter::DECIMAL);
+            $formatter->setAttribute(NumberFormatter::MIN_FRACTION_DIGITS, $jeCele ? 0 : 2);
+            $formatter->setAttribute(NumberFormatter::MAX_FRACTION_DIGITS, 2);
+            $formattery[(int) $jeCele] = $formatter;
+        }
+
+        $zapsanaCastka = $formatter->format($castka);
+        if ($zapsanaCastka === false) {
+            throw new \RuntimeException(sprintf('Částku %s se nepodařilo zapsat: %s', $castka, $formatter->getErrorMessage()));
+        }
+
+        return $zapsanaCastka;
     }
 
     /**
