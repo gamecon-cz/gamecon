@@ -4,7 +4,7 @@
 <div class="aBox" style="width:100%; overflow: auto;">
   <h3>Nastavení mřížkového prodeje</h3>
 
-  <link rel="stylesheet" href="files/ui/style.css?version={$cssVersions.style}">
+  <link rel="stylesheet" href="files/ui/style.css?version={cssVersions.style}">
 
   <div id="preact-obchod-nastaveni">Nastavení mřížek obchodu se načítá ...</div>
 
