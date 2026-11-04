@@ -387,8 +387,8 @@ $xtpl->assign('protip', $protipy[array_rand($protipy)]);
 $xtpl->parse('all.paticka');
 $xtpl->assign([
     'nazevSekce'      => $menu[$stranka]['nazev'] ?? 'Administrace',
-    'prepinacVzhledu' => $vzhledAdminuHtml?->dejPrepinac($u->id()) ?? '',
-    'vyberVzhledu'    => $vzhledAdminuHtml?->dejVyber($u->id()) ?? '',
+    'prepinacVzhledu' => $vzhledAdminuHtml?->getPrepinacHtml($u->id()) ?? '',
+    'vyberVzhledu'    => $vzhledAdminuHtml?->getVyberHtml($u->id()) ?? '',
 ]);
 $xtpl->assign('chyba', chyba::vyzvedniHtml());
 $xtpl->assign('jsVyjimkovac', Gamecon\Vyjimkovac\Vyjimkovac::js(URL_WEBU));

@@ -58,11 +58,11 @@ SQL,
         $vzhledAdminu = $this->vytvorVzhledAdminu();
         $html = new VzhledAdminuHtml($vzhledAdminu);
 
-        self::assertStringContainsString('value="klasicky" aria-pressed="true"', $html->dejPrepinac($idUzivatele));
+        self::assertStringContainsString('value="klasicky" aria-pressed="true"', $html->getPrepinacHtml($idUzivatele));
 
         $vzhledAdminu->setVzhled($idUzivatele, VzhledAdminuEnum::MODERNI);
 
-        $prepinac = $html->dejPrepinac($idUzivatele);
+        $prepinac = $html->getPrepinacHtml($idUzivatele);
         self::assertStringContainsString('value="moderni" aria-pressed="true"', $prepinac);
         self::assertStringContainsString('value="klasicky" aria-pressed="false"', $prepinac);
     }
@@ -73,11 +73,11 @@ SQL,
         $vzhledAdminu = $this->vytvorVzhledAdminu();
         $html = new VzhledAdminuHtml($vzhledAdminu);
 
-        self::assertStringNotContainsString('data-barvy-adminu', $html->dejPrepinac($idUzivatele));
+        self::assertStringNotContainsString('data-barvy-adminu', $html->getPrepinacHtml($idUzivatele));
 
         $vzhledAdminu->setVzhled($idUzivatele, VzhledAdminuEnum::MODERNI);
 
-        $prepinac = $html->dejPrepinac($idUzivatele);
+        $prepinac = $html->getPrepinacHtml($idUzivatele);
         foreach (['svetle', 'tmave', ''] as $barvy) {
             self::assertStringContainsString('data-barvy-adminu="' . $barvy . '"', $prepinac);
         }
@@ -94,10 +94,10 @@ SQL,
         $html = new VzhledAdminuHtml($this->vytvorVzhledAdminu());
         $skrytePole = 'name="' . VzhledAdminu::POST_KLIC_BEZ_OZNAMENI . '"';
 
-        self::assertStringNotContainsString($skrytePole, $html->dejPrepinac($idUzivatele));
-        self::assertStringContainsString($skrytePole, $html->dejPrepinac($idUzivatele, sOznamenim: false));
-        self::assertStringNotContainsString($skrytePole, $html->dejVyber($idUzivatele));
-        self::assertStringContainsString($skrytePole, $html->dejVyber($idUzivatele, sOznamenim: false));
+        self::assertStringNotContainsString($skrytePole, $html->getPrepinacHtml($idUzivatele));
+        self::assertStringContainsString($skrytePole, $html->getPrepinacHtml($idUzivatele, sOznamenim: false));
+        self::assertStringNotContainsString($skrytePole, $html->getVyberHtml($idUzivatele));
+        self::assertStringContainsString($skrytePole, $html->getVyberHtml($idUzivatele, sOznamenim: false));
     }
 
     public function testVyberJenDokudSiUzivatelNevybral(): void
@@ -106,11 +106,11 @@ SQL,
         $vzhledAdminu = $this->vytvorVzhledAdminu();
         $html = new VzhledAdminuHtml($vzhledAdminu);
 
-        self::assertStringContainsString('<dialog', $html->dejVyber($idUzivatele));
+        self::assertStringContainsString('<dialog', $html->getVyberHtml($idUzivatele));
 
         $vzhledAdminu->setVzhled($idUzivatele, VzhledAdminuEnum::KLASICKY);
 
-        self::assertSame('', $html->dejVyber($idUzivatele));
+        self::assertSame('', $html->getVyberHtml($idUzivatele));
     }
 
     public function testOdlozenyVyberSeNeukaze(): void
@@ -119,6 +119,6 @@ SQL,
         $vzhledAdminu = $this->vytvorVzhledAdminu();
         $vzhledAdminu->zpracujVolbu($idUzivatele, VzhledAdminu::VOLBA_POZDEJI);
 
-        self::assertSame('', (new VzhledAdminuHtml($vzhledAdminu))->dejVyber($idUzivatele));
+        self::assertSame('', (new VzhledAdminuHtml($vzhledAdminu))->getVyberHtml($idUzivatele));
     }
 }

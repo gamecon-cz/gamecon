@@ -23,10 +23,10 @@ class VzhledAdminuHtml
     /**
      * @param bool $sOznamenim false na stránce, která nevypisuje hlášky (chyba(), oznameni())
      */
-    public function dejPrepinac(int $idUzivatele, bool $sOznamenim = true): string
+    public function getPrepinacHtml(int $idUzivatele, bool $sOznamenim = true): string
     {
         $vzhled = $this->vzhledAdminu->getVzhled($idUzivatele);
-        $sablona = $this->dejSablonu('prepinac-vzhledu.xtpl');
+        $sablona = $this->vytvorSablonu('prepinac-vzhledu.xtpl');
         $sablona->assign([
             'klasickyZvolen' => $vzhled === VzhledAdminuEnum::KLASICKY ? 'true' : 'false',
             'moderniZvolen'  => $vzhled === VzhledAdminuEnum::MODERNI ? 'true' : 'false',
@@ -48,12 +48,12 @@ class VzhledAdminuHtml
      *
      * @return string empty when the user has chosen already or postponed the choice for this session
      */
-    public function dejVyber(int $idUzivatele, bool $sOznamenim = true): string
+    public function getVyberHtml(int $idUzivatele, bool $sOznamenim = true): string
     {
         if (! $this->vzhledAdminu->isNabidnoutVyber($idUzivatele)) {
             return '';
         }
-        $sablona = $this->dejSablonu('vyber-vzhledu.xtpl');
+        $sablona = $this->vytvorSablonu('vyber-vzhledu.xtpl');
         if (! $sOznamenim) {
             $sablona->parse('vyberVzhledu.bezOznameni');
         }
@@ -62,7 +62,7 @@ class VzhledAdminuHtml
         return $sablona->text('vyberVzhledu');
     }
 
-    private function dejSablonu(string $soubor): XTemplate
+    private function vytvorSablonu(string $soubor): XTemplate
     {
         $sablona = new XTemplate(self::SABLONY . '/' . $soubor);
         $sablona->assign([
