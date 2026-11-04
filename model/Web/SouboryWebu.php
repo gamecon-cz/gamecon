@@ -224,8 +224,10 @@ final class SouboryWebu
         $template->assign([
             'cesta'         => htmlspecialchars($soubor),
             'url'           => htmlspecialchars((string) $nahravani->urlSouboru($absolutniCesta)),
-            'typ'           => htmlspecialchars(NahravaniObrazku::nazevFormatuPodlePripony($soubor) ?? mb_strtoupper(pathinfo($soubor, PATHINFO_EXTENSION))),
-            'velikost'      => NahravaniObrazku::lidskaVelikost((int) @filesize($absolutniCesta)),
+            'udaje'         => htmlspecialchars(implode(', ', array_filter([
+                NahravaniObrazku::nazevFormatuPodlePripony($soubor) ?? mb_strtoupper(pathinfo($soubor, PATHINFO_EXTENSION)),
+                NahravaniObrazku::lidskaVelikost((int) @filesize($absolutniCesta)),
+            ], static fn (string $cast): bool => $cast !== ''))),
             'zmeneno'       => date('j. n. Y', (int) @filemtime($absolutniCesta)),
             'markdown'      => $cestaVuciWebu === null
                 ? ''

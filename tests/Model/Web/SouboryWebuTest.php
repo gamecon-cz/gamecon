@@ -91,9 +91,9 @@ SQL,
         self::assertStringContainsString('value="nahradit"', $pouzity);
         self::assertStringNotContainsString('value="smazat"', $pouzity, 'Soubor, na který text odkazuje, jde nahradit, ale ne smazat');
         self::assertStringContainsString(
-            '</a> <span class="soubory-webu__udaje technicke">PDF, ' . NahravaniObrazku::lidskaVelikost(strlen(self::pdfBajty())) . '</span>',
+            '</a> <span class="soubory-webu__udaje technicke">(PDF, ' . NahravaniObrazku::lidskaVelikost(strlen(self::pdfBajty())) . ')</span>',
             $pouzity,
-            'Typ a velikost jsou technický údaj (písmo třídy technicke) za odkazem na soubor, ne vlastní sloupce',
+            'Typ a velikost jsou v závorce za odkazem na soubor, technické písmo (třída technicke), ne vlastní sloupce',
         );
         self::assertStringNotContainsString('<th>Typ</th>', $html);
         self::assertStringNotContainsString('<th>Velikost</th>', $html);
@@ -117,10 +117,27 @@ SQL,
         self::assertStringNotContainsString('value="nahradit"', $stary);
         self::assertStringNotContainsString('value="smazat"', $stary);
         self::assertStringContainsString(
-            'DOCX, ' . NahravaniObrazku::lidskaVelikost(strlen('dokument z doby FTP')) . '</span>',
+            '(DOCX, ' . NahravaniObrazku::lidskaVelikost(strlen('dokument z doby FTP')) . ')</span>',
             $stary,
             'Typ se u souboru nepovoleného formátu bere z přípony',
         );
+    }
+
+    /**
+     * @test
+     */
+    public function souborBezPriponyMaZaOdkazemJenVelikost(): void
+    {
+        $slozka = ZpracovaneObrazky::adresarObsahu() . '/' . self::slozka();
+        file_put_contents($slozka . '/bez-pripony', 'x');
+
+        $html = (new SouboryWebu([
+            self::slozka() => $this->nastaveni([NahravaniObrazku::PDF]),
+        ]))->html();
+
+        $radek = self::radek($html, 'bez-pripony');
+        self::assertStringContainsString('technicke">(1 kB)</span>', $radek);
+        self::assertStringNotContainsString('(,', $radek);
     }
 
     /**
