@@ -7,7 +7,7 @@ TL;DR: admin má dvě kostry stránky (`admin/templates/main.xtpl` a `admin/temp
 - `admin/index.php` — zpracuje POST `vzhledAdminu`, vybere šablonu (`VzhledAdminuEnum::getSablona()`), nastaví `$vzhled` a `$vzhledAdminuHtml`, které používají i moduly (online prezence).
 - `model/Admin/VzhledAdminu.php` — čtení a zápis volby, odložení výběru v session (`isNabidnoutVyber()`, `zpracujVolbu()`).
 - `model/Admin/VzhledAdminuEnum.php` — `klasicky` / `moderni`, název a šablona.
-- `model/Admin/VzhledAdminuHtml.php` — vykreslí `admin/templates/vyber-vzhledu.xtpl` (dialog při první návštěvě) a `admin/templates/prepinac-vzhledu.xtpl` (přepínač v patičce) pro oba vzhledy adminu i pro online prezenci; styly v `admin/files/design/vzhled_adminu.css`.
+- `model/Admin/VzhledAdminuHtml.php` — vykreslí `admin/templates/vyber-vzhledu.xtpl` (dialog při první návštěvě, `getVyberHtml()`) a `admin/templates/prepinac-vzhledu.xtpl` (přepínač v patičce, `getPrepinacHtml()`) pro oba vzhledy adminu i pro online prezenci; styly v `admin/files/design/vzhled_adminu.css`.
 - `admin/templates/moderni/*.xtpl`, `admin/files/design/moderni.css`, `admin/files/moderni.js` — moderní vzhled; `admin/files/barvy_adminu.js` — světlé a tmavé barvy.
 - `VzhledAdminu::zaznamenejZobrazeniStranky()` (volá `admin/index.php`), reporty `admin/scripts/zvlastni/reporty/vzhled-adminu-uzivatele.php` a `vzhled-adminu-dny.php` — jak se vzhledy ujaly.
 - `model/Aktivita/OnlinePrezence/OnlinePrezenceHtml.php` (parametry `vzhled`, `vzhledAdminuHtml`, `nazevStranky`), `admin/files/design/online-prezence-moderni.css` — online prezence.

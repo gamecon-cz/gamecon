@@ -83,8 +83,8 @@ class OnlinePrezenceHtml
         }
         if ($this->vzhledAdminuHtml !== null) {
             // stránka nevypisuje hlášky, oznámení o změně vzhledu by vyskočilo až na jiné stránce adminu
-            $template->assign('prepinacVzhledu', $this->vzhledAdminuHtml->dejPrepinac((int) $editujici->id(), sOznamenim: false));
-            $template->assign('vyberVzhledu', $this->vzhledAdminuHtml->dejVyber((int) $editujici->id(), sOznamenim: false));
+            $template->assign('prepinacVzhledu', $this->vzhledAdminuHtml->getPrepinacHtml((int) $editujici->id(), sOznamenim: false));
+            $template->assign('vyberVzhledu', $this->vzhledAdminuHtml->getVyberHtml((int) $editujici->id(), sOznamenim: false));
             $template->parse('onlinePrezence.volbaVzhledu');
         }
 
