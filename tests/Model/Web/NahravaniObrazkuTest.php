@@ -258,7 +258,7 @@ class NahravaniObrazkuTest extends TestCase
         $nahravani->ulozNovy($nahravani->overSoubor($this->png('a.png')), 'stranky/kontakty', 'mapa');
 
         self::assertFileExists($this->koren . '/stranky/kontakty/mapa.png');
-        $this->ocekavejChybu('Soubor mapa.png už existuje.');
+        $this->ocekavejChybu('Soubor mapa.png už existuje. Zvol jiný název, nebo nahraď předchozí.');
         $nahravani->ulozNovy($nahravani->overSoubor($this->png('b.png')), 'stranky/kontakty', 'mapa');
     }
 
