@@ -6,6 +6,7 @@ namespace Gamecon\Tests\Model\Web;
 
 use Gamecon\Tests\Db\AbstractTestDb;
 use Gamecon\Web\NahravaniObrazku;
+use Gamecon\Web\NahravaniPoCastech;
 use Gamecon\Web\SouboryWebu;
 use Gamecon\Web\ZpracovaneObrazky;
 use Gamecon\XTemplate\XTemplate;
@@ -380,6 +381,42 @@ SQL,
 
         self::assertStringContainsString('<td colspan="4"><i>Zatím tu žádný soubor není.</i></td>', $html, 'Přes všechny sloupce tabulky');
         self::assertStringContainsString('(0)', $html);
+    }
+
+    /**
+     * @test
+     */
+    public function velkeSouboryPosilaPoCastechJenKdyzJeNahravaniKDispozici(): void
+    {
+        $slozky = [
+            self::slozka() => $this->nastaveni([NahravaniObrazku::PDF]),
+        ];
+        $poCastech = new NahravaniPoCastech(1, 1000, sys_get_temp_dir() . '/gamecon-soubory-po-castech', 4096);
+
+        $bez = (new SouboryWebu($slozky))->html();
+        $s = (new SouboryWebu($slozky, poCastech: $poCastech))->html();
+
+        self::assertStringNotContainsString('data-nahravani-po-castech', $bez);
+        self::assertStringNotContainsString('nahravani-po-castech.js', $bez);
+        self::assertStringContainsString('class="soubory-webu__nahrat" data-nahravani-po-castech data-nahravani-prah="4096"', $s);
+        self::assertMatchesRegularExpression('~<script src="files/nahravani-po-castech\.js\?v=[0-9a-f]{32}"></script>~', $s);
+    }
+
+    /**
+     * Soubor poslaný po částech omezuje jen nastavení aplikace, ne limit PHP pro jeden požadavek.
+     *
+     * @test
+     */
+    public function limitUFormulareProPoslaniPoCastechJeNastaveniAplikace(): void
+    {
+        $slozky = [
+            self::slozka() => $this->nastaveni([NahravaniObrazku::ZIP]),
+        ];
+        $poCastech = new NahravaniPoCastech(1, 1000, sys_get_temp_dir() . '/gamecon-soubory-po-castech', 4096);
+
+        $html = (new SouboryWebu($slozky, poCastech: $poCastech))->html();
+
+        self::assertStringContainsString('ZIP, nejvýš ' . NahravaniObrazku::lidskaVelikost(SOUBOR_MAX_MB * 1024 * 1024), $html);
     }
 
     /**

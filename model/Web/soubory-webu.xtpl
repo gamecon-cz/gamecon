@@ -15,7 +15,7 @@
   <summary><strong>{nazev}</strong> <code>{adresar}</code> <small class="soubory-webu__pocet" title="Počet souborů ve složce">({pocet})</small></summary>
   <p>{popis}</p>
 
-  <form method="post" enctype="multipart/form-data" class="soubory-webu__nahrat">
+  <form method="post" enctype="multipart/form-data" class="soubory-webu__nahrat"{poCastech}>
     <input type="hidden" name="{postAkce}" value="nahrat">
     <input type="hidden" name="slozka" value="{slozka}">
     <label>Soubor <input type="file" name="{postSoubor}" accept="{accept}" required></label>
@@ -60,7 +60,7 @@
       <td>
         <div class="soubory-webu__akce">
           <!-- begin:nahradit -->
-          <form method="post" enctype="multipart/form-data">
+          <form method="post" enctype="multipart/form-data"{poCastech}>
             <input type="hidden" name="{postAkce}" value="nahradit">
             <input type="hidden" name="slozka" value="{slozka}">
             <input type="hidden" name="cesta" value="{cesta}">
@@ -89,6 +89,10 @@
   </table>
 </details>
 <!-- end:slozka -->
+
+<!-- begin:skript -->
+<script src="files/nahravani-po-castech.js?v={verzeSkriptu}"></script>
+<!-- end:skript -->
 
 <style>
     .soubory-webu {
@@ -152,6 +156,16 @@
     .soubory-webu__odkaz {
         width: 28em;
         max-width: 100%;
+    }
+
+    .nahravani-po-castech {
+        flex-basis: 100%;
+        margin-top: 0.5em;
+    }
+
+    .nahravani-po-castech__chyba {
+        color: #b00020;
+        font-weight: bold;
     }
 </style>
 <!-- end:souboryWebu -->
