@@ -36,7 +36,7 @@
     <tr>
       <th>Soubor</th>
       <th>Změněno</th>
-      <th>Odkazuje na něj</th>
+      <th>Použit v</th>
       <th></th>
     </tr>
     <!-- begin:soubor -->
