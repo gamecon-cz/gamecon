@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Gamecon\Tests\Model\Finance;
 
 use Gamecon\Finance\QrPlatba;
+use Gamecon\Uzivatel\Finance;
 use PHPUnit\Framework\TestCase;
 
 class QrPlatbaTest extends TestCase
@@ -34,7 +35,7 @@ class QrPlatbaTest extends TestCase
     }
 
     /**
-     * Výpis ve `web/moduly/finance.php` zobrazuje `round($castkaEur, 2)`, QR kód
+     * Výpis ve `web/moduly/finance.php` zapisuje částku přes `Finance::formatujCastku()`, QR kód
      * musí kódovat tutéž zaokrouhlenou částku, aby se zobrazená a placená částka
      * nerozcházely. Ověřujeme tedy, že QrPlatba zaokrouhlí vstup stejně jako výpis.
      *
@@ -48,6 +49,7 @@ class QrPlatbaTest extends TestCase
         $castkaVQr = (new \ReflectionProperty(QrPlatba::class, 'castka'))->getValue($qrPlatba);
 
         self::assertSame(round($castkaEur, 2), $castkaVQr);
+        self::assertSame($castkaVQr, (float) strtr(str_replace("\u{a0}", '', Finance::formatujCastku($castkaEur)), ',', '.'));
     }
 
     /**
@@ -59,6 +61,7 @@ class QrPlatbaTest extends TestCase
             'zaokrouhlení dolů'   => [41.32411],
             'zaokrouhlení nahoru' => [41.32987],
             'výsledek rezervy'    => [1000 / 24.2 * 1.015 + 0.25],
+            'přes tisíc'          => [1234.5678],
         ];
     }
 }
