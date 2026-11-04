@@ -195,8 +195,8 @@ SQL,
         ]), 'application/x-www-form-urlencoded');
         $id = $zacatek['json']['id'];
         $this->posli($session, 'cast', [
-            'id'    => $id,
-            'index' => 0,
+            'nahrani' => $id,
+            'index'   => 0,
         ], (string) file_get_contents($pdf, false, null, 0, $zacatek['json']['castBajtu']));
 
         self::assertSame(303, $this->odesli($session, 'web/soubory', [
@@ -285,8 +285,8 @@ SQL,
         $id = $zacatek['json']['id'];
 
         $odpoved = $this->posli($session, 'cast', [
-            'id'    => $id,
-            'index' => 0,
+            'nahrani' => $id,
+            'index'   => 0,
         ], str_repeat('a', 100));
 
         self::assertSame(422, $odpoved['kod']);
@@ -392,8 +392,8 @@ SQL,
                     break;
                 }
                 $odpoved = $this->posli($session, 'cast', [
-                    'id'    => $id,
-                    'index' => $index,
+                    'nahrani' => $id,
+                    'index'   => $index,
                 ], $cast);
                 self::assertSame(200, $odpoved['kod'], $odpoved['telo']);
                 self::assertTrue($odpoved['json']['ok']);
