@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace Gamecon\Accounting;
 
+use Gamecon\Uzivatel\Finance;
+
 readonly class PersonalAccount
 {
     /**
@@ -25,9 +27,9 @@ readonly class PersonalAccount
     /**
      * Returns total monetary sum of all transactions.
      */
-    public function getTotal(): int
+    public function getTotal(): float
     {
-        return array_sum(array_map(fn (Transaction $transaction) => $transaction->getTotalAmount(), $this->transactions));
+        return Finance::zaokouhli(array_sum(array_map(fn (Transaction $transaction) => $transaction->getTotalAmount(), $this->transactions)));
     }
 
     /**
@@ -43,7 +45,7 @@ readonly class PersonalAccount
         $result = $result . $this->categoryToHtml($this, TransactionCategoryEnum::ACCOMMODATION, 'Ubytování', $positivePrices);
         $result = $result . $this->categoryToHtml($this, TransactionCategoryEnum::VOLUNTARY_DONATION, 'Dobrovolné vstupné', $positivePrices);
 
-        $result = $result . '<tr><td><b>Celková cena</b></td><td><b>' . -array_reduce(
+        $result = $result . '<tr><td><b>Celková cena</b></td><td><b>' . Finance::formatujCastku(-array_reduce(
             array_filter($this->getTransactions(), fn (Transaction $a) => (
                 $a->getCategory() === TransactionCategoryEnum::ACTIVITY
                 || $a->getCategory() === TransactionCategoryEnum::FOOD
@@ -51,26 +53,26 @@ readonly class PersonalAccount
                 || $a->getCategory() === TransactionCategoryEnum::ACCOMMODATION
                 || $a->getCategory() === TransactionCategoryEnum::VOLUNTARY_DONATION)),
             fn ($a, $b) => $this->transactionSumReducer($a, $b),
-            0) . '</b></td></tr>';
+            0.0)) . '</b></td></tr>';
 
         $result = $result . $this->categoryToHtml($this, TransactionCategoryEnum::LEFTOVER_FROM_LAST_YEAR, 'Zůstatek z minulých let');
         $result = $result . $this->categoryToHtml($this, TransactionCategoryEnum::MANUAL_MOVEMENTS, 'Připsané platby');
 
-        $result = $result . '<tr><td><b>Stav financí</b></td><td><b>' . array_reduce(
+        $result = $result . '<tr><td><b>Stav financí</b></td><td><b>' . Finance::formatujCastku(array_reduce(
             $this->getTransactions(),
             fn ($a, $b) => $this->transactionSumReducer($a, $b),
-            0) . '</b></td></tr>';
+            0.0)) . '</b></td></tr>';
 
         return $result . '</table>';
     }
 
-    private function transactionSumReducer(int $carry, Transaction $item): int
+    private function transactionSumReducer(float $carry, Transaction $item): float
     {
         foreach ($item->getSplits() as $split) {
             $carry += $split->getAmount();
         }
 
-        return $carry;
+        return Finance::zaokouhli($carry);
     }
 
     private function categoryToHtml(self $account, TransactionCategoryEnum $category, string $categoryName, bool $negatePrice = false): string
@@ -79,7 +81,7 @@ readonly class PersonalAccount
         $categoryTotal = $this->totalForCategory($account, $category);
 
         $result = '<tr><td><b>' . $categoryName . '</b></td><td><b>'
-            . ($negatePrice ? -1 : 1) * $categoryTotal
+            . Finance::formatujCastku(($negatePrice ? -1 : 1) * $categoryTotal)
             . '</b></td></tr>';
 
         foreach ($groupedSplits as $groupedSplit) {
@@ -88,16 +90,16 @@ readonly class PersonalAccount
                 $description .= ' ' . $groupedSplit['count'] . '×';
             }
             $result = $result . '<tr class="objednavky--polozka"><td>' . $description . '</td><td>'
-                . ($negatePrice ? -1 : 1) * $groupedSplit['amount']
+                . Finance::formatujCastku(($negatePrice ? -1 : 1) * $groupedSplit['amount'])
                 . '</td></tr>';
         }
 
         return $result;
     }
 
-    private function totalForCategory(self $account, TransactionCategoryEnum $category): int
+    private function totalForCategory(self $account, TransactionCategoryEnum $category): float
     {
-        $total = 0;
+        $total = 0.0;
         foreach ($account->getTransactions() as $transaction) {
             if ($transaction->getCategory() !== $category) {
                 continue;
@@ -107,11 +109,11 @@ readonly class PersonalAccount
             }
         }
 
-        return $total;
+        return Finance::zaokouhli($total);
     }
 
     /**
-     * @return array<int, array{description: string, amount: int, count: int}>
+     * @return array<int, array{description: string, amount: float, count: int}>
      */
     private function groupedSplitsByCategory(self $account, TransactionCategoryEnum $category, string $categoryName): array
     {
@@ -129,11 +131,11 @@ readonly class PersonalAccount
                 if (! isset($groupedSplits[$key])) {
                     $groupedSplits[$key] = [
                         'description' => $split->getDescription(),
-                        'amount'      => 0,
+                        'amount'      => 0.0,
                         'count'       => 0,
                     ];
                 }
-                $groupedSplits[$key]['amount'] += $split->getAmount();
+                $groupedSplits[$key]['amount'] = Finance::zaokouhli($groupedSplits[$key]['amount'] + $split->getAmount());
                 ++$groupedSplits[$key]['count'];
             }
         }
