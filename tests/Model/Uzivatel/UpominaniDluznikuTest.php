@@ -1142,6 +1142,66 @@ SQL,
     /**
      * @test
      */
+    public function casovyLimitPhpSePoRozesilceVratiNaPuvodniHodnotu()
+    {
+        $puvodniLimit = (int) ini_get('max_execution_time');
+        set_time_limit(77);
+        try {
+            $ted = $this->dejCasKonecGcPlus('1 week');
+            $upominaniDluzniku = $this->dejUpominaniDluznikuSCasem($ted);
+
+            $pocetOdeslanych = $upominaniDluzniku->odesliUpominkyDluznikum(TypUpominky::TYDEN);
+
+            self::assertGreaterThan(0, $pocetOdeslanych, 'Test potřebuje aspoň jednu odeslanou upomínku');
+            self::assertSame(
+                '77',
+                ini_get('max_execution_time'),
+                'Rozesílka si časový limit pro další e-maily prodlužuje, ale po sobě musí vrátit původní',
+            );
+        } finally {
+            set_time_limit($puvodniLimit);
+        }
+    }
+
+    /**
+     * @test
+     */
+    public function casovyLimitPhpSeVratiNaPuvodniHodnotuIKdyzNejsouDluznici()
+    {
+        dbQuery(<<<'SQL'
+UPDATE uzivatele_hodnoty SET zustatek = 0
+SQL);
+        dbQuery(<<<'SQL'
+DELETE FROM platby WHERE castka < 0
+SQL);
+        dbQuery(<<<'SQL'
+DELETE FROM uzivatele_role WHERE id_role = $0
+SQL, [
+            0 => Role::prihlasenNaRocnik(ROCNIK),
+        ]);
+        $puvodniLimit = (int) ini_get('max_execution_time');
+        set_time_limit(77);
+        try {
+            $ted = $this->dejCasKonecGcPlus('1 week');
+            $upominaniDluzniku = $this->dejUpominaniDluznikuSCasem($ted);
+            self::assertSame([], $upominaniDluzniku->najdiDluzniky(), 'Test potřebuje databázi bez dlužníků');
+
+            $vysledek = $upominaniDluzniku->odesliUpominkyDluznikum(TypUpominky::TYDEN);
+
+            self::assertSame(-1, $vysledek);
+            self::assertSame(
+                '77',
+                ini_get('max_execution_time'),
+                'Limit se zvedá už před hledáním dlužníků, takže se musí vrátit i při návratu bez rozesílky',
+            );
+        } finally {
+            set_time_limit($puvodniLimit);
+        }
+    }
+
+    /**
+     * @test
+     */
     public function jizUpomenutemuDluznikoviNeprijdeUpominkaPodruhe()
     {
         $ted = $this->dejCasKonecGcPlus('1 week');

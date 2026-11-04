@@ -338,69 +338,76 @@ SQL,
         // Stáhnout nejnovější platby z banky před kontrolou dlužníků
         $this->fioStazeniNovychPlateb->stahniNoveFioPlatby();
 
-        // Přepočet financí všech uživatelů v DB trvá řádově desítky sekund, takže
-        // se nesmí počítat do limitu, který nastavil volající cron.
-        set_time_limit(300);
-        $dluzniciSZustatkem = $this->najdiDluzniky($rocnik);
+        $puvodniCasovyLimit = (int) ini_get('max_execution_time');
+        try {
+            // Přepočet financí všech uživatelů v DB trvá řádově desítky sekund, takže
+            // se nesmí počítat do limitu, který nastavil volající cron.
+            set_time_limit(300);
+            $dluzniciSZustatkem = $this->najdiDluzniky($rocnik);
 
-        if (count($dluzniciSZustatkem) === 0) {
-            $nazev = $this->dejNazevUpominky($typUpominky);
-            $this->jobResultLogger->logs("Upomínání dlužníků ($nazev): Žádní dlužníci k upomínání");
+            if (count($dluzniciSZustatkem) === 0) {
+                $nazev = $this->dejNazevUpominky($typUpominky);
+                $this->jobResultLogger->logs("Upomínání dlužníků ($nazev): Žádní dlužníci k upomínání");
 
-            return -1;
-        }
-
-        $pocetOdeslanychEmailu = 0;
-        $pocetPreskocenych     = 0;
-        $pocetPodPrahem        = 0;
-        $idsPodPrahem          = [];
-        $posledniGcMail        = null;
-        // Práh hlídá jen automatika; při ručním rozesílání rozhoduje o každém
-        // příjemci člověk, takže tam se neuplatňuje.
-        $minimalniCastka       = $this->systemoveNastaveni->upominkaMinimalniCastka();
-        // $znovu je výslovný pokyn obeslat všechny znovu, takže přeskakování
-        // už obeslaných platí jen pro běžný běh (typicky pokračování po pádu).
-        $jizUpomenuti          = $znovu
-            ? []
-            : array_flip($this->upominkaDluznikaLog->idsJizUpomenutych($rocnik, $typUpominky));
-        $system                = Uzivatel::zId(Uzivatel::SYSTEM, true);
-
-        foreach ($dluzniciSZustatkem as $uzivatelSDluhem) {
-            $uzivatel = $uzivatelSDluhem->uzivatel;
-            if (!$uzivatel->mail()) {
-                continue;
+                return -1;
             }
 
-            // Po spadlém běhu se pokračuje tam, kde předchozí skončil - jinak by
-            // lidem ze začátku seznamu přišla upomínka podruhé. Kontrola je před
-            // prahem, aby se už obeslaný člověk nepřesunul mezi „pod prahem“
-            // jen proto, že mezitím část dluhu doplatil.
-            if (isset($jizUpomenuti[$uzivatel->id()])) {
-                $pocetPreskocenych++;
-                continue;
-            }
+            $pocetOdeslanychEmailu = 0;
+            $pocetPreskocenych     = 0;
+            $pocetPodPrahem        = 0;
+            $idsPodPrahem          = [];
+            $posledniGcMail        = null;
+            // Práh hlídá jen automatika; při ručním rozesílání rozhoduje o každém
+            // příjemci člověk, takže tam se neuplatňuje.
+            $minimalniCastka       = $this->systemoveNastaveni->upominkaMinimalniCastka();
+            // $znovu je výslovný pokyn obeslat všechny znovu, takže přeskakování
+            // už obeslaných platí jen pro běžný běh (typicky pokračování po pádu).
+            $jizUpomenuti          = $znovu
+                ? []
+                : array_flip($this->upominkaDluznikaLog->idsJizUpomenutych($rocnik, $typUpominky));
+            $system                = Uzivatel::zId(Uzivatel::SYSTEM, true);
 
-            // Porovnává se zaokrouhlená částka, tedy ta, která reálně půjde
-            // v e-mailu - jinak by dluh 250,60 Kč vypadal jako pod prahem 251,
-            // ale v mailu by stálo 251 Kč.
-            $dluhVMailu = (int)round($uzivatelSDluhem->dluh);
-            if ($dluhVMailu < $minimalniCastka) {
-                $pocetPodPrahem++;
-                $idsPodPrahem[] = $uzivatel->id();
-                continue;
-            }
+            foreach ($dluzniciSZustatkem as $uzivatelSDluhem) {
+                $uzivatel = $uzivatelSDluhem->uzivatel;
+                if (!$uzivatel->mail()) {
+                    continue;
+                }
 
-            $posledniGcMail = $this->odesliUpominkuJednomu(
-                $uzivatel,
-                $typUpominky,
-                $dluhVMailu,
-                $rocnik,
-                $system,
-                $uzivatelSDluhem->ucastNaGc,
-                $uzivatelSDluhem->rokPosledniUcasti,
-            );
-            $pocetOdeslanychEmailu++;
-            set_time_limit(10); // Prodloužit timeout pro každý e-mail
+                // Po spadlém běhu se pokračuje tam, kde předchozí skončil - jinak by
+                // lidem ze začátku seznamu přišla upomínka podruhé. Kontrola je před
+                // prahem, aby se už obeslaný člověk nepřesunul mezi „pod prahem“
+                // jen proto, že mezitím část dluhu doplatil.
+                if (isset($jizUpomenuti[$uzivatel->id()])) {
+                    $pocetPreskocenych++;
+                    continue;
+                }
+
+                // Porovnává se zaokrouhlená částka, tedy ta, která reálně půjde
+                // v e-mailu - jinak by dluh 250,60 Kč vypadal jako pod prahem 251,
+                // ale v mailu by stálo 251 Kč.
+                $dluhVMailu = (int)round($uzivatelSDluhem->dluh);
+                if ($dluhVMailu < $minimalniCastka) {
+                    $pocetPodPrahem++;
+                    $idsPodPrahem[] = $uzivatel->id();
+                    continue;
+                }
+
+                $posledniGcMail = $this->odesliUpominkuJednomu(
+                    $uzivatel,
+                    $typUpominky,
+                    $dluhVMailu,
+                    $rocnik,
+                    $system,
+                    $uzivatelSDluhem->ucastNaGc,
+                    $uzivatelSDluhem->rokPosledniUcasti,
+                );
+                $pocetOdeslanychEmailu++;
+                set_time_limit(10); // Prodloužit timeout pro každý e-mail
+            }
+        } finally {
+            // PHP keeps the last limit set for the rest of the process, so give back
+            // what the caller had instead of leaving the 10 s of the last e-mail.
+            set_time_limit($puvodniCasovyLimit);
         }
 
         if ($idsPodPrahem !== []) {
