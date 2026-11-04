@@ -16,6 +16,7 @@ use Gamecon\Uzivatel\Dto\Dluznik;
 use Gamecon\Uzivatel\Dto\OdeslanaUpominka;
 use Gamecon\Uzivatel\Enum\TypUpominky;
 use Gamecon\Uzivatel\Enum\UcastNaGc;
+use Gamecon\Uzivatel\Finance;
 use Gamecon\Uzivatel\UpominaniDluzniku;
 use Gamecon\Uzivatel\UpominkaDluznikaLog;
 use Gamecon\Uzivatel\UpominkaVlastniZneni;
@@ -80,7 +81,7 @@ if (get('zneni') !== null) {
         // ukázkou je proto částka, od které se vůbec upomíná. QR kód se sem
         // nedává: generuje se z reálného zůstatku, takže by u nezadluženého
         // CFO ukazoval 0,10 Kč pod textem o téhle částce.
-        $ukazkovyDluh = (int) round($systemoveNastaveni->upominkaMinimalniCastka());
+        $ukazkovyDluh = Finance::formatujCastku($systemoveNastaveni->upominkaMinimalniCastka());
 
         $vykresleno = (new NahledSablony(new EmailovaSablonaVykreslovac($systemoveHodnoty)))->vykresli(
             $definiceZneni,
@@ -217,7 +218,7 @@ if ($idNahledu) {
     ), ENT_QUOTES));
     $nahled->assign('zprava', htmlspecialchars($upominaniDluzniku->dejEmailZpravu(
         $typNahledu,
-        (int)round($dluznik->dluh),
+        $dluznik->dluh,
         $dluznik->uzivatel->id(),
         $dluznik->ucastNaGc,
         $dluznik->rokPosledniUcasti,
@@ -290,7 +291,7 @@ if (post('odeslat')) {
             $upominaniDluzniku->odesliUpominkuJednomu(
                 $dluznik->uzivatel,
                 $typUpominky,
-                (int)round($dluznik->dluh),
+                $dluznik->dluh,
                 $rocnik,
                 $u,
                 $dluznik->ucastNaGc,
@@ -367,7 +368,7 @@ foreach ($dluznici as $dluznik) {
     $upominky         = $historie[$idUzivatele] ?? [];
     $posledniUpominka = $upominky[0] ?? null;
 
-    $celkovyDluh += (int)round($dluznik->dluh);
+    $celkovyDluh = Finance::zaokouhli($celkovyDluh + $dluznik->dluh);
 
     $t->assign([
         'id'                 => $idUzivatele,
@@ -376,7 +377,7 @@ foreach ($dluznici as $dluznik) {
         // ~50 ms na dlužníka a na 218 lidech by přidal přes 10 s k načtení.
         'zpravaRucni'        => htmlspecialchars($upominaniDluzniku->dejEmailZpravu(
             TypUpominky::RUCNI,
-            (int)round($dluznik->dluh),
+            $dluznik->dluh,
             $idUzivatele,
             $dluznik->ucastNaGc,
             $dluznik->rokPosledniUcasti,
@@ -386,7 +387,7 @@ foreach ($dluznici as $dluznik) {
         ), ENT_QUOTES),
         'zpravaTyden'        => htmlspecialchars($upominaniDluzniku->dejEmailZpravu(
             TypUpominky::TYDEN,
-            (int)round($dluznik->dluh),
+            $dluznik->dluh,
             $idUzivatele,
             $dluznik->ucastNaGc,
             $dluznik->rokPosledniUcasti,
@@ -399,7 +400,7 @@ foreach ($dluznici as $dluznik) {
         'zpravaVlastni'      => $maVyplneneVlastniZneni
             ? htmlspecialchars($upominaniDluzniku->dejEmailZpravu(
                 TypUpominky::VLASTNI,
-                (int)round($dluznik->dluh),
+                $dluznik->dluh,
                 $idUzivatele,
                 $dluznik->ucastNaGc,
                 $dluznik->rokPosledniUcasti,
@@ -425,7 +426,8 @@ foreach ($dluznici as $dluznik) {
             : '',
         'jmenoNick'          => htmlspecialchars((string)$dluznik->uzivatel->jmenoNick(), ENT_QUOTES),
         'mail'               => htmlspecialchars((string)($dluznik->uzivatel->mail() ?: '(bez e-mailu)'), ENT_QUOTES),
-        'dluh'               => (int)round($dluznik->dluh),
+        'dluh'               => Finance::formatujCastku($dluznik->dluh),
+        'dluhCislo'          => number_format($dluznik->dluh, 2, '.', ''),
         'ucast'              => $popisUcasti[$dluznik->ucastNaGc->name],
         'rokPosledniUcasti'  => $dluznik->rokPosledniUcasti ?? 'nikdy',
         // Řazení potřebuje číslo. „Nikdy“ = 0, takže vzestupně vyjde jako
@@ -454,7 +456,7 @@ foreach ($dluznici as $dluznik) {
 
 $t->assign([
     'pocetDluzniku' => count($dluznici),
-    'celkovyDluh'   => $celkovyDluh,
+    'celkovyDluh'   => Finance::formatujCastku($celkovyDluh),
     'rocnik'        => $rocnik,
     'vybranoRucni'  => $typUpominky === TypUpominky::RUCNI
         ? 'selected'

@@ -83,7 +83,7 @@
             <td>{id}</td>
             <td>{jmenoNick}</td>
             <td>{mail}</td>
-            <td style="text-align: right">{dluh}&thinsp;Kč</td>
+            <td style="text-align: right" data-hodnota="{dluhCislo}">{dluh}&thinsp;Kč</td>
             <td>{ucast}</td>
             <td data-hodnota="{rokPosledniUcastiSeradit}">{rokPosledniUcasti}</td>
             <td title="{typyUpominek}">{pocetUpominek}×</td>
@@ -304,14 +304,14 @@
                 return policko.closest('tr');
             });
             const celkem = radky.reduce(function (soucet, radek) {
-                return soucet + parseInt(radek.cells[4].textContent.replace(/\D/g, ''), 10);
+                return soucet + parseFloat(radek.cells[4].dataset.hodnota);
             }, 0);
             const opakovane = radky.filter(function (radek) {
                 return parseInt(radek.cells[7].textContent, 10) > 0;
             }).length;
 
             shrnuti.textContent = 'Odeslat upomínku ' + vybrani.length + ' dlužníkům v celkové výši '
-                + celkem + ' Kč?'
+                + formatujCastku(celkem) + ' Kč?'
                 + (opakovane > 0 ? ' Z toho ' + opakovane + ' už nějakou upomínku dostalo.' : '');
 
             dialog.showModal();

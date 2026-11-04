@@ -14,7 +14,7 @@ class UpominkaDluznikaLog
     public function zaloguj(
         int $idUzivatele,
         TypUpominky $typUpominky,
-        int $dluh,
+        float $dluh,
         int $rocnik,
         int $odeslal,
         \DateTimeInterface $kdy,
@@ -81,7 +81,7 @@ SQL,
             $idUzivatele = (int) $radek[Sql::ID_UZIVATELE];
             $historie[$idUzivatele][] = new OdeslanaUpominka(
                 typUpominky: TypUpominky::from($radek[Sql::TYP_UPOMINKY]),
-                dluh: (int) $radek[Sql::DLUH],
+                dluh: (float) $radek[Sql::DLUH],
                 odeslal: (int) $radek[Sql::ODESLAL],
                 kdy: new \DateTimeImmutable($radek[Sql::KDY]),
             );
