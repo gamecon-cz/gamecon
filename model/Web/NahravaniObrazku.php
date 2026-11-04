@@ -157,6 +157,21 @@ final class NahravaniObrazku
     }
 
     /**
+     * Soubory ke stažení v textech stránek a novinek. Kořen je celý `soubory/obsah`, aby šel nahradit soubor, na který
+     * text odkazuje odkudkoli, ne jen ten z adresáře stránky.
+     */
+    public static function proDokumentyObsahu(bool $poCastech = false): self
+    {
+        return new self(
+            ZpracovaneObrazky::adresarObsahu(),
+            new PouzitiObrazku(),
+            maxVelikostMb: SOUBOR_MAX_MB,
+            formaty: self::DOKUMENTY,
+            poCastech: $poCastech,
+        );
+    }
+
+    /**
      * Požadavek byl větší než post_max_size, takže PHP zahodilo celý formulář i se souborem.
      * Modul by pak nevěděl, že se něco nahrávalo, a nic by neřekl.
      */

@@ -1,0 +1,107 @@
+<!-- begin:souboryObsahu -->
+<details class="soubory-obsahu" open>
+  <summary>Soubory ke stažení</summary>
+
+  <p class="tip">
+    Soubor vložíš do textu Markdownem <code>[popis](soubory/obsah/…)</code>,
+    nebo v HTML jako <code>&lt;a href="soubory/obsah/…"&gt;popis&lt;/a&gt;</code>. Povolené jsou {limit}.
+  </p>
+
+  <!-- begin:odkazy -->
+  <h3>Soubory, na které text odkazuje</h3>
+  <table class="zvyraznovana tabulka-souboru">
+    <tr>
+      <th>Soubor</th>
+      <th>Nahrán</th>
+      <th></th>
+    </tr>
+    <!-- begin:soubor -->
+    <tr>
+      <td>
+        <!-- begin:existuje --><a href="{url}" target="_blank" rel="noopener">{cesta}</a> <span class="udaje-souboru technicke">({udaje})</span><!-- end:existuje -->
+        <!-- begin:chybi --><code>{cesta}</code> <span class="soubory-obsahu__chybi">na serveru chybí</span><!-- end:chybi -->
+      </td>
+      <td class="tabulka-souboru__nahrano">{zmeneno}</td>
+      <td>
+        <!-- begin:nahradit -->
+        <form method="post" enctype="multipart/form-data"{poCastech}>
+          <input type="hidden" name="{postAkce}" value="nahradit">
+          <input type="hidden" name="cesta" value="{cesta}">
+          <input type="file" name="{postSoubor}" accept="{acceptSouboru}" required>
+          <button type="submit"><i class="fa fa-upload" aria-hidden="true"></i> {tlacitko}</button>
+        </form>
+        <!-- end:nahradit -->
+        <!-- begin:nespravovany --><span class="tip">Tenhle soubor se tu nespravuje, jen přes FTP.</span><!-- end:nespravovany -->
+      </td>
+    </tr>
+    <!-- end:soubor -->
+  </table>
+  <p class="tip">Nový soubor musí být ve stejném formátu jako ten původní (třeba zase ZIP). Odkaz v textu se nemění.</p>
+  <!-- end:odkazy -->
+
+  <h3>Nahrát nový soubor</h3>
+  <form method="post" enctype="multipart/form-data" class="nahrani-souboru"{poCastech}>
+    <input type="hidden" name="{postAkce}" value="nahrat">
+    <label>Soubor <input type="file" name="{postSoubor}" accept="{accept}" required></label>
+    <label class="nahrani-souboru__nazev">Název <input type="text" name="nazev" maxlength="100" placeholder="jinak původní název souboru"></label>
+    <button type="submit"><i class="fa fa-upload" aria-hidden="true"></i> Nahrát</button>
+    <div class="tip">
+      Uloží se do <code>{adresar}</code>. Název se upraví do tvaru vhodného do adresy: malá písmena bez diakritiky,
+      mezery a tečky se změní na podtržítka. Soubor se stejným názvem nejde nahrát znovu, nahraď předchozí.
+    </div>
+  </form>
+
+  <!-- begin:vlastni -->
+  <h3>Soubory nahrané {kCemu}</h3>
+  <table class="zvyraznovana tabulka-souboru">
+    <tr>
+      <th>Soubor</th>
+      <th>Nahrán</th>
+      <th>Použit v</th>
+      <th></th>
+    </tr>
+    <!-- begin:soubor -->
+    <tr>
+      <td>
+        <a href="{url}" target="_blank" rel="noopener">{nazev}</a> <span class="udaje-souboru technicke">({udaje})</span>
+        <div class="zapisy-k-vlozeni">
+          <label>Markdown: <input type="text" readonly value="{markdown}" onclick="this.select()" class="zapisy-k-vlozeni__odkaz"></label>
+          <label>HTML: <input type="text" readonly value="{html}" onclick="this.select()" class="zapisy-k-vlozeni__odkaz"></label>
+        </div>
+      </td>
+      <td class="tabulka-souboru__nahrano">{zmeneno}</td>
+      <td>
+        <!-- begin:misto --><a href="{pouzitiUrl}">{pouzitiPopis}</a><br><!-- end:misto -->
+        <!-- begin:nikde --><span class="tip" title="Nikde se nepoužívá">—</span><!-- end:nikde -->
+      </td>
+      <td>
+        <!-- begin:smazat -->
+        <form method="post" onsubmit="return confirm('Opravdu smazat tento soubor?')">
+          <input type="hidden" name="{postAkce}" value="smazat">
+          <input type="hidden" name="cesta" value="{cesta}">
+          <button type="submit"><i class="fa fa-trash" aria-hidden="true"></i> Smazat</button>
+        </form>
+        <!-- end:smazat -->
+        <!-- begin:nespravovany --><span class="tip">Tenhle soubor se tu nespravuje, jen přes FTP.</span><!-- end:nespravovany -->
+      </td>
+    </tr>
+    <!-- end:soubor -->
+  </table>
+  <!-- end:vlastni -->
+</details>
+
+<style>
+    .soubory-obsahu {
+        margin: 1.5em 0;
+    }
+
+    .soubory-obsahu summary {
+        cursor: pointer;
+        font-size: larger;
+    }
+
+    .soubory-obsahu__chybi {
+        color: #c00;
+    }
+</style>
+<!-- end:souboryObsahu -->

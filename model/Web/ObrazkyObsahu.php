@@ -21,32 +21,6 @@ final class ObrazkyObsahu
     private readonly NahravaniObrazku $nahravani;
     private readonly SouboryTextu $soubory;
 
-    public static function proStranku(\Stranka $stranka): self
-    {
-        $segmenty = array_filter(
-            array_map('slugify', explode('/', (string)$stranka->url())),
-            static fn (string $segment): bool => $segment !== '',
-        );
-
-        return new self(
-            (string)($stranka->raw()['obsah'] ?? ''),
-            'stranky/' . ($segmenty !== [] ? implode('/', $segmenty) : 'stranka-' . $stranka->id()),
-            'k této stránce',
-        );
-    }
-
-    public static function proNovinku(\Novinka $novinka): self
-    {
-        $jeBlog = (int)$novinka->typ() === \Novinka::BLOG;
-        $url = slugify((string)$novinka->url());
-
-        return new self(
-            (string)($novinka->raw()['text'] ?? ''),
-            ($jeBlog ? 'blog/' : 'novinky/') . ($url !== '' ? $url : 'novinka-' . $novinka->id()),
-            $jeBlog ? 'k tomuto příspěvku' : 'k této novince',
-        );
-    }
-
     /**
      * @param string $text Markdown nebo HTML, ve kterém se hledají odkazy na obrázky
      * @param string $adresarProNove kam se ukládají nové obrázky, vůči adresáři obsahu
