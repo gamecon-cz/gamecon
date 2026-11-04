@@ -191,6 +191,8 @@ $uzivatelMaPristup = $strankaExistuje
                      );
 
 $submenuDoplnek = '';
+// nadpis horní lišty moderního vzhledu, i pro online prezenci v Moje aktivity, která má lištu vlastní
+$nazevSekce = $menu[$stranka]['nazev'] ?? 'Administrace';
 
 // konstrukce stránky
 if ($strankaExistuje && $uzivatelMaPristup) {
@@ -386,7 +388,7 @@ $info->nazev($info->nazev() ?? '', 'Administrace');
 $xtpl->assign('protip', $protipy[array_rand($protipy)]);
 $xtpl->parse('all.paticka');
 $xtpl->assign([
-    'nazevSekce'      => $menu[$stranka]['nazev'] ?? 'Administrace',
+    'nazevSekce'      => $nazevSekce,
     'prepinacVzhledu' => $vzhledAdminuHtml?->getPrepinacHtml($u->id()) ?? '',
     'vyberVzhledu'    => $vzhledAdminuHtml?->getVyberHtml($u->id()) ?? '',
 ]);
