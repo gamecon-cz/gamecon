@@ -290,6 +290,8 @@ final class NahravaniObrazku
      *                                             bere i dokumenty, jinak stejný limit jako pro všechno
      * @param OptimalizaceObrazku|null $optimalizace bez ní se obrázky ukládají tak, jak přišly; s ní se JPEG a PNG
      *                                               převádějí do WebP (když ho formáty povolují) a velké obrázky zmenšují
+     * @param bool $poCastech formulář posílá soubor po částech (@see NahravaniPoCastech), takže ho nesvazují limity PHP
+     *                        pro jeden požadavek; ty pak platí jen pro soubor, který přišel najednou
      */
     public function __construct(
         private readonly string $korenovyAdresar,
@@ -299,21 +301,36 @@ final class NahravaniObrazku
         private readonly int $maxPixelu = self::MAX_PIXELU,
         private readonly int|float|null $maxVelikostObrazkuMb = null,
         private readonly ?OptimalizaceObrazku $optimalizace = null,
+        private readonly bool $poCastech = false,
     ) {
         $this->pracujeSDokumenty = array_intersect($formaty, self::DOKUMENTY) !== [];
     }
 
+    /**
+     * Největší soubor, který služba přijme. Soubor přijatý po částech omezuje jen nastavení aplikace.
+     */
     public function maxVelikostBajtu(): int
     {
         $limit = (int) round(($this->maxVelikostMb ?? OBRAZEK_MAX_MB) * 1024 * 1024);
-        foreach (['upload_max_filesize', 'post_max_size'] as $nastaveniPhp) {
-            $limitPhp = self::bajtyZNastaveniPhp($nastaveniPhp);
-            if ($limitPhp > 0) {
-                $limit = min($limit, $limitPhp);
-            }
-        }
 
-        return $limit;
+        return $this->poCastech
+            ? $limit
+            : min($limit, $this->maxVelikostJednohoPozadavkuBajtu() ?: $limit);
+    }
+
+    /**
+     * Co PHP přijme v jednom požadavku, tedy menší z `upload_max_filesize` a `post_max_size`; 0, když ho nic neomezuje.
+     */
+    private function maxVelikostJednohoPozadavkuBajtu(): int
+    {
+        $limity = array_filter([
+            self::bajtyZNastaveniPhp('upload_max_filesize'),
+            self::bajtyZNastaveniPhp('post_max_size'),
+        ], static fn (int $limit): bool => $limit > 0);
+
+        return $limity === []
+            ? 0
+            : min($limity);
     }
 
     /** Například „JPG, PNG, GIF nebo WebP, nejvýš 5 MB; JPG a PNG se zmenší na nejvýš 1920 px a uloží jako WebP“ */
@@ -367,7 +384,8 @@ final class NahravaniObrazku
             throw new NahravaniObrazkuException('Není vybraný žádný soubor.');
         }
         if ($kodChyby === UPLOAD_ERR_INI_SIZE || $kodChyby === UPLOAD_ERR_FORM_SIZE) {
-            throw $this->chybaVelikosti();
+            // PHP odmítlo soubor kvůli limitu jednoho požadavku, i kdyby ho služba po částech přijala
+            throw $this->chybaVelikosti(min($this->maxVelikostBajtu(), $this->maxVelikostJednohoPozadavkuBajtu() ?: PHP_INT_MAX));
         }
         if ($kodChyby !== UPLOAD_ERR_OK) {
             throw new NahravaniObrazkuException(
@@ -634,7 +652,10 @@ final class NahravaniObrazku
         return ZpracovaneObrazky::urlNaWebu($this->cestaPodKorenem($absolutniCesta));
     }
 
-    private static function bajtyZNastaveniPhp(string $nazev): int
+    /**
+     * @return int bajty nastavení PHP typu `8M`, 0 když je prázdné
+     */
+    public static function bajtyZNastaveniPhp(string $nazev): int
     {
         $hodnota = trim((string) ini_get($nazev));
 
@@ -895,10 +916,10 @@ final class NahravaniObrazku
             : implode(', ', $nazvy) . ' nebo ' . $posledni;
     }
 
-    private function chybaVelikosti(): NahravaniObrazkuException
+    private function chybaVelikosti(?int $limitBajtu = null): NahravaniObrazkuException
     {
         return new NahravaniObrazkuException(
-            sprintf('Soubor je příliš velký, maximum je %s.', self::lidskaVelikost($this->maxVelikostBajtu())),
+            sprintf('Soubor je příliš velký, maximum je %s.', self::lidskaVelikost($limitBajtu ?? $this->maxVelikostBajtu())),
         );
     }
 

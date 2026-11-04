@@ -649,6 +649,22 @@ class NahravaniObrazkuTest extends TestCase
     /**
      * @test
      */
+    public function souborPoCastechOmezujeJenNastaveniAplikace(): void
+    {
+        $jedenPozadavek = new NahravaniObrazku($this->koren, maxVelikostMb: 100_000);
+        $poCastech = new NahravaniObrazku($this->koren, maxVelikostMb: 100_000, poCastech: true);
+
+        self::assertSame(100_000 * 1024 * 1024, $poCastech->maxVelikostBajtu());
+        self::assertLessThan(
+            $poCastech->maxVelikostBajtu(),
+            $jedenPozadavek->maxVelikostBajtu(),
+            'Soubor v jednom požadavku omezuje i upload_max_filesize a post_max_size',
+        );
+    }
+
+    /**
+     * @test
+     */
     public function sluzbaProObrazkyDokumentNepusti(): void
     {
         $this->ocekavejChybu('Soubor není obrázek, nahraj prosím JPG, PNG, GIF nebo WebP.');
