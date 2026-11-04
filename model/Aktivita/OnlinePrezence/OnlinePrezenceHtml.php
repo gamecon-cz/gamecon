@@ -82,11 +82,12 @@ class OnlinePrezenceHtml
             $template->parse('onlinePrezence.moderniLista');
         }
         if ($this->vzhledAdminuHtml !== null) {
-            // stránka nevypisuje hlášky, oznámení o změně vzhledu by vyskočilo až na jiné stránce adminu
-            $template->assign('prepinacVzhledu', $this->vzhledAdminuHtml->getPrepinacHtml((int) $editujici->id(), sOznamenim: false));
-            $template->assign('vyberVzhledu', $this->vzhledAdminuHtml->getVyberHtml((int) $editujici->id(), sOznamenim: false));
+            $template->assign('prepinacVzhledu', $this->vzhledAdminuHtml->getPrepinacHtml((int) $editujici->id()));
+            $template->assign('vyberVzhledu', $this->vzhledAdminuHtml->getVyberHtml((int) $editujici->id()));
             $template->parse('onlinePrezence.volbaVzhledu');
         }
+        // hlášky (chyba(), oznameni()), třeba o změně vzhledu; nevyzvednuté by vyskočily až na jiné stránce adminu
+        $template->assign('hlasky', \Chyba::vyzvedniHtml());
 
         $this->pridejLokalniAssety($template);
 
@@ -107,6 +108,7 @@ class OnlinePrezenceHtml
             'stylesheets' => [
                 __DIR__ . '/../../../admin/files/design/hint.css',
                 __DIR__ . '/../../../admin/files/design/zvyraznena-tabulka.css',
+                __DIR__ . '/../../../admin/files/design/hlasky.css',
                 __DIR__ . '/../../../admin/files/design/online-prezence.css',
             ],
             'javascripts' => [

@@ -1022,63 +1022,6 @@ body.vzhled-moderni:has(.profilInfo) .sloupL {
   padding-left: 14px;
 }
 
-/* Vyskakovací hlášky (chyba(), oznameni()) */
-:where(.vzhled-moderni) .chybaBlok {
-  top: 16px;
-  left: 50%;
-  width: min(640px, calc(100% - 32px));
-  text-align: left;
-  transform: translateX(-50%);
-}
-
-:where(.vzhled-moderni) .chybaBlok.inline {
-  left: 0;
-  width: 100%;
-  transform: none;
-}
-
-:where(.vzhled-moderni) .chybaBlok .hlaska {
-  margin: 0 0 8px;
-  padding: 14px 44px 14px 16px;
-  border: 1px solid;
-  border-left-width: 4px;
-  border-radius: 10px;
-  box-shadow: 0 12px 32px rgba(16, 24, 40, 0.18);
-  font-size: 15px;
-}
-
-:where(.vzhled-moderni) .chybaBlok .errorHlaska {
-  border-color: #d93025;
-  background-color: #fdeeee;
-  color: #8a1c1c;
-}
-
-:where(.vzhled-moderni) .chybaBlok .varovani {
-  border-color: #e0a100;
-  background-color: #fff8e1;
-  color: #6b5000;
-}
-
-:where(.vzhled-moderni) .chybaBlok .oznameni {
-  border-color: #2e7d32;
-  background-color: #eaf6ee;
-  color: #1e5631;
-}
-
-:where(.vzhled-moderni) .chybaBlok .admin_zavrit {
-  top: 14px;
-  right: 14px;
-  font-size: 0;
-}
-
-/* Křížek z Font Awesome místo emoji, ladí s barvou hlášky. */
-:where(.vzhled-moderni) .chybaBlok .admin_zavrit::before {
-  content: "\f00d";
-  color: currentColor;
-  font: 900 16px "Font Awesome 6 Free";
-  opacity: 0.7;
-}
-
 /* Štítek prostředí (beta, preview, lokál) nad panelem, ať je vidět; kliknutí propustí. Je oranžový v obou
    barvách, písmo tedy tmavé i v tmavých. */
 .vzhled-moderni .corner-ribbon {
@@ -1387,6 +1330,7 @@ body.moderni-menu-otevrene .sloupL {
   z-index: 1000;
 }
 
+/* Vyskakovací hlášky (hlasky.css) pod horní lištou */
 :where(.moderni-menu-schovane .vzhled-moderni) .chybaBlok {
   top: calc(var(--m-vyska-listy) + 8px);
 }
@@ -1844,43 +1788,23 @@ body.moderni-menu-otevrene .sloupL {
     color: #b9a2ff !important;
   }
 
-  /* Hlášky */
-  :where(.moderni-tmave .vzhled-moderni) .error,
-  :where(.moderni-tmave .vzhled-moderni) .chybaBlok .errorHlaska {
+  /* Hlášky v obsahu, vyskakovací mají stejné odstíny v hlasky.css */
+  :where(.moderni-tmave .vzhled-moderni) .error {
     border-color: #7a2e2e;
     background-color: #33191b;
     color: #ffb4ab;
   }
 
-  :where(.moderni-tmave .vzhled-moderni) .success,
-  :where(.moderni-tmave .vzhled-moderni) .chybaBlok .oznameni {
+  :where(.moderni-tmave .vzhled-moderni) .success {
     border-color: #2f6440;
     background-color: #142a1c;
     color: #9ed8ae;
   }
 
-  :where(.moderni-tmave .vzhled-moderni) .warning,
-  :where(.moderni-tmave .vzhled-moderni) .chybaBlok .varovani {
+  :where(.moderni-tmave .vzhled-moderni) .warning {
     border-color: #6e5617;
     background-color: #2e2510;
     color: #f2d27a;
-  }
-
-  /* vyskakovací hlášky mají okraj vlevo výraznější */
-  :where(.moderni-tmave .vzhled-moderni) .chybaBlok .errorHlaska {
-    border-left-color: #e5534b;
-  }
-
-  :where(.moderni-tmave .vzhled-moderni) .chybaBlok .oznameni {
-    border-left-color: #46954a;
-  }
-
-  :where(.moderni-tmave .vzhled-moderni) .chybaBlok .varovani {
-    border-left-color: #d29922;
-  }
-
-  :where(.moderni-tmave .vzhled-moderni) .chybaBlok .hlaska {
-    box-shadow: 0 12px 32px rgba(0, 0, 0, 0.5);
   }
 
   :where(.moderni-tmave .vzhled-moderni) .danger:disabled,

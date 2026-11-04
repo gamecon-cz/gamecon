@@ -192,3 +192,9 @@ input[disabled]::placeholder {
 .kontakty-zamcene-pruh .odemknout-kontakty {
   margin-left: 0.75em;
 }
+
+/* Vyskakovací hlášky (hlasky.css) */
+.chybaBlok {
+  z-index: 1060; /* nad okny Bootstrapu */
+  cursor: pointer; /* kliknutí hlášku zavře */
+}

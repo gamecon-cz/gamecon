@@ -39,6 +39,8 @@
 
 <body class="{tridaVzhledu}">
 
+{hlasky}
+
 <!-- begin:moderniLista -->
 <header class="op-lista">
     <a class="op-lista-logo" href="{urlZpet}" aria-label="GameCon – {textZpet}">GC</a>

@@ -505,6 +505,11 @@ body.vzhled-moderni {
   color: var(--m-na-tmave);
 }
 
+/* Vyskakovací hlášky (hlasky.css) pod horní lištou */
+.vzhled-moderni .chybaBlok {
+  top: calc(var(--m-vyska-listy) + 8px);
+}
+
 /* ---------- Telefon ---------- */
 
 @media only screen and (max-width: 600px) {

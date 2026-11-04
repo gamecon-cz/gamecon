@@ -76,11 +76,17 @@ class OnlinePrezenceHtmlVzhledTest extends AbstractUzivatelTestDb
         self::assertStringContainsString('prepinac-vzhledu', $html);
         self::assertStringContainsString('vzhled_adminu.css', $html);
         self::assertStringNotContainsString('barvy_adminu.js', $html, 'Tmavé barvy umí jen moderní vzhled');
-        self::assertStringContainsString(
-            'name="' . VzhledAdminu::POST_KLIC_BEZ_OZNAMENI . '"',
-            $html,
-            'Stránka nevypisuje hlášky, oznámení o změně vzhledu by vyskočilo jinde',
-        );
+    }
+
+    public function testVypiseHlasky(): void
+    {
+        \Chyba::vyzvedniHtml(); // hlášky z dřívějška pryč
+        oznameni('Administrace má teď moderní vzhled.', false);
+
+        $html = $this->dejHtml(VzhledAdminuEnum::MODERNI);
+
+        self::assertStringContainsString('Administrace má teď moderní vzhled.', $html);
+        self::assertSame('', \Chyba::vyzvedniHtml(), 'Vypsaná hláška už nevyskočí na další stránce adminu');
     }
 
     public function testModerniVzhledMaListuAStyly(): void

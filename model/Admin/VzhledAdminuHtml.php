@@ -20,10 +20,7 @@ class VzhledAdminuHtml
     ) {
     }
 
-    /**
-     * @param bool $sOznamenim false na stránce, která nevypisuje hlášky (chyba(), oznameni())
-     */
-    public function getPrepinacHtml(int $idUzivatele, bool $sOznamenim = true): string
+    public function getPrepinacHtml(int $idUzivatele): string
     {
         $vzhled = $this->vzhledAdminu->getVzhled($idUzivatele);
         $sablona = $this->vytvorSablonu('prepinac-vzhledu.xtpl');
@@ -31,9 +28,6 @@ class VzhledAdminuHtml
             'klasickyZvolen' => $vzhled === VzhledAdminuEnum::KLASICKY ? 'true' : 'false',
             'moderniZvolen'  => $vzhled === VzhledAdminuEnum::MODERNI ? 'true' : 'false',
         ]);
-        if (! $sOznamenim) {
-            $sablona->parse('prepinacVzhledu.bezOznameni');
-        }
         // tmavé barvy umí jen moderní vzhled
         if ($vzhled === VzhledAdminuEnum::MODERNI) {
             $sablona->parse('prepinacVzhledu.barvy');
@@ -44,19 +38,14 @@ class VzhledAdminuHtml
     }
 
     /**
-     * @param bool $sOznamenim false na stránce, která nevypisuje hlášky (chyba(), oznameni())
-     *
      * @return string empty when the user has chosen already or postponed the choice for this session
      */
-    public function getVyberHtml(int $idUzivatele, bool $sOznamenim = true): string
+    public function getVyberHtml(int $idUzivatele): string
     {
         if (! $this->vzhledAdminu->isNabidnoutVyber($idUzivatele)) {
             return '';
         }
         $sablona = $this->vytvorSablonu('vyber-vzhledu.xtpl');
-        if (! $sOznamenim) {
-            $sablona->parse('vyberVzhledu.bezOznameni');
-        }
         $sablona->parse('vyberVzhledu');
 
         return $sablona->text('vyberVzhledu');
@@ -66,11 +55,10 @@ class VzhledAdminuHtml
     {
         $sablona = new XTemplate(self::SABLONY . '/' . $soubor);
         $sablona->assign([
-            'vzhledPostKlic'  => VzhledAdminu::POST_KLIC,
-            'bezOznameniKlic' => VzhledAdminu::POST_KLIC_BEZ_OZNAMENI,
-            'vzhledPozdeji'   => VzhledAdminu::VOLBA_POZDEJI,
-            'vzhledKlasicky'  => VzhledAdminuEnum::KLASICKY->value,
-            'vzhledModerni'   => VzhledAdminuEnum::MODERNI->value,
+            'vzhledPostKlic' => VzhledAdminu::POST_KLIC,
+            'vzhledPozdeji'  => VzhledAdminu::VOLBA_POZDEJI,
+            'vzhledKlasicky' => VzhledAdminuEnum::KLASICKY->value,
+            'vzhledModerni'  => VzhledAdminuEnum::MODERNI->value,
         ]);
 
         return $sablona;
