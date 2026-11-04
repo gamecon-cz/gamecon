@@ -10,6 +10,7 @@ use Gamecon\Role\Role;
 use Gamecon\SystemoveNastaveni\SystemoveNastaveniHtml;
 use Gamecon\Uzivatel\Platby;
 use Gamecon\Web\Info;
+use Gamecon\Web\Urls;
 use Gamecon\Web\VerzeSouboru;
 use Gamecon\XTemplate\XTemplate;
 
@@ -99,11 +100,15 @@ if ($u) {
     $vzhled = $vzhledAdminu->getVzhled($u->id());
 }
 
+// Odkaz na kotvu musí nést adresu stránky, samotné #kotva by se vůči <base> otevřelo na úvodní stránce adminu.
+$urlStranky = htmlspecialchars(Urls::getCestaNaTomtoWebu($_SERVER['REQUEST_URI'] ?? ''));
+
 // xtemplate inicializace
 $xtpl = new XTemplate(__DIR__ . '/' . $vzhled->getSablona());
 $xtpl->assign([
     'headerPageInfo'          => $info->html(),
     'base'                    => URL_ADMIN . '/',
+    'urlStranky'              => $urlStranky,
     'cssVersions'             => new VerzeSouboru(__DIR__ . '/files/design', 'css'),
     'jsVersions'              => new VerzeSouboru(__DIR__ . '/files', 'js'),
     'urlSPracovnimUzivatelem' => $uPracovni

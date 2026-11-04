@@ -61,7 +61,7 @@
   <script type="text/javascript" src="files/moderni.js?version={jsVersions.moderni}" defer></script>
 </head>
 <body class="vzhled-moderni">
-<a class="moderni-preskocit" href="#mainContent">Přeskočit na obsah</a>
+<a class="moderni-preskocit" href="{urlStranky}#mainContent">Přeskočit na obsah</a>
 <header class="moderni-horni-lista">
   <button type="button" class="moderni-tlacitko-menu" aria-controls="moderniPostranniPanel" aria-expanded="false">
     <i class="fa-solid fa-bars" aria-hidden="true"></i><span class="moderni-skryte">Menu</span>
