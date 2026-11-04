@@ -414,7 +414,7 @@ final class NahravaniObrazku
             : $this->obrazekStejnehoNazvu($adresar, $nazevBezPripony, $obrazek->mime);
         if ($existujici !== null) {
             throw new NahravaniObrazkuException(sprintf(
-                'Soubor %s už existuje. Zvol jiný název, nebo ho nahraď u něj v seznamu.',
+                'Soubor %s už existuje. Zvol jiný název, nebo nahraď předchozí.',
                 basename($existujici),
             ));
         }

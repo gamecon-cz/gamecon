@@ -85,6 +85,8 @@ SQL,
         self::assertStringNotContainsString('.htaccess', $html);
         self::assertStringContainsString('accept="application/pdf,application/zip"', $html);
         self::assertStringContainsString('<option value="2027">', $html);
+        self::assertStringContainsString('Soubor se stejným názvem nejde nahrát znovu, nahraď předchozí.', $html);
+        self::assertStringNotContainsString('v seznamu', $html);
 
         $pouzity = self::radek($html, 'pouzity.pdf');
         self::assertStringContainsString('<a href="web/editace-stranek?id=9921">stránka soubory-test</a>', $pouzity);
