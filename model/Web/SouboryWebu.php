@@ -246,6 +246,9 @@ final class SouboryWebu
                 $template->parse('souboryWebu.slozka.soubor.smazat');
             }
         }
+        if ($pouziti === []) {
+            $template->parse('souboryWebu.slozka.soubor.nikde');
+        }
         foreach ($pouziti as ['popis' => $popis, 'url' => $url]) {
             $template->assign([
                 'pouzitiPopis' => htmlspecialchars($popis),

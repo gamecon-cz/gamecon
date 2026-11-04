@@ -54,6 +54,7 @@
         <!-- begin:vTextu --><a href="{pouzitiUrl}">{pouzitiPopis}</a><br><!-- end:vTextu -->
         <!-- begin:vKodu -->{pouzitiPopis} <span class="tip">(v kódu webu)</span><br><!-- end:vKodu -->
         <!-- end:misto -->
+        <!-- begin:nikde --><span class="tip" title="Nikde se nepoužívá">—</span><!-- end:nikde -->
       </td>
       <td>
         <div class="soubory-webu__akce">
