@@ -91,9 +91,9 @@ SQL,
         self::assertStringContainsString('value="nahradit"', $pouzity);
         self::assertStringNotContainsString('value="smazat"', $pouzity, 'Soubor, na který text odkazuje, jde nahradit, ale ne smazat');
         self::assertStringContainsString(
-            '</a> <span class="soubory-webu__udaje">PDF, ' . NahravaniObrazku::lidskaVelikost(strlen(self::pdfBajty())) . '</span>',
+            '</a> <span class="soubory-webu__udaje technicke">PDF, ' . NahravaniObrazku::lidskaVelikost(strlen(self::pdfBajty())) . '</span>',
             $pouzity,
-            'Typ a velikost jsou text za odkazem na soubor, ne vlastní sloupce',
+            'Typ a velikost jsou technický údaj (písmo třídy technicke) za odkazem na soubor, ne vlastní sloupce',
         );
         self::assertStringNotContainsString('<th>Typ</th>', $html);
         self::assertStringNotContainsString('<th>Velikost</th>', $html);
