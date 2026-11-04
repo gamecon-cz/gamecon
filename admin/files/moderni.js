@@ -111,7 +111,7 @@
     })
 
     // Výběr pracovního uživatele je ve vysouvacím menu, kam se fokus nedostane, dokud je zasunuté. Zkratka alt+U
-    // (omnibox-1.1.5.js) i hlášky „Vyberte uživatele (pole vlevo)“ (onclick s focus()) proto menu nejdřív vysunou.
+    // (omnibox.js) i hlášky „Vyberte uživatele (pole vlevo)“ (onclick s focus()) proto menu nejdřív vysunou.
     const ukazVyberUzivatele = function () {
       const vyberUzivatele = document.getElementById('omniboxUzivateleProPraci')
       if (!vyberUzivatele || !jeMenuVysouvaci()) {

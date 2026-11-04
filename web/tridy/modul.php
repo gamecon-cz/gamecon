@@ -136,7 +136,7 @@ class Modul
             ? $cestaNaWebu
             : WWW . '/' . $cestaNaWebu;
         $verzeSouboru  = new \Gamecon\Web\VerzeSouboru(dirname($cestaKSouboru), 'js');
-        $verze         = $verzeSouboru->verze($cestaKSouboru);
+        $verze         = $verzeSouboru->getVerze($cestaKSouboru);
         $cestaNaWebu   = ltrim(substr(realpath($cestaKSouboru), strlen(realpath(WWW))), '/');
         $url           = URL_WEBU . '/' . $cestaNaWebu . '?version=' . $verze;
         return $url;
