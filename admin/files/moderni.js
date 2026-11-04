@@ -19,6 +19,9 @@
   const uzkaObrazovka = window.matchMedia('(max-width: 1023.98px)')
   // stejný klíč čte skript v hlavičce main.xtpl
   const klicSchovanehoMenu = 'adminSchovaneMenu'
+  // Posuvné tabulky ukazují stín u okraje, kudy pokračují. Po změně velikosti okna je přepočítá jeden společný
+  // posluchač, ne každá tabulka svůj.
+  const ukazateleOkrajuTabulek = []
 
   function jeMenuVysouvaci() {
     return uzkaObrazovka.matches || html.classList.contains('moderni-menu-schovane')
@@ -160,7 +163,7 @@
         obal.classList.toggle('pokracuje-vpravo', posuvnik.scrollLeft + posuvnik.clientWidth < posuvnik.scrollWidth - 1)
       }
       posuvnik.addEventListener('scroll', ukazPokracovani, {passive: true})
-      window.addEventListener('resize', ukazPokracovani)
+      ukazateleOkrajuTabulek.push(ukazPokracovani)
       ukazPokracovani()
     })
   }
@@ -193,6 +196,11 @@
   window.addEventListener('load', obalSirokeTabulky)
   let casovacZmenyVelikosti = null
   window.addEventListener('resize', function () {
+    // stín u okraje hned, i během tažení okna nebo otáčení tabletu; jen přepne třídy
+    ukazateleOkrajuTabulek.forEach(function (ukazPokracovani) {
+      ukazPokracovani()
+    })
+    // měření celé stránky až po usazení velikosti
     clearTimeout(casovacZmenyVelikosti)
     casovacZmenyVelikosti = setTimeout(function () {
       obalSirokeTabulky()
