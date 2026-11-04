@@ -124,10 +124,10 @@
       }
       vyberUzivatele.focus()
     }
-    document.addEventListener('keydown', function (event) {
-      if (event.altKey && !event.ctrlKey && !event.metaKey && event.key.toLowerCase() === 'u') {
-        ukazVyberUzivatele()
-      }
+    // Přes jquery.hotkeys jako v omnibox.js: pozná klávesu podle kódu, ne podle znaku (alt+U je na Macu a iPadu
+    // mrtvá klávesa pro přehlásku, event.key je tam 'Dead'), a při psaní do formulářového pole nic nedělá.
+    jQuery(document).on('keydown', null, 'alt+u', function () {
+      ukazVyberUzivatele()
     })
     document.addEventListener('click', function (event) {
       if (event.target.closest('[onclick*="omniboxUzivateleProPraci"]')) {
