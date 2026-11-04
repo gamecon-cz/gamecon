@@ -574,6 +574,30 @@ SQL;
     }
 
     /**
+     * @test
+     */
+    public function casovyLimitPhpSePoRozesilceVratiNaPuvodniHodnotu()
+    {
+        $puvodniLimit = (int) ini_get('max_execution_time');
+        set_time_limit(77);
+        try {
+            $ted = $this->dejCasRegistraceMinus('1 month');
+            $promlceniZustatku = $this->dejPromlceniZustatkuSCasem($ted);
+
+            $pocetOdeslanych = $promlceniZustatku->odesliVarovneEmaily(TypVarovaniPromlceni::MESIC);
+
+            self::assertGreaterThan(0, $pocetOdeslanych, 'Test potřebuje aspoň jeden odeslaný e-mail');
+            self::assertSame(
+                '77',
+                ini_get('max_execution_time'),
+                'Rozesílka si časový limit pro další e-maily prodlužuje, ale po sobě musí vrátit původní',
+            );
+        } finally {
+            set_time_limit($puvodniLimit);
+        }
+    }
+
+    /**
      * The mail comes from a database template, not from code: we verify that the name, balance and the
      * ROCNIK symbol were substituted and nothing stayed in percent signs.
      */
