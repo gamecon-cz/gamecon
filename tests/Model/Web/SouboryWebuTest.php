@@ -90,7 +90,13 @@ SQL,
         self::assertStringContainsString('<a href="web/editace-stranek?id=9921">stránka soubory-test</a>', $pouzity);
         self::assertStringContainsString('value="nahradit"', $pouzity);
         self::assertStringNotContainsString('value="smazat"', $pouzity, 'Soubor, na který text odkazuje, jde nahradit, ale ne smazat');
-        self::assertStringContainsString('<td>PDF</td>', $pouzity);
+        self::assertStringContainsString(
+            '</a> <span class="soubory-webu__udaje">PDF, ' . NahravaniObrazku::lidskaVelikost(strlen(self::pdfBajty())) . '</span>',
+            $pouzity,
+            'Typ a velikost jsou text za odkazem na soubor, ne vlastní sloupce',
+        );
+        self::assertStringNotContainsString('<th>Typ</th>', $html);
+        self::assertStringNotContainsString('<th>Velikost</th>', $html);
 
         $vPodslozce = self::radek($html, '2027/dve.pdf');
         self::assertStringContainsString('stránka soubory-test', $vPodslozce, 'Odkaz s ?download=1 platí');
@@ -106,6 +112,11 @@ SQL,
         self::assertStringContainsString('jen přes FTP', $stary);
         self::assertStringNotContainsString('value="nahradit"', $stary);
         self::assertStringNotContainsString('value="smazat"', $stary);
+        self::assertStringContainsString(
+            'DOCX, ' . NahravaniObrazku::lidskaVelikost(strlen('dokument z doby FTP')) . '</span>',
+            $stary,
+            'Typ se u souboru nepovoleného formátu bere z přípony',
+        );
     }
 
     /**
@@ -292,7 +303,7 @@ SQL,
             self::slozka() => $this->nastaveni([NahravaniObrazku::PDF]),
         ]))->html();
 
-        self::assertStringContainsString('Zatím tu žádný soubor není.', $html);
+        self::assertStringContainsString('<td colspan="4"><i>Zatím tu žádný soubor není.</i></td>', $html, 'Přes všechny sloupce tabulky');
         self::assertStringContainsString('(0)', $html);
     }
 

@@ -35,8 +35,6 @@
   <table class="zvyraznovana soubory-webu__tabulka">
     <tr>
       <th>Soubor</th>
-      <th>Typ</th>
-      <th>Velikost</th>
       <th>Změněno</th>
       <th>Odkazuje na něj</th>
       <th></th>
@@ -44,14 +42,12 @@
     <!-- begin:soubor -->
     <tr>
       <td>
-        <a href="{url}" target="_blank" rel="noopener">{cesta}</a>
+        <a href="{url}" target="_blank" rel="noopener">{cesta}</a> <span class="soubory-webu__udaje">{typ}, {velikost}</span>
         <div class="zapisy-k-vlozeni">
           <label>Markdown: <input type="text" readonly value="{markdown}" onclick="this.select()" class="soubory-webu__odkaz"></label>
           <label>HTML: <input type="text" readonly value="{html}" onclick="this.select()" class="soubory-webu__odkaz"></label>
         </div>
       </td>
-      <td>{typ}</td>
-      <td>{velikost}</td>
       <td>{zmeneno}</td>
       <td>
         <!-- begin:misto -->
@@ -83,7 +79,7 @@
     <!-- end:soubor -->
     <!-- begin:zadny -->
     <tr>
-      <td colspan="6"><i>Zatím tu žádný soubor není.</i></td>
+      <td colspan="4"><i>Zatím tu žádný soubor není.</i></td>
     </tr>
     <!-- end:zadny -->
   </table>
@@ -130,6 +126,10 @@
 
     .soubory-webu__pocet {
         font-size: 0.7em;
+    }
+
+    .soubory-webu__udaje {
+        opacity: 0.7;
     }
 
     .soubory-webu__odkaz {
