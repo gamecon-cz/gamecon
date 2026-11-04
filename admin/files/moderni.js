@@ -90,7 +90,9 @@
         zavriMenu(true)
       }
     })
-    uzkaObrazovka.addEventListener('change', function () {
+    // Po rozšíření okna je panel vedle obsahu, vysunuté menu se zavře. Hlídá se změna velikosti, ne změna
+    // MediaQueryList, na které Safari do verze 13 nezná addEventListener.
+    window.addEventListener('resize', function () {
       if (!jeMenuVysouvaci()) {
         zavriMenu(false)
       }
