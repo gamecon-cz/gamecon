@@ -33,6 +33,7 @@ class AdminMenu
                 $this->menu[$url]['pravo']  = (int)$m[1];
                 $this->menu[$url]['prava']  = $this->parsePrava($fc, (int)$m[1]);
                 $this->menu[$url]['soubor'] = $this->src . $file;
+                $this->menu[$url]['ikona']  = $this->parseIkona($fc);
                 if ($this->isSubmenu) {
                     $this->parseSubMenu($fc, $url);
                 }
@@ -47,6 +48,7 @@ class AdminMenu
                 $this->menu[$url]['prava']   = $this->parsePrava($fc, (int)$m[1]);
                 $this->menu[$url]['soubor']  = $this->src . $file . '/' . $file . '.php';
                 $this->menu[$url]['submenu'] = 1;
+                $this->menu[$url]['ikona']   = $this->parseIkona($fc);
                 if ($this->isSubmenu) {
                     $this->parseSubMenu($fc, $url);
                 }
@@ -103,11 +105,20 @@ class AdminMenu
         $this->menu[$url]['nazev'] = ($m[1] ?? $this->menu[$url]['nazev']);
         preg_match('@\*\s*submenu_link_open_in_blank:\s*(.*)@', $fc, $m);
         $this->menu[$url]['link_in_blank'] = (bool)($m[1] ?? false);
-        preg_match('@\*\s*ikona:\s*([a-z0-9-]+)@', $fc, $ikonaMatch);
-        $this->menu[$url]['ikona'] = $ikonaMatch[1] ?? null;
         // TODO
         preg_match('@\*\s*submenu_hidden:\s*(.*)@', $fc, $m);
         $this->menu[$url]['hidden'] = filter_var($m[1] ?? false, FILTER_VALIDATE_BOOL);
+    }
+
+    /**
+     * Ikona z Font Awesome bez předpony (hlavička `ikona:`). Kreslí ji podmenu a menu moderního vzhledu,
+     * klasické hlavní menu má vlastní obrázky.
+     */
+    private function parseIkona(string $fc): ?string
+    {
+        preg_match('@\*\s*ikona:\s*([a-z0-9-]+)@', $fc, $ikonaMatch);
+
+        return $ikonaMatch[1] ?? null;
     }
 
     /** Export menu do pole. Iterátory a věci (?) */

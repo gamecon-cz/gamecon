@@ -342,25 +342,32 @@ SQL,
             TypVarovaniPromlceni::TYDEN => $regGcOd->formatCasZacatekUdalosti(),
         };
 
-        foreach ($uzivatele as $uzivatelKPromlceni) {
-            $uzivatel = $uzivatelKPromlceni->uzivatel;
-            if (!$uzivatel->mail()) {
-                continue;
+        $puvodniCasovyLimit = (int) ini_get('max_execution_time');
+        try {
+            foreach ($uzivatele as $uzivatelKPromlceni) {
+                $uzivatel = $uzivatelKPromlceni->uzivatel;
+                if (!$uzivatel->mail()) {
+                    continue;
+                }
+
+                $this->emailoveSablony
+                    ->vytvorMail($kodSablony, [
+                        'jmeno'         => (string)$uzivatel->jmenoNick(),
+                        'zustatek'      => (int)$uzivatel->finance()->stav(),
+                        'posledni_roky' => $posledniRoky,
+                        'a'             => $uzivatel->koncovkaDlePohlavi(),
+                        'registrace_od' => $registraceOd,
+                    ])
+                    ->adresat($uzivatel->mail())
+                    ->odeslat();
+
+                $pocetOdeslanychEmailu++;
+                set_time_limit(10); // Prodloužit timeout pro každý e-mail
             }
-
-            $this->emailoveSablony
-                ->vytvorMail($kodSablony, [
-                    'jmeno'         => (string)$uzivatel->jmenoNick(),
-                    'zustatek'      => (int)$uzivatel->finance()->stav(),
-                    'posledni_roky' => $posledniRoky,
-                    'a'             => $uzivatel->koncovkaDlePohlavi(),
-                    'registrace_od' => $registraceOd,
-                ])
-                ->adresat($uzivatel->mail())
-                ->odeslat();
-
-            $pocetOdeslanychEmailu++;
-            set_time_limit(10); // Prodloužit timeout pro každý e-mail
+        } finally {
+            // PHP keeps the last limit set for the rest of the process, so give back
+            // what the caller had instead of leaving the 10 s of the last e-mail.
+            set_time_limit($puvodniCasovyLimit);
         }
 
         // Zaloguj odeslání do databáze

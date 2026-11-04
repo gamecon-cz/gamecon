@@ -1,0 +1,20 @@
+<!-- begin:prepinacVzhledu -->
+<form method="post" class="prepinac-vzhledu">
+  <span id="prepinacVzhleduPopisek">Vzhled administrace</span>
+  <span class="prepinac-vzhledu-volby" role="group" aria-labelledby="prepinacVzhleduPopisek">
+    <button type="submit" name="{vzhledPostKlic}" value="{vzhledKlasicky}" aria-pressed="{klasickyZvolen}">Klasický</button>
+    <button type="submit" name="{vzhledPostKlic}" value="{vzhledModerni}" aria-pressed="{moderniZvolen}">Moderní</button>
+  </span>
+  <!-- begin:barvy -->
+  <!-- Barvy jen přebarví stránku a pamatuje si je prohlížeč (barvy_adminu.js), tlačítka formulář neodesílají. -->
+  <span class="prepinac-barev">
+    <span id="prepinacBarevPopisek">Barvy</span>
+    <span class="prepinac-vzhledu-volby" role="group" aria-labelledby="prepinacBarevPopisek">
+      <button type="button" data-barvy-adminu="svetle" aria-pressed="false"><i class="fa-solid fa-sun" aria-hidden="true"></i> Světlé</button>
+      <button type="button" data-barvy-adminu="tmave" aria-pressed="false"><i class="fa-solid fa-moon" aria-hidden="true"></i> Tmavé</button>
+      <button type="button" data-barvy-adminu="" aria-pressed="false" title="Světlé nebo tmavé podle nastavení zařízení"><i class="fa-solid fa-circle-half-stroke" aria-hidden="true"></i> Podle zařízení</button>
+    </span>
+  </span>
+  <!-- end:barvy -->
+</form>
+<!-- end:prepinacVzhledu -->

@@ -1,0 +1,2086 @@
+/*
+ * Moderní vzhled administrace (admin/templates/moderni/main.xtpl). Načítá se za styl.css, ze kterého
+ * stavějí moduly, a jen ho přebarvuje a přeskládává.
+ *
+ * Pravidla začínají :where(.vzhled-moderni), takže mají stejnou specificitu jako pravidla styl.css, která
+ * přebíjejí (vyhrávají jen pořadím, jsou načtená později). Proto má každé pravidlo stejný selektor jako to,
+ * které mění. A proto pořád vyhrají vlastní <style> modulů vložené do stránky, které tím počítají
+ * s klasickým vzhledem (třeba detail aktivity v Moje aktivity skrývá .sloupL).
+ *
+ * Tmavé barvy (třída moderni-tmave na <html>, nastaví ji barvy_adminu.js) mění hlavně proměnné níže, zbytek
+ * dobarvuje oddíl Tmavé barvy na konci souboru.
+ */
+
+:root {
+  --m-pozadi: #f3f4f6;
+  --m-plocha: #fff;
+  --m-text: #1f2328;
+  --m-text-tlumeny: #5b6370;
+  --m-okraj: #e2e5ea;
+  --m-okraj-pole: #c4c9d1;
+  --m-okraj-pole-hover: #9aa1ab;
+  --m-pole: #fff;
+  --m-tlacitko: #fff;
+  --m-tlacitko-stisk: #e9ebee;
+  --m-hover: #f3f4f6;
+  --m-hlavicka-tabulky: #f6f7f9;
+  --m-hlavicka-tabulky-text: #3d4450;
+  --m-radek-lichy: #f8f9fb;
+  --m-radek-zvyrazneny: #eaf1ff;
+  --m-vybrana-polozka: #eef2f7;
+  --m-stin-okraje: rgba(16, 24, 40, 0.16);
+  /* zvýraznění (aktivní položka podmenu, zvolený přepínač): v tmavých barvách obrácené, světlé */
+  --m-tmava: #1c1f26;
+  --m-na-tmave: #fff;
+  --m-panel: #1c1f26;
+  --m-panel-text: #c9cdd6;
+  --m-panel-tlumeny: #8b92a1;
+  --m-panel-hover: #2a2e38;
+  --m-panel-aktivni: #343946;
+  --m-panel-okraj: #2f3440;
+  --m-akcent: #c62828;
+  --m-odkaz: #1d4ed8;
+  --m-fokus: #2563eb;
+  --m-fokus-stin: rgba(37, 99, 235, 0.22);
+  --m-zaobleni: 8px;
+  --m-sirka-panelu: 264px;
+  /* tak široký je obsah na Full HD, na větším monitoru už nenaroste */
+  --m-sirka-obsahu: 1600px;
+  --m-vyska-listy: 56px;
+  --m-pismo: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, "Noto Sans", sans-serif;
+}
+
+/* ---------- Kostra ---------- */
+
+body.vzhled-moderni {
+  margin: 0;
+  background-color: var(--m-pozadi);
+  color: var(--m-text);
+  font: 14px/1.45 var(--m-pismo);
+  text-align: left;
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+}
+
+.moderni-skryte {
+  position: absolute !important;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  padding: 0;
+  border: 0;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+}
+
+.moderni-preskocit {
+  position: absolute;
+  top: -100px;
+  left: 8px;
+  z-index: 2000;
+  padding: 8px 16px;
+  border-radius: var(--m-zaobleni);
+  background-color: var(--m-tmava);
+  color: var(--m-na-tmave);
+}
+
+.moderni-preskocit:focus {
+  top: 8px;
+}
+
+:where(.vzhled-moderni) .obal {
+  display: flex;
+  align-items: flex-start;
+  width: 100%;
+  min-width: 0;
+  max-width: none;
+  min-height: 100vh;
+  text-align: left;
+}
+
+:where(.vzhled-moderni) .sloupL {
+  position: sticky;
+  top: 0;
+  display: flex;
+  flex: 0 0 var(--m-sirka-panelu);
+  flex-direction: column;
+  box-sizing: border-box;
+  width: var(--m-sirka-panelu);
+  height: 100vh;
+  max-height: none;
+  padding-bottom: 8px;
+  background-color: var(--m-panel);
+  color: var(--m-panel-text);
+  overflow-x: hidden;
+  overflow-y: auto;
+  scrollbar-color: #4a505e transparent;
+  scrollbar-width: thin;
+  z-index: 50;
+}
+
+@supports (height: 100dvh) {
+  :where(.vzhled-moderni) .sloupL {
+    height: 100dvh;
+  }
+}
+
+/* Panel se posouvá celý, jeho části se nesmí smrštit a překrýt. */
+:where(.vzhled-moderni) .sloupL > * {
+  flex-shrink: 0;
+}
+
+/* Profilovací lišta (jen mimo ostrou) je přišpendlená vlevo dole a zakryla by Odhlásit. */
+body.vzhled-moderni:has(.profilInfo) .sloupL {
+  padding-bottom: 52px;
+}
+
+:where(.vzhled-moderni) .sloupR {
+  position: relative;
+  flex: 1 1 auto;
+  min-width: 0;
+  max-width: var(--m-sirka-obsahu);
+  margin: 0 auto;
+  padding: 24px 28px 0;
+  z-index: auto;
+}
+
+:where(.vzhled-moderni) .main {
+  min-height: 0;
+  padding: 24px;
+  border: 1px solid var(--m-okraj);
+  border-radius: 12px;
+  background-color: var(--m-plocha);
+  box-shadow: 0 1px 2px rgba(16, 24, 40, 0.04);
+}
+
+#mainContent:focus {
+  outline: none;
+}
+
+/* ---------- Postranní panel ---------- */
+
+.moderni-panel-hlavicka {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px 16px 12px;
+}
+
+.moderni-znacka {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  color: #fff;
+  text-decoration: none;
+}
+
+.moderni-znacka-logo,
+.moderni-znacka-mala {
+  display: inline-grid;
+  place-items: center;
+  width: 34px;
+  height: 34px;
+  border-radius: 9px;
+  background-color: var(--m-akcent);
+  color: #fff;
+  font-weight: 800;
+  font-size: 14px;
+  letter-spacing: 0.02em;
+  text-decoration: none;
+}
+
+.moderni-znacka-text {
+  display: flex;
+  flex-direction: column;
+  font-weight: 700;
+  font-size: 16px;
+  line-height: 1.15;
+}
+
+.moderni-znacka-text small {
+  color: var(--m-panel-tlumeny);
+  font-weight: 500;
+  font-size: 12px;
+}
+
+.moderni-panel-tlacitka {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+:where(.vzhled-moderni) .sloupL > .prvniBlok {
+  min-height: 0;
+  padding: 0 12px;
+}
+
+.moderni-popisek {
+  display: block;
+  margin: 0 0 6px;
+  color: var(--m-text-tlumeny);
+  font-weight: 600;
+  font-size: 11px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+/* Karta pracovního uživatele je světlá: stav uživatele má barvy natvrdo pro světlé pozadí. */
+:where(.vzhled-moderni) .operator,
+:where(.vzhled-moderni) .uzivatel {
+  margin: 0;
+  padding: 0;
+  border-radius: 0;
+  background: none;
+}
+
+:where(.vzhled-moderni) .uzivatel {
+  min-height: 0;
+  margin-bottom: 12px;
+  padding: 12px;
+  border-radius: 12px;
+  background-color: var(--m-plocha);
+  color: var(--m-text);
+}
+
+:where(.vzhled-moderni) .uzivatel .tip {
+  margin: 6px 0 0;
+  color: var(--m-text-tlumeny);
+  font-style: normal;
+  font-size: 12px;
+}
+
+.moderni-hledani {
+  position: relative;
+  margin: 0;
+}
+
+.moderni-hledani > .fa-solid {
+  position: absolute;
+  top: 11px;
+  left: 11px;
+  color: var(--m-text-tlumeny);
+  font-size: 14px;
+  pointer-events: none;
+}
+
+:where(.vzhled-moderni) .moderni-hledani input.omnibox {
+  box-sizing: border-box;
+  width: 100%;
+  height: 38px;
+  padding: 6px 34px 6px 34px;
+  border: 1px solid var(--m-okraj-pole);
+  border-radius: var(--m-zaobleni);
+  background-color: var(--m-pole);
+  color: var(--m-text);
+  font-size: 14px;
+  cursor: text;
+}
+
+:where(.vzhled-moderni) .moderni-hledani .cekame,
+:where(.vzhled-moderni) .moderni-hledani .nic-nenalezeno,
+:where(.vzhled-moderni) .moderni-hledani .omnibox-selhalo {
+  top: 7px;
+  right: 8px;
+  font-size: 18px;
+  line-height: 1;
+}
+
+.moderni-vybrany {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+:where(.vzhled-moderni) .uzivatel .avatar {
+  flex: 0 0 auto;
+  width: 52px;
+  height: 52px;
+  max-width: none;
+  max-height: none;
+  margin: 0;
+  border-radius: 50%;
+  object-fit: cover;
+  background-color: var(--m-pozadi);
+}
+
+.moderni-vybrany-udaje {
+  min-width: 0;
+}
+
+:where(.vzhled-moderni) .uzivatel h3 {
+  margin: 0;
+  overflow: hidden;
+  font-size: 16px;
+  line-height: 1.25;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.moderni-vybrany-jmeno {
+  overflow: hidden;
+  color: var(--m-text-tlumeny);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.moderni-vybrany-id {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  color: var(--m-text-tlumeny);
+  font-size: 12px;
+}
+
+.moderni-vybrany-id a,
+.moderni-tlacitko-ikona {
+  display: inline-grid;
+  place-items: center;
+  width: 28px;
+  height: 28px;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  border-radius: 6px;
+  background: none;
+  color: var(--m-text-tlumeny);
+  font: inherit;
+  cursor: pointer;
+}
+
+.moderni-vybrany-id a:hover,
+.moderni-tlacitko-ikona:hover {
+  background-color: var(--m-hover);
+  color: var(--m-text);
+}
+
+:where(.vzhled-moderni) .uzivatel .status {
+  margin: 8px 0 0;
+  font-weight: 600;
+  font-size: 13px;
+}
+
+:where(.vzhled-moderni) .uzivatel .status:empty {
+  display: none;
+}
+
+.moderni-tlacitko-zrusit,
+.moderni-tlacitko-odhlasit {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  box-sizing: border-box;
+  width: 100%;
+  min-height: 36px;
+  margin: 10px 0 0;
+  padding: 6px 12px;
+  border: 1px solid var(--m-okraj-pole);
+  border-radius: var(--m-zaobleni);
+  background-color: var(--m-tlacitko);
+  color: var(--m-text);
+  font: inherit;
+  font-weight: 500;
+  cursor: pointer;
+}
+
+.moderni-tlacitko-zrusit:hover {
+  border-color: var(--m-okraj-pole-hover);
+  background-color: var(--m-hover);
+}
+
+.moderni-predchozi {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 10px;
+  padding-top: 10px;
+  border-top: 1px solid var(--m-okraj);
+  color: var(--m-text-tlumeny);
+  font-size: 13px;
+  text-decoration: none;
+}
+
+.moderni-predchozi:hover {
+  color: var(--m-text);
+}
+
+/* Hlavní menu */
+:where(.vzhled-moderni) .menu {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 4px 12px;
+  font-size: 14px;
+}
+
+:where(.vzhled-moderni) .menu > div {
+  height: auto;
+  margin: 0;
+  border-radius: var(--m-zaobleni);
+  background: none;
+}
+
+:where(.vzhled-moderni) .menu > div:hover {
+  background: none;
+}
+
+:where(.vzhled-moderni) .menu > div.active {
+  background: none;
+}
+
+:where(.vzhled-moderni) .menu a {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  box-sizing: border-box;
+  width: auto;
+  min-height: 36px;
+  padding: 7px 12px;
+  border-radius: var(--m-zaobleni);
+  color: var(--m-panel-text);
+  opacity: 1;
+  text-decoration: none;
+}
+
+:where(.vzhled-moderni) .menu a .fa-solid {
+  width: 18px;
+  color: var(--m-panel-tlumeny);
+  font-size: 15px;
+  text-align: center;
+}
+
+:where(.vzhled-moderni) .menu :hover a {
+  opacity: 1;
+}
+
+:where(.vzhled-moderni) .menu a:hover {
+  background-color: var(--m-panel-hover);
+  color: #fff;
+}
+
+:where(.vzhled-moderni) .menu .active a {
+  background-color: var(--m-panel-aktivni);
+  box-shadow: inset 3px 0 0 var(--m-akcent);
+  color: #fff;
+  font-weight: 600;
+  opacity: 1;
+}
+
+:where(.vzhled-moderni) .menu .active a .fa-solid {
+  color: #fff;
+}
+
+:where(.vzhled-moderni) .menu a:focus {
+  color: var(--m-panel-text);
+}
+
+:where(.vzhled-moderni) .menu a:focus-visible {
+  outline: 2px solid #8ab4f8;
+  outline-offset: -2px;
+  color: #fff;
+}
+
+/* Přihlášený uživatel dole v panelu */
+:where(.vzhled-moderni) .operator {
+  margin-top: auto;
+  padding: 16px 16px 8px;
+  border-top: 1px solid var(--m-panel-okraj);
+  color: var(--m-panel-text);
+}
+
+.moderni-operator-kdo {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 10px;
+}
+
+.moderni-operator-kdo > .fa-solid {
+  color: var(--m-panel-tlumeny);
+  font-size: 28px;
+}
+
+.moderni-operator-kdo .moderni-popisek {
+  margin: 0;
+  color: var(--m-panel-tlumeny);
+}
+
+.moderni-operator-kdo strong {
+  display: block;
+  color: #fff;
+  font-weight: 600;
+}
+
+:where(.vzhled-moderni) .operator .moderni-hledani > .fa-solid {
+  color: var(--m-panel-tlumeny);
+}
+
+:where(.vzhled-moderni) .operator .moderni-hledani input.omnibox {
+  border-color: var(--m-panel-okraj);
+  background-color: #12151b;
+  color: #fff;
+}
+
+:where(.vzhled-moderni) .operator .moderni-hledani input.omnibox::placeholder {
+  color: var(--m-panel-tlumeny);
+}
+
+.moderni-tlacitko-odhlasit {
+  border-color: var(--m-panel-okraj);
+  background-color: transparent;
+  color: var(--m-panel-text);
+}
+
+.moderni-tlacitko-odhlasit:hover {
+  background-color: var(--m-panel-hover);
+  color: #fff;
+}
+
+/* ---------- Podmenu ---------- */
+
+:where(.vzhled-moderni) #submenu {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  justify-content: flex-start;
+  gap: 8px 20px;
+  width: 100%;
+  margin: 0 0 20px;
+  padding: 0 0 16px;
+  border-bottom: 1px solid var(--m-okraj);
+}
+
+:where(.vzhled-moderni) #submenu.submenu-selected-finance,
+:where(.vzhled-moderni) #submenu.submenu-selected-aktivity {
+  width: 100%;
+}
+
+:where(.vzhled-moderni) #submenu.submenu-selected-aktivity {
+  row-gap: 30px;
+  padding-top: 22px;
+}
+
+/* Víc skupin (Aktivity) do sloupců, ať nejsou řádky nestejně dlouhé. */
+:where(.vzhled-moderni) #submenu:has(> li + li) {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+}
+
+:where(.vzhled-moderni) #submenu > li {
+  flex: 0 1 auto;
+  width: auto;
+  margin: 0;
+}
+
+:where(.vzhled-moderni) #submenu > li:first-child:last-child {
+  width: 100%;
+}
+
+:where(.vzhled-moderni) #submenu .adm_submenu_group,
+:where(.vzhled-moderni) #submenu > li:first-child:last-child .adm_submenu_group {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  white-space: normal;
+}
+
+:where(.vzhled-moderni) #submenu > li:first-child:last-child .adm_submenu_group > li {
+  flex: 0 0 auto;
+  max-width: none;
+}
+
+:where(.vzhled-moderni) #submenu .adm_submenu_item,
+:where(.vzhled-moderni) #submenu .adm_submenu_item_grp_0,
+:where(.vzhled-moderni) #submenu .adm_submenu_item_grp_5,
+:where(.vzhled-moderni) #submenu .adm_submenu_doplnek {
+  flex: 0 0 auto;
+  align-self: auto;
+  margin: 0;
+  padding: 0;
+  text-align: left;
+}
+
+:where(.vzhled-moderni) #submenu .adm_submenu_item a {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  box-sizing: border-box;
+  min-height: 34px;
+  padding: 6px 14px;
+  border: 1px solid var(--m-okraj-pole);
+  border-radius: 999px;
+  background: var(--m-tlacitko);
+  color: var(--m-text);
+  font-size: 13px;
+  line-height: 1.3;
+  text-align: left;
+  text-decoration: none;
+  white-space: nowrap;
+}
+
+:where(.vzhled-moderni) #submenu .adm_submenu_item a .fa-solid,
+:where(.vzhled-moderni) .submenuAktivovatVse button .fa-solid {
+  margin-right: 0;
+  color: var(--m-text-tlumeny);
+}
+
+:where(.vzhled-moderni) #submenu .adm_submenu_item a:hover {
+  border-color: var(--m-okraj-pole-hover);
+  background: var(--m-hover);
+  color: var(--m-text);
+  text-decoration: none;
+}
+
+:where(.vzhled-moderni) #submenu .adm_submenu_item a.activeSubmenuLink {
+  border-color: var(--m-tmava);
+  background: var(--m-tmava);
+  color: var(--m-na-tmave);
+  text-decoration: none;
+}
+
+:where(.vzhled-moderni) #submenu .adm_submenu_item a.activeSubmenuLink .fa-solid {
+  color: var(--m-na-tmave);
+}
+
+:where(.vzhled-moderni) #submenu .adm_submenu_item a:focus-visible {
+  outline: 2px solid var(--m-fokus);
+  outline-offset: 2px;
+}
+
+:where(.vzhled-moderni) .adm_submenu_item_ord_1::before {
+  top: -22px;
+  right: auto;
+  left: 2px;
+  margin-top: 0;
+  color: var(--m-text-tlumeny);
+  font-weight: 600;
+  font-size: 11px;
+  letter-spacing: 0.06em;
+  text-align: left;
+  white-space: nowrap;
+  opacity: 1;
+}
+
+/* [type=submit] drží specificitu nad .tlacitko.tlacitko_isDanger, stejně jako ve styl.css */
+:where(.vzhled-moderni) .submenuAktivovatVse button[type=submit] {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  width: auto;
+  min-height: 34px;
+  padding: 6px 14px;
+  border: 1px solid #a51f1f;
+  border-radius: 999px;
+  background: var(--m-akcent);
+  color: #fff;
+  font-size: 13px;
+  line-height: 1.3;
+}
+
+:where(.vzhled-moderni) .submenuAktivovatVse button[type=submit] .fa-solid {
+  color: #fff;
+}
+
+/* tečkované podtržení nápovědy pod tlačítkem by vypadalo jako chyba */
+:where(.vzhled-moderni) .submenuAktivovatVse .hinted {
+  border-bottom: 0;
+}
+
+:where(.vzhled-moderni) .submenuAktivovatVse button[type=submit]:hover {
+  border-color: #7f1717;
+  background: #a51f1f;
+}
+
+:where(.vzhled-moderni) .submenuAktivovatVse button[type=submit]:disabled {
+  border-color: var(--m-okraj);
+  background: var(--m-pozadi);
+  color: var(--m-text-tlumeny);
+}
+
+/* ---------- Obsah stránek ---------- */
+
+:where(.vzhled-moderni) .main h1 {
+  margin: 0 0 16px;
+  font-size: 24px;
+  line-height: 1.25;
+  letter-spacing: -0.01em;
+}
+
+:where(.vzhled-moderni) .main h2 {
+  font-size: 19px;
+  line-height: 1.3;
+}
+
+:where(.vzhled-moderni) .main h3 {
+  font-size: 16px;
+  line-height: 1.3;
+}
+
+:where(.vzhled-moderni .main) a:not([class]) {
+  color: var(--m-odkaz);
+}
+
+:where(.vzhled-moderni) hr {
+  border-top-color: var(--m-okraj);
+}
+
+/* Formuláře */
+:where(.vzhled-moderni) input,
+:where(.vzhled-moderni) textarea,
+:where(.vzhled-moderni) select,
+:where(.vzhled-moderni) .tlacitko {
+  padding: 3px 6px;
+  border: 1px solid var(--m-okraj-pole);
+  border-radius: 6px;
+  background-color: var(--m-pole);
+  color: var(--m-text);
+}
+
+:where(.vzhled-moderni) input[type="checkbox"],
+:where(.vzhled-moderni) input[type="radio"] {
+  accent-color: var(--m-tmava);
+}
+
+:where(.vzhled-moderni) input:hover:not([disabled]):not([type="checkbox"]):not([type="radio"]),
+:where(.vzhled-moderni) textarea:hover:not([disabled]),
+:where(.vzhled-moderni) select:hover:not([disabled]) {
+  border-color: var(--m-okraj-pole-hover);
+}
+
+:where(.vzhled-moderni) input:focus,
+:where(.vzhled-moderni) textarea:focus,
+:where(.vzhled-moderni) select:focus {
+  border-color: var(--m-fokus);
+  box-shadow: 0 0 0 3px var(--m-fokus-stin);
+  outline: none;
+}
+
+:where(.vzhled-moderni) input[type="checkbox"]:focus,
+:where(.vzhled-moderni) input[type="radio"]:focus {
+  box-shadow: none;
+}
+
+:where(.vzhled-moderni) input[type="checkbox"]:focus-visible,
+:where(.vzhled-moderni) input[type="radio"]:focus-visible,
+:where(.vzhled-moderni) button:focus-visible,
+:where(.vzhled-moderni) .tlacitko:focus-visible {
+  outline: 2px solid var(--m-fokus);
+  outline-offset: 1px;
+}
+
+:where(.vzhled-moderni) input[disabled],
+:where(.vzhled-moderni) textarea[disabled],
+:where(.vzhled-moderni) select[disabled],
+:where(.vzhled-moderni) button[disabled]:not(.no-background-color) {
+  border-color: var(--m-okraj);
+  background-color: var(--m-pozadi);
+  color: var(--m-text-tlumeny);
+}
+
+:where(.vzhled-moderni) input[type="submit"],
+:where(.vzhled-moderni) input[type="button"],
+:where(.vzhled-moderni) input[type="reset"],
+:where(.vzhled-moderni) .tlacitko,
+:where(.vzhled-moderni .main) button:is(:not([class]), .submit-btn, .btn-remove, .tymy-kola-btn-prihlasit, .tymy-kola-btn-odhlasit) {
+  padding: 4px 12px;
+  border: 1px solid var(--m-okraj-pole);
+  border-radius: 6px;
+  background: var(--m-tlacitko);
+  box-shadow: 0 1px 0 rgba(16, 24, 40, 0.04);
+  color: var(--m-text);
+  font: inherit;
+  font-weight: 500;
+  cursor: pointer;
+}
+
+:where(.vzhled-moderni) input[type="submit"]:active,
+:where(.vzhled-moderni) input[type="button"]:active,
+:where(.vzhled-moderni) .tlacitko:active,
+:where(.vzhled-moderni .main) button:is(:not([class]), .submit-btn, .btn-remove, .tymy-kola-btn-prihlasit, .tymy-kola-btn-odhlasit):active {
+  background: var(--m-tlacitko-stisk);
+}
+
+:where(.vzhled-moderni) input[type="checkbox"]:hover:not([disabled]),
+:where(.vzhled-moderni) input[type="submit"]:hover:not([disabled]),
+:where(.vzhled-moderni) input[type="button"]:hover:not([disabled]),
+:where(.vzhled-moderni) .tlacitko:hover,
+:where(.vzhled-moderni .main) button:is(:not([class]), .submit-btn, .btn-remove, .tymy-kola-btn-prihlasit, .tymy-kola-btn-odhlasit):hover:not([disabled]) {
+  border-color: var(--m-okraj-pole-hover);
+  background: var(--m-hover);
+}
+
+:where(.vzhled-moderni) input[type="submit"]:disabled {
+  border-color: var(--m-okraj);
+  background: var(--m-pozadi);
+  color: var(--m-text-tlumeny);
+}
+
+/* Tlačítka v tabulkách mají v klasickém vzhledu pevnou výšku 14 px, na dotyk jsou malá. */
+:where(.vzhled-moderni) table form input[type="submit"],
+:where(.vzhled-moderni) table form input[type="button"],
+:where(.vzhled-moderni) .tlacitko {
+  top: 0;
+  height: auto;
+  padding: 3px 10px;
+  font-size: 13px;
+  line-height: 1.3;
+}
+
+:where(.vzhled-moderni) td > a.tlacitko {
+  top: 0;
+  height: auto;
+  line-height: 1.3;
+}
+
+/* button.danger má vyšší specificitu než obecné tlačítko výše */
+:where(.vzhled-moderni) .tlacitko.tlacitko_isDanger,
+:where(.vzhled-moderni) .danger,
+:where(.vzhled-moderni) input.danger,
+:where(.vzhled-moderni) button.danger {
+  border-color: #a51f1f;
+  background: var(--m-akcent);
+  color: #fff;
+  transition: background-color 0.15s;
+}
+
+:where(.vzhled-moderni) .tlacitko.tlacitko_isDanger:hover,
+:where(.vzhled-moderni) .danger:hover:not([disabled]),
+:where(.vzhled-moderni) input.danger:hover:not([disabled]),
+:where(.vzhled-moderni) button.danger:hover:not([disabled]) {
+  border-color: #7f1717;
+  background: #a51f1f;
+  animation: none;
+}
+
+:where(.vzhled-moderni) .danger:active:not([disabled]),
+:where(.vzhled-moderni) input.danger:active:not([disabled]) {
+  background: #7f1717;
+}
+
+:where(.vzhled-moderni) .danger:disabled,
+:where(.vzhled-moderni) input.danger:disabled {
+  border-color: #e7b3b3;
+  background: #f3d2d2;
+  color: #8a5a5a;
+}
+
+/* Tabulky */
+:where(.vzhled-moderni) .main table th {
+  padding: 6px 8px;
+  border: 0;
+  border-bottom: 1px solid var(--m-okraj);
+  background: var(--m-hlavicka-tabulky);
+  color: var(--m-hlavicka-tabulky-text);
+  font-family: inherit;
+  font-weight: 600;
+  font-size: 13px;
+}
+
+:where(.vzhled-moderni) .main table tr.nazvy-sloupcu th {
+  color: var(--m-text-tlumeny);
+  font-size: 11px;
+}
+
+:where(.vzhled-moderni) .main table caption {
+  padding: 8px;
+  background: none;
+  font-family: inherit;
+  font-weight: 600;
+  text-align: left;
+}
+
+:where(.vzhled-moderni) .main table td {
+  padding: 5px 8px;
+}
+
+:where(.vzhled-moderni) .main table tr:nth-child(odd) {
+  background-color: var(--m-radek-lichy);
+}
+
+:where(.vzhled-moderni) .main table tr:nth-child(even) {
+  background-color: var(--m-plocha);
+}
+
+:where(.vzhled-moderni) .main table.zvyraznovana tr:hover td {
+  background-color: var(--m-radek-zvyrazneny);
+}
+
+:where(.vzhled-moderni) table.cista > tbody > tr {
+  background-color: transparent;
+}
+
+:where(.vzhled-moderni) table.cista > tbody > tr > td {
+  padding: 0;
+}
+
+/* Tabulky širší než obsah obalí moderni.js, ať se posouvá jen tabulka a ne celá stránka.
+   Stín u okraje ukazuje, že tabulka pokračuje (řádky mají vlastní pozadí, stín proto leží nad nimi). */
+.moderni-posuvna-tabulka {
+  position: relative;
+  max-width: 100%;
+}
+
+.moderni-posuvna-tabulka-posuvnik {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+.moderni-posuvna-tabulka::before,
+.moderni-posuvna-tabulka::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  z-index: 15;
+  width: 16px;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.15s;
+}
+
+.moderni-posuvna-tabulka::before {
+  left: 0;
+  background: linear-gradient(to right, var(--m-stin-okraje), transparent);
+}
+
+.moderni-posuvna-tabulka::after {
+  right: 0;
+  background: linear-gradient(to left, var(--m-stin-okraje), transparent);
+}
+
+.moderni-posuvna-tabulka.pokracuje-vlevo::before,
+.moderni-posuvna-tabulka.pokracuje-vpravo::after {
+  opacity: 1;
+}
+
+/* Rámečky (.aBox) */
+:where(.vzhled-moderni) .aBox,
+:where(.vzhled-moderni) .cista .aBox,
+:where(.vzhled-moderni) .cista .aBox:first-child {
+  padding: 14px 12px 12px;
+  border: 1px solid var(--m-okraj);
+  border-radius: 10px;
+  background-color: var(--m-plocha);
+}
+
+/* nadpis leží přes horní okraj rámečku, pozadím ho přeruší */
+:where(.vzhled-moderni) .aBox h3:first-child {
+  margin-top: -25px;
+  padding: 0 6px;
+  background-color: var(--m-plocha);
+  font-size: 15px;
+}
+
+/* Hlášky v obsahu */
+:where(.vzhled-moderni) .error,
+:where(.vzhled-moderni) .success,
+:where(.vzhled-moderni) .warning {
+  padding: 10px 14px 10px 40px;
+  border: 1px solid;
+  border-radius: var(--m-zaobleni);
+  background-position: 14px 50%;
+  font-style: normal;
+}
+
+:where(.vzhled-moderni) .error {
+  border-color: #f3c4c4;
+  background-color: #fdeeee;
+  color: #9b1c1c;
+}
+
+:where(.vzhled-moderni) .success {
+  border-color: #b9dfc5;
+  background-color: #eaf6ee;
+  color: #1e5631;
+}
+
+:where(.vzhled-moderni) .warning {
+  border-color: #f0d898;
+  background-color: #fff8e1;
+  color: #6b5000;
+}
+
+:where(.vzhled-moderni) .error.inline,
+:where(.vzhled-moderni) .warning.inline,
+:where(.vzhled-moderni) .success.inline {
+  padding: 1px 8px 1px 26px;
+  border: 0;
+  border-radius: 4px;
+  background-position: 6px 50%;
+}
+
+:where(.vzhled-moderni) .error.fullwidth,
+:where(.vzhled-moderni) .warning.fullwidth,
+:where(.vzhled-moderni) .success.fullwidth {
+  padding-right: 14px;
+}
+
+:where(.vzhled-moderni) .error.no-image,
+:where(.vzhled-moderni) .warning.no-image,
+:where(.vzhled-moderni) .success.no-image {
+  padding-left: 14px;
+}
+
+/* Štítek prostředí (beta, preview, lokál) nad panelem, ať je vidět; kliknutí propustí. Je oranžový v obou
+   barvách, písmo tedy tmavé i v tmavých. */
+.vzhled-moderni .corner-ribbon {
+  z-index: 1100;
+  color: #1f2328;
+  pointer-events: none;
+}
+
+/* Bublinová nápověda */
+:where(.vzhled-moderni) .hint {
+  padding: 8px 10px;
+  border-radius: var(--m-zaobleni);
+  background-color: rgba(28, 31, 38, 0.96);
+  box-shadow: 0 8px 24px rgba(16, 24, 40, 0.2);
+  font-size: 12px;
+  line-height: 1.45;
+}
+
+/* Widgety jQuery UI (našeptávač uživatelů, kalendář) */
+.vzhled-moderni .ui-widget {
+  font-family: var(--m-pismo);
+  font-size: 14px;
+}
+
+.vzhled-moderni .ui-widget input,
+.vzhled-moderni .ui-widget select,
+.vzhled-moderni .ui-widget textarea,
+.vzhled-moderni .ui-widget button {
+  font-family: var(--m-pismo);
+}
+
+/* nad vysunutým menu (z-index 1000), jinak by se nabídka našeptávače schovala pod něj */
+.vzhled-moderni .ui-autocomplete {
+  z-index: 1050;
+  max-width: calc(100vw - 24px);
+  max-height: 60vh;
+  padding: 4px;
+  border: 1px solid var(--m-okraj);
+  border-radius: 10px;
+  background: var(--m-plocha);
+  box-shadow: 0 12px 32px rgba(16, 24, 40, 0.16);
+  overflow-y: auto;
+}
+
+.vzhled-moderni .ui-menu .ui-menu-item-wrapper {
+  padding: 8px 10px;
+  border: 0;
+  border-radius: 6px;
+}
+
+.vzhled-moderni .ui-menu .ui-menu-item-wrapper.ui-state-active {
+  margin: 0;
+  border: 0;
+  background: var(--m-vybrana-polozka);
+  color: var(--m-text);
+}
+
+.vzhled-moderni .ui-datepicker {
+  padding: 6px;
+  border: 1px solid var(--m-okraj);
+  border-radius: 10px;
+  box-shadow: 0 12px 32px rgba(16, 24, 40, 0.16);
+}
+
+.vzhled-moderni .ui-widget-header {
+  border-color: var(--m-tmava);
+  border-radius: 6px;
+  background: var(--m-tmava);
+  color: var(--m-na-tmave);
+}
+
+.vzhled-moderni .ui-datepicker .ui-state-default {
+  border-color: var(--m-okraj);
+  border-radius: 4px;
+  background: var(--m-tlacitko);
+  color: var(--m-text);
+  text-align: center;
+}
+
+.vzhled-moderni .ui-datepicker .ui-state-highlight {
+  border-color: var(--m-okraj-pole-hover);
+  background: var(--m-hover);
+}
+
+.vzhled-moderni .ui-datepicker .ui-state-active,
+.vzhled-moderni .ui-datepicker .ui-state-hover {
+  border-color: var(--m-tmava);
+  background: var(--m-tmava);
+  color: var(--m-na-tmave);
+}
+
+/* ---------- Patička ---------- */
+
+.moderni-paticka {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px 24px;
+  padding: 16px 4px 32px;
+  color: var(--m-text-tlumeny);
+  font-size: 13px;
+}
+
+:where(.vzhled-moderni) .paticka {
+  display: flex;
+  flex: 1 1 420px;
+  flex-direction: column;
+  gap: 6px;
+  margin: 0;
+}
+
+:where(.vzhled-moderni) .paticka .nabidka {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 18px;
+  margin: 0;
+  padding: 0;
+}
+
+:where(.vzhled-moderni) .paticka .nabidka,
+:where(.vzhled-moderni) .paticka .nabidka a,
+:where(.vzhled-moderni) .paticka .protip {
+  color: var(--m-text-tlumeny);
+  text-shadow: none;
+}
+
+:where(.vzhled-moderni) .paticka .nabidka a:hover {
+  color: var(--m-text);
+  text-decoration: underline;
+}
+
+:where(.vzhled-moderni) .paticka .protip {
+  float: none;
+  width: auto;
+  text-align: left;
+}
+
+/* margin-left: auto drží přepínač vpravo, i když se do řádku s patičkou nevejde */
+:where(.vzhled-moderni) .prepinac-vzhledu {
+  margin: 0 0 0 auto;
+  color: var(--m-text-tlumeny);
+  font-size: 13px;
+}
+
+:where(.vzhled-moderni) .prepinac-vzhledu-volby {
+  border-color: var(--m-okraj-pole);
+  background-color: var(--m-plocha);
+}
+
+:where(.vzhled-moderni) .prepinac-vzhledu button {
+  padding: 6px 14px;
+}
+
+:where(.vzhled-moderni) .prepinac-vzhledu button:hover {
+  color: var(--m-text);
+}
+
+:where(.vzhled-moderni) .prepinac-vzhledu button[aria-pressed="true"] {
+  background-color: var(--m-tmava);
+  color: var(--m-na-tmave);
+}
+
+:where(.vzhled-moderni) .prepinac-vzhledu button:focus-visible {
+  outline-color: var(--m-fokus);
+}
+
+/* ---------- Vysouvací menu: menu se vysouvá zleva, nahoře je lišta ---------- */
+
+/* Na úzké obrazovce (@media níž), nebo když si ho uživatel schová (třeba na notebooku). Jinak lišta, závoj
+   ani tlačítka zavřít a připnout vidět nejsou. */
+
+.moderni-horni-lista {
+  position: sticky;
+  top: 0;
+  z-index: 900;
+  display: none;
+  align-items: center;
+  gap: 8px;
+  box-sizing: border-box;
+  height: var(--m-vyska-listy);
+  padding: 0 12px 0 max(6px, env(safe-area-inset-left));
+  background-color: var(--m-panel);
+  color: #fff;
+  transition: transform 0.2s ease;
+}
+
+.moderni-horni-lista-skryta {
+  transform: translateY(-100%);
+}
+
+.moderni-tlacitko-menu,
+.moderni-tlacitko-zavrit,
+.moderni-tlacitko-schovat,
+.moderni-tlacitko-pripnout {
+  display: none;
+  place-items: center;
+  width: 44px;
+  height: 44px;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  border-radius: var(--m-zaobleni);
+  background: none;
+  color: var(--m-panel-text);
+  font-size: 20px;
+  cursor: pointer;
+}
+
+.moderni-tlacitko-menu {
+  display: inline-grid;
+  color: inherit;
+}
+
+.moderni-tlacitko-schovat {
+  display: inline-grid;
+}
+
+/* jen pro myš na širší obrazovce, hlavička panelu kvůli nim nemá být vyšší */
+.moderni-tlacitko-schovat,
+.moderni-tlacitko-pripnout {
+  width: 34px;
+  height: 34px;
+  font-size: 15px;
+}
+
+.moderni-tlacitko-menu:hover,
+.moderni-tlacitko-zavrit:hover,
+.moderni-tlacitko-schovat:hover,
+.moderni-tlacitko-pripnout:hover {
+  background-color: var(--m-panel-hover);
+}
+
+.moderni-tlacitko-menu:focus-visible,
+.moderni-tlacitko-zavrit:focus-visible,
+.moderni-tlacitko-schovat:focus-visible,
+.moderni-tlacitko-pripnout:focus-visible {
+  outline: 2px solid #8ab4f8;
+  outline-offset: -2px;
+}
+
+.moderni-horni-lista-nazev {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  font-weight: 600;
+  font-size: 17px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.moderni-znacka-mala {
+  width: 32px;
+  height: 32px;
+  font-size: 13px;
+}
+
+body.moderni-menu-otevrene {
+  overflow: hidden;
+}
+
+body.moderni-menu-otevrene .sloupL {
+  transform: none;
+  visibility: visible;
+  transition: transform 0.25s ease;
+}
+
+.moderni-zavoj {
+  display: none;
+}
+
+.moderni-zavoj:not([hidden]) {
+  position: fixed;
+  inset: 0;
+  z-index: 999;
+  display: block;
+  background-color: rgba(15, 18, 25, 0.5);
+}
+
+/* Schované menu: třídu na <html> nastaví skript v hlavičce main.xtpl a přepíná ji moderni.js. Panel je mimo
+   stránku stejně jako na úzké obrazovce. */
+:where(.moderni-menu-schovane) .moderni-horni-lista {
+  display: flex;
+}
+
+:where(.moderni-menu-schovane) .moderni-tlacitko-zavrit,
+:where(.moderni-menu-schovane) .moderni-tlacitko-pripnout {
+  display: inline-grid;
+}
+
+:where(.moderni-menu-schovane) .moderni-tlacitko-schovat {
+  display: none;
+}
+
+:where(.moderni-menu-schovane .vzhled-moderni) .sloupL {
+  position: fixed;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  width: min(320px, 86vw);
+  height: auto;
+  box-shadow: 0 0 40px rgba(0, 0, 0, 0.35);
+  transform: translateX(-105%);
+  visibility: hidden;
+  transition: transform 0.25s ease, visibility 0s linear 0.25s;
+  z-index: 1000;
+}
+
+/* Vyskakovací hlášky (hlasky.css) pod horní lištou */
+:where(.moderni-menu-schovane .vzhled-moderni) .chybaBlok {
+  top: calc(var(--m-vyska-listy) + 8px);
+}
+
+/* ---------- Tablet a telefon: menu se vysouvá vždycky ---------- */
+
+@media (max-width: 1023.98px) {
+  .moderni-horni-lista {
+    display: flex;
+  }
+
+  .moderni-tlacitko-zavrit {
+    display: inline-grid;
+  }
+
+  .moderni-tlacitko-schovat,
+  .moderni-tlacitko-pripnout {
+    display: none;
+  }
+
+  :where(.vzhled-moderni) .sloupL {
+    position: fixed;
+    top: 0;
+    bottom: 0;
+    left: 0;
+    width: min(320px, 86vw);
+    height: auto;
+    padding-left: env(safe-area-inset-left);
+    box-shadow: 0 0 40px rgba(0, 0, 0, 0.35);
+    transform: translateX(-105%);
+    visibility: hidden;
+    transition: transform 0.25s ease, visibility 0s linear 0.25s;
+    z-index: 1000;
+  }
+
+  @supports (height: 100dvh) {
+    :where(.vzhled-moderni) .sloupL {
+      height: auto;
+    }
+  }
+
+  :where(.vzhled-moderni) .sloupR {
+    width: 100%;
+    padding: 16px 16px 0;
+  }
+
+  :where(.vzhled-moderni) .main {
+    padding: 16px;
+  }
+
+  :where(.vzhled-moderni) .chybaBlok {
+    top: calc(var(--m-vyska-listy) + 8px);
+  }
+
+  /* Písmo menší než 16 px iOS při psaní přiblíží a stránka pak „uskočí“. */
+  :where(.vzhled-moderni) input,
+  :where(.vzhled-moderni) select,
+  :where(.vzhled-moderni) textarea {
+    font-size: 16px;
+  }
+
+  :where(.vzhled-moderni) .moderni-hledani input.omnibox {
+    height: 42px;
+    font-size: 16px;
+  }
+
+  .moderni-hledani > .fa-solid {
+    top: 13px;
+  }
+
+  /* na dotyk vyšší položky menu */
+  :where(.vzhled-moderni) .menu a {
+    min-height: 44px;
+  }
+}
+
+/* ---------- Telefon ---------- */
+
+@media (max-width: 639.98px) {
+  :where(.vzhled-moderni) .sloupR {
+    padding: 0;
+  }
+
+  :where(.vzhled-moderni) .main {
+    padding: 12px;
+    border: 0;
+    border-radius: 0;
+    box-shadow: none;
+  }
+
+  :where(.vzhled-moderni) .main h1 {
+    font-size: 21px;
+  }
+
+  /* Podmenu jako jeden vodorovně posuvný řádek, skupiny oddělené čárou. */
+  :where(.vzhled-moderni) #submenu,
+  :where(.vzhled-moderni) #submenu.submenu-selected-aktivity,
+  :where(.vzhled-moderni) #submenu:has(> li + li) {
+    display: flex;
+    flex-wrap: nowrap;
+    gap: 0;
+    margin: -12px -12px 16px;
+    padding: 10px 12px;
+    overflow-x: auto;
+    background-color: var(--m-plocha);
+    scrollbar-width: none;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  :where(.vzhled-moderni) #submenu::-webkit-scrollbar {
+    display: none;
+  }
+
+  :where(.vzhled-moderni) #submenu > li,
+  :where(.vzhled-moderni) #submenu > li:first-child:last-child {
+    flex: 0 0 auto;
+    width: auto;
+  }
+
+  :where(.vzhled-moderni) #submenu > li + li {
+    margin-left: 10px;
+    padding-left: 10px;
+    border-left: 1px solid var(--m-okraj);
+  }
+
+  :where(.vzhled-moderni) #submenu .adm_submenu_group,
+  :where(.vzhled-moderni) #submenu > li:first-child:last-child .adm_submenu_group {
+    flex-wrap: nowrap;
+  }
+
+  :where(.vzhled-moderni) .adm_submenu_item_ord_1::before {
+    display: none;
+  }
+
+  :where(.vzhled-moderni) .paticka .protip {
+    display: none;
+  }
+
+  .moderni-paticka {
+    padding: 16px 16px max(24px, env(safe-area-inset-bottom));
+  }
+
+  :where(.vzhled-moderni) .error,
+  :where(.vzhled-moderni) .success,
+  :where(.vzhled-moderni) .warning {
+    padding-right: 12px;
+  }
+
+  :where(.vzhled-moderni) .aBox.grid {
+    float: none;
+    width: auto;
+    margin-right: 0;
+  }
+
+  /* Plovoucí filtr byl širší než telefon a přetékal doleva mimo obrazovku. */
+  :where(.vzhled-moderni) .aktivityProgramovaLinie {
+    float: none;
+  }
+
+  :where(.vzhled-moderni) .main select {
+    max-width: calc(100vw - 140px);
+  }
+
+  :where(.vzhled-moderni) .main input:not([type="checkbox"]):not([type="radio"]),
+  :where(.vzhled-moderni) .main textarea {
+    box-sizing: border-box;
+    max-width: 100%;
+  }
+}
+
+@media print {
+  .moderni-preskocit,
+  .moderni-horni-lista,
+  .moderni-paticka,
+  :where(.vzhled-moderni) .sloupL {
+    display: none;
+  }
+
+  body.vzhled-moderni {
+    background-color: #fff;
+  }
+
+  :where(.vzhled-moderni) .sloupR {
+    padding: 0;
+  }
+
+  :where(.vzhled-moderni) .main {
+    padding: 0;
+    border: 0;
+    box-shadow: none;
+  }
+
+  /* Posuvný blok by vytiskl jen viditelné sloupce, tabulka se tiskne celá jako v klasickém vzhledu. */
+  .moderni-posuvna-tabulka-posuvnik {
+    overflow: visible;
+  }
+
+  .moderni-posuvna-tabulka::before,
+  .moderni-posuvna-tabulka::after {
+    display: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .moderni-horni-lista,
+  :where(.vzhled-moderni) .sloupL {
+    transition: none;
+  }
+}
+
+/* ---------- Kompaktní panel ---------- */
+
+/* Třídu moderni-panel-kompaktni na <html> dá skript za panelem v main.xtpl (a při změně velikosti okna
+   moderni.js), jen když se panel na výšku nevejde: malý monitor, hodně položek menu. Panel se pak vejde
+   celý, bez posouvání. Jen pro myš na širší obrazovce, na dotyk zůstávají položky velké a panel se posouvá. */
+@media (min-width: 1024px) and (pointer: fine) {
+  :where(.moderni-panel-kompaktni) .moderni-panel-hlavicka {
+    padding: 8px 12px 6px;
+  }
+
+  :where(.moderni-panel-kompaktni) .moderni-znacka-logo {
+    width: 28px;
+    height: 28px;
+    border-radius: 7px;
+    font-size: 12px;
+  }
+
+  :where(.moderni-panel-kompaktni) .moderni-znacka-text {
+    font-size: 15px;
+  }
+
+  :where(.moderni-panel-kompaktni) .moderni-tlacitko-zavrit,
+  :where(.moderni-panel-kompaktni) .moderni-tlacitko-schovat,
+  :where(.moderni-panel-kompaktni) .moderni-tlacitko-pripnout {
+    width: 28px;
+    height: 28px;
+    font-size: 14px;
+  }
+
+  /* Karta pracovního uživatele: Zrušit výběr jako křížek v jejím rohu, jméno a ID na jednom řádku. */
+  :where(.moderni-panel-kompaktni .vzhled-moderni) .uzivatel {
+    position: relative;
+    margin-bottom: 6px;
+    padding: 8px 10px;
+  }
+
+  :where(.moderni-panel-kompaktni) .moderni-uzivatel .moderni-popisek {
+    margin-bottom: 4px;
+  }
+
+  :where(.moderni-panel-kompaktni .vzhled-moderni) .uzivatel .tip {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip: rect(0 0 0 0);
+    white-space: nowrap;
+  }
+
+  :where(.moderni-panel-kompaktni .vzhled-moderni) .moderni-hledani input.omnibox {
+    height: 32px;
+  }
+
+  :where(.moderni-panel-kompaktni) .moderni-hledani > .fa-solid {
+    top: 9px;
+  }
+
+  :where(.moderni-panel-kompaktni) .moderni-vybrany {
+    gap: 10px;
+  }
+
+  :where(.moderni-panel-kompaktni .vzhled-moderni) .uzivatel .avatar {
+    width: 40px;
+    height: 40px;
+  }
+
+  :where(.moderni-panel-kompaktni) .moderni-vybrany-udaje {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    column-gap: 6px;
+  }
+
+  /* místo pro křížek Zrušit výběr */
+  :where(.moderni-panel-kompaktni .vzhled-moderni) .uzivatel h3 {
+    flex: 1 0 100%;
+    max-width: calc(100% - 24px);
+    font-size: 15px;
+  }
+
+  :where(.moderni-panel-kompaktni) .moderni-vybrany-jmeno {
+    max-width: 50%;
+    font-size: 12px;
+  }
+
+  :where(.moderni-panel-kompaktni) .moderni-vybrany-id a,
+  :where(.moderni-panel-kompaktni) .moderni-vybrany-id .moderni-tlacitko-ikona {
+    width: 24px;
+    height: 24px;
+  }
+
+  :where(.moderni-panel-kompaktni .vzhled-moderni) .uzivatel .status {
+    margin-top: 4px;
+    font-size: 12px;
+  }
+
+  :where(.moderni-panel-kompaktni) #zrusitUzivateleProPraci {
+    position: absolute;
+    top: 4px;
+    right: 4px;
+  }
+
+  /* text tlačítka zůstává pro čtečky, vidět je jen křížek (a title) */
+  :where(.moderni-panel-kompaktni) .moderni-tlacitko-zrusit {
+    width: 28px;
+    min-height: 28px;
+    margin: 0;
+    padding: 0;
+    border-color: transparent;
+    background-color: transparent;
+    color: var(--m-text-tlumeny);
+    font-size: 0;
+  }
+
+  :where(.moderni-panel-kompaktni) .moderni-tlacitko-zrusit .fa-solid {
+    font-size: 15px;
+  }
+
+  :where(.moderni-panel-kompaktni) .moderni-tlacitko-zrusit:hover {
+    color: var(--m-text);
+  }
+
+  :where(.moderni-panel-kompaktni) .moderni-predchozi {
+    margin-top: 6px;
+    padding-top: 6px;
+    font-size: 12px;
+  }
+
+  /* Hlavní menu */
+  :where(.moderni-panel-kompaktni .vzhled-moderni) .menu {
+    gap: 0;
+    padding: 2px 12px;
+    font-size: 13px;
+  }
+
+  :where(.moderni-panel-kompaktni .vzhled-moderni) .menu a {
+    gap: 10px;
+    min-height: 28px;
+    padding: 4px 12px;
+  }
+
+  :where(.moderni-panel-kompaktni .vzhled-moderni) .menu a .fa-solid {
+    font-size: 13px;
+  }
+
+  /* Přihlášený uživatel: Odhlásit jako ikona vedle jména, přihlášení za jiného pod nimi. */
+  :where(.moderni-panel-kompaktni .vzhled-moderni) .operator {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    align-items: center;
+    gap: 6px 8px;
+    padding: 8px 12px 6px;
+  }
+
+  :where(.moderni-panel-kompaktni) .moderni-operator-kdo {
+    grid-row: 1;
+    grid-column: 1;
+    min-width: 0;
+    margin: 0;
+    gap: 8px;
+  }
+
+  :where(.moderni-panel-kompaktni) .moderni-operator-kdo > .fa-solid {
+    font-size: 20px;
+  }
+
+  :where(.moderni-panel-kompaktni) .moderni-operator-kdo > div {
+    min-width: 0;
+  }
+
+  :where(.moderni-panel-kompaktni) .moderni-operator-kdo .moderni-popisek {
+    display: none;
+  }
+
+  :where(.moderni-panel-kompaktni) .moderni-operator-kdo strong {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  :where(.moderni-panel-kompaktni) .moderni-operator > .moderni-hledani {
+    grid-row: 2;
+    grid-column: 1 / -1;
+  }
+
+  :where(.moderni-panel-kompaktni) .moderni-operator > form:not(.moderni-hledani) {
+    grid-row: 1;
+    grid-column: 2;
+  }
+
+  :where(.moderni-panel-kompaktni) .moderni-tlacitko-odhlasit {
+    width: 30px;
+    min-height: 30px;
+    margin: 0;
+    padding: 0;
+    font-size: 0;
+  }
+
+  :where(.moderni-panel-kompaktni) .moderni-tlacitko-odhlasit .fa-solid {
+    font-size: 14px;
+  }
+}
+
+/* ---------- Tmavé barvy ---------- */
+
+/* Třídu moderni-tmave na <html> nastaví barvy_adminu.js podle volby v patičce, jinak podle zařízení. Panel je
+   tmavý v obou barvách. Jen na obrazovce, vytištěná stránka zůstane světlá. Pravidla níže dobarvují, co
+   nejde přes proměnné: barvy ze styl.css, které světlé moderní barvy nemění, a knihovny. */
+@media screen {
+  :root.moderni-tmave {
+    color-scheme: dark;
+    --m-pozadi: #111317;
+    --m-plocha: #1b1e24;
+    --m-text: #e4e7ec;
+    --m-text-tlumeny: #9ba3b0;
+    --m-okraj: #2d323b;
+    --m-okraj-pole: #464d59;
+    --m-okraj-pole-hover: #626a78;
+    --m-pole: #14161b;
+    --m-tlacitko: #272b33;
+    --m-tlacitko-stisk: #1f2229;
+    --m-hover: #30353f;
+    --m-hlavicka-tabulky: #23272e;
+    --m-hlavicka-tabulky-text: #c4c9d2;
+    --m-radek-lichy: #202329;
+    --m-radek-zvyrazneny: #22324f;
+    --m-vybrana-polozka: #2c3543;
+    --m-stin-okraje: rgba(0, 0, 0, 0.6);
+    --m-tmava: #e4e7ec;
+    --m-na-tmave: #16181d;
+    --m-odkaz: #8ab4f8;
+    --m-fokus: #6b9cff;
+    --m-fokus-stin: rgba(107, 156, 255, 0.35);
+  }
+
+  /* Karta pracovního uživatele v tmavém panelu, ať se od něj odliší. */
+  :where(.moderni-tmave .vzhled-moderni) .uzivatel {
+    border: 1px solid var(--m-panel-okraj);
+    background-color: #23272f;
+  }
+
+  /* Stav uživatele (Uzivatel::statusHtml()) má barvy natvrdo ve style, tmavší z nich na tmavém pozadí nejsou
+     čitelné. */
+  .moderni-tmave .vzhled-moderni .uzivatel .status [style*="color:red"] {
+    color: #ff7b72 !important;
+  }
+
+  .moderni-tmave .vzhled-moderni .uzivatel .status [style*="color:blue"],
+  .moderni-tmave .vzhled-moderni .uzivatel .status [style*="color:rgba(0,0,255"] {
+    color: #8ab4f8 !important;
+  }
+
+  .moderni-tmave .vzhled-moderni .uzivatel .status [style*="color:#783fd4"],
+  .moderni-tmave .vzhled-moderni .uzivatel .status [style*="color:darkslateblue"] {
+    color: #b9a2ff !important;
+  }
+
+  /* Hlášky v obsahu, vyskakovací mají stejné odstíny v hlasky.css */
+  :where(.moderni-tmave .vzhled-moderni) .error {
+    border-color: #7a2e2e;
+    background-color: #33191b;
+    color: #ffb4ab;
+  }
+
+  :where(.moderni-tmave .vzhled-moderni) .success {
+    border-color: #2f6440;
+    background-color: #142a1c;
+    color: #9ed8ae;
+  }
+
+  :where(.moderni-tmave .vzhled-moderni) .warning {
+    border-color: #6e5617;
+    background-color: #2e2510;
+    color: #f2d27a;
+  }
+
+  :where(.moderni-tmave .vzhled-moderni) .danger:disabled,
+  :where(.moderni-tmave .vzhled-moderni) input.danger:disabled {
+    border-color: #5a2a2a;
+    background: #3a1f1f;
+    color: #a87a7a;
+  }
+
+  /* Bublinová nápověda je tmavá i ve světlých barvách, na tmavém pozadí potřebuje okraj. */
+  :where(.moderni-tmave .vzhled-moderni) .hint {
+    border: 1px solid var(--m-okraj-pole);
+  }
+
+  /* Přilepené hlavičky (sticky-pinned-1.0.js) */
+  :where(.moderni-tmave .vzhled-moderni) .pinned {
+    background-color: rgba(27, 30, 36, 0.85);
+  }
+
+  /* Stavy aktivit v přehledu: tmavé odstíny ze styl.css na tmavém pozadí nejsou vidět. */
+  :where(.moderni-tmave .vzhled-moderni) .publikovat {
+    color: #56d364;
+  }
+
+  :where(.moderni-tmave .vzhled-moderni) .deaktivovat,
+  :where(.moderni-tmave .vzhled-moderni) .vyzadovane {
+    color: #ff7b72;
+  }
+
+  :where(.moderni-tmave .vzhled-moderni) .radio--container--square :disabled + .radio--label {
+    background-color: var(--m-pozadi);
+  }
+
+  :where(.moderni-tmave .vzhled-moderni) .radio--container--square :checked + .radio--label {
+    border-color: var(--m-plocha);
+  }
+
+  /* Kontrola týmů (aktivity/tymy) */
+  :where(.moderni-tmave .vzhled-moderni) .tymy-kontrola-sekce,
+  :where(.moderni-tmave .vzhled-moderni) .tymy-kola-sloupec,
+  :where(.moderni-tmave .vzhled-moderni) .tymy-kola-hlavicka {
+    border-color: var(--m-okraj);
+  }
+
+  :where(.moderni-tmave .vzhled-moderni) .tymy-kontrola-tym-bezkapitana,
+  :where(.moderni-tmave .vzhled-moderni) .tymy-kontrola-tym-kola {
+    border-bottom-color: var(--m-okraj);
+  }
+
+  :where(.moderni-tmave .vzhled-moderni) .tymy-kontrola-sekce--chyba {
+    border-color: #7a2e2e;
+    background: #33191b;
+  }
+
+  :where(.moderni-tmave .vzhled-moderni) .tymy-kontrola-sekce--ok {
+    border-color: #2f6440;
+    background: #142a1c;
+  }
+
+  :where(.moderni-tmave .vzhled-moderni) .tymy-kola-hlavicka,
+  :where(.moderni-tmave .vzhled-moderni) .tymy-kola-aktivita-bunka--neprihlasena {
+    background: var(--m-hlavicka-tabulky);
+  }
+
+  :where(.moderni-tmave .vzhled-moderni) .tymy-kola-sloupec--ok .tymy-kola-hlavicka,
+  :where(.moderni-tmave .vzhled-moderni) .tymy-kola-aktivita-bunka--prihlasena {
+    background: #142a1c;
+  }
+
+  :where(.moderni-tmave .vzhled-moderni) .tymy-kola-sloupec--chyba .tymy-kola-hlavicka {
+    background: #33191b;
+  }
+
+  :where(.moderni-tmave .vzhled-moderni) .tymy-kola-cas {
+    color: var(--m-text-tlumeny);
+  }
+
+  :where(.moderni-tmave .vzhled-moderni) .tymy-kontrola-ok {
+    color: #56d364;
+  }
+
+  /* jQuery UI (kalendář, posuvníky času) */
+  .moderni-tmave .vzhled-moderni .ui-widget-content {
+    border-color: var(--m-okraj);
+    background: var(--m-plocha);
+    color: var(--m-text);
+  }
+
+  .moderni-tmave .vzhled-moderni .ui-widget-content a {
+    color: var(--m-text);
+  }
+
+  .moderni-tmave .vzhled-moderni .ui-datepicker .ui-datepicker-other-month .ui-state-default {
+    opacity: 0.6;
+  }
+
+  /* Okna jquery-modal */
+  .moderni-tmave .vzhled-moderni .jquery-modal .modal {
+    background-color: var(--m-plocha);
+    color: var(--m-text);
+  }
+
+  /* Výběr více možností (jquery-multiselect) */
+  .moderni-tmave .vzhled-moderni .ms-options-wrap > button,
+  .moderni-tmave .vzhled-moderni .ms-options-wrap > button:focus {
+    border-color: var(--m-okraj-pole);
+    background-color: var(--m-pole);
+    color: var(--m-text-tlumeny);
+  }
+
+  .moderni-tmave .vzhled-moderni .ms-options-wrap.ms-has-selections > button {
+    color: var(--m-text);
+  }
+
+  .moderni-tmave .vzhled-moderni .ms-options-wrap > .ms-options {
+    border-color: var(--m-okraj-pole);
+    background: var(--m-plocha);
+  }
+
+  .moderni-tmave .vzhled-moderni .ms-options-wrap > .ms-options > ul label.focused,
+  .moderni-tmave .vzhled-moderni .ms-options-wrap > .ms-options > ul label:hover,
+  .moderni-tmave .vzhled-moderni .ms-options-wrap > .ms-options > ul li.selected label {
+    background-color: var(--m-vybrana-polozka);
+  }
+
+  /* Vlastní <style> modulů: světlé pozadí bez barvy písma by v tmavých barvách nešlo přečíst. Selektor je
+     o .moderni-tmave .vzhled-moderni delší, styly modulů jsou ve stránce až za tímhle souborem. Co má
+     světlé pozadí i barvu písma (štítky stavů, náhledy e-mailů, QR kód), zůstává světlé. */
+
+  /* Aktivity: schéma stavů nad přehledem */
+  .moderni-tmave .vzhled-moderni .maluvka .sipka,
+  .moderni-tmave .vzhled-moderni .maluvka .sipka .zpet {
+    border-top-color: var(--m-text-tlumeny);
+  }
+
+  .moderni-tmave .vzhled-moderni .maluvka .sipka::after {
+    border-left-color: var(--m-text-tlumeny);
+  }
+
+  .moderni-tmave .vzhled-moderni .maluvka .sipka .zpet::after {
+    border-right-color: var(--m-text-tlumeny);
+  }
+
+  .moderni-tmave .vzhled-moderni .maluvka .sipka span {
+    border-color: var(--m-okraj-pole);
+    background-color: var(--m-hover);
+  }
+
+  /* Infopult a Uživatel: QR platby a okna (stravenky, QR) */
+  .moderni-tmave .vzhled-moderni .qr-platby__uvod,
+  .moderni-tmave .vzhled-moderni .qr-platba-karta__popis,
+  .moderni-tmave .vzhled-moderni .stravenky-modal__uvod {
+    color: var(--m-text-tlumeny);
+  }
+
+  .moderni-tmave .vzhled-moderni .qr-platby__tlacitko,
+  .moderni-tmave .vzhled-moderni .infopult-modal__zavrit,
+  .moderni-tmave .vzhled-moderni .logy-modal__zavrit {
+    border-color: var(--m-okraj-pole);
+    background: var(--m-tlacitko);
+    color: var(--m-text);
+  }
+
+  .moderni-tmave .vzhled-moderni .qr-platby__tlacitko.is-aktivni,
+  .moderni-tmave .vzhled-moderni .qr-platby__tlacitko[aria-pressed="true"] {
+    border-color: var(--m-tmava);
+    background: var(--m-tmava);
+    color: var(--m-na-tmave);
+  }
+
+  .moderni-tmave .vzhled-moderni .qr-platba-karta {
+    border-color: var(--m-okraj);
+    background: var(--m-plocha);
+  }
+
+  .moderni-tmave .vzhled-moderni .qr-platba-karta__typ {
+    background: var(--m-hover);
+    color: var(--m-text);
+  }
+
+  /* QR kód zůstává na bílém, ať ho telefon přečte. */
+  .moderni-tmave .vzhled-moderni .qr-platba-karta__obrazek {
+    border-color: var(--m-okraj);
+  }
+
+  .moderni-tmave .vzhled-moderni .infopult-modal__obsah,
+  .moderni-tmave .vzhled-moderni .logy-modal__obsah {
+    border-color: var(--m-okraj);
+    background: var(--m-plocha);
+    color: var(--m-text);
+  }
+
+  /* Nápověda: zvolená kapitola */
+  .moderni-tmave .vzhled-moderni .napoveda__menu a.napoveda__aktivni {
+    background: var(--m-hover);
+    color: var(--m-text);
+  }
+
+  .moderni-tmave .vzhled-moderni .napoveda__paticka {
+    color: var(--m-text-tlumeny);
+  }
+
+  /* Místnosti: skryté řádky */
+  .moderni-tmave .vzhled-moderni .skryteRadky tr:nth-child(4n),
+  .moderni-tmave .vzhled-moderni .skryteRadky tr:nth-child(4n+1) {
+    background-color: var(--m-radek-lichy);
+  }
+
+  .moderni-tmave .vzhled-moderni .skryteRadky tr:nth-child(4n+2),
+  .moderni-tmave .vzhled-moderni .skryteRadky tr:nth-child(4n+3) {
+    background-color: var(--m-plocha);
+  }
+
+  /* Web: hlavičky linií */
+  .moderni-tmave .vzhled-moderni .hlavicky-linii__meta {
+    color: var(--m-text-tlumeny);
+  }
+
+  .moderni-tmave .vzhled-moderni .hlavicky-linii__preview {
+    background: var(--m-pozadi);
+  }
+
+  /* Dev */
+  .moderni-tmave .vzhled-moderni .dev-rozcestnik a {
+    border-color: var(--m-okraj-pole);
+    background: var(--m-tlacitko);
+  }
+
+  .moderni-tmave .vzhled-moderni .dev-rozcestnik a:hover {
+    border-color: var(--m-okraj-pole-hover);
+    background: var(--m-hover);
+  }
+
+  .moderni-tmave .vzhled-moderni .dev-rozcestnik p {
+    color: var(--m-text-tlumeny);
+  }
+
+  .moderni-tmave .vzhled-moderni .chyba:hover {
+    background-color: var(--m-hover);
+  }
+
+  .moderni-tmave .vzhled-moderni .chyba .bubliny div {
+    background-color: var(--m-okraj-pole);
+  }
+
+  .moderni-tmave .vzhled-moderni .chyba a {
+    color: var(--m-odkaz);
+  }
+
+  /* Světlé pozadí natvrdo ve style (text e-mailu v Upomínkách a logu, ano/ne ve Slučování, přihlášení
+     do Vševědy a webmail v Previews): zůstává světlé, písmo i odkazy musí být tmavé. */
+  .moderni-tmave .vzhled-moderni .main pre[style*="background: #f5f5f5"],
+  .moderni-tmave .vzhled-moderni .main td[style*="background-color: #8d8"],
+  .moderni-tmave .vzhled-moderni .main td[style*="background-color: #faa"],
+  .moderni-tmave .vzhled-moderni .main div[style*="background: #eaf4fb"] {
+    --m-odkaz: #1d4ed8;
+    color: #1f2328;
+  }
+
+  /* Statistiky: roky v grafu podbarví skript barvou čáry, většinou světlou, písmo zůstává tmavé jako ve světlých. */
+  .moderni-tmave .vzhled-moderni #vyberGrafuStatistik label[style*="background-color"] {
+    color: #1f2328;
+  }
+
+  /* Upomínky: hláška u nevyplněného vlastního znění má tmavě červenou natvrdo ve style. */
+  .moderni-tmave .vzhled-moderni #zneniChybi {
+    color: #ff7b72 !important;
+  }
+}

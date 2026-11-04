@@ -33,6 +33,16 @@ class AdminMenuIkonyTest extends TestCase
         }
     }
 
+    /**
+     * Hlavní menu moderního vzhledu kreslí ikonu z hlavičky `ikona:`, klasické má vlastní obrázky.
+     */
+    public static function provideHlavniMenuPolozky(): iterable
+    {
+        foreach ((new \AdminMenu(self::MODULY_DIR . '/'))->pole() as $url => $polozka) {
+            yield $url => [$polozka];
+        }
+    }
+
     public static function provideModulySNazvem(): iterable
     {
         foreach (glob(self::MODULY_DIR . '/{*.php,*/*.php}', GLOB_BRACE) as $soubor) {
@@ -47,6 +57,16 @@ class AdminMenuIkonyTest extends TestCase
 
     #[DataProvider('provideSubmenuPolozky')]
     public function testKazdaPolozkaSubmenuMaIkonuZFontAwesome(array $polozka): void
+    {
+        self::assertNotNull($polozka['ikona'], "Chybí hlavička `ikona:` v {$polozka['soubor']}");
+        self::assertTrue(
+            self::isIkonaVeFontAwesome($polozka['ikona']),
+            "Ikona {$polozka['ikona']} z {$polozka['soubor']} není ve Font Awesome 6.1.1",
+        );
+    }
+
+    #[DataProvider('provideHlavniMenuPolozky')]
+    public function testKazdaPolozkaHlavnihoMenuMaIkonuZFontAwesome(array $polozka): void
     {
         self::assertNotNull($polozka['ikona'], "Chybí hlavička `ikona:` v {$polozka['soubor']}");
         self::assertTrue(

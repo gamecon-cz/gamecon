@@ -18,6 +18,11 @@ abstract class AbstractTestWeb extends AbstractTestDb
         return false;
     }
 
+    protected static function resetDbAfterClass(): bool
+    {
+        return true;
+    }
+
     /**
      * @return string[]
      */
@@ -306,7 +311,8 @@ SQL;
         string $password,
     ): void {
         $adminUrl = basename(__DIR__ . '/../../admin');
-        $adminAbsoluteUrl = 'http://localhost/' . $adminUrl;
+        // Apache přesměruje /admin a /admin?req= na /admin/?req=, curl přitom změní POST na GET a heslo se ztratí
+        $adminAbsoluteUrl = 'http://localhost/' . $adminUrl . '/?req=';
         $curlHandle = curl_init($adminAbsoluteUrl);
 
         curl_setopt($curlHandle, CURLOPT_HEADER, true);
@@ -353,7 +359,38 @@ SQL;
                 ),
             );
         }
+        if (preg_match('~name=["\']' . preg_quote(Login::PASSWORD_INPUT_NAME, '~') . '["\']~', (string) $output)) {
+            self::fail(sprintf('Přihlášení do adminu přes %s se nepovedlo, odpověď je přihlašovací formulář', $adminAbsoluteUrl));
+        }
         curl_close($curlHandle);
+    }
+
+    /**
+     * Tělo stránky adminu staženo jako přihlášený SYSTEM.
+     */
+    protected function fetchAdminPage(string $url): string
+    {
+        // aby se DNS vyřešilo ještě před curl, které by jinak mohlo padnout na ještě nepřipraveném Apache
+        get_headers(URL_ADMIN);
+        $cookieFile = tempnam(sys_get_temp_dir(), 'cookie');
+        try {
+            $this->loginToAdmin($cookieFile, \Uzivatel::SYSTEM_LOGIN, UNIVERZALNI_HESLO);
+            $curlHandle = curl_init('http://localhost/' . $url);
+            curl_setopt($curlHandle, CURLOPT_CONNECTTIMEOUT, 10);
+            curl_setopt($curlHandle, CURLOPT_TIMEOUT, 30);
+            curl_setopt($curlHandle, CURLOPT_RETURNTRANSFER, true);
+            curl_setopt($curlHandle, CURLOPT_HTTP_VERSION, CURL_HTTP_VERSION_1_1);
+            curl_setopt($curlHandle, CURLOPT_COOKIEFILE, $cookieFile);
+            $this->setLocalServerCookieWithGameconTestDb($curlHandle);
+            $output = curl_exec($curlHandle);
+            self::assertNotFalse($output, curl_error($curlHandle));
+            $httpCode = curl_getinfo($curlHandle, CURLINFO_HTTP_CODE);
+            self::assertSame(200, $httpCode, "Stránka {$url} vrátila HTTP {$httpCode}");
+
+            return (string) $output;
+        } finally {
+            unlink($cookieFile);
+        }
     }
 
     protected function setLocalServerCookieWithGameconTestDb(\CurlHandle $curlHandle): void

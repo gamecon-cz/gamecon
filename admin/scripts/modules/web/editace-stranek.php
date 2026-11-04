@@ -14,9 +14,10 @@ if (get('id') || get('akce') === 'nova') {
     $f = Stranka::form(get('id'));
     $f->processPost();
     echo $f->full();
-    $stranka = get('id') ? Stranka::zId(get('id')) : null;
-    if ($stranka) {
-        echo (new QrOdkaz($stranka->urlNaWebu(), 'qr-' . str_replace('/', '-', $stranka->url())))->html();
+    // ne $stranka: modul běží ve scope admin/index.php, který si v $stranka drží název stránky adminu pro submenu
+    $upravovanaStranka = get('id') ? Stranka::zId(get('id')) : null;
+    if ($upravovanaStranka) {
+        echo (new QrOdkaz($upravovanaStranka->urlNaWebu(), 'qr-' . str_replace('/', '-', $upravovanaStranka->url())))->html();
     }
     return;
 }

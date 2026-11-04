@@ -7,6 +7,7 @@
   {headerPageInfo}
   <link rel="shortcut icon" href="files/favicon.png"/>
   <link rel="stylesheet" href="files/design/styl.css?version={cssVersions.styl}"/>
+  <link rel="stylesheet" href="files/design/hlasky.css?version={cssVersions.hlasky}"/>
   <link rel="stylesheet" href="files/design/ribbon.css?version={cssVersions.ribbon}"/>
   <link rel="stylesheet" href="files/design/uzky.css?version={cssVersions.uzky}" media="(max-width: 550px)">
   <link rel="stylesheet" href="files/design/ui-lightness/jquery-ui-v1.12.1.min.css" />
@@ -17,6 +18,7 @@
   <link rel="stylesheet" href="files/design/jquery-modal/jquery.modal.gamecon.css?version=f946305a5585486a6c3448dd9a304720" />
   <link rel="stylesheet" href="files/design/font-awesome-6.1.1/css/all.min.css">
   <link rel="stylesheet" href="files/design/font-awesome-6.1.1/css/v4-shims.css">
+  <link rel="stylesheet" href="files/design/vzhled_adminu.css?version={cssVersions.vzhled_adminu}"/>
   <!-- begin:april -->
   <link rel="stylesheet" href="files/design/april-1.1.css">
   <!-- end:april -->
@@ -29,7 +31,7 @@
   <script type="text/javascript" src="files/jquery.serializeobject.js?version=756c72ca3178bfe417882afe5b460406"></script>
   <script type="text/javascript" src="files/jquery.cookie-v1.4.1.js"></script>
   <script type="text/javascript" src="files/aplikace.js?version={jsVersions.aplikace}"></script>
-  <script type="text/javascript" src="files/omnibox-1.1.5.js"></script>
+  <script type="text/javascript" src="files/omnibox.js?version={jsVersions.omnibox}"></script>
   <script type="text/javascript" src="files/jquery.multiselect-2.4.16.js"></script>
   <script type="text/javascript" src="files/jquery.modal-0.9.1.min.js"></script>
   <script type="text/javascript" src="files/jquery.dirty-0.8.3.js"></script>
@@ -75,8 +77,10 @@
       </div>
     </div>
     {FILE "templates/paticka.xtpl"}
+    {prepinacVzhledu}
   </div>
 </div>
+{vyberVzhledu}
 <!-- begin: ribbon -->
 <div class="corner-ribbon">{ribbonLabel}</div>
 <!-- end: ribbon -->

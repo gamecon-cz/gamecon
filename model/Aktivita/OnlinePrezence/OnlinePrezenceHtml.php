@@ -4,6 +4,9 @@ declare(strict_types=1);
 
 namespace Gamecon\Aktivita\OnlinePrezence;
 
+use Gamecon\Admin\VzhledAdminu;
+use Gamecon\Admin\VzhledAdminuEnum;
+use Gamecon\Admin\VzhledAdminuHtml;
 use Gamecon\Aktivita\Aktivita;
 use Gamecon\Aktivita\AktivitaPrezence;
 use Gamecon\Aktivita\RazitkoPosledniZmenyPrihlaseni;
@@ -25,12 +28,19 @@ class OnlinePrezenceHtml
     private ?PotvrzeniZobrazeniKontaktu $potvrzeniZobrazeniKontaktu = null;
     private bool $testujeme;
 
+    /**
+     * @param VzhledAdminuHtml|null $vzhledAdminuHtml přepínač a výběr vzhledu; bez něj (ajax, testy) se nevykreslí
+     * @param string                $nazevStranky     nadpis horní lišty moderního vzhledu
+     */
     public function __construct(
         private readonly string $jsVyjimkovac,
         private readonly SystemoveNastaveni $systemoveNastaveni,
         private readonly Filesystem $filesystem,
         private readonly bool $muzemeTestovat = false,
         bool $testujeme = false,
+        private readonly VzhledAdminuEnum $vzhled = VzhledAdminu::VYCHOZI,
+        private readonly ?VzhledAdminuHtml $vzhledAdminuHtml = null,
+        private readonly string $nazevStranky = 'Online prezence',
     ) {
         $this->testujeme = $muzemeTestovat && $testujeme;
     }
@@ -65,6 +75,20 @@ class OnlinePrezenceHtml
         $template->assign('jsVyjimkovac', $this->jsVyjimkovac);
         $template->assign('a', $editujici->koncovkaDlePohlavi());
 
+        if ($this->vzhled === VzhledAdminuEnum::MODERNI) {
+            $template->assign('tridaVzhledu', 'vzhled-moderni');
+            $template->assign('nazevStranky', $this->nazevStranky);
+            $template->assign('jmenoEditujiciho', $editujici->jmenoNick());
+            $template->parse('onlinePrezence.moderniLista');
+        }
+        if ($this->vzhledAdminuHtml !== null) {
+            $template->assign('prepinacVzhledu', $this->vzhledAdminuHtml->getPrepinacHtml((int) $editujici->id()));
+            $template->assign('vyberVzhledu', $this->vzhledAdminuHtml->getVyberHtml((int) $editujici->id()));
+            $template->parse('onlinePrezence.volbaVzhledu');
+        }
+        // hlášky (chyba(), oznameni()), třeba o změně vzhledu; nevyzvednuté by vyskočily až na jiné stránce adminu
+        $template->assign('hlasky', \Chyba::vyzvedniHtml());
+
         $this->pridejLokalniAssety($template);
 
         if (count($organizovaneAktivity) === 0) {
@@ -84,11 +108,12 @@ class OnlinePrezenceHtml
             'stylesheets' => [
                 __DIR__ . '/../../../admin/files/design/hint.css',
                 __DIR__ . '/../../../admin/files/design/zvyraznena-tabulka.css',
+                __DIR__ . '/../../../admin/files/design/hlasky.css',
                 __DIR__ . '/../../../admin/files/design/online-prezence.css',
             ],
             'javascripts' => [
                 'text' => [
-                    __DIR__ . '/../../../admin/files/omnibox-1.1.5.js',
+                    __DIR__ . '/../../../admin/files/omnibox.js',
                     __DIR__ . '/../../../admin/files/zablikej-1.1.js',
                     __DIR__ . '/../../../admin/files/online-prezence/online-prezence-heat-colors.js',
                     __DIR__ . '/../../../admin/files/online-prezence/online-prezence-tooltip.js',
@@ -110,13 +135,24 @@ class OnlinePrezenceHtml
                 ],
             ],
         ];
-        foreach ($localAssets['stylesheets'] as $stylesheet) {
+        $stylesheets = $localAssets['stylesheets'];
+        $javascripts = $localAssets['javascripts'];
+        if ($this->vzhledAdminuHtml !== null) {
+            $stylesheets[] = __DIR__ . '/../../../admin/files/design/vzhled_adminu.css';
+        }
+        if ($this->vzhled === VzhledAdminuEnum::MODERNI) {
+            // poslední, přebíjí styly výše
+            $stylesheets[] = __DIR__ . '/../../../admin/files/design/online-prezence-moderni.css';
+            // v hlavičce bez defer, tmavé barvy musí být nastavené dřív, než se stránka vykreslí
+            $javascripts['text'][] = __DIR__ . '/../../../admin/files/barvy_adminu.js';
+        }
+        foreach ($stylesheets as $stylesheet) {
             $template->assign('url', str_replace(__DIR__ . '/../../../admin/', '', $stylesheet));
             $template->assign('version', md5_file($stylesheet));
             $template->parse('onlinePrezence.stylesheet');
         }
-        foreach ($localAssets['javascripts'] as $type => $javascripts) {
-            foreach ($javascripts as $javascript) {
+        foreach ($javascripts as $type => $javascriptsTypu) {
+            foreach ($javascriptsTypu as $javascript) {
                 $template->assign('url', str_replace(__DIR__ . '/../../../admin/', '', $javascript));
                 $template->assign('version', md5_file($javascript));
                 if ($type === 'module') {

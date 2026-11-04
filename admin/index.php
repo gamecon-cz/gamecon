@@ -2,12 +2,15 @@
 
 declare(strict_types=1);
 
+use Gamecon\Admin\VzhledAdminu;
+use Gamecon\Admin\VzhledAdminuHtml;
 use Gamecon\Cas\DateTimeCz;
 use Gamecon\Pravo;
 use Gamecon\Role\Role;
 use Gamecon\SystemoveNastaveni\SystemoveNastaveniHtml;
 use Gamecon\Uzivatel\Platby;
 use Gamecon\Web\Info;
+use Gamecon\Web\Urls;
 use Gamecon\Web\VerzeSouboru;
 use Gamecon\XTemplate\XTemplate;
 
@@ -80,11 +83,32 @@ global $systemoveNastaveni;
 $info = new Info($systemoveNastaveni);
 $info->nazev('Administrace');
 
+// vzhled administrace (klasický / moderní), volba z výběru při první návštěvě nebo z přepínače v patičce
+$vzhledAdminu = null;
+$vzhledAdminuHtml = null; // používá i online prezence v Moje aktivity, která nemá rám adminu
+$vzhled = VzhledAdminu::VYCHOZI;
+if ($u) {
+    $vzhledAdminu = new VzhledAdminu($_SESSION);
+    $vzhledAdminuHtml = new VzhledAdminuHtml($vzhledAdminu);
+    if (post(VzhledAdminu::POST_KLIC) !== null) {
+        $zvolenyVzhled = $vzhledAdminu->zpracujVolbu($u->id(), (string) post(VzhledAdminu::POST_KLIC));
+        if ($zvolenyVzhled !== null) {
+            oznameni("Administrace má teď {$zvolenyVzhled->getNazev()} vzhled. Přepnout ho můžeš kdykoli dole na stránce.");
+        }
+        back();
+    }
+    $vzhled = $vzhledAdminu->getVzhled($u->id());
+}
+
+// Odkaz na kotvu musí nést adresu stránky, samotné #kotva by se vůči <base> otevřelo na úvodní stránce adminu.
+$urlStranky = htmlspecialchars(Urls::getCestaNaTomtoWebu($_SERVER['REQUEST_URI'] ?? ''));
+
 // xtemplate inicializace
-$xtpl = new XTemplate(__DIR__ . '/templates/main.xtpl');
+$xtpl = new XTemplate(__DIR__ . '/' . $vzhled->getSablona());
 $xtpl->assign([
     'headerPageInfo'          => $info->html(),
     'base'                    => URL_ADMIN . '/',
+    'urlStranky'              => $urlStranky,
     'cssVersions'             => new VerzeSouboru(__DIR__ . '/files/design', 'css'),
     'jsVersions'              => new VerzeSouboru(__DIR__ . '/files', 'js'),
     'urlSPracovnimUzivatelem' => $uPracovni
@@ -160,6 +184,7 @@ $maNekterePravo = static function (array $polozkaMenu) use ($u): bool {
             return true;
         }
     }
+
     return false;
 };
 $strankaExistuje = isset($menu[$stranka]);
@@ -171,6 +196,8 @@ $uzivatelMaPristup = $strankaExistuje
                      );
 
 $submenuDoplnek = '';
+// nadpis horní lišty moderního vzhledu, i pro online prezenci v Moje aktivity, která má lištu vlastní
+$nazevSekce = $menu[$stranka]['nazev'] ?? 'Administrace';
 
 // konstrukce stránky
 if ($strankaExistuje && $uzivatelMaPristup) {
@@ -195,6 +222,10 @@ if ($strankaExistuje && $uzivatelMaPristup) {
     }
 
     $vystup = ob_get_clean();
+    // jak se vzhledy ujaly (reporty Vzhled administrace); i stránky bez rámu, třeba Moje aktivity
+    if ($vzhledAdminu !== null && VzhledAdminu::isZobrazeniStranky($_SERVER)) {
+        $vzhledAdminu->zaznamenejZobrazeniStranky($u->id(), $systemoveNastaveni->ted());
+    }
     if ($BEZ_DEKORACE) {
         echo $vystup;
     } else {
@@ -266,12 +297,20 @@ if ($u && $u->maPravo(Pravo::ADMINISTRACE_INFOPULT)) {
 }
 
 // výstup menu
+// výběr a přepínač vzhledu jen pro toho, kdo v adminu něco smí, ne pro účastníka na stránce 403;
+// otevřená stránka se počítá, i když ji smí jen díky právu na podstránku (to položku hlavního menu nezobrazí)
+$maPristupDoAdminu = $uzivatelMaPristup;
 foreach ($menu as $url => $polozka) {
     if ($maNekterePravo($polozka)) {
+        $maPristupDoAdminu = true;
         $xtpl->assign('url', $url);
         $xtpl->assign('nazev', $polozka['nazev']);
+        $xtpl->assign('ikona', $polozka['ikona'] ?? 'circle');
         $xtpl->assign('aktivni', $stranka === $url
             ? 'class="active"'
+            : '');
+        $xtpl->assign('ariaAktivni', $stranka === $url
+            ? 'aria-current="page"'
             : '');
         $xtpl->parse('all.menuPolozka');
     }
@@ -357,6 +396,11 @@ $info->nazev($info->nazev() ?? '', 'Administrace');
 // výstup
 $xtpl->assign('protip', $protipy[array_rand($protipy)]);
 $xtpl->parse('all.paticka');
+$xtpl->assign([
+    'nazevSekce'      => $nazevSekce,
+    'prepinacVzhledu' => $maPristupDoAdminu ? $vzhledAdminuHtml?->getPrepinacHtml($u->id()) ?? '' : '',
+    'vyberVzhledu'    => $maPristupDoAdminu ? $vzhledAdminuHtml?->getVyberHtml($u->id()) ?? '' : '',
+]);
 $xtpl->assign('chyba', chyba::vyzvedniHtml());
 $xtpl->assign('jsVyjimkovac', Gamecon\Vyjimkovac\Vyjimkovac::js(URL_WEBU));
 $xtpl->assign('headerPageInfo', $info->html());
