@@ -332,8 +332,8 @@ class EmailoveSablonyKatalog
             ),
             new EmailovaPromenna(
                 nazev: 'zustatek',
-                popis: 'zůstatek v korunách',
-                ukazka: '1250',
+                popis: 'zůstatek v korunách, haléře jen když nějaké jsou (např. 1 250 nebo 1 250,90)',
+                ukazka: "1\u{a0}250",
                 vPredmetu: true,
             ),
             new EmailovaPromenna(
@@ -514,7 +514,7 @@ class EmailoveSablonyKatalog
                 format: GcMail::FORMAT_TEXT,
                 promenne: [
                     new EmailovaPromenna('pocet_uzivatelu', 'kolika uživatelům se zůstatek promlčí', '35'),
-                    new EmailovaPromenna('suma', 'kolik korun se celkem promlčí', '12500'),
+                    new EmailovaPromenna('suma', 'kolik korun se celkem promlčí, haléře jen když nějaké jsou', "12\u{a0}500"),
                     self::gcSkoncil(),
                 ],
             ),
@@ -527,7 +527,7 @@ class EmailoveSablonyKatalog
                 format: GcMail::FORMAT_TEXT,
                 promenne: [
                     new EmailovaPromenna('pocet', 'kolika uživatelům se zůstatek promlčel', '35'),
-                    new EmailovaPromenna('suma', 'kolik korun se celkem promlčelo', '12500'),
+                    new EmailovaPromenna('suma', 'kolik korun se celkem promlčelo, haléře jen když nějaké jsou', "12\u{a0}500"),
                     self::gcSkoncil(),
                 ],
             ),

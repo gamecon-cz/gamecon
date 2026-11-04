@@ -557,6 +557,47 @@ SQL;
     /**
      * @test
      */
+    public function varovnyEmailUvadiZustatekSHaleri()
+    {
+        $idUzivatele = 1010;
+        dbQuery(self::uzivatelQuery($idUzivatele, 'Zůstatek', 'Shaléři', 500.0));
+        dbQuery(self::prihlasenNaRocnikQuery($idUzivatele, ROCNIK - PromlceniZustatku::getPocetLetNeplatnosti() - 1));
+        dbQuery(self::platbaQuery($idUzivatele, 100.9, ROCNIK));
+
+        $this->dejPromlceniZustatkuSCasem($this->dejCasRegistraceMinus('1 month'))
+            ->odesliVarovneEmaily(TypVarovaniPromlceni::MESIC);
+
+        $logger = new MailLogger(LOGY . '/maily.sqlite');
+        $nalezene = $logger->najdi('Tvůj zůstatek 600,90 Kč');
+        self::assertNotEmpty($nalezene, 'Zůstatek v předmětu varování se nesmí zkrátit na celé koruny');
+
+        $mail = $logger->detail((int) $nalezene[0]['id']);
+        $telo = quoted_printable_decode(explode("\r\n\r\n", $mail['telo'], 2)[1]);
+        self::assertStringContainsString('Tvůj zůstatek: 600,90 Kč', $telo);
+    }
+
+    /**
+     * @test
+     */
+    public function varovnyEmailOddelujeTisiceNezlomitelnouMezerou()
+    {
+        $idUzivatele = 1011;
+        dbQuery(self::uzivatelQuery($idUzivatele, 'Zůstatek', 'Stisíci', 1200.0));
+        dbQuery(self::prihlasenNaRocnikQuery($idUzivatele, ROCNIK - PromlceniZustatku::getPocetLetNeplatnosti() - 1));
+        dbQuery(self::platbaQuery($idUzivatele, 50.9, ROCNIK));
+
+        $this->dejPromlceniZustatkuSCasem($this->dejCasRegistraceMinus('1 month'))
+            ->odesliVarovneEmaily(TypVarovaniPromlceni::MESIC);
+
+        self::assertNotEmpty(
+            (new MailLogger(LOGY . '/maily.sqlite'))->najdi("Tvůj zůstatek 1\u{a0}250,90 Kč"),
+            'Tisíce se v předmětu oddělují nezlomitelnou mezerou',
+        );
+    }
+
+    /**
+     * @test
+     */
     public function varovneEmailyTydenSeOdesliVeSpravnyCas()
     {
         // Nastavíme přesný čas - 1 týden před registrací
@@ -681,6 +722,24 @@ SQL;
 
         self::assertNotNull($kdy, 'Po zalogování by mělo vrátit datum');
         self::assertInstanceOf(\DateTimeInterface::class, $kdy);
+    }
+
+    /**
+     * @test
+     */
+    public function automatickePromlceniZalogujeSumuNaHalere()
+    {
+        $this->dejPromlceniZustatku()->zalogujAutomatickePromlceni(ROCNIK, 3, 1250.9);
+
+        $vysledek = dbFetchSingle(
+            'SELECT vysledek FROM hromadne_akce_log WHERE skupina = $0 AND akce = $1',
+            [
+                0 => 'promlceni-zustatku',
+                1 => 'automaticke-promlceni-' . ROCNIK,
+            ],
+        );
+
+        self::assertSame("3 uživatelů, 1\u{A0}250,90 Kč", $vysledek);
     }
 
     // ==================== Helper methods ====================
