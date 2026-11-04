@@ -1,0 +1,58 @@
+name: Security update brief
+
+# yamllint disable-line rule:truthy
+on:
+    pull_request:
+        branches: [ main ]
+        # Dependabot rewrites the body after it pushes, so `edited` puts the brief back.
+        types: [ opened, reopened, synchronize, edited ]
+
+# A running run is never cancelled, one more waits behind it: a run that has outlived its head writes nothing (see the last step),
+# so cancelling the run for the newer head in favour of a stale one could leave the body without a brief.
+concurrency:
+    group: security-update-brief-${{ github.event.pull_request.number }}
+    cancel-in-progress: false
+
+permissions: {}
+
+jobs:
+    brief:
+        if: github.event.pull_request.user.login == 'dependabot[bot]'
+        runs-on: ubuntu-24.04
+        timeout-minutes: 15
+        # Dependabot's token is read-only unless a job asks for more, as in GitHub's own Dependabot examples.
+        permissions:
+            contents: read
+            pull-requests: write
+        steps:
+            # The merge commit: main with the Dependabot changes on top, so its first parent is main and its second the head of the pull request.
+            -   uses: actions/checkout@v5
+                with:
+                    fetch-depth: 2
+                    persist-credentials: false
+
+            -   name: Build the brief
+                run: |
+                    pull_request_head=$(git rev-parse --verify HEAD^2)
+                    bin/security-update-brief.sh HEAD^1 HEAD brief.md "$pull_request_head"
+
+            # The body is read, spliced and written back in one step, so a rewrite by Dependabot has the shortest possible window.
+            # A run that outlives its head (a re-run, or an `edited` run that starts before GitHub has rebuilt the merge commit) must not replace a newer brief.
+            -   name: Put the brief into the body
+                if: hashFiles('brief.md') != ''
+                env:
+                    GH_TOKEN: ${{ github.token }}
+                    PULL_REQUEST_URL: repos/${{ github.repository }}/pulls/${{ github.event.pull_request.number }}
+                run: |
+                    built_for=$(git rev-parse --verify HEAD^2)
+                    gh api "$PULL_REQUEST_URL" > pull-request.json
+                    jq -r '.body // ""' pull-request.json > current-body.md
+                    current_head=$(jq -r .head.sha pull-request.json)
+                    if [ "$built_for" != "$current_head" ]; then
+                        echo "::notice::The brief was built for $built_for, the pull request is at $current_head; the run for the newer head writes its own."
+                        exit 0
+                    fi
+                    env -u GH_TOKEN python3 -I .github/scripts/security_update_brief.py splice --body-file current-body.md --brief-file brief.md --output new-body.md
+                    if [ -f new-body.md ]; then
+                        gh api --method PATCH "$PULL_REQUEST_URL" --field body=@new-body.md > /dev/null
+                    fi
