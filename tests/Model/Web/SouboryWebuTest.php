@@ -97,6 +97,8 @@ SQL,
         );
         self::assertStringNotContainsString('<th>Typ</th>', $html);
         self::assertStringNotContainsString('<th>Velikost</th>', $html);
+        self::assertStringContainsString('<th>Použit v</th>', $html, 'Sloupec s místy použití, včetně kódu webu');
+        self::assertStringNotContainsString('Odkazuje na něj', $html);
 
         $vPodslozce = self::radek($html, '2027/dve.pdf');
         self::assertStringContainsString('stránka soubory-test', $vPodslozce, 'Odkaz s ?download=1 platí');
