@@ -26,7 +26,7 @@ TL;DR: admin má dvě kostry stránky (`admin/templates/main.xtpl` a `admin/temp
 
 - Nemá rám adminu a pro vypravěče je často jedinou stránkou adminu, proto si přepínač a dialog výběru vykresluje sama (`OnlinePrezenceHtml` s `vzhledAdminuHtml`).
 - Moderní vzhled je jen třída `vzhled-moderni` na `<body>`, horní lišta (blok `moderniLista`) a `online-prezence-moderni.css` načtený za ostatními styly; značky, ID a třídy pro skripty online prezence zůstávají stejné jako v klasickém. Opakované tlačítko „do Adminu“ v kartách aktivit moderní vzhled schová, je v liště.
-- Stránka nevypisuje hlášky (`chyba()`, `oznameni()`). Její formuláře výběru proto posílají `vzhledAdminuBezOznameni` a `admin/index.php` oznámení o změně vzhledu neuloží, jinak by vyskočilo až na jiné stránce.
+- Hlášky (`chyba()`, `oznameni()`) si vypisuje sama (`Chyba::vyzvedniHtml()` v `OnlinePrezenceHtml`). Jejich styly (klasické, moderní i tmavé) jsou v `admin/files/design/hlasky.css`, který načítají obě kostry adminu i online prezence; `styl.css` ani `moderni.css` online prezence nenačítá. Vlastní má každá stránka jen umístění: online prezence `z-index` nad okny Bootstrapu (`online-prezence.css`) a posun pod lištu (`online-prezence-moderni.css`), moderní admin posun pod lištu v `moderni.css`. Dřív je nevypisovala a nevyzvednutá hláška pak vyskočila až na jiné stránce adminu.
 - Lokální QA: testovací režim `moje-aktivity?test=1` jde jen s `TESTING` a `TEST_MAZAT_VSECHNA_RAZITKA_POSLEDNICH_ZMEN` (např. v gitignorovaném `nastaveni/nastaveni-local.php`). Po zaškrtnutí „dorazil“ se řádek u zamčené aktivity zamkne, test proto hledá řádek podle ID, ne „první povolené zaškrtávátko“.
 
 ## Jak moderni.css přebarvuje obsah

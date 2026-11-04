@@ -9,6 +9,7 @@
   <link rel="shortcut icon" href="files/favicon.png"/>
   <!-- Obsah modulů staví na klasickém stylu, moderni.css (načtený poslední) ho jen přebarví a přeskládá. -->
   <link rel="stylesheet" href="files/design/styl.css?version={cssVersions.styl}"/>
+  <link rel="stylesheet" href="files/design/hlasky.css?version={cssVersions.hlasky}"/>
   <link rel="stylesheet" href="files/design/ribbon.css?version={cssVersions.ribbon}"/>
   <link rel="stylesheet" href="files/design/ui-lightness/jquery-ui-v1.12.1.min.css" />
   <link rel="stylesheet" href="files/design/ui-lightness/jquery-ui-timepicker-addon-1.6.3.min.css" />

@@ -88,18 +88,6 @@ SQL,
         );
     }
 
-    public function testBezOznameniPridaSkrytePole(): void
-    {
-        $idUzivatele = $this->vytvorUzivatele('bez_oznameni');
-        $html = new VzhledAdminuHtml($this->vytvorVzhledAdminu());
-        $skrytePole = 'name="' . VzhledAdminu::POST_KLIC_BEZ_OZNAMENI . '"';
-
-        self::assertStringNotContainsString($skrytePole, $html->getPrepinacHtml($idUzivatele));
-        self::assertStringContainsString($skrytePole, $html->getPrepinacHtml($idUzivatele, sOznamenim: false));
-        self::assertStringNotContainsString($skrytePole, $html->getVyberHtml($idUzivatele));
-        self::assertStringContainsString($skrytePole, $html->getVyberHtml($idUzivatele, sOznamenim: false));
-    }
-
     public function testVyberJenDokudSiUzivatelNevybral(): void
     {
         $idUzivatele = $this->vytvorUzivatele('vyber');

@@ -91,7 +91,7 @@ if ($u) {
     $vzhledAdminuHtml = new VzhledAdminuHtml($vzhledAdminu);
     if (post(VzhledAdminu::POST_KLIC) !== null) {
         $zvolenyVzhled = $vzhledAdminu->zpracujVolbu($u->id(), (string) post(VzhledAdminu::POST_KLIC));
-        if ($zvolenyVzhled !== null && ! post(VzhledAdminu::POST_KLIC_BEZ_OZNAMENI)) {
+        if ($zvolenyVzhled !== null) {
             oznameni("Administrace má teď {$zvolenyVzhled->getNazev()} vzhled. Přepnout ho můžeš kdykoli dole na stránce.");
         }
         back();

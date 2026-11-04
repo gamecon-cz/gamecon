@@ -1,0 +1,132 @@
+/* Vyskakovací hlášky (chyba(), oznameni()) z Chyba::vyzvedniHtml(), v administraci i v online prezenci, která
+   nemá styl.css ani moderni.css. Kam hlášku posunout (pod horní lištu, nad okna), si řeší každá stránka sama. */
+
+.chybaBlok {
+  position: fixed;
+  box-sizing: border-box;
+  width: 80%;
+  left: 10%;
+  top: 25px;
+  text-align: center;
+  z-index: 99;
+}
+.chybaBlok.inline { position: inherit; z-index: inherit; top: 0; width: 100%; left: 0; margin-bottom: 1em }
+
+.chybaBlok .hlaska {
+  padding: 1em;
+  margin: 5px 0;
+  box-shadow: 0 0 10px;
+  font-size: 16px;
+}
+
+.chybaBlok .errorHlaska {
+  background-color: rgba(255, 191, 191, 0.85);
+  color: #a00;
+}
+
+.chybaBlok .varovani {
+  background-color: rgba(245, 228, 150, 0.75);
+  color: #f67f00;
+}
+
+.chybaBlok .oznameni {
+  background-color: rgba(212, 241, 212, 0.75);
+  color: #252;
+}
+
+.chybaBlok .admin_zavrit {
+  position: absolute;
+  top: 12px;
+  right: 9px;
+  font-size: 16px;
+  cursor: pointer;
+  color: #515151;
+}
+
+/* ---------- Moderní vzhled ---------- */
+
+/* :where() drží váhu selektorů jako u klasických výše, přebíjí je pořadí */
+:where(.vzhled-moderni) .chybaBlok {
+  top: 16px;
+  left: 50%;
+  width: min(640px, calc(100% - 32px));
+  text-align: left;
+  transform: translateX(-50%);
+}
+
+:where(.vzhled-moderni) .chybaBlok.inline {
+  left: 0;
+  width: 100%;
+  transform: none;
+}
+
+:where(.vzhled-moderni) .chybaBlok .hlaska {
+  margin: 0 0 8px;
+  padding: 14px 44px 14px 16px;
+  border: 1px solid;
+  border-left-width: 4px;
+  border-radius: 10px;
+  box-shadow: 0 12px 32px rgba(16, 24, 40, 0.18);
+  font-size: 15px;
+}
+
+:where(.vzhled-moderni) .chybaBlok .errorHlaska {
+  border-color: #d93025;
+  background-color: #fdeeee;
+  color: #8a1c1c;
+}
+
+:where(.vzhled-moderni) .chybaBlok .varovani {
+  border-color: #e0a100;
+  background-color: #fff8e1;
+  color: #6b5000;
+}
+
+:where(.vzhled-moderni) .chybaBlok .oznameni {
+  border-color: #2e7d32;
+  background-color: #eaf6ee;
+  color: #1e5631;
+}
+
+/* Křížek není uvnitř hlášky, její barvu nezdědí; tlumená barva textu je čitelná na světlé i tmavé. */
+:where(.vzhled-moderni) .chybaBlok .admin_zavrit {
+  top: 14px;
+  right: 14px;
+  color: var(--m-text-tlumeny);
+  font-size: 0;
+}
+
+/* Křížek z Font Awesome místo emoji */
+:where(.vzhled-moderni) .chybaBlok .admin_zavrit::before {
+  content: "\f00d";
+  font: 900 16px "Font Awesome 6 Free";
+}
+
+/* Tmavé barvy jen na obrazovce, vytištěná stránka zůstane světlá. Odstíny jako u hlášek v obsahu (moderni.css),
+   okraj vlevo výraznější. */
+@media screen {
+  :where(.moderni-tmave .vzhled-moderni) .chybaBlok .errorHlaska {
+    border-color: #7a2e2e;
+    border-left-color: #e5534b;
+    background-color: #33191b;
+    color: #ffb4ab;
+  }
+
+  :where(.moderni-tmave .vzhled-moderni) .chybaBlok .oznameni {
+    border-color: #2f6440;
+    border-left-color: #46954a;
+    background-color: #142a1c;
+    color: #9ed8ae;
+  }
+
+  :where(.moderni-tmave .vzhled-moderni) .chybaBlok .varovani {
+    border-color: #6e5617;
+    border-left-color: #d29922;
+    background-color: #2e2510;
+    color: #f2d27a;
+  }
+
+  :where(.moderni-tmave .vzhled-moderni) .chybaBlok .hlaska {
+    box-shadow: 0 12px 32px rgba(0, 0, 0, 0.5);
+  }
+}
