@@ -90,6 +90,7 @@ SQL,
         self::assertStringContainsString('<a href="web/editace-stranek?id=9921">stránka soubory-test</a>', $pouzity);
         self::assertStringContainsString('value="nahradit"', $pouzity);
         self::assertStringNotContainsString('value="smazat"', $pouzity, 'Soubor, na který text odkazuje, jde nahradit, ale ne smazat');
+        self::assertStringNotContainsString('Nikde se nepoužívá', $pouzity);
         self::assertStringContainsString(
             '</a> <span class="soubory-webu__udaje technicke">(PDF, ' . NahravaniObrazku::lidskaVelikost(strlen(self::pdfBajty())) . ')</span>',
             $pouzity,
@@ -109,6 +110,11 @@ SQL,
         $volny = self::radek($html, 'volny.pdf');
         self::assertStringContainsString('value="smazat"', $volny);
         self::assertStringContainsString('value="nahradit"', $volny);
+        self::assertStringContainsString(
+            '<span class="tip" title="Nikde se nepoužívá">—</span>',
+            $volny,
+            'Soubor, na který nic neodkazuje, má ve sloupci Použit v pomlčku, ne prázdné místo',
+        );
 
         self::assertStringContainsString('value="smazat"', self::radek($html, 'archiv.zip'));
 
