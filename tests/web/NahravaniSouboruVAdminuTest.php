@@ -265,11 +265,42 @@ SQL,
     public static function provideSouboryKterePageNepoveli(): array
     {
         return [
-            'ZIP do složky jen pro PDF' => ['download', self::zipBajty(), 'archiv.zip', 'Formát ZIP tu nejde použít, nahraj prosím PDF.'],
-            'MP3 do složky jen pro PDF' => ['celohra', self::mp3Bajty(), 'nahravka.mp3', 'Formát MP3 tu nejde použít, nahraj prosím PDF.'],
-            'dokument z Wordu'          => ['download', self::docxBajty(), 'dopis.pdf', 'Dokument z Wordu, PowerPointu, Excelu s makry nebo LibreOffice tu nejde nahrát'],
-            'skript s příponou PDF'     => ['download', '<?php echo "ahoj";', 'skript.pdf', 'Soubor tohoto typu tu nejde nahrát'],
+            'textový soubor'        => ['celohra', "obyčejný text\n", 'poznamky.txt', 'Soubor tohoto typu tu nejde nahrát'],
+            'dokument z Wordu'      => ['download', self::docxBajty(), 'dopis.pdf', 'Dokument z Wordu, PowerPointu, Excelu s makry nebo LibreOffice tu nejde nahrát'],
+            'skript s příponou PDF' => ['download', '<?php echo "ahoj";', 'skript.pdf', 'Soubor tohoto typu tu nejde nahrát'],
         ];
+    }
+
+    public static function provideSouboryKteryPageDoKazdeSlozkyPovoli(): array
+    {
+        return [
+            'ZIP do složky Ke stažení' => ['download', self::zipBajty(), 'archiv.zip', 'zip'],
+            'MP3 do složky Celohra'    => ['celohra', self::mp3Bajty(), 'nahravka.mp3', 'mp3'],
+        ];
+    }
+
+    /**
+     * @test
+     *
+     * @dataProvider provideSouboryKteryPageDoKazdeSlozkyPovoli
+     */
+    public function souborKazdehoPrijatelnehoTypuSeNahrajeDoKazdeSlozky(string $slozka, string $obsah, string $puvodniNazev, string $pripona): void
+    {
+        $adresar = ZpracovaneObrazky::adresarObsahu() . '/' . $slozka;
+        $this->uklidNoveAdresare($adresar);
+        $ulozeno = $adresar . '/' . self::znacka() . '.' . $pripona;
+        $this->kUklidu[] = $ulozeno;
+        $session = $this->prihlas(\Uzivatel::SYSTEM_LOGIN);
+
+        self::assertSame(303, $this->odesli($session, 'web/soubory', [
+            'souboryWebuAkce' => 'nahrat',
+            'slozka'          => $slozka,
+            'nazev'           => self::znacka(),
+            'souborWebu'      => new \CURLFile($this->soubor('.bin', $obsah), 'application/octet-stream', $puvodniNazev),
+        ]));
+
+        self::assertFileExists($ulozeno);
+        self::assertStringContainsString('Soubor je nahraný jako ' . basename($ulozeno), $this->stahni($session, 'web/soubory'));
     }
 
     /**
@@ -427,19 +458,19 @@ SQL,
         $download = ZpracovaneObrazky::adresarObsahu() . '/download';
         $this->uklidNoveAdresare($download);
         (new Filesystem())->mkdir($download);
-        // složka download je jen pro PDF, ZIP v ní zbyl z doby FTP a výpis k němu nenabízí žádnou akci
-        $archiv = $download . '/' . self::znacka() . '-archiv.zip';
-        $this->kUklidu[] = $archiv;
-        file_put_contents($archiv, self::zipBajty());
+        // textový soubor v ní zbyl z doby FTP, stránka takový typ nepřijímá a výpis k němu nenabízí žádnou akci
+        $poznamky = $download . '/' . self::znacka() . '-poznamky.txt';
+        $this->kUklidu[] = $poznamky;
+        file_put_contents($poznamky, "obyčejný text\n");
         $session = $this->prihlas(\Uzivatel::SYSTEM_LOGIN);
 
         self::assertSame(303, $this->odesli($session, 'web/soubory', [
             'souboryWebuAkce' => 'smazat',
             'slozka'          => 'download',
-            'cesta'           => self::znacka() . '-archiv.zip',
+            'cesta'           => self::znacka() . '-poznamky.txt',
         ]));
 
-        self::assertFileExists($archiv);
+        self::assertFileExists($poznamky);
         self::assertStringContainsString('Soubory tohoto typu se tu nespravují, jen přes FTP.', $this->stahni($session, 'web/soubory'));
     }
 

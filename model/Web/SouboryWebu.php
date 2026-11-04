@@ -7,43 +7,42 @@ namespace Gamecon\Web;
 use Gamecon\XTemplate\XTemplate;
 
 /**
- * Stránka Web → Soubory: PDF, zvuk, archivy a tabulky ke stažení ve složkách `soubory/obsah`, na které odkazují
- * texty webu. Pevný seznam složek a typů je v @see self::SLOZKY, nic jiného se odsud nezapíše ani nesmaže.
+ * Stránka Web → Soubory: PDF, zvuk, archivy, tabulky a obrázky ke stažení ve složkách `soubory/obsah`, na které
+ * odkazují texty webu. Pevný seznam složek je v @see self::SLOZKY, nic jiného se odsud nezapíše ani nesmaže.
  */
 final class SouboryWebu
 {
     /**
-     * Složky v `soubory/obsah`, název složky => k čemu slouží a jaké soubory do ní patří. Obrázky e-shopu
-     * (`materialy/<ročník>/eshop`) mají vlastní modul a tady se nevypisují. Složky s `historie` se vypisují
-     * na konci pod čárou.
+     * Každá složka přijímá všechno, co stránka přijímá: složku si organizátor vybírá podle toho, kam soubor patří,
+     * ne podle jeho typu.
+     */
+    public const FORMATY = [...NahravaniObrazku::DOKUMENTY, ...NahravaniObrazku::RASTROVE_FORMATY];
+
+    /**
+     * Složky v `soubory/obsah`, název složky => k čemu slouží. Obrázky e-shopu (`materialy/<ročník>/eshop`) mají
+     * vlastní modul a tady se nevypisují. Složky s `historie` se vypisují na konci pod čárou.
      */
     public const SLOZKY = [
         'download' => [
             'nazev'   => 'Ke stažení',
             'popis'   => 'Soubory ke stažení, například tisková kronika nebo orientační brožura.',
-            'formaty' => [NahravaniObrazku::PDF],
+            'formaty' => self::FORMATY,
         ],
         'materialy' => [
             'nazev'   => 'Materiály a formuláře',
             'popis'   => 'Podklady odkazované z textů stránek a z přihlášky, třeba souhlas rodičů, po ročnících v podsložkách.',
-            'formaty' => [NahravaniObrazku::PDF, ...NahravaniObrazku::RASTROVE_FORMATY],
+            'formaty' => self::FORMATY,
         ],
         'celohra' => [
             'nazev'   => 'Celohra',
             'popis'   => 'Podklady k celohře.',
-            'formaty' => [NahravaniObrazku::PDF],
+            'formaty' => self::FORMATY,
         ],
         'drd' => [
             'nazev'    => 'Mistrovství v Dračím doupěti',
             'popis'    => 'Archiv stránky DrD, poslední ročník byl 2025: dobrodružství, deníky postav a nahrávky.',
             'historie' => true,
-            'formaty'  => [
-                NahravaniObrazku::PDF,
-                NahravaniObrazku::XLSX,
-                NahravaniObrazku::MP3,
-                NahravaniObrazku::ZIP,
-                ...NahravaniObrazku::RASTROVE_FORMATY,
-            ],
+            'formaty'  => self::FORMATY,
         ],
     ];
 

@@ -3,7 +3,7 @@
 use Gamecon\Web\SouboryWebu;
 
 /**
- * PDF, zvuk, archivy a tabulky ke stažení, na které odkazují texty webu
+ * PDF, zvuk, archivy, tabulky a obrázky ke stažení, na které odkazují texty webu
  *
  * nazev: Soubory
  * ikona: file-arrow-up
