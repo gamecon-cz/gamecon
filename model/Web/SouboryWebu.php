@@ -56,6 +56,7 @@ final class SouboryWebu
      * @var array<string, NahravaniObrazku>
      */
     private array $sluzby = [];
+    private readonly FormularNahraniSouboru $formular;
 
     /**
      * @param array<string, array{nazev: string, popis: string, formaty: list<string>, historie?: bool}> $slozky
@@ -69,6 +70,7 @@ final class SouboryWebu
         private readonly PouzitiObrazku $pouziti = new PouzitiObrazku(),
         private readonly ?NahravaniPoCastech $poCastech = null,
     ) {
+        $this->formular = new FormularNahraniSouboru(self::POST_SOUBOR, $poCastech);
     }
 
     /**
@@ -81,26 +83,11 @@ final class SouboryWebu
         if (!in_array($akce, ['nahrat', 'nahradit', 'smazat'], true)) {
             return;
         }
-        oznameni(NahravaniObrazku::sOhlasenimChyby(fn (): string => $this->sUklidemNahrani(fn (): string => match ($akce) {
+        oznameni(NahravaniObrazku::sOhlasenimChyby(fn (): string => $this->formular->sUklidem(fn (): string => match ($akce) {
             'nahrat'   => $this->nahraj(),
             'nahradit' => $this->nahrad(),
             'smazat'   => $this->smaz(),
         })));
-    }
-
-    /**
-     * Mezisoubor poslaný po částech se smaže po každé akci, i odmítnuté dřív, než na něj přišla řada (špatná složka,
-     * soubor, který mezitím zmizel): `id` je na jedno použití a nesmazaný by zabíral jedno z rozpracovaných nahrávání.
-     *
-     * @param callable(): string $akce
-     */
-    private function sUklidemNahrani(callable $akce): string
-    {
-        $id = $this->textZPostu('nahranoId');
-
-        return $id === '' || $this->poCastech === null
-            ? $akce()
-            : $this->poCastech->sUklidem($id, $akce);
     }
 
     public function html(): string
@@ -109,17 +96,9 @@ final class SouboryWebu
         $template->assign([
             'postAkce'   => self::POST_AKCE,
             'postSoubor' => self::POST_SOUBOR,
-            'poCastech'  => $this->poCastech === null
-                ? ''
-                : ' data-nahravani-po-castech data-nahravani-prah="' . $this->poCastech->getPrahBajtu() . '"',
+            'poCastech'  => $this->formular->getAtributy(),
+            'skript'     => $this->formular->getSkript(),
         ]);
-        if ($this->poCastech !== null) {
-            $template->assign(
-                'verzeSkriptu',
-                (string) md5_file(__DIR__ . '/../../admin/files/nahravani-po-castech.js'),
-            );
-            $template->parse('souboryWebu.skript');
-        }
         $odkazyVTextech = $this->pouziti->odkazyVeSlozkach(array_map(
             fn (int|string $slozka): string => $this->cestaVuciWebu((string) $slozka),
             array_keys($this->slozky),
@@ -135,7 +114,7 @@ final class SouboryWebu
             }
             $predchoziJeHistorie = $jeHistorie;
             $nahravani = $this->nahravani($slozka);
-            $soubory = self::odNejnovejsiho($nahravani, array_values(array_filter(
+            $soubory = VypisSouboru::odNejnovejsiho($nahravani, array_values(array_filter(
                 $nahravani->souboryVeStromu('', self::MAX_HLOUBKA_VYPISU),
                 static fn (string $soubor): bool => !ZpracovaneObrazky::jeAdresarJinehoModulu($slozka . '/' . $soubor),
             )));
@@ -166,23 +145,6 @@ final class SouboryWebu
         $template->parse('souboryWebu');
 
         return $template->text('souboryWebu');
-    }
-
-    /**
-     * Soubory ze stejné chvíle zůstanou v pořadí podle názvu, `usort` je stabilní.
-     *
-     * @param list<string> $soubory
-     * @return list<string>
-     */
-    private static function odNejnovejsiho(NahravaniObrazku $nahravani, array $soubory): array
-    {
-        $casy = [];
-        foreach ($soubory as $soubor) {
-            $casy[$soubor] = (int) @filemtime($nahravani->cestaKSouboru($soubor));
-        }
-        usort($soubory, static fn (string $prvni, string $druhy): int => $casy[$druhy] <=> $casy[$prvni]);
-
-        return $soubory;
     }
 
     /**
@@ -235,15 +197,6 @@ final class SouboryWebu
     }
 
     /**
-     * Cesta se ve formuláři posílá jako text, název souboru, který se v textu nezachová (kódování z FTP,
-     * mezera na okraji), by se po cestě zpátky nenašel.
-     */
-    private static function nazevPrezijeFormular(string $cesta): bool
-    {
-        return mb_check_encoding($cesta, 'UTF-8') && $cesta === trim($cesta);
-    }
-
-    /**
      * @param list<string> $povoleneFormaty
      * @param array<string, list<array{popis: string, url: string}>> $odkazyVTextech
      */
@@ -268,11 +221,8 @@ final class SouboryWebu
         $template->assign([
             'cesta'         => htmlspecialchars($soubor),
             'url'           => htmlspecialchars((string) $nahravani->urlSouboru($absolutniCesta)),
-            'udaje'         => htmlspecialchars(implode(', ', array_filter([
-                NahravaniObrazku::nazevFormatuPodlePripony($soubor) ?? mb_strtoupper(pathinfo($soubor, PATHINFO_EXTENSION)),
-                NahravaniObrazku::lidskaVelikost((int) @filesize($absolutniCesta)),
-            ], static fn (string $cast): bool => $cast !== ''))),
-            'zmeneno'       => date('j. n. Y H:i', (int) @filemtime($absolutniCesta)),
+            'udaje'         => htmlspecialchars(VypisSouboru::getUdaje($soubor, $absolutniCesta)),
+            'zmeneno'       => VypisSouboru::getNahrano($absolutniCesta),
             'markdown'      => $cestaVuciWebu === null
                 ? ''
                 : htmlspecialchars(ZapisSouboruVTextu::markdown($cestaVuciWebu)),
@@ -282,7 +232,7 @@ final class SouboryWebu
             'acceptSouboru' => $nahravani->acceptProNahrazeni((string) $mime),
         ]);
 
-        if ($mime === null || !in_array($mime, $povoleneFormaty, true) || !self::nazevPrezijeFormular($soubor)) {
+        if ($mime === null || !in_array($mime, $povoleneFormaty, true) || !FormularNahraniSouboru::nazevPrezijeFormular($soubor)) {
             $template->parse('souboryWebu.slozka.soubor.nespravovany');
         } else {
             $template->parse('souboryWebu.slozka.soubor.nahradit');
@@ -309,17 +259,16 @@ final class SouboryWebu
     private function nahraj(): string
     {
         $slozka = $this->slozkaZPostu();
-        $podslozka = self::bezpecnaPodslozka($this->textZPostu('podslozka'));
+        $podslozka = self::bezpecnaPodslozka(FormularNahraniSouboru::textZPostu('podslozka'));
         $this->overZeSlozkaPatriTomutoModulu($slozka, $podslozka);
         $nahravani = $this->nahravani($slozka);
-        $this->sNahranymSouborem($nahravani, function (NahranyObrazek $soubor) use ($nahravani, $podslozka): void {
-            $nazev = $this->textZPostu('nazev') !== ''
-                ? $this->textZPostu('nazev')
-                : $soubor->puvodniNazevBezPripony();
-            $nahravani->ulozNovy($soubor, $podslozka, NahravaniObrazku::bezpecnyNazevDokumentu($nazev));
-        });
+        $soubor = $this->formular->nahranySoubor($nahravani);
+        $nazev = FormularNahraniSouboru::textZPostu('nazev') !== ''
+            ? FormularNahraniSouboru::textZPostu('nazev')
+            : $soubor->puvodniNazevBezPripony();
+        $nahravani->ulozNovy($soubor, $podslozka, NahravaniObrazku::bezpecnyNazevDokumentu($nazev));
 
-        return 'Soubor nahrán.';
+        return FormularNahraniSouboru::ZPRAVA_NAHRANO;
     }
 
     private function nahrad(): string
@@ -329,37 +278,9 @@ final class SouboryWebu
         if (!is_file($nahravani->cestaKSouboru($cesta))) {
             throw new NahravaniObrazkuException('Soubor neexistuje.');
         }
-        $this->sNahranymSouborem(
-            $nahravani,
-            static function (NahranyObrazek $soubor) use ($nahravani, $cesta): void {
-                $nahravani->nahrad($soubor, $cesta);
-            },
-        );
+        $nahravani->nahrad($this->formular->nahranySoubor($nahravani), $cesta);
 
-        return sprintf(
-            'Soubor %s nahrán. Kdo ho už viděl, může mít chvíli v prohlížeči ještě starou verzi.',
-            htmlspecialchars(basename($cesta)),
-        );
-    }
-
-    /**
-     * Soubor z formuláře: celý v `$_FILES`, nebo poslaný po částech, to pozná formulář podle `nahranoId`.
-     *
-     * @param callable(NahranyObrazek): void $zpracuj
-     */
-    private function sNahranymSouborem(NahravaniObrazku $nahravani, callable $zpracuj): void
-    {
-        $id = $this->textZPostu('nahranoId');
-        if ($id === '') {
-            $zpracuj($nahravani->overNahranySoubor($_FILES[self::POST_SOUBOR] ?? null));
-
-            return;
-        }
-
-        $zpracuj(
-            ($this->poCastech ?? throw new NahravaniObrazkuException('Nahrávání po částech tu není k dispozici.'))
-                ->over($id, $nahravani),
-        );
+        return FormularNahraniSouboru::zpravaONahrazeni($cesta);
     }
 
     private function smaz(): string
@@ -376,18 +297,9 @@ final class SouboryWebu
         return 'Soubor je smazaný.';
     }
 
-    private function textZPostu(string $nazev): string
-    {
-        $hodnota = post($nazev);
-
-        return is_string($hodnota)
-            ? trim($hodnota)
-            : '';
-    }
-
     private function slozkaZPostu(): string
     {
-        $slozka = $this->textZPostu('slozka');
+        $slozka = FormularNahraniSouboru::textZPostu('slozka');
         if (!isset($this->slozky[$slozka])) {
             throw new NahravaniObrazkuException('Tahle složka tu není.');
         }
@@ -401,7 +313,7 @@ final class SouboryWebu
     private function souborZPostu(): array
     {
         $slozka = $this->slozkaZPostu();
-        $cesta = $this->textZPostu('cesta');
+        $cesta = FormularNahraniSouboru::textZPostu('cesta');
         $this->overZeSlozkaPatriTomutoModulu($slozka, $cesta);
 
         return [$slozka, $cesta];

@@ -1140,6 +1140,61 @@ button .ajax-loader {
   margin: 0.2em 0;
 }
 
+.zapisy-k-vlozeni__odkaz {
+  width: 28em;
+  max-width: 100%;
+}
+
+.udaje-souboru {
+  font-size: 0.85em;
+  opacity: 0.7;
+}
+
+/* the form that uploads a file to the site: Soubory page and the panel under the page editor */
+.nahrani-souboru {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.4em 1em;
+  padding: 0.5em 1em;
+  background-color: rgba(215, 246, 170, 0.47);
+}
+
+.nahrani-souboru label {
+  display: flex;
+  align-items: center;
+  gap: 0.4em;
+}
+
+.nahrani-souboru__nazev {
+  flex: 1 1 16em;
+}
+
+.nahrani-souboru__nazev input {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+.nahrani-souboru .tip {
+  flex-basis: 100%;
+}
+
+.tabulka-souboru th,
+.tabulka-souboru__nahrano {
+  white-space: nowrap;
+}
+
+/* the progress of an upload sent in parts (files/nahravani-po-castech.js), under the form it belongs to */
+.nahravani-po-castech {
+  flex-basis: 100%;
+  margin-top: 0.5em;
+}
+
+.nahravani-po-castech__chyba {
+  color: #b00020;
+  font-weight: bold;
+}
+
 .technicke {
   font-family: "Droid Sans Mono", monospace;
 }

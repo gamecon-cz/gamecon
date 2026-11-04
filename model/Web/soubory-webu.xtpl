@@ -15,11 +15,11 @@
   <summary><strong>{nazev}</strong> <code>{adresar}</code> <small class="soubory-webu__pocet" title="Počet souborů ve složce">({pocet})</small></summary>
   <p>{popis}</p>
 
-  <form method="post" enctype="multipart/form-data" class="soubory-webu__nahrat"{poCastech}>
+  <form method="post" enctype="multipart/form-data" class="nahrani-souboru"{poCastech}>
     <input type="hidden" name="{postAkce}" value="nahrat">
     <input type="hidden" name="slozka" value="{slozka}">
     <label>Soubor <input type="file" name="{postSoubor}" accept="{accept}" required></label>
-    <label class="soubory-webu__nazev">Název <input type="text" name="nazev" maxlength="100" placeholder="jinak původní název souboru"></label>
+    <label class="nahrani-souboru__nazev">Název <input type="text" name="nazev" maxlength="100" placeholder="jinak původní název souboru"></label>
     <label>Podsložka
       <input type="text" name="podslozka" list="podslozky-{slozka}" maxlength="100" placeholder="nepovinná, třeba {rocnik}">
     </label>
@@ -33,7 +33,7 @@
     </div>
   </form>
 
-  <table class="zvyraznovana soubory-webu__tabulka">
+  <table class="zvyraznovana tabulka-souboru">
     <tr>
       <th>Soubor</th>
       <th>Nahrán</th>
@@ -43,13 +43,13 @@
     <!-- begin:soubor -->
     <tr>
       <td>
-        <a href="{url}" target="_blank" rel="noopener">{cesta}</a> <span class="soubory-webu__udaje technicke">({udaje})</span>
+        <a href="{url}" target="_blank" rel="noopener">{cesta}</a> <span class="udaje-souboru technicke">({udaje})</span>
         <div class="zapisy-k-vlozeni">
-          <label>Markdown: <input type="text" readonly value="{markdown}" onclick="this.select()" class="soubory-webu__odkaz"></label>
-          <label>HTML: <input type="text" readonly value="{html}" onclick="this.select()" class="soubory-webu__odkaz"></label>
+          <label>Markdown: <input type="text" readonly value="{markdown}" onclick="this.select()" class="zapisy-k-vlozeni__odkaz"></label>
+          <label>HTML: <input type="text" readonly value="{html}" onclick="this.select()" class="zapisy-k-vlozeni__odkaz"></label>
         </div>
       </td>
-      <td class="soubory-webu__nahrano">{zmeneno}</td>
+      <td class="tabulka-souboru__nahrano">{zmeneno}</td>
       <td>
         <!-- begin:misto -->
         <!-- begin:vTextu --><a href="{pouzitiUrl}">{pouzitiPopis}</a><br><!-- end:vTextu -->
@@ -90,9 +90,7 @@
 </details>
 <!-- end:slozka -->
 
-<!-- begin:skript -->
-<script src="files/nahravani-po-castech.js?v={verzeSkriptu}"></script>
-<!-- end:skript -->
+{skript}
 
 <style>
     .soubory-webu {
@@ -104,46 +102,8 @@
         font-size: larger;
     }
 
-    .soubory-webu__nahrat {
-        display: flex;
-        flex-wrap: wrap;
-        align-items: center;
-        gap: 0.4em 1em;
-        padding: 0.5em 1em;
-        background-color: rgba(215, 246, 170, 0.47);
-    }
-
-    .soubory-webu__nahrat label {
-        display: flex;
-        align-items: center;
-        gap: 0.4em;
-    }
-
-    .soubory-webu__nazev {
-        flex: 1 1 16em;
-    }
-
-    .soubory-webu__nazev input {
-        flex: 1 1 auto;
-        min-width: 0;
-    }
-
-    .soubory-webu__nahrat .tip {
-        flex-basis: 100%;
-    }
-
     .soubory-webu__pocet {
         font-size: 0.7em;
-    }
-
-    .soubory-webu__udaje {
-        font-size: 0.85em;
-        opacity: 0.7;
-    }
-
-    .soubory-webu__tabulka th,
-    .soubory-webu__nahrano {
-        white-space: nowrap;
     }
 
     .soubory-webu__akce {
@@ -153,19 +113,5 @@
         gap: 0.6em 0.4em;
     }
 
-    .soubory-webu__odkaz {
-        width: 28em;
-        max-width: 100%;
-    }
-
-    .nahravani-po-castech {
-        flex-basis: 100%;
-        margin-top: 0.5em;
-    }
-
-    .nahravani-po-castech__chyba {
-        color: #b00020;
-        font-weight: bold;
-    }
 </style>
 <!-- end:souboryWebu -->

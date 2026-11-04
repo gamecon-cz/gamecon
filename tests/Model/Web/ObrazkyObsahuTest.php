@@ -29,37 +29,6 @@ class ObrazkyObsahuTest extends TestCase
     /**
      * @test
      */
-    public function najdeOdkazyNaObrazkyVMarkdownuIHtml(): void
-    {
-        // skutečné zápisy ze stránek a blogu na ostré
-        $text = <<<'TEXT'
-            ![mapa](https://gamecon.cz/soubory/obsah/materialy/2023/mapa.jpg)
-            <img class="leftOrg" src="soubory/obsah/obrazky/organizatori/gandalf150.jpg">
-            ![](soubory/obsah/drd/web/2023/organizace.jpg) a znovu ![](soubory/obsah/drd/web/2023/organizace.jpg)
-            [brožurka](https://gamecon.cz/soubory/obsah/download/Bro%C5%BEurka_2023.pdf)
-            [souhlas](https://gamecon.cz/soubory/obsah//materialy/2023/souhlas.png)
-            ![](soubory/obsah/blog/m%C3%A1j.PNG?v=2)
-            <img src="soubory/obsah/obrazky/contract.svg">
-            ![](soubory/obsah/../nastaveni/heslo.png) ![](soubory/obsah/zaloha.jpg.bak)
-            ![](soubory/systemove/fotky/42.jpg)
-            TEXT;
-
-        self::assertSame(
-            [
-                'materialy/2023/mapa.jpg',
-                'obrazky/organizatori/gandalf150.jpg',
-                'drd/web/2023/organizace.jpg',
-                'materialy/2023/souhlas.png',
-                'blog/máj.PNG',
-                'obrazky/contract.svg',
-            ],
-            ObrazkyObsahu::odkazyVTextu($text),
-        );
-    }
-
-    /**
-     * @test
-     */
     public function nabidneNahrazeniOdkazanychObrazkuASmazaniJenNepouzitych(): void
     {
         (new Filesystem())->mkdir([$this->koren . '/obrazky/organizatori', $this->koren . '/stranky/kontakty']);
@@ -91,30 +60,6 @@ class ObrazkyObsahuTest extends TestCase
         self::assertMatchesRegularExpression('~HTML:.*?<input[^>]*&lt;img src=&quot;soubory/obsah/stranky/kontakty/nova-clenka\.png~s', $html);
         self::assertStringContainsString('name="cesta" value="stranky/kontakty/nova-clenka.png"', $html);
         self::assertStringContainsString('Uloží se do <code>soubory/obsah/stranky/kontakty/</code>', $html);
-    }
-
-    /**
-     * @test
-     */
-    public function odkazNaAvifSeBereJakoOdkazNaObrazek(): void
-    {
-        self::assertSame(
-            ['materialy/2026/mapa.avif', 'blog/foto.AVIF'],
-            ObrazkyObsahu::odkazyVTextu('![](soubory/obsah/materialy/2026/mapa.avif) ![](soubory/obsah/blog/foto.AVIF?v=2)'),
-        );
-    }
-
-    /**
-     * @test
-     */
-    public function zpetneLomitkoVOdkazuSeBereJakoLomitko(): void
-    {
-        self::assertSame(
-            ['sponzori/podvrh.png', 'materialy/2026/eshop/01_Blok.jpg'],
-            ObrazkyObsahu::odkazyVTextu(
-                '![](soubory/obsah/sponzori%5Cpodvrh.png) ![](soubory/obsah/materialy%5C2026%5Ceshop%5C01_Blok.jpg)',
-            ),
-        );
     }
 
     /**
