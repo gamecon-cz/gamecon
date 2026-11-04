@@ -270,10 +270,11 @@ SQL,
         int   $pocetUzivatelu,
         float $celkovaSuma,
     ): void {
+        $suma = Finance::formatujCastku($celkovaSuma);
         $this->zalogujHromadnouAkci(
             self::SKUPINA_PROMLCENI,
             $this->nazevAkceAutomatickePromlceni($rocnik),
-            "$pocetUzivatelu uživatelů, $celkovaSuma Kč",
+            "$pocetUzivatelu uživatelů, $suma Kč",
             Uzivatel::zId(Uzivatel::SYSTEM, true),
         );
     }
@@ -353,7 +354,7 @@ SQL,
                 $this->emailoveSablony
                     ->vytvorMail($kodSablony, [
                         'jmeno'         => (string)$uzivatel->jmenoNick(),
-                        'zustatek'      => (int)$uzivatel->finance()->stav(),
+                        'zustatek'      => Finance::formatujCastku($uzivatel->finance()->stav()),
                         'posledni_roky' => $posledniRoky,
                         'a'             => $uzivatel->koncovkaDlePohlavi(),
                         'registrace_od' => $registraceOd,
