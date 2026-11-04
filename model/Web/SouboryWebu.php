@@ -273,7 +273,7 @@ final class SouboryWebu
             : $soubor->puvodniNazevBezPripony();
         $nahravani->ulozNovy($soubor, $podslozka, NahravaniObrazku::bezpecnyNazevDokumentu($nazev));
 
-        return 'Soubor je nahraný.';
+        return 'Soubor nahrán.';
     }
 
     private function nahrad(): string
@@ -286,7 +286,7 @@ final class SouboryWebu
         $nahravani->nahrad($nahravani->overNahranySoubor($_FILES[self::POST_SOUBOR] ?? null), $cesta);
 
         return sprintf(
-            'Soubor %s je nahraný. Kdo ho už viděl, může mít chvíli v prohlížeči ještě starou verzi.',
+            'Soubor %s nahrán. Kdo ho už viděl, může mít chvíli v prohlížeči ještě starou verzi.',
             htmlspecialchars(basename($cesta)),
         );
     }
