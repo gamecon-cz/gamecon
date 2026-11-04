@@ -132,6 +132,47 @@ SQL,
     }
 
     /**
+     * Nahrán je soubor, který vznikl naposled, nahoře. Soubory ze stejné chvíle zůstanou podle názvu.
+     *
+     * @test
+     */
+    public function souboryJsouOdNejnovejsihoACasNahraniMaHodinyAMinuty(): void
+    {
+        $slozka = ZpracovaneObrazky::adresarObsahu() . '/' . self::slozka();
+        (new Filesystem())->mkdir($slozka . '/2027');
+        $casy = [
+            'stary.pdf'           => '2026-01-01 10:00:00',
+            'nejnovejsi.pdf'      => '2026-03-02 08:05:00',
+            '2027/prostredni.pdf' => '2026-02-15 23:59:00',
+            'b-stejne.pdf'        => '2025-12-24 12:00:00',
+            'a-stejne.pdf'        => '2025-12-24 12:00:00',
+        ];
+        foreach ($casy as $soubor => $cas) {
+            file_put_contents($slozka . '/' . $soubor, self::pdfBajty());
+            touch($slozka . '/' . $soubor, strtotime($cas));
+        }
+
+        $html = (new SouboryWebu([
+            self::slozka() => $this->nastaveni([NahravaniObrazku::PDF]),
+        ]))->html();
+
+        $poradi = array_map(
+            static fn (string $soubor): int|false => strpos($html, '>' . $soubor . '</a>'),
+            ['nejnovejsi.pdf', '2027/prostredni.pdf', 'stary.pdf', 'a-stejne.pdf', 'b-stejne.pdf'],
+        );
+        self::assertNotContains(false, $poradi, 'Ve výpisu jsou všechny soubory');
+        $serazene = $poradi;
+        sort($serazene);
+        self::assertSame($serazene, $poradi, 'Od nejnovějšího, při stejném čase podle názvu');
+        self::assertStringContainsString(
+            '<td class="soubory-webu__nahrano">2. 3. 2026 08:05</td>',
+            self::radek($html, 'nejnovejsi.pdf'),
+            'Datum a čas se v buňce nezalomí',
+        );
+        self::assertStringContainsString('15. 2. 2026 23:59', self::radek($html, '2027/prostredni.pdf'));
+    }
+
+    /**
      * @test
      */
     public function souborBezPriponyMaZaOdkazemJenVelikost(): void

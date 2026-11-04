@@ -107,10 +107,10 @@ final class SouboryWebu
             }
             $predchoziJeHistorie = $jeHistorie;
             $nahravani = $this->nahravani($slozka);
-            $soubory = array_values(array_filter(
+            $soubory = self::odNejnovejsiho($nahravani, array_values(array_filter(
                 $nahravani->souboryVeStromu('', self::MAX_HLOUBKA_VYPISU),
                 static fn (string $soubor): bool => !ZpracovaneObrazky::jeAdresarJinehoModulu($slozka . '/' . $soubor),
-            ));
+            )));
             $template->assign([
                 'slozka'  => htmlspecialchars($slozka),
                 'nazev'   => htmlspecialchars($nastaveni['nazev']),
@@ -138,6 +138,23 @@ final class SouboryWebu
         $template->parse('souboryWebu');
 
         return $template->text('souboryWebu');
+    }
+
+    /**
+     * Soubory ze stejné chvíle zůstanou v pořadí podle názvu, `usort` je stabilní.
+     *
+     * @param list<string> $soubory
+     * @return list<string>
+     */
+    private static function odNejnovejsiho(NahravaniObrazku $nahravani, array $soubory): array
+    {
+        $casy = [];
+        foreach ($soubory as $soubor) {
+            $casy[$soubor] = (int) @filemtime($nahravani->cestaKSouboru($soubor));
+        }
+        usort($soubory, static fn (string $prvni, string $druhy): int => $casy[$druhy] <=> $casy[$prvni]);
+
+        return $soubory;
     }
 
     /**
@@ -227,7 +244,7 @@ final class SouboryWebu
                 NahravaniObrazku::nazevFormatuPodlePripony($soubor) ?? mb_strtoupper(pathinfo($soubor, PATHINFO_EXTENSION)),
                 NahravaniObrazku::lidskaVelikost((int) @filesize($absolutniCesta)),
             ], static fn (string $cast): bool => $cast !== ''))),
-            'zmeneno'       => date('j. n. Y', (int) @filemtime($absolutniCesta)),
+            'zmeneno'       => date('j. n. Y H:i', (int) @filemtime($absolutniCesta)),
             'markdown'      => $cestaVuciWebu === null
                 ? ''
                 : htmlspecialchars(ZapisSouboruVTextu::markdown($cestaVuciWebu)),
