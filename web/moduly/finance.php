@@ -33,10 +33,7 @@ $slevyA    = array_flat('<li>', $u->finance()->slevyNaAktivity(), '</li>');
 $slevyV    = array_flat('<li>', $u->finance()->slevyVse(), '</li>');
 $bonusZaVedeniAktivit = Finance::zaokouhli($u->finance()->bonusZaAktivity());
 if ($bonusZaVedeniAktivit > 0.0) {
-    $bonusZaVedeniAktivitText = (float)(int)$bonusZaVedeniAktivit === $bonusZaVedeniAktivit
-        ? (string)(int)$bonusZaVedeniAktivit
-        : rtrim(rtrim(number_format($bonusZaVedeniAktivit, 2, ',', ' '), '0'), ',');
-    $slevyA .= '<li>bonus za vedení aktivit ' . $bonusZaVedeniAktivitText . '&thinsp;Kč</li>';
+    $slevyA .= '<li>bonus za vedení aktivit ' . Finance::formatujCastku($bonusZaVedeniAktivit) . '&thinsp;Kč</li>';
 }
 $zaplaceno = $u->finance()->stav() >= 0;
 $limit     = false;
@@ -51,15 +48,14 @@ $vychoziTypQrPlatby = match ($statUzivatele) {
 };
 
 if (!$zaplaceno) {
-    $castka                        = -$u->finance()->stav();
     $nejblizsiHromadneOdhlasovaniKdy = $systemoveNastaveni->nejblizsiHromadneOdhlasovaniKdy();
     $nejpozdejiZaplatitDo            = $systemoveNastaveni->nejpozdejiZaplatitDo(
         $systemoveNastaveni->ted(),
     );
     $limit                           = datum4($nejpozdejiZaplatitDo);
-    $castkaCZ = $castka . '&thinsp;Kč';
+    $castkaCZ = Finance::formatujCastku(-$u->finance()->stav()) . '&thinsp;Kč';
     // Stejná částka (vč. kurzové rezervy), jaká jde do QR kódu, ať se výpis a QR nerozejdou.
-    $castkaEUR = round($u->finance()->dejCastkuProQrPlatbuVEurech(), 2) . '&thinsp;€';
+    $castkaEUR = Finance::formatujCastku($u->finance()->dejCastkuProQrPlatbuVEurech()) . '&thinsp;€';
 }
 
 ?>
