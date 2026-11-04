@@ -17,7 +17,7 @@
     <input type="hidden" name="{postAkce}" value="nahrat">
     <input type="hidden" name="slozka" value="{slozka}">
     <label>Soubor <input type="file" name="{postSoubor}" accept="{accept}" required></label>
-    <label class="soubory-webu__nazev">Název <input type="text" name="nazev" maxlength="100" placeholder="když nevyplníš, podle souboru"></label>
+    <label class="soubory-webu__nazev">Název <input type="text" name="nazev" maxlength="100" placeholder="jinak původní název souboru"></label>
     <label>Podsložka
       <input type="text" name="podslozka" list="podslozky-{slozka}" maxlength="100" placeholder="nepovinná, třeba {rocnik}">
     </label>
