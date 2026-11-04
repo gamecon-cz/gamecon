@@ -17,6 +17,7 @@ TL;DR: admin má dvě kostry stránky (`admin/templates/main.xtpl` a `admin/temp
 
 - (záměr) Oba vzhledy zůstávají, uživatel si vybírá; klasický se nemá měnit. Ověřeno porovnáním screenshotů: kromě přepínače v patičce je pixelově stejný.
 - Volba patří účtu, ne zařízení ani relaci. „Rozhodnu se později“ (i Esc v dialogu) jen nastaví příznak v session, po dalším přihlášení se dialog ukáže znovu.
+- Dialog výběru a přepínač dostane jen ten, kdo smí otevřenou stránku (i jen díky právu na podstránku, to položku hlavního menu nezobrazí) nebo aspoň jednu položku hlavního menu. Účastník přihlášený na webu, který otevře odkaz do adminu a dostane 403, je nevidí.
 - Neznámá hodnota v DB (třeba z novější verze) se bere jako nezvolená.
 - Tabulka má cizí klíč na `uzivatele_hodnoty`, takže `UzivatelSlucovani` volbu převede (hledá odkazující tabulky podle FK) a smazání účtu ji smaže.
 - Moderní hlavní menu kreslí ikonu z hlavičky `ikona:` modulu, klasické dál své PNG. Viz [admin-menu-moduly](admin-menu-moduly.md).

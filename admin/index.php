@@ -292,8 +292,12 @@ if ($u && $u->maPravo(Pravo::ADMINISTRACE_INFOPULT)) {
 }
 
 // výstup menu
+// výběr a přepínač vzhledu jen pro toho, kdo v adminu něco smí, ne pro účastníka na stránce 403;
+// otevřená stránka se počítá, i když ji smí jen díky právu na podstránku (to položku hlavního menu nezobrazí)
+$maPristupDoAdminu = $uzivatelMaPristup;
 foreach ($menu as $url => $polozka) {
     if ($maNekterePravo($polozka)) {
+        $maPristupDoAdminu = true;
         $xtpl->assign('url', $url);
         $xtpl->assign('nazev', $polozka['nazev']);
         $xtpl->assign('ikona', $polozka['ikona'] ?? 'circle');
@@ -389,8 +393,8 @@ $xtpl->assign('protip', $protipy[array_rand($protipy)]);
 $xtpl->parse('all.paticka');
 $xtpl->assign([
     'nazevSekce'      => $nazevSekce,
-    'prepinacVzhledu' => $vzhledAdminuHtml?->getPrepinacHtml($u->id()) ?? '',
-    'vyberVzhledu'    => $vzhledAdminuHtml?->getVyberHtml($u->id()) ?? '',
+    'prepinacVzhledu' => $maPristupDoAdminu ? $vzhledAdminuHtml?->getPrepinacHtml($u->id()) ?? '' : '',
+    'vyberVzhledu'    => $maPristupDoAdminu ? $vzhledAdminuHtml?->getVyberHtml($u->id()) ?? '' : '',
 ]);
 $xtpl->assign('chyba', chyba::vyzvedniHtml());
 $xtpl->assign('jsVyjimkovac', Gamecon\Vyjimkovac\Vyjimkovac::js(URL_WEBU));
