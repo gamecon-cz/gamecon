@@ -10,7 +10,7 @@ readonly class OdeslanaUpominka
 {
     public function __construct(
         public TypUpominky $typUpominky,
-        public int $dluh,
+        public float $dluh,
         public int $odeslal,
         public \DateTimeInterface $kdy,
     ) {

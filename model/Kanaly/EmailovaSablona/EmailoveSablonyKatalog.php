@@ -281,7 +281,7 @@ class EmailoveSablonyKatalog
                 $promenne = [
                     new EmailovaPromenna(
                         nazev: 'dluh',
-                        popis: 'dlužná částka v korunách',
+                        popis: 'dlužná částka v korunách, haléře jen když nějaké jsou (např. 350 nebo 350,60)',
                         ukazka: '350',
                     ),
                     new EmailovaPromenna(
