@@ -569,7 +569,7 @@ class EmailoveSablonyKatalog
                     new EmailovaPromenna('pocet', 'kolika dlužníkům upomínka odešla', '120', vPredmetu: true),
                     new EmailovaPromenna('pocet_preskocenych', 'kolika dlužníkům se upomínka neposlala, protože ji už dostali', '0'),
                     new EmailovaPromenna('pocet_pod_prahem', 'kolik dlužníků se přeskočilo, protože dluží méně než práh', '8'),
-                    new EmailovaPromenna('prah', 'práh v korunách, pod kterým se neupomíná', '251'),
+                    new EmailovaPromenna('prah', 'práh, pod kterým se neupomíná, haléře jen když nějaké jsou', '251'),
                     new EmailovaPromenna('konec_gc', 'kdy skončil GameCon', '19.07.2026 21:00'),
                     new EmailovaPromenna('priklad_predmet', 'předmět jednoho z odeslaných e-mailů', 'GameCon 2026 - nedoplatky'),
                     new EmailovaPromenna('priklad_text', 'text jednoho z odeslaných e-mailů', 'Ahoj! …'),
@@ -616,7 +616,7 @@ class EmailoveSablonyKatalog
                     $jmenoNick,
                     $idUzivatele,
                     $odhlaseni,
-                    new EmailovaPromenna('castka', 'kolik letos poslal na účet GameConu (v korunách)', '2000'),
+                    new EmailovaPromenna('castka', 'kolik letos poslal na účet GameConu, haléře jen když nějaké jsou', "2\u{a0}000"),
                 ],
             ),
             new EmailovaSablonaDefinice(
