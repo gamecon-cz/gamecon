@@ -55,7 +55,7 @@ final class ObrazkyObsahu
     public static function odkazyVTextu(string $text): array
     {
         preg_match_all(
-            '~soubory/obsah/+([^\s"\'()<>\[\]?#\\\\]+?\.(?:jpe?g|png|gif|webp|svg))(?=[\s"\'()<>\[\]?#]|$)~iu',
+            '~soubory/obsah/+([^\s"\'()<>\[\]?#\\\\]+?\.(?:jpe?g|png|gif|webp|avif|svg))(?=[\s"\'()<>\[\]?#]|$)~iu',
             $text,
             $shody,
         );

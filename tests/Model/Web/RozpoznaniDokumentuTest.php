@@ -145,14 +145,35 @@ class RozpoznaniDokumentuTest extends TestCase
     public static function provideBalikyOffice(): array
     {
         return [
-            'Word'                              => [self::docxBajty()],
-            'Excel s makry'                     => [self::xlsmBajty()],
-            'sešit se jménem XLSX, ale s makry' => [self::xlsxSMakryBajty()],
-            'makrolist s typem v obsahu balíku' => [self::xlsxSMakrolistemJinde()],
-            'makra ve velkých písmenech'        => [self::xlsxSMakryVeVelkychPismenech()],
-            'prázdný seznam typů'               => [self::zipSPrazdnymContentTypes()],
-            'Word, který zmiňuje typ sešitu'    => [self::docxSeZminkouOXlsxBajty()],
-            'LibreOffice Writer'                => [self::odtBajty()],
+            'Excel s makry'                       => [self::xlsmBajty()],
+            'sešit se jménem XLSX, ale s makry'   => [self::xlsxSMakryBajty()],
+            'makrolist s typem v obsahu balíku'   => [self::xlsxSMakrolistemJinde()],
+            'makra ve velkých písmenech'          => [self::xlsxSMakryVeVelkychPismenech()],
+            'prázdný seznam typů'                 => [self::zipSPrazdnymContentTypes()],
+            'Word s makry'                        => [self::docxSMakryBajty()],
+            'Word s vloženým objektem'            => [self::docxSVlozenymObjektemBajty()],
+            'PowerPoint'                          => [self::pptxBajty()],
+            'LibreOffice s makrem v Basicu'       => [self::odtSMakryBajty()],
+            'LibreOffice s odkazem na makro'      => [self::odtSOdkazemNaMakroBajty()],
+            'LibreOffice s událostí'              => [self::odtSUdalostiBajty()],
+            'LibreOffice s objektem'              => [self::odtSVlozenymObjektemBajty()],
+            'odkaz na makro v entitách'           => [self::odtSOdkazemNaMakroVEntitachBajty()],
+            'událost s jiným prefixem'            => [self::odtSUdalostiSJinymPrefixemBajty()],
+            'rozbité XML dokumentu'               => [self::odtSRozbitymXmlBajty()],
+            'Word s objektem jinde než ve složce' => [self::docxSObjektemJindeBajty()],
+            'Word se vzdálenou šablonou'          => [self::docxSeVzdalenouSablonouBajty()],
+            'typ vazby v entitách'                => [self::docxSVazbouVEntitachBajty()],
+            'nečitelné vazby'                     => [self::docxSNeplatnymiVazbamiBajty()],
+            'typ obsahu objektu'                  => [self::docxSTypemObsahuObjektuBajty()],
+            'zpětná lomítka a velká písmena'      => [self::docxSObjektemSeZpetnymiLomitkyBajty()],
+            'typ objektu před jinou příponou'     => [self::docxSTypemObsahuObjektuPredJinouPriponouBajty()],
+            'pole DDE'                            => [self::docxSPolemDdeBajty()],
+            'pole DDE rozdělené do prvků'         => [self::docxSPolemDdeRozdelenymBajty()],
+            'jednoduché pole DDE'                 => [self::docxSJednoduchymPolemDdeBajty()],
+            'vzdálený obrázek'                    => [self::docxSVzdalenymObrazkemBajty()],
+            'zkratka na makro v nastavení'        => [self::odtSZkratkouNaMakroBajty()],
+            'prázdná XML část'                    => [self::odtSPrazdnouCastiBajty()],
+            'dialog'                              => [self::odtSDialogemBajty()],
         ];
     }
 
@@ -161,12 +182,50 @@ class RozpoznaniDokumentuTest extends TestCase
      *
      * @dataProvider provideBalikyOffice
      */
-    public function dokumentOfficeNeniZipAleTakAniXlsx(string $obsah): void
+    public function balikOfficeKteryNeniPovolenyNeniZipAniDokument(string $obsah): void
     {
         $soubor = $this->soubor('dokument.zip', $obsah);
 
         self::assertNull(RozpoznaniDokumentu::mime($soubor));
         self::assertTrue(RozpoznaniDokumentu::jeBalikOffice($soubor));
+    }
+
+    /**
+     * Dvě položky stejného názvu: kontrola čte jednu, program, který dokument otevře, může druhou. ZipArchive
+     * s kontrolou souladu takový archiv odmítne, takže se nepozná ani jako obyčejný ZIP.
+     *
+     * @test
+     */
+    public function archivSOpakovanymiNazvyPolozekSeNepozna(): void
+    {
+        self::assertNull(RozpoznaniDokumentu::mime($this->soubor('a.odt', self::odtSDuplicitnimObsahemBajty())));
+        self::assertNull(RozpoznaniDokumentu::mime($this->soubor('b.docx', self::docxSDuplicitnimiTypyObsahuBajty())));
+    }
+
+    public static function provideDokumentyKtereSePrijmou(): array
+    {
+        return [
+            'Word'                           => [self::docxBajty(), NahravaniObrazku::DOCX],
+            'Word s obrázky a odkazy'        => [self::docxSObrazkyAOdkazyBajty(), NahravaniObrazku::DOCX],
+            'Word s běžnými poli'            => [self::docxSBeznymiPolemiBajty(), NahravaniObrazku::DOCX],
+            'Word, který zmiňuje typ sešitu' => [self::docxSeZminkouOXlsxBajty(), NahravaniObrazku::DOCX],
+            'sešit Excelu'                   => [self::xlsxBajty(), NahravaniObrazku::XLSX],
+            'LibreOffice Writer'             => [self::odtBajty(), NahravaniObrazku::ODT],
+            'LibreOffice Calc'               => [self::odsBajty(), NahravaniObrazku::ODS],
+        ];
+    }
+
+    /**
+     * @test
+     *
+     * @dataProvider provideDokumentyKtereSePrijmou
+     */
+    public function poznaDokumentyBezMakerPodleHlavniCasti(string $obsah, string $ocekavanyTyp): void
+    {
+        $soubor = $this->soubor('dokument.bin', $obsah);
+
+        self::assertSame($ocekavanyTyp, RozpoznaniDokumentu::mime($soubor));
+        self::assertFalse(RozpoznaniDokumentu::jeBalikOffice($soubor));
     }
 
     /**
@@ -178,6 +237,66 @@ class RozpoznaniDokumentuTest extends TestCase
         self::assertFalse(RozpoznaniDokumentu::jeBalikOffice($this->soubor('b.xlsx', self::xlsxBajty())));
         self::assertFalse(RozpoznaniDokumentu::jeBalikOffice($this->soubor('c.pdf', self::pdfBajty())));
         self::assertFalse(RozpoznaniDokumentu::jeBalikOffice($this->soubor('d.zip', substr(self::docxBajty(), 0, 40))));
+    }
+
+    public static function provideZvuk(): array
+    {
+        return [
+            'Ogg Vorbis'             => [self::oggVorbisBajty(), NahravaniObrazku::OGG],
+            'Ogg Opus'               => [self::oggOpusBajty(), NahravaniObrazku::OGG],
+            'Ogg s useknutým koncem' => [self::oggSUseknutymKoncemBajty(), NahravaniObrazku::OGG],
+            'WAV'                    => [self::wavBajty(), NahravaniObrazku::WAV],
+            'M4A'                    => [self::m4aBajty(), NahravaniObrazku::M4A],
+            'audio v mp42'           => [self::mp4Bajty('mp42', ['soun']), NahravaniObrazku::M4A],
+            'audio a titulky'        => [self::mp4Bajty('isom', ['soun', 'text']), NahravaniObrazku::M4A],
+            'zvuk s popisem vzorků'  => [self::mp4ZvukSPopisemVzorkuBajty(), NahravaniObrazku::M4A],
+        ];
+    }
+
+    /**
+     * @test
+     *
+     * @dataProvider provideZvuk
+     */
+    public function poznaZvukPodleKontejneru(string $obsah, string $ocekavanyTyp): void
+    {
+        self::assertSame($ocekavanyTyp, RozpoznaniDokumentu::mime($this->soubor('zvuk.bin', $obsah)));
+    }
+
+    public static function provideZvukKterySePoznaneNeniAniVideo(): array
+    {
+        return [
+            'Ogg s obrazem'                  => [self::oggSVideemBajty()],
+            'Ogg s neznámým kodekem'         => [self::oggStranka('NeznamyKodek1234')],
+            'osm zvuků a devátý proud video' => [self::oggSDevatymProudemVideoBajty()],
+            'zřetězený Ogg s videem'         => [self::oggZretezenySVideemBajty()],
+            'MP4 se stopou o dvou popisech'  => [self::mp4StopaSDvemaPopisyBajty()],
+            'MP4 se stopou bez popisu'       => [self::mp4StopaBezPopisuBajty()],
+            'MP4 se stopou neznámého druhu'  => [self::mp4StopaNeznamehoDruhuBajty()],
+            'zvuk s hlavičkou obrazu'        => [self::mp4ZvukSHlavickouObrazuBajty()],
+            'zvuk s videokodekem'            => [self::mp4ZvukSVideokodekemBajty()],
+            'Ogg, který nezačíná proudem'    => [self::oggStranka("\x01vorbis" . str_repeat("\0", 23), false)],
+            'useknutá hlavička Ogg'          => ['OggS' . "\0\x02" . str_repeat("\0", 10)],
+            'WAV bez popisu formátu'         => [self::wavBezFormatuBajty()],
+            'WAV useknutý před daty'         => [substr(self::wavBajty(), 0, 30)],
+            'RIFF, který není WAV'           => ['RIFF' . pack('V', 100) . 'AVI ' . str_repeat("\0", 100)],
+            'MP4 s obrazem'                  => [self::mp4Bajty('isom', ['vide'])],
+            'MP4 se zvukem i obrazem'        => [self::mp4Bajty('mp42', ['soun', 'vide'])],
+            'MP4 bez zvukové stopy'          => [self::mp4Bajty('M4A ', ['text'])],
+            'QuickTime'                      => [self::mp4Bajty('qt  ', ['soun'])],
+            'MP4 useknuté před popisem stop' => [substr(self::m4aBajty(), 0, 60)],
+            'AVIF'                           => [self::avifBajty()],
+        ];
+    }
+
+    /**
+     * @test
+     *
+     * @dataProvider provideZvukKterySePoznaneNeniAniVideo
+     */
+    public function videoAPoskozenyZvukNepozna(string $obsah): void
+    {
+        self::assertNull(RozpoznaniDokumentu::mime($this->soubor('soubor.bin', $obsah)));
     }
 
     /**

@@ -19,26 +19,53 @@ final class NahravaniObrazku
     public const PNG  = 'image/png';
     public const GIF  = 'image/gif';
     public const WEBP = 'image/webp';
+    public const AVIF = 'image/avif';
     public const SVG  = 'image/svg+xml';
     public const PDF  = 'application/pdf';
     public const MP3  = 'audio/mpeg';
+    public const OGG  = 'audio/ogg';
+    public const WAV  = 'audio/wav';
+    public const M4A  = 'audio/mp4';
     public const ZIP  = 'application/zip';
     public const XLSX = 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet';
+    public const DOCX = 'application/vnd.openxmlformats-officedocument.wordprocessingml.document';
+    public const ODT  = 'application/vnd.oasis.opendocument.text';
+    public const ODS  = 'application/vnd.oasis.opendocument.spreadsheet';
 
     public const RASTROVE_FORMATY = [self::JPG, self::PNG, self::GIF, self::WEBP];
+    /** Rastrové obrázky, které si prohlížeč zobrazí sám; AVIF umí dekódovat prohlížeče, ale ne kód webu (náhledy, e-shop) */
+    public const WEBOVE_OBRAZKY = [...self::RASTROVE_FORMATY, self::AVIF];
     /** Soubory, které nejsou obrázky; služba je zná jen tehdy, když je mezi povolenými formáty aspoň jeden z nich */
-    public const DOKUMENTY = [self::PDF, self::MP3, self::ZIP, self::XLSX];
+    public const DOKUMENTY = [
+        self::PDF,
+        self::MP3,
+        self::OGG,
+        self::WAV,
+        self::M4A,
+        self::ZIP,
+        self::XLSX,
+        self::DOCX,
+        self::ODT,
+        self::ODS,
+    ];
 
     private const PRIPONA_PODLE_MIME = [
         self::JPG  => 'jpg',
         self::PNG  => 'png',
         self::GIF  => 'gif',
         self::WEBP => 'webp',
+        self::AVIF => 'avif',
         self::SVG  => 'svg',
         self::PDF  => 'pdf',
         self::MP3  => 'mp3',
+        self::OGG  => 'ogg',
+        self::WAV  => 'wav',
+        self::M4A  => 'm4a',
         self::ZIP  => 'zip',
         self::XLSX => 'xlsx',
+        self::DOCX => 'docx',
+        self::ODT  => 'odt',
+        self::ODS  => 'ods',
     ];
     /** Přípony, pod kterými leží už nahrané soubory, i ty z doby FTP */
     private const MIME_PODLE_PRIPONY = [
@@ -47,22 +74,36 @@ final class NahravaniObrazku
         'png'  => self::PNG,
         'gif'  => self::GIF,
         'webp' => self::WEBP,
+        'avif' => self::AVIF,
         'svg'  => self::SVG,
         'pdf'  => self::PDF,
         'mp3'  => self::MP3,
+        'ogg'  => self::OGG,
+        'wav'  => self::WAV,
+        'm4a'  => self::M4A,
         'zip'  => self::ZIP,
         'xlsx' => self::XLSX,
+        'docx' => self::DOCX,
+        'odt'  => self::ODT,
+        'ods'  => self::ODS,
     ];
     private const NAZVY_FORMATU = [
         self::JPG  => 'JPG',
         self::PNG  => 'PNG',
         self::GIF  => 'GIF',
         self::WEBP => 'WebP',
+        self::AVIF => 'AVIF',
         self::SVG  => 'SVG',
         self::PDF  => 'PDF',
         self::MP3  => 'MP3',
+        self::OGG  => 'OGG',
+        self::WAV  => 'WAV',
+        self::M4A  => 'M4A',
         self::ZIP  => 'ZIP',
         self::XLSX => 'XLSX',
+        self::DOCX => 'DOCX',
+        self::ODT  => 'ODT',
+        self::ODS  => 'ODS',
     ];
     /** ext4 dovolí 255 bajtů na název, zbytek je rezerva na příponu */
     private const MAX_DELKA_NAZVU_BAJTU = 150;
@@ -110,7 +151,7 @@ final class NahravaniObrazku
         return new self(
             ZpracovaneObrazky::adresarObsahu(),
             new PouzitiObrazku(),
-            formaty: [...self::RASTROVE_FORMATY, self::SVG],
+            formaty: [...self::WEBOVE_OBRAZKY, self::SVG],
             optimalizace: new OptimalizaceObrazku(),
         );
     }
@@ -776,6 +817,13 @@ final class NahravaniObrazku
 
     private function zpravaOBalikuOffice(): string
     {
+        if (array_intersect($this->formaty, [self::DOCX, self::ODT, self::ODS]) !== []) {
+            return sprintf(
+                'Tenhle dokument tu nejde nahrát. Prezentace, dokumenty s makry nebo vloženými objekty a jiné balíky Office se nepřijímají.%s Povolené jsou %s.',
+                in_array(self::PDF, $this->formaty, true) ? ' Ulož ho prosím jako PDF nebo bez maker a objektů.' : '',
+                $this->popisFormatu(),
+            );
+        }
         $rada = in_array(self::PDF, $this->formaty, true)
             ? ' Ulož ho prosím jako PDF' . (in_array(self::XLSX, $this->formaty, true) ? ', tabulku jako XLSX bez maker' : '') . '.'
             : '';
@@ -1027,11 +1075,11 @@ final class NahravaniObrazku
      */
     private function obrazekStejnehoNazvu(string $adresar, string $nazevBezPripony, string $mime): ?string
     {
-        if (!in_array($mime, self::RASTROVE_FORMATY, true)) {
+        if (!in_array($mime, self::WEBOVE_OBRAZKY, true)) {
             return null;
         }
         foreach ($this->variantyObrazku($adresar, $nazevBezPripony) as $varianta) {
-            if (in_array(self::mimePodlePripony($varianta), self::RASTROVE_FORMATY, true)) {
+            if (in_array(self::mimePodlePripony($varianta), self::WEBOVE_OBRAZKY, true)) {
                 return $varianta;
             }
         }

@@ -465,7 +465,7 @@ SQL,
             self::assertNotSame([], $nastaveni['formaty'], $slozka);
             self::assertSame(
                 [],
-                array_diff($nastaveni['formaty'], [...NahravaniObrazku::DOKUMENTY, ...NahravaniObrazku::RASTROVE_FORMATY]),
+                array_diff($nastaveni['formaty'], [...NahravaniObrazku::DOKUMENTY, ...NahravaniObrazku::WEBOVE_OBRAZKY]),
                 "Složka {$slozka} povoluje jiný formát než dokumenty a rastrové obrázky (SVG nejde z administrace bez kontroly)",
             );
         }
@@ -481,7 +481,7 @@ SQL,
         foreach (SouboryWebu::SLOZKY as $slozka => $nastaveni) {
             self::assertSame(
                 [],
-                array_diff([...NahravaniObrazku::DOKUMENTY, ...NahravaniObrazku::RASTROVE_FORMATY], $nastaveni['formaty']),
+                array_diff([...NahravaniObrazku::DOKUMENTY, ...NahravaniObrazku::WEBOVE_OBRAZKY], $nastaveni['formaty']),
                 "Složka {$slozka} nepřijímá všechny formáty, které stránka přijímá",
             );
         }

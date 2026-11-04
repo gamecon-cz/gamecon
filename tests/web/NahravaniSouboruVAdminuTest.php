@@ -273,7 +273,7 @@ SQL,
     {
         return [
             'textový soubor'        => ['celohra', "obyčejný text\n", 'poznamky.txt', 'Soubor tohoto typu tu nejde nahrát'],
-            'dokument z Wordu'      => ['download', self::docxBajty(), 'dopis.pdf', 'Dokument z Wordu, PowerPointu, Excelu s makry nebo LibreOffice tu nejde nahrát'],
+            'Word s makry'          => ['download', self::docxSMakryBajty(), 'dopis.docx', 'Tenhle dokument tu nejde nahrát. Prezentace, dokumenty s makry nebo vloženými objekty'],
             'skript s příponou PDF' => ['download', '<?php echo "ahoj";', 'skript.pdf', 'Soubor tohoto typu tu nejde nahrát'],
         ];
     }
@@ -281,8 +281,9 @@ SQL,
     public static function provideSouboryKteryPageDoKazdeSlozkyPovoli(): array
     {
         return [
-            'ZIP do složky Ke stažení' => ['download', self::zipBajty(), 'archiv.zip', 'zip'],
-            'MP3 do složky Celohra'    => ['celohra', self::mp3Bajty(), 'nahravka.mp3', 'mp3'],
+            'ZIP do složky Ke stažení'  => ['download', self::zipBajty(), 'archiv.zip', 'zip'],
+            'MP3 do složky Celohra'     => ['celohra', self::mp3Bajty(), 'nahravka.mp3', 'mp3'],
+            'Word do složky Ke stažení' => ['download', self::docxBajty(), 'dopis.docx', 'docx'],
         ];
     }
 

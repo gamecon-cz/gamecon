@@ -6,6 +6,7 @@ namespace Gamecon\Tests\Model\Web;
 
 use Gamecon\Web\NahravaniObrazku;
 use Gamecon\Web\NahravaniObrazkuException;
+use Gamecon\Web\OptimalizaceObrazku;
 use Gamecon\Web\PouzitiObrazku;
 use PHPUnit\Framework\TestCase;
 use Symfony\Component\Filesystem\Filesystem;
@@ -550,6 +551,101 @@ class NahravaniObrazkuTest extends TestCase
         self::assertSame('png', $nahravani->overSoubor($this->png('obrazek.pdf'))->pripona, 'Složka s dokumenty bere i obrázky');
     }
 
+    public static function provideNoveDokumentyAZvuk(): array
+    {
+        return [
+            'Word'               => [self::docxBajty(), NahravaniObrazku::DOCX, 'docx'],
+            'LibreOffice Writer' => [self::odtBajty(), NahravaniObrazku::ODT, 'odt'],
+            'LibreOffice Calc'   => [self::odsBajty(), NahravaniObrazku::ODS, 'ods'],
+            'Ogg Vorbis'         => [self::oggVorbisBajty(), NahravaniObrazku::OGG, 'ogg'],
+            'Ogg Opus'           => [self::oggOpusBajty(), NahravaniObrazku::OGG, 'ogg'],
+            'WAV'                => [self::wavBajty(), NahravaniObrazku::WAV, 'wav'],
+            'M4A'                => [self::m4aBajty(), NahravaniObrazku::M4A, 'm4a'],
+        ];
+    }
+
+    /**
+     * Přípona od prohlížeče nic neříká, `.opus` nebo `.aac` se uloží jako `.ogg` nebo `.m4a` podle obsahu.
+     *
+     * @test
+     *
+     * @dataProvider provideNoveDokumentyAZvuk
+     */
+    public function poznaDokumentyAZvukPodleObsahuAPriponuDopocita(string $obsah, string $mime, string $pripona): void
+    {
+        $nahrany = $this->sluzbaProDokumenty()->overSoubor($this->soubor('nazev.dat', $obsah));
+
+        self::assertSame([$mime, $pripona, null, null], [$nahrany->mime, $nahrany->pripona, $nahrany->sirka, $nahrany->vyska]);
+    }
+
+    /**
+     * @test
+     */
+    public function videoSluzbaNepusti(): void
+    {
+        $this->ocekavejChybu('Soubor tohoto typu tu nejde nahrát');
+        $this->sluzbaProDokumenty()->overSoubor($this->soubor('film.m4a', self::mp4Bajty('isom', ['soun', 'vide'])));
+    }
+
+    /**
+     * @test
+     */
+    public function avifSeUlozeBezPrekodovaniACoObrazekMaRozmery(): void
+    {
+        $nahravani = new NahravaniObrazku(
+            $this->koren,
+            formaty: NahravaniObrazku::WEBOVE_OBRAZKY,
+            optimalizace: new OptimalizaceObrazku(),
+        );
+        $zdroj = $this->soubor('fotka.dat', self::avifBajty());
+
+        $avif = $nahravani->overSoubor($zdroj);
+        self::assertSame([NahravaniObrazku::AVIF, 'avif', 16, 12], [$avif->mime, $avif->pripona, $avif->sirka, $avif->vyska]);
+        self::assertNull($avif->zdrojovyMime, 'AVIF se nepřekódovává');
+
+        $ulozeno = $nahravani->ulozNovy($avif, '', 'fotka');
+        self::assertSame($this->koren . '/fotka.avif', $ulozeno);
+        self::assertFileEquals($zdroj, $ulozeno);
+    }
+
+    public static function provideStejnyNazevVJinemFormatu(): array
+    {
+        return [
+            'AVIF vedle WebP' => ['foto.webp', 'avif'],
+            'WebP vedle AVIF' => ['foto.avif', 'webp'],
+            'AVIF vedle JPG'  => ['foto.jpg', 'avif'],
+        ];
+    }
+
+    /**
+     * Obrázek stejného názvu v jiném formátu se pozná i u AVIF, jinak by `foto.avif` ležel vedle `foto.webp`
+     * a dvakrát se pro něj hlídalo, jestli ho text používá.
+     *
+     * @test
+     *
+     * @dataProvider provideStejnyNazevVJinemFormatu
+     */
+    public function novyObrazekNeniVedleStarsihoStejnehoNazvuVJinemFormatu(string $existujici, string $novyFormat): void
+    {
+        file_put_contents($this->koren . '/' . $existujici, 'x');
+        $nahravani = new NahravaniObrazku($this->koren, formaty: NahravaniObrazku::WEBOVE_OBRAZKY);
+        $novy = $novyFormat === 'avif'
+            ? $nahravani->overSoubor($this->soubor('novy.dat', self::avifBajty()))
+            : $nahravani->overSoubor($this->soubor('novy.webp', (string) base64_decode(self::WEBP_1X1, true)));
+
+        $this->ocekavejChybu('Soubor ' . $existujici . ' už existuje');
+        $nahravani->ulozNovy($novy, '', 'foto');
+    }
+
+    /**
+     * @test
+     */
+    public function sluzbaKterouAvifNeniNaVyctuHoOdmitne(): void
+    {
+        $this->ocekavejChybu('Formát AVIF tu nejde použít, nahraj prosím JPG, PNG, GIF nebo WebP.');
+        (new NahravaniObrazku($this->koren))->overSoubor($this->soubor('fotka.avif', self::avifBajty()));
+    }
+
     /**
      * @test
      */
@@ -571,12 +667,16 @@ class NahravaniObrazkuTest extends TestCase
 
     public static function provideSouboryKterePoslouNaDokumenty(): array
     {
+        $zpravaOBalikuOffice = 'Tenhle dokument tu nejde nahrát. Prezentace, dokumenty s makry nebo vloženými objekty a jiné balíky Office se nepřijímají.';
+
         return [
-            'skript s příponou PDF' => ['smlouva.pdf', '<?php echo "ahoj";', 'Soubor tohoto typu tu nejde nahrát, povolené jsou PDF, MP3, ZIP, XLSX, JPG, PNG, GIF nebo WebP.'],
-            'Word'                  => ['dopis.docx', self::docxBajty(), 'Dokument z Wordu, PowerPointu, Excelu s makry nebo LibreOffice tu nejde nahrát.'],
-            'LibreOffice'           => ['dopis.odt', self::odtBajty(), 'Dokument z Wordu, PowerPointu, Excelu s makry nebo LibreOffice tu nejde nahrát.'],
-            'Excel s makry'         => ['tabulka.xlsm', self::xlsmBajty(), 'Ulož ho prosím jako PDF, tabulku jako XLSX bez maker.'],
-            'iPhone HEIC'           => ['IMG_0001.HEIC', 'ftypheic' . "\0\0\0\0\0\0\0\0", 'Fotku z iPhonu (HEIC) je potřeba nejdřív uložit jako JPG.'],
+            'skript s příponou PDF'    => ['smlouva.pdf', '<?php echo "ahoj";', 'Soubor tohoto typu tu nejde nahrát, povolené jsou PDF, MP3, OGG, WAV, M4A, ZIP, XLSX, DOCX, ODT, ODS, JPG, PNG, GIF nebo WebP.'],
+            'Word s makry'             => ['dopis.docx', self::docxSMakryBajty(), $zpravaOBalikuOffice],
+            'Word s vloženým objektem' => ['dopis.docx', self::docxSVlozenymObjektemBajty(), $zpravaOBalikuOffice],
+            'LibreOffice s makry'      => ['dopis.odt', self::odtSMakryBajty(), $zpravaOBalikuOffice],
+            'prezentace'               => ['prezentace.pptx', self::pptxBajty(), $zpravaOBalikuOffice],
+            'Excel s makry'            => ['tabulka.xlsm', self::xlsmBajty(), 'Ulož ho prosím jako PDF nebo bez maker a objektů.'],
+            'iPhone HEIC'              => ['IMG_0001.HEIC', 'ftypheic' . "\0\0\0\0\0\0\0\0", 'Fotku z iPhonu (HEIC) je potřeba nejdřív uložit jako JPG.'],
         ];
     }
 
@@ -612,7 +712,17 @@ class NahravaniObrazkuTest extends TestCase
     public function radaKDokumentuOfficeSeRidiPovolenymiFormaty(array $formaty, string $ocekavanaChyba): void
     {
         $this->ocekavejChybu($ocekavanaChyba);
-        (new NahravaniObrazku($this->koren, formaty: $formaty))->overSoubor($this->soubor('dopis.docx', self::docxBajty()));
+        (new NahravaniObrazku($this->koren, formaty: $formaty))->overSoubor($this->soubor('dopis.docx', self::docxSMakryBajty()));
+    }
+
+    /**
+     * @test
+     */
+    public function dokumentKterySluzbaZnaAleNemaPovolenyOdmitneJakoNepovolenyFormat(): void
+    {
+        $this->ocekavejChybu('Formát DOCX tu nejde použít, nahraj prosím PDF.');
+        (new NahravaniObrazku($this->koren, formaty: [NahravaniObrazku::PDF]))
+            ->overSoubor($this->soubor('dopis.docx', self::docxBajty()));
     }
 
     /**
@@ -669,11 +779,11 @@ class NahravaniObrazkuTest extends TestCase
      */
     public function dokumentNejdeNahraditSouboremJehozTypTuNeniPovoleny(): void
     {
-        file_put_contents($this->koren . '/stary.docx', 'starý dokument z doby FTP');
+        file_put_contents($this->koren . '/stary.pptx', 'stará prezentace z doby FTP');
         $nahravani = $this->sluzbaProDokumenty();
 
-        $this->ocekavejChybu('Soubor stary.docx tu nejde nahradit, jeho typ tu není povolený.');
-        $nahravani->nahrad($nahravani->overSoubor($this->soubor('novy.pdf', self::pdfBajty())), 'stary.docx');
+        $this->ocekavejChybu('Soubor stary.pptx tu nejde nahradit, jeho typ tu není povolený.');
+        $nahravani->nahrad($nahravani->overSoubor($this->soubor('novy.pdf', self::pdfBajty())), 'stary.pptx');
     }
 
     /**
@@ -728,7 +838,7 @@ class NahravaniObrazkuTest extends TestCase
      */
     public function sluzbaProDokumentyVypisujeIMazeVsechnyZnameTypy(): void
     {
-        foreach (['a.pdf', 'b.mp3', 'c.zip', 'd.xlsx', 'e.png', 'f.docx', 'poznamky.txt'] as $soubor) {
+        foreach (['a.pdf', 'b.mp3', 'c.zip', 'd.xlsx', 'e.png', 'f.pptx', 'poznamky.txt'] as $soubor) {
             file_put_contents($this->koren . '/' . $soubor, 'x');
         }
         $nahravani = $this->sluzbaProDokumenty();
@@ -830,7 +940,10 @@ class NahravaniObrazkuTest extends TestCase
     {
         self::assertSame('PDF', NahravaniObrazku::nazevFormatuPodlePripony('Smlouva.PDF'));
         self::assertSame('JPG', NahravaniObrazku::nazevFormatuPodlePripony('fotka.jpeg'));
-        self::assertNull(NahravaniObrazku::nazevFormatuPodlePripony('dopis.docx'));
+        self::assertSame('DOCX', NahravaniObrazku::nazevFormatuPodlePripony('dopis.docx'));
+        self::assertSame('M4A', NahravaniObrazku::nazevFormatuPodlePripony('nahravka.M4A'));
+        self::assertSame('AVIF', NahravaniObrazku::nazevFormatuPodlePripony('fotka.avif'));
+        self::assertNull(NahravaniObrazku::nazevFormatuPodlePripony('prezentace.pptx'));
     }
 
     /**
