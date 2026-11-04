@@ -271,17 +271,9 @@ final class SouboryWebu
         $nazev = $this->textZPostu('nazev') !== ''
             ? $this->textZPostu('nazev')
             : $soubor->puvodniNazevBezPripony();
-        $ulozeno = $nahravani->ulozNovy($soubor, $podslozka, NahravaniObrazku::bezpecnyNazevDokumentu($nazev));
+        $nahravani->ulozNovy($soubor, $podslozka, NahravaniObrazku::bezpecnyNazevDokumentu($nazev));
 
-        $cestaVuciWebu = $this->cestaVuciWebuSouboru($slozka, ($podslozka === '' ? '' : $podslozka . '/') . basename($ulozeno));
-
-        return sprintf(
-            'Soubor je nahraný jako %s, do textu ho vložíš jako <code>%s</code>.',
-            htmlspecialchars(basename($ulozeno)),
-            $cestaVuciWebu === null
-                ? '…'
-                : htmlspecialchars(ZapisSouboruVTextu::markdown($cestaVuciWebu)),
-        );
+        return 'Soubor je nahraný.';
     }
 
     private function nahrad(): string
