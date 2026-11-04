@@ -28,6 +28,20 @@ final class NahravaniPoCastechPozadavek
     }
 
     /**
+     * Pro začátek modulu s formulářem: požadavek skriptu pro nahrávání po částech obslouží a skončí. Skript čeká jen
+     * odpověď, nic z administrace okolo ní, proto `exit` a ne `$BEZ_DEKORACE`.
+     */
+    public static function obslouzPokudJe(NahravaniPoCastech $nahravani): void
+    {
+        if (!self::jePozadavek()) {
+            return;
+        }
+        (new self($nahravani))->odpovez();
+
+        exit;
+    }
+
+    /**
      * Obslouží požadavek podle `$_GET`, `$_POST`, `$_SERVER` a těla požadavku a vypíše odpověď. Volající skončí `exit`.
      */
     public function odpovez(): void

@@ -7,6 +7,7 @@ Obrázky a soubory ke stažení se nahrávají z administrace, FTP na ně není 
 
 - fotky vypravěčů (`web/soubory/systemove/fotky`) v Aktivity → Medailonky,
 - obrázky do textů stránek a novinek (`web/soubory/obsah`) v editaci stránky nebo novinky, část Obrázky,
+- soubory ke stažení k textu stránky nebo novinky (PDF, dokumenty, zvuk, ZIP, třeba press kit nebo soubory k D&D) tamtéž, část Soubory ke stažení: nový soubor jde do adresáře stránky, soubor z doby FTP, na který text odkazuje, se nahradí na místě; velké soubory jdou po částech,
 - obrázky galerie e-shopu v přihlášce (`web/soubory/obsah/materialy/<ročník>/eshop`) ve Finance → Shop,
 - loga sponzorů a partnerů ve Web → Loga, obrázky linií ve Web → Hlavičky linií,
 - soubory ke stažení ve složkách `download`, `materialy`, `celohra` a `drd` v `web/soubory/obsah` ve Web → Soubory: do každé složky PDF, XLSX, MP3, ZIP a obrázky.

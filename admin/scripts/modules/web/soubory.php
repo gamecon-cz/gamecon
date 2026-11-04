@@ -17,12 +17,7 @@ use Gamecon\Web\SouboryWebu;
  */
 
 $nahravaniPoCastech = NahravaniPoCastech::proUzivatele($u->id());
-if (NahravaniPoCastechPozadavek::jePozadavek()) {
-    (new NahravaniPoCastechPozadavek($nahravaniPoCastech))->odpovez();
-
-    // exit, not $BEZ_DEKORACE: only the answer for the upload script, with nothing of the admin page around it
-    exit;
-}
+NahravaniPoCastechPozadavek::obslouzPokudJe($nahravaniPoCastech);
 
 $souboryWebu = new SouboryWebu(poCastech: $nahravaniPoCastech);
 $souboryWebu->zpracujPost();

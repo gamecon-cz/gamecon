@@ -239,18 +239,20 @@ SQL,
     public function editorTextuHlidaNeulozeneZmenyPredNahranimObrazku(): void
     {
         $session = $this->prihlas(\Uzivatel::SYSTEM_LOGIN);
+        $skript = (string) file_get_contents(__DIR__ . '/../../admin/files/neulozeny-text-editoru.js');
 
         foreach (['web/novinka?id=9801', 'web/editace-stranek?id=' . self::ID_STRANKY] as $url) {
             $editor = $this->stahni($session, $url);
 
-            // widget hledá editor podle třídy, kterou mu dává DbForm
+            // skript hledá editor podle třídy, kterou mu dává DbForm
             self::assertMatchesRegularExpression('~<form[^>]*class="dbForm"~', $editor, $url);
-            self::assertStringContainsString("querySelector('form.dbForm')", $editor, $url);
-            self::assertStringContainsString("addEventListener('beforeunload'", $editor, $url);
+            self::assertStringContainsString("querySelector('form.dbForm')", $skript);
+            self::assertStringContainsString("addEventListener('beforeunload'", $skript);
+            self::assertSame(1, substr_count($editor, '<script src="files/neulozeny-text-editoru.js?v='), $url);
 
             // Uložit je <button> kvůli ikoně, hlídání ho proto nesmí hledat jen mezi <input>
             self::assertStringContainsString('<button type="submit"><i class="fa fa-save" aria-hidden="true"></i> Uložit</button>', $editor, $url);
-            self::assertStringContainsString("querySelectorAll('[type=submit]')", $editor, $url);
+            self::assertStringContainsString("querySelectorAll('[type=submit]')", $skript);
         }
     }
 

@@ -6,7 +6,7 @@
   kterékoli složky jde nahrát kterýkoli z těchto typů.
   Odkaz do textu vložíš z tabulky Markdownem <code>[popis](soubory/obsah/…)</code>
   nebo v HTML jako <code>&lt;a href="soubory/obsah/…"&gt;popis&lt;/a&gt;</code>.
-  Obrázky do textu stránky nebo novinky se nahrávají v jejich editoru, obrázky e-shopu ve Finance → Shop.
+  Obrázky a soubory k textu stránky nebo novinky jdou nahrát i v jejich editoru, obrázky e-shopu ve Finance → Shop.
 </p>
 
 <!-- begin:slozka -->
