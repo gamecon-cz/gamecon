@@ -46,7 +46,7 @@
     <!-- begin:obrazek -->
     <tr>
       <td class="obrazky-obsahu__nahled"><a href="{url}" target="_blank" rel="noopener"><img src="{nahled}" alt=""></a></td>
-      <td class="obrazky-obsahu__zapisy">
+      <td class="zapisy-k-vlozeni">
         <label>Markdown: <input type="text" readonly value="{markdown}" size="60"></label>
         <label>HTML: <input type="text" readonly value="{html}" size="60"></label>
       </td>
@@ -111,13 +111,6 @@
 
     .obrazky-obsahu__chybi {
         color: #c00;
-    }
-
-    .obrazky-obsahu__zapisy label {
-        display: grid;
-        grid-template-columns: 6em auto;
-        align-items: center;
-        margin: 0.2em 0;
     }
 
     .obrazky-obsahu__nahrat {

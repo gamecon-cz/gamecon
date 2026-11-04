@@ -3,14 +3,15 @@
 
 <p class="tip">
   Tady se nahrávají PDF, zvuk, archivy a tabulky, na které odkazují texty webu a přihláška.
-  Odkaz do textu vložíš z tabulky jako <code>[popis](soubory/obsah/…)</code>.
+  Odkaz do textu vložíš z tabulky Markdownem <code>[popis](soubory/obsah/…)</code>
+  nebo v HTML jako <code>&lt;a href="soubory/obsah/…"&gt;popis&lt;/a&gt;</code>.
   Obrázky do textu stránky nebo novinky se nahrávají v jejich editoru, obrázky e-shopu ve Finance → Shop.
 </p>
 
 <!-- begin:slozka -->
 <!-- begin:historie --><hr><!-- end:historie -->
 <details class="soubory-webu" open>
-  <summary><strong>{nazev}</strong> <code>{adresar}</code> ({pocet})</summary>
+  <summary><strong>{nazev}</strong> <code>{adresar}</code> <small class="soubory-webu__pocet" title="Počet souborů ve složce">({pocet})</small></summary>
   <p>{popis}</p>
 
   <form method="post" enctype="multipart/form-data" class="soubory-webu__nahrat">
@@ -24,7 +25,7 @@
     <datalist id="podslozky-{slozka}">
       <!-- begin:podslozka --><option value="{podslozka}"><!-- end:podslozka -->
     </datalist>
-    <button type="submit">Nahrát</button>
+    <button type="submit"><i class="fa fa-upload" aria-hidden="true"></i> Nahrát</button>
     <div class="tip">
       {limit}. Název i podsložka se upraví do tvaru vhodného do adresy: malá písmena bez diakritiky,
       mezery a tečky se změní na podtržítka. Soubor se stejným názvem nejde nahrát znovu, nahraď ho v seznamu.
@@ -43,8 +44,11 @@
     <!-- begin:soubor -->
     <tr>
       <td>
-        <a href="{url}" target="_blank" rel="noopener">{cesta}</a><br>
-        <input type="text" readonly value="{markdown}" onclick="this.select()" aria-label="Odkaz pro vložení do textu" class="soubory-webu__odkaz">
+        <a href="{url}" target="_blank" rel="noopener">{cesta}</a>
+        <div class="zapisy-k-vlozeni">
+          <label>Markdown: <input type="text" readonly value="{markdown}" onclick="this.select()" class="soubory-webu__odkaz"></label>
+          <label>HTML: <input type="text" readonly value="{html}" onclick="this.select()" class="soubory-webu__odkaz"></label>
+        </div>
       </td>
       <td>{typ}</td>
       <td>{velikost}</td>
@@ -62,7 +66,7 @@
           <input type="hidden" name="slozka" value="{slozka}">
           <input type="hidden" name="cesta" value="{cesta}">
           <input type="file" name="{postSoubor}" accept="{acceptSouboru}" required>
-          <button type="submit">Nahradit</button>
+          <button type="submit"><i class="fa fa-upload" aria-hidden="true"></i> Nahradit</button>
         </form>
         <!-- end:nahradit -->
         <!-- begin:smazat -->
@@ -70,7 +74,7 @@
           <input type="hidden" name="{postAkce}" value="smazat">
           <input type="hidden" name="slozka" value="{slozka}">
           <input type="hidden" name="cesta" value="{cesta}">
-          <button type="submit">Smazat</button>
+          <button type="submit"><i class="fa fa-trash" aria-hidden="true"></i> Smazat</button>
         </form>
         <!-- end:smazat -->
         <!-- begin:nespravovany --><span class="tip">Tenhle soubor se tu nespravuje, jen přes FTP.</span><!-- end:nespravovany -->
@@ -122,6 +126,10 @@
 
     .soubory-webu__nahrat .tip {
         flex-basis: 100%;
+    }
+
+    .soubory-webu__pocet {
+        font-size: 0.7em;
     }
 
     .soubory-webu__odkaz {

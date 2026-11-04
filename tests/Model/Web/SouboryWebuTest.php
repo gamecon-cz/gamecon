@@ -109,6 +109,36 @@ SQL,
     }
 
     /**
+     * Stejný zápis jako u obrázků v editoru stránky (Markdown a HTML pod sebou) a stejné ikony na tlačítkách.
+     *
+     * @test
+     */
+    public function souborMaZapisDoTextuVMarkdownuAHtmlAIkonyNaTlacitkach(): void
+    {
+        $slozka = ZpracovaneObrazky::adresarObsahu() . '/' . self::slozka();
+        file_put_contents($slozka . '/volny.pdf', self::pdfBajty());
+
+        $html = (new SouboryWebu([
+            self::slozka() => $this->nastaveni([NahravaniObrazku::PDF]),
+        ]))->html();
+
+        $cesta = 'soubory/obsah/' . self::slozka() . '/volny.pdf';
+        $volny = self::radek($html, 'volny.pdf');
+        self::assertStringContainsString('<label>Markdown: <input type="text" readonly value="[volny](' . $cesta . ')"', $volny);
+        self::assertStringContainsString(
+            '<label>HTML: <input type="text" readonly value="&lt;a href=&quot;' . $cesta . '&quot;&gt;volny&lt;/a&gt;"',
+            $volny,
+        );
+        self::assertStringContainsString('<i class="fa fa-upload" aria-hidden="true"></i> Nahradit', $volny);
+        self::assertStringContainsString('<i class="fa fa-trash" aria-hidden="true"></i> Smazat', $volny);
+        self::assertStringContainsString('<i class="fa fa-upload" aria-hidden="true"></i> Nahrát', $html);
+        self::assertStringContainsString(
+            '<small class="soubory-webu__pocet" title="Počet souborů ve složce">(1)</small>',
+            $html,
+        );
+    }
+
+    /**
      * @test
      */
     public function odkazZKoduNaSouborZnamenaZeSeNesmaze(): void
