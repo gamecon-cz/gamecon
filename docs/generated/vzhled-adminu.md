@@ -5,7 +5,7 @@ TL;DR: admin má dvě kostry stránky (`admin/templates/main.xtpl` a `admin/temp
 ## Vstupní body
 
 - `admin/index.php` — zpracuje POST `vzhledAdminu`, vybere šablonu (`VzhledAdminuEnum::getSablona()`), nastaví `$vzhled` a `$vzhledAdminuHtml`, které používají i moduly (online prezence).
-- `model/Admin/VzhledAdminu.php` — čtení a zápis volby, odložení výběru v session (`isNabidnoutVyber()`, `zpracujVolbu()`).
+- `model/Admin/VzhledAdminu.php` — čtení a zápis volby (načtená se pamatuje jen v rámci požadavku), odložení výběru v session (`isNabidnoutVyber()`, `zpracujVolbu()`).
 - `model/Admin/VzhledAdminuEnum.php` — `klasicky` / `moderni`, název a šablona.
 - `model/Admin/VzhledAdminuHtml.php` — vykreslí `admin/templates/vyber-vzhledu.xtpl` (dialog při první návštěvě, `getVyberHtml()`) a `admin/templates/prepinac-vzhledu.xtpl` (přepínač v patičce, `getPrepinacHtml()`) pro oba vzhledy adminu i pro online prezenci; styly v `admin/files/design/vzhled_adminu.css`.
 - `admin/templates/moderni/*.xtpl`, `admin/files/design/moderni.css`, `admin/files/moderni.js` — moderní vzhled; `admin/files/barvy_adminu.js` — světlé a tmavé barvy.
@@ -16,7 +16,7 @@ TL;DR: admin má dvě kostry stránky (`admin/templates/main.xtpl` a `admin/temp
 ## Pravidla
 
 - (záměr) Oba vzhledy zůstávají, uživatel si vybírá; klasický se nemá měnit. Ověřeno porovnáním screenshotů: kromě přepínače v patičce je pixelově stejný.
-- Volba patří účtu, ne zařízení ani relaci. „Rozhodnu se později“ (i Esc v dialogu) jen nastaví příznak v session, po dalším přihlášení se dialog ukáže znovu.
+- Volba patří účtu, ne zařízení ani relaci. „Rozhodnu se později“ (i Esc v dialogu) jen nastaví příznak v session, po dalším přihlášení se dialog ukáže znovu. Příznak platí pro celou session, ne pro jednoho uživatele: odkládá ten, kdo sedí u zařízení, a po „Přihlásit se jako“ (session zůstane) je to pořád on. Dialog by ho jinak nutil zvolit vzhled za druhého uživatele a volba by se uložila do jeho účtu.
 - Dialog výběru a přepínač dostane jen ten, kdo smí otevřenou stránku (i jen díky právu na podstránku, to položku hlavního menu nezobrazí) nebo aspoň jednu položku hlavního menu. Účastník přihlášený na webu, který otevře odkaz do adminu a dostane 403, je nevidí.
 - Neznámá hodnota v DB (třeba z novější verze) se bere jako nezvolená.
 - Tabulka má cizí klíč na `uzivatele_hodnoty`, takže `UzivatelSlucovani` volbu převede (hledá odkazující tabulky podle FK) a smazání účtu ji smaže.
