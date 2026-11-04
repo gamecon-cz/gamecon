@@ -96,6 +96,17 @@ class ObrazkyObsahuTest extends TestCase
     /**
      * @test
      */
+    public function odkazNaAvifSeBereJakoOdkazNaObrazek(): void
+    {
+        self::assertSame(
+            ['materialy/2026/mapa.avif', 'blog/foto.AVIF'],
+            ObrazkyObsahu::odkazyVTextu('![](soubory/obsah/materialy/2026/mapa.avif) ![](soubory/obsah/blog/foto.AVIF?v=2)'),
+        );
+    }
+
+    /**
+     * @test
+     */
     public function zpetneLomitkoVOdkazuSeBereJakoLomitko(): void
     {
         self::assertSame(
