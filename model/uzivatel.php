@@ -665,7 +665,7 @@ SQL, [Pravo::PORADANI_AKTIVIT],
                 'jmeno_nick'   => (string)$this->jmenoNick(),
                 'id_uzivatele' => $this->id(),
                 'odhlaseni'    => $this->popisOdhlaseni($odhlasujici),
-                'castka'       => $celkemLetosPoslal,
+                'castka'       => Finance::formatujCastku($celkemLetosPoslal),
             ])
             ->adresat('info@gamecon.cz');
     }
