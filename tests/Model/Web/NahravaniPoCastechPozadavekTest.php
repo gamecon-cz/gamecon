@@ -51,12 +51,12 @@ class NahravaniPoCastechPozadavekTest extends TestCase
         $id = $this->zahaj(25);
 
         $prvni = $this->zpracuj('cast', get: [
-            'id'    => $id,
-            'index' => '0',
+            'nahrani' => $id,
+            'index'   => '0',
         ], telo: str_repeat('a', 10));
         $posledni = $this->zpracuj('cast', get: [
-            'id'    => $id,
-            'index' => '2',
+            'nahrani' => $id,
+            'index'   => '2',
         ], telo: str_repeat('a', 5));
 
         self::assertSame([200, 10], [$prvni['kod'], $prvni['telo']['prijato']]);
@@ -138,8 +138,8 @@ class NahravaniPoCastechPozadavekTest extends TestCase
         $id = $this->zahaj(25);
 
         $odpoved = $this->zpracuj('cast', get: [
-            'id'    => $id,
-            'index' => $index,
+            'nahrani' => $id,
+            'index'   => $index,
         ], telo: str_repeat('a', 10));
 
         self::assertSame([422, 'Neplatné pořadí části souboru.'], [$odpoved['kod'], $odpoved['telo']['zprava']]);

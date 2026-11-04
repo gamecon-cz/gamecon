@@ -109,7 +109,7 @@
     let posledniChyba = null
     for (let pokus = 1; pokus <= POKUSY_NA_CAST; pokus++) {
       try {
-        return await pozadavek(formular, 'cast', {id, index}, {
+        return await pozadavek(formular, 'cast', {nahrani: id, index}, {
           body: cast,
           headers: {'Content-Type': 'application/octet-stream'},
           signal,

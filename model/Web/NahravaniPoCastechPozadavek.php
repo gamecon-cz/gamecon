@@ -8,7 +8,7 @@ namespace Gamecon\Web;
  * Požadavky prohlížeče na nahrávání po částech, viz @see NahravaniPoCastech a admin/files/nahravani-po-castech.js.
  * Modul s formulářem je obslouží na vlastní adrese s parametrem `nahravaniPoCastech`:
  * - `zahaj` (POST `velikost`, `nazev`) vrátí `id` a velikost části,
- * - `cast` (POST, v adrese `id` a `index`, tělo je část souboru) vrátí, kolik bajtů je přijato,
+ * - `cast` (POST, v adrese `nahrani` (jeho `id`) a `index`, tělo je část souboru) vrátí, kolik bajtů je přijato,
  * - `zrus` (POST `id`) smaže rozpracované nahrávání.
  * Odpověď je JSON s `ok`; chyba, kterou má vidět člověk, je `ok: false` se `zprava` a kód 422.
  */
@@ -106,7 +106,7 @@ final class NahravaniPoCastechPozadavek
         }
 
         return [
-            'prijato' => $this->nahravani->prijmiCast(is_string($get['id'] ?? null) ? $get['id'] : '', (int) $index, $telo),
+            'prijato' => $this->nahravani->prijmiCast(is_string($get['nahrani'] ?? null) ? $get['nahrani'] : '', (int) $index, $telo),
         ];
     }
 
