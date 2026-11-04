@@ -95,7 +95,7 @@ SQL,
         self::assertStringNotContainsString('value="smazat"', $pouzity, 'Soubor, na který text odkazuje, jde nahradit, ale ne smazat');
         self::assertStringNotContainsString('Nikde se nepoužívá', $pouzity);
         self::assertStringContainsString(
-            '</a> <span class="soubory-webu__udaje technicke">(PDF, ' . NahravaniObrazku::lidskaVelikost(strlen(self::pdfBajty())) . ')</span>',
+            '</a> <span class="udaje-souboru technicke">(PDF, ' . NahravaniObrazku::lidskaVelikost(strlen(self::pdfBajty())) . ')</span>',
             $pouzity,
             'Typ a velikost jsou v závorce za odkazem na soubor, technické písmo (třída technicke), ne vlastní sloupce',
         );
@@ -166,7 +166,7 @@ SQL,
         sort($serazene);
         self::assertSame($serazene, $poradi, 'Od nejnovějšího, při stejném čase podle názvu');
         self::assertStringContainsString(
-            '<td class="soubory-webu__nahrano">2. 3. 2026 08:05</td>',
+            '<td class="tabulka-souboru__nahrano">2. 3. 2026 08:05</td>',
             self::radek($html, 'nejnovejsi.pdf'),
             'Datum a čas se v buňce nezalomí',
         );
@@ -398,7 +398,7 @@ SQL,
 
         self::assertStringNotContainsString('data-nahravani-po-castech', $bez);
         self::assertStringNotContainsString('nahravani-po-castech.js', $bez);
-        self::assertStringContainsString('class="soubory-webu__nahrat" data-nahravani-po-castech data-nahravani-prah="4096"', $s);
+        self::assertStringContainsString('class="nahrani-souboru" data-nahravani-po-castech data-nahravani-prah="4096"', $s);
         self::assertMatchesRegularExpression('~<script src="files/nahravani-po-castech\.js\?v=[0-9a-f]{32}"></script>~', $s);
     }
 

@@ -19,6 +19,7 @@ final class ObrazkyObsahu
     private const POST_SOUBOR = 'obrazekObsahu';
 
     private readonly NahravaniObrazku $nahravani;
+    private readonly SouboryTextu $soubory;
 
     public static function proStranku(\Stranka $stranka): self
     {
@@ -47,50 +48,18 @@ final class ObrazkyObsahu
     }
 
     /**
-     * Obrázky z adresáře obsahu, na které text odkazuje, jako cesty vůči tomuto adresáři.
-     * Pozná `soubory/obsah/…` v Markdownu i HTML, relativně i s doménou, i zakódované pro URL.
-     *
-     * @return list<string>
-     */
-    public static function odkazyVTextu(string $text): array
-    {
-        preg_match_all(
-            '~soubory/obsah/+([^\s"\'()<>\[\]?#\\\\]+?\.(?:jpe?g|png|gif|webp|avif|svg))(?=[\s"\'()<>\[\]?#]|$)~iu',
-            $text,
-            $shody,
-        );
-        $odkazy = [];
-        foreach ($shody[1] as $cesta) {
-            // %5C se po dekódování mění na zpětné lomítko, které služba bere jako oddělovač adresářů
-            $segmenty = array_values(array_filter(
-                explode('/', str_replace('\\', '/', rawurldecode($cesta))),
-                static fn (string $segment): bool => $segment !== '',
-            ));
-            // `..` ani skryté soubory nenabízíme, služba by je stejně odmítla
-            foreach ($segmenty as $segment) {
-                if (str_starts_with($segment, '.')) {
-                    continue 2;
-                }
-            }
-            $cesta = implode('/', $segmenty);
-            $odkazy[$cesta] = $cesta;
-        }
-
-        return array_values($odkazy);
-    }
-
-    /**
      * @param string $text Markdown nebo HTML, ve kterém se hledají odkazy na obrázky
      * @param string $adresarProNove kam se ukládají nové obrázky, vůči adresáři obsahu
      * @param string $kCemu do nadpisu „Obrázky nahrané …“
      */
     public function __construct(
-        private readonly string $text,
+        string $text,
         private readonly string $adresarProNove,
         private readonly string $kCemu = 'k této stránce',
         ?NahravaniObrazku $nahravani = null,
     ) {
         $this->nahravani = $nahravani ?? NahravaniObrazku::proObsahWebu();
+        $this->soubory = new SouboryTextu($this->nahravani, $text, $adresarProNove);
     }
 
     /**
@@ -122,9 +91,9 @@ final class ObrazkyObsahu
             'kCemu'      => htmlspecialchars($this->kCemu),
         ]);
 
-        $odkazy = $this->odkazyNaSpravovaneObrazky();
+        $odkazy = $this->soubory->getOdkazovane();
         foreach ($odkazy as $cesta) {
-            $absolutniCesta = $this->existujiciSoubor($cesta);
+            $absolutniCesta = $this->soubory->getAbsolutniCesta($cesta);
             $this->assignObrazek($template, $cesta, $absolutniCesta);
             if ($absolutniCesta !== null) {
                 $template->assign('tlacitko', 'Nahradit');
@@ -139,8 +108,8 @@ final class ObrazkyObsahu
             $template->parse('obrazkyObsahu.odkazy');
         }
 
-        $vlastniObrazky = $this->vlastniObrazkyProVypis();
-        $absolutniCesty = array_map($this->existujiciSoubor(...), $vlastniObrazky);
+        $vlastniObrazky = $this->soubory->getVlastniProVypis();
+        $absolutniCesty = array_map($this->soubory->getAbsolutniCesta(...), $vlastniObrazky);
         $kdeJsouPouzity = $this->nahravani->kdeJsouPouzity(array_values(array_filter($absolutniCesty)));
         foreach ($vlastniObrazky as $index => $cesta) {
             $absolutniCesta = $absolutniCesty[$index];
@@ -191,7 +160,7 @@ final class ObrazkyObsahu
 
     private function nahrad(string $cesta): string
     {
-        if (!in_array($cesta, $this->odkazyNaSpravovaneObrazky(), true) && !in_array($cesta, $this->vlastniObrazky(), true)) {
+        if (!$this->soubory->jeNahraditelny($cesta)) {
             throw new NahravaniObrazkuException('Tenhle obrázek tu nahradit nejde, text na něj neodkazuje.');
         }
         $this->nahravani->nahrad(
@@ -204,64 +173,12 @@ final class ObrazkyObsahu
 
     private function smaz(string $cesta): string
     {
-        if (!in_array($cesta, $this->vlastniObrazky(), true)) {
+        if (!in_array($cesta, $this->soubory->getVlastni(), true)) {
             throw new NahravaniObrazkuException('Smazat tu jde jen obrázek nahraný ' . $this->kCemu . '.');
         }
         $this->nahravani->smaz($cesta);
 
         return 'Obrázek je smazaný.';
-    }
-
-    /**
-     * @return list<string>
-     */
-    private function odkazyNaSpravovaneObrazky(): array
-    {
-        return array_values(array_filter(
-            self::odkazyVTextu($this->text),
-            fn (string $cesta): bool => !ZpracovaneObrazky::jeAdresarJinehoModulu($cesta)
-                && in_array(NahravaniObrazku::mimePodlePripony($cesta), $this->nahravani->formaty(), true),
-        ));
-    }
-
-    /**
-     * @return list<string>
-     */
-    private function vlastniObrazky(): array
-    {
-        return array_map(
-            fn (string $soubor): string => $this->adresarProNove . '/' . $soubor,
-            $this->nahravani->obrazkyVAdresari($this->adresarProNove),
-        );
-    }
-
-    /**
-     * @return list<string>
-     */
-    private function vlastniObrazkyProVypis(): array
-    {
-        try {
-            return $this->vlastniObrazky();
-        } catch (NahravaniObrazkuException) {
-            // adresář, který symlinkem vede mimo kořen, jen nevypíšeme; smazání a nahrazení ať řeknou skutečnou chybu
-            return [];
-        }
-    }
-
-    /**
-     * @return string|null absolutní cesta, pokud obrázek existuje
-     */
-    private function existujiciSoubor(string $cesta): ?string
-    {
-        try {
-            $absolutniCesta = $this->nahravani->cestaKSouboru($cesta);
-        } catch (NahravaniObrazkuException) {
-            return null;
-        }
-
-        return is_file($absolutniCesta)
-            ? $absolutniCesta
-            : null;
     }
 
     private function assignObrazek(XTemplate $template, string $cesta, ?string $absolutniCesta): void

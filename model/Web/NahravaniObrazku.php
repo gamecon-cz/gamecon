@@ -261,6 +261,18 @@ final class NahravaniObrazku
     }
 
     /**
+     * @param list<string> $formaty MIME typy
+     * @return list<string> přípony, pod kterými tyto formáty leží (i `jpeg` vedle `jpg`)
+     */
+    public static function getPriponyFormatu(array $formaty): array
+    {
+        return array_keys(array_filter(
+            self::MIME_PODLE_PRIPONY,
+            static fn (string $mime): bool => in_array($mime, $formaty, true),
+        ));
+    }
+
+    /**
      * @return string|null například „PDF“, null pro neznámou příponu
      */
     public static function nazevFormatuPodlePripony(string $soubor): ?string
