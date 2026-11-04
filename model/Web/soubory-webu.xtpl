@@ -56,24 +56,26 @@
         <!-- end:misto -->
       </td>
       <td>
-        <!-- begin:nahradit -->
-        <form method="post" enctype="multipart/form-data">
-          <input type="hidden" name="{postAkce}" value="nahradit">
-          <input type="hidden" name="slozka" value="{slozka}">
-          <input type="hidden" name="cesta" value="{cesta}">
-          <input type="file" name="{postSoubor}" accept="{acceptSouboru}" required>
-          <button type="submit"><i class="fa fa-upload" aria-hidden="true"></i> Nahradit</button>
-        </form>
-        <!-- end:nahradit -->
-        <!-- begin:smazat -->
-        <form method="post" onsubmit="return confirm('Opravdu smazat tento soubor?')">
-          <input type="hidden" name="{postAkce}" value="smazat">
-          <input type="hidden" name="slozka" value="{slozka}">
-          <input type="hidden" name="cesta" value="{cesta}">
-          <button type="submit"><i class="fa fa-trash" aria-hidden="true"></i> Smazat</button>
-        </form>
-        <!-- end:smazat -->
-        <!-- begin:nespravovany --><span class="tip">Tenhle soubor se tu nespravuje, jen přes FTP.</span><!-- end:nespravovany -->
+        <div class="soubory-webu__akce">
+          <!-- begin:nahradit -->
+          <form method="post" enctype="multipart/form-data">
+            <input type="hidden" name="{postAkce}" value="nahradit">
+            <input type="hidden" name="slozka" value="{slozka}">
+            <input type="hidden" name="cesta" value="{cesta}">
+            <input type="file" name="{postSoubor}" accept="{acceptSouboru}" required>
+            <button type="submit"><i class="fa fa-upload" aria-hidden="true"></i> Nahradit</button>
+          </form>
+          <!-- end:nahradit -->
+          <!-- begin:smazat -->
+          <form method="post" onsubmit="return confirm('Opravdu smazat tento soubor?')">
+            <input type="hidden" name="{postAkce}" value="smazat">
+            <input type="hidden" name="slozka" value="{slozka}">
+            <input type="hidden" name="cesta" value="{cesta}">
+            <button type="submit"><i class="fa fa-trash" aria-hidden="true"></i> Smazat</button>
+          </form>
+          <!-- end:smazat -->
+          <!-- begin:nespravovany --><span class="tip">Tenhle soubor se tu nespravuje, jen přes FTP.</span><!-- end:nespravovany -->
+        </div>
       </td>
     </tr>
     <!-- end:soubor -->
@@ -130,6 +132,13 @@
 
     .soubory-webu__udaje {
         opacity: 0.7;
+    }
+
+    .soubory-webu__akce {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        gap: 0.6em 0.4em;
     }
 
     .soubory-webu__odkaz {
