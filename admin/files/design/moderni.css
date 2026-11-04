@@ -1522,6 +1522,16 @@ body.moderni-menu-otevrene .sloupL {
     border: 0;
     box-shadow: none;
   }
+
+  /* Posuvný blok by vytiskl jen viditelné sloupce, tabulka se tiskne celá jako v klasickém vzhledu. */
+  .moderni-posuvna-tabulka-posuvnik {
+    overflow: visible;
+  }
+
+  .moderni-posuvna-tabulka::before,
+  .moderni-posuvna-tabulka::after {
+    display: none;
+  }
 }
 
 @media (prefers-reduced-motion: reduce) {
