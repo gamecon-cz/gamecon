@@ -42,7 +42,7 @@
     <!-- begin:soubor -->
     <tr>
       <td>
-        <a href="{url}" target="_blank" rel="noopener">{cesta}</a> <span class="soubory-webu__udaje technicke">{typ}, {velikost}</span>
+        <a href="{url}" target="_blank" rel="noopener">{cesta}</a> <span class="soubory-webu__udaje technicke">({udaje})</span>
         <div class="zapisy-k-vlozeni">
           <label>Markdown: <input type="text" readonly value="{markdown}" onclick="this.select()" class="soubory-webu__odkaz"></label>
           <label>HTML: <input type="text" readonly value="{html}" onclick="this.select()" class="soubory-webu__odkaz"></label>
@@ -131,6 +131,7 @@
     }
 
     .soubory-webu__udaje {
+        font-size: 0.85em;
         opacity: 0.7;
     }
 
