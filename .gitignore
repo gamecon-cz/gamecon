@@ -1,5 +1,7 @@
 /_*
 
+__pycache__/
+
 /dumps/
 
 /.idea/
