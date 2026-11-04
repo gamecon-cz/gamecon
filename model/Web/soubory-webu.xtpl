@@ -17,7 +17,7 @@
     <input type="hidden" name="{postAkce}" value="nahrat">
     <input type="hidden" name="slozka" value="{slozka}">
     <label>Soubor <input type="file" name="{postSoubor}" accept="{accept}" required></label>
-    <label>Název <input type="text" name="nazev" maxlength="100" placeholder="když nevyplníš, podle souboru"></label>
+    <label class="soubory-webu__nazev">Název <input type="text" name="nazev" maxlength="100" placeholder="když nevyplníš, podle souboru"></label>
     <label>Podsložka
       <input type="text" name="podslozka" list="podslozky-{slozka}" maxlength="100" placeholder="nepovinná, třeba {rocnik}">
     </label>
@@ -97,8 +97,31 @@
     }
 
     .soubory-webu__nahrat {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        gap: 0.4em 1em;
         padding: 0.5em 1em;
         background-color: rgba(215, 246, 170, 0.47);
+    }
+
+    .soubory-webu__nahrat label {
+        display: flex;
+        align-items: center;
+        gap: 0.4em;
+    }
+
+    .soubory-webu__nazev {
+        flex: 1 1 16em;
+    }
+
+    .soubory-webu__nazev input {
+        flex: 1 1 auto;
+        min-width: 0;
+    }
+
+    .soubory-webu__nahrat .tip {
+        flex-basis: 100%;
     }
 
     .soubory-webu__odkaz {
