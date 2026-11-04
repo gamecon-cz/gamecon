@@ -424,7 +424,7 @@ SQL,
             // thin space
             : ' ';
 
-        return $this->stav() . $mezera . 'Kč';
+        return self::formatujCastku($this->stav()) . $mezera . 'Kč';
     }
 
     public function slevaZaAktivityVProcentech(): float
