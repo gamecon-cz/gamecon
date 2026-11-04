@@ -189,6 +189,7 @@ class VychoziZneniEmailuTest extends AbstractTestDb
     /**
      * Texts generated from the original code UpominaniDluzniku::dejEmailZpravu() before the switch to templates,
      * for each combination of reminder type and debtor participation, with symbols in place of variables.
+     * Only the unit after the amount differs: it is "Kč" instead of "korun", which does not fit an amount with haléře.
      *
      * @return array<string, array{string, string, string}>
      */

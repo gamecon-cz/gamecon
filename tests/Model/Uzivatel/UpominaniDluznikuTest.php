@@ -1336,6 +1336,26 @@ SQL,
     /**
      * @test
      */
+    public function vychoziTextUpominkyPsaniCastkuSHaleriSKc()
+    {
+        $zprava = $this->dejUpominaniDluzniku()->dejEmailZpravu(
+            TypUpominky::TYDEN,
+            250.6,
+            12345,
+            UcastNaGc::PRITOMEN,
+            ROCNIK,
+            'a',
+            'Tester',
+            ROCNIK,
+        );
+
+        self::assertStringContainsString('250,60 Kč', $zprava);
+        self::assertStringNotContainsString('korun', $zprava);
+    }
+
+    /**
+     * @test
+     */
     public function automatikaPorovnavaSPrahemPresnouCastkuZEmailu()
     {
         // Práh je 251 Kč, dluh 250,60 Kč je pod ním a v e-mailu by stálo přesně 250,60. Zůstatek
