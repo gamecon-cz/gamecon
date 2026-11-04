@@ -2,7 +2,8 @@
 <h2>Soubory ke stažení</h2>
 
 <p class="tip">
-  Tady se nahrávají PDF, zvuk, archivy a tabulky, na které odkazují texty webu a přihláška.
+  Tady se nahrávají PDF, zvuk, archivy, tabulky a obrázky ke stažení, na které odkazují texty webu a přihláška. Do
+  kterékoli složky jde nahrát kterýkoli z těchto typů.
   Odkaz do textu vložíš z tabulky Markdownem <code>[popis](soubory/obsah/…)</code>
   nebo v HTML jako <code>&lt;a href="soubory/obsah/…"&gt;popis&lt;/a&gt;</code>.
   Obrázky do textu stránky nebo novinky se nahrávají v jejich editoru, obrázky e-shopu ve Finance → Shop.

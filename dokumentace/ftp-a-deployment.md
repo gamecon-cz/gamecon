@@ -9,7 +9,7 @@ Obrázky a soubory ke stažení se nahrávají z administrace, FTP na ně není 
 - obrázky do textů stránek a novinek (`web/soubory/obsah`) v editaci stránky nebo novinky, část Obrázky,
 - obrázky galerie e-shopu v přihlášce (`web/soubory/obsah/materialy/<ročník>/eshop`) ve Finance → Shop,
 - loga sponzorů a partnerů ve Web → Loga, obrázky linií ve Web → Hlavičky linií,
-- soubory ke stažení ve složkách `download`, `materialy`, `celohra` a `drd` v `web/soubory/obsah` ve Web → Soubory: PDF všude, v `drd` i XLSX, MP3 a ZIP, v `materialy` a `drd` i obrázky.
+- soubory ke stažení ve složkách `download`, `materialy`, `celohra` a `drd` v `web/soubory/obsah` ve Web → Soubory: do každé složky PDF, XLSX, MP3, ZIP a obrázky.
 
 Přes FTP zůstávají soubory jiných typů (třeba fonty) a nahrávání do archivních ročníků, které mají vlastní nasazení.
 

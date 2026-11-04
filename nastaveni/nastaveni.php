@@ -115,7 +115,7 @@ if (!defined('OBRAZEK_LINIE_MAX_MB')) define('OBRAZEK_LINIE_MAX_MB', OBRAZEK_MAX
 if (!defined('OBRAZEK_MAX_ROZMER_PX')) define('OBRAZEK_MAX_ROZMER_PX', 1920);
 // kvalita ztrátového WebP, do kterého se převádí JPEG
 if (!defined('OBRAZEK_WEBP_KVALITA')) define('OBRAZEK_WEBP_KVALITA', 85);
-// PDF, zvuk a archivy ke stažení (Web → Soubory); víc než PHP přijme stejně nepůjde, viz upload_max_filesize a post_max_size
+// PDF, zvuk, archivy a tabulky ke stažení (Web → Soubory; obrázky tam mají limit OBRAZEK_MAX_MB); víc než PHP přijme stejně nepůjde, viz upload_max_filesize a post_max_size
 if (!defined('SOUBOR_MAX_MB')) define('SOUBOR_MAX_MB', 200);
 
 //////////////////////////////////////////////

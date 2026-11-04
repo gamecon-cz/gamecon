@@ -429,6 +429,22 @@ SQL,
     }
 
     /**
+     * Složku si organizátor vybírá podle toho, kam soubor patří, ne podle jeho typu.
+     *
+     * @test
+     */
+    public function kazdaVychoziSlozkaPrijimaVsechnyFormatyKterePrijimaStranka(): void
+    {
+        foreach (SouboryWebu::SLOZKY as $slozka => $nastaveni) {
+            self::assertSame(
+                [],
+                array_diff([...NahravaniObrazku::DOKUMENTY, ...NahravaniObrazku::RASTROVE_FORMATY], $nastaveni['formaty']),
+                "Složka {$slozka} nepřijímá všechny formáty, které stránka přijímá",
+            );
+        }
+    }
+
+    /**
      * @param list<string> $formaty
      *
      * @return array{nazev: string, popis: string, formaty: list<string>, historie: bool}

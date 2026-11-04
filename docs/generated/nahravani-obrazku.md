@@ -24,7 +24,7 @@ Nahrávání obrázků a souborů ke stažení z administrace místo FTP: kde kt
 | galerie e-shopu v přihlášce | `obsah/materialy/<ROCNIK>/eshop/*` | `web/moduly/prihlaska/prihlaska.php` | Finance → Shop (108), `ObrazkyEshopu` |
 | obrázky v textech | `obsah/**` (volná struktura z doby FTP), nové do `obsah/stranky/<url>/`, `obsah/blog/<url>/`, `obsah/novinky/<url>/` | Apache přímo podle odkazu v textu | widget pod editorem stránky/novinky (105) |
 | loga | `obsah/{sponzori,partneri}/` a `…/titulka/` | `ZpracovaneObrazky` | Web → Loga (112, ale otevře ho i 105) |
-| PDF, MP3, ZIP, XLSX ke stažení | `obsah/drd/` (vše včetně obrázků), `obsah/download/` (PDF), `obsah/materialy/<ročník>/` (PDF a obrázky), `obsah/celohra/` (PDF), podsložky do dvou pater | odkazy v textech stránek (`drd`, přihláška), `web/moduly/qrka.php` a `prihlaska.xtpl` v kódu | Web → Soubory (105), `SouboryWebu` |
+| PDF, MP3, ZIP, XLSX a obrázky ke stažení | `obsah/drd/`, `obsah/download/`, `obsah/materialy/<ročník>/`, `obsah/celohra/` (každá složka přijímá všechny tyto typy, `SouboryWebu::FORMATY`), podsložky do dvou pater | odkazy v textech stránek (`drd`, přihláška), `web/moduly/qrka.php` a `prihlaska.xtpl` v kódu | Web → Soubory (105), `SouboryWebu` |
 
 ## Pravidla
 
