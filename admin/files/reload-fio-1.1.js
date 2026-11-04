@@ -16,8 +16,9 @@
             button.disabled = true
           }, 1) // malý trik aby zablokování tlačítka proběhlo až v dalším "tiku" a tím se nezablokoval samotný submit
 
-          const puvodniStav = element.querySelector('.stav-uctu-castka').textContent;
-          const query = new URLSearchParams({puvodniStav: puvodniStav.trim()})
+          // Přesná hodnota je v data-stav, zobrazený text je zaokrouhlený a s čárkou.
+          const stavElement = element.querySelector('.stav-uctu-castka')
+          const query = new URLSearchParams({puvodniStav: stavElement.dataset.stav})
           const baseUrl = document.baseURI;
           fetch(
             `${baseUrl}/api/reload-fio?` + query.toString(),
@@ -35,7 +36,8 @@
             return response.json();
           }).then(function (data) {
             if (data.zmenilSeZustatek) {
-              element.querySelector('.stav-uctu-castka').textContent = data.novyStav
+              stavElement.dataset.stav = data.novyStav
+              stavElement.textContent = formatujCastku(data.novyStav)
               zablikej(element)
             } else {
               blikni(element, '#595959')

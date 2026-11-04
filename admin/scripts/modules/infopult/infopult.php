@@ -19,6 +19,7 @@ use Gamecon\Shop\Shop;
 use Gamecon\XTemplate\XTemplate;
 use Gamecon\Shop\TypPredmetu;
 use Gamecon\Role\Role;
+use Gamecon\Uzivatel\Finance;
 use Gamecon\Web\Info;
 use Gamecon\SystemoveNastaveni\SystemoveNastaveniKlice;
 
@@ -103,15 +104,17 @@ if ($uPracovni) {
     if ($u->maPravo(Pravo::MUZE_RUSIT_NAKUPY)) {
         $typyProPrehled[] = TypPredmetu::VSTUPNE;
     }
+    $stavUctuPracovnihoUzivatele = $uPracovni->finance()->stav();
     $x->assign([
         'stavUctu' => sprintf(
-            '%s <span class="stav-uctu-castka">%d</span> Kč',
-            $uPracovni->finance()->stav() < 0
+            '%s <span class="stav-uctu-castka" data-stav="%s">%s</span> Kč',
+            $stavUctuPracovnihoUzivatele < 0
                 ? $err
                 : $ok,
-            $uPracovni->finance()->stav(),
+            number_format($stavUctuPracovnihoUzivatele, 2, '.', ''),
+            Finance::formatujCastku($stavUctuPracovnihoUzivatele),
         ),
-        'stavStyle' => ($uPracovni->finance()->stav() < 0 ? 'color: #f22; font-weight: bolder;' : ''),
+        'stavStyle' => ($stavUctuPracovnihoUzivatele < 0 ? 'color: #f22; font-weight: bolder;' : ''),
         'pokoj' => $pokoj ? $pokoj->cislo() : '(nepřidělen)',
         'spolubydlici' => array_uprint($spolubydlici, static function (Uzivatel $spolubydla) {
             return "<li> {$spolubydla->jmenoNick()} ({$spolubydla->id()}) {$spolubydla->telefon()} </li>";

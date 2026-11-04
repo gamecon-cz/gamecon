@@ -166,6 +166,8 @@ SQL,
     /**
      * Celé koruny bez desetin, jinak se dvěma desetinnými místy (250 nebo 250,60). Čárku a pevnou mezeru mezi
      * tisíci dodá ICU podle cs_CZ.
+     *
+     * @see admin/files/formatuj-castku-1.0.js
      */
     public static function formatujCastku(float $castka): string
     {
