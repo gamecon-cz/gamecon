@@ -1133,6 +1133,13 @@ button .ajax-loader {
   font-style: italic;
 }
 
+.zapisy-k-vlozeni label {
+  display: grid;
+  grid-template-columns: 6em auto;
+  align-items: center;
+  margin: 0.2em 0;
+}
+
 .technicke {
   font-family: "Droid Sans Mono", monospace;
 }

@@ -229,7 +229,10 @@ final class SouboryWebu
             'zmeneno'       => date('j. n. Y', (int) @filemtime($absolutniCesta)),
             'markdown'      => $cestaVuciWebu === null
                 ? ''
-                : htmlspecialchars(self::markdownOdkaz($cestaVuciWebu)),
+                : htmlspecialchars(ZapisSouboruVTextu::markdown($cestaVuciWebu)),
+            'html'          => $cestaVuciWebu === null
+                ? ''
+                : htmlspecialchars(ZapisSouboruVTextu::html($cestaVuciWebu)),
             'acceptSouboru' => $nahravani->acceptProNahrazeni((string) $mime),
         ]);
 
@@ -273,7 +276,7 @@ final class SouboryWebu
             htmlspecialchars(basename($ulozeno)),
             $cestaVuciWebu === null
                 ? '…'
-                : htmlspecialchars(self::markdownOdkaz($cestaVuciWebu)),
+                : htmlspecialchars(ZapisSouboruVTextu::markdown($cestaVuciWebu)),
         );
     }
 
@@ -390,14 +393,5 @@ final class SouboryWebu
         return $this->korenObsahu === null
             ? $this->cestaVuciWebu($slozka) . '/' . $soubor
             : null;
-    }
-
-    private static function markdownOdkaz(string $cestaVuciWebu): string
-    {
-        return sprintf(
-            '[%s](%s)',
-            pathinfo($cestaVuciWebu, PATHINFO_FILENAME),
-            ZpracovaneObrazky::zakodujCestu($cestaVuciWebu),
-        );
     }
 }
