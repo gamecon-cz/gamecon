@@ -186,7 +186,7 @@ final class ObrazkyObsahu
             NahravaniObrazku::bezpecnyNazev($nazev),
         );
 
-        return 'Obrázek je nahraný.';
+        return 'Obrázek nahrán.';
     }
 
     private function nahrad(string $cesta): string
@@ -199,7 +199,7 @@ final class ObrazkyObsahu
             $cesta,
         );
 
-        return sprintf('Obrázek %s je nahraný.', htmlspecialchars(basename($cesta)));
+        return sprintf('Obrázek %s nahrán.', htmlspecialchars(basename($cesta)));
     }
 
     private function smaz(string $cesta): string

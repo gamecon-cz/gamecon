@@ -138,7 +138,7 @@ SQL,
         self::assertFileEquals($pdf, $ulozeno);
         $stranka = $this->stahni($session, 'web/soubory');
         // zápis do textu je u souboru v tabulce, hláška po nahrání je jen potvrzení
-        self::assertStringContainsString('Soubor je nahraný.', $stranka);
+        self::assertStringContainsString('Soubor nahrán.', $stranka);
         self::assertStringNotContainsString('do textu ho vložíš', $stranka);
         self::assertStringContainsString('rocnik_2099/souhlas_rodicu_' . self::znacka() . '.pdf', $stranka);
 
@@ -150,6 +150,10 @@ SQL,
             'souborWebu'      => new \CURLFile($novy, 'application/pdf', 'novy.pdf'),
         ]));
         self::assertFileEquals($novy, $ulozeno);
+        self::assertStringContainsString(
+            'souhlas_rodicu_' . self::znacka() . '.pdf nahrán. Kdo ho už viděl',
+            $this->stahni($session, 'web/soubory'),
+        );
 
         self::assertSame(303, $this->odesli($session, 'web/soubory', [
             'souboryWebuAkce' => 'smazat',
@@ -183,7 +187,7 @@ SQL,
         $info = getimagesize($ulozeno);
         self::assertSame([1920, 1280, 'image/webp'], [$info[0], $info[1], $info['mime']]);
         $stranka = $this->stahni($session, 'web/soubory');
-        self::assertStringContainsString('Soubor je nahraný.', $stranka);
+        self::assertStringContainsString('Soubor nahrán.', $stranka);
         self::assertStringContainsString('plakat_' . self::znacka() . '.webp', $stranka, 'Výsledný název je v tabulce souborů');
         // soubor, který vznikl převodem, jde nahradit i JPEG a PNG, prohlížeč je v oknu pro výběr nezakáže
         self::assertStringContainsString('accept="image/webp,image/jpeg,image/png"', $stranka);
@@ -304,7 +308,7 @@ SQL,
 
         self::assertFileExists($ulozeno);
         $stranka = $this->stahni($session, 'web/soubory');
-        self::assertStringContainsString('Soubor je nahraný.', $stranka);
+        self::assertStringContainsString('Soubor nahrán.', $stranka);
         self::assertStringContainsString('>' . basename($ulozeno) . '</a>', $stranka, 'Výsledný název je v tabulce souborů');
     }
 

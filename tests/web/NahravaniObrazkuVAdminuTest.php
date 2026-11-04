@@ -348,7 +348,7 @@ SQL,
         $stranka = $this->stahni($session, $url);
         self::assertStringContainsString('![](soubory/obsah/stranky/' . self::URL_STRANKY . '/nova-clenka-rady.webp)', $stranka);
         // zápis do textu je v seznamu obrázků, hláška po nahrání je jen potvrzení
-        self::assertStringContainsString('Obrázek je nahraný.', $stranka);
+        self::assertStringContainsString('Obrázek nahrán.', $stranka);
         self::assertStringNotContainsString('do textu ho vložíš', $stranka);
         self::assertStringContainsString('<i class="fa fa-upload" aria-hidden="true"></i> Nahrát</button>', $stranka);
         self::assertStringContainsString('<i class="fa fa-upload" aria-hidden="true"></i> Nahradit</button>', $stranka);
