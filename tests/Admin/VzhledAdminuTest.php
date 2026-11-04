@@ -93,7 +93,36 @@ SQL,
             (new VzhledAdminu($novaRelace))->isNabidnoutVyber($idUzivatele),
             'Po dalším přihlášení se výběr nabídne znovu',
         );
-        self::assertNotSame([], $session, 'Odložení se musí propsat do předané session');
+        self::assertFalse(
+            (new VzhledAdminu($session))->isNabidnoutVyber($idUzivatele),
+            'Odložení se musí propsat do předané session, platí i pro další požadavky',
+        );
+    }
+
+    public function testOdlozeniPlatiProCelouRelaci(): void
+    {
+        $idAdmina = $this->vytvorUzivatele('odlozeni_admin');
+        $idVypravece = $this->vytvorUzivatele('odlozeni_vypravec');
+        $session = [];
+
+        (new VzhledAdminu($session))->zpracujVolbu($idAdmina, VzhledAdminu::VOLBA_POZDEJI);
+
+        self::assertFalse(
+            (new VzhledAdminu($session))->isNabidnoutVyber($idVypravece),
+            'Po „Přihlásit se jako“ u zařízení sedí pořád ten, kdo odložil, dialog ho nesmí nutit volit za vypravěče',
+        );
+    }
+
+    public function testVolbaZJinehoZarizeniPlatiOdDalsihoPozadavku(): void
+    {
+        $idUzivatele = $this->vytvorUzivatele('jine_zarizeni');
+        $session = [];
+        (new VzhledAdminu($session))->setVzhled($idUzivatele, VzhledAdminuEnum::KLASICKY);
+
+        $jinaRelace = [];
+        (new VzhledAdminu($jinaRelace))->setVzhled($idUzivatele, VzhledAdminuEnum::MODERNI);
+
+        self::assertSame(VzhledAdminuEnum::MODERNI, (new VzhledAdminu($session))->getVzhled($idUzivatele));
     }
 
     public function testNeznamaVolbaNicNezmeni(): void

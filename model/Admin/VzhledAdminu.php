@@ -17,9 +17,15 @@ class VzhledAdminu
     public const string VOLBA_POZDEJI = 'pozdeji';
     public const VzhledAdminuEnum VYCHOZI = VzhledAdminuEnum::KLASICKY;
 
+    /**
+     * One flag for the whole session, not per user: postponing is the wish of whoever sits at the device. After
+     * "Přihlásit se jako" it is still them, and the dialog must not push them to choose for the other user.
+     */
     private const string SESSION_KLIC_VYBER_ODLOZEN = 'vzhled_adminu_vyber_odlozen';
 
     /**
+     * Within one request only, a look chosen on another device shows on the next request.
+     *
      * @var array<int, ?VzhledAdminuEnum> by user id
      */
     private array $zvolenyPodleUzivatele = [];
