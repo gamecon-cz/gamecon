@@ -43,7 +43,13 @@
   }
 
   prebarvi()
-  tmaveZarizeni.addEventListener('change', prebarvi)
+  // Safari do verze 13 nezná addEventListener na MediaQueryList, jen starší addListener; výjimka by tu shodila
+  // i přepínač barev níže.
+  if (typeof tmaveZarizeni.addEventListener === 'function') {
+    tmaveZarizeni.addEventListener('change', prebarvi)
+  } else {
+    tmaveZarizeni.addListener(prebarvi)
+  }
   // volba z jiné záložky
   window.addEventListener('storage', function (event) {
     if (event.key === klicVolby || event.key === null) {

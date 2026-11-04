@@ -114,6 +114,12 @@
   overflow: auto;
 }
 
+/* Prohlížeč bez <dialog> (Safari před 15.4) nezná ani jeho výchozí skrytí, celý výběr by visel ve stránce.
+   Skript ho pak neotevře a zbude jen přepínač v patičce. */
+.vyber-vzhledu:not([open]) {
+  display: none;
+}
+
 @supports (height: 100dvh) {
   .vyber-vzhledu {
     max-height: calc(100dvh - 32px);
