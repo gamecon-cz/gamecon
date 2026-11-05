@@ -19,6 +19,7 @@ import stat
 import subprocess
 import sys
 import tempfile
+import urllib.parse
 import urllib.request
 from dataclasses import dataclass, field
 
@@ -47,6 +48,10 @@ VENDORED_DIRECTORIES = ('vendor', 'node_modules')
 SKIPPED_DIRECTORIES = {'node_modules', 'vendor', 'var', '.svelte-kit', '.yarn', 'build', '.git'}
 MAX_SCANNED_FILE = 1000000
 SAFE_URL = re.compile(r'https://[A-Za-z0-9._~:/?#@!$&*+,;=%-]+')
+MAX_LINK_LENGTH = 300  # a link address is repeated in every row of a table that the size budget never shrinks
+TRUSTED_REPOSITORY_HOSTS = ('github.com', 'gitlab.com', 'bitbucket.org')  # a package name looks like a trusted reference, so its link may not lead anywhere else
+GITHUB_ADVISORY = re.compile(r'GHSA(-[a-z0-9]{4}){3}')
+NPM_NAME = re.compile(r'(@[a-z0-9~-][a-z0-9._~-]*/)?[a-z0-9~-][a-z0-9._~-]*')  # no `.` or `..` segment that could climb out of /package/
 
 REVIEW_INSTRUCTIONS = """\
 <details>
@@ -565,22 +570,45 @@ def package_entry(line, level, known_advisories):
     return entry
 
 
+def host_of(url):
+    try:
+        return urllib.parse.urlsplit(url).hostname
+    except ValueError:
+        return None
+
+
 def link(text, url):
-    return '[%s](%s)' % (text, url) if url and SAFE_URL.fullmatch(url) else ''
+    """`https://github.com@evil.example/` shows a trusted name in front of user info, so an address with user info is no link."""
+    safe = url and len(url) <= MAX_LINK_LENGTH and SAFE_URL.fullmatch(url) and '@' not in urllib.parse.urlsplit(url).netloc
+    return '[%s](%s)' % (text, url) if safe else ''
 
 
-def table_row(line, ecosystem, known_advisories):
+def linked(text, url):
+    """The text as a link when the address is safe, else the text alone."""
+    return link(text, url) or text
+
+
+def package_url(line, ecosystem):
     if ecosystem == 'php':
-        source = ' · '.join(part for part in (link('repo', line.get('repository')), link('diff', line.get('compare'))) if part)
-    else:
-        source = link('npm', 'https://www.npmjs.com/package/%s' % line['package']) if re.fullmatch(r'[a-z0-9@._/-]+', line['package']) else ''
+        return line.get('repository') if host_of(line.get('repository') or '') in TRUSTED_REPOSITORY_HOSTS else None
+    return 'https://www.npmjs.com/package/%s' % line['package'] if NPM_NAME.fullmatch(line['package']) else None
+
+
+def advisory_url(advisory_id, url):
+    """A GitHub advisory has one page in the GitHub Advisory Database; any other id goes to the address the audit gave."""
+    return 'https://github.com/advisories/%s' % advisory_id if GITHUB_ADVISORY.fullmatch(advisory_id) else url
+
+
+def table_row(line, ecosystem, known_advisories, advisory_urls):
     fixes = line['fixes'] if known_advisories else []
-    shown = ', '.join(table_code(advisory_id, 40) for advisory_id in fixes[:3]) + (' +%d' % (len(fixes) - 3) if len(fixes) > 3 else '')
+    shown = ', '.join(linked(table_code(advisory_id, 40), advisory_url(advisory_id, advisory_urls.get(advisory_id))) for advisory_id in fixes[:3])
+    shown += ' +%d' % (len(fixes) - 3) if len(fixes) > 3 else ''
     notes = [note for note, present in (('direct', line['direct']), ('patched', line.get('patches')),
                                         ('constraint changed', line.get('constraint_was'))) if present]
     return '| %s | %s | %s | %s | %s | %s |' % (
-        table_code(line['package'], 100), table_code('%s → %s' % (version_text(line['from']), version_text(line['to'])), 60),
-        line['jump'], source or '—', shown or '—', ', '.join(notes) or '—')
+        linked(table_code(line['package'], 100), package_url(line, ecosystem)),
+        table_code('%s → %s' % (version_text(line['from']), version_text(line['to'])), 60),
+        line['jump'], link('diff', line.get('compare')) or '—', shown or '—', ', '.join(notes) or '—')
 
 
 def table_code(text, limit):
@@ -592,8 +620,9 @@ def changes_table(report, known_advisories):
     rows = [line for line in report['packages'] if needs_attention(line) or line['jump'] in ('major', 'downgrade')]
     if not rows:
         return []
-    lines = ['', '| Package | From → To | Jump | Source | Fixes | Notes |', '|---|---|---|---|---|---|']
-    lines += [table_row(line, report['ecosystem'], known_advisories) for line in rows[:MAX_TABLE_ROWS]]
+    advisory_urls = {advisory['advisory']: advisory.get('url') for advisory in report['advisories']}
+    lines = ['', '| Package | From → To | Jump | Diff | Fixes | Notes |', '|---|---|---|---|---|---|']
+    lines += [table_row(line, report['ecosystem'], known_advisories, advisory_urls) for line in rows[:MAX_TABLE_ROWS]]
     if len(rows) > MAX_TABLE_ROWS:
         lines += ['', '_%d more packages are in the lines below._' % (len(rows) - MAX_TABLE_ROWS)]
     return lines
