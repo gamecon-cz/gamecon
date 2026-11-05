@@ -15,7 +15,10 @@
   $text.keyup(function(){
     var md = new Showdown.converter();
     var html = md.makeHtml($(this).val());
-    //html = html.replace(/src=\"\/files/g,'src="http://gamecon.dev/files');
+    // stejná úprava jako NahledMarkdownu::obrazkyNaWebu()
+    html = html.replace(/(<img\b[^>]*\ssrc=["']?)soubory\//gi, function (shoda, zacatek) {
+      return zacatek + {urlWebu} + '/soubory/';
+    });
     $(this).closest('table').find('.dbffMdtext').html(html);
   });
   $('table').last().parent().css('padding', 0);
@@ -23,6 +26,8 @@
 <style>
 .dbffMdtext p { margin: 1.35em 0; }
 .dbffMdtext > :first-child { margin-top: 0; }
+/* náhled má na výšku jen pár řádků, velký obrázek se v něm ukáže zmenšený */
+.dbffMdtext img { max-width: 100%; max-height: 6em; }
 </style>
 
 <!-- end:md -->
