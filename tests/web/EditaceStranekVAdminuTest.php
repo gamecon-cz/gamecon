@@ -38,7 +38,22 @@ SQL,
 
         self::assertStringContainsString('value="' . self::URL_STRANKY . '"', $telo);
         self::assertStringContainsString('QR kód s odkazem', $telo);
+        // v novém okně, ať se neztratí rozepsaný text
+        self::assertMatchesRegularExpression(
+            '~<a href="[^"]*/' . self::URL_STRANKY . '" target="_blank" rel="noopener"><i class="fa fa-external-link" aria-hidden="true"></i> Stránka na webu</a>~',
+            $telo,
+        );
         $this->assertPodmenuVedeNaStrankyWebu($telo);
+    }
+
+    /**
+     * @test
+     */
+    public function novaStrankaJesteNemaNaCoOdkazovat()
+    {
+        $telo = $this->fetchAdminPage('admin/' . self::STRANKA_ADMINU . '/editace-stranek?akce=nova');
+
+        self::assertStringNotContainsString('odkaz-na-web', $telo);
     }
 
     /**
