@@ -4,7 +4,9 @@
 <p>
   Galerie pod e-shopem v přihlášce ukazuje všechny obrázky z tohoto seznamu, seřazené podle názvu souboru.
   Číslo na začátku názvu určuje pořadí a do popisku se nepíše (<code>08_Účastnické triko</code> → „Účastnické triko“).
-  Nahrání obrázku se stejným názvem původní obrázek nahradí.
+  Obrázek nahradíš tlačítkem Nahradit u jeho řádku: zůstane mu název, tedy pořadí i popisek. JPG a PNG nahradí
+  jakýkoli neanimovaný JPG, PNG nebo GIF, převede se do formátu původního obrázku, GIF nahradí jen GIF.
+  Nahrání obrázku se stejným názvem původní obrázek nahradí také.
 </p>
 
 <table class="zvyraznovana obrazky-eshopu">
@@ -25,11 +27,21 @@
     </td>
     <td>{popisek}</td>
     <td>
-      <form method="post" onsubmit="return confirm('Opravdu smazat tento obrázek?')">
-        <input type="hidden" name="obrazkyEshopuAkce" value="smazat">
-        <input type="hidden" name="soubor" value="{soubor}">
-        <button type="submit">Smazat</button>
-      </form>
+      <div class="akce-souboru">
+        <!-- begin:nahradit -->
+        <form method="post" enctype="multipart/form-data">
+          <input type="hidden" name="obrazkyEshopuAkce" value="nahradit">
+          <input type="hidden" name="soubor" value="{soubor}">
+          <input type="file" name="obrazekEshopu" accept="{acceptObrazku}" required>
+          <button type="submit"><i class="fa fa-upload" aria-hidden="true"></i> Nahradit</button>
+        </form>
+        <!-- end:nahradit -->
+        <form method="post" onsubmit="return confirm('Opravdu smazat tento obrázek?')">
+          <input type="hidden" name="obrazkyEshopuAkce" value="smazat">
+          <input type="hidden" name="soubor" value="{soubor}">
+          <button type="submit"><i class="fa fa-trash" aria-hidden="true"></i> Smazat</button>
+        </form>
+      </div>
     </td>
   </tr>
   <!-- end:obrazek -->
@@ -44,7 +56,7 @@
   <input type="hidden" name="obrazkyEshopuAkce" value="nahrat">
   <label>Obrázek <input type="file" name="obrazekEshopu" accept="{accept}" required></label>
   <label class="nahrani-souboru__nazev">Název <input type="text" name="nazev" placeholder="např. 08_Účastnické triko" maxlength="100"></label>
-  <button type="submit">Nahrát</button>
+  <button type="submit"><i class="fa fa-upload" aria-hidden="true"></i> Nahrát</button>
   <div class="tip">{limit}. Bez vyplněného názvu se použije název nahrávaného souboru.</div>
 </form>
 

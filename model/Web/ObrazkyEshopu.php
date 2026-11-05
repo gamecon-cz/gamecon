@@ -29,12 +29,13 @@ final class ObrazkyEshopu
     {
         NahravaniObrazku::hlidejPrilisVelkyPozadavek();
         $akce = post(self::POST_AKCE);
-        if (!in_array($akce, ['nahrat', 'smazat'], true)) {
+        if (!in_array($akce, ['nahrat', 'nahradit', 'smazat'], true)) {
             return;
         }
         oznameni(NahravaniObrazku::sOhlasenimChyby(fn (): string => match ($akce) {
-            'nahrat' => $this->nahraj(),
-            'smazat' => $this->smaz(),
+            'nahrat'   => $this->nahraj(),
+            'nahradit' => $this->nahrad(),
+            'smazat'   => $this->smaz(),
         }));
     }
 
@@ -57,6 +58,11 @@ final class ObrazkyEshopu
             ]);
             if (!\Obrazek::jeToPodporovanyObrazek($absolutniCesta)) {
                 $template->parse('obrazkyEshopu.obrazek.nezobrazi');
+            }
+            $mime = NahravaniObrazku::mimePodlePripony($soubor);
+            if ($mime !== null && in_array($mime, $this->nahravani->formaty(), true) && FormularNahraniSouboru::nazevPrezijeFormular($soubor)) {
+                $template->assign('acceptObrazku', $this->nahravani->acceptProNahrazeni($mime));
+                $template->parse('obrazkyEshopu.obrazek.nahradit');
             }
             $template->parse('obrazkyEshopu.obrazek');
         }
@@ -85,6 +91,18 @@ final class ObrazkyEshopu
             htmlspecialchars(basename($ulozeno)),
             htmlspecialchars(ZpracovaneObrazky::popisekObrazkuEshopu($ulozeno)),
         );
+    }
+
+    private function nahrad(): string
+    {
+        $soubor = basename((string)post('soubor'));
+        if (!in_array($soubor, $this->nahravani->obrazkyVAdresari(), true)) {
+            throw new NahravaniObrazkuException(sprintf('Obrázek %s v galerii není, nahraj ho prosím jako nový.', $soubor));
+        }
+        $obrazek = $this->nahravani->overNahranySoubor($_FILES[self::POST_SOUBOR] ?? null);
+        $ulozeno = $this->nahravani->nahrad($obrazek, $soubor);
+
+        return sprintf('Obrázek %s je nahrazený.', htmlspecialchars(basename($ulozeno)));
     }
 
     private function smaz(): string

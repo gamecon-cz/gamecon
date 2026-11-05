@@ -6,6 +6,7 @@ namespace Gamecon\Tests\Model\Web;
 
 use Gamecon\Web\NahravaniObrazku;
 use Gamecon\Web\ObrazkyEshopu;
+use Gamecon\Web\OptimalizaceObrazku;
 use PHPUnit\Framework\TestCase;
 use Symfony\Component\Filesystem\Filesystem;
 
@@ -113,6 +114,87 @@ class ObrazkyEshopuTest extends TestCase
 
         self::assertStringContainsString('class="nahrani-souboru obrazky-eshopu__nahrat"', $html);
         self::assertStringContainsString('<label class="nahrani-souboru__nazev">Název <input type="text" name="nazev"', $html);
+        self::assertStringContainsString('<i class="fa fa-upload" aria-hidden="true"></i> Nahrát</button>', $html, 'Tlačítko má ikonu jako ve stránce Soubory');
+    }
+
+    /**
+     * Každý obrázek jde nahradit tlačítkem v jeho řádku, pod stejným názvem; okno pro výběr souboru nabídne formáty, které se přijmou.
+     *
+     * @test
+     */
+    public function kazdyObrazekMaTlacitkoNahraditSPrijimanymiFormaty(): void
+    {
+        imagepng(imagecreatetruecolor(60, 30), $this->koren . '/01_Mapa.png');
+        file_put_contents($this->koren . '/02_Foto.jpg', self::jpgSOrientaci(1, 60, 30));
+        imagegif(imagecreatetruecolor(20, 10), $this->koren . '/03_Animace.gif');
+
+        $html = $this->galerieSPrevodem()->html();
+
+        $ocekavane = [
+            '01_Mapa.png'    => 'image/png,image/jpeg,image/gif',
+            '02_Foto.jpg'    => 'image/jpeg,image/png,image/gif',
+            '03_Animace.gif' => 'image/gif',
+        ];
+        foreach ($ocekavane as $soubor => $accept) {
+            $radek = $this->radekSouboru($html, $soubor);
+            self::assertMatchesRegularExpression(
+                '~<div class="akce-souboru">\s*<form.*?<i class="fa fa-upload" aria-hidden="true"></i> Nahradit</button>.*?<form.*?<i class="fa fa-trash" aria-hidden="true"></i> Smazat</button>\s*</form>\s*</div>~s',
+                $radek,
+                $soubor,
+            );
+            self::assertStringContainsString('accept="' . $accept . '"', $radek, $soubor);
+            self::assertSame(2, substr_count($radek, 'name="soubor" value="' . $soubor . '"'), 'Nahradit i Smazat nesou název z řádku ' . $soubor);
+            self::assertSame(1, substr_count($radek, 'value="nahradit"'), $soubor);
+        }
+    }
+
+    /**
+     * Název, který formulář nepřenese (kódování z FTP, které není UTF-8), by se po odeslání nenašel, takže tlačítko Nahradit nedostane.
+     *
+     * @test
+     */
+    public function obrazekSNazvemKterySeNeprenesePostemNemaTlacitkoNahradit(): void
+    {
+        file_put_contents($this->koren . '/01_Caf' . "\xE9" . '.jpg', self::jpgSOrientaci(1, 60, 30));
+        file_put_contents($this->koren . '/02_Foto.jpg', self::jpgSOrientaci(1, 60, 30));
+
+        $html = $this->galerieSPrevodem()->html();
+
+        self::assertSame(1, substr_count($html, 'value="nahradit"'));
+        self::assertStringContainsString('name="soubor" value="02_Foto.jpg"', $html);
+    }
+
+    private function radekSouboru(string $html, string $soubor): string
+    {
+        self::assertSame(1, preg_match('~<tr>(?:(?!</tr>).)*' . preg_quote(htmlspecialchars($soubor), '~') . '(?:(?!</tr>).)*</tr>~s', $html, $radek), 'Řádek ' . $soubor);
+
+        return $radek[0];
+    }
+
+    /**
+     * Rozbitý JPG jde nahradit, aby se dal opravit; WebP, který galerie nepřijímá, jen smazat.
+     *
+     * @test
+     */
+    public function obrazekVeFormatuKterySeNepodporujeJdeJenSmazat(): void
+    {
+        file_put_contents($this->koren . '/01_Blok.webp', base64_decode('UklGRhoAAABXRUJQVlA4TA0AAAAvAAAAEAcQERGIiP4HAA==', true));
+        file_put_contents($this->koren . '/02_Falešný.jpg', 'to není obrázek');
+
+        $html = $this->galerieSPrevodem()->html();
+
+        self::assertSame(1, substr_count($html, 'value="nahradit"'));
+        self::assertStringContainsString('name="soubor" value="02_Falešný.jpg"', $html);
+        self::assertSame(2, substr_count($html, 'value="smazat"'));
+    }
+
+    private function galerieSPrevodem(): ObrazkyEshopu
+    {
+        return new ObrazkyEshopu(new NahravaniObrazku(
+            $this->koren,
+            formaty: [NahravaniObrazku::JPG, NahravaniObrazku::PNG, NahravaniObrazku::GIF],
+            optimalizace: new OptimalizaceObrazku(),
+        ));
     }
 
     private function galerie(): ObrazkyEshopu
