@@ -457,7 +457,14 @@ SQL);
         // výchozí avatar není obrázek té linie, zápis do textu k němu nenabízíme
         $strankaPredNahranim = $this->stahni($session, 'web/hlavicky-linii');
         self::assertStringNotContainsString($cestaVTextu, $strankaPredNahranim);
-        self::assertStringContainsString('Vlastní obrázek chybí, používá se fallback.', $strankaPredNahranim);
+        self::assertMatchesRegularExpression('~Vlastní obrázek chybí\s*</div>~', $strankaPredNahranim, 'Stav je jen „Vlastní obrázek chybí“');
+        self::assertStringNotContainsString('používá se fallback', $strankaPredNahranim);
+        // úvodní odstavec s názvem souboru a formáty stránka nemá, je v dokumentaci
+        self::assertStringNotContainsString('Tady se upravuje text a obrázek', $strankaPredNahranim);
+        // tlačítka se jmenují a vypadají jako u ostatních obrázků a souborů: Nahrát a Smazat s ikonou
+        self::assertStringContainsString('<div class="akce-souboru">', $strankaPredNahranim);
+        self::assertStringContainsString('<i class="fa fa-upload" aria-hidden="true"></i> Nahrát</button>', $strankaPredNahranim);
+        self::assertStringNotContainsString('Nahrát obrázek', $strankaPredNahranim);
 
         self::assertSame(303, $this->odesli($session, 'web/hlavicky-linii', [
             'action'  => 'upload-line-header-image',
@@ -472,6 +479,12 @@ SQL);
             'value="&lt;img src=&quot;' . $cestaVTextu . '&quot; alt=&quot;&quot;&gt;"',
             $stranka,
         );
+        // linie s vlastním obrázkem má za Nahrát formulář Smazat, který patří na vlastní řádek
+        self::assertMatchesRegularExpression(
+            '~<div class="akce-souboru">(?:(?!</div>).)*?<i class="fa fa-upload" aria-hidden="true"></i> Nahrát</button>\s*</form>\s*<form(?:(?!</div>).)*?<i class="fa fa-trash" aria-hidden="true"></i> Smazat</button>~s',
+            $stranka,
+        );
+        self::assertStringNotContainsString('Smazat vlastní obrázek', $stranka);
         // cesta je v hotových zápisech, vlastní obrázek nepotřebuje ani stav, ani samostatný řádek s cestou
         self::assertStringNotContainsString('Používá se vlastní obrázek', $stranka);
         self::assertStringNotContainsString('Cesta: <code>' . $cestaVTextu, $stranka);

@@ -25,7 +25,7 @@ $informaceOObrazkuLinie = static function (int $idTypu): array {
     $jeFallback = $nazevSouboru === 'default.png';
     $stav = match (true) {
         $maNahranyObrazek => null,
-        $jeFallback => 'Vlastní obrázek chybí, používá se fallback.',
+        $jeFallback => 'Vlastní obrázek chybí',
         default => 'Používá se starší obrázek linie (*.png).',
     };
 
