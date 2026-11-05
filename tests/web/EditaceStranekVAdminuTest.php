@@ -22,7 +22,7 @@ class EditaceStranekVAdminuTest extends AbstractTestWeb
             [
                 <<<'SQL'
 INSERT INTO stranky(id_stranky, url_stranky, obsah, poradi)
-VALUES ($0, $1, 'Vymyšlený text', 0)
+VALUES ($0, $1, 'Vymyšlený text ![logo](soubory/obsah/ukazka.png)', 0)
 SQL,
                 [self::ID_STRANKY, self::URL_STRANKY],
             ],
@@ -44,6 +44,20 @@ SQL,
             $telo,
         );
         $this->assertPodmenuVedeNaStrankyWebu($telo);
+    }
+
+    /**
+     * Administrace má `<base>` na svůj adresář, relativní adresa obrázku by v náhledu vedla do ní.
+     *
+     * @test
+     */
+    public function obrazekVNahleduTextuVedeNaWebNeDoAdministrace()
+    {
+        $telo = $this->fetchAdminPage('admin/' . self::STRANKA_ADMINU . '/editace-stranek?id=' . self::ID_STRANKY);
+
+        self::assertMatchesRegularExpression('~class="dbffMdtext">\s*<p>Vymyšlený text <img src="[^"]*/soubory/obsah/ukazka\.png"~u', $telo);
+        self::assertStringNotContainsString('<img src="soubory/obsah/ukazka.png"', $telo);
+        self::assertStringContainsString('.dbffMdtext img { max-width: 100%; max-height: 6em; }', $telo);
     }
 
     /**
