@@ -1,6 +1,6 @@
 # Review brief in Dependabot pull requests
 
-A Dependabot pull request is never merged on GitHub: `vendor/` and the built UI bundles are committed, so a raw bump of `composer.lock` or `ui/yarn.lock` leaves them stale. A composer bump fails `Run tests` at `make check-vendor-matches-lock` by design, a UI bump at `make check-ui-bundles` when the built bundle changes. The bump is reproduced locally, one pull request per ecosystem (see the bullet about JS libraries under "Best Practices" in `CLAUDE.md`).
+A Dependabot pull request is never merged on GitHub: `vendor/` and the built UI bundles are committed, so a raw bump of `composer.lock` or `ui/yarn.lock` leaves them stale. A composer bump fails `Run tests` at `make check-vendor-matches-lock` by design, a UI bump at `make check-ui-bundles` when the built bundle changes. The bump is reproduced locally, one pull request per ecosystem (see the bullet about JS libraries under "Best Practices" in `CLAUDE.md`); for composer the workflow `fold-dependabot-composer` does that reproduction for all open pull requests at once (`docs/fold-dependabot-composer.md`).
 
 To decide what a bump needs, the reviewer used to look up everything by hand. The workflow `.github/workflows/security-update-brief.yml` now writes a **brief** at the top of every Dependabot pull request body.
 
