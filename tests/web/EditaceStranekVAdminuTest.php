@@ -61,6 +61,23 @@ SQL,
     }
 
     /**
+     * Autosize změří pole při načtení stránky. Kdyby pravidlo pro obrázek přišlo až po skriptu, měl by obrázek v tu chvíli
+     * svou přirozenou šířku, levý sloupec by se smrštil na pár bodů a pole by dostalo výšku tisíců pixelů.
+     *
+     * @test
+     */
+    public function pravidloProObrazekVNahleduJeDrivNezSkriptKterySmeruVyskuPole()
+    {
+        $telo = $this->fetchAdminPage('admin/' . self::STRANKA_ADMINU . '/editace-stranek?id=' . self::ID_STRANKY);
+
+        $pravidlo = strpos($telo, '.dbffMdtext img { max-width: 100%; max-height: 6em; }');
+        $autosize = strpos($telo, '.autosize()');
+        self::assertNotFalse($pravidlo);
+        self::assertNotFalse($autosize);
+        self::assertLessThan($autosize, $pravidlo, 'Pravidlo pro obrázek musí být ve stránce před skriptem s autosize');
+    }
+
+    /**
      * @test
      */
     public function novaStrankaJesteNemaNaCoOdkazovat()

@@ -1,5 +1,13 @@
 <!-- begin:md -->
 
+<style>
+/* styly jsou před skriptem s autosize: pole se měří při načtení a obrázek bez pravidla by smrštil jeho sloupec na pár bodů */
+.dbffMdtext p { margin: 1.35em 0; }
+.dbffMdtext > :first-child { margin-top: 0; }
+/* náhled má na výšku jen pár řádků, velký obrázek se v něm ukáže zmenšený */
+.dbffMdtext img { max-width: 100%; max-height: 6em; }
+</style>
+
 <input type="hidden" name="{pnOldId}" value="{oldId}">
 <table style="width:100%">
   <tr>
@@ -23,11 +31,4 @@
   });
   $('table').last().parent().css('padding', 0);
 </script>
-<style>
-.dbffMdtext p { margin: 1.35em 0; }
-.dbffMdtext > :first-child { margin-top: 0; }
-/* náhled má na výšku jen pár řádků, velký obrázek se v něm ukáže zmenšený */
-.dbffMdtext img { max-width: 100%; max-height: 6em; }
-</style>
-
 <!-- end:md -->
