@@ -105,6 +105,10 @@ final class NahravaniObrazku
         self::ODT  => 'ODT',
         self::ODS  => 'ODS',
     ];
+    /** Formáty, do kterých se obrázek při nahrazení souboru převede: umí je zapsat OptimalizaceObrazku */
+    private const PREVODITELNE_CILE = [self::JPG, self::PNG, self::WEBP];
+    /** Formáty, ze kterých se obrázek při nahrazení souboru převádí (GIF jen bez animace) */
+    private const PREVODITELNE_ZDROJE = [self::JPG, self::PNG, self::WEBP, self::GIF];
     /** ext4 dovolí 255 bajtů na název, zbytek je rezerva na příponu */
     private const MAX_DELKA_NAZVU_BAJTU = 150;
     /** Výchozí strop pixelů; obrázek, který se při uložení zmenší, se jen jednou dekóduje, takže mu stačí vždy aspoň tenhle */
@@ -385,12 +389,12 @@ final class NahravaniObrazku
     }
 
     /**
-     * Co nabídnout při nahrazení souboru: jeho formát a u WebP i JPEG a PNG, které se při uložení převedou.
+     * Co nabídnout při nahrazení souboru: jeho formát a u JPG, PNG a WebP i ostatní z nich a GIF, které se při uložení převedou.
      */
     public function acceptProNahrazeni(string $mimeNahrazovaneho): string
     {
         $povolene = $this->jeCilPrevodu($mimeNahrazovaneho)
-            ? array_intersect([self::WEBP, self::JPG, self::PNG], $this->formaty)
+            ? array_intersect(array_unique([$mimeNahrazovaneho, ...self::PREVODITELNE_ZDROJE]), $this->formaty)
             : [$mimeNahrazovaneho];
 
         return implode(',', $povolene);
@@ -398,7 +402,18 @@ final class NahravaniObrazku
 
     private function jeCilPrevodu(string $mime): bool
     {
-        return $mime === self::WEBP && $this->optimalizace !== null;
+        return $this->optimalizace !== null && in_array($mime, self::PREVODITELNE_CILE, true);
+    }
+
+    /**
+     * Obrázek jiného formátu, než je cíl, se do cíle převede, když je cílem JPG, PNG nebo WebP a obrázek je JPG, PNG, WebP
+     * nebo GIF a není animovaný.
+     */
+    private function jeVhodnyKPrevoduDo(NahranyObrazek $obrazek, string $mimeCile): bool
+    {
+        return $this->jeCilPrevodu($mimeCile)
+            && in_array($obrazek->nahranyMime(), self::PREVODITELNE_ZDROJE, true)
+            && !$this->optimalizace?->jeAnimovany($obrazek->cesta, $obrazek->nahranyMime());
     }
 
     /**
@@ -510,8 +525,9 @@ final class NahravaniObrazku
     }
 
     /**
-     * Nahradí soubor na dané cestě. Soubor nemusí existovat, text na něj může odkazovat dřív, než je nahraný.
-     * Formát musí odpovídat příponě, jinak by se pod odkazem na `.jpg` schovávalo PNG.
+     * Nahradí soubor na dané cestě, pod jeho názvem, ať odkazy dál fungují. Soubor nemusí existovat, text na něj může
+     * odkazovat dřív, než je nahraný. Formát musí odpovídat příponě, jinak by se pod odkazem na `.jpg` schovávalo PNG:
+     * obrázek v jiném formátu se převede, když to jde (@see self::jeVhodnyKPrevoduDo()), ostatní soubory musí být stejného typu.
      *
      * @return string absolutní cesta k uloženému souboru
      */
@@ -527,19 +543,19 @@ final class NahravaniObrazku
                 sprintf('Soubor %s tu nejde nahradit, jeho typ tu není povolený.', basename($cil)),
             );
         }
-        // soubor ve formátu cíle nebo takový, který se do něj při uložení převede (JPEG a PNG do WebP)
-        if ($mimeCile !== $obrazek->nahranyMime() && $mimeCile !== $obrazek->mime) {
+        // soubor ve formátu cíle, takový, který se do něj při uložení převede (JPEG a PNG do WebP), nebo jiný převoditelný obrázek
+        if ($mimeCile !== $obrazek->nahranyMime() && $mimeCile !== $obrazek->mime && !$this->jeVhodnyKPrevoduDo($obrazek, $mimeCile)) {
             throw new NahravaniObrazkuException(sprintf(
-                '%s je ve formátu %s a nahraný soubor ve formátu %s. Nahraj prosím %s, jinak by přestaly fungovat odkazy na něj.',
+                '%s je ve formátu %s a nahraný soubor ve formátu %s. Nahraj prosím %s.',
                 basename($cil),
                 self::NAZVY_FORMATU[$mimeCile],
                 self::NAZVY_FORMATU[$obrazek->nahranyMime()],
                 $this->jeCilPrevodu($mimeCile)
-                    ? 'WebP, JPG nebo PNG bez animace'
-                    : 'soubor ve stejném formátu',
+                    ? 'neanimovaný JPG, PNG, WebP nebo GIF, převede se na ' . self::NAZVY_FORMATU[$mimeCile]
+                    : 'soubor ve stejném formátu, jinak by přestaly fungovat odkazy na něj',
             ));
         }
-        // odkazy míří na příponu, takže se obrázek zmenší, ale nepřevádí
+        // odkazy míří na příponu, takže se obrázek převede do formátu souboru, který nahrazuje
         $this->ulozPresDocasny($this->vFormatu($obrazek, $mimeCile), dirname($cil), $cil);
 
         return $cil;
@@ -819,14 +835,17 @@ final class NahravaniObrazku
     }
 
     /**
-     * GIF se neupravuje, animace by se ztratila a paleta zhoršila; animovaný PNG a WebP taky ne.
+     * Nový GIF se neupravuje, animace by se ztratila a paleta zhoršila; animovaný PNG a WebP taky ne. GIF bez animace se
+     * převede jen při nahrazení souboru jiného formátu.
      *
      * @param string|null $vynucenyCil formát, ve kterém se soubor musí uložit, třeba protože nahrazuje soubor s touhle příponou
      * @return string|null formát, ve kterém se soubor při uložení zapíše znovu; null, když se uloží tak, jak přišel
      */
     private function cilUpravy(string $zdrojovyMime, int $sirka, int $vyska, string $cesta, ?string $vynucenyCil = null): ?string
     {
-        if ($this->optimalizace === null || !in_array($zdrojovyMime, [self::JPG, self::PNG, self::WEBP], true)) {
+        $umiSePrecist = in_array($zdrojovyMime, [self::JPG, self::PNG, self::WEBP], true)
+            || ($zdrojovyMime === self::GIF && $vynucenyCil !== null);
+        if ($this->optimalizace === null || !$umiSePrecist) {
             return null;
         }
         $cil = $vynucenyCil ?? (
@@ -849,17 +868,26 @@ final class NahravaniObrazku
      */
     private function vFormatu(NahranyObrazek $obrazek, string $mime): NahranyObrazek
     {
-        if ($obrazek->zdrojovyMime === null) {
+        $zdrojovyMime = $obrazek->nahranyMime();
+        if ($obrazek->zdrojovyMime === null && $zdrojovyMime === $mime) {
             return $obrazek;
         }
-        $cilUpravy = $this->cilUpravy($obrazek->zdrojovyMime, (int) $obrazek->sirka, (int) $obrazek->vyska, $obrazek->cesta, $mime);
+        $cilUpravy = $this->cilUpravy($zdrojovyMime, (int) $obrazek->sirka, (int) $obrazek->vyska, $obrazek->cesta, $mime);
+        if ($cilUpravy === null && $zdrojovyMime !== $mime) {
+            // soubor jiného formátu by se uložil s příponou $mime
+            throw new NahravaniObrazkuException(sprintf(
+                'Soubor ve formátu %s se nepodařilo převést do formátu %s.',
+                self::NAZVY_FORMATU[$zdrojovyMime],
+                self::NAZVY_FORMATU[$mime],
+            ));
+        }
 
         return $obrazek->sFormatem(
             $mime,
             self::PRIPONA_PODLE_MIME[$mime],
             $cilUpravy === null
                 ? null
-                : $obrazek->zdrojovyMime,
+                : $zdrojovyMime,
         );
     }
 

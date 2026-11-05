@@ -366,6 +366,16 @@ SQL,
         self::assertSame([60, 30, 'image/webp'], [$info[0], $info[1], $info['mime']]);
         self::assertFileDoesNotExist(dirname($novy) . '/nova-clenka-rady.jpg');
 
+        // PNG se také převede do stávajícího WebP, odkaz v textu zůstává
+        self::assertSame(303, $this->odesli($session, $url, [
+            'obrazkyObsahuAkce' => 'nahradit',
+            'cesta'             => 'stranky/' . self::URL_STRANKY . '/nova-clenka-rady.webp',
+            'obrazekObsahu'     => new \CURLFile($this->png(), 'image/png', 'clenka.png'),
+        ]));
+        $info = getimagesize($novy);
+        self::assertSame([40, 40, 'image/webp'], [$info[0], $info[1], $info['mime']]);
+        self::assertFileDoesNotExist(dirname($novy) . '/nova-clenka-rady.png');
+
         self::assertSame(303, $this->odesli($session, $url, [
             'obrazkyObsahuAkce' => 'smazat',
             'cesta'             => 'stranky/' . self::URL_STRANKY . '/nova-clenka-rady.webp',

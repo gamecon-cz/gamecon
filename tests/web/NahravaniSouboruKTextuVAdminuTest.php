@@ -169,6 +169,23 @@ SQL,
         self::assertStringContainsString('Soubor nahrán.', $stranka);
         self::assertStringContainsString('[plakat_a3](soubory/obsah/stranky/' . self::URL_STRANKY . '/plakat_a3.pdf)', $stranka);
 
+        // soubor nahraný k stránce jde nahradit, i když na něj text zatím neodkazuje; zůstane pod stejným názvem
+        $druhaVerze = $this->zdroje . '/plakat-v2.pdf';
+        file_put_contents($druhaVerze, self::pdfBajty() . "\n% druhá verze\n");
+        self::assertSame(303, $this->odesli($session, $url, [
+            'souboryObsahuAkce' => 'nahradit',
+            'cesta'             => 'stranky/' . self::URL_STRANKY . '/plakat_a3.pdf',
+            'souborObsahu'      => new \CURLFile($druhaVerze, 'application/pdf', 'Plakát verze 2.pdf'),
+        ]));
+        self::assertFileEquals($druhaVerze, $novy);
+        // soubor jiného typu na jeho místo nepřijde
+        self::assertSame(303, $this->odesli($session, $url, [
+            'souboryObsahuAkce' => 'nahradit',
+            'cesta'             => 'stranky/' . self::URL_STRANKY . '/plakat_a3.pdf',
+            'souborObsahu'      => new \CURLFile($novyZip, 'application/zip', 'plakat.zip'),
+        ]));
+        self::assertFileEquals($druhaVerze, $novy);
+
         // stejný název podruhé nejde, soubor se nepřepíše
         file_put_contents($novy, 'původní obsah');
         self::assertSame(303, $this->odesli($session, $url, $formular));

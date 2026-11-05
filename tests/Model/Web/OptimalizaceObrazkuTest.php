@@ -13,6 +13,7 @@ use Symfony\Component\Filesystem\Filesystem;
 
 class OptimalizaceObrazkuTest extends TestCase
 {
+    use TestovaciDokumenty;
     use TestovaciObrazky;
 
     /**
@@ -250,18 +251,224 @@ class OptimalizaceObrazkuTest extends TestCase
         self::assertSame([1920, 77, 'image/png'], $this->rozmeryAMime($this->koren . '/b.png'));
     }
 
+    public static function provideNahrazeniJinymRastremSePrevede(): iterable
+    {
+        yield 'JPG nahradí PNG' => ['a.jpg', 'png', NahravaniObrazku::JPG];
+        yield 'JPG nahradí WebP' => ['a.jpg', 'webp', NahravaniObrazku::JPG];
+        yield 'JPG nahradí GIF' => ['a.jpg', 'gif', NahravaniObrazku::JPG];
+        yield 'PNG nahradí JPG' => ['b.png', 'jpg', NahravaniObrazku::PNG];
+        yield 'PNG nahradí GIF' => ['b.png', 'gif', NahravaniObrazku::PNG];
+        yield 'WebP nahradí GIF' => ['c.webp', 'gif', NahravaniObrazku::WEBP];
+        yield 'WebP nahradí PNG' => ['c.webp', 'png', NahravaniObrazku::WEBP];
+    }
+
     /**
+     * Soubor se uloží pod názvem toho, který nahrazuje, aby odkazy na něj dál fungovaly, a ve stejném formátu,
+     * i když přišel v jiném (JPG, PNG, WebP a GIF bez animace se převádějí navzájem).
+     *
+     * @test
+     *
+     * @dataProvider provideNahrazeniJinymRastremSePrevede
+     */
+    public function nahrazeniJinymRastrovymFormatemSePrevedeDoFormatuSouboru(string $cil, string $formatNahraneho, string $ocekavanyMime): void
+    {
+        file_put_contents($this->koren . '/' . $cil, 'stary soubor');
+        $nahravani = $this->nahravani();
+        $nahrany = $nahravani->overSoubor($this->soubor('jiny-format.' . $formatNahraneho, self::imagickBajty(30, 20, $formatNahraneho)));
+
+        $nahravani->nahrad($nahrany, $cil);
+
+        self::assertSame([$cil], $this->souboryVKoreni(), 'Vedle souboru nevznikl žádný další');
+        self::assertSame([30, 20, $ocekavanyMime], $this->rozmeryAMime($this->koren . '/' . $cil));
+    }
+
+    /**
+     * JPEG průhlednost neumí, ImageMagick by průhledná místa zčernal.
+     *
      * @test
      */
-    public function nahrazeniJinymFormatemSeDalOdmita(): void
+    public function pruhlednostSePriPrevoduDoJpegNahradiBilou(): void
     {
         file_put_contents($this->koren . '/a.jpg', 'stary jpg');
         $nahravani = $this->nahravani();
-        $png = $nahravani->overSoubor($this->soubor('nova.png', self::imagickBajty(30, 20, 'png')));
 
-        $this->expectException(NahravaniObrazkuException::class);
-        $this->expectExceptionMessage('a.jpg je ve formátu JPG a nahraný soubor ve formátu PNG');
-        $nahravani->nahrad($png, 'a.jpg');
+        $nahravani->nahrad($nahravani->overSoubor($this->soubor('nova.png', self::pngSPolovinouPruhlednou(40, 20))), 'a.jpg');
+
+        $bila = self::barvaPixelu($this->koren . '/a.jpg', 5, 10);
+        self::assertGreaterThan(240, min($bila), 'Průhledná levá polovina je bílá: ' . json_encode($bila));
+        $zelena = self::barvaPixelu($this->koren . '/a.jpg', 35, 10);
+        self::assertGreaterThan($zelena['r'] + 60, $zelena['g'], 'Krytá pravá polovina zůstala zelená: ' . json_encode($zelena));
+    }
+
+    public static function provideNahrazeniNepodporovanymZdrojem(): iterable
+    {
+        yield 'animovaný GIF' => ['pohyb.gif', self::animovanyGifBajty()];
+        yield 'animovaný PNG' => ['pohyb.png', self::apngBajty(10, 10)];
+        yield 'animovaný WebP' => ['pohyb.webp', self::animovanyWebpBajty(30, 20)];
+        yield 'AVIF' => ['foto.avif', self::avifBajty()];
+    }
+
+    /**
+     * @test
+     *
+     * @dataProvider provideNahrazeniNepodporovanymZdrojem
+     */
+    public function nahrazeniJpegAnimovanymObrazkemNeboAvifemSeOdmitne(string $nazev, string $bajty): void
+    {
+        file_put_contents($this->koren . '/a.jpg', 'stary jpg');
+        $nahravani = $this->nahravaniSAvif();
+        $obrazek = $nahravani->overSoubor($this->soubor($nazev, $bajty));
+
+        try {
+            $nahravani->nahrad($obrazek, 'a.jpg');
+            self::fail('Nepřevoditelný obrázek nemá nahradit JPG.');
+        } catch (NahravaniObrazkuException $nahravaniObrazkuException) {
+            self::assertStringContainsString('a.jpg je ve formátu JPG a nahraný soubor ve formátu', $nahravaniObrazkuException->getMessage());
+            self::assertStringContainsString('Nahraj prosím neanimovaný JPG, PNG, WebP nebo GIF', $nahravaniObrazkuException->getMessage());
+        }
+        self::assertSame('stary jpg', file_get_contents($this->koren . '/a.jpg'));
+    }
+
+    /**
+     * GIF, který se nepodaří přečíst, se bere jako animovaný, takže se nepřevede a starý soubor zůstane.
+     *
+     * @test
+     */
+    public function nahrazeniJpegRozbitymGifemSeOdmitneAStarySouborZustane(): void
+    {
+        file_put_contents($this->koren . '/a.jpg', 'stary jpg');
+        $nahravani = $this->nahravani();
+        $obrazek = $nahravani->overSoubor($this->soubor('rozbity.gif', self::gifSRozmeryVHlavicce(30, 20)));
+
+        try {
+            $nahravani->nahrad($obrazek, 'a.jpg');
+            self::fail('GIF bez snímku nemá nahradit JPG.');
+        } catch (NahravaniObrazkuException $nahravaniObrazkuException) {
+            self::assertStringContainsString('Nahraj prosím neanimovaný JPG, PNG, WebP nebo GIF', $nahravaniObrazkuException->getMessage());
+        }
+        self::assertSame('stary jpg', file_get_contents($this->koren . '/a.jpg'));
+    }
+
+    /**
+     * @test
+     */
+    public function gifSeBereZaAnimovanyKdyzMaVicSnimkuNeboSeNedaPrecist(): void
+    {
+        $optimalizace = new OptimalizaceObrazku();
+        $staticky = self::gifBajty();
+
+        self::assertFalse($optimalizace->jeAnimovany($this->soubor('s.gif', $staticky), NahravaniObrazku::GIF));
+        self::assertTrue($optimalizace->jeAnimovany($this->soubor('a.gif', self::animovanyGifBajty()), NahravaniObrazku::GIF));
+        self::assertTrue($optimalizace->jeAnimovany($this->soubor('bez-snimku.gif', self::gifSRozmeryVHlavicce(30, 20)), NahravaniObrazku::GIF));
+        self::assertTrue($optimalizace->jeAnimovany($this->soubor('useknuty.gif', substr($staticky, 0, 30)), NahravaniObrazku::GIF));
+        self::assertFalse($optimalizace->jeAnimovany($this->soubor('bez-konce.gif', substr($staticky, 0, -1)), NahravaniObrazku::GIF), 'Chybí jen závěrečný znak za jediným snímkem');
+        self::assertTrue($optimalizace->jeAnimovany($this->soubor('hlavicka.gif', 'GIF89a'), NahravaniObrazku::GIF));
+        self::assertTrue($optimalizace->jeAnimovany($this->soubor('jiny.gif', self::jpgBajty(10, 10)), NahravaniObrazku::GIF));
+    }
+
+    public static function provideStavbyGifu(): iterable
+    {
+        // obraz 10 × 10 s paletou o dvou barvách; snímek má popis, místní paletu, velikost kódu LZW a jeden podblok dat
+        $hlavicka = 'GIF89a' . pack('vv', 10, 10) . "\x80\x00\x00\x00\x00\x00\xFF\xFF\xFF";
+        $rozsireni = "\x21\xF9\x04\x00\x0A\x00\x00\x00"
+            . "\x21\xFE\x05hello\x00"
+            . "\x21\xFF\x0BNETSCAPE2.0\x03\x01\x00\x00\x00";
+        $snimek = ',' . pack('vvvv', 0, 0, 10, 10) . "\x80\x00\x00\x00\xFF\xFF\xFF\x02\x02\x44\x01\x00";
+        $mimoObraz = ',' . pack('vvvv', 0, 0, 20, 20) . "\x00\x02\x02\x44\x01\x00";
+
+        yield 'jeden snímek s rozšířeními a místní paletou' => [$hlavicka . $rozsireni . $snimek . ';', false];
+        yield 'jeden snímek bez závěrečného znaku' => [$hlavicka . $rozsireni . $snimek, false];
+        yield 'dva snímky' => [$hlavicka . $rozsireni . $snimek . $snimek . ';', true];
+        yield 'snímek větší než obraz' => [$hlavicka . $mimoObraz . ';', true];
+        yield 'useknuto uprostřed dat snímku' => [$hlavicka . substr($snimek, 0, -3), true];
+        yield 'rozšíření bez konce' => [$hlavicka . "\x21\xFE\x05hel", true];
+        yield 'neznámý blok' => [$hlavicka . "\x99" . $snimek . ';', true];
+        yield 'tisíc rozšíření před snímkem' => [$hlavicka . str_repeat("\x21\xFE\x00", 1000) . $snimek . ';', false];
+        yield 'víc rozšíření, než se projde' => [$hlavicka . str_repeat("\x21\xFE\x00", 500_001) . $snimek . ';', true];
+    }
+
+    /**
+     * Stavba GIF se prochází po blocích, takže se pozná i to, co ImageMagick nevytvoří: rozšíření a místní palety,
+     * chybějící závěr, snímek mimo obraz a soubor s příliš mnoha bloky.
+     *
+     * @test
+     *
+     * @dataProvider provideStavbyGifu
+     */
+    public function stavbaGifuRozhodneJestliJeAnimovany(string $bajty, bool $ocekavaneAnimovany): void
+    {
+        self::assertSame($ocekavaneAnimovany, (new OptimalizaceObrazku())->jeAnimovany($this->soubor('stavba.gif', $bajty), NahravaniObrazku::GIF));
+    }
+
+    public static function provideOdsazeniSnimkuGifu(): iterable
+    {
+        yield 'snímek uprostřed obrazu' => [30];
+        yield 'snímek v rohu obrazu' => [0];
+    }
+
+    /**
+     * Snímek GIF bývá menší než obraz, posunutý nebo v rohu; výsledek má mít rozměr obrazu, ne jen snímku.
+     *
+     * @test
+     *
+     * @dataProvider provideOdsazeniSnimkuGifu
+     */
+    public function gifSMensimSnimkemNezObrazSePrevedeNaCelePlatno(int $odsazeni): void
+    {
+        file_put_contents($this->koren . '/a.png', 'stary png');
+        $nahravani = $this->nahravani();
+        $zdroj = $this->soubor('odsazeny.gif', self::gifSMensimSnimkemNezObraz($odsazeni));
+        self::assertSame(100, getimagesize($zdroj)[0], 'Obraz GIF je větší než jeho snímek');
+
+        $nahravani->nahrad($nahravani->overSoubor($zdroj), 'a.png');
+
+        self::assertSame([100, 100, 'image/png'], $this->rozmeryAMime($this->koren . '/a.png'));
+    }
+
+    /**
+     * @test
+     */
+    public function pruhlednostGifuSePriPrevoduDoJpegNahradiBilou(): void
+    {
+        file_put_contents($this->koren . '/a.jpg', 'stary jpg');
+        $nahravani = $this->nahravani();
+
+        $nahravani->nahrad($nahravani->overSoubor($this->soubor('nova.gif', self::gifSPolovinouPruhlednou(40, 20))), 'a.jpg');
+
+        $bila = self::barvaPixelu($this->koren . '/a.jpg', 5, 10);
+        self::assertGreaterThan(240, min($bila), 'Průhledná levá polovina je bílá: ' . json_encode($bila));
+        $zelena = self::barvaPixelu($this->koren . '/a.jpg', 35, 10);
+        self::assertGreaterThan($zelena['r'] + 60, $zelena['g'], 'Krytá pravá polovina zůstala zelená: ' . json_encode($zelena));
+    }
+
+    public static function provideSouboryKtereSeNaJinyFormatNeprevadi(): iterable
+    {
+        yield 'GIF' => ['a.gif'];
+        yield 'AVIF' => ['a.avif'];
+        yield 'SVG' => ['a.svg'];
+    }
+
+    /**
+     * GIF, AVIF a SVG se na jiný formát nepřevádějí, takže je nahradí jen soubor stejného formátu.
+     *
+     * @test
+     *
+     * @dataProvider provideSouboryKtereSeNaJinyFormatNeprevadi
+     */
+    public function gifAvifASvgJdeNahraditJenStejnymFormatem(string $cil): void
+    {
+        file_put_contents($this->koren . '/' . $cil, 'stary soubor');
+        $nahravani = $this->nahravaniSAvif();
+        $obrazek = $nahravani->overSoubor($this->soubor('nova.png', self::imagickBajty(30, 20, 'png')));
+
+        try {
+            $nahravani->nahrad($obrazek, $cil);
+            self::fail('Soubor ve formátu, který se nepřevádí, nemá jít nahradit jiným formátem.');
+        } catch (NahravaniObrazkuException $nahravaniObrazkuException) {
+            self::assertStringContainsString($cil . ' je ve formátu', $nahravaniObrazkuException->getMessage());
+            self::assertStringContainsString('Nahraj prosím soubor ve stejném formátu', $nahravaniObrazkuException->getMessage());
+        }
+        self::assertSame('stary soubor', file_get_contents($this->koren . '/' . $cil));
     }
 
     /**
@@ -364,8 +571,11 @@ class OptimalizaceObrazkuTest extends TestCase
      */
     public function nabidkaProNahrazeniZahrnujeFormatyKtereSePrevedouDoCile(): void
     {
-        self::assertSame('image/webp,image/jpeg,image/png', $this->nahravani()->acceptProNahrazeni(NahravaniObrazku::WEBP));
-        self::assertSame('image/jpeg', $this->nahravani()->acceptProNahrazeni(NahravaniObrazku::JPG));
+        self::assertSame('image/webp,image/jpeg,image/png,image/gif', $this->nahravani()->acceptProNahrazeni(NahravaniObrazku::WEBP));
+        self::assertSame('image/jpeg,image/png,image/webp,image/gif', $this->nahravani()->acceptProNahrazeni(NahravaniObrazku::JPG));
+        self::assertSame('image/png,image/jpeg,image/webp,image/gif', $this->nahravani()->acceptProNahrazeni(NahravaniObrazku::PNG));
+        self::assertSame('image/gif', $this->nahravani()->acceptProNahrazeni(NahravaniObrazku::GIF));
+        self::assertSame('image/svg+xml', $this->nahravaniSAvif()->acceptProNahrazeni(NahravaniObrazku::SVG));
         self::assertSame('image/webp', (new NahravaniObrazku($this->koren))->acceptProNahrazeni(NahravaniObrazku::WEBP));
     }
 
@@ -437,7 +647,7 @@ class OptimalizaceObrazkuTest extends TestCase
 
     public static function provideNahraditWebpNejde(): iterable
     {
-        yield 'GIF' => ['pohyb.gif', self::gifBajty()];
+        yield 'animovaný GIF' => ['pohyb.gif', self::animovanyGifBajty()];
         yield 'animovaný PNG' => ['pohyb.png', self::apngBajty(10, 10)];
     }
 
@@ -446,14 +656,14 @@ class OptimalizaceObrazkuTest extends TestCase
      *
      * @dataProvider provideNahraditWebpNejde
      */
-    public function nahrazeniWebpGifemNeboAnimovanymPngemSeOdmitneSJasnouHlaskou(string $nazev, string $bajty): void
+    public function nahrazeniWebpAnimovanymObrazkemSeOdmitneSJasnouHlaskou(string $nazev, string $bajty): void
     {
         file_put_contents($this->koren . '/a.webp', 'stary');
         $nahravani = $this->nahravani();
         $obrazek = $nahravani->overSoubor($this->soubor($nazev, $bajty));
 
         $this->expectException(NahravaniObrazkuException::class);
-        $this->expectExceptionMessage('Nahraj prosím WebP, JPG nebo PNG bez animace');
+        $this->expectExceptionMessage('Nahraj prosím neanimovaný JPG, PNG, WebP nebo GIF');
         $nahravani->nahrad($obrazek, 'a.webp');
     }
 
@@ -676,6 +886,14 @@ class OptimalizaceObrazkuTest extends TestCase
         return new NahravaniObrazku($this->koren, $pouziti, optimalizace: new OptimalizaceObrazku());
     }
 
+    /**
+     * Služba jako pro obrázky v textech stránek: kromě rastrových obrázků bere AVIF.
+     */
+    private function nahravaniSAvif(): NahravaniObrazku
+    {
+        return new NahravaniObrazku($this->koren, formaty: [...NahravaniObrazku::WEBOVE_OBRAZKY, NahravaniObrazku::SVG], optimalizace: new OptimalizaceObrazku());
+    }
+
     private function nahravaniBezWebp(): NahravaniObrazku
     {
         return new NahravaniObrazku(
@@ -749,6 +967,28 @@ class OptimalizaceObrazkuTest extends TestCase
     private static function animovanyGifBajty(): string
     {
         return self::animaceBajty(30, 20, 'gif');
+    }
+
+    /**
+     * Obraz 100 × 100 a v něm jediný červený snímek 20 × 20 posunutý o $odsazeni bodů vpravo a dolů.
+     */
+    private static function gifSMensimSnimkemNezObraz(int $odsazeni): string
+    {
+        $snimek = new \Imagick();
+        $snimek->newImage(20, 20, new \ImagickPixel('red'));
+        $snimek->setImageFormat('gif');
+        $snimek->setImagePage(100, 100, $odsazeni, $odsazeni);
+
+        return $snimek->getImageBlob();
+    }
+
+    private static function gifSPolovinouPruhlednou(int $sirka, int $vyska): string
+    {
+        $obrazek = new \Imagick();
+        $obrazek->readImageBlob(self::pngSPolovinouPruhlednou($sirka, $vyska));
+        $obrazek->setImageFormat('gif');
+
+        return $obrazek->getImageBlob();
     }
 
     private static function animovanyWebpBajty(int $sirka, int $vyska): string

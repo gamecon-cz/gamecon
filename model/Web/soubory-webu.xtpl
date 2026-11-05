@@ -58,7 +58,7 @@
         <!-- begin:nikde --><span class="tip" title="Nikde se nepoužívá">—</span><!-- end:nikde -->
       </td>
       <td>
-        <div class="soubory-webu__akce">
+        <div class="akce-souboru">
           <!-- begin:nahradit -->
           <form method="post" enctype="multipart/form-data"{poCastech}>
             <input type="hidden" name="{postAkce}" value="nahradit">
@@ -104,13 +104,6 @@
 
     .soubory-webu__pocet {
         font-size: 0.7em;
-    }
-
-    .soubory-webu__akce {
-        display: flex;
-        flex-wrap: wrap;
-        align-items: center;
-        gap: 0.6em 0.4em;
     }
 
 </style>

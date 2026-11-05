@@ -15,9 +15,13 @@ final class OptimalizaceObrazku
         NahravaniObrazku::JPG  => 'jpeg',
         NahravaniObrazku::PNG  => 'png',
         NahravaniObrazku::WEBP => 'webp',
+        // GIF se jen čte, nový obrázek se do něj nepřevádí
+        NahravaniObrazku::GIF  => 'gif',
     ];
     /** Kolik bloků souboru se prohlíží při hledání animace nebo druhu komprese, hlavička je vždy na začátku */
     private const int MAX_BLOKU = 32;
+    /** Kolik bloků a podbloků GIF se projde: snímek ve velkém rozlišení má desetitisíce podbloků po 255 bajtech */
+    private const int MAX_BLOKU_GIF = 500_000;
 
     public function __construct(
         private readonly int $maxRozmerPx = OBRAZEK_MAX_ROZMER_PX,
@@ -56,15 +60,119 @@ final class OptimalizaceObrazku
     }
 
     /**
-     * Animovaný PNG a WebP se nezmenšují, ImageMagick by z nich nechal jen první snímek.
+     * Animovaný GIF, PNG a WebP se nezmenšují ani nepřevádějí, ImageMagick by z nich nechal jen první snímek. GIF, jehož
+     * stavbu nejde přečíst, se bere jako animovaný, aby se nepřevedl.
      */
     public function jeAnimovany(string $cesta, string $mime): bool
     {
         return match ($mime) {
             NahravaniObrazku::PNG  => $this->prvniDulezityBlok($cesta, false, ['acTL', 'IDAT', 'IEND']) === 'acTL',
             NahravaniObrazku::WEBP => in_array($this->prvniDulezityBlok($cesta, true, ['ANIM', 'ANMF', 'VP8 ', 'VP8L']), ['ANIM', 'ANMF'], true),
+            NahravaniObrazku::GIF  => !$this->maJedinySnimek($cesta),
             default                => false,
         };
+    }
+
+    /**
+     * GIF s jedním snímkem, který leží celý uvnitř obrazu. Bloky se procházejí bez ImageMagicku, takže GIF s miliony
+     * snímků nic nealokuje; soubor useknutý uprostřed bloku nebo s neznámým blokem jedním snímkem není.
+     */
+    private function maJedinySnimek(string $cesta): bool
+    {
+        $soubor = @fopen($cesta, 'rb');
+        if ($soubor === false) {
+            return false;
+        }
+        try {
+            $hlavicka = (string) fread($soubor, 13);
+            if (strlen($hlavicka) < 13 || !str_starts_with($hlavicka, 'GIF8')) {
+                return false;
+            }
+            $obraz = unpack('vsirka/vvyska/Cpriznaky', $hlavicka, 6);
+            $this->preskocBarevnouTabulku($soubor, $obraz['priznaky']);
+            $snimku = 0;
+            for ($zbyva = self::MAX_BLOKU_GIF; $zbyva > 0; --$zbyva) {
+                $znacka = fread($soubor, 1);
+                if ($znacka === '' || $znacka === false) {
+                    // za celým snímkem chybí jen závěrečný znak, takže snímek je jediný
+                    return $snimku === 1;
+                }
+                if ($znacka === ';') {
+                    return $snimku === 1;
+                }
+                if ($znacka === '!') {
+                    // rozšíření: značka druhu a podbloky
+                    fseek($soubor, 1, SEEK_CUR);
+                } elseif ($znacka === ',') {
+                    $popis = (string) fread($soubor, 9);
+                    if (strlen($popis) < 9) {
+                        return false;
+                    }
+                    $snimek = unpack('vleva/vnahore/vsirka/vvyska/Cpriznaky', $popis);
+                    if (
+                        ++$snimku > 1
+                        || $snimek['leva'] + $snimek['sirka'] > $obraz['sirka']
+                        || $snimek['nahore'] + $snimek['vyska'] > $obraz['vyska']
+                    ) {
+                        return false;
+                    }
+                    $this->preskocBarevnouTabulku($soubor, $snimek['priznaky']);
+                    // nejmenší velikost kódu LZW a za ní podbloky s obrazem
+                    fseek($soubor, 1, SEEK_CUR);
+                } else {
+                    return false;
+                }
+                $podbloku = $this->preskocPodbloky($soubor, $zbyva);
+                if ($podbloku === null) {
+                    return false;
+                }
+                $zbyva -= $podbloku;
+            }
+
+            return false;
+        } finally {
+            fclose($soubor);
+        }
+    }
+
+    private function maSnimekMensiNezObraz(\Imagick $imagick): bool
+    {
+        $obraz = $imagick->getImagePage();
+
+        return $obraz['x'] !== 0
+            || $obraz['y'] !== 0
+            || $obraz['width'] > $imagick->getImageWidth()
+            || $obraz['height'] > $imagick->getImageHeight();
+    }
+
+    /**
+     * @param resource $soubor
+     */
+    private function preskocBarevnouTabulku($soubor, int $priznaky): void
+    {
+        if (($priznaky & 0x80) !== 0) {
+            fseek($soubor, 3 * (1 << (($priznaky & 0x07) + 1)), SEEK_CUR);
+        }
+    }
+
+    /**
+     * @param resource $soubor
+     * @return int|null počet přeskočených podbloků; null, když soubor končí uprostřed bloku nebo se nevejde do $nejvic
+     */
+    private function preskocPodbloky($soubor, int $nejvic): ?int
+    {
+        for ($pocet = 0; $pocet < $nejvic; ++$pocet) {
+            $delka = fread($soubor, 1);
+            if ($delka === '' || $delka === false) {
+                return null;
+            }
+            if ($delka === "\x00") {
+                return $pocet;
+            }
+            fseek($soubor, ord($delka), SEEK_CUR);
+        }
+
+        return null;
     }
 
     /**
@@ -86,11 +194,25 @@ final class OptimalizaceObrazku
                 $imagick->setOption('jpeg:size', $this->maxRozmerPx . 'x' . $this->maxRozmerPx);
             }
             $imagick->readImage(self::KODEKY[$zdrojovyMime] . ':' . $zdroj);
+            if ($zdrojovyMime === NahravaniObrazku::GIF && $this->maSnimekMensiNezObraz($imagick)) {
+                // bez složení na plátno by se zapsal jen snímek, bez okraje, který GIF kolem něj má
+                $naPlatne = $imagick->coalesceImages();
+                $imagick->clear();
+                $imagick = $naPlatne;
+                $imagick->setImagePage(0, 0, 0, 0);
+            }
             $kvalita = $this->kvalitaVystupu($imagick, $zdrojovyMime);
             // orientaci z EXIFu je potřeba použít dřív, než se metadata smažou
             $imagick->autoOrient();
             if ($imagick->getImageColorspace() === \Imagick::COLORSPACE_CMYK) {
                 $imagick->transformImageColorspace(\Imagick::COLORSPACE_SRGB);
+            }
+            if ($cilovyMime === NahravaniObrazku::JPG && $imagick->getImageAlphaChannel()) {
+                // JPEG průhlednost neumí a ImageMagick by průhledná místa zčernal
+                $imagick->setImageBackgroundColor(new \ImagickPixel('white'));
+                $naBilem = $imagick->mergeImageLayers(\Imagick::LAYERMETHOD_FLATTEN);
+                $imagick->clear();
+                $imagick = $naBilem;
             }
             if ($this->jeVetsiNezPotrebuje($imagick->getImageWidth(), $imagick->getImageHeight())) {
                 $imagick->thumbnailImage($this->maxRozmerPx, $this->maxRozmerPx, true);
@@ -130,11 +252,11 @@ final class OptimalizaceObrazku
     }
 
     /**
-     * PNG je grafika a průhlednost, tu bezztrátově, stejně bezztrátový WebP; fotka z JPEG snese ztrátovou kompresi.
+     * PNG a GIF jsou grafika a průhlednost, tu bezztrátově, stejně bezztrátový WebP; fotka z JPEG snese ztrátovou kompresi.
      */
     private function jeBezztratovyZdroj(string $zdroj, string $zdrojovyMime): bool
     {
-        return $zdrojovyMime === NahravaniObrazku::PNG
+        return in_array($zdrojovyMime, [NahravaniObrazku::PNG, NahravaniObrazku::GIF], true)
             || ($zdrojovyMime === NahravaniObrazku::WEBP && $this->jeBezztratovyWebp($zdroj));
     }
 

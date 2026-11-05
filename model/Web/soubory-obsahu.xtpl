@@ -6,6 +6,10 @@
     Soubor vložíš do textu Markdownem <code>[popis](soubory/obsah/…)</code>,
     nebo v HTML jako <code>&lt;a href="soubory/obsah/…"&gt;popis&lt;/a&gt;</code>. Povolené jsou {limit}.
   </p>
+  <p class="tip">
+    Soubor nahradíš tlačítkem Nahradit u jeho řádku: uloží se pod původním názvem, takže odkazy zůstanou, a musí být
+    stejného typu (třeba zase ZIP).
+  </p>
 
   <!-- begin:odkazy -->
   <h3>Soubory, na které text odkazuje</h3>
@@ -36,7 +40,6 @@
     </tr>
     <!-- end:soubor -->
   </table>
-  <p class="tip">Nový soubor musí být ve stejném formátu jako ten původní (třeba zase ZIP). Odkaz v textu se nemění.</p>
   <!-- end:odkazy -->
 
   <h3>Nahrát nový soubor</h3>
@@ -75,14 +78,24 @@
         <!-- begin:nikde --><span class="tip" title="Nikde se nepoužívá">—</span><!-- end:nikde -->
       </td>
       <td>
-        <!-- begin:smazat -->
-        <form method="post" onsubmit="return confirm('Opravdu smazat tento soubor?')">
-          <input type="hidden" name="{postAkce}" value="smazat">
-          <input type="hidden" name="cesta" value="{cesta}">
-          <button type="submit"><i class="fa fa-trash" aria-hidden="true"></i> Smazat</button>
-        </form>
-        <!-- end:smazat -->
-        <!-- begin:nespravovany --><span class="tip">Tenhle soubor se tu nespravuje, jen přes FTP.</span><!-- end:nespravovany -->
+        <div class="akce-souboru">
+          <!-- begin:nahradit -->
+          <form method="post" enctype="multipart/form-data"{poCastech}>
+            <input type="hidden" name="{postAkce}" value="nahradit">
+            <input type="hidden" name="cesta" value="{cesta}">
+            <input type="file" name="{postSoubor}" accept="{acceptSouboru}" required>
+            <button type="submit"><i class="fa fa-upload" aria-hidden="true"></i> Nahradit</button>
+          </form>
+          <!-- end:nahradit -->
+          <!-- begin:smazat -->
+          <form method="post" onsubmit="return confirm('Opravdu smazat tento soubor?')">
+            <input type="hidden" name="{postAkce}" value="smazat">
+            <input type="hidden" name="cesta" value="{cesta}">
+            <button type="submit"><i class="fa fa-trash" aria-hidden="true"></i> Smazat</button>
+          </form>
+          <!-- end:smazat -->
+          <!-- begin:nespravovany --><span class="tip">Tenhle soubor se tu nespravuje, jen přes FTP.</span><!-- end:nespravovany -->
+        </div>
       </td>
     </tr>
     <!-- end:soubor -->

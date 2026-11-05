@@ -59,6 +59,11 @@ class ObrazkyObsahuTest extends TestCase
         self::assertMatchesRegularExpression('~Markdown:.*?<input[^>]*!\[\]\(soubory/obsah/stranky/kontakty/nova-clenka\.png\)~s', $html);
         self::assertMatchesRegularExpression('~HTML:.*?<input[^>]*&lt;img src=&quot;soubory/obsah/stranky/kontakty/nova-clenka\.png~s', $html);
         self::assertStringContainsString('name="cesta" value="stranky/kontakty/nova-clenka.png"', $html);
+        // nahradit jde i obrázek nahraný ke stránce, na který text zatím neodkazuje: dva odkazované a ten nahraný
+        self::assertSame(3, substr_count($html, 'value="nahradit"'));
+        // zápisy do textu mají stejný vzhled a šířku jako v bloku se soubory, tlačítko Nahradit se vedle výběru souboru vejde
+        self::assertSame(2, substr_count($html, 'onclick="this.select()" class="zapisy-k-vlozeni__odkaz"'));
+        self::assertStringNotContainsString('size="60"', $html);
         self::assertStringContainsString('Uloží se do <code>soubory/obsah/stranky/kontakty/</code>', $html);
     }
 
