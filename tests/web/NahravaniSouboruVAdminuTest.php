@@ -189,8 +189,8 @@ SQL,
         $stranka = $this->stahni($session, 'web/soubory');
         self::assertStringContainsString('Soubor nahrán.', $stranka);
         self::assertStringContainsString('plakat_' . self::znacka() . '.webp', $stranka, 'Výsledný název je v tabulce souborů');
-        // soubor, který vznikl převodem, jde nahradit i JPEG a PNG, prohlížeč je v oknu pro výběr nezakáže
-        self::assertStringContainsString('accept="image/webp,image/jpeg,image/png"', $stranka);
+        // soubor, který vznikl převodem, jde nahradit i JPEG, PNG a GIF, prohlížeč je v oknu pro výběr nezakáže
+        self::assertStringContainsString('accept="image/webp,image/jpeg,image/png,image/gif"', $stranka);
 
         $pred = md5_file($ulozeno);
         self::assertSame(303, $this->odesli($session, 'web/soubory', [
@@ -203,6 +203,54 @@ SQL,
         $info = getimagesize($ulozeno);
         self::assertSame([1920, 1280, 'image/webp'], [$info[0], $info[1], $info['mime']]);
         self::assertSame([], glob($materialy . '/rocnik_2099/plakat_' . self::znacka() . '.jpg'));
+
+        // PNG se do stávajícího WebP převede také, název ani odkazy se nemění
+        $predPng = md5_file($ulozeno);
+        $png = $this->soubor('.png', '');
+        imagepng(imagecreatetruecolor(300, 200), $png);
+        self::assertSame(303, $this->odesli($session, 'web/soubory', [
+            'souboryWebuAkce' => 'nahradit',
+            'slozka'          => 'materialy',
+            'cesta'           => 'rocnik_2099/plakat_' . self::znacka() . '.webp',
+            'souborWebu'      => new \CURLFile($png, 'image/png', 'plakat.png'),
+        ]));
+        self::assertNotSame($predPng, md5_file($ulozeno));
+        $info = getimagesize($ulozeno);
+        self::assertSame([300, 200, 'image/webp'], [$info[0], $info[1], $info['mime']]);
+        self::assertSame([], glob($materialy . '/rocnik_2099/plakat_' . self::znacka() . '.png'));
+    }
+
+    /**
+     * Starý JPEG z doby FTP jde nahradit libovolným obrázkem, zůstane JPEG pod stejným názvem a odkazy na něj fungují dál.
+     *
+     * @test
+     */
+    public function starsiJpegSeNahradiPngAZustaneJpeg(): void
+    {
+        $materialy = ZpracovaneObrazky::adresarObsahu() . '/materialy';
+        $this->uklidNoveAdresare($materialy);
+        $this->kUklidu[] = $materialy . '/rocnik_2099';
+        $starsi = $materialy . '/rocnik_2099/stary_' . self::znacka() . '.jpg';
+        (new Filesystem())->mkdir(dirname($starsi));
+        file_put_contents($starsi, self::jpgBajty(100, 100));
+        $session = $this->prihlas(\Uzivatel::SYSTEM_LOGIN);
+
+        $stranka = $this->stahni($session, 'web/soubory');
+        self::assertStringContainsString('stary_' . self::znacka() . '.jpg', $stranka);
+        self::assertStringContainsString('accept="image/jpeg,image/png,image/webp,image/gif"', $stranka);
+
+        $png = $this->soubor('.png', '');
+        imagepng(imagecreatetruecolor(300, 200), $png);
+        self::assertSame(303, $this->odesli($session, 'web/soubory', [
+            'souboryWebuAkce' => 'nahradit',
+            'slozka'          => 'materialy',
+            'cesta'           => 'rocnik_2099/stary_' . self::znacka() . '.jpg',
+            'souborWebu'      => new \CURLFile($png, 'image/png', 'nove.png'),
+        ]));
+
+        $info = getimagesize($starsi);
+        self::assertSame([300, 200, 'image/jpeg'], [$info[0], $info[1], $info['mime']]);
+        self::assertSame([], glob($materialy . '/rocnik_2099/stary_' . self::znacka() . '.{png,webp}', GLOB_BRACE));
     }
 
     /**

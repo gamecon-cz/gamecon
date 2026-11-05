@@ -125,10 +125,14 @@ SQL,
         self::assertStringContainsString('Nikde se nepoužívá', $volny);
         self::assertStringContainsString('value="smazat"', $volny);
         self::assertStringContainsString('name="cesta" value="' . self::stranka() . '/volny.pdf"', $volny);
+        // nahrát jde i soubor, na který text zatím neodkazuje, a to jen stejného typu, pod stejným názvem
+        self::assertStringContainsString('value="nahradit"', $volny);
+        self::assertStringContainsString('accept="application/pdf"', $volny);
 
         $pouzity = self::radek($html, 'pouzity.pdf');
         self::assertStringContainsString('<a href="web/editace-stranek?id=9931">stránka soubory-obsahu-test</a>', $pouzity);
         self::assertStringNotContainsString('value="smazat"', $pouzity, 'Soubor, na který text odkazuje, jde nahradit, ale ne smazat');
+        self::assertStringContainsString('value="nahradit"', $pouzity);
     }
 
     /**
@@ -176,8 +180,8 @@ SQL,
 
         $html = $this->panel($text, $poCastech)->html();
 
-        // nahrání nového souboru, nahrazení odkazovaného (i chybějícího)
-        self::assertSame(2, substr_count($html, 'data-nahravani-po-castech data-nahravani-prah="4096"'));
+        // nahrání nového souboru, nahrazení odkazovaného (i chybějícího) a nahrazení nahraného k textu
+        self::assertSame(3, substr_count($html, 'data-nahravani-po-castech data-nahravani-prah="4096"'));
         // soubor poslaný po částech omezuje jen nastavení aplikace, ne limit PHP pro jeden požadavek
         self::assertStringContainsString('nejvýš ' . NahravaniObrazku::lidskaVelikost(SOUBOR_MAX_MB * 1024 * 1024), $html);
         self::assertMatchesRegularExpression(

@@ -108,10 +108,11 @@ final class SouboryObsahu
         foreach ($vlastni as $index => $cesta) {
             $absolutniCesta = $absolutniCesty[$index];
             $template->assign([
-                'cesta'    => htmlspecialchars($cesta),
-                'nazev'    => htmlspecialchars(basename($cesta)),
-                'markdown' => htmlspecialchars(ZapisSouboruVTextu::markdown(ObrazkyObsahu::PREFIX_V_TEXTU . $cesta)),
-                'html'     => htmlspecialchars(ZapisSouboruVTextu::html(ObrazkyObsahu::PREFIX_V_TEXTU . $cesta)),
+                'cesta'         => htmlspecialchars($cesta),
+                'nazev'         => htmlspecialchars(basename($cesta)),
+                'acceptSouboru' => $this->nahravani->acceptProNahrazeni((string) NahravaniObrazku::mimePodlePripony($cesta)),
+                'markdown'      => htmlspecialchars(ZapisSouboruVTextu::markdown(ObrazkyObsahu::PREFIX_V_TEXTU . $cesta)),
+                'html'          => htmlspecialchars(ZapisSouboruVTextu::html(ObrazkyObsahu::PREFIX_V_TEXTU . $cesta)),
                 ...$this->getUdajeOSouboru($cesta, $absolutniCesta),
             ]);
             $pouziti = $absolutniCesta !== null
@@ -126,9 +127,14 @@ final class SouboryObsahu
             }
             if ($pouziti === []) {
                 $template->parse('souboryObsahu.vlastni.soubor.nikde');
-                $template->parse(FormularNahraniSouboru::nazevPrezijeFormular($cesta)
-                    ? 'souboryObsahu.vlastni.soubor.smazat'
-                    : 'souboryObsahu.vlastni.soubor.nespravovany');
+            }
+            if (!FormularNahraniSouboru::nazevPrezijeFormular($cesta)) {
+                $template->parse('souboryObsahu.vlastni.soubor.nespravovany');
+            } else {
+                $template->parse('souboryObsahu.vlastni.soubor.nahradit');
+                if ($pouziti === []) {
+                    $template->parse('souboryObsahu.vlastni.soubor.smazat');
+                }
             }
             $template->parse('souboryObsahu.vlastni.soubor');
         }

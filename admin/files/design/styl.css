@@ -1184,6 +1184,18 @@ button .ajax-loader {
   white-space: nowrap;
 }
 
+/* the buttons of a file row, the forms of table cells are inline in the admin and would not wrap or keep a gap */
+.akce-souboru {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.6em 0.4em;
+}
+/* Delete is the form after Replace and has its own line however wide the cell is, so Firefox and Chromium lay it out alike */
+.akce-souboru > form + form {
+  flex-basis: 100%;
+}
+
 /* the progress of an upload sent in parts (files/nahravani-po-castech.js), under the form it belongs to */
 .nahravani-po-castech {
   flex-basis: 100%;

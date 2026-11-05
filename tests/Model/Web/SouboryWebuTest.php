@@ -214,7 +214,7 @@ SQL,
         self::assertStringContainsString('<i class="fa fa-upload" aria-hidden="true"></i> Nahradit', $volny);
         self::assertStringContainsString('<i class="fa fa-trash" aria-hidden="true"></i> Smazat', $volny);
         self::assertMatchesRegularExpression(
-            '~<div class="soubory-webu__akce">\s*<form.*Nahradit.*<form.*Smazat.*</div>~s',
+            '~<div class="akce-souboru">\s*<form.*Nahradit.*<form.*Smazat.*</div>~s',
             $volny,
             'Nahradit a Smazat jsou v jednom bloku, který mezi nimi drží odstup',
         );
