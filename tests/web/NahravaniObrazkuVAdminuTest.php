@@ -312,6 +312,60 @@ SQL,
     /**
      * @test
      */
+    public function obrazekEshopuJdeNahraditJinymFormatemPodStejnymNazvem(): void
+    {
+        $nazev = '98_Nahrazovaný předmět ' . getmypid();
+        $soubor = ZpracovaneObrazky::adresarObrazkuEshopu() . '/' . $nazev . '.png';
+        $this->uklidNoveAdresare(dirname($soubor));
+        $this->kUklidu[] = $soubor;
+        $session = $this->prihlas(\Uzivatel::SYSTEM_LOGIN);
+        self::assertSame(303, $this->odesli($session, 'finance/shop', [
+            'obrazkyEshopuAkce' => 'nahrat',
+            'nazev'             => $nazev,
+            'obrazekEshopu'     => new \CURLFile($this->png(), 'image/png', 'cokoli.png'),
+        ]));
+        self::assertSame([40, 40], array_slice(getimagesize($soubor), 0, 2));
+
+        $stranka = $this->stahni($session, 'finance/shop');
+        self::assertStringContainsString('name="soubor" value="' . $nazev . '.png"', $stranka);
+        self::assertStringContainsString('accept="image/png,image/jpeg,image/gif"', $stranka);
+
+        // JPEG nahradí PNG a zůstane PNG pod stejným názvem, takže galerie ani popisek se nemění
+        self::assertSame(303, $this->odesli($session, 'finance/shop', [
+            'obrazkyEshopuAkce' => 'nahradit',
+            'soubor'            => basename($soubor),
+            'obrazekEshopu'     => new \CURLFile($this->jpg(80, 50), 'image/jpeg', 'IMG_0001.jpg'),
+        ]));
+        $info = getimagesize($soubor);
+        self::assertSame([80, 50, 'image/png'], [$info[0], $info[1], $info['mime']]);
+        self::assertSame([basename($soubor)], array_map(basename(...), glob(dirname($soubor) . '/98_Nahrazovan*') ?: []));
+        self::assertStringContainsString('je nahrazený', $this->stahni($session, 'finance/shop'));
+
+        // nahradit jde jen obrázek, který v galerii je; jiný název nic nevytvoří
+        self::assertSame(303, $this->odesli($session, 'finance/shop', [
+            'obrazkyEshopuAkce' => 'nahradit',
+            'soubor'            => 'sponzori/98_Podvrh.png',
+            'obrazekEshopu'     => new \CURLFile($this->png(), 'image/png', 'podvrh.png'),
+        ]));
+        self::assertFileDoesNotExist(dirname($soubor) . '/98_Podvrh.png');
+        self::assertFileDoesNotExist(dirname($soubor) . '/sponzori/98_Podvrh.png');
+        self::assertStringContainsString('v galerii není', $this->stahni($session, 'finance/shop'));
+
+        // skrytý soubor, který v adresáři je, ale galerie ho nevypisuje, se nepřepíše
+        $skryty = dirname($soubor) . '/.98_Skryty.png';
+        file_put_contents($skryty, 'puvodni obsah');
+        $this->kUklidu[] = $skryty;
+        self::assertSame(303, $this->odesli($session, 'finance/shop', [
+            'obrazkyEshopuAkce' => 'nahradit',
+            'soubor'            => '.98_Skryty.png',
+            'obrazekEshopu'     => new \CURLFile($this->png(), 'image/png', 'skryty.png'),
+        ]));
+        self::assertSame('puvodni obsah', file_get_contents($skryty));
+    }
+
+    /**
+     * @test
+     */
     public function obrazekVTextuStrankyNahrajeANoveNahraneSmaze(): void
     {
         $obsah = ZpracovaneObrazky::adresarObsahu();
