@@ -1150,7 +1150,7 @@ button .ajax-loader {
   opacity: 0.7;
 }
 
-/* the form that uploads a file to the site: Soubory page and the panel under the page editor */
+/* the form that uploads a file or an image to the site: Soubory page, the blocks under the page editor, e-shop gallery */
 .nahrani-souboru {
   display: flex;
   flex-wrap: wrap;

@@ -116,6 +116,20 @@ class ObrazkyObsahuTest extends TestCase
         self::assertStringNotContainsString('cizi.png', $html);
     }
 
+    /**
+     * Formulář pro nahrání vypadá a roztahuje se jako ve stránce Soubory a v bloku se soubory, ne po svém.
+     *
+     * @test
+     */
+    public function formularKNahraniObrazkuMaSpolecnyVzhledSFormularemSouboru(): void
+    {
+        $html = $this->widget('text')->html();
+
+        self::assertStringContainsString('<form method="post" enctype="multipart/form-data" class="nahrani-souboru">', $html);
+        self::assertStringContainsString('<label class="nahrani-souboru__nazev">Název <input type="text" name="nazev"', $html);
+        self::assertStringNotContainsString('obrazky-obsahu__nahrat', $html);
+    }
+
     private function widget(string $text): ObrazkyObsahu
     {
         return new ObrazkyObsahu(
