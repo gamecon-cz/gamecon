@@ -6,11 +6,11 @@ To decide what a bump needs, the reviewer used to look up everything by hand. Th
 
 ## How it works
 
-- The workflow runs on `pull_request` (opened, reopened, synchronize, edited) and only for pull requests authored by `dependabot[bot]`. It reads the merge commit GitHub builds for the pull request: `HEAD^1` is `main`, `HEAD^2` the head of the pull request, `HEAD` has the Dependabot change on top. It has to be on `main` before it runs for a Dependabot pull request.
+- The workflow runs on `pull_request` (opened, reopened, synchronize, edited) for pull requests that change a `composer.lock` or a `yarn.lock` (the `paths` filter: a pull request without one starts no run; one that changes only a lockfile under `vendor/` does start one, and the script ignores it), and its job does something only for pull requests authored by `dependabot[bot]`: `pull_request` cannot filter by author, so a human's pull request that changes a lockfile still starts a run, which is skipped. It reads the merge commit GitHub builds for the pull request: `HEAD^1` is `main`, `HEAD^2` the head of the pull request, `HEAD` has the Dependabot change on top. It has to be on `main` before it runs for a Dependabot pull request.
 - `bin/security-update-brief.sh` runs `.github/scripts/security-update-brief.py` (Python 3, standard library only; `composer audit` for PHP, the npm bulk advisory endpoint for JS) on the lockfiles that the pull request changed. The wrapper holds the directories to search and the file with the steps, so the workflow and a local run print the same brief. Then the workflow reads the body, puts the brief first (a previous brief is replaced) and writes it back with `gh api --method PATCH`. Nothing in it is AI generated.
 - The job token is read-only on Dependabot pull requests unless the job asks for more; this one asks for `contents: read` and `pull-requests: write`, and has no secrets. The script that splices the body runs without the token. The workflow runs only the repository's own files.
 - Dependabot rewrites the whole body after a force-push, which drops the brief; the `synchronize` and `edited` runs put it back within seconds. A run whose head is no longer the head of the pull request writes nothing, so re-running an old run is harmless; to get a missing brief, re-run the latest one. A running run is never cancelled and at most one more waits behind it: cancelling the run for the new head in favour of a stale one could leave the body without a brief.
-- A Dependabot pull request that changes no lockfile gets no brief.
+- A Dependabot pull request that changes no `composer.lock` or `yarn.lock` (for example one that changes only a `package-lock.json`) gets no brief, and the workflow does not even start for it.
 
 ## What the brief holds
 

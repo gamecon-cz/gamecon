@@ -9,6 +9,7 @@ import sys
 import tempfile
 import textwrap
 import unittest
+from unittest import mock
 
 sys.dont_write_bytecode = True
 ROOT = os.path.normpath(os.path.join(os.path.dirname(__file__), '..', '..'))
@@ -218,6 +219,16 @@ class WorkflowTest(unittest.TestCase):
         self.assertEqual(1, self.text.count('pull-requests: write'))
         self.assertNotIn('contents: write', self.text)
         self.assertNotIn('pull_request_target', self.text)
+
+    def test_the_workflow_starts_only_for_the_lockfiles_that_the_script_writes_a_brief_for(self):
+        section = re.search(r"(?m)^\s+paths:\n((?:\s+- ['\"]\*\*/[^'\"]+['\"]\n)+)", self.text)
+        self.assertIsNotNone(section)
+        names = re.findall(r"['\"]\*\*/([^'\"/]+)['\"]", section.group(1))
+        self.assertEqual(['composer.lock', 'yarn.lock'], names)
+        changed = ['composer.lock', 'ui/yarn.lock', 'admin/composer.lock', 'package-lock.json', 'ui/pnpm-lock.yaml', 'composer.json', 'ui/package.json', 'README.md']
+        with mock.patch.object(brief, 'git', return_value='\n'.join(changed)):
+            handled = brief.changed_lock_paths('.', 'base', 'head')
+        self.assertEqual([path for path in changed if os.path.basename(path) in names], handled)
 
     def test_the_workflow_ignores_the_checkout_credentials_and_edits_the_body_in_one_step(self):
         self.assertIn('persist-credentials: false', self.text)
