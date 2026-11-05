@@ -35,7 +35,7 @@
           <button type="submit"><i class="fa fa-upload" aria-hidden="true"></i> {tlacitko}</button>
         </form>
         <!-- end:nahradit -->
-        <!-- begin:nespravovany --><span class="tip">Tenhle soubor se tu nespravuje, jen přes FTP.</span><!-- end:nespravovany -->
+        <!-- begin:nespravovany --><span class="tip">Tenhle soubor se tu nespravuje, mění ho jen správce serveru.</span><!-- end:nespravovany -->
       </td>
     </tr>
     <!-- end:soubor -->
@@ -94,7 +94,7 @@
             <button type="submit"><i class="fa fa-trash" aria-hidden="true"></i> Smazat</button>
           </form>
           <!-- end:smazat -->
-          <!-- begin:nespravovany --><span class="tip">Tenhle soubor se tu nespravuje, jen přes FTP.</span><!-- end:nespravovany -->
+          <!-- begin:nespravovany --><span class="tip">Tenhle soubor se tu nespravuje, mění ho jen správce serveru.</span><!-- end:nespravovany -->
         </div>
       </td>
     </tr>

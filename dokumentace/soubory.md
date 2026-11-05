@@ -21,7 +21,7 @@ Struktura složek a souborů v projektu:
   - nastaveni.php – nastavení bussines logiky GC (kdy začíná, čísla účtů pro platbu, …). Sdíleno pro všechny prostředí (lokální, beta, produkce).
   - nastaveni-local-default.php – technická nastavení pro lokální vývoj. Tento soubor je výchozí varianta uložená v repu, která by měla rovnou fungovat po instalaci projektu podle návodu. Možno "přetížit" pomocí `nastaveni-local.php`.
   - nastaveni-local.php – v tomto souboru je možné "přetížit" local-default nastavení (např. nastavit vlastní heslo do databáze). TODO: zatím nefunguje korektně, k přetížení konstant je nutné odladit potlačení error reportingu.
-  - nastaveni-{cokoli}.php – soubory specifické pro konkrétní server (beta, produkce), které spravuje výhradně člověk, který dělá deployment. Neměnit přes FTP, neukládat lokálně (obsahují hesla). Výjimku má člověk, který dělá deployment – soubory podléhají automatickému deploymentu.
+  - nastaveni-{cokoli}.php – soubory specifické pro konkrétní server (beta, produkce), které spravuje výhradně člověk, který dělá deployment. Neměnit ručně na serveru, neukládat lokálně (obsahují hesla). Výjimku má člověk, který dělá deployment – soubory podléhají automatickému deploymentu.
 - udrzba – skripty provádějící různé operace údržby, např. deployment.
 - vendor – složka s knihovnami spravovaná _výhradně_ pomocí composeru. Neměnit.
 - web – veřejné rozhraní GC webu.
@@ -32,7 +32,7 @@ Struktura složek a souborů v projektu:
 
 ## Odkazování souborů
 
-Pokud je potřeba v kódu použít odkaz na soubor (url k javascriptu, obrázku, …), musí být tento soubor taky v repozitáři (a podléhat [automatickému deploymentu](ftp-a-deployment.md#deployment)).
+Pokud je potřeba v kódu použít odkaz na soubor (url k javascriptu, obrázku, …), musí být tento soubor taky v repozitáři (a podléhat [automatickému deploymentu](nasazeni.md#deployment)).
 
 Velké soubory, které se často mění (např. tématické obrázky stylu a titulky) by ale postupně zvětšovaly velikost repa¹ až na nepřijatelnou úroveň. Řešením je vložit odkaz na soubor mimo repo (např. nějaký obrázek v `web/soubory/titulka`), ale uložit v repu nějakou výchozí variantu, která se nebude měnit (např. netematizovaný obrázek). V kódu se potom testuje přítomnost tématického obrázku a v případě jeho neexistence se použije výchozí obrázek, který v repu je. TODO: Toto pravidlo zatím není úplně realizováno. Pokud se v kódu narazí na odkaz mimo repo, který nemá výchozí alternativu, měla by se tato alternativa vytvořit a kód upravit.
 

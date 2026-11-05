@@ -3,12 +3,11 @@
 declare(strict_types=1);
 
 /**
- * Masks that dg/ftp-deployment appends after the configured ones, so they override their exceptions. rsync gets them as
- * sender-only rules: never sent, and a leftover on the server is deleted unless a `P` rule or an exclude of the other
- * masks covers it (a `.gitkeep` in the uploads, a `.bak` in the content). A mask added by a library upgrade is treated
- * the same way, so check that it names no server data.
+ * Masks that the FTP deploy used to append after the configured ones, so they override their exceptions. rsync gets
+ * them as sender-only rules: never sent, and a leftover on the server is deleted unless a `P` rule or an exclude of the
+ * other masks covers it (a `.gitkeep` in the uploads, a `.bak` in the content). A mask added here is treated the same
+ * way, so check that it names no server data.
  *
- * @see \Deployment\CliRunner::$ignoreMasks
  * @return list<string>
  */
 function getDefaultIgnoreMasks(): array
@@ -17,8 +16,8 @@ function getDefaultIgnoreMasks(): array
 }
 
 /**
- * Paths that appear on the server at runtime or were uploaded by hand, so git lacks them. FTP never deleted them,
- * because it deleted only what it had uploaded; rsync `--delete` deletes everything not listed here or covered by an exclude of the project masks.
+ * Paths that appear on the server at runtime or were copied there by hand, so git lacks them. rsync `--delete` deletes
+ * everything not listed here or covered by an exclude of the project masks.
  *
  * @return list<string>
  */
@@ -35,7 +34,7 @@ function getRsyncProtectedPaths(): array
 }
 
 /**
- * Translates dg/ftp-deployment masks (the last match wins, `!` is an exception) to rsync filters (the first match wins)
+ * Translates the ignore masks (the last match wins, `!` is an exception) to rsync filters (the first match wins)
  * that select the same files, see docs/generated/nasazeni-rsync.md. Protected paths go first as `P` rules; after the
  * masks, the `+` exceptions would match them first and leave a server-only `.htaccess` deletable. The sender-only masks
  * (plain names) become `H` rules after them, not excludes, see the same document.
@@ -90,7 +89,7 @@ function buildRsyncFilters(array $ignoreMasks, array $protectedPaths = [], array
 }
 
 /**
- * Refuses the mask shapes the translation does not select exactly like the library: `[`, `\` and `**`, which rsync reads
+ * Refuses the mask shapes the translation does not select exactly like the mask rules say: `[`, `\` and `**`, which rsync reads
  * differently, and an exception inside a directory that an earlier mask ignores, which rsync would not keep ignored.
  *
  * @param list<string> $ignoreMasks
@@ -105,7 +104,7 @@ function assertMasksTranslatable(array $ignoreMasks): void
             ? substr($mask, 1)
             : $mask;
         if (preg_match('~[\\\\\[]|\*\*~', $pattern) === 1) {
-            throw new \LogicException("Maska '{$mask}' obsahuje [, \\ nebo **, což rsync vykládá jinak než dg/ftp-deployment");
+            throw new \LogicException("Maska '{$mask}' obsahuje [, \\ nebo **, což rsync vykládá jinak, než maska znamená");
         }
         $isRooted = str_contains($pattern, '/');
         if (!$isException) {
@@ -124,7 +123,7 @@ function assertMasksTranslatable(array $ignoreMasks): void
                     ? fnmatch($ignoringPattern, $parent, FNM_PATHNAME | FNM_CASEFOLD) || fnmatch($parent, $ignoringPattern, FNM_PATHNAME | FNM_CASEFOLD)
                     : fnmatch($ignoringPattern, basename($parent), FNM_CASEFOLD);
                 if ($matches) {
-                    throw new \LogicException("Výjimka '{$mask}' leží ve složce '{$parent}', kterou ignoruje '{$ignoringPattern}'; rsync by z ní nahrál víc než dg/ftp-deployment");
+                    throw new \LogicException("Výjimka '{$mask}' leží ve složce '{$parent}', kterou ignoruje '{$ignoringPattern}'; rsync by z ní nahrál víc, než maska znamená");
                 }
             }
         }
@@ -176,7 +175,7 @@ function buildRsyncCommand(
     $command = [
         'rsync',
         '--recursive',
-        '--copy-links', // dg/ftp-deployment uploaded symlinks as the files and directories they point to
+        '--copy-links', // symlinks go as the files and directories they point to, as they did with the FTP deploy
         '--checksum', // modification times differ after every checkout and composer install
         '--compress',
         '--delete-delay', // plain --delete removes files before the new ones are renamed into place

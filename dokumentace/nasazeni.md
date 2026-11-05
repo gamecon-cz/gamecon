@@ -1,18 +1,18 @@
 
-## FTP
+## Kód a data na serveru
 
-__Editování kódu přes FTP je zakázáno.__ Kód se na server dostává automaticky (viz dál) a ruční nahrání by způsobilo skrytý rozdíl mezi obsahem gitu a serveru, což způsobuje hodně těžko odhalitelné bugy, které se mohou objevit s velkým spožděním a úplně nečekaně.
+__Editování kódu přímo na serveru je zakázáno.__ Kód se na server dostává automaticky (viz dál) a ruční úprava by způsobila skrytý rozdíl mezi obsahem gitu a serveru, což způsobuje hodně těžko odhalitelné bugy, které se mohou objevit s velkým spožděním a úplně nečekaně. FTP se k tomu nepoužívá: soubory se nahrávají z administrace a kód nasazením.
 
-Obrázky a soubory ke stažení se nahrávají z administrace, FTP na ně není potřeba:
+Obrázky a soubory ke stažení se nahrávají z administrace:
 
 - fotky vypravěčů (`web/soubory/systemove/fotky`) v Aktivity → Medailonky,
 - obrázky do textů stránek a novinek (`web/soubory/obsah`) v editaci stránky nebo novinky, část Obrázky,
-- soubory ke stažení k textu stránky nebo novinky (PDF, dokumenty, zvuk, ZIP, třeba press kit nebo soubory k D&D) tamtéž, část Soubory ke stažení: nový soubor jde do adresáře stránky, soubor z doby FTP, na který text odkazuje, se nahradí na místě; velké soubory jdou po částech,
+- soubory ke stažení k textu stránky nebo novinky (PDF, dokumenty, zvuk, ZIP, třeba press kit nebo soubory k D&D) tamtéž, část Soubory ke stažení: nový soubor jde do adresáře stránky, starší soubor, na který text odkazuje, se nahradí na místě; velké soubory jdou po částech,
 - obrázky galerie e-shopu v přihlášce (`web/soubory/obsah/materialy/<ročník>/eshop`) ve Finance → Shop,
 - loga sponzorů a partnerů ve Web → Loga, obrázky linií ve Web → Hlavičky linií,
 - soubory ke stažení ve složkách `download`, `materialy`, `celohra` a `drd` v `web/soubory/obsah` ve Web → Soubory: do každé složky PDF, XLSX, MP3, ZIP a obrázky.
 
-Přes FTP zůstávají soubory jiných typů (třeba fonty) a nahrávání do archivních ročníků, které mají vlastní nasazení.
+Soubory jiných typů (třeba fonty) patří do gitu a nasazují se s kódem. Archivní ročníky jsou zmrazené, nenahrává se do nich a mají vlastní nasazení.
 
 __Editování struktury databáze přes Adminer je zakázáno.__ K změnám struktury databáze se používají skripty v složce `migrace`. Strukturou se rozumí přidávání sloupců, tabulek a podobně.
 
@@ -20,12 +20,9 @@ __Editování struktury databáze přes Adminer je zakázáno.__ K změnám stru
 
 Nasazení na ostrou i betu (vč. upgrade databáze) provádí skript `udrzba/nasad.php`. Spouští ho GitHub Actions: [`deploy-ostra.yml`](../.github/workflows/deploy-ostra.yml) po pushi do `main`, [`deploy-beta.yml`](../.github/workflows/deploy-beta.yml) po pushi do větve `beta`. Nasazení jedou postupně (`concurrency`), testy běží před nimi.
 
-Soubory se nahrávají jedním ze dvou způsobů a vybírá se secretem:
+Soubory se nahrávají přes **rsync po SSH**, cíl je v secretu `DEPLOY_RSYNC_TARGET`. Server se ověřuje připnutým `known_hosts`. Bez cíle nasazení skončí chybou.
 
-- **rsync po SSH**, když je nastavený `DEPLOY_RSYNC_TARGET`. Server se ověřuje připnutým `known_hosts`.
-- **FTP** (knihovna `dg/ftp-deployment`), dokud ten secret chybí. Zmizí spolu s FTP účtem nasazení.
-
-Které soubory se nahrávají, určují masky v `buildIgnoreMasks()` v [`udrzba/_pomocne.php`](../udrzba/_pomocne.php), společné pro oba způsoby. Po nahrání nasazení vždy zavolá na serveru `admin/deploy/*`: smaže cache, spustí migrace databáze a přegeneruje cache programu.
+Které soubory se nahrávají, určují masky v `buildIgnoreMasks()` v [`udrzba/_pomocne.php`](../udrzba/_pomocne.php). Po nahrání nasazení vždy zavolá na serveru `admin/deploy/*`: smaže cache, spustí migrace databáze a přegeneruje cache programu.
 
 ### rsync
 
@@ -39,17 +36,17 @@ Ostrá a beta mají každá vlastní klíč, který smí zapisovat jen do složk
 
 Volitelné proměnné repozitáře (Settings → Secrets and variables → Variables): `DEPLOY_SSH_PORT` a dva limity mazání, nejvíc položek (souborů i složek), které jedno nasazení smí smazat: `DEPLOY_RSYNC_MAX_DELETE_PROJECT` pro vše mimo `vendor/` (výchozí 500) a `DEPLOY_RSYNC_MAX_DELETE_VENDOR` pro `vendor/` (výchozí 5000). `vendor/` je v gitu, takže větší aktualizace závislostí, přeinstalování nebo úklid starých balíčků smaže stovky až tisíce souborů (první plán pro betu: 1793 starých vývojových balíčků), kdežto zbytek se mění po desítkách. V historii od roku 2013, počítáno jako rsync (soubory i složky), smazala nejvíc skutečná aktualizace ve `vendor/` 495 položek a jednou přeinstalování celého `vendor/` 8269; mimo `vendor/` smazaly přes sto položek čtyři commity, nejvíc 526. Takový výjimečný commit limit překročí a nasazení se zastaví, dokud se proměnná nezvýší. Nižší limit mimo `vendor/` tak ještě pozná rozbitou masku nebo chráněnou cestu. Při `0` nasazení selže, jakmile by se v dané části mělo cokoli mazat. Každý běh, i zkušební, nejdřív nanečisto spočítá, co by smazal, a při překročení kteréhokoli limitu skončí dřív, než cokoli změní; hláška říká, který limit a kolik položek by se smazalo.
 
-Rozdíly proti FTP, které je dobré znát:
+Co je dobré znát:
 
-- **Mazání.** FTP mazalo jen soubory, které samo nahrálo (seznam `.htdeployment` na serveru). rsync `--delete` smaže všechno, co v gitu není. Co na serveru vzniká za běhu nebo se tam nahrálo ručně (nahrané fotky, dumpy databáze, cache), chrání `getRsyncProtectedPaths()` v [`udrzba/rsync-nasazeni.php`](../udrzba/rsync-nasazeni.php). Když aplikace začne zapisovat do nové cesty uvnitř projektu, patří sem také. Soubory podle výchozích masek knihovny (`.git*`, `*.bak`, `.idea`, `Thumbs.db`, `.DS_Store`, `.svn`, `.claude`) se nenahrávají a rsync je na serveru smaže, pokud je nechrání pravidlo výše nebo ignorovaný obsah (například `.gitkeep` v nahraných složkách). Ostatní ignorované cesty (logy, cache, nahraný obsah) rsync na serveru nechává.
+- **Mazání.** rsync `--delete` smaže všechno, co v gitu není. Co na serveru vzniká za běhu nebo se tam zkopírovalo ručně (nahrané fotky, dumpy databáze, cache), chrání `getRsyncProtectedPaths()` v [`udrzba/rsync-nasazeni.php`](../udrzba/rsync-nasazeni.php). Když aplikace začne zapisovat do nové cesty uvnitř projektu, patří sem také. Soubory podle výchozích masek (`.git*`, `*.bak`, `.idea`, `Thumbs.db`, `.DS_Store`, `.svn`, `.claude`) se nenahrávají a rsync je na serveru smaže, pokud je nechrání pravidlo výše nebo ignorovaný obsah (například `.gitkeep` v nahraných složkách). Ostatní ignorované cesty (logy, cache, nahraný obsah) rsync na serveru nechává.
 - **Změněný soubor** se pozná podle obsahu (`--checksum`), ne podle času, protože po checkoutu a `composer install` mají všechny soubory nový.
 - **Souběh a atomicita.** Soubory se nahrají pod dočasnými názvy, na místo se přejmenují až po nahrání všech (`--delay-updates`) a mazání jde teprve po přejmenování (`--delete-delay`; prosté `--delete` by mazalo dřív, než nové soubory dorazí). Souběh dál hlídá `concurrency` ve workflow.
-- **Chyba uprostřed.** Když rsync skončí chybou (spojení, soubor, který nejde smazat), nasazení skončí červeně před smazáním cache a migracemi a server je částečně aktualizovaný. Po odstranění příčiny stačí workflow spustit znovu: rsync dokončí rozdíl a pak proběhnou migrace. Automatický opakovaný pokus, jaký měl FTP, tu není.
+- **Chyba uprostřed.** Když rsync skončí chybou (spojení, soubor, který nejde smazat), nasazení skončí červeně před smazáním cache a migracemi a server je částečně aktualizovaný. Po odstranění příčiny stačí workflow spustit znovu: rsync dokončí rozdíl a pak proběhnou migrace. Automatický opakovaný pokus tu není.
 - **Ruční úpravy na serveru** (hotfix) rsync při příštím nasazení přepíše.
 
 Workflow „Deploy BETA on direct push or merged pull request“ (`deploy-beta.yml`) se spouští ručně na větvi `beta`, „Deploy OSTRA (main) on direct push or merged pull request“ (`deploy-ostra.yml`) na větvi `main` (Actions → Run workflow → Use workflow from). Na jiné větvi skončí úloha `check-branch` chybou a nic se nenasadí, protože `nasad.php` skládá nastavení podle názvu větve a do složky jednoho prostředí by nahrál nastavení druhého. Ochrana je ve workflow z vybrané větve: dokud ji `beta` nemá (dostane ji sloučením `main`, což je skutečné nasazení bety), **nespouštějte Deploy OSTRA s volbou „Use workflow from: beta“**, protože by na ostrou nahrál kód bety a smazal z ní `nastaveni-produkce.php` s přihlašovacími údaji k databázi. Opakované spuštění staršího běhu (Re-run) nasadí znovu jeho původní commit.
 
-Co by nasazení udělalo, ukáže ruční spuštění workflow se zaškrtnutým `dry_run`: proběhnou testy a pak `rsync --dry-run`, který vypíše nahrávané a mazané soubory, a nic se nezmění ani na serveru, ani v databázi. Zkušební běh má vlastní skupinu `concurrency`, takže nezruší čekající skutečné nasazení. Volba `dry_run` je také ve workflow z vybrané větve, takže na `beta` je až po sloučení `main`. Funguje jen pro prostředí, které má rsync nastavený (cíl, klíč i `known_hosts` v secrets výše); jinak `nasad()` skončí chybou až po testech.
+Co by nasazení udělalo, ukáže ruční spuštění workflow se zaškrtnutým `dry_run`: proběhnou testy a pak `rsync --dry-run`, který vypíše nahrávané a mazané soubory, a nic se nezmění ani na serveru, ani v databázi. Zkušební běh má vlastní skupinu `concurrency`, takže nezruší čekající skutečné nasazení. Volba `dry_run` je také ve workflow z vybrané větve, takže na `beta` je až po sloučení `main`. Potřebuje cíl, klíč i `known_hosts` v secrets výše; bez cíle `nasad.php` skončí chybou dřív, než cokoli nahraje nebo změní.
 
 ### Co musí být na serveru
 
@@ -62,4 +59,4 @@ Co by nasazení udělalo, ukáže ruční spuštění workflow se zaškrtnutým 
 
 ## Hotfix
 
-Výjimku pro editaci přes FTP představuje hotfix. Pokud je nějaká kritická chyba, je možné kód změnit přímo na ftp a na githubu vytvořit pull request s odpovídajícími změnami. V pull requestu se uvede, že jde o hotfix.
+Výjimku pro editaci přímo na serveru představuje hotfix. Pokud je nějaká kritická chyba, je možné kód změnit přímo na serveru po SSH a na githubu vytvořit pull request s odpovídajícími změnami. V pull requestu se uvede, že jde o hotfix. Další nasazení ruční úpravu přepíše, takže změna musí být do té doby sloučená.

@@ -149,7 +149,7 @@ SQL,
 
         $html = $this->panel($text)->html();
 
-        self::assertSame(2, substr_count($html, 'Tenhle soubor se tu nespravuje, jen přes FTP.'), 'Odkazovaný i nahraný soubor');
+        self::assertSame(2, substr_count($html, 'Tenhle soubor se tu nespravuje, mění ho jen správce serveru.'), 'Odkazovaný i nahraný soubor');
         self::assertStringNotContainsString('value="nahradit"', $html);
         self::assertStringNotContainsString('value="smazat"', $html);
     }
