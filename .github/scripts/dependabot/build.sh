@@ -14,7 +14,7 @@ IFS=$'\n\t'
 DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 
 # project root
-cd "$(dirname "$DIR")"
+cd "$DIR/../../.."
 
 IFS=' ' read -r -a pull_requests <<< "$HEADS"
 bin/fold-dependabot-composer.sh "${pull_requests[@]}" | tee "$RUNNER_TEMP/fold-summary.txt"

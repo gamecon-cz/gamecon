@@ -10,7 +10,7 @@ import unittest
 sys.dont_write_bytecode = True
 ROOT = os.path.normpath(os.path.join(os.path.dirname(__file__), '..', '..'))
 SCRIPT = os.path.join(ROOT, 'bin', 'fold-dependabot-composer.sh')
-BUILD_SCRIPT = os.path.join(ROOT, 'bin', 'fold-dependabot-composer-build.sh')
+BUILD_SCRIPT = os.path.join(ROOT, '.github', 'scripts', 'dependabot', 'build.sh')
 
 # one line per package, with filler between them: changes to different packages merge, changes to the same one conflict
 LOCK_TEMPLATE = """{{
@@ -69,7 +69,8 @@ class FoldTest(unittest.TestCase):
         subprocess.run(['git', 'init', '--quiet', '--bare', '-b', 'main', self.origin], check=True, env=self.environment())
         os.makedirs(os.path.join(self.root, 'bin'))
         shutil.copy2(SCRIPT, os.path.join(self.root, 'bin', 'fold-dependabot-composer.sh'))
-        shutil.copy2(BUILD_SCRIPT, os.path.join(self.root, 'bin', 'fold-dependabot-composer-build.sh'))
+        os.makedirs(os.path.join(self.root, '.github', 'scripts', 'dependabot'))
+        shutil.copy2(BUILD_SCRIPT, os.path.join(self.root, '.github', 'scripts', 'dependabot', 'build.sh'))
         self.git('init', '--quiet', '-b', 'main')
         self.git('config', 'user.email', 'test@example.com')
         self.git('config', 'user.name', 'Test')
@@ -308,7 +309,7 @@ class FoldTest(unittest.TestCase):
         environment = {**self.environment(), 'PATH': self.fake_bin + os.pathsep + os.environ['PATH'], 'DEV_IMAGE_RUN': 'env', 'FAKE_PHP_LOG': self.php_log,
                        'GIT_AUTHOR_NAME': 'Bot', 'GIT_AUTHOR_EMAIL': 'bot@example.com', 'GIT_COMMITTER_NAME': 'Bot', 'GIT_COMMITTER_EMAIL': 'bot@example.com',
                        'HEADS': heads, 'RUNNER_TEMP': self.runner_temp, 'GITHUB_SHA': self.git('rev-parse', 'HEAD'), 'GITHUB_OUTPUT': self.github_output}
-        return subprocess.run(['bash', os.path.join(self.root, 'bin', 'fold-dependabot-composer-build.sh')], cwd=self.root, env=environment, capture_output=True, text=True)
+        return subprocess.run(['bash', os.path.join(self.root, '.github', 'scripts', 'dependabot', 'build.sh')], cwd=self.root, env=environment, capture_output=True, text=True)
 
     def test_the_build_step_makes_a_bundle_of_what_was_folded_and_says_so_in_its_output(self):
         head = self.pull_request(101, one='1.0.1')

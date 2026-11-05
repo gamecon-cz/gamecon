@@ -272,11 +272,11 @@ class BatchInstructionsTest(unittest.TestCase):
         self.assertIn('BRIEF_INSTRUCTIONS=.github/security-update-brief-batch.md bin/security-update-brief.sh', read(PUBLISH_SCRIPT_PATH))
 
 
-PLAN_SCRIPT_PATH = os.path.join(ROOT, 'bin', 'fold-dependabot-composer-plan.sh')
-BUILD_SCRIPT_PATH = os.path.join(ROOT, 'bin', 'fold-dependabot-composer-build.sh')
-PUBLISH_SCRIPT_PATH = os.path.join(ROOT, 'bin', 'fold-dependabot-composer-publish.sh')
+PLAN_SCRIPT_PATH = os.path.join(ROOT, '.github', 'scripts', 'dependabot', 'plan.sh')
+BUILD_SCRIPT_PATH = os.path.join(ROOT, '.github', 'scripts', 'dependabot', 'build.sh')
+PUBLISH_SCRIPT_PATH = os.path.join(ROOT, '.github', 'scripts', 'dependabot', 'publish.sh')
 FOLD_SCRIPT_PATH = os.path.join(ROOT, 'bin', 'fold-dependabot-composer.sh')
-CHECK_PATH = os.path.join(ROOT, '.github', 'scripts', 'check-fold-changes.py')
+CHECK_PATH = os.path.join(ROOT, '.github', 'scripts', 'dependabot', 'check-fold-changes.py')
 
 
 class FoldWorkflowTest(unittest.TestCase):
@@ -298,7 +298,7 @@ class FoldWorkflowTest(unittest.TestCase):
 
     def test_every_step_that_runs_something_runs_one_script_of_bin_and_no_expression_reaches_a_shell(self):
         blocks = run_blocks(self.text)
-        self.assertEqual(['bin/fold-dependabot-composer-plan.sh', 'bin/fold-dependabot-composer-build.sh'] + ['bin/fold-dependabot-composer-publish.sh %s' % step
+        self.assertEqual(['.github/scripts/dependabot/plan.sh', '.github/scripts/dependabot/build.sh'] + ['.github/scripts/dependabot/publish.sh %s' % step
                                                                                                           for step in ('check', 'body', 'push', 'pull-request', 'tests', 'record')],
                          [block.strip() for block in blocks])
         for block in blocks:
@@ -310,9 +310,9 @@ class FoldWorkflowTest(unittest.TestCase):
         self.assertIn('needs: [plan, build]', self.jobs['publish'])
 
     def test_each_job_calls_only_its_own_scripts(self):
-        self.assertEqual({'bin/fold-dependabot-composer-plan.sh'}, set(re.findall(r'bin/[\w.-]+', self.jobs['plan'])))
-        self.assertEqual({'bin/fold-dependabot-composer-build.sh'}, set(re.findall(r'bin/[\w.-]+', self.jobs['build'])))
-        self.assertEqual({'bin/fold-dependabot-composer-publish.sh'}, set(re.findall(r'bin/[\w.-]+', self.jobs['publish'])))
+        self.assertEqual({'.github/scripts/dependabot/plan.sh'}, set(re.findall(r'\.github/scripts/dependabot/[\w.-]+', self.jobs['plan'])))
+        self.assertEqual({'.github/scripts/dependabot/build.sh'}, set(re.findall(r'\.github/scripts/dependabot/[\w.-]+', self.jobs['build'])))
+        self.assertEqual({'.github/scripts/dependabot/publish.sh'}, set(re.findall(r'\.github/scripts/dependabot/[\w.-]+', self.jobs['publish'])))
 
     def test_the_job_that_runs_packages_has_no_token_and_no_secrets(self):
         build = self.jobs['build']
@@ -326,7 +326,7 @@ class FoldWorkflowTest(unittest.TestCase):
     def test_the_job_that_has_the_token_runs_none_of_the_packages_nor_the_folding(self):
         for needle in ('contents: write', 'pull-requests: write', 'actions: write'):
             self.assertIn(needle, self.jobs['publish'])
-        for needle in ('fold-dependabot-composer.sh', 'fold-dependabot-composer-build', 'composer install', 'docker', 'cherry-pick', 'DEV_IMAGE_RUN'):
+        for needle in ('fold-dependabot-composer.sh', 'dependabot/build.sh', 'composer install', 'docker', 'cherry-pick', 'DEV_IMAGE_RUN'):
             self.assertNotIn(needle, self.jobs['publish'])
             self.assertNotIn(needle, self.publish_script)
 
@@ -341,7 +341,7 @@ class FoldWorkflowTest(unittest.TestCase):
     def test_the_publish_steps_run_in_the_order_check_body_push_pull_request_tests_record_and_only_the_last_four_get_the_token(self):
         publish = self.jobs['publish']
         steps = re.split(r'(?m)^            -   ', publish)[1:]
-        names = [step.split('\n')[0] for step in steps if 'bin/fold-dependabot-composer-publish.sh' in step]
+        names = [step.split('\n')[0] for step in steps if '.github/scripts/dependabot/publish.sh' in step]
         self.assertEqual(['name: Check what the build produced', 'name: Write the brief and the body', 'name: Push the branch', 'name: Open or update the pull request',
                           'name: Start the tests', 'name: Record that the pull request is up to date'], names)
         with_token = [step.split('\n')[0] for step in steps if 'GH_TOKEN' in step]
@@ -440,7 +440,7 @@ class FoldScriptRunBase(unittest.TestCase):
         open(self.output, 'a').close()
         environment = {**self.environment, 'RUNNER_TEMP': self.runner_temp, 'GITHUB_OUTPUT': self.output, 'BATCH_BRANCH': 'security-updates/composer',
                        'GITHUB_REPOSITORY': 'owner/repository', **extra_environment}
-        return subprocess.run(['bash', os.path.join(self.root, 'bin', script), *arguments], cwd=self.root, env=environment, capture_output=True, text=True)
+        return subprocess.run(['bash', os.path.join(self.root, script), *arguments], cwd=self.root, env=environment, capture_output=True, text=True)
 
     def outputs(self):
         return dict(line.split('=', 1) for line in read(self.output).splitlines())
@@ -455,7 +455,7 @@ class FoldWorkflowPlanRunTest(FoldScriptRunBase):
         super().setUp()
         self.commit('main')
         self.main = self.git('rev-parse', 'HEAD')
-        self.install('bin/fold-dependabot-composer.sh', 'bin/fold-dependabot-composer-plan.sh')
+        self.install('bin/fold-dependabot-composer.sh', '.github/scripts/dependabot/plan.sh')
         self.fake_bin = os.path.join(self.directory.name, 'fake-bin')
         os.makedirs(self.fake_bin)
         self.gh = os.path.join(self.fake_bin, 'gh')
@@ -477,7 +477,7 @@ class FoldWorkflowPlanRunTest(FoldScriptRunBase):
         with open(self.batch_body, 'w') as handle:
             handle.write(batch_body or '')
         open(self.output, 'w').close()
-        return self.run_script('fold-dependabot-composer-plan.sh', PATH=self.fake_bin + os.pathsep + os.environ['PATH'], GH=self.gh, GH_TOKEN='x', REQUESTED=requested,
+        return self.run_script('.github/scripts/dependabot/plan.sh', PATH=self.fake_bin + os.pathsep + os.environ['PATH'], GH=self.gh, GH_TOKEN='x', REQUESTED=requested,
                                FAKE_GH_JSON=self.pull_requests, FAKE_BATCH_BODY=self.batch_body, FAKE_GH_LOG=self.log)
 
     def plan(self, pull_requests, requested='', batch_body=None):
@@ -574,7 +574,7 @@ class FoldWorkflowPublishRunTest(FoldScriptRunBase):
         self.git('config', 'user.name', 'Test')
         self.git('config', 'commit.gpgsign', 'false')
         self.workdir = self.root
-        self.install('bin/fold-dependabot-composer-publish.sh', '.github/scripts/check-fold-changes.py', '.github/scripts/security-update-brief.py')
+        self.install('.github/scripts/dependabot/publish.sh', '.github/scripts/dependabot/check-fold-changes.py', '.github/scripts/security-update-brief.py')
         self.stub = os.path.join(self.root, 'bin', 'security-update-brief.sh')
         with open(self.stub, 'w') as handle:
             handle.write('#!/bin/sh\nprintf "<!-- security-update-brief:start -->\\nTHE BRIEF for $BRIEF_INSTRUCTIONS\\n<!-- security-update-brief:end -->\\n" > "$3"\n')
@@ -589,7 +589,7 @@ class FoldWorkflowPublishRunTest(FoldScriptRunBase):
         os.chmod(gh, 0o755)
 
     def step(self, name, github_sha=None, **extra):
-        return self.run_script('fold-dependabot-composer-publish.sh', name, GITHUB_SHA=github_sha or self.main, PATH=self.bin + os.pathsep + os.environ['PATH'],
+        return self.run_script('.github/scripts/dependabot/publish.sh', name, GITHUB_SHA=github_sha or self.main, PATH=self.bin + os.pathsep + os.environ['PATH'],
                                FAKE_GH_LOG=self.gh_log, FAKE_BODY_COPY=self.body_copy, **extra)
 
     def bundle(self, build, base=None, summary='folded 1\n'):
@@ -778,7 +778,7 @@ class FoldWorkflowPublishRunTest(FoldScriptRunBase):
 
     def test_an_unknown_step_is_refused_and_so_is_none(self):
         self.assertEqual(2, self.step('nothing').returncode)
-        self.assertNotEqual(0, self.run_script('fold-dependabot-composer-publish.sh', GITHUB_SHA=self.main).returncode)
+        self.assertNotEqual(0, self.run_script('.github/scripts/dependabot/publish.sh', GITHUB_SHA=self.main).returncode)
 
 
 class SuiteWiringTest(unittest.TestCase):

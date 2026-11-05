@@ -12,7 +12,7 @@ IFS=$'\n\t'
 DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 
 # project root
-cd "$(dirname "$DIR")"
+cd "$DIR/../../.."
 
 list=$(bin/fold-dependabot-composer.sh --list)
 
