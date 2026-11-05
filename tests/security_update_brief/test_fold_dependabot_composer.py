@@ -10,6 +10,7 @@ import unittest
 sys.dont_write_bytecode = True
 ROOT = os.path.normpath(os.path.join(os.path.dirname(__file__), '..', '..'))
 SCRIPT = os.path.join(ROOT, 'bin', 'fold-dependabot-composer.sh')
+BUILD_SCRIPT = os.path.join(ROOT, 'bin', 'fold-dependabot-composer-build.sh')
 
 # one line per package, with filler between them: changes to different packages merge, changes to the same one conflict
 LOCK_TEMPLATE = """{{
@@ -68,6 +69,7 @@ class FoldTest(unittest.TestCase):
         subprocess.run(['git', 'init', '--quiet', '--bare', '-b', 'main', self.origin], check=True, env=self.environment())
         os.makedirs(os.path.join(self.root, 'bin'))
         shutil.copy2(SCRIPT, os.path.join(self.root, 'bin', 'fold-dependabot-composer.sh'))
+        shutil.copy2(BUILD_SCRIPT, os.path.join(self.root, 'bin', 'fold-dependabot-composer-build.sh'))
         self.git('init', '--quiet', '-b', 'main')
         self.git('config', 'user.email', 'test@example.com')
         self.git('config', 'user.name', 'Test')
@@ -297,6 +299,39 @@ class FoldTest(unittest.TestCase):
         self.assertIn('skipped 101: its head moved since the list was made', result.stdout)
         self.assertIn('nothing to fold', result.stdout)
         self.assertEqual([''], self.subjects())
+
+    def run_build(self, heads):
+        self.runner_temp = os.path.join(self.directory.name, 'runner-temp')
+        os.makedirs(self.runner_temp, exist_ok=True)
+        self.github_output = os.path.join(self.directory.name, 'github-output')
+        open(self.github_output, 'w').close()
+        environment = {**self.environment(), 'PATH': self.fake_bin + os.pathsep + os.environ['PATH'], 'DEV_IMAGE_RUN': 'env', 'FAKE_PHP_LOG': self.php_log,
+                       'GIT_AUTHOR_NAME': 'Bot', 'GIT_AUTHOR_EMAIL': 'bot@example.com', 'GIT_COMMITTER_NAME': 'Bot', 'GIT_COMMITTER_EMAIL': 'bot@example.com',
+                       'HEADS': heads, 'RUNNER_TEMP': self.runner_temp, 'GITHUB_SHA': self.git('rev-parse', 'HEAD'), 'GITHUB_OUTPUT': self.github_output}
+        return subprocess.run(['bash', os.path.join(self.root, 'bin', 'fold-dependabot-composer-build.sh')], cwd=self.root, env=environment, capture_output=True, text=True)
+
+    def test_the_build_step_makes_a_bundle_of_what_was_folded_and_says_so_in_its_output(self):
+        head = self.pull_request(101, one='1.0.1')
+        result = self.run_build('101@' + head)
+        self.assertEqual(0, result.returncode, result.stderr)
+        self.assertEqual('folded=true\n', open(self.github_output).read())
+        bundle = os.path.join(self.runner_temp, 'fold.bundle')
+        self.assertEqual(0, subprocess.run(['git', '-C', self.root, 'bundle', 'verify', bundle], capture_output=True, env=self.environment()).returncode)
+        self.assertIn('folded 101', open(os.path.join(self.runner_temp, 'fold-summary.txt')).read())
+
+    def test_the_build_step_makes_no_bundle_when_nothing_was_folded(self):
+        self.pull_request(101, one='1.0.1')
+        result = self.run_build('101@' + '0' * 40)
+        self.assertEqual(0, result.returncode, result.stderr)
+        self.assertEqual('folded=false\n', open(self.github_output).read())
+        self.assertFalse(os.path.exists(os.path.join(self.runner_temp, 'fold.bundle')))
+
+    def test_a_failing_fold_fails_the_build_step_although_tee_follows_it(self):
+        head = self.pull_request(101, one='1.0.1')
+        self.write(os.path.join(self.root, 'composer.lock'), 'dirty')
+        result = self.run_build('101@' + head)
+        self.assertNotEqual(0, result.returncode)
+        self.assertEqual('', open(self.github_output).read())
 
     def test_a_dirty_tree_is_refused(self):
         self.pull_request(101, one='1.0.1')

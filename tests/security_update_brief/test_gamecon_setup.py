@@ -269,13 +269,23 @@ class BatchInstructionsTest(unittest.TestCase):
 
     def test_the_wrapper_can_be_told_to_use_these_instructions(self):
         self.assertIn('"${BRIEF_INSTRUCTIONS:-.github/security-update-brief.md}"', read(WRAPPER_PATH))
-        self.assertIn('BRIEF_INSTRUCTIONS: .github/security-update-brief-batch.md', read(FOLD_WORKFLOW_PATH))
+        self.assertIn('BRIEF_INSTRUCTIONS=.github/security-update-brief-batch.md bin/security-update-brief.sh', read(PUBLISH_SCRIPT_PATH))
+
+
+PLAN_SCRIPT_PATH = os.path.join(ROOT, 'bin', 'fold-dependabot-composer-plan.sh')
+BUILD_SCRIPT_PATH = os.path.join(ROOT, 'bin', 'fold-dependabot-composer-build.sh')
+PUBLISH_SCRIPT_PATH = os.path.join(ROOT, 'bin', 'fold-dependabot-composer-publish.sh')
+FOLD_SCRIPT_PATH = os.path.join(ROOT, 'bin', 'fold-dependabot-composer.sh')
+CHECK_PATH = os.path.join(ROOT, '.github', 'scripts', 'check-fold-changes.py')
 
 
 class FoldWorkflowTest(unittest.TestCase):
     def setUp(self):
         self.text = read(FOLD_WORKFLOW_PATH)
         self.jobs = job_sections(self.text)
+        self.plan_script = read(PLAN_SCRIPT_PATH)
+        self.build_script = read(BUILD_SCRIPT_PATH)
+        self.publish_script = read(PUBLISH_SCRIPT_PATH)
 
     def test_it_is_started_by_hand_only_and_only_on_main(self):
         self.assertIn('workflow_dispatch:', self.text)
@@ -286,128 +296,179 @@ class FoldWorkflowTest(unittest.TestCase):
         self.assertIn('cancel-in-progress: false', self.text)
         self.assertNotIn('cancel-in-progress: true', self.text)
 
-    def test_the_job_that_runs_packages_has_no_token_and_no_secrets(self):
-        build = self.jobs['build']
-        self.assertRegex(build, r'permissions:\n            contents: read\n        outputs:')
-        self.assertIn('persist-credentials: false', build)
-        for needle in ('GH_TOKEN', 'github.token', 'secrets.', 'pull-requests', 'contents: write'):
-            self.assertNotIn(needle, build)
+    def test_every_step_that_runs_something_runs_one_script_of_bin_and_no_expression_reaches_a_shell(self):
+        blocks = run_blocks(self.text)
+        self.assertEqual(['bin/fold-dependabot-composer-plan.sh', 'bin/fold-dependabot-composer-build.sh'] + ['bin/fold-dependabot-composer-publish.sh %s' % step
+                                                                                                          for step in ('check', 'body', 'push', 'pull-request', 'tests', 'record')],
+                         [block.strip() for block in blocks])
+        for block in blocks:
+            self.assertNotIn('${{', block)
 
     def test_each_job_runs_only_when_the_one_before_found_something_to_do(self):
         self.assertIn("if: needs.plan.outputs.fold == 'true'", self.jobs['build'])
         self.assertIn("if: needs.build.outputs.folded == 'true'", self.jobs['publish'])
         self.assertIn('needs: [plan, build]', self.jobs['publish'])
 
-    def test_the_job_that_has_the_token_runs_none_of_the_packages_nor_the_folding(self):
-        publish = self.jobs['publish']
-        for needle in ('contents: write', 'pull-requests: write', 'actions: write'):
-            self.assertIn(needle, publish)
-        for needle in ('fold-dependabot-composer.sh', 'composer install', 'docker run'):
-            self.assertNotIn(needle, publish)
+    def test_each_job_calls_only_its_own_scripts(self):
+        self.assertEqual({'bin/fold-dependabot-composer-plan.sh'}, set(re.findall(r'bin/[\w.-]+', self.jobs['plan'])))
+        self.assertEqual({'bin/fold-dependabot-composer-build.sh'}, set(re.findall(r'bin/[\w.-]+', self.jobs['build'])))
+        self.assertEqual({'bin/fold-dependabot-composer-publish.sh'}, set(re.findall(r'bin/[\w.-]+', self.jobs['publish'])))
 
-    def test_only_the_planning_job_and_the_publishing_job_read_a_token_and_the_planning_one_cannot_write(self):
+    def test_the_job_that_runs_packages_has_no_token_and_no_secrets(self):
+        build = self.jobs['build']
+        self.assertRegex(build, r'permissions:\n            contents: read\n        outputs:')
+        self.assertIn('persist-credentials: false', build)
+        for needle in ('GH_TOKEN', 'github.token', 'secrets.', 'pull-requests', 'contents: write'):
+            self.assertNotIn(needle, build)
+        self.assertNotIn('GH_TOKEN', self.build_script)
+        self.assertNotRegex(self.build_script, r'\bgh\b')
+
+    def test_the_job_that_has_the_token_runs_none_of_the_packages_nor_the_folding(self):
+        for needle in ('contents: write', 'pull-requests: write', 'actions: write'):
+            self.assertIn(needle, self.jobs['publish'])
+        for needle in ('fold-dependabot-composer.sh', 'fold-dependabot-composer-build', 'composer install', 'docker', 'cherry-pick', 'DEV_IMAGE_RUN'):
+            self.assertNotIn(needle, self.jobs['publish'])
+            self.assertNotIn(needle, self.publish_script)
+
+    def test_the_planning_job_only_reads_and_its_script_writes_nothing_to_github(self):
         plan = self.jobs['plan']
         self.assertRegex(plan, r'permissions:\n            contents: read\n            pull-requests: read\n')
         self.assertNotIn('write', plan)
         self.assertEqual(1, plan.count('GH_TOKEN: ${{ github.token }}'))
+        for needle in ('git push', '--method', 'pr create', 'workflow run', 'pr edit'):
+            self.assertNotIn(needle, self.plan_script)
 
-    def test_the_publishing_job_checks_the_build_before_it_writes_anything_and_pushes_once_with_the_lease_of_the_plan(self):
+    def test_the_publish_steps_run_in_the_order_check_body_push_pull_request_tests_record_and_only_the_last_four_get_the_token(self):
         publish = self.jobs['publish']
-        self.assertLess(publish.index('name: Check what the build produced'), publish.index('name: Write the brief and the body'))
-        self.assertLess(publish.index('name: Write the brief and the body'), publish.index('push --force-with-lease'))
-        self.assertIn('push --force-with-lease="refs/heads/$BATCH_BRANCH:$BRANCH_TIP"', publish)
-        self.assertIn('BRANCH_TIP: ${{ needs.plan.outputs.branch_tip }}', publish)
-        self.assertEqual(1, publish.count('push --force-with-lease'))
-        self.assertEqual(1, len(re.findall(r'(?m)^\s+(?:git .*)?push ', publish)))
-        self.assertNotIn('fsckObjects', publish)
-
-    def test_no_credentials_stay_in_the_checkout_and_only_the_steps_that_talk_to_github_get_the_token(self):
-        publish = self.jobs['publish']
-        self.assertIn('persist-credentials: false', publish)
         steps = re.split(r'(?m)^            -   ', publish)[1:]
+        names = [step.split('\n')[0] for step in steps if 'bin/fold-dependabot-composer-publish.sh' in step]
+        self.assertEqual(['name: Check what the build produced', 'name: Write the brief and the body', 'name: Push the branch', 'name: Open or update the pull request',
+                          'name: Start the tests', 'name: Record that the pull request is up to date'], names)
         with_token = [step.split('\n')[0] for step in steps if 'GH_TOKEN' in step]
-        self.assertEqual(['name: Push the branch', 'name: Open or update the pull request', 'name: Start the tests',
-                          'name: Record that the pull request is up to date'], with_token)
+        self.assertEqual(names[2:], with_token)
+        self.assertIn('persist-credentials: false', publish)
 
-    def test_the_pull_request_is_marked_up_to_date_only_after_the_tests_were_started(self):
-        publish = self.jobs['publish']
-        self.assertLess(publish.index('gh workflow run run-tests.yml'), publish.index('name: Record that the pull request is up to date'))
-        self.assertIn('<!-- fold-dependabot-composer: pending -->', publish)
-        self.assertNotIn('SIGNATURE', publish[:publish.index('name: Record that the pull request is up to date')])
+    def test_the_publishing_script_pushes_once_with_the_lease_of_the_plan_and_marks_the_pull_request_only_after_the_tests_started(self):
+        script = self.publish_script
+        self.assertIn('push --force-with-lease="refs/heads/$BATCH_BRANCH:$BRANCH_TIP"', script)
+        self.assertIn('BRANCH_TIP: ${{ needs.plan.outputs.branch_tip }}', self.jobs['publish'])
+        self.assertEqual(1, len(re.findall(r'(?m)^\s+(?:git .*)?push ', script)))
+        self.assertNotIn('fsckObjects', script)
+        self.assertNotIn('SIGNATURE', script[script.index('check() {'):script.index('record() {')])
+        self.assertIn('<!-- fold-dependabot-composer: pending -->', script)
+
+    def test_the_publishing_job_never_checks_out_what_the_build_made_so_that_its_scripts_stay_the_ones_of_main(self):
+        self.assertNotRegex(self.publish_script, r'git (?:checkout|switch|worktree|restore|reset|merge|rebase|cherry-pick|apply|am)(?=\s)')
+        self.assertNotRegex(self.jobs['publish'], r'ref:\s*\S*fold')
 
     def test_the_brief_and_the_pull_request_are_made_from_the_commit_the_run_started_from_not_from_the_main_of_now(self):
-        publish = self.jobs['publish']
-        self.assertNotIn('origin/main', publish)
-        self.assertIn('bin/security-update-brief.sh "$GITHUB_SHA" fold-incoming', publish)
+        self.assertNotIn('origin/main', self.publish_script)
+        self.assertIn('bin/security-update-brief.sh "$GITHUB_SHA" fold-incoming', self.publish_script)
 
     def test_a_pull_request_from_a_fork_with_the_same_branch_name_is_never_taken_for_the_folded_one(self):
-        self.assertEqual(2, self.text.count('--json body,isCrossRepository') + self.text.count('--json number,isCrossRepository'))
-        self.assertEqual(2, self.text.count('select(.isCrossRepository | not)'))
+        both = self.plan_script + self.publish_script
+        self.assertEqual(2, both.count('--json body,isCrossRepository') + both.count('--json number,isCrossRepository'))
+        self.assertEqual(2, both.count('select(.isCrossRepository | not)'))
 
     def test_the_jq_filter_that_leaves_out_pull_requests_from_forks_keeps_only_ours(self):
         jq = shutil.which('jq')
         if jq is None:
             self.skipTest('jq is not installed here; the runners have it')
-        filter_ = re.search(r"--jq '(\[\.\[\] \| select\(\.isCrossRepository \| not\)\] \| \.\[0\]\.number // empty)'", self.text).group(1)
+        filter_ = re.search(r"--jq '(\[\.\[\] \| select\(\.isCrossRepository \| not\)\] \| \.\[0\]\.number // empty)'", self.publish_script).group(1)
         pull_requests = json.dumps([{'number': 7, 'isCrossRepository': True}, {'number': 8, 'isCrossRepository': False}])
         self.assertEqual('8\n', subprocess.run([jq, '-r', filter_], input=pull_requests, capture_output=True, text=True).stdout)
         self.assertEqual('', subprocess.run([jq, '-r', filter_], input=json.dumps([{'number': 7, 'isCrossRepository': True}]), capture_output=True, text=True).stdout)
 
     def test_the_tests_are_started_by_dispatch_because_a_pull_request_of_the_workflow_token_starts_none(self):
-        self.assertIn('gh workflow run run-tests.yml --ref "$BATCH_BRANCH"', self.text)
+        self.assertIn('gh workflow run run-tests.yml --ref "$BATCH_BRANCH"', self.publish_script)
         self.assertIn('workflow_dispatch:', read(os.path.join(ROOT, '.github', 'workflows', 'run-tests.yml')))
 
-    def test_no_expression_is_interpolated_into_a_shell_command(self):
-        for block in run_blocks(self.text):
-            self.assertNotIn('${{', block)
-
-    def test_the_scripts_it_calls_exist_and_run_the_same_code_as_a_local_run(self):
-        for name in ('fold-dependabot-composer.sh', 'security-update-brief.sh'):
-            self.assertIn('bin/' + name, self.text)
-            self.assertTrue(os.access(os.path.join(ROOT, 'bin', name), os.X_OK), name)
-
-    def test_the_default_shell_is_bash_with_pipefail_because_a_failing_fold_in_front_of_tee_must_fail_the_step(self):
-        self.assertRegex(self.text, r'defaults:\n    run:\n        shell: bash\n')
-        self.assertIn('| tee "$RUNNER_TEMP/fold-summary.txt"', self.text)
-
-    def test_the_build_folds_the_heads_the_plan_listed_so_the_signature_describes_what_was_built(self):
+    def test_the_scripts_and_the_checker_it_calls_exist_and_run_the_same_code_as_a_local_run(self):
+        for path in (PLAN_SCRIPT_PATH, BUILD_SCRIPT_PATH, PUBLISH_SCRIPT_PATH, FOLD_SCRIPT_PATH, WRAPPER_PATH):
+            self.assertTrue(os.access(path, os.X_OK), path)
+        self.assertTrue(os.path.isfile(CHECK_PATH))
+        self.assertIn('bin/fold-dependabot-composer.sh "${pull_requests[@]}"', self.build_script)
         self.assertIn('HEADS: ${{ needs.plan.outputs.heads }}', self.jobs['build'])
-        self.assertIn('bin/fold-dependabot-composer.sh "${heads[@]}"', self.jobs['build'])
+
+    def test_a_failing_fold_in_front_of_tee_fails_the_build_step(self):
+        self.assertIn('set -euo pipefail', self.build_script)
+        self.assertIn('| tee "$RUNNER_TEMP/fold-summary.txt"', self.build_script)
 
 
-class FoldWorkflowPlanRunTest(unittest.TestCase):
-    """Runs the shell of the planning step against stand-ins for gh, with real git."""
-
-    FAKE_GH = '#!/bin/sh\necho "$*" >> "$FAKE_GH_LOG"\ncase "$*" in *--jq*) cat "$FAKE_BATCH_BODY" 2>/dev/null ;; *) cat "$FAKE_GH_JSON" ;; esac\n'
+class FoldScriptRunBase(unittest.TestCase):
+    """A throwaway repository with the scripts copied in after main was committed, so that they are not part of main."""
 
     def setUp(self):
         self.directory = tempfile.TemporaryDirectory()
         self.root = os.path.join(self.directory.name, 'repository')
-        os.makedirs(os.path.join(self.root, 'bin'))
-        shutil.copy2(os.path.join(ROOT, 'bin', 'fold-dependabot-composer.sh'), os.path.join(self.root, 'bin', 'fold-dependabot-composer.sh'))
+        self.runner_temp = os.path.join(self.directory.name, 'runner-temp')
+        os.makedirs(os.path.join(self.runner_temp, 'fold'))
+        os.makedirs(self.root)
+        self.output = os.path.join(self.directory.name, 'github-output')
+        self.environment = {name: value for name, value in os.environ.items() if not name.startswith('GIT_')}
+        self.workdir = self.root
+        self.git('init', '--quiet', '-b', 'main')
+        self.git('config', 'user.email', 'test@example.com')
+        self.git('config', 'user.name', 'Test')
+        self.git('config', 'commit.gpgsign', 'false')
+
+    def tearDown(self):
+        self.directory.cleanup()
+
+    def git(self, *arguments):
+        result = subprocess.run(['git', '-C', self.workdir, *arguments], capture_output=True, text=True, env=self.environment)
+        self.assertEqual(0, result.returncode, result.stderr)
+        return result.stdout.strip()
+
+    def write(self, relative, content):
+        path = os.path.join(self.workdir, relative)
+        os.makedirs(os.path.dirname(path), exist_ok=True)
+        with open(path, 'w') as handle:
+            handle.write(content)
+
+    def commit(self, message):
+        self.git('add', '-A')
+        self.git('commit', '--quiet', '--allow-empty', '-m', message)
+
+    def install(self, *relatives):
+        for relative in relatives:
+            target = os.path.join(self.root, relative)
+            os.makedirs(os.path.dirname(target), exist_ok=True)
+            shutil.copy2(os.path.join(ROOT, relative), target)
+
+    def run_script(self, script, *arguments, **extra_environment):
+        open(self.output, 'a').close()
+        environment = {**self.environment, 'RUNNER_TEMP': self.runner_temp, 'GITHUB_OUTPUT': self.output, 'BATCH_BRANCH': 'security-updates/composer',
+                       'GITHUB_REPOSITORY': 'owner/repository', **extra_environment}
+        return subprocess.run(['bash', os.path.join(self.root, 'bin', script), *arguments], cwd=self.root, env=environment, capture_output=True, text=True)
+
+    def outputs(self):
+        return dict(line.split('=', 1) for line in read(self.output).splitlines())
+
+
+class FoldWorkflowPlanRunTest(FoldScriptRunBase):
+    """Runs the planning script against stand-ins for gh, with real git."""
+
+    FAKE_GH = '#!/bin/sh\necho "$*" >> "$FAKE_GH_LOG"\ncase "$*" in *--jq*) cat "$FAKE_BATCH_BODY" 2>/dev/null ;; *) cat "$FAKE_GH_JSON" ;; esac\n'
+
+    def setUp(self):
+        super().setUp()
+        self.commit('main')
+        self.main = self.git('rev-parse', 'HEAD')
+        self.install('bin/fold-dependabot-composer.sh', 'bin/fold-dependabot-composer-plan.sh')
         self.fake_bin = os.path.join(self.directory.name, 'fake-bin')
         os.makedirs(self.fake_bin)
         self.gh = os.path.join(self.fake_bin, 'gh')
         with open(self.gh, 'w') as handle:
             handle.write(self.FAKE_GH)
         os.chmod(self.gh, 0o755)
-        self.environment = {name: value for name, value in os.environ.items() if not name.startswith('GIT_')}
-        for arguments in (('init', '--quiet', '-b', 'main'), ('config', 'user.email', 'test@example.com'), ('config', 'user.name', 'Test'),
-                          ('config', 'commit.gpgsign', 'false'), ('add', '-A'), ('commit', '--quiet', '-m', 'main')):
-            subprocess.run(['git', '-C', self.root, *arguments], check=True, capture_output=True, env=self.environment)
-        self.main = subprocess.run(['git', '-C', self.root, 'rev-parse', 'HEAD'], check=True, capture_output=True, text=True, env=self.environment).stdout.strip()
         self.origin = os.path.join(self.directory.name, 'origin.git')
         for arguments in (['init', '--quiet', '--bare', '-b', 'main', self.origin], ['-C', self.root, 'remote', 'add', 'origin', self.origin],
                           ['-C', self.root, 'push', '--quiet', 'origin', 'main']):
             subprocess.run(['git', *arguments], check=True, capture_output=True, env=self.environment)
         self.pull_requests = os.path.join(self.directory.name, 'pull-requests.json')
         self.batch_body = os.path.join(self.directory.name, 'batch-body.md')
-        self.output = os.path.join(self.directory.name, 'github-output')
         self.log = os.path.join(self.directory.name, 'gh.log')
-        self.step = textwrap.dedent([block for block in run_blocks(read(FOLD_WORKFLOW_PATH)) if '--list' in block][0])
-
-    def tearDown(self):
-        self.directory.cleanup()
 
     def run_plan(self, pull_requests, requested='', batch_body=None):
         with open(self.pull_requests, 'w') as handle:
@@ -416,15 +477,13 @@ class FoldWorkflowPlanRunTest(unittest.TestCase):
         with open(self.batch_body, 'w') as handle:
             handle.write(batch_body or '')
         open(self.output, 'w').close()
-        environment = {**self.environment, 'PATH': self.fake_bin + os.pathsep + os.environ['PATH'], 'GH': self.gh, 'GH_TOKEN': 'x',
-                       'REQUESTED': requested, 'BATCH_BRANCH': 'security-updates/composer', 'GITHUB_OUTPUT': self.output,
-                       'FAKE_GH_JSON': self.pull_requests, 'FAKE_BATCH_BODY': self.batch_body, 'FAKE_GH_LOG': self.log}
-        return subprocess.run(['bash', '-eo', 'pipefail', '-c', self.step], cwd=self.root, env=environment, capture_output=True, text=True)
+        return self.run_script('fold-dependabot-composer-plan.sh', PATH=self.fake_bin + os.pathsep + os.environ['PATH'], GH=self.gh, GH_TOKEN='x', REQUESTED=requested,
+                               FAKE_GH_JSON=self.pull_requests, FAKE_BATCH_BODY=self.batch_body, FAKE_GH_LOG=self.log)
 
     def plan(self, pull_requests, requested='', batch_body=None):
         result = self.run_plan(pull_requests, requested, batch_body)
         self.assertEqual(0, result.returncode, result.stderr)
-        return dict(line.split('=', 1) for line in read(self.output).splitlines()), result
+        return self.outputs(), result
 
     def test_nothing_to_fold_when_no_dependabot_composer_pull_request_is_open(self):
         outputs, result = self.plan([])
@@ -481,6 +540,11 @@ class FoldWorkflowPlanRunTest(unittest.TestCase):
     def test_a_request_for_a_number_that_is_not_open_folds_nothing(self):
         self.assertEqual({'fold': 'false'}, self.plan([(10, 'aaa')], requested='99')[0])
 
+    def test_the_numbers_may_be_separated_by_any_blank_including_a_tab_or_a_new_line(self):
+        outputs, _ = self.plan([(10, 'aaa'), (20, 'bbb'), (30, 'ccc')], requested='10\t30\n20')
+        self.assertEqual('10 20 30', outputs['pull_requests'])
+        self.assertEqual('10 30', self.plan([(10, 'aaa'), (20, 'bbb'), (30, 'ccc')], requested=' 10 \n\t 30 ')[0]['pull_requests'])
+
     def test_a_request_of_only_blanks_folds_everything_like_no_request(self):
         self.assertEqual('10', self.plan([(10, 'aaa')], requested='  ')[0]['pull_requests'])
 
@@ -492,54 +556,41 @@ class FoldWorkflowPlanRunTest(unittest.TestCase):
                 self.assertIn('Not a pull request number', result.stdout)
 
 
-class FoldWorkflowPublishCheckRunTest(unittest.TestCase):
-    """Runs the shell that checks what the build job produced, in a repository that has only main, against bundles made elsewhere."""
+class FoldWorkflowPublishRunTest(FoldScriptRunBase):
+    """Runs the steps of the publishing script in a repository that has only main, against bundles made elsewhere, and with stand-ins for the brief and gh."""
 
     def setUp(self):
-        self.directory = tempfile.TemporaryDirectory()
-        self.root = os.path.join(self.directory.name, 'publisher')
-        self.producer = os.path.join(self.directory.name, 'producer')
-        self.runner_temp = os.path.join(self.directory.name, 'runner-temp')
-        os.makedirs(os.path.join(self.runner_temp, 'fold'))
-        os.makedirs(self.root)
-        self.environment = {name: value for name, value in os.environ.items() if not name.startswith('GIT_')}
-        self.workdir = self.root
-        self.git('init', '--quiet', '-b', 'main')
-        self.git('config', 'user.email', 'test@example.com')
-        self.git('config', 'user.name', 'Test')
-        self.git('config', 'commit.gpgsign', 'false')
+        super().setUp()
         self.write('composer.lock', 'lock 1')
         self.write('vendor/a.txt', 'a')
         self.write('vendor/pkg/.gitattributes', '* text=auto')
         self.write('bin/check.php', '<?php')
         self.commit('main')
         self.main = self.git('rev-parse', 'HEAD')
+        self.producer = os.path.join(self.directory.name, 'producer')
         subprocess.run(['git', 'clone', '--quiet', self.root, self.producer], check=True, capture_output=True, env=self.environment)
         self.workdir = self.producer
         self.git('config', 'user.email', 'test@example.com')
         self.git('config', 'user.name', 'Test')
         self.git('config', 'commit.gpgsign', 'false')
         self.workdir = self.root
-        # GitHub hands the shell the block without the indentation of the YAML; the Python inside it needs that
-        self.step = textwrap.dedent([block for block in run_blocks(read(FOLD_WORKFLOW_PATH)) if 'fold-incoming' in block and 'merge-base' in block][0])
+        self.install('bin/fold-dependabot-composer-publish.sh', '.github/scripts/check-fold-changes.py', '.github/scripts/security-update-brief.py')
+        self.stub = os.path.join(self.root, 'bin', 'security-update-brief.sh')
+        with open(self.stub, 'w') as handle:
+            handle.write('#!/bin/sh\nprintf "<!-- security-update-brief:start -->\\nTHE BRIEF for $BRIEF_INSTRUCTIONS\\n<!-- security-update-brief:end -->\\n" > "$3"\n')
+        os.chmod(self.stub, 0o755)
+        self.bin = os.path.join(self.directory.name, 'bin')
+        os.makedirs(self.bin)
+        self.gh_log = os.path.join(self.directory.name, 'gh.log')
+        self.body_copy = os.path.join(self.directory.name, 'body-copy.md')
+        gh = os.path.join(self.bin, 'gh')
+        with open(gh, 'w') as handle:
+            handle.write('#!/bin/sh\necho "$*" >> "$FAKE_GH_LOG"\nfor argument in "$@"; do case "$argument" in body=@*) cp "${argument#body=@}" "$FAKE_BODY_COPY" ;; esac; done\n')
+        os.chmod(gh, 0o755)
 
-    def tearDown(self):
-        self.directory.cleanup()
-
-    def git(self, *arguments):
-        result = subprocess.run(['git', '-C', self.workdir, *arguments], capture_output=True, text=True, env=self.environment)
-        self.assertEqual(0, result.returncode, result.stderr)
-        return result.stdout.strip()
-
-    def write(self, relative, content):
-        path = os.path.join(self.workdir, relative)
-        os.makedirs(os.path.dirname(path), exist_ok=True)
-        with open(path, 'w') as handle:
-            handle.write(content)
-
-    def commit(self, message):
-        self.git('add', '-A')
-        self.git('commit', '--quiet', '--allow-empty', '-m', message)
+    def step(self, name, github_sha=None, **extra):
+        return self.run_script('fold-dependabot-composer-publish.sh', name, GITHUB_SHA=github_sha or self.main, PATH=self.bin + os.pathsep + os.environ['PATH'],
+                               FAKE_GH_LOG=self.gh_log, FAKE_BODY_COPY=self.body_copy, **extra)
 
     def bundle(self, build, base=None, summary='folded 1\n'):
         """What `build` does in the producer's clone on top of `base`, as the build job makes it, as a bundle; the publisher has none of its objects."""
@@ -554,16 +605,15 @@ class FoldWorkflowPublishCheckRunTest(unittest.TestCase):
         with open(os.path.join(self.runner_temp, 'fold', 'fold-summary.txt'), 'w') as handle:
             handle.write(summary)
 
-    def check(self, github_sha=None):
-        environment = {**self.environment, 'RUNNER_TEMP': self.runner_temp, 'GITHUB_SHA': github_sha or self.main}
-        return subprocess.run(['bash', '-eo', 'pipefail', '-c', self.step], cwd=self.root, env=environment, capture_output=True, text=True)
-
     def change(self, *paths):
         def build():
             for path in paths:
                 self.write(path, 'changed')
             self.commit('build')
         return build
+
+    def check(self, github_sha=None):
+        return self.step('check', github_sha=github_sha)
 
     def test_a_lock_and_vendor_change_on_the_commit_the_run_started_from_is_accepted(self):
         self.bundle(self.change('composer.lock', 'vendor/a.txt', 'vendor/new/b.txt'))
@@ -604,7 +654,7 @@ class FoldWorkflowPublishCheckRunTest(unittest.TestCase):
         self.assertNotEqual(0, result.returncode)
         self.assertIn('composer.lock/x', result.stderr)
 
-    def test_a_symlink_a_submodule_or_a_git_attributes_file_inside_vendor_is_refused(self):
+    def test_a_symlink_a_submodule_or_a_new_git_attributes_file_inside_vendor_is_refused(self):
         def symlink():
             os.symlink('../.github/workflows', os.path.join(self.producer, 'vendor', 'evil'))
             self.commit('build')
@@ -632,6 +682,17 @@ class FoldWorkflowPublishCheckRunTest(unittest.TestCase):
         self.bundle(remove)
         result = self.check()
         self.assertEqual(0, result.returncode, result.stderr)
+
+    def test_the_checker_refuses_a_list_of_changes_that_is_cut_off_and_accepts_an_empty_one(self):
+        def run(data):
+            return subprocess.run(['python3', '-I', CHECK_PATH], input=data, capture_output=True)
+        self.assertEqual(0, run(b'').returncode)
+        self.assertEqual(0, run(b':100644 100644 a b M\0vendor/x\0').returncode)
+        for cut in (b':100644 100644 a b M\0', b':100644 100644 a b M\0vendor/x', b':100644 100644 a b M\0vendor/x\0:100644 100644 a b M\0'):
+            with self.subTest(cut=cut):
+                result = run(cut)
+                self.assertNotEqual(0, result.returncode)
+                self.assertIn(b'cut off', result.stderr)
 
     def test_a_summary_that_is_missing_from_the_artifact_fails_the_check_instead_of_reading_as_an_empty_one(self):
         self.bundle(self.change('composer.lock'))
@@ -672,51 +733,11 @@ class FoldWorkflowPublishCheckRunTest(unittest.TestCase):
                          'skipped 6: already applied\nskipped 7: its head moved since the list was made\nfolded 1\n',
                          read(os.path.join(self.runner_temp, 'summary.txt')))
 
-
-class FoldWorkflowPublishBodyRunTest(unittest.TestCase):
-    """Runs the shell that writes the body of the folded pull request and the one that records its signature, with stand-ins for the brief and gh."""
-
-    def setUp(self):
-        self.directory = tempfile.TemporaryDirectory()
-        self.root = os.path.join(self.directory.name, 'repository')
-        self.runner_temp = os.path.join(self.directory.name, 'runner-temp')
-        os.makedirs(self.runner_temp)
-        for relative in ('bin', '.github/scripts'):
-            os.makedirs(os.path.join(self.root, relative))
-        shutil.copy2(os.path.join(ROOT, '.github', 'scripts', 'security-update-brief.py'), os.path.join(self.root, '.github', 'scripts', 'security-update-brief.py'))
-        self.stub = os.path.join(self.root, 'bin', 'security-update-brief.sh')
-        with open(self.stub, 'w') as handle:
-            handle.write('#!/bin/sh\nprintf "<!-- security-update-brief:start -->\\nTHE BRIEF for $BRIEF_INSTRUCTIONS\\n<!-- security-update-brief:end -->\\n" > "$3"\n')
-        os.chmod(self.stub, 0o755)
-        self.environment = {name: value for name, value in os.environ.items() if not name.startswith('GIT_')}
-        for arguments in (('init', '--quiet', '-b', 'main'), ('config', 'user.email', 'test@example.com'), ('config', 'user.name', 'Test'),
-                          ('config', 'commit.gpgsign', 'false'), ('add', '-A'), ('commit', '--quiet', '-m', 'main'), ('branch', 'fold-incoming')):
-            subprocess.run(['git', '-C', self.root, *arguments], check=True, capture_output=True, env=self.environment)
-        self.main = subprocess.run(['git', '-C', self.root, 'rev-parse', 'HEAD'], check=True, capture_output=True, text=True, env=self.environment).stdout.strip()
-        blocks = run_blocks(read(FOLD_WORKFLOW_PATH))
-        self.body_step = textwrap.dedent([block for block in blocks if 'splice' in block][0])
-        self.record_step = textwrap.dedent([block for block in blocks if 'body-final.md' in block][0])
-        self.bin = os.path.join(self.directory.name, 'bin')
-        os.makedirs(self.bin)
-        self.gh_log = os.path.join(self.directory.name, 'gh.log')
-        self.body_copy = os.path.join(self.directory.name, 'body-copy.md')
-        gh = os.path.join(self.bin, 'gh')
-        with open(gh, 'w') as handle:
-            handle.write('#!/bin/sh\necho "$*" >> "$FAKE_GH_LOG"\nfor argument in "$@"; do case "$argument" in body=@*) cp "${argument#body=@}" "$FAKE_BODY_COPY" ;; esac; done\n')
-        os.chmod(gh, 0o755)
-
-    def tearDown(self):
-        self.directory.cleanup()
-
-    def environment_for_step(self, **extra):
-        return {**self.environment, 'PATH': self.bin + os.pathsep + os.environ['PATH'], 'RUNNER_TEMP': self.runner_temp, 'GITHUB_SHA': self.main,
-                'BATCH_BRANCH': 'security-updates/composer', 'REPOSITORY': 'owner/repository', 'FAKE_GH_LOG': self.gh_log, 'FAKE_BODY_COPY': self.body_copy, **extra}
-
     def write_body(self, planned, summary):
         with open(os.path.join(self.runner_temp, 'summary.txt'), 'w') as handle:
             handle.write(summary)
-        return subprocess.run(['bash', '-eo', 'pipefail', '-c', self.body_step], cwd=self.root, capture_output=True, text=True, env=self.environment_for_step(
-            PULL_REQUESTS=planned, BRIEF_INSTRUCTIONS='.github/security-update-brief-batch.md'))
+        self.git('branch', '--force', 'fold-incoming', self.main)
+        return self.step('body', PULL_REQUESTS=planned)
 
     def test_only_the_pull_requests_that_were_folded_are_listed_as_replaced_and_the_skipped_ones_are_listed_as_not_folded(self):
         result = self.write_body('10 20 30', 'folded 10\nskipped 20: its head moved since the list was made\nfolded 30\n')
@@ -743,21 +764,21 @@ class FoldWorkflowPublishBodyRunTest(unittest.TestCase):
         self.assertLessEqual(len(body), 65536)
 
     def test_the_signature_replaces_the_pending_marker_in_a_body_that_is_written_to_the_pull_request_that_was_opened(self):
-        with open(os.path.join(self.root, 'body.md'), 'w') as handle:
-            handle.write('<!-- fold-dependabot-composer: pending -->\ntext\n')
-        result = subprocess.run(['bash', '-eo', 'pipefail', '-c', self.record_step], cwd=self.root, capture_output=True, text=True,
-                                env=self.environment_for_step(NUMBER='42', SIGNATURE='main=abc 10@def 20@ghi'))
+        self.write('body.md', '<!-- fold-dependabot-composer: pending -->\ntext\n')
+        result = self.step('record', NUMBER='42', SIGNATURE='main=abc 10@def 20@ghi', GH_TOKEN='x')
         self.assertEqual(0, result.returncode, result.stderr)
         self.assertEqual('<!-- fold-dependabot-composer: main=abc 10@def 20@ghi -->\ntext\n', read(self.body_copy))
         self.assertEqual('api --method PATCH repos/owner/repository/pulls/42 --field body=@body-final.md', read(self.gh_log).strip())
 
     def test_a_body_without_the_pending_marker_is_not_written_back_as_if_it_had_a_signature(self):
-        with open(os.path.join(self.root, 'body.md'), 'w') as handle:
-            handle.write('text without a marker\n')
-        result = subprocess.run(['bash', '-eo', 'pipefail', '-c', self.record_step], cwd=self.root, capture_output=True, text=True,
-                                env=self.environment_for_step(NUMBER='42', SIGNATURE='main=abc 10@def'))
+        self.write('body.md', 'text without a marker\n')
+        result = self.step('record', NUMBER='42', SIGNATURE='main=abc 10@def', GH_TOKEN='x')
         self.assertNotEqual(0, result.returncode)
         self.assertFalse(os.path.exists(self.gh_log))
+
+    def test_an_unknown_step_is_refused_and_so_is_none(self):
+        self.assertEqual(2, self.step('nothing').returncode)
+        self.assertNotEqual(0, self.run_script('fold-dependabot-composer-publish.sh', GITHUB_SHA=self.main).returncode)
 
 
 class SuiteWiringTest(unittest.TestCase):
