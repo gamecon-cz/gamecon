@@ -1,0 +1,269 @@
+name: Fold Dependabot composer updates
+
+# Folds every open Dependabot composer pull request into ONE pull request of our own (the lock commits as Dependabot wrote
+# them, `vendor/` synced by `composer install`) and starts the whole `Run tests` on it. It never merges and never touches a
+# Dependabot branch. The code that runs packages (composer install) has no token and no secrets; the job that has the token
+# runs none of it, and takes from the first one only git objects that it checks. See docs/fold-dependabot-composer.md.
+
+# yamllint disable-line rule:truthy
+on:
+    workflow_dispatch:
+        inputs:
+            pull_requests:
+                description: 'Numbers of the Dependabot pull requests to fold, separated by spaces; empty folds every open one'
+                required: false
+                default: ''
+    # A `schedule` (for example every three hours) is added once a manual run has produced a good pull request.
+
+# A run is never cancelled: it would leave the branch and the pull request out of step.
+concurrency:
+    group: fold-dependabot-composer
+    cancel-in-progress: false
+
+permissions: {}
+
+# `shell: bash` makes a failing command in front of a pipe fail the step (the default shell has no pipefail).
+defaults:
+    run:
+        shell: bash
+
+env:
+    BATCH_BRANCH: security-updates/composer
+
+jobs:
+    plan:
+        name: Which pull requests, and is the folded one up to date
+        if: github.ref == 'refs/heads/main'
+        runs-on: ubuntu-24.04
+        timeout-minutes: 5
+        permissions:
+            contents: read
+            pull-requests: read
+        outputs:
+            fold: ${{ steps.plan.outputs.fold }}
+            pull_requests: ${{ steps.plan.outputs.pull_requests }}
+            heads: ${{ steps.plan.outputs.heads }}
+            signature: ${{ steps.plan.outputs.signature }}
+            branch_tip: ${{ steps.plan.outputs.branch_tip }}
+        steps:
+            -   uses: actions/checkout@v5
+                with:
+                    persist-credentials: false
+
+            -   name: Decide
+                id: plan
+                env:
+                    GH_TOKEN: ${{ github.token }}
+                    REQUESTED: ${{ inputs.pull_requests }}
+                run: |
+                    list=$(bin/fold-dependabot-composer.sh --list)
+                    read -r -a requested <<< "$REQUESTED"
+                    if [ ${#requested[@]} -gt 0 ]; then
+                        for number in "${requested[@]}"; do
+                            if [[ ! "$number" =~ ^[0-9]+$ ]]; then
+                                echo "::error::Not a pull request number: $number"
+                                exit 1
+                            fi
+                        done
+                        # exit 1 of grep is "no match", which is an answer; anything else is a failure
+                        list=$(printf '%s\n' "$list" | grep -E "^($(printf '%s\n' "${requested[@]}" | paste -sd'|')) " || [ $? -eq 1 ])
+                    fi
+                    if [ -z "$list" ]; then
+                        echo "::notice::No open Dependabot composer pull request to fold."
+                        echo "fold=false" >> "$GITHUB_OUTPUT"
+                        exit 0
+                    fi
+                    pull_requests=$(printf '%s\n' "$list" | cut -d' ' -f1 | paste -sd' ')
+                    heads=$(printf '%s\n' "$list" | awk '{print $1 "@" $2}' | paste -sd' ')
+                    signature="main=$(git rev-parse HEAD) $heads"
+                    # a pull request from a fork with the same branch name is not ours
+                    existing_body=$(gh pr list --head "$BATCH_BRANCH" --state open --json body,isCrossRepository --jq '[.[] | select(.isCrossRepository | not)] | .[0].body // ""')
+                    if printf '%s' "$existing_body" | grep -qF "<!-- fold-dependabot-composer: $signature -->"; then
+                        echo "::notice::The folded pull request is up to date ($signature)."
+                        echo "fold=false" >> "$GITHUB_OUTPUT"
+                        exit 0
+                    fi
+                    # a failing ls-remote fails the step: an empty tip means "the branch does not exist" to the lease of the push
+                    branch_tip=$(git ls-remote --heads origin "refs/heads/$BATCH_BRANCH" | cut -f1)
+                    {
+                        echo "fold=true"
+                        echo "pull_requests=$pull_requests"
+                        echo "heads=$heads"
+                        echo "signature=$signature"
+                        echo "branch_tip=$branch_tip"
+                    } >> "$GITHUB_OUTPUT"
+
+    build:
+        name: Fold and sync vendor/ (no token, no secrets)
+        needs: plan
+        if: needs.plan.outputs.fold == 'true'
+        runs-on: ubuntu-24.04
+        timeout-minutes: 30
+        permissions:
+            contents: read
+        outputs:
+            folded: ${{ steps.fold.outputs.folded }}
+        steps:
+            # Full history: the merge base of an old Dependabot branch is not in a shallow clone.
+            -   uses: actions/checkout@v5
+                with:
+                    fetch-depth: 0
+                    persist-credentials: false
+
+            -   name: Fold
+                id: fold
+                env:
+                    HEADS: ${{ needs.plan.outputs.heads }}
+                    GIT_AUTHOR_NAME: github-actions[bot]
+                    GIT_AUTHOR_EMAIL: 41898282+github-actions[bot]@users.noreply.github.com
+                    GIT_COMMITTER_NAME: github-actions[bot]
+                    GIT_COMMITTER_EMAIL: 41898282+github-actions[bot]@users.noreply.github.com
+                # The outputs go next to the checkout, not into it: the script refuses a tree that is not clean.
+                run: |
+                    read -r -a heads <<< "$HEADS"
+                    bin/fold-dependabot-composer.sh "${heads[@]}" | tee "$RUNNER_TEMP/fold-summary.txt"
+                    if [ "$(git rev-list --count "$GITHUB_SHA..HEAD")" -eq 0 ]; then
+                        echo "::notice::Nothing was folded; see the log of this step."
+                        echo "folded=false" >> "$GITHUB_OUTPUT"
+                        exit 0
+                    fi
+                    git bundle create "$RUNNER_TEMP/fold.bundle" "$GITHUB_SHA..HEAD"
+                    echo "folded=true" >> "$GITHUB_OUTPUT"
+
+            -   uses: actions/upload-artifact@v4
+                if: steps.fold.outputs.folded == 'true'
+                with:
+                    name: fold
+                    path: |
+                        ${{ runner.temp }}/fold.bundle
+                        ${{ runner.temp }}/fold-summary.txt
+                    retention-days: 7
+
+    publish:
+        name: Push the branch, write the pull request, start the tests
+        needs: [plan, build]
+        if: needs.build.outputs.folded == 'true'
+        runs-on: ubuntu-24.04
+        timeout-minutes: 15
+        permissions:
+            contents: write
+            pull-requests: write
+            actions: write
+        steps:
+            # No credentials stay in the checkout: only the steps that talk to GitHub get the token.
+            -   uses: actions/checkout@v5
+                with:
+                    fetch-depth: 0
+                    persist-credentials: false
+
+            -   uses: actions/download-artifact@v4
+                with:
+                    name: fold
+                    path: ${{ runner.temp }}/fold
+
+            # The build job is trusted with nothing but git objects, and what it made is checked: built on the commit this run started
+            # from (not on the main of now), at most 100 commits, and a change only of composer.lock and of plain files under vendor/
+            # (a rename counts as removing the old file; no symlink, submodule, .gitmodules or .gitattributes). GitHub checks the objects
+            # again when they are pushed. The summary of the build is read only for the lines the script itself can print.
+            -   name: Check what the build produced
+                run: |
+                    git fetch --quiet "$RUNNER_TEMP/fold/fold.bundle" HEAD:refs/heads/fold-incoming
+                    if [ "$(git merge-base "$GITHUB_SHA" fold-incoming)" != "$GITHUB_SHA" ]; then
+                        echo "The folded branch is not built on the commit this run started from." >&2
+                        exit 1
+                    fi
+                    if [ "$(git rev-list --count "$GITHUB_SHA..fold-incoming")" -gt 100 ]; then
+                        echo "The folded branch has more than 100 commits." >&2
+                        exit 1
+                    fi
+                    git diff --raw -z --no-renames "$GITHUB_SHA" fold-incoming | python3 -I -c '
+                    import os, re, sys
+                    fields = sys.stdin.buffer.read().decode("utf-8", "surrogateescape").split("\0")
+                    bad = []
+                    for meta, path in zip(fields[0::2], fields[1::2]):
+                        new_mode = meta.split()[1]
+                        in_scope = re.fullmatch(r"composer\.lock|vendor/.*", path) is not None
+                        # vendor/ has .gitattributes files of packages already; a new one, or one that becomes a symlink, is what is refused
+                        plain = new_mode in ("100644", "100755", "000000") and not (meta.split()[0] == ":000000" and os.path.basename(path) in (".gitmodules", ".gitattributes"))
+                        if not (in_scope and plain):
+                            bad.append(path)
+                    if bad:
+                        print("The folded branch changes more than composer.lock and vendor/, or adds something that is not a plain file:", file=sys.stderr)
+                        print("\n".join(bad), file=sys.stderr)
+                        sys.exit(1)
+                    '
+                    grep -E '^(skipped [0-9]+: (it changes more than composer\.lock|its lock commit does not apply to this branch|already applied|its head moved since the list was made)|folded [0-9]+)$' \
+                        "$RUNNER_TEMP/fold/fold-summary.txt" > "$RUNNER_TEMP/summary.txt" || [ $? -eq 1 ]
+
+            # Everything the pull request says is made before anything is pushed. The marker with the signature is written last,
+            # when the tests have been started: a run that fails halfway is not taken for up to date by the next one.
+            -   name: Write the brief and the body
+                env:
+                    REPOSITORY: ${{ github.repository }}
+                    PULL_REQUESTS: ${{ needs.plan.outputs.pull_requests }}
+                    BRIEF_INSTRUCTIONS: .github/security-update-brief-batch.md
+                run: |
+                    bin/security-update-brief.sh "$GITHUB_SHA" fold-incoming brief.md "$(git rev-parse fold-incoming)"
+                    read -r -a planned <<< "$PULL_REQUESTS"
+                    {
+                        echo "Složeno workflow \`fold-dependabot-composer\` z těchto PR od Dependabota, které zavře Dependabot sám po sloučení:"
+                        for number in "${planned[@]}"; do
+                            if grep -qx "folded $number" "$RUNNER_TEMP/summary.txt"; then
+                                echo "- [PR #$number](https://github.com/$REPOSITORY/pull/$number)"
+                            fi
+                        done
+                        echo
+                        echo "Větev \`$BATCH_BRANCH\` se při změně vstupů přestaví a přepíše; nepushuj do ní."
+                        if grep -q '^skipped' "$RUNNER_TEMP/summary.txt"; then
+                            echo
+                            echo "Nesloženo:"
+                            grep '^skipped' "$RUNNER_TEMP/summary.txt" | sed 's/^/- /'
+                        fi
+                    } > notes.md
+                    python3 -I .github/scripts/security-update-brief.py splice --body-file notes.md --brief-file brief.md --output body.md
+                    # at the end, where the shortening of a long body cannot cut it off
+                    printf '\n<!-- fold-dependabot-composer: pending -->\n' >> body.md
+
+            # The lease is the tip the plan job saw: a commit pushed to the branch since then, or a run that overtook this one, fails the push.
+            -   name: Push the branch
+                env:
+                    GH_TOKEN: ${{ github.token }}
+                    BRANCH_TIP: ${{ needs.plan.outputs.branch_tip }}
+                run: |
+                    authorization=$(printf 'x-access-token:%s' "$GH_TOKEN" | base64 -w0)
+                    echo "::add-mask::$authorization"
+                    git -c "http.https://github.com/.extraheader=AUTHORIZATION: basic $authorization" \
+                        push --force-with-lease="refs/heads/$BATCH_BRANCH:$BRANCH_TIP" origin "fold-incoming:refs/heads/$BATCH_BRANCH"
+
+            # The repository setting "Allow GitHub Actions to create and approve pull requests" has to be on.
+            -   name: Open or update the pull request
+                id: pull_request
+                env:
+                    GH_TOKEN: ${{ github.token }}
+                    REPOSITORY: ${{ github.repository }}
+                run: |
+                    number=$(gh pr list --head "$BATCH_BRANCH" --state open --json number,isCrossRepository --jq '[.[] | select(.isCrossRepository | not)] | .[0].number // empty')
+                    if [ -n "$number" ]; then
+                        gh api --method PATCH "repos/$REPOSITORY/pulls/$number" --field body=@body.md > /dev/null
+                    else
+                        url=$(gh pr create --base main --head "$BATCH_BRANCH" --title 'Zranitelnosti v Composeru: dávka z Dependabota' --body-file body.md)
+                        number=${url##*/}
+                    fi
+                    echo "number=$number" >> "$GITHUB_OUTPUT"
+
+            # A pull request opened with the workflow token starts no `pull_request` workflow; a dispatched one is allowed.
+            -   name: Start the tests
+                env:
+                    GH_TOKEN: ${{ github.token }}
+                run: gh workflow run run-tests.yml --ref "$BATCH_BRANCH"
+
+            -   name: Record that the pull request is up to date
+                env:
+                    GH_TOKEN: ${{ github.token }}
+                    REPOSITORY: ${{ github.repository }}
+                    NUMBER: ${{ steps.pull_request.outputs.number }}
+                    SIGNATURE: ${{ needs.plan.outputs.signature }}
+                run: |
+                    sed "s|fold-dependabot-composer: pending|fold-dependabot-composer: $SIGNATURE|" body.md > body-final.md
+                    grep -qF "<!-- fold-dependabot-composer: $SIGNATURE -->" body-final.md
+                    gh api --method PATCH "repos/$REPOSITORY/pulls/$NUMBER" --field body=@body-final.md > /dev/null
