@@ -55,15 +55,6 @@
             'aliases' => array(),
             'dev_requirement' => false,
         ),
-        'dg/ftp-deployment' => array(
-            'pretty_version' => 'v3.7.0',
-            'version' => '3.7.0.0',
-            'reference' => 'b48f80b4f92647b3ed76b81a58d42d900d838d56',
-            'type' => 'project',
-            'install_path' => __DIR__ . '/../dg/ftp-deployment',
-            'aliases' => array(),
-            'dev_requirement' => false,
-        ),
         'dg/mysql-dump' => array(
             'pretty_version' => 'v1.7.0',
             'version' => '1.7.0.0',
@@ -379,15 +370,6 @@
             'aliases' => array(),
             'dev_requirement' => false,
         ),
-        'paragonie/constant_time_encoding' => array(
-            'pretty_version' => 'v3.1.3',
-            'version' => '3.1.3.0',
-            'reference' => 'd5b01a39b3415c2cd581d3bd3a3575c1ebbd8e77',
-            'type' => 'library',
-            'install_path' => __DIR__ . '/../paragonie/constant_time_encoding',
-            'aliases' => array(),
-            'dev_requirement' => false,
-        ),
         'paragonie/random_compat' => array(
             'pretty_version' => 'v9.99.100',
             'version' => '9.99.100.0',
@@ -414,15 +396,6 @@
             'install_path' => __DIR__ . '/../phar-io/version',
             'aliases' => array(),
             'dev_requirement' => true,
-        ),
-        'phpseclib/phpseclib' => array(
-            'pretty_version' => '3.0.57',
-            'version' => '3.0.57.0',
-            'reference' => 'd17e0ddaeaf6f22f7e007cbb437d78792fe2a0e4',
-            'type' => 'library',
-            'install_path' => __DIR__ . '/../phpseclib/phpseclib',
-            'aliases' => array(),
-            'dev_requirement' => false,
         ),
         'phpstan/phpstan' => array(
             'pretty_version' => '2.2.5',

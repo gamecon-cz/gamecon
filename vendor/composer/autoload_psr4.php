@@ -8,7 +8,6 @@ $baseDir = dirname($vendorDir);
 return array(
     'rikudou\\SkQrPayment\\' => array($vendorDir . '/rikudou/skqrpayment/src'),
     'rikudou\\CzQrPayment\\' => array($vendorDir . '/rikudou/czqrpayment/src'),
-    'phpseclib3\\' => array($vendorDir . '/phpseclib/phpseclib/phpseclib'),
     'cweagans\\Composer\\' => array($vendorDir . '/cweagans/composer-patches/src'),
     'Zenstruck\\Foundry\\Utils\\Rector\\' => array($vendorDir . '/zenstruck/foundry/utils/rector/src'),
     'Zenstruck\\Foundry\\Psalm\\' => array($vendorDir . '/zenstruck/foundry/utils/psalm'),
@@ -69,7 +68,6 @@ return array(
     'Psr\\Clock\\' => array($vendorDir . '/psr/clock/src'),
     'Psr\\Cache\\' => array($vendorDir . '/psr/cache/src'),
     'PhpParser\\' => array($vendorDir . '/nikic/php-parser/lib/PhpParser'),
-    'ParagonIE\\ConstantTime\\' => array($vendorDir . '/paragonie/constant_time_encoding/src'),
     'PWGen\\' => array($vendorDir . '/roderik/pwgen-php/src'),
     'PHPStan\\' => array($vendorDir . '/phpstan/phpstan-doctrine/src'),
     'OpenSpout\\' => array($vendorDir . '/openspout/openspout/src'),
