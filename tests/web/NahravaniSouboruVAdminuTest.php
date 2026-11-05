@@ -529,7 +529,7 @@ SQL,
         ]));
 
         self::assertFileExists($poznamky);
-        self::assertStringContainsString('Soubory tohoto typu se tu nespravují, jen přes FTP.', $this->stahni($session, 'web/soubory'));
+        self::assertStringContainsString('Soubory tohoto typu se tu nespravují, mění je jen správce serveru.', $this->stahni($session, 'web/soubory'));
     }
 
     private function soubor(string $pripona, string $obsah): string

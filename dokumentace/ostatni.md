@@ -3,7 +3,7 @@
 
 Seznam věcí, které jsme zatím nezapsali jinam, protože je potřeba je rozvést, nebo se nenašlo vhodné místo, kam je dát:
 
-- různá prostředí na ftp (beta, ux, ...)
+- různá prostředí na serveru (beta, ux, ...)
 - popis tabulek databáze
 - použitá implementace MVC
 - použitá implementace ORM

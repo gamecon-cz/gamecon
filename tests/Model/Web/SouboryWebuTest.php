@@ -122,7 +122,7 @@ SQL,
         self::assertStringContainsString('value="smazat"', self::radek($html, 'archiv.zip'));
 
         $stary = self::radek($html, 'stary.docx');
-        self::assertStringContainsString('jen přes FTP', $stary);
+        self::assertStringContainsString('mění ho jen správce serveru', $stary);
         self::assertStringNotContainsString('value="nahradit"', $stary);
         self::assertStringNotContainsString('value="smazat"', $stary);
         self::assertStringContainsString(
@@ -352,7 +352,7 @@ SQL,
 
         foreach (["P\xF8\xEDru\xE8ka.pdf", ' uvodni-mezera.pdf'] as $nazev) {
             $radek = self::radek($html, $nazev);
-            self::assertStringContainsString('jen přes FTP', $radek, bin2hex($nazev));
+            self::assertStringContainsString('mění ho jen správce serveru', $radek, bin2hex($nazev));
             self::assertStringNotContainsString('<button', $radek, bin2hex($nazev));
         }
         self::assertStringContainsString('value="smazat"', self::radek($html, 'normalni.pdf'));

@@ -290,7 +290,7 @@ final class SouboryWebu
         $mime = NahravaniObrazku::mimePodlePripony($nahravani->cestaKSouboru($cesta));
         // výpis nenabízí smazání souboru jiného typu, požadavek ručně poslaný ho taky nesmí smazat
         if ($mime === null || !in_array($mime, $this->slozky[$slozka]['formaty'], true)) {
-            throw new NahravaniObrazkuException('Soubory tohoto typu se tu nespravují, jen přes FTP.');
+            throw new NahravaniObrazkuException('Soubory tohoto typu se tu nespravují, mění je jen správce serveru.');
         }
         $nahravani->smaz($cesta);
 

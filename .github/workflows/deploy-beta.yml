@@ -13,7 +13,7 @@ on:
                 default: false
 
 # Serialize BETA deploys for the same reason as OSTRA: concurrent syncs
-# race on temp files (FTP `.deploytmp`, rsync `.~tmp~`) and on deletions.
+# race on temp files (rsync `.~tmp~`) and on deletions.
 # A separate group from ostra (different target) so the two
 # never block each other. `cancel-in-progress: false` so an in-flight
 # sync completes instead of being killed mid-upload.
@@ -68,12 +68,10 @@ jobs:
             -   name: Composer libraries without dev
                 run: docker compose exec --no-TTY --user www-data web composer install --no-dev --optimize-autoloader
 
-            -   name: Deploy via rsync, or via FTP while DEPLOY_RSYNC_TARGET is not set
+            -   name: Deploy via rsync
                 # testy provádíme zvlášť, abychom neměli output z deploye moc dlouhý; změny nekontrolujeme, protože jsme je vytvořili přes `composer install --no-dev`
                 run: php ./udrzba/nasad.php --skip-tests --skip-no-changes-check ${{ inputs.dry_run && '--dry-run' || '' }}
                 env:
-                    FTP_DIR: beta
-                    FTP_BASE_URL: ${{ secrets.FTP_BASE_URL }}
                     # Beta has its own key, allowed to write only to the beta directory; ostra has another.
                     DEPLOY_RSYNC_TARGET: ${{ secrets.BETA_DEPLOY_RSYNC_TARGET }}
                     DEPLOY_SSH_KEY: ${{ secrets.BETA_DEPLOY_SSH_KEY }}
