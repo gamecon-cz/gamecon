@@ -6,6 +6,10 @@ on:
         branches: [ main ]
         # Dependabot rewrites the body after it pushes, so `edited` puts the brief back.
         types: [ opened, reopened, synchronize, edited ]
+        # The script writes a brief only for a changed lockfile; without `paths` every pull request starts a run that the job then skips.
+        paths:
+            - '**/composer.lock'
+            - '**/yarn.lock'
 
 # A running run is never cancelled, one more waits behind it: a run that has outlived its head writes nothing (see the last step),
 # so cancelling the run for the newer head in favour of a stale one could leave the body without a brief.
