@@ -15,7 +15,7 @@ case "$output" in /*) ;; *) output="$PWD/$output" ;; esac
 # project root
 cd "$(dirname "$DIR")"
 
-python3 -I .github/scripts/security_update_brief.py brief \
+python3 -I .github/scripts/security-update-brief.py brief \
     --repository . \
     --base-sha "$base" \
     --head-sha "$head" \

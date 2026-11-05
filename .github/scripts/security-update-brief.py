@@ -5,11 +5,14 @@ The brief lists every package a lockfile change touches (versions, source reposi
 what it now requires, where we use it), the advisories it fixes and the ones left, as tables and JSON
 lines, plus the steps for taking the update: judge each change, add missing tests first, update, merge.
 
-    security_update_brief.py brief  --repository DIR --base-sha SHA --head-sha SHA --output brief.md
+    security-update-brief.py brief  --repository DIR --base-sha SHA --head-sha SHA --output brief.md
                                     [--scan-directories DIR ...] [--instructions-file FILE]
-    security_update_brief.py splice --body-file body.md --brief-file brief.md --output new-body.md
+    security-update-brief.py splice --body-file body.md --brief-file brief.md --output new-body.md
 
 Both write the output file only when there is something to write. Files of the pull request are only read.
+
+Version: 1.0.0 of the shared script. A project's copy carries the same line; when the numbers differ, the copy has
+drifted from the shared one.
 """
 import argparse
 import json
@@ -57,7 +60,7 @@ REVIEW_INSTRUCTIONS = """\
 <details>
 <summary>How to take this update (instructions for Claude)</summary>
 
-This pull request raises locked dependencies to fix security advisories. Take it in this order: decide for each package whether the update can change something our application relies on and whether a test would notice, add the missing tests first, then update, run the e2e specs, wait for green and merge.
+This pull request raises locked dependencies to fix security advisories. Take it in this order: decide for each package whether the update can change something our application relies on and whether a test would notice, add the missing tests first, then update, run the e2e specs, wait for green and hand it over for merging.
 
 1. Read the tables and the `jsonl` blocks below, one JSON object per line. A package with `fixes` is the reason for this pull request; one without was pulled in by the resolver, and for PHP `required_by` says by whom. Look hardest at:
    - `"jump": "major"` and `"minor"`; `"deduplicated"` and `"duplicated"` mean the lockfile now holds fewer or more versions of the package (whoever used the dropped version now gets `to`); `"reference"` is the same version from a newer commit.
@@ -73,9 +76,9 @@ This pull request raises locked dependencies to fix security advisories. Take it
    - `NOT_AFFECTED`: nothing we use has changed.
    - `AFFECTED_AND_COVERED`: we use changed behaviour; name the test that would fail.
    - `AFFECTED_NOT_COVERED`: we use changed behaviour and no test would notice.
-5. For every `AFFECTED_NOT_COVERED`, write the missing test first, in a separate pull request off `main`; it must pass on the old versions. Merge that, then update this pull request (`@dependabot rebase`).
-6. If the repository has Playwright e2e specs (`tests/playwright`, run with `make e2e-shop` and `make e2e-admin`; use the repository's own names otherwise), note that `Run Tests` does not run them, and that `make e2e-*` does not install anything: it runs whatever is installed. On the updated pull request branch first install what the update changed (`make init`: composer install, yarn install and build; `make e2e-install` for the e2e project's own packages), then run every spec set that a changed part maps to: shop and admin for a PHP update (API Platform and Sylius serve the admin UI too), admin for a change under `/adminUi`, shop for one under `/` (the storefront assets), both for one under `/tests/playwright`. A pull request that touches several parts needs all of them. Read the result before merging.
-7. Wait for a green `Run Tests` on this pull request, then merge it. A green run only shows that the existing tests pass; it says nothing about behaviour no test covers.
+5. For every `AFFECTED_NOT_COVERED`, write the missing test first, in a separate pull request off `main`; it must pass on the old versions. A person merges that, then update this pull request (`@dependabot rebase`).
+6. If the repository has Playwright e2e specs (`tests/playwright`, run with `make e2e-shop` and `make e2e-admin`; use the repository's own names otherwise), note that `Run Tests` does not run them, and that `make e2e-*` does not install anything: it runs whatever is installed. On the updated pull request branch first install what the update changed (`make init`: composer install, yarn install and build; `make e2e-install` for the e2e project's own packages), then run every spec set that a changed part maps to: shop and admin for a PHP update (API Platform and Sylius serve the admin UI too), admin for a change under `/adminUi`, shop for one under `/` (the storefront assets), both for one under `/tests/playwright`. A pull request that touches several parts needs all of them. Read the result and report it.
+7. Wait for a green `Run Tests` on this pull request, then report what you found and what you ran; a person merges it. A green run only shows that the existing tests pass; it says nothing about behaviour no test covers.
 </details>"""
 
 
@@ -711,7 +714,7 @@ def render_brief(reports, head_label, limit, instructions=REVIEW_INSTRUCTIONS):
     ordered = sorted(reports, key=lambda report: (report['ecosystem'] != 'php', report['path']))
     header = '\n'.join([
         BRIEF_START, '## Security update brief', '',
-        'Head `%s`. Generated by `.github/scripts/security_update_brief.py`; regenerated on every push.' % plain_text(head_label, 40),
+        'Head `%s`. Generated by `.github/scripts/security-update-brief.py`; regenerated on every push.' % plain_text(head_label, 40),
         '', instructions, '', '',
     ])
     footer = '\n' + BRIEF_END

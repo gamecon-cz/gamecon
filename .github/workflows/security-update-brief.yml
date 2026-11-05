@@ -52,7 +52,7 @@ jobs:
                         echo "::notice::The brief was built for $built_for, the pull request is at $current_head; the run for the newer head writes its own."
                         exit 0
                     fi
-                    env -u GH_TOKEN python3 -I .github/scripts/security_update_brief.py splice --body-file current-body.md --brief-file brief.md --output new-body.md
+                    env -u GH_TOKEN python3 -I .github/scripts/security-update-brief.py splice --body-file current-body.md --brief-file brief.md --output new-body.md
                     if [ -f new-body.md ]; then
                         gh api --method PATCH "$PULL_REQUEST_URL" --field body=@new-body.md > /dev/null
                     fi
