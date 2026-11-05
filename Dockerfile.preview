@@ -73,6 +73,12 @@ RUN mkdir -p \
         /var/www/html/gamecon/cache \
         /var/www/html/gamecon/logy
 
+# The PHP upload limits of ostra (role php in the ansible repo). The runtime
+# image has PHP's defaults (2M upload, 8M post), so without this a preview
+# would refuse files that ostra accepts, and large uploads would be tried
+# under different limits than the ones they run under in production.
+COPY .docker/php/conf.d/upload.ini /usr/local/etc/php/conf.d/preview-upload.ini
+
 # Apache snippet that honors X-Forwarded-Proto from the Caddy reverse
 # proxy. Without it, $_SERVER['HTTPS'] is unset in PHP and generated
 # URLs (<base href>, redirects, cookies) come out as http://.
