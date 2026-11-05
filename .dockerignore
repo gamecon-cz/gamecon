@@ -30,6 +30,8 @@ test-results
 
 # Local dev only — bind-mounted in dev compose, never needed in image
 .docker
+# ... except the PHP upload limits, which Dockerfile.preview copies into the runtime image
+!.docker/php/conf.d/upload.ini
 
 # Runtime state — must NOT bake stale logs / cache / uploads into image
 cache/private/*
