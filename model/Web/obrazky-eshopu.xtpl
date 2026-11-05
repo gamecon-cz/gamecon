@@ -40,10 +40,10 @@
   <!-- end:zadny -->
 </table>
 
-<form method="post" enctype="multipart/form-data" class="obrazky-eshopu__nahrat">
+<form method="post" enctype="multipart/form-data" class="nahrani-souboru obrazky-eshopu__nahrat">
   <input type="hidden" name="obrazkyEshopuAkce" value="nahrat">
   <label>Obrázek <input type="file" name="obrazekEshopu" accept="{accept}" required></label>
-  <label>Název <input type="text" name="nazev" placeholder="např. 08_Účastnické triko" maxlength="100"></label>
+  <label class="nahrani-souboru__nazev">Název <input type="text" name="nazev" placeholder="např. 08_Účastnické triko" maxlength="100"></label>
   <button type="submit">Nahrát</button>
   <div class="tip">{limit}. Bez vyplněného názvu se použije název nahrávaného souboru.</div>
 </form>
@@ -60,8 +60,6 @@
 
     .obrazky-eshopu__nahrat {
         margin: 1em 0 2em;
-        padding: 0.5em 1em;
-        background-color: rgba(215, 246, 170, 0.47);
     }
 </style>
 <!-- end:obrazkyEshopu -->

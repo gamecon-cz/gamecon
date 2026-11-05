@@ -102,6 +102,19 @@ class ObrazkyEshopuTest extends TestCase
         self::assertStringContainsString('Zatím tu žádný obrázek není', $this->galerie()->html());
     }
 
+    /**
+     * Formulář pro nahrání vypadá a roztahuje se jako ve stránce Soubory a pod editorem, ne po svém.
+     *
+     * @test
+     */
+    public function formularKNahraniMaSpolecnyVzhledSFormularemSouboru(): void
+    {
+        $html = $this->galerie()->html();
+
+        self::assertStringContainsString('class="nahrani-souboru obrazky-eshopu__nahrat"', $html);
+        self::assertStringContainsString('<label class="nahrani-souboru__nazev">Název <input type="text" name="nazev"', $html);
+    }
+
     private function galerie(): ObrazkyEshopu
     {
         return new ObrazkyEshopu(new NahravaniObrazku($this->koren, formaty: [NahravaniObrazku::JPG, NahravaniObrazku::PNG, NahravaniObrazku::GIF]));

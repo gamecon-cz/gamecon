@@ -32,10 +32,10 @@
   <!-- end:odkazy -->
 
   <h3>Nahrát nový obrázek</h3>
-  <form method="post" enctype="multipart/form-data" class="obrazky-obsahu__nahrat">
+  <form method="post" enctype="multipart/form-data" class="nahrani-souboru">
     <input type="hidden" name="{postAkce}" value="nahrat">
     <label>Obrázek <input type="file" name="{postSoubor}" accept="{accept}" required></label>
-    <label>Název <input type="text" name="nazev" placeholder="jinak původní název souboru" maxlength="100"></label>
+    <label class="nahrani-souboru__nazev">Název <input type="text" name="nazev" placeholder="jinak původní název souboru" maxlength="100"></label>
     <button type="submit"><i class="fa fa-upload" aria-hidden="true"></i> Nahrát</button>
     <div class="tip">Uloží se do <code>{adresar}</code>. Název se upraví do tvaru vhodného do adresy, tedy malými písmeny bez diakritiky.</div>
   </form>
@@ -85,11 +85,6 @@
 
     .obrazky-obsahu__chybi {
         color: #c00;
-    }
-
-    .obrazky-obsahu__nahrat {
-        padding: 0.5em 1em;
-        background-color: rgba(215, 246, 170, 0.47);
     }
 </style>
 <!-- end:obrazkyObsahu -->
