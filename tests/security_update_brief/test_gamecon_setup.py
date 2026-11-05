@@ -14,7 +14,7 @@ ROOT = os.path.normpath(os.path.join(os.path.dirname(__file__), '..', '..'))
 INSTRUCTIONS_PATH = os.path.join(ROOT, '.github', 'security-update-brief.md')
 WORKFLOW_PATH = os.path.join(ROOT, '.github', 'workflows', 'security-update-brief.yml')
 WRAPPER_PATH = os.path.join(ROOT, 'bin', 'security-update-brief.sh')
-specification = importlib.util.spec_from_file_location('security_update_brief', os.path.join(ROOT, '.github', 'scripts', 'security_update_brief.py'))
+specification = importlib.util.spec_from_file_location('security_update_brief', os.path.join(ROOT, '.github', 'scripts', 'security-update-brief.py'))
 brief = importlib.util.module_from_spec(specification)
 specification.loader.exec_module(brief)
 
@@ -104,13 +104,18 @@ class WrapperTest(unittest.TestCase):
             self.assertTrue(os.access(os.path.join(ROOT, 'bin', name), os.X_OK), name)
 
 
+class ScriptCopyTest(unittest.TestCase):
+    def test_the_script_is_a_copy_that_says_which_version_of_the_shared_script_it_is(self):
+        self.assertRegex(read(os.path.join(ROOT, '.github', 'scripts', 'security-update-brief.py')), r'(?m)^Version: \d+\.\d+\.\d+')
+
+
 class WrapperRunTest(unittest.TestCase):
     """Runs the real wrapper on a throwaway repository, with a stand-in `composer` that finds no advisories."""
 
     def setUp(self):
         self.directory = tempfile.TemporaryDirectory()
         self.root = os.path.join(self.directory.name, 'repository')
-        for relative in ('bin/security-update-brief.sh', '.github/scripts/security_update_brief.py', '.github/security-update-brief.md'):
+        for relative in ('bin/security-update-brief.sh', '.github/scripts/security-update-brief.py', '.github/security-update-brief.md'):
             os.makedirs(os.path.dirname(os.path.join(self.root, relative)), exist_ok=True)
             shutil.copy2(os.path.join(ROOT, relative), os.path.join(self.root, relative))
         self.fake_bin = os.path.join(self.directory.name, 'fake-bin')
@@ -188,7 +193,7 @@ class WorkflowTest(unittest.TestCase):
     def test_the_workflow_builds_the_brief_with_the_wrapper_so_that_it_cannot_lose_the_directories_or_the_instructions(self):
         self.assertRegex(self.text, r'pull_request_head=\$\(git rev-parse --verify HEAD\^2\)\s+bin/security-update-brief\.sh HEAD\^1 HEAD brief\.md "\$pull_request_head"')
         self.assertNotIn('--scan-directories', self.text)
-        self.assertNotIn('security_update_brief.py brief', self.text)
+        self.assertNotIn('security-update-brief.py brief', self.text)
 
     def test_runs_queue_instead_of_cancelling_so_that_a_stale_run_cannot_cost_the_newer_one_its_brief(self):
         self.assertIn('cancel-in-progress: false', self.text)
@@ -204,7 +209,7 @@ class WorkflowTest(unittest.TestCase):
     def test_the_workflow_ignores_the_checkout_credentials_and_edits_the_body_in_one_step(self):
         self.assertIn('persist-credentials: false', self.text)
         self.assertEqual(1, self.text.count('--method PATCH'))
-        self.assertIn('env -u GH_TOKEN python3 -I .github/scripts/security_update_brief.py splice', self.text)
+        self.assertIn('env -u GH_TOKEN python3 -I .github/scripts/security-update-brief.py splice', self.text)
 
     def test_no_expression_is_interpolated_into_a_shell_command(self):
         blocks = run_blocks(self.text)

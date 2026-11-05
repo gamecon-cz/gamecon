@@ -11,7 +11,7 @@ from types import SimpleNamespace
 from unittest import mock
 
 sys.dont_write_bytecode = True
-SCRIPT_PATH = os.path.join(os.path.dirname(__file__), '..', '..', '.github', 'scripts', 'security_update_brief.py')
+SCRIPT_PATH = os.path.join(os.path.dirname(__file__), '..', '..', '.github', 'scripts', 'security-update-brief.py')
 specification = importlib.util.spec_from_file_location('security_update_brief', SCRIPT_PATH)
 brief = importlib.util.module_from_spec(specification)
 specification.loader.exec_module(brief)
@@ -889,7 +889,8 @@ class TableTest(unittest.TestCase):
         self.assertRegex(step, r'both for one under `/tests/playwright`')
         self.assertIn('touches several parts needs all of them', step)
         self.assertTrue(brief.REVIEW_INSTRUCTIONS.count('\n7. Wait for a green') == 1)
-        self.assertIn('run the e2e specs, wait for green and merge', brief.REVIEW_INSTRUCTIONS)
+        self.assertIn('run the e2e specs, wait for green and hand it over for merging', brief.REVIEW_INSTRUCTIONS)
+        self.assertNotIn('then merge it', brief.REVIEW_INSTRUCTIONS)
 
 
 class BodyTest(unittest.TestCase):
