@@ -3,8 +3,9 @@ name: Fold Dependabot composer updates
 # Folds every open Dependabot composer pull request into ONE pull request of our own (the lock commits as Dependabot wrote
 # them, `vendor/` synced by `composer install`) and starts the whole `Run tests` on it. It never merges and never touches a
 # Dependabot branch. The code that runs packages (composer install) has no token and no secrets; the job that has the token
-# runs none of it, and takes from the first one only git objects that it checks. The steps are scripts in bin/ (plan, build,
-# publish), so that they run and are tested outside GitHub; this file says what each job may do and what it is handed.
+# runs none of it, and takes from the first one only git objects that it checks. The steps are scripts in
+# .github/scripts/dependabot/ (plan, build, publish), so that they run and are tested outside GitHub; this file says what each
+# job may do and what it is handed. bin/fold-dependabot-composer.sh, which they call, is the one to use by hand.
 # See docs/fold-dependabot-composer.md.
 
 # yamllint disable-line rule:truthy
@@ -52,7 +53,7 @@ jobs:
                 env:
                     GH_TOKEN: ${{ github.token }}
                     REQUESTED: ${{ inputs.pull_requests }}
-                run: bin/fold-dependabot-composer-plan.sh
+                run: .github/scripts/dependabot/plan.sh
 
     build:
         name: Fold and sync vendor/ (no token, no secrets)
@@ -79,7 +80,7 @@ jobs:
                     GIT_AUTHOR_EMAIL: 41898282+github-actions[bot]@users.noreply.github.com
                     GIT_COMMITTER_NAME: github-actions[bot]
                     GIT_COMMITTER_EMAIL: 41898282+github-actions[bot]@users.noreply.github.com
-                run: bin/fold-dependabot-composer-build.sh
+                run: .github/scripts/dependabot/build.sh
 
             -   uses: actions/upload-artifact@v4
                 if: steps.fold.outputs.folded == 'true'
@@ -113,33 +114,33 @@ jobs:
                     path: ${{ runner.temp }}/fold
 
             -   name: Check what the build produced
-                run: bin/fold-dependabot-composer-publish.sh check
+                run: .github/scripts/dependabot/publish.sh check
 
             -   name: Write the brief and the body
                 env:
                     PULL_REQUESTS: ${{ needs.plan.outputs.pull_requests }}
-                run: bin/fold-dependabot-composer-publish.sh body
+                run: .github/scripts/dependabot/publish.sh body
 
             -   name: Push the branch
                 env:
                     GH_TOKEN: ${{ github.token }}
                     BRANCH_TIP: ${{ needs.plan.outputs.branch_tip }}
-                run: bin/fold-dependabot-composer-publish.sh push
+                run: .github/scripts/dependabot/publish.sh push
 
             -   name: Open or update the pull request
                 id: pull_request
                 env:
                     GH_TOKEN: ${{ github.token }}
-                run: bin/fold-dependabot-composer-publish.sh pull-request
+                run: .github/scripts/dependabot/publish.sh pull-request
 
             -   name: Start the tests
                 env:
                     GH_TOKEN: ${{ github.token }}
-                run: bin/fold-dependabot-composer-publish.sh tests
+                run: .github/scripts/dependabot/publish.sh tests
 
             -   name: Record that the pull request is up to date
                 env:
                     GH_TOKEN: ${{ github.token }}
                     NUMBER: ${{ steps.pull_request.outputs.number }}
                     SIGNATURE: ${{ needs.plan.outputs.signature }}
-                run: bin/fold-dependabot-composer-publish.sh record
+                run: .github/scripts/dependabot/publish.sh record
