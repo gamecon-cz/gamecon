@@ -3,6 +3,7 @@
 use Gamecon\Web\NahravaniPoCastech;
 use Gamecon\Web\NahravaniPoCastechPozadavek;
 use Gamecon\Web\NahravaniPodEditorem;
+use Gamecon\Web\OdkazNaWeb;
 use Gamecon\Web\QrOdkaz;
 use Gamecon\XTemplate\XTemplate;
 
@@ -29,6 +30,9 @@ if (get('id') || get('akce') === 'nova') {
     $nahravaniPodEditorem?->zpracujPost();
     $f = Stranka::form(get('id'));
     $f->processPost();
+    echo $upravovanaStranka
+        ? OdkazNaWeb::html($upravovanaStranka->urlNaWebu(), 'Stránka na webu')
+        : '';
     echo $f->full();
     if ($upravovanaStranka) {
         echo $nahravaniPodEditorem->html();
