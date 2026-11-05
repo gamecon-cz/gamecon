@@ -382,13 +382,13 @@ class RenderingTest(unittest.TestCase):
         text = brief.render_brief([small, big], 'f' * 40, 61000)
         self.assertLessEqual(len(text), 61000)
         php_section = text.split('### JS')[0]
-        self.assertIn('| `vendor/package-0` |', php_section)
+        self.assertIn('| [`vendor/package-0`](https://github.com/vendor/package-0) |', php_section)
         self.assertIn('"title":"Title', php_section)
         self.assertIn('"repository":"https://github.com/vendor/package-3"', php_section)
         self.assertIn('\n{"companions":[[', text.split('### JS')[1])
 
     def test_a_large_update_shrinks_to_fit_and_keeps_every_section(self):
-        reports = [self.big_report(180, 'js', 'adminUi/yarn.lock'), self.big_report(180, 'js', 'yarn.lock'), self.big_report(180, 'js', 'tests/playwright/yarn.lock')]
+        reports = [self.big_report(170, 'js', 'adminUi/yarn.lock'), self.big_report(170, 'js', 'yarn.lock'), self.big_report(170, 'js', 'tests/playwright/yarn.lock')]
         self.assertGreater(len(brief.render_brief(reports, 'f' * 40, 1000000)), 61000)
         text = brief.render_brief(reports, 'f' * 40, 61000)
         self.assertLessEqual(len(text), 61000)
@@ -651,11 +651,101 @@ class TableTest(unittest.TestCase):
             self.line('a/major', jump='major', to='2.0.0'),
             self.line('a/companion'),
         ]), 0)
-        self.assertIn('| Package | From → To | Jump | Source | Fixes | Notes |', text)
-        self.assertIn('| `a/fixed` | `1.0.0 → 1.0.1` | patch | [repo](https://github.com/a/fixed) · [diff](https://github.com/a/fixed/compare/x...y) | `GHSA-1`, `GHSA-2`, `GHSA-3` +1 | direct |', text)
+        self.assertIn('| Package | From → To | Jump | Diff | Fixes | Notes |', text)
+        self.assertIn('| [`a/fixed`](https://github.com/a/fixed) | `1.0.0 → 1.0.1` | patch | [diff](https://github.com/a/fixed/compare/x...y) | `GHSA-1`, `GHSA-2`, `GHSA-3` +1 | direct |', text)
         self.assertIn('| `a/patched` | `1.0.0 → 1.0.1` | patch | — | — | patched, constraint changed |', text)
         self.assertIn('| `a/major` | `1.0.0 → 2.0.0` | major | — | — | — |', text)
         self.assertNotIn('| `a/companion` |', text)
+
+    def report_with_advisories(self, fixes, advisories):
+        report = self.report([self.line('a/fixed', fixes=fixes)])
+        report['advisories'] = [brief.advisory_entry('advisory', advisory) for advisory in advisories]
+        return report
+
+    def fixes_cell(self, report):
+        row = [row for row in brief.render_lock_report(report, 0).split('\n') if row.startswith('| `a/fixed`')][0]
+        return row.split(' | ')[4]
+
+    def package_cell(self, report):
+        return [row for row in brief.render_lock_report(report, 0).split('\n') if row.startswith('| ') and 'a/fixed' in row][0].split(' | ')[0]
+
+    def test_the_package_name_is_the_link_to_its_repository_and_the_diff_stays_in_its_own_column(self):
+        report = self.report([self.line('a/fixed', fixes=['GHSA-1'], repository='https://gitlab.com/a/fixed.git', compare='https://github.com/a/fixed/compare/x...y')])
+        row = [row for row in brief.render_lock_report(report, 0).split('\n') if row.startswith('| ') and 'a/fixed' in row][0]
+        self.assertEqual('| [`a/fixed`](https://gitlab.com/a/fixed.git) | `1.0.0 → 1.0.1` | patch | [diff](https://github.com/a/fixed/compare/x...y) | `GHSA-1` | — |', row)
+
+    def test_a_repository_on_another_host_or_behind_user_info_is_not_linked_from_the_package_name(self):
+        for repository in ('https://git.example.org/a/fixed.git', 'https://github.com@evil.example/a/fixed', 'https://github.com.evil.example/a/fixed',
+                           'https://evil.example/github.com/a/fixed', 'https://[::1/a/fixed', 'https://user:secret@github.com/a/fixed'):
+            with self.subTest(repository=repository):
+                report = self.report([self.line('a/fixed', fixes=['GHSA-1'], repository=repository)])
+                self.assertEqual('| `a/fixed`', self.package_cell(report))
+
+    def test_an_advisory_address_with_user_info_is_not_a_link_and_odd_but_allowed_characters_stay_one_link(self):
+        report = self.report_with_advisories(['PKSA-a', 'PKSA-b'], [
+            brief.Advisory('PKSA-a', 'a/fixed', 'low', 'Title', '<1', 'https://symfony.com@evil.example/advisory'),
+            brief.Advisory('PKSA-b', 'a/fixed', 'low', 'Title', '<1', 'https://symfony.com/a_b*c&d;e=f%20g?h#i')])
+        self.assertEqual('`PKSA-a`, [`PKSA-b`](https://symfony.com/a_b*c&d;e=f%20g?h#i)', self.fixes_cell(report))
+
+    def test_a_package_without_a_safe_repository_address_is_a_plain_code_span(self):
+        for repository in (None, '', 'javascript:alert(1)', 'http://insecure.example/a', 'https://git.example.org/a) [click](https://evil.example'):
+            with self.subTest(repository=repository):
+                report = self.report([self.line('a/fixed', fixes=['GHSA-1'], repository=repository)])
+                self.assertEqual('| `a/fixed`', self.package_cell(report))
+
+    def test_a_js_package_name_links_to_its_page_on_npm_and_an_odd_name_does_not(self):
+        report = self.report([self.line('@scope/pkg', fixes=['GHSA-1']), self.line('OddName', fixes=['GHSA-2'])], 'js')
+        rows = [row for row in brief.render_lock_report(report, 0).split('\n') if row.startswith('| ') and ('OddName' in row or '@scope' in row)]
+        self.assertEqual(['| [`@scope/pkg`](https://www.npmjs.com/package/@scope/pkg) | `1.0.0 → 1.0.1` | patch | — | `GHSA-1` | — |',
+                          '| `OddName` | `1.0.0 → 1.0.1` | patch | — | `GHSA-2` | — |'], rows)
+
+    def test_a_js_name_that_could_climb_out_of_the_package_path_is_not_linked(self):
+        for name in ('../../login', '@/..', 'a/..', '.hidden', '/package', 'a//b'):
+            with self.subTest(name=name):
+                report = self.report([self.line(name, fixes=['GHSA-1'])], 'js')
+                row = [row for row in brief.render_lock_report(report, 0).split('\n') if row.startswith('| ') and name in row][0]
+                self.assertTrue(row.startswith('| `%s` |' % name), row)
+
+    def test_a_very_long_address_is_not_made_a_link_in_any_column(self):
+        long_url = 'https://git.example.org/' + 'a' * brief.MAX_LINK_LENGTH
+        report = self.report_with_advisories(['PKSA-a'], [brief.Advisory('PKSA-a', 'a/fixed', 'low', 'Title', '<1', long_url)])
+        report['packages'][0].update(repository=long_url, compare=long_url)
+        row = [row for row in brief.render_lock_report(report, 0).split('\n') if row.startswith('| ') and 'a/fixed' in row][0]
+        self.assertEqual('| `a/fixed` | `1.0.0 → 1.0.1` | patch | — | `PKSA-a` | — |', row)
+
+    def test_a_github_advisory_id_links_to_its_page_in_the_github_advisory_database(self):
+        report = self.report_with_advisories(['GHSA-2v3c-qxhr-7vpv'], [brief.Advisory('GHSA-2v3c-qxhr-7vpv', 'a/fixed', 'high', 'Title', '<1', 'https://symfony.com/cve-2026-109413')])
+        self.assertEqual('[`GHSA-2v3c-qxhr-7vpv`](https://github.com/advisories/GHSA-2v3c-qxhr-7vpv)', self.fixes_cell(report))
+
+    def test_an_advisory_id_that_is_not_a_github_one_links_to_the_address_the_audit_gave(self):
+        report = self.report_with_advisories(['PKSA-nktx-f1n1-b4yd'], [brief.Advisory('PKSA-nktx-f1n1-b4yd', 'a/fixed', 'unknown', 'Title', '<1', 'https://example.org/advisory/1')])
+        self.assertEqual('[`PKSA-nktx-f1n1-b4yd`](https://example.org/advisory/1)', self.fixes_cell(report))
+
+    def test_an_id_without_a_safe_address_stays_a_plain_code_span(self):
+        report = self.report_with_advisories(['PKSA-a', 'PKSA-b', 'PKSA-c'], [
+            brief.Advisory('PKSA-a', 'a/fixed', 'low', 'Title', '<1', ''),
+            brief.Advisory('PKSA-b', 'a/fixed', 'low', 'Title', '<1', 'javascript:alert(1)'),
+            brief.Advisory('PKSA-c', 'a/fixed', 'low', 'Title', '<1', 'https://example.org/x) [click](https://evil.example')])
+        self.assertEqual('`PKSA-a`, `PKSA-b`, `PKSA-c`', self.fixes_cell(report))
+
+    def test_only_an_id_of_the_github_shape_is_put_into_a_github_address(self):
+        report = self.report_with_advisories(['GHSA-abcd-efgh-ijk/../x'], [brief.Advisory('GHSA-abcd-efgh-ijk/../x', 'a/fixed', 'low', 'Title', '<1', '')])
+        self.assertEqual('`GHSA-abcd-efgh-ijk/../x`', self.fixes_cell(report))
+
+    def test_every_one_of_the_first_three_ids_is_linked_and_the_rest_are_counted(self):
+        ids = ['GHSA-aaaa-bbbb-cccc', 'GHSA-dddd-eeee-ffff', 'GHSA-gggg-hhhh-iiii', 'GHSA-jjjj-kkkk-llll']
+        report = self.report_with_advisories(ids, [brief.Advisory(advisory_id, 'a/fixed', 'low', 'Title', '<1', '') for advisory_id in ids])
+        cell = self.fixes_cell(report)
+        self.assertEqual(3, cell.count('](https://github.com/advisories/GHSA-'))
+        self.assertTrue(cell.endswith(' +1'), cell)
+        self.assertNotIn('GHSA-jjjj', cell)
+
+    def test_the_advisory_addresses_reach_the_table_from_the_lockfiles_through_the_report(self):
+        old = {'a/fixed': [brief.LockedPackage('a/fixed', '1.0.0')]}
+        new = {'a/fixed': [brief.LockedPackage('a/fixed', '1.0.1')]}
+        advisory = brief.Advisory('GHSA-2v3c-qxhr-7vpv', 'a/fixed', 'high', 'Title', '<1.0.1', 'https://symfony.com/cve-2026-109413')
+        report = brief.build_lock_report(brief.Lock('composer.lock', 'php', old, new), [advisory], [], None)
+        self.assertIn('| [`GHSA-2v3c-qxhr-7vpv`](https://github.com/advisories/GHSA-2v3c-qxhr-7vpv) |', brief.render_lock_report(report, 0))
 
     def test_a_pipe_in_a_name_or_version_cannot_split_a_table_cell_and_a_missing_version_is_a_dash(self):
         text = brief.render_lock_report(self.report([
@@ -735,7 +825,8 @@ class TableTest(unittest.TestCase):
         self.assertNotIn('evil.example', text.split('```jsonl')[0])
         self.assertNotIn('javascript:', text.split('```jsonl')[0])
         js = brief.render_lock_report(self.report([self.line('@sveltejs/kit', jump='major')], 'js'), 0)
-        self.assertIn('| `@sveltejs/kit` | `1.0.0 → 1.0.1` | major | [npm](https://www.npmjs.com/package/@sveltejs/kit) |', js)
+        self.assertIn('| [`@sveltejs/kit`](https://www.npmjs.com/package/@sveltejs/kit) | `1.0.0 → 1.0.1` | major | — |', js)
+        self.assertIn('| `a/b` |', text)
 
     def test_the_table_is_capped_and_stays_at_every_level_of_detail(self):
         lines = [self.line('a/p%d' % number, fixes=['GHSA-%d' % number]) for number in range(brief.MAX_TABLE_ROWS + 5)]
@@ -1077,8 +1168,8 @@ class EndToEndTest(unittest.TestCase):
                       '"required_by":["a/direct"],"namespaces":["A\\\\Lib\\\\"]}', text)
         self.assertIn('"package":"a/lib","from":"v1.0.0","to":"v1.0.1","jump":"patch","scope":"prod","used_in":{"src":1}', text)
         self.assertIn('"required_by":["a/direct"]', text)
-        self.assertIn('| `a/direct` | `v1.0.0 → v1.0.1` | patch | [repo](https://github.com/a/direct) · [diff](https://github.com/a/direct/compare/'
-                      'aaaaaaaaaaaaaaaaaaaa...cccccccccccccccccccc) | `GHSA-1` | direct, patched, constraint changed |', text)
+        self.assertIn('| [`a/direct`](https://github.com/a/direct) | `v1.0.0 → v1.0.1` | patch | [diff](https://github.com/a/direct/compare/'
+                      'aaaaaaaaaaaaaaaaaaaa...cccccccccccccccccccc) | [`GHSA-1`](https://github.com/advisories/GHSA-1) | direct, patched, constraint changed |', text)
 
     def test_a_failing_usage_scan_does_not_cost_the_brief(self):
         self.commit({'composer.json': '{}', 'composer.lock': composer_lock([('a/b', '1.0.0', 'old')])})
