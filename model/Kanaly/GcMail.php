@@ -100,8 +100,8 @@ class GcMail
     }
 
     /**
-     * A text the log of sent mails gets replaced by SKRYTO_V_LOGU, such as the token in a link to reset a password,
-     * which anyone who reads the log could use. The recipient gets the mail unchanged.
+     * Text, který se v logu odeslaných mailů nahradí SKRYTO_V_LOGU, třeba token v odkazu na obnovu hesla, se kterým
+     * by si kdokoli s přístupem k logu nastavil cizí heslo. Adresát dostane mail beze změny.
      */
     public function skrytVLogu(string $text): self
     {
@@ -212,8 +212,8 @@ class GcMail
     }
 
     /**
-     * A copy of the mail for the log, the texts from skrytVLogu() replaced in it. Replaced in the bodies before the copy
-     * is encoded, a quoted-printable line break cannot split a hidden text and let it through.
+     * Kopie mailu do logu s texty ze skrytVLogu() nahrazenými. Nahrazuje se v tělech ještě před zakódováním kopie, aby
+     * skrytý text nerozdělilo zalomení řádku v quoted-printable a neprošel do logu nenahrazený.
      */
     private function mailDoLogu(Email $mail): Email
     {
