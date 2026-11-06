@@ -10,7 +10,6 @@ import unittest
 sys.dont_write_bytecode = True
 ROOT = os.path.normpath(os.path.join(os.path.dirname(__file__), '..', '..'))
 SCRIPT = os.path.join(ROOT, 'bin', 'fold-dependabot-composer.sh')
-BUILD_SCRIPT = os.path.join(ROOT, '.github', 'scripts', 'dependabot', 'build.sh')
 
 # one line per package, with filler between them: changes to different packages merge, changes to the same one conflict
 LOCK_TEMPLATE = """{{
@@ -69,8 +68,6 @@ class FoldTest(unittest.TestCase):
         subprocess.run(['git', 'init', '--quiet', '--bare', '-b', 'main', self.origin], check=True, env=self.environment())
         os.makedirs(os.path.join(self.root, 'bin'))
         shutil.copy2(SCRIPT, os.path.join(self.root, 'bin', 'fold-dependabot-composer.sh'))
-        os.makedirs(os.path.join(self.root, '.github', 'scripts', 'dependabot'))
-        shutil.copy2(BUILD_SCRIPT, os.path.join(self.root, '.github', 'scripts', 'dependabot', 'build.sh'))
         self.git('init', '--quiet', '-b', 'main')
         self.git('config', 'user.email', 'test@example.com')
         self.git('config', 'user.name', 'Test')
@@ -136,11 +133,11 @@ class FoldTest(unittest.TestCase):
         self.git('push', '--quiet', 'origin', 'HEAD:refs/pull/%d/head' % number)
         self.git('switch', '--quiet', 'main')
 
-    def fold(self, *numbers, **extra_environment):
+    def fold(self, *arguments, **extra_environment):
         environment = {**self.environment(), 'PATH': self.fake_bin + os.pathsep + os.environ['PATH'], 'DEV_IMAGE_RUN': 'env', 'FAKE_PHP_LOG': self.php_log,
                        'GIT_AUTHOR_NAME': 'Bot', 'GIT_AUTHOR_EMAIL': 'bot@example.com', 'GIT_COMMITTER_NAME': 'Bot', 'GIT_COMMITTER_EMAIL': 'bot@example.com',
                        **extra_environment}
-        return subprocess.run(['bash', os.path.join(self.root, 'bin', 'fold-dependabot-composer.sh'), *numbers], cwd=self.root,
+        return subprocess.run(['bash', os.path.join(self.root, 'bin', 'fold-dependabot-composer.sh'), *arguments], cwd=self.root,
                               env=environment, capture_output=True, text=True)
 
     def subjects(self):
@@ -301,38 +298,107 @@ class FoldTest(unittest.TestCase):
         self.assertIn('nothing to fold', result.stdout)
         self.assertEqual([''], self.subjects())
 
-    def run_build(self, heads):
-        self.runner_temp = os.path.join(self.directory.name, 'runner-temp')
-        os.makedirs(self.runner_temp, exist_ok=True)
-        self.github_output = os.path.join(self.directory.name, 'github-output')
-        open(self.github_output, 'w').close()
-        environment = {**self.environment(), 'PATH': self.fake_bin + os.pathsep + os.environ['PATH'], 'DEV_IMAGE_RUN': 'env', 'FAKE_PHP_LOG': self.php_log,
-                       'GIT_AUTHOR_NAME': 'Bot', 'GIT_AUTHOR_EMAIL': 'bot@example.com', 'GIT_COMMITTER_NAME': 'Bot', 'GIT_COMMITTER_EMAIL': 'bot@example.com',
-                       'HEADS': heads, 'RUNNER_TEMP': self.runner_temp, 'GITHUB_SHA': self.git('rev-parse', 'HEAD'), 'GITHUB_OUTPUT': self.github_output}
-        return subprocess.run(['bash', os.path.join(self.root, '.github', 'scripts', 'dependabot', 'build.sh')], cwd=self.root, env=environment, capture_output=True, text=True)
+    def leave_only_origin_with(self, head):
+        """What GitHub does to the old head of a rewritten pull request: nothing refers to it any more, and only the server still has it."""
+        self.git('branch', '--quiet', '-D', 'dependabot/composer/pr-101')
+        self.git('reflog', 'expire', '--expire=now', '--all')
+        self.git('gc', '--quiet', '--prune=now')
+        self.assertNotEqual(0, subprocess.run(['git', '-C', self.root, 'cat-file', '-e', head], capture_output=True, env=self.environment()).returncode)
 
-    def test_the_build_step_makes_a_bundle_of_what_was_folded_and_says_so_in_its_output(self):
-        head = self.pull_request(101, one='1.0.1')
-        result = self.run_build('101@' + head)
+    def test_a_commit_hash_folds_the_lock_commit_of_a_pull_request_that_dependabot_has_rewritten_since(self):
+        old_head = self.pull_request(101, one='1.0.1')
+        self.leave_only_origin_with(old_head)
+        self.pull_request(101, one='1.0.2')
+        subprocess.run(['git', '--git-dir', self.origin, 'config', 'uploadpack.allowAnySHA1InWant', 'true'], check=True, env=self.environment())
+        result = self.fold(old_head)
         self.assertEqual(0, result.returncode, result.stderr)
-        self.assertEqual('folded=true\n', open(self.github_output).read())
-        bundle = os.path.join(self.runner_temp, 'fold.bundle')
-        self.assertEqual(0, subprocess.run(['git', '-C', self.root, 'bundle', 'verify', bundle], capture_output=True, env=self.environment()).returncode)
-        self.assertIn('folded 101', open(os.path.join(self.runner_temp, 'fold-summary.txt')).read())
+        self.assertEqual('folded %s\nsynced vendor/ for %s\n' % (old_head[:9], old_head[:9]), result.stdout)
+        self.assertEqual('1.0.1', self.vendor_version('a/one'))
+        self.assertEqual(['Sync vendor/ with composer.lock', 'Bump pr 101'], self.subjects())
 
-    def test_the_build_step_makes_no_bundle_when_nothing_was_folded(self):
+    def test_a_commit_hash_and_a_pull_request_number_can_be_folded_together(self):
+        old_head = self.pull_request(101, one='1.0.1')
+        self.pull_request(102, two='2.0.0')
+        result = self.fold(old_head, '102')
+        self.assertEqual(0, result.returncode, result.stderr)
+        self.assertEqual('1.0.1', self.vendor_version('a/one'))
+        self.assertEqual('2.0.0', self.vendor_version('b/two'))
+        self.assertIn('synced vendor/ for %s 102' % old_head[:9], result.stdout)
+
+    def test_a_commit_hash_that_changes_more_than_the_lock_is_skipped(self):
+        head = self.pull_request(101, one='1.0.1', extra_file='composer.json')
+        result = self.fold(head)
+        self.assertEqual(0, result.returncode, result.stderr)
+        self.assertIn('skipped %s: it changes more than composer.lock' % head[:9], result.stdout)
+        self.assertIn('nothing to fold', result.stdout)
+
+    def test_a_commit_hash_that_origin_does_not_have_stops_the_run(self):
         self.pull_request(101, one='1.0.1')
-        result = self.run_build('101@' + '0' * 40)
-        self.assertEqual(0, result.returncode, result.stderr)
-        self.assertEqual('folded=false\n', open(self.github_output).read())
-        self.assertFalse(os.path.exists(os.path.join(self.runner_temp, 'fold.bundle')))
-
-    def test_a_failing_fold_fails_the_build_step_although_tee_follows_it(self):
-        head = self.pull_request(101, one='1.0.1')
-        self.write(os.path.join(self.root, 'composer.lock'), 'dirty')
-        result = self.run_build('101@' + head)
+        result = self.fold('1' * 40)
         self.assertNotEqual(0, result.returncode)
-        self.assertEqual('', open(self.github_output).read())
+        self.assertEqual('', result.stdout)
+        self.assertEqual([''], self.subjects())
+
+    def test_a_hash_that_origin_does_not_have_stops_the_run_before_the_valid_argument_before_it_is_applied(self):
+        head = self.pull_request(101, one='1.0.1')
+        result = self.fold(head, '1' * 40)
+        self.assertNotEqual(0, result.returncode)
+        self.assertIn('1' * 40, result.stderr)
+        self.assertEqual('', result.stdout)
+        self.assertEqual([''], self.subjects())
+        self.assertEqual('', self.git('status', '--porcelain'))
+
+    def test_a_commit_with_no_history_in_common_with_the_branch_stops_the_run_before_the_valid_argument_before_it_is_applied(self):
+        head = self.pull_request(101, one='1.0.1')
+        self.git('switch', '--quiet', '--orphan', 'unrelated')
+        self.write(os.path.join(self.root, 'other.txt'), 'x')
+        self.git('add', '-A')
+        self.git('commit', '--quiet', '-m', 'unrelated')
+        self.git('push', '--quiet', 'origin', 'HEAD:refs/pull/105/head')
+        orphan = self.git('rev-parse', 'HEAD')
+        self.git('switch', '--quiet', '--force', 'main')
+        result = self.fold(head, orphan)
+        self.assertEqual(1, result.returncode)
+        self.assertIn('has no history in common with the checked-out branch', result.stderr)
+        self.assertEqual('', result.stdout)
+        self.assertEqual([''], self.subjects())
+
+    def test_an_argument_that_is_neither_a_number_with_a_full_head_nor_a_lowercase_hash_is_refused_before_anything_is_applied(self):
+        head = self.pull_request(101, one='1.0.1')
+        for malformed in (head.upper(), head[:39], head + 'a', 'latest', '101@', '@' + head, '101@' + head[:7]):
+            result = self.fold(head, malformed)
+            self.assertEqual(2, result.returncode, malformed)
+            self.assertIn('lowercase commit hash: ' + malformed, result.stderr)
+            self.assertEqual('', result.stdout)
+            self.assertEqual([''], self.subjects())
+
+    def test_a_malformed_argument_is_reported_even_when_the_tree_is_dirty(self):
+        self.write(os.path.join(self.root, 'untracked.txt'), 'x')
+        result = self.fold('latest')
+        self.assertEqual(2, result.returncode)
+        self.assertNotIn('not clean', result.stderr)
+
+    def test_a_pull_request_whose_head_is_already_on_the_branch_is_reported_as_applied(self):
+        head = self.pull_request(101, one='1.0.1')
+        self.git('merge', '--quiet', '--ff-only', head)
+        self.git('push', '--quiet', 'origin', 'main')
+        result = self.fold('101')
+        self.assertEqual(0, result.returncode, result.stderr)
+        self.assertEqual('skipped 101: already applied\nnothing to fold\n', result.stdout)
+
+    def test_the_same_pull_request_given_three_times_is_folded_once(self):
+        head = self.pull_request(101, one='1.0.1')
+        result = self.fold('101', '101@' + head, head)
+        self.assertEqual(0, result.returncode, result.stderr)
+        self.assertEqual('folded 101\nskipped 101: already applied\nskipped %s: already applied\nsynced vendor/ for 101\n' % head[:9], result.stdout)
+        self.assertEqual(['Sync vendor/ with composer.lock', 'Bump pr 101'], self.subjects())
+
+    def test_a_commit_that_is_already_on_the_branch_is_reported_as_applied_not_as_a_change_of_more_than_the_lock(self):
+        result = self.fold(self.git('rev-parse', 'HEAD'))
+        self.assertEqual(0, result.returncode, result.stderr)
+        self.assertIn('already applied', result.stdout)
+        self.assertNotIn('more than composer.lock', result.stdout)
+        self.assertIn('nothing to fold', result.stdout)
 
     def test_a_dirty_tree_is_refused(self):
         self.pull_request(101, one='1.0.1')
