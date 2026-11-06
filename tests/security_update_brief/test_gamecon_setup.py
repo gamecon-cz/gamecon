@@ -275,8 +275,12 @@ class BatchInstructionsTest(unittest.TestCase):
         self.assertIn('Never merge, approve or rebase a Dependabot pull request itself', self.text)
 
     def test_the_steps_follow_the_order_judge_add_tests_wait_for_the_tests(self):
-        positions = [self.text.index(needle) for needle in ('4. Give each package one verdict', '5. For every `AFFECTED_NOT_COVERED`', '6. The workflow has started')]
+        positions = [self.text.index(needle) for needle in ('4. Give each package one verdict', '5. For every `AFFECTED_NOT_COVERED`', '6. `Run tests` on this branch runs only after')]
         self.assertEqual(sorted(positions), positions)
+
+    def test_they_say_that_a_person_has_to_approve_the_runs_of_the_tests_because_nothing_starts_them(self):
+        self.assertIn('presses "Approve and run workflows" on this pull request', self.text)
+        self.assertNotIn('The workflow has started', self.text)
 
     def test_the_wrapper_can_be_told_to_use_these_instructions(self):
         self.assertIn('"${BRIEF_INSTRUCTIONS:-.github/security-update-brief.md}"', read(WRAPPER_PATH))
@@ -310,7 +314,7 @@ class FoldWorkflowTest(unittest.TestCase):
     def test_every_step_that_runs_something_runs_one_script_of_bin_and_no_expression_reaches_a_shell(self):
         blocks = run_blocks(self.text)
         self.assertEqual(['.github/scripts/dependabot/plan.sh', '.github/scripts/dependabot/build.sh'] + ['.github/scripts/dependabot/publish.sh %s' % step
-                                                                                                          for step in ('check', 'body', 'push', 'pull-request', 'tests', 'record')],
+                                                                                                          for step in ('check', 'body', 'push', 'pull-request', 'record')],
                          [block.strip() for block in blocks])
         for block in blocks:
             self.assertNotIn('${{', block)
@@ -335,8 +339,9 @@ class FoldWorkflowTest(unittest.TestCase):
         self.assertNotRegex(self.build_script, r'\bgh\b')
 
     def test_the_job_that_has_the_token_runs_none_of_the_packages_nor_the_folding(self):
-        for needle in ('contents: write', 'pull-requests: write', 'actions: write'):
-            self.assertIn(needle, self.jobs['publish'])
+        permissions = re.search(r'(?m)^        permissions:\n((?:            [\w-]+: \w+\n)+)', self.jobs['publish'])
+        self.assertIsNotNone(permissions)
+        self.assertEqual(['contents: write', 'pull-requests: write'], [line.strip() for line in permissions.group(1).splitlines()])
         for needle in ('fold-dependabot-composer.sh', 'dependabot/build.sh', 'composer install', 'docker', 'cherry-pick', 'DEV_IMAGE_RUN'):
             self.assertNotIn(needle, self.jobs['publish'])
             self.assertNotIn(needle, self.publish_script)
@@ -349,17 +354,17 @@ class FoldWorkflowTest(unittest.TestCase):
         for needle in ('git push', '--method', 'pr create', 'workflow run', 'pr edit'):
             self.assertNotIn(needle, self.plan_script)
 
-    def test_the_publish_steps_run_in_the_order_check_body_push_pull_request_tests_record_and_only_the_last_four_get_the_token(self):
+    def test_the_publish_steps_run_in_the_order_check_body_push_pull_request_record_and_only_the_last_three_get_the_token(self):
         publish = self.jobs['publish']
         steps = re.split(r'(?m)^            -   ', publish)[1:]
         names = [step.split('\n')[0] for step in steps if '.github/scripts/dependabot/publish.sh' in step]
         self.assertEqual(['name: Check what the build produced', 'name: Write the brief and the body', 'name: Push the branch', 'name: Open or update the pull request',
-                          'name: Start the tests', 'name: Record that the pull request is up to date'], names)
+                          'name: Record that the pull request is up to date'], names)
         with_token = [step.split('\n')[0] for step in steps if 'GH_TOKEN' in step]
         self.assertEqual(names[2:], with_token)
         self.assertIn('persist-credentials: false', publish)
 
-    def test_the_publishing_script_pushes_once_with_the_lease_of_the_plan_and_marks_the_pull_request_only_after_the_tests_started(self):
+    def test_the_publishing_script_pushes_once_with_the_lease_of_the_plan_and_marks_the_pull_request_only_after_it_is_written(self):
         script = self.publish_script
         self.assertIn('push --force-with-lease="refs/heads/$BATCH_BRANCH:$BRANCH_TIP"', script)
         self.assertIn('BRANCH_TIP: ${{ needs.plan.outputs.branch_tip }}', self.jobs['publish'])
@@ -390,9 +395,10 @@ class FoldWorkflowTest(unittest.TestCase):
         self.assertEqual('8\n', subprocess.run([jq, '-r', filter_], input=pull_requests, capture_output=True, text=True).stdout)
         self.assertEqual('', subprocess.run([jq, '-r', filter_], input=json.dumps([{'number': 7, 'isCrossRepository': True}]), capture_output=True, text=True).stdout)
 
-    def test_the_tests_are_started_by_dispatch_because_a_pull_request_of_the_workflow_token_starts_none(self):
-        self.assertIn('gh workflow run run-tests.yml --ref "$BATCH_BRANCH"', self.publish_script)
-        self.assertIn('workflow_dispatch:', read(os.path.join(ROOT, '.github', 'workflows', 'run-tests.yml')))
+    def test_nothing_in_the_publish_job_starts_or_restarts_a_workflow_because_the_runs_of_the_pull_request_are_approved_by_a_person(self):
+        for text in (self.jobs['publish'], self.publish_script):
+            for needle in ('gh workflow', 'gh run', 'workflow run', '/dispatches', 'run-tests'):
+                self.assertNotIn(needle, text)
 
     def test_the_scripts_and_the_checker_it_calls_exist_and_run_the_same_code_as_a_local_run(self):
         for path in (PLAN_SCRIPT_PATH, BUILD_SCRIPT_PATH, PUBLISH_SCRIPT_PATH, FOLD_SCRIPT_PATH, WRAPPER_PATH):
@@ -532,7 +538,7 @@ class FoldWorkflowPlanRunTest(FoldScriptRunBase):
         self.assertEqual({'fold': 'false'}, outputs)
         self.assertIn('is up to date', result.stdout)
 
-    def test_a_pull_request_whose_tests_were_never_started_is_not_taken_for_up_to_date(self):
+    def test_a_pull_request_whose_signature_was_never_written_is_not_taken_for_up_to_date(self):
         body = '<!-- fold-dependabot-composer: pending -->\ntext'
         self.assertEqual('true', self.plan([(10, 'aaa'), (20, 'bbb')], batch_body=body)[0]['fold'])
 
