@@ -2,12 +2,12 @@
 # The steps of the publishing job of the workflow fold-dependabot-composer, which is the job that has the write token. None of them
 # runs package code or folds anything: the build job's result arrives as a git bundle, and what it makes is checked before it is used.
 #
-# usage: .github/scripts/dependabot/publish.sh <check|body|push|pull-request|tests|record>
+# usage: .github/scripts/dependabot/publish.sh <check|body|push|pull-request|record>
 #
 # Environment (the workflow sets what is not a variable of GitHub itself):
 #   RUNNER_TEMP, GITHUB_SHA, GITHUB_REPOSITORY, GITHUB_OUTPUT   of GitHub; RUNNER_TEMP/fold holds the artifact of the build job
 #   BATCH_BRANCH   the branch of the folded pull request
-#   GH_TOKEN       for push, pull-request, tests and record only
+#   GH_TOKEN       for push, pull-request and record only
 #   PULL_REQUESTS  the numbers the plan listed (body); BRANCH_TIP  the tip of the branch the plan saw (push)
 #   NUMBER, SIGNATURE  the pull request and the signature the plan made (record)
 set -euo pipefail
@@ -35,8 +35,8 @@ check() {
         "$RUNNER_TEMP/fold/fold-summary.txt" > "$RUNNER_TEMP/summary.txt" || [ $? -eq 1 ]
 }
 
-# Everything the pull request says is made before anything is pushed. The marker with the signature is written last, when the tests
-# have been started: a run that fails halfway is not taken for up to date by the next one.
+# Everything the pull request says is made before anything is pushed. The marker with the signature is written last, when the pull
+# request has been opened or updated: a run that fails halfway is not taken for up to date by the next one.
 body() {
     BRIEF_INSTRUCTIONS=.github/security-update-brief-batch.md bin/security-update-brief.sh "$GITHUB_SHA" fold-incoming brief.md "$(git rev-parse fold-incoming)"
     IFS=' ' read -r -a planned <<< "$PULL_REQUESTS"
@@ -70,6 +70,7 @@ push() {
 }
 
 # The repository setting "Allow GitHub Actions to create and approve pull requests" has to be on.
+# GitHub creates the `pull_request` runs for it but holds them until a person presses "Approve and run workflows"; nothing here starts them.
 pull_request() {
     local existing url
     existing=$(gh pr list --head "$BATCH_BRANCH" --state open --json number,isCrossRepository --jq '[.[] | select(.isCrossRepository | not)] | .[0].number // empty')
@@ -82,23 +83,17 @@ pull_request() {
     fi
 }
 
-# A pull request opened with the workflow token starts no `pull_request` workflow; a dispatched one is allowed.
-tests() {
-    gh workflow run run-tests.yml --ref "$BATCH_BRANCH"
-}
-
 record() {
     sed "s|fold-dependabot-composer: pending|fold-dependabot-composer: $SIGNATURE|" body.md > body-final.md
     grep -qF "<!-- fold-dependabot-composer: $SIGNATURE -->" body-final.md
     gh api --method PATCH "repos/$GITHUB_REPOSITORY/pulls/$NUMBER" --field body=@body-final.md > /dev/null
 }
 
-case "${1:?usage: .github/scripts/dependabot/publish.sh <check|body|push|pull-request|tests|record>}" in
+case "${1:?usage: .github/scripts/dependabot/publish.sh <check|body|push|pull-request|record>}" in
     check) check ;;
     body) body ;;
     push) push ;;
     pull-request) pull_request ;;
-    tests) tests ;;
     record) record ;;
     *) echo "unknown step: $1" >&2; exit 2 ;;
 esac

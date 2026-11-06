@@ -1,12 +1,12 @@
 name: Fold Dependabot composer updates
 
 # Folds every open Dependabot composer pull request into ONE pull request of our own (the lock commits as Dependabot wrote
-# them, `vendor/` synced by `composer install`) and starts the whole `Run tests` on it. It never merges and never touches a
-# Dependabot branch. The code that runs packages (composer install) has no token and no secrets; the job that has the token
-# runs none of it, and takes from the first one only git objects that it checks. The steps are scripts in
-# .github/scripts/dependabot/ (plan, build, publish), so that they run and are tested outside GitHub; this file says what each
-# job may do and what it is handed. bin/fold-dependabot-composer.sh, which they call, is the one to use by hand.
-# See docs/fold-dependabot-composer.md.
+# them, `vendor/` synced by `composer install`). It starts no tests: GitHub holds the `Run tests` run of that pull request
+# until a person approves it. It never merges and never touches a Dependabot branch. The code that runs packages
+# (composer install) has no token and no secrets; the job that has the token runs none of it, and takes from the first one
+# only git objects that it checks. The steps are scripts in .github/scripts/dependabot/ (plan, build, publish), so that they
+# run and are tested outside GitHub; this file says what each job may do and what it is handed.
+# bin/fold-dependabot-composer.sh, which they call, is the one to use by hand. See docs/fold-dependabot-composer.md.
 
 # yamllint disable-line rule:truthy
 on:
@@ -92,7 +92,7 @@ jobs:
                     retention-days: 7
 
     publish:
-        name: Push the branch, write the pull request, start the tests
+        name: Push the branch and write the pull request
         needs: [plan, build]
         if: needs.build.outputs.folded == 'true'
         runs-on: ubuntu-24.04
@@ -100,7 +100,6 @@ jobs:
         permissions:
             contents: write
             pull-requests: write
-            actions: write
         steps:
             # No credentials stay in the checkout: only the steps that talk to GitHub get the token.
             -   uses: actions/checkout@v5
@@ -132,11 +131,6 @@ jobs:
                 env:
                     GH_TOKEN: ${{ github.token }}
                 run: .github/scripts/dependabot/publish.sh pull-request
-
-            -   name: Start the tests
-                env:
-                    GH_TOKEN: ${{ github.token }}
-                run: .github/scripts/dependabot/publish.sh tests
 
             -   name: Record that the pull request is up to date
                 env:
