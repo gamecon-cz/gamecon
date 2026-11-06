@@ -37,6 +37,7 @@ final class EntityClassGenerator
     public function __construct(
         private Generator $generator,
         private DoctrineHelper $doctrineHelper,
+        private bool $generateFinalEntities = false,
     ) {
     }
 
@@ -88,6 +89,7 @@ final class EntityClassGenerator
                 'should_escape_table_name' => $this->doctrineHelper->isKeyword($tableName),
                 'table_name' => $tableName,
                 'id_type' => $useUuidIdentifier,
+                'is_final' => $this->generateFinalEntities,
             ]
         );
 

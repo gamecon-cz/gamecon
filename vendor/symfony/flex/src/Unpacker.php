@@ -12,7 +12,6 @@
 namespace Symfony\Flex;
 
 use Composer\Composer;
-use Composer\Config\JsonConfigSource;
 use Composer\Factory;
 use Composer\IO\IOInterface;
 use Composer\Json\JsonFile;
@@ -178,18 +177,17 @@ class Unpacker
     public function updateLock(Result $result, IOInterface $io): void
     {
         $json = new JsonFile(Factory::getComposerFile());
-        $manipulator = new JsonConfigSource($json);
         $locker = $this->composer->getLocker();
         $lockData = $locker->getLockData();
 
+        $lockData['packages-dev'] = $lockData['packages-dev'] ?? [];
+
         foreach ($result->getUnpacked() as $package) {
-            $manipulator->removeLink('require-dev', $package->getName());
             foreach ($lockData['packages-dev'] as $i => $pkg) {
                 if ($package->getName() === $pkg['name']) {
                     unset($lockData['packages-dev'][$i]);
                 }
             }
-            $manipulator->removeLink('require', $package->getName());
             foreach ($lockData['packages'] as $i => $pkg) {
                 if ($package->getName() === $pkg['name']) {
                     unset($lockData['packages'][$i]);
@@ -197,10 +195,29 @@ class Unpacker
             }
         }
         $jsonContent = file_get_contents($json->getPath());
+        $jsonData = JsonFile::parseJson($jsonContent);
+        $prodPackages = self::getRequiredPackages($lockData, $jsonData['require'] ?? []);
+        $devPackages = self::getRequiredPackages($lockData, $jsonData['require-dev'] ?? []);
+
+        foreach ($lockData['packages'] as $i => $pkg) {
+            $name = strtolower($pkg['name']);
+            if (isset($devPackages[$name]) && !isset($prodPackages[$name])) {
+                $lockData['packages-dev'][] = $pkg;
+                unset($lockData['packages'][$i]);
+            }
+        }
+        usort($lockData['packages-dev'], static fn ($a, $b) => strcmp($a['name'], $b['name']));
+
         $lockData['packages'] = array_values($lockData['packages']);
-        $lockData['packages-dev'] = array_values($lockData['packages-dev']);
         $lockData['content-hash'] = Locker::getContentHash($jsonContent);
         $lockFile = new JsonFile(substr($json->getPath(), 0, -4).'lock', null, $io);
+
+        // keep empty objects as objects, like Composer does
+        foreach (['stability-flags', 'platform', 'platform-dev'] as $key) {
+            if ([] === ($lockData[$key] ?? null)) {
+                $lockData[$key] = new \stdClass();
+            }
+        }
 
         $lockFile->write($lockData);
 
@@ -208,6 +225,35 @@ class Unpacker
         $this->composer->setLocker($locker);
 
         $localRepo = $this->composer->getRepositoryManager()->getLocalRepository();
-        $localRepo->write($localRepo->getDevMode() ?? true, $this->composer->getInstallationManager());
+        $localRepo->setDevPackageNames($locker->getDevPackageNames());
+        // getDevMode() exists since Composer 2.2.6
+        $devMode = method_exists($localRepo, 'getDevMode') ? $localRepo->getDevMode() : null;
+        $localRepo->write($devMode ?? true, $this->composer->getInstallationManager());
+    }
+
+    /**
+     * Returns the names of the locked packages that the given links depend on, directly or not.
+     */
+    private static function getRequiredPackages(array $lockData, array $requires): array
+    {
+        $providers = [];
+        foreach (array_merge($lockData['packages'], $lockData['packages-dev']) as $pkg) {
+            foreach (array_merge([$pkg['name']], array_keys($pkg['provide'] ?? []), array_keys($pkg['replace'] ?? [])) as $name) {
+                $providers[strtolower($name)][] = $pkg;
+            }
+        }
+
+        $packages = [];
+        $names = array_keys($requires);
+        while ($names) {
+            foreach ($providers[strtolower(array_pop($names))] ?? [] as $pkg) {
+                if (!isset($packages[$name = strtolower($pkg['name'])])) {
+                    $packages[$name] = true;
+                    array_push($names, ...array_keys($pkg['require'] ?? []));
+                }
+            }
+        }
+
+        return $packages;
     }
 }

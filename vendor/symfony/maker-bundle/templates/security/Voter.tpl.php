@@ -21,6 +21,7 @@ namespace <?= $class_data->getNamespace(); ?>;
     protected function voteOnAttribute(string $attribute, mixed $subject, TokenInterface $token, ?Vote $vote = null): bool
     {
         $user = $token->getUser();
+
         // if the user is anonymous, do not grant access
         if (!$user instanceof UserInterface) {
             $vote?->addReason('The user must be logged in to access this resource.');
@@ -34,6 +35,7 @@ namespace <?= $class_data->getNamespace(); ?>;
                 // logic to determine if the user can EDIT
                 // return true or false
                 break;
+
             case self::VIEW:
                 // logic to determine if the user can VIEW
                 // return true or false

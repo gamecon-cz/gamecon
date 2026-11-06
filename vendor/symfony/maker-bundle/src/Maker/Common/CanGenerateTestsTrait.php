@@ -24,8 +24,6 @@ use Symfony\Component\Console\Input\InputOption;
  */
 trait CanGenerateTestsTrait
 {
-    private bool $generateTests = false;
-
     public function configureCommandWithTestsOption(Command $command): Command
     {
         $testsHelp = file_get_contents(\dirname(__DIR__, 3).'/config/help/_WithTests.txt');
@@ -46,15 +44,15 @@ trait CanGenerateTestsTrait
             throw new RuntimeCommandException('Whoops! "--with-tests" option does not exist. Call "addWithTestsOptions()" in the makers "configureCommand().');
         }
 
-        $this->generateTests = $input->getOption('with-tests');
-
-        if (!$this->generateTests) {
-            $this->generateTests = $io->confirm('Do you want to generate PHPUnit tests? [Experimental]', false);
+        if ($input->getOption('with-tests')) {
+            return;
         }
+
+        $input->setOption('with-tests', $io->confirm('Do you want to generate PHPUnit tests? [Experimental]', false));
     }
 
-    public function shouldGenerateTests(): bool
+    public function shouldGenerateTests(InputInterface $input): bool
     {
-        return $this->generateTests;
+        return $input->getOption('with-tests');
     }
 }

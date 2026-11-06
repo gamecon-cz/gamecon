@@ -130,7 +130,7 @@ class Configuration implements ConfigurationInterface
                 ->variableNode('trusted_proxies')
                     ->beforeNormalization()
                         ->ifTrue(static fn ($v) => 'private_ranges' === $v || 'PRIVATE_SUBNETS' === $v)
-                        ->then(static fn () => IpUtils::PRIVATE_SUBNETS)
+                        ->then(static fn () => IpUtils::PRIVATE_RANGES)
                     ->end()
                     ->defaultValue(['%env(default::SYMFONY_TRUSTED_PROXIES)%'])
                 ->end()
@@ -386,7 +386,7 @@ class Configuration implements ConfigurationInterface
                                     $workflows = [];
                                 }
 
-                                if (1 === \count($workflows) && isset($workflows['workflows']) && !array_is_list($workflows['workflows']) && array_diff_key($workflows['workflows'], ['audit_trail' => 1, 'type' => 1, 'marking_store' => 1, 'supports' => 1, 'support_strategy' => 1, 'initial_marking' => 1, 'places' => 1, 'transitions' => 1])) {
+                                if (1 === \count($workflows) && isset($workflows['workflows']) && !array_is_list($workflows['workflows']) && array_diff_key($workflows['workflows'], ['audit_trail' => 1, 'type' => 1, 'marking_store' => 1, 'supports' => 1, 'definition_validators' => 1, 'support_strategy' => 1, 'initial_marking' => 1, 'events_to_dispatch' => 1, 'places' => 1, 'transitions' => 1, 'metadata' => 1])) {
                                     $workflows = $workflows['workflows'];
                                 }
 
@@ -395,7 +395,9 @@ class Configuration implements ConfigurationInterface
                                         throw new LogicException(\sprintf('Cannot disable a single workflow. Remove the configuration for the workflow "%s" instead.', $key));
                                     }
 
-                                    unset($workflows[$key]['enabled']);
+                                    if (\is_array($workflow)) {
+                                        unset($workflows[$key]['enabled']);
+                                    }
                                 }
 
                                 $v = [
@@ -1337,7 +1339,7 @@ class Configuration implements ConfigurationInterface
                 ->then(static function ($v) {
                     $v['property_info']['with_constructor_extractor'] = false;
 
-                    trigger_deprecation('symfony/framework-bundle', '7.3', 'Not setting the "property_info.with_constructor_extractor" option explicitly is deprecated because its default value will change in version 8.0.');
+                    trigger_deprecation('symfony/framework-bundle', '7.3', 'Not setting the "framework.property_info.with_constructor_extractor" option explicitly is deprecated because its default value will change in version 8.0.');
 
                     return $v;
                 })
@@ -2330,7 +2332,7 @@ class Configuration implements ConfigurationInterface
                     ->info('Mailer configuration')
                     ->{$enableIfStandalone('symfony/mailer', Mailer::class)}()
                     ->validate()
-                        ->ifTrue(static fn ($v) => isset($v['dsn']) && \count($v['transports']))
+                        ->ifTrue(static fn ($v) => isset($v['dsn']) && $v['transports'])
                         ->thenInvalid('"dsn" and "transports" cannot be used together.')
                     ->end()
                     ->children()
@@ -2443,16 +2445,18 @@ class Configuration implements ConfigurationInterface
                                     ->defaultNull()
                                     ->beforeNormalization()
                                         ->ifString()
-                                        ->then(static function ($v): ?int {
-                                            if (\defined('OPENSSL_CIPHER_'.$v)) {
-                                                return \constant('OPENSSL_CIPHER_'.$v);
+                                        ->then(static function ($v): int {
+                                            $ciphers = self::getOpensslCiphers();
+
+                                            if (!isset($ciphers[$v])) {
+                                                throw new \InvalidArgumentException(\sprintf('"%s" is not a valid OPENSSL cipher.', $v));
                                             }
 
-                                            throw new \InvalidArgumentException(\sprintf('"%s" is not a valid OPENSSL cipher.', $v));
+                                            return $ciphers[$v];
                                         })
                                     ->end()
                                     ->validate()
-                                        ->ifTrue(static fn ($v) => \extension_loaded('openssl') && null !== $v && !\defined('OPENSSL_CIPHER_'.$v))
+                                        ->ifTrue(static fn ($v) => null !== $v && ($ciphers = self::getOpensslCiphers()) && !\in_array($v, $ciphers, true))
                                         ->thenInvalid('You must provide a valid cipher.')
                                     ->end()
                                 ->end()
@@ -2523,6 +2527,7 @@ class Configuration implements ConfigurationInterface
                                 ->end()
                                 ->scalarNode('secret')
                                     ->defaultValue('')
+                                    ->info('The secret used to verify incoming request signatures. It must be set in production: with an empty value, depending on the parser, requests from any sender are accepted or every request is rejected.')
                                 ->end()
                             ->end()
                         ->end()
@@ -2536,7 +2541,7 @@ class Configuration implements ConfigurationInterface
     {
         $rootNode
             ->children()
-                ->arrayNode('remote-event')
+                ->arrayNode('remote_event')
                     ->info('RemoteEvent configuration')
                     ->{$enableIfStandalone('symfony/remote-event', RemoteEvent::class)}()
                 ->end()
@@ -2795,5 +2800,21 @@ class Configuration implements ConfigurationInterface
                 ->end()
             ->end()
         ;
+    }
+
+    /**
+     * @return array<string, int> The values of the OPENSSL_CIPHER_* constants, keyed by their unprefixed name
+     */
+    private static function getOpensslCiphers(): array
+    {
+        $ciphers = [];
+
+        foreach (get_defined_constants(true)['openssl'] ?? [] as $name => $value) {
+            if (str_starts_with($name, 'OPENSSL_CIPHER_')) {
+                $ciphers[substr($name, \strlen('OPENSSL_CIPHER_'))] = $value;
+            }
+        }
+
+        return $ciphers;
     }
 }

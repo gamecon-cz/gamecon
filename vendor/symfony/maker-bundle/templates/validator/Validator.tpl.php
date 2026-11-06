@@ -7,10 +7,11 @@ namespace <?= $class_data->getNamespace(); ?>;
 <?= $class_data->getClassDeclaration(); ?>
 
 {
+    /**
+     * @param <?= $constraint_class_name ?> $constraint
+     */
     public function validate(mixed $value, Constraint $constraint): void
     {
-        /** @var <?= $constraint_class_name ?> $constraint */
-
         if (null === $value || '' === $value) {
             return;
         }

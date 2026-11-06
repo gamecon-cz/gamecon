@@ -19,7 +19,7 @@ class <?= $class_name ?> implements EncoderInterface, DecoderInterface
         return self::FORMAT === $format;
     }
 
-    public function decode(string $data, string $format, array $context = [])<?php if ($use_decoder_return_type): ?>: mixed<?php endif; ?>
+    public function decode(string $data, string $format, array $context = []): mixed
     {
         // TODO: return your decoded data
         return '';

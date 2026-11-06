@@ -18,7 +18,7 @@ namespace <?= $namespace ?>;
 <?php if ($broadcast): ?>
 #[Broadcast]
 <?php endif ?>
-class <?= $class_name."\n" ?>
+<?php if ($is_final): ?>final <?php endif ?>class <?= $class_name."\n" ?>
 {
 <?php if (EntityIdTypeEnum::UUID === $id_type): ?>
     #[ORM\Id]

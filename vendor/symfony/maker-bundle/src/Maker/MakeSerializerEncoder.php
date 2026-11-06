@@ -19,7 +19,6 @@ use Symfony\Bundle\MakerBundle\Util\UseStatementGenerator;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputInterface;
-use Symfony\Component\HttpKernel\Kernel;
 use Symfony\Component\Serializer\Encoder\DecoderInterface;
 use Symfony\Component\Serializer\Encoder\EncoderInterface;
 use Symfony\Component\Serializer\Serializer;
@@ -62,14 +61,12 @@ final class MakeSerializerEncoder extends AbstractMaker
             EncoderInterface::class,
         ]);
 
-        /* @legacy - Remove "decoder_return_type" when Symfony 6.4 is no longer supported */
         $generator->generateClass(
             $encoderClassNameDetails->getFullName(),
             'serializer/Encoder.tpl.php',
             [
                 'use_statements' => $useStatements,
                 'format' => $format,
-                'use_decoder_return_type' => Kernel::VERSION_ID >= 70000,
             ]
         );
 

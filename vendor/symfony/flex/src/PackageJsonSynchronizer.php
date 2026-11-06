@@ -11,6 +11,7 @@
 
 namespace Symfony\Flex;
 
+use Composer\EventDispatcher\ScriptExecutionException;
 use Composer\IO\IOInterface;
 use Composer\Json\JsonFile;
 use Composer\Json\JsonManipulator;
@@ -28,14 +29,16 @@ class PackageJsonSynchronizer
     private $vendorDir;
     private $scriptExecutor;
     private $io;
+    private $assetsDir;
     private $versionParser;
 
-    public function __construct(string $rootDir, string $vendorDir, ScriptExecutor $scriptExecutor, IOInterface $io)
+    public function __construct(string $rootDir, string $vendorDir, ScriptExecutor $scriptExecutor, IOInterface $io, string $assetsDir = 'assets')
     {
         $this->rootDir = $rootDir;
         $this->vendorDir = $vendorDir;
         $this->scriptExecutor = $scriptExecutor;
         $this->io = $io;
+        $this->assetsDir = $assetsDir;
         $this->versionParser = new VersionParser();
     }
 
@@ -44,10 +47,13 @@ class PackageJsonSynchronizer
         return $this->rootDir && (file_exists($this->rootDir.'/package.json') || file_exists($this->rootDir.'/importmap.php'));
     }
 
-    public function synchronize(array $phpPackages): bool
+    /**
+     * @param string[] $obsoleteImportMapEntryNames importmap entry names declared by packages that have just been uninstalled
+     */
+    public function synchronize(array $phpPackages, array $obsoleteImportMapEntryNames = []): bool
     {
         if (file_exists($this->rootDir.'/importmap.php')) {
-            $this->synchronizeForAssetMapper($phpPackages);
+            $this->synchronizeForAssetMapper($phpPackages, $obsoleteImportMapEntryNames);
 
             return false;
         }
@@ -59,11 +65,11 @@ class PackageJsonSynchronizer
             return false;
         }
 
-        $didChangePackageJson = $this->removeObsoletePackageJsonLinks();
+        $phpPackages = $this->normalizePhpPackages($phpPackages);
+        $didChangePackageJson = $this->removeObsoletePackageJsonLinks($phpPackages);
 
         $dependencies = [];
 
-        $phpPackages = $this->normalizePhpPackages($phpPackages);
         foreach ($phpPackages as $phpPackage) {
             foreach ($this->resolvePackageJsonDependencies($phpPackage) as $dependency => $constraint) {
                 $dependencies[$dependency][$phpPackage['name']] = $constraint;
@@ -78,7 +84,24 @@ class PackageJsonSynchronizer
         return $didChangePackageJson;
     }
 
-    private function synchronizeForAssetMapper(array $phpPackages): void
+    /**
+     * Returns the importmap entry names declared by a PHP package.
+     *
+     * Useful to capture the entries of a package about to be uninstalled, while
+     * its files still exist.
+     *
+     * @return string[]
+     */
+    public function resolveImportMapEntryNames(array $phpPackage): array
+    {
+        if (!$packageJson = $this->resolvePackageJson($phpPackage)) {
+            return [];
+        }
+
+        return array_keys($packageJson->read()['symfony']['importmap'] ?? []);
+    }
+
+    private function synchronizeForAssetMapper(array $phpPackages, array $obsoleteImportMapEntryNames): void
     {
         $importMapEntries = [];
         $phpPackages = $this->normalizePhpPackages($phpPackages);
@@ -88,13 +111,21 @@ class PackageJsonSynchronizer
             }
         }
 
+        $this->removeObsoleteImportMapEntries($obsoleteImportMapEntryNames, $importMapEntries);
         $this->updateImportMap($importMapEntries);
         $this->updateControllersJsonFile($phpPackages);
     }
 
-    private function removeObsoletePackageJsonLinks(): bool
+    private function removeObsoletePackageJsonLinks(array $phpPackages): bool
     {
         $didChangePackageJson = false;
+
+        $notInstalledPackages = [];
+        foreach ($phpPackages as $phpPackage) {
+            if (!$this->isInstalled($phpPackage)) {
+                $notInstalledPackages['@'.$phpPackage['name']] = true;
+            }
+        }
 
         $manipulator = new JsonManipulator(file_get_contents($this->rootDir.'/package.json'));
         $content = json_decode($manipulator->getContents(), true);
@@ -104,10 +135,10 @@ class PackageJsonSynchronizer
 
         foreach (['dependencies' => $jsDependencies, 'devDependencies' => $jsDevDependencies] as $key => $packages) {
             foreach ($packages as $name => $version) {
-                if ('@' !== $name[0] || !str_starts_with($version, 'file:'.$this->vendorDir.'/') || !str_contains($version, '/assets')) {
+                if (!str_starts_with($name, '@') || !str_starts_with($version, 'file:'.$this->vendorDir.'/') || !str_contains($version, '/assets')) {
                     continue;
                 }
-                if (file_exists($this->rootDir.'/'.substr($version, 5).'/package.json')) {
+                if (file_exists($this->rootDir.'/'.substr($version, 5).'/package.json') || isset($notInstalledPackages[$name])) {
                     continue;
                 }
 
@@ -222,13 +253,13 @@ class PackageJsonSynchronizer
 
         if ($didChangePackageJson) {
             if (isset($content['dependencies'])) {
-                $manipulator->addMainKey('dependencies', $content['dependencies']);
+                $manipulator->addMainKey('dependencies', self::toJsonObject($content['dependencies']));
             }
 
             if (isset($content['devDependencies'])) {
                 $devDependencies = $content['devDependencies'];
                 uksort($devDependencies, 'strnatcmp');
-                $manipulator->addMainKey('devDependencies', $devDependencies);
+                $manipulator->addMainKey('devDependencies', self::toJsonObject($devDependencies));
             }
 
             $newContents = $manipulator->getContents();
@@ -255,6 +286,44 @@ class PackageJsonSynchronizer
     }
 
     /**
+     * @param string[]                                                                                   $obsoleteImportMapEntryNames
+     * @param array<string, array{path?: string, package?: string, version?: string, entrypoint?: bool}> $keptImportMapEntries
+     */
+    private function removeObsoleteImportMapEntries(array $obsoleteImportMapEntryNames, array $keptImportMapEntries): void
+    {
+        if (!$obsoleteImportMapEntryNames) {
+            return;
+        }
+
+        $importMapData = include $this->rootDir.'/importmap.php';
+
+        $toRemove = [];
+        foreach (array_unique($obsoleteImportMapEntryNames) as $name) {
+            // the entry is still declared by an installed package
+            if (isset($keptImportMapEntries[$name])) {
+                continue;
+            }
+
+            // the entry is not in the importmap (e.g. already removed by hand)
+            if (!isset($importMapData[$name])) {
+                continue;
+            }
+
+            $toRemove[] = $name;
+        }
+
+        if (!$toRemove) {
+            return;
+        }
+
+        try {
+            $this->scriptExecutor->execute('symfony-cmd', 'importmap:remove', $toRemove);
+        } catch (ScriptExecutionException) {
+            $this->io->writeError(\sprintf('<warning>Could not remove the following packages from your importmap: %s.</>', implode(', ', $toRemove)));
+        }
+    }
+
+    /**
      * @param array<string, array{path?: string, package?: string, version?: string, entrypoint?: bool}> $importMapEntries
      */
     private function updateImportMap(array $importMapEntries): void
@@ -265,6 +334,7 @@ class PackageJsonSynchronizer
 
         $importMapData = include $this->rootDir.'/importmap.php';
 
+        $failed = [];
         foreach ($importMapEntries as $name => $importMapEntry) {
             if (isset($importMapData[$name])) {
                 if (!isset($importMapData[$name]['version'])) {
@@ -288,38 +358,34 @@ class PackageJsonSynchronizer
                 if (isset($importMapEntry['entrypoint']) && true === $importMapEntry['entrypoint']) {
                     $arguments[] = '--entrypoint';
                 }
-
-                $this->scriptExecutor->execute(
-                    'symfony-cmd',
-                    'importmap:require',
-                    $arguments
-                );
-
-                continue;
-            }
-
-            if (isset($importMapEntry['version'])) {
+            } elseif (isset($importMapEntry['version'])) {
                 $packageName = $importMapEntry['package'].'@'.$importMapEntry['version'];
                 if ($importMapEntry['package'] !== $name) {
                     $packageName .= '='.$name;
                 }
                 $arguments = [$packageName];
-                $this->scriptExecutor->execute(
-                    'symfony-cmd',
-                    'importmap:require',
-                    $arguments
-                );
-
-                continue;
+            } else {
+                throw new \InvalidArgumentException(\sprintf('Invalid importmap entry: "%s".', var_export($importMapEntry, true)));
             }
 
-            throw new \InvalidArgumentException(\sprintf('Invalid importmap entry: "%s".', var_export($importMapEntry, true)));
+            try {
+                $this->scriptExecutor->execute('symfony-cmd', 'importmap:require', $arguments);
+            } catch (ScriptExecutionException) {
+                $failed[] = $name;
+            }
+        }
+
+        if ($failed) {
+            $this->io->writeError([
+                \sprintf('<warning>Could not add the following packages to your importmap: %s.</>', implode(', ', $failed)),
+                '<warning>Run "composer update --lock" to try again.</>',
+            ]);
         }
     }
 
     private function updateControllersJsonFile(array $phpPackages)
     {
-        if (!file_exists($controllersJsonPath = $this->rootDir.'/assets/controllers.json')) {
+        if (!file_exists($controllersJsonPath = $this->rootDir.'/'.$this->assetsDir.'/controllers.json')) {
             return;
         }
 
@@ -335,10 +401,14 @@ class PackageJsonSynchronizer
         ];
 
         foreach ($phpPackages as $phpPackage) {
+            $name = '@'.$phpPackage['name'];
             if (!$packageJson = $this->resolvePackageJson($phpPackage)) {
+                if (isset($previousControllersJson['controllers'][$name]) && !$this->isInstalled($phpPackage)) {
+                    $newControllersJson['controllers'][$name] = $previousControllersJson['controllers'][$name];
+                }
+
                 continue;
             }
-            $name = '@'.$phpPackage['name'];
 
             foreach ($packageJson->read()['symfony']['controllers'] ?? [] as $controllerName => $defaultConfig) {
                 // If the package has just been added (no config), add the default config provided by the package
@@ -385,6 +455,14 @@ class PackageJsonSynchronizer
         file_put_contents($controllersJsonPath, json_encode($newControllersJson, \JSON_PRETTY_PRINT | \JSON_UNESCAPED_SLASHES)."\n");
     }
 
+    /**
+     * Packages can be locked but not installed, like the ones from require-dev when using --no-dev.
+     */
+    private function isInstalled(array $phpPackage): bool
+    {
+        return is_dir($this->rootDir.'/'.$this->vendorDir.'/'.$phpPackage['name']);
+    }
+
     private function resolvePackageJson(array $phpPackage): ?JsonFile
     {
         $packageDir = $this->rootDir.'/'.$this->vendorDir.'/'.$phpPackage['name'];
@@ -419,5 +497,13 @@ class PackageJsonSynchronizer
         }
 
         return $phpPackages;
+    }
+
+    /**
+     * Composer < 2.7.5 encodes arrays whose first key is numeric as JSON lists.
+     */
+    private static function toJsonObject(array $packages): array|\ArrayObject
+    {
+        return \is_int(array_key_first($packages)) ? new \ArrayObject($packages) : $packages;
     }
 }

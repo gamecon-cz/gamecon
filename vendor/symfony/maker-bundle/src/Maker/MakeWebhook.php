@@ -19,9 +19,7 @@ use Symfony\Bundle\MakerBundle\Generator;
 use Symfony\Bundle\MakerBundle\InputAwareMakerInterface;
 use Symfony\Bundle\MakerBundle\InputConfiguration;
 use Symfony\Bundle\MakerBundle\Maker\Common\InstallDependencyTrait;
-use Symfony\Bundle\MakerBundle\Str;
-use Symfony\Bundle\MakerBundle\Util\ClassNameDetails;
-use Symfony\Bundle\MakerBundle\Util\UseStatementGenerator;
+use Symfony\Bundle\MakerBundle\Util\ClassSource\Model\ClassData;
 use Symfony\Bundle\MakerBundle\Util\YamlSourceManipulator;
 use Symfony\Bundle\MakerBundle\Validator;
 use Symfony\Component\Console\Command\Command;
@@ -45,6 +43,8 @@ use Symfony\Component\HttpFoundation\RequestMatcher\PortRequestMatcher;
 use Symfony\Component\HttpFoundation\RequestMatcher\SchemeRequestMatcher;
 use Symfony\Component\HttpFoundation\RequestMatcherInterface;
 use Symfony\Component\HttpFoundation\Response;
+use Symfony\Component\RemoteEvent\Attribute\AsRemoteEventConsumer;
+use Symfony\Component\RemoteEvent\Consumer\ConsumerInterface;
 use Symfony\Component\RemoteEvent\RemoteEvent;
 use Symfony\Component\Webhook\Client\AbstractRequestParser;
 use Symfony\Component\Webhook\Exception\RejectWebhookException;
@@ -62,10 +62,7 @@ final class MakeWebhook extends AbstractMaker implements InputAwareMakerInterfac
     public const WEBHOOK_NAME_PATTERN = '/^[a-zA-Z_.\-\x80-\xff][a-zA-Z0-9_.\-\x80-\xff]*$/u';
     private const WEBHOOK_CONFIG_PATH = 'config/packages/webhook.yaml';
 
-    private ConsoleStyle $io;
-
     private YamlSourceManipulator $ysm;
-    private string $name;
 
     /** @var array<class-string> */
     private array $requestMatchers = [];
@@ -106,14 +103,8 @@ final class MakeWebhook extends AbstractMaker implements InputAwareMakerInterfac
 
     public function interact(InputInterface $input, ConsoleStyle $io, Command $command): void
     {
-        $this->io = $io;
-
-        $this->installDependencyIfNeeded($io, AbstractRequestParser::class, 'symfony/webhook');
-
-        if ($this->name = $input->getArgument('name') ?? '') {
-            if (!$this->verifyWebhookName($this->name)) {
-                throw new RuntimeCommandException('A webhook name can only have alphanumeric characters, underscores, dots, and dashes.');
-            }
+        if ($name = $input->getArgument('name') ?? '') {
+            $this->validateWebhookName($name);
 
             return;
         }
@@ -122,15 +113,17 @@ final class MakeWebhook extends AbstractMaker implements InputAwareMakerInterfac
         $question = new Question($argument->getDescription());
         $question->setValidator(Validator::notBlank(...));
 
-        $this->name = $this->io->askQuestion($question);
+        $name = $io->askQuestion($question);
 
-        while (!$this->verifyWebhookName($this->name)) {
-            $this->io->error('A webhook name can only have alphanumeric characters, underscores, dots, and dashes.');
-            $this->name = $this->io->askQuestion($question);
+        while (!$this->verifyWebhookName($name)) {
+            $io->error('A webhook name can only have alphanumeric characters, underscores, dots, and dashes.');
+            $name = $io->askQuestion($question);
         }
 
+        $input->setArgument('name', $name);
+
         while (true) {
-            $newRequestMatcher = $this->askForNextRequestMatcher(isFirstMatcher: empty($this->requestMatchers));
+            $newRequestMatcher = $this->askForNextRequestMatcher($io, isFirstMatcher: empty($this->requestMatchers));
 
             if (null === $newRequestMatcher) {
                 break;
@@ -140,30 +133,52 @@ final class MakeWebhook extends AbstractMaker implements InputAwareMakerInterfac
         }
 
         if (\in_array(ExpressionRequestMatcher::class, $this->requestMatchers, true)) {
-            $this->installDependencyIfNeeded($this->io, Expression::class, 'symfony/expression-language');
+            $this->installDependencyIfNeeded($io, Expression::class, 'symfony/expression-language');
         }
     }
 
     public function generate(InputInterface $input, ConsoleStyle $io, Generator $generator): void
     {
-        $requestParserDetails = $this->generator->createClassNameDetails(
-            Str::asClassName($this->name.'RequestParser'),
-            'Webhook\\'
+        // the generated parser extends a class from this package, and generate() is the one
+        // step that always runs, so installing here covers both paths and does it once
+        $this->installDependencyIfNeeded($io, AbstractRequestParser::class, 'symfony/webhook');
+
+        $name = $this->validateWebhookName($input->getArgument('name') ?? '');
+
+        $requestParserClassData = ClassData::create(
+            class: \sprintf('Webhook\\%s', $name),
+            suffix: 'RequestParser',
+            extendsClass: AbstractRequestParser::class,
+            useStatements: [
+                JsonException::class,
+                Request::class,
+                Response::class,
+                RemoteEvent::class,
+                AbstractRequestParser::class,
+                RejectWebhookException::class,
+                RequestMatcherInterface::class,
+            ],
         );
-        $remoteEventConsumerDetails = $this->generator->createClassNameDetails(
-            Str::asClassName($this->name.'WebhookConsumer'),
-            'RemoteEvent\\'
+
+        $remoteEventClassData = ClassData::create(
+            class: \sprintf('RemoteEvent\\%s', $name),
+            suffix: 'WebhookConsumer',
+            useStatements: [
+                AsRemoteEventConsumer::class,
+                ConsumerInterface::class,
+                RemoteEvent::class,
+            ],
         );
 
-        $this->addToYamlConfig($this->name, $requestParserDetails);
+        $this->addToYamlConfig($name, $requestParserClassData);
 
-        $this->generateRequestParser(requestParserDetails: $requestParserDetails);
+        $this->generateRequestParser($requestParserClassData);
 
-        $this->generator->generateClass(
-            $remoteEventConsumerDetails->getFullName(),
+        $this->generator->generateClassFromClassData(
+            $remoteEventClassData,
             'webhook/WebhookConsumer.tpl.php',
             [
-                'webhook_name' => $this->name,
+                'webhook_name' => $name,
             ]
         );
 
@@ -178,7 +193,20 @@ final class MakeWebhook extends AbstractMaker implements InputAwareMakerInterfac
         return preg_match(self::WEBHOOK_NAME_PATTERN, $entityName);
     }
 
-    private function addToYamlConfig(string $webhookName, ClassNameDetails $requestParserDetails): void
+    private function validateWebhookName(string $name): string
+    {
+        if (!$name) {
+            throw new RuntimeCommandException('The "name" argument is required when the command runs without asking.');
+        }
+
+        if (!$this->verifyWebhookName($name)) {
+            throw new RuntimeCommandException('A webhook name can only have alphanumeric characters, underscores, dots, and dashes.');
+        }
+
+        return $name;
+    }
+
+    private function addToYamlConfig(string $webhookName, ClassData $requestParserClassData): void
     {
         $yamlConfig = Yaml::dump(['framework' => ['webhook' => ['routing' => []]]], 4, 2);
         if ($this->fileManager->fileExists(self::WEBHOOK_CONFIG_PATH)) {
@@ -189,11 +217,11 @@ final class MakeWebhook extends AbstractMaker implements InputAwareMakerInterfac
         $arrayConfig = $this->ysm->getData();
 
         if (\array_key_exists($webhookName, $arrayConfig['framework']['webhook']['routing'] ?? [])) {
-            throw new \InvalidArgumentException('A webhook with this name already exists');
+            throw new \InvalidArgumentException('A webhook with this name already exists.');
         }
 
         $arrayConfig['framework']['webhook']['routing'][$webhookName] = [
-            'service' => $requestParserDetails->getFullName(),
+            'service' => $requestParserClassData->getFullClassName(),
             'secret' => 'your_secret_here',
         ];
         $this->ysm->setData(
@@ -204,43 +232,31 @@ final class MakeWebhook extends AbstractMaker implements InputAwareMakerInterfac
     /**
      * @throws \Exception
      */
-    private function generateRequestParser(ClassNameDetails $requestParserDetails): void
+    private function generateRequestParser(ClassData $requestParserClassData): void
     {
-        $useStatements = new UseStatementGenerator([
-            JsonException::class,
-            Request::class,
-            Response::class,
-            RemoteEvent::class,
-            AbstractRequestParser::class,
-            RejectWebhookException::class,
-            RequestMatcherInterface::class,
-        ]);
-
         // Use a ChainRequestMatcher if multiple matchers have been added OR if none (will be printed with an empty array)
         $useChainRequestsMatcher = false;
 
         if (1 !== \count($this->requestMatchers)) {
             $useChainRequestsMatcher = true;
-            $useStatements->addUseStatement(ChainRequestMatcher::class);
+            $requestParserClassData->addUseStatement(ChainRequestMatcher::class);
         }
 
         $requestMatcherArguments = [];
 
         foreach ($this->requestMatchers as $requestMatcherClass) {
-            $useStatements->addUseStatement($requestMatcherClass);
+            $requestParserClassData->addUseStatement($requestMatcherClass);
             $requestMatcherArguments[$requestMatcherClass] = $this->getRequestMatcherArguments(requestMatcherClass: $requestMatcherClass);
 
             if (ExpressionRequestMatcher::class === $requestMatcherClass) {
-                $useStatements->addUseStatement(Expression::class);
-                $useStatements->addUseStatement(ExpressionLanguage::class);
+                $requestParserClassData->addUseStatement([Expression::class, ExpressionLanguage::class]);
             }
         }
 
-        $this->generator->generateClass(
-            $requestParserDetails->getFullName(),
+        $this->generator->generateClassFromClassData(
+            $requestParserClassData,
             'webhook/RequestParser.tpl.php',
             [
-                'use_statements' => $useStatements,
                 'use_chained_requests_matcher' => $useChainRequestsMatcher,
                 'request_matchers' => $this->requestMatchers,
                 'request_matcher_arguments' => $requestMatcherArguments,
@@ -248,9 +264,9 @@ final class MakeWebhook extends AbstractMaker implements InputAwareMakerInterfac
         );
     }
 
-    private function askForNextRequestMatcher(bool $isFirstMatcher): ?string
+    private function askForNextRequestMatcher(ConsoleStyle $io, bool $isFirstMatcher): ?string
     {
-        $this->io->newLine();
+        $io->newLine();
 
         $availableMatchers = $this->getAvailableRequestMatchers();
         $matcherName = null;
@@ -264,7 +280,7 @@ final class MakeWebhook extends AbstractMaker implements InputAwareMakerInterfac
 
             $choices = array_diff($availableMatchers, $this->requestMatchers);
             $question = new ChoiceQuestion($questionText, array_values(['<skip>'] + $choices), 0);
-            $matcherName = $this->io->askQuestion($question);
+            $matcherName = $io->askQuestion($question);
 
             if ('<skip>' === $matcherName) {
                 return null;
