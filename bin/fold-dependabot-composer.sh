@@ -1,14 +1,16 @@
 #!/usr/bin/env bash
-# Folds the open Dependabot composer pull requests into the checked-out branch: their lock commits as they are,
+# Folds the Dependabot composer pull requests it is given into the checked-out branch: their lock commits as they are,
 # then `composer install` in the dev image to sync the committed vendor/ as one more commit.
 #
 # usage: bin/fold-dependabot-composer.sh --list                   the open pull requests that only change composer.lock, "<number> <head sha>" per line
 #        bin/fold-dependabot-composer.sh <number>[@<head sha>] ...  fold these onto the checked-out branch (a clean tree, normally main);
 #                                                                 with a head, a pull request that has moved on since is skipped
+#        bin/fold-dependabot-composer.sh <40-character hash> ...    fold the lock commit of a pull request that Dependabot has closed or
+#                                                                 rewritten since: write the heads down when you list them
 #
 # Never pushes and never touches a Dependabot branch. --list needs gh; folding needs git, python3 and docker.
-# stdout holds only the lines of this script (folded, skipped, synced); what composer and the checks print goes to stderr, because
-# the workflow puts the stdout into a pull request and composer runs package code.
+# It takes your word for what it is given and composer install runs package code: fold only what Dependabot itself made.
+# stdout holds only the lines of this script (folded, skipped, synced); what composer and the checks print goes to stderr.
 # Tests replace the tools with DEV_IMAGE_RUN (the command prefix that runs a command in the dev image) and GH.
 set -euo pipefail
 IFS=$'\n\t'
@@ -37,10 +39,32 @@ for pull_request in sorted(json.load(sys.stdin), key=lambda item: item["number"]
 '
 }
 
-if [ "${1:?usage: bin/fold-dependabot-composer.sh --list | <pull request number> [...]}" = "--list" ]; then
+if [ "${1:?usage: bin/fold-dependabot-composer.sh --list | <pull request number>[@<head sha>] | <commit hash> [...]}" = "--list" ]; then
     list_pull_requests
     exit 0
 fi
+
+# every argument is checked and fetched before the first commit is applied, so that a typo cannot leave the branch half folded
+labels=()
+references=()
+expecteds=()
+for argument in "$@"; do
+    expected=""
+    if [[ "$argument" =~ ^[0-9a-f]{40}$ ]]; then
+        label=${argument:0:9}
+        reference=$argument
+    elif [[ "$argument" =~ ^[0-9]+(@[0-9a-f]{40})?$ ]]; then
+        label=${argument%%@*}
+        reference="refs/dependabot/$label"
+        case "$argument" in *@*) expected=${argument#*@} ;; esac
+    else
+        echo "Not a pull request number (with a 40-character head) or a 40-character lowercase commit hash: $argument" >&2
+        exit 2
+    fi
+    labels+=("$label")
+    references+=("$reference")
+    expecteds+=("$expected")
+done
 
 # untracked files too: the check after the install tells "composer changed this" from "was already here" by the tree being clean
 if [ -n "$(git status --porcelain)" ]; then
@@ -48,22 +72,36 @@ if [ -n "$(git status --porcelain)" ]; then
     exit 1
 fi
 
+for index in "${!labels[@]}"; do
+    if [[ "${references[index]}" == refs/dependabot/* ]]; then
+        # `+`: Dependabot force-pushes its branch when it rebases, and a second run in the same checkout must follow it
+        git fetch --quiet origin "+pull/${labels[index]}/head:${references[index]}"
+    else
+        # GitHub keeps a commit that a force-push or a closed pull request left behind, and gives it out by its hash
+        git fetch --quiet origin "${references[index]}"
+    fi
+    if ! git merge-base HEAD "${references[index]}" > /dev/null 2>&1; then
+        echo "${labels[index]} is not a commit, or has no history in common with the checked-out branch." >&2
+        exit 1
+    fi
+done
+
 folded=()
-for argument in "$@"; do
+for index in "${!labels[@]}"; do
+    label=${labels[index]}
+    reference=${references[index]}
     # `<number>@<head sha>` folds the pull request only if its head is still the one listed
-    number=${argument%%@*}
-    expected=""
-    case "$argument" in *@*) expected=${argument#*@} ;; esac
-    reference="refs/dependabot/$number"
-    # `+`: Dependabot force-pushes its branch when it rebases, and a second run in the same checkout must follow it
-    git fetch --quiet origin "+pull/$number/head:$reference"
-    if [ -n "$expected" ] && [ "$(git rev-parse "$reference")" != "$expected" ]; then
-        echo "skipped $number: its head moved since the list was made"
+    if [ -n "${expecteds[index]}" ] && [ "$(git rev-parse "$reference")" != "${expecteds[index]}" ]; then
+        echo "skipped $label: its head moved since the list was made"
+        continue
+    fi
+    if git merge-base --is-ancestor "$reference" HEAD; then
+        echo "skipped $label: already applied"
         continue
     fi
     base=$(git merge-base HEAD "$reference")
     if [ "$(git diff --no-renames --name-only "$base" "$reference")" != "composer.lock" ]; then
-        echo "skipped $number: it changes more than composer.lock"
+        echo "skipped $label: it changes more than composer.lock"
         continue
     fi
     before=$(git rev-parse HEAD)
@@ -78,15 +116,15 @@ for argument in "$@"; do
         else
             git cherry-pick --abort > /dev/null 2>&1 || true
             git reset --quiet --hard "$before"
-            echo "skipped $number: its lock commit does not apply to this branch"
+            echo "skipped $label: its lock commit does not apply to this branch"
             continue 2
         fi
     done
     if [ "$(git rev-parse HEAD)" = "$before" ]; then
-        echo "skipped $number: already applied"
+        echo "skipped $label: already applied"
     else
-        folded+=("$number")
-        echo "folded $number"
+        folded+=("$label")
+        echo "folded $label"
     fi
 done
 
