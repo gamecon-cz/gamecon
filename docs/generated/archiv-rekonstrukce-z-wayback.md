@@ -7,7 +7,7 @@ TL;DR: Jak postavit `NNNN.gamecon.cz` jako **statický archiv rekonstruovaný z 
 Pro plně dynamické ročníky (2012+) **nepoužívej tento dokument** → použij skill `dockerize-gamecon-year-archive`.
 
 ## Kdy tudy
-- Ročník nemá zálohu DB ani kódu (predates `d16779_*` éru — tj. ≤2011) a na hostu `/srv/ftp/gamecon.cz/www/gamecon.cz/` pro něj **není** adresář se stromem webu (jen 2011+ tam jsou).
+- Ročník nemá zálohu DB ani kódu (predates `d16779_*` éru — tj. ≤2011) a na hostu `/srv/www/` pro něj **není** adresář se stromem webu (jen 2011+ tam jsou).
 - Web ale **byl** zachycen Waybackem — viz následující sekce, kde hledat.
 
 ## Kde hledat zdroj (POZOR: pre-2009 = jiná doména!)
@@ -15,7 +15,7 @@ Než cokoli stavíš, najdi reálný zdroj. Pořadí:
 1. **Wayback na `gamecon.cz`** (2009+): `curl "http://web.archive.org/cdx/search/cdx?url=gamecon.cz*&collapse=urlkey&from=NNNN0101&to=(NNNN+1)0430&filter=statuscode:200&filter=mimetype:text/html&fl=timestamp,original&limit=300"`. Pokud vrátí jen pár řádků / jen placeholder „web v přípravě", ročník na téhle doméně **nebyl**.
 2. **2006–2008 = subdoména `gamecon.altar.cz`**. GameCon do 2008 pořádal **Altar** (vydavatel DrD); předal ho fanouškům mezi 2008→2009. Web 2006–2008 žil na `gamecon.altar.cz` — **úplně jiný CMS, jiný theme, kódování ISO-8859-2** (viz landmine #4). Ověř: `curl "http://web.archive.org/cdx/search/cdx?url=gamecon.altar.cz*&collapse=urlkey&from=NNNN0101&to=NNNN1231&filter=statuscode:200&filter=mimetype:text/html&fl=original&limit=300"`.
 3. **2005 a starší = PATH `altar.cz/gamecon/`** (ještě před subdoménou). GameCon byl tehdy **sekce celého publisher webu Altar**, ne samostatný web. Důsledky: stránky servíruj v rootu (`/gamecon/X.html`→`/X.html`, přepiš in-page prefix `/gamecon/`→`/`); globální Altar navigace linkuje po celém parent webu (`/altar/*`, `/drd/`, `/kontakt/`, `/cgi/*`, shop). **SCOPE (aktualizováno červen 2026 — agresivní režim):** uživatel rozhodl tahat **VŠECHNO, na co nav odkazuje** — celé publisher sekce Altaru i `/cgi/doc/*` katalog, ne jen GameCon stránky. Dřívější pravidlo „jen GameCon, zbytek 404" je tím **přebito**. Stránky bez capture zůstávají 404. Viz „Agresivní crawl" níže. Assety (`/stylesheets/default.css`, `/img/gamecon/*`) drž na absolutních cestách. Bonus: archiv výsledků MČR v DrD `vysledky95..NN`. Charset jen v HTTP hlavičce → **viz landmine #7**. Ověř: `curl "http://web.archive.org/cdx/search/cdx?url=altar.cz/gamecon*&collapse=urlkey&from=NNNN0101&to=(NNNN+1)0131&filter=statuscode:200&filter=mimetype:text/html&fl=original&limit=300"`.
-4. **Host `/srv`** — má stromy jen **2011+** (`ssh root@gamecon.cz ls /srv/ftp/gamecon.cz/www/gamecon.cz/`). Pro ≤2010 tam nic není.
+4. **Host `/srv/www`** — má stromy jen **2011+** (`ssh root@gamecon.cz ls -d /srv/www/20*`). Pro ≤2010 tam nic není.
 5. **Google Drive** — jen DB dumpy (nejstarší ~2018), žádné webové stromy starých ročníků. Není zdroj pro statický web.
 
 Reálná zkušenost: **2008 nešel najít na `gamecon.cz`** (jediné capture 2006–2008 byl 807 B placeholder „GameCon 2009 — web v přípravě"). Teprve `gamecon.altar.cz` měl plný 2008 web. Datum/místo festivalu bere z těla stránek, ne z loga (Altar logo žádné datum nemělo). Místo se stěhovalo: **2005–2006 Olomouc**, **2007+ Pardubice**.
