@@ -254,6 +254,7 @@ class ObnovaHeslaController extends AbstractController
             $odeslano = ! $obnovaHeslaLog->jePrekrocenLimitUctu((int) $uzivatel->id())
                 && $this->posliResetMail($uzivatel);
         } finally {
+            // Kdy finally neproběhne a žádost zůstane započtená jako odeslaný mail: „Pád uprostřed odesílání“ v docs/generated/obnova-hesla.md.
             if (! $odeslano) {
                 $obnovaHeslaLog->oznacNeodeslano($idZadosti);
             }
