@@ -31,7 +31,7 @@ class ObnovaHeslaControllerTest extends AbstractTestDb
         }
 
         self::assertSame(ObnovaHeslaLog::MAX_MAILU_NA_UCET, (new MailLogger(LOGY . '/maily.sqlite'))->spocitej($email));
-        $zadosti = $this->zadostiZIp(self::IP);
+        $zadosti = $this->zadostiZRozsahu(self::IP);
         self::assertSame([...array_fill(0, ObnovaHeslaLog::MAX_MAILU_NA_UCET, 1), 0, 0], array_map(static fn (array $zadost): int => (int) $zadost['odeslano'], $zadosti));
         self::assertSame(
             array_fill(0, ObnovaHeslaLog::MAX_MAILU_NA_UCET + 2, $idUzivatele),
@@ -43,7 +43,7 @@ class ObnovaHeslaControllerTest extends AbstractTestDb
     {
         self::assertTrue($this->vyridZadost($this->novyEmail(), self::IP));
 
-        $zadosti = $this->zadostiZIp(self::IP);
+        $zadosti = $this->zadostiZRozsahu(self::IP);
         self::assertCount(1, $zadosti);
         self::assertNull($zadosti[0]['id_uzivatele']);
         self::assertSame(0, (int) $zadosti[0]['odeslano']);
@@ -63,7 +63,7 @@ class ObnovaHeslaControllerTest extends AbstractTestDb
         self::assertTrue($this->vyridZadost($email, self::IP));
 
         self::assertSame(0, (new MailLogger(LOGY . '/maily.sqlite'))->spocitej($email));
-        $zadosti = $this->zadostiZIp(self::IP);
+        $zadosti = $this->zadostiZRozsahu(self::IP);
         self::assertCount(1, $zadosti);
         self::assertSame($idUzivatele, (int) $zadosti[0]['id_uzivatele']);
         self::assertSame(0, (int) $zadosti[0]['odeslano'], 'Zapsaná žádost počítala s mailem, ten ale neodešel');
@@ -83,8 +83,33 @@ class ObnovaHeslaControllerTest extends AbstractTestDb
         self::assertSame(0, (new MailLogger(LOGY . '/maily.sqlite'))->spocitej($email));
         self::assertCount(
             ObnovaHeslaLog::MAX_ZADOSTI_Z_IP,
-            $this->zadostiZIp(self::IP),
+            $this->zadostiZRozsahu(self::IP),
             'Odmítnutá žádost v logu nezůstane, vytrvalý bot by jinak plnil tabulku bez omezení',
+        );
+    }
+
+    public function testLimitIpPlatiNaCelouSitIpv6(): void
+    {
+        // Klient, který si adresu uvnitř své sítě /64 mění s každou žádostí.
+        for ($i = 1; $i <= ObnovaHeslaLog::MAX_ZADOSTI_Z_IP; ++$i) {
+            self::assertTrue($this->vyridZadost($this->novyEmail(), sprintf('2001:db8:5:6::%x', $i)));
+        }
+        $email = $this->novyEmail();
+        $this->vytvorUzivateleSHeslem($email);
+
+        self::assertFalse(
+            $this->vyridZadost($email, '2001:db8:5:6:aaaa:bbbb:cccc:dddd'),
+            'Změnou adresy uvnitř své sítě /64 limit IP obejít nejde',
+        );
+        self::assertSame(0, (new MailLogger(LOGY . '/maily.sqlite'))->spocitej($email));
+        self::assertCount(
+            ObnovaHeslaLog::MAX_ZADOSTI_Z_IP,
+            $this->zadostiZRozsahu('2001:db8:5:6::'),
+            'Odmítnutá žádost v logu nezůstane ani u IPv6',
+        );
+        self::assertTrue(
+            $this->vyridZadost($this->novyEmail(), '2001:db8:5:7::1'),
+            'Sousední síť /64 má svůj limit',
         );
     }
 
@@ -115,18 +140,20 @@ class ObnovaHeslaControllerTest extends AbstractTestDb
     }
 
     /**
+     * @param string $ipRozsah u IPv4 adresa sama, u IPv6 síť /64 (2001:db8:1:2::)
+     *
      * @return array<int, array<string, mixed>>
      */
-    private function zadostiZIp(string $ip): array
+    private function zadostiZRozsahu(string $ipRozsah): array
     {
         return dbFetchAll(<<<'SQL'
 SELECT id_uzivatele, odeslano
 FROM obnova_hesla_log
-WHERE ip = $0
+WHERE ip_rozsah = $0
 ORDER BY id_log
 SQL,
             [
-                0 => $ip,
+                0 => $ipRozsah,
             ],
         );
     }

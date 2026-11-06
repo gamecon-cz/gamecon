@@ -59,7 +59,7 @@ class ObnovaHeslaController extends AbstractController
 
             $email = trim((string) $request->request->get('mail', ''));
             if (! $this->vyridZadost($email, (string) $request->getClientIp())) {
-                \Chyba::nastav('Z tvé adresy přišlo za poslední hodinu moc žádostí o obnovu hesla. Zkus to prosím později.', \Chyba::CHYBA);
+                \Chyba::nastav('Z tvé sítě přišlo za poslední hodinu moc žádostí o obnovu hesla. Zkus to prosím později.', \Chyba::CHYBA);
 
                 return new RedirectResponse(URL_WEBU . '/zapomenute-heslo');
             }
@@ -239,7 +239,7 @@ class ObnovaHeslaController extends AbstractController
         $obnovaHeslaLog = new ObnovaHeslaLog();
         // Zapisuje se před počítáním limitů, jinak je souběžné žádosti přeskočí (viz ObnovaHeslaLog).
         $idZadosti = $obnovaHeslaLog->zaznamenej($ip, $uzivatel?->id(), $uzivatel !== null);
-        if ($obnovaHeslaLog->jePrekrocenLimitIp($ip)) {
+        if ($obnovaHeslaLog->jePrekrocenLimitIp($idZadosti)) {
             // Odmítnutá žádost v logu nezůstane, jinak by vytrvalý bot plnil tabulku bez omezení.
             $obnovaHeslaLog->smaz($idZadosti);
 

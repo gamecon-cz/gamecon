@@ -27,8 +27,8 @@ class ObnovaHeslaLog
      */
     public const MAX_MAILU_NA_UCET = 3;
     /**
-     * Kolik žádostí přijme jedna IP za OKNO_MINUT, i těch, po kterých mail
-     * neodešel. Velkoryse, za jednou IP může být celá síť (wifi na festivalu).
+     * Kolik žádostí přijme jeden rozsah IP za OKNO_MINUT, i těch, po kterých mail neodešel.
+     * Velkoryse, za jednou IP může být celá síť (wifi na festivalu).
      */
     public const MAX_ZADOSTI_Z_IP = 20;
     public const OKNO_MINUT = 60;
@@ -38,18 +38,28 @@ class ObnovaHeslaLog
     public const UCHOVAVAT_DNI = 30;
 
     /**
-     * Počítá i žádost, kterou volající právě zapsal.
+     * Počítá žádosti ze stejného rozsahu IP jako $idZadosti, i ji samotnou. Rozsah je
+     * generovaný sloupec ip_rozsah: IPv4 adresa sama za sebe, u IPv6 celá síť /64, kterou
+     * klient obvykle má a adresu v ní může měnit s každou žádostí. Výraz je v migraci
+     * 2026-11-06-110407_obnova-hesla-log-ip-rozsah.php.
+     *
+     * Za jednou sítí /64 může být víc lidí (wifi na festivalu, hosting, který dává adresy
+     * z jedné /64), ti limit sdílí stejně jako lidé za jednou IPv4 přes NAT.
      */
-    public function jePrekrocenLimitIp(string $ip): bool
+    public function jePrekrocenLimitIp(int $idZadosti): bool
     {
         $pocet = dbOneCol(<<<'SQL'
 SELECT COUNT(*)
 FROM obnova_hesla_log
-WHERE ip = $0
+WHERE ip_rozsah = (
+        SELECT ip_rozsah
+        FROM obnova_hesla_log
+        WHERE id_log = $0
+    )
     AND kdy > NOW() - INTERVAL $1 MINUTE
 SQL,
             [
-                0 => $ip,
+                0 => $idZadosti,
                 1 => self::OKNO_MINUT,
             ],
         );
@@ -80,8 +90,9 @@ SQL,
 
     /**
      * @param int|null $idUzivatele null, když k zadanému e-mailu účet není
-     * @param bool $odeslano u žádosti, po které se mail teprve posílá, true: limit účtu
-     *  ho tak započítá i souběžným žádostem; když mail neodejde, {@see oznacNeodeslano()}
+     * @param bool     $odeslano    u žádosti, po které se mail teprve posílá, true: limit účtu
+     *                              ho tak započítá i souběžným žádostem; když mail neodejde, {@see oznacNeodeslano()}
+     *
      * @return int id záznamu
      */
     public function zaznamenej(

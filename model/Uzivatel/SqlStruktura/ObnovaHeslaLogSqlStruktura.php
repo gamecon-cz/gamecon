@@ -11,6 +11,7 @@ class ObnovaHeslaLogSqlStruktura
     public const ID_LOG = 'id_log';
     public const KDY = 'kdy';
     public const IP = 'ip';
+    public const IP_ROZSAH = 'ip_rozsah';
     public const ID_UZIVATELE = 'id_uzivatele';
     public const ODESLANO = 'odeslano';
 }
