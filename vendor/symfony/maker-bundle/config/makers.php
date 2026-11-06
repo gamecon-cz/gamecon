@@ -15,6 +15,7 @@ use Symfony\Bundle\MakerBundle\Maker\MakeAuthenticator;
 use Symfony\Bundle\MakerBundle\Maker\MakeCommand;
 use Symfony\Bundle\MakerBundle\Maker\MakeController;
 use Symfony\Bundle\MakerBundle\Maker\MakeCrud;
+use Symfony\Bundle\MakerBundle\Maker\MakeDecorator;
 use Symfony\Bundle\MakerBundle\Maker\MakeDockerDatabase;
 use Symfony\Bundle\MakerBundle\Maker\MakeEntity;
 use Symfony\Bundle\MakerBundle\Maker\MakeFixtures;
@@ -53,6 +54,7 @@ return static function (ContainerConfigurator $container) {
         ->tag('maker.command');
 
     $services->set('maker.maker.make_command', MakeCommand::class)
+        ->arg('$fileManager', service('maker.file_manager'))
         ->tag('maker.command');
 
     $services->set('maker.maker.make_twig_component', MakeTwigComponent::class)
@@ -67,6 +69,10 @@ return static function (ContainerConfigurator $container) {
             service('maker.doctrine_helper'),
             service('maker.renderer.form_type_renderer'),
         ])
+        ->tag('maker.command');
+
+    $services->set('maker.maker.make_decorator', MakeDecorator::class)
+        ->args([service('maker.decorator_helper')])
         ->tag('maker.command');
 
     $services->set('maker.maker.make_docker_database', MakeDockerDatabase::class)

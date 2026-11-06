@@ -18,6 +18,7 @@ use Symfony\Bridge\Doctrine\Middleware\Debug\DebugDataHolder;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpKernel\DataCollector\DataCollector;
+use Symfony\Component\HttpKernel\DataCollector\LateDataCollectorInterface;
 use Symfony\Component\VarDumper\Caster\Caster;
 use Symfony\Component\VarDumper\Cloner\Stub;
 
@@ -26,10 +27,12 @@ use Symfony\Component\VarDumper\Cloner\Stub;
  *
  * @author Fabien Potencier <fabien@symfony.com>
  */
-class DoctrineDataCollector extends DataCollector
+class DoctrineDataCollector extends DataCollector implements LateDataCollectorInterface
 {
     private array $connections;
     private array $managers;
+    private ?\stdClass $collectState = null;
+    private int $collectIndex = 0;
 
     public function __construct(
         private ManagerRegistry $registry,
@@ -41,11 +44,20 @@ class DoctrineDataCollector extends DataCollector
 
     public function collect(Request $request, Response $response, ?\Throwable $exception = null): void
     {
+        $this->collectState ??= (object) ['index' => 0];
+        $this->collectIndex = ++$this->collectState->index;
         $this->data = [
             'queries' => $this->collectQueries(),
             'connections' => $this->connections,
             'managers' => $this->managers,
         ];
+    }
+
+    public function lateCollect(): void
+    {
+        if ($this->collectState && $this->collectIndex === $this->collectState->index) {
+            $this->data['queries'] = $this->collectQueries();
+        }
     }
 
     private function collectQueries(): array
@@ -61,6 +73,10 @@ class DoctrineDataCollector extends DataCollector
 
     public function reset(): void
     {
+        if ($this->collectState) {
+            $this->collectState->index = 0;
+            $this->collectState = null;
+        }
         $this->data = [];
         $this->debugDataHolder->reset();
     }
@@ -151,18 +167,22 @@ class DoctrineDataCollector extends DataCollector
         if (!\is_array($query['types'])) {
             $query['types'] = [];
         }
+        $connection = $this->registry->getConnection($connectionName);
+
         foreach ($query['params'] as $j => $param) {
             $e = null;
             if (isset($query['types'][$j])) {
                 // Transform the param according to the type
                 $type = $query['types'][$j];
                 if (\is_string($type)) {
-                    $type = Type::getType($type);
+                    // doctrine/dbal 4.5 deprecates the static registry for a provider on the configuration
+                    $config = $connection->getConfiguration();
+                    $type = method_exists($config, 'getTypeProvider') ? $config->getTypeProvider()->get($type) : Type::getType($type);
                 }
                 if ($type instanceof Type) {
                     $query['types'][$j] = $type->getBindingType();
                     try {
-                        $param = $type->convertToDatabaseValue($param, $this->registry->getConnection($connectionName)->getDatabasePlatform());
+                        $param = $type->convertToDatabaseValue($param, $connection->getDatabasePlatform());
                     } catch (\TypeError|ConversionException) {
                     }
                 }

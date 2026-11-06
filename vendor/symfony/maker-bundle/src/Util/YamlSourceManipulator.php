@@ -709,7 +709,11 @@ class YamlSourceManipulator
             ? intdiv($this->indentationForDepths[$this->depth], $this->depth)
             : 4;
 
-        $newDataString = Yaml::dump($data, 4, $indent);
+        // DUMP_COMPACT_NESTED_MAPPING keeps sequences of mappings in the compact
+        // "- key: value" style on every supported symfony/yaml version: it was
+        // the default for a while (symfony/symfony#62967) before being reverted
+        // (symfony/symfony#65365), and the fixtures rely on it
+        $newDataString = Yaml::dump($data, 4, $indent, Yaml::DUMP_COMPACT_NESTED_MAPPING);
         // new line is appended: remove it
         $newDataString = rtrim($newDataString, "\n");
 

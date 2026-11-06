@@ -22,3 +22,38 @@ for the properties of existing entities:
 You can also *overwrite* any existing methods:
 
 <info>php %command.full_name% --regenerate --overwrite</info>
+
+Fields can be passed on the command line instead of being asked for, which is
+what you want in a script or when the terminal is not interactive:
+
+<info>php %command.full_name% BlogPost --field=title:string:100 --field=body:text --field=publishedAt:datetime_immutable?</info>
+
+The format is <comment>name[:type[:length]]</comment>, with a trailing <comment>?</comment> to make the field nullable.
+The type defaults to the same guess the interactive mode makes, so <comment>--field=createdAt</comment>
+becomes a <comment>datetime_immutable</comment>. For <comment>decimal</comment>, the third and fourth parts are the
+precision and the scale: <comment>--field=price:decimal:10:2</comment>.
+
+For <comment>enum</comment>, the third part is the backed enum class. Its short name is enough as
+long as it is unique within <comment>src/</comment>, which saves escaping backslashes in your shell.
+Append <comment>,multiple</comment> to store several values:
+
+<info>php %command.full_name% BlogPost --field=status:enum:Status --field=labels:enum:Label,multiple</info>
+
+Relations use their own option, <comment>name:type:target</comment>, where the target is an entity
+class - its short name is enough:
+
+<info>php %command.full_name% BlogPost --relation=author:ManyToOne:User --relation=tags:ManyToMany:Tag</info>
+
+A trailing <comment>?</comment> makes the relation nullable here too. Note that this differs from the
+interactive mode, which offers <comment>nullable</comment> as its default answer: without a <comment>?</comment> the
+relation is NOT NULL.
+
+By default the property added to the other class is named after this entity, and a
+<comment>OneToOne</comment> does not add one at all - the interactive mode advises against it, because
+Doctrine cannot lazy load an inverse <comment>OneToOne</comment>. Both are controlled with
+<comment>target-field</comment>, and <comment>orphan-removal</comment> activates orphanRemoval on the relations that
+support it:
+
+<info>php %command.full_name% BlogPost --relation=cover:OneToOne:Media,target-field=post</info>
+<info>php %command.full_name% BlogPost --relation=author:ManyToOne:User,target-field=none</info>
+<info>php %command.full_name% BlogPost --relation=comments:OneToMany:Comment,orphan-removal</info>

@@ -1,0 +1,44 @@
+name: Composer audit
+
+# Dependabot reads only GitHub's Advisory Database, which gets Symfony's security releases days to weeks after Packagist and keeps an old
+# range when an advisory is edited later. `composer audit` reads Packagist, so this run finds what Dependabot does not.
+# See docs/composer-audit.md.
+
+# yamllint disable-line rule:truthy
+on:
+    schedule:
+        -   cron: '17 4 * * *'
+    workflow_dispatch:
+    # only to try a change of this file before it is merged
+    pull_request:
+        branches: [ main ]
+        paths:
+            - '.github/workflows/composer-audit.yml'
+
+permissions:
+    contents: read
+
+jobs:
+    audit:
+        name: composer audit --locked
+        runs-on: ubuntu-24.04
+        timeout-minutes: 10
+        steps:
+            # `composer audit --locked` reads only these two files; the committed vendor/ is not needed.
+            -   uses: actions/checkout@v5
+                with:
+                    persist-credentials: false
+                    sparse-checkout: |
+                        composer.json
+                        composer.lock
+                    sparse-checkout-cone-mode: false
+
+            # `composer audit` fails on an abandoned package by default; here only an advisory fails the run.
+            -   name: Audit composer.lock
+                run: |
+                    composer --version
+                    status=0
+                    composer --no-plugins --no-scripts audit --locked --abandoned=report > audit.txt 2>&1 || status=$?
+                    cat audit.txt
+                    { echo '```text'; cat audit.txt; echo '```'; } >> "$GITHUB_STEP_SUMMARY"
+                    exit "$status"

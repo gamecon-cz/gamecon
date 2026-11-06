@@ -1,25 +1,28 @@
 <?= "<?php\n" ?>
 
-namespace <?= $namespace; ?>;
+namespace <?= $class_data->getNamespace(); ?>;
 
-<?= $use_statements ?>
+<?= $class_data->getUseStatements(); ?>
 
-class <?= $class_name ?> extends AbstractExtension
+<?= $class_data->getClassDeclaration() ?>
+
 {
-    public function getFilters(): array
+    // If your filter generates SAFE HTML, you should add the "isSafe" argument:
+    // #[AsTwigFilter(name: 'filter_name', isSafe: ['html'])]
+    // Reference: https://twig.symfony.com/doc/3.x/advanced.html#automatic-escaping
+    #[AsTwigFilter('filter_name')]
+    public function doSomething(string $value): string
     {
-        return [
-            // If your filter generates SAFE HTML, you should add a third
-            // parameter: ['is_safe' => ['html']]
-            // Reference: https://twig.symfony.com/doc/3.x/advanced.html#automatic-escaping
-            new TwigFilter('filter_name', [<?= $runtime_class_name ?>::class, 'doSomething']),
-        ];
+        // ...
+
+        return $value;
     }
 
-    public function getFunctions(): array
+    #[AsTwigFunction('function_name')]
+    public function doSomethingElse(string $value): string
     {
-        return [
-            new TwigFunction('function_name', [<?= $runtime_class_name ?>::class, 'doSomething']),
-        ];
+        // ...
+
+        return $value;
     }
 }
