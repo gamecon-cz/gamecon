@@ -9,8 +9,8 @@ ssh gamecon.cz
 Zkopíruj ostrou do zálohy
 
 ```bash
-cp -r -L /srv/ftp/gamecon.cz/www/gamecon.cz/ostra /srv/ftp/gamecon.cz/www/gamecon.cz/2024
-chown -R www-data:www-data /srv/ftp/gamecon.cz/www/gamecon.cz/2024
+cp -r -L /srv/www/ostra /srv/www/2024
+chown -R www-data:www-data /srv/www/2024
 ```
 
 Vytvoř zálohu databáze
@@ -49,7 +49,7 @@ mysql -u root "gamecon_STARY_ROCNIK" < "gamecon_STARY_ROCNIK_YYYY-DD-MM-HH-ii-ss
 ```
 
 Uprav domény
-v `/srv/ftp/gamecon.cz/www/gamecon.cz/ostra /srv/ftp/gamecon.cz/www/gamecon.cz/2024/nastaveni/verejne-nastaveni-produkce.php`
+v `/srv/www/2024/nastaveni/verejne-nastaveni-produkce.php`
 
 ```bash
 define('URL_WEBU', 'https://STARY_ROCNIK.gamecon.cz');
@@ -58,7 +58,7 @@ define('URL_CACHE', 'https://cache.STARY_ROCNIK.gamecon.cz');
 ```
 
 Uprav přístupy
-v `/srv/ftp/gamecon.cz/www/gamecon.cz/ostra /srv/ftp/gamecon.cz/www/gamecon.cz/2024/nastaveni/nastaveni-produkce.php`
+v `/srv/www/2024/nastaveni/nastaveni-produkce.php`
 
 ```bash
 // uživatel se základním přístupem

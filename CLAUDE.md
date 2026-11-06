@@ -74,7 +74,7 @@ One MariaDB instance on the `gamecon.cz` host serves production, beta, and every
 
 1. **Never run `DROP DATABASE` / destructive DDL against any `d16779_*` name** — those are production. Confirm with a human first, even mid-script, even when a DB looks like a stray you created.
 2. **Before loading any `.sql` dump, inspect its header** (`zcat dump.sql.gz | head -15`) for embedded `CREATE DATABASE` / `USE` statements. Adminer/mysqldump dumps often embed the *original* DB name (e.g. `CREATE DATABASE d16779_gcostra`), so loading one blind will clobber whatever DB it names — not the target you intended. Strip those lines (`grep -vE '^(CREATE DATABASE|USE) '`) and load into an explicitly-selected target.
-3. **binlog is OFF** on this host — there is **no** point-in-time recovery. A DROP is final back to the last dump. Recovery dumps live in `/srv/.../ostra/backup/db/` (`pre-migration-*.sql.gz`, `export_latest.sql.gz`).
+3. **binlog is OFF** on this host — there is **no** point-in-time recovery. A DROP is final back to the last dump. Recovery dumps live in `/srv/www/ostra/backup/db/` (`pre-migration-*.sql.gz`, `export_latest.sql.gz`).
 
 ## Important Dependencies
 - `symfony/mailer` - Email notifications
@@ -450,7 +450,7 @@ Pravdivý stav ke dni auditu (zdroj: `cat /usr/local/sbin/deploy-preview-branch.
 Admin → Nastavení nabízí na betě tlačítka „Zkopírovat databázi z ostré". Na preview z těch tří variant jde **jen import z `.sql.gz` zálohy** (`zalohaForm`):
 
 - **Živý mysqldump z ostré** a **kopie archivního ročníku** na preview NEJDOU: in-app kód běží v kontejneru jako DB účet `gc_preview_<slug>`, který nemá práva na produkční `d16779_gcostra` ani na `gamecon_YYYY`. Proto je `SystemoveNastaveniHtml` na preview skrývá; nabízí jen file-based import.
-- **Mechanismus doručení dumpu = read-only bind-mount, ne env var.** Preview deploy skript (ansible, `roles/preview_deployer/templates/deploy-preview-branch.sh.j2`) mountuje hostový `/srv/ftp/gamecon.cz/www/gamecon.cz/ostra/backup/db` → `/var/www/html/ostra/backup/db:ro`, tj. na stejnou relativní cestu (`../ostra/backup/db`), kterou beta čte z filesystému. App-kód proto netřeba měnit pro cestu — `backupDir()` i allowed-dirs v `KopieOstreDatabaze` už tu cestu pro ne-locale prostředí znají.
+- **Mechanismus doručení dumpu = read-only bind-mount, ne env var.** Preview deploy skript (ansible, `roles/preview_deployer/templates/deploy-preview-branch.sh.j2`) mountuje hostový `/srv/www/ostra/backup/db` → `/var/www/html/ostra/backup/db:ro`, tj. na stejnou relativní cestu (`../ostra/backup/db`), kterou beta čte z filesystému. App-kód proto netřeba měnit pro cestu — `backupDir()` i allowed-dirs v `KopieOstreDatabaze` už tu cestu pro ne-locale prostředí znají.
 - **Import sanituje dump:** `NastrojeDatabaze::removeDefiners()` + `removeDatabaseSelection()` (odstraní `CREATE DATABASE`/`USE`/`DROP DATABASE`), takže obsah zálohy doteče do aktuální (preview/beta) DB bez ohledu na produkční jméno DB zapečené v dumpu. Mount je `:ro` — preview nikdy nepíše do stromu ostré.
 
 

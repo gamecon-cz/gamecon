@@ -15,7 +15,7 @@ DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 PROJECT_ROOT="$(dirname "$DIR")"
 
 REMOTE_HOST="gamecon.cz"
-REMOTE_DIR="/srv/ftp/gamecon.cz/www/gamecon.cz/ostra/backup/db"
+REMOTE_DIR="/srv/www/ostra/backup/db"
 REMOTE_FILE="export_latest.sql.gz"
 
 TARGET_DIR="${1:-$PROJECT_ROOT/dumps}"
