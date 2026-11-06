@@ -1,0 +1,77 @@
+<!-- begin:obrazkyEshopu -->
+<h2 id="obrazky-eshopu">Obrázky e-shopu v přihlášce (ročník {rocnik})</h2>
+
+<p>
+  Galerie pod e-shopem v přihlášce ukazuje všechny obrázky z tohoto seznamu, seřazené podle názvu souboru.
+  Číslo na začátku názvu určuje pořadí a do popisku se nepíše (<code>08_Účastnické triko</code> → „Účastnické triko“).
+  Obrázek nahradíš tlačítkem Nahradit u jeho řádku: zůstane mu název, tedy pořadí i popisek. JPG a PNG nahradí
+  jakýkoli neanimovaný JPG, PNG nebo GIF, převede se do formátu původního obrázku, GIF nahradí jen GIF.
+  Nahrání obrázku se stejným názvem původní obrázek nahradí také.
+</p>
+
+<table class="zvyraznovana obrazky-eshopu">
+  <tr>
+    <th>Náhled</th>
+    <th>Soubor</th>
+    <th>Popisek v přihlášce</th>
+    <th></th>
+  </tr>
+  <!-- begin:obrazek -->
+  <tr>
+    <td><a href="{url}" target="_blank" rel="noopener"><img src="{nahled}" alt=""></a></td>
+    <td>
+      {soubor}
+      <!-- begin:nezobrazi -->
+      <br><span class="obrazky-eshopu__varovani">Přihláška ho neukáže, umí jen JPG, PNG a GIF.</span>
+      <!-- end:nezobrazi -->
+    </td>
+    <td>{popisek}</td>
+    <td>
+      <div class="akce-souboru">
+        <!-- begin:nahradit -->
+        <form method="post" enctype="multipart/form-data">
+          <input type="hidden" name="obrazkyEshopuAkce" value="nahradit">
+          <input type="hidden" name="soubor" value="{soubor}">
+          <input type="file" name="obrazekEshopu" accept="{acceptObrazku}" required>
+          <button type="submit"><i class="fa fa-upload" aria-hidden="true"></i> Nahradit</button>
+        </form>
+        <!-- end:nahradit -->
+        <form method="post" onsubmit="return confirm('Opravdu smazat tento obrázek?')">
+          <input type="hidden" name="obrazkyEshopuAkce" value="smazat">
+          <input type="hidden" name="soubor" value="{soubor}">
+          <button type="submit"><i class="fa fa-trash" aria-hidden="true"></i> Smazat</button>
+        </form>
+      </div>
+    </td>
+  </tr>
+  <!-- end:obrazek -->
+  <!-- begin:zadny -->
+  <tr>
+    <td colspan="4"><i>Zatím tu žádný obrázek není, přihláška galerii nezobrazí.</i></td>
+  </tr>
+  <!-- end:zadny -->
+</table>
+
+<form method="post" enctype="multipart/form-data" class="nahrani-souboru obrazky-eshopu__nahrat">
+  <input type="hidden" name="obrazkyEshopuAkce" value="nahrat">
+  <label>Obrázek <input type="file" name="obrazekEshopu" accept="{accept}" required></label>
+  <label class="nahrani-souboru__nazev">Název <input type="text" name="nazev" placeholder="např. 08_Účastnické triko" maxlength="100"></label>
+  <button type="submit"><i class="fa fa-upload" aria-hidden="true"></i> Nahrát</button>
+  <div class="tip">{limit}. Bez vyplněného názvu se použije název nahrávaného souboru.</div>
+</form>
+
+<style>
+    .obrazky-eshopu img {
+        max-width: 120px;
+        max-height: 80px;
+    }
+
+    .obrazky-eshopu__varovani {
+        color: #c00;
+    }
+
+    .obrazky-eshopu__nahrat {
+        margin: 1em 0 2em;
+    }
+</style>
+<!-- end:obrazkyEshopu -->

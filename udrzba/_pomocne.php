@@ -11,8 +11,8 @@ function nasad(
     $dryRun         = (bool)($nastaveni['dryRun'] ?? false);
     $rsyncTarget    = (string)($nastaveni['ciloveRsync'] ?? '');
 
-    if ($dryRun && $rsyncTarget === '') {
-        throw new \RuntimeException('Zkušební běh (--dry-run) umí jen nasazení přes rsync, FTP by nasadilo doopravdy');
+    if ($rsyncTarget === '') {
+        throw new \RuntimeException('Chybí cíl nasazení DEPLOY_RSYNC_TARGET (GitHub secret BETA_DEPLOY_RSYNC_TARGET, respektive OSTRA_DEPLOY_RSYNC_TARGET), nasazuje se jen přes rsync');
     }
 
     if (!empty($nastaveni['vetev'])) {
@@ -34,11 +34,7 @@ function nasad(
 
     // nahrání souborů
     $ignoreMasks = buildIgnoreMasks();
-    if ($rsyncTarget !== '') {
-        uploadFilesViaRsync($zdrojovaSlozka, $ignoreMasks, $rsyncTarget, $dryRun);
-    } else {
-        uploadFilesViaFtp($nastaveni, $zdrojovaSlozka, $ignoreMasks);
-    }
+    uploadFilesViaRsync($zdrojovaSlozka, $ignoreMasks, $rsyncTarget, $dryRun);
 
     if ($dryRun) {
         msg('zkušební běh dokončen, nic se nezměnilo');
@@ -59,7 +55,8 @@ function nasad(
 }
 
 /**
- * Masks in the dg/ftp-deployment format: the last match wins, `!` puts a file back into the deployment.
+ * Ignore masks: the last match wins, `!` puts a file back into the deployment. The format comes from the FTP deploy
+ * that rsync replaced, {@see buildRsyncFilters()} translates it.
  *
  * @return list<string>
  */
@@ -131,42 +128,7 @@ function buildIgnoreMasks(): array
             '/vendor/composer/tmp-*',
         ],
         $nutneKvuliComposerAutoRequire,
-        [
-            '/nasad.log',
-        ],
     );
-}
-
-function uploadFilesViaFtp(
-    array  $nastaveni,
-    string $zdrojovaSlozka,
-    array  $ignoreMasks,
-): void {
-    $deployment       = __DIR__ . '/ftp-deployment.php';
-    $serverPassphrase = $nastaveni['serverPassphrase'] ?? '';
-    $logFile          = $nastaveni['log'] ?? 'nasad.log';
-    $ignore           = implode("\n      ", $ignoreMasks);
-
-    $nastaveniDeploymentu = "
-    log         = {$logFile}
-    remote      = {$nastaveni['ciloveFtp']}
-    local       = {$zdrojovaSlozka}
-    passphrase  = {$serverPassphrase}
-    ignore      = '
-      {$ignore}
-    '
-    preprocess = no
-    allowDelete = yes
-  ";
-
-    msg('synchronizuji soubory na vzdáleném ftp');
-    $souborNastaveniDeploymentu = tempnam(sys_get_temp_dir(), 'gamecon-ftpdeploy-');
-    file_put_contents($souborNastaveniDeploymentu, $nastaveniDeploymentu);
-    try {
-        call_check(['php', $deployment, $souborNastaveniDeploymentu, '--no-progress']);
-    } finally {
-        unlink($souborNastaveniDeploymentu);
-    }
 }
 
 function runMigrationsOnRemote(

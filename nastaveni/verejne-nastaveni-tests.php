@@ -13,6 +13,8 @@ define('DB_READONLY_USER', 'reporty_ro'); // viz .docker/mysql-tests-init
 define('DB_READONLY_PASS', 'reporty_ro');
 define('DB_ANONYM_NAME', $_COOKIE['gamecon_test_anonym_db'] ?? uniqid(DB_TEST_PREFIX . 'anonym_', true) . '_' . getmypid());
 if (!defined('SPEC')) define('SPEC', __DIR__ . '/../cache/private/tests/' . getmypid());
+// webové testy posílají část po části různým procesům Apache, ty by jinak každý skládaly do jiného adresáře
+if (!defined('ADRESAR_NAHRAVANI_PO_CASTECH')) define('ADRESAR_NAHRAVANI_PO_CASTECH', __DIR__ . '/../cache/private/tests/nahravani-po-castech');
 define('TESTS_LOG_DIR', __DIR__ . '/../logy/tests');
 define('LOGY', TESTS_LOG_DIR . '/' . getmypid());
 define('UNIT_TESTS', true);

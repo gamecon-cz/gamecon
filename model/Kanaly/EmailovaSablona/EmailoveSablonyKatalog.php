@@ -281,7 +281,7 @@ class EmailoveSablonyKatalog
                 $promenne = [
                     new EmailovaPromenna(
                         nazev: 'dluh',
-                        popis: 'dlužná částka v korunách',
+                        popis: 'dlužná částka v korunách, haléře jen když nějaké jsou (např. 350 nebo 350,60)',
                         ukazka: '350',
                     ),
                     new EmailovaPromenna(
@@ -332,8 +332,8 @@ class EmailoveSablonyKatalog
             ),
             new EmailovaPromenna(
                 nazev: 'zustatek',
-                popis: 'zůstatek v korunách',
-                ukazka: '1250',
+                popis: 'zůstatek v korunách, haléře jen když nějaké jsou (např. 1 250 nebo 1 250,90)',
+                ukazka: "1\u{a0}250",
                 vPredmetu: true,
             ),
             new EmailovaPromenna(
@@ -514,7 +514,7 @@ class EmailoveSablonyKatalog
                 format: GcMail::FORMAT_TEXT,
                 promenne: [
                     new EmailovaPromenna('pocet_uzivatelu', 'kolika uživatelům se zůstatek promlčí', '35'),
-                    new EmailovaPromenna('suma', 'kolik korun se celkem promlčí', '12500'),
+                    new EmailovaPromenna('suma', 'kolik korun se celkem promlčí, haléře jen když nějaké jsou', "12\u{a0}500"),
                     self::gcSkoncil(),
                 ],
             ),
@@ -527,7 +527,7 @@ class EmailoveSablonyKatalog
                 format: GcMail::FORMAT_TEXT,
                 promenne: [
                     new EmailovaPromenna('pocet', 'kolika uživatelům se zůstatek promlčel', '35'),
-                    new EmailovaPromenna('suma', 'kolik korun se celkem promlčelo', '12500'),
+                    new EmailovaPromenna('suma', 'kolik korun se celkem promlčelo, haléře jen když nějaké jsou', "12\u{a0}500"),
                     self::gcSkoncil(),
                 ],
             ),
@@ -569,7 +569,7 @@ class EmailoveSablonyKatalog
                     new EmailovaPromenna('pocet', 'kolika dlužníkům upomínka odešla', '120', vPredmetu: true),
                     new EmailovaPromenna('pocet_preskocenych', 'kolika dlužníkům se upomínka neposlala, protože ji už dostali', '0'),
                     new EmailovaPromenna('pocet_pod_prahem', 'kolik dlužníků se přeskočilo, protože dluží méně než práh', '8'),
-                    new EmailovaPromenna('prah', 'práh v korunách, pod kterým se neupomíná', '251'),
+                    new EmailovaPromenna('prah', 'práh, pod kterým se neupomíná, haléře jen když nějaké jsou', '251'),
                     new EmailovaPromenna('konec_gc', 'kdy skončil GameCon', '19.07.2026 21:00'),
                     new EmailovaPromenna('priklad_predmet', 'předmět jednoho z odeslaných e-mailů', 'GameCon 2026 - nedoplatky'),
                     new EmailovaPromenna('priklad_text', 'text jednoho z odeslaných e-mailů', 'Ahoj! …'),
@@ -616,7 +616,7 @@ class EmailoveSablonyKatalog
                     $jmenoNick,
                     $idUzivatele,
                     $odhlaseni,
-                    new EmailovaPromenna('castka', 'kolik letos poslal na účet GameConu (v korunách)', '2000'),
+                    new EmailovaPromenna('castka', 'kolik letos poslal na účet GameConu, haléře jen když nějaké jsou', "2\u{a0}000"),
                 ],
             ),
             new EmailovaSablonaDefinice(

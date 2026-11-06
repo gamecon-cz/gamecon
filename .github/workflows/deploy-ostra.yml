@@ -12,9 +12,8 @@ on:
                 type: boolean
                 default: false
 
-# Serialize OSTRA deploys. The FTP deployment uploads each file as a
-# `.deploytmp` then renames it into place (rsync does the same with
-# `.~tmp~` and also deletes); two deploys running at once
+# Serialize OSTRA deploys. rsync uploads each file as a `.~tmp~` and
+# renames it into place, and it also deletes; two deploys running at once
 # race on those temp files and the loser dies with "Overwrite permission
 # denied". A burst of merges to `main` (e.g. several Dependabot PRs in
 # quick succession) otherwise launches one concurrent deploy per merge.
@@ -79,12 +78,10 @@ jobs:
             -   name: Composer libraries without dev
                 run: docker compose exec --no-TTY --user www-data web composer install --no-dev --optimize-autoloader
 
-            -   name: Deploy via rsync, or via FTP while DEPLOY_RSYNC_TARGET is not set
+            -   name: Deploy via rsync
                 # testy provádíme zvlášť, abychom neměli output z deploye moc dlouhý; změny nekontrolujeme, protože jsme je vytvořili přes `composer install --no-dev`
                 run: php ./udrzba/nasad.php --skip-tests --skip-no-changes-check ${{ inputs.dry_run && '--dry-run' || '' }}
                 env:
-                    FTP_DIR: ostra
-                    FTP_BASE_URL: ${{ secrets.FTP_BASE_URL }}
                     # Ostra has its own key, allowed to write only to the ostra directory; beta has another.
                     DEPLOY_RSYNC_TARGET: ${{ secrets.OSTRA_DEPLOY_RSYNC_TARGET }}
                     DEPLOY_SSH_KEY: ${{ secrets.OSTRA_DEPLOY_SSH_KEY }}

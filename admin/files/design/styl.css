@@ -546,7 +546,8 @@ a.tlacitko {
   text-decoration: none;
 }
 
-input[type="submit"]:disabled {
+input[type="submit"]:disabled,
+.dbForm > button[type="submit"]:disabled {
   background-color: lightgray;
   color: gray;
   cursor: not-allowed
@@ -801,6 +802,11 @@ form table .orez img {
 
 .dbForm input[type="text"] {
   min-width: 200px;
+}
+
+/* Stejné odsazení jako buňky tabulky (.main table td), ať Uložit lícuje s textem v nich. */
+.dbForm > button[type="submit"] {
+  margin: 5px;
 }
 
 /* Kontrola stavu týmů */
@@ -1125,6 +1131,80 @@ button .ajax-loader {
 
 .tip {
   font-style: italic;
+}
+
+.zapisy-k-vlozeni label {
+  display: grid;
+  grid-template-columns: 6em auto;
+  align-items: center;
+  margin: 0.2em 0;
+}
+
+.zapisy-k-vlozeni__odkaz {
+  width: 28em;
+  max-width: 100%;
+}
+
+.udaje-souboru {
+  font-size: 0.85em;
+  opacity: 0.7;
+}
+
+/* the form that uploads a file or an image to the site: Soubory page, the blocks under the page editor, e-shop gallery */
+.nahrani-souboru {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.4em 1em;
+  padding: 0.5em 1em;
+  background-color: rgba(215, 246, 170, 0.47);
+}
+
+.nahrani-souboru label {
+  display: flex;
+  align-items: center;
+  gap: 0.4em;
+}
+
+.nahrani-souboru__nazev {
+  flex: 1 1 16em;
+}
+
+.nahrani-souboru__nazev input {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+.nahrani-souboru .tip {
+  flex-basis: 100%;
+}
+
+.tabulka-souboru th,
+.tabulka-souboru__nahrano {
+  white-space: nowrap;
+}
+
+/* the buttons of a file row, the forms of table cells are inline in the admin and would not wrap or keep a gap */
+.akce-souboru {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.6em 0.4em;
+}
+/* Delete is the form after Replace and has its own line however wide the cell is, so Firefox and Chromium lay it out alike */
+.akce-souboru > form + form {
+  flex-basis: 100%;
+}
+
+/* the progress of an upload sent in parts (files/nahravani-po-castech.js), under the form it belongs to */
+.nahravani-po-castech {
+  flex-basis: 100%;
+  margin-top: 0.5em;
+}
+
+.nahravani-po-castech__chyba {
+  color: #b00020;
+  font-weight: bold;
 }
 
 .technicke {

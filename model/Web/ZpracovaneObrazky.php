@@ -6,9 +6,17 @@ namespace Gamecon\Web;
 
 use Gamecon\XTemplate\XTemplate;
 use Nahled;
+use Symfony\Component\Filesystem\Filesystem;
 
 readonly class ZpracovaneObrazky
 {
+    private const RADICI_SOUBOR = 'RAZENI.csv';
+    private const OBSAH = '/soubory/obsah';
+    private const ADRESAR_SPONZORU = 'sponzori';
+    private const ADRESAR_PARTNERU = 'partneri';
+    private const ADRESAR_MATERIALU = 'materialy';
+    private const ADRESAR_ESHOPU = 'eshop';
+
     public static function logaSponzoruTitulka(): static
     {
         return new static(self::adresarSponzoruTitulka());
@@ -61,12 +69,116 @@ readonly class ZpracovaneObrazky
 
     public static function adresarSponzoruPrehled(): string
     {
-        return ADRESAR_WEBU_S_OBRAZKY . '/soubory/obsah/sponzori';
+        return self::adresarObsahu() . '/' . self::ADRESAR_SPONZORU;
     }
 
     public static function adresarPartneruPrehled(): string
     {
-        return ADRESAR_WEBU_S_OBRAZKY . '/soubory/obsah/partneri';
+        return self::adresarObsahu() . '/' . self::ADRESAR_PARTNERU;
+    }
+
+    /** Fotky k medailonkům, `<id uživatele>.<přípona>`, viz @see \Uzivatel::fotka() */
+    public static function adresarFotekUzivatelu(): string
+    {
+        return WWW . '/soubory/systemove/fotky';
+    }
+
+    /** Obrázky v hlavičkách linií, `org_<id typu>.<přípona>`, viz @see cestaObrazkuLinie() */
+    public static function adresarObrazkuLinii(): string
+    {
+        return ADRESAR_WEBU_S_OBRAZKY . '/soubory/systemove/linie-ikony';
+    }
+
+    /** Obrázky pro texty stránek a novinek, dřív nahrávané přes FTP */
+    public static function adresarObsahu(): string
+    {
+        return ADRESAR_WEBU_S_OBRAZKY . self::OBSAH;
+    }
+
+    /** Galerie e-shopu v přihlášce */
+    public static function adresarObrazkuEshopu(int $rocnik = ROCNIK): string
+    {
+        return WWW . self::OBSAH . '/' . self::ADRESAR_MATERIALU . '/' . $rocnik . '/' . self::ADRESAR_ESHOPU;
+    }
+
+    /**
+     * Loga spravuje modul Loga a galerii e-shopu modul Shop, každý s vlastním právem. Editor textu ani stránka
+     * Soubory do nich nesahají.
+     *
+     * @param string $cestaVuciObsahu například `sponzori/logo.png`
+     */
+    public static function jeAdresarJinehoModulu(string $cestaVuciObsahu): bool
+    {
+        $vzor = sprintf(
+            '~^(?:%s|%s)/|^%s/[^/]+/%s/~i',
+            self::ADRESAR_SPONZORU,
+            self::ADRESAR_PARTNERU,
+            self::ADRESAR_MATERIALU,
+            self::ADRESAR_ESHOPU,
+        );
+        // NahravaniObrazku skládá cestu ze segmentů a prázdné zahazuje, `2026//eshop` je pro něj `2026/eshop`
+        $cesta = ltrim((string) preg_replace('~/{2,}~', '/', str_replace('\\', '/', $cestaVuciObsahu)), '/');
+
+        return preg_match($vzor, $cesta) === 1;
+    }
+
+    /**
+     * Cesta vůči kořeni webu, jak ji píšou texty (`soubory/obsah/blog/obrazek.jpg`), nebo null mimo web.
+     */
+    public static function cestaVuciWebu(string $absolutniCesta): ?string
+    {
+        // nejdřív podle kořene webu tak, jak je zapsaný: kdyby byl `soubory` symlink, skutečná cesta by vedla mimo web
+        $zapsanyKoren = rtrim(ADRESAR_WEBU_S_OBRAZKY, '/') . '/';
+        if (str_starts_with($absolutniCesta, $zapsanyKoren)) {
+            $cesta = substr($absolutniCesta, strlen($zapsanyKoren));
+
+            return in_array('..', explode('/', $cesta), true)
+                ? null
+                : $cesta;
+        }
+        $web = realpath(ADRESAR_WEBU_S_OBRAZKY);
+        $adresar = realpath(dirname($absolutniCesta));
+        if ($web === false || $adresar === false) {
+            return null;
+        }
+        $cesta = $adresar . '/' . basename($absolutniCesta);
+
+        return str_starts_with($cesta, $web . '/')
+            ? substr($cesta, strlen($web) + 1)
+            : null;
+    }
+
+    /**
+     * Veřejná adresa souboru uloženého ve webu, s cestou zakódovanou pro URL.
+     */
+    public static function urlNaWebu(string $absolutniCesta): ?string
+    {
+        $cesta = self::cestaVuciWebu($absolutniCesta);
+
+        return $cesta === null
+            ? null
+            : URL_WEBU . '/' . self::zakodujCestu($cesta);
+    }
+
+    /**
+     * Cesta zakódovaná pro URL po částech, lomítka zůstávají.
+     */
+    public static function zakodujCestu(string $cesta): string
+    {
+        return implode('/', array_map('rawurlencode', explode('/', $cesta)));
+    }
+
+    /**
+     * Popisek obrázku v galerii e-shopu: název souboru bez přípony a bez úvodního čísla,
+     * které určuje pořadí. `08_Účastnické triko.jpeg` → `Účastnické triko`
+     */
+    public static function popisekObrazkuEshopu(string $soubor): string
+    {
+        // název z FTP nemusí být UTF-8, preg_replace s `u` by pak vrátilo null
+        $bezPripony = mb_scrub(basename($soubor, '.' . pathinfo($soubor, PATHINFO_EXTENSION)), 'UTF-8');
+        $slova = (string) preg_replace('~[^[:alnum:]]+~u', ' ', $bezPripony);
+
+        return trim((string) preg_replace('~^\d+~', '', $slova));
     }
 
     public function __construct(
@@ -121,15 +233,7 @@ readonly class ZpracovaneObrazky
         $width = 120,
         $height = 60,
     ): iterable {
-        if (!is_dir($this->adresarLog)) {
-            throw new \RuntimeException("Adresář '{$this->adresarLog}' neexistuje nebo nelze přečíst.");
-        }
-        $soubory = glob($this->adresarLog . '/*', GLOB_NOSORT);
-        ['obrazky' => $obrazky, 'radici_soubor' => $radiciSoubor] = $this->rozdel($soubory);
-        $obrazky  = $this->vyhodVyrazene($obrazky);
-        $serazene = $this->serad($obrazky, $radiciSoubor);
-
-        foreach ($serazene as $obrazek) {
+        foreach ($this->serazeneObrazky() as $obrazek) {
             if (substr($obrazek, 0) === '_') {
                 continue;
             }
@@ -142,6 +246,46 @@ readonly class ZpracovaneObrazky
                 'url'  => 'https://' . $urlPartnera,
             ];
         }
+    }
+
+    /**
+     * Uloží pořadí log do RAZENI.csv ve tvaru, který čte @see serad().
+     * Loga, která v seznamu chybí, se zařadí za ně v dosavadním pořadí, názvy, které v adresáři nejsou, se přeskočí.
+     *
+     * @param list<string> $nazvySouboru například `albi.cz.png`, v pořadí, v jakém se mají loga zobrazit
+     */
+    public function ulozPoradi(array $nazvySouboru): void
+    {
+        $dosavadniPoradi = array_map('basename', $this->serazeneObrazky());
+        $vybrana         = array_values(array_unique(array_filter(
+            $nazvySouboru,
+            fn(string $nazev): bool => in_array($nazev, $dosavadniPoradi, true),
+        )));
+        if ($vybrana === []) {
+            throw new \InvalidArgumentException('Žádný ze zadaných souborů není logem v tomto adresáři.');
+        }
+        $poradi = [...$vybrana, ...array_diff($dosavadniPoradi, $vybrana)];
+
+        (new Filesystem())->dumpFile(
+            $this->adresarLog . '/' . self::RADICI_SOUBOR,
+            "# Pořadí log se mění v administraci (Web, Loga), ruční úpravy se při dalším uložení přepíšou.\n"
+            . implode("\n", $poradi) . "\n",
+        );
+    }
+
+    /**
+     * @return list<string> cesty k obrázkům v pořadí, v jakém se zobrazují
+     */
+    private function serazeneObrazky(): array
+    {
+        if (!is_dir($this->adresarLog)) {
+            throw new \RuntimeException("Adresář '{$this->adresarLog}' neexistuje nebo nelze přečíst.");
+        }
+        $soubory = glob($this->adresarLog . '/*', GLOB_NOSORT);
+        ['obrazky' => $obrazky, 'radici_soubor' => $radiciSoubor] = $this->rozdel($soubory);
+        $obrazky = $this->vyhodVyrazene($obrazky);
+
+        return array_values($this->serad($obrazky, $radiciSoubor));
     }
 
     /**
@@ -232,7 +376,7 @@ readonly class ZpracovaneObrazky
             $soubory,
             fn(
                 string $soubor,
-            ) => str_ends_with($soubor, 'RAZENI.csv'),
+            ) => str_ends_with($soubor, self::RADICI_SOUBOR),
         );
         $radiciSoubor  = reset($radiciSoubory)
             ?: null;

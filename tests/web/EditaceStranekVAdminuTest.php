@@ -22,7 +22,7 @@ class EditaceStranekVAdminuTest extends AbstractTestWeb
             [
                 <<<'SQL'
 INSERT INTO stranky(id_stranky, url_stranky, obsah, poradi)
-VALUES ($0, $1, 'Vymyšlený text', 0)
+VALUES ($0, $1, 'Vymyšlený text ![logo](soubory/obsah/ukazka.png)', 0)
 SQL,
                 [self::ID_STRANKY, self::URL_STRANKY],
             ],
@@ -38,7 +38,53 @@ SQL,
 
         self::assertStringContainsString('value="' . self::URL_STRANKY . '"', $telo);
         self::assertStringContainsString('QR kód s odkazem', $telo);
+        // v novém okně, ať se neztratí rozepsaný text
+        self::assertMatchesRegularExpression(
+            '~<a href="[^"]*/' . self::URL_STRANKY . '" target="_blank" rel="noopener"><i class="fa fa-external-link" aria-hidden="true"></i> Stránka na webu</a>~',
+            $telo,
+        );
         $this->assertPodmenuVedeNaStrankyWebu($telo);
+    }
+
+    /**
+     * Administrace má `<base>` na svůj adresář, relativní adresa obrázku by v náhledu vedla do ní.
+     *
+     * @test
+     */
+    public function obrazekVNahleduTextuVedeNaWebNeDoAdministrace()
+    {
+        $telo = $this->fetchAdminPage('admin/' . self::STRANKA_ADMINU . '/editace-stranek?id=' . self::ID_STRANKY);
+
+        self::assertMatchesRegularExpression('~class="dbffMdtext">\s*<p>Vymyšlený text <img src="[^"]*/soubory/obsah/ukazka\.png"~u', $telo);
+        self::assertStringNotContainsString('<img src="soubory/obsah/ukazka.png"', $telo);
+        self::assertStringContainsString('.dbffMdtext img { max-width: 100%; max-height: 6em; }', $telo);
+    }
+
+    /**
+     * Autosize změří pole při načtení stránky. Kdyby pravidlo pro obrázek přišlo až po skriptu, měl by obrázek v tu chvíli
+     * svou přirozenou šířku, levý sloupec by se smrštil na pár bodů a pole by dostalo výšku tisíců pixelů.
+     *
+     * @test
+     */
+    public function pravidloProObrazekVNahleduJeDrivNezSkriptKterySmeruVyskuPole()
+    {
+        $telo = $this->fetchAdminPage('admin/' . self::STRANKA_ADMINU . '/editace-stranek?id=' . self::ID_STRANKY);
+
+        $pravidlo = strpos($telo, '.dbffMdtext img { max-width: 100%; max-height: 6em; }');
+        $autosize = strpos($telo, '.autosize()');
+        self::assertNotFalse($pravidlo);
+        self::assertNotFalse($autosize);
+        self::assertLessThan($autosize, $pravidlo, 'Pravidlo pro obrázek musí být ve stránce před skriptem s autosize');
+    }
+
+    /**
+     * @test
+     */
+    public function novaStrankaJesteNemaNaCoOdkazovat()
+    {
+        $telo = $this->fetchAdminPage('admin/' . self::STRANKA_ADMINU . '/editace-stranek?akce=nova');
+
+        self::assertStringNotContainsString('odkaz-na-web', $telo);
     }
 
     /**

@@ -4,21 +4,23 @@ declare(strict_types=1);
 
 namespace Gamecon\Accounting;
 
+use Gamecon\Uzivatel\Finance;
+
 class TransactionSplit
 {
     /**
      * Positive amount means INCREASE in USER's balance, negative decrease
      */
-    private int $amount;
+    private float $amount;
     private string $description;
 
-    public function __construct(int $amount, string $description)
+    public function __construct(float $amount, string $description)
     {
-        $this->amount = $amount;
+        $this->amount = Finance::zaokouhli($amount);
         $this->description = $description;
     }
 
-    public function getAmount(): int
+    public function getAmount(): float
     {
         return $this->amount;
     }

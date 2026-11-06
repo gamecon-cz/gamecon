@@ -1,5 +1,6 @@
 <?php
 
+use Gamecon\Web\NahledMarkdownu;
 use Gamecon\XTemplate\XTemplate;
 
 class DbffMarkdownDirect extends DbFormField
@@ -15,9 +16,10 @@ class DbffMarkdownDirect extends DbFormField
         $t->assign([
             //'pnOldId' => $this->postName('oldVal'),
             //'oldId'   => $this->value(),
-            'pnText' => $this->postName(),
-            'text'   => htmlspecialchars($this->value()),
-            'mdText' => markdown($this->value()),
+            'pnText'  => $this->postName(),
+            'text'    => htmlspecialchars($this->value()),
+            'mdText'  => NahledMarkdownu::obrazkyNaWebu((string) markdown($this->value())),
+            'urlWebu' => json_encode(URL_WEBU, JSON_THROW_ON_ERROR),
         ]);
         $t->parse('md');
         return $t->text('md');

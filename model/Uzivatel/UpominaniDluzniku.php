@@ -55,7 +55,7 @@ class UpominaniDluzniku
     public function odesliUpominkuJednomu(
         Uzivatel    $uzivatel,
         TypUpominky $typUpominky,
-        int         $dluh,
+        float       $dluh,
         int         $rocnik,
         Uzivatel    $odesilatel,
         UcastNaGc   $ucastNaGc,
@@ -382,10 +382,9 @@ SQL,
                     continue;
                 }
 
-                // Porovnává se zaokrouhlená částka, tedy ta, která reálně půjde
-                // v e-mailu - jinak by dluh 250,60 Kč vypadal jako pod prahem 251,
-                // ale v mailu by stálo 251 Kč.
-                $dluhVMailu = (int)round($uzivatelSDluhem->dluh);
+                // Porovnává se částka tak, jak půjde do e-mailu (na haléře), aby se
+                // upomínka neposlala na dluh, který je pod prahem.
+                $dluhVMailu = Finance::zaokouhli($uzivatelSDluhem->dluh);
                 if ($dluhVMailu < $minimalniCastka) {
                     $pocetPodPrahem++;
                     $idsPodPrahem[] = $uzivatel->id();
@@ -412,9 +411,9 @@ SQL,
 
         if ($idsPodPrahem !== []) {
             $this->jobResultLogger->logs(sprintf(
-                'Upomínání dlužníků: %d dlužníků pod prahem %d Kč, neobesláni: %s',
+                'Upomínání dlužníků: %d dlužníků pod prahem %s Kč, neobesláni: %s',
                 $pocetPodPrahem,
-                (int)ceil($minimalniCastka),
+                Finance::formatujCastku($minimalniCastka),
                 implode(', ', $idsPodPrahem),
             ));
         }
@@ -498,7 +497,7 @@ SQL,
 
     public function dejEmailZpravu(
         TypUpominky $typUpominky,
-        int         $dluh,
+        float       $dluh,
         int         $variabilniSymbol,
         UcastNaGc   $ucastNaGc,
         ?int        $rokPosledniUcasti,
@@ -509,7 +508,7 @@ SQL,
         $promenne = [
             'jmeno' => $jmenoNick,
             'vs'    => $variabilniSymbol,
-            'dluh'  => $dluh,
+            'dluh'  => Finance::formatujCastku($dluh),
             'a'     => $koncovkaDlePohlavi,
         ];
 
@@ -590,7 +589,7 @@ SQL,
                 'pocet'              => $pocetEmailu,
                 'pocet_preskocenych' => $pocetPreskocenych,
                 'pocet_pod_prahem'   => $pocetPodPrahem,
-                'prah'               => (int)ceil($minimalniCastka),
+                'prah'               => Finance::formatujCastku($minimalniCastka),
                 'konec_gc'           => $konecGc->format('d.m.Y H:i'),
                 'priklad_predmet'    => $prikladEmailu?->dejPredmet() ?? '',
                 'priklad_text'       => $prikladEmailu?->dejText() ?? '',

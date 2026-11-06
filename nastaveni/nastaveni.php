@@ -107,7 +107,18 @@ if (!defined('VYCHOZI_DOBROVOLNE_VSTUPNE')) define('VYCHOZI_DOBROVOLNE_VSTUPNE',
 ////////////////////////
 // Limity pro nahrávání //
 ////////////////////////
-if (!defined('OBRAZEK_LINIE_MAX_MB')) define('OBRAZEK_LINIE_MAX_MB', 2);
+// obrázky z administrace (fotky k medailonkům, linie, e-shop, obsah webu) se při uložení zmenší, takže velký originál z foťáku nevadí;
+// skutečný limit může snížit upload_max_filesize a post_max_size
+if (!defined('OBRAZEK_MAX_MB')) define('OBRAZEK_MAX_MB', 30);
+if (!defined('OBRAZEK_LINIE_MAX_MB')) define('OBRAZEK_LINIE_MAX_MB', OBRAZEK_MAX_MB);
+// delší strana uloženého obrázku; nejširší obrázek v designu webu (pozadí) má 1920 px
+if (!defined('OBRAZEK_MAX_ROZMER_PX')) define('OBRAZEK_MAX_ROZMER_PX', 1920);
+// kvalita ztrátového WebP, do kterého se převádí JPEG
+if (!defined('OBRAZEK_WEBP_KVALITA')) define('OBRAZEK_WEBP_KVALITA', 85);
+// PDF, dokumenty, zvuk, archivy a tabulky ke stažení (Web → Soubory; obrázky tam mají limit OBRAZEK_MAX_MB); velký soubor se posílá po částech, takže ho omezuje jen tahle hodnota
+if (!defined('SOUBOR_MAX_MB')) define('SOUBOR_MAX_MB', 200);
+// kam se skládají části velkého souboru, než se zpracuje; mimo web
+if (!defined('ADRESAR_NAHRAVANI_PO_CASTECH')) define('ADRESAR_NAHRAVANI_PO_CASTECH', SPEC . '/nahravani-po-castech');
 
 //////////////////////////////////////////////
 // Staré hodnoty a aliasy pro kompatibilitu //

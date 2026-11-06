@@ -75,6 +75,9 @@ jobs:
             -   name: Run UI tests
                 run: make test-ui
 
+            -   name: Test the script that writes the Dependabot brief
+                run: make test-security-brief
+
             -   name: Check committed UI bundles match ui/src
                 run: make check-ui-bundles
 

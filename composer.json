@@ -34,7 +34,6 @@
         "ext-zlib": "*",
         "altcha-org/altcha": "^2.0",
         "defuse/php-encryption": "^2.1",
-        "dg/ftp-deployment": "^3.6",
         "dg/mysql-dump": "^1.5",
         "doctrine/dbal": "^3.7",
         "doctrine/doctrine-bundle": "^2.11",

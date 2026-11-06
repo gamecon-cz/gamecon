@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace Gamecon\Tests\Dev;
 
-use Deployment\CliRunner;
 use PHPUnit\Framework\TestCase;
 use Symfony\Component\Filesystem\Filesystem;
 
@@ -81,7 +80,7 @@ class RsyncNasazeniTest extends TestCase
     /**
      * @test
      */
-    public function theLaterMaskWinsLikeInFtpDeploymentSoTheOrderIsReversed(): void
+    public function theLaterMaskWinsSoTheOrderIsReversed(): void
     {
         $filtry = buildRsyncFilters(['/a', '/b', '!/a']);
 
@@ -142,10 +141,32 @@ class RsyncNasazeniTest extends TestCase
 
     /**
      * @test
+     *
+     * @dataProvider provideDryRun
      */
-    public function defaultMasksEqualTheOnesFtpDeploymentAddsItself(): void
+    public function aDeployWithoutARsyncTargetFailsBeforeAnythingIsTouched(bool $dryRun): void
     {
-        self::assertSame((new CliRunner())->ignoreMasks, getDefaultIgnoreMasks());
+        try {
+            nasad([
+                'vetev'                    => 'main',
+                'zdrojovaSlozka'           => $this->workDir,
+                'ciloveRsync'              => '',
+                'dryRun'                   => $dryRun,
+                'hesloMigrace'             => 'heslo',
+                'souborVerejnehoNastaveni' => $this->workDir . '/verejne-nastaveni-neexistuje.php',
+            ]);
+            self::fail('Deploy without a target must fail');
+        } catch (\RuntimeException $runtimeException) {
+            self::assertStringContainsString('DEPLOY_RSYNC_TARGET', $runtimeException->getMessage());
+        }
+
+        self::assertSame(['bin'], array_values(array_diff(scandir($this->workDir), ['.', '..'])), 'No settings file was generated');
+    }
+
+    public static function provideDryRun(): iterable
+    {
+        yield 'real run' => [false];
+        yield 'dry run' => [true];
     }
 
     /**

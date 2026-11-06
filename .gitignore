@@ -1,5 +1,7 @@
 /_*
 
+__pycache__/
+
 /dumps/
 
 /.idea/
@@ -40,8 +42,6 @@
 !/web/soubory/systemove/*/.htaccess
 *.map
 
-/nasad.log
-/.htdeployment
 
 # Generated at runtime by vytvorSouborSkrytehoNastaveniPodleEnv from env vars.
 # Contains decrypted DB creds & app secrets — must never be committed.

@@ -37,7 +37,8 @@ docker compose up
 # Run PHPUnit only
 vendor/bin/phpunit
 
-# Run all tests: PHPUnit (`make tests-be`) and the UI tests, vitest in ui/ (`make test-ui`)
+# Run all tests: PHPUnit (`make tests-be`), the UI tests, vitest in ui/ (`make test-ui`), and the unit tests of the
+# script that writes the review brief into Dependabot PRs (`make test-security-brief`, runs in the dev container, see docs/security-update-brief.md)
 make tests
 
 # Everything CI-like: first checks that vendor/ (committed) matches composer.lock, then syncs vendor/ and
@@ -154,7 +155,7 @@ Get the custom repository via `->getRepository(SomeEntity::class)` (returns the 
 - **Hashing**: Always use the complete result of a hashing function — never truncate it (e.g. `substr(md5(...), 0, 12)`) as this increases collision risk
 - **Cache directories**: Use `SPEC` constant for private cache files and `CACHE` constant for public cache files (web-accessible)
 - **Relative links in admin resolve against the admin root**, not the current page: `admin/templates/main.xtpl` sets `<base href="{URL_ADMIN}/">`. A bare `href="?nahled=1"` therefore opens the admin homepage; always write the module path, e.g. `href="web/previews?admin=…"`. It has already broken a link that only clicking revealed (the dunning preview).
-- **Any update of a JS library requires a rebuild of the UI bundles** (public site and admin), Dependabot bumps included: the ostra and beta deploys do not build the UI, so the committed bundles are what runs, and `make check-ui-bundles` (part of `make ci`) fails when they differ from a fresh build. After changing `ui/package.json` or `ui/yarn.lock` run `./bin-docker/yarn install` (with `--frozen-lockfile` when only the lock changed) and `./bin-docker/yarn build`, then commit whichever of `web/soubory/ui/{bundle.js,style.css}` and `admin/files/ui/{bundle.js,style.css}` changed, **in the same commit as the library change** (manifest, lock and any source or test fix the update needs), so that every commit passes `make check-ui-bundles` and the update cannot be reverted apart from its bundles (`*.map` are git-ignored). A library update without its rebuilt bundles is unfinished. Bundles that come out byte-identical (usual for dev-tool and transitive bumps) leave nothing to commit; say "bundle unchanged" in the PR instead. Never merge a Dependabot PR on GitHub: it changes only the lockfile.
+- **Any update of a JS library requires a rebuild of the UI bundles** (public site and admin), Dependabot bumps included: the ostra and beta deploys do not build the UI, so the committed bundles are what runs, and `make check-ui-bundles` (part of `make ci`) fails when they differ from a fresh build. After changing `ui/package.json` or `ui/yarn.lock` run `./bin-docker/yarn install` (with `--frozen-lockfile` when only the lock changed) and `./bin-docker/yarn build`, then commit whichever of `web/soubory/ui/{bundle.js,style.css}` and `admin/files/ui/{bundle.js,style.css}` changed, **in the same commit as the library change** (manifest, lock and any source or test fix the update needs), so that every commit passes `make check-ui-bundles` and the update cannot be reverted apart from its bundles (`*.map` are git-ignored). A library update without its rebuilt bundles is unfinished. Bundles that come out byte-identical (usual for dev-tool and transitive bumps) leave nothing to commit; say "bundle unchanged" in the PR instead. Never merge a Dependabot PR on GitHub: it changes only the lockfile. The workflow `security-update-brief` puts a review brief and the steps for reproducing the bump locally at the top of every Dependabot PR body (`docs/security-update-brief.md`), and for composer `bin/fold-dependabot-composer.sh` reproduces the Dependabot composer PRs you give it (`--list` shows the open ones) on a checkout of `main` with `vendor/` synced, ready for a PR of our own (`docs/security-update-brief.md`, "Reproducing a bump locally").
 
 ## Kam patří úkol: GitHub issues vs. Trello
 
@@ -439,7 +440,7 @@ Pravdivý stav ke dni auditu (zdroj: `cat /usr/local/sbin/deploy-preview-branch.
 | `GOOGLE_API_CREDENTIALS` | (nevyplněno) | prázdné | úmyslné — vyřešíme později, většina toků v preview netřeba |
 | `PREVIEW_BASIC_AUTH_USER/PASSWORD` | Dockerfile bake | sdílené napříč všemi preview | bake je správná cesta — společná hodnota |
 | `ARCHIVE_BASIC_AUTH_USER/PASSWORD` | Dockerfile bake | sdílené napříč všemi archive | bake je správná cesta |
-| `FTP_*`, `DEPLOY_*` (rsync nasazení) | nepředáváno | n/a | deploy-only, runtime kód nečte — správně, že to v preview není |
+| `DEPLOY_*` (rsync nasazení) | nepředáváno | n/a | deploy-only, runtime kód nečte — správně, že to v preview není |
 
 **Když přidáváš novou env-driven feature, vrať se k téhle tabulce a doplň řádek.** Pokud rozhodneš, že preview má dostat něco jiného než ostra, **napiš proč** — jinak se z toho stane skrytý drift.
 

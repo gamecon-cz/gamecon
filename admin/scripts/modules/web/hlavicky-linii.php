@@ -1,8 +1,9 @@
 <?php
 
+use Gamecon\Web\NahravaniObrazku;
+use Gamecon\Web\ZapisObrazkuVTextu;
+use Gamecon\Web\ZpracovaneObrazky;
 use Gamecon\XTemplate\XTemplate;
-use Symfony\Component\Filesystem\Exception\IOException;
-use Symfony\Component\Filesystem\Filesystem;
 
 /**
  * Editace šéfů linií, kontaktů a obrázků v hlavičkách aktivit
@@ -12,32 +13,36 @@ use Symfony\Component\Filesystem\Filesystem;
  * pravo: 105
  */
 
-$adresarObrazkuLinii = ADRESAR_WEBU_S_OBRAZKY . '/soubory/systemove/linie-ikony';
-$podporovanePriponyObrazkuLinii = ['jpg', 'jpeg', 'png', 'webp', 'gif'];
-$mimeNaPriponuObrazkuLinie = [
-    'image/jpeg' => 'jpg',
-    'image/png'  => 'png',
-    'image/webp' => 'webp',
-    'image/gif'  => 'gif',
-];
+$nahravaniObrazkuLinii = NahravaniObrazku::proObrazkyLinii();
+NahravaniObrazku::hlidejPrilisVelkyPozadavek();
 
 $informaceOObrazkuLinie = static function (int $idTypu): array {
     $cestaVcetneVerze = cestaObrazkuLinie($idTypu);
     $cestaBezVerze = strtok($cestaVcetneVerze, '?');
     $nazevSouboru = basename($cestaBezVerze);
 
-    if (str_starts_with($nazevSouboru, 'org_')) {
-        $stav = 'Používá se vlastní obrázek.';
-    } elseif ($nazevSouboru === 'default.png') {
-        $stav = 'Vlastní obrázek chybí, používá se fallback.';
-    } else {
-        $stav = 'Používá se starší obrázek linie (*.png).';
+    $maNahranyObrazek = str_starts_with($nazevSouboru, 'org_');
+    $jeFallback = $nazevSouboru === 'default.png';
+    $stav = match (true) {
+        $maNahranyObrazek => null,
+        $jeFallback => 'Vlastní obrázek chybí',
+        default => 'Používá se starší obrázek linie (*.png).',
+    };
+
+    $url = URL_WEBU . '/' . $cestaVcetneVerze;
+    try {
+        $nahled = Nahled::zeSouboru(ADRESAR_WEBU_S_OBRAZKY . '/' . $cestaBezVerze)->pokryjOrez(160, 160)->url();
+    } catch (RuntimeException) {
+        $nahled = $url;
     }
 
     return [
-        'url' => URL_WEBU . '/' . $cestaVcetneVerze,
+        'url' => $url,
+        'nahled' => $nahled,
         'cesta' => $cestaBezVerze,
         'stav' => $stav,
+        'maNahranyObrazek' => $maNahranyObrazek,
+        'jeObrazekLinie' => !$jeFallback,
     ];
 };
 
@@ -93,53 +98,11 @@ if (post('action') === 'upload-line-header-image') {
         chyba('Neplatná linie.');
     }
 
-    $obrazek = $_FILES['obrazek'] ?? null;
-    if (!$obrazek || ($obrazek['error'] ?? UPLOAD_ERR_NO_FILE) !== UPLOAD_ERR_OK) {
-        chyba('Nepodařilo se nahrát obrázek.');
-    }
-
-    if (($obrazek['size'] ?? 0) > OBRAZEK_LINIE_MAX_MB * 1024 * 1024) {
-        chyba('Obrázek je příliš velký, maximum je ' . OBRAZEK_LINIE_MAX_MB . ' MB.');
-    }
-
-    $informaceOObrazku = getimagesize($obrazek['tmp_name']);
-    if (!$informaceOObrazku || empty($informaceOObrazku['mime'])) {
-        chyba('Nahraný soubor není platný obrázek.');
-    }
-    $mime = $informaceOObrazku['mime'];
-    $pripona = $mimeNaPriponuObrazkuLinie[$mime] ?? null;
-    if (!$pripona) {
-        chyba('Obrázek musí být JPG, PNG, WebP nebo GIF.');
-    }
-
-    try {
-        (new Filesystem())->mkdir($adresarObrazkuLinii, 0775);
-    } catch (IOException $e) {
-        chyba('Nepodařilo se vytvořit adresář pro obrázky linií.');
-    }
-
-    $cilovaCesta = $adresarObrazkuLinii . '/org_' . $idTypu . '.' . $pripona;
-    $docasnaCesta = $cilovaCesta . '.nova';
-
-    if (!move_uploaded_file($obrazek['tmp_name'], $docasnaCesta)) {
-        chyba('Nepodařilo se uložit obrázek.');
-    }
-
-    foreach ($podporovanePriponyObrazkuLinii as $staraPriponaObrazkuLinie) {
-        $staraCesta = $adresarObrazkuLinii . '/org_' . $idTypu . '.' . $staraPriponaObrazkuLinie;
-        if ($staraCesta === $cilovaCesta) {
-            continue;
-        }
-        if (is_file($staraCesta) && !unlink($staraCesta)) {
-            unlink($docasnaCesta);
-            chyba('Nepodařilo se odstranit starší variantu obrázku.');
-        }
-    }
-
-    if (!rename($docasnaCesta, $cilovaCesta)) {
-        unlink($docasnaCesta);
-        chyba('Nepodařilo se dokončit uložení obrázku.');
-    }
+    NahravaniObrazku::sOhlasenimChyby(fn () => $nahravaniObrazkuLinii->ulozJakoJediny(
+        $nahravaniObrazkuLinii->overNahranySoubor($_FILES['obrazek'] ?? null),
+        '',
+        'org_' . $idTypu,
+    ));
 
     oznameni('Obrázek linie byl nahrán.');
 }
@@ -150,14 +113,9 @@ if (post('action') === 'delete-line-header-image') {
         chyba('Neplatná linie.');
     }
 
-    foreach ($podporovanePriponyObrazkuLinii as $priponaObrazkuLinie) {
-        $cilovaCesta = $adresarObrazkuLinii . '/org_' . $idTypu . '.' . $priponaObrazkuLinie;
-        if (is_file($cilovaCesta) && !unlink($cilovaCesta)) {
-            chyba('Nepodařilo se smazat obrázek linie.');
-        }
-    }
+    NahravaniObrazku::sOhlasenimChyby(fn () => $nahravaniObrazkuLinii->smazVsechnyVarianty('', 'org_' . $idTypu));
 
-    $legacyCesta = $adresarObrazkuLinii . '/' . $idTypu . '.png';
+    $legacyCesta = ZpracovaneObrazky::adresarObrazkuLinii() . '/' . $idTypu . '.png';
     if (is_file($legacyCesta)) {
         oznameni('Vlastní obrázek linie byl smazán, použije se starší ' . basename($legacyCesta));
     } else {
@@ -194,10 +152,24 @@ foreach ($radky as $radek) {
         'jmeno' => htmlspecialchars((string)($radek['jmeno'] ?? '')),
         'email' => htmlspecialchars((string)($radek['email'] ?? '')),
         'obrazek_url' => htmlspecialchars($informaceOObrazku['url']),
+        'obrazek_nahled' => htmlspecialchars($informaceOObrazku['nahled']),
         'verejna_url_linie' => htmlspecialchars(URL_WEBU . '/' . $radek['url_typu_mn']),
         'obrazek_cesta' => htmlspecialchars($informaceOObrazku['cesta']),
-        'obrazek_stav' => htmlspecialchars($informaceOObrazku['stav']),
+        'obrazek_stav' => htmlspecialchars((string)$informaceOObrazku['stav']),
+        'zapis_markdown' => htmlspecialchars(ZapisObrazkuVTextu::markdown($informaceOObrazku['cesta'])),
+        'zapis_html' => htmlspecialchars(ZapisObrazkuVTextu::html($informaceOObrazku['cesta'])),
     ]);
+    if ($informaceOObrazku['jeObrazekLinie']) {
+        $t->parse('hlavickyLinii.radek.zapisy');
+    } else {
+        $t->parse('hlavickyLinii.radek.cesta');
+    }
+    if ($informaceOObrazku['stav'] !== null) {
+        $t->parse('hlavickyLinii.radek.stav');
+    }
+    if ($informaceOObrazku['maNahranyObrazek']) {
+        $t->parse('hlavickyLinii.radek.smazat');
+    }
     $t->parse('hlavickyLinii.radek');
 }
 

@@ -1,0 +1,110 @@
+<!-- begin:souboryWebu -->
+<h2>Soubory ke stažení</h2>
+
+<p class="tip">
+  Tady se nahrávají PDF, zvuk, archivy, tabulky a obrázky ke stažení, na které odkazují texty webu a přihláška. Do
+  kterékoli složky jde nahrát kterýkoli z těchto typů.
+  Odkaz do textu vložíš z tabulky Markdownem <code>[popis](soubory/obsah/…)</code>
+  nebo v HTML jako <code>&lt;a href="soubory/obsah/…"&gt;popis&lt;/a&gt;</code>.
+  Obrázky a soubory k textu stránky nebo novinky jdou nahrát i v jejich editoru, obrázky e-shopu ve Finance → Shop.
+</p>
+
+<!-- begin:slozka -->
+<!-- begin:historie --><hr><!-- end:historie -->
+<details class="soubory-webu" open>
+  <summary><strong>{nazev}</strong> <code>{adresar}</code> <small class="soubory-webu__pocet" title="Počet souborů ve složce">({pocet})</small></summary>
+  <p>{popis}</p>
+
+  <form method="post" enctype="multipart/form-data" class="nahrani-souboru"{poCastech}>
+    <input type="hidden" name="{postAkce}" value="nahrat">
+    <input type="hidden" name="slozka" value="{slozka}">
+    <label>Soubor <input type="file" name="{postSoubor}" accept="{accept}" required></label>
+    <label class="nahrani-souboru__nazev">Název <input type="text" name="nazev" maxlength="100" placeholder="jinak původní název souboru"></label>
+    <label>Podsložka
+      <input type="text" name="podslozka" list="podslozky-{slozka}" maxlength="100" placeholder="nepovinná, třeba {rocnik}">
+    </label>
+    <datalist id="podslozky-{slozka}">
+      <!-- begin:podslozka --><option value="{podslozka}"><!-- end:podslozka -->
+    </datalist>
+    <button type="submit"><i class="fa fa-upload" aria-hidden="true"></i> Nahrát</button>
+    <div class="tip">
+      {limit}. Název i podsložka se upraví do tvaru vhodného do adresy: malá písmena bez diakritiky,
+      mezery a tečky se změní na podtržítka. Soubor se stejným názvem nejde nahrát znovu, nahraď předchozí.
+    </div>
+  </form>
+
+  <table class="zvyraznovana tabulka-souboru">
+    <tr>
+      <th>Soubor</th>
+      <th>Nahrán</th>
+      <th>Použit v</th>
+      <th></th>
+    </tr>
+    <!-- begin:soubor -->
+    <tr>
+      <td>
+        <a href="{url}" target="_blank" rel="noopener">{cesta}</a> <span class="udaje-souboru technicke">({udaje})</span>
+        <div class="zapisy-k-vlozeni">
+          <label>Markdown: <input type="text" readonly value="{markdown}" onclick="this.select()" class="zapisy-k-vlozeni__odkaz"></label>
+          <label>HTML: <input type="text" readonly value="{html}" onclick="this.select()" class="zapisy-k-vlozeni__odkaz"></label>
+        </div>
+      </td>
+      <td class="tabulka-souboru__nahrano">{zmeneno}</td>
+      <td>
+        <!-- begin:misto -->
+        <!-- begin:vTextu --><a href="{pouzitiUrl}">{pouzitiPopis}</a><br><!-- end:vTextu -->
+        <!-- begin:vKodu -->{pouzitiPopis} <span class="tip">(v kódu webu)</span><br><!-- end:vKodu -->
+        <!-- end:misto -->
+        <!-- begin:nikde --><span class="tip" title="Nikde se nepoužívá">—</span><!-- end:nikde -->
+      </td>
+      <td>
+        <div class="akce-souboru">
+          <!-- begin:nahradit -->
+          <form method="post" enctype="multipart/form-data"{poCastech}>
+            <input type="hidden" name="{postAkce}" value="nahradit">
+            <input type="hidden" name="slozka" value="{slozka}">
+            <input type="hidden" name="cesta" value="{cesta}">
+            <input type="file" name="{postSoubor}" accept="{acceptSouboru}" required>
+            <button type="submit"><i class="fa fa-upload" aria-hidden="true"></i> Nahradit</button>
+          </form>
+          <!-- end:nahradit -->
+          <!-- begin:smazat -->
+          <form method="post" onsubmit="return confirm('Opravdu smazat tento soubor?')">
+            <input type="hidden" name="{postAkce}" value="smazat">
+            <input type="hidden" name="slozka" value="{slozka}">
+            <input type="hidden" name="cesta" value="{cesta}">
+            <button type="submit"><i class="fa fa-trash" aria-hidden="true"></i> Smazat</button>
+          </form>
+          <!-- end:smazat -->
+          <!-- begin:nespravovany --><span class="tip">Tenhle soubor se tu nespravuje, mění ho jen správce serveru.</span><!-- end:nespravovany -->
+        </div>
+      </td>
+    </tr>
+    <!-- end:soubor -->
+    <!-- begin:zadny -->
+    <tr>
+      <td colspan="4"><i>Zatím tu žádný soubor není.</i></td>
+    </tr>
+    <!-- end:zadny -->
+  </table>
+</details>
+<!-- end:slozka -->
+
+{skript}
+
+<style>
+    .soubory-webu {
+        margin: 1.5em 0;
+    }
+
+    .soubory-webu summary {
+        cursor: pointer;
+        font-size: larger;
+    }
+
+    .soubory-webu__pocet {
+        font-size: 0.7em;
+    }
+
+</style>
+<!-- end:souboryWebu -->

@@ -1,0 +1,102 @@
+<!-- begin:obrazkyObsahu -->
+<details class="obrazky-obsahu" open>
+  <summary>Obrázky</summary>
+
+  <p class="tip">
+    Obrázek vložíš do textu Markdownem <code>![popis](soubory/obsah/…)</code>,
+    nebo v HTML jako <code>&lt;img src="soubory/obsah/…"&gt;</code>. Povolené jsou {limit}.
+  </p>
+  <p class="tip">
+    Obrázek nahradíš tlačítkem Nahradit u jeho řádku: uloží se pod původním názvem, takže odkazy zůstanou. JPG, PNG
+    a WebP nahradí jakýkoli neanimovaný JPG, PNG, WebP nebo GIF, převede se do formátu původního obrázku. GIF, SVG
+    a AVIF nahradí jen stejný formát.
+  </p>
+
+  <!-- begin:odkazy -->
+  <h3>Obrázky, na které text odkazuje</h3>
+  <table class="zvyraznovana">
+    <!-- begin:obrazek -->
+    <tr>
+      <td class="obrazky-obsahu__nahled">
+        <!-- begin:existuje --><a href="{url}" target="_blank" rel="noopener"><img src="{nahled}" alt=""></a><!-- end:existuje -->
+        <!-- begin:chybi --><span class="obrazky-obsahu__chybi">na serveru chybí</span><!-- end:chybi -->
+      </td>
+      <td><code>{vTextu}</code></td>
+      <td>
+        <form method="post" enctype="multipart/form-data">
+          <input type="hidden" name="{postAkce}" value="nahradit">
+          <input type="hidden" name="cesta" value="{cesta}">
+          <input type="file" name="{postSoubor}" accept="{acceptObrazku}" required>
+          <button type="submit"><i class="fa fa-upload" aria-hidden="true"></i> {tlacitko}</button>
+        </form>
+      </td>
+    </tr>
+    <!-- end:obrazek -->
+  </table>
+  <!-- end:odkazy -->
+
+  <h3>Nahrát nový obrázek</h3>
+  <form method="post" enctype="multipart/form-data" class="nahrani-souboru">
+    <input type="hidden" name="{postAkce}" value="nahrat">
+    <label>Obrázek <input type="file" name="{postSoubor}" accept="{accept}" required></label>
+    <label class="nahrani-souboru__nazev">Název <input type="text" name="nazev" placeholder="jinak původní název souboru" maxlength="100"></label>
+    <button type="submit"><i class="fa fa-upload" aria-hidden="true"></i> Nahrát</button>
+    <div class="tip">Uloží se do <code>{adresar}</code>. Název se upraví do tvaru vhodného do adresy, tedy malými písmeny bez diakritiky.</div>
+  </form>
+
+  <!-- begin:vlastni -->
+  <h3>Obrázky nahrané {kCemu}</h3>
+  <table class="zvyraznovana">
+    <!-- begin:obrazek -->
+    <tr>
+      <td class="obrazky-obsahu__nahled"><a href="{url}" target="_blank" rel="noopener"><img src="{nahled}" alt=""></a></td>
+      <td class="zapisy-k-vlozeni">
+        <label>Markdown: <input type="text" readonly value="{markdown}" onclick="this.select()" class="zapisy-k-vlozeni__odkaz"></label>
+        <label>HTML: <input type="text" readonly value="{html}" onclick="this.select()" class="zapisy-k-vlozeni__odkaz"></label>
+      </td>
+      <td>
+        <!-- begin:pouziti -->
+        Odkazuje na něj <!-- begin:misto --><a href="{pouzitiUrl}">{pouzitiPopis}</a> <!-- end:misto -->
+        <!-- end:pouziti -->
+        <div class="akce-souboru">
+          <form method="post" enctype="multipart/form-data">
+            <input type="hidden" name="{postAkce}" value="nahradit">
+            <input type="hidden" name="cesta" value="{cesta}">
+            <input type="file" name="{postSoubor}" accept="{acceptObrazku}" required>
+            <button type="submit"><i class="fa fa-upload" aria-hidden="true"></i> Nahradit</button>
+          </form>
+          <!-- begin:smazat -->
+          <form method="post" onsubmit="return confirm('Opravdu smazat tento obrázek?')">
+            <input type="hidden" name="{postAkce}" value="smazat">
+            <input type="hidden" name="cesta" value="{cesta}">
+            <button type="submit"><i class="fa fa-trash" aria-hidden="true"></i> Smazat</button>
+          </form>
+          <!-- end:smazat -->
+        </div>
+      </td>
+    </tr>
+    <!-- end:obrazek -->
+  </table>
+  <!-- end:vlastni -->
+</details>
+
+<style>
+    .obrazky-obsahu {
+        margin: 1.5em 0;
+    }
+
+    .obrazky-obsahu summary {
+        cursor: pointer;
+        font-size: larger;
+    }
+
+    .obrazky-obsahu__nahled img {
+        max-width: 150px;
+        max-height: 100px;
+    }
+
+    .obrazky-obsahu__chybi {
+        color: #c00;
+    }
+</style>
+<!-- end:obrazkyObsahu -->

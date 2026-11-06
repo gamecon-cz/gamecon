@@ -2,6 +2,7 @@
 
 declare(strict_types=1);
 
+use Gamecon\Uzivatel\Finance;
 use Gamecon\Uzivatel\PromlceniZustatku;
 use Gamecon\Kanaly\EmailovaSablona\EmailoveSablony;
 use Gamecon\Report\KonfiguraceReportu;
@@ -94,7 +95,7 @@ $cfosEmaily = Uzivatel::cfosEmaily();
 (new EmailoveSablony($systemoveNastaveni))
     ->vytvorMail(KodEmailoveSablonyEnum::CFO_PROMLCENI_PRED, [
         'pocet_uzivatelu' => $pocetUzivatelu,
-        'suma'            => $celkovaSuma,
+        'suma'            => Finance::formatujCastku($celkovaSuma),
         'gc_skoncil'      => $gcBeziDo->format('d.m.Y H:i'),
     ])
     ->adresati($cfosEmaily
@@ -144,7 +145,7 @@ Report::zPole($reportPoPromlceni)->tFormat('xlsx', null, $konfiguraceReportuAktu
 (new EmailoveSablony($systemoveNastaveni))
     ->vytvorMail(KodEmailoveSablonyEnum::CFO_PROMLCENI_DOKONCENO, [
         'pocet'      => $vysledek['pocet'],
-        'suma'       => $vysledek['suma'],
+        'suma'       => Finance::formatujCastku($vysledek['suma']),
         'gc_skoncil' => $gcBeziDo->format('d.m.Y H:i'),
     ])
     ->adresati($cfosEmaily
@@ -157,4 +158,4 @@ if (isset($tempFileAktualni) && file_exists($tempFileAktualni)) {
     @unlink($tempFileAktualni);
 }
 
-$output->logs("Automatické promlčení zůstatků: Dokončeno. Promlčeno {$vysledek['pocet']} uživatelů, celkem {$vysledek['suma']} Kč");
+$output->logs("Automatické promlčení zůstatků: Dokončeno. Promlčeno {$vysledek['pocet']} uživatelů, celkem " . Finance::formatujCastku($vysledek['suma']) . " Kč");

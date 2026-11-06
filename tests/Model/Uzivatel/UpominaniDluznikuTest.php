@@ -9,6 +9,7 @@ use Gamecon\Command\FioStazeniNovychPlateb;
 use Gamecon\Kanaly\MailLogger;
 use Gamecon\Logger\JobResultLoggerInterface;
 use Gamecon\Role\Role;
+use Gamecon\Shop\TypPredmetu;
 use Gamecon\Stat;
 use Gamecon\SystemoveNastaveni\SystemoveNastaveni;
 use Gamecon\Tests\Db\AbstractTestDb;
@@ -1279,8 +1280,154 @@ SQL,
 
         self::assertNotEmpty($zaznam, 'Ruční upomínka se musí zalogovat');
         self::assertSame(TypUpominky::RUCNI->value, $zaznam['typ_upominky']);
-        self::assertSame('123', $zaznam['dluh'], 'Log musí držet částku, která byla v e-mailu');
+        self::assertSame('123.00', $zaznam['dluh'], 'Log musí držet částku, která byla v e-mailu');
         self::assertSame((string) $odesilatel->id(), $zaznam['odeslal']);
+    }
+
+    /**
+     * @test
+     */
+    public function logDrziHalereCoBylaVEmailu()
+    {
+        $upominaniDluzniku = $this->dejUpominaniDluzniku();
+
+        $upominaniDluzniku->odesliUpominkuJednomu(
+            \Uzivatel::zId(self::ID_DLUZNIK_MALY_DLUH),
+            TypUpominky::RUCNI,
+            123.45,
+            ROCNIK,
+            \Uzivatel::zId(\Uzivatel::SYSTEM, true),
+            UcastNaGc::PRITOMEN,
+            ROCNIK,
+        );
+
+        self::assertSame(
+            '123.45',
+            dbOneCol(
+                'SELECT dluh FROM upominka_dluznika_log WHERE id_uzivatele = $0 AND rocnik = $1',
+                [
+                    0 => self::ID_DLUZNIK_MALY_DLUH,
+                    1 => ROCNIK,
+                ],
+            ),
+        );
+    }
+
+    /**
+     * @test
+     */
+    public function emailUkazeHalereSCarkouAUCelychKorunBezDesetin()
+    {
+        (new UpominkaVlastniZneni())->uloz(
+            ROCNIK,
+            'Nedoplatek GameCon %ROCNIK%',
+            'dluh %dluh% Kč pod VS %vs%',
+            \Uzivatel::SYSTEM,
+        );
+        $upominaniDluzniku = $this->dejUpominaniDluzniku();
+
+        $zpravaSHaleri = $upominaniDluzniku->dejEmailZpravu(TypUpominky::VLASTNI, 250.6, 12345, UcastNaGc::PRITOMEN, ROCNIK, 'a', 'Tester', ROCNIK);
+        $zpravaBezHaleru = $upominaniDluzniku->dejEmailZpravu(TypUpominky::VLASTNI, 250.0, 12345, UcastNaGc::PRITOMEN, ROCNIK, 'a', 'Tester', ROCNIK);
+
+        self::assertSame('dluh 250,60 Kč pod VS 12345', $zpravaSHaleri);
+        self::assertSame('dluh 250 Kč pod VS 12345', $zpravaBezHaleru);
+    }
+
+    /**
+     * @test
+     */
+    public function vychoziTextUpominkyPsaniCastkuSHaleriSKc()
+    {
+        $zprava = $this->dejUpominaniDluzniku()->dejEmailZpravu(
+            TypUpominky::TYDEN,
+            250.6,
+            12345,
+            UcastNaGc::PRITOMEN,
+            ROCNIK,
+            'a',
+            'Tester',
+            ROCNIK,
+        );
+
+        self::assertStringContainsString('250,60 Kč', $zprava);
+        self::assertStringNotContainsString('korun', $zprava);
+    }
+
+    /**
+     * @test
+     */
+    public function automatikaPorovnavaSPrahemPresnouCastkuZEmailu()
+    {
+        // Práh je 251 Kč, dluh 250,60 Kč je pod ním a v e-mailu by stálo přesně 250,60. Zůstatek
+        // z minulých let jsou celé koruny, haléře se do dluhu dostanou jen z nákupu.
+        $idHranicniho = 2010;
+        dbQuery(self::uzivatelQuery($idHranicniho, 'Hraniční', 'Dlužník', 0.0, 'hranicni.dluznik@test.cz'));
+        dbQuery(self::prihlasenNaLetosniGcQuery($idHranicniho));
+        dbQuery(
+            'INSERT INTO shop_predmety SET id_predmetu = 201001, nazev = $0, model_rok = $1, kod_predmetu = CONCAT($2, $1), cena_aktualni = 250.6, stav = 1, nabizet_do = NOW(), kusu_vyrobeno = 1, typ = $3',
+            [
+                0 => 'hraniční předmět',
+                1 => ROCNIK,
+                2 => 'upominka_hranicni_',
+                3 => TypPredmetu::PREDMET,
+            ],
+        );
+        dbQuery(
+            'INSERT INTO shop_nakupy(id_uzivatele, id_predmetu, rok, cena_nakupni) VALUES ($0, 201001, $1, 250.6)',
+            [
+                0 => $idHranicniho,
+                1 => ROCNIK,
+            ],
+        );
+        self::assertSame(251.0, SystemoveNastaveni::zGlobals()->upominkaMinimalniCastka());
+
+        $upominaniDluzniku = $this->dejUpominaniDluznikuSCasem($this->dejCasKonecGcPlus('1 week'));
+        $upominaniDluzniku->odesliUpominkyDluznikum(TypUpominky::TYDEN);
+
+        $obeslani = array_map(
+            'intval',
+            dbFetchColumn(
+                'SELECT id_uzivatele FROM upominka_dluznika_log WHERE rocnik = $0 ORDER BY id_uzivatele',
+                [
+                    0 => ROCNIK,
+                ],
+            ),
+        );
+
+        self::assertNotContains($idHranicniho, $obeslani, 'Dluh 250,60 Kč je pod prahem 251 Kč');
+        self::assertSame(
+            [self::ID_DLUZNIK_VELKY_DLUH, self::ID_DLUZNIK_Z_MINULYCH_LET],
+            $obeslani,
+        );
+    }
+
+    /**
+     * @test
+     */
+    public function infoProCfoUvadiPrahNaHalere()
+    {
+        // Práh se bere z konstanty, kterou si proces definuje jen jednou, takže ho test nemůže změnit přes DB.
+        // Proto se do soukromé metody posílá rovnou a počet e-mailů je výrazný, ať se nezamění s jiným logem.
+        $upominaniDluzniku = $this->dejUpominaniDluzniku();
+        $odesliInfoCfo = new \ReflectionMethod($upominaniDluzniku, 'odeslInfoCfo');
+
+        $odesliInfoCfo->invoke(
+            $upominaniDluzniku,
+            TypUpominky::TYDEN,
+            7777,
+            0,
+            8,
+            400.5,
+            $this->dejCasKonecGcPlus('1 week'),
+            null,
+        );
+
+        $mailLogger = new MailLogger(LOGY . '/maily.sqlite');
+        $nalezene = $mailLogger->najdi('odesláno 7777 e-mailů', limit: 1);
+        self::assertNotEmpty($nalezene, 'E-mail pro CFO se nezalogoval');
+        $telo = quoted_printable_decode(explode("\r\n\r\n", $mailLogger->detail((int) $nalezene[0]['id'])['telo'], 2)[1]);
+
+        self::assertStringContainsString('dluh pod prahem 400,50 Kč', $telo);
     }
 
     /**

@@ -45,6 +45,8 @@ seznam pomocí čísel
 <p><b>FAQ:</b></p>
 <ul>
   <li>Odkazy mimo stránky se automaticky otevřou v novém tabu, není dobré je psát ručně přes html.</li>
+  <li>Obrázek nahraješ v editaci stránky nebo novinky v části Obrázky a do textu ho vložíš jako Markdown <code>![popis](soubory/obsah/…)</code> nebo HTML <code>&lt;img src="soubory/obsah/…" alt="popis"&gt;</code>. Tam taky nahradíš obrázek, na který už text odkazuje.</li>
+  <li>Soubory ke stažení (PDF, zvuk, archivy, tabulky i obrázky) nahraješ ve Web → Soubory a do textu je vložíš jako odkaz Markdownem <code>[popis](soubory/obsah/…)</code> nebo v HTML <code>&lt;a href="soubory/obsah/…"&gt;popis&lt;/a&gt;</code>, který tam najdeš u každého souboru.</li>
   <li>Obrázky plovoucí vpravo nebo vlevo TODO</li>
 </ul>
 

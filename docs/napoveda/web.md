@@ -59,24 +59,32 @@ v novém tabu — neřeš to ručně přes HTML. Na podstránce najdeš živou u
 ## Hlavičky linií
 
 Podstránka **Hlavičky linií** upravuje text a obrázek v hlavičce programové
-linie na webu aktivit. Každá linie zobrazovaná v menu má řádek se třemi
-sloupci: **Linie** (název a odkaz **otevřít veřejnou stránku**), **Texty**
-a **Obrázek**.
+linie na webu aktivit. Každá linie zobrazovaná v menu má řádek se dvěma
+sloupci: vlevo **Linie a texty** (nahoře název a odkaz **otevřít veřejnou
+stránku**, pod ním formulář s texty), vpravo **Obrázek**.
 
 - Texty: pole **Sekce**, **Jméno** a **E-mail** (kontakt na šéfa linie),
   uložíš tlačítkem **Uložit texty**. Když necháš všechna tři pole prázdná,
   hlavička se vymaže a použije se výchozí podoba (hláška „Hlavička linie
   byla vymazána, použije se fallback.").
-- Obrázek: vyber soubor a klikni **Nahrát obrázek**. Podporované formáty
-  jsou JPG, PNG, WebP a GIF, maximální velikost 2 MB. U každé linie vidíš
-  náhled a stav (vlastní obrázek / fallback). Tlačítko **Smazat vlastní
-  obrázek** vrátí linii k výchozímu obrázku.
+- Obrázek: vyber soubor a klikni **Nahrát**. Podporované formáty
+  jsou JPG, PNG, WebP a GIF, maximální velikost 2 MB; JPG a PNG bez animace
+  se při nahrání převedou na WebP. U každé linie vidíš náhled (kliknutím se
+  otevře obrázek v původní velikosti). U obrázku, který linie opravdu má, jsou
+  hotové zápisy **Markdown** a **HTML** pro vložení do textu (je v nich i
+  cesta k souboru); u linie bez vlastního obrázku se místo nich píše, že
+  vlastní obrázek chybí (používá se výchozí). Tlačítko **Smazat** (na vlastním
+  řádku pod výběrem souboru, s potvrzením „Opravdu smazat vlastní obrázek
+  linie?") vrátí linii k výchozímu obrázku; je jen u linie, která vlastní
+  obrázek má.
 
 ## Loga sponzorů a partnerů
 
 Podstránka **Loga** spravuje čtyři skupiny log: **Loga sponzorů na
 titulce**, **Loga partnerů na titulce**, **Loga sponzorů v přehledu**
-a **Loga partnerů v přehledu**. V každé skupině vidíš nahraná loga
+a **Loga partnerů v přehledu**. Pod nadpisem každé skupiny je odkaz
+**titulní straně webu** nebo **stránce Sponzoři**, který otevře veřejný web
+rovnou na místě, kde se ta loga ukazují. V každé skupině vidíš nahraná loga
 s náhledem a odkazem, tlačítko **Smazat** (s potvrzením „Opravdu chcete
 smazat logo …?") a formulář pro nahrání nového.
 
@@ -86,11 +94,15 @@ Podporované formáty: JPG, PNG, GIF, WebP, SVG. Soubor se pojmenuje podle
 domény z URL, takže nahrání dalšího loga se stejnou doménou přepíše to
 původní.
 
-Pořadí log řídí soubor **RAZENI.csv**: nahraješ ho tlačítkem **Nahrát
-RAZENI.csv**, stáhnout si můžeš **Platné RAZENI.csv** i **vzor RAZENI.csv**.
-Loga se seřadí podle seznamu v souboru (velikost písmen a případné `www.`
-na začátku se ignorují — `www.Albi.cz` se bere jako `albi.cz`); loga, která
-v souboru nejsou, se připojí za ně seřazená podle abecedy.
+Pořadí log změníš přetažením: chyť logo myší, přetáhni ho na jiné místo
+ve stejné skupině a pusť. Změna se uloží hned, pod skupinou se na chvíli
+ukáže **Pořadí uloženo.** Když se uložení nepovede, logo se vrátí na původní
+místo a pod skupinou je důvod. Každá ze čtyř skupin má své vlastní pořadí.
+Nově nahrané logo se zařadí na konec; víc nových log se mezi sebou seřadí
+podle abecedy, dokud je nepřetáhneš. Dokud pořadí nikdy nezměníš, jsou loga
+seřazená podle abecedy. Logo, které smažeš a později nahraješ znovu pod
+stejnou doménou, se vrátí na své původní místo, dokud ve skupině
+něco znovu nepřetáhneš.
 
 ## Previews
 

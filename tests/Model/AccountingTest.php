@@ -290,7 +290,7 @@ SQL,
         $account = Accounting::getPersonalFinance($this->dejUzivatele(), showDiscounts: false);
 
         self::assertCount(0, $account->getTransactions());
-        self::assertSame(0, $account->getTotal());
+        self::assertSame(0.0, $account->getTotal());
     }
 
     /**
@@ -305,11 +305,11 @@ SQL,
 
         self::assertCount(1, $transactions);
         self::assertSame(TransactionCategoryEnum::SHOP_ITEMS, $transactions[0]->getCategory());
-        self::assertSame(-100, $transactions[0]->getTotalAmount());
+        self::assertSame(-100.0, $transactions[0]->getTotalAmount());
 
         $splits = $transactions[0]->getSplits();
         self::assertCount(1, $splits);
-        self::assertSame(-100, $splits[0]->getAmount());
+        self::assertSame(-100.0, $splits[0]->getAmount());
         self::assertSame('předmět', $splits[0]->getDescription());
     }
 
@@ -327,7 +327,7 @@ SQL,
         self::assertCount(1, $transactions);
         $splits = $transactions[0]->getSplits();
         self::assertCount(1, $splits);
-        self::assertSame(0, $splits[0]->getAmount());
+        self::assertSame(0.0, $splits[0]->getAmount());
         self::assertSame('ubytování', $splits[0]->getDescription());
     }
 
@@ -345,9 +345,9 @@ SQL,
         self::assertCount(1, $transactions);
         $splits = $transactions[0]->getSplits();
         self::assertCount(2, $splits);
-        self::assertSame(-200, $splits[0]->getAmount());
+        self::assertSame(-200.0, $splits[0]->getAmount());
         self::assertSame('ubytování', $splits[0]->getDescription());
-        self::assertSame(200, $splits[1]->getAmount());
+        self::assertSame(200.0, $splits[1]->getAmount());
         self::assertSame('Sleva z ubytování', $splits[1]->getDescription());
     }
 
@@ -364,7 +364,7 @@ SQL,
         self::assertCount(1, $transactions);
         $splits = $transactions[0]->getSplits();
         self::assertCount(1, $splits);
-        self::assertSame(-100, $splits[0]->getAmount());
+        self::assertSame(-100.0, $splits[0]->getAmount());
     }
 
     /**
@@ -461,7 +461,7 @@ SQL,
 
         self::assertNotEmpty($manualMovements, 'Připsaná platba musí být vidět v objednávkách a platbách');
         $total = array_sum(array_map(fn ($transaction) => $transaction->getTotalAmount(), $manualMovements));
-        self::assertSame(215, $total);
+        self::assertSame(215.0, $total);
     }
 
     /**
@@ -476,13 +476,13 @@ SQL,
         $accountNoDiscounts = Accounting::getPersonalFinance($this->dejUzivatele(), showDiscounts: false);
         $splitsNo = $accountNoDiscounts->getTransactions()[0]->getSplits();
         self::assertCount(1, $splitsNo);
-        self::assertSame(-(int) (80 - $sleva), $splitsNo[0]->getAmount());
+        self::assertSame(-(float) (80 - $sleva), $splitsNo[0]->getAmount());
 
         $accountWithDiscounts = Accounting::getPersonalFinance($this->dejUzivatele(), showDiscounts: true);
         $splitsWith = $accountWithDiscounts->getTransactions()[0]->getSplits();
         self::assertCount(2, $splitsWith);
-        self::assertSame(-80, $splitsWith[0]->getAmount());
-        self::assertSame((int) $sleva, $splitsWith[1]->getAmount());
+        self::assertSame(-80.0, $splitsWith[0]->getAmount());
+        self::assertSame((float) $sleva, $splitsWith[1]->getAmount());
         self::assertStringStartsWith('Sleva z ', $splitsWith[1]->getDescription());
     }
 
@@ -499,7 +499,7 @@ SQL,
         $transactions = $account->getTransactions();
 
         self::assertCount(3, $transactions);
-        self::assertSame(-400, $account->getTotal());
+        self::assertSame(-400.0, $account->getTotal());
     }
 
     /**
@@ -516,7 +516,7 @@ SQL,
         ));
 
         self::assertCount(1, $leftover, 'Zůstatek z minulých let musí být reprezentován jednou transakcí');
-        self::assertSame(123, $leftover[0]->getTotalAmount());
+        self::assertSame(123.0, $leftover[0]->getTotalAmount());
     }
 
     /**
@@ -528,7 +528,7 @@ SQL,
 
         $account = Accounting::getPersonalFinance($this->dejUzivatele(), showDiscounts: false);
 
-        self::assertSame(123, $account->getTotal());
+        self::assertSame(123.0, $account->getTotal());
         self::assertStringContainsString(
             '<tr><td><b>Zůstatek z minulých let</b></td><td><b>123</b></td></tr>',
             $account->formatForHtml(),
@@ -570,7 +570,7 @@ SQL,
         ));
 
         self::assertCount(1, $aktivity, 'Účast na aktivitě musí být reprezentována transakcí');
-        self::assertSame(-250, $aktivity[0]->getTotalAmount());
+        self::assertSame(-250.0, $aktivity[0]->getTotalAmount());
     }
 
     /**
@@ -604,7 +604,7 @@ SQL,
         ));
 
         self::assertCount(1, $manualMovements, 'Obecná sleva musí být reprezentována transakcí v MANUAL_MOVEMENTS');
-        self::assertSame(40, $manualMovements[0]->getTotalAmount());
+        self::assertSame(40.0, $manualMovements[0]->getTotalAmount());
     }
 
     /**
@@ -628,8 +628,8 @@ SQL,
         ));
 
         self::assertCount(1, $manualMovements, 'Vypravěčský bonus musí být reprezentován transakcí v MANUAL_MOVEMENTS');
-        self::assertSame($ocekavanyBonus, $manualMovements[0]->getTotalAmount());
-        self::assertSame($ocekavanyBonus, $account->getTotal());
+        self::assertSame((float) $ocekavanyBonus, $manualMovements[0]->getTotalAmount());
+        self::assertSame((float) $ocekavanyBonus, $account->getTotal());
 
         $htmlProFinance = Accounting::getPersonalFinance($this->dejUzivatele(), showDiscounts: true)
             ->formatForHtml(positivePrices: true);
@@ -666,10 +666,10 @@ SQL,
         ));
 
         self::assertCount(1, $manualMovements, 'Brigádnická odměna musí být reprezentována transakcí v MANUAL_MOVEMENTS');
-        self::assertSame(160, $manualMovements[0]->getTotalAmount());
+        self::assertSame(160.0, $manualMovements[0]->getTotalAmount());
         // Brigádnická aktivita je interní (cena účastníka 0), takže do zůstatku
         // přispívá jen samotná odměna.
-        self::assertSame(160, $account->getTotal(), 'Brigádnická odměna se musí projevit v zůstatku');
+        self::assertSame(160.0, $account->getTotal(), 'Brigádnická odměna se musí projevit v zůstatku');
 
         $html = Accounting::getPersonalFinance($this->dejUzivatele(), showDiscounts: true)
             ->formatForHtml(positivePrices: true);
@@ -687,7 +687,7 @@ SQL,
 
         $account = Accounting::getPersonalFinance($this->dejUzivatele(), showDiscounts: false);
 
-        self::assertSame(150, $account->getTotal(), 'Stav financí musí být součet všech transakcí: -250 (aktivita) -100 (předmět) +500 (platba)');
+        self::assertSame(150.0, $account->getTotal(), 'Stav financí musí být součet všech transakcí: -250 (aktivita) -100 (předmět) +500 (platba)');
     }
 
     /**
@@ -768,7 +768,7 @@ SQL,
         ));
 
         self::assertCount(1, $aktivity, 'Aktivita se nesmí kvůli join na cizí slevu zduplikovat');
-        self::assertSame(-250, $aktivity[0]->getTotalAmount(), 'Generovaná sleva jiného uživatele nesmí snížit cenu aktivity tohoto uživatele');
+        self::assertSame(-250.0, $aktivity[0]->getTotalAmount(), 'Generovaná sleva jiného uživatele nesmí snížit cenu aktivity tohoto uživatele');
     }
 
     /**
@@ -910,5 +910,78 @@ SQL,
             $html,
             'Souhrnné řádky kategorií se odsazovat nemají',
         );
+    }
+
+    /**
+     * @test
+     */
+    public function testDesetinnaCenaPredmetuSeVPrehleduNezkrati(): void
+    {
+        $this->vlozNakup(55501, 12.34);
+
+        $account = Accounting::getPersonalFinance($this->dejUzivatele(), showDiscounts: false);
+
+        self::assertSame(-12.34, $account->getTransactions()[0]->getSplits()[0]->getAmount());
+        self::assertSame(-12.34, $account->getTransactions()[0]->getTotalAmount());
+        self::assertSame(-12.34, $account->getTotal());
+    }
+
+    /**
+     * @test
+     */
+    public function testSoucetHaleruNemaChybuPlovouciCarky(): void
+    {
+        $this->vlozNakup(55501, 0.10);
+        $this->vlozNakup(55501, 0.20);
+
+        $account = Accounting::getPersonalFinance($this->dejUzivatele(), showDiscounts: false);
+
+        self::assertSame(-0.3, $account->getTotal(), '0.1 + 0.2 nesmí vyjít 0.30000000000000004');
+    }
+
+    /**
+     * @test
+     */
+    public function testStavPrehleduSeRovnaZustatkuVFinanciSHaleri(): void
+    {
+        $this->vlozNakup(55501, 12.34);
+        $this->vlozNakup(55503, 33.33);
+        $this->vlozPlatbu(100.55);
+
+        $uzivatel = $this->dejUzivatele();
+        $account = Accounting::getPersonalFinance($uzivatel, showDiscounts: false);
+
+        self::assertSame(54.88, $account->getTotal());
+        self::assertEqualsWithDelta($uzivatel->finance()->stav(), $account->getTotal(), 0.001);
+    }
+
+    /**
+     * @test
+     */
+    public function testNedoplatekPodJednuKorunuSeVPrehleduPozna(): void
+    {
+        $this->vlozNakup(55501, 0.50);
+
+        $account = Accounting::getPersonalFinance($this->dejUzivatele(), showDiscounts: false);
+
+        self::assertLessThan(0, $account->getTotal(), 'Dluh 50 haléřů je dluh, nesmí se zkrátit na nulu');
+    }
+
+    /**
+     * @test
+     */
+    public function testFormatForHtmlUkazeHalereSCarkouAUCelychCastekJeNechaBezDesetin(): void
+    {
+        $this->vlozNakup(55501, 12.34);
+        $this->vlozNakup(55503, 150);
+        $this->vlozPlatbu(100.50);
+
+        $html = Accounting::getPersonalFinance($this->dejUzivatele(), showDiscounts: false)->formatForHtml();
+
+        self::assertStringContainsString('<td>předmět</td><td>-12,34</td>', $html);
+        self::assertStringContainsString('<td>tričko</td><td>-150</td>', $html);
+        self::assertStringContainsString('<td><b>Předměty</b></td><td><b>-162,34</b></td>', $html);
+        self::assertStringContainsString('<td><b>Celková cena</b></td><td><b>162,34</b></td>', $html);
+        self::assertStringContainsString('<td><b>Stav financí</b></td><td><b>-61,84</b></td>', $html);
     }
 }

@@ -30,6 +30,7 @@ use Gamecon\Uzivatel\UserRepository;
 use Gamecon\Uzivatel\UzivatelSlucovani;
 use Gamecon\Uzivatel\ZpusobZobrazeniNaWebu;
 use Gamecon\Kanaly\EmailovaSablona\KodEmailoveSablonyEnum;
+use Gamecon\Web\ZpracovaneObrazky;
 
 /**
  * Třída popisující uživatele a jeho vlastnosti
@@ -551,7 +552,7 @@ SQL, [Pravo::PORADANI_AKTIVIT],
      */
     public function fotka(): ?Nahled
     {
-        foreach (glob(WWW . '/soubory/systemove/fotky/' . $this->id() . '.*') as $soubor) {
+        foreach (glob(ZpracovaneObrazky::adresarFotekUzivatelu() . '/' . $this->id() . '.*') as $soubor) {
             if (preg_match('/\.(jpg|jpeg|png|gif|webp)$/i', $soubor)) {
                 return Nahled::zeSouboru($soubor);
             }
@@ -674,7 +675,7 @@ SQL, [Pravo::PORADANI_AKTIVIT],
                 'jmeno_nick'   => (string)$this->jmenoNick(),
                 'id_uzivatele' => $this->id(),
                 'odhlaseni'    => $this->popisOdhlaseni($odhlasujici),
-                'castka'       => $celkemLetosPoslal,
+                'castka'       => Finance::formatujCastku($celkemLetosPoslal),
             ])
             ->adresat('info@gamecon.cz');
     }
