@@ -5,8 +5,8 @@ namespace <?= $namespace; ?>;
 <?= $use_statements; ?>
 
 /**
-* @see https://symfony.com/doc/current/security/custom_authenticator.html
-*/
+ * @see https://symfony.com/doc/current/security/custom_authenticator.html
+ */
 class <?= $class_short_name ?> extends AbstractAuthenticator
 {
     /**
@@ -23,9 +23,9 @@ class <?= $class_short_name ?> extends AbstractAuthenticator
     {
         // $apiToken = $request->headers->get('X-AUTH-TOKEN');
         // if (null === $apiToken) {
-            // The token header was empty, authentication fails with HTTP Status
-            // Code 401 "Unauthorized"
-            // throw new CustomUserMessageAuthenticationException('No API token provided');
+        // The token header was empty, authentication fails with HTTP Status
+        // Code 401 "Unauthorized"
+        // throw new CustomUserMessageAuthenticationException('No API token provided.');
         // }
 
         // implement your own logic to get the user identifier from `$apiToken`
@@ -45,7 +45,7 @@ class <?= $class_short_name ?> extends AbstractAuthenticator
     {
         $data = [
             // you may want to customize or obfuscate the message first
-            'message' => strtr($exception->getMessageKey(), $exception->getMessageData())
+            'message' => strtr($exception->getMessageKey(), $exception->getMessageData()),
 
             // or to translate this message
             // $this->translator->trans($exception->getMessageKey(), $exception->getMessageData())

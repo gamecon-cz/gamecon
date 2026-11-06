@@ -69,7 +69,6 @@ final class MakeSerializerNormalizer extends AbstractMaker
         $useStatements = new UseStatementGenerator([
             NormalizerInterface::class,
             Autowire::class,
-            \sprintf('App\Entity\%s', str_replace('Normalizer', '', $normalizerClassNameDetails->getShortName())),
         ]);
 
         $entityDetails = $generator->createClassNameDetails(

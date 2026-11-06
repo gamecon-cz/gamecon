@@ -12,6 +12,7 @@
 namespace Symfony\Flex\Command;
 
 use Composer\Command\BaseCommand;
+use Composer\Downloader\TransportException;
 use Composer\IO\IOInterface;
 use Composer\Package\Package;
 use Composer\Package\PackageInterface;
@@ -30,6 +31,7 @@ use Symfony\Flex\Lock;
 use Symfony\Flex\Recipe;
 use Symfony\Flex\Update\RecipePatcher;
 use Symfony\Flex\Update\RecipeUpdate;
+use Symfony\Flex\Update\UntrackedFilesException;
 
 class UpdateRecipesCommand extends BaseCommand
 {
@@ -164,10 +166,15 @@ class UpdateRecipesCommand extends BaseCommand
             $io->writeError([
                 '<bg=red;fg=white>There was an error applying the recipe update patch</>',
                 $throwable->getMessage(),
-                '',
-                'Update the recipe by re-installing the latest version with:',
-                \sprintf('  <info>composer recipes:install %s --force -v</info>', $packageName),
             ]);
+
+            if (!$throwable instanceof UntrackedFilesException) {
+                $io->writeError([
+                    '',
+                    'Update the recipe by re-installing the latest version with:',
+                    \sprintf('  <info>composer recipes:install %s --force -v</info>', $packageName),
+                ]);
+            }
 
             return 1;
         }
@@ -193,7 +200,7 @@ class UpdateRecipesCommand extends BaseCommand
                 '  After resolving, commit your changes like normal.',
             ]);
         } else {
-            if (!$patch->getPatch()) {
+            if (!$patch->getPatch() && !$patch->getDeletedFiles()) {
                 // no changes were required
                 $io->write([
                     '  No files were changed as a result of the update.',
@@ -252,7 +259,12 @@ class UpdateRecipesCommand extends BaseCommand
         if ($patch->getPatch() && !$input->getOption('no-changelog')) {
             $io->write('');
             $io->write('  Calculating CHANGELOG...', false);
-            $changelog = $this->generateChangelog($originalRecipe);
+            try {
+                $changelog = $this->generateChangelog($originalRecipe);
+            } catch (TransportException $e) {
+                // the GitHub API can be rate limited
+                $changelog = [\sprintf('  <warning>The CHANGELOG could not be calculated: %s.</warning> Use the <comment>--no-changelog</comment> option to skip it.', rtrim($e->getMessage(), '.'))];
+            }
             $io->write("\r", false); // clear current line
             if ($changelog) {
                 $io->write($changelog);

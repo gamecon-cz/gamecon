@@ -23,12 +23,11 @@ use Doctrine\ORM\Mapping\OneToMany;
 use Doctrine\ORM\Mapping\OneToOne;
 use PhpParser\Builder;
 use PhpParser\BuilderHelpers;
-use PhpParser\Lexer;
 use PhpParser\Node;
 use PhpParser\NodeTraverser;
 use PhpParser\NodeVisitor;
 use PhpParser\Parser;
-use PhpParser\PhpVersion;
+use PhpParser\ParserFactory;
 use Symfony\Bundle\MakerBundle\ConsoleStyle;
 use Symfony\Bundle\MakerBundle\Doctrine\BaseCollectionRelation;
 use Symfony\Bundle\MakerBundle\Doctrine\BaseRelation;
@@ -51,7 +50,6 @@ final class ClassSourceManipulator
     private const DEFAULT_VALUE_NONE = '__default_value_none';
 
     private Parser $parser;
-    private Lexer\Emulative $lexer;
     private PrettyPrinter $printer;
     private ?ConsoleStyle $io = null;
 
@@ -66,11 +64,7 @@ final class ClassSourceManipulator
         private bool $overwrite = false,
         private bool $useAttributesForDoctrineMapping = true,
     ) {
-        $this->lexer = new Lexer\Emulative(
-            PhpVersion::fromString('8.1'),
-        );
-        $this->parser = new Parser\Php7($this->lexer);
-
+        $this->parser = (new ParserFactory())->createForHostVersion();
         $this->printer = new PrettyPrinter();
 
         $this->setSourceCode($sourceCode);

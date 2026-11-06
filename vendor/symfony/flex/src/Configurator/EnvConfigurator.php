@@ -92,8 +92,15 @@ class EnvConfigurator extends AbstractConfigurator
                     continue;
                 }
 
+                if ($value === $existingValue) {
+                    // the existing value is already escaped
+                    $data .= "$key=$value\n";
+
+                    continue;
+                }
+
                 $value = $this->options->expandTargetDir($value);
-                if (false !== strpbrk($value, " \t\n&!\"")) {
+                if (!preg_match("/^'[^']*+'$/D", $value) && false !== strpbrk($value, " \t\n&!\"")) {
                     $value = '"'.str_replace(['\\', '"', "\t", "\n"], ['\\\\', '\\"', '\t', '\n'], $value).'"';
                 }
                 $data .= "$key=$value\n";
@@ -120,13 +127,14 @@ class EnvConfigurator extends AbstractConfigurator
 
             $data = '';
             foreach ($vars as $key => $value) {
-                $value = $this->evaluateValue($value);
+                $existingValue = $update ? $this->findExistingPhpUnitValue($key, $phpunit, $recipe) : null;
+                $value = $this->evaluateValue($value, $existingValue);
                 if ('#' === $key[0]) {
                     if (is_numeric(substr($key, 1))) {
                         $doc = new \DOMDocument();
                         $data .= '        '.$doc->saveXML($doc->createComment(' '.$value.' '))."\n";
                     } else {
-                        $value = $this->options->expandTargetDir($value);
+                        $value = preg_replace("/^'([^']*+)'$/D", '$1', $this->options->expandTargetDir($value));
                         $doc = new \DOMDocument();
                         $fragment = $doc->createElement('env');
                         $fragment->setAttribute('name', substr($key, 1));
@@ -134,7 +142,7 @@ class EnvConfigurator extends AbstractConfigurator
                         $data .= '        '.str_replace(['<', '/>'], ['<!-- ', ' -->'], $doc->saveXML($fragment))."\n";
                     }
                 } else {
-                    $value = $this->options->expandTargetDir($value);
+                    $value = preg_replace("/^'([^']*+)'$/D", '$1', $this->options->expandTargetDir($value));
                     $doc = new \DOMDocument();
                     $fragment = $doc->createElement('env');
                     $fragment->setAttribute('name', $key);
@@ -145,7 +153,7 @@ class EnvConfigurator extends AbstractConfigurator
             $data = $this->markXmlData($recipe, $data);
 
             if (!$this->updateData($phpunit, $data)) {
-                file_put_contents($phpunit, preg_replace('{^(\s+</php>)}m', $data.'$1', file_get_contents($phpunit)));
+                file_put_contents($phpunit, preg_replace_callback('{^\s+</php>}m', static fn ($m) => $data.$m[0], file_get_contents($phpunit)));
             }
         }
     }
@@ -225,27 +233,31 @@ class EnvConfigurator extends AbstractConfigurator
         $dotenvPath = $this->options->get('runtime')['dotenv_path'] ?? '.env';
         $files = '' === $this->suffix ? [$dotenvPath, $dotenvPath.'.dist', 'phpunit.dist.xml', 'phpunit.xml.dist', 'phpunit.xml'] : [$dotenvPath.'.'.$this->suffix];
 
-        if (0 === \count($vars)) {
-            return array_fill_keys($files, null);
-        }
-
         $originalContents = [];
         foreach ($files as $file) {
             $originalContents[$file] = file_exists($rootDir.'/'.$file) ? file_get_contents($rootDir.'/'.$file) : null;
         }
 
-        $this->configureEnvDist(
-            $recipe,
-            $vars,
-            true
-        );
+        if (0 === \count($vars)) {
+            $this->unconfigureEnvFiles($recipe, $vars);
 
-        if ('' === $this->suffix && !file_exists($rootDir.'/'.$dotenvPath.'.test')) {
-            $this->configurePhpUnit(
+            if ('' === $this->suffix) {
+                $this->unconfigurePhpUnit($recipe, $vars);
+            }
+        } else {
+            $this->configureEnvDist(
                 $recipe,
                 $vars,
                 true
             );
+
+            if ('' === $this->suffix && !file_exists($rootDir.'/'.$dotenvPath.'.test')) {
+                $this->configurePhpUnit(
+                    $recipe,
+                    $vars,
+                    true
+                );
+            }
         }
 
         $updatedContents = [];
@@ -291,5 +303,20 @@ class EnvConfigurator extends AbstractConfigurator
         }
 
         return null;
+    }
+
+    /**
+     * Attempts to find the existing value of an environment variable in a phpunit.xml file.
+     */
+    private function findExistingPhpUnitValue(string $var, string $filename, Recipe $recipe): ?string
+    {
+        $section = \sprintf('{<!-- ###\+ %1$s ### -->.*?<!-- ###- %1$s ### -->}s', preg_quote($recipe->getName()));
+        $env = '#' === $var[0] ? '<!-- env name="'.substr($var, 1) : '<env name="'.$var;
+
+        if (!preg_match($section, file_get_contents($filename), $matches) || !preg_match('{^\s*'.preg_quote($env).'" value="([^"]*)"}m', $matches[0], $matches)) {
+            return null;
+        }
+
+        return html_entity_decode($matches[1], \ENT_QUOTES | \ENT_XML1);
     }
 }

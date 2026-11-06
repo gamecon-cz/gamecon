@@ -1,24 +1,25 @@
 <?= "<?php\n" ?>
 
-namespace <?= $namespace; ?>;
+namespace <?= $class_data->getNamespace(); ?>;
 
-<?= $use_statements; ?>
+<?= $class_data->getUseStatements(); ?>
 
-final class <?= $class_name ?> extends AbstractRequestParser
+<?= $class_data->getClassDeclaration(); ?>
 {
     protected function getRequestMatcher(): RequestMatcherInterface
     {
-        <?php if ($use_chained_requests_matcher) : ?>
+<?php if ($use_chained_requests_matcher) : ?>
         return new ChainRequestMatcher([
-            <?= empty($request_matchers) ? '// Add RequestMatchers to fit your needs' : '' ?>
-
-            <?php foreach ($request_matchers as $request_matcher) : ?>
+<?php if (empty($request_matchers)) : ?>
+            // Add RequestMatchers to fit your needs
+<?php endif ?>
+<?php foreach ($request_matchers as $request_matcher) : ?>
             new <?= Symfony\Bundle\MakerBundle\Str::getShortClassName($request_matcher) ?>(<?= $request_matcher_arguments[$request_matcher] ?>),
-            <?php endforeach; ?>
+<?php endforeach; ?>
         ]);
-        <?php else : ?>
+<?php else : ?>
         return new <?= Symfony\Bundle\MakerBundle\Str::getShortClassName($request_matchers[0]) ?>(<?= $request_matcher_arguments[$request_matchers[0]] ?>);
-        <?php endif; ?>
+<?php endif; ?>
     }
 
     /**

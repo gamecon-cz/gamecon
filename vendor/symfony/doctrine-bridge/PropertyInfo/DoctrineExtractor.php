@@ -106,13 +106,16 @@ class DoctrineExtractor implements PropertyListExtractorInterface, PropertyTypeE
                         }
                     }
 
-                    if (!$collectionKeyType = $this->getTypeIdentifier($typeOfField)) {
-                        return null;
+                    $collectionKeyType = $this->getTypeIdentifier($typeOfField);
+
+                    // A PHP array key can never be an object: leave the key type unknown rather than claiming one the collection can't have.
+                    if (TypeIdentifier::OBJECT === $collectionKeyType) {
+                        $collectionKeyType = null;
                     }
                 }
             }
 
-            return Type::collection(Type::object(Collection::class), Type::object($class), Type::builtin($collectionKeyType));
+            return Type::collection(Type::object(Collection::class), Type::object($class), null !== $collectionKeyType ? Type::builtin($collectionKeyType) : null);
         }
 
         if ($metadata instanceof ClassMetadata && isset($metadata->embeddedClasses[$property])) {
@@ -215,8 +218,11 @@ class DoctrineExtractor implements PropertyListExtractorInterface, PropertyTypeE
                         }
                     }
 
-                    if (!$collectionKeyType = $this->getTypeIdentifierLegacy($typeOfField)) {
-                        return null;
+                    $collectionKeyType = $this->getTypeIdentifierLegacy($typeOfField);
+
+                    // A PHP array key can never be an object: leave the key type unknown rather than claiming one the collection can't have.
+                    if (LegacyType::BUILTIN_TYPE_OBJECT === $collectionKeyType) {
+                        $collectionKeyType = null;
                     }
                 }
             }
@@ -226,7 +232,7 @@ class DoctrineExtractor implements PropertyListExtractorInterface, PropertyTypeE
                 false,
                 Collection::class,
                 true,
-                new LegacyType($collectionKeyType),
+                null !== $collectionKeyType ? new LegacyType($collectionKeyType) : null,
                 new LegacyType(LegacyType::BUILTIN_TYPE_OBJECT, false, $class)
             )];
         }
