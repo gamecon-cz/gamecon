@@ -421,7 +421,7 @@ class EshopImporter
      */
     private function vlozProdukt(array $produkt): void
     {
-        dbQuery(
+        dbExecute(
             'INSERT INTO shop_predmety (nazev, kod_predmetu, cena_aktualni, stav, nabizet_do, popis, vedlejsi, breakfast_included, archived_at)
              VALUES ($0, $1, $2, $3, $4, $5, $6, $7, $8)',
             [
@@ -498,7 +498,7 @@ class EshopImporter
                     $hodnoty,
                 ) > 0 || $zmeneno;
             } else {
-                dbQuery(
+                dbExecute(
                     'INSERT INTO product_variant (product_id, name, code, price, capacity, accommodation_day, state, position)
                      VALUES ($0, $1, $2, $3, $4, $5, $6, $7)',
                     [
@@ -520,7 +520,7 @@ class EshopImporter
         ) > 0 || $zmeneno;
 
         // A product sold as one variant still carries its day on its own row, where legacy reads it.
-        dbQuery(
+        dbExecute(
             'UPDATE shop_predmety
              SET ubytovani_den = (
                  SELECT IF(COUNT(*) = 1, MIN(varianta.accommodation_day), NULL)
@@ -554,7 +554,7 @@ class EshopImporter
         if ($soucasna === [$tag]) {
             return false;
         }
-        dbQuery(
+        dbExecute(
             'DELETE product_product_tag FROM product_product_tag INNER JOIN product_tag ON product_tag.id = product_product_tag.tag_id
              WHERE product_product_tag.product_id = $0 AND product_tag.code IN ($1)',
             [
@@ -562,7 +562,7 @@ class EshopImporter
                 1 => $kategorie,
             ],
         );
-        dbQuery(
+        dbExecute(
             'INSERT INTO product_product_tag (product_id, tag_id) SELECT $0, id FROM product_tag WHERE code = $1',
             [
                 0 => $idProduktu,
@@ -594,7 +594,7 @@ class EshopImporter
         if ($soucasne === $podstitky) {
             return false;
         }
-        dbQuery(
+        dbExecute(
             'DELETE product_product_tag FROM product_product_tag INNER JOIN product_tag ON product_tag.id = product_product_tag.tag_id
              WHERE product_product_tag.product_id = $0 AND product_tag.code IN ($1)',
             [
@@ -603,7 +603,7 @@ class EshopImporter
             ],
         );
         if ($podstitky !== []) {
-            dbQuery(
+            dbExecute(
                 'INSERT INTO product_product_tag (product_id, tag_id) SELECT $0, id FROM product_tag WHERE code IN ($1)',
                 [
                     0 => $idProduktu,

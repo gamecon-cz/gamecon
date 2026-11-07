@@ -277,7 +277,7 @@ class EshopIntegrationTest extends AbstractTestDb
 
         // Through the legacy connection, which the discount calculation reads from too, so
         // the test's rollback undoes it.
-        dbQuery(
+        dbExecute(
             <<<SQL
 UPDATE discount_rule
 SET parameters = '{"scope":"product_code","effect":"free","codeFragment":"kostka","productCode":"eshoptest-draci-kostka","maxQuantity":1}'

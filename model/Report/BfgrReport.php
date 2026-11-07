@@ -58,7 +58,7 @@ class BfgrReport
 
         $rocnik = $this->systemoveNastaveni->rocnik();
         $typUcast = Role::TYP_UCAST;
-        $result = dbQuery(<<<SQL
+        $result = dbFetch(<<<SQL
 SELECT
     uzivatele_hodnoty.*,
     prihlasen.posazen AS prihlasen_na_gc_kdy,

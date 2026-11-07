@@ -414,14 +414,14 @@ SQL,
      */
     public function importAktualizujeExistujiciPolozky(): void
     {
-        dbQuery("INSERT INTO shop_predmety SET
+        dbExecute("INSERT INTO shop_predmety SET
             id_predmetu = 94101,
             nazev = 'Původní název',
             kod_predmetu = 'UPDATE_KOD',
             cena_aktualni = 100.00,
             stav = " . StavPredmetu::VEREJNY . ",
             popis = ''");
-        dbQuery("INSERT INTO product_variant (product_id, name, code, position, state) VALUES (94101, NULL, 'UPDATE_KOD', 0, 1)");
+        dbExecute("INSERT INTO product_variant (product_id, name, code, position, state) VALUES (94101, NULL, 'UPDATE_KOD', 0, 1)");
 
         $vysledek = (new EshopImporter($this->createXlsxSoubor([
             $this->defaultniRadek([
@@ -449,9 +449,9 @@ SQL,
      */
     public function importArchivujePolozkyCoNejsouVSouboru(): void
     {
-        dbQuery("INSERT INTO shop_predmety (id_predmetu, nazev, kod_predmetu, cena_aktualni, stav, popis)
+        dbExecute("INSERT INTO shop_predmety (id_predmetu, nazev, kod_predmetu, cena_aktualni, stav, popis)
             VALUES (94111, 'Zachovat', 'ZACHOVAT', 100, 1, ''), (94112, 'Archivovat', 'ARCHIVOVAT', 100, 1, '')");
-        dbQuery("INSERT INTO product_variant (product_id, name, code, position, state)
+        dbExecute("INSERT INTO product_variant (product_id, name, code, position, state)
             VALUES (94111, NULL, 'ZACHOVAT', 0, 1), (94112, NULL, 'ARCHIVOVAT', 0, 1)");
 
         $vysledek = (new EshopImporter($this->createXlsxSoubor([
@@ -649,12 +649,12 @@ SQL,
 
     private function vlozTypPokojeSNocmi(): void
     {
-        dbQuery(<<<SQL
+        dbExecute(<<<SQL
 INSERT INTO shop_predmety (id_predmetu, nazev, kod_predmetu, cena_aktualni, stav, nabizet_do, popis)
 VALUES (94201, 'Dvoulůžák', 'TYP_2L', 0, 2, '2026-07-20 00:00:00', '')
 SQL);
-        dbQuery("INSERT INTO product_product_tag (product_id, tag_id) SELECT 94201, id FROM product_tag WHERE code = 'ubytovani'");
-        dbQuery(<<<SQL
+        dbExecute("INSERT INTO product_product_tag (product_id, tag_id) SELECT 94201, id FROM product_tag WHERE code = 'ubytovani'");
+        dbExecute(<<<SQL
 INSERT INTO product_variant (product_id, name, code, price, capacity, accommodation_day, position, state)
 VALUES (94201, 'pátek', 'NOC_2L_PA', 300, 4, 2, 0, 1),
        (94201, 'sobota', 'NOC_2L_SO', 300, 4, 3, 1, 2)
@@ -860,8 +860,8 @@ SQL);
      */
     public function variantuSKodemProduktuNejdeVynechat(): void
     {
-        dbQuery("INSERT INTO shop_predmety (id_predmetu, nazev, kod_predmetu, cena_aktualni, stav, popis) VALUES (94501, 'Šála', 'SALA', 100, 1, '')");
-        dbQuery("INSERT INTO product_variant (product_id, name, code, position, state) VALUES (94501, NULL, 'SALA', 0, 1)");
+        dbExecute("INSERT INTO shop_predmety (id_predmetu, nazev, kod_predmetu, cena_aktualni, stav, popis) VALUES (94501, 'Šála', 'SALA', 100, 1, '')");
+        dbExecute("INSERT INTO product_variant (product_id, name, code, position, state) VALUES (94501, NULL, 'SALA', 0, 1)");
 
         try {
             (new EshopImporter($this->createXlsxSoubor([
@@ -912,7 +912,7 @@ SQL);
     public function novyProduktNesmiDostatKodCiziVarianty(): void
     {
         $this->vlozTypPokojeSNocmi();
-        dbQuery("INSERT INTO product_variant (product_id, name, code, position, state) VALUES (94201, 'neděle', 'NOC_2L_NE', 2, 1)");
+        dbExecute("INSERT INTO product_variant (product_id, name, code, position, state) VALUES (94201, 'neděle', 'NOC_2L_NE', 2, 1)");
 
         $this->expectException(\Chyba::class);
         $this->expectExceptionMessageMatches('/NOC_2L_NE/');
@@ -969,8 +969,8 @@ SQL);
      */
     public function denProduktuBereJenAktivniVariantu(): void
     {
-        dbQuery("INSERT INTO shop_predmety (id_predmetu, nazev, kod_predmetu, cena_aktualni, stav, popis, ubytovani_den) VALUES (94601, 'Oběd pátek', 'OBED_PA', 100, 1, '', 2)");
-        dbQuery("INSERT INTO product_variant (product_id, name, code, position, state, accommodation_day) VALUES (94601, NULL, 'OBED_PA', 0, 1, 2), (94601, 'starý', 'OBED_PA_STARY', 1, 0, 3)");
+        dbExecute("INSERT INTO shop_predmety (id_predmetu, nazev, kod_predmetu, cena_aktualni, stav, popis, ubytovani_den) VALUES (94601, 'Oběd pátek', 'OBED_PA', 100, 1, '', 2)");
+        dbExecute("INSERT INTO product_variant (product_id, name, code, position, state, accommodation_day) VALUES (94601, NULL, 'OBED_PA', 0, 1, 2), (94601, 'starý', 'OBED_PA_STARY', 1, 0, 3)");
 
         (new EshopImporter($this->createXlsxSoubor([
             $this->defaultniRadek([
@@ -1177,7 +1177,7 @@ SQL);
 
         $soubor = tempnam(sys_get_temp_dir(), 'eshop_export_test_') . '.xlsx';
         (new EshopExport(ROCNIK))->report()->tXlsx(null, (new KonfiguraceReportu())->setDestinationFile($soubor));
-        dbQuery(<<<'SQL'
+        dbExecute(<<<'SQL'
 DELETE product_product_tag
 FROM product_product_tag
 INNER JOIN product_tag ON product_tag.id = product_product_tag.tag_id
@@ -1199,14 +1199,14 @@ SQL);
     public function exportJdeBezeZmenyNaimportovatZpet(): void
     {
         $this->vlozTypPokojeSNocmi();
-        dbQuery(<<<SQL
+        dbExecute(<<<SQL
 INSERT INTO shop_predmety (id_predmetu, nazev, kod_predmetu, cena_aktualni, stav, nabizet_do, popis, vedlejsi, archived_at)
 VALUES (94401, 'Mikina', 'MIKINA', 600, 1, '2026-06-30 23:59:00', 'Hřejivá', 1, NULL),
        (94403, 'Loňská placka', 'PLACKA_LONI', 25.50, 1, NULL, '', 0, '2025-12-31 23:59:59')
 SQL);
-        dbQuery("INSERT INTO product_product_tag (product_id, tag_id) SELECT 94401, id FROM product_tag WHERE code IN ('predmet', 'mikina')");
-        dbQuery("INSERT INTO product_product_tag (product_id, tag_id) SELECT 94403, id FROM product_tag WHERE code = 'predmet'");
-        dbQuery(<<<SQL
+        dbExecute("INSERT INTO product_product_tag (product_id, tag_id) SELECT 94401, id FROM product_tag WHERE code IN ('predmet', 'mikina')");
+        dbExecute("INSERT INTO product_product_tag (product_id, tag_id) SELECT 94403, id FROM product_tag WHERE code = 'predmet'");
+        dbExecute(<<<SQL
 INSERT INTO product_variant (product_id, name, code, price, capacity, accommodation_day, position, state)
 VALUES (94401, 'S', 'MIKINA_S', NULL, 30, NULL, 3, 1),
        (94401, 'M', 'MIKINA_M', NULL, NULL, NULL, 5, 0),
@@ -1238,7 +1238,7 @@ SQL);
     private function nakupVarianty(string $kod, int $kusu): void
     {
         for ($kus = 0; $kus < $kusu; ++$kus) {
-            dbQuery(<<<SQL
+            dbExecute(<<<SQL
 INSERT INTO shop_nakupy (id_uzivatele, id_objednatele, variant_id, rok, cena_nakupni, datum)
 SELECT $0, $0, product_variant.id, $1, 100, NOW()
 FROM product_variant
@@ -1283,7 +1283,7 @@ SQL,
     private function vlozProduktSTagy(string $kod, string $kategorie, array $tagy): void
     {
         $vychozi = $this->defaultniRadek();
-        dbQuery(
+        dbExecute(
             <<<'SQL'
 INSERT INTO shop_predmety (nazev, kod_predmetu, cena_aktualni, stav, nabizet_do, popis, vedlejsi, archived_at)
 VALUES ($0, $1, $2, $3, $4, $5, 0, NULL)
@@ -1298,7 +1298,7 @@ SQL,
             ],
         );
         $idProduktu = (int) dbInsertId();
-        dbQuery(
+        dbExecute(
             <<<'SQL'
 INSERT INTO product_product_tag (product_id, tag_id)
 SELECT $0, id FROM product_tag WHERE code IN ($1)
@@ -1308,7 +1308,7 @@ SQL,
                 1 => [$kategorie, ...$tagy],
             ],
         );
-        dbQuery(
+        dbExecute(
             <<<'SQL'
 INSERT INTO product_variant (product_id, name, code, price, capacity, accommodation_day, position, state)
 VALUES ($0, NULL, $1, NULL, $2, NULL, 0, $3)

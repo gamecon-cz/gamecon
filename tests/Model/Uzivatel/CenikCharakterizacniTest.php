@@ -181,7 +181,7 @@ SQL,
 
     private function udelPravo(int $idPrava): void
     {
-        \dbQuery(
+        dbExecute(
             'INSERT IGNORE INTO prava_role(id_role, id_prava) VALUES ($0, $1)',
             [
                 0 => self::ID_ROLE,
@@ -302,7 +302,7 @@ SQL,
      */
     public function bezOznaceneLetosniKostkyNeniZadnaZdarma(): void
     {
-        \dbQuery(
+        dbExecute(
             <<<SQL
 UPDATE discount_rule
 SET parameters = '{"scope":"product_code","effect":"free","codeFragment":"kostka","maxQuantity":1}'
@@ -439,7 +439,7 @@ SQL,
         // tričku pořád mít nárok na to druhé.
         $this->udelPravo(Pravo::MODRE_TRICKO_ZDARMA);
         $this->udelPravo(Pravo::JAKEKOLIV_TRICKO_ZDARMA);
-        \dbQuery(
+        dbExecute(
             "UPDATE systemove_nastaveni SET hodnota = '0' WHERE klic = 'BONUS_ZA_STANDARDNI_3H_AZ_5H_AKTIVITU'",
         );
         $cenik = $this->cenik();

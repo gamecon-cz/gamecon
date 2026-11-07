@@ -35,7 +35,7 @@ class ZrusZrusitelneLetosniObjednavkyTest extends AbstractTestDb
     private function vytvorUzivatele(): \Uzivatel
     {
         $uniqueId = uniqid();
-        dbQuery(<<<SQL
+        dbExecute(<<<SQL
 INSERT INTO uzivatele_hodnoty SET
     login_uzivatele = $0,
     email1_uzivatele = $1,
@@ -54,7 +54,7 @@ SQL,
     private function vytvorPredmet(string $nazev, ProductTagCode $kategorie, ?int $den = null): int
     {
         $uniqueId = uniqid();
-        dbQuery(<<<SQL
+        dbExecute(<<<SQL
 INSERT INTO shop_predmety SET
     nazev = $0,
     kod_predmetu = $1,
@@ -71,7 +71,7 @@ SQL,
         );
         $idPredmetu = dbInsertId();
         $tagCode = $kategorie->value;
-        dbQuery(
+        dbExecute(
             'INSERT INTO product_product_tag (product_id, tag_id) SELECT $0, id FROM product_tag WHERE code = $1',
             [
                 0 => $idPredmetu,
@@ -84,9 +84,9 @@ SQL,
 
     private function objednejPredmet(int $idUzivatele, int $idPredmetu): void
     {
-        dbQuery(self::SQL_VYCHOZI_VARIANTY);
+        dbExecute(self::SQL_VYCHOZI_VARIANTY);
         $varianta = sprintf(self::SQL_VARIANTA_RADKU, '$1');
-        dbQuery(<<<SQL
+        dbExecute(<<<SQL
 INSERT INTO shop_nakupy SET
     id_uzivatele = $0,
     variant_id = {$varianta},
@@ -191,7 +191,7 @@ SQL,
         $uzivatel = $this->vytvorUzivatele();
         $idMerch = $this->vytvorPredmet('Predmet', ProductTagCode::PREDMET);
         $this->objednejPredmet($uzivatel->id(), $idMerch);
-        dbQuery(
+        dbExecute(
             'UPDATE shop_nakupy INNER JOIN product_variant ON product_variant.id = shop_nakupy.variant_id SET product_name = $0, variant_name = $0, product_code = $1 WHERE id_uzivatele = $2 AND product_variant.product_id = $3',
             [
                 0 => 'Tricko ucastnicke XXXL',

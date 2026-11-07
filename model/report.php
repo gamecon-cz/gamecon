@@ -443,7 +443,7 @@ HTML;
             return $this->hlavicky;
         }
         if (!$this->o) {
-            $this->o = dbQuery($this->sql, $this->sqlParametry, $this->pdo);
+            $this->o = dbFetch($this->sql, (array)$this->sqlParametry, $this->pdo);
         }
         $this->hlavicky = [];
         for ($i = 0, $sloupcu = $this->o->columnCount(); $i < $sloupcu; $i++) {
@@ -463,7 +463,7 @@ HTML;
             return $t;
         }
         if (!$this->o) {
-            $this->o = dbQuery($this->sql, $this->sqlParametry);
+            $this->o = dbFetch($this->sql, (array)$this->sqlParametry);
         }
 
         return $this->o->fetch(\PDO::FETCH_NUM);

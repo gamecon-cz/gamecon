@@ -38,18 +38,18 @@ register_shutdown_function(static function () {
     $testDbProcessIds = array_map(static fn (array $process) => $process['Id'], $testDbProcesses);
     foreach ($testDbProcessIds as $testDbProcessId) {
         try {
-            dbQuery(<<<SQL
+            dbExecute(<<<SQL
             KILL {$testDbProcessId}
             SQL,
-                null,
+                [],
                 $connection,
             );
         } catch (\DbConnectionKilledException|\MysqlServerHasGoneAwayException $dbExcetion) {
         }
     }
 
-    dbQuery(sprintf('DROP DATABASE IF EXISTS `%s`', DB_NAME), null, $connection);
-    dbQuery(sprintf('DROP DATABASE IF EXISTS `%s`', DB_ANONYM_NAME), null, $connection);
+    dbExecute(sprintf('DROP DATABASE IF EXISTS `%s`', DB_NAME), [], $connection);
+    dbExecute(sprintf('DROP DATABASE IF EXISTS `%s`', DB_ANONYM_NAME), [], $connection);
 
     // Zbytky po bězích, které nedoběhly. Poznají se podle PID v názvu: když ten proces už
     // neběží, databáze nikomu nepatří. Dokud běží, je to cizí rozjetý běh — smazat mu ji
@@ -62,7 +62,7 @@ register_shutdown_function(static function () {
         if (! Db\TestDbPid::jeOpustena($dbName)) {
             continue;
         }
-        dbQuery(sprintf('DROP DATABASE IF EXISTS `%s`', $dbName), null, $connection);
+        dbExecute(sprintf('DROP DATABASE IF EXISTS `%s`', $dbName), [], $connection);
     }
 
     // Cache stejně jako databáze: svůj adresář a k tomu zbytky po mrtvých procesech.

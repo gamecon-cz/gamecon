@@ -84,7 +84,7 @@ Platnost současné vlny hromadné aktivace byla '%s' (%s), teď je '%s' a aktiv
         $zeStavu = StavAktivity::PRIPRAVENA;
         $doStavu = StavAktivity::AKTIVOVANA;
         dbBegin();
-        dbQuery(<<<SQL
+        dbExecute(<<<SQL
             INSERT INTO akce_stavy_log(id_akce, id_stav, kdy)
             SELECT id_akce, $doStavu, NOW()
             FROM akce_seznam WHERE stav = $zeStavu AND rok = $rocnik

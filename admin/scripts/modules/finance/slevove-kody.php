@@ -73,7 +73,7 @@ if (post('obnovitId')) {
 if (post('poznamkaId')) {
     $id = (int) post('poznamkaId');
     $poznamka = trim((string) post('poznamka'));
-    dbQuery(
+    dbExecute(
         'UPDATE slevove_kody SET poznamka = $0 WHERE id = $1',
         [$poznamka === '' ? null : $poznamka, $id],
     );
@@ -85,7 +85,7 @@ if (post('poznamkaId')) {
 $x = new XTemplate(__DIR__ . '/slevove-kody.xtpl');
 $x->assign('urlAdmin', URL_ADMIN);
 
-$kody = dbQuery(<<<SQL
+$kody = dbFetch(<<<SQL
 SELECT
     slevove_kody.id,
     slevove_kody.kod,

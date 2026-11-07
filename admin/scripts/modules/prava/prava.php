@@ -55,7 +55,7 @@ if (!$role) {
         $povoleneKategorie[] = Role::KATEGORIE_OMEZENA;
     }
     // výpis seznamu židlí
-    $o               = dbQuery(<<<SQL
+    $o               = dbFetch(<<<SQL
 SELECT role.id_role, role.kod_role, role.nazev_role,
        COALESCE(role_texty_podle_uzivatele.popis_role, role.popis_role) AS popis_role,
        role.rocnik_role, role.typ_role, role.vyznam_role, role.skryta, role.kategorie_role,

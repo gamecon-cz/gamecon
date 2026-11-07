@@ -101,7 +101,7 @@ SQL,
         ?string $provedeno = null,
         ?int $provedl = null,
     ): void {
-        dbQuery(
+        dbExecute(
             'INSERT INTO platby(id_uzivatele, castka, rok, provedeno, poznamka, provedl) VALUES($0, $1, $2, COALESCE($3, NOW()), $4, $5)',
             [
                 0 => 555,
@@ -116,7 +116,7 @@ SQL,
 
     private function vlozNakup(int $idPredmetu, float $cenaNakupni): void
     {
-        dbQuery(
+        dbExecute(
             'INSERT INTO shop_nakupy(id_uzivatele, variant_id, rok, cena_nakupni) VALUES($0, ' . sprintf(self::SQL_VARIANTA_RADKU, '$1') . ', $2, $3)',
             [
                 0 => 555,
@@ -134,7 +134,7 @@ SQL,
         int $typ = TypAktivity::PREDNASKA,
         int $stavPrihlaseni = StavPrihlaseni::PRIHLASEN_A_DORAZIL,
     ): void {
-        dbQuery(
+        dbExecute(
             <<<SQL
             INSERT INTO akce_seznam(
                 id_akce, nazev_akce, rok, cena, typ,
@@ -152,7 +152,7 @@ SQL,
                 4 => $typ,
             ],
         );
-        dbQuery(
+        dbExecute(
             'INSERT INTO akce_prihlaseni(id_akce, id_uzivatele, id_stavu_prihlaseni) VALUES($0, $1, $2)',
             [
                 0 => $idAktivity,
@@ -164,7 +164,7 @@ SQL,
 
     private function vlozVedenouAktivitu(int $idAktivity, string $nazev): void
     {
-        dbQuery(
+        dbExecute(
             <<<SQL
             INSERT INTO akce_seznam(
                 id_akce, nazev_akce, rok, cena, typ, zacatek, konec,
@@ -183,7 +183,7 @@ SQL,
                 5 => ROCNIK . '-07-17 13:00:00',
             ],
         );
-        dbQuery(
+        dbExecute(
             'INSERT INTO akce_organizatori(id_akce, id_uzivatele) VALUES($0, $1)',
             [
                 0 => $idAktivity,
@@ -194,7 +194,7 @@ SQL,
 
     private function vlozSlevu(float $castka, string $poznamka = 'Test sleva'): void
     {
-        dbQuery(
+        dbExecute(
             'INSERT INTO slevy(id_uzivatele, rok, castka, poznamka) VALUES($0, $1, $2, $3)',
             [
                 0 => 555,
@@ -210,7 +210,7 @@ SQL,
         ?int $idAkce = null,
         int $idUzivatele = 555,
     ): void {
-        dbQuery(
+        dbExecute(
             'INSERT INTO discounts_generated(id_uzivatele, rok, castka, id_akce) VALUES($0, $1, $2, $3)',
             [
                 0 => $idUzivatele,
@@ -226,21 +226,21 @@ SQL,
         $unique = uniqid('', true);
         $idRole = -random_int(100000, 999999);
         $kodRole = 'TEST_ACC_' . $idPrava . '_' . $unique;
-        dbQuery(<<<SQL
+        dbExecute(<<<SQL
 INSERT IGNORE INTO r_prava_soupis(id_prava, kod_prava, jmeno_prava, popis_prava)
 VALUES ({$idPrava}, 'TEST_PRAVO_{$idPrava}', 'test_pravo_{$idPrava}', 'test')
 SQL,
         );
-        dbQuery(
+        dbExecute(
             "INSERT INTO role_seznam(id_role, kod_role, nazev_role, popis_role, rocnik_role, typ_role, vyznam_role) VALUES ({$idRole}, '{$kodRole}', 'Test role {$unique}', '', -1, 'trvala', '')",
         );
-        dbQuery("INSERT INTO prava_role(id_role, id_prava) VALUES ({$idRole}, {$idPrava})");
-        dbQuery("INSERT INTO uzivatele_role(id_uzivatele, id_role, posadil) VALUES (555, {$idRole}, 555)");
+        dbExecute("INSERT INTO prava_role(id_role, id_prava) VALUES ({$idRole}, {$idPrava})");
+        dbExecute("INSERT INTO uzivatele_role(id_uzivatele, id_role, posadil) VALUES (555, {$idRole}, 555)");
     }
 
     private function prihlasNaGc(): void
     {
-        dbQuery(
+        dbExecute(
             'INSERT INTO uzivatele_role(id_uzivatele, id_role, posadil) VALUES($0, $1, $2)',
             [
                 0 => 555,
@@ -255,7 +255,7 @@ SQL,
         $idRole = Role::LETOSNI_BRIGADNIK();
         // Role letošního ročníku musí být v role_seznam s rocnik_role = ROCNIK,
         // jinak ji view platne_role_uzivatelu (a tím i jeBrigadnik()) neuvidí.
-        dbQuery(
+        dbExecute(
             <<<SQL
             INSERT IGNORE INTO role_seznam(id_role, kod_role, nazev_role, popis_role, rocnik_role, typ_role, vyznam_role)
             VALUES($0, $1, 'Brigádník (test)', '', $2, 'rocnikova', $3)
@@ -267,7 +267,7 @@ SQL,
                 3 => Role::VYZNAM_BRIGADNIK,
             ],
         );
-        dbQuery(
+        dbExecute(
             'INSERT INTO uzivatele_role(id_uzivatele, id_role, posadil) VALUES($0, $1, $2)',
             [
                 0 => 555,
@@ -570,7 +570,7 @@ SQL,
      */
     public function testZustatekZMinulychLetJeVlastniTransakce(): void
     {
-        dbQuery('UPDATE uzivatele_hodnoty SET zustatek = 123 WHERE id_uzivatele = $0', [555]);
+        dbExecute('UPDATE uzivatele_hodnoty SET zustatek = 123 WHERE id_uzivatele = $0', [555]);
 
         $account = Accounting::getPersonalFinance($this->dejUzivatele(), showDiscounts: false);
         $leftover = array_values(array_filter(
@@ -587,7 +587,7 @@ SQL,
      */
     public function testStavFinanciOdpovidaSouctuTransakci(): void
     {
-        dbQuery('UPDATE uzivatele_hodnoty SET zustatek = 123 WHERE id_uzivatele = $0', [555]);
+        dbExecute('UPDATE uzivatele_hodnoty SET zustatek = 123 WHERE id_uzivatele = $0', [555]);
 
         $account = Accounting::getPersonalFinance($this->dejUzivatele(), showDiscounts: false);
 
@@ -607,7 +607,7 @@ SQL,
      */
     public function testZustatekZMinulychLetNenizdvojen(): void
     {
-        dbQuery('UPDATE uzivatele_hodnoty SET zustatek = -55 WHERE id_uzivatele = $0', [555]);
+        dbExecute('UPDATE uzivatele_hodnoty SET zustatek = -55 WHERE id_uzivatele = $0', [555]);
 
         $account = Accounting::getPersonalFinance($this->dejUzivatele(), showDiscounts: false);
         $html = $account->formatForHtml();
@@ -818,7 +818,7 @@ SQL,
     {
         // Uživatel 556 dostane generovanou slevu na aktivitu 55610. Uživatel 555
         // je na téže aktivitě přihlášen, ale slevu nemá → jeho cena musí zůstat plná.
-        dbQuery(
+        dbExecute(
             "INSERT INTO uzivatele_hodnoty SET id_uzivatele = 556, login_uzivatele = 'TestAccounting2', email1_uzivatele = 'test.accounting2@example.org'",
         );
         $this->vlozAktivitu(idAktivity: 55610, nazev: 'Kubb', cena: 250);
@@ -867,8 +867,8 @@ SQL,
 
         // Přihlášku odebíráme zvlášť — má vlastní FK na akce_seznam bez cascade,
         // takže by jinak smazání aktivity zablokovala. Testujeme cascade na slevu.
-        dbQuery('DELETE FROM akce_prihlaseni WHERE id_akce = $0', [55612]);
-        dbQuery('DELETE FROM akce_seznam WHERE id_akce = $0', [55612]);
+        dbExecute('DELETE FROM akce_prihlaseni WHERE id_akce = $0', [55612]);
+        dbExecute('DELETE FROM akce_seznam WHERE id_akce = $0', [55612]);
 
         self::assertSame(
             0,
@@ -885,7 +885,7 @@ SQL,
         $this->vlozGenerovanouSlevu(castka: 100);
         self::assertSame(1, $this->pocetGenerovanychSlev());
 
-        dbQuery('DELETE FROM uzivatele_hodnoty WHERE id_uzivatele = $0', [555]);
+        dbExecute('DELETE FROM uzivatele_hodnoty WHERE id_uzivatele = $0', [555]);
 
         self::assertSame(
             0,
@@ -932,7 +932,7 @@ SQL,
     public function testNuloveDatumPlatbySeNezobraziJakoSmyslneDatum(): void
     {
         // sql_mode nemá NO_ZERO_DATE, takže '0000-00-00' v DB být může.
-        dbQuery(
+        dbExecute(
             "INSERT INTO platby(id_uzivatele, castka, rok, provedeno, pripsano_na_ucet_banky, poznamka, provedl)
              VALUES($0, $1, $2, NOW(), '0000-00-00 00:00:00', $3, $4)",
             [

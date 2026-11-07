@@ -49,7 +49,7 @@ SQL,
             'tricko_varianty_L' => 44601,
             'pokoj_varianty_pa' => 44611,
         ] as $kodVarianty => $idProduktu) {
-            dbQuery(
+            dbExecute(
                 'INSERT INTO shop_nakupy (id_uzivatele, variant_id, rok, cena_nakupni)
                  VALUES ($0, (SELECT id FROM product_variant WHERE code = $2), $3, (SELECT cena_aktualni FROM shop_predmety WHERE id_predmetu = $1))',
                 [

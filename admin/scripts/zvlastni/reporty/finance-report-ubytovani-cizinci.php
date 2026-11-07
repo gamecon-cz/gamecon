@@ -9,7 +9,7 @@ use Gamecon\Role\Role;
 use App\Enum\ProductTagCode;
 use Gamecon\Cas\DateTimeCz;
 
-$o = dbQuery(<<<SQL
+$o = dbFetch(<<<SQL
 SELECT
     uzivatele.id_uzivatele,
     uzivatele.login_uzivatele,

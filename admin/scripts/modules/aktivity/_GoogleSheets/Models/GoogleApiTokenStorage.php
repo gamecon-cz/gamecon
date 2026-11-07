@@ -74,7 +74,7 @@ SQL
      */
     public function setTokensFor(array $tokens, int $userId) {
         try {
-            dbQuery(<<<SQL
+            dbExecute(<<<SQL
 INSERT INTO google_api_user_token (tokens, user_id, google_client_id)
 VALUES ($1, $2, $3)
 ON DUPLICATE KEY UPDATE tokens = $1
@@ -112,7 +112,7 @@ SQL
      */
     public function deleteTokensFor(int $userId) {
         try {
-            dbQuery(<<<SQL
+            dbExecute(<<<SQL
 DELETE FROM google_api_user_token
 WHERE user_id = $1
 AND google_client_id = $2

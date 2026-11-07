@@ -103,7 +103,7 @@ class Platby
         ?int   $rocnik = ROCNIK,
         string $orderByDesc = Sql::ID,
     ): iterable {
-        $result = dbQuery(<<<SQL
+        $result = dbFetch(<<<SQL
             SELECT id
             FROM platby
             WHERE (id_uzivatele IS NULL OR NOT EXISTS(SELECT 1 FROM uzivatele_hodnoty WHERE uzivatele_hodnoty.id_uzivatele = platby.id_uzivatele))

@@ -90,7 +90,7 @@ abstract class AbstractPrihlaseniNaZarizenichTestDb extends AbstractTestDb
 
     protected function vytvorUzivatele(): int
     {
-        dbQuery(<<<'SQL'
+        dbExecute(<<<'SQL'
             INSERT INTO uzivatele_hodnoty SET
                 login_uzivatele = $0,
                 email1_uzivatele = $1,

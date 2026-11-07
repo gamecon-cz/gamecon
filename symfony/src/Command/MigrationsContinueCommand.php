@@ -37,8 +37,8 @@ class MigrationsContinueCommand extends Command
         $connection = dbConnectTemporary(selectDb: false);
 
         // Ensure a database exists and is selected
-        dbQuery(sprintf('CREATE DATABASE IF NOT EXISTS `%s` DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_czech_ci', DB_NAME), null, $connection);
-        dbQuery(sprintf('USE `%s`', DB_NAME), null, $connection);
+        dbExecute(sprintf('CREATE DATABASE IF NOT EXISTS `%s` DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_czech_ci', DB_NAME), [], $connection);
+        dbExecute(sprintf('USE `%s`', DB_NAME), [], $connection);
 
         // Create migrations config
         $migrationsConfig = new DbMigrationsConfig(
@@ -65,7 +65,7 @@ class MigrationsContinueCommand extends Command
 
             return Command::FAILURE;
         } finally {
-            dbQuery('SET SESSION sql_mode = $0', [$puvodniRezim], $connection);
+            dbExecute('SET SESSION sql_mode = $0', [$puvodniRezim], $connection);
         }
     }
 
@@ -79,7 +79,7 @@ class MigrationsContinueCommand extends Command
     private function zapniPrisnyRezim(\PDO $connection): string
     {
         $puvodniRezim = (string) dbOneCol('SELECT @@SESSION.sql_mode', null, $connection);
-        dbQuery('SET SESSION sql_mode = $0', [$puvodniRezim . ',STRICT_ALL_TABLES'], $connection);
+        dbExecute('SET SESSION sql_mode = $0', [$puvodniRezim . ',STRICT_ALL_TABLES'], $connection);
 
         return $puvodniRezim;
     }

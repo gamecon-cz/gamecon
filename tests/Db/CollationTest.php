@@ -41,7 +41,7 @@ class CollationTest extends AbstractTestDb
 
     public function testSpojeniUlozi4bajtoveZnaky()
     {
-        dbQuery("INSERT INTO _vars (name, value) VALUES ('test-emoji', $0)", ['🎲 kostka']);
+        dbExecute("INSERT INTO _vars (name, value) VALUES ('test-emoji', $0)", ['🎲 kostka']);
 
         self::assertSame('🎲 kostka', dbOneCol("SELECT value FROM _vars WHERE name = 'test-emoji'"));
     }

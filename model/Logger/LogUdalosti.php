@@ -6,7 +6,7 @@ class LogUdalosti
 {
     public function zalogovatUdalost(\Uzivatel $logujici, string $zprava, array $metadata, int $rok = ROCNIK): void
     {
-        dbQuery(<<<SQL
+        dbExecute(<<<SQL
 INSERT INTO log_udalosti
 SET id_logujiciho = {$logujici->id()},
 zprava = $0,

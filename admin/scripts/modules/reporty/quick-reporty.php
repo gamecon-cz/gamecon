@@ -16,7 +16,7 @@ function quickReportValidation(array $data)
     $data['dotaz'] = quickReportPlaceholderReplace($data['dotaz']);
     try {
         (new QuickReportSqlGuard())->assertSingleReadStatement($data['dotaz']);
-        dbReadOnly(static fn() => dbQuery($data['dotaz']));
+        dbReadOnly(static fn() => dbFetch($data['dotaz']));
     } catch (\Throwable $throwable) {
         throw new \LogicException(
             'Quick report dotaz je chybny: ' . $throwable->getMessage(),
@@ -41,7 +41,7 @@ if ($saveResult) {
     $savedReportId = $quickReportId;
     if ($saveResult !== true) {
         $newReportId = $saveResult;
-        dbQuery(<<<SQL
+        dbExecute(<<<SQL
   INSERT INTO reporty (skript, nazev, format_xlsx, format_html, viditelny)
   VALUES (CONCAT('quick-', $1), (SELECT reporty_quick.nazev FROM reporty_quick WHERE reporty_quick.id = $1), 1, 1, 0)
 SQL

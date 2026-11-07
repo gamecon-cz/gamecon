@@ -8,7 +8,7 @@ use Doctrine\DBAL\Driver;
 use Doctrine\DBAL\Driver\Middleware;
 
 /**
- * Does for raw DBAL queries what the legacy `dbQuery()` already does with a backed enum parameter.
+ * Does for raw DBAL queries what the legacy `dbFetch()` and `dbExecute()` already do with a backed enum parameter.
  */
 final class EnumParameterMiddleware implements Middleware
 {

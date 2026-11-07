@@ -284,7 +284,7 @@ SQL
 
     public function nastavKorekci(bool $stav): void
     {
-        dbQuery(<<<SQL
+        dbExecute(<<<SQL
             UPDATE akce_seznam
             SET probehla_korekce = $0
             WHERE id_akce = {$this->id()}
@@ -838,7 +838,7 @@ SQL
         ?Aktivita $aktivita,
         XTemplate $xtpl,
     ): void {
-        $q = dbQuery(<<<SQL
+        $q = dbFetch(<<<SQL
                 SELECT u.id_uzivatele, u.login_uzivatele, u.jmeno_uzivatele, u.prijmeni_uzivatele
                 FROM uzivatele_hodnoty u
                 JOIN platne_role_uzivatelu
@@ -1078,7 +1078,7 @@ SQL
         unset($a['novy_turnaj_nazev']);
         if (($a[Sql::ID_TURNAJE] ?? '') === '__novy__') {
             if ($novyTurnajNazev !== '') {
-                dbQuery(
+                dbExecute(
                     'INSERT INTO turnaje (nazev, rok) VALUES ($0, $1)',
                     [0 => $novyTurnajNazev, 1 => ROCNIK],
                 );
@@ -1530,9 +1530,9 @@ SQL
         if ($this->patriPod()) {
             return $this->patriPod();
         }
-        dbQuery('INSERT INTO akce_instance(id_hlavni_akce) VALUES ($1)', [$this->id()]);
+        dbExecute('INSERT INTO akce_instance(id_hlavni_akce) VALUES ($1)', [$this->id()]);
         $patriPod = dbInsertId();
-        dbQuery('UPDATE akce_seznam SET patri_pod = $1 WHERE id_akce = $2', [$patriPod, $this->id()]); // update původní aktivity
+        dbExecute('UPDATE akce_seznam SET patri_pod = $1 WHERE id_akce = $2', [$patriPod, $this->id()]); // update původní aktivity
 
         return $patriPod;
     }
@@ -1693,13 +1693,13 @@ SQL
         ?int  $hlavniLokaceId,
     ): void {
         if ($idckaLokaci === []) {
-            dbQuery(<<<SQL
+            dbExecute(<<<SQL
                     DELETE FROM akce_lokace
                     WHERE id_akce = {$this->id()}
                     SQL,
             );
         } else {
-            dbQuery(<<<SQL
+            dbExecute(<<<SQL
                     DELETE FROM akce_lokace
                     WHERE id_akce = {$this->id()}
                     AND id_lokace NOT IN ($1)
@@ -1715,7 +1715,7 @@ SQL
                 array_map('intval', $idckaLokaci),
             );
             $valuesSql = implode(',', $values);
-            dbQuery(<<<SQL
+            dbExecute(<<<SQL
                 REPLACE INTO akce_lokace(id_akce, id_lokace)
                 VALUES {$valuesSql}
                 SQL,
@@ -1733,7 +1733,7 @@ SQL
         $idHlavniLokaceSql = $hlavniLokaceId !== null
             ? $hlavniLokaceId
             : 'NULL';
-        dbQuery(<<<SQL
+        dbExecute(<<<SQL
             UPDATE akce_seznam
             SET id_hlavni_lokace = {$idHlavniLokaceSql}
             WHERE id_akce = {$this->id()}
@@ -2049,7 +2049,7 @@ SQL
         $idAktivity = $this->id();
         $idUzivatele = $u->id();
         $prihlasenOd = $this->prihlasenOd($u) ?? $this->systemoveNastaveni->ted(); // prihlasenOd by tady mělo být vždy, ale pro jistotu...
-        dbQuery("DELETE FROM akce_prihlaseni WHERE id_uzivatele=$idUzivatele AND id_akce=$idAktivity");
+        dbExecute("DELETE FROM akce_prihlaseni WHERE id_uzivatele=$idUzivatele AND id_akce=$idAktivity");
         $this->dejPrezenci()->zalogujOdhlaseni($u, $odhlasujici, $zdrojOdhlaseni);
         if ($this->systemoveNastaveni->kontrolovatPokutuZaOdhlaseni()
             && !($params & self::BEZ_POKUT)
@@ -2059,7 +2059,7 @@ SQL
                 && $this->nestihlRychleOdhlaseniBezPokuty($prihlasenOd, $this->systemoveNastaveni)
             )
         ) { // pokuta aktivní
-            dbQuery(<<<SQL
+            dbExecute(<<<SQL
 INSERT INTO akce_prihlaseni_spec SET id_uzivatele=$idUzivatele, id_akce=$idAktivity, id_stavu_prihlaseni=$0
 ON DUPLICATE KEY UPDATE id_stavu_prihlaseni=$0
 SQL,
@@ -2133,7 +2133,7 @@ SQL,
             return;
         }
         // Uložení odhlášení do DB
-        dbQuery(
+        dbExecute(
             "DELETE FROM akce_prihlaseni_spec WHERE id_uzivatele=$0 AND id_akce=$1 AND id_stavu_prihlaseni=$2",
             [$u->id(), $this->id(), StavPrihlaseni::SLEDUJICI],
         );
@@ -2197,13 +2197,13 @@ SQL,
                     $ids,
                 );
                 $valuesSql = implode(',', $values);
-                dbQuery(<<<SQL
+                dbExecute(<<<SQL
                 INSERT IGNORE INTO akce_organizatori(id_akce, id_uzivatele)
                 VALUES {$valuesSql}
                 SQL,
                 );
             }
-            dbQuery(
+            dbExecute(
                 'DELETE FROM akce_organizatori WHERE id_akce = $0 AND id_uzivatele NOT IN ($1)',
                 [0 => $this->id(), 1 => $ids],
             );
@@ -2400,7 +2400,7 @@ SQL
             return;
         }
         $delta = post(self::PN_PLUSMINUSP) ? '+ 1' : '- 1';
-        dbQueryS("UPDATE akce_seznam SET kapacita = kapacita {$delta} WHERE id_akce = \$1", [$idAktivity]);
+        dbExecute("UPDATE akce_seznam SET kapacita = kapacita {$delta} WHERE id_akce = \$1", [$idAktivity]);
         self::zId($idAktivity)->touchDirtyFlag(ProgramStaticFileType::OBSAZENOSTI);
         if ($reload) back();
     }
@@ -2509,7 +2509,7 @@ SQL
         dbBegin();
         try {
             // Lock the activity row to prevent race conditions on capacity check
-            dbQuery(
+            dbFetch(
                 'SELECT id_akce FROM akce_seznam WHERE id_akce=$0 FOR UPDATE',
                 [$idAktivity],
             );
@@ -2527,7 +2527,7 @@ SQL
                 AktivitaTym::prihlasUzivateleDoTymu($idUzivatele, $idAktivity, $idTymu);
             }
 
-            dbQuery(
+            dbExecute(
                 'INSERT INTO akce_prihlaseni SET id_uzivatele=$0, id_akce=$1, id_stavu_prihlaseni=$2',
                 [$idUzivatele, $idAktivity, StavPrihlaseni::PRIHLASEN],
             );
@@ -2553,7 +2553,7 @@ SQL
 
     private function zrusPredchoziStornoPoplatek(Uzivatel $uzivatel): void
     {
-        dbQuery(
+        dbExecute(
             'DELETE FROM akce_prihlaseni_spec WHERE id_uzivatele=$0 AND id_akce=$1 AND id_stavu_prihlaseni=$2',
             [$uzivatel->id(), $this->id(), StavPrihlaseni::POZDE_ZRUSIL],
         );
@@ -3346,7 +3346,7 @@ HTML
         }
 
         // Uložení přihlášení do DB
-        dbQuery("INSERT INTO akce_prihlaseni_spec SET id_uzivatele=$0, id_akce=$1, id_stavu_prihlaseni=$2", [$u->id(), $this->id(), StavPrihlaseni::SLEDUJICI]);
+        dbExecute("INSERT INTO akce_prihlaseni_spec SET id_uzivatele=$0, id_akce=$1, id_stavu_prihlaseni=$2", [$u->id(), $this->id(), StavPrihlaseni::SLEDUJICI]);
         $this->dejPrezenci()->zalogujZeSePrihlasilJakoSledujici($u, $prihlasujici);
         $this->refresh();
     }
@@ -3361,7 +3361,7 @@ HTML
         if (!StavAktivity::jeZnamy($novyStav)) {
             throw new \LogicException("Neznámý stav aktivity '$novyStav'");
         }
-        dbQuery('UPDATE akce_seznam SET stav=$1 WHERE id_akce=$2', [$novyStav, $this->id()]);
+        dbExecute('UPDATE akce_seznam SET stav=$1 WHERE id_akce=$2', [$novyStav, $this->id()]);
         $this->touchDirtyFlag(ProgramStaticFileType::AKTIVITY);
     }
 
@@ -3466,20 +3466,20 @@ HTML
                 }
                 // nezbyde žádná, nebo jen jediná instance, zrušit instanci
                 if ($zbyde <= 1) {
-                    dbQuery('UPDATE akce_seznam SET patri_pod = NULL WHERE patri_pod = ' . $idInstance);
-                    dbQuery('DELETE FROM akce_instance WHERE id_instance = ' . $idInstance);
+                    dbExecute('UPDATE akce_seznam SET patri_pod = NULL WHERE patri_pod = ' . $idInstance);
+                    dbExecute('DELETE FROM akce_instance WHERE id_instance = ' . $idInstance);
                 } elseif ($idNoveMaterskeAktivity) {
-                    dbQuery('UPDATE akce_instance SET id_hlavni_akce = $1 WHERE id_instance = $2', [$idNoveMaterskeAktivity, $idInstance]);
+                    dbExecute('UPDATE akce_instance SET id_hlavni_akce = $1 WHERE id_instance = $2', [$idNoveMaterskeAktivity, $idInstance]);
                 }
             }
 
-            dbQuery('DELETE FROM akce_prihlaseni_spec WHERE id_akce = $1 AND id_stavu_prihlaseni = $2', [$this->id(), StavPrihlaseni::SLEDUJICI]);
-            dbQuery('DELETE FROM akce_organizatori WHERE id_akce = $1', [$this->id()]);
-            dbQuery('DELETE FROM akce_seznam WHERE id_akce = $1', [$this->id()]); // posledni kvuli SQL cizim klicum a cascade
+            dbExecute('DELETE FROM akce_prihlaseni_spec WHERE id_akce = $1 AND id_stavu_prihlaseni = $2', [$this->id(), StavPrihlaseni::SLEDUJICI]);
+            dbExecute('DELETE FROM akce_organizatori WHERE id_akce = $1', [$this->id()]);
+            dbExecute('DELETE FROM akce_seznam WHERE id_akce = $1', [$this->id()]); // posledni kvuli SQL cizim klicum a cascade
 
             if ($idNoveMaterskeAktivity) {
                 // zrušená aktivita byla mateřskou => je potřeba uložit url a popisek do nové instance (až po smazání původní mateřské aktivity kvůli unikátnímu klíči)
-                dbQuery(
+                dbExecute(
                     'UPDATE akce_seznam SET url_akce = $1, popis = $2, vybaveni = $3 WHERE id_akce = $4',
                     [$this->a[Sql::URL_AKCE], $this->a[Sql::POPIS], $this->a[Sql::VYBAVENI], $idNoveMaterskeAktivity],
                 );
@@ -3526,10 +3526,10 @@ HTML
         // nastavit tagy aktivitám
         $idInstanci = $this->idInstanci();
         $idInstanciSql = dbQa($idInstanci);
-        dbQuery("DELETE FROM akce_sjednocene_tagy WHERE id_akce IN ($idInstanciSql)");
+        dbExecute("DELETE FROM akce_sjednocene_tagy WHERE id_akce IN ($idInstanciSql)");
         if ($tagy) {
             $tagySql = dbQa($tagy);
-            dbQuery(<<<SQL
+            dbExecute(<<<SQL
 INSERT INTO akce_sjednocene_tagy(id_akce, id_tagu)
 SELECT akce_seznam.id_akce, sjednocene_tagy.id
 FROM akce_seznam
@@ -3546,9 +3546,9 @@ SQL,
     {
         // nastavit tagy aktivitám
         foreach ($this->instance() as $aktivita) {
-            dbQuery('DELETE FROM akce_sjednocene_tagy WHERE id_akce = $1', [$aktivita->id()]);
+            dbExecute('DELETE FROM akce_sjednocene_tagy WHERE id_akce = $1', [$aktivita->id()]);
             if ($tagIds) {
-                dbQuery(
+                dbExecute(
                     'INSERT INTO akce_sjednocene_tagy(id_akce, id_tagu) SELECT $0, id FROM sjednocene_tagy WHERE id IN ($1)',
                     [
                         0 => $aktivita->id(),
@@ -3672,7 +3672,7 @@ SQL,
     {
         static $typy;
         if (!$typy) {
-            $o = dbQuery('SELECT id_typu, url_typu_mn FROM akce_typy');
+            $o = dbFetch('SELECT id_typu, url_typu_mn FROM akce_typy');
             while ($r = $o->fetch(\PDO::FETCH_NUM)) {
                 $typy[$r[0]] = $r[1];
             }
@@ -3936,7 +3936,7 @@ SQL,
 
     private function zmenStavNa(int $stav)
     {
-        dbQuery('UPDATE akce_seznam SET stav = $0 WHERE id_akce = ' . $this->id(), [$stav]);
+        dbExecute('UPDATE akce_seznam SET stav = $0 WHERE id_akce = ' . $this->id(), [$stav]);
         $this->a[Sql::STAV] = $stav;
         $this->stav = $stav;
         $this->zalogujZmenuStavu($stav);
@@ -3944,7 +3944,7 @@ SQL,
 
     private function zalogujZmenuStavu(int $novyStav)
     {
-        dbQuery('INSERT INTO akce_stavy_log(id_akce, id_stav, kdy) VALUES ($0, $1, NOW())', [$this->id(), $novyStav]);
+        dbExecute('INSERT INTO akce_stavy_log(id_akce, id_stav, kdy) VALUES ($0, $1, NOW())', [$this->id(), $novyStav]);
         RazitkoPosledniZmenyPrihlaseni::smazRazitkaPoslednichZmen($this, $this->dejFilesystem());
 
         $this->touchDirtyFlag(ProgramStaticFileType::AKTIVITY);
@@ -4369,7 +4369,7 @@ SQL,
      * Vrátí iterátor s aktivitami podle zadané where klauzule. Alias tabulky
      * akce_seznam je 'a'.
      * @param string $where1 obsah where klauzule (bez úvodního klíč. slova WHERE)
-     * @param array|null $args volitelné pole argumentů pro dbQueryS()
+     * @param array|null $args volitelné pole argumentů pro dbFetch()
      * @param string $order volitelně celá klauzule ORDER BY včetně klíč. slova
      * @return Aktivita[]
      */

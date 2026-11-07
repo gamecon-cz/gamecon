@@ -11,7 +11,7 @@ require __DIR__ . '/sdilene-hlavicky.php';
 
 $rok = ROCNIK;
 
-$result = dbQuery(<<<SQL
+$result = dbFetch(<<<SQL
 SELECT
     p.id_uzivatele AS "ID uživatele",
     COUNT(*) AS "Počet aktivit",

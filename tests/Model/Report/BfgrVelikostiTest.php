@@ -50,7 +50,7 @@ SQL,
     {
         parent::setUp();
         // BFGR lists only who registered or bought something this year.
-        dbQuery(
+        dbExecute(
             'INSERT INTO shop_nakupy (id_uzivatele, variant_id, rok, cena_nakupni)
              VALUES ($0, (SELECT id FROM product_variant WHERE code = $1), $2, 150)',
             [

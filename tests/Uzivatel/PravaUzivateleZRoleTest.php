@@ -16,17 +16,17 @@ class PravaUzivateleZRoleTest extends AbstractTestDb
     public function testUzivatelZRoleMaPravoSvePrideleneRole(): void
     {
         $idRole = -random_int(100000, 999999);
-        dbQuery(
+        dbExecute(
             "INSERT IGNORE INTO r_prava_soupis(id_prava, kod_prava, jmeno_prava, popis_prava) VALUES ($0, CONCAT('TEST_PRAVO_', $0), 'test_pravo', 'test')",
             [Pravo::PORADANI_AKTIVIT],
         );
-        dbQuery(
+        dbExecute(
             "INSERT INTO role_seznam(id_role, kod_role, nazev_role, popis_role, rocnik_role, typ_role, vyznam_role)
 VALUES ($0, $1, $2, '', -1, 'trvala', '')",
             [$idRole, 'TEST_Z_ROLE_' . uniqid('', false), 'Test role z role ' . uniqid('', false)],
         );
-        dbQuery('INSERT INTO prava_role(id_role, id_prava) VALUES ($0, $1)', [$idRole, Pravo::PORADANI_AKTIVIT]);
-        dbQuery(
+        dbExecute('INSERT INTO prava_role(id_role, id_prava) VALUES ($0, $1)', [$idRole, Pravo::PORADANI_AKTIVIT]);
+        dbExecute(
             "INSERT INTO uzivatele_hodnoty SET
     login_uzivatele = 'test_prava_z_role',
     email1_uzivatele = 'test.prava.z.role@example.org',
@@ -34,7 +34,7 @@ VALUES ($0, $1, $2, '', -1, 'trvala', '')",
     prijmeni_uzivatele = 'PravaZRole'",
         );
         $idUzivatele = dbInsertId();
-        dbQuery(
+        dbExecute(
             'INSERT INTO uzivatele_role(id_uzivatele, id_role, posadil) VALUES ($0, $1, $0)',
             [$idUzivatele, $idRole],
         );
@@ -75,19 +75,19 @@ VALUES ($0, $1, $2, '', -1, 'trvala', '')",
     public function testUzivatelZRoleBezPravNemaZadnaPrava(): void
     {
         $idRole = -random_int(100000, 999999);
-        dbQuery(
+        dbExecute(
             "INSERT INTO role_seznam(id_role, kod_role, nazev_role, popis_role, rocnik_role, typ_role, vyznam_role)
 VALUES ($0, $1, $2, '', -1, 'trvala', '')",
             [$idRole, 'TEST_BEZ_PRAV_' . uniqid('', false), 'Test role bez prav ' . uniqid('', false)],
         );
-        dbQuery(
+        dbExecute(
             "INSERT INTO uzivatele_hodnoty SET
     login_uzivatele = 'test_bez_prav_z_role',
     email1_uzivatele = 'test.bez.prav.z.role@example.org',
     jmeno_uzivatele = 'Test',
     prijmeni_uzivatele = 'BezPravZRole'",
         );
-        dbQuery(
+        dbExecute(
             'INSERT INTO uzivatele_role(id_uzivatele, id_role, posadil) VALUES ($0, $1, $0)',
             [dbInsertId(), $idRole],
         );

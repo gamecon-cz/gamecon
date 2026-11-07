@@ -19,14 +19,14 @@ if (post('upravit')) {
 }
 
 if (post('nahoru')) {
-    dbQueryS('UPDATE lokace SET poradi=poradi+1 WHERE poradi=$0', [post('poradi') - 1]);
-    dbQueryS('UPDATE lokace SET poradi=poradi-1 WHERE id_lokace=$0', [post('nahoru')]);
+    dbExecute('UPDATE lokace SET poradi=poradi+1 WHERE poradi=$0', [post('poradi') - 1]);
+    dbExecute('UPDATE lokace SET poradi=poradi-1 WHERE id_lokace=$0', [post('nahoru')]);
     back();
 }
 
 if (post('dolu')) {
-    dbQueryS('UPDATE lokace SET poradi=poradi-1 WHERE poradi=$0', [post('poradi') + 1]);
-    dbQueryS('UPDATE lokace SET poradi=poradi+1 WHERE id_lokace=$0', [post('dolu')]);
+    dbExecute('UPDATE lokace SET poradi=poradi-1 WHERE poradi=$0', [post('poradi') + 1]);
+    dbExecute('UPDATE lokace SET poradi=poradi+1 WHERE id_lokace=$0', [post('dolu')]);
     back();
 }
 
@@ -39,7 +39,7 @@ if (post('novaMistnost')) {
 
 $tpl = new XTemplate(__DIR__ . '/mistnosti.xtpl');
 
-$o = dbQuery('SELECT * FROM lokace ORDER BY poradi');
+$o = dbFetch('SELECT * FROM lokace ORDER BY poradi');
 $l = $o->rowCount();
 for ($i = 0; $r = $o->fetch(PDO::FETCH_ASSOC); $i++) {
     $tpl->assign($r);

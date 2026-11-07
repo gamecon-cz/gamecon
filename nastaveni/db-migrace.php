@@ -23,15 +23,15 @@ if (!defined('UNIT_TESTS') || !UNIT_TESTS) {
         $dbMigrations->getWebGui()?->configureEnvironment();
         if ($dbMigrations->getWebGui()?->confirm(false)) {
             $dbMigrations->getWebGui()?->writeMessage(sprintf("Vytvářím databázi '%s'...", DB_NAME), '');
-            dbQuery(
+            dbExecute(
                 sprintf(
                     "CREATE DATABASE IF NOT EXISTS `%s` DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_czech_ci",
                     DB_NAME,
                 ),
-                null,
+                [],
                 $connection,
             );
-            dbQuery(sprintf('USE `%s`', DB_NAME), null, $connection);
+            dbExecute(sprintf('USE `%s`', DB_NAME), [], $connection);
             $dbMigrations->getWebGui()?->writeMessage(' vytvořena.');
             $dbMigrations->getWebGui()?->writeMessage('Nahrávám anonymizovanou databázi...', '');
             $mysqliConn = dbConnectMysqli();
@@ -49,7 +49,7 @@ if (!defined('UNIT_TESTS') || !UNIT_TESTS) {
         }
     }
 }
-dbQuery(sprintf('USE `%s`', DB_NAME), null, $connection);
+dbExecute(sprintf('USE `%s`', DB_NAME), [], $connection);
 
 $dbMigrations->run();
 

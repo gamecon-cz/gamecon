@@ -171,10 +171,10 @@ class KopieOstreDatabazeTest extends TestCase
         );
 
         if ($resetDatabaze) {
-            dbQuery(sprintf('DROP DATABASE IF EXISTS `%s`', $dbName), [], $spojeni);
-            dbQuery(sprintf('CREATE DATABASE IF NOT EXISTS `%s` CHARACTER SET utf8mb4 COLLATE utf8mb4_czech_ci', $dbName), [], $spojeni);
+            dbExecute(sprintf('DROP DATABASE IF EXISTS `%s`', $dbName), [], $spojeni);
+            dbExecute(sprintf('CREATE DATABASE IF NOT EXISTS `%s` CHARACTER SET utf8mb4 COLLATE utf8mb4_czech_ci', $dbName), [], $spojeni);
         }
-        dbQuery(sprintf('USE `%s`', $dbName), [], $spojeni);
+        dbExecute(sprintf('USE `%s`', $dbName), [], $spojeni);
 
         _nastavRocnikDoSpojeni($rocnik, $spojeni, true);
 
@@ -186,14 +186,14 @@ class KopieOstreDatabazeTest extends TestCase
         $systemoveNastaveni = $this->vytvorSystemoveNastaveni();
 
         $spojeniSoucasna = $this->docasneSpojeniSoucasna($systemoveNastaveni, false);
-        $tablesBefore = dbQuery('SHOW TABLES', $spojeniSoucasna)->fetchAll();
+        $tablesBefore = dbFetch('SHOW TABLES', [], $spojeniSoucasna)->fetchAll();
 
         $nastrojeDatabaze = new NastrojeDatabaze($systemoveNastaveni);
         $kopieOstreDatabaze = new KopieOstreDatabaze($nastrojeDatabaze, $systemoveNastaveni, Vyjimkovac::vytvorZGlobals());
         $nastaveniOstre = $systemoveNastaveni->prihlasovaciUdajeOstreDatabaze();
         $kopieOstreDatabaze->zkopirujDatabazi($nastaveniOstre['DB_NAME']);
 
-        $tablesAfter = dbQuery('SHOW TABLES', $spojeniSoucasna)->fetchAll();
+        $tablesAfter = dbFetch('SHOW TABLES', [], $spojeniSoucasna)->fetchAll();
         self::assertGreaterThan(count($tablesBefore), $tablesAfter, 'Nějaké tabulky měly přibýt migracemi');
     }
 

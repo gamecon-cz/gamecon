@@ -56,7 +56,7 @@ SQL,
                 $budouci = date('Y-m-d H:i:s', strtotime('+1 day'));
 
                 // Limited stock item (2 pieces)
-                dbQuery("INSERT INTO shop_predmety SET
+                dbExecute("INSERT INTO shop_predmety SET
                     id_predmetu = 88811,
                     nazev = 'Limitovaný předmět',
                     kod_predmetu = 'limit_prodej_test',
@@ -64,11 +64,11 @@ SQL,
                     stav = " . StavPredmetu::VEREJNY . ",
                     nabizet_do = '{$budouci}',
                     popis = ''");
-                dbQuery("INSERT INTO product_product_tag (product_id, tag_id)
+                dbExecute("INSERT INTO product_product_tag (product_id, tag_id)
                     SELECT 88811, id FROM product_tag WHERE code = 'predmet'");
 
                 // Unlimited stock item (capacity NULL)
-                dbQuery("INSERT INTO shop_predmety SET
+                dbExecute("INSERT INTO shop_predmety SET
                     id_predmetu = 88812,
                     nazev = 'Neomezený předmět',
                     kod_predmetu = 'unlim_prodej_test',
@@ -76,18 +76,18 @@ SQL,
                     stav = " . StavPredmetu::VEREJNY . ",
                     nabizet_do = '{$budouci}',
                     popis = ''");
-                dbQuery("INSERT INTO product_product_tag (product_id, tag_id)
+                dbExecute("INSERT INTO product_product_tag (product_id, tag_id)
                     SELECT 88812, id FROM product_tag WHERE code = 'predmet'");
 
                 // Varianta ke každému prodejnému předmětu, jak to má produkce.
-                dbQuery("INSERT INTO product_variant (product_id, name, code, price, capacity, position, state)
+                dbExecute("INSERT INTO product_variant (product_id, name, code, price, capacity, position, state)
                     VALUES (88811, 'Limitovaný předmět', 'limit_prodej_test', 100, 2, 0, 1)");
-                dbQuery("INSERT INTO product_variant (product_id, name, code, price, capacity, position, state)
+                dbExecute("INSERT INTO product_variant (product_id, name, code, price, capacity, position, state)
                     VALUES (88812, 'Neomezený předmět', 'unlim_prodej_test', 100, NULL, 0, 1)");
 
                 // Vlastní předmět pro test zápisu varianty: třída nemá rollback po metodě,
                 // takže prodej z jednoho testu by ubral zásobu tomu dalšímu.
-                dbQuery("INSERT INTO shop_predmety SET
+                dbExecute("INSERT INTO shop_predmety SET
                     id_predmetu = 88813,
                     nazev = 'Předmět pro variantu',
                     kod_predmetu = 'varianta_prodej_test',
@@ -95,12 +95,12 @@ SQL,
                     stav = " . StavPredmetu::VEREJNY . ",
                     nabizet_do = '{$budouci}',
                     popis = ''");
-                dbQuery("INSERT INTO product_product_tag (product_id, tag_id)
+                dbExecute("INSERT INTO product_product_tag (product_id, tag_id)
                     SELECT 88813, id FROM product_tag WHERE code = 'predmet'");
-                dbQuery("INSERT INTO product_variant (product_id, name, code, price, capacity, position, state)
+                dbExecute("INSERT INTO product_variant (product_id, name, code, price, capacity, position, state)
                     VALUES (88813, 'Předmět pro variantu', 'varianta_prodej_test', 100, 2, 0, 1)");
 
-                dbQuery("INSERT INTO shop_predmety SET
+                dbExecute("INSERT INTO shop_predmety SET
                     id_predmetu = 88814,
                     nazev = 'Předmět pro zrušení',
                     kod_predmetu = 'zruseni_prodej_test',
@@ -108,12 +108,12 @@ SQL,
                     stav = " . StavPredmetu::VEREJNY . ",
                     nabizet_do = '{$budouci}',
                     popis = ''");
-                dbQuery("INSERT INTO product_product_tag (product_id, tag_id)
+                dbExecute("INSERT INTO product_product_tag (product_id, tag_id)
                     SELECT 88814, id FROM product_tag WHERE code = 'predmet'");
-                dbQuery("INSERT INTO product_variant (product_id, name, code, price, capacity, position, state)
+                dbExecute("INSERT INTO product_variant (product_id, name, code, price, capacity, position, state)
                     VALUES (88814, 'Předmět pro zrušení', 'zruseni_prodej_test', 100, 3, 0, 1)");
 
-                dbQuery("INSERT INTO shop_predmety SET
+                dbExecute("INSERT INTO shop_predmety SET
                     id_predmetu = 88815,
                     nazev = 'Předmět pro souběh',
                     kod_predmetu = 'soubeh_prodej_test',
@@ -121,13 +121,13 @@ SQL,
                     stav = " . StavPredmetu::VEREJNY . ",
                     nabizet_do = '{$budouci}',
                     popis = ''");
-                dbQuery("INSERT INTO product_product_tag (product_id, tag_id)
+                dbExecute("INSERT INTO product_product_tag (product_id, tag_id)
                     SELECT 88815, id FROM product_tag WHERE code = 'predmet'");
-                dbQuery("INSERT INTO product_variant (product_id, name, code, price, capacity, position, state)
+                dbExecute("INSERT INTO product_variant (product_id, name, code, price, capacity, position, state)
                     VALUES (88815, 'Předmět pro souběh', 'soubeh_prodej_test', 100, 5, 0, 1)");
 
                 // Room type owning its nights: no variant carries the type's own code.
-                dbQuery("INSERT INTO shop_predmety SET
+                dbExecute("INSERT INTO shop_predmety SET
                     id_predmetu = 88816,
                     nazev = 'Postel na pokoji',
                     kod_predmetu = 'pokoj_prodej_test-typ',
@@ -135,7 +135,7 @@ SQL,
                     stav = " . StavPredmetu::POZASTAVENY . ",
                     nabizet_do = '{$budouci}',
                     popis = ''");
-                dbQuery("INSERT INTO shop_predmety SET
+                dbExecute("INSERT INTO shop_predmety SET
                     id_predmetu = 88817,
                     nazev = 'Postel na pokoji pátek',
                     kod_predmetu = 'pokoj_prodej_test-pa',
@@ -144,16 +144,16 @@ SQL,
                     nabizet_do = '{$budouci}',
                     ubytovani_den = 2,
                     popis = ''");
-                dbQuery("INSERT INTO product_product_tag (product_id, tag_id)
+                dbExecute("INSERT INTO product_product_tag (product_id, tag_id)
                     SELECT ubytovani.id_predmetu, product_tag.id
                     FROM product_tag
                     INNER JOIN (SELECT 88816 AS id_predmetu UNION SELECT 88817) AS ubytovani
                     WHERE product_tag.code = 'ubytovani'");
-                dbQuery("INSERT INTO product_variant (product_id, name, code, price, capacity, accommodation_day, position, state)
+                dbExecute("INSERT INTO product_variant (product_id, name, code, price, capacity, accommodation_day, position, state)
                     VALUES (88816, 'pátek', 'pokoj_prodej_test-pa', 300, 3, 2, 0, 1)");
 
                 // Room type that got a default variant of its own, as a fresh import gives one.
-                dbQuery("INSERT INTO shop_predmety SET
+                dbExecute("INSERT INTO shop_predmety SET
                     id_predmetu = 88818,
                     nazev = 'Postel na jiném pokoji',
                     kod_predmetu = 'pokoj_s_variantou_test-typ',
@@ -161,9 +161,9 @@ SQL,
                     stav = " . StavPredmetu::POZASTAVENY . ",
                     nabizet_do = '{$budouci}',
                     popis = ''");
-                dbQuery("INSERT INTO product_product_tag (product_id, tag_id)
+                dbExecute("INSERT INTO product_product_tag (product_id, tag_id)
                     SELECT 88818, id FROM product_tag WHERE code = 'ubytovani'");
-                dbQuery("INSERT INTO product_variant (product_id, name, code, price, accommodation_day, position, state)
+                dbExecute("INSERT INTO product_variant (product_id, name, code, price, accommodation_day, position, state)
                     VALUES (88818, 'Postel na jiném pokoji', 'pokoj_s_variantou_test-typ', 300, NULL, 0, 3)");
             },
         ];
@@ -295,7 +295,7 @@ SQL,
         // YEAR(archived_at)), proto je tu loňský rok.
         $archivovano = (ROCNIK - 1) . '-12-31 23:59:59';
         $budouci = date('Y-m-d H:i:s', strtotime('+1 day'));
-        dbQuery(
+        dbExecute(
             'INSERT INTO shop_predmety SET
                 nazev = $0,
                 kod_predmetu = $1,
@@ -312,13 +312,13 @@ SQL,
             ],
         );
         $idPredmetu = (int) dbInsertId();
-        dbQuery(
+        dbExecute(
             "INSERT INTO product_product_tag (product_id, tag_id) SELECT $0, id FROM product_tag WHERE code = 'predmet'",
             [
                 0 => $idPredmetu,
             ],
         );
-        dbQuery(
+        dbExecute(
             'INSERT INTO product_variant (product_id, name, code, position, state) VALUES ($0, NULL, $1, 0, 1)',
             [
                 0 => $idPredmetu,
@@ -408,11 +408,11 @@ SQL,
 
         $uzivatel = \Uzivatel::zIdUrcite(88801);
         $shop = new Shop($uzivatel, $uzivatel, SystemoveNastaveni::zGlobals());
-        dbQuery('SET SESSION innodb_lock_wait_timeout = 1');
+        dbExecute('SET SESSION innodb_lock_wait_timeout = 1');
         try {
             $shop->prodat($this->idVarianty(88815), 1);
         } finally {
-            dbQuery('SET SESSION innodb_lock_wait_timeout = DEFAULT');
+            dbExecute('SET SESSION innodb_lock_wait_timeout = DEFAULT');
             $soubeznyNakup->rollBack();
             $soubeznyNakup->close();
         }

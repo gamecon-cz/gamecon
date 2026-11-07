@@ -41,7 +41,7 @@ class PravaSefaInfopultuTest extends AbstractTestDb
     {
         $sef = $this->vytvorUzivatele('sef');
         $ostatni = $this->vytvorUzivatele('ostatni');
-        dbQuery(
+        dbExecute(
             'INSERT INTO uzivatele_role(id_uzivatele, id_role, posadil) VALUES ($0, $1, $0)',
             [$sef->id(), Role::SEF_INFOPULTU],
         );
@@ -59,7 +59,7 @@ class PravaSefaInfopultuTest extends AbstractTestDb
     {
         $sef = $this->vytvorUzivatele('api_sef');
         $ostatni = $this->vytvorUzivatele('api_ostatni');
-        dbQuery(
+        dbExecute(
             'INSERT INTO uzivatele_role(id_uzivatele, id_role, posadil) VALUES ($0, $1, $0)',
             [$sef->id(), Role::SEF_INFOPULTU],
         );
@@ -71,7 +71,7 @@ class PravaSefaInfopultuTest extends AbstractTestDb
 
     private function vytvorUzivatele(string $suffix): \Uzivatel
     {
-        dbQuery(<<<SQL
+        dbExecute(<<<SQL
 INSERT INTO uzivatele_hodnoty SET
     login_uzivatele = $0,
     email1_uzivatele = $1,

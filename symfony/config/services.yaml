@@ -26,7 +26,7 @@ services:
             - '../src/Doctrine/EnumParameterConnection.php'
             - '../src/Doctrine/EnumParameterStatement.php'
 
-    # Every container in the process gets the same connection, which legacy dbQuery() uses too.
+    # Every container in the process gets the same connection, which legacy dbFetch() and dbExecute() use too.
     app.doctrine.shared_connection:
         class: App\Doctrine\SharedConnection
         decorates: doctrine.dbal.default_connection

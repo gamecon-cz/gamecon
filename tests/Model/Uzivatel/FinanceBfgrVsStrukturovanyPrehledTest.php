@@ -152,7 +152,7 @@ SQL,
 
     private function vlozNakup(int $idPredmetu, float $cenaNakupni): void
     {
-        dbQuery(
+        dbExecute(
             'INSERT INTO shop_nakupy(id_uzivatele, variant_id, rok, cena_nakupni) VALUES($0, ' . sprintf(self::SQL_VARIANTA_RADKU, '$1') . ', $2, $3)',
             [
                 0 => 444,
@@ -173,16 +173,16 @@ SQL,
         $unique = uniqid('', true);
         $idRole = -random_int(100000, 999999);
         $kodRole = 'TEST_BFGR_' . $idPrava . '_' . $unique;
-        dbQuery(<<<SQL
+        dbExecute(<<<SQL
 INSERT IGNORE INTO r_prava_soupis(id_prava, kod_prava, jmeno_prava, popis_prava)
 VALUES ({$idPrava}, 'TEST_PRAVO_{$idPrava}', 'test_pravo_{$idPrava}', 'test')
 SQL,
         );
-        dbQuery(
+        dbExecute(
             "INSERT INTO role_seznam(id_role, kod_role, nazev_role, popis_role, rocnik_role, typ_role, vyznam_role) VALUES ({$idRole}, '{$kodRole}', 'Test role {$unique}', '', -1, 'trvala', '')",
         );
-        dbQuery("INSERT INTO prava_role(id_role, id_prava) VALUES ({$idRole}, {$idPrava})");
-        dbQuery("INSERT INTO uzivatele_role(id_uzivatele, id_role, posadil) VALUES (444, {$idRole}, 444)");
+        dbExecute("INSERT INTO prava_role(id_role, id_prava) VALUES ({$idRole}, {$idPrava})");
+        dbExecute("INSERT INTO uzivatele_role(id_uzivatele, id_role, posadil) VALUES (444, {$idRole}, 444)");
     }
 
     /**

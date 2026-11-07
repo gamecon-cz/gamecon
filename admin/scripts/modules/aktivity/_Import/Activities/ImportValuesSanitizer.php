@@ -937,7 +937,7 @@ HTML;
             [$turnajNazev, $this->currentYear],
         );
         if (!$idTurnaje) {
-            dbQuery(
+            dbExecute(
                 'INSERT INTO turnaje (nazev, rok) VALUES ($0, $1)',
                 [$turnajNazev, $this->currentYear],
             );

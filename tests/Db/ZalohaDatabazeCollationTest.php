@@ -22,7 +22,7 @@ class ZalohaDatabazeCollationTest extends AbstractTestDb
 
     public function testZalohaZachova4bajtoveZnaky()
     {
-        dbQuery("INSERT INTO _vars (name, value) VALUES ('test-zaloha-emoji', $0)", ['🎲 kostka']);
+        dbExecute("INSERT INTO _vars (name, value) VALUES ('test-zaloha-emoji', $0)", ['🎲 kostka']);
         $soubor = tempnam(sys_get_temp_dir(), 'gamecon-test-zaloha-');
         try {
             (new NastrojeDatabaze(SystemoveNastaveni::zGlobals()))
@@ -33,7 +33,7 @@ class ZalohaDatabazeCollationTest extends AbstractTestDb
 
             self::assertStringContainsString('🎲 kostka', (string) file_get_contents($soubor));
         } finally {
-            dbQuery("DELETE FROM _vars WHERE name = 'test-zaloha-emoji'");
+            dbExecute("DELETE FROM _vars WHERE name = 'test-zaloha-emoji'");
             unlink($soubor);
         }
     }

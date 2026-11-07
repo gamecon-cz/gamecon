@@ -6,7 +6,7 @@
 
 require __DIR__ . '/sdilene-hlavicky.php';
 
-$o = dbQuery('
+$o = dbFetch('
   SELECT
     p.id_uzivatele,
     count(1) as pocet,

@@ -22,7 +22,7 @@ class PrepnutiNaUzivateleTest extends AbstractTestDb
 {
     private function vytvorUzivatele(string $suffix): \Uzivatel
     {
-        dbQuery(<<<SQL
+        dbExecute(<<<SQL
 INSERT INTO uzivatele_hodnoty SET
     login_uzivatele = $0,
     email1_uzivatele = $1,
@@ -43,7 +43,7 @@ SQL,
         $unique = uniqid('', false);
         $idRole = -random_int(100000, 999999);
         $kodRole = 'TEST_PREPNUTI_' . $idPrava . '_' . $unique;
-        dbQuery(<<<SQL
+        dbExecute(<<<SQL
 INSERT IGNORE INTO r_prava_soupis(id_prava, kod_prava, jmeno_prava, popis_prava)
 VALUES ($0, $1, $2, 'test')
 SQL,
@@ -53,7 +53,7 @@ SQL,
                 2 => 'test_pravo_' . $idPrava,
             ],
         );
-        dbQuery(<<<SQL
+        dbExecute(<<<SQL
 INSERT INTO role_seznam(id_role, kod_role, nazev_role, popis_role, rocnik_role, typ_role, vyznam_role)
 VALUES ($0, $1, $2, '', -1, 'trvala', '')
 SQL,
@@ -63,11 +63,11 @@ SQL,
                 2 => 'Test role ' . $unique,
             ],
         );
-        dbQuery(
+        dbExecute(
             'INSERT INTO prava_role(id_role, id_prava) VALUES ($0, $1)',
             [$idRole, $idPrava],
         );
-        dbQuery(
+        dbExecute(
             'INSERT INTO uzivatele_role(id_uzivatele, id_role, posadil) VALUES ($0, $1, $0)',
             [$uzivatel->id(), $idRole],
         );
@@ -211,7 +211,7 @@ SQL,
     {
         $uzivatel = $this->vytvorUzivatele($suffix);
         foreach ($idsRoli as $idRole) {
-            dbQuery(<<<'SQL'
+            dbExecute(<<<'SQL'
 INSERT INTO uzivatele_role(id_uzivatele, id_role, posadil) VALUES ($0, $1, $0)
 SQL,
                 [

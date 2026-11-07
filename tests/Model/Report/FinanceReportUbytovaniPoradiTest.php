@@ -42,7 +42,7 @@ class FinanceReportUbytovaniPoradiTest extends AbstractUzivatelTestDb
     public function typyAPokojeJsouSerazene(string $report): void
     {
         $ucastnik = self::prihlasenyUzivatel();
-        dbQuery("UPDATE uzivatele_hodnoty SET statni_obcanstvi = 'SVK' WHERE id_uzivatele = $0", [
+        dbExecute("UPDATE uzivatele_hodnoty SET statni_obcanstvi = 'SVK' WHERE id_uzivatele = $0", [
             0 => $ucastnik->id(),
         ]);
         $this->kupNoc($ucastnik, $this->typPokoje('zz-pokoj', 'Postel zz'), 'zz-pokoj-ct', 'čtvrtek', 1);
@@ -58,7 +58,7 @@ class FinanceReportUbytovaniPoradiTest extends AbstractUzivatelTestDb
 
     private function typPokoje(string $kodTypu, string $nazev): int
     {
-        dbQuery(
+        dbExecute(
             "INSERT INTO shop_predmety SET nazev = $0, kod_predmetu = $1, cena_aktualni = 100, stav = 1, popis = ''",
             [
                 0 => $nazev,
@@ -66,7 +66,7 @@ class FinanceReportUbytovaniPoradiTest extends AbstractUzivatelTestDb
             ],
         );
         $idProduktu = (int) dbInsertId();
-        dbQuery(
+        dbExecute(
             'INSERT INTO product_product_tag (product_id, tag_id) SELECT $0, id FROM product_tag WHERE code = $1',
             [
                 0 => $idProduktu,
@@ -79,7 +79,7 @@ class FinanceReportUbytovaniPoradiTest extends AbstractUzivatelTestDb
 
     private function kupNoc(\Uzivatel $ucastnik, int $idTypuPokoje, string $kod, string $noc, int $den): void
     {
-        dbQuery(
+        dbExecute(
             'INSERT INTO product_variant (product_id, name, code, accommodation_day, position, state) VALUES ($0, $1, $2, $3, $3, 1)',
             [
                 0 => $idTypuPokoje,
@@ -88,7 +88,7 @@ class FinanceReportUbytovaniPoradiTest extends AbstractUzivatelTestDb
                 3 => $den,
             ],
         );
-        dbQuery(
+        dbExecute(
             'INSERT INTO shop_nakupy (id_uzivatele, variant_id, rok, cena_nakupni, datum) VALUES ($0, $1, $2, 100, NOW())',
             [
                 0 => $ucastnik->id(),
@@ -100,7 +100,7 @@ class FinanceReportUbytovaniPoradiTest extends AbstractUzivatelTestDb
 
     private function pridelPokoj(\Uzivatel $ucastnik, int $den, string $pokoj): void
     {
-        dbQuery(
+        dbExecute(
             'INSERT INTO ubytovani (id_uzivatele, den, pokoj, rok) VALUES ($0, $1, $2, $3)',
             [
                 0 => $ucastnik->id(),
@@ -120,9 +120,9 @@ class FinanceReportUbytovaniPoradiTest extends AbstractUzivatelTestDb
     {
         $zdroj = file_get_contents(self::REPORTY . $report);
         self::assertNotFalse($zdroj);
-        self::assertSame(1, preg_match('~dbQuery\(<<<SQL\n(.*?)\nSQL,~s', $zdroj, $shody), "Dotaz v {$report} nejde najít");
+        self::assertSame(1, preg_match('~dbFetch\(<<<SQL\n(.*?)\nSQL,~s', $zdroj, $shody), "Dotaz v {$report} nejde najít");
 
-        $vysledek = dbQuery($shody[1], [
+        $vysledek = dbFetch($shody[1], [
             0 => Role::PRIHLASEN_NA_LETOSNI_GC,
             1 => ROCNIK,
             2 => ProductTagCode::UBYTOVANI->value,

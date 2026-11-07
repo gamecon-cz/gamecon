@@ -20,7 +20,7 @@ $sledujici             = StavPrihlaseni::SLEDUJICI;
 $technicka   = TypAktivity::TECHNICKA;
 $brigadnicka = TypAktivity::BRIGADNICKA;
 
-$o = dbQuery(<<<SQL
+$o = dbFetch(<<<SQL
 SELECT * FROM
 (
     SELECT

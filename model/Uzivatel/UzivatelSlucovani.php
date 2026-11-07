@@ -65,7 +65,7 @@ class UzivatelSlucovani
             TrvalePrihlaseni::zrusVsude($idStarehoUzivatele);
 
             // Převod zůstatku ze starého na nového uživatele
-            dbQuery("UPDATE uzivatele_hodnoty SET zustatek = zustatek + (SELECT zustatek FROM uzivatele_hodnoty u2 WHERE u2.id_uzivatele = $idStarehoUzivatele) WHERE id_uzivatele = $idNovehoUzivatele");
+            dbExecute("UPDATE uzivatele_hodnoty SET zustatek = zustatek + (SELECT zustatek FROM uzivatele_hodnoty u2 WHERE u2.id_uzivatele = $idStarehoUzivatele) WHERE id_uzivatele = $idNovehoUzivatele");
 
             // Převod všech odkazovaných dat na nového uživatele pomocí FK
             $odkazujiciTabulky = $this->najdiOdkazujiciTabulky();
@@ -81,7 +81,7 @@ class UzivatelSlucovani
                 ->transferAll($idStarehoUzivatele, $idNovehoUzivatele);
 
             // Smazání starého uživatele - FK CASCADE automaticky smaže související data
-            dbQuery("DELETE FROM `uzivatele_hodnoty` WHERE `id_uzivatele` = $idStarehoUzivatele");
+            dbExecute("DELETE FROM `uzivatele_hodnoty` WHERE `id_uzivatele` = $idStarehoUzivatele");
 
             dbCommit();
         } catch (\Throwable $e) {
@@ -116,7 +116,7 @@ class UzivatelSlucovani
      */
     private function najdiUnikatniPole(): array
     {
-        $result = dbQuery("
+        $result = dbFetch("
             SELECT COLUMN_NAME
             FROM information_schema.KEY_COLUMN_USAGE
             WHERE CONSTRAINT_SCHEMA = (SELECT DATABASE())
@@ -172,7 +172,7 @@ class UzivatelSlucovani
      */
     private function najdiOdkazujiciTabulky(): array
     {
-        $result = dbQuery("
+        $result = dbFetch("
             SELECT 
                 key_column_usage.TABLE_NAME AS table_name,
                 key_column_usage.COLUMN_NAME AS column_name
@@ -205,14 +205,14 @@ class UzivatelSlucovani
     ): void {
         // Zkusíme převést všechna data - použijeme IGNORE pro tiché přeskočení duplicit
         // IGNORE způsobí, že duplicitní záznamy budou přeskočeny bez chyby
-        dbQuery(
+        dbExecute(
             "UPDATE IGNORE `$tabulka` SET `$sloupec` = $idNovehoUzivatele
             WHERE `$sloupec` = $idStarehoUzivatele",
         );
 
         // Smažeme záznamy, které se nepodařilo převést kvůli unique constraints
         // (pouze ty, které skutečně kolidovaly)
-        dbQuery(
+        dbExecute(
             <<<SQL
             DELETE
             FROM `$tabulka`
@@ -235,7 +235,7 @@ class UzivatelSlucovani
         int    $zustatekNovehoAktualne,
         string $emailNovehoAktualne,
     ): void {
-        dbQuery(<<<SQL
+        dbExecute(<<<SQL
 INSERT INTO uzivatele_slucovani_log (
     id_smazaneho_uzivatele,
     id_noveho_uzivatele,

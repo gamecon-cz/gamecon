@@ -19,7 +19,7 @@ function vygenerujSlevovyKod(int $createdBy): string
         }
     } while (dbRecordExists('slevove_kody', ['kod' => $kod]));
 
-    dbQuery(
+    dbExecute(
         'INSERT INTO slevove_kody(kod, createdBy, createdAt, usedBy, usedAt, invalidated)
          VALUES ($0, $1, NOW(), NULL, NULL, 0)',
         [$kod, $createdBy],

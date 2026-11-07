@@ -84,7 +84,7 @@ SQL,
             throw new \InvalidArgumentException("Šablona e-mailu '{$kod->value}' nesmí mít prázdný předmět ani text.");
         }
 
-        dbQuery(<<<'SQL'
+        dbExecute(<<<'SQL'
 INSERT INTO emailova_sablona(kod, predmet, text, zmenil)
 VALUES ($0, $1, $2, $3)
 ON DUPLICATE KEY UPDATE predmet = VALUES(predmet), text = VALUES(text), zmenil = VALUES(zmenil)

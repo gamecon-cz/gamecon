@@ -63,7 +63,7 @@ class GoogleApiTokenStorageTest extends AbstractTestDb
     private function vytvorUzivatele(): int
     {
         $jednoznacnyNazev = uniqid('google-test-', true);
-        dbQuery(
+        dbExecute(
             'INSERT INTO uzivatele_hodnoty (login_uzivatele, email1_uzivatele) VALUES ($1, $2)',
             [$jednoznacnyNazev, $jednoznacnyNazev . '@example.com'],
         );

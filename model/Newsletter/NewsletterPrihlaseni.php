@@ -26,7 +26,7 @@ class NewsletterPrihlaseni extends \DbObject
             , [0 => $email, 1 => $systemoveNastaveni->ted()],
         );
         if ($vlozeno > 0) {
-            dbQuery(<<<SQL
+            dbExecute(<<<SQL
             INSERT INTO newsletter_prihlaseni_log (email, kdy, stav)
             SELECT $0, $1, $2
             SQL
@@ -47,7 +47,7 @@ class NewsletterPrihlaseni extends \DbObject
             , [0 => $email],
         );
         if ($smazano > 0) {
-            dbQuery(<<<SQL
+            dbExecute(<<<SQL
             INSERT INTO newsletter_prihlaseni_log (email, kdy, stav)
             SELECT $0, $1, $2
             SQL

@@ -93,7 +93,7 @@ final class TrvalePrihlaseni
     {
         // Prohlížeč nese jen jednu cookie, předchozí přihlášení by jinak zůstalo viset bez ní.
         self::smazTotoZarizeni($idTohoto);
-        dbQuery(<<<'SQL'
+        dbExecute(<<<'SQL'
             DELETE FROM uzivatele_trvala_prihlaseni
             WHERE naposledy_pouzito < NOW() - INTERVAL $0 DAY
             LIMIT $1
@@ -105,14 +105,14 @@ final class TrvalePrihlaseni
         // zařízení smazala trvalá přihlášení, nový řádek by je přežil. Zamykající čtení řádku uživatele počká,
         // dokud změna razítka nedoběhne, a pak vidí to nové, viz Uzivatel::zmenRazitkoPrihlaseni(). Bez
         // LOCK IN SHARE MODE by INSERT … SELECT pod READ COMMITTED četl snímek bez zámku a vzal razítko staré.
-        $vlozeno = dbQuery(<<<'SQL'
+        $vlozeno = dbExecute(<<<'SQL'
             INSERT INTO uzivatele_trvala_prihlaseni (id_uzivatele, selektor_hash, token_hash)
             SELECT id_uzivatele, $3, $1
             FROM uzivatele_hodnoty
             WHERE id_uzivatele = $0 AND razitko_prihlaseni <=> $2
             LOCK IN SHARE MODE
             SQL, [0 => $idUzivatele, 1 => self::hash($token), 2 => $razitko, 3 => self::hash($selektor)]);
-        if (dbAffectedOrNumRows($vlozeno) !== 1) {
+        if ($vlozeno !== 1) {
             return null;
         }
         $id = (int) dbInsertId();
@@ -231,7 +231,7 @@ final class TrvalePrihlaseni
     public static function zrusNaOstatnichZarizenich(int $idUzivatele): ?string
     {
         $idTohoto = self::getIdZCookie($idUzivatele);
-        dbQuery(<<<'SQL'
+        dbExecute(<<<'SQL'
             DELETE FROM uzivatele_trvala_prihlaseni
             WHERE id_uzivatele = $0 AND id != $1
             SQL, [0 => $idUzivatele, 1 => $idTohoto ?? 0]);
@@ -241,7 +241,7 @@ final class TrvalePrihlaseni
 
         $novySelektor = self::novyToken();
         $novyToken = self::novyToken();
-        dbQuery(<<<'SQL'
+        dbExecute(<<<'SQL'
             UPDATE uzivatele_trvala_prihlaseni
             SET selektor_hash = $2,
                 token_hash = $1,
@@ -258,7 +258,7 @@ final class TrvalePrihlaseni
 
     public static function zrusVsude(int $idUzivatele): void
     {
-        dbQuery(<<<'SQL'
+        dbExecute(<<<'SQL'
             DELETE FROM uzivatele_trvala_prihlaseni
             WHERE id_uzivatele = $0
             SQL, [0 => $idUzivatele]);
@@ -296,7 +296,7 @@ final class TrvalePrihlaseni
      */
     private static function ukonciZastarale(int $id, array $cookie): void
     {
-        dbQuery(<<<'SQL'
+        dbExecute(<<<'SQL'
             DELETE FROM uzivatele_trvala_prihlaseni
             WHERE id = $0 AND predchozi_token_hash = $1
             SQL, [0 => $id, 1 => self::hash($cookie['token'])]);
@@ -315,7 +315,7 @@ final class TrvalePrihlaseni
         if ($idTohotoZarizeni === []) {
             return;
         }
-        dbQuery(<<<'SQL'
+        dbExecute(<<<'SQL'
             DELETE FROM uzivatele_trvala_prihlaseni
             WHERE id IN ($0)
             SQL, [0 => $idTohotoZarizeni]);
@@ -446,7 +446,7 @@ final class TrvalePrihlaseni
         $selektor = $cookie['selektor'] ?? self::odvodSelektor($token, $sul);
         $novyToken = self::odvodToken($token, $sul);
         // Přiřazení jdou zleva, předchozí hash tedy dostane ještě ten starý.
-        $vymena = dbQuery(<<<'SQL'
+        $vymena = dbExecute(<<<'SQL'
             UPDATE uzivatele_trvala_prihlaseni
             SET predchozi_token_hash = token_hash,
                 token_hash = $1,
@@ -463,7 +463,7 @@ final class TrvalePrihlaseni
             3 => self::hash($token),
             4 => self::hash($selektor),
         ]);
-        if (dbAffectedOrNumRows($vymena) !== 1) {
+        if ($vymena !== 1) {
             return false;
         }
         // Počet výměn se mění jen s tokenem, a ten podmínka dotazu ověřila: přečtený počet tedy platil.

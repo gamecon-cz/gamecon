@@ -67,7 +67,7 @@ SQL;
                         : null;
                 }
                 try {
-                    self::$connection->query($initQuerySql, $params);
+                    self::$connection->execute($initQuerySql, $params);
                 } catch (\Throwable $throwable) {
                     static::tearDownAfterClass();
                     throw $throwable;
@@ -197,7 +197,7 @@ SQL;
     // například pro vypnutí kontroly "Field 'cena' doesn't have a default value"
     protected static function disableStrictTransTables()
     {
-        self::$connection->query(<<<SQL
+        self::$connection->execute(<<<SQL
 SET SESSION sql_mode = REGEXP_REPLACE(@@SESSION.sql_mode, 'STRICT_TRANS_TABLES,?', '')
 SQL,
         );
@@ -205,7 +205,7 @@ SQL,
 
     protected static function enableStrictTransTables()
     {
-        self::$connection->query(<<<SQL
+        self::$connection->execute(<<<SQL
 SET SESSION sql_mode = CONCAT_WS(',', @@SESSION.sql_mode, 'STRICT_TRANS_TABLES')
 SQL,
         );
@@ -239,7 +239,7 @@ SQL,
 
     protected function nazvySloupcuTabulky(string $tabulka): array
     {
-        $result = self::$connection->query(<<<SQL
+        $result = self::$connection->fetch(<<<SQL
 SHOW COLUMNS FROM {$tabulka}
 SQL,
         );

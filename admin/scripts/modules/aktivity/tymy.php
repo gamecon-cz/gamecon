@@ -37,7 +37,7 @@ if ($kontrolaAktivni) {
 }
 
 // Všechny teamové aktivity ročníku
-$aktivity = dbQuery(<<<SQL
+$aktivity = dbFetch(<<<SQL
     SELECT id_akce, nazev_akce, team_min, team_max, team_kapacita
     FROM akce_seznam
     WHERE rok = $0
