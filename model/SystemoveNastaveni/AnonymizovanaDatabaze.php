@@ -16,6 +16,32 @@ class AnonymizovanaDatabaze
     public const ADMIN_LOGIN    = 'admin';
     public const ADMIN_PASSWORD = 'admin';
 
+    /**
+     * Emptied in the anonymized copy, because nothing anonymizes them: they hold credentials,
+     * e-mail addresses, text typed by participants or user ids that the anonymization does not shift.
+     */
+    public const PRILIS_CITLIVE_TABULKY = [
+        '_vars',
+        'platby',
+        'akce_import',
+        'uzivatele_url',
+        'obnova_hesla_log',          // IP address that asked for a reset of which account
+        'google_api_user_tokens',    // OAuth tokens
+        'google_drive_dirs',
+        'uzivatele_slucovani_log',   // e-mail addresses of the merged accounts
+        'newsletter_prihlaseni',
+        'newsletter_prihlaseni_log',
+        'uzivatele_hodnoty_log',     // old and new values of personal data
+        'slevove_kody',
+        'akce_tym',                  // team names are typed by participants
+        'akce_tym_akce',
+        'akce_tym_prihlaseni',
+        'log_udalosti',              // messages with team names, metadata with participant ids
+        'slevy',                     // notes about who got which discount
+        'upominka_dluznika_log',     // debt per user
+        'upominka_vlastni_zneni',
+    ];
+
     public static function vytvorZGlobals(): self
     {
         global $systemoveNastaveni;
@@ -228,8 +254,7 @@ SQL,
         (new \MySQLImport($dbConnectionAnonymDb))->load($tempFile);
 
         mysqli_query($dbConnectionAnonymDb, "SET FOREIGN_KEY_CHECKS = 0");
-        // obnova_hesla_log: IP adresy, z nichž kdo žádal o obnovu hesla k jakému účtu
-        foreach (['_vars', 'platby', 'akce_import', 'uzivatele_url', 'obnova_hesla_log'] as $prilisCitlivaTabulka) {
+        foreach (self::PRILIS_CITLIVE_TABULKY as $prilisCitlivaTabulka) {
             mysqli_query($dbConnectionAnonymDb, "TRUNCATE TABLE `{$this->anonymniDatabaze}`.`$prilisCitlivaTabulka`");
         }
         mysqli_query($dbConnectionAnonymDb, "SET FOREIGN_KEY_CHECKS = 1");
