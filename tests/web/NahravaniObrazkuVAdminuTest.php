@@ -19,7 +19,9 @@ class NahravaniObrazkuVAdminuTest extends AbstractTestWeb
 
     private const int ID_VYPRAVECE = 9801;
     private const int ID_BEZ_PRAV = 9802;
-    /** jen právo ubytování, které stačí na záložku Uživatel; id role je stejné */
+    /**
+     * jen právo ubytování, které stačí na záložku Uživatel; id role je stejné
+     */
     private const int ID_UBYTOVANI = 9803;
     private const int ID_STRANKY = 9801;
     private const string URL_STRANKY = 'test-obrazky-v-adminu';
