@@ -139,7 +139,11 @@ class DbFetchExecuteTest extends AbstractTestDb
     {
         $query = 'WITH dve AS (SELECT 1 AS cislo UNION SELECT 2) SELECT cislo FROM dve ORDER BY cislo';
 
-        self::assertSame([['cislo' => '1'], ['cislo' => '2']], dbFetchAll($query));
+        self::assertSame([[
+            'cislo' => '1',
+        ], [
+            'cislo' => '2',
+        ]], dbFetchAll($query));
         self::assertSame('1', dbFetchSingle($query));
         self::assertSame(['1', '2'], dbFetchColumn($query));
         self::assertSame(['1', '2'], dbOneArray($query));

@@ -156,14 +156,14 @@ of new-stack work.
 
 ### Legacy and Doctrine share one connection and one transaction
 
-Legacy `dbQuery()` runs on the PDO of Doctrine's `doctrine.dbal.default_connection`, and
+Legacy `dbFetch()` and `dbExecute()` run on the PDO of Doctrine's `doctrine.dbal.default_connection`, and
 `dbBegin()`/`dbCommit()`/`dbRollback()` go through Doctrine's transaction API (nested levels
-are savepoints). So a test on `AbstractTestDb` can insert fixtures with legacy `dbQuery()` and
+are savepoints). So a test on `AbstractTestDb` can insert fixtures with legacy `dbExecute()` and
 read or write the same rows through a Doctrine repository inside the same test transaction.
 
 - Every kernel in the process gets the same connection instance (`App\Doctrine\SharedConnection`),
   and a kernel shutting down does not close it while a transaction is open.
-- Doctrine's identity map does not see legacy writes: after writing rows with `dbQuery()`, call
+- Doctrine's identity map does not see legacy writes: after writing rows with `dbExecute()`, call
   `entityManager()->clear()` before reading them as entities.
 - Read-only mode (`dbReadOnly()`) is the exception: it uses its own SELECT-only connection.
 - DDL (`CREATE`/`ALTER`/`DROP` of a non-temporary table) implicitly commits, which leaves
@@ -579,17 +579,17 @@ apply: what the detector calls alive is alive.
   // ✅ GOOD: Doctrine QueryBuilder
   $this->createQueryBuilder('product')->innerJoin('product.tags', 'tag')->where('tag.code = :tag')
   ```
-- **Nowdoc, not heredoc, unless a PHP variable is evaluated**: SQL written in PHP goes in a block labelled `SQL` (the IDE highlights and checks it, unlike a quoted string), migrations included (`$this->q(<<<'SQL'`). Use a `<<<'SQL'` nowdoc; an unquoted `<<<SQL` heredoc only for a block that really evaluates a PHP variable (`$name`, `{$expr}`), so a reader sees at a glance that a nowdoc is constant text and nothing gets interpolated by accident. The same holds for any other heredoc, not only SQL. The `$0`, `$1` placeholders of `dbQuery()` are **not** PHP variables, so such a query is still a nowdoc. A nowdoc does not process backslash escapes, so check a block that contains a `\` before converting it. Apply it to new code and to a query you touch anyway; do not retrofit untouched merged code unasked.
+- **Nowdoc, not heredoc, unless a PHP variable is evaluated**: SQL written in PHP goes in a block labelled `SQL` (the IDE highlights and checks it, unlike a quoted string), migrations included (`$this->q(<<<'SQL'`). Use a `<<<'SQL'` nowdoc; an unquoted `<<<SQL` heredoc only for a block that really evaluates a PHP variable (`$name`, `{$expr}`), so a reader sees at a glance that a nowdoc is constant text and nothing gets interpolated by accident. The same holds for any other heredoc, not only SQL. The `$0`, `$1` placeholders of `dbFetch()` and `dbExecute()` are **not** PHP variables, so such a query is still a nowdoc. A nowdoc does not process backslash escapes, so check a block that contains a `\` before converting it. Apply it to new code and to a query you touch anyway; do not retrofit untouched merged code unasked.
   ```php
-  // ✅ no PHP variable is evaluated, $0 and $1 are placeholders of dbQuery()
-  dbQuery(<<<'SQL'
+  // ✅ no PHP variable is evaluated, $0 and $1 are placeholders of dbExecute()
+  dbExecute(<<<'SQL'
   UPDATE uzivatele_hodnoty SET ubytovan_s = $0 WHERE id_uzivatele = $1
   SQL, [0 => $ubytovanS, 1 => $idUzivatele]);
   ```
 
 ### SQL in PHP Code
 - **Write SQL as a heredoc or nowdoc labelled `SQL`, never as a quoted string.** PhpStorm injects the SQL language into such a block unconditionally, so the query is highlighted and checked; in a quoted string it only sometimes is.
-- **`<<<'SQL'` (nowdoc) for queries with bound parameters** (`:name`, or the `$N` / `?` placeholders of the legacy `dbQuery()`), where nothing is interpolated. Use an unquoted `<<<SQL` heredoc only where a value really has to be interpolated, for example a raw step of a concurrent-transaction test.
+- **`<<<'SQL'` (nowdoc) for queries with bound parameters** (`:name`, or the `$N` / `?` placeholders of the legacy `dbFetch()` and `dbExecute()`), where nothing is interpolated. Use an unquoted `<<<SQL` heredoc only where a value really has to be interpolated, for example a raw step of a concurrent-transaction test.
 - The closing marker is indented like the surrounding code. This applies to one-line statements in tests and fixtures too. Existing heredocs with the marker at column 0 stay as they are until the code around them is touched.
 - **Example**:
   ```php
@@ -603,16 +603,18 @@ apply: what the detector calls alive is alive.
       ['days' => ArrayParameterType::INTEGER],
   );
   ```
-- **Pass a backed enum as a parameter as it is** (`'tag' => ProductTagCode::UBYTOVANI`), not `->value`. `EnumParameterMiddleware` converts it for every DBAL query, the DBAL QueryBuilder included (a string enum binds as a string, an int enum as an integer). ORM QueryBuilder and DQL parameters take an enum natively, and the legacy `dbQuery()` converts it too.
+- **Pass a backed enum as a parameter as it is** (`'tag' => ProductTagCode::UBYTOVANI`), not `->value`. `EnumParameterMiddleware` converts it for every DBAL query, the DBAL QueryBuilder included (a string enum binds as a string, an int enum as an integer). ORM QueryBuilder and DQL parameters take an enum natively, and the legacy `dbFetch()` and `dbExecute()` convert it too.
 
 ## SQL Query Parameter Preprocessing
 
 The GameCon project has a custom SQL preprocessing system (see `model/funkce/fw-database.php`):
 
+**Reading and writing:** `dbFetch($sql, $params)` runs a statement that returns rows and gives back a `PDOStatement`; `dbExecute($sql, $params)` runs one that changes data or state and gives back the number of affected rows. The caller says which, nothing is guessed from the text of the statement. There is no `dbQuery()` any more, and a test fails when a call of it reappears.
+
 **Parameter Placeholders:**
 - `$0, $1, $2...` - Indexed parameters in queries (not PHP variables, so the query stays a nowdoc, see SQL Coding Style)
 - `?` - Sequential placeholders (can be mixed with `$N`)
-- Parameters passed as second argument to `dbQuery()`
+- Parameters passed as second argument to `dbFetch()` / `dbExecute()`
 
 **Automatic Array Handling:**
 - When an array is passed as a parameter, `dbQv()` automatically calls `dbQa()`
@@ -623,7 +625,7 @@ The GameCon project has a custom SQL preprocessing system (see `model/funkce/fw-
 **Example:**
 ```php
 // This works correctly even when $ids is an empty array
-dbQuery(
+dbExecute(
     <<<'SQL'
     DELETE FROM table WHERE id NOT IN ($1)
     SQL,
