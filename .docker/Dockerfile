@@ -22,6 +22,8 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
       procps \
       # without it Imagick cannot decode SVG, and partner logos in SVG are thumbnailed through Imagick
       libmagickcore-7.q16-10-extra \
+      # libheif ships only AVIF decoders; without an encoder Imagick lists AVIF but fails to write it
+      libheif-plugin-aomenc \
     && rm -rf /var/lib/apt/lists/*
 
 FROM gamecon-runtime-step1 AS gamecon-runtime-step2
@@ -60,7 +62,9 @@ RUN set -eux; \
     apt-get purge -y --auto-remove; \
     rm -rf /var/lib/apt/lists/* /tmp/pear; \
     # PHP only warns and skips an extension whose library was purged, so check every one of them is loaded
-    php -r 'foreach (["mysqli", "pdo_mysql", "intl", "exif", "bcmath", "xml", "zip", "gd", "imagick"] as $extension) { if (!extension_loaded($extension)) { exit(1); } } exit(function_exists("imagecreatefromjpeg") ? 0 : 1);'
+    php -r 'foreach (["mysqli", "pdo_mysql", "intl", "exif", "bcmath", "xml", "zip", "gd", "imagick"] as $extension) { if (!extension_loaded($extension)) { exit(1); } } exit(function_exists("imagecreatefromjpeg") ? 0 : 1);'; \
+    # libheif loads its encoders at run time, so neither ldd above nor the extension check sees a purged one: write an image of each format
+    php -r 'foreach (["WEBP", "AVIF"] as $format) { $image = new Imagick(); $image->newImage(16, 16, "red"); $image->setImageFormat($format); if ($image->getImageBlob() === "") { exit(1); } }'
 
 RUN mkdir -p /var/log/php && chown -R www-data /var/log/php && chmod +w /var/log/php
 
