@@ -107,7 +107,7 @@ Z DbObjectu získáme děděním „zadarmo“ metody pro načítání z id, ře
 
 ### Složitější modely
 
-Ne každá třída v modelu ale musí dědit `DbObject` a odpovídat právě jedné tabulce. Některé třídy jako zdroj dat používají složitější dotaz (příkladem je třída `Aktivita`, dotaz je vidět v metodě `zWhere`). Jiné třídy nemusí mít obraz v databázi vůbec (příkladem je `Cenik`) nebo mohou uložení dat do databáze řešit vlastním způsobem (tj. že jeden objekt neodpovídá jednomu řádku nějaké tabulky či dotazu a třída dělá při uložení v databázi víc různých úprav – funguje tak např. `ShopUbytovani`).
+Ne každá třída v modelu ale musí dědit `DbObject` a odpovídat právě jedné tabulce. Některé třídy jako zdroj dat používají složitější dotaz (příkladem je třída `Aktivita`, dotaz je vidět v metodě `zWhere`). Jiné třídy nemusí mít obraz v databázi vůbec (příkladem je `Cenik`) nebo mohou uložení dat do databáze řešit vlastním způsobem (tj. že jeden objekt neodpovídá jednomu řádku nějaké tabulky či dotazu a třída dělá při uložení v databázi víc různých úprav).
 
 > Objektový návrh a relační databáze [jsou odlišné světy](https://en.wikipedia.org/wiki/Object-relational_impedance_mismatch) – databáze obsahuje tabulková data, zatímco objekty tvoří propojenou síť. Mapováním databáze na objekty 1 ku 1 bychom se připravili o mnoho výhod objektového programování, které v databázi neexistují. Z toho důvodu je preferovaný způsob navrhnout nejdřív objektový model a až následně způsob jeho uložení v databázi. Pokud to jde snadno, může být uložení 1 ku 1, pokud ne, přidají se pro čtení a zápis nějaké doplňující výpočty, které transformují data z/do databázového formátu.
 

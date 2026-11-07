@@ -15,11 +15,11 @@ class Pravo extends \DbObject
     protected static $pk      = 'id_prava';
 
     /**
-     * Konstanty jsou kopie SQL tabulky `r_prava_soupis`
+     * Konstanty jsou kopie SQL tabulky `r_prava_soupis`; název konstanty je `kod_prava` jejího řádku
+     * (hlídá to `PermissionCodeTest`). Nové právo se zakládá s kódem.
      */
     public const PORADANI_AKTIVIT                 = 4; // Uživatel může pořádat aktivity (je v nabídce pořadatelů aktivit a má v administraci nabídku „moje aktivity“)
     public const PREKRYVANI_AKTIVIT               = 5; // Smí mít zaregistrovaných víc aktivit v jeden čas
-    public const PLNY_SERVIS                      = 7; // Uživatele kompletně platí a zajišťuje GC
     public const ZMENA_HISTORIE_AKTIVIT           = 8; // Může přihlašovat a odhlašovat lidi z aktivit, které už proběhly
     public const PRIHLASOVANI_NA_DOSUD_NEOTEVRENE = 9; // Může přihlašovat a odhlašovat lidi z aktivit, které ještě nejsou Aktivované
 
@@ -73,8 +73,11 @@ class Pravo extends \DbObject
     public const JAKEKOLIV_TRICKO_ZDARMA                     = 1035;
     public const UBYTOVANI_NEDELNI_NOC_NABIZET               = 1036; // nedělní ubytování zobrazení a objednání
     public const UBYTOVANI_MUZE_OBJEDNAT_JEDNU_NOC           = 1037; // Může si objednat jenom jednu noc
-    public const MUZE_RUSIT_NAKUPY                           = 1038; // Může rušit nákupy uživatelů (šéf infa, financí...)
+    public const MUZE_RUSIT_NAKUPY                           = 1038; // Může rušit nákupy uživatelů (šéf infopultu, financí...)
     public const JEDNA_AKTIVITA_ZDARMA                       = 1039; // Jednu (nejdražší) aktivitu má zdarma.
+    public const MUZE_PRETIZIT_UBYTOVANI                     = 1040; // Smí ubytovat i do plné noci (šéf infopultu)
+    public const MUZE_ZAMYKAT_TYMY                           = 1041; // Smí zamknout a odemknout tým aktivity (šéf infopultu)
+    public const NEMUSI_POTVRZOVAT_NA_INFOPULTU              = 1042; // Při práci na infopultu nemusí potvrzovat chybějící materiály, nedoplatek a podobné (šéf infopultu)
 
     public static function dejIdsVsechPrav(): array
     {

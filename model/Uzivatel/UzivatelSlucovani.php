@@ -2,11 +2,19 @@
 
 namespace Gamecon\Uzivatel;
 
+use App\Service\PurchaseTransferService;
+use App\Structure\Sql\OrderItemSqlStructure;
+use Gamecon\SystemoveNastaveni\SystemoveNastaveni;
 use Uzivatel;
 use Gamecon\Uzivatel\SqlStruktura\UzivateleHodnotySqlStruktura as Sql;
 
 class UzivatelSlucovani
 {
+    public function __construct(
+        private readonly SystemoveNastaveni $systemoveNastaveni,
+    ) {
+    }
+
     /**
      * @param array<string, mixed> $zmeny páry sloupec => hodnota, které se mají upravit v novém uživateli
      */
@@ -54,8 +62,14 @@ class UzivatelSlucovani
             $odkazujiciTabulky = $this->najdiOdkazujiciTabulky();
 
             foreach ($odkazujiciTabulky as $tabulka) {
+                // Nákupy se přesouvají níž přes Doctrine, ať je vidí log nákupů.
+                if ($tabulka['table_name'] === OrderItemSqlStructure::_table) {
+                    continue;
+                }
                 $this->prevedDataVTabulce($tabulka['table_name'], $tabulka['column_name'], $idStarehoUzivatele, $idNovehoUzivatele);
             }
+            $this->systemoveNastaveni->getService(PurchaseTransferService::class)
+                ->transferAll($idStarehoUzivatele, $idNovehoUzivatele);
 
             // Smazání starého uživatele - FK CASCADE automaticky smaže související data
             dbQuery("DELETE FROM `uzivatele_hodnoty` WHERE `id_uzivatele` = $idStarehoUzivatele");
@@ -103,7 +117,7 @@ class UzivatelSlucovani
 
         $unikatniPole = [];
 
-        while ($row = $result->fetch_assoc()) {
+        while ($row = $result->fetch(\PDO::FETCH_ASSOC)) {
             $unikatniPole[] = $row['COLUMN_NAME'];
         }
 
@@ -121,7 +135,7 @@ class UzivatelSlucovani
      * uzivatele_role_podle_rocniku
      * akce_import
      * uzivatele_role
-     * google_api_user_tokens
+     * google_api_user_token
      * akce_seznam
      * akce_prihlaseni_log
      * uzivatele_url
@@ -135,7 +149,7 @@ class UzivatelSlucovani
      * hromadne_akce_log
      * uzivatele_role_log
      * mutex
-     * google_drive_dirs
+     * google_drive_dir
      * systemove_nastaveni_log
      * role_texty_podle_uzivatele
      * slevy
@@ -157,7 +171,7 @@ class UzivatelSlucovani
 
         $tabulky = [];
 
-        while ($row = $result->fetch_assoc()) {
+        while ($row = $result->fetch(\PDO::FETCH_ASSOC)) {
             $tabulky[] = $row;
         }
 

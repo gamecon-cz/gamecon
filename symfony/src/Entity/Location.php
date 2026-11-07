@@ -7,7 +7,6 @@ namespace App\Entity;
 use App\Repository\LocationRepository;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
-use Gamecon\Aktivita\Lokace;
 
 /**
  * Legacy @see Lokace

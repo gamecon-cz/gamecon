@@ -9,9 +9,6 @@ namespace App\Structure\Sql;
  */
 class UserUrlSqlStructure
 {
-    /**
-     * @see UserUrl
-     */
     public const _table = 'uzivatele_url';
 
     /**

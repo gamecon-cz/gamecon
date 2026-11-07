@@ -14,6 +14,7 @@ return ECSConfig::configure()
         __DIR__ . '/symfony/src',
         __DIR__ . '/symfony/config',
         __DIR__ . '/tests',
+        __DIR__ . '/symfony/tests',
         __DIR__ . '/model/Accounting',
         __DIR__ . '/model/BackgroundProcess',
         __DIR__ . '/model/Cache',

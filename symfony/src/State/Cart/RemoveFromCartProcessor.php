@@ -1,0 +1,71 @@
+<?php
+
+declare(strict_types=1);
+
+namespace App\State\Cart;
+
+use ApiPlatform\Metadata\Operation;
+use ApiPlatform\State\ProcessorInterface;
+use App\Dto\Cart\CartOutputDto;
+use App\Entity\OrderItem;
+use App\Entity\User;
+use App\Repository\UserRoleRepository;
+use App\Service\CartService;
+use App\Service\CurrentYearProviderInterface;
+use Doctrine\ORM\EntityManagerInterface;
+use Symfony\Bundle\SecurityBundle\Security;
+use Symfony\Component\HttpKernel\Exception\AccessDeniedHttpException;
+use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
+use Symfony\Contracts\Translation\TranslatorInterface;
+
+/**
+ * @implements ProcessorInterface<mixed, CartOutputDto>
+ */
+readonly class RemoveFromCartProcessor implements ProcessorInterface
+{
+    public function __construct(
+        private CartService $cartService,
+        private EntityManagerInterface $entityManager,
+        private UserRoleRepository $userRoleRepository,
+        private CurrentYearProviderInterface $currentYearProvider,
+        private Security $security,
+        private TranslatorInterface $translator,
+    ) {
+    }
+
+    public function process(mixed $data, Operation $operation, array $uriVariables = [], array $context = []): CartOutputDto
+    {
+        $user = $this->security->getUser();
+        assert($user instanceof User);
+
+        $itemId = (int) ($uriVariables['itemId'] ?? 0);
+        $item = $this->entityManager->find(OrderItem::class, $itemId);
+
+        if ($item === null) {
+            throw new NotFoundHttpException($this->translator->trans('cart.item_not_found', [
+                '%id%' => $itemId,
+            ], 'errors'));
+        }
+
+        if ($item->getCustomer()?->getId() !== $user->getId()) {
+            throw new AccessDeniedHttpException($this->translator->trans('cart.item_of_someone_else', [], 'errors'));
+        }
+
+        $cart = $item->getOrder();
+        if ($cart === null) {
+            throw new NotFoundHttpException($this->translator->trans('cart.item_without_order', [], 'errors'));
+        }
+
+        $roleMeanings = $this->userRoleRepository->getValidMeanings($user, $this->currentYearProvider->getCurrentYear());
+
+        // If item is part of a forced bundle, remove the whole bundle
+        $bundle = $item->getBundle();
+        if ($bundle !== null && $bundle->isMandatoryForUser($roleMeanings)) {
+            $this->cartService->removeBundle($cart, $bundle);
+        } else {
+            $this->cartService->removeItem($cart, $item, $roleMeanings);
+        }
+
+        return CartOutputDto::fromOrder($cart);
+    }
+}

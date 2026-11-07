@@ -39,12 +39,13 @@ SQL,
         $idRole = -random_int(100000, 999999);
         $kodRole = 'TEST_PREPNUTI_' . $idPrava . '_' . $unique;
         dbQuery(<<<SQL
-INSERT IGNORE INTO r_prava_soupis(id_prava, jmeno_prava, popis_prava)
-VALUES ($0, $1, 'test')
+INSERT IGNORE INTO r_prava_soupis(id_prava, kod_prava, jmeno_prava, popis_prava)
+VALUES ($0, $1, $2, 'test')
 SQL,
             [
                 0 => $idPrava,
-                1 => 'test_pravo_' . $idPrava,
+                1 => 'TEST_PRAVO_' . $idPrava,
+                2 => 'test_pravo_' . $idPrava,
             ],
         );
         dbQuery(<<<SQL

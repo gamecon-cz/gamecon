@@ -83,4 +83,9 @@ class PaymentEntityStructure
      * @see Payment::$madeBy
      */
     public const madeBy = 'madeBy';
+
+    /**
+     * @see Payment::$order
+     */
+    public const order = 'order';
 }
