@@ -446,7 +446,7 @@ class EshopImporter
      */
     private function upravProdukt(int $idProduktu, array $produkt): bool
     {
-        $zmeneno = dbAffectedOrNumRows(dbQuery(
+        $zmeneno = dbExecute(
             'UPDATE shop_predmety
              SET nazev = $1, cena_aktualni = $2, stav = $3, nabizet_do = $4, popis = $5, vedlejsi = $6,
                  breakfast_included = $7, archived_at = $8
@@ -462,7 +462,7 @@ class EshopImporter
                 7 => $produkt['snidane_v_cene'],
                 8 => $produkt['archivovano'],
             ],
-        )) > 0;
+        ) > 0;
 
         return $this->zapisVarianty($idProduktu, $produkt) || $zmeneno;
     }
@@ -492,11 +492,11 @@ class EshopImporter
             if (dbOneCol('SELECT 1 FROM product_variant WHERE code = $0', [
                 0 => $varianta['code'],
             ])) {
-                $zmeneno = dbAffectedOrNumRows(dbQuery(
+                $zmeneno = dbExecute(
                     'UPDATE product_variant SET name = $1, price = $3, capacity = $4, accommodation_day = $5, state = $6
                      WHERE code = $2 AND product_id = $0',
                     $hodnoty,
-                )) > 0 || $zmeneno;
+                ) > 0 || $zmeneno;
             } else {
                 dbQuery(
                     'INSERT INTO product_variant (product_id, name, code, price, capacity, accommodation_day, state, position)
@@ -510,14 +510,14 @@ class EshopImporter
             }
         }
 
-        $zmeneno = dbAffectedOrNumRows(dbQuery(
+        $zmeneno = dbExecute(
             'UPDATE product_variant SET state = $1 WHERE product_id = $0 AND code NOT IN ($2) AND state <> $1',
             [
                 0 => $idProduktu,
                 1 => ProductStateEnum::RETIRED->value,
                 2 => array_column($produkt['varianty'], 'code'),
             ],
-        )) > 0 || $zmeneno;
+        ) > 0 || $zmeneno;
 
         // A product sold as one variant still carries its day on its own row, where legacy reads it.
         dbQuery(
@@ -620,11 +620,11 @@ class EshopImporter
      */
     private function archivujChybejici(array $kodyProduktu): int
     {
-        return dbAffectedOrNumRows(dbQuery(
+        return dbExecute(
             'UPDATE shop_predmety SET archived_at = NOW() WHERE archived_at IS NULL AND kod_predmetu NOT IN ($0)',
             [
                 0 => $kodyProduktu,
             ],
-        ));
+        );
     }
 }

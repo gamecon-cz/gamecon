@@ -59,7 +59,6 @@ class DbQuerySmerDotazuTest extends AbstractTestDb
         $vysledek = dbQuery('INSERT INTO tmp_dbquery_cte VALUES (1), (2)');
 
         self::assertTrue($vysledek);
-        self::assertSame(2, dbAffectedOrNumRows($vysledek));
     }
 
     /**

@@ -184,7 +184,7 @@ SQL,
         int $idPredmetu,
         ProductTagCode $kategorie,
     ): void {
-        $vlozeni = dbQuery(
+        $vlozeni = dbExecute(
             'INSERT INTO product_product_tag (product_id, tag_id)
              SELECT $0, id FROM product_tag WHERE code = $1',
             [
@@ -194,7 +194,7 @@ SQL,
         );
         // Bez tagu v databázi vloží INSERT ... SELECT tiše nula řádků a předmět pak
         // nemá kategorii — spadne až vzdálená assertion.
-        if (dbAffectedOrNumRows($vlozeni) !== 1) {
+        if ($vlozeni !== 1) {
             throw new \LogicException('Tag ' . $kategorie->value . ' v databázi není');
         }
     }
