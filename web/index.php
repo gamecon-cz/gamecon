@@ -6,6 +6,7 @@ use Gamecon\Aktivita\TypAktivity;
 use Gamecon\Dev\SsoPrihlaseniZUrl;
 use Gamecon\Vyjimkovac\Vyjimkovac;
 use Gamecon\Web\Info;
+use Gamecon\Web\RobotsTxt;
 use Gamecon\XTemplate\XTemplate;
 
 require __DIR__ . '/../nastaveni/zavadec.php';
@@ -17,10 +18,17 @@ if (HTTPS_ONLY) {
 }
 omezCsrf();
 
+/** @var Gamecon\SystemoveNastaveni\SystemoveNastaveni $systemoveNastaveni */
+
+if (($_GET['req'] ?? '') === 'robots.txt') {
+    header('Content-Type: text/plain; charset=utf-8');
+    echo (new RobotsTxt($systemoveNastaveni->prostredi()))->obsah();
+
+    return;
+}
+
 $u = Uzivatel::zSession();
 SsoPrihlaseniZUrl::zpracuj($u);
-
-/** @var Gamecon\SystemoveNastaveni\SystemoveNastaveni $systemoveNastaveni */
 
 // Postupná migrace na Symfony: vybrané veřejné cesty obsluhuje Symfony
 // controller. Kernel bootujeme JEN pro tyhle cesty (jsou pro nepřihlášené
