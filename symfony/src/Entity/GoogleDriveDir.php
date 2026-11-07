@@ -12,7 +12,7 @@ use Doctrine\ORM\Mapping as ORM;
  * Google Drive directory mapping
  */
 #[ORM\Entity(repositoryClass: GoogleDriveDirRepository::class)]
-#[ORM\Table(name: 'google_drive_dirs')]
+#[ORM\Table(name: 'google_drive_dir')]
 #[ORM\UniqueConstraint(name: 'UNIQ_dir_id', columns: ['dir_id'])]
 #[ORM\UniqueConstraint(name: 'UNIQ_user_and_name', columns: ['user_id', 'original_name'])]
 #[ORM\Index(name: 'IDX_tag', columns: ['tag'])]

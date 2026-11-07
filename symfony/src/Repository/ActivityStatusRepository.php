@@ -22,31 +22,4 @@ class ActivityStatusRepository extends ServiceEntityRepository
     {
         parent::__construct($registry, ActivityStatus::class);
     }
-
-    public function save(ActivityStatus $entity, bool $flush = false): void
-    {
-        $this->getEntityManager()->persist($entity);
-
-        if ($flush) {
-            $this->getEntityManager()->flush();
-        }
-    }
-
-    public function remove(ActivityStatus $entity, bool $flush = false): void
-    {
-        $this->getEntityManager()->remove($entity);
-
-        if ($flush) {
-            $this->getEntityManager()->flush();
-        }
-    }
-
-    public function findByName(string $name): ?ActivityStatus
-    {
-        return $this->createQueryBuilder('as')
-            ->andWhere('as.nazev = :name')
-            ->setParameter('name', $name)
-            ->getQuery()
-            ->getOneOrNullResult();
-    }
 }

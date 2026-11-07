@@ -9,9 +9,6 @@ namespace App\Structure\Sql;
  */
 class UserMergeLogSqlStructure
 {
-    /**
-     * @see UserMergeLog
-     */
     public const _table = 'uzivatele_slucovani_log';
 
     /**

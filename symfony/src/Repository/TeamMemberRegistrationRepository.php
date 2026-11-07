@@ -23,24 +23,6 @@ class TeamMemberRegistrationRepository extends ServiceEntityRepository
         parent::__construct($registry, TeamMemberRegistration::class);
     }
 
-    public function save(TeamMemberRegistration $entity, bool $flush = false): void
-    {
-        $this->getEntityManager()->persist($entity);
-
-        if ($flush) {
-            $this->getEntityManager()->flush();
-        }
-    }
-
-    public function remove(TeamMemberRegistration $entity, bool $flush = false): void
-    {
-        $this->getEntityManager()->remove($entity);
-
-        if ($flush) {
-            $this->getEntityManager()->flush();
-        }
-    }
-
     public function findByUzivatelAndAktivita(int $idUzivatele, int $idAktivity): ?TeamMemberRegistration
     {
         return $this->createQueryBuilder('reg')
