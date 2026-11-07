@@ -1,0 +1,96 @@
+{
+    "name": "api-platform/state",
+    "description": "API Platform State component ",
+    "type": "library",
+    "keywords": [
+        "REST",
+        "GraphQL",
+        "API",
+        "JSON-LD",
+        "Hydra",
+        "JSONAPI",
+        "OpenAPI",
+        "HAL",
+        "Swagger"
+    ],
+    "homepage": "https://api-platform.com",
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "Kévin Dunglas",
+            "email": "kevin@dunglas.fr",
+            "homepage": "https://dunglas.fr"
+        },
+        {
+            "name": "API Platform Community",
+            "homepage": "https://api-platform.com/community/contributors"
+        }
+    ],
+    "require": {
+        "php": ">=8.2",
+        "api-platform/metadata": "^4.3",
+        "psr/container": "^1.0 || ^2.0",
+        "symfony/http-kernel": "^6.4.13 || ^7.0 || ^8.0",
+        "symfony/serializer": "^6.4 || ^7.0 || ^8.0",
+        "symfony/translation-contracts": "^3.0",
+        "symfony/deprecation-contracts": "^3.1"
+    },
+    "require-dev": {
+        "api-platform/serializer": "^4.3.12",
+        "api-platform/validator": "^4.3.1",
+        "phpunit/phpunit": "^11.5 || ^12.2",
+        "symfony/http-foundation": "^6.4.14 || ^7.0 || ^8.0",
+        "symfony/object-mapper": "^7.4 || ^8.0",
+        "symfony/type-info": "^7.4 || ^8.0",
+        "symfony/web-link": "^6.4 || ^7.1 || ^8.0",
+        "willdurand/negotiation": "^3.1"
+    },
+    "conflicts": {
+        "symfony/object-mapper": "<7.3.4"
+    },
+    "autoload": {
+        "psr-4": {
+            "ApiPlatform\\State\\": ""
+        },
+        "exclude-from-classmap": [
+            "/Tests/"
+        ]
+    },
+    "config": {
+        "preferred-install": {
+            "*": "dist"
+        },
+        "sort-packages": true,
+        "allow-plugins": {
+            "composer/package-versions-deprecated": true,
+            "phpstan/extension-installer": true
+        }
+    },
+    "extra": {
+        "branch-alias": {
+            "dev-main": "4.4.x-dev",
+            "dev-4.2": "4.2.x-dev",
+            "dev-3.4": "3.4.x-dev",
+            "dev-4.1": "4.1.x-dev"
+        },
+        "symfony": {
+            "require": "^6.4 || ^7.0 || ^8.0"
+        },
+        "thanks": {
+            "name": "api-platform/api-platform",
+            "url": "https://github.com/api-platform/api-platform"
+        }
+    },
+    "suggest": {
+        "symfony/web-link": "To support adding web links to the response headers.",
+        "symfony/http-foundation": "To use our HTTP providers and processor.",
+        "willdurand/negotiation": "To use the API Platform content negoatiation provider.",
+        "api-platform/serializer": "To use API Platform serializer.",
+        "api-platform/validator": "To use API Platform validation."
+    },
+    "scripts": {
+        "test": "./vendor/bin/phpunit"
+    },
+    "minimum-stability": "beta",
+    "prefer-stable": true
+}
