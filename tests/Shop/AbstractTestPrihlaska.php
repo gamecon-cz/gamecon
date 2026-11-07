@@ -75,7 +75,7 @@ abstract class AbstractTestPrihlaska extends AbstractTestDb
     protected function vytvorBeznehoUzivatele(): \Uzivatel
     {
         $unikat = uniqid();
-        dbQuery(<<<SQL
+        dbExecute(<<<SQL
 INSERT INTO uzivatele_hodnoty SET
     login_uzivatele = $0,
     email1_uzivatele = $1,
@@ -141,7 +141,7 @@ SQL,
             : $modelRok . '-01-01 00:00:00';
         $kodPredmetu = strtoupper(preg_replace('~[^A-Za-z0-9]+~', '_', $nazev)) . '_' . strtoupper(uniqid());
 
-        dbQuery(<<<SQL
+        dbExecute(<<<SQL
 INSERT INTO shop_predmety SET
     nazev = $0,
     kod_predmetu = $1,
@@ -162,7 +162,7 @@ SQL,
 
         $idPredmetu = dbInsertId();
         // Capacity lives on the variant with the product's code, as every catalog row has one.
-        dbQuery(
+        dbExecute(
             'INSERT INTO product_variant (product_id, name, code, capacity, position, state) VALUES ($0, $1, $2, $3, 0, $4)',
             [
                 0 => $idPredmetu,

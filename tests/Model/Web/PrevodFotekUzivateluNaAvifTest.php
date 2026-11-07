@@ -267,7 +267,7 @@ class PrevodFotekUzivateluNaAvifTest extends AbstractTestDb
         $this->ulozFotku(self::ID_FOTKY . '.jpg');
         $this->zapisAvifZ(self::ID_FOTKY . '.jpg', self::ID_FOTKY . '.avif');
         // text e-mailu, ve kterém odkaz hledá až dotaz nad všemi textovými sloupci
-        dbQuery(
+        dbExecute(
             'INSERT INTO emailova_sablona(kod, predmet, text) VALUES ($0, $1, $2)',
             ['test-prevod-fotek', 'Předmět', '<img src="https://gamecon.cz/soubory/systemove/fotky/' . $this->slozka() . '/' . self::ID_FOTKY . '.jpg">'],
         );
@@ -368,7 +368,7 @@ class PrevodFotekUzivateluNaAvifTest extends AbstractTestDb
 
     private function vlozStranku(string $text): void
     {
-        dbQuery(
+        dbExecute(
             'INSERT INTO stranky(id_stranky, url_stranky, obsah, poradi) VALUES ($0, $1, $2, 0)',
             [self::ID_STRANKY, 'test-prevod-fotek', $text],
         );

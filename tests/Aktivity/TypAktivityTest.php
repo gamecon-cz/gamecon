@@ -34,7 +34,7 @@ class TypAktivityTest extends AbstractTestDb
 
     private function nastavNazevLinie(int $idTypu, string $nazev): void
     {
-        dbQuery(<<<'SQL'
+        dbExecute(<<<'SQL'
 UPDATE akce_typy SET typ_1pmn = $1 WHERE id_typu = $2
 SQL, [$nazev, $idTypu]);
     }
@@ -46,7 +46,7 @@ SQL, [$nazev, $idTypu]);
             'obsah'       => $obsah,
             'poradi'      => 0,
         ]);
-        dbQuery(<<<'SQL'
+        dbExecute(<<<'SQL'
 UPDATE akce_typy SET stranka_o = $1 WHERE id_typu = $2
 SQL, [dbInsertId(), $idTypu]);
     }

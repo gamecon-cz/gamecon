@@ -23,7 +23,7 @@ class UzivatelSlucovaniNakupyTest extends AbstractTestDb
     {
         parent::setUp();
 
-        dbQuery(<<<'SQL'
+        dbExecute(<<<'SQL'
             INSERT INTO shop_predmety SET
                 id_predmetu = 78801,
                 nazev = 'Placka slučování',
@@ -34,7 +34,7 @@ class UzivatelSlucovaniNakupyTest extends AbstractTestDb
                 vedlejsi = 0,
                 popis = ''
             SQL);
-        dbQuery(<<<'SQL'
+        dbExecute(<<<'SQL'
             INSERT INTO product_variant (product_id, name, code, capacity, position, state)
             VALUES (78801, NULL, 'placka_slucovani', NULL, 0, 1)
             SQL);

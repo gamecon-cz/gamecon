@@ -19,7 +19,7 @@ class UpominkaDluznikaLog
         int $odeslal,
         \DateTimeInterface $kdy,
     ): void {
-        dbQuery(<<<SQL
+        dbExecute(<<<SQL
 INSERT INTO upominka_dluznika_log(id_uzivatele, typ_upominky, dluh, rocnik, odeslal, kdy)
 VALUES ($0, $1, $2, $3, $4, $5)
 SQL,

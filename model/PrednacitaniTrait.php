@@ -61,7 +61,7 @@ trait PrednacitaniTrait
         $kolekce      = $this->kolekce();
 
         // dotaz vracející dvojice: id zdroje => ids cílů oddělené čárkou
-        $q = dbQuery('
+        $q = dbFetch('
             SELECT
             ' . dbQi($zdrojSloupec) . ',
             GROUP_CONCAT(' . dbQi($cilSloupec) . ') as ' . dbQv($cilSloupec) . '

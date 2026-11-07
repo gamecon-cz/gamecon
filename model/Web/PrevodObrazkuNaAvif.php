@@ -462,7 +462,7 @@ final class PrevodObrazkuNaAvif
             $parametry[] = $text['puvodni'];
         }
 
-        $vysledek = dbQuery(
+        $zmeneno = dbExecute(
             sprintf(
                 <<<'SQL'
 UPDATE %1$s
@@ -478,7 +478,7 @@ SQL,
             $parametry,
         );
 
-        return dbAffectedOrNumRows($vysledek) > 0;
+        return $zmeneno > 0;
     }
 
     /**

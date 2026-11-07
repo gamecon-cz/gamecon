@@ -109,15 +109,15 @@ class AnonymizovanaDatabazeVRepozitariTest extends AbstractTestDb
         try {
             // like nastaveni/db-migrace.php: no database selected until it is created
             self::$spojeni = dbConnectTemporary(false);
-            dbQuery(sprintf(<<<'SQL'
+            dbExecute(sprintf(<<<'SQL'
                 DROP DATABASE IF EXISTS `%s`
-                SQL, DB_NAME), null, self::$spojeni);
-            dbQuery(sprintf(<<<'SQL'
+                SQL, DB_NAME), [], self::$spojeni);
+            dbExecute(sprintf(<<<'SQL'
                 CREATE DATABASE `%s` DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_czech_ci
-                SQL, DB_NAME), null, self::$spojeni);
-            dbQuery(sprintf(<<<'SQL'
+                SQL, DB_NAME), [], self::$spojeni);
+            dbExecute(sprintf(<<<'SQL'
                 USE `%s`
-                SQL, DB_NAME), null, self::$spojeni);
+                SQL, DB_NAME), [], self::$spojeni);
             $mysqli = dbConnectMysqli();
             try {
                 (new \MySQLImport($mysqli))->load(self::DUMP);

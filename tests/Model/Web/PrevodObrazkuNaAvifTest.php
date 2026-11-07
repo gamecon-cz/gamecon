@@ -141,7 +141,7 @@ class PrevodObrazkuNaAvifTest extends AbstractTestDb
         $this->vlozStranku(
             '![](' . $this->odkaz('ke-stazeni.jpg') . ') [stáhni](' . $this->odkaz('ke-stazeni.jpg') . ') ![](' . $this->odkaz('z-emailu.jpg') . ')',
         );
-        dbQuery(
+        dbExecute(
             'INSERT INTO emailova_sablona(kod, predmet, text) VALUES ($0, $1, $2)',
             ['test-prevod-avif', 'Předmět', '<img src="https://gamecon.cz/' . $this->odkaz('z-emailu.jpg') . '">'],
         );
@@ -357,7 +357,7 @@ class PrevodObrazkuNaAvifTest extends AbstractTestDb
         $this->zapisAvifZ('volny.jpg', 'volny.avif');
         // vybavení aktivity převod nepřepisuje, ale odkaz v něm by se po smazání rozbil
         $this->vlozAktivitu('Bez obrázku');
-        dbQuery('UPDATE akce_seznam SET vybaveni = $0 WHERE id_akce = $1', ['Přines ![](' . $this->odkaz('vybaveni.jpg') . ')', self::ID_AKTIVITY]);
+        dbExecute('UPDATE akce_seznam SET vybaveni = $0 WHERE id_akce = $1', ['Přines ![](' . $this->odkaz('vybaveni.jpg') . ')', self::ID_AKTIVITY]);
 
         $vysledek = $this->prevod()->smazPuvodni(true);
 
@@ -586,12 +586,12 @@ class PrevodObrazkuNaAvifTest extends AbstractTestDb
             $this->zapisAvifZ($soubor, str_replace('.jpg', '.avif', $soubor));
         }
         // zápisy, které rozbor odkazu nepozná: tečka za větou, název s mezerou a závorkou, zakódovaná diakritika, smíšené kódování
-        dbQuery(
+        dbExecute(
             'INSERT INTO emailova_sablona(kod, predmet, text) VALUES ($0, $1, $2)',
             ['test-prevod-avif', 'Předmět', "Podívej se na https://gamecon.cz/{$this->odkaz('mail.jpg')}. Díky, i na {$this->odkaz('můj%20obrázek.jpg')}"],
         );
         $this->vlozAktivitu('Bez obrázku');
-        dbQuery('UPDATE akce_seznam SET vybaveni = $0 WHERE id_akce = $1', ["Přines <img src='{$this->odkaz('vybaveni.jpg')}.' alt='x (1)'>", self::ID_AKTIVITY]);
+        dbExecute('UPDATE akce_seznam SET vybaveni = $0 WHERE id_akce = $1', ["Přines <img src='{$this->odkaz('vybaveni.jpg')}.' alt='x (1)'>", self::ID_AKTIVITY]);
         // stránka je známý zdroj textů, ale tenhle zápis (diakritika a mezera zakódované, závorky ne) zná jen kontrola všech sloupců
         $this->vlozStranku('<a href="' . $this->odkaz('m%C3%A1j.jpg') . '">odkaz</a> <a href="' . $this->odkaz('%C4%8D%20(2).jpg') . '">druhý</a>');
 
@@ -659,7 +659,7 @@ class PrevodObrazkuNaAvifTest extends AbstractTestDb
             $cesty[] = $cesta;
         }
         $text = implode(' ', array_map(static fn (string $zapis): string => '<img src="https://gamecon.cz/soubory/obsah/' . $zapis . '">', $zapisy));
-        dbQuery('INSERT INTO emailova_sablona(kod, predmet, text) VALUES ($0, $1, $2)', ['test-prevod-avif-davky', 'Předmět', $text]);
+        dbExecute('INSERT INTO emailova_sablona(kod, predmet, text) VALUES ($0, $1, $2)', ['test-prevod-avif-davky', 'Předmět', $text]);
         $prevod = $this->prevod();
         $sloupce = new \ReflectionMethod(PrevodObrazkuNaAvif::class, 'getSloupceKeKontrole');
         $najdi = new \ReflectionMethod(PrevodObrazkuNaAvif::class, 'najdiOdkazyVSloupcich');
@@ -769,7 +769,7 @@ class PrevodObrazkuNaAvifTest extends AbstractTestDb
 
     private function vlozStranku(string $text): void
     {
-        dbQuery(
+        dbExecute(
             'INSERT INTO stranky(id_stranky, url_stranky, obsah, poradi) VALUES ($0, $1, $2, 0)',
             [self::ID_STRANKY, 'test-prevod-avif', $text],
         );
@@ -777,7 +777,7 @@ class PrevodObrazkuNaAvifTest extends AbstractTestDb
 
     private function vlozNovinku(string $text): void
     {
-        dbQuery(
+        dbExecute(
             'INSERT INTO novinky(id, typ, vydat, url, nazev, autor, text) VALUES ($0, 2, NOW(), $1, $2, $3, $4)',
             [self::ID_NOVINKY, 'test-prevod-avif', 'Testovací blog', 'Autor', $text],
         );
@@ -785,7 +785,7 @@ class PrevodObrazkuNaAvifTest extends AbstractTestDb
 
     private function vlozAktivitu(string $popis): void
     {
-        dbQuery(
+        dbExecute(
             'INSERT INTO akce_seznam(id_akce, nazev_akce, url_akce, typ, rok, stav, popis, cena, kapacita, kapacita_f, kapacita_m)
 VALUES ($0, $1, $2, 1, $3, 2, $4, 0, 5, 0, 0)',
             [self::ID_AKTIVITY, 'Testovací aktivita', 'testovaci-aktivita-prevod-avif', ROCNIK, $popis],
@@ -794,11 +794,11 @@ VALUES ($0, $1, $2, 1, $3, 2, $4, 0, 5, 0, 0)',
 
     private function vlozMedailonek(string $oSobe, string $drd): void
     {
-        dbQuery(
+        dbExecute(
             'INSERT INTO uzivatele_hodnoty(id_uzivatele, login_uzivatele, jmeno_uzivatele, prijmeni_uzivatele, email1_uzivatele)
 VALUES ($0, $1, $2, $3, $4)',
             [self::ID_UZIVATELE, 'test-prevod-avif', 'Test', 'Vypravěč', 'test-prevod-avif@example.invalid'],
         );
-        dbQuery('INSERT INTO medailonky(id_uzivatele, o_sobe, drd) VALUES ($0, $1, $2)', [self::ID_UZIVATELE, $oSobe, $drd]);
+        dbExecute('INSERT INTO medailonky(id_uzivatele, o_sobe, drd) VALUES ($0, $1, $2)', [self::ID_UZIVATELE, $oSobe, $drd]);
     }
 }

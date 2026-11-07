@@ -122,7 +122,7 @@ class TrvalePrihlaseniTest extends AbstractTestDb
         $slabyHash = password_hash('stare-heslo', PASSWORD_BCRYPT, [
             'cost' => 4,
         ]);
-        dbQuery('UPDATE uzivatele_hodnoty SET heslo_md5 = $0 WHERE id_uzivatele = $1', [$slabyHash, $idUzivatele]);
+        dbExecute('UPDATE uzivatele_hodnoty SET heslo_md5 = $0 WHERE id_uzivatele = $1', [$slabyHash, $idUzivatele]);
         $login = dbOneCol('SELECT login_uzivatele FROM uzivatele_hodnoty WHERE id_uzivatele = $0', [$idUzivatele]);
 
         $prihlaseny = $this->bezVarovaniSession(static fn () => \Uzivatel::prihlas($login, 'stare-heslo'));
@@ -152,7 +152,7 @@ class TrvalePrihlaseniTest extends AbstractTestDb
     {
         self::assertSame(20, strlen($token));
 
-        dbQuery(
+        dbExecute(
             "INSERT INTO uzivatele_hodnoty SET
     login_uzivatele = $0,
     email1_uzivatele = $1,

@@ -35,7 +35,7 @@ $jidlaFiltr               = array_values(array_filter(array_map(
 $jidlaFiltrSql            = $jidlaFiltr
     ? "AND TRIM(predmety.nazev) IN ($2)"
     : '';
-$o                        = dbQuery(<<<SQL
+$o                        = dbFetch(<<<SQL
     SELECT
       uzivatele.id_uzivatele, uzivatele.login_uzivatele, predmety.nazev,
       FIELD(SUBSTRING(TRIM(predmety.nazev), POSITION(' ' IN TRIM(predmety.nazev)) + 1), 'středa', 'čtvrtek', 'pátek', 'sobota', 'neděle') AS poradi_dne,

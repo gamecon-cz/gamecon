@@ -72,14 +72,14 @@ class LetosniRoleEndlessMigraceTest extends AbstractTestDb
     {
         $puvodniRocnik = dbFetchSingle('SELECT @rocnik');
         if ($rocnikZPromenne !== null) {
-            dbQuery('SET @rocnik = $0', [
+            dbExecute('SET @rocnik = $0', [
                 0 => $rocnikZPromenne,
             ]);
         }
         try {
             (new Migration(__DIR__ . '/../../../migrace/' . $souborMigrace, $souborMigrace, dbConnect()))->apply();
         } finally {
-            dbQuery('SET @rocnik = $0', [
+            dbExecute('SET @rocnik = $0', [
                 0 => $puvodniRocnik,
             ]);
         }
@@ -90,13 +90,13 @@ class LetosniRoleEndlessMigraceTest extends AbstractTestDb
      */
     private function smazRole(array $idRoli): void
     {
-        dbQuery('DELETE FROM prava_role WHERE id_role IN ($0)', [
+        dbExecute('DELETE FROM prava_role WHERE id_role IN ($0)', [
             0 => $idRoli,
         ]);
-        dbQuery('DELETE FROM uzivatele_role WHERE id_role IN ($0)', [
+        dbExecute('DELETE FROM uzivatele_role WHERE id_role IN ($0)', [
             0 => $idRoli,
         ]);
-        dbQuery('DELETE FROM role_seznam WHERE id_role IN ($0)', [
+        dbExecute('DELETE FROM role_seznam WHERE id_role IN ($0)', [
             0 => $idRoli,
         ]);
     }

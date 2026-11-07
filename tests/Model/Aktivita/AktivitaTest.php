@@ -247,17 +247,17 @@ SQL,
      */
     public function prednacitanyProgramUkazeNeucastINaAktivituBezPrihlasenych(int $rok): void
     {
-        dbQuery(<<<'SQL'
+        dbExecute(<<<'SQL'
 INSERT INTO akce_seznam(id_akce, nazev_akce, rok) VALUES (10, 'nikdo nedorazil', $0), (11, 'někdo dorazil', $0)
 SQL, [
             0 => $rok,
         ]);
-        dbQuery(<<<'SQL'
+        dbExecute(<<<'SQL'
 INSERT INTO akce_prihlaseni(id_akce, id_uzivatele, id_stavu_prihlaseni) VALUES (11, 123, $0)
 SQL, [
             0 => StavPrihlaseni::PRIHLASEN_A_DORAZIL,
         ]);
-        dbQuery(<<<'SQL'
+        dbExecute(<<<'SQL'
 INSERT INTO akce_prihlaseni_spec(id_akce, id_uzivatele, id_stavu_prihlaseni) VALUES (10, 124, $0), (11, 124, $1)
 SQL, [
             0 => StavPrihlaseni::PRIHLASEN_ALE_NEDORAZIL,

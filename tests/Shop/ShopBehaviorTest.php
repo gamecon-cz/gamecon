@@ -66,7 +66,7 @@ SQL,
         $ubytovaniDenSql = $ubytovaniDen === null ? 'NULL' : $ubytovaniDen;
         $archivedAtSql = $archivedAt === null ? 'NULL' : "'{$archivedAt}'";
 
-        dbQuery("INSERT INTO shop_predmety SET
+        dbExecute("INSERT INTO shop_predmety SET
             id_predmetu = {$id},
             nazev = '{$nazev}',
             kod_predmetu = '{$kodPredmetu}',
@@ -79,11 +79,11 @@ SQL,
             archived_at = {$archivedAtSql}");
 
         // Assign tag
-        dbQuery("INSERT INTO product_product_tag (product_id, tag_id)
+        dbExecute("INSERT INTO product_product_tag (product_id, tag_id)
             SELECT {$id}, id FROM product_tag WHERE code = '{$tagCode}'");
 
         // Capacity lives on the variant with the product's code, as every catalog row has one.
-        dbQuery("INSERT INTO product_variant (product_id, name, code, capacity, accommodation_day, position, state)
+        dbExecute("INSERT INTO product_variant (product_id, name, code, capacity, accommodation_day, position, state)
             VALUES ({$id}, NULL, '{$kodPredmetu}', {$kusuVyrobenoSql}, {$ubytovaniDenSql}, 0, {$stav})");
     }
 
@@ -135,21 +135,21 @@ SQL,
                     archivedAt: "{$minulyRocnik}-12-31 23:59:59");
 
                 // Purchases for user 77701 — one of each relevant type
-                dbQuery('INSERT INTO shop_nakupy(id_uzivatele, variant_id, rok, cena_nakupni, datum)
+                dbExecute('INSERT INTO shop_nakupy(id_uzivatele, variant_id, rok, cena_nakupni, datum)
                     VALUES (77701, ' . sprintf(self::SQL_VARIANTA_RADKU, 77711) . ", {$rocnik}, 50, NOW())");  // predmet
-                dbQuery('INSERT INTO shop_nakupy(id_uzivatele, variant_id, rok, cena_nakupni, datum)
+                dbExecute('INSERT INTO shop_nakupy(id_uzivatele, variant_id, rok, cena_nakupni, datum)
                     VALUES (77701, ' . sprintf(self::SQL_VARIANTA_RADKU, 77713) . ", {$rocnik}, 100, NOW())"); // ubytovani
-                dbQuery('INSERT INTO shop_nakupy(id_uzivatele, variant_id, rok, cena_nakupni, datum)
+                dbExecute('INSERT INTO shop_nakupy(id_uzivatele, variant_id, rok, cena_nakupni, datum)
                     VALUES (77701, ' . sprintf(self::SQL_VARIANTA_RADKU, 77715) . ", {$rocnik}, 250, NOW())"); // tricko
-                dbQuery('INSERT INTO shop_nakupy(id_uzivatele, variant_id, rok, cena_nakupni, datum)
+                dbExecute('INSERT INTO shop_nakupy(id_uzivatele, variant_id, rok, cena_nakupni, datum)
                     VALUES (77701, ' . sprintf(self::SQL_VARIANTA_RADKU, 77716) . ", {$rocnik}, 120, NOW())"); // jidlo
-                dbQuery('INSERT INTO shop_nakupy(id_uzivatele, variant_id, rok, cena_nakupni, datum)
+                dbExecute('INSERT INTO shop_nakupy(id_uzivatele, variant_id, rok, cena_nakupni, datum)
                     VALUES (77701, ' . sprintf(self::SQL_VARIANTA_RADKU, 77718) . ", {$rocnik}, 200, NOW())"); // vstupne
 
                 // Purchases for user 77702 — predmet + jidlo, no ubytovani
-                dbQuery('INSERT INTO shop_nakupy(id_uzivatele, variant_id, rok, cena_nakupni, datum)
+                dbExecute('INSERT INTO shop_nakupy(id_uzivatele, variant_id, rok, cena_nakupni, datum)
                     VALUES (77702, ' . sprintf(self::SQL_VARIANTA_RADKU, 77711) . ", {$rocnik}, 50, NOW())");  // predmet
-                dbQuery('INSERT INTO shop_nakupy(id_uzivatele, variant_id, rok, cena_nakupni, datum)
+                dbExecute('INSERT INTO shop_nakupy(id_uzivatele, variant_id, rok, cena_nakupni, datum)
                     VALUES (77702, ' . sprintf(self::SQL_VARIANTA_RADKU, 77716) . ", {$rocnik}, 120, NOW())"); // jidlo
             },
         ];
