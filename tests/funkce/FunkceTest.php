@@ -140,7 +140,6 @@ class FunkceTest extends TestCase
             // must be preview.
             'ostra root'         => ['gamecon.cz', false],
             'ostra admin'        => ['admin.gamecon.cz', false],
-            'ostra cache'        => ['cache.gamecon.cz', false],
             'beta'               => ['beta.gamecon.cz', false],
             'beta admin'         => ['admin.beta.gamecon.cz', false],
             'archive year 2024'  => ['2024.gamecon.cz', false],

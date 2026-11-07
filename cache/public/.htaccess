@@ -1,11 +1,13 @@
 Allow from all
 
 <IfModule mod_headers.c>
-    # CORS — cache subdomain serves static files cross-origin to the main domain
+    # CORS — admin je na jiném jménu než web a čte odsud JSON programu. Přesměrování z cache.* sem (ansible, role caddy)
+    # navíc posílá druhý požadavek s Origin: null, takže hlavička s jedním konkrétním původem nestačí
     Header always set Access-Control-Allow-Origin "*"
 </IfModule>
 
-# bez tohoto nefunguje kořenová url na wedosu
+# Zruší RewriteRule z kořenového .htaccess (.* → web/$0). Bez toho by se soubory odsud předávaly do PHP
+# a přestaly by fungovat css, js a obrázky webu i adminu
 RewriteEngine On
 
 <IfModule mod_mime.c>
