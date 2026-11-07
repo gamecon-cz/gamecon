@@ -42,9 +42,9 @@ class InfoTest extends TestCase
     {
         $info = $this->vytvorInfo()
             ->url('https://gamecon.cz/novinky')
-            ->kanonickyParametr('start', 20);
+            ->setKanonickyParametr('start', 20);
 
-        self::assertSame('https://gamecon.cz/novinky?start=20', $info->kanonickaUrl());
+        self::assertSame('https://gamecon.cz/novinky?start=20', $info->getKanonickaUrl());
         self::assertStringContainsString('<link rel="canonical" href="https://gamecon.cz/novinky?start=20">', $info->html());
     }
 
@@ -55,8 +55,8 @@ class InfoTest extends TestCase
     {
         $info = $this->vytvorInfo()
             ->url('https://gamecon.cz/aktivity')
-            ->kanonickyParametr('rocnik', 2024)
-            ->kanonickyParametr('start', 20);
+            ->setKanonickyParametr('rocnik', 2024)
+            ->setKanonickyParametr('start', 20);
 
         self::assertStringContainsString(
             '<link rel="canonical" href="https://gamecon.cz/aktivity?rocnik=2024&amp;start=20">',
@@ -71,7 +71,7 @@ class InfoTest extends TestCase
      */
     public function kanonickaAdresaZCestyJeBezKoncovehoLomitka(string $zakladniUrl, string $cesta, string $ocekavanaUrl): void
     {
-        self::assertSame($ocekavanaUrl, Info::kanonickaUrlZCesty($zakladniUrl, $cesta));
+        self::assertSame($ocekavanaUrl, Info::getKanonickaUrlZCesty($zakladniUrl, $cesta));
     }
 
     public static function provideKanonickeAdresyZCesty(): array

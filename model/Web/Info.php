@@ -35,7 +35,7 @@ class Info
         if ($e = $this->nazev()) {
             $o[] = '<meta property="og:title" content="' . $e . '">';
         }
-        if ($e = $this->kanonickaUrl()) {
+        if ($e = $this->getKanonickaUrl()) {
             $e   = htmlspecialchars($e);
             $o[] = '<meta property="og:url" content="' . $e . '">';
             $o[] = '<link rel="canonical" href="' . $e . '">';
@@ -154,14 +154,14 @@ class Info
      * A query parameter that selects different content (a past year, a page of a list), so the canonical address keeps it.
      * Any other parameter (tracking, language switch) is not part of the canonical address.
      */
-    public function kanonickyParametr(string $nazev, string|int $hodnota): static
+    public function setKanonickyParametr(string $nazev, string|int $hodnota): static
     {
         $this->kanonickyDotaz[$nazev] = $hodnota;
 
         return $this;
     }
 
-    public function kanonickaUrl(): ?string
+    public function getKanonickaUrl(): ?string
     {
         if (! $this->url) {
             return null;
@@ -175,7 +175,7 @@ class Info
     /**
      * One address per page: no trailing slash (the home page keeps the single one), whatever way it was requested.
      */
-    public static function kanonickaUrlZCesty(string $zakladniUrl, string $cesta): string
+    public static function getKanonickaUrlZCesty(string $zakladniUrl, string $cesta): string
     {
         return rtrim($zakladniUrl, '/') . '/' . trim($cesta, '/');
     }
