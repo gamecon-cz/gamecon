@@ -6,6 +6,11 @@ RewriteEngine       On
 RewriteCond %{REQUEST_FILENAME} !-f
 RewriteRule .* index.php?req=$0 [L,QSA]
 
+<IfModule mod_mime.c>
+    # typ obrázků nezávisle na tabulce typů té které verze Apache, stejně jako v cache/public/.htaccess
+    AddType image/avif .avif
+</IfModule>
+
 <IfModule mod_expires.c>
     ExpiresActive On
     ExpiresByType font/woff2 "access 1 year"
