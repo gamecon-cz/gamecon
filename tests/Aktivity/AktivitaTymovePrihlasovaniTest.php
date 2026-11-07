@@ -69,8 +69,7 @@ class AktivitaTymovePrihlasovaniTest extends AbstractUzivatelTestDb
             $this->clen2 = self::prihlasenyUzivatel();
 
             // Clear Doctrine identity map to avoid stale entities from previous test
-            $this->systemoveNastaveni->kernel()->getContainer()
-                ->get('doctrine.orm.entity_manager')->clear();
+            $this->systemoveNastaveni->getService('doctrine.orm.entity_manager')->clear();
         } catch (\Throwable $throwable) {
             $this->tearDown();
             throw $throwable;
@@ -83,7 +82,7 @@ class AktivitaTymovePrihlasovaniTest extends AbstractUzivatelTestDb
      */
     private function zalozTymSCestou(\Uzivatel $kapitan): AktivitaTym
     {
-        $entityManager = $this->systemoveNastaveni->kernel()->getContainer()->get('doctrine.orm.entity_manager');
+        $entityManager = $this->systemoveNastaveni->getService('doctrine.orm.entity_manager');
         $activityRepo = $entityManager->getRepository(\App\Entity\Activity::class);
 
         $tym = AktivitaTym::zalozPrazdnyTym($kapitan->id(), $this->ctvrtfinale->id(), true);

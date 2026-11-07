@@ -25,6 +25,7 @@
     <testsuites>
         <testsuite name="all">
             <directory>./tests</directory>
+            <directory>./symfony/tests</directory>
         </testsuite>
     </testsuites>
     <source restrictDeprecations="true" restrictNotices="true" restrictWarnings="true">

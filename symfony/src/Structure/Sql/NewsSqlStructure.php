@@ -9,9 +9,6 @@ namespace App\Structure\Sql;
  */
 class NewsSqlStructure
 {
-    /**
-     * @see News
-     */
     public const _table = 'novinky';
 
     /**
