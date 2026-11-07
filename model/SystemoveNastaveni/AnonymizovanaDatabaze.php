@@ -41,6 +41,7 @@ class AnonymizovanaDatabaze
         'upominka_dluznika_log',     // debt per user
         'upominka_vlastni_zneni',
         'uzivatele_trvala_prihlaseni', // hashes of persistent login tokens
+        'shop_order_item_log',       // no foreign keys, so its user ids are not shifted, and they are also inside the JSON
     ];
 
     public static function vytvorZGlobals(): self

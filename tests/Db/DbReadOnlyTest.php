@@ -60,8 +60,8 @@ class DbReadOnlyTest extends AbstractTestDb
     }
 
     /**
-     * The persistent connection is reused by the following requests; had it become read-only,
-     * the whole application would have been read-only for everyone.
+     * The shared connection is what Doctrine writes through; had it become read-only,
+     * nothing after the report could write for the rest of the request.
      */
     public function testSdileneSpojeniNikdyNeniReadOnly(): void
     {
@@ -151,7 +151,7 @@ class DbReadOnlyTest extends AbstractTestDb
             try {
                 self::assertSame(1, (int) dbOneCol('SELECT @@tx_read_only', null, $docasneSpojeni));
             } finally {
-                mysqli_close($docasneSpojeni);
+                $docasneSpojeni = null;
             }
         });
     }

@@ -44,7 +44,7 @@ $o = dbQuery(
     WHERE role.id_role = $0',
     [0 => $role]
 );
-while (($r = mysqli_fetch_assoc($o)) && $r[PravoSqlStruktura::ID_PRAVA]) {
+while (($r = $o->fetch(PDO::FETCH_ASSOC)) && $r[PravoSqlStruktura::ID_PRAVA]) {
     $r[PravoSqlStruktura::JMENO_PRAVA] = nahradPlaceholderyZaNastaveni($r[PravoSqlStruktura::JMENO_PRAVA]);
     $t->assign($r);
     if ($u->maPravoNaPrirazeniRole($r[RoleSqlStruktura::ID_ROLE]) && $u->maPravo(Pravo::ZMENA_PRAV)) {
@@ -64,7 +64,7 @@ if ($u->maPravoNaPrirazeniRole((int)$role) && $u->maPravo(Pravo::ZMENA_PRAV)) {
     ORDER BY p.jmeno_prava',
         [$role]
     );
-    while ($r = mysqli_fetch_assoc($o)) {
+    while ($r = $o->fetch(PDO::FETCH_ASSOC)) {
         $r[PravoSqlStruktura::JMENO_PRAVA] = nahradNazvyKonstantZaHodnoty($r[PravoSqlStruktura::JMENO_PRAVA]);
         $t->assign($r);
         $t->parse('pravaJedneRole.akce.pravoVyber');

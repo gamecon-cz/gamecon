@@ -555,7 +555,7 @@ $sablony['bfgr_report_chyba'] = [
         . '<p>S pozdravem,<br>GameCon systém</p>',
 ];
 
-$uvozovkyKRetezci = fn(string $retezec): string => "'" . $this->connection->real_escape_string($retezec) . "'";
+$uvozovkyKRetezci = fn(string $retezec): string => $this->connection->quote($retezec);
 
 foreach ($sablony as $kod => $sablona) {
     $kodSql     = $uvozovkyKRetezci($kod);

@@ -17,7 +17,7 @@ $dbWrapper->resetTestDb();
  * pokud chceš vyřadit STRICT_TRANS_TABLES (potlačit "Field 'nazev_akce' doesn't have a default value"), použij @see \Gamecon\Tests\Db\DbTest::$disableStrictTransTables
  * Inspirace @see \Gamecon\Tests\Aktivity\AktivitaTagyTest::setUpBeforeClass
  */
-mysqli_report(MYSQLI_REPORT_ERROR | MYSQLI_REPORT_STRICT);
+// PDO error mode is set in _dbConnect() via \PDO::ATTR_ERRMODE => \PDO::ERRMODE_EXCEPTION
 AbstractTestDb::setConnection($dbWrapper);
 
 /* vynutíme reconnect, hlavně kvůli nastavení ROCNIK v databázi, @see \dbConnect */
@@ -29,13 +29,19 @@ register_shutdown_function(static function () {
 
     // force stop any remaining processes running on test DB
     $fullProcessList = dbFetchAll('SHOW FULL PROCESSLIST');
-    $testDbProcesses = array_filter($fullProcessList, static fn (array $process) => $process['db'] === DB_NAME);
+    $vlastniId = dbOneCol('SELECT CONNECTION_ID()', null, $connection);
+    $testDbProcesses = array_filter(
+        $fullProcessList,
+        // killing its own connection leaves the DROP below on a dead connection
+        static fn (array $process) => $process['db'] === DB_NAME && (string) $process['Id'] !== (string) $vlastniId,
+    );
     $testDbProcessIds = array_map(static fn (array $process) => $process['Id'], $testDbProcesses);
     foreach ($testDbProcessIds as $testDbProcessId) {
         try {
             dbQuery(<<<SQL
             KILL {$testDbProcessId}
             SQL,
+                null,
                 $connection,
             );
         } catch (\DbConnectionKilledException|\MysqlServerHasGoneAwayException $dbExcetion) {
