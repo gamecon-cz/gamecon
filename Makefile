@@ -5,17 +5,17 @@ MAKEFLAGS += --no-print-directory # to disable "make: Entering directory ..." me
 init:
 	which docker > /dev/null || (echo "Please install docker binary" && exit 1)
 	./bin/install-git-hooks.sh
-	if command -v direnv &> /dev/null; then \
+	# /bin/sh is dash on Debian and Ubuntu, where "&>" backgrounds the command instead of silencing it
+	if command -v direnv > /dev/null 2>&1; then \
 		[ -f .envrc ] || cp .envrc.dist .envrc; \
 		direnv allow; \
 	fi
 	docker compose up -d
-	# has to explicitly use direnv exec to use the freshly allowed .envrc in current prompt instance
-	direnv exec bin-docker/composer install
+	./bin-docker/composer install
 	# install ui deps before building — restores a wiped/incomplete ui/node_modules
 	# (e.g. after a hard reset mid-install), otherwise the build fails with "tsc: not found"
-	direnv exec bin-docker/yarn install --frozen-lockfile
-	direnv exec bin-docker/yarn build
+	./bin-docker/yarn install --frozen-lockfile
+	./bin-docker/yarn build
 	@make cache
 	@echo 'Gamecon initialized ✅'
 
