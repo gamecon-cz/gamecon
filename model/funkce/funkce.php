@@ -1088,7 +1088,7 @@ function jsmeNaBete(): bool
     return $definedHost !== null
         && in_array(
             $definedHost,
-            ['beta.gamecon.cz', 'admin.beta.gamecon.cz', 'cache.beta.gamecon.cz'],
+            ['beta.gamecon.cz', 'admin.beta.gamecon.cz'],
             true,
         );
 }
@@ -1120,7 +1120,7 @@ function jsmeNaOstre(): bool
         && (
             in_array(
                 $definedHost,
-                ['gamecon.cz', 'admin.gamecon.cz', 'cache.gamecon.cz'],
+                ['gamecon.cz', 'admin.gamecon.cz'],
                 true,
             )
             || preg_match('~(?<rocnik>[0-9]{4})[.]gamecon[.]cz$~', $definedHost)

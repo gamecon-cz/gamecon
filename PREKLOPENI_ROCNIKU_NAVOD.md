@@ -6,11 +6,11 @@ Přihlaš se přes SSH na gamecon.cz server
 ssh gamecon.cz
 ```
 
-Zkopíruj ostrou do zálohy
+Zkopíruj ostrou do zálohy. Kontejner archivu z ní čte nahraný obsah `web/soubory/obsah` a `web/soubory/systemove`, který v gitu není
 
 ```bash
-cp -r -L /srv/www/ostra /srv/www/2024
-chown -R www-data:www-data /srv/www/2024
+cp -r -L /srv/www/ostra /srv/www/STARY_ROCNIK
+chown -R www-data:www-data /srv/www/STARY_ROCNIK
 ```
 
 Vytvoř zálohu databáze
@@ -31,62 +31,28 @@ _Záloha {STARY_ROCNIK}_
 
 ---
 
-Přidej novou databázi `gamecon_STARY_ROCNIK` a subdoménu `STARY_ROCNIK.gamecon.cz` do [Gamecon Ansible](https://github.com/gamecon-cz/ansible)
-```bash
-ansible-vault edit secrets.yaml
-```
+**ARCHIVACE STARÉHO ROČNÍKU**
 
-Spusť [Ansible playbook](https://github.com/gamecon-cz/ansible) ze své lokální kopie pro vytvoření nového ročníku
+Kód starého ročníku neběží z té kopie, ale jako Docker kontejner na adrese
+`https://STARY_ROCNIK.gamecon.cz/`, postavený z větve `archive/STARY_ROCNIK`
+(viz [`Dockerfile.archive`](./Dockerfile.archive) a workflow [`deploy-year-archive.yml`](./.github/workflows/deploy-year-archive.yml)).
+Admin je pod cestou `/admin` a css, js a obrázky pod cestou `/cache/public` téhož jména, takže `admin.STARY_ROCNIK.gamecon.cz`
+ani `cache.STARY_ROCNIK.gamecon.cz` (a jejich certifikáty) se nezakládají.
 
-```bash
-./deploy.sh
-```
+Větev `archive/STARY_ROCNIK` vytvoř z posledního commitu `main`, který má ještě starý ROCNIK, tedy před zmergováním
+PR s novým ROCNIKem (viz níže). Jak ji upravit, ukazují předchozí archivní větve
+(`git log origin/main..origin/archive/POSLEDNI_ARCHIVOVANY_ROCNIK`) a v repozitáři
+[Gamecon Ansible](https://github.com/gamecon-cz/ansible) `docs/year-archive-plan.md` a role `year_archive_deployer`.
+Databázi `gamecon_STARY_ROCNIK` s uživatelem založí při nasazení deploy skript.
 
-Nahraj zálohu databáze na nově vytvořenou databázi
+Nahraj do té databáze zálohu
 
 ```bash
 mysql -u root "gamecon_STARY_ROCNIK" < "gamecon_STARY_ROCNIK_YYYY-DD-MM-HH-ii-ss-dump.sql"
 ```
 
-Uprav domény
-v `/srv/www/2024/nastaveni/verejne-nastaveni-produkce.php`
-
-```bash
-define('URL_WEBU', 'https://STARY_ROCNIK.gamecon.cz');
-define('URL_ADMIN', 'https://admin.STARY_ROCNIK.gamecon.cz');
-define('URL_CACHE', 'https://cache.STARY_ROCNIK.gamecon.cz');
-```
-
-Uprav přístupy
-v `/srv/www/2024/nastaveni/nastaveni-produkce.php`
-
-```bash
-// uživatel se základním přístupem
-define('DB_USER', 'gamecon_STARY_ROCNIK');
-define('DB_PASS', 'HESLO_K_DATABAZI_gamecon_STARY_ROCNIK');
-define('DB_NAME', 'gamecon_STARY_ROCNIK');
-define('DB_SERV', 'localhost');
-
-// uživatel s přístupem k změnám struktury
-define('DBM_USER', '');
-define('DBM_PASS', '');
-
-// ...
-define('FIO_TOKEN', '');
-define('VAROVAT_O_ZASEKLE_SYNCHRONIZACI_PLATEB', false);
-
-define('CRON_KEY', '');
-define('GOOGLE_API_CREDENTIALS', '');
-```
-Vygeneruj si certifikáty pro starý ročník
-```bash
-certbot certonly --webroot
-```
-, domény `STARY_ROCNIK.gamecon.cz admin.STARY_ROCNIK.gamecon.cz cache.STARY_ROCNIK.gamecon.cz`,
-cesta na serveru `/run/certbot`
-
-Ověř, že záloha webu funguje na adrese [https://{STARY\_ROCNIK}.gamecon.cz/](https://stary_rocnik.gamecon.cz/)
-a [https://admin.{STARY\_ROCNIK}.gamecon.cz/](https://admin.stary_rocnik.gamecon.cz/)
+Ověř, že archiv funguje na adrese [https://{STARY\_ROCNIK}.gamecon.cz/](https://stary_rocnik.gamecon.cz/)
+a [https://{STARY\_ROCNIK}.gamecon.cz/admin](https://stary_rocnik.gamecon.cz/admin)
 
 **PŘÍPRAVA NOVÉHO ROČNÍKU**
 
