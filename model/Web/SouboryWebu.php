@@ -16,7 +16,7 @@ final class SouboryWebu
      * Každá složka přijímá všechno, co stránka přijímá: složku si organizátor vybírá podle toho, kam soubor patří,
      * ne podle jeho typu.
      */
-    public const FORMATY = [...NahravaniObrazku::DOKUMENTY, ...NahravaniObrazku::WEBOVE_OBRAZKY];
+    public const FORMATY = [...NahravaniObrazku::DOKUMENTY, ...NahravaniObrazku::RASTROVE_FORMATY];
 
     /**
      * Složky v `soubory/obsah`, název složky => k čemu slouží. Obrázky e-shopu (`materialy/<ročník>/eshop`) mají

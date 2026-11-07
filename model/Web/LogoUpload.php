@@ -26,7 +26,30 @@ final class LogoUpload
 
     public static function jePodporovanaPripona(string $pripona): bool
     {
-        return in_array(mb_strtolower($pripona), self::POVOLENE_PRIPONY, true);
+        return in_array(mb_strtolower($pripona), self::getPovolenePripony(), true);
+    }
+
+    /**
+     * Loga se zobrazují přes @see \Nahled, takže AVIF jen tam, kde ho ImageMagick přečte správně i s průhledností.
+     *
+     * @return list<string>
+     */
+    public static function getPovolenePripony(): array
+    {
+        return ImagickAvif::isAvifWritable(true)
+            ? [...self::POVOLENE_PRIPONY, 'avif']
+            : self::POVOLENE_PRIPONY;
+    }
+
+    public static function getPopisFormatu(): string
+    {
+        return implode(', ', array_map(
+            static fn (string $pripona): string => match ($pripona) {
+                'webp'  => 'WebP',
+                default => strtoupper($pripona),
+            },
+            array_values(array_diff(self::getPovolenePripony(), ['jpeg'])),
+        ));
     }
 
     public static function hostZUrlProNazevSouboru(string $url): string

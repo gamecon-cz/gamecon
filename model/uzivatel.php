@@ -553,7 +553,7 @@ SQL, [Pravo::PORADANI_AKTIVIT],
     public function fotka(): ?Nahled
     {
         foreach (glob(ZpracovaneObrazky::adresarFotekUzivatelu() . '/' . $this->id() . '.*') as $soubor) {
-            if (preg_match('/\.(jpg|jpeg|png|gif|webp)$/i', $soubor)) {
+            if (preg_match('/\.(jpg|jpeg|png|gif|webp|avif)$/i', $soubor)) {
                 return Nahled::zeSouboru($soubor);
             }
         }

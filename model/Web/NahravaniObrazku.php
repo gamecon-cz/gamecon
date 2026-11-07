@@ -32,9 +32,7 @@ final class NahravaniObrazku
     public const ODT  = 'application/vnd.oasis.opendocument.text';
     public const ODS  = 'application/vnd.oasis.opendocument.spreadsheet';
 
-    public const RASTROVE_FORMATY = [self::JPG, self::PNG, self::GIF, self::WEBP];
-    /** Rastrové obrázky, které si prohlížeč zobrazí sám; AVIF umí dekódovat prohlížeče, ale ne kód webu (náhledy, e-shop) */
-    public const WEBOVE_OBRAZKY = [...self::RASTROVE_FORMATY, self::AVIF];
+    public const RASTROVE_FORMATY = [self::JPG, self::PNG, self::GIF, self::WEBP, self::AVIF];
     /** Soubory, které nejsou obrázky; služba je zná jen tehdy, když je mezi povolenými formáty aspoň jeden z nich */
     public const DOKUMENTY = [
         self::PDF,
@@ -106,9 +104,9 @@ final class NahravaniObrazku
         self::ODS  => 'ODS',
     ];
     /** Formáty, do kterých se obrázek při nahrazení souboru převede: umí je zapsat OptimalizaceObrazku */
-    private const PREVODITELNE_CILE = [self::JPG, self::PNG, self::WEBP];
-    /** Formáty, ze kterých se obrázek při nahrazení souboru převádí (GIF jen bez animace) */
-    private const PREVODITELNE_ZDROJE = [self::JPG, self::PNG, self::WEBP, self::GIF];
+    private const PREVODITELNE_CILE = [self::JPG, self::PNG, self::WEBP, self::AVIF];
+    /** Formáty, ze kterých se obrázek při nahrazení souboru převádí (GIF jen bez animace, AVIF jen kde ho ImageMagick zvládá) */
+    private const PREVODITELNE_ZDROJE = [self::JPG, self::PNG, self::WEBP, self::AVIF, self::GIF];
     /** ext4 dovolí 255 bajtů na název, zbytek je rezerva na příponu */
     private const MAX_DELKA_NAZVU_BAJTU = 150;
     /** Výchozí strop pixelů; obrázek, který se při uložení zmenší, se jen jednou dekóduje, takže mu stačí vždy aspoň tenhle */
@@ -123,6 +121,7 @@ final class NahravaniObrazku
         return new self(
             ZpracovaneObrazky::adresarFotekUzivatelu(),
             new PouzitiObrazku(),
+            formaty: self::getRastroveFormatyProNahledy(),
             optimalizace: new OptimalizaceObrazku(),
         );
     }
@@ -133,8 +132,22 @@ final class NahravaniObrazku
             ZpracovaneObrazky::adresarObrazkuLinii(),
             new PouzitiObrazku(),
             maxVelikostMb: OBRAZEK_LINIE_MAX_MB,
+            formaty: self::getRastroveFormatyProNahledy(),
             optimalizace: new OptimalizaceObrazku(),
         );
+    }
+
+    /**
+     * Obrázky, které web zobrazuje přes @see \Nahled. AVIF mezi nimi je jen tam, kde ImageMagick AVIF zapíše i přečte
+     * správně i s průhledností; starší (ostrá) by z AVIF s průhledností udělal náhled s černým pozadím.
+     *
+     * @return list<string>
+     */
+    private static function getRastroveFormatyProNahledy(): array
+    {
+        return ImagickAvif::isAvifWritable(true)
+            ? self::RASTROVE_FORMATY
+            : array_values(array_diff(self::RASTROVE_FORMATY, [self::AVIF]));
     }
 
     public static function proObrazkyEshopu(int $rocnik = ROCNIK): self
@@ -142,9 +155,9 @@ final class NahravaniObrazku
         return new self(
             ZpracovaneObrazky::adresarObrazkuEshopu($rocnik),
             new PouzitiObrazku(),
-            // galerie v přihlášce ukáže jen to, co projde @see \Obrazek::jeToPodporovanyObrazek(), tedy ne WebP
+            // galerie v přihlášce ukáže jen to, co projde @see \Obrazek::jeToPodporovanyObrazek(), tedy ne WebP ani AVIF
             formaty: [self::JPG, self::PNG, self::GIF],
-            // GIF se neupravuje a přihláška převádí každý obrázek celý do WebP; ostatní se při uložení zmenší
+            // GIF se neupravuje a přihláška převádí každý obrázek celý do AVIF (nebo WebP); ostatní se při uložení zmenší
             maxPixelu: 12_000_000,
             optimalizace: new OptimalizaceObrazku(),
         );
@@ -155,7 +168,7 @@ final class NahravaniObrazku
         return new self(
             ZpracovaneObrazky::adresarObsahu(),
             new PouzitiObrazku(),
-            formaty: [...self::WEBOVE_OBRAZKY, self::SVG],
+            formaty: [...self::RASTROVE_FORMATY, self::SVG],
             optimalizace: new OptimalizaceObrazku(),
         );
     }
@@ -236,7 +249,7 @@ final class NahravaniObrazku
     public static function bezpecnyNazev(string $nazev, bool $zachovatDiakritikuAMezery = false): string
     {
         $nazev = mb_scrub(trim($nazev), 'UTF-8');
-        $nazev = (string) preg_replace('~\.(jpe?g|png|gif|webp|svg)$~i', '', $nazev);
+        $nazev = (string) preg_replace('~\.(jpe?g|png|gif|webp|avif|svg)$~i', '', $nazev);
         if ($zachovatDiakritikuAMezery) {
             if (class_exists(\Normalizer::class)) {
                 $nazev = (string) (\Normalizer::normalize($nazev, \Normalizer::FORM_C) ?: $nazev);
@@ -320,7 +333,7 @@ final class NahravaniObrazku
      * @param int|float|null $maxVelikostObrazkuMb menší limit jen pro obrázky; null je OBRAZEK_MAX_MB, když služba
      *                                             bere i dokumenty, jinak stejný limit jako pro všechno
      * @param OptimalizaceObrazku|null $optimalizace bez ní se obrázky ukládají tak, jak přišly; s ní se JPEG a PNG
-     *                                               převádějí do WebP (když ho formáty povolují) a velké obrázky zmenšují
+     *                                               převádějí do AVIF (když ho formáty povolují) a velké obrázky zmenšují
      * @param bool $poCastech formulář posílá soubor po částech (@see NahravaniPoCastech), takže ho nesvazují limity PHP
      *                        pro jeden požadavek; ty pak platí jen pro soubor, který přišel najednou
      */
@@ -364,7 +377,7 @@ final class NahravaniObrazku
             : min($limity);
     }
 
-    /** Například „JPG, PNG, GIF nebo WebP, nejvýš 5 MB; JPG a PNG se zmenší na nejvýš 1920 px a uloží jako WebP“ */
+    /** Například „JPG, PNG, GIF, WebP nebo AVIF, nejvýš 5 MB; JPG a PNG se zmenší na nejvýš 1920 px a uloží jako AVIF“ */
     public function popisLimitu(): string
     {
         $popis = $this->popisFormatu() . ', nejvýš ' . self::lidskaVelikost($this->maxVelikostBajtu());
@@ -389,30 +402,100 @@ final class NahravaniObrazku
     }
 
     /**
-     * Co nabídnout při nahrazení souboru: jeho formát a u JPG, PNG a WebP i ostatní z nich a GIF, které se při uložení převedou.
+     * Co nabídnout při nahrazení souboru: jeho formát a u JPG, PNG, WebP a AVIF i ostatní z nich a GIF, které se při uložení převedou.
      */
     public function acceptProNahrazeni(string $mimeNahrazovaneho): string
     {
-        $povolene = $this->jeCilPrevodu($mimeNahrazovaneho)
-            ? array_intersect(array_unique([$mimeNahrazovaneho, ...self::PREVODITELNE_ZDROJE]), $this->formaty)
-            : [$mimeNahrazovaneho];
+        $povolene = array_intersect(
+            array_unique([$mimeNahrazovaneho, ...$this->getZdrojeProCil($mimeNahrazovaneho)]),
+            $this->formaty,
+        );
 
         return implode(',', $povolene);
     }
 
-    private function jeCilPrevodu(string $mime): bool
+    /**
+     * Formáty, ze kterých se obrázek při nahrazení souboru převede do $mimeCile, v pořadí, v jakém je nabízí okno pro výběr.
+     * Pro každý zdroj zvlášť, protože AVIF se z JPEG zapíše i tam, kde se z PNG s průhledností nezapíše.
+     *
+     * @return list<string>
+     */
+    private function getZdrojeProCil(string $mimeCile): array
     {
-        return $this->optimalizace !== null && in_array($mime, self::PREVODITELNE_CILE, true);
+        return array_values(array_filter(
+            $this->getPrevoditelneZdroje(),
+            fn (string $zdroj): bool => $zdroj !== $mimeCile && $this->isWritableTo($mimeCile, $zdroj),
+        ));
     }
 
     /**
-     * Obrázek jiného formátu, než je cíl, se do cíle převede, když je cílem JPG, PNG nebo WebP a obrázek je JPG, PNG, WebP
-     * nebo GIF a není animovaný.
+     * Jestli služba umí obrázek zapsat do formátu $mimeCile. AVIF jen tehdy, když ho tenhle ImageMagick zapíše správně
+     * (@see ImagickAvif::isAvifWritable()); bez znalosti zdroje se počítá s průhledností, která se zapisuje hůř.
+     */
+    private function isWritableTo(string $mimeCile, ?string $zdrojovyMime = null): bool
+    {
+        if ($this->optimalizace === null || !in_array($mimeCile, self::PREVODITELNE_CILE, true)) {
+            return false;
+        }
+
+        return $mimeCile !== self::AVIF
+            || $this->optimalizace->isAvifWritableFrom($zdrojovyMime ?? self::PNG);
+    }
+
+    /**
+     * Například „JPG, PNG, WebP, AVIF nebo GIF“, v pořadí, v jakém se formáty obvykle jmenují.
+     */
+    private function getPopisZdrojuProCil(string $mimeCile): string
+    {
+        $povolene = [$mimeCile, ...$this->getZdrojeProCil($mimeCile)];
+
+        return $this->popisFormatu(array_values(array_intersect(self::PREVODITELNE_ZDROJE, $this->formaty, $povolene)));
+    }
+
+    /**
+     * @return list<string>
+     */
+    private function getPrevoditelneZdroje(): array
+    {
+        return $this->isAvifProcessable()
+            ? self::PREVODITELNE_ZDROJE
+            : array_values(array_diff(self::PREVODITELNE_ZDROJE, [self::AVIF]));
+    }
+
+    /**
+     * AVIF se zpracovává (zmenšuje, převádí) jen tam, kde ho ImageMagick přečte i zapíše správně; jinak zůstane tak, jak
+     * přišel, jako před AVIF.
+     */
+    private function isAvifProcessable(): bool
+    {
+        return $this->optimalizace?->isAvifWritableFrom(self::AVIF) ?? false;
+    }
+
+    /**
+     * Do čeho se uloží nový JPEG nebo PNG: do AVIF, když ho služba povoluje a umí zapsat, jinak do WebP, jako před AVIF.
+     */
+    private function getVychoziCil(string $zdrojovyMime): string
+    {
+        if (!in_array($zdrojovyMime, [self::JPG, self::PNG], true)) {
+            return $zdrojovyMime;
+        }
+        foreach ([self::AVIF, self::WEBP] as $cil) {
+            if (in_array($cil, $this->formaty, true) && $this->isWritableTo($cil, $zdrojovyMime)) {
+                return $cil;
+            }
+        }
+
+        return $zdrojovyMime;
+    }
+
+    /**
+     * Obrázek jiného formátu, než je cíl, se do cíle převede, když je cílem JPG, PNG, WebP nebo AVIF a obrázek je JPG, PNG,
+     * WebP, AVIF nebo GIF a není animovaný.
      */
     private function jeVhodnyKPrevoduDo(NahranyObrazek $obrazek, string $mimeCile): bool
     {
-        return $this->jeCilPrevodu($mimeCile)
-            && in_array($obrazek->nahranyMime(), self::PREVODITELNE_ZDROJE, true)
+        return $this->isWritableTo($mimeCile, $obrazek->nahranyMime())
+            && in_array($obrazek->nahranyMime(), $this->getPrevoditelneZdroje(), true)
             && !$this->optimalizace?->jeAnimovany($obrazek->cesta, $obrazek->nahranyMime());
     }
 
@@ -543,15 +626,15 @@ final class NahravaniObrazku
                 sprintf('Soubor %s tu nejde nahradit, jeho typ tu není povolený.', basename($cil)),
             );
         }
-        // soubor ve formátu cíle, takový, který se do něj při uložení převede (JPEG a PNG do WebP), nebo jiný převoditelný obrázek
+        // soubor ve formátu cíle, takový, který se do něj při uložení převede (JPEG a PNG do AVIF), nebo jiný převoditelný obrázek
         if ($mimeCile !== $obrazek->nahranyMime() && $mimeCile !== $obrazek->mime && !$this->jeVhodnyKPrevoduDo($obrazek, $mimeCile)) {
             throw new NahravaniObrazkuException(sprintf(
                 '%s je ve formátu %s a nahraný soubor ve formátu %s. Nahraj prosím %s.',
                 basename($cil),
                 self::NAZVY_FORMATU[$mimeCile],
                 self::NAZVY_FORMATU[$obrazek->nahranyMime()],
-                $this->jeCilPrevodu($mimeCile)
-                    ? 'neanimovaný JPG, PNG, WebP nebo GIF, převede se na ' . self::NAZVY_FORMATU[$mimeCile]
+                $this->getZdrojeProCil($mimeCile) !== []
+                    ? 'neanimovaný ' . $this->getPopisZdrojuProCil($mimeCile) . ', převede se na ' . self::NAZVY_FORMATU[$mimeCile]
                     : 'soubor ve stejném formátu, jinak by přestaly fungovat odkazy na něj',
             ));
         }
@@ -835,8 +918,8 @@ final class NahravaniObrazku
     }
 
     /**
-     * Nový GIF se neupravuje, animace by se ztratila a paleta zhoršila; animovaný PNG a WebP taky ne. GIF bez animace se
-     * převede jen při nahrazení souboru jiného formátu.
+     * Nový GIF se neupravuje, animace by se ztratila a paleta zhoršila; animovaný PNG, WebP a AVIF taky ne. GIF bez animace se
+     * převede jen při nahrazení souboru jiného formátu. Nový JPEG a PNG se převedou do AVIF, WebP a AVIF se jen zmenší.
      *
      * @param string|null $vynucenyCil formát, ve kterém se soubor musí uložit, třeba protože nahrazuje soubor s touhle příponou
      * @return string|null formát, ve kterém se soubor při uložení zapíše znovu; null, když se uloží tak, jak přišel
@@ -844,16 +927,16 @@ final class NahravaniObrazku
     private function cilUpravy(string $zdrojovyMime, int $sirka, int $vyska, string $cesta, ?string $vynucenyCil = null): ?string
     {
         $umiSePrecist = in_array($zdrojovyMime, [self::JPG, self::PNG, self::WEBP], true)
+            || ($zdrojovyMime === self::AVIF && $this->isAvifProcessable())
             || ($zdrojovyMime === self::GIF && $vynucenyCil !== null);
         if ($this->optimalizace === null || !$umiSePrecist) {
             return null;
         }
-        $cil = $vynucenyCil ?? (
-            $zdrojovyMime !== self::WEBP && in_array(self::WEBP, $this->formaty, true)
-                ? self::WEBP
-                : $zdrojovyMime
-        );
+        $cil = $vynucenyCil ?? $this->getVychoziCil($zdrojovyMime);
         if ($cil === $zdrojovyMime && !$this->optimalizace->jeVetsiNezPotrebuje($sirka, $vyska)) {
+            return null;
+        }
+        if ($cil === self::AVIF && !$this->isWritableTo(self::AVIF, $zdrojovyMime)) {
             return null;
         }
         if ($this->optimalizace->jeAnimovany($cesta, $zdrojovyMime)) {
@@ -956,14 +1039,32 @@ final class NahravaniObrazku
         }
         $rozmer = $this->optimalizace->maxRozmerPx() . ' px';
 
-        return in_array(self::WEBP, $this->formaty, true)
-            ? sprintf('JPG a PNG se zmenší na nejvýš %s a uloží jako WebP', $rozmer)
-            : sprintf('větší obrázky se zmenší na nejvýš %s', $rozmer);
+        $cilJpg = $this->getVychoziCil(self::JPG);
+        if (!in_array($cilJpg, [self::AVIF, self::WEBP], true)) {
+            return sprintf('větší obrázky se zmenší na nejvýš %s', $rozmer);
+        }
+        $cilPng = $this->getVychoziCil(self::PNG);
+        if ($cilPng === $cilJpg) {
+            return sprintf('JPG a PNG se zmenší na nejvýš %s a uloží jako %s', $rozmer, self::NAZVY_FORMATU[$cilJpg]);
+        }
+
+        // AVIF z PNG s průhledností se na starším ImageMagicku nezapíše, PNG pak jde do WebP, a když ho služba nemá, zůstane PNG
+        return sprintf(
+            'JPG se zmenší na nejvýš %s a uloží jako %s, PNG se %s',
+            $rozmer,
+            self::NAZVY_FORMATU[$cilJpg],
+            $cilPng === self::PNG
+                ? 'jen zmenší'
+                : 'uloží jako ' . self::NAZVY_FORMATU[$cilPng],
+        );
     }
 
-    private function popisFormatu(): string
+    /**
+     * @param list<string>|null $formaty MIME typy, služba bez nich popíše své povolené formáty
+     */
+    private function popisFormatu(?array $formaty = null): string
     {
-        $nazvy = array_map(static fn (string $mime): string => self::NAZVY_FORMATU[$mime], $this->formaty);
+        $nazvy = array_map(static fn (string $mime): string => self::NAZVY_FORMATU[$mime], $formaty ?? $this->formaty);
         $posledni = array_pop($nazvy);
 
         return $nazvy === []
@@ -1151,11 +1252,11 @@ final class NahravaniObrazku
      */
     private function obrazekStejnehoNazvu(string $adresar, string $nazevBezPripony, string $mime): ?string
     {
-        if (!in_array($mime, self::WEBOVE_OBRAZKY, true)) {
+        if (!in_array($mime, self::RASTROVE_FORMATY, true)) {
             return null;
         }
         foreach ($this->variantyObrazku($adresar, $nazevBezPripony) as $varianta) {
-            if (in_array(self::mimePodlePripony($varianta), self::WEBOVE_OBRAZKY, true)) {
+            if (in_array(self::mimePodlePripony($varianta), self::RASTROVE_FORMATY, true)) {
                 return $varianta;
             }
         }

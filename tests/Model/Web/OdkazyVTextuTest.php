@@ -114,7 +114,7 @@ class OdkazyVTextuTest extends TestCase
     {
         self::assertEqualsCanonicalizing(
             ['jpg', 'jpeg', 'png', 'gif', 'webp', 'avif', 'svg'],
-            NahravaniObrazku::getPriponyFormatu([...NahravaniObrazku::WEBOVE_OBRAZKY, NahravaniObrazku::SVG]),
+            NahravaniObrazku::getPriponyFormatu([...NahravaniObrazku::RASTROVE_FORMATY, NahravaniObrazku::SVG]),
         );
         self::assertEqualsCanonicalizing(
             ['pdf', 'mp3', 'ogg', 'wav', 'm4a', 'zip', 'xlsx', 'docx', 'odt', 'ods'],
@@ -127,6 +127,6 @@ class OdkazyVTextuTest extends TestCase
      */
     private static function priponyObrazku(): array
     {
-        return NahravaniObrazku::getPriponyFormatu([...NahravaniObrazku::WEBOVE_OBRAZKY, NahravaniObrazku::SVG]);
+        return NahravaniObrazku::getPriponyFormatu([...NahravaniObrazku::RASTROVE_FORMATY, NahravaniObrazku::SVG]);
     }
 }
