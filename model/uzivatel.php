@@ -344,7 +344,7 @@ SQL, [Pravo::PORADANI_AKTIVIT],
     {
         if ($op !== null) {
             self::zalogujZmenuOp($this->id(), (string) ($this->r['op'] ?? ''), $op);
-            dbQuery('
+            dbExecute('
         UPDATE uzivatele_hodnoty
         SET op=$1
         WHERE id_uzivatele=' . $this->r['id_uzivatele'],
@@ -374,7 +374,7 @@ SQL, [Pravo::PORADANI_AKTIVIT],
                 [Sql::TYP_DOKLADU_TOTOZNOSTI => $typDokladu],
                 [Sql::TYP_DOKLADU_TOTOZNOSTI => $this->r[Sql::TYP_DOKLADU_TOTOZNOSTI] ?? null],
             );
-            dbQuery('
+            dbExecute('
         UPDATE uzivatele_hodnoty
         SET typ_dokladu_totoznosti=$0
         WHERE id_uzivatele=' . $this->r['id_uzivatele'],
@@ -401,7 +401,7 @@ SQL, [Pravo::PORADANI_AKTIVIT],
                 [Sql::STATNI_OBCANSTVI => $statniObcanstvi],
                 [Sql::STATNI_OBCANSTVI => $this->r[Sql::STATNI_OBCANSTVI] ?? null],
             );
-            dbQuery(
+            dbExecute(
                 'UPDATE uzivatele_hodnoty SET statni_obcanstvi = $0 WHERE id_uzivatele = ' . $this->r[Sql::ID_UZIVATELE],
                 [0 => $statniObcanstvi],
             );
@@ -1018,7 +1018,7 @@ SQL,
             [Sql::HESLO_MD5 => $this->r[Sql::HESLO_MD5] ?? null],
             zdroj: $zdroj,
         );
-        dbQuery(
+        dbExecute(
             'UPDATE uzivatele_hodnoty SET heslo_md5 = $1, random = $3 WHERE id_uzivatele = $2',
             [$novyHash, $this->id(), randHex(20)],
         );
@@ -1032,7 +1032,7 @@ SQL,
         if (! isset($this->historiePrihlaseni)) {
             $ucast = Role::TYP_UCAST;
             $prihlasen = Role::VYZNAM_PRIHLASEN;
-            $q = dbQuery(<<<SQL
+            $q = dbFetch(<<<SQL
 SELECT role.rocnik_role
 FROM uzivatele_role
 JOIN role_seznam AS role
@@ -1632,7 +1632,7 @@ SQL,
      */
     private function zneplatniTrvalePrihlaseni(): void
     {
-        dbQuery(
+        dbExecute(
             'UPDATE uzivatele_hodnoty SET random = $0 WHERE id_uzivatele = $1',
             [randHex(20), $this->id()],
         );
@@ -1679,7 +1679,7 @@ SQL,
     public function odhlasZMaileru()
     {
         $id = $this->id();
-        dbQueryS('UPDATE uzivatele_hodnoty SET nechce_maily = NOW() WHERE id_uzivatele = $1', [$id]);
+        dbExecute('UPDATE uzivatele_hodnoty SET nechce_maily = NOW() WHERE id_uzivatele = $1', [$id]);
     }
 
     /**
@@ -1768,7 +1768,7 @@ SQL,
                 [Sql::POZNAMKA => $poznamka],
                 [Sql::POZNAMKA => $this->r[Sql::POZNAMKA] ?? null],
             );
-            dbQueryS('UPDATE uzivatele_hodnoty SET poznamka = $1 WHERE id_uzivatele = $2', [$poznamka, $this->id()]);
+            dbExecute('UPDATE uzivatele_hodnoty SET poznamka = $1 WHERE id_uzivatele = $2', [$poznamka, $this->id()]);
             $this->otoc();
 
             return $poznamka;
@@ -1877,7 +1877,7 @@ SQL,
         if ((password_needs_rehash($uzivatelData['heslo_md5'], PASSWORD_DEFAULT) || $jeMd5) && ! $jeMaster) {
             $novyHash = password_hash($heslo, PASSWORD_DEFAULT);
             $uzivatelData['heslo_md5'] = $novyHash;
-            dbQuery('UPDATE uzivatele_hodnoty SET heslo_md5 = $0 WHERE id_uzivatele = $1', [$novyHash, $uzivatelData['id_uzivatele']]);
+            dbExecute('UPDATE uzivatele_hodnoty SET heslo_md5 = $0 WHERE id_uzivatele = $1', [$novyHash, $uzivatelData['id_uzivatele']]);
         }
         // přihlášení uživatele
         // TODO refactorovat do jedné fce volané z dílčích prihlas* metod
@@ -1888,7 +1888,7 @@ SQL,
         $uzivatelData['id_uzivatele'] = $idUzivatele;
         $_SESSION[$klic]['id_uzivatele'] = $idUzivatele;
         // načtení uživatelských práv
-        $p = dbQuery(<<<SQL
+        $p = dbFetch(<<<SQL
 SELECT id_prava
 FROM platne_role_uzivatelu
     LEFT JOIN prava_role ON platne_role_uzivatelu.id_role = prava_role.id_role
@@ -1927,7 +1927,7 @@ SQL,
         }
         $_SESSION[$klic]['id_uzivatele'] = $idUzivatele;
         // načtení uživatelských práv
-        $p = dbQuery(
+        $p = dbFetch(
             'SELECT id_prava FROM platne_role_uzivatelu uz LEFT JOIN prava_role pz USING(id_role) WHERE uz.id_uzivatele=' . $idUzivatele,
         );
         $prava = []; // inicializace nutná, aby nepadala výjimka pro uživatele bez práv
@@ -1956,7 +1956,7 @@ SQL,
         $u = self::prihlas($login, $heslo, $klic);
         $rand = randHex(20);
         if ($u) {
-            dbQuery(
+            dbExecute(
                 'UPDATE uzivatele_hodnoty
                 SET random=$0
                 WHERE id_uzivatele=' . $u->id(),
@@ -2639,7 +2639,7 @@ SQL,
         int $idEditora,
         string $zmena,
     ): void {
-        dbQuery(<<<SQL
+        dbExecute(<<<SQL
 INSERT INTO uzivatele_role_log(id_uzivatele, id_role, id_zmenil, zmena, kdy)
 VALUES ($0, $1, $2, $3, NOW())
 SQL,
@@ -2763,7 +2763,7 @@ SQL,
         $idZmenil ??= self::aktualniEditorIdZeSession();
         try {
             foreach ($zmeny as [$sloupec, $stara, $nova]) {
-                dbQuery(<<<SQL
+                dbExecute(<<<SQL
 INSERT INTO uzivatele_hodnoty_log(id_uzivatele, id_zmenil, sloupec, stara_hodnota, nova_hodnota, zdroj_zmeny, kdy)
 VALUES ($0, $1, $2, $3, $4, $5, NOW())
 SQL,
@@ -3110,7 +3110,7 @@ SQL,
             }
             $rand = randHex(20);
             // změna tokenu do budoucna proti hádání
-            dbQuery(
+            dbExecute(
                 "UPDATE uzivatele_hodnoty
                 SET random=$0
                 WHERE id_uzivatele={$id}",
@@ -3207,7 +3207,7 @@ SQL;
         string $where,
     ): array {
         $query = self::dotaz(where: $where);
-        $o = dbQuery($query);
+        $o = dbFetch($query);
         $uzivatele = [];
         while ($r = $o->fetch(PDO::FETCH_ASSOC)) {
             $u = new self($r);

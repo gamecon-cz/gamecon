@@ -38,7 +38,7 @@ class Pokoj
     static function ubytujNaCislo(Uzivatel $u, $cislo)
     {
         $pokoj = trim($cislo);
-        $o     = dbQueryS('
+        $o     = dbFetch('
       SELECT noc.accommodation_day AS ubytovani_den
       FROM shop_nakupy AS nakupy
       JOIN product_variant AS noc ON noc.id = nakupy.variant_id
@@ -49,14 +49,14 @@ class Pokoj
         if ($o->rowCount() == 0) {
             throw new Chyba('Uživatel nemá ubytování nebo ubytování pro daný den neexistuje');
         }
-        dbQueryS('DELETE FROM ubytovani WHERE rok = $2 AND id_uzivatele = $1', [$u->id(), ROCNIK]);
+        dbExecute('DELETE FROM ubytovani WHERE rok = $2 AND id_uzivatele = $1', [$u->id(), ROCNIK]);
         $valuesSqlArray = [];
         while ($r = $o->fetch(\PDO::FETCH_ASSOC)) {
             $valuesSqlArray[] = '(' . $u->id() . ',' . $r['ubytovani_den'] . ',' . dbQv($pokoj) . ',' . ROCNIK . ')';
         }
         $valuesSql = implode(",\n", $valuesSqlArray);
         $q         = "INSERT INTO ubytovani(id_uzivatele, den, pokoj, rok) VALUES $valuesSql";
-        dbQuery($q);
+        dbExecute($q);
     }
 
     /** Vrátí letošní pokoj s číslem $cislo */

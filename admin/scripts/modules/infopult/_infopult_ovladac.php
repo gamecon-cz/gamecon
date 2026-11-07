@@ -129,7 +129,7 @@ if (!empty($_POST['telefon']) && $uPracovni) {
         null,
         'infopult',
     );
-    dbQueryS('UPDATE uzivatele_hodnoty SET telefon_uzivatele=$0 WHERE id_uzivatele=' . $uPracovni->id(), [$_POST['telefon']]);
+    dbExecute('UPDATE uzivatele_hodnoty SET telefon_uzivatele=$0 WHERE id_uzivatele=' . $uPracovni->id(), [$_POST['telefon']]);
     $uPracovni->otoc();
     back();
 }

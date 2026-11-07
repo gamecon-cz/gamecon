@@ -560,9 +560,9 @@ SQL;
     public function varovnyEmailUvadiZustatekSHaleri()
     {
         $idUzivatele = 1010;
-        dbQuery(self::uzivatelQuery($idUzivatele, 'Zůstatek', 'Shaléři', 500.0));
-        dbQuery(self::prihlasenNaRocnikQuery($idUzivatele, ROCNIK - PromlceniZustatku::getPocetLetNeplatnosti() - 1));
-        dbQuery(self::platbaQuery($idUzivatele, 100.9, ROCNIK));
+        dbExecute(self::uzivatelQuery($idUzivatele, 'Zůstatek', 'Shaléři', 500.0));
+        dbExecute(self::prihlasenNaRocnikQuery($idUzivatele, ROCNIK - PromlceniZustatku::getPocetLetNeplatnosti() - 1));
+        dbExecute(self::platbaQuery($idUzivatele, 100.9, ROCNIK));
 
         $this->dejPromlceniZustatkuSCasem($this->dejCasRegistraceMinus('1 month'))
             ->odesliVarovneEmaily(TypVarovaniPromlceni::MESIC);
@@ -582,9 +582,9 @@ SQL;
     public function varovnyEmailOddelujeTisiceNezlomitelnouMezerou()
     {
         $idUzivatele = 1011;
-        dbQuery(self::uzivatelQuery($idUzivatele, 'Zůstatek', 'Stisíci', 1200.0));
-        dbQuery(self::prihlasenNaRocnikQuery($idUzivatele, ROCNIK - PromlceniZustatku::getPocetLetNeplatnosti() - 1));
-        dbQuery(self::platbaQuery($idUzivatele, 50.9, ROCNIK));
+        dbExecute(self::uzivatelQuery($idUzivatele, 'Zůstatek', 'Stisíci', 1200.0));
+        dbExecute(self::prihlasenNaRocnikQuery($idUzivatele, ROCNIK - PromlceniZustatku::getPocetLetNeplatnosti() - 1));
+        dbExecute(self::platbaQuery($idUzivatele, 50.9, ROCNIK));
 
         $this->dejPromlceniZustatkuSCasem($this->dejCasRegistraceMinus('1 month'))
             ->odesliVarovneEmaily(TypVarovaniPromlceni::MESIC);

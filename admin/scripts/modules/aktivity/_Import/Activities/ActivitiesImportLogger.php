@@ -7,7 +7,7 @@ use Gamecon\Cas\DateTimeCz;
 class ActivitiesImportLogger
 {
     public function logUsedSpreadsheet(int $userId, string $spreadsheetId, \DateTimeInterface $at) {
-        dbQuery(<<<SQL
+        dbExecute(<<<SQL
 INSERT INTO akce_import (id_uzivatele, google_sheet_id, cas)
 VALUES ($1, $2, $3)
 SQL

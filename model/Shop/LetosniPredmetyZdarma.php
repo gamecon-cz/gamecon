@@ -86,7 +86,7 @@ class LetosniPredmetyZdarma
 
     private function uloz(DiscountRule $pravidlo, string $kod): void
     {
-        dbQuery(
+        dbExecute(
             'UPDATE discount_rule SET parameters = $0 WHERE code = $1 AND year = $2',
             [
                 0 => json_encode($pravidlo->parameters->withProductCode($kod)->toArray(), JSON_THROW_ON_ERROR | JSON_UNESCAPED_UNICODE),

@@ -42,7 +42,7 @@ $x = new XTemplate(__DIR__ . '/finance.xtpl');
 
 if (isset($_GET['minimum'])) {
     $min = (int)$_GET['minimum'];
-    $o = dbQuery(<<<SQL
+    $o = dbFetch(<<<SQL
 SELECT uzivatele_hodnoty.*
 FROM uzivatele_hodnoty
 JOIN platne_role_uzivatelu

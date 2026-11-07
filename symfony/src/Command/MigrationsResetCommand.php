@@ -30,9 +30,9 @@ class MigrationsResetCommand extends Command
         $io->title(sprintf('Recreating Database %s', DB_NAME));
 
         // Recreate database
-        dbQuery(sprintf('DROP DATABASE IF EXISTS `%s`', DB_NAME), null, $connection);
-        dbQuery(sprintf('CREATE DATABASE `%s` DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_czech_ci', DB_NAME), null, $connection);
-        dbQuery(sprintf('USE `%s`', DB_NAME), null, $connection);
+        dbExecute(sprintf('DROP DATABASE IF EXISTS `%s`', DB_NAME), [], $connection);
+        dbExecute(sprintf('CREATE DATABASE `%s` DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_czech_ci', DB_NAME), [], $connection);
+        dbExecute(sprintf('USE `%s`', DB_NAME), [], $connection);
 
         // Create migrations config
         $migrationsConfig = new DbMigrationsConfig(

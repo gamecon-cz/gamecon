@@ -622,7 +622,7 @@ class ProgramStaticFileGeneratorTest extends AbstractTestDb
         );
 
         // Účastník se odhlásí (odhlas() smaže řádek v akce_prihlaseni).
-        dbQuery(
+        dbExecute(
             'DELETE FROM akce_prihlaseni WHERE id_uzivatele = $1 AND id_akce = $2',
             [$idUcastnika, $idAktivity],
         );

@@ -186,7 +186,7 @@ abstract class DbObject
         $params = null,
         $extra = '',
     ): array {
-        $o = dbQuery(static::dotaz("WHERE $where") . ' ' . $extra, $params); // static aby odděděná třída mohla přepsat dotaz na něco složitějšího
+        $o = dbFetch(static::dotaz("WHERE $where") . ' ' . $extra, (array)$params); // static aby odděděná třída mohla přepsat dotaz na něco složitějšího
         $a = [];
         while ($r = $o->fetch(\PDO::FETCH_ASSOC)) {
             $a[] = new static($r); // static aby vznikaly objekty správné třídy

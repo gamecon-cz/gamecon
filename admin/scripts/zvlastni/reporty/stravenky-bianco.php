@@ -14,7 +14,7 @@ $systemoveNastaveni ??= SystemoveNastaveni::zGlobals();
 $rocnik   = $systemoveNastaveni->rocnik();
 $prvniDen = DateTimeGamecon::PORADI_HERNIHO_DNE_CTVRTEK;
 
-$o = dbQuery(<<<SQL
+$o = dbFetch(<<<SQL
     SELECT
       shop_predmety.nazev,
       FIELD(SUBSTRING(TRIM(shop_predmety.nazev), POSITION(' ' IN TRIM(shop_predmety.nazev)) + 1), 'středa', 'čtvrtek', 'pátek', 'sobota', 'neděle') AS poradi_dne,
