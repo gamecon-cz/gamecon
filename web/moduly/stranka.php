@@ -1,7 +1,5 @@
 <?php
 
-use Gamecon\Web\Info;
-
 /** @var Stranka|null $stranka */
 
 if (empty($stranka)) {
@@ -13,9 +11,7 @@ $this->blackarrowStyl(true);
 
 $this->info()
     ->obrazek($stranka->obrazek())
-    ->nazev($stranka->nadpis())
-    // the page is found case-insensitively, the canonical address is the stored one
-    ->url(Info::getKanonickaUrlZCesty(URL_WEBU, $stranka->url()));
+    ->nazev($stranka->nadpis());
 
 $typ = $stranka->typ();
 

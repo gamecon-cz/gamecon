@@ -46,6 +46,8 @@ try {
 } catch (UrlException $e) {
     $url = null;
 }
+// a line or a CMS page is found case-insensitively (/RPG, /rpg), its canonical address is the stored one
+$kanonickaCesta = $url?->cela() ?? '';
 
 // určení modulu, který zpracuje požadavek (router)
 $m = $url
@@ -58,11 +60,15 @@ if (! $m && ($stranka = Stranka::zUrl())) {
     }
     $m = Modul::zNazvu('stranka', null, $systemoveNastaveni);
     $m->param('stranka', $stranka);
+    $kanonickaCesta = $stranka->url();
 }
 if (! $m && (($typ = TypAktivity::zUrl()) || ($org = Uzivatel::zUrl()))) {
     $m = Modul::zNazvu('aktivity', null, $systemoveNastaveni);
     $m->param('typ', $typ ?: null);
     $m->param('org', ! $typ ? $org : null);
+    if ($typ) {
+        $kanonickaCesta = $typ->url();
+    }
 }
 if (! $m) {
     $m = Modul::zNazvu('nenalezeno', null, $systemoveNastaveni);
@@ -78,7 +84,7 @@ $i = (new Info($systemoveNastaveni))
     ->obrazek('soubory/styl/og-image.jpg')
     ->site('GameCon');
 if ($url !== null) {
-    $i->url(Info::getKanonickaUrlZCesty(URL_WEBU, $url->cela()));
+    $i->url(Info::getKanonickaUrlZCesty(URL_WEBU, $kanonickaCesta));
 }
 $m->info($i);
 

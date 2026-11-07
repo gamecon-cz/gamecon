@@ -7,7 +7,6 @@ use Gamecon\Aktivita\StavAktivity;
 use Gamecon\Aktivita\Tag;
 use Gamecon\Aktivita\TypAktivity;
 use Gamecon\KategorieTagu;
-use Gamecon\Web\Info;
 
 /** @var Modul $this */
 /** @var Url $url */
@@ -28,15 +27,6 @@ if (!function_exists('zabalWebSoubor')) {
 }
 
 $typ = $this->param('typ');
-
-// the page is found case-insensitively (/RPG, /rpg), the canonical address is the stored one
-$kanonickaCesta = $typ?->url()
-    ?? (!empty($org)
-        ? $org->url()
-        : null);
-if ($kanonickaCesta !== null) {
-    $this->info()->url(Info::getKanonickaUrlZCesty(URL_WEBU, $kanonickaCesta));
-}
 
 // zpracování POST požadavků
 
