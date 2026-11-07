@@ -19,7 +19,7 @@ SELECT id_stranky, obsah
 FROM stranky
 WHERE url_stranky = 'kontakty'
 SQL,
-)->fetch_assoc();
+)->fetch(PDO::FETCH_ASSOC);
 if (!$stranka) {
     return;
 }
@@ -110,7 +110,7 @@ $obsah = preg_replace_callback(
     $obsah,
 );
 
-$obsahSql = "'" . $this->connection->real_escape_string($obsah) . "'";
+$obsahSql = $this->connection->quote($obsah);
 $this->q(<<<SQL
 UPDATE stranky
 SET obsah = {$obsahSql}

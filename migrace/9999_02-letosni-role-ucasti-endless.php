@@ -20,7 +20,7 @@ SQL
 
 $chybejiciRoleUcasti = $roleUcasi;
 if ($resultRoli) {
-    foreach ($resultRoli->fetch_all() as $idExistujiciRoleArray) {
+    foreach ($resultRoli->fetchAll() as $idExistujiciRoleArray) {
         $idExistujiciRole = (int)(reset($idExistujiciRoleArray));
         unset($chybejiciRoleUcasti[$idExistujiciRole]);
     }
