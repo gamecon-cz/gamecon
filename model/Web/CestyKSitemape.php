@@ -13,7 +13,11 @@ use Gamecon\Aktivita\TypAktivity;
  */
 class CestyKSitemape
 {
-    private const VEREJNE_MODULY = ['program', 'novinky', 'blog', 'vypraveci', 'sponzori'];
+    /**
+     * Which module is a public page is written nowhere else, @see \Gamecon\Tests\Model\Web\ModulyVSitemapeTest
+     * compares this list with web/moduly.
+     */
+    public const array VEREJNE_MODULY = ['program', 'novinky', 'blog', 'vypraveci', 'sponzori'];
 
     /**
      * Duplicates are removed by the Sitemap, which compares canonical addresses.
