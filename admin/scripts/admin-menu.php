@@ -79,6 +79,46 @@ class AdminMenu
     }
 
     /**
+     * Smí uživatel otevřít stránku adminu? Stačí mu kterékoli právo stránky, nebo kterékoli právo vybrané podstránky.
+     * Podle toho pouští na stránku admin/index.php.
+     *
+     * @param array<string, mixed>|null $polozkaStranky položka hlavního menu z @see pole()
+     * @param array<string, mixed>|null $polozkaPodstranky položka podmenu stránky z @see pole()
+     */
+    public static function isPristupna(?\Uzivatel $uzivatel, ?array $polozkaStranky, ?array $polozkaPodstranky = null): bool
+    {
+        if ($uzivatel === null || $polozkaStranky === null) {
+            return false;
+        }
+        foreach (array_filter([$polozkaStranky, $polozkaPodstranky]) as $polozka) {
+            foreach ($polozka['prava'] ?? [$polozka['pravo']] as $pravo) {
+                if ($uzivatel->maPravo($pravo)) {
+                    return true;
+                }
+            }
+        }
+
+        return false;
+    }
+
+    /**
+     * Totéž co @see isPristupna() pro podstránku zadanou adresou, třeba `aktivity/medailonky`. Pro modul, který nabízí
+     * kus jiné stránky a má ho vidět jen ten, kdo by na ni směl vejít: práva tak zůstanou jen v hlavičkách modulů.
+     */
+    public static function isPodstrankaPristupna(\Uzivatel $uzivatel, string $stranka, string $podstranka): bool
+    {
+        $adresarModulu = __DIR__ . '/modules/';
+        $menu          = (new self($adresarModulu))->pole();
+        if (empty($menu[$stranka]['submenu'])) {
+            return false;
+        }
+        $submenu = (new self($adresarModulu . $stranka . '/', true))->pole();
+
+        return isset($submenu[$podstranka])
+            && self::isPristupna($uzivatel, $menu[$stranka], $submenu[$podstranka]);
+    }
+
+    /**
      * Modul může místo jediného práva (hlavička `pravo:`) vyjmenovat hlavičkou
      * `prava: 100, 102, ...` víc práv — stránku pak vidí a smí otevřít každý,
      * kdo má KTERÉKOLI z nich (typicky Nápověda, viditelná pro všechny části

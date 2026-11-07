@@ -1,0 +1,49 @@
+<!-- begin:fotkaUzivatele -->
+<div class="fotka-uzivatele">
+  <img src="{nahled}" alt="Fotka: {jmeno}" width="180" height="180">
+  <div>
+    <!-- begin:ma -->
+    <p>Takhle se fotka ukáže na stránce vypravěče, ořízne se do čtverce.</p>
+    <!-- end:ma -->
+    <!-- begin:nema -->
+    <p><strong>Fotka chybí</strong>, na webu se zatím ukazuje výchozí obrázek. Vypravěč bez fotky se navíc nezobrazí v přehledech vypravěčů DrD a DnD.</p>
+    <!-- end:nema -->
+    <form method="post" enctype="multipart/form-data">
+      <input type="hidden" name="{postAkce}" value="nahrat">
+      {skrytaPole}
+      <input type="file" name="{postSoubor}" accept="{accept}" required>
+      <button type="submit">Nahrát fotku</button>
+      <div class="tip">{limit}. Nová fotka nahradí tu dosavadní. Nejlépe vypadá čtvercová fotka obličeje aspoň 360 × 360 px.</div>
+    </form>
+    <!-- begin:smazat -->
+    <form method="post" onsubmit="return confirm('Opravdu smazat fotku?')">
+      <input type="hidden" name="{postAkce}" value="smazat">
+      {skrytaPole}
+      <button type="submit">Smazat fotku</button>
+    </form>
+    <!-- end:smazat -->
+  </div>
+</div>
+
+<style>
+    .fotka-uzivatele {
+        display: flex;
+        gap: 1.5em;
+        align-items: flex-start;
+        flex-wrap: wrap;
+        margin-bottom: 1.5em;
+    }
+
+    .fotka-uzivatele img {
+        object-fit: cover;
+    }
+
+    .fotka-uzivatele form {
+        margin-bottom: 0.5em;
+    }
+
+    .fotka-uzivatele input[type="file"] {
+        max-width: 100%;
+    }
+</style>
+<!-- end:fotkaUzivatele -->

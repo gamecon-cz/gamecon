@@ -9,10 +9,12 @@
  */
 
 use Gamecon\Accounting;
+use Gamecon\Admin\FormularPracovnihoUzivatele;
 use Gamecon\Dev\DeploymentsReader;
 use Gamecon\Dev\OdkazDoArchivnihoAdmina;
 use Gamecon\Dev\SsoParovaciCookie;
 use Gamecon\Shop\Shop;
+use Gamecon\Web\FotkaUzivatele;
 use Gamecon\XTemplate\XTemplate;
 
 require_once __DIR__ . '/_submoduly/osobni-udaje/osobni_udaje.php';
@@ -60,9 +62,26 @@ $shop      = $uPracovni
 
 include __DIR__ . '/_uzivatel_ovladac.php';
 
+// Fotku vypravěče spravují Medailonky, tady je po ruce u toho, s kým se zrovna pracuje. Práva má stejná jako Medailonky.
+$fotka = $uPracovni
+    ? new FotkaUzivatele($uPracovni)
+    : null;
+$spravaFotky = $fotka !== null
+    && $fotka->isRelevantniVRocniku($systemoveNastaveni->rocnik())
+    && AdminMenu::isPodstrankaPristupna($u, 'aktivity', 'medailonky');
+if ($spravaFotky) {
+    $fotka->zpracujPost();
+}
+
 $x = new XTemplate(__DIR__ . '/uzivatel.xtpl');
 
-$x->assign(['ok' => $ok, 'err' => $err, 'rok' => ROCNIK]);
+$skrytePolePracovnihoUzivatele = FormularPracovnihoUzivatele::getSkrytePole($uPracovni);
+$x->assign([
+    'ok'                            => $ok,
+    'err'                           => $err,
+    'rok'                           => ROCNIK,
+    'skrytePolePracovnihoUzivatele' => $skrytePolePracovnihoUzivatele,
+]);
 $x->assign('nechceUbytovani', '');
 if ($uPracovni) {
     $x->assign([
@@ -207,6 +226,14 @@ if ($uPracovni) {
         $x->assign('historieUcastiHtml', '(žádná)');
     }
     $x->parse('uzivatel.historieUcasti');
+}
+
+if ($spravaFotky) {
+    $x->assign([
+        'fotkaHtml'             => $fotka->getHtml($skrytePolePracovnihoUzivatele),
+        'idPracovnihoUzivatele' => $uPracovni->id(),
+    ]);
+    $x->parse('uzivatel.fotka');
 }
 
 // načtení předmětů a form s rychloprodejem předmětů, fixme

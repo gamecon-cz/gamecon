@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace Gamecon\Tests\web;
 
+use Gamecon\Admin\FormularPracovnihoUzivatele;
+use Gamecon\Pravo;
 use Gamecon\Web\ZpracovaneObrazky;
 use Symfony\Component\Filesystem\Filesystem;
 
@@ -17,6 +19,8 @@ class NahravaniObrazkuVAdminuTest extends AbstractTestWeb
 
     private const int ID_VYPRAVECE = 9801;
     private const int ID_BEZ_PRAV = 9802;
+    /** jen právo ubytování, které stačí na záložku Uživatel; id role je stejné */
+    private const int ID_UBYTOVANI = 9803;
     private const int ID_STRANKY = 9801;
     private const string URL_STRANKY = 'test-obrazky-v-adminu';
 
@@ -49,10 +53,32 @@ class NahravaniObrazkuVAdminuTest extends AbstractTestWeb
 INSERT INTO uzivatele_hodnoty(id_uzivatele, login_uzivatele, jmeno_uzivatele, prijmeni_uzivatele, email1_uzivatele)
 VALUES
     (%1$d, 'test-fotka-vypravec', 'Test', 'Vypravěč', 'test-fotka-vypravec@example.invalid'),
-    (%2$d, 'test-fotka-bez-prav', 'Test', 'Bezprav', 'test-fotka-bez-prav@example.invalid')
+    (%2$d, 'test-fotka-bez-prav', 'Test', 'Bezprav', 'test-fotka-bez-prav@example.invalid'),
+    (%3$d, 'test-fotka-ubytovani', 'Test', 'Ubytování', 'test-fotka-ubytovani@example.invalid')
 SQL,
                 self::ID_VYPRAVECE,
                 self::ID_BEZ_PRAV,
+                self::ID_UBYTOVANI,
+            ),
+            sprintf(
+                <<<'SQL'
+INSERT INTO role_seznam(id_role, kod_role, nazev_role, popis_role, rocnik_role, typ_role, vyznam_role)
+VALUES (%1$d, 'TEST_FOTKA_UBYTOVANI', 'Test fotka ubytování', '', -1, 'trvala', '')
+SQL,
+                self::ID_UBYTOVANI,
+            ),
+            sprintf(
+                <<<'SQL'
+INSERT INTO prava_role(id_role, id_prava) VALUES (%1$d, %2$d)
+SQL,
+                self::ID_UBYTOVANI,
+                Pravo::ADMINISTRACE_UBYTOVANI,
+            ),
+            sprintf(
+                <<<'SQL'
+INSERT INTO uzivatele_role(id_uzivatele, id_role) VALUES (%1$d, %1$d)
+SQL,
+                self::ID_UBYTOVANI,
             ),
             sprintf(
                 <<<'SQL'
@@ -199,6 +225,139 @@ SQL,
 
         self::assertStringContainsString('Uživatel zatím nemá medailonek.', $stranka);
         self::assertStringContainsString('name="akceFotky" value="nahrat"', $stranka);
+    }
+
+    /**
+     * @test
+     */
+    public function fotkuPracovnihoUzivateleJdeNahratASmazatINaZalozceUzivatel(): void
+    {
+        $fotky = ZpracovaneObrazky::adresarFotekUzivatelu() . '/' . self::ID_VYPRAVECE;
+        $this->kUklidu = [...$this->kUklidu, $fotky . '.png', $fotky . '.webp'];
+        $session = $this->prihlas(\Uzivatel::SYSTEM_LOGIN);
+        $this->vyberPracovnihoUzivatele($session, self::ID_VYPRAVECE);
+
+        $stranka = $this->stahni($session, 'uzivatel');
+        self::assertStringContainsString('Fotka chybí', $stranka);
+        self::assertStringContainsString('href="aktivity/medailonky?id=' . self::ID_VYPRAVECE . '"', $stranka);
+
+        self::assertSame(303, $this->odesli($session, 'uzivatel', [
+            'akceFotky'                          => 'nahrat',
+            FormularPracovnihoUzivatele::POST_ID => self::ID_VYPRAVECE,
+            'fotka'                              => new \CURLFile($this->png(), 'image/png', 'portret.png'),
+        ]));
+        self::assertFileExists($fotky . '.webp');
+        $stranka = $this->stahni($session, 'uzivatel');
+        self::assertStringContainsString('Fotka je nahraná.', $stranka);
+        self::assertStringContainsString('Smazat fotku', $stranka);
+
+        $smazani = [
+            'akceFotky'                          => 'smazat',
+            FormularPracovnihoUzivatele::POST_ID => self::ID_VYPRAVECE,
+        ];
+        self::assertSame(303, $this->odesli($session, 'uzivatel', $smazani));
+        self::assertSame([], glob($fotky . '.*'));
+        self::assertStringContainsString('Fotka je smazaná', $this->stahni($session, 'uzivatel'));
+
+        // dvojí odeslání, nebo smazání v jiné záložce: fotka už není, a organizátor má vědět, že stav byl jiný
+        self::assertSame(303, $this->odesli($session, 'uzivatel', $smazani));
+        self::assertStringContainsString('Fotka už byla smazaná', $this->stahni($session, 'uzivatel'));
+    }
+
+    /**
+     * @test
+     */
+    public function zalozkaUzivatelNabiziFotkuJenVypraveci(): void
+    {
+        $session = $this->prihlas(\Uzivatel::SYSTEM_LOGIN);
+        $this->vyberPracovnihoUzivatele($session, self::ID_BEZ_PRAV);
+
+        // účastník bez role vypravěče, bez aktivity a bez fotky: fotka by se jen pletla do práce na infopultu
+        self::assertStringNotContainsString('name="akceFotky"', $this->stahni($session, 'uzivatel'));
+
+        $fotkyBezPrav = ZpracovaneObrazky::adresarFotekUzivatelu() . '/' . self::ID_BEZ_PRAV;
+        $this->kUklidu[] = $fotkyBezPrav . '.png';
+        copy($this->png(), $fotkyBezPrav . '.png');
+
+        // kdo už fotku má, tomu ji jde vyměnit nebo smazat
+        self::assertStringContainsString('name="akceFotky" value="smazat"', $this->stahni($session, 'uzivatel'));
+    }
+
+    /**
+     * @test
+     */
+    public function bezPravaNaMedailonkyZalozkaUzivatelFotkuNespravuje(): void
+    {
+        $fotky = ZpracovaneObrazky::adresarFotekUzivatelu() . '/' . self::ID_VYPRAVECE;
+        $this->kUklidu = [...$this->kUklidu, $fotky . '.png', $fotky . '.webp'];
+        // záložka Uživatel stačí s právem ubytování, fotka na veřejném webu ale chce práva Medailonků
+        $session = $this->prihlas('test-fotka-ubytovani');
+        $this->vyberPracovnihoUzivatele($session, self::ID_VYPRAVECE);
+
+        $stranka = $this->stahni($session, 'uzivatel');
+        self::assertStringContainsString('Ubytování uživatele', $stranka);
+        self::assertStringNotContainsString('name="akceFotky"', $stranka);
+
+        $this->odesli($session, 'uzivatel', [
+            'akceFotky'                          => 'nahrat',
+            FormularPracovnihoUzivatele::POST_ID => self::ID_VYPRAVECE,
+            'fotka'                              => new \CURLFile($this->png(), 'image/png', 'portret.png'),
+        ]);
+        self::assertSame([], glob($fotky . '.*'));
+
+        copy($this->png(), $fotky . '.png');
+        $this->odesli($session, 'uzivatel', [
+            'akceFotky'                          => 'smazat',
+            FormularPracovnihoUzivatele::POST_ID => self::ID_VYPRAVECE,
+        ]);
+        self::assertFileExists($fotky . '.png');
+    }
+
+    /**
+     * @test
+     */
+    public function formularFotkyJinehoNezPracovnihoUzivateleNicNenahrajeANesmaze(): void
+    {
+        $fotkyVypravece = ZpracovaneObrazky::adresarFotekUzivatelu() . '/' . self::ID_VYPRAVECE;
+        $fotkyBezPrav = ZpracovaneObrazky::adresarFotekUzivatelu() . '/' . self::ID_BEZ_PRAV;
+        $this->kUklidu = [...$this->kUklidu, $fotkyVypravece . '.webp', $fotkyBezPrav . '.png', $fotkyBezPrav . '.webp'];
+        $session = $this->prihlas(\Uzivatel::SYSTEM_LOGIN);
+        // formulář se načetl u vypravěče, pak se v jiné záložce prohlížeče přepnulo na jiného uživatele
+        $this->vyberPracovnihoUzivatele($session, self::ID_BEZ_PRAV);
+
+        self::assertSame(303, $this->odesli($session, 'uzivatel', [
+            'akceFotky'                          => 'nahrat',
+            FormularPracovnihoUzivatele::POST_ID => self::ID_VYPRAVECE,
+            'fotka'                              => new \CURLFile($this->png(), 'image/png', 'portret.png'),
+        ]));
+        self::assertSame([], glob($fotkyVypravece . '.*'));
+        self::assertSame([], glob($fotkyBezPrav . '.*'));
+        self::assertStringContainsString('formulář patřil jinému uživateli', $this->stahni($session, 'uzivatel'));
+
+        copy($this->png(), $fotkyBezPrav . '.png');
+        self::assertSame(303, $this->odesli($session, 'uzivatel', [
+            'akceFotky'                          => 'smazat',
+            FormularPracovnihoUzivatele::POST_ID => self::ID_VYPRAVECE,
+        ]));
+        self::assertFileExists($fotkyBezPrav . '.png');
+        self::assertStringContainsString('Nic se nezměnilo', $this->stahni($session, 'uzivatel'));
+    }
+
+    /**
+     * @test
+     */
+    public function necitelnaFotkaNeshodiZalozkuUzivatel(): void
+    {
+        // soubor, který PHP nepřečte, třeba ze starého FTP se špatnými právy; tady odkaz, který nikam nevede
+        $fotka = ZpracovaneObrazky::adresarFotekUzivatelu() . '/' . self::ID_VYPRAVECE . '.jpg';
+        $this->kUklidu[] = $fotka;
+        symlink($this->zdroje . '/neexistuje.jpg', $fotka);
+        $session = $this->prihlas(\Uzivatel::SYSTEM_LOGIN);
+        $this->vyberPracovnihoUzivatele($session, self::ID_VYPRAVECE);
+
+        $stranka = $this->stahni($session, 'uzivatel');
+        self::assertStringContainsString('Ubytování uživatele', $stranka);
+        self::assertStringContainsString('Fotka chybí', $stranka);
     }
 
     /**
@@ -649,6 +808,14 @@ SQL);
             $shody[1],
             fn (string $soubor): bool => str_starts_with($soubor, 'test-poradi-'),
         ));
+    }
+
+    private function vyberPracovnihoUzivatele(string $session, int $idUzivatele): void
+    {
+        self::assertSame(303, $this->odesli($session, 'uzivatel', [
+            'vybratUzivateleProPraci' => 1,
+            'id'                      => $idUzivatele,
+        ]));
     }
 
     private function png(): string
