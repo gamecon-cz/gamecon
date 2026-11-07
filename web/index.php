@@ -22,16 +22,20 @@ omezCsrf();
 
 /** @var Gamecon\SystemoveNastaveni\SystemoveNastaveni $systemoveNastaveni */
 
-// a file for crawlers may be cached, and an already started session must not give it its cookie and no-cache headers
+// a file for crawlers may be cached, and a session that the local migration runner has already started
+// must not give it its cookie and no-cache headers
 $odesliSouborProVyhledavace = static function (string $typObsahu, string $obsah): void {
-    if (session_status() === PHP_SESSION_ACTIVE) {
-        session_abort();
+    if (! headers_sent()) {
+        if (session_status() === PHP_SESSION_ACTIVE) {
+            // saved, not aborted: the runner keeps its record of the endless migrations in the session
+            session_write_close();
+        }
+        header_remove('Set-Cookie');
+        header_remove('Pragma');
+        header_remove('Expires');
+        header('Cache-Control: public, max-age=3600');
+        header('Content-Type: ' . $typObsahu . '; charset=utf-8');
     }
-    header_remove('Set-Cookie');
-    header_remove('Pragma');
-    header_remove('Expires');
-    header('Cache-Control: public, max-age=3600');
-    header('Content-Type: ' . $typObsahu . '; charset=utf-8');
     echo $obsah;
 };
 

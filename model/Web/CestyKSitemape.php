@@ -14,8 +14,9 @@ use Gamecon\Aktivita\TypAktivity;
 class CestyKSitemape
 {
     /**
-     * Which module is a public page is written nowhere else, @see \Gamecon\Tests\Model\Web\ModulyVSitemapeTest
-     * compares this list with web/moduly.
+     * Which module is a public page is written nowhere else, so the list is kept by hand.
+     *
+     * @see \Gamecon\Tests\Model\Web\ModulyVSitemapeTest compares it with web/moduly
      */
     public const array VEREJNE_MODULY = ['program', 'novinky', 'blog', 'vypraveci', 'sponzori'];
 
