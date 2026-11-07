@@ -68,8 +68,9 @@ stránku**, pod ním formulář s texty), vpravo **Obrázek**.
   hlavička se vymaže a použije se výchozí podoba (hláška „Hlavička linie
   byla vymazána, použije se fallback.").
 - Obrázek: vyber soubor a klikni **Nahrát**. Podporované formáty
-  jsou JPG, PNG, WebP a GIF, maximální velikost 2 MB; JPG a PNG bez animace
-  se při nahrání převedou na WebP. U každé linie vidíš náhled (kliknutím se
+  jsou JPG, PNG, WebP a GIF (a AVIF, kde ho server zvládá), maximální velikost
+  30 MB; JPG a PNG bez animace se při nahrání převedou na AVIF, nebo na WebP,
+  když ho server nezapíše správně. U každé linie vidíš náhled (kliknutím se
   otevře obrázek v původní velikosti). U obrázku, který linie opravdu má, jsou
   hotové zápisy **Markdown** a **HTML** pro vložení do textu (je v nich i
   cesta k souboru); u linie bez vlastního obrázku se místo nich píše, že
@@ -90,7 +91,8 @@ smazat logo …?") a formulář pro nahrání nového.
 
 Nahrání: vyber soubor loga, vyplň **URL sponzora** / **URL partnera**
 (povinné — adresa, kam logo na webu odkazuje) a klikni **Nahrát logo**.
-Podporované formáty: JPG, PNG, GIF, WebP, SVG. Soubor se pojmenuje podle
+Podporované formáty: JPG, PNG, GIF, WebP, SVG a AVIF (jen tam, kde ho server
+zvládá). Soubor se pojmenuje podle
 domény z URL, takže nahrání dalšího loga se stejnou doménou přepíše to
 původní.
 
