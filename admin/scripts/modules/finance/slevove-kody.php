@@ -26,10 +26,10 @@ if (post('vygenerovat')) {
 if (post('zneplatnitId')) {
     $id = (int) post('zneplatnitId');
     // zneplatnit jde jen dosud nepoužitý kód – použitý už slevu udělil a měnit ho nemá smysl.
-    $zmeneno = dbAffectedOrNumRows(dbQuery(
+    $zmeneno = dbExecute(
         'UPDATE slevove_kody SET invalidated = 1 WHERE id = $0 AND usedAt IS NULL AND invalidated = 0',
         [$id],
-    ));
+    );
     if ($zmeneno) {
         oznameni('Poukaz byl zneplatněn.');
     } elseif (dbRecordExists('slevove_kody', [
@@ -49,10 +49,10 @@ if (post('zneplatnitId')) {
 
 if (post('obnovitId')) {
     $id = (int) post('obnovitId');
-    $zmeneno = dbAffectedOrNumRows(dbQuery(
+    $zmeneno = dbExecute(
         'UPDATE slevove_kody SET invalidated = 0 WHERE id = $0 AND usedAt IS NULL AND invalidated = 1',
         [$id],
-    ));
+    );
     if ($zmeneno) {
         oznameni('Platnost poukazu byla obnovena.');
     } elseif (dbRecordExists('slevove_kody', [

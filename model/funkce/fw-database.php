@@ -15,10 +15,10 @@ $dbJenProCteni = false;
  */
 function dbArrayCol(
     $q,
-    $param = null,
+    ?array $param = null,
     $pdo = null,
 ) {
-    $a = dbQueryS($q, $param, $pdo);
+    $a = dbFetch($q, $param ?? [], $pdo);
     $o = [];
     while ($r = $a->fetch(PDO::FETCH_NUM)) {
         $o[$r[0]] = $r[1];
@@ -41,9 +41,9 @@ function dbBegin()
         $GLOBALS['dbTransactionDepth'] = 0;
     }
     if ($GLOBALS['dbTransactionDepth'] == 0) {
-        dbQuery('BEGIN');
+        dbExecute('BEGIN');
     } else {
-        dbQuery('SAVEPOINT nesttrans' . $GLOBALS['dbTransactionDepth']);
+        dbExecute('SAVEPOINT nesttrans' . $GLOBALS['dbTransactionDepth']);
     }
     $GLOBALS['dbTransactionDepth']++;
 }
@@ -65,14 +65,14 @@ function dbCommit()
         throw new Exception('nothing to commit');
     }
     if ($GLOBALS['dbTransactionDepth'] == 1) {
-        dbQuery('COMMIT');
+        dbExecute('COMMIT');
     } else {
         try {
-            dbQuery('RELEASE SAVEPOINT nesttrans' . ($GLOBALS['dbTransactionDepth'] - 1));
+            dbExecute('RELEASE SAVEPOINT nesttrans' . ($GLOBALS['dbTransactionDepth'] - 1));
         } catch (\Throwable $e) {
             // If savepoint doesn't exist, do a full commit and reset depth
             if (str_contains($e->getMessage(), 'SAVEPOINT') && str_contains($e->getMessage(), 'does not exist')) {
-                dbQuery('COMMIT'); // just to be sure (executing COMMIT even if there is nothing to commit is safe); missing SAVEPOINT mostly means that an implicit COMMIT happened on CREATE / ALTER / DROP
+                dbExecute('COMMIT'); // just to be sure (executing COMMIT even if there is nothing to commit is safe); missing SAVEPOINT mostly means that an implicit COMMIT happened on CREATE / ALTER / DROP
                 $GLOBALS['dbTransactionDepth'] = 0;
                 return;
             }
@@ -102,14 +102,14 @@ function dbRollback()
         return;
     }
     if ($GLOBALS['dbTransactionDepth'] == 1) {
-        dbQuery('ROLLBACK');
+        dbExecute('ROLLBACK');
     } else {
         try {
-            dbQuery('ROLLBACK TO SAVEPOINT nesttrans' . ($GLOBALS['dbTransactionDepth'] - 1));
+            dbExecute('ROLLBACK TO SAVEPOINT nesttrans' . ($GLOBALS['dbTransactionDepth'] - 1));
         } catch (\Throwable $e) {
             // If savepoint doesn't exist, do a full rollback and reset depth
             if (str_contains($e->getMessage(), 'SAVEPOINT') && str_contains($e->getMessage(), 'does not exist')) {
-                dbQuery('ROLLBACK');
+                dbExecute('ROLLBACK');
                 $GLOBALS['dbTransactionDepth'] = 0;
                 return;
             }
@@ -143,8 +143,8 @@ function dbConnectReadOnly(
         false,
     );
     // without the systemove_nastaveni sync of _nastavRocnikDoSpojeni(), a write the shared connection already did
-    dbQuery('SET @rocnik = $0', $rocnik, $spojeniJenProCteni);
-    dbQuery('SET SESSION TRANSACTION READ ONLY', null, $spojeniJenProCteni);
+    dbExecute('SET @rocnik = $0', [$rocnik], $spojeniJenProCteni);
+    dbExecute('SET SESSION TRANSACTION READ ONLY', [], $spojeniJenProCteni);
 
     return $spojeniJenProCteni;
 }
@@ -264,11 +264,11 @@ function _nastavRocnikDoSpojeni(
     PDO  $spojeni,
     bool $databaseSelected,
 ) {
-    dbQuery('SET @rocnik = IF(@rocnik IS NOT NULL, @rocnik, $0)', $rocnik, $spojeni);
+    dbExecute('SET @rocnik = IF(@rocnik IS NOT NULL, @rocnik, $0)', [$rocnik], $spojeni);
     if ($databaseSelected) {
         try {
             // pro SQL view, který nesnese variable
-            dbQuery("UPDATE systemove_nastaveni SET hodnota = $0 WHERE klic = 'ROCNIK' AND hodnota != $0", $rocnik, $spojeni);
+            dbExecute("UPDATE systemove_nastaveni SET hodnota = $0 WHERE klic = 'ROCNIK' AND hodnota != $0", [$rocnik], $spojeni);
         } catch (Throwable $throwable) {
             if ((int)$throwable->getCode() !== 1146) {
                 throw $throwable;
@@ -418,7 +418,7 @@ function dbDelete(
         $where[] = dbQi($col) . ' = ' . dbQv($val);
     }
     if (!$where) throw new Exception('DELETE … WHERE caluse must not be empty');
-    dbQuery('DELETE FROM ' . dbQi($table) . ' WHERE ' . implode(' AND ', $where));
+    dbExecute('DELETE FROM ' . dbQi($table) . ' WHERE ' . implode(' AND ', $where));
 }
 
 /**
@@ -427,7 +427,7 @@ function dbDelete(
 function dbDescribe(
     $table,
 ) {
-    $a   = dbQuery('show full columns from ' . dbQi($table));
+    $a   = dbFetch('show full columns from ' . dbQi($table));
     $out = [];
     while ($r = $a->fetch(PDO::FETCH_ASSOC)) {
         $out[] = $r;
@@ -524,7 +524,7 @@ function dbInsert(
         ? 'IGNORE'
         : '';
     $q         = "INSERT $ignoreSql INTO $table ($sloupce) VALUES ($hodnoty)";
-    dbQuery($q);
+    dbExecute($q);
 }
 
 /**
@@ -657,14 +657,14 @@ SQL,
 
 /**
  * Insert with actualisation
- * @return PDOStatement|bool|null
+ * @return int number of affected rows
  * @throws DbException
  * @see dbInsert
  */
 function dbInsertUpdate(
     string $table,
            $valArray,
-) {
+): int {
     $uniqueKeysColumns = getTableUniqueKeysColumns($table);
     if ($uniqueKeysColumns) {
         $completeUniqueKeyValues = [];
@@ -675,12 +675,12 @@ function dbInsertUpdate(
             }
         }
         if ($completeUniqueKeyValues) {
-            $query = dbUpdate($table, $valArray, $completeUniqueKeyValues);
-            if (dbAffectedOrNumRows($query) > 0) {
-                return $query;
+            $affectedRows = dbUpdate($table, $valArray, $completeUniqueKeyValues);
+            if ($affectedRows > 0) {
+                return $affectedRows;
             }
             if (dbRecordExists($table, $completeUniqueKeyValues)) {
-                return $query; // no change
+                return $affectedRows; // no change
             }
         }
     }
@@ -694,7 +694,7 @@ function dbInsertUpdate(
     $vals = implode(',', $sqlVals);
     $q    = $update . $vals . $dupl . $vals;
 
-    return dbQuery($q);
+    return dbExecute($q);
 }
 
 /**
@@ -742,47 +742,13 @@ function dbQueries(): array
 }
 
 /**
- * @param $query
- * @return int
- * @throws Exception
- * @deprecated
- * use @see dbAffectedOrNumRows instead
- */
-function dbNumRows(
-    $query,
-): int {
-    return dbAffectedOrNumRows($query);
-}
-
-/**
- * @return int of rows affected / returned by query
- * @throws Exception
- */
-function dbAffectedOrNumRows(
-    $query,
-): int {
-    if ($query === true) {
-        // result of INSERT / UPDATE / DELETE (exec returned affected rows)
-        return $GLOBALS['dbAffectedRows'] ?? 0;
-    }
-    if ($query instanceof PDOStatement) {
-        // result of SELECT
-        return $query->rowCount();
-    }
-    if ($query === null) {
-        return 0;
-    }
-    throw new Exception('query failed or returned unexpected type');
-}
-
-/**
  * Expects one column in select. Returns array of selected values.
  */
 function dbOneArray(
     $q,
-    $p = null,
+    ?array $p = null,
 ): array {
-    $o = dbQuery($q, $p);
+    $o = dbFetch($q, $p ?? []);
     $a = [];
     while ($r = $o->fetch(PDO::FETCH_NUM)) {
         $a[] = $r[0];
@@ -812,9 +778,9 @@ function dbOneCol(
  */
 function dbOneIndex(
     $q,
-    $p = null,
+    ?array $p = null,
 ): array {
-    $o = dbQuery($q, $p);
+    $o = dbFetch($q, $p ?? []);
     $a = [];
     while ($r = $o->fetch(PDO::FETCH_NUM)) {
         $a[$r[0]] = true;
@@ -830,10 +796,10 @@ function dbOneIndex(
  */
 function dbOneLine(
     $q,
-    $p = null,
+    ?array $p = null,
     $pdo = null,
 ): array {
-    $r = dbQueryS($q, $p, $pdo);
+    $r = dbFetch($q, $p ?? [], $pdo);
     $rows = $r->fetchAll(PDO::FETCH_ASSOC);
     if (count($rows) > 1) {
         throw new RuntimeException('Multiple lines matched on query ' . $q);
@@ -865,7 +831,7 @@ function dbFetchAll(
     array  $params = [],
     $pdo = null,
 ): array {
-    $result = dbQuery($query, $params, $pdo);
+    $result = dbFetch($query, $params, $pdo);
 
     return $result->fetchAll(PDO::FETCH_ASSOC);
 }
@@ -878,7 +844,7 @@ function dbFetchColumn(
     array  $params = [],
     $connection = null,
 ): array {
-    $result = dbQuery($query, $params, $connection);
+    $result = dbFetch($query, $params, $connection);
 
     return $result->fetchAll(PDO::FETCH_COLUMN);
 }
@@ -888,7 +854,7 @@ function dbFetchPairs(
     array  $params = [],
     $connection = null,
 ): array {
-    $result = dbQuery($query, $params, $connection);
+    $result = dbFetch($query, $params, $connection);
 
     return $result->fetchAll(PDO::FETCH_KEY_PAIR);
 }
@@ -900,7 +866,7 @@ function dbFetchSingle(
     string $query,
     array  $params = [],
 ): float | bool | int | string | null {
-    $result = dbQuery($query, $params);
+    $result = dbFetch($query, $params);
     $row    = $result->fetch(PDO::FETCH_NUM);
     if (!$row) {
         return null;
@@ -1248,15 +1214,15 @@ function dbQi(
 /**
  * Executes update on table $table using associtive array $vals as column=>value
  * pairs and $where as column=>value AND column=>value ... where clause
- * @return bool|PDOStatement|null
+ * @return int number of affected rows
  */
 function dbUpdate(
     string $table,
     array  $vals,
     array  $where,
-) {
+): int {
     if ($vals === []) {
-        return null;
+        return 0;
     }
     $setArray = [];
     foreach ($vals as $key => $val) {
@@ -1266,7 +1232,7 @@ function dbUpdate(
         $setArray[] = dbQi($key) . '=' . dbQv($val);
     }
     if (!$setArray) {
-        return null;
+        return 0;
     }
     $q = 'UPDATE ' . dbQi($table) . " SET \n" . implode(',', $setArray);
 
@@ -1278,7 +1244,7 @@ function dbUpdate(
         $q .= ' WHERE ' . implode("\n\tAND ", $whereArray);
     }
 
-    return dbQuery($q);
+    return dbExecute($q);
 }
 
 /**

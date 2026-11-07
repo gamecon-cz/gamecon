@@ -161,12 +161,9 @@ WHERE sjednocene_tagy.id = $1',
             return [];
         }
         try {
-            $result = dbUpdate('sjednocene_tagy', ['nazev' => $nazevTagu, 'id_kategorie_tagu' => $idKategorieTagu, 'poznamka' => $poznamkaTagu], ['id' => $idTagu]);
+            dbUpdate('sjednocene_tagy', ['nazev' => $nazevTagu, 'id_kategorie_tagu' => $idKategorieTagu, 'poznamka' => $poznamkaTagu], ['id' => $idTagu]);
         } catch (\DbDuplicateEntryException $dbDuplicateEntryException) {
             return ['errors' => ["Název tagu '$nazevTagu' už je obsazený: {$dbDuplicateEntryException->getMessage()}"]];
-        }
-        if (!$result) {
-            throw new \RuntimeException('Failed SQL execution of ' . dbLastQ());
         }
 
         return [

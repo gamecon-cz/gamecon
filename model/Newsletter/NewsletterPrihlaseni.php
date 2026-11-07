@@ -20,12 +20,12 @@ class NewsletterPrihlaseni extends \DbObject
         SystemoveNastaveni $systemoveNastaveni,
     ): void {
         dbBegin();
-        $query = dbQuery(<<<SQL
+        $vlozeno = dbExecute(<<<SQL
             INSERT IGNORE INTO newsletter_prihlaseni (email, kdy) VALUES ($0, $1)
             SQL
             , [0 => $email, 1 => $systemoveNastaveni->ted()],
         );
-        if (dbAffectedOrNumRows($query) > 0) {
+        if ($vlozeno > 0) {
             dbQuery(<<<SQL
             INSERT INTO newsletter_prihlaseni_log (email, kdy, stav)
             SELECT $0, $1, $2
@@ -41,12 +41,12 @@ class NewsletterPrihlaseni extends \DbObject
         SystemoveNastaveni $systemoveNastaveni,
     ): void {
         dbBegin();
-        $query = dbQuery(<<<SQL
+        $smazano = dbExecute(<<<SQL
             DELETE FROM newsletter_prihlaseni WHERE email = $0
             SQL
             , [0 => $email],
         );
-        if (dbAffectedOrNumRows($query) > 0) {
+        if ($smazano > 0) {
             dbQuery(<<<SQL
             INSERT INTO newsletter_prihlaseni_log (email, kdy, stav)
             SELECT $0, $1, $2

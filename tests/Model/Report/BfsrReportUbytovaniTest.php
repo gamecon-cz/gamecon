@@ -54,7 +54,7 @@ class BfsrReportUbytovaniTest extends AbstractTestDb
 
                     // Typ je nově tag a ročník se odvozuje z archived_at (NULL = letošní),
                     // takže ani jedno už nejde vložit jako sloupec.
-                    $vlozeni = dbQuery(
+                    $vlozeni = dbExecute(
                         'INSERT INTO product_product_tag (product_id, tag_id)
                          SELECT $0, id FROM product_tag WHERE code = $1',
                         [
@@ -64,7 +64,7 @@ class BfsrReportUbytovaniTest extends AbstractTestDb
                     );
                     // Bez tagu v databázi vloží INSERT ... SELECT tiše nula řádků a předmět
                     // pak z pohledu vyjde s typ = NULL — spadne až vzdálená assertion.
-                    if (dbAffectedOrNumRows($vlozeni) !== 1) {
+                    if ($vlozeni !== 1) {
                         throw new \LogicException('Tag ' . $kategorie->value . ' v databázi není');
                     }
                 }

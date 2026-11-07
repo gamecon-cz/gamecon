@@ -151,14 +151,13 @@ SQL,
         $queryParams,
     );
 
-    $mysqliResult = dbQuery(<<<SQL
+    $zapsanoZmen += dbExecute(<<<SQL
 UPDATE uzivatele_hodnoty
 JOIN `$temporaryTable` ON uzivatele_hodnoty.id_uzivatele = `$temporaryTable`.id_uzivatele
 SET uzivatele_hodnoty.infopult_poznamka = `$temporaryTable`.infopult_poznamka
 WHERE TRUE
 SQL,
     );
-    $zapsanoZmen  += dbAffectedOrNumRows($mysqliResult);
 
     dbQuery(<<<SQL
 DROP TEMPORARY TABLE `$temporaryTable`

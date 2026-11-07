@@ -319,14 +319,13 @@ SQL,
     ): int {
         $this->hlidejZakazaneZmeny($klic, $hodnota);
         $hodnotaProDb   = $this->formatujHodnotuProDb($hodnota, $klic);
-        $updateQuery    = dbQuery(<<<SQL
+        $zmenenoZaznamu = dbExecute(<<<SQL
 UPDATE systemove_nastaveni
 SET hodnota = $1
 WHERE klic = $2
 SQL,
             [$hodnotaProDb, $klic],
         );
-        $zmenenoZaznamu = dbAffectedOrNumRows($updateQuery);
         dbQuery(<<<SQL
 INSERT INTO systemove_nastaveni_log(id_uzivatele, id_nastaveni, hodnota)
 SELECT $1, id_nastaveni, hodnota
@@ -430,7 +429,7 @@ SQL,
         \Uzivatel $editujici,
     ): int {
         $this->hlidejZakazaneZmeny($klic, null);
-        $updateQuery = dbQuery(<<<SQL
+        $zmenenoZaznamu = dbExecute(<<<SQL
 UPDATE systemove_nastaveni
 SET vlastni = $1
 WHERE klic = $2
@@ -447,7 +446,6 @@ WHERE klic = $2
 SQL,
             [$editujici->id(), $klic],
         );
-        $zmenenoZaznamu = dbAffectedOrNumRows($updateQuery);
         if ($zmenenoZaznamu > 0) {
             $this->aktualizujPriznakVlastniVLokalniCache($vlastni, $klic, $editujici->id());
         }
@@ -460,7 +458,7 @@ SQL,
         string    $klic,
         \Uzivatel $editujici,
     ): int {
-        $updateQuery = dbQuery(<<<'SQL'
+        $zmenenoZaznamu = dbExecute(<<<'SQL'
 UPDATE systemove_nastaveni
 SET verejne = $1
 WHERE klic = $2
@@ -477,7 +475,6 @@ WHERE klic = $2
 SQL,
             [$editujici->id(), $klic],
         );
-        $zmenenoZaznamu = dbAffectedOrNumRows($updateQuery);
         if ($zmenenoZaznamu > 0 && isset($this->vsechnyZaznamyNastaveni[$klic])) {
             $this->vsechnyZaznamyNastaveni[$klic][Sql::VEREJNE]   = (string)(int)$verejne;
             $this->vsechnyZaznamyNastaveni[$klic]['id_uzivatele'] = (string)$editujici->id();
