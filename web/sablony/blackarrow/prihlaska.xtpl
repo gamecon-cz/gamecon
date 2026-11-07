@@ -193,7 +193,8 @@
 <link rel="stylesheet" href="soubory/blackarrow/_spolecne/baguetteBox.min.css">
 <script src="soubory/blackarrow/_spolecne/baguetteBox.min.js"></script>
 <script>
-  baguetteBox.run('.prihlaska_nahledy')
+  // výchozí filtr odkazů na obrázky nezná AVIF, ve kterém jsou náhledy
+  baguetteBox.run('.prihlaska_nahledy', {filter: /.+\.(gif|jpe?g|png|webp|avif)/i})
 </script>
 
 <!-- end:prihlaska -->

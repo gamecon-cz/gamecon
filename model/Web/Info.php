@@ -47,12 +47,43 @@ class Info
             $o[] = '<meta property="og:description" content="' . $e . '">';
         }
         if ($e = $this->obrazek()) {
+            $e = $this->obrazekProSocialniSite((string) $e);
             if (substr($e, 0, 4) != 'http') $e = URL_WEBU . '/' . $e;
             $o[] = '<meta property="og:image" content="' . $e . '">';
         }
         $o[] = '<meta property="og:type" content="website">';
 
         return implode("\n", $o);
+    }
+
+    /**
+     * Náhled odkazu na sociální síti nebo v chatu čte jejich robot, a ten AVIF nezobrazí (nebo se to nedá zaručit),
+     * proto se obrázek ve formátu AVIF z našeho webu nahradí JPEG téhož obrázku. Cokoli jiného zůstane, jak je.
+     */
+    private function obrazekProSocialniSite(string $obrazek): string
+    {
+        $cesta = rawurldecode((string) parse_url($obrazek, PHP_URL_PATH));
+        if (!preg_match('~\.avif$~i', $cesta)) {
+            return $obrazek;
+        }
+        if (str_starts_with($obrazek, 'http')) {
+            $zakladniUrl = rtrim(URL_WEBU, '/') . '/';
+            if (!str_starts_with($obrazek, $zakladniUrl)) {
+                return $obrazek;
+            }
+            $cesta = rawurldecode((string) parse_url(substr($obrazek, strlen($zakladniUrl)), PHP_URL_PATH));
+        }
+        $soubor = rtrim(WWW, '/') . '/' . ltrim($cesta, '/');
+        if (str_contains($cesta, '..') || !is_file($soubor)) {
+            return $obrazek;
+        }
+        try {
+            // stejný obrázek v JPEG, bez ořezu a zvětšení, jen s omezenou délkou strany: robot sociální sítě větší nenačte
+            return \Nahled::zeSouboru($soubor)->kvalita(OBRAZEK_WEBP_KVALITA)->omez(1200)->jakoJpeg()->url();
+        } catch (\Exception) {
+            // soubor, který ImageMagick nepřečte, nebo nezapisovatelná cache ať neshodí celou hlavičku stránky
+            return $obrazek;
+        }
     }
 
     /**
