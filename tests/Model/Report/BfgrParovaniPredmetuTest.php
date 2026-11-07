@@ -5,8 +5,6 @@ declare(strict_types=1);
 namespace Gamecon\Tests\Model\Report;
 
 use Gamecon\Report\BfgrReport;
-use Gamecon\Shop\StavPredmetu;
-use Gamecon\Shop\TypPredmetu;
 use Gamecon\SystemoveNastaveni\SystemoveNastaveni;
 use Gamecon\Tests\Db\AbstractTestDb;
 use OpenSpout\Reader\XLSX\Reader;
@@ -21,25 +19,19 @@ class BfgrParovaniPredmetuTest extends AbstractTestDb
 
     protected static array $initQueries = [
         "INSERT INTO uzivatele_hodnoty SET id_uzivatele = 1253, login_uzivatele = 'BfgrParovani', jmeno_uzivatele = 'Bfgr', prijmeni_uzivatele = 'Parovani', email1_uzivatele = 'bfgr.parovani@example.invalid'",
+        "INSERT INTO shop_predmety (id_predmetu, nazev, kod_predmetu, cena_aktualni, stav, popis) VALUES (125301, 'Nicknack párovací', 'nicknack_parovani', 100, 1, '')",
+        // An archived die belongs to its archive year and its name already carries that year,
+        // as past dice are named.
         [
-            "INSERT INTO shop_predmety SET id_predmetu = 125301, nazev = 'Nicknack párovací', model_rok = $0, kod_predmetu = CONCAT('nicknack_parovani_', $0), cena_aktualni = 100, stav = $1, typ = $2",
-            [
-                0 => ROCNIK,
-                1 => StavPredmetu::VEREJNY,
-                2 => TypPredmetu::PREDMET,
-            ],
-        ],
-        // An archived die whose name already carries its year, as past dice are named.
-        [
-            "INSERT INTO shop_predmety SET id_predmetu = 125302, nazev = CONCAT('Kostka párovací ', $0), model_rok = $0, kod_predmetu = CONCAT('kostka_parovani_', $0), cena_aktualni = 50, stav = $1, typ = $2",
+            "INSERT INTO shop_predmety (id_predmetu, nazev, kod_predmetu, cena_aktualni, stav, popis, archived_at) VALUES (125302, CONCAT('Kostka párovací ', $0), 'kostka_parovani', 50, 1, '', CONCAT($0, '-12-31 00:00:00'))",
             [
                 0 => ROCNIK - 1,
-                1 => StavPredmetu::VEREJNY,
-                2 => TypPredmetu::PREDMET,
             ],
         ],
+        "INSERT INTO product_product_tag (product_id, tag_id) SELECT id_predmetu, (SELECT id FROM product_tag WHERE code = 'predmet') FROM shop_predmety WHERE id_predmetu IN (125301, 125302)",
+        "INSERT INTO product_variant (product_id, name, code, position, state) VALUES (125301, NULL, 'nicknack_parovani', 0, 1), (125302, NULL, 'kostka_parovani', 0, 1)",
         [
-            'INSERT INTO shop_nakupy(id_uzivatele, id_predmetu, rok, cena_nakupni) VALUES($0, 125302, $1, 50)',
+            "INSERT INTO shop_nakupy (id_uzivatele, variant_id, rok, cena_nakupni) SELECT $0, id, $1, 50 FROM product_variant WHERE code = 'kostka_parovani'",
             [
                 0 => self::ID_UZIVATELE,
                 1 => ROCNIK,
