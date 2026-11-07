@@ -7,6 +7,7 @@ TL;DR: každý soubor `admin/scripts/modules/<modul>/*.php`, jehož název neza�
 - `nazev:` text tlačítka (v podmenu ho přebíjí `submenu_nazev:`) a zároveň název stránky (`$info->nazev()` v `admin/index.php`), proto bez emoji.
 - `ikona:` název ikony z Font Awesome Free 6.1.1 bez předpony, např. `cart-shopping`. `admin/templates/main.xtpl` z ní udělá `<i class="fa-solid fa-fw fa-…">` před textem tlačítka.
 - `pravo:` jedno právo, `prava:` víc práv oddělených čárkou (stačí kterékoli).
+- Přístup: stránku smí otevřít, kdo má kterékoli právo stránky, nebo kterékoli právo vybrané podstránky (`AdminMenu::isPristupna()`, volá ho `admin/index.php`). Modul, který nabízí kus jiné stránky, se ptá `AdminMenu::isPodstrankaPristupna($u, 'aktivity', 'medailonky')`, aby práva zůstala jen v hlavičkách (záložka Uživatel takhle ukazuje fotku vypravěče z Medailonků).
 - `submenu_group:`, `submenu_order:` řazení a rozdělení podmenu do skupin.
 - `submenu_nazev:` jiný text v podmenu, než je `nazev:`.
 - `submenu_link_open_in_blank:`, `submenu_hidden:` otevření v nové záložce, skrytí položky.

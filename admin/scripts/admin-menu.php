@@ -102,6 +102,23 @@ class AdminMenu
     }
 
     /**
+     * Totéž co @see isPristupna() pro podstránku zadanou adresou, třeba `aktivity/medailonky`. Pro modul, který nabízí
+     * kus jiné stránky a má ho vidět jen ten, kdo by na ni směl vejít: práva tak zůstanou jen v hlavičkách modulů.
+     */
+    public static function isPodstrankaPristupna(\Uzivatel $uzivatel, string $stranka, string $podstranka): bool
+    {
+        $adresarModulu = __DIR__ . '/modules/';
+        $menu          = (new self($adresarModulu))->pole();
+        if (empty($menu[$stranka]['submenu'])) {
+            return false;
+        }
+        $submenu = (new self($adresarModulu . $stranka . '/', true))->pole();
+
+        return isset($submenu[$podstranka])
+            && self::isPristupna($uzivatel, $menu[$stranka], $submenu[$podstranka]);
+    }
+
+    /**
      * Modul může místo jediného práva (hlavička `pravo:`) vyjmenovat hlavičkou
      * `prava: 100, 102, ...` víc práv — stránku pak vidí a smí otevřít každý,
      * kdo má KTERÉKOLI z nich (typicky Nápověda, viditelná pro všechny části
