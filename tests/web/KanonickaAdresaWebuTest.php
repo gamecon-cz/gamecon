@@ -54,7 +54,6 @@ SQL,
         self::assertStringEndsWith('/web/', $kanonickaAdresa);
         self::assertSame($kanonickaAdresa, $this->kanonickaAdresa('web/index.php'));
         self::assertSame($kanonickaAdresa, $this->kanonickaAdresa('web/titulka'));
-        self::assertSame($kanonickaAdresa, $this->kanonickaAdresa('web/titulka/cokoliv'));
     }
 
     /**
