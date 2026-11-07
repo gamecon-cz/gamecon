@@ -18,8 +18,8 @@ class JednoSpojeniTest extends TestCase
 {
     protected function setUp(): void
     {
-        dbQuery('CREATE TEMPORARY TABLE IF NOT EXISTS tmp_jedno_spojeni (cislo INT)');
-        dbQuery('DELETE FROM tmp_jedno_spojeni');
+        dbExecute('CREATE TEMPORARY TABLE IF NOT EXISTS tmp_jedno_spojeni (cislo INT)');
+        dbExecute('DELETE FROM tmp_jedno_spojeni');
     }
 
     protected function tearDown(): void
@@ -27,7 +27,7 @@ class JednoSpojeniTest extends TestCase
         while ($this->doctrine()->isTransactionActive()) {
             $this->doctrine()->rollBack();
         }
-        dbQuery('DROP TEMPORARY TABLE IF EXISTS tmp_jedno_spojeni');
+        dbExecute('DROP TEMPORARY TABLE IF EXISTS tmp_jedno_spojeni');
     }
 
     public function testLegacyPouzivaSpojeniDoctrine(): void
@@ -57,7 +57,7 @@ class JednoSpojeniTest extends TestCase
     {
         $this->doctrine()->beginTransaction();
         dbBegin();
-        dbQuery('INSERT INTO tmp_jedno_spojeni VALUES (1)');
+        dbExecute('INSERT INTO tmp_jedno_spojeni VALUES (1)');
         dbCommit();
         $this->doctrine()->rollBack();
 
@@ -78,7 +78,7 @@ class JednoSpojeniTest extends TestCase
     public function testVypnutiDalsihoKerneluNeukonciOtevrenouTransakci(): void
     {
         dbBegin();
-        dbQuery('INSERT INTO tmp_jedno_spojeni VALUES (1)');
+        dbExecute('INSERT INTO tmp_jedno_spojeni VALUES (1)');
 
         $dalsiKernel = new Kernel('test', false);
         $dalsiKernel->boot();
@@ -97,7 +97,7 @@ class JednoSpojeniTest extends TestCase
         ));
         dbBegin();
         dbBegin();
-        dbQuery('SELECT id_nastaveni FROM systemove_nastaveni WHERE id_nastaveni = $0 FOR UPDATE', [$druhy]);
+        dbFetch('SELECT id_nastaveni FROM systemove_nastaveni WHERE id_nastaveni = $0 FOR UPDATE', [$druhy]);
         // The rival changes a row, so InnoDB picks this transaction, which changed none, as the victim.
         $souper = SoubeznaTransakce::spust($this->doctrine(), [
             ['sql', "UPDATE systemove_nastaveni SET hodnota = CONCAT(hodnota, 'x') WHERE id_nastaveni = {$prvni}"],
@@ -108,7 +108,7 @@ class JednoSpojeniTest extends TestCase
 
         $deadlock = null;
         try {
-            dbQuery('SELECT id_nastaveni FROM systemove_nastaveni WHERE id_nastaveni = $0 FOR UPDATE', [$prvni]);
+            dbFetch('SELECT id_nastaveni FROM systemove_nastaveni WHERE id_nastaveni = $0 FOR UPDATE', [$prvni]);
         } catch (\Throwable $chyba) {
             $deadlock = $chyba;
         }

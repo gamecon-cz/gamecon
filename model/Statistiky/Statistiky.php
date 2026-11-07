@@ -51,7 +51,7 @@ class Statistiky
         $konecGc     = DateTimeGamecon::konecGameconu($rok);
         $posledniDen = min($konecGc, $doChvile);
 
-        $ucastResult         = dbQuery(<<<SQL
+        $ucastResult         = dbFetch(<<<SQL
 SELECT
     SUBDATE(DATE($3), 1) AS den, -- všichni přihlášení před začátkem registrací nahloučení v jednom "dni"
     SUM(CASE log.zmena WHEN $1 THEN 1 WHEN $2 THEN -1 ELSE 0 END) AS prihlasenych
@@ -129,7 +129,7 @@ SQL,
         ];
 
         return tabMysql(
-            dbQuery(
+            dbFetch(
                 <<<SQL
 SELECT
     role_seznam.nazev_role AS "Role",
@@ -157,7 +157,7 @@ SQL,
     public function tabulkaPredmetuHtml(): string
     {
         return tabMysql(
-            dbQuery(
+            dbFetch(
                 <<<SQL
 SELECT
     CONCAT_WS(' ', produkt.nazev, product_variant.name) AS Název,
@@ -187,7 +187,7 @@ SQL,
     public function tabulkaUbytovaniHtml(): string
     {
         return tabMysql(
-            dbQuery(
+            dbFetch(
                 <<<SQL
 SELECT Název, Počet
 FROM (
@@ -222,7 +222,7 @@ SQL,
     {
 
         return tabMysql(
-            dbQuery(
+            dbFetch(
                 <<<SQL
 SELECT Den, Počet FROM (
     SELECT
@@ -268,7 +268,7 @@ SQL,
     {
 
         return tabMysql(
-            dbQuery(
+            dbFetch(
                 <<<SQL
 SELECT Název,Cena,Počet,Slev FROM (
   SELECT
@@ -307,7 +307,7 @@ SQL,
     public function tabulkaZastoupeniPohlaviHtml(): string
     {
         return tabMysqlR(
-            dbQuery(
+            dbFetch(
                 <<<SQL
     SELECT
     'Počet' AS ' ', -- formátování
@@ -428,7 +428,7 @@ SQL,
         $vyznamVypravec   = Role::VYZNAM_VYPRAVEC;
 
         return tabMysqlR(
-            dbQuery(
+            dbFetch(
                 <<<SQL
 SELECT
     rocnik_role AS ' ', -- formátování
@@ -708,7 +708,7 @@ SQL,
     public function tabulkaLidiNaGcCelkemHtml(): string
     {
         return tabMysqlR(
-            dbQuery(
+            dbFetch(
                 <<<SQL
 SELECT
     rok AS ' ', -- formátování
@@ -741,7 +741,7 @@ SQL,
     public function tabulkaHistorieProdanychPredmetuHtml(): string
     {
         return tabMysqlR(
-            dbQuery(
+            dbFetch(
                 <<<SQL
 SELECT 2009 AS '', 43 AS 'Prodané placky', 43 AS 'Prodané kostky', 6 AS 'Prodaná trička'
 UNION ALL
@@ -779,7 +779,7 @@ SQL,
     public function tabulkaHistorieUbytovaniHtml(): string
     {
         return tabMysqlR(
-            dbQuery(
+            dbFetch(
                 <<<SQL
 SELECT
     noci.rok AS '',

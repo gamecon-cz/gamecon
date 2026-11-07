@@ -6,7 +6,7 @@ use Gamecon\Uzivatel\SqlStruktura\UzivateleHodnotySqlStruktura;
 
 $idSystemUzivatele = Uzivatel::SYSTEM;
 
-$mysqliResult = dbQuery(<<<SQL
+$mysqliResult = dbFetch(<<<SQL
 SELECT id_uzivatele,
        login_uzivatele,
        jmeno_uzivatele,

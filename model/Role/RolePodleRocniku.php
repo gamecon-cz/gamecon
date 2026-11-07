@@ -27,7 +27,7 @@ readonly class RolePodleRocniku
 
         dbBegin();
         try {
-            dbQuery(<<<SQL
+            dbExecute(<<<SQL
 DELETE FROM uzivatele_role_podle_rocniku
 WHERE rocnik = $rocnik
     AND IF ($0 IS NOT NULL, id_uzivatele = $0, TRUE);
@@ -35,7 +35,7 @@ SQL,
                 [0 => $idUzivatele],
             );
             $typTrvala = Role::TYP_TRVALA;
-            dbQuery(<<<SQL
+            dbExecute(<<<SQL
 INSERT IGNORE INTO uzivatele_role_podle_rocniku (id_uzivatele, id_role, od_kdy, rocnik)
 SELECT prihlaseni.id_uzivatele, prihlaseni.id_role, prihlaseni.kdy, {$rocnik}
 FROM uzivatele_role_log AS prihlaseni

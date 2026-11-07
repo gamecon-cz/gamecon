@@ -40,7 +40,7 @@ class AnonymizovanaDatabazeTest extends AbstractTestDb
         // a cizí běh tuhle databázi smaže, i když ji tenhle test právě používá.
         self::$anonymniDatabaze = DB_NAME . '_anonym_' . getmypid();
 
-        dbQuery("INSERT INTO uzivatele_hodnoty SET
+        dbExecute("INSERT INTO uzivatele_hodnoty SET
             id_uzivatele = 100,
             login_uzivatele = 'testuser',
             jmeno_uzivatele = 'Jan',
@@ -69,9 +69,9 @@ class AnonymizovanaDatabazeTest extends AbstractTestDb
             infopult_poznamka = ''
         ");
 
-        dbQuery("INSERT INTO medailonky SET id_uzivatele = 100, o_sobe = 'Osobní info', drd = 'DRD info'");
+        dbExecute("INSERT INTO medailonky SET id_uzivatele = 100, o_sobe = 'Osobní info', drd = 'DRD info'");
 
-        dbQuery("INSERT INTO stranky SET url_stranky = 'test', obsah = 'Kontakt: jan.novak@example.com', poradi = 1");
+        dbExecute("INSERT INTO stranky SET url_stranky = 'test', obsah = 'Kontakt: jan.novak@example.com', poradi = 1");
 
         self::vlozRadekDoKazdePrilisCitliveTabulky();
         self::vlozRadkySCitlivymiSloupci();
@@ -186,20 +186,20 @@ class AnonymizovanaDatabazeTest extends AbstractTestDb
         );
 
         // the activity and the second user that these rows point at do not exist
-        dbQuery('SET FOREIGN_KEY_CHECKS = 0');
+        dbExecute('SET FOREIGN_KEY_CHECKS = 0');
         try {
             foreach ($radkyPodleTabulky as $vlozeniRadku) {
-                dbQuery($vlozeniRadku);
+                dbExecute($vlozeniRadku);
             }
         } finally {
-            dbQuery('SET FOREIGN_KEY_CHECKS = 1');
+            dbExecute('SET FOREIGN_KEY_CHECKS = 1');
         }
     }
 
     public static function tearDownAfterClass(): void
     {
         $connection = dbConnectTemporary();
-        dbQuery(sprintf('DROP DATABASE IF EXISTS `%s`', self::$anonymniDatabaze), null, $connection);
+        dbExecute(sprintf('DROP DATABASE IF EXISTS `%s`', self::$anonymniDatabaze), [], $connection);
         parent::tearDownAfterClass();
     }
 

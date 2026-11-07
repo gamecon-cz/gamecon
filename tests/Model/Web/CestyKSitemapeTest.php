@@ -39,7 +39,7 @@ class CestyKSitemapeTest extends AbstractTestDb
      */
     public function obsahujeStrankyZeSpravyKromePresmerovani(): void
     {
-        dbQuery(
+        dbExecute(
             <<<'SQL'
             INSERT INTO stranky (url_stranky, obsah, redirect)
             VALUES ('pro-sitemapu', '# Stránka', 0),
@@ -58,7 +58,7 @@ class CestyKSitemapeTest extends AbstractTestDb
      */
     public function nevypisujeStrankyKterymRouterNeodpovi(): void
     {
-        dbQuery(
+        dbExecute(
             <<<'SQL'
             INSERT INTO stranky (url_stranky, obsah, redirect)
             VALUES ('spatna_adresa', '# Stránka', 0),
@@ -84,7 +84,7 @@ class CestyKSitemapeTest extends AbstractTestDb
      */
     public function obsahujeVydaneBlogyAleNeBuduciAniNepovoleneAdresy(): void
     {
-        dbQuery(
+        dbExecute(
             <<<'SQL'
             INSERT INTO novinky (typ, vydat, url, nazev, text)
             VALUES (?, '2020-01-01 00:00:00', 'vydany-blog', 'Vydaný blog', 'text'),

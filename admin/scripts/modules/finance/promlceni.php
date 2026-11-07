@@ -39,7 +39,7 @@ if (post('promlcet')) {
         $suma     += $zustatek;
 
         try {
-            dbQuery('UPDATE uzivatele_hodnoty SET zustatek = 0 WHERE id_uzivatele = $0', [$id]);
+            dbExecute('UPDATE uzivatele_hodnoty SET zustatek = 0 WHERE id_uzivatele = $0', [$id]);
         } catch (Throwable $throwable) {
             $vyjimkovac->zaloguj($throwable);
             chyba('Nepodařilo se aktualizovat údaje v databázi. Kontaktuj IT tým.');
@@ -85,7 +85,7 @@ if (is_numeric($jednaHraniceZustatku) && is_numeric($ucastDoRoku)) {
     $ucast     = Role::TYP_UCAST;
     $prihlasen = Role::VYZNAM_PRIHLASEN;
 
-    $o = dbQuery(<<<SQL
+    $o = dbFetch(<<<SQL
 SELECT
     u.id_uzivatele AS uzivatel,
     u.jmeno_uzivatele AS jmeno,

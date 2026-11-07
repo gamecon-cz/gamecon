@@ -70,9 +70,9 @@ $puvodniRole = dbFetchAll(
 );
 
 $vratPuvodniRole = static function () use ($puvodniRole) {
-    dbQuery('DELETE FROM uzivatele_role WHERE id_uzivatele = $1', [1 => UZIVATEL]);
+    dbExecute('DELETE FROM uzivatele_role WHERE id_uzivatele = $1', [1 => UZIVATEL]);
     foreach ($puvodniRole as $puvodni) {
-        dbQuery(
+        dbExecute(
             'INSERT INTO uzivatele_role SET id_uzivatele = $1, id_role = $2, posazen = $3, posadil = $4',
             [1 => UZIVATEL, 2 => $puvodni['id_role'], 3 => $puvodni['posazen'], 4 => $puvodni['posadil']],
         );
@@ -94,9 +94,9 @@ register_shutdown_function($vratRoleJednou);
 
 $vysledek = [];
 foreach ($role as $nazevRole => $idRole) {
-    dbQuery('DELETE FROM uzivatele_role WHERE id_uzivatele = $1', [1 => UZIVATEL]);
+    dbExecute('DELETE FROM uzivatele_role WHERE id_uzivatele = $1', [1 => UZIVATEL]);
     if ($idRole !== null) {
-        dbQuery('INSERT INTO uzivatele_role SET id_uzivatele = $1, id_role = $2', [1 => UZIVATEL, 2 => $idRole]);
+        dbExecute('INSERT INTO uzivatele_role SET id_uzivatele = $1, id_role = $2', [1 => UZIVATEL, 2 => $idRole]);
     }
     $u = \Uzivatel::zId(UZIVATEL, true);
     $cenik = new \Gamecon\Uzivatel\Cenik(

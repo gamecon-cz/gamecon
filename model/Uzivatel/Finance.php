@@ -405,7 +405,7 @@ SQL,
         \Uzivatel            $provedl,
     ): float {
         $sleva = prevedNaFloat($sleva);
-        dbQuery(
+        dbExecute(
             'INSERT INTO slevy(id_uzivatele, castka, rok, provedl, poznamka) VALUES ($1, $2, $3, $4, $5)',
             [$this->u->id(), $sleva, ROCNIK, $provedl->id(), $poznamka
                 ?: null],
@@ -744,7 +744,7 @@ SQL;
         $rocnik ??= $this->systemoveNastaveni->rocnik();
         if (!isset($this->sumyPlatebVRocich[$rocnik]) || $prepocti) {
             $uzivatelSystemId = \Uzivatel::SYSTEM;
-            $result           = dbQuery(<<<SQL
+            $result           = dbFetch(<<<SQL
                 SELECT
                     NULLIF(COALESCE(pripsano_na_ucet_banky, provedeno), '0000-00-00 00:00:00') as datum,
                     IF(provedl=$uzivatelSystemId,
@@ -821,7 +821,7 @@ SQL;
         $this->dobrovolneVstupnePrehled       = [];
         $this->polozkyProBfgr                 ??= [];
 
-        $o = dbQuery('
+        $o = dbFetch('
       SELECT product_variant.id AS id_varianty,
              produkt.id_predmetu,
              CONCAT_WS(\' \', produkt.nazev, product_variant.name) AS nazev,
@@ -955,7 +955,7 @@ SQL;
         $this->slevaObecna          = 0.0;
         $this->bonusZaAktivity ??= 0.0;
 
-        $q = dbQuery('
+        $q = dbFetch('
             SELECT castka, poznamka
             FROM slevy
             WHERE id_uzivatele = $0 AND rok = $1
@@ -966,7 +966,7 @@ SQL;
             $this->slevaObecna += (float)$sleva[SlevySqlStruktura::CASTKA];
         }
 
-        $q = dbQuery('
+        $q = dbFetch('
             SELECT castka, id_akce, id_nakupu
             FROM discounts_generated
             WHERE id_uzivatele = $0 AND rok = $1 AND id_akce is null
@@ -1213,7 +1213,7 @@ SQL;
                 'provedl' => Uzivatel::SYSTEM,
                 ]))
             {
-                dbQuery('UPDATE slevy SET castka = $0, provedeno = current_timestamp() WHERE id_uzivatele = $1 and poznamka = $2 and rok = $3 and provedl = $4', [
+                dbExecute('UPDATE slevy SET castka = $0, provedeno = current_timestamp() WHERE id_uzivatele = $1 and poznamka = $2 and rok = $3 and provedl = $4', [
                     $nejdrazsiPrihlasena,
                     $this->u->id(),
                     self::POZNAMKA_POUKAZ_JEDNA_AKTIVITA,
@@ -1221,7 +1221,7 @@ SQL;
                     \Uzivatel::SYSTEM
                 ]);
             } else {
-                dbQuery('INSERT INTO slevy (id_uzivatele, castka, poznamka, rok, provedl) VALUES ($0, $1, $2, $3, $4)', [
+                dbExecute('INSERT INTO slevy (id_uzivatele, castka, poznamka, rok, provedl) VALUES ($0, $1, $2, $3, $4)', [
                     $this->u->id(),
                     $nejdrazsiPrihlasena,
                     self::POZNAMKA_POUKAZ_JEDNA_AKTIVITA,
@@ -1237,7 +1237,7 @@ SQL;
 
     private function smazPoukazNaJednuAktivitu(): void
     {
-        dbQuery('DELETE FROM slevy WHERE id_uzivatele = $0 and poznamka = $1 and rok = $2 and provedl = $3', [
+        dbExecute('DELETE FROM slevy WHERE id_uzivatele = $0 and poznamka = $1 and rok = $2 and provedl = $3', [
             $this->u->id(),
             self::POZNAMKA_POUKAZ_JEDNA_AKTIVITA,
             ROCNIK,

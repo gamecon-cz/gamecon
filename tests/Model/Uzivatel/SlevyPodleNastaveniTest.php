@@ -81,7 +81,7 @@ SQL,
 
     private function udelPravo(int $idPrava): void
     {
-        \dbQuery(
+        dbExecute(
             'INSERT IGNORE INTO prava_role(id_role, id_prava) VALUES ($0, $1)',
             [
                 0 => self::ID_ROLE,
@@ -93,7 +93,7 @@ SQL,
 
     private function nastav(string $klic, string $hodnota): void
     {
-        \dbQuery(
+        dbExecute(
             'UPDATE systemove_nastaveni SET hodnota = $1 WHERE klic = $0',
             [
                 0 => $klic,

@@ -38,7 +38,7 @@ SQL,
      */
     public function neznamePravidloSOmezenimSpadne(): void
     {
-        \dbQuery(
+        dbExecute(
             "INSERT INTO discount_rule (code, name, required_right, priority, parameters, year, active)
              VALUES ('probe_bez_citace', 'Probe', 1003, 5,
                      '{\"scope\":\"tag\",\"effect\":\"free\",\"tag\":\"jidlo\",\"maxQuantity\":1}', \$0, 1)",

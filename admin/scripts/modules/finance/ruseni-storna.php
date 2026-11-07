@@ -30,7 +30,7 @@ if(post('zrusit')) {
 // vykreslení šablony
 $t = new XTemplate(__DIR__ . '/ruseni-storna.xtpl');
 
-$o = dbQuery('
+$o = dbFetch('
   SELECT ap.id_akce, ap.id_uzivatele, a.nazev_akce, a.zacatek, aps.nazev AS nazev_stavu
   FROM akce_prihlaseni_spec ap
   JOIN akce_seznam a ON a.id_akce = ap.id_akce AND a.rok = $0

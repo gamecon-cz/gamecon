@@ -33,11 +33,11 @@ class PrevestObrazkyNaAvifCommandTest extends AbstractTestDb
         $this->uklidNoveAdresare($this->adresar());
         (new Filesystem())->mkdir($this->adresar());
         file_put_contents($this->adresar() . '/foto.jpg', self::fotkaZFotakuBajty(1200, 800));
-        dbQuery(
+        dbExecute(
             'INSERT INTO stranky(id_stranky, url_stranky, obsah, poradi) VALUES ($0, $1, $2, 0)',
             [self::ID, 'test-prevod-avif-prikaz', '![](' . $this->odkaz() . ')'],
         );
-        dbQuery(
+        dbExecute(
             'INSERT INTO akce_seznam(id_akce, nazev_akce, url_akce, typ, rok, stav, popis, cena, kapacita, kapacita_f, kapacita_m)
 VALUES ($0, $1, $2, 1, $3, 2, $4, 0, 5, 0, 0)',
             [self::ID, 'Testovací aktivita', 'testovaci-aktivita-prevod-avif-prikaz', ROCNIK, '![](' . $this->odkaz() . ')'],

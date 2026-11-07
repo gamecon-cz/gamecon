@@ -100,7 +100,7 @@ SQL,
         ?int $idUzivatele,
         bool $odeslano,
     ): int {
-        dbQuery(<<<'SQL'
+        dbExecute(<<<'SQL'
 INSERT INTO obnova_hesla_log(ip, id_uzivatele, odeslano)
 VALUES ($0, $1, $2)
 SQL,
@@ -111,7 +111,7 @@ SQL,
             ],
         );
         $idLog = (int) dbInsertId();
-        dbQuery(<<<'SQL'
+        dbExecute(<<<'SQL'
 DELETE FROM obnova_hesla_log
 WHERE kdy < NOW() - INTERVAL $0 DAY
 SQL,
@@ -125,7 +125,7 @@ SQL,
 
     public function oznacNeodeslano(int $idLog): void
     {
-        dbQuery(<<<'SQL'
+        dbExecute(<<<'SQL'
 UPDATE obnova_hesla_log
 SET odeslano = 0
 WHERE id_log = $0
@@ -138,7 +138,7 @@ SQL,
 
     public function smaz(int $idLog): void
     {
-        dbQuery(<<<'SQL'
+        dbExecute(<<<'SQL'
 DELETE FROM obnova_hesla_log
 WHERE id_log = $0
 SQL,

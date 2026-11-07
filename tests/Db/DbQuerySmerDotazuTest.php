@@ -17,7 +17,7 @@ class DbQuerySmerDotazuTest extends AbstractTestDb
      */
     public function dotazSSpolecnymVyrazemVraciVysledek(): void
     {
-        $vysledek = dbQuery('WITH jedna AS (SELECT 1 AS cislo) SELECT cislo FROM jedna');
+        $vysledek = dbFetch('WITH jedna AS (SELECT 1 AS cislo) SELECT cislo FROM jedna');
 
         self::assertInstanceOf(\PDOStatement::class, $vysledek);
         // Výsledek se musí dočíst celý: spojení je nebufferované, takže otevřený
@@ -54,7 +54,7 @@ class DbQuerySmerDotazuTest extends AbstractTestDb
      */
     public function zapisSeStaleChovaJakoZapis(): void
     {
-        dbQuery('CREATE TEMPORARY TABLE tmp_dbquery_cte (cislo INT)');
+        dbExecute('CREATE TEMPORARY TABLE tmp_dbquery_cte (cislo INT)');
 
         $vysledek = dbQuery('INSERT INTO tmp_dbquery_cte VALUES (1), (2)');
 

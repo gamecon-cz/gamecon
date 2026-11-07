@@ -85,7 +85,7 @@ class BfsrReport
         $rocnik = $this->systemoveNastaveni->rocnik();
 
         // Načteme všechny přihlášené uživatele
-        $result = dbQuery(<<<SQL
+        $result = dbFetch(<<<SQL
 SELECT uzivatele_hodnoty.*
 FROM uzivatele_hodnoty
 WHERE (
@@ -826,7 +826,7 @@ SQL,
         $VYZNAM_PRIHLASEN          = Role::VYZNAM_PRIHLASEN;
         $typRoleUcast              = Role::TYP_UCAST;
 
-        $result = dbQuery(<<<SQL
+        $result = dbFetch(<<<SQL
 WITH user_role AS (
     SELECT uzivatele_role.id_uzivatele AS id_uzivatele,
            role_seznam.vyznam_role AS vyznam_role

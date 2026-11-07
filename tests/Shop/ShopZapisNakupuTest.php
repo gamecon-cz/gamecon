@@ -64,41 +64,41 @@ SQL,
     {
         return [
             static function () {
-                dbQuery('INSERT INTO shop_predmety SET
+                dbExecute('INSERT INTO shop_predmety SET
                     id_predmetu = ' . self::PREDMET . ',
                     nazev = "Zapisovaná placka",
                     kod_predmetu = "zapis_nakupu_test",
                     cena_aktualni = 150,
                     stav = ' . StavPredmetu::VEREJNY . ',
                     popis = ""');
-                dbQuery('INSERT INTO product_product_tag (product_id, tag_id)
+                dbExecute('INSERT INTO product_product_tag (product_id, tag_id)
                     SELECT ' . self::PREDMET . ', id FROM product_tag WHERE code = "predmet"');
-                dbQuery('INSERT INTO product_variant (product_id, name, code, price, capacity, position, state)
+                dbExecute('INSERT INTO product_variant (product_id, name, code, price, capacity, position, state)
                     VALUES (' . self::PREDMET . ', "Zapisovaná placka", "zapis_nakupu_test", 150, 10, 0, 1)');
 
                 // Right after the first variant: no other test's rows may sit between them in the index.
-                dbQuery('INSERT INTO shop_predmety SET
+                dbExecute('INSERT INTO shop_predmety SET
                     id_predmetu = ' . self::VEDLEJSI_PREDMET . ',
                     nazev = "Vedlejší placka",
                     kod_predmetu = "vedlejsi_predmet_test",
                     cena_aktualni = 150,
                     stav = ' . StavPredmetu::VEREJNY . ',
                     popis = ""');
-                dbQuery('INSERT INTO product_product_tag (product_id, tag_id)
+                dbExecute('INSERT INTO product_product_tag (product_id, tag_id)
                     SELECT ' . self::VEDLEJSI_PREDMET . ', id FROM product_tag WHERE code = "predmet"');
-                dbQuery('INSERT INTO product_variant (product_id, name, code, price, capacity, position, state)
+                dbExecute('INSERT INTO product_variant (product_id, name, code, price, capacity, position, state)
                     VALUES (' . self::VEDLEJSI_PREDMET . ', "Vedlejší placka", "vedlejsi_predmet_test", 150, 10, 0, 1)');
 
-                dbQuery('INSERT INTO shop_predmety SET
+                dbExecute('INSERT INTO shop_predmety SET
                     id_predmetu = ' . self::POSLEDNI_KUS . ',
                     nazev = "Poslední placka",
                     kod_predmetu = "posledni_kus_test",
                     cena_aktualni = 150,
                     stav = ' . StavPredmetu::VEREJNY . ',
                     popis = ""');
-                dbQuery('INSERT INTO product_product_tag (product_id, tag_id)
+                dbExecute('INSERT INTO product_product_tag (product_id, tag_id)
                     SELECT ' . self::POSLEDNI_KUS . ', id FROM product_tag WHERE code = "predmet"');
-                dbQuery('INSERT INTO product_variant (product_id, name, code, price, capacity, position, state)
+                dbExecute('INSERT INTO product_variant (product_id, name, code, price, capacity, position, state)
                     VALUES (' . self::POSLEDNI_KUS . ', "Poslední placka", "posledni_kus_test", 150, 1, 0, 1)');
             },
         ];
@@ -106,10 +106,10 @@ SQL,
 
     protected function tearDown(): void
     {
-        dbQuery('DELETE FROM shop_nakupy WHERE id_uzivatele IN ($0)', [
+        dbExecute('DELETE FROM shop_nakupy WHERE id_uzivatele IN ($0)', [
             0 => [self::ZAKAZNIK, self::OPERATOR],
         ]);
-        dbQuery('DELETE FROM shop_nakupy_zrusene WHERE id_uzivatele IN ($0)', [
+        dbExecute('DELETE FROM shop_nakupy_zrusene WHERE id_uzivatele IN ($0)', [
             0 => [self::ZAKAZNIK, self::OPERATOR],
         ]);
         parent::tearDown();
@@ -287,11 +287,11 @@ SQL,
             'REPEATABLE READ',
         );
 
-        dbQuery('SET SESSION innodb_lock_wait_timeout = 3');
+        dbExecute('SET SESSION innodb_lock_wait_timeout = 3');
         try {
             $this->prodej(1);
         } finally {
-            dbQuery('SET SESSION innodb_lock_wait_timeout = DEFAULT');
+            dbExecute('SET SESSION innodb_lock_wait_timeout = DEFAULT');
             $vysledekSoupere = $souper->dokonci();
         }
 

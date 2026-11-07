@@ -63,7 +63,7 @@ readonly class OnlinePrezenceTestovaciAktivity
         $stavPublikovana = $this->obecnyStav::PUBLIKOVANA;
 
         dbBegin();
-        dbQuery(<<<SQL
+        dbExecute(<<<SQL
 UPDATE akce_seznam
 SET stav = '$stavPublikovana'
 WHERE rok = $rok

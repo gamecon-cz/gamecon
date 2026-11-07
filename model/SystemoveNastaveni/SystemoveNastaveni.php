@@ -326,7 +326,7 @@ WHERE klic = $2
 SQL,
             [$hodnotaProDb, $klic],
         );
-        dbQuery(<<<SQL
+        dbExecute(<<<SQL
 INSERT INTO systemove_nastaveni_log(id_uzivatele, id_nastaveni, hodnota)
 SELECT $1, id_nastaveni, hodnota
 FROM systemove_nastaveni
@@ -438,7 +438,7 @@ SQL,
                  ? 1
                  : 0 /* Aby nás nepotkalo "Incorrect integer value: '' for column vlastni" */, $klic],
         );
-        dbQuery(<<<SQL
+        dbExecute(<<<SQL
 INSERT INTO systemove_nastaveni_log(id_uzivatele, id_nastaveni, vlastni)
 SELECT $1, id_nastaveni, vlastni
 FROM systemove_nastaveni
@@ -467,7 +467,7 @@ SQL,
                  ? 1
                  : 0, $klic],
         );
-        dbQuery(<<<'SQL'
+        dbExecute(<<<'SQL'
 INSERT INTO systemove_nastaveni_log(id_uzivatele, id_nastaveni, verejne)
 SELECT $1, id_nastaveni, verejne
 FROM systemove_nastaveni
