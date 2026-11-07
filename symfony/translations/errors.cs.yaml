@@ -69,3 +69,4 @@ kfc:
     product_without_variant: 'Produkt "%product%" nemá žádnou variantu k prodeji.'
     variant_of_other_product: 'Varianta %variant% nepatří k produktu "%product%".'
     choose_variant: 'Produkt "%product%" má víc variant, vyber konkrétní.'
+    customer_not_found: 'Uživatel s ID %id% nebyl nalezen.'
