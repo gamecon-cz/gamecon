@@ -14,10 +14,6 @@ use Gamecon\Web\Urls;
 use Gamecon\Web\VerzeSouboru;
 use Gamecon\XTemplate\XTemplate;
 
-// first of all, so that nothing the bootstrap prints (the local migration page) takes the chance to send it
-// admin/.htaccess sends the same header for what does not reach this script, see docs/generated/indexace-vyhledavacu.md
-header('X-Robots-Tag: noindex, nofollow');
-
 require __DIR__ . '/../nastaveni/zavadec.php';
 
 /** získáme @var array|string[] $protipy */
