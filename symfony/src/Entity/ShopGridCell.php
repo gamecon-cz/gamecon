@@ -18,8 +18,11 @@ use Doctrine\ORM\Mapping as ORM;
 class ShopGridCell
 {
     public const TYPE_ITEM = 0;
+
     public const TYPE_PAGE = 1;
+
     public const TYPE_BACK = 2;
+
     public const TYPE_SUMMARY = 3;
 
     #[ORM\Id]
@@ -47,6 +50,13 @@ class ShopGridCell
         'comment' => 'Id cílove mřížky nebo předmětu.',
     ])]
     private ?int $cilId = null;
+
+    /**
+     * The size or night an item cell sells; without one the sale asks for it.
+     */
+    #[ORM\ManyToOne(targetEntity: ProductVariant::class)]
+    #[ORM\JoinColumn(name: 'variant_id', referencedColumnName: 'id', nullable: true, onDelete: 'SET NULL')]
+    private ?ProductVariant $variant = null;
 
     #[ORM\ManyToOne(targetEntity: ShopGrid::class)]
     #[ORM\JoinColumn(name: 'mrizka_id', nullable: true, onDelete: 'CASCADE')]
@@ -113,6 +123,18 @@ class ShopGridCell
     public function setCilId(?int $cilId): self
     {
         $this->cilId = $cilId;
+
+        return $this;
+    }
+
+    public function getVariant(): ?ProductVariant
+    {
+        return $this->variant;
+    }
+
+    public function setVariant(?ProductVariant $variant): self
+    {
+        $this->variant = $variant;
 
         return $this;
     }
