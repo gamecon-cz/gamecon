@@ -79,6 +79,29 @@ class AdminMenu
     }
 
     /**
+     * Smí uživatel otevřít stránku adminu? Stačí mu kterékoli právo stránky, nebo kterékoli právo vybrané podstránky.
+     * Podle toho pouští na stránku admin/index.php.
+     *
+     * @param array<string, mixed>|null $polozkaStranky položka hlavního menu z @see pole()
+     * @param array<string, mixed>|null $polozkaPodstranky položka podmenu stránky z @see pole()
+     */
+    public static function isPristupna(?\Uzivatel $uzivatel, ?array $polozkaStranky, ?array $polozkaPodstranky = null): bool
+    {
+        if ($uzivatel === null || $polozkaStranky === null) {
+            return false;
+        }
+        foreach (array_filter([$polozkaStranky, $polozkaPodstranky]) as $polozka) {
+            foreach ($polozka['prava'] ?? [$polozka['pravo']] as $pravo) {
+                if ($uzivatel->maPravo($pravo)) {
+                    return true;
+                }
+            }
+        }
+
+        return false;
+    }
+
+    /**
      * Modul může místo jediného práva (hlavička `pravo:`) vyjmenovat hlavičkou
      * `prava: 100, 102, ...` víc práv — stránku pak vidí a smí otevřít každý,
      * kdo má KTERÉKOLI z nich (typicky Nápověda, viditelná pro všechny části

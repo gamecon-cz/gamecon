@@ -178,22 +178,9 @@ if (! empty($menu[$stranka]['submenu'])) {
 }
 
 // zjištění práv na zobrazení stránky
-$maNekterePravo = static function (array $polozkaMenu) use ($u): bool {
-    foreach ($polozkaMenu['prava'] ?? [$polozkaMenu['pravo']] as $pravo) {
-        if ($u->maPravo($pravo)) {
-            return true;
-        }
-    }
-
-    return false;
-};
 $strankaExistuje = isset($menu[$stranka]);
 $podstrankaExistuje = isset($submenu[$podstranka]);
-$uzivatelMaPristup = $strankaExistuje
-                     && (
-                         $maNekterePravo($menu[$stranka])
-                         || ($podstrankaExistuje && $maNekterePravo($submenu[$podstranka]))
-                     );
+$uzivatelMaPristup = AdminMenu::isPristupna($u, $menu[$stranka] ?? null, $submenu[$podstranka] ?? null);
 
 $submenuDoplnek = '';
 // nadpis horní lišty moderního vzhledu, i pro online prezenci v Moje aktivity, která má lištu vlastní
