@@ -12,7 +12,6 @@ use Gamecon\Aktivita\TypAktivity;
 use Gamecon\Exceptions\NeznamyTypPredmetu;
 use Gamecon\Pravo;
 use Gamecon\Role\Role;
-use Gamecon\Shop\TypPredmetu;
 use Gamecon\SystemoveNastaveni\SystemoveNastaveni;
 use Gamecon\Tests\Db\AbstractTestDb;
 use Gamecon\Uzivatel\Finance;
@@ -26,73 +25,74 @@ SQL,
         // PREDMET (id 55501)
         [
             <<<SQL
-INSERT INTO shop_predmety SET id_predmetu = 55501, nazev = 'předmět', model_rok = $0, kod_predmetu = CONCAT('acc_predmet_', $0), cena_aktualni = 100, stav = 1, nabizet_do = NOW(), kusu_vyrobeno = 100, typ = $1
+INSERT INTO shop_predmety SET id_predmetu = 55501, nazev = 'předmět', kod_predmetu = CONCAT('acc_predmet_', $0), cena_aktualni = 100, stav = 1, nabizet_do = NOW()
 SQL,
             [
                 0 => ROCNIK,
-                1 => TypPredmetu::PREDMET,
             ],
         ],
+        "INSERT INTO product_product_tag (product_id, tag_id) SELECT 55501, id FROM product_tag WHERE code = 'predmet'",
         // UBYTOVANI (id 55502)
         [
             <<<SQL
-INSERT INTO shop_predmety SET id_predmetu = 55502, nazev = 'ubytování', model_rok = $0, kod_predmetu = CONCAT('acc_ubytovani_', $0), cena_aktualni = 200, stav = 1, nabizet_do = NOW(), kusu_vyrobeno = 100, typ = $1, ubytovani_den = 1
+INSERT INTO shop_predmety SET id_predmetu = 55502, nazev = 'ubytování', kod_predmetu = CONCAT('acc_ubytovani_', $0), cena_aktualni = 200, stav = 1, nabizet_do = NOW(), ubytovani_den = 1
 SQL,
             [
                 0 => ROCNIK,
-                1 => TypPredmetu::UBYTOVANI,
             ],
         ],
+        "INSERT INTO product_product_tag (product_id, tag_id) SELECT 55502, id FROM product_tag WHERE code = 'ubytovani'",
         // TRICKO (id 55503)
         [
             <<<SQL
-INSERT INTO shop_predmety SET id_predmetu = 55503, nazev = 'tričko', model_rok = $0, kod_predmetu = CONCAT('acc_tricko_', $0), cena_aktualni = 150, stav = 1, nabizet_do = NOW(), kusu_vyrobeno = 100, typ = $1
+INSERT INTO shop_predmety SET id_predmetu = 55503, nazev = 'tričko', kod_predmetu = CONCAT('acc_tricko_', $0), cena_aktualni = 150, stav = 1, nabizet_do = NOW()
 SQL,
             [
                 0 => ROCNIK,
-                1 => TypPredmetu::TRICKO,
             ],
         ],
+        "INSERT INTO product_product_tag (product_id, tag_id) SELECT 55503, id FROM product_tag WHERE code = 'tricko'",
         // JIDLO (id 55504)
         [
             <<<SQL
-INSERT INTO shop_predmety SET id_predmetu = 55504, nazev = 'jídlo', model_rok = $0, kod_predmetu = CONCAT('acc_jidlo_', $0), cena_aktualni = 80, stav = 1, nabizet_do = NOW(), kusu_vyrobeno = 100, typ = $1, ubytovani_den = 1
+INSERT INTO shop_predmety SET id_predmetu = 55504, nazev = 'jídlo', kod_predmetu = CONCAT('acc_jidlo_', $0), cena_aktualni = 80, stav = 1, nabizet_do = NOW(), ubytovani_den = 1
 SQL,
             [
                 0 => ROCNIK,
-                1 => TypPredmetu::JIDLO,
             ],
         ],
+        "INSERT INTO product_product_tag (product_id, tag_id) SELECT 55504, id FROM product_tag WHERE code = 'jidlo'",
         // VSTUPNE (id 55505)
         [
             <<<SQL
-INSERT INTO shop_predmety SET id_predmetu = 55505, nazev = 'vstupné', model_rok = $0, kod_predmetu = CONCAT('acc_vstupne_', $0), cena_aktualni = 300, stav = 1, nabizet_do = NOW(), kusu_vyrobeno = 100, typ = $1
+INSERT INTO shop_predmety SET id_predmetu = 55505, nazev = 'vstupné', kod_predmetu = CONCAT('acc_vstupne_', $0), cena_aktualni = 300, stav = 1, nabizet_do = NOW()
 SQL,
             [
                 0 => ROCNIK,
-                1 => TypPredmetu::VSTUPNE,
             ],
         ],
+        "INSERT INTO product_product_tag (product_id, tag_id) SELECT 55505, id FROM product_tag WHERE code = 'vstupne'",
         // PARCON (id 55506)
         [
             <<<SQL
-INSERT INTO shop_predmety SET id_predmetu = 55506, nazev = 'parcon', model_rok = $0, kod_predmetu = CONCAT('acc_parcon_', $0), cena_aktualni = 50, stav = 1, nabizet_do = NOW(), kusu_vyrobeno = 100, typ = $1
+INSERT INTO shop_predmety SET id_predmetu = 55506, nazev = 'parcon', kod_predmetu = CONCAT('acc_parcon_', $0), cena_aktualni = 50, stav = 1, nabizet_do = NOW()
 SQL,
             [
                 0 => ROCNIK,
-                1 => TypPredmetu::PARCON,
             ],
         ],
+        "INSERT INTO product_product_tag (product_id, tag_id) SELECT 55506, id FROM product_tag WHERE code = 'parcon'",
         // PROPLACENI_BONUSU (id 55507)
         [
             <<<SQL
-INSERT INTO shop_predmety SET id_predmetu = 55507, nazev = 'proplacení bonusu', model_rok = $0, kod_predmetu = CONCAT('acc_proplaceni_', $0), cena_aktualni = 500, stav = 1, nabizet_do = NOW(), kusu_vyrobeno = 100, typ = $1
+INSERT INTO shop_predmety SET id_predmetu = 55507, nazev = 'proplacení bonusu', kod_predmetu = CONCAT('acc_proplaceni_', $0), cena_aktualni = 500, stav = 1, nabizet_do = NOW()
 SQL,
             [
                 0 => ROCNIK,
-                1 => TypPredmetu::PROPLACENI_BONUSU,
             ],
         ],
+        "INSERT INTO product_product_tag (product_id, tag_id) SELECT 55507, id FROM product_tag WHERE code = 'proplaceni_bonusu'",
+        self::SQL_VYCHOZI_VARIANTY,
     ];
 
     private function vlozPlatbu(
@@ -117,7 +117,7 @@ SQL,
     private function vlozNakup(int $idPredmetu, float $cenaNakupni): void
     {
         dbQuery(
-            'INSERT INTO shop_nakupy(id_uzivatele, id_predmetu, rok, cena_nakupni) VALUES($0, $1, $2, $3)',
+            'INSERT INTO shop_nakupy(id_uzivatele, variant_id, rok, cena_nakupni) VALUES($0, ' . sprintf(self::SQL_VARIANTA_RADKU, '$1') . ', $2, $3)',
             [
                 0 => 555,
                 1 => $idPredmetu,
@@ -227,8 +227,8 @@ SQL,
         $idRole = -random_int(100000, 999999);
         $kodRole = 'TEST_ACC_' . $idPrava . '_' . $unique;
         dbQuery(<<<SQL
-INSERT IGNORE INTO r_prava_soupis(id_prava, jmeno_prava, popis_prava)
-VALUES ({$idPrava}, 'test_pravo_{$idPrava}', 'test')
+INSERT IGNORE INTO r_prava_soupis(id_prava, kod_prava, jmeno_prava, popis_prava)
+VALUES ({$idPrava}, 'TEST_PRAVO_{$idPrava}', 'test_pravo_{$idPrava}', 'test')
 SQL,
         );
         dbQuery(
@@ -311,6 +311,64 @@ SQL,
         self::assertCount(1, $splits);
         self::assertSame(-100.0, $splits[0]->getAmount());
         self::assertSame('předmět', $splits[0]->getDescription());
+    }
+
+    /**
+     * Zaplacený účet musí vyjít na nulu. Sčítání desetinných částek nechává zbytek řádu
+     * 1e-15, a ten stačí na to, aby infopult hlásil nedoplatek účastníkovi, který zaplatil
+     * do haléře.
+     *
+     * @test
+     */
+    public function testZaplacenyUcetVyjdeNaNulu(): void
+    {
+        foreach (range(1, 100) as $ignored) {
+            $this->vlozNakup(55501, 0.07);
+        }
+        $this->vlozPlatbu(7.00);
+
+        $account = Accounting::getPersonalFinance($this->dejUzivatele(), showDiscounts: false);
+
+        self::assertSame(0.0, $account->getTotal());
+        self::assertGreaterThanOrEqual(0, $account->getTotal(), 'Zaplacený účet není nedoplatek');
+    }
+
+    /**
+     * Kategorie, ze které si účastník nic neobjednal, musí ukázat nulu. Záporné nule se
+     * PHP nebrání a vypíše ji jako „-0", takže se částka musí formátovat, ne jen vypsat.
+     *
+     * @test
+     */
+    public function testPrazdnaKategorieUkazujeNuluBezZnaminka(): void
+    {
+        $this->vlozNakup(55501, 100);
+
+        $html = Accounting::getPersonalFinance($this->dejUzivatele(), showDiscounts: false)
+            ->formatForHtml(positivePrices: true);
+
+        self::assertStringNotContainsString('-0</b>', $html, 'Prázdná kategorie nesmí ukazovat -0');
+        self::assertStringContainsString('<td><b>Aktivity</b></td><td><b>0</b></td>', $html);
+    }
+
+    /**
+     * Platby chodí z banky v haléřích, takže částka nemusí být celé číslo. Dokud ji rozpad
+     * transakce bral jako `int`, infopult na takovém účastníkovi spadl na 500 — a kdyby
+     * nespadl, uřízla by se desetinná část a zůstatek by seděl o pár korun vedle.
+     *
+     * @test
+     */
+    public function testDesetinnaCastkaSeNeuriznePriRozpaduTransakce(): void
+    {
+        $this->vlozNakup(55501, 1234.56);
+
+        $account = Accounting::getPersonalFinance($this->dejUzivatele(), showDiscounts: false);
+        $transactions = $account->getTransactions();
+
+        self::assertCount(1, $transactions);
+        $splits = $transactions[0]->getSplits();
+        self::assertCount(1, $splits);
+        self::assertEqualsWithDelta(-1234.56, $splits[0]->getAmount(), 0.001);
+        self::assertEqualsWithDelta(-1234.56, $transactions[0]->getTotalAmount(), 0.001);
     }
 
     /**
@@ -439,9 +497,14 @@ SQL,
         $account = Accounting::getPersonalFinance($this->dejUzivatele(), showDiscounts: false);
         $transactions = $account->getTransactions();
 
-        self::assertMatchesRegularExpression('/^#U\[\d+]#P\[\d+]$/', $transactions[0]->getId());
+        self::assertMatchesRegularExpression('/^#U\[\d+]#V\[\d+]$/', $transactions[0]->getId());
         self::assertStringContainsString('#U[555]', $transactions[0]->getId());
-        self::assertStringContainsString('#P[55501]', $transactions[0]->getId());
+        self::assertStringContainsString(
+            '#V[' . dbOneCol('SELECT id FROM product_variant WHERE code = $0', [
+                0 => 'acc_predmet_' . ROCNIK,
+            ]) . ']',
+            $transactions[0]->getId(),
+        );
     }
 
     /**

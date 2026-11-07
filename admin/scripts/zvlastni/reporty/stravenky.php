@@ -1,8 +1,7 @@
 <?php
 
+use App\Enum\ProductTagCode;
 use Gamecon\Role\Role;
-use Gamecon\Shop\PodtypPredmetu;
-use Gamecon\Shop\Shop;
 use Gamecon\XTemplate\XTemplate;
 use Gamecon\SystemoveNastaveni\SystemoveNastaveni;
 use Gamecon\Uzivatel\SqlStruktura\UzivateleHodnotySqlStruktura;
@@ -15,7 +14,6 @@ $systemoveNastaveni ??= SystemoveNastaveni::zGlobals();
 
 $rolePrihlasenNaLetosniGc = Role::PRIHLASEN_NA_LETOSNI_GC;
 $rocnik                   = $systemoveNastaveni->rocnik();
-$typJidlo                 = Shop::JIDLO;
 $idUzivatele              = (int)get('id_uzivatele')
     ?: null;
 $uzivatelFiltrSql         = $idUzivatele
@@ -37,7 +35,6 @@ $jidlaFiltr               = array_values(array_filter(array_map(
 $jidlaFiltrSql            = $jidlaFiltr
     ? "AND TRIM(predmety.nazev) IN ($2)"
     : '';
-$typUbytovani             = Shop::UBYTOVANI;
 $o                        = dbQuery(<<<SQL
     SELECT
       uzivatele.id_uzivatele, uzivatele.login_uzivatele, predmety.nazev,
@@ -48,8 +45,14 @@ $o                        = dbQuery(<<<SQL
         ON role.id_uzivatele = uzivatele.id_uzivatele AND role.id_role = {$rolePrihlasenNaLetosniGc}
     JOIN shop_nakupy AS nakupy
         ON nakupy.id_uzivatele = uzivatele.id_uzivatele AND nakupy.rok = {$rocnik}
+    JOIN product_variant AS varianta_jidla
+        ON varianta_jidla.id = nakupy.variant_id
     JOIN shop_predmety AS predmety
-        ON predmety.id_predmetu = nakupy.id_predmetu AND predmety.typ = {$typJidlo}
+        ON predmety.id_predmetu = varianta_jidla.product_id
+    JOIN product_product_tag AS stitek_jidla
+        ON stitek_jidla.product_id = predmety.id_predmetu
+    JOIN product_tag AS kategorie_jidla
+        ON kategorie_jidla.id = stitek_jidla.tag_id AND kategorie_jidla.code = $3
     WHERE TRUE {$uzivatelFiltrSql}
       {$dnyFiltrSql}
       {$jidlaFiltrSql}
@@ -58,12 +61,16 @@ $o                        = dbQuery(<<<SQL
         AND EXISTS (
             SELECT 1
             FROM shop_nakupy AS nakupy_ubytovani
-            JOIN shop_predmety AS predmety_ubytovani
-                ON predmety_ubytovani.id_predmetu = nakupy_ubytovani.id_predmetu
-                AND predmety_ubytovani.typ = {$typUbytovani}
-                AND predmety_ubytovani.podtyp = $0
-                /* ubytování den N (noc) → snídaně den N+1 (ráno), viz ShopUbytovani::zrusSnidaneProHotelovePokoje */
-                AND predmety_ubytovani.ubytovani_den + 1 = predmety.ubytovani_den
+            JOIN product_variant AS noc
+                ON noc.id = nakupy_ubytovani.variant_id
+                /* ubytování den N (noc) → snídaně den N+1 (ráno), viz BreakfastCanceller::cancelCovered() */
+                AND noc.accommodation_day + 1 = predmety.ubytovani_den
+            JOIN shop_predmety AS hotel
+                ON hotel.id_predmetu = noc.product_id AND hotel.breakfast_included
+            JOIN product_product_tag AS stitek_hotelu
+                ON stitek_hotelu.product_id = hotel.id_predmetu
+            JOIN product_tag AS kategorie_hotelu
+                ON kategorie_hotelu.id = stitek_hotelu.tag_id AND kategorie_hotelu.code = $4
             WHERE nakupy_ubytovani.id_uzivatele = uzivatele.id_uzivatele
               AND nakupy_ubytovani.rok = {$rocnik}
         )
@@ -73,12 +80,12 @@ $o                        = dbQuery(<<<SQL
              poradi_dne DESC,
              poradi_jidla DESC
 SQL,
-    [0 => PodtypPredmetu::HOTEL, 1 => $dnyFiltr, 2 => $jidlaFiltr],
+    [1 => $dnyFiltr, 2 => $jidlaFiltr, 3 => ProductTagCode::JIDLO->value, 4 => ProductTagCode::UBYTOVANI->value],
 );
 
 $res = [];
 
-while ($r = mysqli_fetch_assoc($o)) {
+while ($r = $o->fetch(PDO::FETCH_ASSOC)) {
     $res[] = $r;
 }
 
