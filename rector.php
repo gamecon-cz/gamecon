@@ -17,4 +17,10 @@ return RectorConfig::configure()
     ->withRules([
         ReorderAttributeArgumentsRector::class,
         AddTypeToConstRector::class,
-    ]);
+    ])
+    ->withPaths([
+        __DIR__ . '/symfony',
+    ])
+    ->withSkipPath(__DIR__ . '/symfony/var')
+    ->withSymfonyContainerXml(__DIR__ . '/symfony/var/cache/dev/App_KernelDevDebugContainer.xml');
+

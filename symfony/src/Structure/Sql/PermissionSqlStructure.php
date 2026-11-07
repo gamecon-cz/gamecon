@@ -9,15 +9,17 @@ namespace App\Structure\Sql;
  */
 class PermissionSqlStructure
 {
-    /**
-     * @see Permission
-     */
     public const _table = 'r_prava_soupis';
 
     /**
      * @see Permission::$id
      */
     public const id_prava = 'id_prava';
+
+    /**
+     * @see Permission::$code
+     */
+    public const kod_prava = 'kod_prava';
 
     /**
      * @see Permission::$jmenoPrava

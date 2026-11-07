@@ -102,6 +102,7 @@ class UdrzbovyRezimTest extends TestCase
         yield 'web, POST' => [$web, 'POST', '/prihlaseni'];
         yield 'web, HEAD' => [$web, 'HEAD', '/'];
         yield 'web přímo pod /web' => [$web, 'GET', '/web/program'];
+        yield 'API Symfony pod /symfony' => [$web, 'GET', '/symfony/api/neco'];
         yield 'soubor z cache' => [$web, 'GET', '/cache/public/styl.css'];
         yield 'složka deploy mimo admin' => [$web, 'POST', '/deploy/migrace.php'];
         yield 'neexistující adresa pod deploy na jménu adminu' => [$admin, 'GET', '/deploy/neexistuje'];

@@ -15,5 +15,13 @@ RewriteRule ^ - [R=503,L]
     Header always setifempty Retry-After "300" "expr=%{REQUEST_STATUS} == 503"
 </IfModule>
 
+# Pass Authorization header to PHP (Apache strips it by default for CGI/FPM)
+SetEnvIf Authorization "(.*)" HTTP_AUTHORIZATION=$1
+
+# Everything under /symfony/ goes to the Symfony front controller, never to a file of the Symfony tree (config, sources,
+# logs), which lies inside the web directory, not even as a PHP script with a path after it. END keeps the rewritten
+# request from passing the rules below again.
+RewriteRule ^symfony(/|$) symfony/public/index.php [QSA,END,E=HTTP_AUTHORIZATION:%{HTTP:Authorization}]
+
+# Route everything else to legacy web directory
 RewriteRule .* web/$0 [L]
-RewriteRule .* - [F,L]
