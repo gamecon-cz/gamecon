@@ -38,6 +38,7 @@ class SitemapWebuTest extends AbstractTestWeb
 
         self::assertSame(200, $sitemapa['status']);
         self::assertStringStartsWith('application/xml', $sitemapa['contentType']);
+        self::assertSouborProVyhledavaceJeKesovatelny($sitemapa);
         $adresy = $this->adresyZeSitemapy($sitemapa['telo']);
         self::assertSame($adresy, array_values(array_unique($adresy)));
         foreach (['/web/', '/web/program', '/web/larpy', '/web/stranka-pro-sitemapu', '/web/blog/vydany-blog'] as $ocekavanyKonec) {

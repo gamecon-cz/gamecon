@@ -20,6 +20,7 @@ TL;DR: každá stránka veřejného webu s rámem (ne API a ne cesty obsluhovan�
 
 ## Gotchas
 
+- `robots.txt` a `sitemap.xml` se posílají s `Cache-Control: public, max-age=3600` a bez cookie session (v `web/index.php`, `$odesliSouborProVyhledavace`). Bez toho by je poslala PHP session s hlavičkami `no-store` a `Pragma: no-cache` a s cookie: v testech a lokálně session běží už po zavaděči, na ostré to neověřeno. Hodina je záměrně krátká, aby změna `robots.txt` nebo nové stránky nečekala dlouho.
 - Sitemapa se do Search Console neodesílá sama: po nasazení ji tam jednou přidat ručně (`https://gamecon.cz/sitemap.xml`), `robots.txt` na ni odkazuje jen na ostré.
 - Modul, který nečte podcestu, odpoví 200 na jakýkoli přívěsek (`/novinky/cokoliv`, `/aktivity/x`, `Modul::zNazvu()` ho tiše zahodí) a jeho kanonická adresa je ta přívěsková. Zavřít to jde jen v routeru (404 nebo přesměrování), což mění chování celého webu, proto to tu není. (otevřené)
 - Profil vypravěče zůstává na adrese z požadavku. `Uzivatel::zUrl()` ho najde i přes `/<id>`, `/<id>-<cokoliv>`, starý přívěsek a bez ohledu na velikost písmen, ale `Uzivatel::url()` nemusí vrátit adresu, která se k témuž člověku vrátí (bez řádku v `uzivatele_url` je to nově složený přívěsek, který se může srazit s modulem nebo jinou stránkou). Špatná kanonická adresa by uškodila víc než duplicita, proto se tu zatím nenastavuje. (otevřené)
