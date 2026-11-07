@@ -910,6 +910,99 @@ function dbFetchSingle(
 }
 
 /**
+ * Runs a statement that returns rows (SELECT, WITH, SHOW, EXPLAIN, a CALL that returns a result).
+ * The caller says it reads, so the text of the statement is never inspected.
+ * strings $1, $2, ... are replaced with values from $params
+ * when $0 exists in the query, first $params maps to it, otherwise it maps to $1 etc...
+ * @throws DbException|DbDuplicateEntryException
+ */
+function dbFetch(
+    string $query,
+    array  $params = [],
+    ?PDO   $pdo = null,
+): PDOStatement {
+    return _dbRun(
+        $params
+            ? dbQueryAssemble($query, $params, $pdo)
+            : $query,
+        $pdo,
+        static function (PDO $pdo, string $query): PDOStatement {
+            $result = $pdo->query($query);
+            if ($result === false) {
+                throw new DbException('Query failed: ' . $query);
+            }
+
+            return $result;
+        },
+    );
+}
+
+/**
+ * Runs a statement that changes data or state (INSERT, UPDATE, DELETE, DDL, SET, transaction control).
+ * Placeholders work as in dbFetch(). Not PDO::exec(): after a statement that returns rows it leaves them
+ * pending and the next query fails with error 2014. query() with closeCursor() discards those rows, and
+ * the later results of a multi-statement query (on a connection that allows it), reporting their errors.
+ * @return int number of rows affected by the first statement
+ * @throws DbException|DbDuplicateEntryException
+ */
+function dbExecute(
+    string $query,
+    array  $params = [],
+    ?PDO   $pdo = null,
+): int {
+    return _dbRun(
+        $params
+            ? dbQueryAssemble($query, $params, $pdo)
+            : $query,
+        $pdo,
+        static function (PDO $pdo, string $query): int {
+            $statement = $pdo->query($query);
+            if ($statement === false) {
+                throw new DbException('Query failed: ' . $query);
+            }
+            $affectedRows = $statement->rowCount();
+            $statement->closeCursor();
+
+            return $affectedRows;
+        },
+    );
+}
+
+/**
+ * Bookkeeping shared by dbFetch() and dbExecute(): the last query, the number and the time of queries.
+ * @param callable(PDO, string): (PDOStatement|int) $run
+ * @throws DbException|DbDuplicateEntryException
+ * @internal
+ */
+function _dbRun(
+    string   $query,
+    ?PDO     $pdo,
+    callable $run,
+): PDOStatement | int {
+    global $dbQueries, $dbLastQ, $dbNumQ, $dbExecTime;
+    $dbQueries ??= [];
+    $pdo       ??= dbConnect();
+    $dbLastQ   = $query;
+    $start     = microtime(true);
+    try {
+        $result = $run($pdo, $query);
+    } catch (PDOException $pdoException) {
+        throw dbCreateExceptionFromPdoException($pdoException);
+    }
+    $took = microtime(true) - $start;
+    $dbQueries[$query] ??= [
+        'microtime' => 0.0,
+        'count'     => 0,
+    ];
+    $dbQueries[$query]['microtime'] += $took;
+    $dbQueries[$query]['count']++;
+    $dbNumQ++;
+    $dbExecTime += $took;
+
+    return $result;
+}
+
+/**
  * Executes arbitrary query on database
  * strings $1, $2, ... are replaced with values from $param
  * when $0 exists in, first $params maps to it, otherwise it maps to $1 etc...
