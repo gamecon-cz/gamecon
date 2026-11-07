@@ -445,6 +445,10 @@ Pravdivý stav ke dni auditu (zdroj: `cat /usr/local/sbin/deploy-preview-branch.
 
 **Když přidáváš novou env-driven feature, vrať se k téhle tabulce a doplň řádek.** Pokud rozhodneš, že preview má dostat něco jiného než ostra, **napiš proč** — jinak se z toho stane skrytý drift.
 
+### ImageMagick: preview a archiv se chovají jinak než ostrá
+
+Dev obraz, preview a archivy mají ImageMagick 7.1, ostrá 6.9.11. Kvůli tomu se AVIF na ostré zapisuje a čte jinak než tam (ostrá ho u náhledů nepoužije a s průhledností se nezapíše), viz `docs/generated/nahravani-obrazku.md` a `Gamecon\Web\ImagickAvif`. Co se kolem obrázků ověřuje na preview, platí pro ostrou jen do té míry, jakou tam potvrdila zkouška `ImagickAvif::provedZkousku()`.
+
 ### Import DB ze zálohy ostré na preview (bind-mount, ne env var)
 
 Admin → Nastavení nabízí na betě tlačítka „Zkopírovat databázi z ostré". Na preview z těch tří variant jde **jen import z `.sql.gz` zálohy** (`zalohaForm`):
