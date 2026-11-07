@@ -27,6 +27,8 @@ class RobotsTxt
         Disallow: /qrka$
         Disallow: /qrka/
         Disallow: /api/
+        Disallow: /admin$
+        Disallow: /admin/
 
         TXT;
     }
