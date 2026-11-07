@@ -57,7 +57,7 @@ if (post('zmenitUdaj') && $uPracovni) {
     $uPracovni->otoc();
 
     if ($uPracovni->maZkontrolovaneUdaje()) {
-        $maObjednaneUbytovani = $uPracovni->shop()->ubytovani()->maObjednaneUbytovani();
+        $maObjednaneUbytovani = $uPracovni->shop()->maObjednaneUbytovani();
         $chybejiciUdaje       = $uPracovni->chybejiciUdaje(Uzivatel::povinneUdajeProRegistraci($maObjednaneUbytovani));
         if (count($chybejiciUdaje) > 0) {
             $uPracovni->nastavZkontrolovaneUdaje($u, false);

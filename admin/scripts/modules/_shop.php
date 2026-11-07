@@ -1,8 +1,5 @@
 <?php
 
-use Gamecon\Admin\FormularPracovnihoUzivatele;
-use Gamecon\Shop\Shop;
-
 /**
  * DrD, Trojboj, Gamecon, Placení aj.
  *
@@ -21,40 +18,24 @@ function zabalAdminSoubor(string $cestaKSouboru): string
     return $cestaKSouboru . '?version=' . md5_file(ADMIN . '/' . $cestaKSouboru);
 }
 
-if (!empty($_POST['prodej-mrizka'])) {
-    $prodeje             = $_POST['prodej-mrizka'];
-    $rocnik              = $systemoveNastaveni->rocnik();
-    $prodejIdUzivatele   = $uPracovni ? $uPracovni->id() : Uzivatel::SYSTEM;
-    $prodejIdObjednatele = $u->id();
-    $shop                = new Shop(
-        zakaznik: $uPracovni ?? Uzivatel::zId(Uzivatel::SYSTEM),
-        objednatel: $u,
-        systemoveNastaveni: $systemoveNastaveni
-    );
-    foreach ($prodeje as $prodej) {
-        $prodejIdPredmetu = (int)$prodej['id_predmetu'];
-        $kusu             = (int)($prodej['kusu'] ?? 1);
-        $shop->prodat($prodejIdPredmetu, $kusu, false);
-    }
-    $pocetTypuPredmetu = count($prodej);
-    oznameni("Předměty prodány.");
-}
-
 ?>
-
-<!-- Náhrada za api call. Obsah formuláře před odesláním přepíše obchod, ID pracovního uživatele proto leží mimo něj -->
-<form id="prodej-mrizka-form" method="POST" style="display:none;"></form>
-<?= FormularPracovnihoUzivatele::getSkrytePole($uPracovni, 'prodej-mrizka-form') ?>
 
 <link rel="stylesheet" href="<?= zabalAdminSoubor('files/ui/style.css') ?>">
 
 <div id="preact-obchod">Obchod se načítá ...</div>
 
+<?php require_once __DIR__ . '/_jwt-konstanty.php'; ?>
 <script>
-    // Konstanty předáváné do Preactu (env.ts)
     window.GAMECON_KONSTANTY = {
         BASE_PATH_API: "<?= URL_ADMIN . "/api/" ?>",
         ROCNIK: <?= ROCNIK ?>,
+        PRACOVNI_UZIVATEL: <?= json_encode(
+            $uPracovni
+                ? ['id' => $uPracovni->id(), 'nazev' => (string) $uPracovni->jmenoNick()]
+                : null,
+            JSON_UNESCAPED_UNICODE | JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT,
+        ) ?>,
+        <?= jwtKonstantyJs($u, $systemoveNastaveni) ?>
     }
 </script>
 
