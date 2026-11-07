@@ -10,6 +10,7 @@ class RobotsTxt
 {
     public function __construct(
         private readonly Prostredi $prostredi,
+        private readonly string $adresaSitemapy,
     ) {
     }
 
@@ -20,7 +21,7 @@ class RobotsTxt
             return "User-agent: *\nDisallow: /\n";
         }
 
-        return <<<'TXT'
+        $pravidla = <<<'TXT'
         User-agent: *
         Disallow: /finance$
         Disallow: /finance/
@@ -31,5 +32,7 @@ class RobotsTxt
         Disallow: /admin/
 
         TXT;
+
+        return $pravidla . "Sitemap: {$this->adresaSitemapy}\n";
     }
 }

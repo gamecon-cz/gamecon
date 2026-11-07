@@ -13,6 +13,8 @@ use Symfony\Component\Filesystem\Filesystem;
 
 abstract class AbstractTestWeb extends AbstractTestDb
 {
+    private static bool $dnsVyresenoPredStazenimStranky = false;
+
     protected static function keepTestClassDbChangesInTransaction(): bool
     {
         return false;
@@ -391,6 +393,36 @@ SQL;
         } finally {
             unlink($cookieFile);
         }
+    }
+
+    /**
+     * Stránka veřejného webu (cesta od kořene Apache, třeba `web/program`) staženo bez přihlášení.
+     *
+     * @return array{status: int, contentType: string, telo: string}
+     */
+    protected function stahniVerejnouStranku(string $cesta): array
+    {
+        if (! self::$dnsVyresenoPredStazenimStranky) {
+            // aby se DNS vyřešilo ještě před curl, které by jinak mohlo padnout na ještě nepřipraveném Apache
+            get_headers(URL_WEBU);
+            self::$dnsVyresenoPredStazenimStranky = true;
+        }
+        $curlHandle = curl_init('http://localhost/' . $cesta);
+        curl_setopt($curlHandle, CURLOPT_CONNECTTIMEOUT, 10);
+        curl_setopt($curlHandle, CURLOPT_TIMEOUT, 30);
+        curl_setopt($curlHandle, CURLOPT_RETURNTRANSFER, true);
+        curl_setopt($curlHandle, CURLOPT_HTTP_VERSION, CURL_HTTP_VERSION_1_1);
+        $this->setLocalServerCookieWithGameconTestDb($curlHandle);
+        $telo = curl_exec($curlHandle);
+        self::assertNotFalse($telo, curl_error($curlHandle));
+        $odpoved = [
+            'status'      => (int) curl_getinfo($curlHandle, CURLINFO_HTTP_CODE),
+            'contentType' => (string) curl_getinfo($curlHandle, CURLINFO_CONTENT_TYPE),
+            'telo'        => (string) $telo,
+        ];
+        curl_close($curlHandle);
+
+        return $odpoved;
     }
 
     protected function setLocalServerCookieWithGameconTestDb(\CurlHandle $curlHandle): void
