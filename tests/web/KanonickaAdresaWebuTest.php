@@ -55,6 +55,28 @@ class KanonickaAdresaWebuTest extends AbstractTestWeb
         self::assertStringEndsWith('/web/novinky', $this->kanonickaAdresa('web/novinky?start=-20'));
     }
 
+    /**
+     * @test
+     *
+     * @dataProvider provideAdresyRobotsTxt
+     */
+    public function robotsTxtJeTextPodAdresouKorene(string $cesta): void
+    {
+        $odpoved = $this->stahni($cesta);
+
+        self::assertSame(200, $odpoved['status']);
+        self::assertStringStartsWith('text/plain', $odpoved['contentType']);
+        self::assertStringStartsWith("User-agent: *\n", $odpoved['telo']);
+    }
+
+    public static function provideAdresyRobotsTxt(): array
+    {
+        return [
+            'v koreni domeny' => ['robots.txt'],
+            'v adresari webu' => ['web/robots.txt'],
+        ];
+    }
+
     private function kanonickaAdresa(string $cesta): string
     {
         $odpoved = $this->stahni($cesta);
