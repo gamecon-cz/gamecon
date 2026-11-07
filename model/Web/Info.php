@@ -23,6 +23,8 @@ class Info
     private $site;
     private $titulek;
     private $url;
+    /** @var array<string, string|int> */
+    private array $kanonickyDotaz = [];
 
     public function html(): string
     {
@@ -33,8 +35,10 @@ class Info
         if ($e = $this->nazev()) {
             $o[] = '<meta property="og:title" content="' . $e . '">';
         }
-        if ($e = $this->url()) {
+        if ($e = $this->kanonickaUrl()) {
+            $e   = htmlspecialchars($e);
             $o[] = '<meta property="og:url" content="' . $e . '">';
+            $o[] = '<link rel="canonical" href="' . $e . '">';
         }
         if ($e = $this->site()) {
             $o[] = '<meta property="og:site_name" content="' . $e . '">';
@@ -131,6 +135,9 @@ class Info
         return $this->prostredi->prefix();
     }
 
+    /**
+     * Canonical address of the page without query. It is printed as both `og:url` and `rel="canonical"`.
+     */
     public function url()
     {
         if (func_num_args() == 0) {
@@ -141,6 +148,36 @@ class Info
         } else {
             throw new \BadMethodCallException();
         }
+    }
+
+    /**
+     * A query parameter that selects different content (a past year, a page of a list), so the canonical address keeps it.
+     * Any other parameter (tracking, language switch) is not part of the canonical address.
+     */
+    public function kanonickyParametr(string $nazev, string|int $hodnota): static
+    {
+        $this->kanonickyDotaz[$nazev] = $hodnota;
+
+        return $this;
+    }
+
+    public function kanonickaUrl(): ?string
+    {
+        if (! $this->url) {
+            return null;
+        }
+
+        return $this->kanonickyDotaz === []
+            ? $this->url
+            : $this->url . '?' . http_build_query($this->kanonickyDotaz);
+    }
+
+    /**
+     * One address per page: no trailing slash (the home page keeps the single one), whatever way it was requested.
+     */
+    public static function kanonickaUrlZCesty(string $zakladniUrl, string $cesta): string
+    {
+        return rtrim($zakladniUrl, '/') . '/' . trim($cesta, '/');
     }
 
     public function htmlTotoSeUkazujePouzeNaTestu(string $duvod = ''): string

@@ -68,6 +68,9 @@ if (!in_array($rocnik, $rocniky, true)) {
     $rocnik = $letosniRocnik;
 }
 $minulyRocnik = $rocnik !== $letosniRocnik;
+if ($minulyRocnik) {
+    $this->info()->kanonickyParametr('rocnik', $rocnik);
+}
 
 // aktivity
 
