@@ -9,7 +9,7 @@
  */
 
 use Gamecon\Uzivatel\Medailonek;
-use Gamecon\Web\NahravaniObrazku;
+use Gamecon\Web\FotkaUzivatele;
 use Gamecon\XTemplate\XTemplate;
 
 if (post('noveId')) {
@@ -28,20 +28,8 @@ if (get('id') !== null) {
     }
 
     // fotka patří uživateli, ne řádku v medailonkách, jde tedy nahrát i před založením medailonku
-    $nahravaniFotek = NahravaniObrazku::proFotkyUzivatelu();
-    NahravaniObrazku::hlidejPrilisVelkyPozadavek();
-    if (post('akceFotky') === 'nahrat') {
-        NahravaniObrazku::sOhlasenimChyby(fn () => $nahravaniFotek->ulozJakoJediny(
-            $nahravaniFotek->overNahranySoubor($_FILES['fotka'] ?? null),
-            '',
-            (string)$idUzivatele,
-        ));
-        oznameni('Fotka je nahraná.');
-    }
-    if (post('akceFotky') === 'smazat') {
-        NahravaniObrazku::sOhlasenimChyby(fn () => $nahravaniFotek->smazVsechnyVarianty('', (string)$idUzivatele));
-        oznameni('Fotka je smazaná, na webu se ukáže výchozí obrázek.');
-    }
+    $fotka = new FotkaUzivatele($uzivatelMedailonku);
+    $fotka->zpracujPost();
 
     $medailonek = Medailonek::zId($idUzivatele);
     $medailonekForm = Medailonek::form($idUzivatele);
@@ -54,18 +42,8 @@ if (get('id') !== null) {
         'idUzivatele'  => $idUzivatele,
         'jmeno'        => htmlspecialchars((string)$uzivatelMedailonku->jmenoNick()),
         'urlNaWebu'    => htmlspecialchars(URL_WEBU . '/' . $idUzivatele),
-        'acceptFotky'  => $nahravaniFotek->accept(),
-        'limitFotky'   => htmlspecialchars($nahravaniFotek->popisLimitu()),
-        // stejný výřez jako na stránce vypravěče (web/moduly/aktivity.php)
-        'nahledFotky'  => htmlspecialchars((string)$uzivatelMedailonku->fotkaAuto()?->kvalita(85)->pokryjOrez(180, 180)),
+        'fotkaHtml'    => $fotka->getHtml(),
     ]);
-    if ($uzivatelMedailonku->fotka()) {
-        $template->parse('medailonek.fotka.smazat');
-        $template->parse('medailonek.fotka.ma');
-    } else {
-        $template->parse('medailonek.fotka.nema');
-    }
-    $template->parse('medailonek.fotka');
     if ($medailonek) {
         $template->assign('formular', $medailonekForm->full());
         $template->parse('medailonek.formular');
