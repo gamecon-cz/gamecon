@@ -2,6 +2,7 @@
 
 .shop-grid {
   &--container {
+    box-sizing: border-box;
     background-color: lightgray;
     display: grid;
     grid-template-columns: repeat(4, 1fr);
@@ -17,13 +18,22 @@
     height: 100%;
 
     position: relative;
+    cursor: pointer;
 
     &-text {
       position: absolute;
       top: 50%;
       left: 50%;
       transform: translate(-50%, -50%);
-      font-size: 2em;
+      width: max-content;
+      max-width: 92%;
+      text-align: center;
+      font-size: min(2em, 3.6vh);
+    }
+
+    &-sold-out {
+      opacity: 0.4;
+      cursor: not-allowed;
     }
   }
 }
