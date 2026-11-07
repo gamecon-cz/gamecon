@@ -35,7 +35,7 @@ use Symfony\Component\Clock\NativeClock;
 /**
  * Integration tests with real database for the new e-shop services.
  *
- * Note: uses Doctrine EM for all data setup/reads (not legacy dbQuery)
+ * Note: uses Doctrine EM for all data setup/reads (not legacy dbFetch/dbExecute)
  * to avoid cross-connection transaction isolation issues.
  */
 class EshopIntegrationTest extends AbstractTestDb
