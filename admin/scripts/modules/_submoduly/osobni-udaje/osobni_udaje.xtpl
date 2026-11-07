@@ -1,5 +1,6 @@
 <!-- begin:udaje -->
 <form method="post" class="udaje clearfix" id="osobni_udaje">
+  {skrytePolePracovnihoUzivatele}
 
   <table>
     <!-- begin:udaj -->

@@ -9,6 +9,7 @@
  */
 
 use Gamecon\Accounting;
+use Gamecon\Admin\FormularPracovnihoUzivatele;
 use Gamecon\Dev\DeploymentsReader;
 use Gamecon\Dev\OdkazDoArchivnihoAdmina;
 use Gamecon\Dev\SsoParovaciCookie;
@@ -62,7 +63,13 @@ include __DIR__ . '/_uzivatel_ovladac.php';
 
 $x = new XTemplate(__DIR__ . '/uzivatel.xtpl');
 
-$x->assign(['ok' => $ok, 'err' => $err, 'rok' => ROCNIK]);
+$skrytePolePracovnihoUzivatele = FormularPracovnihoUzivatele::getSkrytePole($uPracovni);
+$x->assign([
+    'ok'                            => $ok,
+    'err'                           => $err,
+    'rok'                           => ROCNIK,
+    'skrytePolePracovnihoUzivatele' => $skrytePolePracovnihoUzivatele,
+]);
 $x->assign('nechceUbytovani', '');
 if ($uPracovni) {
     $x->assign([
