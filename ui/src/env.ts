@@ -10,6 +10,10 @@ import { range } from "./utils";
 
 type GameconKonstanty = {
   /**
+   * Jestli se jedná o vite dev server
+   */
+  IS_DEV_SERVER: boolean,
+  /**
    * Chrome redux devtools. Zapnout v php nastavení serveru pomocí
 define('FORCE_REDUX_DEVTOOLS', true);
    */
@@ -75,7 +79,27 @@ define('FORCE_REDUX_DEVTOOLS', true);
    * bez aktivit, aby tabulka odpovídala kompletnímu rozpisu místností.
    */
   PROGRAM_MISTNOSTI: ApiLokace[];
+
+  /**
+   * JWT token for authenticated Symfony API calls.
+   * Generated server-side and passed via PHP.
+   */
+  JWT: string;
+  /**
+   * Base path for Symfony API (e.g. /symfony/api/)
+   */
+  BASE_PATH_SYMFONY_API: string;
+  /**
+   * Uživatel, se kterým obsluha na infopultu právě pracuje, a komu se proto prodává. null = anonymní prodej.
+   */
+  PRACOVNI_UZIVATEL: PracovníUživatel | null;
 }
+
+export type PracovníUživatel = {
+  id: number;
+  /** jméno s přezdívkou tak, jak ho ukazuje administrace; prázdné, když ho účet nemá */
+  nazev: string;
+};
 
 type GameconPřednačtení = {
   přihlášenýUživatel?: ApiPřihlášenýUživatel
@@ -128,9 +152,13 @@ const GAMECON_KONSTANTY_DEFAULT: GameconKonstanty = {
   JE_ADMIN: false,
   URL_PROGRAM_CACHE: "/cache/public/program",
   programManifest: null,
+  IS_DEV_SERVER: false,
   PROGRAM_VYCHOZI_NASTAVENI: {},
   PROGRAM_VYCHOZI_VYBER: null,
   PROGRAM_MISTNOSTI: [],
+  JWT: "",
+  BASE_PATH_SYMFONY_API: "/symfony/api/",
+  PRACOVNI_UZIVATEL: null,
 };
 
 export const GAMECON_KONSTANTY = {
@@ -147,6 +175,10 @@ export const ROKY = range(2009, GAMECON_KONSTANTY.ROCNIK).filter(x => x !== 2020
 export const initEnv = () => {
   window.preactMost = {
     obchod: {
+      show: () => {
+        // No-op until the Obchod component mounts and replaces this.
+        // Prevents "is not a function" error when called before Preact loads.
+      },
     },
     prihlaseniTymu: {
     },

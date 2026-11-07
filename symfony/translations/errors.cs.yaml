@@ -14,6 +14,7 @@ accommodation:
     night_not_offered: 'Noc %id% není nabízeným ubytováním.'
     at_least_two_nights: 'Ubytování je možné objednat nejméně na dvě noci.'
     consecutive_nights: 'Objednané noci musí na sebe navazovat.'
+    one_room_per_night: 'Na jednu noc lze objednat jen jeden typ ubytování. Víc typů je vybráno na: %nights%.'
     overbooking_not_permitted: 'Ubytování „%product%" na %night% je plné; přeplnit ho smí jen šéf infopultu.'
     night_full: 'Ubytování „%product%" na %night% je obsazené.'
     withdrawn: 'Ubytování „%product%" na %night% už není v prodeji.'

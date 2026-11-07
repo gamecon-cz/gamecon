@@ -4,14 +4,9 @@ declare(strict_types=1);
 
 namespace Gamecon\Tests\Shop;
 
-use Gamecon\Cas\DateTimeGamecon;
-use Gamecon\Cas\DateTimeImmutableStrict;
-use Gamecon\Shop\Shop;
+use App\Enum\ProductTagCode;
 use Gamecon\Shop\StavPredmetu;
-use Gamecon\Shop\TypPredmetu;
-use Gamecon\SystemoveNastaveni\SystemoveNastaveni;
 use Gamecon\Tests\Db\AbstractTestDb;
-use Gamecon\XTemplate\XTemplate;
 
 /**
  * Společné zázemí pro testy veřejné přihlášky (web/moduly/prihlaska/prihlaska.php).
@@ -22,10 +17,6 @@ use Gamecon\XTemplate\XTemplate;
  */
 abstract class AbstractTestPrihlaska extends AbstractTestDb
 {
-    protected const DEN_CTVRTEK = DateTimeGamecon::PORADI_HERNIHO_DNE_CTVRTEK;
-    protected const DEN_PATEK = DateTimeGamecon::PORADI_HERNIHO_DNE_PATEK;
-    protected const DEN_SOBOTA = DateTimeGamecon::PORADI_HERNIHO_DNE_SOBOTA;
-
     /**
      * Přihláška si uvnitř otevírá vlastní transakci a commituje ji, takže
      * obalující transakce testu by se commitla s ní. Místo toho resetujeme
@@ -47,11 +38,9 @@ abstract class AbstractTestPrihlaska extends AbstractTestDb
     }
 
     /**
-     * Odešle přihlášku se zadaným obsahem formuláře.
-     *
      * Kopíruje sekvenci z web/moduly/prihlaska/prihlaska.php pro POST
-     * „prihlasitNeboUpravit“ — včetně pořadí, které je významné: ubytování
-     * se zpracovává před jídlem, protože ruší snídaně v ceně hotelu.
+     * „prihlasitNeboUpravit“. Po přechodu na košík z ní zbylo jen přihlášení na GC —
+     * objednávky formulář nezapisuje, obsah `$formular` proto ovlivní jen vykreslení.
      *
      * @param array<string, mixed> $formular
      */
@@ -63,7 +52,6 @@ abstract class AbstractTestPrihlaska extends AbstractTestDb
         $_POST = $formular;
         try {
             $uzivatel = \Uzivatel::zIdUrcite($uzivatel->id());
-            $shop = new Shop($uzivatel, $uzivatel, SystemoveNastaveni::zGlobals());
             $pomoc = new \Pomoc($uzivatel);
 
             dbBegin();
@@ -71,10 +59,6 @@ abstract class AbstractTestPrihlaska extends AbstractTestDb
                 if (! $uzivatel->gcPrihlasen()) {
                     $uzivatel->gcPrihlas($uzivatel);
                 }
-                $shop->zpracujPredmety();
-                $shop->zpracujUbytovani(ulozitNechceUbytovani: true);
-                $shop->zpracujJidlo();
-                $shop->zpracujVstupne();
                 $pomoc->zpracuj();
                 $uzivatel->finance()->obnovUdaje();
                 dbCommit();
@@ -86,68 +70,6 @@ abstract class AbstractTestPrihlaska extends AbstractTestDb
             $_POST = $puvodniPost;
             \Uzivatel::smazCache();
         }
-    }
-
-    /**
-     * Odešle přihlášku a vrátí chybu, kterou vyhodila — nebo null, když prošla.
-     *
-     * @param array<string, mixed> $formular
-     */
-    protected function odesliPrihlaskuAZachytChybu(
-        \Uzivatel $uzivatel,
-        array $formular,
-    ): ?\Chyba {
-        try {
-            $this->odesliPrihlasku($uzivatel, $formular);
-        } catch (\Chyba $chyba) {
-            return $chyba;
-        }
-
-        return null;
-    }
-
-    /**
-     * Nabízí formulář přihlášky předmět ke koupi? Čte vykreslené HTML, tedy to,
-     * co účastník opravdu vidí.
-     *
-     * Samotné `shopP[<id>]` nestačí: nenabízený předmět, který už má účastník
-     * koupený, se vykreslí s pevným počtem kusů a stejným názvem pole. Rozlišuje
-     * je až `data-max`, které nese jen nákupní varianta.
-     */
-    protected function jeNabizenKProdeji(
-        \Uzivatel $uzivatel,
-        int $idPredmetu,
-    ): bool {
-        // Termíny konce prodeje jsou konstanty, které testovací bootstrap nedefinuje,
-        // a jejich výchozí hodnoty leží uprostřed ročníku — bez posunutí „teď“ na
-        // začátek roku by vykreslení hlásilo ukončený prodej. Pozor, posunuté „teď“
-        // řídí jen tyhle termíny; `nabizet_do` se porovnává s reálným časem, takže
-        // fixture s datem blízko dneška se bude chovat jinak, než by čekal.
-        $systemoveNastaveni = SystemoveNastaveni::zGlobals(
-            rocnik: ROCNIK,
-            ted: new DateTimeImmutableStrict(ROCNIK . '-01-01 00:00:00'),
-        );
-        foreach ([
-            'PREDMETY_BEZ_TRICEK_LZE_OBJEDNAT_A_MENIT_DO_DNE',
-            'TRICKA_LZE_OBJEDNAT_A_MENIT_DO_DNE',
-            'MIKINY_LZE_OBJEDNAT_A_MENIT_DO_DNE',
-        ] as $klic) {
-            try_define($klic, $systemoveNastaveni->dejVychoziHodnotu($klic));
-        }
-
-        // Bez nastavené cache si XTemplate odkládá zkompilovanou šablonu vedle
-        // zdroje, tedy do gitem sledovaného stromu.
-        $cacheDir = XTemplate::cache() ?: XTPL_CACHE_DIR;
-        pripravCache($cacheDir);
-        XTemplate::cache($cacheDir);
-
-        $uzivatel = \Uzivatel::zIdUrcite($uzivatel->id());
-        $shop = new Shop($uzivatel, $uzivatel, $systemoveNastaveni);
-
-        return (bool) preg_match(
-            '~name="shopP\[' . $idPredmetu . '\]"[^>]*\sdata-max=~',
-            $shop->predmetyHtml(),
-        );
     }
 
     protected function vytvorBeznehoUzivatele(): \Uzivatel
@@ -177,7 +99,7 @@ SQL,
         ?string $nabizetDo = null,
         int $modelRok = ROCNIK,
     ): int {
-        return $this->vlozPredmet($nazev, TypPredmetu::PREDMET, $kusuVyrobeno, $cena, $stav, $nabizetDo, $modelRok);
+        return $this->vlozPredmet($nazev, ProductTagCode::PREDMET, $kusuVyrobeno, $cena, $stav, $nabizetDo, $modelRok);
     }
 
     protected function vytvorTricko(
@@ -187,156 +109,93 @@ SQL,
         int $stav = StavPredmetu::VEREJNY,
         ?string $nabizetDo = null,
     ): int {
-        return $this->vlozPredmet($nazev, TypPredmetu::TRICKO, $kusuVyrobeno, $cena, $stav, $nabizetDo, ROCNIK);
+        return $this->vlozPredmet($nazev, ProductTagCode::TRICKO, $kusuVyrobeno, $cena, $stav, $nabizetDo, ROCNIK);
     }
 
-    protected function vytvorJidlo(
-        string $nazev,
-        int $den,
-        ?int $kusuVyrobeno = 10,
-        float $cena = 120.0,
-        int $stav = StavPredmetu::VEREJNY,
-        ?string $nabizetDo = null,
-    ): int {
-        return $this->vlozPredmet($nazev, TypPredmetu::JIDLO, $kusuVyrobeno, $cena, $stav, $nabizetDo, ROCNIK, $den);
-    }
-
-    protected function vytvorUbytovani(
-        string $nazev,
-        int $den,
-        ?int $kusuVyrobeno = 10,
-        float $cena = 300.0,
-        int $stav = StavPredmetu::VEREJNY,
-        int $modelRok = ROCNIK,
-    ): int {
-        return $this->vlozPredmet($nazev, TypPredmetu::UBYTOVANI, $kusuVyrobeno, $cena, $stav, null, $modelRok, $den);
-    }
-
-    /**
-     * Ubytování se objednává minimálně na dvě navazující noci, jedna noc projde
-     * jen s právem UBYTOVANI_MUZE_OBJEDNAT_JEDNU_NOC.
-     *
-     * @return array<int, int> ids předmětů dvou navazujících nocí
-     */
-    protected function vytvorUbytovaniNaDvouNocich(
-        ?int $kusuVyrobeno = 10,
-        float $cena = 300.0,
-    ): array {
-        return [
-            $this->vytvorUbytovani('Ubytování čtvrtek', self::DEN_CTVRTEK, $kusuVyrobeno, $cena),
-            $this->vytvorUbytovani('Ubytování pátek', self::DEN_PATEK, $kusuVyrobeno, $cena),
-        ];
-    }
-
-    protected function pocetNakupu(
+    protected function pocetRoliUzivatele(
         \Uzivatel $uzivatel,
-        int $idPredmetu,
+        int $idRole,
     ): int {
         return (int) dbOneCol(
-            'SELECT COUNT(*) FROM shop_nakupy WHERE id_uzivatele = $0 AND id_predmetu = $1 AND rok = $2',
+            'SELECT COUNT(*) FROM uzivatele_role WHERE id_uzivatele = $0 AND id_role = $1',
             [
                 0 => $uzivatel->id(),
-                1 => $idPredmetu,
-                2 => ROCNIK,
+                1 => $idRole,
             ],
         );
-    }
-
-    /**
-     * Nákupy předmětu bez ohledu na ročník — aby šlo odhalit i nákup zapsaný
-     * pod cizím rokem, který by ročníkově filtrovaný dotaz neviděl.
-     */
-    protected function pocetNakupuVeVsechRocnicich(
-        \Uzivatel $uzivatel,
-        int $idPredmetu,
-    ): int {
-        return (int) dbOneCol(
-            'SELECT COUNT(*) FROM shop_nakupy WHERE id_uzivatele = $0 AND id_predmetu = $1',
-            [
-                0 => $uzivatel->id(),
-                1 => $idPredmetu,
-            ],
-        );
-    }
-
-    protected function pocetVsechNakupu(\Uzivatel $uzivatel): int
-    {
-        return (int) dbOneCol(
-            'SELECT COUNT(*) FROM shop_nakupy WHERE id_uzivatele = $0 AND rok = $1',
-            [
-                0 => $uzivatel->id(),
-                1 => ROCNIK,
-            ],
-        );
-    }
-
-    /**
-     * Kolik kusů předmětu ještě zbývá k prodeji — stejný výpočet, jaký hlídá
-     * Shop::prodat(). Vrací null pro předmět s neomezenou zásobou.
-     */
-    protected function zbyvajiciKusy(int $idPredmetu): ?int
-    {
-        $predmet = dbOneLine(
-            'SELECT kusu_vyrobeno FROM shop_predmety WHERE id_predmetu = $0',
-            [
-                0 => $idPredmetu,
-            ],
-        );
-        // Bez tohohle by neexistující předmět vypadal jako předmět s neomezenou
-        // zásobou — obojí totiž vrací null.
-        self::assertNotSame([], $predmet, "Předmět {$idPredmetu} v databázi není");
-
-        $kusuVyrobeno = $predmet['kusu_vyrobeno'];
-        if ($kusuVyrobeno === null) {
-            return null;
-        }
-
-        $prodano = (int) dbOneCol(
-            'SELECT COUNT(*) FROM shop_nakupy WHERE id_predmetu = $0 AND rok = $1',
-            [
-                0 => $idPredmetu,
-                1 => ROCNIK,
-            ],
-        );
-
-        return max(0, (int) $kusuVyrobeno - $prodano);
     }
 
     private function vlozPredmet(
         string $nazev,
-        int $typ,
+        ProductTagCode $kategorie,
         ?int $kusuVyrobeno,
         float $cena,
         int $stav,
         ?string $nabizetDo,
         int $modelRok,
-        ?int $ubytovaniDen = null,
     ): int {
+        // Ročník už není sloupec: odvozuje se z archived_at, kde NULL znamená letošní
+        // a jinak rozhoduje rok archivace.
+        $archivovanoV = $modelRok === ROCNIK
+            ? null
+            : $modelRok . '-01-01 00:00:00';
+        $kodPredmetu = strtoupper(preg_replace('~[^A-Za-z0-9]+~', '_', $nazev)) . '_' . strtoupper(uniqid());
+
         dbQuery(<<<SQL
 INSERT INTO shop_predmety SET
     nazev = $0,
     kod_predmetu = $1,
-    model_rok = $2,
-    cena_aktualni = $3,
-    stav = $4,
-    kusu_vyrobeno = $5,
-    typ = $6,
-    ubytovani_den = $7,
-    nabizet_do = $8
+    cena_aktualni = $2,
+    stav = $3,
+    nabizet_do = $4,
+    archived_at = $5
 SQL,
             [
                 0 => $nazev,
-                1 => strtoupper(preg_replace('~[^A-Za-z0-9]+~', '_', $nazev)) . '_' . strtoupper(uniqid()),
-                2 => $modelRok,
-                3 => $cena,
-                4 => $stav,
-                5 => $kusuVyrobeno,
-                6 => $typ,
-                7 => $ubytovaniDen,
-                8 => $nabizetDo,
+                1 => $kodPredmetu,
+                2 => $cena,
+                3 => $stav,
+                4 => $nabizetDo,
+                5 => $archivovanoV,
             ],
         );
 
-        return dbInsertId();
+        $idPredmetu = dbInsertId();
+        // Capacity lives on the variant with the product's code, as every catalog row has one.
+        dbQuery(
+            'INSERT INTO product_variant (product_id, name, code, capacity, position, state) VALUES ($0, $1, $2, $3, 0, $4)',
+            [
+                0 => $idPredmetu,
+                1 => $nazev,
+                2 => $kodPredmetu,
+                3 => $kusuVyrobeno,
+                4 => $stav,
+            ],
+        );
+        $this->oznacTypem($idPredmetu, $kategorie);
+
+        return $idPredmetu;
+    }
+
+    /**
+     * Typ předmětu je nově tag, ne sloupec.
+     */
+    private function oznacTypem(
+        int $idPredmetu,
+        ProductTagCode $kategorie,
+    ): void {
+        $vlozeni = dbQuery(
+            'INSERT INTO product_product_tag (product_id, tag_id)
+             SELECT $0, id FROM product_tag WHERE code = $1',
+            [
+                0 => $idPredmetu,
+                1 => $kategorie->value,
+            ],
+        );
+        // Bez tagu v databázi vloží INSERT ... SELECT tiše nula řádků a předmět pak
+        // nemá kategorii — spadne až vzdálená assertion.
+        if (dbAffectedOrNumRows($vlozeni) !== 1) {
+            throw new \LogicException('Tag ' . $kategorie->value . ' v databázi není');
+        }
     }
 }
