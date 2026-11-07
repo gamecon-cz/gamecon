@@ -1,0 +1,138 @@
+<?php
+
+/*
+ * This file is part of the API Platform project.
+ *
+ * (c) Kévin Dunglas <dunglas@gmail.com>
+ *
+ * For the full copyright and license information, please view the LICENSE
+ * file that was distributed with this source code.
+ */
+
+declare(strict_types=1);
+
+use ApiPlatform\JsonLd\Action\ContextAction;
+use ApiPlatform\Laravel\ApiPlatformMiddleware;
+use ApiPlatform\Laravel\Controller\ApiPlatformController;
+use ApiPlatform\Laravel\Controller\DocumentationController;
+use ApiPlatform\Laravel\Controller\EntrypointController;
+use ApiPlatform\Laravel\GraphQl\Controller\EntrypointController as GraphQlEntrypointController;
+use ApiPlatform\Laravel\GraphQl\Controller\GraphiQlController;
+use ApiPlatform\Metadata\Exception\NotExposedHttpException;
+use ApiPlatform\Metadata\HttpOperation;
+use ApiPlatform\Metadata\Resource\Factory\ResourceMetadataCollectionFactoryInterface;
+use ApiPlatform\Metadata\Resource\Factory\ResourceNameCollectionFactoryInterface;
+use ApiPlatform\OpenApi\Attributes\Webhook;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Route;
+use Symfony\AI\McpBundle\Controller\McpController;
+use Symfony\Component\HttpFoundation\RequestStack;
+
+$globalMiddlewares = config()->get('api-platform.routes.middleware', []);
+$domain = config()->get('api-platform.routes.domain', '');
+
+Route::domain($domain)->middleware($globalMiddlewares)->group(static function (): void {
+    $app = app();
+    $resourceNameCollectionFactory = $app->make(ResourceNameCollectionFactoryInterface::class);
+    $resourceMetadataFactory = $app->make(ResourceMetadataCollectionFactoryInterface::class);
+
+    foreach ($resourceNameCollectionFactory->create() as $resourceClass) {
+        foreach ($resourceMetadataFactory->create($resourceClass) as $resourceMetadata) {
+            foreach ($resourceMetadata->getOperations() as $operation) {
+                if ($operation->getOpenapi() instanceof Webhook) {
+                    continue;
+                }
+
+                if ($operation->getRouteName()) {
+                    continue;
+                }
+
+                $uriTemplate = str_replace('{._format}', '{_format?}', $operation->getUriTemplate());
+
+                /* @var HttpOperation $operation */
+                $controller = $operation->getController() ?? ApiPlatformController::class;
+
+                if (!class_exists($controller)) {
+                    $controller = $app->make($controller);
+
+                    if (is_callable([$controller, '__invoke'])) {
+                        $controller = '\\'.$controller::class.'@__invoke'; // see Illuminate\Routing\RouteAction
+                    }
+                }
+
+                $route = Route::addRoute($operation->getMethod(), $uriTemplate, ['uses' => $controller, 'prefix' => $operation->getRoutePrefix() ?? ''])
+                    ->where([
+                        '_format' => '^\.[a-zA-Z]+',
+                    ] + ($operation->getRequirements() ?? []))
+                    ->name($operation->getName())
+                    ->setDefaults(['_api_operation_name' => $operation->getName(), '_api_resource_class' => $operation->getClass()]);
+
+                $route->middleware(ApiPlatformMiddleware::class.':'.$operation->getName());
+
+                if ($operation->getMiddleware()) {
+                    $route->middleware($operation->getMiddleware());
+                }
+            }
+        }
+    }
+
+    $prefix = config()->get('api-platform.defaults.route_prefix', '');
+
+    Route::group(['prefix' => $prefix], static function (): void {
+        if (config()->get('api-platform.graphql.enabled')) {
+            Route::group([
+                'middleware' => config()->get('api-platform.graphql.middleware', []),
+            ], static function (): void {
+                Route::addRoute(['POST', 'GET'], '/graphql', GraphQlEntrypointController::class)
+                    ->name('api_graphql');
+            });
+
+            if (config()->get('api-platform.graphiql.enabled', true)) {
+                Route::group([
+                    'middleware' => config()->get('api-platform.graphiql.middleware', []),
+                    'domain' => config()->get('api-platform.graphiql.domain', ''),
+                ], static function (): void {
+                    Route::get('/graphiql', GraphiQlController::class)
+                        ->name('api_graphiql');
+                });
+            }
+        }
+
+        Route::group(['middleware' => ApiPlatformMiddleware::class], static function (): void {
+            Route::get('/contexts/{shortName?}{_format?}', static function (Request $request, ContextAction $contextAction, string $shortName = 'Entrypoint') {
+                return $contextAction($shortName, $request);
+            })->name('api_jsonld_context');
+
+            Route::get('/validation_errors/{id}', static fn () => throw new NotExposedHttpException('Not exposed.'))
+                ->name('api_validation_errors')
+                ->middleware(ApiPlatformMiddleware::class);
+
+            Route::get('/docs{_format?}', DocumentationController::class)
+                ->name('api_doc');
+
+            Route::get('/.well-known/genid/{id}', static fn () => throw new NotExposedHttpException('This route is not exposed on purpose. It generates an IRI for a collection resource without identifier nor item operation.'))
+                ->name('api_genid');
+
+            Route::get('/{index?}{_format?}', EntrypointController::class)
+                ->where('index', 'index')
+                ->name('api_entrypoint');
+        });
+    });
+});
+
+// MCP endpoint (outside the API prefix)
+if (class_exists(McpController::class)) {
+    Route::match(['GET', 'POST', 'DELETE', 'OPTIONS'], '/mcp', static function (Request $request) {
+        $requestStack = app(RequestStack::class);
+        $mcpController = app(McpController::class);
+
+        // Push Laravel request onto Symfony RequestStack
+        $requestStack->push($request);
+
+        try {
+            return $mcpController->handle($request);
+        } finally {
+            $requestStack->pop();
+        }
+    })->name('api_mcp');
+}
