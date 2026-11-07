@@ -1505,7 +1505,9 @@ Radio musí být ve tvaru:
 @media only screen and (min-width: 992px) {
   .infopult-grid--container {
     grid-template-columns: repeat(3, 1fr);
-    grid-template-rows: auto;
+    /* Objednávky zabírají třetí i čtvrtý řádek; s pružným čtvrtým řádkem jde jejich výška jen do něj.
+       S automatickým by nafoukly třetí řádek a pokoje s jídlem by odskočily pod Ubytováním dolů. */
+    grid-template-rows: auto auto auto 1fr;
     grid-template-areas:
       "přehled   udaje     platba"
       "ubytování ubytování prodej"
