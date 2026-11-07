@@ -90,11 +90,10 @@ Platnost současné vlny hromadné aktivace byla '%s' (%s), teď je '%s' a aktiv
             FROM akce_seznam WHERE stav = $zeStavu AND rok = $rocnik
             SQL,
         );
-        $result                    = dbQuery(<<<SQL
+        $hromadneAktivovanoAktivit = dbExecute(<<<SQL
             UPDATE akce_seznam SET stav = $doStavu WHERE stav = $zeStavu AND rok = $rocnik
             SQL,
         );
-        $hromadneAktivovanoAktivit = (int)dbAffectedOrNumRows($result);
         dbCommit();
 
         if ($hromadneAktivovanoAktivit > 0) {
