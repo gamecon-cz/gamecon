@@ -396,7 +396,7 @@ SQL;
     }
 
     /**
-     * Stránka veřejného webu (cesta od kořene Apache, třeba `web/program`) staženo bez přihlášení.
+     * Stránka webu nebo adminu (cesta od kořene Apache, třeba `web/program`) staženo bez přihlášení.
      *
      * @return array{status: int, contentType: string, telo: string, hlavicky: array<string, list<string>>} hlavičky pod malými písmeny
      */

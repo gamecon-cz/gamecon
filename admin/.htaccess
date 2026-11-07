@@ -11,3 +11,10 @@ RewriteRule (.*) %1 [R,L]
 #---prepis cesty v adrese na promennou
 RewriteCond %{REQUEST_URI} !\.[[:alnum:]]+$
 RewriteRule (.*) index.php?req=$1 [L,QSA]
+
+#---admin nemá být ve vyhledávačích ani u skriptů a souborů, které nejdou přes index.php, ani na chybových stránkách Apache
+#---(unset: tutéž hlavičku posílá i index.php, ať v odpovědi nejsou dvě)
+<IfModule mod_headers.c>
+    Header unset X-Robots-Tag
+    Header always set X-Robots-Tag "noindex, nofollow"
+</IfModule>
