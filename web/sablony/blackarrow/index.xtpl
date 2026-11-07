@@ -11,9 +11,8 @@
     <!-- begin: extraJs --><script src="{url}"></script><!-- end: extraJs -->
     {info}
     <link rel="icon" href="soubory/blackarrow/_spolecne/favicon.png">
+    {FILE "sablony/blackarrow/gtag.xtpl"}
 </head>
-
-{FILE "sablony/blackarrow/gtag.xtpl"}
 
 <body>
 
