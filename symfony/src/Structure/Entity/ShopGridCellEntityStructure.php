@@ -40,6 +40,11 @@ class ShopGridCellEntityStructure
     public const cilId = 'cilId';
 
     /**
+     * @see ShopGridCell::$variant
+     */
+    public const variant = 'variant';
+
+    /**
      * @see ShopGridCell::$shopGrid
      */
     public const shopGrid = 'shopGrid';
