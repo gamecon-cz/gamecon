@@ -7,6 +7,7 @@
  * @var \Gamecon\SystemoveNastaveni\SystemoveNastaveni $systemoveNastaveni
  */
 
+use Gamecon\Admin\FormularPracovnihoUzivatele;
 use Gamecon\XTemplate\XTemplate;
 use Gamecon\Uzivatel\Pohlavi;
 use Gamecon\Uzivatel\SqlStruktura\UzivateleHodnotySqlStruktura as Sql;
@@ -159,6 +160,8 @@ class OsobniUdajeTabulka
         if ($programOdkaz)
             $x->parse('udaje.programOdkaz');
 
+        // údaje se ukládají pracovnímu uživateli, tabulka se ukazuje jen pro něj
+        $x->assign('skrytePolePracovnihoUzivatele', FormularPracovnihoUzivatele::getSkrytePole($uzivatel));
         $x->parse('udaje');
         return $x->text('udaje');
     }

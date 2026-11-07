@@ -2,6 +2,7 @@
 
 declare(strict_types=1);
 
+use Gamecon\Admin\FormularPracovnihoUzivatele;
 use Gamecon\Dev\NavratNaPreview;
 use Gamecon\Dev\SsoPrihlaseniZUrl;
 use Gamecon\Exceptions\UzivatelNenalezen;
@@ -93,6 +94,9 @@ if (post('zrusitUzivateleProPraci')) {
     Uzivatel::odhlasKlic(Uzivatel::UZIVATEL_PRACOVNI);
     back();
 }
+
+// dřív, než formulář zpracuje kterýkoli modul
+FormularPracovnihoUzivatele::hlidej($_POST, $uPracovni);
 
 if (post('prihlasitSeJakoUzivatel')) {
     try {
