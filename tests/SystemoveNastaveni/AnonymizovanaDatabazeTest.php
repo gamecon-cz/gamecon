@@ -74,6 +74,30 @@ class AnonymizovanaDatabazeTest extends AbstractTestDb
         dbQuery("INSERT INTO stranky SET url_stranky = 'test', obsah = 'Kontakt: jan.novak@example.com', poradi = 1");
 
         self::vlozRadekDoKazdePrilisCitliveTabulky();
+        self::vlozRadkySCitlivymiSloupci();
+    }
+
+    /**
+     * Tables that stay in the copy, so a column with typed text or a user id inside JSON has to be blanked.
+     */
+    private static function vlozRadkySCitlivymiSloupci(): void
+    {
+        // the variant that the purchase points at does not exist
+        dbExecute('SET FOREIGN_KEY_CHECKS = 0');
+        try {
+            dbExecute(<<<'SQL'
+                INSERT INTO shop_order
+                SET customer_id = 100, year = 2026, status = 'paid', total_price = 1,
+                    roommate = 'Honza Novák', accommodation_declined = 0
+                SQL);
+            dbExecute(<<<'SQL'
+                INSERT INTO shop_nakupy
+                SET id_uzivatele = 100, variant_id = 1, rok = 2026, cena_nakupni = 1, datum = NOW(),
+                    override_log = '[{"guard":"deadline","source":"desk","by":100,"at":"2026-01-01T00:00:00+01:00"}]'
+                SQL);
+        } finally {
+            dbExecute('SET FOREIGN_KEY_CHECKS = 1');
+        }
     }
 
     /**
@@ -97,11 +121,11 @@ class AnonymizovanaDatabazeTest extends AbstractTestDb
             'obnova_hesla_log' => <<<'SQL'
                 INSERT INTO obnova_hesla_log SET ip = '192.0.2.1', id_uzivatele = 100, odeslano = 1
                 SQL,
-            'google_api_user_tokens' => <<<'SQL'
-                INSERT INTO google_api_user_tokens SET user_id = 100, google_client_id = 'client', tokens = 'tokens'
+            'google_api_user_token' => <<<'SQL'
+                INSERT INTO google_api_user_token SET user_id = 100, google_client_id = 'client', tokens = 'tokens'
                 SQL,
-            'google_drive_dirs' => <<<'SQL'
-                INSERT INTO google_drive_dirs SET user_id = 100, dir_id = 'dir', original_name = 'dir'
+            'google_drive_dir' => <<<'SQL'
+                INSERT INTO google_drive_dir SET user_id = 100, dir_id = 'dir', original_name = 'dir'
                 SQL,
             'uzivatele_slucovani_log' => <<<'SQL'
                 INSERT INTO uzivatele_slucovani_log
@@ -210,6 +234,16 @@ class AnonymizovanaDatabazeTest extends AbstractTestDb
             $countResult = $connection->query(sprintf('SELECT COUNT(*) as cnt FROM `%s`.`%s`', self::$anonymniDatabaze, $sensitivniTabulka));
             $count = $countResult->fetch(\PDO::FETCH_ASSOC)['cnt'];
             self::assertSame('0', $count, "Tabulka {$sensitivniTabulka} by měla být prázdná");
+        }
+
+        foreach ([
+            'shop_order'  => 'roommate',
+            'shop_nakupy' => 'override_log',
+        ] as $tabulka => $sloupec) {
+            $hodnoty = $connection->query(sprintf('SELECT `%s` FROM `%s`.`%s`', $sloupec, self::$anonymniDatabaze, $tabulka))
+                ->fetchAll(\PDO::FETCH_COLUMN);
+            self::assertCount(1, $hodnoty, "Test vložil do tabulky {$tabulka} jeden řádek");
+            self::assertNull($hodnoty[0], "Sloupec {$tabulka}.{$sloupec} by měl být po anonymizaci prázdný");
         }
 
         // user ID should be anonymized (different from original 100)

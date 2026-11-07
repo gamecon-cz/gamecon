@@ -26,8 +26,8 @@ class AnonymizovanaDatabaze
         'akce_import',
         'uzivatele_url',
         'obnova_hesla_log',          // IP address that asked for a reset of which account
-        'google_api_user_tokens',    // OAuth tokens
-        'google_drive_dirs',
+        'google_api_user_token',     // OAuth tokens
+        'google_drive_dir',
         'uzivatele_slucovani_log',   // e-mail addresses of the merged accounts
         'newsletter_prihlaseni',
         'newsletter_prihlaseni_log',
@@ -143,6 +143,10 @@ class AnonymizovanaDatabaze
             array_values($medailonkyData),
         ));
         mysqli_query($dbConnectionAnonymDb, "UPDATE `{$db}`.`medailonky` SET $medailonkySet WHERE TRUE");
+
+        // typed text and a user id inside JSON, neither is shifted with the foreign keys
+        mysqli_query($dbConnectionAnonymDb, "UPDATE `{$db}`.shop_order SET roommate = NULL WHERE TRUE");
+        mysqli_query($dbConnectionAnonymDb, "UPDATE `{$db}`.shop_nakupy SET override_log = NULL WHERE TRUE");
 
         mysqli_query($dbConnectionAnonymDb, "UPDATE `{$db}`.uzivatele_role SET `posazen` = '1970-01-01 01:01:01' WHERE TRUE");
         mysqli_query($dbConnectionAnonymDb, "UPDATE `{$db}`.akce_prihlaseni_log SET `kdy` = '1970-01-01 01:01:01' WHERE TRUE");
