@@ -22,18 +22,28 @@ omezCsrf();
 
 /** @var Gamecon\SystemoveNastaveni\SystemoveNastaveni $systemoveNastaveni */
 
+// a file for crawlers may be cached, and an already started session must not give it its cookie and no-cache headers
+$odesliSouborProVyhledavace = static function (string $typObsahu, string $obsah): void {
+    if (session_status() === PHP_SESSION_ACTIVE) {
+        session_abort();
+    }
+    header_remove('Set-Cookie');
+    header_remove('Pragma');
+    header_remove('Expires');
+    header('Cache-Control: public, max-age=3600');
+    header('Content-Type: ' . $typObsahu . '; charset=utf-8');
+    echo $obsah;
+};
+
 if (($_GET['req'] ?? '') === 'robots.txt') {
-    header('Content-Type: text/plain; charset=utf-8');
-    echo (new RobotsTxt($systemoveNastaveni->prostredi(), URL_WEBU . '/sitemap.xml'))->getObsah();
+    $odesliSouborProVyhledavace('text/plain', (new RobotsTxt($systemoveNastaveni->prostredi(), URL_WEBU . '/sitemap.xml'))->getObsah());
 
     return;
 }
 
 if (($_GET['req'] ?? '') === 'sitemap.xml') {
-    // built first, so a failing query does not answer with the XML content type
-    $sitemap = (new Sitemap(URL_WEBU, (new CestyKSitemape())->getCesty()))->getXml();
-    header('Content-Type: application/xml; charset=utf-8');
-    echo $sitemap;
+    // the content is built before any header is sent, so a failing query does not answer with the XML content type
+    $odesliSouborProVyhledavace('application/xml', (new Sitemap(URL_WEBU, (new CestyKSitemape())->getCesty()))->getXml());
 
     return;
 }

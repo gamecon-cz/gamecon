@@ -127,6 +127,7 @@ SQL,
         self::assertStringStartsWith('text/plain', $odpoved['contentType']);
         // tests run as the local environment, which is closed to crawlers
         self::assertSame("User-agent: *\nDisallow: /\n", $odpoved['telo']);
+        self::assertSouborProVyhledavaceJeKesovatelny($odpoved);
     }
 
     public static function provideAdresyRobotsTxt(): array

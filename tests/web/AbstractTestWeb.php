@@ -398,7 +398,7 @@ SQL;
     /**
      * Stránka veřejného webu (cesta od kořene Apache, třeba `web/program`) staženo bez přihlášení.
      *
-     * @return array{status: int, contentType: string, telo: string}
+     * @return array{status: int, contentType: string, telo: string, hlavicky: array<string, list<string>>} hlavičky pod malými písmeny
      */
     protected function stahniVerejnouStranku(string $cesta): array
     {
@@ -407,11 +407,24 @@ SQL;
             get_headers(URL_WEBU);
             self::$dnsVyresenoPredStazenimStranky = true;
         }
+        $hlavicky = [];
         $curlHandle = curl_init('http://localhost/' . $cesta);
         curl_setopt($curlHandle, CURLOPT_CONNECTTIMEOUT, 10);
         curl_setopt($curlHandle, CURLOPT_TIMEOUT, 30);
         curl_setopt($curlHandle, CURLOPT_RETURNTRANSFER, true);
         curl_setopt($curlHandle, CURLOPT_HTTP_VERSION, CURL_HTTP_VERSION_1_1);
+        curl_setopt(
+            $curlHandle,
+            CURLOPT_HEADERFUNCTION,
+            static function (\CurlHandle $handle, string $radekHlavicky) use (&$hlavicky): int {
+                if (str_contains($radekHlavicky, ':')) {
+                    [$nazev, $hodnota] = explode(':', $radekHlavicky, 2);
+                    $hlavicky[strtolower(trim($nazev))][] = trim($hodnota);
+                }
+
+                return strlen($radekHlavicky);
+            },
+        );
         $this->setLocalServerCookieWithGameconTestDb($curlHandle);
         $telo = curl_exec($curlHandle);
         self::assertNotFalse($telo, curl_error($curlHandle));
@@ -419,10 +432,25 @@ SQL;
             'status'      => (int) curl_getinfo($curlHandle, CURLINFO_HTTP_CODE),
             'contentType' => (string) curl_getinfo($curlHandle, CURLINFO_CONTENT_TYPE),
             'telo'        => (string) $telo,
+            'hlavicky'    => $hlavicky,
         ];
         curl_close($curlHandle);
 
         return $odpoved;
+    }
+
+    /**
+     * Soubor pro vyhledávače (robots.txt, sitemap.xml) smí mezipaměť držet hodinu a nenese cookie session
+     * ani hlavičky „nic neukládej“, které PHP k session přidává.
+     *
+     * @param array{hlavicky: array<string, list<string>>} $odpoved z {@see stahniVerejnouStranku()}
+     */
+    protected static function assertSouborProVyhledavaceJeKesovatelny(array $odpoved): void
+    {
+        self::assertSame(['public, max-age=3600'], $odpoved['hlavicky']['cache-control'] ?? []);
+        foreach (['set-cookie', 'pragma', 'expires'] as $nazevHlavicky) {
+            self::assertArrayNotHasKey($nazevHlavicky, $odpoved['hlavicky']);
+        }
     }
 
     protected function setLocalServerCookieWithGameconTestDb(\CurlHandle $curlHandle): void
