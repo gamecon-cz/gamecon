@@ -12,6 +12,9 @@ RewriteEngine On
 
 <IfModule mod_mime.c>
     AddType application/json .json
+    # typ obrázků nezávisle na tabulce typů té které verze Apache
+    AddType image/avif .avif
+    AddType image/webp .webp
 </IfModule>
 
 <IfModule mod_expires.c>
