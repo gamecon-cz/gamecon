@@ -1,0 +1,106 @@
+<?php
+
+/*
+ * This file is part of the API Platform project.
+ *
+ * (c) Kévin Dunglas <dunglas@gmail.com>
+ *
+ * For the full copyright and license information, please view the LICENSE
+ * file that was distributed with this source code.
+ */
+
+declare(strict_types=1);
+
+namespace Symfony\Component\DependencyInjection\Loader\Configurator;
+
+use ApiPlatform\JsonApi\JsonSchema\SchemaFactory;
+use ApiPlatform\JsonApi\Serializer\CollectionNormalizer;
+use ApiPlatform\JsonApi\Serializer\ConstraintViolationListNormalizer;
+use ApiPlatform\JsonApi\Serializer\EntrypointNormalizer;
+use ApiPlatform\JsonApi\Serializer\ErrorNormalizer;
+use ApiPlatform\JsonApi\Serializer\ItemNormalizer;
+use ApiPlatform\JsonApi\Serializer\ObjectNormalizer;
+use ApiPlatform\JsonApi\Serializer\ReservedAttributeNameConverter;
+use ApiPlatform\JsonApi\Util\ResourceLinkageResolver;
+use ApiPlatform\Serializer\JsonEncoder;
+
+return static function (ContainerConfigurator $container) {
+    $services = $container->services();
+
+    $services->set('api_platform.jsonapi.resource_linkage_resolver', ResourceLinkageResolver::class)
+        ->args([
+            service('api_platform.resource_class_resolver'),
+        ]);
+
+    $services->set('api_platform.jsonapi.json_schema.schema_factory', SchemaFactory::class)
+        ->decorate('api_platform.json_schema.schema_factory', null, 0)
+        ->args([
+            service('api_platform.jsonapi.json_schema.schema_factory.inner'),
+            service('api_platform.metadata.property.metadata_factory'),
+            service('api_platform.resource_class_resolver'),
+            service('api_platform.metadata.resource.metadata_collection_factory')->ignoreOnInvalid(),
+            service('api_platform.json_schema.definition_name_factory')->ignoreOnInvalid(),
+            service('api_platform.jsonapi.resource_linkage_resolver'),
+        ]);
+
+    $services->set('api_platform.jsonapi.encoder', JsonEncoder::class)
+        ->args(['jsonapi'])
+        ->tag('serializer.encoder');
+
+    $services->set('api_platform.jsonapi.name_converter.reserved_attribute_name', ReservedAttributeNameConverter::class)
+        ->args([service('api_platform.name_converter')->ignoreOnInvalid()]);
+
+    $services->set('api_platform.jsonapi.normalizer.entrypoint', EntrypointNormalizer::class)
+        ->args([
+            service('api_platform.metadata.resource.metadata_collection_factory'),
+            service('api_platform.iri_converter'),
+            service('api_platform.router'),
+        ])
+        ->tag('serializer.normalizer', ['priority' => -800]);
+
+    $services->set('api_platform.jsonapi.normalizer.collection', CollectionNormalizer::class)
+        ->args([
+            service('api_platform.resource_class_resolver'),
+            '%api_platform.collection.pagination.page_parameter_name%',
+            service('api_platform.metadata.resource.metadata_collection_factory'),
+        ])
+        ->tag('serializer.normalizer', ['priority' => -985]);
+
+    $services->set('api_platform.jsonapi.normalizer.item', ItemNormalizer::class)
+        ->args([
+            service('api_platform.metadata.property.name_collection_factory'),
+            service('api_platform.metadata.property.metadata_factory'),
+            service('api_platform.iri_converter'),
+            service('api_platform.resource_class_resolver'),
+            service('api_platform.property_accessor'),
+            service('api_platform.jsonapi.name_converter.reserved_attribute_name'),
+            service('serializer.mapping.class_metadata_factory')->ignoreOnInvalid(),
+            [],
+            service('api_platform.metadata.resource.metadata_collection_factory'),
+            service('api_platform.security.resource_access_checker')->ignoreOnInvalid(),
+            service('api_platform.http_cache.tag_collector')->ignoreOnInvalid(),
+            service('api_platform.serializer.operation_resource_resolver'),
+            service('api_platform.api.identifiers_extractor'),
+        ])
+        ->tag('serializer.normalizer', ['priority' => -890]);
+
+    $services->set('api_platform.jsonapi.normalizer.object', ObjectNormalizer::class)
+        ->args([
+            service('api_platform.normalizer.object'),
+            service('api_platform.iri_converter'),
+            service('api_platform.resource_class_resolver'),
+            service('api_platform.metadata.resource.metadata_collection_factory'),
+        ])
+        ->tag('serializer.normalizer', ['priority' => -995]);
+
+    $services->set('api_platform.jsonapi.normalizer.constraint_violation_list', ConstraintViolationListNormalizer::class)
+        ->args([
+            service('api_platform.metadata.property.metadata_factory'),
+            service('api_platform.jsonapi.name_converter.reserved_attribute_name'),
+        ])
+        ->tag('serializer.normalizer', ['priority' => -780]);
+
+    $services->set('api_platform.jsonapi.normalizer.error', ErrorNormalizer::class)
+        ->args([service('api_platform.jsonapi.normalizer.item')])
+        ->tag('serializer.normalizer', ['priority' => -790]);
+};
