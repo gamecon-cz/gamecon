@@ -7,9 +7,9 @@
     nebo v HTML jako <code>&lt;img src="soubory/obsah/…"&gt;</code>. Povolené jsou {limit}.
   </p>
   <p class="tip">
-    Obrázek nahradíš tlačítkem Nahradit u jeho řádku: uloží se pod původním názvem, takže odkazy zůstanou. JPG, PNG
-    a WebP nahradí jakýkoli neanimovaný JPG, PNG, WebP nebo GIF, převede se do formátu původního obrázku. GIF, SVG
-    a AVIF nahradí jen stejný formát.
+    Obrázek nahradíš tlačítkem Nahradit u jeho řádku: uloží se pod původním názvem, takže odkazy zůstanou. JPG, PNG,
+    WebP a AVIF nahradí neanimovaný obrázek v jiném formátu (které formáty jdou, nabídne okno pro výběr souboru), převede
+    se do formátu původního obrázku. GIF a SVG nahradí jen stejný formát.
   </p>
 
   <!-- begin:odkazy -->

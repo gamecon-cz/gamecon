@@ -15,6 +15,7 @@ final class OptimalizaceObrazku
         NahravaniObrazku::JPG  => 'jpeg',
         NahravaniObrazku::PNG  => 'png',
         NahravaniObrazku::WEBP => 'webp',
+        NahravaniObrazku::AVIF => 'avif',
         // GIF se jen čte, nový obrázek se do něj nepřevádí
         NahravaniObrazku::GIF  => 'gif',
     ];
@@ -22,16 +23,27 @@ final class OptimalizaceObrazku
     private const int MAX_BLOKU = 32;
     /** Kolik bloků a podbloků GIF se projde: snímek ve velkém rozlišení má desetitisíce podbloků po 255 bajtech */
     private const int MAX_BLOKU_GIF = 500_000;
+    /** Úvodní blok `ftyp` s výčtem značek je dlouhý desítky bajtů, víc než tohle se nečte */
+    private const int MAX_DELKA_FTYP = 4096;
 
     public function __construct(
         private readonly int $maxRozmerPx = OBRAZEK_MAX_ROZMER_PX,
-        private readonly int $kvalita = OBRAZEK_WEBP_KVALITA,
+        private readonly int $kvalitaAvif = OBRAZEK_AVIF_KVALITA,
+        private readonly int $kvalitaWebp = OBRAZEK_WEBP_KVALITA,
     ) {
     }
 
     public function maxRozmerPx(): int
     {
         return $this->maxRozmerPx;
+    }
+
+    /**
+     * Jestli se z obrázku v tomhle formátu dá zapsat AVIF; JPEG průhlednost mít nemůže, ostatní formáty ano.
+     */
+    public function isAvifWritableFrom(string $zdrojovyMime): bool
+    {
+        return ImagickAvif::isAvifWritable($zdrojovyMime !== NahravaniObrazku::JPG);
     }
 
     public function jeVetsiNezPotrebuje(int $sirka, int $vyska): bool
@@ -60,17 +72,46 @@ final class OptimalizaceObrazku
     }
 
     /**
-     * Animovaný GIF, PNG a WebP se nezmenšují ani nepřevádějí, ImageMagick by z nich nechal jen první snímek. GIF, jehož
-     * stavbu nejde přečíst, se bere jako animovaný, aby se nepřevedl.
+     * Animovaný GIF, PNG, WebP a AVIF se nezmenšují ani nepřevádějí, ImageMagick by z nich nechal jen první snímek. GIF,
+     * jehož stavbu nejde přečíst, se bere jako animovaný, aby se nepřevedl.
      */
     public function jeAnimovany(string $cesta, string $mime): bool
     {
         return match ($mime) {
             NahravaniObrazku::PNG  => $this->prvniDulezityBlok($cesta, false, ['acTL', 'IDAT', 'IEND']) === 'acTL',
             NahravaniObrazku::WEBP => in_array($this->prvniDulezityBlok($cesta, true, ['ANIM', 'ANMF', 'VP8 ', 'VP8L']), ['ANIM', 'ANMF'], true),
+            NahravaniObrazku::AVIF => $this->isAvifAnimated($cesta),
             NahravaniObrazku::GIF  => !$this->maJedinySnimek($cesta),
             default                => false,
         };
+    }
+
+    /**
+     * Animovaný AVIF je posloupnost snímků a hlásí se značkou `avis` v úvodním bloku `ftyp`, buď jako hlavní, nebo jako
+     * slučitelná. Nečitelný soubor se bere jako animovaný, aby se nepřevedl.
+     */
+    private function isAvifAnimated(string $cesta): bool
+    {
+        $soubor = @fopen($cesta, 'rb');
+        if ($soubor === false) {
+            return true;
+        }
+        try {
+            $hlavicka = (string) fread($soubor, 8);
+            if (strlen($hlavicka) < 8 || substr($hlavicka, 4) !== 'ftyp') {
+                return true;
+            }
+            $delkaBloku = unpack('N', $hlavicka)[1];
+            if ($delkaBloku < 16) {
+                return true;
+            }
+            // hlavní značka (4 bajty), verze (4 bajty) a seznam slučitelných značek po čtyřech bajtech
+            $obsah = (string) fread($soubor, min($delkaBloku, self::MAX_DELKA_FTYP) - 8);
+
+            return in_array('avis', str_split(substr($obsah, 0, 4) . substr($obsah, 8), 4), true);
+        } finally {
+            fclose($soubor);
+        }
     }
 
     /**
@@ -194,6 +235,9 @@ final class OptimalizaceObrazku
                 $imagick->setOption('jpeg:size', $this->maxRozmerPx . 'x' . $this->maxRozmerPx);
             }
             $imagick->readImage(self::KODEKY[$zdrojovyMime] . ':' . $zdroj);
+            if ($zdrojovyMime === NahravaniObrazku::AVIF) {
+                ImagickAvif::pripravPoNacteni($imagick, $zdroj);
+            }
             if ($zdrojovyMime === NahravaniObrazku::GIF && $this->maSnimekMensiNezObraz($imagick)) {
                 // bez složení na plátno by se zapsal jen snímek, bez okraje, který GIF kolem něj má
                 $naPlatne = $imagick->coalesceImages();
@@ -201,7 +245,7 @@ final class OptimalizaceObrazku
                 $imagick = $naPlatne;
                 $imagick->setImagePage(0, 0, 0, 0);
             }
-            $kvalita = $this->kvalitaVystupu($imagick, $zdrojovyMime);
+            $kvalita = $this->kvalitaVystupu($imagick, $zdrojovyMime, $cilovyMime);
             // orientaci z EXIFu je potřeba použít dřív, než se metadata smažou
             $imagick->autoOrient();
             if ($imagick->getImageColorspace() === \Imagick::COLORSPACE_CMYK) {
@@ -237,18 +281,21 @@ final class OptimalizaceObrazku
     }
 
     /**
-     * Nižší JPEG se neukládá s vyšší kvalitou, než jakou má: pevných 85 by z něj udělalo větší soubor, WebP i JPEG.
-     * Rezerva nad kvalitu zdroje by u JPEG zvětšila i výsledek, u hladkého obrázku i WebP.
+     * Nižší JPEG se neukládá s vyšší kvalitou, než jakou má: pevná kvalita by z něj udělala větší soubor, WebP, AVIF
+     * i JPEG. Rezerva nad kvalitu zdroje by u JPEG zvětšila i výsledek, u hladkého obrázku i WebP.
      */
-    private function kvalitaVystupu(\Imagick $imagick, string $zdrojovyMime): int
+    private function kvalitaVystupu(\Imagick $imagick, string $zdrojovyMime, string $cilovyMime): int
     {
+        $kvalita = $cilovyMime === NahravaniObrazku::AVIF
+            ? $this->kvalitaAvif
+            : $this->kvalitaWebp;
         $kvalitaZdroje = $zdrojovyMime === NahravaniObrazku::JPG
             ? $imagick->getImageCompressionQuality()
             : 0;
 
         return $kvalitaZdroje > 0
-            ? min($this->kvalita, $kvalitaZdroje)
-            : $this->kvalita;
+            ? min($kvalita, $kvalitaZdroje)
+            : $kvalita;
     }
 
     /**
@@ -315,11 +362,20 @@ final class OptimalizaceObrazku
     {
         $imagick->setImageFormat(self::KODEKY[$cilovyMime]);
         match ($cilovyMime) {
+            NahravaniObrazku::AVIF => $this->nastavAvif($imagick, $kvalita, $bezztratove),
             NahravaniObrazku::WEBP => $this->nastavWebp($imagick, $kvalita, $bezztratove),
             NahravaniObrazku::JPG  => $this->nastavJpeg($imagick, $kvalita),
             NahravaniObrazku::PNG  => $this->nastavPng($imagick),
             default                => throw new \LogicException("Do formátu {$cilovyMime} se obrázek nepřevádí."),
         };
+    }
+
+    /**
+     * Kvalita 100 je u AVIF bezztrátová, o čtvrtinu větší než bezztrátový WebP, ale pořád menší než PNG.
+     */
+    private function nastavAvif(\Imagick $imagick, int $kvalita, bool $bezztratove): void
+    {
+        ImagickAvif::nastavZapis($imagick, $bezztratove ? 100 : $kvalita);
     }
 
     private function nastavWebp(\Imagick $imagick, int $kvalita, bool $bezztratove): void

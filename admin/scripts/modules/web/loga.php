@@ -119,7 +119,7 @@ if ($_POST) {
                     }
                 }
             } else {
-                $errorMessage = "Podporované formáty: JPG, PNG, GIF, WebP, SVG.";
+                $errorMessage = 'Podporované formáty: ' . LogoUpload::getPopisFormatu() . '.';
             }
         } else {
             $errorMessage = "Název a URL jsou povinné.";

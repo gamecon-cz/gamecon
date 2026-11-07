@@ -132,7 +132,7 @@
         <form method="post" enctype="multipart/form-data">
           <input type="hidden" name="action" value="upload-line-header-image">
           <input type="hidden" name="id_typu" value="{id_typu}">
-          <input type="file" name="obrazek" accept=".jpg,.jpeg,.png,.webp,.gif,image/jpeg,image/png,image/webp,image/gif" required>
+          <input type="file" name="obrazek" accept="{accept_obrazku}" required>
           <button type="submit"><i class="fa fa-upload" aria-hidden="true"></i> Nahrát</button>
         </form>
 

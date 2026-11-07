@@ -68,6 +68,7 @@ class NahravaniObrazkuTest extends TestCase
         self::assertSame('jpg', $nahravani->overSoubor($this->jpg('a.jpeg'))->pripona);
         self::assertSame('gif', $nahravani->overSoubor($this->gif('a.gif'))->pripona);
         self::assertSame('webp', $nahravani->overSoubor($this->webp('a.webp'))->pripona);
+        self::assertSame('avif', $nahravani->overSoubor($this->soubor('a.dat', self::avifBajty()))->pripona);
     }
 
     /**
@@ -77,7 +78,7 @@ class NahravaniObrazkuTest extends TestCase
     {
         $skript = $this->soubor('fotka.png', '<?php echo "ahoj";');
 
-        $this->ocekavejChybu('Soubor není obrázek, nahraj prosím JPG, PNG, GIF nebo WebP.');
+        $this->ocekavejChybu('Soubor není obrázek, nahraj prosím JPG, PNG, GIF, WebP nebo AVIF.');
         (new NahravaniObrazku($this->koren))->overSoubor($skript);
     }
 
@@ -504,8 +505,8 @@ class NahravaniObrazkuTest extends TestCase
         $nahravani = new NahravaniObrazku($this->koren, maxVelikostMb: 100_000);
 
         self::assertLessThanOrEqual(ini_parse_quantity(ini_get('upload_max_filesize')), $nahravani->maxVelikostBajtu());
-        self::assertStringStartsWith('JPG, PNG, GIF nebo WebP, nejvýš ', $nahravani->popisLimitu());
-        self::assertSame('image/jpeg,image/png,image/gif,image/webp', $nahravani->accept());
+        self::assertStringStartsWith('JPG, PNG, GIF, WebP nebo AVIF, nejvýš ', $nahravani->popisLimitu());
+        self::assertSame('image/jpeg,image/png,image/gif,image/webp,image/avif', $nahravani->accept());
     }
 
     /**
@@ -594,7 +595,7 @@ class NahravaniObrazkuTest extends TestCase
     {
         $nahravani = new NahravaniObrazku(
             $this->koren,
-            formaty: NahravaniObrazku::WEBOVE_OBRAZKY,
+            formaty: NahravaniObrazku::RASTROVE_FORMATY,
             optimalizace: new OptimalizaceObrazku(),
         );
         $zdroj = $this->soubor('fotka.dat', self::avifBajty());
@@ -628,7 +629,7 @@ class NahravaniObrazkuTest extends TestCase
     public function novyObrazekNeniVedleStarsihoStejnehoNazvuVJinemFormatu(string $existujici, string $novyFormat): void
     {
         file_put_contents($this->koren . '/' . $existujici, 'x');
-        $nahravani = new NahravaniObrazku($this->koren, formaty: NahravaniObrazku::WEBOVE_OBRAZKY);
+        $nahravani = new NahravaniObrazku($this->koren, formaty: NahravaniObrazku::RASTROVE_FORMATY);
         $novy = $novyFormat === 'avif'
             ? $nahravani->overSoubor($this->soubor('novy.dat', self::avifBajty()))
             : $nahravani->overSoubor($this->soubor('novy.webp', (string) base64_decode(self::WEBP_1X1, true)));
@@ -643,7 +644,8 @@ class NahravaniObrazkuTest extends TestCase
     public function sluzbaKterouAvifNeniNaVyctuHoOdmitne(): void
     {
         $this->ocekavejChybu('Formát AVIF tu nejde použít, nahraj prosím JPG, PNG, GIF nebo WebP.');
-        (new NahravaniObrazku($this->koren))->overSoubor($this->soubor('fotka.avif', self::avifBajty()));
+        (new NahravaniObrazku($this->koren, formaty: [NahravaniObrazku::JPG, NahravaniObrazku::PNG, NahravaniObrazku::GIF, NahravaniObrazku::WEBP]))
+            ->overSoubor($this->soubor('fotka.avif', self::avifBajty()));
     }
 
     /**
@@ -667,7 +669,7 @@ class NahravaniObrazkuTest extends TestCase
      */
     public function sluzbaProObrazkyDokumentNepusti(): void
     {
-        $this->ocekavejChybu('Soubor není obrázek, nahraj prosím JPG, PNG, GIF nebo WebP.');
+        $this->ocekavejChybu('Soubor není obrázek, nahraj prosím JPG, PNG, GIF, WebP nebo AVIF.');
         (new NahravaniObrazku($this->koren))->overSoubor($this->soubor('smlouva.pdf', self::pdfBajty()));
     }
 
@@ -686,7 +688,7 @@ class NahravaniObrazkuTest extends TestCase
         $zpravaOBalikuOffice = 'Tenhle dokument tu nejde nahrát. Prezentace, dokumenty s makry nebo vloženými objekty a jiné balíky Office se nepřijímají.';
 
         return [
-            'skript s příponou PDF'    => ['smlouva.pdf', '<?php echo "ahoj";', 'Soubor tohoto typu tu nejde nahrát, povolené jsou PDF, MP3, OGG, WAV, M4A, ZIP, XLSX, DOCX, ODT, ODS, JPG, PNG, GIF nebo WebP.'],
+            'skript s příponou PDF'    => ['smlouva.pdf', '<?php echo "ahoj";', 'Soubor tohoto typu tu nejde nahrát, povolené jsou PDF, MP3, OGG, WAV, M4A, ZIP, XLSX, DOCX, ODT, ODS, JPG, PNG, GIF, WebP nebo AVIF.'],
             'Word s makry'             => ['dopis.docx', self::docxSMakryBajty(), $zpravaOBalikuOffice],
             'Word s vloženým objektem' => ['dopis.docx', self::docxSVlozenymObjektemBajty(), $zpravaOBalikuOffice],
             'LibreOffice s makry'      => ['dopis.odt', self::odtSMakryBajty(), $zpravaOBalikuOffice],

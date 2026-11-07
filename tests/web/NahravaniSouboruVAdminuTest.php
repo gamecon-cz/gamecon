@@ -167,7 +167,7 @@ SQL,
     /**
      * @test
      */
-    public function velkyObrazekSeZmensiAUlozJakoWebp(): void
+    public function velkyObrazekSeZmensiAUlozJakoAvif(): void
     {
         $materialy = ZpracovaneObrazky::adresarObsahu() . '/materialy';
         $this->uklidNoveAdresare($materialy);
@@ -182,41 +182,41 @@ SQL,
             'souborWebu'      => new \CURLFile($this->soubor('.jpg', self::jpgBajty(3000, 2000)), 'image/jpeg', 'IMG_0001.JPG'),
         ]));
 
-        $ulozeno = $materialy . '/rocnik_2099/plakat_' . self::znacka() . '.webp';
+        $ulozeno = $materialy . '/rocnik_2099/plakat_' . self::znacka() . '.avif';
         self::assertFileExists($ulozeno);
         $info = getimagesize($ulozeno);
-        self::assertSame([1920, 1280, 'image/webp'], [$info[0], $info[1], $info['mime']]);
+        self::assertSame([1920, 1280, 'image/avif'], [$info[0], $info[1], $info['mime']]);
         $stranka = $this->stahni($session, 'web/soubory');
         self::assertStringContainsString('Soubor nahrán.', $stranka);
-        self::assertStringContainsString('plakat_' . self::znacka() . '.webp', $stranka, 'Výsledný název je v tabulce souborů');
+        self::assertStringContainsString('plakat_' . self::znacka() . '.avif', $stranka, 'Výsledný název je v tabulce souborů');
         // soubor, který vznikl převodem, jde nahradit i JPEG, PNG a GIF, prohlížeč je v oknu pro výběr nezakáže
-        self::assertStringContainsString('accept="image/webp,image/jpeg,image/png,image/gif"', $stranka);
+        self::assertStringContainsString('accept="image/avif,image/jpeg,image/png,image/webp,image/gif"', $stranka);
 
         $pred = md5_file($ulozeno);
         self::assertSame(303, $this->odesli($session, 'web/soubory', [
             'souboryWebuAkce' => 'nahradit',
             'slozka'          => 'materialy',
-            'cesta'           => 'rocnik_2099/plakat_' . self::znacka() . '.webp',
+            'cesta'           => 'rocnik_2099/plakat_' . self::znacka() . '.avif',
             'souborWebu'      => new \CURLFile($this->soubor('.jpg', self::jpgBajty(2400, 1600)), 'image/jpeg', 'IMG_0004.JPG'),
         ]));
         self::assertNotSame($pred, md5_file($ulozeno));
         $info = getimagesize($ulozeno);
-        self::assertSame([1920, 1280, 'image/webp'], [$info[0], $info[1], $info['mime']]);
+        self::assertSame([1920, 1280, 'image/avif'], [$info[0], $info[1], $info['mime']]);
         self::assertSame([], glob($materialy . '/rocnik_2099/plakat_' . self::znacka() . '.jpg'));
 
-        // PNG se do stávajícího WebP převede také, název ani odkazy se nemění
+        // PNG se do stávajícího AVIF převede také, název ani odkazy se nemění
         $predPng = md5_file($ulozeno);
         $png = $this->soubor('.png', '');
         imagepng(imagecreatetruecolor(300, 200), $png);
         self::assertSame(303, $this->odesli($session, 'web/soubory', [
             'souboryWebuAkce' => 'nahradit',
             'slozka'          => 'materialy',
-            'cesta'           => 'rocnik_2099/plakat_' . self::znacka() . '.webp',
+            'cesta'           => 'rocnik_2099/plakat_' . self::znacka() . '.avif',
             'souborWebu'      => new \CURLFile($png, 'image/png', 'plakat.png'),
         ]));
         self::assertNotSame($predPng, md5_file($ulozeno));
         $info = getimagesize($ulozeno);
-        self::assertSame([300, 200, 'image/webp'], [$info[0], $info[1], $info['mime']]);
+        self::assertSame([300, 200, 'image/avif'], [$info[0], $info[1], $info['mime']]);
         self::assertSame([], glob($materialy . '/rocnik_2099/plakat_' . self::znacka() . '.png'));
     }
 
@@ -237,7 +237,7 @@ SQL,
 
         $stranka = $this->stahni($session, 'web/soubory');
         self::assertStringContainsString('stary_' . self::znacka() . '.jpg', $stranka);
-        self::assertStringContainsString('accept="image/jpeg,image/png,image/webp,image/gif"', $stranka);
+        self::assertStringContainsString('accept="image/jpeg,image/png,image/webp,image/avif,image/gif"', $stranka);
 
         $png = $this->soubor('.png', '');
         imagepng(imagecreatetruecolor(300, 200), $png);
@@ -250,7 +250,7 @@ SQL,
 
         $info = getimagesize($starsi);
         self::assertSame([300, 200, 'image/jpeg'], [$info[0], $info[1], $info['mime']]);
-        self::assertSame([], glob($materialy . '/rocnik_2099/stary_' . self::znacka() . '.{png,webp}', GLOB_BRACE));
+        self::assertSame([], glob($materialy . '/rocnik_2099/stary_' . self::znacka() . '.{png,webp,avif}', GLOB_BRACE));
     }
 
     /**
@@ -277,7 +277,7 @@ SQL,
             'souborWebu'      => new \CURLFile($fotka, 'image/jpeg', 'IMG_0002.JPG'),
         ]));
 
-        $ulozeno = $materialy . '/rocnik_2099/velka_fotka_' . self::znacka() . '.webp';
+        $ulozeno = $materialy . '/rocnik_2099/velka_fotka_' . self::znacka() . '.avif';
         self::assertFileExists($ulozeno);
         self::assertSame(1920, getimagesize($ulozeno)[0]);
         self::assertLessThan(filesize($fotka) / 4, filesize($ulozeno));

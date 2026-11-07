@@ -146,6 +146,10 @@ foreach ($radky as $radek) {
 
     $t->assign([
         'id_typu' => $idTypu,
+        'accept_obrazku' => htmlspecialchars(implode(',', [
+            ...array_map(static fn (string $pripona): string => '.' . $pripona, NahravaniObrazku::getPriponyFormatu($nahravaniObrazkuLinii->formaty())),
+            $nahravaniObrazkuLinii->accept(),
+        ])),
         'typ_1pmn' => htmlspecialchars((string)$radek['typ_1pmn']),
         'url_typu_mn' => htmlspecialchars((string)$radek['url_typu_mn']),
         'sekce' => htmlspecialchars((string)($radek['sekce'] ?? '')),

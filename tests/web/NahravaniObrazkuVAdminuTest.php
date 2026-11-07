@@ -116,7 +116,7 @@ SQL,
     public function organizatorNahrajeVymeniASmazeFotkuKMedailonku(): void
     {
         $fotky = ZpracovaneObrazky::adresarFotekUzivatelu() . '/' . self::ID_VYPRAVECE;
-        $this->kUklidu = [...$this->kUklidu, $fotky . '.png', $fotky . '.jpg', $fotky . '.webp'];
+        $this->kUklidu = [...$this->kUklidu, $fotky . '.png', $fotky . '.jpg', $fotky . '.avif'];
         $session = $this->prihlas(\Uzivatel::SYSTEM_LOGIN);
         $url = 'aktivity/medailonky?id=' . self::ID_VYPRAVECE;
 
@@ -127,7 +127,7 @@ SQL,
             'akceFotky' => 'nahrat',
             'fotka'     => new \CURLFile($png, 'image/png', 'portret.png'),
         ]));
-        self::assertSame('image/webp', getimagesize($fotky . '.webp')['mime']);
+        self::assertSame('image/avif', getimagesize($fotky . '.avif')['mime']);
         self::assertFileDoesNotExist($fotky . '.png');
         $stranka = $this->stahni($session, $url);
         self::assertStringContainsString('Fotka je nahraná.', $stranka);
@@ -139,13 +139,13 @@ SQL,
             'akceFotky' => 'nahrat',
             'fotka'     => new \CURLFile($this->jpg(), 'image/jpeg', 'IMG_0001.JPG'),
         ]));
-        self::assertFileExists($fotky . '.webp');
+        self::assertFileExists($fotky . '.avif');
         self::assertFileDoesNotExist($fotky . '.png');
 
         self::assertSame(303, $this->odesli($session, $url, [
             'akceFotky' => 'smazat',
         ]));
-        self::assertFileDoesNotExist($fotky . '.webp');
+        self::assertFileDoesNotExist($fotky . '.avif');
         self::assertStringContainsString('Fotka je smazaná', $this->stahni($session, $url));
     }
 
@@ -155,7 +155,7 @@ SQL,
     public function souborKteryNeniObrazekOdmitne(): void
     {
         $fotky = ZpracovaneObrazky::adresarFotekUzivatelu() . '/' . self::ID_VYPRAVECE;
-        $this->kUklidu = [...$this->kUklidu, $fotky . '.png', $fotky . '.webp'];
+        $this->kUklidu = [...$this->kUklidu, $fotky . '.png', $fotky . '.avif'];
         $session = $this->prihlas(\Uzivatel::SYSTEM_LOGIN);
         $url = 'aktivity/medailonky?id=' . self::ID_VYPRAVECE;
         $skript = $this->zdroje . '/fotka.png';
@@ -176,7 +176,7 @@ SQL,
     public function bezPravaNaMedailonkyNicNenahraje(): void
     {
         $fotky = ZpracovaneObrazky::adresarFotekUzivatelu() . '/' . self::ID_VYPRAVECE;
-        $this->kUklidu = [...$this->kUklidu, $fotky . '.png', $fotky . '.webp'];
+        $this->kUklidu = [...$this->kUklidu, $fotky . '.png', $fotky . '.avif'];
         $session = $this->prihlas('test-fotka-bez-prav');
 
         self::assertSame(
@@ -398,11 +398,11 @@ SQL,
             'nazev'             => 'Nová členka Rady',
             'obrazekObsahu'     => new \CURLFile($this->jpg(), 'image/jpeg', 'IMG_0002.jpg'),
         ]));
-        // JPEG se uloží jako WebP a odkaz, který se nabídne do textu, už míří na ten
-        $novy = $obsah . '/stranky/' . self::URL_STRANKY . '/nova-clenka-rady.webp';
+        // JPEG se uloží jako AVIF a odkaz, který se nabídne do textu, už míří na ten
+        $novy = $obsah . '/stranky/' . self::URL_STRANKY . '/nova-clenka-rady.avif';
         self::assertFileExists($novy);
         $stranka = $this->stahni($session, $url);
-        self::assertStringContainsString('![](soubory/obsah/stranky/' . self::URL_STRANKY . '/nova-clenka-rady.webp)', $stranka);
+        self::assertStringContainsString('![](soubory/obsah/stranky/' . self::URL_STRANKY . '/nova-clenka-rady.avif)', $stranka);
         // zápis do textu je v seznamu obrázků, hláška po nahrání je jen potvrzení
         self::assertStringContainsString('Obrázek nahrán.', $stranka);
         self::assertStringNotContainsString('do textu ho vložíš', $stranka);
@@ -410,29 +410,29 @@ SQL,
         self::assertStringContainsString('<i class="fa fa-upload" aria-hidden="true"></i> Nahradit</button>', $stranka);
         self::assertStringContainsString('<i class="fa fa-trash" aria-hidden="true"></i> Smazat</button>', $stranka);
 
-        // převedený soubor jde nahradit i JPEG, odkaz míří na `.webp`
+        // převedený soubor jde nahradit i JPEG, odkaz míří na `.avif`
         self::assertSame(303, $this->odesli($session, $url, [
             'obrazkyObsahuAkce' => 'nahradit',
-            'cesta'             => 'stranky/' . self::URL_STRANKY . '/nova-clenka-rady.webp',
+            'cesta'             => 'stranky/' . self::URL_STRANKY . '/nova-clenka-rady.avif',
             'obrazekObsahu'     => new \CURLFile($this->jpg(60, 30), 'image/jpeg', 'IMG_0003.jpg'),
         ]));
         $info = getimagesize($novy);
-        self::assertSame([60, 30, 'image/webp'], [$info[0], $info[1], $info['mime']]);
+        self::assertSame([60, 30, 'image/avif'], [$info[0], $info[1], $info['mime']]);
         self::assertFileDoesNotExist(dirname($novy) . '/nova-clenka-rady.jpg');
 
-        // PNG se také převede do stávajícího WebP, odkaz v textu zůstává
+        // PNG se také převede do stávajícího AVIF, odkaz v textu zůstává
         self::assertSame(303, $this->odesli($session, $url, [
             'obrazkyObsahuAkce' => 'nahradit',
-            'cesta'             => 'stranky/' . self::URL_STRANKY . '/nova-clenka-rady.webp',
+            'cesta'             => 'stranky/' . self::URL_STRANKY . '/nova-clenka-rady.avif',
             'obrazekObsahu'     => new \CURLFile($this->png(), 'image/png', 'clenka.png'),
         ]));
         $info = getimagesize($novy);
-        self::assertSame([40, 40, 'image/webp'], [$info[0], $info[1], $info['mime']]);
+        self::assertSame([40, 40, 'image/avif'], [$info[0], $info[1], $info['mime']]);
         self::assertFileDoesNotExist(dirname($novy) . '/nova-clenka-rady.png');
 
         self::assertSame(303, $this->odesli($session, $url, [
             'obrazkyObsahuAkce' => 'smazat',
-            'cesta'             => 'stranky/' . self::URL_STRANKY . '/nova-clenka-rady.webp',
+            'cesta'             => 'stranky/' . self::URL_STRANKY . '/nova-clenka-rady.avif',
         ]));
         self::assertFileDoesNotExist($novy);
     }
@@ -450,9 +450,9 @@ SQL);
         if (glob($obrazek . '.*') !== []) {
             self::markTestSkipped("Linie {$idTypu} už má vlastní obrázek, nechceme ho přepsat");
         }
-        $this->kUklidu = [...$this->kUklidu, $obrazek . '.png', $obrazek . '.gif', $obrazek . '.webp'];
+        $this->kUklidu = [...$this->kUklidu, $obrazek . '.png', $obrazek . '.gif', $obrazek . '.avif'];
         $session = $this->prihlas(\Uzivatel::SYSTEM_LOGIN);
-        $cestaVTextu = 'soubory/systemove/linie-ikony/org_' . $idTypu . '.webp';
+        $cestaVTextu = 'soubory/systemove/linie-ikony/org_' . $idTypu . '.avif';
 
         // výchozí avatar není obrázek té linie, zápis do textu k němu nenabízíme
         $strankaPredNahranim = $this->stahni($session, 'web/hlavicky-linii');
@@ -471,7 +471,7 @@ SQL);
             'id_typu' => (string) $idTypu,
             'obrazek' => new \CURLFile($this->png(), 'image/png', 'linie.png'),
         ]));
-        self::assertFileExists($obrazek . '.webp');
+        self::assertFileExists($obrazek . '.avif');
 
         $stranka = $this->stahni($session, 'web/hlavicky-linii');
         self::assertStringContainsString('value="![](' . $cestaVTextu . ')"', $stranka);

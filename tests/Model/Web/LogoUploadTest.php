@@ -4,11 +4,36 @@ declare(strict_types=1);
 
 namespace Gamecon\Tests\Model\Web;
 
+use Gamecon\Web\ImagickAvif;
 use Gamecon\Web\LogoUpload;
 use PHPUnit\Framework\TestCase;
 
 class LogoUploadTest extends TestCase
 {
+    protected function tearDown(): void
+    {
+        ImagickAvif::setZkouskaProTesty(null);
+    }
+
+    /**
+     * Loga se zobrazují přes `Nahled`, který AVIF s průhledností čte správně jen novější ImageMagick.
+     *
+     * @test
+     */
+    public function avifJePodporovanaPriponaJenKdyzImagickZvladaAvifSPruhlednosti(): void
+    {
+        self::assertTrue(LogoUpload::jePodporovanaPripona('AVIF'));
+        self::assertSame('JPG, PNG, GIF, WebP, SVG, AVIF', LogoUpload::getPopisFormatu());
+
+        ImagickAvif::setZkouskaProTesty([
+            'neprusvitny' => true,
+            'prusvitny'   => false,
+        ]);
+
+        self::assertFalse(LogoUpload::jePodporovanaPripona('avif'));
+        self::assertSame('JPG, PNG, GIF, WebP, SVG', LogoUpload::getPopisFormatu());
+    }
+
     /**
      * @test
      */

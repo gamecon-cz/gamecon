@@ -175,7 +175,7 @@ function is_ajax(): bool
  */
 function cestaObrazkuLinie(int $idTypu): string
 {
-    static $pripony = ['jpg', 'jpeg', 'png', 'webp', 'gif'];
+    static $pripony = ['jpg', 'jpeg', 'png', 'webp', 'avif', 'gif'];
     $adresar = 'soubory/systemove/linie-ikony';
     foreach ($pripony as $pripona) {
         $relativniCesta = $adresar . '/org_' . $idTypu . '.' . $pripona;
@@ -232,7 +232,7 @@ function altchaWidget(): string
 function cestaObrazkuLinieNaTitulce(int $idTypu): string
 {
     $adresar = 'soubory/systemove/linie-ikony';
-    $pripony = ['png', 'jpg', 'jpeg', 'webp', 'gif'];
+    $pripony = ['png', 'jpg', 'jpeg', 'webp', 'avif', 'gif'];
 
     foreach ($pripony as $pripona) {
         $relativniCesta = $adresar . '/' . $idTypu . '.' . $pripona;
