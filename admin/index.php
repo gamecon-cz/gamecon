@@ -288,7 +288,7 @@ if ($u && $u->maPravo(Pravo::ADMINISTRACE_INFOPULT)) {
 // otevřená stránka se počítá, i když ji smí jen díky právu na podstránku (to položku hlavního menu nezobrazí)
 $maPristupDoAdminu = $uzivatelMaPristup;
 foreach ($menu as $url => $polozka) {
-    if ($maNekterePravo($polozka)) {
+    if (AdminMenu::isPristupna($u, $polozka)) {
         $maPristupDoAdminu = true;
         $xtpl->assign('url', $url);
         $xtpl->assign('nazev', $polozka['nazev']);
@@ -322,7 +322,7 @@ uasort($submenu, function (
 // výstup submenu
 $allHidden = true;
 foreach ($submenu as $url => $polozka) {
-    if ($u && $maNekterePravo($polozka)) {
+    if (AdminMenu::isPristupna($u, $polozka)) {
         $xtpl->assign('url', $url === $stranka
             ? $url
             : $stranka . '/' . $url);
