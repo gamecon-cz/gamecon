@@ -122,6 +122,8 @@ SQL,
     {
         return (string) dbOneCol(<<<'SQL'
 SELECT telefon_uzivatele FROM uzivatele_hodnoty WHERE id_uzivatele = $0
-SQL, [0 => $idUzivatele]);
+SQL, [
+            0 => $idUzivatele,
+        ]);
     }
 }
