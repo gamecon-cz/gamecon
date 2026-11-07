@@ -22,7 +22,7 @@ omezCsrf();
 
 if (($_GET['req'] ?? '') === 'robots.txt') {
     header('Content-Type: text/plain; charset=utf-8');
-    echo (new RobotsTxt($systemoveNastaveni->prostredi()))->obsah();
+    echo (new RobotsTxt($systemoveNastaveni->prostredi()))->getObsah();
 
     return;
 }
@@ -78,7 +78,7 @@ $i = (new Info($systemoveNastaveni))
     ->obrazek('soubory/styl/og-image.jpg')
     ->site('GameCon');
 if ($url !== null) {
-    $i->url(Info::kanonickaUrlZCesty(URL_WEBU, $url->cela()));
+    $i->url(Info::getKanonickaUrlZCesty(URL_WEBU, $url->cela()));
 }
 $m->info($i);
 

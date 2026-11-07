@@ -13,7 +13,7 @@ class RobotsTxt
     ) {
     }
 
-    public function obsah(): string
+    public function getObsah(): string
     {
         // beta, preview and local copies of the site must not compete with the real one in search results
         if ($this->prostredi !== Prostredi::Production) {

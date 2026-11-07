@@ -37,5 +37,5 @@ if($start > 0) {
 
 $this->info()->nazev('Novinky');
 if ($start > 0) {
-    $this->info()->kanonickyParametr('start', $start);
+    $this->info()->setKanonickyParametr('start', $start);
 }
