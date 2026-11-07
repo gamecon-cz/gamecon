@@ -1612,6 +1612,13 @@ Radio musí být ve tvaru:
   grid-area: historie-účasti;
 }
 
+.uzivatel-grid--sloupec {
+  /* Historie účasti a pod ní fotka vypravěče v jedné buňce mřížky, mezery jako mezi řádky mřížky */
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
 
 /* Extra small devices (phones, 600px and down) */
 @media only screen and (max-width: 600px) {
@@ -1649,13 +1656,17 @@ Radio musí být ve tvaru:
 @media only screen and (min-width: 992px) {
   .uzivatel-grid--container {
     grid-template-columns: repeat(3, 1fr);
+    /* Objednávky zabírají všechny řádky; s pružným posledním řádkem jde jejich výška jen do něj, jako u infopultu.
+       Se samými automatickými by se rozprostřela do všech a rámečky v prvních dvou sloupcích by se od sebe vzdálily. */
+    grid-template-rows: repeat(6, auto) 1fr;
     grid-template-areas:
       "udaje slevy objednavky"
       "udaje jídlo objednavky"
       "historie-účasti jídlo objednavky"
       "prodej jídlo objednavky"
       "pokoje jídlo objednavky"
-      "ubytování ubytování objednavky";
+      "ubytování ubytování objednavky"
+      ". . objednavky";
   }
 }
 

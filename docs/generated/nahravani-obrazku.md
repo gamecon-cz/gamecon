@@ -13,13 +13,14 @@ Nahrávání obrázků a souborů ke stažení z administrace místo FTP: kde kt
 - `model/Web/ZapisObrazkuVTextu.php`: Markdown a HTML zápis obrázku do textu. Nabízí ho widget obsahu i Web → Hlavičky linií (jen u vlastního obrázku linie, ne u výchozího avataru).
 - `model/Web/ObrazkyEshopu.php` + `obrazky-eshopu.xtpl`: galerie e-shopu pod tabulkou `finance/shop`; `zpracujPost()` běží před vykreslením stránky, `html()` až za ní.
 - `model/Web/ZpracovaneObrazky.php`: cesty k adresářům (`adresarFotekUzivatelu`, `adresarObrazkuLinii`, `adresarObrazkuEshopu`, `adresarObsahu`, loga), `jeAdresarJinehoModulu`, `popisekObrazkuEshopu`, `cestaVuciWebu`, `urlNaWebu`.
-- Moduly: `admin/scripts/modules/aktivity/medailonky.php` (fotka vypravěče), `web/hlavicky-linii.php`, `web/loga.php` (mazání přes `cestaKSouboru` a pořadí přetažením, viz `ZpracovaneObrazky::ulozPoradi`).
+- `model/Web/FotkaUzivatele.php` + `fotka-uzivatele.xtpl`: náhled, nahrání a smazání fotky jednoho uživatele, sdílený formulář pro Medailonky a záložku Uživatel. Kdo smí, hlídá stránka: Medailonky hlavičkou modulu, záložka Uživatel přes `AdminMenu::isPodstrankaPristupna($u, 'aktivity', 'medailonky')`, tedy stejná práva z téže hlavičky (dnes 102 nebo 105, záložka sama chce jen 101). Záložka blok ukazuje jen u vypravěče (`isRelevantniVRocniku()`: ročníková role, nebo vede aktivitu v ročníku, nebo už fotku má); účastníkovi na infopultu by se jen pletl. Na záložce Uživatel nesou oba formuláře skryté ID pracovního uživatele (`Gamecon\Admin\FormularPracovnihoUzivatele`, hlídá ho `admin/scripts/prihlaseni.php` pro všechny formuláře záložky): pracovní uživatel se mezitím mohl v jiné záložce prohlížeče přepnout. Medailonky ID neposílají, uživatele určuje `?id=` v URL, na kterou formulář míří.
+- Moduly: `admin/scripts/modules/aktivity/medailonky.php` a `admin/scripts/modules/uzivatel.php` (fotka vypravěče přes `FotkaUzivatele`), `web/hlavicky-linii.php`, `web/loga.php` (mazání přes `cestaKSouboru` a pořadí přetažením, viz `ZpracovaneObrazky::ulozPoradi`).
 
 ## Kde obrázky leží
 
 | Co | Soubor | Čte | Spravuje |
 |---|---|---|---|
-| fotka vypravěče (medailonek) | `systemove/fotky/<id_uzivatele>.<jpg\|png\|gif\|webp>` | `Uzivatel::fotka()` (glob, první shoda), stránka vypravěče `web/moduly/aktivity.php`, widgety `drd-pj`/`dnd-pj` (vypravěče bez fotky vynechají) | Aktivity → Medailonky, práva 102 nebo 105 |
+| fotka vypravěče (medailonek) | `systemove/fotky/<id_uzivatele>.<jpg\|png\|gif\|webp>` | `Uzivatel::fotka()` (glob, první shoda), stránka vypravěče `web/moduly/aktivity.php`, widgety `drd-pj`/`dnd-pj` (vypravěče bez fotky vynechají) | Aktivity → Medailonky a záložka Uživatel (pracovní uživatel, jen vypravěč), v obou práva Medailonků |
 | obrázek aktivity | `systemove/aktivity/<url_akce>.jpg` | `Aktivita::obrazek()` | editor aktivity, vlastní mechanismus `\Obrazek` (GD, převod do JPEG, zmenšení na 2048 px) |
 | obrázek linie | `systemove/linie-ikony/org_<id_typu>.<přípona>`, starší `<id_typu>.png` | `cestaObrazkuLinie()` | Web → Hlavičky linií (105) |
 | avatar | `systemove/avatary/<id>.jpg` | jen admin, box pracovního uživatele | nikdo: nahrávání zmizelo s redesignem registrace v únoru 2021, `avatarNactiPost()` a `avatarSmaz()` nikdo nevolá |

@@ -548,12 +548,13 @@ SQL, [Pravo::PORADANI_AKTIVIT],
     }
 
     /**
-     * Vrátí objekt Náhled s fotkou uživatele nebo null
+     * Vrátí objekt Náhled s fotkou uživatele nebo null. Soubor, který nejde přečíst (třeba starý z FTP se špatnými
+     * právy), přeskočí, jako by nebyl: Náhled by na něm vyhodil výjimku a s ní celou stránku.
      */
     public function fotka(): ?Nahled
     {
         foreach (glob(ZpracovaneObrazky::adresarFotekUzivatelu() . '/' . $this->id() . '.*') as $soubor) {
-            if (preg_match('/\.(jpg|jpeg|png|gif|webp)$/i', $soubor)) {
+            if (preg_match('/\.(jpg|jpeg|png|gif|webp)$/i', $soubor) && is_readable($soubor)) {
                 return Nahled::zeSouboru($soubor);
             }
         }
@@ -566,10 +567,14 @@ SQL, [Pravo::PORADANI_AKTIVIT],
      */
     public function fotkaAuto(): ?Nahled
     {
-        $f = $this->fotka();
-        if ($f) {
-            return $f;
-        }
+        return $this->fotka() ?? $this->getVychoziFotka();
+    }
+
+    /**
+     * Obrázek, který web ukazuje místo fotky, kterou uživatel nenahrál
+     */
+    public function getVychoziFotka(): Nahled
+    {
         if ($this->pohlavi() === Pohlavi::ZENA_KOD) {
             return Nahled::zeSouboru(WWW . '/soubory/styl/fotka-holka.jpg');
         }
