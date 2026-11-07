@@ -113,8 +113,8 @@ $nactiVsechnyPotomky = function (int $idAkce) use (&$nactiVsechnyPotomky): array
     $result  = $this->q(<<<SQL
         SELECT dite FROM akce_seznam WHERE id_akce = {$idAkce}
     SQL);
-    $row     = $result->fetch_assoc();
-    $result->free();
+    $row     = $result->fetch(PDO::FETCH_ASSOC);
+    $result->closeCursor();
     $diteIds = array_filter(array_map('intval', explode(',', (string)($row['dite'] ?? ''))));
     $vsichniPotomci = [];
     foreach ($diteIds as $idDitete) {
@@ -155,24 +155,24 @@ $resultTymy = $this->q(<<<SQL
       )
 SQL);
 $tymy = [];
-while ($row = $resultTymy->fetch_assoc()) {
+while ($row = $resultTymy->fetch(PDO::FETCH_ASSOC)) {
     $tymy[] = $row;
 }
-$resultTymy->free();
+$resultTymy->closeCursor();
 
 foreach ($tymy as $tym) {
     $idAktivity = (int)$tym['id_akce'];
     $idKapitana = (int)$tym['id_kapitana'];
-    $nazev      = $this->connection->real_escape_string((string)($tym['team_nazev'] ?? ''));
+    $nazev      = substr($this->connection->quote((string)($tym['team_nazev'] ?? '')), 1, -1);
     $limit      = $tym['team_limit'] !== null ? (int)$tym['team_limit'] : 'NULL';
-    $zalozen    = $this->connection->real_escape_string($tym['zalozen']);
+    $zalozen    = substr($this->connection->quote($tym['zalozen']), 1, -1);
 
     // Vytvoříme tým
     $this->q(<<<SQL
         INSERT INTO akce_tym (kod, id_kapitan, zalozen, nazev, `limit`)
         VALUES (FLOOR(1000 + RAND() * 9000), {$idKapitana}, '{$zalozen}', '{$nazev}', {$limit})
     SQL);
-    $idTymu = $this->connection->insert_id;
+    $idTymu = (int)$this->connection->lastInsertId();
 
     // Přihlásíme všechny členy týmu (přihlášené na kořenové aktivitě)
     $this->q(<<<SQL
@@ -223,7 +223,7 @@ $result = $this->q(<<<SQL
 SQL,
 );
 $fkNames = [];
-while ($row = $result->fetch_assoc()) {
+while ($row = $result->fetch(PDO::FETCH_ASSOC)) {
     $fkNames[] = $row['CONSTRAINT_NAME'];
 }
 foreach ($fkNames as $fkName) {

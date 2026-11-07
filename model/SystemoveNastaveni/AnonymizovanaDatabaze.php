@@ -40,6 +40,7 @@ class AnonymizovanaDatabaze
         'slevy',                     // notes about who got which discount
         'upominka_dluznika_log',     // debt per user
         'upominka_vlastni_zneni',
+        'shop_order_item_log',       // no foreign keys, so its user ids are not shifted, and they are also inside the JSON
     ];
 
     public static function vytvorZGlobals(): self

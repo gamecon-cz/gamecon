@@ -39,7 +39,7 @@ LEFT JOIN systemove_nastaveni ON tmp.klic = systemove_nastaveni.klic COLLATE utf
     AND systemove_nastaveni.rocnik_nastaveni = $rocnik
 WHERE systemove_nastaveni.id_nastaveni IS NULL
 SQL,
-)->fetch_all();
+)->fetchAll();
 
 $this->q(<<<SQL
 DROP TEMPORARY TABLE systemove_nastaveni_letosni_chtene_tmp
@@ -93,7 +93,7 @@ if ($chybejiciKliceNastaveni) {
                     $klic,
                     $hodnota,
                 ) {
-                    $hodnota = $this->connection->real_escape_string($hodnota);
+                    $hodnota = substr($this->connection->quote($hodnota), 1, -1);
 
                     return "`$klic` = '$hodnota'";
                 },
@@ -106,7 +106,7 @@ INSERT INTO systemove_nastaveni
 SET {$setSql}
 SQL,
         );
-        $letosniHodnotaEscaped = $this->connection->real_escape_string($letosniHodnota);
+        $letosniHodnotaEscaped = substr($this->connection->quote($letosniHodnota), 1, -1);
         $this->q(<<<SQL
 INSERT INTO systemove_nastaveni_log 
 SET id_nastaveni_log = NULL, id_uzivatele = {$systemUzivatelId}, id_nastaveni = LAST_INSERT_ID(), hodnota = '{$letosniHodnotaEscaped}', vlastni = null, kdy = NOW()
