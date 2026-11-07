@@ -46,6 +46,7 @@ class NoindexAdminuTest extends AbstractTestWeb
             'skript mimo index.php'             => ['admin/pickard.php'],
             'staticky soubor'                   => ['admin/files/design/hint.css'],
             'soubor, ktery neexistuje (Apache)' => ['admin/neexistuje.css'],
+            'zakazany adresar (403)'            => ['admin/cron/anonymizace_databaze.php'],
         ];
     }
 
