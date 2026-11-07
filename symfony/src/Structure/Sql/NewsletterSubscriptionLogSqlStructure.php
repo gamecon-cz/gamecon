@@ -9,9 +9,6 @@ namespace App\Structure\Sql;
  */
 class NewsletterSubscriptionLogSqlStructure
 {
-    /**
-     * @see NewsletterSubscriptionLog
-     */
     public const _table = 'newsletter_prihlaseni_log';
 
     /**

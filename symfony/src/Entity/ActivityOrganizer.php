@@ -16,12 +16,12 @@ class ActivityOrganizer
 {
     #[ORM\Id]
     #[ORM\ManyToOne(targetEntity: Activity::class)]
-    #[ORM\JoinColumn(name: 'id_akce', referencedColumnName: 'id_akce', nullable: false, onDelete: 'CASCADE')]
+    #[ORM\JoinColumn(name: 'id_akce', referencedColumnName: 'id_akce', onDelete: 'CASCADE')]
     private Activity $activity;
 
     #[ORM\Id]
     #[ORM\ManyToOne(targetEntity: User::class)]
-    #[ORM\JoinColumn(name: 'id_uzivatele', referencedColumnName: 'id_uzivatele', nullable: false, onDelete: 'CASCADE', options: [
+    #[ORM\JoinColumn(name: 'id_uzivatele', referencedColumnName: 'id_uzivatele', onDelete: 'CASCADE', options: [
         'onUpdate' => 'CASCADE',
         'comment'  => 'organizátor',
     ])]

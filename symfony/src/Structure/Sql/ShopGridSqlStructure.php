@@ -9,9 +9,6 @@ namespace App\Structure\Sql;
  */
 class ShopGridSqlStructure
 {
-    /**
-     * @see ShopGrid
-     */
     public const _table = 'obchod_mrizky';
 
     /**

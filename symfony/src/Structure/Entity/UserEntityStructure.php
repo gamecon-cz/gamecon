@@ -183,4 +183,19 @@ class UserEntityStructure
      * @see User::$badge
      */
     public const badge = 'badge';
+
+    /**
+     * @see User::$cancelledOrderItems
+     */
+    public const cancelledOrderItems = 'cancelledOrderItems';
+
+    /**
+     * @see User::$userRoles
+     */
+    public const userRoles = 'userRoles';
+
+    /**
+     * @see User::$orders
+     */
+    public const orders = 'orders';
 }
