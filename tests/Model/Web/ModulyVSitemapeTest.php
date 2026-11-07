@@ -47,22 +47,16 @@ class ModulyVSitemapeTest extends TestCase
      */
     public function kazdyModulWebuJeVSitemapeNeboVyslovneVynechany(): void
     {
-        $skutecneModuly = [];
-        foreach (scandir(WWW . '/moduly') as $polozka) {
-            if ($polozka !== '.' && $polozka !== '..') {
-                $skutecneModuly[] = basename($polozka, '.php');
-            }
-        }
         $rozhodnuteModuly = [...CestyKSitemape::VEREJNE_MODULY, ...array_keys(self::MODULY_MIMO_SITEMAPU)];
 
         self::assertSame(
             [],
-            array_values(array_diff($skutecneModuly, $rozhodnuteModuly)),
+            array_values(array_diff($this->skutecneModuly(), $rozhodnuteModuly)),
             'Nový modul ve web/moduly: je to veřejná stránka (CestyKSitemape::VEREJNE_MODULY), nebo patří do MODULY_MIMO_SITEMAPU?',
         );
         self::assertSame(
             [],
-            array_values(array_diff($rozhodnuteModuly, $skutecneModuly)),
+            array_values(array_diff($rozhodnuteModuly, $this->skutecneModuly())),
             'Modul, který už ve web/moduly není, zůstal v CestyKSitemape::VEREJNE_MODULY nebo v MODULY_MIMO_SITEMAPU',
         );
     }
@@ -76,5 +70,30 @@ class ModulyVSitemapeTest extends TestCase
             [],
             array_values(array_intersect(CestyKSitemape::VEREJNE_MODULY, array_keys(self::MODULY_MIMO_SITEMAPU))),
         );
+    }
+
+    /**
+     * Same as the router: a module is a file name.php or a directory, any other entry (a note, a swap file) is not one.
+     *
+     * @return list<string>
+     */
+    private function skutecneModuly(): array
+    {
+        $polozky = scandir(WWW . '/moduly');
+        self::assertNotFalse($polozky, 'Adresář web/moduly se nepodařilo přečíst');
+
+        $moduly = [];
+        foreach ($polozky as $polozka) {
+            if (str_starts_with($polozka, '.')) {
+                continue;
+            }
+            if (is_dir(WWW . "/moduly/{$polozka}")) {
+                $moduly[] = $polozka;
+            } elseif (str_ends_with($polozka, '.php')) {
+                $moduly[] = basename($polozka, '.php');
+            }
+        }
+
+        return array_values(array_unique($moduly));
     }
 }
