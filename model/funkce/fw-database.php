@@ -528,59 +528,6 @@ function dbInsert(
 }
 
 /**
- * @param string $query
- * @throws DbDuplicateEntryException
- * @throws DbException
- * @internal
- */
-function _dbPdoQuery(
-    string $query,
-    ?PDO $pdo = null,
-): bool | PDOStatement {
-    $pdo ??= dbConnect();
-    try {
-        // Listing writes rather than reads decides which way a misreading fails: an
-        // unrecognised statement now reads instead of losing its result set to exec(),
-        // which is how WITH disappeared. The reading branch handles a write anyway —
-        // query() returns a statement whose rowCount() gives the affected rows.
-        $trimmed = ltrim($query);
-        $isDataAffecting = stripos($trimmed, 'INSERT') === 0
-            || stripos($trimmed, 'UPDATE') === 0
-            || stripos($trimmed, 'DELETE') === 0
-            || stripos($trimmed, 'REPLACE') === 0
-            || stripos($trimmed, 'TRUNCATE') === 0;
-
-        if (!$isDataAffecting) {
-            $stmt = $pdo->query($query);
-            if ($stmt === false) {
-                throw new DbException('Query failed: ' . $query);
-            }
-            return $stmt;
-        }
-
-        $affectedRows = $pdo->exec($query);
-        if ($affectedRows === false) {
-            throw new DbException('Query failed: ' . $query);
-        }
-        $GLOBALS['dbAffectedRows'] = $affectedRows;
-
-        return true;
-    } catch (PDOException $pdoException) {
-        throw dbCreateExceptionFromPdoException($pdoException);
-    }
-}
-
-/**
- * @deprecated Use _dbPdoQuery instead
- */
-function _dbMysqliQuery(
-    string $query,
-    $pdo = null,
-): bool | PDOStatement {
-    return _dbPdoQuery($query, $pdo);
-}
-
-/**
  * @param string $table
  * @param array $valArray
  * @throws DbException
@@ -966,66 +913,6 @@ function _dbRun(
     $dbExecTime += $took;
 
     return $result;
-}
-
-/**
- * Executes arbitrary query on database
- * strings $1, $2, ... are replaced with values from $param
- * when $0 exists in, first $params maps to it, otherwise it maps to $1 etc...
- * @return bool|PDOStatement
- * @throws DbException|DbDuplicateEntryException
- */
-function dbQuery(
-    string $q,
-           $param = null,
-    ?PDO   $pdo = null,
-): bool | PDOStatement {
-    if ($param) {
-        return dbQueryS($q, (array)$param, $pdo);
-    }
-    global $dbQueries, $dbLastQ, $dbNumQ, $dbExecTime;
-    $dbQueries ??= [];
-    $pdo       ??= dbConnect();
-    $dbLastQ   = $q;
-    $start     = microtime(true);
-    $r         = _dbPdoQuery($q, $pdo);
-    // For data-affecting queries (INSERT/UPDATE/DELETE), dbAffectedRows is set inside _dbPdoQuery
-    // For SELECT queries, we don't need affected rows
-    $wasDataAffecting = $r === true;
-    if (!$wasDataAffecting) {
-        // For SELECT, store rowCount for compatibility
-        $GLOBALS['dbAffectedRows'] = $r->rowCount();
-    }
-    $end                        = microtime(true);
-    $dbQueries[$q]              ??= [
-        'microtime' => 0.0,
-        'count'     => 0,
-    ];
-    $dbQueries[$q]['microtime'] += $end - $start;
-    $dbQueries[$q]['count']++;
-    $dbNumQ++;
-    $dbExecTime += $end - $start;
-
-    return $r;
-}
-
-/**
- * Dotaz s nahrazováním jmen proměnných, pokud je nastaveno pole, tak jen z
- * pole ve forme $0 $1 atd resp $index
- */
-function dbQueryS(
-    string $q,
-    array  $pole = null,
-    ?PDO   $pdo = null,
-): PDOStatement | bool {
-    if (!$pole) {
-        return dbQuery($q, null, $pdo);
-    }
-
-    return dbQuery(
-        q: dbQueryAssemble($q, $pole, $pdo),
-        pdo: $pdo,
-    );
 }
 
 /**

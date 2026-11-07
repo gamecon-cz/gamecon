@@ -44,7 +44,7 @@ Updated `nastavLokacePodleIds()` method to maintain the `id_hlavni_lokace` colum
 ```php
 // Update id_hlavni_lokace in akce_seznam for Doctrine compatibility
 $idHlavniLokaceValue = $hlavniLokaceId !== null ? (int)$hlavniLokaceId : 'NULL';
-dbQuery(<<<SQL
+dbExecute(<<<SQL
     UPDATE akce_seznam
     SET id_hlavni_lokace = {$idHlavniLokaceValue}
     WHERE id_akce = {$this->id()}
