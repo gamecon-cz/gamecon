@@ -11,7 +11,7 @@ class DbMigrations
 
     private Backups            $backups;
     private DbMigrationsConfig $config;
-    private \mysqli            $connection;
+    private \PDO               $connection;
     private                    $migrations;
     private readonly ?WebGui   $webGui;
     private                    $hasTableMigrationsV2    = null;
@@ -94,6 +94,8 @@ class DbMigrations
                     return $migration->getRelativePath();
                 }, $migrations);
 
+                // Declaring the column would give it the database default; copying it from
+                // `migrations` carries its collation over, which the join below compares against.
                 $this->connection->query("CREATE TEMPORARY TABLE known_migration_paths_tmp (PRIMARY KEY (migration_path)) SELECT migration_path FROM migrations LIMIT 0");
                 $migrationPathsSql = implode(
                     ',',
@@ -117,7 +119,7 @@ LEFT JOIN migrations ON migrations.migration_path = known_migration_paths_tmp.mi
 WHERE migrations.migration_id IS NULL",
                 );
 
-                $wrappedUnappliedPaths = $query->fetch_all();
+                $wrappedUnappliedPaths = $query->fetchAll();
 
                 $this->connection->query("DROP TEMPORARY TABLE known_migration_paths_tmp");
 
@@ -159,7 +161,7 @@ LEFT JOIN migrations ON migrations.migration_code = known_migration_codes_tmp.mi
 WHERE migrations.migration_id IS NULL",
                 );
 
-                $wrappedUnappliedCodes = $query->fetch_all();
+                $wrappedUnappliedCodes = $query->fetchAll();
 
                 $this->connection->query("DROP TEMPORARY TABLE known_migration_codes_tmp");
 
@@ -214,7 +216,7 @@ WHERE migrations.migration_id IS NULL",
 SELECT value FROM db_migrations WHERE name = 'last_applied_migration_id'
 SQL,
         );
-        $lastAppliedMigrationSerialized = $query->fetch_row()[0] ?? false;
+        $lastAppliedMigrationSerialized = $query->fetch(\PDO::FETCH_NUM)[0] ?? false;
 
         return $lastAppliedMigrationSerialized !== false
             ? unserialize($lastAppliedMigrationSerialized)
@@ -239,7 +241,7 @@ SQL,
         if ($this->hasTableMigrationsV2 === true) {
             return true;
         }
-        $this->hasTableMigrationsV2 = count($this->connection->query("SHOW TABLES LIKE 'migrations'")->fetch_all()) > 0;
+        $this->hasTableMigrationsV2 = count($this->connection->query("SHOW TABLES LIKE 'migrations'")->fetchAll()) > 0;
 
         return $this->hasTableMigrationsV2;
     }
@@ -249,7 +251,7 @@ SQL,
         if ($this->hasTableMigrationsV1 === true) {
             return true;
         }
-        $this->hasTableMigrationsV1 = count($this->connection->query("SHOW TABLES LIKE 'db_migrations'")->fetch_all()) > 0;
+        $this->hasTableMigrationsV1 = count($this->connection->query("SHOW TABLES LIKE 'db_migrations'")->fetchAll()) > 0;
 
         return $this->hasTableMigrationsV1;
     }
@@ -258,7 +260,7 @@ SQL,
     {
         if ($this->hasMigrationPathColumn === null) {
             $this->hasMigrationPathColumn = $this->hasTableMigrationsForV2()
-                && count($this->connection->query("SHOW COLUMNS FROM migrations LIKE 'migration_path'")->fetch_all()) > 0;
+                && count($this->connection->query("SHOW COLUMNS FROM migrations LIKE 'migration_path'")->fetchAll()) > 0;
         }
 
         return $this->hasMigrationPathColumn;
@@ -389,7 +391,7 @@ SQL,
             $this->hasMigrationPathColumn = null;
             if (!$migration->isEndless()) {
                 if ($this->hasTableMigrationsForV2()) {
-                    $escapedPath = $this->connection->real_escape_string($migration->getRelativePath());
+                    $escapedPath = substr($this->connection->quote($migration->getRelativePath()), 1, -1);
                     if ($this->hasMigrationPathColumn()) {
                         $this->connection->query(<<<SQL
 INSERT IGNORE INTO migrations(migration_path, applied_at) VALUES ('{$escapedPath}', NOW())
@@ -412,9 +414,8 @@ SQL,
 
     public function run(bool $silent = false)
     {
-        $driver              = new \mysqli_driver();
-        $oldReportMode       = $driver->report_mode;
-        $driver->report_mode = MYSQLI_REPORT_ERROR | MYSQLI_REPORT_STRICT;
+        $oldErrorMode = $this->connection->getAttribute(\PDO::ATTR_ERRMODE);
+        $this->connection->setAttribute(\PDO::ATTR_ERRMODE, \PDO::ERRMODE_EXCEPTION);
 
         $hasUnappliedOneTimeMigrations = $this->hasUnappliedMigrations();
 
@@ -438,7 +439,7 @@ SQL,
         // getEndlessMigrations); on a server it has no effect.
         $this->handleEndlessMigrations($hasUnappliedOneTimeMigrations);
 
-        $driver->report_mode = $oldReportMode;
+        $this->connection->setAttribute(\PDO::ATTR_ERRMODE, $oldErrorMode);
     }
 
 }
