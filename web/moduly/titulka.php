@@ -3,6 +3,7 @@
 use Gamecon\Cas\DateTimeCz;
 use Gamecon\Aktivita\TypAktivity;
 use Gamecon\Cas\DateTimeGamecon;
+use Gamecon\Web\Info;
 use Gamecon\Web\ZpracovaneObrazky;
 use Gamecon\Role\Role;
 
@@ -15,7 +16,7 @@ $this->info()
      ->nazev('GameCon – největší festival nepočítačových her')
      ->popis('GameCon je největší festival nepočítačových her v České republice, který se každoročně koná třetí víkend v červenci. Opět se můžete těšit na desítky RPGček, deskovek, larpů, akčních her, wargaming, přednášky, klání v Příbězích Impéria, tradiční mistrovství v DrD a v neposlední řadě úžasné lidi a vůbec zážitky, které ve vás přetrvají minimálně do dalšího roku.')
      // the module also answers on /titulka, the home page stays the one address
-     ->url(URL_WEBU . '/');
+     ->url(Info::getKanonickaUrlZCesty(URL_WEBU, ''));
 
 // linie
 $offsety = [120, 320, 280];
