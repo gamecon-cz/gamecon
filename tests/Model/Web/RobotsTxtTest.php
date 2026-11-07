@@ -15,7 +15,7 @@ class RobotsTxtTest extends TestCase
      */
     public function naOstreSeProchazeniPovolujeKromeStranekProPrihlasene(): void
     {
-        $obsah = (new RobotsTxt(Prostredi::Production))->getObsah();
+        $obsah = (new RobotsTxt(Prostredi::Production, 'https://gamecon.cz/sitemap.xml'))->getObsah();
 
         self::assertStringContainsString("User-agent: *\n", $obsah);
         self::assertStringContainsString("Disallow: /finance$\n", $obsah);
@@ -25,6 +25,7 @@ class RobotsTxtTest extends TestCase
         self::assertStringContainsString("Disallow: /api/\n", $obsah);
         self::assertStringContainsString("Disallow: /admin$\n", $obsah);
         self::assertStringContainsString("Disallow: /admin/\n", $obsah);
+        self::assertStringEndsWith("Sitemap: https://gamecon.cz/sitemap.xml\n", $obsah);
         self::assertDoesNotMatchRegularExpression('~^Disallow: /$~m', $obsah);
     }
 
@@ -35,7 +36,7 @@ class RobotsTxtTest extends TestCase
      */
     public function mimoOstrouSeProchazeniZakazujeCele(Prostredi $prostredi): void
     {
-        $obsah = (new RobotsTxt($prostredi))->getObsah();
+        $obsah = (new RobotsTxt($prostredi, 'https://gamecon.cz/sitemap.xml'))->getObsah();
 
         self::assertSame("User-agent: *\nDisallow: /\n", $obsah);
     }

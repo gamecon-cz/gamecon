@@ -5,8 +5,10 @@ declare(strict_types=1);
 use Gamecon\Aktivita\TypAktivity;
 use Gamecon\Dev\SsoPrihlaseniZUrl;
 use Gamecon\Vyjimkovac\Vyjimkovac;
+use Gamecon\Web\CestyKSitemape;
 use Gamecon\Web\Info;
 use Gamecon\Web\RobotsTxt;
+use Gamecon\Web\Sitemap;
 use Gamecon\XTemplate\XTemplate;
 
 require __DIR__ . '/../nastaveni/zavadec.php';
@@ -22,7 +24,16 @@ omezCsrf();
 
 if (($_GET['req'] ?? '') === 'robots.txt') {
     header('Content-Type: text/plain; charset=utf-8');
-    echo (new RobotsTxt($systemoveNastaveni->prostredi()))->getObsah();
+    echo (new RobotsTxt($systemoveNastaveni->prostredi(), URL_WEBU . '/sitemap.xml'))->getObsah();
+
+    return;
+}
+
+if (($_GET['req'] ?? '') === 'sitemap.xml') {
+    // built first, so a failing query does not answer with the XML content type
+    $sitemap = (new Sitemap(URL_WEBU, (new CestyKSitemape())->getCesty()))->getXml();
+    header('Content-Type: application/xml; charset=utf-8');
+    echo $sitemap;
 
     return;
 }
