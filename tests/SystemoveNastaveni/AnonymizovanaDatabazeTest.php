@@ -73,7 +73,92 @@ class AnonymizovanaDatabazeTest extends AbstractTestDb
 
         dbQuery("INSERT INTO stranky SET url_stranky = 'test', obsah = 'Kontakt: jan.novak@example.com', poradi = 1");
 
-        dbQuery("INSERT INTO obnova_hesla_log SET ip = '192.0.2.1', id_uzivatele = 100, odeslano = 1");
+        self::vlozRadekDoKazdePrilisCitliveTabulky();
+    }
+
+    /**
+     * Without a row in the source an emptied table would look the same as a table nobody empties.
+     */
+    private static function vlozRadekDoKazdePrilisCitliveTabulky(): void
+    {
+        $radkyPodleTabulky = [
+            '_vars' => <<<'SQL'
+                INSERT INTO _vars SET name = 'test', value = 'x'
+                SQL,
+            'platby' => <<<'SQL'
+                INSERT INTO platby SET id_uzivatele = 100, castka = 1, rok = 2026, provedeno = NOW(), provedl = 100
+                SQL,
+            'akce_import' => <<<'SQL'
+                INSERT INTO akce_import SET id_uzivatele = 100, google_sheet_id = 'sheet'
+                SQL,
+            'uzivatele_url' => <<<'SQL'
+                INSERT INTO uzivatele_url SET id_uzivatele = 100, url = 'jan-novak'
+                SQL,
+            'obnova_hesla_log' => <<<'SQL'
+                INSERT INTO obnova_hesla_log SET ip = '192.0.2.1', id_uzivatele = 100, odeslano = 1
+                SQL,
+            'google_api_user_tokens' => <<<'SQL'
+                INSERT INTO google_api_user_tokens SET user_id = 100, google_client_id = 'client', tokens = 'tokens'
+                SQL,
+            'google_drive_dirs' => <<<'SQL'
+                INSERT INTO google_drive_dirs SET user_id = 100, dir_id = 'dir', original_name = 'dir'
+                SQL,
+            'uzivatele_slucovani_log' => <<<'SQL'
+                INSERT INTO uzivatele_slucovani_log
+                SET id_smazaneho_uzivatele = 100, id_noveho_uzivatele = 101,
+                    zustatek_smazaneho_puvodne = 0, zustatek_noveho_puvodne = 0, zustatek_noveho_aktualne = 0,
+                    email_smazaneho = 'jan.novak@example.com', email_noveho_puvodne = 'honza@example.com', email_noveho_aktualne = 'honza@example.com'
+                SQL,
+            'newsletter_prihlaseni' => <<<'SQL'
+                INSERT INTO newsletter_prihlaseni SET email = 'jan.novak@example.com'
+                SQL,
+            'newsletter_prihlaseni_log' => <<<'SQL'
+                INSERT INTO newsletter_prihlaseni_log SET email = 'jan.novak@example.com', stav = 'prihlasen'
+                SQL,
+            'uzivatele_hodnoty_log' => <<<'SQL'
+                INSERT INTO uzivatele_hodnoty_log SET id_uzivatele = 100, sloupec = 'jmeno_uzivatele', stara_hodnota = 'Jan', nova_hodnota = 'Honza'
+                SQL,
+            'slevove_kody' => <<<'SQL'
+                INSERT INTO slevove_kody SET kod = 'SLEVA', createdBy = 100, createdAt = NOW()
+                SQL,
+            'akce_tym' => <<<'SQL'
+                INSERT INTO akce_tym SET id = 1, kod = 1, nazev = 'Tým Nováků', id_kapitan = 100
+                SQL,
+            'akce_tym_akce' => <<<'SQL'
+                INSERT INTO akce_tym_akce SET id_tymu = 1, id_akce = 1
+                SQL,
+            'akce_tym_prihlaseni' => <<<'SQL'
+                INSERT INTO akce_tym_prihlaseni SET id_tymu = 1, id_uzivatele = 100
+                SQL,
+            'log_udalosti' => <<<'SQL'
+                INSERT INTO log_udalosti SET id_logujiciho = 100, zprava = 'Gratulujeme týmu Nováků', metadata = '{"ucastnik":100}', rok = 2026
+                SQL,
+            'slevy' => <<<'SQL'
+                INSERT INTO slevy SET id_uzivatele = 100, castka = 1, rok = 2026, poznamka = 'Honza dostal slevu'
+                SQL,
+            'upominka_dluznika_log' => <<<'SQL'
+                INSERT INTO upominka_dluznika_log SET id_uzivatele = 100, typ_upominky = 'prvni', dluh = 1, rocnik = 2026, odeslal = 100
+                SQL,
+            'upominka_vlastni_zneni' => <<<'SQL'
+                INSERT INTO upominka_vlastni_zneni SET rocnik = 2026, predmet = 'Předmět', text = 'Text', zmenil = 100
+                SQL,
+        ];
+
+        self::assertEqualsCanonicalizing(
+            AnonymizovanaDatabaze::PRILIS_CITLIVE_TABULKY,
+            array_keys($radkyPodleTabulky),
+            'Pro každou citlivou tabulku musí test vložit řádek',
+        );
+
+        // the activity and the second user that these rows point at do not exist
+        dbQuery('SET FOREIGN_KEY_CHECKS = 0');
+        try {
+            foreach ($radkyPodleTabulky as $vlozeniRadku) {
+                dbQuery($vlozeniRadku);
+            }
+        } finally {
+            dbQuery('SET FOREIGN_KEY_CHECKS = 1');
+        }
     }
 
     public static function tearDownAfterClass(): void
@@ -110,7 +195,7 @@ class AnonymizovanaDatabazeTest extends AbstractTestDb
         self::assertContains('medailonky', $tables, 'Anonymní databáze by měla obsahovat tabulku medailonky');
 
         // sensitive tables should be empty
-        foreach (['_vars', 'platby', 'akce_import', 'uzivatele_url', 'obnova_hesla_log'] as $sensitivniTabulka) {
+        foreach (AnonymizovanaDatabaze::PRILIS_CITLIVE_TABULKY as $sensitivniTabulka) {
             $countResult = mysqli_query($connection, sprintf('SELECT COUNT(*) as cnt FROM `%s`.`%s`', self::$anonymniDatabaze, $sensitivniTabulka));
             $count = mysqli_fetch_assoc($countResult)['cnt'];
             self::assertSame('0', $count, "Tabulka {$sensitivniTabulka} by měla být prázdná");
