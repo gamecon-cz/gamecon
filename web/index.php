@@ -68,8 +68,10 @@ if (($url?->cast(0) ?? null) === 'api') {
 }
 $i = (new Info($systemoveNastaveni))
     ->obrazek('soubory/styl/og-image.jpg')
-    ->site('GameCon')
-    ->url("http://{$_SERVER['HTTP_HOST']}{$_SERVER['REQUEST_URI']}");
+    ->site('GameCon');
+if ($url !== null) {
+    $i->url(Info::kanonickaUrlZCesty(URL_WEBU, $url->cela()));
+}
 $m->info($i);
 
 try {
