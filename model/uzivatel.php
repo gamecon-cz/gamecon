@@ -519,12 +519,11 @@ SQL, [Pravo::PORADANI_AKTIVIT],
         // pak nesmí zůstat neinicializovaná, jinak by `return` spadl na TypeError.
         $roleNovePridana = false;
         try {
-            $result = dbQuery(
+            $roleNovePridana = dbExecute(
                 'INSERT INTO uzivatele_role(id_uzivatele, id_role, posadil)
             VALUES ($1, $2, $3)',
                 [$this->id(), $idRole, $posadil->id()],
-            );
-            $roleNovePridana = dbAffectedOrNumRows($result) > 0;
+            ) > 0;
             if ($roleNovePridana) {
                 $this->zalogujZmenuRole($idRole, $posadil->id(), self::POSAZEN);
             }
@@ -2645,8 +2644,7 @@ SQL,
 
     private function odeberRoliLegacy(int $idRole, self $editor): bool
     {
-        $result = dbQuery('DELETE FROM uzivatele_role WHERE id_uzivatele=' . $this->id() . ' AND id_role=' . $idRole);
-        $roleNoveOdebrana = dbAffectedOrNumRows($result) > 0;
+        $roleNoveOdebrana = dbExecute('DELETE FROM uzivatele_role WHERE id_uzivatele=' . $this->id() . ' AND id_role=' . $idRole) > 0;
         if ($roleNoveOdebrana) {
             $this->zalogujZmenuRole($idRole, $editor->id(), self::SESAZEN);
         }

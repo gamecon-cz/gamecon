@@ -289,7 +289,7 @@ readonly class AccommodationImport
      * @param int[] $idsVariantUbytovani noci, jak je dohledal `dejIdsNociPodleTypu()`
      *
      * @return int kolik datových řádků se změnilo — tutéž veličinu hlásily legacy metody
-     *             přes `dbAffectedOrNumRows()`, takže import počítá dál stejně
+     *             jako počet dotčených řádků z `dbExecute()`, takže import počítá dál stejně
      *
      * @throws UserFacingException když noci neprojdou validací; import si to překládá na `Chyba`
      */

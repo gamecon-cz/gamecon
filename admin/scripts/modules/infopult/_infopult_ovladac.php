@@ -139,8 +139,7 @@ function updateUzivatelHodnoty(array $udaje, int $uPracovniId, Vyjimkovac $vyjim
 {
     try {
         Uzivatel::zalogujZmenuOsobnichUdaju($uPracovniId, $udaje, null, null, 'infopult');
-        $result = dbUpdate('uzivatele_hodnoty', $udaje, ['id_uzivatele' => $uPracovniId]);
-        return dbAffectedOrNumRows($result);
+        return dbUpdate('uzivatele_hodnoty', $udaje, ['id_uzivatele' => $uPracovniId]);
     } catch (Exception $e) {
         $vyjimkovac->zaloguj($e);
         chyba('Došlo k neočekávané chybě.');
