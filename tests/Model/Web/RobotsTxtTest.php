@@ -15,7 +15,7 @@ class RobotsTxtTest extends TestCase
      */
     public function naOstreSeProchazeniPovolujeKromeStranekProPrihlasene(): void
     {
-        $obsah = (new RobotsTxt(Prostredi::Production))->obsah();
+        $obsah = (new RobotsTxt(Prostredi::Production))->getObsah();
 
         self::assertStringContainsString("User-agent: *\n", $obsah);
         self::assertStringContainsString("Disallow: /finance$\n", $obsah);
@@ -33,7 +33,7 @@ class RobotsTxtTest extends TestCase
      */
     public function mimoOstrouSeProchazeniZakazujeCele(Prostredi $prostredi): void
     {
-        $obsah = (new RobotsTxt($prostredi))->obsah();
+        $obsah = (new RobotsTxt($prostredi))->getObsah();
 
         self::assertSame("User-agent: *\nDisallow: /\n", $obsah);
     }
