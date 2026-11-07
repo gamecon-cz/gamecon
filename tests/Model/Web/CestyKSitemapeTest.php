@@ -17,7 +17,7 @@ class CestyKSitemapeTest extends AbstractTestDb
         $cesty = (new CestyKSitemape())->getCesty();
 
         self::assertContains('', $cesty);
-        foreach (['program', 'novinky', 'blog', 'vypraveci', 'sponzori'] as $modul) {
+        foreach (CestyKSitemape::VEREJNE_MODULY as $modul) {
             self::assertContains($modul, $cesty);
         }
     }
