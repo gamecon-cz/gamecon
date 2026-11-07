@@ -4,10 +4,10 @@ declare(strict_types=1);
 
 namespace Gamecon\Tests\web;
 
+use App\Enum\ProductTagCode;
 use Gamecon\Admin\FormularPracovnihoUzivatele;
 use Gamecon\Login\Login;
 use Gamecon\Role\Role;
-use Gamecon\Shop\TypPredmetu;
 use Symfony\Component\Filesystem\Filesystem;
 
 /**
@@ -32,6 +32,10 @@ class FormularPracovnihoUzivateleTest extends AbstractTestWeb
      */
     private const int ID_UBYTOVANEHO = 9814;
     private const int ID_UBYTOVANI = 9811;
+    /**
+     * přezdívka, která by v neošetřeném JSON uvnitř `<script>` stránku rozbila
+     */
+    private const int ID_SE_ZLOMYSLNOU_PREZDIVKOU = 9815;
 
     /**
      * @var list<string>
@@ -54,12 +58,14 @@ VALUES
     (%1$d, 'test-formular-prvni', 'Test', 'První', 'test-formular-prvni@example.invalid', '111111111'),
     (%2$d, 'test-formular-druhy', 'Test', 'Druhý', 'test-formular-druhy@example.invalid', '222222222'),
     (%3$d, 'test-formular-ukladajici', 'Test', 'Ukládající', 'test-formular-ukladajici@example.invalid', '333333333'),
-    (%4$d, 'test-formular-ubytovany', 'Test', 'Ubytovaný', 'test-formular-ubytovany@example.invalid', '444444444')
+    (%4$d, 'test-formular-ubytovany', 'Test', 'Ubytovaný', 'test-formular-ubytovany@example.invalid', '444444444'),
+    (%5$d, '</script><!--"x', 'Test', 'Zlomyslný', 'test-formular-zlomyslny@example.invalid', '555555555')
 SQL,
                 self::ID_PRVNIHO,
                 self::ID_DRUHEHO,
                 self::ID_UKLADAJICIHO,
                 self::ID_UBYTOVANEHO,
+                self::ID_SE_ZLOMYSLNOU_PREZDIVKOU,
             ),
             [
                 <<<'SQL'
@@ -72,24 +78,39 @@ SQL,
             ],
             [
                 <<<'SQL'
-INSERT INTO shop_predmety SET id_predmetu = $0, nazev = 'test formulář ubytování', model_rok = $1,
-    kod_predmetu = 'test-formular-ubytovani', cena_aktualni = 200, stav = 1, nabizet_do = NOW(),
-    kusu_vyrobeno = 100, typ = $2, ubytovani_den = 1
+INSERT INTO shop_predmety SET id_predmetu = $0, nazev = 'test formulář ubytování',
+    kod_predmetu = 'test-formular-ubytovani', cena_aktualni = 200, stav = 1, nabizet_do = NOW(), popis = ''
 SQL,
                 [
                     0 => self::ID_UBYTOVANI,
-                    1 => ROCNIK,
-                    2 => TypPredmetu::UBYTOVANI,
                 ],
             ],
             [
                 <<<'SQL'
-INSERT INTO shop_nakupy(id_uzivatele, id_predmetu, rok, cena_nakupni) VALUES ($0, $1, $2, 200)
+INSERT INTO product_product_tag (product_id, tag_id) SELECT $0, id FROM product_tag WHERE code = $1
+SQL,
+                [
+                    0 => self::ID_UBYTOVANI,
+                    1 => ProductTagCode::UBYTOVANI->value,
+                ],
+            ],
+            [
+                <<<'SQL'
+INSERT INTO product_variant (product_id, name, code, capacity, accommodation_day, position, state)
+VALUES ($0, 'pátek', 'test-formular-ubytovani', 100, 1, 0, 1)
+SQL,
+                [
+                    0 => self::ID_UBYTOVANI,
+                ],
+            ],
+            [
+                <<<'SQL'
+INSERT INTO shop_nakupy(id_uzivatele, variant_id, rok, cena_nakupni)
+SELECT $0, id, $1, 200 FROM product_variant WHERE code = 'test-formular-ubytovani'
 SQL,
                 [
                     0 => self::ID_UBYTOVANEHO,
-                    1 => self::ID_UBYTOVANI,
-                    2 => ROCNIK,
+                    1 => ROCNIK,
                 ],
             ],
         ];
@@ -162,8 +183,9 @@ SQL,
         $this->vyberPracovnihoUzivatele($session, self::ID_UBYTOVANEHO);
 
         foreach ([
-            'uzivatel' => 5,
-            'infopult' => 9,
+            // ubytování a jídlo jsou komponenty nad API (s ID uživatele v data-customer-id), ne formuláře
+            'uzivatel' => 3,
+            'infopult' => 8,
         ] as $stranka => $nejmeneFormularu) {
             $formulare = $this->getIdPracovnihoUzivateleVeFormularich($this->stahni($session, $stranka));
             self::assertGreaterThanOrEqual($nejmeneFormularu, count($formulare), $stranka);
@@ -171,6 +193,58 @@ SQL,
                 self::assertSame((string) self::ID_UBYTOVANEHO, $idPracovnihoUzivatele, "{$stranka}: {$formular}");
             }
         }
+    }
+
+    /**
+     * Mřížka prodeje na infopultu prodává tomu, koho stránka v konstantách nese, a jeho jméno ukazuje v hlavičce.
+     *
+     * @test
+     */
+    public function mrizkaProdejeNaInfopultuZnaPracovnihoUzivatele(): void
+    {
+        $session = $this->prihlas(\Uzivatel::SYSTEM_LOGIN);
+        $this->vyberPracovnihoUzivatele($session, self::ID_PRVNIHO);
+
+        $uzivatel = $this->getPracovniUzivatelMrizky($this->stahni($session, 'infopult'));
+
+        self::assertSame(self::ID_PRVNIHO, $uzivatel['id']);
+        self::assertStringContainsString('První', $uzivatel['nazev']);
+    }
+
+    /**
+     * @test
+     */
+    public function prezdivkaPracovnihoUzivateleNerozbijeStrankuMrizky(): void
+    {
+        $session = $this->prihlas(\Uzivatel::SYSTEM_LOGIN);
+        $this->vyberPracovnihoUzivatele($session, self::ID_SE_ZLOMYSLNOU_PREZDIVKOU);
+
+        $html = $this->stahni($session, 'infopult');
+
+        self::assertSame(1, preg_match('~PRACOVNI_UZIVATEL: (.+),\n~', $html, $shoda));
+        self::assertStringNotContainsString('</script>', $shoda[1], 'Přezdívka nesmí uzavřít skript');
+        self::assertStringNotContainsString('<!--', $shoda[1]);
+        self::assertStringContainsString('</script><!--"x', json_decode($shoda[1], true, flags: JSON_THROW_ON_ERROR)['nazev'], 'Přezdívka musí dorazit nezkomolená');
+    }
+
+    /**
+     * @test
+     */
+    public function mrizkaProdejeNaInfopultuBezPracovnihoUzivateleProdavaAnonymne(): void
+    {
+        $session = $this->prihlas(\Uzivatel::SYSTEM_LOGIN);
+
+        self::assertNull($this->getPracovniUzivatelMrizky($this->stahni($session, 'infopult')));
+    }
+
+    /**
+     * @return array{id: int, nazev: string}|null
+     */
+    private function getPracovniUzivatelMrizky(string $html): ?array
+    {
+        self::assertSame(1, preg_match('~PRACOVNI_UZIVATEL: (.+),\n~', $html, $shoda), 'Stránka musí mřížce předat pracovního uživatele');
+
+        return json_decode($shoda[1], true, flags: JSON_THROW_ON_ERROR);
     }
 
     /**
