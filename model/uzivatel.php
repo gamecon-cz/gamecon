@@ -1667,6 +1667,8 @@ SQL,
             dbUpdate(Sql::UZIVATELE_HODNOTY_TABULKA, [...$sloupce, Sql::RAZITKO_PRIHLASENI => $razitko], [
                 Sql::ID_UZIVATELE => $this->id(),
             ]);
+            // In the transaction: a failed revoke takes a new password back instead of leaving it next to live tokens.
+            revokeJwtsForUser($this);
             if ($ponechatTotoZarizeni) {
                 $novaCookieTohotoZarizeni = TrvalePrihlaseni::zrusNaOstatnichZarizenich($this->id());
             } else {

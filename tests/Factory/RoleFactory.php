@@ -5,6 +5,8 @@ declare(strict_types=1);
 namespace Gamecon\Tests\Factory;
 
 use App\Entity\Role;
+use App\Enum\RoleMeaning;
+use App\Enum\RoleTypeEnum;
 use App\Repository\RoleRepository;
 use App\Structure\Entity\RoleEntityStructure;
 use Zenstruck\Foundry\Persistence\PersistentProxyObjectFactory;
@@ -52,8 +54,8 @@ final class RoleFactory extends PersistentProxyObjectFactory
             RoleEntityStructure::nazevRole     => self::faker()->unique()->text(255),
             RoleEntityStructure::popisRole     => self::faker()->text(),
             RoleEntityStructure::rocnikRole    => self::faker()->numberBetween(-1, 2030),
-            RoleEntityStructure::typRole       => self::faker()->randomElement(['trvala', 'rocnikova', 'ucast']),
-            RoleEntityStructure::vyznamRole    => self::faker()->text(48),
+            RoleEntityStructure::typRole       => self::faker()->randomElement(RoleTypeEnum::cases()),
+            RoleEntityStructure::vyznamRole    => self::faker()->randomElement(RoleMeaning::cases()),
             RoleEntityStructure::skryta        => self::faker()->boolean(),
             RoleEntityStructure::kategorieRole => self::faker()->numberBetween(0, 1),
         ];

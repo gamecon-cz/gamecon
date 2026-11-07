@@ -7,6 +7,7 @@
  */
 
 use App\Service\JwtService;
+use App\Service\TokenVersionService;
 use Gamecon\SystemoveNastaveni\SystemoveNastaveni;
 
 /**
@@ -24,10 +25,8 @@ function generateJwtForUser(
 
     // Use existing Symfony kernel from SystemoveNastaveni
     $systemoveNastaveni ??= SystemoveNastaveni::zGlobals();
-    $kernel             = $systemoveNastaveni->kernel();
 
-    /** @var JwtService $jwtService */
-    $jwtService = $kernel->getContainer()->get(JwtService::class);
+    $jwtService = $systemoveNastaveni->getService(JwtService::class);
 
     // Extract user data and generate token
     $userData = $jwtService->extractUserData($uzivatel);
@@ -50,13 +49,25 @@ function getJwtForUser(
         throw new \RuntimeException('Can not get JWT token because user ID is empty');
     }
 
-    $systemoveNastaveni = SystemoveNastaveni::zGlobals();
-    $kernel             = $systemoveNastaveni->kernel();
-
-    /** @var JwtService $jwtService */
-    $jwtService = $kernel->getContainer()->get(JwtService::class);
+    $jwtService = SystemoveNastaveni::zGlobals()->getService(JwtService::class);
 
     return $jwtService->getToken($userId);
+}
+
+/**
+ * Make every JWT already issued to the user stop working (called when the login stamp changes: logging the user out
+ * of their other devices, a new password). Not wrapped in a try like the cleanup below: a failure must be seen, or the
+ * tokens would silently survive.
+ */
+function revokeJwtsForUser(
+    Uzivatel $uzivatel,
+): void {
+    $userId = $uzivatel->id();
+    if ($userId === null) {
+        throw new \RuntimeException('Can not revoke JWT tokens because user ID is empty');
+    }
+
+    SystemoveNastaveni::zGlobals()->getService(TokenVersionService::class)->invalidate($userId);
 }
 
 /**
@@ -72,11 +83,7 @@ function deleteStoredJwtForUser(
             throw new \RuntimeException('Can not delete JWT token because user ID is empty');
         }
 
-        $systemoveNastaveni = SystemoveNastaveni::zGlobals();
-        $kernel             = $systemoveNastaveni->kernel();
-
-        /** @var JwtService $jwtService */
-        $jwtService = $kernel->getContainer()->get(JwtService::class);
+        $jwtService = SystemoveNastaveni::zGlobals()->getService(JwtService::class);
         $jwtService->deleteToken($userId);
     } catch (Throwable $e) { // an Error from the kernel boot too, callers run this after their commit
         error_log("JWT deletion failed: " . $e->getMessage());
@@ -117,11 +124,7 @@ function deleteJwtCookie(): void
 function cleanupExpiredJwtTokens(): void
 {
     try {
-        $systemoveNastaveni = SystemoveNastaveni::zGlobals();
-        $kernel             = $systemoveNastaveni->kernel();
-
-        /** @var JwtService $jwtService */
-        $jwtService = $kernel->getContainer()->get(JwtService::class);
+        $jwtService = SystemoveNastaveni::zGlobals()->getService(JwtService::class);
         $jwtService->cleanupExpiredTokens();
     } catch (Exception $e) {
         error_log("JWT cleanup failed: " . $e->getMessage());
