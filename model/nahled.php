@@ -132,8 +132,8 @@ class Nahled
 
     /**
      * AVIF, když ho tenhle ImageMagick zapíše správně i s průhledností, jinak WebP jako dřív. Formát musí být znám dřív,
-     * než se soubor přečte, je v adrese náhledu, a průhlednost se z přípony nepozná. Starší ImageMagick (ostrá) AVIF
-     * zapisuje i čte špatně a dvanáctkrát pomaleji než WebP, což u náhledů, které vznikají za běhu, nejde.
+     * než se soubor přečte, je v adrese náhledu, a průhlednost se z přípony nepozná. ImageMagick 6.9.11 (dnešní ostrá)
+     * AVIF zapisuje i čte špatně a dvanáctkrát pomaleji než WebP, což u náhledů, které vznikají za běhu, nejde.
      *
      * @return 'AVIF'|'WEBP'|'JPEG'
      */

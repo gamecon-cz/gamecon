@@ -447,7 +447,7 @@ Pravdivý stav ke dni auditu (zdroj: `cat /usr/local/sbin/deploy-preview-branch.
 
 ### ImageMagick: preview a archiv se chovají jinak než ostrá
 
-Dev obraz, preview a archivy mají ImageMagick 7.1, ostrá 6.9.11. Kvůli tomu se AVIF na ostré zapisuje a čte jinak než tam (ostrá ho u náhledů nepoužije a s průhledností se nezapíše), viz `docs/generated/nahravani-obrazku.md` a `Gamecon\Web\ImagickAvif`. Co se kolem obrázků ověřuje na preview, platí pro ostrou jen do té míry, jakou tam potvrdila zkouška `ImagickAvif::provedZkousku()`.
+Dev obraz, preview a archivy mají ImageMagick 7.1, ostrá 6.9.11 (Ubuntu 24.04 bude mít 6.9.12, který průhlednost zapisuje i čte správně). Jestli se AVIF zapisuje a čte i s průhledností, rozhoduje zkouška, ne verze: na ostré se dnes AVIF u náhledů nepoužije a s průhledností se nezapíše, po upgradu se to přepne samo, ale jen s kodérem AVIF (`libheif-plugin-aomenc`, na Ubuntu 24.04 jen doporučený balíček, bez něj zůstane WebP), viz `docs/generated/nahravani-obrazku.md` a `Gamecon\Web\ImagickAvif`. Co se kolem obrázků ověřuje na preview, platí pro ostrou jen do té míry, jakou tam potvrdila zkouška `ImagickAvif::provedZkousku()`.
 
 ### Import DB ze zálohy ostré na preview (bind-mount, ne env var)
 

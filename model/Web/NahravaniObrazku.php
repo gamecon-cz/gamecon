@@ -139,7 +139,7 @@ final class NahravaniObrazku
 
     /**
      * Obrázky, které web zobrazuje přes @see \Nahled. AVIF mezi nimi je jen tam, kde ImageMagick AVIF zapíše i přečte
-     * správně i s průhledností; starší (ostrá) by z AVIF s průhledností udělal náhled s černým pozadím.
+     * správně i s průhledností; ImageMagick 6.9.11 (dnešní ostrá) by z AVIF s průhledností udělal náhled s černým pozadím.
      *
      * @return list<string>
      */
