@@ -33,7 +33,7 @@ final class FotkaUzivatele
     public function isRelevantniVRocniku(int $rocnik): bool
     {
         return $this->uzivatel->maRoli(Role::LETOSNI_VYPRAVEC($rocnik))
-            || $this->isVedouciAktivityVRocniku($rocnik)
+            || \Uzivatel::isVedouciAktivityVRocniku($this->uzivatel->id(), $rocnik)
             || $this->getFotka() !== null;
     }
 
@@ -55,25 +55,22 @@ final class FotkaUzivatele
         }
         if ($akce === 'smazat') {
             $smazana = NahravaniObrazku::sOhlasenimChyby(fn () => $this->nahravani->smazVsechnyVarianty('', $idUzivatele));
-            if (!$smazana) {
+            if ($smazana) {
+                oznameni('Fotka je smazaná, na webu se ukáže výchozí obrázek.');
+            } else {
                 // dvojí odeslání, nebo smazání v jiné záložce, kde je týž formulář (Medailonky i záložka Uživatel)
                 varovani('Fotka už byla smazaná, na webu se ukazuje výchozí obrázek.');
             }
-            oznameni('Fotka je smazaná, na webu se ukáže výchozí obrázek.');
         }
     }
 
-    /**
-     * @param string $skrytaPole HTML skrytých polí, která stránka potřebuje v obou formulářích
-     */
-    public function getHtml(string $skrytaPole = ''): string
+    public function getHtml(): string
     {
         $fotka = $this->getFotka();
         $template = new XTemplate(__DIR__ . '/fotka-uzivatele.xtpl');
         $template->assign([
             'postAkce'   => self::POST_AKCE,
             'postSoubor' => self::POST_SOUBOR,
-            'skrytaPole' => $skrytaPole,
             'jmeno'      => htmlspecialchars((string) $this->uzivatel->jmenoNick()),
             'accept'     => $this->nahravani->accept(),
             'limit'      => htmlspecialchars($this->nahravani->popisLimitu()),
@@ -102,19 +99,5 @@ final class FotkaUzivatele
         }
 
         return $this->fotka;
-    }
-
-    private function isVedouciAktivityVRocniku(int $rocnik): bool
-    {
-        return dbOneCol(<<<'SQL'
-SELECT 1
-FROM akce_organizatori
-JOIN akce_seznam ON akce_seznam.id_akce = akce_organizatori.id_akce
-WHERE akce_organizatori.id_uzivatele = $0
-  AND akce_seznam.rok = $1
-LIMIT 1
-SQL,
-            [0 => $this->uzivatel->id(), 1 => $rocnik],
-        ) !== null;
     }
 }

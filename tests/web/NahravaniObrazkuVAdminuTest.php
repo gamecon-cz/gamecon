@@ -288,6 +288,33 @@ SQL,
     /**
      * @test
      */
+    public function fotkuNevypraveceSmazeIDvojiOdeslani(): void
+    {
+        $fotky = ZpracovaneObrazky::adresarFotekUzivatelu() . '/' . self::ID_BEZ_PRAV;
+        $this->kUklidu = [...$this->kUklidu, $fotky . '.png', $fotky . '.avif'];
+        copy($this->png(), $fotky . '.png');
+        $session = $this->prihlas(\Uzivatel::SYSTEM_LOGIN);
+        $this->vyberPracovnihoUzivatele($session, self::ID_BEZ_PRAV);
+
+        $smazani = [
+            'akceFotky'                          => 'smazat',
+            FormularPracovnihoUzivatele::POST_ID => self::ID_BEZ_PRAV,
+        ];
+        self::assertSame(303, $this->odesli($session, 'uzivatel', $smazani));
+        self::assertSame([], glob($fotky . '.*'));
+        // s fotkou zmizel i důvod formulář u účastníka bez role vypravěče ukazovat
+        $stranka = $this->stahni($session, 'uzivatel');
+        self::assertStringContainsString('Fotka je smazaná', $stranka);
+        self::assertStringNotContainsString('name="akceFotky"', $stranka);
+
+        // formulář odeslaný podruhé, nebo z jiné záložky, se přesto zpracuje a nezůstane viset jako POST
+        self::assertSame(303, $this->odesli($session, 'uzivatel', $smazani));
+        self::assertStringContainsString('Fotka už byla smazaná', $this->stahni($session, 'uzivatel'));
+    }
+
+    /**
+     * @test
+     */
     public function bezPravaNaMedailonkyZalozkaUzivatelFotkuNespravuje(): void
     {
         $fotky = ZpracovaneObrazky::adresarFotekUzivatelu() . '/' . self::ID_VYPRAVECE;
@@ -810,14 +837,6 @@ SQL);
             $shody[1],
             fn (string $soubor): bool => str_starts_with($soubor, 'test-poradi-'),
         ));
-    }
-
-    private function vyberPracovnihoUzivatele(string $session, int $idUzivatele): void
-    {
-        self::assertSame(303, $this->odesli($session, 'uzivatel', [
-            'vybratUzivateleProPraci' => 1,
-            'id'                      => $idUzivatele,
-        ]));
     }
 
     private function png(): string
