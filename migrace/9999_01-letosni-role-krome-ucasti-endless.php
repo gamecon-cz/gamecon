@@ -8,7 +8,8 @@ use Gamecon\Pravo;
 require_once __DIR__ . '/pomocne/rocnik_z_promenne_mysql.php';
 
 // ROLE
-$rocnikoveRole     = Role::vsechnyRocnikoveRole(ROCNIK);
+$rocnik            = rocnik_z_promenne_mysql();
+$rocnikoveRole     = Role::vsechnyRocnikoveRole($rocnik);
 $idRocnikovychRoli = array_keys($rocnikoveRole);
 $idRoliUcastiSql   = implode(',', $idRocnikovychRoli);
 $resultRoli        = $this->q(<<<SQL
@@ -26,7 +27,6 @@ if ($resultRoli) {
 }
 
 if ($chybejiciRocnikoveRole) {
-    $rocnik        = rocnik_z_promenne_mysql();
     $letosniPrefix = Role::prefixRocniku($rocnik);
     foreach ($chybejiciRocnikoveRole as $idChybejiciRocnikoveRole => $nazevChybejiciRocnikoveRole) {
         $result                   = $this->q(<<<SQL

@@ -490,9 +490,9 @@ class Role extends \DbObject
     public static function vsechnyRoleUcastiProRocnik(int $rocnik = ROCNIK): array
     {
         return [
-            Role::PRIHLASEN_NA_LETOSNI_GC => self::pridejGcRocnikPrefix($rocnik, 'přihlášen'),
-            Role::PRITOMEN_NA_LETOSNIM_GC => self::pridejGcRocnikPrefix($rocnik, 'přítomen'),
-            Role::ODJEL_Z_LETOSNIHO_GC    => self::pridejGcRocnikPrefix($rocnik, 'odjel'),
+            self::PRIHLASEN_NA_LETOSNI_GC($rocnik) => self::pridejGcRocnikPrefix($rocnik, 'přihlášen'),
+            self::PRITOMEN_NA_LETOSNIM_GC($rocnik) => self::pridejGcRocnikPrefix($rocnik, 'přítomen'),
+            self::ODJEL_Z_LETOSNIHO_GC($rocnik)    => self::pridejGcRocnikPrefix($rocnik, 'odjel'),
         ];
     }
 

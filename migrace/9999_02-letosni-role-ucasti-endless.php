@@ -7,7 +7,8 @@ use Granam\RemoveDiacritics\RemoveDiacritics;
 require_once __DIR__ . '/pomocne/rocnik_z_promenne_mysql.php';
 
 // ROLE
-$roleUcasi       = Role::vsechnyRoleUcastiProRocnik(ROCNIK);
+$rocnik          = rocnik_z_promenne_mysql();
+$roleUcasi       = Role::vsechnyRoleUcastiProRocnik($rocnik);
 $idRoliUcasti    = array_keys($roleUcasi);
 $idRoliUcastiSql = implode(',', $idRoliUcasti);
 $resultRoli      = $this->q(<<<SQL
@@ -26,7 +27,6 @@ if ($resultRoli) {
 }
 
 if ($chybejiciRoleUcasti) {
-    $rocnik = rocnik_z_promenne_mysql();
     $ucast  = Role::TYP_UCAST;
     foreach ($chybejiciRoleUcasti as $idChybejiciRoleUcasti => $nazevChybejiciRoleUcasti) {
         $kodRole = RemoveDiacritics::toConstantLikeName($nazevChybejiciRoleUcasti);
