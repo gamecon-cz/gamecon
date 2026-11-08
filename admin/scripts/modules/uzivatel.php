@@ -264,4 +264,5 @@ while ($r = mysqli_fetch_assoc($o)) {
 $x->assign('predmety', $moznosti);
 
 $x->parse('uzivatel');
-$x->out('uzivatel');
+// formuláře záložky ukládají pracovnímu uživateli
+echo FormularPracovnihoUzivatele::doplnDoFormularu($x->text('uzivatel'), $uPracovni);

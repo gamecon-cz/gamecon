@@ -13,6 +13,7 @@
 use Gamecon\Accounting;
 use Gamecon\Accounting\TransactionCategoryEnum;
 use Gamecon\Accounting\Transaction;
+use Gamecon\Admin\FormularPracovnihoUzivatele;
 use Gamecon\Cas\DateTimeCz;
 use Gamecon\Pravo;
 use Gamecon\Shop\Shop;
@@ -360,6 +361,7 @@ if (!$uPracovni) { // nechceme zobrazovat rychloregistraci (zakladani uctu), kdy
 }
 
 $x->parse('infopult');
-$x->out('infopult');
+// formuláře infopultu ukládají pracovnímu uživateli
+echo FormularPracovnihoUzivatele::doplnDoFormularu($x->text('infopult'), $uPracovni);
 
 require __DIR__ . '/../_shop.php';

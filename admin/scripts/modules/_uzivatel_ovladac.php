@@ -25,14 +25,9 @@ $obnovPracovnihoUzivateleAShop = static function () use (&$uPracovni, $u, $syste
         : null;
 };
 
-if (post('pridelitPokoj') && post('uid')) {
-    $uzivatelProUbytovani = Uzivatel::zId(post('uid'));
-    if ($uzivatelProUbytovani) {
-        Pokoj::ubytujNaCislo($uzivatelProUbytovani, post('pokoj'));
-        oznameni('Pokoj přidělen');
-    } else {
-        chyba("Neznámé ID uživatele " . post('uid'));
-    }
+if (post('pridelitPokoj') && $uPracovni) {
+    Pokoj::ubytujNaCislo($uPracovni, post('pokoj'));
+    oznameni('Pokoj přidělen');
 }
 
 if ($shop !== null) {
