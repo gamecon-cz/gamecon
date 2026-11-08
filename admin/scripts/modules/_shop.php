@@ -1,5 +1,6 @@
 <?php
 
+use Gamecon\Admin\FormularPracovnihoUzivatele;
 use Gamecon\Shop\Shop;
 
 /**
@@ -41,8 +42,9 @@ if (!empty($_POST['prodej-mrizka'])) {
 
 ?>
 
-<!-- Náhrada za api call -->
+<!-- Náhrada za api call. Obsah formuláře před odesláním přepíše obchod, ID pracovního uživatele proto leží mimo něj -->
 <form id="prodej-mrizka-form" method="POST" style="display:none;"></form>
+<?= FormularPracovnihoUzivatele::getSkrytePole($uPracovni, 'prodej-mrizka-form') ?>
 
 <link rel="stylesheet" href="<?= zabalAdminSoubor('files/ui/style.css') ?>">
 

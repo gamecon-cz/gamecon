@@ -7,9 +7,11 @@ namespace Gamecon\Admin;
 /**
  * Hlídá, že formulář pracovního uživatele (záložka Uživatel, Infopult) uloží změnu tomu, u koho ho organizátor viděl.
  * Pracovní uživatel je jeden na celou session: kdo ho mezitím přepne v jiné záložce prohlížeče, tomu by dříve načtený
- * formulář uložil ubytování, jídlo, prodej, osobní údaje nebo fotku jinému člověku.
+ * formulář připsal platbu, ubytování, jídlo, prodej, osobní údaje nebo fotku jinému člověku.
  *
- * Formulář se k hlídání přihlásí skrytým polem z @see getSkrytePole(); formulář bez něj se nehlídá.
+ * Stránka, která s pracovním uživatelem pracuje, prožene svůj výstup přes @see doplnDoFormularu(), a hlídaný je tak
+ * každý její POST formulář, i ten, který na ni přibude později. Formulář bez skrytého pole se nehlídá: ostatním
+ * stránkám adminu by přepnutí pracovního uživatele jen zahodilo rozepsaný formulář, který s ním nesouvisí.
  */
 final class FormularPracovnihoUzivatele
 {
@@ -17,10 +19,37 @@ final class FormularPracovnihoUzivatele
 
     /**
      * Skryté pole s ID pracovního uživatele, 0 bez pracovního uživatele (třeba anonymní prodej).
+     *
+     * @param string $idFormulare pole mimo formulář, k němuž patří (atribut `form`), pro formulář, jehož obsah
+     *                            přepisuje skript
      */
-    public static function getSkrytePole(?\Uzivatel $pracovniUzivatel): string
+    public static function getSkrytePole(?\Uzivatel $pracovniUzivatel, string $idFormulare = ''): string
     {
-        return sprintf('<input type="hidden" name="%s" value="%d">', self::POST_ID, $pracovniUzivatel?->id() ?? 0);
+        return sprintf(
+            '<input type="hidden" name="%s" value="%d"%s>',
+            self::POST_ID,
+            $pracovniUzivatel?->id() ?? 0,
+            $idFormulare !== ''
+                ? ' form="' . htmlspecialchars($idFormulare) . '"'
+                : '',
+        );
+    }
+
+    /**
+     * Doplní skryté pole z @see getSkrytePole() na začátek každého POST formuláře v HTML stránky.
+     */
+    public static function doplnDoFormularu(string $html, ?\Uzivatel $pracovniUzivatel): string
+    {
+        $pole = self::getSkrytePole($pracovniUzivatel);
+
+        return preg_replace_callback(
+            // celá značka <form …>, i když je v hodnotě atributu znak > (třeba onsubmit s porovnáním)
+            '~<form\b(?:[^>"\']++|"[^"]*+"|\'[^\']*+\')*+>~i',
+            static fn (array $znacka): string => preg_match('~(?<![\w-])method\s*=\s*["\']?post\b~i', $znacka[0]) === 1
+                ? $znacka[0] . $pole
+                : $znacka[0],
+            $html,
+        ) ?? throw new \RuntimeException('Formuláře stránky se nepodařilo projít: ' . preg_last_error_msg());
     }
 
     /**

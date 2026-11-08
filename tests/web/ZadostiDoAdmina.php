@@ -43,6 +43,14 @@ trait ZadostiDoAdmina
         return $cookieFile;
     }
 
+    private function vyberPracovnihoUzivatele(string $cookieFile, int $idUzivatele): void
+    {
+        self::assertSame(303, $this->odesli($cookieFile, 'uzivatel', [
+            'vybratUzivateleProPraci' => 1,
+            'id'                      => $idUzivatele,
+        ]));
+    }
+
     /**
      * @param array<string, mixed>|string $pole pole se pošle jako multipart, řetězec jako hotové tělo požadavku
      *                                          (curl pole v poli neumí)

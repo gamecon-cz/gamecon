@@ -5,18 +5,33 @@ declare(strict_types=1);
 namespace Gamecon\Tests\web;
 
 use Gamecon\Admin\FormularPracovnihoUzivatele;
+use Gamecon\Login\Login;
+use Gamecon\Role\Role;
+use Gamecon\Shop\TypPredmetu;
 use Symfony\Component\Filesystem\Filesystem;
 
 /**
  * Formulář pracovního uživatele uloží změnu jen tomu, u koho ho organizátor viděl, ne tomu, na koho se mezitím
- * přepnul v jiné záložce prohlížeče. Přes skutečnou administraci, na formuláři osobních údajů záložky Uživatel.
+ * přepnul v jiné záložce prohlížeče. Přes skutečnou administraci, na záložce Uživatel a na Infopultu.
+ *
+ * Každý test pracuje s vlastními uživateli, aby nezávisel na pořadí testů (třída se do původního stavu vrací až po
+ * posledním z nich).
  */
 class FormularPracovnihoUzivateleTest extends AbstractTestWeb
 {
     use ZadostiDoAdmina;
 
+    /**
+     * u něj organizátor formulář načetl, než se v jiné záložce přepnul na druhého
+     */
     private const int ID_PRVNIHO = 9811;
     private const int ID_DRUHEHO = 9812;
+    private const int ID_UKLADAJICIHO = 9813;
+    /**
+     * přihlášený na GameCon s ubytováním: záložka Uživatel i Infopult mu ukážou všechny formuláře
+     */
+    private const int ID_UBYTOVANEHO = 9814;
+    private const int ID_UBYTOVANI = 9811;
 
     /**
      * @var list<string>
@@ -37,11 +52,46 @@ class FormularPracovnihoUzivateleTest extends AbstractTestWeb
 INSERT INTO uzivatele_hodnoty(id_uzivatele, login_uzivatele, jmeno_uzivatele, prijmeni_uzivatele, email1_uzivatele, telefon_uzivatele)
 VALUES
     (%1$d, 'test-formular-prvni', 'Test', 'První', 'test-formular-prvni@example.invalid', '111111111'),
-    (%2$d, 'test-formular-druhy', 'Test', 'Druhý', 'test-formular-druhy@example.invalid', '222222222')
+    (%2$d, 'test-formular-druhy', 'Test', 'Druhý', 'test-formular-druhy@example.invalid', '222222222'),
+    (%3$d, 'test-formular-ukladajici', 'Test', 'Ukládající', 'test-formular-ukladajici@example.invalid', '333333333'),
+    (%4$d, 'test-formular-ubytovany', 'Test', 'Ubytovaný', 'test-formular-ubytovany@example.invalid', '444444444')
 SQL,
                 self::ID_PRVNIHO,
                 self::ID_DRUHEHO,
+                self::ID_UKLADAJICIHO,
+                self::ID_UBYTOVANEHO,
             ),
+            [
+                <<<'SQL'
+INSERT INTO uzivatele_role(id_uzivatele, id_role) VALUES ($0, $1)
+SQL,
+                [
+                    0 => self::ID_UBYTOVANEHO,
+                    1 => Role::PRIHLASEN_NA_LETOSNI_GC,
+                ],
+            ],
+            [
+                <<<'SQL'
+INSERT INTO shop_predmety SET id_predmetu = $0, nazev = 'test formulář ubytování', model_rok = $1,
+    kod_predmetu = 'test-formular-ubytovani', cena_aktualni = 200, stav = 1, nabizet_do = NOW(),
+    kusu_vyrobeno = 100, typ = $2, ubytovani_den = 1
+SQL,
+                [
+                    0 => self::ID_UBYTOVANI,
+                    1 => ROCNIK,
+                    2 => TypPredmetu::UBYTOVANI,
+                ],
+            ],
+            [
+                <<<'SQL'
+INSERT INTO shop_nakupy(id_uzivatele, id_predmetu, rok, cena_nakupni) VALUES ($0, $1, $2, 200)
+SQL,
+                [
+                    0 => self::ID_UBYTOVANEHO,
+                    1 => self::ID_UBYTOVANI,
+                    2 => ROCNIK,
+                ],
+            ],
         ];
     }
 
@@ -69,7 +119,7 @@ SQL,
 
         self::assertSame(303, $this->odesli($session, 'uzivatel', [
             'zmenitUdaj'                         => 'uložit',
-            'udaj[telefon_uzivatele]'            => '333333333',
+            'udaj[telefon_uzivatele]'            => '999999999',
             FormularPracovnihoUzivatele::POST_ID => self::ID_PRVNIHO,
         ]));
 
@@ -84,44 +134,157 @@ SQL,
     public function formularPracovnihoUzivateleSeUlozi(): void
     {
         $session = $this->prihlas(\Uzivatel::SYSTEM_LOGIN);
-        $this->vyberPracovnihoUzivatele($session, self::ID_DRUHEHO);
+        $this->vyberPracovnihoUzivatele($session, self::ID_UKLADAJICIHO);
 
-        // každý formulář v mřížce záložky nese ID pracovního uživatele; formuláře rámu adminu (odhlášení, vzhled) ne
-        $stranka = $this->stahni($session, 'uzivatel');
-        $zacatek = strpos($stranka, 'class="uzivatel-grid--container"');
-        $konec = strpos($stranka, '</form>', (int) strpos($stranka, 'name="prodej[odeslano]"'));
-        self::assertNotFalse($zacatek);
-        self::assertNotFalse($konec);
-        preg_match_all('~<form method="post"[^>]*>.*?</form>~s', substr($stranka, $zacatek, $konec - $zacatek + strlen('</form>')), $formulare);
-        self::assertCount(2, $formulare[0], 'osobní údaje a prodej, ubytování a jídlo má jen přihlášený na GameCon');
-        foreach ($formulare[0] as $formular) {
-            self::assertStringContainsString(
-                'name="' . FormularPracovnihoUzivatele::POST_ID . '" value="' . self::ID_DRUHEHO . '"',
-                $formular,
-            );
+        $formulare = $this->idPracovnihoUzivateleVeFormularich($this->stahni($session, 'uzivatel'));
+        self::assertCount(2, $formulare, 'osobní údaje a prodej, ubytování a jídlo má jen přihlášený na GameCon');
+        foreach ($formulare as $formular => $idPracovnihoUzivatele) {
+            self::assertSame((string) self::ID_UKLADAJICIHO, $idPracovnihoUzivatele, $formular);
         }
 
         self::assertSame(303, $this->odesli($session, 'uzivatel', [
             'zmenitUdaj'                         => 'uložit',
-            'udaj[telefon_uzivatele]'            => '444444444',
-            FormularPracovnihoUzivatele::POST_ID => self::ID_DRUHEHO,
+            'udaj[telefon_uzivatele]'            => '777777777',
+            FormularPracovnihoUzivatele::POST_ID => self::ID_UKLADAJICIHO,
         ]));
 
-        self::assertSame('444444444', $this->telefon(self::ID_DRUHEHO));
+        self::assertSame('777777777', $this->telefon(self::ID_UKLADAJICIHO));
     }
 
-    private function vyberPracovnihoUzivatele(string $session, int $idUzivatele): void
+    /**
+     * Pole nedoplňuje každý formulář zvlášť, ale stránka do všech svých formulářů, i do těch, které přibudou.
+     *
+     * @test
+     */
+    public function kazdyFormularZalozkyUzivatelAInfopultuNeseIdPracovnihoUzivatele(): void
     {
-        self::assertSame(303, $this->odesli($session, 'uzivatel', [
-            'vybratUzivateleProPraci' => 1,
-            'id'                      => $idUzivatele,
+        $session = $this->prihlas(\Uzivatel::SYSTEM_LOGIN);
+        $this->vyberPracovnihoUzivatele($session, self::ID_UBYTOVANEHO);
+
+        foreach ([
+            'uzivatel' => 5,
+            'infopult' => 9,
+        ] as $stranka => $nejmeneFormularu) {
+            $formulare = $this->idPracovnihoUzivateleVeFormularich($this->stahni($session, $stranka));
+            self::assertGreaterThanOrEqual($nejmeneFormularu, count($formulare), $stranka);
+            foreach ($formulare as $formular => $idPracovnihoUzivatele) {
+                self::assertSame((string) self::ID_UBYTOVANEHO, $idPracovnihoUzivatele, "{$stranka}: {$formular}");
+            }
+        }
+    }
+
+    /**
+     * @test
+     */
+    public function platbaNaInfopultuJinemuNezPracovnimuUzivateliSeNepripise(): void
+    {
+        $session = $this->prihlas(\Uzivatel::SYSTEM_LOGIN);
+        // formulář platby se načetl u prvního, pak se v jiné záložce prohlížeče přepnulo na druhého
+        $this->vyberPracovnihoUzivatele($session, self::ID_DRUHEHO);
+
+        self::assertSame(303, $this->odesli($session, 'infopult', [
+            'platba'                             => '100',
+            'poznamka'                           => '',
+            FormularPracovnihoUzivatele::POST_ID => self::ID_PRVNIHO,
         ]));
+
+        self::assertSame(0, $this->pocetPlateb(self::ID_PRVNIHO));
+        self::assertSame(0, $this->pocetPlateb(self::ID_DRUHEHO));
+        self::assertStringContainsString('formulář patřil jinému uživateli', $this->stahni($session, 'infopult'));
+    }
+
+    /**
+     * @test
+     */
+    public function pokojNaZalozceUzivatelSePrideliPracovnimuUzivateli(): void
+    {
+        $session = $this->prihlas(\Uzivatel::SYSTEM_LOGIN);
+        $this->vyberPracovnihoUzivatele($session, self::ID_UBYTOVANEHO);
+
+        self::assertSame(303, $this->odesli($session, 'uzivatel', [
+            'pokoj'                              => '42',
+            'pridelitPokoj'                      => 'Přidělit',
+            FormularPracovnihoUzivatele::POST_ID => self::ID_UBYTOVANEHO,
+        ]));
+
+        self::assertSame('42', (string) dbOneCol(<<<'SQL'
+SELECT pokoj FROM ubytovani WHERE id_uzivatele = $0 AND rok = $1
+SQL, [
+            0 => self::ID_UBYTOVANEHO,
+            1 => ROCNIK,
+        ]));
+        self::assertStringContainsString('Pokoj přidělen', $this->stahni($session, 'uzivatel'));
+    }
+
+    /**
+     * Bez přihlášení (vypršela session, odhlášení v jiné záložce) formulář nezpracuje žádný modul a o přepnutém
+     * pracovním uživateli se nemá co hlásit.
+     *
+     * @test
+     */
+    public function formularPoVyprseniPrihlaseniNehlasiPrepnutiPracovnihoUzivatele(): void
+    {
+        $bezPrihlaseni = (string) tempnam(sys_get_temp_dir(), 'cookie');
+        $this->kUklidu[] = $bezPrihlaseni;
+
+        self::assertSame(200, $this->odesli($bezPrihlaseni, 'uzivatel', [
+            'zmenitUdaj'                         => 'uložit',
+            'udaj[telefon_uzivatele]'            => '999999999',
+            FormularPracovnihoUzivatele::POST_ID => self::ID_PRVNIHO,
+        ]));
+
+        self::assertSame('111111111', $this->telefon(self::ID_PRVNIHO));
+        $stranka = $this->stahni($bezPrihlaseni, 'uzivatel');
+        self::assertStringContainsString('name="' . Login::PASSWORD_INPUT_NAME . '"', $stranka);
+        self::assertStringNotContainsString('formulář patřil jinému uživateli', $stranka);
+    }
+
+    /**
+     * Hodnota skrytého pole pracovního uživatele v každém POST formuláři výstupu modulu, bez formulářů rámu adminu
+     * (hledání uživatele, odhlášení, vzhled). Pole může ležet i mimo formulář, ke kterému patří (atribut `form`).
+     *
+     * @return array<string, string|null> začátek formuláře => hodnota pole, null bez pole
+     */
+    private function idPracovnihoUzivateleVeFormularich(string $stranka): array
+    {
+        $dokument = new \DOMDocument();
+        $predchoziChyby = libxml_use_internal_errors(true);
+        $dokument->loadHTML('<?xml encoding="UTF-8">' . $stranka);
+        libxml_clear_errors();
+        libxml_use_internal_errors($predchoziChyby);
+        $xpath = new \DOMXPath($dokument);
+        $pole = sprintf('input[@name="%s"]', FormularPracovnihoUzivatele::POST_ID);
+
+        $formulare = [];
+        foreach ($xpath->query('//*[@id="mainContent"]//form[translate(@method, "POST", "post") = "post"]') as $formular) {
+            \assert($formular instanceof \DOMElement);
+            $poleFormulare = $xpath->query('.//' . $pole, $formular)->item(0);
+            if ($poleFormulare === null && $formular->getAttribute('id') !== '') {
+                $poleFormulare = $xpath->query(sprintf('//%s[@form="%s"]', $pole, $formular->getAttribute('id')))->item(0);
+            }
+            $popis = count($formulare) . ': '
+                . mb_substr((string) preg_replace('~\s+~', ' ', (string) $dokument->saveHTML($formular)), 0, 300);
+            $formulare[$popis] = $poleFormulare instanceof \DOMElement
+                ? $poleFormulare->getAttribute('value')
+                : null;
+        }
+
+        return $formulare;
     }
 
     private function telefon(int $idUzivatele): string
     {
         return (string) dbOneCol(<<<'SQL'
 SELECT telefon_uzivatele FROM uzivatele_hodnoty WHERE id_uzivatele = $0
+SQL, [
+            0 => $idUzivatele,
+        ]);
+    }
+
+    private function pocetPlateb(int $idUzivatele): int
+    {
+        return (int) dbOneCol(<<<'SQL'
+SELECT COUNT(*) FROM platby WHERE id_uzivatele = $0
 SQL, [
             0 => $idUzivatele,
         ]);

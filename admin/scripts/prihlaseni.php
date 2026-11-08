@@ -95,8 +95,11 @@ if (post('zrusitUzivateleProPraci')) {
     back();
 }
 
-// dřív, než formulář zpracuje kterýkoli modul
-FormularPracovnihoUzivatele::hlidej($_POST, $uPracovni);
+// Dřív, než formulář zpracuje kterýkoli modul. Nepřihlášenému (odhlásil se v jiné záložce, vypršela mu session)
+// formulář nezpracuje žádný modul, a hláška o přepnutém pracovním uživateli by ho jen mátla.
+if ($u !== null) {
+    FormularPracovnihoUzivatele::hlidej($_POST, $uPracovni);
+}
 
 if (post('prihlasitSeJakoUzivatel')) {
     try {
