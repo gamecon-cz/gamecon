@@ -8,9 +8,10 @@ use Symfony\Component\Filesystem\Exception\IOException;
 use Symfony\Component\Filesystem\Filesystem;
 
 /**
- * Zápis a čtení AVIF přes Imagick. Dev obraz a ostrá mají jiný ImageMagick (7.1 proti 6.9) a ten starší zapíše AVIF
- * s průhledností špatně, AVIF čte v YCbCr a s náhodnou průhledností, takže se průhledné AVIF zapisuje jen tam, kde to
- * zkouška potvrdí, viz @see self::isAvifWritable().
+ * Zápis a čtení AVIF přes Imagick. ImageMagick 7.1 (dev obraz) zapisuje a čte AVIF správně. 6.9.11 (ostrá na Ubuntu
+ * 22.04) zapíše AVIF s průhledností špatně, čte ho v YCbCr a s náhodnou průhledností; 6.9.12 s libheif 1.17 (Ubuntu
+ * 24.04) průhlednost zapisuje i čte správně. Průhledné AVIF se proto zapisuje jen tam, kde to zkouška potvrdí, ne podle
+ * verze, viz @see self::isAvifWritable().
  */
 class ImagickAvif
 {
@@ -20,8 +21,10 @@ class ImagickAvif
     private const array KVALITA_PODLE_WEBP = [80 => 62, 85 => 70, 92 => 82, 98 => 90, 100 => 100];
     /** Zkouška se zopakuje, kdyby se mezitím změnila knihovna, kterou verze ImageMagicku nepozná (například libheif) */
     private const int PLATNOST_ZKOUSKY_SEKUND = 3600;
-    /** Od téhle verze ImageMagicku (`Imagick::getVersion()['versionNumber']`, 7.0.0) se AVIF s průhledností zapisuje i čte správně */
-    private const int PRVNI_VERZE_S_PRUHLEDNYM_AVIF = 0x700;
+    /** Od téhle verze ImageMagicku (`Imagick::getVersion()['versionNumber']`, 7.0.0) dekodér AVIF nevrací náhodnou průhlednost */
+    private const int PRVNI_VERZE_S_DETERMINISTICKYM_DEKODEREM = 0x700;
+    /** Dekodér ImageMagicku 6 vrací někdy náhodnou průhlednost, takže jedno kolečko s průhledností může projít náhodou (na 22.04 jen každé druhé) */
+    private const int OPAKOVANI_ZKOUSKY_PRUHLEDNOSTI_NA_STARSIM_IMAGICKU = 10;
     /** Průhlednost v AVIF je pomocný obraz s tímhle řetězcem v bloku `auxC`, který je na začátku souboru */
     private const string ZNACKA_PRUHLEDNOSTI = 'auxiliary:alpha';
     private const int BAJTU_PRO_HLEDANI_PRUHLEDNOSTI = 65536;
@@ -31,6 +34,8 @@ class ImagickAvif
     /** @var array{neprusvitny: bool, prusvitny: bool}|null */
     private static ?array $vysledekZkousky = null;
     private static ?bool $starsiImagickProTesty = null;
+    /** @var (callable(\Imagick, bool): string)|null */
+    private static $zapisProTesty = null;
 
     /**
      * Kvalita AVIF, která odpovídá kvalitě WebP (nebo JPEG) z téhle stupnice.
@@ -89,22 +94,32 @@ class ImagickAvif
     /**
      * Jestli AVIF v souboru nese průhlednost; soubor, který se nepodaří přečíst, ji nemá. Označení leží na začátku
      * souboru, ale za barevným profilem, takže u obrázku s velkým profilem ho tohle hledání nenajde; proto se podle něj
-     * průhlednost vypíná jen na ImageMagicku 6, kde je to nutné.
+     * průhlednost vypíná jen na ImageMagicku 6, kde je to nutné. AVIF s průhledností a velkým profilem tak na ImageMagicku 6
+     * o průhlednost přijde, i na 6.9.12, kde zkouška projde.
      */
     public static function isTransparent(string $cesta): bool
     {
         $zacatek = @file_get_contents($cesta, false, null, 0, self::BAJTU_PRO_HLEDANI_PRUHLEDNOSTI);
 
-        return is_string($zacatek) && str_contains($zacatek, self::ZNACKA_PRUHLEDNOSTI);
+        return is_string($zacatek) && self::maZnackuPruhlednosti($zacatek);
     }
 
     /**
-     * ImageMagick 6 (ostrá), který AVIF s průhledností zapisuje i čte špatně.
+     * Jestli začátek souboru nese označení pomocného obrazu s průhledností. Zapisovač, který průhlednost zahodí,
+     * ho nezapíše.
+     */
+    public static function maZnackuPruhlednosti(string $obsah): bool
+    {
+        return str_contains(substr($obsah, 0, self::BAJTU_PRO_HLEDANI_PRUHLEDNOSTI), self::ZNACKA_PRUHLEDNOSTI);
+    }
+
+    /**
+     * ImageMagick 6, jehož dekodér AVIF vrací někdy náhodnou průhlednost. Co zvládne zapsat, říká zkouška, ne tahle metoda.
      */
     public static function isStarsiImagick(): bool
     {
         return self::$starsiImagickProTesty
-            ?? \Imagick::getVersion()['versionNumber'] < self::PRVNI_VERZE_S_PRUHLEDNYM_AVIF;
+            ?? \Imagick::getVersion()['versionNumber'] < self::PRVNI_VERZE_S_DETERMINISTICKYM_DEKODEREM;
     }
 
     /**
@@ -155,6 +170,18 @@ class ImagickAvif
     }
 
     /**
+     * Pro testy: nahradí zápis obrázku ve zkoušce. Zapisovač dostane obrázek s nastaveným zápisem a jestli má průhlednost
+     * a vrátí bajty souboru, třeba takový, který průhlednost zahodí; null vrátí skutečný zápis.
+     *
+     * @param (callable(\Imagick, bool): string)|null $zapis
+     */
+    public static function setZapisProTesty(?callable $zapis): void
+    {
+        self::$zapisProTesty   = $zapis;
+        self::$vysledekZkousky = null;
+    }
+
+    /**
      * @return array{neprusvitny: bool, prusvitny: bool}
      */
     private static function nactiNebo(): array
@@ -177,8 +204,9 @@ class ImagickAvif
     }
 
     /**
-     * Skutečná zkouška bez mezipaměti. Průhlednost se na ImageMagicku 6 nezkouší: jeho dekodér AVIF vrací u malých obrázků
-     * náhodnou průhlednost, takže by zkouška jednou prošla a jednou ne.
+     * Skutečná zkouška bez mezipaměti. Průhlednost se nerozhoduje podle verze ImageMagicku, ale podle toho, co zapíše
+     * a přečte: 6.9.11 ji zapíše špatně, 6.9.12 správně. Jedno kolečko s průhledností by na ImageMagicku 6 mohlo projít
+     * náhodou (jeho dekodér vrací někdy náhodnou průhlednost), proto se tam opakuje.
      *
      * @return array{neprusvitny: bool, prusvitny: bool}
      */
@@ -190,13 +218,27 @@ class ImagickAvif
 
         return [
             'neprusvitny' => self::projdeKolecek(false),
-            'prusvitny'   => !self::isStarsiImagick() && self::projdeKolecek(true),
+            'prusvitny'   => self::projdeKolecekSPruhlednosti(),
         ];
+    }
+
+    private static function projdeKolecekSPruhlednosti(): bool
+    {
+        $opakovani = self::isStarsiImagick()
+            ? self::OPAKOVANI_ZKOUSKY_PRUHLEDNOSTI_NA_STARSIM_IMAGICKU
+            : 1;
+        for ($pokus = 0; $pokus < $opakovani; $pokus++) {
+            if (!self::projdeKolecek(true)) {
+                return false;
+            }
+        }
+
+        return true;
     }
 
     /**
      * Zapíše a přečte obrázek 16 × 16 px: vlevo červená, vpravo modrá, nebo průhledná. Barva pixelu se musí dost
-     * podobat a u průhledného obrázku musí průhledný pixel zůstat průhledný.
+     * podobat a u průhledného obrázku musí soubor nést označení průhlednosti a průhledný pixel musí zůstat průhledný.
      */
     private static function projdeKolecek(bool $pravaPolovinaPruhledna): bool
     {
@@ -215,7 +257,12 @@ class ImagickAvif
                 $obrazek = $zJpeg;
             }
             self::nastavZapis($obrazek, 80);
-            $obsah = $obrazek->getImageBlob();
+            $obsah = (self::$zapisProTesty ?? static fn (\Imagick $zapisovany): string => $zapisovany->getImageBlob())($obrazek, $pravaPolovinaPruhledna);
+            // Zapisovač, který průhlednost zahodí, nenechá v souboru označení. Podle pixelů by se to na ImageMagicku 6 s náhodnou
+            // průhledností při čtení poznat nedalo spolehlivě.
+            if ($pravaPolovinaPruhledna && !self::maZnackuPruhlednosti($obsah)) {
+                return false;
+            }
 
             $nacteny = new \Imagick();
             $nacteny->readImageBlob($obsah);

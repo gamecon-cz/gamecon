@@ -16,6 +16,7 @@ class ImagickAvifTest extends TestCase
     {
         ImagickAvif::setZkouskaProTesty(null);
         ImagickAvif::setStarsiImagickProTesty(null);
+        ImagickAvif::setZapisProTesty(null);
         @unlink(ImagickAvif::getSouborMezipameti());
     }
 
@@ -254,5 +255,115 @@ class ImagickAvifTest extends TestCase
 
         ImagickAvif::setZkouskaProTesty(null);
         self::assertTrue(ImagickAvif::isAvifWritable(true), 'Skutečná zkouška na tomhle ImageMagicku projde');
+    }
+
+    /**
+     * O průhlednosti se nerozhoduje podle verze ImageMagicku: 6.9.11 ji zapisuje špatně, 6.9.12 s novějším libheif
+     * správně. Rozhodne, co ImageMagick skutečně zapíše a přečte.
+     *
+     * @test
+     */
+    public function starsiImagickKterySPruhlednostiZvladneDostaneAvifSPruhlednosti(): void
+    {
+        ImagickAvif::setStarsiImagickProTesty(true);
+
+        self::assertSame(
+            [
+                'neprusvitny' => true,
+                'prusvitny'   => true,
+            ],
+            ImagickAvif::provedZkousku(),
+            'Dev obraz zapíše i přečte průhlednost správně, takže zkouška projde, i když se tváří jako ImageMagick 6',
+        );
+    }
+
+    /**
+     * Dekodér ImageMagicku 6 někdy vrací náhodnou průhlednost, takže jedno kolečko může projít náhodou (na 22.04 jen každé
+     * druhé). Na ImageMagicku 6 se proto opakuje, na novějším, který je deterministický, ne.
+     *
+     * @test
+     */
+    public function zkouskaPruhlednostiSeNaStarsimImagickuOpakujeANaNovemNe(): void
+    {
+        $spoctiZapisyPruhlednosti = static function (bool $starsiImagick): int {
+            $zapisu = 0;
+            ImagickAvif::setZapisProTesty(static function (\Imagick $obrazek, bool $sPruhlednosti) use (&$zapisu): string {
+                if ($sPruhlednosti) {
+                    ++$zapisu;
+                }
+
+                return $obrazek->getImageBlob();
+            });
+            ImagickAvif::setStarsiImagickProTesty($starsiImagick);
+            ImagickAvif::provedZkousku();
+
+            return $zapisu;
+        };
+
+        self::assertGreaterThan(1, $spoctiZapisyPruhlednosti(true));
+        self::assertSame(1, $spoctiZapisyPruhlednosti(false));
+    }
+
+    /**
+     * Opakování zkoušky se zastaví u prvního neúspěchu, takže zkouška, která neprojde, nestojí desetinásobek.
+     *
+     * @test
+     */
+    public function zkouskaPruhlednostiSeZastaviUPrvnihoNeuspechu(): void
+    {
+        $zapisu = 0;
+        ImagickAvif::setStarsiImagickProTesty(true);
+        ImagickAvif::setZapisProTesty(static function (\Imagick $obrazek, bool $sPruhlednosti) use (&$zapisu): string {
+            if ($sPruhlednosti) {
+                ++$zapisu;
+                $obrazek->setImageAlphaChannel(\Imagick::ALPHACHANNEL_REMOVE);
+            }
+
+            return $obrazek->getImageBlob();
+        });
+
+        ImagickAvif::provedZkousku();
+
+        self::assertSame(1, $zapisu);
+    }
+
+    /**
+     * ImageMagick 6.9.11 zapíše průhledný obrázek bez pomocného obrazu s průhledností (zkušební obrázek jako 301 bajtů).
+     * Takový zapisovač zkouškou neprojde, ani kdyby ho dekodér při čtení náhodou vykouzlil průhlednost.
+     *
+     * @test
+     */
+    public function zapisovacKteryPruhlednostZahodiZkouskouNeprojde(): void
+    {
+        ImagickAvif::setStarsiImagickProTesty(true);
+        ImagickAvif::setZapisProTesty(static function (\Imagick $obrazek, bool $sPruhlednosti): string {
+            if ($sPruhlednosti) {
+                $obrazek->setImageAlphaChannel(\Imagick::ALPHACHANNEL_REMOVE);
+            }
+
+            return $obrazek->getImageBlob();
+        });
+
+        self::assertSame(
+            [
+                'neprusvitny' => true,
+                'prusvitny'   => false,
+            ],
+            ImagickAvif::provedZkousku(),
+        );
+    }
+
+    /**
+     * @test
+     */
+    public function znackaPruhlednostiSePoznaVBajtechSouboru(): void
+    {
+        $sPruhlednosti = new \Imagick();
+        $sPruhlednosti->newImage(16, 16, new \ImagickPixel('transparent'));
+        ImagickAvif::nastavZapis($sPruhlednosti, 80);
+
+        self::assertTrue(ImagickAvif::maZnackuPruhlednosti($sPruhlednosti->getImageBlob()));
+        self::assertFalse(ImagickAvif::maZnackuPruhlednosti(self::avifBajty()));
+        self::assertFalse(ImagickAvif::maZnackuPruhlednosti(''));
     }
 }
