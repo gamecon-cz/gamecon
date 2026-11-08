@@ -58,12 +58,20 @@ a [https://{STARY\_ROCNIK}.gamecon.cz/admin](https://stary_rocnik.gamecon.cz/adm
 
 - Znovu si zkontroluj, že máš aktuální zálohu databáze s ostré a případně si stáhni novou, viz začátek tohoto README.
 
+    - Pozor ⚠️, úplně nejdřív, před generováním SQL a před jakoukoli změnou rolí nebo slev, je potřeba dokončit rozpracované
+      objednávky e-shopu: do přepnutí totiž změna role přeceňuje rozpracovanou objednávku aktuálního roku. Hromadné
+      dokončení zatím chybí (viz [Issue #1308](https://github.com/gamecon-cz/gamecon/issues/1308)). Objednávku z košíku dokončí
+      jen tlačítko „Odjel z GC" („Odjela z GC") na infopultu, u přítomného účastníka, takže objednávky těch, kdo nepřijeli nebo odjezd
+      nezapsali, zůstávají rozpracované.
     - A pak jdi na stránku [https://admin.gamecon.cz/nastaveni](https://admin.gamecon.cz/nastaveni), dole najdi sekci
       „SQL update pro uzavření financí" a klikni na tlačítko pro vygenerování SQL příkazů
         - _Tato stránka pouze vygeneruje kód, kterým později upravíš zůstatky peněz u všech lidí. Tento kód je potřeba
-          si zkopírovat a uložit. V posledním kroku po nasazení webu tento skript pustíme na ostré databázi._
+          si zkopírovat a uložit. Skript se pouští na ostré databázi před přepnutím `ROCNIK`, viz níže._
     - Skript zkopíruj a ručně spusť na ostré databázi
       - Pozor ⚠️, poté už negeneruj a hlavně nespouštěj nový skript, do zůstatků by se znovu započetly už započtené změny!
+    - Katalog e-shopu se při přepnutí nearchivuje. Nový katalog se importuje až před otevřením e-shopu (kolem května) a
+      import archivuje všechno, co v listu chybí. Cenou je, že statistika prodeje ukáže u minulého ročníku nuly pro placky,
+      kostky a trička (ověřeno čtením dotazu, ne na datech). Podrobnosti jsou v [`docs/generated/prepnuti-rocniku-a-eshop.md`](./docs/generated/prepnuti-rocniku-a-eshop.md).
 
 - Z gitu si stáhni aktuální repozitář projektu Gamecon a vytvoř novou větev, do které budeš commitovat změny.
 
@@ -82,6 +90,10 @@ a [https://{STARY\_ROCNIK}.gamecon.cz/admin](https://stary_rocnik.gamecon.cz/adm
        uživatelů, negeneruj už nový skript
        z [https://admin.gamecon.cz/nastaveni](https://admin.gamecon.cz/nastaveni), musíš
        použít ten z předchozího ročníku, viz některý z předchozích kroků
+    2. Pravidla slev se nekopírují: platí v každém ročníku, takže nový ročník je má hned. Jen placku a kostku zdarma
+       pojmenovává každý ročník zvlášť, a to import e-shopu před jeho otevřením, ale jen když list obsahuje sloupec
+       `je_letosni_hlavni` a je v něm právě jeden předmět na druh (jinak import vypíše varování a pravidlo zůstane bez
+       kódu). Do té doby tato dvě pravidla nic nedají, ostatní fungují hned.
 
 - Otevři si oficiální stránku [gamecon.cz](https://gamecon.cz/) a zkontroluj, zda vše funguje jak má.
 
