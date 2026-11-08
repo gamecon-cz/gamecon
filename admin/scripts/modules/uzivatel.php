@@ -63,25 +63,15 @@ $shop      = $uPracovni
 include __DIR__ . '/_uzivatel_ovladac.php';
 
 // Fotku vypravěče spravují Medailonky, tady je po ruce u toho, s kým se zrovna pracuje. Práva má stejná jako Medailonky.
-$fotka = $uPracovni
+// Odeslaný formulář se zpracuje, i když už fotka mezitím zmizela a s ní důvod formulář ukazovat (viz níže).
+$fotka = $uPracovni && AdminMenu::isPodstrankaPristupna($u, 'aktivity', 'medailonky')
     ? new FotkaUzivatele($uPracovni)
     : null;
-$spravaFotky = $fotka !== null
-    && $fotka->isRelevantniVRocniku($systemoveNastaveni->rocnik())
-    && AdminMenu::isPodstrankaPristupna($u, 'aktivity', 'medailonky');
-if ($spravaFotky) {
-    $fotka->zpracujPost();
-}
+$fotka?->zpracujPost();
 
 $x = new XTemplate(__DIR__ . '/uzivatel.xtpl');
 
-$skrytePolePracovnihoUzivatele = FormularPracovnihoUzivatele::getSkrytePole($uPracovni);
-$x->assign([
-    'ok'                            => $ok,
-    'err'                           => $err,
-    'rok'                           => ROCNIK,
-    'skrytePolePracovnihoUzivatele' => $skrytePolePracovnihoUzivatele,
-]);
+$x->assign(['ok' => $ok, 'err' => $err, 'rok' => ROCNIK]);
 $x->assign('nechceUbytovani', '');
 if ($uPracovni) {
     $x->assign([
@@ -228,9 +218,9 @@ if ($uPracovni) {
     $x->parse('uzivatel.historieUcasti');
 }
 
-if ($spravaFotky) {
+if ($fotka !== null && $fotka->isRelevantniVRocniku($systemoveNastaveni->rocnik())) {
     $x->assign([
-        'fotkaHtml'             => $fotka->getHtml($skrytePolePracovnihoUzivatele),
+        'fotkaHtml'             => $fotka->getHtml(),
         'idPracovnihoUzivatele' => $uPracovni->id(),
     ]);
     $x->parse('uzivatel.fotka');

@@ -10,7 +10,6 @@
     <!-- end:nema -->
     <form method="post" enctype="multipart/form-data">
       <input type="hidden" name="{postAkce}" value="nahrat">
-      {skrytaPole}
       <input type="file" name="{postSoubor}" accept="{accept}" required>
       <button type="submit">Nahrát fotku</button>
       <div class="tip">{limit}. Nová fotka nahradí tu dosavadní. Nejlépe vypadá čtvercová fotka obličeje aspoň 360 × 360 px.</div>
@@ -18,7 +17,6 @@
     <!-- begin:smazat -->
     <form method="post" onsubmit="return confirm('Opravdu smazat fotku?')">
       <input type="hidden" name="{postAkce}" value="smazat">
-      {skrytaPole}
       <button type="submit">Smazat fotku</button>
     </form>
     <!-- end:smazat -->

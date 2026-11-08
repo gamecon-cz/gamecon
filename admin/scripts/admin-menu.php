@@ -8,6 +8,14 @@
 class AdminMenu
 {
 
+    /**
+     * Sestavená menu podle složky. Moduly se během požadavku nemění, a stránka, která se ptá na přístup k jiné
+     * stránce (@see isPodstrankaPristupna()), tak nečte hlavičky modulů znovu po admin/index.php.
+     *
+     * @var array<string, array{menu: array, patickaSoubor: ?string}>
+     */
+    private static array $sestavenaMenu = [];
+
     /** @var string */
     private readonly string $src;
     private ?array          $menu          = null;
@@ -18,7 +26,18 @@ class AdminMenu
         $this->src = rtrim(trim($src), '/') . '/';
     }
 
-    private function sestavMenu()
+    private function sestavMenu(): void
+    {
+        $klic = $this->src . ($this->isSubmenu ? '|submenu' : '');
+        if (!isset(self::$sestavenaMenu[$klic])) {
+            $this->nactiModuly();
+            self::$sestavenaMenu[$klic] = ['menu' => $this->menu, 'patickaSoubor' => $this->patickaSoubor];
+        }
+        $this->menu          = self::$sestavenaMenu[$klic]['menu'];
+        $this->patickaSoubor = self::$sestavenaMenu[$klic]['patickaSoubor'] ?? $this->patickaSoubor;
+    }
+
+    private function nactiModuly(): void
     {
         $this->menu = [];
         $d          = opendir($this->src);

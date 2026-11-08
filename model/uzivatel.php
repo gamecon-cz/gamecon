@@ -565,7 +565,7 @@ SQL, [Pravo::PORADANI_AKTIVIT],
     /**
      * Vrátí objekt Náhled s fotkou uživatele nebo výchozí fotku
      */
-    public function fotkaAuto(): ?Nahled
+    public function fotkaAuto(): Nahled
     {
         return $this->fotka() ?? $this->getVychoziFotka();
     }
@@ -2281,18 +2281,28 @@ SQL,
     public static function invalidujProgramCacheJeLiVypravecem(int $idUzivatele): void
     {
         $systemoveNastaveni = SystemoveNastaveni::zGlobals();
-        $jeVypravec = (bool) dbOneCol(
-            'SELECT 1 FROM akce_organizatori
-                JOIN akce_seznam ON akce_seznam.id_akce = akce_organizatori.id_akce
-                WHERE akce_organizatori.id_uzivatele = $1 AND akce_seznam.rok = $2
-                LIMIT 1',
-            [$idUzivatele, $systemoveNastaveni->rocnik()],
-        );
-        if (! $jeVypravec) {
+        if (! self::isVedouciAktivityVRocniku($idUzivatele, $systemoveNastaveni->rocnik())) {
             return;
         }
         (new ProgramStaticFileGenerator($systemoveNastaveni))
             ->touchDirtyFlag(ProgramStaticFileType::AKTIVITY, tryStartWorker: false);
+    }
+
+    /**
+     * Vede (organizuje) uživatel v ročníku aspoň jednu aktivitu? Web ho pak ukazuje jako vypravěče, i bez ročníkové role.
+     */
+    public static function isVedouciAktivityVRocniku(int $idUzivatele, int $rocnik): bool
+    {
+        return dbOneCol(<<<'SQL'
+SELECT 1
+FROM akce_organizatori
+JOIN akce_seznam ON akce_seznam.id_akce = akce_organizatori.id_akce
+WHERE akce_organizatori.id_uzivatele = $0
+  AND akce_seznam.rok = $1
+LIMIT 1
+SQL,
+            [0 => $idUzivatele, 1 => $rocnik],
+        ) !== null;
     }
 
     /**
