@@ -1,12 +1,12 @@
 # Převod stávajících obrázků do AVIF
 
-Nově nahrané obrázky se ukládají jako AVIF samy. Obrázky nahrané dřív (přes FTP i z administrace) zůstávají JPG a PNG, dokud je nepřevede příkaz `obrazky:prevest-na-avif`: vyrobí AVIF vedle originálu a přepíše odkazy na něj v textech webu. Co převede a co ne (WebP, soubory ke stažení, obrázky z e-mailů, galerie e-shopu, loga, fotky vypravěčů) a proč, je v [`docs/generated/nahravani-obrazku.md`](../docs/generated/nahravani-obrazku.md).
+Nově nahrané obrázky se ukládají jako AVIF samy. Obrázky nahrané dřív (přes FTP i z administrace) zůstávají JPG a PNG, dokud je nepřevede příkaz `obrazky:prevest-na-avif`: vyrobí AVIF vedle originálu a přepíše odkazy na něj v textech webu; stejně převede fotky uživatelů (`systemove/fotky`), jen bez textů, protože na ně nic neodkazuje. Co převede a co ne (WebP v textech, soubory ke stažení, obrázky z e-mailů, galerie e-shopu, loga) a proč, je v [`docs/generated/nahravani-obrazku.md`](../docs/generated/nahravani-obrazku.md).
 
 Každé prostředí má vlastní nahrané soubory, které nejsou v gitu, takže se převádí zvlášť: **nejdřív beta, potom ostrá**.
 
 ## Než začneš
 
-- **Nahrané soubory se nezálohují** (Borg bere jen databáze a `backup/db`, viz [`borg.md`](borg.md)). Udělej kopii `web/soubory/obsah`, například `cp -a web/soubory/obsah <mimo-web>/obsah-pred-avif`, a export databáze. Bez nich se převod nedá vrátit.
+- **Nahrané soubory se nezálohují** (Borg bere jen databáze a `backup/db`, viz [`borg.md`](borg.md)). Udělej kopii `web/soubory/obsah` a `web/soubory/systemove/fotky`, například `cp -a web/soubory/obsah <mimo-web>/obsah-pred-avif` a `cp -a web/soubory/systemove/fotky <mimo-web>/fotky-pred-avif`, a export databáze. Bez nich se převod nedá vrátit. Fotky jsou fotky lidí s GPS v EXIFu, takže kopii drž mimo web, nikam ji nesdílej a po ověření ji smaž.
 - Příkaz se spouští jako uživatel webserveru (www-data), aby nové soubory šly z administrace smazat a nahradit.
 - **Prostředí se pozná stejně jako na webu**, podle `SERVER_NAME` z `nastaveni/nastaveni-server.php`, který generuje nasazení. Příkaz proto při zápisu chce i `--prostredi` a odmítne ho, když se neshoduje s tím, co sám pozná. Na začátku každého běhu vypíše prostředí, databázi a adresář, se kterými pracuje: zkontroluj je. Zápis navíc odmítne, když prostředí nesedí k adresáři projektu (beta je adresář `beta`) nebo k adrese webu (`URL_WEBU`) načteného nastavení: prázdný `SERVER_NAME` by z bety udělal `ostre`, chybějící soubor `locale`. Na betě proto musí vypsat `beta`.
 - Mazání originálů prochází všechny textové sloupce databáze (char, varchar, text): jeden dotaz na sloupec zjistí, jestli vůbec obsahuje `soubory/obsah/`, a jen takové sloupce se pak čtou znovu, jednou za každých 30 originálů, takže doba roste s jejich počtem. Zmínka o souboru v kterémkoli textu, třeba v logu, jeho smazání zablokuje. Zkouší se pět zápisů cesty (obyčejný, celý zakódovaný, s `%20`, s kódovanou diakritikou, s obojím), HTML entita v názvu, JSON se `\/` a jiné směsi se nepoznají, takže před smazáním projdi v suchém běhu, co se smaže. Sloupec s odkazy v jiné znakové sadě než utf8 nebo s kolací `_bin` mazání zastaví chybou. Spouštěj ho mimo špičku.
@@ -28,6 +28,8 @@ sudo -u www-data env APP_ENV=prod APP_DEBUG=0 php bin/console obrazky:prevest-na
 
 Na ostré je to `--prostredi=ostre`.
 
+Bez přepínače `--oblast` převádí příkaz obojí, nejdřív obrázky v textech, pak fotky uživatelů. Jen fotky: `--oblast=fotky`, zkouška na třech: `--oblast=fotky --limit=3`. Přepínač `--slozka` omezuje jen obrázky v textech a s ním se fotky nepřevádějí, takže zkouška z kroku 2 na fotky nesahá.
+
 Příkaz se dá spustit znovu kdykoli: hotový AVIF použije, jiný stejnojmenný AVIF nepřepíše a řádek textu, který někdo mezitím upravil, přeskočí (vypíše ho, stačí příkaz zopakovat).
 
 ## Po převodu
@@ -40,11 +42,12 @@ Příkaz se dá spustit znovu kdykoli: hotový AVIF použije, jiný stejnojmenn�
    sudo -u www-data env APP_ENV=prod APP_DEBUG=0 php bin/console obrazky:prevest-na-avif --smazat-puvodni --provest --zaloha-hotova --prostredi=beta
    ```
 
-   Smaže jen originál, na který už nic neodkazuje a který má vedle stejný AVIF.
+   Smaže jen originál, na který už nic neodkazuje a který má vedle stejný AVIF. U fotek uživatelů tím z ostré zmizí i GPS v originálech, které jsou veřejně na odhadnutelné adrese `systemove/fotky/<id>.jpg`.
 3. **Beta bere databázi z ostré.** Po jejím obnovení z ostré, která už odkazuje na AVIF, spusť převod na betě znovu: doplní AVIF k JPG a PNG, které tam zůstaly.
 4. **AVIF z PNG, který vznikl před opravou vzorkování barev, má zprůměrované barvy sytých hran** (viz Gotchas v [`nahravani-obrazku.md`](../docs/generated/nahravani-obrazku.md)). Smaž ho (PNG vedle něj zůstává) a spusť příkaz znovu.
 5. **Starší běh vynechával obrázky, na kterých AVIF ušetřil málo** (pod 2 KiB nebo čtvrtinu). Pravidlo už neplatí, takže další běh je převede taky.
+6. **Fotky uživatelů:** otevři stránku vypravěče a zkontroluj, že se jeho fotka ukáže. `Uzivatel::fotka()` bere první shodu z `glob`, který řadí podle abecedy, takže po převodu je to AVIF; náhled se přegeneruje sám.
 
 ## Návrat zpět
 
-Z kopie obnov `web/soubory/obsah` a z exportu texty (stránky, novinky, popisy aktivit, medailonky). Dokud se originály nesmažou, stačí vrátit jen texty.
+Z kopie obnov `web/soubory/obsah`, `web/soubory/systemove/fotky` a z exportu texty (stránky, novinky, popisy aktivit, medailonky). Dokud se originály nesmažou, stačí vrátit jen texty; fotky uživatelů texty nepřepisují, stačí smazat AVIF vedle originálu a `glob` najde zase originál.
