@@ -11,17 +11,15 @@ use Gamecon\Uzivatel\SqlStruktura\UpominkaVlastniZneniSqlStruktura;
  * Převede JPEG a PNG vložené do textů webu (`soubory/obsah`) do AVIF a přepíše odkazy na ně, stejně jako to dělá nové
  * nahrání. Obrázek se převede, jen když ho texty vkládají (ne když na něj odkazují ke stažení) a nezabírá ho jiný modul
  * ani e-mail. Originál se při převodu nemaže, to je až @see self::smazPuvodni().
+ *
+ * Totéž dělá pro fotky uživatelů (@see self::proFotkyUzivatelu()), jen bez textů: fotku web najde podle id uživatele,
+ * takže se nic nepřepisuje a AVIF, který leží vedle originálu, má při hledání přednost (`glob` řadí podle abecedy).
  */
 final class PrevodObrazkuNaAvif
 {
-    private const array PRIPONY_ZDROJE = ['jpg', 'jpeg', 'png'];
     private const string PRIPONA_CILE = 'avif';
     /** Co se hledá v textech: zdroje, a AVIF, který tam může být z databáze zkopírované z prostředí, kde už se převádělo */
     private const array PRIPONY_ODKAZU = ['jpg', 'jpeg', 'png', 'avif'];
-    private const array KODEKY_ZDROJE = [
-        NahravaniObrazku::JPG => 'jpeg',
-        NahravaniObrazku::PNG => 'png',
-    ];
     /** @var list<array{string, string}> tabulka a sloupec s textem e-mailu nebo upomínky */
     private const array TEXTY_E_MAILU = [
         [EmailovaSablonaSqlStruktura::EMAILOVA_SABLONA_TABULKA, EmailovaSablonaSqlStruktura::TEXT],
@@ -40,7 +38,7 @@ final class PrevodObrazkuNaAvif
     private const array ZNAKOVE_SADY_S_DIAKRITIKOU = ['utf8mb4', 'utf8mb3', 'utf8'];
 
     /**
-     * @param string $adresarObsahu `soubory/obsah` webu
+     * @param string $adresarObsahu kořen, ve kterém se převádí: `soubory/obsah` webu, u fotek uživatelů jejich složka
      * @param string|null $podslozka složka v něm, na kterou se běh omezí (zkouška), třeba `blog`
      */
     public function __construct(
@@ -48,7 +46,22 @@ final class PrevodObrazkuNaAvif
         private readonly PouzitiObrazku $pouziti,
         private readonly string $adresarObsahu,
         private readonly ?string $podslozka = null,
+        private readonly OblastPrevoduObrazkuEnum $oblast = OblastPrevoduObrazkuEnum::TEXTY,
     ) {
+    }
+
+    /**
+     * @param string|null $podslozka složka ve složce fotek, na kterou se běh omezí (testy)
+     */
+    public static function proFotkyUzivatelu(OptimalizaceObrazku $optimalizace, PouzitiObrazku $pouziti, ?string $podslozka = null): self
+    {
+        return new self(
+            $optimalizace,
+            $pouziti,
+            ZpracovaneObrazky::adresarFotekUzivatelu(),
+            $podslozka,
+            OblastPrevoduObrazkuEnum::FOTKY_UZIVATELU,
+        );
     }
 
     /**
@@ -60,7 +73,9 @@ final class PrevodObrazkuNaAvif
      */
     public function proved(bool $naostro, ?int $limit = null): VysledekPrevoduObrazku
     {
-        $odkazy = $this->getOdkazyVTextech();
+        $odkazy = $this->oblast->isZTextu()
+            ? $this->getOdkazyVTextech()
+            : [];
 
         $kandidati = [];
         $chybejicich = 0;
@@ -80,6 +95,12 @@ final class PrevodObrazkuNaAvif
                 );
             }
         }
+        if (!$this->oblast->isZTextu()) {
+            // fotku web najde podle id uživatele, žádný text na ni neodkazuje
+            foreach ($this->getObrazky() as $cesta) {
+                $kandidati[$cesta] = ['vlozeno' => 1, 'ke_stazeni' => 0];
+            }
+        }
         ksort($kandidati);
         $cestyKKontrole = [];
         foreach (array_keys($kandidati) as $cesta) {
@@ -87,7 +108,7 @@ final class PrevodObrazkuNaAvif
             $cestyKKontrole[] = $cesta;
             $cestyKKontrole[] = self::getCestaAvif($cesta);
         }
-        $zEmailu = $kandidati === []
+        $zEmailu = $kandidati === [] || !$this->oblast->isZTextu()
             ? []
             : $this->najdiOdkazyVSloupcich($cestyKKontrole, $this->getSloupceKeKontrole(false));
 
@@ -210,8 +231,8 @@ final class PrevodObrazkuNaAvif
         $mime = is_array($info)
             ? $info['mime']
             : '';
-        if (!isset(self::KODEKY_ZDROJE[$mime])) {
-            return new PolozkaPrevoduObrazku($cesta, StavPrevoduObrazkuEnum::NELZE_ZPRACOVAT, 'není JPEG ani PNG', $velikostZdroje);
+        if (!isset($this->oblast->getKodeky()[$mime])) {
+            return new PolozkaPrevoduObrazku($cesta, StavPrevoduObrazkuEnum::NELZE_ZPRACOVAT, 'není ' . $this->oblast->getPopisZdroju(), $velikostZdroje);
         }
         [$sirka, $vyska] = [(int) $info[0], (int) $info[1]];
         if ($sirka <= 0 || $vyska <= 0 || $sirka * $vyska > NahravaniObrazku::MAX_PIXELU) {
@@ -304,7 +325,7 @@ final class PrevodObrazkuNaAvif
     {
         $info = @getimagesize($puvodni);
         $kodek = is_array($info)
-            ? (self::KODEKY_ZDROJE[$info['mime']] ?? null)
+            ? ($this->oblast->getKodeky()[$info['mime']] ?? null)
             : null;
         if ($kodek === null) {
             return false;
@@ -358,6 +379,9 @@ final class PrevodObrazkuNaAvif
      */
     private function spoctiNepouzite(array $odkazy): int
     {
+        if (!$this->oblast->isZTextu()) {
+            return 0;
+        }
         $nepouzitych = 0;
         foreach ($this->getObrazky() as $cesta) {
             if (!isset($odkazy[$cesta]) && !isset($odkazy[self::getCestaAvif($cesta)]) && !$this->isSpravovanyJinde($cesta)) {
@@ -379,7 +403,7 @@ final class PrevodObrazkuNaAvif
     {
         $prepsano = [];
         $soubezne = 0;
-        if ($nahrady === []) {
+        if ($nahrady === [] || !$this->oblast->isZTextu()) {
             return ['prepsano' => $prepsano, 'soubezne' => $soubezne];
         }
         foreach ($this->pouziti->getTextoveSloupce() as $zdroj) {
@@ -504,7 +528,7 @@ SQL),
     /**
      * Zeptá se databáze, jestli některý ze sloupců odkazuje na některou z cest. Shoduje se databáze, takže stejně jako
      * v `PouzitiObrazku` platí kolace sloupce (velikost písmen, diakritika) a do paměti se nečte žádný text. Sloupec, který
-     * na `soubory/obsah/` neodkazuje vůbec, se přeskočí jedním dotazem; ostatní se čtou jednou za dávku souborů. Sloupec
+     * na předponu oblasti (`soubory/obsah/`, u fotek `soubory/systemove/fotky/`) neodkazuje vůbec, se přeskočí jedním dotazem; ostatní se čtou jednou za dávku souborů. Sloupec
      * s odkazy, ve kterém by vzor nemusel najít diakritiku nebo velká písmena (jiná znaková sada, kolace `_bin`), hlásí
      * chybu, nic se pak nemaže.
      *
@@ -528,7 +552,7 @@ SQL,
                     dbQi($tabulka),
                     dbQi($sloupec),
                 ),
-                ['%soubory/obsah/%'],
+                ['%' . $this->oblast->getPredponaVuciWebu() . '%'],
             );
             if ($mistoSOdkazy === []) {
                 continue;
@@ -549,7 +573,7 @@ SQL,
                 $vzory = [];
                 $priznaky = [];
                 foreach ($davka as $poradi => $cesta) {
-                    $cestaVuciWebu = 'soubory/obsah/' . $cesta;
+                    $cestaVuciWebu = $this->oblast->getPredponaVuciWebu() . $cesta;
                     $zapisy = self::getZapisyCesty($cestaVuciWebu);
                     $podminky = [];
                     foreach ($zapisy as $zapis) {
@@ -570,7 +594,7 @@ SQL,
                         dbQi($sloupec),
                         count($vzory),
                     ),
-                    [...$vzory, '%soubory/obsah/%'],
+                    [...$vzory, '%' . $this->oblast->getPredponaVuciWebu() . '%'],
                 );
                 foreach ($davka as $poradi => $cesta) {
                     if ((int) ($radek['pouziti_' . $poradi] ?? 0) === 1) {
@@ -630,7 +654,7 @@ SQL,
     private function getOriginalyKOdkazu(string $cestaZTextu): array
     {
         $pripona = strtolower(pathinfo($cestaZTextu, PATHINFO_EXTENSION));
-        if (in_array($pripona, self::PRIPONY_ZDROJE, true)) {
+        if (in_array($pripona, $this->oblast->getPripony(), true)) {
             return is_file($this->getAbsolutniCesta($cestaZTextu))
                 ? [$cestaZTextu]
                 : [];
@@ -641,7 +665,7 @@ SQL,
         foreach (@scandir(dirname($this->getAbsolutniCesta($cestaZTextu))) ?: [] as $soubor) {
             if (
                 pathinfo($soubor, PATHINFO_FILENAME) === $nazev
-                && in_array(strtolower(pathinfo($soubor, PATHINFO_EXTENSION)), self::PRIPONY_ZDROJE, true)
+                && in_array(strtolower(pathinfo($soubor, PATHINFO_EXTENSION)), $this->oblast->getPripony(), true)
             ) {
                 $originaly[] = $podadresar === '.'
                     ? $soubor
@@ -681,8 +705,9 @@ SQL,
      */
     private function isSpravovanyJinde(string $cesta): bool
     {
-        return ZpracovaneObrazky::jeAdresarJinehoModulu($cesta)
-            || in_array(strtolower(explode('/', $cesta)[0]), self::NEPREVADENE_SLOZKY, true);
+        return $this->oblast->isZTextu()
+            && (ZpracovaneObrazky::jeAdresarJinehoModulu($cesta)
+            || in_array(strtolower(explode('/', $cesta)[0]), self::NEPREVADENE_SLOZKY, true));
     }
 
     /**
@@ -705,7 +730,7 @@ SQL,
                 $soubor->isFile()
                 && !$soubor->isLink()
                 && !str_contains('/' . $cesta, '/.')
-                && in_array(strtolower($soubor->getExtension()), self::PRIPONY_ZDROJE, true)
+                && in_array(strtolower($soubor->getExtension()), $this->oblast->getPripony(), true)
             ) {
                 $cesty[] = $cesta;
             }
