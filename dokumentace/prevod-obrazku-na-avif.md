@@ -28,9 +28,9 @@ sudo -u www-data env APP_ENV=prod APP_DEBUG=0 php bin/console obrazky:prevest-na
 
 Na ostré je to `--prostredi=ostre`.
 
-Bez přepínače `--oblast` převádí příkaz obojí, nejdřív obrázky v textech, pak fotky uživatelů. Jen fotky: `--oblast=fotky`, zkouška na třech: `--oblast=fotky --limit=3`. Přepínač `--slozka` omezuje jen obrázky v textech a s ním se fotky nepřevádějí, takže zkouška z kroku 2 na fotky nesahá. Přepínač `--limit` platí za celý běh: nejdřív se převádějí texty, a pokud se limit vyčerpá na nich, příkaz to u fotek řekne a ty přijdou na řadu až při dalším běhu. Když první oddíl skončí chybou (třeba sloupec s odkazy v jiné kolaci při mazání), druhý se nespustí a hotový je jen první; druhou oblast pak pusť zvlášť přes `--oblast`.
+Bez přepínače `--oblast` převádí příkaz obojí, nejdřív obrázky v textech, pak fotky uživatelů. Jen fotky: `--oblast=fotky`, zkouška na třech: `--oblast=fotky --limit=3`. Přepínač `--slozka` omezuje jen obrázky v textech a s ním se fotky nepřevádějí, takže zkouška z kroku 2 na fotky nesahá. Přepínač `--limit` platí za celý běh: nejdřív se převádějí texty, a pokud se limit vyčerpá na nich, příkaz to u fotek řekne a ty přijdou na řadu až při dalším běhu. Když první oddíl skončí výjimkou (třeba sloupec s odkazy v jiné kolaci při mazání, to ještě nic nesmazalo), druhý se nespustí; druhou oblast pak pusť zvlášť přes `--oblast`.
 
-Fotku, kterou web ukazuje jako první podle abecedy z více souborů téhož uživatele (`5.jpg` a `5.png`), příkaz nepřevádí ani nemaže a vypíše ji s důvodem: AVIF z jednoho z nich by zakryl ten, který web ukazoval. Nech jen ten správný soubor a spusť příkaz znovu.
+Uživatele s více soubory, ze kterých web fotku vybírá (`5.jpg` a `5.png`, i `5.stara.png`, protože web hledá `<id>.*`), příkaz nepřevádí ani nemaže a vypíše je s důvodem: AVIF z jednoho z nich by zakryl ten, který web ukazoval. Nech jen ten správný soubor a spusť příkaz znovu.
 
 Příkaz se dá spustit znovu kdykoli: hotový AVIF použije, jiný stejnojmenný AVIF nepřepíše a řádek textu, který někdo mezitím upravil, přeskočí (vypíše ho, stačí příkaz zopakovat).
 
