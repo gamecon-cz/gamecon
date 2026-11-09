@@ -713,7 +713,7 @@
         <table>
           <tr>
             <td>Pokoj:</td>
-            <td><input type="integer" value="{pokojVypis}" name="pokoj"></input></td>
+            <td><input type="integer" value="{pokojVypis}" name="pokoj" required></input></td>
           </tr>
         </table>
 
@@ -896,7 +896,8 @@
 
 <div class="aBox grid">
   <h3>Rychloregistrace</h3>
-  <form method="post">
+  <!-- zakládá nového uživatele, s pracovním nesouvisí: přepnutí pracovního uživatele v jiné záložce ji neodmítne -->
+  <form method="post" data-bez-pracovniho-uzivatele>
     <input type="hidden" name="rychloregistrace" value="1">
     <table>
       <tbody>

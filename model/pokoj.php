@@ -37,7 +37,11 @@ class Pokoj
     /** (Pře)ubytuje uživatele $u na pokoj $cislo, vytvoří pokud je potřeba */
     static function ubytujNaCislo(Uzivatel $u, $cislo)
     {
-        $pokoj = trim($cislo);
+        $pokoj = trim((string)$cislo);
+        if ($pokoj === '') {
+            // jinak by smazal dosavadní pokoj a místo něj zapsal prázdný
+            throw new Chyba('Vyplň číslo pokoje, nic se nezměnilo.');
+        }
         $o     = dbQueryS('
       SELECT ubytovani_den
       FROM shop_nakupy n
