@@ -67,6 +67,10 @@ class ImagickAvif
         $imagick->setImageFormat('AVIF');
         $imagick->setCompressionQuality($kvalita);
         $imagick->setOption('heic:speed', self::RYCHLOST_KODERU);
+        if ($kvalita === 100) {
+            // výchozí 4:2:0 zprůměruje barvu sousedních bodů i při kvalitě 100, u sytých hran o desítky úrovní
+            $imagick->setOption('heic:chroma', '444');
+        }
     }
 
     /**

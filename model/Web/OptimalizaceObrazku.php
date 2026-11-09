@@ -371,7 +371,7 @@ final class OptimalizaceObrazku
     }
 
     /**
-     * Kvalita 100 je u AVIF bezztrátová, o čtvrtinu větší než bezztrátový WebP, ale pořád menší než PNG.
+     * Kvalita 100 je u AVIF bezztrátová; ikona o pár stovkách bajtů je v ní ale větší než jako PNG.
      */
     private function nastavAvif(\Imagick $imagick, int $kvalita, bool $bezztratove): void
     {

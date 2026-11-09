@@ -42,6 +42,7 @@ Příkaz se dá spustit znovu kdykoli: hotový AVIF použije, jiný stejnojmenn�
 
    Smaže jen originál, na který už nic neodkazuje a který má vedle stejný AVIF.
 3. **Beta bere databázi z ostré.** Po jejím obnovení z ostré, která už odkazuje na AVIF, spusť převod na betě znovu: doplní AVIF k JPG a PNG, které tam zůstaly.
+4. **AVIF z PNG, který vznikl před opravou vzorkování barev, má zprůměrované barvy sytých hran** (viz Gotchas v [`nahravani-obrazku.md`](../docs/generated/nahravani-obrazku.md)). Smaž ho (PNG vedle něj zůstává) a spusť příkaz znovu.
 
 ## Návrat zpět
 
