@@ -62,6 +62,21 @@ enum OblastPrevoduObrazkuEnum
         };
     }
 
+    /**
+     * Fotku web hledá podle `<id uživatele>.*`, jiný soubor ve složce fotek není fotka a nepřevádí se.
+     */
+    public function isNazevZdroje(string $nazevSouboru): bool
+    {
+        if (! in_array(strtolower(pathinfo($nazevSouboru, PATHINFO_EXTENSION)), $this->getPripony(), true)) {
+            return false;
+        }
+
+        return match ($this) {
+            self::TEXTY            => true,
+            self::FOTKY_UZIVATELU  => ctype_digit(pathinfo($nazevSouboru, PATHINFO_FILENAME)),
+        };
+    }
+
     public function isZTextu(): bool
     {
         return $this === self::TEXTY;
