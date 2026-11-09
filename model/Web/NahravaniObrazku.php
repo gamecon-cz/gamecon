@@ -110,7 +110,7 @@ final class NahravaniObrazku
     /** ext4 dovolí 255 bajtů na název, zbytek je rezerva na příponu */
     private const MAX_DELKA_NAZVU_BAJTU = 150;
     /** Výchozí strop pixelů; obrázek, který se při uložení zmenší, se jen jednou dekóduje, takže mu stačí vždy aspoň tenhle */
-    private const MAX_PIXELU = 50_000_000;
+    public const MAX_PIXELU = 50_000_000;
     /** Tečka na začátku: dočasný soubor nevypíše žádný seznam obrázků */
     private const PREFIX_DOCASNEHO_SOUBORU = '.nahravani-';
 
