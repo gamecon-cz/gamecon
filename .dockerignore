@@ -41,6 +41,9 @@ cache/public/*
 logy/*
 !logy/.htaccess
 
+# The switch of the maintenance mode, made by hand in a checkout, must not turn a preview or an archive off
+maintenance.html
+
 # UI build state
 node_modules
 ui/node_modules

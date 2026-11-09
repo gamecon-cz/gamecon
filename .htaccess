@@ -1,4 +1,19 @@
 RewriteEngine on
 
+# Údržbový režim (dokumentace/nasazeni.md): dokud existuje maintenance.html, dostane každý požadavek 503 se stránkou maintenance.off.html.
+# Pravidla se do podsložek s vlastním RewriteEngine nedědí, tentýž blok proto začíná každý takový .htaccess (hlídá to UdrzbovyRezimTest).
+# Stránka se podává pod názvem maintenance.off.html, protože adresa /maintenance.html má na serveru Alias na obecnou stránku (ansible, roles/webserver).
+# ErrorDocument platí jen za údržby, jinak by přebil tu obecnou stránku, kterou Apache ukáže, když neběží PHP-FPM.
+RewriteCond %{DOCUMENT_ROOT}/maintenance.html -f
+RewriteRule ^maintenance\.off\.html$ - [L]
+RewriteCond %{DOCUMENT_ROOT}/maintenance.html -f
+RewriteRule ^ - [R=503,L]
+<If "-f '%{DOCUMENT_ROOT}/maintenance.html'">
+    ErrorDocument 503 /maintenance.off.html
+</If>
+<IfModule mod_headers.c>
+    Header always setifempty Retry-After "300" "expr=%{REQUEST_STATUS} == 503"
+</IfModule>
+
 RewriteRule .* web/$0 [L]
 RewriteRule .* - [F,L]

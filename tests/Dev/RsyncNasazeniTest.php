@@ -382,6 +382,24 @@ class RsyncNasazeniTest extends TestCase
     }
 
     /**
+     * The link or file `maintenance.html` is made on the server, so a deploy must not delete it (that would end the
+     * maintenance with the first deploy) and one in a local checkout must not be uploaded (that would start it).
+     * The page `maintenance.off.html` is code and goes with the rest.
+     *
+     * @test
+     */
+    public function theMaintenanceSwitchOnTheServerIsNeitherDeletedNorUploaded(): void
+    {
+        $filtry = buildRsyncFilters(buildIgnoreMasks(), getRsyncProtectedPaths(), getDefaultIgnoreMasks());
+
+        self::assertContains('P /maintenance.html', $filtry);
+        self::assertContains('- ' . foldRsyncPatternCase('/maintenance.html'), $filtry);
+        self::assertTrue($this->isCoveredByAProtectOrExcludeRule('/maintenance.html', $filtry));
+        self::assertFalse($this->isCoveredByAProtectOrExcludeRule('/maintenance.off.html', $filtry));
+        self::assertFalse($this->isCoveredByAProtectOrExcludeRule('/admin/maintenance.off.html', $filtry));
+    }
+
+    /**
      * @test
      */
     public function senderOnlyMasksBecomeHideRulesAfterTheProtectedPathsAndBeforeTheOtherMasks(): void
