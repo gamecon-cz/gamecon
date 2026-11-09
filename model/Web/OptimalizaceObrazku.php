@@ -248,7 +248,11 @@ final class OptimalizaceObrazku
             $kvalita = $this->kvalitaVystupu($imagick, $zdrojovyMime, $cilovyMime);
             // orientaci z EXIFu je potřeba použít dřív, než se metadata smažou
             $imagick->autoOrient();
-            if ($imagick->getImageColorspace() === \Imagick::COLORSPACE_CMYK) {
+            // šedý obrázek s šedým profilem se do AVIF zapíše jako RGB s profilem, který k němu nesedí, a Chromium ho nezobrazí
+            $jeSedyAvifSProfilem = $cilovyMime === NahravaniObrazku::AVIF
+                && $imagick->getImageColorspace() === \Imagick::COLORSPACE_GRAY
+                && $imagick->getImageProfiles('ic*', false) !== [];
+            if ($imagick->getImageColorspace() === \Imagick::COLORSPACE_CMYK || $jeSedyAvifSProfilem) {
                 $imagick->transformImageColorspace(\Imagick::COLORSPACE_SRGB);
             }
             if ($cilovyMime === NahravaniObrazku::JPG && $imagick->getImageAlphaChannel()) {
