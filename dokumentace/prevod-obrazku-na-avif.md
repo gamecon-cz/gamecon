@@ -6,10 +6,10 @@ Každé prostředí má vlastní nahrané soubory, které nejsou v gitu, takže 
 
 ## Než začneš
 
-- **Nahrané soubory se nezálohují** (Borg bere jen databáze a `backup/db`, viz [`borg.md`](borg.md)). Udělej kopii `web/soubory/obsah` a `web/soubory/systemove/fotky`, například `cp -a web/soubory/obsah <mimo-web>/obsah-pred-avif` a `cp -a web/soubory/systemove/fotky <mimo-web>/fotky-pred-avif`, a export databáze. Bez nich se převod nedá vrátit. Fotky jsou fotky lidí s GPS v EXIFu, takže kopii drž mimo web, nikam ji nesdílej a po ověření ji smaž.
+- **Nahrané soubory se nezálohují** (Borg bere jen databáze a `backup/db`, viz [`borg.md`](borg.md)). Udělej kopii `web/soubory/obsah` a `web/soubory/systemove/fotky`, například `cp -a web/soubory/obsah <mimo-web>/obsah-pred-avif` a `cp -a web/soubory/systemove/fotky <mimo-web>/fotky-pred-avif`, a export databáze. Bez nich se převod nedá vrátit. Fotky jsou fotky lidí s GPS v EXIFu, takže kopii drž mimo web, nikam ji nesdílej a po ověření ji smaž. Příkaz chce potvrzení `--zaloha-hotova` jen pro to, co převádí: s `--oblast=fotky` stačí kopie fotek (databáze se nemění), s `--oblast=obsah` nebo `--slozka` kopie obsahu a export databáze.
 - Příkaz se spouští jako uživatel webserveru (www-data), aby nové soubory šly z administrace smazat a nahradit.
 - **Prostředí se pozná stejně jako na webu**, podle `SERVER_NAME` z `nastaveni/nastaveni-server.php`, který generuje nasazení. Příkaz proto při zápisu chce i `--prostredi` a odmítne ho, když se neshoduje s tím, co sám pozná. Na začátku každého běhu vypíše prostředí, databázi a adresář, se kterými pracuje: zkontroluj je. Zápis navíc odmítne, když prostředí nesedí k adresáři projektu (beta je adresář `beta`) nebo k adrese webu (`URL_WEBU`) načteného nastavení: prázdný `SERVER_NAME` by z bety udělal `ostre`, chybějící soubor `locale`. Na betě proto musí vypsat `beta`.
-- Mazání originálů prochází všechny textové sloupce databáze (char, varchar, text): jeden dotaz na sloupec zjistí, jestli vůbec obsahuje `soubory/obsah/`, a jen takové sloupce se pak čtou znovu, jednou za každých 30 originálů, takže doba roste s jejich počtem. Zmínka o souboru v kterémkoli textu, třeba v logu, jeho smazání zablokuje. Zkouší se pět zápisů cesty (obyčejný, celý zakódovaný, s `%20`, s kódovanou diakritikou, s obojím), HTML entita v názvu, JSON se `\/` a jiné směsi se nepoznají, takže před smazáním projdi v suchém běhu, co se smaže. Sloupec s odkazy v jiné znakové sadě než utf8 nebo s kolací `_bin` mazání zastaví chybou. Spouštěj ho mimo špičku.
+- Mazání originálů prochází všechny textové sloupce databáze (char, varchar, text): jeden dotaz na sloupec zjistí, jestli vůbec obsahuje `soubory/obsah/` (u fotek uživatelů `soubory/systemove/fotky/`), a jen takové sloupce se pak čtou znovu, jednou za každých 30 originálů, takže doba roste s jejich počtem. Bez `--oblast` se sloupce prohlížejí dvakrát, jednou za každou oblast, která má originály ke smazání, takže mazání trvá zhruba dvakrát déle než jedné oblasti. Zmínka o souboru v kterémkoli textu, třeba v logu, jeho smazání zablokuje. Zkouší se pět zápisů cesty (obyčejný, celý zakódovaný, s `%20`, s kódovanou diakritikou, s obojím), HTML entita v názvu, JSON se `\/` a jiné směsi se nepoznají, takže před smazáním projdi v suchém běhu, co se smaže. Sloupec s odkazy v jiné znakové sadě než utf8 nebo s kolací `_bin` mazání zastaví chybou. Spouštěj ho mimo špičku.
 
 ## Postup
 
@@ -28,7 +28,7 @@ sudo -u www-data env APP_ENV=prod APP_DEBUG=0 php bin/console obrazky:prevest-na
 
 Na ostré je to `--prostredi=ostre`.
 
-Bez přepínače `--oblast` převádí příkaz obojí, nejdřív obrázky v textech, pak fotky uživatelů. Jen fotky: `--oblast=fotky`, zkouška na třech: `--oblast=fotky --limit=3`. Přepínač `--slozka` omezuje jen obrázky v textech a s ním se fotky nepřevádějí, takže zkouška z kroku 2 na fotky nesahá.
+Bez přepínače `--oblast` převádí příkaz obojí, nejdřív obrázky v textech, pak fotky uživatelů. Jen fotky: `--oblast=fotky`, zkouška na třech: `--oblast=fotky --limit=3`. Přepínač `--slozka` omezuje jen obrázky v textech a s ním se fotky nepřevádějí, takže zkouška z kroku 2 na fotky nesahá. Přepínač `--limit` platí za celý běh: nejdřív se převádějí texty, a pokud se limit vyčerpá na nich, fotky přijdou na řadu až při dalším běhu.
 
 Příkaz se dá spustit znovu kdykoli: hotový AVIF použije, jiný stejnojmenný AVIF nepřepíše a řádek textu, který někdo mezitím upravil, přeskočí (vypíše ho, stačí příkaz zopakovat).
 
@@ -46,8 +46,8 @@ Příkaz se dá spustit znovu kdykoli: hotový AVIF použije, jiný stejnojmenn�
 3. **Beta bere databázi z ostré.** Po jejím obnovení z ostré, která už odkazuje na AVIF, spusť převod na betě znovu: doplní AVIF k JPG a PNG, které tam zůstaly.
 4. **AVIF z PNG, který vznikl před opravou vzorkování barev, má zprůměrované barvy sytých hran** (viz Gotchas v [`nahravani-obrazku.md`](../docs/generated/nahravani-obrazku.md)). Smaž ho (PNG vedle něj zůstává) a spusť příkaz znovu.
 5. **Starší běh vynechával obrázky, na kterých AVIF ušetřil málo** (pod 2 KiB nebo čtvrtinu). Pravidlo už neplatí, takže další běh je převede taky.
-6. **Fotky uživatelů:** otevři stránku vypravěče a zkontroluj, že se jeho fotka ukáže. `Uzivatel::fotka()` bere první shodu z `glob`, který řadí podle abecedy, takže po převodu je to AVIF; náhled se přegeneruje sám.
+6. **Fotky uživatelů:** otevři stránku vypravěče a zkontroluj, že se jeho fotka ukáže. `Uzivatel::fotka()` bere AVIF přednostně, i když originál má velkou příponu `.JPG` (`glob` řadí bajty, takže ta by šla před `.avif`), takže po převodu je to AVIF; náhled se přegeneruje sám.
 
 ## Návrat zpět
 
-Z kopie obnov `web/soubory/obsah`, `web/soubory/systemove/fotky` a z exportu texty (stránky, novinky, popisy aktivit, medailonky). Dokud se originály nesmažou, stačí vrátit jen texty; fotky uživatelů texty nepřepisují, stačí smazat AVIF vedle originálu a `glob` najde zase originál.
+Z kopie obnov `web/soubory/obsah`, `web/soubory/systemove/fotky` a z exportu texty (stránky, novinky, popisy aktivit, medailonky). Dokud se originály nesmažou, stačí vrátit jen texty; fotky uživatelů texty nepřepisují, stačí smazat AVIF vedle originálu a `Uzivatel::fotka()` vezme zase originál.
