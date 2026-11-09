@@ -126,10 +126,11 @@ if ($uPracovni) {
         'ubytovani' => $uPracovni->shop()->dejPopisUbytovani(),
         'nechceUbytovani' => $uPracovni->nechceUbytovani() ? 'ano' : 'ne',
         'balicek' => $uPracovni->balicekHtml(),
-        'prehledPredmetu' => implode("", array_map(fn(Transaction $t) => "<tr>" . "<td>" . $t->getDescription() . "</td>" .
+        // název položky je text: s uvozovkou nebo apostrofem by jinak rozbil HTML i potvrzovací dialog
+        'prehledPredmetu' => implode("", array_map(fn(Transaction $t) => "<tr>" . "<td>" . htmlspecialchars($t->getDescription()) . "</td>" .
             ($u?->maPravo(Pravo::MUZE_RUSIT_NAKUPY) ?
-                "<td><form method='post' onsubmit=\"return confirm('Opravdu zrušit objednávku " . $t->getDescription() . "');\">" .
-                "<input type='hidden' name='" . OPERATION_CANCEL_TRANSACTION . "' value='" . $t->getId() . "'>" .
+                "<td><form method='post' onsubmit=\"" . htmlspecialchars('return confirm(' . json_encode('Opravdu zrušit objednávku ' . $t->getDescription(), JSON_UNESCAPED_UNICODE | JSON_THROW_ON_ERROR) . ');') . "\">" .
+                "<input type='hidden' name='" . OPERATION_CANCEL_TRANSACTION . "' value='" . htmlspecialchars($t->getId()) . "'>" .
                 "<button type='submit'><i class='fa fa-trash' aria-hidden='true'/></button>" .
                 "</form></td>" :
             "<td></td>") .

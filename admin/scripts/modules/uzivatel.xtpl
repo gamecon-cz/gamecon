@@ -332,7 +332,7 @@
         <table>
           <tr>
             <td><label for="pokoj">Pokoj:</label></td>
-            <td><input id="pokoj" type="number" min="1" step="1" name="pokoj"></td>
+            <td><input id="pokoj" type="number" min="1" step="1" name="pokoj" required></td>
           </tr>
         </table>
         <input type="submit" name="pridelitPokoj" value="Přidělit" class="submit-btn">

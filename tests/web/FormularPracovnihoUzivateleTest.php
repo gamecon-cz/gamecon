@@ -123,8 +123,8 @@ SQL,
             FormularPracovnihoUzivatele::POST_ID => self::ID_PRVNIHO,
         ]));
 
-        self::assertSame('111111111', $this->telefon(self::ID_PRVNIHO));
-        self::assertSame('222222222', $this->telefon(self::ID_DRUHEHO));
+        self::assertSame('111111111', $this->getTelefon(self::ID_PRVNIHO));
+        self::assertSame('222222222', $this->getTelefon(self::ID_DRUHEHO));
         self::assertStringContainsString('formulář patřil jinému uživateli', $this->stahni($session, 'uzivatel'));
     }
 
@@ -136,7 +136,7 @@ SQL,
         $session = $this->prihlas(\Uzivatel::SYSTEM_LOGIN);
         $this->vyberPracovnihoUzivatele($session, self::ID_UKLADAJICIHO);
 
-        $formulare = $this->idPracovnihoUzivateleVeFormularich($this->stahni($session, 'uzivatel'));
+        $formulare = $this->getIdPracovnihoUzivateleVeFormularich($this->stahni($session, 'uzivatel'));
         self::assertCount(2, $formulare, 'osobní údaje a prodej, ubytování a jídlo má jen přihlášený na GameCon');
         foreach ($formulare as $formular => $idPracovnihoUzivatele) {
             self::assertSame((string) self::ID_UKLADAJICIHO, $idPracovnihoUzivatele, $formular);
@@ -148,7 +148,7 @@ SQL,
             FormularPracovnihoUzivatele::POST_ID => self::ID_UKLADAJICIHO,
         ]));
 
-        self::assertSame('777777777', $this->telefon(self::ID_UKLADAJICIHO));
+        self::assertSame('777777777', $this->getTelefon(self::ID_UKLADAJICIHO));
     }
 
     /**
@@ -165,7 +165,7 @@ SQL,
             'uzivatel' => 5,
             'infopult' => 9,
         ] as $stranka => $nejmeneFormularu) {
-            $formulare = $this->idPracovnihoUzivateleVeFormularich($this->stahni($session, $stranka));
+            $formulare = $this->getIdPracovnihoUzivateleVeFormularich($this->stahni($session, $stranka));
             self::assertGreaterThanOrEqual($nejmeneFormularu, count($formulare), $stranka);
             foreach ($formulare as $formular => $idPracovnihoUzivatele) {
                 self::assertSame((string) self::ID_UBYTOVANEHO, $idPracovnihoUzivatele, "{$stranka}: {$formular}");
@@ -188,8 +188,8 @@ SQL,
             FormularPracovnihoUzivatele::POST_ID => self::ID_PRVNIHO,
         ]));
 
-        self::assertSame(0, $this->pocetPlateb(self::ID_PRVNIHO));
-        self::assertSame(0, $this->pocetPlateb(self::ID_DRUHEHO));
+        self::assertSame(0, $this->getPocetPlateb(self::ID_PRVNIHO));
+        self::assertSame(0, $this->getPocetPlateb(self::ID_DRUHEHO));
         self::assertStringContainsString('formulář patřil jinému uživateli', $this->stahni($session, 'infopult'));
     }
 
@@ -207,13 +207,55 @@ SQL,
             FormularPracovnihoUzivatele::POST_ID => self::ID_UBYTOVANEHO,
         ]));
 
-        self::assertSame('42', (string) dbOneCol(<<<'SQL'
-SELECT pokoj FROM ubytovani WHERE id_uzivatele = $0 AND rok = $1
-SQL, [
-            0 => self::ID_UBYTOVANEHO,
-            1 => ROCNIK,
-        ]));
+        self::assertSame('42', $this->getPokoj(self::ID_UBYTOVANEHO));
         self::assertStringContainsString('Pokoj přidělen', $this->stahni($session, 'uzivatel'));
+    }
+
+    /**
+     * Prázdné číslo by smazalo přidělený pokoj a místo něj zapsalo prázdný.
+     *
+     * @test
+     */
+    public function prazdnyPokojNicNezmeni(): void
+    {
+        $session = $this->prihlas(\Uzivatel::SYSTEM_LOGIN);
+        $this->vyberPracovnihoUzivatele($session, self::ID_UBYTOVANEHO);
+        $prideleni = [
+            'pokoj'                              => '7',
+            'pridelitPokoj'                      => 'Přidělit',
+            FormularPracovnihoUzivatele::POST_ID => self::ID_UBYTOVANEHO,
+        ];
+        self::assertSame(303, $this->odesli($session, 'uzivatel', $prideleni));
+
+        $prazdny = [
+            ...$prideleni,
+            'pokoj' => ' ',
+        ];
+        foreach (['uzivatel', 'infopult'] as $stranka) {
+            self::assertSame(303, $this->odesli($session, $stranka, $prazdny), $stranka);
+            self::assertSame('7', $this->getPokoj(self::ID_UBYTOVANEHO), $stranka);
+            self::assertStringContainsString('Vyplň číslo pokoje', $this->stahni($session, $stranka), $stranka);
+        }
+    }
+
+    /**
+     * Rychloregistrace zakládá nového uživatele a s pracovním nesouvisí: přepnutí pracovního uživatele v jiné záložce
+     * ji odmítnout nemá.
+     *
+     * @test
+     */
+    public function rychloregistraceNeseBezIdPracovnihoUzivatele(): void
+    {
+        $session = $this->prihlas(\Uzivatel::SYSTEM_LOGIN);
+
+        $formulare = $this->getIdPracovnihoUzivateleVeFormularich($this->stahni($session, 'infopult'));
+        $rychloregistrace = array_filter(
+            $formulare,
+            static fn (string $formular): bool => str_contains($formular, 'name="rychloregistrace"'),
+            ARRAY_FILTER_USE_KEY,
+        );
+        self::assertCount(1, $rychloregistrace, implode("\n", array_keys($formulare)));
+        self::assertNull(reset($rychloregistrace));
     }
 
     /**
@@ -233,7 +275,7 @@ SQL, [
             FormularPracovnihoUzivatele::POST_ID => self::ID_PRVNIHO,
         ]));
 
-        self::assertSame('111111111', $this->telefon(self::ID_PRVNIHO));
+        self::assertSame('111111111', $this->getTelefon(self::ID_PRVNIHO));
         $stranka = $this->stahni($bezPrihlaseni, 'uzivatel');
         self::assertStringContainsString('name="' . Login::PASSWORD_INPUT_NAME . '"', $stranka);
         self::assertStringNotContainsString('formulář patřil jinému uživateli', $stranka);
@@ -245,7 +287,7 @@ SQL, [
      *
      * @return array<string, string|null> začátek formuláře => hodnota pole, null bez pole
      */
-    private function idPracovnihoUzivateleVeFormularich(string $stranka): array
+    private function getIdPracovnihoUzivateleVeFormularich(string $stranka): array
     {
         $dokument = new \DOMDocument();
         $predchoziChyby = libxml_use_internal_errors(true);
@@ -272,7 +314,7 @@ SQL, [
         return $formulare;
     }
 
-    private function telefon(int $idUzivatele): string
+    private function getTelefon(int $idUzivatele): string
     {
         return (string) dbOneCol(<<<'SQL'
 SELECT telefon_uzivatele FROM uzivatele_hodnoty WHERE id_uzivatele = $0
@@ -281,7 +323,17 @@ SQL, [
         ]);
     }
 
-    private function pocetPlateb(int $idUzivatele): int
+    private function getPokoj(int $idUzivatele): string
+    {
+        return (string) dbOneCol(<<<'SQL'
+SELECT pokoj FROM ubytovani WHERE id_uzivatele = $0 AND rok = $1
+SQL, [
+            0 => $idUzivatele,
+            1 => ROCNIK,
+        ]);
+    }
+
+    private function getPocetPlateb(int $idUzivatele): int
     {
         return (int) dbOneCol(<<<'SQL'
 SELECT COUNT(*) FROM platby WHERE id_uzivatele = $0
