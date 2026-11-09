@@ -161,6 +161,8 @@ class PrevestObrazkyNaAvifCommand extends Command
             $io->section('Fotky uživatelů');
             $this->vypis($io, $vysledek, $naostro, $smazat, false);
             $selhalo += $vysledek->getPoctyPodleStavu()[StavPrevoduObrazkuEnum::SELHALO->value] ?? 0;
+        } elseif ($sFotkami) {
+            $io->note('Fotky uživatelů se v tomhle běhu nepřevádějí: limit se vyčerpal na obrázcích v textech webu. Zkouška jen na fotkách: --oblast=fotky --limit=3.');
         }
         if (! $naostro) {
             $io->note('Suchý běh, nic se nezměnilo. Zapsat se dá přepínačem --provest.');

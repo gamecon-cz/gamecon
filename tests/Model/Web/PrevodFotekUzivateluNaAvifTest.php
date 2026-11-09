@@ -131,9 +131,11 @@ class PrevodFotekUzivateluNaAvifTest extends AbstractTestDb
     }
 
     /**
+     * AVIF z jednoho z nich by zakryl ten, který web ukazoval, a o tom, který z nich platí, rozhodne člověk.
+     *
      * @test
      */
-    public function dveFotkyTehoUzivateleMajiJedenCilAPrevedeSeJenPrvni(): void
+    public function uzivateleSViceSouboryFotkyNechaBezZmeny(): void
     {
         $this->ulozFotku(self::ID_FOTKY . '.jpg');
         $png = imagecreatetruecolor(300, 200);
@@ -143,8 +145,13 @@ class PrevodFotekUzivateluNaAvifTest extends AbstractTestDb
 
         $vysledek = $this->prevod()->proved(true);
 
-        self::assertSame(StavPrevoduObrazkuEnum::PREVEDENO, $this->polozka($vysledek, $this->cesta('.jpg'))->stav);
-        self::assertSame(StavPrevoduObrazkuEnum::JINY_AVIF_UZ_EXISTUJE, $this->polozka($vysledek, $this->cesta('.png'))->stav);
+        self::assertSame(StavPrevoduObrazkuEnum::NELZE_ZPRACOVAT, $this->polozka($vysledek, $this->cesta('.jpg'))->stav);
+        self::assertSame(StavPrevoduObrazkuEnum::NELZE_ZPRACOVAT, $this->polozka($vysledek, $this->cesta('.png'))->stav);
+        self::assertSame(['99431.jpg', '99431.png'], $this->souborySlozky());
+
+        $this->zapisAvifZ(self::ID_FOTKY . '.jpg', self::ID_FOTKY . '.avif');
+        self::assertSame([], $this->prevod()->smazPuvodni(true)->polozky, 'ani mazání na takového uživatele nesahá');
+        self::assertSame(['99431.avif', '99431.jpg', '99431.png'], $this->souborySlozky());
     }
 
     /**
@@ -158,12 +165,13 @@ class PrevodFotekUzivateluNaAvifTest extends AbstractTestDb
         $this->ulozFotku('profil.jpg');
         $this->ulozFotku('99439-stara.jpg');
         $this->ulozFotku('.99440.jpg');
+        $this->ulozFotku('0099443.jpg');
         (new Filesystem())->mkdir($this->absolutne('stare'));
         $this->ulozFotku('stare/99441.jpg');
 
         $vysledek = $this->prevod()->proved(true);
 
-        self::assertSame(['.99440.jpg', '99438.avif', '99438.jpg', '99439-stara.jpg', 'profil.jpg', 'stare'], $this->souborySlozky());
+        self::assertSame(['.99440.jpg', '0099443.jpg', '99438.avif', '99438.jpg', '99439-stara.jpg', 'profil.jpg', 'stare'], $this->souborySlozky());
         self::assertSame(['99441.jpg'], $this->souborySlozky('stare'));
         self::assertSame([$this->slozka() . '/99438.jpg'], array_map(static fn (PolozkaPrevoduObrazku $polozka): string => $polozka->cesta, $vysledek->polozky));
     }
