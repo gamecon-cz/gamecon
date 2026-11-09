@@ -191,7 +191,7 @@ class Vyjimkovac implements Logovac
     {
         $out = file_get_contents(__DIR__ . '/vyjimkovac-omluva.xtpl');
         $out = strtr($out, [
-            '{picard}' => URL_WEBU . '/soubory/styl/exception.jpg',
+            '{picard}' => URL_WEBU . '/soubory/styl/exception.avif',
         ]);
         echo $out;
     }

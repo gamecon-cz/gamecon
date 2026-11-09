@@ -34,9 +34,9 @@ use Gamecon\SystemoveNastaveni\SystemoveNastaveniKlice;
 require_once __DIR__ . '/../_submoduly/ubytovani_tabulka.php';
 require_once __DIR__ . '/../_submoduly/osobni-udaje/osobni_udaje.php';
 
-$ok = '<img alt="OK" src="files/design/ok-s.png" style="margin-bottom:-2px">';
-$warn = '<img alt="warning" src="files/design/warning-s.png" style="margin-bottom:-2px">';
-$err = '<img alt="error" src="files/design/error-s.png" style="margin-bottom:-2px">';
+$ok = '<img alt="OK" src="files/design/ok-s.avif" style="margin-bottom:-2px">';
+$warn = '<img alt="warning" src="files/design/warning-s.avif" style="margin-bottom:-2px">';
+$err = '<img alt="error" src="files/design/error-s.avif" style="margin-bottom:-2px">';
 
 $nastaveni = ['ubytovaniBezZamku' => true, 'jidloBezZamku' => true];
 $shop = $uPracovni ? new Shop($uPracovni, $u, $systemoveNastaveni, $nastaveni) : null;

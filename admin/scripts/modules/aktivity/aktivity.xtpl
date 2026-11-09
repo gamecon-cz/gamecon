@@ -214,7 +214,7 @@
             <td>{typ}</td>
             <td>
                 <!-- begin:symbolInstance -->
-                <img alt="Řetěz instance" src="files/design/chain-icon.png"/>
+                <img alt="Řetěz instance" src="files/design/chain-icon.avif"/>
                 <!-- end:symbolInstance -->
             </td>
             <td>
@@ -226,10 +226,10 @@
                             onclick="return window.confirm('Opravdu změnit stav korekce {nazev_akce}?');">
                         <!-- end:rychlokorekce1 -->
                         <!-- begin:symbolKorekce -->
-                        <img alt="Korekce OK" src="files/design/ok.png"/>
+                        <img alt="Korekce OK" src="files/design/ok.avif"/>
                         <!-- end:symbolKorekce -->
                         <!-- begin:symbolBezKorekce -->
-                        <img alt="Korekce neproběhla" src="files/design/error.png"/>
+                        <img alt="Korekce neproběhla" src="files/design/error.avif"/>
                         <!-- end:symbolBezKorekce -->
                         <!-- begin:rychlokorekce2 -->
                     </button>

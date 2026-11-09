@@ -51,9 +51,9 @@ if (isset($_GET['archiv'], $_GET['archiv_uzivatel'])) {
     }
 }
 
-$ok   = '<img alt="OK" src="files/design/ok-s.png" style="margin-bottom:-2px">';
-$warn = '<img alt="warning" src="files/design/warning-s.png" style="margin-bottom:-2px">';
-$err  = '<img alt="error" src="files/design/error-s.png" style="margin-bottom:-2px">';
+$ok   = '<img alt="OK" src="files/design/ok-s.avif" style="margin-bottom:-2px">';
+$warn = '<img alt="warning" src="files/design/warning-s.avif" style="margin-bottom:-2px">';
+$err  = '<img alt="error" src="files/design/error-s.avif" style="margin-bottom:-2px">';
 
 $nastaveni = ['ubytovaniBezZamku' => true, 'jidloBezZamku' => true];
 $shop      = $uPracovni

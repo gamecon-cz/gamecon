@@ -30,7 +30,7 @@
 
     <div class="container">
         <div class="d-flex justify-content-center align-items-center" style="min-height: 99vh">
-            <img alt="GC logo" src="files/design/GC2022-logo-qHD.gif?version=a082d78fe70cb2f5eb31a8bfb2058a9f"
+            <img alt="GC logo" src="files/design/GC2022-logo-qHD.avif?version=c124a2fcc1327cef898d3e940bdd6bae"
                  class="background-image">
 
             <form method="post" class="needs-validation" novalidate>

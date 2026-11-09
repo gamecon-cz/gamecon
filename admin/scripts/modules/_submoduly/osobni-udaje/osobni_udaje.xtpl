@@ -23,7 +23,7 @@
               style="width: 100%; cursor: pointer;" class="label">
           {zobrazenaHodnota} &nbsp;
           <!-- begin:chybi -->
-          <img src="files/design/error-s.png" style="margin-bottom:-2px">
+          <img src="files/design/error-s.avif" style="margin-bottom:-2px">
           požádej o doplnění
           <!-- end:chybi -->
         </div>

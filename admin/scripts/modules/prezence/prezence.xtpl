@@ -76,13 +76,13 @@
           <td>
             <!-- begin:pritomen -->
             <span class="hinted">
-              <img src="files/design/ok-s.png" style="margin-bottom:-1px">
+              <img src="files/design/ok-s.avif" style="margin-bottom:-1px">
               <span class="hint"><strong>Je přítomen</strong> v tomto okamžiku na GC (prošel infopultem).</span>
             </span>
             <!-- end:pritomen -->
             <!-- begin:nepritomen -->
             <span class="hinted">
-              <img src="files/design/error-s.png" style="margin-bottom:-1px">
+              <img src="files/design/error-s.avif" style="margin-bottom:-1px">
               <span class="hint"><strong>Není přítomen</strong> v tomto okamžiku na GC (neprošel infopultem).</span>
             </span>
             <!-- end:nepritomen -->
@@ -137,7 +137,7 @@
           <td colspan="100%" style="padding: 0">
             <a href="online-prezence?cas={cas}#{htmlIdAktivity}" type="button" id="otevritOnlinePrezenci"
                style="display: block; margin: 0"
-               class="ui-button">Vyplnit prezenci <img src="files/design/prezence.png"></a>
+               class="ui-button">Vyplnit prezenci <img src="files/design/prezence.avif"></a>
           </td>
         </tr>
         <!-- end:onlinePrezence -->

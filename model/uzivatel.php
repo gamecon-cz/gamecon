@@ -576,10 +576,10 @@ SQL, [Pravo::PORADANI_AKTIVIT],
     public function getVychoziFotka(): Nahled
     {
         if ($this->pohlavi() === Pohlavi::ZENA_KOD) {
-            return Nahled::zeSouboru(WWW . '/soubory/styl/fotka-holka.jpg');
+            return Nahled::zeSouboru(WWW . '/soubory/styl/fotka-holka.avif');
         }
 
-        return Nahled::zeSouboru(WWW . '/soubory/styl/fotka-kluk.jpg');
+        return Nahled::zeSouboru(WWW . '/soubory/styl/fotka-kluk.avif');
     }
 
     /**

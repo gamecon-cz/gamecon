@@ -17,7 +17,7 @@ body {
   background-color: #3b3b3b;
   /* rollback pozadí - renderování dlouhé stránky už je příliš pomalé */
   /*
-  background-image: url('bg-glob-1.png');
+  background-image: url('bg-glob-1.avif');
   background-attachment: fixed;
   */
   overflow-y: scroll;
@@ -777,7 +777,7 @@ form table .full {
 }
 
 form table .obrazek_nahled {
-  background-image: url('sachy.png');
+  background-image: url('sachy.avif');
   padding: 5px;
   text-align: center;
 }
@@ -1031,19 +1031,19 @@ a > .hinted {
 
 .error {
   color: #f22;
-  background-image: url('error.png');
+  background-image: url('error.avif');
   background-color: #ffeaea;
 }
 
 .success {
   color: #252;
-  background-image: url('ok.png');
+  background-image: url('ok.avif');
   background-color: #ddf4dd;
 }
 
 .warning {
   color: #770;
-  background-image: url('warning.png');
+  background-image: url('warning.avif');
   background-color: #ffa;
 }
 
