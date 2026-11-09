@@ -163,7 +163,7 @@ class PrevodObrazkuNaAvifTest extends AbstractTestDb
     /**
      * @test
      */
-    public function malyObrazekAObrazekBezOdkazuZustanou(): void
+    public function malyObrazekSePrevedeIKdyzAvifNicNeusetri(): void
     {
         $this->ulozObrazek('maly.jpg', self::jpgBajty(16, 16));
         $this->ulozFotku('sirotek.jpg');
@@ -171,10 +171,27 @@ class PrevodObrazkuNaAvifTest extends AbstractTestDb
 
         $vysledek = $this->prevod()->proved(true);
 
-        self::assertSame(StavPrevoduObrazkuEnum::MALA_USPORA, $this->polozka($vysledek, $this->slozka() . '/maly.jpg')->stav);
+        $polozka = $this->polozka($vysledek, $this->slozka() . '/maly.jpg');
+        self::assertSame(StavPrevoduObrazkuEnum::PREVEDENO, $polozka->stav);
+        self::assertLessThan(2048, $polozka->puvodniBajtu - $polozka->novychBajtu, 'bez téhle kontroly by test prošel i s obrázkem, na kterém AVIF ušetří přes dřívější limit');
+        self::assertCount(1, $vysledek->polozky);
+        self::assertSame(['maly.avif', 'maly.jpg', 'sirotek.jpg'], $this->souborySlozky());
+    }
+
+    /**
+     * @test
+     */
+    public function obrazekBezOdkazuZustane(): void
+    {
+        $this->ulozFotku('sirotek.jpg');
+        $this->ulozFotku('pouzity.jpg');
+        $this->vlozStranku('![](' . $this->odkaz('pouzity.jpg') . ')');
+
+        $vysledek = $this->prevod()->proved(true);
+
         self::assertCount(1, $vysledek->polozky);
         self::assertSame(1, $vysledek->nepouzitychObrazku);
-        self::assertSame(['maly.jpg', 'sirotek.jpg'], $this->souborySlozky());
+        self::assertSame(['pouzity.avif', 'pouzity.jpg', 'sirotek.jpg'], $this->souborySlozky());
     }
 
     /**
