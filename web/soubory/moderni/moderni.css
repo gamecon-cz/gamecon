@@ -944,7 +944,7 @@ body.vzhled-moderni {
   left: 0;
   height: 0.42em;
   background-color: var(--mw-cervena);
-  mask: url("../blackarrow/gchlavicka/smouha.png") no-repeat 0 0 / 100% 100%;
+  mask: url("../blackarrow/gchlavicka/smouha.avif") no-repeat 0 0 / 100% 100%;
 }
 
 .mw-zvyraznit:not(.mw-zvyraznit-na-radku)::before,
