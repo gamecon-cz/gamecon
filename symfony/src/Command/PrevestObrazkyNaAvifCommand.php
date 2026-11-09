@@ -25,7 +25,7 @@ use Symfony\Component\Console\Style\SymfonyStyle;
 
 #[AsCommand(
     name: 'obrazky:prevest-na-avif',
-    description: 'Převede JPEG a PNG vložené do textů webu do AVIF a přepíše odkazy na ně; bez --provest jen vypíše, co by se stalo',
+    description: 'Převede JPEG a PNG vložené do textů webu a fotky uživatelů do AVIF a přepíše odkazy v textech; bez --provest jen vypíše, co by se stalo',
 )]
 class PrevestObrazkyNaAvifCommand extends Command
 {
@@ -33,10 +33,11 @@ class PrevestObrazkyNaAvifCommand extends Command
     {
         $this
             ->addOption('provest', null, InputOption::VALUE_NONE, 'Skutečně zapsat. Bez něj se nic nezmění.')
-            ->addOption('zaloha-hotova', null, InputOption::VALUE_NONE, 'Potvrzení, že existuje kopie web/soubory/obsah a export databáze. Nahrané soubory se nezálohují, bez kopie nejde převod vrátit.')
+            ->addOption('zaloha-hotova', null, InputOption::VALUE_NONE, 'Potvrzení, že existuje kopie web/soubory/obsah a web/soubory/systemove/fotky a export databáze. Nahrané soubory se nezálohují, bez kopie nejde převod vrátit.')
             ->addOption('prostredi', null, InputOption::VALUE_REQUIRED, 'Prostředí, na kterém se zapisuje (ostre, beta, preview, locale); musí souhlasit s tím, které příkaz sám pozná')
             ->addOption('smazat-puvodni', null, InputOption::VALUE_NONE, 'Místo převodu smazat originály, ke kterým je vedle stejný AVIF a na které už nic neodkazuje.')
-            ->addOption('slozka', null, InputOption::VALUE_REQUIRED, 'Omezit běh na složku v soubory/obsah, například blog (pro zkoušku)')
+            ->addOption('oblast', null, InputOption::VALUE_REQUIRED, 'Co převést: obsah (obrázky v textech webu), fotky (fotky uživatelů) nebo vse', 'vse')
+            ->addOption('slozka', null, InputOption::VALUE_REQUIRED, 'Omezit běh na složku v soubory/obsah, například blog (pro zkoušku); fotky uživatelů se pak nepřevádějí')
             ->addOption('limit', null, InputOption::VALUE_REQUIRED, 'Převést nejvýš tolik obrázků (pro zkoušku)');
     }
 
@@ -51,6 +52,19 @@ class PrevestObrazkyNaAvifCommand extends Command
         $smazat = (bool) $input->getOption('smazat-puvodni');
         $slozka = $input->getOption('slozka');
         $limit = $input->getOption('limit');
+        $oblast = (string) $input->getOption('oblast');
+        if (! in_array($oblast, ['obsah', 'fotky', 'vse'], true)) {
+            $io->error('Přepínač --oblast chce obsah, fotky nebo vse.');
+
+            return Command::FAILURE;
+        }
+        if ($slozka !== null && $oblast === 'fotky') {
+            $io->error('Přepínač --slozka omezuje obrázky v textech webu, s --oblast=fotky nedává smysl.');
+
+            return Command::FAILURE;
+        }
+        $sObsahem = $oblast !== 'fotky';
+        $sFotkami = $oblast !== 'obsah' && $slozka === null;
         if ($limit !== null && (! ctype_digit((string) $limit) || (int) $limit < 1)) {
             $io->error('Přepínač --limit chce kladné celé číslo.');
 
@@ -63,7 +77,7 @@ class PrevestObrazkyNaAvifCommand extends Command
             return Command::FAILURE;
         }
         if ($naostro && ! $input->getOption('zaloha-hotova')) {
-            $io->error('Převod se zapisuje do souborů a textů, které se nezálohují. Udělej kopii web/soubory/obsah a export databáze a spusť příkaz znovu s --zaloha-hotova.');
+            $io->error('Převod se zapisuje do souborů a textů, které se nezálohují. Udělej kopii web/soubory/obsah a web/soubory/systemove/fotky a export databáze a spusť příkaz znovu s --zaloha-hotova.');
 
             return Command::FAILURE;
         }
@@ -82,6 +96,9 @@ class PrevestObrazkyNaAvifCommand extends Command
             ],
             [
                 'Adresář s obrázky' => ZpracovaneObrazky::adresarObsahu(),
+            ],
+            [
+                'Adresář s fotkami uživatelů' => $sFotkami ? ZpracovaneObrazky::adresarFotekUzivatelu() : 'nepřevádí se',
             ],
         );
         if ($naostro && $input->getOption('prostredi') !== $prostredi->value) {
@@ -105,20 +122,37 @@ class PrevestObrazkyNaAvifCommand extends Command
             : '<info>Suchý běh: nic se nezapíše. Trvá stejně dlouho jako ostrý, úspora se zjišťuje zakódováním.</info>');
 
         set_time_limit(0);
-        $prevod = new PrevodObrazkuNaAvif(
-            new OptimalizaceObrazku(),
-            new PouzitiObrazku(),
-            ZpracovaneObrazky::adresarObsahu(),
-            $slozka === null ? null : (string) $slozka,
-        );
-        $vysledek = $smazat
-            ? $prevod->smazPuvodni($naostro)
-            : $prevod->proved($naostro, $limit === null ? null : (int) $limit);
-
-        $this->vypis($io, $vysledek, $naostro, $smazat);
-        if ($naostro && ($vysledek->prepsanoRadku[AkceSeznamSqlStruktura::AKCE_SEZNAM_TABULKA] ?? 0) > 0) {
-            // popisy aktivit jsou i v JSON programu, který se jinak obnoví až na dalším požadavku
-            SystemoveNastaveni::zGlobals()->oznacProgramCacheJakoDirty();
+        $zbyvaPrevest = $limit === null ? null : (int) $limit;
+        if ($sObsahem) {
+            $prevod = new PrevodObrazkuNaAvif(
+                new OptimalizaceObrazku(),
+                new PouzitiObrazku(),
+                ZpracovaneObrazky::adresarObsahu(),
+                $slozka === null ? null : (string) $slozka,
+            );
+            $vysledek = $smazat
+                ? $prevod->smazPuvodni($naostro)
+                : $prevod->proved($naostro, $zbyvaPrevest);
+            $io->section('Obrázky v textech webu');
+            $this->vypis($io, $vysledek, $naostro, $smazat, true);
+            if ($naostro && ($vysledek->prepsanoRadku[AkceSeznamSqlStruktura::AKCE_SEZNAM_TABULKA] ?? 0) > 0) {
+                // popisy aktivit jsou i v JSON programu, který se jinak obnoví až na dalším požadavku
+                SystemoveNastaveni::zGlobals()->oznacProgramCacheJakoDirty();
+            }
+            if ($zbyvaPrevest !== null) {
+                $zbyvaPrevest = max(0, $zbyvaPrevest - ($vysledek->getPoctyPodleStavu()[StavPrevoduObrazkuEnum::PREVEDENO->value] ?? 0));
+            }
+        }
+        if ($sFotkami && $zbyvaPrevest !== 0) {
+            $prevod = PrevodObrazkuNaAvif::proFotkyUzivatelu(new OptimalizaceObrazku(), new PouzitiObrazku());
+            $vysledek = $smazat
+                ? $prevod->smazPuvodni($naostro)
+                : $prevod->proved($naostro, $zbyvaPrevest);
+            $io->section('Fotky uživatelů');
+            $this->vypis($io, $vysledek, $naostro, $smazat, false);
+        }
+        if (! $naostro) {
+            $io->note('Suchý běh, nic se nezměnilo. Zapsat se dá přepínačem --provest.');
         }
 
         return Command::SUCCESS;
@@ -188,7 +222,7 @@ class PrevestObrazkyNaAvifCommand extends Command
         return false;
     }
 
-    private function vypis(SymfonyStyle $io, VysledekPrevoduObrazku $vysledek, bool $naostro, bool $smazani): void
+    private function vypis(SymfonyStyle $io, VysledekPrevoduObrazku $vysledek, bool $naostro, bool $smazani, bool $zTextu): void
     {
         $prevedene = array_filter(
             $vysledek->polozky,
@@ -215,7 +249,7 @@ class PrevestObrazkyNaAvifCommand extends Command
         foreach ($vysledek->getPoctyPodleStavu() as $stav => $pocet) {
             $radky[] = [StavPrevoduObrazkuEnum::from($stav)->getPopis(), $pocet];
         }
-        if (! $smazani) {
+        if (! $smazani && $zTextu) {
             $radky[] = ['obrázky, na které žádný text neodkazuje (nechány)', $vysledek->nepouzitychObrazku];
             $radky[] = ['obrázky, které texty zmiňují, ale na disku nejsou', $vysledek->odkazuNaChybejiciSoubor];
             foreach ($vysledek->prepsanoRadku as $tabulka => $pocet) {
@@ -223,7 +257,11 @@ class PrevestObrazkyNaAvifCommand extends Command
             }
             $radky[] = ['řádky změněné souběžně (nepřepsané, spusť příkaz znovu)', $vysledek->radkuZmenenychSoubezne];
         }
-        $io->table(['', 'počet'], $radky);
+        if ($radky === []) {
+            $io->writeln('Žádné obrázky.');
+        } else {
+            $io->table(['', 'počet'], $radky);
+        }
         if (! $smazani) {
             $uspora = $vysledek->getUsporaBajtu();
             $io->writeln(
@@ -231,9 +269,6 @@ class PrevestObrazkyNaAvifCommand extends Command
                     ? sprintf('%s: %s', $naostro ? 'Ušetřeno' : 'Ušetřilo by se', NahravaniObrazku::lidskaVelikost($uspora))
                     : sprintf('%s: %s', $naostro ? 'Zvětšilo se o' : 'Zvětšilo by se o', NahravaniObrazku::lidskaVelikost(-$uspora)),
             );
-        }
-        if (! $naostro) {
-            $io->note('Suchý běh, nic se nezměnilo. Zapsat se dá přepínačem --provest.');
         }
     }
 }
