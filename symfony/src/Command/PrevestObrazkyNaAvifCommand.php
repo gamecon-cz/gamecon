@@ -225,7 +225,12 @@ class PrevestObrazkyNaAvifCommand extends Command
         }
         $io->table(['', 'počet'], $radky);
         if (! $smazani) {
-            $io->writeln(sprintf('%s: %s', $naostro ? 'Ušetřeno' : 'Ušetřilo by se', NahravaniObrazku::lidskaVelikost($vysledek->getUsporaBajtu())));
+            $uspora = $vysledek->getUsporaBajtu();
+            $io->writeln(
+                $uspora >= 0
+                    ? sprintf('%s: %s', $naostro ? 'Ušetřeno' : 'Ušetřilo by se', NahravaniObrazku::lidskaVelikost($uspora))
+                    : sprintf('%s: %s', $naostro ? 'Zvětšilo se o' : 'Zvětšilo by se o', NahravaniObrazku::lidskaVelikost(-$uspora)),
+            );
         }
         if (! $naostro) {
             $io->note('Suchý běh, nic se nezměnilo. Zapsat se dá přepínačem --provest.');

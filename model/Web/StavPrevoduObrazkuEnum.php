@@ -15,7 +15,6 @@ enum StavPrevoduObrazkuEnum: string
     case ODKAZ_Z_EMAILU = 'odkaz-z-emailu';
     case MIMO_ROZSAH = 'mimo-rozsah';
     case NELZE_ZPRACOVAT = 'nelze-zpracovat';
-    case MALA_USPORA = 'mala-uspora';
     case JINY_AVIF_UZ_EXISTUJE = 'jiny-avif-uz-existuje';
     case NEPODOBNY_VYSLEDEK = 'nepodobny-vysledek';
     case SELHALO = 'selhalo';
@@ -32,7 +31,6 @@ enum StavPrevoduObrazkuEnum: string
             self::ODKAZ_Z_EMAILU           => 'nechat: odkazuje na něj text e-mailu, e-mailové programy AVIF nečtou',
             self::MIMO_ROZSAH              => 'nechat: spravuje ho jiný modul, nebo ho stahují lidé',
             self::NELZE_ZPRACOVAT          => 'nechat: nejde zpracovat',
-            self::MALA_USPORA              => 'nechat: AVIF by ušetřil málo',
             self::JINY_AVIF_UZ_EXISTUJE    => 'nechat: stejnojmenný AVIF už existuje a je to jiný obrázek',
             self::NEPODOBNY_VYSLEDEK       => 'nechat: AVIF se od originálu příliš liší',
             self::SELHALO                  => 'nechat: převod selhal',
