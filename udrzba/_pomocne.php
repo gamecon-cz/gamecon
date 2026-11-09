@@ -108,6 +108,7 @@ function buildIgnoreMasks(): array
             '/symfony/var/log/*',
 
             '/logy',
+            '/maintenance.html',
 
             '/dokumentace',
         ],

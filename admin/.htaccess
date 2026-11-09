@@ -3,6 +3,23 @@ Allow from all
 AddDefaultCharset UTF-8
 RewriteEngine On
 
+#---údržbový režim, viz kořenový .htaccess; admin na vlastním jménu má za kořen tento adresář, takže maintenance.html
+#---hledá i o úroveň výš, a existující skripty v admin/deploy prochází, aby se dalo nasadit i za údržby
+RewriteCond %{DOCUMENT_ROOT}/maintenance.html -f [OR]
+RewriteCond %{DOCUMENT_ROOT}/../maintenance.html -f
+RewriteRule ^maintenance\.off\.html$ - [L]
+RewriteCond %{DOCUMENT_ROOT}/maintenance.html -f [OR]
+RewriteCond %{DOCUMENT_ROOT}/../maintenance.html -f
+RewriteCond %{REQUEST_URI} !^(/admin)?/deploy/ [OR]
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteRule ^ - [R=503,L]
+<If "-f '%{DOCUMENT_ROOT}/maintenance.html' || -f '%{DOCUMENT_ROOT}/../maintenance.html'">
+    ErrorDocument 503 /maintenance.off.html
+</If>
+<IfModule mod_headers.c>
+    Header always setifempty Retry-After "300" "expr=%{REQUEST_STATUS} == 503"
+</IfModule>
+
 #---odstranění lomítka z konce
 RewriteCond %{THE_REQUEST} ^[A-Z]+\ (.+)/\ [A-Z0-9\./]+$
 RewriteCond %{REQUEST_FILENAME} !-d

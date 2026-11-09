@@ -27,6 +27,9 @@ __pycache__/
 /symfony/config/reference.php
 !/symfony/var/.htaccess
 
+# Údržbový režim se zapíná na serveru, viz dokumentace/nasazeni.md
+/maintenance.html
+
 /admin/*.sql.gz
 
 /web/soubory/obsah/**

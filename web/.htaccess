@@ -3,6 +3,18 @@ Allow from all
 AddDefaultCharset   UTF-8
 RewriteEngine       On
 
+# Údržbový režim, viz kořenový .htaccess
+RewriteCond %{DOCUMENT_ROOT}/maintenance.html -f
+RewriteRule ^maintenance\.off\.html$ - [L]
+RewriteCond %{DOCUMENT_ROOT}/maintenance.html -f
+RewriteRule ^ - [R=503,L]
+<If "-f '%{DOCUMENT_ROOT}/maintenance.html'">
+    ErrorDocument 503 /maintenance.off.html
+</If>
+<IfModule mod_headers.c>
+    Header always setifempty Retry-After "300" "expr=%{REQUEST_STATUS} == 503"
+</IfModule>
+
 RewriteCond %{REQUEST_FILENAME} !-f
 RewriteRule .* index.php?req=$0 [L,QSA]
 
