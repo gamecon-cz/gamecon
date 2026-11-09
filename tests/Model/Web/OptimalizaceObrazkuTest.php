@@ -22,6 +22,11 @@ class OptimalizaceObrazkuTest extends TestCase
      */
     private const string WEBP_1X1 = 'UklGRhoAAABXRUJQVlA4TA0AAAAvAAAAEAcQERGIiP4HAA==';
 
+    /**
+     * Šedý profil ICC (GIMP, D65 Grayscale with sRGB TRC, public domain), jaký mají šedé PNG a JPEG z editorů
+     */
+    private const string SEDY_PROFIL_ICC = 'AAACIGxjbXMEMAAAbW50ckdSQVlYWVogB+YABQAQAAcAEwAzYWNzcEFQUEwAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAPbWAAEAAAAA0y1sY21zAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAGZGVzYwAAAMwAAABuY3BydAAAATwAAAA2d3RwdAAAAXQAAAAUa1RSQwAAAYgAAAAgZG1uZAAAAagAAAAkZG1kZAAAAcwAAABSbWx1YwAAAAAAAAABAAAADGVuVVMAAABSAAAAHABHAEkATQBQACAAYgB1AGkAbAB0AC0AaQBuACAARAA2ADUAIABHAHIAYQB5AHMAYwBhAGwAZQAgAHcAaQB0AGgAIABzAFIARwBCACAAVABSAEMAAG1sdWMAAAAAAAAAAQAAAAxlblVTAAAAGgAAABwAUAB1AGIAbABpAGMAIABEAG8AbQBhAGkAbgAAWFlaIAAAAAAAAPNRAAEAAAABFsxwYXJhAAAAAAADAAAAAmZmAADypwAADVkAABPQAAAKW21sdWMAAAAAAAAAAQAAAAxlblVTAAAACAAAABwARwBJAE0AUG1sdWMAAAAAAAAAAQAAAAxlblVTAAAANgAAABwARAA2ADUAIABHAHIAYQB5AHMAYwBhAGwAZQAgAHcAaQB0AGgAIABzAFIARwBCACAAVABSAEMAAA==';
+
     private string $koren;
     private string $zdroje;
 
@@ -783,6 +788,34 @@ class OptimalizaceObrazkuTest extends TestCase
         $ulozeno = $nahravani->ulozNovy($nahravani->overSoubor($zdroj), '', 'cmyk');
 
         self::assertTrue(self::jeCervena($ulozeno, 50, 50));
+    }
+
+    /**
+     * Šedý obrázek s šedým profilem by se do AVIF zapsal jako RGB s profilem, který k němu nesedí, a Chromium by ho
+     * nezobrazil.
+     *
+     * @test
+     */
+    public function sedyObrazekSeSedymProfilemSeDoAvifZapiseBezNeho(): void
+    {
+        $sedy = new \Imagick();
+        $sedy->newPseudoImage(64, 64, 'gradient:white-black');
+        $sedy->setImageFormat('png');
+        $sedy->setImageType(\Imagick::IMGTYPE_GRAYSCALE);
+        $sedy->setImageProfile('icc', base64_decode(self::SEDY_PROFIL_ICC, true));
+        $zdroj = $this->soubor('sedy.png', $sedy->getImageBlob());
+        // bez téhle kontroly by test prošel i s obrázkem, který šedý nebyl nebo profil neměl
+        $nacteny = new \Imagick($zdroj);
+        self::assertSame(\Imagick::COLORSPACE_GRAY, $nacteny->getImageColorspace());
+        self::assertContains('icc', $nacteny->getImageProfiles('*', false));
+        $nahravani = $this->nahravani();
+
+        $ulozeno = $nahravani->ulozNovy($nahravani->overSoubor($zdroj), '', 'sedy');
+
+        self::assertSame('image/avif', getimagesize($ulozeno)['mime']);
+        $avif = new \Imagick();
+        $avif->readImage('avif:' . $ulozeno);
+        self::assertNotContains('icc', $avif->getImageProfiles('*', false));
     }
 
     /**
