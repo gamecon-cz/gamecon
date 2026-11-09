@@ -14,6 +14,8 @@ Obrázky a soubory ke stažení se nahrávají z administrace:
 
 Soubory jiných typů (třeba fonty) patří do gitu a nasazují se s kódem. Archivní ročníky jsou zmrazené, nenahrává se do nich a mají vlastní nasazení.
 
+Obrázky nahrané dřív než AVIF se na AVIF převádějí ručně na serveru, postup je v [prevod-obrazku-na-avif.md](prevod-obrazku-na-avif.md).
+
 __Editování struktury databáze přes Adminer je zakázáno.__ K změnám struktury databáze se používají skripty v složce `migrace`. Strukturou se rozumí přidávání sloupců, tabulek a podobně.
 
 ## Deployment
