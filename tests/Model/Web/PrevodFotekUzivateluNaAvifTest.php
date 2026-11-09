@@ -70,8 +70,6 @@ class PrevodFotekUzivateluNaAvifTest extends AbstractTestDb
         self::assertSame([], $vysledek->prepsanoRadku);
         self::assertSame(0, $vysledek->nepouzitychObrazku);
         self::assertSame('Text bez obrázků', $this->textStranky());
-        // `Uzivatel::fotka()` bere první shodu z `glob`, který řadí podle abecedy
-        self::assertSame($avif, glob($this->absolutne(self::ID_FOTKY . '.*'))[0]);
     }
 
     /**
@@ -98,10 +96,7 @@ class PrevodFotekUzivateluNaAvifTest extends AbstractTestDb
         ob_start();
         imagepng($png);
         $this->ulozObrazek(self::ID_FOTKY . '.png', (string) ob_get_clean());
-        $webp = new \Imagick();
-        $webp->newPseudoImage(400, 300, 'plasma:fractal');
-        $webp->setImageFormat('webp');
-        $this->ulozObrazek(self::ID_DALSI_FOTKY . '.webp', $webp->getImageBlob());
+        $this->ulozWebP(self::ID_DALSI_FOTKY . '.webp');
         $gif = imagecreatetruecolor(20, 20);
         ob_start();
         imagegif($gif);
@@ -153,16 +148,37 @@ class PrevodFotekUzivateluNaAvifTest extends AbstractTestDb
     }
 
     /**
+     * Fotku web hledá jako `<id>.<přípona>` přímo ve složce fotek, takže ostatní soubory a podsložky jsou něčí cizí věc.
+     *
+     * @test
+     */
+    public function prevadiSeJenSouboryPojmenovanePodleIdVeSlozceFotek(): void
+    {
+        $this->ulozFotku('99438.jpg');
+        $this->ulozFotku('profil.jpg');
+        $this->ulozFotku('99439-stara.jpg');
+        $this->ulozFotku('.99440.jpg');
+        (new Filesystem())->mkdir($this->absolutne('stare'));
+        $this->ulozFotku('stare/99441.jpg');
+
+        $vysledek = $this->prevod()->proved(true);
+
+        self::assertSame(['.99440.jpg', '99438.avif', '99438.jpg', '99439-stara.jpg', 'profil.jpg', 'stare'], $this->souborySlozky());
+        self::assertSame(['99441.jpg'], $this->souborySlozky('stare'));
+        self::assertSame([$this->slozka() . '/99438.jpg'], array_map(static fn (PolozkaPrevoduObrazku $polozka): string => $polozka->cesta, $vysledek->polozky));
+    }
+
+    /**
      * @test
      */
     public function symlinkSeNeprevadi(): void
     {
-        $this->ulozFotku('99435-cil.jpg');
-        symlink($this->absolutne('99435-cil.jpg'), $this->absolutne('99435.jpg'));
+        $this->ulozFotku('99436.jpg');
+        symlink($this->absolutne('99436.jpg'), $this->absolutne('99435.jpg'));
 
         $vysledek = $this->prevod()->proved(true);
 
-        self::assertSame(['99435-cil.avif', '99435-cil.jpg', '99435.jpg'], $this->souborySlozky());
+        self::assertSame(['99435.jpg', '99436.avif', '99436.jpg'], $this->souborySlozky());
         foreach ($vysledek->polozky as $polozka) {
             self::assertNotSame('99435.jpg', basename($polozka->cesta), 'symlink se mezi kandidáty vůbec neobjeví');
         }
@@ -197,6 +213,23 @@ class PrevodFotekUzivateluNaAvifTest extends AbstractTestDb
         $vysledek = $this->prevod()->smazPuvodni(true);
 
         self::assertSame(StavPrevoduObrazkuEnum::PUVODNI_SMAZAN, $this->polozka($vysledek, $this->cesta('.jpg'))->stav);
+        self::assertSame(['99431.avif'], $this->souborySlozky());
+    }
+
+    /**
+     * Originál ve WebP se maže stejně jako JPEG a PNG.
+     *
+     * @test
+     */
+    public function smazePuvodniWebP(): void
+    {
+        $this->ulozWebP(self::ID_FOTKY . '.webp');
+        [$sirka, $vyska] = getimagesize($this->absolutne(self::ID_FOTKY . '.webp'));
+        (new OptimalizaceObrazku())->zapis($this->absolutne(self::ID_FOTKY . '.webp'), NahravaniObrazku::WEBP, $this->absolutne(self::ID_FOTKY . '.avif'), NahravaniObrazku::AVIF, $sirka, $vyska);
+
+        $vysledek = $this->prevod()->smazPuvodni(true);
+
+        self::assertSame(StavPrevoduObrazkuEnum::PUVODNI_SMAZAN, $this->polozka($vysledek, $this->cesta('.webp'))->stav);
         self::assertSame(['99431.avif'], $this->souborySlozky());
     }
 
@@ -266,6 +299,14 @@ class PrevodFotekUzivateluNaAvifTest extends AbstractTestDb
         file_put_contents($this->absolutne($nazev), $bajty);
     }
 
+    private function ulozWebP(string $nazev): void
+    {
+        $webp = new \Imagick();
+        $webp->newPseudoImage(400, 300, 'plasma:fractal');
+        $webp->setImageFormat('webp');
+        $this->ulozObrazek($nazev, $webp->getImageBlob());
+    }
+
     /**
      * AVIF, jaký by vyrobil převod z téhle fotky.
      */
@@ -294,9 +335,9 @@ class PrevodFotekUzivateluNaAvifTest extends AbstractTestDb
     /**
      * @return list<string>
      */
-    private function souborySlozky(): array
+    private function souborySlozky(string $podslozka = ''): array
     {
-        return array_values(array_diff(scandir($this->absolutne()), ['.', '..']));
+        return array_values(array_diff(scandir($this->absolutne($podslozka)), ['.', '..']));
     }
 
     private function vlozStranku(string $text): void

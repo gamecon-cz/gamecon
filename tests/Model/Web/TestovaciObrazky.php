@@ -16,12 +16,27 @@ trait TestovaciObrazky
      */
     private static function jpgSRozmeryVHlavicce(int $sirka, int $vyska): string
     {
-        $jpeg = self::jpgBajty(16, 16);
+        return self::prepisSof0(self::jpgBajty(16, 16), 5, pack('nn', $vyska, $sirka));
+    }
+
+    /**
+     * JPEG, jehož rozměry `getimagesize()` přečte, ale dekodér ho odmítne: hlavička hlásí 12 bitů na barvu, které
+     * ImageMagick s 8bitovou knihovnou JPEG nezná.
+     */
+    private static function jpgKterySeNedaDekodovat(): string
+    {
+        return self::prepisSof0(self::jpgBajty(16, 16), 4, "\x0C");
+    }
+
+    /**
+     * @param int $posunOdZnacky bajty od značky FF C0: délka segmentu (2 bajty), přesnost (1), výška (2), šířka (2)
+     */
+    private static function prepisSof0(string $jpeg, int $posunOdZnacky, string $bajty): string
+    {
         $pozice = 2;
         while ($pozice + 4 <= strlen($jpeg)) {
             if (ord($jpeg[$pozice + 1]) === 0xC0) {
-                // FF C0, délka segmentu (2 bajty), přesnost (1 bajt), výška (2 bajty), šířka (2 bajty)
-                return substr_replace($jpeg, pack('nn', $vyska, $sirka), $pozice + 5, 4);
+                return substr_replace($jpeg, $bajty, $pozice + $posunOdZnacky, strlen($bajty));
             }
             $pozice += 2 + unpack('n', $jpeg, $pozice + 2)[1];
         }

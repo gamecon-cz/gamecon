@@ -548,12 +548,18 @@ SQL, [Pravo::PORADANI_AKTIVIT],
     }
 
     /**
-     * Vrátí objekt Náhled s fotkou uživatele nebo null. Soubor, který nejde přečíst (třeba starý z FTP se špatnými
-     * právy), přeskočí, jako by nebyl: Náhled by na něm vyhodil výjimku a s ní celou stránku.
+     * Vrátí objekt Náhled s fotkou uživatele nebo null. AVIF má přednost před originálem, který vedle něj zůstal po
+     * převodu (`glob` řadí podle abecedy, takže `.JPG` by šel před `.avif`). Soubor, který nejde přečíst (třeba starý
+     * z FTP se špatnými právy), přeskočí, jako by nebyl: Náhled by na něm vyhodil výjimku a s ní celou stránku.
      */
     public function fotka(): ?Nahled
     {
-        foreach (glob(ZpracovaneObrazky::adresarFotekUzivatelu() . '/' . $this->id() . '.*') as $soubor) {
+        $soubory = glob(ZpracovaneObrazky::adresarFotekUzivatelu() . '/' . $this->id() . '.*') ?: [];
+        usort(
+            $soubory,
+            static fn (string $prvni, string $druhy): int => str_ends_with(strtolower($druhy), '.avif') <=> str_ends_with(strtolower($prvni), '.avif'),
+        );
+        foreach ($soubory as $soubor) {
             if (preg_match('/\.(jpg|jpeg|png|gif|webp|avif)$/i', $soubor) && is_readable($soubor)) {
                 return Nahled::zeSouboru($soubor);
             }

@@ -13,7 +13,7 @@ use Gamecon\Uzivatel\SqlStruktura\UpominkaVlastniZneniSqlStruktura;
  * ani e-mail. Originál se při převodu nemaže, to je až @see self::smazPuvodni().
  *
  * Totéž dělá pro fotky uživatelů (@see self::proFotkyUzivatelu()), jen bez textů: fotku web najde podle id uživatele,
- * takže se nic nepřepisuje a AVIF, který leží vedle originálu, má při hledání přednost (`glob` řadí podle abecedy).
+ * takže se nic nepřepisuje a AVIF, který leží vedle originálu, najde `Uzivatel::fotka()` jako první.
  */
 final class PrevodObrazkuNaAvif
 {
@@ -526,9 +526,8 @@ SQL),
     }
 
     /**
-     * Zeptá se databáze, jestli některý ze sloupců odkazuje na některou z cest. Shoduje se databáze, takže stejně jako
-     * v `PouzitiObrazku` platí kolace sloupce (velikost písmen, diakritika) a do paměti se nečte žádný text. Sloupec, který
-     * na předponu oblasti (`soubory/obsah/`, u fotek `soubory/systemove/fotky/`) neodkazuje vůbec, se přeskočí jedním dotazem; ostatní se čtou jednou za dávku souborů. Sloupec
+     * Zeptá se databáze, jestli některý ze sloupců odkazuje na některou z cest; platí kolace sloupce (velikost písmen,
+     * diakritika) a do paměti se nečte žádný text. Sloupec bez předpony oblasti se přeskočí jedním dotazem. Sloupec
      * s odkazy, ve kterém by vzor nemusel najít diakritiku nebo velká písmena (jiná znaková sada, kolace `_bin`), hlásí
      * chybu, nic se pak nemaže.
      *
@@ -711,7 +710,8 @@ SQL,
     }
 
     /**
-     * @return list<string> JPEG a PNG v adresáři (nebo v podsložce běhu) jako cesty vůči adresáři obsahu, bez skrytých
+     * @return list<string> zdroje v adresáři (nebo v podsložce běhu) jako cesty vůči adresáři obsahu, bez skrytých;
+     *                      fotky jen přímo ve složce fotek, kam je `Uzivatel::fotka()` hledá
      */
     private function getObrazky(): array
     {
@@ -723,14 +723,16 @@ SQL,
             return [];
         }
         $cesty = [];
-        $soubory = new \RecursiveIteratorIterator(new \RecursiveDirectoryIterator($koren, \FilesystemIterator::SKIP_DOTS));
+        $soubory = $this->oblast->isZTextu()
+            ? new \RecursiveIteratorIterator(new \RecursiveDirectoryIterator($koren, \FilesystemIterator::SKIP_DOTS))
+            : new \FilesystemIterator($koren, \FilesystemIterator::SKIP_DOTS);
         foreach ($soubory as $soubor) {
             $cesta = substr($soubor->getPathname(), strlen($this->adresarObsahu) + 1);
             if (
                 $soubor->isFile()
                 && !$soubor->isLink()
                 && !str_contains('/' . $cesta, '/.')
-                && in_array(strtolower($soubor->getExtension()), $this->oblast->getPripony(), true)
+                && $this->oblast->isNazevZdroje($soubor->getFilename())
             ) {
                 $cesty[] = $cesta;
             }

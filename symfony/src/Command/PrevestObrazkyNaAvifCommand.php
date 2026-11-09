@@ -33,7 +33,7 @@ class PrevestObrazkyNaAvifCommand extends Command
     {
         $this
             ->addOption('provest', null, InputOption::VALUE_NONE, 'Skutečně zapsat. Bez něj se nic nezmění.')
-            ->addOption('zaloha-hotova', null, InputOption::VALUE_NONE, 'Potvrzení, že existuje kopie web/soubory/obsah a web/soubory/systemove/fotky a export databáze. Nahrané soubory se nezálohují, bez kopie nejde převod vrátit.')
+            ->addOption('zaloha-hotova', null, InputOption::VALUE_NONE, 'Potvrzení, že existuje kopie převáděných adresářů (web/soubory/obsah, web/soubory/systemove/fotky) a export databáze. Nahrané soubory se nezálohují, bez kopie nejde převod vrátit.')
             ->addOption('prostredi', null, InputOption::VALUE_REQUIRED, 'Prostředí, na kterém se zapisuje (ostre, beta, preview, locale); musí souhlasit s tím, které příkaz sám pozná')
             ->addOption('smazat-puvodni', null, InputOption::VALUE_NONE, 'Místo převodu smazat originály, ke kterým je vedle stejný AVIF a na které už nic neodkazuje.')
             ->addOption('oblast', null, InputOption::VALUE_REQUIRED, 'Co převést: obsah (obrázky v textech webu), fotky (fotky uživatelů) nebo vse', 'vse')
@@ -77,7 +77,15 @@ class PrevestObrazkyNaAvifCommand extends Command
             return Command::FAILURE;
         }
         if ($naostro && ! $input->getOption('zaloha-hotova')) {
-            $io->error('Převod se zapisuje do souborů a textů, které se nezálohují. Udělej kopii web/soubory/obsah a web/soubory/systemove/fotky a export databáze a spusť příkaz znovu s --zaloha-hotova.');
+            $io->error(sprintf(
+                'Převod se zapisuje do souborů%s, které se nezálohují. Udělej kopii %s%s a spusť příkaz znovu s --zaloha-hotova.',
+                $sObsahem ? ' a textů' : '',
+                implode(' a ', array_filter([
+                    $sObsahem ? 'web/soubory/obsah' : null,
+                    $sFotkami ? 'web/soubory/systemove/fotky' : null,
+                ])),
+                $sObsahem ? ' a export databáze' : '',
+            ));
 
             return Command::FAILURE;
         }
@@ -123,6 +131,7 @@ class PrevestObrazkyNaAvifCommand extends Command
 
         set_time_limit(0);
         $zbyvaPrevest = $limit === null ? null : (int) $limit;
+        $selhalo = 0;
         if ($sObsahem) {
             $prevod = new PrevodObrazkuNaAvif(
                 new OptimalizaceObrazku(),
@@ -135,6 +144,7 @@ class PrevestObrazkyNaAvifCommand extends Command
                 : $prevod->proved($naostro, $zbyvaPrevest);
             $io->section('Obrázky v textech webu');
             $this->vypis($io, $vysledek, $naostro, $smazat, true);
+            $selhalo += $vysledek->getPoctyPodleStavu()[StavPrevoduObrazkuEnum::SELHALO->value] ?? 0;
             if ($naostro && ($vysledek->prepsanoRadku[AkceSeznamSqlStruktura::AKCE_SEZNAM_TABULKA] ?? 0) > 0) {
                 // popisy aktivit jsou i v JSON programu, který se jinak obnoví až na dalším požadavku
                 SystemoveNastaveni::zGlobals()->oznacProgramCacheJakoDirty();
@@ -150,9 +160,15 @@ class PrevestObrazkyNaAvifCommand extends Command
                 : $prevod->proved($naostro, $zbyvaPrevest);
             $io->section('Fotky uživatelů');
             $this->vypis($io, $vysledek, $naostro, $smazat, false);
+            $selhalo += $vysledek->getPoctyPodleStavu()[StavPrevoduObrazkuEnum::SELHALO->value] ?? 0;
         }
         if (! $naostro) {
             $io->note('Suchý běh, nic se nezměnilo. Zapsat se dá přepínačem --provest.');
+        }
+        if ($selhalo > 0) {
+            $io->error(sprintf('U %d obrázků se práce nezdařila, ostatní jsou hotové. Důvod je u nich výš; příkaz jde pustit znovu.', $selhalo));
+
+            return Command::FAILURE;
         }
 
         return Command::SUCCESS;
