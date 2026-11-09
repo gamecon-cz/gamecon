@@ -29,6 +29,11 @@ RewriteRule (.*) %1 [R,L]
 RewriteCond %{REQUEST_URI} !\.[[:alnum:]]+$
 RewriteRule (.*) index.php?req=$1 [L,QSA]
 
+#---typ obrázků nezávisle na tabulce typů té které verze Apache, stejně jako ve web/.htaccess
+<IfModule mod_mime.c>
+    AddType image/avif .avif
+</IfModule>
+
 #---X-Robots-Tag: noindex pro celý admin (i skripty, soubory a chyby Apache mimo index.php); bez mod_headers a
 #---AllowOverride s FileInfo tiše zmizí, viz docs/generated/indexace-vyhledavacu.md
 <IfModule mod_headers.c>

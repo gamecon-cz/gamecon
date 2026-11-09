@@ -34,7 +34,7 @@
               id="ucastnik-{u.id}-je-nahradnik-na-aktivite-{a.id}"
               data-bs-toggle="tooltip"
               title="Náhradník">
-      <img alt="Náhradník" class="font-sized" src="files/design/substitution-icon.png">
+      <img alt="Náhradník" class="font-sized" src="files/design/substitution-icon.avif">
     </span>
         <span class="sledujici {cssTridaDisplaySledujici} bg-dark"
               id="ucastnik-{u.id}-je-sledujici-aktivity-{a.id}"

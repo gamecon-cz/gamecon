@@ -1,5 +1,5 @@
 <div class="mobmenu">
-<img src="files/design/android-dots.png">
+<img src="files/design/android-dots.avif">
 </div>
 <script>
 $('.mobmenu').on('click', function(){
