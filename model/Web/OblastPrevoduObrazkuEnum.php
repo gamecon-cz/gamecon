@@ -30,17 +30,12 @@ enum OblastPrevoduObrazkuEnum
      */
     public function getKodeky(): array
     {
-        return match ($this) {
-            self::TEXTY            => [
-                NahravaniObrazku::JPG => 'jpeg',
-                NahravaniObrazku::PNG => 'png',
-            ],
-            self::FOTKY_UZIVATELU  => [
-                NahravaniObrazku::JPG  => 'jpeg',
-                NahravaniObrazku::PNG  => 'png',
-                NahravaniObrazku::WEBP => 'webp',
-            ],
+        $mimeTypy = match ($this) {
+            self::TEXTY            => [NahravaniObrazku::JPG, NahravaniObrazku::PNG],
+            self::FOTKY_UZIVATELU  => [NahravaniObrazku::JPG, NahravaniObrazku::PNG, NahravaniObrazku::WEBP],
         };
+
+        return array_intersect_key(OptimalizaceObrazku::KODEKY, array_flip($mimeTypy));
     }
 
     public function getPopisZdroju(): string
@@ -63,7 +58,7 @@ enum OblastPrevoduObrazkuEnum
     }
 
     /**
-     * Fotku web hledá podle `<id uživatele>.*`, jiný soubor ve složce fotek není fotka a nepřevádí se.
+     * Fotku web hledá podle `<id uživatele>.*` s id bez nul na začátku, jiný soubor ve složce fotek není fotka a nepřevádí se.
      */
     public function isNazevZdroje(string $nazevSouboru): bool
     {
@@ -73,8 +68,13 @@ enum OblastPrevoduObrazkuEnum
 
         return match ($this) {
             self::TEXTY            => true,
-            self::FOTKY_UZIVATELU  => ctype_digit(pathinfo($nazevSouboru, PATHINFO_FILENAME)),
+            self::FOTKY_UZIVATELU  => self::isIdUzivatele(pathinfo($nazevSouboru, PATHINFO_FILENAME)),
         };
+    }
+
+    private static function isIdUzivatele(string $text): bool
+    {
+        return ctype_digit($text) && (string) (int) $text === $text && (int) $text > 0;
     }
 
     public function isZTextu(): bool

@@ -11,7 +11,7 @@ namespace Gamecon\Web;
 final class OptimalizaceObrazku
 {
     /** Čtečku a zapisovač určuje formát zjištěný z obsahu, ne název souboru, ImageMagick tak nezkouší SVG, PDF a další */
-    private const array KODEKY = [
+    public const array KODEKY = [
         NahravaniObrazku::JPG  => 'jpeg',
         NahravaniObrazku::PNG  => 'png',
         NahravaniObrazku::WEBP => 'webp',

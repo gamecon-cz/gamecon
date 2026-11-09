@@ -152,7 +152,7 @@ final class PrevodObrazkuNaAvif
         foreach ($this->getObrazky() as $cesta) {
             $avif = $this->getAbsolutniCesta(self::getCestaAvif($cesta));
             // AVIF, který je symlink, může zmizet spolu s cílem, a pak by po smazaném originálu nezbylo nic
-            if (!$this->isSpravovanyJinde($cesta) && is_file($avif) && !is_link($avif)) {
+            if (!$this->isSpravovanyJinde($cesta) && is_file($avif) && !is_link($avif) && !$this->maVicFotekUzivatele($cesta)) {
                 $kandidati[] = $cesta;
             }
         }
@@ -204,6 +204,9 @@ final class PrevodObrazkuNaAvif
         }
         if ($odkazujeKeStazeni) {
             return new PolozkaPrevoduObrazku($cesta, StavPrevoduObrazkuEnum::ODKAZ_KE_STAZENI);
+        }
+        if ($this->maVicFotekUzivatele($cesta)) {
+            return new PolozkaPrevoduObrazku($cesta, StavPrevoduObrazkuEnum::NELZE_ZPRACOVAT, 'uživatel má víc souborů fotky, nech jen jeden');
         }
         if (isset($zEmailu[$cesta]) || isset($zEmailu[self::getCestaAvif($cesta)])) {
             return new PolozkaPrevoduObrazku($cesta, StavPrevoduObrazkuEnum::ODKAZ_Z_EMAILU);
@@ -697,6 +700,33 @@ SQL,
     {
         return $this->podslozka === null
             || str_starts_with($cesta, trim($this->podslozka, '/') . '/');
+    }
+
+    /**
+     * AVIF z jednoho z několika souborů téhož uživatele by zakryl ten, který web ukazoval (první podle abecedy), takže
+     * se žádný nepřevádí ani nemaže.
+     *
+     * @see \Uzivatel::fotka()
+     */
+    private function maVicFotekUzivatele(string $cesta): bool
+    {
+        if ($this->oblast->isZTextu()) {
+            return false;
+        }
+        $uzivatel = pathinfo($cesta, PATHINFO_FILENAME);
+        $pocet = 0;
+        foreach (@scandir(dirname($this->getAbsolutniCesta($cesta))) ?: [] as $soubor) {
+            $pripona = strtolower(pathinfo($soubor, PATHINFO_EXTENSION));
+            if (
+                pathinfo($soubor, PATHINFO_FILENAME) === $uzivatel
+                && $pripona !== self::PRIPONA_CILE
+                && in_array($pripona, ZpracovaneObrazky::PRIPONY_FOTEK_UZIVATELU, true)
+            ) {
+                ++$pocet;
+            }
+        }
+
+        return $pocet > 1;
     }
 
     /**

@@ -560,7 +560,7 @@ SQL, [Pravo::PORADANI_AKTIVIT],
             static fn (string $prvni, string $druhy): int => str_ends_with(strtolower($druhy), '.avif') <=> str_ends_with(strtolower($prvni), '.avif'),
         );
         foreach ($soubory as $soubor) {
-            if (preg_match('/\.(jpg|jpeg|png|gif|webp|avif)$/i', $soubor) && is_readable($soubor)) {
+            if (in_array(strtolower(pathinfo($soubor, PATHINFO_EXTENSION)), ZpracovaneObrazky::PRIPONY_FOTEK_UZIVATELU, true) && is_readable($soubor)) {
                 return Nahled::zeSouboru($soubor);
             }
         }
