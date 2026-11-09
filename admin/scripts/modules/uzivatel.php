@@ -67,7 +67,14 @@ include __DIR__ . '/_uzivatel_ovladac.php';
 $fotka = $uPracovni && AdminMenu::isPodstrankaPristupna($u, 'aktivity', 'medailonky')
     ? new FotkaUzivatele($uPracovni)
     : null;
-$fotka?->zpracujPost();
+if ($fotka !== null) {
+    $fotka->zpracujPost();
+} elseif (FotkaUzivatele::isOdeslanyFormular()) {
+    // organizátor mezitím přišel o práva Medailonků, nebo se v jiné záložce zrušil pracovní uživatel
+    chyba($uPracovni
+        ? 'Fotka se nezměnila, na fotku vypravěče už nemáš práva (Aktivity → Medailonky).'
+        : 'Fotka se nezměnila, nepracuješ teď s žádným uživatelem.');
+}
 
 $x = new XTemplate(__DIR__ . '/uzivatel.xtpl');
 

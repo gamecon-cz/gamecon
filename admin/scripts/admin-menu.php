@@ -8,14 +8,6 @@
 class AdminMenu
 {
 
-    /**
-     * Sestavená menu podle složky. Moduly se během požadavku nemění, a stránka, která se ptá na přístup k jiné
-     * stránce (@see isPodstrankaPristupna()), tak nečte hlavičky modulů znovu po admin/index.php.
-     *
-     * @var array<string, array{menu: array, patickaSoubor: ?string}>
-     */
-    private static array $sestavenaMenu = [];
-
     /** @var string */
     private readonly string $src;
     private ?array          $menu          = null;
@@ -28,61 +20,14 @@ class AdminMenu
 
     private function sestavMenu(): void
     {
-        $klic = $this->src . ($this->isSubmenu ? '|submenu' : '');
-        if (!isset(self::$sestavenaMenu[$klic])) {
-            $this->nactiModuly();
-            self::$sestavenaMenu[$klic] = ['menu' => $this->menu, 'patickaSoubor' => $this->patickaSoubor];
-        }
-        $this->menu          = self::$sestavenaMenu[$klic]['menu'];
-        $this->patickaSoubor = self::$sestavenaMenu[$klic]['patickaSoubor'] ?? $this->patickaSoubor;
-    }
-
-    private function nactiModuly(): void
-    {
         $this->menu = [];
         $d          = opendir($this->src);
         while (($file = readdir($d)) !== false) {
-            //echo($file.' '.is_dir($this->src.$file).'<br />');
             if (strpos($file, '.php') && substr($file, 0, 1) != '_') { //načtení souboru, vyhledání proměnných v hlavičkách
-                $url = substr($file, 0, -4);
-                $fc  = (string)file_get_contents($this->src . $file, false, null, 0, 2048);
-                preg_match('@\* nazev: (.*)@', $fc, $m);
-                $this->menu[$url]['nazev'] = $m[1];
-                preg_match('@\* pravo: (\d*)@', $fc, $m);
-                $this->menu[$url]['pravo']  = (int)$m[1];
-                $this->menu[$url]['prava']  = $this->parsePrava($fc, (int)$m[1]);
-                $this->menu[$url]['soubor'] = $this->src . $file;
-                $this->menu[$url]['ikona']  = $this->parseIkona($fc);
-                if ($this->isSubmenu) {
-                    $this->parseSubMenu($fc, $url);
-                }
+                $this->menu[substr($file, 0, -4)] = $this->nactiPolozku($this->src . $file);
             } else if (strpos($file, '.') === false && strpos($file, '_') === false
                 && is_dir($this->src . $file)) {
-                $url = $file;
-                $fc  = (string)file_get_contents($this->src . $file . '/' . $file . '.php', false, null, 0, 2048);
-                preg_match('@\* nazev: (.*)@', $fc, $m);
-                $this->menu[$url]['nazev'] = $m[1];
-                preg_match('@\* pravo: (.*)@', $fc, $m);
-                $this->menu[$url]['pravo']   = (int)$m[1];
-                $this->menu[$url]['prava']   = $this->parsePrava($fc, (int)$m[1]);
-                $this->menu[$url]['soubor']  = $this->src . $file . '/' . $file . '.php';
-                $this->menu[$url]['submenu'] = 1;
-                $this->menu[$url]['ikona']   = $this->parseIkona($fc);
-                if ($this->isSubmenu) {
-                    $this->parseSubMenu($fc, $url);
-                }
-                /*while(($sf=readdir($sd))!==FALSE)
-                {
-                  if(strpos($sf,'.php'))
-                  { //načtení souboru, vyhledání proměnných v hlavičkách
-                    $url=substr($sf,0,-4);
-                    $fc=file_get_contents($this->src.$file.$sf,false,null,-1,2048);
-                    preg_match('@\* nazev: (.*)@',$fc,$m);
-                    $this->menu[$url]['nazev']=$m[1];
-                    preg_match('@\* pravo: (.*)@',$fc,$m);
-                    $this->menu[$url]['pravo']=(int)$m[1];
-                  }
-                }*/
+                $this->menu[$file] = $this->nactiPolozku($this->src . $file . '/' . $file . '.php') + ['submenu' => 1];
             } else if ($file === '_paticka.php') {
                 $this->patickaSoubor = $this->src . $file;
             }
@@ -95,6 +40,27 @@ class AdminMenu
             }
             return strcmp($a['nazev'], $b['nazev']);
         });
+    }
+
+    /**
+     * Položka menu z hlavičky modulu, ta je v prvních 2048 bajtech souboru.
+     *
+     * @return array<string, mixed>
+     */
+    private function nactiPolozku(string $soubor): array
+    {
+        $fc = (string)file_get_contents($soubor, false, null, 0, 2048);
+        preg_match('@\* nazev: (.*)@', $fc, $m);
+        $polozka['nazev'] = $m[1];
+        preg_match('@\* pravo: (\d*)@', $fc, $m);
+        $polozka['pravo']  = (int)$m[1];
+        $polozka['prava']  = $this->parsePrava($fc, (int)$m[1]);
+        $polozka['soubor'] = $soubor;
+        $polozka['ikona']  = $this->parseIkona($fc);
+
+        return $this->isSubmenu
+            ? $this->parseSubMenu($fc, $polozka)
+            : $polozka;
     }
 
     /**
@@ -123,18 +89,27 @@ class AdminMenu
     /**
      * Totéž co @see isPristupna() pro podstránku zadanou adresou, třeba `aktivity/medailonky`. Pro modul, který nabízí
      * kus jiné stránky a má ho vidět jen ten, kdo by na ni směl vejít: práva tak zůstanou jen v hlavičkách modulů.
+     * Čte jen hlavičky té stránky a podstránky, ne celé složky jako menu.
      */
     public static function isPodstrankaPristupna(\Uzivatel $uzivatel, string $stranka, string $podstranka): bool
     {
-        $adresarModulu = __DIR__ . '/modules/';
-        $menu          = (new self($adresarModulu))->pole();
-        if (empty($menu[$stranka]['submenu'])) {
+        $adresarModulu  = __DIR__ . '/modules/';
+        $adresarStranky = $adresarModulu . $stranka . '/';
+        // stránka s podmenu je složka, podstránka v ní soubor (jako Medailonky); názvy, které by menu vynechalo, neplatí,
+        // viz sestavMenu()
+        $souborStranky    = $adresarStranky . $stranka . '.php';
+        $souborPodstranky = $adresarStranky . $podstranka . '.php';
+        if (preg_match('~^[^._/]+$~', $stranka) !== 1 || preg_match('~^[^_/][^/]*$~', $podstranka) !== 1
+            || !is_file($souborStranky) || !is_file($souborPodstranky)
+        ) {
             return false;
         }
-        $submenu = (new self($adresarModulu . $stranka . '/', true))->pole();
 
-        return isset($submenu[$podstranka])
-            && self::isPristupna($uzivatel, $menu[$stranka], $submenu[$podstranka]);
+        return self::isPristupna(
+            $uzivatel,
+            (new self($adresarModulu))->nactiPolozku($souborStranky),
+            (new self($adresarStranky, true))->nactiPolozku($souborPodstranky),
+        );
     }
 
     /**
@@ -154,19 +129,25 @@ class AdminMenu
         return $prava ?: [$pravo];
     }
 
-    private function parseSubMenu(string $fc, string $url)
+    /**
+     * @param array<string, mixed> $polozka
+     * @return array<string, mixed>
+     */
+    private function parseSubMenu(string $fc, array $polozka): array
     {
         preg_match('@\*\s*submenu_group:\s*(.*)@', $fc, $m);
-        $this->menu[$url]['group'] = (int)($m[1] ?? 0);
+        $polozka['group'] = (int)($m[1] ?? 0);
         preg_match('@\*\s*submenu_order:\s*(.*)@', $fc, $m);
-        $this->menu[$url]['order'] = (int)($m[1] ?? 0);
+        $polozka['order'] = (int)($m[1] ?? 0);
         preg_match('@\*\s*submenu_nazev:\s*(.*)@', $fc, $m);
-        $this->menu[$url]['nazev'] = ($m[1] ?? $this->menu[$url]['nazev']);
+        $polozka['nazev'] = ($m[1] ?? $polozka['nazev']);
         preg_match('@\*\s*submenu_link_open_in_blank:\s*(.*)@', $fc, $m);
-        $this->menu[$url]['link_in_blank'] = (bool)($m[1] ?? false);
+        $polozka['link_in_blank'] = (bool)($m[1] ?? false);
         // TODO
         preg_match('@\*\s*submenu_hidden:\s*(.*)@', $fc, $m);
-        $this->menu[$url]['hidden'] = filter_var($m[1] ?? false, FILTER_VALIDATE_BOOL);
+        $polozka['hidden'] = filter_var($m[1] ?? false, FILTER_VALIDATE_BOOL);
+
+        return $polozka;
     }
 
     /**

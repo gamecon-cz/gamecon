@@ -327,19 +327,22 @@ SQL,
         self::assertStringContainsString('Ubytování uživatele', $stranka);
         self::assertStringNotContainsString('name="akceFotky"', $stranka);
 
-        $this->odesli($session, 'uzivatel', [
+        // formulář načtený, dokud organizátor práva měl: nic se nestane, ale dozví se proč
+        self::assertSame(303, $this->odesli($session, 'uzivatel', [
             'akceFotky'                          => 'nahrat',
             FormularPracovnihoUzivatele::POST_ID => self::ID_VYPRAVECE,
             'fotka'                              => new \CURLFile($this->png(), 'image/png', 'portret.png'),
-        ]);
+        ]));
         self::assertSame([], glob($fotky . '.*'));
+        self::assertStringContainsString('Fotka se nezměnila, na fotku vypravěče už nemáš práva', $this->stahni($session, 'uzivatel'));
 
         copy($this->png(), $fotky . '.png');
-        $this->odesli($session, 'uzivatel', [
+        self::assertSame(303, $this->odesli($session, 'uzivatel', [
             'akceFotky'                          => 'smazat',
             FormularPracovnihoUzivatele::POST_ID => self::ID_VYPRAVECE,
-        ]);
+        ]));
         self::assertFileExists($fotky . '.png');
+        self::assertStringContainsString('Fotka se nezměnila', $this->stahni($session, 'uzivatel'));
     }
 
     /**

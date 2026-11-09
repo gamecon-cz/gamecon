@@ -7,7 +7,7 @@ TL;DR: každý soubor `admin/scripts/modules/<modul>/*.php`, jehož název neza�
 - `nazev:` text tlačítka (v podmenu ho přebíjí `submenu_nazev:`) a zároveň název stránky (`$info->nazev()` v `admin/index.php`), proto bez emoji.
 - `ikona:` název ikony z Font Awesome Free 6.1.1 bez předpony, např. `cart-shopping`. `admin/templates/main.xtpl` z ní udělá `<i class="fa-solid fa-fw fa-…">` před textem tlačítka.
 - `pravo:` jedno právo, `prava:` víc práv oddělených čárkou (stačí kterékoli).
-- Přístup: stránku smí otevřít, kdo má kterékoli právo stránky, nebo kterékoli právo vybrané podstránky (`AdminMenu::isPristupna()`, volá ho `admin/index.php`). Modul, který nabízí kus jiné stránky, se ptá `AdminMenu::isPodstrankaPristupna($u, 'aktivity', 'medailonky')`, aby práva zůstala jen v hlavičkách (záložka Uživatel takhle ukazuje fotku vypravěče z Medailonků).
+- Přístup: stránku smí otevřít, kdo má kterékoli právo stránky, nebo kterékoli právo vybrané podstránky (`AdminMenu::isPristupna()`, volá ho `admin/index.php`). Modul, který nabízí kus jiné stránky, se ptá `AdminMenu::isPodstrankaPristupna($u, 'aktivity', 'medailonky')`, aby práva zůstala jen v hlavičkách (záložka Uživatel takhle ukazuje fotku vypravěče z Medailonků). Čte jen hlavičky té stránky a podstránky, ne celou složku, protože ho volá i nejnavštěvovanější stránka adminu; podstránka musí být soubor, ne složka.
 - `submenu_group:`, `submenu_order:` řazení a rozdělení podmenu do skupin.
 - `submenu_nazev:` jiný text v podmenu, než je `nazev:`.
 - `submenu_link_open_in_blank:`, `submenu_hidden:` otevření v nové záložce, skrytí položky.
@@ -15,7 +15,6 @@ TL;DR: každý soubor `admin/scripts/modules/<modul>/*.php`, jehož název neza�
 ## Pravidla
 
 - Hlavička se čte jen z **prvních 2048 bajtů** souboru, drž ji nahoře.
-- Sestavené menu jedné složky si `AdminMenu` pamatuje do konce požadavku (statická cache podle složky), `isPodstrankaPristupna()` tak po `admin/index.php` hlavní menu znovu nečte. Změnu hlavičky během požadavku (třeba v testu) proto nová instance neuvidí.
 - Každá položka podmenu i hlavního menu musí mít hlavičku `ikona:` a ikona musí existovat v `admin/files/design/font-awesome-6.1.1/css/all.css`; `nazev:` ani `submenu_nazev:` nesmí obsahovat emoji. Hlídá to `tests/Admin/AdminMenuIkonyTest.php`.
 - Modul může přes proměnnou `$submenuDoplnek` (HTML, nastaví ji před koncem souboru) přidat blok na konec posledního sloupce podmenu; používá to Přehled Aktivit pro tlačítko „aktivovat hromadně" pod sloupcem Administrace (`aktivity/_aktivovat-vse.xtpl`). Takový blok není položka podmenu, `ikona:` se ho netýká; ikonu (`fa-bolt`) nese přímo jeho šablona.
 - Hlavní menu vlevo kreslí v klasickém vzhledu PNG `admin/files/design/<modul>.png`, v moderním ikonu z `ikona:` (viz [vzhled-adminu](vzhled-adminu.md)). Proto ji musí mít i moduly hlavního menu bez podmenu (`uzivatel.php`, `statistiky.php`, `napoveda.php`); hlídá to týž test.
