@@ -1,6 +1,7 @@
 // Moderní vzhled administrace (admin/templates/moderni/main.xtpl): vysouvací menu na úzké obrazovce nebo když
-// si ho uživatel schová, horní lišta, která při posunu dolů ustoupí (ať nezakrývá přilepené hlavičky tabulek),
-// zhuštěný panel, když se na výšku nevejde, a vodorovně posuvné tabulky, které se do obsahu nevejdou.
+// si ho uživatel schová (na širší obrazovce s myší z něj zůstane úzký panel s ikonami), horní lišta, která při
+// posunu dolů ustoupí (ať nezakrývá přilepené hlavičky tabulek), zhuštěný panel, když se na výšku nevejde,
+// a vodorovně posuvné tabulky, které se do obsahu nevejdou.
 (function () {
   'use strict'
 
@@ -17,14 +18,47 @@
   const obsah = document.getElementById('mainContent')
   // stejná hranice jako v moderni.css
   const uzkaObrazovka = window.matchMedia('(max-width: 1023.98px)')
+  // schované menu je tu úzký panel, který se rozbalí najetím myší (moderni.css, Úzký panel)
+  const obrazovkaProUzkyPanel = window.matchMedia('(min-width: 1024px) and (hover: hover) and (pointer: fine)')
   // stejný klíč čte skript v hlavičce main.xtpl
   const klicSchovanehoMenu = 'adminSchovaneMenu'
   // Posuvné tabulky ukazují stín u okraje, kudy pokračují. Po změně velikosti okna je přepočítá jeden společný
   // posluchač, ne každá tabulka svůj.
   const ukazateleOkrajuTabulek = []
 
+  function jePanelUzky() {
+    return html.classList.contains('moderni-menu-schovane') && obrazovkaProUzkyPanel.matches
+  }
+
   function jeMenuVysouvaci() {
-    return uzkaObrazovka.matches || html.classList.contains('moderni-menu-schovane')
+    return uzkaObrazovka.matches || (html.classList.contains('moderni-menu-schovane') && !jePanelUzky())
+  }
+
+  // Po kliknutí na Schovat nebo po Esc je myš ještě nad panelem a ten by se hned zase rozbalil. Najetím se
+  // rozbalí, až z něj myš odjede (posluchač mouseleave níž).
+  function nerozbalujPanelDokudMysNeodjede() {
+    panel.classList.add('moderni-panel-nerozbalovat')
+  }
+
+  // Esc sbalí úzký panel rozbalený přes obsah, ať je obsah pod ním vidět. Fokus z panelu přejde na obsah, jako
+  // se po zavření vysouvacího menu vrátí na tlačítko menu: ve sbaleném panelu by pole nebo tlačítko s fokusem
+  // nebylo vidět.
+  function sbalUzkyPanel() {
+    if (panel.contains(document.activeElement)) {
+      obsah.focus({preventScroll: true})
+    }
+    if (panel.matches(':hover')) {
+      nerozbalujPanelDokudMysNeodjede()
+    }
+  }
+
+  // Safari do verze 13 nezná u MediaQueryList addEventListener, jen addListener.
+  function priZmeneObrazovky(dotaz, posluchac) {
+    if (dotaz.addEventListener) {
+      dotaz.addEventListener('change', posluchac)
+    } else {
+      dotaz.addListener(posluchac)
+    }
   }
 
   // Pamatuje si to prohlížeč, ne účet: na notebooku může být menu schované a na velkém monitoru ne.
@@ -70,36 +104,56 @@
     }
   }
 
-  if (panel && tlacitkoMenu && tlacitkoZavrit && tlacitkoSchovat && tlacitkoPripnout && zavoj && sloupR && lista) {
+  if (panel && tlacitkoMenu && tlacitkoZavrit && tlacitkoSchovat && tlacitkoPripnout && zavoj && sloupR && lista
+    && obsah) {
     tlacitkoMenu.addEventListener('click', otevriMenu)
     tlacitkoZavrit.addEventListener('click', function () {
       zavriMenu(true)
     })
-    tlacitkoSchovat.addEventListener('click', function () {
+    tlacitkoSchovat.addEventListener('click', function (event) {
       nastavSchovaneMenu(true)
-      tlacitkoMenu.focus()
+      if (jeMenuVysouvaci()) {
+        tlacitkoMenu.focus()
+      } else if (event.detail === 0) {
+        // Z klávesnice zůstane fokus v úzkém panelu, který je proto rozbalený, dokud z něj fokus neodejde.
+        // Po kliknutí myší ne: tlačítko Schovat zmizí a panel se sbalí.
+        tlacitkoPripnout.focus()
+      } else {
+        nerozbalujPanelDokudMysNeodjede()
+      }
     })
     tlacitkoPripnout.addEventListener('click', function () {
       zavriMenu(false)
       nastavSchovaneMenu(false)
+      panel.classList.remove('moderni-panel-nerozbalovat')
       tlacitkoSchovat.focus()
     })
     zavoj.addEventListener('click', function () {
       zavriMenu(true)
     })
+    panel.addEventListener('mouseleave', function () {
+      panel.classList.remove('moderni-panel-nerozbalovat')
+    })
     document.addEventListener('keydown', function (event) {
       // Esc v našeptávači jen zavře nabídku, ten si událost zruší
-      if (event.key === 'Escape' && !event.defaultPrevented && jeMenuOtevrene()) {
+      if (event.key !== 'Escape' || event.defaultPrevented) {
+        return
+      }
+      if (jeMenuOtevrene()) {
         zavriMenu(true)
+      } else if (jePanelUzky()) {
+        sbalUzkyPanel()
       }
     })
-    // Po rozšíření okna je panel vedle obsahu, vysunuté menu se zavře. Hlídá se změna velikosti, ne změna
-    // MediaQueryList, na které Safari do verze 13 nezná addEventListener.
-    window.addEventListener('resize', function () {
+    // Když menu přestane být vysouvací, vysunuté se zavře: po rozšíření okna, ale i po připojení myši k tabletu
+    // nebo přepnutí notebooku z dotyku, kdy se velikost okna nezmění a schované menu se stane úzkým panelem.
+    const zavriMenuPokudNeniVysouvaci = function () {
       if (!jeMenuVysouvaci()) {
         zavriMenu(false)
       }
-    })
+    }
+    priZmeneObrazovky(uzkaObrazovka, zavriMenuPokudNeniVysouvaci)
+    priZmeneObrazovky(obrazovkaProUzkyPanel, zavriMenuPokudNeniVysouvaci)
 
     let posledniPosun = window.scrollY
     window.addEventListener('scroll', function () {
@@ -117,6 +171,7 @@
 
     // Výběr pracovního uživatele je ve vysouvacím menu, kam se fokus nedostane, dokud je zasunuté. Zkratka alt+U
     // (omnibox.js) i hlášky „Vyberte uživatele (pole vlevo)“ (onclick s focus()) proto menu nejdřív vysunou.
+    // Úzký panel se rozbalí fokusem do pole sám.
     const ukazVyberUzivatele = function () {
       const vyberUzivatele = document.getElementById('omniboxUzivateleProPraci')
       if (!vyberUzivatele || !jeMenuVysouvaci()) {

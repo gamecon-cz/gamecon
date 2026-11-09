@@ -1,5 +1,6 @@
 <!-- begin:operator -->
 <section class="operator moderni-operator" aria-label="Přihlášený uživatel">
+  <i class="fa-solid fa-circle-user moderni-ikona-uzkeho-panelu" aria-hidden="true"></i>
   <div class="moderni-operator-kdo">
     <i class="fa-solid fa-circle-user" aria-hidden="true"></i>
     <div>

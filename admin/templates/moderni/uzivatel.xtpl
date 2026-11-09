@@ -2,6 +2,7 @@
 <section class="uzivatel moderni-uzivatel" aria-labelledby="moderniUzivatelNadpis">
     <h2 class="moderni-popisek" id="moderniUzivatelNadpis">Uživatel pro práci</h2>
     <!-- begin:omnibox -->
+    <span class="moderni-ikona-uzkeho-panelu" aria-hidden="true"><i class="fa-solid fa-magnifying-glass"></i></span>
     <form method="post" class="moderni-hledani">
         <input type="hidden" name="vybratUzivateleProPraci" value="1">
         <i class="fa-solid fa-magnifying-glass" aria-hidden="true"></i>
@@ -11,6 +12,7 @@
     </form>
     <!-- end:omnibox -->
     <!-- begin:vybrany -->
+    <img class="moderni-ikona-uzkeho-panelu" alt="" aria-hidden="true" src="{uPracovni.avatar}">
     <div class="moderni-vybrany">
         <img alt="" class="avatar" src="{uPracovni.avatar}">
         <div class="moderni-vybrany-udaje">
