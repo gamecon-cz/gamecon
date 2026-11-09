@@ -10,6 +10,8 @@ use Symfony\Component\Filesystem\Filesystem;
 
 readonly class ZpracovaneObrazky
 {
+    /** Přípony, ze kterých `Uzivatel::fotka()` vybírá fotku uživatele */
+    public const array PRIPONY_FOTEK_UZIVATELU = ['jpg', 'jpeg', 'png', 'gif', 'webp', 'avif'];
     private const RADICI_SOUBOR = 'RAZENI.csv';
     private const OBSAH = '/soubory/obsah';
     private const ADRESAR_SPONZORU = 'sponzori';

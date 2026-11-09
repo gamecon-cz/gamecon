@@ -28,7 +28,9 @@ sudo -u www-data env APP_ENV=prod APP_DEBUG=0 php bin/console obrazky:prevest-na
 
 Na ostré je to `--prostredi=ostre`.
 
-Bez přepínače `--oblast` převádí příkaz obojí, nejdřív obrázky v textech, pak fotky uživatelů. Jen fotky: `--oblast=fotky`, zkouška na třech: `--oblast=fotky --limit=3`. Přepínač `--slozka` omezuje jen obrázky v textech a s ním se fotky nepřevádějí, takže zkouška z kroku 2 na fotky nesahá. Přepínač `--limit` platí za celý běh: nejdřív se převádějí texty, a pokud se limit vyčerpá na nich, fotky přijdou na řadu až při dalším běhu.
+Bez přepínače `--oblast` převádí příkaz obojí, nejdřív obrázky v textech, pak fotky uživatelů. Jen fotky: `--oblast=fotky`, zkouška na třech: `--oblast=fotky --limit=3`. Přepínač `--slozka` omezuje jen obrázky v textech a s ním se fotky nepřevádějí, takže zkouška z kroku 2 na fotky nesahá. Přepínač `--limit` platí za celý běh: nejdřív se převádějí texty, a pokud se limit vyčerpá na nich, příkaz to u fotek řekne a ty přijdou na řadu až při dalším běhu. Když první oddíl skončí chybou (třeba sloupec s odkazy v jiné kolaci při mazání), druhý se nespustí a hotový je jen první; druhou oblast pak pusť zvlášť přes `--oblast`.
+
+Fotku, kterou web ukazuje jako první podle abecedy z více souborů téhož uživatele (`5.jpg` a `5.png`), příkaz nepřevádí ani nemaže a vypíše ji s důvodem: AVIF z jednoho z nich by zakryl ten, který web ukazoval. Nech jen ten správný soubor a spusť příkaz znovu.
 
 Příkaz se dá spustit znovu kdykoli: hotový AVIF použije, jiný stejnojmenný AVIF nepřepíše a řádek textu, který někdo mezitím upravil, přeskočí (vypíše ho, stačí příkaz zopakovat).
 
@@ -46,7 +48,7 @@ Příkaz se dá spustit znovu kdykoli: hotový AVIF použije, jiný stejnojmenn�
 3. **Beta bere databázi z ostré.** Po jejím obnovení z ostré, která už odkazuje na AVIF, spusť převod na betě znovu: doplní AVIF k JPG a PNG, které tam zůstaly.
 4. **AVIF z PNG, který vznikl před opravou vzorkování barev, má zprůměrované barvy sytých hran** (viz Gotchas v [`nahravani-obrazku.md`](../docs/generated/nahravani-obrazku.md)). Smaž ho (PNG vedle něj zůstává) a spusť příkaz znovu.
 5. **Starší běh vynechával obrázky, na kterých AVIF ušetřil málo** (pod 2 KiB nebo čtvrtinu). Pravidlo už neplatí, takže další běh je převede taky.
-6. **Fotky uživatelů:** otevři stránku vypravěče a zkontroluj, že se jeho fotka ukáže. `Uzivatel::fotka()` bere AVIF přednostně, i když originál má velkou příponu `.JPG` (`glob` řadí bajty, takže ta by šla před `.avif`), takže po převodu je to AVIF; náhled se přegeneruje sám.
+6. **Fotky uživatelů:** otevři stránku vypravěče a zkontroluj, že se jeho fotka ukáže. `Uzivatel::fotka()` bere AVIF přednostně, i když originál má velkou příponu `.JPG` (`glob` řadí bajty, takže ta by šla před `.avif`), takže po převodu je to AVIF; náhled se přegeneruje sám při prvním zobrazení, takže první načtení stránky s mnoha vypravěči je pomalejší (každý AVIF se dekóduje znovu); otevři ji hned po převodu.
 
 ## Návrat zpět
 

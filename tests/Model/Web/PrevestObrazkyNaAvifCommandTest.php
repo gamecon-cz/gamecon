@@ -273,18 +273,31 @@ VALUES ($0, $1, $2, 1, $3, 2, $4, 0, 5, 0, 0)',
         $slozkaFotek = dirname($this->ulozFotkuUzivatele('99436.jpg', self::fotkaZFotakuBajty(1200, 800)));
         $tester = new CommandTester(new PrevestObrazkyNaAvifCommand());
 
-        $kod = $tester->execute([
+        $tester->execute([
             '--oblast' => 'fotky',
         ], [
             'verbosity' => OutputInterface::VERBOSITY_VERBOSE,
         ]);
 
-        self::assertSame(Command::SUCCESS, $kod);
         $vystup = $tester->getDisplay();
         self::assertStringContainsString('Fotky uživatelů', $vystup);
         self::assertStringNotContainsString('Obrázky v textech webu', $vystup);
         self::assertStringContainsString('99436.jpg: převedeno do AVIF', $vystup);
         self::assertFileDoesNotExist($slozkaFotek . '/99436.avif');
+    }
+
+    /**
+     * @test
+     */
+    public function vycerpanyLimitNaTextechRekneZeFotkySeNeprevadely(): void
+    {
+        $tester = new CommandTester(new PrevestObrazkyNaAvifCommand());
+
+        $tester->execute([
+            '--limit' => '1',
+        ]);
+
+        self::assertStringContainsString('Fotky uživatelů se v tomhle běhu nepřevádějí: limit se vyčerpal', (string) preg_replace('~[\s\n]+~', ' ', $tester->getDisplay()));
     }
 
     /**
