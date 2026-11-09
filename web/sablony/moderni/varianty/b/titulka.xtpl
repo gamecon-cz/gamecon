@@ -23,7 +23,7 @@
                     <span role="timer"><b data-mw-odpocet-dnu>0</b>&nbsp;dní <b data-mw-odpocet-hodin>00</b>&nbsp;hod <b data-mw-odpocet-minut>00</b>&nbsp;min <b data-mw-odpocet-sekund>00</b>&nbsp;s</span>
                 </p>
             </div>
-            <img class="mw-b-obal-krabice" alt="" src="soubory/blackarrow/gchlavicka/obr_1.jpg">
+            <img class="mw-b-obal-krabice" alt="" src="soubory/blackarrow/gchlavicka/obr_1.avif">
         </div>
 
         <!-- bok krabice: bílá lišta s piktogramy, jak ji má každá deskovka -->
@@ -56,12 +56,12 @@
         <p class="mw-b-uvod">Všechno, co na GameConu najdeš. Za vstup neplatíš nic, jen za aktivity a&nbsp;služby, které si objednáš.</p>
         <!-- originály kreseb, zmenšeniny z bloků cisla a karty jsou na tuhle velikost malé -->
         <ul class="mw-b-obsah">
-            <li><img alt="" src="soubory/blackarrow/cisla/2.jpg"><div><strong><b>{stovkyAktivit}+</b> aktivit</strong><span>deskovky, RPG, larpy, turnaje a přednášky</span></div></li>
-            <li><img alt="" src="soubory/blackarrow/karty/1.jpg"><div><strong><b>{pocetLinii}×</b> herní linie</strong><span>každá s vlastním týmem a hrami</span></div></li>
-            <li><img alt="" src="soubory/blackarrow/cisla/1.jpg"><div><strong><b>1×</b> deskoherna</strong><span>zdarma a otevřená skoro celý den</span></div></li>
-            <li><img alt="" src="soubory/blackarrow/cisla/4.jpg"><div><strong><b>1×</b> koncert</strong><span>a k tomu pár večírků</span></div></li>
-            <li><img alt="" src="soubory/blackarrow/cisla/3.jpg"><div><strong><b>4×</b> den hraní</strong><span>od rána do noci</span></div></li>
-            <li><img alt="" src="soubory/blackarrow/karty/2.jpg"><div><strong><b>0&nbsp;Kč</b> vstupné</strong><span>registrace je zdarma</span></div></li>
+            <li><img alt="" src="soubory/blackarrow/cisla/2.avif"><div><strong><b>{stovkyAktivit}+</b> aktivit</strong><span>deskovky, RPG, larpy, turnaje a přednášky</span></div></li>
+            <li><img alt="" src="soubory/blackarrow/karty/1.avif"><div><strong><b>{pocetLinii}×</b> herní linie</strong><span>každá s vlastním týmem a hrami</span></div></li>
+            <li><img alt="" src="soubory/blackarrow/cisla/1.avif"><div><strong><b>1×</b> deskoherna</strong><span>zdarma a otevřená skoro celý den</span></div></li>
+            <li><img alt="" src="soubory/blackarrow/cisla/4.avif"><div><strong><b>1×</b> koncert</strong><span>a k tomu pár večírků</span></div></li>
+            <li><img alt="" src="soubory/blackarrow/cisla/3.avif"><div><strong><b>4×</b> den hraní</strong><span>od rána do noci</span></div></li>
+            <li><img alt="" src="soubory/blackarrow/karty/2.avif"><div><strong><b>0&nbsp;Kč</b> vstupné</strong><span>registrace je zdarma</span></div></li>
         </ul>
         <!-- begin: cisla --><!-- end: cisla -->
         <!-- begin: karty --><!-- end: karty -->
