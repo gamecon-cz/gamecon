@@ -13,17 +13,17 @@ Každé prostředí má vlastní nahrané soubory, které nejsou v gitu, takže 
 
 ## Postup
 
-V kořeni aplikace na serveru:
+V kořeni aplikace na serveru. `APP_ENV` se musí zadat, na serveru není `.env` a bez něj `bin/console` skončí chybou `Undefined array key "APP_ENV"` (web si ho bere z `nastaveni/nastaveni-*.php`):
 
 ```bash
 # 1. suchý běh: nic nezapíše, vypíše co by se stalo a kolik by se ušetřilo (trvá stejně dlouho jako ostrý běh)
-sudo -u www-data php bin/console obrazky:prevest-na-avif -v
+sudo -u www-data env APP_ENV=prod APP_DEBUG=0 php bin/console obrazky:prevest-na-avif -v
 
 # 2. zkouška na pár obrázcích
-sudo -u www-data php bin/console obrazky:prevest-na-avif --provest --zaloha-hotova --prostredi=beta --slozka=blog --limit=5
+sudo -u www-data env APP_ENV=prod APP_DEBUG=0 php bin/console obrazky:prevest-na-avif --provest --zaloha-hotova --prostredi=beta --slozka=blog --limit=5
 
 # 3. celý převod
-sudo -u www-data php bin/console obrazky:prevest-na-avif --provest --zaloha-hotova --prostredi=beta -v
+sudo -u www-data env APP_ENV=prod APP_DEBUG=0 php bin/console obrazky:prevest-na-avif --provest --zaloha-hotova --prostredi=beta -v
 ```
 
 Na ostré je to `--prostredi=ostre`.
@@ -36,8 +36,8 @@ Příkaz se dá spustit znovu kdykoli: hotový AVIF použije, jiný stejnojmenn�
 2. **Originály se nemažou.** Na staré adresy se může odkazovat zvenku (vyhledávače, odeslané e-maily, sociální sítě). Smaž je až později, když v přístupovém logu na staré adresy skoro nikdo nechodí:
 
    ```bash
-   sudo -u www-data php bin/console obrazky:prevest-na-avif --smazat-puvodni            # suchý běh
-   sudo -u www-data php bin/console obrazky:prevest-na-avif --smazat-puvodni --provest --zaloha-hotova --prostredi=beta
+   sudo -u www-data env APP_ENV=prod APP_DEBUG=0 php bin/console obrazky:prevest-na-avif --smazat-puvodni            # suchý běh
+   sudo -u www-data env APP_ENV=prod APP_DEBUG=0 php bin/console obrazky:prevest-na-avif --smazat-puvodni --provest --zaloha-hotova --prostredi=beta
    ```
 
    Smaže jen originál, na který už nic neodkazuje a který má vedle stejný AVIF.
