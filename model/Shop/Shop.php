@@ -951,12 +951,12 @@ SQL,
             'lonskyRok'             => $this->systemoveNastaveni->rocnik() - 1,
             'vstupneGamaKorekce'    => self::VSTUPNE_GAMA_KOREKCE,
             'smajliky'              => json_encode([
-                [1000, URL_WEBU . '/soubory/blackarrow/shop/vstupne-smajliky/6.png'],
-                [600, URL_WEBU . '/soubory/blackarrow/shop/vstupne-smajliky/5.png'],
-                [250, URL_WEBU . '/soubory/blackarrow/shop/vstupne-smajliky/4.png'],
-                [60, URL_WEBU . '/soubory/blackarrow/shop/vstupne-smajliky/3.png'],
-                [1, URL_WEBU . '/soubory/blackarrow/shop/vstupne-smajliky/2.png'],
-                [0, URL_WEBU . '/soubory/blackarrow/shop/vstupne-smajliky/1.png'],
+                [1000, URL_WEBU . '/soubory/blackarrow/shop/vstupne-smajliky/6.avif'],
+                [600, URL_WEBU . '/soubory/blackarrow/shop/vstupne-smajliky/5.avif'],
+                [250, URL_WEBU . '/soubory/blackarrow/shop/vstupne-smajliky/4.avif'],
+                [60, URL_WEBU . '/soubory/blackarrow/shop/vstupne-smajliky/3.avif'],
+                [1, URL_WEBU . '/soubory/blackarrow/shop/vstupne-smajliky/2.avif'],
+                [0, URL_WEBU . '/soubory/blackarrow/shop/vstupne-smajliky/1.avif'],
             ]),
         ]);
         $t->parse('vstupne');

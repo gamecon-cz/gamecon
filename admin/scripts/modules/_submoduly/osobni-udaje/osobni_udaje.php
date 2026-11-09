@@ -55,8 +55,8 @@ class OsobniUdajeTabulka
         if (!$uzivatel)
             return "";
 
-        $ok  = '<img alt="OK" src="files/design/ok-s.png" style="margin-bottom:-2px">';
-        $err = '<img alt="error" src="files/design/error-s.png" style="margin-bottom:-2px">';
+        $ok  = '<img alt="OK" src="files/design/ok-s.avif" style="margin-bottom:-2px">';
+        $err = '<img alt="error" src="files/design/error-s.avif" style="margin-bottom:-2px">';
 
         $x = new XTemplate(__DIR__ . '/osobni_udaje.xtpl');
 
