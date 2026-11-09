@@ -7,7 +7,7 @@
     <div class="mw-obal">
         <p class="mw-a-kdy"><strong>{gcOd}&thinsp;–&thinsp;{gcDo}&nbsp;{gcRok}</strong> Ostrava</p>
         <!-- kresby stojí v řádku nadpisu jako písmena; originály, zmenšeniny z bloku cisla jsou na to malé -->
-        <h1>Největší <img class="mw-a-meeple" alt="" src="soubory/blackarrow/cisla/1.jpg"> festival nepočítačových her <img class="mw-a-kostky" alt="" src="soubory/blackarrow/cisla/2.jpg"></h1>
+        <h1>Největší <img class="mw-a-meeple" alt="" src="soubory/blackarrow/cisla/1.avif"> festival nepočítačových her <img class="mw-a-kostky" alt="" src="soubory/blackarrow/cisla/2.avif"></h1>
         <div class="mw-a-hero-spodek">
             <div>
                 <p class="mw-a-perex">
@@ -68,17 +68,17 @@
         <!-- originály kreseb, zmenšeniny z bloku jsou na tuhle velikost malé -->
         <div class="mw-a-proc-mrizka">
             <article>
-                <img alt="" src="soubory/blackarrow/karty/1.jpg">
+                <img alt="" src="soubory/blackarrow/karty/1.avif">
                 <h3>Akce pro všechny</h3>
                 <p>Na GameConu si najde každý fanoušek aktivní zábavy a&nbsp;nepočítačových her to svoje.</p>
             </article>
             <article>
-                <img alt="" src="soubory/blackarrow/karty/2.jpg">
+                <img alt="" src="soubory/blackarrow/karty/2.avif">
                 <h3>Festival aktivní zábavy</h3>
                 <p>Najdeš tu všechno od celodenně otevřené deskoherny přes rolové hry až po koncert.</p>
             </article>
             <article>
-                <img alt="" src="soubory/blackarrow/karty/3.jpg">
+                <img alt="" src="soubory/blackarrow/karty/3.avif">
                 <h3>Žádné vstupné</h3>
                 <p>Registrace na GameCon je zdarma. Platíš jen za služby a&nbsp;aktivity, které si sám vybereš a&nbsp;objednáš.</p>
             </article>

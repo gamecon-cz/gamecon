@@ -40,7 +40,7 @@
   z-index: -1;
   inset: 0;
   background-color: var(--mw-cervena);
-  mask: url("../../blackarrow/gchlavicka/smouha.png") no-repeat center / 100% 100%;
+  mask: url("../../blackarrow/gchlavicka/smouha.avif") no-repeat center / 100% 100%;
 }
 
 .mw-a-hero h1 {
@@ -220,7 +220,7 @@
   z-index: -1;
   inset: 0 -10px 0 -8px;
   background-color: var(--mw-cervena);
-  mask: url("../../blackarrow/gchlavicka/smouha.png") no-repeat center / 100% 100%;
+  mask: url("../../blackarrow/gchlavicka/smouha.avif") no-repeat center / 100% 100%;
   transform: scaleX(0);
   transform-origin: left;
   transition: transform 0.25s ease-out;

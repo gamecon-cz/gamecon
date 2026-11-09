@@ -40,7 +40,7 @@
                     allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
                     referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe>
             </div>
-            <img class="mw-hero-foto" alt="" src="soubory/blackarrow/gchlavicka/obr_1.jpg">
+            <img class="mw-hero-foto" alt="" src="soubory/blackarrow/gchlavicka/obr_1.avif">
             <a class="mw-hero-video-odkaz" href="https://www.youtube.com/watch?v=-SBu7WGPkO4" target="_blank">
                 <span class="mw-ikona-prehrat" aria-hidden="true"></span> Přehrát video s&nbsp;hlasem
             </a>
