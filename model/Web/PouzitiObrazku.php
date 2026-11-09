@@ -64,7 +64,10 @@ class PouzitiObrazku
         return array_values($mista);
     }
 
-    private static function vzorProLike(string $hodnota): string
+    /**
+     * Vzor pro LIKE, který hledá $hodnota kdekoli v textu, se zástupnými znaky v $hodnotě zneškodněnými.
+     */
+    public static function vzorProLike(string $hodnota): string
     {
         return '%' . addcslashes($hodnota, '\\%_') . '%';
     }
@@ -164,13 +167,39 @@ class PouzitiObrazku
     }
 
     /**
+     * Tabulky a sloupce, ve kterých texty webu odkazují na soubory. Kdo odkazy přepisuje, přepisuje právě tyhle.
+     *
+     * @return list<array{tabulka: string, klic: string, sloupce: list<string>}>
+     */
+    public function getTextoveSloupce(): array
+    {
+        return array_map(
+            static fn (array $zdroj): array => [
+                'tabulka' => $zdroj['tabulka'],
+                'klic'    => $zdroj['klic'],
+                // sloupec spojení je zapsaný i s tabulkou (`medailonky.o_sobe`)
+                'sloupce' => array_map(
+                    static fn (string $sloupec): string => str_contains($sloupec, '.')
+                        ? substr($sloupec, (int) strpos($sloupec, '.') + 1)
+                        : $sloupec,
+                    $zdroj['sloupceTextu'],
+                ),
+            ],
+            $this->zdrojeTextu(),
+        );
+    }
+
+    /**
      * @return list<array{
      *     sloupce: string,
      *     zdroj: string,
+     *     tabulka: string,
+     *     klic: string,
      *     sloupceTextu: list<string>,
      *     razeni: string,
      *     popisMista: \Closure(array<string, string|null>): array{popis: string, url: string}
-     * }> sloupce jsou pro výpis řádku, zdroj je tabulka nebo spojení tabulek, sloupceTextu jsou ty, ve kterých se hledá
+     * }> sloupce jsou pro výpis řádku, zdroj je tabulka nebo spojení tabulek, tabulka a klic je to, co se v ní upravuje,
+     *    sloupceTextu jsou ty, ve kterých se hledá
      */
     private function zdrojeTextu(): array
     {
@@ -178,6 +207,8 @@ class PouzitiObrazku
             [
                 'sloupce'      => 'id_stranky, url_stranky',
                 'zdroj'        => 'stranky',
+                'tabulka'      => 'stranky',
+                'klic'         => 'id_stranky',
                 'sloupceTextu' => ['obsah'],
                 'razeni'       => 'url_stranky',
                 'popisMista'   => static fn (array $stranka): array => [
@@ -188,6 +219,8 @@ class PouzitiObrazku
             [
                 'sloupce'      => 'id, nazev, typ',
                 'zdroj'        => 'novinky',
+                'tabulka'      => 'novinky',
+                'klic'         => 'id',
                 'sloupceTextu' => ['text'],
                 'razeni'       => 'vydat DESC',
                 'popisMista'   => static fn (array $novinka): array => [
@@ -198,6 +231,8 @@ class PouzitiObrazku
             [
                 'sloupce'      => sprintf('%1$s, %2$s, %3$s', AkceSql::ID_AKCE, AkceSql::NAZEV_AKCE, AkceSql::ROK),
                 'zdroj'        => AkceSql::AKCE_SEZNAM_TABULKA,
+                'tabulka'      => AkceSql::AKCE_SEZNAM_TABULKA,
+                'klic'         => AkceSql::ID_AKCE,
                 'sloupceTextu' => [AkceSql::POPIS],
                 'razeni'       => sprintf('%1$s DESC, %2$s', AkceSql::ROK, AkceSql::NAZEV_AKCE),
                 'popisMista'   => static fn (array $aktivita): array => [
@@ -221,6 +256,8 @@ class PouzitiObrazku
                     UzivatelSql::UZIVATELE_HODNOTY_TABULKA,
                     MedailonekSql::ID_UZIVATELE,
                 ),
+                'tabulka'      => MedailonekSql::MEDAILONKY_TABULKA,
+                'klic'         => MedailonekSql::ID_UZIVATELE,
                 'sloupceTextu' => [
                     MedailonekSql::MEDAILONKY_TABULKA . '.' . MedailonekSql::O_SOBE,
                     MedailonekSql::MEDAILONKY_TABULKA . '.' . MedailonekSql::DRD,
