@@ -36,6 +36,12 @@ final class PrevodObrazkuNaAvif
     /** Cest najednou v jednom dotazu na sloupec: každá nese až pět vzorů pro LIKE, parametrů je nejvýš 151 */
     private const int DAVKA_PRI_KONTROLE_SLOUPCE = 30;
     private const array ZNAKOVE_SADY_S_DIAKRITIKOU = ['utf8mb4', 'utf8mb3', 'utf8'];
+    private const string DUVOD_VICE_FOTEK = 'uživatel má víc souborů fotky, nech jen jeden';
+
+    /**
+     * @var array<string, array<int|string, true>> složka => id uživatelů s víc soubory fotky, počítá se jednou za běh
+     */
+    private array $uzivateleSViceFotkami = [];
 
     /**
      * @param string $adresarObsahu kořen, ve kterém se převádí: `soubory/obsah` webu, u fotek uživatelů jejich složka
@@ -73,6 +79,7 @@ final class PrevodObrazkuNaAvif
      */
     public function proved(bool $naostro, ?int $limit = null): VysledekPrevoduObrazku
     {
+        $this->uzivateleSViceFotkami = [];
         $odkazy = $this->oblast->isZTextu()
             ? $this->getOdkazyVTextech()
             : [];
@@ -148,16 +155,22 @@ final class PrevodObrazkuNaAvif
      */
     public function smazPuvodni(bool $naostro): VysledekPrevoduObrazku
     {
+        $this->uzivateleSViceFotkami = [];
         $kandidati = [];
+        $preskocene = [];
         foreach ($this->getObrazky() as $cesta) {
             $avif = $this->getAbsolutniCesta(self::getCestaAvif($cesta));
             // AVIF, který je symlink, může zmizet spolu s cílem, a pak by po smazaném originálu nezbylo nic
-            if (!$this->isSpravovanyJinde($cesta) && is_file($avif) && !is_link($avif) && !$this->maVicFotekUzivatele($cesta)) {
+            if (!$this->isSpravovanyJinde($cesta) && is_file($avif) && !is_link($avif)) {
+                if ($this->maVicFotekUzivatele($cesta)) {
+                    $preskocene[] = new PolozkaPrevoduObrazku($cesta, StavPrevoduObrazkuEnum::NELZE_ZPRACOVAT, self::DUVOD_VICE_FOTEK, (int) @filesize($this->getAbsolutniCesta($cesta)));
+                    continue;
+                }
                 $kandidati[] = $cesta;
             }
         }
         if ($kandidati === []) {
-            return new VysledekPrevoduObrazku([]);
+            return new VysledekPrevoduObrazku($preskocene);
         }
         $odkazyJinde = $this->najdiOdkazyVSloupcich($kandidati, $this->getSloupceKeKontrole(true));
 
@@ -166,7 +179,7 @@ final class PrevodObrazkuNaAvif
             $pouziti += $this->pouziti->kdeJsouPouzity(array_map($this->getAbsolutniCesta(...), $davka));
         }
 
-        $polozky = [];
+        $polozky = $preskocene;
         foreach ($kandidati as $cesta) {
             $zdroj = $this->getAbsolutniCesta($cesta);
             $velikost = (int) @filesize($zdroj);
@@ -206,7 +219,7 @@ final class PrevodObrazkuNaAvif
             return new PolozkaPrevoduObrazku($cesta, StavPrevoduObrazkuEnum::ODKAZ_KE_STAZENI);
         }
         if ($this->maVicFotekUzivatele($cesta)) {
-            return new PolozkaPrevoduObrazku($cesta, StavPrevoduObrazkuEnum::NELZE_ZPRACOVAT, 'uživatel má víc souborů fotky, nech jen jeden');
+            return new PolozkaPrevoduObrazku($cesta, StavPrevoduObrazkuEnum::NELZE_ZPRACOVAT, self::DUVOD_VICE_FOTEK);
         }
         if (isset($zEmailu[$cesta]) || isset($zEmailu[self::getCestaAvif($cesta)])) {
             return new PolozkaPrevoduObrazku($cesta, StavPrevoduObrazkuEnum::ODKAZ_Z_EMAILU);
@@ -704,7 +717,7 @@ SQL,
 
     /**
      * AVIF z jednoho z několika souborů téhož uživatele by zakryl ten, který web ukazoval (první podle abecedy), takže
-     * se žádný nepřevádí ani nemaže.
+     * se žádný nepřevádí ani nemaže. Soubory se počítají tak, jak je vybírá `fotka()`: podle `<id>.*`, tedy i `5.stara.png`.
      *
      * @see \Uzivatel::fotka()
      */
@@ -713,20 +726,37 @@ SQL,
         if ($this->oblast->isZTextu()) {
             return false;
         }
-        $uzivatel = pathinfo($cesta, PATHINFO_FILENAME);
-        $pocet = 0;
-        foreach (@scandir(dirname($this->getAbsolutniCesta($cesta))) ?: [] as $soubor) {
+        $adresar = dirname($this->getAbsolutniCesta($cesta));
+        $this->uzivateleSViceFotkami[$adresar] ??= $this->najdiUzivateleSViceFotkami($adresar);
+
+        return isset($this->uzivateleSViceFotkami[$adresar][self::getIdUzivatele($cesta)]);
+    }
+
+    /**
+     * @return array<int|string, true> id uživatele => true
+     */
+    private function najdiUzivateleSViceFotkami(string $adresar): array
+    {
+        $soubory = @scandir($adresar);
+        if ($soubory === false) {
+            // nepřečtená složka by označila všechny uživatele za jednoznačné a pojistka by nic nezastavila
+            throw new \RuntimeException(sprintf('Složku %s se nepodařilo přečíst.', $adresar));
+        }
+        $pocty = [];
+        foreach ($soubory as $soubor) {
             $pripona = strtolower(pathinfo($soubor, PATHINFO_EXTENSION));
-            if (
-                pathinfo($soubor, PATHINFO_FILENAME) === $uzivatel
-                && $pripona !== self::PRIPONA_CILE
-                && in_array($pripona, ZpracovaneObrazky::PRIPONY_FOTEK_UZIVATELU, true)
-            ) {
-                ++$pocet;
+            if ($pripona !== self::PRIPONA_CILE && in_array($pripona, ZpracovaneObrazky::PRIPONY_FOTEK_UZIVATELU, true)) {
+                $id = self::getIdUzivatele($soubor);
+                $pocty[$id] = ($pocty[$id] ?? 0) + 1;
             }
         }
 
-        return $pocet > 1;
+        return array_fill_keys(array_keys(array_filter($pocty, static fn (int $pocet): bool => $pocet > 1)), true);
+    }
+
+    private static function getIdUzivatele(string $soubor): string
+    {
+        return explode('.', basename($soubor), 2)[0];
     }
 
     /**

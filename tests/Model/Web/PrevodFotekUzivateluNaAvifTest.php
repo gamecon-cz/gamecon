@@ -150,7 +150,9 @@ class PrevodFotekUzivateluNaAvifTest extends AbstractTestDb
         self::assertSame(['99431.jpg', '99431.png'], $this->souborySlozky());
 
         $this->zapisAvifZ(self::ID_FOTKY . '.jpg', self::ID_FOTKY . '.avif');
-        self::assertSame([], $this->prevod()->smazPuvodni(true)->polozky, 'ani mazání na takového uživatele nesahá');
+        $smazani = $this->prevod()->smazPuvodni(true);
+        self::assertSame(StavPrevoduObrazkuEnum::NELZE_ZPRACOVAT, $this->polozka($smazani, $this->cesta('.jpg'))->stav, 'ani mazání na takového uživatele nesahá');
+        self::assertSame(StavPrevoduObrazkuEnum::NELZE_ZPRACOVAT, $this->polozka($smazani, $this->cesta('.png'))->stav);
         self::assertSame(['99431.avif', '99431.jpg', '99431.png'], $this->souborySlozky());
     }
 
@@ -174,6 +176,22 @@ class PrevodFotekUzivateluNaAvifTest extends AbstractTestDb
         self::assertSame(['.99440.jpg', '0099443.jpg', '99438.avif', '99438.jpg', '99439-stara.jpg', 'profil.jpg', 'stare'], $this->souborySlozky());
         self::assertSame(['99441.jpg'], $this->souborySlozky('stare'));
         self::assertSame([$this->slozka() . '/99438.jpg'], array_map(static fn (PolozkaPrevoduObrazku $polozka): string => $polozka->cesta, $vysledek->polozky));
+    }
+
+    /**
+     * `Uzivatel::fotka()` hledá `<id>.*`, takže i `5.stara.png` je fotka uživatele 5.
+     *
+     * @test
+     */
+    public function souborSDalsiTeckouVNazvuSePocitaJakoDalsiFotkaUzivatele(): void
+    {
+        $this->ulozFotku('99444.jpg');
+        $this->ulozFotku('99444.stara.png');
+
+        $vysledek = $this->prevod()->proved(true);
+
+        self::assertSame(StavPrevoduObrazkuEnum::NELZE_ZPRACOVAT, $this->polozka($vysledek, '99444.jpg', true)->stav);
+        self::assertSame(['99444.jpg', '99444.stara.png'], $this->souborySlozky());
     }
 
     /**
