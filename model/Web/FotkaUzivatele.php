@@ -17,13 +17,21 @@ final class FotkaUzivatele
     private const string POST_AKCE = 'akceFotky';
     private const string POST_SOUBOR = 'fotka';
 
-    private readonly NahravaniObrazku $nahravani;
+    private ?NahravaniObrazku $nahravani = null;
     private ?\Nahled $fotka = null;
     private bool $fotkaNactena = false;
 
     public function __construct(private readonly \Uzivatel $uzivatel)
     {
-        $this->nahravani = NahravaniObrazku::proFotkyUzivatelu();
+    }
+
+    /**
+     * Poslal organizátor formulář z @see getHtml()? Pro stránku, která ho zrovna zpracovat nemůže (organizátor
+     * mezitím přišel o práva), a má proto ohlásit, proč se nic nestalo.
+     */
+    public static function isOdeslanyFormular(): bool
+    {
+        return in_array(post(self::POST_AKCE), ['nahrat', 'smazat'], true);
     }
 
     /**
@@ -46,15 +54,15 @@ final class FotkaUzivatele
         $akce = post(self::POST_AKCE);
         $idUzivatele = (string) $this->uzivatel->id();
         if ($akce === 'nahrat') {
-            NahravaniObrazku::sOhlasenimChyby(fn () => $this->nahravani->ulozJakoJediny(
-                $this->nahravani->overNahranySoubor($_FILES[self::POST_SOUBOR] ?? null),
+            NahravaniObrazku::sOhlasenimChyby(fn () => $this->getNahravani()->ulozJakoJediny(
+                $this->getNahravani()->overNahranySoubor($_FILES[self::POST_SOUBOR] ?? null),
                 '',
                 $idUzivatele,
             ));
             oznameni('Fotka je nahraná.');
         }
         if ($akce === 'smazat') {
-            $smazana = NahravaniObrazku::sOhlasenimChyby(fn () => $this->nahravani->smazVsechnyVarianty('', $idUzivatele));
+            $smazana = NahravaniObrazku::sOhlasenimChyby(fn () => $this->getNahravani()->smazVsechnyVarianty('', $idUzivatele));
             if ($smazana) {
                 oznameni('Fotka je smazaná, na webu se ukáže výchozí obrázek.');
             } else {
@@ -72,8 +80,8 @@ final class FotkaUzivatele
             'postAkce'   => self::POST_AKCE,
             'postSoubor' => self::POST_SOUBOR,
             'jmeno'      => htmlspecialchars((string) $this->uzivatel->jmenoNick()),
-            'accept'     => $this->nahravani->accept(),
-            'limit'      => htmlspecialchars($this->nahravani->popisLimitu()),
+            'accept'     => $this->getNahravani()->accept(),
+            'limit'      => htmlspecialchars($this->getNahravani()->popisLimitu()),
             // stejný výřez jako na stránce vypravěče (web/moduly/aktivity.php)
             'nahled'     => htmlspecialchars((string) ($fotka ?? $this->uzivatel->getVychoziFotka())->kvalita(85)->pokryjOrez(180, 180)),
         ]);
@@ -86,6 +94,14 @@ final class FotkaUzivatele
         $template->parse('fotkaUzivatele');
 
         return $template->text('fotkaUzivatele');
+    }
+
+    /**
+     * Až když je potřeba: zjišťuje, co umí ImageMagick, a záložka Uživatel ji u většiny uživatelů nepotřebuje.
+     */
+    private function getNahravani(): NahravaniObrazku
+    {
+        return $this->nahravani ??= NahravaniObrazku::proFotkyUzivatelu();
     }
 
     /**
