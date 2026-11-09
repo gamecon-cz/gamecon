@@ -67,6 +67,18 @@ class UzivatelFotkaTest extends AbstractTestDb
     /**
      * @test
      */
+    public function beresJenPriponyFotekAPoslediPriponuZVicenasobnePripony(): void
+    {
+        $this->ulozFotku('txt');
+        self::assertNull($this->fotka());
+
+        $this->ulozFotku('tar.JPG');
+        self::assertSame($this->cesta('tar.JPG'), $this->fotka());
+    }
+
+    /**
+     * @test
+     */
     public function nacitatelnyOriginalPomuzeKdyzAvifNejdePrecist(): void
     {
         $this->ulozFotku('jpg');
