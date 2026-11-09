@@ -1,7 +1,7 @@
 // Moderní vzhled administrace (admin/templates/moderni/main.xtpl): vysouvací menu na úzké obrazovce nebo když
-// si ho uživatel schová (na širší obrazovce s myší z něj zůstane úzký panel s ikonami), horní lišta, která při
-// posunu dolů ustoupí (ať nezakrývá přilepené hlavičky tabulek), zhuštěný panel, když se na výšku nevejde,
-// a vodorovně posuvné tabulky, které se do obsahu nevejdou.
+// si ho uživatel schová (na širší obrazovce s myší z něj zůstane úzký panel s ikonami, myš se pozná i podle
+// pohybu), horní lišta, která při posunu dolů ustoupí (ať nezakrývá přilepené hlavičky tabulek), zhuštěný
+// panel, když se na výšku nevejde, a vodorovně posuvné tabulky, které se do obsahu nevejdou.
 (function () {
   'use strict'
 
@@ -18,16 +18,31 @@
   const obsah = document.getElementById('mainContent')
   // stejná hranice jako v moderni.css
   const uzkaObrazovka = window.matchMedia('(max-width: 1023.98px)')
-  // schované menu je tu úzký panel, který se rozbalí najetím myší (moderni.css, Úzký panel)
-  const obrazovkaProUzkyPanel = window.matchMedia('(min-width: 1024px) and (hover: hover) and (pointer: fine)')
-  // stejný klíč čte skript v hlavičce main.xtpl
+  // Myš, jak ji hlásí prohlížeč. Na notebooku s dotykovou obrazovkou ji umí nehlásit, i když tam je, proto se
+  // pozná i podle pohybu (třída moderni-mys, moderni.css, Vysouvací menu).
+  const hlasenaMys = window.matchMedia('(hover: hover) and (pointer: fine)')
+  // stejné klíče čte skript v hlavičce main.xtpl
   const klicSchovanehoMenu = 'adminSchovaneMenu'
+  const klicVideneMysi = 'adminMys'
   // Posuvné tabulky ukazují stín u okraje, kudy pokračují. Po změně velikosti okna je přepočítá jeden společný
   // posluchač, ne každá tabulka svůj.
   const ukazateleOkrajuTabulek = []
 
+  let mysVidena = false
+  try {
+    mysVidena = localStorage.getItem(klicVideneMysi) === '1'
+  } catch (e) {
+    // bez úložiště jen do dalšího načtení stránky
+  }
+
+  function nastavMys() {
+    html.classList.toggle('moderni-mys', hlasenaMys.matches || mysVidena)
+  }
+
+  // schované menu je s myší na širší obrazovce úzký panel, který se rozbalí najetím myší (moderni.css, Úzký panel)
   function jePanelUzky() {
-    return html.classList.contains('moderni-menu-schovane') && obrazovkaProUzkyPanel.matches
+    return html.classList.contains('moderni-menu-schovane') && html.classList.contains('moderni-mys')
+      && !uzkaObrazovka.matches
   }
 
   function jeMenuVysouvaci() {
@@ -153,7 +168,30 @@
       }
     }
     priZmeneObrazovky(uzkaObrazovka, zavriMenuPokudNeniVysouvaci)
-    priZmeneObrazovky(obrazovkaProUzkyPanel, zavriMenuPokudNeniVysouvaci)
+    priZmeneObrazovky(hlasenaMys, function () {
+      nastavMys()
+      zavriMenuPokudNeniVysouvaci()
+    })
+    // Myš, kterou prohlížeč nehlásí, prozradí první pohyb a prohlížeč si ji zapamatuje: úzký panel se pak ukáže
+    // hned při načtení. Dotyk a pero mají jiný pointerType. Bez PointerEvent (Safari do 12) jen hlášená myš,
+    // mousemove posílá i dotyk.
+    if (!mysVidena && window.PointerEvent) {
+      const priPohybuMysi = function (event) {
+        if (event.pointerType !== 'mouse') {
+          return
+        }
+        document.removeEventListener('pointermove', priPohybuMysi)
+        mysVidena = true
+        try {
+          localStorage.setItem(klicVideneMysi, '1')
+        } catch (e) {
+          // bez úložiště jen do dalšího načtení stránky
+        }
+        nastavMys()
+        zavriMenuPokudNeniVysouvaci()
+      }
+      document.addEventListener('pointermove', priPohybuMysi, {passive: true})
+    }
 
     let posledniPosun = window.scrollY
     window.addEventListener('scroll', function () {
