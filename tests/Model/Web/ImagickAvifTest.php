@@ -95,6 +95,34 @@ class ImagickAvifTest extends TestCase
     }
 
     /**
+     * @test
+     */
+    public function kvalita100ZachovaBarvuSousednichBodu(): void
+    {
+        $body = [];
+        for ($bod = 0; $bod < 16 * 16; ++$bod) {
+            array_push($body, ...($bod % 2 === 0 ? [255, 200, 61] : [0, 0, 255]));
+        }
+        $obrazek = new \Imagick();
+        $obrazek->newImage(16, 16, new \ImagickPixel('white'));
+        $obrazek->importImagePixels(0, 0, 16, 16, 'RGB', \Imagick::PIXEL_CHAR, $body);
+        ImagickAvif::nastavZapis($obrazek, 100);
+        $nacteny = new \Imagick();
+        $nacteny->readImageBlob($obrazek->getImageBlob());
+        ImagickAvif::pripravPoNacteni($nacteny);
+
+        $nejvetsiOdchylka = 0;
+        for ($bod = 0; $bod < 16 * 16; ++$bod) {
+            $ocekavany = $bod % 2 === 0 ? [255, 200, 61] : [0, 0, 255];
+            $barva = $nacteny->getImagePixelColor($bod % 16, intdiv($bod, 16))->getColor();
+            foreach (['r', 'g', 'b'] as $poradi => $kanal) {
+                $nejvetsiOdchylka = max($nejvetsiOdchylka, abs($barva[$kanal] - $ocekavany[$poradi]));
+            }
+        }
+        self::assertLessThanOrEqual(1, $nejvetsiOdchylka);
+    }
+
+    /**
      * Kvalitu bere zapisovač AVIF z nastavení zápisu, ne z obrázku. Bez toho by každý AVIF vyšel s výchozími 50.
      *
      * @test
