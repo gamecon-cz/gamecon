@@ -9,8 +9,8 @@ use Gamecon\Uzivatel\SqlStruktura\UpominkaVlastniZneniSqlStruktura;
 
 /**
  * Převede JPEG a PNG vložené do textů webu (`soubory/obsah`) do AVIF a přepíše odkazy na ně, stejně jako to dělá nové
- * nahrání. Obrázek se převede, jen když ho texty vkládají (ne když na něj odkazují ke stažení), nezabírá ho jiný modul
- * ani e-mail a AVIF ušetří aspoň čtvrtinu. Originál se při převodu nemaže, to je až @see self::smazPuvodni().
+ * nahrání. Obrázek se převede, jen když ho texty vkládají (ne když na něj odkazují ke stažení) a nezabírá ho jiný modul
+ * ani e-mail. Originál se při převodu nemaže, to je až @see self::smazPuvodni().
  */
 final class PrevodObrazkuNaAvif
 {
@@ -29,9 +29,6 @@ final class PrevodObrazkuNaAvif
     ];
     /** Složky, které stahují lidé, takže zůstávají, jak jsou */
     private const array NEPREVADENE_SLOZKY = ['presskit'];
-    /** Stejné pravidlo jako u obrázků šablony: AVIF, který ušetří míň, nestojí za změnu adresy */
-    private const int MIN_USPORA_BAJTU = 2048;
-    private const float MIN_USPORA_PODILU = 0.25;
     /** Ztrátový AVIF se od originálu liší o desítky dB, rozbitý (ImageMagick 6, YCbCr) o víc než deset */
     private const float MIN_PSNR_DB = 25.0;
     private const float MAX_ODCHYLKA_POMERU_STRAN = 0.02;
@@ -245,9 +242,6 @@ final class PrevodObrazkuNaAvif
             }
             clearstatcache(true, $docasny);
             $velikostAvif = (int) @filesize($docasny);
-            if ($velikostZdroje - $velikostAvif < max(self::MIN_USPORA_BAJTU, self::MIN_USPORA_PODILU * $velikostZdroje)) {
-                return new PolozkaPrevoduObrazku($cesta, StavPrevoduObrazkuEnum::MALA_USPORA, '', $velikostZdroje, $velikostAvif);
-            }
             if (!$this->isStejnyObrazek($zdroj, $docasny)) {
                 return new PolozkaPrevoduObrazku($cesta, StavPrevoduObrazkuEnum::NEPODOBNY_VYSLEDEK, '', $velikostZdroje, $velikostAvif);
             }
