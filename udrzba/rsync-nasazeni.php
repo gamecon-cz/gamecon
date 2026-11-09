@@ -146,19 +146,10 @@ function foldRsyncPatternCase(string $pattern): string
 }
 
 /**
- * @param list<string> $filters
- * @return list<string> arguments for {@see call_check()}
+ * The value of `--rsh`: the server is verified against the given known_hosts only and the key is the only identity.
  */
-function buildRsyncCommand(
-    string $sourceDir,
-    string $target,
-    array  $filters,
-    string $keyFile,
-    string $knownHostsFile,
-    ?int   $sshPort,
-    ?int   $maxDelete,
-    bool   $dryRun,
-): array {
+function buildRsyncSshCommand(string $keyFile, string $knownHostsFile, ?int $sshPort): string
+{
     $ssh = [
         'ssh',
         '-i', $keyFile,
@@ -173,6 +164,23 @@ function buildRsyncCommand(
         array_push($ssh, '-p', (string)$sshPort);
     }
 
+    return implode(' ', $ssh);
+}
+
+/**
+ * @param list<string> $filters
+ * @return list<string> arguments for {@see call_check()}
+ */
+function buildRsyncCommand(
+    string $sourceDir,
+    string $target,
+    array  $filters,
+    string $keyFile,
+    string $knownHostsFile,
+    ?int   $sshPort,
+    ?int   $maxDelete,
+    bool   $dryRun,
+): array {
     $command = [
         'rsync',
         '--recursive',
@@ -183,7 +191,7 @@ function buildRsyncCommand(
         '--delay-updates', // files get renamed into place only after all of them are uploaded
         '--verbose',
         '--timeout=600',
-        '--rsh', implode(' ', $ssh),
+        '--rsh', buildRsyncSshCommand($keyFile, $knownHostsFile, $sshPort),
     ];
     if ($maxDelete !== null) {
         $command[] = "--max-delete={$maxDelete}"; // makes even a --dry-run stop at the limit, so a plan must not have it
@@ -294,26 +302,21 @@ function getRsyncSshPort(): ?int
 }
 
 /**
- * The key and known_hosts come from environment variables (GitHub secrets), ssh reads them from files.
+ * The key and known_hosts come from environment variables (GitHub secrets), ssh reads them from files, so they exist
+ * as files with mode 600 only while the callback runs.
  *
- * Every run first plans with `--dry-run` and stops when more items would be deleted than allowed, before anything
- * changes; `--max-delete` alone only stops the deleting after that many are gone, so only the upload carries it,
- * set to what the plan found plus a small reserve.
+ * @template TResult
+ * @param callable(string $keyFile, string $knownHostsFile, ?int $sshPort): TResult $callback
+ * @return TResult
  */
-function uploadFilesViaRsync(
-    string $sourceDir,
-    array  $ignoreMasks,
-    string $target,
-    bool   $dryRun,
-): void {
+function withDeploySshFiles(callable $callback): mixed
+{
     $privateKey = (string)getenv('DEPLOY_SSH_KEY');
     $knownHosts = (string)getenv('DEPLOY_SSH_KNOWN_HOSTS');
     if (trim($privateKey) === '' || trim($knownHosts) === '') {
         throw new \RuntimeException('Nasazení přes rsync vyžaduje DEPLOY_SSH_KEY a DEPLOY_SSH_KNOWN_HOSTS, bez known_hosts by se server neověřoval');
     }
-    $sshPort          = getRsyncSshPort();
-    $maxDeleteProject = getRsyncMaxDeleteProject();
-    $maxDeleteVendor  = getRsyncMaxDeleteVendor();
+    $sshPort = getRsyncSshPort();
 
     $keyFile        = null;
     $knownHostsFile = null;
@@ -326,6 +329,31 @@ function uploadFilesViaRsync(
         // ssh rejects a key without a trailing newline or with CRLF line endings
         file_put_contents($keyFile, rtrim(str_replace("\r\n", "\n", $privateKey)) . "\n");
         file_put_contents($knownHostsFile, rtrim(str_replace("\r\n", "\n", $knownHosts)) . "\n");
+
+        return $callback($keyFile, $knownHostsFile, $sshPort);
+    } finally {
+        foreach ([$keyFile, $knownHostsFile] as $temporaryFile) {
+            if (is_string($temporaryFile) && is_file($temporaryFile)) {
+                unlink($temporaryFile);
+            }
+        }
+    }
+}
+
+/**
+ * Every run first plans with `--dry-run` and stops when more items would be deleted than allowed, before anything
+ * changes; `--max-delete` alone only stops the deleting after that many are gone, so only the upload carries it,
+ * set to what the plan found plus a small reserve.
+ */
+function uploadFilesViaRsync(
+    string $sourceDir,
+    array  $ignoreMasks,
+    string $target,
+    bool   $dryRun,
+): void {
+    withDeploySshFiles(static function (string $keyFile, string $knownHostsFile, ?int $sshPort) use ($sourceDir, $ignoreMasks, $target, $dryRun): void {
+        $maxDeleteProject = getRsyncMaxDeleteProject();
+        $maxDeleteVendor  = getRsyncMaxDeleteVendor();
 
         $filters      = buildRsyncFilters($ignoreMasks, getRsyncProtectedPaths(), getDefaultIgnoreMasks());
         $buildCommand = static fn(bool $dryRunCommand, ?int $maxDeleteInCommand) => buildRsyncCommand(
@@ -389,11 +417,5 @@ function uploadFilesViaRsync(
         // before the migrations run is worse than deleting a stray file
         $itemsAllowedAfterThePlan = 20;
         call_check($buildCommand(false, count($deletions) + $keptDirectories + $itemsAllowedAfterThePlan));
-    } finally {
-        foreach ([$keyFile, $knownHostsFile] as $temporaryFile) {
-            if (is_string($temporaryFile) && is_file($temporaryFile)) {
-                unlink($temporaryFile);
-            }
-        }
-    }
+    });
 }

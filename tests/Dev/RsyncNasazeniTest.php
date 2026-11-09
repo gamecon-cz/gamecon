@@ -8,9 +8,10 @@ use PHPUnit\Framework\TestCase;
 use Symfony\Component\Filesystem\Filesystem;
 
 require_once __DIR__ . '/../../udrzba/_pomocne.php';
+require_once __DIR__ . '/../../udrzba/rsync-udrzbovy-rezim.php';
 
 /**
- * The deploy runs in GitHub Actions and the container has no rsync, so the command runs against a fake `rsync` that records what it was given.
+ * The deploy and the switch of the maintenance mode run in GitHub Actions and the container has no rsync, so the command runs against a fake `rsync` that records what it was given.
  */
 class RsyncNasazeniTest extends TestCase
 {
@@ -931,6 +932,502 @@ class RsyncNasazeniTest extends TestCase
     }
 
     /**
+     * @test
+     *
+     * @dataProvider provideDeployTargets
+     */
+    public function theSwitchGoesNextToTheDeployedFilesWhateverTheTargetEndsWith(string $target, string $expected): void
+    {
+        self::assertSame($expected, getMaintenanceSwitchTarget($target));
+    }
+
+    public static function provideDeployTargets(): iterable
+    {
+        yield 'the directory of the key, with a slash' => ['deploy-ostra@gamecon.cz:/', 'deploy-ostra@gamecon.cz:/maintenance.html'];
+        yield 'a directory with a slash' => ['deploy@gamecon.cz:/srv/ostra/', 'deploy@gamecon.cz:/srv/ostra/maintenance.html'];
+        yield 'a directory without a slash' => ['deploy@gamecon.cz:/srv/ostra', 'deploy@gamecon.cz:/srv/ostra/maintenance.html'];
+        yield 'the home directory, which a slash would turn into the root' => ['deploy@gamecon.cz:', 'deploy@gamecon.cz:maintenance.html'];
+        yield 'a local directory' => ['/tmp/site/', '/tmp/site/maintenance.html'];
+    }
+
+    /**
+     * The key of the deploy account is held by `rrsync -munge`, which makes every link it receives inert, so the switch is
+     * a copy of the page and not a link to it.
+     *
+     * @test
+     */
+    public function turningTheMaintenanceOnUploadsTheWholePageAsAFileNamedAfterTheSwitch(): void
+    {
+        $prikaz = buildMaintenanceOnCommand('/repo/maintenance.off.html', 'deploy@gamecon.cz:/', 'ssh -i /key');
+
+        self::assertSame('rsync', $prikaz[0]);
+        self::assertSame('ssh -i /key', $prikaz[array_search('--rsh', $prikaz, true) + 1]);
+        self::assertSame('/repo/maintenance.off.html', $prikaz[count($prikaz) - 2]);
+        self::assertSame('deploy@gamecon.cz:/maintenance.html', $prikaz[count($prikaz) - 1]);
+        foreach (['--links', '--copy-links', '--recursive', '--delete', '--delete-delay'] as $optionThatDoesNotBelongHere) {
+            self::assertNotContains($optionThatDoesNotBelongHere, $prikaz);
+        }
+    }
+
+    /**
+     * @test
+     */
+    public function turningTheMaintenanceOffDeletesTheSwitchAndNothingElse(): void
+    {
+        $prikaz = buildMaintenanceOffCommand('/empty', 'deploy@gamecon.cz:/', 'ssh -i /key');
+
+        self::assertSame('rsync', $prikaz[0]);
+        self::assertSame('ssh -i /key', $prikaz[array_search('--rsh', $prikaz, true) + 1]);
+        self::assertContains('--recursive', $prikaz);
+        self::assertContains('--delete-delay', $prikaz);
+        self::assertContains('--max-delete=1', $prikaz);
+        self::assertNotContains('--delete-excluded', $prikaz);
+        $filtry = array_values(array_filter($prikaz, static fn (string $argument) => str_starts_with($argument, '--filter=')));
+        self::assertSame(['--filter=+ /maintenance.html', '--filter=- *'], $filtry);
+        self::assertSame('/empty/', $prikaz[count($prikaz) - 2]);
+        self::assertSame('deploy@gamecon.cz:/', $prikaz[count($prikaz) - 1]);
+    }
+
+    /**
+     * @test
+     */
+    public function theMaintenanceIsTurnedOnWithRsyncOverTheDeployKeyThatIsRemovedAfterwards(): void
+    {
+        $this->installFakeRsync();
+        putenv('DEPLOY_SSH_KEY=klic');
+        putenv('DEPLOY_SSH_KNOWN_HOSTS=hosts');
+        putenv('DEPLOY_SSH_PORT=2222');
+        file_put_contents($this->workDir . '/maintenance.off.html', 'stranka');
+
+        $this->switchMaintenance(true, $this->workDir . '/maintenance.off.html');
+
+        $argumenty = $this->readRecordedArguments(1);
+        self::assertSame($this->workDir . '/maintenance.off.html', $argumenty[count($argumenty) - 2]);
+        self::assertSame('x:/maintenance.html', $argumenty[count($argumenty) - 1]);
+        self::assertStringContainsString('-p 2222', implode(' ', $argumenty));
+        self::assertSame("klic\n", file_get_contents($this->workDir . '/seen-key'));
+        self::assertSame('600', trim((string) file_get_contents($this->workDir . '/seen-key-mode')));
+        self::assertFileDoesNotExist(trim((string) file_get_contents($this->workDir . '/key-path')));
+        self::assertFileDoesNotExist($this->workDir . '/arguments-2');
+    }
+
+    /**
+     * @test
+     */
+    public function theMaintenanceIsTurnedOffFromAnEmptyDirectoryThatIsRemovedAfterwards(): void
+    {
+        $this->installFakeRsync();
+        putenv('DEPLOY_SSH_KEY=klic');
+        putenv('DEPLOY_SSH_KNOWN_HOSTS=hosts');
+
+        $this->switchMaintenance(false, $this->workDir . '/maintenance.off.html');
+
+        $argumenty = $this->readRecordedArguments(1);
+        self::assertContains('--max-delete=1', $argumenty);
+        self::assertSame('x:/', $argumenty[count($argumenty) - 1]);
+        self::assertDirectoryDoesNotExist(rtrim($argumenty[count($argumenty) - 2], '/'));
+        self::assertFileDoesNotExist(trim((string) file_get_contents($this->workDir . '/key-path')));
+    }
+
+    /**
+     * @test
+     */
+    public function withoutThePageTheMaintenanceIsNotTurnedOn(): void
+    {
+        $this->installFakeRsync();
+        putenv('DEPLOY_SSH_KEY=klic');
+        putenv('DEPLOY_SSH_KNOWN_HOSTS=hosts');
+
+        $this->expectException(\RuntimeException::class);
+        $this->expectExceptionMessage('maintenance.off.html');
+        try {
+            $this->switchMaintenance(true, $this->workDir . '/maintenance.off.html');
+        } finally {
+            self::assertFileDoesNotExist($this->workDir . '/calls');
+        }
+    }
+
+    /**
+     * @test
+     *
+     * @dataProvider provideMaintenanceStates
+     */
+    public function aFailedRsyncStopsTheSwitchAndStillRemovesTheKey(bool $maintenanceOn): void
+    {
+        $this->installFakeRsync(exitCodes: [23]);
+        putenv('DEPLOY_SSH_KEY=klic');
+        putenv('DEPLOY_SSH_KNOWN_HOSTS=hosts');
+        file_put_contents($this->workDir . '/maintenance.off.html', 'stranka');
+
+        try {
+            $this->switchMaintenance($maintenanceOn, $this->workDir . '/maintenance.off.html');
+            self::fail('A failing rsync must fail the switch');
+        } catch (\Exception $exception) {
+            self::assertSame(23, $exception->getCode());
+        }
+
+        self::assertFileDoesNotExist(trim((string) file_get_contents($this->workDir . '/key-path')));
+    }
+
+    public static function provideMaintenanceStates(): iterable
+    {
+        yield 'on' => [true];
+        yield 'off' => [false];
+    }
+
+    /**
+     * @test
+     */
+    public function withoutKnownHostsTheSwitchIsNotMade(): void
+    {
+        $this->installFakeRsync();
+        putenv('DEPLOY_SSH_KEY=klic');
+        putenv('DEPLOY_SSH_KNOWN_HOSTS=');
+
+        $this->expectException(\RuntimeException::class);
+        $this->expectExceptionMessage('DEPLOY_SSH_KNOWN_HOSTS');
+        try {
+            $this->switchMaintenance(false, $this->workDir . '/maintenance.off.html');
+        } finally {
+            self::assertFileDoesNotExist($this->workDir . '/calls');
+        }
+    }
+
+    /**
+     * @test
+     */
+    public function theCheckedAddressesAreThoseOfTheProductionSite(): void
+    {
+        self::assertSame(
+            [
+                'https://gamecon.cz',
+                'https://gamecon.cz/web/',
+                'https://gamecon.cz/cache/public/maintenance-check',
+                'https://admin.gamecon.cz',
+                'https://gamecon.cz/admin/?req=',
+            ],
+            getMaintenanceCheckUrls(__DIR__ . '/../../nastaveni/verejne-nastaveni-produkce.php'),
+        );
+    }
+
+    /**
+     * @test
+     */
+    public function addressesAreReadFromThePublicSettingsAndItsAbsenceIsAnError(): void
+    {
+        file_put_contents($this->workDir . '/nastaveni.php', "<?php\ndefine('URL_WEBU', 'https://example.cz');\ndefine('URL_ADMIN', 'https://admin.example.cz');\n");
+        file_put_contents($this->workDir . '/bez-adminu.php', "<?php\ndefine('URL_WEBU', 'https://example.cz');\n");
+
+        self::assertSame(
+            [
+                'https://example.cz',
+                'https://example.cz/web/',
+                'https://example.cz/cache/public/maintenance-check',
+                'https://admin.example.cz',
+                'https://example.cz/admin/?req=',
+            ],
+            getMaintenanceCheckUrls($this->workDir . '/nastaveni.php'),
+        );
+        $this->expectException(\RuntimeException::class);
+        $this->expectExceptionMessage('URL_ADMIN');
+        getMaintenanceCheckUrls($this->workDir . '/bez-adminu.php');
+    }
+
+    /**
+     * @test
+     *
+     * @dataProvider provideAnswersOfTheSites
+     *
+     * @param array<string, array{int, string}|array{int, string, ?string}> $answers          by address, the status, the body and Retry-After (300 when left out)
+     * @param list<string>                                                  $expectedProblems
+     */
+    public function maintenanceIsConfirmedOnlyWhenEverySiteAnswersAsTheModeRequires(bool $maintenanceOn, array $answers, array $expectedProblems): void
+    {
+        $fetch = static fn (string $url): array => [
+            'status'     => $answers[$url][0],
+            'retryAfter' => array_key_exists(2, $answers[$url])
+                ? $answers[$url][2]
+                : '300',
+            'body' => $answers[$url][1],
+        ];
+
+        self::assertSame($expectedProblems, findMaintenanceProblems($maintenanceOn, array_keys($answers), $fetch, 'ZNACKA'));
+    }
+
+    public static function provideAnswersOfTheSites(): iterable
+    {
+        yield 'on, both closed with the page' => [true, [
+            'https://a.cz'       => [503, '<head>ZNACKA</head>'],
+            'https://admin.a.cz' => [503, '<head>ZNACKA</head>'],
+        ], []];
+        yield 'on, the marker is among other text, the page may be edited for a case' => [true, [
+            'https://a.cz' => [503, 'jiný text <meta ZNACKA> a další text'],
+        ], []];
+        yield 'on, the admin still answers' => [true, [
+            'https://a.cz'       => [503, 'ZNACKA'],
+            'https://admin.a.cz' => [200, 'admin'],
+        ], ['https://admin.a.cz odpovídá 200, údržba má 503']];
+        yield 'on, an error of the page is no maintenance' => [true, [
+            'https://a.cz' => [500, 'ZNACKA'],
+        ], ['https://a.cz odpovídá 500, údržba má 503']];
+        yield 'on, a 503 of another layer is no maintenance' => [true, [
+            'https://a.cz' => [503, 'Service Unavailable'],
+        ], ['https://a.cz odpovídá 503, ale ne stránkou údržby, nejspíš z jiné vrstvy než z maintenance.html']];
+        yield 'on, the page without Retry-After' => [true, [
+            'https://a.cz' => [503, 'ZNACKA', null],
+        ], ['https://a.cz odpovídá 503 stránkou údržby, ale bez hlavičky Retry-After']];
+        yield 'off, both open' => [false, [
+            'https://a.cz'       => [200, 'web'],
+            'https://admin.a.cz' => [302, ''],
+        ], []];
+        yield 'off, the web still closed' => [false, [
+            'https://a.cz'       => [503, 'ZNACKA'],
+            'https://admin.a.cz' => [200, 'admin'],
+        ], ['https://a.cz pořád odpovídá 503 údržby']];
+        yield 'off, an error that is not the maintenance is not for this check' => [false, [
+            'https://a.cz' => [500, 'chyba'],
+        ], []];
+    }
+
+    /**
+     * @test
+     */
+    public function anAddressThatCannotBeReachedIsAProblemNotACrash(): void
+    {
+        $fetch = static function (string $url): array {
+            throw new \RuntimeException('spojení spadlo');
+        };
+
+        self::assertSame(['https://a.cz se nepodařilo zkontrolovat: spojení spadlo'], findMaintenanceProblems(true, ['https://a.cz'], $fetch, 'ZNACKA'));
+    }
+
+    /**
+     * @test
+     */
+    public function theStateIsAwaitedUntilEverySiteAnswersAsRequiredAndNotLongerThanTheAttemptsAllow(): void
+    {
+        $answers = [200, 200, 503];
+        $calls = 0;
+        $sleeps = 0;
+        $fetch = static function (string $url) use (&$answers, &$calls): array {
+            ++$calls;
+
+            return [
+                'status'     => array_shift($answers),
+                'retryAfter' => '300',
+                'body'       => 'ZNACKA',
+            ];
+        };
+        $sleep = static function (int $seconds) use (&$sleeps): void {
+            ++$sleeps;
+        };
+
+        ob_start();
+        try {
+            waitForMaintenanceState(true, ['https://a.cz'], $fetch, 'ZNACKA', 3, 5, $sleep);
+        } finally {
+            ob_end_clean();
+        }
+
+        self::assertSame(3, $calls, 'a closed site is the third answer');
+        self::assertSame(2, $sleeps);
+    }
+
+    /**
+     * @test
+     */
+    public function aSiteThatNeverAnswersAsRequiredFailsTheSwitchWithTheProblemsOfTheLastAttempt(): void
+    {
+        $fetch = static fn (string $url): array => [
+            'status'     => 200,
+            'retryAfter' => null,
+            'body'       => 'web',
+        ];
+
+        $this->expectException(\RuntimeException::class);
+        $this->expectExceptionMessage('https://a.cz odpovídá 200, údržba má 503');
+        ob_start();
+        try {
+            waitForMaintenanceState(true, ['https://a.cz'], $fetch, 'ZNACKA', 2, 0, static fn (int $seconds) => null);
+        } finally {
+            ob_end_clean();
+        }
+    }
+
+    /**
+     * @test
+     */
+    public function theMaintenancePageCarriesTheMarkerThatTheCheckLooksFor(): void
+    {
+        foreach ([MAINTENANCE_PAGE_FILE, 'admin/' . MAINTENANCE_PAGE_FILE] as $pageFile) {
+            self::assertStringContainsString(MAINTENANCE_PAGE_MARKER, (string) file_get_contents(__DIR__ . '/../../' . $pageFile), $pageFile);
+        }
+    }
+
+    /**
+     * @test
+     */
+    public function theDeployedPageIsAskedForAtTheAdminOnItsOwnName(): void
+    {
+        self::assertSame(
+            'https://admin.gamecon.cz/maintenance.off.html',
+            getMaintenanceDeployedPageUrl(__DIR__ . '/../../nastaveni/verejne-nastaveni-produkce.php'),
+        );
+    }
+
+    /**
+     * @test
+     */
+    public function aServerWithTheDeployedPageMayBeClosed(): void
+    {
+        $asked = [];
+        $fetch = static function (string $url) use (&$asked): array {
+            $asked[] = $url;
+
+            return [
+                'status'     => 200,
+                'retryAfter' => null,
+                'body'       => 'text ZNACKA',
+            ];
+        };
+
+        assertMaintenancePageDeployed('https://admin.a.cz/maintenance.off.html', $fetch, 'ZNACKA');
+
+        self::assertSame(['https://admin.a.cz/maintenance.off.html'], $asked);
+    }
+
+    /**
+     * @test
+     *
+     * @dataProvider provideServersWithoutTheDeployedPage
+     */
+    public function aServerThatSaysThePageIsMissingOrOlderIsNotClosed(int $status, string $body, string $expectedMessage): void
+    {
+        $fetch = static fn (string $url): array => [
+            'status'     => $status,
+            'retryAfter' => null,
+            'body'       => $body,
+        ];
+
+        $this->expectException(\RuntimeException::class);
+        $this->expectExceptionMessage($expectedMessage);
+        assertMaintenancePageDeployed('https://admin.a.cz/maintenance.off.html', $fetch, 'ZNACKA');
+    }
+
+    public static function provideServersWithoutTheDeployedPage(): iterable
+    {
+        yield 'the page is missing' => [404, 'nenalezeno', 'odpovídá 404: ostrá ještě nemá nasazenou stránku údržby se značkou'];
+        yield 'an older page without the marker' => [200, 'starší stránka', 'odpovídá 200 a stránka nemá značku údržby'];
+    }
+
+    /**
+     * A server that is down or broken is one more reason for the maintenance, so the check must not keep the operator
+     * from closing the site.
+     *
+     * @test
+     *
+     * @dataProvider provideServersThatDoNotAnswerProperly
+     */
+    public function aServerThatDoesNotAnswerProperlyDoesNotStopTheSwitch(?int $status, string $expectedWarning): void
+    {
+        $fetch = static function (string $url) use ($status): array {
+            if ($status === null) {
+                throw new \RuntimeException('spojení spadlo');
+            }
+
+            return [
+                'status'     => $status,
+                'retryAfter' => null,
+                'body'       => 'ZNACKA',
+            ];
+        };
+
+        ob_start();
+        try {
+            assertMaintenancePageDeployed('https://admin.a.cz/maintenance.off.html', $fetch, 'ZNACKA');
+        } finally {
+            $output = (string) ob_get_clean();
+        }
+
+        self::assertStringStartsWith('::warning::', $output, 'a line that GitHub shows as an annotation of the run');
+        self::assertStringContainsString($expectedWarning, $output);
+        self::assertStringContainsString('údržba se zapíná dál', $output);
+    }
+
+    public static function provideServersThatDoNotAnswerProperly(): iterable
+    {
+        yield 'no connection' => [null, 'Nepodařilo se ověřit nasazenou stránku údržby (spojení spadlo)'];
+        yield 'an error of the admin' => [500, 'odpovídá 500, nasazenou stránku údržby se nepodařilo ověřit'];
+        yield 'a gateway error' => [502, 'odpovídá 502, nasazenou stránku údržby se nepodařilo ověřit'];
+        yield 'a refusal of a firewall' => [403, 'odpovídá 403, nasazenou stránku údržby se nepodařilo ověřit'];
+        yield 'a redirect' => [301, 'odpovídá 301, nasazenou stránku údržby se nepodařilo ověřit'];
+    }
+
+    /**
+     * An error of the code itself must not look like a server that does not answer.
+     *
+     * @test
+     */
+    public function aBugInTheFetchIsNotTakenForAServerThatDoesNotAnswer(): void
+    {
+        $fetch = static function (string $url): array {
+            throw new \TypeError('chyba v kódu');
+        };
+
+        $this->expectException(\TypeError::class);
+        assertMaintenancePageDeployed('https://admin.a.cz/maintenance.off.html', $fetch, 'ZNACKA');
+    }
+
+    /**
+     * @test
+     */
+    public function theStatusAndRetryAfterAreReadFromTheLastResponseOfCurlHeaders(): void
+    {
+        $hlavicky = ['HTTP/1.1 100 Continue', '', 'HTTP/2 503 ', 'content-type: text/html', 'Retry-After: 300', ''];
+
+        self::assertSame([
+            'status'     => 503,
+            'retryAfter' => '300',
+        ], parseHttpResponseHeaders($hlavicky));
+        self::assertSame([
+            'status'     => 200,
+            'retryAfter' => null,
+        ], parseHttpResponseHeaders(['HTTP/1.1 200 OK', 'server: Apache', '']));
+    }
+
+    /**
+     * @test
+     */
+    public function theResponseIsFetchedWithCurlThatDoesNotFollowRedirects(): void
+    {
+        $skript = <<<'BASH'
+            #!/usr/bin/env bash
+            printf '%s\n' "$@" > @WORK@/curl-arguments
+            previous=""
+            for argument in "$@"; do
+                if [ "$previous" = "--output" ]; then printf 'TELO STRANKY' > "$argument"; fi
+                previous="$argument"
+            done
+            printf 'HTTP/2 503\r\nretry-after: 300\r\n\r\n'
+            BASH;
+        file_put_contents($this->workDir . '/bin/curl', str_replace('@WORK@', $this->workDir, $skript) . "\n");
+        chmod($this->workDir . '/bin/curl', 0755);
+        putenv('PATH=' . $this->workDir . '/bin:' . $this->originalEnv['PATH']);
+
+        self::assertSame([
+            'status'     => 503,
+            'retryAfter' => '300',
+            'body'       => 'TELO STRANKY',
+        ], fetchHttpResponse('https://gamecon.cz'));
+
+        $argumenty = explode("\n", rtrim((string) file_get_contents($this->workDir . '/curl-arguments'), "\n"));
+        self::assertSame('https://gamecon.cz', $argumenty[count($argumenty) - 1]);
+        self::assertNotContains('--location', $argumenty);
+        self::assertNotContains('-L', $argumenty);
+        self::assertContains('--max-time', $argumenty);
+    }
+
+    /**
      * Walks the path from its top directory down like the receiving rsync: the first rule that matches a node decides,
      * `H` rules are for the sender only, so they are skipped. Close enough to rsync for the rules of this project.
      *
@@ -977,6 +1474,16 @@ class RsyncNasazeniTest extends TestCase
         ob_start();
         try {
             uploadFilesViaRsync('/repo', ['/tests'], 'x:/', $dryRun);
+        } finally {
+            ob_end_clean();
+        }
+    }
+
+    private function switchMaintenance(bool $maintenanceOn, string $pageFile): void
+    {
+        ob_start();
+        try {
+            setMaintenanceViaRsync($maintenanceOn, $pageFile, 'x:/');
         } finally {
             ob_end_clean();
         }
