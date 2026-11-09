@@ -220,6 +220,79 @@ VALUES ($0, $1, $2, 1, $3, 2, $4, 0, 5, 0, 0)',
     }
 
     /**
+     * @test
+     */
+    public function oblastMusiBytJednaZNabidky(): void
+    {
+        $tester = new CommandTester(new PrevestObrazkyNaAvifCommand());
+
+        self::assertSame(Command::FAILURE, $tester->execute([
+            '--oblast' => 'texty',
+        ]));
+        self::assertStringContainsString('--oblast chce obsah, fotky nebo vse', $tester->getDisplay());
+    }
+
+    /**
+     * @test
+     */
+    public function slozkaNejdeSOblastiFotek(): void
+    {
+        $tester = new CommandTester(new PrevestObrazkyNaAvifCommand());
+
+        self::assertSame(Command::FAILURE, $tester->execute([
+            '--oblast' => 'fotky',
+            '--slozka' => $this->slozka(),
+        ]));
+        self::assertStringContainsString('--slozka omezuje obrázky v textech webu', $tester->getDisplay());
+    }
+
+    /**
+     * @test
+     */
+    public function sOmezenimNaSlozkuSeFotkyUzivateluNepreviMaji(): void
+    {
+        $tester = new CommandTester(new PrevestObrazkyNaAvifCommand());
+
+        $kod = $tester->execute([
+            '--slozka' => $this->slozka(),
+        ]);
+
+        self::assertSame(Command::SUCCESS, $kod);
+        self::assertStringContainsString('Obrázky v textech webu', $tester->getDisplay());
+        self::assertStringNotContainsString('Fotky uživatelů', $tester->getDisplay());
+        self::assertStringContainsString('nepřevádí se', $tester->getDisplay());
+    }
+
+    /**
+     * Fotka uživatele se v suchém běhu ukáže ve svém oddílu a nic se nezapíše.
+     *
+     * @test
+     */
+    public function suchyBehUkazeFotkyUzivatelu(): void
+    {
+        $slozkaFotek = ZpracovaneObrazky::adresarFotekUzivatelu();
+        $this->uklidNoveAdresare($slozkaFotek);
+        (new Filesystem())->mkdir($slozkaFotek);
+        $fotka = $slozkaFotek . '/99436.jpg';
+        $this->kUklidu[] = $fotka;
+        file_put_contents($fotka, self::fotkaZFotakuBajty(1200, 800));
+        $tester = new CommandTester(new PrevestObrazkyNaAvifCommand());
+
+        $kod = $tester->execute([
+            '--oblast' => 'fotky',
+        ], [
+            'verbosity' => OutputInterface::VERBOSITY_VERBOSE,
+        ]);
+
+        self::assertSame(Command::SUCCESS, $kod);
+        $vystup = $tester->getDisplay();
+        self::assertStringContainsString('Fotky uživatelů', $vystup);
+        self::assertStringNotContainsString('Obrázky v textech webu', $vystup);
+        self::assertStringContainsString('99436.jpg: převedeno do AVIF', $vystup);
+        self::assertFileDoesNotExist($slozkaFotek . '/99436.avif');
+    }
+
+    /**
      * @return array<string, bool|string>
      */
     private function prepinaceOstrehoBehu(): array
