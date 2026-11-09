@@ -1,0 +1,59 @@
+name: Maintenance mode OSTRA (turn on or off)
+
+# Turns the maintenance mode of OSTRA on or off by uploading or deleting the file maintenance.html in its directory
+# (dokumentace/nasazeni.md, section "Údržbový režim"). Afterwards the site is asked what it answers, so a switch that did
+# not take effect fails the run. BETA has no such workflow.
+
+# yamllint disable-line rule:truthy
+on:
+    workflow_dispatch:
+        inputs:
+            state:
+                description: '"on" shows the maintenance page (503) on OSTRA, "off" brings the site back'
+                type: choice
+                # off first, so that a click on "Run workflow" without choosing cannot close the production site
+                options:
+                    - 'off'
+                    - 'on'
+                default: 'off'
+                required: true
+
+permissions:
+    contents: read
+
+# Two switches at once would race on the same file, so a running one is let finish. GitHub keeps only the newest of the
+# runs waiting behind it, so start the next switch after the previous one has finished. A run on the wrong branch is
+# refused at once and gets a group of its own, so that it cannot cancel a waiting run.
+concurrency:
+    group: ${{ github.ref != 'refs/heads/main' && format('maintenance-ostra-refused-{0}', github.run_id) || 'maintenance-ostra' }}
+    cancel-in-progress: false
+
+jobs:
+    # the page that goes to the server comes from the checked out branch, so a branch other than main must not turn it on
+    check-branch:
+        runs-on: ubuntu-24.04
+
+        steps:
+            -   name: Refuse to switch OSTRA from another branch
+                if: github.ref != 'refs/heads/main'
+                run: |
+                    echo "::error::Maintenance mode of OSTRA is switched from the main branch only; choose 'main' under 'Use workflow from'"
+                    exit 1
+
+    switch:
+        needs: check-branch
+        runs-on: ubuntu-24.04
+
+        steps:
+            -   name: Checkout code
+                uses: actions/checkout@v4
+
+            -   name: Turn the maintenance mode ${{ inputs.state }}
+                run: php ./udrzba/udrzbovy-rezim.php "$STATE"
+                env:
+                    STATE: ${{ inputs.state }}
+                    # The same key as the deploy of OSTRA, allowed to write only to the ostra directory.
+                    DEPLOY_RSYNC_TARGET: ${{ secrets.OSTRA_DEPLOY_RSYNC_TARGET }}
+                    DEPLOY_SSH_KEY: ${{ secrets.OSTRA_DEPLOY_SSH_KEY }}
+                    DEPLOY_SSH_KNOWN_HOSTS: ${{ secrets.DEPLOY_SSH_KNOWN_HOSTS }}
+                    DEPLOY_SSH_PORT: ${{ vars.DEPLOY_SSH_PORT }}
