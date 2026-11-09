@@ -1200,7 +1200,13 @@ body.vzhled-moderni:has(.profilInfo) .sloupL {
 
 /* Na úzké obrazovce (@media níž), nebo když si ho uživatel schová na dotykové obrazovce (iPad). S myší
    schované menu zůstane jako úzký panel s ikonami (oddíl Úzký panel). Jinak lišta, závoj ani tlačítka zavřít
-   a připnout vidět nejsou. */
+   a připnout vidět nejsou.
+
+   Myš pozná třída moderni-mys na <html>, ne @media (hover: hover) a (pointer: fine): ty hlásí jen to, co si
+   prohlížeč zjistil o zařízení. Běžící Brave na notebooku s dotykovou obrazovkou hlásil jen dotyk (ani
+   any-pointer: fine), i když se ovládal touchpadem, čerstvě spuštěný už myš hlásil. Třídu dá skript v hlavičce
+   main.xtpl podle těch @media nebo podle toho, že tu prohlížeč už myš viděl, a moderni.js ji přidá při prvním
+   pohybu myši. */
 
 .moderni-horni-lista {
   position: sticky;
@@ -1318,35 +1324,33 @@ body.moderni-menu-otevrene .sloupL {
   display: none;
 }
 
-/* Panel je mimo stránku stejně jako na úzké obrazovce, ale jen bez myši: na širší obrazovce s myší je
-   ze schovaného menu úzký panel (oddíl Úzký panel), stejná podmínka obráceně. */
-@media not all and (min-width: 1024px) and (hover: hover) and (pointer: fine) {
-  :where(.moderni-menu-schovane) .moderni-horni-lista {
-    display: flex;
-  }
+/* Panel je mimo stránku stejně jako na úzké obrazovce, ale jen bez myši: s myší je ze schovaného menu úzký
+   panel (oddíl Úzký panel). Pod 1024 px se menu vysouvá i s myší, to zařídí oddíl Tablet a telefon. */
+:where(.moderni-menu-schovane:not(.moderni-mys)) .moderni-horni-lista {
+  display: flex;
+}
 
-  :where(.moderni-menu-schovane) .moderni-tlacitko-zavrit {
-    display: inline-grid;
-  }
+:where(.moderni-menu-schovane:not(.moderni-mys)) .moderni-tlacitko-zavrit {
+  display: inline-grid;
+}
 
-  :where(.moderni-menu-schovane .vzhled-moderni) .sloupL {
-    position: fixed;
-    top: 0;
-    bottom: 0;
-    left: 0;
-    width: min(320px, 86vw);
-    height: auto;
-    box-shadow: 0 0 40px rgba(0, 0, 0, 0.35);
-    transform: translateX(-105%);
-    visibility: hidden;
-    transition: transform 0.25s ease, visibility 0s linear 0.25s;
-    z-index: 1000;
-  }
+:where(.moderni-menu-schovane:not(.moderni-mys) .vzhled-moderni) .sloupL {
+  position: fixed;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  width: min(320px, 86vw);
+  height: auto;
+  box-shadow: 0 0 40px rgba(0, 0, 0, 0.35);
+  transform: translateX(-105%);
+  visibility: hidden;
+  transition: transform 0.25s ease, visibility 0s linear 0.25s;
+  z-index: 1000;
+}
 
-  /* Vyskakovací hlášky (hlasky.css) pod horní lištou */
-  :where(.moderni-menu-schovane .vzhled-moderni) .chybaBlok {
-    top: calc(var(--m-vyska-listy) + 8px);
-  }
+/* Vyskakovací hlášky (hlasky.css) pod horní lištou */
+:where(.moderni-menu-schovane:not(.moderni-mys) .vzhled-moderni) .chybaBlok {
+  top: calc(var(--m-vyska-listy) + 8px);
 }
 
 /* ---------- Tablet a telefon: menu se vysouvá vždycky ---------- */
@@ -1559,43 +1563,44 @@ body.moderni-menu-otevrene .sloupL {
 
 /* Třídu moderni-panel-kompaktni na <html> dá skript za panelem v main.xtpl (a při změně velikosti okna
    moderni.js), jen když se panel na výšku nevejde: malý monitor, hodně položek menu. Panel se pak vejde
-   celý, bez posouvání. Jen pro myš na širší obrazovce, na dotyk zůstávají položky velké a panel se posouvá. */
-@media (min-width: 1024px) and (pointer: fine) {
-  :where(.moderni-panel-kompaktni) .moderni-panel-hlavicka {
+   celý, bez posouvání. Jen pro myš (moderni-mys, viz Vysouvací menu) na širší obrazovce, na dotyk zůstávají
+   položky velké a panel se posouvá. */
+@media (min-width: 1024px) {
+  :where(.moderni-mys.moderni-panel-kompaktni) .moderni-panel-hlavicka {
     padding: 8px 12px 6px;
   }
 
-  :where(.moderni-panel-kompaktni) .moderni-znacka-logo {
+  :where(.moderni-mys.moderni-panel-kompaktni) .moderni-znacka-logo {
     width: 28px;
     height: 28px;
     border-radius: 7px;
     font-size: 12px;
   }
 
-  :where(.moderni-panel-kompaktni) .moderni-znacka-text {
+  :where(.moderni-mys.moderni-panel-kompaktni) .moderni-znacka-text {
     font-size: 15px;
   }
 
-  :where(.moderni-panel-kompaktni) .moderni-tlacitko-zavrit,
-  :where(.moderni-panel-kompaktni) .moderni-tlacitko-schovat,
-  :where(.moderni-panel-kompaktni) .moderni-tlacitko-pripnout {
+  :where(.moderni-mys.moderni-panel-kompaktni) .moderni-tlacitko-zavrit,
+  :where(.moderni-mys.moderni-panel-kompaktni) .moderni-tlacitko-schovat,
+  :where(.moderni-mys.moderni-panel-kompaktni) .moderni-tlacitko-pripnout {
     width: 28px;
     height: 28px;
     font-size: 14px;
   }
 
   /* Karta pracovního uživatele: Zrušit výběr jako křížek v jejím rohu, jméno a ID na jednom řádku. */
-  :where(.moderni-panel-kompaktni .vzhled-moderni) .uzivatel {
+  :where(.moderni-mys.moderni-panel-kompaktni .vzhled-moderni) .uzivatel {
     position: relative;
     margin-bottom: 6px;
     padding: 8px 10px;
   }
 
-  :where(.moderni-panel-kompaktni) .moderni-uzivatel .moderni-popisek {
+  :where(.moderni-mys.moderni-panel-kompaktni) .moderni-uzivatel .moderni-popisek {
     margin-bottom: 4px;
   }
 
-  :where(.moderni-panel-kompaktni .vzhled-moderni) .uzivatel .tip {
+  :where(.moderni-mys.moderni-panel-kompaktni .vzhled-moderni) .uzivatel .tip {
     position: absolute;
     width: 1px;
     height: 1px;
@@ -1604,24 +1609,24 @@ body.moderni-menu-otevrene .sloupL {
     white-space: nowrap;
   }
 
-  :where(.moderni-panel-kompaktni .vzhled-moderni) .moderni-hledani input.omnibox {
+  :where(.moderni-mys.moderni-panel-kompaktni .vzhled-moderni) .moderni-hledani input.omnibox {
     height: 32px;
   }
 
-  :where(.moderni-panel-kompaktni) .moderni-hledani > .fa-solid {
+  :where(.moderni-mys.moderni-panel-kompaktni) .moderni-hledani > .fa-solid {
     top: 9px;
   }
 
-  :where(.moderni-panel-kompaktni) .moderni-vybrany {
+  :where(.moderni-mys.moderni-panel-kompaktni) .moderni-vybrany {
     gap: 10px;
   }
 
-  :where(.moderni-panel-kompaktni .vzhled-moderni) .uzivatel .avatar {
+  :where(.moderni-mys.moderni-panel-kompaktni .vzhled-moderni) .uzivatel .avatar {
     width: 40px;
     height: 40px;
   }
 
-  :where(.moderni-panel-kompaktni) .moderni-vybrany-udaje {
+  :where(.moderni-mys.moderni-panel-kompaktni) .moderni-vybrany-udaje {
     display: flex;
     flex-wrap: wrap;
     align-items: center;
@@ -1629,36 +1634,36 @@ body.moderni-menu-otevrene .sloupL {
   }
 
   /* místo pro křížek Zrušit výběr */
-  :where(.moderni-panel-kompaktni .vzhled-moderni) .uzivatel h3 {
+  :where(.moderni-mys.moderni-panel-kompaktni .vzhled-moderni) .uzivatel h3 {
     flex: 1 0 100%;
     max-width: calc(100% - 24px);
     font-size: 15px;
   }
 
-  :where(.moderni-panel-kompaktni) .moderni-vybrany-jmeno {
+  :where(.moderni-mys.moderni-panel-kompaktni) .moderni-vybrany-jmeno {
     max-width: 50%;
     font-size: 12px;
   }
 
-  :where(.moderni-panel-kompaktni) .moderni-vybrany-id a,
-  :where(.moderni-panel-kompaktni) .moderni-vybrany-id .moderni-tlacitko-ikona {
+  :where(.moderni-mys.moderni-panel-kompaktni) .moderni-vybrany-id a,
+  :where(.moderni-mys.moderni-panel-kompaktni) .moderni-vybrany-id .moderni-tlacitko-ikona {
     width: 24px;
     height: 24px;
   }
 
-  :where(.moderni-panel-kompaktni .vzhled-moderni) .uzivatel .status {
+  :where(.moderni-mys.moderni-panel-kompaktni .vzhled-moderni) .uzivatel .status {
     margin-top: 4px;
     font-size: 12px;
   }
 
-  :where(.moderni-panel-kompaktni) #zrusitUzivateleProPraci {
+  :where(.moderni-mys.moderni-panel-kompaktni) #zrusitUzivateleProPraci {
     position: absolute;
     top: 4px;
     right: 4px;
   }
 
   /* text tlačítka zůstává pro čtečky, vidět je jen křížek (a title) */
-  :where(.moderni-panel-kompaktni) .moderni-tlacitko-zrusit {
+  :where(.moderni-mys.moderni-panel-kompaktni) .moderni-tlacitko-zrusit {
     width: 28px;
     min-height: 28px;
     margin: 0;
@@ -1669,39 +1674,39 @@ body.moderni-menu-otevrene .sloupL {
     font-size: 0;
   }
 
-  :where(.moderni-panel-kompaktni) .moderni-tlacitko-zrusit .fa-solid {
+  :where(.moderni-mys.moderni-panel-kompaktni) .moderni-tlacitko-zrusit .fa-solid {
     font-size: 15px;
   }
 
-  :where(.moderni-panel-kompaktni) .moderni-tlacitko-zrusit:hover {
+  :where(.moderni-mys.moderni-panel-kompaktni) .moderni-tlacitko-zrusit:hover {
     color: var(--m-text);
   }
 
-  :where(.moderni-panel-kompaktni) .moderni-predchozi {
+  :where(.moderni-mys.moderni-panel-kompaktni) .moderni-predchozi {
     margin-top: 6px;
     padding-top: 6px;
     font-size: 12px;
   }
 
   /* Hlavní menu */
-  :where(.moderni-panel-kompaktni .vzhled-moderni) .menu {
+  :where(.moderni-mys.moderni-panel-kompaktni .vzhled-moderni) .menu {
     gap: 0;
     padding: 2px 12px;
     font-size: 13px;
   }
 
-  :where(.moderni-panel-kompaktni .vzhled-moderni) .menu a {
+  :where(.moderni-mys.moderni-panel-kompaktni .vzhled-moderni) .menu a {
     gap: 10px;
     min-height: 28px;
     padding: 4px 12px;
   }
 
-  :where(.moderni-panel-kompaktni .vzhled-moderni) .menu a .fa-solid {
+  :where(.moderni-mys.moderni-panel-kompaktni .vzhled-moderni) .menu a .fa-solid {
     font-size: 13px;
   }
 
   /* Přihlášený uživatel: Odhlásit jako ikona vedle jména, přihlášení za jiného pod nimi. */
-  :where(.moderni-panel-kompaktni .vzhled-moderni) .operator {
+  :where(.moderni-mys.moderni-panel-kompaktni .vzhled-moderni) .operator {
     display: grid;
     grid-template-columns: minmax(0, 1fr) auto;
     align-items: center;
@@ -1709,7 +1714,7 @@ body.moderni-menu-otevrene .sloupL {
     padding: 8px 12px 6px;
   }
 
-  :where(.moderni-panel-kompaktni) .moderni-operator-kdo {
+  :where(.moderni-mys.moderni-panel-kompaktni) .moderni-operator-kdo {
     grid-row: 1;
     grid-column: 1;
     min-width: 0;
@@ -1717,35 +1722,35 @@ body.moderni-menu-otevrene .sloupL {
     gap: 8px;
   }
 
-  :where(.moderni-panel-kompaktni) .moderni-operator-kdo > .fa-solid {
+  :where(.moderni-mys.moderni-panel-kompaktni) .moderni-operator-kdo > .fa-solid {
     font-size: 20px;
   }
 
-  :where(.moderni-panel-kompaktni) .moderni-operator-kdo > div {
+  :where(.moderni-mys.moderni-panel-kompaktni) .moderni-operator-kdo > div {
     min-width: 0;
   }
 
-  :where(.moderni-panel-kompaktni) .moderni-operator-kdo .moderni-popisek {
+  :where(.moderni-mys.moderni-panel-kompaktni) .moderni-operator-kdo .moderni-popisek {
     display: none;
   }
 
-  :where(.moderni-panel-kompaktni) .moderni-operator-kdo strong {
+  :where(.moderni-mys.moderni-panel-kompaktni) .moderni-operator-kdo strong {
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
   }
 
-  :where(.moderni-panel-kompaktni) .moderni-operator > .moderni-hledani {
+  :where(.moderni-mys.moderni-panel-kompaktni) .moderni-operator > .moderni-hledani {
     grid-row: 2;
     grid-column: 1 / -1;
   }
 
-  :where(.moderni-panel-kompaktni) .moderni-operator > form:not(.moderni-hledani) {
+  :where(.moderni-mys.moderni-panel-kompaktni) .moderni-operator > form:not(.moderni-hledani) {
     grid-row: 1;
     grid-column: 2;
   }
 
-  :where(.moderni-panel-kompaktni) .moderni-tlacitko-odhlasit {
+  :where(.moderni-mys.moderni-panel-kompaktni) .moderni-tlacitko-odhlasit {
     width: 30px;
     min-height: 30px;
     margin: 0;
@@ -1753,7 +1758,7 @@ body.moderni-menu-otevrene .sloupL {
     font-size: 0;
   }
 
-  :where(.moderni-panel-kompaktni) .moderni-tlacitko-odhlasit .fa-solid {
+  :where(.moderni-mys.moderni-panel-kompaktni) .moderni-tlacitko-odhlasit .fa-solid {
     font-size: 14px;
   }
 }
@@ -1765,15 +1770,16 @@ body.moderni-menu-otevrene .sloupL {
    úzkého: při rozbalení se nic nepřeskládá ani nepřepočítá, ikony zůstanou na místě a mění se jen ořez. Karta
    pracovního uživatele se sbalí do dlaždice s fotkou nebo lupou, přihlášený uživatel do ikony, obojí je
    .moderni-ikona-uzkeho-panelu. Na dotyk (iPad) najetí myší není, schované menu se tam dál vysouvá z horní
-   lišty jako pod 1024 px. Stejnou podmínku má moderni.js (jePanelUzky).
+   lišty jako pod 1024 px. Myš pozná třída moderni-mys (viz Vysouvací menu), stejnou podmínku má moderni.js
+   (jePanelUzky).
 
    Rozbalení řídí proměnná --m-panel-rozbaleny (0/1), kterou panel nastaví a jeho části zdědí: ořez,
    průhlednost i zpoždění se z ní počítají a animují se spolu s panelem. */
-@media (min-width: 1024px) and (hover: hover) and (pointer: fine) {
+@media (min-width: 1024px) {
   /* V řádku zabere panel jen šířku úzkého panelu (záporný pravý okraj), rozbalený tak obsah překryje. Rozbalí se
      po 0,2 s, ať ho neotevře myš, která přes něj jen přejede, sbalí se po 0,1 s. Rozbalený ořez pustí i stín
      vpravo, sbalený schová stín i posuvník panelu. */
-  :where(.moderni-menu-schovane .vzhled-moderni) .sloupL {
+  :where(.moderni-menu-schovane.moderni-mys .vzhled-moderni) .sloupL {
     --m-panel-rozbaleny: 0;
     --m-panel-sbaleny: calc(1 - var(--m-panel-rozbaleny));
     --m-panel-prodleva: calc(0.1s + var(--m-panel-rozbaleny) * 0.1s);
@@ -1787,38 +1793,38 @@ body.moderni-menu-otevrene .sloupL {
   /* Každý spouštěč má vlastní pravidlo: prohlížeč, který nezná :has(), by jinak zahodil i najetí myší. Hned po
      schování tlačítkem a po Esc se najetím nerozbalí, myš je ještě nad ním (moderni-panel-nerozbalovat,
      moderni.js). */
-  :where(.moderni-menu-schovane .vzhled-moderni) .sloupL:hover:not(.moderni-panel-nerozbalovat) {
+  :where(.moderni-menu-schovane.moderni-mys .vzhled-moderni) .sloupL:hover:not(.moderni-panel-nerozbalovat) {
     --m-panel-rozbaleny: 1;
   }
 
   /* Fokus jen z klávesnice (:focus-visible): odkaz otevřený myší do nové karty nebo po návratu zpět by jinak
      panel držel rozbalený. */
-  :where(.moderni-menu-schovane .vzhled-moderni) .sloupL:has(:focus-visible) {
+  :where(.moderni-menu-schovane.moderni-mys .vzhled-moderni) .sloupL:has(:focus-visible) {
     --m-panel-rozbaleny: 1;
   }
 
   /* prohlížeč bez :has() (Firefox do 120, Safari do 15.3) */
   @supports not selector(:has(*)) {
-    :where(.moderni-menu-schovane .vzhled-moderni) .sloupL:focus-within {
+    :where(.moderni-menu-schovane.moderni-mys .vzhled-moderni) .sloupL:focus-within {
       --m-panel-rozbaleny: 1;
     }
   }
 
   /* Logo je nad ikonami menu i ve zhuštěném panelu. */
-  :where(.moderni-menu-schovane.moderni-panel-kompaktni) .moderni-panel-hlavicka {
+  :where(.moderni-menu-schovane.moderni-mys.moderni-panel-kompaktni) .moderni-panel-hlavicka {
     padding-left: 19px;
   }
 
-  :where(.moderni-menu-schovane) .moderni-znacka-text,
-  :where(.moderni-menu-schovane) .moderni-panel-tlacitka,
-  :where(.moderni-menu-schovane .vzhled-moderni) .uzivatel > :not(.moderni-ikona-uzkeho-panelu),
-  :where(.moderni-menu-schovane .vzhled-moderni) .menu a span,
-  :where(.moderni-menu-schovane .vzhled-moderni) .operator > :not(.moderni-ikona-uzkeho-panelu) {
+  :where(.moderni-menu-schovane.moderni-mys) .moderni-znacka-text,
+  :where(.moderni-menu-schovane.moderni-mys) .moderni-panel-tlacitka,
+  :where(.moderni-menu-schovane.moderni-mys .vzhled-moderni) .uzivatel > :not(.moderni-ikona-uzkeho-panelu),
+  :where(.moderni-menu-schovane.moderni-mys .vzhled-moderni) .menu a span,
+  :where(.moderni-menu-schovane.moderni-mys .vzhled-moderni) .operator > :not(.moderni-ikona-uzkeho-panelu) {
     opacity: var(--m-panel-rozbaleny);
     transition: opacity var(--m-panel-trvani) ease var(--m-panel-prodleva);
   }
 
-  :where(.moderni-menu-schovane) .moderni-ikona-uzkeho-panelu {
+  :where(.moderni-menu-schovane.moderni-mys) .moderni-ikona-uzkeho-panelu {
     position: absolute;
     display: grid;
     place-items: center;
@@ -1830,8 +1836,8 @@ body.moderni-menu-otevrene .sloupL {
   /* Skryté části karty a přihlášeného uživatele jsou jen průhledné, klik na dlaždici nebo ikonu by tak padl
      na Zrušit výběr, předchozího uživatele nebo Odhlásit pod nimi. Sbalený panel je proto zakryje štítem, který
      zmizí, až jsou po rozbalení vidět celé. Fokus z klávesnice štít nezastaví. */
-  :where(.moderni-menu-schovane .vzhled-moderni) .uzivatel::after,
-  :where(.moderni-menu-schovane .vzhled-moderni) .operator::after {
+  :where(.moderni-menu-schovane.moderni-mys .vzhled-moderni) .uzivatel::after,
+  :where(.moderni-menu-schovane.moderni-mys .vzhled-moderni) .operator::after {
     content: "";
     position: absolute;
     top: 0;
@@ -1844,13 +1850,13 @@ body.moderni-menu-otevrene .sloupL {
 
   /* Karta pracovního uživatele: sbalená je jen její levý dolní roh, dlaždice hned nad ikonami menu (karta je
      vyšší, nad dlaždicí zůstane místo). Rozbalená z ní vyroste. */
-  :where(.moderni-menu-schovane .vzhled-moderni) .uzivatel {
+  :where(.moderni-menu-schovane.moderni-mys .vzhled-moderni) .uzivatel {
     position: relative;
     clip-path: inset(calc(var(--m-panel-sbaleny) * (100% - 42px)) calc(var(--m-panel-sbaleny) * (100% - 42px)) 0 0 round 12px);
     transition: clip-path var(--m-panel-trvani) ease var(--m-panel-prodleva);
   }
 
-  :where(.moderni-menu-schovane) .uzivatel > .moderni-ikona-uzkeho-panelu {
+  :where(.moderni-menu-schovane.moderni-mys) .uzivatel > .moderni-ikona-uzkeho-panelu {
     bottom: 3px;
     left: 3px;
     width: 36px;
@@ -1859,23 +1865,23 @@ body.moderni-menu-otevrene .sloupL {
     font-size: 15px;
   }
 
-  :where(.moderni-menu-schovane) img.moderni-ikona-uzkeho-panelu {
+  :where(.moderni-menu-schovane.moderni-mys) img.moderni-ikona-uzkeho-panelu {
     border-radius: 50%;
     object-fit: cover;
     background-color: var(--m-pozadi);
   }
 
   /* Položka menu: sbalená je z ní dlaždice s ikonou, aktivní a najetá mají pozadí jen pod ní. */
-  :where(.moderni-menu-schovane .vzhled-moderni) .menu a {
+  :where(.moderni-menu-schovane.moderni-mys .vzhled-moderni) .menu a {
     clip-path: inset(0 calc(var(--m-panel-sbaleny) * (100% - 42px)) 0 0 round var(--m-zaobleni));
     transition: clip-path var(--m-panel-trvani) ease var(--m-panel-prodleva);
   }
 
-  :where(.moderni-menu-schovane .vzhled-moderni) .operator {
+  :where(.moderni-menu-schovane.moderni-mys .vzhled-moderni) .operator {
     position: relative;
   }
 
-  :where(.moderni-menu-schovane) .operator > .moderni-ikona-uzkeho-panelu {
+  :where(.moderni-menu-schovane.moderni-mys) .operator > .moderni-ikona-uzkeho-panelu {
     top: 8px;
     left: 12px;
     width: 42px;
@@ -1886,8 +1892,8 @@ body.moderni-menu-otevrene .sloupL {
 }
 
 /* Bez animace, zpoždění rozbalení zůstává. Části panelu trvání zdědí. */
-@media (min-width: 1024px) and (hover: hover) and (pointer: fine) and (prefers-reduced-motion: reduce) {
-  :where(.moderni-menu-schovane .vzhled-moderni) .sloupL {
+@media (min-width: 1024px) and (prefers-reduced-motion: reduce) {
+  :where(.moderni-menu-schovane.moderni-mys .vzhled-moderni) .sloupL {
     --m-panel-trvani: 0s;
   }
 }

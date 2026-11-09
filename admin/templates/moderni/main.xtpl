@@ -24,15 +24,23 @@
   <!-- Bez defer: tmavé barvy musí být nastavené dřív, než se stránka vykreslí. -->
   <script type="text/javascript" src="files/barvy_adminu.js?version={jsVersions.barvy_adminu}"></script>
   <!-- Schované menu si pamatuje prohlížeč (moderni.js). Třída je na <html> dřív, než se stránka vykreslí,
-       jinak by menu při každém načtení probliklo. -->
+       jinak by menu při každém načtení probliklo. Stejně tak moderni-mys (moderni.css, Vysouvací menu): myš,
+       kterou prohlížeč hlásí, nebo kterou tu už viděl (moderni.js). -->
   <script>
-    try {
-      if (localStorage.getItem('adminSchovaneMenu') === '1') {
-        document.documentElement.classList.add('moderni-menu-schovane')
+    (function () {
+      var mys = window.matchMedia('(hover: hover) and (pointer: fine)').matches
+      try {
+        if (localStorage.getItem('adminSchovaneMenu') === '1') {
+          document.documentElement.classList.add('moderni-menu-schovane')
+        }
+        mys = mys || localStorage.getItem('adminMys') === '1'
+      } catch (e) {
+        // bez úložiště (soukromé okno, zakázaná data webu) je menu vidět a myš jen ta hlášená
       }
-    } catch (e) {
-      // bez úložiště (soukromé okno, zakázaná data webu) je menu vidět
-    }
+      if (mys) {
+        document.documentElement.classList.add('moderni-mys')
+      }
+    })()
   </script>
   <!-- begin:april -->
   <link rel="stylesheet" href="files/design/april-1.1.css">
