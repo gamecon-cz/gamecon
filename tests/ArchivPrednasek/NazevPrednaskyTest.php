@@ -13,7 +13,7 @@ class NazevPrednaskyTest extends TestCase
     /**
      * @return array<string, array{string, string}>
      */
-    public static function nazvy(): array
+    public static function provideNazvy(): array
     {
         return [
             'spojovník s mezerami je pomlčka' => ['Mistrovství DrD - Rozuzlení', 'Mistrovství DrD – Rozuzlení'],
@@ -27,7 +27,7 @@ class NazevPrednaskyTest extends TestCase
         ];
     }
 
-    #[DataProvider('nazvy')]
+    #[DataProvider('provideNazvy')]
     public function testUpraviNazev(string $nazev, string $ocekavany): void
     {
         self::assertSame($ocekavany, NazevPrednasky::uprav($nazev));

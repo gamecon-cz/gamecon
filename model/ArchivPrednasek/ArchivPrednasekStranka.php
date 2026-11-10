@@ -15,7 +15,7 @@ final class ArchivPrednasekStranka
     public const string PODSTRANKA = 'archiv';
     public const string MODUL = 'archivprednasek';
 
-    public static function cesta(TypAktivity $liniePrednasek): string
+    public static function getCesta(TypAktivity $liniePrednasek): string
     {
         return $liniePrednasek->url() . '/' . self::PODSTRANKA;
     }
@@ -23,12 +23,12 @@ final class ArchivPrednasekStranka
     /**
      * @return string|null null when the line of lectures does not exist
      */
-    public static function cestaZDatabaze(): ?string
+    public static function getCestaZDatabaze(): ?string
     {
         $liniePrednasek = TypAktivity::zId(TypAktivity::PREDNASKA);
 
         return $liniePrednasek
-            ? self::cesta($liniePrednasek)
+            ? self::getCesta($liniePrednasek)
             : null;
     }
 }

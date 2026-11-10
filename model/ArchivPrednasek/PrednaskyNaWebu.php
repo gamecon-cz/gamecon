@@ -38,7 +38,7 @@ final class PrednaskyNaWebu
     /**
      * @return list<PrednaskaNaWebu>
      */
-    public function prednasky(): array
+    public function getPrednasky(): array
     {
         $radky = dbFetchAll(<<<'SQL'
             SELECT archiv_prednasek.id_prednasky, archiv_prednasek.nazev, archiv_prednasek.rok, archiv_prednasek.youtube_id,
@@ -154,7 +154,7 @@ final class PrednaskyNaWebu
      */
     private function nabizeneRocniky(int $idTypu): array
     {
-        return $this->nabizeneRocniky[$idTypu] ??= RocnikyAktivit::nabizene($this->letosniRocnik, $idTypu);
+        return $this->nabizeneRocniky[$idTypu] ??= RocnikyAktivit::getNabizene($this->letosniRocnik, $idTypu);
     }
 
     /**
@@ -167,49 +167,50 @@ final class PrednaskyNaWebu
     {
         $stitky = [];
         foreach ($klicovaSlova as $nazev) {
-            $stitky[StitekNaWebu::klic($nazev)] ??= new StitekNaWebu(StitekNaWebu::klic($nazev), $nazev, StitekNaWebu::SKUPINA_KLICOVA_SLOVA);
+            $stitky[StitekNaWebu::getKlic($nazev)] ??= new StitekNaWebu(StitekNaWebu::getKlic($nazev), $nazev, StitekNaWebu::SKUPINA_KLICOVA_SLOVA);
         }
         foreach ($stitkyProgramu as ['nazev' => $nazev, 'kategorie' => $kategorie]) {
-            $stitky[StitekNaWebu::klic($nazev)] ??= new StitekNaWebu(StitekNaWebu::klic($nazev), $nazev, $kategorie);
+            $stitky[StitekNaWebu::getKlic($nazev)] ??= new StitekNaWebu(StitekNaWebu::getKlic($nazev), $nazev, $kategorie);
         }
 
         return array_values($stitky);
     }
 
     /**
+     * Speakers with what Uzivatel::url() reads of their users, in one query: the page shows every speaker and
+     * a whole user for each of them would be a waste.
+     *
      * @return array<int, list<PrednasejiciNaWebu>> id of the lecture => speakers in their order
      */
     private function prednasejiciPodlePrednasek(): array
     {
-        $radky = dbFetchAll(<<<'SQL'
+        $podlePrednasek = [];
+        foreach (dbFetchAll(<<<'SQL'
             SELECT archiv_prednasek_prednaska_prednasejici.id_prednasky, archiv_prednasek_prednasejici.id_prednasejiciho,
-                archiv_prednasek_prednasejici.jmeno, archiv_prednasek_prednasejici.id_uzivatele
+                archiv_prednasek_prednasejici.jmeno, uzivatele_hodnoty.id_uzivatele, uzivatele_hodnoty.login_uzivatele,
+                uzivatele_hodnoty.jmeno_uzivatele, uzivatele_hodnoty.prijmeni_uzivatele,
+                (
+                    SELECT uzivatele_url.url
+                    FROM uzivatele_url
+                    WHERE uzivatele_url.id_uzivatele = uzivatele_hodnoty.id_uzivatele
+                    ORDER BY uzivatele_url.id_url_uzivatele DESC
+                    LIMIT 1
+                ) AS url
             FROM archiv_prednasek_prednaska_prednasejici
             JOIN archiv_prednasek_prednasejici
                 ON archiv_prednasek_prednasejici.id_prednasejiciho = archiv_prednasek_prednaska_prednasejici.id_prednasejiciho
             JOIN archiv_prednasek ON archiv_prednasek.id_prednasky = archiv_prednasek_prednaska_prednasejici.id_prednasky
+            LEFT JOIN uzivatele_hodnoty ON uzivatele_hodnoty.id_uzivatele = archiv_prednasek_prednasejici.id_uzivatele
             WHERE archiv_prednasek.skryta = 0
             ORDER BY archiv_prednasek_prednaska_prednasejici.id_prednasky, archiv_prednasek_prednaska_prednasejici.poradi
-            SQL);
-
-        $idsUzivatelu = array_values(array_unique(array_filter(array_map(
-            static fn (array $radek) => (int) $radek['id_uzivatele'],
-            $radky,
-        ))));
-        // same as the line page: a profile only for an account with a name, a group or a company has none
-        $medailonky = [];
-        foreach ($idsUzivatelu !== [] ? \Uzivatel::zIds($idsUzivatelu) : [] as $uzivatel) {
-            if ($uzivatel->url() !== null) {
-                $medailonky[$uzivatel->id()] = (string) $uzivatel->id();
-            }
-        }
-
-        $podlePrednasek = [];
-        foreach ($radky as $radek) {
+            SQL) as $radek) {
             $podlePrednasek[(int) $radek['id_prednasky']][] = new PrednasejiciNaWebu(
                 id: (int) $radek['id_prednasejiciho'],
                 jmeno: (string) $radek['jmeno'],
-                urlMedailonku: $medailonky[(int) $radek['id_uzivatele']] ?? null,
+                // same as the line page: a profile only for an account with a name, a group or a company has none
+                urlMedailonku: isset($radek['id_uzivatele']) && \Uzivatel::urlZjisti($radek) !== null
+                    ? (string) $radek['id_uzivatele']
+                    : null,
             );
         }
 

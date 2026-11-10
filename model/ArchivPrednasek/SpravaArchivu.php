@@ -25,7 +25,7 @@ final class SpravaArchivu
      * @return list<array{id: int, nazev: string, rok: int, youtubeId: string|null, skryta: bool, idAkce: int|null,
      *     nazevAkce: string|null, rokAkce: int|null, prednasejici: string}>
      */
-    public function seznam(array $filtr): array
+    public function getSeznam(array $filtr): array
     {
         $hledat = trim((string) ($filtr['hledat'] ?? ''));
         $radky = dbFetchAll(<<<'SQL'
@@ -78,7 +78,7 @@ final class SpravaArchivu
     /**
      * @return list<int> years in the archive, from the newest
      */
-    public function roky(): array
+    public function getRoky(): array
     {
         return array_map('intval', dbOneArray(<<<'SQL'
             SELECT DISTINCT rok FROM archiv_prednasek ORDER BY rok DESC
@@ -89,7 +89,7 @@ final class SpravaArchivu
      * @return array{id: int, nazev: string, rok: int, youtubeId: string|null, skryta: bool, idAkce: int|null,
      *     prednasejici: list<array{jmeno: string, idUzivatele: int|null}>, klicovaSlova: list<string>}|null
      */
-    public function detail(int $idPrednasky): ?array
+    public function getDetail(int $idPrednasky): ?array
     {
         $radek = dbOneLine(<<<'SQL'
             SELECT id_prednasky, nazev, rok, youtube_id, skryta, id_akce
@@ -140,7 +140,7 @@ final class SpravaArchivu
     /**
      * @return list<string> all keywords, for the whisperer
      */
-    public function klicovaSlova(): array
+    public function getKlicovaSlova(): array
     {
         return array_map('strval', dbOneArray(<<<'SQL'
             SELECT nazev FROM archiv_prednasek_klicove_slovo ORDER BY nazev
@@ -150,7 +150,7 @@ final class SpravaArchivu
     /**
      * @return list<string> names of all speakers, for the whisperer
      */
-    public function jmenaPrednasejicich(): array
+    public function getJmenaPrednasejicich(): array
     {
         return array_map('strval', dbOneArray(<<<'SQL'
             SELECT DISTINCT jmeno FROM archiv_prednasek_prednasejici ORDER BY jmeno
@@ -192,7 +192,7 @@ final class SpravaArchivu
         $rok = (int) $rok;
         $youtubeId = null;
         if (trim($odkazNaYoutube) !== '') {
-            $youtubeId = YoutubeOdkaz::idZOdkazu($odkazNaYoutube)
+            $youtubeId = YoutubeOdkaz::getIdZOdkazu($odkazNaYoutube)
                 ?? throw new ChybaArchivu('Odkaz na YouTube nepoznávám, vlož adresu videa (youtu.be/…, youtube.com/watch?v=…) nebo jeho ID.');
         }
         $idHlavniAkce = $idAkce !== null
@@ -294,7 +294,7 @@ final class SpravaArchivu
     /**
      * @return array{nazev: string, rok: int, typ: string}|null
      */
-    public function aktivita(int $idAkce): ?array
+    public function getAktivita(int $idAkce): ?array
     {
         $radek = dbOneLine(<<<'SQL'
             SELECT akce_seznam.nazev_akce, akce_seznam.rok, akce_typy.typ_1p
@@ -331,12 +331,15 @@ final class SpravaArchivu
             throw new ChybaArchivu("Aktivita {$idAkce} v programu není.");
         }
         $idHlavniAkce = (int) ($akce['id_hlavni_akce'] ?? $akce['id_akce']);
+        // several lectures can hold terms of the card already (a card attached as instances under another one later)
         $jinaPrednaska = dbOneLine(<<<'SQL'
             SELECT archiv_prednasek.nazev, archiv_prednasek.rok
             FROM archiv_prednasek
             JOIN akce_seznam ON akce_seznam.id_akce = archiv_prednasek.id_akce
             WHERE (akce_seznam.id_akce = $0 OR ($1 IS NOT NULL AND akce_seznam.patri_pod = $1))
                 AND ($2 IS NULL OR archiv_prednasek.id_prednasky != $2)
+            ORDER BY archiv_prednasek.rok DESC, archiv_prednasek.nazev
+            LIMIT 1
             SQL, [
             0 => $idAkce,
             1 => $akce['patri_pod'] ?? null,
@@ -350,6 +353,9 @@ final class SpravaArchivu
     }
 
     /**
+     * A row without a name is dropped, as the form says, even with the user it had (that is how a linked speaker is
+     * removed); only a user the administrator has just chosen needs a name.
+     *
      * @param list<array{jmeno: string, idUzivatele: int|null, menitUzivatele: bool}> $prednasejici
      *
      * @return list<array{jmeno: string, idUzivatele: int|null, menitUzivatele: bool}>
@@ -358,18 +364,21 @@ final class SpravaArchivu
     {
         $overeni = [];
         $jmena = [];
+        $uzivatele = [];
         foreach ($prednasejici as ['jmeno' => $jmeno, 'idUzivatele' => $idUzivatele, 'menitUzivatele' => $menitUzivatele]) {
             $jmeno = trim((string) preg_replace('~\s+~u', ' ', $jmeno));
             if ($jmeno === '') {
-                if ($idUzivatele !== null) {
-                    throw new ChybaArchivu('Přednášející napojený na uživatele musí mít jméno pro web.');
+                if ($idUzivatele !== null && $menitUzivatele) {
+                    throw new ChybaArchivu("Přednášející napojený na uživatele {$idUzivatele} musí mít jméno pro web.");
                 }
                 continue;
             }
             if (mb_strlen($jmeno) > 255) {
                 throw new ChybaArchivu("Jméno „{$jmeno}“ je delší než 255 znaků.");
             }
-            if ($idUzivatele !== null && ! dbOneCol('SELECT 1 FROM uzivatele_hodnoty WHERE id_uzivatele = $0', [
+            if ($idUzivatele !== null && ! dbOneCol(<<<'SQL'
+                SELECT 1 FROM uzivatele_hodnoty WHERE id_uzivatele = $0
+                SQL, [
                 0 => $idUzivatele,
             ])) {
                 throw new ChybaArchivu("Uživatel {$idUzivatele} neexistuje.");
@@ -377,7 +386,13 @@ final class SpravaArchivu
             if (in_array(mb_strtolower($jmeno), $jmena, true)) {
                 continue;
             }
+            if ($idUzivatele !== null && in_array($idUzivatele, $uzivatele, true)) {
+                throw new ChybaArchivu("Uživatel {$idUzivatele} je u přednášky dvakrát, pod dvěma jmény.");
+            }
             $jmena[] = mb_strtolower($jmeno);
+            if ($idUzivatele !== null) {
+                $uzivatele[] = $idUzivatele;
+            }
             $overeni[] = [
                 'jmeno'          => $jmeno,
                 'idUzivatele'    => $idUzivatele,
@@ -388,14 +403,36 @@ final class SpravaArchivu
         return $overeni;
     }
 
+    /**
+     * A speaker of an existing name is the same speaker (of namesakes the one linked to the user of the row), and
+     * a change of his user applies to all his lectures. A user has one speaker (the table has no unique key for it,
+     * see docs/generated/archiv-prednasek.md), so a speaker cannot get a user who has another one: a new name for
+     * a linked speaker would otherwise make a second speaker of the same person.
+     *
+     * @throws ChybaArchivu
+     */
     private function idPrednasejiciho(string $jmeno, ?int $idUzivatele, bool $menitUzivatele): int
     {
-        $idPrednasejiciho = $this->repository->getIdPrednasejicihoPodleJmena($jmeno);
+        $idPrednasejiciho = $this->repository->getIdPrednasejicihoPodleJmena($jmeno, $idUzivatele);
+        if ($idPrednasejiciho !== null && ! $menitUzivatele) {
+            return $idPrednasejiciho;
+        }
+        $jinyPrednasejiciUzivatele = $idUzivatele !== null
+            ? $this->repository->getIdPrednasejicihoPodleUzivatele($idUzivatele, $idPrednasejiciho)
+            : null;
+        if ($jinyPrednasejiciUzivatele !== null) {
+            throw new ChybaArchivu(sprintf(
+                'Uživatel %d už v archivu přednáší jako „%s“: napiš u něj tohle jméno, nebo pole uživatele vymaž.',
+                $idUzivatele,
+                (string) dbOneCol(<<<'SQL'
+                    SELECT jmeno FROM archiv_prednasek_prednasejici WHERE id_prednasejiciho = $0
+                    SQL, [
+                    0 => $jinyPrednasejiciUzivatele,
+                ]),
+            ));
+        }
         if ($idPrednasejiciho === null) {
             return $this->repository->vlozPrednasejiciho($jmeno, $idUzivatele);
-        }
-        if (! $menitUzivatele) {
-            return $idPrednasejiciho;
         }
         // the same speaker in every lecture, a change of his link applies to all of them
         dbQuery(<<<'SQL'

@@ -33,9 +33,15 @@ class PrednaskyNaWebuTest extends AbstractTestDb
 
         return [
             // the migration filled the archive of the test database
-            'DELETE FROM archiv_prednasek',
-            'DELETE FROM archiv_prednasek_prednasejici',
-            'DELETE FROM archiv_prednasek_klicove_slovo',
+            <<<'SQL'
+DELETE FROM archiv_prednasek
+SQL,
+            <<<'SQL'
+DELETE FROM archiv_prednasek_prednasejici
+SQL,
+            <<<'SQL'
+DELETE FROM archiv_prednasek_klicove_slovo
+SQL,
             <<<SQL
 INSERT INTO akce_seznam(id_akce, nazev_akce, url_akce, typ, rok, stav, popis, popis_kratky, cena, kapacita, kapacita_f, kapacita_m)
 VALUES
@@ -96,7 +102,7 @@ SQL,
      */
     private static function prednaskyPodleNazvu(): array
     {
-        $prednasky = (new PrednaskyNaWebu(ROCNIK, TypAktivity::zId(TypAktivity::PREDNASKA)))->prednasky();
+        $prednasky = (new PrednaskyNaWebu(ROCNIK, TypAktivity::zId(TypAktivity::PREDNASKA)))->getPrednasky();
         $podleNazvu = [];
         foreach ($prednasky as $prednaska) {
             $podleNazvu[$prednaska->nazev] = $prednaska;

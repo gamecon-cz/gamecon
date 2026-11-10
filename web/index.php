@@ -86,7 +86,7 @@ if (! $m && $url?->cast(1) === ArchivPrednasekStranka::PODSTRANKA && $url->cast(
 ) {
     $m = Modul::zNazvu(ArchivPrednasekStranka::MODUL, null, $systemoveNastaveni);
     $m->param('typ', $typArchivu);
-    $kanonickaCesta = ArchivPrednasekStranka::cesta($typArchivu);
+    $kanonickaCesta = ArchivPrednasekStranka::getCesta($typArchivu);
 }
 if (! $m && ($stranka = Stranka::zUrl())) {
     if ($stranka->isRedirect()) {

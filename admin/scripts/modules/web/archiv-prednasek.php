@@ -83,7 +83,8 @@ if (post('ulozit') !== null) {
         );
         oznameniPresmeruj('Přednáška je uložená.', URL_ADMIN . '/' . $urlModulu . '?id=' . $idPrednasky);
     } catch (ChybaArchivu $chybaArchivu) {
-        chyba($chybaArchivu->getMessage(), false);
+        // hláška je prostý text s názvy a jmény, chyba() ji vypíše jako HTML
+        chyba($e($chybaArchivu->getMessage()), false);
         $formular = [
             'id'           => $idPrednasky,
             'nazev'        => (string) post('nazev'),
@@ -104,14 +105,14 @@ if (post('ulozit') !== null) {
 $t = new XTemplate(__DIR__ . '/archiv-prednasek.xtpl');
 $t->assign([
     'urlModulu'  => $urlModulu,
-    'urlArchivu' => $e(URL_WEBU . '/' . ArchivPrednasekStranka::cestaZDatabaze()),
+    'urlArchivu' => $e(URL_WEBU . '/' . ArchivPrednasekStranka::getCestaZDatabaze()),
 ]);
 
 $id = get('id');
 if ($id !== null) {
     if ($formular === null && $id !== 'nova') {
         $detail = ctype_digit((string) $id)
-            ? $sprava->detail((int) $id)
+            ? $sprava->getDetail((int) $id)
             : null;
         if ($detail === null) {
             chyba('Taková přednáška v archivu není.');
@@ -120,7 +121,7 @@ if ($id !== null) {
             'id'           => $detail['id'],
             'nazev'        => $detail['nazev'],
             'rok'          => (string) $detail['rok'],
-            'youtube'      => $detail['youtubeId'] !== null ? YoutubeOdkaz::urlVidea($detail['youtubeId']) : '',
+            'youtube'      => $detail['youtubeId'] !== null ? YoutubeOdkaz::getUrlVidea($detail['youtubeId']) : '',
             'skryta'       => $detail['skryta'],
             'idAkce'       => $detail['idAkce'] !== null ? (string) $detail['idAkce'] : '',
             'prednasejici' => array_map(static fn (array $osoba) => [
@@ -176,7 +177,7 @@ if ($id !== null) {
         ]);
         $t->parse('detail.prednasejici');
     }
-    foreach ($sprava->jmenaPrednasejicich() as $jmeno) {
+    foreach ($sprava->getJmenaPrednasejicich() as $jmeno) {
         $t->assign('moznost', $e($jmeno));
         $t->parse('detail.jmeno');
     }
@@ -186,21 +187,21 @@ if ($id !== null) {
         $t->assign('slovo', $e($slovo));
         $t->parse('detail.klicoveSlovo');
     }
-    foreach ($sprava->klicovaSlova() as $slovo) {
+    foreach ($sprava->getKlicovaSlova() as $slovo) {
         $t->assign('moznost', $e($slovo));
         $t->parse('detail.slovo');
     }
 
-    $youtubeId = YoutubeOdkaz::idZOdkazu($formular['youtube']);
+    $youtubeId = YoutubeOdkaz::getIdZOdkazu($formular['youtube']);
     if ($youtubeId !== null) {
         $t->assign([
-            'urlVidea'   => $e(YoutubeOdkaz::urlVidea($youtubeId)),
-            'urlNahledu' => $e(YoutubeOdkaz::urlNahledu($youtubeId)),
+            'urlVidea'   => $e(YoutubeOdkaz::getUrlVidea($youtubeId)),
+            'urlNahledu' => $e(YoutubeOdkaz::getUrlNahledu($youtubeId)),
         ]);
         $t->parse('detail.video');
     }
 
-    $aktivita = ctype_digit($formular['idAkce']) ? $sprava->aktivita((int) $formular['idAkce']) : null;
+    $aktivita = ctype_digit($formular['idAkce']) ? $sprava->getAktivita((int) $formular['idAkce']) : null;
     if ($aktivita !== null) {
         $t->assign([
             'nazevAktivity' => $e($aktivita['nazev']),
@@ -235,7 +236,7 @@ $filtr = [
     'hledat'    => trim((string) get('hledat')),
 ];
 
-foreach ($sprava->roky() as $rok) {
+foreach ($sprava->getRoky() as $rok) {
     $t->assign(['rok' => $rok, 'vybrany' => $filtr['rok'] === $rok ? ' selected' : '']);
     $t->parse('seznam.rok');
 }
@@ -247,7 +248,7 @@ foreach (['sparovana', 'skryta', 'zaznam'] as $nazev) {
 }
 $t->assign('hledat', $e($filtr['hledat']));
 
-$prednasky = $sprava->seznam($filtr);
+$prednasky = $sprava->getSeznam($filtr);
 foreach ($prednasky as $prednaska) {
     $t->assign([
         'id'           => $prednaska['id'],
@@ -258,7 +259,7 @@ foreach ($prednasky as $prednaska) {
             ? $e(($prednaska['nazevAkce'] ?? '') . ' (' . $prednaska['rokAkce'] . ', ID ' . $prednaska['idAkce'] . ')')
             : '<em>nespárovaná</em>',
         'zaznam'       => $prednaska['youtubeId'] !== null
-            ? '<a href="' . $e(YoutubeOdkaz::urlVidea($prednaska['youtubeId'])) . '" target="_blank">záznam</a>'
+            ? '<a href="' . $e(YoutubeOdkaz::getUrlVidea($prednaska['youtubeId'])) . '" target="_blank">záznam</a>'
             : '–',
         'tridaRadku'   => $prednaska['skryta'] ? 'archivPrednasek_skryta' : '',
         'akce'         => $prednaska['skryta'] ? 'vratit' : 'skryt',
