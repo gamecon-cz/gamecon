@@ -19,7 +19,7 @@ final class RocnikyAktivit
      *
      * @return list<int> from the newest
      */
-    public static function nabizene(int $letosniRocnik, ?int $idTypu = null, ?int $idOrganizatora = null): array
+    public static function getNabizene(int $letosniRocnik, ?int $idTypu = null, ?int $idOrganizatora = null): array
     {
         $parametry = [
             0 => $letosniRocnik,

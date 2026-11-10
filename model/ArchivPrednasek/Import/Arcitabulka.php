@@ -152,7 +152,7 @@ final class Arcitabulka
         }
 
         // a link that is not understood must not be lost silently
-        return YoutubeOdkaz::idZOdkazu($bunka)
+        return YoutubeOdkaz::getIdZOdkazu($bunka)
             ?? throw new \RuntimeException("Řádek {$cisloRadku} arcitabulky má odkaz, který není video na YouTube: '{$bunka}'");
     }
 }

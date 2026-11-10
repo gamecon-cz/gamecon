@@ -53,9 +53,15 @@ SQL,
     {
         parent::setUp();
         // the migration already filled the archive of the test database
-        dbQuery('DELETE FROM archiv_prednasek');
-        dbQuery('DELETE FROM archiv_prednasek_prednasejici');
-        dbQuery('DELETE FROM archiv_prednasek_klicove_slovo');
+        dbQuery(<<<'SQL'
+            DELETE FROM archiv_prednasek
+            SQL);
+        dbQuery(<<<'SQL'
+            DELETE FROM archiv_prednasek_prednasejici
+            SQL);
+        dbQuery(<<<'SQL'
+            DELETE FROM archiv_prednasek_klicove_slovo
+            SQL);
     }
 
     private static function sprava(): SpravaArchivu
@@ -88,7 +94,7 @@ SQL,
             klicovaSlova: ['RPG', ' rpg ', '', 'Nové   slovo'],
         );
 
-        $detail = self::sprava()->detail($id);
+        $detail = self::sprava()->getDetail($id);
         self::assertSame('Mistrovství DrD – Rozuzlení', $detail['nazev']);
         self::assertSame('QaGjJIZJ4to', $detail['youtubeId']);
         self::assertSame(['Nové slovo', 'RPG'], $detail['klicovaSlova']);
@@ -159,7 +165,7 @@ SQL,
     {
         // the second term of a card pairs the card, stored is its main activity
         $id = self::uloz(nazev: 'Karta', idAkce: 990302);
-        self::assertSame(990301, self::sprava()->detail($id)['idAkce']);
+        self::assertSame(990301, self::sprava()->getDetail($id)['idAkce']);
 
         try {
             self::uloz(nazev: 'Jiná přednáška', idAkce: 990301);
@@ -171,7 +177,7 @@ SQL,
         // the same lecture may keep its card, an empty field unpairs
         self::uloz(nazev: 'Karta', idAkce: 990302, idPrednasky: $id);
         self::uloz(nazev: 'Karta', idAkce: null, idPrednasky: $id);
-        self::assertNull(self::sprava()->detail($id)['idAkce']);
+        self::assertNull(self::sprava()->getDetail($id)['idAkce']);
     }
 
     public function testPrednasejiciSeStejnymJmenemJeTentyzAZmenaUzivatelePlatiVsude(): void
@@ -188,11 +194,13 @@ SQL,
             'menitUzivatele' => false,
         ]]);
 
-        self::assertSame(1, (int) dbOneCol("SELECT COUNT(*) FROM archiv_prednasek_prednasejici WHERE jmeno = 'Lektor'"));
+        self::assertSame(1, (int) dbOneCol(<<<'SQL'
+            SELECT COUNT(*) FROM archiv_prednasek_prednasejici WHERE jmeno = 'Lektor'
+            SQL));
         self::assertSame([[
             'jmeno'       => 'Lektor',
             'idUzivatele' => 990301,
-        ]], self::sprava()->detail($druha)['prednasejici']);
+        ]], self::sprava()->getDetail($druha)['prednasejici']);
 
         // a changed user applies to every lecture of the speaker
         self::uloz(nazev: 'Druhá', prednasejici: [[
@@ -200,7 +208,7 @@ SQL,
             'idUzivatele'    => 990302,
             'menitUzivatele' => true,
         ]], idPrednasky: $druha);
-        self::assertSame(990302, self::sprava()->detail($prvni)['prednasejici'][0]['idUzivatele']);
+        self::assertSame(990302, self::sprava()->getDetail($prvni)['prednasejici'][0]['idUzivatele']);
 
         // and an emptied user unlinks him
         self::uloz(nazev: 'Druhá', prednasejici: [[
@@ -208,7 +216,155 @@ SQL,
             'idUzivatele'    => null,
             'menitUzivatele' => true,
         ]], idPrednasky: $druha);
-        self::assertNull(self::sprava()->detail($prvni)['prednasejici'][0]['idUzivatele']);
+        self::assertNull(self::sprava()->getDetail($prvni)['prednasejici'][0]['idUzivatele']);
+    }
+
+    /**
+     * One speaker per user: a new name or another user would otherwise make a second speaker of the same person,
+     * listed twice in the filter of the public archive.
+     */
+    public function testUzivatelMaJednohoPrednasejiciho(): void
+    {
+        $id = self::uloz(nazev: 'První', prednasejici: [[
+            'jmeno'          => 'Lektor',
+            'idUzivatele'    => 990301,
+            'menitUzivatele' => true,
+        ]]);
+        self::uloz(nazev: 'Druhá', prednasejici: [[
+            'jmeno'          => 'Jiný',
+            'idUzivatele'    => null,
+            'menitUzivatele' => false,
+        ]]);
+
+        $chyby = [];
+        foreach ([
+            // the name changed in the form, the user kept
+            [
+                'jmeno'          => 'Lektor!',
+                'idUzivatele'    => 990301,
+                'menitUzivatele' => false,
+            ],
+            // another speaker linked to the same user
+            [
+                'jmeno'          => 'Jiný',
+                'idUzivatele'    => 990301,
+                'menitUzivatele' => true,
+            ],
+        ] as $prednasejici) {
+            try {
+                self::uloz(nazev: 'První', prednasejici: [$prednasejici], idPrednasky: $id);
+                self::fail('Druhý přednášející téhož uživatele');
+            } catch (ChybaArchivu $chyba) {
+                $chyby[] = $chyba->getMessage();
+            }
+        }
+        self::assertSame(
+            array_fill(0, 2, 'Uživatel 990301 už v archivu přednáší jako „Lektor“: napiš u něj tohle jméno, nebo pole uživatele vymaž.'),
+            $chyby,
+        );
+
+        try {
+            self::uloz(nazev: 'První', prednasejici: [
+                [
+                    'jmeno'          => 'Lektor',
+                    'idUzivatele'    => 990301,
+                    'menitUzivatele' => false,
+                ],
+                [
+                    'jmeno'          => 'Lektor 2',
+                    'idUzivatele'    => 990301,
+                    'menitUzivatele' => true,
+                ],
+            ], idPrednasky: $id);
+            self::fail('Týž uživatel dvakrát');
+        } catch (ChybaArchivu $chyba) {
+            self::assertSame('Uživatel 990301 je u přednášky dvakrát, pod dvěma jmény.', $chyba->getMessage());
+        }
+
+        self::assertSame(1, (int) dbOneCol(<<<'SQL'
+            SELECT COUNT(*) FROM archiv_prednasek_prednasejici WHERE id_uzivatele = 990301
+            SQL));
+        self::assertSame([[
+            'jmeno'       => 'Lektor',
+            'idUzivatele' => 990301,
+        ]], self::sprava()->getDetail($id)['prednasejici']);
+    }
+
+    /**
+     * The form says a row without a name is not saved: emptying the name removes even a linked speaker.
+     */
+    public function testRadekBezJmenaOdebereINapojenehoPrednasejiciho(): void
+    {
+        $id = self::uloz(prednasejici: [
+            [
+                'jmeno'          => 'Lektor',
+                'idUzivatele'    => 990301,
+                'menitUzivatele' => true,
+            ],
+            [
+                'jmeno'          => 'Druhý',
+                'idUzivatele'    => null,
+                'menitUzivatele' => false,
+            ],
+        ]);
+
+        self::uloz(prednasejici: [
+            [
+                'jmeno'          => '',
+                'idUzivatele'    => 990301,
+                'menitUzivatele' => false,
+            ],
+            [
+                'jmeno'          => 'Druhý',
+                'idUzivatele'    => null,
+                'menitUzivatele' => false,
+            ],
+        ], idPrednasky: $id);
+
+        self::assertSame([[
+            'jmeno'       => 'Druhý',
+            'idUzivatele' => null,
+        ]], self::sprava()->getDetail($id)['prednasejici']);
+    }
+
+    /**
+     * Namesakes linked to different users come from the job after GC; the row keeps the one of its user.
+     */
+    public function testZJmenovcuZustaneTenNapojenyNaUzivateleRadku(): void
+    {
+        dbQuery(<<<'SQL'
+            INSERT INTO archiv_prednasek_prednasejici(id_prednasejiciho, jmeno, id_uzivatele)
+            VALUES (990301, 'Jan Novák', 990301), (990302, 'Jan Novák', 990302)
+            SQL);
+
+        $id = self::uloz(prednasejici: [[
+            'jmeno'          => 'Jan Novák',
+            'idUzivatele'    => 990302,
+            'menitUzivatele' => false,
+        ]]);
+
+        self::assertSame([[
+            'jmeno'       => 'Jan Novák',
+            'idUzivatele' => 990302,
+        ]], self::sprava()->getDetail($id)['prednasejici']);
+    }
+
+    /**
+     * A card attached under another one later can hold the terms of two lectures; pairing a third one with it is
+     * a message for the administrator, not a failure of the page.
+     */
+    public function testKartaSTerminyDvouPrednasekJeChybaProAdmina(): void
+    {
+        dbQuery(<<<'SQL'
+            INSERT INTO archiv_prednasek(nazev, rok, id_akce) VALUES ('Hlavní', 2025, 990301), ('Připojená', 2025, 990303)
+            SQL);
+        dbQuery(<<<'SQL'
+            UPDATE akce_seznam SET patri_pod = 990301 WHERE id_akce = 990303
+            SQL);
+
+        $this->expectException(ChybaArchivu::class);
+        $this->expectExceptionMessage('Karta programu už patří přednášce „Hlavní“ (2025).');
+        self::uloz(nazev: 'Třetí', idAkce: 990302);
     }
 
     public function testPoradiPrednasejicichAUklidNepouzitych(): void
@@ -233,7 +389,7 @@ SQL,
             ],
             klicovaSlova: ['Staré'],
         );
-        self::assertSame(['Druhý', 'První'], array_column(self::sprava()->detail($id)['prednasejici'], 'jmeno'));
+        self::assertSame(['Druhý', 'První'], array_column(self::sprava()->getDetail($id)['prednasejici'], 'jmeno'));
 
         self::uloz(prednasejici: [[
             'jmeno'          => 'První',
@@ -241,8 +397,8 @@ SQL,
             'menitUzivatele' => false,
         ]], klicovaSlova: ['Nové'], idPrednasky: $id);
 
-        self::assertSame(['První'], self::sprava()->jmenaPrednasejicich());
-        self::assertSame(['Nové'], self::sprava()->klicovaSlova());
+        self::assertSame(['První'], self::sprava()->getJmenaPrednasejicich());
+        self::assertSame(['Nové'], self::sprava()->getKlicovaSlova());
     }
 
     public function testSkrytaAFiltrSeznamu(): void
@@ -251,7 +407,7 @@ SQL,
         $skryta = self::uloz(nazev: 'Skrytá', rok: '2019');
         self::sprava()->nastavSkrytou($skryta, true);
 
-        $nazvy = static fn (array $filtr) => array_column(self::sprava()->seznam($filtr), 'nazev');
+        $nazvy = static fn (array $filtr) => array_column(self::sprava()->getSeznam($filtr), 'nazev');
         self::assertSame(['Spárovaná', 'Skrytá'], $nazvy([]));
         self::assertSame(['Skrytá'], $nazvy([
             'skryta' => true,
@@ -271,8 +427,8 @@ SQL,
         self::assertSame(['Spárovaná'], $nazvy([
             'hledat' => 'párov',
         ]));
-        self::assertSame([2025, 2019], self::sprava()->roky());
-        self::assertSame($sparovana, self::sprava()->seznam([
+        self::assertSame([2025, 2019], self::sprava()->getRoky());
+        self::assertSame($sparovana, self::sprava()->getSeznam([
             'sparovana' => true,
         ])[0]['id']);
     }

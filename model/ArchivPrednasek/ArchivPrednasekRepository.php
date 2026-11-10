@@ -37,31 +37,54 @@ final class ArchivPrednasekRepository
     }
 
     /**
-     * The same name is the same speaker (záměr), whether linked to a user or not.
+     * The same name is the same speaker (záměr), whether linked to a user or not. Namesakes linked to different
+     * users come only from the job after GC (DoplneniZProgramu); of them the one linked to $idUzivatele wins, then
+     * a linked one before one without a user.
      */
-    public function getIdPrednasejicihoPodleJmena(string $jmeno): ?int
+    public function getIdPrednasejicihoPodleJmena(string $jmeno, ?int $idUzivatele = null): ?int
     {
         return self::idNeboNull(dbOneCol(<<<'SQL'
             SELECT id_prednasejiciho
             FROM archiv_prednasek_prednasejici
             WHERE jmeno = $0
-            ORDER BY id_uzivatele IS NULL, id_prednasejiciho
+            ORDER BY COALESCE(id_uzivatele = $1, 0) DESC, id_uzivatele IS NULL, id_prednasejiciho
+            LIMIT 1
+            SQL, [
+            0 => $jmeno,
+            1 => $idUzivatele,
+        ], $this->spojeni));
+    }
+
+    /**
+     * A speaker of the name without a user: a group or a company, or a person not linked yet.
+     */
+    public function getIdNenapojenehoPrednasejicihoPodleJmena(string $jmeno): ?int
+    {
+        return self::idNeboNull(dbOneCol(<<<'SQL'
+            SELECT id_prednasejiciho
+            FROM archiv_prednasek_prednasejici
+            WHERE jmeno = $0 AND id_uzivatele IS NULL
+            ORDER BY id_prednasejiciho
             LIMIT 1
             SQL, [
             0 => $jmeno,
         ], $this->spojeni));
     }
 
-    public function getIdPrednasejicihoPodleUzivatele(int $idUzivatele): ?int
+    /**
+     * @param int|null $kromePrednasejiciho another speaker of the user than this one
+     */
+    public function getIdPrednasejicihoPodleUzivatele(int $idUzivatele, ?int $kromePrednasejiciho = null): ?int
     {
         return self::idNeboNull(dbOneCol(<<<'SQL'
             SELECT id_prednasejiciho
             FROM archiv_prednasek_prednasejici
-            WHERE id_uzivatele = $0
+            WHERE id_uzivatele = $0 AND ($1 IS NULL OR id_prednasejiciho != $1)
             ORDER BY id_prednasejiciho
             LIMIT 1
             SQL, [
             0 => $idUzivatele,
+            1 => $kromePrednasejiciho,
         ], $this->spojeni));
     }
 

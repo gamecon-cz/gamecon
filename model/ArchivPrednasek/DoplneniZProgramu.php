@@ -156,7 +156,7 @@ final class DoplneniZProgramu
         try {
             // the card is marked first: another run that is processing it at the same time waits on its rows here
             // and then leaves the card alone
-            if (! $this->oznacZpracovanou($karta['ids'])) {
+            if (! $this->oznacZpracovanou($karta['idKarty'], $karta['ids'])) {
                 dbRollback();
 
                 return null;
@@ -203,19 +203,24 @@ final class DoplneniZProgramu
     /**
      * Marks every activity of the card as processed and replaces a failure from before. One activity at a time in the
      * order of ids: two runs then lock the rows in the same order, so the second one waits for the first and finds
-     * the card processed instead of a deadlock, and the affected rows of each statement tell whether another run
-     * processed that activity (of one statement for all they would not). Only the key of the row is locked, no gap.
+     * the card processed instead of a deadlock. Only the key of the row is locked, no gap.
      *
-     * @param list<int> $idsAkci
+     * The card is decided by the row of its main activity, as getKartyKDoplneni() reads it: the affected rows of its
+     * statement tell whether another run processed the card (of one statement for all they would not). Another
+     * activity can be processed already as a term of another card (an instance moved to a new card after that card
+     * was decided); that one stays as it is and does not hold the card back, otherwise the card would be rolled back
+     * every run without a word.
      *
-     * @return bool false when another run processed the card in the meantime, or one of its activities was deleted;
+     * @param list<int> $idsAkci the main activity included
+     *
+     * @return bool false when another run processed the card in the meantime, or its main activity was deleted;
      *              the next run loads the card again
      */
-    private function oznacZpracovanou(array $idsAkci): bool
+    private function oznacZpracovanou(int $idKarty, array $idsAkci): bool
     {
         sort($idsAkci);
         foreach ($idsAkci as $idAkce) {
-            // 1 = marked, 2 = a failure replaced, 0 = processed by another run (nothing changed) or no such activity
+            // 1 = marked, 2 = a failure replaced, 0 = processed already (nothing changed) or no such activity
             $vysledek = dbQuery(<<<'SQL'
                 INSERT INTO archiv_prednasek_zpracovane_aktivity (id_akce, zpracovano)
                 SELECT akce_seznam.id_akce, $1
@@ -228,7 +233,7 @@ final class DoplneniZProgramu
                 0 => $idAkce,
                 1 => $this->ted->format('Y-m-d H:i:s'),
             ]);
-            if (dbAffectedOrNumRows($vysledek) === 0) {
+            if ($idAkce === $idKarty && dbAffectedOrNumRows($vysledek) === 0) {
                 return false;
             }
         }
@@ -320,8 +325,8 @@ final class DoplneniZProgramu
         $vArchivu = $this->repository->getSparovaneAktivity($idsAkci);
         // the hourly cron locks every activity that started, even one that was never public (NOVA); someone
         // signing up, or a state of the public program in the log, is what shows that the card was in the program
-        // (aktivuj(), publikuj() and priprav() write into the log only since the end of 2026, before only the bulk
-        // activation and the locking did; every lecture of 2022–2026 has a sign-up)
+        // (aktivuj(), publikuj(), priprav() and a state saved by Aktivita::uloz() write into the log only since the end
+        // of 2026, before only the bulk activation and the locking did; every lecture of 2022–2026 has a sign-up)
         $vProgramu = array_map('intval', dbFetchColumn(<<<'SQL'
             SELECT id_akce FROM akce_prihlaseni_log WHERE id_akce IN ($0)
             UNION
@@ -418,9 +423,10 @@ final class DoplneniZProgramu
     }
 
     /**
-     * The speaker already linked to the organiser, otherwise the speaker of the same name (záměr: the same name is
-     * the same speaker, and a group or company stays without a user even when it organises from its own account),
-     * otherwise a new one by the organiser's name on the web, linked to him.
+     * The speaker already linked to the organiser, otherwise the speaker of the same name without a user (záměr: the
+     * same name is the same speaker, and a group or company stays without a user even when it organises from its own
+     * account), otherwise a new one by the organiser's name on the web, linked to him. A speaker of the same name
+     * linked to another user is a namesake, the lecture is not his.
      *
      * @param array<string, mixed> $organizator a row of uzivatele_hodnoty
      */
@@ -430,7 +436,7 @@ final class DoplneniZProgramu
         $jmeno = mb_substr(\Uzivatel::jmenoNaWebuZjisti($organizator), 0, 255);
 
         return $this->repository->getIdPrednasejicihoPodleUzivatele($idUzivatele)
-            ?? $this->repository->getIdPrednasejicihoPodleJmena($jmeno)
+            ?? $this->repository->getIdNenapojenehoPrednasejicihoPodleJmena($jmeno)
             ?? $this->repository->vlozPrednasejiciho($jmeno, $idUzivatele);
     }
 }
