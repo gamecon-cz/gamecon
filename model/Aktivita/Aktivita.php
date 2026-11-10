@@ -3354,13 +3354,14 @@ HTML
         $this->zmenStav(StavAktivity::PUBLIKOVANA);
     }
 
-    private function zmenStav(int $novyStav)
+    private function zmenStav(int $novyStav): void
     {
         if (!StavAktivity::jeZnamy($novyStav)) {
             throw new \LogicException("Neznámý stav aktivity '$novyStav'");
         }
-        dbQuery('UPDATE akce_seznam SET stav=$1 WHERE id_akce=$2', [$novyStav, $this->id()]);
-        $this->touchDirtyFlag(ProgramStaticFileType::AKTIVITY);
+        // se zápisem do akce_stavy_log jako zamčení a uzavření: podle logu se pozná, že aktivita byla veřejná
+        // (archiv přednášek, hodinový cron zamyká i nezveřejněné), a online prezence z něj čte změny stavu
+        $this->zmenStavNa($novyStav);
     }
 
     /** Nastaví aktivitu jako "připravena pro aktivaci" */
