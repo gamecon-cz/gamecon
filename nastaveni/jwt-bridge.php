@@ -60,18 +60,8 @@ function getJwtForUser(
 }
 
 /**
- * Delete JWT token for the user (called on logout)
- */
-function deleteJwtForUser(
-    Uzivatel $uzivatel,
-): void {
-    deleteStoredJwtForUser($uzivatel);
-    deleteJwtCookie();
-}
-
-/**
  * Delete the token stored for other apps, the copies in the cookies of all browsers of the user stop matching it.
- * Used when the user is logged out on other devices, so this browser keeps its cookie.
+ * Used when the user is logged out on all devices.
  */
 function deleteStoredJwtForUser(
     Uzivatel $uzivatel,
@@ -94,7 +84,7 @@ function deleteStoredJwtForUser(
 }
 
 /**
- * Delete the JWT cookie of this browser, the stored token of the user stays for their other devices.
+ * Delete the JWT cookie of this browser (called on logout), the stored token of the user stays for their other devices.
  */
 function deleteJwtCookie(): void
 {

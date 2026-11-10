@@ -302,6 +302,60 @@ class TrvalePrihlaseniTest extends AbstractPrihlaseniNaZarizenichTestDb
         self::assertNotSame('token-jineho-zarizeni', $ulozeny);
     }
 
+    public function testZmenaHeslaVProfiluVymeniUlozenyTokenProEshop(): void
+    {
+        $idUzivatele = $this->vytvorUzivatele();
+        $toto = $this->zarizeni();
+        $this->pozadavek($toto, static fn () => \Uzivatel::prihlasId($idUzivatele));
+        $this->jwtService()->storeToken('token-jineho-zarizeni', $idUzivatele);
+
+        $this->pozadavek($toto, static fn () => \Uzivatel::zSession()->uprav([
+            'heslo'          => 'nove-heslo-z-profilu',
+            'heslo_kontrola' => 'nove-heslo-z-profilu',
+        ]));
+
+        $ulozeny = $this->jwtService()->getToken($idUzivatele);
+        self::assertNotNull($ulozeny, 'Toto zařízení zůstalo přihlášené, token mu má zůstat.');
+        self::assertNotSame('token-jineho-zarizeni', $ulozeny);
+    }
+
+    /**
+     * Po „Přihlásit se jako“ nese prohlížeč token pro e-shop toho, kdo se přepnul. Odhlášení ostatních zařízení
+     * za druhého mu ho nesmí přepsat tokenem druhého, uložený token druhého jen smaže.
+     */
+    public function testOdhlaseniOstatnichZarizeniPoPrepnutiNevydaTokenProEshop(): void
+    {
+        $idInfopultaka = $this->vytvorUzivatele();
+        $idVypravece = $this->vytvorUzivatele();
+        $infopult = $this->zarizeni();
+        $this->pozadavek($infopult, static fn () => \Uzivatel::prihlasId($idInfopultaka));
+        $this->pozadavek($infopult, static fn () => PrepnutiNaUzivatele::zSession()->prepni(
+            \Uzivatel::zId($idInfopultaka),
+            \Uzivatel::zId($idVypravece),
+        ));
+        $this->jwtService()->storeToken('token-zarizeni-vypravece', $idVypravece);
+
+        $this->pozadavek($infopult, static fn () => \Uzivatel::zSession()->odhlasNaOstatnichZarizenich());
+
+        self::assertNull($this->jwtService()->getToken($idVypravece));
+        self::assertSame($idVypravece, $this->idPrihlasenehoNa($infopult), 'Session přepnutého má běžet dál.');
+    }
+
+    /**
+     * „Odhlásit" platí jen pro toto zařízení. Uložený token pro e-shop patří i ostatním.
+     */
+    public function testOdhlaseniNechaUlozenyTokenProEshopOstatnimZarizenim(): void
+    {
+        $idUzivatele = $this->vytvorUzivatele();
+        $toto = $this->zarizeni();
+        $this->pozadavek($toto, static fn () => \Uzivatel::prihlasId($idUzivatele));
+        $this->jwtService()->storeToken('token-jineho-zarizeni', $idUzivatele);
+
+        $this->pozadavek($toto, static fn () => \Uzivatel::zSession()->odhlas(false));
+
+        self::assertSame('token-jineho-zarizeni', $this->jwtService()->getToken($idUzivatele));
+    }
+
     public function testObnovaHeslaSmazeUlozenyTokenProEshop(): void
     {
         $idUzivatele = $this->vytvorUzivatele();
@@ -368,7 +422,7 @@ class TrvalePrihlaseniTest extends AbstractPrihlaseniNaZarizenichTestDb
         $jine = $this->zarizeni(cookie: $this->zalozTrvalePrihlaseni($idUzivatele));
         $this->idPrihlasenehoNa($jine);
         // Slabší cena než výchozí, takže `password_needs_rehash()` hash při přihlášení přepíše.
-        $slabyHash = (string) dbOneCol('SELECT heslo_md5 FROM uzivatele_hodnoty WHERE id_uzivatele = $0', [$idUzivatele]);
+        $slabyHash = $this->hashHesla($idUzivatele);
         $login = $this->login($idUzivatele);
         $toto = $this->zarizeni();
 
@@ -377,7 +431,7 @@ class TrvalePrihlaseniTest extends AbstractPrihlaseniNaZarizenichTestDb
         self::assertSame($idUzivatele, $prihlaseny?->id());
         self::assertNotSame(
             $slabyHash,
-            dbOneCol('SELECT heslo_md5 FROM uzivatele_hodnoty WHERE id_uzivatele = $0', [$idUzivatele]),
+            $this->hashHesla($idUzivatele),
             'Hash se při přihlášení má přepsat novějším, jinak test nic nezkouší.',
         );
         self::assertSame($idUzivatele, $this->idPrihlasenehoNa($jine));
@@ -388,7 +442,7 @@ class TrvalePrihlaseniTest extends AbstractPrihlaseniNaZarizenichTestDb
     /**
      * Karty obnovené po spuštění prohlížeče se ptají naráz se stejnou cookie a token vymění jen první.
      */
-    public function testSoubeznyPozadavekSPredchozimTokenemPrihlasiATokenNechaByt(): void
+    public function testSoubeznyPozadavekSPredchozimTokenemPrihlasiAPosleTentyzNovyToken(): void
     {
         $idUzivatele = $this->vytvorUzivatele();
         $token = $this->zalozTrvalePrihlaseni($idUzivatele);
@@ -398,9 +452,78 @@ class TrvalePrihlaseniTest extends AbstractPrihlaseniNaZarizenichTestDb
         self::assertSame($idUzivatele, $this->idPrihlasenehoNa($prvniKarta));
         self::assertSame($idUzivatele, $this->idPrihlasenehoNa($druhaKarta));
 
-        self::assertSame($token, $druhaKarta['cookie'], 'Druhá karta nemá přepsat cookie, kterou poslala první.');
+        self::assertNotSame($token, $prvniKarta['cookie'], 'První karta má token vyměnit, jinak test nic nezkouší.');
+        self::assertSame($prvniKarta['cookie'], $druhaKarta['cookie'], 'Prohlížeč má nést nový token, ať uloží kteroukoli odpověď.');
         $poRestartu = $this->poRestartuProhlizece($prvniKarta);
         self::assertSame($idUzivatele, $this->idPrihlasenehoNa($poRestartu), 'Token z první karty má platit dál.');
+    }
+
+    /**
+     * Odpověď, která token vyměnila, prohlížeč nemusí dostat (karta zavřená během obnovení, výpadek sítě).
+     * Nový token mu pak pošle souběžná karta, jinak by se po minutě už nepřihlásil.
+     */
+    public function testZtracenouVymenuTokenuNahradiSoubeznaKarta(): void
+    {
+        $idUzivatele = $this->vytvorUzivatele();
+        $token = $this->zalozTrvalePrihlaseni($idUzivatele);
+        $kartaSeZtracenouOdpovedi = $this->zarizeni(cookie: $token);
+        $this->idPrihlasenehoNa($kartaSeZtracenouOdpovedi);
+        $druhaKarta = $this->zarizeni(cookie: $token);
+        $this->idPrihlasenehoNa($druhaKarta);
+        $this->posunPouzitiDoMinulosti($idUzivatele, 120);
+
+        $poRestartu = $this->poRestartuProhlizece($druhaKarta);
+        self::assertSame($idUzivatele, $this->idPrihlasenehoNa($poRestartu));
+    }
+
+    /**
+     * Kdo s ukradenou kopií přijde hned po majiteli, dostane tentýž nový token jako souběžná karta. Odhlášení
+     * ostatních zařízení dá majiteli token, který se z ničeho neodvodí, a zloděje tak odhlásí taky.
+     */
+    public function testOdhlaseniOstatnichZarizeniOdhlasiIZlodejeSOdvozenymTokenem(): void
+    {
+        $idUzivatele = $this->vytvorUzivatele();
+        $token = $this->zalozTrvalePrihlaseni($idUzivatele);
+        $okradene = $this->zarizeni(cookie: $token);
+        $this->idPrihlasenehoNa($okradene);
+        $zlodej = $this->zarizeni(cookie: $token);
+        $this->idPrihlasenehoNa($zlodej);
+        self::assertSame($okradene['cookie'], $zlodej['cookie'], 'Zloděj má dostat tentýž token, jinak test nic nezkouší.');
+
+        $this->pozadavek($okradene, static fn () => \Uzivatel::zSession()->odhlasNaOstatnichZarizenich());
+
+        self::assertNull($this->idPrihlasenehoNa($zlodej), 'Session ani token zloděje nemá přihlásit.');
+        $okradenePoRestartu = $this->poRestartuProhlizece($okradene);
+        self::assertSame($idUzivatele, $this->idPrihlasenehoNa($okradenePoRestartu), 'Majitel má zůstat trvale přihlášený.');
+    }
+
+    /**
+     * Mezi ověřením hesla a založením trvalého přihlášení může majitel změnit heslo nebo odhlásit ostatní
+     * zařízení. Trvalé přihlášení založené až po tom by je přežilo, s heslem, které už neplatí.
+     */
+    public function testTrvalePrihlaseniHeslemOverenymPredZmenouRazitkaNevznikne(): void
+    {
+        $idUzivatele = $this->vytvorUzivatele();
+        $login = $this->login($idUzivatele);
+        $utocnik = $this->zarizeni();
+        $prihlaseny = $this->pozadavek($utocnik, static fn () => \Uzivatel::prihlas($login, self::HESLO));
+        $majitel = $this->zarizeni();
+        $this->pozadavek($majitel, static fn () => \Uzivatel::prihlasId($idUzivatele));
+        $this->pozadavek($majitel, static fn () => \Uzivatel::zSession()->odhlasNaOstatnichZarizenich());
+
+        $idTrvalehoPrihlaseni = $this->pozadavek($utocnik, static fn () => TrvalePrihlaseni::zaloz(
+            $idUzivatele,
+            $prihlaseny->rawDb()[Sql::RAZITKO_PRIHLASENI],
+            null,
+        ));
+
+        self::assertNull($idTrvalehoPrihlaseni);
+        self::assertNull($utocnik['cookie']);
+        self::assertSame(0, (int) dbOneCol(<<<'SQL'
+            SELECT COUNT(*) FROM uzivatele_trvala_prihlaseni WHERE id_uzivatele = $0
+            SQL, [
+            0 => $idUzivatele,
+        ]));
     }
 
     public function testPredchoziTokenPoChviliUzNeprihlasi(): void
@@ -539,6 +662,15 @@ class TrvalePrihlaseniTest extends AbstractPrihlaseniNaZarizenichTestDb
             SQL, [
             0 => $idUzivatele,
             1 => $sekund,
+        ]);
+    }
+
+    private function hashHesla(int $idUzivatele): string
+    {
+        return (string) dbOneCol(<<<'SQL'
+            SELECT heslo_md5 FROM uzivatele_hodnoty WHERE id_uzivatele = $0
+            SQL, [
+            0 => $idUzivatele,
         ]);
     }
 
