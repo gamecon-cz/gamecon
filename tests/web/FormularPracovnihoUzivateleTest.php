@@ -212,6 +212,30 @@ SQL,
     }
 
     /**
+     * Položka seznamu mimo `<ul>` kreslí svou odrážku do předchozího sloupce, k popisku „Spolubydlící:".
+     *
+     * @test
+     */
+    public function spolubydliciNaInfopultuJsouVSeznamu(): void
+    {
+        $session = $this->prihlas(\Uzivatel::SYSTEM_LOGIN);
+        $this->vyberPracovnihoUzivatele($session, self::ID_UBYTOVANEHO);
+        self::assertSame(303, $this->odesli($session, 'uzivatel', [
+            'pokoj'                              => '9',
+            'pridelitPokoj'                      => 'Přidělit',
+            FormularPracovnihoUzivatele::POST_ID => self::ID_UBYTOVANEHO,
+        ]));
+
+        self::assertSame(1, preg_match(
+            '~<ul class="infopult-spolubydlici">(.*?)</ul>~s',
+            $this->stahni($session, 'infopult'),
+            $seznam,
+        ));
+        self::assertMatchesRegularExpression('~^\s*(<li>.*?</li>\s*)+$~s', $seznam[1]);
+        self::assertStringContainsString('(' . self::ID_UBYTOVANEHO . ')', $seznam[1]);
+    }
+
+    /**
      * Prázdné číslo by smazalo přidělený pokoj a místo něj zapsalo prázdný.
      *
      * @test

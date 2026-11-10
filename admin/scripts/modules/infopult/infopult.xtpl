@@ -657,7 +657,7 @@
         <tr>
           <td>Spolubydlící:</td>
           <td>
-            {spolubydlici}
+            <ul class="infopult-spolubydlici">{spolubydlici}</ul>
           </td>
         </tr>
         <tr>

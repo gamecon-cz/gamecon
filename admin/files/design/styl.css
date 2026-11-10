@@ -737,6 +737,13 @@ table.cista > tbody > tr > td:first-child {
   padding-left: 22px;
 }
 
+/* přebíjí .aBox ul, proto dvě třídy */
+.aBox .infopult-spolubydlici {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
 .cista .aBox, .cista .aBox:first-child {
   min-width: 200px;
 }
