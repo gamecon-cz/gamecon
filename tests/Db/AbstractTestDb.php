@@ -17,6 +17,8 @@ abstract class AbstractTestDb extends KernelTestCase
     protected static string $initData = '';
     // například pro vypnutí kontroly "Field 'cena' doesn't have a default value"
     protected static bool $disableStrictTransTables = false;
+    // sql_mode před třídou s $disableStrictTransTables, aby se po ní vrátil a nezůstal vypnutý dalším třídám
+    private static ?string $sqlModePredTridou = null;
 
     protected bool $revertDbChangesAfterTest = true;
 
@@ -36,6 +38,9 @@ abstract class AbstractTestDb extends KernelTestCase
             }
 
             if (static::$disableStrictTransTables) {
+                self::$sqlModePredTridou = (string) dbOneCol(<<<'SQL'
+                    SELECT @@SESSION.sql_mode
+                    SQL);
                 static::disableStrictTransTables();
             }
 
@@ -148,8 +153,13 @@ abstract class AbstractTestDb extends KernelTestCase
         if (static::resetDbAfterClass()) {
             self::$connection->resetTestDb();
         }
-        if (static::$disableStrictTransTables) {
-            static::disableStrictTransTables();
+        if (self::$sqlModePredTridou !== null) {
+            self::$connection->query(<<<'SQL'
+                SET SESSION sql_mode = $0
+                SQL, [
+                0 => self::$sqlModePredTridou,
+            ]);
+            self::$sqlModePredTridou = null;
         }
         Aktivita::smazCache();
         \Uzivatel::smazCache();
