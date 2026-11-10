@@ -61,10 +61,12 @@ INSERT INTO akce_sjednocene_tagy(id_akce, id_tagu)
 VALUES (990201, 990201), (990201, 990202), (990201, 990203), (990201, 990204)
 SQL,
             <<<'SQL'
-INSERT INTO uzivatele_hodnoty(id_uzivatele, login_uzivatele, jmeno_uzivatele, prijmeni_uzivatele, email1_uzivatele)
+INSERT INTO uzivatele_hodnoty(id_uzivatele, login_uzivatele, jmeno_uzivatele, prijmeni_uzivatele, email1_uzivatele, zpusob_zobrazeni_na_webu)
 VALUES
-    (990201, 'lektor-archiv', 'Lektor', 'Archivní', 'lektor-archiv@example.invalid'),
-    (990202, 'skupina-archiv', '', 'Skupina', 'skupina-archiv@example.invalid')
+    (990201, 'Lektor', 'Lukáš', 'Archivní', 'lektor-archiv@example.invalid', 0),
+    (990202, 'Skupina s účtem', '', '', 'skupina-archiv@example.invalid', 0),
+    (990203, 'Pepa', 'Josef', 'Občanský', 'pepa-archiv@example.invalid', 1),
+    (990204, 'Ája', 'Alena', 'Úplná', 'aja-archiv@example.invalid', 2)
 SQL,
             <<<SQL
 INSERT INTO archiv_prednasek(id_prednasky, nazev, rok, youtube_id, skryta, id_akce)
@@ -80,11 +82,18 @@ VALUES
 SQL,
             <<<'SQL'
 INSERT INTO archiv_prednasek_prednasejici(id_prednasejiciho, jmeno, id_uzivatele)
-VALUES (990201, 'Lektor', 990201), (990202, 'Skupina s účtem', 990202), (990203, 'Bez účtu', NULL)
+VALUES
+    (990201, 'Lukáš Archivní', 990201),
+    (990202, 'Skupina s účtem', 990202),
+    (990203, 'Bez účtu', NULL),
+    (990204, 'Pepa', 990203),
+    (990205, 'Alena Úplná', 990204)
 SQL,
             <<<'SQL'
 INSERT INTO archiv_prednasek_prednaska_prednasejici(id_prednasky, id_prednasejiciho, poradi)
-VALUES (990201, 990203, 0), (990201, 990201, 1), (990201, 990202, 2), (990205, 990201, 0)
+VALUES
+    (990201, 990203, 0), (990201, 990201, 1), (990201, 990202, 2), (990205, 990201, 0),
+    (990203, 990204, 0), (990203, 990205, 1)
 SQL,
             <<<'SQL'
 INSERT INTO archiv_prednasek_klicove_slovo(id_klicoveho_slova, nazev)
@@ -155,6 +164,30 @@ SQL,
 
         self::assertSame(['Bez účtu', 'Lektor', 'Skupina s účtem'], array_map(static fn ($osoba) => $osoba->jmeno, $prednasejici));
         self::assertSame([null, '990201', null], array_map(static fn ($osoba) => $osoba->urlMedailonku, $prednasejici));
+    }
+
+    public function testPrednasejicihoSUzivatelemJmenujePodleJehoZobrazeniNaWebu(): void
+    {
+        $jmenaPodleId = [];
+        foreach (self::prednaskyPodleNazvu() as $prednaska) {
+            foreach ($prednaska->prednasejici as $osoba) {
+                $jmenaPodleId[$osoba->id] = $osoba->jmeno;
+            }
+        }
+        ksort($jmenaPodleId);
+
+        self::assertSame(
+            [
+                // the archive keeps the civil name, the user wants only the nickname
+                990201 => 'Lektor',
+                // without a user the name of the archive
+                990203 => 'Bez účtu',
+                // the archive keeps the nickname, the user wants the civil name
+                990204 => 'Josef Občanský',
+                990205 => 'Alena „Ája" Úplná',
+            ],
+            array_intersect_key($jmenaPodleId, array_flip([990201, 990203, 990204, 990205])),
+        );
     }
 
     public function testRokOdkazujeNaLiniiJenKdyzHoPrepinacNabizi(): void

@@ -149,7 +149,7 @@
       <td>
         <table>
           <tr>
-            <th>Jméno na webu</th>
+            <th>Jméno</th>
             <th>Uživatel (medailonek)</th>
           </tr>
           <!-- begin: prednasejici -->
@@ -171,6 +171,8 @@
         <div class="archivPrednasek_napoveda">
           Stejné jméno je stejný přednášející ve všech přednáškách a změna jeho uživatele platí pro všechny.
           Skupina nebo firma je přednášející bez uživatele. Řádek bez jména se nezapíše, pořadí řádků je pořadí na webu.
+          Web ukáže toto jméno jen u přednášejícího bez uživatele. Přednášejícího s uživatelem ukáže podle jeho
+          Zobrazení na webu (osobní údaje), stejně jako program.
         </div>
       </td>
     </tr>

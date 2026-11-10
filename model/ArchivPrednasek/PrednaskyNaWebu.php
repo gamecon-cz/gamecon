@@ -177,8 +177,8 @@ final class PrednaskyNaWebu
     }
 
     /**
-     * Speakers with what Uzivatel::url() reads of their users, in one query: the page shows every speaker and
-     * a whole user for each of them would be a waste.
+     * Speakers with what Uzivatel::url() and Uzivatel::jmenoNaWebu() read of their users, in one query: the page
+     * shows every speaker and a whole user for each of them would be a waste.
      *
      * @return array<int, list<PrednasejiciNaWebu>> id of the lecture => speakers in their order
      */
@@ -189,6 +189,7 @@ final class PrednaskyNaWebu
             SELECT archiv_prednasek_prednaska_prednasejici.id_prednasky, archiv_prednasek_prednasejici.id_prednasejiciho,
                 archiv_prednasek_prednasejici.jmeno, uzivatele_hodnoty.id_uzivatele, uzivatele_hodnoty.login_uzivatele,
                 uzivatele_hodnoty.jmeno_uzivatele, uzivatele_hodnoty.prijmeni_uzivatele,
+                uzivatele_hodnoty.zpusob_zobrazeni_na_webu,
                 (
                     SELECT uzivatele_url.url
                     FROM uzivatele_url
@@ -206,7 +207,11 @@ final class PrednaskyNaWebu
             SQL) as $radek) {
             $podlePrednasek[(int) $radek['id_prednasky']][] = new PrednasejiciNaWebu(
                 id: (int) $radek['id_prednasejiciho'],
-                jmeno: (string) $radek['jmeno'],
+                // users decide how the web names them (Zobrazení na webu), as on the line page; the name
+                // stored in the archive is shown only for a speaker without a user, a group or a company
+                jmeno: isset($radek['id_uzivatele'])
+                    ? \Uzivatel::jmenoNaWebuZjisti($radek)
+                    : (string) $radek['jmeno'],
                 // same as the line page: a profile only for an account with a name, a group or a company has none
                 urlMedailonku: isset($radek['id_uzivatele']) && \Uzivatel::urlZjisti($radek) !== null
                     ? (string) $radek['id_uzivatele']
