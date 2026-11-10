@@ -86,6 +86,9 @@ class Aktivita
     const PN_PLUSMINUSM         = 'cAktivitaPlusminusm'; // název post proměnné pro úpravy typu mínus
     const LIMIT_POPIS_KRATKY    = 180; // max počet znaků v krátkém popisku
 
+    // na šéfa programu se obrací, kdo se hlásí na aktivitu pro starší, stejná adresa je v UpozorneniNaVekModal.tsx
+    public const KONTAKT_NA_SEFA_PROGRAMU = 'info@gamecon.cz';
+
     // todo: tym asi lepší commenty k parametrům by bodly :)
     /* ignore a parametry kolem přihlašovátka */
     /** plus/mínus zkratky pro měnění míst v team. aktivitě */
@@ -3178,11 +3181,12 @@ HTML
             } else {
                 $volnoPro = $this->volnoPro();
                 if ($volnoPro->proPohlaviJeVolno($u->pohlavi())) {
-                    $out =
-                        '<form method="post" style="display:inline">' .
-                        '<input type="hidden" name="prihlasit" value="' . $this->id() . '">' .
-                        '<a href="#" onclick="this.parentNode.submit(); return false">přihlásit</a>' .
-                        '</form>';
+                    $out = $this->isMladsiNezMinimalniVek($u)
+                        ? $this->prihlasovatkoSUpozornenimNaVek()
+                        : '<form method="post" style="display:inline">' .
+                          '<input type="hidden" name="prihlasit" value="' . $this->id() . '">' .
+                          '<a href="#" onclick="this.parentNode.submit(); return false">přihlásit</a>' .
+                          '</form>';
                 } elseif ($volnoPro === VolnoProEnum::JEN_ZENY) {
                     // volno už je jen pro ženy → pro tohoto uživatele (muže) je plno, smí proto sledovat
                     $out = 'pouze ženská místa' . $this->prihlasovatkoSledovani($u, ' | ');
@@ -3198,6 +3202,36 @@ HTML
         }
 
         return $out;
+    }
+
+    /**
+     * Odkaz „přihlásit" pro účastníka mladšího, než je minimální věk aktivity: místo odeslání otevře upozornění
+     * (Preact, UpozorneniNaVekModal), formulář odešle až potvrzení. Než se Preact načte, poslouží confirm().
+     */
+    private function prihlasovatkoSUpozornenimNaVek(): string
+    {
+        $minimalniVek = (int) $this->getMinimalniVek();
+        $nazev        = htmlspecialchars($this->nazev(), ENT_QUOTES);
+        $upozorneni   = htmlspecialchars(
+            "Aktivita {$this->nazev()} je od {$minimalniVek} let a v den aktivity ti ještě nebude {$minimalniVek}. "
+            . 'Přihlas se, jen když máš výjimku domluvenou se šéfem programu. '
+            . 'Domluvit se můžeš na ' . self::KONTAKT_NA_SEFA_PROGRAMU . '.',
+            ENT_QUOTES,
+        );
+        $onclick = htmlspecialchars(
+            'var formular = this.parentNode, otevri = window.preactMost && window.preactMost.upozorneniNaVek && window.preactMost.upozorneniNaVek.otevri;'
+            . ' if (otevri) { otevri(formular.dataset.nazev, Number(formular.dataset.minimalniVek), function () { formular.submit(); }); }'
+            . ' else if (confirm(formular.dataset.upozorneni)) { formular.submit(); }'
+            . ' return false',
+            ENT_QUOTES,
+        );
+
+        // bez zalomení řádků, mezera mezi prvky by se v textu karty ukázala
+        return '<form method="post" style="display:inline"'
+               . " data-nazev=\"{$nazev}\" data-minimalni-vek=\"{$minimalniVek}\" data-upozorneni=\"{$upozorneni}\">"
+               . '<input type="hidden" name="prihlasit" value="' . $this->id() . '">'
+               . "<a href=\"#\" onclick=\"{$onclick}\">přihlásit</a>"
+               . '</form>';
     }
 
     /**
@@ -3517,6 +3551,40 @@ HTML
     public function tagyId(): array
     {
         return $this->parseIds($this->a['ids_tagu'] ?? '');
+    }
+
+    /**
+     * Minimální věk hráčů ze štítku „Věk: 15+“, null když aktivita takový štítek nemá.
+     */
+    public function getMinimalniVek(): ?int
+    {
+        // z cache, program se ptá na stovky aktivit se stejnými štítky
+        $veky = array_filter(
+            array_map(
+                static fn(Tag $tag) => $tag->getMinimalniVek(),
+                Tag::zIds($this->tagyId(), true),
+            ),
+            static fn(?int $vek) => $vek !== null,
+        );
+
+        return $veky !== []
+            ? max($veky)
+            : null;
+    }
+
+    /**
+     * Bude uživateli v den aktivity méně, než je její minimální věk? Bez data narození nevíme, takže ne.
+     * Přihlášení to nebrání, účastník se má jen předem domluvit se šéfem programu (záměr).
+     */
+    public function isMladsiNezMinimalniVek(Uzivatel $uzivatel): bool
+    {
+        $minimalniVek = $this->getMinimalniVek();
+        if ($minimalniVek === null) {
+            return false;
+        }
+        $vek = $uzivatel->vekKDatu($this->zacatek() ?? DateTimeGamecon::zacatekGameconu());
+
+        return $vek !== null && $vek < $minimalniVek;
     }
 
     public function nastavTagy(array $tagy)
