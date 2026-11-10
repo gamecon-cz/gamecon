@@ -7,8 +7,9 @@ declare(strict_types=1);
 // Persistent login ("Trvale přihlásit") gets one row per device. Until now it was a single token per user
 // in uzivatele_hodnoty.random, so logging in on another device logged the previous one out.
 // The cookie carries the token, the table only its SHA-256, so reading the database logs nobody in.
-// predchozi_token_hash keeps the token replaced at the last use for a moment, see TrvalePrihlaseni.
-// Every statement may run twice: the preview of the branch ran an older version of this migration under another name.
+// predchozi_token_hash keeps the token replaced at the last use for a moment, and the new token is derived from it
+// with sul_tokenu, so concurrent requests with the replaced one get the same new token, see TrvalePrihlaseni.
+// Every statement may run twice: the preview of the branch ran older versions of this migration under other names.
 $this->q(<<<'SQL'
 CREATE TABLE IF NOT EXISTS uzivatele_trvala_prihlaseni
 (
@@ -16,6 +17,7 @@ CREATE TABLE IF NOT EXISTS uzivatele_trvala_prihlaseni
     id_uzivatele         BIGINT(20) UNSIGNED NOT NULL,
     token_hash           CHAR(64)            NOT NULL,
     predchozi_token_hash CHAR(64)                     DEFAULT NULL,
+    sul_tokenu           CHAR(64)                     DEFAULT NULL,
     vytvoreno            DATETIME            NOT NULL DEFAULT current_timestamp(),
     naposledy_pouzito    DATETIME            NOT NULL DEFAULT current_timestamp(),
     PRIMARY KEY (id),
@@ -26,6 +28,13 @@ CREATE TABLE IF NOT EXISTS uzivatele_trvala_prihlaseni
 ) ENGINE = InnoDB
   DEFAULT CHARSET = utf8mb4
   COLLATE = utf8mb4_czech_ci
+SQL,
+);
+
+// The preview created the table without it.
+$this->q(<<<'SQL'
+ALTER TABLE uzivatele_trvala_prihlaseni
+    ADD COLUMN IF NOT EXISTS sul_tokenu CHAR(64) DEFAULT NULL AFTER predchozi_token_hash
 SQL,
 );
 
@@ -41,13 +50,17 @@ SQL,
 // is unknown: the old code wrote a fresh token at every registration, logout and password change too, so most
 // of the rows will never be used. They expire after a year like any other, and TrvalePrihlaseni::zaloz() then
 // deletes a few of the expired rows at each persistent login, not all of them in one request.
-// Except quick registrations: their `random` may still be the code emailed in the confirmation link,
-// which mail logs keep. Those who logged in persistently since then log in once more.
+// Except accounts without a password: after a quick registration `random` holds the code emailed in the confirmation
+// link, which mail logs keep. A persistent login needed the password, and setting one through the web (password reset,
+// profile) wrote a fresh token, so an account without a password has no token in any browser. Merging accounts could
+// give a quick registration a password without writing a token; z_rychloregistrace excludes those, but it is marked
+// only since July 2023, so an older quick registration merged like that, whose `random` nothing rewrote since, stays a gap.
 $this->q(<<<'SQL'
 INSERT IGNORE INTO uzivatele_trvala_prihlaseni (id_uzivatele, token_hash)
 SELECT id_uzivatele, SHA2(random, 256)
 FROM uzivatele_hodnoty
 WHERE random != ''
+    AND heslo_md5 != ''
     AND COALESCE(z_rychloregistrace, 0) = 0
 SQL,
 );
