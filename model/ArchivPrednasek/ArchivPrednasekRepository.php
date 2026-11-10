@@ -36,9 +36,12 @@ final class ArchivPrednasekRepository
         return $this->idVlozeneho();
     }
 
-    public function idPrednasejicihoPodleJmena(string $jmeno): ?int
+    /**
+     * The same name is the same speaker (záměr), whether linked to a user or not.
+     */
+    public function getIdPrednasejicihoPodleJmena(string $jmeno): ?int
     {
-        $id = dbOneCol(<<<'SQL'
+        return self::idNeboNull(dbOneCol(<<<'SQL'
             SELECT id_prednasejiciho
             FROM archiv_prednasek_prednasejici
             WHERE jmeno = $0
@@ -46,11 +49,50 @@ final class ArchivPrednasekRepository
             LIMIT 1
             SQL, [
             0 => $jmeno,
-        ], $this->spojeni);
+        ], $this->spojeni));
+    }
 
-        return $id === null || $id === false
-            ? null
-            : (int) $id;
+    public function getIdPrednasejicihoPodleUzivatele(int $idUzivatele): ?int
+    {
+        return self::idNeboNull(dbOneCol(<<<'SQL'
+            SELECT id_prednasejiciho
+            FROM archiv_prednasek_prednasejici
+            WHERE id_uzivatele = $0
+            ORDER BY id_prednasejiciho
+            LIMIT 1
+            SQL, [
+            0 => $idUzivatele,
+        ], $this->spojeni));
+    }
+
+    /**
+     * A lecture is identified by its title and year (unique key rok_nazev, case-insensitive by the collation).
+     */
+    public function getIdPrednaskyPodleNazvu(string $nazev, int $rok, ?int $kromePrednasky = null): ?int
+    {
+        return self::idNeboNull(dbOneCol(<<<'SQL'
+            SELECT id_prednasky
+            FROM archiv_prednasek
+            WHERE rok = $0 AND nazev = $1 AND ($2 IS NULL OR id_prednasky != $2)
+            SQL, [
+            0 => $rok,
+            1 => $nazev,
+            2 => $kromePrednasky,
+        ], $this->spojeni));
+    }
+
+    /**
+     * @param list<int> $idsAkci
+     *
+     * @return list<int> those of the activities a lecture is paired with
+     */
+    public function getSparovaneAktivity(array $idsAkci): array
+    {
+        return array_map('intval', dbFetchColumn(<<<'SQL'
+            SELECT id_akce FROM archiv_prednasek WHERE id_akce IN ($0)
+            SQL, [
+            0 => $idsAkci,
+        ], $this->spojeni));
     }
 
     public function vlozPrednasejiciho(string $jmeno, ?int $idUzivatele): int
@@ -69,17 +111,17 @@ final class ArchivPrednasekRepository
     /**
      * The name is unique without regard to case (collation), so „rpg“ finds „RPG“.
      */
-    public function idKlicovehoSlova(string $nazev): int
+    public function najdiNeboVlozKlicoveSlovo(string $nazev): int
     {
-        $id = dbOneCol(<<<'SQL'
+        $id = self::idNeboNull(dbOneCol(<<<'SQL'
             SELECT id_klicoveho_slova
             FROM archiv_prednasek_klicove_slovo
             WHERE nazev = $0
             SQL, [
             0 => $nazev,
-        ], $this->spojeni);
-        if ($id !== null && $id !== false) {
-            return (int) $id;
+        ], $this->spojeni));
+        if ($id !== null) {
+            return $id;
         }
         dbQuery(<<<'SQL'
             INSERT INTO archiv_prednasek_klicove_slovo (nazev)
@@ -139,5 +181,12 @@ final class ArchivPrednasekRepository
     private function idVlozeneho(): int
     {
         return (int) ($this->spojeni ?? dbConnect())->insert_id;
+    }
+
+    private static function idNeboNull(mixed $id): ?int
+    {
+        return $id === null || $id === false
+            ? null
+            : (int) $id;
     }
 }
