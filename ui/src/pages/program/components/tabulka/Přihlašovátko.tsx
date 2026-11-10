@@ -2,7 +2,7 @@ import { FunctionComponent } from "preact";
 import { useEffect, useState } from "preact/hooks";
 import { useAktivita, useÚčastník } from "../../../../store/program/selektory";
 import { volnoTypZObsazenost } from "../../../../utils";
-import { nastavModalNastaveníTýmu, nastavModalOdhlásit } from "../../../../store/program/slices/všeobecnéSlice";
+import { nastavModalNastaveníTýmu, nastavModalOdhlásit, otevřiUpozorněníNaVěk } from "../../../../store/program/slices/všeobecnéSlice";
 import { proveďAkciAktivity, useStavAkce } from "../../../../store/program/slices/programDataSlice";
 
 type TPřihlašovátkoProps = {
@@ -22,12 +22,18 @@ type FormTlačítkoProps = {
   akitivitaId: number;
   typ: FormTlačítkoTyp;
   tymova?: boolean;
+  /** před přihlášením upozorní, že účastníkovi ještě nebude minimální věk aktivity */
+  upozorněníNaVěk?: {
+    nazevAktivity: string,
+    minimalniVek: number,
+  };
 };
 
 const FormTlačítko: FunctionComponent<FormTlačítkoProps> = ({
   akitivitaId,
   typ,
   tymova,
+  upozorněníNaVěk,
 }) => {
   // todo(tym): nějaký handling na zbývající čas ??
   /*
@@ -80,6 +86,10 @@ const FormTlačítko: FunctionComponent<FormTlačítkoProps> = ({
               return;
             } else if (typ == "odhlasit") {
               nastavModalOdhlásit(akitivitaId);
+            } else if (typ === "prihlasit" && upozorněníNaVěk) {
+              otevřiUpozorněníNaVěk(upozorněníNaVěk.nazevAktivity, upozorněníNaVěk.minimalniVek, () => {
+                void proveďAkciAktivity(akitivitaId, typ);
+              });
             } else {
               void proveďAkciAktivity(akitivitaId, typ);
             }
@@ -160,8 +170,12 @@ export const Přihlašovátko: FunctionComponent<TPřihlašovátkoProps> = (
   if (aktivita.obsazenost) {
     const volnoTyp = volnoTypZObsazenost(aktivita.obsazenost);
 
-    if (volnoTyp === "u" || volnoTyp === "t" || volnoTyp === účastník.pohlavi)
-      return <FormTlačítko akitivitaId={akitivitaId} typ={"prihlasit"} tymova={aktivita.tymova} />;
+    if (volnoTyp === "u" || volnoTyp === "t" || volnoTyp === účastník.pohlavi) {
+      const upozorněníNaVěk = aktivita.nesplnenyMinimalniVek
+        ? { nazevAktivity: aktivita.nazev, minimalniVek: aktivita.nesplnenyMinimalniVek }
+        : undefined;
+      return <FormTlačítko akitivitaId={akitivitaId} typ={"prihlasit"} tymova={aktivita.tymova} upozorněníNaVěk={upozorněníNaVěk} />;
+    }
 
     // volno už je jen pro opačné pohlaví → pro tohoto účastníka je plno, smí proto sledovat
     // (oddělovač od textu „pouze … místa" zajišťuje border-left na .program ... form > a v CSS)
