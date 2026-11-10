@@ -1,0 +1,25 @@
+// lišta archivu přednášek, zbytek vzhledu sdílí se stránkou linie (../aktivityFiltr/AktivityFiltr.less)
+
+.archivPrednasekFiltr_roky {
+  flex: 1 1 200px;
+  min-width: 0;
+}
+
+// zaškrtávací políčko vysoké jako výběry vedle
+.archivPrednasekFiltr_zaznam {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  height: 38px;
+  font-weight: bold;
+  cursor: pointer;
+  user-select: none;
+
+  input {
+    width: 18px;
+    height: 18px;
+    margin: 0;
+    accent-color: #E22630;
+    cursor: pointer;
+  }
+}

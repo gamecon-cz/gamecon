@@ -1,0 +1,277 @@
+// Archiv přednášek (/prednasky/archiv): karty vypisuje web/moduly/archiv-prednasek.php,
+// lištu filtrů ui/src/pages/archivPrednasek (vzhled lišty sdílí se stránkou linie, AktivityFiltr.less).
+
+.archivPrednasek {
+  max-width: 1200px;
+  padding: 1px 16px; // 1px kvůli okrajům nadpisu
+  margin: 0 auto 100px;
+  font-size: 15px;
+  line-height: 24/15;
+
+  h1 {
+    font-size: 52px;
+    line-height: normal;
+    margin: 55px 0 16px;
+
+    @media (max-width: 800px) {
+      font-size: 32px;
+      margin: 20px 0 12px;
+    }
+  }
+}
+
+.archivPrednasek_uvod {
+  font-size: 16px;
+  line-height: 26/16;
+  margin: 0 0 24px;
+
+  a {
+    color: inherit;
+    font-weight: bold;
+  }
+}
+
+.archivPrednasek_filtr {
+  margin-bottom: 8px;
+}
+
+// schovává filtr (ui/src/pages/archivPrednasek)
+.archivPrednasek_rok[hidden],
+.archivPrednasek_prednaska[hidden] {
+  display: none;
+}
+
+.archivPrednasek_nadpisRoku {
+  margin: 40px 0 0;
+  padding-bottom: 8px;
+  border-bottom: solid 2px #10111A;
+  font-size: 32px;
+  line-height: normal;
+}
+
+// text vlevo, video vpravo; bez videa zůstane text stejně široký, ať se karty pod sebou nerozskakují
+.archivPrednasek_prednaska {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 320px;
+  gap: 16px 32px;
+  padding: 24px 0;
+  border-bottom: solid 1px #e6e6e6;
+
+  @media (max-width: 800px) {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+.archivPrednasek_nazev {
+  margin: 0 0 6px;
+  font-size: 22px;
+  line-height: 1.3;
+}
+
+.archivPrednasek_meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 16px;
+  margin-bottom: 10px;
+  font-weight: bold;
+
+  a {
+    color: #CE232D;
+  }
+}
+
+.archivPrednasek_prednasejici {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 4px 14px;
+  margin-bottom: 12px;
+}
+
+.archivPrednasek_popisek {
+  font-weight: bold;
+}
+
+.archivPrednasek_osoba {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.archivPrednasek_jmeno {
+  color: inherit;
+  text-decoration: underline 1px #c8c8c8;
+  text-underline-offset: 3px;
+
+  &:hover {
+    text-decoration-color: #E22630;
+  }
+}
+
+// ikona vedle jména, větší plocha pro prst na telefonu
+.archivPrednasek_medailonek {
+  display: inline-flex;
+  padding: 6px;
+  margin: -6px;
+  color: #8a8a8a;
+
+  &:hover,
+  &:focus-visible {
+    color: #E22630;
+  }
+}
+
+.archivPrednasek_stitky {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 12px;
+
+  &:empty {
+    display: none;
+  }
+}
+
+// jako štítky na stránce linie (.aktivity_stitek)
+.archivPrednasek_stitek {
+  padding: 5px 12px 4px;
+  background-color: #F6F1EA;
+  font-size: 12px;
+  font-weight: bold;
+  letter-spacing: 0.03em;
+}
+
+.archivPrednasek_stitek-bezZaznamu {
+  background: none;
+  box-shadow: inset 0 0 0 1px #c8c8c8;
+  color: #666;
+}
+
+.archivPrednasek_anotace {
+  margin-bottom: 8px;
+}
+
+// rozbalení dlouhé anotace jako „O sobě píše“ u medailonku, ne červený pruh z _spolecne/details.less
+.archivPrednasek_dlouhaAnotace {
+  margin: 0;
+
+  &[open] {
+    margin: 0;
+  }
+
+  > summary {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 4px 0;
+    list-style: none;
+    font-weight: bold;
+    color: var(--gc-dark);
+    background-color: transparent;
+    transition: color 200ms ease-in;
+
+    &::-webkit-details-marker {
+      display: none;
+    }
+
+    // šipka z borderů jako v menu
+    &::after {
+      content: '';
+      width: 6px;
+      height: 6px;
+      margin-top: -4px;
+      border-bottom: solid 2px currentColor;
+      border-right: solid 2px currentColor;
+      transform: rotate(45deg);
+    }
+
+    &:hover {
+      color: var(--gc-red);
+    }
+
+    &:focus-visible {
+      outline: solid 2px var(--gc-red);
+      outline-offset: 2px;
+    }
+  }
+
+  &[open] > summary {
+    color: var(--gc-red);
+    background-color: transparent;
+
+    &::after {
+      margin-top: 4px;
+      transform: rotate(225deg);
+    }
+  }
+
+  .stranka_format {
+    margin-top: 8px;
+  }
+}
+
+.archivPrednasek_video {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+// náhled 4:3 z YouTube má černé pruhy, ořízne se na 16:9
+.archivPrednasek_nahled {
+  position: relative;
+  display: block;
+  aspect-ratio: 16 / 9;
+  overflow: hidden;
+  background-color: #10111A;
+
+  img {
+    display: block;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+
+  &:hover .archivPrednasek_prehrat,
+  &:focus-visible .archivPrednasek_prehrat {
+    background-color: #E22630;
+  }
+}
+
+.archivPrednasek_prehrat {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 68px;
+  height: 48px;
+  border-radius: 12px;
+  background-color: rgba(16, 17, 26, 0.85);
+  transform: translate(-50%, -50%);
+  transition: background-color 0.2s;
+
+  &::after {
+    content: '';
+    position: absolute;
+    left: 27px;
+    top: 14px;
+    border-style: solid;
+    border-width: 10px 0 10px 18px;
+    border-color: transparent transparent transparent #fff;
+  }
+}
+
+.archivPrednasek_prehravac {
+  display: block;
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  border: 0;
+}
+
+.archivPrednasek_naYoutube {
+  align-self: flex-start;
+  font-size: 13px;
+  color: inherit;
+}
+
+.archivPrednasek_zadne {
+  margin-top: 32px;
+}
