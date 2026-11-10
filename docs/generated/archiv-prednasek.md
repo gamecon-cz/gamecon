@@ -8,6 +8,7 @@ TL;DR: Veřejný archiv proběhlých přednášek na `/prednasky/archiv`: vlastn
 - Filtr: `ui/src/pages/archivPrednasek/` (`filtr.ts` čistá logika s testy, `index.tsx` lišta), sdílené se stránkou linie v `ui/src/pages/filtrStranky/`.
 - Odkaz „Archiv přednášek“ v řadě podstránek `/prednasky` (`aktivity.php`, blok `archivPrednasek` v `aktivity.xtpl`).
 - Admin: `admin/scripts/modules/web/archiv-prednasek.php` (+ `.xtpl`), logika `SpravaArchivu`, chyby pro admina `ChybaArchivu`.
+- Doplnění po GC: `DoplneniZProgramu`, job `admin/cron/jobs/archiv_prednasek_po_gc.php`, volaný z hodinového `admin/cron.php` (ručně `?job=archiv_prednasek_po_gc`), tabulka `archiv_prednasek_doplnene_rocniky`.
 
 ## Datový model
 
@@ -61,6 +62,15 @@ TL;DR: Veřejný archiv proběhlých přednášek na `/prednasky/archiv`: vlastn
 - Spárovat jde jen kartu, která nepatří jiné přednášce (kontrola přes všechny instance); uloží se hlavní aktivita karty.
 - Po uložení se smažou přednášející a klíčová slova bez přednášky, ať nestraší v našeptávači.
 - Chyba ve formuláři nepřesměruje (`chyba(…, false)`), vyplněné hodnoty zůstanou.
+
+## Doplnění po GC
+
+- Po skončení ročníku (`ted() > gcBeziDo()`) založí job v archivu karty typu přednáška, kde aspoň jeden termín proběhl (`StavAktivity::probehnuteStavy()`: zamčená, uzavřená; zamyká je hodinový cron hned po začátku). Jedna karta = jedna přednáška, `id_akce` = hlavní aktivita karty. Název z programu (`NazevPrednasky::uprav()`), přednášející = vedoucí všech termínů karty: přednášející už napojený na stejného uživatele se použije znovu (i se jménem z tabulky), jinak nový se jménem z `jmenoNaWebu()`. Klíčová slova a YouTube doplní admin (záměr).
+- **Ročníky:** od `DoplneniZProgramu::PRVNI_ROCNIK` (2026, první rok mimo tabulku; starší rozhodují lidé) po poslední skončený: letošní po `gcBeziDo()`, jinak loňský. Proto se 2026 doplní i při nasazení po Novém roce, kdy `rocnik()` už je 2027 (záměr: 2026 hned po nasazení, ne až po GC 2027).
+- **Každý ročník jen jednou** (`archiv_prednasek_doplnene_rocniky`). Existující přednášky job nemění (záměr: žádná duplicita, ruční úpravy zůstanou, skrytá se nevrátí); bez paměti ročníku by ale zrušené spárování v adminu vedlo k nové přednášce pro tutéž kartu při dalším běhu. Karta, jejíž kterákoli aktivita už v archivu je, se přeskočí; název a rok, který v archivu už je, se přeskočí s hláškou v logu cronu.
+- **Co přednáška není**, job založí skryté (`DoplneniZProgramu::nevypadaNaPrednasku()`, záměr: admin ji vidí a jedním klikem vrátí): placená, štítek „Živé hraní“, štítek „Workshop“ bez „Talk“ / „Panelová diskuse“ / „Debata“, „zrušeno“ v názvu. V roce 2026 je to jen „Workshop pro PJe/GMy“ (220 Kč, kapacita 5).
+- **Proč hodinový cron, ne vlastní `?job=`:** joby s `?job=` plánuje cron-job.org (viz `admin/cron.php`), nový název by se tam musel přidat ručně a bez toho by nikdy neběžel. Kontrola v hodinovém cronu je pár dotazů, chyba jde přes `CronErrorNotifier` a hodinový cron nezastaví.
+- Ověřeno na kopii ostré DB 2026-11-10: `rocnik()` 2026, `gcBeziDo()` 2026-07-26 23:59, doplnilo 13 karet (12 viditelných), druhý běh nic.
 
 ## Gotchas
 
