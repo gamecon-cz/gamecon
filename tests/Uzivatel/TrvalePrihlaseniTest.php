@@ -4,46 +4,18 @@ declare(strict_types=1);
 
 namespace Gamecon\Tests\Uzivatel;
 
-use Gamecon\Tests\Db\AbstractTestDb;
+use App\Service\JwtService;
 use Gamecon\Uzivatel\PrepnutiNaUzivatele;
 use Gamecon\Uzivatel\SqlStruktura\UzivateleHodnotySqlStruktura as Sql;
 use Gamecon\Uzivatel\TrvalePrihlaseni;
 
 /**
  * Trvalé přihlášení má řádek na zařízení, takže přihlášení ani odhlášení na jednom zařízení
- * nesahá na ostatní. Běžící session ukončí až změna razítka přihlášení (`uzivatele_hodnoty.random`),
+ * nesahá na ostatní. Běžící session ukončí až změna razítka přihlášení (`uzivatele_hodnoty.razitko_prihlaseni`),
  * které si session pamatuje od přihlášení: odhlášení ostatních zařízení a změna hesla.
- *
- * Zařízení je tu session a cookie, se kterými prohlížeč přijde na server. {@see self::pozadavek()}
- * je nastaví a po požadavku uloží, co v nich zůstalo.
  */
-class TrvalePrihlaseniTest extends AbstractTestDb
+class TrvalePrihlaseniTest extends AbstractPrihlaseniNaZarizenichTestDb
 {
-    private const string HESLO = 'heslo-trvale-prihlaseni';
-
-    private bool $sessionIdNastavenoTady = false;
-
-    protected function setUp(): void
-    {
-        parent::setUp();
-
-        // Funkce session v CLI po prvním výstupu testů hlásí varování, ale čtou $_SESSION i bez ní.
-        if (session_id() === '') {
-            session_id('trvale-prihlaseni-test');
-            $this->sessionIdNastavenoTady = true;
-        }
-    }
-
-    protected function tearDown(): void
-    {
-        unset($_COOKIE[TrvalePrihlaseni::COOKIE], $_SESSION);
-        if ($this->sessionIdNastavenoTady) {
-            session_id('');
-        }
-
-        parent::tearDown();
-    }
-
     public function testCookiePrihlasiAVymeniToken(): void
     {
         $idUzivatele = $this->vytvorUzivatele();
@@ -209,11 +181,7 @@ class TrvalePrihlaseniTest extends AbstractTestDb
         $trvalePrihlaseni = $this->pozadavek($jine, static fn () => TrvalePrihlaseni::uplatniCookie());
         self::assertNotNull($trvalePrihlaseni);
         $this->pozadavek($toto, static fn () => \Uzivatel::zSession()->odhlasNaOstatnichZarizenich());
-        $this->pozadavek($jine, static fn () => \Uzivatel::prihlasId(
-            $trvalePrihlaseni['id_uzivatele'],
-            \Uzivatel::UZIVATEL,
-            $trvalePrihlaseni['razitko'],
-        ));
+        $this->pozadavek($jine, static fn () => \Uzivatel::prihlasTrvalymPrihlasenim($trvalePrihlaseni));
 
         self::assertNull($this->idPrihlasenehoNa($jine));
     }
@@ -263,6 +231,33 @@ class TrvalePrihlaseniTest extends AbstractTestDb
         self::assertSame($idMajitele, $this->idPrihlasenehoNa($majitelPoRestartu));
     }
 
+    /**
+     * Tabulka může být chvíli prázdná, třeba během kopie databáze na betě. Smazaná cookie by trvalé
+     * přihlášení zrušila napořád, i když se řádek s kopií vrátí.
+     */
+    public function testCookieBezRadkuZustaneVProhlizeci(): void
+    {
+        $idUzivatele = $this->vytvorUzivatele();
+        $token = $this->zalozTrvalePrihlaseni($idUzivatele);
+        $radek = dbOneLine(<<<'SQL'
+            SELECT * FROM uzivatele_trvala_prihlaseni WHERE id_uzivatele = $0
+            SQL, [
+            0 => $idUzivatele,
+        ]);
+        dbQuery(<<<'SQL'
+            DELETE FROM uzivatele_trvala_prihlaseni WHERE id_uzivatele = $0
+            SQL, [
+            0 => $idUzivatele,
+        ]);
+        $zarizeni = $this->zarizeni(cookie: $token);
+
+        self::assertNull($this->idPrihlasenehoNa($zarizeni));
+        self::assertSame($token, $zarizeni['cookie']);
+
+        dbInsert('uzivatele_trvala_prihlaseni', $radek);
+        self::assertSame($idUzivatele, $this->idPrihlasenehoNa($zarizeni));
+    }
+
     public function testZmenaHeslaVProfiluOdhlasiOstatniZarizeni(): void
     {
         $idUzivatele = $this->vytvorUzivatele();
@@ -286,6 +281,37 @@ class TrvalePrihlaseniTest extends AbstractTestDb
         foreach ([$prvni, $druhe, $treti] as $zarizeni) {
             self::assertNull($this->idPrihlasenehoNa($zarizeni));
         }
+    }
+
+    /**
+     * Token pro e-shop je jeden na uživatele. Kdo ho ověřuje proti uloženému, přestane po odhlášení
+     * ostatních zařízení brát jejich kopie.
+     */
+    public function testOdhlaseniOstatnichZarizeniVymeniUlozenyTokenProEshop(): void
+    {
+        $idUzivatele = $this->vytvorUzivatele();
+        $toto = $this->zarizeni();
+        $this->pozadavek($toto, static fn () => \Uzivatel::prihlasId($idUzivatele));
+        // Tokeny vydané v téže sekundě jsou stejné, token jiného zařízení proto podstrčíme.
+        $this->jwtService()->storeToken('token-jineho-zarizeni', $idUzivatele);
+
+        $this->pozadavek($toto, static fn () => \Uzivatel::zSession()->odhlasNaOstatnichZarizenich());
+
+        $ulozeny = $this->jwtService()->getToken($idUzivatele);
+        self::assertNotNull($ulozeny, 'Toto zařízení zůstalo přihlášené, token mu má zůstat.');
+        self::assertNotSame('token-jineho-zarizeni', $ulozeny);
+    }
+
+    public function testObnovaHeslaSmazeUlozenyTokenProEshop(): void
+    {
+        $idUzivatele = $this->vytvorUzivatele();
+        $zarizeni = $this->zarizeni();
+        $this->pozadavek($zarizeni, static fn () => \Uzivatel::prihlasId($idUzivatele));
+        self::assertNotNull($this->jwtService()->getToken($idUzivatele), 'Přihlášení má token uložit, jinak test nic nezkouší.');
+
+        \Uzivatel::zId($idUzivatele)->heslo('nove-heslo-z-obnovy');
+
+        self::assertNull($this->jwtService()->getToken($idUzivatele));
     }
 
     /**
@@ -399,6 +425,32 @@ class TrvalePrihlaseniTest extends AbstractTestDb
     }
 
     /**
+     * Migrace založila řádek skoro každému účtu se stejným časem, takže za rok vyprší všechny naráz.
+     * Smazat je jedním dotazem by zdrželo přihlášení toho, na koho to vyjde.
+     */
+    public function testTrvalePrihlaseniMazeVyprselaPoKouskach(): void
+    {
+        $idUzivatele = $this->vytvorUzivatele();
+        dbQuery(<<<'SQL'
+            INSERT INTO uzivatele_trvala_prihlaseni (id_uzivatele, token_hash, naposledy_pouzito)
+            SELECT $0, SHA2(seq, 256), NOW() - INTERVAL 400 DAY
+            FROM seq_1_to_1000
+            SQL, [
+            0 => $idUzivatele,
+        ]);
+        $login = $this->login($idUzivatele);
+        $zarizeni = $this->zarizeni();
+
+        $this->pozadavek($zarizeni, static fn () => \Uzivatel::prihlasTrvale($login, self::HESLO));
+
+        $vyprselych = (int) dbOneCol(<<<'SQL'
+            SELECT COUNT(*) FROM uzivatele_trvala_prihlaseni WHERE naposledy_pouzito < NOW() - INTERVAL 365 DAY
+            SQL);
+        self::assertGreaterThan(0, $vyprselych, 'Jedno přihlášení nemá mazat všechny vypršelé naráz.');
+        self::assertLessThan(1000, $vyprselych, 'Přihlášení má vypršelé mazat.');
+    }
+
+    /**
      * Session z doby před razítkem žádné nemá a běží, dokud se uživatel neodhlásí na ostatních zařízeních.
      */
     public function testSessionBezRazitkaBeziDoOdhlaseniOstatnichZarizeni(): void
@@ -416,32 +468,6 @@ class TrvalePrihlaseniTest extends AbstractTestDb
         $this->pozadavek($toto, static fn () => \Uzivatel::zSession()->odhlasNaOstatnichZarizenich());
 
         self::assertNull($this->idPrihlasenehoNa($stara));
-    }
-
-    /**
-     * Nasazení nahraje kód dřív, než migrace vyprázdní `random`, kde je pořád token trvalého přihlášení.
-     * Session, které přijdou mezitím, ani ty, které mezitím vzniknou, kvůli tomu skončit nesmí.
-     */
-    public function testSessionPrezijeNasazeniPredMigraci(): void
-    {
-        $idUzivatele = $this->vytvorUzivatele(random: randHex(20));
-        $stara = $this->zarizeni(session: [
-            \Uzivatel::UZIVATEL => [
-                'id_uzivatele' => $idUzivatele,
-            ],
-        ]);
-        $novaPredMigraci = $this->zarizeni();
-        $this->pozadavek($novaPredMigraci, static fn () => \Uzivatel::prihlasId($idUzivatele));
-        self::assertSame($idUzivatele, $this->idPrihlasenehoNa($stara));
-
-        dbQuery(<<<'SQL'
-            UPDATE uzivatele_hodnoty SET random = '' WHERE id_uzivatele = $0
-            SQL, [
-            0 => $idUzivatele,
-        ]);
-
-        self::assertSame($idUzivatele, $this->idPrihlasenehoNa($stara));
-        self::assertSame($idUzivatele, $this->idPrihlasenehoNa($novaPredMigraci));
     }
 
     /**
@@ -489,35 +515,8 @@ class TrvalePrihlaseniTest extends AbstractTestDb
         self::assertSame($idUzivatele, $this->idPrihlasenehoNa($totoPoRestartu), 'Trvalé přihlášení tohoto zařízení má zůstat.');
         self::assertNull($this->idPrihlasenehoNa($jineJenSession), 'Session jiného zařízení má skončit.');
         self::assertNull($this->idPrihlasenehoNa($jineSTrvalym), 'Jiné zařízení nemá přihlásit session ani cookie.');
-        self::assertNull($jineSTrvalym['cookie'], 'Zrušenou cookie má prohlížeči smazat.');
-    }
-
-    private function vytvorUzivatele(string $random = ''): int
-    {
-        dbQuery(<<<'SQL'
-            INSERT INTO uzivatele_hodnoty SET
-                login_uzivatele = $0,
-                email1_uzivatele = $1,
-                jmeno_uzivatele = 'Test',
-                prijmeni_uzivatele = 'TrvalePrihlaseni',
-                heslo_md5 = $2,
-                random = $3
-            SQL, [
-            0 => 'test_trvale_' . uniqid('', true),
-            1 => 'test.trvale.' . uniqid('', true) . '@example.org',
-            // Slabší cena než výchozí: přihlášení je rychlé a hash přepíše.
-            2 => password_hash(self::HESLO, PASSWORD_BCRYPT, [
-                'cost' => 4,
-            ]),
-            3 => $random,
-        ]);
-
-        return (int) dbInsertId();
-    }
-
-    private function login(int $idUzivatele): string
-    {
-        return (string) dbOneCol('SELECT login_uzivatele FROM uzivatele_hodnoty WHERE id_uzivatele = $0', [$idUzivatele]);
+        $jinePoRestartu = $this->poRestartuProhlizece($jineSTrvalym);
+        self::assertNull($this->idPrihlasenehoNa($jinePoRestartu), 'Cookie jiného zařízení nemá přihlásit.');
     }
 
     private function zalozTrvalePrihlaseni(int $idUzivatele): string
@@ -543,58 +542,8 @@ class TrvalePrihlaseniTest extends AbstractTestDb
         ]);
     }
 
-    /**
-     * @return array{session: array, cookie: ?string}
-     */
-    private function zarizeni(?string $cookie = null, array $session = []): array
+    private function jwtService(): JwtService
     {
-        return [
-            'session' => $session,
-            'cookie'  => $cookie,
-        ];
-    }
-
-    /**
-     * Session cookie zavřením prohlížeče zmizí, cookie trvalého přihlášení zůstane.
-     */
-    private function poRestartuProhlizece(array $zarizeni): array
-    {
-        return $this->zarizeni(cookie: $zarizeni['cookie']);
-    }
-
-    private function idPrihlasenehoNa(array &$zarizeni): ?int
-    {
-        return $this->pozadavek($zarizeni, static fn () => \Uzivatel::zSession())?->id();
-    }
-
-    private function pozadavek(array &$zarizeni, callable $akce): mixed
-    {
-        $_SESSION = $zarizeni['session'];
-        unset($_COOKIE[TrvalePrihlaseni::COOKIE]);
-        if ($zarizeni['cookie'] !== null) {
-            $_COOKIE[TrvalePrihlaseni::COOKIE] = $zarizeni['cookie'];
-        }
-        try {
-            return $this->bezVarovaniSession($akce);
-        } finally {
-            $zarizeni = $this->zarizeni(
-                cookie: $_COOKIE[TrvalePrihlaseni::COOKIE] ?? null,
-                session: $_SESSION ?? [],
-            );
-        }
-    }
-
-    /**
-     * Session a cookie se v CLI po výstupu testovacího běhu nedají nastavit a hlásí to varováním,
-     * což o ověřované věci nic neříká. Výjimky to nepotlačí.
-     */
-    private function bezVarovaniSession(callable $akce): mixed
-    {
-        set_error_handler(static fn (): bool => true, E_WARNING);
-        try {
-            return $akce();
-        } finally {
-            restore_error_handler();
-        }
+        return $this->getContainer()->get(JwtService::class);
     }
 }

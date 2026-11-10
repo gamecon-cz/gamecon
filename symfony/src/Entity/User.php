@@ -74,6 +74,12 @@ class User
     #[ORM\Column(name: 'random', length: 20, nullable: false)]
     private string $random;
 
+    /**
+     * Running sessions remember it, changing it ends them, see \Uzivatel::zmenRazitkoPrihlaseni(). NULL = not changed yet.
+     */
+    #[ORM\Column(name: 'razitko_prihlaseni', length: 32, nullable: true)]
+    private ?string $razitkoPrihlaseni = null;
+
     #[ORM\Column(name: 'zustatek', type: Types::INTEGER, nullable: false, options: [
         'default' => 0,
     ])]
@@ -319,6 +325,18 @@ class User
     public function setRandom(string $random): static
     {
         $this->random = $random;
+
+        return $this;
+    }
+
+    public function getRazitkoPrihlaseni(): ?string
+    {
+        return $this->razitkoPrihlaseni;
+    }
+
+    public function setRazitkoPrihlaseni(?string $razitkoPrihlaseni): static
+    {
+        $this->razitkoPrihlaseni = $razitkoPrihlaseni;
 
         return $this;
     }

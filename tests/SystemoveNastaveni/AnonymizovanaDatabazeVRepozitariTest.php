@@ -75,7 +75,8 @@ class AnonymizovanaDatabazeVRepozitariTest extends AbstractTestDb
 
     /**
      * Columns of uzivatele_hodnoty that AnonymizovanyUzivatel leaves alone, reviewed for the public repository:
-     * the shifted id, the gender and three flags or dates without a name or contact.
+     * the shifted id, the gender, three flags or dates without a name or contact and the random login stamp,
+     * which only a running session on the server it came from compares.
      */
     private const array PREKONTROLOVANE_SLOUPCE_UZIVATELE = [
         'id_uzivatele',
@@ -83,6 +84,7 @@ class AnonymizovanaDatabazeVRepozitariTest extends AbstractTestDb
         'formular_cizince_od',
         'z_rychloregistrace',
         'potvrzeni_zakonneho_zastupce_soubor',
+        'razitko_prihlaseni',
     ];
 
     private static ?\mysqli $spojeni = null;
