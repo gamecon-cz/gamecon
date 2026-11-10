@@ -7,6 +7,7 @@ TL;DR: Veřejný archiv proběhlých přednášek na `/prednasky/archiv`: vlastn
 - Stránka: větev routeru ve `web/index.php` (`ArchivPrednasekStranka`), modul `web/moduly/archivprednasek.php`, šablona `web/sablony/blackarrow/archivprednasek.xtpl`, styl `web/soubory/blackarrow/archiv-prednasek/archiv-prednasek.less`, data `PrednaskyNaWebu`.
 - Filtr: `ui/src/pages/archivPrednasek/` (`filtr.ts` čistá logika s testy, `index.tsx` lišta), sdílené se stránkou linie v `ui/src/pages/filtrStranky/`.
 - Odkaz „Archiv přednášek“ v řadě podstránek `/prednasky` (`aktivity.php`, blok `archivPrednasek` v `aktivity.xtpl`).
+- Admin: `admin/scripts/modules/web/archiv-prednasek.php` (+ `.xtpl`), logika `SpravaArchivu`, chyby pro admina `ChybaArchivu`.
 
 ## Datový model
 
@@ -49,6 +50,17 @@ TL;DR: Veřejný archiv proběhlých přednášek na `/prednasky/archiv`: vlastn
 - **Jeden společný filtr štítků** (klíčová slova + štítky programu, stejný název = jedna volba): staré nespárované přednášky štítky programu nemají, samostatný filtr by je potichu vyřadil (záměr). V adrese jsou štítky podle klíče názvu (`?stitky=rpg,horor`, `StitekNaWebu::klic()` = `slugify()`), protože jedna volba může mít dva zdroje.
 - Adresa: `?hledat=…&rok=2024,2025&prednasejici=…&stitky=…&zaznam=1`, zápis `replaceState`. Neznámé hodnoty se při načtení zahodí. Počty u možností jako na linii (bez výběru „kolik zbude“, s výběrem „+kolik přibude“).
 - Rok bez zobrazené přednášky schová i nadpis roku.
+
+## Admin
+
+- Modul Web → Archiv přednášek, `pravo: 105`, `prava: 105, 102` (záměr: archiv je obsah webu jako Medailonky, spárování ale dělá ten, kdo zná program). Kdo má jen 102, hlavní položku Web v menu nevidí (menu ukazuje sekci jen s jejím právem), stránka se mu ale otevře.
+- Hlavička modulu musí mít `pravo:` i při `prava:` (`AdminMenu::nactiPolozku()` ho čte vždy, bez něj varování a pád menu).
+- Seznam s filtrem: rok, spárovaná, záznam, viditelnost, text (název nebo přednášející); skrýt / vrátit tlačítkem v řádku.
+- Detail (`?id=…`, nová `?id=nova`): název, rok (2000 až letošní), přednášející (jméno + uživatel přes omnibox), klíčová slova (`<datalist>` existujících, nové stačí napsat), YouTube (jakýkoli tvar adresy, uloží se ID, neplatný odmítne), spárování (omnibox karet programu `?hledatAktivitu=1`, v roce přednášky nebo ve všech ročnících; vymazané pole spárování zruší), skrytí.
+- **Přednášející se stejným jménem je tentýž** ve všech přednáškách a změna jeho uživatele platí pro všechny. Napojení se mění jen když admin pole uživatele opravdu změnil (formulář posílá i původní hodnotu): přidat známého přednášejícího s prázdným polem ho neodpojí.
+- Spárovat jde jen kartu, která nepatří jiné přednášce (kontrola přes všechny instance); uloží se hlavní aktivita karty.
+- Po uložení se smažou přednášející a klíčová slova bez přednášky, ať nestraší v našeptávači.
+- Chyba ve formuláři nepřesměruje (`chyba(…, false)`), vyplněné hodnoty zůstanou.
 
 ## Gotchas
 
