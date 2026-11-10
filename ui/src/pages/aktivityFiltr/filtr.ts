@@ -1,4 +1,8 @@
 import { ApiFiltrAktivitKarta } from "../../api/filtrAktivit";
+import { normalizujText, obsahujeVšechnaSlova, slovaHledání } from "../filtrStranky/text";
+import { číslaZParametru, nastavParametr, sČárkami, seznamZParametru } from "../filtrStranky/url";
+
+export { normalizujText };
 
 export type FiltrKaret = {
   text: string,
@@ -19,21 +23,17 @@ export const PRÁZDNÝ_FILTR: FiltrKaret = Object.freeze({
 /** karta s textem, ve kterém se hledá (už normalizovaným) */
 export type KartaProFiltr = ApiFiltrAktivitKarta & { text: string };
 
-/** malá písmena bez diakritiky, ať „pribeh“ najde „Příběh“ */
-export const normalizujText = (text: string): string =>
-  text.normalize("NFD").replace(/[̀-ͯ]/g, "").toLowerCase();
-
 export const jeFiltrPrázdný = (filtr: FiltrKaret): boolean =>
   !filtr.text.trim() && !filtr.štítky.length && !filtr.vypravěči.length && !filtr.dny.length && !filtr.jenVolné;
 
 /** hledání, dny a volná místa */
 const filtrujZáklad = <T extends KartaProFiltr>(karty: T[], filtr: FiltrKaret): T[] => {
-  const slova = normalizujText(filtr.text).split(/\s+/).filter(Boolean);
+  const slova = slovaHledání(filtr.text);
 
   return karty.filter((karta) =>
     (!filtr.jenVolné || karta.volno)
     && (!filtr.dny.length || karta.dny.some((den) => filtr.dny.includes(den)))
-    && slova.every((slovo) => karta.text.includes(slovo))
+    && obsahujeVšechnaSlova(karta.text, slova)
   );
 };
 
@@ -94,37 +94,24 @@ const JEN_VOLNÉ_QUERY_KEY = "volne";
 
 export const filtrZUrl = (url: string): FiltrKaret => {
   const parametry = new URL(url).searchParams;
-  const seznam = (klíč: string): string[] => (parametry.get(klíč) ?? "").split(",").filter(Boolean);
-  const čísla = (klíč: string): number[] => seznam(klíč).map(Number).filter(Number.isInteger);
 
   return {
     text: parametry.get(TEXT_QUERY_KEY) ?? "",
-    štítky: čísla(ŠTÍTKY_QUERY_KEY),
-    vypravěči: čísla(VYPRAVĚČI_QUERY_KEY),
-    dny: seznam(DNY_QUERY_KEY),
+    štítky: číslaZParametru(parametry, ŠTÍTKY_QUERY_KEY),
+    vypravěči: číslaZParametru(parametry, VYPRAVĚČI_QUERY_KEY),
+    dny: seznamZParametru(parametry, DNY_QUERY_KEY),
     jenVolné: parametry.get(JEN_VOLNÉ_QUERY_KEY) === "1",
   };
-};
-
-// čárka do query smí, ?den=patek,sobota se čte líp než patek%2Csobota
-const sČárkami = (urlObjekt: URL): string => {
-  urlObjekt.search = urlObjekt.searchParams.toString().replace(/%2C/g, ",");
-
-  return urlObjekt.toString();
 };
 
 /** zapíše filtr do adresy, ostatní parametry a kotvu nechá být */
 export const urlSFiltrem = (url: string, filtr: FiltrKaret): string => {
   const urlObjekt = new URL(url);
-  const nastav = (klíč: string, hodnota: string) => {
-    if (hodnota) urlObjekt.searchParams.set(klíč, hodnota);
-    else urlObjekt.searchParams.delete(klíč);
-  };
-  nastav(TEXT_QUERY_KEY, filtr.text);
-  nastav(ŠTÍTKY_QUERY_KEY, filtr.štítky.join(","));
-  nastav(VYPRAVĚČI_QUERY_KEY, filtr.vypravěči.join(","));
-  nastav(DNY_QUERY_KEY, filtr.dny.join(","));
-  nastav(JEN_VOLNÉ_QUERY_KEY, filtr.jenVolné ? "1" : "");
+  nastavParametr(urlObjekt, TEXT_QUERY_KEY, filtr.text);
+  nastavParametr(urlObjekt, ŠTÍTKY_QUERY_KEY, filtr.štítky.join(","));
+  nastavParametr(urlObjekt, VYPRAVĚČI_QUERY_KEY, filtr.vypravěči.join(","));
+  nastavParametr(urlObjekt, DNY_QUERY_KEY, filtr.dny.join(","));
+  nastavParametr(urlObjekt, JEN_VOLNÉ_QUERY_KEY, filtr.jenVolné ? "1" : "");
 
   return sČárkami(urlObjekt);
 };

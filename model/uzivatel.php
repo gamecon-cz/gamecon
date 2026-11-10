@@ -2517,16 +2517,27 @@ SQL,
      */
     public function url(bool $vcetneId = false): ?string
     {
-        if (! $this->r[Sql::JMENO_UZIVATELE]) {
-            return null; // nevracet url, asi vypravěčská skupina nebo podobně
-        }
-        if (! empty($this->r['url'])) {
-            return $vcetneId
-                ? $this->id() . '-' . $this->r['url']
-                : $this->r['url'];
+        if ($vcetneId && $this->r[Sql::JMENO_UZIVATELE] && ! empty($this->r['url'])) {
+            return $this->id() . '-' . $this->r['url'];
         }
 
-        return self::vytvorUrl($this->r);
+        return self::urlZjisti($this->r);
+    }
+
+    /**
+     * url() z řádku uzivatele_hodnoty s nejnovější adresou z uzivatele_url ve sloupci url, bez načtení celého uživatele
+     * (archiv přednášek zjišťuje medailonky všech přednášejících najednou)
+     */
+    public static function urlZjisti(array $r): ?string
+    {
+        if (! $r[Sql::JMENO_UZIVATELE]) {
+            return null; // nevracet url, asi vypravěčská skupina nebo podobně
+        }
+        if (! empty($r['url'])) {
+            return $r['url'];
+        }
+
+        return self::vytvorUrl($r);
     }
 
     private static function vytvorUrl(array $uzivatelData): ?string

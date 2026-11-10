@@ -124,6 +124,16 @@ $pocetUpozorneni = Aktivita::upozorniNaNeuzavreneKonciciOdDo(
 );
 logs("Odesláno $pocetUpozorneni mailů.");
 
+// nový job s ?job= by se musel přidat i do plánovače na cron-job.org, archiv se proto doplňuje tady;
+// kontrola je levná, každá karta se doplní jen jednou a karta, která selže, se zkusí znovu až za den,
+// takže opakovaná chyba nepošle mail každou hodinu
+try {
+    include __DIR__ . '/cron/jobs/archiv_prednasek_po_gc.php';
+} catch (Throwable $e) {
+    (new \Gamecon\Cron\CronErrorNotifier($systemoveNastaveni))
+        ->ohlas($e, 'doplnění archivu přednášek po GC');
+}
+
 if (date('G') >= 5) { // 5 hodin ráno či později
     include __DIR__ . '/cron/zaloha_databaze.php';
     include __DIR__ . '/cron/anonymizace_databaze.php';

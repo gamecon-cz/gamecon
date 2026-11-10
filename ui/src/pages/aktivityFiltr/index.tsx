@@ -1,5 +1,5 @@
 import { ComponentChildren, FunctionComponent } from "preact";
-import { useEffect, useLayoutEffect, useMemo, useRef, useState } from "preact/hooks";
+import { useEffect, useLayoutEffect, useMemo, useState } from "preact/hooks";
 import Select, { GroupBase, OptionsOrGroups } from "react-select";
 import { ApiFiltrAktivit, ApiFiltrAktivitKarta, ApiRocnikyAktivit } from "../../api/filtrAktivit";
 import { distinct } from "../../utils";
@@ -10,6 +10,8 @@ import {
   filtrujBezŠtítků, filtrujBezVypravěčů, filtrujPodleŠtítků, filtrujPodleVypravěčů, FiltrKaret, filtrZUrl,
   jeFiltrPrázdný, KartaProFiltr, normalizujText, PRÁZDNÝ_FILTR, urlSFiltrem, urlSRočníkem,
 } from "./filtr";
+import { třídaTlačítka } from "../filtrStranky/tlacitko";
+import { useMenuDoSpodkuOkna } from "../filtrStranky/useMenuDoSpodkuOkna";
 
 import "../program/components/vstupy/ReactSelect.less";
 import "./AktivityFiltr.less";
@@ -49,43 +51,6 @@ const uložZobrazeníSeznamem = (seznam: boolean) => {
   } catch {
     // bez úložiště se volba jen nezapamatuje
   }
-};
-
-const třídaTlačítka = (aktivní: boolean) =>
-  "aktivityFiltr_tlacitko" + (aktivní ? " aktivni" : "");
-
-/** výchozí maxMenuHeight v react-select */
-const NEJMENŠÍ_VÝŠKA_MENU = 300;
-
-/**
- * Menu výběru až ke spodku okna. Kdo vybírá štítky, stejně nekouká na aktivity pod ním.
- * Výška se počítá podle toho, kde zrovna výběr na stránce je, a znovu po každém vykreslení,
- * dokud je menu otevřené: s dalšími vybranými štítky výběr naroste o řádek a menu sjede níž.
- */
-const useMenuDoSpodkuOkna = () => {
-  const obal = useRef<HTMLDivElement>(null);
-  const [otevřené, setOtevřené] = useState(false);
-  const [výška, setVýška] = useState(NEJMENŠÍ_VÝŠKA_MENU);
-
-  useLayoutEffect(() => {
-    const spodekVýběru = obal.current?.getBoundingClientRect().bottom;
-    if (!otevřené || spodekVýběru === undefined) return;
-    // odsazení menu od výběru a kousek místa pod ním
-    const nováVýška = Math.max(NEJMENŠÍ_VÝŠKA_MENU, Math.floor(window.innerHeight - spodekVýběru - 24));
-    // bez porovnání by se vykreslovalo dokola
-    if (nováVýška !== výška) setVýška(nováVýška);
-  });
-
-  return {
-    obal,
-    výška,
-    otevři: () => {
-      setOtevřené(true);
-    },
-    zavři: () => {
-      setOtevřené(false);
-    },
-  };
 };
 
 type RočníkValueLabel = { value: number, label: string };

@@ -3,6 +3,7 @@ import { Obchod } from "./obchod";
 import { ObchodNastaveni } from "./obchodNastaveni";
 import { AktivityApp } from "./aktivity";
 import { AktivityFiltr } from "./aktivityFiltr";
+import { ArchivPrednasekFiltr } from "./archivPrednasek";
 import { FunctionComponent, render } from "preact";
 
 import "./index.less";
@@ -24,4 +25,5 @@ export const renderPages = () => {
   renderComponent("preact-obchod", Obchod);
   renderComponent("preact-aktivity-modal", AktivityApp);
   renderComponent("preact-aktivity-filtr", AktivityFiltr);
+  renderComponent("preact-archiv-prednasek", ArchivPrednasekFiltr);
 };

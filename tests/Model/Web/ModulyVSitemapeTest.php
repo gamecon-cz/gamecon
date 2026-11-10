@@ -17,6 +17,7 @@ class ModulyVSitemapeTest extends TestCase
         'ajax-vyjimkovac'    => 'zápis chyb z prohlížeče, ne stránka',
         'aktivity'           => 'vstup pro linie a profily vypravěčů, které mají vlastní adresy; samotné /aktivity v menu není',
         'api'                => 'JSON',
+        'archivprednasek'    => 'archiv přednášek je v mapě pod adresou linie (prednasky/archiv), samotný modul je 404',
         'discord'            => 'přesměrování na externí web',
         'facebook'           => 'přesměrování na externí web',
         'finance'            => 'jen pro přihlášené',

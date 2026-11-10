@@ -1312,8 +1312,14 @@ SQL
         // uložení změn do akce_seznam
         if (empty($data[Sql::PATRI_POD]) && !empty($data[Sql::ID_AKCE])) {
             // editace jediné aktivity
+            $puvodniStav = dbOneCol(<<<'SQL'
+                SELECT stav FROM akce_seznam WHERE id_akce = $0
+                SQL, [0 => $data[Sql::ID_AKCE]]);
             dbInsertUpdate('akce_seznam', $data);
             $aktivita = self::zId($data[Sql::ID_AKCE]);
+            $aktivita->zalogujStavPoUlozeni($puvodniStav !== null && $puvodniStav !== false
+                ? (int)$puvodniStav
+                : null);
             $aktivita->nastavLokacePodleIds($lokaceIds, $hlavniLokaceId);
         } elseif (!empty($data[Sql::PATRI_POD])) {
             // editace aktivity z rodiny instancí
@@ -1321,7 +1327,10 @@ SQL
             $doAktualni = [Sql::ZACATEK, Sql::KONEC, Sql::ID_TURNAJE, Sql::TURNAJ_KOLO];       // věci, které se mají změnit jen u aktuální instance
             $aktivita = self::zId($data[Sql::ID_AKCE]);       // instance už musí existovat
             if (array_key_exists(ActivitiesImportSqlColumn::STAV, $data)) {
-                $aktivita->zmenStav($data[ActivitiesImportSqlColumn::STAV]);
+                // import posílá stav i beze změny, do logu jde jen opravdová změna
+                if ((int)$data[ActivitiesImportSqlColumn::STAV] !== $aktivita->idStavu()) {
+                    $aktivita->zmenStav((int)$data[ActivitiesImportSqlColumn::STAV]);
+                }
                 unset($data[ActivitiesImportSqlColumn::STAV]); // stav se může měnit jenom u jedné instance
             }
             $aktivita->nastavLokacePodleIds($lokaceIds, $hlavniLokaceId);
@@ -1365,6 +1374,7 @@ SQL
             dbInsertUpdate(Sql::AKCE_SEZNAM_TABULKA, $data);
             $data[Sql::ID_AKCE] = dbInsertId();
             $aktivita = self::zId($data[Sql::ID_AKCE]);
+            $aktivita->zalogujStavPoUlozeni(null);
             $aktivita->nastavLokacePodleIds($lokaceIds, $hlavniLokaceId);
             $aktivita->nova = true;
         }
@@ -3354,13 +3364,14 @@ HTML
         $this->zmenStav(StavAktivity::PUBLIKOVANA);
     }
 
-    private function zmenStav(int $novyStav)
+    private function zmenStav(int $novyStav): void
     {
         if (!StavAktivity::jeZnamy($novyStav)) {
             throw new \LogicException("Neznámý stav aktivity '$novyStav'");
         }
-        dbQuery('UPDATE akce_seznam SET stav=$1 WHERE id_akce=$2', [$novyStav, $this->id()]);
-        $this->touchDirtyFlag(ProgramStaticFileType::AKTIVITY);
+        // se zápisem do akce_stavy_log jako zamčení a uzavření: podle logu se pozná, že aktivita byla veřejná
+        // (archiv přednášek, hodinový cron zamyká i nezveřejněné), a online prezence z něj čte změny stavu
+        $this->zmenStavNa($novyStav);
     }
 
     /** Nastaví aktivitu jako "připravena pro aktivaci" */
@@ -3937,6 +3948,22 @@ SQL,
         dbQuery('UPDATE akce_seznam SET stav = $0 WHERE id_akce = ' . $this->id(), [$stav]);
         $this->a[Sql::STAV] = $stav;
         $this->stav = $stav;
+        $this->zalogujZmenuStavu($stav);
+    }
+
+    /**
+     * Stav zapsaný při uložení rovnou do akce_seznam (editace, import) jde do logu jako každá jiná změna stavu, ale jen
+     * když se opravdu změnil: import posílá stav i beze změny a online prezence bere každý řádek logu za změnu.
+     * Nová aktivita ve stavu nová do logu nejde, aktivita bez záznamu v logu je nová.
+     *
+     * @param int|null $puvodniStav null u nové aktivity
+     */
+    private function zalogujStavPoUlozeni(?int $puvodniStav): void
+    {
+        $stav = $this->idStavu();
+        if ($stav === null || $stav === $puvodniStav || ($puvodniStav === null && $stav === StavAktivity::NOVA)) {
+            return;
+        }
         $this->zalogujZmenuStavu($stav);
     }
 

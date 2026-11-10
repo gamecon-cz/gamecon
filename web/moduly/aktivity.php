@@ -3,9 +3,10 @@
 use Gamecon\Aktivita\Aktivita;
 use Gamecon\Aktivita\FiltrAktivity;
 use Gamecon\Aktivita\Program;
-use Gamecon\Aktivita\StavAktivity;
+use Gamecon\Aktivita\RocnikyAktivit;
 use Gamecon\Aktivita\Tag;
 use Gamecon\Aktivita\TypAktivity;
+use Gamecon\ArchivPrednasek\ArchivPrednasekStranka;
 use Gamecon\KategorieTagu;
 
 /** @var Modul $this */
@@ -19,13 +20,6 @@ use Gamecon\KategorieTagu;
 $this->blackarrowStyl(true);
 $this->pridejJsSoubor(__DIR__ . '/../soubory/blackarrow/_spolecne/zachovej-scroll.js');
 
-if (!function_exists('zabalWebSoubor')) {
-    function zabalWebSoubor(string $cestaKSouboru): string
-    {
-        return $cestaKSouboru . '?version=' . md5_file(WWW . '/' . $cestaKSouboru);
-    }
-}
-
 $typ = $this->param('typ');
 
 // zpracování POST požadavků
@@ -35,33 +29,14 @@ Aktivita::prihlasovatkoZpracuj($u, $u);
 // ročník, dřívější jde vybrat v liště nad aktivitami (?rocnik=2024)
 
 $letosniRocnik = $systemoveNastaveni->rocnik();
-// ve kterých ročnících tu něco bylo, stejně jako filtr aktivit níž (FiltrAktivity::JEN_VIDITELNE a BEZ_DALSICH_KOL),
-// jinak by šel vybrat ročník bez jediné karty (vypravěč, který vedl jen semifinále DrD)
-$rocniky = array_map('intval', dbOneArray(<<<'SQL'
-SELECT DISTINCT akce_seznam.rok
-FROM akce_seznam
-WHERE akce_seznam.rok <= $0
-    AND akce_seznam.stav IN ($1)
-    AND NOT (akce_seznam.typ IN ($2) AND akce_seznam.stav IN ($3))
-    AND NOT (akce_seznam.typ IN ($6) AND akce_seznam.cena = 0)
-    AND ($4 IS NULL OR akce_seznam.typ = $4)
-    AND ($5 IS NULL OR akce_seznam.id_akce IN (
-        SELECT akce_organizatori.id_akce FROM akce_organizatori WHERE akce_organizatori.id_uzivatele = $5
-    ))
-ORDER BY akce_seznam.rok DESC
-SQL, [
-    0 => $letosniRocnik,
-    1 => StavAktivity::bezneViditelneStavy(),
-    2 => TypAktivity::interniTypy(),
-    3 => StavAktivity::probehnuteStavy(),
-    4 => $typ?->id(),
-    5 => !empty($org)
+// ve kterých ročnících tu něco bylo, letošní i bez aktivit, ať se jde vrátit
+$rocniky = RocnikyAktivit::getNabizene(
+    $letosniRocnik,
+    $typ?->id(),
+    !empty($org)
         ? $org->id()
         : null,
-    6 => [TypAktivity::DRD, TypAktivity::LKD],
-]));
-// letošní i bez aktivit, ať se jde vrátit
-$rocniky = array_values(array_unique(array_merge([$letosniRocnik], $rocniky)));
+);
 
 $rocnik = (int)get('rocnik');
 if (!in_array($rocnik, $rocniky, true)) {
@@ -299,6 +274,11 @@ if (!empty($org)) {
     if (!$minulyRocnik && $typ->isVMenu() && $vypraveciProFiltr) {
         $t->assign('urlLinie', $typ->url());
         $t->parse('aktivity.vypraveciLinie');
+    }
+    // archiv proběhlých přednášek nemá ročník, odkaz je i u minulého ročníku
+    if ($typ->id() === TypAktivity::PREDNASKA) {
+        $t->assign('urlArchivuPrednasek', ArchivPrednasekStranka::getCesta($typ));
+        $t->parse('aktivity.archivPrednasek');
     }
 
     if (!$systemoveNastaveni->jsmeNaOstre() && $u && $u->jeOrganizator()) {
