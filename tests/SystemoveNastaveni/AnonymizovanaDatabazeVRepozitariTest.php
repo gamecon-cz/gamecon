@@ -39,6 +39,13 @@ class AnonymizovanaDatabazeVRepozitariTest extends AbstractTestDb
         'akce_stavy_log',
         'akce_typy',
         'akce_typy_hlavicky',
+        // lecture archive: published titles, speakers as the web shows them and YouTube ids; the link of a speaker
+        // to an account tells no more than akce_organizatori with the public program
+        'archiv_prednasek',
+        'archiv_prednasek_klicove_slovo',
+        'archiv_prednasek_prednasejici',
+        'archiv_prednasek_prednaska_klicove_slovo',
+        'archiv_prednasek_prednaska_prednasejici',
         'emailova_sablona',
         'hromadne_akce_log',
         'kategorie_sjednocenych_tagu',
