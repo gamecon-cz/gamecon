@@ -106,6 +106,8 @@ class StrankyWebuTest extends AbstractTestWeb
             'programold',
             'program-nahled-api',
             'info-po-gc',
+            // archiv přednášek je na prednasky/archiv (ArchivPrednasekWebuTest), samotný modul je 404
+            'archivprednasek',
         ];
         $modulyWebuBaseUrls = array_diff($modulyWebuBaseUrls, $blocklist);
 

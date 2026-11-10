@@ -37,6 +37,14 @@ class CestyKSitemapeTest extends AbstractTestDb
     /**
      * @test
      */
+    public function obsahujeArchivPrednasekPodLinii(): void
+    {
+        self::assertContains('prednasky/archiv', (new CestyKSitemape())->getCesty());
+    }
+
+    /**
+     * @test
+     */
     public function obsahujeStrankyZeSpravyKromePresmerovani(): void
     {
         dbQuery(

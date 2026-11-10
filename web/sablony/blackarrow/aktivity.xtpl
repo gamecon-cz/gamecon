@@ -46,6 +46,9 @@
     <!-- begin: vypraveciLinie -->
     <a href="vypraveci/{urlLinie}" class="aktivity_stranka">Vypravěči</a>
     <!-- end: vypraveciLinie -->
+    <!-- begin: archivPrednasek -->
+    <a href="{urlArchivuPrednasek}" class="aktivity_stranka">Archiv přednášek</a>
+    <!-- end: archivPrednasek -->
 </div>
 
 <div class="aktivity_aktivityObal">
