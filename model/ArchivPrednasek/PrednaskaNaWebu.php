@@ -32,7 +32,7 @@ final readonly class PrednaskaNaWebu
     ) {
     }
 
-    public function htmlId(): string
+    public function getHtmlId(): string
     {
         return 'prednaska-' . $this->id;
     }

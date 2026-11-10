@@ -55,7 +55,7 @@ class CestyKSitemape
             '',
             ...self::VEREJNE_MODULY,
             ...array_filter([...$cestyLinii, ...$cestyStranek], $this->isCestaKterouRouterVrati(...)),
-            ...array_filter([ArchivPrednasekStranka::cestaZDatabaze()]),
+            ...array_filter([ArchivPrednasekStranka::getCestaZDatabaze()]),
             ...array_filter($cestyBlogu, \Url::povolena(...)),
         ];
     }

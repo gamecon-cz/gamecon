@@ -294,7 +294,7 @@ SQL,
     }
 
     /**
-     * A speaker linked to the organiser comes first, then one of the same name, a new one gets the name on the web
+     * A speaker linked to the organiser comes first, then one of the same name without a user, a new one gets the name on the web
      * of the organiser (his nick by default).
      */
     public function testPrednasejiciJsouVedouciVsechTerminuANapojeniSePouzijeZnovu(): void
@@ -319,6 +319,72 @@ SQL,
         self::assertSame(1, (int) dbOneCol(<<<'SQL'
             SELECT COUNT(*) FROM archiv_prednasek_prednasejici WHERE jmeno = 'Skupina po GC'
             SQL), 'Přednášející stejného jména je tentýž');
+    }
+
+    /**
+     * A speaker of the same name linked to another user is a namesake: the lecture goes to a new speaker of the
+     * organiser, not to him.
+     */
+    public function testJmenovecNapojenyNaJinehoUzivateleNeniTentyz(): void
+    {
+        static::disableStrictTransTables();
+        dbQuery(<<<'SQL'
+            INSERT INTO uzivatele_hodnoty(id_uzivatele, login_uzivatele, jmeno_uzivatele, prijmeni_uzivatele, email1_uzivatele)
+            VALUES (990404, 'jmenovec-po-gc', 'Jmenovec', 'Pogc', 'jmenovec-po-gc@example.invalid')
+            SQL);
+        static::enableStrictTransTables();
+        dbQuery(<<<'SQL'
+            INSERT INTO archiv_prednasek_prednasejici(id_prednasejiciho, jmeno, id_uzivatele) VALUES (990403, 'novacek-po-gc', 990404)
+            SQL);
+
+        self::dopln(self::poGc());
+
+        // the organiser 990402 is „novacek-po-gc“ on the web, as is the namesake of the user 990404
+        self::assertSame(
+            [['Občanské jméno z tabulky', 990401], ['novacek-po-gc', 990402]],
+            array_map(
+                static fn (array $radek) => [$radek['jmeno'], (int) $radek['id_uzivatele']],
+                dbFetchAll(<<<'SQL'
+                    SELECT archiv_prednasek_prednasejici.jmeno, archiv_prednasek_prednasejici.id_uzivatele
+                    FROM archiv_prednasek_prednaska_prednasejici
+                    JOIN archiv_prednasek_prednasejici
+                        ON archiv_prednasek_prednasejici.id_prednasejiciho = archiv_prednasek_prednaska_prednasejici.id_prednasejiciho
+                    WHERE archiv_prednasek_prednaska_prednasejici.id_prednasky = (SELECT id_prednasky FROM archiv_prednasek WHERE id_akce = 990401)
+                    ORDER BY archiv_prednasek_prednaska_prednasejici.poradi
+                    SQL),
+            ),
+        );
+    }
+
+    /**
+     * A term of a decided card moved to a new card: the new card is decided by its main activity, the moved term
+     * does not hold it back (it would be rolled back every hour without a word).
+     */
+    public function testKartaSTerminemJineRozhodnuteKartySeDoplni(): void
+    {
+        self::dopln(self::poGc());
+        $zpracovaniPresunuteho = dbOneLine(<<<'SQL'
+            SELECT zpracovano, chyba FROM archiv_prednasek_zpracovane_aktivity WHERE id_akce = 990402
+            SQL);
+        self::assertNotNull($zpracovaniPresunuteho);
+
+        // the term 990402 of the decided card 990401 moves under the new card 990404, which takes place
+        dbQuery(<<<'SQL'
+            INSERT INTO akce_instance(id_instance, id_hlavni_akce) VALUES (990404, 990404)
+            SQL);
+        dbQuery(<<<'SQL'
+            UPDATE akce_seznam SET patri_pod = 990404, stav = IF(id_akce = 990404, 7, stav) WHERE id_akce IN (990402, 990404)
+            SQL);
+
+        self::assertSame(
+            ['Archiv přednášek ' . self::ROK . ': „Proběhne později“ (aktivita 990404) přidána'],
+            self::dopln(self::poGc(ted: self::ROK . '-11-10 13:00')),
+        );
+        self::assertSame([false, 990404], self::prednaskyRoku()['Proběhne později']);
+        self::assertSame($zpracovaniPresunuteho, dbOneLine(<<<'SQL'
+            SELECT zpracovano, chyba FROM archiv_prednasek_zpracovane_aktivity WHERE id_akce = 990402
+            SQL), 'Přesunutý termín zůstane zpracovaný s původní kartou');
+        self::assertSame([], self::dopln(self::poGc(ted: self::ROK . '-11-10 14:00')), 'Další běh nic');
     }
 
     public function testRucniUpravySkrytiAZruseniSparovaniDalsiBehNechaByt(): void

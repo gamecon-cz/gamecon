@@ -10,7 +10,10 @@ namespace Gamecon\ArchivPrednasek;
  */
 final class YoutubeOdkaz
 {
-    private const string VZOR_ID = '~^[A-Za-z0-9_-]{11}$~';
+    /**
+     * \z, not $: $ matches also before a trailing newline, and parse_str() decodes %0A from the query
+     */
+    private const string VZOR_ID = '~^[A-Za-z0-9_-]{11}\z~';
 
     /**
      * Id of the video from any usual form of the address (youtu.be, watch?v=, embed, shorts, live, nocookie)
@@ -18,7 +21,7 @@ final class YoutubeOdkaz
      *
      * @return string|null null when the text is not a YouTube video
      */
-    public static function idZOdkazu(string $odkaz): ?string
+    public static function getIdZOdkazu(string $odkaz): ?string
     {
         // an address has no whitespace, the spreadsheet has some around and inside the links
         $odkaz = (string) preg_replace('~[\s\x{00A0}]+~u', '', $odkaz);
@@ -57,17 +60,17 @@ final class YoutubeOdkaz
             : null;
     }
 
-    public static function urlVidea(string $youtubeId): string
+    public static function getUrlVidea(string $youtubeId): string
     {
         return 'https://www.youtube.com/watch?v=' . rawurlencode($youtubeId);
     }
 
-    public static function urlPrehravace(string $youtubeId): string
+    public static function getUrlPrehravace(string $youtubeId): string
     {
         return 'https://www.youtube-nocookie.com/embed/' . rawurlencode($youtubeId) . '?autoplay=1';
     }
 
-    public static function urlNahledu(string $youtubeId): string
+    public static function getUrlNahledu(string $youtubeId): string
     {
         return 'https://i.ytimg.com/vi/' . rawurlencode($youtubeId) . '/hqdefault.jpg';
     }

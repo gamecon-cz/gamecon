@@ -8,15 +8,16 @@
 
   <!-- lišta filtrů (Preact, ui/src/pages/archivPrednasek), karty jen schovává -->
   <div id="preact-archiv-prednasek" class="archivPrednasek_filtr">
-    <p class="archivPrednasek_pocet">Přednášek v archivu: {pocet}</p>
+    <!-- begin: pocet --><p class="archivPrednasek_pocet">Přednášek v archivu: {pocet}</p><!-- end: pocet -->
+    <!-- begin: vybraniPrednasejici --><p class="archivPrednasek_pocet">Přednášky, kde přednáší {vybraniPrednasejici}: {pocetVybranych}. <a href="{cestaArchivu}">Všechny přednášky</a></p><!-- end: vybraniPrednasejici -->
   </div>
 
   <!-- begin: rok -->
-  <section class="archivPrednasek_rok" data-rok="{rok}">
+  <section class="archivPrednasek_rok" data-rok="{rok}"{skrytyRok}>
     <h2 class="archivPrednasek_nadpisRoku">{rok}</h2>
 
     <!-- begin: prednaska -->
-    <article class="archivPrednasek_prednaska" id="{htmlId}" data-id="{id}">
+    <article class="archivPrednasek_prednaska" id="{htmlId}" data-id="{id}"{skryta}>
       <div class="archivPrednasek_obsah">
         <h3 class="archivPrednasek_nazev">{nazev}</h3>
 

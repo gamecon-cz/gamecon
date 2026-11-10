@@ -8,7 +8,7 @@ use Gamecon\ArchivPrednasek\StitekNaWebu;
 use Gamecon\ArchivPrednasek\YoutubeOdkaz;
 
 /**
- * Archive of lectures of past years (/prednasky/archiv), docs/generated/archivprednasek.md.
+ * Archive of lectures of past years (/prednasky/archiv), docs/generated/archiv-prednasek.md.
  * Cards are put out here, the filter (ui/src/pages/archivPrednasek) only hides them.
  *
  * @var Modul $this
@@ -27,18 +27,43 @@ $this->info()
     ->nazev('Archiv přednášek')
     ->popis('Přednášky z minulých ročníků GameConu, u mnohých i se záznamem.');
 
-$prednasky = (new PrednaskyNaWebu($systemoveNastaveni->rocnik(), $liniePrednasek))->prednasky();
+$prednasky = (new PrednaskyNaWebu($systemoveNastaveni->rocnik(), $liniePrednasek))->getPrednasky();
 $e = static fn (string $text): string => htmlspecialchars($text, ENT_QUOTES);
-$cestaArchivu = ArchivPrednasekStranka::cesta($liniePrednasek);
+$cestaArchivu = ArchivPrednasekStranka::getCesta($liniePrednasek);
+
+// without JavaScript the name of a speaker links to ?prednasejici=ID (the parameter of the filter, ids separated by
+// commas): the cards of other speakers are hidden here, as the filter would hide them; unknown ids are dropped, as
+// the filter drops them
+$jmenaPrednasejicich = [];
+foreach ($prednasky as $prednaska) {
+    foreach ($prednaska->prednasejici as $prednasejici) {
+        $jmenaPrednasejicich[$prednasejici->id] ??= $prednasejici->jmeno;
+    }
+}
+$vybraniPrednasejici = array_values(array_intersect(
+    array_map('intval', explode(',', (string) get('prednasejici'))),
+    array_keys($jmenaPrednasejicich),
+));
+$jeVybrana = static fn (PrednaskaNaWebu $prednaska): bool => $vybraniPrednasejici === []
+    || array_intersect(array_map(static fn ($prednasejici) => $prednasejici->id, $prednaska->prednasejici), $vybraniPrednasejici) !== [];
 
 $t->assign([
-    'urlLinie'  => $liniePrednasek->url(),
-    'pocet'     => count($prednasky),
+    'urlLinie'     => $liniePrednasek->url(),
+    'pocet'        => count($prednasky),
+    'cestaArchivu' => $e($cestaArchivu),
 ]);
+if ($vybraniPrednasejici !== []) {
+    $t->assign([
+        'vybraniPrednasejici' => $e(implode(', ', array_map(static fn (int $id) => $jmenaPrednasejicich[$id], $vybraniPrednasejici))),
+        'pocetVybranych'      => count(array_filter($prednasky, $jeVybrana)),
+    ]);
+    $t->parse('archivprednasek.vybraniPrednasejici');
+} else {
+    $t->parse('archivprednasek.pocet');
+}
 
 // data for the filter, one item per lecture
 $prednaskyProFiltr = [];
-$prednasejiciProFiltr = [];
 $stitkyProFiltr = [];
 
 $podleRoku = [];
@@ -47,13 +72,17 @@ foreach ($prednasky as $prednaska) {
 }
 
 foreach ($podleRoku as $rok => $prednaskyRoku) {
+    $vybranychVRoce = 0;
     /** @var PrednaskaNaWebu $prednaska */
     foreach ($prednaskyRoku as $prednaska) {
+        $vybrana = $jeVybrana($prednaska);
+        $vybranychVRoce += (int) $vybrana;
         $t->assign([
-            'htmlId' => $prednaska->htmlId(),
-            'id'     => $prednaska->id,
-            'nazev'  => $e($prednaska->nazev),
-            'rok'    => $prednaska->rok,
+            'htmlId'  => $prednaska->getHtmlId(),
+            'id'      => $prednaska->id,
+            'nazev'   => $e($prednaska->nazev),
+            'rok'     => $prednaska->rok,
+            'skryta'  => $vybrana ? '' : ' hidden',
         ]);
 
         if ($prednaska->urlRoku !== null) {
@@ -71,7 +100,7 @@ foreach ($podleRoku as $rok => $prednaskyRoku) {
             $t->assign([
                 'idPrednasejiciho'    => $prednasejici->id,
                 'jmenoPrednasejiciho' => $e($prednasejici->jmeno),
-                // without JavaScript the name is a link to the filtered archive
+                // without JavaScript the name is a link to the archive filtered here, with it a click adds him to the filter
                 'urlFiltruPrednasejiciho' => $e($cestaArchivu . '?prednasejici=' . $prednasejici->id),
             ]);
             if ($prednasejici->urlMedailonku !== null) {
@@ -79,7 +108,6 @@ foreach ($podleRoku as $rok => $prednaskyRoku) {
                 $t->parse('archivprednasek.rok.prednaska.prednasejici.osoba.medailonek');
             }
             $t->parse('archivprednasek.rok.prednaska.prednasejici.osoba');
-            $prednasejiciProFiltr[$prednasejici->id] ??= $prednasejici->jmeno;
         }
         if ($prednaska->prednasejici !== []) {
             $t->parse('archivprednasek.rok.prednaska.prednasejici');
@@ -111,9 +139,9 @@ foreach ($podleRoku as $rok => $prednaskyRoku) {
 
         if ($prednaska->youtubeId !== null) {
             $t->assign([
-                'urlVidea'      => $e(YoutubeOdkaz::urlVidea($prednaska->youtubeId)),
-                'urlNahledu'    => $e(YoutubeOdkaz::urlNahledu($prednaska->youtubeId)),
-                'urlPrehravace' => $e(YoutubeOdkaz::urlPrehravace($prednaska->youtubeId)),
+                'urlVidea'      => $e(YoutubeOdkaz::getUrlVidea($prednaska->youtubeId)),
+                'urlNahledu'    => $e(YoutubeOdkaz::getUrlNahledu($prednaska->youtubeId)),
+                'urlPrehravace' => $e(YoutubeOdkaz::getUrlPrehravace($prednaska->youtubeId)),
             ]);
             $t->parse('archivprednasek.rok.prednaska.video');
         }
@@ -121,7 +149,7 @@ foreach ($podleRoku as $rok => $prednaskyRoku) {
         $t->parse('archivprednasek.rok.prednaska');
 
         $prednaskyProFiltr[] = [
-            'htmlId'       => $prednaska->htmlId(),
+            'htmlId'       => $prednaska->getHtmlId(),
             'id'           => $prednaska->id,
             'rok'          => $prednaska->rok,
             'prednasejici' => array_map(static fn ($prednasejici) => $prednasejici->id, $prednaska->prednasejici),
@@ -129,13 +157,17 @@ foreach ($podleRoku as $rok => $prednaskyRoku) {
             'zaznam'       => $prednaska->youtubeId !== null,
         ];
     }
-    $t->assign('rok', $rok);
+    $t->assign([
+        'rok'       => $rok,
+        'skrytyRok' => $vybranychVRoce > 0 ? '' : ' hidden',
+    ]);
     $t->parse('archivprednasek.rok');
 }
 if ($prednasky === []) {
     $t->parse('archivprednasek.zadne');
 }
 
+$prednasejiciProFiltr = $jmenaPrednasejicich;
 $collator = new Collator('cs');
 $collator->asort($prednasejiciProFiltr);
 // keywords of the archive first by alphabet, then tags of the program in the order of their categories
@@ -159,7 +191,7 @@ $filtrArchivu = [
 
 
 ?>
-<link rel="stylesheet" href="<?= 'soubory/ui/style.css?version=' . md5_file(WWW . '/soubory/ui/style.css') ?>">
+<link rel="stylesheet" href="<?= zabalWebSoubor('soubory/ui/style.css') ?>">
 <script>
     window.gameconPřednačtení = <?= json_encode(
         ['archivPrednasek' => $filtrArchivu],
@@ -167,4 +199,4 @@ $filtrArchivu = [
         JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES | JSON_HEX_TAG,
     ) ?>;
 </script>
-<script type="module" src="<?= 'soubory/ui/bundle.js?version=' . md5_file(WWW . '/soubory/ui/bundle.js') ?>"></script>
+<script type="module" src="<?= zabalWebSoubor('soubory/ui/bundle.js') ?>"></script>

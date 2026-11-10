@@ -20,13 +20,6 @@ use Gamecon\KategorieTagu;
 $this->blackarrowStyl(true);
 $this->pridejJsSoubor(__DIR__ . '/../soubory/blackarrow/_spolecne/zachovej-scroll.js');
 
-if (!function_exists('zabalWebSoubor')) {
-    function zabalWebSoubor(string $cestaKSouboru): string
-    {
-        return $cestaKSouboru . '?version=' . md5_file(WWW . '/' . $cestaKSouboru);
-    }
-}
-
 $typ = $this->param('typ');
 
 // zpracování POST požadavků
@@ -37,7 +30,7 @@ Aktivita::prihlasovatkoZpracuj($u, $u);
 
 $letosniRocnik = $systemoveNastaveni->rocnik();
 // ve kterých ročnících tu něco bylo, letošní i bez aktivit, ať se jde vrátit
-$rocniky = RocnikyAktivit::nabizene(
+$rocniky = RocnikyAktivit::getNabizene(
     $letosniRocnik,
     $typ?->id(),
     !empty($org)
@@ -284,7 +277,7 @@ if (!empty($org)) {
     }
     // archiv proběhlých přednášek nemá ročník, odkaz je i u minulého ročníku
     if ($typ->id() === TypAktivity::PREDNASKA) {
-        $t->assign('urlArchivuPrednasek', ArchivPrednasekStranka::cesta($typ));
+        $t->assign('urlArchivuPrednasek', ArchivPrednasekStranka::getCesta($typ));
         $t->parse('aktivity.archivPrednasek');
     }
 

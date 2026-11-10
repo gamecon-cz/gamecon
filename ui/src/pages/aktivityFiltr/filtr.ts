@@ -1,5 +1,5 @@
 import { ApiFiltrAktivitKarta } from "../../api/filtrAktivit";
-import { normalizujText } from "../filtrStranky/text";
+import { normalizujText, obsahujeVšechnaSlova, slovaHledání } from "../filtrStranky/text";
 import { číslaZParametru, nastavParametr, sČárkami, seznamZParametru } from "../filtrStranky/url";
 
 export { normalizujText };
@@ -28,12 +28,12 @@ export const jeFiltrPrázdný = (filtr: FiltrKaret): boolean =>
 
 /** hledání, dny a volná místa */
 const filtrujZáklad = <T extends KartaProFiltr>(karty: T[], filtr: FiltrKaret): T[] => {
-  const slova = normalizujText(filtr.text).split(/\s+/).filter(Boolean);
+  const slova = slovaHledání(filtr.text);
 
   return karty.filter((karta) =>
     (!filtr.jenVolné || karta.volno)
     && (!filtr.dny.length || karta.dny.some((den) => filtr.dny.includes(den)))
-    && slova.every((slovo) => karta.text.includes(slovo))
+    && obsahujeVšechnaSlova(karta.text, slova)
   );
 };
 

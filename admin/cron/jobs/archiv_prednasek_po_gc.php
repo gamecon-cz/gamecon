@@ -14,4 +14,7 @@ require_once __DIR__ . '/../_cron_zavadec.php';
 /** @var \Gamecon\SystemoveNastaveni\SystemoveNastaveni $systemoveNastaveni */
 global $systemoveNastaveni;
 
-DoplneniZProgramu::zNastaveni($systemoveNastaveni)->doplnSkoncene(logs(...));
+// zprávy nesou názvy z programu, výstup cronu je HTML
+DoplneniZProgramu::zNastaveni($systemoveNastaveni)->doplnSkoncene(
+    static fn (string $zprava) => logs(htmlspecialchars($zprava, ENT_QUOTES)),
+);

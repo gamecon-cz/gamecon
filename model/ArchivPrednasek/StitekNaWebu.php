@@ -22,7 +22,7 @@ final readonly class StitekNaWebu
     ) {
     }
 
-    public static function klic(string $nazev): string
+    public static function getKlic(string $nazev): string
     {
         return slugify($nazev);
     }

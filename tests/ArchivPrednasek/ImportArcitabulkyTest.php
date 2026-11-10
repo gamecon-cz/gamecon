@@ -42,9 +42,15 @@ SQL,
     {
         parent::setUp();
         // the migration already filled the archive of the test database, the test starts from an empty one
-        dbQuery('DELETE FROM archiv_prednasek');
-        dbQuery('DELETE FROM archiv_prednasek_prednasejici');
-        dbQuery('DELETE FROM archiv_prednasek_klicove_slovo');
+        dbQuery(<<<'SQL'
+            DELETE FROM archiv_prednasek
+            SQL);
+        dbQuery(<<<'SQL'
+            DELETE FROM archiv_prednasek_prednasejici
+            SQL);
+        dbQuery(<<<'SQL'
+            DELETE FROM archiv_prednasek_klicove_slovo
+            SQL);
     }
 
     /**
@@ -85,7 +91,9 @@ SQL,
     private static function sparovani(): array
     {
         $vysledek = [];
-        foreach (dbFetchAll('SELECT nazev, id_akce FROM archiv_prednasek') as $radek) {
+        foreach (dbFetchAll(<<<'SQL'
+            SELECT nazev, id_akce FROM archiv_prednasek
+            SQL) as $radek) {
             $vysledek[$radek['nazev']] = isset($radek['id_akce'])
                 ? (int) $radek['id_akce']
                 : null;
@@ -126,7 +134,9 @@ SQL,
             self::radek('Druhá přednáška', 2023, ['Kybersova']),
         ]);
 
-        $prednasejici = dbFetchAll('SELECT jmeno, id_uzivatele FROM archiv_prednasek_prednasejici ORDER BY jmeno');
+        $prednasejici = dbFetchAll(<<<'SQL'
+            SELECT jmeno, id_uzivatele FROM archiv_prednasek_prednasejici ORDER BY jmeno
+            SQL);
         self::assertSame([
             [
                 'jmeno'        => 'Bez uživatele',
@@ -168,10 +178,16 @@ SQL,
             WHERE archiv_prednasek.nazev = 'Gamemaster – úskalí'
             ORDER BY archiv_prednasek_prednaska_prednasejici.poradi
             SQL));
-        self::assertSame('QaGjJIZJ4to', dbOneCol("SELECT youtube_id FROM archiv_prednasek WHERE nazev = 'Gamemaster – úskalí'"));
-        self::assertNull(dbOneCol("SELECT youtube_id FROM archiv_prednasek WHERE nazev = 'Druhá přednáška'"));
+        self::assertSame('QaGjJIZJ4to', dbOneCol(<<<'SQL'
+            SELECT youtube_id FROM archiv_prednasek WHERE nazev = 'Gamemaster – úskalí'
+            SQL));
+        self::assertNull(dbOneCol(<<<'SQL'
+            SELECT youtube_id FROM archiv_prednasek WHERE nazev = 'Druhá přednáška'
+            SQL));
         // a keyword differing only in case is the same keyword
-        self::assertSame(['RPG', 'Talk'], dbOneArray('SELECT nazev FROM archiv_prednasek_klicove_slovo ORDER BY nazev'));
+        self::assertSame(['RPG', 'Talk'], dbOneArray(<<<'SQL'
+            SELECT nazev FROM archiv_prednasek_klicove_slovo ORDER BY nazev
+            SQL));
         self::assertSame(2, (int) dbOneCol(<<<'SQL'
             SELECT COUNT(*)
             FROM archiv_prednasek_prednaska_klicove_slovo
