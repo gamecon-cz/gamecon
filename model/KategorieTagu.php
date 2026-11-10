@@ -7,6 +7,8 @@ namespace Gamecon;
  */
 class KategorieTagu extends \DbObject
 {
+    /** štítky „Věk: 15+“ a podobně, viz Tag::getMinimalniVek() */
+    public const OMEZENI_VEK = 50;
 
     protected static $tabulka = 'kategorie_sjednocenych_tagu';
     protected static $pk      = 'id';

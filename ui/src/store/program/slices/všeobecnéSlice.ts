@@ -10,6 +10,10 @@ export type VšeobecnéSlice = {
     zvětšeno: boolean,
     kompaktní: boolean,
     modalOdhlásitAktivitaId?: number,
+    modalUpozorněníNaVěk?: {
+      nazevAktivity: string,
+      minimalniVek: number,
+    },
     nastaveniTymu?: {
       aktivitaId: number,
       nazevAktivity?: string,
@@ -89,6 +93,29 @@ export const nastavModalOdhlásit = (aktivitaId?: number) => {
   useProgramStore.setState(s => {
     s.všeobecné.modalOdhlásitAktivitaId = aktivitaId;
   }, undefined, "nastav modal odhlásit");
+};
+
+// funkce do stavu nepatří (devtools ho serializují), proto vedle něj
+let přihlášeníPoUpozorněníNaVěk: (() => void) | undefined;
+
+/**
+ * Upozornění před přihlášením na aktivitu, na jejíž minimální věk účastník nedosáhne.
+ * Přihlášení provede až potvrzení (přihlaš), zavření ho zahodí.
+ */
+export const otevřiUpozorněníNaVěk = (nazevAktivity: string, minimalniVek: number, přihlaš: () => void) => {
+  přihlášeníPoUpozorněníNaVěk = přihlaš;
+  useProgramStore.setState(s => {
+    s.všeobecné.modalUpozorněníNaVěk = { nazevAktivity, minimalniVek };
+  }, undefined, "otevři upozornění na věk");
+};
+
+export const zavřiUpozorněníNaVěk = (přihlásit: boolean) => {
+  const přihlaš = přihlášeníPoUpozorněníNaVěk;
+  přihlášeníPoUpozorněníNaVěk = undefined;
+  useProgramStore.setState(s => {
+    delete s.všeobecné.modalUpozorněníNaVěk;
+  }, undefined, "zavři upozornění na věk");
+  if (přihlásit) přihlaš?.();
 };
 
 export const nastavChyba = (chyba?: string) => {

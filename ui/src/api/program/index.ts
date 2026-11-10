@@ -111,6 +111,8 @@ export type ApiAktivitaUživatel = {
   mistnosti?: ApiLokace[],
   // todo: tohle je taky možný stav přihlášení (odebrat tady a přidat do stavPrihlaseni)
   vedu?: boolean,
+  /** minimální věk aktivity, když ho účastník v den aktivity nesplní (před přihlášením upozornění), jinak null */
+  nesplnenyMinimalniVek?: number | null,
   // todo(tym): členové týmu (pak není potřeba tymPocetClenu)
   // todo(tym): kapitán týmu
   // todo(tym): název týmu

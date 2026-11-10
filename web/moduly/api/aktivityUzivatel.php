@@ -36,6 +36,9 @@ $aktivityUzivatelData = [];
 $aktivitySkryteData = [];
 
 if ($ucastnik) {
+    // na věk upozorňujeme jen účastníka, který se hlásí sám; kdo ho přihlašuje z adminu, má výjimku domluvenou (záměr)
+    $upozornovatNaVek = $operator === null || $operator->id() === $ucastnik->id();
+
     foreach ($aktivity as $aktivita) {
         $zacatekAktivity = $aktivita->zacatek();
         $konecAktivity = $aktivita->konec();
@@ -67,6 +70,10 @@ if ($ucastnik) {
             'mistnosti'       => !empty($seznamLokaci) ? $seznamLokaci : null,
             'vedu'            => $vedeAktivitu,
             'interni'         => $interni,
+            // minimální věk aktivity, pokud ho účastník v den aktivity nesplní, jinak null; před přihlášením se ukáže upozornění
+            'nesplnenyMinimalniVek' => $upozornovatNaVek && $aktivita->isMladsiNezMinimalniVek($ucastnik)
+                ? $aktivita->getMinimalniVek()
+                : null,
         ];
 
         // Hidden activities visible only to this user (not publicly visible).

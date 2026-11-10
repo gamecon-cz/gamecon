@@ -7,6 +7,7 @@ import { ProgramTabulka } from "./components/tabulka/ProgramTabulka";
 import { inicializujProgramStore } from "../../store/program/inicializace";
 import { načtiPřihlášenýUživatel } from "../../store/program/slices/přihlášenSlice";
 import { OdhlasitAktivituModal } from "./components/vstupy/OdhlasitAktivituModal";
+import { UpozorneniNaVekModal } from "./components/vstupy/UpozorneniNaVekModal";
 import { ChybaBox } from "./components/ChybaBox";
 
 import "./program.less";
@@ -23,6 +24,7 @@ export const Program: FunctionComponent = () => {
     <>
       <NastaveniTymuModal />
       <OdhlasitAktivituModal />
+      <UpozorneniNaVekModal />
       <div class={"program-obal"}>
         <ProgramNáhled />
         <ProgramUživatelskéVstupy />

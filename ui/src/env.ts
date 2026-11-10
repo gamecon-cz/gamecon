@@ -99,6 +99,10 @@ declare global {
       prihlaseniTymu: {
         otevri?: ((aktivitaId: number, nazev?: string) => void) | undefined,
       },
+      /** odkaz „přihlásit" na stránkách linií, Aktivita::prihlasovatkoSUpozornenimNaVek() */
+      upozorneniNaVek: {
+        otevri?: ((nazevAktivity: string, minimalniVek: number, prihlas: () => void) => void) | undefined,
+      },
     }
   }
 }
@@ -149,6 +153,8 @@ export const initEnv = () => {
     obchod: {
     },
     prihlaseniTymu: {
+    },
+    upozorneniNaVek: {
     },
   };
 };
