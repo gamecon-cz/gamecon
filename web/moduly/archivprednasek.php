@@ -25,7 +25,7 @@ if (! $liniePrednasek instanceof TypAktivity) {
 $this->blackarrowStyl(true);
 $this->info()
     ->nazev('Archiv přednášek')
-    ->popis('Přednášky z minulých ročníků GameConu, u mnohých i se záznamem.');
+    ->popis('Přednášky z minulých ročníků GameConu, u některých i se záznamem.');
 
 $prednasky = (new PrednaskyNaWebu($systemoveNastaveni->rocnik(), $liniePrednasek))->getPrednasky();
 $e = static fn (string $text): string => htmlspecialchars($text, ENT_QUOTES);

@@ -2,7 +2,7 @@
 <div class="archivPrednasek">
   <h1>Archiv přednášek</h1>
   <p class="archivPrednasek_uvod">
-    Přednášky z minulých ročníků GameConu, u mnohých i se záznamem.
+    Přednášky z minulých ročníků GameConu, u některých i se záznamem.
     <a href="{urlLinie}">Letošní přednášky</a>
   </p>
 
