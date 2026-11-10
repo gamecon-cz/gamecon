@@ -139,6 +139,69 @@ SQL,
     /**
      * @test
      *
+     * Uložení z editace nebo importu zapíše stav do logu jako každá jiná změna, ale jen opravdovou změnu: import
+     * posílá stav i beze změny a online prezence bere každý řádek logu za změnu stavu.
+     */
+    public function ulozeniZapiseDoLoguJenZmenuStavu(): void
+    {
+        $stavyVLogu = static fn (Aktivita $aktivita): array => array_map('intval', dbFetchColumn(<<<'SQL'
+            SELECT id_stav FROM akce_stavy_log WHERE id_akce = $0 ORDER BY akce_stavy_log_id
+            SQL, [
+            0 => $aktivita->id(),
+        ]));
+        $uloz = static fn (array $data): Aktivita => Aktivita::uloz(
+            data: $data + [
+                Sql::NAZEV_AKCE   => 'Stav v logu',
+                Sql::TYP          => TypAktivity::DESKOHERNA,
+                Sql::CENA         => 0,
+                Sql::POPIS_KRATKY => '',
+            ],
+            markdownPopis: null,
+            organizatoriIds: [],
+            lokaceIds: [],
+            hlavniLokaceId: null,
+            tagIds: [],
+        );
+
+        // nová ve stavu nová do logu nejde (aktivita bez záznamu je nová), rovnou zveřejněná ano
+        self::assertSame([], $stavyVLogu($uloz([])));
+        $aktivita = $uloz([
+            Sql::STAV => StavAktivity::PUBLIKOVANA,
+        ]);
+        self::assertSame([StavAktivity::PUBLIKOVANA], $stavyVLogu($aktivita));
+
+        // jediná aktivita
+        $uloz([
+            Sql::ID_AKCE => $aktivita->id(),
+            Sql::STAV    => StavAktivity::PUBLIKOVANA,
+        ]);
+        $uloz([
+            Sql::ID_AKCE => $aktivita->id(),
+        ]);
+        self::assertSame([StavAktivity::PUBLIKOVANA], $stavyVLogu($aktivita), 'Beze změny stavu nic');
+        $uloz([
+            Sql::ID_AKCE => $aktivita->id(),
+            Sql::STAV    => StavAktivity::PRIPRAVENA,
+        ]);
+        self::assertSame([StavAktivity::PUBLIKOVANA, StavAktivity::PRIPRAVENA], $stavyVLogu($aktivita));
+
+        // instance
+        $instance = $aktivita->instancuj();
+        $ulozInstanci = static fn (int $stav) => $uloz([
+            Sql::ID_AKCE   => $instance->id(),
+            Sql::PATRI_POD => $instance->patriPod(),
+            Sql::STAV      => $stav,
+        ]);
+        $ulozInstanci(StavAktivity::NOVA);
+        self::assertSame([], $stavyVLogu($instance), 'Beze změny stavu nic');
+        $ulozInstanci(StavAktivity::PUBLIKOVANA);
+        $ulozInstanci(StavAktivity::PUBLIKOVANA);
+        self::assertSame([StavAktivity::PUBLIKOVANA], $stavyVLogu($instance));
+    }
+
+    /**
+     * @test
+     *
      * @dataProvider provideZdrojOdhlaseni
      */
     public function muzuZiskatNazvyZrusenychAktivitUzivatele(
