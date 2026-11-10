@@ -320,8 +320,8 @@ final class DoplneniZProgramu
         $vArchivu = $this->repository->getSparovaneAktivity($idsAkci);
         // the hourly cron locks every activity that started, even one that was never public (NOVA); someone
         // signing up, or a state of the public program in the log, is what shows that the card was in the program
-        // (aktivuj(), publikuj() and priprav() do not write into the log, only the bulk activation and the locking
-        // do; every lecture of 2022–2026 has a sign-up)
+        // (aktivuj(), publikuj() and priprav() write into the log only since the end of 2026, before only the bulk
+        // activation and the locking did; every lecture of 2022–2026 has a sign-up)
         $vProgramu = array_map('intval', dbFetchColumn(<<<'SQL'
             SELECT id_akce FROM akce_prihlaseni_log WHERE id_akce IN ($0)
             UNION

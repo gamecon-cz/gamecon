@@ -98,6 +98,47 @@ SQL,
     /**
      * @test
      *
+     * Každá změna stavu jde do akce_stavy_log, nejen zamčení a uzavření: podle logu se pozná, že aktivita byla
+     * veřejná (archiv přednášek), a online prezence z něj čte změny stavu.
+     */
+    public function zmenaStavuSeZapiseDoLogu(): void
+    {
+        dbUpdate(Sql::AKCE_SEZNAM_TABULKA, [
+            Sql::ZACATEK => new DateTimeImmutableStrict(),
+            Sql::STAV    => StavAktivity::NOVA,
+        ], [
+            Sql::ID_AKCE => 3,
+        ]);
+        $aktivita = Aktivita::zId(id: 3);
+
+        $aktivita->publikuj();
+        $aktivita->priprav();
+        $aktivita->odpriprav();
+        $aktivita->priprav();
+        $aktivita->aktivuj();
+        $aktivita->deaktivuj();
+        $aktivita->zamkni();
+
+        self::assertSame(
+            [
+                StavAktivity::PUBLIKOVANA,
+                StavAktivity::PRIPRAVENA,
+                StavAktivity::PUBLIKOVANA,
+                StavAktivity::PRIPRAVENA,
+                StavAktivity::AKTIVOVANA,
+                StavAktivity::PRIPRAVENA,
+                StavAktivity::ZAMCENA,
+            ],
+            array_map('intval', dbFetchColumn(<<<'SQL'
+                SELECT id_stav FROM akce_stavy_log WHERE id_akce = 3 ORDER BY akce_stavy_log_id
+                SQL)),
+        );
+        self::assertSame(StavAktivity::ZAMCENA, $aktivita->posledniZmenaStavuAktivity()?->stavAktivity());
+    }
+
+    /**
+     * @test
+     *
      * @dataProvider provideZdrojOdhlaseni
      */
     public function muzuZiskatNazvyZrusenychAktivitUzivatele(
