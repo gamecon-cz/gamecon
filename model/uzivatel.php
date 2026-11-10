@@ -1605,8 +1605,8 @@ SQL,
      */
     public function odhlas(bool $naUvodniStranku = true)
     {
-        // Po „Přihlásit se jako“ se odhlašuje ten, kdo sedí u zařízení. Uživateli, na kterého se přepnul, by
-        // odhlášení zrušilo JWT i na jeho vlastních zařízeních. Cookie trvalého přihlášení je toho, kdo u zařízení sedí.
+        // Po „Přihlásit se jako“ se odhlašuje ten, kdo sedí u zařízení: session, trvalé přihlášení i JWT tohoto
+        // prohlížeče jsou jeho. Uživateli, na kterého se přepnul, odhlášení na jeho zařízeních nic nezruší.
         $odhlasovany = PrepnutiNaUzivatele::zSession()->getPuvodniUzivatel() ?? $this;
         // Než zmizí session: když to selže, odhlášení jde zopakovat.
         TrvalePrihlaseni::zrusNaTomtoZarizeni($_SESSION[self::UZIVATEL][self::ID_TRVALEHO_PRIHLASENI] ?? null);
@@ -1635,33 +1635,35 @@ SQL,
      */
     public function zmenRazitkoPrihlaseni(bool $ponechatTotoZarizeni, array $sloupce = []): void
     {
-        // Trvalá přihlášení dřív než razítko. Přihlášení z cookie čte razítko stejným dotazem jako svůj řádek,
-        // takže dokud řádek najde, dostane do session staré razítko a ta skončí s dalším požadavkem.
-        if ($ponechatTotoZarizeni) {
-            TrvalePrihlaseni::zrusNaOstatnichZarizenich($this->id());
-        } else {
-            TrvalePrihlaseni::zrusVsude($this->id());
-        }
-        $razitko = bin2hex(random_bytes(16));
+        $razitko = randHex(32);
+        // Razítko i trvalá přihlášení naráz. Přihlášení z cookie čte razítko stejným dotazem jako svůj řádek,
+        // takže uvidí buď řádek se starým razítkem (session skončí s dalším požadavkem), nebo ani jedno.
+        // Razítko první: zámek řádku uživatele pozdrží trvalé přihlášení heslem ověřeným proti starému
+        // razítku, dokud se nezmění, a to pak řádek nezaloží, viz TrvalePrihlaseni::zaloz().
+        dbBegin();
         try {
             dbUpdate(Sql::UZIVATELE_HODNOTY_TABULKA, [...$sloupce, Sql::RAZITKO_PRIHLASENI => $razitko], [
                 Sql::ID_UZIVATELE => $this->id(),
             ]);
-        } catch (\DbException $dbException) {
-            // Nasazení nahraje kód dřív, než migrace sloupec přidá. Nové heslo se uložit musí,
-            // ostatní zařízení do té doby odhlásit nejde.
-            if ($dbException->getCode() !== 1054 /* unknown column */ || $sloupce === []) {
-                throw $dbException;
+            if ($ponechatTotoZarizeni) {
+                TrvalePrihlaseni::zrusNaOstatnichZarizenich($this->id());
+            } else {
+                TrvalePrihlaseni::zrusVsude($this->id());
             }
-            dbUpdate(Sql::UZIVATELE_HODNOTY_TABULKA, $sloupce, [
-                Sql::ID_UZIVATELE => $this->id(),
-            ]);
-            $razitko = null;
+            dbCommit();
+        } catch (\Throwable $throwable) {
+            dbRollback();
+            throw $throwable;
         }
         $this->r = array_merge($this->r, $sloupce, [Sql::RAZITKO_PRIHLASENI => $razitko]);
 
-        if ($ponechatTotoZarizeni && (int) ($_SESSION[self::UZIVATEL]['id_uzivatele'] ?? 0) === $this->id()) {
+        $totoZarizeniZustava = $ponechatTotoZarizeni
+            && (int) ($_SESSION[self::UZIVATEL]['id_uzivatele'] ?? 0) === $this->id();
+        if ($totoZarizeniZustava) {
             $_SESSION[self::UZIVATEL][self::RAZITKO_PRIHLASENI] = $razitko;
+        }
+        // Po „Přihlásit se jako“ nese tento prohlížeč JWT toho, kdo se přepnul, token uživatele by mu ho přepsal.
+        if ($totoZarizeniZustava && ! PrepnutiNaUzivatele::zSession()->isPrepnuto()) {
             // Nový token pro e-shop přepíše uložený, kopie z ostatních zařízení s ním už nesedí.
             self::generateJwtToken($this);
         } else {
@@ -1681,13 +1683,9 @@ SQL,
         }
         session_destroy();
         if ($smazatJwt) {
-            $this->destroyJwtToken();
+            // Jen kopii tohoto prohlížeče. Smazat uložený token by odhlásilo e-shop i na ostatních zařízeních.
+            deleteJwtCookie();
         }
-    }
-
-    private function destroyJwtToken(): void
-    {
-        deleteJwtForUser($this);
     }
 
     private static function generateJwtToken(
@@ -1990,6 +1988,7 @@ SQL,
         if ($u) {
             $_SESSION[self::UZIVATEL][self::ID_TRVALEHO_PRIHLASENI] = TrvalePrihlaseni::zaloz(
                 $u->id(),
+                $u->r[Sql::RAZITKO_PRIHLASENI],
                 $_SESSION[self::UZIVATEL][self::ID_TRVALEHO_PRIHLASENI] ?? null,
             );
         }
@@ -2010,14 +2009,13 @@ SQL,
         bool $vytvoritJwt = true,
     ): self {
         $idUzivatele = (int) $uzivatelData['id_uzivatele'];
-        if (! session_id()) {
+        if (! session_id() && PHP_SAPI !== 'cli') {
             session_start();
         }
         $uzivatelData['id_uzivatele'] = $idUzivatele;
         $_SESSION[$klic]['id_uzivatele'] = $idUzivatele;
         if ($klic === self::UZIVATEL) {
-            // Před migrací sloupec chybí, razítko se pak nekontroluje.
-            $_SESSION[$klic][self::RAZITKO_PRIHLASENI] = $uzivatelData[Sql::RAZITKO_PRIHLASENI] ?? null;
+            $_SESSION[$klic][self::RAZITKO_PRIHLASENI] = $uzivatelData[Sql::RAZITKO_PRIHLASENI];
         }
         // načtení uživatelských práv, inicializace nutná, aby nepadala výjimka pro uživatele bez práv
         $uzivatelData['prava'] = array_map('intval', dbFetchColumn(<<<'SQL'
@@ -2340,13 +2338,14 @@ SQL,
             }
             if ($zmenaHesla) {
                 // Změna hesla odhlásí ostatní zařízení, údaje se zapíšou stejným dotazem jako nové razítko.
+                // Uživatele i jeho token pro e-shop obnoví zmenRazitkoPrihlaseni(), otočení by token vydalo podruhé.
                 $u->zmenRazitkoPrihlaseni(ponechatTotoZarizeni: true, sloupce: $dbTab);
             } else {
                 dbUpdate(Sql::UZIVATELE_HODNOTY_TABULKA, $dbTab, [
                     Sql::ID_UZIVATELE => $u->id(),
                 ]);
+                $u->otoc();
             }
-            $u->otoc();
             $idUzivatele = $u->id();
             $urlUzivatele = self::vytvorUrl($u->r);
             if ($zmeniloSeJmenoNaWebu) {
@@ -2463,7 +2462,7 @@ SQL,
                 $tab[$sloupec] = '';
             }
         }
-        // Výchozí NULL, nové razítko se nekontroluje. Nasazení navíc nahraje kód dřív, než migrace sloupec přidá.
+        // Výchozí NULL, nové razítko se nekontroluje.
         unset($tab[Sql::RAZITKO_PRIHLASENI]);
         $opt = opt($opt, [
             'informovat' => false,
@@ -3160,8 +3159,8 @@ SQL,
             if (! empty($_SESSION[$klic]['id_uzivatele'])) {
                 $u = self::zId($_SESSION[$klic]['id_uzivatele']);
             }
-            // Mezitím se odhlásil na ostatních zařízeních nebo si změnil heslo. Před migrací sloupec chybí.
-            $razitko = $u?->r[Sql::RAZITKO_PRIHLASENI] ?? null;
+            // Mezitím se odhlásil na ostatních zařízeních nebo si změnil heslo.
+            $razitko = $u?->r[Sql::RAZITKO_PRIHLASENI];
             if ($klic === self::UZIVATEL
                 && $razitko !== null
                 && ($_SESSION[$klic][self::RAZITKO_PRIHLASENI] ?? null) !== $razitko

@@ -80,7 +80,11 @@ abstract class AbstractPrihlaseniNaZarizenichTestDb extends AbstractTestDb
 
     protected function login(int $idUzivatele): string
     {
-        return (string) dbOneCol('SELECT login_uzivatele FROM uzivatele_hodnoty WHERE id_uzivatele = $0', [$idUzivatele]);
+        return (string) dbOneCol(<<<'SQL'
+            SELECT login_uzivatele FROM uzivatele_hodnoty WHERE id_uzivatele = $0
+            SQL, [
+            0 => $idUzivatele,
+        ]);
     }
 
     /**
