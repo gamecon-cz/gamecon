@@ -1,0 +1,239 @@
+<!-- begin: seznam -->
+
+<style>
+  .archivPrednasek_filtr {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px 16px;
+    align-items: flex-end;
+    margin-bottom: 16px;
+  }
+
+  .archivPrednasek_filtr label {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+  }
+
+  .archivPrednasek_seznam td {
+    vertical-align: top;
+  }
+
+  .archivPrednasek_skryta td {
+    color: #888;
+  }
+</style>
+
+<h1>Archiv přednášek</h1>
+
+<p>
+  Přednášky z minulých ročníků na webu: <a href="{urlArchivu}" target="_blank">{urlArchivu}</a>.
+  Přednášky ročníku se po skončení GameConu doplní z programu samy; klíčová slova a odkaz na záznam doplň tady.
+</p>
+
+<p><a href="{urlModulu}?id=nova"><i class="fa-solid fa-plus"></i> Nová přednáška</a></p>
+
+<form method="get" action="{urlModulu}" class="archivPrednasek_filtr">
+  <label>Rok
+    <select name="rok">
+      <option value="">všechny</option>
+      <!-- begin: rok -->
+      <option value="{rok}"{vybrany}>{rok}</option>
+      <!-- end: rok -->
+    </select>
+  </label>
+  <label>Program
+    <select name="sparovana">
+      <option value="">vše</option>
+      <option value="1"{sparovanaAno}>spárované</option>
+      <option value="0"{sparovanaNe}>nespárované</option>
+    </select>
+  </label>
+  <label>Záznam
+    <select name="zaznam">
+      <option value="">vše</option>
+      <option value="1"{zaznamAno}>se záznamem</option>
+      <option value="0"{zaznamNe}>bez záznamu</option>
+    </select>
+  </label>
+  <label>Na webu
+    <select name="skryta">
+      <option value="">vše</option>
+      <option value="0"{skrytaNe}>zobrazené</option>
+      <option value="1"{skrytaAno}>skryté</option>
+    </select>
+  </label>
+  <label>Hledat
+    <input type="search" name="hledat" value="{hledat}" placeholder="název nebo přednášející">
+  </label>
+  <button type="submit">Filtrovat</button>
+  <a href="{urlModulu}">zrušit filtr</a>
+</form>
+
+<p>Přednášek: {pocet}</p>
+
+<table class="zvyraznovana archivPrednasek_seznam" style="width: 100%">
+  <tr>
+    <th>Rok</th>
+    <th>Název</th>
+    <th>Přednášející</th>
+    <th>Aktivita programu</th>
+    <th>Záznam</th>
+    <th></th>
+  </tr>
+  <!-- begin: prednaska -->
+  <tr class="{tridaRadku}">
+    <td>{rok}</td>
+    <td><a href="{urlModulu}?id={id}">{nazev}</a><!-- begin: skryta --> <em>(skrytá)</em><!-- end: skryta --></td>
+    <td>{prednasejici}</td>
+    <td>{sparovani}</td>
+    <td>{zaznam}</td>
+    <td>
+      <form method="post">
+        <input type="hidden" name="idPrednasky" value="{id}">
+        <button type="submit" name="{akce}" value="1">{akceText}</button>
+      </form>
+    </td>
+  </tr>
+  <!-- end: prednaska -->
+  <!-- begin: zadna -->
+  <tr>
+    <td colspan="6"><em>Filtru neodpovídá žádná přednáška.</em></td>
+  </tr>
+  <!-- end: zadna -->
+</table>
+
+<!-- end: seznam -->
+
+<!-- begin: detail -->
+
+<style>
+  .archivPrednasek_detail > table > tbody > tr > th {
+    width: 12em;
+    text-align: left;
+    vertical-align: top;
+    padding-top: 6px;
+  }
+
+  .archivPrednasek_detail td {
+    vertical-align: top;
+  }
+
+  .archivPrednasek_napoveda {
+    color: #666;
+    font-size: 0.9em;
+  }
+
+  .archivPrednasek_slova input {
+    margin: 0 4px 4px 0;
+  }
+</style>
+
+<p><a href="{urlModulu}">← Archiv přednášek</a></p>
+
+<h1>{nadpis}</h1>
+
+<form method="post" class="archivPrednasek_detail">
+  <input type="hidden" name="idPrednasky" value="{id}">
+  <table>
+    <tr>
+      <th><label for="archivPrednasek_nazev">Název</label></th>
+      <td><input id="archivPrednasek_nazev" name="nazev" value="{nazev}" required maxlength="255" size="80"></td>
+    </tr>
+    <tr>
+      <th><label for="archivPrednasek_rok">Rok</label></th>
+      <td><input id="archivPrednasek_rok" name="rok" value="{rok}" required inputmode="numeric" pattern="[0-9]{4}" size="6"></td>
+    </tr>
+    <tr>
+      <th>Přednášející</th>
+      <td>
+        <table>
+          <tr>
+            <th>Jméno na webu</th>
+            <th>Uživatel (medailonek)</th>
+          </tr>
+          <!-- begin: prednasejici -->
+          <tr>
+            <td><input name="prednasejiciJmeno[]" value="{jmeno}" list="archivPrednasek_jmena" size="30"></td>
+            <td>
+              <input name="prednasejiciUzivatel[]" value="{uzivatel}" class="omnibox" size="10" placeholder="hledat">
+              <input type="hidden" name="prednasejiciPuvodniUzivatel[]" value="{puvodniUzivatel}">
+              {popisUzivatele}
+            </td>
+          </tr>
+          <!-- end: prednasejici -->
+        </table>
+        <datalist id="archivPrednasek_jmena">
+          <!-- begin: jmeno -->
+          <option value="{moznost}">
+          <!-- end: jmeno -->
+        </datalist>
+        <div class="archivPrednasek_napoveda">
+          Stejné jméno je stejný přednášející ve všech přednáškách a změna jeho uživatele platí pro všechny.
+          Skupina nebo firma je přednášející bez uživatele. Řádek bez jména se nezapíše, pořadí řádků je pořadí na webu.
+        </div>
+      </td>
+    </tr>
+    <tr>
+      <th>Klíčová slova</th>
+      <td class="archivPrednasek_slova">
+        <!-- begin: klicoveSlovo -->
+        <input name="klicovaSlova[]" value="{slovo}" list="archivPrednasek_slova" size="18">
+        <!-- end: klicoveSlovo -->
+        <datalist id="archivPrednasek_slova">
+          <!-- begin: slovo -->
+          <option value="{moznost}">
+          <!-- end: slovo -->
+        </datalist>
+        <div class="archivPrednasek_napoveda">
+          Našeptávají se existující klíčová slova, nové stačí napsat. Štítky z programu se ke spárované přednášce přidají samy.
+        </div>
+      </td>
+    </tr>
+    <tr>
+      <th><label for="archivPrednasek_youtube">Záznam na YouTube</label></th>
+      <td>
+        <input id="archivPrednasek_youtube" name="youtube" value="{youtube}" size="50" placeholder="https://youtu.be/…">
+        <!-- begin: video -->
+        <a href="{urlVidea}" target="_blank"><img src="{urlNahledu}" alt="náhled" height="60" style="vertical-align: middle"></a>
+        <!-- end: video -->
+        <div class="archivPrednasek_napoveda">Jakákoli adresa videa na YouTube nebo jeho ID; uloží se jen ID, sledovací parametry zmizí. Prázdné = bez záznamu.</div>
+      </td>
+    </tr>
+    <tr>
+      <th><label for="archivPrednasek_idAkce">Aktivita programu</label></th>
+      <td>
+        <!-- begin: aktivita -->
+        <div><a href="{urlAktivity}">{nazevAktivity}</a> ({rokAktivity}, {typAktivity})</div>
+        <!-- end: aktivita -->
+        <!-- begin: bezAktivity -->
+        <div><em>nespárovaná, anotace ani štítky z programu se neukazují</em></div>
+        <!-- end: bezAktivity -->
+        <input id="archivPrednasek_idAkce" name="idAkce" value="{idAkce}" class="omnibox" size="10"
+               placeholder="hledat" data-omnibox-url="{urlModulu}?hledatAktivitu=1" data-omnibox="{omniboxRok}">
+        <label><input type="checkbox" id="archivPrednasek_vsechnyRoky"> hledat ve všech ročnících</label>
+        <div class="archivPrednasek_napoveda">Hledá kartu programu podle názvu v roce přednášky. Vymazané pole spárování zruší.</div>
+        <script>
+          // omnibox čte data-omnibox při každém hledání, rok se tak dá vypnout bez nového načtení
+          document.getElementById('archivPrednasek_vsechnyRoky').addEventListener('change', (udalost) => {
+            const pole = document.getElementById('archivPrednasek_idAkce')
+            const rok = document.getElementById('archivPrednasek_rok').value
+            pole.dataset.omnibox = JSON.stringify(udalost.target.checked ? {} : {rok: Number(rok)})
+          })
+          document.getElementById('archivPrednasek_rok').addEventListener('change', (udalost) => {
+            if (!document.getElementById('archivPrednasek_vsechnyRoky').checked) {
+              document.getElementById('archivPrednasek_idAkce').dataset.omnibox = JSON.stringify({rok: Number(udalost.target.value)})
+            }
+          })
+        </script>
+      </td>
+    </tr>
+    <tr>
+      <th>Na webu</th>
+      <td><label><input type="checkbox" name="skryta" value="1"{skrytaChecked}> skrýt z archivu</label></td>
+    </tr>
+  </table>
+  <p><button type="submit" name="ulozit" value="1">Uložit</button></p>
+</form>
+
+<!-- end: detail -->
