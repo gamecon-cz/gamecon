@@ -198,14 +198,7 @@ final class SpravaArchivu
         $idHlavniAkce = $idAkce !== null
             ? $this->overenaAkceKSparovani($idAkce, $idPrednasky)
             : null;
-        $stejnaPrednaska = dbOneCol(<<<'SQL'
-            SELECT id_prednasky FROM archiv_prednasek WHERE rok = $0 AND nazev = $1 AND ($2 IS NULL OR id_prednasky != $2)
-            SQL, [
-            0 => $rok,
-            1 => $nazev,
-            2 => $idPrednasky,
-        ]);
-        if ($stejnaPrednaska) {
+        if ($this->repository->getIdPrednaskyPodleNazvu($nazev, $rok, $idPrednasky) !== null) {
             throw new ChybaArchivu("Přednáška „{$nazev}“ z roku {$rok} už v archivu je.");
         }
         $prednasejici = $this->overeniPrednasejici($prednasejici);
@@ -239,7 +232,7 @@ final class SpravaArchivu
                 $idsPrednasejicich[] = $this->idPrednasejiciho($jmeno, $idUzivatele, $menitUzivatele);
             }
             $this->repository->nastavPrednasejici($idPrednasky, $idsPrednasejicich);
-            $this->repository->nastavKlicovaSlova($idPrednasky, array_map($this->repository->idKlicovehoSlova(...), $klicovaSlova));
+            $this->repository->nastavKlicovaSlova($idPrednasky, array_map($this->repository->najdiNeboVlozKlicoveSlovo(...), $klicovaSlova));
             $this->uklidNepouzite();
             dbCommit();
         } catch (\Throwable $throwable) {
@@ -397,7 +390,7 @@ final class SpravaArchivu
 
     private function idPrednasejiciho(string $jmeno, ?int $idUzivatele, bool $menitUzivatele): int
     {
-        $idPrednasejiciho = $this->repository->idPrednasejicihoPodleJmena($jmeno);
+        $idPrednasejiciho = $this->repository->getIdPrednasejicihoPodleJmena($jmeno);
         if ($idPrednasejiciho === null) {
             return $this->repository->vlozPrednasejiciho($jmeno, $idUzivatele);
         }

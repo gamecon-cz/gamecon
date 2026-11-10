@@ -125,7 +125,8 @@ $pocetUpozorneni = Aktivita::upozorniNaNeuzavreneKonciciOdDo(
 logs("Odesláno $pocetUpozorneni mailů.");
 
 // nový job s ?job= by se musel přidat i do plánovače na cron-job.org, archiv se proto doplňuje tady;
-// kontrola je levná a ročník se doplní jen jednou
+// kontrola je levná, každá karta se doplní jen jednou a karta, která selže, se zkusí znovu až za den,
+// takže opakovaná chyba nepošle mail každou hodinu
 try {
     include __DIR__ . '/cron/jobs/archiv_prednasek_po_gc.php';
 } catch (Throwable $e) {

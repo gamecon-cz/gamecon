@@ -74,7 +74,7 @@ final class ImportArcitabulky
             }
             $idPrednasky = $this->repository->vlozPrednasku($radek->nazev, $radek->rok, $radek->youtubeId, $idAkce);
             $this->repository->nastavPrednasejici($idPrednasky, array_map($this->idPrednasejiciho(...), $radek->prednasejici));
-            $this->repository->nastavKlicovaSlova($idPrednasky, array_map($this->repository->idKlicovehoSlova(...), $radek->klicovaSlova));
+            $this->repository->nastavKlicovaSlova($idPrednasky, array_map($this->repository->najdiNeboVlozKlicoveSlovo(...), $radek->klicovaSlova));
         }
         // a pairing that matches no row would mean the unification changed after the pairing was approved
         foreach ($parovaniPodleKlice as $klic => [$idAkce]) {
@@ -155,7 +155,7 @@ final class ImportArcitabulky
             return $this->prednasejici[$klic];
         }
 
-        return $this->prednasejici[$klic] = $this->repository->idPrednasejicihoPodleJmena($jmeno)
+        return $this->prednasejici[$klic] = $this->repository->getIdPrednasejicihoPodleJmena($jmeno)
             ?? $this->repository->vlozPrednasejiciho($jmeno, $this->overenyUzivatel($jmeno));
     }
 

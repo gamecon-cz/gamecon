@@ -42,11 +42,12 @@ class AnonymizovanaDatabazeVRepozitariTest extends AbstractTestDb
         // lecture archive: published titles, speakers as the web shows them and YouTube ids; the link of a speaker
         // to an account tells no more than akce_organizatori with the public program
         'archiv_prednasek',
-        'archiv_prednasek_doplnene_rocniky',
         'archiv_prednasek_klicove_slovo',
         'archiv_prednasek_prednasejici',
         'archiv_prednasek_prednaska_klicove_slovo',
         'archiv_prednasek_prednaska_prednasejici',
+        // which cards the job after GC decided about, and its error when one failed
+        'archiv_prednasek_zpracovane_aktivity',
         'emailova_sablona',
         'hromadne_akce_log',
         'kategorie_sjednocenych_tagu',
