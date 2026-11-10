@@ -65,6 +65,17 @@ function getJwtForUser(
 function deleteJwtForUser(
     Uzivatel $uzivatel,
 ): void {
+    deleteStoredJwtForUser($uzivatel);
+    deleteJwtCookie();
+}
+
+/**
+ * Delete the token stored for other apps, the copies in the cookies of all browsers of the user stop matching it.
+ * Used when the user is logged out on other devices, so this browser keeps its cookie.
+ */
+function deleteStoredJwtForUser(
+    Uzivatel $uzivatel,
+): void {
     try {
         $userId = $uzivatel->id();
         if ($userId === null) {
@@ -77,8 +88,17 @@ function deleteJwtForUser(
         /** @var JwtService $jwtService */
         $jwtService = $kernel->getContainer()->get(JwtService::class);
         $jwtService->deleteToken($userId);
+    } catch (Exception $e) {
+        error_log("JWT deletion failed: " . $e->getMessage());
+    }
+}
 
-        // Also clear the cookie if it exists
+/**
+ * Delete the JWT cookie of this browser, the stored token of the user stays for their other devices.
+ */
+function deleteJwtCookie(): void
+{
+    try {
         if (isset($_COOKIE['gamecon_jwt'])) {
             $result = setcookie(
                 name: 'gamecon_jwt',

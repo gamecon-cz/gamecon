@@ -90,6 +90,11 @@ class UserEntityStructure
     public const random = 'random';
 
     /**
+     * @see User::$razitkoPrihlaseni
+     */
+    public const razitkoPrihlaseni = 'razitkoPrihlaseni';
+
+    /**
      * @see User::$zustatek
      */
     public const zustatek = 'zustatek';

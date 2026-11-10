@@ -12,6 +12,9 @@ namespace Gamecon\Uzivatel;
  * přihlášení z cookie token vymění, ukradená kopie tak platí jen do příští návštěvy majitele.
  *
  * Běžící session tahle třída neukončí, to dělá razítko přihlášení v {@see \Uzivatel::zSession()}.
+ *
+ * Nasazení nahraje kód dřív, než migrace vytvoří tabulku. Do té doby se trvale nepřihlásí nikdo,
+ * stránky kvůli tomu ale nespadnou, viz {@see self::snesNasazeni()}.
  */
 final class TrvalePrihlaseni
 {
@@ -19,6 +22,12 @@ final class TrvalePrihlaseni
 
     /** Stejně dlouho platí cookie. Řádek nepoužitý déle vyprší i v DB. */
     private const int PLATNOST_DNU = 365;
+
+    /**
+     * Kolik vypršelých řádků smaže jedno trvalé přihlášení. Migrace jich naráz založila desetitisíce
+     * se stejným časem, smazat je všechny by zdrželo přihlášení toho, na koho vyjdou.
+     */
+    private const int UKLID_NAJEDNOU = 100;
 
     /**
      * Karty obnovené po spuštění prohlížeče se ptají souběžně se stejnou cookie. Token vymění
@@ -29,24 +38,30 @@ final class TrvalePrihlaseni
     /**
      * @param int|null $idTohoto trvalé přihlášení, které si pamatuje session tohoto prohlížeče
      *
-     * @return int id nového trvalého přihlášení
+     * @return int|null id nového trvalého přihlášení, null před migrací
      */
-    public static function zaloz(int $idUzivatele, ?int $idTohoto): int
+    public static function zaloz(int $idUzivatele, ?int $idTohoto): ?int
     {
         // Prohlížeč nese jen jednu cookie, předchozí přihlášení by jinak zůstalo viset bez ní.
         self::smazTotoZarizeni($idTohoto);
-        dbQuery(<<<'SQL'
+        self::snesNasazeni(static fn () => dbQuery(<<<'SQL'
             DELETE FROM uzivatele_trvala_prihlaseni
             WHERE naposledy_pouzito < NOW() - INTERVAL $0 DAY
-            SQL, [0 => self::PLATNOST_DNU]);
+            LIMIT $1
+            SQL, [0 => self::PLATNOST_DNU, 1 => self::UKLID_NAJEDNOU]));
 
         $token = self::novyToken();
-        dbQuery(<<<'SQL'
-            INSERT INTO uzivatele_trvala_prihlaseni (id_uzivatele, token_hash)
-            VALUES ($0, $1)
-            SQL, [0 => $idUzivatele, 1 => self::hash($token)]);
-        $id = (int) dbInsertId();
-        self::nastavCookie($token, time() + self::PLATNOST_DNU * 24 * 3600);
+        $id = self::snesNasazeni(static function () use ($idUzivatele, $token): int {
+            dbQuery(<<<'SQL'
+                INSERT INTO uzivatele_trvala_prihlaseni (id_uzivatele, token_hash)
+                VALUES ($0, $1)
+                SQL, [0 => $idUzivatele, 1 => self::hash($token)]);
+
+            return (int) dbInsertId();
+        });
+        if ($id !== null) {
+            self::nastavCookie($token, time() + self::PLATNOST_DNU * 24 * 3600);
+        }
 
         return $id;
     }
@@ -54,45 +69,36 @@ final class TrvalePrihlaseni
     /**
      * Přihlášení cookie tohoto prohlížeče. Platný token zároveň vymění za nový.
      *
-     * @return array{id: int, id_uzivatele: int, razitko: string}|null id trvalého přihlášení, koho přihlásit
-     *     a jeho razítko přihlášení, přečtené stejným dotazem jako řádek: dokud řádek existuje, je razítko
-     *     to staré, viz {@see \Uzivatel::zmenRazitkoPrihlaseni()}
+     * Cookie, která žádný řádek nenajde, v prohlížeči zůstane: tabulka může být jen chvíli prázdná,
+     * třeba během kopie databáze na betě, a smazaná cookie by přihlášení zrušila napořád.
+     *
+     * @return array{id: int, id_uzivatele: int, razitko: string|null}|null id trvalého přihlášení, koho
+     *     přihlásit a jeho razítko přihlášení, přečtené stejným dotazem jako řádek: dokud řádek existuje,
+     *     je razítko to staré, viz {@see \Uzivatel::zmenRazitkoPrihlaseni()}
      */
     public static function uplatniCookie(): ?array
     {
-        $hash = self::hashZCookie();
+        $hash = self::getHashZCookie();
         if ($hash === null) {
             return null;
         }
-        try {
-            $prihlaseni = dbOneLine(<<<'SQL'
-                SELECT uzivatele_trvala_prihlaseni.id,
-                    uzivatele_trvala_prihlaseni.id_uzivatele,
-                    uzivatele_trvala_prihlaseni.token_hash = $0 AS je_aktualni,
-                    uzivatele_hodnoty.random AS razitko
-                FROM uzivatele_trvala_prihlaseni
-                JOIN uzivatele_hodnoty ON uzivatele_hodnoty.id_uzivatele = uzivatele_trvala_prihlaseni.id_uzivatele
-                WHERE uzivatele_trvala_prihlaseni.naposledy_pouzito >= NOW() - INTERVAL $1 DAY
-                    AND (
-                        uzivatele_trvala_prihlaseni.token_hash = $0
-                        OR (
-                            uzivatele_trvala_prihlaseni.predchozi_token_hash = $0
-                            AND uzivatele_trvala_prihlaseni.naposledy_pouzito >= NOW() - INTERVAL $2 SECOND
-                        )
+        $prihlaseni = self::snesNasazeni(static fn () => dbOneLine(<<<'SQL'
+            SELECT uzivatele_trvala_prihlaseni.id,
+                uzivatele_trvala_prihlaseni.id_uzivatele,
+                uzivatele_trvala_prihlaseni.token_hash = $0 AS je_aktualni,
+                uzivatele_hodnoty.razitko_prihlaseni AS razitko
+            FROM uzivatele_trvala_prihlaseni
+            JOIN uzivatele_hodnoty ON uzivatele_hodnoty.id_uzivatele = uzivatele_trvala_prihlaseni.id_uzivatele
+            WHERE uzivatele_trvala_prihlaseni.naposledy_pouzito >= NOW() - INTERVAL $1 DAY
+                AND (
+                    uzivatele_trvala_prihlaseni.token_hash = $0
+                    OR (
+                        uzivatele_trvala_prihlaseni.predchozi_token_hash = $0
+                        AND uzivatele_trvala_prihlaseni.naposledy_pouzito >= NOW() - INTERVAL $2 SECOND
                     )
-                SQL, [0 => $hash, 1 => self::PLATNOST_DNU, 2 => self::PREDCHOZI_TOKEN_PLATI_SEKUND]);
-        } catch (\DbException $dbException) {
-            // Nasazení nahraje kód dřív, než migrace tabulku vytvoří. Stránka kvůli tomu nespadne.
-            if ($dbException->getCode() !== 1146 /* table does not exist */) {
-                throw $dbException;
-            }
-
-            return null;
-        }
+                )
+            SQL, [0 => $hash, 1 => self::PLATNOST_DNU, 2 => self::PREDCHOZI_TOKEN_PLATI_SEKUND]));
         if (! $prihlaseni) {
-            // Zrušené nebo vypršelé. Prohlížeč by cookie posílal ještě rok a každý požadavek bez session by ji hledal.
-            self::nastavCookie('', 0);
-
             return null;
         }
 
@@ -115,7 +121,7 @@ final class TrvalePrihlaseni
         return [
             'id'           => (int) $prihlaseni['id'],
             'id_uzivatele' => (int) $prihlaseni['id_uzivatele'],
-            'razitko'      => (string) $prihlaseni['razitko'],
+            'razitko'      => $prihlaseni['razitko'],
         ];
     }
 
@@ -137,62 +143,84 @@ final class TrvalePrihlaseni
      */
     public static function zrusNaOstatnichZarizenich(int $idUzivatele): void
     {
-        dbQuery(<<<'SQL'
+        self::snesNasazeni(static fn () => dbQuery(<<<'SQL'
             DELETE FROM uzivatele_trvala_prihlaseni
             WHERE id_uzivatele = $0 AND id != $1
-            SQL, [0 => $idUzivatele, 1 => self::idZCookie() ?? 0]);
+            SQL, [0 => $idUzivatele, 1 => self::getIdZCookie() ?? 0]));
     }
 
     public static function zrusVsude(int $idUzivatele): void
     {
-        dbQuery(<<<'SQL'
+        self::snesNasazeni(static fn () => dbQuery(<<<'SQL'
             DELETE FROM uzivatele_trvala_prihlaseni
             WHERE id_uzivatele = $0
-            SQL, [0 => $idUzivatele]);
+            SQL, [0 => $idUzivatele]));
     }
 
     private static function smazTotoZarizeni(?int $idTohoto): void
     {
-        $idTohotoZarizeni = array_filter([self::idZCookie(), $idTohoto]);
+        $idTohotoZarizeni = array_filter([self::getIdZCookie(), $idTohoto]);
         if ($idTohotoZarizeni === []) {
             return;
         }
-        dbQuery(<<<'SQL'
+        self::snesNasazeni(static fn () => dbQuery(<<<'SQL'
             DELETE FROM uzivatele_trvala_prihlaseni
             WHERE id IN ($0)
-            SQL, [0 => $idTohotoZarizeni]);
+            SQL, [0 => $idTohotoZarizeni]));
     }
 
     /**
      * Trvalé přihlášení, jehož token nese cookie tohoto prohlížeče. Předchozím tokenem jen chvíli po výměně:
      * cookie mohla přijít ze souběžného požadavku, ale starší kopie už je ukradená nebo zapomenutá.
      */
-    private static function idZCookie(): ?int
+    private static function getIdZCookie(): ?int
     {
-        $hash = self::hashZCookie();
+        $hash = self::getHashZCookie();
         if ($hash === null) {
             return null;
         }
-        $id = dbOneCol(<<<'SQL'
+        $id = self::snesNasazeni(static fn () => dbOneCol(<<<'SQL'
             SELECT id
             FROM uzivatele_trvala_prihlaseni
             WHERE token_hash = $0
                 OR (predchozi_token_hash = $0 AND naposledy_pouzito >= NOW() - INTERVAL $1 SECOND)
             LIMIT 1
-            SQL, [0 => $hash, 1 => self::PREDCHOZI_TOKEN_PLATI_SEKUND]);
+            SQL, [0 => $hash, 1 => self::PREDCHOZI_TOKEN_PLATI_SEKUND]));
 
         return $id !== null
             ? (int) $id
             : null;
     }
 
-    private static function hashZCookie(): ?string
+    private static function getHashZCookie(): ?string
     {
         $token = $_COOKIE[self::COOKIE] ?? null;
 
         return is_string($token) && $token !== ''
             ? self::hash($token)
             : null;
+    }
+
+    /**
+     * Dotaz, který před migrací tabulky nebo sloupce razítka (chvíli při nasazení) vrátí null, místo aby spadl.
+     *
+     * @template T
+     *
+     * @param callable(): T $dotaz
+     *
+     * @return T|null
+     */
+    private static function snesNasazeni(callable $dotaz): mixed
+    {
+        try {
+            return $dotaz();
+        } catch (\DbException $dbException) {
+            if (! in_array($dbException->getCode(), [1146 /* table does not exist */, 1054 /* unknown column */], true)) {
+                throw $dbException;
+            }
+
+            return null;
+        }
     }
 
     private static function hash(string $token): string

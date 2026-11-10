@@ -95,6 +95,11 @@ class UserSqlStructure
     public const random = 'random';
 
     /**
+     * @see User::$razitkoPrihlaseni
+     */
+    public const razitko_prihlaseni = 'razitko_prihlaseni';
+
+    /**
      * @see User::$zustatek
      */
     public const zustatek = 'zustatek';
