@@ -171,8 +171,10 @@ if ($id !== null) {
             'jmeno'           => $e($osoba['jmeno']),
             'uzivatel'        => $e($osoba['uzivatel']),
             'puvodniUzivatel' => $e($osoba['puvodniUzivatel']),
+            // web ukáže napojeného přednášejícího tak, jak si uživatel nastavil (Zobrazení na webu)
             'popisUzivatele'  => $uzivatel
                 ? '<a href="' . $e(URL_WEBU . '/' . $uzivatel->id()) . '" target="_blank">' . $e($uzivatel->jmenoNick() ?? $uzivatel->login()) . '</a>'
+                    . ', na webu „' . $e($uzivatel->jmenoNaWebu()) . '“'
                 : '',
         ]);
         $t->parse('detail.prednasejici');
