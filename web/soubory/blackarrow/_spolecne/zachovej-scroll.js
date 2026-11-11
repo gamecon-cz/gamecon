@@ -1,4 +1,18 @@
 /**
+ * Uloží scroll stránky (a případně prvku), obnoví ho zachovejScroll() při dalším načtení stránky.
+ * Volá se samo i pro odkaz, který stránku opustí až po potvrzení (Aktivita::getPrihlasovatkoSUpozornenimNaVek()):
+ * kdyby se scroll uložil už kliknutím a uživatel pak potvrzení zrušil, obnovil by se až na jiné stránce.
+ *
+ * @param prvek extra prvek, jehož vodorovný scroll se ukládá (nebo null)
+ */
+function zachovejScrollUloz(prvek) {
+    window.localStorage.setItem('zachovejScroll_top', window.scrollY)
+    if (prvek) {
+        window.localStorage.setItem('zachovejScroll_left', prvek.scrollLeft)
+    }
+}
+
+/**
  * Uloží/obnoví scroll stránky (a případně prvku).
  *
  * @param onclickPrvky prvky, kde se při kliknutí scroll zapamatuje (odkazy)
@@ -19,17 +33,6 @@ function zachovejScroll(onclickPrvky, obnovovanyPrvek) {
         }
     }
 
-    function scrollUloz(prvek) {
-        storagePush('top', window.scrollY)
-        if (prvek) {
-            storagePush('left', prvek.scrollLeft)
-        }
-    }
-
-    function storagePush(klic, hodnota) {
-        window.localStorage.setItem('zachovejScroll_' + klic, hodnota)
-    }
-
     function storagePop(klic) {
         let hodnota = window.localStorage.getItem('zachovejScroll_' + klic)
         window.localStorage.removeItem('zachovejScroll_' + klic)
@@ -39,7 +42,7 @@ function zachovejScroll(onclickPrvky, obnovovanyPrvek) {
     scrollObnov(obnovovanyPrvek)
 
     onclickPrvky.forEach(e => {
-        e.addEventListener('click', () => scrollUloz(obnovovanyPrvek))
+        e.addEventListener('click', () => zachovejScrollUloz(obnovovanyPrvek))
     })
 
 }

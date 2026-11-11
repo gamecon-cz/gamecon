@@ -1,5 +1,5 @@
 import { ProgramStateCreator, useProgramStore } from "..";
-import { fetchAktivitaTým, AktivitaTymResponse } from "../../../api/program";
+import { fetchAktivitaTým, AktivitaTymResponse, ApiUpozorněníNaVěk } from "../../../api/program";
 
 export type NastaveniTymuData = AktivitaTymResponse;
 
@@ -10,10 +10,7 @@ export type VšeobecnéSlice = {
     zvětšeno: boolean,
     kompaktní: boolean,
     modalOdhlásitAktivitaId?: number,
-    modalUpozorněníNaVěk?: {
-      nazevAktivity: string,
-      minimalniVek: number,
-    },
+    modalUpozorněníNaVěk?: ApiUpozorněníNaVěk,
     nastaveniTymu?: {
       aktivitaId: number,
       nazevAktivity?: string,
@@ -99,13 +96,13 @@ export const nastavModalOdhlásit = (aktivitaId?: number) => {
 let přihlášeníPoUpozorněníNaVěk: (() => void) | undefined;
 
 /**
- * Upozornění před přihlášením na aktivitu, na jejíž minimální věk účastník nedosáhne.
+ * Upozornění před přihlášením na aktivitu, na jejíž minimální věk účastník nedosáhne (text z PHP).
  * Přihlášení provede až potvrzení (přihlaš), zavření ho zahodí.
  */
-export const otevřiUpozorněníNaVěk = (nazevAktivity: string, minimalniVek: number, přihlaš: () => void) => {
+export const otevřiUpozorněníNaVěk = (upozornění: ApiUpozorněníNaVěk, přihlaš: () => void) => {
   přihlášeníPoUpozorněníNaVěk = přihlaš;
   useProgramStore.setState(s => {
-    s.všeobecné.modalUpozorněníNaVěk = { nazevAktivity, minimalniVek };
+    s.všeobecné.modalUpozorněníNaVěk = { nadpis: upozornění.nadpis, text: upozornění.text };
   }, undefined, "otevři upozornění na věk");
 };
 

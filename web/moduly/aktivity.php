@@ -147,10 +147,7 @@ foreach ($skupiny as $skupina) {
         if ($minulyRocnik) {
             $prihlasit = '';
         } elseif ($aktivita->tymova() && $u && $u->gcPrihlasen() && $aktivita->prihlasovatelna()) {
-            $aktivitaId    = (int)$aktivita->id();
-            $aktivitaNazev = addslashes($aktivita->nazev());
-            $label         = $aktivita->prihlasen($u) ? 'Nastavení týmu' : 'Přihlásit tým';
-            $prihlasit     = "<button onclick=\"window.preactMost.prihlaseniTymu.otevri({$aktivitaId}, '{$aktivitaNazev}')\">{$label}</button>";
+            $prihlasit = $aktivita->getPrihlasovatkoTymu($u);
         } else {
             $prihlasit = $aktivita->prihlasovatko($u);
         }
