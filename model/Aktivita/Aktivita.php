@@ -86,7 +86,7 @@ class Aktivita
     const PN_PLUSMINUSM         = 'cAktivitaPlusminusm'; // název post proměnné pro úpravy typu mínus
     const LIMIT_POPIS_KRATKY    = 180; // max počet znaků v krátkém popisku
 
-    // na šéfa programu se obrací, kdo se hlásí na aktivitu pro starší, stejná adresa je v UpozorneniNaVekModal.tsx
+    // na šéfa programu se obrací, kdo se hlásí na aktivitu pro starší; do Preactu (UpozorneniNaVekModal) jde přes Program::gameconKonstanty()
     public const KONTAKT_NA_SEFA_PROGRAMU = 'info@gamecon.cz';
 
     // todo: tym asi lepší commenty k parametrům by bodly :)
@@ -3181,8 +3181,9 @@ HTML
             } else {
                 $volnoPro = $this->volnoPro();
                 if ($volnoPro->proPohlaviJeVolno($u->pohlavi())) {
-                    $out = $this->isMladsiNezMinimalniVek($u)
-                        ? $this->prihlasovatkoSUpozornenimNaVek()
+                    $upozorneniNaVek = $this->getUpozorneniNaVek($u);
+                    $out             = $upozorneniNaVek !== null
+                        ? $this->getPrihlasovatkoSUpozornenimNaVek($upozorneniNaVek)
                         : '<form method="post" style="display:inline">' .
                           '<input type="hidden" name="prihlasit" value="' . $this->id() . '">' .
                           '<a href="#" onclick="this.parentNode.submit(); return false">přihlásit</a>' .
@@ -3207,31 +3208,55 @@ HTML
     /**
      * Odkaz „přihlásit" pro účastníka mladšího, než je minimální věk aktivity: místo odeslání otevře upozornění
      * (Preact, UpozorneniNaVekModal), formulář odešle až potvrzení. Než se Preact načte, poslouží confirm().
+     * Scroll stránky (zachovej-scroll.js) se uloží až s potvrzením, kdo upozornění zavře, na stránce zůstává.
+     *
+     * @param array{nadpis: string, text: string} $upozorneniNaVek z getUpozorneniNaVek()
      */
-    private function prihlasovatkoSUpozornenimNaVek(): string
+    private function getPrihlasovatkoSUpozornenimNaVek(array $upozorneniNaVek): string
     {
-        $minimalniVek = (int) $this->getMinimalniVek();
-        $nazev        = htmlspecialchars($this->nazev(), ENT_QUOTES);
-        $upozorneni   = htmlspecialchars(
-            "Aktivita {$this->nazev()} je od {$minimalniVek} let a v den aktivity ti ještě nebude {$minimalniVek}. "
-            . 'Přihlas se, jen když máš výjimku domluvenou se šéfem programu. '
-            . 'Domluvit se můžeš na ' . self::KONTAKT_NA_SEFA_PROGRAMU . '.',
-            ENT_QUOTES,
-        );
-        $onclick = htmlspecialchars(
+        $nadpis     = htmlspecialchars($upozorneniNaVek['nadpis'], ENT_QUOTES);
+        $upozorneni = htmlspecialchars($upozorneniNaVek['text'], ENT_QUOTES);
+        $onclick    = htmlspecialchars(
             'var formular = this.parentNode, otevri = window.preactMost && window.preactMost.upozorneniNaVek && window.preactMost.upozorneniNaVek.otevri;'
-            . ' if (otevri) { otevri(formular.dataset.nazev, Number(formular.dataset.minimalniVek), function () { formular.submit(); }); }'
-            . ' else if (confirm(formular.dataset.upozorneni)) { formular.submit(); }'
+            . ' var prihlas = function () { if (window.zachovejScrollUloz) { zachovejScrollUloz(null); } formular.submit(); };'
+            . ' if (otevri) { otevri({ nadpis: formular.dataset.nadpis, text: formular.dataset.upozorneni }, prihlas); }'
+            . ' else if (confirm(formular.dataset.nadpis + "\n\n" + formular.dataset.upozorneni)) { prihlas(); }'
             . ' return false',
             ENT_QUOTES,
         );
 
         // bez zalomení řádků, mezera mezi prvky by se v textu karty ukázala
         return '<form method="post" style="display:inline"'
-               . " data-nazev=\"{$nazev}\" data-minimalni-vek=\"{$minimalniVek}\" data-upozorneni=\"{$upozorneni}\">"
+               . " data-nadpis=\"{$nadpis}\" data-upozorneni=\"{$upozorneni}\">"
                . '<input type="hidden" name="prihlasit" value="' . $this->id() . '">'
                . "<a href=\"#\" onclick=\"{$onclick}\">přihlásit</a>"
                . '</form>';
+    }
+
+    /**
+     * Tlačítko týmové aktivity na stránkách linií: otevře nastavení týmu v Preactu (NastaveniTymuModal), kde se tým
+     * zakládá i kde se k němu přidává. Kdo na aktivitě ještě není a nebude mu v den aktivity její minimální věk,
+     * dostane napřed upozornění (getUpozorneniNaVek()), nastavení týmu se otevře až po potvrzení.
+     * Bez Preactu tlačítko nefunguje vůbec, záložní confirm() tu proto není.
+     */
+    public function getPrihlasovatkoTymu(Uzivatel $u): string
+    {
+        $prihlasen  = $this->prihlasen($u);
+        $otevriTym  = 'window.preactMost.prihlaseniTymu.otevri('
+                      . $this->id() . ', ' . json_encode($this->nazev(), JSON_UNESCAPED_UNICODE | JSON_THROW_ON_ERROR) . ')';
+        $upozorneni = $prihlasen
+            ? null
+            : $this->getUpozorneniNaVek($u);
+        $onclick    = $upozorneni === null
+            ? $otevriTym
+            : 'window.preactMost.upozorneniNaVek.otevri('
+              . json_encode($upozorneni, JSON_UNESCAPED_UNICODE | JSON_THROW_ON_ERROR)
+              . ", function () { {$otevriTym}; })";
+        $popisek    = $prihlasen
+            ? 'Nastavení týmu'
+            : 'Přihlásit tým';
+
+        return '<button onclick="' . htmlspecialchars($onclick, ENT_QUOTES) . '">' . $popisek . '</button>';
     }
 
     /**
@@ -3536,13 +3561,45 @@ HTML
      */
     public function tagy(): array
     {
-        if ($this->tagy === null) {
-            $this->tagy = Tag::zIds($this->tagyId());
-        }
-
         return array_map(static fn(
             Tag $tag,
-        ) => $tag->nazev(), $this->tagy);
+        ) => $tag->nazev(), $this->getObjektyTagu());
+    }
+
+    /**
+     * @return Tag[] seřazené jako tagyId(), tedy podle pořadí kategorie a názvu
+     */
+    private function getObjektyTagu(): array
+    {
+        if ($this->tagy === null) {
+            $this->prednactiTagy();
+        }
+        // aktivita mimo kolekci (prázdná kolekce)
+        $this->tagy ??= Tag::zIds($this->tagyId());
+
+        return $this->tagy;
+    }
+
+    /**
+     * Štítky všech aktivit kolekce jedním dotazem: program i stránky linií se ptají na štítky (a minimální věk)
+     * u každé aktivity. Na rozdíl od přihlášek (prednacitat) vždy, štítků je pár set a dotaz stojí pár milisekund,
+     * kdežto přihlášky celého ročníku by malou stránku linie zpomalily.
+     */
+    private function prednactiTagy(): void
+    {
+        $kolekce     = $this->kolekce();
+        $tagyPodleId = [];
+        foreach (Tag::zIds(array_values(array_unique(array_merge(
+            ...array_map(static fn(self $aktivita) => $aktivita->tagyId(), array_values($kolekce)),
+        )))) as $tag) {
+            $tagyPodleId[$tag->id()] = $tag;
+        }
+        foreach ($kolekce as $aktivita) {
+            $aktivita->tagy ??= array_values(array_filter(array_map(
+                static fn(int $idTagu) => $tagyPodleId[$idTagu] ?? null,
+                $aktivita->tagyId(),
+            )));
+        }
     }
 
     /**
@@ -3558,11 +3615,10 @@ HTML
      */
     public function getMinimalniVek(): ?int
     {
-        // z cache, program se ptá na stovky aktivit se stejnými štítky
         $veky = array_filter(
             array_map(
                 static fn(Tag $tag) => $tag->getMinimalniVek(),
-                Tag::zIds($this->tagyId(), true),
+                $this->getObjektyTagu(),
             ),
             static fn(?int $vek) => $vek !== null,
         );
@@ -3573,18 +3629,53 @@ HTML
     }
 
     /**
-     * Bude uživateli v den aktivity méně, než je její minimální věk? Bez data narození nevíme, takže ne.
+     * Minimální věk aktivity, když ho účastníkovi v den aktivity ještě nebude, jinak null.
      * Přihlášení to nebrání, účastník se má jen předem domluvit se šéfem programu (záměr).
+     * Upozorňuje se jen ten, kdo se hlásí sám: kdo ho přihlašuje z adminu, má výjimku domluvenou (záměr).
+     * Bez skutečného data narození (rychloregistrace má místo něj den registrace) nebo bez začátku aktivity
+     * (na tu se přihlásit nedá) nevíme, takže null.
      */
-    public function isMladsiNezMinimalniVek(Uzivatel $uzivatel): bool
+    public function getNesplnenyMinimalniVek(Uzivatel $ucastnik, ?Uzivatel $prihlasujici = null): ?int
     {
+        if ($prihlasujici !== null && (int) $prihlasujici->id() !== (int) $ucastnik->id()) {
+            return null;
+        }
+        $zacatek = $this->zacatek();
+        // štítky až nakonec, jsou z nich jediný dotaz
+        if ($zacatek === null || !$ucastnik->isDatumNarozeniSkutecne()) {
+            return null;
+        }
         $minimalniVek = $this->getMinimalniVek();
         if ($minimalniVek === null) {
-            return false;
+            return null;
         }
-        $vek = $uzivatel->vekKDatu($this->zacatek() ?? DateTimeGamecon::zacatekGameconu());
+        $vek = $ucastnik->vekKDatu($zacatek);
 
-        return $vek !== null && $vek < $minimalniVek;
+        return $vek !== null && $vek < $minimalniVek
+            ? $minimalniVek
+            : null;
+    }
+
+    /**
+     * Upozornění před přihlášením, když účastníkovi v den aktivity ještě nebude její minimální věk
+     * (getNesplnenyMinimalniVek()), jinak null. Jediný zdroj textu: dialog v Preactu (UpozorneniNaVekModal) ho dostane
+     * z API programu (aktivityUzivatel.php) nebo ze stránky linie, stejný text ukáže i záložní confirm().
+     *
+     * @return array{nadpis: string, text: string}|null
+     */
+    public function getUpozorneniNaVek(Uzivatel $ucastnik, ?Uzivatel $prihlasujici = null): ?array
+    {
+        $minimalniVek = $this->getNesplnenyMinimalniVek($ucastnik, $prihlasujici);
+        if ($minimalniVek === null) {
+            return null;
+        }
+
+        return [
+            'nadpis' => "Aktivita {$this->nazev()} je od {$minimalniVek} let",
+            // kontakt dialog v Preactu udělá odkazem (GAMECON_KONSTANTY.KONTAKT_NA_SEFA_PROGRAMU)
+            'text'   => "V den aktivity ti ještě nebude {$minimalniVek}. Přihlas se, jen když máš výjimku domluvenou se šéfem programu."
+                        . ' Domluvit se můžeš na ' . self::KONTAKT_NA_SEFA_PROGRAMU . '.',
+        ];
     }
 
     public function nastavTagy(array $tagy)

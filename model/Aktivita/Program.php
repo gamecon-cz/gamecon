@@ -64,6 +64,8 @@ class Program
             'PROGRAM_ZACATEK'              => PROGRAM_ZACATEK,
             'PROGRAM_KONEC'                => PROGRAM_KONEC,
             'CAS_NA_PRIPRAVENI_TYMU_MINUT' => AktivitaTym::CAS_NA_PRIPRAVENI_TYMU_MINUT,
+            // upozornění na věk (UpozorneniNaVekModal), stejný kontakt má záložní confirm() na stránkách linií
+            'KONTAKT_NA_SEFA_PROGRAMU'     => Aktivita::KONTAKT_NA_SEFA_PROGRAMU,
             'URL_PROGRAM_CACHE'            => URL_CACHE . '/program',
             'programManifest'              => (new ProgramStaticFileGenerator($systemoveNastaveni))->readManifest(),
         ];
