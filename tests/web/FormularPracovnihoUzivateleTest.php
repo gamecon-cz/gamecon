@@ -32,6 +32,11 @@ class FormularPracovnihoUzivateleTest extends AbstractTestWeb
      */
     private const int ID_UBYTOVANEHO = 9814;
     private const int ID_UBYTOVANI = 9811;
+    private const int ID_UBYTOVANI_POSTEL = 9815;
+    /**
+     * má objednaná dvě ubytování, každé na jiný den, kvůli výpisu po řádcích
+     */
+    private const int ID_SE_DVEMA_UBYTOVANIMI = 9816;
 
     /**
      * @var list<string>
@@ -54,12 +59,14 @@ VALUES
     (%1$d, 'test-formular-prvni', 'Test', 'První', 'test-formular-prvni@example.invalid', '111111111'),
     (%2$d, 'test-formular-druhy', 'Test', 'Druhý', 'test-formular-druhy@example.invalid', '222222222'),
     (%3$d, 'test-formular-ukladajici', 'Test', 'Ukládající', 'test-formular-ukladajici@example.invalid', '333333333'),
-    (%4$d, 'test-formular-ubytovany', 'Test', 'Ubytovaný', 'test-formular-ubytovany@example.invalid', '444444444')
+    (%4$d, 'test-formular-ubytovany', 'Test', 'Ubytovaný', 'test-formular-ubytovany@example.invalid', '444444444'),
+    (%5$d, 'test-formular-dve-ubytovani', 'Test', 'Dvojí', 'test-formular-dve-ubytovani@example.invalid', '555555555')
 SQL,
                 self::ID_PRVNIHO,
                 self::ID_DRUHEHO,
                 self::ID_UKLADAJICIHO,
                 self::ID_UBYTOVANEHO,
+                self::ID_SE_DVEMA_UBYTOVANIMI,
             ),
             [
                 <<<'SQL'
@@ -84,12 +91,35 @@ SQL,
             ],
             [
                 <<<'SQL'
+INSERT INTO shop_predmety SET id_predmetu = $0, nazev = 'test formulář postel', model_rok = $1,
+    kod_predmetu = 'test-formular-postel', cena_aktualni = 300, stav = 1, nabizet_do = NOW(),
+    kusu_vyrobeno = 100, typ = $2, ubytovani_den = 2
+SQL,
+                [
+                    0 => self::ID_UBYTOVANI_POSTEL,
+                    1 => ROCNIK,
+                    2 => TypPredmetu::UBYTOVANI,
+                ],
+            ],
+            [
+                <<<'SQL'
 INSERT INTO shop_nakupy(id_uzivatele, id_predmetu, rok, cena_nakupni) VALUES ($0, $1, $2, 200)
 SQL,
                 [
                     0 => self::ID_UBYTOVANEHO,
                     1 => self::ID_UBYTOVANI,
                     2 => ROCNIK,
+                ],
+            ],
+            [
+                <<<'SQL'
+INSERT INTO shop_nakupy(id_uzivatele, id_predmetu, rok, cena_nakupni) VALUES ($0, $1, $3, 200), ($0, $2, $3, 300)
+SQL,
+                [
+                    0 => self::ID_SE_DVEMA_UBYTOVANIMI,
+                    1 => self::ID_UBYTOVANI,
+                    2 => self::ID_UBYTOVANI_POSTEL,
+                    3 => ROCNIK,
                 ],
             ],
         ];
@@ -209,6 +239,35 @@ SQL,
 
         self::assertSame('42', $this->getPokoj(self::ID_UBYTOVANEHO));
         self::assertStringContainsString('Pokoj přidělen', $this->stahni($session, 'uzivatel'));
+    }
+
+    /**
+     * @test
+     */
+    public function objednaneUbytovaniNaInfopultuMaOdrazkuNaKazdemRadku(): void
+    {
+        $session = $this->prihlas(\Uzivatel::SYSTEM_LOGIN);
+        $this->vyberPracovnihoUzivatele($session, self::ID_SE_DVEMA_UBYTOVANIMI);
+
+        $stranka = $this->stahni($session, 'infopult');
+
+        self::assertMatchesRegularExpression('~Ubytování:</td>\s*<td>\s*(<li>[^<]+: [^<]+</li>\s*){2}</td>~', $stranka);
+        self::assertStringContainsString('<li>test formulář ubytování: ', $stranka);
+        self::assertStringContainsString('<li>test formulář postel: ', $stranka);
+    }
+
+    /**
+     * @test
+     */
+    public function bezObjednanehoUbytovaniNaInfopultuNeniPrazdnaOdrazka(): void
+    {
+        $session = $this->prihlas(\Uzivatel::SYSTEM_LOGIN);
+        $this->vyberPracovnihoUzivatele($session, self::ID_PRVNIHO);
+
+        $stranka = $this->stahni($session, 'infopult');
+
+        self::assertMatchesRegularExpression('~Spolubydlící:</td>\s*<td>\s*</td>\s*</tr>\s*<tr>\s*<td>Ubytování:</td>\s*<td>\s*</td>~', $stranka);
+        self::assertDoesNotMatchRegularExpression('~<li>\s*</li>~', $stranka);
     }
 
     /**
