@@ -61,7 +61,8 @@ foreach (Medailonek::zVsech() as $medailonek) {
     assert($medailonek instanceof Medailonek);
     $uzivatelMedailonku = Uzivatel::zId($medailonek->idUzivatele());
     $template->assign('uzivatelId', $uzivatelMedailonku->id());
-    $template->assign('jmenoNick', $uzivatelMedailonku->jmenoNick());
+    // jméno i přezdívku si uživatel píše sám a XTemplate neescapuje
+    $template->assign('jmenoNick', htmlspecialchars((string)$uzivatelMedailonku->jmenoNick()));
     $template->assign('maPopisOSobe', trim($medailonek->oSobe()) !== ''
         ? '✅'
         : '❌'
