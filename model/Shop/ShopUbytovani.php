@@ -1028,7 +1028,10 @@ SQL,
         return json_encode($a);
     }
 
-    public function kratkyPopis(string $oddelovacDalsihoRadku = '<br>'): string
+    /**
+     * @return list<string> řádek na typ ubytování: název a zkratky dnů
+     */
+    public function getRadkyKratkehoPopisu(): array
     {
         $dnyPoTypech = [];
         foreach ($this->ubytovanPoDnech as $cisloDne => $typy) { // typy _v daný den_
@@ -1047,6 +1050,6 @@ SQL,
             $typySeDny[] = "$typ: " . implode(',', $dny);
         }
 
-        return implode($oddelovacDalsihoRadku, $typySeDny);
+        return $typySeDny;
     }
 }

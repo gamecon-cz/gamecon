@@ -1274,9 +1274,12 @@ SQL
         return $nevyuzityBonusZaAktivity;
     }
 
-    public function dejPopisUbytovani(): string
+    /**
+     * @return list<string>
+     */
+    public function getRadkyPopisuUbytovani(): array
     {
-        return $this->ubytovani->kratkyPopis();
+        return $this->ubytovani->getRadkyKratkehoPopisu();
     }
 
     public function zrusLetosniObjednaneUbytovani(string $zdrojZruseni): int

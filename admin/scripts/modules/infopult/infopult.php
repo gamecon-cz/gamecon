@@ -123,7 +123,9 @@ if ($uPracovni) {
         'org' => $u->jmenoNick(),
         'orgA' => $u->koncovkaDlePohlavi(),
         'poznamka' => $uPracovni->poznamka(),
-        'ubytovani' => $uPracovni->shop()->dejPopisUbytovani(),
+        'ubytovani' => array_uprint($uPracovni->shop()->getRadkyPopisuUbytovani(), static function (string $radek) {
+            return '<li>' . htmlspecialchars($radek) . '</li>';
+        }),
         'nechceUbytovani' => $uPracovni->nechceUbytovani() ? 'ano' : 'ne',
         'balicek' => $uPracovni->balicekHtml(),
         // název položky je text: s uvozovkou nebo apostrofem by jinak rozbil HTML i potvrzovací dialog
