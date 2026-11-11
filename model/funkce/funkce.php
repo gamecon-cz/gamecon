@@ -1086,8 +1086,8 @@ function jeTestovaciNastaveniPovoleno(): bool
  */
 function jeUniverzalniHesloPovoleno(): bool
 {
-    return jsmeNaLocale()
-        || (defined('UNIT_TESTS') && UNIT_TESTS);
+    return (defined('UNIT_TESTS') && UNIT_TESTS)
+        || jsmeNaLocale();
 }
 
 function getDefinedHost(): ?string

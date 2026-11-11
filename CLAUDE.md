@@ -147,6 +147,7 @@ Get the custom repository via `->getRepository(SomeEntity::class)` (returns the 
 ## Best Practices
 - Follow existing code conventions
 - Use strict typing (`declare(strict_types=1)`)
+- **Composite conditions go from cheapest to most expensive**: `&&` and `||` short-circuit, so `defined()`, a null check, an array key or a comparison comes before a function call, a database query or a file check. A guard stays in front of what it protects.
 - Run tests before committing
 - Check existing patterns in similar components
 - Use Docker for consistent development environment
