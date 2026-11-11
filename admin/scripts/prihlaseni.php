@@ -12,11 +12,6 @@ use Gamecon\Uzivatel\PrepnutiNaUzivatele;
 /*
  * Kód starající o přihlášení uživatele a výběr uživatele pro práci
  */
-if (! empty($_GET['update_code'])) {
-    exec('git pull 2>&1', $output, $returnValue);
-    print_r($output);
-    exit($returnValue);
-}
 // Přihlášení. Zpět na preview, odkud brána preview poslala do adminu, se jde přes ?returnTo=; formulář se odesílá
 // na tutéž URL, takže parametr přežije odeslání, a chyba() po špatném hesle vrací na ni (back()) také.
 $u = null;
