@@ -138,6 +138,22 @@ SQL,
         self::assertSame(404, $odpoved['kod'], $odpoved['telo']);
     }
 
+    /**
+     * Soubor endpointu nebo zvláštní stránky otevřený přímo by běžel bez admin/index.php, tedy bez kontroly přihlášení
+     * i práv; admin/scripts/.htaccess ho proto odmítne. Jen přes routu `api/…` nebo `stranka`.
+     */
+    public function testSkriptAdminuNejdeOtevritPrimo(): void
+    {
+        $relace = $this->getNovaRelace();
+        $adresar = __DIR__ . '/../../admin/scripts';
+        $skripty = [...glob($adresar . '/api/*.php'), ...glob($adresar . '/zvlastni/*.php'), $adresar . '/prihlaseni.php'];
+        foreach ($skripty as $skript) {
+            $cesta = 'scripts/' . substr($skript, strlen($adresar) + 1);
+            $odpoved = $this->otevri($relace, $cesta);
+            self::assertSame(403, $odpoved['kod'], "{$cesta}: {$odpoved['telo']}");
+        }
+    }
+
     private function assertOdmitnuto(string $relace, string $endpoint, string $metoda, int $ocekavanyKod): void
     {
         $curl = $this->curl($relace, 'api/' . $endpoint);

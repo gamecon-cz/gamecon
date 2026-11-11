@@ -1,0 +1,3 @@
+#---skripty adminu se načítají jen přes admin/index.php, který hlídá přihlášení a práva (API, zvláštní stránky,
+#---moduly); přímo otevřený soubor by běžel bez zavaděče a bez kontroly, viz docs/generated/pracovni-uzivatel-a-admin-api.md
+Deny from all
