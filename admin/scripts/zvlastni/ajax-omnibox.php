@@ -1,5 +1,9 @@
 <?php
 
+use Gamecon\Admin\OmniboxAdminu;
+
+/** @var Uzivatel $u přihlášený, kterému admin/index.php omnibox povolil, viz OmniboxAdminu */
+
 $data = omnibox(
     get('term'),
     true,
@@ -8,7 +12,7 @@ $data = omnibox(
     [],
     false,
     2,
-    get('jenSRolemi') ?: []
+    OmniboxAdminu::getRoleHledanych($u) ?? (get('jenSRolemi') ?: []),
 );
 
 header('Content-Type: application/json');

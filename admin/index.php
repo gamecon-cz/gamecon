@@ -3,6 +3,7 @@
 declare(strict_types=1);
 
 use Gamecon\Admin\ApiAdminu;
+use Gamecon\Admin\OmniboxAdminu;
 use Gamecon\Admin\PracovniUzivatel;
 use Gamecon\Admin\PristupDoAdminu;
 use Gamecon\Admin\VzhledAdminu;
@@ -54,7 +55,7 @@ require __DIR__ . '/scripts/prihlaseni.php';
 
 include __DIR__ . '/_symfony.php';
 
-// smí v adminu aspoň jednu stránku; jinak ho odmítne API a nenabídne se mu výběr vzhledu
+// smí v adminu aspoň jednu stránku; jinak ho odmítne API i zvláštní stránky a nenabídne se mu výběr vzhledu
 $maPristupDoAdminu = PristupDoAdminu::isPovolen($u);
 
 // nastavení stránky, prázdná url => přesměrování na úvod
@@ -137,23 +138,32 @@ if (! $u && get('ajax')) {
 }
 
 // zobrazení stránky
-if (! $u && ! in_array($stranka, ['last-minute-tabule', 'program-obecny'], true)) {
+if (! $u && ! PristupDoAdminu::isVerejnaStranka($stranka)) {
     require __DIR__ . '/login.php';
     profilInfo();
 
     return;
 }
 
+// Zvláštní stránky (bez rámu adminu: program účastníka, reporty, omnibox) jen pro toho, kdo v adminu něco smí, stejně
+// jako API. Omnibox, který vydá kontakty a zůstatky kohokoli, jen tomu, komu ho admin nabízí (OmniboxAdminu); reporty,
+// online prezence a potvrzení rodičů hlídají svá práva samy. Odmítnutému se ukáže stránka 403.
+$zvlastniSkript = null;
 if (is_file(__DIR__ . '/scripts/zvlastni/' . $stranka . '.php')) {
-    chdir(__DIR__ . '/scripts/zvlastni/');
-
-    return require $stranka . '.php';
+    $zvlastniSkript = [__DIR__ . '/scripts/zvlastni/', $stranka . '.php'];
+} elseif (is_file(__DIR__ . '/scripts/zvlastni/' . $stranka . '/' . $podstranka . '.php')) {
+    $zvlastniSkript = [__DIR__ . '/scripts/zvlastni/' . $stranka, $podstranka . '.php'];
 }
+$smiZvlastniStranku = match (true) {
+    PristupDoAdminu::isVerejnaStranka($stranka) => true,
+    $stranka === OmniboxAdminu::STRANKA         => OmniboxAdminu::isPovolen($u),
+    default                                     => $maPristupDoAdminu,
+};
+if ($zvlastniSkript !== null && $smiZvlastniStranku) {
+    [$adresarZvlastnihoSkriptu, $zvlastniSkriptSoubor] = $zvlastniSkript;
+    chdir($adresarZvlastnihoSkriptu);
 
-if (is_file(__DIR__ . '/scripts/zvlastni/' . $stranka . '/' . $podstranka . '.php')) {
-    chdir(__DIR__ . '/scripts/zvlastni/' . $stranka);
-
-    return require $podstranka . '.php';
+    return require $zvlastniSkriptSoubor;
 }
 
 if ($systemoveNastaveni->jeApril()) {
@@ -190,8 +200,8 @@ if (! empty($menu[$stranka]['submenu'])) {
     $submenu = $submenuObject->pole();
 }
 
-// zjištění práv na zobrazení stránky
-$strankaExistuje = isset($menu[$stranka]);
+// zjištění práv na zobrazení stránky; zvláštní stránka, kam sem došel, mu přístupná není
+$strankaExistuje = isset($menu[$stranka]) || $zvlastniSkript !== null;
 $podstrankaExistuje = isset($submenu[$podstranka]);
 $uzivatelMaPristup = AdminMenu::isPristupna($u, $menu[$stranka] ?? null, $submenu[$podstranka] ?? null);
 
