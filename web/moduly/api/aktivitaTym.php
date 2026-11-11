@@ -117,9 +117,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 }
 
 // GET: info o týmu uživatele + všechny týmy
-$uzivatelId = array_key_exists('uzivatelId', $_GET)
-    ? (int)$_GET['uzivatelId']
-    : $uPracovni->id();
+$uzivatelId = $uPracovni->id();
 
 // čas aktivity + příznak předpřípravy
 $aktivita = Aktivita::zId($aktivitaId);

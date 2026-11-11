@@ -296,9 +296,8 @@ export type AktivitaTymResponse = {
   idTurnajeNeboAktivity: number,
 };
 
-export const fetchAktivitaTým = async (aktivitaId: number, uživatelId = 0): Promise<AktivitaTymResponse> => {
-  const urlUživParam = uživatelId ? `&uzivatelId=${uživatelId}` : "";
-  const url = `${GAMECON_KONSTANTY.BASE_PATH_API}aktivitaTym?aktivitaId=${aktivitaId}${urlUživParam}`;
+export const fetchAktivitaTým = async (aktivitaId: number): Promise<AktivitaTymResponse> => {
+  const url = `${GAMECON_KONSTANTY.BASE_PATH_API}aktivitaTym?aktivitaId=${aktivitaId}`;
   return fetch(url, {method: "GET"}).then(async x => x.json());
 };
 
