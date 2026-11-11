@@ -3,7 +3,7 @@
  */
 
 import { ApiPřihlášenýUživatel } from "./api/přihlášenýUživatel";
-import { ApiLokace, ProgramManifest } from "./api/program";
+import { ApiLokace, ApiUpozorněníNaVěk, ProgramManifest } from "./api/program";
 import { ApiFiltrAktivit, ApiRocnikyAktivit } from "./api/filtrAktivit";
 import { ApiArchivPrednasek } from "./api/archivPrednasek";
 import { range } from "./utils";
@@ -49,6 +49,11 @@ define('FORCE_REDUX_DEVTOOLS', true);
   PROGRAM_KONEC: number;
   HAJENI_TEAMU_HODIN: number;
   CAS_NA_PRIPRAVENI_TYMU_MINUT: number;
+  /**
+   * Kontakt v upozornění na věk, Aktivita::KONTAKT_NA_SEFA_PROGRAMU. Text upozornění je celý z PHP,
+   * UpozorneniNaVekModal podle tohohle jen udělá z adresy v textu odkaz.
+   */
+  KONTAKT_NA_SEFA_PROGRAMU: string;
   /**
    * Jestli je program zobrazen v adminu (jiný uživatel než přihlášený)
    */
@@ -102,9 +107,9 @@ declare global {
       prihlaseniTymu: {
         otevri?: ((aktivitaId: number, nazev?: string) => void) | undefined,
       },
-      /** odkaz „přihlásit" na stránkách linií, Aktivita::prihlasovatkoSUpozornenimNaVek() */
+      /** odkaz „přihlásit" a tlačítko týmu na stránkách linií, Aktivita::getPrihlasovatkoSUpozornenimNaVek() a getPrihlasovatkoTymu() */
       upozorneniNaVek: {
-        otevri?: ((nazevAktivity: string, minimalniVek: number, prihlas: () => void) => void) | undefined,
+        otevri?: ((upozorneni: ApiUpozorněníNaVěk, prihlas: () => void) => void) | undefined,
       },
     }
   }
@@ -132,6 +137,7 @@ const GAMECON_KONSTANTY_DEFAULT: GameconKonstanty = {
   PROGRAM_KONEC: 6,
   HAJENI_TEAMU_HODIN: 72,
   CAS_NA_PRIPRAVENI_TYMU_MINUT: 15,
+  KONTAKT_NA_SEFA_PROGRAMU: "",
   JE_ADMIN: false,
   URL_PROGRAM_CACHE: "/cache/public/program",
   programManifest: null,
