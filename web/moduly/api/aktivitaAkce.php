@@ -1,6 +1,6 @@
 <?php
 
-/** @var Uzivatel $u */
+/** @var Uzivatel|null $u */
 /** @var Uzivatel|null $uPracovni */
 
 /** @var Gamecon\SystemoveNastaveni\SystemoveNastaveni $systemoveNastaveni */
@@ -15,7 +15,14 @@ if ($_SERVER["REQUEST_METHOD"] != "POST") {
     return;
 }
 
+$jsonConfig = JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES;
+
+// Na webu, kde se odhlásil nebo mu vypršelo přihlášení; v adminu nepřihlášeného odmítne už brána API.
+// UI program bere 401 jako neúspěch s hláškou, prázdné tělo by nepřečetlo.
 if (!$u) {
+    http_response_code(401);
+    header('Content-type: application/json');
+    echo json_encode(['error' => '401 Unauthorized'], $jsonConfig);
     return;
 }
 
@@ -70,6 +77,5 @@ if ($aktivitaId) {
 // Dirty flag is already touched by Aktivita::prihlas()/odhlas(), just start worker
 (new ProgramStaticFileGenerator($systemoveNastaveni))->tryStartWorker();
 
-$jsonConfig = JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES;
 header('Content-type: application/json');
 echo json_encode($response, $jsonConfig);
