@@ -12,8 +12,8 @@ use PHPUnit\Framework\TestCase;
 require_once __DIR__ . '/../../admin/scripts/admin-menu.php';
 
 /**
- * Do adminu (API, výběr vzhledu) smí ten, kdo má právo aspoň jedné stránky. Seznam práv musí odpovídat hlavičkám
- * modulů, jinak by stránka s novým právem pustila dovnitř, ale API by ho odmítlo.
+ * Do adminu (API, zvláštní stránky, výběr vzhledu) smí ten, kdo má právo aspoň jedné stránky. Seznam práv musí
+ * odpovídat hlavičkám modulů, jinak by stránka s novým právem pustila dovnitř, ale API a omnibox by ho odmítly.
  */
 class PristupDoAdminuTest extends TestCase
 {
@@ -85,5 +85,16 @@ class PristupDoAdminuTest extends TestCase
                 yield "{$stranka}/{$url}" => ["{$stranka}/{$url}", $polozka['prava']];
             }
         }
+    }
+
+    public function testVerejneStrankyJsouZvlastniStrankySeZduvodnenim(): void
+    {
+        foreach (PristupDoAdminu::VEREJNE_STRANKY as $stranka => $duvod) {
+            self::assertFileExists(__DIR__ . "/../../admin/scripts/zvlastni/{$stranka}.php");
+            self::assertNotSame('', trim($duvod), "Veřejná stránka '{$stranka}' nemá zdůvodnění");
+            self::assertTrue(PristupDoAdminu::isVerejnaStranka($stranka));
+        }
+        self::assertFalse(PristupDoAdminu::isVerejnaStranka('ajax-omnibox'));
+        self::assertFalse(PristupDoAdminu::isVerejnaStranka(''));
     }
 }

@@ -5,12 +5,15 @@ declare(strict_types=1);
 namespace Gamecon\Tests\web;
 
 use Gamecon\Admin\ApiAdminu;
+use Gamecon\Admin\OmniboxAdminu;
+use Gamecon\Admin\PristupDoAdminu;
 use PHPUnit\Framework\Attributes\DataProvider;
 
 /**
  * Admin API je jen pro toho, kdo v adminu smí aspoň jednu stránku: nepřihlášený dostane 401, přihlášený účastník bez
  * práv 403, od každého endpointu, i od toho, který přibude později, kromě výjimek z ApiAdminu::BEZ_PRIHLASENI.
- * Přes skutečnou administraci.
+ * Totéž platí pro zvláštní stránky adminu (program účastníka, reporty) kromě veřejných z
+ * PristupDoAdminu::VEREJNE_STRANKY a omniboxu, který má vlastní okruh (OmniboxAdminuTest). Přes skutečnou administraci.
  */
 class PristupDoApiAdminuTest extends AbstractTestWeb
 {
@@ -75,6 +78,57 @@ SQL,
                 yield "{$metoda} {$endpoint}" => [$endpoint, $metoda];
             }
         }
+    }
+
+    /**
+     * Každá zvláštní stránka, i ta, která přibude později, kromě omniboxu: ten smí každý, kdo se smí přepnout na jiného
+     * uživatele, a to je na locale, kde testy běží, každý. Kdo ho smí jinde, ověřuje OmniboxAdminuTest.
+     */
+    public function testUcastnikBezPravNeotevreZvlastniStranku(): void
+    {
+        $relace = $this->prihlas(self::LOGIN_UCASTNIKA);
+        foreach (self::getZvlastniStrankyJenProAdmin() as $stranka) {
+            $odpoved = $this->otevri($relace, $stranka);
+            self::assertSame(403, $odpoved['kod'], $stranka);
+            self::assertStringNotContainsString('@example.invalid', $odpoved['telo'], $stranka);
+        }
+    }
+
+    public function testOrganizatorOmniboxPouzije(): void
+    {
+        $odpoved = $this->otevri($this->prihlas(\Uzivatel::SYSTEM_LOGIN), 'ajax-omnibox?term=Účastník');
+
+        self::assertSame(200, $odpoved['kod'], $odpoved['telo']);
+        self::assertIsArray(json_decode($odpoved['telo'], true, 512, JSON_THROW_ON_ERROR));
+    }
+
+    public function testVerejnouZvlastniStrankuOtevreINeprihlaseny(): void
+    {
+        foreach (array_keys(PristupDoAdminu::VEREJNE_STRANKY) as $stranka) {
+            $odpoved = $this->otevri($this->getNovaRelace(), $stranka);
+            self::assertSame(200, $odpoved['kod'], "{$stranka}: {$odpoved['telo']}");
+        }
+    }
+
+    /**
+     * Adresy skriptů z admin/scripts/zvlastni, tedy `stranka` nebo `stranka/podstranka`, kromě veřejných a omniboxu.
+     *
+     * @return list<string>
+     */
+    private static function getZvlastniStrankyJenProAdmin(): array
+    {
+        $adresar = __DIR__ . '/../../admin/scripts/zvlastni';
+        $stranky = [];
+        foreach ([...glob($adresar . '/*.php'), ...glob($adresar . '/*/*.php')] as $soubor) {
+            $stranka = substr($soubor, strlen($adresar) + 1, -strlen('.php'));
+            if (! PristupDoAdminu::isVerejnaStranka($stranka) && $stranka !== OmniboxAdminu::STRANKA) {
+                $stranky[] = $stranka;
+            }
+        }
+        self::assertFileExists($adresar . '/' . OmniboxAdminu::STRANKA . '.php');
+        self::assertContains('program-osobni', $stranky);
+
+        return $stranky;
     }
 
     public function testVstupNaPreviewBezTokenuBranyNeexistuje(): void
