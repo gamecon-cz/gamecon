@@ -1210,6 +1210,16 @@ SQL,
         return in_array($pravo, $this->prava(), true);
     }
 
+    /**
+     * Má aspoň jedno z práv?
+     *
+     * @param list<int> $prava
+     */
+    public function maNekterePravo(array $prava): bool
+    {
+        return array_intersect($prava, $this->prava()) !== [];
+    }
+
     public function maPravoNaPrirazeniRole(int $idRole): bool
     {
         $role = Role::zId($idRole, true);
