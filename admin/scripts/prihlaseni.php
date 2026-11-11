@@ -3,6 +3,7 @@
 declare(strict_types=1);
 
 use Gamecon\Admin\FormularPracovnihoUzivatele;
+use Gamecon\Admin\VzhledAdminu;
 use Gamecon\Dev\NavratNaPreview;
 use Gamecon\Dev\SsoPrihlaseniZUrl;
 use Gamecon\Exceptions\UzivatelNenalezen;
@@ -107,6 +108,9 @@ if (post('prihlasitSeJakoUzivatel')) {
             $potencialniUzivatel = Uzivatel::zIdUrcite(post('id'));
             if ($u->muzePrepnoutNaJinehoUzivatele() || $potencialniUzivatel->jeVypravec() || $potencialniUzivatel->jePartner()) {
                 $u = Uzivatel::prihlasId(post('id'));
+                // U zařízení sedí pořád ten, kdo se přepnul (třeba infopulťák, který vyplní prezenci za vypravěče).
+                // Dialog výběru vzhledu by mu překryl stránku druhého uživatele, dokud by za něj vzhled nezvolil.
+                (new VzhledAdminu($_SESSION))->odlozVyber();
                 back($u->jeVypravec() || $u->jePartner()
                     ? $u->mojeAktivityAdminUrl()
                     : null
