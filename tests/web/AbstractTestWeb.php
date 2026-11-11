@@ -455,6 +455,11 @@ SQL;
 
     protected function setLocalServerCookieWithGameconTestDb(\CurlHandle $curlHandle): void
     {
+        self::assertSame(
+            '1',
+            getenv('ALLOW_TEST_SETTINGS'),
+            'Web testy potřebují v kontejneru web ALLOW_TEST_SETTINGS=1, jinak Apache cookie ignoruje a testy běží proti vývojové databázi. Kontejner vytvoř znovu: docker compose up -d',
+        );
         curl_setopt($curlHandle, CURLOPT_COOKIE, 'gamecon_test_db=' . DB_NAME . '; unit_tests=1');
     }
 }
