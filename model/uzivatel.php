@@ -2232,22 +2232,15 @@ SQL,
             ]);
             $u->otoc();
             $idUzivatele = $u->id();
-            $urlUzivatele = self::vytvorUrl($u->r);
             if ($zmeniloSeJmenoNaWebu) {
                 self::invalidujProgramCacheJeLiVypravecem($u->id());
             }
         } else {
             dbInsert(Sql::UZIVATELE_HODNOTY_TABULKA, $dbTab);
             $idUzivatele = dbInsertId();
-            $dbTab[Sql::ID_UZIVATELE] = $idUzivatele;
-            $urlUzivatele = self::vytvorUrl($dbTab);
         }
-        if ($urlUzivatele !== null) {
-            dbInsertUpdate('uzivatele_url', [
-                'id_uzivatele' => $idUzivatele,
-                'url'          => $urlUzivatele,
-            ]);
-        }
+        // Adresu podle jména (uzivatele_url) už nezakládá: web odkazuje na medailonek přes /<id> a přívěsek se jménem
+        // by se mohl srazit se stránkou nebo modulem, nebo (url je unikátní) přebrat adresu jinému uživateli.
 
         return (string) $idUzivatele;
     }
@@ -2510,33 +2503,6 @@ SQL,
             return null;
         }
         throw new Chyba($idNeboHlaska);
-    }
-
-    /**
-     * Vrátí url cestu k stránce uživatele (bez domény).
-     */
-    public function url(bool $vcetneId = false): ?string
-    {
-        if (! $this->r[Sql::JMENO_UZIVATELE]) {
-            return null; // nevracet url, asi vypravěčská skupina nebo podobně
-        }
-        if (! empty($this->r['url'])) {
-            return $vcetneId
-                ? $this->id() . '-' . $this->r['url']
-                : $this->r['url'];
-        }
-
-        return self::vytvorUrl($this->r);
-    }
-
-    private static function vytvorUrl(array $uzivatelData): ?string
-    {
-        $jmenoNick = self::jmenoNickZjisti($uzivatelData);
-        $url = slugify($jmenoNick);
-
-        return Url::povolena($url)
-            ? $url
-            : null;
     }
 
     public function vek(): ?int
@@ -3083,7 +3049,11 @@ SQL,
             return self::zId($idUzivatele);
         }
         $urlUzivatele = preg_replace('~^[^[:alnum:]]*\d*-?~', '', $aktualniUrl);
-        $u = self::nactiUzivatele('WHERE uzivatele_url.url = ' . dbQv($urlUzivatele));
+        // adresy podle jména z dřívějška; nové se nezapisují, web odkazuje na /<id>
+        $u = self::nactiUzivatele(
+            'WHERE u.id_uzivatele IN (SELECT uzivatele_url.id_uzivatele FROM uzivatele_url WHERE uzivatele_url.url = '
+            . dbQv($urlUzivatele) . ')',
+        );
 
         return count($u) !== 1
             ? null
@@ -3113,12 +3083,10 @@ SQL,
         return <<<SQL
 SELECT
     u.*,
-    (SELECT url FROM uzivatele_url WHERE uzivatele_url.id_uzivatele = u.id_uzivatele ORDER BY id_url_uzivatele DESC LIMIT 1) AS url,
     GROUP_CONCAT(DISTINCT p.id_prava) as prava
 FROM uzivatele_hodnoty u
 LEFT JOIN platne_role_uzivatelu z ON (z.id_uzivatele = u.id_uzivatele)
 LEFT JOIN prava_role p ON (p.id_role = z.id_role)
-LEFT JOIN uzivatele_url ON u.id_uzivatele = uzivatele_url.id_uzivatele
 {$where}
 GROUP BY u.id_uzivatele
 SQL;
