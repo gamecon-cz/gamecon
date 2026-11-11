@@ -97,6 +97,12 @@ export type ApiLokace = {
  * Pokud hodnota sémanticky "chybí" (uživatel není přihlášen, aktivita
  * není zamčená, …), backend pošle `null`.
  */
+/** text celý z PHP (Aktivita::getUpozorneniNaVek()), stejný ukazuje i záložní confirm() na stránkách linií */
+export type ApiUpozorněníNaVěk = {
+  nadpis: string,
+  text: string,
+};
+
 export type ApiAktivitaUživatel = {
   id: number,
   /** V jakém stavu je pokud je přihlášen */
@@ -111,6 +117,8 @@ export type ApiAktivitaUživatel = {
   mistnosti?: ApiLokace[],
   // todo: tohle je taky možný stav přihlášení (odebrat tady a přidat do stavPrihlaseni)
   vedu?: boolean,
+  /** upozornění před přihlášením, když účastníkovi v den aktivity ještě nebude minimální věk aktivity, jinak null */
+  upozorneniNaVek?: ApiUpozorněníNaVěk | null,
   // todo(tym): členové týmu (pak není potřeba tymPocetClenu)
   // todo(tym): kapitán týmu
   // todo(tym): název týmu

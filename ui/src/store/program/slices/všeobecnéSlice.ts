@@ -1,5 +1,5 @@
 import { ProgramStateCreator, useProgramStore } from "..";
-import { fetchAktivitaTým, AktivitaTymResponse } from "../../../api/program";
+import { fetchAktivitaTým, AktivitaTymResponse, ApiUpozorněníNaVěk } from "../../../api/program";
 
 export type NastaveniTymuData = AktivitaTymResponse;
 
@@ -10,6 +10,7 @@ export type VšeobecnéSlice = {
     zvětšeno: boolean,
     kompaktní: boolean,
     modalOdhlásitAktivitaId?: number,
+    modalUpozorněníNaVěk?: ApiUpozorněníNaVěk,
     nastaveniTymu?: {
       aktivitaId: number,
       nazevAktivity?: string,
@@ -89,6 +90,29 @@ export const nastavModalOdhlásit = (aktivitaId?: number) => {
   useProgramStore.setState(s => {
     s.všeobecné.modalOdhlásitAktivitaId = aktivitaId;
   }, undefined, "nastav modal odhlásit");
+};
+
+// funkce do stavu nepatří (devtools ho serializují), proto vedle něj
+let přihlášeníPoUpozorněníNaVěk: (() => void) | undefined;
+
+/**
+ * Upozornění před přihlášením na aktivitu, na jejíž minimální věk účastník nedosáhne (text z PHP).
+ * Přihlášení provede až potvrzení (přihlaš), zavření ho zahodí.
+ */
+export const otevřiUpozorněníNaVěk = (upozornění: ApiUpozorněníNaVěk, přihlaš: () => void) => {
+  přihlášeníPoUpozorněníNaVěk = přihlaš;
+  useProgramStore.setState(s => {
+    s.všeobecné.modalUpozorněníNaVěk = { nadpis: upozornění.nadpis, text: upozornění.text };
+  }, undefined, "otevři upozornění na věk");
+};
+
+export const zavřiUpozorněníNaVěk = (přihlásit: boolean) => {
+  const přihlaš = přihlášeníPoUpozorněníNaVěk;
+  přihlášeníPoUpozorněníNaVěk = undefined;
+  useProgramStore.setState(s => {
+    delete s.všeobecné.modalUpozorněníNaVěk;
+  }, undefined, "zavři upozornění na věk");
+  if (přihlásit) přihlaš?.();
 };
 
 export const nastavChyba = (chyba?: string) => {

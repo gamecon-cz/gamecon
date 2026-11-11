@@ -2,32 +2,27 @@ import { FunctionComponent } from "preact";
 import { useEffect, useState } from "preact/hooks";
 import { useAktivita, useÚčastník } from "../../../../store/program/selektory";
 import { volnoTypZObsazenost } from "../../../../utils";
-import { nastavModalNastaveníTýmu, nastavModalOdhlásit } from "../../../../store/program/slices/všeobecnéSlice";
-import { proveďAkciAktivity, useStavAkce } from "../../../../store/program/slices/programDataSlice";
+import { useStavAkce } from "../../../../store/program/slices/programDataSlice";
+import { ApiUpozorněníNaVěk } from "../../../../api/program";
+import { FormTlačítkoTyp, klikniNaPřihlašovátko } from "./kliknutíNaPřihlašovátko";
 
 type TPřihlašovátkoProps = {
   akitivitaId: number;
 };
 
-type FormTlačítkoTyp =
-  | "prihlasit"
-  | "odhlasit"
-  | "prihlasSledujiciho"
-  | "odhlasSledujiciho"
-  | "tym"
-  | "zamceno"
-  ;
-
 type FormTlačítkoProps = {
   akitivitaId: number;
   typ: FormTlačítkoTyp;
   tymova?: boolean;
+  /** před přihlášením (i u týmové aktivity) upozorní, že účastníkovi ještě nebude minimální věk aktivity */
+  upozorněníNaVěk?: ApiUpozorněníNaVěk;
 };
 
 const FormTlačítko: FunctionComponent<FormTlačítkoProps> = ({
   akitivitaId,
   typ,
   tymova,
+  upozorněníNaVěk,
 }) => {
   // todo(tym): nějaký handling na zbývající čas ??
   /*
@@ -74,15 +69,7 @@ const FormTlačítko: FunctionComponent<FormTlačítkoProps> = ({
           href="#"
           onClick={(e) => {
             e.preventDefault();
-            if (tymova || typ === "tym") {
-              nastavModalNastaveníTýmu(akitivitaId);
-            } else if (typ === "zamceno") {
-              return;
-            } else if (typ == "odhlasit") {
-              nastavModalOdhlásit(akitivitaId);
-            } else {
-              void proveďAkciAktivity(akitivitaId, typ);
-            }
+            klikniNaPřihlašovátko(akitivitaId, typ, tymova, upozorněníNaVěk);
           }}
         >
           {text}
@@ -160,8 +147,9 @@ export const Přihlašovátko: FunctionComponent<TPřihlašovátkoProps> = (
   if (aktivita.obsazenost) {
     const volnoTyp = volnoTypZObsazenost(aktivita.obsazenost);
 
-    if (volnoTyp === "u" || volnoTyp === "t" || volnoTyp === účastník.pohlavi)
-      return <FormTlačítko akitivitaId={akitivitaId} typ={"prihlasit"} tymova={aktivita.tymova} />;
+    if (volnoTyp === "u" || volnoTyp === "t" || volnoTyp === účastník.pohlavi) {
+      return <FormTlačítko akitivitaId={akitivitaId} typ={"prihlasit"} tymova={aktivita.tymova} upozorněníNaVěk={aktivita.upozorneniNaVek ?? undefined} />;
+    }
 
     // volno už je jen pro opačné pohlaví → pro tohoto účastníka je plno, smí proto sledovat
     // (oddělovač od textu „pouze … místa" zajišťuje border-left na .program ... form > a v CSS)

@@ -90,7 +90,8 @@
 
 <script>
 // až po filtrech nad seznamem (Preact, type="module" běží před DOMContentLoaded), jinak by schované karty posunuly obnovený scroll
-document.addEventListener('DOMContentLoaded', () => zachovejScroll(document.querySelectorAll('.aktivity_aktivity form > a'), null))
+// přihlášení s upozorněním na věk (form[data-upozorneni]) uloží scroll samo až po potvrzení, zrušené by ho nechalo ležet
+document.addEventListener('DOMContentLoaded', () => zachovejScroll(document.querySelectorAll('.aktivity_aktivity form:not([data-upozorneni]) > a'), null))
 </script>
 
 <!-- begin: nahled -->

@@ -53,13 +53,17 @@ if ($ucastnik) {
             : [];
 
         $interni = !$aktivita->viditelnaPro(null);
+        $stavPrihlaseni = $aktivita->stavPrihlaseni($ucastnik);
+        $prihlasovatelna = $aktivita->prihlasovatelnaProPrihlasujiciho($operator ?? $ucastnik);
+        // upozornění na věk jen tam, kde Přihlašovátko.tsx nabídne přihlášení (ne minulé ročníky, ne kde už je nebo vede)
+        $muzeSePrihlasit = $prihlasovatelna
+            && !$vedeAktivitu
+            && in_array($stavPrihlaseni, [StavPrihlaseni::NEPRIHLASEN, StavPrihlaseni::SLEDUJICI], true);
 
         $aktivityUzivatelData[] = [
             'id'             => $aktivita->id(),
-            'stavPrihlaseni' => StavPrihlaseni::frontendKod(
-                $aktivita->stavPrihlaseni($ucastnik),
-            ),
-            'prihlasovatelna' => $aktivita->prihlasovatelnaProPrihlasujiciho($operator ?? $ucastnik),
+            'stavPrihlaseni' => StavPrihlaseni::frontendKod($stavPrihlaseni),
+            'prihlasovatelna' => $prihlasovatelna,
             // slevaNasobic: 0 = 100% sleva, 1 = bez slevy. NEsmí být stripnuto.
             'slevaNasobic'   => $aktivita->soucinitelCenyAktivity($ucastnik),
             // mistnost je orgovská vlastnost — null pro neorgany nebo pokud
@@ -67,6 +71,10 @@ if ($ucastnik) {
             'mistnosti'       => !empty($seznamLokaci) ? $seznamLokaci : null,
             'vedu'            => $vedeAktivitu,
             'interni'         => $interni,
+            // {nadpis, text}, když účastníkovi v den aktivity ještě nebude její minimální věk, jinak null; ukáže se před přihlášením
+            'upozorneniNaVek' => $muzeSePrihlasit
+                ? $aktivita->getUpozorneniNaVek($ucastnik, $operator)
+                : null,
         ];
 
         // Hidden activities visible only to this user (not publicly visible).
