@@ -25,7 +25,9 @@ if(post('vypravec')) {
   }
   if($un) {
     $un->pridejRoli(Role::VYPRAVECSKA_SKUPINA, $u);
-    echo '<p style="color:green">Uživatel ' . $un->jmenoNick() . ' (' . $un->id() . ') vytvořen a přidán do seznamu vypravěčských skupin</p>';
+    // Medailonky smí otevřít každý, kdo smí skupinu založit: podstránku pustí i právo stránky Aktivity (AdminMenu::isPristupna())
+    echo '<p style="color:green">Uživatel ' . htmlspecialchars($un->jmenoNick()) . ' (' . $un->id() . ') vytvořen a přidán do seznamu vypravěčských skupin.'
+      . ' Popis a obrázek do jejího medailonku na webu doplníš v <a href="aktivity/medailonky?id=' . $un->id() . '">Medailoncích</a>.</p>';
   }
 }
 

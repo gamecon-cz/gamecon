@@ -86,6 +86,40 @@ class InfoTest extends TestCase
         ];
     }
 
+    /**
+     * @test
+     */
+    public function nazevAPopisOdUzivateleNeukonciTitulekAniAtribut(): void
+    {
+        // jméno vypravěče na /<id> si píše vypravěč sám
+        $html = $this->vytvorInfo()
+            ->nazev('x"><script>alert(1)</script>')
+            ->popis('Hry & "spol"')
+            ->html();
+
+        self::assertStringNotContainsString('<script>', $html);
+        self::assertStringContainsString(
+            '<title>x&quot;&gt;&lt;script&gt;alert(1)&lt;/script&gt;</title>',
+            $html,
+        );
+        self::assertStringContainsString(
+            '<meta property="og:title" content="x&quot;&gt;&lt;script&gt;alert(1)&lt;/script&gt;">',
+            $html,
+        );
+        self::assertStringContainsString('<meta property="og:description" content="Hry &amp; &quot;spol&quot;">', $html);
+    }
+
+    /**
+     * @test
+     */
+    public function entitaVNadpisuStrankyZCmsSeNezdvoji(): void
+    {
+        // Stranka::nadpis() vrací obsah <h1> tak, jak je v HTML stránky
+        $html = $this->vytvorInfo()->nazev('Hry &amp; spol')->html();
+
+        self::assertStringContainsString('<title>Hry &amp; spol</title>', $html);
+    }
+
     private function vytvorInfo(): Info
     {
         $systemoveNastaveni = $this->createStub(SystemoveNastaveni::class);

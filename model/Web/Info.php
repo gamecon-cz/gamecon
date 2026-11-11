@@ -30,10 +30,10 @@ class Info
     {
         $o = [];
         if ($e = $this->titulek()) {
-            $o[] = '<title>' . $e . '</title>';
+            $o[] = '<title>' . self::escapuj($e) . '</title>';
         }
         if ($e = $this->nazev()) {
-            $o[] = '<meta property="og:title" content="' . $e . '">';
+            $o[] = '<meta property="og:title" content="' . self::escapuj($e) . '">';
         }
         if ($e = $this->getKanonickaUrl()) {
             $e   = htmlspecialchars($e);
@@ -41,19 +41,28 @@ class Info
             $o[] = '<link rel="canonical" href="' . $e . '">';
         }
         if ($e = $this->site()) {
-            $o[] = '<meta property="og:site_name" content="' . $e . '">';
+            $o[] = '<meta property="og:site_name" content="' . self::escapuj($e) . '">';
         }
         if ($e = $this->popis()) {
-            $o[] = '<meta property="og:description" content="' . $e . '">';
+            $o[] = '<meta property="og:description" content="' . self::escapuj($e) . '">';
         }
         if ($e = $this->obrazek()) {
             $e = $this->obrazekProSocialniSite((string) $e);
             if (substr($e, 0, 4) != 'http') $e = URL_WEBU . '/' . $e;
-            $o[] = '<meta property="og:image" content="' . $e . '">';
+            $o[] = '<meta property="og:image" content="' . self::escapuj($e) . '">';
         }
         $o[] = '<meta property="og:type" content="website">';
 
         return implode("\n", $o);
+    }
+
+    /**
+     * Název stránky bývá text, který napsal uživatel (jméno vypravěče na /<id>), a ten nesmí ukončit <title> ani atribut.
+     * Nadpis stránky z CMS (`Stranka::nadpis()`) a obrázek z jejího HTML ale entity už mají (`&amp;`), proto se nezdvojují.
+     */
+    private static function escapuj(string $text): string
+    {
+        return htmlspecialchars($text, double_encode: false);
     }
 
     /**
