@@ -27,7 +27,7 @@ Testy: `tests/Dev/PreviewVstupTest.php`, `tests/Dev/GateLinkTest.php`, `tests/De
 
 - Brána spoléhá na to, že cookie relace `PS0gamecon0cz` má `Domain=.gamecon.cz` a prohlížeč ji proto posílá i na preview. Při zúžení jejího rozsahu na admin se každému návštěvníkovi ukáže stránka „přihlas se do adminu“ (basic auth zůstává odkazem na ní).
 - Brána volá admin přes Apache na loopbacku (`127.0.0.1:8080`, hlavička `Host: admin.gamecon.cz`, `X-Forwarded-Proto: https`), ne přes veřejnou adresu: její systemd jednotka smí jen na loopback.
-- Routa `api` v `admin/index.php` běží před přihlašovací obrazovkou, proto endpoint dostane `$u` bez přesměrování a o stavu přihlášení rozhoduje sám.
+- Routa `api` v `admin/index.php` běží před přihlašovací obrazovkou a nepřihlášenému odpoví `401 {"error": …}` (přihlášenému bez přístupu do adminu `403`) dřív, než endpoint načte. `preview-vstup` je proto ve výjimkách `ApiAdminu::BEZ_PRIHLASENI`: dostane nepřihlášeného bez přesměrování a o stavu přihlášení rozhoduje sám. Bez výjimky by brána místo `{"stav":"neprihlasen"}` dostala jiné tělo. Viz [pracovni-uzivatel-a-admin-api](pracovni-uzivatel-a-admin-api.md).
 - Brána posílá do adminu jen cookie relace. Kdo je přihlášen jen „trvale“ (cookie `gcTrvalePrihlaseni`, platí jen pro host adminu) a relace mu vypršela, dostane stránku „přihlas se do adminu“, dokud admin jednou neotevře.
 - PHP drží soubor relace zamčený po dobu požadavku, takže dlouhý požadavek téže relace v adminu (export, report) odpověď brány zdrží. Po vypršení času brány se zobrazí dialog basic auth.
 - Preview ze starší větve `?gcsso=` na webu nečte: organizátor projde bránou, ale do aplikace se musí přihlásit sám.

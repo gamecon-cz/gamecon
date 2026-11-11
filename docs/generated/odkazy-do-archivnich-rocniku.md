@@ -28,7 +28,7 @@ Vypadá to jako konflikt — obojí zpracovává `admin/scripts/prihlaseni.php` 
 
 1. `gcsso` se vyřídí první (`SsoPrihlaseniZUrl::zpracuj()`, volaná z `prihlaseni.php`) → `back(getCurrentUrlWithQuery(['gcsso' => null]))`.
 2. `getCurrentUrlWithQuery()` (`model/funkce/fw-general.php`) **maže jen uvedené klíče a ostatní zachová** → `pracovni_uzivatel` přežije do redirectu.
-3. Druhý request: uživatel už je přihlášený, zpracuje se `pracovni_uzivatel` (blok `get('pracovni_uzivatel')` v `prihlaseni.php`).
+3. Druhý request: uživatel už je přihlášený, zpracuje se `pracovni_uzivatel` (blok `get('pracovni_uzivatel')` v `prihlaseni.php`, jen s právem stránky, která s pracovním uživatelem pracuje, viz [pracovni-uzivatel-a-admin-api](pracovni-uzivatel-a-admin-api.md)).
 
 Kdyby `getCurrentUrlWithQuery()` query zahazovalo, odkaz by uživatele přihlásil, ale pracovního uživatele by neotevřel.
 
