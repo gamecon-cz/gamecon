@@ -2,6 +2,8 @@
 
 declare(strict_types=1);
 
+use Gamecon\Admin\ApiAdminu;
+use Gamecon\Admin\PristupDoAdminu;
 use Gamecon\Admin\VzhledAdminu;
 use Gamecon\Admin\VzhledAdminuHtml;
 use Gamecon\Cas\DateTimeCz;
@@ -51,6 +53,9 @@ require __DIR__ . '/scripts/prihlaseni.php';
 
 include __DIR__ . '/_symfony.php';
 
+// smí v adminu aspoň jednu stránku; jinak ho odmítne API a nenabídne se mu výběr vzhledu
+$maPristupDoAdminu = PristupDoAdminu::isPovolen($u);
+
 // nastavení stránky, prázdná url => přesměrování na úvod
 if (! $stranka) {
     if ($u) {
@@ -68,6 +73,12 @@ if (! $stranka) {
 }
 
 if ($stranka === 'api') {
+    $kodOdmitnuti = ApiAdminu::getKodOdmitnuti($podstranka, $u !== null, $maPristupDoAdminu);
+    if ($kodOdmitnuti !== null) {
+        ApiAdminu::odmitni($kodOdmitnuti);
+
+        return;
+    }
     $apiDir = __DIR__ . '/scripts/api';
     chdir($apiDir);
     if (is_file($apiDir . '/' . $podstranka . '.php')) {
@@ -293,12 +304,8 @@ if ($u && $u->maPravo(Pravo::ADMINISTRACE_INFOPULT)) {
 }
 
 // výstup menu
-// výběr a přepínač vzhledu jen pro toho, kdo v adminu něco smí, ne pro účastníka na stránce 403;
-// otevřená stránka se počítá, i když ji smí jen díky právu na podstránku (to položku hlavního menu nezobrazí)
-$maPristupDoAdminu = $uzivatelMaPristup;
 foreach ($menu as $url => $polozka) {
     if (AdminMenu::isPristupna($u, $polozka)) {
-        $maPristupDoAdminu = true;
         $xtpl->assign('url', $url);
         $xtpl->assign('nazev', $polozka['nazev']);
         $xtpl->assign('ikona', $polozka['ikona'] ?? 'circle');
@@ -392,6 +399,7 @@ $info->nazev($info->nazev() ?? '', 'Administrace');
 // výstup
 $xtpl->assign('protip', $protipy[array_rand($protipy)]);
 $xtpl->parse('all.paticka');
+// výběr a přepínač vzhledu jen pro toho, kdo v adminu něco smí, ne pro účastníka na stránce 403
 $xtpl->assign([
     'nazevSekce'      => $nazevSekce,
     'prepinacVzhledu' => $maPristupDoAdminu ? $vzhledAdminuHtml?->getPrepinacHtml($u->id()) ?? '' : '',
