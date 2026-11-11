@@ -42,12 +42,10 @@ export const ProgramNáhled: FunctionComponent<ProgramNáhledProps> = (props) =>
               class="programNahled_nazev"
               dangerouslySetInnerHTML={{ __html: aktivita?.nazev ?? "" }}
             ></div>
-            <div
-              class="programNahled_vypraveci"
-              dangerouslySetInnerHTML={{
-                __html: aktivita?.vypraveci?.join?.(", ") ?? "",
-              }}
-            ></div>
+            {/* jméno si vypravěč píše sám, API ho posílá jako text */}
+            <div class="programNahled_vypraveci">
+              {aktivita?.vypraveci?.join?.(", ") ?? ""}
+            </div>
             <div class="programNahled_stitky">
               {tagyZId(aktivita?.stitkyId, tagy).map((x) => (
                 <div class="programNahled_stitek">{x}</div>
