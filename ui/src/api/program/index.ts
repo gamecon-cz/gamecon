@@ -245,6 +245,39 @@ type ApiAktivitaAkceResponse = {
   aktivitaUzivatel?: ApiAktivitaUživatel,
 }
 
+/** Chyba API s hláškou pro uživatele. */
+export class ChybaApi extends Error {}
+
+/** Hláška k neúspěšnému HTTP statusu (401 po vypršení přihlášení, 403, 500), jehož tělo vlastní hlášku nemá. */
+const hláškaKeStatusu = (status: number): string =>
+  status === 401
+    ? "Přihlášení vypršelo, přihlas se prosím znovu."
+    : status === 403
+      ? "Na tohle nemáš oprávnění."
+      : `Server odpověděl chybou (HTTP ${status}).`;
+
+/** Tělo odpovědi jako JSON, null u prázdného nebo nečitelného. */
+const přečtiJson = async (odpověď: Response): Promise<unknown> => {
+  try {
+    return await odpověď.json();
+  } catch {
+    return null;
+  }
+};
+
+/**
+ * Odpověď na akci. Neúspěšný HTTP status (401 po vypršení přihlášení, 403, 500) nemá `chyba` ani `úspěch`, UI by ho
+ * tak vzalo za úspěch, proto z něj udělá neúspěch s hláškou. Stejně tak prázdné nebo nečitelné tělo.
+ */
+export const odpověďAkce = async <T extends {úspěch: boolean, chyba?: {hláška: string}}>(odpověď: Response): Promise<T> => {
+  if (!odpověď.ok)
+    return {úspěch: false, chyba: {hláška: hláškaKeStatusu(odpověď.status)}} as T;
+  const tělo = await přečtiJson(odpověď);
+  if (tělo === null || typeof tělo !== "object")
+    return {úspěch: false, chyba: {hláška: "Server na akci neodpověděl, obnov prosím stránku a akci zopakuj."}} as T;
+  return tělo as T;
+};
+
 export const fetchAktivitaAkce = async (aktivitaId: number, typ: ApiAktivitaAkce, idTýmu?: number, kódTýmu?: number): Promise<ApiAktivitaAkceResponse> => {
   const url = `${GAMECON_KONSTANTY.BASE_PATH_API}aktivitaAkce`;
   const formdata = new FormData();
@@ -253,7 +286,7 @@ export const fetchAktivitaAkce = async (aktivitaId: number, typ: ApiAktivitaAkce
     formdata.set("tymId", idTýmu.toString(10))
   else if (kódTýmu)
     formdata.set("tymKod", kódTýmu.toString(10))
-  return fetch(url, {method: "POST", body: formdata}).then(async x => x.json());
+  return fetch(url, {method: "POST", body: formdata}).then(odpověďAkce<ApiAktivitaAkceResponse>);
 };
 
 export type ClenTymu = {
@@ -296,9 +329,18 @@ export type AktivitaTymResponse = {
   idTurnajeNeboAktivity: number,
 };
 
+/**
+ * @throws ChybaApi při neúspěšném HTTP statusu (vypršelé přihlášení, chybějící oprávnění, neexistující aktivita),
+ * jinak by se odpověď bez týmu vzala za to, že uživatel tým nemá
+ */
 export const fetchAktivitaTým = async (aktivitaId: number): Promise<AktivitaTymResponse> => {
   const url = `${GAMECON_KONSTANTY.BASE_PATH_API}aktivitaTym?aktivitaId=${aktivitaId}`;
-  return fetch(url, {method: "GET"}).then(async x => x.json());
+  const odpověď = await fetch(url, {method: "GET"});
+  if (!odpověď.ok) {
+    const tělo = await přečtiJson(odpověď) as {chyba?: {hláška?: string}} | null;
+    throw new ChybaApi(tělo?.chyba?.hláška ?? hláškaKeStatusu(odpověď.status));
+  }
+  return odpověď.json() as Promise<AktivitaTymResponse>;
 };
 
 export type AkceTymu =
@@ -331,5 +373,5 @@ export const fetchAktivitaTymAkce = async (akce: AkceTymu): Promise<{úspěch: b
   if (akce.typ === "nastavNazev") formdata.set("nazev", akce.nazev);
   if (akce.typ === "predejKapitana") formdata.set("idNovehoKapitana", akce.idNovehoKapitana.toString(10));
   if (akce.typ === "potvrdVyberAktivit") akce.idVybranychAktivit.forEach(id => formdata.append("idVybranychAktivit[]", id.toString(10)));
-  return fetch(url, {method: "POST", body: formdata}).then(async x => x.json());
+  return fetch(url, {method: "POST", body: formdata}).then(odpověďAkce<{úspěch: boolean, novyKod?: number, chyba?: {hláška: string}}>);
 };

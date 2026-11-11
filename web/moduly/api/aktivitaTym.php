@@ -1,6 +1,6 @@
 <?php
 
-/** @var Uzivatel $u */
+/** @var Uzivatel|null $u */
 
 use App\Service\AktivitaTymService;
 use Gamecon\Aktivita\Aktivita;
@@ -9,16 +9,20 @@ use Gamecon\Role\Role;
 
 $response = [];
 
+$jsonConfig = JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES;
+header('Content-type: application/json');
+
+// Na webu, kde se odhlásil nebo mu vypršelo přihlášení; v adminu nepřihlášeného odmítne už brána API.
+// UI program bere 401 jako neúspěch s hláškou, prázdné tělo by nepřečetlo.
 if (!$u) {
+    http_response_code(401);
+    echo json_encode(['error' => '401 Unauthorized'], $jsonConfig);
     return;
 }
 
 if(!isset($uPracovni)) {
     $uPracovni = $u;
 }
-
-$jsonConfig = JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES;
-header('Content-type: application/json');
 
 $aktivitaId = array_key_exists('aktivitaId', $_GET)
     ? (int)$_GET['aktivitaId']
@@ -121,6 +125,11 @@ $uzivatelId = $uPracovni->id();
 
 // čas aktivity + příznak předpřípravy
 $aktivita = Aktivita::zId($aktivitaId);
+if (!$aktivita) {
+    http_response_code(404);
+    echo json_encode(['chyba' => ['hláška' => 'Aktivita nenalezena']], $jsonConfig);
+    return;
+}
 /*
 if ($aktivita) {
     $response['jeTrebaPredpripravit'] = $aktivita->turnaj()?->jeTrebaVybratAktivityTurnaje() ?? false;
