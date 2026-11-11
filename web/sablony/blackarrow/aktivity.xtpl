@@ -57,7 +57,9 @@
         <h2 class="aktivity_nazev">
             <label class="aktivity_vice_bezstylu" for="aktivity_nahledId{aktivita.id}">{aktivita.nazev}</label><a href="{kotva}" class="aktivity_kotva">#</a>
         </h2>
+        <!-- begin: vypraveci -->
         <div class="aktivity_vypravec"><b>Vypravěč:</b> {organizatori}</div>
+        <!-- end: vypraveci -->
         <div class="aktivity_stitky">
             <!-- begin: stitek -->
             <div class="aktivity_stitek">{stitek}</div>
@@ -112,8 +114,10 @@ document.addEventListener('DOMContentLoaded', () => zachovejScroll(document.quer
     </div>
 
     <div class="aktivity_nahledInfoPole">
+        <!-- begin: vypraveci -->
         <h3>Vypravěč:</h3>
         {organizatoriNahled}
+        <!-- end: vypraveci -->
 
         <h3>Informace:</h3>
         <div class="programNahled_obsazenost aktivity_nahledInfo">{kapacita}</div>
@@ -125,6 +129,9 @@ document.addEventListener('DOMContentLoaded', () => zachovejScroll(document.quer
         <div class="aktivity_termin">
             <b>{aktivita.denCasSkutecny}</b>&ensp;
             {obsazenost}&ensp;
+            <!-- begin: vypravec -->
+            <div class="aktivity_nahledTerminVypravec">{vypravec}</div>
+            <!-- end: vypravec -->
         </div>
         <!-- end: termin -->
     </div>

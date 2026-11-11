@@ -7,6 +7,8 @@ use Gamecon\Aktivita\StavAktivity;
 use Gamecon\Aktivita\Tag;
 use Gamecon\Aktivita\TypAktivity;
 use Gamecon\KategorieTagu;
+use Gamecon\Role\Role;
+use Gamecon\Uzivatel\Medailonek;
 
 /** @var Modul $this */
 /** @var Url $url */
@@ -60,6 +62,16 @@ SQL, [
         : null,
     6 => [TypAktivity::DRD, TypAktivity::LKD],
 ]));
+// /<id> najde kohokoli (Uzivatel::zUrl()), medailonek ale patří jen vypravěči: kdo nikdy nic viditelného nevedl,
+// letos nemá roli vypravěče (přehled /vypraveci ho vypíše i bez aktivit) a nemá ani medailonek z adminu, má 404,
+// jinak by šli projít všichni registrovaní
+if (!empty($org)
+    && $rocniky === []
+    && !$org->maRoli(Role::LETOSNI_VYPRAVEC($letosniRocnik))
+    && Medailonek::zId((int)$org->id()) === null
+) {
+    throw new Nenalezeno();
+}
 // letošní i bez aktivit, ať se jde vrátit
 $rocniky = array_values(array_unique(array_merge([$letosniRocnik], $rocniky)));
 
@@ -109,12 +121,38 @@ $klicePodleNazvuDne     = [];
 $vypraveciProFiltr      = [];
 $nekteraPrihlasovatelna = false;
 
+// medailonek /<id> má každý, i vypravěčská skupina, která má jen přezdívku a jméno nevyplněné;
+// jméno si vypravěč píše sám a XTemplate neescapuje
+$odkazNaMedailonek = static fn (Uzivatel $organizator): string
+    => '<a href="' . $organizator->id() . '">' . htmlspecialchars($organizator->jmenoNaWebu()) . '</a>';
+
 foreach ($skupiny as $skupina) {
     $skupina = serazenePodle($skupina, 'zacatek');
 
-    $dnyKarty       = [];
+    $dnyKarty     = [];
+    $volnoNaKarte = false;
+
+    // ID vypravěče => odkaz na jeho medailonek, ze všech termínů karty v pořadí termínů
     $vypraveciKarty = [];
-    $volnoNaKarte   = false;
+    // ID termínu => [ID vypravěče => odkaz]; u DrD a skupin má každý termín svého vypravěče
+    $vypraveciTerminu = [];
+    // ID vypravěčů termínu bez ohledu na pořadí => true
+    $sestavyVypravecu = [];
+    foreach ($skupina as $aktivita) {
+        $vypraveciTerminu[$aktivita->id()] = [];
+        foreach ($aktivita->organizatori() as $organizator) {
+            $vypraveciKarty[$organizator->id()] ??= $odkazNaMedailonek($organizator);
+            $vypraveciTerminu[$aktivita->id()][$organizator->id()] = $vypraveciKarty[$organizator->id()];
+            // filtr kartu najde u vypravěče kteréhokoli termínu
+            $vypraveciProFiltr[$organizator->id()] ??= $organizator->jmenoNaWebu();
+        }
+        $idVypravecuTerminu = array_keys($vypraveciTerminu[$aktivita->id()]);
+        sort($idVypravecuTerminu);
+        $sestavyVypravecu[implode(',', $idVypravecuTerminu)] = true;
+    }
+    // Vedou-li všechny termíny titíž, vypíše je hlavička karty i náhled jednou. Jinak (první kolo DrD má desítky PJ)
+    // by byl seznam v hlavičce dlouhý a opakoval by termíny, takže je má jen každý termín u sebe, i v náhledu.
+    $vypraveciVsechTerminuStejni = count($sestavyVypravecu) <= 1;
 
     /** @var Aktivita $aktivita */
     foreach ($skupina as $aktivita) {
@@ -132,16 +170,15 @@ foreach ($skupiny as $skupina) {
             $nekteraPrihlasovatelna = $nekteraPrihlasovatelna || $aktivita->prihlasovatelna();
             $volnoNaKarte           = $volnoNaKarte || $aktivita->isVolnoKPrihlaseni($u);
         }
-        // u DrD a skupin má každý termín svého vypravěče, filtr kartu najde u kteréhokoli z nich
-        foreach ($aktivita->organizatori() as $organizator) {
-            $vypraveciKarty[$organizator->id()]    = true;
-            $vypraveciProFiltr[$organizator->id()] ??= $organizator->jmenoNaWebu();
-        }
-
-        $vypravec = current($aktivita->organizatori());
-        if ($vypravec && ($aktivita->typId() == TypAktivity::DRD || $aktivita->patriPod() > 0)) {
-            $t->assign('vypravec', $vypravec->jmenoNaWebu());
-            $t->parse('aktivity.aktivita.termin.vypravec');
+        $vypraveciTohotoTerminu = $vypraveciTerminu[$aktivita->id()];
+        if ($vypraveciTohotoTerminu) {
+            $t->assign('vypravec', implode(', ', $vypraveciTohotoTerminu));
+            if ($aktivita->typId() == TypAktivity::DRD || $aktivita->patriPod() > 0) {
+                $t->parse('aktivity.aktivita.termin.vypravec');
+            }
+            if (!$vypraveciVsechTerminuStejni) {
+                $t->parse('aktivity.nahled.termin.vypravec');
+            }
         }
 
         if ($minulyRocnik) {
@@ -165,18 +202,6 @@ foreach ($skupiny as $skupina) {
         $t->parse('aktivity.aktivita.termin');
     }
 
-    $organizatori = implode(', ', array_map(static function (
-        Uzivatel $organizator,
-    ) {
-        $maProfilovouStranku = $organizator->url() !== null;
-        $jmenoNaWebu         = $organizator->jmenoNaWebu();
-
-        return $maProfilovouStranku
-            ? '<a href="' . $organizator->id() . '">' . $jmenoNaWebu . '</a>'
-            // asi vypravěčská skupina nebo podobně
-            : $jmenoNaWebu;
-    }, $aktivita->organizatori()));
-
     $obrazek = $aktivita->obrazek();
 
     $t->assign([
@@ -191,11 +216,17 @@ foreach ($skupiny as $skupina) {
         'obrazek'            => $obrazek
             ? $obrazek->pasuj(512)
             : null, // TODO kvalita?
-        'organizatori'       => $organizatori,
-        'organizatoriNahled' => strtr($organizatori, [', ' => '<br>']),
+        // vypravěči všech termínů, ne jen posledního ($aktivita tu zbyla z cyklu)
+        'organizatori'       => implode(', ', $vypraveciKarty),
+        // čárka v názvu skupiny („Albi, s.r.o.“) by se při nahrazení čárek rozdělila na dva řádky
+        'organizatoriNahled' => implode('<br>', $vypraveciKarty),
         'kapacita'           => $aktivita->kapacita()
             ?: 'neomezeně',
     ]);
+    if ($vypraveciKarty && $vypraveciVsechTerminuStejni) {
+        $t->parse('aktivity.aktivita.vypraveci');
+        $t->parse('aktivity.nahled.vypraveci');
+    }
 
     $t->parseEach($aktivita->tagy(), 'stitek', 'aktivity.aktivita.stitek');
     $t->parseEach($aktivita->tagy(), 'stitek', 'aktivity.nahled.stitek');
@@ -264,7 +295,7 @@ if (!empty($org)) {
     /** @var Uzivatel $org */
     $this->info()->nazev($org->jmenoNaWebu() . $pripojkaRocniku);
     $t->assign([
-        'jmeno' => $org->jmenoNaWebu(),
+        'jmeno' => htmlspecialchars($org->jmenoNaWebu()),
         'popis' => $org->oSobe()
             ?: '<p><em>popisek od vypravěče nemáme</em></p>',
         'fotka' => $org->fotkaAuto()->kvalita(85)->pokryjOrez(180, 180),
