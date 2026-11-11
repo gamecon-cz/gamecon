@@ -23,5 +23,6 @@ class PlatbySqlStruktura
     public const NAZEV_BANKY_PROTIUCTU  = 'nazev_banky_protiuctu';
     public const POZNAMKA               = 'poznamka';
     public const SKRYTA_POZNAMKA        = 'skryta_poznamka';
+    public const ORDER_ID               = 'order_id';
 
 }

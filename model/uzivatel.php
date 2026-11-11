@@ -103,6 +103,11 @@ class Uzivatel extends DbObject
     public const SYSTEM = 1;     // id uživatele reprezentujícího systém (např. "operaci provedl systém")
     public const SYSTEM_LOGIN = 'SYSTEM';
 
+    // Kupující bez účtu — prodej na pultu. Oddělený od SYSTEMu, který je *vykonavatelem*
+    // operací; účet nemá žádné role, takže na něj nemůže spadnout sleva.
+    public const ANONYM = 0;
+    public const ANONYM_LOGIN = 'ANONYM';
+
     public const TYPY_DOKLADU = [
         self::TYP_DOKLADU_OP,
         self::TYP_DOKLADU_PAS,
@@ -339,7 +344,7 @@ SQL, [Pravo::PORADANI_AKTIVIT],
     {
         if ($op !== null) {
             self::zalogujZmenuOp($this->id(), (string) ($this->r['op'] ?? ''), $op);
-            dbQuery('
+            dbExecute('
         UPDATE uzivatele_hodnoty
         SET op=$1
         WHERE id_uzivatele=' . $this->r['id_uzivatele'],
@@ -369,7 +374,7 @@ SQL, [Pravo::PORADANI_AKTIVIT],
                 [Sql::TYP_DOKLADU_TOTOZNOSTI => $typDokladu],
                 [Sql::TYP_DOKLADU_TOTOZNOSTI => $this->r[Sql::TYP_DOKLADU_TOTOZNOSTI] ?? null],
             );
-            dbQuery('
+            dbExecute('
         UPDATE uzivatele_hodnoty
         SET typ_dokladu_totoznosti=$0
         WHERE id_uzivatele=' . $this->r['id_uzivatele'],
@@ -396,7 +401,7 @@ SQL, [Pravo::PORADANI_AKTIVIT],
                 [Sql::STATNI_OBCANSTVI => $statniObcanstvi],
                 [Sql::STATNI_OBCANSTVI => $this->r[Sql::STATNI_OBCANSTVI] ?? null],
             );
-            dbQuery(
+            dbExecute(
                 'UPDATE uzivatele_hodnoty SET statni_obcanstvi = $0 WHERE id_uzivatele = ' . $this->r[Sql::ID_UZIVATELE],
                 [0 => $statniObcanstvi],
             );
@@ -466,7 +471,9 @@ SQL, [Pravo::PORADANI_AKTIVIT],
     }
 
     /**
-     * Přidá uživateli roli (posadí uživatele na roli)
+     * Přidá uživateli roli (posadí uživatele na roli).
+     * Deleguje na Symfony UserRoleService (logging, validace, cart recalculation).
+     * Falls back to legacy SQL when Doctrine entities are not accessible (e.g. in tests with separate transactions).
      */
     public function pridejRoli(
         int $idRole,
@@ -476,6 +483,31 @@ SQL, [Pravo::PORADANI_AKTIVIT],
             return false;
         }
 
+        try {
+            /** @var \Doctrine\ORM\EntityManagerInterface $em */
+            $em = $this->systemoveNastaveni->getService('doctrine.orm.entity_manager');
+            $userRoleService = $this->systemoveNastaveni->getService(\App\Service\UserRoleService::class);
+
+            $userEntity = $em->find(\App\Entity\User::class, $this->id());
+            $roleEntity = $em->find(\App\Entity\Role::class, $idRole);
+            $posadilEntity = $em->find(\App\Entity\User::class, $posadil->id());
+
+            if ($userEntity !== null && $roleEntity !== null) {
+                $roleNovePridana = $userRoleService->assignRole($userEntity, $roleEntity, $posadilEntity);
+                $this->aktualizujPrava();
+
+                return $roleNovePridana;
+            }
+        } catch (\Throwable) {
+            // Doctrine not available, fall through to legacy
+        }
+
+        // Legacy fallback when the kernel is not available
+        return $this->pridejRoliLegacy($idRole, $posadil);
+    }
+
+    private function pridejRoliLegacy(int $idRole, self $posadil): bool
+    {
         $novaPrava = dbOneArray('SELECT id_prava FROM prava_role WHERE id_role = $0', [$idRole]);
 
         if ($this->maPravo(Pravo::UNIKATNI_ROLE) && in_array(Pravo::UNIKATNI_ROLE, $novaPrava, true)) {
@@ -487,17 +519,16 @@ SQL, [Pravo::PORADANI_AKTIVIT],
         // pak nesmí zůstat neinicializovaná, jinak by `return` spadl na TypeError.
         $roleNovePridana = false;
         try {
-            $result = dbQuery(
+            $roleNovePridana = dbExecute(
                 'INSERT INTO uzivatele_role(id_uzivatele, id_role, posadil)
             VALUES ($1, $2, $3)',
                 [$this->id(), $idRole, $posadil->id()],
-            );
-            $roleNovePridana = dbAffectedOrNumRows($result) > 0;
+            ) > 0;
             if ($roleNovePridana) {
                 $this->zalogujZmenuRole($idRole, $posadil->id(), self::POSAZEN);
             }
         } catch (DbDuplicateEntryException $dbDuplicateEntryException) {
-            // roli už má, všechno OK (nechceme INSERT IGNORE protože to by zamlčelo i neexistující roli)
+            $roleNovePridana = false;
         }
 
         $this->aktualizujPrava();
@@ -890,7 +921,22 @@ SQL,
         if (! $this->gcPritomen()) {
             throw new Chyba('Uživatel není přítomen na GC');
         }
-        $this->pridejRoli(Role::ODJEL_Z_LETOSNIHO_GC, $editor);
+        // One transaction: the button is disabled once the role exists, so a failed completion could not be retried.
+        dbBegin();
+        try {
+            $this->pridejRoli(Role::ODJEL_Z_LETOSNIHO_GC, $editor);
+            // After the role: adding it reprices a pending order, so completing first would freeze the old prices.
+            $this->dokonciLetosniObjednavku();
+            dbCommit();
+        } catch (\Throwable $throwable) {
+            dbRollback();
+            throw $throwable;
+        }
+    }
+
+    private function dokonciLetosniObjednavku(): void
+    {
+        $this->systemoveNastaveni->getService(\App\Service\OrderCompletionService::class)->completeCart($this->id());
     }
 
     /**
@@ -975,13 +1021,15 @@ SQL,
             throw new Chyba('Heslo nemůže být kvůli technikým omezením delší než 72 znaků');
         }
         $novyHash = password_hash($noveHeslo, PASSWORD_DEFAULT);
+        // Before the hash is written, so a failed revoke can not leave a new password next to live old tokens.
+        revokeJwtsForUser($this);
         self::zalogujZmenuOsobnichUdaju(
             $this->id(),
             [Sql::HESLO_MD5 => $novyHash],
             [Sql::HESLO_MD5 => $this->r[Sql::HESLO_MD5] ?? null],
             zdroj: $zdroj,
         );
-        dbQuery(
+        dbExecute(
             'UPDATE uzivatele_hodnoty SET heslo_md5 = $1, random = $3 WHERE id_uzivatele = $2',
             [$novyHash, $this->id(), randHex(20)],
         );
@@ -995,7 +1043,7 @@ SQL,
         if (! isset($this->historiePrihlaseni)) {
             $ucast = Role::TYP_UCAST;
             $prihlasen = Role::VYZNAM_PRIHLASEN;
-            $q = dbQuery(<<<SQL
+            $q = dbFetch(<<<SQL
 SELECT role.rocnik_role
 FROM uzivatele_role
 JOIN role_seznam AS role
@@ -1005,7 +1053,7 @@ WHERE uzivatele_role.id_uzivatele = $0
     AND role.vyznam_role = '{$prihlasen}'
 SQL,
                 [$this->id()]);
-            $rokyWrapped = mysqli_fetch_all($q);
+            $rokyWrapped = $q->fetchAll();
             $roky = array_map(fn (
                 $e,
             ) => (int) $e[0], $rokyWrapped);
@@ -1453,11 +1501,6 @@ SQL,
         return $this->maRoli(Role::SEF_PROGRAMU);
     }
 
-    public function jeSefInfopultu(): bool
-    {
-        return $this->maRoli(Role::SEF_INFOPULTU);
-    }
-
     /**
      * @return int[]
      */
@@ -1581,6 +1624,8 @@ SQL,
         // Než zmizí session: když to selže, odhlášení jde zopakovat.
         $this->zneplatniTrvalePrihlaseni();
         $a = $this->koncovkaDlePohlavi();
+        // Before the session goes, so a failure leaves a session to retry the logout from.
+        revokeJwtsForUser($this);
         $this->odhlasProTed();
         if (isset($_COOKIE['gcTrvalePrihlaseni'])) {
             setcookie('gcTrvalePrihlaseni', '', 0, '/');
@@ -1598,7 +1643,7 @@ SQL,
      */
     private function zneplatniTrvalePrihlaseni(): void
     {
-        dbQuery(
+        dbExecute(
             'UPDATE uzivatele_hodnoty SET random = $0 WHERE id_uzivatele = $1',
             [randHex(20), $this->id()],
         );
@@ -1645,7 +1690,7 @@ SQL,
     public function odhlasZMaileru()
     {
         $id = $this->id();
-        dbQueryS('UPDATE uzivatele_hodnoty SET nechce_maily = NOW() WHERE id_uzivatele = $1', [$id]);
+        dbExecute('UPDATE uzivatele_hodnoty SET nechce_maily = NOW() WHERE id_uzivatele = $1', [$id]);
     }
 
     /**
@@ -1734,7 +1779,7 @@ SQL,
                 [Sql::POZNAMKA => $poznamka],
                 [Sql::POZNAMKA => $this->r[Sql::POZNAMKA] ?? null],
             );
-            dbQueryS('UPDATE uzivatele_hodnoty SET poznamka = $1 WHERE id_uzivatele = $2', [$poznamka, $this->id()]);
+            dbExecute('UPDATE uzivatele_hodnoty SET poznamka = $1 WHERE id_uzivatele = $2', [$poznamka, $this->id()]);
             $this->otoc();
 
             return $poznamka;
@@ -1843,7 +1888,7 @@ SQL,
         if ((password_needs_rehash($uzivatelData['heslo_md5'], PASSWORD_DEFAULT) || $jeMd5) && ! $jeMaster) {
             $novyHash = password_hash($heslo, PASSWORD_DEFAULT);
             $uzivatelData['heslo_md5'] = $novyHash;
-            dbQuery('UPDATE uzivatele_hodnoty SET heslo_md5 = $0 WHERE id_uzivatele = $1', [$novyHash, $uzivatelData['id_uzivatele']]);
+            dbExecute('UPDATE uzivatele_hodnoty SET heslo_md5 = $0 WHERE id_uzivatele = $1', [$novyHash, $uzivatelData['id_uzivatele']]);
         }
         // přihlášení uživatele
         // TODO refactorovat do jedné fce volané z dílčích prihlas* metod
@@ -1854,7 +1899,7 @@ SQL,
         $uzivatelData['id_uzivatele'] = $idUzivatele;
         $_SESSION[$klic]['id_uzivatele'] = $idUzivatele;
         // načtení uživatelských práv
-        $p = dbQuery(<<<SQL
+        $p = dbFetch(<<<SQL
 SELECT id_prava
 FROM platne_role_uzivatelu
     LEFT JOIN prava_role ON platne_role_uzivatelu.id_role = prava_role.id_role
@@ -1862,7 +1907,7 @@ WHERE platne_role_uzivatelu.id_uzivatele={$idUzivatele}
 SQL,
         );
         $prava = []; // inicializace nutná, aby nepadala výjimka pro uživatele bez práv
-        while ($r = mysqli_fetch_assoc($p)) {
+        while ($r = $p->fetch(PDO::FETCH_ASSOC)) {
             $prava[] = (int) $r['id_prava'];
         }
         $uzivatelData['prava'] = $prava;
@@ -1893,11 +1938,11 @@ SQL,
         }
         $_SESSION[$klic]['id_uzivatele'] = $idUzivatele;
         // načtení uživatelských práv
-        $p = dbQuery(
+        $p = dbFetch(
             'SELECT id_prava FROM platne_role_uzivatelu uz LEFT JOIN prava_role pz USING(id_role) WHERE uz.id_uzivatele=' . $idUzivatele,
         );
         $prava = []; // inicializace nutná, aby nepadala výjimka pro uživatele bez práv
-        while ($r = mysqli_fetch_assoc($p)) {
+        while ($r = $p->fetch(PDO::FETCH_ASSOC)) {
             $prava[] = (int) $r['id_prava'];
         }
         $uzivatelData['prava'] = $prava;
@@ -1922,7 +1967,7 @@ SQL,
         $u = self::prihlas($login, $heslo, $klic);
         $rand = randHex(20);
         if ($u) {
-            dbQuery(
+            dbExecute(
                 'UPDATE uzivatele_hodnoty
                 SET random=$0
                 WHERE id_uzivatele=' . $u->id(),
@@ -2148,7 +2193,7 @@ SQL,
         }
 
         $povinneUdaje = self::povinneUdajeProRegistraci(
-            $u?->shop()->ubytovani()->maObjednaneUbytovani() ?? false,
+            $u?->shop()->maObjednaneUbytovani() ?? false,
         );
 
         foreach ($validace as $klic => $validator) {
@@ -2196,6 +2241,8 @@ SQL,
             // Stejným zápisem jako hash, aby nevzniklo okno s novým heslem a starým tokenem.
             if ($u) {
                 $dbTab['random'] = randHex(20);
+                // Same order as in heslo(): before the hash is written.
+                revokeJwtsForUser($u);
             }
         }
 
@@ -2388,7 +2435,7 @@ SQL,
     ) {
         $zmeny = array_intersect_key($u->r, array_flip($zmeny));
 
-        $slucovani = new UzivatelSlucovani();
+        $slucovani = new UzivatelSlucovani($this->systemoveNastaveni);
         $slucovani->sluc($u, $this, $zmeny);
 
         $this->otoc();
@@ -2565,13 +2612,39 @@ SQL,
 
     /**
      * Odstraní uživatele z role a aktualizuje jeho práva.
+     * Deleguje na Symfony UserRoleService (logging, cart recalculation).
+     * Falls back to legacy SQL when Doctrine entities are not accessible.
      */
     public function odeberRoli(
         int $idRole,
         self $editor,
     ): bool {
-        $result = dbQuery('DELETE FROM uzivatele_role WHERE id_uzivatele=' . $this->id() . ' AND id_role=' . $idRole);
-        $roleNoveOdebrana = dbAffectedOrNumRows($result) > 0;
+        try {
+            /** @var \Doctrine\ORM\EntityManagerInterface $em */
+            $em = $this->systemoveNastaveni->getService('doctrine.orm.entity_manager');
+            $userRoleService = $this->systemoveNastaveni->getService(\App\Service\UserRoleService::class);
+
+            $userEntity = $em->find(\App\Entity\User::class, $this->id());
+            $roleEntity = $em->find(\App\Entity\Role::class, $idRole);
+            $editorEntity = $em->find(\App\Entity\User::class, $editor->id());
+
+            if ($userEntity !== null && $roleEntity !== null) {
+                $roleNoveOdebrana = $userRoleService->removeRole($userEntity, $roleEntity, $editorEntity);
+                $this->aktualizujPrava();
+
+                return $roleNoveOdebrana;
+            }
+        } catch (\Throwable) {
+            // Doctrine not available, fall through to legacy
+        }
+
+        // Legacy fallback
+        return $this->odeberRoliLegacy($idRole, $editor);
+    }
+
+    private function odeberRoliLegacy(int $idRole, self $editor): bool
+    {
+        $roleNoveOdebrana = dbExecute('DELETE FROM uzivatele_role WHERE id_uzivatele=' . $this->id() . ' AND id_role=' . $idRole) > 0;
         if ($roleNoveOdebrana) {
             $this->zalogujZmenuRole($idRole, $editor->id(), self::SESAZEN);
         }
@@ -2587,7 +2660,7 @@ SQL,
         int $idEditora,
         string $zmena,
     ): void {
-        dbQuery(<<<SQL
+        dbExecute(<<<SQL
 INSERT INTO uzivatele_role_log(id_uzivatele, id_role, id_zmenil, zmena, kdy)
 VALUES ($0, $1, $2, $3, NOW())
 SQL,
@@ -2711,7 +2784,7 @@ SQL,
         $idZmenil ??= self::aktualniEditorIdZeSession();
         try {
             foreach ($zmeny as [$sloupec, $stara, $nova]) {
-                dbQuery(<<<SQL
+                dbExecute(<<<SQL
 INSERT INTO uzivatele_hodnoty_log(id_uzivatele, id_zmenil, sloupec, stara_hodnota, nova_hodnota, zdroj_zmeny, kdy)
 VALUES ($0, $1, $2, $3, $4, $5, NOW())
 SQL,
@@ -2735,7 +2808,7 @@ SQL,
      * pokud session neběží / nikdo přihlášen není (CLI, cron, systémové akce).
      * Session zde záměrně nespouštíme – jen čteme, pokud už běží.
      */
-    private static function aktualniEditorIdZeSession(): ?int
+    public static function aktualniEditorIdZeSession(): ?int
     {
         if (PHP_SAPI === 'cli' || session_status() !== PHP_SESSION_ACTIVE) {
             return null;
@@ -3058,7 +3131,7 @@ SQL,
             }
             $rand = randHex(20);
             // změna tokenu do budoucna proti hádání
-            dbQuery(
+            dbExecute(
                 "UPDATE uzivatele_hodnoty
                 SET random=$0
                 WHERE id_uzivatele={$id}",
@@ -3155,9 +3228,9 @@ SQL;
         string $where,
     ): array {
         $query = self::dotaz(where: $where);
-        $o = dbQuery($query);
+        $o = dbFetch($query);
         $uzivatele = [];
-        while ($r = mysqli_fetch_assoc($o)) {
+        while ($r = $o->fetch(PDO::FETCH_ASSOC)) {
             $u = new self($r);
             $u->r['prava'] = self::idsPravZRetezce($u->r['prava'] ?? '');
             $uzivatele[] = $u;
@@ -3305,7 +3378,7 @@ SQL;
             $role['brigadnik'] = true;
         }
         if ($this->maRoli(Role::SEF_INFOPULTU)) {
-            $role['sefInfa'] = true;
+            $role['sefInfopultu'] = true;
         }
 
         if (! empty($role)) {

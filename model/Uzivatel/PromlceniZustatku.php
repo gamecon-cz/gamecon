@@ -45,7 +45,7 @@ class PromlceniZustatku
         $ucast     = Role::TYP_UCAST;
         $prihlasen = Role::VYZNAM_PRIHLASEN;
 
-        $result = dbQuery(<<<SQL
+        $result = dbFetch(<<<SQL
 SELECT
     uzivatele_hodnoty.id_uzivatele,
     prihlaseni.roky AS prihlaseniNaRocniky,
@@ -97,7 +97,7 @@ SQL,
         );
 
         $uzivatele = [];
-        while ($r = mysqli_fetch_assoc($result)) {
+        while ($r = $result->fetch(\PDO::FETCH_ASSOC)) {
             $uzivatel = Uzivatel::zId($r['id_uzivatele']);
 
             $uzivatele[] = new UzivatelKPromlceni(
@@ -146,7 +146,7 @@ SQL,
             $zustatek = $odpoved['zustatek'];
             $suma     += $zustatek;
 
-            dbQuery('UPDATE uzivatele_hodnoty SET zustatek = 0 WHERE id_uzivatele = $0', [$id]);
+            dbExecute('UPDATE uzivatele_hodnoty SET zustatek = 0 WHERE id_uzivatele = $0', [$id]);
 
             // Logování
             $soubor = LOGY . '/promlceni-' . date('Y-m-d_H-i-s') . '.log';

@@ -6,7 +6,7 @@
 
 require __DIR__ . '/sdilene-hlavicky.php';
 
-$o = dbQuery('
+$o = dbFetch('
   SELECT
     p.id_uzivatele,
     count(1) as pocet,
@@ -23,12 +23,12 @@ $o = dbQuery('
   WHERE a.rok=$1
   GROUP BY p.id_uzivatele', [ROCNIK]);
 
-if (mysqli_num_rows($o) == 0) {
+if ($o->rowCount() == 0) {
     exit('V tabulce nejsou žádná data.');
 }
 
 $typu = 8; //počet typů aktivit
-while ($r = mysqli_fetch_assoc($o)) {
+while ($r = $o->fetch(PDO::FETCH_ASSOC)) {
     $pocet = $r['pocet'];
     $pocty = array_slice($r, 2, 8);
     //$pocty=array(1,0,0,0,0,0,0,0);

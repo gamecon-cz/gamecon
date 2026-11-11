@@ -66,8 +66,8 @@ $formatDatumPrihlaseni = static function (?string $datumPrihlaseni) use ($naDate
         : '';
 };
 
-$o = dbQuery('SELECT id_typu, typ_1pmn FROM akce_typy ORDER BY poradi, typ_1pmn');
-while ($r = mysqli_fetch_assoc($o)) {
+$o = dbFetch('SELECT id_typu, typ_1pmn FROM akce_typy ORDER BY poradi, typ_1pmn');
+while ($r = $o->fetch(PDO::FETCH_ASSOC)) {
     $xtpl2->assign($r);
     $xtpl2->parse('prihlaseni.vyber');
 }
@@ -84,7 +84,7 @@ if (! get('typ')) {
 // uvnitř každé skupiny pak od nejdříve přihlášeného (datum_prihlaseni) – stejně
 // jako v online prezenci.
 $sledujici = StavPrihlaseni::SLEDUJICI;
-$odpoved = dbQuery(<<<SQL
+$odpoved = dbFetch(<<<SQL
 SELECT  akce_seznam.nazev_akce AS nazevAktivity, akce_seznam.id_akce AS id,
         (akce_seznam.kapacita + akce_seznam.kapacita_m + akce_seznam.kapacita_f) AS kapacita,
         akce_seznam.kapacita AS kapacita_u, akce_seznam.kapacita_m, akce_seznam.kapacita_f,
@@ -135,8 +135,8 @@ $rozpadPohlavi = static function (int $unisex, int $muzi, int $zeny): string {
     return sprintf('%d+%d+%d', $unisex, $muzi, $zeny);
 };
 
-$totoPrihlaseni = mysqli_fetch_assoc($odpoved) ?: [];
-$dalsiPrihlaseni = mysqli_fetch_assoc($odpoved) ?: [];
+$totoPrihlaseni = $odpoved->fetch(PDO::FETCH_ASSOC) ?: [];
+$dalsiPrihlaseni = $odpoved->fetch(PDO::FETCH_ASSOC) ?: [];
 $obsazenost = 0;
 $obsazenostMuzi = 0;
 $obsazenostZeny = 0;
@@ -201,7 +201,7 @@ while ($totoPrihlaseni) {
         $maily = [];
     }
     $totoPrihlaseni = $dalsiPrihlaseni;
-    $dalsiPrihlaseni = mysqli_fetch_assoc($odpoved);
+    $dalsiPrihlaseni = $odpoved->fetch(PDO::FETCH_ASSOC);
 }
 
 $xtpl2->parse('prihlaseni');

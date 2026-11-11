@@ -39,7 +39,7 @@ if (post('promlcet')) {
         $suma     += $zustatek;
 
         try {
-            dbQuery('UPDATE uzivatele_hodnoty SET zustatek = 0 WHERE id_uzivatele = $0', [$id]);
+            dbExecute('UPDATE uzivatele_hodnoty SET zustatek = 0 WHERE id_uzivatele = $0', [$id]);
         } catch (Throwable $throwable) {
             $vyjimkovac->zaloguj($throwable);
             chyba('Nepodařilo se aktualizovat údaje v databázi. Kontaktuj IT tým.');
@@ -85,7 +85,7 @@ if (is_numeric($jednaHraniceZustatku) && is_numeric($ucastDoRoku)) {
     $ucast     = Role::TYP_UCAST;
     $prihlasen = Role::VYZNAM_PRIHLASEN;
 
-    $o = dbQuery(<<<SQL
+    $o = dbFetch(<<<SQL
 SELECT
     u.id_uzivatele AS uzivatel,
     u.jmeno_uzivatele AS jmeno,
@@ -145,7 +145,7 @@ SQL,
     );
 
     if (post('exportovat')) {
-        $data = mysqli_fetch_all($o, MYSQLI_ASSOC);
+        $data = $o->fetchAll(PDO::FETCH_ASSOC);
         if ($data !== []) {
             $report = Report::zPole($data);
             $report->tXlsx('Promlčení zůstatků');
@@ -156,7 +156,7 @@ SQL,
     $maxInputVars = (int)ini_get('max_input_vars'); // omezuje například POST
     $maxUzivatelu = $maxInputVars - 100;
     $poradi       = 1;
-    while ($r = mysqli_fetch_assoc($o)) {
+    while ($r = $o->fetch(PDO::FETCH_ASSOC)) {
         $p->assign([
             'id'                  => $r['uzivatel'],
             'jmeno'               => $r['jmeno'],

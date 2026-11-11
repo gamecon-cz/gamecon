@@ -96,7 +96,7 @@ class EmailovaSablonaKontrolaTest extends AbstractTestDb
      */
     public function chybejiciSablonaSeHlasiJakoTaKterouNelzeOdeslat(): void
     {
-        dbQuery("DELETE FROM emailova_sablona WHERE kod = 'obnova_hesla'");
+        dbExecute("DELETE FROM emailova_sablona WHERE kod = 'obnova_hesla'");
 
         $problemy = $this->kontrola()->najdiProblemy();
 

@@ -103,7 +103,7 @@ class EmailoveSablonyTest extends AbstractTestDb
      */
     public function chybejiciRadekVDatabaziMailNeodesleAniNenahradiTextemZKodu(): void
     {
-        dbQuery("DELETE FROM emailova_sablona WHERE kod = 'obnova_hesla'");
+        dbExecute("DELETE FROM emailova_sablona WHERE kod = 'obnova_hesla'");
 
         $this->expectException(EmailovaSablonaNeniVyplnena::class);
 

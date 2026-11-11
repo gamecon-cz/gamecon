@@ -1,6 +1,6 @@
 <?php
 
-use Gamecon\Shop\TypPredmetu;
+use App\Enum\ProductTagCode;
 
 /**
  * Počítáme s tím, že uživatel bydlí jen na jednom pokoji, jinak se to rozsype.
@@ -42,23 +42,25 @@ class Pokoj
             // jinak by smazal dosavadní pokoj a místo něj zapsal prázdný
             throw new Chyba('Vyplň číslo pokoje, nic se nezměnilo.');
         }
-        $o     = dbQueryS('
-      SELECT ubytovani_den
-      FROM shop_nakupy n
-      JOIN shop_predmety p USING(id_predmetu)
-      WHERE n.id_uzivatele = $0 AND n.rok = $1 AND p.typ = $2
-    ', [0 => $u->id(), 1 => ROCNIK, 2 => TypPredmetu::UBYTOVANI]);
-        if (mysqli_num_rows($o) == 0) {
+        $o     = dbFetch('
+      SELECT noc.accommodation_day AS ubytovani_den
+      FROM shop_nakupy AS nakupy
+      JOIN product_variant AS noc ON noc.id = nakupy.variant_id
+      JOIN product_product_tag ON product_product_tag.product_id = noc.product_id
+      JOIN product_tag ON product_tag.id = product_product_tag.tag_id AND product_tag.code = $2
+      WHERE nakupy.id_uzivatele = $0 AND nakupy.rok = $1
+    ', [0 => $u->id(), 1 => ROCNIK, 2 => ProductTagCode::UBYTOVANI->value]);
+        if ($o->rowCount() == 0) {
             throw new Chyba('Uživatel nemá ubytování nebo ubytování pro daný den neexistuje');
         }
-        dbQueryS('DELETE FROM ubytovani WHERE rok = $2 AND id_uzivatele = $1', [$u->id(), ROCNIK]);
+        dbExecute('DELETE FROM ubytovani WHERE rok = $2 AND id_uzivatele = $1', [$u->id(), ROCNIK]);
         $valuesSqlArray = [];
-        while ($r = mysqli_fetch_assoc($o)) {
+        while ($r = $o->fetch(\PDO::FETCH_ASSOC)) {
             $valuesSqlArray[] = '(' . $u->id() . ',' . $r['ubytovani_den'] . ',' . dbQv($pokoj) . ',' . ROCNIK . ')';
         }
         $valuesSql = implode(",\n", $valuesSqlArray);
         $q         = "INSERT INTO ubytovani(id_uzivatele, den, pokoj, rok) VALUES $valuesSql";
-        dbQuery($q);
+        dbExecute($q);
     }
 
     /** Vrátí letošní pokoj s číslem $cislo */

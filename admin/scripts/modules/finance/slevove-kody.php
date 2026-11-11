@@ -26,10 +26,10 @@ if (post('vygenerovat')) {
 if (post('zneplatnitId')) {
     $id = (int) post('zneplatnitId');
     // zneplatnit jde jen dosud nepoužitý kód – použitý už slevu udělil a měnit ho nemá smysl.
-    $zmeneno = dbAffectedOrNumRows(dbQuery(
+    $zmeneno = dbExecute(
         'UPDATE slevove_kody SET invalidated = 1 WHERE id = $0 AND usedAt IS NULL AND invalidated = 0',
         [$id],
-    ));
+    );
     if ($zmeneno) {
         oznameni('Poukaz byl zneplatněn.');
     } elseif (dbRecordExists('slevove_kody', [
@@ -49,10 +49,10 @@ if (post('zneplatnitId')) {
 
 if (post('obnovitId')) {
     $id = (int) post('obnovitId');
-    $zmeneno = dbAffectedOrNumRows(dbQuery(
+    $zmeneno = dbExecute(
         'UPDATE slevove_kody SET invalidated = 0 WHERE id = $0 AND usedAt IS NULL AND invalidated = 1',
         [$id],
-    ));
+    );
     if ($zmeneno) {
         oznameni('Platnost poukazu byla obnovena.');
     } elseif (dbRecordExists('slevove_kody', [
@@ -73,7 +73,7 @@ if (post('obnovitId')) {
 if (post('poznamkaId')) {
     $id = (int) post('poznamkaId');
     $poznamka = trim((string) post('poznamka'));
-    dbQuery(
+    dbExecute(
         'UPDATE slevove_kody SET poznamka = $0 WHERE id = $1',
         [$poznamka === '' ? null : $poznamka, $id],
     );
@@ -85,7 +85,7 @@ if (post('poznamkaId')) {
 $x = new XTemplate(__DIR__ . '/slevove-kody.xtpl');
 $x->assign('urlAdmin', URL_ADMIN);
 
-$kody = dbQuery(<<<SQL
+$kody = dbFetch(<<<SQL
 SELECT
     slevove_kody.id,
     slevove_kody.kod,
@@ -109,7 +109,7 @@ $celkem = 0;
 $volnych = 0;
 $pouzitych = 0;
 
-while ($r = mysqli_fetch_assoc($kody)) {
+while ($r = $kody->fetch(PDO::FETCH_ASSOC)) {
     ++$celkem;
 
     $vytvoril = Uzivatel::jmenoNickZjisti([

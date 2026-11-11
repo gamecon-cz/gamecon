@@ -53,10 +53,10 @@ class AktivitaTymovePrihlasovaniTest extends AbstractUzivatelTestDb
         try {
             // Vyčistit registrace a týmy z minulého testu — data persistují
             // protože transakce jsou vypnuté (Doctrine potřebuje committnutá data).
-            dbQuery('DELETE FROM akce_prihlaseni WHERE id_akce IN (1, 2, 3, 4, 5)');
-            dbQuery('DELETE FROM akce_tym_prihlaseni');
-            dbQuery('DELETE FROM akce_tym_akce');
-            dbQuery('DELETE FROM akce_tym');
+            dbExecute('DELETE FROM akce_prihlaseni WHERE id_akce IN (1, 2, 3, 4, 5)');
+            dbExecute('DELETE FROM akce_tym_prihlaseni');
+            dbExecute('DELETE FROM akce_tym_akce');
+            dbExecute('DELETE FROM akce_tym');
 
             $this->systemoveNastaveni = self::vytvorSystemoveNastaveni();
             $this->ctvrtfinale = Aktivita::zId(1, false, $this->systemoveNastaveni);
@@ -69,8 +69,7 @@ class AktivitaTymovePrihlasovaniTest extends AbstractUzivatelTestDb
             $this->clen2 = self::prihlasenyUzivatel();
 
             // Clear Doctrine identity map to avoid stale entities from previous test
-            $this->systemoveNastaveni->kernel()->getContainer()
-                ->get('doctrine.orm.entity_manager')->clear();
+            $this->systemoveNastaveni->getService('doctrine.orm.entity_manager')->clear();
         } catch (\Throwable $throwable) {
             $this->tearDown();
             throw $throwable;
@@ -83,7 +82,7 @@ class AktivitaTymovePrihlasovaniTest extends AbstractUzivatelTestDb
      */
     private function zalozTymSCestou(\Uzivatel $kapitan): AktivitaTym
     {
-        $entityManager = $this->systemoveNastaveni->kernel()->getContainer()->get('doctrine.orm.entity_manager');
+        $entityManager = $this->systemoveNastaveni->getService('doctrine.orm.entity_manager');
         $activityRepo = $entityManager->getRepository(\App\Entity\Activity::class);
 
         $tym = AktivitaTym::zalozPrazdnyTym($kapitan->id(), $this->ctvrtfinale->id(), true);

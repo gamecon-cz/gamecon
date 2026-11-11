@@ -26,11 +26,18 @@ class DbWrapper
         return dbQv($value);
     }
 
-    public function query(
+    public function fetch(
         string $sql,
         ?array $params = null,
-    ) {
-        return dbQuery($sql, $params);
+    ): \PDOStatement {
+        return dbFetch($sql, $params ?? []);
+    }
+
+    public function execute(
+        string $sql,
+        ?array $params = null,
+    ): int {
+        return dbExecute($sql, $params ?? []);
     }
 
     public function commit()
@@ -57,7 +64,7 @@ class DbWrapper
             }
             $sql[strlen($sql) - 1] = ';';
 
-            $this->query($sql);
+            $this->execute($sql);
         }
     }
 
@@ -65,9 +72,9 @@ class DbWrapper
     {
         // příprava databáze
         $connection = dbConnectTemporary(false);
-        dbQuery(sprintf('DROP DATABASE IF EXISTS `%s`', DB_NAME), [], $connection);
-        dbQuery(sprintf('CREATE DATABASE IF NOT EXISTS `%s` CHARACTER SET utf8mb4 COLLATE utf8mb4_czech_ci', DB_NAME), [], $connection);
-        dbQuery(sprintf('USE `%s`', DB_NAME), [], $connection);
+        dbExecute(sprintf('DROP DATABASE IF EXISTS `%s`', DB_NAME), [], $connection);
+        dbExecute(sprintf('CREATE DATABASE IF NOT EXISTS `%s` CHARACTER SET utf8mb4 COLLATE utf8mb4_czech_ci', DB_NAME), [], $connection);
+        dbExecute(sprintf('USE `%s`', DB_NAME), [], $connection);
 
         /*$testDumps = scandir(__DIR__ . '/data', SCANDIR_SORT_DESCENDING);
          * assert($testDumps !== false, 'Nepodařilo se načíst testovací SQL');

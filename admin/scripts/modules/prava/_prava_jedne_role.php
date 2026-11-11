@@ -20,7 +20,7 @@ if ($role !== null && $uid = get('sesadUzivatele')) {
 
 if ($role !== null && ($p = get('odeberPravo')) !== null) {
     if ($u->maPravoNaPrirazeniRole((int)$role) && $u->maPravo(Pravo::ZMENA_PRAV)) {
-        dbQuery('DELETE FROM prava_role WHERE id_prava = $1 AND id_role = $2', [$p, $role]);
+        dbExecute('DELETE FROM prava_role WHERE id_prava = $1 AND id_role = $2', [$p, $role]);
         zaloguj('Uživatel ' . $u->jmenoNick() . " odebral roli $role právo $p");
     }
     back();
@@ -36,7 +36,7 @@ if ($role !== null && ($p = get('dejPravo')) !== null) {
 
 $t = new XTemplate(__DIR__ . '/_prava_jedne_role.xtpl');
 // výpis detailu role
-$o = dbQuery(
+$o = dbFetch(
     'SELECT prava.id_prava, prava.jmeno_prava, prava.popis_prava, role.id_role
     FROM role_seznam AS role
     LEFT JOIN prava_role ON role.id_role = prava_role.id_role
@@ -44,7 +44,7 @@ $o = dbQuery(
     WHERE role.id_role = $0',
     [0 => $role]
 );
-while (($r = mysqli_fetch_assoc($o)) && $r[PravoSqlStruktura::ID_PRAVA]) {
+while (($r = $o->fetch(PDO::FETCH_ASSOC)) && $r[PravoSqlStruktura::ID_PRAVA]) {
     $r[PravoSqlStruktura::JMENO_PRAVA] = nahradPlaceholderyZaNastaveni($r[PravoSqlStruktura::JMENO_PRAVA]);
     $t->assign($r);
     if ($u->maPravoNaPrirazeniRole($r[RoleSqlStruktura::ID_ROLE]) && $u->maPravo(Pravo::ZMENA_PRAV)) {
@@ -56,7 +56,7 @@ $t->assign('id_role', $role); // bugfix pro role s 0 právy
 
 if ($u->maPravoNaPrirazeniRole((int)$role) && $u->maPravo(Pravo::ZMENA_PRAV)) {
 // nabídka židlí
-    $o = dbQuery(
+    $o = dbFetch(
         'SELECT p.*
     FROM r_prava_soupis p
     LEFT JOIN prava_role pz ON(pz.id_prava = p.id_prava AND pz.id_role = $1)
@@ -64,7 +64,7 @@ if ($u->maPravoNaPrirazeniRole((int)$role) && $u->maPravo(Pravo::ZMENA_PRAV)) {
     ORDER BY p.jmeno_prava',
         [$role]
     );
-    while ($r = mysqli_fetch_assoc($o)) {
+    while ($r = $o->fetch(PDO::FETCH_ASSOC)) {
         $r[PravoSqlStruktura::JMENO_PRAVA] = nahradNazvyKonstantZaHodnoty($r[PravoSqlStruktura::JMENO_PRAVA]);
         $t->assign($r);
         $t->parse('pravaJedneRole.akce.pravoVyber');

@@ -65,7 +65,7 @@ SQL,
 
     public function setVzhled(int $idUzivatele, VzhledAdminuEnum $vzhled): void
     {
-        dbQuery(<<<'SQL'
+        dbExecute(<<<'SQL'
 INSERT INTO uzivatele_vzhled_adminu (id_uzivatele, vzhled)
 VALUES ($0, $1)
 ON DUPLICATE KEY UPDATE vzhled = VALUES(vzhled)
@@ -86,7 +86,7 @@ SQL,
     public function zaznamenejZobrazeniStranky(int $idUzivatele, \DateTimeInterface $kdy): void
     {
         $zvolenyVzhled = $this->getZvolenyVzhled($idUzivatele);
-        dbQuery(<<<'SQL'
+        dbExecute(<<<'SQL'
 INSERT INTO uzivatele_vzhled_adminu_pouziti (id_uzivatele, den, vzhled, zvoleny, pocet_zobrazeni)
 VALUES ($0, $1, $2, $3, 1)
 ON DUPLICATE KEY UPDATE

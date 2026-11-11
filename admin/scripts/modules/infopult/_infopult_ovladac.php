@@ -17,7 +17,6 @@ use Gamecon\Accounting;
 use Gamecon\Cas\Exceptions\InvalidDateTimeFormat;
 use Gamecon\Pravo;
 use Gamecon\Role\Role;
-use Gamecon\Shop\Shop;
 use Gamecon\Uzivatel\Finance;
 use Gamecon\Uzivatel\Exceptions\DuplicitniEmail;
 use Gamecon\Uzivatel\Exceptions\DuplicitniLogin;
@@ -27,16 +26,6 @@ use Gamecon\Vyjimkovac\Vyjimkovac;
 use Gamecon\Finance\FioPlatba;
 
 $nastaveni ??= [];
-
-$obnovPracovnihoUzivateleAShop = static function () use (&$uPracovni, $u, $systemoveNastaveni, $nastaveni): ?Shop {
-    $uPracovni = $uPracovni
-        ? Uzivatel::zId($uPracovni->id())
-        : null;
-
-    return $uPracovni
-        ? new Shop($uPracovni, $u, $systemoveNastaveni, $nastaveni)
-        : null;
-};
 
 if (!empty($_POST['prijelADatMaterialy']) && $uPracovni && $uPracovni->gcPrihlasen()) {
     $uPracovni->pridejRoli(Role::PRITOMEN_NA_LETOSNIM_GC, $u);
@@ -140,7 +129,7 @@ if (!empty($_POST['telefon']) && $uPracovni) {
         null,
         'infopult',
     );
-    dbQueryS('UPDATE uzivatele_hodnoty SET telefon_uzivatele=$0 WHERE id_uzivatele=' . $uPracovni->id(), [$_POST['telefon']]);
+    dbExecute('UPDATE uzivatele_hodnoty SET telefon_uzivatele=$0 WHERE id_uzivatele=' . $uPracovni->id(), [$_POST['telefon']]);
     $uPracovni->otoc();
     back();
 }
@@ -150,8 +139,7 @@ function updateUzivatelHodnoty(array $udaje, int $uPracovniId, Vyjimkovac $vyjim
 {
     try {
         Uzivatel::zalogujZmenuOsobnichUdaju($uPracovniId, $udaje, null, null, 'infopult');
-        $result = dbUpdate('uzivatele_hodnoty', $udaje, ['id_uzivatele' => $uPracovniId]);
-        return dbAffectedOrNumRows($result);
+        return dbUpdate('uzivatele_hodnoty', $udaje, ['id_uzivatele' => $uPracovniId]);
     } catch (Exception $e) {
         $vyjimkovac->zaloguj($e);
         chyba('Došlo k neočekávané chybě.');
@@ -180,17 +168,6 @@ if ($uPracovni && ($udaje = (array)post('udaje'))) {
 
     oznameni("Změněno $zmenenoZaznamu záznamů");
     back();
-}
-
-if (post('zpracujUbytovani')) {
-    $shop->zpracujUbytovani(false, false);
-    $shop = $obnovPracovnihoUzivateleAShop();
-    oznameni('Ubytování uloženo');
-}
-
-if (post('zpracujJidlo')) {
-    $shop->zpracujJidlo();
-    oznameni('Jídlo uloženo');
 }
 
 if (post('pridelitPokoj') && $uPracovni) {

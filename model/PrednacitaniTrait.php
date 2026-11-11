@@ -61,7 +61,7 @@ trait PrednacitaniTrait
         $kolekce      = $this->kolekce();
 
         // dotaz vracející dvojice: id zdroje => ids cílů oddělené čárkou
-        $q = dbQuery('
+        $q = dbFetch('
             SELECT
             ' . dbQi($zdrojSloupec) . ',
             GROUP_CONCAT(' . dbQi($cilSloupec) . ') as ' . dbQv($cilSloupec) . '
@@ -75,7 +75,7 @@ trait PrednacitaniTrait
 
         // načtení ids cílů plus jejich vložení do zdrojových objektů
         $cilIds = [];
-        while ($r = mysqli_fetch_row($q)) {
+        while ($r = $q->fetch(\PDO::FETCH_NUM)) {
             $zdrojObjekt           = $kolekce[$r[0]];
             $zdrojObjektCilIds = array_map('intval', explode(',', $r[1]));
             $zdrojObjekt->$atribut = $zdrojObjektCilIds;

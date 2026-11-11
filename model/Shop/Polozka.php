@@ -3,6 +3,7 @@ declare(strict_types=1);
 
 namespace Gamecon\Shop;
 
+use App\Enum\ProductTagCode;
 use Gamecon\Cas\DateTimeImmutableStrict;
 use Gamecon\SystemoveNastaveni\SystemoveNastaveni;
 
@@ -18,10 +19,9 @@ class Polozka
     private ?float                   $vyrobenoKusu;
     private ?DateTimeImmutableStrict $nabizetDo;
     private ?float                   $zbyvaKusu;
-    private int                      $idTypu;
+    private ?ProductTagCode          $kategorie;
     private ?string                  $podtyp;
     private int                      $stav;
-    private bool                     $jeLetosniHlavni;
 
     public function __construct(array $hodnoty)
     {
@@ -39,10 +39,9 @@ class Polozka
             ? new DateTimeImmutableStrict($hodnoty['nabizet_do'])
             : null;
         $this->zbyvaKusu           = $this->vyrobenoKusu !== null ? $this->vyrobenoKusu - $this->prodanoKusu : null;
-        $this->idTypu              = (int)$hodnoty['typ'];
+        $this->kategorie           = ProductTagCode::tryFrom((string)$hodnoty['kategorie']);
         $this->podtyp              = $hodnoty['podtyp'] !== null ? (string)$hodnoty['podtyp'] : null;
         $this->stav                = (int)$hodnoty['stav'];
-        $this->jeLetosniHlavni     = (bool)$hodnoty['je_letosni_hlavni'];
     }
 
     public function idPredmetu(): ?int
@@ -90,9 +89,9 @@ class Polozka
         return $this->vyrobenoKusu;
     }
 
-    public function idTypu(): int
+    public function kategorie(): ?ProductTagCode
     {
-        return $this->idTypu;
+        return $this->kategorie;
     }
 
     public function nabizetDo(): ?DateTimeImmutableStrict
@@ -105,20 +104,15 @@ class Polozka
         return $this->stav;
     }
 
-    public function jeLetosniHlavni(): bool
-    {
-        return $this->jeLetosniHlavni;
-    }
-
     public function doKdyNabizetDleNastaveni(SystemoveNastaveni $systemoveNastaveni): ?DateTimeImmutableStrict
     {
-        return match ($this->idTypu()) {
-            TypPredmetu::JIDLO   => $systemoveNastaveni->prodejJidlaDo(),
-            TypPredmetu::TRICKO  => $systemoveNastaveni->prodejTricekDo(),
-            TypPredmetu::PREDMET => $this->podtyp === PodtypPredmetu::MIKINA
+        return match ($this->kategorie) {
+            ProductTagCode::JIDLO   => $systemoveNastaveni->prodejJidlaDo(),
+            ProductTagCode::TRICKO  => $systemoveNastaveni->prodejTricekDo(),
+            ProductTagCode::PREDMET => $this->podtyp === PodtypPredmetu::MIKINA
                 ? $systemoveNastaveni->prodejMikinDo()
                 : $systemoveNastaveni->prodejPredmetuBezTricekDo(),
-            default              => null,
+            default                 => null,
         };
     }
 

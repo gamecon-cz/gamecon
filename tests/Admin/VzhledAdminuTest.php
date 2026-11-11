@@ -12,7 +12,7 @@ class VzhledAdminuTest extends AbstractTestDb
 {
     private function vytvorUzivatele(string $suffix): int
     {
-        dbQuery(<<<'SQL'
+        dbExecute(<<<'SQL'
 INSERT INTO uzivatele_hodnoty SET
     login_uzivatele = $0,
     email1_uzivatele = $1,
@@ -142,7 +142,7 @@ SQL,
     public function testHodnotuZNovejsiVerzeBereJakoNezvolenou(): void
     {
         $idUzivatele = $this->vytvorUzivatele('novejsi');
-        dbQuery(<<<'SQL'
+        dbExecute(<<<'SQL'
 INSERT INTO uzivatele_vzhled_adminu (id_uzivatele, vzhled) VALUES ($0, $1)
 SQL,
             [

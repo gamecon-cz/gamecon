@@ -194,15 +194,13 @@ FROM systemove_nastaveni
 WHERE rocnik_nastaveni IN ($jakykoliRocnik, $soucasnyRocnik)
 SQL,
             );
-        } catch (\mysqli_sql_exception $exception) {
-            if ($exception->getCode() === 1049) { // Unknown database
-                return;
-            }
-            throw $exception;
         } catch (\ConnectionException $connectionException) {
             // testy nebo úplně prázdný Gamecon na začátku nemají ještě databázi
             return;
         } catch (\DbException $dbException) {
+            if ($dbException->getCode() === 1049) {
+                return; // unknown database — fresh install or tests
+            }
             if ($this->chybiTabulkaNeboSloupecKtereVytvoriMigrace($dbException)) {
                 return;
             }
@@ -244,7 +242,11 @@ SQL,
         }
 
         // e.g. we downloaded a database that is too new onto the local machine
-        return (new SqlMigrace($this))->nejakeMigraceKeSpusteni();
+        try {
+            return (new SqlMigrace($this))->nejakeMigraceKeSpusteni();
+        } catch (\Throwable) {
+            return true; // migration check itself failed — DB is not ready yet
+        }
     }
 
     private function definujOdvozeneKonstanty()
@@ -317,15 +319,14 @@ SQL,
     ): int {
         $this->hlidejZakazaneZmeny($klic, $hodnota);
         $hodnotaProDb   = $this->formatujHodnotuProDb($hodnota, $klic);
-        $updateQuery    = dbQuery(<<<SQL
+        $zmenenoZaznamu = dbExecute(<<<SQL
 UPDATE systemove_nastaveni
 SET hodnota = $1
 WHERE klic = $2
 SQL,
             [$hodnotaProDb, $klic],
         );
-        $zmenenoZaznamu = dbAffectedOrNumRows($updateQuery);
-        dbQuery(<<<SQL
+        dbExecute(<<<SQL
 INSERT INTO systemove_nastaveni_log(id_uzivatele, id_nastaveni, hodnota)
 SELECT $1, id_nastaveni, hodnota
 FROM systemove_nastaveni
@@ -428,7 +429,7 @@ SQL,
         \Uzivatel $editujici,
     ): int {
         $this->hlidejZakazaneZmeny($klic, null);
-        $updateQuery = dbQuery(<<<SQL
+        $zmenenoZaznamu = dbExecute(<<<SQL
 UPDATE systemove_nastaveni
 SET vlastni = $1
 WHERE klic = $2
@@ -437,7 +438,7 @@ SQL,
                  ? 1
                  : 0 /* Aby nás nepotkalo "Incorrect integer value: '' for column vlastni" */, $klic],
         );
-        dbQuery(<<<SQL
+        dbExecute(<<<SQL
 INSERT INTO systemove_nastaveni_log(id_uzivatele, id_nastaveni, vlastni)
 SELECT $1, id_nastaveni, vlastni
 FROM systemove_nastaveni
@@ -445,7 +446,6 @@ WHERE klic = $2
 SQL,
             [$editujici->id(), $klic],
         );
-        $zmenenoZaznamu = dbAffectedOrNumRows($updateQuery);
         if ($zmenenoZaznamu > 0) {
             $this->aktualizujPriznakVlastniVLokalniCache($vlastni, $klic, $editujici->id());
         }
@@ -458,7 +458,7 @@ SQL,
         string    $klic,
         \Uzivatel $editujici,
     ): int {
-        $updateQuery = dbQuery(<<<'SQL'
+        $zmenenoZaznamu = dbExecute(<<<'SQL'
 UPDATE systemove_nastaveni
 SET verejne = $1
 WHERE klic = $2
@@ -467,7 +467,7 @@ SQL,
                  ? 1
                  : 0, $klic],
         );
-        dbQuery(<<<'SQL'
+        dbExecute(<<<'SQL'
 INSERT INTO systemove_nastaveni_log(id_uzivatele, id_nastaveni, verejne)
 SELECT $1, id_nastaveni, verejne
 FROM systemove_nastaveni
@@ -475,7 +475,6 @@ WHERE klic = $2
 SQL,
             [$editujici->id(), $klic],
         );
-        $zmenenoZaznamu = dbAffectedOrNumRows($updateQuery);
         if ($zmenenoZaznamu > 0 && isset($this->vsechnyZaznamyNastaveni[$klic])) {
             $this->vsechnyZaznamyNastaveni[$klic][Sql::VEREJNE]   = (string)(int)$verejne;
             $this->vsechnyZaznamyNastaveni[$klic]['id_uzivatele'] = (string)$editujici->id();
@@ -1029,6 +1028,31 @@ SQL;
         return po($this->prihlasovaniUcastnikuDo($rocnik));
     }
 
+    public function pocetKostekZdarma(): int
+    {
+        return (int)$this->dejHodnotu(Klic::SLEVA_KOSTEK_ZDARMA_POCET);
+    }
+
+    public function pocetPlacekZdarma(): int
+    {
+        return (int)$this->dejHodnotu(Klic::SLEVA_PLACEK_ZDARMA_POCET);
+    }
+
+    public function pocetTricekZdarma(): int
+    {
+        return (int)$this->dejHodnotu(Klic::SLEVA_TRICEK_ZDARMA_POCET);
+    }
+
+    public function pocetDvouTricekZdarma(): int
+    {
+        return (int)$this->dejHodnotu(Klic::SLEVA_DVOU_TRICEK_ZDARMA_POCET);
+    }
+
+    public function pocetBonusovychTricekZdarma(): int
+    {
+        return (int)$this->dejHodnotu(Klic::SLEVA_BONUSOVYCH_TRICEK_ZDARMA_POCET);
+    }
+
     public function slevaOrguNaJidloCastka(): float
     {
         return defined('SLEVA_ORGU_NA_JIDLO_CASTKA')
@@ -1218,5 +1242,19 @@ SQL;
         }
 
         return $this->kernel;
+    }
+
+    /**
+     * Zkratka za `kernel()->getContainer()->get()`.
+     *
+     * @template T of object
+     *
+     * @param class-string<T>|string $id
+     *
+     * @return ($id is class-string<T> ? T : object)
+     */
+    public function getService(string $id): object
+    {
+        return $this->kernel()->getContainer()->get($id);
     }
 }

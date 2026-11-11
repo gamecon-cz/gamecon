@@ -6,7 +6,7 @@ use Gamecon\Uzivatel\SqlStruktura\UzivateleHodnotySqlStruktura;
 
 $idSystemUzivatele = Uzivatel::SYSTEM;
 
-$mysqliResult = dbQuery(<<<SQL
+$mysqliResult = dbFetch(<<<SQL
 SELECT id_uzivatele,
        login_uzivatele,
        jmeno_uzivatele,
@@ -49,7 +49,7 @@ SQL
 );
 
 $data = [];
-while ($row = mysqli_fetch_assoc($mysqliResult)) {
+while ($row = $mysqliResult->fetch(PDO::FETCH_ASSOC)) {
     $row[UzivateleHodnotySqlStruktura::OP] = (string)$row[UzivateleHodnotySqlStruktura::OP] !== ''
         ? Sifrovatko::desifruj($row[UzivateleHodnotySqlStruktura::OP])
         : '';

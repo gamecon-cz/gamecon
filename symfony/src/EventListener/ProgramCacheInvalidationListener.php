@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\EventListener;
 
+use App\Doctrine\SharedConnection;
 use App\Entity\Activity;
 use App\Entity\ActivityOrganizer;
 use App\Entity\ActivityRegistration;
@@ -47,10 +48,15 @@ final class ProgramCacheInvalidationListener
 
     /**
      * Příznak, že v aktuálním flushi došlo ke změně, která vyžaduje
-     * spuštění workeru. Worker spouštíme až v postFlush (po commitu),
-     * aby nový proces viděl commitnutá data.
+     * spuštění workeru. Worker spouštíme až po commitu, aby nový proces
+     * viděl commitnutá data.
      */
     private bool $shouldStartWorker = false;
+
+    public function __construct(
+        private readonly SharedConnection $connection,
+    ) {
+    }
 
     public function postPersist(PostPersistEventArgs $args): void
     {
@@ -108,9 +114,10 @@ final class ProgramCacheInvalidationListener
         }
         $this->shouldStartWorker = false;
 
-        // postFlush běží po commitu transakce, takže spuštěný worker
-        // uvidí aktuální data v DB.
-        (new ProgramStaticFileGenerator(SystemoveNastaveni::zGlobals()))->tryStartWorker();
+        // Uvnitř legacy transakce je flush jen savepoint, commit přijde až s ní.
+        $this->connection->afterCommit(
+            static fn () => (new ProgramStaticFileGenerator(SystemoveNastaveni::zGlobals()))->tryStartWorker(),
+        );
     }
 
     /**

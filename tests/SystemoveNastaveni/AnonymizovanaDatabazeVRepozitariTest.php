@@ -85,7 +85,7 @@ class AnonymizovanaDatabazeVRepozitariTest extends AbstractTestDb
         'potvrzeni_zakonneho_zastupce_soubor',
     ];
 
-    private static ?\mysqli $spojeni = null;
+    private static ?\PDO $spojeni = null;
 
     protected static function keepTestClassDbChangesInTransaction(): bool
     {
@@ -109,16 +109,22 @@ class AnonymizovanaDatabazeVRepozitariTest extends AbstractTestDb
         try {
             // like nastaveni/db-migrace.php: no database selected until it is created
             self::$spojeni = dbConnectTemporary(false);
-            dbQuery(sprintf(<<<'SQL'
+            dbExecute(sprintf(<<<'SQL'
                 DROP DATABASE IF EXISTS `%s`
-                SQL, DB_NAME), null, self::$spojeni);
-            dbQuery(sprintf(<<<'SQL'
+                SQL, DB_NAME), [], self::$spojeni);
+            dbExecute(sprintf(<<<'SQL'
                 CREATE DATABASE `%s` DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_czech_ci
-                SQL, DB_NAME), null, self::$spojeni);
-            dbQuery(sprintf(<<<'SQL'
+                SQL, DB_NAME), [], self::$spojeni);
+            dbExecute(sprintf(<<<'SQL'
                 USE `%s`
-                SQL, DB_NAME), null, self::$spojeni);
-            (new \MySQLImport(self::$spojeni))->load(self::DUMP);
+                SQL, DB_NAME), [], self::$spojeni);
+            $mysqli = dbConnectMysqli();
+            try {
+                (new \MySQLImport($mysqli))->load(self::DUMP);
+            } finally {
+                // a cut-off import still holds LOCK TABLES, which would block the DROP DATABASE of the rebuild forever
+                mysqli_close($mysqli);
+            }
         } catch (\Throwable $throwable) {
             // PHPUnit does not call tearDownAfterClass() after a failed setUpBeforeClass(), and the half-loaded
             // database would break every later test class
@@ -129,21 +135,12 @@ class AnonymizovanaDatabazeVRepozitariTest extends AbstractTestDb
 
     public static function tearDownAfterClass(): void
     {
-        // a cut-off import still holds LOCK TABLES, which would block the DROP DATABASE of the rebuild forever
-        self::$spojeni?->close();
         self::$spojeni = null;
         parent::tearDownAfterClass();
     }
 
     public function testDumpNeobsahujeOsobniUdaje(): void
     {
-        foreach (AnonymizovanaDatabaze::PRILIS_CITLIVE_TABULKY as $tabulka) {
-            self::assertFalse(
-                $this->maRadky($tabulka),
-                "Tabulka {$tabulka} má být v dumpu prázdná. " . self::JAK_OBNOVIT,
-            );
-        }
-
         $tabulky = dbFetchColumn(<<<'SQL'
             SELECT table_name
             FROM information_schema.tables
@@ -151,6 +148,15 @@ class AnonymizovanaDatabazeVRepozitariTest extends AbstractTestDb
             SQL, [
             0 => DB_NAME,
         ], self::spojeni());
+
+        // a dump from before the migrations lacks the tables they rename or add, and a missing table holds no rows
+        foreach (array_intersect(AnonymizovanaDatabaze::PRILIS_CITLIVE_TABULKY, $tabulky) as $tabulka) {
+            self::assertFalse(
+                $this->maRadky($tabulka),
+                "Tabulka {$tabulka} má být v dumpu prázdná. " . self::JAK_OBNOVIT,
+            );
+        }
+
         $nepreskoumane = [];
         foreach (array_diff($tabulky, AnonymizovanaDatabaze::PRILIS_CITLIVE_TABULKY, self::PREKONTROLOVANE_TABULKY_S_DATY) as $tabulka) {
             if ($this->maRadky($tabulka)) {
@@ -247,7 +253,7 @@ class AnonymizovanaDatabazeVRepozitariTest extends AbstractTestDb
         $this->addToAssertionCount(1);
     }
 
-    private static function spojeni(): \mysqli
+    private static function spojeni(): \PDO
     {
         return self::$spojeni ?? throw new \LogicException('Spojení s databází z dumpu ještě nebylo otevřeno');
     }

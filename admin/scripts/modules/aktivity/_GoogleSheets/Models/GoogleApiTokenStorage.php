@@ -20,7 +20,7 @@ class GoogleApiTokenStorage
 
     public function hasTokensFor(int $userId): bool {
         return (bool)dbOneCol(<<<'SQL'
-SELECT 1 FROM google_api_user_tokens
+SELECT 1 FROM google_api_user_token
 WHERE user_id = $1
 AND google_client_id = $2
 SQL
@@ -36,7 +36,7 @@ SQL
      */
     public function getTokensFor(int $userId): array {
         $encodedTokens = dbOneCol(<<<SQL
-SELECT tokens FROM google_api_user_tokens
+SELECT tokens FROM google_api_user_token
 WHERE user_id = $1
 AND google_client_id = $2
 SQL
@@ -74,8 +74,8 @@ SQL
      */
     public function setTokensFor(array $tokens, int $userId) {
         try {
-            dbQuery(<<<SQL
-INSERT INTO google_api_user_tokens (tokens, user_id, google_client_id)
+            dbExecute(<<<SQL
+INSERT INTO google_api_user_token (tokens, user_id, google_client_id)
 VALUES ($1, $2, $3)
 ON DUPLICATE KEY UPDATE tokens = $1
 SQL
@@ -112,8 +112,8 @@ SQL
      */
     public function deleteTokensFor(int $userId) {
         try {
-            dbQuery(<<<SQL
-DELETE FROM google_api_user_tokens
+            dbExecute(<<<SQL
+DELETE FROM google_api_user_token
 WHERE user_id = $1
 AND google_client_id = $2
 SQL

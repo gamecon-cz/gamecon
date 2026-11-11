@@ -17,9 +17,12 @@ import {
   DefiniceObchodMřížkaBuňka,
   ObjednávkaPředmět,
   Předmět,
+  Varianta,
 } from "../../../../api/obchod/types";
 import { PředmětyContext } from "../../App";
+import { VýběrVarianty } from "../VýběrVarianty/VýběrVarianty";
 import { fetchProdej } from "../../../../api/obchod/endpoints";
+import { nadpisProdeje } from "../../nadpisProdeje";
 
 /** Ruční optimalizace, nedoporučuju používat pokud neznáš dobře react! */
 const useFixed = <T,>(value: T) => useRef(value).current;
@@ -31,22 +34,34 @@ const usePředmětyObjednávka = () => {
 
   const předmětyVšechny = useContext(PředmětyContext);
 
-  // TODO: nějak eskalovat když předmět není nalezen
-  const předmětPřidej = useFixed((předmětId: number) => {
-    setPředmětyObjednávka((předměty) =>
-      předměty.some((x) => x.předmět.id === předmětId)
-        ? předměty.map((x) =>
-            x.předmět.id === předmětId ? { ...x, množství: x.množství + 1 } : x
-          )
-        : předmětyVšechny.some((x) => x.id === předmětId)
-        ? předměty.concat([
-            {
-              množství: 1,
-              předmět: předmětyVšechny.find((x) => x.id === předmětId)!,
-            },
-          ])
-        : předměty
-    );
+  const předmětPřidej = useFixed((předmětId: number, varianta?: Varianta) => {
+    setPředmětyObjednávka((předměty) => {
+      const product = předmětyVšechny.find((product) => product.id === předmětId);
+      if (!product) return předměty;
+
+      // Varianta se vybírá jen u předmětu, kde je z čeho — jinak se vezme ta jediná, aby
+      // se do objednávky dostalo to, co prodej odečte.
+      const zvolená = varianta ?? (product.varianty.length === 1 ? product.varianty[0] : undefined);
+
+      const existing = předměty.find(
+        (item) => item.předmět.id === předmětId && item.varianta?.id === zvolená?.id
+      );
+
+      // Zásoba drží varianta, když ji má; `null` znamená neomezeně.
+      const zbývá = zvolená ? zvolená.zbývá : product.zbývá;
+      const currentQuantity = existing?.množství ?? 0;
+      if (zbývá !== null && currentQuantity >= zbývá) {
+        return předměty;
+      }
+
+      if (existing) {
+        return předměty.map((item) =>
+          item === existing ? { ...item, množství: item.množství + 1 } : item
+        );
+      }
+
+      return předměty.concat([{ množství: 1, předmět: product, varianta: zvolená }]);
+    });
   });
   const předmětOdeber = useFixed((předmět: Předmět) => {
     setPředmětyObjednávka((předměty) =>
@@ -57,6 +72,20 @@ const usePředmětyObjednávka = () => {
         .filter((x) => x.množství >= 1)
     );
   });
+  const předmětNastavMnožství = useFixed((předmětId: number, množství: number) => {
+    setPředmětyObjednávka((předměty) => {
+      const product = předmětyVšechny.find((product) => product.id === předmětId);
+      // Cap at stock limit
+      let capped = Math.max(0, množství);
+      if (product?.zbývá !== null && product?.zbývá !== undefined) {
+        capped = Math.min(capped, product.zbývá);
+      }
+      return předměty
+        .map((item) => item.předmět.id === předmětId ? { ...item, množství: capped } : item)
+        .filter((item) => item.množství >= 1);
+    });
+  });
+
   const předmětySmažVšechny = useFixed(() => {
     setPředmětyObjednávka([]);
   });
@@ -65,6 +94,7 @@ const usePředmětyObjednávka = () => {
     předmětyObjednávka,
     předmětPřidej,
     předmětOdeber,
+    předmětNastavMnožství,
     předmětySmažVšechny,
   };
 };
@@ -123,11 +153,15 @@ export const Obchod: FunctionComponent<TObchodProps> = (props) => {
   const { definice } = props;
 
   const [visible, setVisible] = useState(false);
+  // Předmět, u kterého se právě vybírá varianta; `null` = výběr neběží.
+  const [výběrVarianty, setVýběrVarianty] = useState<Předmět | null>(null);
+  const předmětyVšechny = useContext(PředmětyContext);
 
   const {
     předmětyObjednávka: předměty,
     předmětPřidej,
     předmětOdeber,
+    předmětNastavMnožství,
     předmětySmažVšechny,
   } = usePředmětyObjednávka();
   const { mřížka, setMřížka } = useMřížka(definice);
@@ -161,12 +195,25 @@ export const Obchod: FunctionComponent<TObchodProps> = (props) => {
         if (!setMřížka.zpět())
           setVisible(false);
         break;
-      case "předmět":
+      case "předmět": {
+        const předmět = předmětyVšechny.find((x) => x.id === buňka.cilId);
+        const varianta = předmět?.varianty.find((x) => x.id === buňka.variantId);
+        if (varianta) {
+          setMřížka.shrnutí();
+          předmětPřidej(buňka.cilId, varianta);
+          break;
+        }
+        // U víc variant se nejdřív vybírá velikost nebo noc — prodej bez ní neprojde.
+        if (předmět && předmět.varianty.length > 1) {
+          setVýběrVarianty(předmět);
+          break;
+        }
         setMřížka.shrnutí();
         předmětPřidej(buňka.cilId);
         break;
+      }
     }
-  }, []);
+  }, [předmětyVšechny]);
 
   const onDalšíPředmět = useCallback(() => {
     setMřížka.výchozí();
@@ -178,13 +225,37 @@ export const Obchod: FunctionComponent<TObchodProps> = (props) => {
     setVisible(false);
   }, []);
 
-  const onPotvrdit = useCallback(() => {
-    void (async () => {
-      await fetchProdej(předměty);
+  const [chyba, setChyba] = useState<string | null>(null);
+  const pracovníUživatel = GAMECON_KONSTANTY.PRACOVNI_UZIVATEL;
+
+  const onPotvrdit = useCallback(async () => {
+    setChyba(null);
+    try {
+      await fetchProdej(předměty, pracovníUživatel?.id ?? null);
       předmětySmažVšechny();
       setMřížka.výchozí();
       setVisible(false);
-    })();
+      if (pracovníUživatel) {
+        // Zůstatek a nákupy uživatele na infopultu se po prodeji změnily, jako když legacy mřížka stránku odeslala.
+        window.location.reload();
+        return;
+      }
+
+      // Flash success on the "Prodej" button
+      const prodejButton = document.querySelector<HTMLButtonElement>('[onclick*="preactMost.obchod.show"]');
+      if (prodejButton) {
+        const originalText = prodejButton.textContent;
+        const originalBg = prodejButton.style.backgroundColor;
+        prodejButton.textContent = "Prodáno \u2713";
+        prodejButton.style.backgroundColor = "#4caf50";
+        setTimeout(() => {
+          prodejButton.textContent = originalText;
+          prodejButton.style.backgroundColor = originalBg;
+        }, 2000);
+      }
+    } catch (error: unknown) {
+      setChyba(error instanceof Error ? error.message : "Nepodařilo se dokončit prodej");
+    }
   }, [předměty]);
 
   return (
@@ -193,7 +264,21 @@ export const Obchod: FunctionComponent<TObchodProps> = (props) => {
         <Overlay onClickOutside={() => setVisible(false)}>
           <div class="shop--container">
             <span class="shop--close" title='zavřít' aria-label='close' onClick={() => setVisible(false)}>&times;</span>
-            {mřížka ? (
+            <div class={`shop--header ${pracovníUživatel ? "shop--header-uzivatel" : "shop--header-anonymni"}`}>
+              {nadpisProdeje(pracovníUživatel)}
+            </div>
+            <div class="shop--body">
+            {výběrVarianty ? (
+              <VýběrVarianty
+                předmět={výběrVarianty}
+                onVybráno={(varianta) => {
+                  setVýběrVarianty(null);
+                  setMřížka.shrnutí();
+                  předmětPřidej(výběrVarianty.id, varianta);
+                }}
+                onZpět={() => setVýběrVarianty(null)}
+              />
+            ) : mřížka ? (
               <ObchodMřížka {...{ mřížka, onBuňkaClicked }} />
             ) : (
               <ObchodShrnutí
@@ -203,10 +288,13 @@ export const Obchod: FunctionComponent<TObchodProps> = (props) => {
                   onStorno,
                   předmětPřidej,
                   předmětOdeber,
+                  předmětNastavMnožství,
                   onPotvrdit,
+                  chyba,
                 }}
               />
             )}
+            </div>
           </div>
         </Overlay>
       ) : undefined}

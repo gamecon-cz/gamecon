@@ -21,20 +21,20 @@ class DbReadOnlyTest extends AbstractTestDb
     {
         parent::setUp();
         // a TEMPORARY table would not do, MariaDB lets even a read-only transaction write into one
-        dbQuery('DROP TABLE IF EXISTS tmp_read_only_probe');
-        dbQuery('CREATE TABLE tmp_read_only_probe (id INT NOT NULL)');
+        dbExecute('DROP TABLE IF EXISTS tmp_read_only_probe');
+        dbExecute('CREATE TABLE tmp_read_only_probe (id INT NOT NULL)');
     }
 
     protected function tearDown(): void
     {
-        dbQuery('DROP TABLE IF EXISTS tmp_read_only_probe');
+        dbExecute('DROP TABLE IF EXISTS tmp_read_only_probe');
         parent::tearDown();
     }
 
     public function testZapisUvnitrReadOnlyDatabazeOdmitne(): void
     {
         try {
-            dbReadOnly(static fn () => dbQuery('INSERT INTO tmp_read_only_probe (id) VALUES (1)'));
+            dbReadOnly(static fn () => dbExecute('INSERT INTO tmp_read_only_probe (id) VALUES (1)'));
             self::fail('Zápis v read-only režimu měl selhat');
         } catch (\DbException $exception) {
             self::assertSame(self::kodOdmitnutehoZapisu(), $exception->getCode(), $exception->getMessage());
@@ -60,8 +60,8 @@ class DbReadOnlyTest extends AbstractTestDb
     }
 
     /**
-     * The persistent connection is reused by the following requests; had it become read-only,
-     * the whole application would have been read-only for everyone.
+     * The shared connection is what Doctrine writes through; had it become read-only,
+     * nothing after the report could write for the rest of the request.
      */
     public function testSdileneSpojeniNikdyNeniReadOnly(): void
     {
@@ -82,14 +82,14 @@ class DbReadOnlyTest extends AbstractTestDb
         $sdileneSpojeni = dbConnect();
         try {
             dbReadOnly(static function () {
-                dbQuery('SELECT 1');
+                dbFetch('SELECT 1');
                 throw new \RuntimeException('selhání reportu');
             });
         } catch (\RuntimeException) {
         }
 
         self::assertSame($sdileneSpojeni, dbConnect());
-        dbQuery('INSERT INTO tmp_read_only_probe (id) VALUES (1)');
+        dbExecute('INSERT INTO tmp_read_only_probe (id) VALUES (1)');
         self::assertSame(1, (int) dbOneCol('SELECT COUNT(*) FROM tmp_read_only_probe'));
     }
 
@@ -103,7 +103,7 @@ class DbReadOnlyTest extends AbstractTestDb
             self::assertSame(1, (int) dbOneCol('SELECT @@tx_read_only'));
             self::assertSame(0, (int) dbOneCol('SELECT @@tx_read_only', null, $sdileneSpojeni));
             try {
-                dbQuery('INSERT INTO tmp_read_only_probe (id) VALUES (1)');
+                dbExecute('INSERT INTO tmp_read_only_probe (id) VALUES (1)');
                 self::fail('Zápis po přepnutí na read-only spojení měl selhat');
             } catch (\DbException $exception) {
                 self::assertSame(self::kodOdmitnutehoZapisu(), $exception->getCode(), $exception->getMessage());
@@ -135,12 +135,12 @@ class DbReadOnlyTest extends AbstractTestDb
     {
         $rocnikVNastaveni = "SELECT hodnota FROM systemove_nastaveni WHERE klic = 'ROCNIK'";
         $puvodniRocnik = dbOneCol($rocnikVNastaveni);
-        dbQuery("UPDATE systemove_nastaveni SET hodnota = '1999' WHERE klic = 'ROCNIK'");
+        dbExecute("UPDATE systemove_nastaveni SET hodnota = '1999' WHERE klic = 'ROCNIK'");
         try {
             self::assertSame(ROCNIK, (int) dbReadOnly(static fn () => dbOneCol('SELECT @rocnik')));
             self::assertSame('1999', dbOneCol($rocnikVNastaveni));
         } finally {
-            dbQuery("UPDATE systemove_nastaveni SET hodnota = $0 WHERE klic = 'ROCNIK'", [$puvodniRocnik]);
+            dbExecute("UPDATE systemove_nastaveni SET hodnota = $0 WHERE klic = 'ROCNIK'", [$puvodniRocnik]);
         }
     }
 
@@ -151,7 +151,7 @@ class DbReadOnlyTest extends AbstractTestDb
             try {
                 self::assertSame(1, (int) dbOneCol('SELECT @@tx_read_only', null, $docasneSpojeni));
             } finally {
-                mysqli_close($docasneSpojeni);
+                $docasneSpojeni = null;
             }
         });
     }
