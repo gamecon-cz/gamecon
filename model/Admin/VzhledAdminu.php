@@ -19,7 +19,8 @@ class VzhledAdminu
 
     /**
      * One flag for the whole session, not per user: postponing is the wish of whoever sits at the device. After
-     * "Přihlásit se jako" it is still them, and the dialog must not push them to choose for the other user.
+     * "Přihlásit se jako" it is still them, and the dialog must not push them to choose for the other user,
+     * so switching postpones the choice too (@see odlozVyber()).
      */
     private const string SESSION_KLIC_VYBER_ODLOZEN = 'vzhled_adminu_vyber_odlozen';
 
@@ -122,6 +123,17 @@ SQL,
     }
 
     /**
+     * The choice is not offered again until the session ends. Whoever sits at the device postpones it with
+     * "Rozhodnu se později", and also by switching to another user ("Přihlásit se jako" in
+     * admin/scripts/prihlaseni.php): the dialog would cover the other user's pages, Moje aktivity with the attendance
+     * included, until they chose a look that would be saved into the other user's account.
+     */
+    public function odlozVyber(): void
+    {
+        $this->session[self::SESSION_KLIC_VYBER_ODLOZEN] = true;
+    }
+
+    /**
      * Handles a submitted choice of the look, or of postponing it. An unknown value changes nothing.
      *
      * @return VzhledAdminuEnum|null the look just chosen, null when postponed or unknown
@@ -129,7 +141,7 @@ SQL,
     public function zpracujVolbu(int $idUzivatele, string $volba): ?VzhledAdminuEnum
     {
         if ($volba === self::VOLBA_POZDEJI) {
-            $this->session[self::SESSION_KLIC_VYBER_ODLOZEN] = true;
+            $this->odlozVyber();
 
             return null;
         }
