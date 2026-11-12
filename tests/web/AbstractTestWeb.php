@@ -402,11 +402,7 @@ SQL;
      */
     protected function stahniVerejnouStranku(string $cesta): array
     {
-        if (! self::$dnsVyresenoPredStazenimStranky) {
-            // aby se DNS vyřešilo ještě před curl, které by jinak mohlo padnout na ještě nepřipraveném Apache
-            get_headers(URL_WEBU);
-            self::$dnsVyresenoPredStazenimStranky = true;
-        }
+        self::vyresDnsPredPrvniZadosti();
         $hlavicky = [];
         $curlHandle = curl_init('http://localhost/' . $cesta);
         curl_setopt($curlHandle, CURLOPT_CONNECTTIMEOUT, 10);
@@ -437,6 +433,18 @@ SQL;
         curl_close($curlHandle);
 
         return $odpoved;
+    }
+
+    /**
+     * Jednou za běh testů, aby se DNS vyřešilo ještě před curl, které by jinak mohlo padnout na ještě
+     * nepřipraveném Apache.
+     */
+    protected static function vyresDnsPredPrvniZadosti(): void
+    {
+        if (! self::$dnsVyresenoPredStazenimStranky) {
+            get_headers(URL_WEBU);
+            self::$dnsVyresenoPredStazenimStranky = true;
+        }
     }
 
     /**

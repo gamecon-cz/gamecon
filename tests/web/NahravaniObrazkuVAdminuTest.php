@@ -125,17 +125,9 @@ SQL,
     protected function setUp(): void
     {
         parent::setUp();
-        // aby se DNS vyřešilo ještě před curl, které by jinak mohlo padnout na ještě nepřipraveném Apache
-        get_headers(URL_ADMIN);
         $this->zdroje = sys_get_temp_dir() . '/gamecon-obrazky-v-adminu-' . bin2hex(random_bytes(6));
         (new Filesystem())->mkdir($this->zdroje);
         $this->kUklidu[] = $this->zdroje;
-    }
-
-    protected function tearDown(): void
-    {
-        (new Filesystem())->remove($this->kUklidu);
-        parent::tearDown();
     }
 
     /**

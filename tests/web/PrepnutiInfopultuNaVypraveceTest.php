@@ -4,12 +4,12 @@ declare(strict_types=1);
 
 namespace Gamecon\Tests\web;
 
+use Gamecon\Admin\VzhledAdminu;
 use Gamecon\Admin\VzhledAdminuEnum;
 use Gamecon\Aktivita\OnlinePrezence\OnlinePrezenceAjax;
 use Gamecon\Aktivita\StavAktivity;
 use Gamecon\Aktivita\StavPrihlaseni;
 use Gamecon\Role\Role;
-use Symfony\Component\Filesystem\Filesystem;
 
 /**
  * Infopulťák se v adminu přepne na vypravěče („Přihlásit se jako“) a vyplní za něj prezenci na jeho aktivitě,
@@ -116,19 +116,6 @@ SQL,
         ];
     }
 
-    protected function setUp(): void
-    {
-        parent::setUp();
-        // aby se DNS vyřešilo ještě před curl, které by jinak mohlo padnout na ještě nepřipraveném Apache
-        get_headers(URL_ADMIN);
-    }
-
-    protected function tearDown(): void
-    {
-        (new Filesystem())->remove($this->kUklidu);
-        parent::tearDown();
-    }
-
     /**
      * Vzhled infopulťáka (rám s přepínačem) a vypravěče (Moje aktivity s prezencí). Infopulťák má vzhled zvolený,
      * jinak by mu dialog výběru vyskočil už na infopultu; vypravěč většinou ne, do adminu skoro nechodí.
@@ -164,7 +151,7 @@ SQL,
         self::assertStringContainsString('name="prihlasitSeJakoUzivatel"', $infopult, 'Infopulťák nevidí přepínač');
         self::assertContains(self::ID_VYPRAVECE, $this->najdiOmniboxemPrepinace($session, $infopult, 'Vypravěč'));
 
-        $prepnuti = $this->odesliAZjistiPresmerovani($session, 'infopult', [
+        $prepnuti = $this->odesliSTelem($session, 'infopult', [
             'prihlasitSeJakoUzivatel' => 1,
             'id'                      => self::ID_VYPRAVECE,
         ]);
@@ -204,7 +191,7 @@ SQL,
         $this->setVzhled(\Uzivatel::SYSTEM, VzhledAdminuEnum::MODERNI);
         $session = $this->prihlas(\Uzivatel::SYSTEM_LOGIN);
 
-        $prepnuti = $this->odesliAZjistiPresmerovani($session, 'uzivatel', [
+        $prepnuti = $this->odesliSTelem($session, 'uzivatel', [
             'prihlasitSeJakoUzivatel' => 1,
             'id'                      => self::ID_UCASTNIKA,
         ]);
@@ -246,24 +233,6 @@ SQL,
         return array_map(static fn (array $nalezeny): int => (int) $nalezeny['value'], $nalezeni);
     }
 
-    /**
-     * @param array<string, mixed> $pole
-     *
-     * @return array{kod: int, kam: string}
-     */
-    private function odesliAZjistiPresmerovani(string $cookieFile, string $url, array $pole): array
-    {
-        $curl = $this->curl($cookieFile, $url);
-        curl_setopt($curl, CURLOPT_POST, true);
-        curl_setopt($curl, CURLOPT_POSTFIELDS, $pole);
-        self::assertNotFalse(curl_exec($curl), curl_error($curl));
-
-        return [
-            'kod' => curl_getinfo($curl, CURLINFO_HTTP_CODE),
-            'kam' => (string) curl_getinfo($curl, CURLINFO_REDIRECT_URL),
-        ];
-    }
-
     private function assertVzhled(VzhledAdminuEnum $vzhled, string $stranka): void
     {
         // moderní rám adminu i moderní online prezence mají třídu na <body>, klasické ne
@@ -282,13 +251,8 @@ SQL, [
 
             return;
         }
-        dbQuery(<<<'SQL'
-INSERT INTO uzivatele_vzhled_adminu (id_uzivatele, vzhled) VALUES ($0, $1)
-ON DUPLICATE KEY UPDATE vzhled = VALUES(vzhled)
-SQL, [
-            0 => $idUzivatele,
-            1 => $vzhled->value,
-        ]);
+        $session = [];
+        (new VzhledAdminu($session))->setVzhled($idUzivatele, $vzhled);
     }
 
     private function setStavUcastnika(int $stav): void
