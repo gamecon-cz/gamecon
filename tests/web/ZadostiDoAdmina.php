@@ -43,26 +43,72 @@ trait ZadostiDoAdmina
      */
     private function prihlas(string $login): string
     {
+        $cookieFile = $this->getNovaRelace();
+        $curl = $this->curlPrihlaseni($cookieFile, $login, 'aktivity/medailonky');
+        curl_setopt($curl, CURLOPT_FOLLOWLOCATION, true);
+        $odpoved = $this->proved($curl);
+        unset($curl); // až teď curl zapíše cookies do souboru
+
+        self::assertStringNotContainsString(
+            'name="' . Login::PASSWORD_INPUT_NAME . '"',
+            $odpoved['telo'],
+            "Přihlášení '{$login}' se nepovedlo",
+        );
+
+        return $cookieFile;
+    }
+
+    /**
+     * Relace bez cookies, tedy nepřihlášený návštěvník; soubor s cookies se po testu smaže.
+     */
+    private function getNovaRelace(): string
+    {
         $cookieFile = tempnam(sys_get_temp_dir(), 'cookie');
         $this->kUklidu[] = $cookieFile;
-        $curl = $this->curl($cookieFile, 'aktivity/medailonky');
+
+        return $cookieFile;
+    }
+
+    /**
+     * Odešle přihlašovací formulář v už existující relaci na zadanou adresu, přesměrování nenásleduje.
+     *
+     * @return array{kod: int, kam: string, telo: string}
+     */
+    private function prihlasVRelaci(string $cookieFile, string $login, string $url): array
+    {
+        return $this->proved($this->curlPrihlaseni($cookieFile, $login, $url));
+    }
+
+    private function curlPrihlaseni(string $cookieFile, string $login, string $url): \CurlHandle
+    {
+        $curl = $this->curl($cookieFile, $url);
         curl_setopt($curl, CURLOPT_POST, true);
         curl_setopt($curl, CURLOPT_POSTFIELDS, [
             Login::LOGIN_INPUT_NAME    => $login,
             Login::PASSWORD_INPUT_NAME => UNIVERZALNI_HESLO,
         ]);
-        curl_setopt($curl, CURLOPT_FOLLOWLOCATION, true);
-        $odpoved = curl_exec($curl);
-        self::assertNotFalse($odpoved, curl_error($curl));
-        unset($curl); // až teď curl zapíše cookies do souboru
 
-        self::assertStringNotContainsString(
-            'name="' . Login::PASSWORD_INPUT_NAME . '"',
-            (string) $odpoved,
-            "Přihlášení '{$login}' se nepovedlo",
-        );
+        return $curl;
+    }
 
-        return $cookieFile;
+    /**
+     * GET na adresu adminu, přesměrování nenásleduje.
+     *
+     * @return array{kod: int, kam: string, telo: string}
+     */
+    private function otevri(string $cookieFile, string $url): array
+    {
+        return $this->proved($this->curl($cookieFile, $url));
+    }
+
+    /**
+     * Totéž co @see otevri() pro absolutní adresu, třeba z přesměrování.
+     *
+     * @return array{kod: int, kam: string, telo: string}
+     */
+    private function otevriAdresu(string $cookieFile, string $adresa): array
+    {
+        return $this->proved($this->curlNaAdresu($cookieFile, $adresa));
     }
 
     private function vyberPracovnihoUzivatele(string $cookieFile, int $idUzivatele): void
@@ -87,21 +133,15 @@ trait ZadostiDoAdmina
     /**
      * @param array<string, mixed>|string $pole
      *
-     * @return array{kod: int, telo: string, kam: string} `kam` je cíl přesměrování, bez něj prázdné
+     * @return array{kod: int, kam: string, telo: string}
      */
     private function odesliSTelem(string $cookieFile, string $url, array|string $pole): array
     {
         $curl = $this->curl($cookieFile, $url);
         curl_setopt($curl, CURLOPT_POST, true);
         curl_setopt($curl, CURLOPT_POSTFIELDS, $pole);
-        $odpoved = curl_exec($curl);
-        self::assertNotFalse($odpoved, curl_error($curl));
 
-        return [
-            'kod'  => curl_getinfo($curl, CURLINFO_HTTP_CODE),
-            'telo' => (string) $odpoved,
-            'kam'  => (string) curl_getinfo($curl, CURLINFO_REDIRECT_URL),
-        ];
+        return $this->proved($curl);
     }
 
     private function stahni(string $cookieFile, string $url): string
@@ -119,11 +159,25 @@ trait ZadostiDoAdmina
 
     private function stahniOdpoved(\CurlHandle $curl): string
     {
+        $odpoved = $this->proved($curl);
+        self::assertSame(200, $odpoved['kod'], $odpoved['telo']);
+
+        return $odpoved['telo'];
+    }
+
+    /**
+     * @return array{kod: int, kam: string, telo: string} `kam` je cíl přesměrování, bez něj prázdné
+     */
+    private function proved(\CurlHandle $curl): array
+    {
         $odpoved = curl_exec($curl);
         self::assertNotFalse($odpoved, curl_error($curl));
-        self::assertSame(200, curl_getinfo($curl, CURLINFO_HTTP_CODE), (string) $odpoved);
 
-        return (string) $odpoved;
+        return [
+            'kod'  => curl_getinfo($curl, CURLINFO_HTTP_CODE),
+            'kam'  => (string) curl_getinfo($curl, CURLINFO_REDIRECT_URL),
+            'telo' => (string) $odpoved,
+        ];
     }
 
     private function curl(string $cookieFile, string $url): \CurlHandle

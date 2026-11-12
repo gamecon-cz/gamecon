@@ -69,8 +69,7 @@ SQL;
 
     protected function testAdminPagesAccessibility(array $urls): void
     {
-        // aby se DNS vyřešilo ještě před curl, které by jinak mohlo padnout na ještě nepřipraveném Apache
-        get_headers(URL_ADMIN);
+        self::vyresDnsPredPrvniZadosti();
 
         $this->testPagesAccessibility($urls, \Uzivatel::SYSTEM_LOGIN, UNIVERZALNI_HESLO, true);
     }
@@ -372,8 +371,7 @@ SQL;
      */
     protected function fetchAdminPage(string $url): string
     {
-        // aby se DNS vyřešilo ještě před curl, které by jinak mohlo padnout na ještě nepřipraveném Apache
-        get_headers(URL_ADMIN);
+        self::vyresDnsPredPrvniZadosti();
         $cookieFile = tempnam(sys_get_temp_dir(), 'cookie');
         try {
             $this->loginToAdmin($cookieFile, \Uzivatel::SYSTEM_LOGIN, UNIVERZALNI_HESLO);

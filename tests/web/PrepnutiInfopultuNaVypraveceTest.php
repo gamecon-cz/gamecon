@@ -188,7 +188,7 @@ SQL,
             'Stránky, které viděl infopulťák, by se v reportech vzhledu počítaly vypravěči',
         );
 
-        $zpet = $this->zjistiPresmerovani($session, '?' . PrepnutiNaUzivatele::PARAMETR_ZPET . '=1');
+        $zpet = $this->otevri($session, '?' . PrepnutiNaUzivatele::PARAMETR_ZPET . '=1');
         self::assertSame(303, $zpet['kod']);
         // vypravěč na infopult nesmí
         $this->assertVzhled($vzhledInfopultaka, $this->stahni($session, 'infopult'));
@@ -294,20 +294,6 @@ SQL,
         );
 
         return array_map(static fn (array $nalezeny): int => (int) $nalezeny['value'], $nalezeni);
-    }
-
-    /**
-     * @return array{kod: int, kam: string}
-     */
-    private function zjistiPresmerovani(string $cookieFile, string $url): array
-    {
-        $curl = $this->curl($cookieFile, $url);
-        self::assertNotFalse(curl_exec($curl), curl_error($curl));
-
-        return [
-            'kod' => curl_getinfo($curl, CURLINFO_HTTP_CODE),
-            'kam' => (string) curl_getinfo($curl, CURLINFO_REDIRECT_URL),
-        ];
     }
 
     private function assertVzhled(VzhledAdminuEnum $vzhled, string $stranka): void
