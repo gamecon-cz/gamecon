@@ -1,0 +1,18 @@
+<!-- begin: nevracene -->
+<table class="zvyraznovana">
+  <tr><th>Kostým</th><th>Má ho</th><th>Kontakt</th><th>Aktivita</th><th>Vydaný</th><th>Vrátit do</th></tr>
+  <!-- begin: kostym -->
+  <tr>
+    <td><a href="pujcovna?id={idKostymu}">{nazevKostymu}</a></td>
+    <td><a href="pujcovna/ucastnik?id={idUcastnika}">{jmenoUcastnika}</a> {odhlasen}</td>
+    <td>{kontakt}</td>
+    <td>{nazevAktivity}</td>
+    <td>{vydano}</td>
+    <td>{vratitDo}</td>
+  </tr>
+  <!-- end: kostym -->
+  <!-- begin: zadny -->
+  <tr><td colspan="6">Všechny vydané kostýmy jsou zpátky nebo ještě v termínu.</td></tr>
+  <!-- end: zadny -->
+</table>
+<!-- end: nevracene -->

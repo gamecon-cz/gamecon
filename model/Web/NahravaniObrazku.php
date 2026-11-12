@@ -154,6 +154,16 @@ final class NahravaniObrazku
         );
     }
 
+    public static function proFotkyKostymu(): self
+    {
+        return new self(
+            ZpracovaneObrazky::adresarFotekKostymu(),
+            new PouzitiObrazku(),
+            formaty: self::getRastroveFormatyProNahledy(),
+            optimalizace: new OptimalizaceObrazku(),
+        );
+    }
+
     public static function proObrazkyLinii(): self
     {
         return new self(
