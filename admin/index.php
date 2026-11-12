@@ -3,6 +3,7 @@
 declare(strict_types=1);
 
 use Gamecon\Admin\ApiAdminu;
+use Gamecon\Admin\PracovniUzivatel;
 use Gamecon\Admin\PristupDoAdminu;
 use Gamecon\Admin\VzhledAdminu;
 use Gamecon\Admin\VzhledAdminuHtml;
@@ -271,8 +272,8 @@ if ($u && PrepnutiNaUzivatele::smiPrepinat($u)) {
     $xtpl->parse('all.operator.prepnutiUzivatele');
 }
 $xtpl->parse('all.operator');
-// výběr uživatele
-if ($u && $u->maPravo(Pravo::ADMINISTRACE_INFOPULT)) {
+// výběr uživatele, stejnému okruhu, jakému ho zpracuje admin/scripts/prihlaseni.php
+if (PracovniUzivatel::isPovolen($u)) {
     if ($uPracovni) {
         $xtpl->assign('uPracovni', $uPracovni);
         $xtpl->parse('all.uzivatel.vybrany');

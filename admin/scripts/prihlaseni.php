@@ -3,6 +3,7 @@
 declare(strict_types=1);
 
 use Gamecon\Admin\FormularPracovnihoUzivatele;
+use Gamecon\Admin\PracovniUzivatel;
 use Gamecon\Dev\NavratNaPreview;
 use Gamecon\Dev\SsoPrihlaseniZUrl;
 use Gamecon\Exceptions\UzivatelNenalezen;
@@ -54,10 +55,14 @@ if (post('odhlasNAdm')) {
     back();
 }
 
-// Výběr uživatele pro práci
-$uPracovni = null;
+// Uživatel pro práci, jen pro toho, komu ho admin nabízí, viz PracovniUzivatel. Kdo ho mít nesmí, tomu se klíč ze
+// session zahodí, i ten nastavený před přihlášením nebo před ztrátou práva, aby se po dalším přihlášení nevrátil.
+$uPracovni = PracovniUzivatel::zSession($u);
+if (! PracovniUzivatel::isPovolen($u)) {
+    Uzivatel::odhlasKlic(Uzivatel::UZIVATEL_PRACOVNI);
+}
 
-$ulozPredchozihoUzivatele = function (int $id) {
+$ulozPredchozihoUzivatele = static function (int $id): void {
     $historie = $_SESSION['pracovni_uzivatel_predchozi'] ?? [];
     if (! is_array($historie)) {
         $historie = $historie ? [$historie] : [];
@@ -68,35 +73,32 @@ $ulozPredchozihoUzivatele = function (int $id) {
     }
 };
 
-if (post('vybratUzivateleProPraci')) {
-    $idAktualniho = $_SESSION[Uzivatel::UZIVATEL_PRACOVNI]['id_uzivatele'] ?? null;
-    if ($idAktualniho && $idAktualniho !== (int) post('id')) {
-        $ulozPredchozihoUzivatele($idAktualniho);
-    }
-    $uPracovni = Uzivatel::prihlasId(post('id'), Uzivatel::UZIVATEL_PRACOVNI);
-    back();
-}
-
-if ($idPracovnihoUzivatele = get('pracovni_uzivatel')) {
-    if (! $uPracovni || $uPracovni->id() !== $idPracovnihoUzivatele) {
-        $idAktualniho = $_SESSION[Uzivatel::UZIVATEL_PRACOVNI]['id_uzivatele'] ?? null;
-        if ($idAktualniho && $idAktualniho !== (int) $idPracovnihoUzivatele) {
-            $ulozPredchozihoUzivatele($idAktualniho);
-        }
-        $uPracovni = Uzivatel::prihlasId($idPracovnihoUzivatele, Uzivatel::UZIVATEL_PRACOVNI);
-        back(getCurrentUrlWithQuery([
-            'pracovni_uzivatel' => null,
-        ]));
-    }
-}
-
-$uPracovni = Uzivatel::zSession(Uzivatel::UZIVATEL_PRACOVNI);
 if (post('zrusitUzivateleProPraci')) {
     if ($uPracovni) {
         $ulozPredchozihoUzivatele($uPracovni->id());
     }
     Uzivatel::odhlasKlic(Uzivatel::UZIVATEL_PRACOVNI);
     back();
+}
+
+// Výběr POSTem z výběru uživatele nebo odkazem s ?pracovni_uzivatel=. Nepřihlášenému se parametr nechá v URL: formulář
+// přihlášení se odešle na tutéž adresu a po přihlášení se výběr zpracuje.
+$vyberZFormulare = $u !== null && post('vybratUzivateleProPraci');
+$vyberZOdkazu = $u !== null && get('pracovni_uzivatel') !== null;
+if ($vyberZFormulare || $vyberZOdkazu) {
+    $idVybraneho = PracovniUzivatel::parseId($vyberZFormulare ? post('id') : get('pracovni_uzivatel'));
+    if (! PracovniUzivatel::isPovolen($u)) {
+        chyba('Na práci s vybraným uživatelem nemáš oprávnění', false);
+    } elseif ($idVybraneho === null || ! Uzivatel::prihlasId($idVybraneho, Uzivatel::UZIVATEL_PRACOVNI)) {
+        chyba('Uživatel pro práci nenalezen', false);
+    } elseif ($uPracovni && $uPracovni->id() !== $idVybraneho) {
+        $ulozPredchozihoUzivatele($uPracovni->id());
+    }
+    back($vyberZFormulare
+        ? null
+        : getCurrentUrlWithQuery([
+            'pracovni_uzivatel' => null,
+        ]));
 }
 
 // Dřív, než formulář zpracuje kterýkoli modul. Nepřihlášenému (odhlásil se v jiné záložce, vypršela mu session)
