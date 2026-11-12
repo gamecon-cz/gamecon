@@ -7,7 +7,7 @@ TL;DR: Půjčovna larpových kostýmů (Trello 1510): veřejný katalog na `/kos
 - `Aktivita::odhlas()`: přečte rezervaci před smazáním přihlášky a na konci pošle e-mail (`PujcovnaKostymu::oznamUvolneni`).
 - `UzivatelSlucovani::smazPrihlaskyStarehoNaAktivityNoveho()`, viz Gotchas.
 - Admin `admin/scripts/modules/pujcovna/`: Katalog, Výdej a vrácení (`ucastnik.php`), Výdejní list, Nevrácené, Konflikty. Ikona klasického vzhledu `admin/files/design/pujcovna.avif` (glyf `shirt` z Font Awesome).
-- Web `web/moduly/kostymy.php` + `web/sablony/blackarrow/kostymy.xtpl` + `web/soubory/blackarrow/kostymy/kostymy.less`: `/kostymy` (filtr, volné na vlastní aktivitu `?aktivita=`), `/kostymy/<id>` (detail s rezervací), `/kostymy/moje`.
+- Web `web/moduly/kostymy.php` + `web/sablony/blackarrow/kostymy.xtpl` + `web/soubory/blackarrow/kostymy/kostymy.less`: `/kostymy` (filtr, volné na vlastní aktivitu `?aktivita=`), `/kostymy/<id>` (detail s rezervací), `/kostymy/moje`. Odkazy v menu webu (`MenuWebu`, `menu.xtpl`, menu je v kódu, ne ve správě stránek): Informace → Půjčovna kostýmů a v menu přihlášeného Moje kostýmy.
 - Program: pole `kostym` v `web/moduly/api/aktivityUzivatel.php` a `aktivitaAkce.php`, komponenta `ui/src/pages/program/components/KostymAktivity.tsx` (náhled), řádek v `ProgramTabulkaBuňka.tsx`. Prezence: `OnlinePrezenceUcastnikHtml::nazevKostymu()`.
 - Migrace `migrace/2026-11-12-151618_pujcovna-kostymu.php` (tabulky, nastavení, právo, role), `…-153137_pujcovna-kostymu-emaily.php`.
 - Testy `tests/Kostymy/*`, přes Apache `tests/web/KatalogKostymuNaWebuTest.php`.
@@ -31,7 +31,7 @@ TL;DR: Půjčovna larpových kostýmů (Trello 1510): veřejný katalog na `/kos
 - Odhlášení z aktivity rezervaci uvolní (cizí klíč) a `odhlas()` pošle e-mail; e-mail dostanou i účastníci smazané aktivity a odhlášení z GameConu. „Nedorazil“ v prezenci, zrušený náhradník, rozpuštění týmu a slučování uživatelů rezervaci uvolní bez e-mailu. Potvrzení „dorazil“ přihlášku jen přepíše a rezervace zůstane.
 - Přesun aktivity se kvůli kostýmu neblokuje; vzniklý překryv ukáže správci stránka Konflikty.
 - Zdarma, bez kauce, bez napojení na finance.
-- Nezveřejněný katalog je 404 pro všechny kromě správce půjčovny (vidí ho s upozorněním, rezervovat nejde). Do sitemapy se dostane až zveřejněný, `/kostymy/moje` má v `robots.txt` `Disallow`. Filtry nejsou součástí kanonické adresy.
+- Nezveřejněný katalog je 404 pro všechny kromě správce půjčovny (vidí ho s upozorněním, rezervovat nejde). Odkazy v menu webu a v programu se ukážou až se zveřejněným katalogem. Do sitemapy se dostane až zveřejněný, `/kostymy/moje` má v `robots.txt` `Disallow`. Filtry nejsou součástí kanonické adresy.
 - Výdej najde (a stránka účastníka ukáže) jen toho, kdo je letos přihlášený na aktivitu povoleného typu nebo má kostým u sebe, ne kohokoli (vydala by e-mail a telefon).
 
 ## Gotchas
