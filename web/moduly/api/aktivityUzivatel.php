@@ -5,6 +5,7 @@ use Gamecon\Aktivita\StavPrihlaseni;
 use Gamecon\Aktivita\FiltrAktivity;
 use Gamecon\Aktivita\Lokace;
 use Gamecon\Cache\ProgramStaticFileGenerator;
+use Gamecon\Kostymy\PujcovnaKostymu;
 
 /**
  * @var Uzivatel|null $u
@@ -36,6 +37,8 @@ $aktivityUzivatelData = [];
 $aktivitySkryteData = [];
 
 if ($ucastnik) {
+    // jedním dotazem pro celý ročník, ne za každou aktivitu
+    $kostymyVProgramu = PujcovnaKostymu::zSystemovehoNastaveni($systemoveNastaveni)->kostymyVProgramu($ucastnik, $rok);
     foreach ($aktivity as $aktivita) {
         $zacatekAktivity = $aktivita->zacatek();
         $konecAktivity = $aktivita->konec();
@@ -70,6 +73,8 @@ if ($ucastnik) {
             // {nadpis, text, kontakt}, když účastníkovi v den aktivity ještě nebude její minimální věk, jinak null;
             // ukáže se před přihlášením, stejně jako po odhlášení z odpovědi aktivitaAkce.php
             'upozorneniNaVek' => $aktivita->getUpozorneniNaVekProPrihlasovatko($ucastnik, $operator ?? $ucastnik),
+            // rezervovaný kostým, nebo odkaz do půjčovny u aktivity, na kterou si ho ještě může půjčit
+            'kostym'          => $kostymyVProgramu[$aktivita->id()] ?? null,
         ];
 
         // Hidden activities visible only to this user (not publicly visible).
