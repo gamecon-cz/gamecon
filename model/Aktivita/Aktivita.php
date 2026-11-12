@@ -18,6 +18,7 @@ use Gamecon\Cas\DateTimeCz;
 use Gamecon\Cas\DateTimeGamecon;
 use Gamecon\Exceptions\ChybaKolizeAktivit;
 use Gamecon\Kanaly\EmailovaSablona\EmailoveSablony;
+use Gamecon\Kostymy\PujcovnaKostymu;
 use Gamecon\Pravo;
 use Gamecon\PrednacitaniTrait;
 use Gamecon\SystemoveNastaveni\SystemoveNastaveni;
@@ -2047,6 +2048,9 @@ SQL
         $idAktivity = $this->id();
         $idUzivatele = $u->id();
         $prihlasenOd = $this->prihlasenOd($u) ?? $this->systemoveNastaveni->ted(); // prihlasenOd by tady mělo být vždy, ale pro jistotu...
+        // Rezervaci kostýmu smaže s přihláškou cizí klíč a nic neohlásí, e-mail se proto řídí stavem před smazáním.
+        $pujcovnaKostymu = PujcovnaKostymu::zSystemovehoNastaveni($this->systemoveNastaveni);
+        $rezervaceKostymu = $pujcovnaKostymu->rezervaceUcastnika($idAktivity, $idUzivatele);
         dbQuery("DELETE FROM akce_prihlaseni WHERE id_uzivatele=$idUzivatele AND id_akce=$idAktivity");
         $this->dejPrezenci()->zalogujOdhlaseni($u, $odhlasujici, $zdrojOdhlaseni);
         if ($this->systemoveNastaveni->kontrolovatPokutuZaOdhlaseni()
@@ -2085,6 +2089,10 @@ SQL,
         $this->touchDirtyFlag(ProgramStaticFileType::OBSAZENOSTI);
 
         $u->finance()->prepoctiSlevuNaJednuAktivitu();
+
+        if ($rezervaceKostymu !== null) {
+            $pujcovnaKostymu->oznamUvolneni($rezervaceKostymu, $this, $u);
+        }
     }
 
     private function touchDirtyFlag(ProgramStaticFileType $flag): void

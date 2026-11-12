@@ -16,16 +16,23 @@ use Gamecon\SystemoveNastaveni\SystemoveNastaveni;
  */
 final class PujcovnaKostymu
 {
+    private readonly EmailyPujcovny $emaily;
+
     public function __construct(
         private readonly SystemoveNastaveni $systemoveNastaveni,
         private readonly NastaveniPujcovny $nastaveni,
+        ?EmailyPujcovny $emaily = null,
     ) {
+        $this->emaily = $emaily ?? new EmailyPujcovny($systemoveNastaveni, $nastaveni);
     }
 
     public static function zGlobals(): self
     {
-        $systemoveNastaveni = SystemoveNastaveni::zGlobals();
+        return self::zSystemovehoNastaveni(SystemoveNastaveni::zGlobals());
+    }
 
+    public static function zSystemovehoNastaveni(SystemoveNastaveni $systemoveNastaveni): self
+    {
         return new self($systemoveNastaveni, NastaveniPujcovny::zSystemovehoNastaveni($systemoveNastaveni));
     }
 
@@ -86,9 +93,24 @@ SQL, [$idKostymu, $aktivita->id(), $ucastnik->id(), $rezervujici->id(), $this->t
             throw $throwable;
         }
 
+        $this->emaily->posliPotvrzeni(
+            $this->rezervaceUcastnika($aktivita->id(), $ucastnik->id()),
+            $aktivita,
+            $ucastnik,
+        );
+
         return $stavajici !== null
             ? VysledekRezervaceKostymuEnum::VYMENENA
             : VysledekRezervaceKostymuEnum::NOVA;
+    }
+
+    /**
+     * Rezervaci smaže s přihláškou cizí klíč, sám nic neohlásí. @see Aktivita::odhlas() si proto rezervaci
+     * přečte před smazáním přihlášky a po odhlášení pošle e-mail touto metodou.
+     */
+    public function oznamUvolneni(RezervaceKostymu $rezervace, Aktivita $aktivita, \Uzivatel $ucastnik): void
+    {
+        $this->emaily->posliUvolneni($rezervace, $aktivita, $ucastnik);
     }
 
     /**
