@@ -74,6 +74,23 @@ class AnonymizovanaDatabazeTest extends AbstractTestDb
         dbQuery("INSERT INTO stranky SET url_stranky = 'test', obsah = 'Kontakt: jan.novak@example.com', poradi = 1");
 
         self::vlozRadekDoKazdePrilisCitliveTabulky();
+        self::vlozRezervaciKostymu();
+    }
+
+    /**
+     * Rezervace kostýmu nemá vlastní cizí klíč na uživatele, posun ID se do ní dostane kaskádou z přihlášky.
+     */
+    private static function vlozRezervaciKostymu(): void
+    {
+        dbQuery("INSERT INTO akce_seznam SET nazev_akce = 'Larp s kostýmy', rok = 2026, typ = 2");
+        $idAktivity = dbInsertId();
+        dbQuery("INSERT INTO akce_prihlaseni SET id_akce = {$idAktivity}, id_uzivatele = 100, id_stavu_prihlaseni = 0");
+        dbQuery(<<<'SQL'
+            INSERT INTO kostym SET nazev = 'Plášť', popis = '', velikost = 'm', miry = '', strih = 'unisex', kategorie = '',
+                stav = 'k_dispozici', interni_poznamka = 'Daroval Jan Novák'
+            SQL);
+        $idKostymu = dbInsertId();
+        dbQuery("INSERT INTO kostym_rezervace SET id_kostymu = {$idKostymu}, id_akce = {$idAktivity}, id_uzivatele = 100, rezervoval = 100, rezervovano = NOW()");
     }
 
     /**
@@ -141,6 +158,9 @@ class AnonymizovanaDatabazeTest extends AbstractTestDb
                 SQL,
             'upominka_vlastni_zneni' => <<<'SQL'
                 INSERT INTO upominka_vlastni_zneni SET rocnik = 2026, predmet = 'Předmět', text = 'Text', zmenil = 100
+                SQL,
+            'kostym_vydej' => <<<'SQL'
+                INSERT INTO kostym_vydej SET id_kostymu = 1, id_uzivatele = 100, vydano = NOW(), poznamka = 'Honza ho roztrhl'
                 SQL,
         ];
 
@@ -286,6 +306,28 @@ class AnonymizovanaDatabazeTest extends AbstractTestDb
                 'Způsob zobrazení na webu by měl být po anonymizaci resetovaný na pouze přezdívku',
             );
         }
+
+        $interniPoznamkyResult = mysqli_query($connection, sprintf('SELECT interni_poznamka FROM `%s`.kostym', self::$anonymniDatabaze));
+        foreach (array_column(mysqli_fetch_all($interniPoznamkyResult, MYSQLI_ASSOC), 'interni_poznamka') as $interniPoznamka) {
+            self::assertSame('', $interniPoznamka, 'Interní poznámka kostýmu by měla být prázdná');
+        }
+
+        // the reservation follows the registration's shifted user id through the cascade
+        $rezervaceResult = mysqli_query($connection, sprintf(
+            <<<'SQL'
+                SELECT kostym_rezervace.id_uzivatele, kostym_rezervace.rezervoval, akce_prihlaseni.id_uzivatele AS prihlaseny
+                FROM `%1$s`.kostym_rezervace
+                LEFT JOIN `%1$s`.akce_prihlaseni
+                    ON akce_prihlaseni.id_akce = kostym_rezervace.id_akce
+                    AND akce_prihlaseni.id_uzivatele = kostym_rezervace.id_uzivatele
+                SQL,
+            self::$anonymniDatabaze,
+        ));
+        $rezervace = mysqli_fetch_all($rezervaceResult, MYSQLI_ASSOC);
+        self::assertCount(1, $rezervace, 'Rezervace kostýmu by měla zůstat');
+        self::assertNotSame('100', $rezervace[0]['id_uzivatele'], 'ID uživatele v rezervaci by mělo být posunuté');
+        self::assertSame($rezervace[0]['id_uzivatele'], $rezervace[0]['prihlaseny'], 'Rezervace by měla stát na přihlášce');
+        self::assertSame($rezervace[0]['id_uzivatele'], $rezervace[0]['rezervoval'], 'Kdo rezervoval by se měl posunout stejně');
 
         // posazen in uzivatele_role should be anonymized to fixed timestamp (except admin added after anonymization)
         $roleTimesResult = mysqli_query($connection, sprintf(

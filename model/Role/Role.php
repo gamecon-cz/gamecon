@@ -38,6 +38,7 @@ class Role extends \DbObject
     public const SPRAVCE_PARTNERU     = 28;
     public const PAUZUJICI_FULL_ORG   = 29;
     public const DEV                  = 30;
+    public const SPRAVCE_PUJCOVNY_KOSTYMU = 31;
 
     // DOČASNÉ ROČNÍKOVÉ ROLE
     public const LETOSNI_VYPRAVEC                   = ROLE_VYPRAVEC; // Organizátor aktivit na GC
@@ -110,6 +111,7 @@ class Role extends \DbObject
     public const VYZNAM_SPRAVCE_PARTNERU    = 'SPRAVCE_PARTNERU';
     public const VYZNAM_PAUZUJICI_FULL_ORG  = 'PAUZUJICI_FULL_ORG';
     public const VYZNAM_DEV                 = 'DEV';
+    public const VYZNAM_SPRAVCE_PUJCOVNY_KOSTYMU = 'SPRAVCE_PUJCOVNY_KOSTYMU';
     // TYP ROCNIKOVE
     public const VYZNAM_BRIGADNIK             = 'BRIGADNIK';
     public const VYZNAM_HERMAN                = 'HERMAN';
@@ -166,6 +168,7 @@ class Role extends \DbObject
             self::VYZNAM_NEDELNI_NOC_ZDARMA    => self::KATEGORIE_BEZNA,
             self::VYZNAM_VYPRAVEC              => self::KATEGORIE_BEZNA,
             self::VYZNAM_SPRAVCE_PARTNERU      => self::KATEGORIE_BEZNA,
+            self::VYZNAM_SPRAVCE_PUJCOVNY_KOSTYMU => self::KATEGORIE_BEZNA,
 
             self::VYZNAM_PRIHLASEN             => self::KATEGORIE_OMEZENA,
             self::VYZNAM_PRITOMEN              => self::KATEGORIE_OMEZENA,
@@ -388,6 +391,7 @@ class Role extends \DbObject
                 self::SPRAVCE_PARTNERU                   => 'Správce partnerů',
                 self::PAUZUJICI_FULL_ORG                 => 'Pauzující Full-org',
                 self::DEV                                => 'Dev',
+                self::SPRAVCE_PUJCOVNY_KOSTYMU           => 'Správce půjčovny kostýmů',
                 //
                 self::LETOSNI_VYPRAVEC                   => 'Vypravěč',
                 self::LETOSNI_ZAZEMI                     => 'Zázemí',

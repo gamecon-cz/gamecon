@@ -26,6 +26,13 @@ class SystemoveNastaveniKlice
     public const NEPLATIC_CASTKA_VELKY_DLUH                                   = 'NEPLATIC_CASTKA_VELKY_DLUH';
     public const NEPLATIC_POCET_DNU_PRED_VLNOU_KDY_JE_CHRANEN                 = 'NEPLATIC_POCET_DNU_PRED_VLNOU_KDY_JE_CHRANEN';
     public const UPOMINKA_MINIMALNI_CASTKA                                    = 'UPOMINKA_MINIMALNI_CASTKA';
+    public const KOSTYMY_KATALOG_ZVEREJNEN                                    = 'KOSTYMY_KATALOG_ZVEREJNEN';
+    public const KOSTYMY_TYPY_AKTIVIT                                         = 'KOSTYMY_TYPY_AKTIVIT';
+    public const KOSTYMY_LIMIT_NA_OSOBU                                       = 'KOSTYMY_LIMIT_NA_OSOBU';
+    public const KOSTYMY_CAS_NA_VYMENU_MINUT                                  = 'KOSTYMY_CAS_NA_VYMENU_MINUT';
+    public const KOSTYMY_VYDEJ_MINUT_PRED_ZACATKEM                            = 'KOSTYMY_VYDEJ_MINUT_PRED_ZACATKEM';
+    public const KOSTYMY_VRACENI_MINUT_PO_KONCI                               = 'KOSTYMY_VRACENI_MINUT_PO_KONCI';
+    public const KOSTYMY_UZAVERKA_HODIN_PRED_ZACATKEM                         = 'KOSTYMY_UZAVERKA_HODIN_PRED_ZACATKEM';
     public const MIKINY_LZE_OBJEDNAT_A_MENIT_DO_DNE                           = 'MIKINY_LZE_OBJEDNAT_A_MENIT_DO_DNE';
     public const PREDMETY_BEZ_TRICEK_LZE_OBJEDNAT_A_MENIT_DO_DNE              = 'PREDMETY_BEZ_TRICEK_LZE_OBJEDNAT_A_MENIT_DO_DNE';
     public const PRIHLASENI_NA_POSLEDNI_CHVILI_X_MINUT_PRED_ZACATKEM_AKTIVITY = 'PRIHLASENI_NA_POSLEDNI_CHVILI_X_MINUT_PRED_ZACATKEM_AKTIVITY';

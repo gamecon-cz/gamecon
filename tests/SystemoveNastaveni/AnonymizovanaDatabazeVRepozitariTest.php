@@ -137,13 +137,6 @@ class AnonymizovanaDatabazeVRepozitariTest extends AbstractTestDb
 
     public function testDumpNeobsahujeOsobniUdaje(): void
     {
-        foreach (AnonymizovanaDatabaze::PRILIS_CITLIVE_TABULKY as $tabulka) {
-            self::assertFalse(
-                $this->maRadky($tabulka),
-                "Tabulka {$tabulka} má být v dumpu prázdná. " . self::JAK_OBNOVIT,
-            );
-        }
-
         $tabulky = dbFetchColumn(<<<'SQL'
             SELECT table_name
             FROM information_schema.tables
@@ -151,6 +144,15 @@ class AnonymizovanaDatabazeVRepozitariTest extends AbstractTestDb
             SQL, [
             0 => DB_NAME,
         ], self::spojeni());
+
+        // a table created by a migration newer than the dump is not in it, so it has no rows there either
+        foreach (array_intersect(AnonymizovanaDatabaze::PRILIS_CITLIVE_TABULKY, $tabulky) as $tabulka) {
+            self::assertFalse(
+                $this->maRadky($tabulka),
+                "Tabulka {$tabulka} má být v dumpu prázdná. " . self::JAK_OBNOVIT,
+            );
+        }
+
         $nepreskoumane = [];
         foreach (array_diff($tabulky, AnonymizovanaDatabaze::PRILIS_CITLIVE_TABULKY, self::PREKONTROLOVANE_TABULKY_S_DATY) as $tabulka) {
             if ($this->maRadky($tabulka)) {
