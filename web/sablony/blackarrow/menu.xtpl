@@ -16,6 +16,9 @@
         <div class="menu_jmeno">{uJmenoMenu} ({u.id})</div>
         <div class="menu_uzivatelpolozky">
           <a href="finance">Finance</a>
+          <!-- begin: mojeKostymy -->
+          <a href="kostymy/moje">Moje kostýmy</a>
+          <!-- end: mojeKostymy -->
           <a href="registrace">Nastavení</a>
           <!-- begin: admin -->
           <a href="{uvodniAdminUrl}" target="_blank">Admin</a>
@@ -47,6 +50,9 @@
           <div class="menu_polozky">
             <a class="menu_polozka" href="prakticke-informace">Praktické informace</a>
             <a class="menu_polozka" href="jidelnicek">Jídelníček</a>
+            <!-- begin: pujcovnaKostymu -->
+            <a class="menu_polozka" href="kostymy">Půjčovna kostýmů</a>
+            <!-- end: pujcovnaKostymu -->
             <a class="menu_polozka" href="organizacni-vypomoc">Chci organizovat GameCon</a>
             <a class="menu_polozka" href="blog">Blog</a>
             <a class="menu_polozka" href="pro-sponzory-a-media">Pro sponzory a média</a>
