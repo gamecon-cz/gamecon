@@ -25,6 +25,16 @@ class CestyKSitemapeTest extends AbstractTestDb
     /**
      * @test
      */
+    public function katalogKostymuJeVMapeJenZverejneny(): void
+    {
+        self::assertContains(CestyKSitemape::KATALOG_KOSTYMU, (new CestyKSitemape(katalogKostymuZverejnen: true))->getCesty());
+        self::assertNotContains(CestyKSitemape::KATALOG_KOSTYMU, (new CestyKSitemape(katalogKostymuZverejnen: false))->getCesty());
+        self::assertNotContains(CestyKSitemape::KATALOG_KOSTYMU, (new CestyKSitemape())->getCesty(), 'Po nasazení je katalog nezveřejněný');
+    }
+
+    /**
+     * @test
+     */
     public function obsahujeJenLinieZobrazeneVMenu(): void
     {
         $cesty = (new CestyKSitemape())->getCesty();

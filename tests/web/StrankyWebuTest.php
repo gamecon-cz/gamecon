@@ -108,6 +108,7 @@ class StrankyWebuTest extends AbstractTestWeb
             'info-po-gc',
             // archiv přednášek je na prednasky/archiv (ArchivPrednasekWebuTest), samotný modul je 404
             'archivprednasek',
+            'kostymy', // nezveřejněný katalog je 404, obě podoby hlídá KatalogKostymuNaWebuTest
         ];
         $modulyWebuBaseUrls = array_diff($modulyWebuBaseUrls, $blocklist);
 
