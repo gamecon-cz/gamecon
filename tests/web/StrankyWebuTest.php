@@ -106,6 +106,7 @@ class StrankyWebuTest extends AbstractTestWeb
             'programold',
             'program-nahled-api',
             'info-po-gc',
+            'kostymy', // nezveřejněný katalog je 404, obě podoby hlídá KatalogKostymuNaWebuTest
         ];
         $modulyWebuBaseUrls = array_diff($modulyWebuBaseUrls, $blocklist);
 

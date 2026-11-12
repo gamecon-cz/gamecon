@@ -27,6 +27,7 @@ class RobotsTxt
         Disallow: /finance/
         Disallow: /qrka$
         Disallow: /qrka/
+        Disallow: /kostymy/moje
         Disallow: /api/
         Disallow: /admin$
         Disallow: /admin/
