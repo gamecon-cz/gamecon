@@ -161,9 +161,11 @@ class PujcovnaKostymuVydejTest extends AbstractUzivatelTestDb
         $nikdo = self::prihlasenyUzivatel();
         $prehledy = self::prehledy('2099-01-01 06:00:00');
 
-        self::assertSame([$ucastnik->id()], $prehledy->hledejUcastniky((string) $ucastnik->id()));
+        // číslo se hledá i v e-mailech a ty testovací obsahují náhodná čísla, proto Contains, ne přesný výsledek
+        self::assertContains($ucastnik->id(), $prehledy->hledejUcastniky((string) $ucastnik->id()));
         self::assertSame([$ucastnik->id()], $prehledy->hledejUcastniky($ucastnik->mail()));
-        self::assertSame([], $prehledy->hledejUcastniky((string) $nikdo->id()), 'Kdo nemá larp ani kostým, toho výdej nenajde');
+        self::assertNotContains($nikdo->id(), $prehledy->hledejUcastniky((string) $nikdo->id()), 'Kdo nemá larp ani kostým, toho výdej nenajde');
+        self::assertNotContains($nikdo->id(), $prehledy->hledejUcastniky($nikdo->mail()));
         self::assertSame([], $prehledy->hledejUcastniky('%'), 'Procento se hledá doslova');
     }
 
