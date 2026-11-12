@@ -7,6 +7,7 @@ namespace Gamecon\Tests\Admin;
 use Gamecon\Admin\VzhledAdminu;
 use Gamecon\Admin\VzhledAdminuEnum;
 use Gamecon\Tests\Db\AbstractTestDb;
+use Gamecon\Uzivatel\PrepnutiNaUzivatele;
 
 class VzhledAdminuTest extends AbstractTestDb
 {
@@ -110,6 +111,44 @@ SQL,
         self::assertFalse(
             (new VzhledAdminu($session))->isNabidnoutVyber($idVypravece),
             'Po „Přihlásit se jako“ u zařízení sedí pořád ten, kdo odložil, dialog ho nesmí nutit volit za vypravěče',
+        );
+    }
+
+    /**
+     * Infopulťák přepnutý na vypravěče, který si vzhled nezvolil: dialog by mu překryl prezenci a volba, i z přepínače
+     * v patičce, by se uložila vypravěči. Jeho stránky se vypravěči ani nepočítají.
+     */
+    public function testZaJinehoUzivateleSeVzhledNenabidneNeulozINepocita(): void
+    {
+        $idInfopultaka = $this->vytvorUzivatele('prepnuty_infopultak');
+        $idVypravece = $this->vytvorUzivatele('prepnuty_vypravec');
+        $session = [];
+        (new PrepnutiNaUzivatele($session))->zaznamenej($idInfopultaka);
+        $vzhledAdminu = new VzhledAdminu($session);
+
+        self::assertTrue($vzhledAdminu->isZaJinehoUzivatele());
+        self::assertFalse($vzhledAdminu->isNabidnoutVyber($idVypravece));
+        self::assertNull($vzhledAdminu->zpracujVolbu($idVypravece, VzhledAdminuEnum::MODERNI->value));
+        self::assertNull($vzhledAdminu->zpracujVolbu($idVypravece, VzhledAdminu::VOLBA_POZDEJI));
+        $vzhledAdminu->zaznamenejZobrazeniStranky($idVypravece, new \DateTimeImmutable('2026-11-02 09:00:00'));
+
+        $jinaRelace = [];
+        self::assertNull((new VzhledAdminu($jinaRelace))->getZvolenyVzhled($idVypravece));
+        self::assertSame(
+            '0',
+            (string) dbOneCol(<<<'SQL'
+SELECT COUNT(*) FROM uzivatele_vzhled_adminu_pouziti WHERE id_uzivatele = $0
+SQL,
+                [
+                    0 => $idVypravece,
+                ],
+            ),
+        );
+
+        (new PrepnutiNaUzivatele($session))->zapomen();
+        self::assertTrue(
+            (new VzhledAdminu($session))->isNabidnoutVyber($idInfopultaka),
+            'Zpátky u sebe volí každý za sebe; odklad z doby přepnutí nezůstal',
         );
     }
 

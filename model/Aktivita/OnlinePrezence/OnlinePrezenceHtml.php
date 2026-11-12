@@ -12,6 +12,7 @@ use Gamecon\Aktivita\AktivitaPrezence;
 use Gamecon\Aktivita\RazitkoPosledniZmenyPrihlaseni;
 use Gamecon\Logger\LogUdalosti;
 use Gamecon\SystemoveNastaveni\SystemoveNastaveni;
+use Gamecon\Uzivatel\PrepnutiNaUzivatele;
 use Gamecon\Web\Info;
 use Gamecon\XTemplate\XTemplate;
 use Symfony\Component\Filesystem\Filesystem;
@@ -31,6 +32,7 @@ class OnlinePrezenceHtml
     /**
      * @param VzhledAdminuHtml|null $vzhledAdminuHtml přepínač a výběr vzhledu; bez něj (ajax, testy) se nevykreslí
      * @param string                $nazevStranky     nadpis horní lišty moderního vzhledu
+     * @param PrepnutiNaUzivatele|null $prepnutiNaUzivatele kdo se na editujícího přepnul, vede ho odkaz zpět k sobě
      */
     public function __construct(
         private readonly string $jsVyjimkovac,
@@ -41,6 +43,7 @@ class OnlinePrezenceHtml
         private readonly VzhledAdminuEnum $vzhled = VzhledAdminu::VYCHOZI,
         private readonly ?VzhledAdminuHtml $vzhledAdminuHtml = null,
         private readonly string $nazevStranky = 'Online prezence',
+        private readonly ?PrepnutiNaUzivatele $prepnutiNaUzivatele = null,
     ) {
         $this->testujeme = $muzemeTestovat && $testujeme;
     }
@@ -66,12 +69,11 @@ class OnlinePrezenceHtml
             $template->parse('onlinePrezence.test');
         }
 
-        ['url' => $urlZpet, 'nazev' => $textZpet] = $editujici->mimoMojeAktivityUvodniAdminLink(
-            URL_ADMIN,
-            URL_WEBU,
-        );
-        $template->assign('urlZpet', $urlZpet);
-        $template->assign('textZpet', $textZpet);
+        // Infopulťák přepnutý na vypravěče se vrací k sobě, ne na úvod vypravěče (ten mívá jen program na webu).
+        ['url' => $urlZpet, 'nazev' => $textZpet] = $this->prepnutiNaUzivatele?->getOdkazZpet(URL_ADMIN)
+                                                    ?? $editujici->mimoMojeAktivityUvodniAdminLink(URL_ADMIN, URL_WEBU);
+        $template->assign('urlZpet', htmlspecialchars($urlZpet));
+        $template->assign('textZpet', htmlspecialchars($textZpet));
         $template->assign('jsVyjimkovac', $this->jsVyjimkovac);
         $template->assign('a', $editujici->koncovkaDlePohlavi());
 

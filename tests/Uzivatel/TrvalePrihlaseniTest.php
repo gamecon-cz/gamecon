@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Gamecon\Tests\Uzivatel;
 
 use Gamecon\Tests\Db\AbstractTestDb;
+use Gamecon\Uzivatel\PrepnutiNaUzivatele;
 
 /**
  * Cookie „zůstat přihlášený" nese hodnotu uloženou i v DB. Odhlášení smaže cookie jen
@@ -62,6 +63,40 @@ class TrvalePrihlaseniTest extends AbstractTestDb
         $po = dbOneCol('SELECT random FROM uzivatele_hodnoty WHERE id_uzivatele = $0', [$idUzivatele]);
         self::assertNotSame($token, $po);
         self::assertSame(20, strlen((string) $po));
+    }
+
+    /**
+     * Po „Přihlásit se jako“ (infopulťák vyplnil prezenci za vypravěče) se odhlašuje ten, kdo sedí u zařízení.
+     * Vypravěči by jinak odhlášení zrušilo trvalé přihlášení na jeho vlastním telefonu.
+     */
+    public function testOdhlaseniPoPrepnutiOdhlasiTohoKdoSePrepnul(): void
+    {
+        $tokenInfopultaka = randHex(20);
+        $idInfopultaka = $this->vytvorUzivateleSTokenem($tokenInfopultaka);
+        $tokenVypravece = randHex(20);
+        $idVypravece = $this->vytvorUzivateleSTokenem($tokenVypravece);
+        PrepnutiNaUzivatele::zSession()->zaznamenej($idInfopultaka);
+
+        $this->bezVarovaniSession(static fn () => \Uzivatel::zId($idVypravece)->odhlas(false));
+
+        self::assertSame($tokenVypravece, dbOneCol('SELECT random FROM uzivatele_hodnoty WHERE id_uzivatele = $0', [$idVypravece]));
+        self::assertNotSame($tokenInfopultaka, dbOneCol('SELECT random FROM uzivatele_hodnoty WHERE id_uzivatele = $0', [$idInfopultaka]));
+    }
+
+    /**
+     * Cookie patří tomu, kdo sedí u zařízení: nová session po ní nezačíná přepnutá na jiného uživatele.
+     */
+    public function testPrihlaseniCookieZapomenePrepnuti(): void
+    {
+        $token = randHex(20);
+        $idUzivatele = $this->vytvorUzivateleSTokenem($token);
+        $_COOKIE[self::COOKIE] = $token;
+        PrepnutiNaUzivatele::zSession()->zaznamenej(\Uzivatel::SYSTEM);
+
+        $uzivatel = $this->bezVarovaniSession(static fn () => \Uzivatel::zSession());
+
+        self::assertSame($idUzivatele, $uzivatel?->id());
+        self::assertFalse(PrepnutiNaUzivatele::zSession()->isPrepnuto());
     }
 
     public function testCookieSePouzijeBezOdhlaseniJakoDriv(): void
