@@ -132,6 +132,49 @@ class PujcovnaKostymuRezervaceTest extends AbstractUzivatelTestDb
         $this->pujcovna()->rezervuj($idKostymu, $aktivita, $ucastnik, $ucastnik);
     }
 
+    public function testVolneKostymyProAktivitu(): void
+    {
+        $volny = self::vlozKostym('Volný');
+        $obsazeny = self::vlozKostym('Obsazený');
+        $vOprave = self::vlozKostym('V opravě', StavKostymuEnum::V_OPRAVE);
+        $vlastni = self::vlozKostym('Vlastní');
+        [$jinaAktivita, $jinyUcastnik] = self::ucastnikNaAktivite('2099-01-01 13:00:00', '2099-01-01 16:00:00');
+        $this->pujcovna()->rezervuj($obsazeny, $jinaAktivita, $jinyUcastnik, $jinyUcastnik);
+        [$aktivita, $ucastnik] = self::ucastnikNaAktivite();
+        $this->pujcovna()->rezervuj($vlastni, $aktivita, $ucastnik, $ucastnik);
+
+        $volne = $this->pujcovna()->volneKostymy($aktivita, $ucastnik);
+
+        self::assertContains($volny, $volne);
+        self::assertContains($vlastni, $volne, 'Vlastní rezervace na tutéž aktivitu výměně nepřekáží');
+        self::assertNotContains($obsazeny, $volne);
+        self::assertNotContains($vOprave, $volne);
+        self::assertNotContains($vlastni, $this->pujcovna()->volneKostymy($aktivita), 'Bez účastníka je to cizí rezervace');
+    }
+
+    public function testAktivityKRezervaci(): void
+    {
+        $ucastnik = self::prihlasenyUzivatel();
+        $pozdejsiLarp = self::vlozAktivitu('2099-01-02 10:00:00', '2099-01-02 14:00:00');
+        $larp = self::vlozAktivitu('2099-01-01 10:00:00', '2099-01-01 14:00:00');
+        $rpg = self::vlozAktivitu(typ: TypAktivity::RPG);
+        $zacaty = self::vlozAktivitu('2099-01-01 05:00:00', '2099-01-01 08:00:00');
+        $sledovany = self::vlozAktivitu();
+        foreach ([$pozdejsiLarp, $larp, $rpg, $zacaty] as $idAktivity) {
+            self::vlozPrihlasku($idAktivity, $ucastnik->id());
+        }
+        dbInsert('akce_prihlaseni_spec', [
+            'id_akce'             => $sledovany,
+            'id_uzivatele'        => $ucastnik->id(),
+            'id_stavu_prihlaseni' => StavPrihlaseni::SLEDUJICI,
+        ]);
+
+        self::assertSame(
+            [$larp, $pozdejsiLarp],
+            array_map(static fn (Aktivita $aktivita): int => $aktivita->id(), $this->pujcovna()->aktivityKRezervaci($ucastnik)),
+        );
+    }
+
     public function testSledujiciNeprojde(): void
     {
         $ucastnik = self::prihlasenyUzivatel();

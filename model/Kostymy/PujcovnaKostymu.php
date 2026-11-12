@@ -16,6 +16,31 @@ use Gamecon\SystemoveNastaveni\SystemoveNastaveni;
  */
 final class PujcovnaKostymu
 {
+    /**
+     * Má kostým (řádek `kostym`) v čase aktivity jinou rezervaci nebo nevrácený výdej? Intervaly
+     * [začátek, konec + výměna) se nesmí protnout. Vydaný a nevrácený kostým, jehož aktivita už neexistuje,
+     * koliduje vždy. Parametry: $1 ID vlastní rezervace (nepřekáží), $2 začátek, $3 konec, $4 minut na výměnu.
+     */
+    private const string KOLIZE_KOSTYMU = <<<'SQL'
+(EXISTS (
+    SELECT 1
+    FROM kostym_rezervace
+    JOIN akce_seznam ON akce_seznam.id_akce = kostym_rezervace.id_akce
+    WHERE kostym_rezervace.id_kostymu = kostym.id
+        AND kostym_rezervace.id <> $1
+        AND akce_seznam.zacatek < $3 + INTERVAL $4 MINUTE
+        AND $2 < akce_seznam.konec + INTERVAL $4 MINUTE
+) OR EXISTS (
+    SELECT 1
+    FROM kostym_vydej
+    LEFT JOIN akce_seznam ON akce_seznam.id_akce = kostym_vydej.id_akce
+    WHERE kostym_vydej.id_kostymu = kostym.id
+        AND kostym_vydej.vraceno IS NULL
+        AND (akce_seznam.id_akce IS NULL
+            OR (akce_seznam.zacatek < $3 + INTERVAL $4 MINUTE AND $2 < akce_seznam.konec + INTERVAL $4 MINUTE))
+))
+SQL;
+
     private readonly EmailyPujcovny $emaily;
 
     public function __construct(
@@ -274,36 +299,81 @@ SQL, [$ucastnik->id(), $this->systemoveNastaveni->rocnik()]);
      */
     private function overVolnoKostymu(int $idKostymu, Aktivita $aktivita, ?int $idVlastniRezervace): void
     {
-        $zacatek = $aktivita->zacatek()->format('Y-m-d H:i:s');
-        $konec = $aktivita->konec()->format('Y-m-d H:i:s');
-        $vymena = $this->nastaveni->getCasNaVymenuMinut();
-
-        $kolizniRezervace = dbOneCol(<<<'SQL'
-SELECT 1
-FROM kostym_rezervace
-JOIN akce_seznam ON akce_seznam.id_akce = kostym_rezervace.id_akce
-WHERE kostym_rezervace.id_kostymu = $0
-    AND kostym_rezervace.id <> $1
-    AND akce_seznam.zacatek < $3 + INTERVAL $4 MINUTE
-    AND $2 < akce_seznam.konec + INTERVAL $4 MINUTE
-LIMIT 1
-SQL, [$idKostymu, $idVlastniRezervace ?? 0, $zacatek, $konec, $vymena]);
-
-        $kolizniVydej = $kolizniRezervace
-            ?: dbOneCol(<<<'SQL'
-SELECT 1
-FROM kostym_vydej
-LEFT JOIN akce_seznam ON akce_seznam.id_akce = kostym_vydej.id_akce
-WHERE kostym_vydej.id_kostymu = $0
-    AND kostym_vydej.vraceno IS NULL
-    AND (akce_seznam.id_akce IS NULL
-        OR (akce_seznam.zacatek < $2 + INTERVAL $3 MINUTE AND $1 < akce_seznam.konec + INTERVAL $3 MINUTE))
-LIMIT 1
-SQL, [$idKostymu, $zacatek, $konec, $vymena]);
-
-        if ($kolizniRezervace || $kolizniVydej) {
-            throw new ChybaPujcovny(sprintf('Kostým je v čase aktivity už rezervovaný (počítá se i %d minut na výměnu mezi aktivitami).', $vymena));
+        $kolize = dbOneCol(
+            'SELECT ' . self::KOLIZE_KOSTYMU . ' FROM kostym WHERE kostym.id = $0',
+            $this->parametryKolize($idKostymu, $aktivita, $idVlastniRezervace),
+        );
+        if ($kolize) {
+            throw new ChybaPujcovny(sprintf('Kostým je v čase aktivity už rezervovaný (počítá se i %d minut na výměnu mezi aktivitami).', $this->nastaveni->getCasNaVymenuMinut()));
         }
+    }
+
+    /**
+     * Aktivity ročníku, na které účastník může mít kostým: je na ně přihlášený (ne jako sledující), jsou povoleného
+     * typu, mají začátek i konec a ještě nezačaly. Od nejbližší.
+     *
+     * @return list<Aktivita>
+     */
+    public function aktivityKRezervaci(\Uzivatel $ucastnik): array
+    {
+        $typy = $this->nastaveni->getTypyAktivit();
+        if ($typy === []) {
+            return [];
+        }
+        $ids = dbFetchColumn(<<<'SQL'
+SELECT akce_seznam.id_akce
+FROM akce_prihlaseni
+JOIN akce_seznam ON akce_seznam.id_akce = akce_prihlaseni.id_akce
+WHERE akce_prihlaseni.id_uzivatele = $0
+    AND akce_prihlaseni.id_stavu_prihlaseni = $1
+    AND akce_seznam.typ IN ($2)
+    AND akce_seznam.zacatek > $3
+    AND akce_seznam.konec IS NOT NULL
+    AND akce_seznam.rok = $4
+SQL, [$ucastnik->id(), StavPrihlaseni::PRIHLASEN, $typy, $this->tedDb(), $this->systemoveNastaveni->rocnik()]);
+        $aktivity = Aktivita::zIds($ids, $this->systemoveNastaveni);
+        usort($aktivity, static fn (Aktivita $prvni, Aktivita $druha): int => $prvni->zacatek() <=> $druha->zacatek());
+
+        return array_values($aktivity);
+    }
+
+    /**
+     * Kostýmy k dispozici, které jdou na aktivitu rezervovat, protože v jejím čase (i s výměnou) nejsou
+     * rezervované ani vydané. Vlastní rezervace účastníka na tutéž aktivitu nepřekáží (výměna kostýmu).
+     *
+     * @return list<int> ID kostýmů
+     */
+    public function volneKostymy(Aktivita $aktivita, ?\Uzivatel $ucastnik = null): array
+    {
+        if ($aktivita->zacatek() === null || $aktivita->konec() === null) {
+            return [];
+        }
+        $vlastniRezervace = $ucastnik !== null
+            ? $this->rezervaceUcastnika($aktivita->id(), $ucastnik->id())
+            : null;
+        $parametry = $this->parametryKolize(0, $aktivita, $vlastniRezervace?->getId());
+        // výpis $0 (jeden kostým) nepoužívá a dbQueryAssemble() by bez něj číslování posunul o jedno
+        unset($parametry[0]);
+        $parametry[5] = StavKostymuEnum::K_DISPOZICI->value;
+
+        return array_map('intval', dbFetchColumn(
+            'SELECT kostym.id FROM kostym WHERE kostym.stav = $5 AND NOT ' . self::KOLIZE_KOSTYMU,
+            $parametry,
+        ));
+    }
+
+    /**
+     * @return array<int, int|string> parametry pro @see KOLIZE_KOSTYMU
+     */
+    private function parametryKolize(int $idKostymu, Aktivita $aktivita, ?int $idVlastniRezervace): array
+    {
+        return [
+            $idKostymu,
+            $idVlastniRezervace ?? 0,
+            $aktivita->zacatek()->format('Y-m-d H:i:s'),
+            $aktivita->konec()->format('Y-m-d H:i:s'),
+            $this->nastaveni->getCasNaVymenuMinut(),
+        ];
     }
 
     private function tedDb(): string

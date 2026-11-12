@@ -1,0 +1,148 @@
+<!-- begin: katalog -->
+<style>
+  .pujcovna-kostymy img { display: block; width: 60px; height: 60px; object-fit: cover; background: #f3f3f3; }
+  .pujcovna-kostymy .v_oprave { color: #b35c00; }
+  .pujcovna-kostymy .vyrazeny { color: #888; text-decoration: line-through; }
+  .pujcovna-formular label { display: block; margin: 0.8em 0; }
+  .pujcovna-formular label > :is(input, select, textarea) { display: block; margin-top: 0.2em; }
+  .pujcovna-formular input[type="text"], .pujcovna-formular textarea { width: 100%; max-width: 40em; box-sizing: border-box; }
+  .pujcovna-formular textarea { min-height: 6em; }
+  .pujcovna-fotky { display: flex; flex-wrap: wrap; gap: 1em; margin: 1em 0; }
+  .pujcovna-fotky figure { margin: 0; }
+  .pujcovna-fotky img { display: block; width: 160px; height: 160px; object-fit: cover; background: #f3f3f3; }
+  .pujcovna-fotky form { display: inline; }
+  .pujcovna-sekce { margin-top: 2em; padding-top: 1em; border-top: 1px solid #ddd; }
+</style>
+
+<!-- begin: seznam -->
+<p><a href="{adresaKatalogu}?novy">+ Přidat kostým</a></p>
+<table class="zvyraznovana pujcovna-kostymy">
+  <tr>
+    <th></th>
+    <th>Název</th>
+    <th>Velikost</th>
+    <th>Střih</th>
+    <th>Kategorie</th>
+    <th>Stav</th>
+    <th>Pořadí</th>
+  </tr>
+  <!-- begin: kostym -->
+  <tr>
+    <td><!-- begin: fotka --><img src="{nahledFotky}" alt=""><!-- end: fotka --></td>
+    <td><a href="{adresaKatalogu}?id={idKostymu}">{nazev}</a></td>
+    <td>{velikost}</td>
+    <td>{strih}</td>
+    <td>{kategorie}</td>
+    <td class="{tridaStavu}">{stav}</td>
+    <td>{poradi}</td>
+  </tr>
+  <!-- end: kostym -->
+  <!-- begin: zadny -->
+  <tr><td colspan="7">Katalog je zatím prázdný.</td></tr>
+  <!-- end: zadny -->
+</table>
+<!-- end: seznam -->
+
+<!-- begin: formular -->
+<p><a href="{adresaKatalogu}">← Zpět na katalog</a></p>
+<h2>{nadpis}</h2>
+<form method="post" class="pujcovna-formular">
+  <input type="hidden" name="akceKatalogu" value="ulozit">
+  <input type="hidden" name="idKostymu" value="{idKostymu}">
+  <label>Název <input type="text" name="nazev" value="{nazev}" required maxlength="255"></label>
+  <label>Popis (vidí účastníci) <textarea name="popis">{popis}</textarea></label>
+  <label>Velikost
+    <select name="velikost" required>
+      <option value="">–</option>
+      <!-- begin: velikost --><option value="{hodnota}" {vybrano}>{popisek}</option><!-- end: velikost -->
+    </select>
+  </label>
+  <label>Míry <input type="text" name="miry" value="{miry}" maxlength="255" placeholder="hrudník 100 cm, délka 140 cm"></label>
+  <label>Střih
+    <select name="strih" required>
+      <option value="">–</option>
+      <!-- begin: strih --><option value="{hodnota}" {vybrano}>{popisek}</option><!-- end: strih -->
+    </select>
+  </label>
+  <label>Kategorie <input type="text" name="kategorie" value="{kategorie}" maxlength="255" list="pujcovna-kategorie"></label>
+  <datalist id="pujcovna-kategorie">
+    <!-- begin: kategorie --><option value="{existujiciKategorie}"><!-- end: kategorie -->
+  </datalist>
+  <label>Stav
+    <select name="stav">
+      <!-- begin: stav --><option value="{hodnota}" {vybrano}>{popisek}</option><!-- end: stav -->
+    </select>
+  </label>
+  <label>Interní poznámka (vidí jen půjčovna) <textarea name="interni_poznamka">{interniPoznamka}</textarea></label>
+  <label>Pořadí v katalogu <input type="number" name="poradi" value="{poradi}"></label>
+  <input type="submit" value="Uložit" class="submit-btn">
+</form>
+
+<!-- begin: fotky -->
+<div class="pujcovna-sekce">
+  <h3>Fotky</h3>
+  <div class="pujcovna-fotky">
+    <!-- begin: fotka -->
+    <figure>
+      <a href="{urlFotky}" target="_blank"><img src="{nahledFotky}" alt=""></a>
+      <figcaption>
+        <!-- begin: hlavni -->hlavní fotka<!-- end: hlavni -->
+        <!-- begin: nastavitHlavni -->
+        <form method="post">
+          <input type="hidden" name="akceKatalogu" value="hlavniFotka">
+          <input type="hidden" name="idKostymu" value="{idKostymu}">
+          <input type="hidden" name="idFotky" value="{idFotky}">
+          <button type="submit">Jako hlavní</button>
+        </form>
+        <!-- end: nastavitHlavni -->
+        <form method="post" onsubmit="return confirm('Smazat fotku?')">
+          <input type="hidden" name="akceKatalogu" value="smazatFotku">
+          <input type="hidden" name="idKostymu" value="{idKostymu}">
+          <input type="hidden" name="idFotky" value="{idFotky}">
+          <button type="submit">Smazat</button>
+        </form>
+      </figcaption>
+    </figure>
+    <!-- end: fotka -->
+  </div>
+  <form method="post" enctype="multipart/form-data">
+    <input type="hidden" name="akceKatalogu" value="nahratFotku">
+    <input type="hidden" name="idKostymu" value="{idKostymu}">
+    <input type="file" name="fotka" accept="{accept}" required>
+    <input type="submit" value="Nahrát fotku" class="submit-btn">
+    <small>{limit}</small>
+  </form>
+</div>
+<!-- end: fotky -->
+
+<!-- begin: rezervace -->
+<div class="pujcovna-sekce">
+  <h3>Rezervace na aktivity, které ještě neskončily</h3>
+  <table class="zvyraznovana">
+    <!-- begin: radek -->
+    <tr>
+      <td>{casAktivity}</td>
+      <td>{nazevAktivity}</td>
+      <td><a href="pujcovna/ucastnik?id={idUcastnika}">{jmenoUcastnika}</a></td>
+      <td>{vydano}</td>
+    </tr>
+    <!-- end: radek -->
+    <!-- begin: zadna -->
+    <tr><td>Kostým nikdo nemá rezervovaný.</td></tr>
+    <!-- end: zadna -->
+  </table>
+</div>
+<!-- end: rezervace -->
+
+<!-- begin: smazat -->
+<div class="pujcovna-sekce">
+  <form method="post" onsubmit="return confirm('Opravdu smazat kostým i s fotkami?')">
+    <input type="hidden" name="akceKatalogu" value="smazat">
+    <input type="hidden" name="idKostymu" value="{idKostymu}">
+    <button type="submit">Smazat kostým</button>
+    <small>Jde jen u kostýmu, který si nikdy nikdo nerezervoval. Jinak ho přepni do stavu vyřazený.</small>
+  </form>
+</div>
+<!-- end: smazat -->
+<!-- end: formular -->
+<!-- end: katalog -->

@@ -155,6 +155,18 @@ class PujcovnaKostymuVydejTest extends AbstractUzivatelTestDb
         self::assertSame([], self::prehledy('2099-01-01 18:00:00')->konfliktyRezervaci(), 'Proběhlé konflikty se už neukazují');
     }
 
+    public function testHledaJenUcastnikyPujcovny(): void
+    {
+        [, , $ucastnik] = self::rezervace();
+        $nikdo = self::prihlasenyUzivatel();
+        $prehledy = self::prehledy('2099-01-01 06:00:00');
+
+        self::assertSame([$ucastnik->id()], $prehledy->hledejUcastniky((string) $ucastnik->id()));
+        self::assertSame([$ucastnik->id()], $prehledy->hledejUcastniky($ucastnik->mail()));
+        self::assertSame([], $prehledy->hledejUcastniky((string) $nikdo->id()), 'Kdo nemá larp ani kostým, toho výdej nenajde');
+        self::assertSame([], $prehledy->hledejUcastniky('%'), 'Procento se hledá doslova');
+    }
+
     public function testVydejniListUkazeAktivityVPristichHodinach(): void
     {
         [$idBrzke] = self::rezervace('2099-01-01 10:00:00', '2099-01-01 14:00:00');

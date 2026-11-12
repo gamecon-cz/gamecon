@@ -1,0 +1,38 @@
+<!-- begin: konflikty -->
+<!-- begin: prekryvy -->
+<h2>Překryv po přesunu aktivity</h2>
+<p>Dvě rezervace téhož kostýmu, jejichž aktivity se i s časem na výměnu překrývají. Jednomu z účastníků kostým vyměň, nebo mu rezervaci zruš.</p>
+<table class="zvyraznovana">
+  <tr><th>Kostým</th><th>První rezervace</th><th>Druhá rezervace</th></tr>
+  <!-- begin: dvojice -->
+  <tr>
+    <td><a href="pujcovna?id={idKostymu}">{nazevKostymu}</a></td>
+    <td><a href="pujcovna/ucastnik?id={prvniIdUcastnika}">{prvniJmenoUcastnika}</a><br>{prvniNazevAktivity}, {prvniCasAktivity}</td>
+    <td><a href="pujcovna/ucastnik?id={druhaIdUcastnika}">{druhaJmenoUcastnika}</a><br>{druhaNazevAktivity}, {druhaCasAktivity}</td>
+  </tr>
+  <!-- end: dvojice -->
+  <!-- begin: zadne -->
+  <tr><td colspan="3">Žádné překryvy.</td></tr>
+  <!-- end: zadne -->
+</table>
+<!-- end: prekryvy -->
+
+<!-- begin: mimoProvoz -->
+<h2>Rezervace kostýmů v opravě nebo vyřazených</h2>
+<p>Kostým nejspíš nebude k dispozici. Vyměň ho za jiný, nebo rezervaci zruš.</p>
+<table class="zvyraznovana">
+  <tr><th>Kostým</th><th>Stav</th><th>Účastník</th><th>Aktivita</th></tr>
+  <!-- begin: rezervace -->
+  <tr>
+    <td><a href="pujcovna?id={idKostymu}">{nazevKostymu}</a></td>
+    <td>{stavKostymu}</td>
+    <td><a href="pujcovna/ucastnik?id={rezervaceIdUcastnika}">{rezervaceJmenoUcastnika}</a></td>
+    <td>{rezervaceNazevAktivity}, {rezervaceCasAktivity}</td>
+  </tr>
+  <!-- end: rezervace -->
+  <!-- begin: zadna -->
+  <tr><td colspan="4">Žádné.</td></tr>
+  <!-- end: zadna -->
+</table>
+<!-- end: mimoProvoz -->
+<!-- end: konflikty -->

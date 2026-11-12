@@ -1,0 +1,34 @@
+<!-- begin: vydejniList -->
+<style>
+  .vydejni-list h3 { margin: 1.5em 0 0.3em; }
+  @media print {
+    .vydejni-list form { display: none; }
+    .vydejni-list a { color: inherit; text-decoration: none; }
+  }
+</style>
+<div class="vydejni-list">
+  <form method="get">
+    <label>Aktivity, které začínají v příštích <input type="number" name="hodin" value="{hodin}" min="1" max="48" style="width: 4em"> hodinách</label>
+    <input type="submit" value="Zobrazit" class="submit-btn">
+    <button type="button" onclick="window.print()">Vytisknout</button>
+  </form>
+  <p><small>Aktivita, která už začala, na listu zůstane, dokud neskončí.</small></p>
+
+  <!-- begin: aktivita -->
+  <h3>{casAktivity} {nazevAktivity}</h3>
+  <table class="zvyraznovana">
+    <!-- begin: kostym -->
+    <tr>
+      <td><a href="pujcovna/ucastnik?id={idUcastnika}">{jmenoUcastnika}</a></td>
+      <td><a href="pujcovna?id={idKostymu}">{nazevKostymu}</a></td>
+      <td>{stav}</td>
+    </tr>
+    <!-- end: kostym -->
+  </table>
+  <!-- end: aktivita -->
+
+  <!-- begin: zadny -->
+  <p>V příštích {hodin} hodinách nezačíná žádná aktivita s rezervovaným kostýmem.</p>
+  <!-- end: zadny -->
+</div>
+<!-- end: vydejniList -->

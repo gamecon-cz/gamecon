@@ -97,6 +97,12 @@ readonly class ZpracovaneObrazky
         return ADRESAR_WEBU_S_OBRAZKY . self::OBSAH;
     }
 
+    /** Fotky kostýmů v půjčovně, `<id kostýmu>-<náhodný kód>.<přípona>`, název je v tabulce `kostym_foto` */
+    public static function adresarFotekKostymu(): string
+    {
+        return WWW . '/soubory/systemove/kostymy';
+    }
+
     /** Galerie e-shopu v přihlášce */
     public static function adresarObrazkuEshopu(int $rocnik = ROCNIK): string
     {
