@@ -309,6 +309,9 @@ SQL, [self::ID_AKTIVITY_VYBIRANEHO, self::ID_VYBIRANEHO]), 'Odhlášení pracovn
             $data['aktivitaUzivatel']['stavPrihlaseni'] ?? null,
             $odpoved['telo'],
         );
+        // UI programu čte místnosti jako pole `mistnosti` (stejně jako z aktivityUzivatel), ne `mistnost`
+        self::assertArrayHasKey('mistnosti', $data['aktivitaUzivatel'], $odpoved['telo']);
+        self::assertArrayNotHasKey('mistnost', $data['aktivitaUzivatel'], $odpoved['telo']);
     }
 
     /**
