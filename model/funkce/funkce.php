@@ -1069,6 +1069,27 @@ function jsmeNaLocale(): bool
         );
 }
 
+/**
+ * Request input alone does not decide which settings a host runs with: the test settings load only with both the
+ * `unit_tests` cookie and ALLOW_TEST_SETTINGS=1 in the environment (docker-compose.yml sets it for the development
+ * and CI containers).
+ */
+function jeTestovaciNastaveniPovoleno(): bool
+{
+    return ! empty($_COOKIE['unit_tests'])
+        && getenv('ALLOW_TEST_SETTINGS') === '1';
+}
+
+/**
+ * A safety net: UNIVERZALNI_HESLO is defined only by the local and the test settings, and this keeps a constant
+ * defined anywhere else from being accepted outside them.
+ */
+function jeUniverzalniHesloPovoleno(): bool
+{
+    return (defined('UNIT_TESTS') && UNIT_TESTS)
+        || jsmeNaLocale();
+}
+
 function getDefinedHost(): ?string
 {
     return defined('SERVER_NAME')

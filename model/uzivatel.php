@@ -1848,7 +1848,7 @@ SQL,
             return null;
         }
         // master password hack pro vývojovou větev
-        $jeMaster = defined('UNIVERZALNI_HESLO') && $heslo === UNIVERZALNI_HESLO;
+        $jeMaster = defined('UNIVERZALNI_HESLO') && $heslo === UNIVERZALNI_HESLO && jeUniverzalniHesloPovoleno();
         // kontrola hesla
         if (! ($jeMaster || password_verify($heslo, $uzivatelData['heslo_md5']))) {
             return null;

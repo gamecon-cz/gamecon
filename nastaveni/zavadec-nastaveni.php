@@ -2,7 +2,7 @@
 
 use Gamecon\Prostredi\Prostredi;
 
-if (!empty($_COOKIE['unit_tests'])) {
+if (jeTestovaciNastaveniPovoleno()) {
     include __DIR__ . '/verejne-nastaveni-tests.php';
 }
 

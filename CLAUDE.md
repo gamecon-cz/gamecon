@@ -105,6 +105,7 @@ One MariaDB instance on the `gamecon.cz` host serves production, beta, and every
 - Database migrations run automatically
 - Test data in `/tests/Db/data/`
 - Bootstrap: `tests/_zavadec.php`
+- **Web tests need `ALLOW_TEST_SETTINGS=1`**: they send the cookies `unit_tests` and `gamecon_test_db` to the local Apache, and the test settings (`nastaveni/verejne-nastaveni-tests.php`) are loaded only when the container also has this variable (`docker-compose.yml`, `jeTestovaciNastaveniPovoleno()`). The variable has to be on the `web` container itself (Apache reads it), not only in the shell that runs phpunit: an existing stack needs `docker compose up -d` to recreate `web` with it, and a web-test run outside that compose file has to set it as well, or the cookies do nothing. `AbstractTestWeb` fails with a message when the PHPUnit process lacks it.
 - **Test logs location**: `logy/tests/{PID}` (process-specific)
   - Each test run creates a separate log directory based on process ID
   - FIO payment cache files stored in `logy/tests/{PID}/fio/`
@@ -146,6 +147,7 @@ Get the custom repository via `->getRepository(SomeEntity::class)` (returns the 
 ## Best Practices
 - Follow existing code conventions
 - Use strict typing (`declare(strict_types=1)`)
+- **Composite conditions go from cheapest to most expensive**: `&&` and `||` short-circuit, so `defined()`, a null check, an array key or a comparison comes before a function call, a database query or a file check. A guard stays in front of what it protects.
 - Run tests before committing
 - Check existing patterns in similar components
 - Use Docker for consistent development environment
@@ -442,6 +444,7 @@ Pravdivý stav ke dni auditu (zdroj: `cat /usr/local/sbin/deploy-preview-branch.
 | `PREVIEW_BASIC_AUTH_USER/PASSWORD` | Dockerfile bake | sdílené napříč všemi preview | bake je správná cesta — společná hodnota |
 | `ARCHIVE_BASIC_AUTH_USER/PASSWORD` | Dockerfile bake | sdílené napříč všemi archive | bake je správná cesta |
 | `DEPLOY_*` (rsync nasazení) | nepředáváno | n/a | deploy-only, runtime kód nečte — správně, že to v preview není |
+| `ALLOW_TEST_SETTINGS` | nepředáváno (ani ostra, beta, archivy) | n/a | **úmyslně jen vývojový a CI kontejner** (`docker-compose.yml`): povoluje web testům testovací nastavení, jinde se nesmí nastavit |
 
 **Když přidáváš novou env-driven feature, vrať se k téhle tabulce a doplň řádek.** Pokud rozhodneš, že preview má dostat něco jiného než ostra, **napiš proč** — jinak se z toho stane skrytý drift.
 
