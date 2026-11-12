@@ -533,6 +533,16 @@ body.vzhled-moderni:has(.profilInfo) .sloupL {
   color: var(--m-panel-tlumeny);
 }
 
+.moderni-zpet-z-prepnuti {
+  display: block;
+  margin-bottom: 10px;
+  color: var(--m-panel-text);
+}
+
+.moderni-zpet-z-prepnuti:hover {
+  color: #fff;
+}
+
 .moderni-tlacitko-odhlasit {
   border-color: var(--m-panel-okraj);
   background-color: transparent;

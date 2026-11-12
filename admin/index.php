@@ -9,6 +9,7 @@ use Gamecon\Pravo;
 use Gamecon\Role\Role;
 use Gamecon\SystemoveNastaveni\SystemoveNastaveniHtml;
 use Gamecon\Uzivatel\Platby;
+use Gamecon\Uzivatel\PrepnutiNaUzivatele;
 use Gamecon\Web\Info;
 use Gamecon\Web\Urls;
 use Gamecon\Web\VerzeSouboru;
@@ -242,7 +243,15 @@ if ($strankaExistuje && $uzivatelMaPristup) {
 // operátor - info & odhlašování
 $xtpl->assign('a', $u->koncovkaDlePohlavi());
 $xtpl->assign('operator', $u->jmenoNick());
-if ($u && ($u->muzePrepnoutNaJinehoUzivatele() || $u->jeInfopultak())) {
+$odkazZpetZPrepnuti = $prepnutiNaUzivatele->getOdkazZpet();
+if ($odkazZpetZPrepnuti !== null) {
+    $xtpl->assign([
+        'urlZpetZPrepnuti'  => htmlspecialchars($odkazZpetZPrepnuti['url']),
+        'textZpetZPrepnuti' => htmlspecialchars($odkazZpetZPrepnuti['nazev']),
+    ]);
+    $xtpl->parse('all.operator.zpetZPrepnuti');
+}
+if ($u && PrepnutiNaUzivatele::smiPrepinat($u)) {
     $dataOmnibox = [];
     if ($u->jeInfopultak() && ! $u->muzePrepnoutNaJinehoUzivatele()) {
         $dataOmnibox['jenSRolemi'] = [Role::LETOSNI_VYPRAVEC, Role::LETOSNI_PARTNER];

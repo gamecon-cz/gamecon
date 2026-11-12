@@ -16,6 +16,7 @@ use Gamecon\SystemoveNastaveni\SystemoveNastaveni;
  * @var Uzivatel|null $uPracovni
  * @var \Gamecon\Admin\VzhledAdminuEnum $vzhled z admin/index.php
  * @var \Gamecon\Admin\VzhledAdminuHtml|null $vzhledAdminuHtml z admin/index.php
+ * @var \Gamecon\Uzivatel\PrepnutiNaUzivatele $prepnutiNaUzivatele z admin/scripts/prihlaseni.php
  * @var \Gamecon\SystemoveNastaveni\SystemoveNastaveni $systemoveNastaveni
  */
 
@@ -31,6 +32,7 @@ $onlinePrezenceHtml = new OnlinePrezenceHtml(
     $filesystem,
     vzhled: $vzhled,
     vzhledAdminuHtml: $vzhledAdminuHtml,
+    prepnutiNaUzivatele: $prepnutiNaUzivatele,
 );
 $onlinePrezenceAjax = new OnlinePrezenceAjax(
     $onlinePrezenceHtml,

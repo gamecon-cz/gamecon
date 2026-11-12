@@ -5,13 +5,18 @@ declare(strict_types=1);
 namespace Gamecon\Tests\Uzivatel;
 
 use Gamecon\Pravo;
+use Gamecon\Role\Role;
 use Gamecon\Tests\Db\AbstractTestDb;
+use Gamecon\Uzivatel\PrepnutiNaUzivatele;
 
 /**
  * Právo "přepnutí na uživatele" (dříve hardcoded superadmin) nahradilo
  * konstantu SUPERADMINI. Přihlášení se jako libovolný uživatel v adminu
  * (admin/scripts/prihlaseni.php, admin/index.php) se nově řídí tímto právem
  * místo metody Uzivatel::jeSuperAdmin().
+ *
+ * Infopulťák bez toho práva se smí přepnout jen na vypravěče a partnery, kteří by mu nedali víc práv
+ * (@see PrepnutiNaUzivatele::getDuvodOdmitnutiInfopultaka()).
  */
 class PrepnutiNaUzivateleTest extends AbstractTestDb
 {
@@ -130,5 +135,92 @@ SQL,
             $uzivatel->muzePrepnoutNaJinehoUzivatele(),
             'Uživatel s přiděleným právem smí přepnout na uživatele',
         );
+    }
+
+    /**
+     * Role cíle, a jestli se na něj infopulťák smí přepnout.
+     *
+     * @return array<string, array{list<int>, bool}>
+     */
+    public static function cileInfopultaka(): array
+    {
+        return [
+            'vypravěč'                          => [[Role::LETOSNI_VYPRAVEC], true],
+            'partner'                           => [[Role::LETOSNI_PARTNER], true],
+            'vypravěč s výhodami brigádníka'    => [[Role::LETOSNI_VYPRAVEC, Role::LETOSNI_BRIGADNIK], true],
+            'vypravěč a čestný organizátor'     => [[Role::LETOSNI_VYPRAVEC, Role::CESTNY_ORGANIZATOR], true],
+            'vypravěč a infopulťák'             => [[Role::LETOSNI_VYPRAVEC, Role::LETOSNI_INFOPULT], true],
+            'účastník'                          => [[Role::PRIHLASEN_NA_LETOSNI_GC], false],
+            'vypravěč a organizátor'            => [[Role::LETOSNI_VYPRAVEC, Role::ORGANIZATOR], false],
+            'vypravěč s přepínáním na kohokoli' => [[Role::LETOSNI_VYPRAVEC, Role::LETOSNI_PREPINANI_UZIVATELE], false],
+            'vypravěč a šéf infopultu'          => [[Role::LETOSNI_VYPRAVEC, Role::SEF_INFOPULTU], false],
+        ];
+    }
+
+    /**
+     * Přepnutím infopulťák získá všechna práva cíle. Organizátor, který vede aktivitu, je i vypravěč, a přes něj
+     * by se infopulťák dostal třeba k financím nebo k přepnutí na kohokoli.
+     *
+     * @dataProvider cileInfopultaka
+     *
+     * @param list<int> $roleCile
+     */
+    public function testInfopultakSePrepneJenNaVypraveceAPartneraBezPravNavic(array $roleCile, bool $smi): void
+    {
+        $infopultak = $this->vytvorSRolemi('infopultak', [Role::LETOSNI_INFOPULT]);
+        $cil = $this->vytvorSRolemi('cil', $roleCile);
+
+        $duvodOdmitnuti = PrepnutiNaUzivatele::getDuvodOdmitnutiInfopultaka($infopultak, $cil);
+
+        if ($smi) {
+            self::assertNull($duvodOdmitnuti);
+        } else {
+            self::assertNotNull($duvodOdmitnuti);
+        }
+    }
+
+    public function testOdmitnutiInfopultakaJmenujePravaNavic(): void
+    {
+        $infopultak = $this->vytvorSRolemi('infopultak', [Role::LETOSNI_INFOPULT]);
+        $cil = $this->vytvorSRolemi('cil', [Role::LETOSNI_VYPRAVEC, Role::LETOSNI_PREPINANI_UZIVATELE]);
+
+        self::assertStringContainsString(
+            'Přepnutí na uživatele',
+            (string) PrepnutiNaUzivatele::getDuvodOdmitnutiInfopultaka($infopultak, $cil),
+        );
+    }
+
+    public function testPrepnutiSiPamatujeKdoSePrepnul(): void
+    {
+        $session = [];
+        $prepnuti = new PrepnutiNaUzivatele($session);
+        self::assertFalse($prepnuti->isPrepnuto());
+
+        $prepnuti->zaznamenej(123);
+
+        self::assertSame(123, (new PrepnutiNaUzivatele($session))->getIdPuvodnihoUzivatele(), 'Pamatuje si to session');
+        $prepnuti->zapomen();
+        self::assertFalse((new PrepnutiNaUzivatele($session))->isPrepnuto());
+    }
+
+    /**
+     * @param list<int> $idsRoli
+     */
+    private function vytvorSRolemi(string $suffix, array $idsRoli): \Uzivatel
+    {
+        $uzivatel = $this->vytvorUzivatele($suffix);
+        foreach ($idsRoli as $idRole) {
+            dbQuery(<<<'SQL'
+INSERT INTO uzivatele_role(id_uzivatele, id_role, posadil) VALUES ($0, $1, $0)
+SQL,
+                [
+                    0 => $uzivatel->id(),
+                    1 => $idRole,
+                ],
+            );
+        }
+        \Uzivatel::smazCache();
+
+        return \Uzivatel::zIdUrcite($uzivatel->id());
     }
 }

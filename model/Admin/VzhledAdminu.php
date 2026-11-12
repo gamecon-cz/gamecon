@@ -4,9 +4,13 @@ declare(strict_types=1);
 
 namespace Gamecon\Admin;
 
+use Gamecon\Uzivatel\PrepnutiNaUzivatele;
+
 /**
  * Which look of the admin a user works in. The choice is kept in the database, so it follows
  * the user to every device; whoever has not chosen yet gets the classic look and an offer to choose.
+ * After "Přihlásit se jako" the admin shows the look of the user switched to, but whoever sits at the device
+ * neither chooses it for them nor counts as them in the reports (@see isZaJinehoUzivatele()).
  */
 class VzhledAdminu
 {
@@ -85,6 +89,9 @@ SQL,
      */
     public function zaznamenejZobrazeniStranky(int $idUzivatele, \DateTimeInterface $kdy): void
     {
+        if ($this->isZaJinehoUzivatele()) {
+            return;
+        }
         $zvolenyVzhled = $this->getZvolenyVzhled($idUzivatele);
         dbQuery(<<<'SQL'
 INSERT INTO uzivatele_vzhled_adminu_pouziti (id_uzivatele, den, vzhled, zvoleny, pocet_zobrazeni)
@@ -118,16 +125,32 @@ SQL,
     public function isNabidnoutVyber(int $idUzivatele): bool
     {
         return $this->getZvolenyVzhled($idUzivatele) === null
-               && empty($this->session[self::SESSION_KLIC_VYBER_ODLOZEN]);
+               && empty($this->session[self::SESSION_KLIC_VYBER_ODLOZEN])
+               && ! $this->isZaJinehoUzivatele();
     }
 
     /**
-     * Handles a submitted choice of the look, or of postponing it. An unknown value changes nothing.
+     * Whether whoever sits at the device switched to the logged-in user ("Přihlásit se jako"), typically an infopult
+     * member filling in the attendance of a storyteller. Neither the dialog nor the footer switch is offered then:
+     * the dialog would cover the other user's pages, Moje aktivity with the attendance included, and the choice
+     * would be saved into the other user's account. Their page views do not count as the other user's either.
+     */
+    public function isZaJinehoUzivatele(): bool
+    {
+        return (new PrepnutiNaUzivatele($this->session))->isPrepnuto();
+    }
+
+    /**
+     * Handles a submitted choice of the look, or of postponing it. An unknown value changes nothing, and neither
+     * does any value sent for another user (@see isZaJinehoUzivatele()).
      *
-     * @return VzhledAdminuEnum|null the look just chosen, null when postponed or unknown
+     * @return VzhledAdminuEnum|null the look just chosen, null when postponed, unknown or for another user
      */
     public function zpracujVolbu(int $idUzivatele, string $volba): ?VzhledAdminuEnum
     {
+        if ($this->isZaJinehoUzivatele()) {
+            return null;
+        }
         if ($volba === self::VOLBA_POZDEJI) {
             $this->session[self::SESSION_KLIC_VYBER_ODLOZEN] = true;
 

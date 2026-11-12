@@ -8,6 +8,11 @@
       <strong>{operator}</strong>
     </div>
   </div>
+  <!-- begin:zpetZPrepnuti -->
+  <a class="moderni-zpet-z-prepnuti" href="{urlZpetZPrepnuti}">
+    <i class="fa-solid fa-arrow-left" aria-hidden="true"></i> {textZpetZPrepnuti}
+  </a>
+  <!-- end:zpetZPrepnuti -->
   <!-- begin:prepnutiUzivatele -->
   <form method="post" class="moderni-hledani">
     <input type="hidden" name="prihlasitSeJakoUzivatel" value="1">

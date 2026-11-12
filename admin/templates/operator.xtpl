@@ -4,6 +4,9 @@
     <b>Přihlášen{a} jako</b><br>
     {operator}
   </label>
+  <!-- begin:zpetZPrepnuti -->
+  <p><a href="{urlZpetZPrepnuti}">↶ {textZpetZPrepnuti}</a></p>
+  <!-- end:zpetZPrepnuti -->
   <!-- begin:prepnutiUzivatele -->
   <form method="post">
     <input type="hidden" name="prihlasitSeJakoUzivatel" value="1">

@@ -7,6 +7,7 @@ use Gamecon\Dev\NavratNaPreview;
 use Gamecon\Dev\SsoPrihlaseniZUrl;
 use Gamecon\Exceptions\UzivatelNenalezen;
 use Gamecon\Login\Login;
+use Gamecon\Uzivatel\PrepnutiNaUzivatele;
 
 /*
  * Kód starající o přihlášení uživatele a výběr uživatele pro práci
@@ -41,6 +42,14 @@ $navratPrihlaseneho = NavratNaPreview::getCilProPrihlaseneho(
 );
 if ($navratPrihlaseneho !== null) {
     back($navratPrihlaseneho);
+}
+
+// kdo se v adminu přepnul na jiného uživatele („Přihlásit se jako“, viz níže), používá i admin/index.php
+$prepnutiNaUzivatele = new PrepnutiNaUzivatele($_SESSION);
+if (get(PrepnutiNaUzivatele::PARAMETR_ZPET) !== null) {
+    $prepnutiNaUzivatele->vratSe();
+    // úvod adminu pošle vráceného na jeho úvodní stránku
+    back(URL_ADMIN);
 }
 
 if (post('odhlasNAdm')) {
@@ -101,19 +110,26 @@ if ($u !== null) {
     FormularPracovnihoUzivatele::hlidej($_POST, $uPracovni);
 }
 
-if (post('prihlasitSeJakoUzivatel')) {
+// Nepřihlášený (vypršela mu session, odhlásil se v jiné záložce) se nepřepne, uvidí přihlášení.
+if ($u !== null && post('prihlasitSeJakoUzivatel')) {
+    // dřív než hledání: kdo přepínat nesmí, se nemá dozvědět, která ID existují
+    if (! PrepnutiNaUzivatele::smiPrepinat($u)) {
+        chyba(PrepnutiNaUzivatele::NESMI_PREPINAT);
+    }
     try {
-        if ($u->muzePrepnoutNaJinehoUzivatele() || $u->jeInfopultak()) {
-            $potencialniUzivatel = Uzivatel::zIdUrcite(post('id'));
-            if ($u->muzePrepnoutNaJinehoUzivatele() || $potencialniUzivatel->jeVypravec() || $potencialniUzivatel->jePartner()) {
-                $u = Uzivatel::prihlasId(post('id'));
-                back($u->jeVypravec() || $u->jePartner()
-                    ? $u->mojeAktivityAdminUrl()
-                    : null
-                );
-            }
+        $naKoho = Uzivatel::zIdUrcite(post('id'));
+        $duvodOdmitnuti = $prepnutiNaUzivatele->getDuvodOdmitnuti($u, $naKoho);
+        if ($duvodOdmitnuti !== null) {
+            chyba($duvodOdmitnuti);
         }
+        $u = $prepnutiNaUzivatele->prepni($u, $naKoho);
+        // infopulťák se na vypravěče přepíná, aby za něj vyplnil prezenci
+        back($u->jeVypravec() || $u->jePartner()
+            ? $u->mojeAktivityAdminUrl()
+            : null
+        );
     } catch (UzivatelNenalezen $uzivatelNenalezen) {
-        chyba($uzivatelNenalezen->getMessage());
+        // ID poslal formulář, hláška se vypisuje jako HTML
+        chyba(htmlspecialchars($uzivatelNenalezen->getMessage()));
     }
 }

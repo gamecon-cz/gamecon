@@ -8,6 +8,7 @@ use Gamecon\Admin\VzhledAdminu;
 use Gamecon\Admin\VzhledAdminuEnum;
 use Gamecon\Admin\VzhledAdminuHtml;
 use Gamecon\Tests\Db\AbstractTestDb;
+use Gamecon\Uzivatel\PrepnutiNaUzivatele;
 use Gamecon\XTemplate\XTemplate;
 
 class VzhledAdminuHtmlTest extends AbstractTestDb
@@ -108,5 +109,17 @@ SQL,
         $vzhledAdminu->zpracujVolbu($idUzivatele, VzhledAdminu::VOLBA_POZDEJI);
 
         self::assertSame('', (new VzhledAdminuHtml($vzhledAdminu))->getVyberHtml($idUzivatele));
+    }
+
+    public function testZaJinehoUzivateleNeniPrepinacAniVyber(): void
+    {
+        $idInfopultaka = $this->vytvorUzivatele('prepnuty_infopultak');
+        $idVypravece = $this->vytvorUzivatele('prepnuty_vypravec');
+        $vzhledAdminu = $this->vytvorVzhledAdminu();
+        (new PrepnutiNaUzivatele($this->session))->zaznamenej($idInfopultaka);
+        $html = new VzhledAdminuHtml($vzhledAdminu);
+
+        self::assertSame('', $html->getPrepinacHtml($idVypravece), 'Přepínač by uložil vzhled vypravěči');
+        self::assertSame('', $html->getVyberHtml($idVypravece));
     }
 }

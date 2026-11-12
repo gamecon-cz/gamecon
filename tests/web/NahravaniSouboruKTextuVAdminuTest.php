@@ -89,8 +89,6 @@ SQL,
     protected function setUp(): void
     {
         parent::setUp();
-        // aby se DNS vyřešilo ještě před curl, které by jinak mohlo padnout na ještě nepřipraveném Apache
-        get_headers(URL_ADMIN);
         $this->zdroje = sys_get_temp_dir() . '/gamecon-soubory-v-editoru-' . bin2hex(random_bytes(6));
         (new Filesystem())->mkdir($this->zdroje);
         $this->kUklidu[] = $this->zdroje;
@@ -98,12 +96,6 @@ SQL,
         $this->uklidNoveAdresare($obsah . '/' . self::koren());
         $this->uklidNoveAdresare($obsah . '/stranky/' . self::URL_STRANKY);
         $this->uklidNoveAdresare($obsah . '/blog/' . self::URL_BLOGU);
-    }
-
-    protected function tearDown(): void
-    {
-        (new Filesystem())->remove($this->kUklidu);
-        parent::tearDown();
     }
 
     /**

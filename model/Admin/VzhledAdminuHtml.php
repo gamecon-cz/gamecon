@@ -20,8 +20,14 @@ class VzhledAdminuHtml
     ) {
     }
 
+    /**
+     * @return string empty for whoever switched to the user (@see VzhledAdminu::isZaJinehoUzivatele())
+     */
     public function getPrepinacHtml(int $idUzivatele): string
     {
+        if ($this->vzhledAdminu->isZaJinehoUzivatele()) {
+            return '';
+        }
         $vzhled = $this->vzhledAdminu->getVzhled($idUzivatele);
         $sablona = $this->vytvorSablonu('prepinac-vzhledu.xtpl');
         $sablona->assign([
