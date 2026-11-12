@@ -38,6 +38,7 @@ class Pravo extends \DbObject
     public const ADMINISTRACE_WEB_LOGA      = 112;
     public const ADMINISTRACE_DEV           = 113;
     public const PREPNUTI_NA_UZIVATELE      = 114; // Smí se v adminu přihlásit (přepnout) jako libovolný uživatel (dříve hardcoded superadmin)
+    public const ADMINISTRACE_PUJCOVNA_KOSTYMU = 115; // Katalog kostýmů, výdej a vrácení, rezervace kostýmů za účastníky
     public const ADMINISTRACE_BINGO         = 116; // Bingo z jednání rady, migrace ho dala rolím s titulem organizátora
     public const SCHVALOVANI_MEDAILONKU     = 118; // Texty medailonků z Nastavení na webu, migrace ho dala rolím s titulem organizátora; 115 bere větev 1510, 117 větev 1513
 
