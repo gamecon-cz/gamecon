@@ -1,0 +1,137 @@
+<!-- begin: vydej -->
+<style>
+  .pujcovna-sekce { margin-top: 2em; padding-top: 1em; border-top: 1px solid #ddd; }
+  .pujcovna-sekce form { display: inline; }
+  .pujcovna-aktivity a[aria-current] { font-weight: bold; }
+  .pujcovna-volne img { display: block; width: 60px; height: 60px; object-fit: cover; background: #f3f3f3; }
+</style>
+
+<form method="get" action="{adresaVydeje}">
+  <label>Účastník (jméno, přezdívka, e-mail nebo ID)
+    <input type="search" name="hledat" value="{hledat}" autofocus>
+  </label>
+  <input type="submit" value="Hledat" class="submit-btn">
+</form>
+
+<!-- begin: mimoOkruh -->
+<p>Účastník s tímhle ID letos není přihlášený na aktivitu s půjčovnou kostýmů ani nemá kostým u sebe.</p>
+<!-- end: mimoOkruh -->
+
+<!-- begin: vysledky -->
+<ul>
+  <!-- begin: nalezeny -->
+  <li><a href="{adresaVydeje}?id={idNalezeneho}">{jmenoNalezeneho}</a> ({mailNalezeneho}, ID {idNalezeneho})</li>
+  <!-- end: nalezeny -->
+  <!-- begin: nikdo -->
+  <li>Nikdo takový není letos přihlášený na aktivitu s půjčovnou kostýmů ani nemá kostým u sebe.</li>
+  <!-- end: nikdo -->
+</ul>
+<!-- end: vysledky -->
+
+<!-- begin: ucastnik -->
+<h2>{jmenoUcastnika} <small>(ID {idUcastnika}, {mailUcastnika}, {telefon})</small></h2>
+
+<!-- begin: nevracene -->
+<div class="pujcovna-sekce">
+  <h3>Má u sebe</h3>
+  <table class="zvyraznovana">
+    <tr><th>Kostým</th><th>Aktivita</th><th>Vydaný</th><th>Vrátit do</th><th>Vrácení</th></tr>
+    <!-- begin: radek -->
+    <tr>
+      <td>{nazevKostymu}</td>
+      <td>{nazevAktivity} {bezRezervace}</td>
+      <td>{vydano}</td>
+      <td>{vratitDo}</td>
+      <td>
+        <form method="post">
+          <input type="hidden" name="akceVydeje" value="vratit">
+          <input type="hidden" name="idVydeje" value="{idVydeje}">
+          <select name="stavPriVraceni" required>
+            <option value="">stav při vrácení…</option>
+            <!-- begin: stav --><option value="{hodnota}">{popisek}</option><!-- end: stav -->
+          </select>
+          <input type="text" name="poznamka" placeholder="poznámka">
+          <button type="submit">Vrátit</button>
+        </form>
+      </td>
+    </tr>
+    <!-- end: radek -->
+  </table>
+  <p><small>Poškozený kostým se přepne do stavu v opravě; jeho další rezervace pak ukáže stránka Konflikty.</small></p>
+</div>
+<!-- end: nevracene -->
+
+<!-- begin: rezervace -->
+<div class="pujcovna-sekce">
+  <h3>Rezervace</h3>
+  <table class="zvyraznovana">
+    <tr><th>Kdy</th><th>Aktivita</th><th>Kostým</th><th></th></tr>
+    <!-- begin: radek -->
+    <tr>
+      <td>{casAktivity}</td>
+      <td>{nazevAktivity}</td>
+      <td><a href="pujcovna?id={idKostymu}">{nazevKostymu}</a></td>
+      <td>
+        <!-- begin: vydany -->vydaný {vydano}<!-- end: vydany -->
+        <!-- begin: akce -->
+        <form method="post">
+          <input type="hidden" name="akceVydeje" value="vydat">
+          <input type="hidden" name="idRezervace" value="{idRezervace}">
+          <button type="submit">Vydat</button>
+        </form>
+        <a href="{adresaVydeje}?id={idUcastnika}&amp;aktivita={idAktivity}#novaRezervace">Vyměnit</a>
+        <form method="post" onsubmit="return confirm('Zrušit rezervaci kostýmu?')">
+          <input type="hidden" name="akceVydeje" value="zrusit">
+          <input type="hidden" name="idAktivity" value="{idAktivity}">
+          <button type="submit">Zrušit</button>
+        </form>
+        <!-- end: akce -->
+      </td>
+    </tr>
+    <!-- end: radek -->
+    <!-- begin: zadna -->
+    <tr><td colspan="4">Žádné rezervace kostýmů.</td></tr>
+    <!-- end: zadna -->
+  </table>
+</div>
+<!-- end: rezervace -->
+
+<!-- begin: novaRezervace -->
+<div class="pujcovna-sekce" id="novaRezervace">
+  <h3>Rezervovat kostým</h3>
+  <ul class="pujcovna-aktivity">
+    <!-- begin: aktivita -->
+    <li><a href="{adresaVydeje}?id={idUcastnika}&amp;aktivita={idAktivity}#novaRezervace" {vybrana}>{nazevAktivity}</a> ({casAktivity})</li>
+    <!-- end: aktivita -->
+    <!-- begin: zadnaAktivita -->
+    <li>Účastník není přihlášený na žádnou aktivitu, na kterou jde ještě kostým rezervovat.</li>
+    <!-- end: zadnaAktivita -->
+  </ul>
+  <!-- begin: volne -->
+  <h4>Volné kostýmy na {nazevAktivity}</h4>
+  <p><small>Rezervací vyměníš kostým, který účastník na aktivitu už má. Uzávěrka ani limit na osobu se tu nehlídají.</small></p>
+  <table class="zvyraznovana pujcovna-volne">
+    <!-- begin: kostym -->
+    <tr>
+      <td><img src="{nahledFotky}" alt=""></td>
+      <td><a href="pujcovna?id={idKostymu}">{nazevKostymu}</a></td>
+      <td>{parametry}</td>
+      <td>
+        <form method="post">
+          <input type="hidden" name="akceVydeje" value="rezervovat">
+          <input type="hidden" name="idAktivity" value="{idAktivity}">
+          <input type="hidden" name="idKostymu" value="{idKostymu}">
+          <button type="submit">Rezervovat</button>
+        </form>
+      </td>
+    </tr>
+    <!-- end: kostym -->
+    <!-- begin: zadny -->
+    <tr><td>V čase aktivity není volný žádný kostým.</td></tr>
+    <!-- end: zadny -->
+  </table>
+  <!-- end: volne -->
+</div>
+<!-- end: novaRezervace -->
+<!-- end: ucastnik -->
+<!-- end: vydej -->
