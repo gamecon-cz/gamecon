@@ -262,3 +262,14 @@ table.program {
 .program .prihlasen { background-color: #65D161; opacity: 1; }
 .program .sledujici { background-color: #E5E891; opacity: 1; }
 .program .organizator { background-color: #7EA5FF; opacity: 1; }
+
+/* rezervovaný kostým z půjčovny, stejně nenápadně jako místnost */
+.program_kostym {
+  background-color: inherit;
+  font-style: italic;
+  font-size: smaller;
+  height: 1em;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}

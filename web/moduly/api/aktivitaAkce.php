@@ -9,6 +9,7 @@ use Gamecon\Aktivita\Aktivita;
 use Gamecon\Aktivita\Lokace;
 use Gamecon\Aktivita\StavPrihlaseni;
 use Gamecon\Cache\ProgramStaticFileGenerator;
+use Gamecon\Kostymy\PujcovnaKostymu;
 
 $response = [];
 
@@ -74,6 +75,9 @@ if ($aktivitaId) {
             'vedu'           => $jeOrganizator,
             // po odhlášení se dá hned přihlásit znovu, upozornění na věk musí být po ruce (stejné jako v aktivityUzivatel.php)
             'upozorneniNaVek' => $aktivita->getUpozorneniNaVekProPrihlasovatko($uPracovni, $u),
+            // po přihlášení jde půjčit kostým, odhlášení rezervaci zruší
+            'kostym'         => PujcovnaKostymu::zSystemovehoNastaveni($systemoveNastaveni)
+                    ->kostymyVProgramu($uPracovni, $aktivita->rok())[$aktivita->id()] ?? null,
         ];
     }
 }
