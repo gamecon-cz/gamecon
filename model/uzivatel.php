@@ -24,6 +24,7 @@ use Gamecon\Uzivatel\Exceptions\DuplicitniLogin;
 use Gamecon\Uzivatel\Finance;
 use Gamecon\Uzivatel\Medailonek;
 use Gamecon\Uzivatel\Pohlavi;
+use Gamecon\Uzivatel\PrepnutiNaUzivatele;
 use Gamecon\Uzivatel\SqlStruktura\UzivateleHodnotySqlStruktura as Sql;
 use Gamecon\Uzivatel\UserController;
 use Gamecon\Uzivatel\UserRepository;
@@ -1578,10 +1579,13 @@ SQL,
      */
     public function odhlas(bool $naUvodniStranku = true)
     {
+        // Po „Přihlásit se jako“ se odhlašuje ten, kdo sedí u zařízení. Uživateli, na kterého se přepnul, by
+        // odhlášení zrušilo trvalé přihlášení a JWT i na jeho vlastních zařízeních.
+        $odhlasovany = PrepnutiNaUzivatele::zSession()->getPuvodniUzivatel() ?? $this;
         // Než zmizí session: když to selže, odhlášení jde zopakovat.
-        $this->zneplatniTrvalePrihlaseni();
-        $a = $this->koncovkaDlePohlavi();
-        $this->odhlasProTed();
+        $odhlasovany->zneplatniTrvalePrihlaseni();
+        $a = $odhlasovany->koncovkaDlePohlavi();
+        $odhlasovany->odhlasProTed();
         if (isset($_COOKIE['gcTrvalePrihlaseni'])) {
             setcookie('gcTrvalePrihlaseni', '', 0, '/');
         }
@@ -1606,14 +1610,18 @@ SQL,
 
     /**
      * Odhlásí aktuálně přihlášeného uživatele
+     *
+     * @param bool $smazatJwt false nechá JWT, když uživatel u zařízení nesedí (přepnul se na něj někdo jiný)
      */
-    private function odhlasProTed(): void
+    private function odhlasProTed(bool $smazatJwt = true): void
     {
         if (! session_id()) {
             session_start();
         }
         session_destroy();
-        $this->destroyJwtToken();
+        if ($smazatJwt) {
+            $this->destroyJwtToken();
+        }
     }
 
     private function destroyJwtToken(): void
@@ -1695,12 +1703,19 @@ SQL,
         $klic = $this->klic;
         // máme obnovit starou proměnnou pro id uživatele (otáčíme aktuálně přihlášeného uživatele)?
         $sesssionObnovit = (isset($_SESSION['id_uzivatele']) && $_SESSION['id_uzivatele'] === $this->id());
+        $idPrepnutoZ = null;
         if ($klic === self::UZIVATEL) { // pokud je klíč default, zničíme celou session
-            $this->odhlasProTed();      // ponech případnou cookie pro trvalé přihášení
+            // kdo se na uživatele přepnul, sedí u zařízení dál
+            $idPrepnutoZ = PrepnutiNaUzivatele::zSession()->getIdPuvodnihoUzivatele();
+            // ponech případnou cookie pro trvalé přihášení
+            $this->odhlasProTed(smazatJwt: $idPrepnutoZ === null);
         } else { // pokud je speciální, pouze přemažeme položku v session
             self::odhlasKlic($klic);
         }
-        $u = self::prihlasId($id, $klic);
+        $u = self::prihlasId($id, $klic, vytvoritJwt: $idPrepnutoZ === null);
+        if ($idPrepnutoZ !== null) {
+            PrepnutiNaUzivatele::zSession()->zaznamenej($idPrepnutoZ);
+        }
         $this->r = $u->r;
         if ($sesssionObnovit) {
             $_SESSION['id_uzivatele'] = $this->id();
@@ -1853,6 +1868,9 @@ SQL,
         }
         $uzivatelData['id_uzivatele'] = $idUzivatele;
         $_SESSION[$klic]['id_uzivatele'] = $idUzivatele;
+        if ($klic === self::UZIVATEL) {
+            PrepnutiNaUzivatele::zSession()->zapomen();
+        }
         // načtení uživatelských práv
         $p = dbQuery(<<<SQL
 SELECT id_prava
@@ -1877,11 +1895,14 @@ SQL,
     /**
      * Vytvoří v session na indexu $klic dalšího uživatele pro práci
      *
+     * @param bool $vytvoritJwt false nechá JWT toho, kdo sedí u zařízení (přepnutí na jiného uživatele)
+     *
      * @return Uzivatel|null nebo null
      */
     public static function prihlasId(
         int|string $idUzivatele,
         $klic = self::UZIVATEL,
+        bool $vytvoritJwt = true,
     ): ?self {
         $idUzivatele = (int) $idUzivatele;
         $uzivatelData = dbOneLine("SELECT * FROM uzivatele_hodnoty WHERE id_uzivatele={$idUzivatele}");
@@ -1904,7 +1925,7 @@ SQL,
         $uzivatel = new self($uzivatelData);
         $uzivatel->klic = $klic;
 
-        if ($klic === self::UZIVATEL) {
+        if ($klic === self::UZIVATEL && $vytvoritJwt) {
             self::generateJwtToken($uzivatel);
         }
 
@@ -3065,6 +3086,8 @@ SQL,
                 [$rand],
             );
             setcookie('gcTrvalePrihlaseni', $rand, time() + 3600 * 24 * 365, '/');
+            // nová session, cookie patří tomu, kdo sedí u zařízení
+            PrepnutiNaUzivatele::zSession()->zapomen();
 
             return self::prihlasId($id, $klic);
         }

@@ -9,7 +9,9 @@ use Gamecon\Admin\VzhledAdminuEnum;
 use Gamecon\Aktivita\OnlinePrezence\OnlinePrezenceAjax;
 use Gamecon\Aktivita\StavAktivity;
 use Gamecon\Aktivita\StavPrihlaseni;
+use Gamecon\Login\Login;
 use Gamecon\Role\Role;
+use Gamecon\Uzivatel\PrepnutiNaUzivatele;
 
 /**
  * Infopulťák se v adminu přepne na vypravěče („Přihlásit se jako“) a vyplní za něj prezenci na jeho aktivitě,
@@ -17,7 +19,8 @@ use Gamecon\Role\Role;
  *
  * Testy běží na locale (ENV=local), kde se smí přepnout každý admin na kohokoli
  * (@see \Uzivatel::muzePrepnoutNaJinehoUzivatele()). Omezení infopulťáka jen na vypravěče a partnery tu proto neplatí
- * a tenhle test ho neověří; ověří cestu od přepínače po uloženou prezenci.
+ * a tenhle test ho neověří, ověřuje ho tests/Uzivatel/PrepnutiNaUzivateleTest.php. Tenhle ověří cestu od přepínače
+ * po uloženou prezenci a zpět, a co přepnutí nesmí udělat s účtem vypravěče.
  */
 class PrepnutiInfopultuNaVypraveceTest extends AbstractTestWeb
 {
@@ -137,7 +140,7 @@ SQL,
      *
      * @dataProvider vzhledy
      */
-    public function infopultakVyplniPrezenciZaVypravece(
+    public function infopultakVyplniPrezenciZaVypraveceAVratiSe(
         VzhledAdminuEnum $vzhledInfopultaka,
         ?VzhledAdminuEnum $vzhledVypravece,
     ): void {
@@ -161,10 +164,11 @@ SQL,
         $mojeAktivity = $this->stahni($session, 'moje-aktivity');
         $this->assertVzhled($vzhledVypravece ?? VzhledAdminuEnum::KLASICKY, $mojeAktivity);
         self::assertStringContainsString(self::NAZEV_AKTIVITY, $mojeAktivity);
-        self::assertStringNotContainsString(
-            'id="vyberVzhledu"',
+        $this->assertNicZaDruhehoPriVzhledu($mojeAktivity);
+        self::assertStringContainsString(
+            '?' . PrepnutiNaUzivatele::PARAMETR_ZPET . '=1"',
             $mojeAktivity,
-            'Dialog výběru vzhledu by infopulťákovi překryl prezenci, dokud by za vypravěče nezvolil vzhled',
+            'Z prezence vede odkaz zpět na infopulťáka, ne na úvod vypravěče',
         );
 
         $ulozeni = $this->odesliSTelem($session, 'moje-aktivity', [
@@ -178,32 +182,91 @@ SQL,
         $odpoved = json_decode($ulozeni['telo'], true, 512, JSON_THROW_ON_ERROR);
         self::assertTrue($odpoved[OnlinePrezenceAjax::PRIHLASEN] ?? null, $ulozeni['telo']);
         self::assertSame(StavPrihlaseni::PRIHLASEN_A_DORAZIL, $this->getStavUcastnika());
+        self::assertSame(
+            0,
+            $this->getPocetZobrazeniVeVzhledu(self::ID_VYPRAVECE),
+            'Stránky, které viděl infopulťák, by se v reportech vzhledu počítaly vypravěči',
+        );
+
+        $zpet = $this->zjistiPresmerovani($session, '?' . PrepnutiNaUzivatele::PARAMETR_ZPET . '=1');
+        self::assertSame(303, $zpet['kod']);
+        // vypravěč na infopult nesmí
+        $this->assertVzhled($vzhledInfopultaka, $this->stahni($session, 'infopult'));
     }
 
     /**
-     * Kdo má právo na přepnutí (systémový uživatel má všechna), se přepne na kohokoli, třeba na účastníka bez práv
-     * v adminu, a zůstane na stránce, odkud se přepnul. Ani jemu se nenabídne výběr vzhledu za druhého.
+     * Kdo má právo na přepnutí (systémový uživatel má všechna), se přepne na kohokoli, třeba na jiného admina,
+     * a zůstane na stránce, odkud se přepnul. Ani jemu se za druhého nenabídne výběr vzhledu, ani přepínač.
      *
      * @test
      */
-    public function sPravemNaPrepnutiSePrepneNaKohokoli(): void
+    public function sPravemNaPrepnutiSePrepneNaJinehoAdminaANevoliZaNejVzhled(): void
     {
         $this->setVzhled(\Uzivatel::SYSTEM, VzhledAdminuEnum::MODERNI);
+        // infopulťák smí na záložku Uživatel a vzhled si nezvolil, sám by dialog výběru dostal
+        $this->setVzhled(self::ID_INFOPULTAKA, null);
         $session = $this->prihlas(\Uzivatel::SYSTEM_LOGIN);
 
         $prepnuti = $this->odesliSTelem($session, 'uzivatel', [
             'prihlasitSeJakoUzivatel' => 1,
-            'id'                      => self::ID_UCASTNIKA,
+            'id'                      => self::ID_INFOPULTAKA,
         ]);
         self::assertSame(303, $prepnuti['kod']);
         self::assertStringEndsWith('/uzivatel', $prepnuti['kam']);
 
-        // účastník do adminu nesmí, dostane stránku 403, ale přihlášený je on
-        $curl = $this->curl($session, 'uzivatel');
-        $stranka = (string) curl_exec($curl);
-        self::assertSame(403, curl_getinfo($curl, CURLINFO_HTTP_CODE));
-        self::assertStringContainsString('test-ucastnik', $stranka);
-        self::assertStringNotContainsString('id="vyberVzhledu"', $stranka);
+        $stranka = $this->stahni($session, 'uzivatel');
+        self::assertStringContainsString('test-infopultak', $stranka, 'Přihlášený má být infopulťák');
+        $this->assertNicZaDruhehoPriVzhledu($stranka);
+        self::assertStringContainsString('?' . PrepnutiNaUzivatele::PARAMETR_ZPET . '=1"', $stranka);
+    }
+
+    /**
+     * Odhlášení po přepnutí odhlásí infopulťáka, který sedí u zařízení. Vypravěči by zrušilo trvalé přihlášení
+     * i na jeho vlastním telefonu.
+     *
+     * @test
+     */
+    public function odhlaseniPoPrepnutiNechaVypraveciTrvalePrihlaseni(): void
+    {
+        $this->setVzhled(self::ID_INFOPULTAKA, VzhledAdminuEnum::KLASICKY);
+        $tokenInfopultaka = $this->setTrvalePrihlaseni(self::ID_INFOPULTAKA);
+        $tokenVypravece = $this->setTrvalePrihlaseni(self::ID_VYPRAVECE);
+        $session = $this->prihlas('test-infopultak');
+        self::assertSame(303, $this->odesli($session, 'infopult', [
+            'prihlasitSeJakoUzivatel' => 1,
+            'id'                      => self::ID_VYPRAVECE,
+        ]));
+
+        self::assertSame(303, $this->odesli($session, 'moje-aktivity', [
+            'odhlasNAdm' => 1,
+        ]));
+
+        self::assertSame($tokenVypravece, $this->getTrvalePrihlaseni(self::ID_VYPRAVECE));
+        self::assertNotSame($tokenInfopultaka, $this->getTrvalePrihlaseni(self::ID_INFOPULTAKA));
+        self::assertStringContainsString(
+            'name="' . Login::PASSWORD_INPUT_NAME . '"',
+            $this->stahni($session, 'uzivatel'),
+            'Odhlášený je i infopulťák',
+        );
+    }
+
+    /**
+     * Přepínač zůstane na stránce, i když infopulťákovi mezitím vypršela session nebo se odhlásil v jiné záložce.
+     *
+     * @test
+     */
+    public function prepnutiBezPrihlaseniUkazePrihlaseni(): void
+    {
+        $bezPrihlaseni = (string) tempnam(sys_get_temp_dir(), 'cookie');
+        $this->kUklidu[] = $bezPrihlaseni;
+
+        $odpoved = $this->odesliSTelem($bezPrihlaseni, 'infopult', [
+            'prihlasitSeJakoUzivatel' => 1,
+            'id'                      => self::ID_VYPRAVECE,
+        ]);
+
+        self::assertSame(200, $odpoved['kod'], $odpoved['telo']);
+        self::assertStringContainsString('name="' . Login::PASSWORD_INPUT_NAME . '"', $odpoved['telo']);
     }
 
     /**
@@ -233,11 +296,35 @@ SQL,
         return array_map(static fn (array $nalezeny): int => (int) $nalezeny['value'], $nalezeni);
     }
 
+    /**
+     * @return array{kod: int, kam: string}
+     */
+    private function zjistiPresmerovani(string $cookieFile, string $url): array
+    {
+        $curl = $this->curl($cookieFile, $url);
+        self::assertNotFalse(curl_exec($curl), curl_error($curl));
+
+        return [
+            'kod' => curl_getinfo($curl, CURLINFO_HTTP_CODE),
+            'kam' => (string) curl_getinfo($curl, CURLINFO_REDIRECT_URL),
+        ];
+    }
+
     private function assertVzhled(VzhledAdminuEnum $vzhled, string $stranka): void
     {
         // moderní rám adminu i moderní online prezence mají třídu na <body>, klasické ne
         $jeModerni = str_contains($stranka, '<body class="vzhled-moderni">');
         self::assertSame($vzhled === VzhledAdminuEnum::MODERNI, $jeModerni, "Stránka nemá vzhled {$vzhled->getNazev()}");
+    }
+
+    /**
+     * Po přepnutí nesmí ten, kdo sedí u zařízení, zvolit vzhled za druhého: dialog by mu překryl stránku (třeba
+     * prezenci), dokud by nevybral, a volba z dialogu i z přepínače v patičce by se uložila druhému.
+     */
+    private function assertNicZaDruhehoPriVzhledu(string $stranka): void
+    {
+        self::assertStringNotContainsString('id="vyberVzhledu"', $stranka, 'Dialog výběru vzhledu za druhého');
+        self::assertStringNotContainsString('class="prepinac-vzhledu"', $stranka, 'Přepínač vzhledu za druhého');
     }
 
     private function setVzhled(int $idUzivatele, ?VzhledAdminuEnum $vzhled): void
@@ -253,6 +340,40 @@ SQL, [
         }
         $session = [];
         (new VzhledAdminu($session))->setVzhled($idUzivatele, $vzhled);
+    }
+
+    private function getPocetZobrazeniVeVzhledu(int $idUzivatele): int
+    {
+        return (int) dbOneCol(<<<'SQL'
+SELECT COUNT(*) FROM uzivatele_vzhled_adminu_pouziti WHERE id_uzivatele = $0
+SQL, [
+            0 => $idUzivatele,
+        ]);
+    }
+
+    /**
+     * @return string hodnota cookie trvalého přihlášení, jak ji má uživatel v prohlížeči
+     */
+    private function setTrvalePrihlaseni(int $idUzivatele): string
+    {
+        $token = randHex(20);
+        dbQuery(<<<'SQL'
+UPDATE uzivatele_hodnoty SET random = $0 WHERE id_uzivatele = $1
+SQL, [
+            0 => $token,
+            1 => $idUzivatele,
+        ]);
+
+        return $token;
+    }
+
+    private function getTrvalePrihlaseni(int $idUzivatele): string
+    {
+        return (string) dbOneCol(<<<'SQL'
+SELECT random FROM uzivatele_hodnoty WHERE id_uzivatele = $0
+SQL, [
+            0 => $idUzivatele,
+        ]);
     }
 
     private function setStavUcastnika(int $stav): void

@@ -18,6 +18,7 @@ use Symfony\Component\Filesystem\Filesystem;
  * @var bool $testujeme
  * @var \Gamecon\Admin\VzhledAdminuEnum $vzhled z admin/index.php
  * @var \Gamecon\Admin\VzhledAdminuHtml|null $vzhledAdminuHtml z admin/index.php
+ * @var \Gamecon\Uzivatel\PrepnutiNaUzivatele $prepnutiNaUzivatele z admin/scripts/prihlaseni.php
  * @var string $nazevSekce z admin/index.php, název modulu z jeho hlavičky
  * @var \Gamecon\SystemoveNastaveni\SystemoveNastaveni $systemoveNastaveni
  */
@@ -40,6 +41,7 @@ $onlinePrezenceHtml = new OnlinePrezenceHtml(
     vzhled: $vzhled,
     vzhledAdminuHtml: $vzhledAdminuHtml,
     nazevStranky: $nazevSekce,
+    prepnutiNaUzivatele: $prepnutiNaUzivatele,
 );
 $onlinePrezenceAjax = new OnlinePrezenceAjax(
     $onlinePrezenceHtml,
