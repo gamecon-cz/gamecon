@@ -316,11 +316,73 @@ SQL, [$ucastnik->id(), $this->systemoveNastaveni->rocnik()]);
      */
     public function aktivityKRezervaci(\Uzivatel $ucastnik): array
     {
+        $aktivity = Aktivita::zIds($this->idsAktivitKRezervaci($ucastnik), $this->systemoveNastaveni);
+        usort($aktivity, static fn (Aktivita $prvni, Aktivita $druha): int => $prvni->zacatek() <=> $druha->zacatek());
+
+        return array_values($aktivity);
+    }
+
+    /**
+     * Pro program účastníka: kostým, který má na aktivitu rezervovaný (odkaz na vlastní rezervace), nebo u aktivity,
+     * na kterou si ho ještě může rezervovat, odkaz do katalogu na kostýmy volné v jejím čase. Odkaz do katalogu
+     * jen se zveřejněným katalogem.
+     *
+     * @return array<int, array{nazev: string|null, url: string}> podle ID aktivity
+     */
+    public function kostymyVProgramu(\Uzivatel $ucastnik, int $rok): array
+    {
+        $kostymy = [];
+        if ($this->nastaveni->isKatalogZverejnen() && $rok === $this->systemoveNastaveni->rocnik()) {
+            foreach ($this->idsAktivitKRezervaci($ucastnik) as $idAktivity) {
+                $kostymy[$idAktivity] = [
+                    'nazev' => null,
+                    'url'   => URL_WEBU . '/kostymy?aktivita=' . $idAktivity,
+                ];
+            }
+        }
+        foreach (dbFetchAll(<<<'SQL'
+SELECT kostym_rezervace.id_akce, kostym.nazev
+FROM kostym_rezervace
+JOIN kostym ON kostym.id = kostym_rezervace.id_kostymu
+JOIN akce_seznam ON akce_seznam.id_akce = kostym_rezervace.id_akce
+WHERE kostym_rezervace.id_uzivatele = $0
+    AND akce_seznam.rok = $1
+SQL, [$ucastnik->id(), $rok]) as $rezervace) {
+            $kostymy[(int) $rezervace['id_akce']] = [
+                'nazev' => (string) $rezervace['nazev'],
+                'url'   => URL_WEBU . '/kostymy/moje',
+            ];
+        }
+
+        return $kostymy;
+    }
+
+    /**
+     * Rezervované kostýmy účastníků aktivity (pro online prezenci vypravěče).
+     *
+     * @return array<int, string> název kostýmu podle ID účastníka
+     */
+    public function kostymyUcastnikuAktivity(int $idAktivity): array
+    {
+        return array_map('strval', dbFetchPairs(<<<'SQL'
+SELECT kostym_rezervace.id_uzivatele, kostym.nazev
+FROM kostym_rezervace
+JOIN kostym ON kostym.id = kostym_rezervace.id_kostymu
+WHERE kostym_rezervace.id_akce = $0
+SQL, [$idAktivity]));
+    }
+
+    /**
+     * @return list<int>
+     */
+    private function idsAktivitKRezervaci(\Uzivatel $ucastnik): array
+    {
         $typy = $this->nastaveni->getTypyAktivit();
         if ($typy === []) {
             return [];
         }
-        $ids = dbFetchColumn(<<<'SQL'
+
+        return array_map('intval', dbFetchColumn(<<<'SQL'
 SELECT akce_seznam.id_akce
 FROM akce_prihlaseni
 JOIN akce_seznam ON akce_seznam.id_akce = akce_prihlaseni.id_akce
@@ -330,11 +392,7 @@ WHERE akce_prihlaseni.id_uzivatele = $0
     AND akce_seznam.zacatek > $3
     AND akce_seznam.konec IS NOT NULL
     AND akce_seznam.rok = $4
-SQL, [$ucastnik->id(), StavPrihlaseni::PRIHLASEN, $typy, $this->tedDb(), $this->systemoveNastaveni->rocnik()]);
-        $aktivity = Aktivita::zIds($ids, $this->systemoveNastaveni);
-        usort($aktivity, static fn (Aktivita $prvni, Aktivita $druha): int => $prvni->zacatek() <=> $druha->zacatek());
-
-        return array_values($aktivity);
+SQL, [$ucastnik->id(), StavPrihlaseni::PRIHLASEN, $typy, $this->tedDb(), $this->systemoveNastaveni->rocnik()]));
     }
 
     /**

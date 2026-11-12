@@ -117,10 +117,18 @@ export type ApiAktivitaUživatel = {
   // todo(tym): navazujici aktivity ať se může vypsat v modalu
   /** limit členů týmu */
   tymLimit?: number | null,
+  /** kostým z půjčovny: rezervovaný (nazev), nebo odkaz do katalogu u aktivity, na kterou si ho ještě může půjčit */
+  kostym?: ApiKostymAktivity | null,
   /** není skutečná vlastnost. tohle vynucuje že kde má byt ApiAKtivitaUživatel, tak se minimálně alespoň pokusím aby tam bylo */
   __TS_STRUKTURALNI_KONTROLA__: true,
   interni?: boolean,
 }
+
+export type ApiKostymAktivity = {
+  /** název rezervovaného kostýmu, null = kostým ještě nemá, url vede do katalogu */
+  nazev: string | null,
+  url: string,
+};
 
 export type ApiAktivita = ApiAktivitaNepřihlášen & ApiAktivitaUživatel;
 
