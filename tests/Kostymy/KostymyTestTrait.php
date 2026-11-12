@@ -7,9 +7,12 @@ namespace Gamecon\Tests\Kostymy;
 use Gamecon\Aktivita\StavAktivity;
 use Gamecon\Aktivita\StavPrihlaseni;
 use Gamecon\Aktivita\TypAktivity;
+use Gamecon\Cas\DateTimeImmutableStrict;
+use Gamecon\Kostymy\NastaveniPujcovny;
 use Gamecon\Kostymy\StavKostymuEnum;
 use Gamecon\Kostymy\StrihKostymuEnum;
 use Gamecon\Kostymy\VelikostKostymuEnum;
+use Gamecon\SystemoveNastaveni\SystemoveNastaveni;
 
 /**
  * Data pro testy půjčovny kostýmů přímo v databázi (legacy spojení), bez pravidel služeb.
@@ -89,6 +92,30 @@ trait KostymyTestTrait
         ]);
 
         return (int) dbInsertId();
+    }
+
+    private static function systemoveNastaveniKCasu(string $ted): SystemoveNastaveni
+    {
+        return SystemoveNastaveni::zGlobals(ROCNIK, new DateTimeImmutableStrict($ted));
+    }
+
+    /**
+     * Výchozí hodnoty jsou ty z migrace, jen katalog je zveřejněný.
+     */
+    private static function nastaveniPujcovny(
+        bool $katalogZverejnen = true,
+        array $typyAktivit = [TypAktivity::LARP],
+        int $limitNaOsobu = 0,
+    ): NastaveniPujcovny {
+        return new NastaveniPujcovny(
+            katalogZverejnen: $katalogZverejnen,
+            typyAktivit: $typyAktivit,
+            limitNaOsobu: $limitNaOsobu,
+            casNaVymenuMinut: 60,
+            vydejMinutPredZacatkem: 60,
+            vraceniMinutPoKonci: 60,
+            uzaverkaHodinPredZacatkem: 2,
+        );
     }
 
     /**
