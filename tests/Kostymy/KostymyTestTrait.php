@@ -8,6 +8,8 @@ use Gamecon\Aktivita\StavAktivity;
 use Gamecon\Aktivita\StavPrihlaseni;
 use Gamecon\Aktivita\TypAktivity;
 use Gamecon\Cas\DateTimeImmutableStrict;
+use Gamecon\Kanaly\EmailovaSablona\KodEmailoveSablonyEnum;
+use Gamecon\Kanaly\MailLogger;
 use Gamecon\Kostymy\NastaveniPujcovny;
 use Gamecon\Kostymy\StavKostymuEnum;
 use Gamecon\Kostymy\StrihKostymuEnum;
@@ -116,6 +118,16 @@ trait KostymyTestTrait
             vraceniMinutPoKonci: 60,
             uzaverkaHodinPredZacatkem: 2,
         );
+    }
+
+    /**
+     * Kolik e-mailů z dané šablony dostal účastník (log odeslaných e-mailů testovacího procesu).
+     */
+    private static function pocetEmailu(\Uzivatel $prijemce, KodEmailoveSablonyEnum $sablona): int
+    {
+        $maily = (new MailLogger(LOGY . '/maily.sqlite'))->najdi($prijemce->mail(), limit: 1000);
+
+        return count(array_filter($maily, static fn (array $mail): bool => $mail['sablona'] === $sablona->value));
     }
 
     /**
