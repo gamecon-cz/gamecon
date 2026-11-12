@@ -13,6 +13,7 @@ use Gamecon\XTemplate\XTemplate;
 
 /**
  * @var Uzivatel $u
+ * @var Uzivatel|null $uPracovni z admin/scripts/prihlaseni.php
  * @var \Gamecon\SystemoveNastaveni\SystemoveNastaveni $systemoveNastaveni
  */
 
@@ -117,7 +118,6 @@ if (post('odhlasit')) {
         }
     });
 
-    $uPracovni = Uzivatel::zSession('uzivatel_pracovni');
     if ($uPracovni && in_array($uPracovni->id(), $idUzivatelu, false)) {
         $uPracovni->otoc(); // prenacti "prava" vcetne Prihlasen na GC, aby se v Uvodu neukazoval porad jako prihlaseny
     }

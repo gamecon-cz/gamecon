@@ -19,6 +19,7 @@ if (!$u) {
     return;
 }
 
+// účastník, za kterého se jedná (v adminu pracovní uživatel), $u zůstává operátorem
 if(!isset($uPracovni)) {
     $uPracovni = $u;
 }
@@ -50,15 +51,16 @@ if ($aktivitaId) {
 
         // Stejný kontrakt jako aktivityUzivatel.php: všechna pole posílaná
         // vždy, nullable tam, kde "chybějící" má sémantický význam.
-        $jeOrganizator = $aktivita->organizuje($u);
+        // Za účastníka, ne za operátora: UI to zapíše do jeho programu.
+        $jeOrganizator = $aktivita->organizuje($uPracovni);
         $hlavniLokace  = $jeOrganizator
             ? $aktivita->hlavniLokace()
             : null;
 
         $response['aktivitaUzivatel'] = [
             'id'             => $aktivita->id(),
-            'stavPrihlaseni' => StavPrihlaseni::frontendKod($aktivita->stavPrihlaseni($u)),
-            'slevaNasobic'   => $aktivita->soucinitelCenyAktivity($u),
+            'stavPrihlaseni' => StavPrihlaseni::frontendKod($aktivita->stavPrihlaseni($uPracovni)),
+            'slevaNasobic'   => $aktivita->soucinitelCenyAktivity($uPracovni),
             'mistnost'       => $hlavniLokace !== null ? (string) $hlavniLokace : null,
             'vedu'           => $jeOrganizator,
         ];

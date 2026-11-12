@@ -1,8 +1,4 @@
 <?php
 
-/** @var Uzivatel $u */
-/** @var Uzivatel|null $uPracovni */
-
-$u = $uPracovni;
-
+// veřejná data programu, nezávisí na přihlášeném ani na pracovním uživateli
 require ADMIN . '/../web/moduly/api/programManifest.php';
