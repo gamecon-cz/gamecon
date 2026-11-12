@@ -17,6 +17,7 @@ class EmailoveSablonyKatalog
 {
     private const SKUPINA_UCET        = 'Účet a registrace';
     private const SKUPINA_AKTIVITY    = 'Aktivity';
+    private const SKUPINA_KOSTYMY     = 'Půjčovna kostýmů';
     private const SKUPINA_ODHLASOVANI = 'Odhlašování z GameConu';
     private const SKUPINA_UPOMINKY    = 'Upomínky dlužníkům';
     private const SKUPINA_PROMLCENI   = 'Promlčení zůstatků';
@@ -64,6 +65,7 @@ class EmailoveSablonyKatalog
         return [
             ...self::ucetARegistrace(),
             ...self::aktivity(),
+            ...self::pujcovnaKostymu(),
             ...self::odhlasovani(),
             ...self::upominky(),
             ...self::promlceni(),
@@ -225,6 +227,73 @@ class EmailoveSablonyKatalog
                         popis: 'odkaz do adminu na seznam přihlášených na aktivity linie, mladší jsou v něm vyznačení',
                         ukazka: 'https://admin.gamecon.cz/aktivity/prihlaseni?typ=2#aktivita-1234',
                     ),
+                ],
+            ),
+        ];
+    }
+
+    /**
+     * @return list<EmailovaSablonaDefinice>
+     */
+    private static function pujcovnaKostymu(): array
+    {
+        $kostym = new EmailovaPromenna(
+            nazev: 'kostym',
+            popis: 'název kostýmu',
+            ukazka: 'Elfí plášť',
+            vPredmetu: true,
+        );
+        $cas = new EmailovaPromenna(
+            nazev: 'cas',
+            popis: 'kdy se aktivita koná (den a hodiny)',
+            ukazka: 'čtvrtek 10–14',
+        );
+
+        return [
+            new EmailovaSablonaDefinice(
+                kod: KodEmailoveSablonyEnum::KOSTYM_REZERVACE_POTVRZENA,
+                skupina: self::SKUPINA_KOSTYMY,
+                nazev: 'Potvrzení rezervace kostýmu',
+                kdyOdchazi: 'Když si účastník na webu rezervuje nebo vymění kostým na aktivitu, nebo když mu ho rezervuje či vymění správce půjčovny.',
+                prijemce: 'účastník, pro kterého je kostým rezervovaný',
+                format: GcMail::FORMAT_TEXT,
+                promenne: [
+                    $kostym,
+                    self::nazevAktivity(),
+                    $cas,
+                    new EmailovaPromenna(
+                        nazev: 'vyzvednuti_od',
+                        popis: 'kdy nejdřív si jde kostým vyzvednout (den a čas)',
+                        ukazka: 'čtvrtek 9:00',
+                    ),
+                    new EmailovaPromenna(
+                        nazev: 'vratit_do',
+                        popis: 'dokdy se má kostým vrátit (den a čas)',
+                        ukazka: 'čtvrtek 15:00',
+                    ),
+                    new EmailovaPromenna(
+                        nazev: 'uzaverka',
+                        popis: 'dokdy jde rezervaci zrušit nebo kostým vyměnit na webu (den a čas)',
+                        ukazka: 'čtvrtek 8:00',
+                    ),
+                    new EmailovaPromenna(
+                        nazev: 'odkaz',
+                        popis: 'odkaz na přehled vlastních rezervací kostýmů',
+                        ukazka: 'https://gamecon.cz/kostymy/moje',
+                    ),
+                ],
+            ),
+            new EmailovaSablonaDefinice(
+                kod: KodEmailoveSablonyEnum::KOSTYM_REZERVACE_UVOLNENA,
+                skupina: self::SKUPINA_KOSTYMY,
+                nazev: 'Rezervace kostýmu zrušená odhlášením',
+                kdyOdchazi: 'Když se účastník s rezervovaným kostýmem odhlásí z aktivity nebo ho z ní odhlásí někdo jiný (ne když ho vypravěč v prezenci označí jako nedorazivšího).',
+                prijemce: 'účastník, kterému rezervace zanikla',
+                format: GcMail::FORMAT_TEXT,
+                promenne: [
+                    $kostym,
+                    self::nazevAktivity(),
+                    $cas,
                 ],
             ),
         ];
