@@ -35,6 +35,26 @@ JOIN kostym ON kostym.id = kostym_vydej.id_kostymu
 LEFT JOIN akce_seznam ON akce_seznam.id_akce = kostym_vydej.id_akce
 SQL;
 
+    /**
+     * Uživatel (řádek `uzivatele_hodnoty`) je letos přihlášený na aktivitu, na kterou jde půjčit kostým, nebo má
+     * kostým u sebe. Parametry: $2 ročník, $3 povolené typy aktivit.
+     */
+    private const string UCASTNIK_PUJCOVNY = <<<'SQL'
+(EXISTS (
+    SELECT 1
+    FROM akce_prihlaseni
+    JOIN akce_seznam ON akce_seznam.id_akce = akce_prihlaseni.id_akce
+    WHERE akce_prihlaseni.id_uzivatele = uzivatele_hodnoty.id_uzivatele
+        AND akce_seznam.rok = $2
+        AND akce_seznam.typ IN ($3)
+) OR EXISTS (
+    SELECT 1
+    FROM kostym_vydej
+    WHERE kostym_vydej.id_uzivatele = uzivatele_hodnoty.id_uzivatele
+        AND kostym_vydej.vraceno IS NULL
+))
+SQL;
+
     public function __construct(
         private readonly SystemoveNastaveni $systemoveNastaveni,
         private readonly NastaveniPujcovny $nastaveni,
@@ -81,6 +101,70 @@ WHERE kostym_rezervace.id_uzivatele = $0
     AND akce_seznam.rok = $1
 ORDER BY akce_seznam.zacatek, akce_seznam.nazev_akce
 SQL, [$idUzivatele, $this->systemoveNastaveni->rocnik()]);
+    }
+
+    /**
+     * Rezervace kostýmu na aktivity, které ještě neskončily.
+     *
+     * @return list<RadekRezervace>
+     */
+    public function rezervaceKostymu(int $idKostymu): array
+    {
+        return dbFetchAll(self::SELECT_REZERVACE . <<<'SQL'
+
+WHERE kostym_rezervace.id_kostymu = $0
+    AND akce_seznam.konec > $1
+ORDER BY akce_seznam.zacatek
+SQL, [$idKostymu, $this->systemoveNastaveni->ted()->format('Y-m-d H:i:s')]);
+    }
+
+    /**
+     * Účastníci podle ID, jména, loginu nebo e-mailu, a to jen ti, kdo jsou letos přihlášení na aktivitu, na kterou
+     * jde půjčit kostým, nebo mají kostým u sebe. Výdej tak nevydá údaje kohokoli.
+     *
+     * @return list<int> ID uživatelů
+     */
+    public function hledejUcastniky(string $hledany, int $limit = 30): array
+    {
+        $hledany = trim($hledany);
+        if ($hledany === '') {
+            return [];
+        }
+        $ucastnikPujcovny = self::UCASTNIK_PUJCOVNY;
+
+        return array_map('intval', dbFetchColumn(<<<SQL
+SELECT uzivatele_hodnoty.id_uzivatele
+FROM uzivatele_hodnoty
+WHERE (uzivatele_hodnoty.id_uzivatele = $0
+        OR uzivatele_hodnoty.login_uzivatele LIKE $1
+        OR CONCAT(uzivatele_hodnoty.jmeno_uzivatele, ' ', uzivatele_hodnoty.prijmeni_uzivatele) LIKE $1
+        OR uzivatele_hodnoty.email1_uzivatele LIKE $1)
+    AND {$ucastnikPujcovny}
+ORDER BY uzivatele_hodnoty.prijmeni_uzivatele, uzivatele_hodnoty.jmeno_uzivatele
+LIMIT {$limit}
+SQL, [
+            ctype_digit($hledany)
+                ? (int) $hledany
+                : 0,
+            '%' . addcslashes($hledany, '%_\\') . '%',
+            $this->systemoveNastaveni->rocnik(),
+            $this->nastaveni->getTypyAktivit() ?: [0],
+        ]));
+    }
+
+    /**
+     * Patří účastník do okruhu, se kterým výdej pracuje (@see hledejUcastniky())?
+     */
+    public function jeUcastnikPujcovny(int $idUzivatele): bool
+    {
+        return (bool) dbOneCol(
+            'SELECT 1 FROM uzivatele_hodnoty WHERE uzivatele_hodnoty.id_uzivatele = $0 AND ' . self::UCASTNIK_PUJCOVNY,
+            [
+                0 => $idUzivatele,
+                2 => $this->systemoveNastaveni->rocnik(),
+                3 => $this->nastaveni->getTypyAktivit() ?: [0],
+            ],
+        );
     }
 
     /**
