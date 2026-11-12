@@ -8,7 +8,6 @@ use Gamecon\Admin\FormularPracovnihoUzivatele;
 use Gamecon\Login\Login;
 use Gamecon\Role\Role;
 use Gamecon\Shop\TypPredmetu;
-use Symfony\Component\Filesystem\Filesystem;
 
 /**
  * Formulář pracovního uživatele uloží změnu jen tomu, u koho ho organizátor viděl, ne tomu, na koho se mezitím
@@ -123,19 +122,6 @@ SQL,
                 ],
             ],
         ];
-    }
-
-    protected function setUp(): void
-    {
-        parent::setUp();
-        // aby se DNS vyřešilo ještě před curl, které by jinak mohlo padnout na ještě nepřipraveném Apache
-        get_headers(URL_ADMIN);
-    }
-
-    protected function tearDown(): void
-    {
-        (new Filesystem())->remove($this->kUklidu);
-        parent::tearDown();
     }
 
     /**

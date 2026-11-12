@@ -6,14 +6,36 @@ namespace Gamecon\Tests\web;
 
 use Gamecon\Login\Login;
 use Gamecon\Tests\Model\Web\UklidNovychAdresaru;
+use Symfony\Component\Filesystem\Filesystem;
 
 /**
  * Přihlášení do skutečné administrace a požadavky na ni (Apache, session, multipart formuláře), tak jak je posílá
- * prohlížeč. Třída, která trait používá, musí mít pole `$kUklidu` se soubory k smazání po testu.
+ * prohlížeč. Třída, která trait používá, musí dědit z AbstractTestWeb a mít pole `$kUklidu` se soubory, které se po
+ * testu smažou.
  */
 trait ZadostiDoAdmina
 {
     use UklidNovychAdresaru;
+
+    /**
+     * Před setUp() třídy, která trait používá.
+     *
+     * @before
+     */
+    protected function pripravZadostiDoAdmina(): void
+    {
+        self::vyresDnsPredPrvniZadosti();
+    }
+
+    /**
+     * Po tearDown() třídy, která trait používá.
+     *
+     * @after
+     */
+    protected function uklidPoZadostechDoAdmina(): void
+    {
+        (new Filesystem())->remove($this->kUklidu);
+    }
 
     /**
      * Přihlášení posíláme na adresu modulu. Na `/admin` a `/admin/` (to dělá loginToAdmin()) Apache
@@ -65,7 +87,7 @@ trait ZadostiDoAdmina
     /**
      * @param array<string, mixed>|string $pole
      *
-     * @return array{kod: int, telo: string}
+     * @return array{kod: int, telo: string, kam: string} `kam` je cíl přesměrování, bez něj prázdné
      */
     private function odesliSTelem(string $cookieFile, string $url, array|string $pole): array
     {
@@ -78,6 +100,7 @@ trait ZadostiDoAdmina
         return [
             'kod'  => curl_getinfo($curl, CURLINFO_HTTP_CODE),
             'telo' => (string) $odpoved,
+            'kam'  => (string) curl_getinfo($curl, CURLINFO_REDIRECT_URL),
         ];
     }
 
