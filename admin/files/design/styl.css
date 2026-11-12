@@ -1462,7 +1462,7 @@ Radio musí být ve tvaru:
   grid-area: ubytování;
 }
 
-.infopult-grid--item-ubytování td > li {
+.infopult-grid--item-ubytování td > ul {
   list-style: circle;
 }
 

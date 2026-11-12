@@ -37,6 +37,16 @@ class FormularPracovnihoUzivateleTest extends AbstractTestWeb
      * má objednaná dvě ubytování, každé na jiný den, kvůli výpisu po řádcích
      */
     private const int ID_SE_DVEMA_UBYTOVANIMI = 9816;
+    /**
+     * bez pokoje i bez objednaného ubytování
+     */
+    private const int ID_BEZ_UBYTOVANI = 9817;
+    /**
+     * bydlí na jednom pokoji se spolubydlícím, který má ve jméně HTML
+     */
+    private const int ID_SE_SPOLUBYDLICIM = 9818;
+    private const int ID_SPOLUBYDLICIHO_S_HTML = 9819;
+    private const string POKOJ_SE_SPOLUBYDLICIM = 'test-formular-pokoj';
 
     /**
      * @var list<string>
@@ -60,14 +70,31 @@ VALUES
     (%2$d, 'test-formular-druhy', 'Test', 'Druhý', 'test-formular-druhy@example.invalid', '222222222'),
     (%3$d, 'test-formular-ukladajici', 'Test', 'Ukládající', 'test-formular-ukladajici@example.invalid', '333333333'),
     (%4$d, 'test-formular-ubytovany', 'Test', 'Ubytovaný', 'test-formular-ubytovany@example.invalid', '444444444'),
-    (%5$d, 'test-formular-dve-ubytovani', 'Test', 'Dvojí', 'test-formular-dve-ubytovani@example.invalid', '555555555')
+    (%5$d, 'test-formular-dve-ubytovani', 'Test', 'Dvojí', 'test-formular-dve-ubytovani@example.invalid', '555555555'),
+    (%6$d, 'test-formular-bez-ubytovani', 'Test', 'Neubytovaný', 'test-formular-bez-ubytovani@example.invalid', '666666666'),
+    (%7$d, 'test-formular-se-spolubydlicim', 'Test', 'Spolubydlící', 'test-formular-se-spolubydlicim@example.invalid', '777777777'),
+    (%8$d, 'test-formular-html', '<i>Kurzíva</i>', 'Html', 'test-formular-html@example.invalid', '888888888')
 SQL,
                 self::ID_PRVNIHO,
                 self::ID_DRUHEHO,
                 self::ID_UKLADAJICIHO,
                 self::ID_UBYTOVANEHO,
                 self::ID_SE_DVEMA_UBYTOVANIMI,
+                self::ID_BEZ_UBYTOVANI,
+                self::ID_SE_SPOLUBYDLICIM,
+                self::ID_SPOLUBYDLICIHO_S_HTML,
             ),
+            [
+                <<<'SQL'
+INSERT INTO ubytovani(id_uzivatele, den, pokoj, rok) VALUES ($0, 1, $2, $3), ($1, 1, $2, $3)
+SQL,
+                [
+                    0 => self::ID_SE_SPOLUBYDLICIM,
+                    1 => self::ID_SPOLUBYDLICIHO_S_HTML,
+                    2 => self::POKOJ_SE_SPOLUBYDLICIM,
+                    3 => ROCNIK,
+                ],
+            ],
             [
                 <<<'SQL'
 INSERT INTO uzivatele_role(id_uzivatele, id_role) VALUES ($0, $1)
@@ -251,7 +278,7 @@ SQL,
 
         $stranka = $this->stahni($session, 'infopult');
 
-        self::assertMatchesRegularExpression('~Ubytování:</td>\s*<td>\s*(<li>[^<]+: [^<]+</li>\s*){2}</td>~', $stranka);
+        self::assertMatchesRegularExpression('~Ubytování:</td>\s*<td><ul>(<li>[^<]+: [^<]+</li>){2}</ul></td>~', $stranka);
         self::assertStringContainsString('<li>test formulář ubytování: ', $stranka);
         self::assertStringContainsString('<li>test formulář postel: ', $stranka);
     }
@@ -262,12 +289,30 @@ SQL,
     public function bezObjednanehoUbytovaniNaInfopultuNeniPrazdnaOdrazka(): void
     {
         $session = $this->prihlas(\Uzivatel::SYSTEM_LOGIN);
-        $this->vyberPracovnihoUzivatele($session, self::ID_PRVNIHO);
+        $this->vyberPracovnihoUzivatele($session, self::ID_BEZ_UBYTOVANI);
 
         $stranka = $this->stahni($session, 'infopult');
 
-        self::assertMatchesRegularExpression('~Spolubydlící:</td>\s*<td>\s*</td>\s*</tr>\s*<tr>\s*<td>Ubytování:</td>\s*<td>\s*</td>~', $stranka);
+        self::assertMatchesRegularExpression('~Spolubydlící:</td>\s*<td>\s*</td>\s*</tr>\s*<tr>\s*<td>Ubytování:</td>\s*<td></td>~', $stranka);
+        self::assertStringNotContainsString('<ul></ul>', $stranka);
         self::assertDoesNotMatchRegularExpression('~<li>\s*</li>~', $stranka);
+    }
+
+    /**
+     * Jméno, přezdívku i telefon si spolubydlící vyplnil sám, do stránky infopultu je nesmí vložit jako HTML.
+     *
+     * @test
+     */
+    public function spolubydliciNaInfopultuJsouSeznamemBezHtmlZeJmena(): void
+    {
+        $session = $this->prihlas(\Uzivatel::SYSTEM_LOGIN);
+        $this->vyberPracovnihoUzivatele($session, self::ID_SE_SPOLUBYDLICIM);
+
+        $stranka = $this->stahni($session, 'infopult');
+
+        self::assertMatchesRegularExpression('~Spolubydlící:</td>\s*<td>\s*<ul>(<li>[^<]+</li>){2}</ul>\s*</td>~', $stranka);
+        self::assertStringContainsString('&lt;i&gt;Kurzíva&lt;/i&gt;', $stranka);
+        self::assertStringNotContainsString('<i>Kurzíva</i>', $stranka);
     }
 
     /**

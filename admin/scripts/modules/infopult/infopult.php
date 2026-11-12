@@ -106,6 +106,13 @@ if ($uPracovni) {
         $typyProPrehled[] = TypPredmetu::VSTUPNE;
     }
     $stavUctuPracovnihoUzivatele = $uPracovni->finance()->stav();
+    // seznam s odrážkou na každém řádku, bez řádků nic (ani prázdná odrážka)
+    $odrazky = static fn (array $radky): string => $radky === []
+        ? ''
+        : '<ul>' . implode('', array_map(
+            static fn (string $radek): string => '<li>' . htmlspecialchars($radek) . '</li>',
+            $radky,
+        )) . '</ul>';
     $x->assign([
         'stavUctu' => sprintf(
             '%s <span class="stav-uctu-castka" data-stav="%s">%s</span> Kč',
@@ -117,15 +124,15 @@ if ($uPracovni) {
         ),
         'stavStyle' => ($stavUctuPracovnihoUzivatele < 0 ? 'color: #f22; font-weight: bolder;' : ''),
         'pokoj' => $pokoj ? $pokoj->cislo() : '(nepřidělen)',
-        'spolubydlici' => array_uprint($spolubydlici, static function (Uzivatel $spolubydla) {
-            return "<li> {$spolubydla->jmenoNick()} ({$spolubydla->id()}) {$spolubydla->telefon()} </li>";
-        }),
+        // jméno, přezdívku i telefon si vyplnil sám ubytovaný
+        'spolubydlici' => $odrazky(array_map(
+            static fn (Uzivatel $spolubydla): string => "{$spolubydla->jmenoNick()} ({$spolubydla->id()}) {$spolubydla->telefon()}",
+            $spolubydlici,
+        )),
         'org' => $u->jmenoNick(),
         'orgA' => $u->koncovkaDlePohlavi(),
         'poznamka' => $uPracovni->poznamka(),
-        'ubytovani' => array_uprint($uPracovni->shop()->getRadkyPopisuUbytovani(), static function (string $radek) {
-            return '<li>' . htmlspecialchars($radek) . '</li>';
-        }),
+        'ubytovani' => $odrazky($uPracovni->shop()->getRadkyPopisuUbytovani()),
         'nechceUbytovani' => $uPracovni->nechceUbytovani() ? 'ano' : 'ne',
         'balicek' => $uPracovni->balicekHtml(),
         // název položky je text: s uvozovkou nebo apostrofem by jinak rozbil HTML i potvrzovací dialog
