@@ -6,8 +6,10 @@
 /** @var Gamecon\SystemoveNastaveni\SystemoveNastaveni $systemoveNastaveni */
 
 use Gamecon\Aktivita\Aktivita;
+use Gamecon\Aktivita\Lokace;
 use Gamecon\Aktivita\StavPrihlaseni;
 use Gamecon\Cache\ProgramStaticFileGenerator;
+use Gamecon\Kostymy\PujcovnaKostymu;
 
 $response = [];
 
@@ -60,16 +62,20 @@ if ($aktivitaId) {
         // vždy, nullable tam, kde "chybějící" má sémantický význam.
         // Za účastníka, ne za operátora: UI to zapíše do jeho programu.
         $jeOrganizator = $aktivita->organizuje($uPracovni);
-        $hlavniLokace  = $jeOrganizator
-            ? $aktivita->hlavniLokace()
-            : null;
+        // místnosti stejně jako aktivityUzivatel.php: vidí je organizátor a ten, kdo aktivitu vede
+        $seznamLokaci = $u->jeOrganizator() || $jeOrganizator
+            ? array_map(static fn (Lokace $lokace) => $lokace->apiLokace(), $aktivita->seznamLokaci())
+            : [];
 
         $response['aktivitaUzivatel'] = [
             'id'             => $aktivita->id(),
             'stavPrihlaseni' => StavPrihlaseni::frontendKod($aktivita->stavPrihlaseni($uPracovni)),
             'slevaNasobic'   => $aktivita->soucinitelCenyAktivity($uPracovni),
-            'mistnost'       => $hlavniLokace !== null ? (string) $hlavniLokace : null,
+            'mistnosti'      => $seznamLokaci !== [] ? $seznamLokaci : null,
             'vedu'           => $jeOrganizator,
+            // po přihlášení jde půjčit kostým, odhlášení rezervaci zruší
+            'kostym'         => PujcovnaKostymu::zSystemovehoNastaveni($systemoveNastaveni)
+                    ->kostymyVProgramu($uPracovni, $aktivita->rok())[$aktivita->id()] ?? null,
         ];
     }
 }

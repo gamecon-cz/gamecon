@@ -5,6 +5,8 @@ declare(strict_types=1);
 namespace Gamecon\Web;
 
 use Gamecon\Aktivita\TypAktivity;
+use Gamecon\Kostymy\NastaveniPujcovny;
+use Gamecon\SystemoveNastaveni\SystemoveNastaveni;
 
 /**
  * The home page, the public modules, the lines of the menu, the pages made in the administration (it decides what is
@@ -19,6 +21,13 @@ class CestyKSitemape
      * @see \Gamecon\Tests\Model\Web\ModulyVSitemapeTest compares it with web/moduly
      */
     public const array VEREJNE_MODULY = ['program', 'novinky', 'blog', 'vypraveci', 'sponzori'];
+
+    /** Costume catalog: public only once the setting KOSTYMY_KATALOG_ZVEREJNEN publishes it, until then a 404. */
+    public const string KATALOG_KOSTYMU = 'kostymy';
+
+    public function __construct(private readonly ?bool $katalogKostymuZverejnen = null)
+    {
+    }
 
     /**
      * Duplicates are removed by the Sitemap, which compares canonical addresses.
@@ -49,9 +58,15 @@ class CestyKSitemape
             SQL, [\Novinka::BLOG]);
         $cestyBlogu = array_map(static fn (string $adresaBlogu) => 'blog/' . $adresaBlogu, $adresyBlogu);
 
+        $katalogKostymuZverejnen = $this->katalogKostymuZverejnen
+            ?? NastaveniPujcovny::zSystemovehoNastaveni(SystemoveNastaveni::zGlobals())->isKatalogZverejnen();
+
         return [
             '',
             ...self::VEREJNE_MODULY,
+            ...($katalogKostymuZverejnen
+                ? [self::KATALOG_KOSTYMU]
+                : []),
             ...array_filter([...$cestyLinii, ...$cestyStranek], $this->isCestaKterouRouterVrati(...)),
             ...array_filter($cestyBlogu, \Url::povolena(...)),
         ];

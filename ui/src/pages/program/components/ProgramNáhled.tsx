@@ -5,6 +5,7 @@ import {
 } from "../../../store/program/selektory";
 import { skryjAktivitaNáhledId } from "../../../store/program/slices/urlSlice";
 import { Obsazenost } from "./tabulka/Obsazenost";
+import { KostymAktivity } from "./KostymAktivity";
 import { tagyZId } from "../../../utils";
 
 type ProgramNáhledProps = {};
@@ -53,6 +54,7 @@ export const ProgramNáhled: FunctionComponent<ProgramNáhledProps> = (props) =>
                 <div class="programNahled_stitek">{x}</div>
               ))}
             </div>
+            <KostymAktivity kostym={aktivita?.kostym} />
           </div>
           <div class="programNahled_text" ref={programNáhledTextRef}>
             <div

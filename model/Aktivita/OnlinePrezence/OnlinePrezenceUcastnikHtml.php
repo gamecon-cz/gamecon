@@ -6,6 +6,7 @@ namespace Gamecon\Aktivita\OnlinePrezence;
 
 use Gamecon\Aktivita\Aktivita;
 use Gamecon\Aktivita\StavPrihlaseni;
+use Gamecon\Kostymy\PujcovnaKostymu;
 use Gamecon\SystemoveNastaveni\SystemoveNastaveni;
 use Gamecon\XTemplate\XTemplate;
 
@@ -13,6 +14,8 @@ class OnlinePrezenceUcastnikHtml
 {
     private ?XTemplate $onlinePrezenceUcastnikTemplate = null;
     private int $naPosledniChviliXMinutPredZacatkem;
+    /** @var array<int, array<int, string>> rezervované kostýmy podle aktivity a účastníka, jeden dotaz za aktivitu */
+    private array $kostymyUcastniku = [];
 
     public function __construct(
         private readonly SystemoveNastaveni $systemoveNastaveni,
@@ -95,6 +98,12 @@ class OnlinePrezenceUcastnikHtml
             $ucastnikTemplate->parse('ucastnik.mladsiOsmnactiLet');
         }
 
+        $nazevKostymu = $this->nazevKostymu((int) $aktivita->id(), (int) $ucastnik->id());
+        if ($nazevKostymu !== null) {
+            $ucastnikTemplate->assign('nazevKostymu', htmlspecialchars($nazevKostymu));
+            $ucastnikTemplate->parse('ucastnik.kostym');
+        }
+
         $ucastnikTemplate->assign('cssTridaDisplayNahradnik', $this->cssZobrazitKdyz(StavPrihlaseni::dorazilJakoNahradnik($stavPrihlaseni)));
         $ucastnikTemplate->assign('cssTridaDisplaySledujici', $this->cssZobrazitKdyz(StavPrihlaseni::prihlasenJakoSledujici($stavPrihlaseni)));
 
@@ -164,6 +173,14 @@ class OnlinePrezenceUcastnikHtml
         }
 
         return (clone $zacatek)->modify('-' . $this->naPosledniChviliXMinutPredZacatkem . ' minutes');
+    }
+
+    private function nazevKostymu(int $idAktivity, int $idUcastnika): ?string
+    {
+        $this->kostymyUcastniku[$idAktivity] ??= PujcovnaKostymu::zSystemovehoNastaveni($this->systemoveNastaveni)
+            ->kostymyUcastnikuAktivity($idAktivity);
+
+        return $this->kostymyUcastniku[$idAktivity][$idUcastnika] ?? null;
     }
 
     private function dejOnlinePrezenceUcastnikTemplate(): XTemplate

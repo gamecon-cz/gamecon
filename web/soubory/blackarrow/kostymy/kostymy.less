@@ -1,0 +1,178 @@
+// Půjčovna kostýmů (/kostymy): katalog s filtrem, detail kostýmu a vlastní rezervace.
+
+.kostymy {
+  max-width: 1200px;
+  padding: 1px 16px; // 1px kvůli funkci min-height
+  margin: 0 auto 100px;
+  min-height: ~'calc(75vh - 186px)';
+
+  h1 {
+    font-size: 52px;
+    line-height: normal;
+    margin: 55px 0 16px;
+
+    @media (max-width: 800px) {
+      font-size: 32px;
+      margin: 20px 0 12px;
+    }
+  }
+
+  p {
+    font-size: 16px;
+    line-height: 26/16;
+  }
+
+  select,
+  button {
+    font: inherit;
+    padding: 6px 10px;
+  }
+}
+
+.kostymy_uvod {
+  max-width: 50em;
+}
+
+.kostymy_upozorneni {
+  padding: 12px 16px;
+  border-left: 4px solid #e2001a;
+  background: #f6f6f6;
+}
+
+.kostymy_filtr {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  gap: 12px 16px;
+  margin: 24px 0;
+
+  label {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    font-size: 14px;
+  }
+
+  // na telefonu je výběr aktivity dlouhý, ať nevyleze z obrazovky
+  select {
+    max-width: ~'calc(100vw - 32px)';
+  }
+}
+
+.kostymy_seznam {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 24px;
+}
+
+.kostymy_karta {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  color: inherit;
+  text-decoration: none;
+
+  img {
+    width: 100%;
+    aspect-ratio: 1 / 1;
+    object-fit: cover;
+    background: #eee;
+    margin-bottom: 4px;
+  }
+
+  &:hover .kostymy_nazev,
+  &:focus .kostymy_nazev {
+    text-decoration: underline;
+  }
+}
+
+.kostymy_nazev {
+  font-weight: bold;
+  font-size: 18px;
+}
+
+.kostymy_parametry,
+.kostymy_stav {
+  font-size: 14px;
+}
+
+.kostymy_stav {
+  color: #b35c00;
+}
+
+.kostymy_detail {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  gap: 32px;
+
+  @media (max-width: 800px) {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+.kostymy_fotky {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+  gap: 8px;
+
+  img {
+    width: 100%;
+    aspect-ratio: 1 / 1;
+    object-fit: cover;
+    background: #eee;
+  }
+
+  // hlavní fotka přes celou šířku
+  a:first-child {
+    grid-column: ~'1 / -1'; // bez ~ by LESS spočítal podíl
+  }
+}
+
+.kostymy_udaje {
+  display: grid;
+  grid-template-columns: max-content 1fr;
+  gap: 6px 16px;
+  font-size: 16px;
+
+  dt {
+    font-weight: bold;
+  }
+
+  dd {
+    margin: 0;
+  }
+}
+
+.kostymy_rezervace {
+  margin-top: 24px;
+
+  label {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    margin-bottom: 12px;
+  }
+
+  select {
+    max-width: 100%;
+  }
+}
+
+.kostymy_moje {
+  display: grid;
+  gap: 16px;
+}
+
+.kostymy_moje_rezervace {
+  padding: 16px;
+  border: 1px solid #ddd;
+
+  h2 {
+    margin: 0 0 8px;
+    font-size: 22px;
+  }
+
+  p {
+    margin: 4px 0;
+  }
+}

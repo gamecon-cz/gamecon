@@ -22,6 +22,7 @@ class RobotsTxtTest extends TestCase
         self::assertStringContainsString("Disallow: /finance/\n", $obsah);
         self::assertStringContainsString("Disallow: /qrka$\n", $obsah);
         self::assertStringContainsString("Disallow: /qrka/\n", $obsah);
+        self::assertStringContainsString("Disallow: /kostymy/moje\n", $obsah);
         self::assertStringContainsString("Disallow: /api/\n", $obsah);
         self::assertStringContainsString("Disallow: /admin$\n", $obsah);
         self::assertStringContainsString("Disallow: /admin/\n", $obsah);

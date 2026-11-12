@@ -15,6 +15,14 @@ const NEPLATIC_CASTKA_POSLAL_DOST                  = 0.0; // SELECT hodnota FROM
 const NEPLATIC_POCET_DNU_PRED_VLNOU_KDY_JE_CHRANEN = 0;   // SELECT hodnota FROM systemove_nastaveni WHERE klic = 'NEPLATIC_POCET_DNU_PRED_VLNOU_KDY_JE_CHRANEN'
 const TEXT_PRO_SPAROVANI_ODCHOZI_PLATBY            = '';
 
+const KOSTYMY_KATALOG_ZVEREJNEN            = false; // SELECT hodnota FROM systemove_nastaveni WHERE klic = 'KOSTYMY_KATALOG_ZVEREJNEN'
+const KOSTYMY_TYPY_AKTIVIT                 = '';
+const KOSTYMY_LIMIT_NA_OSOBU               = 0;
+const KOSTYMY_CAS_NA_VYMENU_MINUT          = 0;
+const KOSTYMY_VYDEJ_MINUT_PRED_ZACATKEM    = 0;
+const KOSTYMY_VRACENI_MINUT_PO_KONCI       = 0;
+const KOSTYMY_UZAVERKA_HODIN_PRED_ZACATKEM = 0;
+
 const UBYTOVANI_LZE_OBJEDNAT_A_MENIT_DO_DNE           = '';
 const JIDLO_LZE_OBJEDNAT_A_MENIT_DO_DNE               = '';
 const MIKINY_LZE_OBJEDNAT_A_MENIT_DO_DNE              = '';

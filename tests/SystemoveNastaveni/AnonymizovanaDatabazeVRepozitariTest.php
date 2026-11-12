@@ -18,14 +18,14 @@ use Godric\DbMigrations\DbMigrationsConfig;
  */
 class AnonymizovanaDatabazeVRepozitariTest extends AbstractTestDb
 {
-    private const DUMP = __DIR__ . '/../../migrace/pomocne/gc_anonymizovana_databaze.sql';
-    private const JAK_OBNOVIT = 'Obnov dump příkazem bin/stahni-anonymizovanou-databazi.sh, viz docs/generated/anonymizovana-databaze.md';
+    private const string DUMP = __DIR__ . '/../../migrace/pomocne/gc_anonymizovana_databaze.sql';
+    private const string JAK_OBNOVIT = 'Obnov dump příkazem bin/stahni-anonymizovanou-databazi.sh, viz docs/generated/anonymizovana-databaze.md';
 
     /**
      * Tables that may keep rows in the committed dump, each reviewed for the public repository. A table with rows
      * that is in neither this list nor PRILIS_CITLIVE_TABULKY fails the test, so a new table gets reviewed first.
      */
-    private const PREKONTROLOVANE_TABULKY_S_DATY = [
+    private const array PREKONTROLOVANE_TABULKY_S_DATY = [
         'akce_instance',
         'akce_lokace',
         'akce_organizatori',
@@ -77,7 +77,7 @@ class AnonymizovanaDatabazeVRepozitariTest extends AbstractTestDb
      * Columns of uzivatele_hodnoty that AnonymizovanyUzivatel leaves alone, reviewed for the public repository:
      * the shifted id, the gender and three flags or dates without a name or contact.
      */
-    private const PREKONTROLOVANE_SLOUPCE_UZIVATELE = [
+    private const array PREKONTROLOVANE_SLOUPCE_UZIVATELE = [
         'id_uzivatele',
         'pohlavi',
         'formular_cizince_od',
@@ -137,13 +137,6 @@ class AnonymizovanaDatabazeVRepozitariTest extends AbstractTestDb
 
     public function testDumpNeobsahujeOsobniUdaje(): void
     {
-        foreach (AnonymizovanaDatabaze::PRILIS_CITLIVE_TABULKY as $tabulka) {
-            self::assertFalse(
-                $this->maRadky($tabulka),
-                "Tabulka {$tabulka} má být v dumpu prázdná. " . self::JAK_OBNOVIT,
-            );
-        }
-
         $tabulky = dbFetchColumn(<<<'SQL'
             SELECT table_name
             FROM information_schema.tables
@@ -151,6 +144,15 @@ class AnonymizovanaDatabazeVRepozitariTest extends AbstractTestDb
             SQL, [
             0 => DB_NAME,
         ], self::spojeni());
+
+        // a table created by a migration newer than the dump is not in it, so it has no rows there either
+        foreach (array_intersect(AnonymizovanaDatabaze::PRILIS_CITLIVE_TABULKY, $tabulky) as $tabulka) {
+            self::assertFalse(
+                $this->maRadky($tabulka),
+                "Tabulka {$tabulka} má být v dumpu prázdná. " . self::JAK_OBNOVIT,
+            );
+        }
+
         $nepreskoumane = [];
         foreach (array_diff($tabulky, AnonymizovanaDatabaze::PRILIS_CITLIVE_TABULKY, self::PREKONTROLOVANE_TABULKY_S_DATY) as $tabulka) {
             if ($this->maRadky($tabulka)) {

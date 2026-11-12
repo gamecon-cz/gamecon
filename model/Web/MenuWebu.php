@@ -5,7 +5,9 @@ declare(strict_types=1);
 namespace Gamecon\Web;
 
 use Gamecon\Aktivita\TypAktivity;
+use Gamecon\Kostymy\NastaveniPujcovny;
 use Gamecon\Pravo;
+use Gamecon\SystemoveNastaveni\SystemoveNastaveni;
 use Gamecon\Uzivatel\ZpusobZobrazeniNaWebu;
 use Gamecon\XTemplate\XTemplate;
 
@@ -19,12 +21,22 @@ use Gamecon\XTemplate\XTemplate;
  */
 class MenuWebu
 {
-    public static function html(?\Uzivatel $uzivatel): string
+    /**
+     * @param bool|null $katalogKostymuZverejnen null = podle nastavení KOSTYMY_KATALOG_ZVEREJNEN
+     */
+    public static function html(?\Uzivatel $uzivatel, ?bool $katalogKostymuZverejnen = null): string
     {
         $sablona = new XTemplate(WWW . '/sablony/blackarrow/menu.xtpl');
 
         $typy = \serazenePodle(TypAktivity::zViditelnych(), 'poradi');
         $sablona->parseEach($typy, 'typ', 'menu.typAktivit');
+
+        // nezveřejněný katalog je 404, odkaz by vedl nikam
+        $katalogKostymuZverejnen ??= NastaveniPujcovny::zSystemovehoNastaveni(SystemoveNastaveni::zGlobals())
+            ->isKatalogZverejnen();
+        if ($katalogKostymuZverejnen) {
+            $sablona->parse('menu.pujcovnaKostymu');
+        }
 
         if ($uzivatel) {
             $jmenoDoMenu = match ($uzivatel->zpusobZobrazeniNaWebu()) {
@@ -45,6 +57,9 @@ class MenuWebu
             $sablona->assign([
                 'gcPrihlaska' => $uzivatel->gcPrihlasen() ? 'Upravit přihlášku' : 'Přihláška na GC',
             ]);
+            if ($katalogKostymuZverejnen) {
+                $sablona->parse('menu.prihlasen.mojeKostymy');
+            }
             if ($uzivatel->maPravo(Pravo::ADMINISTRACE_INFOPULT)) {
                 $sablona->assign([
                     'uvodniAdminUrl' => $uzivatel->uvodniAdminUrl(),
