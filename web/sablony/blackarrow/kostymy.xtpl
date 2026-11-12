@@ -1,0 +1,132 @@
+<!-- begin: kostymy -->
+<div class="kostymy">
+  <!-- begin: nezverejneny -->
+  <p class="kostymy_upozorneni">Katalog zatím není zveřejněný, vidíš ho jen jako správce půjčovny. Rezervovat v něm nejde.</p>
+  <!-- end: nezverejneny -->
+
+  <!-- begin: katalog -->
+  <h1>Půjčovna kostýmů</h1>
+  <p class="kostymy_uvod">
+    Kostým si můžeš zdarma půjčit na larp, na který máš přihlášku. Vyzvedneš si ho nejdřív {casNaVydej} minut
+    před začátkem a vrátíš do {casNaVraceni} minut po konci. Zrušit nebo vyměnit ho jde do {uzaverkaHodin} hodin před začátkem.
+  </p>
+  <!-- begin: mojeRezervace --><p><a href="{adresaPujcovny}/moje">Moje rezervace kostýmů</a></p><!-- end: mojeRezervace -->
+  <!-- begin: neprihlaseny --><p>Rezervovat můžeš po <a href="prihlaseni">přihlášení</a>.</p><!-- end: neprihlaseny -->
+
+  <form method="get" action="{adresaPujcovny}" class="kostymy_filtr">
+    <!-- begin: filtrAktivit -->
+    <label>Na aktivitu
+      <select name="aktivita">
+        <option value="">kdykoli</option>
+        <!-- begin: aktivita --><option value="{hodnota}" {vybrano}>{popisek}</option><!-- end: aktivita -->
+      </select>
+    </label>
+    <!-- end: filtrAktivit -->
+    <label>Velikost
+      <select name="velikost">
+        <option value="">všechny</option>
+        <!-- begin: velikost --><option value="{hodnota}" {vybrano}>{popisek}</option><!-- end: velikost -->
+      </select>
+    </label>
+    <label>Střih
+      <select name="strih">
+        <option value="">všechny</option>
+        <!-- begin: strih --><option value="{hodnota}" {vybrano}>{popisek}</option><!-- end: strih -->
+      </select>
+    </label>
+    <label>Kategorie
+      <select name="kategorie">
+        <option value="">všechny</option>
+        <!-- begin: kategorie --><option value="{hodnota}" {vybrano}>{popisek}</option><!-- end: kategorie -->
+      </select>
+    </label>
+    <button type="submit">Vybrat</button>
+  </form>
+
+  <div class="kostymy_seznam">
+    <!-- begin: kostym -->
+    <a class="kostymy_karta" href="{adresaPujcovny}/{idKostymu}{dotazAktivity}">
+      <!-- begin: fotka --><img src="{nahledFotky}" alt="" loading="lazy"><!-- end: fotka -->
+      <span class="kostymy_nazev">{nazevKostymu}</span>
+      <span class="kostymy_parametry">{parametry}</span>
+      <!-- begin: vOprave --><span class="kostymy_stav">teď v opravě</span><!-- end: vOprave -->
+    </a>
+    <!-- end: kostym -->
+  </div>
+  <!-- begin: zadny --><p>Žádný kostým tomu neodpovídá.</p><!-- end: zadny -->
+  <!-- begin: zadnyVolny --><p>V čase téhle aktivity není volný žádný kostým, který tomu odpovídá.</p><!-- end: zadnyVolny -->
+  <!-- end: katalog -->
+
+  <!-- begin: detail -->
+  <p><a href="{adresaPujcovny}{dotazAktivity}">← Půjčovna kostýmů</a></p>
+  <h1>{nazevKostymu}</h1>
+  <div class="kostymy_detail">
+    <div class="kostymy_fotky">
+      <!-- begin: fotka --><a href="{urlFotky}" target="_blank"><img src="{nahledFotky}" alt=""></a><!-- end: fotka -->
+    </div>
+    <div>
+      <p>{popis}</p>
+      <dl class="kostymy_udaje">
+        <dt>Velikost</dt><dd>{velikost}</dd>
+        <!-- begin: miry --><dt>Míry</dt><dd>{miry}</dd><!-- end: miry -->
+        <dt>Střih</dt><dd>{strih}</dd>
+        <!-- begin: kategorie --><dt>Kategorie</dt><dd>{kategorie}</dd><!-- end: kategorie -->
+        <dt>Dostupnost</dt><dd>{dostupnost}</dd>
+      </dl>
+
+      <!-- begin: neprihlaseny --><p>Rezervovat můžeš po <a href="prihlaseni">přihlášení</a>.</p><!-- end: neprihlaseny -->
+
+      <!-- begin: rezervace -->
+      <div class="kostymy_rezervace">
+        <!-- begin: uzMa --><p>Máš ho rezervovaný na {nazevAktivity}.</p><!-- end: uzMa -->
+        <!-- begin: formular -->
+        <form method="post">
+          <input type="hidden" name="akceKostymu" value="rezervovat">
+          <input type="hidden" name="idKostymu" value="{idKostymu}">
+          <label>Rezervovat na
+            <select name="idAktivity" required>
+              <!-- begin: aktivita --><option value="{idAktivity}" {vybrano}>{nazevAktivity}{vymena}</option><!-- end: aktivita -->
+            </select>
+          </label>
+          <button type="submit">Rezervovat</button>
+        </form>
+        <!-- end: formular -->
+        <!-- begin: obsazeny --><p>V čase tvých aktivit je kostým už rezervovaný.</p><!-- end: obsazeny -->
+        <!-- begin: zadnaAktivita --><p>Kostým jde rezervovat na larp, na který máš přihlášku a který ještě nezačal. Takový teď nemáš.</p><!-- end: zadnaAktivita -->
+      </div>
+      <!-- end: rezervace -->
+    </div>
+  </div>
+  <!-- end: detail -->
+
+  <!-- begin: moje -->
+  <p><a href="{adresaPujcovny}">← Půjčovna kostýmů</a></p>
+  <h1>Moje kostýmy</h1>
+  <!-- begin: nevraceny -->
+  <p class="kostymy_upozorneni">Kostým {nazevKostymu} máš ještě u sebe, vrať ho prosím do půjčovny do {vratitDo}.</p>
+  <!-- end: nevraceny -->
+  <div class="kostymy_moje">
+    <!-- begin: rezervace -->
+    <div class="kostymy_moje_rezervace">
+      <h2><a href="{adresaPujcovny}/{idKostymu}">{nazevKostymu}</a></h2>
+      <p>{nazevAktivity}, {casAktivity}<br>Vyzvednutí od {vyzvednutiOd}, vrátit do {vratitDo}.</p>
+      <!-- begin: vydany --><p>Kostým máš vyzvednutý.</p><!-- end: vydany -->
+      <!-- begin: zmenit -->
+      <p>
+        <a href="{adresaPujcovny}?aktivita={idAktivity}">Vyměnit za jiný</a>
+      </p>
+      <form method="post" onsubmit="return confirm('Zrušit rezervaci kostýmu?')">
+        <input type="hidden" name="akceKostymu" value="zrusit">
+        <input type="hidden" name="idAktivity" value="{idAktivity}">
+        <button type="submit">Zrušit rezervaci</button>
+        <small>Zrušit nebo vyměnit jde do {uzaverka}.</small>
+      </form>
+      <!-- end: zmenit -->
+      <!-- begin: poUzaverce --><p><small>Zrušit nebo vyměnit už jde jen v půjčovně.</small></p><!-- end: poUzaverce -->
+    </div>
+    <!-- end: rezervace -->
+  </div>
+  <!-- begin: zadna --><p>Letos nemáš rezervovaný žádný kostým. <a href="{adresaPujcovny}">Vyber si v katalogu.</a></p><!-- end: zadna -->
+  <!-- end: moje -->
+</div>
+<!-- end: kostymy -->
