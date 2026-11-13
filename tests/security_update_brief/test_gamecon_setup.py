@@ -113,55 +113,138 @@ class WrapperTest(unittest.TestCase):
         self.assertIn('/.security-update-brief-audit.*/', read(os.path.join(ROOT, '.gitignore')).splitlines())
 
 
-class WrapperComposerChoiceTest(unittest.TestCase):
-    """The wrapper and the bin-docker/composer of this tree, copied as they are into a project of their own, with stand-in tools in a PATH that holds nothing else."""
+class WrapperHelperChoiceTest(unittest.TestCase):
+    """The wrapper of this tree, copied as it is into a project of its own, with stand-in tools in a PATH that holds nothing else, among them a python3
+    that writes down the arguments of the script. No helper runs here: the tests read which composer command the wrapper hands to the script."""
 
     def setUp(self):
         self.directory = tempfile.TemporaryDirectory()
         self.project = os.path.join(os.path.realpath(self.directory.name), 'project')
-        for relative in ('bin/security-update-brief.sh', 'bin-docker/composer'):
-            os.makedirs(os.path.dirname(os.path.join(self.project, relative)), exist_ok=True)
-            shutil.copy2(os.path.join(ROOT, relative), os.path.join(self.project, relative))
+        os.makedirs(os.path.join(self.project, 'bin'))
+        shutil.copy2(WRAPPER_PATH, os.path.join(self.project, 'bin', 'security-update-brief.sh'))
         self.tools = os.path.join(self.directory.name, 'tools')
         os.makedirs(self.tools)
         for name in ('dirname', 'git', 'mktemp', 'chmod', 'rmdir'):
             os.symlink(shutil.which(name), os.path.join(self.tools, name))
         self.recorded = os.path.join(self.directory.name, 'python-arguments')
-        # a python3 that answers the version check, quotes a path with the real one, and otherwise writes its arguments, one per line, to a file
-        self.add_tool('python3', 'isolated=""\nif [ "$1" = "-I" ]; then shift; isolated="-I"; fi\n'
-                                 'if [ "$1" = "-c" ]; then\n  case "$2" in *shlex*) exec "%s" $isolated "$@" ;; esac\n  exit 0\nfi\n'
-                                 'printf "%%s\\n" "$@" > "%s"\n' % (sys.executable, self.recorded))
-        self.add_tool('docker', 'exit 0\n')
-        self.add_tool('composer', 'exit 0\n')
+        self.add_tool(os.path.join(self.tools, 'python3'),
+                      'isolated=""\nif [ "$1" = "-I" ]; then shift; isolated="-I"; fi\n'
+                      'if [ "$1" = "-c" ]; then\n  case "$2" in *shlex*) exec "%s" $isolated "$@" ;; esac\n  exit 0\nfi\n'
+                      'printf "%%s\\n" "$@" > "%s"\n' % (sys.executable, self.recorded))
+        self.add_tool(os.path.join(self.tools, 'docker'), 'exit 0\n')
+        self.add_tool(os.path.join(self.tools, 'composer'), 'exit 0\n')
 
     def tearDown(self):
         self.directory.cleanup()
 
-    def add_tool(self, name, body):
-        path = os.path.join(self.tools, name)
+    @staticmethod
+    def add_tool(path, body):
+        os.makedirs(os.path.dirname(path), exist_ok=True)
         with open(path, 'w') as handle:
             handle.write('#!/bin/sh\n' + body)
         os.chmod(path, 0o755)
 
-    def run_wrapper(self, **environment):
-        return subprocess.run([shutil.which('bash'), os.path.join(self.project, 'bin', 'security-update-brief.sh'), 'base-sha', 'head-sha', 'out.md'],
-                              env={'PATH': self.tools, **environment}, capture_output=True, text=True)
-
-    def recorded_arguments(self):
-        return read(self.recorded).splitlines()
-
-    def test_where_docker_is_the_composer_command_passed_to_the_script_ends_in_the_helper_of_this_tree_and_the_lookup_stays_inside_the_project(self):
-        result = self.run_wrapper()
+    def composer_command(self, *helpers):
+        """The composer command the wrapper passes to the script (None when it passes none) in a project that has exactly these executables, docker being installed."""
+        for helper in helpers:
+            self.add_tool(os.path.join(self.project, helper), 'exit 0\n')
+        try:
+            result = subprocess.run([shutil.which('bash'), os.path.join(self.project, 'bin', 'security-update-brief.sh'), 'base-sha', 'head-sha', 'out.md'],
+                                    env={'PATH': self.tools}, capture_output=True, text=True)
+        finally:
+            for helper in helpers:
+                os.remove(os.path.join(self.project, helper))
         self.assertEqual(0, result.returncode, result.stderr)
-        arguments = self.recorded_arguments()
-        self.assertEqual([os.path.join(self.project, 'bin-docker', 'composer')], shlex.split(arguments[arguments.index('--composer-command') + 1]))
-        self.assertTrue(arguments[arguments.index('--audit-directory') + 1].startswith(os.path.join(self.project, '.security-update-brief-audit.')))
+        arguments = read(self.recorded).splitlines()
+        return shlex.split(arguments[arguments.index('--composer-command') + 1]) if '--composer-command' in arguments else None
 
-    def test_on_a_github_runner_the_helper_is_not_used_and_the_script_gets_no_composer_options(self):
-        result = self.run_wrapper(GITHUB_ACTIONS='true')
+    def test_with_bin_composer_and_docker_bin_composer_beside_it_the_helper_is_bin_docker_composer_alone(self):
+        self.assertEqual([os.path.join(self.project, 'bin-docker', 'composer')],
+                         self.composer_command('bin/composer', 'docker-bin/composer', 'bin-docker/composer'))
+
+    def test_a_bin_composer_or_a_docker_bin_composer_without_bin_docker_composer_is_no_helper_and_the_composer_on_path_is_used(self):
+        for helpers in (('bin/composer',), ('docker-bin/composer',), ('bin/composer', 'docker-bin/composer')):
+            self.assertIsNone(self.composer_command(*helpers), helpers)
+
+    def test_bin_docker_composer_alone_is_the_helper(self):
+        self.assertEqual([os.path.join(self.project, 'bin-docker', 'composer')], self.composer_command('bin-docker/composer'))
+
+
+class WrapperChainTest(unittest.TestCase):
+    """The wrapper, the script and bin-docker/composer of this tree (with its _tty.sh), copied as they are into a git project of their own and run together
+    over a lock change. Only the tools around them are stand-ins: a python3 that is the real one, and a `docker` that says `web` is up and answers `compose exec`
+    the way composer would in the directory of the container that the helper names, by looking in the matching directory of the project."""
+
+    CONTAINER_DIRECTORY = '/var/www/html/gamecon'
+    ADVISORIES = ('{"advisories": {"a/b": [{"advisoryId": "PKSA-1", "sources": [{"name": "GitHub", "remoteId": "GHSA-1"}], "severity": "high", "title": "T",'
+                  ' "affectedVersions": "<1.0.1", "link": "https://x"}]}}')
+    DOCKER = ('#!/bin/sh\n'
+              'case "$1 $2" in\n'
+              '"compose ps") echo "web running Up"; exit 0 ;;\n'
+              '"compose exec")\n'
+              '  workdir=""\n'
+              '  for argument in "$@"; do case "$argument" in --workdir=*) workdir="${argument#--workdir=}" ;; esac; done\n'
+              '  printf "%s\\t%s\\n" "$PWD" "$workdir" >> "__LOG__"\n'
+              '  cd "__PROJECT__${workdir#__CONTAINER__}" || exit 1\n'
+              '  if grep -q \'"old"\' composer.lock; then echo \'__ADVISORIES__\'; exit 1; fi\n'
+              '  echo \'{"advisories": []}\' ;;\n'
+              'esac\n')
+
+    def setUp(self):
+        self.directory = tempfile.TemporaryDirectory()
+        self.project = os.path.join(os.path.realpath(self.directory.name), 'project')
+        for relative in ('bin/security-update-brief.sh', 'bin-docker/composer', 'bin-docker/_tty.sh', '.github/scripts/security-update-brief.py'):
+            os.makedirs(os.path.dirname(os.path.join(self.project, relative)), exist_ok=True)
+            shutil.copy2(os.path.join(ROOT, relative), os.path.join(self.project, relative))
+        with open(os.path.join(self.project, '.github', 'security-update-brief.md'), 'w') as handle:
+            handle.write('<details>\n<summary>Our steps</summary>\n\nRun it.\n</details>\n')
+        self.log = os.path.join(self.directory.name, 'docker.log')
+        self.home = os.path.join(self.directory.name, 'home')
+        os.makedirs(self.home)
+        self.tools = os.path.join(self.directory.name, 'tools')
+        os.makedirs(self.tools)
+        for name in ('dirname', 'mkdir', 'rmdir', 'git', 'grep', 'mktemp', 'chmod', 'env', 'bash'):
+            os.symlink(shutil.which(name), os.path.join(self.tools, name))
+        os.symlink(sys.executable, os.path.join(self.tools, 'python3'))
+        docker = os.path.join(self.tools, 'docker')
+        with open(docker, 'w') as handle:
+            handle.write(self.DOCKER.replace('__LOG__', self.log).replace('__PROJECT__', self.project)
+                         .replace('__CONTAINER__', self.CONTAINER_DIRECTORY).replace('__ADVISORIES__', self.ADVISORIES))
+        os.chmod(docker, 0o755)
+        environment = {name: value for name, value in os.environ.items() if not name.startswith('GIT_')}
+        git = ['git', '-c', 'user.email=t@example.com', '-c', 'user.name=T', '-c', 'commit.gpgsign=false', '-C', self.project]
+        subprocess.run([*git, 'init', '--quiet', '-b', 'main'], check=True, env=environment)
+        for version, reference in (('1.0.0', 'old'), ('1.0.1', 'new')):
+            lock = {'packages': [{'name': 'a/b', 'version': version, 'source': {'type': 'git', 'url': 'https://github.com/a/b.git', 'reference': reference}}]}
+            for name, content in (('composer.lock', json.dumps(lock)), ('composer.json', '{}')):
+                with open(os.path.join(self.project, name), 'w') as handle:
+                    handle.write(content)
+            subprocess.run([*git, 'add', '-A'], check=True, env=environment)
+            subprocess.run([*git, 'commit', '--quiet', '-m', 'commit'], check=True, env=environment)
+
+    def tearDown(self):
+        self.directory.cleanup()
+
+    def audit_directories(self):
+        return sorted(name for name in os.listdir(self.project) if name.startswith('.security-update-brief-audit.'))
+
+    def test_the_lookup_of_each_lock_runs_composer_in_the_directory_of_the_container_that_holds_that_lock_inside_the_audit_directory_the_wrapper_made(self):
+        output = os.path.join(self.directory.name, 'brief.md')
+        result = subprocess.run([shutil.which('bash'), os.path.join(self.project, 'bin', 'security-update-brief.sh'), 'HEAD~1', 'HEAD', output],
+                                env={'PATH': self.tools, 'HOME': self.home}, capture_output=True, text=True)
         self.assertEqual(0, result.returncode, result.stderr)
-        self.assertNotIn('--composer-command', self.recorded_arguments())
-        self.assertNotIn('--audit-directory', self.recorded_arguments())
+        calls = [line.split('\t') for line in read(self.log).splitlines()]
+        self.assertEqual(2, len(calls), calls)
+        for host_directory, container_directory in calls:
+            audit_directory, temporary_directory = os.path.relpath(host_directory, self.project).split(os.sep)
+            self.assertRegex(audit_directory, r'^\.security-update-brief-audit\.[A-Za-z0-9]{6}$')
+            self.assertEqual('%s/%s/%s' % (self.CONTAINER_DIRECTORY, audit_directory, temporary_directory), container_directory)
+        self.assertEqual(1, len({os.path.dirname(host_directory) for host_directory, _ in calls}))
+        text = read(output)
+        self.assertIn('"fixes":["GHSA-1"]', text)
+        self.assertIn('Advisories remaining after the update: 0', text)
+        self.assertIn('<summary>Our steps</summary>', text)
+        self.assertEqual([], self.audit_directories())
 
 
 class ComposerHelperTest(unittest.TestCase):
