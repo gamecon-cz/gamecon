@@ -1762,10 +1762,11 @@ SQL,
         $klic = $this->klic;
         // máme obnovit starou proměnnou pro id uživatele (otáčíme aktuálně přihlášeného uživatele)?
         $sesssionObnovit = (isset($_SESSION['id_uzivatele']) && $_SESSION['id_uzivatele'] === $this->id());
-        $idPrepnutoZ = $razitko = $idTrvalehoPrihlaseni = null;
+        $idPrepnutoZ = $razitkoPrepnutoZ = $razitko = $idTrvalehoPrihlaseni = null;
         if ($klic === self::UZIVATEL) { // pokud je klíč default, zničíme celou session
             // kdo se na uživatele přepnul, sedí u zařízení dál
             $idPrepnutoZ = PrepnutiNaUzivatele::zSession()->getIdPuvodnihoUzivatele();
+            $razitkoPrepnutoZ = PrepnutiNaUzivatele::zSession()->getRazitkoPuvodnihoUzivatele();
             // Jak se tento prohlížeč přihlásil, otočení nemění. Razítko z DB, které vezme prihlasId(), by přihlásilo
             // znovu session, kterou mezitím odhlásilo jiné zařízení.
             $razitko = $_SESSION[self::UZIVATEL][self::RAZITKO_PRIHLASENI] ?? null;
@@ -1780,7 +1781,7 @@ SQL,
             self::obnovPrihlaseni($razitko, $idTrvalehoPrihlaseni);
         }
         if ($idPrepnutoZ !== null) {
-            PrepnutiNaUzivatele::zSession()->zaznamenej($idPrepnutoZ);
+            PrepnutiNaUzivatele::zSession()->zaznamenej($idPrepnutoZ, $razitkoPrepnutoZ);
         }
         $this->r = $u->r;
         if ($sesssionObnovit) {
@@ -1956,6 +1957,61 @@ SQL,
         }
 
         return self::prihlasDoSession($uzivatelData, $klic, $vytvoritJwt);
+    }
+
+    /**
+     * Razítko přihlášení, se kterým platí session tohoto prohlížeče, viz {@see self::zSession()}.
+     */
+    public static function getRazitkoPrihlaseniZSession(): ?string
+    {
+        return $_SESSION[self::UZIVATEL][self::RAZITKO_PRIHLASENI] ?? null;
+    }
+
+    /**
+     * Přihlásí znovu toho, kdo se v tomto prohlížeči přihlásil s razítkem $razitko a session mezitím patřila
+     * jinému (návrat z „Přihlásit se jako“). Razítko aktuální z DB by přihlásilo i toho, koho mezitím odhlásilo
+     * jiné zařízení: tomu se session zahodí celá jako v {@see self::zSession()}.
+     *
+     * @param bool $vytvoritJwt false nechá JWT, které prohlížeč nese
+     */
+    public static function prihlasIdSRazitkem(int $idUzivatele, ?string $razitko, bool $vytvoritJwt = true): ?self
+    {
+        $uzivatel = self::zId($idUzivatele);
+        if (! $uzivatel) {
+            return null;
+        }
+        if (! self::isRazitkoPlatne($uzivatel, $razitko)) {
+            self::zahodSessionOdhlasenouJinde();
+
+            return null;
+        }
+        $uzivatel = self::prihlasId($idUzivatele, vytvoritJwt: $vytvoritJwt);
+        if ($uzivatel) {
+            $_SESSION[self::UZIVATEL][self::RAZITKO_PRIHLASENI] = $razitko;
+        }
+
+        return $uzivatel;
+    }
+
+    /**
+     * Razítko NULL v DB se nekontroluje, viz {@see self::RAZITKO_PRIHLASENI}.
+     */
+    private static function isRazitkoPlatne(self $uzivatel, ?string $razitkoSession): bool
+    {
+        $razitko = $uzivatel->r[Sql::RAZITKO_PRIHLASENI];
+
+        return $razitko === null || $razitko === $razitkoSession;
+    }
+
+    /**
+     * Celá session jako při odhlášení: pracovního uživatele v adminu, potvrzená zobrazení kontaktů a další
+     * by jinak zdědil ten, kdo se v tomhle prohlížeči přihlásí příště.
+     */
+    private static function zahodSessionOdhlasenouJinde(): void
+    {
+        $_SESSION = [];
+        // Uložený token pro e-shop už vyměnila změna razítka, tohle je jen kopie tohoto prohlížeče.
+        deleteJwtCookie();
     }
 
     /**
@@ -3160,16 +3216,8 @@ SQL,
                 $u = self::zId($_SESSION[$klic]['id_uzivatele']);
             }
             // Mezitím se odhlásil na ostatních zařízeních nebo si změnil heslo.
-            $razitko = $u?->r[Sql::RAZITKO_PRIHLASENI];
-            if ($klic === self::UZIVATEL
-                && $razitko !== null
-                && ($_SESSION[$klic][self::RAZITKO_PRIHLASENI] ?? null) !== $razitko
-            ) {
-                // Celá session jako při odhlášení: pracovního uživatele v adminu, potvrzená zobrazení
-                // kontaktů a další by jinak zdědil ten, kdo se v tomhle prohlížeči přihlásí příště.
-                $_SESSION = [];
-                // Uložený token pro e-shop už vyměnila změna razítka, tohle je jen kopie tohoto prohlížeče.
-                deleteJwtCookie();
+            if ($u && $klic === self::UZIVATEL && ! self::isRazitkoPlatne($u, self::getRazitkoPrihlaseniZSession())) {
+                self::zahodSessionOdhlasenouJinde();
                 $u = null;
             }
             if ($u) {

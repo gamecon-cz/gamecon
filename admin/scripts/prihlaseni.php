@@ -121,7 +121,8 @@ if ($u !== null && post('prihlasitSeJakoUzivatel')) {
         }
         $u = $prepnutiNaUzivatele->prepni($u, $naKoho);
         // infopulťák se na vypravěče přepíná, aby za něj vyplnil prezenci
-        back($u->jeVypravec() || $u->jePartner()
+        // null: přepnul se zpět na sebe, ale na jiném zařízení se mezitím odhlásil z ostatních
+        back($u !== null && ($u->jeVypravec() || $u->jePartner())
             ? $u->mojeAktivityAdminUrl()
             : null
         );
