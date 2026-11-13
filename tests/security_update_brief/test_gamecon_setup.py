@@ -3,6 +3,7 @@ import importlib.util
 import json
 import os
 import re
+import shlex
 import shutil
 import subprocess
 import sys
@@ -108,12 +109,59 @@ class WrapperTest(unittest.TestCase):
         for name in ('security-update-brief.sh', 'test-security-brief.sh', 'fold-dependabot-composer.sh'):
             self.assertTrue(os.access(os.path.join(ROOT, 'bin', name), os.X_OK), name)
 
-    def test_the_wrapper_looks_for_the_composer_helper_that_the_project_has_so_that_composer_never_comes_from_the_host(self):
-        self.assertRegex(self.text, r'for helper in [^;]*\bbin-docker/composer\b')
-        self.assertTrue(os.access(os.path.join(ROOT, 'bin-docker', 'composer'), os.X_OK))
-
     def test_the_audit_directory_of_a_run_is_ignored_by_git(self):
         self.assertIn('/.security-update-brief-audit.*/', read(os.path.join(ROOT, '.gitignore')).splitlines())
+
+
+class WrapperComposerChoiceTest(unittest.TestCase):
+    """The wrapper and the bin-docker/composer of this tree, copied as they are into a project of their own, with stand-in tools in a PATH that holds nothing else."""
+
+    def setUp(self):
+        self.directory = tempfile.TemporaryDirectory()
+        self.project = os.path.join(os.path.realpath(self.directory.name), 'project')
+        for relative in ('bin/security-update-brief.sh', 'bin-docker/composer'):
+            os.makedirs(os.path.dirname(os.path.join(self.project, relative)), exist_ok=True)
+            shutil.copy2(os.path.join(ROOT, relative), os.path.join(self.project, relative))
+        self.tools = os.path.join(self.directory.name, 'tools')
+        os.makedirs(self.tools)
+        for name in ('dirname', 'git', 'mktemp', 'chmod', 'rmdir'):
+            os.symlink(shutil.which(name), os.path.join(self.tools, name))
+        self.recorded = os.path.join(self.directory.name, 'python-arguments')
+        # a python3 that answers the version check, quotes a path with the real one, and otherwise writes its arguments, one per line, to a file
+        self.add_tool('python3', 'isolated=""\nif [ "$1" = "-I" ]; then shift; isolated="-I"; fi\n'
+                                 'if [ "$1" = "-c" ]; then\n  case "$2" in *shlex*) exec "%s" $isolated "$@" ;; esac\n  exit 0\nfi\n'
+                                 'printf "%%s\\n" "$@" > "%s"\n' % (sys.executable, self.recorded))
+        self.add_tool('docker', 'exit 0\n')
+        self.add_tool('composer', 'exit 0\n')
+
+    def tearDown(self):
+        self.directory.cleanup()
+
+    def add_tool(self, name, body):
+        path = os.path.join(self.tools, name)
+        with open(path, 'w') as handle:
+            handle.write('#!/bin/sh\n' + body)
+        os.chmod(path, 0o755)
+
+    def run_wrapper(self, **environment):
+        return subprocess.run([shutil.which('bash'), os.path.join(self.project, 'bin', 'security-update-brief.sh'), 'base-sha', 'head-sha', 'out.md'],
+                              env={'PATH': self.tools, **environment}, capture_output=True, text=True)
+
+    def recorded_arguments(self):
+        return read(self.recorded).splitlines()
+
+    def test_where_docker_is_the_composer_command_passed_to_the_script_ends_in_the_helper_of_this_tree_and_the_lookup_stays_inside_the_project(self):
+        result = self.run_wrapper()
+        self.assertEqual(0, result.returncode, result.stderr)
+        arguments = self.recorded_arguments()
+        self.assertEqual([os.path.join(self.project, 'bin-docker', 'composer')], shlex.split(arguments[arguments.index('--composer-command') + 1]))
+        self.assertTrue(arguments[arguments.index('--audit-directory') + 1].startswith(os.path.join(self.project, '.security-update-brief-audit.')))
+
+    def test_on_a_github_runner_the_helper_is_not_used_and_the_script_gets_no_composer_options(self):
+        result = self.run_wrapper(GITHUB_ACTIONS='true')
+        self.assertEqual(0, result.returncode, result.stderr)
+        self.assertNotIn('--composer-command', self.recorded_arguments())
+        self.assertNotIn('--audit-directory', self.recorded_arguments())
 
 
 class ComposerHelperTest(unittest.TestCase):
