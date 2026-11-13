@@ -73,6 +73,49 @@ class TrvalePrihlaseniTest extends AbstractPrihlaseniNaZarizenichTestDb
     }
 
     /**
+     * Přepnutá session nese razítko druhého uživatele, takže ji odhlášení ostatních zařízení toho, kdo se přepnul,
+     * neukončí. Návrat k sobě ho proto nesmí přihlásit znovu.
+     */
+    public function testNavratZPrepnutiNeprihlasiTohoKdoSeMezitimOdhlasilJinde(): void
+    {
+        $idInfopultaka = $this->vytvorUzivatele();
+        $idVypravece = $this->vytvorUzivatele();
+        $infopult = $this->zarizeni();
+        $telefonInfopultaka = $this->zarizeni();
+        $this->pozadavek($infopult, static fn () => \Uzivatel::prihlasId($idInfopultaka));
+        $this->pozadavek($telefonInfopultaka, static fn () => \Uzivatel::prihlasId($idInfopultaka));
+        $this->pozadavek($infopult, static fn () => PrepnutiNaUzivatele::zSession()->prepni(
+            \Uzivatel::zId($idInfopultaka),
+            \Uzivatel::zId($idVypravece),
+        ));
+
+        $this->pozadavek($telefonInfopultaka, static fn () => \Uzivatel::zSession()->odhlasNaOstatnichZarizenich());
+
+        self::assertSame($idVypravece, $this->idPrihlasenehoNa($infopult), 'Přepnutá session patří vypravěči, běží dál.');
+        self::assertNull($this->pozadavek($infopult, static fn () => PrepnutiNaUzivatele::zSession()->vratSe()));
+        self::assertNull($this->idPrihlasenehoNa($infopult), 'Session infopultu má skončit celá.');
+        self::assertSame($idInfopultaka, $this->idPrihlasenehoNa($telefonInfopultaka));
+    }
+
+    public function testNavratZPrepnutiPrihlasiTohoKdoSePrepnul(): void
+    {
+        $idInfopultaka = $this->vytvorUzivatele();
+        $idVypravece = $this->vytvorUzivatele();
+        $infopult = $this->zarizeni();
+        $this->pozadavek($infopult, static fn () => \Uzivatel::prihlasId($idInfopultaka));
+        $this->pozadavek($infopult, static fn () => \Uzivatel::zSession()->odhlasNaOstatnichZarizenich());
+        $this->pozadavek($infopult, static fn () => PrepnutiNaUzivatele::zSession()->prepni(
+            \Uzivatel::zId($idInfopultaka),
+            \Uzivatel::zId($idVypravece),
+        ));
+
+        $vraceny = $this->pozadavek($infopult, static fn () => PrepnutiNaUzivatele::zSession()->vratSe());
+
+        self::assertSame($idInfopultaka, $vraceny?->id());
+        self::assertSame($idInfopultaka, $this->idPrihlasenehoNa($infopult));
+    }
+
+    /**
      * Cookie patří tomu, kdo sedí u zařízení: nová session po ní nezačíná přepnutá na jiného uživatele.
      */
     public function testPrihlaseniCookieZapomenePrepnuti(): void
