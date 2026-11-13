@@ -1,7 +1,8 @@
 # Mirrors the shared test of the script (see docs/security-update-brief.md, "Changing it"). Only these differ from it: SCRIPT_PATH,
 # the path of the wrapper and the name of its test class below, the name of one footer test (it said where the shared copy lives),
-# and the one test that compares the scan list of the shared example wrapper with the default of the script (the list of this
-# project is checked in test_gamecon_setup.py).
+# and two tests of the shared example wrapper that are dropped: the scan list equals the default of the script (the list of this
+# project is checked in test_gamecon_setup.py), and bin/composer and docker-bin/composer are helper candidates (this project has
+# only bin-docker/composer, which test_gamecon_setup.py checks on the real wrapper).
 import importlib.util
 import io
 import json
@@ -1605,16 +1606,6 @@ class BriefWrapperTest(unittest.TestCase):
         self.assertEqual(helper, self.recorded_option('--composer-command'))
         self.assertEqual(os.path.join(self.project, '.security-update-brief-audit.'), self.recorded_option('--audit-directory')[:-6])
         self.assertEqual([], self.audit_directories())
-
-    def test_the_helper_of_bin_wins_over_bin_docker_and_docker_bin_is_the_last_to_be_tried(self):
-        self.add_python()
-        self.add_tool('project/docker-bin/composer', 'exit 0\n')
-        self.run_wrapper()
-        self.assertEqual(os.path.join(self.project, 'docker-bin', 'composer'), self.recorded_option('--composer-command'))
-        self.add_tool('project/bin-docker/composer', 'exit 0\n')
-        self.add_tool('project/bin/composer', 'exit 0\n')
-        self.run_wrapper()
-        self.assertEqual(os.path.join(self.project, 'bin', 'composer'), self.recorded_option('--composer-command'))
 
     def test_the_helper_path_reaches_the_script_intact_whatever_the_name_of_the_project_holds_even_without_a_utf8_locale(self):
         self.add_python()
