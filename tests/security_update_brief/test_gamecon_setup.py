@@ -139,11 +139,18 @@ class ComposerHelperTest(unittest.TestCase):
         self.directory.cleanup()
 
     def install_project(self, name):
-        project = os.path.join(self.directory.name, name)
+        project = os.path.join(os.path.realpath(self.directory.name), name)
         os.makedirs(os.path.join(project, 'bin-docker'))
         for helper in ('composer', '_tty.sh'):
             shutil.copy2(os.path.join(ROOT, 'bin-docker', helper), os.path.join(project, 'bin-docker', helper))
         return project
+
+    def install_linked_project(self):
+        """A project and a symbolic link to it: the paths by which a checkout, and a working directory in it, can be reached."""
+        project = self.install_project('project')
+        link = os.path.join(self.directory.name, 'link')
+        os.symlink(project, link)
+        return project, link
 
     def exec_call(self, project, working_directory, *arguments, running=False):
         """The arguments of the `docker compose exec` that the helper made when called from working_directory, with the web service up or not."""
@@ -169,10 +176,25 @@ class ComposerHelperTest(unittest.TestCase):
             self.assertIn('--workdir=%s' % self.CONTAINER_DIRECTORY, self.exec_call(project, project, 'install', running=running), running)
 
     def test_a_directory_outside_the_project_does_not_leak_into_the_path_in_the_container(self):
-        project = self.install_project('project')
+        project, link = self.install_linked_project()
         outside = os.path.join(self.directory.name, 'elsewhere', 'deeper')
-        for running in (False, True):
-            self.assertIn('--workdir=%s' % self.CONTAINER_DIRECTORY, self.exec_call(project, outside, 'install', running=running), running)
+        for helper_root in (project, link):
+            for running in (False, True):
+                self.assertIn('--workdir=%s' % self.CONTAINER_DIRECTORY, self.exec_call(helper_root, outside, 'install', running=running), (helper_root, running))
+
+    def test_a_symlinked_checkout_maps_the_directory_whichever_path_the_helper_and_the_working_directory_are_reached_by(self):
+        project, link = self.install_linked_project()
+        for helper_root in (project, link):
+            for directory_root in (project, link):
+                for running in (False, True):
+                    call = self.exec_call(helper_root, os.path.join(directory_root, 'sub', 'dir'), 'audit', running=running)
+                    self.assertIn('--workdir=%s/sub/dir' % self.CONTAINER_DIRECTORY, call, (helper_root, directory_root, running))
+
+    def test_the_root_of_a_symlinked_checkout_is_the_root_of_the_container_whichever_path_reaches_it(self):
+        project, link = self.install_linked_project()
+        for helper_root in (project, link):
+            for directory_root in (project, link):
+                self.assertIn('--workdir=%s' % self.CONTAINER_DIRECTORY, self.exec_call(helper_root, directory_root, 'install'), (helper_root, directory_root))
 
     def test_a_project_whose_path_holds_a_space_still_maps_the_directory(self):
         project = self.install_project('my project')
