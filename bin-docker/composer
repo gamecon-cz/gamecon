@@ -2,18 +2,19 @@
 
 set -euo pipefail
 IFS=$'\n\t'
-DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd -P)"
 PROJECT_ROOT="$(dirname "$DIR")"
 
 source "${DIR}/_tty.sh"
 
 mkdir -p "$HOME/.composer/cache"
 
-# Composer runs where this helper was called from, as in the other projects' helpers: bin/security-update-brief.sh audits
-# a lock copied into a directory inside the checkout, and a composer started in the project root would audit the checkout's own lock.
+# Composer runs where this helper was called from: bin/security-update-brief.sh audits a lock copied into a directory inside
+# the checkout, and a composer started in the project root would audit the checkout's own lock. Both paths are physical, so a symlinked checkout maps too.
 COMPOSER_DIRECTORY="${GAMECON_CONTAINER_DIR}"
-case "$PWD" in
-	"${PROJECT_ROOT}"/*) COMPOSER_DIRECTORY="${GAMECON_CONTAINER_DIR}${PWD#"${PROJECT_ROOT}"}" ;;
+CURRENT_DIRECTORY="$(pwd -P)"
+case "$CURRENT_DIRECTORY" in
+	"${PROJECT_ROOT}"/*) COMPOSER_DIRECTORY="${GAMECON_CONTAINER_DIR}${CURRENT_DIRECTORY#"${PROJECT_ROOT}"}" ;;
 esac
 
 if [ "$(docker compose ps web | grep --count Up)" -gt 0 ]; then
