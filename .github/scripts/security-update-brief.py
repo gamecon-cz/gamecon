@@ -7,17 +7,19 @@ lines, plus the steps for taking the update: judge each change, add missing test
 
     security-update-brief.py brief  --repository DIR --base-sha SHA --head-sha SHA --output brief.md
                                     [--scan-directories DIR ...] [--instructions-file FILE]
+                                    [--composer-command COMMAND] [--audit-directory DIR]
     security-update-brief.py splice --body-file body.md --brief-file brief.md --output new-body.md
 
 Both write the output file only when there is something to write. Files of the pull request are only read.
 
-Version: 1.0.0 of the shared script. A project's copy carries the same line; when the numbers differ, the copy has
+Version: 1.2.0 of the shared script. A project's copy carries the same line; when the numbers differ, the copy has
 drifted from the shared one.
 """
 import argparse
 import json
 import os
 import re
+import shlex
 import stat
 import subprocess
 import sys
@@ -26,6 +28,7 @@ import urllib.parse
 import urllib.request
 from dataclasses import dataclass, field
 
+VERSION = '1.2.0'  # the same number as the `Version:` line of the docstring, which a test compares
 BRIEF_START = '<!-- security-update-brief:start -->'
 BRIEF_END = '<!-- security-update-brief:end -->'
 BODY_LIMIT = 65000
@@ -44,7 +47,7 @@ STABLE_VERSION = re.compile(r'v?\d+(?:\.\d+){0,3}(?:\+[0-9A-Za-z.-]+|-(?:p|patch
 FENCE_OPEN = '\n```jsonl\n'
 MAX_TABLE_ROWS = 60
 MAX_LISTED_CHANGES = 6
-SCAN_DIRECTORIES = ('src', 'config', 'templates', 'tests', 'features', 'packages', 'themes', 'assets', 'adminUi', 'bin')
+SCAN_DIRECTORIES = ('src', 'config', 'templates', 'tests', 'features', 'packages', 'themes', 'assets', 'bin')
 SCAN_EXTENSIONS = {'php': ('.php', '.yaml', '.yml', '.xml', '.twig', '.neon', '.dist'), 'js': ('.js', '.jsx', '.ts', '.tsx', '.mts', '.cts', '.svelte', '.mjs', '.cjs')}
 MAX_INSTRUCTIONS = 8000
 VENDORED_DIRECTORIES = ('vendor', 'node_modules')
@@ -60,7 +63,7 @@ REVIEW_INSTRUCTIONS = """\
 <details>
 <summary>How to take this update (instructions for Claude)</summary>
 
-This pull request raises locked dependencies to fix security advisories. Take it in this order: decide for each package whether the update can change something our application relies on and whether a test would notice, add the missing tests first, then update, run the e2e specs, wait for green and hand it over for merging.
+This pull request raises locked dependencies to fix security advisories. Take it in this order: decide for each package whether the update can change something our application relies on and whether a test would notice, add the missing tests first, then update, run the e2e specs that CI does not run (if there are any), wait for green and hand it over for merging.
 
 1. Read the tables and the `jsonl` blocks below, one JSON object per line. A package with `fixes` is the reason for this pull request; one without was pulled in by the resolver, and for PHP `required_by` says by whom. Look hardest at:
    - `"jump": "major"` and `"minor"`; `"deduplicated"` and `"duplicated"` mean the lockfile now holds fewer or more versions of the package (whoever used the dropped version now gets `to`); `"reference"` is the same version from a newer commit.
@@ -71,14 +74,14 @@ This pull request raises locked dependencies to fix security advisories. Take it
 2. Fetch the change between the two versions.
    - PHP: `repository` with `from_ref` and `to_ref` (GitHub: `<repository>/compare/<from_ref>...<to_ref>`); clone it and `git diff <from_ref> <to_ref>`, and read the CHANGELOG, UPGRADE files and release notes in between. `composer show <package>` and `composer why <package>` give more.
    - JS: `npm diff --diff=<package>@<from> --diff=<package>@<to>`; read the package's changelog.
-3. See what we use. `used_in` counts the files per directory (`src`, `config`, `tests`, … for PHP; for JS the project directory and the first directory below it, such as `adminUi/src`) that mention the package's `namespaces` (PHP) or its name in quotes, with or without a subpath (JS). It is a grep hint, and a missing `tests` entry does not prove a gap: Behat and Playwright tests reach code indirectly. Search for the classes, services, config keys, Twig functions and imports the diff touches yourself.
+3. See what we use. `used_in` counts the files per directory (`src`, `config`, `tests`, … for PHP; for JS the project directory and the first directory below it, such as `frontend/src`) that mention the package's `namespaces` (PHP) or its name in quotes, with or without a subpath (JS). It is a grep hint, and a missing `tests` entry does not prove a gap: browser and acceptance tests reach code indirectly. Search for the classes, services, config keys, Twig functions and imports the diff touches yourself.
 4. Give each package one verdict.
    - `NOT_AFFECTED`: nothing we use has changed.
    - `AFFECTED_AND_COVERED`: we use changed behaviour; name the test that would fail.
    - `AFFECTED_NOT_COVERED`: we use changed behaviour and no test would notice.
-5. For every `AFFECTED_NOT_COVERED`, write the missing test first, in a separate pull request off `main`; it must pass on the old versions. A person merges that, then update this pull request (`@dependabot rebase`).
-6. If the repository has Playwright e2e specs (`tests/playwright`, run with `make e2e-shop` and `make e2e-admin`; use the repository's own names otherwise), note that `Run Tests` does not run them, and that `make e2e-*` does not install anything: it runs whatever is installed. On the updated pull request branch first install what the update changed (`make init`: composer install, yarn install and build; `make e2e-install` for the e2e project's own packages), then run every spec set that a changed part maps to: shop and admin for a PHP update (API Platform and Sylius serve the admin UI too), admin for a change under `/adminUi`, shop for one under `/` (the storefront assets), both for one under `/tests/playwright`. A pull request that touches several parts needs all of them. Read the result and report it.
-7. Wait for a green `Run Tests` on this pull request, then report what you found and what you ran; a person merges it. A green run only shows that the existing tests pass; it says nothing about behaviour no test covers.
+5. For every `AFFECTED_NOT_COVERED`, write the missing test first, in a separate pull request off the default branch; it must pass on the old versions. A person merges that, then update this pull request (`@dependabot rebase`).
+6. If the repository has e2e specs that CI does not run (an `e2e` or `playwright` directory, and a Makefile target or package script that runs it), note that CI does not run them, and that running them usually installs nothing: they run against whatever is installed. On the updated pull request branch first install what the update changed (the project's own install and build commands, and the e2e project's own packages), then run every spec set that a changed part maps to (`used_in` and `required_by` show which parts of the application a changed package reaches): a backend package can change what a frontend serves, a change under a frontend directory affects that frontend, a change under the e2e directory itself affects all of them. A pull request that touches several parts needs all of them. Read the result and report it.
+7. Wait for a green CI run on this pull request, then report what you found and what you ran; a person merges it. A green run only shows that the existing tests pass; it says nothing about behaviour no test covers.
 </details>"""
 
 
@@ -280,15 +283,55 @@ def write_audit_project(directory, repository_directory, base_sha, lock_path_dir
         lock_file.write(lock_text)
 
 
-def composer_advisories(project_directory):
-    result = subprocess.run(
-        ['composer', 'audit', '--locked', '--format=json', '--no-plugins', '--no-scripts', '--no-interaction'],
-        cwd=project_directory, capture_output=True, text=True, timeout=COMPOSER_TIMEOUT,
-    )
+def make_audit_project_readable(directory):
+    """A docker helper runs composer as a user that may not be us, so the directory and its two files must be readable by anyone."""
+    os.chmod(directory, 0o755)
+    for name in os.listdir(directory):
+        os.chmod(os.path.join(directory, name), 0o644)
+
+
+def parse_composer_command(text):
+    """The words of --composer-command; a first word that is a path is made absolute now, because composer runs in another directory."""
     try:
-        audit = json.loads(result.stdout)
+        words = shlex.split(text)
+    except ValueError as error:
+        raise ValueError('--composer-command %r is not a command line: %s' % (text, error))
+    if not words:
+        raise ValueError('--composer-command is empty')
+    if os.sep in words[0]:
+        words[0] = os.path.abspath(words[0])
+    return words
+
+
+def parse_audit_output(text):
+    """The JSON of `composer audit`, also when the project's PHP printed a notice on standard output before it."""
+    try:
+        return json.loads(text)
     except json.JSONDecodeError:
-        raise RuntimeError('composer audit gave no JSON: ' + (result.stderr or result.stdout)[:300])
+        start = text.find('\n{')
+        if start == -1:
+            raise
+        return json.JSONDecoder().raw_decode(text[start + 1:])[0]
+
+
+def composer_advisories(project_directory, composer_command=('composer',)):
+    """Run `composer audit` of the lock in project_directory through composer_command, which may be a docker helper that maps the working directory."""
+    try:
+        result = subprocess.run(
+            [*composer_command, 'audit', '--locked', '--format=json', '--no-plugins', '--no-scripts', '--no-interaction'],
+            # PWD is set because the helper derives its container path from it, and a symlinked path would otherwise come out as the physical one
+            cwd=project_directory, env={**os.environ, 'PWD': os.path.abspath(project_directory)}, stdin=subprocess.DEVNULL, capture_output=True, text=True, timeout=COMPOSER_TIMEOUT,
+        )
+    except subprocess.TimeoutExpired:
+        raise RuntimeError('composer gave no answer within %d seconds; for a docker helper bring the stack up first, a cold start takes longer' % COMPOSER_TIMEOUT)
+    except OSError as error:
+        raise RuntimeError("the composer command '%s' could not be started (%s); name the way to start composer, for a docker project its helper "
+                           'such as bin-docker/composer, with --composer-command' % (plain_text(os.path.basename(composer_command[0]), 80), plain_text(error.strerror or error, 80)))
+    try:
+        audit = parse_audit_output(result.stdout)
+    except json.JSONDecodeError:
+        printed = ' '.join(part.strip()[-150:] for part in (result.stderr, result.stdout) if part.strip())  # the ends: a docker helper prints its start-up progress first
+        raise RuntimeError('composer audit gave no JSON: ' + printed)
     advisories = []
     for package, items in (audit.get('advisories') or {}).items():
         for item in items:
@@ -714,7 +757,7 @@ def render_brief(reports, head_label, limit, instructions=REVIEW_INSTRUCTIONS):
     ordered = sorted(reports, key=lambda report: (report['ecosystem'] != 'php', report['path']))
     header = '\n'.join([
         BRIEF_START, '## Security update brief', '',
-        'Head `%s`. Generated by `.github/scripts/security-update-brief.py`; regenerated on every push.' % plain_text(head_label, 40),
+        'Head `%s`. Written by `security-update-brief.py` %s.' % (plain_text(head_label, 40), VERSION),
         '', instructions, '', '',
     ])
     footer = '\n' + BRIEF_END
@@ -874,22 +917,24 @@ def read_json(text):
     return value if isinstance(value, dict) else {}
 
 
-def advisories_of(repository_directory, base_sha, sha, lock, state):
+def advisories_of(repository_directory, base_sha, sha, lock, state, composer_command=('composer',), audit_directory=None):
     if lock.ecosystem == 'php':
         lock_text = file_at(repository_directory, sha, lock.path)
         if lock_text is None:
             return []
-        with tempfile.TemporaryDirectory() as workdir:
+        with tempfile.TemporaryDirectory(dir=audit_directory, ignore_cleanup_errors=True) as workdir:
             write_audit_project(workdir, repository_directory, base_sha, os.path.dirname(lock.path), lock_text)
-            return composer_advisories(workdir)
+            if audit_directory:
+                make_audit_project_readable(workdir)
+            return composer_advisories(workdir, composer_command)
     return npm_advisories({name: sorted({package.version for package in packages}) for name, packages in state.items()})
 
 
-def audit_both_states(repository_directory, base_sha, head_sha, lock):
+def audit_both_states(repository_directory, base_sha, head_sha, lock, composer_command=('composer',), audit_directory=None):
     """Return (fixed, remaining, error): advisories of the base lock the head no longer has, and those it still has."""
     try:
-        base_advisories = advisories_of(repository_directory, base_sha, base_sha, lock, lock.base)
-        head_advisories = advisories_of(repository_directory, base_sha, head_sha, lock, lock.head)
+        base_advisories = advisories_of(repository_directory, base_sha, base_sha, lock, lock.base, composer_command, audit_directory)
+        head_advisories = advisories_of(repository_directory, base_sha, head_sha, lock, lock.head, composer_command, audit_directory)
     except Exception as error:  # any failure must still leave the brief, with the lookup marked as failed
         return [], [], '%s: %s' % (type(error).__name__, error)
     head_ids = {(advisory.package, advisory.advisory_id) for advisory in head_advisories}
@@ -900,6 +945,9 @@ def audit_both_states(repository_directory, base_sha, head_sha, lock):
 def build_brief(options):
     instructions = read_instructions(options.instructions_file) if options.instructions_file else REVIEW_INSTRUCTIONS
     directories = [normalised_scope(directory) for directory in options.scan_directories or SCAN_DIRECTORIES]
+    composer_command = parse_composer_command(options.composer_command)
+    if options.audit_directory and not os.path.isdir(options.audit_directory):
+        raise ValueError('the audit directory %s is not a directory' % options.audit_directory)
     reports = []
     for path in changed_lock_paths(options.repository, options.base_sha, options.head_sha):
         lock = load_lock(options.repository, options.base_sha, options.head_sha, path)
@@ -907,7 +955,9 @@ def build_brief(options):
             lock.usage = scan_usage(options.repository, lock.ecosystem, usage_subjects(lock), os.path.dirname(lock.path) if lock.ecosystem == 'js' else '', directories)
         except Exception as error:  # the usage hints are a bonus; the brief must not depend on them
             print('usage scan failed for %s: %s' % (path, error), file=sys.stderr)
-        fixed, remaining, error = audit_both_states(options.repository, options.base_sha, options.head_sha, lock)
+        fixed, remaining, error = audit_both_states(options.repository, options.base_sha, options.head_sha, lock, composer_command, options.audit_directory)
+        if error:
+            print('advisory lookup failed for %s: %s' % (path, plain_text(error, 300)), file=sys.stderr)
         reports.append(build_lock_report(lock, fixed, remaining, error))
     reports = [report for report in reports if report['packages']]
     if not reports:
@@ -945,6 +995,12 @@ def main(arguments):
                               help='top-level directories searched for the PHP namespaces of a changed package; default: the built-in list')
     brief_parser.add_argument('--instructions-file', metavar='FILE',
                               help='markdown with the steps for taking an update, put in the brief instead of the built-in steps')
+    brief_parser.add_argument('--composer-command', metavar='COMMAND', default='composer',
+                              help='how to start composer for the PHP advisory lookup: its path or a command line, for a docker project the '
+                                   "project's helper such as bin-docker/composer; it runs with a temporary project as its working directory")
+    brief_parser.add_argument('--audit-directory', metavar='DIRECTORY',
+                              help='where the lookup creates that temporary project, a directory the composer command can see (a docker helper '
+                                   'sees only the project it belongs to); default: the system temporary directory')
     brief_parser.add_argument('--output', required=True)
     splice_parser = commands.add_parser('splice', help='put a brief at the top of a pull request body')
     splice_parser.add_argument('--body-file', required=True)

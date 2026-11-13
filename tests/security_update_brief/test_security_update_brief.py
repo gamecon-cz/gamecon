@@ -1,7 +1,12 @@
+# Mirrors the shared test of the script (see docs/security-update-brief.md, "Changing it"). Only these differ from it: SCRIPT_PATH,
+# the path of the wrapper and the name of its test class below, the name of one footer test (it said where the shared copy lives),
+# and the one test that compares the scan list of the shared example wrapper with the default of the script (the list of this
+# project is checked in test_gamecon_setup.py).
 import importlib.util
 import io
 import json
 import os
+import re
 import subprocess
 import sys
 import tempfile
@@ -367,6 +372,16 @@ class RenderingTest(unittest.TestCase):
     def test_the_instructions_are_closed_by_a_blank_line_so_the_heading_renders(self):
         self.assertIn('</details>\n\n### PHP — `composer.lock`', brief.render_brief([self.big_report(5)], 'f' * 40, 60000))
 
+    def test_the_footer_names_the_script_and_its_version_because_a_brief_may_be_written_from_the_shared_script_not_a_project_copy(self):
+        text = brief.render_brief([self.big_report(5)], 'f' * 40, 60000)
+        self.assertIn('Head `' + 'f' * 40 + '`. Written by `security-update-brief.py` ' + brief.VERSION + '.', text)
+        self.assertNotIn('.github/scripts', text)
+        self.assertNotIn('regenerated', text)
+
+    def test_the_version_constant_is_the_number_on_the_docstring_line_that_projects_compare(self):
+        self.assertEqual(brief.VERSION, re.search(r'^Version: (\S+)', brief.__doc__, re.MULTILINE).group(1))
+        self.assertRegex(brief.VERSION, r'^\d+\.\d+\.\d+$')
+
     def test_a_medium_update_drops_detail_before_it_collapses_packages(self):
         reports = [self.big_report(100, 'js', 'yarn.lock'), self.big_report(100, 'js', 'adminUi/yarn.lock'), self.big_report(100, 'js', 'tests/playwright/yarn.lock')]
         self.assertGreater(len(brief.render_brief(reports, 'f' * 40, 1000000)), 61000)
@@ -602,11 +617,11 @@ class UsageTest(unittest.TestCase):
         self.assertEqual({}, brief.scan_usage(self.root, 'js', {'lodash': ['lodash']}, 'adminUi'))
 
     def test_js_package_names_are_found_as_imports_but_not_inside_longer_names(self):
-        self.write('adminUi/src/a.ts', "import { x } from 'svelte/store';\nimport k from '@sveltejs/kit';\nimport l from 'lodash-es';\n")
+        self.write('themes/a.ts', "import { x } from 'svelte/store';\nimport k from '@sveltejs/kit';\nimport l from 'lodash-es';\n")
         self.write('assets/b.js', "const m = require('lodash');")
         self.write('webpack.config.js', "module.exports = { loader: 'lodash' };")
         usage = brief.scan_usage(self.root, 'js', {'svelte': ['svelte'], '@sveltejs/kit': ['@sveltejs/kit'], 'lodash': ['lodash'], 'lodash-es': ['lodash-es']})
-        self.assertEqual({'svelte': {'adminUi': 1}, '@sveltejs/kit': {'adminUi': 1}, 'lodash': {'assets': 1, 'root': 1}, 'lodash-es': {'adminUi': 1}}, usage)
+        self.assertEqual({'svelte': {'themes': 1}, '@sveltejs/kit': {'themes': 1}, 'lodash': {'assets': 1, 'root': 1}, 'lodash-es': {'themes': 1}}, usage)
 
     def test_vendored_and_built_directories_and_other_file_types_are_skipped(self):
         self.write('src/node_modules/x.php', 'use A\\B\\C;')
@@ -871,25 +886,27 @@ class TableTest(unittest.TestCase):
         text = brief.REVIEW_INSTRUCTIONS
         self.assertLess(text.index('verdict'), text.index('write the missing test first'))
         self.assertLess(text.index('write the missing test first'), text.index('@dependabot rebase'))
-        self.assertLess(text.index('@dependabot rebase'), text.index('make e2e-shop'))
-        self.assertLess(text.index('make e2e-shop'), text.index('Wait for a green'))
+        self.assertLess(text.index('@dependabot rebase'), text.index('If the repository has e2e specs that CI does not run'))
+        self.assertLess(text.index('If the repository has e2e specs that CI does not run'), text.index('Wait for a green'))
         for needle in ('`patches`', '`requires`', '`constraint_was`', '`used_in`', '`required_by`', 'composer show', 'composer why', 'npm diff',
-                       'make e2e-admin', 'does not run them', 'PHP update', '`/adminUi`'):
+                       'note that CI does not run them', 'every spec set that a changed part maps to', 'a backend package'):
             self.assertIn(needle, text)
+
+    def test_the_built_in_steps_name_no_project_and_none_of_its_commands_and_assume_no_default_branch_name(self):
+        for name in ('Sylius', 'API Platform', 'Behat', 'Playwright', 'make e2e', 'make init', 'adminUi', 'Run Tests', 'off `main`'):
+            self.assertNotIn(name, brief.REVIEW_INSTRUCTIONS)
+        self.assertNotIn('adminUi', brief.SCAN_DIRECTORIES)
 
     def test_the_e2e_step_installs_first_maps_every_changed_part_to_its_specs_and_only_applies_where_specs_exist(self):
         step = [line for line in brief.REVIEW_INSTRUCTIONS.split('\n') if line.startswith('6. ')][0]
-        self.assertTrue(step.startswith('6. If the repository has Playwright e2e specs'))
-        self.assertLess(step.index('`make init`'), step.index('then run every spec set'))
-        self.assertIn('`make e2e-install`', step)
-        self.assertIn('does not install anything', step)
-        self.assertRegex(step, r'shop and admin for a PHP update')
-        self.assertRegex(step, r'admin for a change under `/adminUi`')
-        self.assertRegex(step, r'shop for one under `/` ')
-        self.assertRegex(step, r'both for one under `/tests/playwright`')
+        self.assertTrue(step.startswith('6. If the repository has e2e specs that CI does not run'))
+        self.assertLess(step.index('first install what the update changed'), step.index('then run every spec set'))
+        self.assertIn('installs nothing', step)
+        self.assertIn('a backend package can change what a frontend serves', step)
+        self.assertIn('a change under the e2e directory itself affects all of them', step)
         self.assertIn('touches several parts needs all of them', step)
         self.assertTrue(brief.REVIEW_INSTRUCTIONS.count('\n7. Wait for a green') == 1)
-        self.assertIn('run the e2e specs, wait for green and hand it over for merging', brief.REVIEW_INSTRUCTIONS)
+        self.assertIn('run the e2e specs that CI does not run (if there are any), wait for green and hand it over for merging', brief.REVIEW_INSTRUCTIONS)
         self.assertNotIn('then merge it', brief.REVIEW_INSTRUCTIONS)
 
 
@@ -1039,6 +1056,7 @@ class AdvisorySourcesTest(unittest.TestCase):
         with mock.patch.object(brief.subprocess, 'run', return_value=SimpleNamespace(stdout=json.dumps(with_advisory), stderr='')) as run:
             advisories = brief.composer_advisories('.')
         self.assertEqual(brief.COMPOSER_TIMEOUT, run.call_args.kwargs['timeout'])
+        self.assertEqual(subprocess.DEVNULL, run.call_args.kwargs['stdin'])
         self.assertEqual([('GHSA-1', 'a/b', 'CVE-1')], [(advisory.advisory_id, advisory.package, advisory.cve) for advisory in advisories])
         with mock.patch.object(brief.subprocess, 'run', return_value=SimpleNamespace(stdout='{"advisories": []}', stderr='')):
             self.assertEqual([], brief.composer_advisories('.'))
@@ -1046,6 +1064,28 @@ class AdvisorySourcesTest(unittest.TestCase):
     def test_composer_audit_without_json_is_an_error_not_an_empty_result(self):
         with mock.patch.object(brief.subprocess, 'run', return_value=SimpleNamespace(stdout='', stderr='boom')):
             with self.assertRaisesRegex(RuntimeError, 'boom'):
+                brief.composer_advisories('.')
+
+    def test_the_end_of_what_composer_printed_is_shown_when_there_is_no_json_because_a_docker_helper_prints_its_start_up_first(self):
+        progress = ' Container project-postgres-1 Running\n' * 20 + 'Could not open input file: /usr/bin/composer'
+        with mock.patch.object(brief.subprocess, 'run', return_value=SimpleNamespace(stdout='', stderr=progress)):
+            with self.assertRaisesRegex(RuntimeError, 'Could not open input file: /usr/bin/composer'):
+                brief.composer_advisories('.')
+
+    def test_what_the_project_printed_on_standard_output_is_shown_next_to_what_the_helper_printed_on_standard_error_when_there_is_no_json(self):
+        progress = ' Container project-postgres-1 Running\n' * 20
+        with mock.patch.object(brief.subprocess, 'run', return_value=SimpleNamespace(stdout='PHP Deprecated: xdebug.remote_log renamed', stderr=progress)):
+            with self.assertRaisesRegex(RuntimeError, 'Running PHP Deprecated: xdebug.remote_log renamed'):
+                brief.composer_advisories('.')
+
+    def test_a_notice_that_the_project_printed_on_standard_output_before_the_json_does_not_hide_the_json(self):
+        answer = 'PHP Deprecated: xdebug.remote_log renamed {in a notice}\n{"advisories": {"a/b": [{"advisoryId": "PKSA-1", "title": "T"}]}}\n'
+        with mock.patch.object(brief.subprocess, 'run', return_value=SimpleNamespace(stdout=answer, stderr='')):
+            self.assertEqual(['PKSA-1'], [advisory.advisory_id for advisory in brief.composer_advisories('.')])
+
+    def test_a_composer_that_gives_no_answer_in_time_says_to_bring_the_stack_up_first(self):
+        with mock.patch.object(brief.subprocess, 'run', side_effect=subprocess.TimeoutExpired('helper', brief.COMPOSER_TIMEOUT)):
+            with self.assertRaisesRegex(RuntimeError, 'bring the stack up first'):
                 brief.composer_advisories('.')
 
     def test_npm_advisories_are_requested_in_chunks_and_read_from_the_response(self):
@@ -1208,7 +1248,7 @@ class EndToEndTest(unittest.TestCase):
         self.commit({'composer.json': head_json, 'composer.lock': head_lock})
         seen = []
 
-        def audit(directory):
+        def audit(directory, composer_command):
             with open(os.path.join(directory, 'composer.json')) as manifest_file, open(os.path.join(directory, 'composer.lock')) as lock_file:
                 seen.append((json.load(manifest_file), lock_file.read()))
             return []
@@ -1352,6 +1392,131 @@ class EndToEndTest(unittest.TestCase):
             first = self.run_both('Dependabot text')
             second = self.run_both(first + '\n')
         self.assertIsNone(second)
+
+    def fake_composer_helper(self):
+        """A script like bin-docker/composer: it logs its directory, the mode of it and of the lock, and its arguments, and finds the advisory only in the old lock."""
+        helper = self.outside('composer-helper.sh')
+        with open(helper, 'w') as handle:
+            handle.write('#!/bin/sh\n'
+                         'echo "$PWD $(ls -ld . | cut -c1-10) $(ls -l composer.lock | cut -c1-10) $*" >> "%s"\n'
+                         'if grep -q \'"old"\' composer.lock; then\n'
+                         '  echo \'{"advisories": {"a/b": [{"advisoryId": "PKSA-1", "sources": [{"name": "GitHub", "remoteId": "GHSA-1"}],'
+                         ' "severity": "high", "title": "T", "affectedVersions": "<1.0.1", "link": "https://x"}]}}\'\n'
+                         'else\n'
+                         '  echo \'{"advisories": []}\'\n'
+                         'fi\n' % self.outside('composer-helper.log'))
+        os.chmod(helper, 0o755)
+        return helper
+
+    def commit_an_update_of_one_package(self):
+        self.commit({'composer.json': '{}', 'composer.lock': composer_lock([('a/b', '1.0.0', 'old')])})
+        self.commit({'composer.lock': composer_lock([('a/b', '1.0.1', 'new')])})
+
+    def test_the_advisory_lookup_runs_through_the_given_command_in_a_directory_inside_the_audit_directory(self):
+        self.commit_an_update_of_one_package()
+        audit_directory = self.outside('audit')
+        os.makedirs(audit_directory)
+        text = self.run_command(['brief', '--repository', self.repository, '--base-sha', 'HEAD~1', '--head-sha', 'HEAD',
+                                 '--composer-command', self.fake_composer_helper() + ' --through-docker', '--audit-directory', audit_directory], 'brief.md')
+        self.assertIn('"fixes":["GHSA-1"]', text)
+        self.assertIn('Advisories remaining after the update: 0', text)
+        with open(self.outside('composer-helper.log')) as log:
+            calls = [line.split() for line in log.read().splitlines()]
+        self.assertEqual(2, len(calls))
+        for working_directory, directory_mode, lock_mode, *arguments in calls:
+            self.assertEqual(os.path.realpath(audit_directory), os.path.dirname(os.path.realpath(working_directory)))
+            self.assertEqual(('drwxr-xr-x', '-rw-r--r--'), (directory_mode, lock_mode))
+            self.assertEqual(['--through-docker', 'audit', '--locked', '--format=json'], arguments[:4])
+        self.assertEqual([], os.listdir(audit_directory))
+
+    def test_the_audit_project_is_readable_by_any_user_even_under_a_strict_umask_only_when_it_is_inside_a_project(self):
+        self.commit_an_update_of_one_package()
+        audit_directory = self.outside('audit')
+        os.makedirs(audit_directory)
+        helper = self.fake_composer_helper()
+        previous_umask = os.umask(0o077)
+        try:
+            self.run_command(['brief', '--repository', self.repository, '--base-sha', 'HEAD~1', '--head-sha', 'HEAD',
+                              '--composer-command', helper, '--audit-directory', audit_directory], 'brief.md')
+            with open(self.outside('composer-helper.log')) as log:
+                inside = [line.split()[1:3] for line in log.read().splitlines()]
+            os.remove(self.outside('composer-helper.log'))
+            self.run_command(['brief', '--repository', self.repository, '--base-sha', 'HEAD~1', '--head-sha', 'HEAD', '--composer-command', helper], 'brief.md')
+            with open(self.outside('composer-helper.log')) as log:
+                in_the_system_directory = [line.split()[1:3] for line in log.read().splitlines()]
+        finally:
+            os.umask(previous_umask)
+        self.assertEqual([['drwxr-xr-x', '-rw-r--r--']] * 2, inside)
+        self.assertEqual([['drwx------', '-rw-------']] * 2, in_the_system_directory)
+
+    def test_the_helper_sees_the_audit_directory_under_the_path_it_was_given_even_when_that_path_is_a_symlink(self):
+        self.commit_an_update_of_one_package()
+        real_directory, linked_directory = self.outside('audit-real'), self.outside('audit-link')
+        os.makedirs(real_directory)
+        os.symlink(real_directory, linked_directory)
+        self.run_command(['brief', '--repository', self.repository, '--base-sha', 'HEAD~1', '--head-sha', 'HEAD',
+                          '--composer-command', self.fake_composer_helper(), '--audit-directory', linked_directory], 'brief.md')
+        with open(self.outside('composer-helper.log')) as log:
+            working_directories = [line.split()[0] for line in log.read().splitlines()]
+        self.assertEqual([linked_directory] * 2, [os.path.dirname(directory) for directory in working_directories])
+
+    def test_a_relative_composer_command_is_resolved_against_the_directory_the_script_was_started_in(self):
+        self.commit_an_update_of_one_package()
+        helper = self.fake_composer_helper()
+        previous_directory = os.getcwd()
+        os.chdir(os.path.dirname(helper))
+        try:
+            text = self.run_command(['brief', '--repository', self.repository, '--base-sha', 'HEAD~1', '--head-sha', 'HEAD',
+                                     '--composer-command', './' + os.path.basename(helper)], 'brief.md')
+        finally:
+            os.chdir(previous_directory)
+        self.assertIn('"fixes":["GHSA-1"]', text)
+
+    def test_a_composer_command_that_is_not_a_command_line_is_refused_with_the_option_named(self):
+        self.commit_an_update_of_one_package()
+        for command in ("docker compose exec 'php", '   ', ''):
+            with self.assertRaisesRegex(ValueError, '--composer-command', msg=repr(command)):
+                self.run_command(['brief', '--repository', self.repository, '--base-sha', 'HEAD~1', '--head-sha', 'HEAD',
+                                  '--composer-command', command], 'brief.md')
+
+    def test_a_failed_advisory_lookup_is_also_told_on_standard_error_because_a_wrapper_hides_the_brief_file(self):
+        self.commit_an_update_of_one_package()
+        with mock.patch('sys.stderr', new_callable=io.StringIO) as standard_error:
+            self.run_command(['brief', '--repository', self.repository, '--base-sha', 'HEAD~1', '--head-sha', 'HEAD',
+                              '--composer-command', '/no/such/helper'], 'brief.md')
+        self.assertIn('advisory lookup failed for composer.lock: RuntimeError: the composer command', standard_error.getvalue())
+
+    def test_the_standard_error_line_of_a_failed_lookup_is_one_line_so_a_runner_log_reads_no_workflow_command_in_it(self):
+        self.commit_an_update_of_one_package()
+        with mock.patch.object(brief, 'composer_advisories', side_effect=RuntimeError('first\n::error::second')), \
+                mock.patch('sys.stderr', new_callable=io.StringIO) as standard_error:
+            self.run_command(['brief', '--repository', self.repository, '--base-sha', 'HEAD~1', '--head-sha', 'HEAD'], 'brief.md')
+        self.assertEqual('advisory lookup failed for composer.lock: RuntimeError: first ::error::second\n', standard_error.getvalue())
+
+    def test_a_composer_command_that_does_not_exist_leaves_the_brief_with_a_lookup_failure_that_says_what_to_pass(self):
+        self.commit_an_update_of_one_package()
+        text = self.run_command(['brief', '--repository', self.repository, '--base-sha', 'HEAD~1', '--head-sha', 'HEAD',
+                                 '--composer-command', '/no/such/helper'], 'brief.md')
+        self.assertIn('Advisory lookup failed', text)
+        self.assertIn("the composer command 'helper' could not be started (No such file or directory)", text)
+        self.assertNotIn('/no/such', text)
+        self.assertIn('--composer-command', text)
+
+    def test_a_helper_without_the_executable_bit_gets_the_same_hint(self):
+        self.commit_an_update_of_one_package()
+        helper = self.outside('not-executable.sh')
+        with open(helper, 'w') as handle:
+            handle.write('#!/bin/sh\necho {}\n')
+        text = self.run_command(['brief', '--repository', self.repository, '--base-sha', 'HEAD~1', '--head-sha', 'HEAD',
+                                 '--composer-command', helper], 'brief.md')
+        self.assertIn('could not be started (Permission denied)', text)
+        self.assertIn('--composer-command', text)
+
+    def test_an_audit_directory_that_is_not_there_is_refused_instead_of_failing_every_lookup(self):
+        self.commit_an_update_of_one_package()
+        with self.assertRaisesRegex(ValueError, 'is not a directory'):
+            self.run_command(['brief', '--repository', self.repository, '--base-sha', 'HEAD~1', '--head-sha', 'HEAD',
+                              '--audit-directory', self.outside('missing')], 'brief.md')
 
 
 if __name__ == '__main__':
