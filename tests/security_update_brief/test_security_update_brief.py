@@ -7,6 +7,8 @@ import io
 import json
 import os
 import re
+import shlex
+import shutil
 import subprocess
 import sys
 import tempfile
@@ -1517,6 +1519,225 @@ class EndToEndTest(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, 'is not a directory'):
             self.run_command(['brief', '--repository', self.repository, '--base-sha', 'HEAD~1', '--head-sha', 'HEAD',
                               '--audit-directory', self.outside('missing')], 'brief.md')
+
+
+class BriefWrapperTest(unittest.TestCase):
+    """The wrapper bin/security-update-brief.sh run in a project of its own, with fake tools in a PATH that holds nothing else."""
+
+    def setUp(self):
+        self.directory = tempfile.TemporaryDirectory()
+        self.project = os.path.join(self.directory.name, 'project')
+        self.wrapper = self.install_wrapper(self.project)
+        self.tools = os.path.join(self.directory.name, 'tools')
+        os.makedirs(self.tools)
+        for name in ('dirname', 'mkdir', 'rmdir', 'git', 'grep', 'ls', 'cut', 'mktemp', 'chmod'):
+            os.symlink(shutil.which(name), os.path.join(self.tools, name))
+        self.add_tool('tools/docker', 'exit 0\n')
+        self.recorded = os.path.join(self.directory.name, 'python-arguments')
+
+    def tearDown(self):
+        self.directory.cleanup()
+
+    def install_wrapper(self, project):
+        os.makedirs(os.path.join(project, 'bin'))
+        wrapper = os.path.join(project, 'bin', 'security-update-brief.sh')
+        shutil.copy(os.path.join(os.path.dirname(__file__), '..', '..', 'bin', 'security-update-brief.sh'), wrapper)
+        return wrapper
+
+    def add_tool(self, path, body):
+        full_path = os.path.join(self.directory.name, path)
+        os.makedirs(os.path.dirname(full_path), exist_ok=True)
+        with open(full_path, 'w') as handle:
+            handle.write('#!/bin/sh\n' + body)
+        os.chmod(full_path, 0o755)
+        return full_path
+
+    def add_python(self, version_check_exit=0, exit_status=0, leave_in_audit_directory=False):
+        """A python3 that answers the version check, quotes a path with the real one, and otherwise writes its arguments, one per line, to a file."""
+        self.add_tool('tools/python3', 'isolated=""\n'
+                                       'if [ "$1" = "-I" ]; then shift; isolated="-I"; fi\n'
+                                       'if [ "$1" = "-c" ]; then\n'
+                                       '  case "$2" in *shlex*) exec "%s" $isolated "$@" ;; esac\n'
+                                       '  exit %d\n'
+                                       'fi\n'
+                                       'printf "%%s\\n" "$@" > "%s"\n'
+                                       '%s'
+                                       'exit %d\n' % (sys.executable, version_check_exit, self.recorded,
+                                                      'previous=""\nfor argument in "$@"; do\n'
+                                                      '  if [ "$previous" = "--audit-directory" ]; then : > "$argument/leftover"; fi\n'
+                                                      '  previous="$argument"\ndone\n' if leave_in_audit_directory else '', exit_status))
+
+    def run_wrapper(self, wrapper=None, umask=-1, **environment):
+        os.makedirs(os.path.join(self.directory.name, 'tmp'), exist_ok=True)
+        variables = {'PATH': self.tools, 'TMPDIR': os.path.join(self.directory.name, 'tmp'), **environment}
+        return subprocess.run([shutil.which('bash'), wrapper or self.wrapper, 'base-sha', 'head-sha', 'out.md'], env=variables, umask=umask, capture_output=True, text=True)
+
+    def audit_directories(self, project=None):
+        project = project or self.project
+        return sorted(os.path.join(project, name) for name in os.listdir(project) if name.startswith('.security-update-brief-audit.'))
+
+    def recorded_arguments(self):
+        with open(self.recorded) as handle:
+            return handle.read().splitlines()
+
+    def recorded_option(self, option):
+        arguments = self.recorded_arguments()
+        return arguments[arguments.index(option) + 1]
+
+    def test_without_python_the_wrapper_says_what_is_missing_instead_of_command_not_found(self):
+        result = self.run_wrapper()
+        self.assertEqual(1, result.returncode)
+        self.assertIn('needs python3 3.10 or newer on this machine', result.stderr)
+        self.assertNotIn('not found', result.stderr)
+
+    def test_an_old_python_and_a_missing_git_are_named_together(self):
+        self.add_python(version_check_exit=1)
+        os.remove(os.path.join(self.tools, 'git'))
+        result = self.run_wrapper()
+        self.assertEqual(1, result.returncode)
+        self.assertIn('needs git and python3 3.10 or newer', result.stderr)
+
+    def test_a_developer_machine_runs_composer_through_the_helper_of_the_project_and_keeps_the_lookup_inside_the_project(self):
+        self.add_python()
+        helper = self.add_tool('project/bin-docker/composer', 'exit 0\n')
+        result = self.run_wrapper()
+        self.assertEqual(0, result.returncode, result.stderr)
+        self.assertEqual(helper, self.recorded_option('--composer-command'))
+        self.assertEqual(os.path.join(self.project, '.security-update-brief-audit.'), self.recorded_option('--audit-directory')[:-6])
+        self.assertEqual([], self.audit_directories())
+
+    def test_the_helper_of_bin_wins_over_bin_docker_and_docker_bin_is_the_last_to_be_tried(self):
+        self.add_python()
+        self.add_tool('project/docker-bin/composer', 'exit 0\n')
+        self.run_wrapper()
+        self.assertEqual(os.path.join(self.project, 'docker-bin', 'composer'), self.recorded_option('--composer-command'))
+        self.add_tool('project/bin-docker/composer', 'exit 0\n')
+        self.add_tool('project/bin/composer', 'exit 0\n')
+        self.run_wrapper()
+        self.assertEqual(os.path.join(self.project, 'bin', 'composer'), self.recorded_option('--composer-command'))
+
+    def test_the_helper_path_reaches_the_script_intact_whatever_the_name_of_the_project_holds_even_without_a_utf8_locale(self):
+        self.add_python()
+        for name in ('with space', 'with\ttab', 'ünï', "it's", 'dollar$HOME'):
+            wrapper = self.install_wrapper(os.path.join(self.directory.name, name))
+            helper = self.add_tool(os.path.join(name, 'bin-docker', 'composer'), 'exit 0\n')
+            result = self.run_wrapper(wrapper, LC_ALL='C')
+            self.assertEqual(0, result.returncode, result.stderr)
+            self.assertEqual([helper], shlex.split(self.recorded_option('--composer-command')), name)
+            self.assertEqual(os.path.join(self.directory.name, name, '.security-update-brief-audit.'), self.recorded_option('--audit-directory')[:-6], name)
+
+    def test_a_module_in_the_project_cannot_shadow_the_standard_library_where_the_wrapper_quotes_the_helper_path(self):
+        self.add_python()
+        helper = self.add_tool('project/bin-docker/composer', 'exit 0\n')
+        with open(os.path.join(self.project, 'shlex.py'), 'w') as handle:
+            handle.write("raise SystemExit('planted shlex')\n")
+        result = self.run_wrapper()
+        self.assertEqual(0, result.returncode, result.stderr)
+        self.assertNotIn('planted', result.stderr)
+        self.assertEqual(helper, self.recorded_option('--composer-command'))
+
+    def test_a_github_runner_uses_the_composer_on_its_path_and_passes_the_script_no_composer_options_whatever_the_temporary_directory(self):
+        self.add_python()
+        self.add_tool('tools/composer', 'exit 0\n')
+        self.add_tool('project/bin-docker/composer', 'exit 0\n')
+        for temporary_directory in (os.path.join(self.directory.name, 'tmp'), '/nonexistent'):
+            result = self.run_wrapper(GITHUB_ACTIONS='true', TMPDIR=temporary_directory)
+            self.assertEqual(0, result.returncode, result.stderr)
+            self.assertEqual('', result.stderr)
+            self.assertNotIn('--composer-command', self.recorded_arguments())
+            self.assertNotIn('--audit-directory', self.recorded_arguments())
+
+    def test_a_machine_without_docker_uses_the_composer_on_its_path_even_when_the_project_has_a_helper(self):
+        self.add_python()
+        self.add_tool('tools/composer', 'exit 0\n')
+        self.add_tool('project/bin-docker/composer', 'exit 0\n')
+        os.remove(os.path.join(self.tools, 'docker'))
+        result = self.run_wrapper()
+        self.assertEqual(0, result.returncode, result.stderr)
+        self.assertNotIn('--composer-command', self.recorded_arguments())
+
+    def test_the_command_in_the_environment_replaces_every_helper_on_a_runner_too(self):
+        self.add_python()
+        self.add_tool('project/bin-docker/composer', 'exit 0\n')
+        for environment in ({}, {'GITHUB_ACTIONS': 'true'}):
+            self.run_wrapper(SECURITY_BRIEF_COMPOSER='docker compose exec -T php composer', **environment)
+            self.assertEqual('docker compose exec -T php composer', self.recorded_option('--composer-command'))
+            self.assertEqual(os.path.join(self.project, '.security-update-brief-audit.'), self.recorded_option('--audit-directory')[:-6])
+
+    def test_a_composer_that_does_not_run_and_has_no_helper_is_named_in_a_warning_and_the_brief_is_still_written(self):
+        self.add_python()
+        self.add_tool('tools/composer', 'exit 1\n')
+        result = self.run_wrapper()
+        self.assertEqual(0, result.returncode, result.stderr)
+        self.assertIn('composer does not run on this machine', result.stderr)
+        self.assertIn('SECURITY_BRIEF_COMPOSER', result.stderr)
+        self.assertIn('--output', self.recorded_arguments())
+
+    def test_a_failing_script_still_removes_the_audit_directory_and_its_status_is_the_wrappers(self):
+        self.add_python(exit_status=3)
+        self.add_tool('project/bin-docker/composer', 'exit 0\n')
+        result = self.run_wrapper()
+        self.assertEqual(3, result.returncode)
+        self.assertEqual([], self.audit_directories())
+
+    def test_a_file_left_in_the_audit_directory_is_reported_and_the_directory_stays(self):
+        self.add_python(leave_in_audit_directory=True)
+        self.add_tool('project/bin-docker/composer', 'exit 0\n')
+        result = self.run_wrapper()
+        self.assertEqual(0, result.returncode, result.stderr)
+        left = self.audit_directories()
+        self.assertEqual(1, len(left))
+        self.assertIn('%s is not empty and stays' % left[0], result.stderr)
+        self.assertTrue(os.path.exists(os.path.join(left[0], 'leftover')))
+
+    def test_the_audit_directory_of_a_run_can_be_traversed_by_any_user_even_under_a_strict_umask(self):
+        self.add_python(leave_in_audit_directory=True)
+        self.add_tool('project/bin-docker/composer', 'exit 0\n')
+        self.run_wrapper(umask=0o077)
+        left = self.audit_directories()
+        self.assertEqual(1, len(left))
+        self.assertEqual(0o755, os.stat(left[0]).st_mode & 0o777)
+
+    def test_the_wrapper_and_the_real_script_together_write_the_brief_through_the_helper_of_the_project(self):
+        os.symlink(sys.executable, os.path.join(self.tools, 'python3'))
+        os.makedirs(os.path.join(self.project, '.github', 'scripts'))
+        shutil.copy(SCRIPT_PATH, os.path.join(self.project, '.github', 'scripts', 'security-update-brief.py'))
+        with open(os.path.join(self.project, '.github', 'security-update-brief.md'), 'w') as handle:
+            handle.write('<details>\n<summary>Our steps</summary>\n\nRun it.\n</details>\n')
+        log = os.path.join(self.directory.name, 'helper.log')
+        self.add_tool('project/bin-docker/composer',
+                      'echo "$PWD" >> "%s"\n'
+                      'if grep -q \'"old"\' composer.lock; then\n'
+                      '  echo \'{"advisories": {"a/b": [{"advisoryId": "PKSA-1", "sources": [{"name": "GitHub", "remoteId": "GHSA-1"}],'
+                      ' "severity": "high", "title": "T", "affectedVersions": "<1.0.1", "link": "https://x"}]}}\'\n'
+                      'else\n'
+                      '  echo \'{"advisories": []}\'\n'
+                      'fi\n' % log)
+        git = ['git', '-c', 'user.email=t@example.com', '-c', 'user.name=T', '-c', 'commit.gpgsign=false', '-C', self.project]
+        subprocess.run([*git, 'init', '--quiet', '-b', 'main'], check=True)
+        for lock in (composer_lock([('a/b', '1.0.0', 'old')]), composer_lock([('a/b', '1.0.1', 'new')])):
+            with open(os.path.join(self.project, 'composer.lock'), 'w') as handle:
+                handle.write(lock)
+            with open(os.path.join(self.project, 'composer.json'), 'w') as handle:
+                handle.write('{}')
+            subprocess.run([*git, 'add', '-A'], check=True)
+            subprocess.run([*git, 'commit', '--quiet', '-m', 'commit'], check=True)
+        output = os.path.join(self.directory.name, 'brief.md')
+        result = subprocess.run([shutil.which('bash'), self.wrapper, 'HEAD~1', 'HEAD', output], capture_output=True, text=True,
+                                env={'PATH': self.tools, 'TMPDIR': os.path.join(self.directory.name, 'tmp')})
+        self.assertEqual(0, result.returncode, result.stderr)
+        with open(output) as handle:
+            text = handle.read()
+        self.assertIn('"fixes":["GHSA-1"]', text)
+        self.assertIn('Advisories remaining after the update: 0', text)
+        self.assertIn('<summary>Our steps</summary>', text)
+        with open(log) as handle:
+            directories = handle.read().splitlines()
+        self.assertEqual(2, len(directories))
+        for directory in directories:
+            self.assertEqual(os.path.realpath(self.project), os.path.dirname(os.path.dirname(os.path.realpath(directory))))
+            self.assertTrue(os.path.basename(os.path.dirname(directory)).startswith('.security-update-brief-audit.'))
+        self.assertEqual([], self.audit_directories())
 
 
 if __name__ == '__main__':
