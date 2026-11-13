@@ -114,6 +114,8 @@ abstract class AbstractPrihlaseniNaZarizenichTestDb extends AbstractTestDb
     protected function pozadavek(array &$zarizeni, callable $akce): mixed
     {
         $_SESSION = $zarizeni['session'];
+        // Co si třída pamatuje jen po dobu požadavku, v jednom procesu testů by přežilo do dalšího.
+        TrvalePrihlaseni::zapomenStavPozadavku();
         unset($_COOKIE[TrvalePrihlaseni::COOKIE]);
         if ($zarizeni['cookie'] !== null) {
             $_COOKIE[TrvalePrihlaseni::COOKIE] = $zarizeni['cookie'];

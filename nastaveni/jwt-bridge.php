@@ -78,7 +78,7 @@ function deleteStoredJwtForUser(
         /** @var JwtService $jwtService */
         $jwtService = $kernel->getContainer()->get(JwtService::class);
         $jwtService->deleteToken($userId);
-    } catch (Exception $e) {
+    } catch (Throwable $e) { // an Error from the kernel boot too, callers run this after their commit
         error_log("JWT deletion failed: " . $e->getMessage());
     }
 }

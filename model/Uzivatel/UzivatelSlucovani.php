@@ -45,8 +45,10 @@ class UzivatelSlucovani
             }
 
             // Update nového uživatele se změnami. Převzaté heslo je změna hesla, odhlásí všechna zařízení jako obnova hesla.
+            // Co se rollbackem nevrátí (token pro e-shop, data objektu), se udělá až po commitu celého sloučení.
+            $dokonciZmenuRazitka = null;
             if (array_key_exists(Sql::HESLO_MD5, $zmeny)) {
-                $novyUzivatel->zmenRazitkoPrihlaseni(ponechatTotoZarizeni: false, sloupce: $zmeny);
+                $dokonciZmenuRazitka = $novyUzivatel->pripravZmenuRazitkaPrihlaseni(ponechatTotoZarizeni: false, sloupce: $zmeny);
             } else {
                 dbUpdate(Sql::UZIVATELE_HODNOTY_TABULKA, $zmeny, ['id_uzivatele' => $idNovehoUzivatele]);
             }
@@ -74,17 +76,24 @@ class UzivatelSlucovani
         }
 
         // logování po úspěšném commitu
-        $novyUzivatel = Uzivatel::zId($novyUzivatel->id()); // přenačtení uživatele, aby se aktualizovaly finance
-        $this->zaloguj(
-            $idStarehoUzivatele,
-            $idNovehoUzivatele,
-            $zustatekStarehoUzivatele,
-            $zustatekNovehoUzivatele,
-            $emailStarehoUzivatele,
-            $emailNovehoUzivatele,
-            $novyUzivatel->finance()->zustatekZPredchozichRocniku(),
-            $novyUzivatel->mail()
-        );
+        try {
+            $slouceny = Uzivatel::zId($idNovehoUzivatele); // přenačtení uživatele, aby se aktualizovaly finance
+            $this->zaloguj(
+                $idStarehoUzivatele,
+                $idNovehoUzivatele,
+                $zustatekStarehoUzivatele,
+                $zustatekNovehoUzivatele,
+                $emailStarehoUzivatele,
+                $emailNovehoUzivatele,
+                $slouceny->finance()->zustatekZPredchozichRocniku(),
+                $slouceny->mail()
+            );
+        } finally {
+            // Až po záznamu do logu: sloučení je commitnuté a chyba tady by ho nechala bez záznamu.
+            if ($dokonciZmenuRazitka !== null) {
+                $dokonciZmenuRazitka();
+            }
+        }
     }
 
     /**

@@ -7,6 +7,12 @@ declare(strict_types=1);
 // Persistent login ("Trvale přihlásit") gets one row per device. Until now it was a single token per user
 // in uzivatele_hodnoty.random, so logging in on another device logged the previous one out.
 // The cookie carries the token, the table only its SHA-256, so reading the database logs nobody in.
+// The selector is the stable part of the cookie that finds the row: an outdated token for an existing selector means
+// the cookie has been copied, however many times the token was replaced since. The table keeps only its SHA-256
+// (selektor_hash), so reading the database or a dump gives nobody a selector to log a user out with. The rows
+// converted from `random` have none until their first use, their cookie carries only the token.
+// pocet_vymen counts the replacements of the token and the cookie carries it too: a cookie ahead of its row comes
+// from after the dump the database was restored from, not from a copy.
 // predchozi_token_hash keeps the token replaced at the last use for a moment, and the new token is derived from it
 // with sul_tokenu, so concurrent requests with the replaced one get the same new token, see TrvalePrihlaseni.
 // Every statement may run twice: the preview of the branch ran older versions of this migration under other names.
@@ -15,12 +21,15 @@ CREATE TABLE IF NOT EXISTS uzivatele_trvala_prihlaseni
 (
     id                   BIGINT(20) UNSIGNED NOT NULL AUTO_INCREMENT,
     id_uzivatele         BIGINT(20) UNSIGNED NOT NULL,
+    selektor_hash        CHAR(64)                     DEFAULT NULL,
     token_hash           CHAR(64)            NOT NULL,
     predchozi_token_hash CHAR(64)                     DEFAULT NULL,
     sul_tokenu           CHAR(64)                     DEFAULT NULL,
+    pocet_vymen          INT UNSIGNED        NOT NULL DEFAULT 0,
     vytvoreno            DATETIME            NOT NULL DEFAULT current_timestamp(),
     naposledy_pouzito    DATETIME            NOT NULL DEFAULT current_timestamp(),
     PRIMARY KEY (id),
+    UNIQUE KEY selektor_hash (selektor_hash),
     UNIQUE KEY (token_hash),
     KEY (predchozi_token_hash),
     KEY (naposledy_pouzito),
@@ -31,10 +40,13 @@ CREATE TABLE IF NOT EXISTS uzivatele_trvala_prihlaseni
 SQL,
 );
 
-// The preview created the table without it.
+// The preview created the table without them.
 $this->q(<<<'SQL'
 ALTER TABLE uzivatele_trvala_prihlaseni
-    ADD COLUMN IF NOT EXISTS sul_tokenu CHAR(64) DEFAULT NULL AFTER predchozi_token_hash
+    ADD COLUMN IF NOT EXISTS sul_tokenu CHAR(64) DEFAULT NULL AFTER predchozi_token_hash,
+    ADD COLUMN IF NOT EXISTS selektor_hash CHAR(64) DEFAULT NULL AFTER id_uzivatele,
+    ADD COLUMN IF NOT EXISTS pocet_vymen INT UNSIGNED NOT NULL DEFAULT 0 AFTER sul_tokenu,
+    ADD UNIQUE KEY IF NOT EXISTS selektor_hash (selektor_hash)
 SQL,
 );
 

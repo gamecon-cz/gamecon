@@ -28,8 +28,8 @@ class PrepnutiNaUzivatele
 
     /**
      * The login stamp the session of whoever switched had (@see \Uzivatel::getRazitkoPrihlaseniZSession()). While
-     * switched, the session carries the stamp of the other user, so logging out of other devices does not end it.
-     * Going back checks this one instead.
+     * switched, the session carries the stamp of the other user, so \Uzivatel::zSession() checks this one as well:
+     * logging out of other devices by whoever switched ends the switched session too. Going back checks it again.
      */
     private const string SESSION_KLIC_RAZITKA = 'prepnuto_z_razitka';
 
