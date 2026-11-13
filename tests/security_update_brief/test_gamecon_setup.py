@@ -108,6 +108,83 @@ class WrapperTest(unittest.TestCase):
         for name in ('security-update-brief.sh', 'test-security-brief.sh', 'fold-dependabot-composer.sh'):
             self.assertTrue(os.access(os.path.join(ROOT, 'bin', name), os.X_OK), name)
 
+    def test_the_wrapper_looks_for_the_composer_helper_that_the_project_has_so_that_composer_never_comes_from_the_host(self):
+        self.assertRegex(self.text, r'for helper in [^;]*\bbin-docker/composer\b')
+        self.assertTrue(os.access(os.path.join(ROOT, 'bin-docker', 'composer'), os.X_OK))
+
+    def test_the_audit_directory_of_a_run_is_ignored_by_git(self):
+        self.assertIn('/.security-update-brief-audit.*/', read(os.path.join(ROOT, '.gitignore')).splitlines())
+
+
+class ComposerHelperTest(unittest.TestCase):
+    """bin-docker/composer in a copy of the project's bin-docker, with a stand-in `docker` that writes down its arguments."""
+
+    CONTAINER_DIRECTORY = '/var/www/html/gamecon'
+
+    def setUp(self):
+        self.directory = tempfile.TemporaryDirectory()
+        self.home = os.path.join(self.directory.name, 'home')
+        os.makedirs(self.home)
+        fake_bin = os.path.join(self.directory.name, 'fake-bin')
+        os.makedirs(fake_bin)
+        self.log = os.path.join(self.directory.name, 'docker.log')
+        docker = os.path.join(fake_bin, 'docker')
+        with open(docker, 'w') as handle:
+            handle.write('#!/bin/sh\nprintf "%%s\\t" "$@" >> "%s"\nprintf "\\n" >> "%s"\n'
+                         'if [ "$1 $2" = "compose ps" ] && [ -n "${WEB_IS_UP:-}" ]; then echo "web running Up 3 minutes"; fi\n' % (self.log, self.log))
+        os.chmod(docker, 0o755)
+        self.path = fake_bin + os.pathsep + os.environ['PATH']
+
+    def tearDown(self):
+        self.directory.cleanup()
+
+    def install_project(self, name):
+        project = os.path.join(self.directory.name, name)
+        os.makedirs(os.path.join(project, 'bin-docker'))
+        for helper in ('composer', '_tty.sh'):
+            shutil.copy2(os.path.join(ROOT, 'bin-docker', helper), os.path.join(project, 'bin-docker', helper))
+        return project
+
+    def exec_call(self, project, working_directory, *arguments, running=False):
+        """The arguments of the `docker compose exec` that the helper made when called from working_directory, with the web service up or not."""
+        os.makedirs(working_directory, exist_ok=True)
+        environment = {'PATH': self.path, 'HOME': self.home, 'PWD': working_directory, **({'WEB_IS_UP': '1'} if running else {})}
+        result = subprocess.run(['bash', os.path.join(project, 'bin-docker', 'composer'), *arguments], cwd=working_directory, env=environment,
+                                capture_output=True, text=True)
+        self.assertEqual(0, result.returncode, result.stderr)
+        calls = [line.split('\t')[:-1] for line in read(self.log).splitlines()]
+        os.remove(self.log)
+        return [call for call in calls if call[:2] == ['compose', 'exec']][0]
+
+    def test_composer_runs_in_the_directory_the_helper_was_called_from_so_that_a_lock_copied_inside_the_checkout_is_the_one_audited(self):
+        project = self.install_project('project')
+        for running in (False, True):
+            call = self.exec_call(project, os.path.join(project, '.security-update-brief-audit.abc123', 'tmpxyz'), 'audit', '--locked', running=running)
+            self.assertIn('--workdir=%s/.security-update-brief-audit.abc123/tmpxyz' % self.CONTAINER_DIRECTORY, call, running)
+            self.assertEqual(['web', 'composer', 'audit', '--locked'], call[-4:], running)
+
+    def test_from_the_root_of_the_project_composer_runs_in_the_root_of_the_container(self):
+        project = self.install_project('project')
+        for running in (False, True):
+            self.assertIn('--workdir=%s' % self.CONTAINER_DIRECTORY, self.exec_call(project, project, 'install', running=running), running)
+
+    def test_a_directory_outside_the_project_does_not_leak_into_the_path_in_the_container(self):
+        project = self.install_project('project')
+        outside = os.path.join(self.directory.name, 'elsewhere', 'deeper')
+        for running in (False, True):
+            self.assertIn('--workdir=%s' % self.CONTAINER_DIRECTORY, self.exec_call(project, outside, 'install', running=running), running)
+
+    def test_a_project_whose_path_holds_a_space_still_maps_the_directory(self):
+        project = self.install_project('my project')
+        for running in (False, True):
+            call = self.exec_call(project, os.path.join(project, 'sub dir'), 'install', running=running)
+            self.assertIn('--workdir=%s/sub dir' % self.CONTAINER_DIRECTORY, call, running)
+
+    def test_composer_still_runs_as_the_web_user_of_the_container(self):
+        project = self.install_project('project')
+        for running in (False, True):
+            self.assertIn('--user=www-data', self.exec_call(project, project, 'install', running=running), running)
+
 
 class ScriptCopyTest(unittest.TestCase):
     def test_the_script_is_a_copy_that_says_which_version_of_the_shared_script_it_is(self):
@@ -141,8 +218,8 @@ class WrapperRunTest(unittest.TestCase):
 
     @staticmethod
     def environment():
-        """The caller's environment without the variables that would aim git at another repository."""
-        return {name: value for name, value in os.environ.items() if not name.startswith('GIT_')}
+        """The caller's environment without the variables that would aim git at another repository or replace the composer of the run."""
+        return {name: value for name, value in os.environ.items() if not name.startswith('GIT_') and name != 'SECURITY_BRIEF_COMPOSER'}
 
     def git(self, *arguments):
         result = subprocess.run(['git', '-C', self.root, *arguments], capture_output=True, text=True, env=self.environment())

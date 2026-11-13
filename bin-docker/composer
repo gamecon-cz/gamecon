@@ -3,19 +3,27 @@
 set -euo pipefail
 IFS=$'\n\t'
 DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+PROJECT_ROOT="$(dirname "$DIR")"
 
 source "${DIR}/_tty.sh"
 
 mkdir -p "$HOME/.composer/cache"
 
+# Composer runs where this helper was called from, as in the other projects' helpers: bin/security-update-brief.sh audits
+# a lock copied into a directory inside the checkout, and a composer started in the project root would audit the checkout's own lock.
+COMPOSER_DIRECTORY="${GAMECON_CONTAINER_DIR}"
+case "$PWD" in
+	"${PROJECT_ROOT}"/*) COMPOSER_DIRECTORY="${GAMECON_CONTAINER_DIR}${PWD#"${PROJECT_ROOT}"}" ;;
+esac
+
 if [ "$(docker compose ps web | grep --count Up)" -gt 0 ]; then
 	docker_compose_exec \
-		--workdir="${GAMECON_CONTAINER_DIR}" \
+		--workdir="${COMPOSER_DIRECTORY}" \
 		--user=www-data \
 		web composer "$@"
 else
 	docker_compose_run \
-		--workdir="${GAMECON_CONTAINER_DIR}" \
+		--workdir="${COMPOSER_DIRECTORY}" \
 		--user=www-data \
 		web composer "$@"
 fi

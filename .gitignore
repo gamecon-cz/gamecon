@@ -17,6 +17,9 @@ __pycache__/
 
 /test-results
 
+# the temporary directory of bin/security-update-brief.sh, removed when it ends
+/.security-update-brief-audit.*/
+
 # zkompilovaná šablona XTemplate, bez nastaveného cacheDir leží vedle .xtpl
 *.xtpc
 
