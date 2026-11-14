@@ -49,49 +49,55 @@ class HromadneOdhlaseniNeplaticu
         );
         $zdrojOdhlaseni                  = "$zdrojOdhlaseniZaklad-$poradiHromadnehoOdhlasovani";
         $uzivatelSystem                  = \Uzivatel::zId(\Uzivatel::SYSTEM);
-        foreach ($this->neplaticiAKategorie($nejblizsiHromadneOdhlasovaniKdy, $platnostZpetneKDatu)
-                 as ['neplatic' => $neplatic, 'kategorie_neplatice' => $kategorieNeplatice]
-        ) {
-            set_time_limit(30); // jenom pro jistotu, mělo by to trvat maximálně sekundu
-            /**
-             * @var \Uzivatel $neplatic
-             * @var KategorieNeplatice $kategorieNeplatice
-             */
-            if ($kategorieNeplatice->melByBytOdhlasen()) {
-                if ($kategorieNeplatice->maSmyslOdhlasitMuJenNeco()) {
-                    $vysledekOdhlaseniJenNeco = null;
-                    $predtimCelkemOdlhaseno   = 0;
-                    do {
-                        $vysledekOdhlaseniJenNeco = $this->odhlasMuJenNeco($neplatic, $zdrojOdhlaseni, $uzivatelSystem, $vysledekOdhlaseniJenNeco);
-                        if ($vysledekOdhlaseniJenNeco->celkemOdhlaseno() > $predtimCelkemOdlhaseno) {
-                            $kategorieNeplatice->obnovUdaje(false /* platby se nezměnily */);
+        $puvodniCasovyLimit              = (int) ini_get('max_execution_time');
+        try {
+            foreach ($this->neplaticiAKategorie($nejblizsiHromadneOdhlasovaniKdy, $platnostZpetneKDatu)
+                     as ['neplatic' => $neplatic, 'kategorie_neplatice' => $kategorieNeplatice]
+            ) {
+                set_time_limit(30); // jenom pro jistotu, mělo by to trvat maximálně sekundu
+                /**
+                 * @var \Uzivatel $neplatic
+                 * @var KategorieNeplatice $kategorieNeplatice
+                 */
+                if ($kategorieNeplatice->melByBytOdhlasen()) {
+                    if ($kategorieNeplatice->maSmyslOdhlasitMuJenNeco()) {
+                        $vysledekOdhlaseniJenNeco = null;
+                        $predtimCelkemOdlhaseno   = 0;
+                        do {
+                            $vysledekOdhlaseniJenNeco = $this->odhlasMuJenNeco($neplatic, $zdrojOdhlaseni, $uzivatelSystem, $vysledekOdhlaseniJenNeco);
+                            if ($vysledekOdhlaseniJenNeco->celkemOdhlaseno() > $predtimCelkemOdlhaseno) {
+                                $kategorieNeplatice->obnovUdaje(false /* platby se nezměnily */);
+                            }
+                            $predtimCelkemOdlhaseno = $vysledekOdhlaseniJenNeco->celkemOdhlaseno();
+                        } while ($vysledekOdhlaseniJenNeco->jesteNecoNeodhlasovano() && $kategorieNeplatice->melByBytOdhlasen());
+                        if (!$kategorieNeplatice->melByBytOdhlasen()) {
+                            $this->emailUcastnikoviSOdhlasenymiPolozkami($neplatic, $zdrojOdhlaseni);
+                            continue; // povedlo se, postupným odhlašováním položek jsme se dostali až k tomu, že nemusíme odhlásit samotného účastníka
                         }
-                        $predtimCelkemOdlhaseno = $vysledekOdhlaseniJenNeco->celkemOdhlaseno();
-                    } while ($vysledekOdhlaseniJenNeco->jesteNecoNeodhlasovano() && $kategorieNeplatice->melByBytOdhlasen());
-                    if (!$kategorieNeplatice->melByBytOdhlasen()) {
-                        $this->emailUcastnikoviSOdhlasenymiPolozkami($neplatic, $zdrojOdhlaseni);
-                        continue; // povedlo se, postupným odhlašováním položek jsme se dostali až k tomu, že nemusíme odhlásit samotného účastníka
+                    }
+                    try {
+                        $neplatic->odhlasZGc(
+                            zdrojOdhlaseni: $zdrojOdhlaseni,
+                            odhlasujici: $uzivatelSystem,
+                            zaznamnik: $zaznamnik,
+                            odeslatMailPokudSeNeodhlasilSam: true,
+                        );
+                        $zaznamnik?->pridejEntitu($neplatic);
+                        $this->odhlasenoCelkem++;
+                    } catch (Chyba $chyba) {
+                        $potiz = sprintf(
+                            "Nelze ohlásit účastníka %s s ID %d: '%s'",
+                            $neplatic->jmenoNick(),
+                            $neplatic->id(),
+                            $chyba->getMessage(),
+                        );
+                        $zaznamnik?->pridejZpravu("Potíže: $potiz");
                     }
                 }
-                try {
-                    $neplatic->odhlasZGc(
-                        zdrojOdhlaseni: $zdrojOdhlaseni,
-                        odhlasujici: $uzivatelSystem,
-                        zaznamnik: $zaznamnik,
-                        odeslatMailPokudSeNeodhlasilSam: true,
-                    );
-                    $zaznamnik?->pridejEntitu($neplatic);
-                    $this->odhlasenoCelkem++;
-                } catch (Chyba $chyba) {
-                    $potiz = sprintf(
-                        "Nelze ohlásit účastníka %s s ID %d: '%s'",
-                        $neplatic->jmenoNick(),
-                        $neplatic->id(),
-                        $chyba->getMessage(),
-                    );
-                    $zaznamnik?->pridejZpravu("Potíže: $potiz");
-                }
             }
+        } finally {
+            // PHP keeps the last limit set for the rest of the process, so give back what the caller had.
+            set_time_limit($puvodniCasovyLimit);
         }
 
         $this->zalogujHromadneOdhlaseni(
