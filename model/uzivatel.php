@@ -689,9 +689,16 @@ SQL, [Pravo::PORADANI_AKTIVIT],
             }
         }
         if ($odeslatMailPokudSeNeodhlasilSam && $this->id() !== $odhlasujici->id()) {
-            $mailZeBylOdhlasen = $this->mailZeBylOdhlasen();
-            // tento mail necheme zastavovat v záznamníku
-            $mailZeBylOdhlasen->odeslat();
+            $puvodniCasovyLimit = (int) ini_get('max_execution_time');
+            set_time_limit(30); // pro jistotu
+            try {
+                $mailZeBylOdhlasen = $this->mailZeBylOdhlasen();
+                // tento mail necheme zastavovat v záznamníku
+                $mailZeBylOdhlasen->odeslat();
+            } finally {
+                // PHP keeps the last limit set for the rest of the process, so give back what the caller had.
+                set_time_limit($puvodniCasovyLimit);
+            }
         }
     }
 
@@ -739,7 +746,6 @@ SQL, [Pravo::PORADANI_AKTIVIT],
             $this->systemoveNastaveni,
             $this->systemoveNastaveni->ted(),
         );
-        set_time_limit(30); // pro jistotu
 
         return (new EmailoveSablony($this->systemoveNastaveni))
             ->vytvorMail(KodEmailoveSablonyEnum::ODHLASENI_Z_GAMECONU, [

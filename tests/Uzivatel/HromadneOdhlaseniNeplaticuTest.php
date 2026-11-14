@@ -602,10 +602,7 @@ SQL;
         );
         assertCount(0, $zruseneAktivityUzivatele, 'Před odhlášením nečekáme žádné už odhlášené aktivity');
 
-        if (! defined('MAILY_DO_SOUBORU')) {
-            // jistota je jistota
-            define('MAILY_DO_SOUBORU', sys_get_temp_dir() . '/' . uniqid('test_maily_do_souboru.log'));
-        }
+        $this->zajistiMailyDoSouboru();
         $zaznamnik = new Zaznamnik();
         $hromadneOdhlaseniNeplaticu->hromadneOdhlasit(
             $zdrojOdhlaseniZaklad,
@@ -690,6 +687,72 @@ SQL;
             $idckaZrusenychAktivitUzivatele,
             "Očeáváme jiné odhlášené aktivity u uživatele '{$testovaciUzivatelPoOdhlaseni->celeJmeno()}'",
         );
+    }
+
+    /**
+     * @test
+     */
+    public function casovyLimitPhpSePoHromadnemOdhlaseniVratiNaPuvodniHodnotu()
+    {
+        $nejblizsiHromadneOdhlasovaniKdy = new DateTimeImmutableStrict();
+        $systemoveNastaveni = $this->dejSystemoveNastaveniSNejblizsiVlnou(
+            DateTimeGamecon::createFromInterface($nejblizsiHromadneOdhlasovaniKdy)->modify('+1 day'),
+            $nejblizsiHromadneOdhlasovaniKdy,
+        );
+        $this->zajistiMailyDoSouboru();
+
+        $puvodniLimit = (int) ini_get('max_execution_time');
+        set_time_limit(77);
+        try {
+            $pocetOdhlasenych = (new HromadneOdhlaseniNeplaticu($systemoveNastaveni))->hromadneOdhlasit(
+                basename(__CLASS__, '.php'),
+                new Zaznamnik(),
+                $nejblizsiHromadneOdhlasovaniKdy->modify('-1 day'),
+                $nejblizsiHromadneOdhlasovaniKdy,
+            );
+
+            self::assertGreaterThan(0, $pocetOdhlasenych, 'Test potřebuje aspoň jednoho odhlášeného neplatiče');
+            self::assertSame(
+                '77',
+                ini_get('max_execution_time'),
+                'Hromadné odhlášení si časový limit pro každého neplatiče prodlužuje, ale po sobě musí vrátit původní',
+            );
+        } finally {
+            set_time_limit($puvodniLimit);
+        }
+    }
+
+    /**
+     * @test
+     */
+    public function casovyLimitPhpSePoOdhlaseniJednohoUcastnikaVratiNaPuvodniHodnotu()
+    {
+        $this->zajistiMailyDoSouboru();
+        $ucastnik = \Uzivatel::zIdUrcite(self::VELKY_DLUH_NIC_NEDAM);
+        self::assertTrue($ucastnik->gcPrihlasen(), 'Test potřebuje přihlášeného účastníka');
+
+        $puvodniLimit = (int) ini_get('max_execution_time');
+        set_time_limit(77);
+        try {
+            $odhlaseno = $ucastnik->odhlasZGc(basename(__CLASS__, '.php'), \Uzivatel::zId(\Uzivatel::SYSTEM));
+
+            self::assertTrue($odhlaseno);
+            self::assertSame(
+                '77',
+                ini_get('max_execution_time'),
+                'Příprava a odeslání e-mailu o odhlášení si časový limit prodlužují, ale po sobě musí vrátit původní',
+            );
+        } finally {
+            set_time_limit($puvodniLimit);
+        }
+    }
+
+    private function zajistiMailyDoSouboru(): void
+    {
+        if (! defined('MAILY_DO_SOUBORU')) {
+            // jistota je jistota
+            define('MAILY_DO_SOUBORU', sys_get_temp_dir() . '/' . uniqid('test_maily_do_souboru.log'));
+        }
     }
 
     private function serazeniNeplaticiAKategorie(
