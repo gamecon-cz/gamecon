@@ -10,8 +10,8 @@ namespace Gamecon\Uzivatel;
  *
  * Cookie nese stálý selektor řádku, pořadí výměny tokenu a náhodný token, DB jen SHA-256 selektoru a tokenu:
  * kdo přečte databázi, nepřihlásí se a nemá ani selektor, kterým by někoho odhlásil.
- * Každé přihlášení z cookie token vymění. Kdo pak přijde se selektorem a tokenem, který už neplatí, nese kopii
- * cookie, kterou mezitím použil někdo jiný: takové trvalé přihlášení skončí všem, viz {@see self::uplatniCookie()}.
+ * Každé přihlášení z cookie token vymění. Kdo pak přijde se selektorem a tokenem vyměněným víckrát zpět, nese kopii
+ * cookie, kterou mezitím použil někdo jiný: uživatel je odhlášen všude, viz {@see self::uplatniCookie()}.
  *
  * Běžící session ukončuje razítko přihlášení v {@see \Uzivatel::zSession()}.
  */
@@ -50,7 +50,16 @@ final class TrvalePrihlaseni
     /** Token vyměněný před chvílí, nese ho souběžný požadavek. */
     private const string STAV_PREDCHOZI = 'predchozi';
 
-    /** Token, který už neplatí, u řádku, který existuje: cookie nesou dva. */
+    /**
+     * Token vyměněný jednou zpět, ale ne před chvílí. Nese ho prohlížeč, kterému se ztratila odpověď s výměnou
+     * (karta zavřená před odpovědí, zabitý mobilní prohlížeč, požadavek dlouho ve frontě), nebo kopie cookie:
+     * nový token zatím nikdo nepoužil, takže se to nepozná.
+     */
+    private const string STAV_ZASTARALY = 'zastaraly';
+
+    /**
+     * Token vyměněný víckrát zpět, u řádku, který existuje: nový token už někdo použil, cookie tedy nesou dva.
+     */
     private const string STAV_ZNEUZITY = 'zneuzity';
 
     /**
@@ -60,8 +69,8 @@ final class TrvalePrihlaseni
     private const string STAV_NOVEJSI_NEZ_RADEK = 'novejsi_nez_radek';
 
     /**
-     * Cookie, která v tomto požadavku žádný řádek nenašla. Uzivatel::zSession() se za požadavek volá víckrát
-     * a cookie bez řádku v prohlížeči zůstává, bez tohohle by se nepřihlášený ptal databáze pokaždé znovu.
+     * Cookie, která v tomto požadavku žádný řádek nenašla v prázdné tabulce, a proto v prohlížeči zůstala.
+     * Uzivatel::zSession() se za požadavek volá víckrát, bez tohohle by se nepřihlášený ptal databáze pokaždé znovu.
      */
     private static ?string $cookieBezRadku = null;
 
@@ -93,13 +102,15 @@ final class TrvalePrihlaseni
         $selektor = self::novyToken();
         $token = self::novyToken();
         // Heslo se ověřovalo podle řádku přečteného dřív. Kdyby mezitím změna hesla nebo odhlášení ostatních
-        // zařízení smazala trvalá přihlášení, nový řádek by je přežil. INSERT … SELECT na řádek uživatele
-        // počká, dokud změna razítka nedoběhne, viz Uzivatel::zmenRazitkoPrihlaseni().
+        // zařízení smazala trvalá přihlášení, nový řádek by je přežil. Zamykající čtení řádku uživatele počká,
+        // dokud změna razítka nedoběhne, a pak vidí to nové, viz Uzivatel::zmenRazitkoPrihlaseni(). Bez
+        // LOCK IN SHARE MODE by INSERT … SELECT pod READ COMMITTED četl snímek bez zámku a vzal razítko staré.
         $vlozeno = dbQuery(<<<'SQL'
             INSERT INTO uzivatele_trvala_prihlaseni (id_uzivatele, selektor_hash, token_hash)
             SELECT id_uzivatele, $3, $1
             FROM uzivatele_hodnoty
             WHERE id_uzivatele = $0 AND razitko_prihlaseni <=> $2
+            LOCK IN SHARE MODE
             SQL, [0 => $idUzivatele, 1 => self::hash($token), 2 => $razitko, 3 => self::hash($selektor)]);
         if (dbAffectedOrNumRows($vlozeno) !== 1) {
             return null;
@@ -113,18 +124,23 @@ final class TrvalePrihlaseni
     /**
      * Přihlášení cookie tohoto prohlížeče. Platný token zároveň vymění za nový.
      *
-     * Cookie, která žádný řádek nenajde, v prohlížeči zůstane: tabulka může být jen chvíli prázdná,
+     * Cookie, která žádný řádek nenajde (zrušený odhlášením, vypršelý), z prohlížeče zmizí, jinak by se každý
+     * požadavek ptal databáze ještě rok. V prohlížeči zůstane jen v prázdné tabulce: ta bývá chvíli prázdná,
      * třeba během kopie databáze na betě, a smazaná cookie by přihlášení zrušila napořád.
      *
-     * Výjimka je cookie, jejíž řádek existuje, ale token už neplatí (vyměněný dřív než před chvílí): tu nese jen
-     * ukradená nebo zapomenutá kopie, a kdo z těch dvou token vyměnil první, se nepozná. Uživatel je proto odhlášen
-     * všude, i z běžící session toho druhého, viz {@see self::odhlasPoZneuziti()}.
+     * Cookie, jejíž řádek existuje, ale token je vyměněný víckrát zpět, nese jen ukradená nebo zapomenutá kopie,
+     * a kdo z těch dvou token vyměnil první, se nepozná. Uživatel je proto odhlášen všude, i z běžící session toho
+     * druhého, viz {@see self::odhlasPoZneuziti()}.
+     *
+     * Token vyměněný jen jednou zpět, a ne před chvílí, nese nejspíš prohlížeč, kterému se ztratila odpověď
+     * s výměnou. Takové trvalé přihlášení jen skončí s varováním, ostatní zařízení zůstanou přihlášená,
+     * viz {@see self::ukonciZastarale()}.
      *
      * Cookie novější než její řádek (databáze obnovená ze zálohy) kopie není: jen zmizí z prohlížeče, token
      * řádku už nikdo nenese. Řádek zůstane, dokud nevyprší, takže taková cookie nikomu nic nezruší.
      *
-     * Když už cookie nejde poslat (výstup začal), token se nevymění: prohlížeč by nesl ten starý a příště
-     * by vypadal jako kopie. Vymění ho další požadavek.
+     * Když už cookie nejde poslat (výstup začal), nepřihlásí: nový token, token pro e-shop ani smazání cookie by
+     * do prohlížeče nedošly. Přihlásí další požadavek.
      *
      * @return array{id: int, id_uzivatele: int, razitko: string|null}|null id trvalého přihlášení, koho
      *     přihlásit a jeho razítko přihlášení, přečtené stejným dotazem jako řádek: dokud řádek existuje,
@@ -133,17 +149,29 @@ final class TrvalePrihlaseni
     public static function uplatniCookie(): ?array
     {
         $cookie = self::getCookie();
-        if ($cookie === null || $cookie['hodnota'] === self::$cookieBezRadku) {
+        if ($cookie === null
+            || $cookie['hodnota'] === self::$cookieBezRadku
+            || ! self::isCookieMoznePoslat()
+        ) {
             return null;
         }
         $prihlaseni = self::najdi($cookie);
         if ($prihlaseni === null) {
-            self::$cookieBezRadku = $cookie['hodnota'];
+            if (self::isTabulkaPrazdna()) {
+                self::$cookieBezRadku = $cookie['hodnota'];
+            } else {
+                self::smazCookie();
+            }
 
             return null;
         }
         if ($prihlaseni['stav'] === self::STAV_ZNEUZITY) {
             self::odhlasPoZneuziti($prihlaseni['id_uzivatele']);
+
+            return null;
+        }
+        if ($prihlaseni['stav'] === self::STAV_ZASTARALY) {
+            self::ukonciZastarale($prihlaseni['id'], $cookie);
 
             return null;
         }
@@ -154,7 +182,6 @@ final class TrvalePrihlaseni
         }
 
         if ($prihlaseni['stav'] === self::STAV_AKTUALNI
-            && self::isCookieMoznePoslat()
             && ! self::vymenToken($prihlaseni, $cookie)
         ) {
             // Souběžný požadavek token mezitím vyměnil, nový se dá odvodit jen z jeho řádku. Když řádek
@@ -195,13 +222,15 @@ final class TrvalePrihlaseni
      * útočník odvodil z předchozího tokenu, tak přestane platit taky, a už nenajde ani řádek: zloděj se starou kopií
      * by jinak tohle zařízení odhlásil jako zneužité.
      *
+     * Cookie jiného uživatele (po „Přihlásit se jako“ nese prohlížeč cookie toho, kdo se přepnul) toto zařízení
+     * neurčuje: jeho řádek patří tomu druhému a tahle operace na něj nesahá.
+     *
      * @return string|null nová cookie tohoto zařízení, null když žádné trvalé přihlášení nemá. Prohlížeči ji pošle až
-     *     {@see self::predejCookieTomutoZarizeni()} po commitu: po rollbacku by prohlížeč nesl cookie, která žádný
-     *     řádek nemá.
+     *     {@see self::posliCookie()} po commitu: po rollbacku by prohlížeč nesl cookie, která žádný řádek nemá.
      */
     public static function zrusNaOstatnichZarizenich(int $idUzivatele): ?string
     {
-        $idTohoto = self::getIdZCookie();
+        $idTohoto = self::getIdZCookie($idUzivatele);
         dbQuery(<<<'SQL'
             DELETE FROM uzivatele_trvala_prihlaseni
             WHERE id_uzivatele = $0 AND id != $1
@@ -219,19 +248,12 @@ final class TrvalePrihlaseni
                 predchozi_token_hash = NULL,
                 sul_tokenu = NULL,
                 pocet_vymen = 0,
+                vymeneno_unix = NULL,
                 naposledy_pouzito = NOW()
             WHERE id = $0
             SQL, [0 => $idTohoto, 1 => self::hash($novyToken), 2 => self::hash($novySelektor)]);
 
         return self::sestavCookie($novySelektor, 0, $novyToken);
-    }
-
-    /**
-     * @param string $cookie cookie z {@see self::zrusNaOstatnichZarizenich()}, až když je její řádek commitnutý
-     */
-    public static function predejCookieTomutoZarizeni(string $cookie): void
-    {
-        self::posliCookie($cookie);
     }
 
     public static function zrusVsude(int $idUzivatele): void
@@ -259,6 +281,34 @@ final class TrvalePrihlaseni
         );
     }
 
+    /**
+     * Kdo nese token o jednu výměnu pozadu, se nepozná: prohlížeč, kterému se ztratila odpověď s výměnou, nebo kopie
+     * cookie. Skončí proto jen tohle trvalé přihlášení, ať nový token nese kdokoli, a majitel se přihlásí heslem.
+     * Odhlásit všude jako po zneužití by kvůli zavřené kartě odhlásilo i ostatní zařízení; běžící session toho, kdo
+     * token vyměnil, tak skončí až sama, nebo s odhlášením ostatních zařízení. Proto varování: bez něj by majitel,
+     * kterého předběhl zloděj, vypadal jen odhlášený a neměl důvod ostatní zařízení odhlásit.
+     *
+     * Řádek smaže, jen když je pořád ve stavu, který přečetl {@see self::najdi()}: „Odhlásit ostatní zařízení“
+     * mu mezitím mohlo dát nový selektor i token právě proto, aby staré kopie přestaly platit, a ten by stará kopie
+     * jinak smazala.
+     *
+     * @param array{token: string} $cookie cookie s tokenem o jednu výměnu pozadu
+     */
+    private static function ukonciZastarale(int $id, array $cookie): void
+    {
+        dbQuery(<<<'SQL'
+            DELETE FROM uzivatele_trvala_prihlaseni
+            WHERE id = $0 AND predchozi_token_hash = $1
+            SQL, [0 => $id, 1 => self::hash($cookie['token'])]);
+        self::smazCookie();
+        \Chyba::nastav(
+            'Trvalé přihlášení v tomto prohlížeči skončilo, přihlas se prosím znovu. Obvykle se to stane, když '
+            . 'zavřeš stránku během načítání. Mohl ho ale použít i jiný prohlížeč: jestli to nečekáš, odhlas po '
+            . 'přihlášení v Nastavení ostatní zařízení.',
+            \Chyba::VAROVANI,
+        );
+    }
+
     private static function smazTotoZarizeni(?int $idTohoto): void
     {
         $idTohotoZarizeni = array_filter([self::getIdZCookie(), $idTohoto]);
@@ -274,8 +324,10 @@ final class TrvalePrihlaseni
     /**
      * Cookie, jejíž token k řádku nesedí, toto zařízení neurčuje: starou kopii může nést kdokoli a řádek
      * patří majiteli.
+     *
+     * @param int|null $idUzivatele jen trvalé přihlášení tohoto uživatele, null kohokoli
      */
-    private static function getIdZCookie(): ?int
+    private static function getIdZCookie(?int $idUzivatele = null): ?int
     {
         $cookie = self::getCookie();
         if ($cookie === null) {
@@ -284,21 +336,33 @@ final class TrvalePrihlaseni
         $prihlaseni = self::najdi($cookie);
 
         return $prihlaseni !== null
+            && ($idUzivatele === null || $prihlaseni['id_uzivatele'] === $idUzivatele)
             && in_array($prihlaseni['stav'], [self::STAV_AKTUALNI, self::STAV_PREDCHOZI], true)
             ? $prihlaseni['id']
             : null;
     }
 
     /**
+     * Tabulka bez jediného řádku: třeba během kopie databáze na betě, ne po odhlášení.
+     */
+    private static function isTabulkaPrazdna(): bool
+    {
+        return dbOneCol(<<<'SQL'
+            SELECT 1 FROM uzivatele_trvala_prihlaseni LIMIT 1
+            SQL) === null;
+    }
+
+    /**
      * Trvalé přihlášení, ke kterému patří cookie, a co o něm její token říká (stav). Řádek se hledá hashem
      * selektoru, token se porovná až v PHP: i špatný token u existujícího řádku je zpráva, že cookie nesou dva,
-     * ledaže je cookie novější než řádek ({@see self::STAV_NOVEJSI_NEZ_RADEK}).
+     * ledaže je cookie novější než řádek ({@see self::STAV_NOVEJSI_NEZ_RADEK}) nebo jen o jednu výměnu pozadu
+     * ({@see self::STAV_ZASTARALY}).
      *
-     * Cookie bez selektoru (převedená migrací) najde řádek jen tokenem, aktuálním nebo předchozím. Zneužití se
-     * u ní proto pozná jen jednu výměnu zpět; první výměna dá řádku selektor.
+     * Cookie bez selektoru (převedená migrací) najde řádek jen tokenem, aktuálním nebo předchozím, zneužití se
+     * u ní proto nepozná; první výměna dá řádku selektor.
      *
-     * Předchozí token platí jen chvíli po výměně: cookie mohla přijít ze souběžného požadavku, ale starší kopie
-     * už je ukradená nebo zapomenutá.
+     * Předchozí token přihlásí jen chvíli po výměně: cookie mohla přijít ze souběžného požadavku. Chvíle se
+     * měří v sekundách od epochy, ne v místním čase: ten při změně letního času skočí o hodinu.
      *
      * @param array{selektor: string|null, pocet_vymen: int, token: string} $cookie
      *
@@ -316,7 +380,7 @@ final class TrvalePrihlaseni
                 uzivatele_trvala_prihlaseni.predchozi_token_hash,
                 uzivatele_trvala_prihlaseni.sul_tokenu,
                 uzivatele_trvala_prihlaseni.pocet_vymen,
-                uzivatele_trvala_prihlaseni.naposledy_pouzito >= NOW() - INTERVAL $3 SECOND AS predchozi_token_plati,
+                uzivatele_trvala_prihlaseni.vymeneno_unix >= UNIX_TIMESTAMP() - $3 AS predchozi_token_plati,
                 uzivatele_hodnoty.razitko_prihlaseni AS razitko
             FROM uzivatele_trvala_prihlaseni
             JOIN uzivatele_hodnoty ON uzivatele_hodnoty.id_uzivatele = uzivatele_trvala_prihlaseni.id_uzivatele
@@ -343,8 +407,9 @@ final class TrvalePrihlaseni
         }
         $stav = match (true) {
             $prihlaseni['token_hash'] === $hash => self::STAV_AKTUALNI,
-            $prihlaseni['predchozi_token_hash'] === $hash
-                && (bool) $prihlaseni['predchozi_token_plati'] => self::STAV_PREDCHOZI,
+            $prihlaseni['predchozi_token_hash'] === $hash => (bool) $prihlaseni['predchozi_token_plati']
+                ? self::STAV_PREDCHOZI
+                : self::STAV_ZASTARALY,
             $cookie['selektor'] !== null
                 && $cookie['pocet_vymen'] > (int) $prihlaseni['pocet_vymen'] => self::STAV_NOVEJSI_NEZ_RADEK,
             default                                            => self::STAV_ZNEUZITY,
@@ -388,6 +453,7 @@ final class TrvalePrihlaseni
                 sul_tokenu = $2,
                 selektor_hash = $4,
                 pocet_vymen = pocet_vymen + 1,
+                vymeneno_unix = UNIX_TIMESTAMP(),
                 naposledy_pouzito = NOW()
             WHERE id = $0 AND token_hash = $3
             SQL, [
@@ -508,8 +574,10 @@ final class TrvalePrihlaseni
      *
      * Bez domény, tedy jen pro tento host: session cookie platí pro celou doménu, i pro betu, preview
      * a archivy, a token tam nemá co dělat. Secure podle session cookie, ta ví, kdy jde o HTTPS.
+     *
+     * @param string $hodnota cookie, jejíž řádek je commitnutý, třeba z {@see self::zrusNaOstatnichZarizenich()}
      */
-    private static function posliCookie(string $hodnota): void
+    public static function posliCookie(string $hodnota): void
     {
         if ($hodnota === '') {
             unset($_COOKIE[self::COOKIE]);

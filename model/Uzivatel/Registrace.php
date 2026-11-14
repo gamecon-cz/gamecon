@@ -71,7 +71,7 @@ class Registrace
 
     public function zpracujOdhlaseniOstatnichZarizeni(): void
     {
-        if (! post('odhlasitOstatniZarizeni') || ! $this->u) {
+        if (! $this->u || ! post('odhlasitOstatniZarizeni')) {
             return;
         }
         $this->u->odhlasNaOstatnichZarizenich();

@@ -15,6 +15,8 @@ declare(strict_types=1);
 // from after the dump the database was restored from, not from a copy.
 // predchozi_token_hash keeps the token replaced at the last use for a moment, and the new token is derived from it
 // with sul_tokenu, so concurrent requests with the replaced one get the same new token, see TrvalePrihlaseni.
+// vymeneno_unix is when the token was replaced, in seconds since the epoch: the replaced token logs in only for a moment
+// afterwards, and a moment measured in local DATETIME breaks when the daylight-saving time changes.
 // Every statement may run twice: the preview of the branch ran older versions of this migration under other names.
 $this->q(<<<'SQL'
 CREATE TABLE IF NOT EXISTS uzivatele_trvala_prihlaseni
@@ -26,6 +28,7 @@ CREATE TABLE IF NOT EXISTS uzivatele_trvala_prihlaseni
     predchozi_token_hash CHAR(64)                     DEFAULT NULL,
     sul_tokenu           CHAR(64)                     DEFAULT NULL,
     pocet_vymen          INT UNSIGNED        NOT NULL DEFAULT 0,
+    vymeneno_unix        INT UNSIGNED                 DEFAULT NULL,
     vytvoreno            DATETIME            NOT NULL DEFAULT current_timestamp(),
     naposledy_pouzito    DATETIME            NOT NULL DEFAULT current_timestamp(),
     PRIMARY KEY (id),
@@ -46,7 +49,18 @@ ALTER TABLE uzivatele_trvala_prihlaseni
     ADD COLUMN IF NOT EXISTS sul_tokenu CHAR(64) DEFAULT NULL AFTER predchozi_token_hash,
     ADD COLUMN IF NOT EXISTS selektor_hash CHAR(64) DEFAULT NULL AFTER id_uzivatele,
     ADD COLUMN IF NOT EXISTS pocet_vymen INT UNSIGNED NOT NULL DEFAULT 0 AFTER sul_tokenu,
+    ADD COLUMN IF NOT EXISTS vymeneno_unix INT UNSIGNED DEFAULT NULL AFTER pocet_vymen,
     ADD UNIQUE KEY IF NOT EXISTS selektor_hash (selektor_hash)
+SQL,
+);
+
+// The preview measured the moment after the replacement by naposledy_pouzito, which the replacement set too. Without
+// the time of the replacement, a concurrent tab with the replaced token would count as a lost response and end the login.
+$this->q(<<<'SQL'
+UPDATE uzivatele_trvala_prihlaseni
+SET vymeneno_unix = UNIX_TIMESTAMP(naposledy_pouzito)
+WHERE predchozi_token_hash IS NOT NULL
+    AND vymeneno_unix IS NULL
 SQL,
 );
 
