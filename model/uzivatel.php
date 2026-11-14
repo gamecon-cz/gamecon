@@ -66,13 +66,13 @@ class Uzivatel extends DbObject
      * Razítko NULL se nekontroluje: uživatel ho ještě nevyměnil, takže platí i session z doby
      * před nasazením, které razítko nemají.
      */
-    private const string RAZITKO_PRIHLASENI = 'razitko_prihlaseni';
+    private const string SESSION_RAZITKO_PRIHLASENI = 'razitko_prihlaseni';
 
     /**
      * Klíč v session pod {@see self::UZIVATEL}: id trvalého přihlášení tohoto prohlížeče, aby ho zrušilo
      * i odhlášení v adminu, který cookie trvalého přihlášení nevidí.
      */
-    private const string ID_TRVALEHO_PRIHLASENI = 'id_trvaleho_prihlaseni';
+    private const string SESSION_ID_TRVALEHO_PRIHLASENI = 'id_trvaleho_prihlaseni';
 
     /**
      * Sloupce tabulky uzivatele_hodnoty, jejichž změny se auditují do
@@ -1609,7 +1609,7 @@ SQL,
         // prohlížeče jsou jeho. Uživateli, na kterého se přepnul, odhlášení na jeho zařízeních nic nezruší.
         $odhlasovany = PrepnutiNaUzivatele::zSession()->getPuvodniUzivatel() ?? $this;
         // Než zmizí session: když to selže, odhlášení jde zopakovat.
-        TrvalePrihlaseni::zrusNaTomtoZarizeni($_SESSION[self::UZIVATEL][self::ID_TRVALEHO_PRIHLASENI] ?? null);
+        TrvalePrihlaseni::zrusNaTomtoZarizeni($_SESSION[self::UZIVATEL][self::SESSION_ID_TRVALEHO_PRIHLASENI] ?? null);
         $a = $odhlasovany->koncovkaDlePohlavi();
         $odhlasovany->smazUlozenyJwtTohotoProhlizece();
         $odhlasovany->odhlasProTed();
@@ -1671,7 +1671,6 @@ SQL,
             dbRollback();
             throw $throwable;
         }
-
         return function () use ($ponechatTotoZarizeni, $sloupce, $razitko, $novaCookieTohotoZarizeni): void {
             $this->r = array_merge($this->r, $sloupce, [Sql::RAZITKO_PRIHLASENI => $razitko]);
             // Session první: nové razítko je už commitnuté, a kdyby cookie nebo token pro e-shop selhaly,
@@ -1679,10 +1678,10 @@ SQL,
             $totoZarizeniZustava = $ponechatTotoZarizeni
                 && (int) ($_SESSION[self::UZIVATEL]['id_uzivatele'] ?? 0) === $this->id();
             if ($totoZarizeniZustava) {
-                $_SESSION[self::UZIVATEL][self::RAZITKO_PRIHLASENI] = $razitko;
+                $_SESSION[self::UZIVATEL][self::SESSION_RAZITKO_PRIHLASENI] = $razitko;
             }
             if ($novaCookieTohotoZarizeni !== null) {
-                TrvalePrihlaseni::predejCookieTomutoZarizeni($novaCookieTohotoZarizeni);
+                TrvalePrihlaseni::posliCookie($novaCookieTohotoZarizeni);
             }
             // Po „Přihlásit se jako“ nese tento prohlížeč JWT toho, kdo se přepnul, token uživatele by mu ho přepsal.
             if ($totoZarizeniZustava && ! PrepnutiNaUzivatele::zSession()->isPrepnuto()) {
@@ -1817,8 +1816,8 @@ SQL,
             $razitkoPrepnutoZ = PrepnutiNaUzivatele::zSession()->getRazitkoPuvodnihoUzivatele();
             // Jak se tento prohlížeč přihlásil, otočení nemění. Razítko z DB, které vezme prihlasId(), by přihlásilo
             // znovu session, kterou mezitím odhlásilo jiné zařízení.
-            $razitko = $_SESSION[self::UZIVATEL][self::RAZITKO_PRIHLASENI] ?? null;
-            $idTrvalehoPrihlaseni = $_SESSION[self::UZIVATEL][self::ID_TRVALEHO_PRIHLASENI] ?? null;
+            $razitko = $_SESSION[self::UZIVATEL][self::SESSION_RAZITKO_PRIHLASENI] ?? null;
+            $idTrvalehoPrihlaseni = $_SESSION[self::UZIVATEL][self::SESSION_ID_TRVALEHO_PRIHLASENI] ?? null;
             // ponech případnou cookie pro trvalé přihášení
             $this->odhlasProTed(smazatJwt: $idPrepnutoZ === null);
         } else { // pokud je speciální, pouze přemažeme položku v session
@@ -2022,7 +2021,7 @@ SQL,
      */
     public static function getRazitkoPrihlaseniZSession(): ?string
     {
-        return $_SESSION[self::UZIVATEL][self::RAZITKO_PRIHLASENI] ?? null;
+        return $_SESSION[self::UZIVATEL][self::SESSION_RAZITKO_PRIHLASENI] ?? null;
     }
 
     /**
@@ -2050,7 +2049,7 @@ SQL,
     }
 
     /**
-     * Razítko NULL v DB se nekontroluje, viz {@see self::RAZITKO_PRIHLASENI}.
+     * Razítko NULL v DB se nekontroluje, viz {@see self::SESSION_RAZITKO_PRIHLASENI}.
      */
     private static function isRazitkoPlatne(?string $razitkoVDb, ?string $razitkoSession): bool
     {
@@ -2069,7 +2068,9 @@ SQL,
         if ($idPuvodniho === null) {
             return true;
         }
-        // Jen razítko: zSession() se za požadavek volá víckrát a celý uživatel s rolemi a právy tu není potřeba.
+        // Jen razítko, celý uživatel s rolemi a právy tu není potřeba. Výsledek se do konce požadavku nepamatuje:
+        // zSession() stejně při každém volání načítá celého uživatele, a zapamatovaný by musel zapomenout každý,
+        // kdo mění razítko nebo maže uživatele.
         $puvodni = dbOneLine(<<<'SQL'
             SELECT razitko_prihlaseni FROM uzivatele_hodnoty WHERE id_uzivatele = $0
             SQL, [0 => $idPuvodniho]);
@@ -2117,10 +2118,10 @@ SQL,
     ) {
         $u = self::prihlas($login, $heslo);
         if ($u) {
-            $_SESSION[self::UZIVATEL][self::ID_TRVALEHO_PRIHLASENI] = TrvalePrihlaseni::zaloz(
+            $_SESSION[self::UZIVATEL][self::SESSION_ID_TRVALEHO_PRIHLASENI] = TrvalePrihlaseni::zaloz(
                 $u->id(),
                 $u->r[Sql::RAZITKO_PRIHLASENI],
-                $_SESSION[self::UZIVATEL][self::ID_TRVALEHO_PRIHLASENI] ?? null,
+                $_SESSION[self::UZIVATEL][self::SESSION_ID_TRVALEHO_PRIHLASENI] ?? null,
             );
         }
 
@@ -2146,7 +2147,7 @@ SQL,
         $uzivatelData['id_uzivatele'] = $idUzivatele;
         $_SESSION[$klic]['id_uzivatele'] = $idUzivatele;
         if ($klic === self::UZIVATEL) {
-            $_SESSION[$klic][self::RAZITKO_PRIHLASENI] = $uzivatelData[Sql::RAZITKO_PRIHLASENI];
+            $_SESSION[$klic][self::SESSION_RAZITKO_PRIHLASENI] = $uzivatelData[Sql::RAZITKO_PRIHLASENI];
         }
         // načtení uživatelských práv, inicializace nutná, aby nepadala výjimka pro uživatele bez práv
         $uzivatelData['prava'] = array_map('intval', dbFetchColumn(<<<'SQL'
@@ -2173,8 +2174,8 @@ SQL,
      */
     private static function obnovPrihlaseni(?string $razitko, ?int $idTrvalehoPrihlaseni): void
     {
-        $_SESSION[self::UZIVATEL][self::RAZITKO_PRIHLASENI] = $razitko;
-        $_SESSION[self::UZIVATEL][self::ID_TRVALEHO_PRIHLASENI] = $idTrvalehoPrihlaseni;
+        $_SESSION[self::UZIVATEL][self::SESSION_RAZITKO_PRIHLASENI] = $razitko;
+        $_SESSION[self::UZIVATEL][self::SESSION_ID_TRVALEHO_PRIHLASENI] = $idTrvalehoPrihlaseni;
     }
 
     /**
