@@ -185,24 +185,34 @@ class Report
     /**
      * Vytiskne report jako CSV
      */
-    public function tCsv(string $nazevReportu = null)
-    {
+    public function tCsv(
+        string              $nazevReportu = null,
+        ?KonfiguraceReportu $konfiguraceReportu = null,
+    ) {
+        $odstranitTagy = $konfiguraceReportu?->isStrippingTagsInCsv() ?? true;
         $fileName = $this->nazevSouboru('csv', $nazevReportu);
         header('Content-type: application/csv; charset=utf-8');
         header('Content-Disposition: attachment; filename="' . $fileName . '"');
         echo(chr(0xEF) . chr(0xBB) . chr(0xBF)); //BOM bajty pro nastavení UTF-8 ve výsledném souboru
         $out = fopen('php://output', 'wb'); //získáme filedescriptor výstupu stránky pro použití v fputcsv
-        $this->zapisCsvRadek($out, $this->hlavicky());
+        $this->zapisCsvRadek($out, $this->hlavicky(), $odstranitTagy);
         while ($radek = $this->radek()) {
-            $this->zapisCsvRadek($out, $radek);
+            $this->zapisCsvRadek($out, $radek, $odstranitTagy);
         }
     }
 
     private function zapisCsvRadek(
         $stream,
         array $radek,
+        bool  $odstranitTagy,
     ) {
-        fputcsv($stream, $this->odstranTagyZPole($radek), $this->csvSeparator);
+        fputcsv(
+            $stream,
+            $odstranitTagy
+                ? $this->odstranTagyZPole($radek)
+                : $radek,
+            $this->csvSeparator,
+        );
     }
 
     private function odstranTagyZPole(array $values): array
@@ -230,7 +240,7 @@ class Report
         if (!$format || $format === 'xlsx') {
             $this->tXlsx($nazev, $konfiguraceReportu);
         } elseif ($format === 'csv') {
-            $this->tCsv($nazev);
+            $this->tCsv($nazev, $konfiguraceReportu);
         } elseif ($format === 'html') {
             $this->tHtml();
         } else {
