@@ -19,6 +19,7 @@ class KonfiguraceReportu
     private $columnsWidths = [];
     private ?string $destinationFile = null;
     private bool $useStringCellsOnly = false;
+    private bool $stripTagsInCsv = true;
 
     public function getHeaderFontSize(): int
     {
@@ -122,5 +123,21 @@ class KonfiguraceReportu
     public function setUseStringCellsOnly(bool $useStringCellsOnly): void
     {
         $this->useStringCellsOnly = $useStringCellsOnly;
+    }
+
+    public function isStrippingTagsInCsv(): bool
+    {
+        return $this->stripTagsInCsv;
+    }
+
+    /**
+     * CSV odstraňuje HTML značky, protože reporty z SQL dávají do buněk odkazy. Report s textem
+     * od uživatelů je vypne, jinak by z přezdívky „<3 Lucka“ zbyl prázdný řetězec.
+     */
+    public function setStrippingTagsInCsv(bool $stripTagsInCsv): self
+    {
+        $this->stripTagsInCsv = $stripTagsInCsv;
+
+        return $this;
     }
 }
