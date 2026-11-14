@@ -26,6 +26,7 @@ use Gamecon\Uzivatel\Medailonek;
 use Gamecon\Uzivatel\Pohlavi;
 use Gamecon\Uzivatel\PrepnutiNaUzivatele;
 use Gamecon\Uzivatel\SqlStruktura\UzivateleHodnotySqlStruktura as Sql;
+use Gamecon\Uzivatel\TrvalePrihlaseni;
 use Gamecon\Uzivatel\UserController;
 use Gamecon\Uzivatel\UserRepository;
 use Gamecon\Uzivatel\UzivatelSlucovani;
@@ -56,6 +57,22 @@ class Uzivatel extends DbObject
 
     public const UZIVATEL_PRACOVNI = 'uzivatel_pracovni';
     public const UZIVATEL = 'uzivatel';
+
+    /**
+     * Klíč v session pod {@see self::UZIVATEL}: hodnota sloupce `razitko_prihlaseni` v okamžiku přihlášení.
+     * Odhlášení ostatních zařízení a změna hesla razítko vymění, a tím ukončí session všude,
+     * kde si ho nepřepíšou na nové. Viz {@see self::zmenRazitkoPrihlaseni()}.
+     *
+     * Razítko NULL se nekontroluje: uživatel ho ještě nevyměnil, takže platí i session z doby
+     * před nasazením, které razítko nemají.
+     */
+    private const string SESSION_RAZITKO_PRIHLASENI = 'razitko_prihlaseni';
+
+    /**
+     * Klíč v session pod {@see self::UZIVATEL}: id trvalého přihlášení tohoto prohlížeče, aby ho zrušilo
+     * i odhlášení v adminu, který cookie trvalého přihlášení nevidí.
+     */
+    private const string SESSION_ID_TRVALEHO_PRIHLASENI = 'id_trvaleho_prihlaseni';
 
     /**
      * Sloupce tabulky uzivatele_hodnoty, jejichž změny se auditují do
@@ -982,10 +999,8 @@ SQL,
             [Sql::HESLO_MD5 => $this->r[Sql::HESLO_MD5] ?? null],
             zdroj: $zdroj,
         );
-        dbQuery(
-            'UPDATE uzivatele_hodnoty SET heslo_md5 = $1, random = $3 WHERE id_uzivatele = $2',
-            [$novyHash, $this->id(), randHex(20)],
-        );
+        // Odhlásí i prohlížeč, ve kterém se heslo obnovuje: přihlásí se novým.
+        $this->zmenRazitkoPrihlaseni(ponechatTotoZarizeni: false, sloupce: [Sql::HESLO_MD5 => $novyHash]);
     }
 
     /**
@@ -1585,20 +1600,19 @@ SQL,
         return $this->r[Sql::LOGIN_UZIVATELE];
     }
 
-    /** Odhlásí aktuálně přihlášeného uživatele, pokud není přihlášen, nic
+    /**
+     * Odhlásí aktuálně přihlášeného uživatele na tomto zařízení, ostatní zůstanou přihlášená.
      */
     public function odhlas(bool $naUvodniStranku = true)
     {
-        // Po „Přihlásit se jako“ se odhlašuje ten, kdo sedí u zařízení. Uživateli, na kterého se přepnul, by
-        // odhlášení zrušilo trvalé přihlášení a JWT i na jeho vlastních zařízeních.
+        // Po „Přihlásit se jako“ se odhlašuje ten, kdo sedí u zařízení: session, trvalé přihlášení i JWT tohoto
+        // prohlížeče jsou jeho. Uživateli, na kterého se přepnul, odhlášení na jeho zařízeních nic nezruší.
         $odhlasovany = PrepnutiNaUzivatele::zSession()->getPuvodniUzivatel() ?? $this;
         // Než zmizí session: když to selže, odhlášení jde zopakovat.
-        $odhlasovany->zneplatniTrvalePrihlaseni();
+        TrvalePrihlaseni::zrusNaTomtoZarizeni($_SESSION[self::UZIVATEL][self::SESSION_ID_TRVALEHO_PRIHLASENI] ?? null);
         $a = $odhlasovany->koncovkaDlePohlavi();
+        $odhlasovany->smazUlozenyJwtTohotoProhlizece();
         $odhlasovany->odhlasProTed();
-        if (isset($_COOKIE['gcTrvalePrihlaseni'])) {
-            setcookie('gcTrvalePrihlaseni', '', 0, '/');
-        }
         oznameni("Byl{$a} jsi odhlášen{$a}", false);
         if ($naUvodniStranku) {
             back(URL_WEBU);
@@ -1606,16 +1620,102 @@ SQL,
     }
 
     /**
-     * Cookie trvalého přihlášení nese hodnotu uloženou i v DB, takže její smazání v prohlížeči
-     * nestačí: kopie by dál přihlašovala. Token je jen jeden na uživatele, takže odhlášení
-     * a změna hesla ruší trvalé přihlášení na všech zařízeních.
+     * Ostatní zařízení přijdou o běžící session i o trvalé přihlášení, tohle zůstane přihlášené.
      */
-    private function zneplatniTrvalePrihlaseni(): void
+    public function odhlasNaOstatnichZarizenich(): void
     {
-        dbQuery(
-            'UPDATE uzivatele_hodnoty SET random = $0 WHERE id_uzivatele = $1',
-            [randHex(20), $this->id()],
-        );
+        $this->zmenRazitkoPrihlaseni(ponechatTotoZarizeni: true);
+    }
+
+    /**
+     * Vymění razítko přihlášení, čímž skončí běžící session uživatele, a zruší jeho trvalá přihlášení.
+     *
+     * @param bool                 $ponechatTotoZarizeni session a trvalé přihlášení tohoto prohlížeče zůstanou
+     * @param array<string, mixed> $sloupce              další sloupce zapsané stejným dotazem jako razítko, třeba nové
+     *                                                   heslo, aby nevzniklo okno, kdy se starým ještě běží ostatní session
+     */
+    public function zmenRazitkoPrihlaseni(bool $ponechatTotoZarizeni, array $sloupce = []): void
+    {
+        $this->pripravZmenuRazitkaPrihlaseni($ponechatTotoZarizeni, $sloupce)();
+    }
+
+    /**
+     * Zápis {@see self::zmenRazitkoPrihlaseni()} do DB pro toho, kdo ho dělá uvnitř vlastní transakce (sloučení
+     * účtů). Co se rollbackem nevrátí (session, cookie, token pro e-shop, data tohoto objektu), udělá až vrácená
+     * funkce: volá se po commitu, po rollbacku vůbec.
+     *
+     * @param array<string, mixed> $sloupce
+     *
+     * @return \Closure(): void
+     */
+    public function pripravZmenuRazitkaPrihlaseni(bool $ponechatTotoZarizeni, array $sloupce = []): Closure
+    {
+        $razitko = randHex(32);
+        $novaCookieTohotoZarizeni = null;
+        // Razítko i trvalá přihlášení naráz. Přihlášení z cookie čte razítko stejným dotazem jako svůj řádek,
+        // takže uvidí buď řádek se starým razítkem (session skončí s dalším požadavkem), nebo ani jedno.
+        // Razítko první: zámek řádku uživatele pozdrží trvalé přihlášení heslem ověřeným proti starému
+        // razítku, dokud se nezmění, a to pak řádek nezaloží, viz TrvalePrihlaseni::zaloz().
+        dbBegin();
+        try {
+            dbUpdate(Sql::UZIVATELE_HODNOTY_TABULKA, [...$sloupce, Sql::RAZITKO_PRIHLASENI => $razitko], [
+                Sql::ID_UZIVATELE => $this->id(),
+            ]);
+            if ($ponechatTotoZarizeni) {
+                $novaCookieTohotoZarizeni = TrvalePrihlaseni::zrusNaOstatnichZarizenich($this->id());
+            } else {
+                TrvalePrihlaseni::zrusVsude($this->id());
+            }
+            dbCommit();
+        } catch (Throwable $throwable) {
+            dbRollback();
+            throw $throwable;
+        }
+        return function () use ($ponechatTotoZarizeni, $sloupce, $razitko, $novaCookieTohotoZarizeni): void {
+            $this->r = array_merge($this->r, $sloupce, [Sql::RAZITKO_PRIHLASENI => $razitko]);
+            // Session první: nové razítko je už commitnuté, a kdyby cookie nebo token pro e-shop selhaly,
+            // zůstane tomuto zařízení aspoň ona.
+            $totoZarizeniZustava = $ponechatTotoZarizeni
+                && (int) ($_SESSION[self::UZIVATEL]['id_uzivatele'] ?? 0) === $this->id();
+            if ($totoZarizeniZustava) {
+                $_SESSION[self::UZIVATEL][self::SESSION_RAZITKO_PRIHLASENI] = $razitko;
+            }
+            if ($novaCookieTohotoZarizeni !== null) {
+                TrvalePrihlaseni::posliCookie($novaCookieTohotoZarizeni);
+            }
+            // Po „Přihlásit se jako“ nese tento prohlížeč JWT toho, kdo se přepnul, token uživatele by mu ho přepsal.
+            if ($totoZarizeniZustava && ! PrepnutiNaUzivatele::zSession()->isPrepnuto()) {
+                // Nový token pro e-shop přepíše uložený, kopie z ostatních zařízení s ním už nesedí.
+                self::generateJwtToken($this);
+            } else {
+                deleteStoredJwtForUser($this);
+            }
+        };
+    }
+
+    /**
+     * Uložený token pro e-shop je jeden na uživatele a patří zařízení, které se přihlásilo poslední. Je-li to
+     * tento prohlížeč, odhlášení ho smaže, jinak by kopie jeho cookie s uloženým seděla dál. Token jiného
+     * zařízení zůstane, smazat ho by odhlásilo e-shop tam.
+     */
+    private function smazUlozenyJwtTohotoProhlizece(): void
+    {
+        $jwtProhlizece = $_COOKIE['gamecon_jwt'] ?? null;
+        if (! is_string($jwtProhlizece) || $jwtProhlizece === '') {
+            return;
+        }
+        try {
+            $ulozenyJwt = (string) getJwtForUser($this);
+        } catch (Throwable $throwable) {
+            // Uložený token se nepodařilo přečíst (kernel Symfony, soubor s tokenem). Odhlášení kvůli tomu
+            // nesmí skončit chybou: session by zůstala a každý další pokus by dopadl stejně.
+            error_log('Uložený JWT se při odhlášení nepodařilo přečíst: ' . $throwable->getMessage());
+
+            return;
+        }
+        if (hash_equals($ulozenyJwt, $jwtProhlizece)) {
+            deleteStoredJwtForUser($this);
+        }
     }
 
     /**
@@ -1630,13 +1730,9 @@ SQL,
         }
         session_destroy();
         if ($smazatJwt) {
-            $this->destroyJwtToken();
+            // Jen kopii tohoto prohlížeče, o uložený token se stará smazUlozenyJwtTohotoProhlizece().
+            deleteJwtCookie();
         }
-    }
-
-    private function destroyJwtToken(): void
-    {
-        deleteJwtForUser($this);
     }
 
     private static function generateJwtToken(
@@ -1713,18 +1809,26 @@ SQL,
         $klic = $this->klic;
         // máme obnovit starou proměnnou pro id uživatele (otáčíme aktuálně přihlášeného uživatele)?
         $sesssionObnovit = (isset($_SESSION['id_uzivatele']) && $_SESSION['id_uzivatele'] === $this->id());
-        $idPrepnutoZ = null;
+        $idPrepnutoZ = $razitkoPrepnutoZ = $razitko = $idTrvalehoPrihlaseni = null;
         if ($klic === self::UZIVATEL) { // pokud je klíč default, zničíme celou session
             // kdo se na uživatele přepnul, sedí u zařízení dál
             $idPrepnutoZ = PrepnutiNaUzivatele::zSession()->getIdPuvodnihoUzivatele();
+            $razitkoPrepnutoZ = PrepnutiNaUzivatele::zSession()->getRazitkoPuvodnihoUzivatele();
+            // Jak se tento prohlížeč přihlásil, otočení nemění. Razítko z DB, které vezme prihlasId(), by přihlásilo
+            // znovu session, kterou mezitím odhlásilo jiné zařízení.
+            $razitko = $_SESSION[self::UZIVATEL][self::SESSION_RAZITKO_PRIHLASENI] ?? null;
+            $idTrvalehoPrihlaseni = $_SESSION[self::UZIVATEL][self::SESSION_ID_TRVALEHO_PRIHLASENI] ?? null;
             // ponech případnou cookie pro trvalé přihášení
             $this->odhlasProTed(smazatJwt: $idPrepnutoZ === null);
         } else { // pokud je speciální, pouze přemažeme položku v session
             self::odhlasKlic($klic);
         }
         $u = self::prihlasId($id, $klic, vytvoritJwt: $idPrepnutoZ === null);
+        if ($klic === self::UZIVATEL) {
+            self::obnovPrihlaseni($razitko, $idTrvalehoPrihlaseni);
+        }
         if ($idPrepnutoZ !== null) {
-            PrepnutiNaUzivatele::zSession()->zaznamenej($idPrepnutoZ);
+            PrepnutiNaUzivatele::zSession()->zaznamenej($idPrepnutoZ, $razitkoPrepnutoZ);
         }
         $this->r = $u->r;
         if ($sesssionObnovit) {
@@ -1870,34 +1974,12 @@ SQL,
             $uzivatelData['heslo_md5'] = $novyHash;
             dbQuery('UPDATE uzivatele_hodnoty SET heslo_md5 = $0 WHERE id_uzivatele = $1', [$novyHash, $uzivatelData['id_uzivatele']]);
         }
-        // přihlášení uživatele
-        // TODO refactorovat do jedné fce volané z dílčích prihlas* metod
-        $idUzivatele = (int) $uzivatelData['id_uzivatele'];
-        if (! session_id() && PHP_SAPI !== 'cli') {
-            session_start();
-        }
-        $uzivatelData['id_uzivatele'] = $idUzivatele;
-        $_SESSION[$klic]['id_uzivatele'] = $idUzivatele;
+
+        $uzivatel = self::prihlasDoSession($uzivatelData, $klic);
         if ($klic === self::UZIVATEL) {
+            // nové přihlášení začíná bez přepnutí, až po startu session, který by ho načetl znovu
             PrepnutiNaUzivatele::zSession()->zapomen();
         }
-        // načtení uživatelských práv
-        $p = dbQuery(<<<SQL
-SELECT id_prava
-FROM platne_role_uzivatelu
-    LEFT JOIN prava_role ON platne_role_uzivatelu.id_role = prava_role.id_role
-WHERE platne_role_uzivatelu.id_uzivatele={$idUzivatele}
-SQL,
-        );
-        $prava = []; // inicializace nutná, aby nepadala výjimka pro uživatele bez práv
-        while ($r = mysqli_fetch_assoc($p)) {
-            $prava[] = (int) $r['id_prava'];
-        }
-        $uzivatelData['prava'] = $prava;
-
-        $uzivatel = new self($uzivatelData);
-
-        self::generateJwtToken($uzivatel);
 
         return $uzivatel;
     }
@@ -1914,24 +1996,166 @@ SQL,
         $klic = self::UZIVATEL,
         bool $vytvoritJwt = true,
     ): ?self {
-        $idUzivatele = (int) $idUzivatele;
-        $uzivatelData = dbOneLine("SELECT * FROM uzivatele_hodnoty WHERE id_uzivatele={$idUzivatele}");
-        if (! $uzivatelData) {
+        $uzivatelData = self::nactiDataProPrihlaseni((int) $idUzivatele);
+        if ($uzivatelData === null) {
             return null;
         }
-        if (! session_id()) {
+
+        return self::prihlasDoSession($uzivatelData, $klic, $vytvoritJwt);
+    }
+
+    /**
+     * @return array<string, mixed>|null řádek uzivatele_hodnoty, ze kterého vznikne session, null když uživatel není
+     */
+    private static function nactiDataProPrihlaseni(int $idUzivatele): ?array
+    {
+        $uzivatelData = dbOneLine(<<<'SQL'
+            SELECT * FROM uzivatele_hodnoty WHERE id_uzivatele = $0
+            SQL, [0 => $idUzivatele]);
+
+        return $uzivatelData ?: null;
+    }
+
+    /**
+     * Razítko přihlášení, se kterým platí session tohoto prohlížeče, viz {@see self::zSession()}.
+     */
+    public static function getRazitkoPrihlaseniZSession(): ?string
+    {
+        return $_SESSION[self::UZIVATEL][self::SESSION_RAZITKO_PRIHLASENI] ?? null;
+    }
+
+    /**
+     * Přihlásí znovu toho, kdo se v tomto prohlížeči přihlásil s razítkem $razitko a session mezitím patřila
+     * jinému (návrat z „Přihlásit se jako“). Razítko aktuální z DB by přihlásilo i toho, koho mezitím odhlásilo
+     * jiné zařízení: tomu se session zahodí celá jako v {@see self::zSession()}. Stejně tak když mezitím zmizel
+     * (sloučení účtů): volající už přepnutí zapomněl a session by jinak běžela dál jako obyčejné přihlášení toho,
+     * na koho se přepnul.
+     *
+     * @param bool $vytvoritJwt false nechá JWT, které prohlížeč nese
+     */
+    public static function prihlasIdSRazitkem(int $idUzivatele, ?string $razitko, bool $vytvoritJwt = true): ?self
+    {
+        // Razítko se ověří na týchž datech, ze kterých session vznikne.
+        $uzivatelData = self::nactiDataProPrihlaseni($idUzivatele);
+        if ($uzivatelData === null
+            || ! self::isRazitkoPlatne($uzivatelData[Sql::RAZITKO_PRIHLASENI], $razitko)
+        ) {
+            self::zahodSessionOdhlasenouJinde();
+
+            return null;
+        }
+
+        return self::prihlasDoSession($uzivatelData, self::UZIVATEL, $vytvoritJwt);
+    }
+
+    /**
+     * Razítko NULL v DB se nekontroluje, viz {@see self::SESSION_RAZITKO_PRIHLASENI}.
+     */
+    private static function isRazitkoPlatne(?string $razitkoVDb, ?string $razitkoSession): bool
+    {
+        return $razitkoVDb === null || $razitkoVDb === $razitkoSession;
+    }
+
+    /**
+     * Po „Přihlásit se jako“ nese session razítko uživatele, na kterého se někdo přepnul. Odhlášení ostatních
+     * zařízení nebo změna hesla toho, kdo se přepnul, ji musí ukončit taky, jinak by na zapomenutém zařízení
+     * běžela dál a šlo by z ní přepínat na další uživatele.
+     */
+    private static function isPrepnutiPlatne(): bool
+    {
+        $prepnuti = PrepnutiNaUzivatele::zSession();
+        $idPuvodniho = $prepnuti->getIdPuvodnihoUzivatele();
+        if ($idPuvodniho === null) {
+            return true;
+        }
+        // Jen razítko, celý uživatel s rolemi a právy tu není potřeba. Výsledek se do konce požadavku nepamatuje:
+        // zSession() stejně při každém volání načítá celého uživatele, a zapamatovaný by musel zapomenout každý,
+        // kdo mění razítko nebo maže uživatele.
+        $puvodni = dbOneLine(<<<'SQL'
+            SELECT razitko_prihlaseni FROM uzivatele_hodnoty WHERE id_uzivatele = $0
+            SQL, [0 => $idPuvodniho]);
+
+        return $puvodni !== []
+            && self::isRazitkoPlatne($puvodni[Sql::RAZITKO_PRIHLASENI], $prepnuti->getRazitkoPuvodnihoUzivatele());
+    }
+
+    /**
+     * Celá session jako při odhlášení: pracovního uživatele v adminu, potvrzená zobrazení kontaktů a další
+     * by jinak zdědil ten, kdo se v tomhle prohlížeči přihlásí příště.
+     */
+    private static function zahodSessionOdhlasenouJinde(): void
+    {
+        $_SESSION = [];
+        // Uložený token pro e-shop už vyměnila změna razítka, tohle je jen kopie tohoto prohlížeče.
+        deleteJwtCookie();
+    }
+
+    /**
+     * Přihlásí uživatele z trvalého přihlášení, které už přečetla {@see TrvalePrihlaseni::uplatniCookie()}.
+     * Razítko přihlášení vezme to přečtené spolu s ním, ne aktuální z DB: kdyby mezitím jiné zařízení
+     * odhlásilo ostatní, session s aktuálním razítkem by to přežila.
+     *
+     * @param array{id: int, id_uzivatele: int, razitko: string|null} $trvalePrihlaseni
+     */
+    public static function prihlasTrvalymPrihlasenim(array $trvalePrihlaseni): ?self
+    {
+        $u = self::prihlasId($trvalePrihlaseni['id_uzivatele']);
+        if ($u) {
+            self::obnovPrihlaseni($trvalePrihlaseni['razitko'], $trvalePrihlaseni['id']);
+            // nová session, cookie patří tomu, kdo sedí u zařízení
+            PrepnutiNaUzivatele::zSession()->zapomen();
+        }
+
+        return $u;
+    }
+
+    /**
+     * Přihlášení jménem a heslem, které si tento prohlížeč zapamatuje i po zavření.
+     */
+    public static function prihlasTrvale(
+        $login,
+        $heslo,
+    ) {
+        $u = self::prihlas($login, $heslo);
+        if ($u) {
+            $_SESSION[self::UZIVATEL][self::SESSION_ID_TRVALEHO_PRIHLASENI] = TrvalePrihlaseni::zaloz(
+                $u->id(),
+                $u->r[Sql::RAZITKO_PRIHLASENI],
+                $_SESSION[self::UZIVATEL][self::SESSION_ID_TRVALEHO_PRIHLASENI] ?? null,
+            );
+        }
+
+        return $u;
+    }
+
+    /**
+     * Společný konec všech přihlášení: uživatel s daty z uzivatele_hodnoty v session na indexu $klic.
+     * Razítko přihlášení si session vezme aktuální z dat, kdo zná správnější, nastaví ho po tom
+     * {@see self::obnovPrihlaseni()}.
+     *
+     * @param bool $vytvoritJwt false nechá JWT toho, kdo sedí u zařízení (přepnutí na jiného uživatele)
+     */
+    private static function prihlasDoSession(
+        array $uzivatelData,
+        string $klic,
+        bool $vytvoritJwt = true,
+    ): self {
+        $idUzivatele = (int) $uzivatelData['id_uzivatele'];
+        if (! session_id() && PHP_SAPI !== 'cli') {
             session_start();
         }
+        $uzivatelData['id_uzivatele'] = $idUzivatele;
         $_SESSION[$klic]['id_uzivatele'] = $idUzivatele;
-        // načtení uživatelských práv
-        $p = dbQuery(
-            'SELECT id_prava FROM platne_role_uzivatelu uz LEFT JOIN prava_role pz USING(id_role) WHERE uz.id_uzivatele=' . $idUzivatele,
-        );
-        $prava = []; // inicializace nutná, aby nepadala výjimka pro uživatele bez práv
-        while ($r = mysqli_fetch_assoc($p)) {
-            $prava[] = (int) $r['id_prava'];
+        if ($klic === self::UZIVATEL) {
+            $_SESSION[$klic][self::SESSION_RAZITKO_PRIHLASENI] = $uzivatelData[Sql::RAZITKO_PRIHLASENI];
         }
-        $uzivatelData['prava'] = $prava;
+        // načtení uživatelských práv, inicializace nutná, aby nepadala výjimka pro uživatele bez práv
+        $uzivatelData['prava'] = array_map('intval', dbFetchColumn(<<<'SQL'
+            SELECT id_prava
+            FROM platne_role_uzivatelu
+                LEFT JOIN prava_role ON platne_role_uzivatelu.id_role = prava_role.id_role
+            WHERE platne_role_uzivatelu.id_uzivatele = $0
+            SQL, [0 => $idUzivatele]));
         $uzivatel = new self($uzivatelData);
         $uzivatel->klic = $klic;
 
@@ -1943,26 +2167,15 @@ SQL,
     }
 
     /**
-     * Alias prihlas() pro trvalé přihlášení
+     * Po přihlášení, které vzalo razítko aktuální z DB, vrátí do session, jak se tento prohlížeč přihlásil doopravdy.
+     *
+     * @param string|null $razitko              razítko přihlášení, se kterým session platí, viz {@see self::zSession()}
+     * @param int|null    $idTrvalehoPrihlaseni trvalé přihlášení tohoto prohlížeče, aby ho zrušilo i odhlášení v adminu
      */
-    public static function prihlasTrvale(
-        $login,
-        $heslo,
-        $klic = self::UZIVATEL,
-    ) {
-        $u = self::prihlas($login, $heslo, $klic);
-        $rand = randHex(20);
-        if ($u) {
-            dbQuery(
-                'UPDATE uzivatele_hodnoty
-                SET random=$0
-                WHERE id_uzivatele=' . $u->id(),
-                [$rand],
-            );
-            setcookie('gcTrvalePrihlaseni', $rand, time() + 3600 * 24 * 365, '/');
-        }
-
-        return $u;
+    private static function obnovPrihlaseni(?string $razitko, ?int $idTrvalehoPrihlaseni): void
+    {
+        $_SESSION[self::UZIVATEL][self::SESSION_RAZITKO_PRIHLASENI] = $razitko;
+        $_SESSION[self::UZIVATEL][self::SESSION_ID_TRVALEHO_PRIHLASENI] = $idTrvalehoPrihlaseni;
     }
 
     /**
@@ -2222,16 +2435,13 @@ SQL,
         }
 
         // doplnění dopočítaných polí
+        $zmenaHesla = $u && isset($dbTab['heslo']);
         if (isset($dbTab['heslo'])) {
             $dbTab['heslo_md5'] = password_hash($dbTab['heslo'], PASSWORD_DEFAULT);
-            // Stejným zápisem jako hash, aby nevzniklo okno s novým heslem a starým tokenem.
-            if ($u) {
-                $dbTab['random'] = randHex(20);
-            }
         }
 
         if (! $u) {
-            $dbTab['random'] = randHex(20);
+            $dbTab[Sql::RANDOM] = ''; // nese jen kód z e-mailu po rychloregistraci
             $dbTab['registrovan'] = (new DateTimeCz())->formatDb();
         }
 
@@ -2258,10 +2468,16 @@ SQL,
                     'web',
                 );
             }
-            dbUpdate(Sql::UZIVATELE_HODNOTY_TABULKA, $dbTab, [
-                Sql::ID_UZIVATELE => $u->id(),
-            ]);
-            $u->otoc();
+            if ($zmenaHesla) {
+                // Změna hesla odhlásí ostatní zařízení, údaje se zapíšou stejným dotazem jako nové razítko.
+                // Uživatele i jeho token pro e-shop obnoví zmenRazitkoPrihlaseni(), otočení by token vydalo podruhé.
+                $u->zmenRazitkoPrihlaseni(ponechatTotoZarizeni: true, sloupce: $dbTab);
+            } else {
+                dbUpdate(Sql::UZIVATELE_HODNOTY_TABULKA, $dbTab, [
+                    Sql::ID_UZIVATELE => $u->id(),
+                ]);
+                $u->otoc();
+            }
             $idUzivatele = $u->id();
             $urlUzivatele = self::vytvorUrl($u->r);
             if ($zmeniloSeJmenoNaWebu) {
@@ -2378,6 +2594,8 @@ SQL,
                 $tab[$sloupec] = '';
             }
         }
+        // Výchozí NULL, nové razítko se nekontroluje.
+        unset($tab[Sql::RAZITKO_PRIHLASENI]);
         $opt = opt($opt, [
             'informovat' => false,
         ]);
@@ -3073,33 +3291,27 @@ SQL,
             if (! empty($_SESSION[$klic]['id_uzivatele'])) {
                 $u = self::zId($_SESSION[$klic]['id_uzivatele']);
             }
+            // Mezitím se odhlásil na ostatních zařízeních nebo si změnil heslo.
+            if ($u && $klic === self::UZIVATEL
+                && (
+                    ! self::isRazitkoPlatne($u->r[Sql::RAZITKO_PRIHLASENI], self::getRazitkoPrihlaseniZSession())
+                    || ! self::isPrepnutiPlatne()
+                )
+            ) {
+                self::zahodSessionOdhlasenouJinde();
+                $u = null;
+            }
             if ($u) {
                 $u->klic = $klic;
 
                 return $u;
             }
         }
-        if (isset($_COOKIE['gcTrvalePrihlaseni']) && $klic === self::UZIVATEL) {
-            $id = dbOneCol(
-                "SELECT id_uzivatele FROM uzivatele_hodnoty WHERE random!='' AND random=$0",
-                [$_COOKIE['gcTrvalePrihlaseni']],
-            );
-            if (! $id) {
-                return null;
+        if ($klic === self::UZIVATEL) {
+            $trvalePrihlaseni = TrvalePrihlaseni::uplatniCookie();
+            if ($trvalePrihlaseni !== null) {
+                return self::prihlasTrvalymPrihlasenim($trvalePrihlaseni);
             }
-            $rand = randHex(20);
-            // změna tokenu do budoucna proti hádání
-            dbQuery(
-                "UPDATE uzivatele_hodnoty
-                SET random=$0
-                WHERE id_uzivatele={$id}",
-                [$rand],
-            );
-            setcookie('gcTrvalePrihlaseni', $rand, time() + 3600 * 24 * 365, '/');
-            // nová session, cookie patří tomu, kdo sedí u zařízení
-            PrepnutiNaUzivatele::zSession()->zapomen();
-
-            return self::prihlasId($id, $klic);
         }
 
         return null;

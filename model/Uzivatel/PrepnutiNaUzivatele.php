@@ -27,6 +27,13 @@ class PrepnutiNaUzivatele
     private const string SESSION_KLIC = 'prepnuto_z_uzivatele';
 
     /**
+     * The login stamp the session of whoever switched had (@see \Uzivatel::getRazitkoPrihlaseniZSession()). While
+     * switched, the session carries the stamp of the other user, so \Uzivatel::zSession() checks this one as well:
+     * logging out of other devices by whoever switched ends the switched session too. Going back checks it again.
+     */
+    private const string SESSION_KLIC_RAZITKA = 'prepnuto_z_razitka';
+
+    /**
      * Rights of a storyteller or a partner the infopult member may take over by switching to them: the attendance
      * in Moje aktivity, which is what the switch is for, and the perks of their own account and marks in listings,
      * which give nothing over other users or the festival. Any other right the infopult member does not hold
@@ -148,24 +155,34 @@ SQL,
     /**
      * Logs in $naKoho in place of $kdo. The JWT stays the one of whoever sits at the device: a JWT of $naKoho would
      * overwrite the one $naKoho has on their own devices.
+     *
+     * @return \Uzivatel|null null when switching back to oneself after logging out of this device elsewhere
      */
-    public function prepni(\Uzivatel $kdo, \Uzivatel $naKoho): \Uzivatel
+    public function prepni(\Uzivatel $kdo, \Uzivatel $naKoho): ?\Uzivatel
     {
         // kdo se přepíná dál, vrací se pořád k tomu, kdo u zařízení sedí
-        $idPuvodniho = $this->getIdPuvodnihoUzivatele() ?? $kdo->id();
-        $prihlaseny = \Uzivatel::prihlasId($naKoho->id(), vytvoritJwt: false)
-                      ?? throw new \RuntimeException("Uživatel {$naKoho->id()} zmizel během přepnutí");
+        $idPuvodniho = $this->getIdPuvodnihoUzivatele();
+        if ($idPuvodniho === null) {
+            $idPuvodniho = $kdo->id();
+            $razitkoPuvodniho = \Uzivatel::getRazitkoPrihlaseniZSession();
+        } else {
+            $razitkoPuvodniho = $this->getRazitkoPuvodnihoUzivatele();
+        }
         if ($naKoho->id() === $idPuvodniho) {
             $this->zapomen();
-        } else {
-            $this->zaznamenej($idPuvodniho);
+
+            return \Uzivatel::prihlasIdSRazitkem($idPuvodniho, $razitkoPuvodniho, vytvoritJwt: false);
         }
+        $prihlaseny = \Uzivatel::prihlasId($naKoho->id(), vytvoritJwt: false)
+                      ?? throw new \RuntimeException("Uživatel {$naKoho->id()} zmizel během přepnutí");
+        $this->zaznamenej($idPuvodniho, $razitkoPuvodniho);
 
         return $prihlaseny;
     }
 
     /**
-     * @return \Uzivatel|null whoever switched, logged in again, null when nobody did
+     * @return \Uzivatel|null whoever switched, logged in again, null when nobody did or when they logged out of
+     *                        this device elsewhere in the meantime (the session is then dropped)
      */
     public function vratSe(): ?\Uzivatel
     {
@@ -173,9 +190,10 @@ SQL,
         if ($idPuvodniho === null) {
             return null;
         }
+        $razitkoPuvodniho = $this->getRazitkoPuvodnihoUzivatele();
         $this->zapomen();
 
-        return \Uzivatel::prihlasId($idPuvodniho);
+        return \Uzivatel::prihlasIdSRazitkem($idPuvodniho, $razitkoPuvodniho);
     }
 
     public function isPrepnuto(): bool
@@ -190,6 +208,14 @@ SQL,
         return $id !== null
             ? (int) $id
             : null;
+    }
+
+    /**
+     * @return string|null the login stamp whoever switched logged in with, null when they had none or nobody switched
+     */
+    public function getRazitkoPuvodnihoUzivatele(): ?string
+    {
+        return $this->session[self::SESSION_KLIC_RAZITKA] ?? null;
     }
 
     /**
@@ -223,9 +249,10 @@ SQL,
     /**
      * For a session that goes on after the logged-in user was reloaded (@see \Uzivatel::otoc()).
      */
-    public function zaznamenej(int $idPuvodnihoUzivatele): void
+    public function zaznamenej(int $idPuvodnihoUzivatele, ?string $razitkoPuvodnihoUzivatele = null): void
     {
         $this->session[self::SESSION_KLIC] = $idPuvodnihoUzivatele;
+        $this->session[self::SESSION_KLIC_RAZITKA] = $razitkoPuvodnihoUzivatele;
     }
 
     /**
@@ -233,6 +260,6 @@ SQL,
      */
     public function zapomen(): void
     {
-        unset($this->session[self::SESSION_KLIC]);
+        unset($this->session[self::SESSION_KLIC], $this->session[self::SESSION_KLIC_RAZITKA]);
     }
 }

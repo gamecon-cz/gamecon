@@ -40,6 +40,7 @@ class AnonymizovanaDatabaze
         'slevy',                     // notes about who got which discount
         'upominka_dluznika_log',     // debt per user
         'upominka_vlastni_zneni',
+        'uzivatele_trvala_prihlaseni', // hashes of persistent login tokens
     ];
 
     public static function vytvorZGlobals(): self
