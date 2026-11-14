@@ -37,7 +37,6 @@ class PrepnutiNaUzivatele
         Pravo::PORADANI_AKTIVIT,
         Pravo::ADMINISTRACE_MOJE_AKTIVITY,
         Pravo::PREKRYVANI_AKTIVIT,
-        Pravo::PLNY_SERVIS,
         Pravo::PLACKA_ZDARMA,
         Pravo::KOSTKA_ZDARMA,
         Pravo::JIDLO_SE_SLEVOU,
