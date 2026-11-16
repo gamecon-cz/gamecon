@@ -492,5 +492,20 @@ describe("UbytovaniMřížka: výběr nocí", () => {
       expect(dlaždice(kontejner, 0, 0).textContent).toContain("zbývá −2");
       expect(dlaždice(kontejner, 0, 0).className).toContain("ubytovani-mrizka--preplneno");
     });
+
+    it("přeplněná noc, kterou zákazník nemá, ukáže zbytek pod nulou, ne jen „vyprodáno“", async () => {
+      const kontejner = await vykresliVyber([kolej({ nights: { 0: plna({ remaining: -1 }) } })], []);
+
+      expect(dlaždice(kontejner, 0, 0).textContent).toContain("zbývá −1");
+      expect(dlaždice(kontejner, 0, 0).className).toContain("ubytovani-mrizka--k-preplneni");
+    });
+
+    it("zamčená přeplněná noc ukáže číslo, ale oranžová není, protože se nedá přeplnit", async () => {
+      const kontejner = await vykresliVyber([kolej({ nights: { 0: plna({ remaining: -1, locked: true }) } })], []);
+
+      expect(dlaždice(kontejner, 0, 0).textContent).toContain("zbývá −1");
+      expect(dlaždice(kontejner, 0, 0).className).not.toContain("ubytovani-mrizka--preplneno");
+      expect(dlaždice(kontejner, 0, 0).className).not.toContain("ubytovani-mrizka--k-preplneni");
+    });
   });
 });

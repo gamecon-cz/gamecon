@@ -19,10 +19,11 @@ function třídyBuňky(cell: ApiAccommodationCell, vybrano: boolean, neulozeno: 
   }
   // A full night that is not locked is one the desk may overbook; a night already past its
   // capacity is shown the same way, since both are the desk going beyond what is on offer.
+  // A locked one keeps the grey: orange says "you may", and here nobody may.
   if (cell.soldOut && !cell.locked && !vybrano) {
     třídy.push("ubytovani-mrizka--k-preplneni");
   }
-  if (cell.remaining !== null && cell.remaining < 0) {
+  if (cell.remaining !== null && cell.remaining < 0 && !cell.locked) {
     třídy.push("ubytovani-mrizka--preplneno");
   }
   if (neulozeno) {
@@ -33,7 +34,8 @@ function třídyBuňky(cell: ApiAccommodationCell, vybrano: boolean, neulozeno: 
 }
 
 function textZbývá(cell: ApiAccommodationCell, vybrano: boolean, remaining: number): string {
-  if (cell.soldOut && !vybrano) return "vyprodáno";
+  // Only the desk is sent a number below zero, and it should see how far over a night went.
+  if (cell.soldOut && !vybrano && remaining >= 0) return "vyprodáno";
 
   return `zbývá ${remaining < 0 ? `−${-remaining}` : remaining}`;
 }
