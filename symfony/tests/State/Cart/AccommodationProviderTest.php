@@ -125,10 +125,10 @@ class AccommodationProviderTest extends TestCase
                 && $orderer === $this->operator
                 && $this->operatorOrdersSunday,
         );
-        $this->accommodationRules->method('maySeeSundayNight')->willReturnCallback(
-            fn (User $customer, int $year, ?User $orderer = null): bool => $orderer !== null
+        $this->accommodationRules->method('mayLookAtSundayNight')->willReturnCallback(
+            fn (?User $orderer, int $year): bool => $orderer !== null
                 && $orderer === $this->operator
-                && ($this->operatorOrdersSunday || $this->operatorOnlySeesSunday),
+                && $this->operatorOnlySeesSunday,
         );
         $userRoleRepository = $this->createMock(UserRoleRepository::class);
         $userRoleRepository->method('isOrganizer')->willReturnCallback(

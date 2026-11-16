@@ -92,7 +92,7 @@ readonly class AccommodationProvider implements ProviderInterface, Accommodation
         $prodejUkoncen = ! $zPultu && $nastaveni->prodejUbytovaniUkoncen();
 
         $muzeNedeli = $this->accommodationRules->maySundayNight($user, $year, $orderer);
-        $videtNedeli = $muzeNedeli || $this->accommodationRules->maySeeSundayNight($user, $year, $orderer);
+        $videtNedeli = $muzeNedeli || $this->accommodationRules->mayLookAtSundayNight($orderer, $year);
         $muzeJednuNoc = $this->userPermissions->has($user, Pravo::UBYTOVANI_MUZE_OBJEDNAT_JEDNU_NOC, $year)
             || ($orderer !== null && $this->userPermissions->has($orderer, Pravo::UBYTOVANI_MUZE_OBJEDNAT_JEDNU_NOC, $year));
 

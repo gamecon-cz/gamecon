@@ -58,13 +58,12 @@ class AccommodationRules
     }
 
     /**
-     * The column is shown to those who may order it and, read-only, to an infopult worker
-     * looking at someone else's booking.
+     * An infopult worker looking at someone else's booking sees the Sunday column even when
+     * neither of them may order it. Asked on top of maySundayNight(), which it does not repeat.
      */
-    public function maySeeSundayNight(User $user, int $year, ?User $orderer = null): bool
+    public function mayLookAtSundayNight(?User $orderer, int $year): bool
     {
-        return $this->maySundayNight($user, $year, $orderer)
-            || ($orderer !== null && $this->userRoleRepository->holdsAnyMeaning($orderer, [RoleMeaning::INFOPULT], $year));
+        return $orderer !== null && $this->userRoleRepository->holdsAnyMeaning($orderer, [RoleMeaning::INFOPULT], $year);
     }
 
     /**

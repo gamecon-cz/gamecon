@@ -213,7 +213,6 @@ class AccommodationRulesTest extends AbstractDatabaseKernelTestCase
 
         self::assertFalse($rules->maySundayNight($customer, ROCNIK));
         self::assertTrue($rules->maySundayNight($customer, ROCNIK, $organizer));
-        self::assertTrue($rules->maySeeSundayNight($customer, ROCNIK, $organizer));
     }
 
     /**
@@ -233,8 +232,9 @@ class AccommodationRulesTest extends AbstractDatabaseKernelTestCase
         $rules = static::getContainer()->get(AccommodationRules::class);
 
         self::assertFalse($rules->maySundayNight($customer, ROCNIK, $infopult));
-        self::assertTrue($rules->maySeeSundayNight($customer, ROCNIK, $infopult));
-        self::assertFalse($rules->maySeeSundayNight($customer, ROCNIK), 'Without the desk worker the column stays hidden');
+        self::assertTrue($rules->mayLookAtSundayNight($infopult, ROCNIK));
+        self::assertFalse($rules->mayLookAtSundayNight(null, ROCNIK), 'Without the desk worker the column stays hidden');
+        self::assertFalse($rules->mayLookAtSundayNight($customer, ROCNIK), 'A guest is no desk worker');
     }
 
     public function testAnOrganizerOfLastYearOrderingForSomeoneElseOpensNothing(): void
