@@ -456,4 +456,41 @@ describe("UbytovaniMřížka: výběr nocí", () => {
       expect(kontejner.querySelector<HTMLInputElement>(".ubytovani-mrizka--nechci input")?.disabled).toBe(true);
     });
   });
+
+  describe("přeplnění plné noci", () => {
+    const plna = (zmeny: Partial<ApiAccommodationCell> = {}) =>
+      bunka(11, { remaining: 0, soldOut: true, locked: false, ...zmeny });
+
+    it("plná noc se pro toho, kdo smí přeplnit, dá zaškrtnout a vypadá jinak než zamčená", async () => {
+      const kontejner = await vykresliVyber([kolej({ nights: { 0: plna() } })], []);
+
+      expect(dlaždice(kontejner, 0, 0).className).toContain("ubytovani-mrizka--k-preplneni");
+      expect(dlaždice(kontejner, 0, 0).className).toContain("ubytovani-mrizka--klikaci");
+      expect(dlaždice(kontejner, 0, 0).textContent).toContain("vyprodáno");
+
+      await klikni(dlaždice(kontejner, 0, 0));
+
+      expect(uložené()).toEqual([[11]]);
+    });
+
+    it("zamčená plná noc na klik nereaguje a není oranžová", async () => {
+      const kontejner = await vykresliVyber([kolej({ nights: { 0: plna({ locked: true }) } })], []);
+
+      expect(dlaždice(kontejner, 0, 0).className).not.toContain("ubytovani-mrizka--k-preplneni");
+
+      await klikni(dlaždice(kontejner, 0, 0));
+
+      expect(uložené()).toEqual([]);
+    });
+
+    it("přeplněná noc ukáže zbytek pod nulou a je oranžová", async () => {
+      const kontejner = await vykresliVyber(
+        [kolej({ nights: { 0: plna({ remaining: -2, soldOut: false, selected: true }) } })],
+        [11],
+      );
+
+      expect(dlaždice(kontejner, 0, 0).textContent).toContain("zbývá −2");
+      expect(dlaždice(kontejner, 0, 0).className).toContain("ubytovani-mrizka--preplneno");
+    });
+  });
 });

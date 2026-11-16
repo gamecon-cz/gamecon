@@ -17,6 +17,14 @@ function třídyBuňky(cell: ApiAccommodationCell, vybrano: boolean, neulozeno: 
   } else if (cell.locked) {
     třídy.push("ubytovani-mrizka--zamceno");
   }
+  // A full night that is not locked is one the desk may overbook; a night already past its
+  // capacity is shown the same way, since both are the desk going beyond what is on offer.
+  if (cell.soldOut && !cell.locked && !vybrano) {
+    třídy.push("ubytovani-mrizka--k-preplneni");
+  }
+  if (cell.remaining !== null && cell.remaining < 0) {
+    třídy.push("ubytovani-mrizka--preplneno");
+  }
   if (neulozeno) {
     třídy.push("ubytovani-mrizka--neulozeno");
   }
@@ -24,8 +32,10 @@ function třídyBuňky(cell: ApiAccommodationCell, vybrano: boolean, neulozeno: 
   return třídy.join(" ");
 }
 
-function textZbývá(cell: ApiAccommodationCell, remaining: number): string {
-  return cell.soldOut ? "vyprodáno" : `zbývá ${remaining}`;
+function textZbývá(cell: ApiAccommodationCell, vybrano: boolean, remaining: number): string {
+  if (cell.soldOut && !vybrano) return "vyprodáno";
+
+  return `zbývá ${remaining < 0 ? `−${-remaining}` : remaining}`;
 }
 
 function CenaTypu({ typ, showReason }: { typ: ApiAccommodationType; showReason: boolean }) {
@@ -273,7 +283,7 @@ export function UbytovaniMřížka({ customerId }: MountProps) {
                     />
                     {cell.remaining !== null && (
                       <span class="ubytovani-mrizka--zbyva">
-                        {textZbývá(cell, cell.remaining)}
+                        {textZbývá(cell, vybrano, cell.remaining)}
                         {/* Rezervu vidí jen obsluha pultu — účastníkovi by číslo, na
                             které nedosáhne, jen mátlo. */}
                         {isAdminView && cell.reservedForOrganizers ? (

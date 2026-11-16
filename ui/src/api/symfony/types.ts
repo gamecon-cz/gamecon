@@ -13,7 +13,7 @@ export type ApiMealProduct = {
 export type ApiAccommodationCell = {
   variantId: number;
   selected: boolean;
-  /** Null = unlimited; dorm beds are effectively uncapped. */
+  /** Null = unlimited; dorm beds are effectively uncapped. Below zero only for the desk, on a night sold past its capacity. */
   remaining: number | null;
   /** No bed is left for this customer; never true for a night they hold, which reads "zbývá 0". */
   soldOut: boolean;

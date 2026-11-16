@@ -104,6 +104,19 @@
     color: #aaa;
   }
 
+  // A full night the desk may overbook, and a night already sold past its capacity: light orange,
+  // after the colours above so it wins over a green tick and the grey of a sold-out tile.
+  &--k-preplneni,
+  &--preplneno {
+    background-color: #ffe9cf;
+    color: #8a5a00;
+
+    .ubytovani-mrizka--zbyva {
+      color: #a05a00;
+      font-weight: bold;
+    }
+  }
+
   // A pick that has not been saved yet, e.g. one night of the two it takes.
   &--neulozeno {
     outline: 2px dashed #e0a800;
