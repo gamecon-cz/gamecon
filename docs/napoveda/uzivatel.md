@@ -17,7 +17,7 @@ Dokud nikoho nevybereš, stránka zobrazuje výzvu **„Vyberte uživatele"** a 
 
 ### Ubytování uživatele
 
-Tabulka nocí (sloupce) a typů ubytování (řádky) s cenou za noc a počtem zbývajících postelí. Noc vybereš nebo zrušíš kliknutím na její dlaždici, na jednu noc jde jen jeden typ ubytování. Do pole **„Na pokoji s:"** se píší jména spolubydlících oddělená čárkou.
+Tabulka nocí (sloupce) a typů ubytování (řádky) s cenou za noc a počtem zbývajících postelí. Noc vybereš nebo zrušíš kliknutím na její dlaždici, na jednu noc jde jen jeden typ ubytování a typ pokoje je jeden na celé GC: když na některé noci vybereš jiný typ, všechny už vybrané noci se na něj přepnou (kde není volný, noc se zruší). Do pole **„Na pokoji s:"** se píší jména spolubydlících oddělená čárkou.
 
 - Změny se ukládají samy. Nad tabulkou stojí, jak to vypadá: **„Ukládám…"**, **„✓ Uloženo"**. Výběr, který ještě nejde uložit (noci musí na sebe navazovat a bývá jich potřeba aspoň dvě), zůstane v tabulce označený červeným čárkovaným orámováním a nad tabulkou červeně stojí **„● Neuloženo — Vyber ještě 1 navazující noc ubytování."**; uloží se, jakmile je platný.
 - Na této stránce jde ubytování upravovat **i po ukončení prodeje** na webu.

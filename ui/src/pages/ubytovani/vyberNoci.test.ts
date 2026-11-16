@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { ApiAccommodationType } from "../../api/symfony/types";
-import { dnyVyberu, stejnaMnozina, zkontrolujVyber, zkontrolujVyberVMřížce } from "./vyberNoci";
+import { dnyVyberu, stejnaMnozina, vyberTypNaNoci, zkontrolujVyber, zkontrolujVyberVMřížce } from "./vyberNoci";
 
 const typ = (noci: Record<number, number>): ApiAccommodationType => ({
   productId: 1,
@@ -77,6 +77,39 @@ describe("zkontrolujVyberVMřížce", () => {
 
   it("výběr s nocí, kterou mřížka neukazuje, nezdržuje: den té noci zná jen server", () => {
     expect(zkontrolujVyberVMřížce([typ({ 0: 11, 1: 12 })], [99, 11], 2)).toEqual({ platny: true });
+  });
+});
+
+describe("vyberTypNaNoci", () => {
+  const kolej = typ({ 0: 11, 1: 12, 2: 13 });
+  const hotel = typ({ 0: 21, 1: 22, 2: 23 });
+  const typy = [kolej, hotel];
+
+  it("převede všechny vybrané noci na ťuknutý typ a ťuknutou noc přidá nakonec", () => {
+    expect(vyberTypNaNoci(typy, [11, 12, 13], hotel, 1, 22)).toEqual([21, 23, 22]);
+  });
+
+  it("noc, kde typ není otevřený, vynechá", () => {
+    const uzavreny = typ({ 0: 21, 1: 22, 2: 23 });
+    uzavreny.nights[2].locked = true;
+
+    expect(vyberTypNaNoci([kolej, uzavreny], [11, 12, 13], uzavreny, 0, 21)).toEqual([22, 21]);
+  });
+
+  it("noc bez výběru nechá prázdnou", () => {
+    expect(vyberTypNaNoci(typy, [11], hotel, 2, 23)).toEqual([21, 23]);
+  });
+
+  it("výběr bez jiných nocí je jen ťuknutá noc", () => {
+    expect(vyberTypNaNoci(typy, [], hotel, 1, 22)).toEqual([22]);
+  });
+
+  it("variantu, kterou mřížka neukazuje, nechá být", () => {
+    expect(vyberTypNaNoci(typy, [99, 11], hotel, 1, 22)).toEqual([99, 21, 22]);
+  });
+
+  it("dvě vybrané varianty téže noci nedají jednu noc dvakrát", () => {
+    expect(vyberTypNaNoci(typy, [11, 21], hotel, 1, 22)).toEqual([21, 22]);
   });
 });
 

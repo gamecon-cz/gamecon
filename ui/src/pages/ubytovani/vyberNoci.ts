@@ -7,14 +7,26 @@ const tvarNoci = (pocet: number): string => {
   return pocet >= 2 && pocet <= 4 ? "noci" : "nocí";
 };
 
-/** Days (0 = Wednesday …) the picked variants fall on, each once, in festival order. */
-export function dnyVyberu(types: ApiAccommodationType[], variantIds: number[]): number[] {
-  const dny = new Set<number>();
+/** The day (0 = Wednesday …) of every variant the grid shows. */
+function mapaVariantNaDen(types: ApiAccommodationType[]): Map<number, number> {
+  const dnyVariant = new Map<number, number>();
   for (const typ of types) {
     for (const [den, bunka] of Object.entries(typ.nights)) {
-      if (variantIds.includes(bunka.variantId)) {
-        dny.add(Number(den));
-      }
+      dnyVariant.set(bunka.variantId, Number(den));
+    }
+  }
+
+  return dnyVariant;
+}
+
+/** Days (0 = Wednesday …) the picked variants fall on, each once, in festival order. */
+export function dnyVyberu(types: ApiAccommodationType[], variantIds: number[]): number[] {
+  const dnyVariant = mapaVariantNaDen(types);
+  const dny = new Set<number>();
+  for (const variantId of variantIds) {
+    const den = dnyVariant.get(variantId);
+    if (den !== undefined) {
+      dny.add(den);
     }
   }
 
@@ -59,12 +71,44 @@ export function zkontrolujVyberVMřížce(
   variantIds: number[],
   minimumNights: number,
 ): KontrolaVyberu {
-  const viditelné = new Set(types.flatMap((typ) => Object.values(typ.nights).map((bunka) => bunka.variantId)));
-  if (variantIds.some((variantId) => !viditelné.has(variantId))) {
+  const dnyVariant = mapaVariantNaDen(types);
+  if (variantIds.some((variantId) => !dnyVariant.has(variantId))) {
     return { platny: true };
   }
 
   return zkontrolujVyber(dnyVyberu(types, variantIds), minimumNights);
+}
+
+/**
+ * The hosts cannot arrange swaps of beds, so as in the old form's script ticking `variantId`, a
+ * night of `typ`, moves every other picked night to `typ`; a night where it is not open is dropped.
+ */
+export function vyberTypNaNoci(
+  types: ApiAccommodationType[],
+  picked: number[],
+  typ: ApiAccommodationType,
+  day: number,
+  variantId: number,
+): number[] {
+  const dnyVariant = mapaVariantNaDen(types);
+  const vysledek: number[] = [];
+  for (const pickedVariantId of picked) {
+    const pickedDay = dnyVariant.get(pickedVariantId);
+    if (pickedDay === undefined) {
+      vysledek.push(pickedVariantId);
+      continue;
+    }
+    // The night being ticked is replaced by the tile just ticked.
+    if (pickedDay === day) continue;
+
+    const cil = typ.nights[pickedDay];
+    if (cil !== undefined && !cil.locked && !vysledek.includes(cil.variantId)) {
+      vysledek.push(cil.variantId);
+    }
+  }
+  vysledek.push(variantId);
+
+  return vysledek;
 }
 
 export function stejnaMnozina(prvni: number[], druha: number[]): boolean {

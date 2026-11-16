@@ -294,29 +294,110 @@ describe("UbytovaniMřížka: výběr nocí", () => {
     expect(uložené()).toEqual([]);
   });
 
-  it("jiný typ ubytování na tutéž noc ten první nahradí", async () => {
-    const kontejner = await vykresliVyber(
-      [
-        kolej({ nights: { 0: bunka(11, { selected: true }), 1: bunka(12, { selected: true }) } }),
-        hotel(),
-      ],
-      [11, 12],
-    );
+  describe("jeden typ pokoje na celé GC", () => {
+    // The hosts cannot arrange swaps of beds, so as in the old form a picked type moves every
+    // night that already has one to it.
+    const tri = (id: number, zmeny: Partial<ApiAccommodationType> = {}) =>
+      typUbytovani({
+        productId: id,
+        name: `Typ ${id}`,
+        nights: { 0: bunka(id * 10 + 1), 1: bunka(id * 10 + 2), 2: bunka(id * 10 + 3) },
+        ...zmeny,
+      });
+    const tridniDny = [{ day: 0, name: "středa" }, { day: 1, name: "čtvrtek" }, { day: 2, name: "pátek" }];
+    const vybranoV = (id: number, den: number) => bunka(id * 10 + den + 1, { selected: true });
 
-    await klikni(dlaždice(kontejner, 1, 0));
+    it("jiný typ na tutéž noc ten první nahradí a ostatní vybrané noci převede na nový typ", async () => {
+      const kontejner = await vykresliVyber(
+        [kolej({ nights: { 0: bunka(11, { selected: true }), 1: bunka(12, { selected: true }) } }), hotel()],
+        [11, 12],
+      );
 
-    expect(uložené()).toEqual([[12, 21]]);
-  });
+      await klikni(dlaždice(kontejner, 1, 0));
 
-  it("jiný typ na jinou noc nic nenahrazuje", async () => {
-    const kontejner = await vykresliVyber(
-      [kolej({ nights: { 0: bunka(11, { selected: true }), 1: bunka(12) } }), hotel()],
-      [11],
-    );
+      expect(uložené()).toEqual([[22, 21]]);
+    });
 
-    await klikni(dlaždice(kontejner, 1, 1));
+    it("výběr typu na jedné noci převede na ten typ všechny už vybrané noci", async () => {
+      const kontejner = await vykresliVyber(
+        [tri(1, { nights: { 0: vybranoV(1, 0), 1: vybranoV(1, 1), 2: vybranoV(1, 2) } }), tri(2)],
+        [11, 12, 13],
+        { days: tridniDny },
+      );
 
-    expect(uložené()).toEqual([[11, 22]]);
+      await klikni(dlaždice(kontejner, 1, 1));
+
+      expect(uložené()).toEqual([[21, 23, 22]]);
+    });
+
+    it("noc, kde nový typ není otevřený, se zruší, jako když byl vyprodaný ve starém formuláři", async () => {
+      const kontejner = await vykresliVyber(
+        [
+          tri(1, { nights: { 0: vybranoV(1, 0), 1: vybranoV(1, 1), 2: vybranoV(1, 2) } }),
+          tri(2, { nights: { 0: bunka(21), 1: bunka(22), 2: bunka(23, { soldOut: true, locked: true }) } }),
+        ],
+        [11, 12, 13],
+        { days: tridniDny },
+      );
+
+      await klikni(dlaždice(kontejner, 1, 0));
+
+      expect(uložené()).toEqual([[22, 21]]);
+    });
+
+    it("noc, na které nic vybrané není, zůstane prázdná", async () => {
+      const kontejner = await vykresliVyber(
+        [tri(1, { nights: { 0: vybranoV(1, 0), 1: bunka(12), 2: bunka(13) } }), tri(2)],
+        [11],
+        { days: tridniDny },
+      );
+
+      await klikni(dlaždice(kontejner, 1, 2));
+
+      // Night 1 stays empty, so the set has a gap and waits to be fixed.
+      expect(uložené()).toEqual([]);
+      expect(dlaždice(kontejner, 0, 1).querySelector<HTMLInputElement>("input")?.checked).toBe(false);
+      expect(kontejner.querySelector(".save-status")?.textContent).toContain("na sebe musí navazovat");
+    });
+
+    it("stejný typ na jinou noc nic nepřepíná", async () => {
+      const kontejner = await vykresliVyber(
+        [tri(1, { nights: { 0: vybranoV(1, 0), 1: bunka(12), 2: bunka(13) } }), tri(2)],
+        [11],
+        { days: tridniDny },
+      );
+
+      await klikni(dlaždice(kontejner, 0, 1));
+
+      expect(uložené()).toEqual([[11, 12]]);
+    });
+
+    it("odškrtnutí jiné noci nic nepřepíná, ani u starého výběru s různými typy", async () => {
+      const kontejner = await vykresliVyber(
+        [tri(1, { nights: { 0: vybranoV(1, 0), 1: bunka(12), 2: bunka(13) } }), tri(2, { nights: { 0: bunka(21), 1: vybranoV(2, 1), 2: bunka(23) } })],
+        [11, 22],
+        { days: tridniDny },
+      );
+
+      await klikni(dlaždice(kontejner, 0, 0));
+
+      expect(uložené()).toEqual([[22]]);
+    });
+
+    it("pro obsluhu s právem přeplnit se plná noc bere jako otevřená a typ se na ni přenese", async () => {
+      const kontejner = await vykresliVyber(
+        [
+          tri(1, { nights: { 0: vybranoV(1, 0), 1: vybranoV(1, 1), 2: bunka(13) } }),
+          tri(2, { nights: { 0: bunka(21), 1: bunka(22, { remaining: 0, soldOut: true, locked: false }), 2: bunka(23) } }),
+        ],
+        [11, 12],
+        { days: tridniDny },
+      );
+
+      await klikni(dlaždice(kontejner, 1, 0));
+
+      expect(uložené()).toEqual([[22, 21]]);
+    });
   });
 
   describe("když jsou nejméně dvě noci", () => {

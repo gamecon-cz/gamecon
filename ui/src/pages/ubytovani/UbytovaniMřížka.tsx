@@ -5,7 +5,7 @@ import { SaveStatus, useSaveState } from "../../components/SaveStatus";
 import { MountProps } from "../mountProps";
 import { ApiAccommodation, ApiAccommodationCell, ApiAccommodationType } from "../../api/symfony/types";
 import { formatCena } from "../../utils/castka";
-import { stejnaMnozina, zkontrolujVyberVMřížce } from "./vyberNoci";
+import { stejnaMnozina, vyberTypNaNoci, zkontrolujVyberVMřížce } from "./vyberNoci";
 import "./UbytovaniMřížka.less";
 
 function třídyBuňky(
@@ -195,19 +195,14 @@ export function UbytovaniMřížka({ customerId }: MountProps) {
     void uloz({ variantIds: další });
   };
 
-  const prepniNoc = (cell: ApiAccommodationCell, day: number) => {
+  const prepniNoc = (typ: ApiAccommodationType, cell: ApiAccommodationCell, day: number) => {
     if (vybrané.includes(cell.variantId)) {
       změňVýběr(vybrané.filter((variantId) => variantId !== cell.variantId));
       return;
     }
 
-    // A night holds one room type: picking another type for it replaces the first, as the
-    // radio buttons of the old form did.
-    const variantsOfTheNight = types.flatMap((typ) => typ.nights[day]?.variantId ?? []);
-    změňVýběr([
-      ...vybrané.filter((variantId) => !variantsOfTheNight.includes(variantId)),
-      cell.variantId,
-    ]);
+    // As in the old form, a room type picked on one night moves the other picked nights to it.
+    změňVýběr(vyberTypNaNoci(types, vybrané, typ, day, cell.variantId));
   };
 
   const isAdminView = customerId !== undefined;
@@ -289,7 +284,7 @@ export function UbytovaniMřížka({ customerId }: MountProps) {
                     onClick={(udalost) => {
                       // The checkbox toggles itself; a click on the rest of the tile must do the same.
                       if (!zakazano && (udalost.target as HTMLElement).tagName !== "INPUT") {
-                        prepniNoc(cell, den.day);
+                        prepniNoc(typ, cell, den.day);
                       }
                     }}
                   >
@@ -297,7 +292,7 @@ export function UbytovaniMřížka({ customerId }: MountProps) {
                       type="checkbox"
                       checked={vybrano}
                       disabled={zakazano}
-                      onChange={() => prepniNoc(cell, den.day)}
+                      onChange={() => prepniNoc(typ, cell, den.day)}
                     />
                     {cell.remaining !== null && (
                       <span class="ubytovani-mrizka--zbyva">
