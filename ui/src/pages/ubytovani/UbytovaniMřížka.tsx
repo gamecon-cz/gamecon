@@ -346,17 +346,20 @@ export function UbytovaniMřížka({ customerId }: MountProps) {
         />
       </label>
 
-      <label class="ubytovani-mrizka--nechci">
-        <input
-          type="checkbox"
-          checked={declined}
-          disabled={saleClosed || ukladani || rozpojeno || vybrané.length > 0}
-          onChange={(udalost) =>
-            void uloz({ variantIds: [], declined: (udalost.target as HTMLInputElement).checked })
-          }
-        />{" "}
-        Ubytování nechci
-      </label>
+      {/* A choice of the public page only: the desk neither shows nor sets it, and its saves carry it through. */}
+      {!isAdminView && (
+        <label class="ubytovani-mrizka--nechci">
+          <input
+            type="checkbox"
+            checked={declined}
+            disabled={saleClosed || ukladani || rozpojeno || vybrané.length > 0}
+            onChange={(udalost) =>
+              void uloz({ variantIds: [], declined: (udalost.target as HTMLInputElement).checked })
+            }
+          />{" "}
+          Ubytování nechci
+        </label>
+      )}
     </div>
   );
 }

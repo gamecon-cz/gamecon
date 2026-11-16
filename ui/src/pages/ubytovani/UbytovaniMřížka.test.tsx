@@ -231,6 +231,7 @@ describe("UbytovaniMřížka: výběr nocí", () => {
     typy: ApiAccommodationType[],
     vybrane: number[],
     zmeny: Partial<ApiAccommodation> = {},
+    jakoAdmin = true,
   ) => {
     const odpoved = { ...ubytovani(...typy), selectedVariantIds: vybrane, ...zmeny };
     vi.mocked(fetchAccommodation).mockResolvedValue(odpoved);
@@ -239,7 +240,7 @@ describe("UbytovaniMřížka: výběr nocí", () => {
     document.body.append(kontejner);
     kontejnery.push(kontejner);
     await act(() => {
-      render(<UbytovaniMřížka customerId={53} />, kontejner);
+      render(<UbytovaniMřížka customerId={jakoAdmin ? 53 : undefined} />, kontejner);
     });
     await act(async () => {
       await Promise.resolve();
@@ -625,12 +626,41 @@ describe("UbytovaniMřížka: výběr nocí", () => {
       expect(dlaždice(kontejner, 0, 0).querySelector<HTMLInputElement>("input")?.checked).toBe(false);
     });
 
-    it("zaškrtnutí „Ubytování nechci“ nejde, dokud čeká nějaká noc", async () => {
-      const kontejner = await vykresliVyber([trojiceNoci()], [], dvaMinimum);
+    it("účastníkovi nejde „Ubytování nechci“ zaškrtnout, dokud čeká nějaká noc", async () => {
+      const kontejner = await vykresliVyber([trojiceNoci()], [], dvaMinimum, false);
 
       await klikni(dlaždice(kontejner, 0, 0));
 
       expect(kontejner.querySelector<HTMLInputElement>(".ubytovani-mrizka--nechci input")?.disabled).toBe(true);
+    });
+
+    it.each([[true], [false]])("v adminu se o „Ubytování nechci“ (%s) nic neukazuje", async (declined) => {
+      const kontejner = await vykresliVyber([kolej()], [], { declined });
+
+      expect(kontejner.querySelector(".ubytovani-mrizka--nechci")).toBeNull();
+      expect(kontejner.textContent).not.toMatch(/nechc/i);
+    });
+
+    it("účastník má „Ubytování nechci“ jako zaškrtávátko", async () => {
+      const kontejner = await vykresliVyber([kolej()], [], {}, false);
+
+      expect(kontejner.querySelector(".ubytovani-mrizka--nechci input")).not.toBeNull();
+    });
+
+    it("admin uložením spolubydlícího nezmění, že si účastník ubytování nepřeje", async () => {
+      const kontejner = await vykresliVyber([kolej()], [], { declined: true });
+      const pole = kontejner.querySelector<HTMLInputElement>(".ubytovani-mrizka--spolubydlici input");
+      if (pole === null) {
+        throw new Error("Pole spolubydlícího se nevykreslilo");
+      }
+      pole.value = "Někdo";
+
+      await act(() => {
+        pole.dispatchEvent(new Event("change", { bubbles: true }));
+      });
+      await pockej();
+
+      expect(vi.mocked(saveAccommodation).mock.calls[0][0].declined).toBe(true);
     });
   });
 

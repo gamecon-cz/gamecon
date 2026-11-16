@@ -54,7 +54,7 @@ server nemá (`UbytovaniMřížka.tsx:63-70`). Bez payloadu tahle logika nefungu
 |---|---|---|
 | vykreslení | mřížka (`UbytovaniMřížka.tsx`) | mřížka (`UbytovaniMřížka.tsx`) — legacy renderery obou stran smazány |
 | spolubydlící | edituje (1. argument `true`) | **jen zobrazuje** seznam lidí na pokoji, needituje |
-| „nechce ubytování" | jen zobrazuje `ano`/`ne` | jen zobrazuje `ano`/`ne` |
+| „nechce ubytování" | nezobrazuje, nemění (Z30) | nezobrazuje, nemění (Z30) |
 | přes kapacitu | tlačítko jen pro právo `MUZE_PRETIZIT_UBYTOVANI` | nenabízí |
 | přes kapacitu **dnes** | plná noc odemčená a oranžová pro právo `MUZE_PRETIZIT_UBYTOVANI`, tlačítko není | totéž (mřížka je stejná, takže Infopult schopnost nově má) |
 
@@ -63,7 +63,10 @@ nabízí editovatelné pole spolubydlícího i zaškrtávátko „nechci ubytov�
 spolubydlícího jen vypisuje — a jde o něco jiného než u účastníka: je to **soupis lidí reálně na
 pokoji** (jméno, id, telefon, odvozeno z `$pokoj`), ne volný text „s kým chci bydlet". Nasadit
 tam mřížku beze změny by soupis pokoje proměnilo v editovatelné textové pole. U „nechce
-ubytování" je to totéž v menším: obě obrazovky ho jen ukazují.
+ubytování" je to totéž v menším: obě obrazovky ho jen ukazovaly. Mřížka v adminu ho proto
+nevykresluje vůbec (zaškrtávátko je jen účastníkovo, viz Z30 v
+[eshop-zamerne-rozdily-proti-main](eshop-zamerne-rozdily-proti-main.md)); zápis z adminu hodnotu
+jen přenese beze změny.
 
 Rozdíl u spolubydlícího je past, ne kosmetika: `AccommodationWriter` bere `null` jako „smaž ho".
 Naivní převod infopultu by tedy mazal spolubydlící, které si účastníci vyplnili sami. Zápisové

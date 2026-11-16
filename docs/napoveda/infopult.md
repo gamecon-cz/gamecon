@@ -56,7 +56,7 @@ Formulář pro hotovost (nebo ruční opravu):
 
 ## Ubytování a Nastavení pokojů
 
-Sekce **Ubytování** ukazuje pokoj, spolubydlící (se jmény a telefony), objednané ubytování a případně „Nechce ubytování". V tabulce nocí ubytování upravíš kliknutím na dlaždici a změna se uloží sama (stav stojí nad tabulkou, podrobně u stránky Uživatel).
+Sekce **Ubytování** ukazuje pokoj, spolubydlící (se jmény a telefony) a objednané ubytování. V tabulce nocí ubytování upravíš kliknutím na dlaždici a změna se uloží sama (stav stojí nad tabulkou, podrobně u stránky Uživatel).
 
 Sekce **Nastavení pokojů**:
 

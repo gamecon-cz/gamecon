@@ -22,7 +22,6 @@ Tabulka nocí (sloupce) a typů ubytování (řádky) s cenou za noc a počtem z
 - Změny se ukládají samy. Nad tabulkou stojí, jak to vypadá: **„Ukládám…"**, **„✓ Uloženo"**. Výběr, který ještě nejde uložit (noci musí na sebe navazovat a bývá jich potřeba aspoň dvě), zůstane v tabulce označený červeným čárkovaným orámováním a nad tabulkou červeně stojí **„● Neuloženo — Vyber ještě 1 navazující noc ubytování."**; uloží se, jakmile je platný.
 - Na této stránce jde ubytování upravovat **i po ukončení prodeje** na webu.
 - Šéf Infopultu smí ubytovat i na plně obsazenou noc: ta je pro něj oranžová, jde zaškrtnout a „zbývá" pak klesne pod nulu. Ostatním zůstává plná noc zamčená.
-- Pod tabulkou je zaškrtávátko **„Ubytování nechci"**; jde zaškrtnout, jen když uživatel nemá objednanou žádnou noc.
 
 ### Jídlo uživatele
 
