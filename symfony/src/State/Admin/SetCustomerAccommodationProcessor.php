@@ -63,12 +63,7 @@ readonly class SetCustomerAccommodationProcessor implements ProcessorInterface
         }
 
         $customer = $this->findCustomer($data->customerId);
-        $legacyCustomer = $this->legacySession->getUserById((int) $customer->getId());
-        if ($legacyCustomer === null) {
-            throw new BadRequestHttpException($this->translator->trans('customer.not_found', [
-                '%id%' => $data->customerId,
-            ], 'errors'));
-        }
+        $legacyCustomer = $this->findLegacyCustomer((int) $customer->getId());
 
         // An omitted roommate keeps whatever is stored: the writer treats null as "clear it",
         // and the infopult screen has no such field to send.
@@ -102,13 +97,8 @@ readonly class SetCustomerAccommodationProcessor implements ProcessorInterface
         // Both are stale after the write, for different reasons: save() clears the entity
         // manager, and it updates uzivatele_hodnoty by raw SQL, which the legacy object in
         // memory never sees. Resolve both again rather than reason about which still holds.
-        $customer = $this->entityManager->find(User::class, $data->customerId);
-        $legacyCustomer = $this->legacySession->getUserById($data->customerId);
-        if ($customer === null || $legacyCustomer === null) {
-            throw new BadRequestHttpException($this->translator->trans('customer.not_found', [
-                '%id%' => $data->customerId,
-            ], 'errors'));
-        }
+        $customer = $this->findCustomer($data->customerId);
+        $legacyCustomer = $this->findLegacyCustomer((int) $customer->getId());
 
         // The grid redraws from what came back, so it cannot drift from what was stored.
         return $this->accommodationGrid->forCustomer($customer, $legacyCustomer, zPultu: true);
@@ -124,5 +114,17 @@ readonly class SetCustomerAccommodationProcessor implements ProcessorInterface
         }
 
         return $customer;
+    }
+
+    private function findLegacyCustomer(int $customerId): \Uzivatel
+    {
+        $legacyCustomer = $this->legacySession->getUserById($customerId);
+        if ($legacyCustomer === null) {
+            throw new BadRequestHttpException($this->translator->trans('customer.not_found', [
+                '%id%' => $customerId,
+            ], 'errors'));
+        }
+
+        return $legacyCustomer;
     }
 }
