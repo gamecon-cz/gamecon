@@ -86,17 +86,21 @@ class MealWriter
 
         $variants = $this->loadVariants(array_keys($offered));
 
-        $this->inSaleTransaction(function () use ($customer, $variants, $year): void {
+        $restored = [];
+        $this->inSaleTransaction(function () use ($customer, $variants, $year, &$restored): void {
             $this->capacityManager->lockInOrder(array_keys($variants));
-            $held = $this->heldMeals($customer, $year);
+            // Asked again under the locks: a night or a meal committed since the first look
+            // (a concurrent save waited for the same locks) changes what may still be put back.
+            $stillOffered = $this->breakfastCanceller->restorable($customer, $year, zPultu: true);
             foreach ($variants as $variantId => $variant) {
-                if (! in_array($variantId, $held, true)) {
+                if (isset($stillOffered[$variantId])) {
                     $this->addMeal($customer, $variant, $year);
+                    $restored[] = $stillOffered[$variantId];
                 }
             }
         });
 
-        return array_values($offered);
+        return $restored;
     }
 
     /**
