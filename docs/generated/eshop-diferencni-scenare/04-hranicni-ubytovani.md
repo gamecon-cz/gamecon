@@ -21,7 +21,7 @@ bin-diff/cas.sh 2026-06-01
 | 4.4 | plná noc — objednat | odmítnout, srozumitelně | | |
 | 4.5 | hotelová noc se snídaní | snídaně se nesmí dát objednat zvlášť | | |
 | 4.6 | spacák | vlastní pravidla, viz `AccommodationRules` | | |
-| 4.7 | „nechci ubytování" | zapsat `nechce_ubytovani` | | |
+| 4.7 | „nechci ubytování" (jen na stránce účastníka, v adminu volba není, Z30) | zapsat `nechce_ubytovani` | | |
 | 4.8 | ubytování z **minulého ročníku** | nesmí jít objednat | | |
 | 4.9 | dva typy pokoje na tutéž noc | v mřížce nový výběr nahradí původní, server sadu s oběma odmítne (starý formulář: jeden přepínač na den); odškrtnutí se neodmítá nikdy | | |
 | 4.10 | počet „zbývá“ u noci | po zaškrtnutí o jedna míň, po odškrtnutí zpět: je to zbytek pro ostatní, vlastní postel se počítá jako obsazená | | |

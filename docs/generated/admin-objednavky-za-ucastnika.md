@@ -65,8 +65,8 @@ pokoji** (jméno, id, telefon, odvozeno z `$pokoj`), ne volný text „s kým ch
 tam mřížku beze změny by soupis pokoje proměnilo v editovatelné textové pole. U „nechce
 ubytování" je to totéž v menším: obě obrazovky ho jen ukazovaly. Mřížka v adminu ho proto
 nevykresluje vůbec (zaškrtávátko je jen účastníkovo, viz Z30 v
-[eshop-zamerne-rozdily-proti-main](eshop-zamerne-rozdily-proti-main.md)); zápis z adminu hodnotu
-jen přenese beze změny.
+[eshop-zamerne-rozdily-proti-main](eshop-zamerne-rozdily-proti-main.md)); zápis z adminu, který
+noci nemění, pošle zpět hodnotu, kterou dostal, a zápis nocí ji vynuluje.
 
 Rozdíl u spolubydlícího je past, ne kosmetika: `AccommodationWriter` bere `null` jako „smaž ho".
 Naivní převod infopultu by tedy mazal spolubydlící, které si účastníci vyplnili sami. Zápisové
