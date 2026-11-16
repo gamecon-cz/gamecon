@@ -10,7 +10,6 @@ use App\Tests\AbstractDatabaseKernelTestCase;
 use Doctrine\DBAL\Exception\DriverException;
 use Gamecon\Pravo;
 use Gamecon\Tests\Factory\PermissionFactory;
-use Symfony\Component\Validator\Validator\ValidatorInterface;
 
 /**
  * A right is identified by its number, and its meaning lives in `Gamecon\Pravo` and
@@ -58,17 +57,7 @@ class PermissionCodeTest extends AbstractDatabaseKernelTestCase
 
     public function testEveryStoredPermissionPassesValidation(): void
     {
-        $permissions = $this->entityManager()->getRepository(Permission::class)->findAll();
-        self::assertNotEmpty($permissions, 'No rights loaded, the check would pass vacuously');
-
-        $violations = [];
-        foreach ($permissions as $permission) {
-            foreach ($this->validator()->validate($permission) as $violation) {
-                $violations[] = $permission->getId() . ': ' . $violation->getMessage();
-            }
-        }
-
-        self::assertSame([], $violations);
+        $this->assertEveryStoredEntityPassesValidation(Permission::class);
     }
 
     /**
@@ -178,10 +167,5 @@ class PermissionCodeTest extends AbstractDatabaseKernelTestCase
         $permission->setPopisPrava('');
 
         return $permission;
-    }
-
-    private function validator(): ValidatorInterface
-    {
-        return static::getContainer()->get('validator');
     }
 }

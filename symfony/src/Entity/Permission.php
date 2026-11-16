@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Entity;
 
 use App\Repository\PermissionRepository;
+use App\Validator\ConstantLikeCode;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 use Symfony\Bridge\Doctrine\Validator\Constraints\UniqueEntity;
@@ -28,9 +29,8 @@ class Permission
      * can tell when a constant and its row drift apart.
      */
     #[ORM\Column(name: 'kod_prava', length: 64, nullable: false)]
-    #[Assert\NotBlank(message: 'Kód práva musí být vyplněn')]
+    #[ConstantLikeCode]
     #[Assert\Length(max: 64)]
-    #[Assert\Regex(pattern: '/^[A-Z][A-Z0-9_]*\z/', message: 'Kód práva smí obsahovat jen velká písmena bez diakritiky, číslice a podtržítka a začíná písmenem')]
     private string $code;
 
     #[ORM\Column(name: 'jmeno_prava', length: 255, nullable: false)]
