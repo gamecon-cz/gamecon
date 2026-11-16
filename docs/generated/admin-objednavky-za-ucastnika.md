@@ -143,16 +143,18 @@ gamecon má dnes ve `JwtService::extractUserData()` čtyři napevno zadrátovan�
 
 `AccommodationWriter::save()` volá `breakfastCanceller->cancelCovered()` pro **všechny** volající,
 admin nevyjímaje. Obsluha, která účastníkovi objedná hotelovou noc, mu tedy zruší zaplacené
-snídaně, a proto je smí i vrátit: `SetCustomerAccommodationInputDto::$restoreBreakfasts` (od
-2026-11-14), stejně jako na účastnické cestě. Mřížka nabízí tlačítko „Objednat je znovu" i
+snídaně, a proto je smí i vrátit: `SetCustomerAccommodationInputDto::$restoreBreakfasts`
+(rozhodnutí 2026-11-14), stejně jako na účastnické cestě. Mřížka nabízí tlačítko „Objednat je znovu" i
 obsluze a čtecí payload pro pult nese `restorableBreakfasts` počítané podle pravidel pultu.
 
 **Vrací se jinak než na účastnické cestě.** Účastník jde přes košík (`BreakfastCanceller::restore()`),
 který po termínu jídla, po `nabizet_do` ani u pozastaveného produktu neprodá. Pult jde přes
-`MealWriter::restoreBreakfasts()`, tedy tím zápisem, kterým prodává jídlo celá matice jídel: smí i po
-termínu jídla, po `nabizet_do` a pozastavené, nikdy ale stažené (`BreakfastCanceller::restorable()`
-dostává `zPultu`). Zápis jde **po nocích**, aby noc objednaná v téže žádosti zrušila snídani znovu,
-místo aby ji vrácení hned smazalo.
+`MealWriter::restoreBreakfasts()`, tedy tím zápisem, kterým prodává jídlo matice jídel, ale **jen
+přidává**: co účastník drží, nekontroluje ani nemění (celá matice by držené jídlo znovu posuzovala a
+jídlo koupené mezitím by smazala). Smí i po termínu jídla, po `nabizet_do` a pozastavené, nikdy ale
+stažené (`BreakfastCanceller::restorable()` dostává `zPultu`). Zápis jde **po nocích**, aby noc
+objednaná v téže žádosti zrušila snídani znovu, místo aby ji vrácení hned smazalo; selže-li vrácení,
+noci už uložené jsou (stejně jako na účastnické cestě).
 
 **Co je snídaně.** Produkt s podtagem `snidane` (`ProductTagCode::SNIDANE`, vyžaduje kategorii
 `jidlo`). Legacy i první port poznávaly snídani podle názvu začínajícího „Snídaně"; tag říká

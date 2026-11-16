@@ -50,8 +50,7 @@ class MealWriter
     {
         $variants = $this->loadVariants($variantIds);
 
-        $this->capacityManager->beginSaleTransaction();
-        try {
+        $this->inSaleTransaction(function () use ($customer, $variants, $year): void {
             $locked = [...$this->heldMeals($customer, $year), ...array_keys($variants)];
             $this->capacityManager->lockInOrder($locked);
             $kept = $this->removeUnselected($customer, $year, $locked, array_keys($variants));
@@ -66,24 +65,13 @@ class MealWriter
             // never remembered them; here the canceller snapshots one, and the participant is
             // offered it back if the covering night later goes away. That is deliberate.
             $this->breakfastCanceller->cancelCovered($customer, $year, $locked);
-            $this->connection->commit();
-        } catch (\Throwable $error) {
-            $this->connection->rollBack();
-
-            throw $error;
-        }
-
-        // Fronta oznámení čeká na commit, a ten tu nevyvolá žádný další `postFlush`, který by
-        // ji vyprázdnil.
-        $this->priceIncreaseNotifier->odesliFrontu();
-
-        $this->entityManager->clear();
+        });
     }
 
     /**
-     * Puts back the breakfasts a hotel night cancelled, for the desk. It goes through save() rather
-     * than the cart, so it sells as the desk's meal grid does: past the deadline and a passed
-     * `nabizet_do`, never a withdrawn breakfast.
+     * Puts back the breakfasts a hotel night cancelled, for the desk. It only adds, so a meal
+     * the customer holds or buys meanwhile is never touched, and it sells as the desk's meal
+     * grid does: past the deadline and a passed `nabizet_do`, never a withdrawn breakfast.
      *
      * @return string[] names restored
      *
@@ -96,9 +84,41 @@ class MealWriter
             return [];
         }
 
-        $this->save($customer, [...$this->heldMeals($customer, $year), ...array_keys($offered)], $year);
+        $variants = $this->loadVariants(array_keys($offered));
+
+        $this->inSaleTransaction(function () use ($customer, $variants, $year): void {
+            $this->capacityManager->lockInOrder(array_keys($variants));
+            $held = $this->heldMeals($customer, $year);
+            foreach ($variants as $variantId => $variant) {
+                if (! in_array($variantId, $held, true)) {
+                    $this->addMeal($customer, $variant, $year);
+                }
+            }
+        });
 
         return array_values($offered);
+    }
+
+    /**
+     * @param callable(): void $write
+     */
+    private function inSaleTransaction(callable $write): void
+    {
+        $this->capacityManager->beginSaleTransaction();
+        try {
+            $write();
+            $this->connection->commit();
+        } catch (\Throwable $error) {
+            $this->connection->rollBack();
+
+            throw $error;
+        }
+
+        // Fronta oznámení čeká na commit, a ten tu nevyvolá žádný další `postFlush`, který by
+        // ji vyprázdnil.
+        $this->priceIncreaseNotifier->odesliFrontu();
+
+        $this->entityManager->clear();
     }
 
     /**

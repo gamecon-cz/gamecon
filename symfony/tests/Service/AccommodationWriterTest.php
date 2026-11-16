@@ -2002,8 +2002,7 @@ class AccommodationWriterTest extends AbstractDatabaseKernelTestCase
     }
 
     /**
-     * What the desk holds stays held: the restore goes through the same write as the desk's meal
-     * grid, which judges the whole selection.
+     * The restore only adds: what the customer holds is neither judged nor bought twice.
      */
     public function testDeskRestoreLeavesOtherHeldMealsAlone(): void
     {
@@ -2019,6 +2018,23 @@ class AccommodationWriterTest extends AbstractDatabaseKernelTestCase
 
         self::assertSame(1, $this->pocetNakupu($customer, $snidane), 'the cancelled breakfast is back');
         self::assertSame(1, $this->pocetNakupu($customer, $jinaSnidane), 'the other one is not bought twice or dropped');
+    }
+
+    public function testDeskRestoreIsNotBlockedByAHeldMealOfAnArchivedProduct(): void
+    {
+        $customer = $this->ucastnik();
+        [$noc, $snidane, $nazev] = $this->pripravHotelSeSnidani(1);
+        [, $jinaSnidane] = $this->pripravHotelSeSnidani(2);
+        $this->koupSnidani($customer, $snidane);
+        $this->writer()->save($customer, [$noc], self::ROK, true);
+        $this->writer()->save($customer, [], self::ROK, true);
+        $this->koupSnidani($customer, $jinaSnidane);
+        $customer = $this->zmenProduktSnidane($customer, $jinaSnidane, 'archived_at', '2000-01-01 00:00:00');
+
+        self::assertSame([$nazev], $this->mealWriter()->restoreBreakfasts($customer, self::ROK));
+
+        self::assertSame(1, $this->pocetNakupu($customer, $snidane), 'the cancelled breakfast is back');
+        self::assertSame(1, $this->pocetNakupu($customer, $jinaSnidane), 'the archived one stays held');
     }
 
     /**
