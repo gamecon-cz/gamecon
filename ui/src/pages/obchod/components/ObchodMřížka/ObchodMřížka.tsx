@@ -66,7 +66,7 @@ export const ObchodMřížka: FunctionComponent<TObchodMřížkaProps> = (props)
           );
           const kusů = předmět?.archivní
             ? "(archivní)"
-            : předmět?.varianty.length === 0
+            : předmět?.varianty.length === 0 || (buňka.typ === "předmět" && předmět === undefined)
             ? "(nelze prodat)"
             : zbýváCelkem != null
             ? (vyprodáno ? "(vyprodáno)" : `(${zbýváCelkem})`)
