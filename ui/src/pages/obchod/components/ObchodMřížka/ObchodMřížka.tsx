@@ -54,19 +54,19 @@ export const ObchodMřížka: FunctionComponent<TObchodMřížkaProps> = (props)
 
           const vyprodáno = předmět !== undefined && zbýváCelkem !== null && zbýváCelkem <= 0;
           // Prodává se vždycky varianta, takže předmět bez variant prodat nejde. Archivní je
-          // na starší mřížce taky nakonfigurovaný a taky ho prodej odmítne; bez těchhle dvou
-          // by buňka šla kliknout a spadlo by to až na serveru.
+          // na starší mřížce taky nakonfigurovaný a taky ho prodej odmítne, a předmět, který
+          // v nabídce chybí, nemá co prodat; bez těchhle tří by buňka šla kliknout a spadlo
+          // by to až na serveru.
           // Jen buňka s předmětem; „shrnutí", „zpět" a odkaz na jinou mřížku nic
           // neprodávají a zašednout nesmí.
-          const nelzeProdat = buňka.typ === "předmět" && (
-            předmět === undefined
-            || předmět.archivní
-            || předmět.varianty.length === 0
-            || vyprodáno
+          const předmětChybí = buňka.typ === "předmět" && předmět === undefined;
+          const nelzeProdat = předmětChybí || (
+            předmět !== undefined
+            && (předmět.archivní || předmět.varianty.length === 0 || vyprodáno)
           );
           const kusů = předmět?.archivní
             ? "(archivní)"
-            : předmět?.varianty.length === 0 || (buňka.typ === "předmět" && předmět === undefined)
+            : předmět?.varianty.length === 0 || předmětChybí
             ? "(nelze prodat)"
             : zbýváCelkem != null
             ? (vyprodáno ? "(vyprodáno)" : `(${zbýváCelkem})`)
