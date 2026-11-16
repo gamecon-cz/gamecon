@@ -232,9 +232,9 @@ class AccommodationRulesTest extends AbstractDatabaseKernelTestCase
         $rules = static::getContainer()->get(AccommodationRules::class);
 
         self::assertFalse($rules->maySundayNight($customer, ROCNIK, $infopult));
-        self::assertTrue($rules->mayLookAtSundayNight($infopult, ROCNIK));
-        self::assertFalse($rules->mayLookAtSundayNight(null, ROCNIK), 'Without the desk worker the column stays hidden');
-        self::assertFalse($rules->mayLookAtSundayNight($customer, ROCNIK), 'A guest is no desk worker');
+        self::assertTrue($rules->isInfopultWorker($infopult, ROCNIK));
+        self::assertFalse($rules->isInfopultWorker(null, ROCNIK), 'Without the desk worker the column stays hidden');
+        self::assertFalse($rules->isInfopultWorker($customer, ROCNIK), 'A guest is no desk worker');
     }
 
     public function testAnOrganizerOfLastYearOrderingForSomeoneElseOpensNothing(): void

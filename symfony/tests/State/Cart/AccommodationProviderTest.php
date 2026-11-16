@@ -125,7 +125,7 @@ class AccommodationProviderTest extends TestCase
                 && $orderer === $this->operator
                 && $this->operatorOrdersSunday,
         );
-        $this->accommodationRules->method('mayLookAtSundayNight')->willReturnCallback(
+        $this->accommodationRules->method('isInfopultWorker')->willReturnCallback(
             fn (?User $orderer, int $year): bool => $orderer !== null
                 && $orderer === $this->operator
                 && $this->operatorOnlySeesSunday,

@@ -58,10 +58,11 @@ class AccommodationRules
     }
 
     /**
-     * An infopult worker looking at someone else's booking sees the Sunday column even when
-     * neither of them may order it. Asked on top of maySundayNight(), which it does not repeat.
+     * Whether the one who orders is an infopult worker, who sees the Sunday column of someone
+     * else's booking even when no one may order it. Only that: whoever may order it is
+     * maySundayNight(), asked first and not repeated here.
      */
-    public function mayLookAtSundayNight(?User $orderer, int $year): bool
+    public function isInfopultWorker(?User $orderer, int $year): bool
     {
         return $orderer !== null && $this->userRoleRepository->holdsAnyMeaning($orderer, [RoleMeaning::INFOPULT], $year);
     }
