@@ -379,6 +379,16 @@ describe("UbytovaniMřížka: výběr nocí", () => {
       expect(uložené()).toEqual([[11, 13, 12]]);
     });
 
+    it("když zákazník drží noc, kterou mřížka neukazuje, výběr nezdržuje a posoudí ho server", async () => {
+      // E.g. a room type hidden by the sleeping-bag restriction: the grid cannot tell its day.
+      const kontejner = await vykresliVyber([trojiceNoci()], [99], dvaMinimum);
+
+      await klikni(dlaždice(kontejner, 0, 0));
+      await pockej();
+
+      expect(uložené()).toEqual([[99, 11]]);
+    });
+
     it("odškrtnutí na jedinou noc čeká a odškrtnutí poslední noci uloží prázdný výběr", async () => {
       const kontejner = await vykresliVyber(
         [kolej({ nights: { 0: bunka(11, { selected: true }), 1: bunka(12, { selected: true }) } })],

@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { ApiAccommodationType } from "../../api/symfony/types";
-import { dnyVyberu, stejnaMnozina, zkontrolujVyber } from "./vyberNoci";
+import { dnyVyberu, stejnaMnozina, zkontrolujVyber, zkontrolujVyberVMřížce } from "./vyberNoci";
 
 const typ = (noci: Record<number, number>): ApiAccommodationType => ({
   productId: 1,
@@ -61,6 +61,22 @@ describe("zkontrolujVyber", () => {
 
   it("počet nocí se kontroluje dřív než návaznost, jako to řekl formulář", () => {
     expect(zkontrolujVyber([0], 3)).toMatchObject({ duvod: "Vyber ještě 2 navazující noci ubytování." });
+  });
+});
+
+describe("zkontrolujVyberVMřížce", () => {
+  it("posoudí výběr z nocí, které mřížka ukazuje", () => {
+    const typy = [typ({ 0: 11, 1: 12 })];
+
+    expect(zkontrolujVyberVMřížce(typy, [11], 2)).toEqual({
+      platny: false,
+      duvod: "Vyber ještě 1 navazující noc ubytování.",
+    });
+    expect(zkontrolujVyberVMřížce(typy, [11, 12], 2)).toEqual({ platny: true });
+  });
+
+  it("výběr s nocí, kterou mřížka neukazuje, nezdržuje: den té noci zná jen server", () => {
+    expect(zkontrolujVyberVMřížce([typ({ 0: 11, 1: 12 })], [99, 11], 2)).toEqual({ platny: true });
   });
 });
 

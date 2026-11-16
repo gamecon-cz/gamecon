@@ -5,7 +5,7 @@ import { SaveStatus, useSaveState } from "../../components/SaveStatus";
 import { MountProps } from "../mountProps";
 import { ApiAccommodation, ApiAccommodationCell, ApiAccommodationType } from "../../api/symfony/types";
 import { formatCena } from "../../utils/castka";
-import { dnyVyberu, stejnaMnozina, zkontrolujVyber } from "./vyberNoci";
+import { stejnaMnozina, zkontrolujVyberVMřížce } from "./vyberNoci";
 import "./UbytovaniMřížka.less";
 
 function třídyBuňky(cell: ApiAccommodationCell, vybrano: boolean, neulozeno: boolean): string {
@@ -119,7 +119,7 @@ export function UbytovaniMřížka({ customerId }: MountProps) {
       const čekající = zápis.variantIds === undefined ? vyberRef.current : null;
       const kontrola = čekající === null
         ? null
-        : zkontrolujVyber(dnyVyberu(uloženo.types, čekající), uloženo.minimumNights);
+        : zkontrolujVyberVMřížce(uloženo.types, čekající, uloženo.minimumNights);
       if (kontrola !== null && !kontrola.platny) {
         stav.markPending(kontrola.duvod);
       } else {
@@ -177,7 +177,7 @@ export function UbytovaniMřížka({ customerId }: MountProps) {
     }
 
     setVyber(další);
-    const kontrola = zkontrolujVyber(dnyVyberu(types, další), minimumNights);
+    const kontrola = zkontrolujVyberVMřížce(types, další, minimumNights);
     if (!kontrola.platny) {
       stav.markPending(kontrola.duvod);
       return;
