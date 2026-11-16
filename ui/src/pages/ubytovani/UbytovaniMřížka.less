@@ -117,10 +117,15 @@
     }
   }
 
-  // A pick that has not been saved yet, e.g. one night of the two it takes.
+  // A pick that has not been saved yet: on its way to the server, or (red) held back until
+  // the person fixes it, e.g. one night of the two it takes.
   &--neulozeno {
     outline: 2px dashed #e0a800;
     outline-offset: -3px;
+  }
+
+  &--vyzaduje-akci {
+    outline-color: #b3261e;
   }
 
   &--stav {

@@ -352,6 +352,27 @@ describe("UbytovaniMřížka: výběr nocí", () => {
       expect(dlaždice(kontejner, 0, 1).className).not.toContain("ubytovani-mrizka--neulozeno");
     });
 
+    it("výběr, který musí člověk opravit, je červený: dlaždice i řádek se stavem", async () => {
+      const kontejner = await vykresliVyber([trojiceNoci()], [], dvaMinimum);
+
+      await klikni(dlaždice(kontejner, 0, 0));
+
+      expect(dlaždice(kontejner, 0, 0).className).toContain("ubytovani-mrizka--vyzaduje-akci");
+      expect(dlaždice(kontejner, 0, 1).className).not.toContain("ubytovani-mrizka--vyzaduje-akci");
+      expect(kontejner.querySelector(".save-status")?.className).toContain("save-status--pending");
+    });
+
+    it("výběr na cestě k serveru červený není, jen čeká", async () => {
+      const kontejner = await vykresliVyber([trojiceNoci()], [], { ...dvaMinimum, minimumNights: 1 });
+      vi.mocked(saveAccommodation).mockReturnValue(new Promise(() => undefined));
+
+      await klikni(dlaždice(kontejner, 0, 0));
+
+      expect(dlaždice(kontejner, 0, 0).className).toContain("ubytovani-mrizka--neulozeno");
+      expect(dlaždice(kontejner, 0, 0).className).not.toContain("ubytovani-mrizka--vyzaduje-akci");
+      expect(kontejner.querySelector(".save-status")?.className).toContain("save-status--saving");
+    });
+
     it("druhá navazující noc celý výběr uloží a mřížka to potvrdí", async () => {
       const kontejner = await vykresliVyber([trojiceNoci()], [], dvaMinimum);
 

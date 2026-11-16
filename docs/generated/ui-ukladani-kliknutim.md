@@ -14,19 +14,19 @@ TL;DR: obrazovka, kde každé zaškrtnutí uloží přes API samo, říká uživ
 | stav | text | kdy |
 |---|---|---|
 | `idle` | (nic) | nic se neděje, nebo potvrzení dozní |
-| `pending` | „● Neuloženo — důvod" | změna čeká, až půjde odeslat (např. „Vyber ještě 1 navazující noc ubytování.") |
-| `saving` | „Ukládám…" | požadavek běží |
-| `saved` | „✓ Uloženo" | server změnu přijal; po 3 s zmizí (`SAVED_VISIBLE_MS`) |
-| `failed` | „Uložení se nepodařilo" | server odmítl; důvod stojí v chybové hlášce obrazovky a mřížka se vrátí k uloženému stavu |
+| `pending` | **červené** „● Neuloženo — důvod" | změna se neodešle, dokud ji člověk neopraví (např. „Vyber ještě 1 navazující noc ubytování.") |
+| `saving` | šedé „Ukládám…" | požadavek běží, člověk jen čeká |
+| `saved` | zelené „✓ Uloženo" | server změnu přijal; po 3 s zmizí (`SAVED_VISIBLE_MS`) |
+| `failed` | **červené** „Uložení se nepodařilo" | server odmítl; důvod stojí v chybové hlášce obrazovky a mřížka se vrátí k uloženému stavu |
 
-Nová zpráva zruší doznívající potvrzení, takže staré „Uloženo" nepřemaže čerstvé „Ukládám…".
+Červená je jen tam, kde musí něco udělat člověk (`pending`, `failed`); čekání na server zůstává neutrální. Nová zpráva zruší doznívající potvrzení, takže staré „Uloženo" nepřemaže čerstvé „Ukládám…".
 
 ## Jak to použít v další obrazovce
 
 1. `const stav = useSaveState();` a `<SaveStatus state={stav.state} />` nad nebo pod mřížkou.
 2. Před odesláním `stav.markSaving()`, po odpovědi `stav.markSaved()`, při chybě `stav.markFailed()`.
 3. Změna, která se zatím poslat nedá, jde do `stav.markPending(důvod)`, a návrat k uloženému stavu do `stav.markIdle()`.
-4. Dlaždici s neuloženou volbou označ třídou čárkovaného orámování (v mřížce ubytování `ubytovani-mrizka--neulozeno`), ať je vidět, co přesně čeká.
+4. Dlaždici s neuloženou volbou označ třídou čárkovaného orámování (v mřížce ubytování `ubytovani-mrizka--neulozeno`, oranžové), ať je vidět, co přesně čeká; dokud stav je `pending`, přidej třídu, která ho přebarví na červenou (`ubytovani-mrizka--vyzaduje-akci`).
 
 ## Gotchas
 

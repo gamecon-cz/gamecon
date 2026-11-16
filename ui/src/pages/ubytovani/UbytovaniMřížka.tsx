@@ -8,7 +8,12 @@ import { formatCena } from "../../utils/castka";
 import { stejnaMnozina, zkontrolujVyberVMřížce } from "./vyberNoci";
 import "./UbytovaniMřížka.less";
 
-function třídyBuňky(cell: ApiAccommodationCell, vybrano: boolean, neulozeno: boolean): string {
+function třídyBuňky(
+  cell: ApiAccommodationCell,
+  vybrano: boolean,
+  neulozeno: boolean,
+  vyzadujeAkci: boolean,
+): string {
   const třídy: string[] = [];
   if (vybrano) {
     třídy.push("ubytovani-mrizka--vybrano");
@@ -28,6 +33,10 @@ function třídyBuňky(cell: ApiAccommodationCell, vybrano: boolean, neulozeno: 
   }
   if (neulozeno) {
     třídy.push("ubytovani-mrizka--neulozeno");
+  }
+  // Red is for a pick that stays unsaved until the person changes it, not for one on its way to the server.
+  if (vyzadujeAkci) {
+    třídy.push("ubytovani-mrizka--vyzaduje-akci");
   }
 
   return třídy.join(" ");
@@ -271,11 +280,12 @@ export function UbytovaniMřížka({ customerId }: MountProps) {
                 const zakazano = cell.locked || ukladani || rozpojeno;
                 const vybrano = vybrané.includes(cell.variantId);
                 const neulozeno = vyber !== null && vybrano !== cell.selected;
+                const vyzadujeAkci = neulozeno && stav.state.kind === "pending";
 
                 return (
                   <td
                     key={den.day}
-                    class={`ubytovani-mrizka--bunka ${třídyBuňky(cell, vybrano, neulozeno)} ${zakazano ? "" : "ubytovani-mrizka--klikaci"}`}
+                    class={`ubytovani-mrizka--bunka ${třídyBuňky(cell, vybrano, neulozeno, vyzadujeAkci)} ${zakazano ? "" : "ubytovani-mrizka--klikaci"}`}
                     onClick={(udalost) => {
                       // The checkbox toggles itself; a click on the rest of the tile must do the same.
                       if (!zakazano && (udalost.target as HTMLElement).tagName !== "INPUT") {

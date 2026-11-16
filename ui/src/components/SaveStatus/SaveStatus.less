@@ -4,15 +4,13 @@
   font-size: 0.85em;
   color: #777;
 
-  &--pending {
-    color: #b26a00;
+  // Red where a person has to do something; waiting for the server (saving) stays grey.
+  &--pending,
+  &--failed {
+    color: #b3261e;
   }
 
   &--saved {
     color: #2e7d32;
-  }
-
-  &--failed {
-    color: #b3261e;
   }
 }
