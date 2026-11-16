@@ -46,3 +46,6 @@ bin-diff/porovnej.sh <id_ucastnika>
 ```
 
 ## Zjištěno
+
+- **4.1 (2026-11-16, ověřeno v prohlížeči):** mřížka ukládala každý klik hned, server minimum dvou nocí vynucuje, takže účastník bez práva 1037 nemohl zaškrtnout ani první noc („Ubytování je možné objednat nejméně na dvě noci."). Dřívější klikání v prohlížeči běželo nad zákazníkem, který noci už měl, a to chybu schovalo. Opraveno: výběr, který minimum ještě nesplňuje, čeká v mřížce jako neuložený a uloží se sám (Z28 v [eshop-zamerne-rozdily-proti-main](../eshop-zamerne-rozdily-proti-main.md)).
+- **4.2:** právo na jednu noc se bere i od obsluhy, která objednává, stejně jako to dělal formulář.

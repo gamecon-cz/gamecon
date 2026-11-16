@@ -17,11 +17,12 @@ Dokud nikoho nevybereš, stránka zobrazuje výzvu **„Vyberte uživatele"** a 
 
 ### Ubytování uživatele
 
-Tabulka nocí (sloupce) a typů ubytování (řádky) s cenou za noc a obsazeností ve tvaru `obsazeno/kapacita`. U každé noci vybereš typ ubytování, nebo volbu **Žádné**. Do pole **„Na pokoji chci být s:"** se píší jména spolubydlících oddělená čárkou. Změny potvrď tlačítkem **Uložit**.
+Tabulka nocí (sloupce) a typů ubytování (řádky) s cenou za noc a počtem zbývajících postelí. Noc vybereš nebo zrušíš kliknutím na její dlaždici, na jednu noc jde jen jeden typ ubytování. Do pole **„Na pokoji s:"** se píší jména spolubydlících oddělená čárkou.
 
+- Změny se ukládají samy. Nad tabulkou stojí, jak to vypadá: **„Ukládám…"**, **„✓ Uloženo"**. Výběr, který ještě nejde uložit (noci musí na sebe navazovat a bývá jich potřeba aspoň dvě), zůstane v tabulce označený čárkovaně a stojí u něj **„● Neuloženo — Vyber ještě 1 navazující noc ubytování."**; uloží se, jakmile je platný.
 - Na této stránce jde ubytování upravovat **i po ukončení prodeje** na webu.
-- Šéf Infopultu má navíc tlačítko **„přes kapacitu"**, kterým může ubytovat i na plně obsazený typ.
-- Pokud uživatel nemá objednané ubytování, zobrazuje se řádek **„Nechce ubytování: ano/ne"** — informace, zda si na webu zaškrtl, že ubytování nechce.
+- Šéf Infopultu smí ubytovat i na plně obsazenou noc: ta je pro něj oranžová, jde zaškrtnout a „zbývá" pak klesne pod nulu. Ostatním zůstává plná noc zamčená.
+- Pod tabulkou je zaškrtávátko **„Ubytování nechci"**; jde zaškrtnout, jen když uživatel nemá objednanou žádnou noc.
 
 ### Jídlo uživatele
 
