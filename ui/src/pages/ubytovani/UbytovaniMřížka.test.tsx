@@ -105,6 +105,29 @@ describe("UbytovaniMřížka: popis typu ubytování", () => {
   });
 });
 
+describe("UbytovaniMřížka: pravidlo navazování nocí", () => {
+  it("stojí nad tabulkou", async () => {
+    const buňkaTypu = await vykresli(typUbytovani(), 53);
+
+    const mřížka = buňkaTypu.closest(".ubytovani-mrizka");
+    const pravidlo = mřížka?.querySelector(".ubytovani-mrizka--pravidlo");
+    const tabulka = mřížka?.querySelector("table");
+    expect(pravidlo?.textContent).toBe("Noci musí na sebe navazovat.");
+    expect(tabulka).not.toBeNull();
+    expect(pravidlo?.compareDocumentPosition(tabulka as Node)).toBe(Node.DOCUMENT_POSITION_FOLLOWING);
+  });
+
+  it("sdílí řádek se stavem ukládání, aby se vešly vedle sebe, když je místo", async () => {
+    const buňkaTypu = await vykresli(typUbytovani(), 53);
+
+    const mřížka = buňkaTypu.closest(".ubytovani-mrizka");
+    const pravidlo = mřížka?.querySelector(".ubytovani-mrizka--pravidlo");
+    const stav = mřížka?.querySelector(".save-status");
+    expect(pravidlo?.parentElement).not.toBe(mřížka);
+    expect(pravidlo?.parentElement?.contains(stav ?? null)).toBe(true);
+  });
+});
+
 describe("UbytovaniMřížka: důvod slevy", () => {
   const sleveny = typUbytovani({ discountedPrice: "0.00", discountReason: DUVOD_SLEVY });
 

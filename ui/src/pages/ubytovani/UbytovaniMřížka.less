@@ -129,6 +129,7 @@
   }
 
   &--stav {
+    flex: 1 1 26em;
     min-height: 1.4em;
     text-align: right;
   }
@@ -142,6 +143,20 @@
   &--pravidlo {
     color: #777;
     font-size: 0.9em;
+  }
+
+  // The rule and the save message share a row while both fit, otherwise each takes its own. The
+  // message always claims the same room, so it does not wrap or jump when its text changes.
+  &--hlavicka {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.3em 1em;
+  }
+
+  &--pravidlo {
+    margin: 0;
+    font-style: italic;
   }
 
   &--error {

@@ -230,8 +230,15 @@ export function UbytovaniMřížka({ customerId }: MountProps) {
         </p>
       )}
 
-      <div class="ubytovani-mrizka--stav">
-        <SaveStatus state={stav.state} />
+      <div class="ubytovani-mrizka--hlavicka">
+        <p class="ubytovani-mrizka--pravidlo">
+          {minimumNights > 1
+            ? `Noci musí na sebe navazovat, nejméně ${minimumNights}.`
+            : "Noci musí na sebe navazovat."}
+        </p>
+        <div class="ubytovani-mrizka--stav">
+          <SaveStatus state={stav.state} />
+        </div>
       </div>
 
       <table class="ubytovani-mrizka--tabulka">
@@ -313,12 +320,6 @@ export function UbytovaniMřížka({ customerId }: MountProps) {
           ))}
         </tbody>
       </table>
-
-      <p class="ubytovani-mrizka--pravidlo">
-        {minimumNights > 1
-          ? `Noci musí na sebe navazovat, nejméně ${minimumNights}.`
-          : "Noci musí na sebe navazovat."}
-      </p>
 
       {restorableBreakfasts.length > 0 && (
         <p class="ubytovani-mrizka--snidane">
