@@ -494,7 +494,7 @@ Concretely (this happened in `2026-11-07-100003_discount-rules.php`, both fixed)
 
 **How to do it:** insert the number or string directly and say in a comment what it means (`1003 = Pravo::KOSTKA_ZDARMA`). If the value later diverges from the constant, that is correct — a historical row keeps what was true then. Validation belongs where a human writes data (an admin form), not where history is replayed.
 
-**For rights and roles, a lookup by code wins over a number literal.** `r_prava_soupis.kod_prava` is required, unique and not empty, and is the name of the `Gamecon\Pravo` constant (`MUZE_PRETIZIT_UBYTOVANI`); roles have `role_seznam.kod_role`. A migration that creates a right inserts it **with** its `kod_prava` (an `INSERT` without one is refused by the not-empty check), and one that gives a right to a role looks both up by code instead of counting on numbers:
+**For rights and roles, a lookup by code wins over a number literal.** `r_prava_soupis.kod_prava` is required, unique and not empty, and is the name of the `Gamecon\Pravo` constant (`MUZE_PRETIZIT_UBYTOVANI`); roles have `role_seznam.kod_role`, unique and not empty too (`RoleCodeTest` also checks the shape of every role). A migration that creates a right or a role inserts it **with** its code (an `INSERT` without one is refused, by `NOT NULL` or, in the non-strict mode of deploy migrations, by the not-empty check), and one that gives a right to a role looks both up by code instead of counting on numbers:
 
 ```sql
 INSERT INTO prava_role (id_role, id_prava)

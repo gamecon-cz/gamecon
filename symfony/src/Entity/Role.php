@@ -7,8 +7,11 @@ namespace App\Entity;
 use App\Enum\RoleMeaning;
 use App\Enum\RoleTypeEnum;
 use App\Repository\RoleRepository;
+use App\Validator\ConstantLikeCode;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
+use Symfony\Bridge\Doctrine\Validator\Constraints\UniqueEntity;
+use Symfony\Component\Validator\Constraints as Assert;
 
 /**
  * Legacy @see \Gamecon\Role
@@ -19,13 +22,20 @@ use Doctrine\ORM\Mapping as ORM;
 #[ORM\UniqueConstraint(name: 'UNIQ_nazev_role', columns: ['nazev_role'])]
 #[ORM\Index(name: 'IDX_typ_role', columns: ['typ_role'])]
 #[ORM\Index(name: 'IDX_vyznam_role', columns: ['vyznam_role'])]
+#[UniqueEntity(fields: ['kodRole'], message: 'Role s tímto kódem již existuje')]
 class Role
 {
     #[ORM\Id]
     #[ORM\Column(name: 'id_role', type: Types::BIGINT)]
     private ?int $id = null;
 
+    /**
+     * A migration finds a role by this code (`WHERE kod_role = 'SEF_INFOPULTU'`), so a blank one
+     * makes it match nothing, silently.
+     */
     #[ORM\Column(name: 'kod_role', length: 36, nullable: false)]
+    #[ConstantLikeCode]
+    #[Assert\Length(max: 36)]
     private string $kodRole;
 
     #[ORM\Column(name: 'nazev_role', length: 255, nullable: false)]
