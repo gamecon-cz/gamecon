@@ -92,7 +92,7 @@ Tyhle věci se při ověřování opakovaně objevily jako „chyba" a nejsou. N
 - Role jen z minulých ročníků nedávají organizátorské výsady ([Issue #1365](https://github.com/gamecon-cz/gamecon/issues/1365)).
 - Infopult s vybraným uživatelem prodává jemu na jeho účet, bez připsání hotovosti.
 - Ceny a slevy se při ověření 2026-09-17 shodovaly ve všech porovnaných případech (`bin-diff/porovnej-ceny.sh`); reporty BFGR a stravenky vyšly po scénáři 8 bajt po bajtu stejné.
-- Věta v `docs/napoveda/infopult.md` „Zrušit jiné ubytování než neděli může pouze šéf infopultu" popisuje pravidlo, které v kódu není na `main` ani na větvi.
+- Věta „Zrušit jiné ubytování než neděli může pouze šéf Infa" (na `main` text nad tabulkou Infopultu od roku 2022 a věta v nápovědě) popisovala pravidlo, které v kódu nikdy nebylo: tabulku ubytování mění na Infopultu kdokoli s přístupem na Infopult, na `main` i na větvi. Větev tu větu nemá ani na stránce, ani v nápovědě.
 
 ## Otevřené, nerozhodnuté
 

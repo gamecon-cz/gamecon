@@ -79,11 +79,10 @@ přeplnil noc komukoliv; legacy si toho bylo vědomo (`// není zabezpečeno`).
 **Vyřešeno:** `AccommodationWriter::save()` bere `$mayOverbook` a `SetCustomerAccommodationProcessor`
 ho dává jen šéfovi infopultu. Invariant se obrátil — rozhoduje server, UI je jen nápověda.
 
-Pozor, nesouvisející nález: nápověda `docs/napoveda/infopult.md` tvrdí, že „zrušit jiné ubytování
-než neděli může pouze šéf infopultu". Takové pravidlo **v kódu nikdy nebylo** — ani v legacy zápisové
-cestě, ani nikde jinde; všechna nedělní pravidla se týkají nabízení, ne rušení. Buď je ta věta
-k smazání, nebo je to nenaimplementovaný záměr *(nejisté)* — chce to rozhodnutí vlastníka
-produktu, ne odhad.
+Nesouvisející nález, vyřešený: nápověda `docs/napoveda/infopult.md` tvrdila, že „zrušit jiné
+ubytování než neděli může pouze šéf infopultu". Takové pravidlo **v kódu nikdy nebylo** — ani
+v legacy zápisové cestě, ani nikde jinde; všechna nedělní pravidla se týkají nabízení, ne rušení.
+Věta je z nápovědy smazaná.
 
 Souvisí s [issue #1114](https://github.com/gamecon-cz/gamecon/issues/1114): ubytování ignoruje
 `reserved_for_organizers`. Je pravděpodobné *(nejisté)*, že přeprodej je náhražka právě za to —
