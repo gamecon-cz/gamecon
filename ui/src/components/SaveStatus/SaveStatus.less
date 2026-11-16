@@ -1,5 +1,7 @@
 .save-status {
-  display: inline-block;
+  // A block: an empty inline-block rests on the baseline and makes the row taller than with a message,
+  // so the table below would shift by a pixel or two whenever the message comes and goes.
+  display: block;
   min-height: 1.4em;
   font-size: 0.85em;
   color: #777;
