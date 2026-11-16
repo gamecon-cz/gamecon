@@ -10,6 +10,7 @@ use App\Entity\ProductVariant;
 use App\Service\CapacityManager;
 use Doctrine\DBAL\Connection;
 use Doctrine\ORM\EntityManagerInterface;
+use Symfony\Component\Validator\Validator\ValidatorInterface;
 
 /**
  * Base class for Symfony-stack tests that write to the database.
@@ -84,6 +85,32 @@ abstract class AbstractDatabaseKernelTestCase extends ApiTestCase
     protected function connection(): Connection
     {
         return $this->entityManager()->getConnection();
+    }
+
+    protected function validator(): ValidatorInterface
+    {
+        return static::getContainer()->get('validator');
+    }
+
+    /**
+     * Some tables are filled by SQL migrations, which never pass through the validator, so this
+     * runs it over every row the migrations leave in the test database.
+     *
+     * @param class-string $entityClass
+     */
+    protected function assertEveryStoredEntityPassesValidation(string $entityClass): void
+    {
+        $entities = $this->entityManager()->getRepository($entityClass)->findAll();
+        self::assertNotEmpty($entities, "No {$entityClass} loaded, the check would pass vacuously");
+
+        $violations = [];
+        foreach ($entities as $entity) {
+            foreach ($this->validator()->validate($entity) as $violation) {
+                $violations[] = $violation->getPropertyPath() . ' = ' . var_export($violation->getInvalidValue(), true) . ': ' . $violation->getMessage();
+            }
+        }
+
+        self::assertSame([], $violations);
     }
 
     protected function kapacitaVarianty(ProductVariant $variant, ?int $kusu): void
