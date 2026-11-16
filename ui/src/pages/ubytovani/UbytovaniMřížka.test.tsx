@@ -436,6 +436,26 @@ describe("UbytovaniMřížka: výběr nocí", () => {
       expect(dlaždice(kontejner, 0, 0).querySelector<HTMLInputElement>("input")?.checked).toBe(true);
     });
 
+    it("klik na noc ve chvíli, kdy běží jiný zápis, se zahodí celý, ani se neoznačí jako neuložený", async () => {
+      const kontejner = await vykresliVyber([trojiceNoci()], [], { ...dvaMinimum, minimumNights: 1 });
+      vi.mocked(saveAccommodation).mockReturnValue(new Promise(() => undefined));
+      const pole = kontejner.querySelector<HTMLInputElement>(".ubytovani-mrizka--spolubydlici input");
+      if (pole === null) {
+        throw new Error("Pole spolubydlícího se nevykreslilo");
+      }
+      pole.value = "Někdo";
+
+      // Both before the re-render that would disable the grid.
+      await act(() => {
+        pole.dispatchEvent(new Event("change", { bubbles: true }));
+        dlaždice(kontejner, 0, 0).click();
+      });
+
+      expect(uložené()).toEqual([[]]);
+      expect(dlaždice(kontejner, 0, 0).querySelector<HTMLInputElement>("input")?.checked).toBe(false);
+      expect(kontejner.querySelector(".ubytovani-mrizka--neulozeno")).toBeNull();
+    });
+
     it("zamítnutý zápis vrátí mřížku k tomu, co má server, a řekne to", async () => {
       const kontejner = await vykresliVyber([trojiceNoci()], [], { ...dvaMinimum, minimumNights: 1 });
       vi.mocked(saveAccommodation).mockRejectedValue(new Error("Noc je obsazená."));

@@ -165,6 +165,11 @@ export function UbytovaniMřížka({ customerId }: MountProps) {
   const vybrané = vyber ?? selectedVariantIds;
 
   const změňVýběr = (další: number[]) => {
+    // A click can arrive before the re-render that disables the grid. Another save is running
+    // then and this one would be dropped, so drop the click whole: a tick that was never sent
+    // must not stay on screen as if it were waiting.
+    if (probihaUlozeni.current) return;
+
     if (stejnaMnozina(další, selectedVariantIds)) {
       setVyber(null);
       stav.markIdle();
