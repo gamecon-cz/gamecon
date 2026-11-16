@@ -61,6 +61,9 @@ readonly class AccommodationAvailability
      * Odložené postele účastník nevidí, organizátor ano — stejné pravidlo jako u merche
      * v `CapacityManager::lockForSale()`. Vlastní noci zákazníka jsou v `$prodano` jako každé
      * jiné, takže zbytek je to, co zbývá ostatním: po zaškrtnutí klesne o jedna.
+     *
+     * Pod nulu jde jen skutečné přeprodání (pult smí přeplnit); rezerva ubírá nanejvýš do nuly,
+     * aby překlep v ní nevypadal jako přeprodaná noc.
      */
     private function noc(
         ?int $vyrobeno,
@@ -69,11 +72,13 @@ readonly class AccommodationAvailability
         int $prodano,
         bool $jeOrganizator,
     ): AccommodationNightAvailability {
-        $zbyva = $vyrobeno === null
-            ? null
-            : max(0, $vyrobeno
-                - $prodano
-                - ($jeOrganizator ? 0 : ($rezervovano ?? 0)));
+        $zbyva = null;
+        if ($vyrobeno !== null) {
+            $zbytekSkladu = $vyrobeno - $prodano;
+            $zbyva = $zbytekSkladu < 0
+                ? $zbytekSkladu
+                : max(0, $zbytekSkladu - ($jeOrganizator ? 0 : ($rezervovano ?? 0)));
+        }
 
         return new AccommodationNightAvailability(
             remaining: $zbyva,

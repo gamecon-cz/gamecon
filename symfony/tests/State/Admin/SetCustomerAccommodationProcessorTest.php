@@ -72,6 +72,13 @@ class SetCustomerAccommodationProcessorTest extends AbstractDatabaseKernelTestCa
     private array $organizerUsers = [];
 
     /**
+     * @var list<int> ids of operators whose own role opens the Sunday night for whoever they order for
+     */
+    private array $sundayOrderers = [];
+
+    private ?MockObject $operator = null;
+
+    /**
      * @var array<int, \Uzivatel> by id, so the operator and the customer cannot be mistaken for each other
      */
     private array $legacyUsers = [];
@@ -113,8 +120,11 @@ class SetCustomerAccommodationProcessorTest extends AbstractDatabaseKernelTestCa
                 && in_array($user->getId(), $this->sleepingBagsOnlyUsers, true),
         );
         $accommodationRules->method('maySundayNight')->willReturnCallback(
-            fn (User $user, int $year): bool => $year === $currentYear
-                && in_array($user->getId(), $this->sundayNightUsers, true),
+            fn (User $user, int $year, ?User $orderer = null): bool => $year === $currentYear
+                && (
+                    in_array($user->getId(), $this->sundayNightUsers, true)
+                    || ($orderer !== null && in_array($orderer->getId(), $this->sundayOrderers, true))
+                ),
         );
 
         $userRoleRepository = $this->createMock(UserRoleRepository::class);
@@ -150,6 +160,7 @@ class SetCustomerAccommodationProcessorTest extends AbstractDatabaseKernelTestCa
     {
         $operator = $this->createMock(User::class);
         $operator->method('getId')->willReturn(self::OPERATOR_ID);
+        $this->operator = $operator;
         $this->security->method('getUser')->willReturn($operator);
 
         if ($isInfopultChief) {
@@ -258,10 +269,33 @@ class SetCustomerAccommodationProcessorTest extends AbstractDatabaseKernelTestCa
     }
 
     /**
-     * The single-night permission belongs to the customer; reading it off the operator would
-     * let anyone book one night just because the person at the desk may.
+     * The infopult worker orders for the customer, and legacy let either of them be the one with
+     * the right to a single night.
      */
-    public function testSingleNightPermissionComesFromTheCustomer(): void
+    public function testSingleNightPermissionOfTheOperatorCounts(): void
+    {
+        $this->signInOperator();
+        $this->singleNightUsers[] = self::OPERATOR_ID;
+        $this->customer();
+        $this->legacyCustomer();
+
+        $this->accommodationWriter
+            ->expects(self::once())
+            ->method('save')
+            ->with(
+                self::anything(),
+                self::anything(),
+                self::anything(),
+                self::identicalTo(true),
+                self::anything(),
+                self::anything(),
+                self::anything(),
+            );
+
+        $this->processor->process($this->input(), new Post());
+    }
+
+    public function testSingleNightPermissionOfTheCustomerCounts(): void
     {
         $this->signInOperator();
         $this->customer();
@@ -284,8 +318,37 @@ class SetCustomerAccommodationProcessorTest extends AbstractDatabaseKernelTestCa
     }
 
     /**
-     * The bed and Sunday night rules belong to the customer, like the single-night right:
-     * the operator at the desk holds both, the customer neither, and the booking follows the customer.
+     * An organizer at the desk opens the Sunday night for the customer, as in legacy.
+     */
+    public function testAnOrganizerOperatorMayBookSundayNightForTheCustomer(): void
+    {
+        $this->signInOperator();
+        $this->sundayOrderers[] = self::OPERATOR_ID;
+        $this->customer();
+        $this->legacyCustomer();
+
+        $this->accommodationWriter
+            ->expects(self::once())
+            ->method('save')
+            ->with(
+                self::anything(),
+                self::anything(),
+                self::anything(),
+                self::anything(),
+                self::anything(),
+                self::anything(),
+                self::anything(),
+                self::anything(),
+                self::anything(),
+                self::identicalTo(true),
+            );
+
+        $this->processor->process($this->input(), new Post());
+    }
+
+    /**
+     * The bed rule belongs to the customer, and the operator's own Sunday-night right is not
+     * enough for the customer (only the organizer role of the operator is, as in legacy).
      */
     public function testBedAndSundayNightRulesComeFromTheCustomerNotTheOperator(): void
     {
@@ -579,6 +642,24 @@ class SetCustomerAccommodationProcessorTest extends AbstractDatabaseKernelTestCa
             ->expects(self::once())
             ->method('forCustomer')
             ->with(self::anything(), self::anything(), true);
+
+        $this->processor->process($this->input(), new Post());
+    }
+
+    /**
+     * What the desk worker may do shapes the grid they get back: whether a full night stays open
+     * and how many nights are enough.
+     */
+    public function testTheSavedGridIsReadForTheOperatorWhoOrders(): void
+    {
+        $this->signInOperator();
+        $this->customer();
+        $this->legacyCustomer();
+
+        $this->accommodationGrid
+            ->expects(self::once())
+            ->method('forCustomer')
+            ->with(self::anything(), self::anything(), true, self::identicalTo($this->operator));
 
         $this->processor->process($this->input(), new Post());
     }

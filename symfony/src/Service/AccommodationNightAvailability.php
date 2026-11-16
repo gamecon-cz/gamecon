@@ -9,7 +9,8 @@ namespace App\Service;
  *
  * `remaining` už má odečtenou rezervaci pro organizátory, takže je to číslo, které smí vidět
  * zrovna tenhle zákazník — ne absolutní zbytek skladu. Vlastní koupená noc je v něm odečtená
- * jako každá jiná: je to zbytek pro ostatní.
+ * jako každá jiná: je to zbytek pro ostatní. U přeprodané noci je záporné; účastníkovi ho
+ * mřížka ořízne na nulu, pult ho vidí.
  */
 readonly class AccommodationNightAvailability
 {

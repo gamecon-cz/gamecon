@@ -23,6 +23,7 @@ class AccommodationRulesTest extends AbstractDatabaseKernelTestCase
     private const int SUNDAY_NIGHT_OFFER_ROLE = -990001;
     private const int SUNDAY_NIGHT_FREE_ROLE = -990002;
     private const int LAST_YEAR_SUNDAY_NIGHT_ROLE = -990003;
+    private const int LAST_YEAR_ORGANIZER_ROLE = -990004;
 
     /**
      * @return array<string, array{roles: list<array{id: int, year: int, type: string, meaning: string, rights?: list<int>}>, entitledToBed: bool, maySundayNight: bool}>
@@ -200,6 +201,56 @@ class AccommodationRulesTest extends AbstractDatabaseKernelTestCase
         self::assertFalse($this->sleepingBagsOnlyWithRestriction(true, $user));
     }
 
+    /**
+     * Legacy opened the Sunday night to whoever orders for the occupant when that person is an
+     * organizer, so the infopult shows it to the customer of an organizer at the desk.
+     */
+    public function testAnOrganizerOrderingForSomeoneElseOpensTheSundayNight(): void
+    {
+        $customer = $this->userWithRolesEntity([]);
+        $organizer = $this->userWithRolesEntity([$this->organizerRole()]);
+        $rules = static::getContainer()->get(AccommodationRules::class);
+
+        self::assertFalse($rules->maySundayNight($customer, ROCNIK));
+        self::assertTrue($rules->maySundayNight($customer, ROCNIK, $organizer));
+        self::assertTrue($rules->maySeeSundayNight($customer, ROCNIK, $organizer));
+    }
+
+    /**
+     * Only the orderer's role counts, not the rights of their roles: a desk worker who merely holds
+     * the Sunday-night right of their own opens nothing for the customer.
+     */
+    public function testAnInfopultWorkerOrderingForSomeoneElseOnlyLooksAtTheSundayNight(): void
+    {
+        $customer = $this->userWithRolesEntity([]);
+        $infopult = $this->userWithRolesEntity([[
+            'id'      => Role::idRocnikoveRole(Role::ROLE_INFOPULT_ID_ZAKLAD, ROCNIK),
+            'year'    => ROCNIK,
+            'type'    => RoleTypeEnum::YEARLY->value,
+            'meaning' => 'INFOPULT',
+            'rights'  => [Pravo::UBYTOVANI_NEDELNI_NOC_NABIZET],
+        ]]);
+        $rules = static::getContainer()->get(AccommodationRules::class);
+
+        self::assertFalse($rules->maySundayNight($customer, ROCNIK, $infopult));
+        self::assertTrue($rules->maySeeSundayNight($customer, ROCNIK, $infopult));
+        self::assertFalse($rules->maySeeSundayNight($customer, ROCNIK), 'Without the desk worker the column stays hidden');
+    }
+
+    public function testAnOrganizerOfLastYearOrderingForSomeoneElseOpensNothing(): void
+    {
+        $customer = $this->userWithRolesEntity([]);
+        $formerOrganizer = $this->userWithRolesEntity([[
+            'id'      => self::LAST_YEAR_ORGANIZER_ROLE,
+            'year'    => ROCNIK - 1,
+            'type'    => RoleTypeEnum::YEARLY->value,
+            'meaning' => 'ORGANIZATOR_ZDARMA',
+        ]]);
+        $rules = static::getContainer()->get(AccommodationRules::class);
+
+        self::assertFalse($rules->maySundayNight($customer, ROCNIK, $formerOrganizer));
+    }
+
     public function testNobodyIsLimitedToSleepingBagsWhileTheRestrictionIsOff(): void
     {
         $user = $this->entityManager()->find(User::class, $this->userWithRoles([]));
@@ -225,6 +276,30 @@ class AccommodationRulesTest extends AbstractDatabaseKernelTestCase
         } finally {
             $GLOBALS['systemoveNastaveni'] = $originalSettings;
         }
+    }
+
+    /**
+     * @return array{id: int, year: int, type: string, meaning: string}
+     */
+    private function organizerRole(): array
+    {
+        return [
+            'id'      => Role::ORGANIZATOR,
+            'year'    => Role::JAKYKOLI_ROCNIK,
+            'type'    => RoleTypeEnum::PERMANENT->value,
+            'meaning' => 'ORGANIZATOR_ZDARMA',
+        ];
+    }
+
+    /**
+     * @param list<array{id: int, year: int, type: string, meaning: string, rights?: list<int>}> $roles
+     */
+    private function userWithRolesEntity(array $roles): User
+    {
+        $user = $this->entityManager()->find(User::class, $this->userWithRoles($roles));
+        self::assertNotNull($user);
+
+        return $user;
     }
 
     /**

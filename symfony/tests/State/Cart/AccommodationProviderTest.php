@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Tests\State\Cart;
 
 use ApiPlatform\Metadata\Get;
+use App\Dto\Cart\AccommodationOutputDto;
 use App\Entity\OrderItem;
 use App\Entity\Product;
 use App\Entity\ProductTag;
@@ -61,9 +62,19 @@ class AccommodationProviderTest extends TestCase
 
     private bool $isOrganizer = false;
 
+    private bool $operatorMaySingleNight = false;
+
+    private bool $operatorMayOverbook = false;
+
+    private bool $operatorOrdersSunday = false;
+
+    private bool $operatorOnlySeesSunday = false;
+
     private ?string $discountReason = null;
 
     private ?User $signedInUser = null;
+
+    private ?User $operator = null;
 
     private AccommodationProvider $provider;
 
@@ -101,10 +112,23 @@ class AccommodationProviderTest extends TestCase
         // if the grid asked about some other permission or some other person.
         $userPermissions = $this->createMock(UserPermissions::class);
         $userPermissions->method('has')->willReturnCallback(
-            fn (User $user, int $permission, int $year): bool => $this->maySingleNight
-                && $user === $this->signedInUser
-                && $permission === Pravo::UBYTOVANI_MUZE_OBJEDNAT_JEDNU_NOC
-                && $year === self::ROK,
+            fn (User $user, int $permission, int $year): bool => $year === self::ROK
+                && (
+                    ($user === $this->signedInUser && $this->maySingleNight && $permission === Pravo::UBYTOVANI_MUZE_OBJEDNAT_JEDNU_NOC)
+                    || ($user === $this->operator && $this->operatorMaySingleNight && $permission === Pravo::UBYTOVANI_MUZE_OBJEDNAT_JEDNU_NOC)
+                    || ($user === $this->operator && $this->operatorMayOverbook && $permission === Pravo::MUZE_PRETIZIT_UBYTOVANI)
+                ),
+        );
+        // The desk worker's own role decides about Sunday, so the answer depends on who orders.
+        $this->accommodationRules->method('maySundayNight')->willReturnCallback(
+            fn (User $customer, int $year, ?User $orderer = null): bool => $orderer !== null
+                && $orderer === $this->operator
+                && $this->operatorOrdersSunday,
+        );
+        $this->accommodationRules->method('maySeeSundayNight')->willReturnCallback(
+            fn (User $customer, int $year, ?User $orderer = null): bool => $orderer !== null
+                && $orderer === $this->operator
+                && ($this->operatorOrdersSunday || $this->operatorOnlySeesSunday),
         );
         $userRoleRepository = $this->createMock(UserRoleRepository::class);
         $userRoleRepository->method('isOrganizer')->willReturnCallback(
@@ -337,6 +361,136 @@ class AccommodationProviderTest extends TestCase
         $this->assertTrue($cell->soldOut);
     }
 
+    /**
+     * The infopult worker's right to book one night counts for the customer, as it did for the
+     * legacy form, which asked the occupant and the orderer.
+     */
+    public function testTheDeskWorkersRightToASingleNightLowersTheMinimum(): void
+    {
+        $this->prepareUser();
+        $this->prepareGrid(produced: 10, sold: 0);
+        $this->prepareOperator(maySingleNight: true);
+
+        self::assertSame(1, $this->deskGrid()->minimumNights);
+    }
+
+    public function testADeskWorkerWithoutTheRightLeavesTheMinimumAlone(): void
+    {
+        $this->prepareUser();
+        $this->prepareGrid(produced: 10, sold: 0);
+        $this->prepareOperator();
+
+        self::assertSame(2, $this->deskGrid()->minimumNights);
+    }
+
+    public function testAFullNightStaysLockedForAnOrdinaryDeskWorker(): void
+    {
+        $this->prepareUser();
+        $this->prepareGrid(produced: 10, sold: 10);
+        $this->prepareOperator();
+
+        $cell = $this->deskGrid()->types[0]->nights[self::DEN_CTVRTEK];
+
+        self::assertTrue($cell->soldOut);
+        self::assertTrue($cell->locked);
+    }
+
+    public function testAFullNightIsOpenToTheDeskWorkerWhoMayOverbook(): void
+    {
+        $this->prepareUser();
+        $this->prepareGrid(produced: 10, sold: 10);
+        $this->prepareOperator(mayOverbook: true);
+
+        $cell = $this->deskGrid()->types[0]->nights[self::DEN_CTVRTEK];
+
+        self::assertTrue($cell->soldOut, 'Pořád je plná, jen se dá přeplnit');
+        self::assertFalse($cell->locked);
+    }
+
+    /**
+     * The grid shows the desk how far over the capacity a night went. The participant never
+     * sees it (testOverbookedNightDoesNotReportNegativeRemaining).
+     */
+    public function testAnOverbookedNightShowsTheNegativeNumberToTheDesk(): void
+    {
+        $this->prepareUser();
+        $this->prepareGrid(produced: 10, sold: 12);
+        $this->prepareOperator();
+
+        self::assertSame(-2, $this->deskGrid()->types[0]->nights[self::DEN_CTVRTEK]->remaining);
+    }
+
+    public function testTheReserveForOrganizersNeverPushesTheDeskBelowZero(): void
+    {
+        $this->prepareUser();
+        $this->prepareGrid(produced: 2, sold: 0, rezervovanoProOrgy: 5);
+        $this->prepareOperator();
+
+        self::assertSame(0, $this->deskGrid()->types[0]->nights[self::DEN_CTVRTEK]->remaining);
+    }
+
+    public function testAnOverbookedNightOfTheCustomerIsNotSoldOutForThem(): void
+    {
+        $this->prepareUser();
+        $this->prepareGrid(produced: 10, sold: 11, koupeno: true);
+        $this->prepareOperator();
+
+        $cell = $this->deskGrid()->types[0]->nights[self::DEN_CTVRTEK];
+
+        self::assertSame(-1, $cell->remaining);
+        self::assertTrue($cell->selected);
+        self::assertFalse($cell->soldOut);
+        self::assertFalse($cell->locked);
+    }
+
+    public function testAParticipantIsNeverOfferedOverbooking(): void
+    {
+        $this->prepareUser();
+        $this->prepareGrid(produced: 10, sold: 10);
+        $this->prepareOperator(mayOverbook: true);
+
+        self::assertTrue($this->provider->provide(new Get())->types[0]->nights[self::DEN_CTVRTEK]->locked);
+    }
+
+    /**
+     * Legacy opened the Sunday night to whoever orders it for someone else when that person is an
+     * organizer: the customer's own right is not the only way to it.
+     */
+    public function testAnOrganizerAtTheDeskCanOrderSundayForTheCustomer(): void
+    {
+        $this->prepareUser();
+        $this->sundayOnly();
+        $this->prepareOperator(ordersSunday: true);
+
+        $nedele = $this->deskGrid()->types[0]->nights[AccommodationRules::SUNDAY];
+
+        self::assertFalse($nedele->locked);
+    }
+
+    /**
+     * An infopult worker who is no organizer sees the column and cannot fill it, as in legacy.
+     */
+    public function testAnInfopultWorkerSeesSundayButCannotOrderIt(): void
+    {
+        $this->prepareUser();
+        $this->sundayOnly();
+        $this->prepareOperator(onlySeesSunday: true);
+
+        $dto = $this->deskGrid();
+
+        self::assertContains(AccommodationRules::SUNDAY, array_column($dto->days, 'day'));
+        self::assertTrue($dto->types[0]->nights[AccommodationRules::SUNDAY]->locked);
+    }
+
+    public function testSundayStaysHiddenFromACustomerAndAnOrdinaryDeskWorker(): void
+    {
+        $this->prepareUser();
+        $this->sundayOnly();
+        $this->prepareOperator();
+
+        self::assertNotContains(AccommodationRules::SUNDAY, array_column($this->deskGrid()->days, 'day'));
+    }
+
     public function testVariantWithoutLegacyRowCountsAsUnlimited(): void
     {
         $this->prepareUser();
@@ -380,6 +534,47 @@ class AccommodationProviderTest extends TestCase
         $this->orderItemRepository->method('findByCustomerAndYear')->willReturn([]);
 
         $this->assertSame([], $this->provider->provide(new Get())->types);
+    }
+
+    private function prepareOperator(
+        bool $maySingleNight = false,
+        bool $mayOverbook = false,
+        bool $ordersSunday = false,
+        bool $onlySeesSunday = false,
+    ): void {
+        $this->operator = $this->createMock(User::class);
+        $this->operatorMaySingleNight = $maySingleNight;
+        $this->operatorMayOverbook = $mayOverbook;
+        $this->operatorOrdersSunday = $ordersSunday;
+        $this->operatorOnlySeesSunday = $onlySeesSunday;
+    }
+
+    private function deskGrid(): AccommodationOutputDto
+    {
+        return $this->provider->forCustomer(
+            $this->security->getUser(),
+            $this->legacySession->getCurrentUser(),
+            zPultu: true,
+            orderer: $this->operator,
+        );
+    }
+
+    /**
+     * One room type offering nothing but its Sunday night, wired through the lookups the grid reads.
+     */
+    private function sundayOnly(): void
+    {
+        $nedele = $this->nedele(1, 'Kolej', 'kolej-ne', 70);
+        $this->productRepository->method('findByTag')->willReturn([$nedele->getProduct()]);
+        $this->orderItemRepository->method('countSoldByVariant')->willReturn([]);
+        $this->productRepository->method('capacityByVariantCode')->willReturn([
+            'kolej-ne' => [
+                'vyrobeno'    => 10,
+                'nabizeno'    => true,
+                'rezervovano' => null,
+            ],
+        ]);
+        $this->orderItemRepository->method('findByCustomerAndYear')->willReturn([]);
     }
 
     private function posunCas(string $cas): void

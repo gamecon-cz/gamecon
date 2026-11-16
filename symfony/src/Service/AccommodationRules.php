@@ -44,12 +44,27 @@ class AccommodationRules
     }
 
     /**
-     * Sunday is offered to few, so its night sits under the counter and only these see its column.
+     * Sunday is offered to few, so its night sits under the counter. Whoever orders it for
+     * someone else opens it too when they are an organizer themselves, as the legacy form let
+     * them; their rights do not count, only the role.
+     *
+     * @param User|null $orderer the desk worker booking for $user, null when $user books for themselves
      */
-    public function maySundayNight(User $user, int $year): bool
+    public function maySundayNight(User $user, int $year, ?User $orderer = null): bool
     {
         return $this->permissions->hasAny($user, [Pravo::UBYTOVANI_NEDELNI_NOC_NABIZET, Pravo::UBYTOVANI_NEDELNI_NOC_ZDARMA], $year)
-            || $this->userRoleRepository->holdsAnyMeaning($user, self::LEGACY_ORGANIZER_MEANINGS, $year);
+            || $this->userRoleRepository->holdsAnyMeaning($user, self::LEGACY_ORGANIZER_MEANINGS, $year)
+            || ($orderer !== null && $this->userRoleRepository->holdsAnyMeaning($orderer, self::LEGACY_ORGANIZER_MEANINGS, $year));
+    }
+
+    /**
+     * The column is shown to those who may order it and, read-only, to an infopult worker
+     * looking at someone else's booking.
+     */
+    public function maySeeSundayNight(User $user, int $year, ?User $orderer = null): bool
+    {
+        return $this->maySundayNight($user, $year, $orderer)
+            || ($orderer !== null && $this->userRoleRepository->holdsAnyMeaning($orderer, [RoleMeaning::INFOPULT], $year));
     }
 
     /**

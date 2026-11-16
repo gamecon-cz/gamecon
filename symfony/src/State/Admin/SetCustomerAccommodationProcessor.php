@@ -74,7 +74,9 @@ readonly class SetCustomerAccommodationProcessor implements ProcessorInterface
             $customer,
             array_map('intval', $data->variantIds),
             $year,
-            $this->userPermissions->has($customer, Pravo::UBYTOVANI_MUZE_OBJEDNAT_JEDNU_NOC, $year),
+            // Either of them: legacy asked the occupant and the one who orders.
+            $this->userPermissions->has($customer, Pravo::UBYTOVANI_MUZE_OBJEDNAT_JEDNU_NOC, $year)
+                || $this->userPermissions->has($operator, Pravo::UBYTOVANI_MUZE_OBJEDNAT_JEDNU_NOC, $year),
             $roommate,
             $data->declined,
             $this->accommodationRules->sleepingBagsOnly($customer, $year),
@@ -84,7 +86,7 @@ readonly class SetCustomerAccommodationProcessor implements ProcessorInterface
             // Rezervace patří zákazníkovi, ne obsluze: pult objednává za něj, takže
             // rozhoduje, jestli je organizátor on. Okruh rolí je tentýž jako u merche.
             jeOrganizator: $this->userRoleRepository->isOrganizer($customer, $year),
-            maySundayNight: $this->accommodationRules->maySundayNight($customer, $year),
+            maySundayNight: $this->accommodationRules->maySundayNight($customer, $year, $operator),
         );
 
         // After the nights, so a night booked in the same request cancels again what it covers
@@ -101,7 +103,7 @@ readonly class SetCustomerAccommodationProcessor implements ProcessorInterface
         $legacyCustomer = $this->findLegacyCustomer((int) $customer->getId());
 
         // The grid redraws from what came back, so it cannot drift from what was stored.
-        return $this->accommodationGrid->forCustomer($customer, $legacyCustomer, zPultu: true);
+        return $this->accommodationGrid->forCustomer($customer, $legacyCustomer, zPultu: true, orderer: $operator);
     }
 
     private function findCustomer(?int $customerId): User

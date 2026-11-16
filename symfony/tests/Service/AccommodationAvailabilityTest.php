@@ -196,12 +196,12 @@ class AccommodationAvailabilityTest extends AbstractDatabaseKernelTestCase
     }
 
     /**
-     * Zbytek nesmí spadnout pod nulu — pult smí přeprodat, ale mřížka pak nemá ukazovat
-     * záporné číslo jako „volno".
+     * Pult smí přeprodat a ukáže, o kolik: zbytek jde pod nulu. Účastníkovi ho mřížka ořízne
+     * (AccommodationProviderTest).
      *
      * @test
      */
-    public function preprodanaNocNejdeDoMinusu(): void
+    public function preprodanaNocJdeDoMinusu(): void
     {
         $noc = $this->vytvorNoc(kapacita: 1);
         $this->prodej($noc, $this->zakaznik());
@@ -209,7 +209,22 @@ class AccommodationAvailabilityTest extends AbstractDatabaseKernelTestCase
 
         $dostupnost = $this->availability()->proZakaznika(self::ROK, jeOrganizator: false);
 
-        self::assertSame(0, $dostupnost[$noc->getCode()]->remaining);
+        self::assertSame(-1, $dostupnost[$noc->getCode()]->remaining);
         self::assertTrue($dostupnost[$noc->getCode()]->soldOut());
+    }
+
+    /**
+     * Rezerva ubírá jen z toho, co zbývá: překlep v rezervaci nesmí dát záporné číslo, které
+     * by vypadalo jako přeprodání.
+     *
+     * @test
+     */
+    public function rezervaVetsiNezKapacitaNedaMinus(): void
+    {
+        $noc = $this->vytvorNoc(kapacita: 2, rezervovano: 5);
+
+        $dostupnost = $this->availability()->proZakaznika(self::ROK, jeOrganizator: false);
+
+        self::assertSame(0, $dostupnost[$noc->getCode()]->remaining);
     }
 }

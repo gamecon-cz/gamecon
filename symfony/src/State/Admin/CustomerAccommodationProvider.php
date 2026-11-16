@@ -11,6 +11,7 @@ use App\Entity\User;
 use App\Service\LegacySessionService;
 use App\State\Cart\AccommodationGridInterface;
 use Doctrine\ORM\EntityManagerInterface;
+use Symfony\Bundle\SecurityBundle\Security;
 use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
 use Symfony\Contracts\Translation\TranslatorInterface;
 
@@ -28,11 +29,17 @@ readonly class CustomerAccommodationProvider implements ProviderInterface
         private LegacySessionService $legacySession,
         private EntityManagerInterface $entityManager,
         private TranslatorInterface $translator,
+        private Security $security,
     ) {
     }
 
     public function provide(Operation $operation, array $uriVariables = [], array $context = []): AccommodationOutputDto
     {
+        $operator = $this->security->getUser();
+        if (! $operator instanceof User) {
+            throw new \LogicException('The operation lets only a signed-in user through.');
+        }
+
         // Cast only what is already a number: a repeated ?customerId arrives as an array and
         // would cast to 1, quietly answering for whoever that is.
         $requested = $context['filters']['customerId'] ?? null;
@@ -53,6 +60,6 @@ readonly class CustomerAccommodationProvider implements ProviderInterface
             ], 'errors'));
         }
 
-        return $this->accommodationGrid->forCustomer($customer, $legacyCustomer, zPultu: true);
+        return $this->accommodationGrid->forCustomer($customer, $legacyCustomer, zPultu: true, orderer: $operator);
     }
 }

@@ -14,8 +14,11 @@ use App\Entity\User;
 interface AccommodationGridInterface
 {
     /**
-     * @param bool $zPultu volá to obsluha za účastníka — pak neplatí termín prodeje,
-     *                     protože doobjednat po termínu je smysl admin obrazovek
+     * @param bool      $zPultu  volá to obsluha za účastníka — pak neplatí termín prodeje,
+     *                           protože doobjednat po termínu je smysl admin obrazovek
+     * @param User|null $orderer obsluha, která objednává; její práva a role rozhodují o jedné noci,
+     *                           o neděli a o přeplnění, jako to dělal formulář, který se ptal
+     *                           objednatele i ubytovaného. Bez ní objednává ubytovaný sám.
      */
-    public function forCustomer(User $user, \Uzivatel $legacyUser, bool $zPultu): AccommodationOutputDto;
+    public function forCustomer(User $user, \Uzivatel $legacyUser, bool $zPultu, ?User $orderer = null): AccommodationOutputDto;
 }

@@ -14,6 +14,7 @@ use App\Tests\Support\ChybovePreklady;
 use Doctrine\ORM\EntityManagerInterface;
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
+use Symfony\Bundle\SecurityBundle\Security;
 use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
 
 /**
@@ -28,6 +29,8 @@ class CustomerAccommodationProviderTest extends TestCase
 
     private MockObject $legacySession;
 
+    private MockObject $operator;
+
     private CustomerAccommodationProvider $provider;
 
     protected function setUp(): void
@@ -35,12 +38,16 @@ class CustomerAccommodationProviderTest extends TestCase
         $this->accommodationGrid = $this->createMock(AccommodationGridInterface::class);
         $this->entityManager = $this->createMock(EntityManagerInterface::class);
         $this->legacySession = $this->createMock(LegacySessionService::class);
+        $this->operator = $this->createMock(User::class);
+        $security = $this->createMock(Security::class);
+        $security->method('getUser')->willReturn($this->operator);
 
         $this->provider = new CustomerAccommodationProvider(
             $this->accommodationGrid,
             $this->legacySession,
             $this->entityManager,
             ChybovePreklady::translator(),
+            $security,
         );
     }
 
@@ -114,8 +121,14 @@ class CustomerAccommodationProviderTest extends TestCase
         $this->accommodationGrid
             ->expects(self::once())
             ->method('forCustomer')
-            // `zPultu: true` je to, co pultu dovolí objednat po termínu prodeje.
-            ->with(self::identicalTo($customer), self::identicalTo($legacyCustomer), self::isTrue())
+            // `zPultu: true` je to, co pultu dovolí objednat po termínu prodeje; obsluha je ten, kdo
+            // objednává, takže její práva rozhodují o jedné noci, neděli a přeplnění.
+            ->with(
+                self::identicalTo($customer),
+                self::identicalTo($legacyCustomer),
+                self::isTrue(),
+                self::identicalTo($this->operator),
+            )
             ->willReturn($grid);
 
         self::assertSame($grid, $this->read([

@@ -32,10 +32,9 @@ use Symfony\Component\HttpKernel\Exception\AccessDeniedHttpException;
 use Symfony\Contracts\Translation\TranslatorInterface;
 
 /**
- * Serves the logged-in customer's own grid. Legacy tells the occupant apart from the
- * orderer (an infopult worker books for someone else and their own organizer status then
- * unlocks Sunday); this endpoint has no such parameter, so ordering on behalf of another
- * person stays on the legacy form for now.
+ * Serves the logged-in customer's own grid. The desk reads a participant's through
+ * `forCustomer()`, which also takes the worker who orders: as in the legacy form, their role
+ * opens Sunday, their right allows a single night and their right to overbook opens full nights.
  *
  * @implements ProviderInterface<AccommodationOutputDto>
  */
@@ -80,23 +79,28 @@ readonly class AccommodationProvider implements ProviderInterface, Accommodation
      * a participant's nights: there the rights below belong to that participant, while the
      * request is sent by an operator, so neither may come from the session.
      *
-     * @param bool $zPultu volá to obsluha za účastníka, ne účastník sám — pak termín
-     *                     prodeje neplatí, protože doobjednat po termínu je hlavní důvod,
-     *                     proč admin obrazovky existují (`SetCustomerAccommodationProcessor`
-     *                     ho z téhož důvodu nekontroluje ani při zápisu)
+     * @param bool      $zPultu  volá to obsluha za účastníka, ne účastník sám — pak termín
+     *                           prodeje neplatí, protože doobjednat po termínu je hlavní důvod,
+     *                           proč admin obrazovky existují (`SetCustomerAccommodationProcessor`
+     *                           ho z téhož důvodu nekontroluje ani při zápisu)
+     * @param User|null $orderer obsluha, která objednává (viz `AccommodationGridInterface`)
      */
-    public function forCustomer(User $user, \Uzivatel $legacyUser, bool $zPultu): AccommodationOutputDto
+    public function forCustomer(User $user, \Uzivatel $legacyUser, bool $zPultu, ?User $orderer = null): AccommodationOutputDto
     {
         $year = $this->currentYearProvider->getCurrentYear();
         $nastaveni = SystemoveNastaveni::zGlobals();
         $prodejUkoncen = ! $zPultu && $nastaveni->prodejUbytovaniUkoncen();
 
-        $muzeNedeli = $this->accommodationRules->maySundayNight($user, $year);
-        $muzeJednuNoc = $this->userPermissions->has($user, Pravo::UBYTOVANI_MUZE_OBJEDNAT_JEDNU_NOC, $year);
+        $muzeNedeli = $this->accommodationRules->maySundayNight($user, $year, $orderer);
+        $videtNedeli = $muzeNedeli || $this->accommodationRules->maySeeSundayNight($user, $year, $orderer);
+        $muzeJednuNoc = $this->userPermissions->has($user, Pravo::UBYTOVANI_MUZE_OBJEDNAT_JEDNU_NOC, $year)
+            || ($orderer !== null && $this->userPermissions->has($orderer, Pravo::UBYTOVANI_MUZE_OBJEDNAT_JEDNU_NOC, $year));
 
         $dto = new AccommodationOutputDto();
         $dto->saleClosed = $prodejUkoncen;
         $dto->minimumNights = $muzeJednuNoc ? 1 : 2;
+        $muzePreplnit = $orderer !== null
+            && $this->userPermissions->has($orderer, Pravo::MUZE_PRETIZIT_UBYTOVANI, $year);
         // Read off this year's order, so a decline or a roommate from an earlier year does
         // not leak into this one. Falls back to the account while orders predating the move
         // still carry nothing.
@@ -108,7 +112,7 @@ readonly class AccommodationProvider implements ProviderInterface, Accommodation
             : (bool) $legacyUser->nechceUbytovani();
 
         foreach (ProductVariant::NIGHT_NAMES as $den => $nazev) {
-            if ($den === AccommodationRules::SUNDAY && ! $muzeNedeli) {
+            if ($den === AccommodationRules::SUNDAY && ! $videtNedeli) {
                 continue;
             }
             $denDto = new AccommodationDayOutputDto();
@@ -123,7 +127,7 @@ readonly class AccommodationProvider implements ProviderInterface, Accommodation
         // A night the customer already holds always gets a cell, even on a day they could
         // not newly order — otherwise the booking they own is invisible and the write path
         // would drop it, leaving the rest non-consecutive.
-        if (! $muzeNedeli && in_array(AccommodationRules::SUNDAY, $koupeneDny, true)) {
+        if (! $videtNedeli && in_array(AccommodationRules::SUNDAY, $koupeneDny, true)) {
             $denDto = new AccommodationDayOutputDto();
             $denDto->day = AccommodationRules::SUNDAY;
             $denDto->name = ProductVariant::NIGHT_NAMES[AccommodationRules::SUNDAY];
@@ -153,7 +157,7 @@ readonly class AccommodationProvider implements ProviderInterface, Accommodation
 
             $typDto = $this->toTypeDto(
                 $product, $user, $year, $viditelneDny, $prodejUkoncen, $koupeneVarianty,
-                $dostupnost, $jeOrganizator, $muzeNedeli,
+                $dostupnost, $jeOrganizator, $muzeNedeli, $zPultu, $muzePreplnit,
             );
             if ($typDto !== null) {
                 $dto->types[] = $typDto;
@@ -178,6 +182,8 @@ readonly class AccommodationProvider implements ProviderInterface, Accommodation
         array $dostupnost,
         bool $jeOrganizator,
         bool $muzeNedeli,
+        bool $zPultu,
+        bool $muzePreplnit,
     ): ?AccommodationTypeOutputDto {
         // The nights absorbed by the day-variant migration are still products in their own
         // right — the legacy form reads them — but they carry no variants and must not
@@ -205,6 +211,10 @@ readonly class AccommodationProvider implements ProviderInterface, Accommodation
 
             $noc = $dostupnost[(string) $variant->getCode()] ?? null;
             $zbyva = $noc?->remaining;
+            // A night sold past its capacity is only for the desk to see; a participant reads 0.
+            if (! $zPultu && $zbyva !== null) {
+                $zbyva = max(0, $zbyva);
+            }
             $vyprodano = $noc !== null && $noc->soldOut();
             // A held Sunday shows the column without the right, but only so it can be dropped.
             $nabizeno = $noc !== null && $noc->offered && ($den !== AccommodationRules::SUNDAY || $muzeNedeli);
@@ -222,8 +232,9 @@ readonly class AccommodationProvider implements ProviderInterface, Accommodation
             // poslat ji i zvlášť by znamenalo „zbývá 5 (+5 org)" u pěti postelí.
             $cell->reservedForOrganizers = $jeOrganizator ? null : $rezervovano;
             // A night already booked stays selectable, otherwise the customer could not
-            // drop it — the same reason the legacy grid never disables a ticked box.
-            $cell->locked = ! $koupeno && ($prodejUkoncen || $vyprodano || ! $nabizeno);
+            // drop it — the same reason the legacy grid never disables a ticked box. A full
+            // night stays open to the one who may overbook it.
+            $cell->locked = ! $koupeno && ($prodejUkoncen || ($vyprodano && ! $muzePreplnit) || ! $nabizeno);
 
             $typDto->nights[$den] = $cell;
         }
