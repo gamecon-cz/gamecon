@@ -117,7 +117,7 @@ describe("UbytovaniMřížka: pravidlo navazování nocí", () => {
     expect(pravidlo?.compareDocumentPosition(tabulka as Node)).toBe(Node.DOCUMENT_POSITION_FOLLOWING);
   });
 
-  it("sdílí řádek se stavem ukládání, aby se vešly vedle sebe, když je místo", async () => {
+  it("stojí ve stejném řádku jako stav ukládání", async () => {
     const buňkaTypu = await vykresli(typUbytovani(), 53);
 
     const mřížka = buňkaTypu.closest(".ubytovani-mrizka");
