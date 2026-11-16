@@ -62,7 +62,8 @@ přihlášku, admin Uživatele, Infopult a reporty:
 
 Rozdíl **není automaticky chyba** — část jich je záměrná (hlídání kapacity na serveru, zrušený
 převod bonusu). Každý nalezený rozdíl se musí zařadit: *záměrná změna*, *chyba*, nebo
-*nezjištěno*. Záměrné patří do poznámek u karty, chyby na opravu.
+*nezjištěno*. Záměrné se zapisují do [eshop-zamerne-rozdily-proti-main](eshop-zamerne-rozdily-proti-main.md)
+a co tam není, je chyba; chyby se opravují.
 
 ## Kontrola přes všechny uživatele
 

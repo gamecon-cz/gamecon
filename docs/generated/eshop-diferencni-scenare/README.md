@@ -95,7 +95,7 @@ Netýká se e-shopu, ale stojí za prověření — viz `nalezy.md`.
 
 Všechno do [nalezy.md](nalezy.md), jeden řádek na rozdíl, se zařazením:
 
-- **záměrné** — víme o tom a je to tak chtěné (patří do popisu PR / na kartu)
+- **záměrné** — víme o tom a je to tak chtěné (zapsat do [eshop-zamerne-rozdily-proti-main](../eshop-zamerne-rozdily-proti-main.md); co tam není, je chyba)
 - **chyba** — na opravu
 - **nezjištěno** — zatím nevíme; nenechávat viset
 

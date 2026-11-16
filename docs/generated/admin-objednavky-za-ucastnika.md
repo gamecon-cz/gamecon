@@ -124,8 +124,9 @@ někdo spravuje**, a **výběrem, který si držitel tokenu mění sám**. To pr
 druhé ne.
 
 U nás to má konkrétní důsledek: token platí **hodinu a jednotlivě nejde odvolat** (`JwtService`,
-žádné `jti` ani blocklist; odhlášení zneplatní najednou všechny tokeny uživatele přes verzi
-tokenů, přepnutí obsluhy na jiného účastníka ne). Token vydaný nad účastníkem A by tak hodinu
+žádné `jti` ani blocklist; odhlášení ostatních zařízení a změna hesla zneplatní najednou všechny
+tokeny uživatele přes verzi tokenů, obyčejné „Odhlásit" ani přepnutí obsluhy na jiného účastníka
+ne). Token vydaný nad účastníkem A by tak hodinu
 zůstal platný i poté, co obsluha přepnula na B — buď by se musel razit znovu při každém
 přepnutí, nebo by zápisy končily
 u špatného člověka. A stálý token se zapečeným účastníkem je navíc hodinu použitelná oprávnění
