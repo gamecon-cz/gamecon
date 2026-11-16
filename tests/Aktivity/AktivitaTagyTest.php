@@ -18,9 +18,9 @@ use Gamecon\Tests\Factory\TagFactory;
 
 class AktivitaTagyTest extends AbstractTestDb
 {
-    // Disable legacy mysqli transaction wrapping because this test uses Doctrine factories.
-    // Doctrine uses a separate PDO connection, so legacy mysqli transactions would cause deadlocks.
-    // Foundry (via the Factories trait) handles transaction management for Doctrine.
+    // Foundry factories + legacy Aktivita::nastavTagy() cause deadlocks
+    // inside nested transactions (SAVEPOINTs). Disable transaction wrapping
+    // and use full DB reset instead.
     protected static function keepTestClassDbChangesInTransaction(): bool
     {
         return false;

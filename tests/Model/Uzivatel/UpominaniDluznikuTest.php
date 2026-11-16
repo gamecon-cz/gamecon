@@ -9,7 +9,6 @@ use Gamecon\Command\FioStazeniNovychPlateb;
 use Gamecon\Kanaly\MailLogger;
 use Gamecon\Logger\JobResultLoggerInterface;
 use Gamecon\Role\Role;
-use Gamecon\Shop\TypPredmetu;
 use Gamecon\Stat;
 use Gamecon\SystemoveNastaveni\SystemoveNastaveni;
 use Gamecon\Tests\Db\AbstractTestDb;
@@ -1169,13 +1168,13 @@ SQL,
      */
     public function casovyLimitPhpSeVratiNaPuvodniHodnotuIKdyzNejsouDluznici()
     {
-        dbQuery(<<<'SQL'
+        dbExecute(<<<'SQL'
 UPDATE uzivatele_hodnoty SET zustatek = 0
 SQL);
-        dbQuery(<<<'SQL'
+        dbExecute(<<<'SQL'
 DELETE FROM platby WHERE castka < 0
 SQL);
-        dbQuery(<<<'SQL'
+        dbExecute(<<<'SQL'
 DELETE FROM uzivatele_role WHERE id_role = $0
 SQL, [
             0 => Role::prihlasenNaRocnik(ROCNIK),
@@ -1213,7 +1212,7 @@ SQL, [
 
         // Pád uprostřed rozesílky: souhrnný záznam za celý běh nevznikl, takže
         // další běh projde přes jizOdeslano() a smí doslat jen dosud neobeslané.
-        dbQuery(
+        dbExecute(
             "DELETE FROM hromadne_akce_log WHERE skupina = 'upominani-dluzniku'",
         );
 
@@ -1361,19 +1360,20 @@ SQL,
         // Práh je 251 Kč, dluh 250,60 Kč je pod ním a v e-mailu by stálo přesně 250,60. Zůstatek
         // z minulých let jsou celé koruny, haléře se do dluhu dostanou jen z nákupu.
         $idHranicniho = 2010;
-        dbQuery(self::uzivatelQuery($idHranicniho, 'Hraniční', 'Dlužník', 0.0, 'hranicni.dluznik@test.cz'));
-        dbQuery(self::prihlasenNaLetosniGcQuery($idHranicniho));
-        dbQuery(
-            'INSERT INTO shop_predmety SET id_predmetu = 201001, nazev = $0, model_rok = $1, kod_predmetu = CONCAT($2, $1), cena_aktualni = 250.6, stav = 1, nabizet_do = NOW(), kusu_vyrobeno = 1, typ = $3',
+        dbExecute(self::uzivatelQuery($idHranicniho, 'Hraniční', 'Dlužník', 0.0, 'hranicni.dluznik@test.cz'));
+        dbExecute(self::prihlasenNaLetosniGcQuery($idHranicniho));
+        dbExecute(
+            'INSERT INTO shop_predmety SET id_predmetu = 201001, nazev = $0, kod_predmetu = CONCAT($1, $2), cena_aktualni = 250.6, stav = 1, nabizet_do = NOW()',
             [
                 0 => 'hraniční předmět',
-                1 => ROCNIK,
-                2 => 'upominka_hranicni_',
-                3 => TypPredmetu::PREDMET,
+                1 => 'upominka_hranicni_',
+                2 => ROCNIK,
             ],
         );
-        dbQuery(
-            'INSERT INTO shop_nakupy(id_uzivatele, id_predmetu, rok, cena_nakupni) VALUES ($0, 201001, $1, 250.6)',
+        dbExecute("INSERT INTO product_product_tag (product_id, tag_id) SELECT 201001, id FROM product_tag WHERE code = 'predmet'");
+        dbExecute(self::SQL_VYCHOZI_VARIANTY);
+        dbExecute(
+            'INSERT INTO shop_nakupy(id_uzivatele, variant_id, rok, cena_nakupni) VALUES ($0, ' . sprintf(self::SQL_VARIANTA_RADKU, '201001') . ', $1, 250.6)',
             [
                 0 => $idHranicniho,
                 1 => ROCNIK,

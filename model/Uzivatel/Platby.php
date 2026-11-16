@@ -103,7 +103,7 @@ class Platby
         ?int   $rocnik = ROCNIK,
         string $orderByDesc = Sql::ID,
     ): iterable {
-        $result = dbQuery(<<<SQL
+        $result = dbFetch(<<<SQL
             SELECT id
             FROM platby
             WHERE (id_uzivatele IS NULL OR NOT EXISTS(SELECT 1 FROM uzivatele_hodnoty WHERE uzivatele_hodnoty.id_uzivatele = platby.id_uzivatele))
@@ -113,7 +113,7 @@ class Platby
             [0 => $rocnik],
             dbConnectTemporary(),
         );
-        while ($id = mysqli_fetch_column($result)) {
+        while ($id = $result->fetchColumn()) {
             yield Platba::zId($id, true);
         }
     }

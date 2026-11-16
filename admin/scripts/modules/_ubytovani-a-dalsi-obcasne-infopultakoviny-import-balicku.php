@@ -126,7 +126,7 @@ if ($varovani) {
 $zapsanoZmen = 0;
 if ($balickyProSql) {
     $temporaryTable = uniqid('import_balicku_tmp_', true);
-    dbQuery(<<<SQL
+    dbExecute(<<<SQL
 CREATE TEMPORARY TABLE `$temporaryTable`
 (id_uzivatele INT UNSIGNED NOT NULL PRIMARY KEY, infopult_poznamka VARCHAR(128) DEFAULT NULL)
 SQL,
@@ -143,7 +143,7 @@ SQL,
 
     $sqlValues = implode(",\n", $sqlValuesArray);
 
-    dbQuery(<<<SQL
+    dbExecute(<<<SQL
 INSERT INTO `$temporaryTable` (id_uzivatele, infopult_poznamka)
     VALUES
 $sqlValues
@@ -151,16 +151,15 @@ SQL,
         $queryParams,
     );
 
-    $mysqliResult = dbQuery(<<<SQL
+    $zapsanoZmen += dbExecute(<<<SQL
 UPDATE uzivatele_hodnoty
 JOIN `$temporaryTable` ON uzivatele_hodnoty.id_uzivatele = `$temporaryTable`.id_uzivatele
 SET uzivatele_hodnoty.infopult_poznamka = `$temporaryTable`.infopult_poznamka
 WHERE TRUE
 SQL,
     );
-    $zapsanoZmen  += dbAffectedOrNumRows($mysqliResult);
 
-    dbQuery(<<<SQL
+    dbExecute(<<<SQL
 DROP TEMPORARY TABLE `$temporaryTable`
 SQL,
     );

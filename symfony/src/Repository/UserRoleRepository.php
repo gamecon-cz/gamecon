@@ -4,8 +4,13 @@ declare(strict_types=1);
 
 namespace App\Repository;
 
+use App\Entity\User;
 use App\Entity\UserRole;
+use App\Enum\RoleMeaning;
+use App\Enum\RoleTypeEnum;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
+use Doctrine\ORM\AbstractQuery;
+use Doctrine\ORM\QueryBuilder;
 use Doctrine\Persistence\ManagerRegistry;
 
 /**
@@ -39,9 +44,79 @@ class UserRoleRepository extends ServiceEntityRepository
      */
     private const int SYSTEM_USER_ID = 1;
 
+    /**
+     * @see \Gamecon\Role\Role::JAKYKOLI_ROCNIK
+     */
+    private const int ANY_YEAR = -1;
+
     public function __construct(ManagerRegistry $registry)
     {
         parent::__construct($registry, UserRole::class);
+    }
+
+    /**
+     * Whether the user holds a role of one of these meanings that is valid in the given year.
+     * Read on every call, so a role granted within the request counts.
+     *
+     * @param RoleMeaning[] $meanings
+     */
+    public function holdsAnyMeaning(User $user, array $meanings, int $year): bool
+    {
+        return $this->validRolesOf($user, $year)
+            ->select('1')
+            ->andWhere('role.vyznamRole IN (:meanings)')
+            ->setParameter('meanings', $meanings)
+            ->setMaxResults(1)
+            ->getQuery()
+            ->getOneOrNullResult(AbstractQuery::HYDRATE_SINGLE_SCALAR) !== null;
+    }
+
+    /**
+     * The meanings of the roles the user holds that are valid in the given year, each once.
+     * Never taken from the user's loaded roles: those include every past year.
+     *
+     * @return RoleMeaning[]
+     */
+    public function getValidMeanings(User $user, int $year): array
+    {
+        $meanings = $this->validRolesOf($user, $year)
+            ->select('DISTINCT role.vyznamRole')
+            ->getQuery()
+            ->getSingleColumnResult();
+
+        return array_map(static fn (string $meaning): RoleMeaning => RoleMeaning::from($meaning), $meanings);
+    }
+
+    /**
+     * Organizer in the wide sense of RoleMeaning::organizerMeanings(), which is what reserved
+     * stock, merch and beds follow, not the five roles legacy Uzivatel::jeOrganizator() knows.
+     */
+    public function isOrganizer(User $user, int $year): bool
+    {
+        return $this->holdsAnyMeaning($user, RoleMeaning::organizerMeanings(), $year);
+    }
+
+    /**
+     * A role is valid in a year when it is of that year, of no year, or a participation role.
+     *
+     * @see \App\Discount\DiscountRuleLoader::rightsOfUser() the same validity, for rights
+     * @see \Uzivatel::dejIdsRoli() legacy reads it through the platne_role_uzivatelu view
+     */
+    private function validRolesOf(User $user, int $year): QueryBuilder
+    {
+        $queryBuilder = $this->createQueryBuilder('userRole');
+
+        return $queryBuilder
+            ->innerJoin('userRole.role', 'role')
+            ->where('IDENTITY(userRole.user) = :userId')
+            ->andWhere($queryBuilder->expr()->orX(
+                'role.rocnikRole IN (:year, :anyYear)',
+                'role.typRole = :participationType',
+            ))
+            ->setParameter('userId', $user->getId())
+            ->setParameter('year', $year)
+            ->setParameter('anyYear', self::ANY_YEAR)
+            ->setParameter('participationType', RoleTypeEnum::PARTICIPATION);
     }
 
     /**
@@ -87,23 +162,5 @@ class UserRoleRepository extends ServiceEntityRepository
                 'year'                   => $year,
             ],
         );
-    }
-
-    public function save(UserRole $entity, bool $flush = false): void
-    {
-        $this->getEntityManager()->persist($entity);
-
-        if ($flush) {
-            $this->getEntityManager()->flush();
-        }
-    }
-
-    public function remove(UserRole $entity, bool $flush = false): void
-    {
-        $this->getEntityManager()->remove($entity);
-
-        if ($flush) {
-            $this->getEntityManager()->flush();
-        }
     }
 }

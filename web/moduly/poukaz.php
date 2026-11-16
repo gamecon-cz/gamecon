@@ -23,10 +23,10 @@ if ($gcPrihlasen && ! $jizUplatneno && post('kod')) {
         $jizMelRoli = false;
         dbBegin();
         try {
-            $zmeneno = dbAffectedOrNumRows(dbQuery(
+            $zmeneno = dbExecute(
                 'UPDATE slevove_kody SET usedAt = NOW(), usedBy = $0 WHERE kod = $1 AND invalidated = 0 AND usedAt IS NULL',
                 [$u->id(), $kod],
-            ));
+            );
             if ($zmeneno) {
                 // pridejRoli vrátí false, pokud roli uživatel už má (např. ze souběžného
                 // requestu). V tom případě poukaz NEpálíme – jinak by se platný kód

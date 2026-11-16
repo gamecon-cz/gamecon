@@ -2,8 +2,8 @@
 
 use Gamecon\Prostredi\Prostredi;
 
-if (jeTestovaciNastaveniPovoleno()) {
-    include __DIR__ . '/verejne-nastaveni-tests.php';
+if (jeTestovaciNastaveniPovoleno() || ($_ENV['APP_ENV'] ?? '') === 'test') {
+    include_once __DIR__ . '/verejne-nastaveni-tests.php';
 }
 
 if (file_exists(__DIR__ . '/nastaveni-server.php')) {

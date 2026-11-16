@@ -13,8 +13,8 @@ class FwDatabaseTest extends TestCase
 {
     protected function setUp(): void
     {
-        dbQuery('DROP TEMPORARY TABLE IF EXISTS tmp_fw_database_enum');
-        dbQuery(<<<'SQL'
+        dbExecute('DROP TEMPORARY TABLE IF EXISTS tmp_fw_database_enum');
+        dbExecute(<<<'SQL'
             CREATE TEMPORARY TABLE tmp_fw_database_enum (
                 id    INT         NOT NULL,
                 code  VARCHAR(20) NOT NULL,
@@ -22,7 +22,7 @@ class FwDatabaseTest extends TestCase
                 PRIMARY KEY (id)
             )
             SQL);
-        dbQuery(<<<'SQL'
+        dbExecute(<<<'SQL'
             INSERT INTO tmp_fw_database_enum (id, code, cislo)
             VALUES (1, 'tyden', 0), (2, 'mesic', 1), (3, 'rucni', 2)
             SQL);
@@ -30,7 +30,17 @@ class FwDatabaseTest extends TestCase
 
     protected function tearDown(): void
     {
-        dbQuery('DROP TEMPORARY TABLE IF EXISTS tmp_fw_database_enum');
+        dbExecute('DROP TEMPORARY TABLE IF EXISTS tmp_fw_database_enum');
+    }
+
+    public function testLegacyConnectionHoldsAMegabyteOfGroupConcat(): void
+    {
+        self::assertSame('1048576', dbOneCol('SELECT @@group_concat_max_len'));
+    }
+
+    public function testLegacyConnectionComparesStringsInCzech(): void
+    {
+        self::assertSame('utf8mb4_czech_ci', dbOneCol('SELECT @@collation_connection'));
     }
 
     public function testEmptyArrayParameterEscapedAsNull()

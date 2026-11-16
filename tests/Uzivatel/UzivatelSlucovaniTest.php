@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Gamecon\Tests\Uzivatel;
 
+use Gamecon\SystemoveNastaveni\SystemoveNastaveni;
 use Gamecon\Tests\Db\AbstractUzivatelTestDb;
 use Gamecon\Uzivatel\UzivatelSlucovani;
 
@@ -47,9 +48,9 @@ class UzivatelSlucovaniTest extends AbstractUzivatelTestDb
 
     public static function tearDownAfterClass(): void
     {
-        dbQuery('DROP TABLE IF EXISTS test_uzivatel_reference');
-        dbQuery('DROP TABLE IF EXISTS test_unique_uzivatel');
-        dbQuery('DROP TABLE IF EXISTS test_no_fk_reference');
+        dbExecute('DROP TABLE IF EXISTS test_uzivatel_reference');
+        dbExecute('DROP TABLE IF EXISTS test_unique_uzivatel');
+        dbExecute('DROP TABLE IF EXISTS test_no_fk_reference');
 
         parent::tearDownAfterClass();
     }
@@ -64,10 +65,10 @@ class UzivatelSlucovaniTest extends AbstractUzivatelTestDb
         $novyId = (int) $novyUzivatel->id();
 
         // Add test data for old user
-        dbQuery("INSERT INTO test_uzivatel_reference (id_uzivatele, test_data) VALUES ({$staryId}, 'test data 1')");
-        dbQuery("INSERT INTO test_uzivatel_reference (id_uzivatele, test_data) VALUES ({$staryId}, 'test data 2')");
+        dbExecute("INSERT INTO test_uzivatel_reference (id_uzivatele, test_data) VALUES ({$staryId}, 'test data 1')");
+        dbExecute("INSERT INTO test_uzivatel_reference (id_uzivatele, test_data) VALUES ({$staryId}, 'test data 2')");
 
-        $slucovani = new UzivatelSlucovani();
+        $slucovani = $this->slucovani();
         $zmeny = [
             'jmeno_uzivatele' => 'Sloučený',
         ];
@@ -85,7 +86,7 @@ class UzivatelSlucovaniTest extends AbstractUzivatelTestDb
     {
         // Arrange
         $uzivatel = $this->createTestUser('same@test.com', 'Same', 'User');
-        $slucovani = new UzivatelSlucovani();
+        $slucovani = $this->slucovani();
 
         // Act & Assert - should not throw exception and should exit early
         $slucovani->sluc($uzivatel, $uzivatel, []);
@@ -104,10 +105,10 @@ class UzivatelSlucovaniTest extends AbstractUzivatelTestDb
         $novyId = (int) $novyUzivatel->id();
 
         // Create conflicting unique data
-        dbQuery("INSERT INTO test_unique_uzivatel (id_uzivatele, unique_field) VALUES ({$staryId}, 'conflict')");
-        dbQuery("INSERT INTO test_unique_uzivatel (id_uzivatele, unique_field) VALUES ({$novyId}, 'conflict')");
+        dbExecute("INSERT INTO test_unique_uzivatel (id_uzivatele, unique_field) VALUES ({$staryId}, 'conflict')");
+        dbExecute("INSERT INTO test_unique_uzivatel (id_uzivatele, unique_field) VALUES ({$novyId}, 'conflict')");
 
-        $slucovani = new UzivatelSlucovani();
+        $slucovani = $this->slucovani();
 
         // Act - should handle conflict by deleting old user's conflicting records
         $slucovani->sluc($staryUzivatel, $novyUzivatel, []);
@@ -125,10 +126,10 @@ class UzivatelSlucovaniTest extends AbstractUzivatelTestDb
         $novyUzivatel = $this->createTestUser('log2@test.com', 'Log2', 'User');
 
         // Clear any existing log entries for these users
-        dbQuery('DELETE FROM uzivatele_slucovani_log WHERE id_smazaneho_uzivatele = $1 OR id_noveho_uzivatele = $2',
+        dbExecute('DELETE FROM uzivatele_slucovani_log WHERE id_smazaneho_uzivatele = $1 OR id_noveho_uzivatele = $2',
             [$staryUzivatel->id(), $novyUzivatel->id()]);
 
-        $slucovani = new UzivatelSlucovani();
+        $slucovani = $this->slucovani();
 
         // Act
         $slucovani->sluc($staryUzivatel, $novyUzivatel, [
@@ -159,9 +160,9 @@ class UzivatelSlucovaniTest extends AbstractUzivatelTestDb
         $staryId = (int) $staryUzivatel->id();
 
         // Add data to test table without FK (should be handled by whitelist)
-        dbQuery("INSERT INTO test_no_fk_reference (id_uzivatele, some_data) VALUES ({$staryId}, 'no fk test')");
+        dbExecute("INSERT INTO test_no_fk_reference (id_uzivatele, some_data) VALUES ({$staryId}, 'no fk test')");
 
-        $slucovani = new UzivatelSlucovani();
+        $slucovani = $this->slucovani();
         $slucovani->sluc($staryUzivatel, $novyUzivatel, []);
 
         // Verify data was moved from table without FK
@@ -223,7 +224,7 @@ class UzivatelSlucovaniTest extends AbstractUzivatelTestDb
             'id_uzivatele' => $novyId,
         ]);
 
-        $slucovani = new UzivatelSlucovani();
+        $slucovani = $this->slucovani();
 
         $zmeny = [
             // Unique fields
@@ -309,6 +310,11 @@ class UzivatelSlucovaniTest extends AbstractUzivatelTestDb
         $this->assertOldUserDeleted($staryId);
     }
 
+    private function slucovani(): UzivatelSlucovani
+    {
+        return new UzivatelSlucovani(SystemoveNastaveni::zGlobals());
+    }
+
     private function createTestUser(string $email, string $jmeno, string $prijmeni): \Uzivatel
     {
         $login = strtolower(str_replace('@', '_', str_replace('.', '_', $email)));
@@ -330,8 +336,8 @@ class UzivatelSlucovaniTest extends AbstractUzivatelTestDb
 
     private function getDatabaseName(): string
     {
-        $result = dbQuery('SELECT DATABASE() as db_name');
-        $row = $result->fetch_assoc();
+        $result = dbFetch('SELECT DATABASE() as db_name');
+        $row = $result->fetch(PDO::FETCH_ASSOC);
 
         return $row['db_name'];
     }

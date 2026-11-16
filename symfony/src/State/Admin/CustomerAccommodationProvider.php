@@ -1,0 +1,65 @@
+<?php
+
+declare(strict_types=1);
+
+namespace App\State\Admin;
+
+use ApiPlatform\Metadata\Operation;
+use ApiPlatform\State\ProviderInterface;
+use App\Dto\Cart\AccommodationOutputDto;
+use App\Entity\User;
+use App\Service\LegacySessionService;
+use App\State\Cart\AccommodationGridInterface;
+use Doctrine\ORM\EntityManagerInterface;
+use Symfony\Bundle\SecurityBundle\Security;
+use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
+use Symfony\Contracts\Translation\TranslatorInterface;
+
+/**
+ * The accommodation grid for a participant the desk names, rather than for whoever is signed
+ * in. What the grid may offer follows from the participant's rights, so reading them off the
+ * session — as the cart endpoint does — would show the operator's nights instead.
+ *
+ * @implements ProviderInterface<AccommodationOutputDto>
+ */
+readonly class CustomerAccommodationProvider implements ProviderInterface
+{
+    public function __construct(
+        private AccommodationGridInterface $accommodationGrid,
+        private LegacySessionService $legacySession,
+        private EntityManagerInterface $entityManager,
+        private TranslatorInterface $translator,
+        private Security $security,
+    ) {
+    }
+
+    public function provide(Operation $operation, array $uriVariables = [], array $context = []): AccommodationOutputDto
+    {
+        $operator = $this->security->getUser();
+        if (! $operator instanceof User) {
+            throw new \LogicException('The operation lets only a signed-in user through.');
+        }
+
+        // Cast only what is already a number: a repeated ?customerId arrives as an array and
+        // would cast to 1, quietly answering for whoever that is.
+        $requested = $context['filters']['customerId'] ?? null;
+        if (! is_string($requested) && ! is_int($requested)) {
+            throw new BadRequestHttpException($this->translator->trans('customer.exactly_one_required', [], 'errors'));
+        }
+
+        $customerId = filter_var($requested, FILTER_VALIDATE_INT);
+        if ($customerId === false || $customerId <= 0) {
+            throw new BadRequestHttpException($this->translator->trans('customer.required', [], 'errors'));
+        }
+
+        $customer = $this->entityManager->find(User::class, $customerId);
+        $legacyCustomer = $this->legacySession->getUserById($customerId);
+        if ($customer === null || $legacyCustomer === null) {
+            throw new BadRequestHttpException($this->translator->trans('customer.not_found', [
+                '%id%' => $customerId,
+            ], 'errors'));
+        }
+
+        return $this->accommodationGrid->forCustomer($customer, $legacyCustomer, zPultu: true, orderer: $operator);
+    }
+}

@@ -26,6 +26,8 @@ class ApacheJakoNaOstre
     public const string TELO_NASAZENI = 'NASAZENI-ADMINU';
     public const string TELO_SOUBORU_Z_CACHE = 'SOUBOR-Z-CACHE';
     public const string TELO_OBECNE_STRANKY_SERVERU = 'OBECNA-STRANKA-SERVERU';
+    public const string TELO_FRONT_CONTROLLERU_SYMFONY = 'FRONT-CONTROLLER-SYMFONY';
+    public const string TELO_SOUBORU_VE_STROMU_SYMFONY = 'SOUBOR-VE-STROMU-SYMFONY';
 
     /**
      * PHP skript, který Apache předá FPM, jež neběží, takže na něj Apache odpoví sám `503`.
@@ -41,6 +43,7 @@ class ApacheJakoNaOstre
         'alias',
         'rewrite',
         'headers',
+        'setenvif',
         'vhost_alias',
         'proxy',
         'proxy_fcgi',
@@ -194,7 +197,7 @@ class ApacheJakoNaOstre
         $filesystem = new Filesystem();
         $this->adresar = sys_get_temp_dir() . '/gamecon-apache-jako-na-ostre-' . uniqid('', true);
         $web = $this->getAdresarWebu();
-        foreach (['web', 'admin/deploy', 'cache/public'] as $podadresar) {
+        foreach (['web', 'admin/deploy', 'cache/public', 'symfony/public', 'symfony/config'] as $podadresar) {
             $filesystem->mkdir("{$web}/{$podadresar}", 0775);
         }
         $filesystem->mkdir([$this->adresar . '/run', $this->adresar . '/obecna-stranka-serveru'], 0775);
@@ -217,6 +220,9 @@ class ApacheJakoNaOstre
         file_put_contents($web . '/admin/cron.php', self::TELO_CRONU);
         file_put_contents($web . '/admin/deploy/migrace.php', self::TELO_NASAZENI);
         file_put_contents($web . '/cache/public/styl.css', self::TELO_SOUBORU_Z_CACHE);
+        file_put_contents($web . '/symfony/public/index.php', self::TELO_FRONT_CONTROLLERU_SYMFONY);
+        file_put_contents($web . '/symfony/config/services.yaml', self::TELO_SOUBORU_VE_STROMU_SYMFONY);
+        file_put_contents($web . '/symfony/config/bundles.php', self::TELO_SOUBORU_VE_STROMU_SYMFONY);
         file_put_contents($this->adresar . '/obecna-stranka-serveru/maintenance.html', self::TELO_OBECNE_STRANKY_SERVERU);
 
         $filesystem->symlink('ostra', $this->adresar . '/srv/' . self::HOST_WEBU);

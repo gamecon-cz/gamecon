@@ -206,11 +206,11 @@ SQL;
 INSERT IGNORE INTO uzivatele_role(id_uzivatele, id_role) VALUES ($0, $1)
 SQL;
         try {
-            dbQuery($odebratRoli, [self::ID_FINANCE, self::ID_ROLE_FINANCE]);
+            dbExecute($odebratRoli, [self::ID_FINANCE, self::ID_ROLE_FINANCE]);
             // bez práva admin nic nedovolí, požadavek ale klíč pracovního uživatele zahodí
             self::assertSame(403, $this->otevri($relace, 'finance')['kod']);
         } finally {
-            dbQuery($vratitRoli, [self::ID_FINANCE, self::ID_ROLE_FINANCE]);
+            dbExecute($vratitRoli, [self::ID_FINANCE, self::ID_ROLE_FINANCE]);
         }
 
         self::assertNull($this->getIdPracovnihoUzivatele($relace));

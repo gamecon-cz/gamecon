@@ -315,7 +315,7 @@ SQL,
     private function setVzhled(int $idUzivatele, ?VzhledAdminuEnum $vzhled): void
     {
         if ($vzhled === null) {
-            dbQuery(<<<'SQL'
+            dbExecute(<<<'SQL'
 DELETE FROM uzivatele_vzhled_adminu WHERE id_uzivatele = $0
 SQL, [
                 0 => $idUzivatele,
@@ -341,7 +341,7 @@ SQL, [
      */
     private function zalozTrvalePrihlaseni(int $idUzivatele): void
     {
-        dbQuery(<<<'SQL'
+        dbExecute(<<<'SQL'
 INSERT INTO uzivatele_trvala_prihlaseni SET id_uzivatele = $0, token_hash = $1
 SQL, [
             0 => $idUzivatele,
@@ -360,7 +360,7 @@ SQL, [
 
     private function setStavUcastnika(int $stav): void
     {
-        dbQuery(<<<'SQL'
+        dbExecute(<<<'SQL'
 UPDATE akce_prihlaseni SET id_stavu_prihlaseni = $0 WHERE id_akce = $1 AND id_uzivatele = $2
 SQL, [
             0 => $stav,

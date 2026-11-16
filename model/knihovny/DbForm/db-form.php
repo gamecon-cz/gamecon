@@ -197,8 +197,7 @@ class DbForm
             $validationCallback($r);
         }
         if ($pkey->value()) {
-            $result                     = dbUpdate($this->table(), $r, [$pkey->name() => $pkey->value()]);
-            $this->lastSaveChangesCount = dbAffectedOrNumRows($result);
+            $this->lastSaveChangesCount = dbUpdate($this->table(), $r, [$pkey->name() => $pkey->value()]);
         } else {
             dbInsert($this->table(), $r);
             $newId                      = dbInsertId();

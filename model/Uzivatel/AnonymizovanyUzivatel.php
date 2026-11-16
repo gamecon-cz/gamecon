@@ -77,7 +77,7 @@ class AnonymizovanyUzivatel
 
     public static function anonymizujUzivatele(
         \Uzivatel $uzivatel,
-        ?\mysqli $mysqli = null,
+        ?\PDO $pdo = null,
     ): void {
         $idUzivatele = $uzivatel->id();
         $anonymniData = self::vytvorAnonymniUdajeProId($idUzivatele);
@@ -104,10 +104,10 @@ class AnonymizovanyUzivatel
 
         $setClause = implode(', ', $setParts);
 
-        dbQuery(
+        dbExecute(
             "UPDATE uzivatele_hodnoty SET $setClause WHERE id_uzivatele = $idUzivatele",
             $values,
-            $mysqli,
+            $pdo,
         );
 
         // Anonymizuj medailonek
@@ -124,16 +124,16 @@ class AnonymizovanyUzivatel
 
         $medailonkySet = implode(', ', $medailonkySetParts);
 
-        dbQuery(
+        dbExecute(
             "UPDATE medailonky SET $medailonkySet WHERE id_uzivatele = $idUzivatele",
             $medailonkyValues,
-            $mysqli,
+            $pdo,
         );
 
         // Anonymizuj časy rolí
-        dbQuery(
-            q: "UPDATE uzivatele_role SET posazen = '1970-01-01 01:01:01' WHERE id_uzivatele = $idUzivatele",
-            mysqli: $mysqli,
+        dbExecute(
+            query: "UPDATE uzivatele_role SET posazen = '1970-01-01 01:01:01' WHERE id_uzivatele = $idUzivatele",
+            pdo: $pdo,
         );
     }
 }

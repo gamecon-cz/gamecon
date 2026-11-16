@@ -719,7 +719,7 @@ class TrvalePrihlaseniTest extends AbstractPrihlaseniNaZarizenichTestDb
         $token = $this->zalozTrvalePrihlaseni($idUzivatele);
         $prvniKarta = $this->zarizeni(cookie: $token);
         $this->idPrihlasenehoNa($prvniKarta);
-        dbQuery(<<<'SQL'
+        dbExecute(<<<'SQL'
             UPDATE uzivatele_trvala_prihlaseni SET naposledy_pouzito = NOW() - INTERVAL 1 HOUR WHERE id_uzivatele = $0
             SQL, [
             0 => $idUzivatele,
@@ -788,7 +788,7 @@ class TrvalePrihlaseniTest extends AbstractPrihlaseniNaZarizenichTestDb
         $idUzivatele = $this->vytvorUzivatele();
         // Místo hashe selektoru řetězec od písmene, ať by ho číselné porovnání s nulou našlo vždycky.
         $selektorOdPismene = 'a' . bin2hex(random_bytes(31)) . 'b';
-        dbQuery(<<<'SQL'
+        dbExecute(<<<'SQL'
             INSERT INTO uzivatele_trvala_prihlaseni SET id_uzivatele = $0, selektor_hash = $2, token_hash = $1
             SQL, [
             0 => $idUzivatele,
@@ -841,7 +841,7 @@ class TrvalePrihlaseniTest extends AbstractPrihlaseniNaZarizenichTestDb
         $jine = $this->zarizeni();
         $this->pozadavek($jine, static fn () => \Uzivatel::prihlasId($idUzivatele));
         $razitkoPredObnovou = $this->getRazitko($idUzivatele);
-        dbQuery(<<<'SQL'
+        dbExecute(<<<'SQL'
             DELETE FROM uzivatele_trvala_prihlaseni WHERE id_uzivatele = $0
             SQL, [
             0 => $idUzivatele,
@@ -871,7 +871,7 @@ class TrvalePrihlaseniTest extends AbstractPrihlaseniNaZarizenichTestDb
             \Uzivatel::zId($idInfopultaka),
             \Uzivatel::zId($idVypravece),
         ));
-        dbQuery(<<<'SQL'
+        dbExecute(<<<'SQL'
             DELETE FROM uzivatele_hodnoty WHERE id_uzivatele = $0
             SQL, [
             0 => $idInfopultaka,
@@ -921,7 +921,7 @@ class TrvalePrihlaseniTest extends AbstractPrihlaseniNaZarizenichTestDb
     public function testTrvalePrihlaseniMazeVyprselaPoKouskach(): void
     {
         $idUzivatele = $this->vytvorUzivatele();
-        dbQuery(<<<'SQL'
+        dbExecute(<<<'SQL'
             INSERT INTO uzivatele_trvala_prihlaseni (id_uzivatele, token_hash, naposledy_pouzito)
             SELECT $0, SHA2(seq, 256), NOW() - INTERVAL 400 DAY
             FROM seq_1_to_1000
@@ -967,7 +967,7 @@ class TrvalePrihlaseniTest extends AbstractPrihlaseniNaZarizenichTestDb
     {
         $idUzivatele = $this->vytvorUzivatele();
         $token = randHex(20);
-        dbQuery(<<<'SQL'
+        dbExecute(<<<'SQL'
             INSERT INTO uzivatele_trvala_prihlaseni SET id_uzivatele = $0, token_hash = SHA2($1, 256)
             SQL, [
             0 => $idUzivatele,
@@ -988,7 +988,7 @@ class TrvalePrihlaseniTest extends AbstractPrihlaseniNaZarizenichTestDb
     {
         $idUzivatele = $this->vytvorUzivatele();
         $token = randHex(20);
-        dbQuery(<<<'SQL'
+        dbExecute(<<<'SQL'
             INSERT INTO uzivatele_trvala_prihlaseni SET id_uzivatele = $0, token_hash = SHA2($1, 256)
             SQL, [
             0 => $idUzivatele,
@@ -1041,7 +1041,7 @@ class TrvalePrihlaseniTest extends AbstractPrihlaseniNaZarizenichTestDb
     {
         $selektor = bin2hex(random_bytes(32));
         $token = bin2hex(random_bytes(32));
-        dbQuery(<<<'SQL'
+        dbExecute(<<<'SQL'
             INSERT INTO uzivatele_trvala_prihlaseni SET id_uzivatele = $0, selektor_hash = $2, token_hash = $1
             SQL, [
             0 => $idUzivatele,
@@ -1066,7 +1066,7 @@ class TrvalePrihlaseniTest extends AbstractPrihlaseniNaZarizenichTestDb
 
     private function posunPouzitiDoMinulosti(int $idUzivatele, int $sekund): void
     {
-        dbQuery(<<<'SQL'
+        dbExecute(<<<'SQL'
             UPDATE uzivatele_trvala_prihlaseni
             SET naposledy_pouzito = NOW() - INTERVAL $1 SECOND,
                 vymeneno_unix = vymeneno_unix - $1
@@ -1100,7 +1100,7 @@ class TrvalePrihlaseniTest extends AbstractPrihlaseniNaZarizenichTestDb
      */
     private function vyprazdniTabulkuTrvalychPrihlaseni(): void
     {
-        dbQuery(<<<'SQL'
+        dbExecute(<<<'SQL'
             DELETE FROM uzivatele_trvala_prihlaseni
             SQL);
     }

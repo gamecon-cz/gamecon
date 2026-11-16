@@ -48,7 +48,7 @@ $format = get('format')
 $nyni = new DateTimeCz();
 
 try {
-    dbQuery(<<<SQL
+    dbExecute(<<<SQL
 INSERT INTO reporty_log_pouziti(id_reportu, id_uzivatele, format, cas_pouziti, casova_zona)
 VALUES ((SELECT id FROM reporty WHERE skript = $0), $1, $2, $3, $4)
 SQL,

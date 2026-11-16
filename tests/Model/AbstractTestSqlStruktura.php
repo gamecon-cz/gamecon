@@ -30,8 +30,13 @@ abstract class AbstractTestSqlStruktura extends AbstractTestDb
         $constantsToValues = $classReflection->getConstants(\ReflectionClassConstant::IS_PUBLIC);
         $tabulka = $this->nazevTabulkyZKonstant($classReflection);
 
-        $roleTabulkaNazevKonstanty = array_search($tabulka, $constantsToValues, true);
-        unset($constantsToValues[$roleTabulkaNazevKonstanty]);
+        // Remove all table-name constants (ending with _TABULKA) and virtual-column constants
+        $virtualniSloupce = $this->virtualniSloupce();
+        foreach ($constantsToValues as $nazev => $hodnota) {
+            if (str_ends_with($nazev, '_TABULKA') || in_array($hodnota, $virtualniSloupce, true)) {
+                unset($constantsToValues[$nazev]);
+            }
+        }
 
         $nazvySloupcuPodleKonstant = array_values($constantsToValues);
         $nazvySloupcu = $this->nazvySloupcuTabulky($tabulka);
@@ -73,6 +78,16 @@ abstract class AbstractTestSqlStruktura extends AbstractTestDb
         }
         throw new \LogicException("Nenašli jsme public konstantu s názvem tabulky v {$classReflection->getName()}.
             Očekáváme nějakou co končí '{$expectedTableConstantSuffix}'. Našli jsme pouze " . implode(',', $constantNames), );
+    }
+
+    /**
+     * Constants that represent virtual columns (e.g., from a view) not on the base table.
+     *
+     * @return string[]
+     */
+    protected function virtualniSloupce(): array
+    {
+        return [];
     }
 
     abstract protected function strukturaClass(): string;

@@ -18,7 +18,7 @@ class PrehledVypravecuTest extends AbstractTestDb
     {
         parent::setUp();
 
-        dbQuery(<<<'SQL'
+        dbExecute(<<<'SQL'
 INSERT IGNORE INTO role_seznam(id_role, kod_role, nazev_role, popis_role, rocnik_role, typ_role, vyznam_role)
 VALUES ($0, $1, 'Vypravěč (test)', '', $2, 'rocnikova', $3)
 SQL, [
@@ -28,7 +28,7 @@ SQL, [
             3 => Role::VYZNAM_VYPRAVEC,
 ]);
         // sekce jsou linie z menu webu, brigádnické aktivity v něm nejsou
-        dbQuery(<<<'SQL'
+        dbExecute(<<<'SQL'
 UPDATE akce_typy SET zobrazit_v_menu = id_typu IN ($0)
 WHERE id_typu IN ($0, $1)
 SQL, [
@@ -129,7 +129,7 @@ SQL, [
 
     private function vlozMedailonek(int $idUzivatele, string $oSobe): void
     {
-        dbQuery(<<<'SQL'
+        dbExecute(<<<'SQL'
 INSERT INTO medailonky(id_uzivatele, o_sobe, drd) VALUES ($0, $1, '')
 SQL, [
             0 => $idUzivatele,
@@ -140,7 +140,7 @@ SQL, [
     private function vlozVypravece(string $jmeno): int
     {
         $idUzivatele = $this->vlozUzivatele($jmeno);
-        dbQuery(<<<'SQL'
+        dbExecute(<<<'SQL'
 INSERT INTO uzivatele_role(id_uzivatele, id_role, posadil) VALUES ($0, $1, $0)
 SQL, [
             0 => $idUzivatele,
@@ -153,7 +153,7 @@ SQL, [
     private function vlozUzivatele(string $jmeno): int
     {
         $login = $jmeno . uniqid('', false);
-        dbQuery(<<<'SQL'
+        dbExecute(<<<'SQL'
 INSERT INTO uzivatele_hodnoty SET login_uzivatele = $0, email1_uzivatele = $1, jmeno_uzivatele = $2, prijmeni_uzivatele = 'Vypravěčský'
 SQL, [
             0 => $login,
@@ -170,7 +170,7 @@ SQL, [
         int $stav = StavAktivity::PUBLIKOVANA,
         int $rok = ROCNIK,
     ): void {
-        dbQuery(<<<'SQL'
+        dbExecute(<<<'SQL'
 INSERT INTO akce_seznam(
     nazev_akce, rok, stav, cena, typ, zacatek, konec,
     kapacita, kapacita_f, kapacita_m, teamova, popis, popis_kratky, vybaveni
@@ -183,7 +183,7 @@ SQL, [
             3 => "{$rok}-07-17 10:00:00",
             4 => "{$rok}-07-17 13:00:00",
         ]);
-        dbQuery(<<<'SQL'
+        dbExecute(<<<'SQL'
 INSERT INTO akce_organizatori(id_akce, id_uzivatele) VALUES ($0, $1)
 SQL, [
             0 => dbInsertId(),

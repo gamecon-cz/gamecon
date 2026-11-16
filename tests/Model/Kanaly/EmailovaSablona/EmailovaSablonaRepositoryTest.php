@@ -79,7 +79,7 @@ class EmailovaSablonaRepositoryTest extends AbstractTestDb
     {
         $this->expectException(\DbException::class);
 
-        dbQuery(
+        dbExecute(
             "UPDATE emailova_sablona SET {$sloupec} = $0 WHERE kod = 'obnova_hesla'",
             [
                 0 => $hodnota,
@@ -110,7 +110,7 @@ class EmailovaSablonaRepositoryTest extends AbstractTestDb
      */
     public function radekSNeznamymKodemSeVNacteniPreskoci(): void
     {
-        dbQuery(
+        dbExecute(
             <<<'SQL'
 INSERT INTO emailova_sablona(kod, predmet, text, zmenil)
 VALUES ($0, $1, $2, $3)

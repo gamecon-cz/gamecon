@@ -187,7 +187,7 @@ class HromadneOdhlaseniNeplaticu
         $prihlasenNaLetosniGc = Role::PRIHLASEN_NA_LETOSNI_GC;
         $neodhlasovat         = Role::LETOSNI_NEODHLASOVAT;
 
-        $result = dbQuery(<<<SQL
+        $result = dbFetch(<<<SQL
 SELECT uzivatele_hodnoty.id_uzivatele
 FROM uzivatele_hodnoty
 WHERE EXISTS(SELECT * FROM platne_role_uzivatelu AS role
@@ -199,9 +199,8 @@ WHERE EXISTS(SELECT * FROM platne_role_uzivatelu AS role
         AND role.id_role = {$neodhlasovat}
     )
 SQL,
-            dbConnectTemporary(), // abychom nevyblokovali globální sdílené connection při postupném zpracovávání tohoto generátoru
         );
-        while ($idUzivatele = mysqli_fetch_column($result)) {
+        while ($idUzivatele = $result->fetchColumn()) {
             yield \Uzivatel::zId($idUzivatele, true);
         }
     }

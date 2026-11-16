@@ -19,10 +19,6 @@ use Gamecon\Uzivatel\Platby;
 
 require __DIR__ . '/_postUzivatelProPripsaniSlevy.php';
 
-require __DIR__ . '/_postUzivatelKVyplaceniAktivity.php';
-
-require __DIR__ . '/_ajaxGetUzivatelKVyplaceniAktivity.php';
-
 $x = new XTemplate(__DIR__ . '/penize.xtpl');
 
 $x->assign([
@@ -32,7 +28,6 @@ $x->assign([
     'org' => $u->jmenoNick(),
 ]);
 $x->parse('penize.pripsatSlevu');
-$x->parse('penize.vyplatitBonusZaVedeniAktivity');
 
 $x->parse('penize');
 $x->out('penize');

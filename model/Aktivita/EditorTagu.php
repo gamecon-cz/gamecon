@@ -92,13 +92,10 @@ FROM sjednocene_tagy',
         if ($idTagu) { // this is not a new tag but existing one
             return [];
         }
-        $result = dbQuery(
-            $query = 'INSERT IGNORE INTO sjednocene_tagy (id, id_kategorie_tagu, nazev, poznamka) VALUES (NULL, $0, $1, $2)',
+        dbExecute(
+            'INSERT IGNORE INTO sjednocene_tagy (id, id_kategorie_tagu, nazev, poznamka) VALUES (NULL, $0, $1, $2)',
             [$idKategorieTagu, $nazevTagu, $poznamkaTagu],
         );
-        if (!$result) {
-            throw new \RuntimeException('Failed SQL execution of ' . dbLastQ());
-        }
         $newTagId = dbInsertId(false /* do not raise exception if no ID */);
         if (!$newTagId) {
             return ['errors' => ["Tag '{$nazevTagu}' už existuje"]];
@@ -161,12 +158,9 @@ WHERE sjednocene_tagy.id = $1',
             return [];
         }
         try {
-            $result = dbUpdate('sjednocene_tagy', ['nazev' => $nazevTagu, 'id_kategorie_tagu' => $idKategorieTagu, 'poznamka' => $poznamkaTagu], ['id' => $idTagu]);
+            dbUpdate('sjednocene_tagy', ['nazev' => $nazevTagu, 'id_kategorie_tagu' => $idKategorieTagu, 'poznamka' => $poznamkaTagu], ['id' => $idTagu]);
         } catch (\DbDuplicateEntryException $dbDuplicateEntryException) {
             return ['errors' => ["Název tagu '$nazevTagu' už je obsazený: {$dbDuplicateEntryException->getMessage()}"]];
-        }
-        if (!$result) {
-            throw new \RuntimeException('Failed SQL execution of ' . dbLastQ());
         }
 
         return [

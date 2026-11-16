@@ -77,6 +77,15 @@ class Payment
     #[ORM\Column(name: 'nazev_banky_protiuctu', type: Types::STRING, length: 255, nullable: true)]
     private ?string $nazevBankyProtiuctu = null;
 
+    /**
+     * Objednávka, jejímž protizápisem tahle platba je — u prodeje na pultu, kde se hotovost
+     * jen srovnává s pohledávkou. NULL u všeho ostatního: bankovní pohyby ani ruční zápisy
+     * k žádné objednávce nepatří.
+     */
+    #[ORM\ManyToOne(targetEntity: Order::class, inversedBy: 'payments')]
+    #[ORM\JoinColumn(name: 'order_id', referencedColumnName: 'id', nullable: true, onDelete: 'SET NULL')]
+    private ?Order $order = null;
+
     #[ORM\Column(name: 'poznamka', type: Types::TEXT, nullable: true)]
     private ?string $poznamka = null;
 
@@ -235,6 +244,18 @@ class Payment
     public function getPoznamka(): ?string
     {
         return $this->poznamka;
+    }
+
+    public function getOrder(): ?Order
+    {
+        return $this->order;
+    }
+
+    public function setOrder(?Order $order): self
+    {
+        $this->order = $order;
+
+        return $this;
     }
 
     public function setPoznamka(?string $poznamka): self

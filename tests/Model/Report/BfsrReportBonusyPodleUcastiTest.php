@@ -84,7 +84,7 @@ SQL,
         ];
 
         $queries[] = [
-            "INSERT IGNORE INTO r_prava_soupis(id_prava, jmeno_prava, popis_prava) VALUES ($0, 'test_bez_bonusu', 'test')",
+            "INSERT IGNORE INTO r_prava_soupis(id_prava, kod_prava, jmeno_prava, popis_prava) VALUES ($0, CONCAT('TEST_PRAVO_', $0), 'test_bez_bonusu', 'test')",
             [
                 0 => Pravo::BEZ_BONUSU_ZA_VEDENI_AKTIVIT,
             ],
@@ -107,7 +107,7 @@ SQL,
         ];
 
         $queries[] = [
-            "INSERT IGNORE INTO r_prava_soupis(id_prava, jmeno_prava, popis_prava) VALUES ($0, 'test_poradani_aktivit', 'test')",
+            "INSERT IGNORE INTO r_prava_soupis(id_prava, kod_prava, jmeno_prava, popis_prava) VALUES ($0, CONCAT('TEST_PRAVO_', $0), 'test_poradani_aktivit', 'test')",
             [
                 0 => Pravo::PORADANI_AKTIVIT,
             ],

@@ -68,10 +68,10 @@ if (post('action') === 'save-line-header') {
     }
 
     if ($sekce === '' && $jmeno === '' && $email === '') {
-        dbQuery('DELETE FROM akce_typy_hlavicky WHERE id_typu = $1', [1 => $idTypu]);
+        dbExecute('DELETE FROM akce_typy_hlavicky WHERE id_typu = $1', [1 => $idTypu]);
         oznameni('Hlavička linie byla vymazána, použije se fallback.');
     } else {
-        dbQuery(
+        dbExecute(
             <<<'SQL'
 INSERT INTO akce_typy_hlavicky (id_typu, sekce, jmeno, email)
 VALUES ($1, $2, $3, $4)

@@ -55,7 +55,7 @@ if (!$role) {
         $povoleneKategorie[] = Role::KATEGORIE_OMEZENA;
     }
     // výpis seznamu židlí
-    $o               = dbQuery(<<<SQL
+    $o               = dbFetch(<<<SQL
 SELECT role.id_role, role.kod_role, role.nazev_role,
        COALESCE(role_texty_podle_uzivatele.popis_role, role.popis_role) AS popis_role,
        role.rocnik_role, role.typ_role, role.vyznam_role, role.skryta, role.kategorie_role,
@@ -83,7 +83,7 @@ SQL,
     );
     $predchoziTyp    = null;
     $vidiRoleBezPrav = false;
-    while ($r = mysqli_fetch_assoc($o)) {
+    while ($r = $o->fetch(PDO::FETCH_ASSOC)) {
         $r['sedi'] = $r['sedi'] ? '<span style="color:#0d0;font-weight:bold">&bull;</span>' : '';
         $t->assign($r);
         if ($r[RoleSqlStruktura::TYP_ROLE] === Role::TYP_UCAST) {

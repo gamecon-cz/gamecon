@@ -27,7 +27,7 @@ class UzivatelFotkaTest extends AbstractTestDb
         parent::setUp();
         $this->uklidNoveAdresare(ZpracovaneObrazky::adresarFotekUzivatelu());
         (new Filesystem())->mkdir(ZpracovaneObrazky::adresarFotekUzivatelu());
-        dbQuery(
+        dbExecute(
             'INSERT INTO uzivatele_hodnoty SET id_uzivatele = $0, login_uzivatele = $1, email1_uzivatele = $2, jmeno_uzivatele = $3, prijmeni_uzivatele = $4',
             [self::ID_UZIVATELE, 'test_fotka', 'test.fotka@example.org', 'Test', 'Fotka'],
         );

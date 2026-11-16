@@ -16,7 +16,7 @@ trait LogHomadnychAkciTrait
         \DateTimeInterface    $stalaSeKdy = null,
     )
     {
-        dbQuery(<<<SQL
+        dbExecute(<<<SQL
 INSERT INTO hromadne_akce_log(skupina, akce, vysledek, provedl, kdy)
 VALUES ($0, $1, $2, $3, $4)
 SQL,

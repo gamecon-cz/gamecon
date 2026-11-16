@@ -10,9 +10,9 @@ if (!$u) {
 }
 
 // SYMFONY INTEGRATION: Try Symfony routing first for routes defined in Symfony
-// Set environment variable for APP_SECRET if not defined
-if (!isset($_ENV['APP_SECRET'])) {
-    $_ENV['APP_SECRET'] = $_SERVER['APP_SECRET'] ?? 'fallback_secret_change_in_production';
+// Ensure APP_SECRET env var is set from the legacy constant (defined in nastaveni-local-default.php)
+if (!isset($_ENV['APP_SECRET']) && defined('APP_SECRET')) {
+    $_ENV['APP_SECRET'] = APP_SECRET;
 }
 
 $jsmeNaLocale = jsmeNaLocale();

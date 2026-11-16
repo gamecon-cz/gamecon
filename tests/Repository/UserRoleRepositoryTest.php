@@ -12,7 +12,7 @@ use Gamecon\Tests\Db\AbstractTestDb;
 
 /**
  * All fixtures and assertions go through the Doctrine DBAL connection (not the
- * legacy dbQuery one) so everything shares a single connection. The repository
+ * legacy dbFetch/dbExecute one) so everything shares a single connection. The repository
  * under test uses the Doctrine connection too; mixing it with the legacy
  * connection's open transaction would deadlock on the uzivatele_role rows.
  */

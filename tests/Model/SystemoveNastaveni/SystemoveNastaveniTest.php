@@ -5,6 +5,8 @@ declare(strict_types=1);
 namespace Gamecon\Tests\Model\SystemoveNastaveni;
 
 use App\Kernel;
+use App\Service\BulkCancelService;
+use Doctrine\ORM\EntityManagerInterface;
 use Gamecon\Cache\ProgramStaticFileGenerator;
 use Gamecon\Cache\ProgramStaticFileType;
 use Gamecon\Cas\DateTimeGamecon;
@@ -13,10 +15,39 @@ use Gamecon\Prostredi\Prostredi;
 use Gamecon\SystemoveNastaveni\DatabazoveNastaveni;
 use Gamecon\SystemoveNastaveni\SystemoveNastaveni;
 use Gamecon\Tests\Db\AbstractTestDb;
+use Symfony\Component\DependencyInjection\Exception\ServiceNotFoundException;
 use Symfony\Component\Filesystem\Filesystem;
 
 class SystemoveNastaveniTest extends AbstractTestDb
 {
+    /**
+     * @test
+     */
+    public function sluzbuVydaStejneJakoKontejnerKernelu()
+    {
+        $nastaveni = SystemoveNastaveni::zGlobals();
+
+        $sluzba = $nastaveni->getService(BulkCancelService::class);
+
+        self::assertInstanceOf(BulkCancelService::class, $sluzba);
+        self::assertSame($nastaveni->kernel()->getContainer()->get(BulkCancelService::class), $sluzba);
+        self::assertInstanceOf(
+            EntityManagerInterface::class,
+            $nastaveni->getService('doctrine.orm.entity_manager'),
+            'Službu jde vyžádat i jejím jménem, ne jen třídou',
+        );
+    }
+
+    /**
+     * @test
+     */
+    public function neznamouSluzbuNevydaTiche()
+    {
+        $this->expectException(ServiceNotFoundException::class);
+
+        SystemoveNastaveni::zGlobals()->getService('sluzba.ktera.neexistuje');
+    }
+
     /**
      * @test
      */

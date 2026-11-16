@@ -22,34 +22,4 @@ class TournamentRepository extends ServiceEntityRepository
     {
         parent::__construct($registry, Tournament::class);
     }
-
-    public function save(Tournament $entity, bool $flush = false): void
-    {
-        $this->getEntityManager()->persist($entity);
-
-        if ($flush) {
-            $this->getEntityManager()->flush();
-        }
-    }
-
-    public function remove(Tournament $entity, bool $flush = false): void
-    {
-        $this->getEntityManager()->remove($entity);
-
-        if ($flush) {
-            $this->getEntityManager()->flush();
-        }
-    }
-
-    /**
-     * @return Tournament[]
-     */
-    public function findByRok(int $rok): array
-    {
-        return $this->findBy([
-            'rok' => $rok,
-        ], [
-            'nazev' => 'ASC',
-        ]);
-    }
 }

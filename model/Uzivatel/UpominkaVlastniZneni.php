@@ -104,7 +104,7 @@ SQL,
         string $text,
         int    $zmenil,
     ): void {
-        dbQuery(<<<SQL
+        dbExecute(<<<SQL
 INSERT INTO upominka_vlastni_zneni(rocnik, predmet, text, zmenil)
 VALUES ($0, $1, $2, $3)
 ON DUPLICATE KEY UPDATE predmet = VALUES(predmet), text = VALUES(text), zmenil = VALUES(zmenil)

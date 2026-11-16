@@ -4,6 +4,7 @@
  * Global variables used by certain functions
  * not all of them, see also dbConnect()
  */
+// Transactions on the read-only connection only; the shared one counts them in Doctrine.
 global $dbTransactionDepth;
 $dbTransactionDepth = 0;
 global $dbJenProCteni;
@@ -14,12 +15,12 @@ $dbJenProCteni = false;
  */
 function dbArrayCol(
     $q,
-    $param = null,
-    mysqli $mysqli = null,
+    ?array $param = null,
+    $pdo = null,
 ) {
-    $a = dbQueryS($q, $param, $mysqli);
+    $a = dbFetch($q, $param ?? [], $pdo);
     $o = [];
-    while ($r = mysqli_fetch_row($a)) {
+    while ($r = $a->fetch(PDO::FETCH_NUM)) {
         $o[$r[0]] = $r[1];
     }
 
@@ -31,13 +32,18 @@ function dbArrayCol(
  */
 function dbBegin()
 {
+    if (! $GLOBALS['dbJenProCteni']) {
+        dbSdileneSpojeni()->beginTransaction();
+
+        return;
+    }
     if (!isset($GLOBALS['dbTransactionDepth']) || $GLOBALS['dbTransactionDepth'] < 0) {
         $GLOBALS['dbTransactionDepth'] = 0;
     }
     if ($GLOBALS['dbTransactionDepth'] == 0) {
-        dbQuery('BEGIN');
+        dbExecute('BEGIN');
     } else {
-        dbQuery('SAVEPOINT nesttrans' . $GLOBALS['dbTransactionDepth']);
+        dbExecute('SAVEPOINT nesttrans' . $GLOBALS['dbTransactionDepth']);
     }
     $GLOBALS['dbTransactionDepth']++;
 }
@@ -47,6 +53,11 @@ function dbBegin()
  */
 function dbCommit()
 {
+    if (! $GLOBALS['dbJenProCteni']) {
+        dbSdileneSpojeni()->commit();
+
+        return;
+    }
     if (!isset($GLOBALS['dbTransactionDepth'])) {
         $GLOBALS['dbTransactionDepth'] = 0;
     }
@@ -54,14 +65,14 @@ function dbCommit()
         throw new Exception('nothing to commit');
     }
     if ($GLOBALS['dbTransactionDepth'] == 1) {
-        dbQuery('COMMIT');
+        dbExecute('COMMIT');
     } else {
         try {
-            dbQuery('RELEASE SAVEPOINT nesttrans' . ($GLOBALS['dbTransactionDepth'] - 1));
+            dbExecute('RELEASE SAVEPOINT nesttrans' . ($GLOBALS['dbTransactionDepth'] - 1));
         } catch (\Throwable $e) {
             // If savepoint doesn't exist, do a full commit and reset depth
             if (str_contains($e->getMessage(), 'SAVEPOINT') && str_contains($e->getMessage(), 'does not exist')) {
-                dbQuery('COMMIT'); // just to be sure (executing COMMIT even if there is nothing to commit is safe); missing SAVEPOINT mostly means that an implicit COMMIT happened on CREATE / ALTER / DROP
+                dbExecute('COMMIT'); // just to be sure (executing COMMIT even if there is nothing to commit is safe); missing SAVEPOINT mostly means that an implicit COMMIT happened on CREATE / ALTER / DROP
                 $GLOBALS['dbTransactionDepth'] = 0;
                 return;
             }
@@ -76,6 +87,14 @@ function dbCommit()
  */
 function dbRollback()
 {
+    if (! $GLOBALS['dbJenProCteni']) {
+        $sdileneSpojeni = dbSdileneSpojeni();
+        if ($sdileneSpojeni->isTransactionActive()) {
+            $sdileneSpojeni->rollBack();
+        }
+
+        return;
+    }
     if (!isset($GLOBALS['dbTransactionDepth'])) {
         $GLOBALS['dbTransactionDepth'] = 0;
     }
@@ -83,14 +102,14 @@ function dbRollback()
         return;
     }
     if ($GLOBALS['dbTransactionDepth'] == 1) {
-        dbQuery('ROLLBACK');
+        dbExecute('ROLLBACK');
     } else {
         try {
-            dbQuery('ROLLBACK TO SAVEPOINT nesttrans' . ($GLOBALS['dbTransactionDepth'] - 1));
+            dbExecute('ROLLBACK TO SAVEPOINT nesttrans' . ($GLOBALS['dbTransactionDepth'] - 1));
         } catch (\Throwable $e) {
             // If savepoint doesn't exist, do a full rollback and reset depth
             if (str_contains($e->getMessage(), 'SAVEPOINT') && str_contains($e->getMessage(), 'does not exist')) {
-                dbQuery('ROLLBACK');
+                dbExecute('ROLLBACK');
                 $GLOBALS['dbTransactionDepth'] = 0;
                 return;
             }
@@ -103,15 +122,14 @@ function dbRollback()
 /**
  * Logs in as DB_READONLY_USER, SELECT only on ostra, beta, previews and in tests (writes fail with 1142);
  * locally it is the full-rights user and the read-only session refuses writes instead (1792).
- * Never set this on the persistent connection: it serves the rest of the request, and
- * unless mysqli resets it on reuse (a build option), the following requests too.
+ * Never set this on the shared connection: Doctrine and the rest of the request write through it.
  * @throws ConnectionException
  * @throws DbException
  */
 function dbConnectReadOnly(
     bool $selectDb = true,
     int  $rocnik = ROCNIK,
-): mysqli {
+): PDO {
     $spojeniJenProCteni = _dbConnect(
         DB_SERV,
         DB_READONLY_USER,
@@ -124,20 +142,15 @@ function dbConnectReadOnly(
             : null,
         false,
     );
-    try {
-        // without the systemove_nastaveni sync of _nastavRocnikDoSpojeni(), a write the persistent connection already did
-        dbQuery('SET @rocnik = $0', $rocnik, $spojeniJenProCteni);
-        dbQuery('SET SESSION TRANSACTION READ ONLY', null, $spojeniJenProCteni);
-    } catch (Throwable $throwable) {
-        mysqli_close($spojeniJenProCteni);
-        throw $throwable;
-    }
+    // without the systemove_nastaveni sync of _nastavRocnikDoSpojeni(), a write the shared connection already did
+    dbExecute('SET @rocnik = $0', [$rocnik], $spojeniJenProCteni);
+    dbExecute('SET SESSION TRANSACTION READ ONLY', [], $spojeniJenProCteni);
 
     return $spojeniJenProCteni;
 }
 
 /**
- * For the rest of the request, including any reconnect. The persistent connection is left untouched.
+ * For the rest of the request, including any reconnect. The shared connection is left untouched.
  */
 function dbSwitchToReadOnlyConnection(): void
 {
@@ -176,10 +189,10 @@ function dbReadOnly(
 }
 
 function dbConnectTemporary(
-    bool                  $selectDb = true,
-    int                   $rocnik = ROCNIK,
-    mysqli | null | false $stareSpojeni = null,
-): \mysqli {
+    bool $selectDb = true,
+    int  $rocnik = ROCNIK,
+         $stareSpojeni = null,
+): PDO {
     global $dbJenProCteni;
     if ($dbJenProCteni) {
         return dbConnectReadOnly($selectDb, $rocnik);
@@ -199,74 +212,65 @@ function dbConnectTemporary(
     if ($noveSpojeni && $stareSpojeni !== $noveSpojeni) {
         _nastavRocnikDoSpojeni($rocnik, $noveSpojeni, $selectDb);
     }
-    if (!$noveSpojeni->query('SET NAMES utf8mb4 COLLATE utf8mb4_czech_ci')) {
-        throw new DbException('Failed to set charset utf8mb4 to db connection.');
-    }
 
     return $noveSpojeni;
 }
 
 /**
+ * The PDO of the connection Doctrine uses, so both run in one transaction; in read-only mode its own connection.
  * @throws ConnectionException
  */
 function dbConnect(
-    $selectDb = true,
     bool $reconnect = false,
-    int $rocnik = ROCNIK,
-): \mysqli {
+): PDO {
+    global $spojeni, $dbJenProCteni;
+
     if ($reconnect) {
         dbClose();
     }
 
-    global $spojeni, $dbJenProCteni;
-
-    if ($spojeni instanceof mysqli) {
-        return $spojeni;
-    }
-
     if ($dbJenProCteni) {
-        $spojeni = dbConnectReadOnly($selectDb, $rocnik);
-
-        return $spojeni;
+        return $spojeni ??= dbConnectReadOnly();
     }
 
-    $stareSpojeni = $spojeni;
     try {
-        $noveSpojeni = _dbConnect(
-            DB_SERV,
-            DB_USER,
-            DB_PASS,
-            defined('DB_PORT')
-                ? DB_PORT
-                : null,
-            $selectDb
-                ? DB_NAME
-                : null,
+        $pdo = dbSdileneSpojeni()->getNativeConnection();
+    } catch (\Doctrine\DBAL\Exception\ConnectionException $exception) {
+        throw new ConnectionException(
+            sprintf("Failed to connect to the database '%s', error: '%s'", DB_NAME, $exception->getMessage()),
+            (int)$exception->getCode(),
+            $exception,
         );
-    } catch (Throwable $throwable) {
-        $spojeni = null; // aby bylo možné zachytit exception a zkusit spojení znovu
-        throw $throwable;
     }
-    if ($noveSpojeni && $stareSpojeni !== $noveSpojeni) {
-        _nastavRocnikDoSpojeni($rocnik, $noveSpojeni, $selectDb);
+    // A connection closed outside a transaction reconnects as a new session, without @rocnik.
+    if ($spojeni !== $pdo) {
+        _nastavRocnikDoSpojeni(ROCNIK, $pdo, true);
+        $spojeni = $pdo;
     }
-    $spojeni = $noveSpojeni;
 
-    return $noveSpojeni;
+    return $pdo;
+}
+
+function dbSdileneSpojeni(): \Doctrine\DBAL\Connection
+{
+    static $sdileneSpojeni = null;
+
+    return $sdileneSpojeni ??= \Gamecon\SystemoveNastaveni\SystemoveNastaveni::zGlobals()
+        ->getService('doctrine.dbal.default_connection');
 }
 
 function _nastavRocnikDoSpojeni(
-    int    $rocnik,
-    mysqli $spojeni,
-    bool   $databaseSelected,
+    int  $rocnik,
+    PDO  $spojeni,
+    bool $databaseSelected,
 ) {
-    dbQuery('SET @rocnik = IF(@rocnik IS NOT NULL, @rocnik, $0)', $rocnik, $spojeni);
+    dbExecute('SET @rocnik = IF(@rocnik IS NOT NULL, @rocnik, $0)', [$rocnik], $spojeni);
     if ($databaseSelected) {
         try {
             // pro SQL view, který nesnese variable
-            dbQuery("UPDATE systemove_nastaveni SET hodnota = $0 WHERE klic = 'ROCNIK' AND hodnota != $0", $rocnik, $spojeni);
+            dbExecute("UPDATE systemove_nastaveni SET hodnota = $0 WHERE klic = 'ROCNIK' AND hodnota != $0", [$rocnik], $spojeni);
         } catch (Throwable $throwable) {
-            if ($throwable->getCode() !== 1146) {
+            if ((int)$throwable->getCode() !== 1146) {
                 throw $throwable;
             } // else tabulka systemove_nastaveni zatím neexistuje
         }
@@ -277,9 +281,6 @@ function dbClose()
 {
     global $spojeni;
 
-    if ($spojeni) {
-        mysqli_close($spojeni);
-    }
     $spojeni = null;
 }
 
@@ -289,7 +290,7 @@ function dbClose()
  */
 function dbConnectForAlterStructure(
     $selectDb = true,
-) {
+): PDO {
     return _dbConnect(
         DB_SERV,
         DBM_USER,
@@ -303,7 +304,7 @@ function dbConnectForAlterStructure(
     );
 }
 
-function dbConnectionAnonymDb(): mysqli
+function dbConnectionAnonymDb(): PDO
 {
     $connection = _dbConnect(
         DB_ANONYM_SERV,
@@ -315,20 +316,10 @@ function dbConnectionAnonymDb(): mysqli
         null,
     );
     $dbAnonym   = DB_ANONYM_NAME;
-    $result     = mysqli_query(
-        $connection,
-        <<<SQL
-            SHOW DATABASES LIKE '$dbAnonym'
-        SQL,
-    );
-    $exists     = mysqli_fetch_column($result);
+    $result     = $connection->query("SHOW DATABASES LIKE '$dbAnonym'");
+    $exists     = $result->fetchColumn();
     if ($exists) {
-        mysqli_query(
-            $connection,
-            <<<SQL
-            USE `$dbAnonym`
-        SQL,
-        );
+        $connection->exec("USE `$dbAnonym`");
     }
 
     return $connection;
@@ -343,66 +334,76 @@ function _dbConnect(
     string  $dbPass,
     ?int    $dbPort,
     ?string $dbName,
-    bool    $persistent = true,
-): mysqli {
+    bool    $persistent = false,
+): PDO {
+    $dsn = 'mysql:host=' . $dbServer;
+    if ($dbPort) {
+        $dsn .= ';port=' . $dbPort;
+    }
+    if ($dbName) {
+        $dsn .= ';dbname=' . $dbName;
+    }
+    $dsn .= ';charset=utf8mb4';
+
     try {
-        // persistent connection
-        $spojeni = @mysqli_connect(
-            $persistent
-                ? "p:$dbServer"
-                : $dbServer,
+        $pdo = new PDO(
+            $dsn,
             $dbUser,
             $dbPass,
-            $dbName ?? '',
-            $dbPort,
+            [
+                PDO::ATTR_ERRMODE                  => PDO::ERRMODE_EXCEPTION,
+                PDO::ATTR_PERSISTENT               => $persistent,
+                PDO::ATTR_STRINGIFY_FETCHES        => true,  // match mysqli behavior: all values as strings
+                PDO::MYSQL_ATTR_MULTI_STATEMENTS   => true,  // enables multi-statement queries (needed for migrations)
+            ],
         );
-        if ($spojeni) {
-            dbDisconnectOnShutdown($spojeni);
-        }
-    } catch (\Throwable $throwable) {
+    } catch (\PDOException $e) {
         throw new ConnectionException(
             sprintf(
                 "Failed to connect to the %s, error: '%s'",
                 $dbName
                     ? "database '$dbName'"
                     : 'SQL server',
-                $throwable->getMessage(),
+                $e->getMessage(),
             ),
-            $throwable->getCode(),
-            $throwable,
+            (int)$e->getCode(),
+            $e,
         );
     }
-    if (!$spojeni) {
-        throw new ConnectionException('Failed to connect to the database, error: "' . mysqli_connect_error() . '".');
-    }
-    if (!$spojeni->query('SET NAMES utf8mb4 COLLATE utf8mb4_czech_ci')) {
-        throw new DbException('Failed to set charset utf8mb4 to db connection.');
-    }
-    dbQuery('SET SESSION group_concat_max_len = 65536', null, $spojeni);
+    $pdo->exec('SET NAMES utf8mb4 COLLATE utf8mb4_czech_ci');
+    $pdo->exec('SET SESSION group_concat_max_len = 1048576');
 
-    return $spojeni;
+    return $pdo;
+}
+
+/**
+ * Creates a raw mysqli connection for vendor libraries that require it
+ * (e.g. dg/mysql-dump's MySQLImport).
+ */
+function dbConnectMysqli(
+    string  $dbServer = DB_SERV,
+    string  $dbUser = DB_USER,
+    string  $dbPass = DB_PASS,
+    ?int    $dbPort = null,
+    ?string $dbName = null,
+): \mysqli {
+    $dbPort ??= defined('DB_PORT') ? DB_PORT : null;
+    $dbName ??= DB_NAME;
+
+    $connection = @mysqli_connect($dbServer, $dbUser, $dbPass, $dbName, $dbPort);
+    if (!$connection) {
+        throw new ConnectionException('Failed to create mysqli connection: ' . mysqli_connect_error());
+    }
+    $connection->query('SET NAMES utf8mb4 COLLATE utf8mb4_czech_ci');
+
+    return $connection;
 }
 
 function dbDisconnectOnShutdown(
-    mysqli $spojeni,
+    PDO $spojeni,
 ) {
-    global $vsechnaSpojeni;
-    if (!$vsechnaSpojeni) {
-        $vsechnaSpojeni = [];
-    }
-    $vsechnaSpojeni[] = $spojeni;
-
-    register_shutdown_function(static function () use
-    (
-        $spojeni,
-    ) {
-        if ($spojeni) {
-            try {
-                mysqli_close($spojeni);
-            } catch (\Throwable) {
-            }
-        }
-    });
+    // PDO connections close automatically when the object is unset/garbage collected.
+    // No shutdown handler needed.
 }
 
 /**
@@ -417,7 +418,7 @@ function dbDelete(
         $where[] = dbQi($col) . ' = ' . dbQv($val);
     }
     if (!$where) throw new Exception('DELETE … WHERE caluse must not be empty');
-    dbQuery('DELETE FROM ' . dbQi($table) . ' WHERE ' . implode(' AND ', $where));
+    dbExecute('DELETE FROM ' . dbQi($table) . ' WHERE ' . implode(' AND ', $where));
 }
 
 /**
@@ -426,9 +427,9 @@ function dbDelete(
 function dbDescribe(
     $table,
 ) {
-    $a   = dbQuery('show full columns from ' . dbQi($table));
+    $a   = dbFetch('show full columns from ' . dbQi($table));
     $out = [];
-    while ($r = mysqli_fetch_assoc($a)) {
+    while ($r = $a->fetch(PDO::FETCH_ASSOC)) {
         $out[] = $r;
     }
 
@@ -446,44 +447,59 @@ function dbExecTime()
 function throwDbException(
     $spojeni = null,
 ) {
-    $type    = dbGetExceptionType($spojeni);
-    $message = dbGetExceptionMessage($spojeni);
-    throw new $type($message);
+    // With PDO, errors are thrown as exceptions directly.
+    // This function is kept for backward compat but should not be needed.
+    throw new DbException('Database error');
 }
 
 /**
- * Returns instance of concrete DbException based on error message
+ * Returns instance of concrete DbException based on error code
  */
 function dbGetExceptionType(
-    $spojeni = null,
+    $errorCode = null,
 ) {
-    if (mysqli_errno($spojeni ?? $GLOBALS['spojeni']) === 1062) {
-        return DbDuplicateEntryException::class;
-    }
-
-    return DbException::class;
-}
-
-function dbCreateExceptionFromMysqliException(
-    mysqli_sql_exception $mysqliException,
-): DbException | DbDuplicateEntryException {
-    $exceptionClass = match ($mysqliException->getCode()) {
+    return match ((int)$errorCode) {
         1062    => DbDuplicateEntryException::class,
         1927    => DbConnectionKilledException::class,
         2006    => MysqlServerHasGoneAwayException::class,
         default => DbException::class,
     };
+}
 
-    return new $exceptionClass($mysqliException->getMessage(), $mysqliException->getCode(), $mysqliException);
+function dbCreateExceptionFromPdoException(
+    PDOException $pdoException,
+): DbException | DbDuplicateEntryException {
+    // PDO error codes are strings like "23000" (SQLSTATE) but the driver-specific
+    // code is in $pdoException->errorInfo[1] or we parse the message
+    $driverCode = 0;
+    if ($pdoException->errorInfo[1] ?? null) {
+        $driverCode = (int)$pdoException->errorInfo[1];
+    } elseif (is_numeric($pdoException->getCode())) {
+        $driverCode = (int)$pdoException->getCode();
+    }
+
+    $exceptionClass = dbGetExceptionType($driverCode);
+
+    return new $exceptionClass($pdoException->getMessage(), $driverCode, $pdoException);
 }
 
 /**
- * Returns instance of concrete DbException based on error message
+ * @deprecated Use dbCreateExceptionFromPdoException instead
+ */
+function dbCreateExceptionFromMysqliException(
+    $exception,
+): DbException | DbDuplicateEntryException {
+    return dbCreateExceptionFromPdoException($exception);
+}
+
+/**
+ * Returns error message from last query
+ * @deprecated With PDO, errors are thrown as exceptions
  */
 function dbGetExceptionMessage(
     $spojeni = null,
 ): string {
-    return mysqli_error($spojeni ?? $GLOBALS['spojeni']);
+    return $GLOBALS['dbLastError'] ?? '';
 }
 
 /**
@@ -508,29 +524,7 @@ function dbInsert(
         ? 'IGNORE'
         : '';
     $q         = "INSERT $ignoreSql INTO $table ($sloupce) VALUES ($hodnoty)";
-    dbQuery($q);
-}
-
-/**
- * @param string $query
- * @throws DbDuplicateEntryException
- * @throws DbException
- * @internal
- */
-function _dbMysqliQuery(
-    string $query,
-    ?mysqli $mysqli = null,
-): bool | mysqli_result {
-    try {
-        if (!$r = mysqli_query($mysqli ?? dbConnect(), $query)) {
-            $type = dbGetExceptionType();
-            throw new $type();
-        }
-
-        return $r;
-    } catch (mysqli_sql_exception $mysqliException) {
-        throw dbCreateExceptionFromMysqliException($mysqliException);
-    }
+    dbExecute($q);
 }
 
 /**
@@ -578,8 +572,8 @@ function dbInsertId(
     bool $strict = true,
 ) {
     global $dbLastQ;
-    $id = mysqli_insert_id($GLOBALS['spojeni']);
-    if ($strict && (!is_int($id) || $id == 0)) {
+    $id = (int)dbConnect()->lastInsertId();
+    if ($strict && $id == 0) {
         throw new DbException("No last id. Last known query was '{$dbLastQ}'");
     }
 
@@ -610,14 +604,14 @@ SQL,
 
 /**
  * Insert with actualisation
- * @return mysqli|bool
+ * @return int number of affected rows
  * @throws DbException
  * @see dbInsert
  */
 function dbInsertUpdate(
     string $table,
            $valArray,
-) {
+): int {
     $uniqueKeysColumns = getTableUniqueKeysColumns($table);
     if ($uniqueKeysColumns) {
         $completeUniqueKeyValues = [];
@@ -628,12 +622,12 @@ function dbInsertUpdate(
             }
         }
         if ($completeUniqueKeyValues) {
-            $query = dbUpdate($table, $valArray, $completeUniqueKeyValues);
-            if (dbAffectedOrNumRows($query) > 0) {
-                return $query;
+            $affectedRows = dbUpdate($table, $valArray, $completeUniqueKeyValues);
+            if ($affectedRows > 0) {
+                return $affectedRows;
             }
             if (dbRecordExists($table, $completeUniqueKeyValues)) {
-                return $query; // no change
+                return $affectedRows; // no change
             }
         }
     }
@@ -647,7 +641,7 @@ function dbInsertUpdate(
     $vals = implode(',', $sqlVals);
     $q    = $update . $vals . $dupl . $vals;
 
-    return dbQuery($q);
+    return dbExecute($q);
 }
 
 /**
@@ -695,47 +689,16 @@ function dbQueries(): array
 }
 
 /**
- * @param $query
- * @return int
- * @throws Exception
- * @deprecated
- * use @see dbAffectedOrNumRows instead
- */
-function dbNumRows(
-    $query,
-): int {
-    return dbAffectedOrNumRows($query);
-}
-
-/**
- * @return int of rows affected / returned by query
- * @throws Exception
- */
-function dbAffectedOrNumRows(
-    $query,
-): int {
-    if ($query === true) {
-        // result of mysqli_query INSERT / UPDATE / DELETE
-        return $GLOBALS['dbAffectedRows'] ?? 0;
-    }
-    if ($query instanceof mysqli_result) {
-        // result of mysqli_query SELECT
-        return $query->num_rows ?? 0;
-    }
-    throw new Exception('query failed or returned unexpected type');
-}
-
-/**
  * Expects one column in select. Returns array of selected values.
  */
 function dbOneArray(
     $q,
-    $p = null,
+    ?array $p = null,
 ): array {
-    $o = dbQuery($q, $p);
+    $o = dbFetch($q, $p ?? []);
     $a = [];
-    while (list($v) = mysqli_fetch_row($o)) {
-        $a[] = $v;
+    while ($r = $o->fetch(PDO::FETCH_NUM)) {
+        $a[] = $r[0];
     }
 
     return $a;
@@ -748,9 +711,9 @@ function dbOneArray(
 function dbOneCol(
     $q,
     array $p = null,
-    ?mysqli $mysqli = null,
+    $pdo = null,
 ) {
-    $a = dbOneLine($q, $p, $mysqli);
+    $a = dbOneLine($q, $p, $pdo);
 
     return $a
         ? current($a)
@@ -762,12 +725,12 @@ function dbOneCol(
  */
 function dbOneIndex(
     $q,
-    $p = null,
+    ?array $p = null,
 ): array {
-    $o = dbQuery($q, $p);
+    $o = dbFetch($q, $p ?? []);
     $a = [];
-    while (list($v) = mysqli_fetch_row($o)) {
-        $a[$v] = true;
+    while ($r = $o->fetch(PDO::FETCH_NUM)) {
+        $a[$r[0]] = true;
     }
 
     return $a;
@@ -780,48 +743,44 @@ function dbOneIndex(
  */
 function dbOneLine(
     $q,
-    $p = null,
-    ?mysqli $mysqli = null,
+    ?array $p = null,
+    $pdo = null,
 ): array {
-    $r = dbQueryS($q, $p, $mysqli);
-    if (mysqli_num_rows($r) > 1) {
+    $r = dbFetch($q, $p ?? [], $pdo);
+    $rows = $r->fetchAll(PDO::FETCH_ASSOC);
+    if (count($rows) > 1) {
         throw new RuntimeException('Multiple lines matched on query ' . $q);
     }
-    if (mysqli_num_rows($r) < 1) {
+    if (count($rows) < 1) {
         return [];
     }
 
-    return mysqli_fetch_assoc($r)
-        ?: [];
+    return $rows[0];
 }
 
 function dbFetchRow(
     string $query,
     array  $params = [],
-    mysqli $mysqli = null,
+    $pdo = null,
 ): array {
-    return dbOneLine($query, $params, $mysqli);
+    return dbOneLine($query, $params, $pdo);
 }
 
 /**
  * @param string $query
  * @param array $params
- * @param mysqli|null $mysqli
+ * @param PDO|null $pdo
  * @return array<int, array<string, string>> rows with items indexed by column names
  * @throws DbException
  */
 function dbFetchAll(
     string $query,
     array  $params = [],
-    mysqli $mysqli = null,
+    $pdo = null,
 ): array {
-    $result        = dbQuery($query, $params, $mysqli);
-    $resultAsArray = [];
-    while ($row = mysqli_fetch_assoc($result)) {
-        $resultAsArray[] = $row;
-    }
+    $result = dbFetch($query, $params, $pdo);
 
-    return $resultAsArray;
+    return $result->fetchAll(PDO::FETCH_ASSOC);
 }
 
 /**
@@ -830,29 +789,21 @@ function dbFetchAll(
 function dbFetchColumn(
     string $query,
     array  $params = [],
-    mysqli $connection = null,
+    $connection = null,
 ): array {
-    $result       = dbQuery($query, $params, $connection);
-    $columnValues = [];
-    while ($row = mysqli_fetch_array($result, MYSQLI_NUM)) {
-        $columnValues[] = reset($row);
-    }
+    $result = dbFetch($query, $params, $connection);
 
-    return $columnValues;
+    return $result->fetchAll(PDO::FETCH_COLUMN);
 }
 
 function dbFetchPairs(
     string $query,
     array  $params = [],
-    mysqli $connection = null,
+    $connection = null,
 ): array {
-    $result = dbQuery($query, $params, $connection);
-    $pairs  = [];
-    while ($row = mysqli_fetch_array($result)) {
-        $pairs[$row[0]] = $row[1];
-    }
+    $result = dbFetch($query, $params, $connection);
 
-    return $pairs;
+    return $result->fetchAll(PDO::FETCH_KEY_PAIR);
 }
 
 /**
@@ -862,71 +813,106 @@ function dbFetchSingle(
     string $query,
     array  $params = [],
 ): float | bool | int | string | null {
-    $result = dbQuery($query, $params);
-    $row    = mysqli_fetch_array($result);
+    $result = dbFetch($query, $params);
+    $row    = $result->fetch(PDO::FETCH_NUM);
     if (!$row) {
         return null;
     }
 
-    return reset($row);
+    return $row[0];
 }
 
 /**
- * Executes arbitrary query on database
- * strings $1, $2, ... are replaced with values from $param
- * when $0 exists in, first $params maps to it, otherwise it maps to $1 etc...
- * @return bool|mysqli_result
+ * Runs a statement that returns rows (SELECT, WITH, SHOW, EXPLAIN, a CALL that returns a result).
+ * The caller says it reads, so the text of the statement is never inspected.
+ * strings $1, $2, ... are replaced with values from $params
+ * when $0 exists in the query, first $params maps to it, otherwise it maps to $1 etc...
  * @throws DbException|DbDuplicateEntryException
  */
-function dbQuery(
-    string $q,
-           $param = null,
-    mysqli $mysqli = null,
-): bool | mysqli_result {
-    if ($param) {
-        return dbQueryS($q, (array)$param, $mysqli);
-    }
+function dbFetch(
+    string $query,
+    array  $params = [],
+    ?PDO   $pdo = null,
+): PDOStatement {
+    return _dbRun(
+        $params
+            ? dbQueryAssemble($query, $params, $pdo)
+            : $query,
+        $pdo,
+        static function (PDO $pdo, string $query): PDOStatement {
+            $result = $pdo->query($query);
+            if ($result === false) {
+                throw new DbException('Query failed: ' . $query);
+            }
+
+            return $result;
+        },
+    );
+}
+
+/**
+ * Runs a statement that changes data or state (INSERT, UPDATE, DELETE, DDL, SET, transaction control).
+ * Placeholders work as in dbFetch(). Not PDO::exec(): after a statement that returns rows it leaves them
+ * pending and the next query fails with error 2014. query() with closeCursor() discards those rows, and
+ * the later results of a multi-statement query (on a connection that allows it), reporting their errors.
+ * @return int number of rows affected by the first statement
+ * @throws DbException|DbDuplicateEntryException
+ */
+function dbExecute(
+    string $query,
+    array  $params = [],
+    ?PDO   $pdo = null,
+): int {
+    return _dbRun(
+        $params
+            ? dbQueryAssemble($query, $params, $pdo)
+            : $query,
+        $pdo,
+        static function (PDO $pdo, string $query): int {
+            $statement = $pdo->query($query);
+            if ($statement === false) {
+                throw new DbException('Query failed: ' . $query);
+            }
+            $affectedRows = $statement->rowCount();
+            $statement->closeCursor();
+
+            return $affectedRows;
+        },
+    );
+}
+
+/**
+ * Bookkeeping shared by dbFetch() and dbExecute(): the last query, the number and the time of queries.
+ * @param callable(PDO, string): (PDOStatement|int) $run
+ * @throws DbException|DbDuplicateEntryException
+ * @internal
+ */
+function _dbRun(
+    string   $query,
+    ?PDO     $pdo,
+    callable $run,
+): PDOStatement | int {
     global $dbQueries, $dbLastQ, $dbNumQ, $dbExecTime;
     $dbQueries ??= [];
-    $mysqli    ??= dbConnect();
-    $dbLastQ   = $q;
+    $pdo       ??= dbConnect();
+    $dbLastQ   = $query;
     $start     = microtime(true);
-    $r         = _dbMysqliQuery($q, $mysqli);
-    // raději si to hned odložíme, protože opakovaný dotaz na mysqli->affected_rows vede k tomu, že první dotaz vrátí správnou hodnotu, ale druhý už -1 ("disk se automaticky zničí po přečtení za pět, čtyři, tři...")
-    $wasDataAffecting           = $r === true; // INSERT, DELETE, UPDATE
-    $GLOBALS['dbAffectedRows']  = $wasDataAffecting
-        ? $mysqli->affected_rows
-        : mysqli_affected_rows($mysqli);
-    $end                        = microtime(true);
-    $dbQueries[$q]              ??= [
+    try {
+        $result = $run($pdo, $query);
+    } catch (PDOException $pdoException) {
+        throw dbCreateExceptionFromPdoException($pdoException);
+    }
+    $took = microtime(true) - $start;
+    $dbQueries[$query] ??= [
         'microtime' => 0.0,
         'count'     => 0,
     ];
-    $dbQueries[$q]['microtime'] += $end - $start;
-    $dbQueries[$q]['count']++;
+    $dbQueries[$query]['microtime'] += $took;
+    $dbQueries[$query]['count']++;
     $dbNumQ++;
-    $dbExecTime += $end - $start;
+    $dbExecTime += $took;
 
-    return $r;
-}
-
-/**
- * Dotaz s nahrazováním jmen proměnných, pokud je nastaveno pole, tak jen z
- * pole ve forme $0 $1 atd resp $index
- */
-function dbQueryS(
-    string $q,
-    array  $pole = null,
-    mysqli $mysqli = null,
-): mysqli_result | bool {
-    if (!$pole) {
-        return dbQuery($q, null, $mysqli);
-    }
-
-    return dbQuery(
-        q: dbQueryAssemble($q, $pole, $mysqli),
-        mysqli: $mysqli,
-    );
+    return $result;
 }
 
 /**
@@ -948,26 +934,26 @@ function dbQueryS(
  *
  * @param string $q Query with placeholders
  * @param array $pole Parameter values
- * @param mysqli|null $mysqli Database connection for escaping
+ * @param PDO|null $pdo Database connection for escaping
  * @return string Assembled query with values escaped
  * @throws DbException If not enough parameters provided
  */
 function dbQueryAssemble(
     string $q,
     array  $pole,
-    mysqli $mysqli = null,
+    ?PDO   $pdo = null,
 ): string {
     // Phase 1: Replace ? placeholders sequentially
     $consumedParams = 0;
     $q = preg_replace_callback(
         '~\?~',
-        function($matches) use ($pole, &$consumedParams, $mysqli) {
+        function($matches) use ($pole, &$consumedParams, $pdo) {
             if ($consumedParams >= count($pole)) {
                 throw new DbException(
                     "Not enough parameters: query has more ? placeholders than provided parameters"
                 );
             }
-            $value = dbQv($pole[$consumedParams], $mysqli);
+            $value = dbQv($pole[$consumedParams], $pdo);
             $consumedParams++;
             return $value;
         },
@@ -987,7 +973,7 @@ function dbQueryAssemble(
         (
             $pole,
             $delta,
-            $mysqli,
+            $pdo,
             $consumedParams,
         ) {
             $paramIndex = $matches['cislo_parametru'] + $delta;
@@ -1002,7 +988,7 @@ function dbQueryAssemble(
                     "Parameter \${$matches['cislo_parametru']} (index $paramIndex) not found in provided parameters"
                 );
             }
-            return dbQv($pole[$paramIndex], $mysqli);
+            return dbQv($pole[$paramIndex], $pdo);
         },
         $q,
     );
@@ -1014,14 +1000,14 @@ function dbQueryAssemble(
  */
 function dbQa(
     array $array,
-    ?mysqli $mysqli = null,
+    ?PDO  $pdo = null,
 ): string {
     if ($array === []) {
         return 'NULL';
     }
     $out = [];
     foreach ($array as $value) {
-        $out[] = dbQv($value, $mysqli);
+        $out[] = dbQv($value, $pdo);
     }
 
     return implode(',', $out);
@@ -1042,10 +1028,10 @@ function dbEnumValue(UnitEnum $enum): int|string
  */
 function dbQv(
     $val,
-    ?mysqli $mysqli = null,
+    ?PDO $pdo = null,
 ): string {
     if (is_array($val)) {
-        return dbQa($val, $mysqli);
+        return dbQa($val, $pdo);
     }
     if ($val === null) {
         return 'NULL';
@@ -1061,7 +1047,18 @@ function dbQv(
         return '"' . $val->format('Y-m-d H:i:s') . '"';
     }
 
-    return '"' . mysqli_real_escape_string($mysqli ?? dbConnect(), $val) . '"';
+    $pdo ??= dbConnect();
+
+    // PDO::quote() adds surrounding quotes, but we use our own " quotes for consistency
+    // Use substr to strip the surrounding ' quotes that PDO adds, then wrap in "
+    $quoted = $pdo->quote((string)$val);
+    // PDO::quote returns 'value' (with single quotes), we need "value" (double quotes)
+    // Strip the surrounding ' and re-wrap with "
+    $inner = substr($quoted, 1, -1);
+    // Convert \' back to ' since we're using double quotes
+    $inner = str_replace("\\'", "'", $inner);
+
+    return '"' . $inner . '"';
 }
 
 function dbQRaw(
@@ -1083,7 +1080,13 @@ function dbQRaw(
         return $val->format('Y-m-d H:i:s');
     }
 
-    return mysqli_real_escape_string(dbConnect(), $val);
+    $pdo = dbConnect();
+    $quoted = $pdo->quote((string)$val);
+    // Strip surrounding quotes
+    $inner = substr($quoted, 1, -1);
+    $inner = str_replace("\\'", "'", $inner);
+
+    return $inner;
 }
 
 /**
@@ -1092,21 +1095,21 @@ function dbQRaw(
 function dbQi(
     $val,
 ) {
-    return '`' . mysqli_real_escape_string(dbConnect(), $val) . '`';
+    return '`' . str_replace('`', '``', $val) . '`';
 }
 
 /**
  * Executes update on table $table using associtive array $vals as column=>value
  * pairs and $where as column=>value AND column=>value ... where clause
- * @return bool|mysqli
+ * @return int number of affected rows
  */
 function dbUpdate(
     string $table,
     array  $vals,
     array  $where,
-) {
+): int {
     if ($vals === []) {
-        return null;
+        return 0;
     }
     $setArray = [];
     foreach ($vals as $key => $val) {
@@ -1116,7 +1119,7 @@ function dbUpdate(
         $setArray[] = dbQi($key) . '=' . dbQv($val);
     }
     if (!$setArray) {
-        return null;
+        return 0;
     }
     $q = 'UPDATE ' . dbQi($table) . " SET \n" . implode(',', $setArray);
 
@@ -1127,13 +1130,8 @@ function dbUpdate(
     if ($whereArray) {
         $q .= ' WHERE ' . implode("\n\tAND ", $whereArray);
     }
-    $r = dbQuery($q);
-    if (!$r) {
-        $type = dbGetExceptionType();
-        throw new $type();
-    }
 
-    return $r;
+    return dbExecute($q);
 }
 
 /**
@@ -1176,8 +1174,8 @@ class DbException extends RuntimeException
         Throwable $previous = null,
     ) {
         parent::__construct(
-            $message ?? (mysqli_error($GLOBALS['spojeni']) . ' caused by ' . $GLOBALS['dbLastQ']),
-            $code ?? mysqli_errno($GLOBALS['spojeni']),
+            $message ?? ($GLOBALS['dbLastError'] ?? 'Database error') . ' caused by ' . ($GLOBALS['dbLastQ'] ?? 'unknown query'),
+            $code ?? 0,
             $previous,
         );
     }

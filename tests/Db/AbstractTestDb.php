@@ -5,10 +5,28 @@ declare(strict_types=1);
 namespace Gamecon\Tests\Db;
 
 use Gamecon\Aktivita\Aktivita;
+use Gamecon\Shop\Predmet;
+use Gamecon\SystemoveNastaveni\SystemoveNastaveni;
 use Symfony\Bundle\FrameworkBundle\Test\KernelTestCase;
 
 abstract class AbstractTestDb extends KernelTestCase
 {
+    /**
+     * Gives every catalog row without one the variant production has for it, so fixtures can
+     * insert legacy rows and still have purchases name what they bought.
+     */
+    protected const SQL_VYCHOZI_VARIANTY = <<<SQL
+INSERT INTO product_variant (product_id, name, code, position, state, accommodation_day)
+SELECT shop_predmety.id_predmetu, NULL, shop_predmety.kod_predmetu, 0, shop_predmety.stav, shop_predmety.ubytovani_den
+FROM shop_predmety
+WHERE NOT EXISTS (SELECT 1 FROM product_variant WHERE product_variant.code = shop_predmety.kod_predmetu)
+SQL;
+
+    /**
+     * The variant of a catalog row, for a purchase inserted in SQL; `%s` is the row's id.
+     */
+    protected const SQL_VARIANTA_RADKU = '(SELECT product_variant.id FROM product_variant INNER JOIN shop_predmety AS radek ON radek.kod_predmetu = product_variant.code WHERE radek.id_predmetu = %s)';
+
     private static ?DbWrapper $connection = null;
     /**
      * @var string[]
@@ -49,7 +67,7 @@ abstract class AbstractTestDb extends KernelTestCase
                         : null;
                 }
                 try {
-                    self::$connection->query($initQuerySql, $params);
+                    self::$connection->execute($initQuerySql, $params);
                 } catch (\Throwable $throwable) {
                     static::tearDownAfterClass();
                     throw $throwable;
@@ -91,15 +109,15 @@ abstract class AbstractTestDb extends KernelTestCase
     {
         if (static::keepSingleTestMethodDbChangesInTransaction()) {
             self::$connection->rollback();
+            static::zapomenNacteneEntity();
         }
         if (static::resetDbAfterSingleTestMethod()) {
             self::$connection->resetTestDb();
-            // Po resetu DB se auto_increment vrátí na 1 - vyčistíme Doctrine identity map,
-            // aby v dalším testu nevznikaly EntityIdentityCollisionException
-            $this->getContainer()->get('doctrine')->getManager()->clear();
+            static::zapomenNacteneEntity();
         }
         Aktivita::smazCache();
         \Uzivatel::smazCache();
+        Predmet::smazCache();
     }
 
     protected static function keepTestClassDbChangesInTransaction(): bool
@@ -148,17 +166,38 @@ abstract class AbstractTestDb extends KernelTestCase
         if (static::resetDbAfterClass()) {
             self::$connection->resetTestDb();
         }
+        static::zapomenNacteneEntity();
         if (static::$disableStrictTransTables) {
             static::disableStrictTransTables();
         }
         Aktivita::smazCache();
         \Uzivatel::smazCache();
+        Predmet::smazCache();
+    }
+
+    /**
+     * Entities loaded before a rollback or reset describe rows that are gone, and a reset hands
+     * their ids to new rows. Legacy code writes through the global kernel, not the test one.
+     */
+    protected static function zapomenNacteneEntity(): void
+    {
+        $kernely = [SystemoveNastaveni::zGlobals()->kernel()];
+        if (static::$booted) {
+            $kernely[] = static::$kernel;
+        }
+        foreach ($kernely as $kernel) {
+            $doctrine = $kernel->getContainer()->get('doctrine');
+            // A failed flush closes the manager, and clear() does not reopen it.
+            $doctrine->getManager()->isOpen()
+                ? $doctrine->getManager()->clear()
+                : $doctrine->resetManager();
+        }
     }
 
     // například pro vypnutí kontroly "Field 'cena' doesn't have a default value"
     protected static function disableStrictTransTables()
     {
-        self::$connection->query(<<<SQL
+        self::$connection->execute(<<<SQL
 SET SESSION sql_mode = REGEXP_REPLACE(@@SESSION.sql_mode, 'STRICT_TRANS_TABLES,?', '')
 SQL,
         );
@@ -166,15 +205,41 @@ SQL,
 
     protected static function enableStrictTransTables()
     {
-        self::$connection->query(<<<SQL
+        self::$connection->execute(<<<SQL
 SET SESSION sql_mode = CONCAT_WS(',', @@SESSION.sql_mode, 'STRICT_TRANS_TABLES')
 SQL,
         );
     }
 
+    /**
+     * Nastavení, které místo skutečné služby vydá zadanou náhradu. Pro kód, který nastavení dostává
+     * zvenku místo čtení globálu, takže si ho test může podstrčit; jiná služba skončí výjimkou.
+     * Ročník je letošní, nic dalšího nastavení neumí.
+     *
+     * @template T of object
+     *
+     * @param class-string<T> $trida
+     * @param T               $nahrada
+     */
+    protected function systemoveNastaveniSeSluzbou(string $trida, object $nahrada): SystemoveNastaveni
+    {
+        $nastaveni = $this->createStub(SystemoveNastaveni::class);
+        $nastaveni->method('getService')->willReturnCallback(
+            static fn (string $id): object => $id === $trida
+                ? $nahrada
+                : throw new \LogicException("Test nepočítá se službou {$id}"),
+        );
+        $nastaveni->method('kernel')->willThrowException(
+            new \LogicException('Test počítá jen se službou přes getService(), ne s kernelem'),
+        );
+        $nastaveni->method('rocnik')->willReturn(ROCNIK);
+
+        return $nastaveni;
+    }
+
     protected function nazvySloupcuTabulky(string $tabulka): array
     {
-        $result = self::$connection->query(<<<SQL
+        $result = self::$connection->fetch(<<<SQL
 SHOW COLUMNS FROM {$tabulka}
 SQL,
         );
@@ -183,7 +248,7 @@ SQL,
             fn (
                 array $row,
             ) => reset($row),
-            mysqli_fetch_all($result),
+            $result->fetchAll(\PDO::FETCH_NUM),
         );
     }
 }

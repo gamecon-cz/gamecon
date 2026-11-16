@@ -1,12 +1,33 @@
 
 .shop {
   &--container {
+    display: flex;
+    flex-direction: column;
     width: 80vw;
-    height: 80vh;
+    height: 94vh;
+  }
+  // Hlavička hlásí, na čí účet se prodává, takže je vidět v každém kroku a liší se barvou.
+  &--header {
+    padding: 6px 24px;
+    font-size: 1.15em;
+    font-weight: bold;
+    color: #fff;
+
+    &-uzivatel {
+      background-color: #1b5e20;
+    }
+
+    &-anonymni {
+      background-color: #555;
+    }
+  }
+  &--body {
+    flex: 1 1 0;
+    min-height: 0;
   }
   &--close {
     position: absolute;
-    top: -25px;
+    top: 0;
     right: -70px;
     font-size: 2rem;
     background: #fff;

@@ -9,9 +9,6 @@ namespace App\Structure\Sql;
  */
 class EventLogSqlStructure
 {
-    /**
-     * @see EventLog
-     */
     public const _table = 'log_udalosti';
 
     /**

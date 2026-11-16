@@ -20,7 +20,7 @@ $sledujici             = StavPrihlaseni::SLEDUJICI;
 $technicka   = TypAktivity::TECHNICKA;
 $brigadnicka = TypAktivity::BRIGADNICKA;
 
-$o = dbQuery(<<<SQL
+$o = dbFetch(<<<SQL
 SELECT * FROM
 (
     SELECT
@@ -61,7 +61,7 @@ SQL,
 
 $p                  = [];
 $systemoveNastaveni ??= SystemoveNastaveni::zGlobals();
-while ($r = mysqli_fetch_assoc($o)) {
+while ($r = $o->fetch(PDO::FETCH_ASSOC)) {
     $a                                      = Aktivita::zId($r['id_akce']);
     $bonusZaAktivitu                        = Finance::bonusZaAktivitu($a, $systemoveNastaveni);
     $organizatoriSBonusemZaAktivitu         = Finance::nechOrganizatorySBonusemZaVedeniAktivit($a->organizatori());
