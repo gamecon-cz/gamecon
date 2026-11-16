@@ -569,7 +569,7 @@ Obě opravy mají test, který na původním kódu padá (ověřeno mutací zpě
 Sledováno v [issue #1152](https://github.com/gamecon-cz/gamecon/issues/1152).
 
 Když se `UBYTOVANI_LZE_OBJEDNAT_A_MENIT_DO_DNE` nastaví dřív než termín jídla, stane se
-snídaně zrušená `cancelCovered()` na pultu **nevratnou** — `BreakfastCanceller::restore()`
+snídaně zrušená `cancelCovered()` **pro účastníka nevratnou** — `BreakfastCanceller::restore()`
 je dosažitelné jen ze `SetAccommodationProcessor`, a ten po termínu ubytování odmítá. Ve
 výchozím nastavení jsou oba termíny stejné, takže to dnes nenastane. Existovalo to i před
 touto opravou. Obsluha snídani vrátit umí (`MealWriter::restoreBreakfasts()`, bez ohledu na
