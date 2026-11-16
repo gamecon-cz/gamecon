@@ -23,7 +23,8 @@ export function dnyVyberu(types: ApiAccommodationType[], variantIds: number[]): 
 
 /**
  * The same rules the server applies to a booking (`AccommodationWriter`), asked before anything
- * is sent: a pick that fails them waits in the grid instead of being refused. Dropping every
+ * is sent: a pick that fails them waits in the grid instead of being refused (see
+ * `zkontrolujVyberVMřížce()` for the one pick that cannot be judged here). Dropping every
  * night is always fine.
  */
 export function zkontrolujVyber(dny: number[], minimumNights: number): KontrolaVyberu {
@@ -47,9 +48,11 @@ export function zkontrolujVyber(dny: number[], minimumNights: number): KontrolaV
 }
 
 /**
- * The same, for a pick of variants. One the grid does not show (a held night of a room type the
- * sleeping-bag restriction hides) has a day only the server knows, so counting just the visible
- * ones would hold a pick the server would answer for. Such a pick is not held back.
+ * The same, for a pick of variants. A variant the grid does not show (a held night of a room
+ * type the sleeping-bag restriction hides) has a day the grid cannot tell, so counting only the
+ * visible ones would hold a pick on a hint that can never come true. Such a pick is sent instead
+ * and the server answers it, with a refusal under that restriction: it is never cut down to the
+ * visible nights, which would delete the hidden one.
  */
 export function zkontrolujVyberVMřížce(
   types: ApiAccommodationType[],

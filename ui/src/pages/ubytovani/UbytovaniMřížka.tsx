@@ -19,10 +19,10 @@ function třídyBuňky(cell: ApiAccommodationCell, vybrano: boolean, neulozeno: 
   }
   // A full night that is not locked is one the desk may overbook; a night already past its
   // capacity is shown the same way, since both are the desk going beyond what is on offer.
-  // A locked one keeps the grey: orange says "you may", and here nobody may.
   if (cell.soldOut && !cell.locked && !vybrano) {
     třídy.push("ubytovani-mrizka--k-preplneni");
   }
+  // Not on a locked tile, which keeps its grey: orange says "you may", and there nobody may.
   if (cell.remaining !== null && cell.remaining < 0 && !cell.locked) {
     třídy.push("ubytovani-mrizka--preplneno");
   }
@@ -71,7 +71,8 @@ type Zápis = {
  * Every save sends the whole selection, not the one night that moved: the nights of a
  * booking have to be consecutive, so the server judges the set as a whole and refuses it
  * as a whole. A pick that cannot pass that yet (one night of the two it takes) therefore waits
- * in the grid, marked as not saved, and goes out as soon as it can.
+ * in the grid, marked as not saved, and goes out as soon as it can. The exception is a pick
+ * with a night the grid does not show: that one is sent as it is (`zkontrolujVyberVMřížce()`).
  */
 export function UbytovaniMřížka({ customerId }: MountProps) {
   const [ubytovani, setUbytovani] = useState<ApiAccommodation | null>(null);
@@ -120,8 +121,8 @@ export function UbytovaniMřížka({ customerId }: MountProps) {
       const kontrola = čekající === null
         ? null
         : zkontrolujVyberVMřížce(uloženo.types, čekající, uloženo.minimumNights);
-      if (kontrola !== null && !kontrola.platny) {
-        stav.markPending(kontrola.duvod);
+      if (čekající !== null) {
+        stav.markPending(kontrola !== null && !kontrola.platny ? kontrola.duvod : undefined);
       } else {
         stav.markSaved();
       }

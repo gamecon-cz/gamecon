@@ -466,6 +466,28 @@ describe("UbytovaniMřížka: výběr nocí", () => {
       expect(kontejner.querySelector(".ubytovani-mrizka--neulozeno")).toBeNull();
     });
 
+    it("po uložení spolubydlícího se čekající výběr nehlásí jako uložený, ani když ho nová mřížka neukazuje", async () => {
+      const kontejner = await vykresliVyber([trojiceNoci()], [], dvaMinimum);
+      await klikni(dlaždice(kontejner, 0, 0));
+      // The answer no longer shows night 11, so the pick cannot be judged against it.
+      vi.mocked(saveAccommodation).mockResolvedValue({
+        ...ubytovani(kolej({ nights: { 1: bunka(12), 2: bunka(13) } })),
+        ...dvaMinimum,
+      });
+      const pole = kontejner.querySelector<HTMLInputElement>(".ubytovani-mrizka--spolubydlici input");
+      if (pole === null) {
+        throw new Error("Pole spolubydlícího se nevykreslilo");
+      }
+      pole.value = "Někdo";
+
+      await act(() => {
+        pole.dispatchEvent(new Event("change", { bubbles: true }));
+      });
+      await pockej();
+
+      expect(stav(kontejner)).toContain("Neuloženo");
+    });
+
     it("zamítnutý zápis vrátí mřížku k tomu, co má server, a řekne to", async () => {
       const kontejner = await vykresliVyber([trojiceNoci()], [], { ...dvaMinimum, minimumNights: 1 });
       vi.mocked(saveAccommodation).mockRejectedValue(new Error("Noc je obsazená."));
