@@ -204,8 +204,12 @@ describe("UbytovaniMřížka: výběr nocí", () => {
   const hotel = (zmeny: Partial<ApiAccommodationType> = {}) =>
     typUbytovani({ productId: 2, name: "Hotel", nights: { 0: bunka(21), 1: bunka(22) }, ...zmeny });
 
-  const vykresliVyber = async (typy: ApiAccommodationType[], vybrane: number[]) => {
-    const odpoved = { ...ubytovani(...typy), selectedVariantIds: vybrane };
+  const vykresliVyber = async (
+    typy: ApiAccommodationType[],
+    vybrane: number[],
+    zmeny: Partial<ApiAccommodation> = {},
+  ) => {
+    const odpoved = { ...ubytovani(...typy), selectedVariantIds: vybrane, ...zmeny };
     vi.mocked(fetchAccommodation).mockResolvedValue(odpoved);
     vi.mocked(saveAccommodation).mockResolvedValue(odpoved);
     const kontejner = document.createElement("div");
@@ -313,5 +317,143 @@ describe("UbytovaniMřížka: výběr nocí", () => {
     await klikni(dlaždice(kontejner, 1, 1));
 
     expect(uložené()).toEqual([[11, 22]]);
+  });
+
+  describe("když jsou nejméně dvě noci", () => {
+    const tridniDny = [{ day: 0, name: "středa" }, { day: 1, name: "čtvrtek" }, { day: 2, name: "pátek" }];
+    const trojiceNoci = () => kolej({ nights: { 0: bunka(11), 1: bunka(12), 2: bunka(13) } });
+    const dvaMinimum = { minimumNights: 2, days: tridniDny };
+
+    const stav = (kontejner: HTMLElement) => kontejner.querySelector(".save-status")?.textContent ?? "";
+
+    const pockej = async () => {
+      await act(async () => {
+        await Promise.resolve();
+      });
+    };
+
+    it("první noc čeká na druhou, nic se neodešle a mřížka řekne proč", async () => {
+      const kontejner = await vykresliVyber([trojiceNoci()], [], dvaMinimum);
+
+      await klikni(dlaždice(kontejner, 0, 0));
+
+      expect(uložené()).toEqual([]);
+      expect(dlaždice(kontejner, 0, 0).querySelector<HTMLInputElement>("input")?.checked).toBe(true);
+      expect(stav(kontejner)).toBe("● Neuloženo — Vyber ještě 1 navazující noc ubytování.");
+      expect(kontejner.querySelector(".save-status")?.className).toContain("save-status--pending");
+    });
+
+    it("čekající noc je v mřížce vidět jinak než uložená", async () => {
+      const kontejner = await vykresliVyber([trojiceNoci()], [], dvaMinimum);
+
+      await klikni(dlaždice(kontejner, 0, 0));
+
+      expect(dlaždice(kontejner, 0, 0).className).toContain("ubytovani-mrizka--neulozeno");
+      expect(dlaždice(kontejner, 0, 1).className).not.toContain("ubytovani-mrizka--neulozeno");
+    });
+
+    it("druhá navazující noc celý výběr uloží a mřížka to potvrdí", async () => {
+      const kontejner = await vykresliVyber([trojiceNoci()], [], dvaMinimum);
+
+      await klikni(dlaždice(kontejner, 0, 0));
+      await klikni(dlaždice(kontejner, 0, 1));
+      await pockej();
+
+      expect(uložené()).toEqual([[11, 12]]);
+      expect(stav(kontejner)).toBe("✓ Uloženo");
+      expect(kontejner.querySelector(".ubytovani-mrizka--neulozeno")).toBeNull();
+    });
+
+    it("nenavazující noci čekají, dokud mezera není zaplněná", async () => {
+      const kontejner = await vykresliVyber([trojiceNoci()], [], dvaMinimum);
+
+      await klikni(dlaždice(kontejner, 0, 0));
+      await klikni(dlaždice(kontejner, 0, 2));
+
+      expect(uložené()).toEqual([]);
+      expect(stav(kontejner)).toBe("● Neuloženo — Vybrané noci ubytování na sebe musí navazovat.");
+
+      await klikni(dlaždice(kontejner, 0, 1));
+      await pockej();
+
+      expect(uložené()).toEqual([[11, 13, 12]]);
+    });
+
+    it("odškrtnutí na jedinou noc čeká a odškrtnutí poslední noci uloží prázdný výběr", async () => {
+      const kontejner = await vykresliVyber(
+        [kolej({ nights: { 0: bunka(11, { selected: true }), 1: bunka(12, { selected: true }) } })],
+        [11, 12],
+        dvaMinimum,
+      );
+
+      await klikni(dlaždice(kontejner, 0, 0));
+
+      expect(uložené()).toEqual([]);
+      expect(stav(kontejner)).toContain("Vyber ještě 1 navazující noc");
+
+      await klikni(dlaždice(kontejner, 0, 1));
+      await pockej();
+
+      expect(uložené()).toEqual([[]]);
+    });
+
+    it("vrácení výběru do uloženého stavu čekání zruší", async () => {
+      const kontejner = await vykresliVyber([trojiceNoci()], [], dvaMinimum);
+
+      await klikni(dlaždice(kontejner, 0, 0));
+      await klikni(dlaždice(kontejner, 0, 0));
+
+      expect(uložené()).toEqual([]);
+      expect(stav(kontejner)).toBe("");
+      expect(kontejner.querySelector(".ubytovani-mrizka--neulozeno")).toBeNull();
+    });
+
+    it("pokud mají právo na jednu noc, uloží se hned", async () => {
+      const kontejner = await vykresliVyber([trojiceNoci()], [], { ...dvaMinimum, minimumNights: 1 });
+
+      await klikni(dlaždice(kontejner, 0, 0));
+      await pockej();
+
+      expect(uložené()).toEqual([[11]]);
+    });
+
+    it("spolubydlící se uloží i při čekajícím výběru a výběr dál čeká", async () => {
+      const kontejner = await vykresliVyber([trojiceNoci()], [], dvaMinimum);
+      await klikni(dlaždice(kontejner, 0, 0));
+
+      const pole = kontejner.querySelector<HTMLInputElement>(".ubytovani-mrizka--spolubydlici input");
+      if (pole === null) {
+        throw new Error("Pole spolubydlícího se nevykreslilo");
+      }
+      pole.value = "Někdo";
+      await act(() => {
+        pole.dispatchEvent(new Event("change", { bubbles: true }));
+      });
+      await pockej();
+
+      expect(vi.mocked(saveAccommodation).mock.calls[0][0]).toMatchObject({ variantIds: [], roommate: "Někdo" });
+      expect(stav(kontejner)).toContain("Neuloženo");
+      expect(dlaždice(kontejner, 0, 0).querySelector<HTMLInputElement>("input")?.checked).toBe(true);
+    });
+
+    it("zamítnutý zápis vrátí mřížku k tomu, co má server, a řekne to", async () => {
+      const kontejner = await vykresliVyber([trojiceNoci()], [], { ...dvaMinimum, minimumNights: 1 });
+      vi.mocked(saveAccommodation).mockRejectedValue(new Error("Noc je obsazená."));
+
+      await klikni(dlaždice(kontejner, 0, 0));
+      await pockej();
+
+      expect(kontejner.querySelector(".ubytovani-mrizka--error")?.textContent).toBe("Noc je obsazená.");
+      expect(stav(kontejner)).toBe("Uložení se nepodařilo");
+      expect(dlaždice(kontejner, 0, 0).querySelector<HTMLInputElement>("input")?.checked).toBe(false);
+    });
+
+    it("zaškrtnutí „Ubytování nechci“ nejde, dokud čeká nějaká noc", async () => {
+      const kontejner = await vykresliVyber([trojiceNoci()], [], dvaMinimum);
+
+      await klikni(dlaždice(kontejner, 0, 0));
+
+      expect(kontejner.querySelector<HTMLInputElement>(".ubytovani-mrizka--nechci input")?.disabled).toBe(true);
+    });
   });
 });

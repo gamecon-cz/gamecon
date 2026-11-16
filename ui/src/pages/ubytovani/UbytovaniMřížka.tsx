@@ -1,16 +1,31 @@
 import { h } from "preact";
 import { useEffect, useRef, useState } from "preact/hooks";
 import { fetchAccommodation, saveAccommodation } from "../../api/symfony/endpoints";
+import { SaveStatus, useSaveState } from "../../components/SaveStatus";
 import { MountProps } from "../mountProps";
 import { ApiAccommodation, ApiAccommodationCell, ApiAccommodationType } from "../../api/symfony/types";
 import { formatCena } from "../../utils/castka";
+import { dnyVyberu, stejnaMnozina, zkontrolujVyber } from "./vyberNoci";
 import "./UbytovaniMřížka.less";
 
-function stavBuňky(cell: ApiAccommodationCell): string {
-  if (cell.selected) return "ubytovani-mrizka--vybrano";
-  if (cell.soldOut) return "ubytovani-mrizka--vyprodano";
-  if (cell.locked) return "ubytovani-mrizka--zamceno";
-  return "";
+function třídyBuňky(cell: ApiAccommodationCell, vybrano: boolean, neulozeno: boolean): string {
+  const třídy: string[] = [];
+  if (vybrano) {
+    třídy.push("ubytovani-mrizka--vybrano");
+  } else if (cell.soldOut) {
+    třídy.push("ubytovani-mrizka--vyprodano");
+  } else if (cell.locked) {
+    třídy.push("ubytovani-mrizka--zamceno");
+  }
+  if (neulozeno) {
+    třídy.push("ubytovani-mrizka--neulozeno");
+  }
+
+  return třídy.join(" ");
+}
+
+function textZbývá(cell: ApiAccommodationCell, remaining: number): string {
+  return cell.soldOut ? "vyprodáno" : `zbývá ${remaining}`;
 }
 
 function CenaTypu({ typ, showReason }: { typ: ApiAccommodationType; showReason: boolean }) {
@@ -32,18 +47,31 @@ function CenaTypu({ typ, showReason }: { typ: ApiAccommodationType; showReason: 
   );
 }
 
+type Zápis = {
+  /** Nights to save; left out, the nights the server holds are sent back unchanged. */
+  variantIds?: number[];
+  roommate?: string | null;
+  declined?: boolean;
+  restoreBreakfasts?: boolean;
+};
+
 /**
- * Every change sends the whole selection, not the one night that moved: the nights of a
+ * Every save sends the whole selection, not the one night that moved: the nights of a
  * booking have to be consecutive, so the server judges the set as a whole and refuses it
- * as a whole.
+ * as a whole. A pick that cannot pass that yet (one night of the two it takes) therefore waits
+ * in the grid, marked as not saved, and goes out as soon as it can.
  */
 export function UbytovaniMřížka({ customerId }: MountProps) {
   const [ubytovani, setUbytovani] = useState<ApiAccommodation | null>(null);
+  const [vyber, setVyber] = useState<number[] | null>(null);
   const [loading, setLoading] = useState(true);
   const [ukladani, setUkladani] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [rozpojeno, setRozpojeno] = useState(false);
   const probihaUlozeni = useRef(false);
+  const vyberRef = useRef<number[] | null>(null);
+  vyberRef.current = vyber;
+  const stav = useSaveState();
 
   useEffect(() => {
     fetchAccommodation(customerId)
@@ -57,24 +85,38 @@ export function UbytovaniMřížka({ customerId }: MountProps) {
       });
   }, [customerId]);
 
-  const uloz = async (
-    variantIds: number[],
-    zmena: Partial<ApiAccommodation> & { restoreBreakfasts?: boolean } = {},
-  ) => {
+  const uloz = async (zápis: Zápis) => {
     // A second click can arrive before the re-render that disables the grid.
     if (!ubytovani || probihaUlozeni.current) return;
     probihaUlozeni.current = true;
     setUkladani(true);
     setError(null);
+    stav.markSaving();
     try {
-      setUbytovani(await saveAccommodation({
-        variantIds,
-        roommate: zmena.roommate !== undefined ? zmena.roommate : ubytovani.roommate,
-        declined: zmena.declined !== undefined ? zmena.declined : ubytovani.declined,
-        restoreBreakfasts: zmena.restoreBreakfasts ?? false,
-      }, customerId));
+      const uloženo = await saveAccommodation({
+        variantIds: zápis.variantIds ?? ubytovani.selectedVariantIds,
+        roommate: zápis.roommate !== undefined ? zápis.roommate : ubytovani.roommate,
+        declined: zápis.declined !== undefined ? zápis.declined : ubytovani.declined,
+        restoreBreakfasts: zápis.restoreBreakfasts ?? false,
+      }, customerId);
+      setUbytovani(uloženo);
+      if (zápis.variantIds !== undefined) {
+        setVyber(null);
+      }
+      // A pick that was waiting for more nights is still waiting: this save did not carry it.
+      const čekající = zápis.variantIds === undefined ? vyberRef.current : null;
+      const kontrola = čekající === null
+        ? null
+        : zkontrolujVyber(dnyVyberu(uloženo.types, čekající), uloženo.minimumNights);
+      if (kontrola !== null && !kontrola.platny) {
+        stav.markPending(kontrola.duvod);
+      } else {
+        stav.markSaved();
+      }
     } catch (chyba: unknown) {
       setError(chyba instanceof Error ? chyba.message : "Uložení se nepodařilo");
+      setVyber(null);
+      stav.markFailed();
       // The whole set was refused, so nothing was saved — reload rather than leave the grid
       // showing a pick the server does not have.
       try {
@@ -107,17 +149,36 @@ export function UbytovaniMřížka({ customerId }: MountProps) {
     restorableBreakfasts,
   } = ubytovani;
 
+  // What the grid shows as ticked: the pick that has not been saved yet, else what the server holds.
+  const vybrané = vyber ?? selectedVariantIds;
+
+  const změňVýběr = (další: number[]) => {
+    if (stejnaMnozina(další, selectedVariantIds)) {
+      setVyber(null);
+      stav.markIdle();
+      return;
+    }
+
+    setVyber(další);
+    const kontrola = zkontrolujVyber(dnyVyberu(types, další), minimumNights);
+    if (!kontrola.platny) {
+      stav.markPending(kontrola.duvod);
+      return;
+    }
+    void uloz({ variantIds: další });
+  };
+
   const prepniNoc = (cell: ApiAccommodationCell, day: number) => {
-    if (cell.selected) {
-      void uloz(selectedVariantIds.filter((variantId) => variantId !== cell.variantId));
+    if (vybrané.includes(cell.variantId)) {
+      změňVýběr(vybrané.filter((variantId) => variantId !== cell.variantId));
       return;
     }
 
     // A night holds one room type: picking another type for it replaces the first, as the
     // radio buttons of the old form did.
     const variantsOfTheNight = types.flatMap((typ) => typ.nights[day]?.variantId ?? []);
-    void uloz([
-      ...selectedVariantIds.filter((variantId) => !variantsOfTheNight.includes(variantId)),
+    změňVýběr([
+      ...vybrané.filter((variantId) => !variantsOfTheNight.includes(variantId)),
       cell.variantId,
     ]);
   };
@@ -146,6 +207,10 @@ export function UbytovaniMřížka({ customerId }: MountProps) {
           organizátory.
         </p>
       )}
+
+      <div class="ubytovani-mrizka--stav">
+        <SaveStatus state={stav.state} />
+      </div>
 
       <table class="ubytovani-mrizka--tabulka">
         <thead>
@@ -186,11 +251,13 @@ export function UbytovaniMřížka({ customerId }: MountProps) {
                 }
 
                 const zakazano = cell.locked || ukladani || rozpojeno;
+                const vybrano = vybrané.includes(cell.variantId);
+                const neulozeno = vyber !== null && vybrano !== cell.selected;
 
                 return (
                   <td
                     key={den.day}
-                    class={`ubytovani-mrizka--bunka ${stavBuňky(cell)} ${zakazano ? "" : "ubytovani-mrizka--klikaci"}`}
+                    class={`ubytovani-mrizka--bunka ${třídyBuňky(cell, vybrano, neulozeno)} ${zakazano ? "" : "ubytovani-mrizka--klikaci"}`}
                     onClick={(udalost) => {
                       // The checkbox toggles itself; a click on the rest of the tile must do the same.
                       if (!zakazano && (udalost.target as HTMLElement).tagName !== "INPUT") {
@@ -200,13 +267,13 @@ export function UbytovaniMřížka({ customerId }: MountProps) {
                   >
                     <input
                       type="checkbox"
-                      checked={cell.selected}
+                      checked={vybrano}
                       disabled={zakazano}
                       onChange={() => prepniNoc(cell, den.day)}
                     />
                     {cell.remaining !== null && (
                       <span class="ubytovani-mrizka--zbyva">
-                        {cell.soldOut ? "vyprodáno" : `zbývá ${cell.remaining}`}
+                        {textZbývá(cell, cell.remaining)}
                         {/* Rezervu vidí jen obsluha pultu — účastníkovi by číslo, na
                             které nedosáhne, jen mátlo. */}
                         {isAdminView && cell.reservedForOrganizers ? (
@@ -236,7 +303,7 @@ export function UbytovaniMřížka({ customerId }: MountProps) {
           <button
             type="button"
             disabled={ukladani || rozpojeno}
-            onClick={() => void uloz(selectedVariantIds, { restoreBreakfasts: true })}
+            onClick={() => void uloz({ restoreBreakfasts: true })}
           >
             Objednat je znovu
           </button>
@@ -250,9 +317,7 @@ export function UbytovaniMřížka({ customerId }: MountProps) {
           value={roommate ?? ""}
           disabled={saleClosed || ukladani || rozpojeno}
           onChange={(udalost) =>
-            void uloz(selectedVariantIds, {
-              roommate: (udalost.target as HTMLInputElement).value,
-            })
+            void uloz({ roommate: (udalost.target as HTMLInputElement).value })
           }
         />
       </label>
@@ -261,9 +326,9 @@ export function UbytovaniMřížka({ customerId }: MountProps) {
         <input
           type="checkbox"
           checked={declined}
-          disabled={saleClosed || ukladani || rozpojeno || selectedVariantIds.length > 0}
+          disabled={saleClosed || ukladani || rozpojeno || vybrané.length > 0}
           onChange={(udalost) =>
-            void uloz([], { declined: (udalost.target as HTMLInputElement).checked })
+            void uloz({ variantIds: [], declined: (udalost.target as HTMLInputElement).checked })
           }
         />{" "}
         Ubytování nechci
