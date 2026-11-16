@@ -36,4 +36,9 @@ class SetCustomerAccommodationInputDto
      * Only meaningful with no nights selected: it is the answer "I want none", not "not yet".
      */
     public bool $declined = false;
+
+    /**
+     * Put back the breakfasts a hotel night cancelled, as offered by the read endpoint.
+     */
+    public bool $restoreBreakfasts = false;
 }

@@ -146,6 +146,58 @@ describe("UbytovaniMřížka: důvod slevy", () => {
   });
 });
 
+describe("UbytovaniMřížka: snídaně zrušené hotelovou nocí", () => {
+  const vykresliSeSnidanemi = async (customerId?: number) => {
+    const odpoved = { ...ubytovani(typUbytovani()), restorableBreakfasts: ["Snídaně čtvrtek"] };
+    vi.mocked(fetchAccommodation).mockResolvedValue(odpoved);
+    vi.mocked(saveAccommodation).mockResolvedValue({ ...odpoved, restorableBreakfasts: [] });
+    const kontejner = document.createElement("div");
+    document.body.append(kontejner);
+    kontejnery.push(kontejner);
+    await act(() => {
+      render(<UbytovaniMřížka customerId={customerId} />, kontejner);
+    });
+    await act(async () => {
+      await Promise.resolve();
+    });
+
+    return kontejner;
+  };
+
+  const vratit = (kontejner: HTMLElement) =>
+    kontejner.querySelector<HTMLButtonElement>(".ubytovani-mrizka--snidane button");
+
+  it.each([
+    ["účastník", undefined],
+    ["obsluha", 53],
+  ])("%s je může objednat znovu a zápis jde za správného zákazníka", async (_kdo, customerId) => {
+    const kontejner = await vykresliSeSnidanemi(customerId);
+    const tlačítko = vratit(kontejner);
+    expect(kontejner.querySelector(".ubytovani-mrizka--snidane")?.textContent).toContain("Snídaně čtvrtek");
+    if (tlačítko === null) {
+      throw new Error("Tlačítko pro vrácení snídaní se nevykreslilo");
+    }
+
+    await act(() => {
+      tlačítko.click();
+    });
+    await act(async () => {
+      await Promise.resolve();
+    });
+
+    expect(saveAccommodation).toHaveBeenCalledTimes(1);
+    expect(vi.mocked(saveAccommodation).mock.calls[0][0].restoreBreakfasts).toBe(true);
+    expect(vi.mocked(saveAccommodation).mock.calls[0][1]).toBe(customerId);
+    expect(vratit(kontejner)).toBeNull();
+  });
+
+  it("bez zrušených snídaní se nabídka nevykreslí", async () => {
+    await vykresli(typUbytovani(), 53);
+
+    expect(document.querySelector(".ubytovani-mrizka--snidane")).toBeNull();
+  });
+});
+
 describe("UbytovaniMřížka: výběr nocí", () => {
   const kolej = (zmeny: Partial<ApiAccommodationType> = {}) =>
     typUbytovani({ productId: 1, name: "Kolej", nights: { 0: bunka(11), 1: bunka(12) }, ...zmeny });

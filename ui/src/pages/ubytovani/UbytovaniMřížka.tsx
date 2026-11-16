@@ -230,9 +230,7 @@ export function UbytovaniMřížka({ customerId }: MountProps) {
           : "Noci musí na sebe navazovat."}
       </p>
 
-      {/* Only the participant can put breakfasts back: the admin endpoint has no such field,
-          so offering the button at the desk would look like it worked and do nothing. */}
-      {restorableBreakfasts.length > 0 && !isAdminView && (
+      {restorableBreakfasts.length > 0 && (
         <p class="ubytovani-mrizka--snidane">
           Hotelový pokoj zrušil tyto snídaně: {restorableBreakfasts.join(", ")}.{" "}
           <button

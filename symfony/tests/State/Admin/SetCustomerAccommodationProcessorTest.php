@@ -14,6 +14,7 @@ use App\Service\AccommodationRules;
 use App\Service\AccommodationWriter;
 use App\Service\CurrentYearProviderInterface;
 use App\Service\LegacySessionService;
+use App\Service\MealWriter;
 use App\Service\UserPermissions;
 use App\State\Admin\SetCustomerAccommodationProcessor;
 use App\State\Cart\AccommodationGridInterface;
@@ -40,6 +41,8 @@ class SetCustomerAccommodationProcessorTest extends AbstractDatabaseKernelTestCa
     private MockObject $entityManager;
 
     private MockObject $legacySession;
+
+    private MockObject $mealWriter;
 
     private MockObject $security;
 
@@ -86,6 +89,7 @@ class SetCustomerAccommodationProcessorTest extends AbstractDatabaseKernelTestCa
         $this->legacySession->method('getUserById')->willReturnCallback(
             fn (int $id): ?\Uzivatel => $this->legacyUsers[$id] ?? null,
         );
+        $this->mealWriter = $this->createMock(MealWriter::class);
         $this->security = $this->createMock(Security::class);
 
         $container = static::getContainer();
@@ -130,6 +134,7 @@ class SetCustomerAccommodationProcessorTest extends AbstractDatabaseKernelTestCa
             $this->accommodationGrid,
             $this->entityManager,
             ChybovePreklady::translator(),
+            $this->mealWriter,
         );
     }
 
@@ -496,6 +501,56 @@ class SetCustomerAccommodationProcessorTest extends AbstractDatabaseKernelTestCa
             ->with(self::identicalTo($customer), self::anything());
 
         $this->processor->process($this->input(), new Post());
+    }
+
+    public function testBreakfastsAreNotRestoredUnlessAsked(): void
+    {
+        $this->signInOperator();
+        $this->customer();
+        $this->legacyCustomer();
+
+        $this->mealWriter->expects(self::never())->method('restoreBreakfasts');
+
+        $this->processor->process($this->input(), new Post());
+    }
+
+    /**
+     * The nights go first: a night booked in the same request cancels again the breakfast it
+     * covers, so restoring before it would be undone straight away. The customer handed over
+     * is the one resolved after the write, because save() cleared the entity manager.
+     */
+    public function testBreakfastsAreRestoredAfterTheNightsForTheFreshlyResolvedCustomer(): void
+    {
+        $this->signInOperator();
+        $stale = $this->createMock(User::class);
+        $stale->method('getId')->willReturn(4242);
+        $fresh = $this->createMock(User::class);
+        $fresh->method('getId')->willReturn(4242);
+        $this->entityManager->method('find')->willReturnOnConsecutiveCalls($stale, $fresh, $fresh);
+        $this->legacyCustomer();
+
+        $steps = [];
+        $this->accommodationWriter->method('save')->willReturnCallback(function () use (&$steps): int {
+            $steps[] = 'nights';
+
+            return 0;
+        });
+        $this->mealWriter
+            ->expects(self::once())
+            ->method('restoreBreakfasts')
+            ->with(self::identicalTo($fresh), self::anything())
+            ->willReturnCallback(function () use (&$steps): array {
+                $steps[] = 'breakfasts';
+
+                return [];
+            });
+
+        $input = $this->input();
+        $input->restoreBreakfasts = true;
+
+        $this->processor->process($input, new Post());
+
+        self::assertSame(['nights', 'breakfasts'], $steps);
     }
 
     public function testTheSavedGridIsReturned(): void

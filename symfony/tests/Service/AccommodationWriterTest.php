@@ -1943,6 +1943,85 @@ class AccommodationWriterTest extends AbstractDatabaseKernelTestCase
     }
 
     /**
+     * The desk adds a meal past the deadline, so it is offered the breakfast back and may put it
+     * back when the participant is not.
+     */
+    public function testDeskPutsABreakfastBackOnceMealsClose(): void
+    {
+        $customer = $this->ucastnik();
+        [$noc, $snidane, $nazev] = $this->pripravHotelSeSnidani(1);
+        $this->koupSnidani($customer, $snidane);
+        $this->writer()->save($customer, [$noc], self::ROK, true);
+        $this->writer()->save($customer, [], self::ROK, true);
+        $GLOBALS['systemoveNastaveni'] = SystemoveNastaveni::zGlobals(
+            rocnik: ROCNIK,
+            ted: new DateTimeImmutableStrict(ROCNIK . '-12-31 00:00:00'),
+        );
+
+        self::assertSame([], $this->breakfastCanceller()->restorable($customer, self::ROK));
+        self::assertSame(
+            [$nazev],
+            array_values($this->breakfastCanceller()->restorable($customer, self::ROK, zPultu: true)),
+        );
+
+        self::assertSame([$nazev], $this->mealWriter()->restoreBreakfasts($customer, self::ROK));
+        self::assertSame(1, $this->pocetNakupu($customer, $snidane));
+        self::assertSame([], $this->breakfastCanceller()->restorable($customer, self::ROK, zPultu: true));
+    }
+
+    public function testDeskPutsABreakfastBackPastItsOwnDeadlineAndWhilePaused(): void
+    {
+        $customer = $this->ucastnik();
+        [$noc, $snidane, $nazev] = $this->pripravHotelSeSnidani(1);
+        $this->koupSnidani($customer, $snidane);
+        $this->writer()->save($customer, [$noc], self::ROK, true);
+        $this->writer()->save($customer, [], self::ROK, true);
+        $customer = $this->zmenProduktSnidane($customer, $snidane, 'nabizet_do', '2000-01-01 00:00:00');
+        $customer = $this->zmenProduktSnidane($customer, $snidane, 'stav', ProductStateEnum::SUSPENDED->value);
+
+        self::assertSame([], $this->breakfastCanceller()->restorable($customer, self::ROK));
+        self::assertSame([$nazev], $this->mealWriter()->restoreBreakfasts($customer, self::ROK));
+        self::assertSame(1, $this->pocetNakupu($customer, $snidane));
+    }
+
+    /**
+     * Nobody sells a withdrawn breakfast, the desk included.
+     */
+    public function testDeskIsNotOfferedAWithdrawnBreakfastBack(): void
+    {
+        $customer = $this->ucastnik();
+        [$noc, $snidane] = $this->pripravHotelSeSnidani(1);
+        $this->koupSnidani($customer, $snidane);
+        $this->writer()->save($customer, [$noc], self::ROK, true);
+        $this->writer()->save($customer, [], self::ROK, true);
+        $customer = $this->zmenProduktSnidane($customer, $snidane, 'stav', ProductStateEnum::RETIRED->value);
+
+        self::assertSame([], $this->breakfastCanceller()->restorable($customer, self::ROK, zPultu: true));
+        self::assertSame([], $this->mealWriter()->restoreBreakfasts($customer, self::ROK));
+        self::assertSame(0, $this->pocetNakupu($customer, $snidane));
+    }
+
+    /**
+     * What the desk holds stays held: the restore goes through the same write as the desk's meal
+     * grid, which judges the whole selection.
+     */
+    public function testDeskRestoreLeavesOtherHeldMealsAlone(): void
+    {
+        $customer = $this->ucastnik();
+        [$noc, $snidane] = $this->pripravHotelSeSnidani(1);
+        [, $jinaSnidane] = $this->pripravHotelSeSnidani(2);
+        $this->koupSnidani($customer, $snidane);
+        $this->writer()->save($customer, [$noc], self::ROK, true);
+        $this->writer()->save($customer, [], self::ROK, true);
+        $this->koupSnidani($customer, $jinaSnidane);
+
+        $this->mealWriter()->restoreBreakfasts($customer, self::ROK);
+
+        self::assertSame(1, $this->pocetNakupu($customer, $snidane), 'the cancelled breakfast is back');
+        self::assertSame(1, $this->pocetNakupu($customer, $jinaSnidane), 'the other one is not bought twice or dropped');
+    }
+
+    /**
      * Through the cart, so the OrderItem lifecycle listener fires as it does in production.
      */
     private function koupSnidaniPresKosik(User $customer, int $snidaneVariantId): void

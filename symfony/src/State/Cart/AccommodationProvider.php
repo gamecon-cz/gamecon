@@ -102,7 +102,7 @@ readonly class AccommodationProvider implements ProviderInterface, Accommodation
         // still carry nothing.
         $order = $this->cartService->getCart($user);
         $dto->roommate = $order?->getRoommate() ?? ($legacyUser->ubytovanS() ?: null);
-        $dto->restorableBreakfasts = array_values($this->breakfastCanceller->restorable($user, $year));
+        $dto->restorableBreakfasts = array_values($this->breakfastCanceller->restorable($user, $year, $zPultu));
         $dto->declined = $order !== null
             ? $order->isAccommodationDeclined()
             : (bool) $legacyUser->nechceUbytovani();

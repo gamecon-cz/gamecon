@@ -147,14 +147,17 @@ class BreakfastCanceller
      * Breakfasts the customer could put back: the last selection, minus whatever they hold
      * now and minus anything a still-booked night would only cancel again.
      *
+     * @param bool $zPultu the desk is asking: it still adds a meal past the deadline, a passed
+     *                     `nabizet_do` or a pause, as `MealWriter` does
+     *
      * @return array<int, string> product name per breakfast variant id
      */
-    public function restorable(User $customer, int $year): array
+    public function restorable(User $customer, int $year, bool $zPultu = false): array
     {
         // Putting one back is a purchase like any other: after the deadline the canteen's order is
         // final, so it would not be served. Only the desk adds a meal past it.
         $snapshot = $this->snapshot($customer, $year);
-        if ($snapshot === [] || SystemoveNastaveni::zGlobals()->prodejJidlaUkoncen()) {
+        if ($snapshot === [] || (! $zPultu && SystemoveNastaveni::zGlobals()->prodejJidlaUkoncen())) {
             return [];
         }
 
@@ -162,7 +165,7 @@ class BreakfastCanceller
         $kryteRana = $this->kryteRana($customer, $year);
 
         $nabidnout = [];
-        foreach ($this->snidaneVarianty() as $den => $snidane) {
+        foreach ($this->snidaneVarianty($zPultu) as $den => $snidane) {
             if (in_array($snidane['id'], $snapshot, true)
                 && ! isset($drzene[$den])
                 && ! in_array($den, $kryteRana, true)
@@ -336,9 +339,12 @@ class BreakfastCanceller
     }
 
     /**
+     * @param bool $zPultu nobody sells a withdrawn breakfast, but the desk sells a paused one and
+     *                     one past its `nabizet_do`
+     *
      * @return array<int, array{id: int, nazev: string}> per morning
      */
-    private function snidaneVarianty(): array
+    private function snidaneVarianty(bool $zPultu): array
     {
         $rows = $this->connection->fetchAllAssociative(
             'SELECT product_variant.accommodation_day AS den, product_variant.id, shop_predmety.nazev
@@ -346,9 +352,12 @@ class BreakfastCanceller
              JOIN shop_predmety ON shop_predmety.id_predmetu = product_variant.product_id
              WHERE shop_predmety.archived_at IS NULL
                AND shop_predmety.stav <> :stazeno
-               AND shop_predmety.stav <> :pozastaveno
-               AND product_variant.state NOT IN (:stazeno, :pozastaveno)
-               AND (shop_predmety.nabizet_do IS NULL OR shop_predmety.nabizet_do >= :ted)
+               AND product_variant.state <> :stazeno
+               AND (:zPultu = 1 OR (
+                   shop_predmety.stav <> :pozastaveno
+                   AND product_variant.state <> :pozastaveno
+                   AND (shop_predmety.nabizet_do IS NULL OR shop_predmety.nabizet_do >= :ted)
+               ))
                AND product_variant.accommodation_day IS NOT NULL
                AND EXISTS (
                    SELECT 1 FROM product_product_tag
@@ -361,6 +370,7 @@ class BreakfastCanceller
                 'stazeno'     => ProductStateEnum::RETIRED,
                 'pozastaveno' => ProductStateEnum::SUSPENDED,
                 'ted'         => $this->clock->now()->format('Y-m-d H:i:s'),
+                'zPultu'      => (int) $zPultu,
             ],
         );
 

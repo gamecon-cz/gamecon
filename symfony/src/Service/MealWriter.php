@@ -81,6 +81,27 @@ class MealWriter
     }
 
     /**
+     * Puts back the breakfasts a hotel night cancelled, for the desk. It goes through save() rather
+     * than the cart, so it sells as the desk's meal grid does: past the deadline and a passed
+     * `nabizet_do`, never a withdrawn breakfast.
+     *
+     * @return string[] names restored
+     *
+     * @see BreakfastCanceller::restore() the participant's own way, which the cart limits to what is on offer
+     */
+    public function restoreBreakfasts(User $customer, int $year): array
+    {
+        $offered = $this->breakfastCanceller->restorable($customer, $year, zPultu: true);
+        if ($offered === []) {
+            return [];
+        }
+
+        $this->save($customer, [...$this->heldMeals($customer, $year), ...array_keys($offered)], $year);
+
+        return array_values($offered);
+    }
+
+    /**
      * @param int[] $variantIds
      *
      * @return array<int, ProductVariant> keyed by variant id

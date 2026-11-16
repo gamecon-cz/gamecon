@@ -30,8 +30,8 @@ role, jenže reálné kódy jsou ročníkové (`gc2026_infopult`). Fakticky ho t
 
 ## Co bylo potřeba vyřešit
 
-Zbylo z toho jen 6 (snídaně). Ostatní je hotové a drží se tu proto, že to jsou pasti, na které
-narazí každý, kdo bude dělat totéž pro jídlo.
+Všechno je hotové a drží se tu proto, že to jsou pasti, na které narazí každý, kdo bude dělat
+totéž pro jídlo.
 
 ### 1. Čtecí endpoint
 
@@ -138,15 +138,20 @@ dávalo smysl — to je ale opak dnešního stavu.)
 Co z PiercingApp stojí za převzetí, je tvar `getAdditionalPayload()` jako rozšiřovacího bodu;
 gamecon má dnes ve `JwtService::extractUserData()` čtyři napevno zadrátovaná pole a žádný šev.
 
-### 6. Snídaně: admin je umí zrušit, ale ne vrátit
+### 6. Snídaně: admin je umí zrušit i vrátit
 
 `AccommodationWriter::save()` volá `breakfastCanceller->cancelCovered()` pro **všechny** volající,
-admin nevyjímaje. Vrátit je ale umí jen účastnický endpoint (`restoreBreakfasts`); admin DTO nic
-takového nemá.
+admin nevyjímaje. Obsluha, která účastníkovi objedná hotelovou noc, mu tedy zruší zaplacené
+snídaně, a proto je smí i vrátit: `SetCustomerAccommodationInputDto::$restoreBreakfasts` (od
+2026-11-14), stejně jako na účastnické cestě. Mřížka nabízí tlačítko „Objednat je znovu" i
+obsluze a čtecí payload pro pult nese `restorableBreakfasts` počítané podle pravidel pultu.
 
-Obsluha, která účastníkovi objedná hotelovou noc, mu tedy **tiše zruší zaplacené snídaně** a
-vrátit je jde pouze z účastnického storefrontu. Čtecí payload přitom `restorableBreakfasts` nese,
-takže admin mřížka postavená nad ním vykreslí tlačítko, které nemá co zavolat.
+**Vrací se jinak než na účastnické cestě.** Účastník jde přes košík (`BreakfastCanceller::restore()`),
+který po termínu jídla, po `nabizet_do` ani u pozastaveného produktu neprodá. Pult jde přes
+`MealWriter::restoreBreakfasts()`, tedy tím zápisem, kterým prodává jídlo celá matice jídel: smí i po
+termínu jídla, po `nabizet_do` a pozastavené, nikdy ale stažené (`BreakfastCanceller::restorable()`
+dostává `zPultu`). Zápis jde **po nocích**, aby noc objednaná v téže žádosti zrušila snídani znovu,
+místo aby ji vrácení hned smazalo.
 
 **Co je snídaně.** Produkt s podtagem `snidane` (`ProductTagCode::SNIDANE`, vyžaduje kategorii
 `jidlo`). Legacy i první port poznávaly snídani podle názvu začínajícího „Snídaně"; tag říká
@@ -188,11 +193,10 @@ Ubytování je hotové, v tomhle pořadí:
 3. ✅ obrazovka Uživatel
 4. ✅ obrazovka Infopult — tam se vyměnila **jen editovatelná tabulka**; číslo pokoje, soupis
    spolubydlících s telefony a souhrn ubytování zůstaly, protože je mřížka nemá
+5. ✅ vrácení snídaní zrušených hotelovou nocí i obsluze (§6)
 
 Otevřené:
 
-- **Snídaně.** Admin cesta je umí zrušit, ale ne vrátit — `restoreBreakfasts` má jen účastnické
-  DTO. Mřížka proto obsluze to tlačítko vůbec nenabízí, aby nevypadalo funkčně a nedělalo nic.
 - **Jídlo.** `/cart/meals` je jen čtecí a matice nakupuje přes obecné `/cart/items` kus po kuse,
   kdežto admin formulář posílá celou mřížku naráz. Převod tedy začíná návrhem zápisové cesty,
   ne napojením.

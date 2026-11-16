@@ -14,6 +14,7 @@ use App\Service\AccommodationRules;
 use App\Service\AccommodationWriter;
 use App\Service\CurrentYearProviderInterface;
 use App\Service\LegacySessionService;
+use App\Service\MealWriter;
 use App\Service\UserPermissions;
 use App\State\Cart\AccommodationGridInterface;
 use Doctrine\ORM\EntityManagerInterface;
@@ -47,6 +48,7 @@ readonly class SetCustomerAccommodationProcessor implements ProcessorInterface
         private AccommodationGridInterface $accommodationGrid,
         private EntityManagerInterface $entityManager,
         private TranslatorInterface $translator,
+        private MealWriter $mealWriter,
     ) {
     }
 
@@ -60,13 +62,7 @@ readonly class SetCustomerAccommodationProcessor implements ProcessorInterface
             throw new \LogicException('The operation lets only a signed-in user through.');
         }
 
-        $customer = $this->entityManager->find(User::class, $data->customerId);
-        if ($customer === null) {
-            throw new BadRequestHttpException($this->translator->trans('customer.not_found', [
-                '%id%' => $data->customerId,
-            ], 'errors'));
-        }
-
+        $customer = $this->findCustomer($data->customerId);
         $legacyCustomer = $this->legacySession->getUserById((int) $customer->getId());
         if ($legacyCustomer === null) {
             throw new BadRequestHttpException($this->translator->trans('customer.not_found', [
@@ -96,6 +92,13 @@ readonly class SetCustomerAccommodationProcessor implements ProcessorInterface
             maySundayNight: $this->accommodationRules->maySundayNight($customer, $year),
         );
 
+        // After the nights, so a night booked in the same request cancels again what it covers
+        // instead of the restore silently undoing it. The customer is resolved again first,
+        // because save() cleared the entity manager.
+        if ($data->restoreBreakfasts) {
+            $this->mealWriter->restoreBreakfasts($this->findCustomer($data->customerId), $year);
+        }
+
         // Both are stale after the write, for different reasons: save() clears the entity
         // manager, and it updates uzivatele_hodnoty by raw SQL, which the legacy object in
         // memory never sees. Resolve both again rather than reason about which still holds.
@@ -109,5 +112,17 @@ readonly class SetCustomerAccommodationProcessor implements ProcessorInterface
 
         // The grid redraws from what came back, so it cannot drift from what was stored.
         return $this->accommodationGrid->forCustomer($customer, $legacyCustomer, zPultu: true);
+    }
+
+    private function findCustomer(?int $customerId): User
+    {
+        $customer = $this->entityManager->find(User::class, $customerId);
+        if ($customer === null) {
+            throw new BadRequestHttpException($this->translator->trans('customer.not_found', [
+                '%id%' => $customerId,
+            ], 'errors'));
+        }
+
+        return $customer;
     }
 }

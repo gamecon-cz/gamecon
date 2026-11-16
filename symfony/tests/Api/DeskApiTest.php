@@ -12,6 +12,7 @@ use App\Entity\User;
 use App\Enum\PermissionEnum;
 use App\Enum\ProductStateEnum;
 use App\Enum\ProductTagCode;
+use App\Service\BreakfastCanceller;
 use App\Service\JwtService;
 use App\Structure\Entity\UserEntityStructure;
 use App\Tests\AbstractDatabaseKernelTestCase;
@@ -127,6 +128,43 @@ class DeskApiTest extends AbstractDatabaseKernelTestCase
     }
 
     /**
+     * The participant is refused a breakfast back once meals close, so the offer and the write
+     * both have to follow the operator, not the participant's rules.
+     */
+    public function testDeskPutsABreakfastBackAfterMealsClosed(): void
+    {
+        $variantId = $this->breakfast();
+        $GLOBALS['systemoveNastaveni'] = SystemoveNastaveni::zGlobals(
+            rocnik: ROCNIK,
+            ted: new DateTimeImmutableStrict('2099-01-01 00:00:00'),
+        );
+        $operator = $this->operator(PermissionEnum::ADMINISTRACE_INFOPULT);
+        $customer = $this->user('desk_customer_');
+        static::getContainer()->get(BreakfastCanceller::class)->ulozSnapshot($customer, ROCNIK, [$variantId]);
+        $customerId = (int) $customer->getId();
+
+        $before = $this->request($operator, 'GET', '/symfony/api/admin/customer-accommodation?customerId=%d', null, $customerId);
+        self::assertSame(200, $before->getStatusCode(), $before->getContent(false));
+        self::assertSame(['Oběd neděle'], $before->toArray(false)['restorableBreakfasts'] ?? null);
+
+        $after = $this->request($operator, 'POST', '/symfony/api/admin/customer-accommodation', [
+            'variantIds'        => [],
+            'restoreBreakfasts' => true,
+        ], $customerId);
+
+        self::assertSame(201, $after->getStatusCode(), $after->getContent(false));
+        self::assertSame([], $after->toArray(false)['restorableBreakfasts'] ?? null);
+        self::assertSame(1, (int) $this->connection()->fetchOne(
+            'SELECT COUNT(*) FROM shop_nakupy WHERE id_uzivatele = :customer AND variant_id = :variant AND rok = :year',
+            [
+                'customer' => $customerId,
+                'variant'  => $variantId,
+                'year'     => ROCNIK,
+            ],
+        ));
+    }
+
+    /**
      * @param array<string, mixed> $collection
      */
     private function lockedOf(array $collection, int $variantId): bool
@@ -199,6 +237,39 @@ class DeskApiTest extends AbstractDatabaseKernelTestCase
         return $this->jsonLdClient([
             'Authorization' => 'Bearer ' . $jwtService->generateJwtToken($jwtService->extractUserData($user)),
         ]);
+    }
+
+    /**
+     * A meal that is also a breakfast of the morning of day 3, the kind a hotel night cancels.
+     */
+    private function breakfast(): int
+    {
+        $variantId = $this->meal();
+        $this->connection()->executeStatement(
+            'INSERT IGNORE INTO product_tag (code, name, created_at) VALUES (:code, :name, NOW())',
+            [
+                'code' => ProductTagCode::SNIDANE->value,
+                'name' => ProductTagCode::SNIDANE->label(),
+            ],
+        );
+        $this->connection()->executeStatement(
+            'INSERT INTO product_product_tag (product_id, tag_id)
+             SELECT product_variant.product_id, product_tag.id
+             FROM product_variant, product_tag
+             WHERE product_variant.id = :variant AND product_tag.code = :code',
+            [
+                'variant' => $variantId,
+                'code'    => ProductTagCode::SNIDANE->value,
+            ],
+        );
+        $this->connection()->executeStatement(
+            'UPDATE product_variant SET accommodation_day = 3 WHERE id = :variant',
+            [
+                'variant' => $variantId,
+            ],
+        );
+
+        return $variantId;
     }
 
     private function meal(): int
