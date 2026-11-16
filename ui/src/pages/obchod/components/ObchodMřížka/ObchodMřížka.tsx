@@ -30,7 +30,10 @@ export const ObchodMřížka: FunctionComponent<TObchodMřížkaProps> = (props)
             ? předmět?.varianty.find((x) => x.id === buňka.variantId)
             : undefined;
 
-          const text = !buňka.text && předmět
+          // A tile that can never be sold names its product, not the cell label ("N/A" says nothing).
+          // A sold-out tile keeps the label, so it is not renamed the moment the stock runs out.
+          const nelzeProdatTrvale = předmět !== undefined && (předmět.archivní || předmět.varianty.length === 0);
+          const text = předmět && (!buňka.text || nelzeProdatTrvale)
             ? [předmět.název, varianta?.název].filter(Boolean).join(" ")
             : buňka.text;
           const cenaKs = varianta?.cena ?? předmět?.cena;
@@ -61,7 +64,11 @@ export const ObchodMřížka: FunctionComponent<TObchodMřížkaProps> = (props)
             || předmět.varianty.length === 0
             || vyprodáno
           );
-          const kusů = zbýváCelkem != null
+          const kusů = předmět?.archivní
+            ? "(archivní)"
+            : předmět?.varianty.length === 0
+            ? "(nelze prodat)"
+            : zbýváCelkem != null
             ? (vyprodáno ? "(vyprodáno)" : `(${zbýváCelkem})`)
             : "";
 

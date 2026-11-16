@@ -29,6 +29,12 @@ a zaokrouhlí, jinak by na nich narůstal fiktivní dluh. Neexistující ID API 
 jehož jméno obsluha vidí v hlavičce mřížky („Prodej uživateli …" nebo „Anonymní prodej"). Po prodeji
 uživateli se stránka načte znovu, aby ukázala jeho nový zůstatek a nákupy.
 
+**Dlaždice, která se prodat nedá, zešedne a jmenuje svůj předmět** (záměr, 2026-11-16). Archivní předmět
+a předmět bez variant nese místo popisku buňky svůj název a důvod v závorce („archivní", „nelze prodat"):
+popisek jako „N/A" (v anonymizované databázi ho má buňka archivního trička) neříká, co chybí. Vyprodaná
+dlaždice si popisek nechává a píše „(vyprodáno)", aby se při vyprodání nepřejmenovala. Klik na zašedlou
+dlaždici nic neprodá (`ObchodMřížka.tsx`).
+
 **Platba zná svou objednávku** (`platby.order_id`). Bez té vazby držel protizápis
 u prodeje jen shodný čas a částka, takže prodej přepnutý na konkrétního účastníka mohl po sobě nechat osiřelou platbu. Zrušení ani změna prodeje se do platby dřív nepromítly vůbec. `ON DELETE SET NULL`,
 ne kaskáda — mazat finanční řádek kvůli smazané objednávce by bylo příliš tiché.
