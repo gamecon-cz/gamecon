@@ -572,4 +572,5 @@ Když se `UBYTOVANI_LZE_OBJEDNAT_A_MENIT_DO_DNE` nastaví dřív než termín j�
 snídaně zrušená `cancelCovered()` na pultu **nevratnou** — `BreakfastCanceller::restore()`
 je dosažitelné jen ze `SetAccommodationProcessor`, a ten po termínu ubytování odmítá. Ve
 výchozím nastavení jsou oba termíny stejné, takže to dnes nenastane. Existovalo to i před
-touto opravou.
+touto opravou. Obsluha snídani vrátit umí (`MealWriter::restoreBreakfasts()`, bez ohledu na
+termíny), účastník ne.
