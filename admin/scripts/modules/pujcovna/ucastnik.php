@@ -185,8 +185,13 @@ if ($ucastnikPujcovny !== null) {
                     $volnyKostym->getStrih()->getNazev(),
                     $volnyKostym->getKategorie(),
                 ]))),
-                'nahledFotky'  => htmlspecialchars($volnyKostym->getHlavniFotka()?->getUrlNahledu(60, 60) ?? ''),
             ]);
+            $hlavniFotka = $volnyKostym->getHlavniFotka();
+            if ($hlavniFotka !== null) {
+                // dvojnásobek kvůli displejům s vyšší hustotou
+                $tplVydeje->assign('nahledFotky', htmlspecialchars($hlavniFotka->getUrlNahledu(120, 120)));
+                $tplVydeje->parse('vydej.ucastnik.novaRezervace.volne.kostym.fotka');
+            }
             $tplVydeje->parse('vydej.ucastnik.novaRezervace.volne.kostym');
         }
         if ($volneKostymy === []) {
