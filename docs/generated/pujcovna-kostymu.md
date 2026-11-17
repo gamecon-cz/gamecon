@@ -52,6 +52,7 @@ TL;DR: Půjčovna larpových kostýmů (Trello 1510): veřejný katalog na `/kos
 
 - (záměr) Web je stavěný hlavně na telefon: do 600 px má katalog dva sloupce a rezervace i fotka detailu jdou od kraje ke kraji, do 800 px je detail v jednom sloupci. Fotky jsou na výšku 3:4 (kostým na ramínku), náhledy dělá `FotkaKostymu::getUrlNahledu()` s ořezem; kostým bez fotky má v CSS zástupné ramínko. Celé fotky ukáže baguetteBox jako u přihlášky.
 - Aktivita k rezervaci je přepínač s kartou, ne `<select>`: na telefonu select uřízl dovětek „vymění …“. Předvybraná je aktivita z `?aktivita=` (přechod z katalogu nebo programu), jinak první volná.
+- Admin Výdej a vrácení (`ucastnik.xtpl`): v moderním vzhledu pod 640 px jsou řádky tabulek `.pujcovna-karty` karty s popisky z `data-popisek` (u výdejního pultu z telefonu). Pravidla jsou pod `.vzhled-moderni`, klasický vzhled se nemění. Tlačítka zůstávají bez třídy, moderní vzhled stylizuje jen `button` bez třídy (a pár vyjmenovaných).
 
 ## Mimo rozsah v1 (záměr) a kudy na ně
 
