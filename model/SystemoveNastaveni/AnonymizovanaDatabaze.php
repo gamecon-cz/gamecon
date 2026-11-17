@@ -41,6 +41,10 @@ class AnonymizovanaDatabaze
         'upominka_dluznika_log',     // debt per user
         'upominka_vlastni_zneni',
         'uzivatele_trvala_prihlaseni', // hashes of persistent login tokens
+        'bingo_fraze',               // phrases from council meetings, internal
+        'bingo_karta',
+        'bingo_karta_pole',
+        'bingo_zazneni',
     ];
 
     public static function vytvorZGlobals(): self

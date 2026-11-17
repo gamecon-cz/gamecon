@@ -145,6 +145,18 @@ class AnonymizovanaDatabazeTest extends AbstractTestDb
             'uzivatele_trvala_prihlaseni' => <<<'SQL'
                 INSERT INTO uzivatele_trvala_prihlaseni SET id_uzivatele = 100, token_hash = SHA2('token', 256)
                 SQL,
+            'bingo_fraze' => <<<'SQL'
+                INSERT INTO bingo_fraze SET id = 1, text = 'To probereme mimo jednání', id_autora = 100
+                SQL,
+            'bingo_karta' => <<<'SQL'
+                INSERT INTO bingo_karta SET id = 1, id_jednani = 1, id_uzivatele = 100
+                SQL,
+            'bingo_karta_pole' => <<<'SQL'
+                INSERT INTO bingo_karta_pole SET id_karty = 1, pozice = 0, id_fraze = 1
+                SQL,
+            'bingo_zazneni' => <<<'SQL'
+                INSERT INTO bingo_zazneni SET id_jednani = 1, id_fraze = 1, id_uzivatele = 100, kdy = NOW()
+                SQL,
         ];
 
         self::assertEqualsCanonicalizing(

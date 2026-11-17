@@ -14,6 +14,7 @@ require_once __DIR__ . '/../../admin/scripts/admin-menu.php';
 /**
  * Do adminu (API, zvláštní stránky, výběr vzhledu) smí ten, kdo má právo aspoň jedné stránky. Seznam práv musí
  * odpovídat hlavičkám modulů, jinak by stránka s novým právem pustila dovnitř, ale API a omnibox by ho odmítly.
+ * Výjimkou jsou stránky, které API nepotřebují (PRAVA_JEN_STRANKY): ty pustí jen na sebe.
  */
 class PristupDoAdminuTest extends TestCase
 {
@@ -48,6 +49,29 @@ class PristupDoAdminuTest extends TestCase
         // loga jsou jen podstránka Webu, hlavní menu je nezobrazí
         yield 'jen loga' => [[Pravo::ADMINISTRACE_WEB_LOGA], true];
         yield 'infopult' => [[Pravo::ADMINISTRACE_INFOPULT], true];
+        // pauzující full-org: Bingo mu API ani zvláštní stránky (interní program) neotevře
+        yield 'jen Bingo' => [[Pravo::ADMINISTRACE_BINGO], false];
+    }
+
+    public function testStrankaBezApiPustiJenNaStranku(): void
+    {
+        $jenBingo = $this->createPartialMock(\Uzivatel::class, ['prava']);
+        $jenBingo->method('prava')->willReturn([Pravo::ADMINISTRACE_BINGO]);
+        $ucastnik = $this->createPartialMock(\Uzivatel::class, ['prava']);
+        $ucastnik->method('prava')->willReturn([Pravo::PORADANI_AKTIVIT]);
+
+        self::assertTrue(PristupDoAdminu::isPovolenaStranka($jenBingo));
+        self::assertFalse(PristupDoAdminu::isPovolen($jenBingo));
+        self::assertFalse(PristupDoAdminu::isPovolenaStranka($ucastnik));
+        self::assertFalse(PristupDoAdminu::isPovolenaStranka(null));
+    }
+
+    public function testStrankyBezApiMajiZduvodneniAJsouJenVJednomSeznamu(): void
+    {
+        foreach (PristupDoAdminu::PRAVA_JEN_STRANKY as $pravo => $duvod) {
+            self::assertNotSame('', trim($duvod), "Právo {$pravo} nemá zdůvodnění, proč nepotřebuje API");
+            self::assertNotContains($pravo, PristupDoAdminu::PRAVA, "Právo {$pravo} je v obou seznamech");
+        }
     }
 
     /**
@@ -59,8 +83,8 @@ class PristupDoAdminuTest extends TestCase
         foreach ($prava as $pravo) {
             self::assertContains(
                 $pravo,
-                PristupDoAdminu::PRAVA,
-                "Právo {$pravo} z hlavičky modulu {$modul} chybí v PristupDoAdminu::PRAVA",
+                [...PristupDoAdminu::PRAVA, ...array_keys(PristupDoAdminu::PRAVA_JEN_STRANKY)],
+                "Právo {$pravo} z hlavičky modulu {$modul} chybí v PristupDoAdminu::PRAVA i PRAVA_JEN_STRANKY",
             );
         }
     }
