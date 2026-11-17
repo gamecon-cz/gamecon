@@ -41,6 +41,7 @@ class AnonymizovanaDatabaze
         'upominka_dluznika_log',     // debt per user
         'upominka_vlastni_zneni',
         'uzivatele_trvala_prihlaseni', // hashes of persistent login tokens
+        'kostym_vydej',              // notes on who returned which costume damaged
     ];
 
     public static function vytvorZGlobals(): self
@@ -146,6 +147,8 @@ class AnonymizovanaDatabaze
 
         mysqli_query($dbConnectionAnonymDb, "UPDATE `{$db}`.uzivatele_role SET `posazen` = '1970-01-01 01:01:01' WHERE TRUE");
         mysqli_query($dbConnectionAnonymDb, "UPDATE `{$db}`.akce_prihlaseni_log SET `kdy` = '1970-01-01 01:01:01' WHERE TRUE");
+        // the costume rental's internal notes may name people (who brought it, who damaged it)
+        mysqli_query($dbConnectionAnonymDb, "UPDATE `{$db}`.kostym SET `interni_poznamka` = '' WHERE TRUE");
     }
 
     private function pridejAdminUzivatele(\mysqli $dbConnectionAnonymDb)

@@ -59,6 +59,8 @@ class UzivatelSlucovani
             // Převod zůstatku ze starého na nového uživatele
             dbQuery("UPDATE uzivatele_hodnoty SET zustatek = zustatek + (SELECT zustatek FROM uzivatele_hodnoty u2 WHERE u2.id_uzivatele = $idStarehoUzivatele) WHERE id_uzivatele = $idNovehoUzivatele");
 
+            $this->smazPrihlaskyStarehoNaAktivityNoveho($idStarehoUzivatele, $idNovehoUzivatele);
+
             // Převod všech odkazovaných dat na nového uživatele pomocí FK
             $odkazujiciTabulky = $this->najdiOdkazujiciTabulky();
 
@@ -94,6 +96,25 @@ class UzivatelSlucovani
                 $dokonciZmenuRazitka();
             }
         }
+    }
+
+    /**
+     * Přihlášky starého účtu na aktivity, na které je přihlášený i nový účet, by převod přeskočil (UPDATE IGNORE)
+     * a smazal. Jenže MariaDB při tom UPDATE nejdřív provede kaskádu do tabulek, které na přihlášku odkazují cizím
+     * klíčem (kostym_rezervace), a teprve potom zjistí kolizi přihlášek. Má-li rezervaci na aktivitě i nový účet,
+     * skončí kaskáda duplicitou, kterou IGNORE nepromine. Proto se kolidující přihlášky smažou předem, s nimi
+     * i to, co na nich stojí (rezervace kostýmu starého účtu).
+     */
+    private function smazPrihlaskyStarehoNaAktivityNoveho(int $idStarehoUzivatele, int $idNovehoUzivatele): void
+    {
+        dbQuery(<<<'SQL'
+DELETE prihlaska_stareho
+FROM akce_prihlaseni AS prihlaska_stareho
+JOIN akce_prihlaseni AS prihlaska_noveho
+    ON prihlaska_noveho.id_akce = prihlaska_stareho.id_akce
+WHERE prihlaska_stareho.id_uzivatele = $0
+    AND prihlaska_noveho.id_uzivatele = $1
+SQL, [$idStarehoUzivatele, $idNovehoUzivatele]);
     }
 
     /**

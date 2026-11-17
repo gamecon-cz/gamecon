@@ -33,6 +33,7 @@ final class PristupDoAdminu
         Pravo::ADMINISTRACE_PENIZE,
         Pravo::ADMINISTRACE_WEB_LOGA,
         Pravo::ADMINISTRACE_DEV,
+        Pravo::ADMINISTRACE_PUJCOVNA_KOSTYMU,
     ];
 
     /**

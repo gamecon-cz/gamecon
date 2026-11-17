@@ -1,0 +1,757 @@
+// Půjčovna kostýmů (/kostymy): katalog s filtrem, detail kostýmu a vlastní rezervace.
+// Do 600 px (telefon) má katalog dva sloupce a rezervace jde přes celou šířku, do 800 px je detail v jednom sloupci.
+// Kompilátor LESS na webu počítá lomítko jako dělení, proto ~'3 / 4' a ~'1 / -1'.
+
+@kostymy-bezova: #F6F1EA; // jako prázdná pole formulářů webu
+@kostymy-okraj: #DBDBDB;
+@kostymy-tlumeny: #6b6c73;
+@kostymy-zelena: #1e7a3c;
+@kostymy-oranzova: #b35c00;
+@kostymy-telefon: ~'(max-width: 600px)';
+@kostymy-uzky: ~'(max-width: 800px)';
+
+.kostymy {
+  max-width: 1200px;
+  padding: 1px 16px; // 1px kvůli funkci min-height
+  margin: 0 auto 100px;
+  min-height: ~'calc(75vh - 186px)';
+  font-size: 16px;
+  line-height: 26/16;
+
+  h1 {
+    font-size: 52px;
+    line-height: 1.1;
+    margin: 55px 0 16px;
+    overflow-wrap: break-word;
+
+    @media @kostymy-uzky {
+      font-size: 32px;
+      margin: 24px 0 12px;
+    }
+  }
+
+  h2 {
+    line-height: 1.25;
+  }
+
+  img {
+    display: block;
+    max-width: 100%;
+  }
+
+  button {
+    font-family: inherit;
+  }
+}
+
+.kostymy_upozorneni {
+  padding: 12px 16px;
+  border-left: 4px solid var(--gc-red);
+  background: @kostymy-bezova;
+}
+
+.kostymy_poznamka {
+  margin: 0;
+  font-size: 13px;
+  line-height: 1.4;
+  color: @kostymy-tlumeny;
+}
+
+.kostymy_prazdno {
+  padding: 32px 16px;
+  text-align: center;
+  background: @kostymy-bezova;
+}
+
+// tlačítko jako odkaz, obrys podle sekundárního tlačítka formulářů
+.kostymy_tlacitko {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 44px;
+  padding: 0 18px;
+  box-sizing: border-box;
+  border: 2px solid var(--gc-dark);
+  background: transparent;
+  color: var(--gc-dark);
+  font-size: 12px;
+  font-weight: bold;
+  line-height: 1.2;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  text-decoration: none;
+  cursor: pointer;
+  transition: background-color 0.2s, color 0.2s;
+
+  &:hover {
+    background: var(--gc-dark);
+    color: #fff;
+  }
+}
+
+.kostymy_tlacitko-zrusit {
+  border-color: transparent;
+  color: var(--gc-red);
+
+  &:hover {
+    background: transparent;
+    color: #BE0F18;
+    text-decoration: underline;
+  }
+}
+
+.kostymy_stitek {
+  display: inline-block;
+  padding: 4px 8px;
+  background: @kostymy-oranzova;
+  color: #fff;
+  font-size: 11px;
+  font-weight: bold;
+  line-height: 1.3;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.kostymy_stitek-vydany {
+  background: @kostymy-zelena;
+}
+
+// fotka na výšku, nebo zástupné ramínko
+.kostymy_obrazek {
+  position: relative;
+  display: block;
+  overflow: hidden;
+  aspect-ratio: ~'3 / 4';
+  background: @kostymy-bezova;
+
+  img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+
+  .kostymy_stitek {
+    position: absolute;
+    top: 8px;
+    left: 8px;
+  }
+}
+
+.kostymy_bezFotky {
+  position: absolute;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  font-size: 13px;
+  color: @kostymy-tlumeny;
+
+  &::before {
+    content: '';
+    width: 56px;
+    height: 36px;
+    background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 56 36' fill='none' stroke='%2310111A' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M24 8a4 4 0 1 1 4 4v5L3 32h50L28 17'/%3E%3C/svg%3E") no-repeat center;
+    background-size: contain;
+    opacity: 0.45;
+  }
+}
+
+// ---------- katalog ----------
+
+.kostymy_hlavicka {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px 24px;
+  margin: 55px 0 16px;
+
+  .kostymy & h1 {
+    margin: 0;
+  }
+
+  @media @kostymy-uzky {
+    margin: 24px 0 12px;
+  }
+}
+
+.kostymy_uvod {
+  max-width: 50em;
+  margin: 0 0 12px;
+}
+
+.kostymy_filtr {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  gap: 12px 16px;
+  margin: 32px 0 12px;
+  padding: 16px;
+  background: @kostymy-bezova;
+
+  label {
+    display: flex;
+    flex: 1 1 140px;
+    flex-direction: column;
+    gap: 6px;
+    min-width: 0;
+    font-size: 13px;
+    font-weight: bold;
+    line-height: 1.3;
+    letter-spacing: 0.03em;
+  }
+
+  .kostymy_filtrAktivita {
+    flex: 2 1 260px;
+  }
+
+  select {
+    width: 100%;
+    height: 44px;
+    padding: 0 32px 0 10px;
+    box-sizing: border-box;
+    border: 1px solid @kostymy-okraj;
+    border-radius: 0;
+    background: #fff url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'%3E%3Cpath d='M1 1l4 4 4-4' fill='none' stroke='%2310111A' stroke-width='1.5'/%3E%3C/svg%3E") no-repeat;
+    background-position: right 12px center;
+    color: inherit;
+    font-size: 14px;
+    font-weight: normal;
+    letter-spacing: normal;
+    appearance: none;
+    cursor: pointer;
+
+    &:focus {
+      border-color: var(--gc-dark);
+    }
+  }
+
+  button {
+    flex: 0 0 auto;
+    height: 44px;
+    padding: 0 28px;
+    border: 0;
+    background: var(--gc-dark);
+    color: #fff;
+    font-size: 12px;
+    font-weight: bold;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    cursor: pointer;
+
+    &:hover {
+      background: #30323E;
+    }
+  }
+
+  // telefon: aktivita přes celou šířku, pod ní dvě dvojice
+  @media @kostymy-uzky {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    margin: 20px -16px 12px;
+
+    .kostymy_filtrAktivita {
+      grid-column: ~'1 / -1';
+    }
+
+    // písmo menší než 16 px iOS při výběru přiblíží
+    select {
+      font-size: 16px;
+    }
+  }
+}
+
+.kostymy_pocet {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 16px;
+  margin: 0 0 16px;
+  font-size: 14px;
+  color: @kostymy-tlumeny;
+
+  a {
+    color: var(--gc-red);
+  }
+}
+
+.kostymy_seznam {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 32px 24px;
+
+  @media @kostymy-telefon {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    gap: 24px 12px;
+  }
+}
+
+.kostymy_karta {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
+  color: inherit;
+  text-decoration: none;
+
+  .kostymy_obrazek {
+    margin-bottom: 6px;
+  }
+
+  img {
+    transition: transform 0.3s;
+  }
+
+  &:hover img,
+  &:focus-visible img {
+    transform: scale(1.03);
+  }
+
+  &:hover .kostymy_nazev,
+  &:focus-visible .kostymy_nazev {
+    text-decoration: underline;
+  }
+}
+
+.kostymy_karta-vOprave img {
+  opacity: 0.6;
+}
+
+.kostymy_nazev {
+  font-size: 17px;
+  font-weight: bold;
+  line-height: 1.3;
+  overflow-wrap: break-word;
+
+  @media @kostymy-telefon {
+    font-size: 15px;
+  }
+}
+
+.kostymy_parametry {
+  font-size: 13px;
+  line-height: 1.4;
+  color: @kostymy-tlumeny;
+}
+
+// ---------- detail ----------
+
+.kostymy_zpet {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  min-height: 44px;
+  margin-top: 24px;
+  font-size: 14px;
+  color: @kostymy-tlumeny;
+  text-decoration: none;
+
+  &::before {
+    content: '';
+    width: 7px;
+    height: 7px;
+    border-bottom: 1.5px solid;
+    border-left: 1.5px solid;
+    transform: rotate(45deg);
+    transition: transform 0.3s;
+  }
+
+  &:hover {
+    color: var(--gc-dark);
+  }
+
+  &:hover::before {
+    transform: translateX(-3px) rotate(45deg);
+  }
+
+  @media @kostymy-uzky {
+    margin-top: 8px;
+  }
+
+  .kostymy & + h1 {
+    margin-top: 8px;
+  }
+}
+
+.kostymy_detail {
+  display: grid;
+  grid-template-columns: minmax(0, 5fr) minmax(0, 6fr);
+  grid-template-rows: auto 1fr;
+  grid-template-areas: "galerie nadpis" "galerie info";
+  column-gap: 48px;
+  margin-top: 16px;
+
+  @media @kostymy-uzky {
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-rows: auto;
+    grid-template-areas: "nadpis" "galerie" "info";
+    margin-top: 0;
+  }
+}
+
+.kostymy .kostymy_detailNadpis {
+  grid-area: nadpis;
+  margin: 0 0 24px;
+  font-size: 44px;
+
+  @media @kostymy-uzky {
+    margin: 0 0 16px;
+    font-size: 30px;
+  }
+}
+
+.kostymy_galerie {
+  grid-area: galerie;
+  align-self: start;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  min-width: 0;
+
+  // na telefonu fotka od kraje ke kraji
+  @media @kostymy-telefon {
+    margin: 0 -16px;
+
+    .kostymy_nahledy {
+      padding: 0 16px;
+    }
+  }
+}
+
+.kostymy_hlavniFotka {
+  display: block;
+  overflow: hidden;
+  aspect-ratio: ~'3 / 4';
+  background: @kostymy-bezova;
+
+  img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+}
+
+.kostymy_nahledy {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 8px;
+
+  a {
+    display: block;
+    overflow: hidden;
+    aspect-ratio: 1;
+    background: @kostymy-bezova;
+  }
+
+  img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: opacity 0.2s;
+  }
+
+  a:hover img {
+    opacity: 0.85;
+  }
+}
+
+.kostymy_info {
+  grid-area: info;
+  min-width: 0;
+
+  @media @kostymy-uzky {
+    margin-top: 24px;
+  }
+}
+
+.kostymy_popis {
+  margin: 0 0 24px;
+}
+
+.kostymy_udaje {
+  margin: 0 0 32px;
+  border-top: 1px solid @kostymy-okraj;
+
+  > div {
+    display: grid;
+    grid-template-columns: 8em minmax(0, 1fr);
+    align-items: baseline;
+    gap: 16px;
+    padding: 8px 0;
+    border-bottom: 1px solid @kostymy-okraj;
+  }
+
+  dt {
+    font-size: 14px;
+    color: @kostymy-tlumeny;
+  }
+
+  dd {
+    margin: 0;
+    overflow-wrap: break-word;
+  }
+}
+
+.kostymy_vOprave {
+  color: @kostymy-oranzova;
+  font-weight: bold;
+}
+
+.kostymy_rezervace {
+  padding: 24px;
+  background: @kostymy-bezova;
+
+  h2 {
+    margin: 0 0 16px;
+    font-size: 22px;
+  }
+
+  p {
+    margin: 0 0 12px;
+  }
+
+  > p:last-child {
+    margin-bottom: 0;
+  }
+
+  fieldset {
+    display: grid;
+    gap: 8px;
+    min-width: 0;
+    margin: 0 0 16px;
+    padding: 0;
+    border: 0;
+  }
+
+  legend {
+    margin-bottom: 8px;
+    padding: 0;
+    font-size: 13px;
+    font-weight: bold;
+    letter-spacing: 0.03em;
+  }
+
+  .formular_primarni {
+    width: 100%;
+    min-width: 0;
+    margin: 0;
+  }
+
+  @media @kostymy-telefon {
+    margin: 0 -16px;
+    padding: 20px 16px;
+  }
+}
+
+// aktivita k rezervaci jako karta s přepínačem; text se zalomí, select by ho uřízl
+.kostymy_volba {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 12px 14px;
+  border: 1px solid @kostymy-okraj;
+  background: #fff;
+  cursor: pointer;
+
+  input {
+    flex: none;
+    width: 18px;
+    height: 18px;
+    margin: 3px 0 0;
+    accent-color: var(--gc-dark);
+  }
+
+  > span {
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+  }
+
+  &:hover {
+    border-color: #999;
+  }
+
+  &:has(input:checked) {
+    border-color: var(--gc-dark);
+    box-shadow: inset 0 0 0 1px var(--gc-dark);
+  }
+}
+
+.kostymy_volbaNazev {
+  font-weight: bold;
+  line-height: 1.35;
+  overflow-wrap: break-word;
+}
+
+.kostymy_volbaCas {
+  font-size: 14px;
+  line-height: 1.4;
+  color: @kostymy-tlumeny;
+}
+
+.kostymy_volbaVymena {
+  font-size: 13px;
+  line-height: 1.4;
+  color: @kostymy-oranzova;
+}
+
+.kostymy_mas {
+  position: relative;
+  padding-left: 26px;
+  font-weight: bold;
+  color: @kostymy-zelena;
+
+  &::before {
+    content: '✓';
+    position: absolute;
+    left: 0;
+  }
+}
+
+// ---------- moje kostýmy ----------
+
+.kostymy_moje {
+  display: grid;
+  gap: 16px;
+  max-width: 820px;
+}
+
+.kostymy_mojeRezervace {
+  display: grid;
+  grid-template-columns: 120px minmax(0, 1fr) minmax(0, 15em);
+  grid-template-rows: auto 1fr;
+  grid-template-areas: "foto text casy" "foto akce akce";
+  gap: 12px 24px;
+  padding: 20px;
+  border: 1px solid @kostymy-okraj;
+
+  > .kostymy_obrazek {
+    grid-area: foto;
+    align-self: start;
+  }
+
+  h2 {
+    margin: 0 0 6px;
+    font-size: 20px;
+
+    a {
+      color: inherit;
+      text-decoration: none;
+
+      &:hover {
+        text-decoration: underline;
+      }
+    }
+  }
+
+  > .kostymy_poznamka {
+    grid-area: akce;
+  }
+
+  @media @kostymy-telefon {
+    grid-template-columns: 88px minmax(0, 1fr);
+    grid-template-rows: auto;
+    grid-template-areas: "foto text" "casy casy" "akce akce";
+    gap: 16px;
+    padding: 16px;
+
+    h2 {
+      font-size: 18px;
+    }
+  }
+}
+
+.kostymy_mojeText {
+  grid-area: text;
+
+  p {
+    margin: 0 0 8px;
+  }
+}
+
+.kostymy_mojeAktivita {
+  line-height: 1.4;
+
+  span {
+    font-size: 14px;
+    color: @kostymy-tlumeny;
+  }
+}
+
+.kostymy_mojeCasy {
+  grid-area: casy;
+  margin: 0;
+  font-size: 14px;
+  line-height: 1.4;
+
+  > div {
+    display: flex;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 6px 0;
+    border-bottom: 1px solid @kostymy-okraj;
+  }
+
+  dt {
+    color: @kostymy-tlumeny;
+  }
+
+  dd {
+    margin: 0;
+    font-weight: bold;
+    text-align: right;
+  }
+
+  // telefon: dvě dlaždice vedle sebe
+  @media @kostymy-telefon {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    gap: 8px;
+
+    > div {
+      flex-direction: column;
+      gap: 2px;
+      padding: 8px 12px;
+      border: 0;
+      background: @kostymy-bezova;
+    }
+
+    dd {
+      text-align: left;
+    }
+  }
+}
+
+.kostymy_mojeAkce {
+  grid-area: akce;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px 16px;
+
+  form {
+    margin: 0;
+  }
+
+  .kostymy_poznamka {
+    flex-basis: 100%;
+  }
+
+  @media @kostymy-telefon {
+    gap: 8px;
+
+    > .kostymy_tlacitko,
+    form {
+      display: flex;
+      flex: 1 1 auto;
+    }
+
+    form .kostymy_tlacitko {
+      flex: 1 1 auto;
+    }
+  }
+}

@@ -471,6 +471,24 @@ class RsyncNasazeniTest extends TestCase
     /**
      * @test
      *
+     * @dataProvider provideUploadedFiles
+     */
+    public function anUploadedFileStaysOnTheServer(string $path): void
+    {
+        $filters = buildRsyncFilters(buildIgnoreMasks(), getRsyncProtectedPaths(), getDefaultIgnoreMasks());
+
+        self::assertTrue($this->isCoveredByAProtectOrExcludeRule($path, $filters), "{$path} would be deleted from the server");
+    }
+
+    public static function provideUploadedFiles(): iterable
+    {
+        yield 'a narrator photo' => ['/web/soubory/systemove/fotky/123.avif'];
+        yield 'a costume photo' => ['/web/soubory/systemove/kostymy/12-0123456789abcdef.avif'];
+    }
+
+    /**
+     * @test
+     *
      * @dataProvider provideServerLeftoversThatAreDeleted
      */
     public function aLeftoverThatMatchesADefaultMaskAndNothingElseIsNotCovered(string $path): void

@@ -22,6 +22,7 @@ class ModulyVSitemapeTest extends TestCase
         'finance'            => 'jen pro přihlášené',
         'info-po-gc'         => 'přesměrování',
         'instagram'          => 'přesměrování na externí web',
+        'kostymy'            => 'v mapě jen se zveřejněným katalogem, CestyKSitemape::KATALOG_KOSTYMU',
         'mail'               => 'přesměrování na externí nástroj',
         'nenalezeno'         => 'chybová stránka',
         'neprihlasen'        => 'chybová stránka',

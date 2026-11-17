@@ -112,6 +112,9 @@ export const ProgramTabulkaBuňka: FunctionComponent<
           {zobrazenáLokace && (
             <div class="program_lokace">{zobrazenáLokace}</div>
           )}
+          {aktivita.kostym?.nazev && (
+            <div class="program_kostym">kostým: {aktivita.kostym.nazev}</div>
+          )}
           {zobrazLinii ? (
             <span class="program_osobniTyp">{aktivita.linie}</span>
           ) : undefined}
