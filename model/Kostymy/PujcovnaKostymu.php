@@ -286,7 +286,7 @@ JOIN akce_seznam ON akce_seznam.id_akce = kostym_rezervace.id_akce
 WHERE kostym_rezervace.id_uzivatele = $0 AND akce_seznam.rok = $1
 SQL, [$ucastnik->id(), $this->systemoveNastaveni->rocnik()]);
         if ($pocet >= $limit) {
-            throw new ChybaPujcovny(sprintf('Na jeden ročník jde rezervovat nejvýš %d %s, víc už nejde.', $limit, $limit === 1 ? 'kostým' : ($limit < 5 ? 'kostýmy' : 'kostýmů')));
+            throw new ChybaPujcovny(sprintf('Na jeden ročník jde rezervovat nejvýš %s, víc už nejde.', FormatPujcovny::pocetKostymu($limit)));
         }
     }
 

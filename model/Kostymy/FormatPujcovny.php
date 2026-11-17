@@ -27,6 +27,18 @@ final class FormatPujcovny
             : $od->format('l G:i') . ' – ' . $do->format('l G:i');
     }
 
+    /**
+     * „1 kostým“, „3 kostýmy“, „0 kostýmů“
+     */
+    public static function pocetKostymu(int $pocet): string
+    {
+        return $pocet . ' ' . match (true) {
+            $pocet === 1               => 'kostým',
+            $pocet >= 2 && $pocet <= 4 => 'kostýmy',
+            default                    => 'kostýmů',
+        };
+    }
+
     public static function denACas(?string $kdy): string
     {
         return $kdy === null
