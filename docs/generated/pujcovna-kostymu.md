@@ -48,6 +48,11 @@ TL;DR: Půjčovna larpových kostýmů (Trello 1510): veřejný katalog na `/kos
 - Fotky leží pod `web/soubory/systemove/*/*`, které už chrání nasazení (`getRsyncProtectedPaths()`) i `.gitignore`.
 - `kostym_vydej` je v `AnonymizovanaDatabaze::PRILIS_CITLIVE_TABULKY` (poznámky o lidech), `kostym.interni_poznamka` se při anonymizaci vyprázdní.
 
+## Vzhled
+
+- (záměr) Web je stavěný hlavně na telefon: do 600 px má katalog dva sloupce a rezervace i fotka detailu jdou od kraje ke kraji, do 800 px je detail v jednom sloupci. Fotky jsou na výšku 3:4 (kostým na ramínku), náhledy dělá `FotkaKostymu::getUrlNahledu()` s ořezem; kostým bez fotky má v CSS zástupné ramínko. Celé fotky ukáže baguetteBox jako u přihlášky.
+- Aktivita k rezervaci je přepínač s kartou, ne `<select>`: na telefonu select uřízl dovětek „vymění …“. Předvybraná je aktivita z `?aktivita=` (přechod z katalogu nebo programu), jinak první volná.
+
 ## Mimo rozsah v1 (záměr) a kudy na ně
 
 - Poplatek přes GC finance a evidence kauce: nové sloupce u rezervace nebo výdeje, nic v modelu je neblokuje.
