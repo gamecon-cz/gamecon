@@ -141,17 +141,25 @@ if ($castAdresy === null) {
         ? '?aktivita=' . $vybranaAktivita->id()
         : '';
     foreach ($kostymy as $kostym) {
+        $vOprave = $kostym->getStav() === StavKostymuEnum::V_OPRAVE;
         $t->assign([
-            'idKostymu'    => $kostym->getId(),
+            'idKostymu'     => $kostym->getId(),
             'dotazAktivity' => $dotazAktivity,
-            'nazevKostymu' => htmlspecialchars($kostym->getNazev()),
-            'parametry'    => $parametryKostymu($kostym),
-            'nahledFotky'  => htmlspecialchars($kostym->getHlavniFotka()?->getUrlNahledu(400, 400) ?? ''),
+            'nazevKostymu'  => htmlspecialchars($kostym->getNazev()),
+            'parametry'     => $parametryKostymu($kostym),
+            'tridaKarty'    => $vOprave
+                ? 'kostymy_karta-vOprave'
+                : '',
         ]);
-        if ($kostym->getHlavniFotka() !== null) {
+        $hlavniFotka = $kostym->getHlavniFotka();
+        if ($hlavniFotka !== null) {
+            // na výšku jako kostým na ramínku, ve dvou sloupcích telefonu i v pěti na monitoru ostrá
+            $t->assign('nahledFotky', htmlspecialchars($hlavniFotka->getUrlNahledu(450, 600)));
             $t->parse('kostymy.katalog.kostym.fotka');
+        } else {
+            $t->parse('kostymy.katalog.kostym.bezFotky');
         }
-        if ($kostym->getStav() === StavKostymuEnum::V_OPRAVE) {
+        if ($vOprave) {
             $t->parse('kostymy.katalog.kostym.vOprave');
         }
         $t->parse('kostymy.katalog.kostym');
@@ -160,6 +168,10 @@ if ($castAdresy === null) {
         $t->parse($vybranaAktivita !== null
             ? 'kostymy.katalog.zadnyVolny'
             : 'kostymy.katalog.zadny');
+    }
+    $t->assign('pocetKostymu', FormatPujcovny::pocetKostymu(count($kostymy)));
+    if ($vybranaAktivita !== null || $filtrKatalogu->velikost !== null || $filtrKatalogu->strih !== null || $filtrKatalogu->kategorie !== null) {
+        $t->parse('kostymy.katalog.zrusitVyber');
     }
     if ($u) {
         $t->parse('kostymy.katalog.mojeRezervace');
@@ -190,6 +202,13 @@ if ($castAdresy === 'moje') {
             'vyzvednutiOd' => htmlspecialchars(FormatPujcovny::denACas($zacatek->modify(sprintf('-%d minutes', $nastaveniPujcovny->getVydejMinutPredZacatkem()))->format('Y-m-d H:i:s'))),
             'vratitDo'     => htmlspecialchars(FormatPujcovny::denACas($konec->modify(sprintf('+%d minutes', $nastaveniPujcovny->getVraceniMinutPoKonci()))->format('Y-m-d H:i:s'))),
         ]);
+        $fotka = $katalogKostymu->dej((int) $rezervace['id_kostymu'])?->getHlavniFotka();
+        if ($fotka !== null) {
+            $t->assign('nahledFotky', htmlspecialchars($fotka->getUrlNahledu(240, 320)));
+            $t->parse('kostymy.moje.rezervace.fotka');
+        } else {
+            $t->parse('kostymy.moje.rezervace.bezFotky');
+        }
         $uzaverka = $zacatek->modify(sprintf('-%d hours', $nastaveniPujcovny->getUzaverkaHodinPredZacatkem()));
         if ($rezervace['id_vydeje'] !== null) {
             $t->parse('kostymy.moje.rezervace.vydany');
@@ -228,27 +247,46 @@ $hlavniFotka = $kostym->getHlavniFotka();
 if ($hlavniFotka !== null) {
     $this->info()->obrazek($hlavniFotka->getUrlNahledu(1200, 630));
 }
+$kDispozici = $kostym->getStav() === StavKostymuEnum::K_DISPOZICI;
 $t->assign([
-    'idKostymu'    => $kostym->getId(),
-    'nazevKostymu' => htmlspecialchars($kostym->getNazev()),
-    'popis'        => nl2br(htmlspecialchars($kostym->getPopis())),
-    'velikost'     => htmlspecialchars($kostym->getVelikost()->getNazev()),
-    'miry'         => htmlspecialchars($kostym->getMiry()),
-    'strih'        => htmlspecialchars($kostym->getStrih()->getNazev()),
-    'kategorie'    => htmlspecialchars($kostym->getKategorie()),
-    'dostupnost'   => htmlspecialchars($kostym->getStav() === StavKostymuEnum::K_DISPOZICI
+    'idKostymu'        => $kostym->getId(),
+    'nazevKostymu'     => htmlspecialchars($kostym->getNazev()),
+    'popis'            => nl2br(htmlspecialchars($kostym->getPopis())),
+    'velikost'         => htmlspecialchars($kostym->getVelikost()->getNazev()),
+    'miry'             => htmlspecialchars($kostym->getMiry()),
+    'strih'            => htmlspecialchars($kostym->getStrih()->getNazev()),
+    'kategorie'        => htmlspecialchars($kostym->getKategorie()),
+    'dostupnost'       => htmlspecialchars($kDispozici
         ? 'k půjčení'
         : 'teď v opravě, rezervovat ho nejde'),
-    'dotazAktivity' => (int) get('aktivita')
+    'tridaDostupnosti' => $kDispozici
+        ? ''
+        : 'kostymy_vOprave',
+    'dotazAktivity'    => (int) get('aktivita')
         ? '?aktivita=' . (int) get('aktivita')
         : '',
 ]);
-foreach ($kostym->getFotky() as $fotka) {
+// první fotka velká, ostatní jako náhledy pod ní; celé fotky ukáže prohlížeč fotek
+$fotky = $kostym->getFotky();
+foreach ($fotky as $poradiFotky => $fotka) {
     $t->assign([
-        'nahledFotky' => htmlspecialchars($fotka->getUrlNahledu(600, 600)),
+        'nahledFotky' => htmlspecialchars($poradiFotky === 0
+            ? $fotka->getUrlNahledu(900, 1200)
+            : $fotka->getUrlNahledu(300, 300)),
         'urlFotky'    => htmlspecialchars($fotka->getUrl()),
     ]);
-    $t->parse('kostymy.detail.fotka');
+    $t->parse($poradiFotky === 0
+        ? 'kostymy.detail.hlavniFotka'
+        : 'kostymy.detail.nahledy.fotka');
+}
+if (count($fotky) > 1) {
+    $t->parse('kostymy.detail.nahledy');
+}
+if ($fotky === []) {
+    $t->parse('kostymy.detail.bezFotky');
+}
+if ($kostym->getPopis() !== '') {
+    $t->parse('kostymy.detail.popis');
 }
 foreach (['miry', 'kategorie'] as $volitelnyUdaj) {
     if ($volitelnyUdaj === 'miry' ? $kostym->getMiry() !== '' : $kostym->getKategorie() !== '') {
@@ -258,33 +296,49 @@ foreach (['miry', 'kategorie'] as $volitelnyUdaj) {
 
 if (!$u) {
     $t->parse('kostymy.detail.neprihlaseny');
-} elseif ($kostym->getStav() === StavKostymuEnum::K_DISPOZICI) {
+} elseif ($kDispozici) {
     $aktivityKRezervaci = $pujcovnaKostymu->aktivityKRezervaci($u);
-    $volneAktivity = 0;
+    $volneAktivity = [];
+    $obsazeneAktivity = 0;
     foreach ($aktivityKRezervaci as $aktivitaKRezervaci) {
         $rezervaceNaAktivitu = $pujcovnaKostymu->rezervaceUcastnika($aktivitaKRezervaci->id(), $u->id());
-        $t->assign([
-            'idAktivity'    => $aktivitaKRezervaci->id(),
-            'nazevAktivity' => htmlspecialchars($aktivitaKRezervaci->nazev() . ' (' . $aktivitaKRezervaci->denCasSkutecny() . ')'),
-            'vybrano'       => $aktivitaKRezervaci->id() === (int) get('aktivita')
-                ? 'selected'
-                : '',
-        ]);
         if ($rezervaceNaAktivitu?->getIdKostymu() === $kostym->getId()) {
+            $t->assign([
+                'nazevAktivity' => htmlspecialchars($aktivitaKRezervaci->nazev()),
+                'casAktivity'   => htmlspecialchars($aktivitaKRezervaci->denCasSkutecny()),
+            ]);
             $t->parse('kostymy.detail.rezervace.uzMa');
         } elseif (in_array($kostym->getId(), $pujcovnaKostymu->volneKostymy($aktivitaKRezervaci, $u), true)) {
-            $t->assign('vymena', $rezervaceNaAktivitu !== null
-                ? ' – vymění ' . htmlspecialchars($rezervaceNaAktivitu->getNazevKostymu())
-                : '');
-            $t->parse('kostymy.detail.rezervace.formular.aktivita');
-            $volneAktivity++;
+            $volneAktivity[] = [$aktivitaKRezervaci, $rezervaceNaAktivitu];
+        } else {
+            $obsazeneAktivity++;
         }
     }
-    if ($volneAktivity > 0) {
+    // předvybraná je aktivita z katalogu (?aktivita=), jinak první volná
+    $idsVolnychAktivit = array_map(static fn (array $volna): int => $volna[0]->id(), $volneAktivity);
+    $idPredvybrane = in_array((int) get('aktivita'), $idsVolnychAktivit, true)
+        ? (int) get('aktivita')
+        : ($idsVolnychAktivit[0] ?? null);
+    foreach ($volneAktivity as [$volnaAktivita, $rezervaceNaAktivitu]) {
+        $t->assign([
+            'idAktivity'    => $volnaAktivita->id(),
+            'nazevAktivity' => htmlspecialchars($volnaAktivita->nazev()),
+            'casAktivity'   => htmlspecialchars($volnaAktivita->denCasSkutecny()),
+            'vybrano'       => $volnaAktivita->id() === $idPredvybrane
+                ? 'checked'
+                : '',
+        ]);
+        if ($rezervaceNaAktivitu !== null) {
+            $t->assign('nazevVymeneneho', htmlspecialchars($rezervaceNaAktivitu->getNazevKostymu()));
+            $t->parse('kostymy.detail.rezervace.formular.aktivita.vymena');
+        }
+        $t->parse('kostymy.detail.rezervace.formular.aktivita');
+    }
+    if ($volneAktivity !== []) {
         $t->parse('kostymy.detail.rezervace.formular');
     } elseif ($aktivityKRezervaci === []) {
         $t->parse('kostymy.detail.rezervace.zadnaAktivita');
-    } else {
+    } elseif ($obsazeneAktivity > 0) {
         $t->parse('kostymy.detail.rezervace.obsazeny');
     }
     $t->parse('kostymy.detail.rezervace');
