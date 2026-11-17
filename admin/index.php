@@ -55,7 +55,8 @@ require __DIR__ . '/scripts/prihlaseni.php';
 
 include __DIR__ . '/_symfony.php';
 
-// smí v adminu aspoň jednu stránku; jinak ho odmítne API i zvláštní stránky a nenabídne se mu výběr vzhledu
+// smí v adminu stránku, která API a zvláštní stránky potřebuje; jinak ho odmítnou (Bingo je nepotřebuje, viz
+// PristupDoAdminu::PRAVA_JEN_STRANKY)
 $maPristupDoAdminu = PristupDoAdminu::isPovolen($u);
 
 // nastavení stránky, prázdná url => přesměrování na úvod
@@ -69,6 +70,14 @@ if (! $stranka) {
         }
         if ($u->maPravo(Pravo::ADMINISTRACE_MOJE_AKTIVITY)) {
             back(URL_ADMIN . '/' . basename(__DIR__ . '/scripts/modules/moje-aktivity'));
+        }
+        // jinak první stránka menu, kterou smí (menu je podle práva, pak názvu), třeba jen Prezence nebo Bingo
+        if (PristupDoAdminu::isPovolenaStranka($u)) {
+            foreach ((new AdminMenu(__DIR__ . '/scripts/modules/'))->pole() as $url => $polozka) {
+                if (AdminMenu::isPristupna($u, $polozka)) {
+                    back(URL_ADMIN . '/' . $url);
+                }
+            }
         }
         back(URL_WEBU);
     }
@@ -410,11 +419,12 @@ $info->nazev($info->nazev() ?? '', 'Administrace');
 // výstup
 $xtpl->assign('protip', $protipy[array_rand($protipy)]);
 $xtpl->parse('all.paticka');
-// výběr a přepínač vzhledu jen pro toho, kdo v adminu něco smí, ne pro účastníka na stránce 403
+// výběr a přepínač vzhledu jen pro toho, kdo v adminu něco smí (třeba jen Bingo), ne pro účastníka na stránce 403
+$maStrankuVAdminu = $maPristupDoAdminu || PristupDoAdminu::isPovolenaStranka($u);
 $xtpl->assign([
     'nazevSekce'      => $nazevSekce,
-    'prepinacVzhledu' => $maPristupDoAdminu ? $vzhledAdminuHtml?->getPrepinacHtml($u->id()) ?? '' : '',
-    'vyberVzhledu'    => $maPristupDoAdminu ? $vzhledAdminuHtml?->getVyberHtml($u->id()) ?? '' : '',
+    'prepinacVzhledu' => $maStrankuVAdminu ? $vzhledAdminuHtml?->getPrepinacHtml($u->id()) ?? '' : '',
+    'vyberVzhledu'    => $maStrankuVAdminu ? $vzhledAdminuHtml?->getVyberHtml($u->id()) ?? '' : '',
 ]);
 $xtpl->assign('chyba', chyba::vyzvedniHtml());
 $xtpl->assign('jsVyjimkovac', Gamecon\Vyjimkovac\Vyjimkovac::js(URL_WEBU));
