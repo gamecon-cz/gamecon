@@ -119,10 +119,9 @@
         <td>
             <select name="{aEditLokace}[]" multiple="multiple" id="vyberLokaci">
                 <!-- begin:lokace -->
-                {previous_optgroup_lokace_end}
                 {optgroup_lokace_start}
                 <option {lokace_selected} value="{id_lokace}">{nazev_lokace}</option>
-                {last_optgroup_lokace_end}
+                {optgroup_lokace_end}
                 <!-- end:lokace -->
             </select>
             <script type="text/javascript">
@@ -155,17 +154,46 @@
           <ul style="margin:0; padding-left: 1em; list-style: none">
             <li>
                 <label for="hlavniLokace" class="display-block">
-                    ↳ <span class="hinted">hlavní místnost¹<span class="hint">Nepovinné - označ jednu z výše vybraných místností jako hlavní</span></span>
+                    ↳ <span class="hinted">hlavní místnost¹<span class="hint">Nepovinné. Nabízí jen místnosti vybrané výše. Když necháš „automaticky“, je hlavní ta, která je v nabídce první (podle pořadí místností), i když místnosti později změníš. Zvolená hlavní místnost platí, dokud ji z místností neodebereš, pak se vrátí na „automaticky“. Hlavní místnost se uvádí jako první, záleží na ní hlavně u aktivity se záložní místností (třeba když se hraje venku).</span></span>
               </label>
             </li>
           </ul>
         </th>
         <td>
-            <select id="hlavniLokace" name="{aEditHlavniLokace}">
-                <!-- begin:vyberHlavniLokace -->
-                <option {selected} value="{id_lokace}">{nazev}</option>
-                <!-- end:vyberHlavniLokace -->
-            </select>
+            <select id="hlavniLokace" name="{aEditHlavniLokace}" data-zvolena="{idZvoleneHlavniLokace}"></select>
+            <script type="text/javascript">
+                (function () {
+                    // Nabídku hlavní místnosti skládá jen tenhle skript, při načtení stránky i při každé změně místností:
+                    // „automaticky“ (první z vybraných místností v pořadí, v jakém jsou tady) a vybrané místnosti.
+                    // Zvolená hlavní místnost, která mezi vybranými místnostmi není (organizátor ji odebral), se vrátí
+                    // na „automaticky“, @see \Gamecon\Aktivita\HlavniLokace
+                    // středník je nutný: XTemplate vypíše proměnnou PHP tagem a PHP spolkne konec řádku hned za ním
+                    const lokaceVPoradi = {lokaceProHlavniLokaciJson};
+                    const $vyberLokaci = $('#vyberLokaci')
+                    const $hlavniLokace = $('#hlavniLokace')
+
+                    function sestavNabidkuHlavniLokace(zvolenaHlavni) {
+                        const idckaVybranych = new Set(($vyberLokaci.val() || []).map(String))
+                        const vybraneLokace = lokaceVPoradi.filter((lokace) => idckaVybranych.has(String(lokace.id)))
+                        $hlavniLokace.empty()
+                        $hlavniLokace.append(new Option(
+                            vybraneLokace.length > 0
+                                ? 'automaticky: ' + vybraneLokace[0].nazev
+                                : '(žádná)',
+                            '',
+                        ))
+                        vybraneLokace.forEach((lokace) => {
+                            $hlavniLokace.append(new Option(lokace.nazev, String(lokace.id)))
+                        })
+                        $hlavniLokace.val(idckaVybranych.has(zvolenaHlavni) ? zvolenaHlavni : '')
+                    }
+
+                    sestavNabidkuHlavniLokace(String($hlavniLokace.attr('data-zvolena') || ''))
+                    $vyberLokaci.on('change', () => sestavNabidkuHlavniLokace(String($hlavniLokace.val() || '')))
+                    // stránka vrácená z mezipaměti prohlížeče (zpět, vpřed) má místnosti v takovém stavu, v jakém zůstaly
+                    window.addEventListener('pageshow', () => sestavNabidkuHlavniLokace(String($hlavniLokace.val() || '')))
+                })()
+            </script>
         </td>
     </tr>
     <tr>
