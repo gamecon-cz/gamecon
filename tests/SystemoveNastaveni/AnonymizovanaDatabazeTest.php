@@ -145,6 +145,9 @@ class AnonymizovanaDatabazeTest extends AbstractTestDb
             'uzivatele_trvala_prihlaseni' => <<<'SQL'
                 INSERT INTO uzivatele_trvala_prihlaseni SET id_uzivatele = 100, token_hash = SHA2('token', 256)
                 SQL,
+            'akce_mladsi_ucastnik_sef_informovan' => <<<'SQL'
+                INSERT INTO akce_mladsi_ucastnik_sef_informovan SET id_log = 1, jak = 'email'
+                SQL,
             'bingo_fraze' => <<<'SQL'
                 INSERT INTO bingo_fraze SET id = 1, text = 'To probereme mimo jednání', id_autora = 100
                 SQL,
