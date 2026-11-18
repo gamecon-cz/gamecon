@@ -30,7 +30,8 @@ VALUES
     (1003, 'Klubovna', 'Budova B, dveře 201', 'Pro menší skupiny', 3, 0),
     (1004, 'Venkovní prostor', '', 'Zahrada', 4, 0),
     (1005, 'Přednášková místnost', 'Budova C, dveře 301', '', 5, 0),
-    (1006, 'Testovací místnost', 'Test dvere', '', 6, 0)
+    (1006, 'Testovací místnost', 'Test dvere', '', 6, 0),
+    (1007, 'Místnost na začátku pořadí', '', '', 0, 0)
 SQL,
         // Insert 5 test activities (some with locations, some without)
         // id_hlavni_lokace is set on akce_seznam for activities with a main location
@@ -260,24 +261,55 @@ SQL,
     /**
      * @test
      */
-    public function testNastaveniLokaciBezHlavni()
+    public function testNastaveniLokaciBezHlavni(): void
     {
         $aktivita = Aktivita::zId(2003);
 
         // Set locations without specifying main
-        $aktivita->nastavLokacePodleIds([1002, 1003, 1004], null);
+        $aktivita->nastavLokacePodleIds([1004, 1003, 1002], null);
 
         $aktivita = Aktivita::zId(2003);
 
-        // First location (by id_lokace ASC) should become main via COALESCE fallback
-        self::assertSame(1002, $aktivita->idHlavniLokace(), 'První místnost by měla být automaticky hlavní');
-
-        // Verify id_hlavni_lokace is NULL in akce_seznam
+        // The first location by poradi becomes main and is stored, so every reader sees the same main location
+        self::assertSame(1002, $aktivita->idHlavniLokace(), 'První místnost podle pořadí by měla být automaticky hlavní');
         $hlavniLokace = dbFetchSingle(
             'SELECT id_hlavni_lokace FROM akce_seznam WHERE id_akce = ?',
             [2003]
         );
-        self::assertNull($hlavniLokace, 'id_hlavni_lokace by mělo být NULL');
+        self::assertSame('1002', $hlavniLokace, 'Automaticky vybraná hlavní místnost se má uložit');
+    }
+
+    /**
+     * @test
+     */
+    public function testAutomatickaHlavniLokaceJdePodlePoradiNeIdcka(): void
+    {
+        $aktivita = Aktivita::zId(2003);
+
+        // 1007 has the highest ID but the lowest poradi
+        $aktivita->nastavLokacePodleIds([1003, 1007], null);
+
+        self::assertSame(1007, Aktivita::zId(2003)->idHlavniLokace());
+    }
+
+    /**
+     * @test
+     */
+    public function testOdebranaHlavniLokaceSeNevraciAHlavniSeVybereZeZbylych(): void
+    {
+        $aktivita = Aktivita::zId(2005);
+        self::assertSame(1005, $aktivita->hlavniLokace()->id(), 'Původně je hlavní místnost 5');
+
+        // The organizer removes the main location 5, the editor still sends it as the main one
+        $aktivita->nastavLokacePodleIds([1006], 1005);
+
+        $aktivita = Aktivita::zId(2005);
+        self::assertSame([1006], $aktivita->seznamLokaciIdcka(), 'Odebraná hlavní místnost se nesmí vrátit mezi místnosti');
+        self::assertSame(1006, $aktivita->hlavniLokace()->id());
+        self::assertSame(
+            '1006',
+            dbFetchSingle('SELECT id_hlavni_lokace FROM akce_seznam WHERE id_akce = ?', [2005]),
+        );
     }
 
     // ========================================================================
@@ -287,30 +319,36 @@ SQL,
     /**
      * @test
      */
-    public function testPrazdnePoleLokaciSmazeLokace()
+    public function testPrazdnePoleLokaciSmazeLokace(): void
     {
         $aktivita = Aktivita::zId(2001);
         self::assertCount(1, $aktivita->seznamLokaci());
 
-        $aktivita->nastavLokacePodleIds([], null);
+        // a main location without any location is ignored
+        $aktivita->nastavLokacePodleIds([], 1001);
 
         $aktivita = Aktivita::zId(2001);
         self::assertSame([], $aktivita->seznamLokaci());
+        self::assertNull($aktivita->hlavniLokace());
 
         $count = dbFetchSingle('SELECT COUNT(*) FROM akce_lokace WHERE id_akce = ?', [2001]);
         self::assertSame('0', $count);
+        self::assertNull(dbFetchSingle('SELECT id_hlavni_lokace FROM akce_seznam WHERE id_akce = ?', [2001]));
     }
 
     /**
      * @test
      */
-    public function testNastaveniNeexistujiciHlavniLokace()
+    public function testHlavniLokaceMimoSeznamSeNepridaAHlavniSeVybereAutomaticky(): void
     {
-        $aktivita = Aktivita::zId(2001);
+        $aktivita = Aktivita::zId(2003);
 
-        // Try to set location 9999 as main, but only add locations 1, 2 — should throw
-        $this->expectException(\LogicException::class);
-        $aktivita->nastavLokacePodleIds([1001, 1002], 9999);
+        // Location 1001 is not among the given locations, so it must not be added and cannot be the main one
+        $aktivita->nastavLokacePodleIds([1003, 1002], 1001);
+
+        $aktivita = Aktivita::zId(2003);
+        self::assertSame([1002, 1003], $aktivita->seznamLokaciIdcka());
+        self::assertSame(1002, $aktivita->hlavniLokace()->id(), 'Hlavní je první z místností podle pořadí');
     }
 
     /**
