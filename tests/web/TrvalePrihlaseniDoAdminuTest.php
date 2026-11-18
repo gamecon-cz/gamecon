@@ -9,8 +9,8 @@ use Gamecon\Uzivatel\TrvalePrihlaseni;
 
 /**
  * „Trvale přihlásit“ v přihlášení do adminu, které slouží i online prezenci, přes skutečnou administraci: zaškrtnuté
- * dá prohlížeči cookie, se kterou je přihlášený i po zavření prohlížeče, nezaškrtnuté ne. Jak cookie funguje,
- * ověřuje TrvalePrihlaseniTest.
+ * dá prohlížeči cookie a řádek, se kterými je přihlášený i po zavření prohlížeče, nezaškrtnuté ani jedno, a odhlášení
+ * v adminu obojí zruší. Jak cookie funguje, ověřuje TrvalePrihlaseniTest.
  */
 class TrvalePrihlaseniDoAdminuTest extends AbstractTestWeb
 {
@@ -22,6 +22,14 @@ class TrvalePrihlaseniDoAdminuTest extends AbstractTestWeb
      * @var list<string>
      */
     private array $kUklidu = [];
+
+    /**
+     * Řádky trvalého přihlášení zapisuje Apache. Test, který by běžel v transakci, by je ze svého snímku neviděl.
+     */
+    protected static function keepSingleTestMethodDbChangesInTransaction(): bool
+    {
+        return false;
+    }
 
     /**
      * Admin se používá i na sdílených počítačích infopultu, na rozdíl od webu je proto volba nezaškrtnutá.
@@ -42,29 +50,45 @@ class TrvalePrihlaseniDoAdminuTest extends AbstractTestWeb
 
     public function testZaskrtnuteTrvalePrihlaseniPrezijeZavreniProhlizece(): void
     {
+        $radkuPred = $this->getPocetTrvalychPrihlaseni();
         $prohlizec = $this->prihlasFormularem(trvale: true);
 
         $poZavreni = $this->zavriProhlizec($prohlizec);
 
+        self::assertSame($radkuPred + 1, $this->getPocetTrvalychPrihlaseni());
         self::assertNotNull($this->getCookieTrvalehoPrihlaseni($poZavreni), 'Trvalé přihlášení má dát prohlížeči cookie');
-        $stranka = $this->otevri($poZavreni, self::STRANKA);
-        self::assertSame(200, $stranka['kod'], $stranka['telo']);
-        self::assertStringNotContainsString(
-            'name="' . Login::PASSWORD_INPUT_NAME . '"',
-            $stranka['telo'],
-            'Cookie trvalého přihlášení má přihlásit i bez session',
-        );
+        $this->assertPrihlasen($poZavreni, 'Cookie trvalého přihlášení má přihlásit i bez session');
     }
 
     public function testNezaskrtnuteTrvalePrihlaseniSkonciZavrenimProhlizece(): void
     {
+        $radkuPred = $this->getPocetTrvalychPrihlaseni();
         $prohlizec = $this->prihlasFormularem(trvale: false);
 
         $poZavreni = $this->zavriProhlizec($prohlizec);
 
+        self::assertSame($radkuPred, $this->getPocetTrvalychPrihlaseni(), 'Bez volby nemá vzniknout řádek bez cookie');
         self::assertNull($this->getCookieTrvalehoPrihlaseni($poZavreni));
-        $stranka = $this->otevri($poZavreni, self::STRANKA);
-        self::assertStringContainsString('name="' . Login::PASSWORD_INPUT_NAME . '"', $stranka['telo']);
+        $this->assertNeprihlasen($poZavreni);
+    }
+
+    /**
+     * Odhlášení v adminu ruší trvalé přihlášení tohoto prohlížeče: cookie i řádek, i když se session přihlásila
+     * z cookie.
+     */
+    public function testOdhlaseniVAdminuZrusiCookieIRadek(): void
+    {
+        $radkuPred = $this->getPocetTrvalychPrihlaseni();
+        $poZavreni = $this->zavriProhlizec($this->prihlasFormularem(trvale: true));
+        $this->assertPrihlasen($poZavreni, 'Session z cookie, jinak test nic nezkouší');
+
+        self::assertSame(303, $this->odesli($poZavreni, self::STRANKA, [
+            'odhlasNAdm' => 1,
+        ]));
+
+        self::assertNull($this->getCookieTrvalehoPrihlaseni($poZavreni), 'Odhlášení má cookie smazat');
+        self::assertSame($radkuPred, $this->getPocetTrvalychPrihlaseni(), 'Odhlášení má řádek zrušit');
+        $this->assertNeprihlasen($this->zavriProhlizec($poZavreni));
     }
 
     /**
@@ -83,14 +107,22 @@ class TrvalePrihlaseniDoAdminuTest extends AbstractTestWeb
                 : []),
         ]);
         self::assertSame(303, $odpoved['kod'], $odpoved['telo']);
-        $stranka = $this->otevri($prohlizec, self::STRANKA);
-        self::assertStringNotContainsString(
-            'name="' . Login::PASSWORD_INPUT_NAME . '"',
-            $stranka['telo'],
-            'Přihlášení se nepovedlo, test nic nezkouší',
-        );
+        $this->assertPrihlasen($prohlizec, 'Přihlášení se nepovedlo, test nic nezkouší');
 
         return $prohlizec;
+    }
+
+    private function assertPrihlasen(string $prohlizec, string $zprava): void
+    {
+        $stranka = $this->otevri($prohlizec, self::STRANKA);
+        self::assertSame(200, $stranka['kod'], $stranka['telo']);
+        self::assertStringNotContainsString('name="' . Login::PASSWORD_INPUT_NAME . '"', $stranka['telo'], $zprava);
+    }
+
+    private function assertNeprihlasen(string $prohlizec): void
+    {
+        $stranka = $this->otevri($prohlizec, self::STRANKA);
+        self::assertStringContainsString('name="' . Login::PASSWORD_INPUT_NAME . '"', $stranka['telo']);
     }
 
     /**
@@ -101,23 +133,26 @@ class TrvalePrihlaseniDoAdminuTest extends AbstractTestWeb
     private function zavriProhlizec(string $prohlizec): string
     {
         $poZavreni = $this->getNovaRelace();
-        $zustanou = array_filter(
-            $this->getCookies($prohlizec),
-            static fn (array $cookie): bool => $cookie['vyprsi'] !== '0',
-        );
-        file_put_contents(
-            $poZavreni,
-            implode('', array_map(static fn (array $cookie): string => $cookie['radek'] . "\n", $zustanou)),
-        );
+        $curl = curl_init();
+        curl_setopt($curl, CURLOPT_COOKIEFILE, $prohlizec);
+        curl_setopt($curl, CURLOPT_COOKIEJAR, $poZavreni);
+        curl_setopt($curl, CURLOPT_COOKIELIST, 'RELOAD');
+        curl_setopt($curl, CURLOPT_COOKIELIST, 'SESS');
+        unset($curl); // až teď curl zapíše cookies do souboru
 
         return $poZavreni;
     }
 
     private function getCookieTrvalehoPrihlaseni(string $prohlizec): ?string
     {
-        foreach ($this->getCookies($prohlizec) as $cookie) {
-            if ($cookie['nazev'] === TrvalePrihlaseni::COOKIE && $cookie['hodnota'] !== '') {
-                return $cookie['hodnota'];
+        $curl = curl_init();
+        curl_setopt($curl, CURLOPT_COOKIEFILE, $prohlizec);
+        curl_setopt($curl, CURLOPT_COOKIELIST, 'RELOAD');
+        foreach (curl_getinfo($curl, CURLINFO_COOKIELIST) as $cookie) {
+            // formát Netscape, sedm polí oddělených tabulátorem, název a hodnota jsou poslední dvě
+            $pole = explode("\t", $cookie);
+            if (($pole[5] ?? null) === TrvalePrihlaseni::COOKIE && ($pole[6] ?? '') !== '') {
+                return $pole[6];
             }
         }
 
@@ -125,27 +160,14 @@ class TrvalePrihlaseniDoAdminuTest extends AbstractTestWeb
     }
 
     /**
-     * Cookies ze souboru curl (formát Netscape: sedm polí oddělených tabulátorem). Řádek s `#HttpOnly_` je cookie,
-     * jiný začínající `#` komentář.
-     *
-     * @return list<array{radek: string, vyprsi: string, nazev: string, hodnota: string}>
+     * Trvalá přihlášení uživatele, za kterého se testy přihlašují. Apache píše do téže testovací databáze.
      */
-    private function getCookies(string $prohlizec): array
+    private function getPocetTrvalychPrihlaseni(): int
     {
-        $cookies = [];
-        foreach (file($prohlizec, FILE_IGNORE_NEW_LINES) ?: [] as $radek) {
-            $pole = explode("\t", $radek);
-            if (count($pole) !== 7 || (str_starts_with($radek, '#') && ! str_starts_with($radek, '#HttpOnly_'))) {
-                continue;
-            }
-            $cookies[] = [
-                'radek'   => $radek,
-                'vyprsi'  => $pole[4],
-                'nazev'   => $pole[5],
-                'hodnota' => $pole[6],
-            ];
-        }
-
-        return $cookies;
+        return (int) dbOneCol(<<<'SQL'
+            SELECT COUNT(*) FROM uzivatele_trvala_prihlaseni WHERE id_uzivatele = $0
+            SQL, [
+            0 => \Uzivatel::SYSTEM,
+        ]);
     }
 }

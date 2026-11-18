@@ -28,7 +28,8 @@ input[type=text].form-control, input[type=password].form-control {
     background-color: #3b3b3b;
     color: #fff;
   }
-  .form-text {
+  /* jen nápověda u zaškrtávátka, ne hlášky (.form-text.alert), které mají vlastní barvu na světlém pozadí */
+  .form-check .form-text {
     color: #adb5bd;
   }
 }

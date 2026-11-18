@@ -85,6 +85,21 @@ class Chyba extends Exception
         return (string)reset($chyby);
     }
 
+    /**
+     * Všechny hlášky podle typu, pro stránku, která je vypisuje sama, ne mizejícím boxem z {@see self::vyzvedniHtml()}
+     * (přihlášení do adminu). Vyzvednuté zmizí.
+     *
+     * @return array{chyby: array<string>, varovani: array<string>, oznameni: array<string>} HTML
+     */
+    public static function vyzvedniPodleTypu(): array
+    {
+        return [
+            'chyby'    => static::vyzvedniVsechnyChyby(),
+            'varovani' => static::vyzvedniVsechnaVarovani(),
+            'oznameni' => static::vyzvedniVsechnaOznameni(),
+        ];
+    }
+
     protected static function vyzvedniVsechnyChyby(): array
     {
         return static::vyzvedni(static::KLIC_CHYBY);
