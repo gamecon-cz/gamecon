@@ -136,6 +136,46 @@ class MladsiUcastnikNaAktiviteTest extends AbstractTestDb
         self::assertSame(0, $this->pocetMailuSablonyPro($emailSefa));
     }
 
+    public function testKdyzStitekVekuPribylAzPoPrihlaseniDostaneSefSekceEmailPriDalsimPrihlaseni(): void
+    {
+        $emailSefa = $this->unikatniEmailSefa();
+        $this->nastavSefaSekceLarpu('šéfka Larpů', $emailSefa);
+        $bezVeku = $this->vytvorAktivitu();
+        $ucastnik = $this->vytvorUcastnika(vekVDenAktivity: 15);
+        $bezVeku->prihlas($ucastnik, $ucastnik, Aktivita::IGNOROVAT_KONTROLY);
+        $bezVeku->odhlas($ucastnik, $ucastnik, 'test');
+        self::assertSame(0, $this->pocetMailuSablonyPro($emailSefa), 'Bez štítku věku není o čem psát');
+
+        $this->pridejStitekVeku($bezVeku, 'Věk: 18+');
+        $proStarsi = Aktivita::zId($bezVeku->id(), false, $this->systemoveNastaveni);
+        $proStarsi->prihlas($ucastnik, $ucastnik, Aktivita::IGNOROVAT_KONTROLY);
+
+        self::assertSame(1, $this->pocetMailuSablonyPro($emailSefa), 'O dřívějším přihlášení se šéf sekce nedozvěděl');
+    }
+
+    public function testKdyzEmailNeodeselNapiseSefoviSekcePriDalsimPrihlaseni(): void
+    {
+        $emailSefa = $this->unikatniEmailSefa();
+        $this->nastavSefaSekceLarpu('šéfka Larpů', $emailSefa);
+        $aktivita = $this->vytvorAktivitu('Věk: 18+');
+        $ucastnik = $this->vytvorUcastnika(vekVDenAktivity: 15);
+        $sablona = dbOneLine(<<<'SQL'
+            SELECT * FROM emailova_sablona WHERE kod = $0
+            SQL, [
+            0 => KodEmailoveSablonyEnum::MLADSI_UCASTNIK_NA_AKTIVITE->value,
+        ]);
+        $this->smazSablonuEmailu();
+
+        $aktivita->prihlas($ucastnik, $ucastnik, Aktivita::IGNOROVAT_KONTROLY);
+        $aktivita->odhlas($ucastnik, $ucastnik, 'test');
+        self::assertSame(0, $this->pocetMailuSablonyPro($emailSefa));
+
+        dbInsert('emailova_sablona', $sablona);
+        $aktivita->prihlas($ucastnik, $ucastnik, Aktivita::IGNOROVAT_KONTROLY);
+
+        self::assertSame(1, $this->pocetMailuSablonyPro($emailSefa), 'E-mail, který neodešel, se pošle při dalším přihlášení');
+    }
+
     public function testNaTurnajiJeEmailJenOPrvnimKole(): void
     {
         $emailSefa = $this->unikatniEmailSefa();
@@ -173,12 +213,7 @@ class MladsiUcastnikNaAktiviteTest extends AbstractTestDb
         $this->nastavSefaSekceLarpu('šéfka Larpů', $emailSefa);
         $aktivita = $this->vytvorAktivitu('Věk: 18+');
         $ucastnik = $this->vytvorUcastnika(vekVDenAktivity: 15);
-        // bez šablony se e-mail neodešle (EmailovaSablonaNeniVyplnena)
-        dbQuery(<<<'SQL'
-            DELETE FROM emailova_sablona WHERE kod = $0
-            SQL, [
-            0 => KodEmailoveSablonyEnum::MLADSI_UCASTNIK_NA_AKTIVITE->value,
-        ]);
+        $this->smazSablonuEmailu();
         $pocetChybPred = $this->pocetZapsanychChyb();
 
         // varování (trigger_error) by tu PHPUnit ohlásil, chyba se má jen zapsat
@@ -231,6 +266,18 @@ class MladsiUcastnikNaAktiviteTest extends AbstractTestDb
     {
         self::assertSame([], MladsiUcastniciAktivit::najdi([$this->vytvorAktivitu()]));
         self::assertSame([], MladsiUcastniciAktivit::najdi([]));
+    }
+
+    /**
+     * Bez šablony se e-mail neodešle (EmailovaSablonaNeniVyplnena).
+     */
+    private function smazSablonuEmailu(): void
+    {
+        dbQuery(<<<'SQL'
+            DELETE FROM emailova_sablona WHERE kod = $0
+            SQL, [
+            0 => KodEmailoveSablonyEnum::MLADSI_UCASTNIK_NA_AKTIVITE->value,
+        ]);
     }
 
     private function unikatniEmailSefa(): string

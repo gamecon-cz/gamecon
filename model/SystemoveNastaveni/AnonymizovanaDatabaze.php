@@ -41,6 +41,7 @@ class AnonymizovanaDatabaze
         'upominka_dluznika_log',     // debt per user
         'upominka_vlastni_zneni',
         'uzivatele_trvala_prihlaseni', // hashes of persistent login tokens
+        'akce_mladsi_ucastnik_sef_informovan', // who was younger than the activity's age, from the real birth date
         'bingo_fraze',               // phrases from council meetings, internal
         'bingo_karta',
         'bingo_karta_pole',
