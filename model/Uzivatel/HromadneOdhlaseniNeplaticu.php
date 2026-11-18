@@ -13,6 +13,7 @@ use Gamecon\Logger\LogHomadnychAkciTrait;
 use Gamecon\Logger\Zaznamnik;
 use Gamecon\Role\Role;
 use Gamecon\SystemoveNastaveni\SystemoveNastaveni;
+use Gamecon\Uzivatel\Exceptions\HromadneOdhlasovaniAzPoZacatkuVlny;
 use Gamecon\Uzivatel\Exceptions\HromadneOdhlasovaniJePrilisBrzyPoVlne;
 use Gamecon\Uzivatel\Exceptions\NaHromadneOdhlasovaniJeBrzy;
 use Gamecon\Uzivatel\Exceptions\NaHromadneOdhlasovaniJePozde;
@@ -34,6 +35,8 @@ class HromadneOdhlaseniNeplaticu
     /**
      * @throws NaHromadneOdhlasovaniJeBrzy
      * @throws NaHromadneOdhlasovaniJePozde
+     * @throws HromadneOdhlasovaniJePrilisBrzyPoVlne
+     * @throws HromadneOdhlasovaniAzPoZacatkuVlny
      */
     public function hromadneOdhlasit(
         string             $zdrojOdhlaseniZaklad,
@@ -223,6 +226,8 @@ SQL,
      * @return \Generator{array{neplatic: \Uzivatel, kategorie_neplatice: KategorieNeplatice}}
      * @throws NaHromadneOdhlasovaniJeBrzy
      * @throws NaHromadneOdhlasovaniJePozde
+     * @throws HromadneOdhlasovaniJePrilisBrzyPoVlne
+     * @throws HromadneOdhlasovaniAzPoZacatkuVlny
      */
     public function neplaticiAKategorie(
         \DateTimeInterface $nejblizsiHromadneOdhlasovaniKdy = null,
@@ -277,6 +282,8 @@ Platnost současného hromadného odhlašování byla '%s' (%s), teď je '%s' a 
             }
         }
 
+        $this->overNezacalaVlnaPoHromadnemOdhlasovani($nejblizsiHromadneOdhlasovaniKdy);
+
         foreach ($this->uzivateleKeKontrole() as $uzivatel) {
             $kategorieNeplatice = KategorieNeplatice::vytvorZHromadnehoOdhlasovani(
                 $uzivatel,
@@ -290,6 +297,45 @@ Platnost současného hromadného odhlašování byla '%s' (%s), teď je '%s' a 
                 ];
             }
         }
+    }
+
+    /**
+     * Odhlašování naplánované před vlnou aktivit (první je deset minut před třetí vlnou, aby uvolnilo místa)
+     * musí začít před ní. Zpožděný CRON by jinak zrušil i aktivity, na které se lidé přihlásili až v nové vlně.
+     * Bez tolerance: hned po otevření vlny se přihlašuje nejvíc lidí.
+     *
+     * Porovnává se skutečným časem běhu, ne s $kDatu z neplaticiAKategorie(): e-maily neplatičům a CFO ho
+     * posouvají do budoucna (jako by odhlašování běželo za hodinu, den nebo tři dny), a s ním by se neodeslaly.
+     *
+     * @throws HromadneOdhlasovaniAzPoZacatkuVlny
+     */
+    private function overNezacalaVlnaPoHromadnemOdhlasovani(\DateTimeInterface $hromadneOdhlasovaniKdy): void
+    {
+        $vlnaPoOdhlasovaniKdy = $this->systemoveNastaveni->nejblizsiVlnaKdy($hromadneOdhlasovaniKdy, false);
+        $ted                  = $this->systemoveNastaveni->ted();
+        if ($vlnaPoOdhlasovaniKdy <= $hromadneOdhlasovaniKdy || $ted < $vlnaPoOdhlasovaniKdy) {
+            return; // po odhlašování už žádná vlna není (druhé a třetí odhlašování), nebo ještě nezačala
+        }
+
+        $dalsiHromadneOdhlasovaniKdy = $this->systemoveNastaveni->nejblizsiHromadneOdhlasovaniKdy(
+            DateTimeImmutableStrict::createFromInterface($hromadneOdhlasovaniKdy)->modifyStrict('+1 second'),
+        );
+        $coDal = $dalsiHromadneOdhlasovaniKdy > $hromadneOdhlasovaniKdy
+            ? sprintf(
+                "Neplatiče, kteří do té doby nezaplatí, odhlásí až další hromadné odhlašování '%s'.",
+                $dalsiHromadneOdhlasovaniKdy->format(DateTimeCz::FORMAT_DB),
+            )
+            : 'Další hromadné odhlašování už letos není.';
+
+        throw new HromadneOdhlasovaniAzPoZacatkuVlny(
+            sprintf(
+                "Hromadné odhlášení naplánované na '%s' mělo proběhnout před vlnou aktivit '%s', ale běží až '%s'. Po začátku vlny neodhlašujeme, zrušili bychom i aktivity přihlášené v nové vlně. %s",
+                $hromadneOdhlasovaniKdy->format(DateTimeCz::FORMAT_DB),
+                $vlnaPoOdhlasovaniKdy->format(DateTimeCz::FORMAT_DB),
+                $ted->format(DateTimeCz::FORMAT_DB),
+                $coDal,
+            ),
+        );
     }
 
     public function cfoNotifikovanOBrzkemHromadnemOdhlaseniKdy(
