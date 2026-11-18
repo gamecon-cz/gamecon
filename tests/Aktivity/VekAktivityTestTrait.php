@@ -45,13 +45,26 @@ trait VekAktivityTestTrait
         ]);
         $idAktivity = (int) dbInsertId();
         foreach ($stitkyVeku as $stitekVeku) {
-            dbInsert(AktivitaTagSql::AKCE_SJEDNOCENE_TAGY_TABULKA, [
-                AktivitaTagSql::ID_AKCE => $idAktivity,
-                AktivitaTagSql::ID_TAGU => $this->getStitek($stitekVeku, KategorieTagu::OMEZENI_VEK)->id(),
-            ]);
+            $this->pridejStitekVekuAktiviteSId($idAktivity, $stitekVeku);
         }
 
         return Aktivita::zId($idAktivity, false, $this->systemoveNastaveni);
+    }
+
+    /**
+     * Načtená aktivita má štítky v paměti, nový uvidí až znovu načtená (Aktivita::zId()).
+     */
+    private function pridejStitekVeku(Aktivita $aktivita, string $stitekVeku): void
+    {
+        $this->pridejStitekVekuAktiviteSId((int) $aktivita->id(), $stitekVeku);
+    }
+
+    private function pridejStitekVekuAktiviteSId(int $idAktivity, string $stitekVeku): void
+    {
+        dbInsert(AktivitaTagSql::AKCE_SJEDNOCENE_TAGY_TABULKA, [
+            AktivitaTagSql::ID_AKCE => $idAktivity,
+            AktivitaTagSql::ID_TAGU => $this->getStitek($stitekVeku, KategorieTagu::OMEZENI_VEK)->id(),
+        ]);
     }
 
     /**
