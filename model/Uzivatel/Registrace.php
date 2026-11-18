@@ -383,6 +383,25 @@ HTML
               Odhlásit ostatní zařízení
             </button>
           </form>
+
+          <h2 class="formular_sekceNadpis">Přihlásit jiné zařízení</h2>
+          <p>
+            Na přihlašovací stránce jiného zařízení, na webu i v administraci, zvol <b>Přihlásit QR kódem</b>
+            a kód naskenuj fotoaparátem telefonu, nebo tady.
+          </p>
+          <button type="button" class="formular_sekundarni" style="margin-left: 0"
+                  data-ctecka-qr
+                  data-adresa-schvaleni="<?php echo htmlspecialchars(URL_WEBU . '/' . PrihlaseniQrKodem::STRANKA_SCHVALENI); ?>"
+                  data-jsqr="<?php echo htmlspecialchars(URL_WEBU . '/soubory/jsqr/jsQR.js?version=' . md5_file(WWW . '/soubory/jsqr/jsQR.js')); ?>">
+            Načíst QR kód
+          </button>
+          <div class="cteckaQr" data-ctecka-qr-okno hidden>
+            <video class="cteckaQr_video" playsinline muted></video>
+            <p class="cteckaQr_zprava" data-ctecka-qr-zprava aria-live="polite"></p>
+            <button type="button" class="formular_sekundarni" style="margin-left: 0" data-ctecka-qr-zavrit>
+              Zavřít
+            </button>
+          </div>
             <?php
         } ?>
       </div>

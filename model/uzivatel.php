@@ -2145,6 +2145,45 @@ SQL,
     }
 
     /**
+     * Přihlášení zařízení, které schválil přihlášený uživatel na jiném zařízení (QR kódem,
+     * {@see \Gamecon\Uzivatel\PrihlaseniQrKodem}).
+     *
+     * @param string|null $razitko razítko přihlášení session, která schválila. Když se mezitím změnilo (odhlášení
+     *                             ostatních zařízení, nové heslo), zařízení se nepřihlásí.
+     * @param bool        $trvale  jako zaškrtnuté „Trvale přihlásit“
+     */
+    public static function prihlasSchvalenymZarizenim(int $idUzivatele, ?string $razitko, bool $trvale): ?self
+    {
+        $uzivatelData = self::nactiDataProPrihlaseni($idUzivatele);
+        if ($uzivatelData === null
+            || ! self::isRazitkoPlatne($uzivatelData[Sql::RAZITKO_PRIHLASENI], $razitko)
+        ) {
+            return null;
+        }
+        // Přihlásí se session s novým id: to dosavadní mohl prohlížeči podstrčit někdo jiný (cookie session je pro
+        // celou doménu a nastavit ji jde z kterékoli subdomény, třeba z preview), a přihlášením by s ním získal účet.
+        if (session_status() === PHP_SESSION_ACTIVE && ! headers_sent()) {
+            session_regenerate_id(true);
+        }
+        // trvalé přihlášení jiného uživatele, který byl v session dřív, nechá jako přihlášení heslem, viz prihlas()
+        if ((int) ($_SESSION[self::UZIVATEL]['id_uzivatele'] ?? 0) !== $idUzivatele) {
+            unset($_SESSION[self::UZIVATEL][self::SESSION_ID_TRVALEHO_PRIHLASENI]);
+        }
+        $u = self::prihlasDoSession($uzivatelData, self::UZIVATEL);
+        // nové přihlášení začíná bez přepnutí, až po startu session, který by ho načetl znovu
+        PrepnutiNaUzivatele::zSession()->zapomen();
+        if ($trvale) {
+            // razítko z DB: jen proti tomu založí řádek, viz TrvalePrihlaseni::zaloz()
+            $_SESSION[self::UZIVATEL][self::SESSION_ID_TRVALEHO_PRIHLASENI] = TrvalePrihlaseni::zaloz(
+                $u->id(),
+                $uzivatelData[Sql::RAZITKO_PRIHLASENI],
+            );
+        }
+
+        return $u;
+    }
+
+    /**
      * Společný konec všech přihlášení: uživatel s daty z uzivatele_hodnoty v session na indexu $klic.
      * Razítko přihlášení si session vezme aktuální z dat, kdo zná správnější, nastaví ho po tom
      * {@see self::obnovPrihlaseni()}.

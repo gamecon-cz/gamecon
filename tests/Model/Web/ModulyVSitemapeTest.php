@@ -29,6 +29,7 @@ class ModulyVSitemapeTest extends TestCase
         'odhlas-z-mailu'     => 'akce z odkazu v e-mailu',
         'poukaz'             => 'formulář',
         'prihlaseni'         => 'přihlášení',
+        'prihlasit-zarizeni' => 'schválení přihlášení QR kódem, jen s kódem z odkazu',
         'prihlaska'          => 'formulář přihlášky',
         'program-nahled-api' => 'JSON',
         'qrka'               => 'jen pro přihlášené',

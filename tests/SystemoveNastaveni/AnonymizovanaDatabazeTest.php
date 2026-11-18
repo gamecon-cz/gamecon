@@ -145,6 +145,12 @@ class AnonymizovanaDatabazeTest extends AbstractTestDb
             'uzivatele_trvala_prihlaseni' => <<<'SQL'
                 INSERT INTO uzivatele_trvala_prihlaseni SET id_uzivatele = 100, token_hash = SHA2('token', 256)
                 SQL,
+            'prihlaseni_qr' => <<<'SQL'
+                INSERT INTO prihlaseni_qr
+                SET kod_hash = SHA2('kod', 256), cislo = 42, nabidka_cisel = '17,42,88', do_adminu = 0,
+                    ip = '192.0.2.1', prohlizec = 'Firefox',
+                    vytvoreno_unix = UNIX_TIMESTAMP(), id_uzivatele = 100, schvaleno_unix = UNIX_TIMESTAMP()
+                SQL,
             'bingo_fraze' => <<<'SQL'
                 INSERT INTO bingo_fraze SET id = 1, text = 'To probereme mimo jednání', id_autora = 100
                 SQL,
