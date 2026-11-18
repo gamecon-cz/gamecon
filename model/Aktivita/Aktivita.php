@@ -54,7 +54,6 @@ class Aktivita
     private array $kolekce = []; // nadřízená kolekce, v rámci které byla aktivita načtena
     /** @var array<Lokace>|null */
     private ?array             $seznamLokaci;
-    private null | int | false $idHlavniLokace        = null;
     private                    $stav;
     private ?int               $idHlavniAktivityCache = null;
     private bool               $nova;           // jestli jde o nově uloženou aktivitu nebo načtenou z DB
@@ -598,14 +597,8 @@ SQL
         ?Aktivita $aktivita,
         XTemplate $xtpl,
     ): void {
-        // stejné pořadí jako při automatickém výběru hlavní místnosti, @see vyberHlavniLokaci
         $vsechnyLokace = Lokace::zVsech();
-        usort($vsechnyLokace, static function (
-            Lokace $a,
-            Lokace $b,
-        ) {
-            return [$a->poradi(), $a->id()] <=> [$b->poradi(), $b->id()];
-        });
+        usort($vsechnyLokace, [Lokace::class, 'porovnejPodlePoradi']);
 
         /** @var array<string, array<int, Lokace>> $vsechnyLokacePodlePoznamky */
         $vsechnyLokacePodlePoznamky = [];
@@ -619,7 +612,7 @@ SQL
             return htmlspecialchars((string)$value, ENT_QUOTES | ENT_HTML5);
         };
 
-        $vybraneLokace = $aktivita?->seznamLokaciIdcka() ?? [];
+        $idckaVybranychLokaci = $aktivita?->seznamLokaciIdcka() ?? [];
 
         // místnosti se stejnou poznámkou jsou v jedné skupině (jeden nadpis), místnosti bez poznámky mimo skupinu
         foreach ($vsechnyLokacePodlePoznamky as $poznamka => $lokaceSeStejnouPoznamkou) {
@@ -629,7 +622,7 @@ SQL
             foreach ($lokaceSeStejnouPoznamkou as $indexLokace => $lokace) {
                 $xtpl->assign('id_lokace', $lokace->id());
                 $xtpl->assign('nazev_lokace', $encodeForHtml($lokace->nazev()));
-                $xtpl->assign('lokace_selected', in_array($lokace->id(), $vybraneLokace, true)
+                $xtpl->assign('lokace_selected', in_array($lokace->id(), $idckaVybranychLokaci, true)
                     ? 'selected'
                     : '');
                 $xtpl->assign(
@@ -647,51 +640,16 @@ SQL
                 $xtpl->parse('upravy.tabulka.lokace');
             }
         }
-        self::parseUpravyTabulkaHlavniLokace($aktivita, $vsechnyLokace, $xtpl);
-    }
 
-    /**
-     * Hlavní místnost jde vybrat jen z místností aktivity. Prázdná volba „automaticky“ nechá hlavní místnost vybrat
-     * při uložení (@see vyberHlavniLokaci). JS v šabloně nabídku přepočítá při každé změně místností.
-     * @param array<Lokace> $vsechnyLokace seřazené podle pořadí místností
-     */
-    private static function parseUpravyTabulkaHlavniLokace(
-        ?Aktivita $aktivita,
-        array     $vsechnyLokace,
-        XTemplate $xtpl,
-    ): void {
-        $idckaVybranychLokaci = $aktivita?->seznamLokaciIdcka() ?? [];
-        $vybraneLokace = array_values(array_filter(
-            $vsechnyLokace,
-            static fn(
-                Lokace $lokace,
-            ): bool => in_array($lokace->id(), $idckaVybranychLokaci, true),
-        ));
-        $idHlavniLokace = $aktivita?->idHlavniLokace();
-
-        $xtpl->assign([
-            'id_lokace' => '',
-            'nazev'     => htmlspecialchars(
-                $vybraneLokace !== []
-                    ? 'automaticky: ' . $vybraneLokace[0]->nazev()
-                    : '(žádná)',
-                ENT_QUOTES | ENT_HTML5,
-            ),
-            'selected'  => '',
-        ]);
-        $xtpl->parse('upravy.tabulka.vyberHlavniLokace');
-
-        foreach ($vybraneLokace as $lokace) {
-            $xtpl->assign([
-                'id_lokace' => $lokace->id(),
-                'nazev'     => htmlspecialchars((string)$lokace->nazev(), ENT_QUOTES | ENT_HTML5),
-                'selected'  => $lokace->id() === $idHlavniLokace
-                    ? 'selected'
-                    : '',
-            ]);
-            $xtpl->parse('upravy.tabulka.vyberHlavniLokace');
-        }
-
+        // Nabídku hlavní místnosti (automaticky + vybrané místnosti) skládá jen JS v šabloně, při načtení i při každé
+        // změně místností. Odsud dostane všechny místnosti v pořadí a výslovně zvolenou hlavní místnost, pokud nějaká je.
+        $idZvoleneHlavniLokace = $aktivita?->getIdZvoleneHlavniLokace();
+        $xtpl->assign(
+            'idZvoleneHlavniLokace',
+            $idZvoleneHlavniLokace !== null && in_array($idZvoleneHlavniLokace, $idckaVybranychLokaci, true)
+                ? $idZvoleneHlavniLokace
+                : '',
+        );
         $xtpl->assign(
             'lokaceProHlavniLokaciJson',
             json_encode(
@@ -1161,8 +1119,8 @@ SQL
                 $lokaceIds[$lokaceId] = $lokaceId;
             }
         }
-        // Hlavní místnost je nepovinná: když chybí nebo mezi vybranými místnostmi není (organizátor ji odebral),
-        // uložení vybere jednu z vybraných a odebranou zpátky nepřidá, @see nastavLokacePodleIds
+        // Hlavní místnost je nepovinná: prázdná znamená „automaticky“ a zvolená, která mezi vybranými místnostmi není
+        // (organizátor ji odebral), se mezi místnosti zpátky nepřidá a platí taky „automaticky“, @see nastavLokacePodleIds
         $hlavniLokaceId = (int)post(self::HLAVNI_LOKACE_KLIC) ?: null;
 
         $obrazekSoubor = postFile(self::OBRAZEK_KLIC);
@@ -1482,7 +1440,7 @@ SQL
     public function instancuj(): ?Aktivita
     {
         $lokaceIds = $this->seznamLokaciIdcka();
-        $hlavniLokaceId = $this->idHlavniLokace();
+        $hlavniLokaceId = $this->getIdZvoleneHlavniLokace(); // automatická zůstane automatickou
 
         $akt = dbOneLine('SELECT * FROM akce_seznam WHERE id_akce=' . $this->id());
         //odstraníme id, url a popisek, abychom je nepoužívali/neduplikovali při vkládání
@@ -1597,6 +1555,7 @@ SQL
     }
 
     /**
+     * Místnosti aktivity, hlavní první (@see HlavniLokace), ostatní v pořadí místností.
      * @return array<Lokace>
      */
     public function seznamLokaci(): array
@@ -1615,80 +1574,46 @@ SQL
         }
 
         if (count($this->seznamLokaci) > 1) {
-            $idHlavniLokace = $this->idHlavniLokace();
-            usort(
-                $this->seznamLokaci,
-                static function (
-                    Lokace $a,
-                    Lokace $b,
-                ) use
-                (
-                    $idHlavniLokace,
-                ) {
-                    if ($a->id() === $b->id()) {
-                        return 0; // stejná lokace
-                    }
-                    if ($idHlavniLokace !== null) {
-                        // hlavní nejdřív, pak podle pořadí
-                        if ($a->id() === $idHlavniLokace) {
-                            return -1; // a je hlavní lokace
-                        }
-                        if ($b->id() === $idHlavniLokace) {
-                            return 1; // b je hlavní lokace
-                        }
-                    }
-
-                    return $a->poradi() <=> $b->poradi();
-                },
-            );
+            usort($this->seznamLokaci, [Lokace::class, 'porovnejPodlePoradi']);
+            $idHlavniLokace = HlavniLokace::vyber($this->seznamLokaci, $this->getIdZvoleneHlavniLokace())?->id();
+            $this->seznamLokaci = [
+                ...array_filter($this->seznamLokaci, static fn(Lokace $lokace): bool => $lokace->id() === $idHlavniLokace),
+                ...array_filter($this->seznamLokaci, static fn(Lokace $lokace): bool => $lokace->id() !== $idHlavniLokace),
+            ];
         }
 
         return $this->seznamLokaci;
     }
 
+    /**
+     * Výslovně zvolená, nebo automatická hlavní místnost (@see HlavniLokace), bez místností null.
+     */
     public function hlavniLokace(): ?Lokace
     {
-        $idHlavniLokace = $this->idHlavniLokace();
-        if ($idHlavniLokace === null) {
-            return null;
-        }
-        foreach ($this->seznamLokaci() as $lokace) {
-            if ($lokace->id() === $idHlavniLokace) {
-                return $lokace;
-            }
-        }
-        throw new \LogicException(sprintf(
-            'Hlavní lokace s ID %d nebyla nalezena v seznamu lokací aktivity %d.',
-            $idHlavniLokace,
-            $this->id(),
-        ));
+        return $this->seznamLokaci()[0] ?? null;
     }
 
     public function idHlavniLokace(): ?int
     {
-        if (!isset($this->idHlavniLokace)) {
-            $idHlavniLokace = dbFetchSingle(<<<SQL
-                SELECT COALESCE(
-                    akce_seznam.id_hlavni_lokace,
-                    (SELECT id_lokace FROM akce_lokace WHERE id_akce = {$this->id()} ORDER BY id_lokace ASC LIMIT 1)
-                )
-                FROM akce_seznam
-                WHERE id_akce = {$this->id()}
-                SQL,
-            );
-            $this->idHlavniLokace = $idHlavniLokace
-                ? (int)$idHlavniLokace
-                : false;
-        }
-
-        return $this->idHlavniLokace
-            ?: null;
+        return $this->hlavniLokace()?->id();
     }
 
     /**
-     * Hlavní místnost je vždy jednou z místností aktivity. Když není zvolená, nebo mezi místnostmi není
-     * (třeba ji někdo z místností právě odebral), vybere se automaticky, @see vyberHlavniLokaci.
-     * Zvolenou hlavní místnost to mezi místnosti nepřidá.
+     * Hlavní místnost, kterou organizátor výslovně zvolil, null znamená „automaticky“ (@see HlavniLokace).
+     */
+    public function getIdZvoleneHlavniLokace(): ?int
+    {
+        $idZvoleneHlavniLokace = $this->a[Sql::ID_HLAVNI_LOKACE] ?? null;
+
+        return $idZvoleneHlavniLokace !== null && $idZvoleneHlavniLokace !== ''
+            ? (int)$idZvoleneHlavniLokace
+            : null;
+    }
+
+    /**
+     * Uloží místnosti aktivity a výslovně zvolenou hlavní místnost, v jedné transakci a jen s existujícími místnostmi.
+     * Zvolená hlavní místnost, která mezi místnostmi není (třeba ji někdo z místností právě odebral), se mezi ně
+     * nepřidá a uloží se null, tedy „automaticky“ (@see HlavniLokace).
      * @param array<int|string> $idckaLokaci
      */
     public function nastavLokacePodleIds(
@@ -1696,77 +1621,80 @@ SQL
         ?int  $hlavniLokaceId,
     ): void {
         $idckaLokaci = array_values(array_unique(array_map('intval', $idckaLokaci)));
-        if ($idckaLokaci === []) {
-            dbQuery(<<<SQL
+        $idZvoleneHlavniLokace = $hlavniLokaceId !== null && in_array($hlavniLokaceId, $idckaLokaci, true)
+            ? $hlavniLokaceId
+            : null;
+        self::overExistenciLokaci($idckaLokaci);
+
+        dbBegin();
+        try {
+            if ($idckaLokaci === []) {
+                dbQuery(<<<SQL
                     DELETE FROM akce_lokace
                     WHERE id_akce = {$this->id()}
                     SQL,
-            );
-        } else {
-            dbQuery(<<<SQL
+                );
+            } else {
+                // prázdné pole by dalo NOT IN (NULL), které nesmaže nic, proto zvlášť
+                dbQuery(<<<SQL
                     DELETE FROM akce_lokace
                     WHERE id_akce = {$this->id()}
-                    AND id_lokace NOT IN ($1)
+                        AND id_lokace NOT IN ($1)
                     SQL,
-                [1 => $idckaLokaci],
-            );
-        }
-        if ($idckaLokaci !== []) {
-            $values = array_map(
-                function (
-                    int $idLokace,
-                ) {
-                    return "({$this->id()}, $idLokace)";
-                },
-                $idckaLokaci,
-            );
-            $valuesSql = implode(',', $values);
+                    [1 => $idckaLokaci],
+                );
+                $valuesSql = implode(
+                    ',',
+                    array_map(
+                        fn(
+                            int $idLokace,
+                        ): string => "({$this->id()}, $idLokace)",
+                        $idckaLokaci,
+                    ),
+                );
+                dbQuery(<<<SQL
+                    REPLACE INTO akce_lokace(id_akce, id_lokace)
+                    VALUES {$valuesSql}
+                    SQL,
+                );
+            }
             dbQuery(<<<SQL
-                REPLACE INTO akce_lokace(id_akce, id_lokace)
-                VALUES {$valuesSql}
+                UPDATE akce_seznam
+                SET id_hlavni_lokace = $1
+                WHERE id_akce = {$this->id()}
                 SQL,
+                [1 => $idZvoleneHlavniLokace],
             );
+            dbCommit();
+        } catch (\Throwable $throwable) {
+            dbRollback();
+            throw $throwable;
         }
-        $hlavniLokaceId = self::vyberHlavniLokaci($idckaLokaci, $hlavniLokaceId);
-        dbQuery(<<<SQL
-            UPDATE akce_seznam
-            SET id_hlavni_lokace = $1
-            WHERE id_akce = {$this->id()}
-            SQL,
-            [1 => $hlavniLokaceId],
-        );
-        $this->idHlavniLokace = null;
+
+        $this->a[Sql::ID_HLAVNI_LOKACE] = $idZvoleneHlavniLokace;
         $this->seznamLokaci = null;
     }
 
     /**
-     * Zvolená hlavní místnost, pokud je mezi místnostmi aktivity, jinak první z nich podle pořadí místností
-     * (tak je řadí i nabídka hlavní místnosti v editoru), bez místností žádná.
      * @param array<int> $idckaLokaci
      */
-    private static function vyberHlavniLokaci(
-        array $idckaLokaci,
-        ?int  $zvolenaHlavniLokaceId,
-    ): ?int {
+    private static function overExistenciLokaci(array $idckaLokaci): void
+    {
         if ($idckaLokaci === []) {
-            return null;
+            return;
         }
-        if ($zvolenaHlavniLokaceId !== null && in_array($zvolenaHlavniLokaceId, $idckaLokaci, true)) {
-            return $zvolenaHlavniLokaceId;
-        }
-        $idPrvniLokace = dbOneCol(<<<'SQL'
-            SELECT id_lokace
-            FROM lokace
-            WHERE id_lokace IN ($0)
-            ORDER BY poradi, id_lokace
-            LIMIT 1
+        $idckaExistujicichLokaci = array_map('intval', dbFetchColumn(<<<'SQL'
+            SELECT id_lokace FROM lokace WHERE id_lokace IN ($0)
             SQL,
             [0 => $idckaLokaci],
-        );
-
-        return $idPrvniLokace
-            ? (int)$idPrvniLokace
-            : null;
+        ));
+        $idckaNeexistujicichLokaci = array_diff($idckaLokaci, $idckaExistujicichLokaci);
+        if ($idckaNeexistujicichLokaci !== []) {
+            throw new \InvalidArgumentException(sprintf(
+                'Místnosti s ID %s neexistují.',
+                implode(', ', $idckaNeexistujicichLokaci),
+            ));
+        }
     }
 
     public function popisLokaci(): string
