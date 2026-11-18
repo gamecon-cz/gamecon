@@ -3,14 +3,20 @@
 <h1>Korektury textů</h1>
 
 <p>
-    Neopravené texty letošních aktivit (název, krátký a dlouhý popis) se tu dají poslat na korekturu do AI chatu
-    (Claude, ChatGPT…) a její návrhy pak schválit. Aktivitu změní a označí jako opravenou až schválení.
+    Neopravené texty letošních aktivit (název, krátký a dlouhý popis) se tu dají poslat na korekturu AI
+    a její návrhy pak schválit. Aktivitu změní a označí jako opravenou až schválení.
 </p>
 <ol>
-    <li>Připrav balíky a stáhni první z nich. Pokyny pro AI jsou v souboru, nic nepiš.</li>
-    <li>Soubor nahraj do chatu s AI, nebo vlož jeho obsah do zprávy. Když AI odpověď přeruší, napiš jí „pokračuj“.</li>
-    <li>Odpověď AI vlož níže a načti. Jde to i po částech a opakovaně.</li>
-    <li>Projdi návrhy: přijmi, ručně uprav, nebo zamítni. Pak další balík.</li>
+    <li>Připrav balíky.</li>
+    <li>
+        Pošli je AI tlačítkem „Poslat AI“. Odpovědi dojdou samy, obvykle do hodiny, a stránka si je načte, až ji otevřeš
+        (podívá se nejvýš jednou za minutu).
+        <br>
+        Nebo balík stáhni a soubor nahraj do chatu s AI (Claude, ChatGPT…), případně vlož jeho obsah do zprávy.
+        Pokyny pro AI jsou v souboru, nic nepiš. Když AI odpověď přeruší, napiš jí „pokračuj“. Odpověď pak vlož níže
+        a načti, jde to i po částech a opakovaně.
+    </li>
+    <li>Projdi návrhy: přijmi, ručně uprav, nebo zamítni.</li>
 </ol>
 
 <style>
@@ -63,7 +69,7 @@
     }
 </style>
 
-<h2>1. Stáhni texty pro AI</h2>
+<h2>1. Pošli texty AI</h2>
 
 <p>Neopravených textů, které ještě nejsou na korektuře: <strong>{pocetKExportu}</strong></p>
 
@@ -81,6 +87,9 @@
     <tr>
         <th>Balík</th>
         <th>Aktivit</th>
+        <!-- begin:hlavickaAi -->
+        <th>AI přes API</th>
+        <!-- end:hlavickaAi -->
         <th></th>
         <th></th>
     </tr>
@@ -88,9 +97,22 @@
     <tr>
         <td>{balik}</td>
         <td>{pocetAktivit}</td>
+        <!-- begin:ai -->
+        <td>
+            <!-- begin:uAi -->
+            čeká na AI: {pocetUAi} (od {odeslanoAi})
+            <!-- end:uAi -->
+            <!-- begin:poslat -->
+            <form method="post">
+                <input type="hidden" name="balik" value="{balik}">
+                <button type="submit" name="poslatAi" value="1">Poslat AI</button>
+            </form>
+            <!-- end:poslat -->
+        </td>
+        <!-- end:ai -->
         <td><a href="{urlModulu}?stahnout=1&amp;balik={balik}">Stáhnout</a></td>
         <td>
-            <form method="post" onsubmit="return window.confirm('Zrušit balík {balik}? Jeho aktivity se vrátí mezi neopravené.')">
+            <form method="post" onsubmit="return window.confirm('Zrušit balík {balik}? Jeho aktivity se vrátí mezi neopravené, odpověď AI, která na ně ještě nedošla, se zahodí.')">
                 <input type="hidden" name="balik" value="{balik}">
                 <button type="submit" name="zrusitBalik" value="1">Zrušit</button>
             </form>
@@ -98,13 +120,26 @@
     </tr>
     <!-- end:balik -->
 </table>
+<!-- begin:poslatVse -->
+<form method="post">
+    <button type="submit" name="poslatAi" value="1">Poslat AI všechny balíky (aktivit: {neposlanoAi})</button>
+</form>
+<!-- end:poslatVse -->
 <p>
     <a href="{urlModulu}?stahnout=1">Stáhnout všechny balíky v jednom souboru</a>,
     pro AI, která zvládne pracovat se souborem (třeba Claude Code).
 </p>
 <!-- end:baliky -->
 
-<h2 id="import">2. Nahraj odpověď AI</h2>
+<!-- begin:bezAi -->
+<p><em>Posílání AI přes API tu není zapnuté (chybí klíč k API), texty jdou jen přes soubor.</em></p>
+<!-- end:bezAi -->
+
+<!-- begin:chybaAi -->
+<div class="error no-image">{chybaAi}</div>
+<!-- end:chybaAi -->
+
+<h2 id="import">2. Nahraj odpověď AI z chatu</h2>
 
 <form method="post" enctype="multipart/form-data">
     <textarea name="odpoved" rows="8" class="korektury-odpoved" placeholder="Sem vlož odpověď AI…"></textarea>
@@ -116,6 +151,9 @@
 
 <!-- begin:vysledekImportu -->
 <div class="info no-image">
+    <!-- begin:zApi -->
+    Došly odpovědi AI.
+    <!-- end:zApi -->
     Načteno návrhů: <strong>{pocetNavrhu}</strong>, z toho bez nalezených chyb: {pocetBezZmen}.
 </div>
 <!-- begin:varovani -->

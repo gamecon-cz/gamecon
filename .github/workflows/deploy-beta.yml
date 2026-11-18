@@ -113,3 +113,5 @@ jobs:
                     ARCHIVE_GATE_SECRET: ${{ secrets.ARCHIVE_GATE_SECRET }}
                     # Master pro magické přihlášení do archivu (viz deploy-ostra.yml).
                     GAMECON_SSO_SECRET: ${{ secrets.GAMECON_SSO_SECRET }}
+                    # Korektury textů aktivit přes API Anthropicu (viz deploy-ostra.yml).
+                    ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}

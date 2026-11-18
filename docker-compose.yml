@@ -35,6 +35,10 @@ services:
       MAILER_DSN: "smtp://mailhog.gamecon:1025"
       # kam v prohlížeči vede Mailpit (viz mailhog.gamecon níže), pro tlačítko Otevřít schránku v adminu
       MAILHOG_URL: "http://localhost:${MAILHOG_HOST_MAPPING_PORT:-8125}"
+      # klíč k API Anthropicu pro korektury textů aktivit přes API, bez něj jdou texty jen přes soubor. Vlastní jméno
+      # proměnné (v .env), ne ANTHROPIC_API_KEY: ten mívá vývojář v shellu pro jiné nástroje a lokální admin by
+      # pak bez vědomí posílal skutečné texty na jeho placený účet
+      ANTHROPIC_API_KEY: "${GAMECON_ANTHROPIC_API_KEY:-}"
     ports:
       - "${WEB_HTTP_HOST_MAPPING_PORT:-80}:80"
       - "${WEB_HTTPS_HOST_MAPPING_PORT:-443}:443"

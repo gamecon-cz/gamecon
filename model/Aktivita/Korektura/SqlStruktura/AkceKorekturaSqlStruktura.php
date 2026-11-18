@@ -19,6 +19,8 @@ class AkceKorekturaSqlStruktura
     public const NAVRH_POPIS_KRATKY = 'navrh_popis_kratky';
     public const NAVRH_POPIS = 'navrh_popis';
     public const ZMENY = 'zmeny';
+    public const ID_DAVKY_AI = 'id_davky_ai';
+    public const ODESLANO_AI_KDY = 'odeslano_ai_kdy';
     public const EXPORTOVAL = 'exportoval';
     public const EXPORTOVANO_KDY = 'exportovano_kdy';
     public const NAVRZENO_KDY = 'navrzeno_kdy';
