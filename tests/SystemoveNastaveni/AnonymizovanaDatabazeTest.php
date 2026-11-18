@@ -157,6 +157,9 @@ class AnonymizovanaDatabazeTest extends AbstractTestDb
                     ip = '192.0.2.1', prohlizec = 'Firefox',
                     vytvoreno_unix = UNIX_TIMESTAMP(), id_uzivatele = 100, schvaleno_unix = UNIX_TIMESTAMP()
                 SQL,
+            'akce_mladsi_ucastnik_sef_informovan' => <<<'SQL'
+                INSERT INTO akce_mladsi_ucastnik_sef_informovan SET id_log = 1, jak = 'email'
+                SQL,
             'bingo_fraze' => <<<'SQL'
                 INSERT INTO bingo_fraze SET id = 1, text = 'To probereme mimo jednání', id_autora = 100
                 SQL,
