@@ -70,7 +70,7 @@ TEXT;
      */
     public function vytvor(array $korektury, array $drivejsiPodleAktivit, int $rocnik): string
     {
-        $bloky = [str_replace('%rocnik%', (string) $rocnik, self::POKYNY)];
+        $bloky = [$this->pokyny($rocnik)];
         foreach ($korektury as $korektura) {
             $bloky[] = $this->blokAktivity($korektura, $drivejsiPodleAktivit[$korektura->idAktivity] ?? null);
         }
@@ -85,7 +85,18 @@ TEXT;
             : "korektura-gamecon-{$rocnik}.txt";
     }
 
-    private function blokAktivity(KorekturaTextu $korektura, ?DrivejsiTexty $drivejsi): string
+    /**
+     * The same for a file and for the API, where they go as the system prompt.
+     */
+    public function pokyny(int $rocnik): string
+    {
+        return str_replace('%rocnik%', (string) $rocnik, self::POKYNY);
+    }
+
+    /**
+     * The texts of one activity; the API gets each activity in a request of its own.
+     */
+    public function blokAktivity(KorekturaTextu $korektura, ?DrivejsiTexty $drivejsi): string
     {
         $radky = ['<' . self::ZNACKA_AKTIVITA . ' id="' . $korektura->idAktivity . '">'];
         $radky[] = $this->texty($korektura->puvodni);

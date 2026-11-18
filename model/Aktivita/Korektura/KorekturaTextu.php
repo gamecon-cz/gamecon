@@ -20,6 +20,8 @@ readonly class KorekturaTextu
         public ?string $navrhPopisKratky,
         public ?string $navrhPopis,
         public ?string $zmeny,
+        // the batch of the AI API the texts wait in, null when they are not sent through the API
+        public ?string $idDavkyAi = null,
     ) {
     }
 
