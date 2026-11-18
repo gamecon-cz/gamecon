@@ -119,10 +119,9 @@
         <td>
             <select name="{aEditLokace}[]" multiple="multiple" id="vyberLokaci">
                 <!-- begin:lokace -->
-                {previous_optgroup_lokace_end}
                 {optgroup_lokace_start}
                 <option {lokace_selected} value="{id_lokace}">{nazev_lokace}</option>
-                {last_optgroup_lokace_end}
+                {optgroup_lokace_end}
                 <!-- end:lokace -->
             </select>
             <script type="text/javascript">
@@ -155,7 +154,7 @@
           <ul style="margin:0; padding-left: 1em; list-style: none">
             <li>
                 <label for="hlavniLokace" class="display-block">
-                    ↳ <span class="hinted">hlavní místnost¹<span class="hint">Nepovinné - označ jednu z výše vybraných místností jako hlavní</span></span>
+                    ↳ <span class="hinted">hlavní místnost¹<span class="hint">Nepovinné. Nabízí jen místnosti vybrané výše. Když žádnou nevybereš, nebo hlavní místnost z místností odebereš, bude hlavní ta, která je v nabídce první (podle pořadí místností). Hlavní místnost se uvádí jako první, záleží na ní hlavně u aktivity se záložní místností (třeba když se hraje venku).</span></span>
               </label>
             </li>
           </ul>
@@ -166,6 +165,31 @@
                 <option {selected} value="{id_lokace}">{nazev}</option>
                 <!-- end:vyberHlavniLokace -->
             </select>
+            <script type="text/javascript">
+                (function () {
+                    // Nabídka hlavní místnosti drží krok s vybranými místnostmi. Odebraná hlavní místnost se vrátí
+                    // na „automaticky“, uložení pak vybere první z místností v pořadí, v jakém jsou tady.
+                    // středník je nutný: XTemplate vypíše proměnnou PHP tagem a PHP spolkne konec řádku hned za ním
+                    const lokaceVPoradi = {lokaceProHlavniLokaciJson};
+                    const $hlavniLokace = $('#hlavniLokace')
+                    $('#vyberLokaci').on('change', function () {
+                        const idckaVybranych = new Set(($(this).val() || []).map(String))
+                        const vybraneLokace = lokaceVPoradi.filter((lokace) => idckaVybranych.has(String(lokace.id)))
+                        const zvolenaHlavni = String($hlavniLokace.val() || '')
+                        $hlavniLokace.empty()
+                        $hlavniLokace.append(new Option(
+                            vybraneLokace.length > 0
+                                ? 'automaticky: ' + vybraneLokace[0].nazev
+                                : '(žádná)',
+                            '',
+                        ))
+                        vybraneLokace.forEach((lokace) => {
+                            $hlavniLokace.append(new Option(lokace.nazev, String(lokace.id)))
+                        })
+                        $hlavniLokace.val(idckaVybranych.has(zvolenaHlavni) ? zvolenaHlavni : '')
+                    })
+                })()
+            </script>
         </td>
     </tr>
     <tr>

@@ -648,12 +648,13 @@ SQL
         ?Aktivita $aktivita,
         XTemplate $xtpl,
     ): void {
+        // stejné pořadí jako při automatickém výběru hlavní místnosti, @see vyberHlavniLokaci
         $vsechnyLokace = Lokace::zVsech();
         usort($vsechnyLokace, static function (
             Lokace $a,
             Lokace $b,
         ) {
-            return $a->poradi() <=> $b->poradi();
+            return [$a->poradi(), $a->id()] <=> [$b->poradi(), $b->id()];
         });
 
         /** @var array<string, array<int, Lokace>> $vsechnyLokacePodlePoznamky */
@@ -662,73 +663,97 @@ SQL
             $vsechnyLokacePodlePoznamky[trim((string)$lokace->poznamka())][] = $lokace;
         }
 
-        $pocetVsechLokaci = count($vsechnyLokace);
-        $nazevPredchoziKategorie = null;
-
-        $encodeForHtml = function (
+        $encodeForHtml = static function (
             ?string $value,
-        ) {
+        ): string {
             return htmlspecialchars((string)$value, ENT_QUOTES | ENT_HTML5);
         };
 
         $vybraneLokace = $aktivita?->seznamLokaciIdcka() ?? [];
 
-        $indexLokace = 0;
+        // místnosti se stejnou poznámkou jsou v jedné skupině (jeden nadpis), místnosti bez poznámky mimo skupinu
         foreach ($vsechnyLokacePodlePoznamky as $poznamka => $lokaceSeStejnouPoznamkou) {
-            $jeNovaKategorie = $nazevPredchoziKategorie !== null
-                               && $nazevPredchoziKategorie !== $poznamka;
-            foreach ($lokaceSeStejnouPoznamkou as $lokace) {
-                assert($lokace instanceof Lokace);
+            $poznamka = (string)$poznamka; // číselný klíč pole by byl int
+            $jeSkupina = $poznamka !== '';
+            $indexPosledniLokace = count($lokaceSeStejnouPoznamkou) - 1;
+            foreach ($lokaceSeStejnouPoznamkou as $indexLokace => $lokace) {
                 $xtpl->assign('id_lokace', $lokace->id());
                 $xtpl->assign('nazev_lokace', $encodeForHtml($lokace->nazev()));
                 $xtpl->assign('lokace_selected', in_array($lokace->id(), $vybraneLokace, true)
                     ? 'selected'
                     : '');
                 $xtpl->assign(
-                    'previous_optgroup_lokace_end',
-                    $jeNovaKategorie && $nazevPredchoziKategorie !== null
-                        ? '</optgroup>'
-                        : '',
-                );
-                $xtpl->assign(
                     'optgroup_lokace_start',
-                    $jeNovaKategorie
+                    $jeSkupina && $indexLokace === 0
                         ? '<optgroup label="' . $encodeForHtml(mb_ucfirst($poznamka)) . '">'
                         : '',
                 );
                 $xtpl->assign(
-                    'last_optgroup_lokace_end',
-                    $indexLokace + 1 === $pocetVsechLokaci
+                    'optgroup_lokace_end',
+                    $jeSkupina && $indexLokace === $indexPosledniLokace
                         ? '</optgroup>'
                         : '',
                 );
                 $xtpl->parse('upravy.tabulka.lokace');
-                $nazevPredchoziKategorie = $poznamka;
             }
-            $indexLokace++;
         }
         self::parseUpravyTabulkaHlavniLokace($aktivita, $vsechnyLokace, $xtpl);
     }
 
     /**
-     * @param array<Lokace> $vsechnyLokace
+     * Hlavní místnost jde vybrat jen z místností aktivity. Prázdná volba „automaticky“ nechá hlavní místnost vybrat
+     * při uložení (@see vyberHlavniLokaci). JS v šabloně nabídku přepočítá při každé změně místností.
+     * @param array<Lokace> $vsechnyLokace seřazené podle pořadí místností
      */
     private static function parseUpravyTabulkaHlavniLokace(
         ?Aktivita $aktivita,
         array     $vsechnyLokace,
         XTemplate $xtpl,
     ): void {
-        $xtpl->assign(['id_lokace' => null, 'nazev' => '(žádná)', 'selected' => '']);
+        $idckaVybranychLokaci = $aktivita?->seznamLokaciIdcka() ?? [];
+        $vybraneLokace = array_values(array_filter(
+            $vsechnyLokace,
+            static fn(
+                Lokace $lokace,
+            ): bool => in_array($lokace->id(), $idckaVybranychLokaci, true),
+        ));
+        $idHlavniLokace = $aktivita?->idHlavniLokace();
+
+        $xtpl->assign([
+            'id_lokace' => '',
+            'nazev'     => htmlspecialchars(
+                $vybraneLokace !== []
+                    ? 'automaticky: ' . $vybraneLokace[0]->nazev()
+                    : '(žádná)',
+                ENT_QUOTES | ENT_HTML5,
+            ),
+            'selected'  => '',
+        ]);
         $xtpl->parse('upravy.tabulka.vyberHlavniLokace');
 
-        $hlavniLokace = $aktivita?->hlavniLokace();
-        foreach ($vsechnyLokace as $lokace) {
-            $xtpl->assign('selected', $lokace->id() === $hlavniLokace?->id()
-                ? 'selected'
-                : '');
-            $xtpl->assign(['id_lokace' => $lokace->id(), 'nazev' => htmlspecialchars($lokace->nazev(), ENT_QUOTES | ENT_HTML5)]);
+        foreach ($vybraneLokace as $lokace) {
+            $xtpl->assign([
+                'id_lokace' => $lokace->id(),
+                'nazev'     => htmlspecialchars((string)$lokace->nazev(), ENT_QUOTES | ENT_HTML5),
+                'selected'  => $lokace->id() === $idHlavniLokace
+                    ? 'selected'
+                    : '',
+            ]);
             $xtpl->parse('upravy.tabulka.vyberHlavniLokace');
         }
+
+        $xtpl->assign(
+            'lokaceProHlavniLokaciJson',
+            json_encode(
+                array_map(
+                    static fn(
+                        Lokace $lokace,
+                    ): array => ['id' => $lokace->id(), 'nazev' => (string)$lokace->nazev()],
+                    $vsechnyLokace,
+                ),
+                JSON_UNESCAPED_UNICODE | JSON_HEX_TAG | JSON_HEX_AMP | JSON_THROW_ON_ERROR,
+            ),
+        );
     }
 
     private static function dejRozsirenyNazevAktivity(Aktivita $aktivita): string
@@ -1197,18 +1222,9 @@ SQL
                 $lokaceIds[$lokaceId] = $lokaceId;
             }
         }
-        $hlavniLokaceId = post(self::HLAVNI_LOKACE_KLIC);
-        $hlavniLokaceId = $hlavniLokaceId
-            ? (int)$hlavniLokaceId
-            : null;
-        if ($hlavniLokaceId !== null) {
-            $lokaceIds[$hlavniLokaceId] = $hlavniLokaceId; // automaticky přidáme zvolenou hlavní lokaci do seznamu lokací
-        }
-        if ($hlavniLokaceId === null && count($lokaceIds) === 1) {
-            // pokud je vybrána pouze jedna lokace, nastavíme ji jako hlavní
-            $hlavniLokaceId = reset($lokaceIds);
-        }
-        self::chybaNebylaLiHlavniLokaceNastavena($lokaceIds, $hlavniLokaceId);
+        // Hlavní místnost je nepovinná: když chybí nebo mezi vybranými místnostmi není (organizátor ji odebral),
+        // uložení vybere jednu z vybraných a odebranou zpátky nepřidá, @see nastavLokacePodleIds
+        $hlavniLokaceId = (int)post(self::HLAVNI_LOKACE_KLIC) ?: null;
 
         $obrazekSoubor = postFile(self::OBRAZEK_KLIC);
         $obrazekUrl = post(self::OBRAZEK_KLIC . 'Url');
@@ -1264,22 +1280,6 @@ SQL
                 chyba($result->getError(), false);
             }
         }
-    }
-
-    private static function chybaNebylaLiHlavniLokaceNastavena(
-        array $lokaceIds,
-        ?int  $hlavniLokaceId,
-    ): void {
-        if ($lokaceIds === [] && $hlavniLokaceId === null) {
-            return;
-        }
-        if (in_array($hlavniLokaceId, $lokaceIds, true)) {
-            return;
-        }
-        chyba(
-            'Hlavní místnost musí být jednou z vybraných místností.',
-            true,
-        );
     }
 
     /**
@@ -1587,9 +1587,6 @@ SQL
             throw new \LogicException("Nepodařilo se načíst nově vytvořenou aktivitu s ID {$idNoveAktivity}");
         }
 
-        if ($hlavniLokaceId !== null && !in_array($hlavniLokaceId, $lokaceIds, true)) {
-            $hlavniLokaceId = null;
-        }
         $novaAktivita->nastavLokacePodleIds($lokaceIds, $hlavniLokaceId);
         $novaAktivita->nastavTagy($this->tagy());
 
@@ -1759,10 +1756,17 @@ SQL
             ?: null;
     }
 
+    /**
+     * Hlavní místnost je vždy jednou z místností aktivity. Když není zvolená, nebo mezi místnostmi není
+     * (třeba ji někdo z místností právě odebral), vybere se automaticky, @see vyberHlavniLokaci.
+     * Zvolenou hlavní místnost to mezi místnosti nepřidá.
+     * @param array<int|string> $idckaLokaci
+     */
     public function nastavLokacePodleIds(
         array $idckaLokaci,
         ?int  $hlavniLokaceId,
     ): void {
+        $idckaLokaci = array_values(array_unique(array_map('intval', $idckaLokaci)));
         if ($idckaLokaci === []) {
             dbQuery(<<<SQL
                     DELETE FROM akce_lokace
@@ -1785,7 +1789,7 @@ SQL
                 ) {
                     return "({$this->id()}, $idLokace)";
                 },
-                array_map('intval', $idckaLokaci),
+                $idckaLokaci,
             );
             $valuesSql = implode(',', $values);
             dbQuery(<<<SQL
@@ -1794,14 +1798,7 @@ SQL
                 SQL,
             );
         }
-        if ($hlavniLokaceId !== null && !in_array($hlavniLokaceId, array_map('intval', $idckaLokaci), true)) {
-            throw new \LogicException(
-                sprintf(
-                    'Given ID of main location %d is not in given list of locations %s.',
-                    $hlavniLokaceId, implode(', ', $idckaLokaci),
-                ),
-            );
-        }
+        $hlavniLokaceId = self::vyberHlavniLokaci($idckaLokaci, $hlavniLokaceId);
         dbQuery(<<<SQL
             UPDATE akce_seznam
             SET id_hlavni_lokace = $1
@@ -1811,6 +1808,36 @@ SQL
         );
         $this->idHlavniLokace = null;
         $this->seznamLokaci = null;
+    }
+
+    /**
+     * Zvolená hlavní místnost, pokud je mezi místnostmi aktivity, jinak první z nich podle pořadí místností
+     * (tak je řadí i nabídka hlavní místnosti v editoru), bez místností žádná.
+     * @param array<int> $idckaLokaci
+     */
+    private static function vyberHlavniLokaci(
+        array $idckaLokaci,
+        ?int  $zvolenaHlavniLokaceId,
+    ): ?int {
+        if ($idckaLokaci === []) {
+            return null;
+        }
+        if ($zvolenaHlavniLokaceId !== null && in_array($zvolenaHlavniLokaceId, $idckaLokaci, true)) {
+            return $zvolenaHlavniLokaceId;
+        }
+        $idPrvniLokace = dbOneCol(<<<'SQL'
+            SELECT id_lokace
+            FROM lokace
+            WHERE id_lokace IN ($0)
+            ORDER BY poradi, id_lokace
+            LIMIT 1
+            SQL,
+            [0 => $idckaLokaci],
+        );
+
+        return $idPrvniLokace
+            ? (int)$idPrvniLokace
+            : null;
     }
 
     public function popisLokaci(): string
