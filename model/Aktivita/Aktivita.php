@@ -89,6 +89,10 @@ class Aktivita
     // kontakt na šéfa sekce u linie bez vyplněné hlavičky (KontaktSefaLinie), stejný jako na stránce linie
     public const KONTAKT_NA_SEFA_PROGRAMU = 'info@gamecon.cz';
 
+    // jak se šéf sekce dozvěděl o mladším účastníkovi (akce_mladsi_ucastnik_sef_informovan.jak)
+    private const string SEF_SEKCE_INFORMOVAN_EMAILEM = 'email';
+    private const string SEF_SEKCE_INFORMOVAN_PRIHLASIL_JINY = 'prihlasil_jiny';
+
     // todo: tym asi lepší commenty k parametrům by bodly :)
     /* ignore a parametry kolem přihlašovátka */
     /** plus/mínus zkratky pro měnění míst v team. aktivitě */
@@ -2558,12 +2562,6 @@ SQL
             $dalsiAktivityTymu,
         );
 
-        // před přihlášením, potom by už log přihlášení obsahoval i tohle; o dalších aktivitách turnaje či týmu
-        // (IGNOROVAT_TURNAJ) se nepíše, upozornění bylo jen o aktivitě, na kterou se hlásí
-        $mladsiProSefaSekce = $parametry & self::IGNOROVAT_TURNAJ
-            ? null
-            : $this->najdiMladsihoProSefaSekce($uzivatel, $prihlasujici);
-
         // přihlášení na zbylé aktivity turnaje
         if (!($parametry & self::IGNOROVAT_TURNAJ)) {
             $parametryDalsichAktivit = $parametry
@@ -2603,7 +2601,7 @@ SQL
                 [$idUzivatele, $idAktivity, StavPrihlaseni::PRIHLASEN],
             );
 
-            $this->dejPrezenci()->zalogujPrihlaseni($uzivatel, $prihlasujici);
+            $zmenaPrihlaseni = $this->dejPrezenci()->zalogujPrihlaseni($uzivatel, $prihlasujici);
             // vrací se, storno rušíme a započítáme cenu za běžnou návštěvu aktivity
             $this->zrusPredchoziStornoPoplatek($uzivatel);
 
@@ -2619,103 +2617,131 @@ SQL
 
         $uzivatel->finance()->prepoctiSlevuNaJednuAktivitu();
 
-        if ($mladsiProSefaSekce !== null) {
-            self::napisSefoviSekceOMladsimUcastnikovi($mladsiProSefaSekce);
+        // o dalších aktivitách turnaje či týmu (IGNOROVAT_TURNAJ) se nepíše, upozornění bylo jen o aktivitě, na kterou
+        // se hlásí
+        if (!($parametry & self::IGNOROVAT_TURNAJ)) {
+            $this->informujSefaSekceOMladsimUcastnikovi($uzivatel, $prihlasujici, $zmenaPrihlaseni->idLogu());
         }
 
         return true;
     }
 
     /**
-     * Účastník, o kterém má šéf sekce dostat e-mail (napisSefoviSekceOMladsimUcastnikovi()), jinak null.
-     * Stejné pravidlo jako upozornění (getUpozorneniNaVek()), účastník ho tedy viděl: hlásí se sám a na aktivitu, na
-     * kterou se hlásí (u turnaje první kolo), je mladší. Kdo přihlašuje za jiného (admin, vypravěč v prezenci), má
-     * výjimku domluvenou (záměr).
-     * Volá se před přihlášením: jestli to šéf sekce už ví, pozná z logu přihlášení (sefSekceViOMladsimUcastnikovi()).
-     * Chyba se jen zapíše, přihlášení kvůli e-mailu neselže.
+     * Po uloženém přihlášení: je-li účastník na aktivitě mladší, než je její věk, zařídí, aby o tom šéf sekce věděl,
+     * a zapíše to k přihlášení ($idLoguPrihlaseni, akce_mladsi_ucastnik_sef_informovan).
+     * - Přihlásil se sám (stejné pravidlo jako upozornění, getUpozorneniNaVek(), účastník ho tedy viděl): šéf sekce
+     *   dostane e-mail, když o něm ještě neví (jeSefSekceInformovanOMladsimUcastnikovi()). Zapíše se, jen když e-mail
+     *   opravdu odešel, jinak mu při dalším přihlášení napíše znovu.
+     * - Přihlásil ho jiný (admin, vypravěč v prezenci): ten měl výjimku domluvenou (záměr), e-mail nejde, jen se zapíše.
+     * Věk je jen aktivity, na kterou se hlásí (u turnaje první kolo).
+     * Přihlášení je v tu chvíli uložené: když se e-mail nepodaří odeslat, nesmí to vypadat, že se nepovedlo přihlásit.
+     * Chyba se proto jen zapíše do logu chyb (Vyjimkovac), trigger_error() by ji tam, kde se chyby zobrazují, ukázal
+     * místo odpovědi a skript ukončil.
      */
-    private function najdiMladsihoProSefaSekce(Uzivatel $ucastnik, Uzivatel $prihlasujici): ?MladsiUcastnikAktivity
-    {
+    private function informujSefaSekceOMladsimUcastnikovi(
+        Uzivatel $ucastnik,
+        Uzivatel $prihlasujici,
+        int $idLoguPrihlaseni,
+    ): void {
         try {
-            $mladsi = $this->getMladsiUcastnik($ucastnik, $prihlasujici);
+            $mladsi = $this->getMladsiUcastnik($ucastnik);
+            if ($mladsi === null) {
+                return;
+            }
+            if ((int) $prihlasujici->id() !== (int) $ucastnik->id()) {
+                $this->zapisSefSekceInformovan($idLoguPrihlaseni, self::SEF_SEKCE_INFORMOVAN_PRIHLASIL_JINY);
 
-            return $mladsi !== null && !$this->sefSekceViOMladsimUcastnikovi($ucastnik)
-                ? $mladsi
-                : null;
+                return;
+            }
+            if ($this->jeSefSekceInformovanOMladsimUcastnikovi($ucastnik)) {
+                return;
+            }
+            if (self::napisSefoviSekceOMladsimUcastnikovi($mladsi)) {
+                $this->zapisSefSekceInformovan($idLoguPrihlaseni, self::SEF_SEKCE_INFORMOVAN_EMAILEM);
+            }
         } catch (\Throwable $chyba) {
             Vyjimkovac::vytvorZGlobals()->zaloguj(new \RuntimeException(
-                "Nepodařilo se zjistit, jestli psát šéfovi sekce o mladším účastníkovi {$ucastnik->id()} na aktivitě {$this->id()}",
+                "Šéfa sekce se nepodařilo informovat o mladším účastníkovi {$ucastnik->id()} na aktivitě {$this->id()}",
                 previous: $chyba,
             ));
-
-            return null;
         }
     }
 
     /**
-     * Šéf sekce už o účastníkovi na téhle aktivitě ví: byl na ni přihlášený (sám, pak dostal šéf e-mail, nebo ho
-     * přihlásil někdo jiný, ten měl výjimku domluvenou) a od té doby ho z ní nikdo jiný neodhlásil.
+     * Šéf sekce už o účastníkovi na téhle aktivitě ví: od chvíle, kdy ho z ní naposledy odhlásil někdo jiný, byl na ni
+     * přihlášený a šéf sekce se o tom dozvěděl (akce_mladsi_ucastnik_sef_informovan: e-mail odešel, nebo ho přihlásil
+     * jiný, ten měl výjimku domluvenou).
      * Kdo se sám odhlásí a znovu přihlásí, nic nového nepřináší. Koho odhlásil šéf sekce (nebo kdokoli jiný) a on se
-     * přihlásil znovu, o tom šéf sekce dostane nový e-mail.
+     * přihlásil znovu, o tom šéf sekce dostane nový e-mail. Přihlášení, o kterém se šéf sekce nedozvěděl (e-mail
+     * neodešel, štítek věku tehdy aktivita neměla, účastník byl tehdy dost starý), se nepočítá.
      */
-    private function sefSekceViOMladsimUcastnikovi(Uzivatel $ucastnik): bool
+    private function jeSefSekceInformovanOMladsimUcastnikovi(Uzivatel $ucastnik): bool
     {
-        $vi = false;
+        $informovan = false;
         foreach (dbFetchAll(<<<'SQL'
-            SELECT typ, id_zmenil
+            SELECT akce_prihlaseni_log.typ,
+                   akce_prihlaseni_log.id_zmenil,
+                   akce_mladsi_ucastnik_sef_informovan.id_log IS NOT NULL AS sef_sekce_informovan
             FROM akce_prihlaseni_log
-            WHERE id_akce = $0 AND id_uzivatele = $1 AND typ IN ($2)
-            ORDER BY id_log
+            LEFT JOIN akce_mladsi_ucastnik_sef_informovan
+                ON akce_mladsi_ucastnik_sef_informovan.id_log = akce_prihlaseni_log.id_log
+            WHERE akce_prihlaseni_log.id_akce = $0
+              AND akce_prihlaseni_log.id_uzivatele = $1
+              AND akce_prihlaseni_log.typ IN ($2)
+            ORDER BY akce_prihlaseni_log.id_log
             SQL, [
             0 => $this->id(),
             1 => $ucastnik->id(),
             2 => [AktivitaPrezenceTyp::PRIHLASENI, AktivitaPrezenceTyp::ODHLASENI, AktivitaPrezenceTyp::ODHLASENI_HROMADNE],
         ]) as $zaznam) {
             if ($zaznam['typ'] === AktivitaPrezenceTyp::PRIHLASENI) {
-                $vi = true;
+                $informovan = $informovan || (bool) $zaznam['sef_sekce_informovan'];
             } elseif ((int) $zaznam['id_zmenil'] !== (int) $ucastnik->id()) {
-                $vi = false;
+                $informovan = false;
             }
         }
 
-        return $vi;
+        return $informovan;
+    }
+
+    private function zapisSefSekceInformovan(int $idLoguPrihlaseni, string $jak): void
+    {
+        dbQuery(<<<'SQL'
+            INSERT INTO akce_mladsi_ucastnik_sef_informovan (id_log, jak) VALUES ($0, $1)
+            SQL, [
+            0 => $idLoguPrihlaseni,
+            1 => $jak,
+        ]);
     }
 
     /**
      * Šéfovi sekce (KontaktSefaLinie) napíše, že se na aktivitu sám přihlásil účastník, kterému v den aktivity ještě
-     * nebude její minimální věk (najdiMladsihoProSefaSekce()). Účastník před přihlášením viděl upozornění, že se mu
-     * šéf sekce ozve (getUpozorneniNaVek()).
-     * Přihlášení je v tu chvíli uložené: když se e-mail nepodaří odeslat, nesmí to vypadat, že se nepovedlo přihlásit.
-     * Chyba se proto jen zapíše do logu chyb (Vyjimkovac), trigger_error() by ji tam, kde se chyby zobrazují, ukázal
-     * místo odpovědi a skript ukončil.
+     * nebude její minimální věk. Účastník před přihlášením viděl upozornění, že se mu šéf sekce ozve
+     * (getUpozorneniNaVek()).
+     *
+     * @return bool e-mail odešel; chyba odeslání se vyhodí
      */
-    private static function napisSefoviSekceOMladsimUcastnikovi(MladsiUcastnikAktivity $mladsi): void
+    private static function napisSefoviSekceOMladsimUcastnikovi(MladsiUcastnikAktivity $mladsi): bool
     {
         $aktivita = $mladsi->aktivita;
         $ucastnik = $mladsi->ucastnik;
-        try {
-            (new EmailoveSablony($aktivita->systemoveNastaveni))
-                ->vytvorMail(KodEmailoveSablonyEnum::MLADSI_UCASTNIK_NA_AKTIVITE, [
-                    'aktivita'        => $aktivita->nazev(),
-                    'cas'             => $aktivita->denCasSkutecny(),
-                    'minimalni_vek'   => (string) $mladsi->minimalniVek,
-                    'vek'             => (string) $mladsi->vek,
-                    'ucastnik'        => (string) $ucastnik->jmenoNick(),
-                    'email_ucastnika' => (string) $ucastnik->mail(),
-                    'vypraveci'       => implode(', ', array_map(
-                        static fn(Uzivatel $vypravec) => (string) $vypravec->jmenoNick(),
-                        $aktivita->organizatori(),
-                    )) ?: 'nikdo',
-                    'odkaz'           => URL_ADMIN . '/aktivity/prihlaseni?typ=' . $aktivita->typId() . '#aktivita-' . $aktivita->id(),
-                ])
-                ->adresat($aktivita->getKontaktSefaSekce()->getEmail())
-                ->odeslat();
-        } catch (\Throwable $chyba) {
-            Vyjimkovac::vytvorZGlobals()->zaloguj(new \RuntimeException(
-                "E-mail šéfovi sekce o mladším účastníkovi {$ucastnik->id()} na aktivitě {$aktivita->id()} se nepodařilo odeslat",
-                previous: $chyba,
-            ));
-        }
+
+        return (bool) (new EmailoveSablony($aktivita->systemoveNastaveni))
+            ->vytvorMail(KodEmailoveSablonyEnum::MLADSI_UCASTNIK_NA_AKTIVITE, [
+                'aktivita'        => $aktivita->nazev(),
+                'cas'             => $aktivita->denCasSkutecny(),
+                'minimalni_vek'   => (string) $mladsi->minimalniVek,
+                'vek'             => (string) $mladsi->vek,
+                'ucastnik'        => (string) $ucastnik->jmenoNick(),
+                'email_ucastnika' => (string) $ucastnik->mail(),
+                'vypraveci'       => implode(', ', array_map(
+                    static fn(Uzivatel $vypravec) => (string) $vypravec->jmenoNick(),
+                    $aktivita->organizatori(),
+                )) ?: 'nikdo',
+                'odkaz'           => URL_ADMIN . '/aktivity/prihlaseni?typ=' . $aktivita->typId() . '#aktivita-' . $aktivita->id(),
+            ])
+            ->adresat($aktivita->getKontaktSefaSekce()->getEmail())
+            ->odeslat();
     }
 
     /**

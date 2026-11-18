@@ -42,6 +42,7 @@ class AnonymizovanaDatabaze
         'upominka_vlastni_zneni',
         'uzivatele_trvala_prihlaseni', // hashes of persistent login tokens
         'prihlaseni_qr',             // IP address and browser of devices logged in with a QR code, and by whom
+        'akce_mladsi_ucastnik_sef_informovan', // who was younger than the activity's age, from the real birth date
         'bingo_fraze',               // phrases from council meetings, internal
         'bingo_karta',
         'bingo_karta_pole',
