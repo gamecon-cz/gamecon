@@ -178,6 +178,8 @@ export const proveďAkciAktivity = async (aktivitaId: number, typ: ApiAktivitaAk
             aktivita.slevaNasobic   = response.aktivitaUzivatel.slevaNasobic;
             aktivita.mistnosti      = response.aktivitaUzivatel.mistnosti;
             aktivita.vedu           = response.aktivitaUzivatel.vedu;
+            // po odhlášení se dá přihlásit znovu dřív, než dorazí nová data účastníka
+            aktivita.upozorneniNaVek = response.aktivitaUzivatel.upozorneniNaVek;
           }
         }
       }, undefined, "okamžitá aktualizace z akce");

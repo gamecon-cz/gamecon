@@ -2,6 +2,7 @@
 
 use Gamecon\Aktivita\Aktivita;
 use Gamecon\Aktivita\FiltrAktivity;
+use Gamecon\Aktivita\KontaktSefaLinie;
 use Gamecon\Aktivita\Program;
 use Gamecon\Aktivita\StavAktivity;
 use Gamecon\Aktivita\Tag;
@@ -147,10 +148,7 @@ foreach ($skupiny as $skupina) {
         if ($minulyRocnik) {
             $prihlasit = '';
         } elseif ($aktivita->tymova() && $u && $u->gcPrihlasen() && $aktivita->prihlasovatelna()) {
-            $aktivitaId    = (int)$aktivita->id();
-            $aktivitaNazev = addslashes($aktivita->nazev());
-            $label         = $aktivita->prihlasen($u) ? 'Nastavení týmu' : 'Přihlásit tým';
-            $prihlasit     = "<button onclick=\"window.preactMost.prihlaseniTymu.otevri({$aktivitaId}, '{$aktivitaNazev}')\">{$label}</button>";
+            $prihlasit = $aktivita->getPrihlasovatkoTymu($u);
         } else {
             $prihlasit = $aktivita->prihlasovatko($u);
         }
@@ -273,10 +271,8 @@ if (!empty($org)) {
 } elseif ($typ) {
     $this->info()->nazev(mb_ucfirst($typ->nazevDlouhy()) . $pripojkaRocniku);
 
-    $hlavickaLinie = dbOneLine(
-        'SELECT sekce, jmeno, email FROM akce_typy_hlavicky WHERE id_typu = $1',
-        [$typ->id()],
-    );
+    // stejný kontakt dostane mladší účastník v upozornění na věk
+    $sefSekce = KontaktSefaLinie::zTypu($typ->id());
 
     $picture_path = URL_WEBU . '/' . cestaObrazkuLinie($typ->id());
 
@@ -284,9 +280,9 @@ if (!empty($org)) {
     $t->assign([
         'popisLinie'      => $typ->oTypu(),
         'ikonaLinie'      => $picture_path,
-        'ikonaLinieSekce' => !empty($hlavickaLinie['sekce']) ? $hlavickaLinie['sekce'] : 'Sekce',
-        'ikonaLinieJmeno' => !empty($hlavickaLinie['jmeno']) ? $hlavickaLinie['jmeno'] : 'Jmeno "Prezdivka" Prijmeni',
-        'ikonaLinieEmail' => !empty($hlavickaLinie['email']) ? $hlavickaLinie['email'] : 'info@gamecon.cz',
+        'ikonaLinieSekce' => $sefSekce->getSekce() ?? 'Sekce',
+        'ikonaLinieJmeno' => $sefSekce->getJmeno() ?? 'Jmeno "Prezdivka" Prijmeni',
+        'ikonaLinieEmail' => $sefSekce->getEmail(),
         'specTridy'       => $typ->id() == TypAktivity::DRD
             ? 'aktivity_aktivity-drd'
             : null,

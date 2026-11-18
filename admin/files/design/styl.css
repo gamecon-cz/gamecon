@@ -995,6 +995,17 @@ a > .hinted {
   cursor: inherit
 }
 
+/* přihlášený mladší, než je věk aktivity (štítek „Věk: 15+“): Přehled aktivit, Seznam přihlášených */
+.mladsi-nez-vek-aktivity {
+  color: #c62828;
+  font-weight: bold;
+  white-space: nowrap;
+}
+
+.mladsi-nez-vek-aktivity .hint {
+  font-weight: normal;
+}
+
 .hint {
   position: absolute;
   display: none;

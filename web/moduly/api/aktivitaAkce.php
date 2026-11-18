@@ -70,6 +70,8 @@ if ($aktivitaId) {
             'slevaNasobic'   => $aktivita->soucinitelCenyAktivity($uPracovni),
             'mistnost'       => $hlavniLokace !== null ? (string) $hlavniLokace : null,
             'vedu'           => $jeOrganizator,
+            // po odhlášení se dá hned přihlásit znovu, upozornění na věk musí být po ruce (stejné jako v aktivityUzivatel.php)
+            'upozorneniNaVek' => $aktivita->getUpozorneniNaVekProPrihlasovatko($uPracovni, $u),
         ];
     }
 }

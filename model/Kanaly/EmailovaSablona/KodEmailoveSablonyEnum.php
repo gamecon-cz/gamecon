@@ -15,6 +15,7 @@ enum KodEmailoveSablonyEnum: string
     case UVOLNENE_MISTO = 'uvolnene_misto';
     case NEDOSTAVENI_SE_NA_AKTIVITU = 'nedostaveni_se_na_aktivitu';
     case UZAVRENI_PREZENCE = 'uzavreni_prezence';
+    case MLADSI_UCASTNIK_NA_AKTIVITE = 'mladsi_ucastnik_na_aktivite';
 
     case ODHLASENI_Z_GAMECONU = 'odhlaseni_z_gameconu';
     case HROMADNE_ODHLASENI_NEPLATIC_ZRUSENO = 'hromadne_odhlaseni_neplatic_zruseno';

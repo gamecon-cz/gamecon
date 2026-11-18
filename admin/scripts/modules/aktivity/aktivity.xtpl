@@ -207,6 +207,9 @@
         <!-- begin:aktivita -->
         <tr>
             <td><span class="{hinted}">{nazev_akce}<!-- begin:hint --><span class="hint">{tagy}</span><!-- end:hint --></span>
+                <!-- begin:mladsi -->
+                <a{mladsiHref} class="hinted mladsi-nez-vek-aktivity"><i class="fa-solid fa-baby" aria-hidden="true"></i>&nbsp;{mladsiPocet}<span class="hint">{mladsiPopis}</span></a>
+                <!-- end:mladsi -->
             </td>
             <td>{cas}</td>
             <td>{organizatori}</td>
