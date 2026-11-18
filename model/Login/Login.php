@@ -10,6 +10,11 @@ class Login
 {
     public const LOGIN_INPUT_NAME    = 'loginNAdm';
     public const PASSWORD_INPUT_NAME = 'hesloNAdm';
+    /**
+     * Zaškrtnuté = trvalé přihlášení, viz docs/generated/prihlaseni-na-vice-zarizenich.md. Na rozdíl od webu
+     * schválně nezaškrtnuté: admin se používá i na sdílených počítačích infopultu.
+     */
+    public const TRVALE_INPUT_NAME = 'trvaleNAdm';
 
     public function __construct(
         private readonly Info                        $info,
@@ -48,6 +53,7 @@ class Login
             'base'              => URL_ADMIN . '/',
             'loginInputName'    => self::LOGIN_INPUT_NAME,
             'passwordInputName' => self::PASSWORD_INPUT_NAME,
+            'trvaleInputName'   => self::TRVALE_INPUT_NAME,
         ]);
 
         $this->pridejLokalniAssety($loginTemplate);

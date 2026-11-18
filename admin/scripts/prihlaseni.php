@@ -15,9 +15,13 @@ use Gamecon\Uzivatel\PrepnutiNaUzivatele;
  */
 // Přihlášení. Zpět na preview, odkud brána preview poslala do adminu, se jde přes ?returnTo=; formulář se odesílá
 // na tutéž URL, takže parametr přežije odeslání, a chyba() po špatném hesle vrací na ni (back()) také.
+// Trvalé přihlášení dá cookie jen hostu adminu: na ostré a betě je to jiný host než web, a tak jiná cookie i řádek,
+// viz docs/generated/prihlaseni-na-vice-zarizenich.md.
 $u = null;
 if (post(Login::LOGIN_INPUT_NAME) && post(Login::PASSWORD_INPUT_NAME)) {
-    $pravePrihlaseny = Uzivatel::prihlas(post(Login::LOGIN_INPUT_NAME), post(Login::PASSWORD_INPUT_NAME));
+    $pravePrihlaseny = post(Login::TRVALE_INPUT_NAME)
+        ? Uzivatel::prihlasTrvale(post(Login::LOGIN_INPUT_NAME), post(Login::PASSWORD_INPUT_NAME))
+        : Uzivatel::prihlas(post(Login::LOGIN_INPUT_NAME), post(Login::PASSWORD_INPUT_NAME));
     if (! $pravePrihlaseny) {
         chyba('Chybné přihlašovací jméno nebo heslo');
     }

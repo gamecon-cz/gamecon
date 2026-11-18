@@ -203,8 +203,9 @@ final class TrvalePrihlaseni
     }
 
     /**
-     * @param int|null $idTohoto trvalé přihlášení, které si pamatuje session tohoto prohlížeče. Admin běží
-     *                           na jiném hostu a cookie nevidí, bez tohohle by odhlášení v něm trvalé přihlášení nechalo.
+     * @param int|null $idTohoto trvalé přihlášení, které si pamatuje session tohoto prohlížeče. Na ostré běží admin
+     *                           na jiném hostu než web a cookie toho druhého nevidí, bez tohohle by odhlášení na jednom
+     *                           nechalo trvalé přihlášení, ze kterého session vznikla na druhém.
      */
     public static function zrusNaTomtoZarizeni(?int $idTohoto): void
     {

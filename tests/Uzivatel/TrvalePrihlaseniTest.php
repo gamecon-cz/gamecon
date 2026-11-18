@@ -252,7 +252,7 @@ class TrvalePrihlaseniTest extends AbstractPrihlaseniNaZarizenichTestDb
     }
 
     /**
-     * Admin běží na jiném hostu než web a cookie trvalého přihlášení nevidí, s webem sdílí jen session.
+     * Na ostré běží admin na jiném hostu než web a cookie webu nevidí, s webem sdílí jen session.
      */
     public function testOdhlaseniVAdminuZrusiTrvalePrihlaseniZWebu(): void
     {
