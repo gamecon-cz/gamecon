@@ -2395,6 +2395,10 @@ body.moderni-menu-otevrene .sloupL {
     color: var(--m-odkaz);
   }
 
+  .moderni-tmave .vzhled-moderni .mladsi-nez-vek-aktivity {
+    color: #ff8a80;
+  }
+
   /* Světlé pozadí natvrdo ve style (text e-mailu v Upomínkách a logu, ano/ne ve Slučování, přihlášení
      do Vševědy a webmail v Previews): zůstává světlé, písmo i odkazy musí být tmavé. */
   .moderni-tmave .vzhled-moderni .main pre[style*="background: #f5f5f5"],
