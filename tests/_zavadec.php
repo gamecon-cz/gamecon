@@ -10,6 +10,12 @@ use Gamecon\Tests\Db\DbWrapper;
 require_once __DIR__ . '/../nastaveni/verejne-nastaveni-tests.php';
 require_once __DIR__ . '/../nastaveni/zavadec-zaklad.php';
 
+// Jako nastaveni/zavadec.php: jeden adresář pro celý běh. Šablona zkompilovaná do dvou různých adresářů (vedle
+// zdroje, kam XTemplate bez nastavení kompiluje, a později do cache, kterou si nastavil jiný test) by v jednom
+// procesu deklarovala stejnou třídu podruhé a shodila celý běh.
+pripravCache(XTPL_CACHE_DIR);
+\Gamecon\XTemplate\XTemplate::cache(XTPL_CACHE_DIR);
+
 $dbWrapper = new DbWrapper();
 $dbWrapper->resetTestDb();
 

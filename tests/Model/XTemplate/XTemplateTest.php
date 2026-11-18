@@ -7,13 +7,19 @@ use Symfony\Component\Filesystem\Filesystem;
 
 class XTemplateTest extends PHPUnit\Framework\TestCase
 {
+    private ?string $puvodniCache = null;
+
     public function setUp(): void
     {
+        $this->puvodniCache = XTemplate::cache();
         (new Filesystem())->mkdir(__DIR__ . '/cache', 0775);
     }
 
     protected function tearDown(): void
     {
+        // Adresář cache je statický pro celý proces. Šablona, kterou pak některý test zkompiluje do jiného
+        // adresáře než předtím jiný test, by deklarovala stejnou třídu podruhé (fatal error celého běhu).
+        XTemplate::cache($this->puvodniCache);
         (new Filesystem())->remove(__DIR__ . '/cache');
         foreach (glob(__DIR__ . '/resources/*.xtpc') ?: [] as $cacheSoubor) {
             unlink($cacheSoubor);
