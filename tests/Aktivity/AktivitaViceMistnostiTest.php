@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Gamecon\Tests\Aktivity;
 
 use Gamecon\Aktivita\Aktivita;
+use Gamecon\Aktivita\HlavniLokace;
 use Gamecon\Aktivita\Lokace;
 use Gamecon\Aktivita\SqlStruktura\AkceLokaceSqlStruktura as JunctionSql;
 use Gamecon\Aktivita\SqlStruktura\AkceSeznamSqlStruktura as AktivitaSql;
@@ -22,7 +23,7 @@ class AktivitaViceMistnostiTest extends AbstractTestDb
         // Note: The migration 2025-05-27-165452-aktivita-do-vice-mistnosti.sql has already run
         // in the test database, so lokace table exists and akce_lokace is now the junction table.
         // Insert 6 test locations into lokace table
-        <<<SQL
+        <<<'SQL'
 INSERT INTO lokace(id_lokace, nazev, dvere, poznamka, poradi, rok)
 VALUES
     (1001, 'Velká místnost', 'Budova A, dveře 101', 'Hlavní sál', 1, 0),
@@ -31,18 +32,23 @@ VALUES
     (1004, 'Venkovní prostor', '', 'Zahrada', 4, 0),
     (1005, 'Přednášková místnost', 'Budova C, dveře 301', '', 5, 0),
     (1006, 'Testovací místnost', 'Test dvere', '', 6, 0),
-    (1007, 'Místnost na začátku pořadí', '', '', 0, 0)
+    (1007, 'Místnost na začátku pořadí', '', '', 0, 0),
+    (1008, 'Klubovna se stejným pořadím', '', '', 3, 0)
 SQL,
         // Insert 5 test activities (some with locations, some without)
-        // id_hlavni_lokace is set on akce_seznam for activities with a main location
-        <<<SQL
+        // id_hlavni_lokace is set on akce_seznam for activities with an explicitly chosen main location,
+        // NULL means "automatic" (2006, 2007), 2008 has a stale main location that is not among its locations
+        <<<'SQL'
 INSERT INTO akce_seznam(id_akce, nazev_akce, typ, rok, stav, id_hlavni_lokace)
 VALUES
     (2001, 'Aktivita s jednou místností', 1, 2024, 2, 1001),
     (2002, 'Aktivita s více místnostmi', 1, 2024, 2, 1001),
     (2003, 'Aktivita bez místnosti', 1, 2024, 2, NULL),
     (2004, 'Aktivita pro přesun', 1, 2024, 2, 1004),
-    (2005, 'Aktivita pro změnu hlavní', 1, 2024, 2, 1005)
+    (2005, 'Aktivita pro změnu hlavní', 1, 2024, 2, 1005),
+    (2006, 'Aktivita s automatickou hlavní', 1, 2024, 2, NULL),
+    (2007, 'Aktivita se stejným pořadím místností', 1, 2024, 2, NULL),
+    (2008, 'Aktivita se starou hlavní mimo místnosti', 1, 2024, 2, 1006)
 SQL,
         // Setup junction table - activity 1 has location 1
         <<<SQL
@@ -71,6 +77,15 @@ INSERT INTO akce_lokace(id_akce, id_lokace)
 VALUES
     (2005, 1005),
     (2005, 1006)
+SQL,
+        <<<'SQL'
+INSERT INTO akce_lokace(id_akce, id_lokace)
+VALUES
+    (2006, 1004),
+    (2006, 1007),
+    (2007, 1008),
+    (2007, 1003),
+    (2008, 1002)
 SQL,
     ];
 
@@ -158,6 +173,16 @@ SQL,
             ),
         );
         self::assertSame([1001, 1002, 1003], $lokaceNoveInstance);
+        self::assertSame(1001, $novaInstance->getIdZvoleneHlavniLokace(), 'Zvolená hlavní místnost zůstane zvolená');
+    }
+
+    public function testInstancovaniNechaAutomatickouHlavniLokaciAutomatickou(): void
+    {
+        $novaInstance = Aktivita::zId(2006)->instancuj();
+
+        self::assertSame([1007, 1004], $novaInstance->seznamLokaciIdcka());
+        self::assertNull(self::idZvoleneHlavniLokaceVDb($novaInstance->id()));
+        self::assertSame(1007, $novaInstance->idHlavniLokace());
     }
 
     /**
@@ -270,13 +295,11 @@ SQL,
 
         $aktivita = Aktivita::zId(2003);
 
-        // The first location by poradi becomes main and is stored, so every reader sees the same main location
+        // NULL stays NULL ("automatic"), readers take the first location by poradi
+        self::assertNull(self::idZvoleneHlavniLokaceVDb(2003), 'Nezvolená hlavní místnost se ukládá jako automatická');
+        self::assertNull($aktivita->getIdZvoleneHlavniLokace());
         self::assertSame(1002, $aktivita->idHlavniLokace(), 'První místnost podle pořadí by měla být automaticky hlavní');
-        $hlavniLokace = dbFetchSingle(
-            'SELECT id_hlavni_lokace FROM akce_seznam WHERE id_akce = ?',
-            [2003]
-        );
-        self::assertSame('1002', $hlavniLokace, 'Automaticky vybraná hlavní místnost se má uložit');
+        self::assertSame([1002, 1003, 1004], $aktivita->seznamLokaciIdcka());
     }
 
     /**
@@ -292,10 +315,83 @@ SQL,
         self::assertSame(1007, Aktivita::zId(2003)->idHlavniLokace());
     }
 
+    public function testAutomatickaHlavniLokacePriStejnemPoradiJdePodleIdcka(): void
+    {
+        // 1003 and 1008 have the same poradi
+        $aktivita = Aktivita::zId(2007);
+
+        self::assertSame(1003, $aktivita->idHlavniLokace());
+        self::assertSame([1003, 1008], $aktivita->seznamLokaciIdcka());
+    }
+
+    public function testAutomatickaHlavniLokaceSePosuneSeZmenouMistnosti(): void
+    {
+        $aktivita = Aktivita::zId(2006);
+        self::assertSame(1007, $aktivita->idHlavniLokace());
+
+        $aktivita->nastavLokacePodleIds([1004, 1001], null);
+        self::assertSame(1001, Aktivita::zId(2006)->idHlavniLokace(), 'Automatická hlavní jde s místnostmi');
+
+        $aktivita->nastavLokacePodleIds([1004, 1001, 1007], null);
+        self::assertSame(1007, Aktivita::zId(2006)->idHlavniLokace(), 'Přidaná místnost s nižším pořadím je nová hlavní');
+    }
+
+    public function testStaraAutomatickaHlavniLokaceNevyhodiVyjimku(): void
+    {
+        // a row without a main location: lowest ID is 1004, lowest poradi 1007
+        $aktivita = Aktivita::zId(2006);
+
+        self::assertSame(1007, $aktivita->hlavniLokace()->id());
+        self::assertSame([1007, 1004], $aktivita->seznamLokaciIdcka());
+    }
+
+    public function testZvolenaHlavniLokaceMimoMistnostiSeCteJakoAutomaticka(): void
+    {
+        // 2008 has the stale main location 1006, which is not among its locations
+        self::assertSame(1002, Aktivita::zId(2008)->hlavniLokace()->id());
+    }
+
+    public function testSqlHlavniLokaceVyhodnotiStejneJakoPhp(): void
+    {
+        $sqlIdHlavniLokace = HlavniLokace::getSqlId('akce_seznam');
+        $hlavniLokaceZSql = dbFetchPairs(<<<SQL
+            SELECT akce_seznam.id_akce, {$sqlIdHlavniLokace}
+            FROM akce_seznam
+            WHERE akce_seznam.id_akce IN ($0)
+            ORDER BY akce_seznam.id_akce
+            SQL,
+            [
+                0 => [2001, 2002, 2003, 2005, 2006, 2007, 2008],
+            ],
+        );
+
+        self::assertSame(
+            [
+                2001 => '1001',
+                2002 => '1001',
+                2003 => null,
+                2005 => '1005',
+                2006 => '1007',
+                2007 => '1003',
+                2008 => '1002',
+            ],
+            $hlavniLokaceZSql,
+        );
+        foreach ($hlavniLokaceZSql as $idAktivity => $idHlavniLokace) {
+            self::assertSame(
+                $idHlavniLokace === null
+                    ? null
+                    : (int) $idHlavniLokace,
+                Aktivita::zId($idAktivity)->idHlavniLokace(),
+                "Aktivita {$idAktivity}",
+            );
+        }
+    }
+
     /**
      * @test
      */
-    public function testOdebranaHlavniLokaceSeNevraciAHlavniSeVybereZeZbylych(): void
+    public function testOdebranaHlavniLokaceSeNevraciAHlavniJeAutomaticka(): void
     {
         $aktivita = Aktivita::zId(2005);
         self::assertSame(1005, $aktivita->hlavniLokace()->id(), 'Původně je hlavní místnost 5');
@@ -306,10 +402,7 @@ SQL,
         $aktivita = Aktivita::zId(2005);
         self::assertSame([1006], $aktivita->seznamLokaciIdcka(), 'Odebraná hlavní místnost se nesmí vrátit mezi místnosti');
         self::assertSame(1006, $aktivita->hlavniLokace()->id());
-        self::assertSame(
-            '1006',
-            dbFetchSingle('SELECT id_hlavni_lokace FROM akce_seznam WHERE id_akce = ?', [2005]),
-        );
+        self::assertNull(self::idZvoleneHlavniLokaceVDb(2005), 'Odebraná zvolená hlavní místnost je zase automatická');
     }
 
     // ========================================================================
@@ -331,15 +424,14 @@ SQL,
         self::assertSame([], $aktivita->seznamLokaci());
         self::assertNull($aktivita->hlavniLokace());
 
-        $count = dbFetchSingle('SELECT COUNT(*) FROM akce_lokace WHERE id_akce = ?', [2001]);
-        self::assertSame('0', $count);
-        self::assertNull(dbFetchSingle('SELECT id_hlavni_lokace FROM akce_seznam WHERE id_akce = ?', [2001]));
+        self::assertSame([], self::idckaLokaciVDb(2001));
+        self::assertNull(self::idZvoleneHlavniLokaceVDb(2001));
     }
 
     /**
      * @test
      */
-    public function testHlavniLokaceMimoSeznamSeNepridaAHlavniSeVybereAutomaticky(): void
+    public function testHlavniLokaceMimoSeznamSeNepridaAJeAutomaticka(): void
     {
         $aktivita = Aktivita::zId(2003);
 
@@ -349,6 +441,22 @@ SQL,
         $aktivita = Aktivita::zId(2003);
         self::assertSame([1002, 1003], $aktivita->seznamLokaciIdcka());
         self::assertSame(1002, $aktivita->hlavniLokace()->id(), 'Hlavní je první z místností podle pořadí');
+        self::assertNull(self::idZvoleneHlavniLokaceVDb(2003));
+    }
+
+    public function testNeexistujiciMistnostNicNezmeni(): void
+    {
+        $aktivita = Aktivita::zId(2002);
+
+        try {
+            $aktivita->nastavLokacePodleIds([1002, 9999], 1002);
+            self::fail('Neexistující místnost se nesmí uložit');
+        } catch (\InvalidArgumentException $invalidArgumentException) {
+            self::assertStringContainsString('9999', $invalidArgumentException->getMessage());
+        }
+
+        self::assertSame([1001, 1002, 1003], self::idckaLokaciVDb(2002), 'Místnosti se nesmí změnit');
+        self::assertSame(1001, self::idZvoleneHlavniLokaceVDb(2002), 'Hlavní místnost se nesmí změnit');
     }
 
     /**
@@ -583,5 +691,30 @@ SQL,
 
         self::assertCount(2, $aktivita->seznamLokaci());
         self::assertSame(1003, $aktivita->hlavniLokace()->id());
+    }
+
+    private static function idZvoleneHlavniLokaceVDb(int $idAktivity): ?int
+    {
+        $idHlavniLokace = dbOneCol(<<<'SQL'
+            SELECT id_hlavni_lokace FROM akce_seznam WHERE id_akce = $0
+            SQL, [
+            0 => $idAktivity,
+        ]);
+
+        return $idHlavniLokace === null
+            ? null
+            : (int) $idHlavniLokace;
+    }
+
+    /**
+     * @return array<int>
+     */
+    private static function idckaLokaciVDb(int $idAktivity): array
+    {
+        return array_map('intval', dbFetchColumn(<<<'SQL'
+            SELECT id_lokace FROM akce_lokace WHERE id_akce = $0 ORDER BY id_lokace
+            SQL, [
+            0 => $idAktivity,
+        ]));
     }
 }

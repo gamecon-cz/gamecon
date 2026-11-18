@@ -4,17 +4,15 @@ require __DIR__ . '/sdilene-hlavicky.php';
 /** @var \Gamecon\SystemoveNastaveni\SystemoveNastaveni $systemoveNastaveni */
 
 $rocnik = $systemoveNastaveni->rocnik();
+$sqlIdHlavniLokace = \Gamecon\Aktivita\HlavniLokace::getSqlId('akce_seznam');
 
 $report = Report::zSql(<<<SQL
 SELECT akce_seznam.nazev_akce,
        (SELECT lokace.nazev
         FROM lokace
-        WHERE lokace.id_lokace = COALESCE(
-            akce_seznam.id_hlavni_lokace,
-            (SELECT akce_lokace.id_lokace FROM akce_lokace WHERE akce_lokace.id_akce = akce_seznam.id_akce ORDER BY akce_lokace.id_lokace LIMIT 1)
-        )
+        WHERE lokace.id_lokace = {$sqlIdHlavniLokace}
         LIMIT 1) AS mistnost, -- hlavní místnost
-       (SELECT GROUP_CONCAT(lokace.nazev ORDER BY akce_lokace.id_lokace SEPARATOR '; ')
+       (SELECT GROUP_CONCAT(lokace.nazev ORDER BY lokace.poradi, lokace.id_lokace SEPARATOR '; ')
         FROM akce_lokace
         JOIN lokace ON akce_lokace.id_lokace = lokace.id_lokace
         WHERE akce_lokace.id_akce = akce_seznam.id_akce

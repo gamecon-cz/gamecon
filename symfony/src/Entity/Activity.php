@@ -123,6 +123,10 @@ class Activity
     ])]
     private bool $tymSmazatPoExpiraci = true;
 
+    /**
+     * Only a main location chosen explicitly, one of $locations. Null means "automatic": the first of $locations
+     * by the room order, @see \Gamecon\Aktivita\HlavniLokace
+     */
     #[ORM\ManyToOne(targetEntity: Location::class)]
     #[ORM\JoinColumn(name: 'id_hlavni_lokace', referencedColumnName: 'id_lokace', nullable: true, onDelete: 'SET NULL')]
     private ?Location $mainLocation = null;
