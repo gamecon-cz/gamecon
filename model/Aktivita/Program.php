@@ -79,10 +79,7 @@ class Program
                 Lokace::zVsech(),
                 static fn(Lokace $lokace) => $lokace->rok() === 0 || $lokace->rok() === ROCNIK,
             );
-            usort(
-                $lokaceProRocnik,
-                static fn(Lokace $a, Lokace $b) => $a->poradi() <=> $b->poradi(),
-            );
+            usort($lokaceProRocnik, [Lokace::class, 'porovnejPodlePoradi']);
             $konstanty['PROGRAM_MISTNOSTI'] = array_map(
                 static fn(Lokace $lokace) => $lokace->apiLokace(),
                 array_values($lokaceProRocnik),

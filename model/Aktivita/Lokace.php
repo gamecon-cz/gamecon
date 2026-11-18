@@ -13,6 +13,17 @@ class Lokace extends \DbObject
     protected static $tabulka = Sql::LOKACE_TABULKA;
     protected static $pk      = Sql::ID_LOKACE;
 
+    /**
+     * Pořadí místností ze stránky Místnosti, při shodě podle ID. Podle něj se řadí místnosti aktivity
+     * a vybírá automatická hlavní místnost (@see HlavniLokace), v SQL `ORDER BY lokace.poradi, lokace.id_lokace`.
+     */
+    public static function porovnejPodlePoradi(
+        Lokace $a,
+        Lokace $b,
+    ): int {
+        return [$a->poradi(), $a->id()] <=> [$b->poradi(), $b->id()];
+    }
+
     public function __toString()
     {
         return $this->rozsirenyNazev();

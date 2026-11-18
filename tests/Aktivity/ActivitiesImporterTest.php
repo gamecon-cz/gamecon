@@ -10,6 +10,7 @@ use Gamecon\Admin\Modules\Aktivity\GoogleSheets\GoogleSheetsService;
 use Gamecon\Admin\Modules\Aktivity\Import\Activities\ActivitiesImporter;
 use Gamecon\Admin\Modules\Aktivity\Import\Activities\ActivitiesImportLogger;
 use Gamecon\Aktivita\Aktivita;
+use Gamecon\Aktivita\Lokace;
 use Gamecon\Cas\DateTimeCz;
 use Gamecon\Cas\DateTimeGamecon;
 use Gamecon\Mutex\Mutex;
@@ -109,9 +110,8 @@ class ActivitiesImporterTest extends AbstractTestDb
         $rows = dbFetchAll('SELECT id_lokace FROM akce_lokace WHERE id_akce = ? ORDER BY id_lokace', [$aktivita->id()]);
         self::assertCount(1, $rows);
 
-        // Verify id_hlavni_lokace in akce_seznam
-        $hlavniLokace = dbFetchSingle('SELECT id_hlavni_lokace FROM akce_seznam WHERE id_akce = ?', [$aktivita->id()]);
-        self::assertNotNull($hlavniLokace);
+        // The only location is the automatic main location, so nothing is chosen explicitly
+        self::assertNull(self::idZvoleneHlavniLokace($aktivita->id()));
     }
 
     /**
@@ -144,9 +144,8 @@ class ActivitiesImporterTest extends AbstractTestDb
         );
         self::assertCount(3, $rows);
 
-        // Verify main location is set in akce_seznam
-        $hlavniLokace = dbFetchSingle('SELECT id_hlavni_lokace FROM akce_seznam WHERE id_akce = ?', [$aktivita->id()]);
-        self::assertNotNull($hlavniLokace, 'Main location should be set in akce_seznam');
+        // The first location of the cell is the one the automatic rule picks anyway, so it stays automatic
+        self::assertNull(self::idZvoleneHlavniLokace($aktivita->id()), 'Automatic main location should stay automatic');
     }
 
     /**
@@ -234,6 +233,57 @@ class ActivitiesImporterTest extends AbstractTestDb
 
         // Verify nothing changed
         self::assertSame($beforeState, $afterState, 'Re-import with same data should not change anything');
+    }
+
+    public function testExportAZpetnyImportZachovajiZvolenouIAutomatickouHlavniMistnost(): void
+    {
+        // Klubovna first is an explicit choice (the automatic one would be Velká místnost),
+        // Malá místnost first is the automatic main location of its two rooms
+        $mockData = $this->createMockSheetData([
+            ['', 'Deskoherna', 'Aktivita Hlavni 1', 'url-hlavni-1', 'Popis', '', '', 'Pátek', '19:00', '20:00', 'Klubovna; Velká místnost', '', '10', '', '', '', '', '', '', '', '0', '', '', '1', ''],
+            ['', 'Deskoherna', 'Aktivita Hlavni 2', 'url-hlavni-2', 'Popis', '', '', 'Pátek', '20:00', '21:00', 'Klubovna; Malá místnost', '', '10', '', '', '', '', '', '', '', '0', '', '', '1', ''],
+            ['', 'Deskoherna', 'Aktivita Hlavni 3', 'url-hlavni-3', 'Popis', '', '', 'Pátek', '21:00', '22:00', 'Malá místnost; Klubovna', '', '10', '', '', '', '', '', '', '', '0', '', '', '1', ''],
+        ]);
+        self::assertSame(3, $this->createImporter($mockData)->importActivities('fake-spreadsheet-id')->getImportedCount());
+
+        $zvolena = $this->fetchActivityByUrl('url-hlavni-1', ROCNIK);
+        $zvolenaMimoPoradi = $this->fetchActivityByUrl('url-hlavni-2', ROCNIK);
+        $automaticka = $this->fetchActivityByUrl('url-hlavni-3', ROCNIK);
+        $idKlubovny = $zvolena->hlavniLokace()->id();
+        self::assertSame('Klubovna', $zvolena->hlavniLokace()->nazev());
+        self::assertSame($idKlubovny, self::idZvoleneHlavniLokace($zvolena->id()));
+        self::assertSame($idKlubovny, self::idZvoleneHlavniLokace($zvolenaMimoPoradi->id()));
+        self::assertSame('Malá místnost', $automaticka->hlavniLokace()->nazev());
+        self::assertNull(self::idZvoleneHlavniLokace($automaticka->id()), 'Automatická hlavní místnost se má uložit jako automatická');
+
+        // the export writes the rooms as Aktivita::seznamLokaci() orders them, the main location first
+        $bunkaExportu = static fn (Aktivita $aktivita): string => implode(
+            '; ',
+            array_map(static fn (Lokace $lokace): ?string => $lokace->nazev(), $aktivita->seznamLokaci()),
+        );
+        $mockDataReimport = $this->createMockSheetData([
+            [(string) $zvolena->id(), 'Deskoherna', 'Aktivita Hlavni 1', 'url-hlavni-1', 'Popis', '', '', 'Pátek', '19:00', '20:00', $bunkaExportu($zvolena), '', '10', '', '', '', '', '', '', '', '0', '', '', '1', ''],
+            [(string) $zvolenaMimoPoradi->id(), 'Deskoherna', 'Aktivita Hlavni 2', 'url-hlavni-2', 'Popis', '', '', 'Pátek', '20:00', '21:00', $bunkaExportu($zvolenaMimoPoradi), '', '10', '', '', '', '', '', '', '', '0', '', '', '1', ''],
+            [(string) $automaticka->id(), 'Deskoherna', 'Aktivita Hlavni 3', 'url-hlavni-3', 'Popis', '', '', 'Pátek', '21:00', '22:00', $bunkaExportu($automaticka), '', '10', '', '', '', '', '', '', '', '0', '', '', '1', ''],
+        ]);
+        self::assertSame(3, $this->createImporter($mockDataReimport)->importActivities('fake-spreadsheet-id')->getImportedCount());
+
+        self::assertSame($idKlubovny, self::idZvoleneHlavniLokace($zvolena->id()));
+        self::assertSame($idKlubovny, self::idZvoleneHlavniLokace($zvolenaMimoPoradi->id()));
+        self::assertNull(self::idZvoleneHlavniLokace($automaticka->id()), 'Zpětný import nesmí z automatické hlavní místnosti udělat zvolenou');
+    }
+
+    private static function idZvoleneHlavniLokace(int $idAktivity): ?int
+    {
+        $idHlavniLokace = dbOneCol(<<<'SQL'
+            SELECT id_hlavni_lokace FROM akce_seznam WHERE id_akce = $0
+            SQL, [
+            0 => $idAktivity,
+        ]);
+
+        return $idHlavniLokace === null
+            ? null
+            : (int) $idHlavniLokace;
     }
 
     /**
