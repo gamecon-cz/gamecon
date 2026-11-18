@@ -34,9 +34,9 @@
                  class="background-image">
 
             <form method="post" class="needs-validation" novalidate>
-                <!-- begin:chyba -->
-                <div class="form-text alert alert-danger">{chyba}</div>
-                <!-- end:chyba -->
+                <!-- begin:hlaska -->
+                <div class="form-text alert {tridaHlasky}" role="alert">{hlaska}</div>
+                <!-- end:hlaska -->
 
                 <div class="mb-3">
                     <label for="login" class="form-label">Jméno:</label>

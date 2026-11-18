@@ -29,10 +29,21 @@ class Login
         $loginTemplate = $this->loginTemplate();
         $loginTemplate->assign('headerPageInfo', $this->info->html());
 
-        $chyba = \Chyba::vyzvedniChybu();
-        if ($chyba) {
-            $loginTemplate->assign('chyba', $chyba);
-            $loginTemplate->parse('login.chyba');
+        // Všechny typy: varování o zneužité nebo zastaralé cookie trvalého přihlášení vzniká v tomtéž požadavku
+        // a radí, co dělat (Gamecon\Uzivatel\TrvalePrihlaseni), oznámení třeba po odhlášení.
+        $tridyPodleTypu = [
+            'chyby'    => 'alert-danger',
+            'varovani' => 'alert-warning',
+            'oznameni' => 'alert-success',
+        ];
+        foreach (\Chyba::vyzvedniPodleTypu() as $typ => $hlasky) {
+            foreach ($hlasky as $hlaska) {
+                $loginTemplate->assign([
+                    'hlaska'      => $hlaska,
+                    'tridaHlasky' => $tridyPodleTypu[$typ],
+                ]);
+                $loginTemplate->parse('login.hlaska');
+            }
         }
 
         $ribbonLabel = $this->systemoveNastaveni->prostredi()->ribbonLabel();

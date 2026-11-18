@@ -1981,6 +1981,17 @@ SQL,
             dbQuery('UPDATE uzivatele_hodnoty SET heslo_md5 = $0 WHERE id_uzivatele = $1', [$novyHash, $uzivatelData['id_uzivatele']]);
         }
 
+        if ($klic === self::UZIVATEL) {
+            if (! session_id() && PHP_SAPI !== 'cli') {
+                session_start();
+            }
+            // Trvalé přihlášení, které si session pamatuje, patří tomu, kdo se v ní přihlásil dřív (formulář v zastaralé
+            // kartě). Jinému uživateli ho jeho odhlášení rušit nemá. Stejnému ano, na ostré může patřit cookie druhého
+            // hostu (web a admin) a odhlášení ruší toto zařízení.
+            if ((int) ($_SESSION[self::UZIVATEL]['id_uzivatele'] ?? 0) !== (int) $uzivatelData['id_uzivatele']) {
+                unset($_SESSION[self::UZIVATEL][self::SESSION_ID_TRVALEHO_PRIHLASENI]);
+            }
+        }
         $uzivatel = self::prihlasDoSession($uzivatelData, $klic);
         if ($klic === self::UZIVATEL) {
             // nové přihlášení začíná bez přepnutí, až po startu session, který by ho načetl znovu
@@ -2127,7 +2138,6 @@ SQL,
             $_SESSION[self::UZIVATEL][self::SESSION_ID_TRVALEHO_PRIHLASENI] = TrvalePrihlaseni::zaloz(
                 $u->id(),
                 $u->r[Sql::RAZITKO_PRIHLASENI],
-                $_SESSION[self::UZIVATEL][self::SESSION_ID_TRVALEHO_PRIHLASENI] ?? null,
             );
         }
 
