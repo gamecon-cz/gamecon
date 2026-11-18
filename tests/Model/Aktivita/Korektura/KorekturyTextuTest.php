@@ -4,9 +4,11 @@ declare(strict_types=1);
 
 namespace Gamecon\Tests\Model\Aktivita\Korektura;
 
+use Gamecon\Aktivita\Korektura\Exceptions\ChybaApiAi;
 use Gamecon\Aktivita\Korektura\Exceptions\KorekturuNelzeVyridit;
 use Gamecon\Aktivita\Korektura\KorekturyTextu;
 use Gamecon\Aktivita\Korektura\KorekturyTextuRepository;
+use Gamecon\Aktivita\Korektura\OdpovedAiNaPozadavek;
 use Gamecon\Aktivita\Korektura\StavKorekturyEnum;
 use Gamecon\Aktivita\StavAktivity;
 use Gamecon\Aktivita\TypAktivity;
@@ -20,6 +22,7 @@ class KorekturyTextuTest extends AbstractTestDb
     private SystemoveNastaveni $systemoveNastaveni;
     private KorekturyTextuRepository $repository;
     private KorekturyTextu $korektury;
+    private FalesneDavkyAi $davkyAi;
 
     protected function setUp(): void
     {
@@ -27,7 +30,8 @@ class KorekturyTextuTest extends AbstractTestDb
 
         $this->systemoveNastaveni = SystemoveNastaveni::zGlobals();
         $this->repository = new KorekturyTextuRepository();
-        $this->korektury = new KorekturyTextu($this->systemoveNastaveni, $this->repository);
+        $this->davkyAi = new FalesneDavkyAi();
+        $this->korektury = new KorekturyTextu($this->systemoveNastaveni, $this->repository, $this->davkyAi);
     }
 
     /**
@@ -208,6 +212,238 @@ TEXT,
         self::assertStringContainsString('<gc-drivejsi rok="' . ($rocnik - 1) . '">', $blokAktivity);
         self::assertStringContainsString('Loňský opravený popis.', $blokAktivity);
         self::assertStringNotContainsString('neopravený', $blokAktivity);
+    }
+
+    /**
+     * @test
+     */
+    public function aiDostaneKazdouCekajiciAktivituJednouVeVlastnimPozadavku(): void
+    {
+        $prvni = $this->vytvorAktivitu('První přes API');
+        $druha = $this->vytvorAktivitu('Druhá přes API');
+        $balik = $this->korektury->exportuj(1000, \Uzivatel::SYSTEM)[0];
+
+        $poslano = $this->korektury->posliAi($balik);
+
+        self::assertCount(1, $this->davkyAi->odeslane);
+        $idDavky = $this->davkyAi->posledniDavka();
+        $zpravy = $this->davkyAi->zpravyPodleAktivit($idDavky);
+        self::assertSame($poslano, count($zpravy));
+        self::assertStringContainsString('<gc-popis-kratky>Krátký popis aktivity První přes API</gc-popis-kratky>', $zpravy[$prvni]);
+        self::assertStringNotContainsString('Druhá přes API', $zpravy[$prvni], 'Každá aktivita jde ve vlastním požadavku');
+        self::assertArrayHasKey($druha, $zpravy);
+        self::assertStringContainsString(
+            'Korektura textů aktivit GameConu ' . $this->systemoveNastaveni->rocnik(),
+            $this->davkyAi->odeslane[$idDavky]['pokyny'],
+            'Pokyny jsou tytéž jako v souboru, jdou jako systémový prompt',
+        );
+        self::assertSame($poslano, $this->korektury->dejCekajiciBaliky()[$balik]->pocetUAi);
+
+        self::assertSame(0, $this->korektury->posliAi(null), 'Co už u AI je, znovu nejde');
+        self::assertCount(1, $this->davkyAi->odeslane);
+        self::assertStringContainsString(
+            '<gc-aktivita id="' . $prvni . '">',
+            $this->korektury->soubor($balik),
+            'Odeslané texty jdou dál stáhnout do chatu',
+        );
+    }
+
+    /**
+     * @test
+     */
+    public function odpovediSkonceneDavkySeNactouJakoNavrhyANezodpovezeneJdouPoslatZnovu(): void
+    {
+        $sChybou = $this->vytvorAktivitu('S chybou');
+        $bezChyb = $this->vytvorAktivitu('Bez chyb');
+        $odmitnuta = $this->vytvorAktivitu('Odmítnutá');
+        $sCizimBlokem = $this->vytvorAktivitu('S cizím blokem');
+        $this->korektury->exportuj(1000, \Uzivatel::SYSTEM);
+        $this->korektury->posliAi(null);
+        $idDavky = $this->davkyAi->posledniDavka();
+
+        self::assertNull($this->korektury->nactiOdpovediAi()->vysledekImportu, 'Dávka ještě běží');
+
+        $this->davkyAi->dokonci($idDavky, static fn (int $idAktivity) => match ($idAktivity) {
+            $sChybou => OdpovedAiNaPozadavek::text(<<<TEXT
+<gc-aktivita id="{$sChybou}">
+<gc-popis>Popis aktivity, která měla chybu.</gc-popis>
+<gc-zmeny>čárka</gc-zmeny>
+</gc-aktivita>
+TEXT),
+            $odmitnuta    => OdpovedAiNaPozadavek::chyba('AI korekturu odmítla'),
+            $sCizimBlokem => OdpovedAiNaPozadavek::text("<gc-aktivita id=\"{$sChybou}\"><gc-nazev>Cizí</gc-nazev></gc-aktivita>"),
+            default       => OdpovedAiNaPozadavek::text("<gc-aktivita id=\"{$idAktivity}\"></gc-aktivita>"),
+        });
+
+        $nacteni = $this->korektury->nactiOdpovediAi();
+
+        self::assertSame([], $nacteni->chyby);
+        $vysledek = $nacteni->vysledekImportu;
+        self::assertNotNull($vysledek);
+        $navrzene = $this->repository->dejOtevrene([$sChybou, $bezChyb, $odmitnuta, $sCizimBlokem]);
+        self::assertSame(StavKorekturyEnum::NAVRZENO, $navrzene[$sChybou]->stav);
+        self::assertSame('Popis aktivity, která měla chybu.', $navrzene[$sChybou]->navrhPopis);
+        self::assertSame(StavKorekturyEnum::NAVRZENO, $navrzene[$bezChyb]->stav);
+        self::assertFalse($navrzene[$bezChyb]->maNavrzeneZmeny());
+
+        foreach ([
+            $odmitnuta    => 'Odmítnutá',
+            $sCizimBlokem => 'S cizím blokem',
+        ] as $idAktivity => $nazev) {
+            self::assertSame(StavKorekturyEnum::EXPORTOVANO, $navrzene[$idAktivity]->stav, $nazev);
+            self::assertNull($navrzene[$idAktivity]->idDavkyAi, "{$nazev} se vrátila mezi texty k odeslání");
+            self::assertNotEmpty(
+                array_filter($vysledek->varovani, static fn (string $varovani) => str_contains($varovani, "„{$nazev}“")),
+                "Varování u aktivity {$nazev}: " . implode(' | ', $vysledek->varovani),
+            );
+        }
+        self::assertSame([], $this->repository->dejDavkyAi(), 'Na načtenou dávku už nic nečeká');
+        self::assertNull($this->korektury->nactiOdpovediAi()->vysledekImportu, 'Načtená dávka se znovu nenačítá');
+
+        self::assertSame(2, $this->korektury->posliAi(null));
+        self::assertSame(
+            [$odmitnuta, $sCizimBlokem],
+            array_keys($this->davkyAi->zpravyPodleAktivit($this->davkyAi->posledniDavka())),
+        );
+    }
+
+    /**
+     * @test
+     */
+    public function zrusenyBalikZrusiDavkuAiKteraBezNejNemaCoDelat(): void
+    {
+        $this->vytvorAktivitu('Ve zrušeném balíku');
+        $balik = $this->korektury->exportuj(1000, \Uzivatel::SYSTEM)[0];
+        $this->korektury->posliAi($balik);
+
+        $this->korektury->zrusBalik($balik);
+
+        self::assertSame([$this->davkyAi->posledniDavka()], $this->davkyAi->zrusene);
+        self::assertSame([], $this->repository->dejDavkyAi());
+    }
+
+    /**
+     * @test
+     */
+    public function chybaJedneDavkyNezdrziOdpovediOstatnichANeznamaDavkaPustiTextyZnovu(): void
+    {
+        [$vRozbite, $rozbita, $hotova] = $this->dveDavky();
+        $this->davkyAi->selze($rozbita, new ChybaApiAi('API AI neposlalo platný JSON', 200));
+        $this->davkyAi->dokonci($hotova, static fn (int $idAktivity) => OdpovedAiNaPozadavek::text(
+            "<gc-aktivita id=\"{$idAktivity}\"></gc-aktivita>",
+        ));
+
+        $nacteni = $this->korektury->nactiOdpovediAi();
+
+        self::assertSame(1, $nacteni->vysledekImportu?->pocetNavrhu, 'Hotová dávka se načte i přes chybu té druhé');
+        self::assertCount(1, $nacteni->chyby);
+        self::assertStringContainsString($rozbita, $nacteni->chyby[0]);
+        self::assertSame($rozbita, $this->repository->dejOtevrene([$vRozbite])[$vRozbite]->idDavkyAi, 'Na rozbitou dávku se čeká dál');
+
+        $this->davkyAi->selze($rozbita, new ChybaApiAi('API AI vrátilo chybu 404: batch not found', 404));
+
+        $nacteni = $this->korektury->nactiOdpovediAi();
+
+        self::assertNull($nacteni->vysledekImportu);
+        self::assertCount(1, $nacteni->chyby);
+        self::assertNull(
+            $this->repository->dejOtevrene([$vRozbite])[$vRozbite]->idDavkyAi,
+            'Na dávku, kterou API nezná, se už nečeká',
+        );
+        self::assertSame(1, $this->korektury->posliAi(null), 'Její text jde poslat znovu');
+    }
+
+    /**
+     * @test
+     */
+    public function priVypadkuApiSeNaDalsiDavkyNepta(): void
+    {
+        [, $prvni] = $this->dveDavky();
+        $this->davkyAi->selze($prvni, new ChybaApiAi('API AI vrátilo chybu 529: Overloaded', 529));
+
+        $nacteni = $this->korektury->nactiOdpovediAi();
+
+        self::assertSame([$prvni], $this->davkyAi->dotazy, 'Každý další dotaz by korektora nechal čekat na stejnou chybu');
+        self::assertCount(1, $nacteni->chyby);
+        self::assertCount(2, $this->repository->dejDavkyAi(), 'Obě dávky se čekají dál');
+    }
+
+    /**
+     * A later proposal replaces an earlier one, whichever way each came.
+     *
+     * @test
+     */
+    public function odpovedApiPrepiseDrivejsiNavrhZChatu(): void
+    {
+        $idAktivity = $this->vytvorAktivitu('Z chatu i přes API');
+        $this->korektury->exportuj(1000, \Uzivatel::SYSTEM);
+        $this->korektury->posliAi(null);
+        $idDavky = $this->davkyAi->posledniDavka();
+        $this->korektury->importuj("<gc-aktivita id=\"{$idAktivity}\"><gc-popis>Návrh z chatu.</gc-popis></gc-aktivita>");
+        $this->davkyAi->dokonci($idDavky, static fn (int $idAktivity) => OdpovedAiNaPozadavek::text(
+            "<gc-aktivita id=\"{$idAktivity}\"><gc-popis>Návrh z API.</gc-popis></gc-aktivita>",
+        ));
+
+        self::assertSame(1, $this->korektury->nactiOdpovediAi()->vysledekImportu?->pocetNavrhu);
+
+        $korektura = $this->repository->dejOtevrene([$idAktivity])[$idAktivity];
+        self::assertSame('Návrh z API.', $korektura->navrhPopis);
+        self::assertNull($korektura->idDavkyAi);
+        self::assertSame([], $this->davkyAi->zrusene);
+    }
+
+    /**
+     * @test
+     */
+    public function davkaAiJejichzTextyKorektorMezitimVyridilSeZrusi(): void
+    {
+        $idAktivity = $this->vytvorAktivitu('Vyřízená z chatu');
+        $this->korektury->exportuj(1000, \Uzivatel::SYSTEM);
+        $this->korektury->posliAi(null);
+        $idDavky = $this->davkyAi->posledniDavka();
+        $this->korektury->importuj("<gc-aktivita id=\"{$idAktivity}\"><gc-popis>Návrh z chatu.</gc-popis></gc-aktivita>");
+        $this->korektury->zamitni($this->repository->dejOtevrene([$idAktivity])[$idAktivity]->id, \Uzivatel::SYSTEM);
+
+        $nacteni = $this->korektury->nactiOdpovediAi();
+
+        self::assertNull($nacteni->vysledekImportu);
+        self::assertSame([$idDavky], $this->davkyAi->zrusene);
+        self::assertSame([], $this->davkyAi->dotazy, 'Na odpověď, kterou nic nečeká, se neptá');
+        self::assertSame([], $this->repository->dejDavkyAi());
+    }
+
+    /**
+     * The lock lives as long as the connection to the database, which is persistent: one left behind would hold up
+     * every sending of the same connection.
+     *
+     * @test
+     */
+    public function odesilaniAiBeziVZamkuKteryPakUvolniIPoChybe(): void
+    {
+        $zamek = "CONCAT(DATABASE(), '.korektury-odesilani-ai')";
+
+        self::assertNotNull($this->repository->vZamkuOdesilaniAi(static fn () => dbOneCol("SELECT IS_USED_LOCK({$zamek})")));
+        try {
+            $this->repository->vZamkuOdesilaniAi(static fn () => throw new ChybaApiAi('API AI neodpovídá'));
+        } catch (ChybaApiAi) {
+        }
+        self::assertSame(1, (int) dbOneCol("SELECT IS_FREE_LOCK({$zamek})"));
+    }
+
+    /**
+     * Two packages, each sent to the AI in a batch of its own.
+     *
+     * @return array{0: int, 1: string, 2: string} the activity of the first batch, the first batch, the second batch
+     */
+    private function dveDavky(): array
+    {
+        $vPrvni = $this->vytvorAktivitu('V první dávce');
+        $this->korektury->posliAi($this->korektury->exportuj(1000, \Uzivatel::SYSTEM)[0]);
+        $prvni = $this->davkyAi->posledniDavka();
+        $this->vytvorAktivitu('V druhé dávce');
+        $this->korektury->posliAi($this->korektury->exportuj(1000, \Uzivatel::SYSTEM)[0]);
+
+        return [$vPrvni, $prvni, $this->davkyAi->posledniDavka()];
     }
 
     private function vytvorAktivitu(

@@ -4,15 +4,17 @@ declare(strict_types=1);
 
 namespace Gamecon\Aktivita\Korektura;
 
+use Gamecon\Aktivita\Korektura\Exceptions\ChybaApiAi;
 use Gamecon\Aktivita\Korektura\Exceptions\KorekturuNelzeVyridit;
+use Gamecon\Aktivita\Korektura\Exceptions\OdesilaniAiUzBezi;
 use Gamecon\Cache\ProgramStaticFileGenerator;
 use Gamecon\Cache\ProgramStaticFileType;
 use Gamecon\SystemoveNastaveni\SystemoveNastaveni;
 
 /**
- * Proofreading of activity texts by hand through an AI chat: the texts go out in packages
- * ({@see SouborKorektur}), the answer comes back ({@see OdpovedAi}) and the proofreader accepts,
- * edits or rejects each proposal. Only an accepted one changes the activity.
+ * Proofreading of activity texts by an AI: the texts go out in packages, by hand through an AI chat
+ * ({@see SouborKorektur}) or through the AI's API ({@see DavkyAi}), the answer comes back ({@see OdpovedAi})
+ * and the proofreader accepts, edits or rejects each proposal. Only an accepted one changes the activity.
  */
 class KorekturyTextu
 {
@@ -24,7 +26,14 @@ class KorekturyTextu
     public function __construct(
         private readonly SystemoveNastaveni $systemoveNastaveni,
         private readonly KorekturyTextuRepository $repository = new KorekturyTextuRepository(),
+        // null without the API, the texts then go through a file only
+        private readonly ?DavkyAi $davkyAi = null,
     ) {
+    }
+
+    public function jeAiPripojena(): bool
+    {
+        return $this->davkyAi !== null;
     }
 
     public function pocetKExportu(): int
@@ -51,16 +60,127 @@ class KorekturyTextu
     {
         $rocnik = $this->systemoveNastaveni->rocnik();
         $korektury = $this->repository->dejCekajiciNaOdpoved($balik);
-        $puvodni = [];
-        foreach ($korektury as $korektura) {
-            $puvodni[$korektura->idAktivity] = $korektura->puvodni;
+
+        return (new SouborKorektur())->vytvor($korektury, $this->drivejsiTexty($korektury), $rocnik);
+    }
+
+    /**
+     * Sends the texts waiting for the AI's answer to the AI's API, each activity in a request of its own,
+     * all in one batch. Texts already waiting in a batch stay there.
+     *
+     * @param int|null $balik null for all packages
+     *
+     * @return int how many activities went out
+     *
+     * @throws ChybaApiAi
+     * @throws OdesilaniAiUzBezi
+     */
+    public function posliAi(?int $balik): int
+    {
+        $davkyAi = $this->pripojeneDavkyAi();
+
+        // read inside the lock, so that a sending that ran meanwhile has marked its texts already
+        return $this->repository->vZamkuOdesilaniAi(function () use ($davkyAi, $balik): int {
+            $korektury = array_values(array_filter(
+                $this->repository->dejCekajiciNaOdpoved($balik),
+                static fn (KorekturaTextu $korektura) => $korektura->idDavkyAi === null,
+            ));
+            if ($korektury === []) {
+                return 0;
+            }
+
+            $souborKorektur = new SouborKorektur();
+            $drivejsi = $this->drivejsiTexty($korektury);
+            $zpravy = [];
+            foreach ($korektury as $korektura) {
+                $zpravy[self::idPozadavku($korektura)] = $souborKorektur->blokAktivity(
+                    $korektura,
+                    $drivejsi[$korektura->idAktivity] ?? null,
+                );
+            }
+
+            $idDavky = $davkyAi->odesli($souborKorektur->pokyny($this->systemoveNastaveni->rocnik()), $zpravy);
+            $this->repository->oznacOdeslaneAi(
+                array_map(static fn (KorekturaTextu $korektura) => $korektura->id, $korektury),
+                $idDavky,
+            );
+
+            return count($korektury);
+        });
+    }
+
+    /**
+     * Imports the answers of the AI batches that have ended, as if they came in a file. The texts a batch
+     * brought no proposal for (an error, a refusal, a cut answer) go back among the texts to send. A batch whose
+     * answers cannot be read now does not hold up the others, it is asked again next time.
+     */
+    public function nactiOdpovediAi(): VysledekNacteniAi
+    {
+        $davkyAi = $this->pripojeneDavkyAi();
+        $navrhy = [];
+        $varovani = [];
+        $chyby = [];
+        $skonceneDavky = [];
+        foreach ($this->repository->dejDavkyAi() as $idDavky) {
+            $cekajici = $this->repository->dejCekajiciVDavceAi($idDavky);
+            if ($cekajici === []) {
+                // its texts were settled meanwhile (a proposal from the chat approved or rejected)
+                $this->zrusDavkuAi($idDavky);
+                continue;
+            }
+            try {
+                $odpovedi = $davkyAi->dejOdpovedi($idDavky);
+            } catch (ChybaApiAi $chybaApiAi) {
+                if ($chybaApiAi->jeNeznamaDavka()) {
+                    $this->repository->uvolniZDavkyAi($idDavky);
+                    $chyby[] = "Dávku AI {$idDavky} už API nezná, aktivity, které na ni čekaly, jdou poslat znovu. ({$chybaApiAi->getMessage()})";
+                    continue;
+                }
+                $chyby[] = "Odpovědi AI z dávky {$idDavky} se nepodařilo načíst, zkusím to znovu při dalším otevření stránky. ({$chybaApiAi->getMessage()})";
+                if ($chybaApiAi->jeChybaCelehoApi()) {
+                    // the other batches would end the same, and each would let the proofreader wait
+                    break;
+                }
+                continue;
+            }
+            if ($odpovedi === null) {
+                continue;
+            }
+            $skonceneDavky[] = $idDavky;
+            foreach ($cekajici as $korektura) {
+                // a text answered from the chat meanwhile keeps that proposal when the batch brings none
+                $coZbyva = $korektura->stav === StavKorekturyEnum::EXPORTOVANO
+                    ? 'aktivita zůstává k odeslání'
+                    : 'zůstává návrh z chatu';
+                $odpoved = $odpovedi[self::idPozadavku($korektura)]
+                    ?? OdpovedAiNaPozadavek::chyba('v odpovědi AI chybí');
+                if ($odpoved->text === null) {
+                    $varovani[] = "„{$korektura->puvodni->nazev}“: {$odpoved->chyba}, {$coZbyva}.";
+                    continue;
+                }
+                $odpovedAi = OdpovedAi::rozparsuj($odpoved->text);
+                foreach ($odpovedAi->varovani as $varovaniOdpovedi) {
+                    $varovani[] = "„{$korektura->puvodni->nazev}“: {$varovaniOdpovedi}";
+                }
+                // one request is one activity, a block of another one would be a mistake of the AI
+                $navrh = $odpovedAi->navrhy[$korektura->idAktivity] ?? null;
+                if ($navrh === null) {
+                    $varovani[] = "„{$korektura->puvodni->nazev}“: AI nevrátila její blok, {$coZbyva}.";
+                    continue;
+                }
+                $navrhy[$korektura->idAktivity] = $navrh;
+            }
         }
 
-        return (new SouborKorektur())->vytvor(
-            $korektury,
-            $this->repository->dejDrivejsiOpraveneTexty($puvodni, $rocnik),
-            $rocnik,
-        );
+        $vysledekImportu = $skonceneDavky !== []
+            ? $this->importujOdpoved(new OdpovedAi($navrhy, $varovani))
+            : null;
+        // only after the import, a text without a proposal is still waiting for the AI till then
+        foreach ($skonceneDavky as $idDavky) {
+            $this->repository->uvolniZDavkyAi($idDavky);
+        }
+
+        return new VysledekNacteniAi($vysledekImportu, $chyby);
     }
 
     public function nazevSouboru(?int $balik): string
@@ -74,7 +194,11 @@ class KorekturyTextu
      */
     public function importuj(string $odpoved): VysledekImportu
     {
-        $odpovedAi = OdpovedAi::rozparsuj($odpoved);
+        return $this->importujOdpoved(OdpovedAi::rozparsuj($odpoved));
+    }
+
+    private function importujOdpoved(OdpovedAi $odpovedAi): VysledekImportu
+    {
         $varovani = $odpovedAi->varovani;
         $otevrene = $this->repository->dejOtevrene(array_keys($odpovedAi->navrhy));
 
@@ -220,16 +344,27 @@ class KorekturyTextu
     }
 
     /**
-     * @return array<int, int> number of activities by package
+     * @return array<int, CekajiciBalik> by package
      */
     public function dejCekajiciBaliky(): array
     {
         return $this->repository->dejCekajiciBaliky();
     }
 
+    /**
+     * A batch left with no text waiting for it is cancelled, so that the AI does not work for nothing.
+     */
     public function zrusBalik(int $balik): int
     {
-        return $this->repository->zrusBalik($balik);
+        $davkyBaliku = $this->repository->dejDavkyAi($balik);
+        $pocet = $this->repository->zrusBalik($balik);
+        foreach ($davkyBaliku as $idDavky) {
+            if ($this->repository->dejCekajiciVDavceAi($idDavky) === []) {
+                $this->zrusDavkuAi($idDavky);
+            }
+        }
+
+        return $pocet;
     }
 
     public function pocetKeSchvaleni(): int
@@ -277,6 +412,50 @@ class KorekturyTextu
         }
 
         return $varovani;
+    }
+
+    private function pripojeneDavkyAi(): DavkyAi
+    {
+        return $this->davkyAi
+            ?? throw new \LogicException('Korektury nemají připojené API AI.');
+    }
+
+    /**
+     * Nothing waits for the batch any more: it is cancelled, so that the AI does not work for nothing,
+     * and its texts forget it.
+     */
+    private function zrusDavkuAi(string $idDavky): void
+    {
+        try {
+            $this->davkyAi?->zrus($idDavky);
+        } catch (ChybaApiAi $chybaApiAi) {
+            // it may have ended meanwhile, nothing reads its answer anyway
+            error_log("Korektury: dávku AI {$idDavky} se nepodařilo zrušit: {$chybaApiAi->getMessage()}");
+        }
+        $this->repository->uvolniZDavkyAi($idDavky);
+    }
+
+    /**
+     * Unique within a batch, which is all the API asks (letters, digits, `_`, `-`, at most 64 characters).
+     */
+    private static function idPozadavku(KorekturaTextu $korektura): string
+    {
+        return "korektura-{$korektura->id}";
+    }
+
+    /**
+     * @param array<KorekturaTextu> $korektury
+     *
+     * @return array<int, DrivejsiTexty> by activity ID
+     */
+    private function drivejsiTexty(array $korektury): array
+    {
+        $puvodni = [];
+        foreach ($korektury as $korektura) {
+            $puvodni[$korektura->idAktivity] = $korektura->puvodni;
+        }
+
+        return $this->repository->dejDrivejsiOpraveneTexty($puvodni, $this->systemoveNastaveni->rocnik());
     }
 
     private function dejNavrzenou(int $idKorektury): KorekturaTextu

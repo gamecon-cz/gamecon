@@ -2,15 +2,18 @@
 
 declare(strict_types=1);
 
+use Gamecon\Aktivita\Korektura\AnthropicDavkyAi;
+use Gamecon\Aktivita\Korektura\Exceptions\ChybaApiAi;
 use Gamecon\Aktivita\Korektura\Exceptions\KorekturuNelzeVyridit;
+use Gamecon\Aktivita\Korektura\Exceptions\OdesilaniAiUzBezi;
 use Gamecon\Aktivita\Korektura\KorekturyTextu;
 use Gamecon\Aktivita\Korektura\RozdilTextu;
 use Gamecon\Aktivita\Korektura\TextyAktivity;
 use Gamecon\XTemplate\XTemplate;
 
 /**
- * Korektura textů aktivit přes AI chat: texty se stáhnou po balících, odpověď AI se nahraje zpět
- * a korektor každý návrh přijme, upraví, nebo zamítne.
+ * Korektura textů aktivit pomocí AI: balíky textů jdou AI přes API, nebo se stáhnou do AI chatu a odpověď
+ * se nahraje zpět. Korektor pak každý návrh přijme, upraví, nebo zamítne.
  *
  * nazev: Korektury textů
  * ikona: spell-check
@@ -25,8 +28,11 @@ use Gamecon\XTemplate\XTemplate;
  */
 $urlModulu = 'aktivity/korektury';
 $klicImportu = 'korektury_vysledek_importu';
+$klicKontrolyAi = 'korektury_ai_zkontrolovano';
+// each look at a batch is a request to the API, a click on Přijmout must not wait for it every time
+$kontrolaAiNejvyseZaSekund = 60;
 $naStrankuNavrhu = 20;
-$korektury = new KorekturyTextu($systemoveNastaveni);
+$korektury = new KorekturyTextu($systemoveNastaveni, davkyAi: AnthropicDavkyAi::zNastaveni());
 
 if (get('stahnout') !== null) {
     $balik = get('balik') !== null && get('balik') !== ''
@@ -50,6 +56,23 @@ if (post('exportovat')) {
     oznameni(count($baliky) === 1
         ? "Připraven balík {$baliky[0]}."
         : 'Připraveny balíky ' . reset($baliky) . '–' . end($baliky) . '.');
+}
+
+if (post('poslatAi') && $korektury->jeAiPripojena()) {
+    $balik = post('balik') !== null && post('balik') !== ''
+        ? (int) post('balik')
+        : null;
+    try {
+        $pocet = $korektury->posliAi($balik);
+        oznameni($pocet === 0
+            ? 'Není co poslat, všechny texty už u AI jsou.'
+            : "Posláno AI, aktivit: {$pocet}. Odpovědi bývají do hodiny, nejpozději do 24 hodin. Stránka si je načte, až ji otevřeš.", false);
+    } catch (ChybaApiAi $chybaApiAi) {
+        chyba('AI texty nepřijala. ' . htmlspecialchars($chybaApiAi->getMessage(), ENT_QUOTES), false);
+    } catch (OdesilaniAiUzBezi $odesilaniAiUzBezi) {
+        chyba(htmlspecialchars($odesilaniAiUzBezi->getMessage(), ENT_QUOTES), false);
+    }
+    back(URL_ADMIN . '/' . $urlModulu);
 }
 
 if (post('zrusitBalik')) {
@@ -99,6 +122,18 @@ if (post('prijmout') || post('zamitnout')) {
     back(URL_ADMIN . '/' . $urlModulu . '#schvalovani');
 }
 
+// answers of the AI batches that have ended, read on a visit of the page at most once a minute
+$vysledekAi = null;
+$chybyAi = [];
+if ($korektury->jeAiPripojena()
+    && time() - (int) ($_SESSION[$klicKontrolyAi] ?? 0) >= $kontrolaAiNejvyseZaSekund
+) {
+    $_SESSION[$klicKontrolyAi] = time();
+    $nacteniAi = $korektury->nactiOdpovediAi();
+    $vysledekAi = $nacteniAi->vysledekImportu;
+    $chybyAi = $nacteniAi->chyby;
+}
+
 $t = new XTemplate(__DIR__ . '/korektury.xtpl');
 $t->assign([
     'urlModulu'      => $urlModulu,
@@ -107,20 +142,61 @@ $t->assign([
 ]);
 
 $cekajiciBaliky = $korektury->dejCekajiciBaliky();
-foreach ($cekajiciBaliky as $balik => $pocetAktivit) {
+$neposlanoAi = 0;
+foreach ($cekajiciBaliky as $cekajiciBalik) {
     $t->assign([
-        'balik'        => $balik,
-        'pocetAktivit' => $pocetAktivit,
+        'balik'        => $cekajiciBalik->balik,
+        'pocetAktivit' => $cekajiciBalik->pocetAktivit,
     ]);
+    if ($korektury->jeAiPripojena()) {
+        if ($cekajiciBalik->pocetUAi > 0) {
+            $t->assign([
+                'pocetUAi'   => $cekajiciBalik->pocetUAi,
+                'odeslanoAi' => $cekajiciBalik->odeslanoAiKdy?->format('j. n. H:i'),
+            ]);
+            $t->parse('korektury.baliky.balik.ai.uAi');
+        }
+        if ($cekajiciBalik->maTextyKOdeslaniAi()) {
+            $t->parse('korektury.baliky.balik.ai.poslat');
+        }
+        $t->parse('korektury.baliky.balik.ai');
+    }
+    $neposlanoAi += $cekajiciBalik->pocetAktivit - $cekajiciBalik->pocetUAi;
     $t->parse('korektury.baliky.balik');
 }
 if ($cekajiciBaliky !== []) {
-    $t->assign('pocetCekajicich', array_sum($cekajiciBaliky));
+    $t->assign('pocetCekajicich', array_sum(array_map(
+        static fn ($cekajiciBalik) => $cekajiciBalik->pocetAktivit,
+        $cekajiciBaliky,
+    )));
+    if ($korektury->jeAiPripojena()) {
+        $t->parse('korektury.baliky.hlavickaAi');
+        if ($neposlanoAi > 0 && count($cekajiciBaliky) > 1) {
+            $t->assign('neposlanoAi', $neposlanoAi);
+            $t->parse('korektury.baliky.poslatVse');
+        }
+    }
     $t->parse('korektury.baliky');
+}
+if (! $korektury->jeAiPripojena()) {
+    $t->parse('korektury.bezAi');
+}
+foreach ($chybyAi as $chybaAi) {
+    $t->assign('chybaAi', htmlspecialchars($chybaAi, ENT_QUOTES));
+    $t->parse('korektury.chybaAi');
 }
 
 $vysledekImportu = $_SESSION[$klicImportu] ?? null;
 unset($_SESSION[$klicImportu]);
+if ($vysledekAi !== null) {
+    // an answer pasted by hand and one from the API can come in the same visit
+    $vysledekImportu = [
+        'pocetNavrhu'  => ($vysledekImportu['pocetNavrhu'] ?? 0) + $vysledekAi->pocetNavrhu,
+        'pocetBezZmen' => ($vysledekImportu['pocetBezZmen'] ?? 0) + $vysledekAi->pocetBezZmen,
+        'varovani'     => [...$vysledekImportu['varovani'] ?? [], ...$vysledekAi->varovani],
+    ];
+    $t->parse('korektury.vysledekImportu.zApi');
+}
 if ($vysledekImportu !== null) {
     $t->assign([
         'pocetNavrhu'  => $vysledekImportu['pocetNavrhu'],

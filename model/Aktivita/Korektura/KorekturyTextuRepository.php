@@ -4,11 +4,15 @@ declare(strict_types=1);
 
 namespace Gamecon\Aktivita\Korektura;
 
+use Gamecon\Aktivita\Korektura\Exceptions\OdesilaniAiUzBezi;
 use Gamecon\Aktivita\Korektura\SqlStruktura\AkceKorekturaSqlStruktura as Sql;
 use Gamecon\Aktivita\TypAktivity;
 
 class KorekturyTextuRepository
 {
+    // sending a batch takes seconds, its HTTP request at most the client's timeout
+    private const int CEKANI_NA_ZAMEK_ODESILANI_AI_SEKUND = 60;
+
     /**
      * Main activities of the year (one for a family of instances, which share the texts) whose texts
      * are not proofread and are not already waiting in an open proofreading. Technical, brigade and system
@@ -172,12 +176,12 @@ SQL,
     }
 
     /**
-     * @return array<int, int> number of activities by package, of the packages still waiting for the AI's answer
+     * @return array<int, CekajiciBalik> by package, of the packages still waiting for the AI's answer
      */
     public function dejCekajiciBaliky(): array
     {
-        return array_map('intval', dbFetchPairs(<<<'SQL'
-SELECT balik, COUNT(*)
+        $radky = dbFetchAll(<<<'SQL'
+SELECT balik, COUNT(*) AS pocet_aktivit, COUNT(id_davky_ai) AS pocet_u_ai, MIN(odeslano_ai_kdy) AS odeslano_ai_kdy
 FROM akce_korektura
 WHERE stav = $0
 GROUP BY balik
@@ -186,7 +190,127 @@ SQL,
             [
                 0 => StavKorekturyEnum::EXPORTOVANO,
             ],
+        );
+
+        $baliky = [];
+        foreach ($radky as $radek) {
+            $baliky[(int) $radek['balik']] = new CekajiciBalik(
+                balik: (int) $radek['balik'],
+                pocetAktivit: (int) $radek['pocet_aktivit'],
+                pocetUAi: (int) $radek['pocet_u_ai'],
+                odeslanoAiKdy: $radek['odeslano_ai_kdy'] !== null
+                    ? new \DateTimeImmutable((string) $radek['odeslano_ai_kdy'])
+                    : null,
+            );
+        }
+
+        return $baliky;
+    }
+
+    /**
+     * Runs the sending to the AI's API alone, so that a double click or a second tab does not pay for the same
+     * texts twice: the other one waits, then finds them sent. A lock of the server, hence named by the database
+     * (ostrá and beta share the server).
+     *
+     * @template T
+     *
+     * @param callable(): T $odeslani
+     *
+     * @return T
+     *
+     * @throws OdesilaniAiUzBezi when another sending takes too long
+     */
+    public function vZamkuOdesilaniAi(callable $odeslani): mixed
+    {
+        $zamek = (string) dbOneCol("SELECT CONCAT(DATABASE(), '.korektury-odesilani-ai')");
+        if ((int) dbOneCol('SELECT GET_LOCK($0, $1)', [
+            0 => $zamek,
+            1 => self::CEKANI_NA_ZAMEK_ODESILANI_AI_SEKUND,
+        ]) !== 1) {
+            throw new OdesilaniAiUzBezi('Texty AI právě posílá jiné okno, zkus to za chvíli znovu.');
+        }
+        try {
+            return $odeslani();
+        } finally {
+            dbQuery('SELECT RELEASE_LOCK($0)', [
+                0 => $zamek,
+            ]);
+        }
+    }
+
+    /**
+     * Only the texts still waiting for the AI and in no batch yet, a text already in a batch keeps it.
+     *
+     * @param array<int> $idsKorektur
+     */
+    public function oznacOdeslaneAi(array $idsKorektur, string $idDavky): void
+    {
+        dbQuery(<<<'SQL'
+UPDATE akce_korektura
+SET id_davky_ai = $1, odeslano_ai_kdy = NOW()
+WHERE id_korektury IN ($0) AND stav = $2 AND id_davky_ai IS NULL
+SQL,
+            [
+                0 => $idsKorektur,
+                1 => $idDavky,
+                2 => StavKorekturyEnum::EXPORTOVANO,
+            ],
+        );
+    }
+
+    /**
+     * Every batch a text points to, whether the text still waits for its answer or has been settled meanwhile.
+     *
+     * @param int|null $balik null for all packages
+     *
+     * @return array<string> IDs of the AI batches
+     */
+    public function dejDavkyAi(?int $balik = null): array
+    {
+        return array_map('strval', dbFetchColumn(<<<'SQL'
+SELECT DISTINCT id_davky_ai
+FROM akce_korektura
+WHERE id_davky_ai IS NOT NULL AND ($0 IS NULL OR balik = $0)
+ORDER BY id_davky_ai
+SQL,
+            [
+                0 => $balik,
+            ],
         ));
+    }
+
+    /**
+     * The texts of the batch still open: waiting for the AI, or with a proposal from the chat
+     * the batch's later answer replaces, as any later proposal does.
+     *
+     * @return array<KorekturaTextu>
+     */
+    public function dejCekajiciVDavceAi(string $idDavky): array
+    {
+        return $this->dejPodle(
+            'id_davky_ai = $0 AND stav IN ($1)',
+            [
+                0 => $idDavky,
+                1 => StavKorekturyEnum::otevrene(),
+            ],
+        );
+    }
+
+    /**
+     * Nothing waits for the batch any more. A text it brought no proposal for can go out again,
+     * through the API or a file.
+     */
+    public function uvolniZDavkyAi(string $idDavky): void
+    {
+        dbQuery(<<<'SQL'
+UPDATE akce_korektura
+SET id_davky_ai = NULL, odeslano_ai_kdy = NULL
+WHERE id_davky_ai = $0
+SQL,
+            [
+                0 => $idDavky,
+            ],
+        );
     }
 
     /**
@@ -366,6 +490,7 @@ SQL,
                 navrhPopisKratky: $radek[Sql::NAVRH_POPIS_KRATKY],
                 navrhPopis: $radek[Sql::NAVRH_POPIS],
                 zmeny: $radek[Sql::ZMENY],
+                idDavkyAi: $radek[Sql::ID_DAVKY_AI],
             ),
             $radky,
         );

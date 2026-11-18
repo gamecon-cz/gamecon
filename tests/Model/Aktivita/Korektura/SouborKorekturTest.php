@@ -92,6 +92,44 @@ TEXT,
         self::assertSame($texty->popis, TextyAktivity::normalizuj($navrh->popis));
     }
 
+    /**
+     * Real texts of activities (markdown, HTML, CRLF, Slovak and English, long descriptions): the file is the one
+     * saved, and an AI that echoes it back finds nothing to change in any of them.
+     *
+     * @test
+     */
+    public function vzorekSkutecnychTextuDaUlozenySouborAZpetSePrecteBezZmen(): void
+    {
+        $korektury = [];
+        foreach (json_decode(
+            (string) file_get_contents(__DIR__ . '/data/texty-aktivit-vzorek.json'),
+            true,
+            flags: JSON_THROW_ON_ERROR,
+        ) as $aktivita) {
+            $korektury[] = $this->korektura(
+                (int) $aktivita['id_akce'],
+                new TextyAktivity($aktivita['nazev'], $aktivita['popis_kratky'], $aktivita['popis']),
+            );
+        }
+
+        $soubor = (new SouborKorektur())->vytvor($korektury, [], 2022);
+
+        self::assertSame(
+            file_get_contents(__DIR__ . '/data/korektura-vzorek.txt'),
+            $soubor,
+            'Soubor pro AI se změnil. Je-li to záměr (pokyny, formát), ulož tenhle výstup do data/korektura-vzorek.txt.',
+        );
+        $odpoved = OdpovedAi::rozparsuj($soubor);
+        self::assertSame([], $odpoved->varovani);
+        foreach ($korektury as $korektura) {
+            $navrh = $odpoved->navrhy[$korektura->idAktivity];
+            $puvodni = $korektura->puvodni->normalizovane();
+            self::assertSame($puvodni->nazev, $navrh->nazev, "Název aktivity {$korektura->idAktivity}");
+            self::assertSame($puvodni->popisKratky, $navrh->popisKratky, "Krátký popis aktivity {$korektura->idAktivity}");
+            self::assertSame($puvodni->popis, TextyAktivity::normalizuj((string) $navrh->popis), "Popis aktivity {$korektura->idAktivity}");
+        }
+    }
+
     private function korektura(int $idAktivity, TextyAktivity $texty): KorekturaTextu
     {
         return new KorekturaTextu(
