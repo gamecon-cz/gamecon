@@ -22,6 +22,11 @@ $this->info()->nazev('Registrace');
 
 $registrace = new Registrace($systemoveNastaveni, $u);
 
+if ($u) {
+    // čtečka QR kódu pro přihlášení jiného zařízení, Registrace::zobrazHtml()
+    $this->pridejJsSoubor(__DIR__ . '/../soubory/ctecka-qr.js');
+}
+
 $registrace->zpracujRegistraci();
 $registrace->zpracujUpravu();
 $registrace->zpracujOdhlaseniOstatnichZarizeni();

@@ -33,11 +33,13 @@
             <img alt="GC logo" src="files/design/GC2022-logo-qHD.avif?version=c124a2fcc1327cef898d3e940bdd6bae"
                  class="background-image">
 
-            <form method="post" class="needs-validation" novalidate>
-                <!-- begin:hlaska -->
-                <div class="form-text alert {tridaHlasky}" role="alert">{hlaska}</div>
-                <!-- end:hlaska -->
+            <div>
+            <!-- begin:hlaska -->
+            <div class="form-text alert {tridaHlasky}" role="alert">{hlaska}</div>
+            <!-- end:hlaska -->
 
+            <!-- begin:formular -->
+            <form method="post" class="needs-validation" novalidate>
                 <div class="mb-3">
                     <label for="login" class="form-label">Jméno:</label>
                     <input class="form-control" type="text" name="{loginInputName}" id="login" autofocus required>
@@ -62,7 +64,34 @@
                 </div>
 
                 <button type="submit" class="btn btn-primary">Přihlásit</button>
+                <button type="submit" name="{qrInputName}" value="1" class="btn btn-outline-secondary ms-2"
+                        formnovalidate>Přihlásit QR kódem</button>
             </form>
+            <!-- end:formular -->
+
+            <!-- begin:qr -->
+            <div class="prihlaseniQr" data-prihlaseni-qr data-stav-url="{stavUrl}" data-po-prihlaseni="">
+                <h1 class="h4 mb-3">Přihlášení QR kódem</h1>
+                <img class="prihlaseniQr_kod mb-3" src="{qrKod}" alt="QR kód pro přihlášení" width="240" height="240">
+                <ol class="prihlaseniQr_navod">
+                    <li>Na telefonu, kde máš přihlášený účet na webu GameConu, naskenuj kód fotoaparátem,
+                        nebo na webu v Nastavení tlačítkem <b>Načíst QR kód</b>.</li>
+                    <li>Na telefonu vyber tohle číslo: <span class="prihlaseniQr_cislo">{cislo}</span></li>
+                </ol>
+                <p class="fw-bold" data-prihlaseni-qr-zprava aria-live="polite">Kód platí {platnostMinut} minuty.</p>
+                <form method="post">
+                    <!-- begin:trvale -->
+                    <input type="hidden" name="{trvaleInputName}" value="1">
+                    <!-- end:trvale -->
+                    <button type="submit" name="{qrInputName}" value="1" class="btn btn-primary">Nový kód</button>
+                    <button type="submit" name="{qrZrusitInputName}" value="1" class="btn btn-outline-secondary ms-2">
+                        Přihlásit heslem
+                    </button>
+                </form>
+            </div>
+            <script src="{prihlaseniQrJs}"></script>
+            <!-- end:qr -->
+            </div>
         </div>
 
     </div>

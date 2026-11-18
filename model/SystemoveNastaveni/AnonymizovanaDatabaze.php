@@ -41,6 +41,7 @@ class AnonymizovanaDatabaze
         'upominka_dluznika_log',     // debt per user
         'upominka_vlastni_zneni',
         'uzivatele_trvala_prihlaseni', // hashes of persistent login tokens
+        'prihlaseni_qr',             // IP address and browser of devices logged in with a QR code, and by whom
         'bingo_fraze',               // phrases from council meetings, internal
         'bingo_karta',
         'bingo_karta_pole',

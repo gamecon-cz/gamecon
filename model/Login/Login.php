@@ -3,6 +3,7 @@
 namespace Gamecon\Login;
 
 use Gamecon\SystemoveNastaveni\SystemoveNastaveni;
+use Gamecon\Uzivatel\PrihlaseniQrKodem;
 use Gamecon\Web\Info;
 use Gamecon\XTemplate\XTemplate;
 
@@ -15,6 +16,9 @@ class Login
      * schválně nezaškrtnuté: admin se používá i na sdílených počítačích infopultu.
      */
     public const TRVALE_INPUT_NAME = 'trvaleNAdm';
+    /** Přihlášení QR kódem, viz {@see PrihlaseniQrKodem} */
+    public const QR_INPUT_NAME        = 'qrNAdm';
+    public const QR_ZRUSIT_INPUT_NAME = 'qrZrusitNAdm';
 
     public function __construct(
         private readonly Info                        $info,
@@ -52,6 +56,28 @@ class Login
             $loginTemplate->parse('login.ribbon');
         }
 
+        // Kdo zvolil přihlášení QR kódem, vidí kód, dokud ho nezruší (admin/scripts/prihlaseni.php) nebo dokud
+        // kód neprošel. Jen žádost založenou v adminu, žádost webu má vlastní volbu „Trvale přihlásit“.
+        $prihlaseniQrKodem = PrihlaseniQrKodem::zSession(doAdminu: true);
+        $zadostQr = $prihlaseniQrKodem->getZivouZadost();
+        if ($zadostQr !== null) {
+            $skriptQr = __DIR__ . '/../../web/soubory/prihlaseni-qr.js';
+            $loginTemplate->assign([
+                'qrKod'          => $prihlaseniQrKodem->getQrKodSvg(),
+                'cislo'          => $zadostQr['cislo'],
+                'stavUrl'        => URL_ADMIN . '/api/prihlaseni-qr',
+                'platnostMinut'  => intdiv(PrihlaseniQrKodem::PLATNOST_SEKUND, 60),
+                // stejný skript jako přihlášení na webu, odtamtud
+                'prihlaseniQrJs' => URL_WEBU . '/soubory/prihlaseni-qr.js?version=' . md5_file($skriptQr),
+            ]);
+            if ($zadostQr['trvale']) {
+                $loginTemplate->parse('login.qr.trvale');
+            }
+            $loginTemplate->parse('login.qr');
+        } else {
+            $loginTemplate->parse('login.formular');
+        }
+
         $loginTemplate->parse('login');
         return $loginTemplate->text('login');
     }
@@ -65,6 +91,8 @@ class Login
             'loginInputName'    => self::LOGIN_INPUT_NAME,
             'passwordInputName' => self::PASSWORD_INPUT_NAME,
             'trvaleInputName'   => self::TRVALE_INPUT_NAME,
+            'qrInputName'       => self::QR_INPUT_NAME,
+            'qrZrusitInputName' => self::QR_ZRUSIT_INPUT_NAME,
         ]);
 
         $this->pridejLokalniAssety($loginTemplate);
