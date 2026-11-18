@@ -67,10 +67,18 @@ class Tag extends DbObject
      */
     public function getMinimalniVek(): ?int
     {
-        if ($this->idKategorieTagu() !== KategorieTagu::OMEZENI_VEK) {
-            return null;
-        }
-        if (!preg_match('~^Věk:\s*(?<vek>\d+)\s*\+$~u', trim($this->nazev()), $shoda)) {
+        return $this->idKategorieTagu() === KategorieTagu::OMEZENI_VEK
+            ? self::getMinimalniVekZNazvu($this->nazev())
+            : null;
+    }
+
+    /**
+     * Minimální věk z názvu štítku kategorie omezení věku („Věk: 15+“), u „Věk: do 15“ null. Kategorii hlídá volající,
+     * pro výpis nad vlastním SQL (Seznam přihlášených).
+     */
+    public static function getMinimalniVekZNazvu(string $nazev): ?int
+    {
+        if (!preg_match('~^Věk:\s*(?<vek>\d+)\s*\+$~u', trim($nazev), $shoda)) {
             return null;
         }
 

@@ -1,11 +1,10 @@
 import { Fragment, FunctionComponent } from "preact";
-import { GAMECON_KONSTANTY } from "../../../../env";
 import { useUpozorněníNaVěkModal } from "../../../../store/program/selektory";
 import { zavřiUpozorněníNaVěk } from "../../../../store/program/slices/všeobecnéSlice";
 
 /**
  * Před přihlášením na aktivitu, na jejíž minimální věk (štítek „Věk: 15+") účastník v den aktivity nedosáhne.
- * Přihlášení nebrání, účastník se má jen předem domluvit se šéfem programu.
+ * Přihlášení nebrání: šéf sekce dostane e-mail a ozve se účastníkovi, ten se mu může ozvat i sám.
  * Text je celý z PHP (Aktivita::getUpozorneniNaVek()), stejný ukazuje záložní confirm() na stránkách linií.
  */
 export const UpozorneniNaVekModal: FunctionComponent = () => {
@@ -13,9 +12,8 @@ export const UpozorneniNaVekModal: FunctionComponent = () => {
 
   if (!upozornění) return <></>;
 
-  const { nadpis, text } = upozornění;
-  const kontakt = GAMECON_KONSTANTY.KONTAKT_NA_SEFA_PROGRAMU;
-  // adresu šéfa programu v textu udělá odkazem
+  const { nadpis, text, kontakt } = upozornění;
+  // adresu šéfa sekce v textu udělá odkazem
   const částiTextu = kontakt ? text.split(kontakt) : [text];
 
   return (

@@ -177,6 +177,56 @@ class EmailoveSablonyKatalog
                     ),
                 ],
             ),
+            new EmailovaSablonaDefinice(
+                kod: KodEmailoveSablonyEnum::MLADSI_UCASTNIK_NA_AKTIVITE,
+                skupina: self::SKUPINA_AKTIVITY,
+                nazev: 'Na aktivitu se přihlásil mladší účastník',
+                kdyOdchazi: 'Když se účastník sám přihlásí na aktivitu se štítkem „Věk: 15+“ (a podobně) a v den aktivity mu tolik ještě nebude.'
+                            . ' Před přihlášením viděl upozornění, že se mu šéf sekce ozve. Když ho přihlásí admin nebo vypravěč, e-mail neodchází.',
+                prijemce: 'šéf sekce aktivity (e-mail z Hlaviček linií, bez něj info@gamecon.cz)',
+                format: GcMail::FORMAT_HTML,
+                promenne: [
+                    self::nazevAktivity(),
+                    new EmailovaPromenna(
+                        nazev: 'cas',
+                        popis: 'kdy se aktivita koná (den a hodiny)',
+                        ukazka: 'čtvrtek 10–14',
+                    ),
+                    new EmailovaPromenna(
+                        nazev: 'minimalni_vek',
+                        popis: 'od kolika let aktivita je (ze štítku „Věk: 15+“)',
+                        ukazka: '15',
+                        vPredmetu: true,
+                    ),
+                    new EmailovaPromenna(
+                        nazev: 'vek',
+                        popis: 'kolik účastníkovi bude v den aktivity',
+                        ukazka: '13',
+                        vPredmetu: true,
+                    ),
+                    new EmailovaPromenna(
+                        nazev: 'ucastnik',
+                        popis: 'jméno a přezdívka účastníka',
+                        ukazka: 'Jana „Janička“ Nováková',
+                        vPredmetu: true,
+                    ),
+                    new EmailovaPromenna(
+                        nazev: 'email_ucastnika',
+                        popis: 'e-mail účastníka',
+                        ukazka: 'jana.novakova@example.com',
+                    ),
+                    new EmailovaPromenna(
+                        nazev: 'vypraveci',
+                        popis: 'kdo aktivitu vede, oddělení čárkou („nikdo“, když zatím nikdo)',
+                        ukazka: 'Petr „Péťa“ Svoboda',
+                    ),
+                    new EmailovaPromenna(
+                        nazev: 'odkaz',
+                        popis: 'odkaz do adminu na seznam přihlášených na aktivity linie, mladší jsou v něm vyznačení',
+                        ukazka: 'https://admin.gamecon.cz/aktivity/prihlaseni?typ=2#aktivita-1234',
+                    ),
+                ],
+            ),
         ];
     }
 

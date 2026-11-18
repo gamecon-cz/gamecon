@@ -86,7 +86,7 @@ class Aktivita
     const PN_PLUSMINUSM         = 'cAktivitaPlusminusm'; // název post proměnné pro úpravy typu mínus
     const LIMIT_POPIS_KRATKY    = 180; // max počet znaků v krátkém popisku
 
-    // na šéfa programu se obrací, kdo se hlásí na aktivitu pro starší; do Preactu (UpozorneniNaVekModal) jde přes Program::gameconKonstanty()
+    // kontakt na šéfa sekce u linie bez vyplněné hlavičky (KontaktSefaLinie), stejný jako na stránce linie
     public const KONTAKT_NA_SEFA_PROGRAMU = 'info@gamecon.cz';
 
     // todo: tym asi lepší commenty k parametrům by bodly :)
@@ -2494,6 +2494,12 @@ SQL
             $dalsiAktivityTymu,
         );
 
+        // před přihlášením, potom by už log přihlášení obsahoval i tohle; o dalších aktivitách turnaje či týmu
+        // (IGNOROVAT_TURNAJ) se nepíše, upozornění bylo jen o aktivitě, na kterou se hlásí
+        $mladsiProSefaSekce = $parametry & self::IGNOROVAT_TURNAJ
+            ? null
+            : $this->najdiMladsihoProSefaSekce($uzivatel, $prihlasujici);
+
         // přihlášení na zbylé aktivity turnaje
         if (!($parametry & self::IGNOROVAT_TURNAJ)) {
             $parametryDalsichAktivit = $parametry
@@ -2549,7 +2555,112 @@ SQL
 
         $uzivatel->finance()->prepoctiSlevuNaJednuAktivitu();
 
+        if ($mladsiProSefaSekce !== null) {
+            self::napisSefoviSekceOMladsimUcastnikovi($mladsiProSefaSekce);
+        }
+
         return true;
+    }
+
+    /**
+     * Účastník, o kterém má šéf sekce dostat e-mail (napisSefoviSekceOMladsimUcastnikovi()), jinak null.
+     * Stejné pravidlo jako upozornění (getUpozorneniNaVek()), účastník ho tedy viděl: hlásí se sám a na aktivitu, na
+     * kterou se hlásí (u turnaje první kolo), je mladší. Kdo přihlašuje za jiného (admin, vypravěč v prezenci), má
+     * výjimku domluvenou (záměr).
+     * Volá se před přihlášením: jestli to šéf sekce už ví, pozná z logu přihlášení (sefSekceViOMladsimUcastnikovi()).
+     * Chyba se jen zapíše, přihlášení kvůli e-mailu neselže.
+     */
+    private function najdiMladsihoProSefaSekce(Uzivatel $ucastnik, Uzivatel $prihlasujici): ?MladsiUcastnikAktivity
+    {
+        try {
+            $mladsi = $this->getMladsiUcastnik($ucastnik, $prihlasujici);
+
+            return $mladsi !== null && !$this->sefSekceViOMladsimUcastnikovi($ucastnik)
+                ? $mladsi
+                : null;
+        } catch (\Throwable $chyba) {
+            Vyjimkovac::vytvorZGlobals()->zaloguj(new \RuntimeException(
+                "Nepodařilo se zjistit, jestli psát šéfovi sekce o mladším účastníkovi {$ucastnik->id()} na aktivitě {$this->id()}",
+                previous: $chyba,
+            ));
+
+            return null;
+        }
+    }
+
+    /**
+     * Šéf sekce už o účastníkovi na téhle aktivitě ví: byl na ni přihlášený (sám, pak dostal šéf e-mail, nebo ho
+     * přihlásil někdo jiný, ten měl výjimku domluvenou) a od té doby ho z ní nikdo jiný neodhlásil.
+     * Kdo se sám odhlásí a znovu přihlásí, nic nového nepřináší. Koho odhlásil šéf sekce (nebo kdokoli jiný) a on se
+     * přihlásil znovu, o tom šéf sekce dostane nový e-mail.
+     */
+    private function sefSekceViOMladsimUcastnikovi(Uzivatel $ucastnik): bool
+    {
+        $vi = false;
+        foreach (dbFetchAll(<<<'SQL'
+            SELECT typ, id_zmenil
+            FROM akce_prihlaseni_log
+            WHERE id_akce = $0 AND id_uzivatele = $1 AND typ IN ($2)
+            ORDER BY id_log
+            SQL, [
+            0 => $this->id(),
+            1 => $ucastnik->id(),
+            2 => [AktivitaPrezenceTyp::PRIHLASENI, AktivitaPrezenceTyp::ODHLASENI, AktivitaPrezenceTyp::ODHLASENI_HROMADNE],
+        ]) as $zaznam) {
+            if ($zaznam['typ'] === AktivitaPrezenceTyp::PRIHLASENI) {
+                $vi = true;
+            } elseif ((int) $zaznam['id_zmenil'] !== (int) $ucastnik->id()) {
+                $vi = false;
+            }
+        }
+
+        return $vi;
+    }
+
+    /**
+     * Šéfovi sekce (KontaktSefaLinie) napíše, že se na aktivitu sám přihlásil účastník, kterému v den aktivity ještě
+     * nebude její minimální věk (najdiMladsihoProSefaSekce()). Účastník před přihlášením viděl upozornění, že se mu
+     * šéf sekce ozve (getUpozorneniNaVek()).
+     * Přihlášení je v tu chvíli uložené: když se e-mail nepodaří odeslat, nesmí to vypadat, že se nepovedlo přihlásit.
+     * Chyba se proto jen zapíše do logu chyb (Vyjimkovac), trigger_error() by ji tam, kde se chyby zobrazují, ukázal
+     * místo odpovědi a skript ukončil.
+     */
+    private static function napisSefoviSekceOMladsimUcastnikovi(MladsiUcastnikAktivity $mladsi): void
+    {
+        $aktivita = $mladsi->aktivita;
+        $ucastnik = $mladsi->ucastnik;
+        try {
+            (new EmailoveSablony($aktivita->systemoveNastaveni))
+                ->vytvorMail(KodEmailoveSablonyEnum::MLADSI_UCASTNIK_NA_AKTIVITE, [
+                    'aktivita'        => $aktivita->nazev(),
+                    'cas'             => $aktivita->denCasSkutecny(),
+                    'minimalni_vek'   => (string) $mladsi->minimalniVek,
+                    'vek'             => (string) $mladsi->vek,
+                    'ucastnik'        => (string) $ucastnik->jmenoNick(),
+                    'email_ucastnika' => (string) $ucastnik->mail(),
+                    'vypraveci'       => implode(', ', array_map(
+                        static fn(Uzivatel $vypravec) => (string) $vypravec->jmenoNick(),
+                        $aktivita->organizatori(),
+                    )) ?: 'nikdo',
+                    'odkaz'           => URL_ADMIN . '/aktivity/prihlaseni?typ=' . $aktivita->typId() . '#aktivita-' . $aktivita->id(),
+                ])
+                ->adresat($aktivita->getKontaktSefaSekce()->getEmail())
+                ->odeslat();
+        } catch (\Throwable $chyba) {
+            Vyjimkovac::vytvorZGlobals()->zaloguj(new \RuntimeException(
+                "E-mail šéfovi sekce o mladším účastníkovi {$ucastnik->id()} na aktivitě {$aktivita->id()} se nepodařilo odeslat",
+                previous: $chyba,
+            ));
+        }
+    }
+
+    /**
+     * Komu napsat o mladším účastníkovi a na koho se má obrátit on: šéf sekce linie aktivity, bez hlavičky linie
+     * šéf programu.
+     */
+    public function getKontaktSefaSekce(): KontaktSefaLinie
+    {
+        return KontaktSefaLinie::zTypu($this->typId());
     }
 
     private function zrusPredchoziStornoPoplatek(Uzivatel $uzivatel): void
@@ -3210,16 +3321,17 @@ HTML
      * (Preact, UpozorneniNaVekModal), formulář odešle až potvrzení. Než se Preact načte, poslouží confirm().
      * Scroll stránky (zachovej-scroll.js) se uloží až s potvrzením, kdo upozornění zavře, na stránce zůstává.
      *
-     * @param array{nadpis: string, text: string} $upozorneniNaVek z getUpozorneniNaVek()
+     * @param array{nadpis: string, text: string, kontakt: string} $upozorneniNaVek z getUpozorneniNaVek()
      */
     private function getPrihlasovatkoSUpozornenimNaVek(array $upozorneniNaVek): string
     {
         $nadpis     = htmlspecialchars($upozorneniNaVek['nadpis'], ENT_QUOTES);
         $upozorneni = htmlspecialchars($upozorneniNaVek['text'], ENT_QUOTES);
+        $kontakt    = htmlspecialchars($upozorneniNaVek['kontakt'], ENT_QUOTES);
         $onclick    = htmlspecialchars(
             'var formular = this.parentNode, otevri = window.preactMost && window.preactMost.upozorneniNaVek && window.preactMost.upozorneniNaVek.otevri;'
             . ' var prihlas = function () { if (window.zachovejScrollUloz) { zachovejScrollUloz(null); } formular.submit(); };'
-            . ' if (otevri) { otevri({ nadpis: formular.dataset.nadpis, text: formular.dataset.upozorneni }, prihlas); }'
+            . ' if (otevri) { otevri({ nadpis: formular.dataset.nadpis, text: formular.dataset.upozorneni, kontakt: formular.dataset.kontakt }, prihlas); }'
             . ' else if (confirm(formular.dataset.nadpis + "\n\n" + formular.dataset.upozorneni)) { prihlas(); }'
             . ' return false',
             ENT_QUOTES,
@@ -3227,7 +3339,7 @@ HTML
 
         // bez zalomení řádků, mezera mezi prvky by se v textu karty ukázala
         return '<form method="post" style="display:inline"'
-               . " data-nadpis=\"{$nadpis}\" data-upozorneni=\"{$upozorneni}\">"
+               . " data-nadpis=\"{$nadpis}\" data-upozorneni=\"{$upozorneni}\" data-kontakt=\"{$kontakt}\">"
                . '<input type="hidden" name="prihlasit" value="' . $this->id() . '">'
                . "<a href=\"#\" onclick=\"{$onclick}\">přihlásit</a>"
                . '</form>';
@@ -3630,8 +3742,9 @@ HTML
 
     /**
      * Minimální věk aktivity, když ho účastníkovi v den aktivity ještě nebude, jinak null.
-     * Přihlášení to nebrání, účastník se má jen předem domluvit se šéfem programu (záměr).
+     * Přihlášení to nebrání (záměr): účastníka se před přihlášením upozorní a šéf sekce dostane e-mail.
      * Upozorňuje se jen ten, kdo se hlásí sám: kdo ho přihlašuje z adminu, má výjimku domluvenou (záměr).
+     * Bez $prihlasujiciho (výpisy v adminu, report) se ptá jen na věk.
      * Bez skutečného data narození (rychloregistrace má místo něj den registrace) nebo bez začátku aktivity
      * (na tu se přihlásit nedá) nevíme, takže null.
      */
@@ -3658,24 +3771,69 @@ HTML
 
     /**
      * Upozornění před přihlášením, když účastníkovi v den aktivity ještě nebude její minimální věk
-     * (getNesplnenyMinimalniVek()), jinak null. Jediný zdroj textu: dialog v Preactu (UpozorneniNaVekModal) ho dostane
-     * z API programu (aktivityUzivatel.php) nebo ze stránky linie, stejný text ukáže i záložní confirm().
+     * (getNesplnenyMinimalniVek()), jinak null. U turnaje podle aktivity, na kterou se hlásí (první kolo), na věk
+     * dalších kol, na která ho přihlášení přihlásí také, se neupozorňuje (záměr, stačí první kolo). Jediný zdroj
+     * textu: dialog v Preactu (UpozorneniNaVekModal) ho dostane z API programu (getUpozorneniNaVekProPrihlasovatko())
+     * nebo ze stránky linie, stejný text ukáže i záložní confirm().
+     * Přihlásit se smí, šéf sekce o tom ale dostane e-mail (napisSefoviSekceOMladsimUcastnikovi()) a ozve se mu.
      *
-     * @return array{nadpis: string, text: string}|null
+     * @return array{nadpis: string, text: string, kontakt: string}|null kontakt je e-mail šéfa sekce, který je v textu
+     *                                                                     a dialog z něj udělá odkaz
      */
     public function getUpozorneniNaVek(Uzivatel $ucastnik, ?Uzivatel $prihlasujici = null): ?array
     {
-        $minimalniVek = $this->getNesplnenyMinimalniVek($ucastnik, $prihlasujici);
-        if ($minimalniVek === null) {
+        $mladsi = $this->getMladsiUcastnik($ucastnik, $prihlasujici);
+        if ($mladsi === null) {
+            return null;
+        }
+        $kontakt = $this->getKontaktSefaSekce();
+
+        return [
+            'nadpis'  => "Aktivita {$this->nazev()} je od {$mladsi->minimalniVek} let",
+            'text'    => "V den aktivity ti ještě nebude {$mladsi->minimalniVek}. Přihlásit se můžeš, {$kontakt->getKdo()} se to ale dozví"
+                         . ' a ozve se ti e-mailem. Když se nedomluvíte, může tě z aktivity odhlásit, sleduj proto e-mail.'
+                         . " Ozvat se můžeš i ty na {$kontakt->getEmail()}.",
+            'kontakt' => $kontakt->getEmail(),
+        ];
+    }
+
+    /**
+     * Upozornění na věk do API programu (aktivityUzivatel.php i odpověď na přihlášení či odhlášení aktivitaAkce.php),
+     * jen kde Přihlašovátko.tsx nabídne přihlášení: přihlašovatelná, účastník ji nevede a není na ní (nanejvýš ji
+     * sleduje). Jinde null, minulé ročníky tak štítky vůbec nenačtou.
+     *
+     * @param Uzivatel $prihlasujici přihlášený uživatel, v adminu za účastníka (pracovní uživatel) přihlašuje on
+     *
+     * @return array{nadpis: string, text: string, kontakt: string}|null
+     */
+    public function getUpozorneniNaVekProPrihlasovatko(Uzivatel $ucastnik, Uzivatel $prihlasujici): ?array
+    {
+        if (!in_array($this->stavPrihlaseni($ucastnik), [StavPrihlaseni::NEPRIHLASEN, StavPrihlaseni::SLEDUJICI], true)
+            || $this->organizuje($ucastnik)
+            || !$this->prihlasovatelnaProPrihlasujiciho($prihlasujici)
+        ) {
             return null;
         }
 
-        return [
-            'nadpis' => "Aktivita {$this->nazev()} je od {$minimalniVek} let",
-            // kontakt dialog v Preactu udělá odkazem (GAMECON_KONSTANTY.KONTAKT_NA_SEFA_PROGRAMU)
-            'text'   => "V den aktivity ti ještě nebude {$minimalniVek}. Přihlas se, jen když máš výjimku domluvenou se šéfem programu."
-                        . ' Domluvit se můžeš na ' . self::KONTAKT_NA_SEFA_PROGRAMU . '.',
-        ];
+        return $this->getUpozorneniNaVek($ucastnik, $prihlasujici);
+    }
+
+    /**
+     * Účastník s věkem v den aktivity, když mu ještě nebude minimální věk aktivity (getNesplnenyMinimalniVek()), jinak
+     * null. Bez $prihlasujiciho (výpisy v adminu, report) se ptá jen na věk.
+     */
+    public function getMladsiUcastnik(Uzivatel $ucastnik, ?Uzivatel $prihlasujici = null): ?MladsiUcastnikAktivity
+    {
+        $minimalniVek = $this->getNesplnenyMinimalniVek($ucastnik, $prihlasujici);
+
+        return $minimalniVek === null
+            ? null
+            : new MladsiUcastnikAktivity(
+                aktivita: $this,
+                ucastnik: $ucastnik,
+                vek: (int) $ucastnik->vekKDatu($this->zacatek()),
+                minimalniVek: $minimalniVek,
+            );
     }
 
     public function nastavTagy(array $tagy)

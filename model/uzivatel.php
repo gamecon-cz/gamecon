@@ -2819,17 +2819,28 @@ SQL,
     }
 
     /**
-     * Je datum narození skutečné? Rychloregistrace na místě (rychloregistrace()) a admin anonymizované databáze
-     * dostanou místo něj den registrace, a kdo by se narodil v den registrace nebo po ní, má datum vyplněné jen
-     * pro formu (i překlep do budoucnosti). Staré účty mají registraci '0000-00-00', u nich porovnávat není s čím.
+     * Je datum narození skutečné? Viz isDatumNarozeniSkutecneKRegistraci().
      */
     public function isDatumNarozeniSkutecne(): bool
     {
-        $datumNarozeni = (string) $this->r[Sql::DATUM_NAROZENI];
+        return self::isDatumNarozeniSkutecneKRegistraci(
+            (string) $this->r[Sql::DATUM_NAROZENI],
+            (string) $this->r[Sql::REGISTROVAN],
+        );
+    }
+
+    /**
+     * Je datum narození skutečné? Rychloregistrace na místě (rychloregistrace()) a admin anonymizované databáze
+     * dostanou místo něj den registrace, a kdo by se narodil v den registrace nebo po ní, má datum vyplněné jen
+     * pro formu (i překlep do budoucnosti). Staré účty mají registraci '0000-00-00', u nich porovnávat není s čím.
+     * Z hodnot sloupců, pro výpis nad vlastním SQL (Seznam přihlášených).
+     */
+    public static function isDatumNarozeniSkutecneKRegistraci(string $datumNarozeni, string $registrovan): bool
+    {
         if (!(int) $datumNarozeni) { // neplatné datum je '0000-00-00'
             return false;
         }
-        $denRegistrace = substr((string) $this->r[Sql::REGISTROVAN], 0, 10);
+        $denRegistrace = substr($registrovan, 0, 10);
 
         return !(int) $denRegistrace || $datumNarozeni < $denRegistrace;
     }
