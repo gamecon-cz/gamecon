@@ -29,15 +29,18 @@ final readonly class SablonaHodnoceni
     }
 
     /**
-     * Škála a počty kritérií v kategoriích. Šablony se stejným tvarem se liší nanejvýš v názvech, takže nové nahrání
-     * hodnocením nic nevezme.
+     * Hodnoty škály (bez ohledu na pořadí, to mění jen nabídku) a počty kritérií v kategoriích. Šablony se stejným
+     * tvarem se liší nanejvýš v názvech a pořadí: uložené hodnoty platí dál.
      *
      * @return array{skala: list<int>, kriteria: list<int>}
      */
     public function getTvar(): array
     {
+        $skala = $this->skala;
+        sort($skala);
+
         return [
-            'skala'    => $this->skala,
+            'skala'    => $skala,
             'kriteria' => array_map(
                 static fn (KategorieHodnoceni $kategorie): int => count($kategorie->kriteria),
                 $this->kategorie,

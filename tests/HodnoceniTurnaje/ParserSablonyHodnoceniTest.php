@@ -72,7 +72,7 @@ class ParserSablonyHodnoceniTest extends TestCase
 
         self::assertSame(
             ['Řádek 13: kritérium „Kritérium 2“ už je v kategorii „Kategorie 3“ na řádku 12.'],
-            $this->chyby($text),
+            $this->getChyby($text),
         );
     }
 
@@ -105,7 +105,7 @@ class ParserSablonyHodnoceniTest extends TestCase
     #[DataProvider('chybneSoubory')]
     public function testChybnySouborHlasiVsechnyChyby(string $text, array $ocekavaneChyby): void
     {
-        self::assertSame($ocekavaneChyby, $this->chyby($text));
+        self::assertSame($ocekavaneChyby, $this->getChyby($text));
     }
 
     /**
@@ -143,6 +143,18 @@ class ParserSablonyHodnoceniTest extends TestCase
                 'Řádek 1: hodnota škály 1 je tam dvakrát.',
             ],
         ];
+        yield 'škála s víc než dvaceti hodnotami' => [
+            'Škála: ' . implode(' ', range(0, 20)) . "\n# Hraní\n## Postavy",
+            ['Řádek 1: škála má 21 hodnot, nejvýš jde 20.'],
+        ];
+        yield 'hodnota škály mimo rozsah' => [
+            "Škála: 1 1001 -40000 99999999999999999999\n# Hraní\n## Postavy",
+            [
+                'Řádek 1: hodnota škály „1001“ není celé číslo od -1000 do 1000.',
+                'Řádek 1: hodnota škály „-40000“ není celé číslo od -1000 do 1000.',
+                'Řádek 1: hodnota škály „99999999999999999999“ není celé číslo od -1000 do 1000.',
+            ],
+        ];
         yield 'škála s jednou hodnotou a druhá škála' => [
             "Škála: 5\n# Hraní\n## Postavy\nŠkála: 1 2",
             [
@@ -159,6 +171,16 @@ class ParserSablonyHodnoceniTest extends TestCase
         ];
     }
 
+    public function testDvacetKrajnichHodnotSkalySeVejde(): void
+    {
+        $skala = array_merge(range(-1000, -991), range(991, 1000));
+
+        $sablona = ParserSablonyHodnoceni::rozeber('Škála: ' . implode(' ', $skala) . "\n# Hraní\n## Postavy");
+
+        self::assertSame($skala, $sablona->skala);
+        self::assertLessThanOrEqual(255, strlen(implode(' ', $sablona->skala)), 'Škála se vejde do VARCHAR(255)');
+    }
+
     public function testStejnyTvarJeStejnaSkalaAPoctyKriterii(): void
     {
         $sablona = ParserSablonyHodnoceni::rozeber("Škála: 1 2 3\n# A\n## a\n## b\n# B\n## c");
@@ -168,6 +190,10 @@ class ParserSablonyHodnoceniTest extends TestCase
 
         self::assertTrue($sablona->isStejnyTvar($prejmenovana));
         self::assertFalse($sablona->isStejnyTvar($jinaSkala));
+        self::assertTrue(
+            $sablona->isStejnyTvar(ParserSablonyHodnoceni::rozeber("Škála: 3 2 1\n# A\n## a\n## b\n# B\n## c")),
+            'Pořadí hodnot škály mění jen nabídku',
+        );
         self::assertFalse($sablona->isStejnyTvar($jinyPocet));
     }
 
@@ -179,7 +205,7 @@ class ParserSablonyHodnoceniTest extends TestCase
     /**
      * @return list<string>
      */
-    private function chyby(string $text): array
+    private function getChyby(string $text): array
     {
         try {
             ParserSablonyHodnoceni::rozeber($text);

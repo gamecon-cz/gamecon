@@ -22,8 +22,20 @@ final class ParserSablonyHodnoceni
     /** Zdroj se ukládá do sloupce TEXT. */
     public const int MAX_DELKA_TEXTU = 65535;
 
-    /** Hodnoty se ukládají do SMALLINT, tohle s rezervou stačí na každou rozumnou škálu. */
+    /**
+     * Hodnoty se ukládají do SMALLINT (do 32 767), tohle s rezervou stačí na každou rozumnou škálu a součty skupiny
+     * přes všechna kola a kritéria se počítají v PHP, ne v SMALLINT.
+     */
     public const int MAX_HODNOTA = 1000;
+
+    /**
+     * Víc hodnot se do výběru u kritéria rozumně nevejde. Škála se ukládá spojená mezerami do VARCHAR(255):
+     * 20 hodnot po nejvýš 5 znacích („-1000“) s 19 mezerami je 119 znaků, limit délky tedy hlídá i počet.
+     */
+    public const int MAX_HODNOT_SKALY = 20;
+
+    /** Sloupec `turnaj_hodnoceni_sablona.skala`. */
+    private const int MAX_DELKA_SKALY = 255;
 
     public const string UKAZKA = <<<'TEXT'
         Škála: 1 2 3 4 5
@@ -149,7 +161,7 @@ final class ParserSablonyHodnoceni
         }
         // bez škály je vždy i chyba, podmínka na ni je tu kvůli typu
         if ($chyby !== [] || $skala === null) {
-            usort($chyby, static fn (string $a, string $b): int => self::cisloRadku($a) <=> self::cisloRadku($b));
+            usort($chyby, static fn (string $a, string $b): int => self::getCisloRadku($a) <=> self::getCisloRadku($b));
             throw new ChybaSablonyHodnoceni($chyby);
         }
 
@@ -220,6 +232,17 @@ final class ParserSablonyHodnoceni
                 $cisloRadku,
             );
         }
+        if (count($skala) > self::MAX_HODNOT_SKALY) {
+            $chyby[] = sprintf(
+                'Řádek %d: škála má %d hodnot, nejvýš jde %d.',
+                $cisloRadku,
+                count($skala),
+                self::MAX_HODNOT_SKALY,
+            );
+        } elseif (strlen(implode(' ', $skala)) > self::MAX_DELKA_SKALY) {
+            // při limitech výš nenastane, pojistka pro jejich změnu
+            $chyby[] = sprintf('Řádek %d: škála je moc dlouhá.', $cisloRadku);
+        }
         if ($chyby !== []) {
             throw new ChybaSablonyHodnoceni($chyby);
         }
@@ -272,7 +295,7 @@ final class ParserSablonyHodnoceni
     /**
      * Chyby bez čísla řádku (chybí škála, žádná kategorie) patří na konec.
      */
-    private static function cisloRadku(string $chyba): int
+    private static function getCisloRadku(string $chyba): int
     {
         return preg_match('~^Řádek (?<cislo>\d+):~u', $chyba, $shoda) === 1
             ? (int)$shoda['cislo']

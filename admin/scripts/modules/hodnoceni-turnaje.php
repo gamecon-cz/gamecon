@@ -7,6 +7,7 @@ use Gamecon\HodnoceniTurnaje\ChybaSablonyHodnoceni;
 use Gamecon\HodnoceniTurnaje\HodnoceniTurnaje;
 use Gamecon\HodnoceniTurnaje\HodnoceniTurnajeException;
 use Gamecon\HodnoceniTurnaje\ParserSablonyHodnoceni;
+use Gamecon\HodnoceniTurnaje\PrejmenovaniBezPotvrzeni;
 use Gamecon\Pravo;
 use Gamecon\Web\VerzeSouboru;
 use Gamecon\XTemplate\XTemplate;
@@ -48,6 +49,7 @@ if ($jeOrgTurnaje && in_array($export, ['souhrn', 'detail'], true)) {
 // Po chybě se stránka vykreslí znovu s tím, co kdo odeslal: text kritérií ani vybrané hodnoty se neztratí.
 $odeslanyText = null;
 $odeslaneHodnoty = null;
+$prejmenovaniBezPotvrzeni = null;
 $akce = post('akce');
 if ($akce !== null) {
     try {
@@ -56,12 +58,16 @@ if ($akce !== null) {
             $odeslaneHodnoty = is_array(post('hodnoty'))
                 ? post('hodnoty')
                 : [];
+            $zaVypravece = post('za_vypravece');
             $hodnoceniTurnaje->ulozHodnoceni(
                 (int)post('aktivita'),
                 (int)post('tym'),
                 $odeslaneHodnoty,
                 $idUzivatele,
                 $jeOrgTurnaje,
+                $jeOrgTurnaje && is_string($zaVypravece) && $zaVypravece !== ''
+                    ? (int)$zaVypravece
+                    : null,
             );
             oznameni('Hodnocení je uložené.');
         }
@@ -85,7 +91,14 @@ if ($akce !== null) {
             if (trim($text) === '') {
                 throw new HodnoceniTurnajeException('Vyber soubor s kritérii, nebo je vlož do pole.');
             }
-            $smazano = $hodnoceniTurnaje->nahrajSablonu($text, $idUzivatele, post('smazat_hodnoceni') === '1');
+            $smazano = $hodnoceniTurnaje->nahrajSablonu(
+                $text,
+                $idUzivatele,
+                post('smazat_hodnoceni') === '1',
+                is_string(post('potvrzeni_prejmenovani'))
+                    ? post('potvrzeni_prejmenovani')
+                    : null,
+            );
             oznameni($smazano > 0
                 ? "Kritéria jsou nahraná, {$smazano} hodnocení se smazalo."
                 : 'Kritéria jsou nahraná.');
@@ -101,6 +114,9 @@ if ($akce !== null) {
                 : 'Hodnocení je zase otevřené.');
         }
         throw new HodnoceniTurnajeException('Neznámá akce.');
+    } catch (PrejmenovaniBezPotvrzeni $prejmenovaniBezPotvrzeni) {
+        // seznam přejmenování a potvrzení vykreslí formulář kritérií
+        chyba(htmlspecialchars($prejmenovaniBezPotvrzeni->getMessage()), false);
     } catch (ChybaSablonyHodnoceni $chybaSablony) {
         // zprávy obsahují text ze souboru, chyba() vypisuje HTML
         chyba(
@@ -204,28 +220,39 @@ if ($kola === []) {
             $idUzivatele,
             $jeOrgTurnaje,
         );
+        // nové hodnocení zadává org za vypravěče kola, hodnocení patří jemu
+        $vypraveciKola = $jeOrgTurnaje && $hodnoceni === null
+            ? $hodnoceniTurnaje->getVypraveciKola($vybraneKolo['idAkce'])
+            : [];
+        if ($duvodZakazu === null && $jeOrgTurnaje && $hodnoceni === null && $vypraveciKola === []) {
+            $duvodZakazu = 'Kolo nemá žádného vypravěče, hodnocení nemá komu patřit.';
+        }
+        // cizí hodnocení vypravěč nevidí, jen kdo ho zadal
+        $jeCiziHodnoceni = ! $jeOrgTurnaje && $hodnoceni !== null && $hodnoceni['idHodnotitele'] !== $idUzivatele;
         $hodnoty = $odeslaneHodnoty ?? $hodnoceni['hodnoty'] ?? [];
         $t->assign([
-            'idAkce'      => $vybraneKolo['idAkce'],
-            'idTymu'      => $vybranyTym['id'],
+            'idAkce'       => $vybraneKolo['idAkce'],
+            'idTymu'       => $vybranyTym['id'],
             'urlFormulare' => htmlspecialchars('hodnoceni-turnaje?' . http_build_query([
                 'aktivita' => $vybraneKolo['idAkce'],
                 'tym'      => $vybranyTym['id'],
             ])),
-            'stav'        => htmlspecialchars($hodnoceni === null
+            'stav'         => htmlspecialchars($hodnoceni === null
                 ? 'Skupina v tomhle kole ještě hodnocení nemá.'
                 : sprintf(
-                    'Hodnotil%s %s, naposledy %s.',
-                    $hodnoceni['hodnotitel'] === null
-                        ? ''
-                        : '(a)',
-                    $hodnoceni['hodnotitel'] ?? 'někdo, kdo už nemá účet',
+                    'Hodnotil(a) %s, naposledy %s.',
+                    HodnoceniTurnaje::getPopisHodnotitele(
+                        $hodnoceni['idHodnotitele'],
+                        $hodnoceni['hodnotitel'],
+                        $hodnoceni['idZadal'],
+                        $hodnoceni['zadal'],
+                    ),
                     $formatujCas($hodnoceni['upraveno'], 'j. n. G:i'),
                 )),
-            'zakazano'    => $duvodZakazu === null
+            'zakazano'     => $duvodZakazu === null
                 ? ''
                 : 'disabled',
-            'textUlozit'  => $hodnoceni === null
+            'textUlozit'   => $hodnoceni === null
                 ? 'Uložit hodnocení'
                 : 'Uložit změny',
         ]);
@@ -233,26 +260,45 @@ if ($kola === []) {
             $t->assign('duvodZakazu', htmlspecialchars($duvodZakazu));
             $t->parse('hodnoceni.vyber.formular.duvodZakazu');
         }
-        foreach ($sablona->kategorie as $kategorie) {
-            foreach ($kategorie->kriteria as $kriterium) {
-                $vybranaHodnota = $hodnoty[$kriterium->id] ?? null;
-                foreach ($sablona->skala as $hodnota) {
-                    $t->assign([
-                        'hodnota' => $hodnota,
-                        'vybrano' => $vybranaHodnota !== null && (string)$vybranaHodnota === (string)$hodnota
-                            ? 'selected'
-                            : '',
-                    ]);
-                    $t->parse('hodnoceni.vyber.formular.kategorie.kriterium.hodnota');
-                }
+        if ($vypraveciKola !== []) {
+            $vybranyVypravec = (int)post('za_vypravece');
+            foreach ($vypraveciKola as $vypravec) {
                 $t->assign([
-                    'idKriteria'    => $kriterium->id,
-                    'nazevKriteria' => htmlspecialchars($kriterium->nazev),
+                    'idVypravece'    => $vypravec['id'],
+                    'jmenoVypravece' => htmlspecialchars($vypravec['jmeno']),
+                    'vybrano'        => $vypravec['id'] === $vybranyVypravec || count($vypraveciKola) === 1
+                        ? 'selected'
+                        : '',
                 ]);
-                $t->parse('hodnoceni.vyber.formular.kategorie.kriterium');
+                $t->parse('hodnoceni.vyber.formular.zaVypravece.vypravec');
             }
-            $t->assign('nazevKategorie', htmlspecialchars($kategorie->nazev));
-            $t->parse('hodnoceni.vyber.formular.kategorie');
+            $t->assign('zakazano', $duvodZakazu === null
+                ? ''
+                : 'disabled');
+            $t->parse('hodnoceni.vyber.formular.zaVypravece');
+        }
+        if (! $jeCiziHodnoceni) {
+            foreach ($sablona->kategorie as $kategorie) {
+                foreach ($kategorie->kriteria as $kriterium) {
+                    $vybranaHodnota = $hodnoty[$kriterium->id] ?? null;
+                    foreach ($sablona->skala as $hodnota) {
+                        $t->assign([
+                            'hodnota' => $hodnota,
+                            'vybrano' => $vybranaHodnota !== null && (string)$vybranaHodnota === (string)$hodnota
+                                ? 'selected'
+                                : '',
+                        ]);
+                        $t->parse('hodnoceni.vyber.formular.kategorie.kriterium.hodnota');
+                    }
+                    $t->assign([
+                        'idKriteria'    => $kriterium->id,
+                        'nazevKriteria' => htmlspecialchars($kriterium->nazev),
+                    ]);
+                    $t->parse('hodnoceni.vyber.formular.kategorie.kriterium');
+                }
+                $t->assign('nazevKategorie', htmlspecialchars($kategorie->nazev));
+                $t->parse('hodnoceni.vyber.formular.kategorie');
+            }
         }
         if ($duvodZakazu === null) {
             $t->parse('hodnoceni.vyber.formular.ulozit');
@@ -311,17 +357,29 @@ if ($jeOrgTurnaje) {
                 'nazevTurnaje'     => htmlspecialchars($hodnoceni['nazevTurnaje']),
                 'nazevTymu'        => htmlspecialchars($hodnoceni['nazevTymu']),
                 'kolo'             => $hodnoceni['kolo'],
-                'hodnotitel'       => htmlspecialchars($hodnoceni['hodnotitel'] ?? '–'),
+                'hodnotitel'       => htmlspecialchars(HodnoceniTurnaje::getPopisHodnotitele(
+                    $hodnoceni['idHodnotitele'],
+                    $hodnoceni['hodnotitel'],
+                    $hodnoceni['idZadal'],
+                    $hodnoceni['zadal'],
+                )),
+                'tridaRadku'       => $hodnoceni['hrajeKolo']
+                    ? ''
+                    : 'hodnoceni-neuplna',
                 'upraveno'         => $formatujCas($hodnoceni['upraveno'], 'j. n. G:i'),
                 'celkem'           => $hodnoceni['celkem'],
                 'urlUpravit'       => htmlspecialchars('hodnoceni-turnaje?' . http_build_query([
-                    'aktivita' => $hodnoceni['idAkce'],
+                    'aktivita' => $hodnoceni['idAkce'] ?? '',
                     'tym'      => $hodnoceni['idTymu'],
                 ])),
                 'potvrzeniSmazani' => htmlspecialchars(
                     "Smazat hodnocení skupiny „{$hodnoceni['nazevTymu']}“ v {$hodnoceni['kolo']}. kole?",
                 ),
             ]);
+            // hodnocení kola, které skupina už nehraje, upravit nejde (není aktivita) a do výsledků se nepočítá
+            $t->parse($hodnoceni['hrajeKolo']
+                ? 'hodnoceni.org.hodnoceniSeznam.radek.upravit'
+                : 'hodnoceni.org.hodnoceniSeznam.radek.mimoKolo');
             $t->parse('hodnoceni.org.hodnoceniSeznam.radek');
         }
         $t->parse('hodnoceni.org.hodnoceniSeznam');
@@ -350,6 +408,18 @@ if ($jeOrgTurnaje) {
             $t->parse('hodnoceni.org.nahled.kategorie');
         }
         $t->parse('hodnoceni.org.nahled');
+    }
+    if ($prejmenovaniBezPotvrzeni !== null) {
+        foreach ($prejmenovaniBezPotvrzeni->getPrejmenovani() as $prejmenovani) {
+            $t->assign([
+                'popisMista' => htmlspecialchars($prejmenovani['popis']),
+                'staryNazev' => htmlspecialchars($prejmenovani['stary']),
+                'novyNazev'  => htmlspecialchars($prejmenovani['novy']),
+            ]);
+            $t->parse('hodnoceni.org.potvrzeniPrejmenovani.prejmenovani');
+        }
+        $t->assign('klicPotvrzeni', htmlspecialchars($prejmenovaniBezPotvrzeni->getKlicPotvrzeni()));
+        $t->parse('hodnoceni.org.potvrzeniPrejmenovani');
     }
     $pocetHodnoceni = $hodnoceniTurnaje->getPocetHodnoceni();
     if ($pocetHodnoceni > 0) {

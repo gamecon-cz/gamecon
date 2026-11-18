@@ -66,7 +66,8 @@ CREATE TABLE IF NOT EXISTS turnaj_hodnoceni_kriterium
 SQL,
 );
 
-// jedno hodnocení na skupinu a kolo; aktivita je ta, na které skupina kolo hrála
+// Jedno hodnocení na skupinu a kolo. Patří ke kolu, ne k aktivitě: aktivita je jen informace, na které skupina kolo
+// hrála, a se smazanou aktivitou hodnocení zůstane.
 $this->q(<<<'SQL'
 CREATE TABLE IF NOT EXISTS turnaj_hodnoceni
 (
@@ -74,18 +75,24 @@ CREATE TABLE IF NOT EXISTS turnaj_hodnoceni
     id_sablony     INT UNSIGNED        NOT NULL,
     id_tymu        BIGINT(20) UNSIGNED NOT NULL,
     kolo           SMALLINT UNSIGNED   NOT NULL,
-    id_akce        BIGINT(20) UNSIGNED NOT NULL,
+    id_akce        BIGINT(20) UNSIGNED          DEFAULT NULL,
+    -- vypravěč, kterému hodnocení patří (i když ho za něj zadal org turnaje)
     id_hodnotitele BIGINT(20) UNSIGNED          DEFAULT NULL,
+    -- kdo hodnocení naposledy zadal nebo změnil
+    id_zadal       BIGINT(20) UNSIGNED          DEFAULT NULL,
     vytvoreno      DATETIME            NOT NULL,
     upraveno       DATETIME            NOT NULL,
     PRIMARY KEY (id),
     UNIQUE KEY (id_sablony, id_tymu, kolo),
     KEY (id_tymu),
     KEY (id_akce),
+    KEY (id_hodnotitele),
+    KEY (id_zadal),
     FOREIGN KEY (id_sablony) REFERENCES turnaj_hodnoceni_sablona (id) ON DELETE CASCADE ON UPDATE CASCADE,
     FOREIGN KEY (id_tymu) REFERENCES akce_tym (id) ON DELETE CASCADE ON UPDATE CASCADE,
-    FOREIGN KEY (id_akce) REFERENCES akce_seznam (id_akce) ON DELETE CASCADE ON UPDATE CASCADE,
-    FOREIGN KEY (id_hodnotitele) REFERENCES uzivatele_hodnoty (id_uzivatele) ON DELETE SET NULL ON UPDATE CASCADE
+    FOREIGN KEY (id_akce) REFERENCES akce_seznam (id_akce) ON DELETE SET NULL ON UPDATE CASCADE,
+    FOREIGN KEY (id_hodnotitele) REFERENCES uzivatele_hodnoty (id_uzivatele) ON DELETE SET NULL ON UPDATE CASCADE,
+    FOREIGN KEY (id_zadal) REFERENCES uzivatele_hodnoty (id_uzivatele) ON DELETE SET NULL ON UPDATE CASCADE
 ) ENGINE = InnoDB
   DEFAULT CHARSET = utf8mb4
   COLLATE = utf8mb4_czech_ci

@@ -8,14 +8,16 @@ use Gamecon\Aktivita\TypAktivity;
 use Gamecon\HodnoceniTurnaje\ChybaSablonyHodnoceni;
 use Gamecon\HodnoceniTurnaje\HodnoceniTurnaje;
 use Gamecon\HodnoceniTurnaje\HodnoceniTurnajeException;
+use Gamecon\HodnoceniTurnaje\PrejmenovaniBezPotvrzeni;
 use Gamecon\Tests\Db\AbstractTestDb;
 use Gamecon\XTemplate\XTemplate;
 use Symfony\Component\Clock\MockClock;
 
 /**
  * Hodnocení skupin turnaje D&D: vypravěč hodnotí skupiny z kola, které vede, od jeho začátku a dokud org hodnocení
- * neuzavře; hodnocení je jedno na skupinu a kolo a cizí přepíše jen org turnaje. Výsledky sčítají body po kategoriích,
- * stejný součet dělí místo.
+ * neuzavře; hodnocení je jedno na skupinu a kolo, cizí přepíše jen org turnaje a cizí hodnoty vypravěč nevidí. Org
+ * zadává nové hodnocení za vypravěče kola. Výsledky sčítají body po kategoriích jen za kola, která skupina hraje,
+ * stejný součet dělí místo. Nové nahrání kritérií páruje podle názvů, přejmenování s hodnocením chce potvrzení.
  */
 class HodnoceniTurnajeTest extends AbstractTestDb
 {
@@ -91,9 +93,9 @@ class HodnoceniTurnajeTest extends AbstractTestDb
 
     public function testNahraniUloziSablonu(): void
     {
-        self::assertNull($this->hodnoceni()->getSablona());
+        self::assertNull($this->vytvorHodnoceni()->getSablona());
 
-        $hodnoceni = $this->hodnoceni();
+        $hodnoceni = $this->vytvorHodnoceni();
         self::assertSame(0, $hodnoceni->nahrajSablonu(self::SABLONA, $this->org));
 
         $sablona = $hodnoceni->getSablona();
@@ -105,12 +107,12 @@ class HodnoceniTurnajeTest extends AbstractTestDb
         self::assertSame(self::SABLONA, $sablona->zdroj);
         self::assertFalse($sablona->isUzavrena());
         // šablona patří ročníku
-        self::assertNull($this->hodnoceni(rok: self::ROK + 1)->getSablona());
+        self::assertNull($this->vytvorHodnoceni(rok: self::ROK + 1)->getSablona());
     }
 
     public function testNecitelnySouborNicNeulozi(): void
     {
-        $hodnoceni = $this->hodnoceni();
+        $hodnoceni = $this->vytvorHodnoceni();
 
         $this->expectException(ChybaSablonyHodnoceni::class);
         try {
@@ -122,7 +124,7 @@ class HodnoceniTurnajeTest extends AbstractTestDb
 
     public function testVypravecVidiJenKolaTurnajeDnDKtereVede(): void
     {
-        $hodnoceni = $this->hodnoceni();
+        $hodnoceni = $this->vytvorHodnoceni();
 
         $kolaA = $hodnoceni->getKola($this->vypravecA);
         self::assertSame(
@@ -153,9 +155,9 @@ class HodnoceniTurnajeTest extends AbstractTestDb
 
     public function testVypravecUloziAUpraviSveHodnoceni(): void
     {
-        $hodnoceni = $this->hodnoceniSeSablonou();
+        $hodnoceni = $this->vytvorHodnoceniSeSablonou();
 
-        $hodnoceni->ulozHodnoceni($this->prvniKolo, $this->paraBola, $this->hodnoty($hodnoceni, [5, 4, 3]), $this->vypravecA, false);
+        $hodnoceni->ulozHodnoceni($this->prvniKolo, $this->paraBola, $this->getHodnoty($hodnoceni, [5, 4, 3]), $this->vypravecA, false);
         $ulozene = $hodnoceni->getHodnoceni($this->paraBola, 1);
         self::assertNotNull($ulozene);
         self::assertSame($this->vypravecA, $ulozene['idHodnotitele']);
@@ -167,7 +169,7 @@ class HodnoceniTurnajeTest extends AbstractTestDb
         $hodnoceni->ulozHodnoceni(
             $this->prvniKolo,
             $this->paraBola,
-            array_map('strval', $this->hodnoty($hodnoceni, [1, 2, 2])),
+            array_map('strval', $this->getHodnoty($hodnoceni, [1, 2, 2])),
             $this->vypravecA,
             false,
         );
@@ -177,8 +179,8 @@ class HodnoceniTurnajeTest extends AbstractTestDb
 
     public function testCiziHodnoceniPrepiseJenOrgTurnaje(): void
     {
-        $hodnoceni = $this->hodnoceniSeSablonou();
-        $hodnoceni->ulozHodnoceni($this->prvniKolo, $this->paraBola, $this->hodnoty($hodnoceni, [5, 4, 3]), $this->vypravecA, false);
+        $hodnoceni = $this->vytvorHodnoceniSeSablonou();
+        $hodnoceni->ulozHodnoceni($this->prvniKolo, $this->paraBola, $this->getHodnoty($hodnoceni, [5, 4, 3]), $this->vypravecA, false);
 
         self::assertStringContainsString(
             'Skupinu „Para Bola“ v 1. kole už hodnotil(a) Test',
@@ -188,7 +190,7 @@ class HodnoceniTurnajeTest extends AbstractTestDb
             fn () => $hodnoceni->ulozHodnoceni(
                 $this->prvniKolo,
                 $this->paraBola,
-                $this->hodnoty($hodnoceni, [1, 1, 1]),
+                $this->getHodnoty($hodnoceni, [1, 1, 1]),
                 $this->vypravecB,
                 false,
             ),
@@ -196,16 +198,17 @@ class HodnoceniTurnajeTest extends AbstractTestDb
         );
         self::assertNull($hodnoceni->getDuvodZakazu($this->prvniKolo, $this->paraBola, $this->org, true));
 
-        $hodnoceni->ulozHodnoceni($this->prvniKolo, $this->paraBola, $this->hodnoty($hodnoceni, [2, 2, 2]), $this->org, true);
+        $hodnoceni->ulozHodnoceni($this->prvniKolo, $this->paraBola, $this->getHodnoty($hodnoceni, [2, 2, 2]), $this->org, true);
         $prepsane = $hodnoceni->getHodnoceni($this->paraBola, 1);
         self::assertSame([2, 2, 2], array_values($prepsane['hodnoty']));
         self::assertSame($this->vypravecA, $prepsane['idHodnotitele'], 'Hodnocení zůstane vypravěči, který ho zadal');
+        self::assertSame($this->org, $prepsane['idZadal']);
     }
 
     public function testHodnotitJdeJenSkupinuZKolaKtereVypravecVede(): void
     {
-        $hodnoceni = $this->hodnoceniSeSablonou();
-        $hodnoty = $this->hodnoty($hodnoceni, [3, 3, 3]);
+        $hodnoceni = $this->vytvorHodnoceniSeSablonou();
+        $hodnoty = $this->getHodnoty($hodnoceni, [3, 3, 3]);
 
         $this->assertZakaz(
             fn () => $hodnoceni->ulozHodnoceni($this->prvniKolo, $this->paraBola, $hodnoty, $this->cizi, false),
@@ -232,27 +235,27 @@ class HodnoceniTurnajeTest extends AbstractTestDb
 
     public function testKoloPredZacatkemHodnotiJenOrg(): void
     {
-        $hodnoceni = $this->hodnoceniSeSablonou();
-        $hodnoty = $this->hodnoty($hodnoceni, [3, 3, 3]);
+        $hodnoceni = $this->vytvorHodnoceniSeSablonou();
+        $hodnoty = $this->getHodnoty($hodnoceni, [3, 3, 3]);
 
         $this->assertZakaz(
             fn () => $hodnoceni->ulozHodnoceni($this->tretiKolo, $this->paraBola, $hodnoty, $this->vypravecA, false),
             'Kolo ještě nezačalo, hodnotit jde od 25. 7. 9:00.',
         );
-        $hodnoceni->ulozHodnoceni($this->tretiKolo, $this->paraBola, $hodnoty, $this->org, true);
+        $hodnoceni->ulozHodnoceni($this->tretiKolo, $this->paraBola, $hodnoty, $this->org, true, $this->vypravecA);
         self::assertNotNull($hodnoceni->getHodnoceni($this->paraBola, 3));
 
         // od začátku kola už může i vypravěč
-        $vZacatkuKola = $this->hodnoceni('2030-07-25 09:00:00');
+        $vZacatkuKola = $this->vytvorHodnoceni('2030-07-25 09:00:00');
         $vZacatkuKola->ulozHodnoceni($this->tretiKolo, $this->bezNazvu, $hodnoty, $this->vypravecA, false);
         self::assertNotNull($vZacatkuKola->getHodnoceni($this->bezNazvu, 3));
     }
 
     public function testKazdeKriteriumPotrebujeHodnotuZeSkaly(): void
     {
-        $hodnoceni = $this->hodnoceniSeSablonou();
-        $mimoSkalu = $this->hodnoty($hodnoceni, [5, 6, 1]);
-        $chybejici = $this->hodnoty($hodnoceni, [5, 4, 3]);
+        $hodnoceni = $this->vytvorHodnoceniSeSablonou();
+        $mimoSkalu = $this->getHodnoty($hodnoceni, [5, 6, 1]);
+        $chybejici = $this->getHodnoty($hodnoceni, [5, 4, 3]);
         array_pop($chybejici);
 
         $this->assertZakaz(
@@ -268,7 +271,7 @@ class HodnoceniTurnajeTest extends AbstractTestDb
 
     public function testBezSablonyNejdeHodnotit(): void
     {
-        $hodnoceni = $this->hodnoceni();
+        $hodnoceni = $this->vytvorHodnoceni();
 
         $this->assertZakaz(
             fn () => $hodnoceni->ulozHodnoceni($this->prvniKolo, $this->paraBola, [], $this->org, true),
@@ -278,8 +281,8 @@ class HodnoceniTurnajeTest extends AbstractTestDb
 
     public function testUzavreneHodnoceniMeniJenOrg(): void
     {
-        $hodnoceni = $this->hodnoceniSeSablonou();
-        $hodnoty = $this->hodnoty($hodnoceni, [3, 3, 3]);
+        $hodnoceni = $this->vytvorHodnoceniSeSablonou();
+        $hodnoty = $this->getHodnoty($hodnoceni, [3, 3, 3]);
 
         $hodnoceni->setUzavreno(true);
         self::assertTrue($hodnoceni->getSablona()->isUzavrena());
@@ -287,21 +290,86 @@ class HodnoceniTurnajeTest extends AbstractTestDb
             fn () => $hodnoceni->ulozHodnoceni($this->prvniKolo, $this->paraBola, $hodnoty, $this->vypravecA, false),
             'Hodnocení je uzavřené.',
         );
-        $hodnoceni->ulozHodnoceni($this->prvniKolo, $this->bezNazvu, $hodnoty, $this->org, true);
+        $hodnoceni->ulozHodnoceni($this->prvniKolo, $this->bezNazvu, $hodnoty, $this->org, true, $this->vypravecB);
 
         $hodnoceni->setUzavreno(false);
         $hodnoceni->ulozHodnoceni($this->prvniKolo, $this->paraBola, $hodnoty, $this->vypravecA, false);
         self::assertSame(2, $hodnoceni->getPocetHodnoceni());
     }
 
-    public function testNoveNahraniSeStejnymTvaremJenPrejmenujeAHodnoceniNecha(): void
+    public function testPreradeniSeStejnymiNazvyNechaHodnoceniUNazvu(): void
     {
-        $hodnoceni = $this->hodnoceniSeSablonou();
-        $hodnoceni->ulozHodnoceni($this->prvniKolo, $this->paraBola, $this->hodnoty($hodnoceni, [5, 4, 3]), $this->vypravecA, false);
+        $hodnoceni = $this->vytvorHodnoceniSeSablonou();
+        $hodnoceni->ulozHodnoceni($this->prvniKolo, $this->paraBola, $this->getHodnoty($hodnoceni, [5, 4, 3]), $this->vypravecA, false);
+        $puvodni = $hodnoceni->getSablona();
 
+        // kategorie i kritéria prohozené, škála pozpátku, jeden název jinými písmeny
+        $prerazena = <<<'TEXT'
+            Škála: 5 4 3 2 1
+            # Řešení
+            ## Nápaditost
+            # hraní rolí
+            ## Spolupráce
+            ## Postavy
+            TEXT;
+        self::assertSame(0, $hodnoceni->nahrajSablonu($prerazena, $this->org));
+
+        $sablona = $hodnoceni->getSablona();
+        self::assertSame(['Řešení', 'hraní rolí'], array_column($sablona->kategorie, 'nazev'));
+        self::assertSame(['Spolupráce', 'Postavy'], array_column($sablona->kategorie[1]->kriteria, 'nazev'));
+        self::assertSame([5, 4, 3, 2, 1], $sablona->skala);
+        self::assertSame($puvodni->kategorie[0]->id, $sablona->kategorie[1]->id, 'Kategorie si nechá id');
+        $hodnotyPodleNazvu = [];
+        $ulozene = $hodnoceni->getHodnoceni($this->paraBola, 1)['hodnoty'];
+        foreach ($sablona->kategorie as $kategorie) {
+            foreach ($kategorie->kriteria as $kriterium) {
+                $hodnotyPodleNazvu[$kriterium->nazev] = $ulozene[$kriterium->id];
+            }
+        }
+        self::assertSame([
+            'Nápaditost' => 3,
+            'Spolupráce' => 4,
+            'Postavy'    => 5,
+        ], $hodnotyPodleNazvu);
+    }
+
+    public function testPrejmenovaniSHodnocenimChcePotvrzeni(): void
+    {
+        $hodnoceni = $this->vytvorHodnoceniSeSablonou();
+        $hodnoceni->ulozHodnoceni($this->prvniKolo, $this->paraBola, $this->getHodnoty($hodnoceni, [5, 4, 3]), $this->vypravecA, false);
         $prejmenovana = str_replace(['Postavy', 'Řešení'], ['Postavy a příběh', 'Řešení zápletky'], self::SABLONA);
-        self::assertSame(0, $hodnoceni->nahrajSablonu($prejmenovana, $this->org));
 
+        try {
+            $hodnoceni->nahrajSablonu($prejmenovana, $this->org);
+            self::fail('Přejmenování s hodnocením chce potvrzení');
+        } catch (PrejmenovaniBezPotvrzeni $prejmenovaniBezPotvrzeni) {
+            self::assertSame([
+                [
+                    'popis' => '1. kritérium 1. kategorie',
+                    'stary' => 'Postavy',
+                    'novy'  => 'Postavy a příběh',
+                ],
+                [
+                    'popis' => '2. kategorie',
+                    'stary' => 'Řešení',
+                    'novy'  => 'Řešení zápletky',
+                ],
+            ], $prejmenovaniBezPotvrzeni->getPrejmenovani());
+            $klicPotvrzeni = $prejmenovaniBezPotvrzeni->getKlicPotvrzeni();
+        }
+        self::assertSame(self::SABLONA, $hodnoceni->getSablona()->zdroj, 'Bez potvrzení se nic nezmění');
+
+        // potvrzení jiného přejmenování neplatí
+        $this->assertZakaz(
+            fn () => $hodnoceni->nahrajSablonu(
+                str_replace('Řešení zápletky', 'Řešení hádanek', $prejmenovana),
+                $this->org,
+                potvrzeniPrejmenovani: $klicPotvrzeni,
+            ),
+            'Zkontroluj přejmenování a potvrď je.',
+        );
+
+        self::assertSame(0, $hodnoceni->nahrajSablonu($prejmenovana, $this->org, potvrzeniPrejmenovani: $klicPotvrzeni));
         $sablona = $hodnoceni->getSablona();
         self::assertSame('Postavy a příběh', $sablona->kategorie[0]->kriteria[0]->nazev);
         self::assertSame('Řešení zápletky', $sablona->kategorie[1]->nazev);
@@ -309,10 +377,19 @@ class HodnoceniTurnajeTest extends AbstractTestDb
         self::assertSame([5, 4, 3], array_values($hodnoceni->getHodnoceni($this->paraBola, 1)['hodnoty']));
     }
 
+    public function testPrejmenovaniBezHodnoceniPotvrzeniNepotrebuje(): void
+    {
+        $hodnoceni = $this->vytvorHodnoceniSeSablonou();
+        $prejmenovana = str_replace('Postavy', 'Postavy a příběh', self::SABLONA);
+
+        self::assertSame(0, $hodnoceni->nahrajSablonu($prejmenovana, $this->org));
+        self::assertSame('Postavy a příběh', $hodnoceni->getSablona()->kategorie[0]->kriteria[0]->nazev);
+    }
+
     public function testNoveNahraniSJinymTvaremSmazeHodnoceniJenSeSvolenim(): void
     {
-        $hodnoceni = $this->hodnoceniSeSablonou();
-        $hodnoceni->ulozHodnoceni($this->prvniKolo, $this->paraBola, $this->hodnoty($hodnoceni, [5, 4, 3]), $this->vypravecA, false);
+        $hodnoceni = $this->vytvorHodnoceniSeSablonou();
+        $hodnoceni->ulozHodnoceni($this->prvniKolo, $this->paraBola, $this->getHodnoty($hodnoceni, [5, 4, 3]), $this->vypravecA, false);
         $jinyTvar = self::SABLONA . "\n## Rychlost";
 
         $this->assertZakaz(
@@ -328,7 +405,7 @@ class HodnoceniTurnajeTest extends AbstractTestDb
         $hodnoceni->ulozHodnoceni(
             $this->prvniKolo,
             $this->paraBola,
-            $this->hodnoty($hodnoceni, [5, 4, 3, 2]),
+            $this->getHodnoty($hodnoceni, [5, 4, 3, 2]),
             $this->vypravecA,
             false,
         );
@@ -337,15 +414,15 @@ class HodnoceniTurnajeTest extends AbstractTestDb
 
     public function testVysledkySectouKategorieASdileneMisto(): void
     {
-        $hodnoceni = $this->hodnoceniSeSablonou();
+        $hodnoceni = $this->vytvorHodnoceniSeSablonou();
         // Para Bola: 1. kolo 5+4 a 3, 2. kolo 1+1 a 1 → hraní 11, řešení 4, celkem 15, 2 ze 3 kol
-        $hodnoceni->ulozHodnoceni($this->prvniKolo, $this->paraBola, $this->hodnoty($hodnoceni, [5, 4, 3]), $this->vypravecA, false);
-        $hodnoceni->ulozHodnoceni($this->druheKolo, $this->paraBola, $this->hodnoty($hodnoceni, [1, 1, 1]), $this->vypravecB, false);
+        $hodnoceni->ulozHodnoceni($this->prvniKolo, $this->paraBola, $this->getHodnoty($hodnoceni, [5, 4, 3]), $this->vypravecA, false);
+        $hodnoceni->ulozHodnoceni($this->druheKolo, $this->paraBola, $this->getHodnoty($hodnoceni, [1, 1, 1]), $this->vypravecB, false);
         // Ovečky: jediné kolo druhého běhu 5+5 a 5 → celkem 15, úplné
         $hodnoceni->ulozHodnoceni(
             $this->druhyBehPrvniKolo,
             $this->ovecky,
-            $this->hodnoty($hodnoceni, [5, 5, 5]),
+            $this->getHodnoty($hodnoceni, [5, 5, 5]),
             $this->vypravecDruhehoBehu,
             false,
         );
@@ -379,8 +456,8 @@ class HodnoceniTurnajeTest extends AbstractTestDb
 
     public function testExportVysledkuAVsechHodnoceni(): void
     {
-        $hodnoceni = $this->hodnoceniSeSablonou();
-        $hodnoceni->ulozHodnoceni($this->prvniKolo, $this->paraBola, $this->hodnoty($hodnoceni, [5, 4, 3]), $this->vypravecA, false);
+        $hodnoceni = $this->vytvorHodnoceniSeSablonou();
+        $hodnoceni->ulozHodnoceni($this->prvniKolo, $this->paraBola, $this->getHodnoty($hodnoceni, [5, 4, 3]), $this->vypravecA, false);
 
         $vysledky = $hodnoceni->getExportVysledku();
         self::assertSame(
@@ -392,19 +469,43 @@ class HodnoceniTurnajeTest extends AbstractTestDb
 
         $vsechna = $hodnoceni->getExportHodnoceni();
         self::assertSame(
-            ['Běh', 'Skupina', 'Kolo', 'Hodnotil', 'Upraveno', 'Hraní rolí: Postavy', 'Hraní rolí: Spolupráce', 'Řešení: Nápaditost', 'Celkem'],
+            [
+                'Běh',
+                'Skupina',
+                'Kolo',
+                'Hodnotil',
+                'Zadal',
+                'Upraveno',
+                'Hraní rolí: Postavy',
+                'Hraní rolí: Spolupráce',
+                'Řešení: Nápaditost',
+                'Celkem',
+                'Poznámka',
+            ],
             $vsechna['hlavicky'],
         );
         self::assertSame(
-            ['D&D turnaj 1. běh', 'Para Bola', 1, 'Test „test_hodnoceni_a“ Hodnotitel', '2030-07-20 12:00', 5, 4, 3, 12],
+            [
+                'D&D turnaj 1. běh',
+                'Para Bola',
+                1,
+                'Test „test_hodnoceni_a“ Hodnotitel',
+                'Test „test_hodnoceni_a“ Hodnotitel',
+                '2030-07-20 12:00',
+                5,
+                4,
+                3,
+                12,
+                '',
+            ],
             $vsechna['radky'][0],
         );
     }
 
     public function testOrgSmazeHodnoceni(): void
     {
-        $hodnoceni = $this->hodnoceniSeSablonou();
-        $hodnoceni->ulozHodnoceni($this->prvniKolo, $this->paraBola, $this->hodnoty($hodnoceni, [5, 4, 3]), $this->vypravecA, false);
+        $hodnoceni = $this->vytvorHodnoceniSeSablonou();
+        $hodnoceni->ulozHodnoceni($this->prvniKolo, $this->paraBola, $this->getHodnoty($hodnoceni, [5, 4, 3]), $this->vypravecA, false);
         $idHodnoceni = $hodnoceni->getHodnoceni($this->paraBola, 1)['id'];
 
         $hodnoceni->smazHodnoceni($idHodnoceni);
@@ -413,13 +514,145 @@ class HodnoceniTurnajeTest extends AbstractTestDb
         self::assertSame([], $hodnoceni->getVsechnaHodnoceni());
         $this->assertZakaz(fn () => $hodnoceni->smazHodnoceni($idHodnoceni), 'Tohle hodnocení už neexistuje.');
         // po smazání může skupinu ohodnotit jiný vypravěč kola
-        $hodnoceni->ulozHodnoceni($this->prvniKolo, $this->paraBola, $this->hodnoty($hodnoceni, [1, 1, 1]), $this->vypravecB, false);
+        $hodnoceni->ulozHodnoceni($this->prvniKolo, $this->paraBola, $this->getHodnoty($hodnoceni, [1, 1, 1]), $this->vypravecB, false);
         self::assertSame($this->vypravecB, $hodnoceni->getHodnoceni($this->paraBola, 1)['idHodnotitele']);
+    }
+
+    public function testHodnoceniKolaKtereSkupinaNehrajeSeDoVysledkuNepocita(): void
+    {
+        $hodnoceni = $this->vytvorHodnoceniSeSablonou();
+        $hodnoceni->ulozHodnoceni($this->prvniKolo, $this->paraBola, $this->getHodnoty($hodnoceni, [5, 4, 3]), $this->vypravecA, false);
+        $hodnoceni->ulozHodnoceni($this->druheKolo, $this->paraBola, $this->getHodnoty($hodnoceni, [1, 1, 1]), $this->vypravecB, false);
+        // skupina 2. kolo nakonec hrát nebude
+        dbQuery(<<<'SQL'
+            DELETE FROM akce_tym_akce WHERE id_tymu = $0 AND id_akce = $1
+            SQL, [
+            0 => $this->paraBola,
+            1 => $this->druheKolo,
+        ]);
+
+        $paraBola = $this->najdiVysledek($hodnoceni, $this->paraBola);
+        self::assertSame(12, $paraBola['celkem'], 'Hodnocení 2. kola se nepočítá');
+        self::assertSame(1, $paraBola['hodnocenoKol']);
+        self::assertSame(2, $paraBola['kol']);
+        self::assertFalse($paraBola['uplna'], 'Chybí hodnocení 3. kola, které skupina hraje');
+
+        $vsechna = $hodnoceni->getVsechnaHodnoceni();
+        self::assertSame([true, false], array_column($vsechna, 'hrajeKolo'));
+        self::assertNull($vsechna[1]['idAkce']);
+        $export = $hodnoceni->getExportHodnoceni();
+        self::assertSame(
+            ['', 'skupina už v kole není, do výsledků se nepočítá'],
+            array_map(static fn (array $radek): int|string => $radek[array_key_last($radek)], $export['radky']),
+        );
+
+        $html = $this->vykresliStranku($this->org, true, []);
+        self::assertStringContainsString('skupina už v kole není', $html);
+        self::assertStringContainsString('<td title="Chybí hodnocení některého kola">1/2 ⚠️</td>', $html);
+    }
+
+    public function testSmazanaAktivitaHodnoceniNesmaze(): void
+    {
+        $hodnoceni = $this->vytvorHodnoceniSeSablonou();
+        $hodnoceni->ulozHodnoceni($this->prvniKolo, $this->paraBola, $this->getHodnoty($hodnoceni, [5, 4, 3]), $this->vypravecA, false);
+
+        dbQuery(<<<'SQL'
+            DELETE FROM akce_seznam WHERE id_akce = $0
+            SQL, [
+            0 => $this->prvniKolo,
+        ]);
+
+        $ulozene = $hodnoceni->getHodnoceni($this->paraBola, 1);
+        self::assertNotNull($ulozene, 'Hodnocení patří ke kolu, ne k aktivitě');
+        self::assertNull($ulozene['idAkce']);
+        self::assertSame([5, 4, 3], array_values($ulozene['hodnoty']));
+        $vsechna = $hodnoceni->getVsechnaHodnoceni();
+        self::assertSame('D&D turnaj 1. běh', $vsechna[0]['nazevTurnaje'], 'Běh podle kol, která skupina hraje');
+        self::assertFalse($vsechna[0]['hrajeKolo']);
+        self::assertStringContainsString('skupina už v kole není', $this->vykresliStranku($this->org, true, []));
+    }
+
+    public function testOrgZadaHodnoceniZaVypraveceKola(): void
+    {
+        $hodnoceni = $this->vytvorHodnoceniSeSablonou();
+        $hodnoty = $this->getHodnoty($hodnoceni, [5, 4, 3]);
+
+        $this->assertZakaz(
+            fn () => $hodnoceni->ulozHodnoceni($this->prvniKolo, $this->paraBola, $hodnoty, $this->org, true),
+            'Vyber vypravěče kola',
+        );
+        $this->assertZakaz(
+            fn () => $hodnoceni->ulozHodnoceni($this->prvniKolo, $this->paraBola, $hodnoty, $this->org, true, $this->vypravecDruhehoBehu),
+            'Vyber vypravěče kola',
+        );
+        self::assertSame([$this->vypravecA, $this->vypravecB], array_column($hodnoceni->getVypraveciKola($this->prvniKolo), 'id'));
+
+        $hodnoceni->ulozHodnoceni($this->prvniKolo, $this->paraBola, $hodnoty, $this->org, true, $this->vypravecA);
+        $zadane = $hodnoceni->getHodnoceni($this->paraBola, 1);
+        self::assertSame($this->vypravecA, $zadane['idHodnotitele']);
+        self::assertSame($this->org, $zadane['idZadal']);
+        self::assertSame(
+            'Test „test_hodnoceni_a“ Hodnotitel (zadal(a) org Test „test_hodnoceni_org“ Hodnotitel)',
+            HodnoceniTurnaje::getPopisHodnotitele($zadane['idHodnotitele'], $zadane['hodnotitel'], $zadane['idZadal'], $zadane['zadal']),
+        );
+
+        // vypravěč, za kterého org hodnotil, ho upraví jako své; druhý vypravěč kola ne
+        self::assertNull($hodnoceni->getDuvodZakazu($this->prvniKolo, $this->paraBola, $this->vypravecA, false));
+        self::assertNotNull($hodnoceni->getDuvodZakazu($this->prvniKolo, $this->paraBola, $this->vypravecB, false));
+        $hodnoceni->ulozHodnoceni($this->prvniKolo, $this->paraBola, $this->getHodnoty($hodnoceni, [1, 2, 3]), $this->vypravecA, false);
+        $upravene = $hodnoceni->getHodnoceni($this->paraBola, 1);
+        self::assertSame($this->vypravecA, $upravene['idZadal']);
+        self::assertSame('Test „test_hodnoceni_a“ Hodnotitel', HodnoceniTurnaje::getPopisHodnotitele(
+            $upravene['idHodnotitele'],
+            $upravene['hodnotitel'],
+            $upravene['idZadal'],
+            $upravene['zadal'],
+        ));
+
+        // org upravuje stávající: hodnotitel zůstane, výběr vypravěče se nebere v potaz
+        $hodnoceni->ulozHodnoceni($this->prvniKolo, $this->paraBola, $this->getHodnoty($hodnoceni, [2, 2, 2]), $this->org, true, $this->vypravecB);
+        $poOrgovi = $hodnoceni->getHodnoceni($this->paraBola, 1);
+        self::assertSame($this->vypravecA, $poOrgovi['idHodnotitele']);
+        self::assertSame($this->org, $poOrgovi['idZadal']);
+    }
+
+    public function testStrankaOrgVybiraZaKohoHodnoti(): void
+    {
+        $this->vytvorHodnoceniSeSablonou();
+
+        $html = $this->vykresliStranku($this->org, true, [
+            'aktivita' => $this->prvniKolo,
+            'tym'      => $this->paraBola,
+        ]);
+
+        self::assertStringContainsString('name="za_vypravece"', $html);
+        self::assertStringContainsString('<option value="' . $this->vypravecA . '" >Test „test_hodnoceni_a“ Hodnotitel</option>', $html);
+    }
+
+    public function testStrankaCiziVypravecNevidiHodnotyHodnoceni(): void
+    {
+        $hodnoceni = $this->vytvorHodnoceniSeSablonou();
+        $hodnoceni->ulozHodnoceni($this->prvniKolo, $this->paraBola, $this->getHodnoty($hodnoceni, [5, 4, 3]), $this->vypravecA, false);
+        $get = [
+            'aktivita' => $this->prvniKolo,
+            'tym'      => $this->paraBola,
+        ];
+
+        $html = $this->vykresliStranku($this->vypravecB, false, $get);
+
+        self::assertStringContainsString('Hodnotil(a) Test „test_hodnoceni_a“ Hodnotitel', $html);
+        self::assertSame(0, substr_count($html, 'name="hodnoty['), 'Žádné hodnoty cizího hodnocení');
+        self::assertDoesNotMatchRegularExpression('~<option value="\d+" selected>\d+</option>~', $html);
+
+        $autor = $this->vykresliStranku($this->vypravecA, false, $get);
+        self::assertStringContainsString('<option value="5" selected>5</option>', $autor);
+        $org = $this->vykresliStranku($this->org, true, $get);
+        self::assertStringContainsString('<option value="5" selected>5</option>', $org);
     }
 
     public function testStrankaVypravecVidiFormularSvehoKola(): void
     {
-        $this->hodnoceniSeSablonou();
+        $this->vytvorHodnoceniSeSablonou();
 
         $html = $this->vykresliStranku($this->vypravecA, false, [
             'aktivita' => $this->prvniKolo,
@@ -439,8 +672,8 @@ class HodnoceniTurnajeTest extends AbstractTestDb
 
     public function testStrankaOrgVidiVysledkyAKriteria(): void
     {
-        $hodnoceni = $this->hodnoceniSeSablonou();
-        $hodnoceni->ulozHodnoceni($this->prvniKolo, $this->paraBola, $this->hodnoty($hodnoceni, [5, 4, 3]), $this->vypravecA, false);
+        $hodnoceni = $this->vytvorHodnoceniSeSablonou();
+        $hodnoceni->ulozHodnoceni($this->prvniKolo, $this->paraBola, $this->getHodnoty($hodnoceni, [5, 4, 3]), $this->vypravecA, false);
 
         $html = $this->vykresliStranku($this->org, true, [
             'aktivita' => $this->tretiKolo,
@@ -462,7 +695,7 @@ class HodnoceniTurnajeTest extends AbstractTestDb
             'Org turnaje ještě nenahrál kritéria hodnocení.',
             $this->vykresliStranku($this->vypravecA, false, []),
         );
-        $this->hodnoceniSeSablonou();
+        $this->vytvorHodnoceniSeSablonou();
         self::assertStringContainsString(
             'nevedeš žádné kolo turnaje D&amp;D',
             $this->vykresliStranku($this->cizi, false, []),
@@ -498,14 +731,14 @@ class HodnoceniTurnajeTest extends AbstractTestDb
         return $html;
     }
 
-    private function hodnoceni(string $ted = self::TED, int $rok = self::ROK): HodnoceniTurnaje
+    private function vytvorHodnoceni(string $ted = self::TED, int $rok = self::ROK): HodnoceniTurnaje
     {
         return new HodnoceniTurnaje($rok, new MockClock(new \DateTimeImmutable($ted)));
     }
 
-    private function hodnoceniSeSablonou(): HodnoceniTurnaje
+    private function vytvorHodnoceniSeSablonou(): HodnoceniTurnaje
     {
-        $hodnoceni = $this->hodnoceni();
+        $hodnoceni = $this->vytvorHodnoceni();
         $hodnoceni->nahrajSablonu(self::SABLONA, $this->org);
 
         return $hodnoceni;
@@ -516,11 +749,24 @@ class HodnoceniTurnajeTest extends AbstractTestDb
      *
      * @return array<int, int> hodnota podle id kritéria
      */
-    private function hodnoty(HodnoceniTurnaje $hodnoceni, array $hodnoty): array
+    private function getHodnoty(HodnoceniTurnaje $hodnoceni, array $hodnoty): array
     {
         $idKriterii = array_keys($hodnoceni->getSablona()->getKriteriaPodleId());
 
         return array_combine(array_slice($idKriterii, 0, count($hodnoty)), $hodnoty);
+    }
+
+    /**
+     * @return array<string, mixed> řádek výsledků skupiny
+     */
+    private function najdiVysledek(HodnoceniTurnaje $hodnoceni, int $idTymu): array
+    {
+        foreach ($hodnoceni->getVysledky() as $vysledek) {
+            if ($vysledek['idTymu'] === $idTymu) {
+                return $vysledek;
+            }
+        }
+        self::fail("Skupina {$idTymu} ve výsledcích chybí");
     }
 
     private function assertZakaz(callable $akce, string $ocekavanaZprava): void

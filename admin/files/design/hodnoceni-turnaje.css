@@ -94,3 +94,18 @@
   box-sizing: border-box;
   font-family: monospace;
 }
+
+.hodnoceni-za-vypravece {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: .25em .75em;
+  margin-bottom: 1em;
+}
+
+.hodnoceni-prejmenovani {
+  margin: .5em 0;
+  padding: .5em 1em;
+  border: 1px solid currentColor;
+  border-radius: 6px;
+}

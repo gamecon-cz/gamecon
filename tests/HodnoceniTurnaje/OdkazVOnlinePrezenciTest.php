@@ -18,16 +18,16 @@ class OdkazVOnlinePrezenciTest extends TestCase
     {
         self::assertSame(
             URL_ADMIN . '/hodnoceni-turnaje?aktivita=7623',
-            OnlinePrezenceHtml::getUrlHodnoceniTurnaje($this->aktivita(7623, TypAktivity::DND, 1)),
+            OnlinePrezenceHtml::getUrlHodnoceniTurnaje($this->vytvorAktivitu(7623, TypAktivity::DND, 1)),
         );
-        self::assertNull(OnlinePrezenceHtml::getUrlHodnoceniTurnaje($this->aktivita(1, TypAktivity::LKD, 1)));
+        self::assertNull(OnlinePrezenceHtml::getUrlHodnoceniTurnaje($this->vytvorAktivitu(1, TypAktivity::LKD, 1)));
         self::assertNull(
-            OnlinePrezenceHtml::getUrlHodnoceniTurnaje($this->aktivita(2, TypAktivity::DND, null)),
+            OnlinePrezenceHtml::getUrlHodnoceniTurnaje($this->vytvorAktivitu(2, TypAktivity::DND, null)),
             'D&D mimo turnaj (třeba doprovodná hra) hodnocení nemá',
         );
     }
 
-    private function aktivita(int $id, int $typ, ?int $kolo): Aktivita
+    private function vytvorAktivitu(int $id, int $typ, ?int $kolo): Aktivita
     {
         $aktivita = $this->createPartialMock(Aktivita::class, ['id', 'typId', 'turnajKolo']);
         $aktivita->method('id')->willReturn($id);

@@ -53,6 +53,19 @@
     <p class="hodnoceni-zakaz">{duvodZakazu}</p>
     <!-- end:duvodZakazu -->
 
+    <!-- begin:zaVypravece -->
+    <label class="hodnoceni-za-vypravece">
+      Hodnotí za
+      <select name="za_vypravece" required {zakazano}>
+        <option value="">vyber vypravěče kola</option>
+        <!-- begin:vypravec -->
+        <option value="{idVypravece}" {vybrano}>{jmenoVypravece}</option>
+        <!-- end:vypravec -->
+      </select>
+      <span class="hodnoceni-poznamka">Hodnocení bude patřit jemu a dál ho může upravovat sám.</span>
+    </label>
+    <!-- end:zaVypravece -->
+
     <!-- begin:kategorie -->
     <fieldset class="hodnoceni-kategorie" {zakazano}>
       <legend>{nazevKategorie}</legend>
@@ -139,7 +152,7 @@
         <th></th>
       </tr>
       <!-- begin:radek -->
-      <tr>
+      <tr class="{tridaRadku}">
         <td>{nazevTurnaje}</td>
         <td>{nazevTymu}</td>
         <td>{kolo}.</td>
@@ -147,7 +160,12 @@
         <td>{upraveno}</td>
         <td class="hodnoceni-cislo">{celkem}</td>
         <td class="hodnoceni-akce">
+          <!-- begin:upravit -->
           <a href="{urlUpravit}">upravit</a>
+          <!-- end:upravit -->
+          <!-- begin:mimoKolo -->
+          <span title="Do výsledků se nepočítá">⚠️ skupina už v kole není</span>
+          <!-- end:mimoKolo -->
           <form method="post" action="hodnoceni-turnaje">
             <input type="hidden" name="akce" value="smazat-hodnoceni">
             <input type="hidden" name="id_hodnoceni" value="{idHodnoceni}">
@@ -193,12 +211,29 @@
       Nebo text
       <textarea name="text" rows="14" placeholder="{ukazka}">{zdroj}</textarea>
     </label>
+    <!-- begin:potvrzeniPrejmenovani -->
+    <div class="hodnoceni-prejmenovani">
+      <p>Na stejných místech jsou jiné názvy. Uložená hodnocení zůstanou na místech, tedy pod novými názvy:</p>
+      <ul>
+        <!-- begin:prejmenovani -->
+        <li>{popisMista}: „{staryNazev}“ → „{novyNazev}“</li>
+        <!-- end:prejmenovani -->
+      </ul>
+      <label>
+        <input type="checkbox" name="potvrzeni_prejmenovani" value="{klicPotvrzeni}">
+        Ano, jde o přejmenování, hodnocení mají zůstat na místech
+      </label>
+      <p class="hodnoceni-poznamka">Jestli jsi kategorie nebo kritéria jen přeřadil(a), nech jim stejné názvy: hodnocení
+        pak půjdou s nimi.</p>
+    </div>
+    <!-- end:potvrzeniPrejmenovani -->
     <!-- begin:smazatHodnoceni -->
     <label class="hodnoceni-smazat">
       <input type="checkbox" name="smazat_hodnoceni" value="1">
       Nová kritéria mají jinou škálu nebo jiný počet kategorií či kritérií: smazat všech {pocetHodnoceni} hodnocení
     </label>
-    <p class="hodnoceni-poznamka">Opravit názvy kategorií a kritérií jde i bez mazání, hodnocení zůstanou.</p>
+    <p class="hodnoceni-poznamka">Přeřadit kategorie a kritéria se stejnými názvy jde bez mazání, hodnocení jdou
+      s nimi. Přejmenovat je jde bez mazání, s potvrzením.</p>
     <!-- end:smazatHodnoceni -->
     <button type="submit"><i class="fa-solid fa-upload" aria-hidden="true"></i> Nahrát kritéria</button>
   </form>
