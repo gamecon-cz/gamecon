@@ -51,6 +51,8 @@ class PristupDoAdminuTest extends TestCase
         yield 'infopult' => [[Pravo::ADMINISTRACE_INFOPULT], true];
         // pauzující full-org: Bingo mu API ani zvláštní stránky (interní program) neotevře
         yield 'jen Bingo' => [[Pravo::ADMINISTRACE_BINGO], false];
+        // org turnaje D&D nemusí být org GameConu: jen stránka Hodnocení turnaje
+        yield 'jen Hodnocení turnaje' => [[Pravo::ADMINISTRACE_HODNOCENI_TURNAJE], false];
     }
 
     public function testStrankaBezApiPustiJenNaStranku(): void

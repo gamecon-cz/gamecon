@@ -10,6 +10,7 @@ use Gamecon\Admin\VzhledAdminuHtml;
 use Gamecon\Aktivita\Aktivita;
 use Gamecon\Aktivita\AktivitaPrezence;
 use Gamecon\Aktivita\RazitkoPosledniZmenyPrihlaseni;
+use Gamecon\Aktivita\TypAktivity;
 use Gamecon\Logger\LogUdalosti;
 use Gamecon\SystemoveNastaveni\SystemoveNastaveni;
 use Gamecon\Uzivatel\PrepnutiNaUzivatele;
@@ -22,6 +23,16 @@ class OnlinePrezenceHtml
     public static function nazevProAnchor(Aktivita $aktivita): string
     {
         return implode(' – ', array_filter([$aktivita->nazev(), $aktivita->orgJmena(), $aktivita->popisLokaci()]));
+    }
+
+    /**
+     * Kolo turnaje D&D vede na hodnocení skupin. Moje aktivity nemají rám adminu, vypravěč by stránku jinak nenašel.
+     */
+    public static function getUrlHodnoceniTurnaje(Aktivita $aktivita): ?string
+    {
+        return $aktivita->typId() === TypAktivity::DND && $aktivita->turnajKolo() !== null
+            ? URL_ADMIN . '/hodnoceni-turnaje?' . http_build_query(['aktivita' => $aktivita->id()])
+            : null;
     }
 
     private ?XTemplate $onlinePrezenceTemplate = null;
@@ -202,6 +213,11 @@ class OnlinePrezenceHtml
             $template->assign('idAktivity', $aktivita->id());
             $template->assign('urlAktivity', $aktivita->url());
             $template->parse('onlinePrezence.aktivity.aktivita.form.pridatUcastnika');
+            $urlHodnoceniTurnaje = self::getUrlHodnoceniTurnaje($aktivita);
+            if ($urlHodnoceniTurnaje !== null) {
+                $template->assign('urlHodnoceniTurnaje', htmlspecialchars($urlHodnoceniTurnaje));
+                $template->parse('onlinePrezence.aktivity.aktivita.hodnoceniTurnaje');
+            }
 
             $template->assign('nadpis', self::nazevProAnchor($aktivita));
             $template->assign('zacatek', $aktivita->zacatek() ? $aktivita->zacatek()->format('l H:i') : '-nevíme-');

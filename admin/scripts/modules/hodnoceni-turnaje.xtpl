@@ -1,0 +1,209 @@
+<!-- begin:hodnoceni -->
+<link rel="stylesheet" href="files/design/hodnoceni-turnaje.css?version={cssVerze}">
+
+<div class="hodnoceni-turnaje">
+
+<h2>Hodnocení turnaje D&amp;D {rok}</h2>
+
+<!-- begin:bezSablony -->
+<p class="hodnoceni-info">Org turnaje ještě nenahrál kritéria hodnocení. Až to udělá, objeví se tu formulář.</p>
+<!-- end:bezSablony -->
+
+<!-- begin:uzavreno -->
+<p class="hodnoceni-info">🔒 Hodnocení je uzavřené, vypravěči ho už nemění.</p>
+<!-- end:uzavreno -->
+
+<!-- begin:bezKol -->
+<p class="hodnoceni-info">V ročníku {rok} nevedeš žádné kolo turnaje D&amp;D. Hodnotí jen vypravěči kol turnaje.</p>
+<!-- end:bezKol -->
+
+<!-- begin:vyber -->
+<section class="aBox hodnoceni-vyber">
+  <h3>Ohodnotit skupinu</h3>
+  <form method="get" action="hodnoceni-turnaje" class="hodnoceni-vyber-formular">
+    <label>
+      Kolo
+      <select name="aktivita" onchange="this.form.submit()" required>
+        <option value="">vyber kolo</option>
+        <!-- begin:kolo -->
+        <option value="{idAkce}" {vybrano}>{popisKola}</option>
+        <!-- end:kolo -->
+      </select>
+    </label>
+    <label>
+      Skupina
+      <select name="tym" onchange="this.form.submit()" required {zakazatTym}>
+        <option value="">{textBezTymu}</option>
+        <!-- begin:tym -->
+        <option value="{idTymu}" {vybrano}>{nazevTymu}</option>
+        <!-- end:tym -->
+      </select>
+    </label>
+    <noscript><button type="submit">Vybrat</button></noscript>
+  </form>
+
+  <!-- begin:formular -->
+  <form method="post" action="{urlFormulare}" class="hodnoceni-formular">
+    <input type="hidden" name="akce" value="ulozit-hodnoceni">
+    <input type="hidden" name="aktivita" value="{idAkce}">
+    <input type="hidden" name="tym" value="{idTymu}">
+
+    <p class="hodnoceni-stav">{stav}</p>
+    <!-- begin:duvodZakazu -->
+    <p class="hodnoceni-zakaz">{duvodZakazu}</p>
+    <!-- end:duvodZakazu -->
+
+    <!-- begin:kategorie -->
+    <fieldset class="hodnoceni-kategorie" {zakazano}>
+      <legend>{nazevKategorie}</legend>
+      <!-- begin:kriterium -->
+      <label class="hodnoceni-kriterium">
+        <span>{nazevKriteria}</span>
+        <select name="hodnoty[{idKriteria}]" required>
+          <option value="">–</option>
+          <!-- begin:hodnota -->
+          <option value="{hodnota}" {vybrano}>{hodnota}</option>
+          <!-- end:hodnota -->
+        </select>
+      </label>
+      <!-- end:kriterium -->
+    </fieldset>
+    <!-- end:kategorie -->
+
+    <!-- begin:ulozit -->
+    <button type="submit"><i class="fa-solid fa-floppy-disk" aria-hidden="true"></i> {textUlozit}</button>
+    <!-- end:ulozit -->
+  </form>
+  <!-- end:formular -->
+</section>
+<!-- end:vyber -->
+
+<!-- begin:org -->
+<section class="aBox">
+  <h3>Výsledky</h3>
+  <!-- begin:bezVysledku -->
+  <p class="hodnoceni-info">{textBezVysledku}</p>
+  <!-- end:bezVysledku -->
+  <!-- begin:vysledky -->
+  <p>
+    <a href="hodnoceni-turnaje?export=souhrn"><i class="fa-solid fa-file-excel" aria-hidden="true"></i> Stáhnout výsledky (XLSX)</a>
+    &ensp;
+    <a href="hodnoceni-turnaje?export=detail"><i class="fa-solid fa-file-excel" aria-hidden="true"></i> Stáhnout všechna hodnocení (XLSX)</a>
+  </p>
+  <div class="hodnoceni-tabulka">
+    <table class="zvyraznovana">
+      <tr>
+        <th>Pořadí</th>
+        <th>Skupina</th>
+        <th>Běh</th>
+        <!-- begin:hlavickaKategorie -->
+        <th>{nazevKategorie}</th>
+        <!-- end:hlavickaKategorie -->
+        <th>Celkem</th>
+        <th>Kola</th>
+      </tr>
+      <!-- begin:radek -->
+      <tr class="{tridaRadku}">
+        <td>{poradi}</td>
+        <td>{nazevTymu}</td>
+        <td>{nazevTurnaje}</td>
+        <!-- begin:soucet -->
+        <td class="hodnoceni-cislo">{soucet}</td>
+        <!-- end:soucet -->
+        <td class="hodnoceni-cislo"><strong>{celkem}</strong></td>
+        <td title="{titulekKol}">{hodnocenoKol}/{kol}{neuplna}</td>
+      </tr>
+      <!-- end:radek -->
+    </table>
+  </div>
+  <p class="hodnoceni-poznamka">Pořadí je podle celkového součtu, stejný součet dělí místo. ⚠️ = skupině chybí hodnocení
+    některého kola.</p>
+  <!-- end:vysledky -->
+</section>
+
+<section class="aBox">
+  <h3>Všechna hodnocení</h3>
+  <!-- begin:bezHodnoceni -->
+  <p class="hodnoceni-info">Zatím nikdo nehodnotil.</p>
+  <!-- end:bezHodnoceni -->
+  <!-- begin:hodnoceniSeznam -->
+  <div class="hodnoceni-tabulka">
+    <table class="zvyraznovana">
+      <tr>
+        <th>Běh</th>
+        <th>Skupina</th>
+        <th>Kolo</th>
+        <th>Hodnotil</th>
+        <th>Upraveno</th>
+        <th>Celkem</th>
+        <th></th>
+      </tr>
+      <!-- begin:radek -->
+      <tr>
+        <td>{nazevTurnaje}</td>
+        <td>{nazevTymu}</td>
+        <td>{kolo}.</td>
+        <td>{hodnotitel}</td>
+        <td>{upraveno}</td>
+        <td class="hodnoceni-cislo">{celkem}</td>
+        <td class="hodnoceni-akce">
+          <a href="{urlUpravit}">upravit</a>
+          <form method="post" action="hodnoceni-turnaje">
+            <input type="hidden" name="akce" value="smazat-hodnoceni">
+            <input type="hidden" name="id_hodnoceni" value="{idHodnoceni}">
+            <input type="submit" value="smazat" data-potvrzeni="{potvrzeniSmazani}"
+                   onclick="return confirm(this.dataset.potvrzeni)">
+          </form>
+        </td>
+      </tr>
+      <!-- end:radek -->
+    </table>
+  </div>
+  <!-- end:hodnoceniSeznam -->
+
+  <!-- begin:uzavreni -->
+  <form method="post" action="hodnoceni-turnaje" class="hodnoceni-uzavreni">
+    <input type="hidden" name="akce" value="{akceUzavreni}">
+    <button type="submit">{textUzavreni}</button>
+    <span class="hodnoceni-poznamka">{popisUzavreni}</span>
+  </form>
+  <!-- end:uzavreni -->
+</section>
+
+<section class="aBox">
+  <h3>Kritéria hodnocení</h3>
+  <!-- begin:nahled -->
+  <p>Škála: <strong>{skala}</strong></p>
+  <!-- begin:kategorie -->
+  <h4>{nazevKategorie}</h4>
+  <ul>
+    <!-- begin:kriterium -->
+    <li>{nazevKriteria}</li>
+    <!-- end:kriterium -->
+  </ul>
+  <!-- end:kategorie -->
+  <!-- end:nahled -->
+
+  <form method="post" action="hodnoceni-turnaje" enctype="multipart/form-data" class="hodnoceni-nahrani">
+    <input type="hidden" name="akce" value="nahrat-sablonu">
+    <p>Textový soubor: první řádek škála, kategorie začíná <code># </code>, kritérium <code>## </code>. Soubor má
+      přednost před textem v poli.</p>
+    <label>Soubor <input type="file" name="soubor" accept=".txt,.md,text/plain"></label>
+    <label class="hodnoceni-zdroj">
+      Nebo text
+      <textarea name="text" rows="14" placeholder="{ukazka}">{zdroj}</textarea>
+    </label>
+    <!-- begin:smazatHodnoceni -->
+    <label class="hodnoceni-smazat">
+      <input type="checkbox" name="smazat_hodnoceni" value="1">
+      Nová kritéria mají jinou škálu nebo jiný počet kategorií či kritérií: smazat všech {pocetHodnoceni} hodnocení
+    </label>
+    <p class="hodnoceni-poznamka">Opravit názvy kategorií a kritérií jde i bez mazání, hodnocení zůstanou.</p>
+    <!-- end:smazatHodnoceni -->
+    <button type="submit"><i class="fa-solid fa-upload" aria-hidden="true"></i> Nahrát kritéria</button>
+  </form>
+</section>
+<!-- end:org -->
+
+</div>
+<!-- end:hodnoceni -->

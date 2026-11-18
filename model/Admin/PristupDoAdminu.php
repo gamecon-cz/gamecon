@@ -43,6 +43,8 @@ final class PristupDoAdminu
     public const array PRAVA_JEN_STRANKY = [
         Pravo::ADMINISTRACE_BINGO => 'Bingo mají všichni orgové včetně pauzujícího full-orga, který jinak v adminu nic'
             . ' nesmí. Stav si stránka bere sama od sebe (bingo?stav=1), API nepotřebuje.',
+        Pravo::ADMINISTRACE_HODNOCENI_TURNAJE => 'Org turnaje D&D nemusí být org GameConu. Kritéria, výsledky i export'
+            . ' jsou formuláře a stažení z vlastní stránky (hodnoceni-turnaje), API nepotřebuje.',
     ];
 
     /**

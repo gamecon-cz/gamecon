@@ -1,0 +1,96 @@
+/* Hodnocení turnaje (admin/scripts/modules/hodnoceni-turnaje.php). Jen rozložení: barvy dědí z klasického
+   i moderního vzhledu, takže fungují i v tmavém. */
+
+.hodnoceni-turnaje .hodnoceni-info,
+.hodnoceni-turnaje .hodnoceni-poznamka {
+  opacity: .8;
+}
+
+.hodnoceni-turnaje .hodnoceni-poznamka {
+  font-size: .9em;
+}
+
+.hodnoceni-vyber-formular {
+  display: flex;
+  flex-wrap: wrap;
+  gap: .5em 1.5em;
+  margin-bottom: 1em;
+}
+
+.hodnoceni-vyber-formular label {
+  display: flex;
+  flex-direction: column;
+  gap: .25em;
+  max-width: 100%;
+}
+
+.hodnoceni-vyber-formular select {
+  max-width: 100%;
+}
+
+.hodnoceni-formular .hodnoceni-zakaz {
+  font-weight: bold;
+}
+
+.hodnoceni-kategorie {
+  margin: 0 0 1em;
+  padding: .5em 1em .75em;
+  border: 1px solid currentColor;
+  border-radius: 6px;
+}
+
+.hodnoceni-kategorie legend {
+  font-weight: bold;
+  padding: 0 .3em;
+}
+
+.hodnoceni-kriterium {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 1em;
+  padding: .3em 0;
+  max-width: 40em;
+}
+
+.hodnoceni-kriterium select {
+  min-width: 4em;
+}
+
+.hodnoceni-tabulka {
+  overflow-x: auto;
+}
+
+.hodnoceni-turnaje .hodnoceni-cislo {
+  text-align: right;
+}
+
+.hodnoceni-turnaje .hodnoceni-neuplna td {
+  opacity: .7;
+}
+
+.hodnoceni-akce {
+  white-space: nowrap;
+}
+
+.hodnoceni-akce form {
+  display: inline;
+  margin-left: .5em;
+}
+
+.hodnoceni-uzavreni {
+  margin-top: 1em;
+}
+
+.hodnoceni-nahrani label {
+  display: block;
+  margin: .5em 0;
+}
+
+.hodnoceni-zdroj textarea {
+  display: block;
+  width: 100%;
+  max-width: 40em;
+  box-sizing: border-box;
+  font-family: monospace;
+}
