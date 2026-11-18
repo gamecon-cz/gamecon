@@ -28,4 +28,7 @@ input[type=text].form-control, input[type=password].form-control {
     background-color: #3b3b3b;
     color: #fff;
   }
+  .form-text {
+    color: #adb5bd;
+  }
 }
