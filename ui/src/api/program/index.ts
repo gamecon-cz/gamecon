@@ -92,17 +92,19 @@ export type ApiLokace = {
   nazev: string,
 };
 
+/** text celý z PHP (Aktivita::getUpozorneniNaVek()), stejný ukazuje i záložní confirm() na stránkách linií */
+export type ApiUpozorněníNaVěk = {
+  nadpis: string,
+  text: string,
+  /** e-mail šéfa sekce aktivity (bez hlavičky linie info@gamecon.cz), je v textu a dialog z něj udělá odkaz */
+  kontakt: string,
+};
+
 /**
  * Všechna pole jsou povinná. Backend MUSÍ vždy poslat všechna pole.
  * Pokud hodnota sémanticky "chybí" (uživatel není přihlášen, aktivita
  * není zamčená, …), backend pošle `null`.
  */
-/** text celý z PHP (Aktivita::getUpozorneniNaVek()), stejný ukazuje i záložní confirm() na stránkách linií */
-export type ApiUpozorněníNaVěk = {
-  nadpis: string,
-  text: string,
-};
-
 export type ApiAktivitaUživatel = {
   id: number,
   /** V jakém stavu je pokud je přihlášen */

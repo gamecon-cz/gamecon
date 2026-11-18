@@ -7,6 +7,7 @@ use Gamecon\SystemoveNastaveni\SystemoveNastaveni;
 use Gamecon\Aktivita\StavAktivity;
 use Gamecon\Pravo;
 use Gamecon\Aktivita\HromadneAkceAktivit;
+use Gamecon\Aktivita\MladsiUcastniciAktivit;
 use Gamecon\Aktivita\SqlStruktura\AkceSeznamSqlStruktura as Sql;
 
 /**
@@ -174,6 +175,9 @@ if (defined('TESTING') && TESTING && !empty($filtr['typ'])) {
 $typy    = dbArrayCol('SELECT id_typu, typ_1p FROM akce_typy');
 $typy[0] = '';
 
+// přihlášení mladší, než je věk aktivity (štítek „Věk: 15+“), pro celý výpis najednou
+$mladsiPodleAktivity = MladsiUcastniciAktivit::najdi($aktivity);
+
 foreach ($aktivity as $aktivita) {
     $r = $aktivita->rawDb();
     $tpl->assign([
@@ -190,6 +194,18 @@ foreach ($aktivity as $aktivita) {
     if ($aktivita->tagy()) {
         $tpl->assign('tagy', implode(' | ', $aktivita->tagy()));
         $tpl->parse('aktivity.aktivita.hint');
+    }
+    $mladsi = $mladsiPodleAktivity[(int) $aktivita->id()] ?? [];
+    if ($mladsi !== []) {
+        $tpl->assign([
+            'mladsiPocet' => count($mladsi),
+            'mladsiPopis' => htmlspecialchars(MladsiUcastniciAktivit::getPopis($mladsi), ENT_QUOTES),
+            // Seznam přihlášených ukazuje jen letošní ročník
+            'mladsiHref' => $aktivita->rok() === $systemoveNastaveni->rocnik()
+                ? ' href="aktivity/prihlaseni?typ=' . $aktivita->typId() . '#aktivita-' . $aktivita->id() . '"'
+                : '',
+        ]);
+        $tpl->parse('aktivity.aktivita.mladsi');
     }
 
     if ($r[Sql::PATRI_POD]) {

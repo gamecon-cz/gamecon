@@ -6,7 +6,7 @@ import { otevřiUpozorněníNaVěk, zavřiUpozorněníNaVěk } from "./všeobecn
 
 // Skutečný store (zustand) potřebuje v testech React, tady stačí jeho setState s immerem a getState.
 const store = vi.hoisted(() => {
-  const stav: { všeobecné: { modalUpozorněníNaVěk?: { nadpis: string, text: string } } } = {
+  const stav: { všeobecné: { modalUpozorněníNaVěk?: { nadpis: string, text: string, kontakt: string } } } = {
     všeobecné: {},
   };
   return {
@@ -24,7 +24,8 @@ const modal = () => store.stav.všeobecné.modalUpozorněníNaVěk;
 // text skládá PHP (Aktivita::getUpozorneniNaVek()), tady na něm nezáleží
 const upozornění = (nazevAktivity: string, minimalniVek: number) => ({
   nadpis: `Aktivita ${nazevAktivity} je od ${minimalniVek} let`,
-  text: `V den aktivity ti ještě nebude ${minimalniVek}.`,
+  text: `V den aktivity ti ještě nebude ${minimalniVek}. Ozvat se můžeš i ty na larp@gamecon.cz.`,
+  kontakt: "larp@gamecon.cz",
 });
 
 describe("upozornění na věk", () => {

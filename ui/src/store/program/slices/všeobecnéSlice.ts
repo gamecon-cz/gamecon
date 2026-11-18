@@ -111,7 +111,7 @@ let přihlášeníPoUpozorněníNaVěk: (() => void) | undefined;
 export const otevřiUpozorněníNaVěk = (upozornění: ApiUpozorněníNaVěk, přihlaš: () => void) => {
   přihlášeníPoUpozorněníNaVěk = přihlaš;
   useProgramStore.setState(s => {
-    s.všeobecné.modalUpozorněníNaVěk = { nadpis: upozornění.nadpis, text: upozornění.text };
+    s.všeobecné.modalUpozorněníNaVěk = { nadpis: upozornění.nadpis, text: upozornění.text, kontakt: upozornění.kontakt };
   }, undefined, "otevři upozornění na věk");
 };
 

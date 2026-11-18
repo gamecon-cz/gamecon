@@ -4,32 +4,21 @@ declare(strict_types=1);
 
 namespace Gamecon\Tests\Aktivity;
 
-use App\Structure\Sql\TagSqlStructure as TagSql;
-use App\Structure\Sql\UserRoleSqlStructure as UserRoleSql;
-use App\Structure\Sql\UserSqlStructure as UserSql;
 use Gamecon\Aktivita\Aktivita;
-use Gamecon\Aktivita\SqlStruktura\AkcePrihlaseniSqlStruktura as PrihlaseniSql;
-use Gamecon\Aktivita\SqlStruktura\AkceSeznamSqlStruktura as AktivitaSql;
-use Gamecon\Aktivita\SqlStruktura\AkceSjednoceneTagySqlStruktura as AktivitaTagSql;
-use Gamecon\Aktivita\StavAktivity;
-use Gamecon\Aktivita\StavPrihlaseni;
-use Gamecon\Aktivita\Tag;
+use Gamecon\Aktivita\KontaktSefaLinie;
 use Gamecon\Aktivita\TypAktivity;
 use Gamecon\KategorieTagu;
-use Gamecon\Role\Role;
 use Gamecon\SystemoveNastaveni\SystemoveNastaveni;
 use Gamecon\Tests\Db\AbstractTestDb;
-use Gamecon\Uzivatel\Pohlavi;
 
 /**
  * Minimální věk aktivity ze štítku „Věk: 15+" a upozornění mladšího účastníka před přihlášením.
- * Přihlášení se nebrání, účastník se má jen předem domluvit se šéfem programu.
+ * Přihlášení se nebrání: šéf sekce dostane e-mail (MladsiUcastnikNaAktiviteTest) a ozve se mu.
  */
 class UpozorneniNaVekTest extends AbstractTestDb
 {
     use ProbihaRegistraceAktivitTrait;
-
-    private const string ZACATEK_AKTIVITY = ROCNIK . '-07-16 10:00:00';
+    use VekAktivityTestTrait;
 
     protected static bool $disableStrictTransTables = true;
 
@@ -151,6 +140,7 @@ class UpozorneniNaVekTest extends AbstractTestDb
 
     public function testMladsimuPrihlasovatkoNejdrivUpozorni(): void
     {
+        $this->nastavSefaSekceLarpu('šéfka Larpů', 'larpy.test@example.test');
         $aktivita = $this->vytvorAktivitu('Věk: 18+');
 
         $prihlasovatko = $aktivita->prihlasovatko($this->vytvorUcastnika(vekVDenAktivity: 15), 0);
@@ -163,7 +153,9 @@ class UpozorneniNaVekTest extends AbstractTestDb
         // podle data-upozorneni ho zachovejScroll() v aktivity.xtpl vynechá, scroll se uloží až s potvrzením
         self::assertStringContainsString('data-upozorneni="', $prihlasovatko);
         self::assertStringContainsString('upozorneniNaVek', $prihlasovatko);
-        self::assertStringContainsString(Aktivita::KONTAKT_NA_SEFA_PROGRAMU, $prihlasovatko);
+        // z kontaktu udělá dialog v Preactu odkaz
+        self::assertStringContainsString('data-kontakt="larpy.test@example.test"', $prihlasovatko);
+        self::assertStringContainsString('kontakt: formular.dataset.kontakt', $prihlasovatko);
     }
 
     public function testDostatecneStaremuPrihlasovatkoRovnouPrihlasi(): void
@@ -176,8 +168,9 @@ class UpozorneniNaVekTest extends AbstractTestDb
         self::assertStringNotContainsString('upozorneniNaVek', $prihlasovatko);
     }
 
-    public function testUpozorneniMaVNadpisuAktivituAVekAVTextuKontakt(): void
+    public function testUpozorneniMaVNadpisuAktivituAVekAVTextuSefaSekce(): void
     {
+        $this->nastavSefaSekceLarpu('Šéfka Larpů', 'larpy.test@example.test');
         $aktivita = $this->vytvorAktivitu('Věk: 18+');
 
         $upozorneni = $aktivita->getUpozorneniNaVek($this->vytvorUcastnika(vekVDenAktivity: 15));
@@ -185,8 +178,94 @@ class UpozorneniNaVekTest extends AbstractTestDb
         self::assertNotNull($upozorneni);
         self::assertSame("Aktivita {$aktivita->nazev()} je od 18 let", $upozorneni['nadpis']);
         self::assertStringContainsString('ještě nebude 18', $upozorneni['text']);
-        self::assertStringContainsString(Aktivita::KONTAKT_NA_SEFA_PROGRAMU, $upozorneni['text']);
+        // šéf sekce dostane e-mail a ozve se, může ho odhlásit
+        self::assertStringContainsString('šéfka Larpů se to ale dozví a ozve se ti e-mailem', $upozorneni['text']);
+        self::assertStringContainsString('může tě z aktivity odhlásit, sleduj proto e-mail', $upozorneni['text']);
+        self::assertStringContainsString('larpy.test@example.test', $upozorneni['text']);
+        self::assertSame('larpy.test@example.test', $upozorneni['kontakt']);
         self::assertNull($aktivita->getUpozorneniNaVek($this->vytvorUcastnika(vekVDenAktivity: 30)));
+    }
+
+    public function testBezHlavickyLinieUpozorneniPosilaNaSefaProgramu(): void
+    {
+        $this->nastavSefaSekceLarpu(null);
+        $aktivita = $this->vytvorAktivitu('Věk: 18+');
+
+        $upozorneni = $aktivita->getUpozorneniNaVek($this->vytvorUcastnika(vekVDenAktivity: 15));
+
+        self::assertNotNull($upozorneni);
+        self::assertStringContainsString('šéf programu se to ale dozví', $upozorneni['text']);
+        self::assertSame(Aktivita::KONTAKT_NA_SEFA_PROGRAMU, $upozorneni['kontakt']);
+    }
+
+    public function testSekceKteraNeniRoleJdeDoVetyJakoSefSekce(): void
+    {
+        // sekce je v hlavičce linie volný text, „larpy se to ale dozví“ by nedávalo smysl
+        $this->nastavSefaSekceLarpu('LKD tým', 'larpy.test@example.test');
+        $aktivita = $this->vytvorAktivitu('Věk: 18+');
+
+        $upozorneni = $aktivita->getUpozorneniNaVek($this->vytvorUcastnika(vekVDenAktivity: 15));
+
+        self::assertNotNull($upozorneni);
+        self::assertStringContainsString('Přihlásit se můžeš, šéf sekce se to ale dozví', $upozorneni['text']);
+        self::assertSame('larpy.test@example.test', $upozorneni['kontakt']);
+    }
+
+    public function testHlavickaBezEmailuPosilaNaSefaProgramuIKdyzMaSekci(): void
+    {
+        $this->nastavSefaSekceLarpu('Šéf D&D/JaD turnaje');
+
+        $kontakt = KontaktSefaLinie::zTypu(TypAktivity::LARP);
+
+        self::assertSame('šéf programu', $kontakt->getKdo());
+        self::assertSame(Aktivita::KONTAKT_NA_SEFA_PROGRAMU, $kontakt->getEmail());
+        // hlavička stránky linie ukazuje sekci a jméno, jak jsou
+        self::assertSame('Šéf D&D/JaD turnaje', $kontakt->getSekce());
+        self::assertSame('Lenka „Cemi“ Testovací', $kontakt->getJmeno());
+    }
+
+    public function testBezHlavickyLinieNemaStrankaLinieSekciAniJmeno(): void
+    {
+        $this->nastavSefaSekceLarpu(null);
+
+        $kontakt = KontaktSefaLinie::zTypu(TypAktivity::LARP);
+
+        self::assertNull($kontakt->getSekce());
+        self::assertNull($kontakt->getJmeno());
+        self::assertSame(Aktivita::KONTAKT_NA_SEFA_PROGRAMU, $kontakt->getEmail());
+    }
+
+    public function testNaTurnajiUpozorniJenNaVekPrvnihoKola(): void
+    {
+        // přihlášení na turnaj přihlásí i na další kola, stačí ale upozornit na první (záměr)
+        [[$prvniKolo]] = $this->vytvorTurnaj([[null], ['Věk: 15+']]);
+        [[$prvniKoloSVekem]] = $this->vytvorTurnaj([['Věk: 15+'], ['Věk: 18+']]);
+        $ucastnik = $this->vytvorUcastnika(vekVDenAktivity: 12);
+
+        $upozorneni = $prvniKoloSVekem->getUpozorneniNaVek($ucastnik);
+
+        self::assertNull($prvniKolo->getUpozorneniNaVek($ucastnik), 'Další kolo pro starší se neupozorňuje');
+        self::assertNotNull($upozorneni);
+        self::assertSame("Aktivita {$prvniKoloSVekem->nazev()} je od 15 let", $upozorneni['nadpis']);
+    }
+
+    public function testPoOdhlaseniDostaneUpozorneniHned(): void
+    {
+        $aktivita = $this->vytvorAktivitu('Věk: 18+');
+        $ucastnik = $this->vytvorUcastnika(vekVDenAktivity: 15);
+        $aktivita->prihlas($ucastnik, $ucastnik, Aktivita::IGNOROVAT_KONTROLY);
+        $aktivita = Aktivita::zId($aktivita->id(), false, $this->systemoveNastaveni);
+        self::assertNull($aktivita->getUpozorneniNaVekProPrihlasovatko($ucastnik, $ucastnik), 'Přihlášený se nehlásí');
+
+        $aktivita->odhlas($ucastnik, $ucastnik, 'test');
+
+        // tohle pošle odpověď na odhlášení (aktivitaAkce.php), program pak nabídne přihlášení s upozorněním
+        self::assertSame(
+            $aktivita->getUpozorneniNaVek($ucastnik),
+            Aktivita::zId($aktivita->id(), false, $this->systemoveNastaveni)
+                ->getUpozorneniNaVekProPrihlasovatko($ucastnik, $ucastnik),
+        );
+        self::assertNotNull($aktivita->getUpozorneniNaVek($ucastnik));
     }
 
     public function testTlacitkoTymuMladsimuNejdrivUpozorni(): void
@@ -250,32 +329,6 @@ class UpozorneniNaVekTest extends AbstractTestDb
         self::assertNull($this->getAktivitaZApiProgramu($aktivita->id(), $ucastnik)['upozorneniNaVek']);
     }
 
-    private function vytvorAktivitu(string ...$stitkyVeku): Aktivita
-    {
-        dbInsert(AktivitaSql::AKCE_SEZNAM_TABULKA, [
-            AktivitaSql::NAZEV_AKCE => 'Larp pro starší ' . self::unikatniCislo(),
-            AktivitaSql::TYP        => TypAktivity::LARP,
-            AktivitaSql::ROK        => ROCNIK,
-            AktivitaSql::STAV       => StavAktivity::AKTIVOVANA,
-            AktivitaSql::ZACATEK    => self::ZACATEK_AKTIVITY,
-            AktivitaSql::KONEC      => ROCNIK . '-07-16 13:00:00',
-            AktivitaSql::KAPACITA   => 5,
-            AktivitaSql::KAPACITA_M => 0,
-            AktivitaSql::KAPACITA_F => 0,
-            AktivitaSql::CENA       => 0,
-            AktivitaSql::TEAMOVA    => 0,
-        ]);
-        $idAktivity = (int) dbInsertId();
-        foreach ($stitkyVeku as $stitekVeku) {
-            dbInsert(AktivitaTagSql::AKCE_SJEDNOCENE_TAGY_TABULKA, [
-                AktivitaTagSql::ID_AKCE => $idAktivity,
-                AktivitaTagSql::ID_TAGU => $this->getStitek($stitekVeku, KategorieTagu::OMEZENI_VEK)->id(),
-            ]);
-        }
-
-        return Aktivita::zId($idAktivity, false, $this->systemoveNastaveni);
-    }
-
     /**
      * Aktivita z web/moduly/api/aktivityUzivatel.php, jak ji dostane Preact program.
      * $prihlasujici je přihlášený uživatel, $ucastnik ten, za koho přihlašuje z adminu.
@@ -313,70 +366,5 @@ class UpozorneniNaVekTest extends AbstractTestDb
             }
         }
         self::fail("API programu aktivitu {$idAktivity} nevrátilo");
-    }
-
-    private function getStitek(string $nazev, int $idKategorie): Tag
-    {
-        $existujici = Tag::zNazvu($nazev);
-        if ($existujici) {
-            self::assertSame($idKategorie, $existujici->idKategorieTagu(), "Štítek {$nazev} už je v jiné kategorii");
-
-            return $existujici;
-        }
-        dbInsert(TagSql::_table, [
-            TagSql::nazev             => $nazev,
-            TagSql::poznamka          => '',
-            TagSql::id_kategorie_tagu => $idKategorie,
-        ]);
-
-        return Tag::zId((int) dbInsertId());
-    }
-
-    /**
-     * @param string $registrovan narození v den registrace nebo po ní je jen výplň (rychloregistrace), výchozí je proto
-     *                            začátek ročníku, kdy už se každý z testů narodil
-     */
-    private function vytvorUcastnika(
-        ?int $vekVDenAktivity = null,
-        ?string $datumNarozeni = null,
-        string $registrovan = ROCNIK . '-01-01 00:00:00',
-    ): \Uzivatel {
-        // další narozeniny až den po aktivitě, v den aktivity je mu tedy přesně $vekVDenAktivity
-        $datumNarozeni ??= (new \DateTimeImmutable(self::ZACATEK_AKTIVITY))
-            ->modify('-' . ($vekVDenAktivity + 1) . ' years +1 day')
-            ->format('Y-m-d');
-        $cislo = self::unikatniCislo();
-        dbInsert(UserSql::_table, [
-            UserSql::login_uzivatele  => 'test_vek_' . $cislo,
-            UserSql::email1_uzivatele => 'godric.cz+gc_test_vek_' . $cislo . '@gmail.com',
-            UserSql::pohlavi          => Pohlavi::ZENA_KOD,
-            UserSql::datum_narozeni   => $datumNarozeni,
-            UserSql::registrovan      => $registrovan,
-        ]);
-        $idUzivatele = dbInsertId();
-        dbInsert(UserRoleSql::_table, [
-            UserRoleSql::id_uzivatele => $idUzivatele,
-            UserRoleSql::id_role      => Role::PRIHLASEN_NA_LETOSNI_GC,
-        ]);
-        $uzivatel = \Uzivatel::zId($idUzivatele);
-        self::assertNotNull($uzivatel);
-
-        return $uzivatel;
-    }
-
-    private function prihlas(Aktivita $aktivita, \Uzivatel $ucastnik): void
-    {
-        dbInsert(PrihlaseniSql::AKCE_PRIHLASENI_TABULKA, [
-            PrihlaseniSql::ID_AKCE             => $aktivita->id(),
-            PrihlaseniSql::ID_UZIVATELE        => $ucastnik->id(),
-            PrihlaseniSql::ID_STAVU_PRIHLASENI => StavPrihlaseni::PRIHLASEN,
-        ]);
-    }
-
-    private static function unikatniCislo(): int
-    {
-        static $pocitadlo = 200000;
-
-        return ++$pocitadlo;
     }
 }

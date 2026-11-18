@@ -14,7 +14,7 @@ vi.mock("../../../../store/program/slices/všeobecnéSlice", () => ({
   otevřiUpozorněníNaVěk: vi.fn(),
 }));
 
-const upozornění = { nadpis: "Aktivita Larp je od 18 let", text: "V den aktivity ti ještě nebude 18." };
+const upozornění = { nadpis: "Aktivita Larp je od 18 let", text: "V den aktivity ti ještě nebude 18.", kontakt: "larp@gamecon.cz" };
 
 /** potvrdí upozornění, které otevřelo poslední kliknutí */
 const potvrďUpozornění = () => {
