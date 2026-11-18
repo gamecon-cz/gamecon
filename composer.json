@@ -44,6 +44,7 @@
         "google/apiclient": "^2.4",
         "granam/remove-diacritics": "^1.0",
         "granam/string": "^4.2",
+        "guzzlehttp/guzzle": "^7.15",
         "ifsnop/mysqldump-php": "^2.10",
         "michelf/php-markdown": "~1.4",
         "nextras/migrations": "^3.4",
