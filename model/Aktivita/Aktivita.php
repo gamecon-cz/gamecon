@@ -484,18 +484,19 @@ SQL
      */
     protected static function editorChyby(array $a)
     {
-        $chyby = []; // kontrola dostupnosti organizátorů v daný čas
+        $chyby = [];
+        $puvodniAktivita = !empty($a[Sql::ID_AKCE])
+            ? self::zId((int)$a[Sql::ID_AKCE])
+            : null;
+        // kontrola dostupnosti organizátorů v daný čas
         if ($casy = self::dejCasyZFormulare($a)) {
             [$zacatek, $konec] = $casy;
             if ($zacatek >= $konec) {
                 $chyby[] = 'Konec aktivity musí být po jejím začátku.';
             }
-            $ignorovatAktivitu = isset($a[Sql::ID_AKCE])
-                ? self::zId($a[Sql::ID_AKCE])
-                : null;
             foreach ($a['organizatori'] ?? [] as $orgId) {
                 $org = Uzivatel::zId($orgId);
-                if ($kolizniAktivita = $org->maKoliziSJinouAktivitouVCase($zacatek, $konec, $ignorovatAktivitu)) {
+                if ($kolizniAktivita = $org->maKoliziSJinouAktivitouVCase($zacatek, $konec, $puvodniAktivita)) {
                     $chyby[] = 'Organizátor ' . $org->jmenoNick() . ' má v danou dobu jinou aktivitu: ' . $kolizniAktivita->nazev();
                 }
             }
@@ -505,14 +506,9 @@ SQL
             $chyby[] = sprintf('Krátký popis překračuje maximální povolenou délku %d znaků.', self::LIMIT_POPIS_KRATKY);
         }
 
-        // prázdný výběr typu i „(bez typu – organizační)“, který editor nabízí jen aktivitě, která ho už má
-        if (isset($a[Sql::TYP]) && (int)$a[Sql::TYP] === TypAktivity::SYSTEMOVA) {
-            $puvodniAktivita = !empty($a[Sql::ID_AKCE])
-                ? self::zId((int)$a[Sql::ID_AKCE])
-                : null;
-            if ($puvodniAktivita === null || (int)$puvodniAktivita->a[Sql::TYP] !== TypAktivity::SYSTEMOVA) {
-                $chyby[] = 'Vyber typ aktivity.';
-            }
+        $chybaTypu = self::zkontrolujTyp($a, $puvodniAktivita);
+        if ($chybaTypu !== null) {
+            $chyby[] = $chybaTypu;
         }
 
         // kontrola duplicit url
@@ -524,6 +520,40 @@ SQL
         }
 
         return $chyby;
+    }
+
+    /**
+     * Nově vybraný typ musí být aktivní. Neaktivní typ, například „(bez typu – organizační)“ starých aktivit,
+     * si aktivita, která ho má, může jen ponechat.
+     *
+     * @param array<string, mixed> $a data z formuláře editoru
+     * @return string|null chyba, null když je typ v pořádku
+     */
+    private static function zkontrolujTyp(array $a, ?Aktivita $puvodniAktivita): ?string
+    {
+        $typ = $a[Sql::TYP] ?? null;
+        if ($typ === null) {
+            // nevybraný typ prohlížeč neodešle (volba je disabled); bez typu by DB uložila 0
+            return $puvodniAktivita === null
+                ? 'Vyber typ aktivity.'
+                : null; // existující aktivita si typ ponechá
+        }
+        if (!is_scalar($typ) || trim((string)$typ) === '') {
+            return 'Vyber typ aktivity.';
+        }
+        $idTypu = (int)$typ;
+        if ($puvodniAktivita !== null && $idTypu === (int)$puvodniAktivita->a[Sql::TYP]) {
+            return null;
+        }
+        $typAktivity = TypAktivity::zId($idTypu);
+        if ($typAktivity === null) {
+            return 'Vyber typ aktivity.';
+        }
+        if (!$typAktivity->isAktivni()) {
+            return sprintf('Typ aktivity „%s“ se už nepoužívá, vyber jiný.', $typAktivity->nazevJednotnehoCisla());
+        }
+
+        return null;
     }
 
     protected static function urlJeObsazena(array $a): bool
@@ -911,29 +941,20 @@ SQL
         $idTypuAktivity = $aktivita !== null
             ? (int)$aktivita->a[Sql::TYP]
             : null;
-        // „(bez typu – organizační)“ se nenabízí: jako první položka seznamu se zadával omylem.
-        // Typ, který aktivita už má, se nabídne i neaktivní, jinak by ho uložení formuláře potichu změnilo.
-        $parametry = [0 => TypAktivity::SYSTEMOVA, 1 => $idTypuAktivity];
-        $sKladnymPoradim = dbFetchAll(<<<'SQL'
+        // Neaktivní typy, například „(bez typu – organizační)“, se nenabízí. Typ, který aktivita už má, se nabídne
+        // i neaktivní, jinak by ho uložení formuláře potichu změnilo, viz zkontrolujTyp().
+        // Typy se záporným pořadím (technické, brigádnické a tak) jsou na konci.
+        $typy = dbFetchAll(<<<'SQL'
             SELECT id_typu, typ_1p
             FROM akce_typy
-            WHERE poradi > 0
-                AND ((aktivni = 1 AND id_typu != $0) OR id_typu = $1)
-            ORDER BY poradi
-            SQL, $parametry);
-        // typy se záporným pořadím jsou technické, brigádnické a tak
-        $seZapornymPoradim = dbFetchAll(<<<'SQL'
-            SELECT id_typu, typ_1p
-            FROM akce_typy
-            WHERE poradi < 0
-                AND ((aktivni = 1 AND id_typu != $0) OR id_typu = $1)
-            ORDER BY poradi DESC
-            SQL, $parametry);
+            WHERE aktivni = 1 OR id_typu = $0
+            ORDER BY poradi < 0, ABS(poradi)
+            SQL, [0 => $idTypuAktivity]);
         if ($idTypuAktivity === null) {
             // nová aktivita nemá předvybraný typ, ať se nezadá omylem ten první
             $xtpl->parse('upravy.tabulka.vyberTypu');
         }
-        foreach (array_merge($sKladnymPoradim, $seZapornymPoradim) as $akceTypData) {
+        foreach ($typy as $akceTypData) {
             $xtpl->assign('selected', (int)$akceTypData['id_typu'] === $idTypuAktivity
                 ? 'selected'
                 : '');

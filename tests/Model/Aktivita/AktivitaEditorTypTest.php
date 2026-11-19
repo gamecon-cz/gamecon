@@ -12,8 +12,8 @@ use Gamecon\Tests\Db\AbstractTestDb;
 use Gamecon\XTemplate\XTemplate;
 
 /**
- * „(bez typu – organizační)“ se v editoru aktivity nenabízí, nová aktivita nemá předvybraný typ
- * a typ, který aktivita už má, se nabídne i neaktivní.
+ * Neaktivní typ, například „(bez typu – organizační)“, se v editoru aktivity nenabízí a nově přiřadit nejde,
+ * aktivita, která ho má, si ho ale ponechá. Nová aktivita nemá předvybraný typ.
  */
 class AktivitaEditorTypTest extends AbstractTestDb
 {
@@ -21,6 +21,7 @@ class AktivitaEditorTypTest extends AbstractTestDb
     private const int ID_AKTIVITY_WORKSHOP = 7212;
     private const int ID_AKTIVITY_LARP = 7213;
     private const int ID_UZIVATELE = 7311;
+    private const string VYBER_TYP = 'Vyber typ aktivity.';
 
     protected static bool $disableStrictTransTables = true;
 
@@ -40,8 +41,10 @@ INSERT INTO uzivatele_hodnoty(id_uzivatele, login_uzivatele, jmeno_uzivatele, pr
 VALUES
     (7311, 'test-editor-typu', 'Test', 'Editor', 'test-editor-typu@example.invalid')
 SQL,
-            // workshop je neaktivní typ, ať test nezávisí na stavu číselníku
-            "UPDATE akce_typy SET aktivni = 0 WHERE id_typu = {$workshop}",
+            // workshop je neaktivní, ať test nezávisí na stavu číselníku, a má nulové pořadí, které editor dřív vynechal
+            <<<SQL
+UPDATE akce_typy SET aktivni = 0, poradi = 0 WHERE id_typu = {$workshop}
+SQL,
             <<<SQL
 INSERT INTO akce_seznam(id_akce, nazev_akce, url_akce, typ, rok, stav, patri_pod, kapacita, kapacita_f, kapacita_m, teamova)
 VALUES
@@ -59,107 +62,146 @@ SQL,
         parent::tearDown();
     }
 
-    public function testNovaAktivitaNemaPredvybranyTypANabidkaNemaBezTypu(): void
+    public function testBezTypuJeNeaktivni(): void
     {
-        $vyberTypu = $this->vyberTypuVEditoru(null);
+        self::assertFalse(TypAktivity::zId(TypAktivity::SYSTEMOVA)->isAktivni());
+        self::assertTrue(TypAktivity::zId(TypAktivity::LARP)->isAktivni());
+    }
+
+    public function testNovaAktivitaNemaPredvybranyTypANabidkaNemaNeaktivniTypy(): void
+    {
+        $vyberTypu = $this->getVyberTypuVEditoru(null);
 
         self::assertMatchesRegularExpression('~^<select [^>]*\brequired\b~', $vyberTypu);
         self::assertMatchesRegularExpression('~<option value="" selected disabled>~', $vyberTypu);
-        self::assertSame([], $this->vybraneTypy($vyberTypu));
-        self::assertNotContains(TypAktivity::SYSTEMOVA, $this->nabizeneTypy($vyberTypu));
-        self::assertNotContains(TypAktivity::WORKSHOP, $this->nabizeneTypy($vyberTypu), 'Neaktivní typ se nové aktivitě nenabízí');
-        self::assertContains(TypAktivity::LARP, $this->nabizeneTypy($vyberTypu));
+        self::assertSame([], $this->getVybraneTypy($vyberTypu));
+        self::assertNotContains(TypAktivity::SYSTEMOVA, $this->getNabizeneTypy($vyberTypu));
+        self::assertNotContains(TypAktivity::WORKSHOP, $this->getNabizeneTypy($vyberTypu));
+        self::assertContains(TypAktivity::LARP, $this->getNabizeneTypy($vyberTypu));
     }
 
-    public function testAktivitaSBeznymTypemNemaVNabidceBezTypu(): void
+    public function testTypySeZapornymPoradimJsouNaKonci(): void
     {
-        $vyberTypu = $this->vyberTypuVEditoru(self::ID_AKTIVITY_LARP);
+        $poradiTypu = array_map(
+            static fn (int $idTypu): int => (int) TypAktivity::zId($idTypu)->poradi(),
+            $this->getNabizeneTypy($this->getVyberTypuVEditoru(null)),
+        );
+        $kladna = array_values(array_filter($poradiTypu, static fn (int $poradi): bool => $poradi >= 0));
+        $zaporna = array_values(array_filter($poradiTypu, static fn (int $poradi): bool => $poradi < 0));
 
-        self::assertSame([TypAktivity::LARP], $this->vybraneTypy($vyberTypu));
-        self::assertNotContains(TypAktivity::SYSTEMOVA, $this->nabizeneTypy($vyberTypu));
+        self::assertNotSame([], $zaporna);
+        self::assertSame(array_merge($kladna, $zaporna), $poradiTypu);
+        $serazenaKladna = $kladna;
+        sort($serazenaKladna);
+        self::assertSame($serazenaKladna, $kladna);
+        $serazenaZaporna = $zaporna;
+        rsort($serazenaZaporna);
+        self::assertSame($serazenaZaporna, $zaporna);
+    }
+
+    public function testAktivitaSBeznymTypemNemaVNabidceNeaktivniTypy(): void
+    {
+        $vyberTypu = $this->getVyberTypuVEditoru(self::ID_AKTIVITY_LARP);
+
+        self::assertSame([TypAktivity::LARP], $this->getVybraneTypy($vyberTypu));
+        self::assertNotContains(TypAktivity::SYSTEMOVA, $this->getNabizeneTypy($vyberTypu));
+        self::assertNotContains(TypAktivity::WORKSHOP, $this->getNabizeneTypy($vyberTypu));
         self::assertStringNotContainsString('(vyber typ)', $vyberTypu);
     }
 
     public function testAktiviteBezTypuSeTypNabidneAbySeUlozenimNezmenil(): void
     {
-        $vyberTypu = $this->vyberTypuVEditoru(self::ID_AKTIVITY_BEZ_TYPU);
+        $vyberTypu = $this->getVyberTypuVEditoru(self::ID_AKTIVITY_BEZ_TYPU);
 
-        self::assertSame([TypAktivity::SYSTEMOVA], $this->vybraneTypy($vyberTypu));
+        self::assertSame([TypAktivity::SYSTEMOVA], $this->getVybraneTypy($vyberTypu));
         self::assertStringNotContainsString('(vyber typ)', $vyberTypu);
     }
 
-    public function testAktiviteSNeaktivnimTypemSeTypNabidneAbySeUlozenimNezmenil(): void
+    public function testAktiviteSNeaktivnimTypemSNulovymPoradimSeTypNabidne(): void
     {
-        $vyberTypu = $this->vyberTypuVEditoru(self::ID_AKTIVITY_WORKSHOP);
+        $vyberTypu = $this->getVyberTypuVEditoru(self::ID_AKTIVITY_WORKSHOP);
 
-        self::assertSame([TypAktivity::WORKSHOP], $this->vybraneTypy($vyberTypu));
+        self::assertSame([TypAktivity::WORKSHOP], $this->getVybraneTypy($vyberTypu));
+    }
+
+    public function testNovaAktivitaBezTypuVeFormulariJeChyba(): void
+    {
+        // nevybranou volbu (disabled) prohlížeč neodešle, pole typ ve formuláři vůbec není
+        self::assertSame([self::VYBER_TYP], self::zavolejKontroluTypu(null, null));
     }
 
     /**
-     * @dataProvider provideTypyKtereNovaAktivitaNesmiDostat
+     * @dataProvider provideNovePrirazeneTypySChybou
      */
-    public function testNovaAktivitaBezVybranehoTypuJeChyba(string $typ): void
-    {
-        self::assertContains('Vyber typ aktivity.', self::zavolejEditorChyby($typ, null));
+    public function testNoveNelzePriraditNevybranyNeznamyNeboNeaktivniTyp(
+        ?int $idAktivity,
+        string $typ,
+        string $ocekavanaChyba,
+    ): void {
+        self::assertSame([$ocekavanaChyba], self::zavolejKontroluTypu($typ, $idAktivity));
     }
 
     /**
-     * @return array<string, array{string}>
+     * @return array<string, array{int|null, string, string}>
      */
-    public static function provideTypyKtereNovaAktivitaNesmiDostat(): array
+    public static function provideNovePrirazeneTypySChybou(): array
     {
+        $bezTypu = 'Typ aktivity „(bez typu – organizační)“ se už nepoužívá, vyber jiný.';
+
         return [
-            'nevybraný typ'            => [''],
-            '(bez typu – organizační)' => [(string) TypAktivity::SYSTEMOVA],
+            'nová, prázdný typ'        => [null, '', self::VYBER_TYP],
+            'nová, neznámý typ'        => [null, '999999', self::VYBER_TYP],
+            'nová, bez typu'           => [null, (string) TypAktivity::SYSTEMOVA, $bezTypu],
+            'nová, neaktivní workshop' => [null, (string) TypAktivity::WORKSHOP, 'Typ aktivity „workshop“ se už nepoužívá, vyber jiný.'],
+            'larp změněný na bez typu' => [self::ID_AKTIVITY_LARP, (string) TypAktivity::SYSTEMOVA, $bezTypu],
+            'larp s prázdným typem'    => [self::ID_AKTIVITY_LARP, '', self::VYBER_TYP],
         ];
     }
 
-    public function testNovaAktivitaSVybranymTypemNeniChyba(): void
+    /**
+     * @dataProvider provideTypyBezChyby
+     */
+    public function testPlatnyNeboPonechanyTypNeniChyba(?int $idAktivity, ?string $typ): void
     {
-        self::assertNotContains('Vyber typ aktivity.', self::zavolejEditorChyby((string) TypAktivity::LARP, null));
-    }
-
-    public function testZmenaTypuNaBezTypuJeChyba(): void
-    {
-        self::assertContains(
-            'Vyber typ aktivity.',
-            self::zavolejEditorChyby((string) TypAktivity::SYSTEMOVA, self::ID_AKTIVITY_LARP),
-        );
-    }
-
-    public function testAktivitaBezTypuSiHoMuzePonechat(): void
-    {
-        self::assertNotContains(
-            'Vyber typ aktivity.',
-            self::zavolejEditorChyby((string) TypAktivity::SYSTEMOVA, self::ID_AKTIVITY_BEZ_TYPU),
-        );
-    }
-
-    public function testBezTypuVeFormulariNeniChyba(): void
-    {
-        $chyby = (new \ReflectionMethod(Aktivita::class, 'editorChyby'))->invoke(null, [
-            Sql::ID_AKCE   => self::ID_AKTIVITY_LARP,
-            Sql::URL_AKCE  => 'larp-editor-test',
-            Sql::PATRI_POD => null,
-        ]);
-
-        self::assertNotContains('Vyber typ aktivity.', $chyby, 'Formulář bez pole typu typ nemění');
+        self::assertSame([], self::zavolejKontroluTypu($typ, $idAktivity));
     }
 
     /**
-     * @return array<string>
+     * @return array<string, array{int|null, string|null}>
      */
-    private static function zavolejEditorChyby(string $typ, ?int $idAktivity): array
+    public static function provideTypyBezChyby(): array
     {
-        return (new \ReflectionMethod(Aktivita::class, 'editorChyby'))->invoke(null, [
-            Sql::ID_AKCE   => $idAktivity ?? 0,
-            Sql::URL_AKCE  => 'typ-editor-test-' . ($idAktivity ?? 'nova'),
-            Sql::PATRI_POD => null,
-            Sql::TYP       => $typ,
-        ]);
+        return [
+            'nová, larp'                       => [null, (string) TypAktivity::LARP],
+            'bez typu si ho ponechá'           => [self::ID_AKTIVITY_BEZ_TYPU, (string) TypAktivity::SYSTEMOVA],
+            'neaktivní workshop si ho ponechá' => [self::ID_AKTIVITY_WORKSHOP, (string) TypAktivity::WORKSHOP],
+            'bez typu změněný na larp'         => [self::ID_AKTIVITY_BEZ_TYPU, (string) TypAktivity::LARP],
+            'existující bez pole typ'          => [self::ID_AKTIVITY_LARP, null],
+        ];
     }
 
-    private function vyberTypuVEditoru(?int $idAktivity): string
+    /**
+     * @return list<string> chyby editoru týkající se typu
+     */
+    private static function zavolejKontroluTypu(?string $typ, ?int $idAktivity): array
+    {
+        $formular = [
+            Sql::ID_AKCE   => $idAktivity ?? 0,
+            Sql::URL_AKCE  => 'kontrola-typu-editor-test-' . ($idAktivity ?? 'nova'),
+            Sql::PATRI_POD => null,
+        ];
+        if ($typ !== null) {
+            $formular[Sql::TYP] = $typ;
+        }
+        $chyby = (new \ReflectionMethod(Aktivita::class, 'editorChyby'))->invoke(null, $formular);
+
+        return array_values(array_filter(
+            $chyby,
+            static fn (string $chyba): bool => $chyba === self::VYBER_TYP || str_starts_with($chyba, 'Typ aktivity '),
+        ));
+    }
+
+    private function getVyberTypuVEditoru(?int $idAktivity): string
     {
         // Without it XTemplate compiles the template next to its source, into the tracked tree
         $cacheDir = XTemplate::cache() ?: XTPL_CACHE_DIR;
@@ -181,9 +223,9 @@ SQL,
     }
 
     /**
-     * @return array<int>
+     * @return list<int>
      */
-    private function nabizeneTypy(string $vyberTypu): array
+    private function getNabizeneTypy(string $vyberTypu): array
     {
         preg_match_all('~<option\s+(?:selected\s+)?value="(\d+)">~', $vyberTypu, $typy);
 
@@ -191,9 +233,9 @@ SQL,
     }
 
     /**
-     * @return array<int>
+     * @return list<int>
      */
-    private function vybraneTypy(string $vyberTypu): array
+    private function getVybraneTypy(string $vyberTypu): array
     {
         preg_match_all('~<option\s+selected\s+value="(\d+)">~', $vyberTypu, $typy);
 

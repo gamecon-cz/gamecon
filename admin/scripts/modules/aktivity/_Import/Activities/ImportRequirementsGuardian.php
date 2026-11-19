@@ -28,7 +28,6 @@ class ImportRequirementsGuardian
         $unknownProgramLines = [];
         foreach ($activitiesValues as $row) {
             $programLine = null;
-            $programLineId = null;
             $programLineValue = $row[ExportAktivitSloupce::PROGRAMOVA_LINIE] ?? null;
             if ($programLineValue) {
                 $programLine = $this->importObjectsContainer->getProgramLineFromValue($programLineValue);
@@ -50,7 +49,7 @@ class ImportRequirementsGuardian
                 }
             }
             if ($programLine && !array_key_exists($programLine->id(), $programLines)) {
-                $programLines[$programLineId] = $programLine;
+                $programLines[$programLine->id()] = $programLine;
             }
         }
         if (count($programLines) > 1) {
@@ -78,7 +77,17 @@ class ImportRequirementsGuardian
                 )
                 : ImportStepResult::error('V importovaném souboru chybí programová linie, nebo alespoň existující aktivita s nastavenou programovou linií.');
         }
-        return ImportStepResult::success(reset($programLines));
+        $programLine = reset($programLines);
+        // dostaly by ji i nové aktivity bez vyplněné linie, neaktivní typ si ale aktivita smí jen ponechat
+        if (!$programLine->isAktivni()) {
+            return ImportStepResult::error(
+                sprintf(
+                    "Programová linie '%s' se už nepoužívá, importovat do ní nejde.",
+                    $programLine->nazev()
+                )
+            );
+        }
+        return ImportStepResult::success($programLine);
     }
 
     private static function wrapByQuotes(array $values): array {

@@ -168,6 +168,12 @@ class TypAktivity extends \DbObject
         return (bool)$this->r['zobrazit_v_menu'];
     }
 
+    /** Neaktivní typ si aktivita, která ho má, může ponechat, nově ho ale dostat nemůže */
+    public function isAktivni(): bool
+    {
+        return (int)($this->r['aktivni'] ?? 0) === 1;
+    }
+
     public function jeBrigadnicka(): bool
     {
         return $this->id() === self::BRIGADNICKA;
