@@ -58,8 +58,8 @@ export const ProgramLegenda = () => {
         </label>
         {jeÚčastník ? (
           <>
-            <label class="program_legenda_typ nahradnik">
-              {zaškrtávátkoPro("nahradnik")}
+            <label class="program_legenda_typ sledujici">
+              {zaškrtávátkoPro("sledujici")}
               Sleduji
             </label>
             <label class="program_legenda_typ prihlasen">

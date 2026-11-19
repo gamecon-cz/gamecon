@@ -63,7 +63,7 @@ export const aktivitaStatusZAktivity = (
     return "organizator";
   }
   if (aktivita.stavPrihlaseni === "sledujici") {
-    return "nahradnik";
+    return "sledujici";
   }
   if (aktivita.vdalsiVlne) {
     return "vDalsiVlne";
