@@ -66,6 +66,10 @@ class ImportObjectsContainer
                 'keyFromUrl'        => [],
             ];
             foreach (TypAktivity::zVsech() as $programLine) {
+                if ($programLine->id() === TypAktivity::SYSTEMOVA) {
+                    // „(bez typu – organizační)“ není programová linie, nabízí ho jen editor aktivitě, která ho už má
+                    continue;
+                }
                 $this->programLinesCache['id'][$programLine->id()] = $programLine;
 
                 $keyFromName = ImportKeyUnifier::toUnifiedKey($programLine->nazev(), array_keys($this->programLinesCache['keyFromName']));

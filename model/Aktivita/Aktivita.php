@@ -505,6 +505,16 @@ SQL
             $chyby[] = sprintf('Krátký popis překračuje maximální povolenou délku %d znaků.', self::LIMIT_POPIS_KRATKY);
         }
 
+        // prázdný výběr typu i „(bez typu – organizační)“, který editor nabízí jen aktivitě, která ho už má
+        if (isset($a[Sql::TYP]) && (int)$a[Sql::TYP] === TypAktivity::SYSTEMOVA) {
+            $puvodniAktivita = !empty($a[Sql::ID_AKCE])
+                ? self::zId((int)$a[Sql::ID_AKCE])
+                : null;
+            if ($puvodniAktivita === null || (int)$puvodniAktivita->a[Sql::TYP] !== TypAktivity::SYSTEMOVA) {
+                $chyby[] = 'Vyber typ aktivity.';
+            }
+        }
+
         // kontrola duplicit url
         if (self::urlJeObsazena($a)) {
             $chyby[] = sprintf(
@@ -897,14 +907,34 @@ SQL
     private static function parseUpravyTabulkaTypy(
         ?Aktivita $aktivita,
         XTemplate $xtpl,
-    ) {
-        $aktivitaData = $aktivita?->a; // databázový řádek
-        // typ s id 0 je (bez typu – organizační) a ten chceme první
-        $sKladnymPoradim = dbFetchAll('SELECT id_typu, typ_1p FROM akce_typy WHERE aktivni = 1 AND (poradi > 0 OR id_typu = 0) ORDER BY poradi');
+    ): void {
+        $idTypuAktivity = $aktivita !== null
+            ? (int)$aktivita->a[Sql::TYP]
+            : null;
+        // „(bez typu – organizační)“ se nenabízí: jako první položka seznamu se zadával omylem.
+        // Typ, který aktivita už má, se nabídne i neaktivní, jinak by ho uložení formuláře potichu změnilo.
+        $parametry = [0 => TypAktivity::SYSTEMOVA, 1 => $idTypuAktivity];
+        $sKladnymPoradim = dbFetchAll(<<<'SQL'
+            SELECT id_typu, typ_1p
+            FROM akce_typy
+            WHERE poradi > 0
+                AND ((aktivni = 1 AND id_typu != $0) OR id_typu = $1)
+            ORDER BY poradi
+            SQL, $parametry);
         // typy se záporným pořadím jsou technické, brigádnické a tak
-        $seZapornymPoradim = dbFetchAll('SELECT id_typu, typ_1p FROM akce_typy WHERE aktivni = 1 AND poradi < 0 AND id_typu != 0 ORDER BY poradi DESC');
+        $seZapornymPoradim = dbFetchAll(<<<'SQL'
+            SELECT id_typu, typ_1p
+            FROM akce_typy
+            WHERE poradi < 0
+                AND ((aktivni = 1 AND id_typu != $0) OR id_typu = $1)
+            ORDER BY poradi DESC
+            SQL, $parametry);
+        if ($idTypuAktivity === null) {
+            // nová aktivita nemá předvybraný typ, ať se nezadá omylem ten první
+            $xtpl->parse('upravy.tabulka.vyberTypu');
+        }
         foreach (array_merge($sKladnymPoradim, $seZapornymPoradim) as $akceTypData) {
-            $xtpl->assign('selected', $aktivita && $akceTypData['id_typu'] == $aktivitaData[Sql::TYP]
+            $xtpl->assign('selected', (int)$akceTypData['id_typu'] === $idTypuAktivity
                 ? 'selected'
                 : '');
             $xtpl->assign($akceTypData);

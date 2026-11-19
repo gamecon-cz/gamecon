@@ -243,7 +243,9 @@
     <tr>
         <th><label class="display-block" for="typAktivity">Typ</label></th>
         <td>
-            <select name="{fields}[typ]" id="typAktivity">
+            <select name="{fields}[typ]" id="typAktivity" required>
+                <!-- begin:vyberTypu -->
+                <option value="" selected disabled>(vyber typ)</option><!-- end:vyberTypu -->
                 <!-- begin:typ -->
                 <option {selected} value="{id_typu}">{typ_1p}</option><!-- end:typ -->
             </select>
