@@ -194,6 +194,14 @@ export const parsujUrl = (url: string) => {
     }
   }
 
+  // Stav „sledujici“ se dřív jmenoval „nahradnik“, starý odkaz s ?stav=["nahradnik"]
+  // má dál ukázat sledované aktivity.
+  if (Array.isArray(urlStav.filtrStavAktivit)) {
+    urlStav.filtrStavAktivit = urlStav.filtrStavAktivit.map(
+      (stav) => (stav as string) === "nahradnik" ? "sledujici" : stav,
+    );
+  }
+
   return urlStav;
 };
 
