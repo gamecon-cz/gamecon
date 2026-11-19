@@ -165,8 +165,8 @@
   --program-barva-prihlasen-pruhledna: #65D16100;
   --program-barva-neucast: #FFB74D;
   --program-barva-neucast-pruhledna: #FFB74D00;
-  --program-barva-nahradnik: #E5E891;
-  --program-barva-nahradnik-pruhledna: #E5E89100;
+  --program-barva-sledujici: #E5E891;
+  --program-barva-sledujici-pruhledna: #E5E89100;
   --program-barva-organizator: #7EA5FF;
   --program-barva-organizator-pruhledna: #7EA5FF00;
 }
@@ -219,8 +219,8 @@
     background-color: var(--program-barva-neucast);
   }
 
-  &.nahradnik input[type=checkbox] {
-    background-color: var(--program-barva-nahradnik);
+  &.sledujici input[type=checkbox] {
+    background-color: var(--program-barva-sledujici);
   }
 
   &.organizator input[type=checkbox] {
@@ -265,7 +265,7 @@
 
 .program tbody .sledujici,
 .program_legenda_typ.sledujici::before {
-  background-color: var(--program-barva-nahradnik);
+  background-color: var(--program-barva-sledujici);
 }
 
 .program tbody .organizator,
@@ -309,7 +309,7 @@
   &.plno > a::after { background: linear-gradient(to left, var(--program-barva-plno), var(--popis-doztracena-mezibod), var(--program-barva-plno-pruhledna) var(--popis-doztracena-bod)); }
   &.prihlasen > a::after { background: linear-gradient(to left, var(--program-barva-prihlasen), var(--popis-doztracena-mezibod), var(--program-barva-prihlasen-pruhledna) var(--popis-doztracena-bod)); }
   &.neucast > a::after { background: linear-gradient(to left, var(--program-barva-neucast), var(--popis-doztracena-mezibod), var(--program-barva-neucast-pruhledna) var(--popis-doztracena-bod)); }
-  &.nahradnik > a::after { background: linear-gradient(to left, var(--program-barva-nahradnik), var(--popis-doztracena-mezibod), var(--program-barva-nahradnik-pruhledna) var(--popis-doztracena-bod)); }
+  &.sledujici > a::after { background: linear-gradient(to left, var(--program-barva-sledujici), var(--popis-doztracena-mezibod), var(--program-barva-sledujici-pruhledna) var(--popis-doztracena-bod)); }
   &.organizator > a::after { background: linear-gradient(to left, var(--program-barva-organizator), var(--popis-doztracena-mezibod), var(--program-barva-organizator-pruhledna) var(--popis-doztracena-bod)); }
 }
 
