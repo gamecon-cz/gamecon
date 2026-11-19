@@ -177,7 +177,7 @@ final class PrednaskyNaWebu
     }
 
     /**
-     * Speakers with what Uzivatel::url() and Uzivatel::jmenoNaWebu() read of their users, in one query: the page
+     * Speakers with what Uzivatel::jmenoNaWebu() reads of their users, in one query: the page
      * shows every speaker and a whole user for each of them would be a waste.
      *
      * @return array<int, list<PrednasejiciNaWebu>> id of the lecture => speakers in their order
@@ -189,14 +189,7 @@ final class PrednaskyNaWebu
             SELECT archiv_prednasek_prednaska_prednasejici.id_prednasky, archiv_prednasek_prednasejici.id_prednasejiciho,
                 archiv_prednasek_prednasejici.jmeno, uzivatele_hodnoty.id_uzivatele, uzivatele_hodnoty.login_uzivatele,
                 uzivatele_hodnoty.jmeno_uzivatele, uzivatele_hodnoty.prijmeni_uzivatele,
-                uzivatele_hodnoty.zpusob_zobrazeni_na_webu,
-                (
-                    SELECT uzivatele_url.url
-                    FROM uzivatele_url
-                    WHERE uzivatele_url.id_uzivatele = uzivatele_hodnoty.id_uzivatele
-                    ORDER BY uzivatele_url.id_url_uzivatele DESC
-                    LIMIT 1
-                ) AS url
+                uzivatele_hodnoty.zpusob_zobrazeni_na_webu
             FROM archiv_prednasek_prednaska_prednasejici
             JOIN archiv_prednasek_prednasejici
                 ON archiv_prednasek_prednasejici.id_prednasejiciho = archiv_prednasek_prednaska_prednasejici.id_prednasejiciho
@@ -212,8 +205,8 @@ final class PrednaskyNaWebu
                 jmeno: isset($radek['id_uzivatele'])
                     ? \Uzivatel::jmenoNaWebuZjisti($radek)
                     : (string) $radek['jmeno'],
-                // same as the line page: a profile only for an account with a name, a group or a company has none
-                urlMedailonku: isset($radek['id_uzivatele']) && \Uzivatel::urlZjisti($radek) !== null
+                // same as the line page: every account has its medailonek on /<id>, a group or a company too
+                urlMedailonku: isset($radek['id_uzivatele'])
                     ? (string) $radek['id_uzivatele']
                     : null,
             );

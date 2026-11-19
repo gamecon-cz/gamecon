@@ -158,12 +158,12 @@ SQL,
         self::assertSame(['Larp'], array_map(static fn (StitekNaWebu $stitek) => $stitek->nazev, $prednaska->stitky));
     }
 
-    public function testPrednasejiciVPoradiSMedailonkemJenUUctuSeJmenem(): void
+    public function testPrednasejiciVPoradiSMedailonkemUKazdehoUctu(): void
     {
         $prednasejici = self::prednaskyPodleNazvu()['Cesta tam']->prednasejici;
 
         self::assertSame(['Bez účtu', 'Lektor', 'Skupina s účtem'], array_map(static fn ($osoba) => $osoba->jmeno, $prednasejici));
-        self::assertSame([null, '990201', null], array_map(static fn ($osoba) => $osoba->urlMedailonku, $prednasejici));
+        self::assertSame([null, '990201', '990202'], array_map(static fn ($osoba) => $osoba->urlMedailonku, $prednasejici));
     }
 
     public function testPrednasejicihoSUzivatelemJmenujePodleJehoZobrazeniNaWebu(): void
