@@ -301,7 +301,7 @@
     <!-- end:potvrditZmenuStavu -->
 
 
-    <form method="post" onsubmit="confirm('Opravdu odjel{a}?')">
+    <form method="post" onsubmit="return confirm('Opravdu odjel{a}?')">
     <span class="hinted">
       <input type="submit" name="gcOdjed" value="Odjel{a} z GC" {gcOdjedDisabled}>
       <span class="hint">
