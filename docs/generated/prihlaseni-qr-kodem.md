@@ -38,3 +38,4 @@ TL;DR: Přihlášení zařízení bez hesla QR kódem (web i admin a online prez
 - Telefon, který schvaluje, nesmí nabízet „Přihlásit QR kódem“: přihlašovací stránka s `?schvalitKod=` (přesměrování ze stránky schválení) tlačítko schová a po přihlášení vrátí na schválení (`getUrlSchvaleniZParametru()` pustí jen tvar kódu, jinam nepřesměruje).
 - Lokálně web vidí všechny požadavky z brány Dockeru, takže QA řádky sdílí jeden limit IP s vývojářovým prohlížečem.
 - Session zámek PHP řadí požadavky jedné session za sebe; dvojí uplatnění drží i podmínka `uplatneno_unix IS NULL` (kopie session bez zámku).
+- Safari na iOS dává `button[type="submit"]` bílé písmo na modrém pozadí. `.formular_sekundarni` pozadí přepíše na průhledné, proto musí mít i vlastní barvu, jinak „Přihlásit QR kódem“ a čísla na stránce schválení na bílé zmizí.
