@@ -694,6 +694,52 @@ SQL;
     }
 
     /**
+     * Hodinový cron podle záznamu pozná, že varování v termínu proběhlo (HlidaniZmeskanychTerminu).
+     * Bez záznamu by nulový běh vypadal jako varování, které vůbec neběželo.
+     *
+     * @test
+     */
+    public function varovaniBezUzivateluSeZapiseJakoProbehle()
+    {
+        dbQuery(<<<'SQL'
+UPDATE uzivatele_hodnoty SET zustatek = 0 WHERE zustatek > 0
+SQL);
+        $promlceniZustatku = $this->dejPromlceniZustatkuSCasem($this->dejCasRegistraceMinus('1 month'));
+        self::assertSame([], $promlceniZustatku->najdiUzivateleKPromlceni(), 'Test potřebuje databázi bez kladných zůstatků');
+        self::assertNull($promlceniZustatku->varovaniOdeslanoKdy(TypVarovaniPromlceni::MESIC, ROCNIK));
+
+        self::assertSame(0, $promlceniZustatku->odesliVarovneEmaily(TypVarovaniPromlceni::MESIC));
+
+        self::assertNotNull($promlceniZustatku->varovaniOdeslanoKdy(TypVarovaniPromlceni::MESIC, ROCNIK));
+        self::assertNull(
+            $promlceniZustatku->varovaniOdeslanoKdy(TypVarovaniPromlceni::TYDEN, ROCNIK),
+            'Měsíční běh nesmí splnit týdenní varování',
+        );
+        self::assertSame(
+            -1,
+            $promlceniZustatku->odesliVarovneEmaily(TypVarovaniPromlceni::MESIC),
+            'Po zapsaném nulovém běhu se varování v tomtéž okně nespustí znovu',
+        );
+    }
+
+    /**
+     * @test
+     */
+    public function oknoVarovaniJeMesicATydenPredRegistracemi()
+    {
+        $promlceniZustatku = $this->dejPromlceniZustatku();
+        $registraceOd = $this->dejCasRegistraceMinus('0 days');
+
+        $mesic = $promlceniZustatku->dejOknoVarovani(TypVarovaniPromlceni::MESIC);
+        $tyden = $promlceniZustatku->dejOknoVarovani(TypVarovaniPromlceni::TYDEN);
+
+        self::assertEquals($registraceOd->modify('-1 month'), $mesic->od);
+        self::assertEquals($registraceOd->modify('-1 month +23 hours'), $mesic->do);
+        self::assertEquals($registraceOd->modify('-1 week'), $tyden->od);
+        self::assertEquals($registraceOd->modify('-1 week +23 hours'), $tyden->do);
+    }
+
+    /**
      * @test
      */
     public function automatickaPromlceniVratiNullKdyzNebylaProvedena()

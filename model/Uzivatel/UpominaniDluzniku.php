@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Gamecon\Uzivatel;
 
 use Gamecon\Command\FioStazeniNovychPlateb;
+use Gamecon\Cron\OknoSpusteni;
 use Gamecon\Kanaly\EmailovaSablona\EmailovaSablonaVykreslovac;
 use Gamecon\Kanaly\EmailovaSablona\EmailoveSablony;
 use Gamecon\Kanaly\EmailovaSablona\KodEmailoveSablonyEnum;
@@ -280,7 +281,28 @@ SQL,
     }
 
     /**
+     * Kdy smí automatická upomínka (týden nebo měsíc po GC) odejít.
+     */
+    public function dejOknoUpominky(TypUpominky $typUpominky): OknoSpusteni
+    {
+        $casovyOffset = match ($typUpominky) {
+            TypUpominky::TYDEN => '+1 week',
+            TypUpominky::MESIC => '+1 month',
+            TypUpominky::RUCNI, TypUpominky::VLASTNI => throw new \LogicException(
+                'Ruční upomínka nemá časové okno, rozesílá se přes odesliUpominkuJednomu()',
+            ),
+        };
+
+        return OknoSpusteni::odZacatku(
+            $this->systemoveNastaveni->spocitanyKonecLetosnihoGameconu()->modifyStrict($casovyOffset),
+        );
+    }
+
+    /**
      * Odešle upomínkové e-maily dlužníkům
+     *
+     * Běh se zapíše do hromadne_akce_log, i když nenajde žádného dlužníka: podle záznamu
+     * hodinový cron pozná, že upomínka v termínu proběhla (HlidaniZmeskanychTerminu).
      *
      * @param TypUpominky $typUpominky Typ upomínky (týden/měsíc)
      * @param bool $znovu Zda má být upomínání spuštěno znovu i když už bylo odesláno
@@ -291,27 +313,19 @@ SQL,
         bool        $znovu = false,
     ): int {
         // Zkontroluj, jestli je správný čas
-        $konecGc            = $this->systemoveNastaveni->spocitanyKonecLetosnihoGameconu();
-        $casovyOffset       = match ($typUpominky) {
-            TypUpominky::TYDEN => '+1 week',
-            TypUpominky::MESIC => '+1 month',
-            TypUpominky::RUCNI, TypUpominky::VLASTNI => throw new \LogicException(
-                'Ruční upomínka nemá časové okno, rozesílá se přes odesliUpominkuJednomu()',
-            ),
-        };
-        $ocekavanyTermin    = (clone $konecGc)->modify($casovyOffset);
-        $ocekavanyTerminMax = (clone $ocekavanyTermin)->modify('+23 hours');
-        $ted                = $this->systemoveNastaveni->ted();
+        $konecGc = $this->systemoveNastaveni->spocitanyKonecLetosnihoGameconu();
+        $okno    = $this->dejOknoUpominky($typUpominky);
+        $ted     = $this->systemoveNastaveni->ted();
 
         // Spustit pouze pokud jsme v rozmezí (s tolerancí 23 hodin)
-        if ($ted < $ocekavanyTermin || $ted > $ocekavanyTerminMax) {
+        if (!$okno->obsahuje($ted)) {
             $nazev = $this->dejNazevUpominky($typUpominky);
             $this->jobResultLogger->logs(
                 sprintf(
                     'Upomínání dlužníků (%s): Není správný čas. Očekáváno od %s do %s, teď: %s',
                     $nazev,
-                    $ocekavanyTermin->format('Y-m-d H:i:s'),
-                    $ocekavanyTerminMax->format('Y-m-d H:i:s'),
+                    $okno->od->format('Y-m-d H:i:s'),
+                    $okno->do->format('Y-m-d H:i:s'),
                     $ted->format('Y-m-d H:i:s'),
                 ),
             );
@@ -345,11 +359,11 @@ SQL,
             set_time_limit(300);
             $dluzniciSZustatkem = $this->najdiDluzniky($rocnik);
 
+            // Bez dlužníků běh pokračuje k záznamu a informaci pro CFO s nulou: bez záznamu
+            // by se nulový běh nedal odlišit od upomínky, která vůbec neběžela.
             if (count($dluzniciSZustatkem) === 0) {
                 $nazev = $this->dejNazevUpominky($typUpominky);
                 $this->jobResultLogger->logs("Upomínání dlužníků ($nazev): Žádní dlužníci k upomínání");
-
-                return -1;
             }
 
             $pocetOdeslanychEmailu = 0;
@@ -603,31 +617,26 @@ SQL,
         TypUpominky $typUpominky,
         int         $rocnik,
     ): bool {
-        return match ($typUpominky) {
-                   TypUpominky::TYDEN => $this->upominaniTydenOdeslanoKdy($rocnik),
-                   TypUpominky::MESIC => $this->upominaniMesicOdeslanoKdy($rocnik),
-               } !== null;
+        return $this->automatickaUpominkaOdeslanaKdy($typUpominky, $rocnik) !== null;
     }
 
     /**
-     * Zjistí, zda už bylo pro daný ročník odesláno první upomínkové upozornění (1 týden po)
+     * Kdy pro daný ročník doběhla automatická upomínka (týden nebo měsíc po GC), i ta bez dlužníků.
+     * Null, když neběžela nebo spadla před koncem.
      */
-    private function upominaniTydenOdeslanoKdy(int $rocnik): ?\DateTimeInterface
-    {
+    public function automatickaUpominkaOdeslanaKdy(
+        TypUpominky $typUpominky,
+        int         $rocnik,
+    ): ?\DateTimeInterface {
         return $this->posledniHromadnaAkceKdy(
             self::SKUPINA_UPOMINANI,
-            $this->nazevAkceUpominaniTyden($rocnik),
-        );
-    }
-
-    /**
-     * Zjistí, zda už bylo pro daný ročník odesláno druhé upomínkové upozornění (1 měsíc po)
-     */
-    private function upominaniMesicOdeslanoKdy(int $rocnik): ?\DateTimeInterface
-    {
-        return $this->posledniHromadnaAkceKdy(
-            self::SKUPINA_UPOMINANI,
-            $this->nazevAkceUpominaniMesic($rocnik),
+            match ($typUpominky) {
+                TypUpominky::TYDEN => $this->nazevAkceUpominaniTyden($rocnik),
+                TypUpominky::MESIC => $this->nazevAkceUpominaniMesic($rocnik),
+                TypUpominky::RUCNI, TypUpominky::VLASTNI => throw new \LogicException(
+                    'Ruční upomínka se do hromadne_akce_log nezapisuje, eviduje ji upominka_dluznika_log',
+                ),
+            },
         );
     }
 }

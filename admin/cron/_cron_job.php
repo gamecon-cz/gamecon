@@ -51,44 +51,94 @@ try {
         ->ohlas($e, 'odhlašování neplatičů / aktivace aktivit / maily neplatičům');
 }
 
+// Každý job zvlášť v try, aby pád jednoho přišel mailem (CronErrorNotifier), ne jen do logu
+// cronu, a nezastavil joby za ním. Nový job sem patří taky do try, hlídá to CronJobObsluhaChybTest.
 if (in_array($job, ['mazani_nepripravenych_tymu', 'aktivity_hromadne'])) {
-    require __DIR__ . '/jobs/mazani_nepripravenych_tymu.php';
+    try {
+        require __DIR__ . '/jobs/mazani_nepripravenych_tymu.php';
+    } catch (Throwable $e) {
+        (new \Gamecon\Cron\CronErrorNotifier($systemoveNastaveni))
+            ->ohlas($e, 'mazání nepřipravených týmů');
+    }
 
     if ($job === 'mazani_nepripravenych_tymu') {
         return;
     }
 }
 
-
 if ($job === 'archiv_prednasek_po_gc') {
-    require __DIR__ . '/jobs/archiv_prednasek_po_gc.php';
+    try {
+        require __DIR__ . '/jobs/archiv_prednasek_po_gc.php';
+    } catch (Throwable $e) {
+        (new \Gamecon\Cron\CronErrorNotifier($systemoveNastaveni))
+            ->ohlas($e, 'doplnění archivu přednášek po GC');
+    }
 
     return;
 }
 
 if ($job === 'materializace_roli_podle_rocniku') {
-    require __DIR__ . '/jobs/materializace_roli_podle_rocniku.php';
+    try {
+        require __DIR__ . '/jobs/materializace_roli_podle_rocniku.php';
+    } catch (Throwable $e) {
+        (new \Gamecon\Cron\CronErrorNotifier($systemoveNastaveni))
+            ->ohlas($e, 'materializace rolí podle ročníků');
+    }
 
     return;
 }
 
 if ($job === 'synchronizace_historickych_plateb') {
-    require __DIR__ . '/jobs/synchronizace_historickych_plateb.php';
+    try {
+        require __DIR__ . '/jobs/synchronizace_historickych_plateb.php';
+    } catch (Throwable $e) {
+        (new \Gamecon\Cron\CronErrorNotifier($systemoveNastaveni))
+            ->ohlas($e, 'synchronizace historických plateb');
+    }
 
     return;
 }
 
+// Měsíční a týdenní upomínka mají každá své okno, pád jedné nesmí zastavit druhou.
 if ($job === 'dluznici') {
-    require __DIR__ . '/jobs/mail_dluzniku_mesic.php';
-    require __DIR__ . '/jobs/mail_dluzniku_tyden.php';
+    try {
+        require __DIR__ . '/jobs/mail_dluzniku_mesic.php';
+    } catch (Throwable $e) {
+        (new \Gamecon\Cron\CronErrorNotifier($systemoveNastaveni))
+            ->ohlas($e, 'upomínka dlužníkům měsíc po GC');
+    }
+
+    try {
+        require __DIR__ . '/jobs/mail_dluzniku_tyden.php';
+    } catch (Throwable $e) {
+        (new \Gamecon\Cron\CronErrorNotifier($systemoveNastaveni))
+            ->ohlas($e, 'upomínka dlužníkům týden po GC');
+    }
 
     return;
 }
 
 if ($job === 'promlceni') {
-    require __DIR__ . '/jobs/mail_promlceni_varovani_mesic.php';
-    require __DIR__ . '/jobs/mail_promlceni_varovani_tyden.php';
-    require __DIR__ . '/jobs/promlceni_automaticke.php';
+    try {
+        require __DIR__ . '/jobs/mail_promlceni_varovani_mesic.php';
+    } catch (Throwable $e) {
+        (new \Gamecon\Cron\CronErrorNotifier($systemoveNastaveni))
+            ->ohlas($e, 'varování o promlčení měsíc před registracemi');
+    }
+
+    try {
+        require __DIR__ . '/jobs/mail_promlceni_varovani_tyden.php';
+    } catch (Throwable $e) {
+        (new \Gamecon\Cron\CronErrorNotifier($systemoveNastaveni))
+            ->ohlas($e, 'varování o promlčení týden před registracemi');
+    }
+
+    try {
+        require __DIR__ . '/jobs/promlceni_automaticke.php';
+    } catch (Throwable $e) {
+        (new \Gamecon\Cron\CronErrorNotifier($systemoveNastaveni))
+            ->ohlas($e, 'automatické promlčení zůstatků');
+    }
 
     return;
 }
