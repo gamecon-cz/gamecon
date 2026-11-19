@@ -125,8 +125,8 @@ class AktivitaPrezence
                     'id_uzivatele' => $nedorazil->id(),
                     'id_akce'      => $this->aktivita->id(),
                 ]);
-                $zmenaPrihlaseni = $this->zalogujZeZrusilPrihlaseniJakoNahradik($nedorazil, $zmenil);
-                /* Návštěvník přidaný k aktivitě přes online prezenci se přidá jako náhradník a obratem potvrdí jeho přítomnost - přestože to aktivita sama vlastně nedovoluje. Když ho z aktivity zas ruší, tak ho ale nemůžeme zařadit do fronty jako náhradníka, pokud to aktivita nedovoluje (a my to popravdě ani nechceme, když ho odškrtli při samotné online prezenci).
+                $zmenaPrihlaseni = $this->zalogujZeZrusilPrihlaseniJakoNahradnik($nedorazil, $zmenil);
+                /* Návštěvník přidaný k aktivitě přes online prezenci se přidá jako náhradník a obratem potvrdí jeho přítomnost - přestože to aktivita sama vlastně nedovoluje. Když ho z aktivity zas ruší, tak ho ale nemůžeme zařadit mezi sledující, pokud aktivita sledovat nejde (a my to popravdě ani nechceme, když ho odškrtli při samotné online prezenci).
                 PS: ano, vlastně nechceme účastníka, kterého přidal vypravěč, "vracet" do stavu sledujícího, ale zatím to nechceme řešit.
                     Museli bychom logovat i kdo ho původně přihlásil jako náhradníka v \Gamecon\Aktivita\Aktivita::prihlas */
                 if ($this->aktivita->prihlasovatelnaProSledujici()) {
@@ -222,9 +222,9 @@ class AktivitaPrezence
         return $this->log($prihlasenySledujici, AktivitaPrezenceTyp::PRIHLASENI_SLEDUJICI, $prihlasujici);
     }
 
-    public function zalogujZeZrusilPrihlaseniJakoNahradik(\Uzivatel $prihlasenySledujici, \Uzivatel $odhlasujici): ZmenaPrihlaseni
+    public function zalogujZeZrusilPrihlaseniJakoNahradnik(\Uzivatel $zrusenyNahradnik, \Uzivatel $odhlasujici): ZmenaPrihlaseni
     {
-        return $this->log($prihlasenySledujici, AktivitaPrezenceTyp::NAHRADNIK_NEDORAZIL, $odhlasujici);
+        return $this->log($zrusenyNahradnik, AktivitaPrezenceTyp::NAHRADNIK_NEDORAZIL, $odhlasujici);
     }
 
     public function zalogujZeSeOdhlasilJakoSledujici(\Uzivatel $odhlasenySledujici, \Uzivatel $odhlasujici): ZmenaPrihlaseni

@@ -8,6 +8,12 @@ TL;DR: „Sledování" (watchlist) aktivity = uživatel si nechá poslat mail, a
 - `StavPrihlaseni::SLEDUJICI` v `model/Aktivita/StavPrihlaseni.php`.
 - Struktura tabulky: `model/Aktivita/SqlStruktura/AkcePrihlaseniSpecSqlStruktura.php` (`id_akce`, `id_uzivatele`, `id_stavu_prihlaseni`).
 
+## Názvosloví: sledující, ne náhradník
+
+- (záměr, Trello karta 546) Funkce se první rok jmenovala „náhradníci“ a lidi to mátlo. Kde slovo „náhradník“ znamená sledování, patří tam „sledování / sledující“.
+- **Náhradník** je někdo jiný a slovo u něj zůstává: přišel na volné místo bez přihlášení a vypravěč ho přidal v online prezenci (stav 2 `StavPrihlaseni::DORAZIL_JAKO_NAHRADNIK` v `akce_prihlaseni`, `dorazilJakoNahradnik`, `nahradnik_dorazil`, log `prihlaseni_nahradnik`). Nepřejmenovávej ho. Věta „Pokud sháníš náhradníka, tenhle bude mít zájem“ u sledujícího v prezenci je proto správně.
+- Interní názvy sledování: v programu na webu je stav i CSS třída `sledujici` (do 2026-11 `nahradnik`, staré odkazy s `?stav=["nahradnik"]` převádí `parsujUrl()` v `ui/src/store/program/logic/url.ts`), stav 5 se v `akce_prihlaseni_stavy` jmenuje `sledující` a v `AkcePrihlaseniStavy` je `SLEDUJICI_ID`. Typ v logu `akce_prihlaseni_log.typ` je pro sledování pořád `prihlaseni_watchlist` / `odhlaseni_watchlist`: jsou to hodnoty enumu v DB, viz TODO v `AktivitaPrezenceTyp`.
+
 ## Vstupní body v kódu
 
 - `Aktivita::prihlasovatko()` — `model/Aktivita/Aktivita.php` (cca ř. 3163) — renderuje přihlašovátko vč. „sledovat" / „zrušit sledování".
