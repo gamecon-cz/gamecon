@@ -134,6 +134,23 @@ try {
         ->ohlas($e, 'doplnění archivu přednášek po GC');
 }
 
+// Upomínky dlužníkům a varování o promlčení (?job=dluznici, ?job=promlceni) plánuje cron-job.org,
+// a když tam job chybí, okno uplyne bez povšimnutí. Kontrola je levná (výpočet termínů, pak pár
+// dotazů do hromadne_akce_log) a na každý zmeškaný termín upozorní jen jednou. Jen na ostré:
+// z bety a preview upomínky dlužníkům skutečně neodcházejí, chybějící běh tam nic neznamená
+// a upozornění by CFO jen mátlo.
+if ($systemoveNastaveni->jsmeNaOstre()) {
+    try {
+        $zmeskaneTerminy = \Gamecon\Cron\HlidaniZmeskanychTerminu::zNastaveni($systemoveNastaveni)->zkontroluj();
+        foreach ($zmeskaneTerminy as $zmeskanyTermin) {
+            logs("Zmeškaný termín: {$zmeskanyTermin->nazev}, upozornění odesláno.");
+        }
+    } catch (Throwable $e) {
+        (new \Gamecon\Cron\CronErrorNotifier($systemoveNastaveni))
+            ->ohlas($e, 'kontrola zmeškaných termínů upomínek a promlčení');
+    }
+}
+
 if (date('G') >= 5) { // 5 hodin ráno či později
     include __DIR__ . '/cron/zaloha_databaze.php';
     include __DIR__ . '/cron/anonymizace_databaze.php';

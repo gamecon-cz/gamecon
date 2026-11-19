@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace Gamecon\Uzivatel;
 
+use Gamecon\Cas\DateTimeImmutableStrict;
+use Gamecon\Cron\OknoSpusteni;
 use Gamecon\Kanaly\EmailovaSablona\EmailoveSablony;
 use Gamecon\Logger\JobResultLoggerInterface;
 use Gamecon\Logger\LogHomadnychAkciTrait;
@@ -280,7 +282,37 @@ SQL,
     }
 
     /**
+     * Kdy smí odejít varování o promlčení (měsíc nebo týden před začátkem registrací).
+     */
+    public function dejOknoVarovani(TypVarovaniPromlceni $typVarovani): OknoSpusteni
+    {
+        $regGcOd = DateTimeImmutableStrict::createFromInterface(
+            $this->systemoveNastaveni->prihlasovaniUcastnikuOd($this->systemoveNastaveni->rocnik()),
+        );
+
+        return OknoSpusteni::odZacatku(
+            $regGcOd->modifyStrict(match ($typVarovani) {
+                TypVarovaniPromlceni::MESIC => '-1 month',
+                TypVarovaniPromlceni::TYDEN => '-1 week',
+            }),
+        );
+    }
+
+    /**
+     * Od kdy smí proběhnout automatické promlčení zůstatků (den po GC). Horní mez nemá,
+     * job promlčí i později, pokud ho do té doby nikdo nespustil.
+     */
+    public function automatickePromlceniOd(): DateTimeImmutableStrict
+    {
+        return DateTimeImmutableStrict::createFromInterface($this->systemoveNastaveni->gcBeziDo())
+            ->modifyStrict('+1 day');
+    }
+
+    /**
      * Odešle varovné e-maily uživatelům o promlčení zůstatků
+     *
+     * Běh se zapíše do hromadne_akce_log, i když nenajde nikoho k varování: podle záznamu
+     * hodinový cron pozná, že varování v termínu proběhlo (HlidaniZmeskanychTerminu).
      *
      * @param TypVarovaniPromlceni $typVarovani Typ varovného e-mailu (měsíc/týden před registrací)
      * @param bool $znovu Zda má být varovný e-mail odeslán znovu i když už byl odeslán
@@ -294,23 +326,18 @@ SQL,
         $regGcOd = $this->systemoveNastaveni->prihlasovaniUcastnikuOd($rocnik);
 
         // Zkontroluj, jestli je správný čas
-        $casovyOffset       = match ($typVarovani) {
-            TypVarovaniPromlceni::MESIC => '-1 month',
-            TypVarovaniPromlceni::TYDEN => '-1 week',
-        };
-        $ocekavanyTermin    = (clone $regGcOd)->modify($casovyOffset);
-        $ocekavanyTerminMax = (clone $ocekavanyTermin)->modify('+23 hours');
-        $ted                = $this->systemoveNastaveni->ted();
+        $okno = $this->dejOknoVarovani($typVarovani);
+        $ted  = $this->systemoveNastaveni->ted();
 
         // Spustit pouze pokud jsme v rozmezí (s tolerancí 23 hodin)
-        if ($ted < $ocekavanyTermin || $ted > $ocekavanyTerminMax) {
+        if (!$okno->obsahuje($ted)) {
             $nazev = $this->dejNazevVarovani($typVarovani);
             $this->jobResultLogger->logs(
                 sprintf(
                     'Varovné e-maily o promlčení (%s): Není správný čas. Očekáváno od %s do %s, teď je %s',
                     $nazev,
-                    $ocekavanyTermin->format('Y-m-d H:i:s'),
-                    $ocekavanyTerminMax->format('Y-m-d H:i:s'),
+                    $okno->od->format('Y-m-d H:i:s'),
+                    $okno->do->format('Y-m-d H:i:s'),
                     $ted->format('Y-m-d H:i:s'),
                 ),
             );
@@ -327,11 +354,11 @@ SQL,
 
         $uzivatele = $this->najdiUzivateleKPromlceni();
 
+        // Bez uživatelů běh pokračuje k záznamu a informaci pro CFO s nulou: bez záznamu
+        // by se nulový běh nedal odlišit od varování, které vůbec neběželo.
         if (count($uzivatele) === 0) {
             $nazev = $this->dejNazevVarovani($typVarovani);
             $this->jobResultLogger->logs("Varovné e-maily o promlčení ($nazev): Žádní uživatelé k varování");
-
-            return -1;
         }
 
         $pocetLet              = self::ROK_NEPLATNOST;
@@ -432,32 +459,23 @@ SQL,
 
     private function jizOdeslano(TypVarovaniPromlceni $typVarovani, int $rocnik): bool
     {
-        return match ($typVarovani) {
-            TypVarovaniPromlceni::MESIC => $this->varovaniMesicOdeslanoKdy($rocnik),
-            TypVarovaniPromlceni::TYDEN => $this->varovaniTydenOdeslanoKdy($rocnik),
-        } !== null;
-    }
-
-
-    /**
-     * Zjistí, zda už bylo pro daný ročník odesláno varovné upozornění (1 měsíc před)
-     */
-    private function varovaniMesicOdeslanoKdy(int $rocnik): ?\DateTimeInterface
-    {
-        return $this->posledniHromadnaAkceKdy(
-            self::SKUPINA_PROMLCENI,
-            $this->nazevAkceVarovaniMesic($rocnik),
-        );
+        return $this->varovaniOdeslanoKdy($typVarovani, $rocnik) !== null;
     }
 
     /**
-     * Zjistí, zda už bylo pro daný ročník odesláno varovné upozornění (1 týden před)
+     * Kdy pro daný ročník doběhlo varování o promlčení (měsíc nebo týden před registracemi),
+     * i to bez uživatelů k varování. Null, když neběželo nebo spadlo před koncem.
      */
-    private function varovaniTydenOdeslanoKdy(int $rocnik): ?\DateTimeInterface
-    {
+    public function varovaniOdeslanoKdy(
+        TypVarovaniPromlceni $typVarovani,
+        int                  $rocnik,
+    ): ?\DateTimeInterface {
         return $this->posledniHromadnaAkceKdy(
             self::SKUPINA_PROMLCENI,
-            $this->nazevAkceVarovaniTyden($rocnik),
+            match ($typVarovani) {
+                TypVarovaniPromlceni::MESIC => $this->nazevAkceVarovaniMesic($rocnik),
+                TypVarovaniPromlceni::TYDEN => $this->nazevAkceVarovaniTyden($rocnik),
+            },
         );
     }
 

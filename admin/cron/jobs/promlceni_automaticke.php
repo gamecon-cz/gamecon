@@ -23,13 +23,14 @@ set_time_limit(300);
 
 global $systemoveNastaveni;
 
-// Zkontroluj, jestli je správný čas (1 den po skončení GameConu)
+$promlceniZustatku = new PromlceniZustatku($systemoveNastaveni, new JobResultLogger());
+
+// Zkontroluj, jestli je správný čas (1 den po skončení GameConu, horní mez není)
 $gcBeziDo = $systemoveNastaveni->gcBeziDo();
-$denPoGc  = $gcBeziDo->modify('+1 day');
+$denPoGc  = $promlceniZustatku->automatickePromlceniOd();
 $ted      = $systemoveNastaveni->ted();
 $output   = new JobResultLogger();
 
-// Spustit pouze pokud jsme v rozmezí 1 den po GC (s tolerancí 23 hodin)
 if ($ted < $denPoGc) {
     $output->logs(
         sprintf(
@@ -42,8 +43,7 @@ if ($ted < $denPoGc) {
     return;
 }
 
-$rocnik            = $systemoveNastaveni->rocnik();
-$promlceniZustatku = new PromlceniZustatku($systemoveNastaveni, new JobResultLogger());
+$rocnik = $systemoveNastaveni->rocnik();
 
 // Zkontroluj, jestli už nebylo promlčení provedeno
 if (!$znovu && ($promlcenoKdy = $promlceniZustatku->automatickaPromlceniProvedenaKdy($rocnik))) {
@@ -63,6 +63,10 @@ $uzivateleKPromlceni = $promlceniZustatku->najdiUzivateleKPromlceni();
 
 if (count($uzivateleKPromlceni) === 0) {
     $output->logs('Automatické promlčení zůstatků: Žádní uživatelé k promlčení');
+
+    // Nulový běh se zapíše taky: bez záznamu by každý další běh poslal CFO stejný mail znovu
+    // a hodinový cron by ho nerozlišil od promlčení, které vůbec neběželo (HlidaniZmeskanychTerminu).
+    $promlceniZustatku->zalogujAutomatickePromlceni($rocnik, 0, 0.0);
 
     // Pošli CFO informaci, že nikdo nebyl promlčen
     $cfosEmaily = Uzivatel::cfosEmaily();

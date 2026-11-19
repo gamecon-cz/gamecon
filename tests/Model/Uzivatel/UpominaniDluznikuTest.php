@@ -1189,15 +1189,60 @@ SQL, [
 
             $vysledek = $upominaniDluzniku->odesliUpominkyDluznikum(TypUpominky::TYDEN);
 
-            self::assertSame(-1, $vysledek);
+            self::assertSame(0, $vysledek);
             self::assertSame(
                 '77',
                 ini_get('max_execution_time'),
-                'Limit se zvedá už před hledáním dlužníků, takže se musí vrátit i při návratu bez rozesílky',
+                'Limit se zvedá už před hledáním dlužníků, takže se musí vrátit i při běhu bez rozesílky',
             );
         } finally {
             set_time_limit($puvodniLimit);
         }
+    }
+
+    /**
+     * Hodinový cron podle záznamu pozná, že upomínka v termínu proběhla (HlidaniZmeskanychTerminu).
+     * Bez záznamu by nulový běh vypadal jako upomínka, která vůbec neběžela.
+     *
+     * @test
+     */
+    public function behBezDluznikuSeZapiseJakoProbehly()
+    {
+        dbQuery(<<<'SQL'
+UPDATE uzivatele_hodnoty SET zustatek = 0
+SQL);
+        dbQuery(<<<'SQL'
+DELETE FROM platby WHERE castka < 0
+SQL);
+        dbQuery(<<<'SQL'
+DELETE FROM uzivatele_role WHERE id_role = $0
+SQL, [
+            0 => Role::prihlasenNaRocnik(ROCNIK),
+        ]);
+        $upominaniDluzniku = $this->dejUpominaniDluznikuSCasem($this->dejCasKonecGcPlus('1 week'));
+        self::assertSame([], $upominaniDluzniku->najdiDluzniky(), 'Test potřebuje databázi bez dlužníků');
+        self::assertNull($upominaniDluzniku->automatickaUpominkaOdeslanaKdy(TypUpominky::TYDEN, ROCNIK));
+
+        self::assertSame(0, $upominaniDluzniku->odesliUpominkyDluznikum(TypUpominky::TYDEN));
+
+        self::assertNotNull($upominaniDluzniku->automatickaUpominkaOdeslanaKdy(TypUpominky::TYDEN, ROCNIK));
+        self::assertSame(
+            '0',
+            dbFetchSingle(<<<'SQL'
+SELECT vysledek FROM hromadne_akce_log WHERE skupina = 'upominani-dluzniku' AND akce = $0
+SQL, [
+                0 => 'upominani-tyden-' . ROCNIK,
+            ]),
+        );
+        self::assertNull(
+            $upominaniDluzniku->automatickaUpominkaOdeslanaKdy(TypUpominky::MESIC, ROCNIK),
+            'Týdenní běh nesmí splnit měsíční upomínku',
+        );
+        self::assertSame(
+            -1,
+            $upominaniDluzniku->odesliUpominkyDluznikum(TypUpominky::TYDEN),
+            'Po zapsaném nulovém běhu se upomínka v tomtéž okně nespustí znovu',
+        );
     }
 
     /**
