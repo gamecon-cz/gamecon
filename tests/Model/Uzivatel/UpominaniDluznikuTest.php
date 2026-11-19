@@ -19,6 +19,7 @@ use Gamecon\Uzivatel\Enum\UcastNaGc;
 use Gamecon\Uzivatel\Exceptions\VlastniZneniNeniVyplnene;
 use Gamecon\Uzivatel\Pohlavi;
 use Gamecon\Uzivatel\UpominaniDluzniku;
+use Gamecon\Uzivatel\UpominkaDluznikaLog;
 use Gamecon\Uzivatel\UpominkaVlastniZneni;
 
 /**
@@ -1223,6 +1224,103 @@ SQL, [
             0,
             $druhyBeh,
             'Už obeslaní dlužníci se musí přeskočit, jinak jim upomínka přijde podruhé',
+        );
+    }
+
+    /**
+     * @test
+     */
+    public function druhyBehSpustenyBehemRozesilkyPrvnihoNicNeodesle()
+    {
+        $ted = $this->dejCasKonecGcPlus('1 week');
+        $systemoveNastaveni = $this->dejSystemoveNastaveniSCasem($ted);
+        $logyDruhehoBehu = new class implements JobResultLoggerInterface {
+            /**
+             * @var string[]
+             */
+            public array $zpravy = [];
+
+            public function logs(string $string, bool $zalogovatCas = true): void
+            {
+                $this->zpravy[] = $string;
+            }
+        };
+        $vysledekDruhehoBehu = null;
+        $druhyBeh = function () use ($systemoveNastaveni, $logyDruhehoBehu, &$vysledekDruhehoBehu) {
+            $vysledekDruhehoBehu = (new UpominaniDluzniku(
+                $systemoveNastaveni,
+                $logyDruhehoBehu,
+                $this->createMock(FioStazeniNovychPlateb::class),
+            ))->odesliUpominkyDluznikum(TypUpominky::TYDEN);
+        };
+        // Druhý běh cronu začne, když první už načetl, komu upomínka odešla, poslal první upomínku a zbytek
+        // teprve rozesílá - jako 17. 7. 2026, kdy dva běhy poslaly varování neplatičům každý celé.
+        $logSpoustejiciDruhyBeh = new class($druhyBeh) extends UpominkaDluznikaLog {
+            private bool $druhyBehSpusten = false;
+
+            public function __construct(
+                private readonly \Closure $druhyBeh,
+            ) {
+            }
+
+            public function zaloguj(
+                int $idUzivatele,
+                TypUpominky $typUpominky,
+                float $dluh,
+                int $rocnik,
+                int $odeslal,
+                \DateTimeInterface $kdy,
+            ): void {
+                parent::zaloguj($idUzivatele, $typUpominky, $dluh, $rocnik, $odeslal, $kdy);
+                if (! $this->druhyBehSpusten) {
+                    $this->druhyBehSpusten = true;
+                    ($this->druhyBeh)();
+                }
+            }
+        };
+        $prvniBeh = new UpominaniDluzniku(
+            $systemoveNastaveni,
+            $this->createMock(JobResultLoggerInterface::class),
+            $this->createMock(FioStazeniNovychPlateb::class),
+            $logSpoustejiciDruhyBeh,
+        );
+
+        $odeslanoPrvnimBehem = $prvniBeh->odesliUpominkyDluznikum(TypUpominky::TYDEN);
+
+        self::assertGreaterThan(
+            1,
+            $odeslanoPrvnimBehem,
+            'Test potřebuje aspoň dvě upomínky, aby druhý běh začal uprostřed rozesílky prvního',
+        );
+        self::assertSame(-1, $vysledekDruhehoBehu, 'Druhý běh nesmí nic rozeslat, dokud první neskončil');
+        self::assertStringContainsString('jiný běh', implode("\n", $logyDruhehoBehu->zpravy));
+
+        $upominekNaDluznika = dbFetchPairs(<<<'SQL'
+SELECT id_uzivatele, COUNT(*)
+FROM upominka_dluznika_log
+WHERE rocnik = $0
+    AND typ_upominky = $1
+GROUP BY id_uzivatele
+SQL,
+            [
+                0 => ROCNIK,
+                1 => TypUpominky::TYDEN->value,
+            ],
+        );
+        self::assertCount($odeslanoPrvnimBehem, $upominekNaDluznika);
+        self::assertSame(
+            array_fill_keys(array_keys($upominekNaDluznika), 1),
+            array_map('intval', $upominekNaDluznika),
+            'Každý dlužník smí dostat upomínku jen jednou',
+        );
+        self::assertSame(
+            1,
+            (int) dbFetchSingle(<<<'SQL'
+SELECT COUNT(*)
+FROM hromadne_akce_log
+WHERE skupina = 'upominani-dluzniku'
+SQL),
+            'Rozesílka se smí zalogovat jen jednou, jinak dostal CFO souhrn dvakrát',
         );
     }
 

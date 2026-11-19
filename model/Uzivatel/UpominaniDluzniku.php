@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Gamecon\Uzivatel;
 
 use Gamecon\Command\FioStazeniNovychPlateb;
+use Gamecon\Cron\ZamekJobu;
 use Gamecon\Kanaly\EmailovaSablona\EmailovaSablonaVykreslovac;
 use Gamecon\Kanaly\EmailovaSablona\EmailoveSablony;
 use Gamecon\Kanaly\EmailovaSablona\KodEmailoveSablonyEnum;
@@ -289,6 +290,31 @@ SQL,
     public function odesliUpominkyDluznikum(
         TypUpominky $typUpominky,
         bool        $znovu = false,
+    ): int {
+        // Jestli upomínky už odešly, se pozná podle logu, do kterého se souhrn zapíše až na konci rozesílky
+        // a seznam už upomenutých se načte jen na jejím začátku. Běh, který začne dřív, než jiný skončí,
+        // by tedy upomínky rozeslal podruhé (viz ZamekJobu).
+        $zamek = new ZamekJobu(self::SKUPINA_UPOMINANI);
+        if (!$zamek->zamkni()) {
+            $this->jobResultLogger->logs(
+                sprintf(
+                    'Upomínání dlužníků (%s): Upomínky právě rozesílá jiný běh, tento nic neodešle',
+                    $this->dejNazevUpominky($typUpominky),
+                ),
+            );
+
+            return -1;
+        }
+        try {
+            return $this->odesliUpominkyDluznikumPodZamkem($typUpominky, $znovu);
+        } finally {
+            $zamek->odemkni();
+        }
+    }
+
+    private function odesliUpominkyDluznikumPodZamkem(
+        TypUpominky $typUpominky,
+        bool        $znovu,
     ): int {
         // Zkontroluj, jestli je správný čas
         $konecGc            = $this->systemoveNastaveni->spocitanyKonecLetosnihoGameconu();
