@@ -7,7 +7,7 @@ export const AktivitaStavyVšechny = [
   "plno",
   "prihlasen",
   "neucast",
-  "nahradnik",
+  "sledujici",
   "organizator",
   "volno",
 ] as const;
@@ -105,7 +105,6 @@ export type ApiAktivitaUživatel = {
   prihlasovatelna?: boolean,
   /** uživatelská vlastnost */
   slevaNasobic?: number,
-  // nahradnik?: boolean,
   /** orgovská vlastnost */
   // todo: tady lepší asi posílat jen id a posílat místnosti zvlášť pro případ že chceme zobrazit prázdné řádky místnostem
   mistnosti?: ApiLokace[],
