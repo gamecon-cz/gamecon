@@ -36,7 +36,7 @@ class CronErrorNotifier
 
     private function odesliUpozorneni(\Throwable $chyba, string $nazevJobu): void
     {
-        $traceString = $chyba->getTraceAsString();
+        $textChyby = self::textChyby($chyba);
 
         if ($this->jeVypadekFio($chyba)) {
             (new GcMail($this->systemoveNastaveni))
@@ -45,7 +45,7 @@ class CronErrorNotifier
                 ->text(<<<TEXT
                     V rámci běhu Cron selhala komunikace s Fio. Pokud se neopakuje dlouhodobě, lze pravděpodobně ignorovat.
 
-                    {$traceString}
+                    {$textChyby}
                     TEXT)
                 ->odeslat(GcMail::FORMAT_TEXT);
         } else {
@@ -53,10 +53,31 @@ class CronErrorNotifier
                 ->adresati(['it@gamecon.cz', 'info@gamecon.cz'])
                 ->predmet("!!IMPORTANT!! spadl cron job: {$nazevJobu}")
                 ->text(<<<TEXT
-                    {$traceString}
+                    {$textChyby}
                     TEXT)
                 ->odeslat(GcMail::FORMAT_TEXT);
         }
+    }
+
+    /**
+     * Zpráva chyby a jejích příčin, pak zásobník. Bez zprávy mail neřekl, co selhalo (job, který chyby sbírá, jako
+     * doplnění archivu přednášek, ji má jen ve zprávě), a příčina zůstala jen v logu cronu.
+     */
+    public static function textChyby(\Throwable $chyba): string
+    {
+        $radky = [];
+        for ($aktualni = $chyba; $aktualni !== null; $aktualni = $aktualni->getPrevious()) {
+            $radky[] = sprintf(
+                '%s%s: %s (%s:%d)',
+                $aktualni === $chyba ? '' : 'Příčina: ',
+                $aktualni::class,
+                $aktualni->getMessage(),
+                $aktualni->getFile(),
+                $aktualni->getLine(),
+            );
+        }
+
+        return implode("\n", $radky) . "\n\n" . $chyba->getTraceAsString();
     }
 
     /**
