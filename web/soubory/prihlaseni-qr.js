@@ -1,7 +1,16 @@
 // Přihlášení QR kódem: přihlašovací stránka webu i adminu se ptá, jestli už přihlášení někdo na telefonu
 // schválil. Schválené přihlášení dokončí server rovnou v odpovědi, stránce pak stačí přejít dál.
 // Viz Gamecon\Uzivatel\PrihlaseniQrKodem a docs/generated/prihlaseni-qr-kodem.md.
-(function () {
+// Web skript vkládá do hlavičky s defer (Modul::pridejJsSoubor()), admin na konec stránky. Kdyby běžel dřív,
+// než prohlížeč přečte celou stránku, své prvky by nenašel, proto počká na DOMContentLoaded. Po něm (async, vložený
+// dodatečně) by na tu událost čekal marně, tak se spustí hned.
+(function (spust) {
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', spust);
+    } else {
+        spust();
+    }
+})(function () {
     'use strict';
 
     var kontejner = document.querySelector('[data-prihlaseni-qr]');
@@ -55,4 +64,4 @@
     }
 
     window.setTimeout(zeptejSe, INTERVAL_MS);
-})();
+});

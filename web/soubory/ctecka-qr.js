@@ -2,7 +2,16 @@
 // Fotoaparát telefonu umí totéž, odkaz ale otevře ve výchozím prohlížeči, a ten nemusí být ten, kde je uživatel
 // přihlášený. Kód rozpozná BarcodeDetector prohlížeče; kde ho prohlížeč nemá (Safari, Firefox), knihovna jsQR,
 // načtená až v tu chvíli. Viz Gamecon\Uzivatel\PrihlaseniQrKodem a docs/generated/prihlaseni-qr-kodem.md.
-(function () {
+// Web skript vkládá do hlavičky s defer (Modul::pridejJsSoubor()), admin na konec stránky. Kdyby běžel dřív,
+// než prohlížeč přečte celou stránku, své prvky by nenašel, proto počká na DOMContentLoaded. Po něm (async, vložený
+// dodatečně) by na tu událost čekal marně, tak se spustí hned.
+(function (spust) {
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', spust);
+    } else {
+        spust();
+    }
+})(function () {
     'use strict';
 
     var tlacitko = document.querySelector('[data-ctecka-qr]');
@@ -198,4 +207,4 @@
             zavriOkno();
         }
     });
-})();
+});
