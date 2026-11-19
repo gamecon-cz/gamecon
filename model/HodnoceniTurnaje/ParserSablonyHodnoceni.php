@@ -47,7 +47,10 @@ final class ParserSablonyHodnoceni
 
     public const int MAX_KRITERII = 200;
 
-    /** Víc řádků tabulka s nejvýš 200 kritérii mít nemusí, dál ji nečteme (třeba zapomenutý list s daty). */
+    /**
+     * Víc vyplněných řádků tabulka s nejvýš 200 kritérii mít nemusí, dál ji nečteme (třeba zapomenutý list s daty).
+     * Prázdné řádky se nepočítají.
+     */
     public const int MAX_RADKU_TABULKY = 1000;
 
     /** Škála editoru bez uložených kritérií a tabulky, ve které škála není. */
@@ -186,16 +189,21 @@ final class ParserSablonyHodnoceni
         /** @var list<array{nazev: string, radek: int, kriteria: list<array{nazev: string, radek: int}>}> $kategorie */
         $kategorie = [];
         $aktualni = null;
+        $neprazdnych = 0;
 
         foreach ($radky as $cisloRadku => $bunky) {
-            if ($cisloRadku > self::MAX_RADKU_TABULKY) {
+            $bunky = array_map('trim', $bunky);
+            // prázdné řádky se nepočítají: sešit je má i za koncem dat, třeba s formátováním
+            if (implode('', $bunky) === '') {
+                continue;
+            }
+            if (++$neprazdnych > self::MAX_RADKU_TABULKY) {
                 $chyby[] = sprintf(
-                    'Tabulka má víc než %d řádků. Kritéria patří na první list a vejdou se do méně.',
+                    'Tabulka má víc než %d vyplněných řádků. Kritéria patří na první list a vejdou se do méně.',
                     self::MAX_RADKU_TABULKY,
                 );
                 break;
             }
-            $bunky = array_map('trim', $bunky);
             $kategorieVRadku = $bunky[0] ?? '';
             $kriteriumVRadku = $bunky[1] ?? '';
 

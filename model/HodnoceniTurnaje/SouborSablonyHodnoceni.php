@@ -21,6 +21,9 @@ final class SouborSablonyHodnoceni
     /** Malý sešit má jednotky kB, tohle stačí s velkou rezervou a nepustí na server nic obřího. */
     public const int MAX_VELIKOST = 2 * 1024 * 1024;
 
+    /** Kolik neprázdných řádků CSV stačí na odhad oddělovače. */
+    private const int RADKU_PRO_ODDELOVAC = 10;
+
     /**
      * @param string    $cesta        soubor na disku
      * @param string    $nazev        původní název souboru (podle přípony se pozná formát)
@@ -54,31 +57,15 @@ final class SouborSablonyHodnoceni
     }
 
     /**
-     * Řádky CSV podle čísla řádku. Oddělovač pozná z prvního neprázdného řádku: český Excel dává středník, jiný
-     * program čárku nebo tabulátor.
+     * Řádky CSV podle čísla řádku. Oddělovač pozná z prvních neprázdných řádků: český Excel dává středník, jiný
+     * program čárku nebo tabulátor. Text v uvozovkách nepočítá, čárky ve škále „1, 2, 3“ nebo v názvu oddělovač nejsou.
      *
      * @return \Generator<int, list<string>>
      */
     public static function prectiCsv(string $text): \Generator
     {
         $text = ParserSablonyHodnoceni::normalizuj($text);
-        $prvniRadek = '';
-        foreach (explode("\n", $text) as $radek) {
-            if (trim($radek) !== '') {
-                $prvniRadek = $radek;
-                break;
-            }
-        }
-        $pocty = [
-            ';'  => substr_count($prvniRadek, ';'),
-            ','  => substr_count($prvniRadek, ','),
-            "\t" => substr_count($prvniRadek, "\t"),
-        ];
-        arsort($pocty);
-        $oddelovac = (string)array_key_first($pocty);
-        if ($pocty[$oddelovac] === 0) {
-            $oddelovac = ';';
-        }
+        $oddelovac = self::getOddelovacCsv($text);
 
         $soubor = fopen('php://temp', 'r+b');
         fwrite($soubor, $text);
@@ -93,6 +80,31 @@ final class SouborSablonyHodnoceni
         } finally {
             fclose($soubor);
         }
+    }
+
+    /**
+     * Oddělovač, kterého je mimo uvozovky v prvních řádcích nejvíc; při shodě a bez oddělovače středník.
+     */
+    private static function getOddelovacCsv(string $text): string
+    {
+        $pocty = [';' => 0, ',' => 0, "\t" => 0];
+        $neprazdnych = 0;
+        foreach (explode("\n", $text) as $radek) {
+            if (trim($radek) === '') {
+                continue;
+            }
+            $mimoUvozovky = (string)preg_replace('~"(?:[^"]|"")*"~', '', $radek);
+            foreach (array_keys($pocty) as $znak) {
+                $pocty[$znak] += substr_count($mimoUvozovky, $znak);
+            }
+            if (++$neprazdnych >= self::RADKU_PRO_ODDELOVAC) {
+                break;
+            }
+        }
+        // stabilní řazení nechá při shodě středník první
+        arsort($pocty);
+
+        return (string)array_key_first($pocty);
     }
 
     /**

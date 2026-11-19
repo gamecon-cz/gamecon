@@ -487,6 +487,48 @@ class HodnoceniTurnajeTest extends AbstractTestDb
         self::assertSame([], $bezUlozenych->getKriteriaPodleId());
     }
 
+    public function testSouborPresunuteKriteriumNajdeVJineKategorii(): void
+    {
+        $hodnoceni = $this->vytvorHodnoceniSeSablonou();
+        $hodnoceni->ulozHodnoceni($this->prvniKolo, $this->paraBola, $this->getHodnoty($hodnoceni, [5, 4, 3]), $this->vypravecA, false);
+        $idSpoluprace = $hodnoceni->getSablona()->kategorie[0]->kriteria[1]->id;
+
+        $sparovana = $hodnoceni->sparujPodleNazvu(ParserSablonyHodnoceni::rozeber(<<<'TEXT'
+            Škála: 1 2 3 4 5
+            # Hraní rolí
+            ## Postavy
+            # Řešení
+            ## Nápaditost
+            ## Spolupráce
+            TEXT));
+
+        self::assertSame($idSpoluprace, $sparovana->kategorie[1]->kriteria[1]->id);
+        self::assertSame(0, $hodnoceni->ulozSablonu($sparovana, $this->org), 'Přesun nic nemaže');
+        self::assertSame([5, 7], array_values($this->najdiVysledek($hodnoceni, $this->paraBola)['souctyKategorii']));
+    }
+
+    public function testSouborNejednoznacneKriteriumJindeNeparuje(): void
+    {
+        $hodnoceni = $this->vytvorHodnoceni();
+        $hodnoceni->ulozSablonu(ParserSablonyHodnoceni::rozeber("Škála: 1 2\n# A\n## Kritérium 1\n# B\n## Kritérium 1"), $this->org);
+        $idKriteriaB = $hodnoceni->getSablona()->kategorie[1]->kriteria[0]->id;
+
+        // A i B zmizely, „Kritérium 1“ je mezi uloženými dvakrát: nejde poznat, odkud přišlo
+        $nejednoznacne = $hodnoceni->sparujPodleNazvu(ParserSablonyHodnoceni::rozeber("Škála: 1 2\n# C\n## Kritérium 1"));
+        self::assertNull($nejednoznacne->kategorie[0]->kriteria[0]->id);
+
+        // A zůstala a své kritérium si vzala, zbylé je jen to z B: B se v souboru přejmenovala na C
+        $prejmenovanaKategorie = $hodnoceni->sparujPodleNazvu(ParserSablonyHodnoceni::rozeber(<<<'TEXT'
+            Škála: 1 2
+            # A
+            ## Kritérium 1
+            # C
+            ## Kritérium 1
+            TEXT));
+        self::assertNotNull($prejmenovanaKategorie->kategorie[0]->kriteria[0]->id);
+        self::assertSame($idKriteriaB, $prejmenovanaKategorie->kategorie[1]->kriteria[0]->id);
+    }
+
     public function testVysledkySectouKategorieASdileneMisto(): void
     {
         $hodnoceni = $this->vytvorHodnoceniSeSablonou();

@@ -309,6 +309,32 @@ class ParserSablonyHodnoceniTest extends TestCase
         self::assertSame(['V souboru je 51 kategorií, nejvýš jde 50.'], $this->getChybyTabulky($radky));
     }
 
+    public function testPrazdneRadkySeDoLimituNepocitaji(): void
+    {
+        // sešit s formátováním má prázdné řádky i daleko za koncem dat
+        $radky = [
+            1 => ['Hraní', 'Postavy'],
+        ];
+        foreach (range(2, ParserSablonyHodnoceni::MAX_RADKU_TABULKY + 500) as $cislo) {
+            $radky[$cislo] = ['', '', ''];
+        }
+        $radky[ParserSablonyHodnoceni::MAX_RADKU_TABULKY + 501] = ['Řešení', 'Nápaditost'];
+
+        self::assertSame(
+            ['Hraní', 'Řešení'],
+            array_column(ParserSablonyHodnoceni::rozeberTabulku($radky, [1, 2])->kategorie, 'nazev'),
+        );
+
+        $vyplnene = [];
+        foreach (range(1, ParserSablonyHodnoceni::MAX_RADKU_TABULKY + 1) as $cislo) {
+            $vyplnene[$cislo] = ['Hraní', "Kritérium {$cislo}"];
+        }
+        self::assertContains(
+            'Tabulka má víc než 1000 vyplněných řádků. Kritéria patří na první list a vejdou se do méně.',
+            $this->getChybyTabulky($vyplnene),
+        );
+    }
+
     public function testSkalaZEditoruHlasiChybyBezRadku(): void
     {
         try {

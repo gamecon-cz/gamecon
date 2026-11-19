@@ -92,6 +92,25 @@ class SouborSablonyHodnoceniTest extends TestCase
         self::assertSame(['Postavy', 'Hlas, zpěv'], array_column($sablona->kategorie[0]->kriteria, 'nazev'));
     }
 
+    public function testOddelovacCsvNepocitaTextVUvozovkach(): void
+    {
+        // čárky ve škále a v názvu by vyhrály, kdyby se počítaly
+        $sablona = SouborSablonyHodnoceni::nacti(
+            $this->zapis("Škála;\"1, 2, 3\"\n\"Hraní, role\";Postavy\n"),
+            'kriteria.csv',
+            [0, 1],
+        );
+        self::assertSame([1, 2, 3], $sablona->skala);
+        self::assertSame(['Hraní, role'], array_column($sablona->kategorie, 'nazev'));
+
+        $carkami = SouborSablonyHodnoceni::nacti(
+            $this->zapis("Kategorie,Kritérium\n\"Hraní; role\",Postavy\nHraní; role,Spolupráce\n"),
+            'kriteria.csv',
+            [0, 1],
+        );
+        self::assertSame(['Postavy', 'Spolupráce'], array_column($carkami->kategorie[0]->kriteria, 'nazev'));
+    }
+
     public function testStazenaKriteriaJdouNacistZpatky(): void
     {
         // tak jako stažení na stránce: Report píše středník a BOM

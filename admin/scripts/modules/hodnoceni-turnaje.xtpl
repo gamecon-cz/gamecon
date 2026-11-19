@@ -231,11 +231,11 @@
     <ul>
       <li><strong>Škála</strong> má 2 až 20 celých čísel oddělených mezerou, třeba <code>1 2 3 4 5</code> nebo
         <code>0 1 2 3</code>. Z nich vypravěč u každého kritéria vybírá, vyšší je lepší.</li>
-      <li>Kategorie a kritéria přidáš tlačítky, šipkami je seřadíš. Každá kategorie potřebuje aspoň jedno kritérium
-        a ve výsledcích má sloupec se svým součtem.</li>
+      <li>Kategorie a kritéria přidáš tlačítky, šipkami je seřadíš. Šipkou z kraje kategorie přesuneš kritérium do
+        vedlejší. Každá kategorie potřebuje aspoň jedno kritérium a ve výsledcích má sloupec se svým součtem.</li>
       <li>Hotová kritéria můžeš taky načíst z tabulky nebo textového souboru (pod editorem). Načtou se do editoru,
         uloží se až tlačítkem Uložit kritéria.</li>
-      <li>Po začátku hodnocení můžeš kategorie a kritéria přejmenovat i přeřadit, hodnocení zůstanou. Odebrané
+      <li>Po začátku hodnocení můžeš kategorie a kritéria přejmenovat, přeřadit i přesunout, hodnocení zůstanou. Odebrané
         kritérium vezme s sebou své hodnoty. Nové kritérium, nebo škála bez použité hodnoty, smaže všechna hodnocení.
         Co by něco smazalo, stránka nejdřív vypíše a chce potvrzení.</li>
     </ul>
@@ -346,8 +346,8 @@
       a hodnotami ve druhém, bez něj zůstane škála z editoru.</li>
     <li><strong>Textový soubor:</strong> řádek <code>Škála: 1 2 3 4 5</code>, kategorie začíná <code># </code>,
       kritérium <code>## </code>.</li>
-    <li>Kategorie a kritéria se stejným názvem jako uložená si hodnocení nechají, ostatní jsou nová. Přejmenovávej
-      proto v editoru, ne v souboru.</li>
+    <li>Kategorie a kritéria se stejným názvem jako uložená si hodnocení nechají, kritérium i v jiné kategorii, když
+      se tak jmenuje jen jedno. Ostatní jsou nová. Přejmenovávej proto v editoru, ne v souboru.</li>
   </ul>
   <p>
     <a href="hodnoceni-turnaje?export=kriteria-xlsx"><i class="fa-solid fa-file-excel" aria-hidden="true"></i> {textStazeni} (XLSX)</a>

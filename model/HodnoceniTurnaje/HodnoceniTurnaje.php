@@ -115,41 +115,74 @@ final class HodnoceniTurnaje
     }
 
     /**
-     * Kritéria ze souboru dostanou id uložených se stejným názvem (kategorie podle názvu, kritérium podle názvu v ní,
-     * bez ohledu na velikost písmen), ostatní zůstanou nová. Editor pak ukáže, co je nové, a uložení zachová hodnoty
-     * u spárovaných. Přejmenované v souboru je tedy nové kritérium, přejmenovat bez ztráty hodnot jde jen v editoru.
+     * Kritéria ze souboru dostanou id uložených se stejným názvem (bez ohledu na velikost písmen), ostatní zůstanou
+     * nová. Editor pak ukáže, co je nové, a uložení zachová hodnoty u spárovaných:
+     * - kategorie podle názvu, kritérium nejdřív podle názvu ve stejnojmenné kategorii;
+     * - kritérium, které tam není, podle názvu v jiné kategorii, když je takové mezi zbylými uloženými jen jedno
+     *   (přesun do jiné kategorie). „Kritérium 1“ ve více kategoriích tak zůstane nové.
+     * Přejmenované v souboru je nové kritérium, přejmenovat bez ztráty hodnot jde jen v editoru.
      */
     public function sparujPodleNazvu(SablonaHodnoceni $zeSouboru): SablonaHodnoceni
     {
-        $kategoriePodleNazvu = [];
+        $ulozenaKategoriePodleNazvu = [];
+        /** @var array<int, string> $nazvyUlozenychKriterii id kritéria => klíč názvu */
+        $nazvyUlozenychKriterii = [];
         foreach ($this->getSablona()->kategorie ?? [] as $ulozenaKategorie) {
-            $kategoriePodleNazvu[ParserSablonyHodnoceni::getKlicNazvu($ulozenaKategorie->nazev)] = $ulozenaKategorie;
+            $ulozenaKategoriePodleNazvu[ParserSablonyHodnoceni::getKlicNazvu($ulozenaKategorie->nazev)] = $ulozenaKategorie;
+            foreach ($ulozenaKategorie->kriteria as $ulozeneKriterium) {
+                $nazvyUlozenychKriterii[(int)$ulozeneKriterium->id] = ParserSablonyHodnoceni::getKlicNazvu($ulozeneKriterium->nazev);
+            }
+        }
+
+        // nejdřív ve stejnojmenné kategorii, ať přesun nesebere kritérium, které v ní zůstalo
+        /** @var array<int, array<int, int>> $idKriterii index kategorie => index kritéria => id */
+        $idKriterii = [];
+        foreach ($zeSouboru->kategorie as $indexKategorie => $kategorie) {
+            $ulozenaKategorie = $ulozenaKategoriePodleNazvu[ParserSablonyHodnoceni::getKlicNazvu($kategorie->nazev)] ?? null;
+            foreach ($kategorie->kriteria as $indexKriteria => $kriterium) {
+                foreach ($ulozenaKategorie->kriteria ?? [] as $ulozeneKriterium) {
+                    $idUlozeneho = (int)$ulozeneKriterium->id;
+                    if (isset($nazvyUlozenychKriterii[$idUlozeneho])
+                        && $nazvyUlozenychKriterii[$idUlozeneho] === ParserSablonyHodnoceni::getKlicNazvu($kriterium->nazev)
+                    ) {
+                        $idKriterii[$indexKategorie][$indexKriteria] = $idUlozeneho;
+                        unset($nazvyUlozenychKriterii[$idUlozeneho]);
+                        break;
+                    }
+                }
+            }
+        }
+        foreach ($zeSouboru->kategorie as $indexKategorie => $kategorie) {
+            foreach ($kategorie->kriteria as $indexKriteria => $kriterium) {
+                if (isset($idKriterii[$indexKategorie][$indexKriteria])) {
+                    continue;
+                }
+                $stejnaJmena = array_keys($nazvyUlozenychKriterii, ParserSablonyHodnoceni::getKlicNazvu($kriterium->nazev), true);
+                if (count($stejnaJmena) === 1) {
+                    $idKriterii[$indexKategorie][$indexKriteria] = $stejnaJmena[0];
+                    unset($nazvyUlozenychKriterii[$stejnaJmena[0]]);
+                }
+            }
         }
 
         return new SablonaHodnoceni(
             null,
             $zeSouboru->skala,
             array_map(
-                static function (KategorieHodnoceni $kategorie) use ($kategoriePodleNazvu): KategorieHodnoceni {
-                    $ulozenaKategorie = $kategoriePodleNazvu[ParserSablonyHodnoceni::getKlicNazvu($kategorie->nazev)] ?? null;
-                    $idKriteriiPodleNazvu = [];
-                    foreach ($ulozenaKategorie->kriteria ?? [] as $ulozeneKriterium) {
-                        $idKriteriiPodleNazvu[ParserSablonyHodnoceni::getKlicNazvu($ulozeneKriterium->nazev)] = $ulozeneKriterium->id;
-                    }
-
-                    return new KategorieHodnoceni(
-                        $ulozenaKategorie?->id,
-                        $kategorie->nazev,
-                        array_map(
-                            static fn (KriteriumHodnoceni $kriterium): KriteriumHodnoceni => new KriteriumHodnoceni(
-                                $idKriteriiPodleNazvu[ParserSablonyHodnoceni::getKlicNazvu($kriterium->nazev)] ?? null,
-                                $kriterium->nazev,
-                            ),
-                            $kategorie->kriteria,
+                static fn (KategorieHodnoceni $kategorie, int $indexKategorie): KategorieHodnoceni => new KategorieHodnoceni(
+                    ($ulozenaKategoriePodleNazvu[ParserSablonyHodnoceni::getKlicNazvu($kategorie->nazev)] ?? null)?->id,
+                    $kategorie->nazev,
+                    array_map(
+                        static fn (KriteriumHodnoceni $kriterium, int $indexKriteria): KriteriumHodnoceni => new KriteriumHodnoceni(
+                            $idKriterii[$indexKategorie][$indexKriteria] ?? null,
+                            $kriterium->nazev,
                         ),
-                    );
-                },
+                        $kategorie->kriteria,
+                        array_keys($kategorie->kriteria),
+                    ),
+                ),
                 $zeSouboru->kategorie,
+                array_keys($zeSouboru->kategorie),
             ),
         );
     }
