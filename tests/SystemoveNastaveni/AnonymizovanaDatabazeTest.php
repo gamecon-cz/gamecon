@@ -73,6 +73,12 @@ class AnonymizovanaDatabazeTest extends AbstractTestDb
 
         dbQuery("INSERT INTO stranky SET url_stranky = 'test', obsah = 'Kontakt: jan.novak@example.com', poradi = 1");
 
+        // a speaker of the lecture archive under the civil name of user 100, and a group without a user
+        dbQuery(<<<'SQL'
+            INSERT INTO archiv_prednasek_prednasejici (id_prednasejiciho, jmeno, id_uzivatele)
+            VALUES (990001, 'Jan Novák', 100), (990002, 'Skupina bez uživatele', NULL)
+            SQL);
+
         self::vlozRadekDoKazdePrilisCitliveTabulky();
     }
 
@@ -278,6 +284,15 @@ class AnonymizovanaDatabazeTest extends AbstractTestDb
             self::assertSame('', $medailonek['o_sobe'], 'Medailonek o_sobe by měl být prázdný');
             self::assertSame('', $medailonek['drd'], 'Medailonek drd by měl být prázdný');
         }
+
+        // a speaker linked to an account loses the name that would tell whose the account is, a group keeps its own
+        $prednasejiciResult = mysqli_query($connection, sprintf(
+            'SELECT id_prednasejiciho, jmeno, id_uzivatele FROM `%s`.archiv_prednasek_prednasejici WHERE id_prednasejiciho IN (990001, 990002) ORDER BY id_prednasejiciho',
+            self::$anonymniDatabaze,
+        ));
+        $prednasejici = mysqli_fetch_all($prednasejiciResult, MYSQLI_ASSOC);
+        self::assertSame(['Přednášející 990001', 'Skupina bez uživatele'], array_column($prednasejici, 'jmeno'));
+        self::assertNotSame('100', $prednasejici[0]['id_uzivatele'], 'Napojení přednášejícího by se mělo posunout s ID uživatele');
 
         // user personal data should be anonymized
         $anonymUsersResult = mysqli_query($connection, sprintf(
