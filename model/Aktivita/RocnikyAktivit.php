@@ -13,13 +13,24 @@ namespace Gamecon\Aktivita;
 final class RocnikyAktivit
 {
     /**
-     * Years with at least one card under the same conditions as the activities of the page (FiltrAktivity::JEN_VIDITELNE
-     * and BEZ_DALSICH_KOL), otherwise a year without a single card could be chosen (an organiser who led only a semifinal
-     * of DrD). The current year is always there, so that one can go back.
+     * Years with at least one card (see getSAktivitami()). The current year is always there, so that one can go back.
      *
      * @return list<int> from the newest
      */
     public static function getNabizene(int $letosniRocnik, ?int $idTypu = null, ?int $idOrganizatora = null): array
+    {
+        return self::pridejLetosni($letosniRocnik, self::getSAktivitami($letosniRocnik, $idTypu, $idOrganizatora));
+    }
+
+    /**
+     * Years with at least one card under the same conditions as the activities of the page (FiltrAktivity::JEN_VIDITELNE
+     * and BEZ_DALSICH_KOL), otherwise a year without a single card could be chosen (an organiser who led only a semifinal
+     * of DrD). Unlike getNabizene() without the current year when it has no card, so that an organiser's page can tell
+     * someone who never led anything visible.
+     *
+     * @return list<int> from the newest
+     */
+    public static function getSAktivitami(int $letosniRocnik, ?int $idTypu = null, ?int $idOrganizatora = null): array
     {
         $parametry = [
             0 => $letosniRocnik,
@@ -44,6 +55,16 @@ final class RocnikyAktivit
             ORDER BY akce_seznam.rok DESC
             SQL, $parametry);
 
-        return array_values(array_unique(array_merge([$letosniRocnik], array_map('intval', $rocniky))));
+        return array_map('intval', $rocniky);
+    }
+
+    /**
+     * @param list<int> $rocnikySAktivitami from getSAktivitami()
+     *
+     * @return list<int> from the newest
+     */
+    public static function pridejLetosni(int $letosniRocnik, array $rocnikySAktivitami): array
+    {
+        return array_values(array_unique(array_merge([$letosniRocnik], $rocnikySAktivitami)));
     }
 }
