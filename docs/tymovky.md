@@ -156,6 +156,16 @@ PRIO
   - týmová aktivita:
     - týmová kapacita - koluk může být na aktivitě přihlášeno týmů
     - min a max kapacita týmu kolik musí mít každý tým lidí
+    - zobrazená obsazenost `(x/y)`:
+      - týmová kapacita > 1: počítají se týmy (např. `(1/3)`)
+      - týmová kapacita = 1 (`Aktivita::maJedenTym()`): počítají se místa pro hráče, ne týmy (`(0/5)`, po přihlášení dvoučlenného týmu `(2/5)`), protože `(0/1)` a `(1/1)` jsou zavádějící
+        - jmenovatel je limit nastavený kapitánem (`Team.limit`), jinak `team_max` aktivity; ne sloupec `kapacita`, který se může rozejít s `team_max` (`Aktivita::kapacitaHracuJedinehoTymu()`)
+        - řeší se jen první kolo; další kola turnaje přebírají velikost z prvního
+        - jakákoli změna `Team` (vznik, smazání, limit, ...) označí `OBSAZENOSTI` jako dirty (`ProgramCacheInvalidationListener`), jinak by statický JSON ukazoval starý limit
+        - "plno" se posuzuje také podle míst, ne týmů: jediný tým s 2/5 lidmi je volný a nabízí odkaz „přihlásit" (otevře modal týmů), plno je až při naplněné kapacitě (`volnoTypZObsazenost`, `kt > 1` větev jen pro víc týmů)
+        - `obsazenostObj()` u jediného týmu vrací v `ku` tento limit (ne `kapacita`), takže pravá strana i „plno" ve frontendu vycházejí z něj; `kt`/`t` zůstávají, aby frontend poznal, že jde o jediný tým
+        - zamčený tým s málo lidmi aktivitu dál nepovažuje za plnou (viz TODO „aktivita se bude jevit jako plná" níže)
+        - rozhoduje `Obsazenost.tsx` (program, `kt > 1`) a `Aktivita::obsazenostHtml()` (web, last-minute)
 
   - vícekolové aktivita/turnaj:
     - aktivita může být součástí turnaje, pak musí mít určené ve kterém kole se nachází
