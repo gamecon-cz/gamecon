@@ -15,7 +15,7 @@ CREATE TABLE IF NOT EXISTS archiv_prednasek_zpracovane_aktivity
     zpracovano DATETIME            NOT NULL,
     chyba      VARCHAR(255)                 DEFAULT NULL,
     PRIMARY KEY (id_akce),
-    FOREIGN KEY (id_akce) REFERENCES akce_seznam (id_akce) ON DELETE CASCADE ON UPDATE CASCADE
+    FOREIGN KEY (id_akce) REFERENCES akce_seznam (id_akce) ON DELETE CASCADE
 ) ENGINE = InnoDB
   DEFAULT CHARSET = utf8mb4
   COLLATE = utf8mb4_czech_ci

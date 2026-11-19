@@ -9,6 +9,8 @@ declare(strict_types=1);
 // aktivita karty, u instancí akce_instance.id_hlavni_akce). Anotaci a štítky čte web ze spárované aktivity.
 // Přednášející nemá unikátní id_uzivatele: slučování uživatelů (UzivatelSlucovani) převádí odkazy přes
 // UPDATE IGNORE a řádek, který narazí na unikátní klíč, smaže, takže by přednášející zmizel i z přednášek.
+// ON UPDATE CASCADE jen u klíče na uzivatele_hodnoty (posun ID při anonymizaci), ostatní jako zbytek schématu
+// (2026-03-07-191128-clean-up-foreign-key-on-update-cascade.sql).
 $this->q(<<<'SQL'
 CREATE TABLE IF NOT EXISTS archiv_prednasek
 (
@@ -21,7 +23,7 @@ CREATE TABLE IF NOT EXISTS archiv_prednasek
     PRIMARY KEY (id_prednasky),
     UNIQUE KEY rok_nazev (rok, nazev),
     UNIQUE KEY id_akce (id_akce),
-    FOREIGN KEY (id_akce) REFERENCES akce_seznam (id_akce) ON DELETE SET NULL ON UPDATE CASCADE
+    FOREIGN KEY (id_akce) REFERENCES akce_seznam (id_akce) ON DELETE SET NULL
 ) ENGINE = InnoDB
   DEFAULT CHARSET = utf8mb4
   COLLATE = utf8mb4_czech_ci;
@@ -46,8 +48,8 @@ CREATE TABLE IF NOT EXISTS archiv_prednasek_prednaska_prednasejici
     poradi            SMALLINT(5) UNSIGNED NOT NULL DEFAULT 0,
     PRIMARY KEY (id_prednasky, id_prednasejiciho),
     KEY id_prednasejiciho (id_prednasejiciho),
-    FOREIGN KEY (id_prednasky) REFERENCES archiv_prednasek (id_prednasky) ON DELETE CASCADE ON UPDATE CASCADE,
-    FOREIGN KEY (id_prednasejiciho) REFERENCES archiv_prednasek_prednasejici (id_prednasejiciho) ON DELETE CASCADE ON UPDATE CASCADE
+    FOREIGN KEY (id_prednasky) REFERENCES archiv_prednasek (id_prednasky) ON DELETE CASCADE,
+    FOREIGN KEY (id_prednasejiciho) REFERENCES archiv_prednasek_prednasejici (id_prednasejiciho) ON DELETE CASCADE
 ) ENGINE = InnoDB
   DEFAULT CHARSET = utf8mb4
   COLLATE = utf8mb4_czech_ci;
@@ -68,8 +70,8 @@ CREATE TABLE IF NOT EXISTS archiv_prednasek_prednaska_klicove_slovo
     id_klicoveho_slova BIGINT(20) UNSIGNED NOT NULL,
     PRIMARY KEY (id_prednasky, id_klicoveho_slova),
     KEY id_klicoveho_slova (id_klicoveho_slova),
-    FOREIGN KEY (id_prednasky) REFERENCES archiv_prednasek (id_prednasky) ON DELETE CASCADE ON UPDATE CASCADE,
-    FOREIGN KEY (id_klicoveho_slova) REFERENCES archiv_prednasek_klicove_slovo (id_klicoveho_slova) ON DELETE CASCADE ON UPDATE CASCADE
+    FOREIGN KEY (id_prednasky) REFERENCES archiv_prednasek (id_prednasky) ON DELETE CASCADE,
+    FOREIGN KEY (id_klicoveho_slova) REFERENCES archiv_prednasek_klicove_slovo (id_klicoveho_slova) ON DELETE CASCADE
 ) ENGINE = InnoDB
   DEFAULT CHARSET = utf8mb4
   COLLATE = utf8mb4_czech_ci;
