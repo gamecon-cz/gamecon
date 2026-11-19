@@ -4,17 +4,18 @@ declare(strict_types=1);
 
 namespace Gamecon\ArchivPrednasek\Import;
 
-use Gamecon\ArchivPrednasek\ArchivPrednasekRepository;
 use Gamecon\ArchivPrednasek\NazevPrednasky;
 
 /**
  * Writes the unified spreadsheet and the lectures added from the program into the archive.
  * Pairing and user links are fixed in DataArcitabulky and only checked here, nothing is searched for.
+ *
+ * The migration 2026-11-10-124023_archiv-prednasek-import.php runs it on every fresh database, before the migrations
+ * that come after it, so the SQL is its own and stays as the schema of that migration was: through
+ * ArchivPrednasekRepository a later column there would break the migration.
  */
 final class ImportArcitabulky
 {
-    private readonly ArchivPrednasekRepository $repository;
-
     /**
      * @var array<string, int> lower-case name => id of the speaker
      */
@@ -41,7 +42,6 @@ final class ImportArcitabulky
         private readonly array $parovani = DataArcitabulky::PAROVANI,
         private readonly array $zProgramu = DataArcitabulky::Z_PROGRAMU,
     ) {
-        $this->repository = new ArchivPrednasekRepository($spojeni);
     }
 
     /**
@@ -72,9 +72,9 @@ final class ImportArcitabulky
                 $idAkce = $this->overenaAkce($akce, $idAkceZDat, $radek->rok, $nazevVProgramu, $radek->nazev);
                 unset($parovaniPodleKlice[$klic]);
             }
-            $idPrednasky = $this->repository->vlozPrednasku($radek->nazev, $radek->rok, $radek->youtubeId, $idAkce);
-            $this->repository->nastavPrednasejici($idPrednasky, array_map($this->idPrednasejiciho(...), $radek->prednasejici));
-            $this->repository->nastavKlicovaSlova($idPrednasky, array_map($this->repository->najdiNeboVlozKlicoveSlovo(...), $radek->klicovaSlova));
+            $idPrednasky = $this->vlozPrednasku($radek->nazev, $radek->rok, $radek->youtubeId, $idAkce);
+            $this->pridejPrednasejici($idPrednasky, array_map($this->idPrednasejiciho(...), $radek->prednasejici));
+            $this->pridejKlicovaSlova($idPrednasky, array_map($this->idKlicovehoSlova(...), $radek->klicovaSlova));
         }
         // a pairing that matches no row would mean the unification changed after the pairing was approved
         foreach ($parovaniPodleKlice as $klic => [$idAkce]) {
@@ -85,8 +85,8 @@ final class ImportArcitabulky
             $idAkce = $sparovat
                 ? $this->overenaAkce($akce, $idAkceZDat, $rok, $nazevVProgramu, $nazev)
                 : null;
-            $idPrednasky = $this->repository->vlozPrednasku($nazev, $rok, null, $idAkce);
-            $this->repository->nastavPrednasejici($idPrednasky, array_map($this->idPrednasejiciho(...), $jmena));
+            $idPrednasky = $this->vlozPrednasku($nazev, $rok, null, $idAkce);
+            $this->pridejPrednasejici($idPrednasky, array_map($this->idPrednasejiciho(...), $jmena));
         }
 
         return $this->zpravy;
@@ -155,8 +155,102 @@ final class ImportArcitabulky
             return $this->prednasejici[$klic];
         }
 
-        return $this->prednasejici[$klic] = $this->repository->getIdPrednasejicihoPodleJmena($jmeno)
-            ?? $this->repository->vlozPrednasejiciho($jmeno, $this->overenyUzivatel($jmeno));
+        $existujici = dbOneCol(<<<'SQL'
+            SELECT id_prednasejiciho
+            FROM archiv_prednasek_prednasejici
+            WHERE jmeno = $0
+            ORDER BY id_uzivatele IS NULL, id_prednasejiciho
+            LIMIT 1
+            SQL, [
+            0 => $jmeno,
+        ], $this->spojeni);
+        if ($existujici !== null && $existujici !== false) {
+            return $this->prednasejici[$klic] = (int) $existujici;
+        }
+        dbQuery(<<<'SQL'
+            INSERT INTO archiv_prednasek_prednasejici (jmeno, id_uzivatele)
+            VALUES ($0, $1)
+            SQL, [
+            0 => $jmeno,
+            1 => $this->overenyUzivatel($jmeno),
+        ], $this->spojeni);
+
+        return $this->prednasejici[$klic] = $this->idVlozeneho();
+    }
+
+    private function vlozPrednasku(string $nazev, int $rok, ?string $youtubeId, ?int $idAkce): int
+    {
+        dbQuery(<<<'SQL'
+            INSERT INTO archiv_prednasek (nazev, rok, youtube_id, id_akce)
+            VALUES ($0, $1, $2, $3)
+            SQL, [
+            0 => $nazev,
+            1 => $rok,
+            2 => $youtubeId,
+            3 => $idAkce,
+        ], $this->spojeni);
+
+        return $this->idVlozeneho();
+    }
+
+    /**
+     * @param list<int> $idsPrednasejicich in the order they are shown
+     */
+    private function pridejPrednasejici(int $idPrednasky, array $idsPrednasejicich): void
+    {
+        foreach (array_values(array_unique($idsPrednasejicich)) as $poradi => $idPrednasejiciho) {
+            dbQuery(<<<'SQL'
+                INSERT INTO archiv_prednasek_prednaska_prednasejici (id_prednasky, id_prednasejiciho, poradi)
+                VALUES ($0, $1, $2)
+                SQL, [
+                0 => $idPrednasky,
+                1 => $idPrednasejiciho,
+                2 => $poradi,
+            ], $this->spojeni);
+        }
+    }
+
+    /**
+     * The name is unique without regard to case (collation), so „rpg“ finds „RPG“.
+     */
+    private function idKlicovehoSlova(string $nazev): int
+    {
+        $existujici = dbOneCol(<<<'SQL'
+            SELECT id_klicoveho_slova FROM archiv_prednasek_klicove_slovo WHERE nazev = $0
+            SQL, [
+            0 => $nazev,
+        ], $this->spojeni);
+        if ($existujici !== null && $existujici !== false) {
+            return (int) $existujici;
+        }
+        dbQuery(<<<'SQL'
+            INSERT INTO archiv_prednasek_klicove_slovo (nazev) VALUES ($0)
+            SQL, [
+            0 => $nazev,
+        ], $this->spojeni);
+
+        return $this->idVlozeneho();
+    }
+
+    /**
+     * @param list<int> $idsKlicovychSlov
+     */
+    private function pridejKlicovaSlova(int $idPrednasky, array $idsKlicovychSlov): void
+    {
+        foreach (array_values(array_unique($idsKlicovychSlov)) as $idKlicovehoSlova) {
+            dbQuery(<<<'SQL'
+                INSERT INTO archiv_prednasek_prednaska_klicove_slovo (id_prednasky, id_klicoveho_slova)
+                VALUES ($0, $1)
+                SQL, [
+                0 => $idPrednasky,
+                1 => $idKlicovehoSlova,
+            ], $this->spojeni);
+        }
+    }
+
+    private function idVlozeneho(): int
+    {
+        return (int) ($this->spojeni ?? dbConnect())->insert_id;
     }
 
     private function overenyUzivatel(string $jmeno): ?int
