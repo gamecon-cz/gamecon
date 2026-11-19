@@ -323,18 +323,7 @@ final class DoplneniZProgramu
 
         $idsAkci = array_merge(...array_column($karty, 'ids'));
         $vArchivu = $this->repository->getSparovaneAktivity($idsAkci);
-        // the hourly cron locks every activity that started, even one that was never public (NOVA); someone
-        // signing up, or a state of the public program in the log, is what shows that the card was in the program
-        // (aktivuj(), publikuj(), priprav() and a state saved by Aktivita::uloz() write into the log only since the end
-        // of 2026, before only the bulk activation and the locking did; every lecture of 2022–2026 has a sign-up)
-        $vProgramu = array_map('intval', dbFetchColumn(<<<'SQL'
-            SELECT id_akce FROM akce_prihlaseni_log WHERE id_akce IN ($0)
-            UNION
-            SELECT id_akce FROM akce_stavy_log WHERE id_akce IN ($0) AND id_stav IN ($1)
-            SQL, [
-            0 => $idsAkci,
-            1 => self::STAVY_V_PROGRAMU,
-        ]));
+        $vProgramu = $this->getAktivityVProgramu($idsAkci);
         $stitky = [];
         foreach (dbFetchAll(<<<'SQL'
             SELECT akce_sjednocene_tagy.id_akce, sjednocene_tagy.nazev
@@ -353,7 +342,7 @@ final class DoplneniZProgramu
             $nazev = NazevPrednasky::uprav($karta['nazev']);
             $duvodSkryti = match (true) {
                 ! self::isPrednaska($nazev, $karta['placena'], $stitky[$idKarty] ?? []) => 'nevypadá na přednášku',
-                array_intersect($karta['ids'], $vProgramu) === []                       => 'v programu asi nebyla, nikdo se na ni nepřihlásil',
+                array_intersect($karta['ids'], $vProgramu) === []                       => 'v programu asi nebyla (bez přihlášek, nebo stažená z programu)',
                 default                                                                 => null,
             };
             $kDoplneni[] = [
@@ -368,6 +357,52 @@ final class DoplneniZProgramu
         }
 
         return $kDoplneni;
+    }
+
+    /**
+     * Activities that were in the public program when they started. The hourly cron locks every activity that started,
+     * even one that was never public (NOVA), so the lock itself proves nothing.
+     *
+     * The state before the lock decides, the last row of akce_stavy_log that is not a lock or a closing: a public
+     * state, or NOVA for a lecture taken out of the program (odpublikovat) before it took place, even with sign-ups.
+     * aktivuj(), publikuj(), priprav(), odpublikuj() and a state saved by Aktivita::uloz() write into the log only since
+     * the end of 2026, before only the bulk activation and the locking did; an activity without such a row is
+     * decided by a sign-up (every lecture of 2022–2026 has one).
+     *
+     * @param list<int> $idsAkci
+     *
+     * @return list<int>
+     */
+    private function getAktivityVProgramu(array $idsAkci): array
+    {
+        $stavPredZamcenim = [];
+        foreach (dbFetchAll(<<<'SQL'
+            SELECT akce_stavy_log.id_akce, akce_stavy_log.id_stav
+            FROM akce_stavy_log
+            JOIN (
+                SELECT akce_stavy_log.id_akce, MAX(akce_stavy_log.akce_stavy_log_id) AS akce_stavy_log_id
+                FROM akce_stavy_log
+                WHERE akce_stavy_log.id_akce IN ($0) AND akce_stavy_log.id_stav NOT IN ($1)
+                GROUP BY akce_stavy_log.id_akce
+            ) AS posledni_stav ON posledni_stav.akce_stavy_log_id = akce_stavy_log.akce_stavy_log_id
+            SQL, [
+            0 => $idsAkci,
+            1 => StavAktivity::probehnuteStavy(),
+        ]) as $radek) {
+            $stavPredZamcenim[(int) $radek['id_akce']] = (int) $radek['id_stav'];
+        }
+        $sPrihlaskou = array_map('intval', dbFetchColumn(<<<'SQL'
+            SELECT DISTINCT id_akce FROM akce_prihlaseni_log WHERE id_akce IN ($0)
+            SQL, [
+            0 => $idsAkci,
+        ]));
+
+        return array_values(array_filter(
+            $idsAkci,
+            static fn (int $idAkce) => isset($stavPredZamcenim[$idAkce])
+                ? in_array($stavPredZamcenim[$idAkce], self::STAVY_V_PROGRAMU, true)
+                : in_array($idAkce, $sPrihlaskou, true),
+        ));
     }
 
     /**

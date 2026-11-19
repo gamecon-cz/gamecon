@@ -45,7 +45,9 @@ VALUES
     (990410, 'Workshop i přednáška', 'workshop-talk-po-gc', 3, {$rok}, 7, '', 0, 40, 0, 0),
     (990411, 'Nikdy nezveřejněná', 'nezverejnena-po-gc', 3, {$rok}, 7, '', 0, 40, 0, 0),
     (990412, 'Zahájení GameConu', 'zahajeni-po-gc', 3, {$rok}, 7, '', 0, 0, 0, 0),
-    (990413, 'Hlavní instance jiného typu', 'jiny-typ-po-gc', 4, {$rok}, 7, '', 0, 40, 0, 0)
+    (990413, 'Hlavní instance jiného typu', 'jiny-typ-po-gc', 4, {$rok}, 7, '', 0, 40, 0, 0),
+    (990415, 'Stažená z programu', 'stazena-po-gc', 3, {$rok}, 7, '', 0, 40, 0, 0),
+    (990416, 'Znovu zveřejněná', 'znovu-zverejnena-po-gc', 3, {$rok}, 7, '', 0, 40, 0, 0)
 SQL,
             <<<'SQL'
 INSERT INTO akce_instance(id_instance, id_hlavni_akce) VALUES (990401, 990401), (990413, 990413)
@@ -95,11 +97,24 @@ SQL,
             // what shows that a card was in the program: someone signed up (here on the other term of the first card),
             // or a state of the public program in the log; the card 990411 has neither
             <<<'SQL'
-INSERT INTO akce_prihlaseni_log(id_akce, id_uzivatele, typ) VALUES (990402, 990402, 'prihlaseni')
+INSERT INTO akce_prihlaseni_log(id_akce, id_uzivatele, typ) VALUES (990402, 990402, 'prihlaseni'), (990415, 990402, 'prihlaseni')
 SQL,
             <<<'SQL'
 INSERT INTO akce_stavy_log(id_akce, id_stav, kdy)
 SELECT id_akce, 2, '2026-06-01 12:00:00' FROM akce_seznam WHERE id_akce IN (990403, 990404, 990405, 990406, 990408, 990409, 990410, 990412, 990414)
+SQL,
+            // the state before the lock decides: 990415 was public, people signed up, then it was taken out of the
+            // program (odpublikovat) and the cron locked it anyway; 990416 was taken out and published again
+            <<<'SQL'
+INSERT INTO akce_stavy_log(id_akce, id_stav, kdy)
+VALUES
+    (990415, 2, '2026-06-01 12:00:00'),
+    (990415, 1, '2026-07-10 12:00:00'),
+    (990415, 7, '2026-07-24 10:00:00'),
+    (990416, 5, '2026-06-01 12:00:00'),
+    (990416, 1, '2026-06-10 12:00:00'),
+    (990416, 2, '2026-06-20 12:00:00'),
+    (990416, 7, '2026-07-24 10:00:00')
 SQL,
         ];
     }
@@ -277,9 +292,11 @@ SQL,
             'Ručně spárovaná'                        => [false, 990405],
             // the term is a lecture, the main activity is not: the card is in the archive by its main activity
             'Spárovaná s hlavní instancí' => [false, 990413],
+            'Stažená z programu'          => [true, 990415],
             'Stejný název jako ruční'     => [false, null],
             'Workshop i přednáška'        => [false, 990410],
             'Zahájení GameConu'           => [true, 990412],
+            'Znovu zveřejněná'            => [false, 990416],
             'Zrušená – !ZRUŠENO!'         => [true, 990409],
             'Živé hraní na pódiu'         => [true, 990408],
         ], self::prednaskyRoku());
@@ -288,7 +305,7 @@ SQL,
             $zpravy,
         );
         self::assertContains(
-            'Archiv přednášek ' . self::ROK . ': „Nikdy nezveřejněná“ (aktivita 990411) přidána, skrytá, v programu asi nebyla, nikdo se na ni nepřihlásil',
+            'Archiv přednášek ' . self::ROK . ': „Nikdy nezveřejněná“ (aktivita 990411) přidána, skrytá, v programu asi nebyla (bez přihlášek, nebo stažená z programu)',
             $zpravy,
         );
     }
