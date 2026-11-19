@@ -4,6 +4,7 @@ use Gamecon\ArchivPrednasek\ArchivPrednasekStranka;
 use Gamecon\ArchivPrednasek\ChybaArchivu;
 use Gamecon\ArchivPrednasek\SpravaArchivu;
 use Gamecon\ArchivPrednasek\YoutubeOdkaz;
+use Gamecon\Pravo;
 use Gamecon\XTemplate\XTemplate;
 
 /**
@@ -18,6 +19,7 @@ use Gamecon\XTemplate\XTemplate;
 
 /**
  * @var \Gamecon\SystemoveNastaveni\SystemoveNastaveni $systemoveNastaveni
+ * @var Uzivatel $u
  */
 
 $urlModulu = 'web/archiv-prednasek';
@@ -32,6 +34,13 @@ if (get('hledatAktivitu') !== null) {
         $sprava->hledejAktivity((string) get('term'), ctype_digit($rok) ? (int) $rok : null),
         JSON_THROW_ON_ERROR,
     );
+    exit;
+}
+
+// našeptávač uživatelů k přednášejícím, jen ID a jména; ajax-omnibox je jen pro práva, která archiv nepotřebuje
+if (get('hledatUzivatele') !== null) {
+    header('Content-Type: application/json');
+    echo json_encode($sprava->hledejUzivatele((string) get('term')), JSON_THROW_ON_ERROR);
     exit;
 }
 
@@ -58,9 +67,11 @@ if (post('ulozit') !== null) {
             $chybaUzivatele = "U přednášejícího „{$jmeno}“ vyber uživatele z našeptávače (pole čeká jeho ID).";
         }
         $prednasejici[] = [
-            'jmeno'          => (string) $jmeno,
-            'idUzivatele'    => ctype_digit($uzivatel) ? (int) $uzivatel : null,
-            'menitUzivatele' => $uzivatel !== $puvodniUzivatel,
+            'jmeno'                => (string) $jmeno,
+            'idUzivatele'          => ctype_digit($uzivatel) ? (int) $uzivatel : null,
+            'menitUzivatele'       => $uzivatel !== $puvodniUzivatel,
+            // kterého z jmenovců řádek ukazoval, když admin uživatele mění
+            'idPuvodnihoUzivatele' => ctype_digit($puvodniUzivatel) ? (int) $puvodniUzivatel : null,
         ];
     }
     $idAkce = trim((string) post('idAkce'));
@@ -85,6 +96,7 @@ if (post('ulozit') !== null) {
     } catch (ChybaArchivu $chybaArchivu) {
         // hláška je prostý text s názvy a jmény, chyba() ji vypíše jako HTML
         chyba($e($chybaArchivu->getMessage()), false);
+        // prázdné řádky formuláře vynechá, jinak by s těmi, které detail přidá, každou chybou přibývaly
         $formular = [
             'id'           => $idPrednasky,
             'nazev'        => (string) post('nazev'),
@@ -92,12 +104,18 @@ if (post('ulozit') !== null) {
             'youtube'      => (string) post('youtube'),
             'skryta'       => (bool) post('skryta'),
             'idAkce'       => $idAkce,
-            'prednasejici' => array_map(static fn (array $osoba, int $index) => [
-                'jmeno'                 => $osoba['jmeno'],
-                'uzivatel'              => trim((string) ($_POST['prednasejiciUzivatel'][$index] ?? '')),
-                'puvodniUzivatel'       => trim((string) ($_POST['prednasejiciPuvodniUzivatel'][$index] ?? '')),
-            ], $prednasejici, array_keys($prednasejici)),
-            'klicovaSlova' => array_map('strval', (array) post('klicovaSlova')),
+            'prednasejici' => array_values(array_filter(
+                array_map(static fn (array $osoba, int $index) => [
+                    'jmeno'           => $osoba['jmeno'],
+                    'uzivatel'        => trim((string) ($_POST['prednasejiciUzivatel'][$index] ?? '')),
+                    'puvodniUzivatel' => trim((string) ($_POST['prednasejiciPuvodniUzivatel'][$index] ?? '')),
+                ], $prednasejici, array_keys($prednasejici)),
+                static fn (array $osoba) => trim($osoba['jmeno']) !== '' || $osoba['uzivatel'] !== '' || $osoba['puvodniUzivatel'] !== '',
+            )),
+            'klicovaSlova' => array_values(array_filter(
+                array_map('strval', (array) post('klicovaSlova')),
+                static fn (string $slovo) => trim($slovo) !== '',
+            )),
         ];
     }
 }
@@ -115,7 +133,8 @@ if ($id !== null) {
             ? $sprava->getDetail((int) $id)
             : null;
         if ($detail === null) {
-            chyba('Taková přednáška v archivu není.');
+            // na seznam, ne zpátky: odkaz ze záložky nemá odkud přišel a back() by skončil na webu
+            oznameniPresmeruj('Taková přednáška v archivu není.', URL_ADMIN . '/' . $urlModulu, Chyba::CHYBA);
         }
         $formular = [
             'id'           => $detail['id'],
@@ -211,6 +230,8 @@ if ($id !== null) {
             'typAktivity'   => $e($aktivita['typ']),
             'urlAktivity'   => $e('aktivity/upravy?aktivitaId=' . $formular['idAkce']),
         ]);
+        // úprava aktivity chce právo aktivit, archiv stačí spravovat s právem webu
+        $t->parse($u->maPravo(Pravo::ADMINISTRACE_AKCE) ? 'detail.aktivita.odkaz' : 'detail.aktivita.text');
         $t->parse('detail.aktivita');
     } else {
         $t->parse('detail.bezAktivity');

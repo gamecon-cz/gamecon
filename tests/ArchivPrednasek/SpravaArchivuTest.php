@@ -350,6 +350,77 @@ SQL,
     }
 
     /**
+     * Changing or clearing the user of a row changes the namesake the row showed, not the one of the lowest id,
+     * and the other namesake keeps his user in all his lectures.
+     */
+    public function testZmenaUzivateleMeniJmenovceZRadku(): void
+    {
+        // namesakes as the job after GC makes them, each with a lecture (unused speakers are cleaned up on save)
+        dbQuery(<<<'SQL'
+            INSERT INTO archiv_prednasek_prednasejici(id_prednasejiciho, jmeno, id_uzivatele)
+            VALUES (990301, 'Jan Novák', 990301), (990302, 'Jan Novák', 990302)
+            SQL);
+        dbQuery(<<<'SQL'
+            INSERT INTO archiv_prednasek(id_prednasky, nazev, rok)
+            VALUES (990301, 'Přednáška prvního', 2025), (990302, 'Přednáška druhého', 2025)
+            SQL);
+        dbQuery(<<<'SQL'
+            INSERT INTO archiv_prednasek_prednaska_prednasejici(id_prednasky, id_prednasejiciho, poradi)
+            VALUES (990301, 990301, 0), (990302, 990302, 0)
+            SQL);
+        $prvniho = 990301;
+        $druheho = 990302;
+
+        self::uloz(nazev: 'Přednáška druhého', idPrednasky: $druheho, prednasejici: [[
+            'jmeno'                => 'Jan Novák',
+            'idUzivatele'          => null,
+            'menitUzivatele'       => true,
+            'idPuvodnihoUzivatele' => 990302,
+        ]]);
+
+        self::assertSame([[
+            'jmeno'       => 'Jan Novák',
+            'idUzivatele' => null,
+        ]], self::sprava()->getDetail($druheho)['prednasejici'], 'Odpojí se jmenovec z řádku');
+        self::assertSame([[
+            'jmeno'       => 'Jan Novák',
+            'idUzivatele' => 990301,
+        ]], self::sprava()->getDetail($prvniho)['prednasejici'], 'Druhý jmenovec zůstane napojený');
+    }
+
+    public function testStejneJmenoSRuznymiUzivateliJeChyba(): void
+    {
+        $this->expectException(ChybaArchivu::class);
+        $this->expectExceptionMessage('Jméno „lektor“ je u přednášky dvakrát, s různými uživateli.');
+
+        self::uloz(prednasejici: [
+            [
+                'jmeno'          => 'Lektor',
+                'idUzivatele'    => 990301,
+                'menitUzivatele' => true,
+            ],
+            [
+                'jmeno'          => 'lektor',
+                'idUzivatele'    => 990302,
+                'menitUzivatele' => true,
+            ],
+        ]);
+    }
+
+    /**
+     * The search for a speaker's user gives the id and names, never the e-mail, and does not search e-mails.
+     */
+    public function testHledaniUzivateluBezKontaktu(): void
+    {
+        $nalezeni = self::sprava()->hledejUzivatele('druhy-sprava');
+        self::assertSame([990302], array_column($nalezeni, 'value'));
+        self::assertStringContainsString('ID 990302', $nalezeni[0]['label']);
+        self::assertStringNotContainsString('@', $nalezeni[0]['label']);
+        self::assertSame([990301], array_column(self::sprava()->hledejUzivatele('990301'), 'value'));
+        self::assertSame([], self::sprava()->hledejUzivatele('prvni-sprava@example.invalid'), 'Podle e-mailu nehledá');
+    }
+
+    /**
      * A card attached under another one later can hold the terms of two lectures; pairing a third one with it is
      * a message for the administrator, not a failure of the page.
      */

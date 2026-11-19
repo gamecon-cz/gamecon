@@ -160,10 +160,11 @@ final class SpravaArchivu
     /**
      * Checks and saves a lecture; a speaker of an existing name is the same speaker, his link to a user changes
      * for all his lectures, but only when the administrator changed it (menitUzivatele), so that adding a known
-     * speaker with an empty user does not unlink him. Unused speakers and keywords are removed afterwards.
+     * speaker with an empty user does not unlink him. The user the row had (idPuvodnihoUzivatele) tells which of
+     * namesakes the row is. Unused speakers and keywords are removed afterwards.
      *
-     * @param list<array{jmeno: string, idUzivatele: int|null, menitUzivatele: bool}> $prednasejici
-     * @param list<string>                                                            $klicovaSlova
+     * @param list<array{jmeno: string, idUzivatele: int|null, menitUzivatele: bool, idPuvodnihoUzivatele?: int|null}> $prednasejici
+     * @param list<string>                                                                                           $klicovaSlova
      *
      * @return int id of the lecture
      *
@@ -209,9 +210,10 @@ final class SpravaArchivu
             }
         }
 
+        $nova = $idPrednasky === null;
         dbBegin();
         try {
-            if ($idPrednasky === null) {
+            if ($nova) {
                 $idPrednasky = $this->repository->vlozPrednasku($nazev, $rok, $youtubeId, $idHlavniAkce, $skryta);
             } else {
                 dbQuery(<<<'SQL'
@@ -228,11 +230,17 @@ final class SpravaArchivu
                 ]);
             }
             $idsPrednasejicich = [];
-            foreach ($prednasejici as ['jmeno' => $jmeno, 'idUzivatele' => $idUzivatele, 'menitUzivatele' => $menitUzivatele]) {
-                $idsPrednasejicich[] = $this->idPrednasejiciho($jmeno, $idUzivatele, $menitUzivatele);
+            foreach ($prednasejici as $osoba) {
+                $idsPrednasejicich[] = $this->idPrednasejiciho($osoba['jmeno'], $osoba['idUzivatele'], $osoba['menitUzivatele'], $osoba['idPuvodnihoUzivatele']);
             }
-            $this->repository->nastavPrednasejici($idPrednasky, $idsPrednasejicich);
-            $this->repository->nastavKlicovaSlova($idPrednasky, array_map($this->repository->najdiNeboVlozKlicoveSlovo(...), $klicovaSlova));
+            $idsKlicovychSlov = array_map($this->repository->najdiNeboVlozKlicoveSlovo(...), $klicovaSlova);
+            if ($nova) {
+                $this->repository->pridejPrednasejici($idPrednasky, $idsPrednasejicich);
+                $this->repository->pridejKlicovaSlova($idPrednasky, $idsKlicovychSlov);
+            } else {
+                $this->repository->nastavPrednasejici($idPrednasky, $idsPrednasejicich);
+                $this->repository->nastavKlicovaSlova($idPrednasky, $idsKlicovychSlov);
+            }
             $this->uklidNepouzite();
             dbCommit();
         } catch (\Throwable $throwable) {
@@ -289,6 +297,34 @@ final class SpravaArchivu
             'label' => NazevPrednasky::uprav((string) $radek['nazev']) . " ({$radek['rok']}, {$radek['typ']}, ID {$radek['id_karty']})"
                 . (isset($radek['v_archivu']) ? ' – v archivu jako „' . $radek['v_archivu'] . '“' : ''),
         ], $radky);
+    }
+
+    /**
+     * Users for the omnibox of a speaker, by id, login or name: only the id and the names. The admin omnibox
+     * (ajax-omnibox) also gives contacts and balances and is not for everyone who manages the archive
+     * (Gamecon\Admin\OmniboxAdminu), e-mails are not searched either, so that the search does not confirm one.
+     *
+     * @return list<array{value: int, label: string}>
+     */
+    public function hledejUzivatele(string $hledat): array
+    {
+        $hledat = trim($hledat);
+        if ($hledat === '') {
+            return [];
+        }
+
+        return array_map(
+            static fn (\Uzivatel $uzivatel) => [
+                'value' => $uzivatel->id(),
+                'label' => sprintf(
+                    '%s – na webu „%s“ (ID %d)',
+                    $uzivatel->jmenoNick() ?? $uzivatel->login(),
+                    $uzivatel->jmenoNaWebu(),
+                    $uzivatel->id(),
+                ),
+            ],
+            array_values(\Uzivatel::zHledani($hledat, [], 20, 2)),
+        );
     }
 
     /**
@@ -356,16 +392,18 @@ final class SpravaArchivu
      * A row without a name is dropped, as the form says, even with the user it had (that is how a linked speaker is
      * removed); only a user the administrator has just chosen needs a name.
      *
-     * @param list<array{jmeno: string, idUzivatele: int|null, menitUzivatele: bool}> $prednasejici
+     * @param list<array{jmeno: string, idUzivatele: int|null, menitUzivatele: bool, idPuvodnihoUzivatele?: int|null}> $prednasejici
      *
-     * @return list<array{jmeno: string, idUzivatele: int|null, menitUzivatele: bool}>
+     * @return list<array{jmeno: string, idUzivatele: int|null, menitUzivatele: bool, idPuvodnihoUzivatele: int|null}>
      */
     private function overeniPrednasejici(array $prednasejici): array
     {
         $overeni = [];
+        /** @var array<string, int|null> $jmena lower-case name => user of its first row */
         $jmena = [];
         $uzivatele = [];
-        foreach ($prednasejici as ['jmeno' => $jmeno, 'idUzivatele' => $idUzivatele, 'menitUzivatele' => $menitUzivatele]) {
+        foreach ($prednasejici as $osoba) {
+            ['jmeno' => $jmeno, 'idUzivatele' => $idUzivatele, 'menitUzivatele' => $menitUzivatele] = $osoba;
             $jmeno = trim((string) preg_replace('~\s+~u', ' ', $jmeno));
             if ($jmeno === '') {
                 if ($idUzivatele !== null && $menitUzivatele) {
@@ -383,20 +421,25 @@ final class SpravaArchivu
             ])) {
                 throw new ChybaArchivu("Uživatel {$idUzivatele} neexistuje.");
             }
-            if (in_array(mb_strtolower($jmeno), $jmena, true)) {
+            if (array_key_exists(mb_strtolower($jmeno), $jmena)) {
+                // the same row twice is harmless, but a second user under the same name would be lost
+                if ($jmena[mb_strtolower($jmeno)] !== $idUzivatele) {
+                    throw new ChybaArchivu("Jméno „{$jmeno}“ je u přednášky dvakrát, s různými uživateli.");
+                }
                 continue;
             }
             if ($idUzivatele !== null && in_array($idUzivatele, $uzivatele, true)) {
                 throw new ChybaArchivu("Uživatel {$idUzivatele} je u přednášky dvakrát, pod dvěma jmény.");
             }
-            $jmena[] = mb_strtolower($jmeno);
+            $jmena[mb_strtolower($jmeno)] = $idUzivatele;
             if ($idUzivatele !== null) {
                 $uzivatele[] = $idUzivatele;
             }
             $overeni[] = [
-                'jmeno'          => $jmeno,
-                'idUzivatele'    => $idUzivatele,
-                'menitUzivatele' => $menitUzivatele,
+                'jmeno'                => $jmeno,
+                'idUzivatele'          => $idUzivatele,
+                'menitUzivatele'       => $menitUzivatele,
+                'idPuvodnihoUzivatele' => $osoba['idPuvodnihoUzivatele'] ?? null,
             ];
         }
 
@@ -404,18 +447,25 @@ final class SpravaArchivu
     }
 
     /**
-     * A speaker of an existing name is the same speaker (of namesakes the one linked to the user of the row), and
-     * a change of his user applies to all his lectures. A user has one speaker (the table has no unique key for it,
+     * A speaker of an existing name is the same speaker (of namesakes the one linked to the user of the row; when
+     * the administrator changes the user, the one linked to the user the row had), and a change of his user applies
+     * to all his lectures. A user has one speaker (the table has no unique key for it,
      * see docs/generated/archiv-prednasek.md), so a speaker cannot get a user who has another one: a new name for
      * a linked speaker would otherwise make a second speaker of the same person.
      *
      * @throws ChybaArchivu
      */
-    private function idPrednasejiciho(string $jmeno, ?int $idUzivatele, bool $menitUzivatele): int
+    private function idPrednasejiciho(string $jmeno, ?int $idUzivatele, bool $menitUzivatele, ?int $idPuvodnihoUzivatele): int
     {
-        $idPrednasejiciho = $this->repository->getIdPrednasejicihoPodleJmena($jmeno, $idUzivatele);
-        if ($idPrednasejiciho !== null && ! $menitUzivatele) {
-            return $idPrednasejiciho;
+        if (! $menitUzivatele) {
+            $idPrednasejiciho = $this->repository->getIdPrednasejicihoPodleJmena($jmeno, $idUzivatele);
+            if ($idPrednasejiciho !== null) {
+                return $idPrednasejiciho;
+            }
+        } else {
+            // the speaker the row showed, not a namesake linked to another user (he would lose his user everywhere)
+            $idPrednasejiciho = $this->repository->getIdPrednasejicihoPodleJmenaAUzivatele($jmeno, $idPuvodnihoUzivatele)
+                ?? $this->repository->getIdPrednasejicihoPodleJmena($jmeno, $idUzivatele);
         }
         $jinyPrednasejiciUzivatele = $idUzivatele !== null
             ? $this->repository->getIdPrednasejicihoPodleUzivatele($idUzivatele, $idPrednasejiciho)

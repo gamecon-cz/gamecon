@@ -184,7 +184,7 @@ final class DoplneniZProgramu
             return self::popis($karta) . ' přeskočena, přednáška toho jména v archivu už je';
         }
         $idPrednasky = $this->repository->vlozPrednasku($karta['nazev'], $karta['rok'], null, $karta['idKarty'], $karta['duvodSkryti'] !== null);
-        $this->repository->nastavPrednasejici(
+        $this->repository->pridejPrednasejici(
             $idPrednasky,
             array_map($this->najdiNeboVlozPrednasejiciho(...), $karta['organizatori']),
         );
