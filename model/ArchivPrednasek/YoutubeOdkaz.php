@@ -45,7 +45,8 @@ final class YoutubeOdkaz
         if ($host === 'youtu.be') {
             $id = explode('/', trim($cesta, '/'))[0];
         } elseif ($host === 'youtube.com' || $host === 'youtube-nocookie.com') {
-            if (preg_match('~^/(?:embed|shorts|live|v)/([^/]+)~', $cesta, $shoda)) {
+            // embed/videoseries?list=… is a playlist, its 11 letters would pass for an id
+            if (preg_match('~^/(?:embed|shorts|live|v)/([^/]+)~', $cesta, $shoda) && $shoda[1] !== 'videoseries') {
                 $id = $shoda[1];
             } elseif (rtrim($cesta, '/') === '/watch') {
                 parse_str($casti['query'] ?? '', $parametry);

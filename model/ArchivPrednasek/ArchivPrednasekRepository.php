@@ -26,12 +26,12 @@ final class ArchivPrednasekRepository
             INSERT INTO archiv_prednasek (nazev, rok, youtube_id, id_akce, skryta)
             VALUES ($0, $1, $2, $3, $4)
             SQL, [
-    0         => $nazev,
+            0 => $nazev,
             1 => $rok,
             2 => $youtubeId,
             3 => $idAkce,
             4 => (int) $skryta,
-], $this->spojeni);
+        ], $this->spojeni);
 
         return $this->idVlozeneho();
     }
@@ -48,6 +48,23 @@ final class ArchivPrednasekRepository
             FROM archiv_prednasek_prednasejici
             WHERE jmeno = $0
             ORDER BY COALESCE(id_uzivatele = $1, 0) DESC, id_uzivatele IS NULL, id_prednasejiciho
+            LIMIT 1
+            SQL, [
+            0 => $jmeno,
+            1 => $idUzivatele,
+        ], $this->spojeni));
+    }
+
+    /**
+     * The speaker of the name linked to exactly this user, or without a user for null.
+     */
+    public function getIdPrednasejicihoPodleJmenaAUzivatele(string $jmeno, ?int $idUzivatele): ?int
+    {
+        return self::idNeboNull(dbOneCol(<<<'SQL'
+            SELECT id_prednasejiciho
+            FROM archiv_prednasek_prednasejici
+            WHERE jmeno = $0 AND id_uzivatele <=> $1
+            ORDER BY id_prednasejiciho
             LIMIT 1
             SQL, [
             0 => $jmeno,
@@ -157,6 +174,8 @@ final class ArchivPrednasekRepository
     }
 
     /**
+     * Replaces the speakers of an existing lecture.
+     *
      * @param list<int> $idsPrednasejicich in the order they are shown
      */
     public function nastavPrednasejici(int $idPrednasky, array $idsPrednasejicich): void
@@ -167,6 +186,18 @@ final class ArchivPrednasekRepository
             SQL, [
             0 => $idPrednasky,
         ], $this->spojeni);
+        $this->pridejPrednasejici($idPrednasky, $idsPrednasejicich);
+    }
+
+    /**
+     * Speakers of a lecture just inserted. Without the DELETE of nastavPrednasejici(): under REPEATABLE READ it would
+     * lock the gap after the last key, and two transactions adding a lecture at once (the job after GC and
+     * the administration) could end in a deadlock.
+     *
+     * @param list<int> $idsPrednasejicich in the order they are shown
+     */
+    public function pridejPrednasejici(int $idPrednasky, array $idsPrednasejicich): void
+    {
         foreach (array_values(array_unique($idsPrednasejicich)) as $poradi => $idPrednasejiciho) {
             dbQuery(<<<'SQL'
                 INSERT INTO archiv_prednasek_prednaska_prednasejici (id_prednasky, id_prednasejiciho, poradi)
@@ -180,6 +211,8 @@ final class ArchivPrednasekRepository
     }
 
     /**
+     * Replaces the keywords of an existing lecture.
+     *
      * @param list<int> $idsKlicovychSlov
      */
     public function nastavKlicovaSlova(int $idPrednasky, array $idsKlicovychSlov): void
@@ -190,6 +223,16 @@ final class ArchivPrednasekRepository
             SQL, [
             0 => $idPrednasky,
         ], $this->spojeni);
+        $this->pridejKlicovaSlova($idPrednasky, $idsKlicovychSlov);
+    }
+
+    /**
+     * Keywords of a lecture just inserted, without a DELETE (see pridejPrednasejici()).
+     *
+     * @param list<int> $idsKlicovychSlov
+     */
+    public function pridejKlicovaSlova(int $idPrednasky, array $idsKlicovychSlov): void
+    {
         foreach (array_values(array_unique($idsKlicovychSlov)) as $idKlicovehoSlova) {
             dbQuery(<<<'SQL'
                 INSERT INTO archiv_prednasek_prednaska_klicove_slovo (id_prednasky, id_klicoveho_slova)

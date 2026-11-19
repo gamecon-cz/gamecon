@@ -156,7 +156,8 @@
           <tr>
             <td><input name="prednasejiciJmeno[]" value="{jmeno}" list="archivPrednasek_jmena" size="30"></td>
             <td>
-              <input name="prednasejiciUzivatel[]" value="{uzivatel}" class="omnibox" size="10" placeholder="hledat">
+              <input name="prednasejiciUzivatel[]" value="{uzivatel}" class="omnibox" size="10" placeholder="hledat"
+                     data-omnibox-url="{urlModulu}?hledatUzivatele=1">
               <input type="hidden" name="prednasejiciPuvodniUzivatel[]" value="{puvodniUzivatel}">
               {popisUzivatele}
             </td>
@@ -206,7 +207,7 @@
       <th><label for="archivPrednasek_idAkce">Aktivita programu</label></th>
       <td>
         <!-- begin: aktivita -->
-        <div><a href="{urlAktivity}">{nazevAktivity}</a> ({rokAktivity}, {typAktivity})</div>
+        <div><!-- begin: odkaz --><a href="{urlAktivity}">{nazevAktivity}</a><!-- end: odkaz --><!-- begin: text -->{nazevAktivity}<!-- end: text --> ({rokAktivity}, {typAktivity})</div>
         <!-- end: aktivita -->
         <!-- begin: bezAktivity -->
         <div><em>nespárovaná, anotace ani štítky z programu se neukazují</em></div>

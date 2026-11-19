@@ -32,6 +32,7 @@ class YoutubeOdkazTest extends TestCase
             'jiný web'                   => ['https://vimeo.com/123456789', null],
             'kanál, ne video'            => ['https://www.youtube.com/@gamecon', null],
             'watch bez videa'            => ['https://www.youtube.com/watch?list=PL123', null],
+            'playlist v embed'           => ['https://www.youtube.com/embed/videoseries?list=PL123', null],
             'krátké id'                  => ['https://youtu.be/abc', null],
             'id s nepovoleným znakem'    => ['https://youtu.be/FqzndwNwa3!', null],
             // parse_str() dekóduje %0A a $ ve vzoru by nový řádek na konci pustil (12 znaků do VARCHAR(11))
