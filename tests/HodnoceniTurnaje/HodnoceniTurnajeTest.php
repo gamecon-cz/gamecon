@@ -5,10 +5,13 @@ declare(strict_types=1);
 namespace Gamecon\Tests\HodnoceniTurnaje;
 
 use Gamecon\Aktivita\TypAktivity;
-use Gamecon\HodnoceniTurnaje\ChybaSablonyHodnoceni;
 use Gamecon\HodnoceniTurnaje\HodnoceniTurnaje;
 use Gamecon\HodnoceniTurnaje\HodnoceniTurnajeException;
-use Gamecon\HodnoceniTurnaje\PrejmenovaniBezPotvrzeni;
+use Gamecon\HodnoceniTurnaje\KategorieHodnoceni;
+use Gamecon\HodnoceniTurnaje\KriteriumHodnoceni;
+use Gamecon\HodnoceniTurnaje\ParserSablonyHodnoceni;
+use Gamecon\HodnoceniTurnaje\SablonaHodnoceni;
+use Gamecon\HodnoceniTurnaje\ZmenaKriteriiChcePotvrzeni;
 use Gamecon\Tests\Db\AbstractTestDb;
 use Gamecon\XTemplate\XTemplate;
 use Symfony\Component\Clock\MockClock;
@@ -17,7 +20,8 @@ use Symfony\Component\Clock\MockClock;
  * Hodnocení skupin turnaje D&D: vypravěč hodnotí skupiny z kola, které vede, od jeho začátku a dokud org hodnocení
  * neuzavře; hodnocení je jedno na skupinu a kolo, cizí přepíše jen org turnaje a cizí hodnoty vypravěč nevidí. Org
  * zadává nové hodnocení za vypravěče kola. Výsledky sčítají body po kategoriích jen za kola, která skupina hraje,
- * stejný součet dělí místo. Nové nahrání kritérií páruje podle názvů, přejmenování s hodnocením chce potvrzení.
+ * stejný součet dělí místo. Kritéria z editoru se ukládají podle id: přejmenování a přeřazení hodnocení nechá, co by
+ * smazalo hodnoty, chce potvrzení. Soubor se páruje podle názvů.
  */
 class HodnoceniTurnajeTest extends AbstractTestDb
 {
@@ -91,12 +95,12 @@ class HodnoceniTurnajeTest extends AbstractTestDb
         $this->vytvorTym('Legendární', [$this->koloLegend]);
     }
 
-    public function testNahraniUloziSablonu(): void
+    public function testUlozeniVytvoriSablonu(): void
     {
         self::assertNull($this->vytvorHodnoceni()->getSablona());
 
         $hodnoceni = $this->vytvorHodnoceni();
-        self::assertSame(0, $hodnoceni->nahrajSablonu(self::SABLONA, $this->org));
+        self::assertSame(0, $hodnoceni->ulozSablonu(ParserSablonyHodnoceni::rozeber(self::SABLONA), $this->org));
 
         $sablona = $hodnoceni->getSablona();
         self::assertNotNull($sablona);
@@ -104,22 +108,31 @@ class HodnoceniTurnajeTest extends AbstractTestDb
         self::assertSame('Hraní rolí', $sablona->kategorie[0]->nazev);
         self::assertSame(['Postavy', 'Spolupráce'], array_column($sablona->kategorie[0]->kriteria, 'nazev'));
         self::assertSame('Nápaditost', $sablona->kategorie[1]->kriteria[0]->nazev);
-        self::assertSame(self::SABLONA, $sablona->zdroj);
+        self::assertNotNull($sablona->kategorie[1]->kriteria[0]->id);
+        self::assertSame(self::SABLONA, $sablona->getText());
+        self::assertSame(self::SABLONA, $this->getZdroj(), 'Textový zápis zůstane pro dohledání');
         self::assertFalse($sablona->isUzavrena());
         // šablona patří ročníku
         self::assertNull($this->vytvorHodnoceni(rok: self::ROK + 1)->getSablona());
     }
 
-    public function testNecitelnySouborNicNeulozi(): void
+    public function testIdZJineSablonyNeprojde(): void
     {
         $hodnoceni = $this->vytvorHodnoceni();
+        $sCizimId = $this->sablona([1, 2], [['Hraní', 999999, [['Postavy', null]]]]);
 
-        $this->expectException(ChybaSablonyHodnoceni::class);
-        try {
-            $hodnoceni->nahrajSablonu("Škála: 1 2\n## Bez kategorie", $this->org);
-        } finally {
-            self::assertNull($hodnoceni->getSablona());
-        }
+        // formulář otevřený před tím, než jiný org kritéria změnil nebo smazal
+        $this->assertZakaz(fn () => $hodnoceni->ulozSablonu($sCizimId, $this->org), 'Kritéria mezitím uložil někdo jiný');
+        self::assertNull($hodnoceni->getSablona());
+
+        $hodnoceni = $this->vytvorHodnoceniSeSablonou();
+        $ulozena = $hodnoceni->getSablona();
+        $idPostav = $ulozena->kategorie[0]->kriteria[0]->id;
+        $dvakrat = $this->sablona([1, 2, 3, 4, 5], [
+            [$ulozena->kategorie[0]->nazev, $ulozena->kategorie[0]->id, [['Postavy', $idPostav], ['Postavy znovu', $idPostav]]],
+        ]);
+        $this->assertZakaz(fn () => $hodnoceni->ulozSablonu($dvakrat, $this->org), 'Kritéria mezitím uložil někdo jiný');
+        self::assertSame(self::SABLONA, $hodnoceni->getSablona()->getText());
     }
 
     public function testVypravecVidiJenKolaTurnajeDnDKtereVede(): void
@@ -275,7 +288,7 @@ class HodnoceniTurnajeTest extends AbstractTestDb
 
         $this->assertZakaz(
             fn () => $hodnoceni->ulozHodnoceni($this->prvniKolo, $this->paraBola, [], $this->org, true),
-            'Kritéria hodnocení ještě nejsou nahraná',
+            'Kritéria hodnocení ještě nejsou zadaná',
         );
     }
 
@@ -297,119 +310,181 @@ class HodnoceniTurnajeTest extends AbstractTestDb
         self::assertSame(2, $hodnoceni->getPocetHodnoceni());
     }
 
-    public function testPreradeniSeStejnymiNazvyNechaHodnoceniUNazvu(): void
+    public function testPrejmenovaniAPreradeniPodleIdNechaHodnoceni(): void
     {
         $hodnoceni = $this->vytvorHodnoceniSeSablonou();
         $hodnoceni->ulozHodnoceni($this->prvniKolo, $this->paraBola, $this->getHodnoty($hodnoceni, [5, 4, 3]), $this->vypravecA, false);
-        $puvodni = $hodnoceni->getSablona();
+        [$hrani, $reseni] = $hodnoceni->getSablona()->kategorie;
+        [$postavy, $spoluprace] = $hrani->kriteria;
+        $napaditost = $reseni->kriteria[0];
 
-        // kategorie i kritéria prohozené, škála pozpátku, jeden název jinými písmeny
-        $prerazena = <<<'TEXT'
-            Škála: 5 4 3 2 1
-            # Řešení
-            ## Nápaditost
-            # hraní rolí
-            ## Spolupráce
-            ## Postavy
-            TEXT;
-        self::assertSame(0, $hodnoceni->nahrajSablonu($prerazena, $this->org));
+        // kategorie i kritéria prohozené a přejmenované, škála pozpátku
+        $zmenena = $this->sablona([5, 4, 3, 2, 1], [
+            ['Řešení zápletky', $reseni->id, [['Nápaditost', $napaditost->id]]],
+            ['Hraní rolí', $hrani->id, [['Spolupráce', $spoluprace->id], ['Postavy a příběh', $postavy->id]]],
+        ]);
+        self::assertSame(0, $hodnoceni->ulozSablonu($zmenena, $this->org), 'Přejmenování ani přeřazení nic nemaže');
 
         $sablona = $hodnoceni->getSablona();
-        self::assertSame(['Řešení', 'hraní rolí'], array_column($sablona->kategorie, 'nazev'));
-        self::assertSame(['Spolupráce', 'Postavy'], array_column($sablona->kategorie[1]->kriteria, 'nazev'));
+        self::assertSame(['Řešení zápletky', 'Hraní rolí'], array_column($sablona->kategorie, 'nazev'));
+        self::assertSame(['Spolupráce', 'Postavy a příběh'], array_column($sablona->kategorie[1]->kriteria, 'nazev'));
         self::assertSame([5, 4, 3, 2, 1], $sablona->skala);
-        self::assertSame($puvodni->kategorie[0]->id, $sablona->kategorie[1]->id, 'Kategorie si nechá id');
-        $hodnotyPodleNazvu = [];
-        $ulozene = $hodnoceni->getHodnoceni($this->paraBola, 1)['hodnoty'];
-        foreach ($sablona->kategorie as $kategorie) {
-            foreach ($kategorie->kriteria as $kriterium) {
-                $hodnotyPodleNazvu[$kriterium->nazev] = $ulozene[$kriterium->id];
-            }
-        }
+        self::assertSame($reseni->id, $sablona->kategorie[0]->id);
+        self::assertSame($this->getHodnotyPodleNazvu($hodnoceni, $sablona), [
+            'Nápaditost'       => 3,
+            'Spolupráce'       => 4,
+            'Postavy a příběh' => 5,
+        ]);
+        self::assertSame($sablona->getText(), $this->getZdroj());
+    }
+
+    public function testKriteriumJdePresunoutDoJineKategorie(): void
+    {
+        $hodnoceni = $this->vytvorHodnoceniSeSablonou();
+        $hodnoceni->ulozHodnoceni($this->prvniKolo, $this->paraBola, $this->getHodnoty($hodnoceni, [5, 4, 3]), $this->vypravecA, false);
+        [$hrani, $reseni] = $hodnoceni->getSablona()->kategorie;
+
+        $presunuta = $this->sablona([1, 2, 3, 4, 5], [
+            ['Hraní rolí', $hrani->id, [['Postavy', $hrani->kriteria[0]->id]]],
+            ['Řešení', $reseni->id, [['Spolupráce', $hrani->kriteria[1]->id], ['Nápaditost', $reseni->kriteria[0]->id]]],
+        ]);
+        self::assertSame(0, $hodnoceni->ulozSablonu($presunuta, $this->org));
+
+        $vysledek = $this->najdiVysledek($hodnoceni, $this->paraBola);
+        self::assertSame([5, 7], array_values($vysledek['souctyKategorii']), 'Spolupráce se sčítá do Řešení');
+    }
+
+    public function testOdebraniKriteriaChcePotvrzeniAHodnoceniNecha(): void
+    {
+        $hodnoceni = $this->vytvorHodnoceniSeSablonou();
+        $hodnoceni->ulozHodnoceni($this->prvniKolo, $this->paraBola, $this->getHodnoty($hodnoceni, [5, 4, 3]), $this->vypravecA, false);
+        [$hrani, $reseni] = $hodnoceni->getSablona()->kategorie;
+        $bezSpoluprace = $this->sablona([1, 2, 3, 4, 5], [
+            ['Hraní rolí', $hrani->id, [['Postavy', $hrani->kriteria[0]->id]]],
+            ['Řešení', $reseni->id, [['Nápaditost', $reseni->kriteria[0]->id]]],
+        ]);
+
+        $zmena = $this->getZmenaChticiPotvrzeni(fn () => $hodnoceni->ulozSablonu($bezSpoluprace, $this->org));
+        self::assertFalse($zmena->isSmazaniVsech());
+        self::assertSame(
+            ['Odebíráš kritérium „Spolupráce“ (Hraní rolí), jeho hodnoty se z hodnocení smažou, ostatní hodnoty zůstanou.'],
+            $zmena->getPodrobnosti(),
+        );
+        self::assertSame(self::SABLONA, $hodnoceni->getSablona()->getText(), 'Bez potvrzení se nic nezmění');
+
+        self::assertSame(0, $hodnoceni->ulozSablonu($bezSpoluprace, $this->org, $zmena->getKlicPotvrzeni()));
+        self::assertSame(1, $hodnoceni->getPocetHodnoceni());
         self::assertSame([
-            'Nápaditost' => 3,
-            'Spolupráce' => 4,
             'Postavy'    => 5,
-        ], $hodnotyPodleNazvu);
+            'Nápaditost' => 3,
+        ], $this->getHodnotyPodleNazvu($hodnoceni, $hodnoceni->getSablona()));
+        self::assertSame(8, $this->najdiVysledek($hodnoceni, $this->paraBola)['celkem']);
     }
 
-    public function testPrejmenovaniSHodnocenimChcePotvrzeni(): void
+    public function testNoveKriteriumSmazeVsechnaHodnoceniJenSPotvrzenim(): void
     {
         $hodnoceni = $this->vytvorHodnoceniSeSablonou();
         $hodnoceni->ulozHodnoceni($this->prvniKolo, $this->paraBola, $this->getHodnoty($hodnoceni, [5, 4, 3]), $this->vypravecA, false);
-        $prejmenovana = str_replace(['Postavy', 'Řešení'], ['Postavy a příběh', 'Řešení zápletky'], self::SABLONA);
+        $sRychlosti = $this->sRychlosti($hodnoceni->getSablona());
 
-        try {
-            $hodnoceni->nahrajSablonu($prejmenovana, $this->org);
-            self::fail('Přejmenování s hodnocením chce potvrzení');
-        } catch (PrejmenovaniBezPotvrzeni $prejmenovaniBezPotvrzeni) {
-            self::assertSame([
-                [
-                    'popis' => '1. kritérium 1. kategorie',
-                    'stary' => 'Postavy',
-                    'novy'  => 'Postavy a příběh',
-                ],
-                [
-                    'popis' => '2. kategorie',
-                    'stary' => 'Řešení',
-                    'novy'  => 'Řešení zápletky',
-                ],
-            ], $prejmenovaniBezPotvrzeni->getPrejmenovani());
-            $klicPotvrzeni = $prejmenovaniBezPotvrzeni->getKlicPotvrzeni();
-        }
-        self::assertSame(self::SABLONA, $hodnoceni->getSablona()->zdroj, 'Bez potvrzení se nic nezmění');
-
-        // potvrzení jiného přejmenování neplatí
-        $this->assertZakaz(
-            fn () => $hodnoceni->nahrajSablonu(
-                str_replace('Řešení zápletky', 'Řešení hádanek', $prejmenovana),
-                $this->org,
-                potvrzeniPrejmenovani: $klicPotvrzeni,
-            ),
-            'Zkontroluj přejmenování a potvrď je.',
+        $zmena = $this->getZmenaChticiPotvrzeni(fn () => $hodnoceni->ulozSablonu($sRychlosti, $this->org));
+        self::assertTrue($zmena->isSmazaniVsech());
+        self::assertSame(1, $zmena->getPocetHodnoceni());
+        self::assertSame(
+            ['Přibude kritérium „Rychlost“ (Řešení). Hodnocení k němu nemají hodnotu, proto se smažou všechna.'],
+            $zmena->getPodrobnosti(),
         );
-
-        self::assertSame(0, $hodnoceni->nahrajSablonu($prejmenovana, $this->org, potvrzeniPrejmenovani: $klicPotvrzeni));
-        $sablona = $hodnoceni->getSablona();
-        self::assertSame('Postavy a příběh', $sablona->kategorie[0]->kriteria[0]->nazev);
-        self::assertSame('Řešení zápletky', $sablona->kategorie[1]->nazev);
-        self::assertSame($prejmenovana, $sablona->zdroj);
-        self::assertSame([5, 4, 3], array_values($hodnoceni->getHodnoceni($this->paraBola, 1)['hodnoty']));
-    }
-
-    public function testPrejmenovaniBezHodnoceniPotvrzeniNepotrebuje(): void
-    {
-        $hodnoceni = $this->vytvorHodnoceniSeSablonou();
-        $prejmenovana = str_replace('Postavy', 'Postavy a příběh', self::SABLONA);
-
-        self::assertSame(0, $hodnoceni->nahrajSablonu($prejmenovana, $this->org));
-        self::assertSame('Postavy a příběh', $hodnoceni->getSablona()->kategorie[0]->kriteria[0]->nazev);
-    }
-
-    public function testNoveNahraniSJinymTvaremSmazeHodnoceniJenSeSvolenim(): void
-    {
-        $hodnoceni = $this->vytvorHodnoceniSeSablonou();
-        $hodnoceni->ulozHodnoceni($this->prvniKolo, $this->paraBola, $this->getHodnoty($hodnoceni, [5, 4, 3]), $this->vypravecA, false);
-        $jinyTvar = self::SABLONA . "\n## Rychlost";
-
-        $this->assertZakaz(
-            fn () => $hodnoceni->nahrajSablonu($jinyTvar, $this->org),
-            'už je uloženo 1 hodnocení',
-        );
-        self::assertSame(self::SABLONA, $hodnoceni->getSablona()->zdroj);
         self::assertSame(1, $hodnoceni->getPocetHodnoceni());
 
-        self::assertSame(1, $hodnoceni->nahrajSablonu($jinyTvar, $this->org, smazatHodnoceni: true));
+        self::assertSame(1, $hodnoceni->ulozSablonu($sRychlosti, $this->org, $zmena->getKlicPotvrzeni()));
         self::assertSame(0, $hodnoceni->getPocetHodnoceni());
         self::assertSame(['Nápaditost', 'Rychlost'], array_column($hodnoceni->getSablona()->kategorie[1]->kriteria, 'nazev'));
-        $hodnoceni->ulozHodnoceni(
-            $this->prvniKolo,
-            $this->paraBola,
-            $this->getHodnoty($hodnoceni, [5, 4, 3, 2]),
-            $this->vypravecA,
-            false,
-        );
+        $hodnoceni->ulozHodnoceni($this->prvniKolo, $this->paraBola, $this->getHodnoty($hodnoceni, [5, 4, 3, 2]), $this->vypravecA, false);
         self::assertSame(1, $hodnoceni->getPocetHodnoceni());
+    }
+
+    public function testNoveKriteriumBezHodnoceniPotvrzeniNepotrebuje(): void
+    {
+        $hodnoceni = $this->vytvorHodnoceniSeSablonou();
+
+        self::assertSame(0, $hodnoceni->ulozSablonu($this->sRychlosti($hodnoceni->getSablona()), $this->org));
+        self::assertCount(4, $hodnoceni->getSablona()->getKriteriaPodleId());
+    }
+
+    public function testSkalaBezPouziteHodnotySmazeHodnoceni(): void
+    {
+        $hodnoceni = $this->vytvorHodnoceniSeSablonou();
+        $hodnoceni->ulozHodnoceni($this->prvniKolo, $this->paraBola, $this->getHodnoty($hodnoceni, [5, 4, 3]), $this->vypravecA, false);
+        $ulozena = $hodnoceni->getSablona();
+
+        // škála, ve které použité hodnoty zůstanou, hodnocení nechá
+        self::assertSame(0, $hodnoceni->ulozSablonu(new SablonaHodnoceni(null, [0, 1, 2, 3, 4, 5, 6], $ulozena->kategorie), $this->org));
+        self::assertSame(1, $hodnoceni->getPocetHodnoceni());
+
+        $zmena = $this->getZmenaChticiPotvrzeni(
+            fn () => $hodnoceni->ulozSablonu(new SablonaHodnoceni(null, [1, 2, 3], $ulozena->kategorie), $this->org),
+        );
+        self::assertTrue($zmena->isSmazaniVsech());
+        self::assertSame(
+            ['V nové škále chybí použité hodnoty 4, 5, proto se smažou všechna hodnocení.'],
+            $zmena->getPodrobnosti(),
+        );
+    }
+
+    public function testPotvrzeniPlatiJenProStejneMazani(): void
+    {
+        $hodnoceni = $this->vytvorHodnoceniSeSablonou();
+        $hodnoceni->ulozHodnoceni($this->prvniKolo, $this->paraBola, $this->getHodnoty($hodnoceni, [5, 4, 3]), $this->vypravecA, false);
+        [$hrani, $reseni] = $hodnoceni->getSablona()->kategorie;
+        $bezSpoluprace = $this->sablona([1, 2, 3, 4, 5], [
+            ['Hraní rolí', $hrani->id, [['Postavy', $hrani->kriteria[0]->id]]],
+            ['Řešení', $reseni->id, [['Nápaditost', $reseni->kriteria[0]->id]]],
+        ]);
+        $klic = $this->getZmenaChticiPotvrzeni(fn () => $hodnoceni->ulozSablonu($bezSpoluprace, $this->org))->getKlicPotvrzeni();
+
+        // potvrzení odebrání Spolupráce neplatí na odebrání celé kategorie Řešení
+        $bezReseni = $this->sablona([1, 2, 3, 4, 5], [['Hraní rolí', $hrani->id, [['Postavy', $hrani->kriteria[0]->id]]]]);
+        $this->getZmenaChticiPotvrzeni(fn () => $hodnoceni->ulozSablonu($bezReseni, $this->org, $klic));
+
+        // přejmenování k tomu potvrzení nezruší
+        $bezSpolupracePrejmenovana = $this->sablona([1, 2, 3, 4, 5], [
+            ['Hraní', $hrani->id, [['Postavy', $hrani->kriteria[0]->id]]],
+            ['Řešení', $reseni->id, [['Nápaditost', $reseni->kriteria[0]->id]]],
+        ]);
+        self::assertSame(0, $hodnoceni->ulozSablonu($bezSpolupracePrejmenovana, $this->org, $klic));
+        self::assertSame('Hraní', $hodnoceni->getSablona()->kategorie[0]->nazev);
+    }
+
+    public function testSouborSeParujePodleNazvu(): void
+    {
+        $hodnoceni = $this->vytvorHodnoceniSeSablonou();
+        $ulozena = $hodnoceni->getSablona();
+
+        $sparovana = $hodnoceni->sparujPodleNazvu(ParserSablonyHodnoceni::rozeber(<<<'TEXT'
+            Škála: 1 2 3
+            # ŘEŠENÍ
+            ## nápaditost
+            ## Rychlost
+            # Hraní rolí
+            ## Postavy a příběh
+            ## Spolupráce
+            TEXT));
+
+        self::assertSame([1, 2, 3], $sparovana->skala);
+        self::assertSame([$ulozena->kategorie[1]->id, $ulozena->kategorie[0]->id], array_column($sparovana->kategorie, 'id'));
+        self::assertSame(['ŘEŠENÍ', 'Hraní rolí'], array_column($sparovana->kategorie, 'nazev'), 'Názvy jsou ze souboru');
+        self::assertSame(
+            [$ulozena->kategorie[1]->kriteria[0]->id, null],
+            array_column($sparovana->kategorie[0]->kriteria, 'id'),
+        );
+        self::assertSame(
+            [null, $ulozena->kategorie[0]->kriteria[1]->id],
+            array_column($sparovana->kategorie[1]->kriteria, 'id'),
+            'Přejmenované v souboru je nové kritérium',
+        );
+        $bezUlozenych = $this->vytvorHodnoceni(rok: self::ROK + 1)->sparujPodleNazvu($sparovana);
+        self::assertSame([null, null], array_column($bezUlozenych->kategorie, 'id'), 'Bez uložených kritérií je všechno nové');
+        self::assertSame([], $bezUlozenych->getKriteriaPodleId());
     }
 
     public function testVysledkySectouKategorieASdileneMisto(): void
@@ -664,6 +739,9 @@ class HodnoceniTurnajeTest extends AbstractTestDb
         self::assertStringNotContainsString('D&amp;D turnaj 2. běh', $html, 'Cizí kolo v nabídce není');
         self::assertStringContainsString('<legend>Hraní rolí</legend>', $html);
         self::assertSame(3, substr_count($html, 'name="hodnoty['));
+        self::assertStringContainsString('<summary>📖 Jak hodnotit</summary>', $html);
+        self::assertStringContainsString('vyber hodnotu ze škály 1 2 3 4 5. Vyšší je lepší', $html);
+        self::assertStringNotContainsString('Jak na hodnocení turnaje', $html, 'Návod orga vypravěč nevidí');
         // stránka běží s opravdovými hodinami, kolo ročníku 2030 ještě nezačalo
         self::assertStringContainsString('Kolo ještě nezačalo', $html);
         self::assertStringNotContainsString('Uložit hodnocení', $html);
@@ -684,15 +762,117 @@ class HodnoceniTurnajeTest extends AbstractTestDb
         self::assertStringContainsString('<td>Para Bola</td>', $html);
         self::assertStringContainsString('Stáhnout výsledky (XLSX)', $html);
         self::assertStringContainsString('Uložit hodnocení', $html, 'Org hodnotí i kolo, které ještě nezačalo');
-        self::assertStringContainsString('smazat všech 1 hodnocení', $html);
-        // kritéria jdou v poli upravit a nahrát znovu
-        self::assertStringContainsString(htmlspecialchars(self::SABLONA), $html);
+        // kritéria jsou v editoru s id, aby uložení poznalo přejmenování
+        $sablona = $hodnoceni->getSablona();
+        $idHrani = $sablona->kategorie[0]->id;
+        $idPostav = $sablona->kategorie[0]->kriteria[0]->id;
+        self::assertStringContainsString('name="skala" value="1 2 3 4 5"', $html);
+        self::assertStringContainsString("name=\"kategorie[i{$idHrani}][id]\" value=\"{$idHrani}\"", $html);
+        self::assertStringContainsString("name=\"kategorie[i{$idHrani}][nazev]\" value=\"Hraní rolí\"", $html);
+        self::assertStringContainsString(
+            "name=\"kategorie[i{$idHrani}][kriteria][i{$idPostav}][nazev]\" value=\"Postavy\"",
+            $html,
+        );
+        // štítek „nové“ mají jen vzory řádků pro tlačítka Přidat, uložená kritéria ne
+        self::assertSame(2, substr_count($html, 'class="hodnoceni-editor-nove"'));
+        self::assertStringContainsString('Stáhnout kritéria (XLSX)', $html);
+        // s uloženými kritérii jsou návody zavřené
+        self::assertMatchesRegularExpression('~<details class="hodnoceni-navod"\s*>\s*<summary>📖 Jak na hodnocení turnaje~u', $html);
+        self::assertStringContainsString('<summary>📖 Jak kritéria zadat</summary>', $html);
+        self::assertStringNotContainsString('Jak hodnotit</summary>', $html, 'Org má svůj návod, ne vypravěčský');
+    }
+
+    public function testStrankaOrgBezKriteriiMaOtevrenyNavod(): void
+    {
+        $html = $this->vykresliStranku($this->org, true, []);
+
+        self::assertMatchesRegularExpression('~<details class="hodnoceni-navod" open>\s*<summary>📖 Jak na hodnocení turnaje~u', $html);
+        self::assertMatchesRegularExpression('~<details class="hodnoceni-navod" open>\s*<summary>📖 Jak kritéria zadat~u', $html);
+        // prázdný editor s výchozí škálou a vzor ke stažení
+        self::assertStringContainsString('name="skala" value="1 2 3 4 5"', $html);
+        self::assertStringContainsString('name="kategorie[n1][kriteria][n1][nazev]" value=""', $html);
+        self::assertStringContainsString('Stáhnout vzor (XLSX)', $html);
+        self::assertStringNotContainsString('data-neulozeno', $html);
+    }
+
+    public function testEditorPoOdeslaniChceticimPotvrzeniUkazeCoSeSmazeAOdeslanaKriteria(): void
+    {
+        $hodnoceni = $this->vytvorHodnoceniSeSablonou();
+        $hodnoceni->ulozHodnoceni($this->prvniKolo, $this->paraBola, $this->getHodnoty($hodnoceni, [5, 4, 3]), $this->vypravecA, false);
+        [$hrani, $reseni] = $hodnoceni->getSablona()->kategorie;
+        $idPostav = $hrani->kriteria[0]->id;
+        $idNapaditosti = $reseni->kriteria[0]->id;
+
+        // Spolupráce odebraná, Hraní přejmenované, k Řešení nové kritérium z editoru
+        $html = $this->vykresliStranku($this->org, true, [], [
+            'akce'      => 'ulozit-kriteria',
+            'skala'     => '1 2 3 4 5',
+            'kategorie' => [
+                "i{$hrani->id}" => [
+                    'id'       => (string) $hrani->id,
+                    'nazev'    => 'Hraní',
+                    'kriteria' => [
+                        "i{$idPostav}" => [
+                            'id'    => (string) $idPostav,
+                            'nazev' => 'Postavy',
+                        ],
+                    ],
+                ],
+                "i{$reseni->id}" => [
+                    'id'       => (string) $reseni->id,
+                    'nazev'    => 'Řešení',
+                    'kriteria' => [
+                        "i{$idNapaditosti}" => [
+                            'id'    => (string) $idNapaditosti,
+                            'nazev' => 'Nápaditost',
+                        ],
+                        'j1' => [
+                            'id'    => '',
+                            'nazev' => 'Rychlost',
+                        ],
+                    ],
+                ],
+            ],
+        ]);
+
+        self::assertStringContainsString('Přibude kritérium „Rychlost“ (Řešení).', $html);
+        self::assertStringContainsString('Odebíráš kritérium „Spolupráce“ (Hraní rolí), jeho hodnoty zmizí se všemi hodnoceními.', $html);
+        self::assertStringContainsString('Ano, uložit a smazat všech 1 hodnocení', $html);
+        self::assertMatchesRegularExpression('~name="potvrzeni" value="[0-9a-f]{64}"~', $html);
+        // editor drží odeslaná kritéria, ne uložená, a hlídá odchod
+        self::assertStringContainsString("name=\"kategorie[i{$hrani->id}][nazev]\" value=\"Hraní\"", $html);
+        self::assertStringContainsString('name="kategorie[i' . $reseni->id . '][kriteria][j1][nazev]" value="Rychlost"', $html);
+        self::assertStringNotContainsString('value="Spolupráce"', $html);
+        self::assertStringContainsString('data-editor-kriterii data-neulozeno', $html);
+        self::assertSame(1, $hodnoceni->getPocetHodnoceni(), 'Bez potvrzení se nic nesmaže');
+    }
+
+    public function testEditorPoChybeNechaOdeslanaKriteria(): void
+    {
+        $this->vytvorHodnoceniSeSablonou();
+
+        $html = $this->vykresliStranku($this->org, true, [], [
+            'akce'      => 'ulozit-kriteria',
+            'skala'     => '1 2 3',
+            'kategorie' => [
+                'j1' => [
+                    'id'       => '',
+                    'nazev'    => 'Nová kategorie',
+                    'kriteria' => [],
+                ],
+            ],
+        ]);
+
+        self::assertStringContainsString('name="kategorie[j1][nazev]" value="Nová kategorie"', $html);
+        self::assertStringContainsString('name="skala" value="1 2 3"', $html);
+        self::assertStringContainsString('class="hodnoceni-editor-nove"', $html);
+        self::assertSame(self::SABLONA, $this->vytvorHodnoceni()->getSablona()->getText(), 'Nic se neuložilo');
     }
 
     public function testStrankaBezKolaABezSablony(): void
     {
         self::assertStringContainsString(
-            'Org turnaje ještě nenahrál kritéria hodnocení.',
+            'Org turnaje ještě nezadal kritéria hodnocení.',
             $this->vykresliStranku($this->vypravecA, false, []),
         );
         $this->vytvorHodnoceniSeSablonou();
@@ -705,9 +885,10 @@ class HodnoceniTurnajeTest extends AbstractTestDb
     /**
      * Vykreslí modul tak, jak ho spouští admin/index.php, jen bez rámu adminu.
      *
-     * @param array<string, int> $get
+     * @param array<string, int>   $get
+     * @param array<string, mixed> $post jen formuláře, které po chybě vykreslí stránku znovu; úspěch přesměruje a skončí
      */
-    private function vykresliStranku(int $idUzivatele, bool $jeOrgTurnaje, array $get): string
+    private function vykresliStranku(int $idUzivatele, bool $jeOrgTurnaje, array $get, array $post = []): string
     {
         $u = $this->createPartialMock(\Uzivatel::class, ['id', 'maPravo']);
         $u->method('id')->willReturn($idUzivatele);
@@ -718,7 +899,11 @@ class HodnoceniTurnajeTest extends AbstractTestDb
         $systemoveNastaveni->method('rocnik')->willReturn(self::ROK);
 
         $puvodniGet = $_GET;
+        $puvodniPost = $_POST;
+        // hlášky chyba() jdou do cookies
+        $puvodniCookie = $_COOKIE;
         $_GET = array_map('strval', $get);
+        $_POST = $post;
         ob_start();
         try {
             // modul čte $u a $systemoveNastaveni z rozsahu, ve kterém ho admin/index.php spouští
@@ -726,6 +911,8 @@ class HodnoceniTurnajeTest extends AbstractTestDb
         } finally {
             $html = (string) ob_get_clean();
             $_GET = $puvodniGet;
+            $_POST = $puvodniPost;
+            $_COOKIE = $puvodniCookie;
         }
 
         return $html;
@@ -739,7 +926,7 @@ class HodnoceniTurnajeTest extends AbstractTestDb
     private function vytvorHodnoceniSeSablonou(): HodnoceniTurnaje
     {
         $hodnoceni = $this->vytvorHodnoceni();
-        $hodnoceni->nahrajSablonu(self::SABLONA, $this->org);
+        $hodnoceni->ulozSablonu(ParserSablonyHodnoceni::rozeber(self::SABLONA), $this->org);
 
         return $hodnoceni;
     }
@@ -754,6 +941,77 @@ class HodnoceniTurnajeTest extends AbstractTestDb
         $idKriterii = array_keys($hodnoceni->getSablona()->getKriteriaPodleId());
 
         return array_combine(array_slice($idKriterii, 0, count($hodnoty)), $hodnoty);
+    }
+
+    /**
+     * Šablona, jak ji pošle editor.
+     *
+     * @param list<int>                                            $skala
+     * @param list<array{string, ?int, list<array{string, ?int}>}> $kategorie název, id, kritéria (název, id)
+     */
+    private function sablona(array $skala, array $kategorie): SablonaHodnoceni
+    {
+        return new SablonaHodnoceni(null, $skala, array_map(
+            static fn (array $jednaKategorie): KategorieHodnoceni => new KategorieHodnoceni(
+                $jednaKategorie[1],
+                $jednaKategorie[0],
+                array_map(
+                    static fn (array $kriterium): KriteriumHodnoceni => new KriteriumHodnoceni($kriterium[1], $kriterium[0]),
+                    $jednaKategorie[2],
+                ),
+            ),
+            $kategorie,
+        ));
+    }
+
+    /**
+     * Uložená šablona a k ní v Řešení nové kritérium Rychlost.
+     */
+    private function sRychlosti(SablonaHodnoceni $ulozena): SablonaHodnoceni
+    {
+        [$hrani, $reseni] = $ulozena->kategorie;
+
+        return new SablonaHodnoceni(null, $ulozena->skala, [
+            $hrani,
+            new KategorieHodnoceni($reseni->id, $reseni->nazev, [...$reseni->kriteria, new KriteriumHodnoceni(null, 'Rychlost')]),
+        ]);
+    }
+
+    private function getZmenaChticiPotvrzeni(callable $akce): ZmenaKriteriiChcePotvrzeni
+    {
+        try {
+            $akce();
+        } catch (ZmenaKriteriiChcePotvrzeni $zmenaKriteriiChcePotvrzeni) {
+            return $zmenaKriteriiChcePotvrzeni;
+        }
+        self::fail('Uložení mělo chtít potvrzení');
+    }
+
+    /**
+     * @return array<string, int> hodnota hodnocení Para Boly v 1. kole podle názvu kritéria
+     */
+    private function getHodnotyPodleNazvu(HodnoceniTurnaje $hodnoceni, SablonaHodnoceni $sablona): array
+    {
+        $ulozene = $hodnoceni->getHodnoceni($this->paraBola, 1)['hodnoty'];
+        $hodnoty = [];
+        foreach ($sablona->kategorie as $kategorie) {
+            foreach ($kategorie->kriteria as $kriterium) {
+                if (isset($ulozene[$kriterium->id])) {
+                    $hodnoty[$kriterium->nazev] = $ulozene[$kriterium->id];
+                }
+            }
+        }
+
+        return $hodnoty;
+    }
+
+    private function getZdroj(): ?string
+    {
+        return dbOneCol(<<<'SQL'
+            SELECT zdroj FROM turnaj_hodnoceni_sablona WHERE rok = $0
+            SQL, [
+            0 => self::ROK,
+        ]);
     }
 
     /**

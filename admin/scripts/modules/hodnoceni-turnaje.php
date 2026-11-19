@@ -4,18 +4,20 @@ declare(strict_types=1);
 
 use Gamecon\Cas\DateTimeCz;
 use Gamecon\HodnoceniTurnaje\ChybaSablonyHodnoceni;
+use Gamecon\HodnoceniTurnaje\FormularKriterii;
 use Gamecon\HodnoceniTurnaje\HodnoceniTurnaje;
 use Gamecon\HodnoceniTurnaje\HodnoceniTurnajeException;
 use Gamecon\HodnoceniTurnaje\ParserSablonyHodnoceni;
-use Gamecon\HodnoceniTurnaje\PrejmenovaniBezPotvrzeni;
+use Gamecon\HodnoceniTurnaje\SouborSablonyHodnoceni;
+use Gamecon\HodnoceniTurnaje\ZmenaKriteriiChcePotvrzeni;
 use Gamecon\Pravo;
 use Gamecon\Web\VerzeSouboru;
 use Gamecon\XTemplate\XTemplate;
 use Symfony\Component\Clock\NativeClock;
 
 /**
- * Hodnocení skupin turnaje D&D: vypravěč ohodnotí skupinu, kterou vedl v kole, podle kritérií, která nahrál org
- * turnaje; org turnaje vidí výsledky a stáhne je. Pravidla jsou v Gamecon\HodnoceniTurnaje\HodnoceniTurnaje.
+ * Hodnocení skupin turnaje D&D: vypravěč ohodnotí skupinu, kterou vedl v kole, podle kritérií, která zadal org
+ * turnaje (v editoru na stránce, nebo je do něj načetl ze souboru); org turnaje vidí výsledky a stáhne je. Pravidla jsou v Gamecon\HodnoceniTurnaje\HodnoceniTurnaje.
  *
  * nazev: Hodnocení turnaje
  * ikona: ranking-star
@@ -45,11 +47,28 @@ if ($jeOrgTurnaje && in_array($export, ['souhrn', 'detail'], true)) {
     ));
     exit;
 }
+if ($jeOrgTurnaje && in_array($export, ['kriteria-xlsx', 'kriteria-csv'], true)) {
+    // bez uložených kritérií vzor, ať je vidět, jak tabulka vypadá
+    $report = Report::zPoli(
+        ParserSablonyHodnoceni::HLAVICKA_TABULKY,
+        ($hodnoceniTurnaje->getSablona() ?? ParserSablonyHodnoceni::rozeber(ParserSablonyHodnoceni::UKAZKA))
+            ->getRadkyTabulky(),
+    );
+    $nazevReportu = sprintf('Kritéria hodnocení turnaje D&D %d', $hodnoceniTurnaje->getRok());
+    if ($export === 'kriteria-xlsx') {
+        $report->tXlsx($nazevReportu);
+    } else {
+        $report->tCsv($nazevReportu);
+    }
+    exit;
+}
 
-// Po chybě se stránka vykreslí znovu s tím, co kdo odeslal: text kritérií ani vybrané hodnoty se neztratí.
-$odeslanyText = null;
+// Po chybě se stránka vykreslí znovu s tím, co kdo odeslal: kritéria v editoru ani vybrané hodnoty se neztratí.
 $odeslaneHodnoty = null;
-$prejmenovaniBezPotvrzeni = null;
+/** editor ukáže tohle místo uložených kritérií: odeslaná, která nešla uložit, nebo načtená ze souboru */
+$formularKriterii = null;
+$nactenoZeSouboru = null;
+$zmenaChticiPotvrzeni = null;
 $akce = post('akce');
 if ($akce !== null) {
     try {
@@ -74,56 +93,61 @@ if ($akce !== null) {
         if (! $jeOrgTurnaje) {
             throw new HodnoceniTurnajeException('Tohle smí jen org turnaje.');
         }
-        if ($akce === 'nahrat-sablonu') {
-            $odeslanyText = (string)post('text');
-            $text = $odeslanyText;
-            $soubor = $_FILES['soubor'] ?? null;
-            if (is_array($soubor) && ($soubor['error'] ?? UPLOAD_ERR_NO_FILE) !== UPLOAD_ERR_NO_FILE) {
-                if ($soubor['error'] !== UPLOAD_ERR_OK || ! is_uploaded_file($soubor['tmp_name'])) {
-                    throw new HodnoceniTurnajeException('Soubor se nepodařilo nahrát, zkus to znovu.');
-                }
-                if ($soubor['size'] > ParserSablonyHodnoceni::MAX_DELKA_TEXTU) {
-                    throw new HodnoceniTurnajeException('Soubor je moc velký, kritéria jsou krátký text.');
-                }
-                $text = (string)file_get_contents($soubor['tmp_name']);
-                $odeslanyText = ParserSablonyHodnoceni::normalizuj($text);
-            }
-            if (trim($text) === '') {
-                throw new HodnoceniTurnajeException('Vyber soubor s kritérii, nebo je vlož do pole.');
-            }
-            $smazano = $hodnoceniTurnaje->nahrajSablonu(
-                $text,
+        if ($akce === 'ulozit-kriteria') {
+            $formularKriterii = FormularKriterii::zPostu(post('skala'), post('kategorie'));
+            $smazano = $hodnoceniTurnaje->ulozSablonu(
+                $formularKriterii->getSablona(),
                 $idUzivatele,
-                post('smazat_hodnoceni') === '1',
-                is_string(post('potvrzeni_prejmenovani'))
-                    ? post('potvrzeni_prejmenovani')
+                is_string(post('potvrzeni'))
+                    ? post('potvrzeni')
                     : null,
             );
             oznameni($smazano > 0
-                ? "Kritéria jsou nahraná, {$smazano} hodnocení se smazalo."
-                : 'Kritéria jsou nahraná.');
-        }
-        if ($akce === 'smazat-hodnoceni') {
+                ? "Kritéria jsou uložená, {$smazano} hodnocení se smazalo."
+                : 'Kritéria jsou uložená.');
+        } elseif ($akce === 'nacist-soubor') {
+            $soubor = $_FILES['soubor'] ?? null;
+            if (! is_array($soubor) || ($soubor['error'] ?? UPLOAD_ERR_NO_FILE) === UPLOAD_ERR_NO_FILE) {
+                throw new HodnoceniTurnajeException('Vyber soubor s kritérii.');
+            }
+            if ($soubor['error'] !== UPLOAD_ERR_OK || ! is_uploaded_file($soubor['tmp_name'])) {
+                throw new HodnoceniTurnajeException('Soubor se nepodařilo nahrát, zkus to znovu.');
+            }
+            $zeSouboru = SouborSablonyHodnoceni::nacti(
+                $soubor['tmp_name'],
+                (string)$soubor['name'],
+                $hodnoceniTurnaje->getSablona()?->skala ?? ParserSablonyHodnoceni::VYCHOZI_SKALA,
+            );
+            // neukládá se: editor ukáže, co je nové, a uloží org
+            $formularKriterii = FormularKriterii::zeSablony($hodnoceniTurnaje->sparujPodleNazvu($zeSouboru));
+            $nactenoZeSouboru = (string)$soubor['name'];
+            oznameni('Kritéria ze souboru jsou v editoru dole. Ještě nejsou uložená: zkontroluj je a ulož.', false);
+        } elseif ($akce === 'smazat-hodnoceni') {
             $hodnoceniTurnaje->smazHodnoceni((int)post('id_hodnoceni'));
             oznameni('Hodnocení je smazané.');
-        }
-        if ($akce === 'uzavrit' || $akce === 'otevrit') {
+        } elseif ($akce === 'uzavrit' || $akce === 'otevrit') {
             $hodnoceniTurnaje->setUzavreno($akce === 'uzavrit');
             oznameni($akce === 'uzavrit'
                 ? 'Hodnocení je uzavřené, vypravěči ho už nezmění.'
                 : 'Hodnocení je zase otevřené.');
+        } else {
+            throw new HodnoceniTurnajeException('Neznámá akce.');
         }
-        throw new HodnoceniTurnajeException('Neznámá akce.');
-    } catch (PrejmenovaniBezPotvrzeni $prejmenovaniBezPotvrzeni) {
-        // seznam přejmenování a potvrzení vykreslí formulář kritérií
-        chyba(htmlspecialchars($prejmenovaniBezPotvrzeni->getMessage()), false);
+    } catch (ZmenaKriteriiChcePotvrzeni $zmenaChticiPotvrzeni) {
+        // co se smaže a potvrzení vykreslí editor
+        chyba(htmlspecialchars($zmenaChticiPotvrzeni->getMessage()), false);
     } catch (ChybaSablonyHodnoceni $chybaSablony) {
-        // zprávy obsahují text ze souboru, chyba() vypisuje HTML
+        // zprávy obsahují text ze souboru nebo z editoru, chyba() vypisuje HTML
         chyba(
-            'Kritéria nejde nahrát:<br>' . implode('<br>', array_map('htmlspecialchars', $chybaSablony->getChyby())),
+            ($akce === 'nacist-soubor'
+                ? 'Soubor nejde načíst:<br>'
+                : 'Kritéria nejde uložit:<br>')
+            . implode('<br>', array_map('htmlspecialchars', $chybaSablony->getChyby())),
             false,
         );
     } catch (HodnoceniTurnajeException $hodnoceniTurnajeException) {
+        // editor ukáže uložená kritéria (jiný org je mezitím změnil, soubor nešel nahrát)
+        $formularKriterii = null;
         chyba(htmlspecialchars($hodnoceniTurnajeException->getMessage()), false);
     }
 }
@@ -135,6 +159,16 @@ $t->assign([
 ]);
 
 $sablona = $hodnoceniTurnaje->getSablona();
+$t->assign([
+    'skala'         => htmlspecialchars(implode(' ', $sablona?->skala ?? [])),
+    // dokud nejsou kritéria, org turnaje začíná podle návodu, pak už ho zná
+    'otevrenyNavod' => $sablona === null
+        ? 'open'
+        : '',
+]);
+if ($jeOrgTurnaje) {
+    $t->parse('hodnoceni.navodOrg');
+}
 if ($sablona === null && ! $jeOrgTurnaje) {
     $t->parse('hodnoceni.bezSablony');
 }
@@ -305,6 +339,10 @@ if ($kola === []) {
         }
         $t->parse('hodnoceni.vyber.formular');
     }
+    // org turnaje má svůj návod nahoře
+    if (! $jeOrgTurnaje) {
+        $t->parse('hodnoceni.vyber.navodVypravece');
+    }
     $t->parse('hodnoceni.vyber');
 }
 
@@ -312,7 +350,7 @@ if ($jeOrgTurnaje) {
     $vysledky = $hodnoceniTurnaje->getVysledky();
     if ($vysledky === []) {
         $t->assign('textBezVysledku', $sablona === null
-            ? 'Výsledky budou, až nahraješ kritéria hodnocení (dole na stránce).'
+            ? 'Výsledky budou, až zadáš kritéria hodnocení (dole na stránce).'
             : 'Zatím tu nejsou žádné skupiny turnaje.');
         $t->parse('hodnoceni.org.bezVysledku');
     } else {
@@ -397,39 +435,72 @@ if ($jeOrgTurnaje) {
                 'popisUzavreni' => 'Vypravěči pak už nic nezmění, org turnaje ano.',
             ]);
         $t->parse('hodnoceni.org.uzavreni');
+    }
 
-        $t->assign('skala', htmlspecialchars(implode(' ', $sablona->skala)));
-        foreach ($sablona->kategorie as $kategorie) {
-            foreach ($kategorie->kriteria as $kriterium) {
-                $t->assign('nazevKriteria', htmlspecialchars($kriterium->nazev));
-                $t->parse('hodnoceni.org.nahled.kategorie.kriterium');
-            }
-            $t->assign('nazevKategorie', htmlspecialchars($kategorie->nazev));
-            $t->parse('hodnoceni.org.nahled.kategorie');
-        }
-        $t->parse('hodnoceni.org.nahled');
-    }
-    if ($prejmenovaniBezPotvrzeni !== null) {
-        foreach ($prejmenovaniBezPotvrzeni->getPrejmenovani() as $prejmenovani) {
+    $editor = $formularKriterii ?? ($sablona === null
+        ? FormularKriterii::prazdny()
+        : FormularKriterii::zeSablony($sablona));
+    // bez uložených kritérií je nové všechno, štítek by nic neříkal
+    $stitekNove = $sablona === null
+        ? ''
+        : '<span class="hodnoceni-editor-nove" title="Ještě není uložené">nové</span>';
+    foreach ($editor->kategorie as $kategorie) {
+        foreach ($kategorie['kriteria'] as $kriterium) {
             $t->assign([
-                'popisMista' => htmlspecialchars($prejmenovani['popis']),
-                'staryNazev' => htmlspecialchars($prejmenovani['stary']),
-                'novyNazev'  => htmlspecialchars($prejmenovani['novy']),
+                'klicKategorie'  => htmlspecialchars($kategorie['klic']),
+                'klicKriteria'   => htmlspecialchars($kriterium['klic']),
+                'idKriteria'     => $kriterium['id'] ?? '',
+                'nazevKriteria'  => htmlspecialchars($kriterium['nazev']),
+                'stitekKriteria' => $kriterium['id'] === null
+                    ? $stitekNove
+                    : '',
             ]);
-            $t->parse('hodnoceni.org.potvrzeniPrejmenovani.prejmenovani');
+            $t->parse('hodnoceni.org.editor.kategorie.kriterium');
         }
-        $t->assign('klicPotvrzeni', htmlspecialchars($prejmenovaniBezPotvrzeni->getKlicPotvrzeni()));
-        $t->parse('hodnoceni.org.potvrzeniPrejmenovani');
+        $t->assign([
+            'klicKategorie'   => htmlspecialchars($kategorie['klic']),
+            'idKategorie'     => $kategorie['id'] ?? '',
+            'nazevKategorie'  => htmlspecialchars($kategorie['nazev']),
+            'stitekKategorie' => $kategorie['id'] === null
+                ? $stitekNove
+                : '',
+        ]);
+        $t->parse('hodnoceni.org.editor.kategorie');
     }
-    $pocetHodnoceni = $hodnoceniTurnaje->getPocetHodnoceni();
-    if ($pocetHodnoceni > 0) {
-        $t->assign('pocetHodnoceni', $pocetHodnoceni);
-        $t->parse('hodnoceni.org.smazatHodnoceni');
+    if ($nactenoZeSouboru !== null) {
+        $t->assign('nazevSouboru', htmlspecialchars($nactenoZeSouboru));
+        $t->parse('hodnoceni.org.editor.nacteno');
+    }
+    if ($zmenaChticiPotvrzeni !== null) {
+        foreach ($zmenaChticiPotvrzeni->getPodrobnosti() as $podrobnost) {
+            $t->assign('podrobnost', htmlspecialchars($podrobnost));
+            $t->parse('hodnoceni.org.editor.potvrzeni.podrobnost');
+        }
+        $t->assign([
+            'klicPotvrzeni' => htmlspecialchars($zmenaChticiPotvrzeni->getKlicPotvrzeni()),
+            'textPotvrzeni' => $zmenaChticiPotvrzeni->isSmazaniVsech()
+                ? sprintf('Ano, uložit a smazat všech %d hodnocení', $zmenaChticiPotvrzeni->getPocetHodnoceni())
+                : 'Ano, uložit a smazat hodnoty odebraných kritérií',
+        ]);
+        $t->parse('hodnoceni.org.editor.potvrzeni');
     }
     $t->assign([
-        'zdroj'  => htmlspecialchars($odeslanyText ?? $sablona->zdroj ?? ''),
-        'ukazka' => htmlspecialchars(ParserSablonyHodnoceni::UKAZKA),
+        'skalaEditoru' => htmlspecialchars($editor->skala),
+        'stitekNove'   => $stitekNove,
+        // načtené ze souboru nebo odeslané, ale neuložené: odchod ze stránky se zeptá
+        'neulozeno'    => $formularKriterii === null
+            ? ''
+            : 'data-neulozeno',
+        'jsVerze'      => (new VerzeSouboru(__DIR__ . '/../../files', 'js'))->getVerze('hodnoceni-turnaje'),
+        'textStazeni'  => $sablona === null
+            ? 'Stáhnout vzor'
+            : 'Stáhnout kritéria',
+        'pripony'      => implode(',', array_map(
+            static fn (string $pripona): string => '.' . $pripona,
+            SouborSablonyHodnoceni::PRIPONY,
+        )),
     ]);
+    $t->parse('hodnoceni.org.editor');
     $t->parse('hodnoceni.org');
 }
 

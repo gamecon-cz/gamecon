@@ -18,7 +18,7 @@ CREATE TABLE IF NOT EXISTS turnaj_hodnoceni_sablona
     id_typu   INT UNSIGNED         NOT NULL,
     -- hodnoty škály oddělené mezerou, v pořadí ze souboru
     skala     VARCHAR(255)         NOT NULL,
-    -- nahraný text, aby šel upravit a nahrát znovu
+    -- kritéria v textovém zápisu (Škála:, #, ##), jak je org naposledy uložil, jen pro dohledání
     zdroj     TEXT                 NOT NULL,
     nahrano   DATETIME             NOT NULL,
     id_nahral BIGINT(20) UNSIGNED           DEFAULT NULL,

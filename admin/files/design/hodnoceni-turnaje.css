@@ -10,6 +10,34 @@
   font-size: .9em;
 }
 
+.hodnoceni-navod {
+  max-width: 50em;
+  margin: .5em 0 1em;
+}
+
+.hodnoceni-navod summary {
+  cursor: pointer;
+  font-weight: bold;
+}
+
+.hodnoceni-navod ol,
+.hodnoceni-navod ul {
+  margin: .5em 0;
+  padding-left: 1.5em;
+}
+
+.hodnoceni-navod li {
+  margin: .25em 0;
+}
+
+.hodnoceni-navod pre {
+  display: inline-block;
+  margin: .5em 0 0;
+  padding: .5em 1em;
+  border: 1px solid currentColor;
+  border-radius: 6px;
+}
+
 .hodnoceni-vyber-formular {
   display: flex;
   flex-wrap: wrap;
@@ -82,19 +110,6 @@
   margin-top: 1em;
 }
 
-.hodnoceni-nahrani label {
-  display: block;
-  margin: .5em 0;
-}
-
-.hodnoceni-zdroj textarea {
-  display: block;
-  width: 100%;
-  max-width: 40em;
-  box-sizing: border-box;
-  font-family: monospace;
-}
-
 .hodnoceni-za-vypravece {
   display: flex;
   flex-wrap: wrap;
@@ -103,9 +118,84 @@
   margin-bottom: 1em;
 }
 
-.hodnoceni-prejmenovani {
-  margin: .5em 0;
-  padding: .5em 1em;
+.hodnoceni-editor-skala {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: .25em .75em;
+  margin-bottom: 1em;
+  font-weight: bold;
+}
+
+.hodnoceni-editor-skala input {
+  font-weight: normal;
+}
+
+.hodnoceni-editor-kategorie {
+  max-width: 45em;
+  margin: 0 0 1em;
+  padding: .5em 1em .75em;
   border: 1px solid currentColor;
   border-radius: 6px;
+}
+
+.hodnoceni-editor-kriteria {
+  margin: .5em 0;
+  padding-left: 2em;
+}
+
+.hodnoceni-editor-radek {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: .25em .5em;
+  padding: .15em 0;
+}
+
+.hodnoceni-editor-radek input[type=text] {
+  flex: 1 1 15em;
+  min-width: 0;
+}
+
+.hodnoceni-editor-nazev-kategorie {
+  font-weight: bold;
+}
+
+.hodnoceni-editor-tlacitka {
+  display: inline-flex;
+  gap: .25em;
+}
+
+.hodnoceni-editor-nove {
+  padding: 0 .4em;
+  border: 1px solid currentColor;
+  border-radius: 1em;
+  font-size: .8em;
+  opacity: .8;
+}
+
+.hodnoceni-upozorneni,
+.hodnoceni-potvrzeni {
+  max-width: 45em;
+  margin: .5em 0 1em;
+  padding: .5em 1em;
+  border: 2px solid currentColor;
+  border-radius: 6px;
+}
+
+.hodnoceni-potvrzeni ul {
+  margin: 0 0 .5em;
+  padding-left: 1.25em;
+}
+
+.hodnoceni-nacteni {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: .5em 1em;
+}
+
+.hodnoceni-turnaje ul.hodnoceni-poznamka {
+  max-width: 50em;
+  padding-left: 1.25em;
 }

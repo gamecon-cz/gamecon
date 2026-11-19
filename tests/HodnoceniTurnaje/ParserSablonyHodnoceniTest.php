@@ -13,7 +13,8 @@ use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
 
 /**
- * Soubor s kritérii hodnocení turnaje: škála, „# Kategorie“, „## Kritérium“. Co nejde přečíst, hlásí s číslem řádku.
+ * Soubor s kritérii hodnocení turnaje, text (škála, „# Kategorie“, „## Kritérium“) i tabulka (kategorie | kritérium).
+ * Co nejde přečíst, hlásí s číslem řádku.
  */
 class ParserSablonyHodnoceniTest extends TestCase
 {
@@ -53,12 +54,11 @@ class ParserSablonyHodnoceniTest extends TestCase
             ['Kritérium 1', 'Kritérium 2', 'Kritérium 3'],
             array_map(static fn (KriteriumHodnoceni $kriterium): string => $kriterium->nazev, $sablona->kategorie[2]->kriteria),
         );
-        self::assertSame([
-            'skala'    => [1, 2, 3, 4, 5],
-            'kriteria' => [3, 3, 3, 1],
-        ], $sablona->getTvar());
-        self::assertSame(10, $sablona->getPocetKriterii());
-        self::assertSame(self::UKAZKA_Z_KARTY, $sablona->zdroj);
+        self::assertSame([3, 3, 3, 1], array_map(
+            static fn (KategorieHodnoceni $kategorie): int => count($kategorie->kriteria),
+            $sablona->kategorie,
+        ));
+        self::assertSame(self::UKAZKA_Z_KARTY, $sablona->getText(), 'Textový zápis jde zpátky');
     }
 
     public function testDuplicitniKriteriumVKategoriiJeChybaSCislemRadku(): void
@@ -85,8 +85,7 @@ class ParserSablonyHodnoceniTest extends TestCase
         self::assertSame([0, 1, 2], $sablona->skala);
         self::assertSame('Hraní rolí', $sablona->kategorie[0]->nazev);
         self::assertSame('Postavy', $sablona->kategorie[0]->kriteria[0]->nazev);
-        self::assertStringNotContainsString("\r", $sablona->zdroj);
-        self::assertStringStartsNotWith("\xEF\xBB\xBF", $sablona->zdroj);
+        self::assertSame("Škála: 0 1 2\n# Hraní rolí\n## Postavy\n## Spolupráce", $sablona->getText());
     }
 
     public function testPrevedeKodovaniWindows1250(): void
@@ -158,7 +157,7 @@ class ParserSablonyHodnoceniTest extends TestCase
         yield 'škála s jednou hodnotou a druhá škála' => [
             "Škála: 5\n# Hraní\n## Postavy\nŠkála: 1 2",
             [
-                'Řádek 1: škála potřebuje aspoň dvě hodnoty oddělené mezerou, třeba „Škála: 1 2 3 4 5“.',
+                'Řádek 1: škála potřebuje aspoň dvě hodnoty oddělené mezerou, třeba „1 2 3 4 5“.',
                 'Řádek 4: škála už je na řádku 1.',
             ],
         ];
@@ -181,25 +180,166 @@ class ParserSablonyHodnoceniTest extends TestCase
         self::assertLessThanOrEqual(255, strlen(implode(' ', $sablona->skala)), 'Škála se vejde do VARCHAR(255)');
     }
 
-    public function testStejnyTvarJeStejnaSkalaAPoctyKriterii(): void
+    public function testPrecteTabulku(): void
     {
-        $sablona = ParserSablonyHodnoceni::rozeber("Škála: 1 2 3\n# A\n## a\n## b\n# B\n## c");
-        $prejmenovana = ParserSablonyHodnoceni::rozeber("Škála: 1 2 3\n# Hraní\n## x\n## y\n# Řešení\n## z");
-        $jinaSkala = ParserSablonyHodnoceni::rozeber("Škála: 1 2 3 4\n# A\n## a\n## b\n# B\n## c");
-        $jinyPocet = ParserSablonyHodnoceni::rozeber("Škála: 1 2 3\n# A\n## a\n# B\n## b\n## c");
+        $sablona = ParserSablonyHodnoceni::rozeberTabulku([
+            1 => ['Kategorie', 'Kritérium', 'Poznámka'],
+            2 => ['Škála', '1 2 3'],
+            4 => [' Hraní rolí ', 'Postavy', 'další sloupce se přeskočí'],
+            // prázdná kategorie je stejná jako o řádek výš (sloučené buňky)
+            5 => ['', 'Spolupráce'],
+            // řádek jen s kategorií ji zahájí
+            6 => ['Řešení', ''],
+            7 => ['', 'Nápaditost'],
+            // stejná kategorie o kus dál pokračuje, bez ohledu na velikost písmen
+            8  => ['hraní rolí', 'Hlas'],
+            9  => ['', '', ''],
+            10 => ['Škálování', 'Rychlost'],
+        ], ParserSablonyHodnoceni::VYCHOZI_SKALA);
 
-        self::assertTrue($sablona->isStejnyTvar($prejmenovana));
-        self::assertFalse($sablona->isStejnyTvar($jinaSkala));
-        self::assertTrue(
-            $sablona->isStejnyTvar(ParserSablonyHodnoceni::rozeber("Škála: 3 2 1\n# A\n## a\n## b\n# B\n## c")),
-            'Pořadí hodnot škály mění jen nabídku',
+        self::assertSame([1, 2, 3], $sablona->skala);
+        self::assertSame(['Hraní rolí', 'Řešení', 'Škálování'], array_column($sablona->kategorie, 'nazev'));
+        self::assertSame(['Postavy', 'Spolupráce', 'Hlas'], array_column($sablona->kategorie[0]->kriteria, 'nazev'));
+        self::assertSame(['Nápaditost'], array_column($sablona->kategorie[1]->kriteria, 'nazev'));
+    }
+
+    public function testTabulkaBezSkalyVezmeVychoziAJinakSkaluPoznaVsude(): void
+    {
+        self::assertSame(
+            [0, 1, 2],
+            ParserSablonyHodnoceni::rozeberTabulku([
+                1 => ['Hraní', 'Postavy'],
+            ], [0, 1, 2])->skala,
+            'Bez řádku se škálou zůstane škála z editoru',
         );
-        self::assertFalse($sablona->isStejnyTvar($jinyPocet));
+        foreach ([['Škála', '1', '2', '3'], ['SKALA:', '1, 2, 3'], ['Škála: 1 2', '3']] as $radekSeSkalou) {
+            self::assertSame(
+                [1, 2, 3],
+                ParserSablonyHodnoceni::rozeberTabulku([
+                    1 => ['Hraní', 'Postavy'],
+                    2 => $radekSeSkalou,
+                ], [0, 1])->skala,
+                implode(' | ', $radekSeSkalou),
+            );
+        }
+    }
+
+    /**
+     * @param array<int, list<string>> $radky
+     * @param list<string>             $ocekavaneChyby
+     */
+    #[DataProvider('chybneTabulky')]
+    public function testChybnaTabulkaHlasiVsechnyChyby(array $radky, array $ocekavaneChyby): void
+    {
+        self::assertSame($ocekavaneChyby, $this->getChybyTabulky($radky));
+    }
+
+    /**
+     * @return \Generator<string, array{array<int, list<string>>, list<string>}>
+     */
+    public static function chybneTabulky(): \Generator
+    {
+        yield 'kritérium bez kategorie a dvakrát stejné' => [
+            [
+                1 => ['', 'Postavy'],
+                2 => ['Hraní', 'Spolupráce'],
+                3 => ['', 'spolupráce'],
+            ],
+            [
+                'Řádek 1: kritérium „Postavy“ nemá kategorii, doplň ji do prvního sloupce.',
+                'Řádek 3: kritérium „spolupráce“ už je v kategorii „Hraní“ na řádku 2.',
+            ],
+        ];
+        yield 'kategorie bez kritérií a dvě škály' => [
+            [
+                1 => ['Škála', '1 2'],
+                2 => ['Hraní', ''],
+                3 => ['Řešení', 'Nápaditost'],
+                4 => ['Škála', 'pět'],
+            ],
+            [
+                'Řádek 2: kategorie „Hraní“ nemá žádné kritérium.',
+                'Řádek 4: škála už je na řádku 1.',
+            ],
+        ];
+        yield 'špatná škála' => [
+            [
+                1 => ['Škála', '1 x'],
+                2 => ['Hraní', 'Postavy'],
+            ],
+            ['Řádek 1: hodnota škály „x“ není celé číslo od -1000 do 1000.'],
+        ];
+        yield 'prázdná tabulka' => [
+            [
+                1 => ['Kategorie', 'Kritérium'],
+                2 => ['', ''],
+            ],
+            ['V tabulce není žádné kritérium. Kategorie patří do prvního sloupce, kritéria do druhého.'],
+        ];
+        yield 'moc dlouhý název' => [
+            [
+                1 => [str_repeat('a', 256), 'Postavy'],
+            ],
+            ['Řádek 1: název kategorie je delší než 255 znaků.'],
+        ];
+    }
+
+    public function testTabulkaAZapisJdouZpatky(): void
+    {
+        $sablona = ParserSablonyHodnoceni::rozeber(self::UKAZKA_Z_KARTY);
+        $radky = [ParserSablonyHodnoceni::HLAVICKA_TABULKY, ...$sablona->getRadkyTabulky()];
+
+        $zTabulky = ParserSablonyHodnoceni::rozeberTabulku(
+            array_combine(range(1, count($radky)), $radky),
+            [0, 1],
+        );
+
+        self::assertSame(self::UKAZKA_Z_KARTY, $zTabulky->getText());
+        self::assertSame(['Škála', '1 2 3 4 5'], $sablona->getRadkyTabulky()[0]);
+        self::assertSame(['Kategorie 1', 'Kritérium 1'], $sablona->getRadkyTabulky()[1]);
+    }
+
+    public function testMocKategoriiNeprojde(): void
+    {
+        $radky = [];
+        foreach (range(1, ParserSablonyHodnoceni::MAX_KATEGORII + 1) as $cislo) {
+            $radky[$cislo] = ["Kategorie {$cislo}", 'Kritérium'];
+        }
+
+        self::assertSame(['V souboru je 51 kategorií, nejvýš jde 50.'], $this->getChybyTabulky($radky));
+    }
+
+    public function testSkalaZEditoruHlasiChybyBezRadku(): void
+    {
+        try {
+            ParserSablonyHodnoceni::rozeberSkalu('1 x 1', '');
+            self::fail('Škála měla mít chyby');
+        } catch (ChybaSablonyHodnoceni $chybaSablonyHodnoceni) {
+            self::assertSame(
+                ['Hodnota škály „x“ není celé číslo od -1000 do 1000.', 'Hodnota škály 1 je tam dvakrát.'],
+                $chybaSablonyHodnoceni->getChyby(),
+            );
+        }
     }
 
     public function testUkazkaVeFormulariJdePrecist(): void
     {
         self::assertInstanceOf(SablonaHodnoceni::class, ParserSablonyHodnoceni::rozeber(ParserSablonyHodnoceni::UKAZKA));
+    }
+
+    /**
+     * @param array<int, list<string>> $radky
+     *
+     * @return list<string>
+     */
+    private function getChybyTabulky(array $radky): array
+    {
+        try {
+            ParserSablonyHodnoceni::rozeberTabulku($radky, ParserSablonyHodnoceni::VYCHOZI_SKALA);
+        } catch (ChybaSablonyHodnoceni $chybaSablonyHodnoceni) {
+            return $chybaSablonyHodnoceni->getChyby();
+        }
+        self::fail('Tabulka měla jít přečíst jen s chybou');
     }
 
     /**

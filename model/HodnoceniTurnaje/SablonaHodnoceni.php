@@ -5,20 +5,19 @@ declare(strict_types=1);
 namespace Gamecon\HodnoceniTurnaje;
 
 /**
- * Škála, kategorie a kritéria hodnocení jednoho ročníku. Rozebraný soubor (@see ParserSablonyHodnoceni) ještě nemá id,
- * uložená šablona ho má i u kategorií a kritérií.
+ * Škála, kategorie a kritéria hodnocení jednoho ročníku. Uložená šablona má id i u kategorií a kritérií. Šablona
+ * z editoru (@see FormularKriterii) a ze souboru (@see ParserSablonyHodnoceni) je má jen u těch, které už jsou uložené.
  */
 final readonly class SablonaHodnoceni
 {
     /**
-     * @param list<int>                $skala     hodnoty v pořadí ze souboru
+     * @param list<int>                $skala     hodnoty v pořadí, ve kterém je vypravěč uvidí v nabídce
      * @param list<KategorieHodnoceni> $kategorie
      */
     public function __construct(
         public ?int $id,
         public array $skala,
         public array $kategorie,
-        public string $zdroj,
         public ?\DateTimeImmutable $uzavreno = null,
     ) {
     }
@@ -29,37 +28,7 @@ final readonly class SablonaHodnoceni
     }
 
     /**
-     * Hodnoty škály (bez ohledu na pořadí, to mění jen nabídku) a počty kritérií v kategoriích. Šablony se stejným
-     * tvarem se liší nanejvýš v názvech a pořadí: uložené hodnoty platí dál.
-     *
-     * @return array{skala: list<int>, kriteria: list<int>}
-     */
-    public function getTvar(): array
-    {
-        $skala = $this->skala;
-        sort($skala);
-
-        return [
-            'skala'    => $skala,
-            'kriteria' => array_map(
-                static fn (KategorieHodnoceni $kategorie): int => count($kategorie->kriteria),
-                $this->kategorie,
-            ),
-        ];
-    }
-
-    public function isStejnyTvar(self $jina): bool
-    {
-        return $this->getTvar() === $jina->getTvar();
-    }
-
-    public function getPocetKriterii(): int
-    {
-        return array_sum($this->getTvar()['kriteria']);
-    }
-
-    /**
-     * Kritéria uložené šablony podle id.
+     * Kritéria, která už mají id, podle id.
      *
      * @return array<int, KriteriumHodnoceni>
      */
@@ -80,5 +49,40 @@ final readonly class SablonaHodnoceni
     public function isVeSkale(int $hodnota): bool
     {
         return in_array($hodnota, $this->skala, true);
+    }
+
+    /**
+     * Textový zápis (`Škála:`, `# `, `## `), který přečte @see ParserSablonyHodnoceni::rozeber().
+     */
+    public function getText(): string
+    {
+        $radky = ['Škála: ' . implode(' ', $this->skala)];
+        foreach ($this->kategorie as $kategorie) {
+            $radky[] = '# ' . $kategorie->nazev;
+            foreach ($kategorie->kriteria as $kriterium) {
+                $radky[] = '## ' . $kriterium->nazev;
+            }
+        }
+
+        return implode("\n", $radky);
+    }
+
+    /**
+     * Řádky tabulky pod hlavičkou @see ParserSablonyHodnoceni::HLAVICKA_TABULKY, které přečte
+     * @see ParserSablonyHodnoceni::rozeberTabulku(): škála, pak kritérium na řádek s kategorií v každém řádku (tabulka
+     * jde seřadit a filtrovat).
+     *
+     * @return list<list<string>>
+     */
+    public function getRadkyTabulky(): array
+    {
+        $radky = [[ParserSablonyHodnoceni::SKALA_V_TABULCE, implode(' ', $this->skala)]];
+        foreach ($this->kategorie as $kategorie) {
+            foreach ($kategorie->kriteria as $kriterium) {
+                $radky[] = [$kategorie->nazev, $kriterium->nazev];
+            }
+        }
+
+        return $radky;
     }
 }

@@ -8,8 +8,9 @@ use Gamecon\Aktivita\TypAktivity;
 use Psr\Clock\ClockInterface;
 
 /**
- * Hodnocení skupin (týmů) turnaje vypravěči, zatím pro turnaj D&D. Org turnaje nahraje šablonu (škálu, kategorie
- * a kritéria, @see ParserSablonyHodnoceni) jednu na ročník, vypravěč pak u každé skupiny, kterou v kole vedl, vybere
+ * Hodnocení skupin (týmů) turnaje vypravěči, zatím pro turnaj D&D. Org turnaje zadá v editoru šablonu (škálu,
+ * kategorie a kritéria, @see FormularKriterii, ze souboru @see SouborSablonyHodnoceni) jednu na ročník, vypravěč pak
+ * u každé skupiny, kterou v kole vedl, vybere
  * u každého kritéria hodnotu ze škály. Výsledky sčítají body skupiny po kategoriích přes kola, která skupina hraje.
  *
  * Kolo je aktivita turnaje (`akce_seznam.turnaj_kolo`), skupina tým na ní (`akce_tym_akce`). Kdo kterou skupinu vedl,
@@ -22,8 +23,8 @@ final class HodnoceniTurnaje
 {
     /**
      * Při přeřazení kategorií a kritérií se pořadí nejdřív posune mimo stávající, aby se unikátní klíč (šablona nebo
-     * kategorie, pořadí) nesrazil. Soubor má nejvýš 65 535 bajtů, kategorií ani kritérií tedy nebude přes 20 000
-     * a posunuté pořadí se vejde do SMALLINT UNSIGNED.
+     * kategorie, pořadí) nesrazil. Kategorií ani kritérií nebude přes @see ParserSablonyHodnoceni::MAX_KRITERII,
+     * posunuté pořadí se tedy vejde do SMALLINT UNSIGNED.
      */
     private const int DOCASNY_POSUN_PORADI = 30000;
 
@@ -42,7 +43,7 @@ final class HodnoceniTurnaje
     public function getSablona(): ?SablonaHodnoceni
     {
         $radek = dbOneLine(<<<'SQL'
-            SELECT id, skala, zdroj, uzavreno
+            SELECT id, skala, uzavreno
             FROM turnaj_hodnoceni_sablona
             WHERE rok = $0
                 AND id_typu = $1
@@ -54,33 +55,22 @@ final class HodnoceniTurnaje
     }
 
     /**
-     * Nahraje kritéria z textu souboru. Hodnocení patří ke kritériím podle názvu:
-     * - stejné názvy kategorií i kritérií (bez ohledu na velikost písmen), jen jinak seřazené: kategorie a kritéria
-     *   si nechají id, změní se pořadí, hodnocení zůstanou u svých názvů;
-     * - stejný tvar s jinými názvy: přejmenuje se místo po místě, a když už existují hodnocení, jen s potvrzením
-     *   (@see PrejmenovaniBezPotvrzeni), protože hodnocení zůstanou na místech pod novými názvy;
-     * - jiný tvar: šablona se nahradí celá, a když už existují hodnocení, jen se svolením je smazat.
+     * Uloží kritéria z editoru. Kategorie a kritéria s id jsou uložená: změní se jim název a pořadí (kritérium smí
+     * i do jiné kategorie) a hodnoty hodnocení u nich zůstanou. Bez id jsou nová, uložená, která v šabloně chybí, se
+     * smažou. Co by smazalo, co vypravěči zadali, chce potvrzení (@see ZmenaKriteriiChcePotvrzeni):
+     * - odebrané kritérium vezme s sebou svou hodnotu z každého hodnocení, hodnocení zůstanou úplná;
+     * - nové kritérium nebo škála, ze které vypadne použitá hodnota, smaže všechna hodnocení: hodnocení má hodnotu ze
+     *   škály u každého kritéria, jinak by se skupiny nesčítaly stejně.
      *
-     * @param string|null $potvrzeniPrejmenovani klíč z @see PrejmenovaniBezPotvrzeni::getKlicPotvrzeni()
+     * @param string|null $potvrzeni klíč z @see ZmenaKriteriiChcePotvrzeni::getKlicPotvrzeni()
      * @return int kolik hodnocení se smazalo
-     * @throws ChybaSablonyHodnoceni soubor nejde přečíst
-     * @throws PrejmenovaniBezPotvrzeni přejmenování bez potvrzení
-     * @throws HodnoceniTurnajeException jiný tvar a hodnocení bez svolení je smazat
+     * @throws ZmenaKriteriiChcePotvrzeni
+     * @throws HodnoceniTurnajeException id, které uložená šablona nemá (formulář otevřený před změnou jiného orga)
      */
-    public function nahrajSablonu(
-        string $text,
-        int $idNahral,
-        bool $smazatHodnoceni = false,
-        ?string $potvrzeniPrejmenovani = null,
-    ): int {
-        $nova = ParserSablonyHodnoceni::rozeber($text);
-
-        return $this->vTransakci(function (?SablonaHodnoceni $stara) use (
-            $nova,
-            $idNahral,
-            $smazatHodnoceni,
-            $potvrzeniPrejmenovani,
-        ): int {
+    public function ulozSablonu(SablonaHodnoceni $nova, int $idUlozil, ?string $potvrzeni = null): int
+    {
+        return $this->vTransakci(function (?SablonaHodnoceni $stara) use ($nova, $idUlozil, $potvrzeni): int {
+            self::overId($stara, $nova);
             if ($stara === null) {
                 dbQuery(<<<'SQL'
                     INSERT INTO turnaj_hodnoceni_sablona (rok, id_typu, skala, zdroj, nahrano, id_nahral)
@@ -89,55 +79,79 @@ final class HodnoceniTurnaje
                     0 => $this->rok,
                     1 => $this->idTypuAktivity,
                     2 => implode(' ', $nova->skala),
-                    3 => $nova->zdroj,
+                    3 => $nova->getText(),
                     4 => $this->getTedDb(),
-                    5 => $idNahral,
+                    5 => $idUlozil,
                 ]);
-                $this->vlozKategorie((int)dbInsertId(), $nova);
+                $this->prepisKategorie((int)dbInsertId(), $nova);
 
                 return 0;
             }
 
-            $paryPodleNazvu = self::getParyPodleNazvu($stara, $nova);
-            if ($paryPodleNazvu !== null) {
-                $this->preradPodleNazvu((int)$stara->id, $nova, $paryPodleNazvu);
-                $this->ulozZdroj($stara, $nova, $idNahral);
-
-                return 0;
+            $zmena = $this->getZmenaChticiPotvrzeni($stara, $nova);
+            if ($zmena !== null && $zmena->getKlicPotvrzeni() !== $potvrzeni) {
+                throw $zmena;
             }
-
-            $pocetHodnoceni = $this->getPocetHodnoceni();
-            if ($stara->isStejnyTvar($nova)) {
-                $prejmenovani = self::getPrejmenovani($stara, $nova);
-                $klicPotvrzeni = hash('sha256', json_encode($prejmenovani, JSON_THROW_ON_ERROR));
-                if ($pocetHodnoceni > 0 && $potvrzeniPrejmenovani !== $klicPotvrzeni) {
-                    throw new PrejmenovaniBezPotvrzeni($prejmenovani, $klicPotvrzeni, $pocetHodnoceni);
-                }
-                $this->prejmenuj($stara, $nova);
-                $this->ulozZdroj($stara, $nova, $idNahral);
-
-                return 0;
+            $smazano = 0;
+            if ($zmena?->isSmazaniVsech()) {
+                $smazano = $zmena->getPocetHodnoceni();
+                dbQuery(<<<'SQL'
+                    DELETE FROM turnaj_hodnoceni WHERE id_sablony = $0
+                    SQL, [0 => $stara->id]);
             }
-
-            if ($pocetHodnoceni > 0 && ! $smazatHodnoceni) {
-                throw new HodnoceniTurnajeException(sprintf(
-                    'Nová kritéria mají jinou škálu nebo jiný počet kategorií či kritérií a už je uloženo %d hodnocení.'
-                    . ' Nahrát je jde jen se smazáním všech hodnocení.',
-                    $pocetHodnoceni,
-                ));
-            }
-            // hodnoty hodnocení zmizí s kritérii, řádky hodnocení ne
+            $this->prepisKategorie((int)$stara->id, $nova);
             dbQuery(<<<'SQL'
-                DELETE FROM turnaj_hodnoceni WHERE id_sablony = $0
-                SQL, [0 => $stara->id]);
-            dbQuery(<<<'SQL'
-                DELETE FROM turnaj_hodnoceni_kategorie WHERE id_sablony = $0
-                SQL, [0 => $stara->id]);
-            $this->vlozKategorie((int)$stara->id, $nova);
-            $this->ulozZdroj($stara, $nova, $idNahral);
+                UPDATE turnaj_hodnoceni_sablona SET skala = $0, zdroj = $1, nahrano = $2, id_nahral = $3 WHERE id = $4
+                SQL, [
+                0 => implode(' ', $nova->skala),
+                1 => $nova->getText(),
+                2 => $this->getTedDb(),
+                3 => $idUlozil,
+                4 => $stara->id,
+            ]);
 
-            return $pocetHodnoceni;
+            return $smazano;
         });
+    }
+
+    /**
+     * Kritéria ze souboru dostanou id uložených se stejným názvem (kategorie podle názvu, kritérium podle názvu v ní,
+     * bez ohledu na velikost písmen), ostatní zůstanou nová. Editor pak ukáže, co je nové, a uložení zachová hodnoty
+     * u spárovaných. Přejmenované v souboru je tedy nové kritérium, přejmenovat bez ztráty hodnot jde jen v editoru.
+     */
+    public function sparujPodleNazvu(SablonaHodnoceni $zeSouboru): SablonaHodnoceni
+    {
+        $kategoriePodleNazvu = [];
+        foreach ($this->getSablona()->kategorie ?? [] as $ulozenaKategorie) {
+            $kategoriePodleNazvu[ParserSablonyHodnoceni::getKlicNazvu($ulozenaKategorie->nazev)] = $ulozenaKategorie;
+        }
+
+        return new SablonaHodnoceni(
+            null,
+            $zeSouboru->skala,
+            array_map(
+                static function (KategorieHodnoceni $kategorie) use ($kategoriePodleNazvu): KategorieHodnoceni {
+                    $ulozenaKategorie = $kategoriePodleNazvu[ParserSablonyHodnoceni::getKlicNazvu($kategorie->nazev)] ?? null;
+                    $idKriteriiPodleNazvu = [];
+                    foreach ($ulozenaKategorie->kriteria ?? [] as $ulozeneKriterium) {
+                        $idKriteriiPodleNazvu[ParserSablonyHodnoceni::getKlicNazvu($ulozeneKriterium->nazev)] = $ulozeneKriterium->id;
+                    }
+
+                    return new KategorieHodnoceni(
+                        $ulozenaKategorie?->id,
+                        $kategorie->nazev,
+                        array_map(
+                            static fn (KriteriumHodnoceni $kriterium): KriteriumHodnoceni => new KriteriumHodnoceni(
+                                $idKriteriiPodleNazvu[ParserSablonyHodnoceni::getKlicNazvu($kriterium->nazev)] ?? null,
+                                $kriterium->nazev,
+                            ),
+                            $kategorie->kriteria,
+                        ),
+                    );
+                },
+                $zeSouboru->kategorie,
+            ),
+        );
     }
 
     /**
@@ -147,7 +161,7 @@ final class HodnoceniTurnaje
     {
         $this->vTransakci(function (?SablonaHodnoceni $sablona) use ($uzavreno): void {
             if ($sablona === null) {
-                throw new HodnoceniTurnajeException('Kritéria hodnocení ještě nejsou nahraná.');
+                throw new HodnoceniTurnajeException('Kritéria hodnocení ještě nejsou zadaná.');
             }
             dbQuery(<<<'SQL'
                 UPDATE turnaj_hodnoceni_sablona SET uzavreno = $0 WHERE id = $1
@@ -326,7 +340,7 @@ final class HodnoceniTurnaje
         ): void {
             $duvodZakazu = $this->getDuvodZakazuSablony($sablona, $idAkce, $idTymu, $idZadal, $jakoOrg);
             if ($duvodZakazu !== null || $sablona === null) {
-                throw new HodnoceniTurnajeException($duvodZakazu ?? 'Kritéria hodnocení ještě nejsou nahraná.');
+                throw new HodnoceniTurnajeException($duvodZakazu ?? 'Kritéria hodnocení ještě nejsou zadaná.');
             }
             $hodnotyKriterii = $this->overHodnoty($sablona, $hodnoty);
             $kolo = (int)$this->getKoloAktivity($idAkce)['turnaj_kolo'];
@@ -708,7 +722,7 @@ final class HodnoceniTurnaje
         bool $jakoOrg,
     ): ?string {
         if ($sablona === null) {
-            return 'Kritéria hodnocení ještě nejsou nahraná, hodnotit zatím nejde.';
+            return 'Kritéria hodnocení ještě nejsou zadaná, hodnotit zatím nejde.';
         }
         if (! $jakoOrg && $sablona->isUzavrena()) {
             return 'Hodnocení je uzavřené. Změnu domluv s orgem turnaje.';
@@ -781,148 +795,188 @@ final class HodnoceniTurnaje
             SQL, [0 => $idAkce, 1 => $idUzivatele]) !== null;
     }
 
-    private function vlozKategorie(int $idSablony, SablonaHodnoceni $sablona): void
+    /**
+     * Id z editoru musí patřit uložené šabloně a každé smí jen jednou. Jinak je formulář z doby před tím, než kritéria
+     * změnil někdo jiný (nebo stejná stránka v jiném okně).
+     */
+    private static function overId(?SablonaHodnoceni $stara, SablonaHodnoceni $nova): void
     {
-        foreach ($sablona->kategorie as $poradiKategorie => $kategorie) {
-            dbQuery(<<<'SQL'
-                INSERT INTO turnaj_hodnoceni_kategorie (id_sablony, poradi, nazev) VALUES ($0, $1, $2)
-                SQL, [0 => $idSablony, 1 => $poradiKategorie + 1, 2 => $kategorie->nazev]);
-            $idKategorie = (int)dbInsertId();
-            foreach ($kategorie->kriteria as $poradiKriteria => $kriterium) {
-                dbQuery(<<<'SQL'
-                    INSERT INTO turnaj_hodnoceni_kriterium (id_kategorie, poradi, nazev) VALUES ($0, $1, $2)
-                    SQL, [0 => $idKategorie, 1 => $poradiKriteria + 1, 2 => $kriterium->nazev]);
+        $idKategorii = array_map(static fn (KategorieHodnoceni $kategorie): ?int => $kategorie->id, $stara->kategorie ?? []);
+        $idKriterii = array_keys($stara?->getKriteriaPodleId() ?? []);
+        $pouzita = [];
+        foreach ($nova->kategorie as $kategorie) {
+            $ids = [['kategorie', $kategorie->id, $idKategorii]];
+            foreach ($kategorie->kriteria as $kriterium) {
+                $ids[] = ['kriterium', $kriterium->id, $idKriterii];
+            }
+            foreach ($ids as [$co, $id, $ulozena]) {
+                if ($id === null) {
+                    continue;
+                }
+                if (isset($pouzita[$co][$id]) || ! in_array($id, $ulozena, true)) {
+                    throw new HodnoceniTurnajeException(
+                        'Kritéria mezitím uložil někdo jiný, nebo jsou otevřená v jiném okně. Načti stránku znovu'
+                        . ' a změny udělej na aktuálních kritériích.',
+                    );
+                }
+                $pouzita[$co][$id] = true;
             }
         }
     }
 
     /**
-     * Mají nová kritéria stejnou škálu a stejné názvy kategorií i kritérií v nich, jen možná jinak seřazené?
-     * Pak vrátí pro každou novou kategorii (po pořadí) id staré kategorie a id starých kritérií v novém pořadí.
-     *
-     * @return list<array{idKategorie: int, idKriterii: list<int>}>|null
+     * Co by uložení smazalo z hodnocení, nebo null, když nic. Klíč potvrzení nese jen to, co se smaže (všechna
+     * hodnocení a kolik jich je, nebo která kritéria), takže přejmenování ani přeřazení potvrzení nezruší.
      */
-    private static function getParyPodleNazvu(SablonaHodnoceni $stara, SablonaHodnoceni $nova): ?array
+    private function getZmenaChticiPotvrzeni(SablonaHodnoceni $stara, SablonaHodnoceni $nova): ?ZmenaKriteriiChcePotvrzeni
     {
-        if ($stara->getTvar()['skala'] !== $nova->getTvar()['skala'] || count($stara->kategorie) !== count($nova->kategorie)) {
+        $pocetHodnoceni = (int)dbOneCol(<<<'SQL'
+            SELECT COUNT(*) FROM turnaj_hodnoceni WHERE id_sablony = $0
+            SQL, [0 => $stara->id]);
+        if ($pocetHodnoceni === 0) {
             return null;
         }
-        $staraPodleNazvu = [];
-        foreach ($stara->kategorie as $kategorie) {
-            $staraPodleNazvu[self::getKlicNazvu($kategorie->nazev)] = $kategorie;
-        }
-        $pary = [];
-        foreach ($nova->kategorie as $novaKategorie) {
-            $staraKategorie = $staraPodleNazvu[self::getKlicNazvu($novaKategorie->nazev)] ?? null;
-            if ($staraKategorie === null || count($staraKategorie->kriteria) !== count($novaKategorie->kriteria)) {
-                return null;
-            }
-            $staraKriteriaPodleNazvu = [];
-            foreach ($staraKategorie->kriteria as $kriterium) {
-                $staraKriteriaPodleNazvu[self::getKlicNazvu($kriterium->nazev)] = (int)$kriterium->id;
-            }
-            $idKriterii = [];
-            foreach ($novaKategorie->kriteria as $noveKriterium) {
-                $idKriteria = $staraKriteriaPodleNazvu[self::getKlicNazvu($noveKriterium->nazev)] ?? null;
-                if ($idKriteria === null) {
-                    return null;
-                }
-                $idKriterii[] = $idKriteria;
-            }
-            $pary[] = ['idKategorie' => (int)$staraKategorie->id, 'idKriterii' => $idKriterii];
-        }
 
-        return $pary;
+        $novaKriteria = [];
+        foreach ($nova->kategorie as $kategorie) {
+            foreach ($kategorie->kriteria as $kriterium) {
+                if ($kriterium->id === null) {
+                    $novaKriteria[] = sprintf('„%s“ (%s)', $kriterium->nazev, $kategorie->nazev);
+                }
+            }
+        }
+        $ponechana = array_keys($nova->getKriteriaPodleId());
+        $odebrana = [];
+        foreach ($stara->kategorie as $kategorie) {
+            foreach ($kategorie->kriteria as $kriterium) {
+                if (! in_array($kriterium->id, $ponechana, true)) {
+                    $odebrana[(int)$kriterium->id] = sprintf('„%s“ (%s)', $kriterium->nazev, $kategorie->nazev);
+                }
+            }
+        }
+        $hodnotyMimoSkalu = array_map('intval', dbFetchColumn(<<<'SQL'
+            SELECT DISTINCT turnaj_hodnoceni_hodnota.hodnota
+            FROM turnaj_hodnoceni_hodnota
+            JOIN turnaj_hodnoceni ON turnaj_hodnoceni.id = turnaj_hodnoceni_hodnota.id_hodnoceni
+            WHERE turnaj_hodnoceni.id_sablony = $0
+                AND turnaj_hodnoceni_hodnota.id_kriteria IN ($1)
+                AND turnaj_hodnoceni_hodnota.hodnota NOT IN ($2)
+            ORDER BY turnaj_hodnoceni_hodnota.hodnota
+            SQL, [0 => $stara->id, 1 => $ponechana, 2 => $nova->skala]));
+
+        $smazaniVsech = $novaKriteria !== [] || $hodnotyMimoSkalu !== [];
+        if (! $smazaniVsech && $odebrana === []) {
+            return null;
+        }
+        $podrobnosti = [];
+        if ($novaKriteria !== []) {
+            $podrobnosti[] = sprintf(
+                'Přibude %s %s. Hodnocení k %s nemají hodnotu, proto se smažou všechna.',
+                count($novaKriteria) === 1
+                    ? 'kritérium'
+                    : 'kritéria',
+                implode(', ', $novaKriteria),
+                count($novaKriteria) === 1
+                    ? 'němu'
+                    : 'nim',
+            );
+        }
+        if ($hodnotyMimoSkalu !== []) {
+            $podrobnosti[] = sprintf(
+                'V nové škále chybí použité %s %s, proto se smažou všechna hodnocení.',
+                count($hodnotyMimoSkalu) === 1
+                    ? 'hodnota'
+                    : 'hodnoty',
+                implode(', ', $hodnotyMimoSkalu),
+            );
+        }
+        if ($odebrana !== []) {
+            $podrobnosti[] = sprintf(
+                'Odebíráš %s %s, %s hodnoty %s.',
+                count($odebrana) === 1
+                    ? 'kritérium'
+                    : 'kritéria',
+                implode(', ', $odebrana),
+                count($odebrana) === 1
+                    ? 'jeho'
+                    : 'jejich',
+                $smazaniVsech
+                    ? 'zmizí se všemi hodnoceními'
+                    : 'se z hodnocení smažou, ostatní hodnoty zůstanou',
+            );
+        }
+        $idOdebranych = array_keys($odebrana);
+        sort($idOdebranych);
+
+        return new ZmenaKriteriiChcePotvrzeni(
+            $smazaniVsech,
+            $pocetHodnoceni,
+            $podrobnosti,
+            hash('sha256', json_encode(
+                $smazaniVsech
+                    ? ['vse', $pocetHodnoceni]
+                    : ['kriteria', $pocetHodnoceni, $idOdebranych],
+                JSON_THROW_ON_ERROR,
+            )),
+        );
     }
 
     /**
-     * Stejné názvy v jiném pořadí: kategorie a kritéria si nechají id (a tím hodnocení), změní se pořadí a zápis názvu
-     * (třeba velikost písmen).
-     *
-     * @param list<array{idKategorie: int, idKriterii: list<int>}> $pary z @see getParyPodleNazvu()
+     * Zapíše kategorie a kritéria šablony podle id (@see ulozSablonu()). Odebraná kritéria vezmou s sebou své hodnoty
+     * (ON DELETE CASCADE), odebrané kategorie kritéria, která v nich zůstala.
      */
-    private function preradPodleNazvu(int $idSablony, SablonaHodnoceni $nova, array $pary): void
+    private function prepisKategorie(int $idSablony, SablonaHodnoceni $nova): void
     {
         dbQuery(<<<'SQL'
             UPDATE turnaj_hodnoceni_kategorie SET poradi = poradi + $1 WHERE id_sablony = $0
             SQL, [0 => $idSablony, 1 => self::DOCASNY_POSUN_PORADI]);
-        foreach ($pary as $indexKategorie => $par) {
-            $novaKategorie = $nova->kategorie[$indexKategorie];
-            dbQuery(<<<'SQL'
-                UPDATE turnaj_hodnoceni_kategorie SET poradi = $0, nazev = $1 WHERE id = $2
-                SQL, [0 => $indexKategorie + 1, 1 => $novaKategorie->nazev, 2 => $par['idKategorie']]);
-            dbQuery(<<<'SQL'
-                UPDATE turnaj_hodnoceni_kriterium SET poradi = poradi + $1 WHERE id_kategorie = $0
-                SQL, [0 => $par['idKategorie'], 1 => self::DOCASNY_POSUN_PORADI]);
-            foreach ($par['idKriterii'] as $indexKriteria => $idKriteria) {
-                dbQuery(<<<'SQL'
-                    UPDATE turnaj_hodnoceni_kriterium SET poradi = $0, nazev = $1 WHERE id = $2
-                    SQL, [0 => $indexKriteria + 1, 1 => $novaKategorie->kriteria[$indexKriteria]->nazev, 2 => $idKriteria]);
-            }
-        }
-    }
+        dbQuery(<<<'SQL'
+            UPDATE turnaj_hodnoceni_kriterium
+            JOIN turnaj_hodnoceni_kategorie ON turnaj_hodnoceni_kategorie.id = turnaj_hodnoceni_kriterium.id_kategorie
+            SET turnaj_hodnoceni_kriterium.poradi = turnaj_hodnoceni_kriterium.poradi + $1
+            WHERE turnaj_hodnoceni_kategorie.id_sablony = $0
+            SQL, [0 => $idSablony, 1 => self::DOCASNY_POSUN_PORADI]);
 
-    /**
-     * Místa (stejný tvar), kde se název změnil, pro potvrzení orgem.
-     *
-     * @return list<array{popis: string, stary: string, novy: string}>
-     */
-    private static function getPrejmenovani(SablonaHodnoceni $stara, SablonaHodnoceni $nova): array
-    {
-        $prejmenovani = [];
-        foreach ($stara->kategorie as $indexKategorie => $kategorie) {
-            $novaKategorie = $nova->kategorie[$indexKategorie];
-            if (self::getKlicNazvu($kategorie->nazev) !== self::getKlicNazvu($novaKategorie->nazev)) {
-                $prejmenovani[] = [
-                    'popis' => sprintf('%d. kategorie', $indexKategorie + 1),
-                    'stary' => $kategorie->nazev,
-                    'novy'  => $novaKategorie->nazev,
-                ];
+        $idKategorii = [];
+        $idKriterii = [];
+        foreach ($nova->kategorie as $indexKategorie => $kategorie) {
+            if ($kategorie->id === null) {
+                dbQuery(<<<'SQL'
+                    INSERT INTO turnaj_hodnoceni_kategorie (id_sablony, poradi, nazev) VALUES ($0, $1, $2)
+                    SQL, [0 => $idSablony, 1 => $indexKategorie + 1, 2 => $kategorie->nazev]);
+                $idKategorie = (int)dbInsertId();
+            } else {
+                dbQuery(<<<'SQL'
+                    UPDATE turnaj_hodnoceni_kategorie SET poradi = $0, nazev = $1 WHERE id = $2 AND id_sablony = $3
+                    SQL, [0 => $indexKategorie + 1, 1 => $kategorie->nazev, 2 => $kategorie->id, 3 => $idSablony]);
+                $idKategorie = $kategorie->id;
             }
+            $idKategorii[] = $idKategorie;
             foreach ($kategorie->kriteria as $indexKriteria => $kriterium) {
-                $noveKriterium = $novaKategorie->kriteria[$indexKriteria];
-                if (self::getKlicNazvu($kriterium->nazev) !== self::getKlicNazvu($noveKriterium->nazev)) {
-                    $prejmenovani[] = [
-                        'popis' => sprintf('%d. kritérium %d. kategorie', $indexKriteria + 1, $indexKategorie + 1),
-                        'stary' => $kriterium->nazev,
-                        'novy'  => $noveKriterium->nazev,
-                    ];
+                if ($kriterium->id === null) {
+                    dbQuery(<<<'SQL'
+                        INSERT INTO turnaj_hodnoceni_kriterium (id_kategorie, poradi, nazev) VALUES ($0, $1, $2)
+                        SQL, [0 => $idKategorie, 1 => $indexKriteria + 1, 2 => $kriterium->nazev]);
+                    $idKriterii[] = (int)dbInsertId();
+                } else {
+                    dbQuery(<<<'SQL'
+                        UPDATE turnaj_hodnoceni_kriterium SET id_kategorie = $0, poradi = $1, nazev = $2 WHERE id = $3
+                        SQL, [0 => $idKategorie, 1 => $indexKriteria + 1, 2 => $kriterium->nazev, 3 => $kriterium->id]);
+                    $idKriterii[] = $kriterium->id;
                 }
             }
         }
 
-        return $prejmenovani;
-    }
-
-    /**
-     * Stejný tvar s jinými názvy: kategorie a kritéria si nechají id i pořadí, změní se názvy místo po místě.
-     */
-    private function prejmenuj(SablonaHodnoceni $stara, SablonaHodnoceni $nova): void
-    {
-        foreach ($stara->kategorie as $indexKategorie => $kategorie) {
-            $novaKategorie = $nova->kategorie[$indexKategorie];
-            dbQuery(<<<'SQL'
-                UPDATE turnaj_hodnoceni_kategorie SET nazev = $0 WHERE id = $1
-                SQL, [0 => $novaKategorie->nazev, 1 => $kategorie->id]);
-            foreach ($kategorie->kriteria as $indexKriteria => $kriterium) {
-                dbQuery(<<<'SQL'
-                    UPDATE turnaj_hodnoceni_kriterium SET nazev = $0 WHERE id = $1
-                    SQL, [0 => $novaKategorie->kriteria[$indexKriteria]->nazev, 1 => $kriterium->id]);
-            }
-        }
-    }
-
-    private function ulozZdroj(SablonaHodnoceni $stara, SablonaHodnoceni $nova, int $idNahral): void
-    {
         dbQuery(<<<'SQL'
-            UPDATE turnaj_hodnoceni_sablona SET skala = $0, zdroj = $1, nahrano = $2, id_nahral = $3 WHERE id = $4
-            SQL, [
-            0 => implode(' ', $nova->skala),
-            1 => $nova->zdroj,
-            2 => $this->getTedDb(),
-            3 => $idNahral,
-            4 => $stara->id,
-        ]);
+            DELETE turnaj_hodnoceni_kriterium
+            FROM turnaj_hodnoceni_kriterium
+            JOIN turnaj_hodnoceni_kategorie ON turnaj_hodnoceni_kategorie.id = turnaj_hodnoceni_kriterium.id_kategorie
+            WHERE turnaj_hodnoceni_kategorie.id_sablony = $0
+                AND turnaj_hodnoceni_kriterium.id NOT IN ($1)
+            SQL, [0 => $idSablony, 1 => $idKriterii]);
+        dbQuery(<<<'SQL'
+            DELETE FROM turnaj_hodnoceni_kategorie WHERE id_sablony = $0 AND id NOT IN ($1)
+            SQL, [0 => $idSablony, 1 => $idKategorii]);
     }
 
     /**
@@ -938,7 +992,7 @@ final class HodnoceniTurnaje
         dbBegin();
         try {
             $radek = dbOneLine(<<<'SQL'
-                SELECT id, skala, zdroj, uzavreno
+                SELECT id, skala, uzavreno
                 FROM turnaj_hodnoceni_sablona
                 WHERE rok = $0
                     AND id_typu = $1
@@ -991,7 +1045,6 @@ final class HodnoceniTurnaje
                 array_keys($kategorie),
                 $kategorie,
             ),
-            (string)$radek['zdroj'],
             $this->getCasZDb($radek['uzavreno']),
         );
     }
@@ -1006,14 +1059,6 @@ final class HodnoceniTurnaje
     private function getTedDb(): string
     {
         return $this->hodiny->now()->format('Y-m-d H:i:s');
-    }
-
-    /**
-     * Názvy se porovnávají bez ohledu na velikost písmen a okrajové mezery, stejně jako duplicity v parseru.
-     */
-    private static function getKlicNazvu(string $nazev): string
-    {
-        return mb_strtolower(trim($nazev));
     }
 
     /**
