@@ -85,6 +85,13 @@ hr {
   cursor: help;
   position: relative;
   display: inline-block;
+
+  // Safari na iOS po ťuknutí zapne :hover jen u prvku, který má za klikací: odkaz, prvek formuláře,
+  // posluchač kliknutí, nebo cursor: pointer (help se nepočítá, posluchač na document taky ne).
+  // Bez toho se otevřely jen tooltipy schované v <label>, „Proč potřebujeme osobní údaje?“ ne.
+  @media (hover: none) {
+    cursor: pointer;
+  }
 }
 
 .tooltip_obsah {
