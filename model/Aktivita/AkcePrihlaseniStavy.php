@@ -18,7 +18,7 @@ class AkcePrihlaseniStavy extends \DbObject
     public const DORAZIL_NAHRADNIK_ID   = 2;
     public const NEDORAZIL_ID           = 3;
     public const POZDE_ZRUSIL_ID        = 4;
-    public const NAHRADNIK_WATCHLIST_ID = 5;
+    public const SLEDUJICI_ID           = 5;
 
     protected static $tabulka = Sql::AKCE_PRIHLASENI_STAVY_TABULKA;
     protected static $pk      = Sql::ID_STAVU_PRIHLASENI;

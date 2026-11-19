@@ -107,7 +107,7 @@ class Aktivita
     const ZPETNE                              = 0b00000000_00100000;
     /** přihlašovat i skryté technické a brigádnické aktivity */
     const INTERNI                             = 0b00000000_01000000;
-    /** odhlášení bez mailů náhradníkům */
+    /** odhlášení bez mailů sledujícím */
     const NEPOSILAT_MAILY_SLEDUJICIM          = 0b00000000_10000000;
     /** možnost přihlásit před otevřením registrací na aktivity */
     const DOPREDNE                            = 0b00000001_00000000;
@@ -2166,7 +2166,7 @@ SQL,
     }
 
     /**
-     * Odhlásí uživatele z náhradníků (watchlistu)
+     * Odhlásí uživatele ze sledujících aktivity (watchlistu)
      */
     public function odhlasSledujiciho(
         Uzivatel  $u,
@@ -3297,7 +3297,7 @@ SQL
     }
 
     /**
-     * @return bool jestli je na aktivitu povoleno přihlašování náhradníků
+     * @return bool jestli jde aktivitu sledovat (přihlásit se na ni jako sledující)
      */
     public function prihlasovatelnaProSledujici(): bool
     {
@@ -3561,11 +3561,11 @@ HTML
         Uzivatel  $u,
         ?Uzivatel $prihlasujici,
     ) {
-        // Aktivita musí mít přihlašování náhradníků povoleno
+        // Aktivita musí jít sledovat
         if (!$this->prihlasovatelnaProSledujici()) {
             throw new \Chyba('Na aktivitu se nelze přihlašovat jako sledující.');
         }
-        // Uživatel nesmí být přihlášen na aktivitu nebo jako náhradník
+        // Uživatel nesmí být na aktivitu přihlášen ani ji už sledovat
         if ($this->prihlasen($u) || $this->prihlasenJakoSledujici($u)) {
             return;
         }
