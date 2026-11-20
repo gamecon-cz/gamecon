@@ -64,7 +64,6 @@ abstract class AbstractTestPrihlaska extends AbstractTestDb
         try {
             $uzivatel = \Uzivatel::zIdUrcite($uzivatel->id());
             $shop = new Shop($uzivatel, $uzivatel, SystemoveNastaveni::zGlobals());
-            $pomoc = new \Pomoc($uzivatel);
 
             dbBegin();
             try {
@@ -75,7 +74,6 @@ abstract class AbstractTestPrihlaska extends AbstractTestDb
                 $shop->zpracujUbytovani(ulozitNechceUbytovani: true);
                 $shop->zpracujJidlo();
                 $shop->zpracujVstupne();
-                $pomoc->zpracuj();
                 $uzivatel->finance()->obnovUdaje();
                 dbCommit();
             } catch (\Throwable $throwable) {
