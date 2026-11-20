@@ -301,7 +301,7 @@
     <!-- end:potvrditZmenuStavu -->
 
 
-    <form method="post" onsubmit="confirm('Opravdu odjel{a}?')">
+    <form method="post" onsubmit="return confirm('Opravdu odjel{a}?')">
     <span class="hinted">
       <input type="submit" name="gcOdjed" value="Odjel{a} z GC" {gcOdjedDisabled}>
       <span class="hint">
@@ -313,6 +313,44 @@
       </span>
     </span>
     </form>
+
+    <!-- begin:zrusitOdjezd -->
+    <form method="post" onsubmit="return confirm('Opravdu zrušit odjezd? Účastník bude zase na GC.')">
+    <span class="hinted">
+      <input type="submit" name="gcZrusOdjezd" value="Zrušit odjezd">
+      <span class="hint">
+        Když někdo odklikl „Odjel{a} z GC“ omylem. Účastník bude zase na GC. Vidí jen šéf infopultu.
+      </span>
+    </span>
+    </form>
+    <!-- end:zrusitOdjezd -->
+
+    <!-- begin:zrusitPrijezd -->
+    <form method="post" onsubmit="return confirm('Opravdu zrušit příjezd? Účastník bude zase jen přihlášený.')">
+    <span class="hinted">
+      <input type="submit" name="gcZrusPrijezd" value="Zrušit příjezd">
+      <span class="hint">
+        Když někdo odklikl „Přijel{a} a Dát materiály“ omylem. Účastník bude zase jen přihlášený, jako by infopultem
+        neprošel. Vydané materiály se tím nevrátí. Vidí jen šéf infopultu.
+      </span>
+    </span>
+    </form>
+    <!-- end:zrusitPrijezd -->
+
+    <!-- begin:zrusitPrihlaseni -->
+    <form method="post" onsubmit="return confirm('Opravdu zrušit přihlášení na GC? Účastníkovi nepřijde žádný mail.')">
+    <span class="hinted">
+      <input type="submit" name="gcZrusPrihlaseni" value="Zrušit přihlášení" {zrusitPrihlaseniDisabled}>
+      <span class="hint">
+        Když někdo odklikl „Přihlásit“ omylem. Jde jen u účastníka, který letos nemá ani nevede aktivity, nemá objednávky ani platby;
+        jinak ho odhlásí správce financí tlačítkem „Odhlásit z GC“. Vidí jen šéf infopultu.
+        <!-- begin:prekazky -->
+        <p>Účastník už má: {prekazkyZruseniPrihlaseni}.</p>
+        <!-- end:prekazky -->
+      </span>
+    </span>
+    </form>
+    <!-- end:zrusitPrihlaseni -->
   </div>
 
   <!-- begin:odhlasitZGc -->
