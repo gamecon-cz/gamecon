@@ -1,5 +1,6 @@
 <?php
 
+use Gamecon\Jazyk\Jazyk;
 use Gamecon\Web\EditorTextuPozadavek;
 use Gamecon\Web\NahledMarkdownu;
 use Gamecon\XTemplate\XTemplate;
@@ -54,7 +55,7 @@ class DbffMarkdownDirect extends DbFormField
      */
     protected function nahledHtml(): string
     {
-        return (string) markdown($this->value());
+        return (string) markdown($this->value(), $this->getJazykTextu());
     }
 
     /**
@@ -64,6 +65,16 @@ class DbffMarkdownDirect extends DbFormField
     protected function isTextOdUzivatele(): bool
     {
         return false;
+    }
+
+    /**
+     * Anglický sloupec (`obsah_en`) má v náhledu anglickou typografii jako na webu, ostatní českou.
+     */
+    private function getJazykTextu(): Jazyk
+    {
+        return str_ends_with((string) $this->name(), '_en')
+            ? Jazyk::ANGLICTINA
+            : Jazyk::CESTINA;
     }
 
     /**

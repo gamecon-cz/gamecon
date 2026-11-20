@@ -378,15 +378,5 @@ SQL,
     );
 }
 
-// The photo galleries of the lines are Instagram embeds that differ only in the posts, so the English version is
-// the Czech one with its few visible texts translated (the embed script replaces the placeholder of a post anyway).
-$this->q(<<<'SQL'
-UPDATE stranky
-SET obsah_en = REPLACE(REPLACE(REPLACE(obsah,
-        '# Fotogalerie', '# Photo gallery'),
-        'Zobrazit příspěvek na Instagramu', 'View this post on Instagram'),
-        'Příspěvek sdílený GameCon', 'A post shared by GameCon')
-WHERE url_stranky LIKE '%/fotogalerie'
-    AND obsah LIKE '# Fotogalerie%'
-SQL,
-);
+// The photo galleries of the lines (`*/fotogalerie`) stay without translation: they are Instagram embeds that are
+// updated in Czech every year, and a copied English version would keep showing the old posts.
